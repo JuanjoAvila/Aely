@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "id": "inc-2709-06-withdrawal-fixture-contract-20261005",
+  "from": "codex",
+  "coordinatorSession": "codex-cloud-flow-20261005",
+  "createdAt": "2026-10-05T17:34:22.191Z",
+  "to": "grok",
+  "baseSHA": "20147553c59a4d8e56bef6570ce79ffe8fecf6ce",
+  "objective": "Restaurar el guardián sintético de retirada con identidad OB coherente con extId, sin debilitar validación de identidad ni alterar producto. Diagnosticar primero la fixture que declara extId local pero fuente remota sin su codificación.",
+  "scope": [
+    "tests/retirada-bancaria.test.mjs",
+    "docs/briefs/inc-2709-06-caixa-ausentes.md"
+  ],
+  "authorization": "Flujo humano de diagnóstico y correcciones reanudado; entrega anterior Grok liberada5999200765. Solo tests/brief en PR131 existente; no integración ni bypass.",
+  "required": [
+    "Leer AGENTS/EMPIEZA-AQUI completos y brief actual. Confirmar base exacta; ACK+RESERVA en issue130 antes de editar; sin nuevaPR.",
+    "Reproducir node tests/retirada-bancaria.test.mjs exit1 en UTC y Europe/Madrid. En magnitud bancaria roles fijos/diario/ambos, contrastar expenseSourceForCloud(e) con row.source; e.extId está presente pero fixture remota usa source legacy sin sufijo.",
+    "Construir fixture positiva coherente con el encoding real existente, preservando fecha/UUID/importe/comercio/banco y ACK solo cat. Añadir negativos independientes con extId divergente o ausente respecto de identidad esperada, banco/UUID/date/amount/merchant distintos; exigir rechazo sin UPDATE y ACK inválido sin éxito.",
+    "Cubrir legacy sin extId, con extId, noCard, repetición, zero rows, RLSdenied, banco/budget/cash invariant; no simplificar guardias ni relajar assertions para obtener verde.",
+    "Si aparece un defecto de producto real con fixture coherente, reportar reproducción y pedir ampliación concreta al coordinador; no editar src/public/Edge/SQL/auth/VERSION ni otrasunidades.",
+    "Entregar SHA completo, diff exacto, comandos/exitcodes por zona y RESULTADO+LIBERACIÓN issue130. No afirmar npm entero/móvil/beta ni integración por unidad."
+  ],
+  "limits": [
+    "Grok dirige solo Cursor; issue130 es transporte completo, no lectura de rama requerida.",
+    "Sin datos reales, nuevasdeps/servicios/secretos/permisos, producto, artifacts, workers duplicados o nuevasPR."
+  ]
+}

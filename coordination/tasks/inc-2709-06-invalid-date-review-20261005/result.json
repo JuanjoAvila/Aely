@@ -1,0 +1,40 @@
+{
+  "status": "done",
+  "productSHA": "20147553c59a4d8e56bef6570ce79ffe8fecf6ce",
+  "summary": "GO técnico exclusivamente al microdelta fechas inválidas, árbol exacto86cc6313c57b616d9cc2606f60cdeb1cc4d88cdf. Revisión independiente confirma rechazo de ausentes/imposibles sin inventar fechas, filas válidas y contratos intactos. PR131 completa continúa NO-GO; retirada/widget/tamaño y aceptación móvil separados.",
+  "tests": [
+    {
+      "command": "node tests/inc-2709-06-fecha-invalida.test.mjs (UTC and Europe/Madrid)",
+      "exitCode": 0,
+      "result": "8/8 por zona; mismo test en base3fd exit1,7fallos por zona"
+    },
+    {
+      "command": "node tests/ob-ingresos.test.mjs; individual ACK/identidad/extid/hist-durante-ack/diario-diferido guardians (both zones)",
+      "exitCode": 0
+    },
+    {
+      "command": "independent synthetic adversarial.mjs (both zones)",
+      "exitCode": 0,
+      "result": "228 comprobaciones por zona"
+    },
+    {
+      "command": "npm run test:syntax",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/retirada-bancaria.test.mjs (base and candidate, both zones)",
+      "exitCode": 1,
+      "result": "withdrawal identity changed; separate next unit"
+    }
+  ],
+  "limitations": [
+    "No npm test entero, DOM, Android/móvil, integración ni aceptación humana.",
+    "No cambio de App11/histDate/sellos/lápidas/#dup/deuda/diario en microdelta."
+  ],
+  "schema": 1,
+  "taskId": "inc-2709-06-invalid-date-review-20261005",
+  "actor": "codex",
+  "sessionId": "codex-cloud-flow-20261005",
+  "createdAt": "2026-10-05T17:34:22.171Z",
+  "released": true
+}
