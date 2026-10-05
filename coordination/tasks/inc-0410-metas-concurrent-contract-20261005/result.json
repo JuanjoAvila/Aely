@@ -1,0 +1,32 @@
+{
+  "status": "done",
+  "summary": "Contrato de aportaciones concurrentes a una misma meta: matriz de 9 escenarios x 4 variantes (reloj x orden de subida) sobre el producto real y sobre un modelo de referencia con las mismas invariantes. Producto: pierde en 7 de 9 escenarios (incluida apertura legacy, regla+aporte, liberacion+aporte, borrado+aporte, centimos en coma flotante de addToGoal); cumplen las guardas de no duplicar (misma regla/mes y replay con ACK perdido). Modelo (goalLog con id + apertura + lapidas, union por id, centimos enteros) cumple todo, es conmutativo e idempotente y un mutante lo pone en rojo. Hallazgos: aporte manual sin identidad ni asiento (bloqueo minimo: sin id solo se elige entre perder o duplicar), saved no derivable del registro, el asiento manual no puede ir en reservaLog (resta del presupuesto). Fusion en cliente viable con el CAS de pushState; compactacion, upsert sin sello y clientes viejos exigen contrato backend separado. Decisiones pendientes del dueño: borrar meta vs aportar, editar ahorrado vs aportar.",
+  "tests": [
+    {
+      "command": "node tests/metas-lww-concurrente.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "LWW_ESPERADO=1 node tests/metas-lww-concurrente.test.mjs",
+      "exitCode": 1
+    },
+    {
+      "command": "node tests/docs-frescura.test.mjs",
+      "exitCode": 0
+    }
+  ],
+  "productSHA": "0dbc3c888c22541f0165bd1dd1a69653b9d84c7f",
+  "limitations": [
+    "Rama claude/upbeat-ritchie-j97we6, base 44966bdc6300994f398cc5b2ff615eaaa12921e1; solo 2 archivos: tests/metas-lww-concurrente.test.mjs y docs/briefs/inc-0410-metas-lww-concurrencia.md",
+    "No se ejecuto npm test entero, e2e, Android ni runner completo; solo los tres comandos listados (Linux, Node, TZ del contenedor; el test usa instantes UTC fijos)",
+    "Doble de nube en Node, sin Supabase ni moviles reales",
+    "Test previo conserva el asiento sintetico man|meta que el producto no crea; se documenta en el brief",
+    "Sin PR ni cambio de producto; no se uso subagente"
+  ],
+  "schema": 1,
+  "taskId": "inc-0410-metas-concurrent-contract-20261005",
+  "actor": "claude",
+  "sessionId": "claude-cloud-20261005-2725fa57",
+  "createdAt": "2026-10-05T17:59:18.827Z",
+  "released": true
+}
