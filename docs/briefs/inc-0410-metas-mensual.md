@@ -48,3 +48,13 @@ Al abrir la app, cuando termina bien el pull de estado de ese arranque; y al vol
 ## Tamaño
 
 Medida oficial del coordinador sobre `8ff6402a`: 1.316.330 B minificado y 358.513 B gzip, +8.257/+2.308 sobre la 93 servida; topes ampliados a 1286/351 KiB. Con el retorno nativo, la lectura estricta de la nube y la puerta por pull, medida oficial sobre `d8255941`: 1.317.146/358.744 B; tope crudo a 1287 KiB (quedan 742 B) y gzip sin cambio (680 B).
+
+## Diagnóstico de escrituras simultáneas (5/10, sintético, sin cambio de producto)
+
+`tests/metas-lww-concurrente.test.mjs` (en `run-tests`) ejecuta el `syncFromCloud` real y la regla de subida con sello `updated_at`, con una nube doble de la misma semántica que `pushState`. Dos clientes parten del mismo estado, cada uno aporta a una meta distinta antes de ver al otro y suben.
+
+- **Primera pérdida:** el cliente que sube segundo choca con el sello (`conflict`), llama a `syncFromCloud` y ahí `localNewer` compara solo `_savedAt` del estado ENTERO. Si gana la nube, `Object.assign({},prev,cloudState)` descarta `goals` y `reservaLog` locales; si gana lo local, `set` sella un `_savedAt` nuevo y su subida siguiente resube el estado entero con el sello fresco y borra lo del otro. En ambos órdenes de reloj se pierde una aportación completa (saldo de la meta y asiento).
+- La puerta por pull de 4.26.94 impide aportar sin leer la nube, pero no cubre la edición simultánea: dos aportaciones tras el mismo pull son independientes para ella.
+- **Corrección acotada propuesta (no implementada):** en la rama de conflicto, fusionar `reservaLog` por `id` (unión; los ids `mensual|regla|AAAA-MM` ya son idempotentes) y recomponer `goals[].saved` como el máximo entre lo local y lo remoto o, mejor, derivarlo del propio `reservaLog`. Sin tocar `expenses` ni el reparto mensual ya entregado.
+- Hoy el fichero **caracteriza** la pérdida (verde = pérdida presente). `LWW_ESPERADO=1` aserta el contrato deseado y sale en rojo (exit 1); quien corrija debe invertirlo.
+- Límite: las trazas son de un doble de nube en Node; no hay móviles reales ni Supabase real.

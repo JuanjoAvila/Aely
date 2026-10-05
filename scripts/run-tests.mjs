@@ -99,6 +99,7 @@ const steps = [
   ["bank-sync-paging", ["node", "tests/bank-sync-paging.test.mjs"]],
   ["reserva-dinero", ["node", "tests/reserva-dinero.test.mjs"]],
   ["metas-pull-transport", ["node", "tests/metas-pull-transport.test.mjs"]],
+  ["metas-lww-concurrente", ["node", "tests/metas-lww-concurrente.test.mjs"]],
   ["persist-commit", ["node", "tests/persist-commit.test.mjs"]],
   ["month-budget-stats", ["node", "tests/month-budget-stats.test.mjs"]],
   ["dash-metricas", ["node", "tests/dash-metricas.test.mjs"]],
