@@ -1,0 +1,60 @@
+{
+  "status": "blocked",
+  "summary": "Candidata saneada publicada y verificada; CI del nuevo SHA todavía ausente, aceptación e integración retenidas.",
+  "productSHA": "7e5f1f396d1dc92053f1a5fabaad9a56e58cce42",
+  "treeSHA": "0c11d19d684b146c539b697ab5264fbccfa9dbbb",
+  "parentSHA": "1aaa6c9183d94e7dcf718aebb23d810bf40cd45e",
+  "pr": 134,
+  "branch": "claude/memoria-nube-20261005",
+  "tests": [
+    {
+      "command": "node tests/sync-memoria.test.mjs",
+      "exitCode": 0,
+      "note": "414 variantes sintéticas"
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run test:syntax",
+      "exitCode": 0
+    },
+    {
+      "command": "node --check scripts/sync-memoria.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node --check tests/sync-memoria.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "git diff --cached --check",
+      "exitCode": 0
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0
+    },
+    {
+      "command": "10 pruebas independientes sintéticas de privacidad financiera y Markdown",
+      "exitCode": 0
+    }
+  ],
+  "evidence": [
+    "Cinco archivos coinciden en tamaño/SHA256/blob y árbol esperado. Scope total de PR134 conserva20 archivos. Remote update_ref force:false, commit con padre único exacto; readback conector y fetch Git independientes; checkout limpio.",
+    "Revisión independiente de privacidad GO acotado a candidata; no anonimización universal.",
+    "Exact SHA: workflow runs0, check runs0, statuses vacíos. No dispatcher oficial expuesto; CLI sin autenticación. CI heredada37338992164 sobre1aaa falló docs-frescura28archivos/exit1 y Privacidad omitida; no atribuir al nuevo SHA."
+  ],
+  "limitations": [
+    "No merge/SQUASH: requieren review+CI exactos verdes.",
+    "No cambio main/beta/producción/APK/Edge/SQL/auth ni lectura de datos reales. Inputs privados blocked.",
+    "La candidata quedó durable en PR134: siguiente unidad solo reconciliar CI/gates, no restaurar/publicar de nuevo."
+  ],
+  "schema": 1,
+  "taskId": "ops-0510-memory-export-publication-20261005",
+  "actor": "codex",
+  "sessionId": "relay-run-nkh3m3oc7q88bbth",
+  "createdAt": "2026-10-05T20:12:37.583Z",
+  "released": true
+}
