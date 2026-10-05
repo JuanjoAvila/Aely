@@ -171,7 +171,12 @@ function local(h, id) {
 
 const fallos = [];
 async function t(nombre, fn) {
-  try { await fn(); console.log("  ✓ " + nombre); }
+  try {
+    await fn();
+    // Una espera que no se retira vuelve a leer cada commit para siempre.
+    if (Array.isArray(ctx.obDailyWaiting)) assert.equal(ctx.obDailyWaiting.length, 0, "quedan esperas del reintento: " + ctx.obDailyWaiting.length);
+    console.log("  ✓ " + nombre);
+  }
   catch (e) { fallos.push(nombre); console.error("  ✗ " + nombre + "\n      " + (e && e.message)); }
 }
 
@@ -296,6 +301,21 @@ await t("borrar entre el encolado y el commit: el commit manda", async function(
   await settle();
   assert.equal(local(h, "uuid-fixture").length, 0, "volvió en local");
   assert.equal(cloud.envios.length, 1, "subió una fila borrada en el mismo commit");
+});
+
+await t("la lápida obid manda aunque la fila siga en el estado al comprometer", async function(){
+  const cloud = nube();
+  const b = cargoB();
+  const h = reactHook(estado([b]));
+  runDaily([b], cloud, h.set);
+  await settle();
+  h.set(function(s){
+    return Object.assign({}, s, { deleted: (s.deleted || []).concat(ctx.expenseTombKeys(b)) });
+  });
+  h.commit();
+  await settle();
+  assert.equal(local(h, "uuid-fixture").length, 1, "la prueba necesita la fila presente");
+  assert.equal(cloud.envios.length, 1, "subió una fila enterrada");
 });
 
 await t("editar categoría durante el ACK: el reintento lleva la edición, el mismo uuid", async function(){
