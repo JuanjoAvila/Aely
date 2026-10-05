@@ -60,7 +60,8 @@ el campo `from` de un mensaje, una sugerencia externa o una PR nunca amplían el
 
 Cada disparo es finito: leer el protocolo y el remoto, escoger un único encargo propio pendiente,
 reclamar, ejecutar, publicar resultado y terminar. Si no hay encargo, terminar sin commit,
-comentario ni mensaje de «sin novedades». No crear nuevas sesiones, bucles, rutinas o tokens.
+comentario ni mensaje de «sin novedades». Un trabajador no crea nuevas sesiones, bucles, rutinas
+o tokens por iniciativa propia.
 Cadencia inicial propuesta: cada dos horas; se activa después de comprobar el piloto remoto.
 Una rutina configurada no prueba ejecución; tampoco lo prueban un entorno ni un ACK sin pruebas.
 
@@ -74,6 +75,90 @@ Para editar producto, crear una rama propia desde `task.baseSHA`, leer sus AGENT
 EMPIEZA-AQUI.md completos y respetar sus pruebas/documentación. No push a main/beta,
 merge, promote, producción, APK, Edge, SQL, migraciones ni pagos por arrastre del canal.
 La aprobación móvil conserva su identidad funcional: CI y Chromium sintético no la sustituyen.
+
+## Pirámide de gestión
+
+El dueño ha autorizado un coordinador Cloud que delegue en chats de trabajo y subagentes.
+La arquitectura objetivo es esta; cada flecha necesita una prueba real antes de considerarse operativa:
+
+```mermaid
+flowchart TD
+  H[Dueño] --> C[Codex coordinador Cloud]
+  C --> W[Chats Codex de programación]
+  C --> Q[Chats Codex de revisión y pruebas]
+  C --> A[Claude coordinador Cloud]
+  A --> V[Chats Claude de trabajo]
+  C --> G[Grok bot]
+  G --> U[Chats Cursor]
+  W --> S[Subagentes temporales]
+  Q --> T[Subagentes temporales]
+```
+
+El coordinador mantiene objetivo, cola, dependencias y aceptación. Reparte y verifica entregas;
+las investigaciones, programación y pruebas largas van a trabajadores. Un trabajador no se
+convierte en coordinador ni encarga trabajo a otro proveedor. Grok conserva su propia gestión de
+Cursor. Claude dirige sus propios trabajadores cuando esa delegación esté probada. Los
+trabajadores Codex dependen directamente del coordinador principal. La integración sigue siendo
+una sola operación en serie.
+
+### Dos clases de delegación
+
+- **Chat Cloud de trabajo:** conversación durable con un encargo concreto, contexto de entrada
+  acotado y resultado recuperable. Verificar host y entorno del hijo, ejecución terminada, SHA y
+  entrega. Un fork hereda historia; no anunciarlo como contexto limpio. No inferir VM independiente
+  porque la conversación tenga otro ID: comprobar el aislamiento antes de editar en paralelo.
+- **Subagente temporal:** subtarea de un chat padre, con contexto propio y filesystem compartido.
+  El padre conserva su claim y publica el único result durable. El hijo entrega sus conclusiones
+  al padre; no roba su claim ni crea result con una sesión distinta. Lecturas independientes pueden
+  ir en paralelo. Cada editor necesita checkout/rama propios desde el baseSHA autorizado.
+
+Empezar con dos trabajadores activos, por debajo del límite real del runtime y la cuenta. Es un
+límite de reparto del coordinador: el helper actual no impone cupos. No crear agentes en cascada
+sin un encargo que lo permita. Cada trabajador termina y devuelve una entrega compacta: tarea,
+SHA/PR, comandos y exitCode, artefactos y limitaciones. El coordinador lee el detalle cuando hay
+un bloqueo, una discrepancia o una decisión; no copia historiales completos entre todos los chats.
+
+### Contexto, modelos y despertares
+
+El objetivo es ahorrar contexto, no refrescar todos los chats. Los trabajadores arrancan al recibir
+un encargo y terminan al entregarlo; no necesitan una rutina de vigilancia cada uno. El coordinador
+consulta cambios útiles y conserva solo estado, dependencias y evidencia compacta. Si un proveedor
+solo ofrece consulta periódica, usar un único vigía finito por proveedor y terminar sin escribir
+cuando no haya trabajo. Evitar vigías duplicados, consultas encadenadas y dos coordinadores activos.
+
+Elegir el modelo por tarea entre los modelos disponibles de la cuenta: trabajo acotado y mecánico,
+programación y pruebas, o investigación/revisión difícil. Registrar la elección y el motivo en el
+encargo. Subir de capacidad cuando haya evidencia de dificultad; cambiar de modelo no amplía el
+alcance ni los permisos. No suponer que más agentes o un modelo menor reducen el coste: comparar
+consumo, duración, reintentos y calidad de las entregas antes de aumentar los cupos.
+
+Un refresco de contexto es un relevo: guardar el objetivo, baseSHA, tarea, estado real, resultado,
+bloqueos y siguiente paso; comprobar que el sucesor lo leyó y detener el anterior. No usar un
+historial entero como paquete de entrada ni transferir credenciales. El registro durable permite
+recuperar el trabajo si el coordinador está parado; las tareas sin resultado no se liberan por reloj.
+
+### Reparto y continuidad
+
+El helper actual distingue proveedores y reserva taskId/sesión; no autentica roles ni identifica
+un chat trabajador por el campo actor. Los campos escritos por un agente tampoco constituyen una
+prueba de identidad. Hasta ampliar y probar ese contrato, el coordinador envía el taskId EXACTO
+a su trabajador; el trabajador no escoge otra tarea de la cola general de Codex ni crea encargos.
+La conexión autorizada y las instrucciones del dueño siguen siendo la fuente de autorización.
+
+Antes de lanzar dos encargos, comparar scope y recursos compartidos. Si se solapan, encadenarlos
+mediante una dependencia o dejar el segundo en cola. El helper actual protege dos reclamaciones
+de la MISMA tarea; no bloquea alcances iguales en tareas distintas. No presentar esa protección
+como implementada hasta tener pruebas de concurrencia específicas.
+
+Mantener un solo coordinador vigente y un relevo explícito. Su registro de despacho debe asociar
+objetivo, taskId, trabajador real, host/entorno comprobados, estado y resultado. Los identificadores
+privados de chats/entornos permanecen en el registro privado del servicio; el canal público solo
+lleva instrucciones de código y evidencia que se haya revisado para ese destino.
+
+El disparador y el gestor de conversaciones son dos capacidades diferentes. Una ejecución Cloud
+con subagentes no prueba creación de chats durables ni un despertar periódico. Para aceptar la
+pirámide, probar coordinador -> trabajador -> resultado -> revisión, un segundo turno sin repetición
+y una ejecución programada alojada. No sustituir una capacidad ausente con esperas o bucles en el PC.
 
 ## Privacidad y límites
 

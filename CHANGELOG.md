@@ -6963,3 +6963,7 @@ Con esto queda **completo el motor dinámico**: calendario de fijos, día de cob
 ## Infraestructura en la rama de coordinación · 2026-10-05
 
 El canal común pasa del issue130 a ficheros inmutables en codex/coordinacion para que una sesión nueva de Claude/Codex cloud pueda leer encargos, reclamar uno con push normal y cerrar expresamente. El helper usa un índice temporal: evita incluir trabajo ajeno y vuelve a evaluar la reserva después de un rechazo concurrente. Prueba con remoto bare/dos clones, mensajes concurrentes, exclusión, idempotencia, privacidad y conservación de WIP; registrada en el runner. Esto no publica una versión de la app. La activación y la continuidad remota se verifican por separado.
+
+### Contrato de la pirámide de coordinación
+
+Define coordinador con contexto acotado, chats durables para encargos y subagentes temporales con filesystem compartido. El reparto inicial limita a dos trabajadores, entrega compacta y revisión/integración en serie. Explicita lo que el helper aún no acredita: roles, destinatario de chat, cupos y conflictos de alcance entre tareas distintas. La creación durable y el disparador alojado se aceptan con ejecución real, sin deducirlos de una reserva o un entorno. Política/documentación del canal; no publica producto.
