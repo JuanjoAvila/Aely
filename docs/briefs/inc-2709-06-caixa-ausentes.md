@@ -1,5 +1,13 @@
 # INC-2709-06 · cargos CaixaBank ausentes
 
+## Actualización 5/10/2026 · unidad acotada sobre `0fa7075a`
+
+Un verde de esta unidad **no autoriza integrar el PR #131**. El resto del NO-GO [5989932516](https://github.com/JuanjoAvila/Aely/pull/131#issuecomment-5989932516) sigue abierto (fecha de ingreso inválida, identidad de un reintegro, el setter diario que pierde un reintento si el updater va diferido, formato de clave y lápida entre app y servidor, zona horaria, compatibilidad de versión y `#dup`, recuperación tras un pull fallido, alcance de la revisión, presupuesto de tamaño). El caso humano sigue abierto. Edge no se despliega: el widget publicado sigue juntando por día.
+
+Qué se midió en `0fa7075aa23cf9c66e7c1050356d2780f32e3a08`. Mientras el histórico espera el ACK, un pull mete el cargo canónico de la misma referencia `cargo-A`. `obPlanRetry` se queda el objeto local. `persistHistImport` deduplicaba solo por uuid y hacía `shown.concat(s.expenses)`. Al soltar el ACK salían dos filas y 25 € por un cargo de 12,50 €, y el deshacer podía llevar una fila que ese batch no insertó. El aviso leía una variable que `set` todavía no había rellenado y anunciaba 0. `node tests/inc-2709-06-hist-durante-ack.test.mjs` contra ese commit: 3 fallos en UTC y 3 en Europe/Madrid (canónico duplicado, A/B con el uuid local de más, contador 0). Borrar durante el ACK, el mismo extId en bancos distintos y dos filas sin extId ya salían bien y siguen saliendo bien.
+
+El commit del histórico reconcilia contra el estado de ahora, en un cálculo puro: primero la lápida; luego el uuid, o banco más extId no vacío. Importe, comercio y día no son identidad. Si la referencia ya está, se conserva esa fila y sus ediciones; el uuid local no se concatena. Contadores, deshacer y `cloudIds` solo llevan lo que este batch insertó de verdad. Si no cambia nada, se devuelve el mismo estado. El aviso sale del resultado del commit, en una microtarea, y no se pinta si no hubo altas. No se toca `obPlanRetry` ni el sync diario.
+
 ## Actualización 5/10/2026 · revisión Codex de `d67edc7b`, NO-GO
 
 Codex revisó `d67edc7b5b3eea62eeb21fab3cdc4bcae0f947c3` y no lo dio por bueno. El guardián de la pasada anterior le entregaba a `obReassignSkipped` la nube entera. Los callers de `11-app-main.js` y `10-app-components.js` no hacen eso: el upsert solo devuelve los id insertados (`ack.kept`). Una escritura ignorada no trae la fila que ya ocupaba la terna. Reproducido ejecutando ese callback, con un transporte que ignora la terna y no inventa la fila remota, en UTC y en Europe/Madrid (`node tests/inc-2709-06-ack.test.mjs` contra ese commit: 6 fallos en cada zona). El caso humano sigue abierto: no se ha leído el enlace, la respuesta de Edge ni las filas de ese perfil.

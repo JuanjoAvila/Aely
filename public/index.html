@@ -16206,6 +16206,72 @@ function persistObImport(rows, cloud, set){
     return obChaseRounds(ack, cloud, function(plan){ return obSettleDaily(set, plan); });
   }).catch(function(){});
 }
+function obHistRefKey(e){
+  if(!e || e.extId==null || e.extId==="") return "";
+  const bank=e.ent || (typeof expenseBankOf==="function" ? expenseBankOf(e) : "") || "";
+  return bank ? bank+"|"+String(e.extId) : "";
+}
+/* El commit del histórico mira el estado de ahora. Misma fila = mismo uuid, o el mismo
+   banco con un extId no vacío. Importe, comercio y día no son identidad: dos cargos
+   distintos de 12,50 € tienen que seguir siendo dos. Si la referencia ya llegó (un pull
+   mientras se esperaba el ACK), se conserva esa fila y sus ediciones; el uuid local no
+   se concatena ni entra en deshacer. El aviso sale de este resultado y no de una variable
+   que set todavía no ha rellenado: si no, el contador salía 0. */
+function obHistCommit(state, spec){
+  spec=spec||{};
+  const s=state||{};
+  const cur=s.expenses||[];
+  const del=obDeletedLookup(s.deleted);
+  const byId=Object.create(null), byRef=Object.create(null);
+  cur.forEach(function(e){
+    if(!e) return;
+    if(e.id) byId[e.id]=1;
+    const k=obHistRefKey(e);
+    if(k) byRef[k]=1;
+  });
+  const added=[];
+  (spec.keep||[]).forEach(function(e){
+    if(!e || obRowBuried(e, del)) return;
+    if(e.id && byId[e.id]) return;
+    const k=obHistRefKey(e);
+    if(k && byRef[k]) return;
+    added.push(e);
+    if(e.id) byId[e.id]=1;
+    if(k) byRef[k]=1;
+  });
+  const fixAdds=spec.fixAdds||[];
+  if(!added.length && !fixAdds.length) return { next:s, added:added };
+  const next=Object.assign({}, s);
+  if(added.length) next.expenses=added.concat(cur);
+  if(fixAdds.length) next.fixed=(s.fixed||[]).concat(fixAdds);
+  if(added.length){
+    const vis=Object.create(null);
+    added.forEach(function(e){ if(e&&e.id) vis[e.id]=1; });
+    const ids=spec.offline ? [] : (spec.cloudIds||[]).filter(function(id){ return vis[id]; });
+    next.lastHistImport={ batchId:spec.batchId, localIds:added.map(function(e){ return e.id; }), cloudIds:ids, at:Date.now() };
+  }
+  return { next:next, added:added };
+}
+function obHistAnnounce(report, spec, showToast, t, tf){
+  if(typeof showToast!=="function" || typeof t!=="function" || typeof tf!=="function") return;
+  const added=(report&&report.added)||[];
+  const fixAdds=(spec&&spec.fixAdds)||[];
+  const offline=!!(spec&&spec.offline);
+  const expAdds=(spec&&spec.expAdds)||[];
+  const gastos=added.filter(function(e){ return e&&e.amount>0; }).length;
+  const ingresos=added.filter(function(e){ return e&&e.amount<0; }).length;
+  const parts=[];
+  if(gastos) parts.push(tf("bp_hist_done_g",{n:gastos}));
+  if(ingresos) parts.push(tf("bp_hist_done_i",{n:ingresos}));
+  if(fixAdds.length) parts.push(tf("bp_hist_done_r",{n:fixAdds.length}));
+  if(spec&&spec.failed){ showToast("⚠ "+t("bp_hist_no_ack")); return; }
+  if(offline && expAdds.length){
+    showToast((parts.length?parts.join(" · ")+" · ":"")+t("bp_hist_offline"));
+    return;
+  }
+  if(!added.length && !fixAdds.length) return;
+  showToast(parts.length?parts.join(" · "):tf("bp_hist_done",{n:added.length+fixAdds.length}));
+}
 /* Histórico: lo que no entra no se acredita para deshacer, pero tampoco se tira. La misma
    referencia se enseña en local sin un segundo uuid. Un fallo (null, red, excepción) no
    deja filas: offline sí, todas, y sin ids de nube. */
@@ -16221,8 +16287,8 @@ function persistHistImport(opts){
       const offline=!!(res&&res.offline);
       const failed=!!(res&&res.failed) || !res;
       const ack=histApplyBatchAck(expAdds, (res&&res.cloudIds)||[], { offline:offline });
-      if(offline) return { keep:expAdds.slice(), cloudIds:[], offline:true };
-      if(failed) return { keep:[], cloudIds:[], offline:false };
+      if(offline) return { keep:expAdds.slice(), cloudIds:[], offline:true, failed:false };
+      if(failed) return { keep:[], cloudIds:[], offline:false, failed:true };
       if(!ack.skipped.length) return { keep:(ack.kept||[]).slice(), cloudIds:(ack.cloudIds||[]).slice(), offline:false };
       // Sin lectura no hay forma de saber si es la misma referencia. No se refecha (sería
       // otra fila) y no se tira: queda en local, sin id de nube.
@@ -16240,42 +16306,26 @@ function persistHistImport(opts){
       });
     })
     .then(function(pack){
-      pack=pack||{ keep:[], cloudIds:[], offline:false };
-      const offline=!!pack.offline;
-      let shown=[];
+      pack=pack||{ keep:[], cloudIds:[], offline:false, failed:false };
+      const spec={
+        keep:pack.keep||[], cloudIds:pack.cloudIds||[], offline:!!pack.offline, failed:!!pack.failed,
+        fixAdds:fixAdds, batchId:batchId, expAdds:expAdds
+      };
+      // El aviso va DESPUÉS del updater, en otro turno: set de React no ejecuta el cálculo
+      // al momento, y leer el contador aquí fabricaba un 0. Dentro del updater no hay red.
+      let avisado=false;
       if(typeof set==="function"){
         set(function(s){
-          const del=obDeletedLookup(s&&s.deleted);
-          shown=(pack.keep||[]).filter(function(e){ return e && !obRowBuried(e, del); });
-          const next=Object.assign({}, s);
-          if(shown.length) next.expenses=shown.concat(s.expenses||[]);
-          if(fixAdds.length) next.fixed=(s.fixed||[]).concat(fixAdds);
-          if(shown.length){
-            const vis=Object.create(null);
-            shown.forEach(function(e){ if(e.id) vis[e.id]=1; });
-            const ids=offline ? [] : (pack.cloudIds||[]).filter(function(id){ return vis[id]; });
-            next.lastHistImport={ batchId:batchId, localIds:shown.map(function(e){ return e.id; }), cloudIds:ids, at:Date.now() };
+          const report=obHistCommit(s, spec);
+          if(!avisado){
+            avisado=true;
+            const rec=report;
+            // Microtarea: no es setState dentro del updater, y un setter diferido no
+            // llega a pintar 0 antes de que este cálculo exista.
+            Promise.resolve().then(function(){ obHistAnnounce(rec, spec, showToast, t, tf); });
           }
-          return next;
+          return report.next;
         });
-      }
-      const gastos=shown.filter(function(e){ return e.amount>0; }).length;
-      const ingresos=shown.filter(function(e){ return e.amount<0; }).length;
-      const parts=[];
-      if(typeof tf==="function"){
-        if(gastos) parts.push(tf("bp_hist_done_g",{n:gastos}));
-        if(ingresos) parts.push(tf("bp_hist_done_i",{n:ingresos}));
-        if(fixAdds.length) parts.push(tf("bp_hist_done_r",{n:fixAdds.length}));
-      }
-      const cloudIds=offline ? [] : (pack.cloudIds||[]);
-      if(typeof showToast==="function" && typeof t==="function" && typeof tf==="function"){
-        if(!offline && expAdds.length && !cloudIds.length && !shown.length){
-          showToast("⚠ "+t("bp_hist_no_ack"));
-        }else if(offline && expAdds.length){
-          showToast((parts.length?parts.join(" · ")+" · ":"")+t("bp_hist_offline"));
-        }else{
-          showToast(parts.length?parts.join(" · "):tf("bp_hist_done",{n:shown.length+fixAdds.length}));
-        }
       }
       if(typeof setImporting==="function") setImporting(false);
       if(typeof onClose==="function") onClose();
