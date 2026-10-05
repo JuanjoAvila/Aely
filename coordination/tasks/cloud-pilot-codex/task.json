@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "id": "cloud-pilot-codex",
+  "from": "codex",
+  "coordinatorSession": "codex-local-cloud-migration-20261005",
+  "createdAt": "2026-10-05T11:50:19.021Z",
+  "to": "codex",
+  "objective": "Probar lectura/escritura del canal y herramientas reales de Aely en una VM cloud, sin cambiar producto",
+  "baseSHA": "dd59064e1edb6bd0e14a0d9682a9b61f47dc212e",
+  "scope": [],
+  "authorization": "Montar Claude y Codex en la nube; piloto sintético de infraestructura autorizado por el dueño el 2026-10-05",
+  "instructions": [
+    "Leer docs/COORDINACION-AGENTES.md de codex/coordinacion a partir de a549326e6fc0c332725da14aa45b09bebc40ee6a. Reclamar mediante el helper ANTES de probar producto.",
+    "Ejecutar node tests/coordination-channel.test.mjs desde el checkout del canal y registrar salida/código reales.",
+    "Crear checkout separado del SHA de producto indicado. Leer AGENTS.md y EMPIEZA-AQUI.md completos. Comprobar node/npm/git, zona horaria, npm ci, npm run build, npm run test:syntax.",
+    "Ejecutar un e2e sintético e2e/smoke.spec.mjs con el Chromium de ESTA VM si está disponible. Si no lo está, registrar bloqueo concreto y no inventar pruebas. No utilizar ningún móvil ni navegador del PC.",
+    "No editar, push, PR ni publicación de producto. No copiar secretos ni datos financieros. El único push permitido es claim/result del canal.",
+    "Cerrar con tests reales, plataforma/zona horaria, SHA exacto y límites. No afirmar npm test entero ni Android real a partir de estas pruebas."
+  ]
+}
