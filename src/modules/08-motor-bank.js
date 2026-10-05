@@ -2839,8 +2839,10 @@ function obHistRefKey(e){
    banco con un extId no vacío. Importe, comercio y día no son identidad: dos cargos
    distintos de 12,50 € tienen que seguir siendo dos. Si la referencia ya llegó (un pull
    mientras se esperaba el ACK), se conserva esa fila y sus ediciones; el uuid local no
-   se concatena ni entra en deshacer. Este cálculo no avisa: React puede ejecutarlo y
-   descartar el resultado. El aviso lo lee `obHistNoticeCommit` del estado comprometido. */
+   se concatena ni entra en deshacer. Este cálculo no avisa ni cierra la ficha: React puede
+   ejecutarlo y descartar el resultado. Las dos cosas las hace `obHistNoticeCommit` con el
+   estado comprometido. Por eso hay recibo aunque no entre nada: sin estado nuevo no hay
+   commit, y la ficha se quedaría importando para siempre. */
 function obHistNoticeFor(added, spec){
   spec=spec||{};
   added=added||[];
@@ -2848,12 +2850,12 @@ function obHistNoticeFor(added, spec){
   const failed=!!spec.failed;
   const offline=!!spec.offline;
   const expAdds=spec.expAdds||[];
-  if(!(failed || (offline && expAdds.length) || added.length || fixAdds.length)) return null;
   const ids=[];
   added.forEach(function(e){ if(e&&e.id) ids.push(String(e.id)); });
   ids.sort();
   return {
-    id:[String(spec.batchId||""), ids.join(","), failed?"1":"0", offline?"1":"0", String(fixAdds.length)].join("|"),
+    id:[String(spec.batchId||""), ids.join(","), failed?"1":"0", offline?"1":"0", String(fixAdds.length), String(spec.end||"")].join("|"),
+    end:spec.end||"",
     added:added,
     spec:{ fixAdds:fixAdds, offline:offline, failed:failed, expAdds:expAdds, batchId:spec.batchId }
   };
@@ -2882,7 +2884,6 @@ function obHistCommit(state, spec){
   });
   const fixAdds=spec.fixAdds||[];
   const notice=obHistNoticeFor(added, spec);
-  if(!added.length && !fixAdds.length && !notice) return { next:s, added:added };
   const next=Object.assign({}, s);
   if(added.length) next.expenses=added.concat(cur);
   if(fixAdds.length) next.fixed=(s.fixed||[]).concat(fixAdds);
@@ -2892,21 +2893,32 @@ function obHistCommit(state, spec){
     const ids=spec.offline ? [] : (spec.cloudIds||[]).filter(function(id){ return vis[id]; });
     next.lastHistImport={ batchId:spec.batchId, localIds:added.map(function(e){ return e.id; }), cloudIds:ids, at:Date.now() };
   }
-  if(notice) next.histImportNotice=notice;
+  next.histImportNotice=notice;
   return { next:next, added:added };
 }
 /* El recibo viaja en el estado que React comprometió. Una segunda pasada del mismo id
-   no vuelve a avisar: el layout effect puede correr otra vez con el mismo estado. */
+   no vuelve a avisar ni a cerrar: el layout effect puede correr otra vez con el mismo
+   estado, y el cierre de cada lote se borra al usarse. */
 var obHistNoticeSeen=Object.create(null);
+var obHistEnding=Object.create(null);
+var obHistEndSeq=0;
+function obHistEnd(key){
+  const end=key&&obHistEnding[key];
+  if(!end) return false;
+  delete obHistEnding[key];
+  if(typeof end.setImporting==="function") end.setImporting(false);
+  if(typeof end.onClose==="function") end.onClose();
+  return true;
+}
 function obHistNoticeCommit(prev, state, showToast, t, tf){
   if(prev===state) return false;
   const rec=state&&state.histImportNotice;
   if(!rec||!rec.id) return false;
   if(prev&&prev.histImportNotice&&prev.histImportNotice.id===rec.id) return false;
   if(obHistNoticeSeen[rec.id]) return false;
-  if(typeof showToast!=="function"||typeof t!=="function"||typeof tf!=="function") return false;
   obHistNoticeSeen[rec.id]=1;
   obHistAnnounce({added:rec.added||[]}, rec.spec||{}, showToast, t, tf);
+  obHistEnd(rec.end);
   return true;
 }
 function obHistAnnounce(report, spec, showToast, t, tf){
@@ -2963,15 +2975,17 @@ function persistHistImport(opts){
     })
     .then(function(pack){
       pack=pack||{ keep:[], cloudIds:[], offline:false, failed:false };
+      const end=String(batchId||"")+"#"+(++obHistEndSeq);
       const spec={
         keep:pack.keep||[], cloudIds:pack.cloudIds||[], offline:!!pack.offline, failed:!!pack.failed,
-        fixAdds:fixAdds, batchId:batchId, expAdds:expAdds
+        fixAdds:fixAdds, batchId:batchId, expAdds:expAdds, end:end
       };
+      obHistEnding[end]={ setImporting:setImporting, onClose:onClose };
       // El updater solo devuelve el estado. Una promesa aquí no es un commit: React puede
-      // calcular con un estado que luego tira, y ese cálculo no puede pintar el aviso.
+      // calcular con un estado que luego tira, y ese cálculo no puede pintar el aviso ni
+      // cerrar la ficha con las filas todavía fuera (INC-2709-06).
       if(typeof set==="function") set(function(s){ return obHistCommit(s, spec).next; });
-      if(typeof setImporting==="function") setImporting(false);
-      if(typeof onClose==="function") onClose();
+      else obHistEnd(end);
     });
 }
 /* Deshacer un batch: quita filas locales del batch y lista ids de nube para borrar POR ID.

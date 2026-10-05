@@ -11,7 +11,8 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
-import { loadPureLogicFromFile } from "../scripts/load-pure-logic.mjs";
+import vm from "node:vm";
+import { loadPureLogicFromFile, createLogicSandbox, extractPureLogicSource } from "../scripts/load-pure-logic.mjs";
 
 if (!process.argv.includes("--zone-child")) {
   let status = 0;
@@ -310,12 +311,13 @@ await t("un cálculo descartado no avisa, y el replay con el canónico tampoco",
   const actual = base([canon]);
   const actualNext = updater(actual);
   await settle();
-  assert.equal(actualNext, actual, "fabricó un estado nuevo sin altas");
+  assert.equal(actualNext.expenses, actual.expenses, "reescribió el histórico sin altas");
+  assert.equal(actualNext.lastHistImport, actual.lastHistImport, "deshacer apunta a un lote sin altas");
   assert.equal(actualNext.expenses.length, 1);
   assert.equal(actualNext.expenses[0].id, "uuid-canonical");
   assert.equal(actualNext.expenses[0].category, "bares");
   assert.equal(actualNext.expenses[0].note, "editada");
-  assert.equal(confirmar(actual, actualNext, toasts), false);
+  confirmar(actual, actualNext, toasts);
   assert.equal(toasts.length, 0, "persistió el aviso 1 con 0 altas: " + toasts.join(" | "));
   const undo = ctx.histUndoBatch(actualNext, actualNext.lastHistImport || { batchId: "hist-spec", localIds: [], cloudIds: [] });
   assert.ok((undo.nextState.expenses || []).some(function(e){ return e.id === "uuid-canonical"; }));
@@ -348,7 +350,7 @@ await t("una evaluación descartada con el canónico no tapa el alta que sí se 
   assert.equal(confirmar(vacio, committed, toasts), true);
   assert.equal(toasts.filter(function(m){ return m.indexOf("=1") >= 0; }).length, 1, "avisos=" + toasts.join(" | "));
   assert.equal(confirmar(vacio, committed, toasts), false);
-  assert.equal(descartado, conCanon, "la evaluación sin alta sustituyó el canónico");
+  assert.equal(descartado.expenses, conCanon.expenses, "la evaluación sin alta sustituyó el canónico");
 });
 
 await t("repetir el commit del mismo batch avisa una sola vez", async function(){
@@ -394,6 +396,123 @@ await t("el recibo no sale del updater y no viaja al guardar ni a la nube", asyn
   assert.equal(disco.histImportNotice, undefined);
   assert.equal(disco.budget, 3);
   assert.equal(disco.expenses.length, 1);
+});
+
+function lote(cloud, expAdds, batchId) {
+  const h = { queued: [], calls: [], toasts: [] };
+  ctx.persistHistImport({
+    cloud: cloud, expAdds: expAdds, fixAdds: [], batchId: batchId,
+    set: function(fn){ h.queued.push(fn); },
+    showToast: function(m){ h.toasts.push(String(m)); },
+    onClose: function(){ h.calls.push("close"); },
+    setImporting: function(v){ h.calls.push("importing:" + v); },
+    t: function(k){ return k; }, tf: tfN,
+  });
+  return h;
+}
+
+await t("el lote se cierra desde el commit confirmado, no al encolar el updater", async function(){
+  const cloud = nube();
+  const row = fila("uuid-fin", "cargo-F", { date: d2, merchant: "FIN" });
+  const h = lote(cloud, [row], "hist-fin");
+  await settle();
+  assert.equal(h.queued.length, 1, "no encoló el commit");
+  assert.deepEqual(h.calls, [], "terminó sin commit: " + h.calls.join(","));
+  const vacio = base();
+  h.queued[0](vacio);
+  await settle();
+  assert.equal(vacio.expenses.length, 0);
+  assert.deepEqual(h.calls, [], "la evaluación descartada terminó el lote: " + h.calls.join(","));
+  assert.equal(h.toasts.length, 0);
+  const committed = comoApp(vacio, h.queued[0]);
+  confirmar(vacio, committed, h.toasts);
+  assert.equal(committed.expenses.length, 1);
+  assert.deepEqual(h.calls, ["importing:false", "close"], "calls=" + h.calls.join(","));
+  assert.equal(h.toasts.filter(function(m){ return m.indexOf("=1") >= 0; }).length, 1, "avisos=" + h.toasts.join(" | "));
+  confirmar(vacio, committed, h.toasts);
+  confirmar(vacio, comoApp(vacio, h.queued[0]), h.toasts);
+  const rec = committed.histImportNotice;
+  const otroRecibo = Object.assign({}, committed, { histImportNotice: Object.assign({}, rec, { id: rec.id + "|otro" }) });
+  confirmar(committed, otroRecibo, h.toasts);
+  assert.deepEqual(h.calls, ["importing:false", "close"], "terminó dos veces: " + h.calls.join(","));
+});
+
+await t("sin altas nuevas también se cierra desde el commit, una vez y sin tocar los gastos", async function(){
+  const cloud = nube();
+  const row = fila("uuid-cero", "cargo-C", { date: d2, merchant: "CERO" });
+  const canon = fila("uuid-canonical-c", "cargo-C", { date: d2, merchant: "CERO", category: "bares", note: "editada", source: "ob", importBatchId: null });
+  const h = lote(cloud, [row], "hist-cero");
+  await settle();
+  assert.deepEqual(h.calls, [], "terminó sin commit: " + h.calls.join(","));
+  const actual = base([canon]);
+  actual.lastHistImport = { batchId: "previo", localIds: ["x"], cloudIds: [] };
+  const committed = comoApp(actual, h.queued[0]);
+  assert.notEqual(committed, actual, "sin commit no hay de dónde cerrar el lote");
+  assert.equal(committed.expenses, actual.expenses, "reescribió el histórico sin altas");
+  assert.equal(committed.lastHistImport, actual.lastHistImport, "deshacer apunta a un lote vacío");
+  assert.deepEqual(h.calls, []);
+  confirmar(actual, committed, h.toasts);
+  assert.deepEqual(h.calls, ["importing:false", "close"], "calls=" + h.calls.join(","));
+  assert.equal(h.toasts.length, 0, "avisó con 0 altas: " + h.toasts.join(" | "));
+  confirmar(actual, committed, h.toasts);
+  assert.deepEqual(h.calls, ["importing:false", "close"]);
+});
+
+for (const [como, cloudFallo] of [
+  ["el envío falla", function(){ return Promise.reject(new Error("red")); }],
+  ["el servidor no responde nada", function(){ return Promise.resolve(null); }],
+]) {
+  await t("si " + como + ": aviso de fallo tras el commit, sin filas, y se cierra una vez", async function(){
+    const row = fila("uuid-fallo", "cargo-X", { date: d2, merchant: "FALLO" });
+    const h = lote({ addExpensesBatch: cloudFallo, pullExpenses: function(){ return Promise.resolve([]); } }, [row], "hist-fallo-" + como.length);
+    await settle();
+    assert.deepEqual(h.calls, []);
+    assert.equal(h.toasts.length, 0, "avisó antes del commit: " + h.toasts.join(" | "));
+    const vacio = base();
+    const committed = comoApp(vacio, h.queued[0]);
+    assert.equal((committed.expenses || []).length, 0, "un fallo dejó filas");
+    confirmar(vacio, committed, h.toasts);
+    assert.deepEqual(h.toasts, ["⚠ bp_hist_no_ack"], "avisos=" + h.toasts.join(" | "));
+    assert.deepEqual(h.calls, ["importing:false", "close"], "calls=" + h.calls.join(","));
+    confirmar(vacio, committed, h.toasts);
+    assert.equal(h.toasts.length, 1);
+  });
+}
+
+await t("la copia diaria real no lleva el recibo y conserva la cartera entera", async function(){
+  const html = fs.readFileSync(fileURLToPath(new URL("../public/index.html", import.meta.url)), "utf8");
+  const tabla = [];
+  const sb = {
+    from: function(name){
+      return {
+        upsert: function(row){ tabla.push({ name: name, row: JSON.parse(JSON.stringify(row)) }); return Promise.resolve({ error: null }); },
+        delete: function(){ const q = { eq: function(){ return q; }, lt: function(){ return Promise.resolve({ error: null }); } }; return q; },
+      };
+    },
+  };
+  const box = createLogicSandbox();
+  box.window.supabase = { createClient: function(){ return sb; } };
+  vm.runInNewContext(extractPureLogicSource(html) + "\nglobalThis.cloud = cloud;", box, { filename: "backup" });
+  const gastos = [fila("uuid-g1", "cargo-1"), fila("uuid-g2", "cargo-2", { date: d2 })];
+  const estado = Object.assign(base(gastos), {
+    bankTx: [{ id: "tx1", amount: 3 }],
+    lastHistImport: { batchId: "hist-b", localIds: ["uuid-g1"], cloudIds: [] },
+    histImportNotice: { id: "hist-b|uuid-g1|0|0|0", added: [gastos[0]], spec: { expAdds: gastos } },
+  });
+  assert.ok(box.cloud.enabled(), "el doble de Supabase no se enganchó");
+  await box.cloud.backupState("uid-sintetico", estado);
+  const ups = tabla.filter(function(x){ return x.name === "state_backups"; });
+  assert.equal(ups.length, 1, "no escribió la copia");
+  const data = ups[0].row.data;
+  assert.equal(data.histImportNotice, undefined, "el recibo viajó a la copia diaria");
+  assert.equal(data.expenses.length, 2, "la copia perdió gastos");
+  assert.equal(data.bankTx.length, 1, "la copia perdió movimientos");
+  assert.equal(data.lastHistImport.batchId, "hist-b");
+  assert.equal(data.budget, 1000);
+  assert.ok(estado.histImportNotice, "quitar el recibo de la copia tocó el estado vivo");
+  const app = fs.readFileSync(fileURLToPath(new URL("../src/modules/11-app-main.js", import.meta.url)), "utf8");
+  const llamadas = app.match(/\bbackupState\(/g) || [];
+  assert.equal(llamadas.length, 1, "otra llamada a la copia diaria: revisa que pase por el método");
 });
 
 console.log(fallos.length ? "inc-2709-06-hist-durante-ack: " + fallos.length + " fallo(s) (" + zona + ")" : "inc-2709-06-hist-durante-ack: OK (" + zona + ")");

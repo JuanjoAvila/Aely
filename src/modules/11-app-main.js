@@ -351,8 +351,8 @@ function App(){
     return Object.assign({},next,{_savedAt:Date.now()});
   }); },[]);
   // En el propio commit (layout, no pasivo): así un `pagehide` inmediato ya vuelca este estado.
-  // El aviso del histórico sale de este mismo commit. El updater solo calcula: si React tira
-  // ese resultado, el recibo no está en `state` y no se pinta (INC-2709-06).
+  // El aviso del histórico y el cierre de su ficha salen de este mismo commit. El updater solo
+  // calcula: si React tira ese resultado, el recibo no está en `state` (INC-2709-06).
   const committedRef=useRef(state);
   const showToastRef=useRef(null);
   useLayoutEffect(function(){

@@ -731,11 +731,19 @@ function mcPersistCommit(p, prev, state, schedule){
    `expenses:false`, se reescribiría la clave principal ya SIN gastos y la de gastos no se
    crearía nunca → histórico perdido en el móvil hasta el siguiente sync. Por eso, mientras no
    exista la clave partida, los gastos se escriben SIEMPRE. */
+/* El recibo del histórico (`histImportNotice`) es del commit que lo pinta, no de la cartera.
+   Ningún volcado lo lleva (disco, push y copia diaria): restaurado en otra sesión volvería a
+   avisar de un alta vieja. Copia superficial: el estado vivo no se toca (INC-2709-06). */
+function mcSinRecibo(s){
+  if(!s || typeof s!=="object" || !("histImportNotice" in s)) return s;
+  const c=Object.assign({},s);
+  delete c.histImportNotice;
+  return c;
+}
 function mcSaveRaw(key, s, opts){
   if(!s) return;
-  const rest=Object.assign({},s);
+  const rest=Object.assign({},mcSinRecibo(s));
   delete rest.expenses;
-  delete rest.histImportNotice; // recibo del commit: no es cartera, no se guarda ni se reavisa al abrir
   const yaPartido=(function(){ try{ return localStorage.getItem(key+EXP_SUFFIX)!=null; }catch(e){ return false; } })();
   const skipExp = yaPartido && opts && opts.expenses===false;
   if(!skipExp) store.set(key+EXP_SUFFIX, s.expenses||[]);   // primero los gastos: si algo peta a
@@ -1232,8 +1240,10 @@ const cloud = (function(){
     },
     // Copia de seguridad diaria del estado COMPLETO (idempotente por día) + poda a 30 días.
     // Best-effort: si la tabla aún no existe (migración 0002 sin aplicar), simplemente falla y se ignora.
+    // Completo salvo el recibo del histórico: se quita aquí y no en App para que ningún llamador lo suba.
     async backupState(uid, data){
       if(!sb || !uid) return;
+      data=mcSinRecibo(data);
       const today=new Date().toISOString().slice(0,10);
       const {error}=await sb.from('state_backups').upsert(
         { user_id:uid, day:today, data:data },
@@ -2603,7 +2613,7 @@ function compareBackupExpenses(copy,current){
 /* Para el push FRECUENTE a la nube (cada ~1,2s): los gastos viven en su tabla `expenses`
    (fuente de verdad), así que NO los duplicamos en el JSONB de app_state → se mantiene ligero
    aunque haya miles de gastos. El backup diario sí guarda el estado completo. */
-function slimForCloud(s){ const c=Object.assign({},s); delete c.expenses; delete c.bankTx; delete c.histImportNotice; return c; }
+function slimForCloud(s){ const c=Object.assign({},mcSinRecibo(s)); delete c.expenses; delete c.bankTx; return c; }
 
 /* ---------- Desbloqueo biométrico (huella / Face ID vía WebAuthn) ----------
    Candado LOCAL por dispositivo: tras iniciar sesión una vez, la app pide huella al abrir.

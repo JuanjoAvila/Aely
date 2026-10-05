@@ -1,5 +1,19 @@
 # INC-2709-06 · cargos CaixaBank ausentes
 
+## Actualización 5/10/2026 · el lote se cierra desde el commit, y el recibo no sale en ningún volcado
+
+Un verde de esta unidad **no autoriza integrar el PR #131**. Codex dio GO solo al aviso postcommit de `cb570a24` ([5991998777](https://github.com/JuanjoAvila/Aely/pull/131#issuecomment-5991998777)) y NO-GO a cerrar la unidad. El resto del NO-GO [5989932516](https://github.com/JuanjoAvila/Aely/pull/131#issuecomment-5989932516) sigue abierto. El caso humano sigue abierto. Edge no se despliega.
+
+Caducado del apartado de debajo: «`onClose` y `setImporting` siguen al resolverse el ACK» y «el recibo no viaja en `slimForCloud`» como garantía de nube. En `cb570a24`, con un setter que encola el updater, la ficha ya se cerraba (`importing:false`, `close`) con 0 filas confirmadas. Y App pasa `stateRef.current` entero a `cloud.backupState`, así que la copia diaria guardaba el recibo con `added` y `spec.expAdds`.
+
+Ahora:
+
+1. **Cierre.** Hay recibo siempre, también sin altas nuevas, porque sin estado nuevo no hay commit del que cerrar. Lleva una marca del lote; `obHistNoticeCommit` avisa y cierra ese lote una sola vez, desde el estado comprometido. Una evaluación descartada no cierra. Con cero altas el histórico de gastos y `lastHistImport` no cambian de referencia.
+2. **Volcados.** `mcSinRecibo` quita el recibo en disco (`mcSaveRaw`), en el push (`slimForCloud`) y en la copia diaria, dentro de `cloud.backupState` para que ningún llamador lo suba. La copia sigue completa: gastos, `bankTx` y `lastHistImport` incluidos. El estado vivo no se toca.
+3. **Fallo del batch.** El aviso de fallo sale tras el commit, sin filas, una vez, tanto si el envío lanza como si responde `null`.
+
+`node tests/inc-2709-06-hist-durante-ack.test.mjs`: contra el bundle de `cb570a24`, 5 fallos en UTC y 5 en Europe/Madrid (cierre sin commit, cierre con cero altas, dos de fallo, copia diaria). Con este cambio, 15/15 en las dos zonas. La copia diaria se prueba con el método real de `cloud` y un doble de Supabase en memoria; no hubo acceso al servidor. Nueve mutantes sobre el bundle (aviso de fallo quitado, `null` como alta vacía, `catch` sin fallo, cierre al encolar, sin cierre en el commit, sin recibo con cero altas, cierre reutilizable, copia con recibo, aviso repetido) mueren los nueve. Sigue sin haber DOM de React ni prueba en el móvil.
+
 ## Actualización 5/10/2026 · el aviso sale del commit, no del updater
 
 Un verde de esta unidad **no autoriza integrar el PR #131**. El resto del NO-GO [5989932516](https://github.com/JuanjoAvila/Aely/pull/131#issuecomment-5989932516) sigue abierto. El caso humano sigue abierto. Edge no se despliega.
