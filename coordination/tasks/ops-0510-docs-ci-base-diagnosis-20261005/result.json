@@ -1,0 +1,32 @@
+{
+  "status": "done",
+  "summary": "Falso positivo docs-only tras promote deVERSION reproducido; main8bb conserva28cambios posteriores al bump094a, pero el main aprobado ya queda cubierto por la excepción de promote con incremento deVERSION. El syntheticmerge docs-only no hereda esa señal. Delta delPR sola ocultaría deuda nueva de base: se demostró en fixture4casos. No cambio del gate ni de20archivos PR134; investigar/testear ancla legítima y deuda posterior antes de un arreglo separado.",
+  "tests": [
+    {
+      "command": "git log -1 --format=%H 8bb0398f9d16a848b984c989a6515e87937c815c -- VERSION",
+      "exitCode": 0,
+      "result": "094a7d23184c60582e4d88f04eb54f5fdcdd0b4b"
+    },
+    {
+      "command": "node tests/docs-frescura.test.mjs on main8bb plus staged documentary snapshot",
+      "exitCode": 0,
+      "result": "excepción de promote4.26.86→4.26.94, noCIexacta"
+    },
+    {
+      "command": "synthetic git fixture: docs-after-promote, src-no-bump, src-with-bump, docs-after-base-debt",
+      "exitCode": null,
+      "result": "Four-case fixture findings reported by reviewer; wrapper command/exitcode not exposed, no numeric exitcode inferred"
+    }
+  ],
+  "limitations": [
+    "No files edited, no gate bypass, no VERSION/product change, no npm test entero ni CIverde.",
+    "Git reconoce mergeVERSION pero no acredita por sí solo publicación/CI; siguiente corrección de guard requiere contrato y revisión propios."
+  ],
+  "productSHA": "1aaa6c9183d94e7dcf718aebb23d810bf40cd45e",
+  "schema": 1,
+  "taskId": "ops-0510-docs-ci-base-diagnosis-20261005",
+  "actor": "codex",
+  "sessionId": "codex-cloud-flow-20261005",
+  "createdAt": "2026-10-05T17:20:09.634Z",
+  "released": true
+}

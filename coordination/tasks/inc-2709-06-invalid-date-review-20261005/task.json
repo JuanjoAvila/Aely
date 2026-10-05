@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "id": "inc-2709-06-invalid-date-review-20261005",
+  "from": "codex",
+  "coordinatorSession": "codex-cloud-flow-20261005",
+  "createdAt": "2026-10-05T17:20:09.619Z",
+  "to": "codex",
+  "baseSHA": "20147553c59a4d8e56bef6570ce79ffe8fecf6ce",
+  "objective": "Revisión independiente readonly del arreglo mínimo de fechas inválidas de PR131; verificar lote válido/invalid, identidad/calendario, artefactos y rojo→verde; el micro GO no autoriza PR completa.",
+  "scope": [
+    "docs/briefs/inc-2709-06-caixa-ausentes.md",
+    "public/beta-delivery.json",
+    "public/index.html",
+    "public/release-notes.json",
+    "scripts/run-tests.mjs",
+    "src/modules/08-motor-bank.js",
+    "tests/inc-2709-06-fecha-invalida.test.mjs"
+  ],
+  "authorization": "Flujo humano reanudado; review independiente de entregaGrok5999200765 ya liberada, sin integración ni nuevas correcciones fuera de alcance.",
+  "required": [
+    "Snapshot exacto del árbol86cc6313c57b616d9cc2606f60cdeb1cc4d88cdf y compare3fd..201,7archivos,3commits.",
+    "Leer completos AGENTS/EMPIEZA-AQUI y brief; ejecutar guardián fecha inválida, ob-ingresos y regressions en UTC y Europe/Madrid. Contrastar rojo en3fd y verde en201.",
+    "Inspeccionar rechazo de fecha ausente/imposible/invalid en las3pasadas y gasto; no fecha inventada, filas válidas intactas, contratos/sellos/daily/App11 sin alteraciones.",
+    "Prueba adversarial independiente de variante no cubierta y contabilización exacta, sin datos reales. Identificar retiradabancaria/widget/tamaño que siguen fuera.",
+    "Entregar GO/NO-GO por SHA y scope con comandos/exitcodes; no claims/result del hijo, remote write, PR ni integración."
+  ],
+  "limits": [
+    "Readonly, máximo2Codexactivos; sin red/deps nuevos, auth/SQL/Edge/APK/datos reales/hijos/publicaciones/móvil asumido."
+  ]
+}
