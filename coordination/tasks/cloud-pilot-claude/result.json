@@ -1,0 +1,43 @@
+{
+  "status": "done",
+  "summary": "Piloto cloud sintético: claim/result publicados desde la VM cloud (linux, UTC, node 22.22.0, npm 10.9.4, git 2.43.0). Producto sin editar ni empujar; AGENTS.md y EMPIEZA-AQUI.md leídos enteros en el SHA base. El e2e smoke solo corre apuntando PLAYWRIGHT_CHROMIUM_PATH al Chromium 1194 de la VM; sin esa variable Playwright 1.61.1 busca una build 1228 inexistente y falla (3 tests).",
+  "tests": [
+    {
+      "command": "node tests/coordination-channel.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "npm ci",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run build",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run test:syntax",
+      "exitCode": 0
+    },
+    {
+      "command": "npx playwright test e2e/smoke.spec.mjs (sin PLAYWRIGHT_CHROMIUM_PATH)",
+      "exitCode": 1
+    },
+    {
+      "command": "PLAYWRIGHT_CHROMIUM_PATH=<chromium-1194 de la VM> npx playwright test e2e/smoke.spec.mjs (3 passed)",
+      "exitCode": 0
+    }
+  ],
+  "productSHA": "dd59064e1edb6bd0e14a0d9682a9b61f47dc212e",
+  "limitations": [
+    "No se ejecutó npm test entero",
+    "Sin Android, adb ni móvil real",
+    "Chromium headless de la VM con datos sintéticos, zona UTC; no sustituye la aprobación móvil",
+    "Solo e2e/smoke.spec.mjs"
+  ],
+  "schema": 1,
+  "taskId": "cloud-pilot-claude",
+  "actor": "claude",
+  "sessionId": "claude-cloud-20261005-90b350b2",
+  "createdAt": "2026-10-05T12:01:15.117Z",
+  "released": true
+}
