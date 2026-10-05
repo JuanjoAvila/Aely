@@ -1,5 +1,36 @@
 # INC-2709-06 · cargos CaixaBank ausentes
 
+## Actualización 5/10/2026 · contrato de identidad temporal del widget
+
+Un verde de `--iso-contrato` **no autoriza integrar el PR #131** ni desplegar Edge. El comando registrado (`node tests/widget-arbitraje.test.mjs`, sin argumentos) sigue en rojo por el fallo real. No se toca producto, `src/`, `public/`, Edge, SQL, auth, `VERSION` ni el runner. El caso humano sigue abierto.
+
+Qué se cotejó, sin editar las fuentes, en `3c5d6083`. `expenseFromRow` guarda `new Date(fecha).toISOString()`. `keyOfExpense` firma la lápida con esa cadena. `claveComoLaApp` / `filasComoLaApp` comparan el texto crudo de la fila. En la fixture que ya tenía el guard —`2026-09-03T10:00:00Z` y `2026-09-04T10:00:00Z`, importes 3 y −15, banco `ob:trade_republic`— la lápida no casa y el servidor conserva las dos filas borradas.
+
+En UTC la app firma `2026-09-03|3|Borrado ficticio|2026-09-03T10:00:00.000Z` y el servidor `…|2026-09-03T10:00:00Z`. En Europe/Madrid ese instante es el mediodía local: la app firma `2026-09-03|3|Borrado ficticio` y el servidor le añade `|2026-09-03T10:00:00Z`.
+
+La app, tras el pago de 5,45, enseña 18645 céntimos (18100 + 545). El widget enseña 17445: suma el 3 y resta el ingreso de 15, 1200 céntimos de más en el neto. `assert.equal(finAfterApp.shown, finAfterServer.shown)` sigue siendo `186.45 !== 174.45` en las dos zonas. Las `fecha` del guard siguen escritas sin `.000`. Canonizar solo esa fixture lo pondría verde y ocultaría el fallo.
+
+El contrato deseado, en el mismo test, es el de la app: parsear el instante y usar el ISO canónico antes del día y antes del mediodía local. Así `T10:00:00Z`, `T10:00:00.000Z` y `T12:00:00+02:00` son la misma lápida; `T10:00:01Z` es otra; el cambio de hora no funde `2026-10-25T01:30:00+02:00` (`2026-10-24T23:30:00.000Z`) con `2026-10-25T02:30:00+01:00`. Con esa clave el guard daría 18645 céntimos y la fila de las 09:15, 1250 céntimos, sobreviviría a la lápida de las 08:15. macrodroid sigue por día (dos horas del mismo cargo, 420 céntimos, una vez). El manual lleva el id; la lápida vieja sin id sigue ocultando los dos; `supabase` vuelve como manual. `#dup` y `~deuda` no mueven el total aunque la clave no case. `extId` viaja en el source y no entra en la clave del widget. Una lápida `obid|banco|extId` sola no esconde la fila: ni hoy ni en el contrato deseado.
+
+Mediodía local medido en el proceso, no supuesto: en Madrid, 15/1 y 25/10 son `T11:00:00.000Z` (CET) y 29/3 y 15/7 son `T10:00:00.000Z` (CEST). En UTC los cuatro son `T12:00:00.000Z`. Canonizar la cadena no hace que un Edge en UTC y un móvil en Madrid se pongan de acuerdo sobre qué instante es mediodía.
+
+**Propuesta de reparación, solo texto.** En `claveComoLaApp` y en la clave legacy sin id de `filasComoLaApp` (`supabase/functions/_shared/presupuesto.ts`), si `Date.parse(fecha)` es finito, sustituir `fecha` por `new Date(ms).toISOString()` antes de `slice(0, 10)` y antes de comparar con `new Date(día + "T12:00:00").toISOString()`. No cambiar la regla del mediodía, el día de macrodroid, el id del manual, `#dup` ni `~deuda`. No añadir `obid` a esta clave.
+
+Riesgos: un offset que cruza la medianoche UTC cambia de día; las lápidas que ya guarda la app son canónicas y pasarían a casar, pero un texto crudo guardado por otro escritor dejaría de casar (no se ha leído la tabla); reescribir fixtures a `.000Z`, o añadir `.000` solo delante de `Z`, deja vivo el offset; colapsar todo Open Banking al día funde dos cargos de 12,50. El mutante de sufijo Z casa el guard de `T10:00:00Z` y no casa `T12:00:00+02:00`. El mutante del prefijo crudo funde los dos instantes del 25/10.
+
+**Gate aparte.** No va en este PR ni en un deploy de esta unidad. Hace falta un cambio de producto autorizado en el que el guard quede verde en UTC y en Europe/Madrid con las `fecha` crudas todavía en `T10:00:00Z`, el offset case, el segundo instante no case, y `widget-coherente` y `presupuesto-servidor` sigan verdes. Después, revisión humana del deploy de esa función. El widget ya publicado sigue con la comparación cruda hasta ese deploy.
+
+| Comando | Base `3c5d6083` | Con este contrato |
+|---|---|---|
+| `TZ=UTC node tests/widget-arbitraje.test.mjs` | exit 1 | exit 1 (`186.45 !== 174.45`) |
+| `TZ=Europe/Madrid node tests/widget-arbitraje.test.mjs` | exit 1 | exit 1 (el mismo) |
+| `… --iso-contrato` | no existía | exit 0 en las dos zonas |
+| `… --iso-mutante` | no existía | exit 1 en las dos zonas: el sufijo Z no iguala el offset |
+| `TZ=UTC` y `TZ=Europe/Madrid` `node tests/widget-coherente.test.mjs` | exit 0 | exit 0 |
+| las dos zonas, `node tests/presupuesto-servidor.test.mjs` | no repetido en la base de esta unidad | exit 0 |
+
+No se ha lanzado `npm test` entero, ni e2e, ni DOM, ni el árbitro Java (el guard rojo corta antes, igual que en la base), ni móvil, ni APK, ni Edge, ni SQL, ni filas reales. Esto no acredita la integración del PR.
+
 ## Actualización 5/10/2026 · la retirada con extId usa el source codificado
 
 Un verde de esta unidad **no autoriza integrar el PR #131**. Solo restaura el guardián sintético `tests/retirada-bancaria.test.mjs`. No se toca producto, `src/`, `public/`, Edge, SQL, auth ni `VERSION`. El resto del NO-GO [5989932516](https://github.com/JuanjoAvila/Aely/pull/131#issuecomment-5989932516) sigue abierto. El caso humano sigue abierto. Edge no se despliega.
