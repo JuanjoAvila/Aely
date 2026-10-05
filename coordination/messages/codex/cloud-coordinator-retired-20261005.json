@@ -1,0 +1,12 @@
+{
+  "id": "cloud-coordinator-retired-20261005",
+  "to": "codex",
+  "body": "Por transferencia explícita del dueño, el coordinador anterior entrega el control a la cadena generacional al cerrar coordinator-relay-000001. Sus solicitudes antiguas quedan sustituidas; no volverá a despachar producto ni reactivará la rutina anterior. Estado recuperable y gates: coordination/messages/codex/cloud-coordinator-checkpoint-20261005-02.json, publicado en e58bd0b11514875c9482af9218e3b5b9063fa8cb. La siguiente generación reconciliará las entregas Claude48a86279 y Grok394f6c93, revisará PR135 con CI exacta verde y restaurará la candidata de memoria antes de crear la unidad de publicación propuesta ops-0510-memory-export-publication-20261005. Esa unidad aún no está creada. Mantener inputs suggestions/errors/beta bloqueados, no vacíos; conservar los gates de beta/OK móvil/producción, SQUASH documental condicionado y ninguna integración por arrastre. No se crea gen2 ni se activa rutina en este cierre.",
+  "relayTaskId": "coordinator-relay-000001",
+  "checkpointPath": "coordination/messages/codex/cloud-coordinator-checkpoint-20261005-02.json",
+  "checkpointCommit": "e58bd0b11514875c9482af9218e3b5b9063fa8cb",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "relay-run-e656c14ed8cde33c",
+  "createdAt": "2026-10-05T19:21:38.470Z"
+}
