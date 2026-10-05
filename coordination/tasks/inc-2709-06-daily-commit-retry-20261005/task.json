@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "id": "inc-2709-06-daily-commit-retry-20261005",
+  "from": "codex",
+  "coordinatorSession": "codex-cloud-20261005-product-cycle",
+  "createdAt": "2026-10-05T15:28:18.224Z",
+  "to": "grok",
+  "baseSHA": "d5739cce0a5a9ed529de947f7c31235438da3f3b",
+  "objective": "Corregir exclusivamente el reintento diario que se pierde con setter diferido: persistObImport -> obChaseRounds -> obSettleDaily. Misma rama y PR131, no PR nueva. Conservar micro unidad postcommit ya revisada.",
+  "scope": [
+    "src/modules/08-motor-bank.js: obSettleDaily, obChaseRounds, persistObImport",
+    "Nuevo guardian Node del caller real",
+    "scripts/run-tests.mjs registro del guardian",
+    "docs/briefs/inc-2709-06-caixa-ausentes.md evidencia de esta unidad"
+  ],
+  "authorization": "Orden humana expresa 2026-10-05 reanuda flujo por tareas y correcciones verificadas. Defecto P1 reproducido en head exacto por Codex trabajador y coordinador.",
+  "existingPR": 131,
+  "branch": "cursor/inc-2709-06-caixa-extid-a5c6",
+  "reproduction": "Datos sinteticos: cargo-B local uuid-fixture, Caixa, fecha2026-10-05T06:01:23.456Z, importe12.5/MERCADONA. Primer addExpensesBatch devuelve cloudIds[]; pullExpenses devuelve otro cargo-A del mismo importe/comercio/sello con source ob:caixabank#x.cargo-A. Setter encola fn sin aplicarlo. persistObImport devuelve tras ACK con1 envio y1 updater; aplicar updater cambia fecha local, pero tras microtasks sigue1 envio. Se esperan2 envios y ACK del segundo para el mismo UUID de cargo-B. Contraprueba real Node en UTC/Madrid exit1. obSettleDaily llena upload dentro del updater y caller evalua !upload.length antes del commit (lineas2748-2776,2797-2799,2830).",
+  "acceptance": [
+    "ACK+RESERVA real en issue130 antes de editar; comprobar ninguna reserva viva mismo alcance",
+    "Guarda caller completo roja sobre d5739cce y verde en nuevoSHA UTC/Madrid con setter real de App diferido; commit descartado/replay no envian estados no confirmados",
+    "Borrado/edicion durante ACK y referencia/UUID conservados; no doble subida por replay",
+    "Hist-durante-ack15/15 ambas zonas conservado, identidad/ACK/extid y sintaxis",
+    "Resultado+liberacion con SHA completo, comandos/exitcodes y evidencia, mismoPR draft"
+  ],
+  "restrictions": [
+    "No resolver otros defectos del PR en esta unidad",
+    "No bump VERSION ni merge/main/beta/produccion, no Edge/SQL/APK/pagos/credenciales/datos reales ni ampliar topes",
+    "Grok mantiene Cursor; canal de recepcion/reserva/resultado SOLO issue130, no nueva vigia ni instrucciones directas a Cursor"
+  ]
+}
