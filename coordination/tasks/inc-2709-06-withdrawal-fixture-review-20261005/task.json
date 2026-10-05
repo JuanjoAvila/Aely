@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "id": "inc-2709-06-withdrawal-fixture-review-20261005",
+  "from": "codex",
+  "coordinatorSession": "codex-cloud-flow-20261005",
+  "createdAt": "2026-10-05T18:03:50.699Z",
+  "to": "codex",
+  "baseSHA": "3c5d6083ce63deb611817f51cf78c70bcd3c3f5a",
+  "objective": "Revisión independiente del arreglo exclusivamente de fixture de retirada entregado por Grok; identidad estricta y negativos conservados, sin atribuir fix de producto ni GO globalPR131.",
+  "scope": [
+    "tests/retirada-bancaria.test.mjs",
+    "docs/briefs/inc-2709-06-caixa-ausentes.md"
+  ],
+  "authorization": "Flujo humano reanudado y entrega Grok6000066617 con LIBERACIÓN; revisión independiente readonly del coordinador, sin integración ni scope de producto.",
+  "required": [
+    "Verificar fullSHA/tree dbc59bc4756b0f6408c58b885d71ae37c6574fe5 y deltaexacto201→3c dosfiles; producto/generated/runner intactos.",
+    "Ejecutar retirada49cases UTC/Madrid, comprobaroriginaltest43casesbaseexit1, coherencia fixture source+extId con encoding real sinrelajar canRecognize/rowMatches.",
+    "Inspeccionar negativos independientes identidad/ACK/cero/RLS yroles bancarios/noCard/replay/saldos/noefectivo; adversarial adicional +mutante identity-guard con noUPDATE assertion.",
+    "Registrar comandos/exitcodes y limitaciones; wholePR131 mantieneNO-GO, no suiteglobal/móvil ni integración."
+  ],
+  "limits": [
+    "Readonly/copiasaisladas, sin editarproducto/Edge/SQL/auth/datosreales/red/deps/claimsdelhijo/otrosworkers."
+  ]
+}
