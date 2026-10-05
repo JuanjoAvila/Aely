@@ -1,0 +1,118 @@
+{
+  "id": "cloud-coordinator-checkpoint-20261005-01",
+  "to": "codex",
+  "body": "Checkpoint de coordinación saneado para preparar relevo; no cede control ni constituye nuevo encargo. Estados y límites en checkpoint adjunto.",
+  "checkpoint": {
+    "schema": 1,
+    "objective": "Único coordinador principal Aely: flujo humano reanudado, coordinación Codex/Claude/Grok, contexto compacto y relevo solo explícito. Indexación aplazada.",
+    "control": "Coordinador actual conserva control; no hay transferencia autorizada ejecutada ni generación sucesora reservada.",
+    "sources": {
+      "repository": "JuanjoAvila/Aely",
+      "channel": "codex/coordinacion",
+      "grok": "issue130 ONLY",
+      "productBaseSHA": "dd59064e1edb6bd0e14a0d9682a9b61f47dc212e"
+    },
+    "tasks": [
+      {
+        "taskId": "ops-0510-memory-export-hardening-20261005",
+        "actor": "codex",
+        "state": "reserved; unpublished WIP",
+        "claimCommit": "4ad234a931909239f00ef7198f62858382a5ab92",
+        "baseSHA": "1aaa6c9183d94e7dcf718aebb23d810bf40cd45e",
+        "remotePR": 134,
+        "remoteHead": "1aaa6c9183d94e7dcf718aebb23d810bf40cd45e",
+        "next": "Finalizar corrección acotada de strike en detector, revisión independiente y publicación normal de cinco archivos. Ningún candidato local está aprobado o publicado. Conservar WIP privado antes de relevar."
+      },
+      {
+        "taskId": "ops-0510-docs-freshness-history-20261005",
+        "actor": "codex",
+        "state": "closed done; integration pending exact CI",
+        "resultCommit": "5326e01aa925f94877cfa988b99c79b68e0b1a7f",
+        "pr": 135,
+        "head": "d43d1aec0f6afd873a4e76d50111f3a9643ff943",
+        "tree": "e16e959f62c38ac11816285d712625995c027554",
+        "ciRun": 37353779251,
+        "ciState": "in_progress at last read",
+        "review": "GO technical,29 fixtures and seven mutants; shallow limit explicit",
+        "scope": [
+          "tests/docs-frescura.test.mjs",
+          "tests/docs-frescura-history.test.mjs",
+          "scripts/run-tests.mjs",
+          "docs/briefs/ops-docs-frescura-history.md"
+        ]
+      },
+      {
+        "taskId": "inc-0410-metas-contract-review-20261005",
+        "actor": "codex",
+        "state": "closed done; contract NO-GO",
+        "resultCommit": "36ead72da1bd554354ca36c11cf79ce6db8685cc",
+        "head": "0dbc3c888c22541f0165bd1dd1a69653b9d84c7f",
+        "next": "No implementar modelo que duplica liberaciones o ingresos; empate de reloj y CAS repetido no resueltos."
+      },
+      {
+        "taskId": "inc-0410-metas-contract-hardening-20261005",
+        "actor": "claude",
+        "state": "reserved; real claim readback, no result observed",
+        "taskCommit": "36ead72da1bd554354ca36c11cf79ce6db8685cc",
+        "baseSHA": "0dbc3c888c22541f0165bd1dd1a69653b9d84c7f",
+        "wake": "Una señal aely:claude-ready y claim posterior real verificado; no recepción o ejecución inferida solo de etiqueta.",
+        "scope": [
+          "tests/metas-lww-concurrente.test.mjs",
+          "docs/briefs/inc-0410-metas-lww-concurrencia.md"
+        ],
+        "claimCommit": "073c10fe0389c29d096104314dd0e8fe99da8e09"
+      },
+      {
+        "taskId": "inc-2709-06-withdrawal-fixture-review-20261005",
+        "actor": "codex",
+        "state": "closed done; GO fixture only",
+        "resultCommit": "5326e01aa925f94877cfa988b99c79b68e0b1a7f",
+        "head": "3c5d6083ce63deb611817f51cf78c70bcd3c3f5a",
+        "pr": 131,
+        "tests": "49 cases UTC/Madrid0, identity mutant1; not whole PR131 approval"
+      },
+      {
+        "taskId": "inc-2709-06-widget-iso-contract-20261005",
+        "actor": "grok",
+        "state": "pending real ACK/reserve",
+        "taskCommit": "5326e01aa925f94877cfa988b99c79b68e0b1a7f",
+        "issueComment": 6000489028,
+        "baseSHA": "3c5d6083ce63deb611817f51cf78c70bcd3c3f5a",
+        "scope": [
+          "tests/widget-arbitraje.test.mjs",
+          "docs/briefs/inc-2709-06-caixa-ausentes.md"
+        ],
+        "next": "Contrato sintético ISO equivalente/lápidas, default conserva fallo real; no edición o deploy Edge."
+      }
+    ],
+    "blockers": [
+      "app_events feedback/error/beta: lector autorizado sin credencial configurada, exit1 antes de red; watermark null es bloqueo, no cola vacía. Opción mínima: exportación privada saneada por administrador ya autorizado; no secretos en chat/GitHub.",
+      "PR134 filtro todavía NO-GO y CI exacta roja por guard histórico; no integrar head actual.",
+      "Metas borrado/aporte, edición absoluta/aporte y clientes sin identidad requieren decisiones separadas antes de producto.",
+      "Relevo inmediato/fábrica durable y continuidad física con PC apagado aún no probados."
+    ],
+    "gates": [
+      "Máximo dos Codex activos; contextos sin historia heredada y copias aisladas. Padre conserva claims y publica resultados.",
+      "Claims nunca expiran por reloj. No robar reservas, repetir cerrados ni atribuir activo por publicación/señal.",
+      "Producto visible terminado/revisado/pruebas reales va a beta según AGENTS; OK móvil y producción son gates propios.",
+      "PR134: revisión y CI del SHA exacto verdes antes de integración documental autorizada exclusivamente SQUASH; copiar archivos saneados al canal, nunca historial original.",
+      "Nada de auth/permisos/costes/SQL/Edge/APK/main por arrastre. Sin datos privados públicos."
+    ],
+    "generationReservationProposal": {
+      "status": "proposal only, no task/claim created",
+      "taskId": "coord-coordinator-generation-0001",
+      "actor": "codex",
+      "scope": [
+        "coordination"
+      ],
+      "protocol": "Crear un task de generación y claim propio con prepareOperation, publicar FF y verificar readback. Un sucesor no escribe mientras claim sin result. Transferencia explícita: titular publica result que libera generación; después sucesor reserva generación siguiente enlazada y verifica antes de despachar. Sin caducidad por reloj.",
+      "limitations": "Helper protege una sola sesión por MISMO taskId y valida inmutabilidad; no garantiza exclusión global entre IDs de generaciones distintas ni autentica actor, ni crea chats. Secuencia de generaciones y transferencia requieren precondiciones y serialización explícitas del coordinador."
+    },
+    "next": "Recoger trabajadores actuales y conservar WIP/claims antes de transferir. Seguir trabajo autorizado mientras no exista transferencia explícita. No declarar migración terminada.",
+    "observedChannelSHA": "073c10fe0389c29d096104314dd0e8fe99da8e09"
+  },
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-cloud-flow-20261005",
+  "createdAt": "2026-10-05T18:32:06.619Z"
+}
