@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "id": "inc-0410-metas-contract-hardening-20261005",
+  "from": "codex",
+  "coordinatorSession": "codex-cloud-flow-20261005",
+  "createdAt": "2026-10-05T18:28:40.535Z",
+  "to": "claude",
+  "baseSHA": "0dbc3c888c22541f0165bd1dd1a69653b9d84c7f",
+  "objective": "Endurecer contrato y fidelidad de la matriz Metas con los cuatro fallos de revisión independiente, sin implementar todavía modelo financiero ni elegir decisiones humanas pendientes.",
+  "scope": [
+    "tests/metas-lww-concurrente.test.mjs",
+    "docs/briefs/inc-0410-metas-lww-concurrencia.md"
+  ],
+  "authorization": "Flujo humano reanudado; revisión independiente cerrada con NO-GO de la propuesta anterior, unidad tests/brief separada sin cambios de producto.",
+  "required": [
+    "Reserva canónica confirmada antes de editar; copia/rama de base completa, AGENTS.md y EMPIEZA-AQUI.md íntegros. No duplicar reserva anterior ya cerrada.",
+    "Agregar dobles borrados de MISMA regla/reserva y comprobar que no liberan dos veces por releaseOf. Usar removeReservaRule real; controles reglas/reservas independientes, parciales y replays sin inventar reparación retroactiva.",
+    "Agregar applyReserva real por MISMO incomeKey, regla y meta desde dos clientes con IDs uid distintos; controles incomeKey/reglas distintas que no pierdan aportes independientes. Identidad semántica todavía propuesta, no solo union id.",
+    "Agregar empate _savedAt y comprobar conmutatividad del estado completo, incluida configuración. Corregir etiqueta de reloj invertida y conteo real30variantes o extender honestamente; separar pérdida, precisión y política no decidida.",
+    "Doble fiel del pushState real con sello cliente repetido y relojes empatados: reproducir dos escrituras aceptadas y pérdida sin conflicto. Mantener v++ como escenario ideal explícito, no garantía backend. Casos upsert sin sello/clientes antiguos quedan bloqueos documentados; no Supabase real.",
+    "Registrar rojo real contra base y guardianes que distinguen caracterización de contrato deseado. Un modelo que viola los nuevos casos debe quedar NO-GO explícito; no bajar asserts ni maquillar verde. No afirmar suficiencia del CAS sin precondiciones probadas.",
+    "Marcar borrado versus aporte, edición absoluta versus aporte y transición clientes sin identidad como decisiones pendientes; no elegirlas ni implementar goalLog/lápidas por arrastre. Entrega SHA completo/diff dos archivos/pruebas ambos husos y límites, sin PR extra si no hace falta."
+  ],
+  "limits": [
+    "Solo tests y brief; no src/generated/runner/VERSION/SQL/Edge/auth/red nueva/deps/datos reales/main/beta/integración.",
+    "Claude puede delegar su unidad acotada según capacidades reales; registrar devolución y revisión sin atribuir subagentes si no se usaron."
+  ]
+}

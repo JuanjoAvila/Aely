@@ -1,0 +1,38 @@
+{
+  "status": "done",
+  "summary": "Revisión independiente NO-GO del modelo propuesto; caracterización útil, sin reparación aprobada. Reproducidos doble liberación del mismo releaseOf, reparto duplicado por el mismo incomeKey, empate no conmutativo y sello CAS repetido que permite perder escritura. Se conserva bloqueo de implementación y decisiones humanas separadas.",
+  "productSHA": "0dbc3c888c22541f0165bd1dd1a69653b9d84c7f",
+  "tests": [
+    {
+      "command": "TZ=UTC node tests/metas-lww-concurrente.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "TZ=Europe/Madrid node tests/metas-lww-concurrente.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "LWW_ESPERADO=1, UTC y Europe/Madrid",
+      "exitCode": 1
+    },
+    {
+      "command": "Adversariales independientes en memoria verifican cuatro resultados incorrectos",
+      "exitCode": 0
+    },
+    {
+      "command": "Funciones motor fuente versus bundle, igualdad",
+      "exitCode": 0
+    }
+  ],
+  "limitations": [
+    "La matriz es30 variantes por implementación, no36; etiquetas de reloj invertidas.",
+    "Manual y borrado son reproducciones parciales; transporte y reloj dobles. CAS real extraído con Supabase simulado; sin prueba remota.",
+    "Sin suite global/móvil/integración; no asumir que modelo o CAS actual resuelven concurrencia."
+  ],
+  "schema": 1,
+  "taskId": "inc-0410-metas-contract-review-20261005",
+  "actor": "codex",
+  "sessionId": "codex-cloud-flow-20261005",
+  "createdAt": "2026-10-05T18:28:40.508Z",
+  "released": true
+}
