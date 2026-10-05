@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "id": "ops-0510-memory-ci-gate-20261005",
+  "from": "codex",
+  "coordinatorSession": "relay-run-nkh3m3oc7q88bbth",
+  "createdAt": "2026-10-05T20:14:50.564Z",
+  "to": "codex",
+  "baseSHA": "7e5f1f396d1dc92053f1a5fabaad9a56e58cce42",
+  "objective": "Reconciliar CI y gates de aceptación de PR134 sobre la candidata saneada ya publicada, sin repetir restauración ni publicar producto.",
+  "scope": [
+    ".github/workflows/test.yml",
+    "coordination/tasks"
+  ],
+  "predecessorTaskId": "ops-0510-memory-export-publication-20261005",
+  "required": [
+    "Claim propio confirmado; leer result anterior released:true. PR134 debe seguir head7e5f1f396d1dc92053f1a5fabaad9a56e58cce42/tree0c11d19d684b146c539b697ab5264fbccfa9dbbb. Si avanza, detener y reconciliar.",
+    "Workflow37367989594 fue leído queued para el SHA exacto; es cambio posterior al result previo que indicaba CI ausente. Consultar todos los eventos, check-runs y pasos/logs cuando haya resultado; no confundir rerun de base antigua con exact CI.",
+    "Si rojo docs-frescura heredado, describir fallo con evidencia; PR135 tooling separado head d43d1aec0f6afd873a4e76d50111f3a9643ff943 posee check111910902488 success, no integrado. No mezclar branches sin unidad explícita y revisión.",
+    "Integración continúa retenida: PR134 exige revisión independiente y CI exactos verdes, SQUASH únicamente en unidad posterior autorizada. No se integra un head NO-GO.",
+    "Cerrar result con SHA/CI real, límites y próxima unidad concreta; si run en curso preservar referencia durable y no volver a publicar candidata."
+  ],
+  "limits": [
+    "Solo lectura de GitHub y evidencia pública saneada; no escribir workflow ni producto; scope describe lectura, no autorización de editar.",
+    "No merge/main/beta/producción/APK/Edge/SQL/auth/datos reales ni dispatch mediante capacidad no expuesta."
+  ],
+  "modelChoice": "Modelo heredado disponible; reconciliación exacta acotada, sin atribución de ahorro."
+}
