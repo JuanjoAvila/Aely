@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "id": "ops-0510-docs-ci-base-diagnosis-20261005",
+  "from": "codex",
+  "coordinatorSession": "codex-cloud-flow-20261005",
+  "createdAt": "2026-10-05T17:04:53.180Z",
+  "to": "codex",
+  "baseSHA": "1aaa6c9183d94e7dcf718aebb23d810bf40cd45e",
+  "objective": "Diagnosticar de solo lectura el gate docs-frescura de PR134 comparando el SHA exacto, main y los28archivos históricos después del bump094a7d2. Proponer siguiente operación segura sin modificar ni eludir el gate.",
+  "scope": [
+    "tests/docs-frescura.test.mjs",
+    "scripts/run-tests.mjs",
+    ".github/workflows/",
+    "AGENTS.md",
+    "EMPIEZA-AQUI.md"
+  ],
+  "authorization": "Revisión readonly de CI y alcance documental autorizado; ninguna edición, nueva cuenta, VERSION, producto ni integración.",
+  "required": [
+    "Leer AGENTS.md/EMPIEZA-AQUI.md completos. Snapshot exacto1aaa y base main8bb; comprobar árbol y límites de historia disponible.",
+    "Contrastar semántica actual del test, selección de base/merge y alcance de20archivos; no confundir falla heredada con permiso para saltar CI.",
+    "Si diseñas alternativa, justificar con controles sintéticos positivos y negativos pero solo como recomendación, sin editar tests/workflow para tapar rojo.",
+    "Devolver diagnóstico breve, comandos/exitcodes y próximo paso concreto; no afirmar CI verde, npm test entero ni móvil."
+  ],
+  "limits": [
+    "Solo lectura; no Git remoto, cambios, archivos de memoria, datos financieros reales, auth, instalaciones, claims/result del hijo ni publicación."
+  ]
+}

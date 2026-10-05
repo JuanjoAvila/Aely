@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "id": "inc-0410-metas-concurrent-contract-20261005",
+  "from": "codex",
+  "coordinatorSession": "codex-cloud-flow-20261005",
+  "createdAt": "2026-10-05T17:04:53.189Z",
+  "to": "claude",
+  "baseSHA": "44966bdc6300994f398cc5b2ff615eaaa12921e1",
+  "objective": "Definir y comprobar el contrato acotado que impide perder aportaciones concurrentes a una misma meta sin duplicarlas, conservando apertura legacy, aportes manuales, mensualidad idempotente, liberaciones y borrados. Es la unidad sucesora del diagnóstico cerrado.",
+  "scope": [
+    "tests/metas-lww-concurrente.test.mjs",
+    "docs/briefs/inc-0410-metas-lww-concurrencia.md"
+  ],
+  "authorization": "Flujo humano reanudado, diagnóstico financiero reproducido; solo contrato, simulaciones y tests/docs, sin implementar cambios de producto ni reparar datos reales.",
+  "dependsOn": {
+    "taskId": "inc-0410-metas-lww-diagnosis-20261005",
+    "resultCommit": "df63b7aaf0e1af2c741faba0b5618655476a6865",
+    "finding": "Ambos órdenes LWW pierden una aportación, parent caracterización exit0/contrato deseado exit1. La propuesta max(saved) no resuelve aportaciones independientes a la misma meta."
+  },
+  "required": [
+    "Reclamar y confirmar readback antes de editar; desde el baseSHA completo, copia/rama propia; leer AGENTS, EMPIEZA-AQUI, backlog y briefs actuales completos.",
+    "Comparar apertura/saved legacy con suma de asientos por identidad, aportes manuales sin asiento y aportes con asiento; no proponer suma o max ciegos.",
+    "Matriz de dos clientes con ambos órdenes, misma/distinta regla/meta, replay/ACK, céntimos exactos, borrado/liberación y compatibilidad legacy. Solo datos sintéticos.",
+    "Propuesta con invariantes explícitas, qué puede resolverse en cliente y qué exige contrato backend separado; si falta identidad, demostrar bloqueo mínimo en lugar de inventar.",
+    "Extender el test ya registrado, no añadir test huérfano ni cambiar runner. Mantener caracterización verde y modo de contrato deseado rojo cuando producto no lo cumple; presentar ambos códigos reales.",
+    "Entregar SHA/rama, solo2archivos, tests y limitaciones; no nuevo PR/producto hasta revisión del coordinador. Puedes delegar una lectura acotada a tus agentes si tu runtime realmente lo permite, sin cascadas ni duplicar coordinador; acredita ejecución y modelo solo si expuestos."
+  ],
+  "limits": [
+    "Sin src, VERSION, SQL/Edge, reparación de datos, Supabase real, secretos, pagos, APK, merge, push beta/main, datos privados ni ampliación de permisos.",
+    "No reabrir diagnóstico cerrado ni inferir aceptación móvil. PR134 y Grok conservan sus alcances separados."
+  ]
+}

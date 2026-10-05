@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "id": "ops-0510-memory-export-hardening-20261005",
+  "from": "codex",
+  "coordinatorSession": "codex-cloud-flow-20261005",
+  "createdAt": "2026-10-05T17:04:53.169Z",
+  "to": "codex",
+  "baseSHA": "1aaa6c9183d94e7dcf718aebb23d810bf40cd45e",
+  "objective": "Cerrar los dos defectos sintéticos confirmados de PR134: rechazar o sanear importes en variantes inline/prosa/rangos sin reintroducir datos, y conservar al regenerar el aviso de vigencia Cloud.",
+  "scope": [
+    "scripts/sync-memoria.mjs",
+    "tests/sync-memoria.test.mjs",
+    "README.md",
+    "docs/TESTING.md",
+    "CHANGELOG.md"
+  ],
+  "authorization": "Unidad documental/tooling dentro del alcance final de20archivos autorizado expresamente por el dueño; implementación y revisión separadas. No autoriza integración del head NO-GO ni bypass de CI.",
+  "evidence": {
+    "review": "NO-GO independiente de1aaa; export exit0 deja variantes financieras sintéticas y borra aviso Cloud",
+    "ciRun": 37338992164,
+    "ci": "failure docs-frescura; privacidad skipped;28archivos heredados de main"
+  },
+  "required": [
+    "Leer completos AGENTS.md, EMPIEZA-AQUI.md y los dos ficheros de script/test en el snapshot exacto; copia/rama aislada; claim del padre confirmado antes de editar.",
+    "Reproducir ambos defectos con fixtures exclusivamente sintéticos y esperado literal; el guardián debe ser rojo en base y verde en corrección.",
+    "Usar rechazo conservador antes de escritura/borrado si una variante no puede anonimizarse con seguridad; no afirmar anonimización general por una regex.",
+    "Regenerar la advertencia Cloud desde plantilla persistente, sin confiar en edición manual de espejos.",
+    "Ejecutar node tests/sync-memoria.test.mjs, relevant-tests, sintaxis y diff-check; verificar que no toca producto/VERSION ni memorias reales. Revisión independiente posterior obligatoria.",
+    "Entregar diff/candidata local y exitcodes al padre. Solo el coordinador publica o abre/actualiza PR. No leer memoria personal ni crear claims/result propios."
+  ],
+  "limits": [
+    "No exportación desde memoria real, credenciales, app_events, src/producto, VERSION, workflows, red nueva, instalaciones, Git de red, push, merge ni despliegues.",
+    "No escribir docs/memoria; corregir generador y fixtures, conservar los20archivos autorizados. CI verde del SHA publicado y review son gates de squash."
+  ]
+}
