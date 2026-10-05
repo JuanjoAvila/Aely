@@ -1,0 +1,8 @@
+{
+  "schema": 1,
+  "taskId": "cloud-pilot-claude",
+  "actor": "claude",
+  "sessionId": "claude-cloud-20261005-90b350b2",
+  "createdAt": "2026-10-05T12:00:06.849Z",
+  "baseSHA": "dd59064e1edb6bd0e14a0d9682a9b61f47dc212e"
+}
