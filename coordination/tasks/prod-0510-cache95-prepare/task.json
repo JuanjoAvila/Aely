@@ -1,0 +1,34 @@
+{
+  "schema": 1,
+  "id": "prod-0510-cache95-prepare",
+  "from": "codex",
+  "coordinatorSession": "relay-run-e9c59cbe362b1be8",
+  "createdAt": "2026-10-05T21:09:36.634Z",
+  "to": "codex",
+  "baseSHA": "8bb0398f9d16a848b984c989a6515e87937c815c",
+  "objective": "Preparar promocion selectiva de 4.26.95 aprobada directamente; fuente PR133 exacta, sin otros alcances beta.",
+  "scope": [
+    "src/modules",
+    "src/data/release-notes.json",
+    "scripts",
+    "tests",
+    "VERSION",
+    "package.json",
+    "package-lock.json",
+    "docs",
+    "README.md",
+    "CHANGELOG.md",
+    "public"
+  ],
+  "required": [
+    "Leer AGENTS.md y EMPIEZA-AQUI.md completos; checkout y rama propios desde baseSHA.",
+    "Comparar PR133 source7596245af491d5e0ce689307c2d7494238f28da9 y betadd59064e1edb6bd0e14a0d9682a9b61f47dc212e con main; portar unicamente cache al llenarse y guardian registrado, metadata coherente es/en/ca.",
+    "Notas producto con tandas vacias para produccion; mantener otras notas y contratos; no promocionar beta completa.",
+    "Build y pruebas reales; entregar commit local y evidencia exacta para revision independiente. No push/main/merge/deploy."
+  ],
+  "limits": [
+    "Sin APK/android/Edge/SQL/auth/datos reales ni sincronizacion bancaria automatica.",
+    "INC-2709-09 global abierto; aprobacion solo volver con historial."
+  ],
+  "modelChoice": "Modelo heredado; implementacion selectiva con revision independiente."
+}
