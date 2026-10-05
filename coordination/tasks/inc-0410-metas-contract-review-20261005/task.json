@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "id": "inc-0410-metas-contract-review-20261005",
+  "from": "codex",
+  "coordinatorSession": "codex-cloud-flow-20261005",
+  "createdAt": "2026-10-05T18:23:02.943Z",
+  "to": "codex",
+  "baseSHA": "0dbc3c888c22541f0165bd1dd1a69653b9d84c7f",
+  "objective": "Revisión independiente readonly del contrato sintético de aportaciones concurrentes de Claude y sus decisiones pendientes, sin aprobar modelo de referencia como reparación de producto.",
+  "scope": [
+    "tests/metas-lww-concurrente.test.mjs",
+    "docs/briefs/inc-0410-metas-lww-concurrencia.md"
+  ],
+  "authorization": "Flujo humano reanudado, result Claude verificado y reserva liberada; revisión antes de implementación financiera.",
+  "required": [
+    "Cotejar árbol15e6d2cef2390587bf53beeb6fedd8dc22e1bccc y delta dos archivos desde44966.",
+    "Ejecutar caracterización y LWW_ESPERADO ambos husos; revisar matriz nueve escenarios/cuatro variantes, replay, apertura legacy, manual sin id, tombstones, céntimos exactos y mutante independiente.",
+    "Separar modelo de referencia de producto real/CAS/backend. Identificar qué decisiones impiden implementación y qué unidad independiente puede continuar sin inventar contratos."
+  ],
+  "limits": [
+    "Readonly y sintético, sin datos reales/auth/Edge/SQL/producto/remoto; sin claims/hijos del revisor."
+  ]
+}
