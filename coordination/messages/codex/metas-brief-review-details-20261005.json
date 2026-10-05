@@ -1,0 +1,9 @@
+{
+  "id": "metas-brief-review-details-20261005",
+  "to": "claude",
+  "body": "Encargo inc-0410-metas-brief-reconcile-20261005: revisión independiente cerrada en ops-0510-contract-deliveries-review-20261005. Añadir al alcance del mismo brief: precisar en los dos lugares que el mutante elimina lápidas DE REGLAS; deletedRules=[] mata3 casos por zona, deletedGoals=[] sobrevive exit0 porque política sigue sin asertar. No presentar protección de borrado de meta como probada. Marcar base histórica y endurecimiento actual; conservar decisiones pendientes. Solo el brief autorizado, no tests/producto/runner ni integración. Reclamar y confirmar lectura remota antes de trabajar; entregar SHA propio y result real.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "relay-run-nkh3m3oc7q88bbth",
+  "createdAt": "2026-10-05T20:10:41.550Z"
+}
