@@ -1,0 +1,8 @@
+{
+  "schema": 1,
+  "taskId": "coordinator-relay-000001",
+  "actor": "codex",
+  "sessionId": "relay-run-e656c14ed8cde33c",
+  "createdAt": "2026-10-05T19:20:37.874Z",
+  "baseSHA": "e58bd0b11514875c9482af9218e3b5b9063fa8cb"
+}
