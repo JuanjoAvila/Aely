@@ -1,5 +1,17 @@
 # INC-2709-06 · cargos CaixaBank ausentes
 
+## Actualización 5/10/2026 · una fecha que no existe ya no tumba el lote ni inventa el día
+
+Un verde de esta unidad **no autoriza integrar el PR #131**. Solo cubre el rechazo de fechas inválidas en `importObExpenses`. El resto del NO-GO [5989932516](https://github.com/JuanjoAvila/Aely/pull/131#issuecomment-5989932516) sigue abierto. El caso humano sigue abierto. Edge no se despliega.
+
+Qué fallaba en `3fd4b520`. Las tres pasadas previas al bucle (gemelos con referencia, ganador del mediodía y sello por id) solo miraban `!tx.date`. Con `"invalid"`, `histDate` lanzaba `RangeError: Invalid time value` y el lote entero se perdía: `ob-ingresos` salía con exit 1. Y lo que no lanzaba inventaba el día: un gasto del `2026-02-30` entraba como 2 de marzo, porque `new Date("2026-02-30T12:00:00")` se desborda, y `parseDate` de algo ilegible devuelve HOY. Solo el ingreso tenía la comprobación de día de calendario.
+
+Ahora `diaValido` (local a `importObExpenses`) exige `AAAA-MM-DD` y que ese día exista en el calendario, comprobado con `dayKey` al mediodía local. Lo usan las tres pasadas y la rama del gasto. La rama del ingreso conserva su guardia tal cual, también la de fecha futura. Una fila inválida no entra. Las válidas del mismo lote salen idénticas a importarlas solas. No cambian `histDate`, el sello `ob-ext`, las lápidas, `#dup`, `~deuda`, `obSettleDaily`/`obDailyCommit` ni `11-app-main.js`.
+
+`node tests/inc-2709-06-fecha-invalida.test.mjs` usa datos inventados y un reloj fijo del 1/3/2026, así que la ventana cubre el final de febrero. El lote mezcla cinco filas válidas (dos gemelas con referencia, una sin referencia, una sin comercio que casa con una noti y una nómina BOOK) con 44 inválidas: sin fecha, nula, vacía, `invalid`, 29, 30 y 31 de febrero, 31 de septiembre, mes 13, mes 00 y día 00, cada una como gasto e ingreso, con y sin referencia. Contra el bundle de `3fd4b520` da 7 fallos y exit 1 en UTC y en Europe/Madrid. Con este cambio pasa 8/8 en las dos zonas: mismos días, extId, sellos, `possibleDup` y totales (55,30 € de gasto y 1.800 € de ingreso), y el resync no duplica nada. Tres mutantes sobre el bundle mueren: quitar la guardia de las pasadas, la del gasto o la comprobación de día de calendario. `ob-ingresos` pasa de exit 1 a exit 0 en las dos zonas, y sus mutantes `status` y `future` siguen muriendo.
+
+`npm test`: en la base fallan 6 pasos (`retirada-bancaria`, `beta-sources`, `docs-frescura`, `presupuesto-rendimiento`, `ob-ingresos`, `widget-arbitraje`); con el cambio fallan 5, los mismos menos `ob-ingresos` y con mensajes idénticos. `retirada-bancaria` ya fallaba en la base («withdrawal identity changed») y no pasa por fechas inválidas. El build recalcula la huella web de `inc-3009-nomina-anticipada` y `tr-descripcion-clasificacion` porque su alcance incluye `importObExpenses`. Sin DOM, sin móvil y sin e2e.
+
 ## Actualización 5/10/2026 · el reintento diario sale del commit, no del updater
 
 Un verde de esta unidad **no autoriza integrar el PR #131**. Solo corrige el reintento del sync diario con el setter de App diferido. El resto del NO-GO [5989932516](https://github.com/JuanjoAvila/Aely/pull/131#issuecomment-5989932516) sigue abierto. El caso humano sigue abierto. Edge no se despliega.
