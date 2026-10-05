@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "id": "prod-0510-cache95-review",
+  "from": "codex",
+  "coordinatorSession": "relay-run-e9c59cbe362b1be8",
+  "createdAt": "2026-10-05T21:13:44.358Z",
+  "to": "codex",
+  "baseSHA": "8bb0398f9d16a848b984c989a6515e87937c815c",
+  "objective": "Revision independiente de candidata selectiva cache95 del encargo prod-0510-cache95-prepare; GO solo SHA exacto y alcance aprovado.",
+  "scope": [
+    "src/modules",
+    "scripts/beta-sources.json",
+    "scripts/run-tests.mjs",
+    "tests",
+    "src/data/release-notes.json",
+    "docs",
+    "public",
+    "VERSION",
+    "package.json",
+    "package-lock.json"
+  ],
+  "required": [
+    "Solo lectura de candidata final entregada, checkout propio aislado; no editar ni integrar.",
+    "Verificar runtime unico exacto PR133, huella web exacta, metadatos es/en/ca y version; main conserva todas otras superficies.",
+    "Ejecutar guardian fechas-cache en UTC/Madrid, build/sintaxis y contratos financieros pertinentes. Evaluar gates de publicacion CI completa y catalogo conservado.",
+    "Reportar SHA GO/NO-GO, comandos y exitCode propios; no afirmar npm test o E2E no ejecutados."
+  ],
+  "limits": [
+    "No merge/push/beta/main/APK/backend/SQL/auth/datos reales.",
+    "No declara resuelto lag global; aprobacion directa exclusiva cache95."
+  ],
+  "modelChoice": "Modelo heredado; revision independiente adversarial de promocion selectiva."
+}
