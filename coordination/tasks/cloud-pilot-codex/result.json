@@ -1,0 +1,136 @@
+{
+  "status": "done",
+  "summary": "Piloto ejecutado desde VM Cloud: claim normal con readback, canal concurrente validado, dependencias instaladas mediante lockfile, build y sintaxis correctos, smoke sintético 3/3. Repositorio y herramientas restaurados comprobados; producto sin editar ni publicar.",
+  "productSHA": "dd59064e1edb6bd0e14a0d9682a9b61f47dc212e",
+  "channelCheckoutSHA": "ef63d443292c4a1e31f27f5d9ce9ca063746970a",
+  "claimCommit": "85762354b4de4601226a9bf14f17062a40e0da29",
+  "runtime": {
+    "provider": "Cloud",
+    "platform": "Linux x86_64",
+    "timezone": "UTC",
+    "restoredRepository": true,
+    "restoredCheckoutSHA": "8bb0398f9d16a848b984c989a6515e87937c815c",
+    "tools": {
+      "node": "24.19.0",
+      "npm": "11.9.0",
+      "git": "2.52.0",
+      "deno": "2.9.7",
+      "playwright": "1.61.1",
+      "smokeChromium": "151.0.7922.173",
+      "restoredChromium": "149.0.7827.55"
+    },
+    "restoredCaches": [
+      "Deno",
+      "Playwright",
+      "npm"
+    ],
+    "denoInitiallyOnPATH": false,
+    "denoExplicitPathVerified": true
+  },
+  "tests": [
+    {
+      "command": "node tests/coordination-channel.test.mjs",
+      "checkout": "channel",
+      "exitCode": 0,
+      "output": "PASS coordination-channel: una reserva, dos mensajes conservados, cierre idempotente, WIP intacto y filtros"
+    },
+    {
+      "command": "node --version; npm --version; git --version; date; node timezone check",
+      "checkout": "product",
+      "exitCode": 0,
+      "output": "Node 24.19.0; npm 11.9.0; Git 2.52.0; Linux x86_64; UTC"
+    },
+    {
+      "command": "npm ci --cache /tmp/aely-cloud-pilot-npm-cache --no-audit --no-fund",
+      "checkout": "product",
+      "exitCode": 0,
+      "output": "added 109 packages in 3s"
+    },
+    {
+      "command": "npm run build",
+      "checkout": "product",
+      "exitCode": 0,
+      "output": "17 módulos; 215 versiones en JSON; public/index.html generado"
+    },
+    {
+      "command": "npm run test:syntax",
+      "checkout": "product",
+      "exitCode": 0,
+      "output": "7 bloques revisados — sintaxis OK"
+    },
+    {
+      "command": "PLAYWRIGHT_CHROMIUM_PATH=/usr/bin/chromium npm_config_cache=/tmp/aely-cloud-pilot-npm-cache npx --no-install playwright test e2e/smoke.spec.mjs --config=playwright.config.mjs --workers=1",
+      "checkout": "product",
+      "exitCode": 0,
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "flaky": 0,
+      "durationMs": 7158.425,
+      "output": "3 passed (7.2s)"
+    },
+    {
+      "command": "deno --version con el binario restaurado y PATH de herramientas de workspace",
+      "exitCode": 0,
+      "output": "deno 2.9.7; v8 15.0.245.2-rusty; typescript 6.0.3"
+    },
+    {
+      "command": "Chromium restaurado --version",
+      "exitCode": 0,
+      "output": "Google Chrome for Testing 149.0.7827.55"
+    },
+    {
+      "command": "git status --short; git rev-parse HEAD",
+      "checkout": "product",
+      "exitCode": 0,
+      "output": "Checkout limpio; HEAD dd59064e1edb6bd0e14a0d9682a9b61f47dc212e"
+    }
+  ],
+  "initialFailures": [
+    {
+      "command": "git fetch origin codex/coordinacion",
+      "exitCode": 128,
+      "output": "Failed to connect to proxy port 8080 after 0 ms: Could not connect to server",
+      "resolution": "Acceso de red habilitado por comando mediante sandbox_permissions with_additional_permissions; proxy y TLS conservados; fetch y publicación normal confirmados"
+    },
+    {
+      "command": "node tests/coordination-channel.test.mjs",
+      "exitCode": 1,
+      "output": "Git falló: update-ref",
+      "resolution": "Mismo test pasó con permiso de red del sandbox habilitado; helper y test sin modificar"
+    },
+    {
+      "command": "node scripts/coordination-channel.mjs publish result-operation.json",
+      "exitCode": 1,
+      "output": "Publicación no confirmada; revisar acceso/red antes de reintentar",
+      "resolution": "Readback Git y conector confirmó result ausente, claim propio vigente y head sin avanzar; git push --dry-run del commit preparado devolvió 0. Reintento desde remoto con el mismo helper y la misma sesión."
+    }
+  ],
+  "productEdited": false,
+  "productPublished": false,
+  "scheduler": {
+    "configured": false,
+    "currentChatHost": "durable",
+    "documentedTools": [
+      "automations_create",
+      "automations_update",
+      "automations_peek",
+      "automations_run_now",
+      "cloud_environment_environment_status"
+    ],
+    "inspection": "Las automatizaciones genéricas no exponen selectores hostId, threadId, environmentId ni vínculo documentado a esta VM o chat Codex Cloud. Lookup devuelve cero automatizaciones. No se ha creado una rutina sin vínculo verificable."
+  },
+  "limitations": [
+    "Solo piloto y smoke sintético: no se ejecutó npm test completo ni suites Deno ni Android real.",
+    "No acredita aceptación humana, sincronización bancaria, continuidad web/móvil o ejecución programada con el PC apagado.",
+    "La herramienta de estado Cloud informa política de red unknown; los comandos Git y npm sí se verificaron realmente con red habilitada.",
+    "Relevo del PC pausado: ningún heartbeat, temporizador ni sucesor reactivado; sin cron, bucles, tokens, conectores o subagentes.",
+    "El comando de build solo generó artefactos locales en el checkout aislado de pruebas; no hay commit, PR ni push de producto."
+  ],
+  "schema": 1,
+  "taskId": "cloud-pilot-codex",
+  "actor": "codex",
+  "sessionId": "codex-cloud-20261005-fb44f786",
+  "createdAt": "2026-10-05T13:02:37.127Z",
+  "released": true
+}
