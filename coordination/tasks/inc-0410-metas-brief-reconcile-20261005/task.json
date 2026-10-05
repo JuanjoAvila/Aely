@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "id": "inc-0410-metas-brief-reconcile-20261005",
+  "from": "codex",
+  "coordinatorSession": "relay-run-nkh3m3oc7q88bbth",
+  "createdAt": "2026-10-05T20:07:41.315Z",
+  "to": "claude",
+  "baseSHA": "48a86279cb0a10847845e2d46e337d6d50201741",
+  "objective": "Corregir las afirmaciones superadas del brief de concurrencia de Metas para que coincida con las pruebas reproducidas, sin alterar tests, producto ni decisiones semánticas.",
+  "scope": [
+    "docs/briefs/inc-0410-metas-lww-concurrencia.md"
+  ],
+  "sourceTasks": [
+    "inc-0410-metas-contract-hardening-20261005",
+    "ops-0510-contract-deliveries-review-20261005"
+  ],
+  "required": [
+    "Claim propio confirmado y checkout/rama propios desde SHA exacto; leer íntegros AGENTS.md y EMPIEZA-AQUI.md.",
+    "Sección de hallazgos punto7: retirar suficiencia de CAS y de fusión cliente para corrección; el sello cliente repetido permite dos escrituras aceptadas y pérdida sin conflicto, sin trigger que lo evite.",
+    "Sección Qué se resuelve en cliente: separar propuestas de hechos; no afirmar que el CAS existente es suficiente ni que clientes viejos conservan con seguridad campos desconocidos.",
+    "Decisiones punto1: no afirmar que el test aserta que meta borrada no reaparece cuando escenarios política omiten resultado; conservar decisiones pendientes y NO-GO del modelo.",
+    "Mantener 20 escenarios/105 variantes por lado/22 rojos esperados y límites Node/doble Supabase, no aceptación móvil. Leer evidencia del result de revisión una vez publicado.",
+    "Reproducir characterization exit0 y LWW_ESPERADO=1 exit1 en UTC y Europe/Madrid; diff-check0 y diff exclusivamente brief. Publicar commit normal en rama propia, entregar SHA y result released:true."
+  ],
+  "limits": [
+    "No nuevos tests/modelo financiero/CAS/SQL/Edge/auth/producción/beta/APK/móvil.",
+    "No modificar ramas reservadas ni integrar PRs. No cerrar decisiones del dueño ni declarar cola privada vacía."
+  ],
+  "modelChoice": "Claude administra su ejecución y sus trabajadores; revisión documental acotada, modelo efectivo no inferido."
+}
