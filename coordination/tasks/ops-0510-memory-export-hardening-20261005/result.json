@@ -1,0 +1,59 @@
+{
+  "status": "blocked",
+  "summary": "Trabajo recogido para relevo: candidata local revisada con GO acotado, todavía sin publicación remota ni CI de candidata. La publicación quedó interrumpida antes de recibir árbol/commit/ref confirmado; head remoto1aaa intacto. WIP y siete rondas conservados en paquete privado durable con manifiesto y hashes cotejados. Se libera esta reserva para una nueva unidad explícita tras transferencia autorizada; no afirmar entrega remota ni integración.",
+  "productSHA": "1aaa6c9183d94e7dcf718aebb23d810bf40cd45e",
+  "candidateLocalSHA": "49cb1e75a32ccace0711ef9a61ae04fd478145bb",
+  "candidateTree": "0c11d19d684b146c539b697ab5264fbccfa9dbbb",
+  "published": false,
+  "pr": 134,
+  "tests": [
+    {
+      "command": "node tests/sync-memoria.test.mjs",
+      "exitCode": 0,
+      "negativeCases": 414,
+      "positiveCases": 414
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run test:syntax, revisión independiente",
+      "exitCode": 0
+    },
+    {
+      "command": "Adversariales independientes repetidos: diez variantes por cuatro modos",
+      "exitCode": 0,
+      "cases": 40
+    },
+    {
+      "command": "node --check de script/test y git diff --check",
+      "exitCode": 0
+    }
+  ],
+  "privateRecovery": "Artefacto privado recuperable con manifiesto, cinco archivos exactos, parches y hashes. Referencias guardadas solo en el chat del dueño.",
+  "nextUnit": {
+    "proposedTaskId": "ops-0510-memory-export-publication-20261005",
+    "created": false,
+    "baseSHA": "1aaa6c9183d94e7dcf718aebb23d810bf40cd45e",
+    "scope": [
+      "scripts/sync-memoria.mjs",
+      "tests/sync-memoria.test.mjs",
+      "README.md",
+      "docs/TESTING.md",
+      "CHANGELOG.md"
+    ],
+    "objective": "Tras transferencia explícita, restaurar candidata revisada desde artefacto privado en copia aislada de base exacta; cotejar cinco hashes y tree0c11; crear nuevo task/claim propio y publicar normal en rama existente de PR134 preservando veinte archivos. No repetir implementación ni reutilizar reserva cerrada. Verificar nueva CI antes de cualquier integración."
+  },
+  "limitations": [
+    "GO local acotado no es anonimización universal ni suite/CI/móvil verde.",
+    "PR134 head remoto actual mantiene NO-GO; SQUASH documental solo después de review y CI exactos verdes; canal recibe archivos saneados, nunca historial original.",
+    "No nuevas tareas locales ni subagentes activos; no transferencia de control ejecutada."
+  ],
+  "schema": 1,
+  "taskId": "ops-0510-memory-export-hardening-20261005",
+  "actor": "codex",
+  "sessionId": "codex-cloud-flow-20261005",
+  "createdAt": "2026-10-05T19:10:51.509Z",
+  "released": true
+}
