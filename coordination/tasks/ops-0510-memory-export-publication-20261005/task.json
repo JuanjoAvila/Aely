@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "id": "ops-0510-memory-export-publication-20261005",
+  "from": "codex",
+  "coordinatorSession": "relay-run-69a2dc06fd08ce03",
+  "createdAt": "2026-10-05T19:31:21.034Z",
+  "to": "codex",
+  "baseSHA": "1aaa6c9183d94e7dcf718aebb23d810bf40cd45e",
+  "objective": "Restaurar y publicar la candidata de exportación de memoria previamente revisada, sin repetir implementación, y verificar CI exacta de PR134.",
+  "scope": [
+    "scripts/sync-memoria.mjs",
+    "tests/sync-memoria.test.mjs",
+    "README.md",
+    "docs/TESTING.md",
+    "CHANGELOG.md"
+  ],
+  "predecessorTaskId": "ops-0510-memory-export-hardening-20261005",
+  "required": [
+    "Nuevo claim propio confirmado antes de trabajar; leer AGENTS.md y EMPIEZA-AQUI.md íntegros desde base exacta y checkout/rama propios.",
+    "El coordinador entrega los cinco archivos recuperados por vía privada; no publicar paquete, referencias privadas ni historia original. Cotejar tamaños y hashes del manifiesto privado y tree esperado 0c11d19d684b146c539b697ab5264fbccfa9dbbb.",
+    "Comprobar head actual PR134 y rama claude/memoria-nube-20261005 antes de publicar normal force:false; si avanzó, detener y reconciliar sin rebase ciego. Preservar los veinte archivos y alcance autorizado.",
+    "Repetir test sintético sync-memoria, relevant-tests, syntax y diff-check; confirmar review independiente acotada y CI del nuevo SHA real. No atribuir el SHA local a publicación remota.",
+    "PR135 tooling separado conserva head d43d1aec0f6afd873a4e76d50111f3a9643ff943 y CI37353779251 success; no mezclar sin tarea autorizada y revisión."
+  ],
+  "limits": [
+    "No integración, main/beta, producción, APK, Edge, SQL, credenciales o datos reales. SQUASH PR134 solo con revisión y CI exactos verdes en unidad posterior.",
+    "No reutilizar la reserva anterior cerrada blocked ni afirmar anonimización universal."
+  ],
+  "modelChoice": "Modelo heredado disponible para publicación acotada; revisión independiente fuerte de privacidad antes de aceptación."
+}
