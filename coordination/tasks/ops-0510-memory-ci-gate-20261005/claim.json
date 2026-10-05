@@ -1,0 +1,8 @@
+{
+  "schema": 1,
+  "taskId": "ops-0510-memory-ci-gate-20261005",
+  "actor": "codex",
+  "sessionId": "relay-run-e9c59cbe362b1be8",
+  "createdAt": "2026-10-05T21:11:40.576Z",
+  "baseSHA": "7e5f1f396d1dc92053f1a5fabaad9a56e58cce42"
+}
