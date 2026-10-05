@@ -1,0 +1,46 @@
+{
+  "schema": 1,
+  "id": "inc-2709-06-invalid-date-guard-20261005",
+  "from": "codex",
+  "coordinatorSession": "codex-cloud-flow-20261005",
+  "createdAt": "2026-10-05T16:29:30.388Z",
+  "to": "grok",
+  "baseSHA": "3fd4b52031ee28e0f13aa18f3b367a08d9f87a73",
+  "objective": "Corregir de forma mínima la regresión de fechas inválidas de PR131: importObExpenses no debe lanzar RangeError ni inventar una fecha para una fila bancaria inválida; las filas válidas del lote conservan día financiero, identidad, deduplicación y totales exactos.",
+  "scope": [
+    "src/modules/08-motor-bank.js",
+    "tests/ob-ingresos.test.mjs",
+    "tests/inc-2709-06-fecha-invalida.test.mjs",
+    "scripts/run-tests.mjs",
+    "docs/briefs/inc-2709-06-caixa-ausentes.md",
+    "public/beta-delivery.json",
+    "public/release-notes.json",
+    "public/index.html"
+  ],
+  "authorization": "Flujo de producto reanudado expresamente por el dueño; unidad sintética acotada. No autoriza integración, publicación beta/producción, aceptación móvil ni ampliación de permisos.",
+  "protocol": "Grok recibe exclusivamente por issue130 y conserva su gestión de Cursor. Confirmar ACK+RESERVA antes de editar y RESULTADO+LIBERACIÓN con evidencia al cerrar; no fingir claim/result del canal. Reutilizar rama cursor/inc-2709-06-caixa-extid-a5c6 y PR131 draft, sin PR nueva; no trabajar desde producto antiguo del canal.",
+  "reproduction": {
+    "command": "node tests/ob-ingresos.test.mjs",
+    "exitCode": 1,
+    "head": "3fd4b52031ee28e0f13aa18f3b367a08d9f87a73",
+    "finding": "RangeError: Invalid time value en histDate al procesar el caso sintético de estado desconocido y fecha inexistente."
+  },
+  "required": [
+    "Leer AGENTS.md y EMPIEZA-AQUI.md completos del SHA base; comprobar reserva y ausencia de solape.",
+    "Primero reproducir rojo; añadir guardián sintético que falle en base para lote mezclado válido/fecha ausente/fecha no válida y días imposibles, sin datos reales.",
+    "Corregir rechazo consistente de fecha inválida en el pipeline sin convertirla al día actual ni alterar contratos de extId, lápidas, #dup, ~deuda o liquidación diaria.",
+    "Ejecutar guardianes, ob-ingresos, retirada-bancaria y los tests INC-2709-06 relevantes en UTC y Europe/Madrid; distinguir fallos preexistentes con comandos y exitcodes.",
+    "Regenerar solo artefactos exigidos por build; no recortar tandas de aceptación ni declarar OK móvil.",
+    "Entregar SHA completo, archivos exactos, comando/exitcode y limitaciones; nunca integrar PR131 por un verde de esta unidad."
+  ],
+  "limits": [
+    "Sin VERSION, dinero real, memoria personal, autenticación, credenciales, SQL, Edge, APK, pagos, redes/permisos/costes nuevos, merge ni push a beta/main.",
+    "No cambiar App11 ni otros contratos para este alcance; si resultan indispensables, entregar bloqueo y propuesta concreta sin ampliar alcance.",
+    "No duplicar la reserva ya liberada de reintento diario; esta es una unidad sucesora separada."
+  ],
+  "dependsOn": {
+    "taskId": "inc-2709-06-daily-commit-retry-20261005",
+    "issue130ResultComment": 5998226614,
+    "review": "GO técnico independiente de reintento diario en 3fd4b520; PR131 completa sigue NO-GO."
+  }
+}
