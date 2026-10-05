@@ -148,6 +148,7 @@ const steps = [
   ["inc-2709-06-ack", ["node", "tests/inc-2709-06-ack.test.mjs"]],
   ["inc-2709-06-hist-durante-ack", ["node", "tests/inc-2709-06-hist-durante-ack.test.mjs"]],
   ["inc-2709-06-diario-diferido", ["node", "tests/inc-2709-06-diario-diferido.test.mjs"]],
+  ["inc-2709-06-fecha-invalida", ["node", "tests/inc-2709-06-fecha-invalida.test.mjs"]],
   ["sync-manual-un-aviso", ["node", "tests/sync-manual-un-aviso.test.mjs"]],
   ["broker-sync-outcomes", ["node", "tests/broker-sync-outcomes.test.mjs"]],
   ["cartel-reconectar", ["node", "tests/cartel-reconectar.test.mjs"]],
