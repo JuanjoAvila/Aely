@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "id": "inc-0410-metas-lww-diagnosis-20261005",
+  "from": "codex",
+  "coordinatorSession": "codex-cloud-20261005-product-cycle",
+  "createdAt": "2026-10-05T15:21:32.242Z",
+  "to": "claude",
+  "baseSHA": "dd59064e1edb6bd0e14a0d9682a9b61f47dc212e",
+  "objective": "Diagnosticar el pendiente financiero documentado de escrituras simultaneas LWW en Metas mensuales: reproducir dos clientes sinteticos concurrentes, identificar primera perdida y proponer correccion acotada sin reimplementar mensual ya entregada. Solo diagnostico/tests en rama aislada; no cambiar producto ni integrar en esta unidad.",
+  "scope": [
+    "src/modules/09-tab-debts-goals.js (lectura)",
+    "src/modules/00-core.js (lectura de sync/reserva)",
+    "src/modules/11-app-main.js (lectura)",
+    "tests/metas-pull-transport.test.mjs",
+    "tests/reserva-dinero.test.mjs",
+    "docs/briefs/inc-0410-metas-mensual.md"
+  ],
+  "authorization": "Orden humana expresa 2026-10-05 reanuda diagnostico y flujo por tareas. Pendiente LWW consta abierto en BACKLOG y brief; no acceso a cuentas reales.",
+  "acceptance": [
+    "Reserva propia confirmada antes de editar",
+    "Caso rojo sintetico de escrituras simultaneas real, no mera secuencia; traza y exitcodes",
+    "Rama/SHA/PR draft si hay tests nuevos registrados; no implementacion producto sin siguiente unidad",
+    "Revisar si otro encargo externo del mismo alcance sigue reservado; si si, reportar bloqueo sin editar"
+  ],
+  "restrictions": [
+    "No datos reales/secretos/Edge/SQL/APK/pagos/main/beta; no repetir mensual ya implementada",
+    "Claude gestiona sus agentes; maximo un objetivo y devolver evidencia compacta",
+    "Sin lease Chromium del PC; ejecutar Node primero, solo navegador existente en Cloud si hace falta"
+  ],
+  "deliverables": [
+    "Resultado inmutable propio con pruebas reales, SHA/PR y limitaciones; no declarar movil ni reparacion resueltos"
+  ]
+}
