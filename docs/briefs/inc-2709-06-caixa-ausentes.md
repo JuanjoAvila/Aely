@@ -1,5 +1,13 @@
 # INC-2709-06 · cargos CaixaBank ausentes
 
+## Actualización 5/10/2026 · el aviso sale del commit, no del updater
+
+Un verde de esta unidad **no autoriza integrar el PR #131**. El resto del NO-GO [5989932516](https://github.com/JuanjoAvila/Aely/pull/131#issuecomment-5989932516) sigue abierto. El caso humano sigue abierto. Edge no se despliega.
+
+En `db755d2a` el doble UUID del canónico ya no se concatenaba, pero `persistHistImport` mutaba `avisado` y armaba `Promise.resolve().then(obHistAnnounce)` dentro del updater. Evaluar ese updater con estado vacío y descartar el resultado anunciaba `bp_hist_done_g=1` con 0 filas confirmadas; repetirlo sobre el canónico dejaba el aviso. Al revés, la evaluación descartada con el canónico se quedaba el turno y la evaluación que sí añadía 1 no avisaba. La reproducción de Codex (`node --input-type=module`, datos inventados) sale 1 en ese commit, en UTC y en Europe/Madrid.
+
+`obHistCommit` sigue siendo un cálculo puro. El aviso es un recibo en el estado que React compromete, y `useLayoutEffect` lo consume una sola vez junto a `mcPersistCommit`. Una promesa dentro del updater no cuenta. El recibo no se guarda en disco ni viaja en `slimForCloud`. `onClose` y `setImporting` siguen al resolverse el ACK, fuera del updater: si no hay cambio de estado no hay commit nuevo, y cerrar la ficha no puede depender de eso. No hay DOM de React en el guardián: el test llama a `obHistNoticeCommit` y comprueba que el bundle engancha esa llamada en el mismo layout que el volcado.
+
 ## Actualización 5/10/2026 · unidad acotada sobre `0fa7075a`
 
 Un verde de esta unidad **no autoriza integrar el PR #131**. El resto del NO-GO [5989932516](https://github.com/JuanjoAvila/Aely/pull/131#issuecomment-5989932516) sigue abierto (fecha de ingreso inválida, identidad de un reintegro, el setter diario que pierde un reintento si el updater va diferido, formato de clave y lápida entre app y servidor, zona horaria, compatibilidad de versión y `#dup`, recuperación tras un pull fallido, alcance de la revisión, presupuesto de tamaño). El caso humano sigue abierto. Edge no se despliega: el widget publicado sigue juntando por día.

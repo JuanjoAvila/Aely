@@ -351,13 +351,17 @@ function App(){
     return Object.assign({},next,{_savedAt:Date.now()});
   }); },[]);
   // En el propio commit (layout, no pasivo): así un `pagehide` inmediato ya vuelca este estado.
+  // El aviso del histórico sale de este mismo commit. El updater solo calcula: si React tira
+  // ese resultado, el recibo no está en `state` y no se pinta (INC-2709-06).
   const committedRef=useRef(state);
+  const showToastRef=useRef(null);
   useLayoutEffect(function(){
     const prev=committedRef.current;
     committedRef.current=state;
     mcPersistCommit(persistRef.current, prev, state, function(){
       return setTimeout(function(){ const q=persistRef.current; q.t=null; writeNow(q); },400);
     });
+    obHistNoticeCommit(prev, state, showToastRef.current, t, tf);
   },[state]);
   useEffect(function(){
     const onVis=function(){ if(document.visibilityState==="hidden") flushPersist(); };
@@ -382,6 +386,7 @@ function App(){
     // permission denied del ingest) eran invisibles para el admin (bug 2026-07-11).
     try{ const s=String(m||""); if(/^[✕⚠✗]/.test(s)) cloud.logEvent('error','TOAST: '+s.slice(0,300)); }catch(e){}
   };
+  showToastRef.current=showToast;
   // Moneda de visualización: convierte todos los importes (en €) a la moneda elegida en Ajustes.
   // GBP/CHF usan fxRates (XXX→EUR, del BCE) — si aún no ha llegado el FX, se queda en € antes
   // que enseñar un número inventado (regla de la casa: nunca inventar un tipo de cambio).

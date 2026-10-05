@@ -2839,8 +2839,25 @@ function obHistRefKey(e){
    banco con un extId no vacío. Importe, comercio y día no son identidad: dos cargos
    distintos de 12,50 € tienen que seguir siendo dos. Si la referencia ya llegó (un pull
    mientras se esperaba el ACK), se conserva esa fila y sus ediciones; el uuid local no
-   se concatena ni entra en deshacer. El aviso sale de este resultado y no de una variable
-   que set todavía no ha rellenado: si no, el contador salía 0. */
+   se concatena ni entra en deshacer. Este cálculo no avisa: React puede ejecutarlo y
+   descartar el resultado. El aviso lo lee `obHistNoticeCommit` del estado comprometido. */
+function obHistNoticeFor(added, spec){
+  spec=spec||{};
+  added=added||[];
+  const fixAdds=spec.fixAdds||[];
+  const failed=!!spec.failed;
+  const offline=!!spec.offline;
+  const expAdds=spec.expAdds||[];
+  if(!(failed || (offline && expAdds.length) || added.length || fixAdds.length)) return null;
+  const ids=[];
+  added.forEach(function(e){ if(e&&e.id) ids.push(String(e.id)); });
+  ids.sort();
+  return {
+    id:[String(spec.batchId||""), ids.join(","), failed?"1":"0", offline?"1":"0", String(fixAdds.length)].join("|"),
+    added:added,
+    spec:{ fixAdds:fixAdds, offline:offline, failed:failed, expAdds:expAdds, batchId:spec.batchId }
+  };
+}
 function obHistCommit(state, spec){
   spec=spec||{};
   const s=state||{};
@@ -2864,7 +2881,8 @@ function obHistCommit(state, spec){
     if(k) byRef[k]=1;
   });
   const fixAdds=spec.fixAdds||[];
-  if(!added.length && !fixAdds.length) return { next:s, added:added };
+  const notice=obHistNoticeFor(added, spec);
+  if(!added.length && !fixAdds.length && !notice) return { next:s, added:added };
   const next=Object.assign({}, s);
   if(added.length) next.expenses=added.concat(cur);
   if(fixAdds.length) next.fixed=(s.fixed||[]).concat(fixAdds);
@@ -2874,7 +2892,22 @@ function obHistCommit(state, spec){
     const ids=spec.offline ? [] : (spec.cloudIds||[]).filter(function(id){ return vis[id]; });
     next.lastHistImport={ batchId:spec.batchId, localIds:added.map(function(e){ return e.id; }), cloudIds:ids, at:Date.now() };
   }
+  if(notice) next.histImportNotice=notice;
   return { next:next, added:added };
+}
+/* El recibo viaja en el estado que React comprometió. Una segunda pasada del mismo id
+   no vuelve a avisar: el layout effect puede correr otra vez con el mismo estado. */
+var obHistNoticeSeen=Object.create(null);
+function obHistNoticeCommit(prev, state, showToast, t, tf){
+  if(prev===state) return false;
+  const rec=state&&state.histImportNotice;
+  if(!rec||!rec.id) return false;
+  if(prev&&prev.histImportNotice&&prev.histImportNotice.id===rec.id) return false;
+  if(obHistNoticeSeen[rec.id]) return false;
+  if(typeof showToast!=="function"||typeof t!=="function"||typeof tf!=="function") return false;
+  obHistNoticeSeen[rec.id]=1;
+  obHistAnnounce({added:rec.added||[]}, rec.spec||{}, showToast, t, tf);
+  return true;
 }
 function obHistAnnounce(report, spec, showToast, t, tf){
   if(typeof showToast!=="function" || typeof t!=="function" || typeof tf!=="function") return;
@@ -2902,8 +2935,7 @@ function obHistAnnounce(report, spec, showToast, t, tf){
 function persistHistImport(opts){
   opts=opts||{};
   const cloud=opts.cloud, expAdds=opts.expAdds||[], fixAdds=opts.fixAdds||[], batchId=opts.batchId;
-  const set=opts.set, showToast=opts.showToast, onClose=opts.onClose, setImporting=opts.setImporting;
-  const t=opts.t, tf=opts.tf;
+  const set=opts.set, onClose=opts.onClose, setImporting=opts.setImporting;
   const batch=(cloud && typeof cloud.addExpensesBatch==="function") ? cloud.addExpensesBatch(expAdds) : Promise.resolve({ cloudIds:[], offline:true });
   Promise.resolve(batch)
     .catch(function(){ return { cloudIds:[], offline:false, failed:true }; })
@@ -2935,22 +2967,9 @@ function persistHistImport(opts){
         keep:pack.keep||[], cloudIds:pack.cloudIds||[], offline:!!pack.offline, failed:!!pack.failed,
         fixAdds:fixAdds, batchId:batchId, expAdds:expAdds
       };
-      // El aviso va DESPUÉS del updater, en otro turno: set de React no ejecuta el cálculo
-      // al momento, y leer el contador aquí fabricaba un 0. Dentro del updater no hay red.
-      let avisado=false;
-      if(typeof set==="function"){
-        set(function(s){
-          const report=obHistCommit(s, spec);
-          if(!avisado){
-            avisado=true;
-            const rec=report;
-            // Microtarea: no es setState dentro del updater, y un setter diferido no
-            // llega a pintar 0 antes de que este cálculo exista.
-            Promise.resolve().then(function(){ obHistAnnounce(rec, spec, showToast, t, tf); });
-          }
-          return report.next;
-        });
-      }
+      // El updater solo devuelve el estado. Una promesa aquí no es un commit: React puede
+      // calcular con un estado que luego tira, y ese cálculo no puede pintar el aviso.
+      if(typeof set==="function") set(function(s){ return obHistCommit(s, spec).next; });
       if(typeof setImporting==="function") setImporting(false);
       if(typeof onClose==="function") onClose();
     });

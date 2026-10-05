@@ -8,6 +8,7 @@
  * del bundle, no por un filtro pegado en memoria.
  */
 import assert from "node:assert/strict";
+import fs from "node:fs";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { loadPureLogicFromFile } from "../scripts/load-pure-logic.mjs";
@@ -122,6 +123,17 @@ function caja(inicial) {
 }
 function cifra(s) {
   return ctx.monthBudgetStats(s, ahora).shown;
+}
+function tfN(k, o) {
+  return k + "=" + (o && o.n != null ? o.n : "");
+}
+function confirmar(prev, next, toasts) {
+  return ctx.obHistNoticeCommit(prev, next, function(m){ toasts.push(String(m)); }, function(k){ return k; }, tfN);
+}
+function comoApp(prev, updater) {
+  const next = updater(prev);
+  if (!next || next === prev) return prev;
+  return Object.assign({}, next, { _savedAt: 1 });
 }
 
 const fallos = [];
@@ -260,9 +272,128 @@ await t("un setter diferido no fabrica el contador 0 ni escribe fuera del commit
   const next = queued[0](s);
   assert.equal(next.expenses.length, 1);
   assert.equal(next.expenses[0].id, "uuid-nuevo");
+  assert.equal(s.expenses, previa, "el cálculo escribió el estado de partida");
   await settle();
+  assert.equal(toasts.length, 0, "avisó sin commit: " + toasts.join(" | "));
+  const committed = Object.assign({}, next, { _savedAt: 1 });
+  assert.equal(confirmar(s, committed, toasts), true);
   assert.ok(!toasts.some(function(m){ return /=0(?:\D|$)/.test(m) || m.indexOf("=0") >= 0; }), "tras el commit avisos=" + toasts.join(" | "));
   assert.ok(toasts.some(function(m){ return m.indexOf("=1") >= 0; }), "no avisó el alta real: " + toasts.join(" | "));
+  const n = toasts.length;
+  assert.equal(confirmar(s, committed, toasts), false);
+  assert.equal(confirmar(committed, committed, toasts), false);
+  assert.equal(toasts.length, n, "la repetición volvió a avisar");
+});
+
+await t("un cálculo descartado no avisa, y el replay con el canónico tampoco", async function(){
+  const cloud = nube();
+  const row = fila("uuid-spec", "cargo-Z", { date: d2, merchant: "Inventado" });
+  let updater;
+  const toasts = [];
+  cloud.delayNext();
+  ctx.persistHistImport({
+    cloud: cloud, expAdds: [row], fixAdds: [], batchId: "hist-spec",
+    set: function(fn){ updater = fn; },
+    showToast: function(m){ toasts.push(String(m)); },
+    onClose: function(){}, setImporting: function(){},
+    t: function(k){ return k; }, tf: tfN,
+  });
+  cloud.release();
+  await settle();
+  const vacio = base();
+  const speculative = updater(vacio);
+  await settle();
+  assert.equal(vacio.expenses.length, 0, "el cálculo descartado escribió filas");
+  assert.equal(speculative.expenses.length, 1);
+  assert.equal(toasts.length, 0, "avisos del cálculo descartado: " + toasts.join(" | "));
+  const canon = fila("uuid-canonical", "cargo-Z", { date: d2, merchant: "Inventado", category: "bares", note: "editada", source: "ob", importBatchId: null });
+  const actual = base([canon]);
+  const actualNext = updater(actual);
+  await settle();
+  assert.equal(actualNext, actual, "fabricó un estado nuevo sin altas");
+  assert.equal(actualNext.expenses.length, 1);
+  assert.equal(actualNext.expenses[0].id, "uuid-canonical");
+  assert.equal(actualNext.expenses[0].category, "bares");
+  assert.equal(actualNext.expenses[0].note, "editada");
+  assert.equal(confirmar(actual, actualNext, toasts), false);
+  assert.equal(toasts.length, 0, "persistió el aviso 1 con 0 altas: " + toasts.join(" | "));
+  const undo = ctx.histUndoBatch(actualNext, actualNext.lastHistImport || { batchId: "hist-spec", localIds: [], cloudIds: [] });
+  assert.ok((undo.nextState.expenses || []).some(function(e){ return e.id === "uuid-canonical"; }));
+});
+
+await t("una evaluación descartada con el canónico no tapa el alta que sí se confirma", async function(){
+  const cloud = nube();
+  const row = fila("uuid-final", "cargo-Q", { date: d2, merchant: "OTRO2" });
+  let updater;
+  const toasts = [];
+  ctx.persistHistImport({
+    cloud: cloud, expAdds: [row], fixAdds: [], batchId: "hist-inv",
+    set: function(fn){ updater = fn; },
+    showToast: function(m){ toasts.push(String(m)); },
+    onClose: function(){}, setImporting: function(){},
+    t: function(k){ return k; }, tf: tfN,
+  });
+  await settle();
+  const canon = fila("uuid-canonical-q", "cargo-Q", { date: d2, merchant: "OTRO2", category: "bares", note: "editada", importBatchId: null });
+  const conCanon = base([canon]);
+  const descartado = updater(conCanon);
+  await settle();
+  assert.equal(toasts.length, 0, "la evaluación sin alta avisó: " + toasts.join(" | "));
+  const vacio = base();
+  const committed = comoApp(vacio, updater);
+  await settle();
+  assert.equal(toasts.length, 0, "avisó antes de confirmar: " + toasts.join(" | "));
+  assert.equal(committed.expenses.length, 1);
+  assert.equal(committed.expenses[0].id, "uuid-final");
+  assert.equal(confirmar(vacio, committed, toasts), true);
+  assert.equal(toasts.filter(function(m){ return m.indexOf("=1") >= 0; }).length, 1, "avisos=" + toasts.join(" | "));
+  assert.equal(confirmar(vacio, committed, toasts), false);
+  assert.equal(descartado, conCanon, "la evaluación sin alta sustituyó el canónico");
+});
+
+await t("repetir el commit del mismo batch avisa una sola vez", async function(){
+  const cloud = nube();
+  const row = fila("uuid-rep", "cargo-R", { date: d2, merchant: "REP" });
+  let updater;
+  const toasts = [];
+  ctx.persistHistImport({
+    cloud: cloud, expAdds: [row], fixAdds: [], batchId: "hist-rep",
+    set: function(fn){ updater = fn; },
+    showToast: function(m){ toasts.push(String(m)); },
+    onClose: function(){}, setImporting: function(){},
+    t: function(k){ return k; }, tf: tfN,
+  });
+  await settle();
+  const vacio = base();
+  const a = comoApp(vacio, updater);
+  const b = comoApp(vacio, updater);
+  await settle();
+  assert.equal(toasts.length, 0);
+  assert.equal(confirmar(vacio, a, toasts), true);
+  assert.equal(confirmar(vacio, b, toasts), false);
+  assert.equal(toasts.length, 1, "avisos=" + toasts.join(" | "));
+  assert.ok(toasts[0].indexOf("=1") >= 0, toasts.join(" | "));
+});
+
+await t("el recibo no sale del updater y no viaja al guardar ni a la nube", async function(){
+  const cuerpo = ctx.persistHistImport.toString();
+  assert.equal(cuerpo.indexOf("obHistAnnounce"), -1, "el updater sigue avisando");
+  assert.equal(cuerpo.indexOf("avisado"), -1);
+  assert.equal(cuerpo.indexOf("Promise.resolve().then"), -1);
+  const html = fs.readFileSync(fileURLToPath(new URL("../public/index.html", import.meta.url)), "utf8");
+  const marca = "obHistNoticeCommit(prev, state, showToastRef.current, t, tf)";
+  const enBundle = html.indexOf(marca);
+  assert.ok(enBundle >= 0, "el commit de App no consume el recibo");
+  assert.ok(html.slice(Math.max(0, enBundle - 600), enBundle).indexOf("mcPersistCommit") >= 0, "el aviso no está en el mismo commit que el volcado");
+  const con = { budget: 3, histImportNotice: { id: "z", added: [] }, expenses: [{ id: "e", amount: 1 }] };
+  const nubeState = ctx.slimForCloud(con);
+  assert.equal(nubeState.histImportNotice, undefined);
+  assert.equal(nubeState.budget, 3);
+  ctx.mcSaveRaw("k-notice-sintetico", con);
+  const disco = ctx.mcLoadRaw("k-notice-sintetico");
+  assert.equal(disco.histImportNotice, undefined);
+  assert.equal(disco.budget, 3);
+  assert.equal(disco.expenses.length, 1);
 });
 
 console.log(fallos.length ? "inc-2709-06-hist-durante-ack: " + fallos.length + " fallo(s) (" + zona + ")" : "inc-2709-06-hist-durante-ack: OK (" + zona + ")");

@@ -3109,6 +3109,7 @@ function mcSaveRaw(key, s, opts){
   if(!s) return;
   const rest=Object.assign({},s);
   delete rest.expenses;
+  delete rest.histImportNotice; // recibo del commit: no es cartera, no se guarda ni se reavisa al abrir
   const yaPartido=(function(){ try{ return localStorage.getItem(key+EXP_SUFFIX)!=null; }catch(e){ return false; } })();
   const skipExp = yaPartido && opts && opts.expenses===false;
   if(!skipExp) store.set(key+EXP_SUFFIX, s.expenses||[]);   // primero los gastos: si algo peta a
@@ -4976,7 +4977,7 @@ function compareBackupExpenses(copy,current){
 /* Para el push FRECUENTE a la nube (cada ~1,2s): los gastos viven en su tabla `expenses`
    (fuente de verdad), así que NO los duplicamos en el JSONB de app_state → se mantiene ligero
    aunque haya miles de gastos. El backup diario sí guarda el estado completo. */
-function slimForCloud(s){ const c=Object.assign({},s); delete c.expenses; delete c.bankTx; return c; }
+function slimForCloud(s){ const c=Object.assign({},s); delete c.expenses; delete c.bankTx; delete c.histImportNotice; return c; }
 
 /* ---------- Desbloqueo biométrico (huella / Face ID vía WebAuthn) ----------
    Candado LOCAL por dispositivo: tras iniciar sesión una vez, la app pide huella al abrir.
@@ -16215,8 +16216,25 @@ function obHistRefKey(e){
    banco con un extId no vacío. Importe, comercio y día no son identidad: dos cargos
    distintos de 12,50 € tienen que seguir siendo dos. Si la referencia ya llegó (un pull
    mientras se esperaba el ACK), se conserva esa fila y sus ediciones; el uuid local no
-   se concatena ni entra en deshacer. El aviso sale de este resultado y no de una variable
-   que set todavía no ha rellenado: si no, el contador salía 0. */
+   se concatena ni entra en deshacer. Este cálculo no avisa: React puede ejecutarlo y
+   descartar el resultado. El aviso lo lee `obHistNoticeCommit` del estado comprometido. */
+function obHistNoticeFor(added, spec){
+  spec=spec||{};
+  added=added||[];
+  const fixAdds=spec.fixAdds||[];
+  const failed=!!spec.failed;
+  const offline=!!spec.offline;
+  const expAdds=spec.expAdds||[];
+  if(!(failed || (offline && expAdds.length) || added.length || fixAdds.length)) return null;
+  const ids=[];
+  added.forEach(function(e){ if(e&&e.id) ids.push(String(e.id)); });
+  ids.sort();
+  return {
+    id:[String(spec.batchId||""), ids.join(","), failed?"1":"0", offline?"1":"0", String(fixAdds.length)].join("|"),
+    added:added,
+    spec:{ fixAdds:fixAdds, offline:offline, failed:failed, expAdds:expAdds, batchId:spec.batchId }
+  };
+}
 function obHistCommit(state, spec){
   spec=spec||{};
   const s=state||{};
@@ -16240,7 +16258,8 @@ function obHistCommit(state, spec){
     if(k) byRef[k]=1;
   });
   const fixAdds=spec.fixAdds||[];
-  if(!added.length && !fixAdds.length) return { next:s, added:added };
+  const notice=obHistNoticeFor(added, spec);
+  if(!added.length && !fixAdds.length && !notice) return { next:s, added:added };
   const next=Object.assign({}, s);
   if(added.length) next.expenses=added.concat(cur);
   if(fixAdds.length) next.fixed=(s.fixed||[]).concat(fixAdds);
@@ -16250,7 +16269,22 @@ function obHistCommit(state, spec){
     const ids=spec.offline ? [] : (spec.cloudIds||[]).filter(function(id){ return vis[id]; });
     next.lastHistImport={ batchId:spec.batchId, localIds:added.map(function(e){ return e.id; }), cloudIds:ids, at:Date.now() };
   }
+  if(notice) next.histImportNotice=notice;
   return { next:next, added:added };
+}
+/* El recibo viaja en el estado que React comprometió. Una segunda pasada del mismo id
+   no vuelve a avisar: el layout effect puede correr otra vez con el mismo estado. */
+var obHistNoticeSeen=Object.create(null);
+function obHistNoticeCommit(prev, state, showToast, t, tf){
+  if(prev===state) return false;
+  const rec=state&&state.histImportNotice;
+  if(!rec||!rec.id) return false;
+  if(prev&&prev.histImportNotice&&prev.histImportNotice.id===rec.id) return false;
+  if(obHistNoticeSeen[rec.id]) return false;
+  if(typeof showToast!=="function"||typeof t!=="function"||typeof tf!=="function") return false;
+  obHistNoticeSeen[rec.id]=1;
+  obHistAnnounce({added:rec.added||[]}, rec.spec||{}, showToast, t, tf);
+  return true;
 }
 function obHistAnnounce(report, spec, showToast, t, tf){
   if(typeof showToast!=="function" || typeof t!=="function" || typeof tf!=="function") return;
@@ -16278,8 +16312,7 @@ function obHistAnnounce(report, spec, showToast, t, tf){
 function persistHistImport(opts){
   opts=opts||{};
   const cloud=opts.cloud, expAdds=opts.expAdds||[], fixAdds=opts.fixAdds||[], batchId=opts.batchId;
-  const set=opts.set, showToast=opts.showToast, onClose=opts.onClose, setImporting=opts.setImporting;
-  const t=opts.t, tf=opts.tf;
+  const set=opts.set, onClose=opts.onClose, setImporting=opts.setImporting;
   const batch=(cloud && typeof cloud.addExpensesBatch==="function") ? cloud.addExpensesBatch(expAdds) : Promise.resolve({ cloudIds:[], offline:true });
   Promise.resolve(batch)
     .catch(function(){ return { cloudIds:[], offline:false, failed:true }; })
@@ -16311,22 +16344,9 @@ function persistHistImport(opts){
         keep:pack.keep||[], cloudIds:pack.cloudIds||[], offline:!!pack.offline, failed:!!pack.failed,
         fixAdds:fixAdds, batchId:batchId, expAdds:expAdds
       };
-      // El aviso va DESPUÉS del updater, en otro turno: set de React no ejecuta el cálculo
-      // al momento, y leer el contador aquí fabricaba un 0. Dentro del updater no hay red.
-      let avisado=false;
-      if(typeof set==="function"){
-        set(function(s){
-          const report=obHistCommit(s, spec);
-          if(!avisado){
-            avisado=true;
-            const rec=report;
-            // Microtarea: no es setState dentro del updater, y un setter diferido no
-            // llega a pintar 0 antes de que este cálculo exista.
-            Promise.resolve().then(function(){ obHistAnnounce(rec, spec, showToast, t, tf); });
-          }
-          return report.next;
-        });
-      }
+      // El updater solo devuelve el estado. Una promesa aquí no es un commit: React puede
+      // calcular con un estado que luego tira, y ese cálculo no puede pintar el aviso.
+      if(typeof set==="function") set(function(s){ return obHistCommit(s, spec).next; });
       if(typeof setImporting==="function") setImporting(false);
       if(typeof onClose==="function") onClose();
     });
@@ -20893,7 +20913,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="7a9ee6c5432870b49fe301b52e8783e6cc781125f5a6ec216f0a569454c2428c";
+var _rnSha="7c52d749fe26ea81a5e4b11d17cb7587c11d3a78d715f691e4f6000796945e0d";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -24930,13 +24950,17 @@ function App(){
     return Object.assign({},next,{_savedAt:Date.now()});
   }); },[]);
   // En el propio commit (layout, no pasivo): así un `pagehide` inmediato ya vuelca este estado.
+  // El aviso del histórico sale de este mismo commit. El updater solo calcula: si React tira
+  // ese resultado, el recibo no está en `state` y no se pinta (INC-2709-06).
   const committedRef=useRef(state);
+  const showToastRef=useRef(null);
   useLayoutEffect(function(){
     const prev=committedRef.current;
     committedRef.current=state;
     mcPersistCommit(persistRef.current, prev, state, function(){
       return setTimeout(function(){ const q=persistRef.current; q.t=null; writeNow(q); },400);
     });
+    obHistNoticeCommit(prev, state, showToastRef.current, t, tf);
   },[state]);
   useEffect(function(){
     const onVis=function(){ if(document.visibilityState==="hidden") flushPersist(); };
@@ -24961,6 +24985,7 @@ function App(){
     // permission denied del ingest) eran invisibles para el admin (bug 2026-07-11).
     try{ const s=String(m||""); if(/^[✕⚠✗]/.test(s)) cloud.logEvent('error','TOAST: '+s.slice(0,300)); }catch(e){}
   };
+  showToastRef.current=showToast;
   // Moneda de visualización: convierte todos los importes (en €) a la moneda elegida en Ajustes.
   // GBP/CHF usan fxRates (XXX→EUR, del BCE) — si aún no ha llegado el FX, se queda en € antes
   // que enseñar un número inventado (regla de la casa: nunca inventar un tipo de cambio).
