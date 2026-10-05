@@ -46,11 +46,29 @@ Consecuencias que condicionan cualquier propuesta:
 
 ## Pruebas
 
-`tests/metas-lww-concurrente.test.mjs` (ya en `run-tests`, sin tocar el runner). Cada escenario corre en 4 variantes (quién tiene el reloj más nuevo × quién sube primero) sobre el producto real y sobre el modelo, con el mismo ejecutor: dos aportes a la misma meta, apertura legacy, misma regla y mes en ambos, reglas distintas en la misma meta, regla + aporte manual, liberación + aporte, borrar meta + aportar, replay con ACK perdido y céntimos. El modelo se comprueba además conmutativo e idempotente, y se documentan con su caso las tres contrapropuestas descartadas (`max`, delta contra ancestro, `saved = Σ registro`). Un mutante que quita la unión de `goalLog` o las lápidas pone en rojo el modelo.
+`tests/metas-lww-concurrente.test.mjs` (ya en `run-tests`, sin tocar el runner). Cada escenario corre sobre el producto real y sobre el modelo, con el mismo ejecutor: tres relojes (A más reciente, B más reciente y **empate de `_savedAt`**) × quién sube primero = **6 variantes** por escenario de dos clientes, y 1 en los de un solo cliente (replay, céntimos). Son **20 escenarios y 105 variantes por lado**; el test comprueba ese conteo, no se escribe a ojo. (La versión anterior decía «4 variantes» y su etiqueta de reloj iba invertida: «A más reciente» era en realidad el reloj más antiguo.)
 
-- Sin variable: caracterización, **exit 0** (cada escenario con `hoyPierde` incumple en algún orden; las guardas de no duplicar —misma regla/mes y replay— cumplen siempre).
-- `LWW_ESPERADO=1`: contrato deseado, **exit 1** mientras el producto no lo cumpla.
+Cada caso lleva clase y se distingue en la salida: `perdida` (una aportación o asiento independiente desaparece), `precision` (coma flotante), `guarda` (no duplicar / no liberar dos veces) y `politica` (depende de una decisión del dueño: se ejecuta y se registra, **no se asere ningún desenlace**).
+
+- Sin variable: **caracterización** (`caracteriza · …`), **exit 0**. Cada escenario con `hoyPierde` incumple en alguna variante; las guardas de no duplicar cumplen siempre en el producto.
+- `LWW_ESPERADO=1`: **contrato deseado** (`contrato · …`), **exit 1** mientras el producto no lo cumpla. Rojo real contra la base `0dbc3c88`: **22 casos en rojo** (2 diagnóstico inicial, 10 pérdidas del producto, 1 precisión, 1 empate de `_savedAt`, 2 de transporte real, 6 del MODELO), idéntico con `TZ=UTC` y `TZ=Europe/Madrid`.
+
+### Añadido en el endurecimiento (tras la revisión independiente NO-GO)
+
+- **Dobles borrados** con `removeReservaRule` real en los dos clientes (cada uno con su `uid`): misma regla mensual, misma reserva por ingreso y reserva parcialmente liberada. Contrato: una liberación por origen (`releaseOf`). El producto lo cumple hoy **por accidente** (el LWW descarta uno de los dos estados enteros); el **modelo lo viola** (la unión por `id` conserva las dos liberaciones, que liberarían el presupuesto dos veces). Controles de reglas independientes, borrado + aporte a otra meta y replay con ACK perdido. No hay reparación retroactiva de liberaciones ya duplicadas: no se asere ni se inventa.
+- **Reparto por ingreso** con `applyReserva` real desde dos clientes con `uid` distintos: mismo `incomeKey`, regla y meta → un solo asiento (identidad **semántica** `incomeKey + regla`, todavía propuesta: unir solo por `id` la rompe, y el modelo queda NO-GO). Controles con `incomeKey` distinto, reglas distintas y metas distintas: no deben perder aportes independientes.
+- **Empate de `_savedAt`**: el producto adopta la nube y el cambio local no subido se pierde (`localNewer` es estricto). La fusión del modelo **no es conmutativa con empate** ni sobre metas/registros (campos no aditivos tomados «del de la izquierda») ni sobre el estado completo con configuración distinta (presupuesto, ajustes): NO-GO. Con relojes distintos sí es conmutativa (control).
+- **Transporte fiel**: el `pushState`/`pullState` reales de `00-core.js` contra un doble de Supabase. El sello `updated_at` lo pone el **cliente** (`new Date().toISOString()`) y ninguna migración lo sustituye por un trigger (se comprueba). Con sello repetido o relojes empatados, el servidor **acepta dos escrituras y pierde una sin conflicto**. La nube de la matriz (`v1, v2…`) es un escenario **ideal** explícito, no una garantía del backend; el mismo guion sí choca ahí. Por tanto **no se afirma que el CAS sea suficiente** sin probar que el sello cambia en toda escritura aceptada y no se repite, cosa que esta suite no puede probar contra Supabase.
+- **Bloqueo documentado**: sin sello conocido (`upsert` a ciegas: clientes antiguos o primer push sin pull) el servidor no compara nada y pisa; ninguna fusión en cliente lo arregla.
+
+### Modelo: NO-GO explícito
+
+El modelo de la propuesta **no es una solución ni se implementa todavía**. Incumple cuatro casos de guarda (los tres dobles borrados y el reparto del mismo ingreso) y la conmutatividad con empate. Están marcados `modeloNoGo` y verdes solo en caracterización; con `LWW_ESPERADO=1` son rojo. Retirar la marca exige que el modelo los cumpla, no bajar el assert. Un mutante que quita la unión de `goalLog` o las lápidas sigue poniendo en rojo el modelo.
+
+## Decisiones del dueño pendientes (no elegidas aquí)
+
+1. Borrado frente a aporte (borrar la meta mientras otro aporta). 2. Edición absoluta (`saveEdit`) frente a aporte. 3. Transición de clientes sin identidad (I3). Los dos primeros son escenarios `politica` que solo registran los desenlaces observados; no se implementan `goalLog` ni lápidas por arrastre.
 
 ## Límites
 
-Doble de nube en Node con la semántica de `pushState`; sin móviles reales, sin Supabase, sin reloj real ni red. No acredita `npm test` entero, e2e ni Android.
+Doble de nube en Node con la semántica de `pushState` (la real, extraída del fuente, sobre un `from().update()/upsert()` falso) y un doble ideal; sin móviles reales, sin Supabase, sin reloj real ni red. No acredita `npm test` entero, e2e ni Android.
