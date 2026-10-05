@@ -1,0 +1,85 @@
+{
+  "status": "done",
+  "summary": "Revisión independiente reproducida: tests GO limitado; brief Metas NO-GO documental; brief widget requiere signo corregido; modelo y producto NO-GO.",
+  "productSHA": "48a86279cb0a10847845e2d46e337d6d50201741",
+  "widgetSHA": "394f6c936f3ed1c05e622b56a3eeea00d9a0eda9",
+  "tests": [
+    {
+      "command": "TZ=UTC node tests/metas-lww-concurrente.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "TZ=UTC LWW_ESPERADO=1 node tests/metas-lww-concurrente.test.mjs",
+      "exitCode": 1
+    },
+    {
+      "command": "TZ=UTC node tests/widget-arbitraje.test.mjs",
+      "exitCode": 1
+    },
+    {
+      "command": "TZ=UTC node tests/widget-arbitraje.test.mjs --iso-contrato",
+      "exitCode": 0
+    },
+    {
+      "command": "TZ=UTC node tests/widget-arbitraje.test.mjs --iso-mutante",
+      "exitCode": 1
+    },
+    {
+      "command": "TZ=UTC node tests/widget-coherente.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "TZ=UTC node tests/presupuesto-servidor.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "TZ=Europe/Madrid node tests/metas-lww-concurrente.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "TZ=Europe/Madrid LWW_ESPERADO=1 node tests/metas-lww-concurrente.test.mjs",
+      "exitCode": 1
+    },
+    {
+      "command": "TZ=Europe/Madrid node tests/widget-arbitraje.test.mjs",
+      "exitCode": 1
+    },
+    {
+      "command": "TZ=Europe/Madrid node tests/widget-arbitraje.test.mjs --iso-contrato",
+      "exitCode": 0
+    },
+    {
+      "command": "TZ=Europe/Madrid node tests/widget-arbitraje.test.mjs --iso-mutante",
+      "exitCode": 1
+    },
+    {
+      "command": "TZ=Europe/Madrid node tests/widget-coherente.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "TZ=Europe/Madrid node tests/presupuesto-servidor.test.mjs",
+      "exitCode": 0
+    }
+  ],
+  "findings": [
+    "Metas:20 escenarios/105variantes por lado,22 rojos esperados idénticos en ambas zonas. Mutante sin goalLog1(7rojos), sin deletedRules1(3rojos), sin deletedGoals0: política no asertada.",
+    "Sello repetido/relojes empatados aceptan dos escrituras sin conflicto en transporte real extraído contra doble Supabase; upsert sin sello sigue bloqueado. CAS no suficiente.",
+    "Widget: guard original mantiene186.45!=174.45. Mutante offset falla. Pliegue real DST02:30+02:00 frente02:30+01:00 conserva identidad; mismo instante con otro offset coincide.",
+    "Mediodía local canónico genera claves distintas UTC/Madrid en verano e invierno: contrato entre zonas pendiente.",
+    "Brief Metas mantiene suficiencia CAS superada, aserción de meta borrada ausente y generalización de mutante lápidas; distinguir reglas/metas. Widget17445 es1200 menos que18645 en fixture sintética, corregir signo."
+  ],
+  "environment": "Node24.19.0, esbuild0.25.5 existente resuelto con hook temporal; sin instalación ni edición de checkouts. Fallo inicial de dependencia no atribuido a test.",
+  "limitations": [
+    "Solo Node sintético; no Supabase real/UI/móvil/Edge/SQL/APK/beta/producción ni aceptación humana.",
+    "GO tests limitado a alcance contratado. Modelo/producto y PR131 siguen NO-GO; no implementación de semántica por inferencia."
+  ],
+  "nextUnits": [
+    "inc-0410-metas-brief-reconcile-20261005"
+  ],
+  "schema": 1,
+  "taskId": "ops-0510-contract-deliveries-review-20261005",
+  "actor": "codex",
+  "sessionId": "relay-run-nkh3m3oc7q88bbth",
+  "createdAt": "2026-10-05T20:09:34.577Z",
+  "released": true
+}
