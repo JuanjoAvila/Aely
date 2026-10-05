@@ -1,0 +1,35 @@
+{
+  "status": "done",
+  "summary": "GO técnico de la unidad fixture de retirada, exclusivamente dos archivos. Padre cotejó delta y árbol exactos; revisión independiente verificó identidad estricta y negativos. PR131 completo sigue NO-GO.",
+  "productSHA": "3c5d6083ce63deb611817f51cf78c70bcd3c3f5a",
+  "tests": [
+    {
+      "command": "TZ=UTC node tests/retirada-bancaria.test.mjs",
+      "exitCode": 0,
+      "cases": 49
+    },
+    {
+      "command": "TZ=Europe/Madrid node tests/retirada-bancaria.test.mjs",
+      "exitCode": 0,
+      "cases": 49
+    },
+    {
+      "command": "Mutante sintético withdrawalRowMatches siempre true",
+      "exitCode": 1
+    },
+    {
+      "command": "Fixture original de base previa, reproducción padre",
+      "exitCode": 1
+    }
+  ],
+  "limitations": [
+    "Sin cambio de producto en esta unidad; suite global y aceptación móvil no acreditadas.",
+    "El revisor no repitió el baseline: su rojo fue observado por el padre. Sin integración."
+  ],
+  "schema": 1,
+  "taskId": "inc-2709-06-withdrawal-fixture-review-20261005",
+  "actor": "codex",
+  "sessionId": "codex-cloud-flow-20261005",
+  "createdAt": "2026-10-05T18:20:18.245Z",
+  "released": true
+}

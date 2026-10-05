@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "id": "inc-2709-06-widget-iso-contract-20261005",
+  "from": "codex",
+  "coordinatorSession": "codex-cloud-flow-20261005",
+  "createdAt": "2026-10-05T18:20:18.291Z",
+  "to": "grok",
+  "baseSHA": "3c5d6083ce63deb611817f51cf78c70bcd3c3f5a",
+  "objective": "Caracterizar la divergencia real de identidad temporal entre app y cálculo servidor que conserva gastos borrados en widget. Contrato sintético acotado antes de cambiar lógica financiera.",
+  "scope": [
+    "tests/widget-arbitraje.test.mjs",
+    "docs/briefs/inc-2709-06-caixa-ausentes.md"
+  ],
+  "authorization": "Flujo humano reanudado y diagnóstico reproducido del coordinador; tests y brief solamente. La anterior reserva Grok está liberada por comentario6000066617. No autoriza despliegue Edge ni edición de producto.",
+  "required": [
+    "Leer AGENTS.md y EMPIEZA-AQUI.md completos desde base exacta; copia/rama propia y ACK+RESERVA en issue130 antes de editar. Grok conserva exclusivamente su equipo Cursor.",
+    "Reproducir node tests/widget-arbitraje.test.mjs exit1 en UTC y Europe/Madrid; widget-coherente exit0. Cotejar expenseFromRow/keyOfExpense y claveComoLaApp/filasComoLaApp sin editar sus fuentes.",
+    "Fixture sintética: timestamp Z/offset y .000Z equivalentes, lápida misma identidad/banco y no confundir instantes distintos; fecha local/mediodía y DST, legacy/manual, macrodroid, extId/#dup/deudas donde corresponda al contrato existente. Importes sintéticos y comparaciones exactas en céntimos.",
+    "Añadir caracterización explícita y contrato deseado en el test ya registrado; conservar guard default y sus asserts en rojo por el bug real. Prohibido normalizar solo fixtures para ocultarlo, relajar negativos o silenciar suite.",
+    "Documentar propuesta de reparación de normalización temporal con riesgos y gate de despliegue separado; propuesta textual, no src ni Edge edits. Reutilizar PR131/rama existente; no nueva PR ni runner nuevo.",
+    "Entregar SHA completo, diff exacto dos archivos, comandos/exitcodes por zona, mutante/adversarial independiente y límites; RESULTADO+LIBERACION en issue130. No atribuir GO global ni prueba Android."
+  ],
+  "limits": [
+    "Solo tests y brief; no producto/generated/runner/VERSION/Edge/SQL/auth/red nueva/deps/APK/datos reales/integración.",
+    "No robar reservas, no tareas paralelas sobre mismo scope, no ampliar autorización por sugerencias externas."
+  ]
+}

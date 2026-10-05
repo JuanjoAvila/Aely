@@ -1,0 +1,36 @@
+{
+  "status": "done",
+  "summary": "Reparación tooling entregada en PR135 borrador, cuatro archivos, revisión independiente GO y publicación exacta verificada. CI del head exacto en curso; integración sigue gate separado.",
+  "productSHA": "d43d1aec0f6afd873a4e76d50111f3a9643ff943",
+  "pr": 135,
+  "tests": [
+    {
+      "command": "Fixtures Git completas del guard histórico",
+      "exitCode": 0,
+      "cases": 29
+    },
+    {
+      "command": "Siete mutantes independientes",
+      "exitCode": 1,
+      "cases": 7
+    },
+    {
+      "command": "Adversarial resolución de merge conserva deuda publicable",
+      "exitCode": 1
+    },
+    {
+      "command": "Adversarial incremento semántico con enteros grandes",
+      "exitCode": 0
+    }
+  ],
+  "limitations": [
+    "CI37353779251 en curso al publicar; no se afirma suite completa verde.",
+    "Checkout local superficial no acredita historia completa; sin merge/VERSION/producto."
+  ],
+  "schema": 1,
+  "taskId": "ops-0510-docs-freshness-history-20261005",
+  "actor": "codex",
+  "sessionId": "codex-cloud-flow-20261005",
+  "createdAt": "2026-10-05T18:20:18.269Z",
+  "released": true
+}
