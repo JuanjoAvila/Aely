@@ -23,10 +23,11 @@ const CHECK = process.argv.includes("--check");
 const NUMERO = "[+−±-]?\\s*\\d+(?:[.,'’]\\d+|[ \\u00a0]\\d{3})*(?!\\d|[.,]\\d)";
 const MONEDA = "(?:€|\\$|£|EUR\\b|USD\\b|GBP\\b|CHF\\b|JPY\\b|CAD\\b|AUD\\b|euros?\\b|dólares?\\b|libras?\\b)";
 const DINERO = new RegExp("(?:" + MONEDA + "\\s*" + NUMERO + "|" + NUMERO + "\\s*" + MONEDA + ")", "gi");
-const ETIQUETA = "(?:gastado|gastos?|saldo|presupuesto|importe|comisi[oó]n|ingresos?|ahorro|cuota|deuda|patrimonio|beneficio|p[eé]rdidas?|inversi[oó]n|pagado|cobrado|coste|precio|restante|disponible|n[oó]minas?|movimientos?|cargos?|retiradas?)";
+const ETIQUETA = "(?:gastado|gastos?|saldo|presupuesto|importe|comisi[oó]n|ingresos?|ahorro|cuota|deuda|patrimonio|capital[ \\t]+(?:invertido|aportado|social)|beneficio|p[eé]rdidas?|inversi[oó]n|pagado|cobrado|coste|precio|restante|disponible|n[oó]minas?|movimientos?|cargos?|retiradas?)";
 const TECNICO = "(?:[KMGT]?i?B|bytes?|px|ms|segundos?|tests?|ficheros?)\\b";
 const CIFRA = NUMERO + "(?!\\s*" + TECNICO + ")";
-const CONTEXTO = new RegExp("(\\b" + ETIQUETA + "\\b[ \\t:*_=]*)" + CIFRA + "(?:\\s*(?:→|->|⇒|a)\\s*" + CIFRA + ")*", "gi");
+const VALOR = "(?:`" + CIFRA + "`|" + CIFRA + ")";
+const CONTEXTO = new RegExp("(\\b" + ETIQUETA + "\\b[ \\t:*_=]*)" + VALOR + "(?:\\s*(?:→|->|⇒|a|–)\\s*" + VALOR + ")*", "gi");
 function importes(txt) {
   return txt.split("\n").map(function(linea) {
     const financiero = new RegExp("\\b" + ETIQUETA + "\\b", "i").test(linea) || new RegExp(MONEDA, "i").test(linea);
@@ -35,6 +36,28 @@ function importes(txt) {
     if (financiero) linea = linea.replace(new RegExp("(?<![\\w.,])(?:[+−±-]\\s*)" + CIFRA, "g"), "<importe>");
     return linea;
   }).join("\n");
+}
+function cifraFinancieraResidual(txt) {
+  // No reutilizar CONTEXTO: un formato que no sabemos tachar debe impedir la exportación,
+  // no pasar porque el detector tenga el mismo hueco. Un salto Markdown no termina la frase;
+  // <importe> conserva el contexto de moneda. Las excepciones técnicas exigen unidad o rótulo.
+  // Capital aislado también activa el rechazo: su ambigüedad no debe permitir una fuga.
+  // Es deliberadamente conservador; no hace falta reconstruir etiquetas compuestas de enlaces.
+  const financiero = new RegExp("\\b" + ETIQUETA + "\\b|\\bcapital\\b|" + MONEDA + "|<importe>", "i");
+  const tecnico = new RegExp("(?<![\\w.,])\\d+(?:[.,]\\d+)?[ \\t]*" + TECNICO, "gi");
+  const referencias = /\b(?:versi[oó]n[ \t]+v?\d+(?:\.\d+)+|SHA[ \t]+[a-f\d]{7,64})\b/gi;
+  return txt.split(/\r?\n[ \t]*(?:>[ \t]*)?\r?\n/).some(function(parrafo) {
+    // Esta vista conservadora reconoce el vocabulario existente tras marcado o continuidad;
+    // no es un parser Markdown. Ni delimitadores, destinos de enlaces ni cifras se borran del
+    // cuerpo exportado o del residual: una URL con números también puede provocar rechazo.
+    const lectura = parrafo.replace(/\\(?=\r?\n)/g, "")
+      .replace(/\r?\n[ \t]*(?:>[ \t]*|[-*+][ \t]+)*/g, " ")
+      .replace(/[`*_~]/g, "").replace(/[\[\]()]/g, " ")
+      .replace(/[\p{White_Space}\uFEFF]+/gu, " ");
+    // El prefijo del teléfono ya tachado es constante, no una cifra que pueda reconstruirse.
+    const residual = parrafo.replace(tecnico, "").replace(referencias, "").replace(/\+34 ··· ··· ···/g, "");
+    return financiero.test(lectura) && /\p{Decimal_Number}/u.test(residual);
+  });
 }
 function rutas(txt) {
   // Desde docs/memoria el enlace público sigue siendo útil, sin revelar el checkout del PC.
@@ -62,13 +85,16 @@ const PROHIBIDO = [
   [/\bES(?:[ -]*\d){22}\b/, "un IBAN separado"],
   [/\b[a-z]:[\\/]|\\\\[^\s\\]+\\/i, "una ruta absoluta de Windows"],
   [new RegExp("(?:" + MONEDA + "\\s*" + NUMERO + "|" + NUMERO + "\\s*" + MONEDA + ")", "i"), "un importe con moneda"],
-  [new RegExp("\\b" + ETIQUETA + "\\b[ \\t:*_=]*" + CIFRA, "i"), "un importe con contexto financiero"],
-  [new RegExp("\\b" + ETIQUETA + "\\b[^\\r\\n]*(?<![\\w.,])[+−±-]\\s*" + CIFRA, "i"), "una variación con contexto financiero"],
+  [new RegExp("\\b" + ETIQUETA + "\\b[ \\t:*_=]*" + CIFRA, "i"), "un importe con contexto financiero", true],
+  [new RegExp("\\b" + ETIQUETA + "\\b[^\\r\\n]*(?<![\\w.,])[+−±-]\\s*" + CIFRA, "i"), "una variación con contexto financiero", true],
+  [cifraFinancieraResidual, "una cifra sin sanear en un párrafo financiero", true],
 ];
 
 const CABECERA = (nombre) => `<!-- GENERADO POR scripts/sync-memoria.mjs — NO EDITAR A MANO.
      Espejo de la memoria del agente (${nombre}). Se regenera con \`npm run memoria\`.
      Pasado por el filtro de datos personales: el repo es PÚBLICO. -->
+
+> **Memoria histórica.** Prevalece el protocolo Cloud vigente; consulta BACKLOG, ROADMAP y el brief actual. Los procedimientos locales antiguos no autorizan buzones ni vigías. La fuente editable está en \`src/\`.
 
 `;
 
@@ -94,8 +120,11 @@ for (const f of ficheros) {
     if (txt !== antes) { tachados++; if (!CHECK) console.log(`  · ${f}: tachado ${que}`); }
   }
   const nuevo = CABECERA(f) + txt;
-  for (const [re, que] of PROHIBIDO) {
-    if (re.test(nuevo)) {
+  for (const [detector, que, soloCuerpo] of PROHIBIDO) {
+    // El nombre y el aviso generados no dan contexto financiero al cuerpo, pero también se
+    // comprueban para los patrones de identidad/ruta/moneda: no ocultar una fuga en la cabecera.
+    const contenido = soloCuerpo ? txt : nuevo;
+    if (typeof detector === "function" ? detector(contenido) : detector.test(contenido)) {
       console.error(`\n✕ sync-memoria ABORTA: en ${f} sigue habiendo ${que} después del filtro.`);
       console.error("  Arréglalo en el filtro o en la memoria antes de sincronizar. NO se ha escrito nada.");
       process.exit(1);
