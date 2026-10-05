@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "id": "inc-2709-06-widget-brief-sign-20261005",
+  "from": "codex",
+  "coordinatorSession": "relay-run-nkh3m3oc7q88bbth",
+  "createdAt": "2026-10-05T20:13:57.652Z",
+  "to": "grok",
+  "baseSHA": "394f6c936f3ed1c05e622b56a3eeea00d9a0eda9",
+  "objective": "Corregir únicamente el signo de la diferencia sintética descrita en el brief del contrato ISO del widget, conservando guard rojo y gates.",
+  "scope": [
+    "docs/briefs/inc-2709-06-caixa-ausentes.md"
+  ],
+  "sourceTasks": [
+    "inc-2709-06-widget-iso-contract-20261005",
+    "ops-0510-contract-deliveries-review-20261005"
+  ],
+  "required": [
+    "Grok gestiona exclusivamente Cursor; ACK+RESERVA real por issue130 con taskId exacto, baseSHA/rama propios, sin duplicar encargo anterior ya liberado.",
+    "Leer AGENTS.md y EMPIEZA-AQUI.md íntegros. Único delta documental: en apartado contrato de identidad temporal del widget, fixture sintética app18645/widget17445 implica widget1200 céntimos MENOS; corregir de más en el neto sin alterar cifras, guard, test o fuente.",
+    "Preservar NO-GO PR131, problema de mediodía local entre UTC/Madrid y reparación solo propuesta, sin resolver semántica temporal.",
+    "Verificar diff exclusivo brief y git diff --check0. Conservar y citar resultados revisión independiente en ambas zonas: default1, --iso-contrato0, --iso-mutante1, coherente0, presupuesto0; no presentarlos como pruebas propias nuevas si no ejecutados.",
+    "Publicar commit normal en rama propia con padre exacto; devolver SHA y RESULTADO+LIBERACION completo en issue130. No merge."
+  ],
+  "limits": [
+    "Sin tests/producto/runner/Edge/SQL/APK/beta/main/auth ni datos reales.",
+    "Sin nueva identidad financiera ni aceptación móvil inferida."
+  ],
+  "modelChoice": "Grok decide su trabajador Cursor; tarea documental acotada, no atribuir modelo efectivo desconocido."
+}
