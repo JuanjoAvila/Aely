@@ -1,0 +1,37 @@
+{
+  "status": "done",
+  "summary": "Endurecida la matriz Metas con los cuatro fallos de revisión: dobles borrados (misma regla/reserva/parcial, controles independientes y replay), applyReserva real con uid distintos y mismo incomeKey (controles incomeKey/reglas/metas distintas), relojes con empate de _savedAt (etiqueta invertida corregida; 20 escenarios, 105 variantes por lado, conteo asertado) y conmutatividad del estado completo con configuración, y pushState/pullState REALES extraídos del fuente contra doble de Supabase (sello repetido y relojes empatados: dos escrituras aceptadas y pérdida sin conflicto; v++ marcado como ideal; sin sello = bloqueo documentado; premisa sin trigger comprobada). Clases perdida/precision/guarda/politica; borrado-vs-aporte y absoluto-vs-aporte quedan como decisión pendiente sin asertar. El modelo queda NO-GO explícito en 4 guardas y en conmutatividad con empate (6 rojos con LWW_ESPERADO=1). Sin cambios de producto; solo test y brief.",
+  "branch": "claude/metas-hardening-0410",
+  "productSHA": "48a86279cb0a10847845e2d46e337d6d50201741",
+  "tests": [
+    {
+      "command": "TZ=UTC node tests/metas-lww-concurrente.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "TZ=Europe/Madrid node tests/metas-lww-concurrente.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "TZ=UTC LWW_ESPERADO=1 node tests/metas-lww-concurrente.test.mjs",
+      "exitCode": 1,
+      "note": "22 casos en rojo, esperado"
+    },
+    {
+      "command": "TZ=Europe/Madrid LWW_ESPERADO=1 node tests/metas-lww-concurrente.test.mjs",
+      "exitCode": 1,
+      "note": "22 casos en rojo, idéntico"
+    }
+  ],
+  "limitations": [
+    "No se ejecutó npm test entero, e2e ni móvil; sin PR; no se usaron subagentes",
+    "Doble de Supabase en Node, no Supabase real; el CAS no se declara suficiente",
+    "Identidad semántica y las tres decisiones del dueño siguen pendientes; el modelo no se implementa"
+  ],
+  "schema": 1,
+  "taskId": "inc-0410-metas-contract-hardening-20261005",
+  "actor": "claude",
+  "sessionId": "claude-cloud-20261005-131fcf8f",
+  "createdAt": "2026-10-05T18:36:42.989Z",
+  "released": true
+}
