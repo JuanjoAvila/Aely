@@ -4,7 +4,12 @@
 
 # Memoria — Mi Cartera
 
-- [★★★ Estado 26/9 tarde](traspaso-2026-09-24-manana.md) — PROD 4.26.52 (FIN-06+FIN-07); beta 4.26.52.1 (selector+FIN-07) espera prueba móvil; ingest solo desde beta con su OK; rearmar vigía.
+- [★★ Autónomo, sin pedirle permiso (4/10)](feedback-autonomo-sin-pedir-permiso.md) — ⚠ el arranque «`R estado` + vigía» ya NO aplica (nube, 5/10); queda: no pedirle permisos para lo ya ordenado.
+- [★★★ LEE ESTO PRIMERO: Claude trabaja en la NUBE (5/10)](claude-a-la-nube-canal-rama.md) — Claude local CERRADO: un chat local NO arma vigía ni lee el buzón; rutina cada 2 h; canal = rama `codex/coordinacion`; el PC solo para adb/APK cuando él lo abra.
+- [Relevo automático cada 4 h (histórico)](relevo-automatico-cada-4h.md) — CERRADO 5/10 por migración; tareas `aely-relevo-*` desactivadas, no reactivar.
+
+- [Traspaso 2/10 (histórico)](traspaso-2026-10-01-manana.md) — beta 4.26.80 + APK 52; GO mío a PR104; INC-0210-02; suite Node ENTERA antes de un GO. Lo de «rearmar vigía» ya no aplica.
+- [Cierre 29/9 noche (histórico)](traspaso-2026-09-24-manana.md) — prod 4.26.66 (PR #61, mi GO); gzip al 100 %; widget/TR en beta (APK 51).
 - [★★ Codex: 1 tarea = 1 chat (24/9)](codex-una-tarea-por-chat.md) — se fundió la cuota semanal; cada chat arranca en frío: PASS/BLOCK autocontenidos; si me lanza por CLI, al buzón.
 - [★★★ VOLCADO para su Claude PERSONAL](../../../../../E:/Mi cartera/docs/briefs/EMPIEZA-AQUI-CLAUDE-PERSONAL.md) — `docs/briefs/EMPIEZA-AQUI-CLAUDE-PERSONAL.md` en `beta`: para una sesión SIN esta memoria (arranque, `docs/memoria/`, cómo se trabaja, qué lleva Cursor).
 - [★★★ EMPIEZA AQUÍ: traspaso del 15/9 noche](../../../../../E:/Mi cartera/docs/briefs/EMPIEZA-AQUI-2026-09-16-TELETRABAJO.md) — rama `docs/traspaso-15-9-noche`: beta 4.24.3; ✅4.24.1 ✅4.24.3 ⛔4.24.2 (Ajustes pegado → 4.24.4 Cursor); luego promote + `ingest`, 4.25 + `bank-sync` (OK dado), 4.26, 4.27.
@@ -14,8 +19,11 @@
 - [★★ Cómo se promociona a prod](promote-4-19-106-como-se-hizo.md) — ⚠ FF o `merge -s ours`; cabeza `[skip ci]`; `deploy.yml` a mano; nota única `tandas:[]`; puente con `gh api PUT`; Edge una a una. Repetido 4.20.4, 4.21.2, 4.22.3.
 - [★★ Seguridad OPS-06](ops-06-seguridad-hallazgos.md) — token de ingest en la APK (cerrado, APK 46), Hogar (0022), app_events (0023), BD viva (0024). DEC-01: Play Store AL FINAL.
 - [★ BD viva: faltaba el grant de la 0012 (14/9)](bd-viva-grants-0024.md) — ⚠ MyInvestor no sincronizaba solo; 0024 aplicada y verificada. SQL Editor con monaco + gridcell + begin/rollback.
-- [★ Revisar el worktree de otro agente](revisar-worktree-de-otro-agente.md) — patch de su trabajo + worktree detached propio + junction de `node_modules` por PowerShell (`mklink` desde Bash crea enlace roto); build limpia = bundle que cuadra con `src`.
+- [⚠ docs-frescura EN EL SHA commiteado (28/9)](revisar-docs-frescura-tras-commit.md) — Codex dijo PASS y cayó 4 veces; también mutar reglas de dinero.
+- [★ Revisar el worktree de otro agente](revisar-worktree-de-otro-agente.md) — ⚠ BORRAR: `rmdir` de la junction ANTES de `worktree remove` (repetido 1/10); patch de su trabajo + worktree detached propio + junction de `node_modules` por PowerShell (`mklink` desde Bash crea enlace roto); build limpia = bundle que cuadra con `src`.
+- [⚠ Buzón: hora REAL y Chromium por turnos (30/9)](buzon-hora-real-y-turno-chromium.md) — `Date.now()` en ids/createdAt; e2e solo con turno del coordinador.
 - [⚠ e2e: un solo npm test a la vez EN LA MÁQUINA](e2e-puerto-compartido.md) — puerto por cwd desde 10/9, pero dos suites dan rojos de infra (`ERR_CONNECTION_REFUSED`, `ERR_NO_BUFFER_SPACE`). Avisar por el buzón antes de lanzar.
+- [⚠ Cada arranque en frío es «login» (28/9)](initial-session-carrera-freshlogin.md) — INITIAL_SESSION antes que getSession, medido 50/50; freshLogin=true en cada reinicio.
 - [★ Un móvil viejo repite movimientos (15/9)](movil-viejo-repite-movimientos.md) — el +18,09: web con estado de 3 días sincronizó antes del pull; el banco espera a la nube; NO re-marcar repetidos desde el móvil.
 - [⚠ La CI de beta corre en UTC](ci-beta-corre-en-utc.md) — `TZ=UTC npm test` además del local.
 - [⚠ Cuotas de deuda: NO casan por nombre](cuotas-deudas-no-casan-por-nombre.md) — banco+céntimo+día ±4; `~deuda.` en source (con `#` suma); NO sacar de cash.
@@ -73,7 +81,7 @@
 - [★ Menos texto, más trabajo](feedback-menos-texto-mas-trabajo.md) — no narrar; resumen solo si lo pide.
 - [⚠ Tanda nace desde main](feedback-tanda-desde-main.md) — `tanda/<id>` desde main, nunca al tip de beta.
 - [★ TODO lo mío lo revisa Cursor](feedback-todo-lo-mio-revisado-por-cursor.md) — revisar = EJECUTAR los tests.
-- [★ Desde 16/9 DIRIGE CODEX](canal-equipo-tres-agentes.md) — lo dijo él en persona; buzón `.claude/canal-equipo` (gitignored); yo apoyo y reviso lo que me pidan.
+- [★ Desde 16/9 DIRIGE CODEX](canal-equipo-tres-agentes.md) — buzón `.claude/canal-equipo` (gitignored); ⚠ Codex me escribe en `messages/claude/`: vigilar `messages/*/`.
 - [⚠ Dirijo, pero NO decido solo](feedback-consenso-de-las-tres-ias.md) — plan y voto de Cursor antes de picar; su «sí» no sustituye al voto.
 - [⚠ Subir a beta SIN preguntar](feedback-publicar-en-beta-sin-preguntar.md) — validada → beta y avisar; main con su OK.
 - [⚠ Codex solo si bloqueados](feedback-escalar-a-codex-solo-si-bloqueados.md) — Cursor+yo → Codex → él; contarle solo qué sube y qué probar.

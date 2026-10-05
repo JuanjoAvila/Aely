@@ -9,7 +9,7 @@ metadata:
   node_type: memory
   type: project
   originSessionId: e1dc0ffc-f316-4885-bf7c-1e694f8b4d24
-  modified: 2026-07-26T17:42:52.556Z
+  modified: 2026-09-27T10:30:50.503Z
 ---
 
 Mi Cartera es una PWA estática (React vía createElement, sin build/JSX) en GitHub Pages. Repo **público** (Pages gratis lo exige) → nunca meter secretos en el cliente.
@@ -22,7 +22,7 @@ El **Service Worker** es **stale-while-revalidate desde v3.71.0** (antes network
 
 **Apps Script JUBILADO (2026-06-18, v3.8.0):** migrado a Supabase. Borrada la carpeta apps-script/, quitado el fallback GAS de onSync/fetchPrices y las constantes GAS_URL/FIELDS/PRICES_PARAM. La implementación de Google la archivó el usuario. Backend ahora en [[fase1-supabase]]. Versión visible en la app: CONFIG.APP_VERSION, sellada por stamp-version.mjs en CI (igual que sw.js).
 
-**Edge Functions (Supabase) también se autodespliegan:** `.github/workflows/supabase.yml` despliega `supabase/functions/**` al pushear a `main` (path filter `supabase/**`). Requiere secret `SUPABASE_ACCESS_TOKEN` + variable `SUPABASE_PROJECT_REF` (ambos CONFIRMADOS configurados: el deploy salió verde 2026-06-30). Migraciones solo si está el secret `SUPABASE_DB_PASSWORD` (si no, se aplican a mano en el SQL Editor). O sea: un mismo push a `main` despliega web (Pages) y funciones (Supabase) por separado.
+**Edge Functions (Supabase): SOLO a mano desde el 27/9 (OPS-01 C, PR #47, main f5e6b514).** `.github/workflows/supabase.yml` ya no tiene disparo por push: únicamente `workflow_dispatch` con `funcion` OBLIGATORIA (una sola, validada antes de tocar nada) y `migraciones=no` por defecto (`si` + secret `SUPABASE_DB_PASSWORD` para `db push --include-all`). Antes un push a `main` que tocara `supabase/**` desplegaba las 13 de golpe — por eso se quitó. Guardián: `tests/supabase-workflow.test.mjs`. Requiere secret `SUPABASE_ACCESS_TOKEN` + variable `SUPABASE_PROJECT_REF` (configurados).
 
 ⚠ **La versión canónica es el fichero `VERSION` de la raíz, NO `package.json`.** De `VERSION` leen `stamp-version.mjs` (sella `CONFIG.APP_VERSION` y el SW) y el paso OTA de deploy.yml (`version.json`). Bumpear solo `package.json` es un fallo silencioso y venenoso: el deploy sale verde pero `APP_VERSION` no cambia ⇒ el popup de Novedades no dispara (`_seenVersion` ya coincide) y el bundle OTA se publica con la versión que el móvil ya tiene ⇒ el usuario dice «sigo sin ver versión». Pasó en 4.7.1 (2026-07-23). Al versionar tocar SIEMPRE los dos + CHANGELOG + `RELEASE_NOTES` **al principio** del array (el comentario del propio array lo pide; en 4.7.1 se añadió a media lista y con una versión ya usada ⇒ clave duplicada e invisible).
 

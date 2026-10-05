@@ -4,12 +4,12 @@
 
 ---
 name: revisar-worktree-de-otro-agente
-description: "Cómo pasar tests al trabajo de Codex/Cursor sin tocar su worktree: patch + worktree detached propio + junction de node_modules (y por qué mklink desde Bash no vale)."
+description: "⚠ AL BORRAR: rmdir de la junction node_modules ANTES de git worktree remove (me volvió a pasar 1/10). Cómo pasar tests al trabajo de otro agente: patch + worktree detached + junction."
 metadata: 
   node_type: memory
   type: feedback
   originSessionId: c6e7d0dd-367a-43e0-97ec-95448130655b
-  modified: 2026-09-17T21:23:45.046Z
+  modified: 2026-09-27T13:53:36.041Z
 ---
 
 Para revisar lo que tiene otro agente **sin commitear** en su worktree (`.worktrees/codex-*`, `.worktrees/cursor-*`), nunca trabajar dentro del suyo: se le pisa el árbol y encima muchos de esos worktrees **no tienen `node_modules`**, así que `node node_modules/@playwright/test/cli.js` falla con `MODULE_NOT_FOUND`.
@@ -24,5 +24,7 @@ Receta que funcionó el 17/9 (cuatro revisiones seguidas, Plan + Inversiones):
 
 **Why:** revisar de verdad es ejecutar, y su trabajo sin commitear es lo más frágil que hay ([[feedback-todo-lo-mio-revisado-por-cursor]], [[feedback-no-dar-por-hecho]]).
 **How to apply:** patch primero (es la red), worktree propio después, junction por PowerShell, y borrar los worktrees de review al cerrar la jornada.
+
+⚠ **27/9: al BORRAR, quitar primero la junction.** `git worktree remove --force` con la junction de `node_modules` dentro la ATRAVIESA (falló con «Filename too long» a medias). **Repetido el 1/10** con el rojo del perfil pese a estar aquí apuntado: sin daño (12.196 ficheros iguales), pero la orden va ANTES, no después. Orden: `[System.IO.Directory]::Delete(<wt>\node_modules)` por PowerShell (borra solo el enlace), luego `git worktree remove`/`prune`, y comprobar `npm ls` en la raíz. Y los guardianes que usan `load-pure-logic` leen `public/index.html`: para verlos en rojo con el código base hay que `node scripts/build-app.mjs` tras cambiar `src/`.
 
 Extra del mismo día: para saber si un test **tiene dientes**, meterle el bug a mano en mi copia y ver qué línea falla. Así confirmé que el test del candado caza las dos regresiones (una por mitad) — y que una sospecha mía de que media prueba era vacua era falsa ([[test-verde-por-razon-equivocada]]).

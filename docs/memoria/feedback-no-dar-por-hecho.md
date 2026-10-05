@@ -48,3 +48,5 @@ desconfianza sana que le habría hecho comprobarlo.
    dice **«en el working tree, sin commit»**, nunca disfrazado de canal. ⚠ Matiz mío: **push OK ≠
    CI OK** — el commit puede estar en `origin/beta` con `beta.yml` caído, y entonces su móvil sigue
    con lo viejo. Comprobar `gh run list --branch beta` antes de decir «lo puedes bajar».
+
+⚠ **27/9: «privacidad PASS» también es mirar IMPORTES.** Di PASS a unos briefs de Codex buscando solo rutas/correos/tokens y se publicó en beta (repo público) el «Gastado 519→536» real del dueño. En cada revisión de docs: grep de cifras con decimales/€ y de números que aparezcan en su relato; si no son de fixture, fuera.

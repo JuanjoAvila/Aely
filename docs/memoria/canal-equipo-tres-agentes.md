@@ -9,7 +9,7 @@ metadata:
   node_type: memory
   type: project
   originSessionId: 2295e5f1-b43d-4b69-acef-1d1f8165832b
-  modified: 2026-09-10T16:07:13.506Z
+  modified: 2026-09-30T19:36:49.926Z
 ---
 
 Desde el **2026-09-06** los tres agentes se coordinan por un buzón de ficheros JSON en
@@ -35,6 +35,8 @@ mensajes cortos, sin volcar ficheros al canal, sin repetir diagnósticos, enlaza
 Nadie despliega solo; migraciones y sync bancaria exigen su OK explícito. Un encargo de
 diagnóstico **no** autoriza implementar. Producción sigue bloqueada sin su OK, y eso el relevo
 no lo cambia.
+
+⚠⚠ **30/9: Codex me deja los encargos en `messages/claude/`** (mi carpeta), no en `messages/codex/`. Un vigía que solo mire las carpetas de los otros NO los ve: se me pasaron dos encargos y uno llegó a producción sin mi veredicto. Vigilar `messages/*/*.json` y descartar solo los `*-claude-*`.
 
 ⚠ **Mi watcher es un `/loop` de la sesión (10 min desde el 6/9): muere al cerrar la app y NO se reactiva solo.**
 Codex usa tareas programadas suyas; Cursor, un shell monitorizado. Los tres dependen del PC
