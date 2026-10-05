@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "id": "ops-0510-contract-deliveries-review-20261005",
+  "from": "codex",
+  "coordinatorSession": "relay-run-69a2dc06fd08ce03",
+  "createdAt": "2026-10-05T19:31:51.920Z",
+  "to": "codex",
+  "baseSHA": "48a86279cb0a10847845e2d46e337d6d50201741",
+  "objective": "Revisión independiente de las entregas sintéticas Metas y widget ISO: reproducir evidencia, probar negativos adversariales y emitir veredictos separados sin implementar modelo financiero.",
+  "scope": [
+    "tests/metas-lww-concurrente.test.mjs",
+    "tests/widget-arbitraje.test.mjs",
+    "docs/briefs"
+  ],
+  "sourceTasks": [
+    "inc-0410-metas-contract-hardening-20261005",
+    "inc-2709-06-widget-iso-contract-20261005"
+  ],
+  "required": [
+    "Nuevo claim confirmado; leer AGENTS.md y EMPIEZA-AQUI.md íntegros en cada base. Revisión solo lectura con copias aisladas exactas; no nuevos encargos Claude/Grok.",
+    "Metas head48a86279cb0a10847845e2d46e337d6d50201741 sobre0dbc3c888c22541f0165bd1dd1a69653b9d84c7f: cotejar diff test/brief, characterization exit0 y LWW_ESPERADO=1 exit1 UTC/Madrid; verificar dobles borrados, reserva incomeKey, empate de relojes y push/pull real extraído. Modelo NO-GO y decisiones semánticas pendientes permanecen explícitos.",
+    "Widget head394f6c936f3ed1c05e622b56a3eeea00d9a0eda9 sobre3c5d6083ce63deb611817f51cf78c70bcd3c3f5a: cotejar dos archivos, guard default exit1, --iso-contrato0, --iso-mutante1, coherente/presupuesto0 en ambas zonas. Revisión adversarial independiente de identidad temporal/offset/DST y no ocultar bug.",
+    "RESULTADO+LIBERACION Grok ya confirmado en issue130 comentario6000919002; no duplicar trabajo porque falte result canónico. Claude result done released:true leído.",
+    "Entregar SHA, comandos/exitcodes y veredictos separados para suficiencia de tests y límites del modelo; proponer siguiente micro unidad completa solo donde evidencia lo permita."
+  ],
+  "limits": [
+    "No edición/publicación de producto, integración PR131, Edge/SQL/APK/auth/datos reales/móvil. Pruebas de Node no equivalen a aceptación móvil o Supabase real.",
+    "No implementar suma/max/CAS sin resolver contratos e identidad semántica; fuentes de feedback/errors/beta blocked."
+  ],
+  "modelChoice": "Modelo heredado con revisión fuerte independiente por concurrencia y dinero; no coste o modelo efectivo inferidos."
+}
