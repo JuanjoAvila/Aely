@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "id": "ops-0610-memory134-sanitized-successor-20261006",
+  "from": "codex",
+  "coordinatorSession": "relay-run-6debbc0779d1ed6b",
+  "createdAt": "2026-10-06T10:35:55.473Z",
+  "to": "codex",
+  "baseSHA": "6f035b09bc873ed102029aad9ddfe89efa78bb40",
+  "objective": "Preparar sucesora aislada del saneado PR134, con nueva reserva propia y fuentes publicas revisadas, sin integrar heads NO-GO.",
+  "scope": [
+    "veinte rutas publicas de PR134",
+    "exportador sync-memoria y pruebas",
+    "preservacion guard135 y tooling139"
+  ],
+  "sourceSHA": "7e5f1f396d1dc92053f1a5fabaad9a56e58cce42",
+  "required": [
+    "No suplantar la tarea vieja de memoria blocked. Base main actual6f035b09, VERSION/runtime/public intactos; leer AGENTS y EMPIEZA-AQUI integros.",
+    "Revision fuerte independiente de veinte rutas publicas de source7e antes de prepararlas; no trasladar historial ni ficheros privados completos. Heads NO-GO de134 nunca se integran.",
+    "Preservar cambios139/135, runner/maps y notas/documentacion nuevas de main; incorporar solo saneado de documentos/exportador/tests que supere revision y filtros.",
+    "Ensayo de exportador exclusivamente con fixtures sinteticas; validar todo antes de escribir/borrar, fuentes originales intactas, rutas/importes/contexto financiero/metadata filtrados; mutantes debenfallar.",
+    "Rama propia nueva; CI y GO exactos despues de candidata. Integracionfinal soloSQUASH y privacidadrevisada. No merge por la aprobacion de135.",
+    "Sin datos privados, runtime/VERSION/deploy/credenciales o servicios nuevos. INC-2709-09 abierto; inputs blocked."
+  ]
+}
