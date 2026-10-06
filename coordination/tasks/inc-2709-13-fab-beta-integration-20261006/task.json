@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "id": "inc-2709-13-fab-beta-integration-20261006",
+  "from": "codex",
+  "coordinatorSession": "relay-run-b2c5926fb3b45f20",
+  "createdAt": "2026-10-06T13:04:56.627Z",
+  "to": "codex",
+  "baseSHA": "ca6f5e854c58ae7d73f24b604f20c8058b4b50a3",
+  "objective": "Revisar candidata FAB d1fc y completar integración mínima versionada beta sólo tras pruebas y revisión exactas",
+  "scope": [
+    "src/shell.html FAB clip mínimo; guardian e2e registrado y documentación de publicación",
+    "VERSION package lock notas es/en/ca CHANGELOG README ROADMAP BACKLOG y catálogo con identidad nueva y resto preservado",
+    "Retirar sondas desechables antes entrega; conservar A/B causal en acta y guard permanente discriminante",
+    "PR beta propia CI exacta; merge/publicador y digest manifiesto ZIP exactos antes declarar entrega"
+  ],
+  "restrictions": [
+    "No main/APK/Edge/SQL/banco real; ninguna aprobación móvil inferida",
+    "INC-2709-09 acumulativo abierto; no promesa global ni 27px reproducidos",
+    "Inputs sugerencias/errors/beta blocked; no copiar datos ni referencias privadas"
+  ]
+}
