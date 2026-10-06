@@ -1,0 +1,26 @@
+{
+  "status": "blocked",
+  "summary": "Sucesor PR142 saneado y revisado, CI exacta roja en P10 DOM; no integración",
+  "tests": [
+    "árbol2ad1c4bb67a854f64432f00f373f6756e2c742b0 exacto;20rutas docs/tooling/tests, runtime/VERSION/public intactos; parent6f",
+    "revisión independiente final fuente/privacidad GO;14exports sin residuos observados; no acceso memoria privada",
+    "suite final sync-memoria local y CI exit0: matriz414+9rechazos nuevos+6positivos; atomicidad/idempotencia y mutantes discriminantes",
+    "CI37452437547 FAILED:1failed P10 inglés fila P10 decimal oculta en getByText.first trasretry;5flaky(otras pruebasApuntar/Metas),1skip,811DOMpassed;9PERFpassed;Node/Deno/sync-memoria verdes"
+  ],
+  "pr": 142,
+  "sourceSHA": "baa6f8de805e2049dbcce44682227b60b79a9518",
+  "treeSHA": "2ad1c4bb67a854f64432f00f373f6756e2c742b0",
+  "next": "Investigar selector/superficie DOM en tarea separada, conservar assertions; después nueva CI exacta y SQUASH exclusivo de sucesor",
+  "limitations": [
+    "PR142 permanece draft, originalPR134 mantieneNO-GO e historial excluido",
+    "no se atribuye causa al exportador ni se da por heredado sin contraste",
+    "no reintento ciego ni criterios reducidos",
+    "INC-2709-09 continúa abierto"
+  ],
+  "schema": 1,
+  "taskId": "ops-0610-memory134-sanitized-successor-20261006",
+  "actor": "codex",
+  "sessionId": "relay-run-6debbc0779d1ed6b",
+  "createdAt": "2026-10-06T11:35:20.780Z",
+  "released": true
+}
