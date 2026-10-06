@@ -1,0 +1,28 @@
+{
+  "status": "blocked",
+  "summary": "Promocion selectiva integrada en main por PR136 con revision y CI exactos verdes; Deploy sigue en curso y web sirve94. Falta verificar produccion95 y retirada beta real.",
+  "tests": [
+    "Tests37415731606 success del headbedb589279e77b61b98f5315ace9c7a27f221813; revision independiente GO mismo arbol.",
+    "Revalidacion main8bb0398f y head exactos antesmerge, expected_head_sha protegido.",
+    "Merge e9336aeeac692badc093d463907de1ee8b1d0553; padres8bb0398f ybedb5892, arbol1b7370926afadd38a8b3402203abb0931e508133 exacto.",
+    "Deploy37418935788 y Tests37418935752 en curso para mergeSHA exacto.",
+    "HTTP version.json sigue4.26.94 al cierre parcial; no se afirma produccion95 verificada.",
+    "Replay DOM del ZIP beta servido con recibo prod94 servido:1 tanda pendiente95,215 notas intactas, exit0.",
+    "Preview logico con recibo candidato95:solo95 se retira, otras notas intactas; requiere repeticion con receipt95 realmente servido."
+  ],
+  "mergeSHA": "e9336aeeac692badc093d463907de1ee8b1d0553",
+  "treeSHA": "1b7370926afadd38a8b3402203abb0931e508133",
+  "deployRun": 37418935788,
+  "nextTask": "prod-0610-cache95-served-verify-20261006",
+  "limits": [
+    "No retirada anticipada ni nueva publicacion beta para ocultar pendiente.",
+    "INC-2709-09 sigue abierto; lector privado bloqueado, aprobacion95 directa valida.",
+    "APK/Android/Edge/SQL y otras tandas intactos."
+  ],
+  "schema": 1,
+  "taskId": "prod-0610-cache95-promote-verify-20261006",
+  "actor": "codex",
+  "sessionId": "relay-run-e9c59cbe362b1be8",
+  "createdAt": "2026-10-06T05:35:42.425Z",
+  "released": true
+}
