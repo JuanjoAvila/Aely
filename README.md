@@ -46,6 +46,7 @@ mi-cartera/
 ├── tests/pure-logic-notes.test.mjs · beta-source-parse.test.mjs # Carga diferida y cortes exactos sin debilitar auditorías
 ├── tests/beta-veredictos.test.mjs # Contrato compartido del panel y listo; beta-sources protege el ensamblado
 ├── tests/listo-actor.test.mjs # CLI real sin red: actor Dev autorizado y fallo cerrado si no se acredita
+├── tests/sync-memoria.test.mjs # Exportación sintética: cantidades, aviso Cloud e idempotencia; rechazo sin escrituras/borrados
 ├── src/                    # 👈 Fuente editable (v3.108+)
 │   ├── shell.html          #     HTML shell (React, CSS, vendors)
 │   ├── build-order.json    #     Orden de ensamblado de módulos
@@ -69,6 +70,8 @@ mi-cartera/
 ```
 
 ## 🚀 Desarrollo
+
+El exportador de memoria tacha importes reconocibles, incluidos valores entre backticks y rangos directos con en-dash. Si quedan cifras decimales ASCII o Unicode en un párrafo financiero que no puede sanear con seguridad, rechaza toda la exportación antes de escribir o borrar; conserva cantidades con unidades técnicas explícitas y versiones/SHA rotulados. El contexto de un párrafo incluye sus líneas de continuación y marcado, y se analiza en el cuerpo, sin confundirlo con el nombre del archivo. Una vista exclusiva del detector normaliza espacios Unicode, hardbreaks y delimitadores Markdown, incluido strike GFM dentro de palabras. Por prudencia, la palabra «capital» aislada también activa el contexto financiero, aunque su uso pueda ser ambiguo; no hace falta interpretar enlaces para reconstruir etiquetas compuestas. El Markdown original y las cifras de las URL permanecen en el cuerpo y en su validación. Cada archivo regenerado lleva un aviso visible de memoria histórica y prevalencia del protocolo Cloud vigente. Son filtros conservadores de patrones, sin parsing Markdown ni anonimización universales: posibles rechazos de usos no financieros de «capital» y demás límites requieren revisión manual. Para verificarlo sin leer memoria personal: `node tests/sync-memoria.test.mjs` usa exclusivamente fixtures temporales inventados.
 
 1. Edita **`src/modules/*.js`** o **`src/shell.html`**
 2. Ensambla y prueba:
