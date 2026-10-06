@@ -11003,5 +11003,23 @@
         "function": "_pdMs"
       }
     ]
+  },
+  "inc-0410-inicio-tres-metas": {
+    "web": [
+      {
+        "file": "src/modules/03-tab-dash.js",
+        "from": "  const goals=(state.goals||[])",
+        "to": "\n  const recent="
+      }
+    ]
+  },
+  "inc-2709-13-fab-contorno": {
+    "web": [
+      {
+        "file": "src/shell.html",
+        "from": "  .app-shell.scroll-host-on .botnav{",
+        "to": "  /* Tope: clase residual"
+      }
+    ]
   }
 }
