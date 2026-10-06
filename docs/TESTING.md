@@ -706,3 +706,5 @@ Desde el 28/9, el dueño autoriza que cada chat nuevo compruebe estos veredictos
 forma autónoma **solo** las tandas aprobadas, después de preparar y verificar la candidata exacta.
 El proceso está en [PROMPT-FLUJO-CONTINUO.md](PROMPT-FLUJO-CONTINUO.md). Una tanda sin veredicto
 identificable o con validación por pago real pendiente continúa en beta.
+
+Uso prolongado (INC-2709-09): `e2e/rendimiento-sostenido.spec.mjs` está en CROSSCUTTING y se ejecuta en serie como rendimiento. La candidata `lifecycle-network-v3` añade offline real del contexto Chromium, visibilidad controlada del fixture y observaciones por acción. Es investigación, sin arreglo acreditado: [guion v3 y bloqueo de ejecución](briefs/inc-2709-09-lifecycle-network-v3.md). Las series históricas v1/v2 conservan sus guiones exactos y no se atribuyen a v3.
