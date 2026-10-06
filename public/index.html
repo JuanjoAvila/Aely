@@ -754,7 +754,24 @@
     padding-top:0;
     padding-bottom:0;
     border-top-color:transparent;
-    overflow:hidden;
+    /* overflow:clip con margen, NO overflow:hidden: este se aplicaba de golpe al ocultar y cortaba
+       en recto la parte del FAB que asoma por encima de la barra (hasta ~8% del círculo en el primer
+       frame, medido A/B 2026-10-06). El margen deja asomar el FAB mientras la caja se recoge; los 30px
+       de más por abajo y los lados caen fuera de pantalla, y `clip` (a diferencia de `visible`) no
+       aporta desbordamiento desplazable bajo el viewport — el stopper del Oppo, rechazo 16/9. */
+    overflow:clip;overflow-clip-margin:30px;
+  }
+  /* Con la caja ya a max-height:0 el margen de clip dejaba pintar el casquete del FAB (~14px) pegado al
+     borde de abajo, para siempre mientras la barra siguiera oculta (revisión 2026-10-06). Se esconde SOLO
+     el FAB (nada de opacity en la barra: fondo sólido, agosto) y con retardo igual a la bajada, para que
+     el primer frame y el recorrido sigan viéndose; al revelar vuelve de inmediato porque la regla de
+     «oculto» ya no aplica. */
+  .app-shell.scroll-host-on .botnav.botnav-hidden .botnav-fab{
+    visibility:hidden;transition:visibility 0s linear .55s;
+  }
+  html.reduce-motion .app-shell.scroll-host-on .botnav.botnav-hidden .botnav-fab{transition-delay:0s;}
+  @media (prefers-reduced-motion:reduce){
+    .app-shell.scroll-host-on .botnav.botnav-hidden .botnav-fab{transition-delay:0s;}
   }
   /* Tope: clase residual por si queda colgada de una beta anterior. Ya no se arma
      (parpadeaba al llegar arriba / al swipear tabs — 2026-08-05). */
@@ -20228,7 +20245,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="24bb16ec4020796ea3e9691d4d8c7429f0d41e87a54bfca643c550326152d2bc";
+var _rnSha="452c911571c70a74d9e068e18eac4ead2fecc986ae30db59edd63b4878672c0b";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){

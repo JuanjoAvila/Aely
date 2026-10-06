@@ -1,5 +1,7 @@
 # Backlog operativo — Aely
 
+Candidata FAB97 en revisión: guardián final natural/reveal primerframe/cancelCSS medida, notas y nueva tanda separada. Fuente PR147; publicación retenida hasta CI y revisión exactas. No resuelve INC-2709-09 acumulativo. Producción95 confirmada; Inicio96.1 conservado.
+
 Promoción4/10: las once tandas de beta4.26.94.1 tienen aprobación vigente. Producción4.26.94/source8bb0398f servida y cotejada; APK52 estable y las tres funciones Edge entregadas. La limpieza conserva notas y decisiones; solo retira las once entregadas, sin producto nuevo. Prioridad permanente: producción de lo aprobado antes de otra implementación. [Acta](briefs/promocion-aprobadas-2026-10-04.md).
 
 ## INC-0410 · P1 · alta de reglas de Metas · 4/10/2026

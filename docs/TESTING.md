@@ -17,6 +17,37 @@ limit / window, aislamiento por usuario, concurrencia, caducidad). Mutantes `lim
 `999999` y `window=1` fallan si el mock ignora args. Rojo/verde: fixture `prices_base_fixture.ts`
 (lógica `8bb0398f`) vs candidato. La propuesta **no** está activa en live (`applyRateProposal`
 false salvo `PRICES_RATE_LIMIT=1`). [Brief](briefs/sec02-prices-limites.md).
+## Exportación de memoria a un repositorio público (5/10)
+
+Sucesora del 6/10: una frase financiera incompleta seguida de línea vacía y cifra desnuda se rechazará también. El contexto heredado dura un solo párrafo inmediato y exige un final reconocido sin valor (etiqueta, «capital», «en», «de», «por», `:` o `=`) y comienzo numérico, incluidas comillas. Una etiqueta enlazada terminal también queda pendiente sin retirar su destino del payload ni residual. Los fixtures cubren LF/CRLF, varias líneas vacías, cifras Unicode, énfasis y cita. Positivos literales conservan bytes técnicos, fecha/versión/SHA rotulados y cifras de una sección o prosa nueva; esos límites no pretenden interpretar el discurso completo. Un mutante que retira solo la herencia reproduce salida 0 y creación de destino; el guardián corregido rechaza con salida 1 sin crear el destino. Todo el contenido es inventado.
+
+`tests/sync-memoria.test.mjs`, registrado en `run-tests`, ejecuta el exportador real con fuentes y destinos temporales sintéticos. Comprueba que las rutas absolutas del PC y los importes reconocibles no reaparezcan al repetir la exportación, conservando referencias técnicas y enlaces relativos; y que un documento inválido impida modificar o borrar cualquier archivo del destino. `AELY_MEMORY_SOURCE` permite seleccionar una fuente de pruebas sin leer ni modificar la memoria personal. Los filtros reconocen patrones; no sustituyen la revisión manual de contexto antes de publicar. Los procedimientos de buzón y vigía de las memorias históricas quedan subordinados al protocolo vigente de Cloud.
+
+Endurecimiento del 5/10: esperados literales demuestran que el exportador anterior dejaba cifras tras `saldo` entre backticks, el extremo de rangos con en-dash y cantidades en prosa financiera, con salida 0. Los valores directos entre backticks y los rangos reconocidos se tachan; un detector independiente del patrón de saneado rechaza cifras residuales en párrafos financieros, incluido el contexto `<importe>` tras quitar la moneda. Reconoce `Decimal_Number` Unicode y líneas de continuación, tablas y citas Markdown dentro del mismo párrafo (separado por líneas vacías). El léxico incluye patrimonio y, por prudencia, «capital» aislado en el detector residual: su ambigüedad puede generar rechazos de textos no financieros. Exceptúa cantidades con unidades técnicas explícitas, versiones/SHA rotulados y el prefijo constante de un teléfono ya tachado; otras cifras, incluidas fechas en ese párrafo, pueden producir un rechazo conservador. No reconoce todo dato personal ni todo modo de expresar dinero.
+
+El mismo guardián cubre rangos de moneda, marcado mixto, barras, espacios estrechos, cifras Unicode fullwidth/Arabic-Indic/matemáticas, prosa partida con LF/CRLF, citas/tablas/listas y cifras junto a tamaños técnicos. Exportación y `--check` rechazan antes de crear destino o escribir/borrar uno existente. El escaneo contextual usa el cuerpo: `saldo-2026.md` no convierte versiones/SHA del texto en importes; cabeceras siguen comprobándose para identidades, rutas y moneda. Las fechas ajenas al párrafo financiero y las referencias técnicas se conservan literalmente. La regeneración repone el aviso visible de vigencia Cloud aunque la fuente solo contenga procedimientos locales históricos; repite exportación y `--check` para comprobar contenido y mtime estables. Comando focal: `node tests/sync-memoria.test.mjs`; no hace falta ejecutar el exportador con su origen personal por defecto.
+
+Strike intrapalabra: `Capi~~tal~~` y `Ca~~pi~~tal` dejaban exportación y check en 0; sus guardianes capturan ambos códigos y exigen rechazo 1/1, sin cambios de contenido/mtime ni borrado de sobrantes. La vista del detector también quita `~`, sin alterar payload, residual ni URL. Variantes Unicode, énfasis y continuación se prueban con y sin destino, y positivos con bytes/versiones/SHA conservan literalmente ese marcado.
+
+Las revisiones posteriores detectaron etiquetas compuestas claras partidas o marcadas: `Capital` seguido de `invertido`/`aportado` en otra línea, énfasis con underscores/anidado, NBSP, hardbreaks y la primera palabra enlazada. La matriz deduplicada contiene un producto finito de tres etiquetas claras × veintitrés formatos simples/anidados/con enlaces y énfasis sobre Capital × seis continuidades (espacio, LF, CRLF, NBSP y hardbreak LF/CRLF). Cubre primera, segunda y ambas palabras enlazadas, destinos con paréntesis balanceados y referencias completas/colapsadas/cortas con definiciones sintéticas. Cada caso exige rechazo en exportación y `--check`, con destino existente y ausente, sin modificar contenido/mtime ni borrar sobrantes. La misma matriz forma 414 párrafos positivos con bytes/versiones/SHA explícitos: se conservan literalmente junto con el Markdown y mantienen idempotencia. Se añaden seis títulos citados con paréntesis, strike GFM, capital aislado y variantes con marcado/enlaces/NBSP/hardbreak; sus positivos técnicos también conservan el payload. El detector ya no interpreta destinos: capital aislado activa el contexto tras normalizar espacios/delimitadores en una vista exclusiva, sin modificar el Markdown exportado ni su búsqueda de cifras. Un guardián sin importe financiero, con `310 KB` y una cifra en el destino del enlace, exige rechazo para probar que esa URL sigue en el residual. No implementa parsing Markdown universal: usos ambiguos, formatos no reconocidos, límites léxicos y separación por párrafos requieren revisión manual. `capital-social-2026.md` tampoco aporta contexto desde su nombre.
+
+## Controles de Apuntar (6/10)
+
+Los casos P10 en inglés, 150 TRY → 3 EUR y Efectivo
+exigen una única fila visible de Gastos activo y persistencia exacta de importe,
+entidad y moneda original. El mismo oráculo se ejecuta primero con el apunte real,
+después con la fila real oculta (el concepto sigue en el DOM) y con almacenamiento
+sintético ausente, importe/entidad/divisa incorrectos o duplicado. Cada negativo
+debe rechazar en su aserción de visibilidad o persistencia; se restaura en `finally`
+y se vuelve a comprobar el positivo. Los 200 ms acotan sólo el rechazo deliberado:
+los positivos conservan 5 s y la entrada/CTA/espera del sheet no cambia. No acredita
+móvil ni sincronización bancaria. Chromium local bloqueado antes de página por
+`socket() EPERM`; ejecución y CI del SHA nuevo pendientes, no integrar por estos
+controles sin evidencia de navegador.
+
+## Caché de fechas · promoción selectiva4.26.95
+
+`tests/fechas-cache.test.mjs`, registrado en `run-tests`, ejecuta las funciones reales del bundle y cuenta parseos: barridos de5.200 fechas, orden inverso/barajado, límite de memoria, formatos, aciertos0/NaN y objetos Date independientes. Protege únicamente el cambio aprobado al volver con historial; no prueba el lag global de INC-2709-09 ni conexiones bancarias reales.
 
 ## Carga de tests y lector de alcances (4/10)
 
@@ -726,3 +757,7 @@ Desde el 28/9, el dueño autoriza que cada chat nuevo compruebe estos veredictos
 forma autónoma **solo** las tandas aprobadas, después de preparar y verificar la candidata exacta.
 El proceso está en [PROMPT-FLUJO-CONTINUO.md](PROMPT-FLUJO-CONTINUO.md). Una tanda sin veredicto
 identificable o con validación por pago real pendiente continúa en beta.
+
+
+FAB INC-2709-13: `botnav-fab-recorte` (transversal) cubre seis combinaciones Green0/Cyber34 y movimiento normal/app/sistema. Primera captura pausada solo mide contorno; segunda ocultación sin pausa/finish acredita final natural; reveal se registra en primer rAF y cancelación CSS exige intervalo <550ms. `botnav-esconder` conserva gestos y touchcancel del controlador. PNG helpers permanentes en e2e/helpers, sin guiones de captura desechables. Chromium sintético no acredita ola Android ni fluidez.
+Uso prolongado (INC-2709-09): `e2e/rendimiento-sostenido.spec.mjs` está en CROSSCUTTING y se ejecuta en serie como rendimiento. La candidata `lifecycle-network-v3` añade offline real del contexto Chromium, visibilidad controlada del fixture y observaciones por acción. Es investigación, sin arreglo acreditado: [guion v3 y bloqueo de ejecución](briefs/inc-2709-09-lifecycle-network-v3.md). Las series históricas v1/v2 conservan sus guiones exactos y no se atribuyen a v3.
