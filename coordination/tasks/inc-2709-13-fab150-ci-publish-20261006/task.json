@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "id": "inc-2709-13-fab150-ci-publish-20261006",
+  "from": "codex",
+  "coordinatorSession": "relay-run-97a37e7231f5957f",
+  "createdAt": "2026-10-06T14:39:40.315Z",
+  "to": "codex",
+  "baseSHA": "7570a6fee5fb1eb3aa81292abc1a0a7d619f6927",
+  "objective": "Completar CI exacta de candidata FAB y publicar beta terminada con artefactos cotejados",
+  "scope": [
+    "Predecesora inc-2709-13-fab-natural-final-beta-20261006 cerrada blocked por CI; fuente terminada PR 150 sobre beta, árbol fd8e51eab43bdabd14215814a0d40eda0fa89b09, padres ca6f5e85 y 537edc1c. Review independiente GO exacto; no retomar reservas anteriores.",
+    "CI 37480309392 SHA 7570 en curso. Build/syntax/docs/history29/syncmem414/beta-sources/relevant/idiomas/tandasvacías/privacy/diff locales verdes. Árbol integrado beta debe ser exacto; ningún repin ni gate reducido.",
+    "Sólo tras SUCCESS exacto y logs sin fallo: marcar ready, SQUASH PR 150 con expectedHead y readback del árbol. Revalidar beta remota antes; si avanzó reconciliar y revisar/CI nuevo, no mezclar a ciegas.",
+    "Comprobar CI/publicador del merge exacto y versión/huella/manifiesto/ZIP/HTML/SW/catálogo servidos. Conservar demás pendientes e historial; móvil unknown no equivale a aprobación.",
+    "PR 148 y 149 cerradas/sustituidas; CI no reutilizable. PR 147 es fuente anterior sin notas/VERSION. No PR 134/141/146. No duplicar Grok."
+  ],
+  "restrictions": [
+    "Exclusivamente beta, jamás main sin OK móvil exacto; no APK/Edge/SQL/bancos",
+    "INC-2709-09 acumulativo abierto; no resolución global ni 27px acreditados",
+    "Android real/móvil desconocidos, inputs bloqueados",
+    "Sin scripts de captura desechables; helper PNG guardián permanente"
+  ]
+}
