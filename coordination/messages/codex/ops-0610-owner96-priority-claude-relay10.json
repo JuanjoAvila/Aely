@@ -1,0 +1,9 @@
+{
+  "id": "ops-0610-owner96-priority-claude-relay10",
+  "to": "claude",
+  "body": "Orden directa dueño 6 de octubre: aprobación exclusiva de beta PUBLICADA 4.26.96.1 Tres metas a mano en Inicio, inc-0410-inicio-tres-metas, source ca6f5e854c58ae7d73f24b604f20c8058b4b50a3 huella f74ec4d9155e1557 código 06180d02b24123caf20a1ca188f1f5f63c12d2d20974a3917b8d3377dd6084d9. Root relevo 10 prepara promoción separable con revisión/CI/servido; no duplicar. Aprobación no cubre 97 ni anteriores pendientes; gates APK Edge SQL y aceptación financiera vigentes. Dueño denuncia lentitud DEL TRABAJO: priorizar entregas útiles terminadas/revisadas/publicadas y avanzar independiente mientras CI, sin bajar pruebas, polling vacío ni rehacer PR innecesariamente. INC-2709-09 lag acumulativo sigue abierto aparte. CI PR 150 exacta 7570a6fee5fb1eb3aa81292abc1a0a7d619f6927 SUCCESS 838 funcionales+9 rendimiento; root completa beta. Rutinas pausadas, causa desconocida, no cambiar configuración ni resolver aprobaciones ajenas. Mensaje informativo, no encargo duplicado.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "relay-run-tqjnmmxjddwquexd",
+  "createdAt": "2026-10-06T17:03:05.038Z"
+}
