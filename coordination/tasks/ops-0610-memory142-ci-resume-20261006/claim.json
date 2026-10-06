@@ -1,0 +1,8 @@
+{
+  "schema": 1,
+  "taskId": "ops-0610-memory142-ci-resume-20261006",
+  "actor": "codex",
+  "sessionId": "relay-run-b2c5926fb3b45f20",
+  "createdAt": "2026-10-06T13:09:37.314Z",
+  "baseSHA": "baa6f8de805e2049dbcce44682227b60b79a9518"
+}
