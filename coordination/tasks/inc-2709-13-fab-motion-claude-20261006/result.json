@@ -1,0 +1,50 @@
+{
+  "status": "done",
+  "summary": "Guion revisado ejecutado en Chromium sintético Cloud (UTC, Chromium 141, sin capturas): protocolo válido en 4 configuraciones. Hipótesis de recorte rectangular transitorio CONFIRMADA en geometría (overflow:hidden se aplica de golpe; 18-25 frames parciales al ocultar y en cancelación; clipTop máx 14 px, clipBottom máx 43 px); 27 px NO reproducido; contorno circular sin medir (sin captura); movimiento reducido ajuste/sistema: 0 frames parciales; transform none y 0 px de desbordamiento inferior en todas las fases. Propuesta mínima sin implementar: separar contorno/animación del FAB del rectángulo que colapsa. Sin cambios de runtime.",
+  "tests": [
+    {
+      "command": "git rev-parse HEAD:src/shell.html (blob 26e2795f)",
+      "exitCode": 0
+    },
+    {
+      "command": "npm ci --ignore-scripts",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/build-app.mjs (SHA-256 public/index.html cdd42115...7429c igual a la base)",
+      "exitCode": 0
+    },
+    {
+      "command": "node docs/briefs/inc-2709-13-fab-motion-probe.mjs (PLAYWRIGHT_CHROMIUM_PATH=chromium 141, captura apagada)",
+      "exitCode": 0
+    },
+    {
+      "command": "node --check docs/briefs/inc-2709-13-fab-motion-probe.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run test:syntax",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/docs-frescura.test.mjs",
+      "exitCode": 0
+    }
+  ],
+  "branch": "claude/inc-2709-13-fab-motion",
+  "productSHA": "75ed81cfa4c82e77bbe3c75c3eaabca1e2de6259",
+  "limitations": [
+    "No se ejecutó npm test entero ni e2e",
+    "Chromium escritorio 141, no Android WebView ni móvil real",
+    "cancelación sintética, no stretch Android",
+    "clipTop/clipBottom son intersección rectangular; contorno circular no medido",
+    "sin pasada de contraste con intervención temporal aislada",
+    "INC-2709-09 independiente sigue abierto"
+  ],
+  "schema": 1,
+  "taskId": "inc-2709-13-fab-motion-claude-20261006",
+  "actor": "claude",
+  "sessionId": "claude-cloud-20261006-d2487407",
+  "createdAt": "2026-10-06T11:55:30.173Z",
+  "released": true
+}
