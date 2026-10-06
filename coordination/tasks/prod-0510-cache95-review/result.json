@@ -1,0 +1,43 @@
+{
+  "status": "done",
+  "summary": "GO tecnico independiente bedb589 tree1b737 exactos; runtime/cache/guard PR133, scope95 y metadatos coherentes, otras superficies main intactas. CI/servido separados.",
+  "tests": [
+    {
+      "command": "npm run build; npm run test:syntax; git diff --check; reproducibilidad generados",
+      "exitCode": 0
+    },
+    {
+      "command": "TZ=UTC node tests/beta-sources.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "UTC/Madrid fechas-cache,hist-fecha-que-baila,hist-dia-local,gastos-periodo,hist-import-dup,hist-pagos-mensuales,hist-uniq-por-banco,hist-cashback-par",
+      "exitCode": 0
+    },
+    {
+      "command": "UTC/Madrid beta-source-parse,beta-tandas-vacias,release-notes-max,i18n-keys,docs-frescura,relevant-tests",
+      "exitCode": 0
+    },
+    {
+      "command": "base8bb0398 hist-fecha-que-baila UTC/Madrid y contrato focal retiro95 recibo exacto/ausente",
+      "exitCode": 0
+    },
+    {
+      "command": "Repeticion redundante beta-sources Madrid terminada SIGTERM propia",
+      "exitCode": -15
+    }
+  ],
+  "productSHA": "bedb589279e77b61b98f5315ace9c7a27f221813",
+  "pr": 136,
+  "limitations": [
+    "No E2E ni navegador en esta revision; CI37415731606 exacta y artefactos servidos pendientes.",
+    "Scope95web4ec900b5de573d1098f68e4d95272ce34bd5e206bef407b41872a3c937220b2c.",
+    "INC-2709-09 uso prolongado abierto."
+  ],
+  "schema": 1,
+  "taskId": "prod-0510-cache95-review",
+  "actor": "codex",
+  "sessionId": "relay-run-e9c59cbe362b1be8",
+  "createdAt": "2026-10-06T05:01:51.262Z",
+  "released": true
+}
