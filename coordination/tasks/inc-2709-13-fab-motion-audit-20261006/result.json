@@ -1,0 +1,27 @@
+{
+  "status": "blocked",
+  "summary": "Auditoría estática y guion saneado durables; reproducción visual bloqueada antes de página",
+  "tests": [
+    "CSS shell blob26e2795f idéntico entre main6f y beta ca6f; lecturaoverflowhidden inmediato y colapso550ms, no medida causal",
+    "Chromium149 --version exit0; launch exit1 socketEPERM/SIGABRT antes de página; cero frames/gestos/capturas",
+    "guion: sintaxis/diff/docs-frescura exit0; revisión independiente15filesystem+6origen+4protocolos PASS",
+    "último delta exclusivamente serviceWorkers:block+documentación, requisito de revisión incluido; no nuevo browser"
+  ],
+  "sourceSHA": "3f9bbc9faa8999e203d3feed055cfbffe432a2c2",
+  "branch": "codex/fab-motion-audit-relay6",
+  "treeSHA": "c2f02f43c869fa7ab6574b83db6ef5fe1c788964",
+  "evidence": "Hipótesis de clipping rectangular durante transición; margenCSS-26px no equivale a clipmedido27px. Contorno circular/Android/reproducciónhumana desconocidos.",
+  "next": "Transportar guion aClaude tras tarea duración30, validar fases reales y reproducir antes de runtimefix",
+  "limitations": [
+    "sin cambiosruntime/VERSION/public",
+    "ningún GO de producto",
+    "cancelación sintética no prueba borde/olaAndroid; SWdesactivado",
+    "INC-2709-09 independiente abierto"
+  ],
+  "schema": 1,
+  "taskId": "inc-2709-13-fab-motion-audit-20261006",
+  "actor": "codex",
+  "sessionId": "relay-run-6debbc0779d1ed6b",
+  "createdAt": "2026-10-06T11:22:03.933Z",
+  "released": true
+}
