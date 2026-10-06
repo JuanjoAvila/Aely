@@ -1,0 +1,21 @@
+{
+  "status": "done",
+  "summary": "PR141 exact4be/tree8d018 GO mecánico y NO-GO publicación; los cuatro gates rojos también se reproducen b797, no integrar beta ni Edge",
+  "tests": [
+    "merge-tree+build reproduced exact3conflicts/tree;6productfilesbyteequalb797; runner95guards/maps preserved",
+    "27focalprocessUTC/Madrid; six INC270906 guards PASS incl10diario/15ACK/49withdraw; ISOcontract0/mutant1expected;widgetdefault1 18645vs17445 bothzones",
+    "beta-sources1 missing histDate/obHistNoticeSeen/addExpensesBatch; docs-frescura1 sixpostbump paths; performancebudget1 1307/1287and356/351KiB; samefourredonb797",
+    "Syntax/relevant-tests0; exacthead workflows[]; no independentDOM/fullCI; humanINC270906/INC270909open"
+  ],
+  "checkpoint": {
+    "head": "4becee158124e50349b466202ec49c383e5529b0",
+    "tree": "8d018d811fa378245560657763ba45c0a5f87a5d",
+    "next": "repair transitive beta-source coverage without weakening guards; separate freshness/size/financialcontract gates"
+  },
+  "schema": 1,
+  "taskId": "inc-2709-06-integration141-review-20261006",
+  "actor": "codex",
+  "sessionId": "relay-run-6debbc0779d1ed6b",
+  "createdAt": "2026-10-06T11:42:27.170Z",
+  "released": true
+}
