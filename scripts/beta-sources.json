@@ -593,6 +593,62 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_mem"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "histDate"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obExtCloudSuffix"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obHistNoticeCommit"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDailyCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRecibo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obHistAnnounce"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obHistEnd"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDailyRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDeletedLookup"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obRowBuried"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDailySameTerna"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "obHistNoticeSeen"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "obDailyWaiting"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "obHistEnding"
       }
     ],
     "unidades": true
@@ -1426,6 +1482,62 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_mem"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "histDate"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obExtCloudSuffix"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obHistNoticeCommit"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDailyCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRecibo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obHistAnnounce"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obHistEnd"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDailyRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDeletedLookup"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obRowBuried"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDailySameTerna"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "obHistNoticeSeen"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "obDailyWaiting"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "obHistEnding"
       }
     ],
     "native": [
@@ -2110,6 +2222,62 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_mem"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "histDate"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obExtCloudSuffix"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obHistNoticeCommit"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDailyCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRecibo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obHistAnnounce"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obHistEnd"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDailyRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDeletedLookup"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obRowBuried"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDailySameTerna"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "obHistNoticeSeen"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "obDailyWaiting"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "obHistEnding"
       }
     ],
     "native": [
@@ -2493,6 +2661,22 @@
       {
         "file": "src/modules/00-core.js",
         "function": "mobilityCategoryOfNewMerchant"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obCanonIso"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obIndexGroup"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obExtSaltKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obPickExtStamp"
       }
     ],
     "native": [
@@ -3224,6 +3408,58 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_mem"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "histDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obHistNoticeCommit"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDailyCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRecibo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obHistAnnounce"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obHistEnd"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDailyRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDeletedLookup"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obRowBuried"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDailySameTerna"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "obHistNoticeSeen"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "obDailyWaiting"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "obHistEnding"
       }
     ],
     "native": [
@@ -3908,6 +4144,62 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_mem"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "histDate"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obExtCloudSuffix"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obHistNoticeCommit"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDailyCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRecibo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obHistAnnounce"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obHistEnd"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDailyRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDeletedLookup"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obRowBuried"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDailySameTerna"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "obHistNoticeSeen"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "obDailyWaiting"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "obHistEnding"
       }
     ],
     "native": [
@@ -4075,6 +4367,82 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_mem"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obHistNoticeCommit"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDailyCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRecibo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obHistAnnounce"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obHistEnd"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDailyRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDeletedLookup"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obRowBuried"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDailySameTerna"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseIsTombstoned"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseBankOf"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "keyOfExpense"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isManualExpenseSource"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "keyOfExpenseLegacy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "partirEntDeuda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "histDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "obHistNoticeSeen"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "obDailyWaiting"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "obHistEnding"
       }
     ],
     "auditoria": {
@@ -4739,6 +5107,58 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_mem"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "histDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obHistNoticeCommit"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDailyCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRecibo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obHistAnnounce"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obHistEnd"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDailyRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDeletedLookup"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obRowBuried"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDailySameTerna"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "obHistNoticeSeen"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "obDailyWaiting"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "obHistEnding"
       }
     ],
     "unidades": true
@@ -4877,6 +5297,82 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_mem"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obHistNoticeCommit"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDailyCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRecibo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obHistAnnounce"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obHistEnd"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDailyRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDeletedLookup"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obRowBuried"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDailySameTerna"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseIsTombstoned"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseBankOf"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "keyOfExpense"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isManualExpenseSource"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "keyOfExpenseLegacy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "partirEntDeuda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "histDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "obHistNoticeSeen"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "obDailyWaiting"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "obHistEnding"
       }
     ]
   },
@@ -5799,6 +6295,7 @@
         "data": "cloud",
         "members": [
           "addExpense",
+          "addExpensesBatch",
           "bankLinks",
           "bankSync",
           "deleteExpense",
@@ -6079,6 +6576,106 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "reservaMensualPuerta"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "histDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obCanonIso"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obIndexGroup"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obExtSaltKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obPickExtStamp"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRecibo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obExtCloudSuffix"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "persistObImport"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obHistNoticeCommit"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDailyCommit"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "histApplyBatchAck"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obChaseRounds"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obSettleDaily"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obHistAnnounce"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obHistEnd"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDailyRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obPlanRetry"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDeletedLookup"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obRowBuried"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDailySameTerna"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obConsultedIndex"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obExtIdFromCloudSource"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "obHistNoticeSeen"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "obDailyWaiting"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "obHistEnding"
       }
     ],
     "unidades": true
@@ -6668,6 +7265,62 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_mem"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obExtCloudSuffix"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "histDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obHistNoticeCommit"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDailyCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRecibo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obHistAnnounce"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obHistEnd"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDailyRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDeletedLookup"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obRowBuried"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDailySameTerna"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "obHistNoticeSeen"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "obDailyWaiting"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "obHistEnding"
       }
     ],
     "unidades": true
@@ -7337,6 +7990,62 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_mem"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "histDate"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obExtCloudSuffix"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obHistNoticeCommit"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDailyCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRecibo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obHistAnnounce"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obHistEnd"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDailyRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDeletedLookup"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obRowBuried"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDailySameTerna"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "obHistNoticeSeen"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "obDailyWaiting"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "obHistEnding"
       }
     ],
     "native": [
@@ -7584,6 +8293,10 @@
       {
         "file": "src/modules/00-core.js",
         "data": "CAT_NEUTRAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "histDate"
       }
     ]
   },
@@ -8210,6 +8923,66 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_mem"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseTombKeys"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "histDate"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obExtCloudSuffix"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obHistNoticeCommit"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDailyCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRecibo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obHistAnnounce"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obHistEnd"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDailyRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDeletedLookup"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obRowBuried"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDailySameTerna"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "obHistNoticeSeen"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "obDailyWaiting"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "obHistEnding"
       }
     ],
     "unidades": true
@@ -8613,6 +9386,62 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_mem"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "histDate"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obExtCloudSuffix"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obHistNoticeCommit"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDailyCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRecibo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obHistAnnounce"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obHistEnd"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDailyRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDeletedLookup"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obRowBuried"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDailySameTerna"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "obHistNoticeSeen"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "obDailyWaiting"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "obHistEnding"
       }
     ],
     "unidades": true
@@ -8914,6 +9743,66 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_mem"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "histDate"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obExtCloudSuffix"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obHistNoticeCommit"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDailyCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRecibo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obHistAnnounce"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obHistEnd"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDailyRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDeletedLookup"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obRowBuried"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDailySameTerna"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseIsTombstoned"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "obHistNoticeSeen"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "obDailyWaiting"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "obHistEnding"
       }
     ],
     "unidades": true
@@ -9304,6 +10193,58 @@
         "file": "src/modules/11-app-main.js",
         "from": "  const pinNavVisible=function(ms){",
         "to": "  // clear del tope: solo API residual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRecibo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "histDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obHistNoticeCommit"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDailyCommit"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obHistAnnounce"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obHistEnd"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDailyRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDeletedLookup"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obRowBuried"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDailySameTerna"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "obHistNoticeSeen"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "obDailyWaiting"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "obHistEnding"
       }
     ],
     "unidades": true
@@ -9997,6 +10938,66 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_mem"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "histDate"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obExtCloudSuffix"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseTombKeys"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obHistNoticeCommit"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDailyCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRecibo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obHistAnnounce"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obHistEnd"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDailyRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDeletedLookup"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obRowBuried"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDailySameTerna"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "obHistNoticeSeen"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "obDailyWaiting"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "obHistEnding"
       }
     ],
     "edge": [
@@ -10196,6 +11197,82 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_mem"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obHistNoticeCommit"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDailyCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRecibo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obHistAnnounce"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obHistEnd"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDailyRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDeletedLookup"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obRowBuried"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDailySameTerna"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseIsTombstoned"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseBankOf"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "keyOfExpense"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isManualExpenseSource"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "keyOfExpenseLegacy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "partirEntDeuda"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "histDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "obHistNoticeSeen"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "obDailyWaiting"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "obHistEnding"
       }
     ],
     "unidades": true
@@ -10828,6 +11905,66 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_mem"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseTombKeys"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "histDate"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obExtCloudSuffix"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obHistNoticeCommit"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDailyCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSinRecibo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obHistAnnounce"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obHistEnd"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDailyRead"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDeletedLookup"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obRowBuried"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obDailySameTerna"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "obHistNoticeSeen"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "obDailyWaiting"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "obHistEnding"
       }
     ],
     "unidades": true
