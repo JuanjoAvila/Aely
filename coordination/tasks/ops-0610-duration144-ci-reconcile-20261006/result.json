@@ -1,0 +1,29 @@
+{
+  "status": "blocked",
+  "summary": "PR144 SQUASH0d64 integrado tras sourceGO yCI37460135450SUCCESS; logs confirman4ciclos3000/5200. Sólotimeout yacta. PostmainTests37468531744inprogress/Pages37468531618pending: cierrepostCI queda en sucesor.",
+  "tests": [
+    {
+      "command": "CI37460135450 exacta ad84;817funcionales+9perf;4ciclos3000/5200",
+      "exitCode": 0
+    },
+    {
+      "command": "independent sourceGO exactad84 diff/syntax/privacy/docs",
+      "exitCode": 0
+    },
+    {
+      "command": "remote source runtime public versions identical6f..0d64",
+      "exitCode": 0
+    }
+  ],
+  "productSHA": "0d64c1ab35a6ef48a4bbc11c97c33f31b2062fda",
+  "limitations": [
+    "Métricas30min reporte ejecutor, noJSONcrudo recomputado",
+    "PostmainCI pendiente; INC270909humanoopen"
+  ],
+  "schema": 1,
+  "taskId": "ops-0610-duration144-ci-reconcile-20261006",
+  "actor": "codex",
+  "sessionId": "relay-run-b2c5926fb3b45f20",
+  "createdAt": "2026-10-06T13:19:14.561Z",
+  "released": true
+}
