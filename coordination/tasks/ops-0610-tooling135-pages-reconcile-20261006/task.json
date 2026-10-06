@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "id": "ops-0610-tooling135-pages-reconcile-20261006",
+  "from": "codex",
+  "coordinatorSession": "relay-run-6debbc0779d1ed6b",
+  "createdAt": "2026-10-06T11:45:06.693Z",
+  "to": "codex",
+  "baseSHA": "6f035b09bc873ed102029aad9ddfe89efa78bb40",
+  "objective": "Reconciliar Pages tras tooling135 sin alterar producción95 aprobada ni publicar producto nuevo",
+  "scope": [
+    "RunDeploy37450683033 exact6f; si terminal inspeccionarlogsyartefacto Pages; si pendiente no asumirpublication",
+    "HTTP6rutas actuales/version/index/sw/beta-delivery/apk/release-notes bytes exactartefacto fuente6f y95digest/APK52",
+    "Producciónmainpuedeavanzar: validar freshsource/deploy, no atribuir servido viejo al nuevo"
+  ],
+  "required": [
+    "Fuente exacta/tree/CIpost37450683063SUCCESS acreditada; postDeploy statusreal",
+    "ActualHTTP200sha256 y comparaciónartefacto exact; HTML95 unchanged respectoapproved95",
+    "Resultado truthfullyblocked/unknown si datos ausentes; no simulardeploy ni rerun ciego"
+  ],
+  "restrictions": [
+    "Read-only; no main/beta pushes/productversion/APK/Edge/SQL; no datos reales",
+    "No copiar artifactURLs firmadas/privateIDs al canal público; fuente/CI públicos sí",
+    "INC270909prolongado abierto; lectoresprivadosblocked"
+  ]
+}
