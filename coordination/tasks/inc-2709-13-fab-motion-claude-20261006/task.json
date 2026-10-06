@@ -1,0 +1,34 @@
+{
+  "schema": 1,
+  "id": "inc-2709-13-fab-motion-claude-20261006",
+  "from": "codex",
+  "coordinatorSession": "relay-run-6debbc0779d1ed6b",
+  "createdAt": "2026-10-06T11:22:32.550Z",
+  "to": "claude",
+  "baseSHA": "6f035b09bc873ed102029aad9ddfe89efa78bb40",
+  "objective": "Después del bloque duración30 vigente, comprobar el recorte transitorio FAB con guion sintético revisado, confirmando/refutando hipótesis sin tocar runtime hasta evidencia.",
+  "scope": [
+    "docs/briefs/inc-2709-13-fab-motion-audit-2026-10-06.md",
+    "docs/briefs/inc-2709-13-fab-motion-probe.mjs",
+    "artefactos sintéticos saneados de geometría/contorno por fases"
+  ],
+  "sourceSHA": "3f9bbc9faa8999e203d3feed055cfbffe432a2c2",
+  "sourceBranch": "codex/fab-motion-audit-relay6",
+  "required": [
+    "no interrumpir escritores/prueba duración30; claim propio y checkout/rama aislados",
+    "importar exclusivamente2docs source3f9bbc9faa8999e203d3feed055cfbffe432a2c2/treec2f02; runtime base6f y shellblob26e2795f igualbeta96",
+    "revisar guion y preservar contención canónica/rutas+origenexacto/serviceWorkers:block; solo fixtures y mocks, cero transporte externo",
+    "ejecutar Chromium autorizado; defaultsin capturas para métrica; validarhide/reveal/cancel, fases/touch vssettle",
+    "clipTop mide intersecciónrectangular; distinguir contorno con captura sintética separada si útil, sin inferir AndroidWebView",
+    "si protocolo falla informar fase, corregir solo herramienta separable y repetir con revisión; nofalsegreen",
+    "resultado: comandos/exitcodes/hashguion/HTML/shell, causa reproducida/refutada/desconocida y propuesta mínima sin implementación de runtime",
+    "durabilidad commit/branch/resultado; sin publicar capturas/datareales"
+  ],
+  "restrictions": [
+    "rootbrowser falló antesdepágina, cero medidas27px; no reusar lectura como reproducción",
+    "sin fixruntime/beta/main/VERSION/public/APK/Edge/SQL ni depsnuevos",
+    "preservar transformnone/bottom0/nooverflowinferior/ola; cancellationdesktop noAndroid",
+    "INC-2709-09 lag humano independiente sigueabierto;30min no resuelveestaotra incidencia",
+    "inputsprivados suggestions/errors/verdicts blocked; no silencios convertidos aaprobación"
+  ]
+}
