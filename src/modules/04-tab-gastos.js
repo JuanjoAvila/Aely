@@ -51,7 +51,12 @@ function budgetPaydayOf(state, nowMs, expenses){
    lag que crecía con el uso (feedback 2026-07-24). Devuelve {from,to} con Infinity de comodín. */
 function presetBoundsMs(preset,range,cycleStart){
   const now=new Date();
-  const monthEnd=new Date(now.getFullYear(),now.getMonth()+1,1).getTime()-1;
+  // El inicio del mes ya es Madrid (`startOfMonth`). El cierre no puede ser el del reloj
+  // del dispositivo: a las 22:01Z del 30/9 un móvil en UTC sigue en septiembre y ese cierre
+  // (23:59Z) deja fuera la nómina del 1/10, que Madrid ya admite. El ancla del ciclo no se
+  // mueve: sigue el día local y no abre hasta las 00:00 de ese reloj.
+  const madrid=madridYmdParts(now.getTime());
+  const monthEnd=inicioDeMesMs(Date.UTC(madrid.y, madrid.m, 15, 12))-1;
   if(preset==="month") return {from:startOfMonth().getTime(), to:monthEnd};
   if(preset==="cycle"){
     const tomorrow=new Date(now); tomorrow.setHours(24,0,0,0);
@@ -528,15 +533,19 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   };
 
   const todayKey=new Date().toDateString();
+  // El día local no cambia a las 22:00Z en UTC, pero Madrid ya es el día 1. Sin ese día en la
+  // clave, el memo conserva el cierre de septiembre y la nómina recién admitida no se pinta.
+  const madridHoy=madridYmdParts(Date.now());
+  const periodKey=todayKey+"|"+madridHoy.ym+"-"+String(madridHoy.d).padStart(2,"0");
   const cycle=useMemo(()=>cycleEnabled?budgetPaydayOf(state,null,expensesDef)
     :lastPaydayOf(expensesDef,null,expenseDeletedSet(state)),
-    [expensesDef,state.deleted,state.flows,cycleEnabled,todayKey]);
+    [expensesDef,state.deleted,state.flows,cycleEnabled,periodKey]);
   // Bancos presentes en el período (o configurados como gasto) → chips de filtro.
   // "_manual" = apuntados a mano / sin banco conocido (no mezclar con OB).
   // Chips de banco: baratos y SIEMPRE visibles (no dependen de heavyOk → sin flash).
-  // `todayKey` invalida ciclo, filtros y cabecera cuando la app queda abierta al cruzar el día;
+  // `periodKey` invalida ciclo, filtros y cabecera al cruzar el día local o el de Madrid;
   // así el 26 o el día 1 no conserva cifras del período anterior en un memo.
-  const bounds=useMemo(function(){ return presetBoundsMs(preset,range,cycle&&cycle.start); },[preset,range,cycle,todayKey]);
+  const bounds=useMemo(function(){ return presetBoundsMs(preset,range,cycle&&cycle.start); },[preset,range,cycle,periodKey]);
   const selectedPeriod=useMemo(function(){ return gastosPeriodOf(preset,bounds,cycle); },[preset,bounds,cycle]);
   const diarioEnts=useMemo(function(){ return expenseBankEnts(state); },[state.accounts, state.settings]);
   const diarioPrev=useRef(diarioEnts.slice());
@@ -638,13 +647,13 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       month:monthLong(now.getMonth()), cycle:!!selectedPeriod.cycle,
       periodLabel:periodLabel, budgetApplies:budgetApplies
     };
-  },[expensesDef,state.deleted,state.budget,state.reservaLog,state.accounts,state.settings,selectedPeriod,preset,range,budgetApplies,todayKey]);
+  },[expensesDef,state.deleted,state.budget,state.reservaLog,state.accounts,state.settings,selectedPeriod,preset,range,budgetApplies,periodKey]);
   // Desglose por categoría: misma regla/ventana que la cabecera. categoryBudgets en deps
   // porque una fila a 0 con límite tiene que aparecer aunque no haya gastos nuevos.
   const catBreakdown=useMemo(function(){
     const rows=categorySpentByMonth(Object.assign({},state,{expenses:expensesDef}),null,null,selectedPeriod);
     return budgetApplies?rows:rows.filter(function(row){ return row.spent>0; }).map(function(row){ return {id:row.id,spent:row.spent,limit:null}; });
-  },[expensesDef,state.deleted,state.categoryBudgets,state.accounts,state.settings,selectedPeriod,budgetApplies,todayKey]);
+  },[expensesDef,state.deleted,state.categoryBudgets,state.accounts,state.settings,selectedPeriod,budgetApplies,periodKey]);
   /* Abierto o plegado, por cuenta. `!==false` y no `!!`: quien nunca lo ha tocado lo ve ABIERTO
      —es como está hoy y como él lo aprobó—, y solo se pliega quien lo pliegue a mano. */
   const catsOpen=!(state.settings && state.settings.gastosCatsOff);

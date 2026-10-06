@@ -8640,6 +8640,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "madridYmdParts"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "recTokens"
       },
       {
@@ -8799,6 +8803,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "data": "_mcInicioMesByYm"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "_mcMadridYmdFmt"
       },
       {
         "file": "src/modules/00-core.js",
@@ -10368,6 +10376,10 @@
         "function": "inicioDeMesMs"
       },
       {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "madridYmdParts"
+      },
+      {
         "file": "src/modules/01-i18n.js",
         "function": "_pdMs"
       },
@@ -10537,6 +10549,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "data": "_mcInicioMesByYm"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "_mcMadridYmdFmt"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -11617,6 +11633,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "madridYmdParts"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "recTokens"
       },
       {
@@ -11776,6 +11796,10 @@
       {
         "file": "src/modules/01-i18n.js",
         "data": "_mcInicioMesByYm"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "_mcMadridYmdFmt"
       },
       {
         "file": "src/modules/00-core.js",
