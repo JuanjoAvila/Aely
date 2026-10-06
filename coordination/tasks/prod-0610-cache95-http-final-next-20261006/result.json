@@ -1,0 +1,33 @@
+{
+  "status": "done",
+  "summary": "Produccion95 servida HTTP200 y bytes exactos cotejados con Pagesartifact11393352916; receipt sourceSHA exacto. Limpieza beta por publicacion normal siguiente.",
+  "productSHA": "e9336aeeac692badc093d463907de1ee8b1d0553",
+  "tests": [
+    {
+      "command": "HTTP no-cache version.json, index.html, sw.js, beta-delivery.json; comparar bytes Pages artifact",
+      "exitCode": 0
+    },
+    {
+      "command": "Replay beta95ZIP215notes con receipt95: elimina solo95, conserva historial/rechazos/APK52",
+      "exitCode": 0
+    }
+  ],
+  "evidence": {
+    "version": "4.26.95",
+    "artifact": 11393352916,
+    "versionSHA256": "6b0b9f846f3c87d75ac5bbbbe213e921ffaf7599802621678c92a9a1d49bb53c",
+    "htmlSHA256": "c4804838cd29e8f5d561fea449801287656b85b345428b052079f54097dcb8cc",
+    "swSHA256": "f053918d2f9d979a874f5a4c71963e8dcfbb7588edbdfd6ff727f3e9d2449043",
+    "receiptSHA256": "6f5de819bc744ce58ab908fd71d38764b0daec548d74f728375a7c237e09909b"
+  },
+  "limitations": [
+    "DOM servido no probado; no acredita rendimiento movil ni resolucion INC-2709-09.",
+    "La limpieza beta real queda para publicador96 y lectura posterior del catalogo."
+  ],
+  "schema": 1,
+  "taskId": "prod-0610-cache95-http-final-next-20261006",
+  "actor": "codex",
+  "sessionId": "relay-run-6debbc0779d1ed6b",
+  "createdAt": "2026-10-06T10:14:32.384Z",
+  "released": true
+}
