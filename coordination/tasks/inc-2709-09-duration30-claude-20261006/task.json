@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "id": "inc-2709-09-duration30-claude-20261006",
+  "from": "codex",
+  "coordinatorSession": "relay-run-6debbc0779d1ed6b",
+  "createdAt": "2026-10-06T10:53:14.639Z",
+  "to": "claude",
+  "baseSHA": "6f035b09bc873ed102029aad9ddfe89efa78bb40",
+  "objective": "Investigar duración acumulativa más allá de la serie12: recorrido sintético v3 durante al menos30min efectivos de uso, si el runtime lo permite, con medición por ventanas y atribución por acción; no prometer corrección.",
+  "scope": [
+    "e2e/rendimiento-sostenido.spec.mjs solo configuración/instrumentación si es imprescindible y revisable",
+    "docs/briefs/inc-2709-09-lifecycle-network-v3.md",
+    "artefactos sintéticos saneados por ventanas"
+  ],
+  "required": [
+    "claim propio y checkout/rama aislados sobre main6f; mantener modelo y hashes del guion/HTML",
+    "reutilizar v3 5200gastos CPUx6 y sus controles; escoger ciclos por duración medida, sin pausas artificiales para aparentar30min",
+    "heap natural/nodos/listeners/timers/backstack/frames>32ms y longtasks por ventanas; no GC entre ciclos; separar GC final",
+    "instrumento control degradado/recuperado y counters de acciones aterrizadas, sync explícitos vs automáticos, escrituras histórico",
+    "si aparece pendiente: localizar primer tramo/acción y proponer A/B reversible; sin arreglo especulativo",
+    "si timeout/cuota/capacidad no permite30min, publicar duración real/fase/error saneado y bloqueo concreto; resultado no depende del FS temporal",
+    "commit docs/guion permitido+result público compacto; no integrar ni publicar beta/main"
+  ],
+  "restrictions": [
+    "INC-2709-09 sigue abierto;12ciclos cortos no descartan síntoma humano",
+    "fuente real de feedback blocked; solo fixture sintético",
+    "cero bancos/operaciones financieras reales/sync automático/SQL/Edge/APK/credenciales",
+    "no suspensión real de WebView ni sockets/auth si no existen; distinguir desconocido de comprobado",
+    "preservar runner135/139/runtime/VERSION/public; sin nuevos deps ni coordinación Cursor"
+  ]
+}
