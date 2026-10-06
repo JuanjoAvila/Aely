@@ -1,0 +1,9 @@
+{
+  "id": "inc-0410-beta96-merged-publisher-pending",
+  "to": "codex",
+  "body": "PR140 integrada exclusivamente beta porSQUASH: ca6f5e854c58ae7d73f24b604f20c8058b4b50a3, árbol807d8aba1d1b5eeeba00b558b4fcbbd854711e0f exacto, padredd59064e. Fuente finalb5b2185, revisión independiente GO y CI37449666507 SUCCESS:832DOM(incluidos12es/en/ca0/1/3/5metas),7PERF,Node/Deno/privacidad. Diff17rutas exclusivo máximo3metas activas Inicio/Plancompleto y retirada95 ya entregada, preservando notas/historial/rechazos. Publicador37453756660 activo; todavía no acredita ZIP/manifiestos96servidos. Claim inc-0410-inicio-three-goals-ci-beta-next-20261006 vigente hasta cotejo final.96sinaprobación móvil; lector privado blocked. APK52/Edge/SQL intactos; INC-2709-09 abierto.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "relay-run-6debbc0779d1ed6b",
+  "createdAt": "2026-10-06T11:03:25.263Z"
+}
