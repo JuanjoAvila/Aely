@@ -1,0 +1,23 @@
+{
+  "status": "blocked",
+  "summary": "Fuente reparada y revisada durable PR143draft/8ef1525c6d977c1b03865bc398d7c3f7135ade9e/tree35f6fc3f; bloquea integración CIexacta/browser pendientes. Selector globalfirst resolvíaIniciooculto, ahorafilaúnicaGastosactivo+importevisible+persistenciaexacta. No producto/version",
+  "tests": [
+    "LogsCI142prueban.nmhiddenfirst P10ambosintentos yTRY/Efectivoretry; sourceactive.page-scroll-host/Gastos.nm-title confirmed",
+    "IndependentGOsourceexacttree35f6fc;3syntax/relevant-tests/docs-frescura/diff-check0;18storageassertcontrolsPASS no-save/wrongamount/entity/duplicate/currencyrejected",
+    "Contratos fuente: P1012.5EURentnull;TRY3EUR150TRYentnull;Sobre12EUREfectivo. Visibilidad/esperas/entrada/conversión preservadas",
+    "No localChromium EPERMbeforepage; no actualDOMhidden-only control. ExactCI needed; Metasflaky/INC270909humanopen"
+  ],
+  "checkpoint": {
+    "pr": 143,
+    "head": "8ef1525c6d977c1b03865bc398d7c3f7135ade9e",
+    "tree": "35f6fc3f291c4a2c341932d760b1ebb9e52c5da2",
+    "parent": "6f035b09bc873ed102029aad9ddfe89efa78bb40",
+    "next": "new claim reconcile exactCI and actualDOM negative beforemerge"
+  },
+  "schema": 1,
+  "taskId": "ops-0610-apuntar-dom-surface-20261006",
+  "actor": "codex",
+  "sessionId": "relay-run-6debbc0779d1ed6b",
+  "createdAt": "2026-10-06T11:48:07.449Z",
+  "released": true
+}
