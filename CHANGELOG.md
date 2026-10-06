@@ -1,3 +1,9 @@
+## [4.26.96] — 2026-10-06 · Tres metas activas en Inicio
+
+- Inicio limita su resumen a las tres primeras metas no terminadas, conforme al pendiente de INC-0410; Plan mantiene la lista completa y el estado guardado no cambia.
+- DOM registrado en listas-render y asociado también a Inicio: cero, una, tres y cinco activas en es/en/ca, terminada antes de activas, acceso real a Plan y persistencia íntegra.
+- Candidata para beta; revisión, CI y entrega exacta pendientes. INC-2709-09 de uso prolongado sigue abierto. Sin APK, Edge, SQL ni cambios financieros.
+
 ## [4.26.95] — 2026-10-05 · La caché de fechas deja de vaciarse sola (INC-2709-09)
 
 - **Causa medida, no supuesta.** `_pdMs` (01-i18n.js) guarda el parseo de cada cadena de fecha con un techo de 5.000 entradas, y al pasarlo hacía `clear()`. Cada movimiento de la nube trae su hora (`fecha timestamptz` → `toISOString()`), así que un histórico de más de 5.000 movimientos son más de 5.000 cadenas distintas: cada barrido la vaciaba a mitad y el siguiente volvía a parsear todo. Con 5.200 gastos sintéticos y la CPU x6, volver a primer plano vaciaba la caché 4-5 veces y costaba 80 ms de `FunctionCall`, con `_pdMs` en 33 ms de tiempo propio; los mismos 5.200 con fecha de solo día (1.084 cadenas), 45 ms y cero vaciados; 3.000 gastos, 40 ms.

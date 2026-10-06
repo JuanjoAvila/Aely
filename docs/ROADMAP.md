@@ -2,7 +2,7 @@
 
 Promoción4/10: las once tandas de beta4.26.94.1 tienen aprobación vigente. Producción4.26.94/source8bb0398f servida y cotejada; APK52 estable y las tres funciones Edge entregadas. La limpieza conserva notas y decisiones; solo retira las once entregadas, sin producto nuevo. Prioridad permanente: producción de lo aprobado antes de otra implementación. [Acta](briefs/promocion-aprobadas-2026-10-04.md).
 
-> Estado a 2026-10-04 · **v4.26.95** candidata en rama (INC-2709-09: caché de fechas estable con históricos grandes; sin publicar ni aceptación móvil). Anterior: **v4.26.94** aprobada desde beta94.1 e integrada en main8bb0398f. Producción4.26.94/source8bb0398f servida y cotejada; APK52 estable y las tres funciones Edge entregadas. CI del candidato4403 SUCCESS:817DOM PASS/1visualSKIP/0flaky,7PERF PASS, cuatro Deno y Node. Limpieza beta preparada con79DOM únicos PASS y familia214notas intacta; conserva las decisiones históricas. LWW simultáneo no acreditado. [Acta](briefs/promocion-aprobadas-2026-10-04.md).
+> Estado a 2026-10-06 · **v4.26.96** candidata para beta: hasta tres metas activas en Inicio, todas accesibles en Plan. Revisión, CI y entrega pendientes. Producción95 integrada en PR136, entrega servida en verificación. APK52 intacta; INC-2709-09 prolongado abierto. [Acta](briefs/inc-0410-inicio-tres-metas.md).
 
 > Snapshot anterior a 2026-10-04 (12:30 UTC, panel de revisión) · **v4.26.93** publicada en beta. Primera entrega4.26.93.1 (1d5dd782), CI37200314653SUCCESS y artefactos cotejados a12:30UTC; cola11 tandas/24 puntos, historial/veredictos conservados. Producción86/d366 y APK beta80/code52/estable32/code48 intactos. Prueba y aprobación móvil pendientes. [Acta](briefs/ops-0410-panel-cola.md).
 
@@ -259,7 +259,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.26.95** candidata en rama (caché de fechas, INC-2709-09), sin publicar. Antes: **4.26.94** borrador local (reglas mensuales de Metas), sin terminar ni publicar; fuente de beta 4.26.93 (`4e65fa11`) y producción 4.26.86. Sin aceptación móvil; APK80/code52 conservada. |
+| Web / OTA (`VERSION`) | **4.26.96** candidata para beta; Inicio resume tres metas activas, todas en Plan. Sin publicación ni aceptación móvil. |
 | APK (`versionName` / `versionCode`) | **4.26.80 / 52** conservada de la base; Metas87 no genera APK. Cotejo servido en gate de entrega. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **52 / 4.26.80** conservado byte a byte respecto a3467; Metas87 no reemplaza binario ni manifiesto. |

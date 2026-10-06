@@ -162,15 +162,15 @@ test("META91 vigila el lector de importes, los avisos, el estado y los céntimos
 });
 // El guardado del estado (INC-0410): si vuelve a apuntarse dentro del updater, deja de colgar del
 // commit o cambia cuándo se reescribe el histórico, tienen que moverse TODAS las revisiones cuyo
-// código escribe estado (llama a `set`, directa o transitivamente). Solo quedan fuera las dos que
-// son geometría y hoja de ayuda: en su alcance no hay ni una llamada a `set`.
+// código escribe estado (llama a `set`, directa o transitivamente). Los alcances de solo lectura,
+// incluido el límite visual de metas de Inicio, no deben invalidarse por cambios de guardado.
 test("PERSIST91: el guardado en el commit invalida toda tanda que escribe estado, y solo esas",()=>{
   const source=f=>read(f).replace(/\r\n/g,"\n"),registro=JSON.parse(read("scripts/beta-sources.json"));
   const marca="INC-0410 guardado: de aquí al límite";
   const dependientes=Object.keys(registro).filter(id=>registro[id].web.some(x=>x.from&&x.from.includes(marca)));
   const ajenas=Object.keys(registro).filter(id=>!dependientes.includes(id));
   assert.equal(dependientes.length,18);
-  assert.deepEqual(ajenas.slice().sort(),["beta-panel-veredictos","inc-0210-01-plan-cuota","inc-2709-01-arranque-red","inc-2709-09-fechas-cache","inc-2709-12-cyber-fab","inc-2709-14-preguntar","ops-0410-panel-cola","tr-descripcion-clasificacion"]);
+  assert.deepEqual(ajenas.slice().sort(),["beta-panel-veredictos","inc-0210-01-plan-cuota","inc-0410-inicio-tres-metas","inc-2709-01-arranque-red","inc-2709-09-fechas-cache","inc-2709-12-cyber-fab","inc-2709-14-preguntar","ops-0410-panel-cola","tr-descripcion-clasificacion"]);
   /* Quién depende del guardado lo decide el CÓDIGO, no la marca del registro (auditoría del
      coordinador, 4/10): se quita de cada alcance el bloque del guardado y se mira si lo que queda
      llama a `set` de App —las dependencias transitivas ya son unidades del alcance—. Tiene que

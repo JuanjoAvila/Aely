@@ -8787,7 +8787,8 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
     });
   };
 
-  const goals=(state.goals||[]).filter(function(g){ return !g.done; }).slice(0,4);
+  // Inicio resume tres metas activas; Plan conserva todas sin cambiar su orden ni sus saldos.
+  const goals=(state.goals||[]).filter(function(g){ return !g.done; }).slice(0,3);
   const recent=(state.expenses||[]).filter(function(e){ return !expenseIsTombstoned(e,expenseDeletedSet(state)); }).sort(function(a,b){ return String(b.date).localeCompare(String(a.date)); }).slice(0,3);
   const p=eurParts(shownNet);
   const ringPct=Math.max(0,Math.min(1,ratio));
@@ -20227,7 +20228,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="7ef34ae783bd375b2a4ee682280014660234dacb899673e0726fcb5a8013f8c5";
+var _rnSha="24bb16ec4020796ea3e9691d4d8c7429f0d41e87a54bfca643c550326152d2bc";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){

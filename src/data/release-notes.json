@@ -1,5 +1,49 @@
 [
   {
+    "v": "4.26.96",
+    "d": "2026-10-06",
+    "t": {
+      "es": "Tres metas a mano en Inicio",
+      "en": "Three goals at hand on Home",
+      "ca": "Tres objectius a mà a Inici"
+    },
+    "items": {
+      "es": [
+        "Inicio muestra hasta tres metas activas. Desde Ver plan puedes consultar todas, sin cambiar lo ahorrado."
+      ],
+      "en": [
+        "Home shows up to three active goals. Use See plan to view them all, with savings unchanged."
+      ],
+      "ca": [
+        "Inici mostra fins a tres objectius actius. Amb Veure pla pots consultar-los tots, sense canviar els estalvis."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inc-0410-inicio-tres-metas",
+        "t": {
+          "es": "Tres metas a mano en Inicio",
+          "en": "Three goals at hand on Home",
+          "ca": "Tres objectius a mà a Inici"
+        },
+        "items": {
+          "es": [
+            "1. Con más de tres metas activas, Inicio muestra solo las tres primeras; las terminadas no ocupan un hueco.",
+            "2. Toca Ver plan: deben seguir disponibles todas las metas con los mismos importes."
+          ],
+          "en": [
+            "1. With more than three active goals, Home shows only the first three; completed goals do not take a slot.",
+            "2. Tap See plan: all goals must remain available with the same amounts."
+          ],
+          "ca": [
+            "1. Amb més de tres objectius actius, Inici mostra només els tres primers; els completats no ocupen cap lloc.",
+            "2. Toca Veure pla: tots els objectius han de continuar disponibles amb els mateixos imports."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.95",
     "d": "2026-10-05",
     "t": {
@@ -18,30 +62,7 @@
         "Amb molts moviments desats, l’app triga menys a respondre quan hi tornes des d’una altra aplicació."
       ]
     },
-    "tandas": [
-      {
-        "id": "inc-2709-09-fechas-cache",
-        "t": {
-          "es": "Volver a la app con mucho historial",
-          "en": "Coming back to the app with a long history",
-          "ca": "Tornar a l’app amb molt historial"
-        },
-        "items": {
-          "es": [
-            "1. Con la app abierta, sal a otra aplicación y vuelve a Aely varias veces seguidas. Al volver debe responder enseguida, sin quedarse parada un momento.",
-            "2. En Inicio y en Gastos, las fechas de los movimientos y los totales del mes deben verse igual que antes."
-          ],
-          "en": [
-            "1. With the app open, switch to another app and come back to Aely several times in a row. It should respond right away when you return, without freezing for a moment.",
-            "2. In Home and Expenses, transaction dates and the month totals should look the same as before."
-          ],
-          "ca": [
-            "1. Amb l’app oberta, surt a una altra aplicació i torna a Aely diverses vegades seguides. En tornar ha de respondre de seguida, sense quedar-se aturada un moment.",
-            "2. A Inici i a Despeses, les dates dels moviments i els totals del mes s’han de veure igual que abans."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.94",
