@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "id": "ops-0610-apuntar-dom-surface-20261006",
+  "from": "codex",
+  "coordinatorSession": "relay-run-6debbc0779d1ed6b",
+  "createdAt": "2026-10-06T11:35:45.064Z",
+  "to": "codex",
+  "baseSHA": "6f035b09bc873ed102029aad9ddfe89efa78bb40",
+  "objective": "Investigar y corregir guardianes DOM de Apuntar que eligen una instancia oculta de texto duplicado, manteniendo comprobación de gasto guardado y visible; tooling separado, sin runtime.",
+  "scope": [
+    "e2e/pulido-numpad.spec.mjs P10",
+    "e2e/apuntar-sheet.spec.mjs caso conversión ₺→€ y selectores pertinentes",
+    "e2e/efectivo-apuntar.spec.mjs selector de gasto guardado",
+    "documentación breve de prueba/cause/limits"
+  ],
+  "required": [
+    "checkout propio base6f, AGENTS/EMPIEZA íntegros; no tocar otrascopias",
+    "contrastar fuente y logs de142 con139 flakiness/135verde; causa no asumida",
+    "solo arreglar locator si se demuestra texto duplicado fuera de superficieactiva; preservar visibilidad y valor/moneda/entidad exactos; no .first arbitrario ni .nth para callar rojo",
+    "controles negativos de no guardar/importe incorrecto/entidad incorrecta o gasto solo oculto deben seguir rojos; estado almacenado+DOM no se sustituyen entre sí",
+    "si Chromium local está bloqueado no repetir ni eludir; fuente+revisión independiente+CI exacta son gates, indicar pruebas no ejecutadas",
+    "no cambiar timeout/retries o reducir assertions; no versión de producto por tests",
+    "entregar commit mínimo/diff/review y comandos/exitcodes reales; fuente durable antes de relevo"
+  ],
+  "restrictions": [
+    "sin runtime/src/public/VERSION/package/workflows/SQL/Edge/APK ni datos reales",
+    "Metas toast flaky se registra por separado, no debilitarlo en este cambio",
+    "no merge/push beta/main ni declarar verde sin CI",
+    "PR142 permanece bloqueada hasta CI exacta completa; PR134NO-GO intacto",
+    "INC-2709-09 aparte sigue abierto"
+  ]
+}
