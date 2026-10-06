@@ -1,3 +1,5 @@
+> Vigencia: esta memoria conserva hechos históricos. Para trabajo actual prevalecen AGENTS.md y docs/COORDINACION-AGENTES.md de codex/coordinacion. Claude local está cerrado: no reactivar vigías, buzón ni relevos locales. La rutina Cloud solo ejecuta encargos con reserva propia confirmada.
+
 <!-- GENERADO POR scripts/sync-memoria.mjs — NO EDITAR A MANO.
      Espejo de la memoria del agente (canal-equipo-tres-agentes.md). Se regenera con `npm run memoria`.
      Pasado por el filtro de datos personales: el repo es PÚBLICO. -->
@@ -8,12 +10,11 @@ description: "Buzón local Codex/Cursor/Claude en .claude/canal-equipo (gitignor
 metadata: 
   node_type: memory
   type: project
-  originSessionId: 2295e5f1-b43d-4b69-acef-1d1f8165832b
-  modified: 2026-09-10T16:07:13.506Z
+  modified: 2026-09-30T19:36:49.926Z
 ---
 
 Desde el **2026-09-06** los tres agentes se coordinan por un buzón de ficheros JSON en
-`E:/Mi cartera/.claude/canal-equipo/` (`messages/<agente>/` + `state/<agente>.json`).
+`[ruta local omitida]` (`messages/<agente>/` + `state/<agente>.json`).
 Lo creó Codex a petición suya. **Está excluido de Git**: nada en el repo te va a decir que
 existe, así que hay que mirarlo a mano. El protocolo y el brief viven en la rama
 `codex/canal-equipo` (`docs/briefs/canal-equipo.md` e `incidencias-integridad-2026-09-06.md`),
@@ -21,7 +22,7 @@ sin fusionar.
 
 **Reparto ORIGINAL (6/9):** Codex dirigía; Cursor implementaba; yo revisaba.
 
-⚠⚠ **16/9: DIRIGE CODEX de nuevo** — me lo dijo el dueño EN PERSONA (no por el buzón): le pagó la suscripción de 100 €, va en modo alto y «lo hace de puta madre». Relevo en `docs/briefs/RELEVO-A-CODEX-2026-09-16.md` (main). Codex encarga, Cursor revisa (review-request → GO/NO-GO), yo entro cuando me pidan. No reordenar su plan ni reservar ficheros sin preguntarle.
+⚠⚠ **16/9: DIRIGE CODEX de nuevo** — me lo dijo el dueño EN PERSONA (no por el buzón): le pagó la suscripción de [importe omitido], va en modo alto y «lo hace de puta madre». Relevo en `docs/briefs/RELEVO-A-CODEX-2026-09-16.md` (main). Codex encarga, Cursor revisa (review-request → GO/NO-GO), yo entro cuando me pidan. No reordenar su plan ni reservar ficheros sin preguntarle.
 
 **Reparto 7/9–16/9 (histórico): DIRIGÍA YO.** Decisión expresa suya, dicha en persona
 y puesta por Codex en el canal (`20260907T170128Z-codex-claude-asume-direccion`). Yo priorizo
@@ -35,6 +36,8 @@ mensajes cortos, sin volcar ficheros al canal, sin repetir diagnósticos, enlaza
 Nadie despliega solo; migraciones y sync bancaria exigen su OK explícito. Un encargo de
 diagnóstico **no** autoriza implementar. Producción sigue bloqueada sin su OK, y eso el relevo
 no lo cambia.
+
+⚠⚠ **30/9: Codex me deja los encargos en `messages/claude/`** (mi carpeta), no en `messages/codex/`. Un vigía que solo mire las carpetas de los otros NO los ve: se me pasaron dos encargos y uno llegó a producción sin mi veredicto. Vigilar `messages/*/*.json` y descartar solo los `*-claude-*`.
 
 ⚠ **Mi watcher es un `/loop` de la sesión (10 min desde el 6/9): muere al cerrar la app y NO se reactiva solo.**
 Codex usa tareas programadas suyas; Cursor, un shell monitorizado. Los tres dependen del PC

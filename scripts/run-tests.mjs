@@ -61,6 +61,7 @@ const steps = [
   ["categorias-dual", ["node", "tests/categorias-dual.test.mjs"]],
   ["suministros-legacy", ["node", "tests/suministros-legacy.test.mjs"]],
   ["docs-frescura", ["node", "tests/docs-frescura.test.mjs"]],
+  ["docs-frescura-history", ["node", "tests/docs-frescura-history.test.mjs"]],
   ["relevant-tests", ["node", "tests/relevant-tests.test.mjs"]],
   // La suite de Pages puede durar más que el antiguo tope de diez minutos del promote.
   ["wait-promote-deploy", ["node", "tests/wait-promote-deploy.test.mjs"]],
@@ -68,6 +69,7 @@ const steps = [
   // que no corra en este PC (móvil, Cursor, otra IA). En una máquina sin memoria local —el CI—
   // el script sale en verde sin hacer nada, así que esto solo pincha aquí, que es donde se arregla.
   ["memoria-espejo", ["node", "scripts/sync-memoria.mjs", "--check"]],
+  ["sync-memoria", ["node", "tests/sync-memoria.test.mjs"]],
   // Los logos de banco salen del PNG oficial: si alguien los edita a mano, esto lo caza.
   ["logos-bancos", ["node", "scripts/logos-bancos.mjs", "--check"]],
   // Los de las empresas salen de simple-icons y la regla de «qué marca es» vive en la app.
@@ -277,7 +279,7 @@ if (!failed && plan.playwright !== false && plan.e2e !== "none") {
   // Las mediciones con CPU frenada competían con otros tres navegadores: scroll→swipe
   // daba 108/109 ms en dos completas y pasaba aislado (15/9). Medir después conserva
   // el umbral real; los funcionales siguen en paralelo y ningún caso del plan se pierde.
-  const isPerf = p => /(?:^|\/)rendimiento(?:-tabs)?\.spec\.mjs$/.test(p.replaceAll("\\", "/"));
+  const isPerf = p => /(?:^|\/)rendimiento(?:-(?:tabs|sostenido))?\.spec\.mjs$/.test(p.replaceAll("\\", "/"));
   const groups = [["playwright-e2e", specs.filter(p => !isPerf(p)), []],
     ["playwright-perf", specs.filter(isPerf), ["--workers=1"]]];
   const reports = [];

@@ -1,3 +1,5 @@
+> Vigencia: esta memoria conserva hechos históricos. Para trabajo actual prevalecen AGENTS.md y docs/COORDINACION-AGENTES.md de codex/coordinacion. Claude local está cerrado: no reactivar vigías, buzón ni relevos locales. La rutina Cloud solo ejecuta encargos con reserva propia confirmada.
+
 <!-- GENERADO POR scripts/sync-memoria.mjs — NO EDITAR A MANO.
      Espejo de la memoria del agente (feedback-no-dar-por-hecho.md). Se regenera con `npm run memoria`.
      Pasado por el filtro de datos personales: el repo es PÚBLICO. -->
@@ -8,7 +10,6 @@ description: "⚠ No afirmar que algo está cubierto/verificado/subido sin haber
 metadata: 
   node_type: memory
   type: feedback
-  originSessionId: c3a6b0a3-82cd-40b5-8be7-6aec293a2f8c
   modified: 2026-08-17T19:47:11.104Z
 ---
 
@@ -48,3 +49,5 @@ desconfianza sana que le habría hecho comprobarlo.
    dice **«en el working tree, sin commit»**, nunca disfrazado de canal. ⚠ Matiz mío: **push OK ≠
    CI OK** — el commit puede estar en `origin/beta` con `beta.yml` caído, y entonces su móvil sigue
    con lo viejo. Comprobar `gh run list --branch beta` antes de decir «lo puedes bajar».
+
+⚠ **27/9: «privacidad PASS» también es mirar IMPORTES.** Di PASS a unos briefs de Codex buscando solo rutas/correos/tokens y se publicó en beta (repo público) el «Gastado [comparación omitida]» real del dueño. En cada revisión de docs: grep de cifras con decimales/€ y de números que aparezcan en su relato; si no son de fixture, fuera.
