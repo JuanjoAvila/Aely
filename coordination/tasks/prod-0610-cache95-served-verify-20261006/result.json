@@ -1,0 +1,61 @@
+{
+  "status": "blocked",
+  "summary": "Produccion95 integrada: CI y Pages exactos verdes; lectura HTTP final y DOM servido pendientes por bloqueo transitorio de red y navegador.",
+  "productSHA": "e9336aeeac692badc093d463907de1ee8b1d0553",
+  "tests": [
+    {
+      "command": "GitHub Actions Tests37418935752",
+      "exitCode": 0,
+      "evidence": "SHA exacto;813 passed,4 flaky que pasaron reintento,1 skipped;rendimiento7 passed;privacidad verde."
+    },
+    {
+      "command": "GitHub Actions Deploy37418935788",
+      "exitCode": 0,
+      "evidence": "SHA exacto;test/build/deploy success;completed2026-10-06T06:11:38Z."
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node replay AST de funciones del ZIP beta servido con receipt candidato construido desde SHA exacto",
+      "exitCode": 0,
+      "evidence": "Ensayo logico candidato, NO readback servido:215 notas;cola1->0;solo retira4.26.95/inc-2709-09-fechas-cache;ninguna anadida;4historiales;ultimo rechazo conserva prioridad;APK52."
+    }
+  ],
+  "evidence": {
+    "pagesArtifact": 11393352916,
+    "artifactDigests": {
+      "index.html": "c4804838cd29e8f5d561fea449801287656b85b345428b052079f54097dcb8cc",
+      "sw.js": "f053918d2f9d979a874f5a4c71963e8dcfbb7588edbdfd6ff727f3e9d2449043",
+      "bundle.zip": "ecbf4cd51bb948af28a0919f75bebf4f489b3c5f27efc4e71983542048f60f8d",
+      "release-notes.json": "bffcb1cc2a0a76f193e4601a8452e46e64f272a4d5f0b396f043a89a7139a97f",
+      "beta-delivery.json": "6f5de819bc744ce58ab908fd71d38764b0daec548d74f728375a7c237e09909b",
+      "apk.json": "5170941b57568c5cc4972666fdd4275f502d2e5292c20af49c49e7abb3091539"
+    },
+    "artifactVersion": "4.26.95",
+    "artifactSourceSha": "e9336aeeac692badc093d463907de1ee8b1d0553",
+    "artifactWeb95": "4ec900b5de573d1098f68e4d95272ce34bd5e206bef407b41872a3c937220b2c",
+    "servedBeta": {
+      "version": "4.26.95.1",
+      "src": "897ff1d2d7c7bd32",
+      "sourceSha": "dd59064e1edb6bd0e14a0d9682a9b61f47dc212e",
+      "notes": 215,
+      "zipSHA256": "e418b95bc0cf01afefac29bd4437536b18e4e08680ef8d2daede426b25faba38"
+    },
+    "productionHTTP": "unknown after deploy;old94 readback before deploy excluded"
+  },
+  "limitations": [
+    "HTTP posterior al deploy:urllib60s y curl40s fallan conexion proxy para HTML/SW/ZIP/notes/delivery/apk;no byte equality servida acreditada.",
+    "DOM del ZIP servido bloqueado:Chromium ProcessSingleton socket Operation not permitted;CI comprueba DOM fuente exacta pero no sustituye ese readback.",
+    "INC-2709-09 uso prolongado permanece abierto.",
+    "Inputs privados blocked;sin lector no equivale a cola vacia."
+  ],
+  "nextAction": "Crear encargo sucesor estrecho: HTTP actual igual a Pages11393352916, replay sobre receipt realmente servido y DOM215 notas conservando historial/rechazos y solo retirada95. No repetir merge/promocion ni cambiar APK/Edge/SQL.",
+  "schema": 1,
+  "taskId": "prod-0610-cache95-served-verify-20261006",
+  "actor": "codex",
+  "sessionId": "codex-cloud-20261006-prod95d4a19c8b",
+  "createdAt": "2026-10-06T06:16:28.805Z",
+  "released": true
+}
