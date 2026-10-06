@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "id": "ops-0610-tooling135-final-review-20261006",
+  "from": "codex",
+  "coordinatorSession": "relay-run-6debbc0779d1ed6b",
+  "createdAt": "2026-10-06T10:31:08.573Z",
+  "to": "codex",
+  "baseSHA": "d43d1aec0f6afd873a4e76d50111f3a9643ff943",
+  "objective": "Integrar solo PR135 guard historico tooling tras CI exacta y revision independiente de merge actual; PR134 separado NO-GO.",
+  "scope": [
+    "PR135",
+    "cuatro rutas tooling/pruebas/acta",
+    "CI37353779251",
+    "main e96e2aa51465d87e021bf31e13b50534ed946b8c"
+  ],
+  "required": [
+    "CI exacta fuente d43d1aec37353779251SUCCESS; reviewindependiente29fixturesPASS7mutantesdetectados, e933mergepreview4paths limpio; actualizar previewmain e96 antes de integrar.",
+    "No runtime/VERSION/workflows o archivos PR134. Mantener guardianes dinero/privacidad/version y auditar historia completa, sinskip-docs ni whitelistSHA.",
+    "Fusion serial SQUASH head exacto solo si cleanGO; verificar SHA/tree remoto y CI posterior propia.",
+    "PR134 sigue NO-GO CIroja; ninguna aprobacion de135 autoriza134. Conservar limites historia superficial/beta explicitamente.",
+    "INC-2709-09 abierto; inputs privadosblocked."
+  ]
+}
