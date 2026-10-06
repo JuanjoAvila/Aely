@@ -1,6 +1,6 @@
 ## Controles de Apuntar (6/10)
 
-Los casos los casos P10 en inglés, 150 TRY → 3 EUR y Efectivo
+Los casos P10 en inglés, 150 TRY → 3 EUR y Efectivo
 exigen una única fila visible de Gastos activo y persistencia exacta de importe,
 entidad y moneda original. El mismo oráculo se ejecuta primero con el apunte real,
 después con la fila real oculta (el concepto sigue en el DOM) y con almacenamiento
