@@ -6,14 +6,14 @@
  * del FAB pegado al borde inferior al terminar la bajada (max-height:0): lo corrige esconder SOLO el
  * FAB con `visibility` retardado. Este test ata las cuatro fases a lo que se VE, en píxeles:
  *   primer frame (se pausa la transición en t=1 ms), ocultación total final (sin pausa), reveal y
- *   cancel (se oculta y se revela antes de que acabe la bajada). Matriz: green safe 0 / cyber safe 34 ×
+ *   cancelación CSS medida antes de que acabe la bajada. Matriz: green safe 0 / cyber safe 34 ×
  *   movimiento normal / «Reducir animaciones» de la app / prefers-reduced-motion del sistema.
  * Además guarda lo que no se puede romper: sin transform, bottom 0, nada bajo el viewport y la barra
  * sin opacity (fondo sólido). Pixeles, no código: un screenshot aquí no mide fluidez.
  */
 import { test, expect } from "@playwright/test";
 import { seedLoggedInDashboard } from "./fixtures.mjs";
-import { decodePng, fabPixels } from "../docs/briefs/inc-2709-13-fab-contour-probe.mjs";
+import { decodePng, fabPixels } from "./helpers/fab-pixels.mjs";
 
 test.use({ viewport: { width: 393, height: 812 }, hasTouch: true });
 
@@ -105,25 +105,63 @@ for (const tm of TEMAS) for (const mv of MOVS) {
       expect((await medir()) / completo, "primer frame: el círculo sigue pintado").toBeGreaterThanOrEqual(0.98);
     }
 
-    // 2) Ocultación total final, SIN pausa: ni un píxel del FAB asoma por el borde de abajo.
+    // Terminar la captura pausada solo sirve para recogerla; NO acredita el final natural.
     await page.evaluate(() => { window.__soltar(); document.getAnimations().forEach((a) => { a.play(); a.finish(); }); });
     await page.waitForTimeout(1500);
     expect(await oculta()).toBe(true);
-    expect(await casquete(), "ocultación final: no queda casquete del FAB").toBe(0);
 
-    // 3) Reveal: el FAB vuelve entero y de inmediato.
+
+    // Cada retirada de la clase registra visibility en el primer rAF, no 1,2s después.
+    await page.evaluate(() => {
+      const n = document.querySelector(".botnav");
+      window.__revealFrames = [];
+      new MutationObserver(() => {
+        if (!n.classList.contains("botnav-hidden")) requestAnimationFrame(() => {
+          window.__revealFrames.push(getComputedStyle(n.querySelector(".botnav-fab")).visibility);
+        });
+      }).observe(n, { attributes: true, attributeFilter: ["class"] });
+    });
+    // 2) Reveal: el FAB vuelve entero y visible en su primer frame.
     await gesto(-1);
     await page.waitForFunction(() => !document.querySelector(".botnav").classList.contains("botnav-hidden"), null, { timeout: 5000 });
     await page.waitForTimeout(1200);
+    expect(await page.evaluate(() => window.__revealFrames.at(-1)), "reveal primer frame").toBe("visible");
     expect((await medir()) / completo, "reveal: el FAB vuelve completo").toBeGreaterThanOrEqual(0.98);
 
-    // 4) Cancel: se oculta y se revela antes de que acabe la bajada; el FAB no puede quedar invisible.
+    // 3) NUEVA ocultación por gesto, sin pausa ni finish: consume su retardo natural.
     await gesto(1);
     await page.waitForFunction(() => document.querySelector(".botnav").classList.contains("botnav-hidden"), null, { timeout: 5000 });
+    await page.waitForTimeout(1500);
+    expect(await oculta()).toBe(true);
+    expect(await casquete(), "final natural: no queda casquete del FAB").toBe(0);
+    expect(await page.evaluate(() => getComputedStyle(document.querySelector(".botnav-fab")).visibility)).toBe("hidden");
     await gesto(-1);
     await page.waitForFunction(() => !document.querySelector(".botnav").classList.contains("botnav-hidden"), null, { timeout: 5000 });
     await page.waitForTimeout(1200);
-    expect(await page.evaluate(() => getComputedStyle(document.querySelector(".botnav-fab")).visibility), "cancel: el FAB sigue visible").toBe("visible");
+    expect(await page.evaluate(() => window.__revealFrames.at(-1))).toBe("visible");
+
+    // 4) Interrupción CSS controlada. Los gestos y touchcancel del controlador se vigilan además
+    // en botnav-esconder; aquí se mide la inversión de clase dentro de los 550ms, sin depender
+    // de latencia CDP/inercia. Un retardo pendiente no puede ocultar el FAB después del reveal.
+    const cancel = await page.evaluate(async () => {
+      const n = document.querySelector(".botnav"), fab = n.querySelector(".botnav-fab");
+      n.classList.add("botnav-hidden");
+      const hiddenAt = performance.now();
+      getComputedStyle(fab).visibility; // iniciar la transición antes de la espera
+      await new Promise(r => setTimeout(r, 100));
+      n.classList.remove("botnav-hidden");
+      const elapsed = performance.now() - hiddenAt;
+      await new Promise(r => requestAnimationFrame(r));
+      return { elapsed, visibility: getComputedStyle(fab).visibility };
+    });
+    if (!mv.app && mv.sistema === "no-preference") {
+      expect(cancel.elapsed, "cancelación anterior al final de la bajada").toBeGreaterThan(0);
+      expect(cancel.elapsed).toBeLessThan(550);
+    }
+    expect(cancel.visibility, "cancel primer frame").toBe("visible");
+    await page.waitForTimeout(1200);
+    expect(await oculta()).toBe(false);
+    expect(await page.evaluate(() => getComputedStyle(document.querySelector(".botnav-fab")).visibility), "sin ocultación tardía tras cancelar").toBe("visible");
     expect((await medir()) / completo).toBeGreaterThanOrEqual(0.98);
     await ctx.close();
   });

@@ -1,5 +1,52 @@
 [
   {
+    "v": "4.26.97",
+    "d": "2026-10-06",
+    "t": {
+      "es": "El botón de Apuntar se recoge entero",
+      "en": "The Add button hides cleanly",
+      "ca": "El botó d’Apuntar s’amaga sencer"
+    },
+    "items": {
+      "es": [
+        "El botón central conserva su forma al bajar y desaparece por completo cuando la barra se oculta. Al volver a subir aparece entero."
+      ],
+      "en": [
+        "The central button keeps its shape while scrolling down and disappears completely when the bar hides. It returns whole when scrolling up."
+      ],
+      "ca": [
+        "El botó central conserva la forma en baixar i desapareix del tot quan la barra s’amaga. En tornar a pujar apareix sencer."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inc-2709-13-fab-contorno",
+        "t": {
+          "es": "El botón de Apuntar se recoge entero",
+          "en": "The Add button hides cleanly",
+          "ca": "El botó d’Apuntar s’amaga sencer"
+        },
+        "items": {
+          "es": [
+            "1. Baja y sube despacio en Inicio y Gastos: el botón central debe conservar su forma, sin un recorte recto.",
+            "2. Con la barra oculta no debe quedar un trozo del botón pegado abajo; al subir debe volver entero.",
+            "3. Invierte el scroll antes de que termine de ocultarse; el botón debe reaparecer. Repite con Reducir animaciones."
+          ],
+          "en": [
+            "1. Scroll slowly down and up in Home and Expenses: the central button should keep its shape without a straight cut.",
+            "2. When the bar is hidden, no part of the button should remain at the bottom; scrolling up should restore it whole.",
+            "3. Reverse the scroll before the bar finishes hiding; the button should return. Repeat with Reduce animations."
+          ],
+          "ca": [
+            "1. Baixa i puja a poc a poc a Inici i Despeses: el botó central ha de conservar la forma, sense un tall recte.",
+            "2. Amb la barra amagada no ha de quedar un tros del botó a baix; en pujar ha de tornar sencer.",
+            "3. Inverteix el desplaçament abans que s’acabi d’amagar; el botó ha de reaparèixer. Repeteix amb Reduir animacions."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.96",
     "d": "2026-10-06",
     "t": {

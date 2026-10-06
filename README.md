@@ -107,7 +107,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.96** candidata para beta: Inicio resume hasta tres metas activas y Ver plan conserva todas. CI, revisión y entrega exacta pendientes; sin aprobación móvil. Producción95 integrada por PR136; entrega servida en verificación. INC-2709-09 de uso prolongado sigue abierto. [Acta](docs/briefs/inc-0410-inicio-tres-metas.md).
+Estado actual: **v4.26.97** candidata para beta: el botón Apuntar mantiene su contorno y se oculta completamente. Conserva las tres metas de Inicio de96.1. Revisión, CI y entrega pendientes; móvil desconocido. Producción4.26.95 confirmada por HTTP el6/10. INC-2709-09 acumulativo sigue abierto.
 
 Corte anterior (4/10, 12:30 UTC, panel de revisión): **v4.26.93** publicada en beta. Primera entrega4.26.93.1 (fuente1d5dd782), CI37200314653SUCCESS y HTTP/ZIP/HTML/SW/catálogo/huella cotejados el4/10 a12:30UTC:11 tandas/24 puntos, frente a40 antes del cambio. Producción4.26.86 (d366215a), APK beta4.26.80/code52 y estable4.26.32/code48 conservadas. Prueba y aprobación móvil pendientes. [Acta](docs/briefs/ops-0410-panel-cola.md).
 

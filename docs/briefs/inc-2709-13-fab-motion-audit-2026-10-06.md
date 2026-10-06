@@ -1,3 +1,5 @@
+> Corte de integración6/10: candidata97, revisión/CI/publicación pendientes. La revisión independiente rechazó el guardián b57: finish forzaba el final y cancel/reveal no medían su instante. Sucesora añade ocultación natural independiente, visibility primer rAF y cancelación CSS temporizada <550ms, manteniendo guardianes táctiles. Helpers PNG permanentes extraídos a e2e/helpers; dos sondas desechables retiradas. Las instrucciones de guiones más abajo son historia de la auditoría, no archivos actuales. INC-2709-09 sigue abierto.
+
 # INC-2709-13 · auditoría de la transición FAB · 6/10/2026
 
 **Estado: reproducción visual BLOQUEADA; mecanismo CSS candidato, sin fix ni GO de producto.**

@@ -1,3 +1,9 @@
+## [4.26.97] — 2026-10-06 · Contorno y final del botón Apuntar
+
+- INC-2709-13: overflow:clip con margen conserva el círculo durante el colapso; visibility retardada solo del FAB elimina el casquete final, inmediata con movimiento reducido. Barra sólida, transform:none y bottom:0 intactos.
+- Guardián de seis configuraciones distingue primer frame pausado, una segunda ocultación natural sin finish, reveal en primer rAF y cancelación CSS medida antes de550ms; control táctil separado conservado. Helpers PNG permanentes en e2e/helpers; sondas desechables retiradas.
+- Candidata beta, revisión/CI/publicación exactas pendientes. Android real y móvil desconocidos; INC-2709-09 acumulativo sigue abierto. Sin APK, Edge, SQL ni promoción.
+
 ## [4.26.96] — 2026-10-06 · Tres metas activas en Inicio
 
 - Inicio limita su resumen a las tres primeras metas no terminadas, conforme al pendiente de INC-0410; Plan mantiene la lista completa y el estado guardado no cambia.

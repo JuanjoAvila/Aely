@@ -11012,5 +11012,14 @@
         "to": "\n  const recent="
       }
     ]
+  },
+  "inc-2709-13-fab-contorno": {
+    "web": [
+      {
+        "file": "src/shell.html",
+        "from": "  .app-shell.scroll-host-on .botnav{",
+        "to": "  /* Tope: clase residual"
+      }
+    ]
   }
 }

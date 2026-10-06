@@ -726,3 +726,6 @@ Desde el 28/9, el dueño autoriza que cada chat nuevo compruebe estos veredictos
 forma autónoma **solo** las tandas aprobadas, después de preparar y verificar la candidata exacta.
 El proceso está en [PROMPT-FLUJO-CONTINUO.md](PROMPT-FLUJO-CONTINUO.md). Una tanda sin veredicto
 identificable o con validación por pago real pendiente continúa en beta.
+
+
+FAB INC-2709-13: `botnav-fab-recorte` (transversal) cubre seis combinaciones Green0/Cyber34 y movimiento normal/app/sistema. Primera captura pausada solo mide contorno; segunda ocultación sin pausa/finish acredita final natural; reveal se registra en primer rAF y cancelación CSS exige intervalo <550ms. `botnav-esconder` conserva gestos y touchcancel del controlador. PNG helpers permanentes en e2e/helpers, sin guiones de captura desechables. Chromium sintético no acredita ola Android ni fluidez.
