@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "id": "inc-0410-inicio-three-goals-20261006",
+  "from": "codex",
+  "coordinatorSession": "relay-run-6a8e5ba32915c210",
+  "createdAt": "2026-10-06T06:04:29.659Z",
+  "to": "codex",
+  "baseSHA": "dd59064e1edb6bd0e14a0d9682a9b61f47dc212e",
+  "objective": "Limitar a tres metas activas la vista de Inicio conservando acceso a todas en Plan y datos intactos, conforme pendiente de BACKLOG e inc-0410-metas-mensual.",
+  "scope": [
+    "src/modules/03-tab-dash.js",
+    "e2e/listas-render.spec.mjs",
+    "Metadatos beta, notas es/en/ca y acta del alcance Inicio"
+  ],
+  "acceptance": [
+    "DOM real con cero, una, tres y más metas; terminadas excluidas antes del límite; Plan conserva todas y acceso Ver plan.",
+    "Sin cambios financieros, reglas, saldos ni orden guardado; no tratar INC-2709-09 como resuelto.",
+    "Revisión independiente, pruebas afectadas, CI/publicador y artefactos SHA exacto antes de anunciar beta; versión nueva solo con este cambio útil."
+  ],
+  "restrictions": [
+    "Sin main/APK/Edge/SQL ni aprobación móvil inferida.",
+    "Preservar pendientes y notas anteriores, retirar95 solo por receipt normal; inputs privados blocked."
+  ]
+}
