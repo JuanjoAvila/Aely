@@ -61,6 +61,7 @@ const steps = [
   ["categorias-dual", ["node", "tests/categorias-dual.test.mjs"]],
   ["suministros-legacy", ["node", "tests/suministros-legacy.test.mjs"]],
   ["docs-frescura", ["node", "tests/docs-frescura.test.mjs"]],
+  ["docs-frescura-history", ["node", "tests/docs-frescura-history.test.mjs"]],
   ["relevant-tests", ["node", "tests/relevant-tests.test.mjs"]],
   // La suite de Pages puede durar más que el antiguo tope de diez minutos del promote.
   ["wait-promote-deploy", ["node", "tests/wait-promote-deploy.test.mjs"]],

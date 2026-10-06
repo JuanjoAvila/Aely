@@ -165,40 +165,71 @@ ok(`VERSION = ${VERSION}`);
      `beta` y el nombre es ambiguo. */
   const rama = (git(["branch", "--show-current"]) || process.env.GITHUB_REF_NAME || git(["rev-parse", "--abbrev-ref", "HEAD"]) || "")
     .replace(/^heads\//, "");
-  const lastBump = rama === "beta" ? null : git(["log", "-1", "--format=%H", "--", "VERSION"]);
-  /* EL PROMOTE DE UNA RONDA BETA NO ES CÓDIGO SIN VERSIONAR (falso positivo, 2026-08-06).
-     Una ronda beta bumpea VERSION UNA vez y después sigue arreglando cosas DENTRO de la misma
-     ronda: los 5 fixes de glow22 entraron tras el bump a 4.15.0 y se publicaron como 4.15.0. Al
-     promocionar, `git log -1 -- VERSION` (con simplificación de historia) encuentra el bump al
-     principio de la ronda y esta comprobación cantaba «5 ficheros cambiados después del último
-     bump» sobre commits YA publicados. Se repetía en CADA promote, y un test que falla siempre por
-     lo mismo es un test que se acaba ignorando — justo el que tiene que gritar el día que de
-     verdad se suba código sin versión.
-     La pregunta correcta en un merge no es «¿el bump es lo último?» sino «¿esta fusión sube la
-     versión respecto a lo que ya había?». Si la sube, toda la ronda viaja con número nuevo. Si no
-     la sube, sigue siendo el fallo de siempre y se canta igual. */
-  const padres = (git(["rev-list", "--parents", "-n", "1", "HEAD"]) || "").split(/\s+/).filter(Boolean);
-  const verDe = (ref) => git(["show", `${ref}:VERSION`]);
-  const versionSubeEnElMerge = padres.length > 2 && verDe("HEAD") && verDe("HEAD") !== verDe("HEAD^1");
+  // Un promote cubre sus ancestros con el número nuevo, también cuando HEAD ya es otro commit.
+  // La cadena de primeros padres evita tomar un bump lateral como si hubiese versionado main.
+  // No se confía en nombres de merges, SHA concretos ni en el delta de una PR (5/10/2026).
+  const semver = (value) => /^\d+\.\d+\.\d+$/.test(value || "") ? value.split(".").map(BigInt) : null;
+  const greater = (left, right) => {
+    const a = semver(left), b = semver(right);
+    if (!a || !b) return false;
+    for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return a[i] > b[i];
+    return false;
+  };
+  const limitation = (detail) => console.log(`  ⊘ historia de git ${detail}: no se comprueba el bump`);
+  // En historia completa, un dato antiguo ilegible o una auditoría fallida no acredita
+  // frescura. Se bloquea sin inventar si hay código sin versionar (revisión 5/10/2026).
+  const indeterminate = (detail) => bad("auditoría histórica de VERSION indeterminada",
+    detail + " → revisa la historia antes de acreditar el versionado");
   if (rama === "beta") {
     console.log("  ⊘ rama beta: cada push publica VERSION.RUN_NUMBER, no hace falta bump");
-  } else if (versionSubeEnElMerge) {
-    console.log(`  ⊘ promote de una ronda beta: VERSION sube en la fusión (${verDe("HEAD^1")} → ${verDe("HEAD")})`);
-  } else if (!lastBump) {
-    console.log("  ⊘ sin historia de git: no se comprueba el bump");
+  } else if (git(["rev-parse", "--is-shallow-repository"]) !== "false") {
+    // Una frontera superficial puede esconder padres y deuda lateral: no autoriza un verde.
+    limitation("ausente o superficial");
   } else {
-    // Lo que el usuario NOTA y viaja por OTA. La doc, los tests y el tooling no cuentan: cambiar
-    // un comentario o añadir un test no obliga a publicar una versión.
-    const zonas = ["src/", "supabase/functions/", "android/app/src/", "public/vendor/", "public/sw.js"];
-    const sueltos = git(["log", `${lastBump}..HEAD`, "--name-only", "--format=", "--"].concat(zonas));
-    if (sueltos) {
-      const ficheros = [...new Set(sueltos.split("\n").filter(Boolean))];
-      bad("no hay código publicable sin subir VERSION",
-        `${ficheros.length} fichero(s) cambiados después del último bump (${lastBump.slice(0, 7)}): ` +
-        ficheros.slice(0, 4).join(", ") + (ficheros.length > 4 ? "…" : "") +
-        "\n      → sube VERSION y añade RELEASE_NOTES + CHANGELOG (AGENTS §6), o el móvil NO se enterará");
+    const candidates = git(["log", "--first-parent", "--full-history", "--format=%H", "HEAD", "--", "VERSION"]);
+    let anchor = null, anchorVersion = null, incomplete = candidates === null;
+    const refs = (candidates || "").split("\n").filter(Boolean);
+    const versions = refs.map(ref => git(["show", `${ref}:VERSION`]));
+    const invalid = versions.findIndex(value => !semver(value));
+    if (invalid >= 0) incomplete = true;
+    for (const [index, ref] of refs.entries()) {
+      if (incomplete) break;
+      const value = versions[index];
+      // Bajar y volver a poner el mismo número no es una publicación nueva: el móvil ya
+      // lo ha visto. El ancla debe superar también los números de sus ancestros en main.
+      if (versions.slice(index + 1).some(older => !greater(value, older))) continue;
+      const parents = git(["rev-list", "--parents", "-n", "1", ref]);
+      if (parents === null || !semver(value)) { incomplete = true; break; }
+      const firstParent = parents.split(/\s+/)[1];
+      // La creación inicial de VERSION sirve de límite del repo completo, no de subida.
+      if (!firstParent) { anchor = ref; anchorVersion = value; break; }
+      const previous = git(["show", `${firstParent}:VERSION`]);
+      if (previous === null || !semver(previous)) { incomplete = true; break; }
+      if (greater(value, previous)) { anchor = ref; anchorVersion = value; break; }
+    }
+    if (incomplete || !anchor || git(["merge-base", "--is-ancestor", anchor, "HEAD"]) === null) {
+      indeterminate(invalid >= 0 ? `VERSION histórica ilegible o no numérica en ${refs[invalid].slice(0, 7)}`
+        : "sin ancla y ascendencia verificables");
     } else {
-      ok("no queda código publicable sin subir de versión");
+      // Lo que el usuario NOTA y viaja por OTA. Revisamos el conjunto de commits, no sólo
+      // el árbol final: un revert tampoco debe esconder código publicable intermedio.
+      // --full-history incluye deuda de ramas que entran después del ancla; los merges se
+      // comparan con su primer padre para ver resoluciones sin contar producto ya cubierto
+      // sólo porque el segundo padre de una PR de documentación salió de una base antigua.
+      const zonas = ["src/", "supabase/functions/", "android/app/src/", "public/vendor/", "public/sw.js"];
+      const sueltos = git(["log", "--full-history", "--diff-merges=first-parent", `${anchor}..HEAD`, "--name-only", "--format=", "--"].concat(zonas));
+      if (sueltos === null) {
+        indeterminate("no se pudieron auditar los commits posteriores al ancla");
+      } else if (sueltos || greater(anchorVersion, VERSION)) {
+        const ficheros = [...new Set((sueltos || "").split("\n").filter(Boolean))];
+        bad("no hay código publicable sin subir VERSION",
+          `${ficheros.length} fichero(s) cambiados después del ancla versionada (${anchor.slice(0, 7)}): ` +
+          ficheros.slice(0, 4).join(", ") + (ficheros.length > 4 ? "…" : "") +
+          (greater(anchorVersion, VERSION) ? `; VERSION baja de ${anchorVersion} a ${VERSION}` : "") +
+          "\n      → sube VERSION y añade RELEASE_NOTES + CHANGELOG (AGENTS §6), o el móvil NO se enterará");
+      } else {
+        ok("no queda código publicable sin subir de versión");
+      }
     }
   }
 }
