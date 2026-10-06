@@ -1,8 +1,10 @@
 # Roadmap — Aely
 
-Promoción4/10: once tandas actuales aprobadas; candidata revisada en preparación. Producción aún86/APK48 hasta verificar entrega. Prioridad: publicar lo aprobado y retirar del panel solo lo entregado. [Acta](briefs/promocion-aprobadas-2026-10-04.md).
+Promoción selectiva5/10: candidata4.26.95 para volver con mucho historial, autorizada directamente por el dueño. Base main8bb0398; solo caché de fechas aprobada en PR133, sin beta completa. Revisión independiente, CI y entrega servida pendientes. INC-2709-09 global sigue abierto. [Acta](briefs/promocion-cache95-2026-10-05.md).
 
-> Estado a 2026-10-04 · **v4.26.94** candidata web terminada y verificada localmente; CI y publicación beta pendientes. Cierre de 162 casos DOM es/en/ca, con dos clientes en secuencia; suite Node sobre `094a7d23` con único fallo local de `memoria-espejo`, Deno pendiente de CI. El último cierre solo cambia el reloj del fixture antiguo y documentación, con producto idéntico. El presupuesto oficial sellado cumple1287/351KiB/3bloqueantes (1317221raw/358763gzip). Corte16:02UTC: beta servida93.2/source`4e65fa11`; producción86 y APK48/52. Aceptación móvil y escrituras simultáneas LWW siguen pendientes. Actas: [contrato mensual](briefs/inc-0410-metas-mensual.md) · [alta de reglas](briefs/inc-0410-metas-alta.md).
+> Estado a 2026-10-05 · **v4.26.95** candidata de promoción selectiva autorizada de PR133. Caché de fechas con techo estable; el lag global de INC-2709-09 continúa abierto. Revisión independiente, CI y entrega servida pendientes. APK/backend/SQL sin cambios.
+
+> Snapshot anterior a 2026-10-04 · **v4.26.94** candidata web terminada y verificada localmente; CI y publicación beta pendientes. Cierre de 162 casos DOM es/en/ca, con dos clientes en secuencia; suite Node sobre `094a7d23` con único fallo local de `memoria-espejo`, Deno pendiente de CI. El último cierre solo cambia el reloj del fixture antiguo y documentación, con producto idéntico. El presupuesto oficial sellado cumple1287/351KiB/3bloqueantes (1317221raw/358763gzip). Corte16:02UTC: beta servida93.2/source`4e65fa11`; producción86 y APK48/52. Aceptación móvil y escrituras simultáneas LWW siguen pendientes. Actas: [contrato mensual](briefs/inc-0410-metas-mensual.md) · [alta de reglas](briefs/inc-0410-metas-alta.md).
 
 > Snapshot anterior a 2026-10-04 (12:30 UTC, panel de revisión) · **v4.26.93** publicada en beta. Primera entrega4.26.93.1 (1d5dd782), CI37200314653SUCCESS y artefactos cotejados a12:30UTC; cola11 tandas/24 puntos, historial/veredictos conservados. Producción86/d366 y APK beta80/code52/estable32/code48 intactos. Prueba y aprobación móvil pendientes. [Acta](briefs/ops-0410-panel-cola.md).
 
@@ -259,7 +261,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.26.94** borrador local (reglas mensuales de Metas), sin terminar ni publicar; fuente de beta 4.26.93 (`4e65fa11`) y producción 4.26.86. Sin aceptación móvil; APK80/code52 conservada. |
+| Web / OTA (`VERSION`) | **4.26.95** candidata de promoción selectiva de PR133 sobre main8bb0398. Revisión/CI/entrega pendientes; lag global abierto. |
 | APK (`versionName` / `versionCode`) | **4.26.80 / 52** conservada de la base; Metas87 no genera APK. Cotejo servido en gate de entrega. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **52 / 4.26.80** conservado byte a byte respecto a3467; Metas87 no reemplaza binario ni manifiesto. |

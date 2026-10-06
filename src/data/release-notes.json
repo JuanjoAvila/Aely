@@ -1,5 +1,26 @@
 [
   {
+    "v": "4.26.95",
+    "d": "2026-10-05",
+    "t": {
+      "es": "Volver a la app, más ágil con mucho historial",
+      "en": "Coming back to the app is snappier with a long history",
+      "ca": "Tornar a l’app, més àgil amb molt historial"
+    },
+    "items": {
+      "es": [
+        "Con muchos movimientos guardados, la app tarda menos en responder cuando vuelves a ella desde otra aplicación."
+      ],
+      "en": [
+        "With many saved transactions, the app takes less time to respond when you come back to it from another app."
+      ],
+      "ca": [
+        "Amb molts moviments desats, l’app triga menys a respondre quan hi tornes des d’una altra aplicació."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.26.94",
     "d": "2026-10-04",
     "t": {

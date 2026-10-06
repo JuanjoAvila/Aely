@@ -10991,5 +10991,17 @@
       }
     ],
     "unidades": true
+  },
+  "inc-2709-09-fechas-cache": {
+    "web": [
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "_pdCache"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "_pdMs"
+      }
+    ]
   }
 }

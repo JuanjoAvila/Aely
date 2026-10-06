@@ -1,6 +1,6 @@
 Apuntar y Gastos permiten distinguir Multas, Zona azul y Peajes. Solo los pagos nuevos con detalle inequívoco los sugieren; elegir una categoría conserva el importe y la fecha.
 
-Promoción4/10: once tandas actuales aprobadas; candidata revisada en preparación. Producción aún86/APK48 hasta verificar entrega. Prioridad: publicar lo aprobado y retirar del panel solo lo entregado. [Acta](docs/briefs/promocion-aprobadas-2026-10-04.md).
+Promoción selectiva5/10: candidata4.26.95 para volver con mucho historial, autorizada directamente por el dueño. Base main8bb0398; solo caché de fechas aprobada en PR133, sin beta completa. Revisión independiente, CI y entrega servida pendientes. INC-2709-09 global sigue abierto. [Acta](docs/briefs/promocion-cache95-2026-10-05.md).
 
 La base80/source955765a9 incluye Retirada y Nómina junto con Widget y las tres correcciones de pantalla.78/79 son snapshots de integración, no versiones publicadas por separado. Esta candidata conserva sus cambios; prueba móvil pendiente. [Actas](docs/briefs/ops-0110-validaciones-persistentes.md).
 
@@ -105,7 +105,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.94** candidata web terminada y verificada localmente, pendiente de CI y publicación beta. En Metas, una regla nueva descuenta del presupuesto del mes y aporta a la meta al guardarse; al volver en otro mes exige una lectura válida de la nube, sin duplicar ni sincronizar bancos automáticamente. El cierre cubre 162 casos de pantalla, incluidos dos clientes en secuencia y es/en/ca; la suite Node completa sobre `094a7d23` solo falla por `memoria-espejo` local. Deno requiere CI. El último cierre cambia únicamente el reloj del fixture antiguo y documentación; el código de producto es idéntico. Corte 4/10, 16:02 UTC: beta servida4.26.93.2/source`4e65fa11`, producción4.26.86 y APK códigos48/52; aceptación móvil pendiente. No se acreditan escrituras simultáneas entre dispositivos. Actas: [contrato mensual](docs/briefs/inc-0410-metas-mensual.md) · [alta de reglas](docs/briefs/inc-0410-metas-alta.md).
+Estado actual: **v4.26.95** candidata de promoción selectiva autorizada de «Volver a la app con mucho historial». Conserva el producto de main y añade únicamente la caché de fechas de PR133. Revisión independiente, CI y verificación de artefactos servidos pendientes; el lag global sigue abierto. [Acta](docs/briefs/promocion-cache95-2026-10-05.md).
 
 Corte anterior (4/10, 12:30 UTC, panel de revisión): **v4.26.93** publicada en beta. Primera entrega4.26.93.1 (fuente1d5dd782), CI37200314653SUCCESS y HTTP/ZIP/HTML/SW/catálogo/huella cotejados el4/10 a12:30UTC:11 tandas/24 puntos, frente a40 antes del cambio. Producción4.26.86 (d366215a), APK beta4.26.80/code52 y estable4.26.32/code48 conservadas. Prueba y aprobación móvil pendientes. [Acta](docs/briefs/ops-0410-panel-cola.md).
 
