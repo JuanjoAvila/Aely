@@ -218,9 +218,25 @@ test("Apuntar en ₺ con la app en €: convierte y guarda en euros", async ({ p
   await sheet.locator(".v4-cta").click();
   await expect(sheet).toHaveCount(0, { timeout: 3_000 });
 
-  // 150 ₺ × 0,02 = 3 €. Café visible + importe (el debounce de localStorage no entra).
-  await expect(page.getByText("Café Estambul").first()).toBeVisible({ timeout: 5_000 });
-  await expect(page.getByText("3,00 €").first()).toBeVisible();
+  // Inicio conserva el mismo concepto oculto: exigir la fila única de Gastos activa.
+  await expect(page.locator('.botnav-tab[data-tour="gastos"]')).toHaveClass(/active/);
+  const row = page.locator(".page.page-scroll-host .v4-gastos-list-body button[data-expense-id]")
+    .filter({ has: page.getByText("Café Estambul", { exact: true }) });
+  await expect(row).toHaveCount(1);
+  await expect(row.locator(".nm-title")).toHaveText("Café Estambul");
+  await expect(row).toBeVisible({ timeout: 5_000 });
+  // 150 ₺ × 0,02 = 3 €: verificar tanto lo visible como la divisa original persistida.
+  await expect(row.locator(".am")).toHaveText("3,00 €");
+  await expect(row.locator(".am")).toBeVisible();
+  await expect.poll(() => page.evaluate(() => {
+    const exps = JSON.parse(localStorage.getItem("micartera_v3_exp") || "[]");
+    return exps.filter((e) => e && e.merchant === "Café Estambul").map((e) => ({
+      amount: e.amount, ent: e.ent ?? null, source: e.source,
+      origAmount: e.origAmount ?? null, origCur: e.origCur ?? null,
+    }));
+  }), { timeout: 5_000 }).toEqual([
+    { amount: 3, ent: null, source: "manual", origAmount: 150, origCur: "TRY" },
+  ]);
 });
 
 // El sheet «Más…» de períodos en Gastos era el ÚNICO sin swipe-para-cerrar (feedback 2026-07-18,

@@ -103,7 +103,23 @@ test("★ P10: en inglés la tecla pone «.» y escribe «.»", async ({ page })
   await sheet.locator(".v4-input").fill("P10 decimal");
   await sheet.locator(".v4-cta").click();
   await expect(page.locator(".v4-sheet")).toHaveCount(0, { timeout: 3_000 });
-  await expect(page.getByText("P10 decimal").first()).toBeVisible({ timeout: 5_000 });
-  // Si el parseo siguiera quitando los puntos (miles ES), 12.50 se guardaría como 1250.
-  await expect(page.getByText(/12[.,]50/).first()).toBeVisible();
+  // Inicio conserva un duplicado oculto: comprobar la fila de Gastos activa, no el orden del DOM.
+  await expect(page.locator('.botnav-tab[data-tour="gastos"]')).toHaveClass(/active/);
+  const row = page.locator(".page.page-scroll-host .v4-gastos-list-body button[data-expense-id]")
+    .filter({ has: page.getByText("P10 decimal", { exact: true }) });
+  await expect(row).toHaveCount(1);
+  await expect(row.locator(".nm-title")).toHaveText("P10 decimal");
+  await expect(row).toBeVisible({ timeout: 5_000 });
+  // Si el parseo quitara los puntos (miles ES), DOM y persistencia deben rechazar 1250.
+  await expect(row.locator(".am")).toHaveText("12,50 €");
+  await expect(row.locator(".am")).toBeVisible();
+  await expect.poll(() => page.evaluate(() => {
+    const exps = JSON.parse(localStorage.getItem("micartera_v3_exp") || "[]");
+    return exps.filter((e) => e && e.merchant === "P10 decimal").map((e) => ({
+      amount: e.amount, ent: e.ent ?? null, source: e.source,
+      origAmount: e.origAmount ?? null, origCur: e.origCur ?? null,
+    }));
+  }), { timeout: 5_000 }).toEqual([
+    { amount: 12.5, ent: null, source: "manual", origAmount: null, origCur: null },
+  ]);
 });
