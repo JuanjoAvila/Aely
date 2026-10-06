@@ -1,3 +1,17 @@
+## Controles de Apuntar (6/10)
+
+Los casos P10 en inglés, 150 TRY → 3 EUR y Efectivo
+exigen una única fila visible de Gastos activo y persistencia exacta de importe,
+entidad y moneda original. El mismo oráculo se ejecuta primero con el apunte real,
+después con la fila real oculta (el concepto sigue en el DOM) y con almacenamiento
+sintético ausente, importe/entidad/divisa incorrectos o duplicado. Cada negativo
+debe rechazar en su aserción de visibilidad o persistencia; se restaura en `finally`
+y se vuelve a comprobar el positivo. Los 200 ms acotan sólo el rechazo deliberado:
+los positivos conservan 5 s y la entrada/CTA/espera del sheet no cambia. No acredita
+móvil ni sincronización bancaria. Chromium local bloqueado antes de página por
+`socket() EPERM`; ejecución y CI del SHA nuevo pendientes, no integrar por estos
+controles sin evidencia de navegador.
+
 ## Caché de fechas · promoción selectiva4.26.95
 
 `tests/fechas-cache.test.mjs`, registrado en `run-tests`, ejecuta las funciones reales del bundle y cuenta parseos: barridos de5.200 fechas, orden inverso/barajado, límite de memoria, formatos, aciertos0/NaN y objetos Date independientes. Protege únicamente el cambio aprobado al volver con historial; no prueba el lag global de INC-2709-09 ni conexiones bancarias reales.

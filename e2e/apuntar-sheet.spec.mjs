@@ -218,9 +218,66 @@ test("Apuntar en ₺ con la app en €: convierte y guarda en euros", async ({ p
   await sheet.locator(".v4-cta").click();
   await expect(sheet).toHaveCount(0, { timeout: 3_000 });
 
-  // 150 ₺ × 0,02 = 3 €. Café visible + importe (el debounce de localStorage no entra).
-  await expect(page.getByText("Café Estambul").first()).toBeVisible({ timeout: 5_000 });
-  await expect(page.getByText("3,00 €").first()).toBeVisible();
+  const row = page.locator(".page.page-scroll-host .v4-gastos-list-body button[data-expense-id]")
+    .filter({ has: page.getByText("Café Estambul", { exact: true }) });
+  async function assertSavedExpense(timeout = 5_000) {
+    // Inicio conserva el mismo concepto oculto: exigir la fila única de Gastos activa.
+    await expect(page.locator('.botnav-tab[data-tour="gastos"]')).toHaveClass(/active/, { timeout });
+
+    await expect(row).toHaveCount(1, { timeout });
+    await expect(row.locator(".nm-title")).toHaveText("Café Estambul", { timeout });
+    await expect(row).toBeVisible({ timeout });
+    // 150 ₺ × 0,02 = 3 €: verificar tanto lo visible como la divisa original persistida.
+    await expect(row.locator(".am")).toHaveText("3,00 €", { timeout });
+    await expect(row.locator(".am")).toBeVisible({ timeout });
+    await expect.poll(() => page.evaluate(() => {
+      const exps = JSON.parse(localStorage.getItem("micartera_v3_exp") || "[]");
+      return exps.filter((e) => e && e.merchant === "Café Estambul").map((e) => ({
+        amount: e.amount, ent: e.ent ?? null, source: e.source,
+        origAmount: e.origAmount ?? null, origCur: e.origCur ?? null,
+      }));
+    }), { timeout }).toEqual([
+      { amount: 3, ent: null, source: "manual", origAmount: 150, origCur: "TRY" },
+    ]);
+  }
+  await assertSavedExpense();
+
+  // El control altera el DOM real y llama al MISMO oráculo: texto oculto no acredita entrega.
+  const rowStyle = await row.getAttribute("style");
+  await test.step("oráculo rechaza concepto presente pero fila oculta", async () => {
+    try {
+      await row.evaluate((el) => { el.style.visibility = "hidden"; });
+      await expect(row).toHaveCount(1);
+      await expect(row.locator(".nm-title")).toHaveText("Café Estambul");
+      await expect(assertSavedExpense(200)).rejects.toThrow(/toBeVisible/);
+    } finally {
+      await row.evaluate((el, style) => {
+        if (style === null) el.removeAttribute("style"); else el.setAttribute("style", style);
+      }, rowStyle);
+    }
+  });
+  // Corrupciones sintéticas SOLO del almacenamiento de este caso; no cambian la fuente.
+  const saved = await page.evaluate(() => localStorage.getItem("micartera_v3_exp"));
+  for (const fault of ["sin guardar", "importe incorrecto", "entidad incorrecta", "duplicado", "divisa incorrecta"]) {
+    await test.step("oráculo rechaza " + fault, async () => {
+      try {
+        await page.evaluate(({ saved, fault }) => {
+          let exps = JSON.parse(saved);
+          const exp = exps.find((e) => e && e.merchant === "Café Estambul");
+          if (fault === "sin guardar") exps = exps.filter((e) => e !== exp);
+          if (fault === "importe incorrecto") exp.amount = 300;
+          if (fault === "entidad incorrecta") exp.ent = "sabadell";
+          if (fault === "duplicado") exps.push({ ...exp });
+          if (fault === "divisa incorrecta") exp.origCur = "USD";
+          localStorage.setItem("micartera_v3_exp", JSON.stringify(exps));
+        }, { saved, fault });
+        await expect(assertSavedExpense(200)).rejects.toThrow(/toEqual/);
+      } finally {
+        await page.evaluate((saved) => localStorage.setItem("micartera_v3_exp", saved), saved);
+      }
+    });
+  }
+  await assertSavedExpense();
 });
 
 // El sheet «Más…» de períodos en Gastos era el ÚNICO sin swipe-para-cerrar (feedback 2026-07-18,
