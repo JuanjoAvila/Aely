@@ -1,0 +1,27 @@
+{
+  "status": "done",
+  "summary": "Candidata selectiva95 publicada PR136 bedb589 con arbol1b737092 exacto local8b600a17. Runtime unico01-i18n exactoPR133; resto main conservado. CI exacta en curso, sin merge.",
+  "tests": [
+    {
+      "command": "npm run build; npm run test:syntax; node tests/docs-frescura.test.mjs; fechas-cache UTC/Madrid",
+      "exitCode": 0
+    },
+    {
+      "command": "npm ci --ignore-scripts --no-audit --no-fund; rerun bank-merchant-category/logs-privacidad/help-assistant",
+      "exitCode": 0
+    }
+  ],
+  "productSHA": "bedb589279e77b61b98f5315ace9c7a27f221813",
+  "pr": 136,
+  "limitations": [
+    "npm test anterior interrumpido en beta-sources, no se acredita suite completa ni E2E local.",
+    "CI37415731606 debe pasar en SHA exacto y produccion servida aun pendiente.",
+    "INC-2709-09 uso prolongado sigue abierto; sin APK/Edge/SQL/datos reales."
+  ],
+  "schema": 1,
+  "taskId": "prod-0510-cache95-prepare",
+  "actor": "codex",
+  "sessionId": "relay-run-e9c59cbe362b1be8",
+  "createdAt": "2026-10-06T04:52:43.977Z",
+  "released": true
+}
