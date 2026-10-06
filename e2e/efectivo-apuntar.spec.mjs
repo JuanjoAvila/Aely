@@ -44,17 +44,64 @@ test("Apuntar deja elegir Efectivo y el gasto lleva ent efectivo", async ({ page
   await sheet.locator(".v4-cta").click();
   await expect(sheet).toHaveCount(0, { timeout: 5_000 });
 
-  await expect(page.getByText("Sobre e2e").first()).toBeVisible({ timeout: 5_000 });
-  // Persistencia debounced ~400 ms — no leer localStorage al momento del cierre.
-  await page.waitForFunction(() => {
-    const exps = JSON.parse(localStorage.getItem("micartera_v3_exp") || "[]");
-    return exps.some((e) => e && e.merchant === "Sobre e2e");
-  }, null, { timeout: 5_000 });
-  const exp = await page.evaluate(() => {
-    const exps = JSON.parse(localStorage.getItem("micartera_v3_exp") || "[]");
-    return exps.find((e) => e && e.merchant === "Sobre e2e") || null;
+  const row = page.locator(".page.page-scroll-host .v4-gastos-list-body button[data-expense-id]")
+    .filter({ has: page.getByText("Sobre e2e", { exact: true }) });
+  async function assertSavedExpense(timeout = 5_000) {
+    // Inicio monta el mismo concepto oculto; el sobre debe verse en la fila de Gastos activa.
+    await expect(page.locator('.botnav-tab[data-tour="gastos"]')).toHaveClass(/active/, { timeout });
+
+    await expect(row).toHaveCount(1, { timeout });
+    await expect(row.locator(".nm-title")).toHaveText("Sobre e2e", { timeout });
+    await expect(row).toBeVisible({ timeout });
+    await expect(row.locator(".am")).toHaveText("12,00 €", { timeout });
+    await expect(row.locator(".am")).toBeVisible({ timeout });
+    // Persistencia debounced ~400 ms: exigir un único gasto con importe y entidad exactos.
+    await expect.poll(() => page.evaluate(() => {
+      const exps = JSON.parse(localStorage.getItem("micartera_v3_exp") || "[]");
+      return exps.filter((e) => e && e.merchant === "Sobre e2e").map((e) => ({
+        amount: e.amount, ent: e.ent ?? null, source: e.source,
+        origAmount: e.origAmount ?? null, origCur: e.origCur ?? null,
+      }));
+    }), { timeout }).toEqual([
+      { amount: 12, ent: "efectivo", source: "manual", origAmount: null, origCur: null },
+    ]);
+  }
+  await assertSavedExpense();
+
+  // El control altera el DOM real y llama al MISMO oráculo: texto oculto no acredita entrega.
+  const rowStyle = await row.getAttribute("style");
+  await test.step("oráculo rechaza concepto presente pero fila oculta", async () => {
+    try {
+      await row.evaluate((el) => { el.style.visibility = "hidden"; });
+      await expect(row).toHaveCount(1);
+      await expect(row.locator(".nm-title")).toHaveText("Sobre e2e");
+      await expect(assertSavedExpense(200)).rejects.toThrow(/toBeVisible/);
+    } finally {
+      await row.evaluate((el, style) => {
+        if (style === null) el.removeAttribute("style"); else el.setAttribute("style", style);
+      }, rowStyle);
+    }
   });
-  expect(exp, "tiene que haber un gasto manual del sobre").toBeTruthy();
-  expect(exp.ent).toBe("efectivo");
-  expect(Math.abs(exp.amount - 12)).toBeLessThan(0.01);
+  // Corrupciones sintéticas SOLO del almacenamiento de este caso; no cambian la fuente.
+  const saved = await page.evaluate(() => localStorage.getItem("micartera_v3_exp"));
+  for (const fault of ["sin guardar", "importe incorrecto", "entidad incorrecta", "duplicado", "divisa incorrecta"]) {
+    await test.step("oráculo rechaza " + fault, async () => {
+      try {
+        await page.evaluate(({ saved, fault }) => {
+          let exps = JSON.parse(saved);
+          const exp = exps.find((e) => e && e.merchant === "Sobre e2e");
+          if (fault === "sin guardar") exps = exps.filter((e) => e !== exp);
+          if (fault === "importe incorrecto") exp.amount = 1200;
+          if (fault === "entidad incorrecta") exp.ent = "sabadell";
+          if (fault === "duplicado") exps.push({ ...exp });
+          if (fault === "divisa incorrecta") exp.origCur = "USD";
+          localStorage.setItem("micartera_v3_exp", JSON.stringify(exps));
+        }, { saved, fault });
+        await expect(assertSavedExpense(200)).rejects.toThrow(/toEqual/);
+      } finally {
+        await page.evaluate((saved) => localStorage.setItem("micartera_v3_exp", saved), saved);
+      }
+    });
+  }
+  await assertSavedExpense();
 });

@@ -12,6 +12,20 @@ Strike intrapalabra: `Capi~~tal~~` y `Ca~~pi~~tal` dejaban exportación y check 
 
 Las revisiones posteriores detectaron etiquetas compuestas claras partidas o marcadas: `Capital` seguido de `invertido`/`aportado` en otra línea, énfasis con underscores/anidado, NBSP, hardbreaks y la primera palabra enlazada. La matriz deduplicada contiene un producto finito de tres etiquetas claras × veintitrés formatos simples/anidados/con enlaces y énfasis sobre Capital × seis continuidades (espacio, LF, CRLF, NBSP y hardbreak LF/CRLF). Cubre primera, segunda y ambas palabras enlazadas, destinos con paréntesis balanceados y referencias completas/colapsadas/cortas con definiciones sintéticas. Cada caso exige rechazo en exportación y `--check`, con destino existente y ausente, sin modificar contenido/mtime ni borrar sobrantes. La misma matriz forma 414 párrafos positivos con bytes/versiones/SHA explícitos: se conservan literalmente junto con el Markdown y mantienen idempotencia. Se añaden seis títulos citados con paréntesis, strike GFM, capital aislado y variantes con marcado/enlaces/NBSP/hardbreak; sus positivos técnicos también conservan el payload. El detector ya no interpreta destinos: capital aislado activa el contexto tras normalizar espacios/delimitadores en una vista exclusiva, sin modificar el Markdown exportado ni su búsqueda de cifras. Un guardián sin importe financiero, con `310 KB` y una cifra en el destino del enlace, exige rechazo para probar que esa URL sigue en el residual. No implementa parsing Markdown universal: usos ambiguos, formatos no reconocidos, límites léxicos y separación por párrafos requieren revisión manual. `capital-social-2026.md` tampoco aporta contexto desde su nombre.
 
+## Controles de Apuntar (6/10)
+
+Los casos P10 en inglés, 150 TRY → 3 EUR y Efectivo
+exigen una única fila visible de Gastos activo y persistencia exacta de importe,
+entidad y moneda original. El mismo oráculo se ejecuta primero con el apunte real,
+después con la fila real oculta (el concepto sigue en el DOM) y con almacenamiento
+sintético ausente, importe/entidad/divisa incorrectos o duplicado. Cada negativo
+debe rechazar en su aserción de visibilidad o persistencia; se restaura en `finally`
+y se vuelve a comprobar el positivo. Los 200 ms acotan sólo el rechazo deliberado:
+los positivos conservan 5 s y la entrada/CTA/espera del sheet no cambia. No acredita
+móvil ni sincronización bancaria. Chromium local bloqueado antes de página por
+`socket() EPERM`; ejecución y CI del SHA nuevo pendientes, no integrar por estos
+controles sin evidencia de navegador.
+
 ## Caché de fechas · promoción selectiva4.26.95
 
 `tests/fechas-cache.test.mjs`, registrado en `run-tests`, ejecuta las funciones reales del bundle y cuenta parseos: barridos de5.200 fechas, orden inverso/barajado, límite de memoria, formatos, aciertos0/NaN y objetos Date independientes. Protege únicamente el cambio aprobado al volver con historial; no prueba el lag global de INC-2709-09 ni conexiones bancarias reales.

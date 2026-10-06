@@ -103,7 +103,64 @@ test("★ P10: en inglés la tecla pone «.» y escribe «.»", async ({ page })
   await sheet.locator(".v4-input").fill("P10 decimal");
   await sheet.locator(".v4-cta").click();
   await expect(page.locator(".v4-sheet")).toHaveCount(0, { timeout: 3_000 });
-  await expect(page.getByText("P10 decimal").first()).toBeVisible({ timeout: 5_000 });
-  // Si el parseo siguiera quitando los puntos (miles ES), 12.50 se guardaría como 1250.
-  await expect(page.getByText(/12[.,]50/).first()).toBeVisible();
+  const row = page.locator(".page.page-scroll-host .v4-gastos-list-body button[data-expense-id]")
+    .filter({ has: page.getByText("P10 decimal", { exact: true }) });
+  async function assertSavedExpense(timeout = 5_000) {
+    // Inicio conserva un duplicado oculto: comprobar la fila de Gastos activa, no el orden del DOM.
+    await expect(page.locator('.botnav-tab[data-tour="gastos"]')).toHaveClass(/active/, { timeout });
+
+    await expect(row).toHaveCount(1, { timeout });
+    await expect(row.locator(".nm-title")).toHaveText("P10 decimal", { timeout });
+    await expect(row).toBeVisible({ timeout });
+    // Si el parseo quitara los puntos (miles ES), DOM y persistencia deben rechazar 1250.
+    await expect(row.locator(".am")).toHaveText("12,50 €", { timeout });
+    await expect(row.locator(".am")).toBeVisible({ timeout });
+    await expect.poll(() => page.evaluate(() => {
+      const exps = JSON.parse(localStorage.getItem("micartera_v3_exp") || "[]");
+      return exps.filter((e) => e && e.merchant === "P10 decimal").map((e) => ({
+        amount: e.amount, ent: e.ent ?? null, source: e.source,
+        origAmount: e.origAmount ?? null, origCur: e.origCur ?? null,
+      }));
+    }), { timeout }).toEqual([
+      { amount: 12.5, ent: null, source: "manual", origAmount: null, origCur: null },
+    ]);
+  }
+  await assertSavedExpense();
+
+  // El control altera el DOM real y llama al MISMO oráculo: texto oculto no acredita entrega.
+  const rowStyle = await row.getAttribute("style");
+  await test.step("oráculo rechaza concepto presente pero fila oculta", async () => {
+    try {
+      await row.evaluate((el) => { el.style.visibility = "hidden"; });
+      await expect(row).toHaveCount(1);
+      await expect(row.locator(".nm-title")).toHaveText("P10 decimal");
+      await expect(assertSavedExpense(200)).rejects.toThrow(/toBeVisible/);
+    } finally {
+      await row.evaluate((el, style) => {
+        if (style === null) el.removeAttribute("style"); else el.setAttribute("style", style);
+      }, rowStyle);
+    }
+  });
+  // Corrupciones sintéticas SOLO del almacenamiento de este caso; no cambian la fuente.
+  const saved = await page.evaluate(() => localStorage.getItem("micartera_v3_exp"));
+  for (const fault of ["sin guardar", "importe incorrecto", "entidad incorrecta", "duplicado", "divisa incorrecta"]) {
+    await test.step("oráculo rechaza " + fault, async () => {
+      try {
+        await page.evaluate(({ saved, fault }) => {
+          let exps = JSON.parse(saved);
+          const exp = exps.find((e) => e && e.merchant === "P10 decimal");
+          if (fault === "sin guardar") exps = exps.filter((e) => e !== exp);
+          if (fault === "importe incorrecto") exp.amount = 1250.0;
+          if (fault === "entidad incorrecta") exp.ent = "sabadell";
+          if (fault === "duplicado") exps.push({ ...exp });
+          if (fault === "divisa incorrecta") exp.origCur = "USD";
+          localStorage.setItem("micartera_v3_exp", JSON.stringify(exps));
+        }, { saved, fault });
+        await expect(assertSavedExpense(200)).rejects.toThrow(/toEqual/);
+      } finally {
+        await page.evaluate((saved) => localStorage.setItem("micartera_v3_exp", saved), saved);
+      }
+    });
+  }
+  await assertSavedExpense();
 });
