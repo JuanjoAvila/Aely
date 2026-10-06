@@ -351,13 +351,19 @@ function App(){
     return Object.assign({},next,{_savedAt:Date.now()});
   }); },[]);
   // En el propio commit (layout, no pasivo): así un `pagehide` inmediato ya vuelca este estado.
+  // El aviso del histórico y el cierre de su ficha salen de este mismo commit. El updater solo
+  // calcula: si React tira ese resultado, el recibo no está en `state` (INC-2709-06).
   const committedRef=useRef(state);
+  const showToastRef=useRef(null);
   useLayoutEffect(function(){
     const prev=committedRef.current;
     committedRef.current=state;
     mcPersistCommit(persistRef.current, prev, state, function(){
       return setTimeout(function(){ const q=persistRef.current; q.t=null; writeNow(q); },400);
     });
+    obHistNoticeCommit(prev, state, showToastRef.current, t, tf);
+    // El reintento del sync diario sube lo que este commit lleva, no lo que calculó un updater.
+    obDailyCommit(prev, state);
   },[state]);
   useEffect(function(){
     const onVis=function(){ if(document.visibilityState==="hidden") flushPersist(); };
@@ -382,6 +388,7 @@ function App(){
     // permission denied del ingest) eran invisibles para el admin (bug 2026-07-11).
     try{ const s=String(m||""); if(/^[✕⚠✗]/.test(s)) cloud.logEvent('error','TOAST: '+s.slice(0,300)); }catch(e){}
   };
+  showToastRef.current=showToast;
   // Moneda de visualización: convierte todos los importes (en €) a la moneda elegida en Ajustes.
   // GBP/CHF usan fxRates (XXX→EUR, del BCE) — si aún no ha llegado el FX, se queda en € antes
   // que enseñar un número inventado (regla de la casa: nunca inventar un tipo de cambio).
@@ -667,8 +674,15 @@ function App(){
         const r=applyBankBalances(anchored, links);
         return Object.assign({}, r.state, { lastBankSync:Date.now(), hasBankLink: links.length?true:prev.hasBankLink, bankTx: txs, bankIssues: bankIssuesOf(links, dbLinks) });
       });
-      // sube las importadas a la tabla expenses (best-effort; el estado local ya las tiene)
-      setTimeout(function(){ obAdded.forEach(function(e){ subirGasto(e, "ob-import"); }); }, 0);
+      // Sube las importadas. El índice ignora la terna repetida y no devuelve esa fila:
+      // refechar solo con lo insertado duplica la misma referencia o, al segundo choque,
+      // borra la otra. Se lee la nube y se respeta lo que él cambie mientras tanto
+      // (INC-2709-06). null = modo pruebas: no es un rechazo del índice.
+      setTimeout(function(){
+        /* OB-ACK-DAILY */
+        persistObImport(obAdded, cloud, set);
+        /* /OB-ACK-DAILY */
+      }, 0);
       // En sync automática (la que dispara la noti del banco) se avisa solo de lo que ha entrado.
       // Si has pulsado tú «↻ Sincronizar bancos», esto se junta con el resultado de abajo: dos
       // avisos seguidos por una sola acción tuya eran ruido (feedback 2026-07-26).

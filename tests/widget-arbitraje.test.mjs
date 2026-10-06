@@ -46,6 +46,213 @@ assert.ok(!cycleAck.includes("future"),"una fila futura no acredita recepción e
 const finPay = { id: "pay", fecha: "2026-09-27T10:00:00Z", importe: 5.45, cat: "super", source: "macrodroid", comercio: "Pago ficticio" };
 const finAfterApp = finApp.monthBudgetStats({ ...finState, expenses: finState.expenses.concat(finApp.expenseFromRow(finPay)) }, finNow);
 const finAfterServer = finServer.statsDelMes(finServer.filasComoLaApp(finRows.concat(finPay), finState.deleted), finState, finPeriod);
+/* INC-2709-06 · identidad temporal del widget (2026-10-05).
+   `expenseFromRow` guarda `new Date(fecha).toISOString()` (canónico, con milisegundos).
+   `keyOfExpense` firma la lápida con esa fecha. `claveComoLaApp` compara el texto crudo
+   de la fila: `2026-09-03T10:00:00Z` no es la misma cadena que `…T10:00:00.000Z`, ni que
+   el mismo instante escrito con offset. La lápida no casa y el servidor conserva el
+   borrado. El guard de abajo sigue en rojo a propósito: reescribir estas `fecha` a
+   `.000Z` taparía el fallo sin arreglar `presupuesto.ts`. El contrato deseado vive aquí,
+   no en el producto. `--iso-contrato` solo ejecuta esta caracterización; el runner
+   registrado no lleva argumentos y tiene que seguir saliendo en rojo. */
+function centimos(n){ return Math.round(Number(n)*100); }
+function fechaCanonica(fecha){
+  const ms=Date.parse(String(fecha??""));
+  return Number.isFinite(ms)?new Date(ms).toISOString():String(fecha??"");
+}
+function esManualIso(source){
+  const s=String(source||"");
+  return !s||s==="manual"||s.indexOf("manual:")===0||s==="supabase";
+}
+function claveDeseada(f){
+  const fecha=fechaCanonica(f.fecha);
+  const base=fecha.slice(0,10)+"|"+(Number(f.importe)||0)+"|"+(f.comercio||"");
+  if(esManualIso(f.source)) return base+"|"+String(f.id||"");
+  const s=String(f.source||"");
+  const ob=s==="ob"||s.indexOf("ob:")===0||s==="ob-hist"||s.indexOf("ob-hist:")===0;
+  if(ob&&fecha.length>=10){
+    const noon=new Date(fecha.slice(0,10)+"T12:00:00").toISOString();
+    if(fecha!==noon) return base+"|"+fecha;
+  }
+  return base;
+}
+function legacyDeseada(f){
+  const fecha=fechaCanonica(f.fecha);
+  return fecha.slice(0,10)+"|"+(Number(f.importe)||0)+"|"+(f.comercio||"");
+}
+function filasDeseadas(filas, deleted){
+  const lap=new Set(deleted||[]), seen=new Set(), out=[];
+  for(const f of filas||[]){
+    const k=claveDeseada(f);
+    if(lap.has(k)) continue;
+    if(esManualIso(f.source)&&lap.has(legacyDeseada(f))) continue;
+    if(seen.has(k)) continue;
+    seen.add(k); out.push(f);
+  }
+  return out;
+}
+function mutanteSufijoZ(fecha){
+  const s=String(fecha||"");
+  return /Z$/.test(s)&&!/\.\d+Z$/.test(s)?s.replace(/Z$/,".000Z"):s;
+}
+function claveMutanteSufijoZ(f){
+  return finServer.claveComoLaApp(Object.assign({},f,{fecha:mutanteSufijoZ(f.fecha)}));
+}
+function claveMutanteDia(f){
+  const fecha=fechaCanonica(f.fecha);
+  return fecha.slice(0,10)+"|"+(Number(f.importe)||0)+"|"+(f.comercio||"");
+}
+const mediodiaLocal=(day)=>new Date(day+"T12:00:00").toISOString();
+const isoMadrid=mediodiaLocal("2026-07-15")==="2026-07-15T10:00:00.000Z";
+const isoUtc=mediodiaLocal("2026-07-15")==="2026-07-15T12:00:00.000Z";
+assert.ok(isoMadrid!==isoUtc&&(isoMadrid||isoUtc),"el contrato se ejecuta en UTC o en Europe/Madrid");
+if(isoMadrid){
+  assert.equal(mediodiaLocal("2026-01-15"),"2026-01-15T11:00:00.000Z");
+  assert.equal(mediodiaLocal("2026-03-29"),"2026-03-29T10:00:00.000Z");
+  assert.equal(mediodiaLocal("2026-07-15"),"2026-07-15T10:00:00.000Z");
+  assert.equal(mediodiaLocal("2026-10-25"),"2026-10-25T11:00:00.000Z");
+}else{
+  assert.equal(mediodiaLocal("2026-01-15"),"2026-01-15T12:00:00.000Z");
+  assert.equal(mediodiaLocal("2026-03-29"),"2026-03-29T12:00:00.000Z");
+  assert.equal(mediodiaLocal("2026-07-15"),"2026-07-15T12:00:00.000Z");
+  assert.equal(mediodiaLocal("2026-10-25"),"2026-10-25T12:00:00.000Z");
+}
+assert.equal(finRows[1].fecha,"2026-09-03T10:00:00Z");
+assert.equal(finRows[2].fecha,"2026-09-04T10:00:00Z");
+assert.equal(finPay.fecha,"2026-09-27T10:00:00Z");
+assert.equal(finRows[1].fecha.includes("."),false);
+const claveAppGone=finApp.keyOfExpense(finApp.expenseFromRow(finRows[1]));
+const claveSrvGone=finServer.claveComoLaApp(finRows[1]);
+assert.notEqual(claveAppGone,claveSrvGone);
+if(isoMadrid){
+  assert.equal(claveAppGone,"2026-09-03|3|Borrado ficticio");
+  assert.equal(claveSrvGone,"2026-09-03|3|Borrado ficticio|2026-09-03T10:00:00Z");
+}else{
+  assert.equal(claveAppGone,"2026-09-03|3|Borrado ficticio|2026-09-03T10:00:00.000Z");
+  assert.equal(claveSrvGone,"2026-09-03|3|Borrado ficticio|2026-09-03T10:00:00Z");
+}
+assert.notEqual(finApp.keyOfExpense(finApp.expenseFromRow(finRows[2])),finServer.claveComoLaApp(finRows[2]));
+assert.deepEqual(finServer.filasComoLaApp(finRows.concat(finPay),finState.deleted).map(r=>r.id),["live","gone-out","gone-in","pay"]);
+assert.equal(centimos(finBefore.shown),18100);
+assert.equal(centimos(finAfterApp.shown),18645);
+assert.equal(centimos(finAfterServer.shown),17445);
+assert.equal(centimos(finAfterApp.shown)-centimos(finAfterServer.shown),1200);
+assert.equal(centimos(181)+centimos(5.45),18645);
+assert.equal(centimos(181)+centimos(5.45)+centimos(3)-centimos(15),17445);
+assert.equal(centimos(finAfterApp.remaining),81355);
+for(const row of finRows.concat(finPay)){
+  assert.equal(claveDeseada(row),finApp.keyOfExpense(finApp.expenseFromRow(row)),row.id);
+}
+assert.deepEqual(filasDeseadas(finRows.concat(finPay),finState.deleted).map(r=>r.id),["live","pay"]);
+assert.equal(centimos(finServer.statsDelMes(filasDeseadas(finRows.concat(finPay),finState.deleted),finState,finPeriod).shown),18645);
+const mismoOffset={id:"gone-out",fecha:"2026-09-03T12:00:00+02:00",importe:3,cat:"bares",source:"ob:trade_republic",comercio:"Borrado ficticio"};
+const otroInstante={id:"otro",fecha:"2026-09-03T10:00:01Z",importe:3,cat:"bares",source:"ob:trade_republic",comercio:"Borrado ficticio"};
+assert.equal(fechaCanonica(finRows[1].fecha),fechaCanonica(mismoOffset.fecha));
+assert.equal(fechaCanonica(finRows[1].fecha),"2026-09-03T10:00:00.000Z");
+assert.notEqual(fechaCanonica(finRows[1].fecha),fechaCanonica(otroInstante.fecha));
+assert.equal(claveDeseada(finRows[1]),claveDeseada(mismoOffset));
+assert.equal(claveDeseada(mismoOffset),finApp.keyOfExpense(finApp.expenseFromRow(mismoOffset)));
+assert.notEqual(claveDeseada(finRows[1]),claveDeseada(otroInstante));
+assert.equal(claveMutanteSufijoZ(finRows[1]),claveAppGone,"el sufijo .000Z tapa el guard default");
+assert.notEqual(claveMutanteSufijoZ(mismoOffset),finApp.keyOfExpense(finApp.expenseFromRow(mismoOffset)),"el mutante no une el offset");
+assert.equal(claveMutanteDia(finRows[1]),claveMutanteDia(otroInstante));
+assert.notEqual(claveDeseada(finRows[1]),claveDeseada(otroInstante));
+const antesDst={id:"dst-a",fecha:"2026-10-25T01:30:00+02:00",importe:12.5,comercio:"COMPRA SINTETICA",cat:"super",source:"ob:caixabank"};
+const despuesDst={id:"dst-b",fecha:"2026-10-25T02:30:00+01:00",importe:12.5,comercio:"COMPRA SINTETICA",cat:"super",source:"ob:caixabank"};
+const preDst={id:"dst-c",fecha:"2026-03-29T01:30:00+01:00",importe:12.5,comercio:"COMPRA SINTETICA",cat:"super",source:"ob:caixabank"};
+const postDst={id:"dst-d",fecha:"2026-03-29T03:30:00+02:00",importe:12.5,comercio:"COMPRA SINTETICA",cat:"super",source:"ob:caixabank"};
+assert.equal(fechaCanonica(antesDst.fecha),"2026-10-24T23:30:00.000Z");
+assert.equal(fechaCanonica(despuesDst.fecha),"2026-10-25T01:30:00.000Z");
+assert.notEqual(claveDeseada(antesDst),claveDeseada(despuesDst));
+assert.notEqual(claveDeseada(preDst),claveDeseada(postDst));
+assert.equal(claveDeseada(antesDst),finApp.keyOfExpense(finApp.expenseFromRow(antesDst)));
+assert.notEqual(finServer.claveComoLaApp(antesDst),finApp.keyOfExpense(finApp.expenseFromRow(antesDst)));
+function claveMutanteDiaCrudo(f){
+  return String(f.fecha||"").slice(0,10)+"|"+(Number(f.importe)||0)+"|"+(f.comercio||"");
+}
+assert.equal(claveMutanteDiaCrudo(antesDst),claveMutanteDiaCrudo(despuesDst),"el prefijo crudo funde los dos instantes del cambio de hora");
+assert.notEqual(claveDeseada(antesDst),claveDeseada(despuesDst));
+const zForma={id:"cargo",fecha:"2026-09-08T08:15:00Z",importe:12.5,comercio:"COMPRA SINTETICA",cat:"super",source:"ob:caixabank"};
+const msForma={id:"cargo-ms",fecha:"2026-09-08T08:15:00.000Z",importe:12.5,comercio:"COMPRA SINTETICA",cat:"super",source:"ob:caixabank"};
+const offForma={id:"cargo-off",fecha:"2026-09-08T10:15:00+02:00",importe:12.5,comercio:"COMPRA SINTETICA",cat:"super",source:"ob:caixabank"};
+const otroCargo={id:"cargo-otro",fecha:"2026-09-08T09:15:00Z",importe:12.5,comercio:"COMPRA SINTETICA",cat:"super",source:"ob:caixabank"};
+assert.equal(claveDeseada(zForma),claveDeseada(msForma));
+assert.equal(claveDeseada(zForma),claveDeseada(offForma));
+assert.notEqual(claveDeseada(zForma),claveDeseada(otroCargo));
+assert.equal(claveMutanteDia(zForma),claveMutanteDia(otroCargo));
+const lapCargo=[finApp.keyOfExpense(finApp.expenseFromRow(zForma))];
+const caja={budget:100,accounts:[{ent:"caixabank",role:"diario"}],settings:{gTotalMode:"net"},reservaLog:[]};
+const periodo=finServer.inicioDeMesMs(finNow);
+const crudas=[zForma,msForma,offForma,otroCargo];
+assert.deepEqual(finServer.filasComoLaApp(crudas,lapCargo).map(r=>r.id),["cargo","cargo-off","cargo-otro"]);
+assert.deepEqual(filasDeseadas(crudas,lapCargo).map(r=>r.id),["cargo-otro"]);
+assert.equal(centimos(finServer.statsDelMes(finServer.filasComoLaApp(crudas,lapCargo),caja,periodo).shown),3750);
+assert.equal(centimos(finServer.statsDelMes(filasDeseadas(crudas,lapCargo),caja,periodo).shown),1250);
+const dup={id:"dup",fecha:"2026-09-08T08:15:00Z",importe:9.99,comercio:"CANDIDATO",cat:"otros",source:"ob:caixabank#dup"};
+const deuda={id:"cuota",fecha:"2026-09-08T08:15:00Z",importe:40,comercio:"CUOTA",cat:"deudas",source:"ob:caixabank~deuda.sintetica"};
+assert.equal(finApp.expenseFromRow(dup).possibleDup,true);
+assert.equal(finServer.esPosibleRepetido(dup.source),true);
+assert.equal(finApp.expenseFromRow(deuda).debtId,"sintetica");
+assert.equal(finServer.esCuotaDeDeuda(deuda.source),true);
+assert.notEqual(finApp.keyOfExpense(finApp.expenseFromRow(dup)),finServer.claveComoLaApp(dup));
+const conMarcas=crudas.concat(dup,deuda);
+assert.equal(centimos(finServer.statsDelMes(finServer.filasComoLaApp(conMarcas,lapCargo),caja,periodo).shown),3750);
+assert.equal(centimos(finServer.statsDelMes(filasDeseadas(conMarcas,lapCargo),caja,periodo).shown),1250);
+const ext={id:"ext",fecha:"2026-09-08T08:15:00Z",importe:12.5,comercio:"COMPRA SINTETICA",cat:"super",source:"ob:caixabank#x.cargo-A"};
+const extOff={id:"ext-off",fecha:"2026-09-08T10:15:00+02:00",importe:12.5,comercio:"COMPRA SINTETICA",cat:"super",source:"ob:caixabank#x.cargo-A"};
+const extOtro={id:"ext-b",fecha:"2026-09-08T09:15:00Z",importe:12.5,comercio:"COMPRA SINTETICA",cat:"super",source:"ob:caixabank#x.cargo-B"};
+const extRow=finApp.expenseFromRow(ext);
+assert.equal(extRow.extId,"cargo-A");
+assert.equal(extRow.ent,"caixabank");
+assert.equal(extRow.source,"ob");
+assert.equal(claveDeseada(ext),claveDeseada(extOff));
+assert.notEqual(claveDeseada(ext),claveDeseada(extOtro));
+assert.equal(claveDeseada(ext).includes("cargo-A"),false);
+assert.deepEqual(finServer.filasComoLaApp([ext],["obid|caixabank|cargo-A"]).map(r=>r.id),["ext"]);
+assert.deepEqual(filasDeseadas([ext],["obid|caixabank|cargo-A"]).map(r=>r.id),["ext"]);
+assert.equal(centimos(finServer.statsDelMes(finServer.filasComoLaApp([ext],["obid|caixabank|cargo-A"]),caja,periodo).shown),1250);
+const n1={id:"n1",fecha:"2026-09-02T09:00:00Z",importe:4.2,comercio:"APOLLON SINTETICO",cat:"super",source:"macrodroid"};
+const n2={id:"n2",fecha:"2026-09-02T18:00:00.000Z",importe:4.2,comercio:"APOLLON SINTETICO",cat:"super",source:"macrodroid"};
+const nOff={id:"n3",fecha:"2026-09-03T01:30:00+02:00",importe:4.2,comercio:"APOLLON SINTETICO",cat:"super",source:"macrodroid"};
+const tr={budget:100,accounts:[{ent:"trade_republic",role:"diario"}],settings:{gTotalMode:"net"},reservaLog:[]};
+assert.equal(finServer.claveComoLaApp(n1),finServer.claveComoLaApp(n2));
+assert.equal(claveDeseada(n1),claveDeseada(n2));
+assert.equal(claveDeseada(n1),finApp.keyOfExpense(finApp.expenseFromRow(n1)));
+assert.equal(centimos(finServer.statsDelMes(finServer.filasComoLaApp([n1,n2],[]),tr,periodo).shown),420);
+assert.equal(claveDeseada(nOff),claveDeseada({id:"n4",fecha:"2026-09-02T23:30:00Z",importe:4.2,comercio:"APOLLON SINTETICO",cat:"super",source:"macrodroid"}));
+assert.notEqual(finServer.claveComoLaApp(nOff),finApp.keyOfExpense(finApp.expenseFromRow(nOff)));
+const manA={id:"manual-a",fecha:"2026-09-05T10:00:00Z",importe:1.1,comercio:"MANUAL SINTETICO",cat:"otros",source:"manual"};
+const manOff={id:"manual-a",fecha:"2026-09-05T12:00:00+02:00",importe:1.1,comercio:"MANUAL SINTETICO",cat:"otros",source:"manual"};
+const manB={id:"manual-b",fecha:"2026-09-05T10:00:00.000Z",importe:1.1,comercio:"MANUAL SINTETICO",cat:"otros",source:"manual"};
+const manBank={id:"manual-b",fecha:"2026-09-05T10:00:00.000Z",importe:1.1,comercio:"MANUAL SINTETICO",cat:"otros",source:"manual:caixabank"};
+const manSup={id:"manual-a",fecha:"2026-09-05T10:00:00.000Z",importe:1.1,comercio:"MANUAL SINTETICO",cat:"otros",source:"supabase"};
+const manNoche={id:"manual-noche",fecha:"2026-10-25T01:30:00+02:00",importe:2,comercio:"MANUAL SINTETICO",cat:"otros",source:"manual"};
+assert.equal(finApp.expenseFromRow(manSup).source,"manual");
+assert.equal(claveDeseada(manA),claveDeseada(manOff));
+assert.equal(claveDeseada(manA),claveDeseada(manSup));
+assert.equal(claveDeseada(manA),finApp.keyOfExpense(finApp.expenseFromRow(manA)));
+assert.notEqual(claveDeseada(manA),claveDeseada(manB));
+assert.equal(claveDeseada(manBank),finApp.keyOfExpense(finApp.expenseFromRow(manBank)));
+assert.ok(claveDeseada(manBank).endsWith("|manual-b"));
+assert.equal(finServer.claveComoLaApp(manA),finServer.claveComoLaApp(manSup));
+const legado=finApp.keyOfExpenseLegacy(finApp.expenseFromRow(manA));
+assert.equal(legacyDeseada(manA),legado);
+const mano={budget:100,accounts:[],settings:{gTotalMode:"net"},reservaLog:[]};
+assert.equal(centimos(finServer.statsDelMes(filasDeseadas([manA,manOff,manB],[claveDeseada(manA)]),mano,periodo).shown),110);
+assert.equal(centimos(finServer.statsDelMes(filasDeseadas([manA,manB],[legado]),mano,periodo).shown),0);
+assert.equal(claveDeseada(manNoche),finApp.keyOfExpense(finApp.expenseFromRow(manNoche)));
+assert.notEqual(finServer.claveComoLaApp(manNoche),finApp.keyOfExpense(finApp.expenseFromRow(manNoche)));
+const oct=finServer.inicioDeMesMs(Date.parse("2026-10-27T12:00:00Z"));
+const lapNoche=[finApp.keyOfExpense(finApp.expenseFromRow(manNoche))];
+assert.equal(centimos(finServer.statsDelMes(finServer.filasComoLaApp([manNoche],lapNoche),mano,oct).shown),200);
+assert.equal(centimos(finServer.statsDelMes(filasDeseadas([manNoche],lapNoche),mano,oct).shown),0);
+console.log("  ✓ caracterización ISO: lápida canónica frente a timestamp crudo ("+(isoMadrid?"Europe/Madrid":"UTC")+"); el widget conserva 1200 céntimos");
+console.log("  ✓ contrato deseado: Z/.000Z/offset del mismo instante, sin fundir otro instante; 18645 céntimos");
+console.log("  ✓ mutante: el sufijo Z tapa el guard y el offset sigue vivo; un día único fundiría los 12,50");
+if(process.argv.includes("--iso-mutante")){
+  assert.equal(claveMutanteSufijoZ(mismoOffset),finApp.keyOfExpense(finApp.expenseFromRow(mismoOffset)));
+}
+if(process.argv.includes("--iso-contrato")) process.exit(0);
 assert.equal(finBefore.shown, 181);
 assert.equal(finAfterApp.shown, finAfterServer.shown);
 assert.equal(finAfterApp.remaining, 813.55);

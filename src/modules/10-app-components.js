@@ -504,39 +504,11 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks,
       expAdds.push(e);
     });
     const fixAdds=histFijosFromSelection(cands, reciboIdx, { mkId:uid, name:t("bp_hist_recibo"), dayOf:recDay });
-    // Tanda 3: batch + RETURNING id. Solo lo ACK queda en local; sin ids → aviso claro.
-    Promise.resolve(cloud.addExpensesBatch ? cloud.addExpensesBatch(expAdds) : { cloudIds:[], offline:true })
-      .catch(function(){ return { cloudIds:[], offline:false, failed:true }; })
-      .then(function(res){
-        const offline=!!(res&&res.offline);
-        const failed=!!(res&&res.failed);
-        const ack=histApplyBatchAck(expAdds, (res&&res.cloudIds)||[], { offline:offline });
-        // Servidor llamado y 0 ids con candidatos: no persistimos en local (sin ACK).
-        const keepLocal=offline ? ack.kept : (failed ? [] : ack.kept);
-        set(function(s){
-          const next=Object.assign({},s);
-          if(keepLocal.length) next.expenses=keepLocal.concat(s.expenses||[]);
-          if(fixAdds.length) next.fixed=(s.fixed||[]).concat(fixAdds);
-          if(keepLocal.length){
-            next.lastHistImport={ batchId:batchId, localIds:keepLocal.map(function(e){ return e.id; }), cloudIds:offline?[]:ack.cloudIds, at:Date.now() };
-          }
-          return next;
-        });
-        const parts=[];
-        if(keepLocal.filter(function(e){ return e.amount>0; }).length) parts.push(tf("bp_hist_done_g",{n:keepLocal.filter(function(e){ return e.amount>0; }).length}));
-        if(keepLocal.filter(function(e){ return e.amount<0; }).length) parts.push(tf("bp_hist_done_i",{n:keepLocal.filter(function(e){ return e.amount<0; }).length}));
-        if(fixAdds.length) parts.push(tf("bp_hist_done_r",{n:fixAdds.length}));
-        if(failed || (!offline && expAdds.length && !ack.cloudIds.length)){
-          showToast("⚠ "+t("bp_hist_no_ack"));
-        }else if(!offline && ack.skipped.length){
-          showToast((parts.length?parts.join(" · ")+" · ":"")+tf("bp_hist_skip_dup",{n:ack.skipped.length}));
-        }else if(offline && expAdds.length){
-          showToast((parts.length?parts.join(" · ")+" · ":"")+t("bp_hist_offline"));
-        }else{
-          showToast(parts.length?parts.join(" · "):tf("bp_hist_done",{n:keepLocal.length+fixAdds.length}));
-        }
-        setImporting(false); onClose();
-      });
+    // El índice no devuelve la fila que ya ocupaba la terna. Sin leerla, un segundo sello
+    // duplica la misma referencia y el descarte se lleva un cargo distinto (INC-2709-06).
+    /* OB-ACK-HIST */
+    persistHistImport({ cloud:cloud, expAdds:expAdds, fixAdds:fixAdds, batchId:batchId, set:set, showToast:showToast, onClose:onClose, setImporting:setImporting, t:t, tf:tf });
+    /* /OB-ACK-HIST */
   };
   const doUndoLast=function(){
     const last=state&&state.lastHistImport;

@@ -89,6 +89,24 @@ t("la misma fila repetida dentro de una cuenta mantiene una sola identidad", () 
   assert.equal(r.stats.skippedUniq,1);
 });
 
+t("dos BOOK con entry_reference distinta en la misma cuenta no se funden", () => {
+  const res={links:[{aspsp:"CaixaBank",accounts:[{uid:"cx-unica",transactions:[
+    tx("2026-09-10",12.50,{merchant:"MERCADONA",ext_id:"cargo-B",status:"BOOK"}),
+    tx("2026-09-10",12.50,{merchant:"MERCADONA",ext_id:"cargo-A",status:"BOOK"}),
+  ]}]}]};
+  const r=ctx.histFlattenHistoryLinks(res,[],{},{});
+  assert.equal(r.out.length,2);
+  assert.equal(r.stats.skippedUniq,0);
+  const ids=Array.from(r.out.map(x=>x.id)).sort();
+  assert.equal(ids.join(","), "cargo-A,cargo-B");
+  const a=r.out.find(x=>x.id==="cargo-A");
+  const b=r.out.find(x=>x.id==="cargo-B");
+  assert.equal(a.stamp, ctx.histDate("2026-09-10","ob-ext|caixabank|cargo-A"));
+  assert.equal(b.stamp, ctx.histDate("2026-09-10","ob-ext|caixabank|cargo-B"));
+  assert.notEqual(a.stamp, ctx.histDate("2026-09-10"));
+  assert.equal(a.stamp.slice(0,10), b.stamp.slice(0,10));
+});
+
 t("pendiente y contabilizado dentro de una cuenta conservan solo la versión final", () => {
   const res={links:[{aspsp:"CaixaBank",accounts:[{uid:"cx-corriente",transactions:[
     tx("2026-09-10",12.50,{merchant:"MERCADONA",status:"PDNG"}),

@@ -731,9 +731,18 @@ function mcPersistCommit(p, prev, state, schedule){
    `expenses:false`, se reescribiría la clave principal ya SIN gastos y la de gastos no se
    crearía nunca → histórico perdido en el móvil hasta el siguiente sync. Por eso, mientras no
    exista la clave partida, los gastos se escriben SIEMPRE. */
+/* El recibo del histórico (`histImportNotice`) es del commit que lo pinta, no de la cartera.
+   Ningún volcado lo lleva (disco, push y copia diaria): restaurado en otra sesión volvería a
+   avisar de un alta vieja. Copia superficial: el estado vivo no se toca (INC-2709-06). */
+function mcSinRecibo(s){
+  if(!s || typeof s!=="object" || !("histImportNotice" in s)) return s;
+  const c=Object.assign({},s);
+  delete c.histImportNotice;
+  return c;
+}
 function mcSaveRaw(key, s, opts){
   if(!s) return;
-  const rest=Object.assign({},s);
+  const rest=Object.assign({},mcSinRecibo(s));
   delete rest.expenses;
   const yaPartido=(function(){ try{ return localStorage.getItem(key+EXP_SUFFIX)!=null; }catch(e){ return false; } })();
   const skipExp = yaPartido && opts && opts.expenses===false;
@@ -1231,8 +1240,10 @@ const cloud = (function(){
     },
     // Copia de seguridad diaria del estado COMPLETO (idempotente por día) + poda a 30 días.
     // Best-effort: si la tabla aún no existe (migración 0002 sin aplicar), simplemente falla y se ignora.
+    // Completo salvo el recibo del histórico: se quita aquí y no en App para que ningún llamador lo suba.
     async backupState(uid, data){
       if(!sb || !uid) return;
+      data=mcSinRecibo(data);
       const today=new Date().toISOString().slice(0,10);
       const {error}=await sb.from('state_backups').upsert(
         { user_id:uid, day:today, data:data },
@@ -1567,15 +1578,41 @@ function keyOfExpenseLegacy(e){
 function keyOfExpense(e){
   const base=keyOfExpenseLegacy(e);
   if(isManualExpenseSource(e&&e.source)) return base+"|"+String((e&&e.id)||"");
+  /* Dos cargos Open Banking del mismo día, importe y comercio no caben en la clave de día
+     (APOLLON: la hora NO entra en macrodroid; un «Movimiento» de TR a los 97 min sigue siendo
+     uno). Solo la fila cuya fecha ya no es el mediodía local de `histDate` —la segunda ranura
+     que choca con `expenses_dedup_idx`— alarga la clave. Comparar con `histDate(día)` y no con
+     el texto UTC «12:00:00»: en Madrid el mediodía local es T10:00:00.000Z en verano, y tratarlo
+     como salado partía TODOS los cargos de Caixa al hacer pull (INC-2709-06, 2026-10-04). */
+  const s=String(e&&e.source||"");
+  const ob=s==="ob"||s.indexOf("ob:")===0||s==="ob-hist"||s.indexOf("ob-hist:")===0;
+  if(ob && typeof histDate==="function"){
+    const full=String(e&&e.date||""), day=full.slice(0,10);
+    if(day.length===10 && full!==histDate(day)) return base+"|"+full;
+  }
   return base;
 }
-/* Lápidas anteriores al Paso 0 guardaban la clave sin id: siguen ocultando ese manual. */
+/* Lápidas anteriores al Paso 0 guardaban la clave sin id: siguen ocultando ese manual.
+   No se amplía al día entero de un OB: borrar el cargo del mediodía escondería al hermano
+   salado, que es otro entry_reference (INC-2709-06). */
 function expenseIsTombstoned(e, delSet){
   if(!delSet) return false;
   const k=keyOfExpense(e);
   if(delSet[k]) return true;
   if(isManualExpenseSource(e&&e.source) && delSet[keyOfExpenseLegacy(e)]) return true;
   return false;
+}
+/* Claves que hay que enterrar al borrar. La de pantalla y, si el cargo trae referencia de
+   banco, `obid|banco|extId`: si no, el sync devolvería a la vida solo esa referencia mientras
+   la lápida de día sigue tapando a la otra. El renombrar no usa esto: la fila sigue viva. */
+function expenseTombKeys(e){
+  const keys=[keyOfExpense(e)];
+  const s=String(e&&e.source||"");
+  const ob=s==="ob"||s.indexOf("ob:")===0||s==="ob-hist"||s.indexOf("ob-hist:")===0;
+  if(!ob || e.extId==null || e.extId==="") return keys;
+  const bank=(typeof expenseBankOf==="function" ? expenseBankOf(e) : null)||(e&&e.ent)||"";
+  if(bank) keys.push("obid|"+bank+"|"+e.extId);
+  return keys;
 }
 function _errCloudMsg(err){
   return mcLogCode(err);
@@ -1649,6 +1686,15 @@ function deudaSufijo(debtId){
   const id=String(debtId||"").replace(/[^A-Za-z0-9_-]/g,"");
   return id ? "~deuda."+id : "";
 }
+/* La referencia del banco no tiene columna. Viaja en el `source` como `#x.` porque el
+   servidor ya desplegado parte `ob:` por `#` y se queda el banco (`presupuesto.ts`). `#dup`
+   gana: un posible repetido no puede llevar las dos colas. Sin recorte: 120 caracteres
+   partían un id de 150 y el siguiente sync lo daba por nuevo (INC-2709-06). */
+function obExtCloudSuffix(e){
+  if(!e || e.possibleDup || e.extId==null || e.extId==="") return "";
+  const safe=encodeURIComponent(String(e.extId));
+  return safe ? "#x."+safe : "";
+}
 /* Parte el tramo de banco de un `source` OB: «sabadell~deuda.x» → {ent:"sabadell", debtId:"x"}. */
 function partirEntDeuda(tramo){
   const s=String(tramo||""), i=s.indexOf("~deuda.");
@@ -1675,8 +1721,17 @@ function expenseSourceForCloud(e){
   //
   // Lo que NO viaja es `possibleDupOf` (el gemelo): tras reinstalar, «es el mismo» sigue
   // borrando la fila OB pero ya no puede traspasarle el extId al gemelo.
-  if(ent&&(s==="ob"||String(s).indexOf("ob:")===0)) return "ob:"+ent+deudaSufijo(e&&e.debtId)+((e&&e.possibleDup)?"#dup":"");
-  if(ent&&(s==="ob-hist"||String(s).indexOf("ob-hist:")===0)) return "ob-hist:"+ent+((e&&e.possibleDup)?"#dup":"");
+  if(ent&&(s==="ob"||String(s).indexOf("ob:")===0)) return "ob:"+ent+deudaSufijo(e&&e.debtId)+((e&&e.possibleDup)?"#dup":obExtCloudSuffix(e));
+  /* `ob-hist:` NO se parte por `#` en el servidor desplegado: `ob-hist:caja#x.id` se leería
+     como un banco que no está en la lista y el widget dejaría de contar el cargo. Con extId
+     se escribe `ob:` (ese sí se parte) para que la referencia vuelva en el pull. Sin extId
+     se queda `ob-hist:`. `#dup` sigue en `ob-hist` y no arrastra `#x.`. */
+  if(ent&&(s==="ob-hist"||String(s).indexOf("ob-hist:")===0)){
+    if(e&&e.possibleDup) return "ob-hist:"+ent+"#dup";
+    const suf=obExtCloudSuffix(e);
+    if(suf) return "ob:"+ent+deudaSufijo(e&&e.debtId)+suf;
+    return "ob-hist:"+ent;
+  }
   // Un alias TR/Wallet pendiente usa temporalmente el encoding OB que entienden también las OTA
   // anteriores; al resolver «son distintos» vuelve a su origen real `macrodroid`.
   if(s==="macrodroid"||s==="tr") return (e&&e.possibleDup)?"ob:trade_republic#dup":"macrodroid";
@@ -2219,12 +2274,12 @@ function resolvePossibleDup(state, expenseId, same){
 /* Convierte una fila de la tabla `expenses` al formato interno de la app. */
 function expenseFromRow(r){
   const raw=String(r.source||"manual");
-  let ent=null, source=raw, dup=false, debtId=null;
+  let ent=null, source=raw, dup=false, debtId=null, extFrom;
   if(raw==="macrodroid"||raw==="tr"){ ent="trade_republic"; source="macrodroid"; }
   // «ob:ent#dup» = posible repetido que sigue pendiente de su decisión (B09-D): vuelve marcado,
   // así que la app lo sigue dejando fuera del total tras un pull, un reinicio o un segundo móvil.
   // «ob:ent~deuda.id» = cuota de esa deuda (4.21.0): vuelve con su `debtId` para el filtro.
-  else if(raw.indexOf("ob:")===0){ const p=raw.slice(3).split("#"); const pe=partirEntDeuda(p[0]); ent=pe.ent; debtId=pe.debtId; source=(r.ingest_event_id&&p[1]==="dup")?"macrodroid":"ob"; dup=p[1]==="dup"; }
+  else if(raw.indexOf("ob:")===0){ const p=raw.slice(3).split("#"); const pe=partirEntDeuda(p[0]); ent=pe.ent; debtId=pe.debtId; source=(r.ingest_event_id&&p[1]==="dup")?"macrodroid":"ob"; dup=p[1]==="dup"; if(p[1]&&p[1].indexOf("x.")===0){ try{ extFrom=decodeURIComponent(p[1].slice(2))||undefined; }catch(err){ extFrom=undefined; } } }
   else if(raw.indexOf("ob-hist:")===0){ const p=raw.slice(8).split("#"); ent=p[0]||null; source="ob-hist"; dup=p[1]==="dup"; }
   else if(raw.indexOf("manual:")===0){ ent=raw.slice(7)||null; source="manual"; }   // manual con banco elegido
   else if(raw==="supabase"){ source="manual"; }   // legado: antes el pull marcaba todo como supabase
@@ -2250,6 +2305,9 @@ function expenseFromRow(r){
     obName: r.ob_name!=null ? String(r.ob_name) : undefined,
     possibleDup: dup ? true : undefined,
     debtId: debtId || undefined,
+    // `#x.` del source diario (INC-2709-06). Sin esto un segundo móvil pierde el entry_reference
+    // y el siguiente sync vuelve a salar el cargo del mediodía: el par se duplica.
+    extId: extFrom || undefined,
   };
 }
 
@@ -2312,6 +2370,10 @@ function refreshExpenseFromCloud(local, incoming, readStartedAt){
   /* Cuota de deuda (4.21.0): la marca que baja se adopta; una fila de la nube SIN marca no borra
      la local — el upsert con ignoreDuplicates puede dejar la fila vieja de la nube sin el sufijo. */
   if(incoming.debtId) put("debtId", incoming.debtId);
+  /* Rellenar extId si la nube ya lo trae en `#x.` y este móvil lo perdió. No pisar el local:
+     un upsert con ignoreDuplicates puede devolver la fila vieja, sin sufijo, y borrar la
+     referencia que evita el duplicado en el próximo sync. */
+  if(incoming.extId && !local.extId) put("extId", incoming.extId);
   if(!local.noteEdited && Object.prototype.hasOwnProperty.call(incoming,"note")) put("note", incoming.note);
   /* NO realinear `id` aquí: settings.expenseOrder indexa por id local, y en OB el uuid de la
      nube suele diferir (ignoreDuplicates). Cambiarlo huérfana el orden a mano (4.19.74). Tanda
@@ -2551,7 +2613,7 @@ function compareBackupExpenses(copy,current){
 /* Para el push FRECUENTE a la nube (cada ~1,2s): los gastos viven en su tabla `expenses`
    (fuente de verdad), así que NO los duplicamos en el JSONB de app_state → se mantiene ligero
    aunque haya miles de gastos. El backup diario sí guarda el estado completo. */
-function slimForCloud(s){ const c=Object.assign({},s); delete c.expenses; delete c.bankTx; return c; }
+function slimForCloud(s){ const c=Object.assign({},mcSinRecibo(s)); delete c.expenses; delete c.bankTx; return c; }
 
 /* ---------- Desbloqueo biométrico (huella / Face ID vía WebAuthn) ----------
    Candado LOCAL por dispositivo: tras iniciar sesión una vez, la app pide huella al abrir.
