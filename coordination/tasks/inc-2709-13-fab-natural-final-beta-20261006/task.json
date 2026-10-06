@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "id": "inc-2709-13-fab-natural-final-beta-20261006",
+  "from": "codex",
+  "coordinatorSession": "relay-run-97a37e7231f5957f",
+  "createdAt": "2026-10-06T14:06:48.741Z",
+  "to": "codex",
+  "baseSHA": "b57d6dfeb8c8be8b81d2b58ad3679098e34bdc14",
+  "objective": "Completar candidata FAB con guardianes discriminantes, revisión independiente, versión y beta exacta",
+  "scope": [
+    "Sucesora de inc-2709-13-fab-beta-integration-20261006 cerrada blocked. FuentePR147, basebeta ca6. Sin repetir reserva anterior.",
+    "Final natural sin finish; cancel antes550ms acreditado y reveal primerframe; mantener CSSvisibility retardado y reduced-motion, no opacitybarra/transform/bottom negativo.",
+    "Versión y notas es-en-ca, catálogo nuevo y demás identidades/historial/rechazos conservados; limpiar andamios. Revisión independiente final.",
+    "CI exactSHA completa verde antes mergebeta; verificar publicador/artefactos. Sin OKmóvil no producción."
+  ],
+  "restrictions": [
+    "INC-2709-09 acumulativo abierto, no resolución global",
+    "Móvilunknown e inputsblocked; no APK/Edge/SQL/bancos reales",
+    "PR134/141/146 retenidas; no duplicarCursor"
+  ]
+}
