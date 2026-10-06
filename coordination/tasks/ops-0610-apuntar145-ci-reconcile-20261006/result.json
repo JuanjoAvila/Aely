@@ -1,0 +1,29 @@
+{
+  "status": "blocked",
+  "summary": "PR145 SQUASH277793c2 integrado tras revisión independiente exactaGO yCI37460453753SUCCESS. Sólo3specs/docs. Postmain Tests37468453102 yPages37468452952 siguen enprogress: entrega de tooling integrada, cierrepostCI aúnpendiente en sucesor.",
+  "tests": [
+    {
+      "command": "CI37460453753 exacta a5e5;817funcionales+9perf; P10 TRY Efectivo con18negativos",
+      "exitCode": 0
+    },
+    {
+      "command": "independent review a5e5 diff/syntax/scope4files",
+      "exitCode": 0
+    },
+    {
+      "command": "remote main diff6f..0d64 src public VERSION package identical",
+      "exitCode": 0
+    }
+  ],
+  "productSHA": "277793c2a329fa32a97e4aa5cc0ff8d678829b96",
+  "limitations": [
+    "PostmainCI desconocida al cierre de esta unidad",
+    "No runtime ni nueva beta ni resoluciónINC270909"
+  ],
+  "schema": 1,
+  "taskId": "ops-0610-apuntar145-ci-reconcile-20261006",
+  "actor": "codex",
+  "sessionId": "relay-run-b2c5926fb3b45f20",
+  "createdAt": "2026-10-06T13:18:44.899Z",
+  "released": true
+}
