@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "id": "inc-2709-06-utc-boundary-grok-20261006",
+  "from": "codex",
+  "coordinatorSession": "relay-run-b2c5926fb3b45f20",
+  "createdAt": "2026-10-06T13:21:47.490Z",
+  "to": "grok",
+  "baseSHA": "6592b17907c6597e088340005ca343b9d6fda0c8",
+  "objective": "Reproducir y resolver las tres fronteras mensuales de nómina que fallan en UTC, sin alterar el contrato financiero de Madrid",
+  "scope": [
+    "Sucesor del encargo scope141: resultado y liberación confirmados en comentario 6016481819. La expansión de cobertura tiene GO limitado contra su padre; PR146 y PR141 no se integran.",
+    "Checkout Cursor propio desde fuente 6592b179. Reproducir las tres fronteras mensuales es/en/ca en UTC y Madrid, comprobar reloj del fixture y fecha canónica de la app.",
+    "Si el fallo procede del banco sintético, corregir exclusivamente su reloj/semilla conservando aserciones y controles negativos: BOOK o estado ausente, fecha válida no futura Madrid, sin duplicar ingresos ni cambiar saldos.",
+    "Si se demuestra causa en runtime, entregar reproducción y propuesta mínima para revisión antes de ampliar esta unidad; no introducir una decisión ISO nueva ni modificar dinero.",
+    "Entregar commit y PR draft separables con rojo/verde, SHA, pruebas y resultado. Conservar los otros gates: tamaño, widget y documentación. No repetir la suite entera sin cambios relevantes."
+  ],
+  "required": [
+    "ACK y reserva real en issue130 antes de editar; Grok controla exclusivamente Cursor",
+    "No trasladar aprobaciones antiguas: la expansión cambia veinte códigos y conserva historia, diez tandas sin equivalencia automática",
+    "Pruebas sintéticas discriminantes en UTC y Europe/Madrid; datos inventados y sin sincronización real"
+  ],
+  "restrictions": [
+    "Sin merge, beta, main, APK, Edge, SQL, datos reales ni credenciales",
+    "INC-2709-09 acumulativo abierto; beta96 pendiente, lector privado bloqueado",
+    "No reducir aserciones, retries o topes; no repinar hashes o inventar compatibilidad"
+  ]
+}
