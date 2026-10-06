@@ -1,0 +1,31 @@
+{
+  "status": "done",
+  "summary": "Investigacion sintetica conservada en PR137 draft; INC-2709-09 sigue abierto sin causa ni fix demostrado.",
+  "tests": [
+    "Autor: build, sintaxis, relevant-tests, privacidad y diff-check exit0.",
+    "Autor:5200/v1/24 ciclos sinGC intermedio PASS1/1 exit0;3000/v2/12 PASS1/1 exit0, controles y recuperacion validos.",
+    "GC5: batch exit1; solo caso5200 PASS, fallo3000 de espera del guion conservado como limite.",
+    "Revision independiente del mismo arbol: build/sintaxis/mapa/privacidad/diff-check exit0, hashes y cifras recalculados.",
+    "Publicacion:10 blobs con SHA de bytes exacto, arbol35fdac3183b60675265b2d977576ed90fa8a7d3a igual local; branch readback5cf28328d7c061aa1d99fb6f466512aaef8531ae.",
+    "Ambos trabajadores terminaron; WTs limpios y procesos propios recogidos."
+  ],
+  "evidence": {
+    "pr": 137,
+    "sourceSHA": "dd59064e1edb6bd0e14a0d9682a9b61f47dc212e",
+    "localSHA": "7aff0f8bab7377fee8a4b045e3697003e4d4962d",
+    "headSHA": "5cf28328d7c061aa1d99fb6f466512aaef8531ae",
+    "treeSHA": "35fdac3183b60675265b2d977576ed90fa8a7d3a"
+  },
+  "limits": [
+    "Chromium desktop CPU6 y nube doble; no OAuth/transporte bancario real/background real.",
+    "Control conocido acredita instrumento, no causa ni A/B de una mejora.",
+    "Retencion heap crece sin atribucion; no declarar lag global resuelto.",
+    "No merge ni tanda beta nueva de investigacion."
+  ],
+  "schema": 1,
+  "taskId": "inc-2709-09-sustained-repro-20261006",
+  "actor": "codex",
+  "sessionId": "relay-run-e9c59cbe362b1be8",
+  "createdAt": "2026-10-06T05:34:28.735Z",
+  "released": true
+}
