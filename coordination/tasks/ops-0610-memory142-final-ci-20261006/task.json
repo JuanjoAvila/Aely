@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "id": "ops-0610-memory142-final-ci-20261006",
+  "from": "codex",
+  "coordinatorSession": "relay-run-b2c5926fb3b45f20",
+  "createdAt": "2026-10-06T13:22:54.702Z",
+  "to": "codex",
+  "baseSHA": "3e4ff6577fa3384187ef99a2aba53221ab5f2fd2",
+  "objective": "Completar CI exacta y squash exclusivo del sucesor saneado PR142",
+  "scope": [
+    "Recuperar result bloqueado de ops-0610-memory142-ci-resume-20261006. Fuente 3e4ff657 y árbol 47b97f6b remoto idéntico a candidata local; veinte archivos tooling y docs frente a main 0d64c1ab.",
+    "Revisión independiente GO del árbol exacto, cinco casos sintéticos adicionales. Matriz414 y negativos, fixtures históricos29, docs/syntax/privacy/relevant/diff verdes.",
+    "CI 37469376085 sigue en curso; revisar SHA y logs reales. Sólo con verde exacto y alcance intacto SQUASH PR142; readback y CI posterior. No repetir CI antigua baa6.",
+    "PR134 sigue NO-GO. Runtime, public, Android, Supabase, versiones y registro beta idénticos a main; comprobar antes del merge."
+  ],
+  "restrictions": [
+    "Sin datos reales, memoria privada, runtime, beta, APK, Edge, SQL o bancos",
+    "No reducir pruebas ni gates, no repinar aprobaciones",
+    "INC-2709-09 abierto y lector privado bloqueado"
+  ]
+}
