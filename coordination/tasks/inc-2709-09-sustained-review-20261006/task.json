@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "id": "inc-2709-09-sustained-review-20261006",
+  "from": "codex",
+  "coordinatorSession": "relay-run-e9c59cbe362b1be8",
+  "createdAt": "2026-10-06T05:22:24.357Z",
+  "to": "codex",
+  "baseSHA": "dd59064e1edb6bd0e14a0d9682a9b61f47dc212e",
+  "objective": "Revisar independientemente el guion y la evidencia sintetica sostenida final, su procedencia exacta y registro aislado como test de rendimiento. No declarar causa ni arreglo del lag global.",
+  "scope": [
+    "e2e/rendimiento-sostenido.spec.mjs",
+    "scripts/relevant-tests.mjs",
+    "scripts/run-tests.mjs: isPerf",
+    "docs/briefs/inc-2709-09-repro-20261006.md",
+    "docs/briefs: evidencia y guiones exactos de esta investigacion"
+  ],
+  "acceptance": [
+    "Revisar en checkout aislado el commit final del autor, no archivos que sigan cambiando.",
+    "Comprobar SHA de guiones ejecutados, JSON saneado, comandos y exitcodes separados; GC5 no descarta acumulacion.",
+    "Verificar bloqueo de peticiones externas, datos sinteticos y ausencia de cambios runtime/versiones/APK/Edge/SQL.",
+    "Comprobar fuente de frames/heap/nodos/listeners, control conocido y recuperacion, limites foreground siempre visible y Chromium cloud.",
+    "Build/sintaxis/privacidad/mapa de tests del SHA revisado; no repetir benchmark pesado sin motivo.",
+    "GO solo para guardar y revisar investigacion/tooling; no GO del producto ni promocion de otras tandas."
+  ]
+}
