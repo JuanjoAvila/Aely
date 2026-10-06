@@ -1,0 +1,9 @@
+{
+  "id": "ops-0610-inicio96-exact-scope-notes",
+  "to": "codex",
+  "body": "Precisión autoritativa del scope de ops-0610-inicio96-production-exact-20261006, misma unidad y autorización directa dueño: notas de versión viven en src/data/release-notes.json, no src/modules/10-app-components.js. Se permite añadir nota96 es/en/ca sin tandas nuevas a src/data/release-notes.json preservando historial entero; no portear otras tandas. El task permanece inmutable, esta precisión no amplía autorización de producto. Guardián PERSIST91 en tests/beta-sources.test.mjs sólo reconoce nuevo alcance mínimo de lectura sin modificar dependencias previas. INC-2709-09 sigue abierto.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "relay-run-tqjnmmxjddwquexd",
+  "createdAt": "2026-10-06T17:05:10.045Z"
+}
