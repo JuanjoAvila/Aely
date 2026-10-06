@@ -68,3 +68,29 @@ ejecutado y el HTML, por lo que no se confunde con un test corrido desde otro co
 Tras un preflight completo, una nueva sesión larga podrá investigar pendiente por acción y
 retención sin repetir automáticamente las series anteriores. Si aparece degradación, atribuir
 causa discriminante y A/B reversible antes de proponer corrección. Inputs privados bloqueados.
+
+## Serie larga v3 · 12 ciclos / 5.200 gastos (6/10/2026, sin tendencia)
+
+Base `e96e2aa5`, mismo guion v3 sin cambios (Chromium de escritorio, CPU ×6, viewport Pixel 5,
+nube y banco dobles). Tras un preflight de 800 gastos/1 ciclo, la serie pasó (exit0, 6,4 min).
+Todos los ciclos aterrizaron (botones, retroceso, scroll táctil, hidden/visible, offline/online,
+fallo y recuperación del pull doble); 13 fallos de pull offline y 13 recuperados, 13 bankSync
+explícitos (uno por ciclo, incluido el calentamiento) y cero automáticos; cero reescrituras del histórico.
+
+| Medida | Resultado |
+|---|---|
+| RAF lentos (>32 ms) por ciclo | 32, 27, 25, 28, 31, 27, 25, 29, 21, 24, 23, 23: sin pendiente al alza |
+| Tareas largas por ciclo | 11→8; 1011→643 ms |
+| Máx. frame por ciclo | 267 ms como pico (ciclo 9), 150 ms en los tres últimos |
+| Primeros 4 vs últimos 4 ciclos, por acción | sin acción que empeore de forma sostenida; `foreground-retry` (pull+render tras volver a visible) concentra los frames más largos en ambos tramos (233/267 ms) |
+| Heap tras GC (inicio → final) | 15,6 → 16,4 MB; natural 17,8 MB; el checkpoint del ciclo 5 (19,8 MB) bajó a 17,8 MB en el 10 |
+| Nodos / listeners / DOM / backStack / timers | 1613 / 470 / 968 / 0 / 1 idénticos al inicio y al final tras GC (los picos 1795/533 son transitorios) |
+| Control degradado / recuperado | 4,73 vs 1,18 (normal) vs 1,08 (recuperado) RAF lentos/s: el instrumento distingue el bloqueo |
+
+Lectura: **no se reproduce degradación acumulativa** en esta serie; INC-2709-09 sigue abierto y
+sin causa. Una serie de 12 ciclos (~4,5 min de uso) no descarta algo que en el móvil aparece tras
+mucho más tiempo o con suspensión real de la WebView, RAF/timers estrangulados por el SO,
+presión de memoria, reconexión real de sockets/auth o varias sesiones de nube; ninguna de esas
+condiciones existe aquí. Escenario que falta: duración de horas con suspensión real en dispositivo.
+Coste instrumental igual que en v3 (marca evaluate por acción, lecturas de lifecycle); los pulls
+del arranque quedan fuera del contador de ciclos (el contador de `start` ya incluye los de boot).
