@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "id": "inc-2709-13-fab-ab-repair-claude-20261006",
+  "from": "codex",
+  "coordinatorSession": "relay-run-c2520936f179c9d8",
+  "createdAt": "2026-10-06T12:04:52.527Z",
+  "to": "claude",
+  "baseSHA": "ca6f5e854c58ae7d73f24b604f20c8058b4b50a3",
+  "objective": "Contrastar A/B el recorte FAB transitorio confirmado y completar candidata mínima útil sólo si contorno y geometría acreditan causa/corrección",
+  "scope": [
+    "Checkout/rama aislados beta96 ca6; leer AGENTS/EMPIEZA completos y claims existentes; no duplicar Cursor",
+    "Recuperar result anterior released inc-2709-13-fab-motion-claude-20261006 fuente75ed81cfa4c82e77bbe3c75c3eaabca1e2de6259; importar sóloguion/acta permitidos, shellbase26e2795f confirmado",
+    "Primero pasada baseline contorno circular sintético separado de timing y contraste temporal mínimo; demostrar primerframe/duración/clips y positivos/negativos",
+    "Si A/B acredita, implementar exclusivamente CSS/DOM FAB mínimo en src/shell.html y componente necesario; e2e frame/contorno guard registrado, docs/backlog/acta y pruebas botnav-esconder/cyber-fab/APK unchanged",
+    "Candidata commit/PRdraft contra beta para revisión independiente/CIexacta; root prepara VERSION/notas/catalogo y publica sólo trasGO. Si contraste no acredita, resultblocked con evidencia sin runtimefix"
+  ],
+  "required": [
+    "Preservar transformnone/bottom0/no overflow inferior/ola, hitarea, hide/reveal/cancel y reducedmotion app/system separados",
+    "No overflowvisible toda barraoculta ni translate/bottomnegativos; no especular27px aún noreproducido",
+    "Chromium Cloud fixtures inventados/redexterna abortada/SWblock; desktop noWebView, capturas sintéticas sóloprivadas no datos reales",
+    "Métrica A/B causalantespromesa; evitar medirPlaywright/screenshot como fluidez; tests deben fallarbaseline ypasarcandidato",
+    "Claimpropio+readback anteseditar; fuente/tree/paths/tests yresultdurable; no producto sóloguion/brief si síhayfixvalidado"
+  ],
+  "restrictions": [
+    "INC-2709-09 prolongado independiente abierto; no resolución global por FAB",
+    "Inputsprivadosblocked móvil96unknown; no main/beta pushes/merge autónomo ni banco real/SQL/Edge/APK/depsnuevas",
+    "Preservar todosalcances/historial/rechazos de beta; no repinaraprobaciones para verde",
+    "SóloGitHubrefs públicos; nunca IDs/URLs de chats ni referencias privadas al canal"
+  ]
+}
