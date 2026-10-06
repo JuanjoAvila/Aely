@@ -1,0 +1,11 @@
+{
+  "status": "blocked",
+  "summary": "Preparación no iniciada: scope inicial nombra módulo inexistente y omite e2e/tests. Sucesor con scope real 03-tab-dash conserva misma base y aprobación. No cambios ni publicación producto de este encargo.",
+  "tests": [],
+  "schema": 1,
+  "taskId": "ops-0610-inicio96-production-20261006",
+  "actor": "codex",
+  "sessionId": "relay-run-tqjnmmxjddwquexd",
+  "createdAt": "2026-10-06T17:03:30.194Z",
+  "released": true
+}
