@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "id": "ops-0610-inicio96-production-20261006",
+  "from": "codex",
+  "coordinatorSession": "relay-run-tqjnmmxjddwquexd",
+  "createdAt": "2026-10-06T17:00:13.233Z",
+  "to": "codex",
+  "baseSHA": "537edc1c33433fe122266e21f0d158c7b943b625",
+  "objective": "Promocionar exclusivamente inc-0410-inicio-tres-metas de beta 4.26.96.1 aprobada directamente por el dueño el 6 de octubre; cotejar source ca6f5e854c58ae7d73f24b604f20c8058b4b50a3 huella f74ec4d9155e1557 y codigo 06180d02b24123caf20a1ca188f1f5f63c12d2d20974a3917b8d3377dd6084d9. Preparar separable sobre main, revisar independiente y CI exacta, verificar producción antes de retirar tanda beta. No arrastrar 97 ni anteriores sin aprobar. Dinero, APK Edge SQL mantienen gates. INC-2709-09 acumulativo abierto.",
+  "scope": [
+    "src/modules/03-tab-inicio.js",
+    "src/modules/10-app-components.js",
+    "scripts/beta-sources.json",
+    "VERSION",
+    "package.json",
+    "package-lock.json",
+    "public/index.html",
+    "docs",
+    "README.md",
+    "CHANGELOG.md"
+  ]
+}
