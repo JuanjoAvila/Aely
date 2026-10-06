@@ -183,7 +183,7 @@ async function cycle(page,cdp) {
 }
 
 for(const size of sizes)test("uso sostenido con nube doble y control discriminante: "+size,async({page},testInfo)=>{
-  test.setTimeout(Math.max(240000,cycles*22000+180000));
+  test.setTimeout(Math.max(240000,cycles*30000+300000));
   let blockedExternalRequests=0;
   const localOrigin=new URL(testInfo.project.use.baseURL).origin;
   await page.context().route("**/*",route=>{

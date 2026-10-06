@@ -68,3 +68,33 @@ ejecutado y el HTML, por lo que no se confunde con un test corrido desde otro co
 Tras un preflight completo, una nueva sesión larga podrá investigar pendiente por acción y
 retención sin repetir automáticamente las series anteriores. Si aparece degradación, atribuir
 causa discriminante y A/B reversible antes de proponer corrección. Inputs privados bloqueados.
+
+## Serie larga v3 de 30 min efectivos (6/10/2026, entorno Cloud Linux)
+
+Encargo `inc-2709-09-duration30-claude-20261006`, sobre main `6f035b09bc873ed102029aad9ddfe89efa78bb40`.
+INC-2709-09 **sigue abierto**: una serie sintética sin pendiente no descarta el síntoma humano.
+Chromium 141 de escritorio con viewport Pixel 5, CPU×6, fixture sintético de 5.200 gastos,
+`MC_LAG_CYCLES=80`. Único cambio de tooling: el timeout del test pasa a `cycles*30000+300000`
+(con la fórmula anterior, 80 ciclos de ~23 s no cabían). Sin pausas añadidas: los ciclos
+son los de v3 y duran 22,6-23,2 s. Hashes: guion `9538afa0…9d69e`, HTML `cdd42115…7429c`.
+
+- Calentamiento 23 s, 80 ciclos normales = **30,5 min efectivos**, todos aterrizados (`valid`).
+  Control de bloqueo ×2 y recuperación válidos; diagnóstico de acción ausente trazado. Test OK (32,5 min).
+- Ventanas de 10 ciclos (frames >32 ms por minuto / tarea larga ms por minuto / maxFrame ms):
+  160/3811/417 · 161/3527/317 · 150/3537/417 · 155/3772/367 · 194/4048/383 · 174/4107/550 ·
+  161/3920/367 · 165/3897/483. Sin tendencia monótona; la ventana 41-60 sube ~15 % y vuelve en 61-80.
+  Pendiente lineal por ciclo: +0,16 frames lentos/min por ciclo (≈8 % en 80 ciclos), dentro del ruido
+  entre ventanas: **no se acredita pendiente**. Tasa global normal 2,75/s, control 5,63/s, recuperado 3,18/s.
+- Retención (heap natural, sin GC entre ciclos): inicio 14,8 MB; checkpoints 16,7-19,2 MB en dientes de sierra;
+  final 19,8 MB natural → 16,5 MB tras GC final. Nodos 1613→1795 (vuelve a 1613 en el ciclo 50 y tras GC),
+  listeners 470→533 (igual), documentos 1, DOM 968, intervalos 1, backstack 0: acotado, sin fuga detectada.
+- Contadores: 81 sync de banco explícitos (uno por ciclo + 1 del calentamiento), cero automáticos;
+  81 pulls offline fallidos y 81 recuperados; `expensesWrites` constante en 1 (cero reescrituras del histórico);
+  maxInFlight 1; 4 peticiones externas bloqueadas.
+- Por acción, 1.ª mitad vs 2.ª mitad: las diferencias (p. ej. `scroll-up-inicio`, `scroll-up-gastos`)
+  son del orden del ruido y sin patrón de una sola acción; no hay primer tramo/acción que localizar,
+  por lo que **no se propone A/B ni corrección**.
+
+Límites: no es una WebView ni suspensión del SO, ni sockets/auth/realtime reales; RAF de escritorio;
+una sola semilla y una sola pasada (sin repetición ni IC). Un recorrido de 30 min a ritmo de guion
+no equivale a días de uso ni a la memoria de un móvil real. Sigue pendiente el input humano.
