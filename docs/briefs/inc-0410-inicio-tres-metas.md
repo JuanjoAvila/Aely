@@ -8,4 +8,6 @@ Reconciliación 6/10: la CI completa de PR140 sobre fb3d5b19 terminó roja en PE
 
 Revisión independiente de fuente y corrección PERSIST91: GO, con clasificación y mutaciones comprobadas sin editar el registro. Pendientes: ejecución DOM de los doce casos, CI verde del nuevo SHA y publicación exacta. El job rojo anterior paró antes de los E2E. Chromium local bloqueado por socket de proceso; no se acredita pantalla con sintaxis. Notas y guion móvil nuevos en tres idiomas, alcance acotado a la selección de metas de Inicio. Las notas anteriores se conservan; la tanda95 solo se retira por entrega normal acreditada.
 
+Producción95 acreditada el6/10 a10:14UTC: HTTP200 de HTML, manifiesto, SW, recibo, APK y catálogo idénticos al artefacto Pages11393352916 de e9336aee. Se vacía únicamente `tandas` de4.26.95 conservando el array explícito, su nota familiar y todas las demás versiones, tandas e historias. La publicación normal de96 debe acreditar catálogo final y la única tanda nueva; no sustituir recibos ni veredictos.
+
 INC-2709-09 permanece abierto para degradación por uso prolongado; este cambio no es una corrección de rendimiento. Inputs privados blocked; sin nueva aprobación inferida. Sin main, APK, Android, Edge, SQL ni operaciones reales.
