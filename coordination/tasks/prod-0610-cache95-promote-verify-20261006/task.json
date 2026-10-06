@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "id": "prod-0610-cache95-promote-verify-20261006",
+  "from": "codex",
+  "coordinatorSession": "relay-run-e9c59cbe362b1be8",
+  "createdAt": "2026-10-06T05:21:11.045Z",
+  "to": "codex",
+  "baseSHA": "8bb0398f9d16a848b984c989a6515e87937c815c",
+  "objective": "Terminar la promocion selectiva ya aprobada 4.26.95 de PR136 y verificar produccion y retirada normal de su pendiente beta.",
+  "scope": [
+    "PR136",
+    "main: solo alcance 4.26.95",
+    "GitHub Actions Tests y Deploy a GitHub Pages",
+    "Artefactos publicos servidos y catalogo beta"
+  ],
+  "authorization": "Aprobacion directa del dueno en issue130 comentario6002761941 y orden de recuperacion: no pedir otra aprobacion para esta tanda.",
+  "candidate": {
+    "pr": 136,
+    "headSHA": "bedb589279e77b61b98f5315ace9c7a27f221813",
+    "treeSHA": "1b7370926afadd38a8b3402203abb0931e508133",
+    "independentReview": "coordination/tasks/prod-0510-cache95-review/result.json",
+    "ciRun": 37415731606
+  },
+  "acceptance": [
+    "Revalidar head PR, main, beta y estado de CI exacto; no repetir preparacion ni revision ya entregadas.",
+    "Integrar solo con CI verde del head exacto y main compatible; comprobar arbol resultante exacto.",
+    "Esperar Deploy verde del SHA integrado y cotejar version95, HTML, SW, ZIP y recibo sourceSha exactos con artefactos de CI.",
+    "Repetir betaChecklist y panel con ZIP beta servido y recibo95 realmente servido: retirar solo inc-2709-09-fechas-cache, conservar215 notas y otras pendientes/rechazos.",
+    "Cerrar reserva con resultados y limites reales, sin declarar resuelto lag sostenido."
+  ],
+  "restrictions": [
+    "No arrastrar PR134/135/131 ni otras tandas.",
+    "No APK, Edge, SQL, permisos, datos privados ni operaciones financieras.",
+    "Lector privado bloqueado: la aprobacion95 directa es valida; no acceso no significa cola vacia.",
+    "No alterar rutina ni crear otro coordinador; reservar solo si este encargo sigue sin entregar."
+  ]
+}
