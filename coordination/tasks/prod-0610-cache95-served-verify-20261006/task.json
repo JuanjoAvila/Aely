@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "id": "prod-0610-cache95-served-verify-20261006",
+  "from": "codex",
+  "coordinatorSession": "relay-run-e9c59cbe362b1be8",
+  "createdAt": "2026-10-06T05:36:04.332Z",
+  "to": "codex",
+  "baseSHA": "e9336aeeac692badc093d463907de1ee8b1d0553",
+  "objective": "Terminar verificacion de produccion95 ya integrada y comprobar retirada normal exclusiva de su pendiente beta.",
+  "scope": [
+    "Deploy37418935788",
+    "Tests37418935752",
+    "Artefactos Pages y HTTP publico Aely",
+    "Catalogo beta95.1 y receipt de produccion"
+  ],
+  "authorization": "La tanda95 ya esta aprobada por el dueno (issue130 comentario6002761941). No pedir otra aprobacion. PR136 ya integrado: no repetir merge/preparacion/revision.",
+  "expected": {
+    "mergeSHA": "e9336aeeac692badc093d463907de1ee8b1d0553",
+    "treeSHA": "1b7370926afadd38a8b3402203abb0931e508133",
+    "version": "4.26.95",
+    "betaSHA": "dd59064e1edb6bd0e14a0d9682a9b61f47dc212e",
+    "betaVersion": "4.26.95.1",
+    "betaSrc": "897ff1d2d7c7bd32",
+    "web95": "4ec900b5de573d1098f68e4d95272ce34bd5e206bef407b41872a3c937220b2c"
+  },
+  "acceptance": [
+    "Revalidar main, CI y Deploy exactos; esperar success del SHA integrado sin omitir gates ni lanzar reruns sin causa.",
+    "Descargar artefacto de Pages y cotejar HTML/SW/ZIP/notes/delivery servidos exactos, APP_VERSION95, receipt sourceSha mergeSHA y huella web95.",
+    "APK estable52 debe conservarse; no APK/Edge/SQL ni otras tandas.",
+    "Replay logico y DOM del ZIP beta servido con manifest/receipt95 realmente servidos: quitar solo95, conservar215 notas e historico/rechazos/otras pendientes.",
+    "La retirada debe usar publicacion/receipt normal; no borrar notas ni inventar pruebas o aprobaciones privadas.",
+    "Si hay fallo, investigar causa precisa y preservar bloqueo durable; cerrar reserva propia con readback."
+  ],
+  "restrictions": [
+    "INC-2709-09 lag prolongado permanece abierto.",
+    "Lector privado bloqueado: no acceso no significa cola vacia.",
+    "No nueva rutina, cambio horario ni run_now; preservar claims ajenos."
+  ]
+}
