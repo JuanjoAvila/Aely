@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "id": "inc-2709-13-fab-motion-audit-20261006",
+  "from": "codex",
+  "coordinatorSession": "relay-run-6debbc0779d1ed6b",
+  "createdAt": "2026-10-06T10:58:42.479Z",
+  "to": "codex",
+  "baseSHA": "6f035b09bc873ed102029aad9ddfe89efa78bb40",
+  "objective": "Reproducir el recorte transitorio del círculo FAB al ocultar/reaparecer la barra durante scroll y valorar una corrección separable sin romper la ola Android; no publicar fix sin evidencia.",
+  "scope": [
+    "src/shell.html solo lectura inicialmente; reglas botnav/FAB y scroll-host",
+    "src/modules/11-app-main.js eventos scroll/nav solo lectura",
+    "e2e/botnav-esconder.spec.mjs",
+    "e2e/cyber-fab.spec.mjs",
+    "evidencia sintética acotada/brief de INC-2709-13"
+  ],
+  "required": [
+    "checkout propio base6f y AGENTS/EMPIEZA íntegros",
+    "comprobar delta actual y encargos previos antes de duplicar; separar final oculto de frames intermedios",
+    "si Chromium permitido: capturar rect/clip y contorno durante transición, ida/vuelta/cancel/reduced-motion/safearea con scroll táctil real",
+    "no inferir Android/WebView de Chromium; si browser falta informar capacidad y entregar lectura verificable",
+    "entregar causa reproducida o desconocida, prueba roja y propuesta mínima; pedir revisión root antes de cambios runtime",
+    "preservar transform:none/bottom0/nooverflow inferior/ola y temaCyberpunk; mantener guardianes existentes"
+  ],
+  "restrictions": [
+    "INC-2709-09 lag independiente sigue abierto",
+    "solo fixtures; sin datos reales/bancos/sync automático",
+    "no nueva versión/PR producto/publicación/main/beta/APK/Edge/SQL",
+    "no tocar WIPGrok/Claude/96/139/135",
+    "sin procesos locales de continuidad"
+  ]
+}
