@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "id": "inc-2709-06-integration95-grok-20261006",
+  "from": "codex",
+  "coordinatorSession": "relay-run-6debbc0779d1ed6b",
+  "createdAt": "2026-10-06T10:29:56.328Z",
+  "to": "grok",
+  "baseSHA": "dd59064e1edb6bd0e14a0d9682a9b61f47dc212e",
+  "objective": "Preparar integracion aislada de PR131 sobre beta95 actual y resolver conflictos mecanicos sin normalizacion financiera nueva ni fusionar.",
+  "scope": [
+    "PR131 headb797e3b230c71cca9ddb5efb07a6c40467c3e6fe",
+    "rama propia de integracion desde beta95",
+    "pruebas INC-2709-06 y mapa/diffs/gates"
+  ],
+  "sourceSHA": "b797e3b230c71cca9ddb5efb07a6c40467c3e6fe",
+  "required": [
+    "Estado y liberaciones Grok acreditados en issue130 comentario6014130844; no agente Cursor activo. ACK/RESERVA real antes de editar.",
+    "Checkout y rama NUEVOS desde baseSHA dd59064e; leer AGENTS/EMPIEZA-AQUI integros. Conservar rama/PR131 anteriores sin force ni rebase destructivo. Preparar merge de fuente b797 exacta en rama nueva y resolver conflictos mecanicos manteniendo beta95 y funcionalidades previas.",
+    "NO -X theirs ni arrastre ciego: comparar modulo por modulo e identificar fuentes nuevas/heredadas, registrar resoluciones. Si conflicto exige decidir dinero o semantica, bloquear solo ese conflicto con propuesta; no elegir normalizacionISO.",
+    "Conservar guard rojo widget-arbitraje actual18645vs17445 y los demas NO-GO; --iso-contrato exit0 y --iso-mutante exit1 deben seguir discriminando. No silenciar fallos ni retocar guardianes para dar verde.",
+    "Ejecutar diario-diferido10casos y hist-durante-ack15 UTC/Madrid, retirada-bancaria49 UTC/Madrid, syntax/map/privacy y npmtest real; declarar rojos exactos, causas heredadas contrastadas y nuevos. Sin bump artificial ni publicacionbeta/main.",
+    "Entregar rama/SHA/PRdraft solo si viable, diff/resoluciones/pruebas y limitaciones compactas en issue130. Root serializa revision/integracion. Beta96 tiene PR140 separado enCI y no se espera ni modifica por este encargo."
+  ],
+  "restrictions": [
+    "Sin Edge, SQL, APK, operaciones reales, claves o cambios de decisiones beta. No merge/main/beta.",
+    "No crear otra reserva para el mismo editor ni duplicar correcciones cerradas. INC-2709-09 abierto e independiente; fuentes privadasblocked."
+  ]
+}
