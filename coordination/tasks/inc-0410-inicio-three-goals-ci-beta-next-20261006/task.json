@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "id": "inc-0410-inicio-three-goals-ci-beta-next-20261006",
+  "from": "codex",
+  "coordinatorSession": "relay-run-6a8e5ba32915c210",
+  "createdAt": "2026-10-06T06:47:26.667Z",
+  "to": "codex",
+  "baseSHA": "fb3d5b19c7e365ccf50ae37b29a353a4437e21b3",
+  "objective": "Completar candidata96 PR140 hasta beta solo tras review/CI exacta y resolver gates existentes, sin main.",
+  "scope": [
+    "PR140",
+    "CI37425391563",
+    "Inicio tres metas y DOM12 casos",
+    "Pruebas historico rojas y contraste base",
+    "Publicacion beta y artefactos servidos exactos"
+  ],
+  "required": [
+    "Revalidar PR140 headfb3d5b19c7e365ccf50ae37b29a353a4437e21b3 tree8beb1341c8cb267172c2ac9e40345ee17ec811f0 y base main temporal soloCI; NO merge main.",
+    "CI efectiva completa exacta verde requerida. Localnpmtest exit1 tres guardianes historico; contrastar en beta dd59064e antes de atribuir, investigar causa sin silenciarlos.",
+    "Source GO independiente del arbol por production_verify; DOM sigue pendiente. Mantener filtro done antes slice0,3, orden y estado entero en Plan.",
+    "Tras CI/GO, retarget PR140 beta, diff contra beta solo unidad96 y acta95; revisar integracion y publisher SHA exacto, ZIP/manifest/HTML/SW/notes/catalogo/APK52 antes de anunciar nueva beta.",
+    "Conservar historial/rechazos/notas;95 solo por receipt normal acreditado. No aprobar nuevas tandas por CI."
+  ],
+  "restrictions": [
+    "Sin APK/Edge/SQL/finanzas reales.",
+    "INC-2709-09 abierto; inputs suggestions/errors/beta blocked."
+  ]
+}

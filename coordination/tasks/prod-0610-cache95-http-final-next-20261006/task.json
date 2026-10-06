@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "id": "prod-0610-cache95-http-final-next-20261006",
+  "from": "codex",
+  "coordinatorSession": "relay-run-6a8e5ba32915c210",
+  "createdAt": "2026-10-06T06:47:27.076Z",
+  "to": "codex",
+  "baseSHA": "e9336aeeac692badc093d463907de1ee8b1d0553",
+  "objective": "Completar cotejo HTTP y catalogo servido de produccion95 ya integrada, sin repetir merge ni promocion.",
+  "scope": [
+    "Artefacto Pages11393352916",
+    "Tests37418935752 y Deploy37418935788",
+    "HTTP HTML/SW/ZIP/version/notes/delivery/APK",
+    "Retirada normal solo95"
+  ],
+  "required": [
+    "Tests y Deploy exactose9336 SUCCESS; Pagesartifact version95/sourceShae9336 y web954ec900b5de573d1098f68e4d95272ce34bd5e206bef407b41872a3c937220b2c comprobados por worker previo.",
+    "HTTPpublico trasdeploy timeoutproxy en todosassets y tambienwebopeninaccesible: servido actual unknown, no usar descarga94 previa como fresca.",
+    "Con entorno permitido cotejar bytes artifact vs HTTP exactos y replay logico/DOM del ZIPbeta servido con receipt95; retirar soloinc-2709-09-fechas-cache, conservar215notas/historia/rechazos/otraspendientes/APK52.",
+    "Replaylogico local con receiptartifact retira solo95 y conserva historias; no equivale a DOM/HTTPservido. No pedir otra aprobacion para95 ya autorizada."
+  ],
+  "restrictions": [
+    "No nuevas promociones/mainwrites ni APK/Edge/SQL.",
+    "INC-2709-09 prolongado abierto, inputs privados blocked."
+  ]
+}

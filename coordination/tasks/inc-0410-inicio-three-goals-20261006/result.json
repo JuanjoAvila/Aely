@@ -1,0 +1,29 @@
+{
+  "status": "done",
+  "summary": "Candidata96 de Inicio durable en PR140, arbol exacto y revision independiente source GO; sin nueva beta, CI/DOM pendientes.",
+  "productSHA": "fb3d5b19c7e365ccf50ae37b29a353a4437e21b3",
+  "productTree": "8beb1341c8cb267172c2ac9e40345ee17ec811f0",
+  "pr": 140,
+  "tests": [
+    {
+      "command": "npm run build; syntax; relevant-tests; privacy; diff-check",
+      "exitCode": 0
+    },
+    {
+      "command": "npm test local completo609.2s: hist-import-dup/hist-pagos-mensuales/hist-fecha-que-baila rojos; Deno omitido",
+      "exitCode": 1
+    }
+  ],
+  "limitations": [
+    "PR140 draft main solo para CI37425391563 real en curso; PROHIBIDO merge main. Retarget beta tras gates.",
+    "Sin DOM local por restriccion Chromium; tres fallos financieros requieren contraste con base, no suponer que son nuevos ni omitirlos.",
+    "Datos/reglas/saldos intactos; fuente exacta revisada equivalente al arbol publicado.",
+    "INC-2709-09 prolongado sigue abierto, lector privado blocked."
+  ],
+  "schema": 1,
+  "taskId": "inc-0410-inicio-three-goals-20261006",
+  "actor": "codex",
+  "sessionId": "relay-run-6a8e5ba32915c210",
+  "createdAt": "2026-10-06T06:47:26.460Z",
+  "released": true
+}

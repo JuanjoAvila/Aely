@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "id": "inc-2709-09-tooling139-ci-review-next-20261006",
+  "from": "codex",
+  "coordinatorSession": "relay-run-6a8e5ba32915c210",
+  "createdAt": "2026-10-06T06:47:26.873Z",
+  "to": "codex",
+  "baseSHA": "baba0724493597dc7151b7f19557fa8229bfa794",
+  "objective": "Reconciliar CI37422829747 y revisar tooling139 con ejecucion efectiva, sin declarar causa/fix ni fabricar beta.",
+  "scope": [
+    "PR139",
+    "PR138/137 historico",
+    "Guion lifecycle-network-v3",
+    "Tests/actas/tooling12 paths"
+  ],
+  "required": [
+    "Revalidar PR139 headbaba0724493597dc7151b7f19557fa8229bfa794 tree86bc59b8f7994fc94108b076771be1ced9b777c1;12blobs cotejados, mainbasee9336aee.",
+    "Localbuild/sintaxis/mapa/privacidad exit0; Chromium no lanzo cuerpo por socketdenegado, ningun JSON v3 de exito. CI real37422829747 en curso al cierre.",
+    "Revision independiente fuerte despues de resultados; getters visibility solo ramas, offline Chromium+doble sin transportebankreal ni corteinflight, rAF bucket no causal y snapshots agregan coste: no A/B v2/v3 de rendimiento.",
+    "Tooling separado puede ir main solo review+CI verdes y alcance no runtime; preservar run-tests/relevantmap main. PR138 siguebeta draft, PR137historico no integrar por asociacion.",
+    "Si aparece degradacion obtener causa discriminante y A/B antes de proponer fix; mantener INC-2709-09 abierto."
+  ],
+  "restrictions": [
+    "Sin bump ni beta artificial, bancoautomatico/operacionreal/Edge/SQL/APK.",
+    "Lector privado blocked no cola vacia."
+  ]
+}

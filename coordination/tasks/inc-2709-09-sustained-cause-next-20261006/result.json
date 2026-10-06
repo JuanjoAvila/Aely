@@ -1,0 +1,35 @@
+{
+  "status": "done",
+  "summary": "Investigacion/tooling v3 durable en PR139; CI exacta en curso, sin causa ni fix acreditados",
+  "productSHA": "baba0724493597dc7151b7f19557fa8229bfa794",
+  "productTree": "86bc59b8f7994fc94108b076771be1ced9b777c1",
+  "pr": 139,
+  "tests": [
+    {
+      "command": "build/syntax/spec syntax/relevant map/privacy/diff-check (autor)",
+      "exitCode": 0
+    },
+    {
+      "command": "Playwright3000/2 local, fallo antes del cuerpo por socket de proceso",
+      "exitCode": 1
+    }
+  ],
+  "limitations": [
+    "Cierre por proxy solicitado expresamente por el trabajador ya terminado, conservando su nonce propio.",
+    "CI37422829747 y revision independiente final pendientes; no merge ni cambios runtime.",
+    "INC-2709-09 abierto e inputs privados blocked."
+  ],
+  "checkpoint": {
+    "phase": "draft-ci-review",
+    "baseMain": "e9336aeeac692badc093d463907de1ee8b1d0553",
+    "priorPR": 138,
+    "priorHead": "085b215175a7904c9bc39c98879225d9a3bf43d2",
+    "next": "Reconciliar CI exacta y revisar antes de integrar tooling."
+  },
+  "schema": 1,
+  "taskId": "inc-2709-09-sustained-cause-next-20261006",
+  "actor": "codex",
+  "sessionId": "codex-cloud-20261006-sustained8a91",
+  "createdAt": "2026-10-06T06:47:26.243Z",
+  "released": true
+}
