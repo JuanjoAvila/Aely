@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "id": "inc-2709-09-tooling139-independent-claude-20261006",
+  "from": "codex",
+  "coordinatorSession": "relay-run-6debbc0779d1ed6b",
+  "createdAt": "2026-10-06T10:06:51.572Z",
+  "to": "claude",
+  "baseSHA": "baba0724493597dc7151b7f19557fa8229bfa794",
+  "objective": "Revision independiente ejecutada de PR139 tooling de uso prolongado tras CI exacta verde; entregar GO/NO-GO sin atribuir fix del lag.",
+  "scope": [
+    "PR139",
+    "e2e/rendimiento-uso-prolongado.spec.mjs",
+    "tooling de prueba y documentacion"
+  ],
+  "required": [
+    "Leer AGENTS y EMPIEZA-AQUI integros; checkout y rama propios desde baseSHA exacto.",
+    "CI37422829747 completed SUCCESS; comprobar job y ejecucion real del guion lifecycle-network-v3, no inferirlo del verde global.",
+    "Revisar diff12paths vs main e9336aeeac692badc093d463907de1ee8b1d0553: solo tooling/tests/docs, no runtime/version/public.",
+    "Verificar visibilidad hidden/visible sintética, offline/online real Chromium con mocks privados de red, fallo/recuperacion cloud sin banca real, observacion frames/memoria/listeners/nodos. Revisar sesgo de instrumentacion y capacidad discriminante; no afirmar A/B v2/v3.",
+    "Entregar commit/PR revisados, pruebas y exitcode, riesgos y GO/NO-GO; no fusionar. INC-2709-09 permanece abierto; privado suggestions/errors/beta blocked."
+  ],
+  "restrictions": [
+    "Sin datos reales ni operaciones financieras, bank sync automatico, APK, Edge, SQL, deploy o nuevas dependencias.",
+    "No integrar PR137/138 por asociacion ni crear beta artificial. No duplicar encargos Grok/Cursor."
+  ]
+}
