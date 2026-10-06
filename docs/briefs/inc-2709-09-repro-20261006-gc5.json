@@ -1,0 +1,230 @@
+{
+  "schema": 1,
+  "sourceSHA": "dd59064e1edb6bd0e14a0d9682a9b61f47dc212e",
+  "htmlSHA256": "b51a3ef55d6e8ce9530e9e7e986fa5d6024ac0ed1e99196494ff50bce978f22c",
+  "platform": "Linux cloud / Chromium desktop / Pixel5 viewport",
+  "browser": "149.0.7827.55",
+  "cpuRate": 6,
+  "size": 5200,
+  "cycles": 12,
+  "start": {
+    "documents": 1,
+    "nodes": 1613,
+    "jsEventListeners": 470,
+    "heapUsed": 14290724,
+    "domElements": 968,
+    "backStack": 0,
+    "writes": 16,
+    "bytes": 1914690,
+    "expensesWrites": 1,
+    "cloud": {
+      "bankLinks": 2,
+      "bankSync": 1,
+      "pullExpenses": 1
+    },
+    "intervalTimers": 1
+  },
+  "end": {
+    "documents": 1,
+    "nodes": 1613,
+    "jsEventListeners": 470,
+    "heapUsed": 15050344,
+    "domElements": 968,
+    "backStack": 0,
+    "writes": 40,
+    "bytes": 2031906,
+    "expensesWrites": 1,
+    "cloud": {
+      "bankLinks": 26,
+      "bankSync": 13,
+      "pullExpenses": 13
+    },
+    "intervalTimers": 1
+  },
+  "checkpoints": [
+    {
+      "cycle": 5,
+      "documents": 1,
+      "nodes": 1613,
+      "jsEventListeners": 470,
+      "heapUsed": 14748464,
+      "domElements": 968,
+      "backStack": 0,
+      "writes": 26,
+      "bytes": 1963530,
+      "expensesWrites": 1,
+      "cloud": {
+        "bankLinks": 12,
+        "bankSync": 6,
+        "pullExpenses": 6
+      },
+      "intervalTimers": 1
+    },
+    {
+      "cycle": 10,
+      "documents": 1,
+      "nodes": 1613,
+      "jsEventListeners": 470,
+      "heapUsed": 15018520,
+      "domElements": 968,
+      "backStack": 0,
+      "writes": 36,
+      "bytes": 2012370,
+      "expensesWrites": 1,
+      "cloud": {
+        "bankLinks": 22,
+        "bankSync": 11,
+        "pullExpenses": 11
+      },
+      "intervalTimers": 1
+    }
+  ],
+  "measured": [
+    {
+      "elapsed": 15913,
+      "frames": 928,
+      "slow": 13,
+      "maxFrame": 116.70000000000073,
+      "longtaskMs": 384,
+      "longtasks": 5,
+      "cycle": 1
+    },
+    {
+      "elapsed": 15866,
+      "frames": 924,
+      "slow": 14,
+      "maxFrame": 116.69999999999709,
+      "longtaskMs": 340,
+      "longtasks": 4,
+      "cycle": 2
+    },
+    {
+      "elapsed": 15886,
+      "frames": 926,
+      "slow": 12,
+      "maxFrame": 133.3000000000029,
+      "longtaskMs": 322,
+      "longtasks": 4,
+      "cycle": 3
+    },
+    {
+      "elapsed": 15860,
+      "frames": 921,
+      "slow": 16,
+      "maxFrame": 99.89999999999418,
+      "longtaskMs": 346,
+      "longtasks": 4,
+      "cycle": 4
+    },
+    {
+      "elapsed": 15846,
+      "frames": 926,
+      "slow": 12,
+      "maxFrame": 133.39999999999418,
+      "longtaskMs": 342,
+      "longtasks": 4,
+      "cycle": 5
+    },
+    {
+      "elapsed": 15872,
+      "frames": 923,
+      "slow": 13,
+      "maxFrame": 133.29999999998836,
+      "longtaskMs": 346,
+      "longtasks": 4,
+      "cycle": 6
+    },
+    {
+      "elapsed": 15879,
+      "frames": 924,
+      "slow": 14,
+      "maxFrame": 116.70000000001164,
+      "longtaskMs": 345,
+      "longtasks": 4,
+      "cycle": 7
+    },
+    {
+      "elapsed": 15897,
+      "frames": 926,
+      "slow": 14,
+      "maxFrame": 116.59999999997672,
+      "longtaskMs": 332,
+      "longtasks": 4,
+      "cycle": 8
+    },
+    {
+      "elapsed": 15837,
+      "frames": 924,
+      "slow": 11,
+      "maxFrame": 133.29999999998836,
+      "longtaskMs": 399,
+      "longtasks": 5,
+      "cycle": 9
+    },
+    {
+      "elapsed": 15871,
+      "frames": 930,
+      "slow": 10,
+      "maxFrame": 116.70000000001164,
+      "longtaskMs": 315,
+      "longtasks": 4,
+      "cycle": 10
+    },
+    {
+      "elapsed": 15975,
+      "frames": 924,
+      "slow": 13,
+      "maxFrame": 116.69999999998254,
+      "longtaskMs": 487,
+      "longtasks": 6,
+      "cycle": 11
+    },
+    {
+      "elapsed": 15860,
+      "frames": 923,
+      "slow": 13,
+      "maxFrame": 133.30000000001746,
+      "longtaskMs": 400,
+      "longtasks": 5,
+      "cycle": 12
+    }
+  ],
+  "degraded": [
+    {
+      "elapsed": 18616,
+      "frames": 616,
+      "slow": 90,
+      "maxFrame": 183.40000000002328,
+      "longtaskMs": 9726,
+      "longtasks": 68
+    },
+    {
+      "elapsed": 18463,
+      "frames": 634,
+      "slow": 82,
+      "maxFrame": 200,
+      "longtaskMs": 9495,
+      "longtasks": 65
+    }
+  ],
+  "recovered": {
+    "elapsed": 16159,
+    "frames": 910,
+    "slow": 21,
+    "maxFrame": 166.60000000000582,
+    "longtaskMs": 703,
+    "longtasks": 8
+  },
+  "slowRate": {
+    "normal": 0.813383570701399,
+    "degraded": 4.638744302705035,
+    "recovered": 1.2995853703818305
+  },
+  "blockedExternalRequests": 4,
+  "variant": "gc-every-5",
+  "guionCommit": "ce0b090eefdb8cf63c35d6f0386dc199630ba7bf",
+  "guionSHA256": "fe965883a02cfc0297d0279a102fb9d8bc189257a9963f0fa6e146be014c9267",
+  "runExitCode": 1,
+  "caseStatus": "passed",
+  "otherCaseStatus": "3000 failed in positive control: back transition not settled"
+}
