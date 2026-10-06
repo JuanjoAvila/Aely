@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "id": "ops-0610-duration144-ci-reconcile-20261006",
+  "from": "codex",
+  "coordinatorSession": "relay-run-c2520936f179c9d8",
+  "createdAt": "2026-10-06T12:03:19.112Z",
+  "to": "codex",
+  "baseSHA": "ad84f0cd79e6004f85c4aabc9d9f14dffbb4473b",
+  "objective": "Reconciliar CI exacta y recorrido corto de tooling duración30 PR144 sin declarar corregido lag humano",
+  "scope": [
+    "PR144 draft fuentead84 sólo e2e/rendimiento-sostenido.spec.mjs y acta lifecycle-network-v3",
+    "Revisión independiente GOcondicional source9538afa0; metrics reporteClaude no rawrecomputed",
+    "Verificar CIexactSHA y4ciclos con tamaños3000/5200; integrar SQUASHmain sólo verde/reviewexacta, readback y CIpost"
+  ],
+  "restrictions": [
+    "INC-2709-09 prolongadoopen; una semillaDesktop no descartaWebView; no fix especulativo",
+    "No cambiosruntime/VERSION/public/beta/APK/Edge/SQL ni banco real; no repetir80ciclos sin hipótesisdiscriminante",
+    "No debilitar aserciones/perf controls ni esconder costo timeoutdefault7min"
+  ]
+}
