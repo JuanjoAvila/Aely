@@ -1,0 +1,49 @@
+{
+  "status": "done",
+  "summary": "A/B causal del contorno con la transición pausada en t=1 ms del primer frame oculto (Chromium 141 escritorio, fixtures inventados, sin capturas guardadas): base overflow:hidden conserva 0,918 (green safe0) y 0,970 (cyber safe34) del círculo del FAB; control sin ocultar 1,000. Candidata mínima: overflow:clip + overflow-clip-margin:30px en .app-shell.scroll-host-on .botnav.botnav-hidden (src/shell.html) → 0,989 / ~1,03; umbral 0,98 falla en la base y pasa en la candidata. overflow:visible descartado (desbordamiento bajo viewport). transform none, bottom 0 y nada bajo el viewport preservados. Guardián e2e/botnav-fab-recorte.spec.mjs registrado en CROSSCUTTING; sonda y acta añadidas. Falta que root prepare VERSION/notas/catálogo tras GO; 27 px sigue no reproducido; INC-2709-09 abierto.",
+  "branch": "claude/inc-2709-13-fab-ab-repair",
+  "productSHA": "d1fcfb780c05a2c38d126f3794e7e5c9404ee08d",
+  "tests": [
+    {
+      "command": "node docs/briefs/inc-2709-13-fab-contour-probe.mjs (base: issues, exit 1; candidata: sin issues)",
+      "exitCode": 0
+    },
+    {
+      "command": "npx playwright test e2e/botnav-fab-recorte.spec.mjs e2e/botnav-esconder.spec.mjs e2e/cyber-fab.spec.mjs e2e/rebote-barra-inferior.spec.mjs (21 passed)",
+      "exitCode": 0
+    },
+    {
+      "command": "npx playwright test e2e/botnav-fab-recorte.spec.mjs sobre la base (falla: overflow hidden != clip)",
+      "exitCode": 1
+    },
+    {
+      "command": "npm run test:syntax",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/docs-frescura.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "npm test (cortado por timeout de 560 s, sin ningún fallo en lo ejecutado; NO completado)",
+      "exitCode": 124
+    }
+  ],
+  "limitations": [
+    "npm test entero no completado (timeout)",
+    "Chromium de escritorio, no Android WebView ni móvil real",
+    "soporte de overflow-clip-margin en WebViews antiguas sin comprobar (cae al recorte previo)",
+    "solo primer frame; no mide fluidez",
+    "sin VERSION/RELEASE_NOTES/CHANGELOG: los prepara root tras GO"
+  ],
+  "schema": 1,
+  "taskId": "inc-2709-13-fab-ab-repair-claude-20261006",
+  "actor": "claude",
+  "sessionId": "claude-cloud-20261006-06823ce6",
+  "createdAt": "2026-10-06T12:21:26.932Z",
+  "released": true
+}
