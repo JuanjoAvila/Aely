@@ -1,0 +1,16 @@
+{
+  "status": "done",
+  "summary": "Beta4.26.96.1 publicada y servida exacta ca6f5e854c58ae7d73f24b604f20c8058b4b50a3; Inicio hasta3metas activas;95retirada de pendientes preservando historial/rechazos; aprobación móvil96unknown/readerblocked, no promoción main",
+  "tests": [
+    "CI37449666507 sourceb5SUCCESS832DOM+7PERF+Node/Deno/privacy; review independentGO",
+    "publisher37453756660 exactca6SUCCESS832DOM+7PERF; upload96.1 huellaf74ec4d9155e1557",
+    "HTTP11:40UTC3assets200 sha256 byteequalreleaseAPI; manifest/version/SW/betaReceiptca6 exact; normalizedZIPfingerprintmatches",
+    "realcompiledbetaChecklist216notes; only96tanda2checks/es/en/ca;95tandasempty;215previousnotespreserved/rejectedprecedence;APK52; production95/e96 verified"
+  ],
+  "schema": 1,
+  "taskId": "inc-0410-inicio-three-goals-ci-beta-next-20261006",
+  "actor": "codex",
+  "sessionId": "relay-run-6debbc0779d1ed6b",
+  "createdAt": "2026-10-06T11:41:41.510Z",
+  "released": true
+}
