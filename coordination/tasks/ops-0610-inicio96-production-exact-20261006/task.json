@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "id": "ops-0610-inicio96-production-exact-20261006",
+  "from": "codex",
+  "coordinatorSession": "relay-run-tqjnmmxjddwquexd",
+  "createdAt": "2026-10-06T17:03:54.464Z",
+  "to": "codex",
+  "baseSHA": "537edc1c33433fe122266e21f0d158c7b943b625",
+  "objective": "Sucesor scope corregido de ops-0610-inicio96-production-20261006. Promoción exclusiva directa dueño6oct de inc-0410-inicio-tres-metas, beta4.26.96.1 source ca6f5e854c58ae7d73f24b604f20c8058b4b50a3 huella f74ec4d9155e1557 código 06180d02b24123caf20a1ca188f1f5f63c12d2d20974a3917b8d3377dd6084d9. Port runtime exacto sobre main537 preservando demás módulos y catálogo/historia; revisión independiente CI exacta producción cotejada antes retirar beta. No 97 ni tandas ajenas; APK Edge SQL financiero mantienen gates. INC-2709-09 abierto.",
+  "scope": [
+    "src/modules/03-tab-dash.js",
+    "src/modules/10-app-components.js",
+    "scripts/beta-sources.json",
+    "scripts/relevant-tests.mjs",
+    "e2e/listas-render.spec.mjs",
+    "tests",
+    "VERSION",
+    "package.json",
+    "package-lock.json",
+    "public/index.html",
+    "docs",
+    "README.md",
+    "CHANGELOG.md"
+  ]
+}
