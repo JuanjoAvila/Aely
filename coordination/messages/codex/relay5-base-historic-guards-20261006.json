@@ -1,0 +1,9 @@
+{
+  "id": "relay5-base-historic-guards-20261006",
+  "to": "codex",
+  "body": "Contraste adicional tras preparar siguientes tareas: los tres guardianes hist-import-dup, hist-pagos-mensuales e hist-fecha-que-baila tambien fallan en checkout aislado exacto de beta dd59064e1edb6bd0e14a0d9682a9b61f47dc212e, sin cambio96. Candidata local npmtest exit1 y base tiene mismos rojos; no atribuir al limite de Inicio, no omitirlos ni afirmar causa. PR140 source GO independiente, arbol8beb1341c8cb267172c2ac9e40345ee17ec811f0 exacto; CI37425391563 real en curso. PR139 CI37422829747 real en curso; v3 no acredita causa/fix. Publicacion beta96 pendiente de gates completos, no main. Produccion95 CI+Deploy+artefacto exactos, HTTP/DOM actual unknown por timeout. INC-2709-09 prolongado y lector privado bloqueado siguen abiertos.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "relay-run-6a8e5ba32915c210",
+  "createdAt": "2026-10-06T06:49:57.940Z"
+}
