@@ -1,0 +1,39 @@
+{
+  "status": "blocked",
+  "summary": "Candidata FAB 97 completa y revisión independiente GO del árbol fd8e51ea. PR 150 final con padres beta ca6 y main 537, merge hacia beta sin conflictos y regla VERSION verde. CI exacta en curso; publicación retenida, siguiente tarea la completa.",
+  "tests": [
+    {
+      "command": "build y syntax, docs-frescura final y history29, relevant, novedades-idiomas, beta-tandas-vacias, privacidad y diff: verdes",
+      "exitCode": 0
+    },
+    {
+      "command": "sync-memoria: matriz 414 y negativos; beta-sources completo: exit 0",
+      "exitCode": 0
+    },
+    {
+      "command": "notas anteriores byte-semánticas, registry previo y códigos de catálogo intactos; sólo tanda FAB nueva; src/public/VERSION iguales en reconciliación tooling",
+      "exitCode": 0
+    },
+    {
+      "command": "independent review GO árbol fd8e51eab43bdabd14215814a0d40eda0fa89b09 y padres ca6/537; merge-tree beta exacto mismo árbol",
+      "exitCode": 0
+    },
+    {
+      "command": "Chromium 149: socket bloqueado antes de crear página; ninguna prueba DOM local",
+      "exitCode": 1
+    }
+  ],
+  "productSHA": "7570a6fee5fb1eb3aa81292abc1a0a7d619f6927",
+  "limitations": [
+    "CI 37480309392 en curso; no entrega beta todavía",
+    "PR 148 y 149 cerradas, no heredar CI; PR 147 fuente sin versión queda histórica",
+    "INC-2709-09 acumulativo abierto, móvil desconocido; inputs bloqueados",
+    "No main/APK/Edge/SQL ni banco real"
+  ],
+  "schema": 1,
+  "taskId": "inc-2709-13-fab-natural-final-beta-20261006",
+  "actor": "codex",
+  "sessionId": "relay-run-97a37e7231f5957f",
+  "createdAt": "2026-10-06T14:39:02.602Z",
+  "released": true
+}
