@@ -142,6 +142,7 @@ const steps = [
   ["ota-bases-espejo", ["node", "tests/ota-bases-espejo.test.mjs"]],
   ["hist-dia-local", ["node", "tests/hist-dia-local.test.mjs"]],
   ["hist-fecha-que-baila", ["node", "tests/hist-fecha-que-baila.test.mjs"]],
+  ["fechas-cache", ["node", "tests/fechas-cache.test.mjs"]],
   ["hist-uniq-por-banco", ["node", "tests/hist-uniq-por-banco.test.mjs"]],
   ["sync-manual-un-aviso", ["node", "tests/sync-manual-un-aviso.test.mjs"]],
   ["broker-sync-outcomes", ["node", "tests/broker-sync-outcomes.test.mjs"]],
