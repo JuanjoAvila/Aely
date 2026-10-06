@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "id": "ops-0610-apuntar145-ci-reconcile-20261006",
+  "from": "codex",
+  "coordinatorSession": "relay-run-c2520936f179c9d8",
+  "createdAt": "2026-10-06T12:06:29.848Z",
+  "to": "codex",
+  "baseSHA": "a5e5b2989725e71228083a4225c0d7c408720577",
+  "objective": "Completar negativos DOM y CI exacta PR145 para desbloquear sucesor saneado142",
+  "scope": [
+    "Result blocked released de ops-0610-apuntar143-ci-reconcile-20261006. PR145 source a5e5 y tree4b45; source review root GO, CI 37460453753 pendiente",
+    "Oráculo real exige fila única de Gastos visible, importe y persistencia. Fila real visibility hidden y cinco corrupciones deben rechazar; finally restaura y positivo revalida",
+    "Verificar tres casos en CI exacta y suite completa; SQUASH tooling main sólo tras verde y revisión exacta, readback y CIpost. No integrar PR143 por arrastre",
+    "Después ops-0610-memory142-ci-resume-20261006 con tests145 en candidata saneada revisada y CI propia"
+  ],
+  "restrictions": [
+    "Únicamente tres specs y docs/TESTING; no runtime/VERSION/public/workflows/deps ni código financiero",
+    "No aumentar timeout o retries normales, first o nth global ni quitar assertions; 200ms sólo rechazo negativo esperado",
+    "Local Chromium socket EPERM antes de página: cero DOM local. Dieciocho controles Node no equivalen a browser GO",
+    "INC-2709-09 abierto; móvil96 unknown, inputs blocked; PR134 NO-GO"
+  ]
+}
