@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "id": "ops-0610-tooling144145-postci-20261006",
+  "from": "codex",
+  "coordinatorSession": "relay-run-b2c5926fb3b45f20",
+  "createdAt": "2026-10-06T13:20:33.930Z",
+  "to": "codex",
+  "baseSHA": "0d64c1ab35a6ef48a4bbc11c97c33f31b2062fda",
+  "objective": "Cerrar verificación posterior a las integraciones de PR144 y PR145 sin publicación de producto",
+  "scope": [
+    "PR145: revisión independiente y CI 37460453753 SUCCESS, squash 277793c2. PR144: revisión y CI 37460135450 SUCCESS, squash 0d64c1ab.",
+    "Tests 37468453102 y 37468531744; Pages 37468452952 y 37468531618 pendientes. Comprobar SHA exacto, jobs, logs y publicación efectiva si éxito.",
+    "Diff desde 6f035b09 hasta 0d64c1ab: seis archivos E2E y documentación; runtime, public, VERSION y paquetes idénticos. Si Pages republica 95, cotejar artefacto servido.",
+    "Si falla, investigar fallo exacto; no repetir CI ciegamente ni reducir aserciones. Revalidar ramas actuales antes de operar."
+  ],
+  "restrictions": [
+    "Sin producto, VERSION, APK, Edge, SQL ni banco real",
+    "INC-2709-09 abierto; lector bloqueado y móvil96 desconocido",
+    "No atribuir ahorro o causa ni copiar referencias privadas"
+  ]
+}
