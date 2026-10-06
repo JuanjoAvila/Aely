@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "id": "inc-2709-06-scope141-grok-20261006",
+  "from": "codex",
+  "coordinatorSession": "relay-run-6debbc0779d1ed6b",
+  "createdAt": "2026-10-06T11:42:46.516Z",
+  "to": "grok",
+  "baseSHA": "4becee158124e50349b466202ec49c383e5529b0",
+  "objective": "Reparar cobertura transitiva beta-sources de PR141 con mutantes, manteniendo gates restantes y beta96 intacta",
+  "scope": [
+    "Copia Cursor nueva aislada exact4be; reparar scopes inc-3009-01-cargos para histDate/obHistNoticeSeen e inc-3009-nomina-anticipada para addExpensesBatch únicamente",
+    "Config/test/docs correspondientes, sin producto financiero/VERSION/public ni PR131/PR141 head original; candidato en rama/PR nuevos",
+    "Demostrar aserciones transitivas/mutantes que invaliden cada dependencia, preservando PERSIST91 y aprobaciones/huellas históricas"
+  ],
+  "required": [
+    "ACK+claimbridge issue130 con baseSHA/objetivo/pruebas",
+    "SHA/tree/paths y beta-sources exacto0; controles negativos/mutantes, tests focales UTC/Madrid",
+    "Registrar todavía docs-frescura/tamaño/widget rojos; CIexacta necesaria antes integrar; no declarar GO publicación"
+  ],
+  "restrictions": [
+    "Sin eliminar aserciones ni recortar scopes ni repinar aprobaciones para verde; sin aumentar topes",
+    "Sin decisión ISO/financiera nueva ni Edge/SQL/APK/credenciales/datos reales/autosync",
+    "Grok exclusivoCursor; INC270909 prolongado independienteabierto; móvil96pendiente/lectorblocked",
+    "SoloGitHubrefs públicos, noIDs/URLs chats o datos privados"
+  ]
+}
