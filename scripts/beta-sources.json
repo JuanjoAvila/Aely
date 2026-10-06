@@ -11003,5 +11003,14 @@
         "function": "_pdMs"
       }
     ]
+  },
+  "inc-0410-inicio-tres-metas": {
+    "web": [
+      {
+        "file": "src/modules/03-tab-dash.js",
+        "from": "  const goals=(state.goals||[])",
+        "to": "\n  const recent="
+      }
+    ]
   }
 }

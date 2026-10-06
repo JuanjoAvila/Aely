@@ -1,5 +1,49 @@
 [
   {
+    "v": "4.26.96",
+    "d": "2026-10-06",
+    "t": {
+      "es": "Tres metas a mano en Inicio",
+      "en": "Three goals at hand on Home",
+      "ca": "Tres objectius a mà a Inici"
+    },
+    "items": {
+      "es": [
+        "Inicio muestra hasta tres metas activas. Desde Ver plan puedes consultar todas, sin cambiar lo ahorrado."
+      ],
+      "en": [
+        "Home shows up to three active goals. Use See plan to view them all, with savings unchanged."
+      ],
+      "ca": [
+        "Inici mostra fins a tres objectius actius. Amb Veure pla pots consultar-los tots, sense canviar els estalvis."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inc-0410-inicio-tres-metas",
+        "t": {
+          "es": "Tres metas a mano en Inicio",
+          "en": "Three goals at hand on Home",
+          "ca": "Tres objectius a mà a Inici"
+        },
+        "items": {
+          "es": [
+            "1. Con más de tres metas activas, Inicio muestra solo las tres primeras; las terminadas no ocupan un hueco.",
+            "2. Toca Ver plan: deben seguir disponibles todas las metas con los mismos importes."
+          ],
+          "en": [
+            "1. With more than three active goals, Home shows only the first three; completed goals do not take a slot.",
+            "2. Tap See plan: all goals must remain available with the same amounts."
+          ],
+          "ca": [
+            "1. Amb més de tres objectius actius, Inici mostra només els tres primers; els completats no ocupen cap lloc.",
+            "2. Toca Veure pla: tots els objectius han de continuar disponibles amb els mateixos imports."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.95",
     "d": "2026-10-05",
     "t": {
