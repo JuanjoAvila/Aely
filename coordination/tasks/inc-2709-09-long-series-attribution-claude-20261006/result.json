@@ -1,0 +1,47 @@
+{
+  "status": "done",
+  "summary": "Serie v3 12 ciclos/5200 gastos pasada: todas las acciones aterrizan, sin tendencia en RAF lentos (32→23), tareas largas, heap tras GC (15,6→16,4MB), nodos/listeners/DOM/backStack/timers estables; bankSync solo explicito, cero escrituras de historico; control degradado 4,73 vs normal 1,18 vs recuperado 1,08. Causa desconocida: INC-2709-09 sigue abierto; falta escenario de horas con suspension real de WebView/OS en dispositivo. Sin cambios de runtime. Resumen en acta del brief v3.",
+  "branch": "claude/inc-2709-09-serie-larga",
+  "productSHA": "9126cec8f0006dffe0e58605eeede1dcaa26a7eb",
+  "tests": [
+    {
+      "command": "npm ci --ignore-scripts --no-audit --no-fund",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run build",
+      "exitCode": 0
+    },
+    {
+      "command": "MC_LAG_CYCLES=1 MC_LAG_SIZES=800 playwright test e2e/rendimiento-sostenido.spec.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "MC_LAG_CYCLES=12 MC_LAG_SIZES=5200 MC_LAG_SOURCE_SHA=e96e2aa5 playwright test e2e/rendimiento-sostenido.spec.mjs --workers=1",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/guard-privacy.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/docs-frescura.test.mjs",
+      "exitCode": 0
+    }
+  ],
+  "limitations": [
+    "Una sola serie de 12 ciclos (~4,5 min de uso); Chromium de escritorio, sin suspension real ni sockets/auth reales",
+    "No se ejecuto npm test entero ni e2e completo ni movil",
+    "Sin PR; solo rama con docs"
+  ],
+  "schema": 1,
+  "taskId": "inc-2709-09-long-series-attribution-claude-20261006",
+  "actor": "claude",
+  "sessionId": "claude-cloud-20261006-32e658fb",
+  "createdAt": "2026-10-06T10:39:38.959Z",
+  "released": true
+}
