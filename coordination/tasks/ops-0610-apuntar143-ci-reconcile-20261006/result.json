@@ -1,0 +1,54 @@
+{
+  "status": "blocked",
+  "summary": "PR145 tooling durable agrega controles negativos del mismo oraculo DOM/storage real; NO-GO integracion hasta browser/CI exacta y revision independiente. PR143 exact8ef CI aun in_progress; no integraciones.",
+  "tests": [
+    {
+      "command": "node --check tres specs Apuntar/P10/Efectivo",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/docs-frescura.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0
+    },
+    {
+      "command": "Chromium149 launch en Cloud con Playwright",
+      "exitCode": 1,
+      "reason": "socket() EPERM antes de pagina; no DOM ejecutado"
+    }
+  ],
+  "productSHA": "a5e5b2989725e71228083a4225c0d7c408720577",
+  "checkpoint": {
+    "pr": 145,
+    "head": "a5e5b2989725e71228083a4225c0d7c408720577",
+    "tree": "4b45b9e03d5dc2d006a0c231e6bbc2a713597aee",
+    "parent": "8ef1525c6d977c1b03865bc398d7c3f7135ade9e",
+    "workflowRun": "37460453753",
+    "ci": "in_progress",
+    "paths": [
+      "e2e/apuntar-sheet.spec.mjs",
+      "e2e/efectivo-apuntar.spec.mjs",
+      "e2e/pulido-numpad.spec.mjs",
+      "docs/TESTING.md"
+    ],
+    "next": "Revision independiente y CI exacta con controles hidden-only/no-save/amount/entity/duplicate/currency antes SQUASH main; no integrar PR142 sin su CI exacta"
+  },
+  "limitations": [
+    "INC-2709-09 prolongado sigue abierto; beta96 movil unknown, inputs blocked",
+    "No banco real, Edge, SQL, APK ni producto runtime",
+    "Controles negativos preparados en navegador real, sin ejecucion confirmada; rechazos deliberados200ms, positivos5s intactos"
+  ],
+  "schema": 1,
+  "taskId": "ops-0610-apuntar143-ci-reconcile-20261006",
+  "actor": "codex",
+  "sessionId": "codex-cloud-20261006-apuntar143-71ccef20",
+  "createdAt": "2026-10-06T12:04:10.021Z",
+  "released": true
+}
