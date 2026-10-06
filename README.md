@@ -1,6 +1,7 @@
 Apuntar y Gastos permiten distinguir Multas, Zona azul y Peajes. Solo los pagos nuevos con detalle inequívoco los sugieren; elegir una categoría conserva el importe y la fecha.
 
 Promoción4/10: las once tandas de beta4.26.94.1 tienen aprobación vigente. Producción4.26.94/source8bb0398f servida y cotejada; APK52 estable y las tres funciones Edge entregadas. La limpieza conserva notas y decisiones; solo retira las once entregadas, sin producto nuevo. Prioridad permanente: producción de lo aprobado antes de otra implementación. [Acta](docs/briefs/promocion-aprobadas-2026-10-04.md).
+Promoción selectiva5/10: candidata4.26.95 para volver con mucho historial, autorizada directamente por el dueño. Base main8bb0398; solo caché de fechas aprobada en PR133, sin beta completa. Revisión independiente, CI y entrega servida pendientes. INC-2709-09 global sigue abierto. [Acta](docs/briefs/promocion-cache95-2026-10-05.md).
 
 La base80/source955765a9 incluye Retirada y Nómina junto con Widget y las tres correcciones de pantalla.78/79 son snapshots de integración, no versiones publicadas por separado. Snapshot anterior de integración: la promoción actual conserva sus cambios y cuenta con los once OK de beta94.1. [Actas](docs/briefs/ops-0110-validaciones-persistentes.md).
 
@@ -48,6 +49,7 @@ mi-cartera/
 ├── tests/pure-logic-notes.test.mjs · beta-source-parse.test.mjs # Carga diferida y cortes exactos sin debilitar auditorías
 ├── tests/beta-veredictos.test.mjs # Contrato compartido del panel y listo; beta-sources protege el ensamblado
 ├── tests/listo-actor.test.mjs # CLI real sin red: actor Dev autorizado y fallo cerrado si no se acredita
+├── tests/sync-memoria.test.mjs # Exportación sintética: cantidades, aviso Cloud e idempotencia; rechazo sin escrituras/borrados
 ├── src/                    # 👈 Fuente editable (v3.108+)
 │   ├── shell.html          #     HTML shell (React, CSS, vendors)
 │   ├── build-order.json    #     Orden de ensamblado de módulos
@@ -71,6 +73,8 @@ mi-cartera/
 ```
 
 ## 🚀 Desarrollo
+
+El exportador de memoria tacha importes reconocibles, incluidos valores entre backticks y rangos directos con en-dash. Si quedan cifras decimales ASCII o Unicode en un párrafo financiero que no puede sanear con seguridad, rechaza toda la exportación antes de escribir o borrar; conserva cantidades con unidades técnicas explícitas y versiones/SHA rotulados. El contexto de un párrafo incluye sus líneas de continuación y marcado, y se analiza en el cuerpo, sin confundirlo con el nombre del archivo. Una vista exclusiva del detector normaliza espacios Unicode, hardbreaks y delimitadores Markdown, incluido strike GFM dentro de palabras. Por prudencia, la palabra «capital» aislada también activa el contexto financiero, aunque su uso pueda ser ambiguo; no hace falta interpretar enlaces para reconstruir etiquetas compuestas. El Markdown original y las cifras de las URL permanecen en el cuerpo y en su validación. Cada archivo regenerado lleva un aviso visible de memoria histórica y prevalencia del protocolo Cloud vigente. Son filtros conservadores de patrones, sin parsing Markdown ni anonimización universales: posibles rechazos de usos no financieros de «capital» y demás límites requieren revisión manual. Para verificarlo sin leer memoria personal: `node tests/sync-memoria.test.mjs` usa exclusivamente fixtures temporales inventados.
 
 1. Edita **`src/modules/*.js`** o **`src/shell.html`**
 2. Ensambla y prueba:
