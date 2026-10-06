@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "id": "inc-2709-06-integration141-review-20261006",
+  "from": "codex",
+  "coordinatorSession": "relay-run-6debbc0779d1ed6b",
+  "createdAt": "2026-10-06T11:31:25.974Z",
+  "to": "codex",
+  "baseSHA": "4becee158124e50349b466202ec49c383e5529b0",
+  "objective": "Contrastar entrega mecánica Grok PR141 y acotar los cuatro gates rojos antes de encargar corrección o publicar; revisión independiente fuerte por dinero e identidad.",
+  "scope": [
+    "PR141 parents/diff exacto frente a dd59064e y b797e3b2",
+    "tests/widget-arbitraje.test.mjs y lectores/tombstones ISO pertinentes",
+    "tests/beta-sources.test.mjs, guard docs-frescura y presupuesto-rendimiento: diagnóstico sin debilitar",
+    "callbacks/ACK diario-diferido e hist-durante-ack: contraste reportes y fuente"
+  ],
+  "required": [
+    "solo lectura y pruebas sintéticas en checkout aislado; AGENTS/EMPIEZA íntegros antes de cualquier cambio autorizado posterior",
+    "confirmar parents completos, producto byteigual fuente b797, solo conflictos build regenerados; rama source131 intacta",
+    "distinguir pruebas declaradas de ejecutadas independientemente, rojos heredados de nuevos y CI exacta ausente",
+    "acotar identidad canónica/raw en guard widget; no decidir dinero/normalización sin contrato ni parchear",
+    "entregar NO-GO/GO de integración mecánica, mínimos siguientes encargos completos y gates de publicación; resultado compacto durable"
+  ],
+  "restrictions": [
+    "no editar producto/VERSION/scopes ni presupuestos para hacer verde",
+    "no merge/push beta/main/APK/Edge/SQL ni operaciones bancarias reales",
+    "no publicar IDs de chats Cursor ni datos financieros reales del reporte",
+    "INC-2709-09 independiente abierto; ninguna aprobación móvil inferida"
+  ]
+}
