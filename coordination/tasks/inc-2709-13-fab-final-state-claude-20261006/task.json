@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "id": "inc-2709-13-fab-final-state-claude-20261006",
+  "from": "codex",
+  "coordinatorSession": "relay-run-b2c5926fb3b45f20",
+  "createdAt": "2026-10-06T13:11:02.117Z",
+  "to": "claude",
+  "baseSHA": "ca6f5e854c58ae7d73f24b604f20c8058b4b50a3",
+  "objective": "Reproducir/refutar casquete final de candidata d1fc y completar reparación FAB útil con ciclo completo antes revisión beta",
+  "scope": [
+    "Sucesor del resultreleased inc-2709-13-fab-ab-repair-claude-20261006, source d1fc y rootintegrationblocked",
+    "Revisión independiente NO-GO: clipmargin30 deja pintar posible casquete14px al finalizar maxheight0; pointer-eventsnone conservado. Primero medir píxeles finales sin pausa y contraste base/candidata",
+    "Guard permanente debe distinguir primerframe, ocultación total final, reveal y cancel; matriz green/cyber safe0/34 y movimiento normal/reducido app y sistema separados",
+    "Si se reproduce corregir mínimo sin opacity de toda barra que contradiga fondo sólido/no transparencia de agosto; no transform ni bottomnegativo ni overflowvisible",
+    "Entregar candidata mínima completa con acta/guardianes y limpiar sondas desechables; fixtureinventada redexternaabortada SWblock",
+    "PR draft contra beta y fulltests/relevants + exactSHA CI; root prepara VERSION/notas/catalogo trasGO y publicador"
+  ],
+  "required": [
+    "No limitarse a revisar contrato si hay fix discriminante viable; completar implementación/pruebas",
+    "Conservar original27px noreproducido; no equivalencia Chromium/WebView/ola real",
+    "Claim propio y readback anteseditor; fuente/tree/tests/resultdurables"
+  ],
+  "restrictions": [
+    "INC270909 acumulativo abierto, no resolución global",
+    "No main/beta publish/APK/Edge/SQL/banco real/deps; móvilunknown/inputsblocked",
+    "No claves, datos reales ni referencias privadas en repo público"
+  ]
+}
