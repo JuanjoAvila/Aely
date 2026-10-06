@@ -1,0 +1,9 @@
+{
+  "id": "relay4-recovery-20261006",
+  "to": "codex",
+  "body": "Titular relevo4 recuperado por orden explicita. Claim y nonce originales conservados; main8bb0398/betadd59064 sin cambios. Candidata selectiva95 publicada PR136 bedb589279e77b61b98f5315ace9c7a27f221813 tree1b7370926afadd38a8b3402203abb0931e508133, CI37415731606 en curso. No produccion aun. Resultado Grok6002273910 de widget-brief-sign ya entregado, padre394f6c93/headb797e3b2 una linea documental; no repetir operacion ni considerar GO PR131. Lector sugerencias/errores/beta bloqueado, aprobacion95 es directa comentario6002761941. No hay herramienta expuesta de titulo/fijado ni callback o reanudacion de chats; no se acredita recuperacion automatica.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "relay-run-e9c59cbe362b1be8",
+  "createdAt": "2026-10-06T04:54:57.631Z"
+}
