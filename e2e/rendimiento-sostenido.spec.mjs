@@ -9,7 +9,7 @@ import { seedLoggedInDashboard, installFixtureClock } from "./fixtures.mjs";
 test.use({ serviceWorkers:"block" });
 const cycles = Number(process.env.MC_LAG_CYCLES || 4);
 const sizes = (process.env.MC_LAG_SIZES || "3000,5200").split(",").map(Number);
-const VARIANT="natural-gc-v2";
+const VARIANT="lifecycle-network-v3";
 let currentAction="setup";
 const guionSHA256=createHash("sha256").update(readFileSync(new URL(import.meta.url))).digest("hex");
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -35,6 +35,46 @@ function fixture(n) {
   };
 }
 
+// Cada etiqueta se sella una vez: sin polling de Playwright dentro del gesto.
+async function markAction(page, name) {
+  currentAction=name;
+  await page.evaluate(name=>{
+    const p=window.__lag;
+    if(p.active){
+      if(p.action) p.action.elapsed=performance.now()-p.action.start;
+      p.action={name,start:performance.now(),elapsed:0,frames:0,slow:0,maxFrame:0,longtasks:0,longtaskMs:0};
+      p.actions.push(p.action);
+    }
+  },name);
+}
+async function lifecycle(page,cdp) {
+  const transitions=[];
+  const change=async state=>{
+    await page.evaluate(state=>{
+      window.__lag.visibility=state;
+      document.dispatchEvent(new Event("visibilitychange"));
+    },state);
+    await delay(250);
+    transitions.push(await page.evaluate(()=>({visibility:document.visibilityState,hidden:document.hidden,online:navigator.onLine})));
+  };
+  await markAction(page,"lifecycle-baseline");const before=await snapshot(page,cdp);
+  await markAction(page,"background-hidden");await change("hidden");
+  if(transitions.at(-1).visibility!=="hidden" || !transitions.at(-1).hidden)throw new Error("Hidden no aterrizó");
+  await markAction(page,"offline-hidden");await page.context().setOffline(true);await delay(250);
+  if(await page.evaluate(()=>navigator.onLine))throw new Error("Offline no aterrizó");
+  await markAction(page,"foreground-offline");await change("visible");await delay(450);
+  const offline=await snapshot(page,cdp);
+  if(offline.transport.pullExpenses?.failed!==(before.transport.pullExpenses?.failed||0)+1)throw new Error("Pull offline doble no falló");
+  await markAction(page,"online-visible");await page.context().setOffline(false);await delay(250);
+  if(!await page.evaluate(()=>navigator.onLine))throw new Error("Online no aterrizó");
+  await markAction(page,"background-retry");await change("hidden");
+  await markAction(page,"foreground-retry");await change("visible");await delay(900);
+  const recovered=await snapshot(page,cdp);
+  if(recovered.transport.pullExpenses?.succeeded!==(offline.transport.pullExpenses?.succeeded||0)+1)throw new Error("Pull recuperado doble no terminó");
+  if(recovered.cloud.bankSync!==before.cloud.bankSync)throw new Error("Lifecycle disparó banco sin demanda");
+  if(recovered.expensesWrites!==before.expensesWrites)throw new Error("Lifecycle reescribió histórico idéntico");
+  return {transitions,before,offline,recovered};
+}
 async function click(page, selector) {
   await page.evaluate(selector=>{
     const el=document.querySelector(selector); if(!el) throw new Error("Acción ausente: "+selector); el.click();
@@ -53,18 +93,18 @@ async function snapshot(page,cdp,collect=false) {
     backStack:typeof _mcBackStack!=="undefined"?_mcBackStack.length:null,
     writes:window.__lag.writes, bytes:window.__lag.bytes,
     expensesWrites:window.__lag.expensesWrites,
-    cloud:window.__lag.cloud, intervalTimers:window.__lag.timers.size,
+    cloud:{...window.__lag.cloud}, transport:JSON.parse(JSON.stringify(window.__lag.transport)), visibility:document.visibilityState, online:navigator.onLine, intervalTimers:window.__lag.timers.size,
   });});
   return {...dom,heapUsed:heap.usedSize,...local};
 }
 async function windowMeasure(page, action, phase="normal") {
-  await page.evaluate(()=>{ window.__lag.frames=[];window.__lag.longtasks=[];window.__lag.prev=null;window.__lag.start=performance.now();window.__lag.active=true; });
+  await page.evaluate(()=>{ window.__lag.frames=[];window.__lag.longtasks=[];window.__lag.prev=null;window.__lag.start=performance.now();window.__lag.active=true;window.__lag.actions=[];window.__lag.action=null; });
   const start=Date.now();
   let valid=true,landings=[],failure=null;
   try{ landings=await action(); }catch(error){ valid=false; failure={phase,action:currentAction,code:error.name==="TimeoutError"?"browser-timeout":"action-failed"}; }
   const measured=await page.evaluate(elapsed=>{
-    const p=window.__lag; p.active=false;
-    return {elapsed,frames:p.frames.length,slow:p.frames.filter(x=>x>32).length,maxFrame:Math.max(0,...p.frames),longtaskMs:p.longtasks.reduce((a,b)=>a+b,0),longtasks:p.longtasks.length};
+    const p=window.__lag; p.active=false;if(p.action)p.action.elapsed=performance.now()-p.action.start;
+    return {elapsed,frames:p.frames.length,slow:p.frames.filter(x=>x>32).length,maxFrame:Math.max(0,...p.frames),longtaskMs:p.longtasks.reduce((a,b)=>a+b,0),longtasks:p.longtasks.length,actions:p.actions.map(({start,...a})=>a)};
   },Date.now()-start);
   return {...measured,valid,landings,failure};
 }
@@ -85,25 +125,25 @@ async function scroll(page,cdp,down) {
 async function cycle(page,cdp) {
   const landings=[];
   for(const tab of ["inicio","gastos","plan","cartera"]){
-    currentAction="tab-"+tab;
+    await markAction(page,"tab-"+tab);
     await click(page,'.botnav-tab[data-tour="'+tab+'"]');
     const active=await page.evaluate(()=>document.querySelector(".botnav-tab.active").dataset.tour);
     if(active!==tab)throw new Error("Tab no aterrizó: "+tab);landings.push(tab);
     if(tab==="inicio" || tab==="gastos"){
       await page.evaluate(()=>{document.querySelector(".page-scroll-host").scrollTop=0;});
       await delay(100);
-      currentAction="scroll-down-"+tab;await scroll(page,cdp,true);
-      currentAction="scroll-up-"+tab;await scroll(page,cdp,false);
+      await markAction(page,"scroll-down-"+tab);await scroll(page,cdp,true);
+      await markAction(page,"scroll-up-"+tab);await scroll(page,cdp,false);
     }
     if(tab==="gastos"){
-      currentAction="expense-open";await click(page,'.page-scroll-host button.v4-mov');
-      currentAction="expense-back";
+      await markAction(page,"expense-open");await click(page,'.page-scroll-host button.v4-mov');
+      await markAction(page,"expense-back");
       await page.evaluate(()=>history.back());await delay(850);
       if(await page.evaluate(()=>_mcBackStack.length!==0))throw new Error("Back ficha no cerró");
       landings.push("ficha/back");
     }
     if(tab==="plan")for(const seg of ["deudas","metas","recibos"]){
-      currentAction="plan-segment-"+seg;
+      await markAction(page,"plan-segment-"+seg);
       await page.evaluate(seg=>{
         const btn=[...document.querySelectorAll('.page-scroll-host .v4-seg-btn')].find(b=>new RegExp(seg==="deudas"?"deuda":seg==="metas"?"meta":"recibo","i").test(b.textContent));
         if(!btn)throw new Error("Segmento ausente: "+seg);btn.click();
@@ -112,35 +152,34 @@ async function cycle(page,cdp) {
       if(!visible)throw new Error("Segmento no aterrizó: "+seg);landings.push(seg);
     }
     if(tab==="cartera"){
-      currentAction="banks-open";
+      await markAction(page,"banks-open");
       await page.evaluate(()=>window.dispatchEvent(new CustomEvent("mc-open-banks",{detail:{focus:null}})));await delay(850);
-      currentAction="banks-expand";await click(page,'[data-aspsp="Sabadell"] .v4-mov');
+      await markAction(page,"banks-expand");await click(page,'[data-aspsp="Sabadell"] .v4-mov');
       if(await page.evaluate(()=>document.querySelectorAll(".bk-actions").length)!==1)throw new Error("Conexión sintética no aterrizó");
-      currentAction="banks-back";await page.evaluate(()=>history.back());await delay(850);
+      await markAction(page,"banks-back");await page.evaluate(()=>history.back());await delay(850);
       if(await page.evaluate(()=>!!document.querySelector(".v4-banks")))throw new Error("Back bancos no cerró");
-      currentAction="settings-back";await page.evaluate(()=>history.back());await delay(850);
+      await markAction(page,"settings-back");await page.evaluate(()=>history.back());await delay(850);
       if(await page.evaluate(()=>document.querySelector(".settings-push").classList.contains("open")))throw new Error("Back Ajustes no cerró");
       landings.push("bancos/back/ajustes/back");
-      currentAction="bank-sync";
+      await markAction(page,"bank-sync");
       await page.evaluate(()=>{
         const btn=[...document.querySelectorAll('.page-scroll-host button')].find(b=>/Sincronizar bancos/i.test(b.getAttribute("aria-label")||b.textContent));
         if(!btn)throw new Error("Sync explícito ausente");btn.click();
       });await delay(1200);
       if(await page.evaluate(()=>!document.querySelector(".sync-report")))throw new Error("Sync doble no aterrizó: "+JSON.stringify(await page.evaluate(()=>({cloud:window.__lag.cloud,toast:document.querySelector(".toast")?.textContent}))));
-      currentAction="sync-report-back";await page.evaluate(()=>history.back());await delay(850);landings.push("sync/back");
+      await markAction(page,"sync-report-back");await page.evaluate(()=>history.back());await delay(850);landings.push("sync/back");
     }
   }
-  currentAction="inicio-return";await click(page,'.botnav-tab[data-tour="inicio"]');
-  currentAction="profile-open";await click(page,'.v4-avatar');
-  currentAction="profile-back";await page.evaluate(()=>history.back());await delay(850);
+  await markAction(page,"inicio-return");await click(page,'.botnav-tab[data-tour="inicio"]');
+  await markAction(page,"profile-open");await click(page,'.v4-avatar');
+  await markAction(page,"profile-back");await page.evaluate(()=>history.back());await delay(850);
   if(await page.evaluate(()=>document.querySelector(".profile-pull").classList.contains("open")))throw new Error("Back perfil no cerró");
-  currentAction="apuntar-open";await click(page,'.botnav-fab');
-  currentAction="apuntar-back";await page.evaluate(()=>history.back());await delay(850);
+  await markAction(page,"apuntar-open");await click(page,'.botnav-fab');
+  await markAction(page,"apuntar-back");await page.evaluate(()=>history.back());await delay(850);
   if(await page.evaluate(()=>!!document.querySelector(".v4-exp-sheet")))throw new Error("Back Apuntar no cerró");
-  // Red y foreground solo sintéticos: activan efectos existentes sin cambiar auth real.
-  currentAction="connectivity-foreground";
-  await page.evaluate(()=>{window.dispatchEvent(new Event("offline"));window.dispatchEvent(new Event("online"));document.dispatchEvent(new Event("visibilitychange"));});await delay(400);
-  return [...landings,"perfil/back","apuntar/back","online/foreground"];
+  // La visibilidad es un estado del doble; offline usa el estado real del contexto Chromium.
+  const states=await lifecycle(page,cdp);
+  return [...landings,"perfil/back","apuntar/back",states];
 }
 
 for(const size of sizes)test("uso sostenido con nube doble y control discriminante: "+size,async({page},testInfo)=>{
@@ -154,9 +193,12 @@ for(const size of sizes)test("uso sostenido con nube doble y control discriminan
   });
   await installFixtureClock(page);await seedLoggedInDashboard(page,fixture(size));
   await page.addInitScript(()=>{
-    const p=window.__lag={active:false,prev:null,frames:[],longtasks:[],writes:0,bytes:0,expensesWrites:0,cloud:{},timers:new Set()};
-    function frame(t){if(p.active){if(p.prev!==null)p.frames.push(t-p.prev);p.prev=t;}requestAnimationFrame(frame);}requestAnimationFrame(frame);
-    new PerformanceObserver(list=>{if(p.active)for(const e of list.getEntries())if(e.startTime>=p.start)p.longtasks.push(e.duration);}).observe({entryTypes:["longtask"]});
+    const p=window.__lag={active:false,prev:null,frames:[],longtasks:[],writes:0,bytes:0,expensesWrites:0,cloud:{},transport:{},timers:new Set(),visibility:"visible",actions:[],action:null};
+    // No pretende suspender la WebView: solo estados/ramas de lifecycle del código real.
+    Object.defineProperty(document,"visibilityState",{configurable:true,get:()=>p.visibility});
+    Object.defineProperty(document,"hidden",{configurable:true,get:()=>p.visibility==="hidden"});
+    function frame(t){if(p.active){if(p.prev!==null){const dt=t-p.prev;p.frames.push(dt);if(p.action){p.action.frames++;if(dt>32)p.action.slow++;p.action.maxFrame=Math.max(p.action.maxFrame,dt);}}p.prev=t;}requestAnimationFrame(frame);}requestAnimationFrame(frame);
+    new PerformanceObserver(list=>{if(p.active)for(const e of list.getEntries())if(e.startTime>=p.start){p.longtasks.push(e.duration);const a=p.actions.findLast(x=>x.start<=e.startTime);if(a){a.longtasks++;a.longtaskMs+=e.duration;}}}).observe({entryTypes:["longtask"]});
     const put=Storage.prototype.setItem;Storage.prototype.setItem=function(k,v){p.writes++;p.bytes+=String(v).length*2;if(k==="micartera_v3_exp")p.expensesWrites++;return put.apply(this,arguments);};
     const setI=window.setInterval,clearI=window.clearInterval;window.setInterval=function(){const id=setI.apply(this,arguments);p.timers.add(id);return id;};window.clearInterval=function(id){p.timers.delete(id);return clearI.call(this,id);};
   });
@@ -166,13 +208,22 @@ for(const size of sizes)test("uso sostenido con nube doble y control discriminan
   await page.evaluate(()=>{const b=[...document.querySelectorAll("button")].find(x=>/Entendido|Got it|D'acord/.test(x.textContent));if(b)b.click();});
   await delay(10000);
   await page.evaluate(()=>{
-    for(const name of ["pullExpenses","bankLinks","bankSync"]){const real=cloud[name];cloud[name]=function(){window.__lag.cloud[name]=(window.__lag.cloud[name]||0)+1;return real.apply(this,arguments);};}
+    for(const name of ["pullExpenses","bankLinks","bankSync"]){
+      const real=cloud[name];cloud[name]=async function(){
+        const p=window.__lag;p.cloud[name]=(p.cloud[name]||0)+1;
+        const t=p.transport[name]||(p.transport[name]={started:0,succeeded:0,failed:0,inFlight:0,maxInFlight:0,totalMs:0});
+        t.started++;t.inFlight++;t.maxInFlight=Math.max(t.maxInFlight,t.inFlight);const start=performance.now();
+        try{
+          // El cliente de fixture no usa sockets: fuerza el fallo solo en su frontera doble.
+          if(!navigator.onLine)throw new Error("fixture-offline");
+          const result=await real.apply(this,arguments);t.succeeded++;return result;
+        }catch(error){t.failed++;throw error;}finally{t.inFlight--;t.totalMs+=performance.now()-start;}
+      };
+    }
   });
-  console.log("warmup",size);
-  await cycle(page,cdp); // Se descarta calentamiento y se prueba que todo aterriza.
-  const start=await snapshot(page,cdp,true);
+  let start=null;
   const out=testInfo.outputPath("sustained-lag.json");mkdirSync(testInfo.outputDir,{recursive:true});
-  const report={schema:2,variant:VARIANT,guionSHA256,
+  const report={schema:3,variant:VARIANT,lifecycleModel:"document getters + visibilitychange; no OS suspension",networkModel:"Chromium context offline + cloud-double failures; no bank transport",guionSHA256,
     sourceSHA:process.env.MC_LAG_SOURCE_SHA||"unspecified",
     htmlSHA256:createHash("sha256").update(readFileSync("public/index.html")).digest("hex"),
     appVersion:await page.evaluate(()=>CONFIG.APP_VERSION),
@@ -182,6 +233,10 @@ for(const size of sizes)test("uso sostenido con nube doble y control discriminan
   const slowRate=a=>a.reduce((n,x)=>n+x.slow,0)/a.reduce((n,x)=>n+x.elapsed,0)*1000;
   save();
   try{
+    report.phase="warmup";save();
+    report.warmup=await windowMeasure(page,()=>cycle(page,cdp),"warmup");save();
+    expect(report.warmup.valid,"calentamiento debe aterrizar; evidencia parcial guardada").toBe(true);
+    start=await snapshot(page,cdp,true);report.start=start;report.phase="normal";save();
     expect(start.expenseCount).toBe(size);expect(start.distinctExpenseDates).toBe(size);
     for(let i=0;i<cycles;i++){
       const metric=await windowMeasure(page,()=>cycle(page,cdp));
@@ -218,6 +273,7 @@ for(const size of sizes)test("uso sostenido con nube doble y control discriminan
     console.log(JSON.stringify({variant:VARIANT,size,cycles,start,endBeforeGC:report.endBeforeGC,endAfterGC:report.endAfterGC,slowRate:report.slowRate,blockedExternalRequests}));
   }finally{
     await page.evaluate(()=>{window.__lag.active=false;if(window.__lag.control)clearInterval(window.__lag.control);}).catch(()=>{});
+    await page.context().setOffline(false).catch(()=>{});
     save();await testInfo.attach("sustained-lag",{path:out,contentType:"application/json"});
   }
 });
