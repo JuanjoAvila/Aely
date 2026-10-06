@@ -1,0 +1,44 @@
+{
+  "status": "done",
+  "summary": "GO condicionado (solo tooling; no es GO de fix). PR139 baba0724: diff vs main e9336aee = 12 rutas, solo docs/e2e/scripts de test; cero src/public/VERSION/package/android. Ejecutado en cloud Chromium (MC_LAG_CYCLES=2, SIZES=3000): spec lifecycle-network-v3 pasa, 1 passed 2.6m. Aterrizan hidden/visible (getters sinteticos), offline real de contexto, fallo pull 3/3 y recuperacion 3/3, bankSync automatico 0 (solo boton explicito, 1/ciclo), expensesWrites sin cambio, backStack 0, nodos/listeners vuelven a 1613/470 tras GC (sin retencion apreciable en 2 ciclos). Capacidad discriminante: slowRate normal 1.21, degradado 4.94, recuperado 1.17; control de bloqueo detectado. Riesgos: (1) el nombre del spec es rendimiento-sostenido, no rendimiento-uso-prolongado como en el encargo; (2) no pude descargar logs del job CI (proxy 403) asi que NO verifique desde logs que el CI ejecuto v3; solo consta check test success en 37422829747 y la config CROSSCUTTING+isPerf lo incluye; (3) el wrapper de transporte se instala tras el arranque: pulls de boot no se cuentan; (4) marcas evaluate por accion y snapshots anaden coste instrumental, no comparar con v1/v2; (5) visibilidad es getter sintetico, offline no suspende WebView ni simula corte en vuelo; solo 2 ciclos/3000 gastos, no sustituye serie larga ni movil real. No se afirma causa ni fix; INC-2709-09 sigue abierto. No fusionado.",
+  "branch": "codex/sustained-tooling-main-relay5",
+  "productSHA": "baba0724493597dc7151b7f19557fa8229bfa794",
+  "pr": 139,
+  "tests": [
+    {
+      "command": "npm ci --ignore-scripts && npm run build",
+      "exitCode": 0
+    },
+    {
+      "command": "node node_modules/playwright/cli.js test e2e/rendimiento-sostenido.spec.mjs --workers=1 (MC_LAG_CYCLES=2 MC_LAG_SIZES=3000)",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/guard-privacy.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "git diff --check origin/main HEAD",
+      "exitCode": 0
+    }
+  ],
+  "limitations": [
+    "No se ejecuto npm test entero ni e2e completo",
+    "Sin movil real ni WebView",
+    "Logs de CI no accesibles"
+  ],
+  "schema": 1,
+  "taskId": "inc-2709-09-tooling139-independent-claude-20261006",
+  "actor": "claude",
+  "sessionId": "claude-cloud-20261006-2c3b166a",
+  "createdAt": "2026-10-06T10:12:44.835Z",
+  "released": true
+}
