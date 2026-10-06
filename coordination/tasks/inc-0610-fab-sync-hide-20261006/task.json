@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "id": "inc-0610-fab-sync-hide-20261006",
+  "from": "codex",
+  "coordinatorSession": "relay-run-tqjnmmxjddwquexd",
+  "createdAt": "2026-10-06T19:00:50.506Z",
+  "to": "codex",
+  "baseSHA": "505fbb6c4db8cf7908c2541c51240ebbb48f20ca",
+  "objective": "Feedback directo dueño6oct20:59Madrid sobre beta97: FAB ya no se corta pero desaparece tarde después de barra fluida. Rechazo funcional de temporización, no OK ni producción. Reproducir frames/píxeles con tiempo, corregir desaparición y revelado sincronizados conservando círculo completo, scrollhost sin transform ni bottomnegativo niopacitybarra. Retirar retardo visibility550 fijo mediante solucióngeométrica o equivalente acreditada. Pruebas discriminantes rojo97/verde fix, cancel/reduce-motion/safe0-34 Green/Cyber, revisión independiente CI y betaexacta. No inventar DOM ni cierreINC2709-09 acumulativo independiente. APK Edge SQL financiero gates vigentes.",
+  "scope": [
+    "src/shell.html",
+    "e2e/botnav-fab-recorte.spec.mjs",
+    "e2e/helpers/fab-pixels.mjs",
+    "scripts/relevant-tests.mjs",
+    "scripts/beta-sources.json",
+    "src/data/release-notes.json",
+    "VERSION",
+    "package.json",
+    "package-lock.json",
+    "public",
+    "docs",
+    "README.md",
+    "CHANGELOG.md"
+  ]
+}
