@@ -1,0 +1,26 @@
+{
+  "status": "blocked",
+  "summary": "PR 142 integrada por SQUASH 537edc1c tras revisión y CI exacta verde. Árbol 47b97f6b confirmado; sólo documentos y tooling. CI posterior pendiente.",
+  "tests": [
+    {
+      "command": "CI 37469376085, SHA 3e4ff657, SUCCESS: 817 funcionales y 9 rendimiento; matriz 414, history 29 y privacidad verdes",
+      "exitCode": 0
+    },
+    {
+      "command": "main 537edc1c: árbol 47b97f6b exacto; runtime/public/VERSION/Android/Supabase/registry idénticos a 0d64",
+      "exitCode": 0
+    }
+  ],
+  "productSHA": "537edc1c33433fe122266e21f0d158c7b943b625",
+  "limitations": [
+    "Tests 37477493174 en curso; Pages 37477493221 pendiente",
+    "PR 134 original conserva NO-GO; sin leer memoria privada",
+    "INC-2709-09 acumulativo abierto"
+  ],
+  "schema": 1,
+  "taskId": "ops-0610-memory142-final-ci-20261006",
+  "actor": "codex",
+  "sessionId": "relay-run-97a37e7231f5957f",
+  "createdAt": "2026-10-06T14:35:19.469Z",
+  "released": true
+}
