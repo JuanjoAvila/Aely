@@ -1,0 +1,29 @@
+{
+  "status": "done",
+  "summary": "Pages tooling135 fuente6f verificada: CI/Deploy37450683033 SUCCESS; seis rutas HTTP200 byteiguales al artefacto exacto, HTML95 y APK52 preservados.",
+  "tests": [
+    {
+      "command": "artifact SHA256 04f5d407534cc6d5c5b789cd38d05af88392dcf947ea87b4979bec6b5c4a78a0 equals GitHub run37450683033",
+      "exitCode": 0
+    },
+    {
+      "command": "HTTP version/index/sw/beta-delivery/apk/release-notes exactartifact bytecomparison 6of6",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/salud.mjs",
+      "exitCode": 0
+    }
+  ],
+  "productSHA": "6f035b09bc873ed102029aad9ddfe89efa78bb40",
+  "limitations": [
+    "INC-2709-09 prolongedopen; desktop series doesnotresolve humanlag",
+    "Beta96.1 mobileverdictunknown/inputreaderblocked; no promotion"
+  ],
+  "schema": 1,
+  "taskId": "ops-0610-tooling135-pages-reconcile-20261006",
+  "actor": "codex",
+  "sessionId": "relay-run-c2520936f179c9d8",
+  "createdAt": "2026-10-06T12:02:15.778Z",
+  "released": true
+}
