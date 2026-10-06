@@ -1,0 +1,36 @@
+{
+  "status": "done",
+  "summary": "Serie v3 sintetica 5200 gastos CPUx6: 80 ciclos = 30,5 min efectivos, todos aterrizados, sin pausas artificiales. Ventanas de 10 ciclos sin tendencia monotona (frames lentos/min 150-194, ruido); heap/nodos/listeners acotados (heap 14,8 a 19,8 MB natural, 16,5 tras GC final; nodos 1613-1795; listeners 470-533), backstack 0, 1 intervalo. 81 sync explicitos, cero automaticos, expensesWrites constante, 81 pulls offline fallidos y 81 recuperados. Control degradado 5,63/s vs normal 2,75/s vs recuperado 3,18/s. No se acredita pendiente ni accion culpable: sin A/B ni correccion. INC-2709-09 sigue abierto. Unico cambio: timeout del spec cycles*30000+300000 y acta en docs/briefs.",
+  "branch": "claude/inc-2709-09-duration30",
+  "productSHA": "ad84f0cd79e6004f85c4aabc9d9f14dffbb4473b",
+  "tests": [
+    {
+      "command": "MC_LAG_CYCLES=80 MC_LAG_SIZES=5200 playwright test e2e/rendimiento-sostenido.spec.mjs --workers=1 (Chromium 141)",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/guard-privacy.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/docs-frescura.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node --check e2e/rendimiento-sostenido.spec.mjs; git diff --check",
+      "exitCode": 0
+    }
+  ],
+  "limitations": [
+    "No es WebView ni suspension real; sin sockets/auth/realtime",
+    "Una sola pasada y semilla; no equivale a dias de uso ni a movil real",
+    "No se ejecuto npm test entero ni otros e2e",
+    "Sin PR ni integracion; entorno Cloud Linux"
+  ],
+  "schema": 1,
+  "taskId": "inc-2709-09-duration30-claude-20261006",
+  "actor": "claude",
+  "sessionId": "claude-cloud-20261006-a85f550b",
+  "createdAt": "2026-10-06T11:53:40.416Z",
+  "released": true
+}
