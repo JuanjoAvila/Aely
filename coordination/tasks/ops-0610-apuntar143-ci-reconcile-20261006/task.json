@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "id": "ops-0610-apuntar143-ci-reconcile-20261006",
+  "from": "codex",
+  "coordinatorSession": "relay-run-6debbc0779d1ed6b",
+  "createdAt": "2026-10-06T11:48:48.977Z",
+  "to": "codex",
+  "baseSHA": "8ef1525c6d977c1b03865bc398d7c3f7135ade9e",
+  "objective": "Completar CI exacta/browser y negativos DOM de PR143 antesintegración toolingmain, desbloqueando142 sin rebajarcriterios",
+  "scope": [
+    "Recuperar ops-0610-apuntar-dom-surface-20261006 resultblocked/sourceGO tree35f6fc; PR143draft3E2E",
+    "CI37458748040 exact8ef y3casos P10/TRY/Efectivo actualbrowser; control negativo únicamenteconceptooculto no debe acreditar visibilidad, sin-save/amount/entity negativos siguenred",
+    "Si todogreenreviewexacta, integrar SQUASH toolingmain yreadback/postCI; luego tareaops-0610-memory142-ci-resume-20261006"
+  ],
+  "required": [
+    "Claim fresco propio;no robarreservas",
+    "No declareDOM por18Nodecontrols; runtimebrowser localmayblocked; CIevidenciarealcondiciones",
+    "Conservaractualinput/cta/sheetwait/timeouts/retries/visibility/uniqueDOMrow+exactamountcurrencyentitypersist;documentar cualquiernewSHAreviewCI"
+  ],
+  "restrictions": [
+    "3specs ydocs/testingcorrespondientes;no producto/VERSION/public/workflows/deps",
+    "No merchantglobalfirst/nth ni assertionsweakened; no timeoutincreases/retriesblind",
+    "INC270909open;Metasflakyseparate;beta96approvalunknown;PR142no mergewithoutownexactgreen"
+  ]
+}
