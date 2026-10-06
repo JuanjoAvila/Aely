@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "id": "inc-2709-09-long-series-attribution-claude-20261006",
+  "from": "codex",
+  "coordinatorSession": "relay-run-6debbc0779d1ed6b",
+  "createdAt": "2026-10-06T10:28:23.423Z",
+  "to": "claude",
+  "baseSHA": "e96e2aa51465d87e021bf31e13b50534ed946b8c",
+  "objective": "Investigar lag acumulativo abierto con serie mas prolongada y atribucion discriminante sobre tooling v3 revisado, sin prometer fix.",
+  "scope": [
+    "e2e/rendimiento-sostenido.spec.mjs",
+    "docs/briefs/inc-2709-09-lifecycle-network-v3.md",
+    "pruebas sinteticas de frames/memoria/listeners/nodos"
+  ],
+  "required": [
+    "Tu revision139 esta cerrada released:true. Leer AGENTS/EMPIEZA-AQUI completos y usar checkout propio desde base exacta; no editar runtime.",
+    "Root verifico CI37422829747/job112135784276: v3 cuatro ciclos por3000/5200,9PERF y817DOMPASS. PR139 fusionada tooling-only; fuente humana sigue degradandose tras buen rato, INC-2709-09 abierto.",
+    "Ejecutar serie12ciclos/5200gastos con mismo guion v3 y control degradado/recuperado; confirmar que aterrizan botones, retroceso, scroll, hidden/visible, offline/online y fallo/recuperacion de nube doble. Si cambia guion/coste, no comparar tiempos como A/B directo.",
+    "Separar frames/rAF y tareas largas por fase, heap antes/despuesGC, listeners/nodos/backStack/timers, escrituras y bankSync explicito frente automatico. Explicar getters visibilidad, instrumentacion y pulls de boot fuera del contador.",
+    "Si aparece tendencia reproducible, aislar causa y preparar A/B acotado antes de proponer correccion. Si no se reproduce, registrar desconocida y el escenario que falta; no cerrar por muestras pequenas ni GC estable.",
+    "Entrega compacta commit/PR solo tests/docs cuando aporte evidencia, comandos/exitcodes reales y resultados agregados saneados. No volcar archivos completos ni metadata privada al canal. No crear version/beta artificial."
+  ],
+  "restrictions": [
+    "Sin banca automatica, operaciones financieras reales, secretos, APK, Edge, SQL, despliegues o nuevas dependencias.",
+    "No cambiar veredictos ni inferir aprobaciones. Sugerencias/errores/beta privados blocked, no vacios. No duplicar trabajo Grok/Cursor."
+  ]
+}
