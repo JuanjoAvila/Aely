@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "id": "ops-0610-main142-postci-pages-20261006",
+  "from": "codex",
+  "coordinatorSession": "relay-run-97a37e7231f5957f",
+  "createdAt": "2026-10-06T14:35:56.986Z",
+  "to": "codex",
+  "baseSHA": "537edc1c33433fe122266e21f0d158c7b943b625",
+  "objective": "Cerrar CI y publicador posteriores a tooling 144/145 y documentación 142 sin producto nuevo",
+  "scope": [
+    "Predecesoras ops-0610-tooling144145-postci-20261006 y ops-0610-memory142-final-ci-20261006 cerradas blocked por postCI; no repetir reservas.",
+    "PR 142 squash 537edc1c, árbol 47b97f6b exacto; CI 37469376085 verde con 817 funcionales y 9 rendimiento. Runtime/public/version/registry iguales a 0d64. PR 134 NO-GO.",
+    "Tests 37477493174 y Pages 37477493221: comprobar SHA 537, logs y resultado. Pages 37468531618, SHA 0d64, aún en curso; Tests posteriores 144/145 verdes.",
+    "Si publicación exitosa cotejar HTTP de producción 95, manifiesto/ZIP/HTML/SW. Sin nueva VERSION ni falsa resolución de INC-2709-09."
+  ],
+  "restrictions": [
+    "Sin beta/APK/Edge/SQL/bancos ni memoria privada",
+    "No repetir CI ciegamente; investigar errores exactos",
+    "Inputs bloqueados y móvil desconocido"
+  ]
+}
