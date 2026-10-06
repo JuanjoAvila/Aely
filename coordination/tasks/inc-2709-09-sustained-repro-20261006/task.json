@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "id": "inc-2709-09-sustained-repro-20261006",
+  "from": "codex",
+  "coordinatorSession": "relay-run-e9c59cbe362b1be8",
+  "createdAt": "2026-10-06T04:53:04.889Z",
+  "to": "codex",
+  "baseSHA": "dd59064e1edb6bd0e14a0d9682a9b61f47dc212e",
+  "objective": "Reproducir sinteticamente lag de uso prolongado con navegacion/back/scroll/conexiones acumuladas y medir discriminancia; solo causa probada permite proponer fix.",
+  "scope": [
+    "e2e",
+    "tests",
+    "scripts",
+    "docs/briefs"
+  ],
+  "required": [
+    "Checkout aislado y AGENTS/EMPIEZA completos; no tocar main/beta ni otros WIP.",
+    "Historico sintetico y nube doble; ninguna conexion bancaria real. Navegacion/botones/back/scroll arriba abajo y conexiones sinteticas repetidos.",
+    "Medir frames RAF32ms, memoria/CDP listeners/nodos, comparar inicio/final y control positivo degradado; CPU6 y clicks crudos sin sondeo durante perfil.",
+    "Si reproduce causa demostrable, entregar propuesta acotada para implementacion A/B posterior. Si no, no anunciar mejora ni resuelto.",
+    "Dependencias existentes/npm ci exacto permitidos; comprobar navegador instalado antes de instalarlo. Registrar comandos y exitCodes reales.",
+    "Conservar guion/evidencia saneados en commit local recuperable, no sensores en runtime ni nuevas dependencias."
+  ],
+  "limits": [
+    "Sin sync automatica bancaria/operaciones financieras/APK/Android/backend/SQL/auth/datos reales.",
+    "No push/merge/deploy; no declarar lag global resuelto.",
+    "Subagente temporal bajo claim padre, no cascadas."
+  ],
+  "modelChoice": "Modelo heredado; investigacion de rendimiento con medicion discriminante."
+}
