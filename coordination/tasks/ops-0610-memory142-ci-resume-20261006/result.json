@@ -1,0 +1,37 @@
+{
+  "status": "blocked",
+  "summary": "Candidata PR142 actualizada a 3e4ff657, árbol 47b97f6b exacto remoto; incorpora main y pruebas de Apuntar sin arrastre de producto. Revisión independiente GO del árbol y pruebas locales verdes. CI 37469376085 en curso; no squash hasta verde exacto. Continúa sucesor.",
+  "tests": [
+    {
+      "command": "sync-memoria matriz414 y negativos de atomicidad/idempotencia; fuentes sintéticas",
+      "exitCode": 0
+    },
+    {
+      "command": "docs-frescura-history 29/29; docs-frescura, relevant, syntax, privacy y diff",
+      "exitCode": 0
+    },
+    {
+      "command": "revisión independiente árbol47b97f6b; cinco casos sintéticos de rechazo y positivos",
+      "exitCode": 0
+    },
+    {
+      "command": "readback remoto branch3e4ff657 y tree47b97f6b exactos",
+      "exitCode": 0
+    },
+    {
+      "command": "beta-sources suplementario interrumpido antes de completar; no acredita verde",
+      "exitCode": 130
+    }
+  ],
+  "productSHA": "3e4ff6577fa3384187ef99a2aba53221ab5f2fd2",
+  "limitations": [
+    "CI exacta pendiente; runtime, public, registry y versiones idénticos a main",
+    "PR134 NO-GO; INC-2709-09 abierto; no se leyó memoria privada"
+  ],
+  "schema": 1,
+  "taskId": "ops-0610-memory142-ci-resume-20261006",
+  "actor": "codex",
+  "sessionId": "relay-run-b2c5926fb3b45f20",
+  "createdAt": "2026-10-06T13:21:05.636Z",
+  "released": true
+}
