@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "id": "ops-0610-memory142-ci-resume-20261006",
+  "from": "codex",
+  "coordinatorSession": "relay-run-6debbc0779d1ed6b",
+  "createdAt": "2026-10-06T11:44:45.639Z",
+  "to": "codex",
+  "baseSHA": "baa6f8de805e2049dbcce44682227b60b79a9518",
+  "objective": "Reanudar sucesor saneado PR142 solo tras corregir/revisar pruebas Apuntar y obtener CI exacta verde; mantener PR134NO-GO",
+  "scope": [
+    "Recuperar resultado blocked ops-0610-memory134-sanitized-successor-20261006 y siguiente ops-0610-apuntar-dom-surface-20261006",
+    "Tras resultado/revisión exacta de Apuntar, integrar exclusivamente fixE2E autorizado en candidata saneada142 sin archivos financieros/runtime/VERSION/public",
+    "Nueva fuente/tree/diff revisión independiente/privacy+CI exactos; únicamenteSQUASHmain despuésverde, readback y CIpost"
+  ],
+  "required": [
+    "Claim propio fresco antes trabajar; no suplantar ni liberarclaimactivo Apuntar",
+    "414matrix+positivos/negativos exporter,29fixtures135, sintaxis/privacy/relevant y fullCI real sobreSHAfinal",
+    "No repetir ciegamenteCIbaa ni inferir defectoexporter por P10; mantener5flakyregistrados; WIPdurable"
+  ],
+  "restrictions": [
+    "PR134historial privado excluido; fuente14docs limpia sinoriginSession/privateLibrary/chatrefs/financialresidue; no publicar nuevos datos privados",
+    "No reducir assertions/timeout/retries/scopes/privacy; no producto/bankreal/Edge/SQL/APK",
+    "INC270909prolongado abierto; lector inputsblocked/no mobileOK inferred"
+  ]
+}
