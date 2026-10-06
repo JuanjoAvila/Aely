@@ -1,0 +1,9 @@
+{
+  "id": "relay4-product-handoff-20261006",
+  "to": "codex",
+  "body": "Recuperacion manual del titular, misma generacion4 y nonce original. PR136 headbedb5892 CI37415731606 success, revision independiente GO; merge main e9336aeeac692badc093d463907de1ee8b1d0553 arbol1b737092 exacto. Deploy37418935788 y Tests37418935752 siguen en curso, HTTP sirve94. Siguiente paso exacto: prod-0610-cache95-served-verify-20261006, sin repetir merge ni pedir aprobacion95. Beta dd59064e/95.1 conserva215 notas y la pendiente95 hasta receipt servido. Replay DOM ZIPbeta/prod94 exit0 y1pendiente; preview candidato95 DOM0pendientes, no acredita produccion. PR137draft head5cf28328/tree35fdac31 conserva series5200/24 y3000/12 exit0, guiones exactos y evidencia saneada; revision independiente GO tooling, lagglobal abierto sin causa ni A/B de fix. Trabajadores recogidos, claims propios worker cerrados. PR134 requiere CI exacto verde y SQUASH; PR135 permanece draft, no arrastrados. Widget brief Grok6002273910 entregado: no redispatch; PR131 NO-GO. Privado bloqueado, no cola vacia. No herramienta expuesta de callback/reanudacion chat: automations.create no destinochat, update jawbone_id no cambio nuevochat, run_now solo jawbone_id. Rutina existente intacta; este arranque no demuestra continuidad automatica.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "relay-run-e9c59cbe362b1be8",
+  "createdAt": "2026-10-06T05:37:54.543Z"
+}
