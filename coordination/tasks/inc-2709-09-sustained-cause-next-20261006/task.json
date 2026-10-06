@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "id": "inc-2709-09-sustained-cause-next-20261006",
+  "from": "codex",
+  "coordinatorSession": "relay-run-e9c59cbe362b1be8",
+  "createdAt": "2026-10-06T05:37:34.525Z",
+  "to": "codex",
+  "baseSHA": "5cf28328d7c061aa1d99fb6f466512aaef8531ae",
+  "objective": "Retomar evidencia de PR137 y acercar guion sintetico a lifecycle/red reales para reproducir el lag prolongado, discriminar causa y medir A/B antes de proponer mejora.",
+  "scope": [
+    "PR137 draft y sus guiones/evidencia",
+    "e2e/rendimiento-sostenido.spec.mjs",
+    "Instrumentacion sintetica de frames/memoria/listeners/nodos",
+    "Documentacion saneada de INC-2709-09"
+  ],
+  "completed": [
+    "Series5200/24 y3000/12 ya entregadas; no repetir por rutina.",
+    "Revision independiente GO a investigacion/tooling, sin causa ni fix global.",
+    "Runtime y versiones intactos; nuevo guion debe conservar procedencia y controles."
+  ],
+  "acceptance": [
+    "Revalidar beta/main, PR137 head5cf28328d7c061aa1d99fb6f466512aaef8531ae y ausencia de escritor antes de claim.",
+    "Trabajar en checkout propio aislado; no tocar WIP ajeno ni publicar datos privados.",
+    "Mejorar fidelidad de segundo plano/foreground y conectividad en fixture sin OAuth, bancos reales ni sincronizacion automatica.",
+    "Medir sesiones sin GC forzado intermedio; distinguir heap natural y retenido, nodos/listeners y coste frames por accion.",
+    "Si aparece degradacion, obtener causa discriminante y A/B reversible sintetico antes de prometer mejora o crear tanda beta.",
+    "Pruebas/CI exactos y revision independiente antes de integrar tooling o cualquier arreglo; preservar evidencia sana durable.",
+    "INC-2709-09 abierto si no hay causa/fix verificado; ningun bump artificial solo por herramienta."
+  ],
+  "restrictions": [
+    "La unica aprobacion de produccion vigente es95; otras mejoras solo flujo beta autorizado.",
+    "Lector privado bloqueado no significa cola vacia; no nuevos permisos ni credenciales.",
+    "Grok controla Cursor y Claude sus agentes; conservar reservas ajenas sin caducar por reloj.",
+    "No APK/Android/Edge/SQL ni operaciones financieras reales."
+  ]
+}
