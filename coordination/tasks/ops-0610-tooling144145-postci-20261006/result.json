@@ -1,0 +1,29 @@
+{
+  "status": "blocked",
+  "summary": "Tests posteriores144145 verdes exactos; Pages0d64 aún en curso. ProducciónHTTP95 confirmada sin producto nuevo. Continúa verificación Pages en tarea sucesora.",
+  "tests": [
+    {
+      "command": "GitHub Tests37468453102 head277793c2 SUCCESS",
+      "exitCode": 0
+    },
+    {
+      "command": "GitHub Tests37468531744 head0d64c1ab SUCCESS",
+      "exitCode": 0
+    },
+    {
+      "command": "diff6f035b09..0d64c1ab runtime/public/VERSION idénticos; saludHTTP4.26.95",
+      "exitCode": 0
+    }
+  ],
+  "productSHA": "0d64c1ab35a6ef48a4bbc11c97c33f31b2062fda",
+  "limitations": [
+    "Pages37468452952 SUCCESS;Pages37468531618 inprogress",
+    "INC-2709-09 acumulativo abierto; móvilunknown;inputblocked"
+  ],
+  "schema": 1,
+  "taskId": "ops-0610-tooling144145-postci-20261006",
+  "actor": "codex",
+  "sessionId": "relay-run-97a37e7231f5957f",
+  "createdAt": "2026-10-06T14:30:47.800Z",
+  "released": true
+}
