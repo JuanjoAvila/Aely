@@ -185,3 +185,23 @@ rectangular corta el contorno circular (hasta ~8 % en el primer frame); 27 px si
 Limitaciones: Chromium de escritorio, no Android WebView (soporte de `overflow-clip-margin` en WebViews
 antiguas sin comprobar: si falta, cae al recorte rectangular previo); solo primer frame, no se juzga fluidez;
 móvil real sin probar (necesita beta). INC-2709-09 sigue abierto.
+
+## Sucesor: casquete final de la candidata d1fc (reproducido y corregido)
+
+La revisión independiente (NO-GO) temía que `overflow-clip-margin:30px` dejara pintar un casquete del FAB al
+terminar la bajada (`max-height:0`). **Reproducido** en Chromium 141 de escritorio, sin pausa y con la barra ya
+oculta: el FAB queda con la parte alta (~14 px, top 797 frente al borde 812) pintada dentro de la franja de
+clip; diferencia de píxeles con y sin FAB en la franja inferior de 32 px: ~900–1.040 px en green safe 0 y cyber
+safe 34, en movimiento normal y reducido (sistema). El casquete se queda mientras la barra siga oculta.
+
+Corrección mínima: `visibility:hidden` SOLO sobre `.botnav-fab` cuando la barra está oculta, con
+`transition:visibility 0s linear .55s` (el FAB sigue visible durante la bajada y se esconde al acabar) y retardo
+0 con «Reducir animaciones» (app y sistema), donde la caja colapsa al instante. Sin `opacity` en la barra (fondo
+sólido de agosto), sin `transform`, sin `bottom` negativo ni `overflow:visible`. Tras el arreglo la diferencia es 0 px
+en las 4 configuraciones medidas. Al revelar, la regla de «oculto» deja de aplicar y el FAB vuelve de inmediato.
+
+Guardián `e2e/botnav-fab-recorte.spec.mjs` ampliado: primer frame (pausa en t=1 ms, también la transición del
+FAB), ocultación final sin pausa (0 px de casquete), reveal y cancel (oculta+revela antes de acabar); matriz
+green safe 0 / cyber safe 34 × normal / app-reducido / sistema-reducido (6 casos). Sobre d1fc fallan los 6 en la
+fase final; con la corrección pasan los 6 (2 pasadas). El 27 px original sigue no reproducido. Sin equivalencia
+Chromium ↔ Android WebView ↔ ola real; móvil sin probar. INC-2709-09 abierto.
