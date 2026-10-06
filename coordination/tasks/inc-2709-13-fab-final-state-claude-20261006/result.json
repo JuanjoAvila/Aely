@@ -1,0 +1,46 @@
+{
+  "status": "done",
+  "summary": "Casquete final de d1fc REPRODUCIDO (Chromium 141 escritorio, sin pausa, barra oculta: ~900-1040 px de FAB pintados en franja inferior en green safe0 y cyber safe34, normal y reducido). Corrección mínima: visibility:hidden solo en .botnav-fab con transition-delay .55s (0 con reduce-motion app y sistema); sin opacity de barra, transform, bottom negativo ni overflow:visible. Tras el fix 0 px en las 4 configs. Guardián e2e/botnav-fab-recorte.spec.mjs ampliado: primer frame, final sin pausa, reveal, cancel; 6 casos (green0/cyber34 x normal/app-reducido/sistema-reducido); sobre d1fc fallan los 6, con fix pasan (2 pasadas). Acta ampliada. PR draft #147 contra beta. Sondas desechables fuera del repo.",
+  "branch": "claude/pensive-fermat-iz5l9n",
+  "productSHA": "b57d6dfeb8c8be8b81d2b58ad3679098e34bdc14",
+  "tests": [
+    {
+      "command": "npx playwright test e2e/botnav-fab-recorte.spec.mjs (6 passed, x2)",
+      "exitCode": 0
+    },
+    {
+      "command": "mismo spec sobre d1fc (6 failed en ocultación final)",
+      "exitCode": 1
+    },
+    {
+      "command": "npx playwright test botnav-esconder cyber-fab rebote-barra-inferior (20 passed)",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run test:syntax",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "npm test entero (939 s): único fallo docs-frescura 'sin subir VERSION' (esperado, root hace el bump)",
+      "exitCode": 1
+    }
+  ],
+  "limitations": [
+    "Chromium de escritorio, no Android WebView ni móvil real",
+    "27 px original no reproducido",
+    "soporte de overflow-clip-margin en WebViews antiguas sin comprobar",
+    "sin VERSION/RELEASE_NOTES/CHANGELOG/catalogo: los prepara root tras GO",
+    "CI exactSHA del PR no comprobado",
+    "INC-2709-09 abierto; móvil unknown"
+  ],
+  "schema": 1,
+  "taskId": "inc-2709-13-fab-final-state-claude-20261006",
+  "actor": "claude",
+  "sessionId": "claude-cloud-20261006-2a7bbba9",
+  "createdAt": "2026-10-06T13:38:26.638Z",
+  "released": true
+}
