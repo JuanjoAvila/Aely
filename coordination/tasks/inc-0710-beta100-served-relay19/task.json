@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "id": "inc-0710-beta100-served-relay19",
+  "from": "codex",
+  "coordinatorSession": "relay-run-d3f2495bf2896a2d",
+  "createdAt": "2026-10-07T16:30:48.136Z",
+  "to": "codex",
+  "baseSHA": "eabf82006e0a66d376b13cc344d1b71bb211a2de",
+  "scope": [
+    ".github/workflows/beta.yml",
+    "public",
+    "src",
+    "tests",
+    "docs/briefs/ops-0710-bundle-real-budget.md"
+  ],
+  "objective": "Reconciliar publicación exacta beta100 eabf82006e0a66d376b13cc344d1b71bb211a2de, tree a22167d688bce84d54c642522b3f1d38ebdfbfca byteigual fuente6da; PR155 SQUASH ya confirmado,159 cerrada sin main. CI37644890995 SUCCESS logs completos Node/cincoDeno/879pass+2retry recuperados+1skip/9perf. Publisher37651194932/job112894662453 en curso. Leer final/checkout/tree y gate --artifact literal después build/config/stamp/minify antespack; no declarar servicio por merge ni CI. Verificar version.json/apk.json/bundle.zip HTTP, SHA/sourceSha/APP_VERSION/SW/huella/i18n220notas/catálogos/códigos/APK52 exactos del ZIP y fuente. Si fallo gate/publicador, diagnosticar exacto sin elevar topes ni republicar ciego. Sin100 SERVIDA no catálogo160. No repetir Node local883s: fallos por contexto detached/NY heredados de99/baseline git ausente investigados; contexto correcto pasa, javac local ausente pero CIwidget verde. No CI vieja heredada ni nuevasPR/verificación innecesaria. Duplicada37644890931 no usada, estado pendiente; consultar sólo si relevante. Inputsblocked/INC-2709-09 abierto, no humana99/100 ni main/APK/Edge/SQL/migraciones/pagos."
+}

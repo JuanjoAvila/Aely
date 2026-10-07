@@ -1,0 +1,35 @@
+{
+  "status": "blocked",
+  "summary": "CI exacta completa GO; PR155 SQUASH beta100 eabf820 árbol a221 idéntico. Publicador en curso: entrega servida pendiente y traspasada.",
+  "tests": [
+    {
+      "command": "CI 37644890995: node scripts/run-tests.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "Local Node completo, contexto detached y zona America/New_York; seis fallos investigados",
+      "exitCode": 1
+    },
+    {
+      "command": "docs-frescura en rama beta, movilidad tras recuperar baseline, historia UTC/Madrid y rojo idéntico baseline99 NY",
+      "exitCode": 0
+    },
+    {
+      "command": "git diff --exit-code 6daaa75 eabf820 y tree a221",
+      "exitCode": 0
+    }
+  ],
+  "productSHA": "eabf82006e0a66d376b13cc344d1b71bb211a2de",
+  "evidence": "CI checkout 4d38cf037416884e6b15d4ddd94d9a157f964234 árbol a22167d688bce84d54c642522b3f1d38ebdfbfca, Node completo/cinco Deno/879 funcionales/dos reintentos recuperados/un skip/nueve rendimiento. PR159 cerrada sin merge a main. Publisher 37651194932/job112894662453 pruebas en curso. Árbol beta readback exacto. Fixture de presupuesto y gate --artifact intactos; no se acredita todavía su ejecución final ni paquete servido.",
+  "limitations": [
+    "Duplicada 37644890931 continúa pendiente, no usada como evidencia.",
+    "Sin javac/Deno/Chromium locales; widget sí pasa en CI. Tres fixtures de historia fallan NY igual en99/100 y pasan UTC/Madrid; baseline git recuperado y movilidad45 pass.",
+    "INC-2709-09 abierto; inputs bloqueados y no aprobación humana99/100."
+  ],
+  "schema": 1,
+  "taskId": "inc-0710-beta100-ci-publish-relay18",
+  "actor": "codex",
+  "sessionId": "relay-run-d3f2495bf2896a2d",
+  "createdAt": "2026-10-07T16:30:45.992Z",
+  "released": true
+}

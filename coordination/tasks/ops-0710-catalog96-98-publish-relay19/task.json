@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "id": "ops-0710-catalog96-98-publish-relay19",
+  "from": "codex",
+  "coordinatorSession": "relay-run-d3f2495bf2896a2d",
+  "createdAt": "2026-10-07T16:30:49.008Z",
+  "to": "codex",
+  "baseSHA": "4f9633996ad6dfcf09ae693a2911da7c028bdfc8",
+  "scope": [
+    "src/data/release-notes.json",
+    "public",
+    "docs/briefs/catalogo96-98-entregadas-2026-10-07.md"
+  ],
+  "objective": "DEPENDENCIA inc-0710-beta100-served-relay19:100 SERVIDA primero. PR160 head4f9633996ad6dfcf09ae693a2911da7c028bdfc8/tree daa5e1f11d67ec2438966c60ab8cc4e8a970d6ad, mismafuente revisada4f1b, padres beta100eab y4f1b; merge-tree eab+4f963 sinconflictos genera daa. GO independiente exacto nuevo:5 archivos,220notas/historia/rechazos/códigos y47 pendientes preservados; sólo96/98.tandas=[]; generado canónico e index sólo_rnSha; runtime/HEAD/SW/i18n/APK/workflow/scripts intactos. Tests18+33/sintaxis/diffcheck verdes, no repetir. Verify161 ca634588f05129dd6cd3ce8070c9221209ae627c mismoárbol, CI37646635092/37646632534 aún encurso: inspeccionar resultado/logs/checkouttree y Node/Deno completos, cerrar161 SINMERGE trasGO; no heredar CI previa. Tras100SERVIDA ybeta fresca igualeab, ready160+SQUASH únicamenteBETA expected4f963. Si baseavanza revisar árbol nuevamente sin reconstruirPR/replaypublicantiguo. Readback merge/publicador --artifact/HTTP3assets/ZIP/sellos/sourceSha/huella/catálogo/códigos/APK52 exactos. Sin humana99/100 ni main/APK/Edge/SQL/migraciones/pagos; inputsblocked e INC-2709-09 abierto."
+}

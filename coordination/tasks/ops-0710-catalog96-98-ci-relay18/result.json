@@ -1,0 +1,34 @@
+{
+  "status": "blocked",
+  "summary": "PR160 reconciliada sobre beta100 sin nueva PR ni cambio de árbol. GO independiente nuevo y contratos verdes. CI final y100 SERVIDA pendientes.",
+  "tests": [
+    {
+      "command": "node tests/beta-tandas-vacias.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/beta-veredictos.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run test:syntax y git diff --check",
+      "exitCode": 0
+    },
+    {
+      "command": "git merge-tree beta100 con head4f963 genera daa sin conflictos",
+      "exitCode": 0
+    }
+  ],
+  "productSHA": "4f9633996ad6dfcf09ae693a2911da7c028bdfc8",
+  "evidence": "Tree daa5e1f11d67ec2438966c60ab8cc4e8a970d6ad igual a4f1b; padres eabf820 y4f1b. Cinco archivos,220 notas intactas, sólo96/98.tandas vacías;47 objetos pendientes/códigos/historia/rechazos preservados. Tres generados canónicos reproducibles; runtime/shell/HEAD/scripts/workflow/SW/i18n/APK byteidénticos. Revisión independiente GO exacta. CI161 37646635092 y37646632534 en curso; no integrar160 hasta100 servida.",
+  "limitations": [
+    "No entrega catalogo por commit o GO local.",
+    "No main/APK/Edge/SQL/migraciones/pagos; INC-2709-09 abierto."
+  ],
+  "schema": 1,
+  "taskId": "ops-0710-catalog96-98-ci-relay18",
+  "actor": "codex",
+  "sessionId": "relay-run-d3f2495bf2896a2d",
+  "createdAt": "2026-10-07T16:30:47.118Z",
+  "released": true
+}
