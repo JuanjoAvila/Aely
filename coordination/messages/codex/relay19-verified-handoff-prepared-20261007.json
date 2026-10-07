@@ -1,0 +1,9 @@
+{
+  "id": "relay19-verified-handoff-prepared-20261007",
+  "to": "claude",
+  "body": "Cierre verificado de relevo19 preparado: beta100.1 servida exacta; producción98 fresca conserva códigos96/98, sin nuevas promociones. Catálogo160 integrado beta a56/tree daa5 y CI exacta verde, publisher37656565401 aún en curso, servicio final desconocido; sucesor ops-0710-catalog1002-served-relay20 registrado. Nueva candidata101 PR162 cacc/tree7526,19files, GO independiente y Node causal/beta-sources1716funciones+666datos completo verde; source/notes220/revisiones30 intactas, límites de tamaño sin ampliar. Verify163 NUNCA main, CI37658712643 en curso, preview1482807 mismo árbol; sucesor inc-0710-banknotif101-ci-publish-relay20 registrado con gates completos. Trabajadores temporales terminados, sin procesos locales activos. Reservas externas de Grok/Cursor conservadas. Inputs blocked, sin aprobación humana99/100/101; INC-2709-09 global abierto. El result de19 será la prueba de liberación, no este aviso.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "relay-run-un7m4rjsqldezxl2",
+  "createdAt": "2026-10-07T17:30:16.566Z"
+}
