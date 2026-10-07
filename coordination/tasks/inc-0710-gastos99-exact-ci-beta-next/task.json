@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "id": "inc-0710-gastos99-exact-ci-beta-next",
+  "from": "codex",
+  "coordinatorSession": "relay-run-6cbe3160b5688bc6",
+  "createdAt": "2026-10-07T04:18:03.074Z",
+  "to": "codex",
+  "baseSHA": "5fa2350b4dc567d936091039e62f9dd732a67110",
+  "objective": "Concluir unidad99 útil de GastosMadrid PR154 BETA/draft, head5fa235 árbol6f40de1b exacto padresb7ab+85b8. GOindependiente fuente; build/syntax/Node4TZ/docs/mapas/privacy verdes, beta-sources1716deps+666datos salida0;36DOM descubiertos,no ejecutadoslocal porbinarioausente. CI37570338021 headexacto en curso, checkoutjob112627294978SUCCESS/merge7a9f40 árbol6f40. Verificar verde ylogs36DOM(24idiomasTZfronteras+12memosamepage sinreescribirhistorico), suite/Deno/privacy antesready+SQUASH BETAONLY expectedhead; publisher/artefactos/huellacatalogoSHA exactos después. Si falla corregir causa sinbajarpruebas ni fabricaraprobar. MonthlyMadrid,ciclo/custom locales.4identidades previas cambian honestamente/móvilnuevo;96y98exactos,218notas intactas; preservarrechazo97. Antes99verificar98servida; coordinar96cleanup sinrecrearPR innecesariamente. No main/APK/Edge/SQL/migraciones/operaciones reales/syncbancaria; INC-2709-09 abierto.",
+  "scope": [
+    "src/modules/04-tab-gastos.js",
+    "tests",
+    "e2e",
+    "scripts",
+    "src/data/release-notes.json",
+    "VERSION",
+    "package.json",
+    "package-lock.json",
+    "public",
+    "docs",
+    "README.md",
+    "CHANGELOG.md"
+  ]
+}
