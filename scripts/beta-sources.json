@@ -11685,5 +11685,14 @@
       }
     ],
     "unidades": true
+  },
+  "inc-0710-appstate-listener-cleanup": {
+    "web": [
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "    document.addEventListener(\"visibilitychange\", onVis);\n    // Capacitor devuelve una promesa: liberar también el handle que llega después del cleanup.",
+        "to": "  // APK alpha22: noti de Caixa/Sabadell/… → evento nativo bankNotif → sync OB (sin parsear importe)."
+      }
+    ]
   }
 }

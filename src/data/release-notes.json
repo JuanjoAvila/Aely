@@ -1,5 +1,49 @@
 [
   {
+    "v": "4.26.100",
+    "d": "2026-10-07",
+    "t": {
+      "es": "Volver tras cambiar de sesión",
+      "en": "Returning after switching sessions",
+      "ca": "Tornar després de canviar de sessió"
+    },
+    "items": {
+      "es": [
+        "Al cambiar de sesión, la app retira el aviso anterior de vuelta al primer plano para evitar respuestas repetidas."
+      ],
+      "en": [
+        "When switching sessions, the app removes the previous foreground listener to avoid repeated responses."
+      ],
+      "ca": [
+        "En canviar de sessió, l’app retira l’avís anterior de tornada al primer pla per evitar respostes repetides."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inc-0710-appstate-listener-cleanup",
+        "t": {
+          "es": "Volver tras cambiar de sesión",
+          "en": "Returning after switching sessions",
+          "ca": "Tornar després de canviar de sessió"
+        },
+        "items": {
+          "es": [
+            "1. Si cambias de sesión durante el uso normal, vuelve a abrir la app varias veces: debe seguir respondiendo sin repetir acciones al regresar.",
+            "2. Prueba también volver tras usar otras pantallas. Si aparece lentitud acumulada, indica si hubo un cambio de sesión; esta prueba no confirma su resolución general."
+          ],
+          "en": [
+            "1. If you switch sessions during normal use, return to the app several times: it should remain responsive without repeating actions on return.",
+            "2. Also return after using other screens. If sluggishness accumulates, indicate whether the session changed; this test does not confirm a general resolution."
+          ],
+          "ca": [
+            "1. Si canvies de sessió durant l’ús normal, torna a obrir l’app diverses vegades: ha de continuar responent sense repetir accions en tornar.",
+            "2. Prova també tornar després d’utilitzar altres pantalles. Si s’acumula lentitud, indica si hi ha hagut un canvi de sessió; aquesta prova no confirma una resolució general."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.99",
     "d": "2026-10-07",
     "t": {
