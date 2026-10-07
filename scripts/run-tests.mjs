@@ -38,6 +38,7 @@ const steps = [
   ["debt-payment-state", ["node", "tests/debt-payment-state.test.mjs"]],
 
   ["gastos-periodo", ["node", "tests/gastos-periodo.test.mjs"]],
+  ["gastos-mes-madrid", ["node", "tests/gastos-mes-madrid.test.mjs"]],
   ["retirada-bancaria", ["node", "tests/retirada-bancaria.test.mjs"]],
   ["backup-snapshot", ["node", "tests/backup-snapshot.test.mjs"]],
   ["bank-merchant-category", ["node", "tests/bank-merchant-category.test.mjs"]],
