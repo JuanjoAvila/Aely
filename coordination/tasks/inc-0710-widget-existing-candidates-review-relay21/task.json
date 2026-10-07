@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "id": "inc-0710-widget-existing-candidates-review-relay21",
+  "from": "codex",
+  "coordinatorSession": "relay-run-82bdecb0988d1d4c",
+  "createdAt": "2026-10-07T21:20:23.019Z",
+  "to": "codex",
+  "baseSHA": "067371705615e9cc58923509e3f60c3d0c9003ff",
+  "objective": "Reconciliar candidatos widget87/90/105/44 con fuentes web98/APK52/recibo ingest64b4: identificar cambios absorbidos, residuos de servidor v2 o journal, rechazos y siguiente gate. Revisar propuesta ya existente antes de duplicar reparación. Solo lector oficial y fuentes sintéticas; no modificar reservas ajenas, producto, datos ni despliegues. Mantener causa humana/servidor vivo/APK instalada unknown.",
+  "scope": [
+    "docs/briefs",
+    "docs/BACKLOG.md",
+    "EMPIEZA-AQUI.md"
+  ]
+}
