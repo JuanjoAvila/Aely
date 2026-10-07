@@ -1,3 +1,10 @@
+## Widget105: candidata aislada del journal (7/10)
+
+Widget105, fuente aislada del 7/10: `tests/widget-unknown-journal.test.mjs`, registrado en
+run-tests, compila el árbitro Java exacto con la matriz sintética de formatos, ACK y lápidas.
+El mismo caso de ACK indentado es rojo sobre el árbitro base y verde en la candidata.
+No equivale a una APK probada/entregada ni a causa del síntoma humano; [alcance y gates](briefs/inc-0710-widget105-isolated-source.md).
+
 ## Apuntar: fila visible e importe persistido (5/10)
 
 `pulido-numpad` y `efectivo-apuntar` navegan a Gastos después de guardar y comprueban una única

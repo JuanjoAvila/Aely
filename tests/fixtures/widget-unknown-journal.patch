@@ -1,0 +1,50 @@
+diff --git a/android/app/src/main/java/com/micartera/app/WidgetSnapshotArbiter.java b/android/app/src/main/java/com/micartera/app/WidgetSnapshotArbiter.java
+index 8e4d634f..9ddb3941 100644
+--- a/android/app/src/main/java/com/micartera/app/WidgetSnapshotArbiter.java
++++ b/android/app/src/main/java/com/micartera/app/WidgetSnapshotArbiter.java
+@@ -29,9 +29,10 @@ final class WidgetSnapshotArbiter {
+         // No conocemos ningún delta de una respuesta incompatible. Solo conservamos identidad;
+         // una foto de la app sin ACK no es prueba de que ya incluya ese pago (revisión 30/9).
+         String line = event + "\t" + (expenseKey != null ? expenseKey : "");
+-        if (!s.unknownJournal.contains(line + "\n")) {
+-            if (s.unknownJournal.length() + line.length() + 1 > JOURNAL_MAX) s.journalFull = true;
+-            else s.unknownJournal += line + "\n";
++        if (!("\n" + s.unknownJournal + "\n").contains("\n" + line + "\n")) {
++            int separator = s.unknownJournal.isEmpty() ? 0 : 1;
++            if (s.unknownJournal.length() + separator + line.length() > JOURNAL_MAX) s.journalFull = true;
++            else s.unknownJournal += (separator == 0 ? "" : "\n") + line;
+         }
+         s.unknownPending = true;
+         return true;
+@@ -50,8 +51,9 @@ final class WidgetSnapshotArbiter {
+             if (line.trim().isEmpty()) continue;
+             String[] p = entry(line);
+             if (p.length != 7) { s.journalFull = true; return false; }
+-            String unknown = p[0].trim() + "\t" + p[6] + "\n";
+-            if (!s.unknownJournal.contains(unknown)) s.unknownJournal += unknown;
++            String unknown = p[0].trim() + "\t" + p[6];
++            if (!("\n" + s.unknownJournal + "\n").contains("\n" + unknown + "\n"))
++                s.unknownJournal += (s.unknownJournal.isEmpty() ? "" : "\n") + unknown;
+         }
+         if (s.unknownJournal.length() > JOURNAL_MAX) { s.journalFull = true; return false; }
+         s.periodStart = 0;
+@@ -67,10 +69,17 @@ final class WidgetSnapshotArbiter {
+         double shown = 0, against = 0, cashPart = 0, spendPart = 0;
+         StringBuilder unknownKeep = new StringBuilder();
+         for (String line : s.unknownJournal.split("\\n")) {
+-            if (line.isEmpty()) continue;
++            // El XML indenta el salto final de versiones anteriores al reiniciar. Es formato,
++            // no un pago dañado: debe poder llegar su ACK también tras arrancar offline (3/10).
++            if (line.trim().isEmpty() && line.indexOf('\t') < 0) continue;
+             String[] p = entry(line);
+             if (p.length != 2) { s.journalFull = true; return false; }
+-            if (!has(coveredEvents, p[0]) && !has(deletedKeys, p[1])) unknownKeep.append(line).append('\n');
++            p[0] = p[0].trim();
++            if (p[0].isEmpty()) { s.journalFull = true; return false; }
++            if (!has(coveredEvents, p[0]) && !has(deletedKeys, p[1])) {
++                if (unknownKeep.length() > 0) unknownKeep.append('\n');
++                unknownKeep.append(p[0]).append('\t').append(p[1]);
++            }
+         }
+         if (unknownKeep.length() > JOURNAL_MAX) { s.journalFull = true; return false; }
+         boolean unknown = unknownKeep.length() > 0;
