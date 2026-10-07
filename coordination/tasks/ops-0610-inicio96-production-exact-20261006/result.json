@@ -1,0 +1,16 @@
+{
+  "status": "blocked",
+  "summary": "Promocion autorizada96 preparada y durable PR152 mainhead68b5ecb6ea479a231023330ddc00829e4473992b treefbf854a4d0f7b87ad28388bbfd15c691d149e514. Fuente runtimeexacta ca6 aprobada, no beta97/98. Revision independienteGO fuente; CI37562183860 sigue en curso, no merge ni produccion96 declarada. Continuacion ops-0710-inicio96-exact-ci-promote exige CI SUCCESS exacta, SQUASH expectedhead/readback/postCI/artefactos y despues retirar solo96 de cola beta. APK/Edge/SQL/aceptacionfinanciera separados.",
+  "tests": [
+    "independentGO exacttreefbf854",
+    "local beta-sources1612+622 exit0",
+    "local syntax/privacy/history29/catalogo/verdicts build exit0",
+    "CI37562183860 inprogress; production95 latestknown"
+  ],
+  "schema": 1,
+  "taskId": "ops-0610-inicio96-production-exact-20261006",
+  "actor": "codex",
+  "sessionId": "relay-run-tqjnmmxjddwquexd",
+  "createdAt": "2026-10-07T03:02:48.292Z",
+  "released": true
+}
