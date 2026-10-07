@@ -20217,7 +20217,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="7472333ee1bfc29acca911aadf159b7a74f8d4a75453a3ee40d654665110a50e";
+var _rnSha="341529eeaba56dda2339ffed34b5f1e8f210ef81d6388e98586728c641177179";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -24933,18 +24933,21 @@ function App(){
     if(!uid) return;
     const nat=natPlugin();
     if(!nat||!nat.addListener) return undefined;
-    let h=null;
+    let sub, off;
     const onPing=function(){
+      if(off) return;
       if(!(stateRef.current||{}).hasBankLink) return;
       if(!allowBankNotifSync()) return;
       mcScheduleIdle(function(){ runBankSync({}); });
     };
     try{
-      const p=nat.addListener("bankNotif", onPing);
-      if(p&&p.then) p.then(function(handle){ h=handle; }).catch(function(){});
-      else h=p;
+      sub=Promise.resolve(nat.addListener("bankNotif", onPing)); sub.catch(function(){});
     }catch(e){}
-    return function(){ try{ if(h&&h.remove) h.remove(); }catch(e){} };
+    return ()=>{
+      off=true;
+      // La sesión puede retirarse antes de que el puente entregue el handle.
+      if(sub) sub.then(h=>h&&h.remove&&h.remove()).catch(()=>{});
+    };
   },[uid]);
 
   // PUNTO 5 · Noti → ficha del gasto. Al tocar la notificación de un gasto, la parte nativa deja un

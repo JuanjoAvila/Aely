@@ -1,3 +1,5 @@
+Candidata101: `bankNotif` tiene la misma carrera de handle tardío que el listener de reentrada100. Cleanup de Promise y callback inerte; no alterar opción expresa, cupo ni sync. Cambiar uid antes de resolver el alta es necesario para reproducir la fuga: scroll por sí solo no lo acredita. INC-2709-09 sigue abierto. [Acta](docs/briefs/inc-0710-banknotif-cleanup.md).
+
 Promoción96 consta fusionada en main85b8b540: preservar su [acta](docs/briefs/promocion-inicio96-2026-10-06.md) y comprobar publicador/artefactos exactos antes de limpiar el catálogo. El merge no acredita entrega ni aprueba99.
 
 Gastos99 candidata local: ambos extremos y etiquetas de mes/mes pasado/3m usan Madrid; ciclo y rango siguen locales. No heredar aprobaciones de scopes afectados. [Acta](docs/briefs/inc-0710-gastos-mes-madrid.md).

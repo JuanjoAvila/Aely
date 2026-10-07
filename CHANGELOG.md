@@ -1,3 +1,8 @@
+## [4.26.101] — 2026-10-07 · Retirada del aviso nativo al cambiar de sesión
+
+- `bankNotif` conserva la Promise del alta y libera el handle incluso si llega después del cleanup; un callback retirado queda inerte. Errores síncronos y rechazados de alta/retirada se absorben. Se preservan enlace, opción expresa, cupo y sincronización.
+- Regresión causal y DOM con altas diferidas y cambios de uid, sin bancos reales. Revisión independiente, CI exacta, publicación y aceptación móvil pendientes. INC-2709-09 acumulativo sigue abierto; no acredita causa ni solución global. Sin APK, Edge ni SQL. [Acta](docs/briefs/inc-0710-banknotif-cleanup.md).
+
 ## [4.26.100] — 2026-10-07 · Listener de reentrada al cambiar de sesión
 
 - El efecto dependiente de uid libera el handle asíncrono de Capacitor también si resuelve después del cleanup. Un callback de una sesión retirada queda inerte; errores de alta o retirada se absorben sin promesas rechazadas sin tratar. Fuente portada selectivamente, sin historial externo.

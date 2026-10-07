@@ -111,7 +111,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.100** candidata local: la reentrada retira el listener anterior al cambiar de sesión. Gastos99, FAB98 e Inicio96 conservados. Revisión, CI, DOM y publicación pendientes; INC-2709-09 sigue abierto. [Acta](docs/briefs/inc-0710-appstate-listener-cleanup.md).
+Estado actual: **v4.26.101** candidata local: los avisos nativos retiran las acciones de la sesión cerrada. Revisión, CI, DOM y publicación pendientes; INC-2709-09 sigue abierto. [Acta](docs/briefs/inc-0710-banknotif-cleanup.md).
 
 Corte anterior (4/10, 12:30 UTC, panel de revisión): **v4.26.93** publicada en beta. Primera entrega4.26.93.1 (fuente1d5dd782), CI37200314653SUCCESS y HTTP/ZIP/HTML/SW/catálogo/huella cotejados el4/10 a12:30UTC:11 tandas/24 puntos, frente a40 antes del cambio. Producción4.26.86 (d366215a), APK beta4.26.80/code52 y estable4.26.32/code48 conservadas. Prueba y aprobación móvil pendientes. [Acta](docs/briefs/ops-0410-panel-cola.md).
 
