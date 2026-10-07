@@ -1,5 +1,7 @@
 Widgetproducción: diagnóstico7/10 del contrato de placeholder,28Java/9JS sintéticos; causa del caso real e ingest vivo desconocidos. Reabrir sinACK no demuestra cobertura. Sin producto/despliegue. [Fronteras y evidencia](docs/briefs/inc-0710-widget-production-diagnosis.md).
 
+Correlación widget7/10: recibo ingest del4/10 verificado64b4/SUCCESS; supera27/9 como entrega conocida. Respuesta mensual no satisface contrato v2 de APK52. Matriz sintética12casos y ACK/scope acreditados; servidor activo/instalación/causa humana unknown. Propuesta dual exige cálculo real de ventana/alcance, no etiquetas v2 sobre month. [Contrato y gates](docs/briefs/inc-0710-widget-contract-correlation.md).
+
 Promoción selectiva98 preparada7/10: el dueño aprobó ocultar juntos barra y botón en beta4.26.98.1/sourceb7ab. Base main85b8, sólo CSS aprobada, scope y guardianes correspondientes. Producción96 ya servida; candidata98 local pendiente de revisión independiente, CI exacta y entrega. No99/100/APK/Edge/SQL; INC-2709-09 continúa abierto. [Acta](docs/briefs/promocion-fab98-2026-10-07.md).
 
 Promoción selectiva96 local6/10: sólo el límite de tres metas activas en Inicio aprobado directamente para ca6f5e85; rama aislada desde main537. No promover beta completa ni confundir este límite visual con el cierre de INC-2709-09. Revisión independiente, CI exacta y entrega servida pendientes. [Acta](docs/briefs/promocion-inicio96-2026-10-06.md).

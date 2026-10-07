@@ -1,0 +1,150 @@
+{
+  "schema": 1,
+  "sourceSHA": "067371705615e9cc58923509e3f60c3d0c9003ff",
+  "sourceHashes": {
+    "supabase/functions/ingest/index.ts": "744c67c8008da2075b857c129be605b9d8553dd1142911f22803a2f05281c2c8",
+    "supabase/functions/_shared/ingest_logic.ts": "f5c7c67d41944626de675d725b8b4f7c13749dd9068ce06050495df0c84f9f01",
+    "supabase/functions/_shared/presupuesto.ts": "26a5d0c7c7bea905d14a9dcf499fede9a86ebda4917c63bd88fef90ba8489df1",
+    "src/modules/08-motor-bank.js": "05086103b9fcbcd65fce3a758c96b0fed323d512aefb6d4393db692fc5bf84b8",
+    "src/modules/11-app-main.js": "6a34daa4e6997d4ecb9408d5e0e9497892f10c9cf328031c239d745fcbacd8d2"
+  },
+  "payloadSHA256": "704746db98cc077d59878130184db048ce88f52efbbe828a1d86444172ee2c8d",
+  "legacyMatrix": [
+    {
+      "mode": "net",
+      "banks": [
+        "trade_republic"
+      ],
+      "budget": 0,
+      "legacyEquivalent": true,
+      "responseContractAbsent": true
+    },
+    {
+      "mode": "net",
+      "banks": [
+        "trade_republic"
+      ],
+      "budget": 1000,
+      "legacyEquivalent": true,
+      "responseContractAbsent": true
+    },
+    {
+      "mode": "net",
+      "banks": [
+        "sabadell"
+      ],
+      "budget": 0,
+      "legacyEquivalent": true,
+      "responseContractAbsent": true
+    },
+    {
+      "mode": "net",
+      "banks": [
+        "sabadell"
+      ],
+      "budget": 1000,
+      "legacyEquivalent": true,
+      "responseContractAbsent": true
+    },
+    {
+      "mode": "net",
+      "banks": [
+        "trade_republic",
+        "sabadell"
+      ],
+      "budget": 0,
+      "legacyEquivalent": true,
+      "responseContractAbsent": true
+    },
+    {
+      "mode": "net",
+      "banks": [
+        "trade_republic",
+        "sabadell"
+      ],
+      "budget": 1000,
+      "legacyEquivalent": true,
+      "responseContractAbsent": true
+    },
+    {
+      "mode": "split",
+      "banks": [
+        "trade_republic"
+      ],
+      "budget": 0,
+      "legacyEquivalent": true,
+      "responseContractAbsent": true
+    },
+    {
+      "mode": "split",
+      "banks": [
+        "trade_republic"
+      ],
+      "budget": 1000,
+      "legacyEquivalent": true,
+      "responseContractAbsent": true
+    },
+    {
+      "mode": "split",
+      "banks": [
+        "sabadell"
+      ],
+      "budget": 0,
+      "legacyEquivalent": true,
+      "responseContractAbsent": true
+    },
+    {
+      "mode": "split",
+      "banks": [
+        "sabadell"
+      ],
+      "budget": 1000,
+      "legacyEquivalent": true,
+      "responseContractAbsent": true
+    },
+    {
+      "mode": "split",
+      "banks": [
+        "trade_republic",
+        "sabadell"
+      ],
+      "budget": 0,
+      "legacyEquivalent": true,
+      "responseContractAbsent": true
+    },
+    {
+      "mode": "split",
+      "banks": [
+        "trade_republic",
+        "sabadell"
+      ],
+      "budget": 1000,
+      "legacyEquivalent": true,
+      "responseContractAbsent": true
+    }
+  ],
+  "cycle": {
+    "clientPeriod": 1790974800000,
+    "legacyPeriod": 1790805600000,
+    "clientAgainst": 120,
+    "legacyShown": 420,
+    "differentWindows": true
+  },
+  "scopeControls": [
+    "anchor",
+    "widgetBank",
+    "expenseBanks",
+    "budget"
+  ],
+  "coverageControls": [
+    "event and row ACK",
+    "historical v2 row",
+    "future excluded",
+    "row fallback",
+    "raw token not acknowledged"
+  ],
+  "exit": 0,
+  "liveIngest": "unknown",
+  "installedAPK": "unknown",
+  "limits": "Actual source calculations and month object, synthetic ledger/VM; no Edge handler/database/Android/React execution; no server v2 implementation proved"
+}

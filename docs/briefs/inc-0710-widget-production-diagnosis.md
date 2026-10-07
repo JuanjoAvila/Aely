@@ -104,10 +104,16 @@ correcto **no acredita la versión instalada** en el teléfono afectado.
 `supabase/functions/ingest/index.ts` de main067 produce `month` mensual sin
 contract/kind/scope v2. Ese payload local explica la contraprueba de rechazo,
 pero **no demuestra ingest vivo**: el repo y el despliegue pueden divergir.
-Recibo público histórico: Action36319915174 del27/9, ingest49 desde1397fe28;
-SEC03 y actas advierten diferencias respecto de main. No reemplazar una
-función activa por main ni inferir que continúa legacy por ese recibo antiguo.
+Recibo público histórico: Action36319915174 del27/9, ingest49 desde1397fe28.
+Queda superado como correlación conocida por el recibo verificado del4/10:
+[Action37227204066](https://github.com/JuanjoAvila/Aely/actions/runs/37227204066),
+job111509228985, SUCCESS19:10UTC, checkout64b4e5f y FN=ingest; logs muestran
+bundling, deploy y confirmación19:10:10UTC, no sólo job verde con skip.
+Los blobs index.ts y _shared/ingest_logic.ts son iguales64b4/main067.
+Entrega histórica no acredita servidor activo hoy ni APK instalada. No
+reemplazar una función activa por main ni inferir su estado por un recibo.
 No se consultó get/list-functions ni tablas. Estado vivo de ingest unknown.
+[Matriz y propuesta acotada](inc-0710-widget-contract-correlation.md).
 
 ## Próximo paso y gates
 
