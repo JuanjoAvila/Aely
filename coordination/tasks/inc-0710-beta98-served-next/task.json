@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "id": "inc-0710-beta98-served-next",
+  "from": "codex",
+  "coordinatorSession": "relay-run-6cbe3160b5688bc6",
+  "createdAt": "2026-10-07T04:17:49.439Z",
+  "to": "codex",
+  "baseSHA": "b7abebb6db7a74ccc9f7df87b41f5d63981b0c43",
+  "objective": "Reconciliar entrega beta98 ya integrada PR153/SQUASHb7ab árbol2d795, reviewGO+CI37564577536 SUCCESS(12FAB/negativoCSS97/844E2E9perf). Publisher37569120748 en curso al cierre11. Confirmar SHAexacto, runSUCCESS/logs/release assets digest y HTTP versionhuellaZIPHTMLSW/sourceSha/APK52/catalogo.97rechazó retardo550;98requiere aprobaciónpropia, no main.96identidad06180d02 preservada. Documentación98actualizada enPR154 pero aún no beta; reconciliar sin publicaciónvacía ni repetición. Guion98 y rechazo97 intactos, sininferir aprobación del silencio. INC-2709-09 acumulativo abierto.",
+  "scope": [
+    "docs",
+    "public"
+  ]
+}
