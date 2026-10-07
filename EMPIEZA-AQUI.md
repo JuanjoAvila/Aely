@@ -1,3 +1,5 @@
+Plan103 WIP detenido por cambio de prioridad: cleanup mínimo conservado, sin ensamblar ni guardianes/DOM/budget de103; NO-GO publicación. INC-2709-09 abierto. [Estado exacto](docs/briefs/inc-0710-plan-animation-cleanup.md).
+
 Auditoría de pantallas sobre fuente102: Plan conserva listener/clase si se interrumpe su efecto de entrada antes del evento y fallback. Contraprueba sintética del fragmento exacto, sin corrección de producto ni DOM ejecutado; INC-2709-09 sigue abierto. [Contrato y límites](docs/briefs/inc-2709-09-screen-lifecycle-audit.md).
 
 Auth102 candidata local sobre101/77b7d5e4: cleanup de suscripción y callbacks tras desmontar; no cambia orden inicial ni acredita causa del lag. Nueva identidad propia, sin repin. [Acta](docs/briefs/inc-0710-auth-disposal.md).

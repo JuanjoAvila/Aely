@@ -11787,5 +11787,42 @@
       }
     ],
     "unidades": true
+  },
+  "inc-0710-plan-animation-cleanup": {
+    "web": [
+      {
+        "file": "src/modules/14-v4-screens.js",
+        "from": "  const [segMounted,setSegMounted]",
+        "to": "\n/* Recibos conserva la portada compacta"
+      },
+      {
+        "file": "src/shell.html",
+        "from": "  @keyframes v4SegEnterDown",
+        "to": "  .v4-seg-enter-up{animation:v4SegEnterUp .26s var(--ease) both;}",
+        "includeTo": true
+      },
+      {
+        "file": "src/shell.html",
+        "from": "  @media (prefers-reduced-motion:reduce){\n    .rise",
+        "to": "\n  .card{background:"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "mcReduced"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "gestureAxis"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "GEST_LEAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "GEST_MAX"
+      }
+    ],
+    "unidades": true
   }
 }

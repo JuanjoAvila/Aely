@@ -279,7 +279,8 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
     const clear=function(){ el.classList.remove(cls); el.removeEventListener("animationend",clear); };
     el.addEventListener("animationend", clear);
     const to=setTimeout(clear, 500);   // red de seguridad si el evento no llega
-    return function(){ clearTimeout(to); };
+    // Cambiar antes del evento cancela también la salvaguarda: soltar aquí clase y listener.
+    return function(){ clearTimeout(to); clear(); };
   },[seg]);
 
   return React.createElement("div",{className:"v4-screen",ref:planScreenRef},
