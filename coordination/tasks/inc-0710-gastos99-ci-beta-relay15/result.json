@@ -1,0 +1,26 @@
+{
+  "status": "blocked",
+  "summary": "PR154 SQUASH a beta 8e103e9063f9f1e6f5fee209385c831ef0dc84b2, árbol exacto 23404fc6501a932d200908bb25dee045a5bfd165. Revisión independiente GO y CI 37618116522 SUCCESS: 880 funcionales, 9 rendimiento y 36 Madrid DOM. Publicador 37624861007 en curso; entrega servida no acreditada. PR157 cerrada sin merge.",
+  "tests": [
+    {
+      "command": "CI 37618116522: node scripts/run-tests.mjs, 880 funcionales + 9 rendimiento, 36 Madrid DOM, budget",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/gastos-mes-madrid.test.mjs y gastos-periodo, revisión independiente local",
+      "exitCode": 0
+    }
+  ],
+  "productSHA": "8e103e9063f9f1e6f5fee209385c831ef0dc84b2",
+  "tree": "23404fc6501a932d200908bb25dee045a5bfd165",
+  "pr": 154,
+  "limitations": [
+    "Budget CI <= 1317888 raw / 359424 gzip / 3 blocking, topes intactos. Códigos96/98 exactos. No aprobación99 para main/APK/Edge/SQL. Manifiesto/huella/ZIP/sourceSha pendientes.100 espera99 servida;96 cleanup existente sin claim, no duplicado."
+  ],
+  "schema": 1,
+  "taskId": "inc-0710-gastos99-ci-beta-relay15",
+  "actor": "codex",
+  "sessionId": "relay-run-ssfxj5af3d2rj18m",
+  "createdAt": "2026-10-07T13:04:23.609Z",
+  "released": true
+}
