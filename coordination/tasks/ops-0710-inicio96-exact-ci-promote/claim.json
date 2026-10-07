@@ -1,0 +1,8 @@
+{
+  "schema": 1,
+  "taskId": "ops-0710-inicio96-exact-ci-promote",
+  "actor": "codex",
+  "sessionId": "relay-run-6cbe3160b5688bc6",
+  "createdAt": "2026-10-07T03:55:39.967Z",
+  "baseSHA": "68b5ecb6ea479a231023330ddc00829e4473992b"
+}
