@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "id": "ops-0710-catalog96-98-ci-relay18",
+  "from": "codex",
+  "coordinatorSession": "relay-run-9984d70db3ce2438",
+  "createdAt": "2026-10-07T15:47:17.109Z",
+  "to": "codex",
+  "baseSHA": "4f1b144724464b40b5d24520f436482421f94358",
+  "scope": [
+    "src/beta",
+    "src/js",
+    "public/index.html",
+    "docs/briefs/catalogo96-98-entregadas-2026-10-07.md"
+  ],
+  "objective": "PR160 source4f1b144724464b40b5d24520f436482421f94358 treedaa5e1f11d67ec2438966c60ab8cc4e8a970d6ad GO independiente; verify161 headca634588f05129dd6cd3ce8070c9221209ae627c mismoárbol CI37646635092/37646632534 pendientes. Reconciliar exactcheckouttree y logscompletos; CI37636739352 supersedida. Cerrar161 SINMERGE trasverde. DEPENDENCIA100 SERVIDA y verificada primero (inc-0710-beta100-ci-publish-relay18). Revalidarbetafresca/merge/árbol/revisión siavanza; sinrecrearPR.18tandas+33veredictos locales verdes. Solo dos tandas96/98 y doschecklists retiradas;220notas/historial/rechazos/códigos/99/100/JS/i18n/HEAD/guard/workflow/SW/APK conservados. Ready160/SQUASHbeta expected4f solo cumplidosgates; comprobarpublicador/gateartifact y HTTP/ZIP manifiesto exactos. Nomain/99/100OK/Edge/SQL/APK/migraciones/pagos. INC-2709-09 abierto/inputblocked."
+}

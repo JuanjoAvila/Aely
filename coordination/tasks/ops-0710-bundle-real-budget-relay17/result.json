@@ -1,0 +1,13 @@
+{
+  "status": "done",
+  "summary": "Corrección equivalente de101bytes y guard con95bytes/sello. GO independiente exacto a221. Source6da publicado; nuevaCI pendiente.",
+  "tests": [],
+  "productSHA": "6daaa75dfca1806362d05af051b0be798dbeecf6",
+  "evidence": "1317876 raw/358971 gzip9/3 blockers; anterior rojo; JS/CSS/220notas/29códigos/SW/APK conservados; sintaxis/seguridad/privacidad verdes",
+  "schema": 1,
+  "taskId": "ops-0710-bundle-real-budget-relay17",
+  "actor": "codex",
+  "sessionId": "relay-run-9984d70db3ce2438",
+  "createdAt": "2026-10-07T15:47:11.541Z",
+  "released": true
+}

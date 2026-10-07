@@ -1,0 +1,12 @@
+{
+  "status": "blocked",
+  "summary": "CI anterior37636739352 verde árbolb3a, no heredada. Catálogo reconciliado4f/tree daa GO, verifyca634 CI37646635092 y37646632534 pendientes.18tandas+33veredictos verdes. No integrar antes100 SERVIDA.",
+  "tests": [],
+  "nextTask": "ops-0710-catalog96-98-ci-relay18",
+  "schema": 1,
+  "taskId": "ops-0710-catalog96-98-ci-relay17",
+  "actor": "codex",
+  "sessionId": "relay-run-9984d70db3ce2438",
+  "createdAt": "2026-10-07T15:47:14.953Z",
+  "released": true
+}
