@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "id": "inc-0710-appstate100-ci-beta-relay13",
+  "from": "codex",
+  "coordinatorSession": "relay-run-0c47148d42bae423",
+  "createdAt": "2026-10-07T04:55:57.326Z",
+  "to": "codex",
+  "baseSHA": "c6a6824cce1a97695f1d95716e59ecc7f7d184eb",
+  "objective": "Concluir PR155 OPEN DRAFT/basebeta headc6a6824cce1a97695f1d95716e59ecc7f7d184eb árbol8ce40ea5e76eb2793fe8869e16ed954e62f6b6fc limpio sobre99head3ae. Fix listenerPromise appStateChange tras cambiosuid. GO independiente fuente exacta; Node causal inmediato/tardío/sync/errores/stale+negativo99+scope mutantes y7uidinversos verdes,1DOM descubierto noejecutado. CI37573722530 en curso checkoutSUCCESS, PR devuelta beta. Requerir CIgreen/logs/head+tree exactos, budget1287/351KiB/3bloq intactos (sellado100.99999 margen21/473B) y DOM real; solo después99servida integrarSQUASHbeta/readback/publisher/HTTPexactos. Stack contiene99; no integrar antes ni heredar verde de otrohead.219notas/guiones ycodes96/98/99 conservados,4widgets revisionesweb cambiadas honestamente enPR, noheredarOK. Coordinar limpieza96 taskpropia; cambiosbase requieren revalidar alcance/artifact. Sinmainapproval100/APK/Edge/SQL/money. INC-2709-09 global sigueabierto sinA/B; no declarar lagresuelto. No copiar historia/metadataClaude; candidato ya limpio.",
+  "scope": [
+    "src/modules/11-app-main.js",
+    "src/data/release-notes.json",
+    "VERSION",
+    "package.json",
+    "package-lock.json",
+    "scripts",
+    "tests",
+    "e2e",
+    "docs",
+    "public"
+  ]
+}
