@@ -1,0 +1,27 @@
+{
+  "status": "blocked",
+  "summary": "Promoción selectiva 96 integrada por PR 152 SQUASH 85b8b540220a006ed6d0e021ef772697681430ad, árbol fbf854a4d0f7b87ad28388bbfd15c691d149e514 idéntico al head 68b5ecb6. Dashboard y código 06180d02 exactos a la tanda aprobada; otras superficies intactas. Post Tests y Pages en curso; no se declara entrega ni se retira la tarjeta beta 96 antes del HTTP exacto.",
+  "tests": [
+    {
+      "command": "GitHub Tests 37562183860 exact head 68b5ecb6: 829 funcionales, 1 omitida, 9 rendimiento, privacidad; revisión independiente GO",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/check-syntax.mjs: 7 bloques",
+      "exitCode": 0
+    }
+  ],
+  "productSHA": "85b8b540220a006ed6d0e021ef772697681430ad",
+  "pr": 152,
+  "limitations": [
+    "Post Tests 37569104528 y Pages 37569104431 pendientes; comparar artefacto Pages y HTTP antes de acreditar producción 96.",
+    "Después retirar solo tandas de 96 mediante publicación normal preservando notas/rechazos/otras tandas; pendiente.",
+    "Sin aprobación de 97, 98 ni 99; INC-2709-09 acumulativo abierto."
+  ],
+  "schema": 1,
+  "taskId": "ops-0710-inicio96-exact-ci-promote",
+  "actor": "codex",
+  "sessionId": "relay-run-6cbe3160b5688bc6",
+  "createdAt": "2026-10-07T04:15:54.403Z",
+  "released": true
+}
