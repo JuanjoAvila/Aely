@@ -1,0 +1,17 @@
+{
+  "status": "done",
+  "summary": "Candidata100 preparada en PR155 DRAFT/basebeta headc6a6824cce1a97695f1d95716e59ecc7f7d184eb árbol8ce40ea5e76eb2793fe8869e16ed954e62f6b6fc padrelimpio3ae. GO independiente selectivo y pruebas causales reales verdes inmediato/tardío/síncrono/errores/stale, control rojo99+scope mutantes.219notas/guiones anteriores y códigos96/98/99 exactos; cambian honestamente4 revisionesweb widgets documentadas PR. Sellado100.99999 1317867/358951B margen21/473 sin elevar topes. CI37573722530 ejecutando, checkout SUCCESS, retarget devuelto beta confirmado. Bundle privado durable. Fuente aún no entregada; DOM/A-B pendientes, INC-2709-09 global abierto. Sucesor condiciona integración100 a99servida y CI exacta verde.",
+  "tests": [
+    "Causal Node effect immediate/late/sync/errors/stale green",
+    "negative99+scope mutants green",
+    "independent reverse7uid/stale callbacks green",
+    "syntax/maps/catalog/languages/privacy/docs/budget green",
+    "1DOMdiscovery; exactCI37573722530 pending"
+  ],
+  "schema": 1,
+  "taskId": "inc-0710-appstate100-prepare-relay12",
+  "actor": "codex",
+  "sessionId": "relay-run-0c47148d42bae423",
+  "createdAt": "2026-10-07T04:55:43.773Z",
+  "released": true
+}
