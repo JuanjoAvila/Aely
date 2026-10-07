@@ -933,13 +933,17 @@ function App(){
     var offline=false;
     try{ offline=navigator.onLine===false; }catch(e){}
     if(offline) mcBootReady();
-    const sesTope=setTimeout(mcBootReady, 2500);
+    // Al desmontar no deben quedar callbacks que cambien sesión o inicien otra lectura.
+    var alive=true;
+    const sesTope=setTimeout(function(){ if(alive) mcBootReady(); }, 2500);
     cloud.session().then(function(s){
       clearTimeout(sesTope);
+      if(!alive) return;
       sessionRef.current=s; setSession(s);
-      if(s) mcScheduleIdle(function(){ syncFromCloud(s); }); else mcBootReady();
-    }, function(){ clearTimeout(sesTope); mcBootReady(); });
-    cloud.onAuth(function(s, ev){
+      if(s) mcScheduleIdle(function(){ if(alive) syncFromCloud(s); }); else mcBootReady();
+    }, function(){ clearTimeout(sesTope); if(alive) mcBootReady(); });
+    const stopAuth=cloud.onAuth(function(s, ev){
+      if(!alive) return;
       const prev=sessionRef.current;
       const changed=(!prev&&s)||(prev&&!s)||(prev&&s&&prev.user.id!==s.user.id);
       sessionRef.current=s; setSession(s);
@@ -952,6 +956,7 @@ function App(){
       if(changed && s) syncFromCloud(s, {freshLogin:true,
         dropTx:!!(prev&&prev.user.id!==s.user.id)});
     });
+    return function(){ alive=false; clearTimeout(sesTope); stopAuth(); };
   },[]);
 
   // Empuja el estado a la nube (debounced) cuando cambie y haya sesión. Sin los gastos (ya en su tabla).

@@ -3330,7 +3330,7 @@ const cloud = (function(){
   return {
     enabled(){ return !!sb; },
     async session(){ if(!sb) return null; const {data}=await sb.auth.getSession(); return data.session; },
-    onAuth(cb){ if(sb) sb.auth.onAuthStateChange(function(ev,session){ cb(session, ev); }); },
+    onAuth(cb){ if(!sb) return function(){}; const r=sb.auth.onAuthStateChange(function(ev,session){ cb(session, ev); }); return function(){ r.data.subscription.unsubscribe(); }; },
     async signIn(email){
       if(!sb) throw new Error("nube no disponible");
       const {error}=await sb.auth.signInWithOtp({ email:email, options:{ emailRedirectTo: location.href.split('#')[0] } });
@@ -20217,7 +20217,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="341529eeaba56dda2339ffed34b5f1e8f210ef81d6388e98586728c641177179";
+var _rnSha="4359fe533f06c2da663f433e45a2da1b8ee4ea9d5877eade0f33359939d9c974";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -24836,13 +24836,17 @@ function App(){
     var offline=false;
     try{ offline=navigator.onLine===false; }catch(e){}
     if(offline) mcBootReady();
-    const sesTope=setTimeout(mcBootReady, 2500);
+    // Al desmontar no deben quedar callbacks que cambien sesión o inicien otra lectura.
+    var alive=true;
+    const sesTope=setTimeout(function(){ if(alive) mcBootReady(); }, 2500);
     cloud.session().then(function(s){
       clearTimeout(sesTope);
+      if(!alive) return;
       sessionRef.current=s; setSession(s);
-      if(s) mcScheduleIdle(function(){ syncFromCloud(s); }); else mcBootReady();
-    }, function(){ clearTimeout(sesTope); mcBootReady(); });
-    cloud.onAuth(function(s, ev){
+      if(s) mcScheduleIdle(function(){ if(alive) syncFromCloud(s); }); else mcBootReady();
+    }, function(){ clearTimeout(sesTope); if(alive) mcBootReady(); });
+    const stopAuth=cloud.onAuth(function(s, ev){
+      if(!alive) return;
       const prev=sessionRef.current;
       const changed=(!prev&&s)||(prev&&!s)||(prev&&s&&prev.user.id!==s.user.id);
       sessionRef.current=s; setSession(s);
@@ -24855,6 +24859,7 @@ function App(){
       if(changed && s) syncFromCloud(s, {freshLogin:true,
         dropTx:!!(prev&&prev.user.id!==s.user.id)});
     });
+    return function(){ alive=false; clearTimeout(sesTope); stopAuth(); };
   },[]);
 
   // Empuja el estado a la nube (debounced) cuando cambie y haya sesión. Sin los gastos (ya en su tabla).

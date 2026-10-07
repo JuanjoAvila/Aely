@@ -1,5 +1,46 @@
 [
   {
+    "v": "4.26.102",
+    "d": "2026-10-07",
+    "t": {
+      "es": "Sesión al cerrar",
+      "en": "Session cleanup",
+      "ca": "Sessió en tancar"
+    },
+    "items": {
+      "es": [
+        "Se liberan las acciones de sesión al retirar la app."
+      ],
+      "en": [
+        "Session actions are released when the app is removed."
+      ],
+      "ca": [
+        "S’alliberen les accions de sessió en retirar l’app."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inc-0710-auth-disposal",
+        "t": {
+          "es": "Sesión al cerrar",
+          "en": "Session cleanup",
+          "ca": "Sessió en tancar"
+        },
+        "items": {
+          "es": [
+            "1. Prueba inicio, cierre de sesión y recuperación de contraseña."
+          ],
+          "en": [
+            "1. Test sign-in, sign-out and password recovery."
+          ],
+          "ca": [
+            "1. Prova inici, tancament de sessió i recuperació de contrasenya."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.101",
     "d": "2026-10-07",
     "t": {

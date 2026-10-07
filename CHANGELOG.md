@@ -1,3 +1,8 @@
+## [4.26.102] — 2026-10-07 · Disposición de sesión al desmontar
+
+- onAuth devuelve unsubscribe y el efecto cancela timer/suscripción; sus callbacks, promesas e idle quedan inertes tras desmontar. No cambia orden de sesión, freshLogin/dropTx ni trabajos ya iniciados.
+- Guardián causal y montaje/desmontaje con React real y transporte sintético. INC-2709-09 abierto: navegar no remonta App y no se acredita causa del lag. Nueva identidad, sin repins. Candidata local; revisión, CI, DOM y entrega pendientes.
+
 ## [4.26.101] — 2026-10-07 · Retirada del aviso nativo al cambiar de sesión
 
 - `bankNotif` conserva la Promise del alta y libera el handle incluso si llega después del cleanup; un callback retirado queda inerte. Errores síncronos y rechazados de alta/retirada se absorben. Se preservan enlace, opción expresa, cupo y sincronización.
