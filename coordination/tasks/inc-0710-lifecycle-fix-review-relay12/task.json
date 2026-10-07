@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "id": "inc-0710-lifecycle-fix-review-relay12",
+  "from": "codex",
+  "coordinatorSession": "relay-run-0c47148d42bae423",
+  "createdAt": "2026-10-07T04:42:27.772Z",
+  "to": "codex",
+  "baseSHA": "14f9e4fb30886f02ddfc688de0ea27043f961f11",
+  "objective": "Revisar independientemente corrección Claude14f9e4fb de appStateChange cleanup[uid] Promise->PluginListenerHandle, taskinc-0710-lag-lifecycle-claudereleased. Repro sintética declarada rojo2→8/verde, sinA/Bperf niWebViewreal; no concluir causa global/INC-2709-09. Contrastar lifetime/latePromise/unmount/uidchanges/rejection/remove, registroE2E/alcancesyprivacidad. No editar/publicar/runtime/bump; GOsourcecondicional oNO-GO concausa. CIexactanuevaybeta100 separada requeridas antesintegración,móvilpropio;99head3ae/tree145ccad/CI37572568352 intocable,96productionverified y98publicationpending. NoAndroid/Edge/SQL/APK/datareal/syncbank. Entrega SHA/tree+pruebaspropias+límites.",
+  "scope": [
+    "src/modules/11-app-main.js",
+    "e2e/lifecycle-listeners.spec.mjs",
+    "scripts/relevant-tests.mjs",
+    "docs/briefs/inc-0710-lag-lifecycle.md"
+  ]
+}
