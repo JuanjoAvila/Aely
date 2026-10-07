@@ -130,5 +130,12 @@ for(const size of [3000,5200])test("Dashboard real: frecuencia recientes y A/B v
     expect(report.bankCalls,"ninguna acción de este guion autoriza sync bancaria").toEqual([]);
     report.status="diagnostic-contract-passed";
   }catch(error){report.status="failed";report.error=String(error);throw error;}
-  finally{save();await page.evaluate(()=>window.__dashProfile?.dispose()).catch(()=>{});await testInfo.attach("dashboard-react-profile",{path:output,contentType:"application/json"});}
+  finally{
+    // test.yml no sube adjuntos: el informe sintético completo debe poder recuperarse del log oficial.
+    console.log("AELY_DASHBOARD_SYNTHETIC_REPORT_BEGIN size="+size);
+    console.log(JSON.stringify({...report,blockedExternal,htmlResponses}));
+    console.log("AELY_DASHBOARD_SYNTHETIC_REPORT_END size="+size);
+    save();await page.evaluate(()=>window.__dashProfile?.dispose()).catch(()=>{});
+    await testInfo.attach("dashboard-react-profile",{path:output,contentType:"application/json"});
+  }
 });
