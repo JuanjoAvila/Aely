@@ -926,32 +926,35 @@ function App(){
   };
 
   // Detecta sesión al cargar y escucha cambios (incluida la vuelta del magic link).
-  useEffect(function(){
+  useEffect(()=>{
     if(!cloud.enabled()){ mcBootReady(); return; }   // sin nube no hay nada que esperar detrás del splash
     /* Offline conocido: el estado local ya está listo y no debe aparecer un Inicio vacío ni un
        instante. Con red se conserva el margen de 2500 ms para no pintar cifras que luego saltan. */
-    var offline=false;
-    try{ offline=navigator.onLine===false; }catch(e){}
-    if(offline) mcBootReady();
-    const sesTope=setTimeout(mcBootReady, 2500);
-    cloud.session().then(function(s){
-      clearTimeout(sesTope);
-      sessionRef.current=s; setSession(s);
-      if(s) mcScheduleIdle(function(){ syncFromCloud(s); }); else mcBootReady();
-    }, function(){ clearTimeout(sesTope); mcBootReady(); });
-    cloud.onAuth(function(s, ev){
+    try{ if(navigator.onLine===false) mcBootReady(); }catch(e){}
+    // Al desmontar no deben quedar callbacks que cambien sesión o inicien otra lectura.
+    var alive=true;
+    const boot=()=>{ if(alive) mcBootReady(); }, tmr=setTimeout(boot, 2500);
+    cloud.session().then(s=>{
+      clearTimeout(tmr);
+      if(!alive) return;
+      setSession(sessionRef.current=s);
+      if(s) mcScheduleIdle(()=>{ if(alive) syncFromCloud(s); }); else boot();
+    }, ()=>{ clearTimeout(tmr); boot(); });
+    const off=cloud.onAuth((s,ev)=>{
+      if(!alive) return;
       const prev=sessionRef.current;
-      const changed=(!prev&&s)||(prev&&!s)||(prev&&s&&prev.user.id!==s.user.id);
-      sessionRef.current=s; setSession(s);
+      const login=s&&(!prev||prev.user.id!==s.user.id);
+      setSession(sessionRef.current=s);
       // Cerrar sesión rompe la asociación implícita del extracto local con el titular. El
       // próximo login no debe heredar sus apuntes, aunque no exista cartera en la nube.
-      if(!s&&ev==="SIGNED_OUT") set(function(p){ return Object.assign({},p,{bankTx:[]}); });
+      if(!s&&ev==="SIGNED_OUT") set(p=>Object.assign({},p,{bankTx:[]}));
       // Vuelta del email de recuperación: abre el panel para poner contraseña nueva.
       if(ev==="PASSWORD_RECOVERY"){ setRecovery(true); setShowAuth(true); }
-      // changed = pasó de sin-sesión a con-sesión (o cambió de usuario) → es un LOGIN → la nube manda.
-      if(changed && s) syncFromCloud(s, {freshLogin:true,
-        dropTx:!!(prev&&prev.user.id!==s.user.id)});
+      // login ya acredita otro titular si había sesión; dropTx no debe releer esos IDs.
+      if(login) syncFromCloud(s, {freshLogin:true,
+        dropTx:!!prev});
     });
+    return ()=>{ alive=false; clearTimeout(tmr); off(); };
   },[]);
 
   // Empuja el estado a la nube (debounced) cuando cambie y haya sesión. Sin los gastos (ya en su tabla).

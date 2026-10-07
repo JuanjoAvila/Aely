@@ -11703,5 +11703,89 @@
         "to": "  // PUNTO 5 · Noti → ficha del gasto."
       }
     ]
+  },
+  "inc-0710-auth-disposal": {
+    "web": [
+      {
+        "file": "src/modules/00-core.js",
+        "data": "cloud",
+        "members": [
+          "enabled",
+          "session",
+          "onAuth"
+        ]
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  // Detecta sesión al cargar y escucha cambios",
+        "to": "  // Empuja el estado a la nube"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSandbox"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSandboxFlag"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcSandboxPinned"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  // INC-0410 guardado: de aquí al límite está cuándo y qué estado se escribe en disco. Cambiarlo invalida las revisiones que prometen conservar algo al cerrar o recargar.",
+        "to": "  // INC-0410 guardado: límite."
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcPersistCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSaveRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSkipPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcStateKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "EXP_SUFFIX"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "store"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcSkipPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "STATE_KEY_TEST"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "STATE_KEY_REAL"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mem"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcBootReady"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CONFIG"
+      }
+    ],
+    "unidades": true
   }
 }
