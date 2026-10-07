@@ -1,0 +1,59 @@
+{
+  "status": "blocked",
+  "summary": "Fuente100 incorpora reparación99 y guards intactos, publicada en PR155/head354b; revisiónGO funcional; CI37618709225 en curso. Beta100 espera99 servida.",
+  "tests": [
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/appstate-listener-cleanup.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/guard-privacy.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/docs-frescura.test.mjs sobre merge294ddd420",
+      "exitCode": 0
+    },
+    {
+      "command": "MC_STAMP_VERSION=4.26.100.99999 stamp-version; node tests/presupuesto-rendimiento.test.mjs",
+      "exitCode": 0
+    }
+  ],
+  "productSHA": "354b79605f8455e2c7acd3289694ec87aee92fbb",
+  "tree": "9442f2a4c3dd8f27d83c2889ce0a15084238dd8e",
+  "pr": 155,
+  "verificationPR": 158,
+  "ci": {
+    "run": 37618709225,
+    "status": "in_progress",
+    "checkoutMerge": "294ddd420fd6015a5de81afee2c1208a1945eda4",
+    "treeExact": true
+  },
+  "budget": {
+    "stamped": "4.26.100.99999",
+    "raw": 1317882,
+    "rawLimit": 1317888,
+    "gzip": 356976,
+    "gzipLimit": 359424,
+    "blocking": 3
+  },
+  "limitations": [
+    "C840 local docs-frescura exit1 por deuda trasancla100; merge oficial294 deCI árbol9442 igualhead354b pasa14 invariantes sineditar guards. Revalidar CI exacta.",
+    "PERSIST91 pass local; fullbeta-sources cancelado130 redundante, noverde.219notas/scopes anteriores exactos, cleanup9. DOM real pendiente. No aprobación100 ni resolución global INC-2709-09.",
+    "Todos subagentes terminados, ningún writer/test local activo; fuente durable remota, sinWIP sólo filesystem."
+  ],
+  "schema": 1,
+  "taskId": "inc-0710-appstate100-repair-next-relay14",
+  "actor": "codex",
+  "sessionId": "relay-run-b06e39e3fadf17c2",
+  "createdAt": "2026-10-07T12:43:03.003Z",
+  "released": true
+}
