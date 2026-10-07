@@ -1,0 +1,24 @@
+{
+  "status": "done",
+  "summary": "Aely ·20: diagnóstico aislado de callbacks auth tras disposal acreditado y revisado; sin corrección ni causalidad de lag general",
+  "tests": [
+    {
+      "command": "node handoff/diagnostics/auth-disposal-relay20.mjs;12escenarios sobre fuente cacc; Node24.19; revisión independiente ejecutada",
+      "exitCode": 0
+    }
+  ],
+  "productSHA": "9aa724febe3364d8806ff8cca588ecda2e059400",
+  "branch": "codex/auth-disposal-diag-relay20",
+  "limitations": [
+    "6montajesretirados+1activo:7suscripciones,0unsubscribe,6syncs retirados+1activo; timer/session/idle sobreviven; controlactivo conserva1suscripción.",
+    "Navegación no remonta App; no medición/performance/causa de INC-2709-09. Sin datos ni escrituras reales.",
+    "Scopevirtual devuelve0cambios de31códigos: cobertura auth ausente, futura reparación requiere scope propio y revisión de cierre. Carrera activa AtrasB distinta, no corregida.",
+    "Sólo3artefactos diagnósticos en rama durable revisada; sin PR, merge, versión ni despliegue."
+  ],
+  "schema": 1,
+  "taskId": "inc-0710-auth-disposal-diagnose-relay20",
+  "actor": "codex",
+  "sessionId": "relay-run-38d55b3d3aa853f2",
+  "createdAt": "2026-10-07T18:03:00.156Z",
+  "released": true
+}
