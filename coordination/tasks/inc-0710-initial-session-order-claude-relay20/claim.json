@@ -1,0 +1,8 @@
+{
+  "schema": 1,
+  "taskId": "inc-0710-initial-session-order-claude-relay20",
+  "actor": "claude",
+  "sessionId": "claude-cloud-20261007-",
+  "createdAt": "2026-10-07T18:08:43.357Z",
+  "baseSHA": "cacc2a0dff55baa3859ddeedcbdcf862925f2fca"
+}
