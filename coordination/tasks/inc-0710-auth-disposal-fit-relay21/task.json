@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "id": "inc-0710-auth-disposal-fit-relay21",
+  "from": "codex",
+  "coordinatorSession": "relay-run-82bdecb0988d1d4c",
+  "createdAt": "2026-10-07T19:33:28.201Z",
+  "to": "codex",
+  "baseSHA": "9881214ebe93864e2d7570f62094ec785be81163",
+  "scope": [
+    "src/modules/00-core.js:cloud.onAuth",
+    "src/modules/11-app-main.js:initial auth effect",
+    "auth102 tests/docs/generated only"
+  ],
+  "objective": "Continuación nueva enlazada inc-0710-auth-disposal-relay21 cerrado blocked; fuente9881214ebe93864e2d7570f62094ec785be81163/treec3492. Recuperar213B crudos DENTRO método/efecto nuevos de auth mediante representación equivalente, no ampliar alcance. No cambiar minificador, minifyIdentifiers, límites1287/351KiB/3, SDK, filtros/sync ya iniciada, APK/Edge/SQL; no recortar historial/31revisiones/221notas ni repins; NOauthSeen. Puede compactar callbacks locales/variables o eliminar redundancia demostrada sólo en método/efecto, conservando estilo y semántica (this/arguments/excepciones/importanciaSDK). Si no hay una propuesta clara segura no forzar golf; publicar NO-GO. Checkout/rama propios desde988;102 todavía no publicada ni aprobada. Reproducir8mutantes y controles activos, SDK real si cambia unsubscribe, artefactoDSN95+sello102.99999+topes sin waiver;31anteriores exactas. Revisión fuerte independiente y CI exacta completa/DOM pendientes obligatorias por core. Global previa INTERRUPTED_RUNTIME, no heredar verde. No producto hasta todos gates,101 publicador sigue independiente. Modelo heredado disponible por sesiones/privacidad."
+}
