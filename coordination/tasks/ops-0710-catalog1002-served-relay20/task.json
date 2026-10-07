@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "id": "ops-0710-catalog1002-served-relay20",
+  "from": "codex",
+  "coordinatorSession": "relay-run-un7m4rjsqldezxl2",
+  "createdAt": "2026-10-07T17:29:09.000Z",
+  "to": "codex",
+  "baseSHA": "a56ab25be46985a0e78eca45146729027757b3ab",
+  "scope": [
+    "PR160 integrada; publicador37656565401/job112912989882",
+    "public/version.json/apk.json/bundle.zip/ZIP sellos catálogos notas códigos"
+  ],
+  "objective": "Concluir entrega de limpieza96/98 ya integrada PR160 SQUASH a56ab25be46985a0e78eca45146729027757b3ab/tree daa5e1f11d67ec2438966c60ab8cc4e8a970d6ad. Antecesor ops-0710-catalog96-98-publish-relay19 cerrado por CI remota todavía en curso, no por fallo. Beta100.1 sourceeab SERVIDA. CI catálogo37646635092/37646632534 SUCCESS logs completos exactos y GO independiente: no repetir suite ni reconstruirPR. Obtener final publisher37656565401/job112912989882 y verificar checkout/tree, gate literal --artifact tras config/stamp/minify antespack, HTTP version/apk/bundleZIP. SourceSha/sellos/huella recomputada y notas220/i18n/códigos exactos; sólo96/98.tandas=[] y47pendientes preservados; APK52 intacta. Nunca inferir servicio por merge/CI ni elevar topes. Si failure diagnosticar causal exacto antes rerun. Después permite dependencia candidata101; no humana99/100/101 ni main/APK/Edge/SQL/pagos. Inputs blocked; INC-2709-09global abierto."
+}
