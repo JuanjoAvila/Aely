@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "id": "inc-0710-gastos99-ci-beta-relay15",
+  "from": "codex",
+  "coordinatorSession": "relay-run-b06e39e3fadf17c2",
+  "createdAt": "2026-10-07T12:44:27.579Z",
+  "to": "codex",
+  "baseSHA": "98c56fe353f674c71ad78d5f26f1ec03e5e5e2ee",
+  "objective": "Sucesor de inc-0710-gastos99-repair-next-relay14 released:true. PR154beta head98c56fe353f674c71ad78d5f26f1ec03e5e5e2ee/tree23404fc6501a932d200908bb25dee045a5bfd165 contiene tres null props99 y GOindependiente causal. CI37618116522 aún en curso al12:41UTC, checkout mergecd3cf83a árbol exacto. PR157 es sóloverificaciónCI contraMAIN: JAMÁSfusionarloamain; cerrar cuando terminesverificación. Revalidar status/logs/source/tree/36DOMMadrid y budget1317888raw/359424gzip/3blocking sinbajar topes. Trasverdeexacto/sourceGO, readyPR154 y SQUASH únicamenteBETA conexpectedhead/freshbeta; publicaciónCI/HTTPmanifiesto/huella/ZIP/sourceSha ycodigos96/98exactos antes99servida. No reconstruirPR/crearversión porherramientas ni inferirverde de fuente.99noaprobada paraMAIN; producción98prioritaria en paralelo.96cleanup espera99servida porencargoexistente;100sólotras99servida. Inputsblocked, APK52 intacta, INC-2709-09 abierto.",
+  "scope": [
+    "src/modules/04-tab-gastos.js",
+    "public",
+    "docs",
+    "e2e",
+    "scripts",
+    "tests"
+  ]
+}
