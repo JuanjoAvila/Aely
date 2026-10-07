@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "id": "ops-0710-bundle-real-budget-relay17",
+  "from": "codex",
+  "coordinatorSession": "relay-run-9984d70db3ce2438",
+  "createdAt": "2026-10-07T15:19:02.312Z",
+  "to": "codex",
+  "baseSHA": "2d96f2e85c2e8683897ee9cb5eda4ab8621720c0",
+  "objective": "Bloqueo discriminado por relevo17 antes publicar100: beta99 servida1317931raw, fuente minificada local1317836raw; normalizando SENTRY_DSN son byteidénticas. Config cliente publicada suma95bytes que CIbudget vacío omite. Candidata100 sellada100.99999 local1317882raw/358950gzip9: con95bytes no cumple1317888raw. Reparar mínimo sobre100 SIN subir1287KiB/351KiB/3, quitar funciones/notas/idiomas/monitorización, cambiar lógica financiera ni apropiarse claims. Preferir eliminar sólo whitespace inerte de HEAD/CSP manteniendo DOM visible y política equivalente, demostrar build/markup/CSP/JS equivalentes y29scopes/códigos/220notas/SW/APK intactos salvo código100 ya legítimo. Corregir guard de presupuesto para contemplar empaquetado con configuración de95bytes sintética, jamás clave ni DSN real enrepo/logs; no escribir sourcepublic manual. No añadir dependencia ni CDNs. Rama/worktree propios, sin pushmain/beta/merge. Entrega commit candidato local durable para padre que publicará rama/PR autorizada; revisión independiente y CI del árbol nuevo obligatorias. PR155/160 no integrar árboles antiguos aunqueCIverde. INC-2709-09 abierto; inputs blocked. Trabajador temporal bajo claim delpadre, no resultados/remoto propios.",
+  "scope": [
+    "src/shell.html",
+    "scripts/minify-html.mjs",
+    "tests/presupuesto-rendimiento.test.mjs",
+    "docs/briefs",
+    "public"
+  ]
+}
