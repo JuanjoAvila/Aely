@@ -1,3 +1,9 @@
+## [4.26.99] — 2026-10-07 · Mes de Gastos en Madrid
+
+- Los presets mes, mes pasado y tres meses calculan ambos extremos en Madrid, incluido cambio de año y CET/CEST. Se conserva el contrato local de ciclo/rango. El memo invalida al cambiar el día de Madrid; cabecera y fechas mensuales usan la misma zona.
+- Guardián Node en cuatro zonas y DOM es/en/ca en UTC/Madrid para lista, resumen, categorías y fechas, con importes discriminantes2300/500 y exclusión de extremos. Nueva tanda con revisión propia; identidades afectadas cambian sin repinar aprobaciones.
+- Candidata local, sin publicación; revisión independiente, CI exacta y aceptación móvil pendientes. FAB98 conservado; INC-2709-09 sigue abierto. Sin APK, Edge, SQL, migraciones ni operaciones bancarias reales.
+
 ## [4.26.98] — 2026-10-06 · Apuntar acompaña la retirada de la barra
 
 - Feedback dueño6/10 sobre beta97.1: ya no se corta el círculo, pero el FAB se queda mientras baja la barra y desaparece tarde. Se retira visibility retardada; top relativo de0 a30px comparte duración550ms y curva con max-height/padding de la caja. Al invertir, CSS parte de su posición actual. Se mantienen clip/margen30, fondo sólido, transform:none y bottom:0 en el host; sistema reducido apaga también esta transición del FAB y el ajuste de app conserva su reducción global.

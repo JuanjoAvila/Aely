@@ -1,6 +1,6 @@
 # Backlog operativo — Aely
 
-Candidata FAB97 en revisión: guardián final natural/reveal primerframe/cancelCSS medida, notas y nueva tanda separada. Fuente PR147; publicación retenida hasta CI y revisión exactas. No resuelve INC-2709-09 acumulativo. Producción95 confirmada; Inicio96.1 conservado.
+Corte7/10: FAB98 integrada en beta por PR153/b7abebb6; GO independiente y CI37564577536 SUCCESS con12FAB/contrasteCSS97. Publicador y artefactos pendientes al escribir este corte, aceptación móvil98 pendiente. Beta97 rechazó desaparición tardía del círculo; se conserva ese rechazo. Producción96 aprobada exclusivamente e integrada por PR152/85b8b540, Pages/servido pendientes. Gastos Madrid de Claude2741 requiere reparar etiqueta local y DOM antes candidata99. No resuelve INC-2709-09 acumulativo.
 
 Promoción4/10: las once tandas de beta4.26.94.1 tienen aprobación vigente. Producción4.26.94/source8bb0398f servida y cotejada; APK52 estable y las tres funciones Edge entregadas. La limpieza conserva notas y decisiones; solo retira las once entregadas, sin producto nuevo. Prioridad permanente: producción de lo aprobado antes de otra implementación. [Acta](briefs/promocion-aprobadas-2026-10-04.md).
 

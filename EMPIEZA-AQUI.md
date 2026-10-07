@@ -1,3 +1,7 @@
+Promoción96 consta fusionada en main85b8b540: preservar su [acta](docs/briefs/promocion-inicio96-2026-10-06.md) y comprobar publicador/artefactos exactos antes de limpiar el catálogo. El merge no acredita entrega ni aprueba99.
+
+Gastos99 candidata local: ambos extremos y etiquetas de mes/mes pasado/3m usan Madrid; ciclo y rango siguen locales. No heredar aprobaciones de scopes afectados. [Acta](docs/briefs/inc-0710-gastos-mes-madrid.md).
+
 Candidata98 local6/10 para el feedback de beta97.1: el FAB conserva contorno pero se queda atrás y desaparece tarde. Movimiento geométrico conjunto y guardián rAF natural preparados desde beta505; NO-GO visual hasta ejecutar rojo97/verde98. No reutilizar el verde97 como cierre; INC-2709-09 continúa abierto. [Acta](docs/briefs/inc-0610-fab-sync-hide-2026-10-06.md).
 
 Snapshot de preparación4/10, superado por la aprobación de beta94.1 y la integraciónmain descritas arriba: borrador4.26.94 local, entonces sin terminar ni publicar. en Metas, una regla nueva descuenta del presupuesto del mes y aporta a la meta al guardarla (contrato decidido por el dueño tras su rechazo de la 4.26.87), además del importe leído como se escribe y el aviso si el alta no vale. Las reglas anteriores siguen repartiendo por ingreso. El rechazo sigue abierto hasta que él lo pruebe; la pasada de pantalla, la suite completa y la revisión del commit final están pendientes: no inferir aprobación. Actas: [contrato mensual](docs/briefs/inc-0410-metas-mensual.md) · [alta de reglas](docs/briefs/inc-0410-metas-alta.md).

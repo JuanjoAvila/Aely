@@ -71,7 +71,7 @@ export const E2E_MAP = [
     "e2e/gastos-diario-filtro.spec.mjs", "e2e/gastos-cabecera-bancos.spec.mjs", "e2e/gastos-orden.spec.mjs",
     "e2e/gastos-categorias-presupuesto.spec.mjs", "e2e/gastos-periodo-categorias.spec.mjs", "e2e/gastos-suelta-filas.spec.mjs",
     "e2e/gastos-deudas.spec.mjs", "e2e/cartera-ficha-cuenta.spec.mjs", "e2e/presupuesto-fluido.spec.mjs",
-    "e2e/gastos-ayuda-ciclo.spec.mjs",
+    "e2e/gastos-ayuda-ciclo.spec.mjs", "e2e/gastos-mes-madrid.spec.mjs",
   ] },
   { file: "src/modules/05-dialogs-inv.js", specs: [
     "e2e/help-assistant.spec.mjs",

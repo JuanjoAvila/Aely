@@ -2,7 +2,11 @@
 
 Promoción4/10: las once tandas de beta4.26.94.1 tienen aprobación vigente. Producción4.26.94/source8bb0398f servida y cotejada; APK52 estable y las tres funciones Edge entregadas. La limpieza conserva notas y decisiones; solo retira las once entregadas, sin producto nuevo. Prioridad permanente: producción de lo aprobado antes de otra implementación. [Acta](briefs/promocion-aprobadas-2026-10-04.md).
 
-> Estado a 2026-10-06 · **v4.26.98** candidata local: Apuntar acompaña la barra al retirarse y volver. Diseño NO-GO hasta ejecutar rojo97/verde98 en DOM; revisión, CI y publicación pendientes. APK52/Edge/SQL intactos; INC-2709-09 abierto. [Acta](briefs/inc-0610-fab-sync-hide-2026-10-06.md).
+> Estado a 2026-10-07 · **v4.26.99** candidata local: Gastos usa meses de Madrid. FAB98 conservado; revisión, CI exacta y publicación pendientes. APK52/Edge/SQL intactos; INC-2709-09 abierto. [Acta](briefs/inc-0710-gastos-mes-madrid.md).
+
+> Promoción96 fusionada en main `85b8b540`; fuente separada de beta98/99. El merge acredita integración, no artefactos servidos: CI/publicador/HTTP exactos deben confirmarse antes de retirar Inicio96 del catálogo beta. [Acta de origen](briefs/promocion-inicio96-2026-10-06.md).
+
+> Snapshot verificado a 2026-10-07 · **v4.26.98** integrada en beta por PR153/b7abebb6: Apuntar acompaña la barra al retirarse y volver. Revisión independiente GO y CI37564577536 SUCCESS (12 FAB, control CSS97, 844 E2E y9 rendimiento). Publicador y artefactos servidos pendientes al escribir este corte; aprobación móvil propia pendiente. APK52/Edge/SQL intactos; INC-2709-09 abierto. [Acta](briefs/inc-0610-fab-sync-hide-2026-10-06.md).
 
 > Snapshot anterior a 2026-10-06 · **v4.26.97** candidata para beta: contorno y ocultación completa del botón Apuntar. Conserva Inicio96.1. Revisión, CI y entrega exactas pendientes; móvil desconocido. Producción95 confirmada por HTTP. APK52 intacta; INC-2709-09 acumulativo abierto. [Acta](briefs/inc-2709-13-fab-motion-audit-2026-10-06.md).
 
@@ -261,7 +265,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.26.98** candidata local; movimiento conjunto FAB/barra. NO-GO visual hasta DOM rojo97/verde98; revisión/CI/entrega pendientes. |
+| Web / OTA (`VERSION`) | **4.26.99** candidata local; meses de Madrid en Gastos, FAB98 conservado. Revisión/CI/entrega pendientes. |
 | APK (`versionName` / `versionCode`) | **4.26.80 / 52** conservada de la base; Metas87 no genera APK. Cotejo servido en gate de entrega. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **52 / 4.26.80** conservado byte a byte respecto a3467; Metas87 no reemplaza binario ni manifiesto. |
