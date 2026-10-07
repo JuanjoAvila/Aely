@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "id": "inc-0710-auth-disposal-relay21",
+  "from": "codex",
+  "coordinatorSession": "relay-run-82bdecb0988d1d4c",
+  "createdAt": "2026-10-07T19:05:05.600Z",
+  "to": "codex",
+  "baseSHA": "77b7d5e4d6188ec08c7aea0a598c741bb3025d13",
+  "scope": [
+    "src/modules/01-cloud.js:onAuth",
+    "src/modules/11-app-main.js:initial auth effect",
+    "tests and e2e registered",
+    "beta identity102 and documentation/generated"
+  ],
+  "objective": "Unidad defensiva de desmontaje/remontaje auth. Disposer real devuelto por cloud.onAuth; efecto limpia suscripción/timer y deja callback/promesas/timer/idle tardíos inertes. NO authSeen ni cambio orden inicial/syncFromCloud/identidad/bancos/SDK/APK/Edge/SQL. Diagnósticos Codex9aa724febe3364d8806ff8cca588ecda2e059400 yClaude10e166bf9011785b7b5aedc792cc19195935caee demuestran fuga; no causa global INC-2709-09. Checkout/rama propios desde77b7. AGENTS/EMPIEZA completos; pruebas causales del efecto yReact real desmontaje/remontaje,controles activos login/switch/dropTx/signout/recovery/offline/disabled,guards registrados/suite completa porcore. Nueva identidad102 scope explícito método onAuth+efecto completo+continuaciones; comparar30códigos anteriores y no repins/herencia si cambian. Revisión independiente final/CI exacta/beta servida antes entrega; no producción. Modelo heredado disponible;revisión fuerte por sesiones/privacidad."
+}
