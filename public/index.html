@@ -9599,9 +9599,10 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   };
 
   const todayKey=new Date().toDateString();
+  const monthly=preset==="month"||preset==="last"||preset==="3m", dateOpts={day:"2-digit",month:"short",timeZone:monthly?"Europe/Madrid":undefined};
   // Las ventanas de mes son de Madrid: el memo también debe caducar al cambiar el día ALLÍ, que
   // en un dispositivo de otra zona no coincide con `todayKey`.
-  const todayMad=madridYmdParts(Date.now()), madridDayKey=todayMad.ym+"-"+todayMad.d;
+  const mad=madridYmdParts(Date.now()), madridDay=mad.ym+"-"+mad.d;
   const cycle=useMemo(()=>cycleEnabled?budgetPaydayOf(state,null,expensesDef)
     :lastPaydayOf(expensesDef,null,expenseDeletedSet(state)),
     [expensesDef,state.deleted,state.flows,cycleEnabled,todayKey]);
@@ -9610,7 +9611,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   // Chips de banco: baratos y SIEMPRE visibles (no dependen de heavyOk → sin flash).
   // `todayKey` invalida ciclo, filtros y cabecera cuando la app queda abierta al cruzar el día;
   // así el 26 o el día 1 no conserva cifras del período anterior en un memo.
-  const bounds=useMemo(function(){ return presetBoundsMs(preset,range,cycle&&cycle.start); },[preset,range,cycle,todayKey,madridDayKey]);
+  const bounds=useMemo(function(){ return presetBoundsMs(preset,range,cycle&&cycle.start); },[preset,range,cycle,todayKey,madridDay]);
   const selectedPeriod=useMemo(function(){ return gastosPeriodOf(preset,bounds,cycle); },[preset,bounds,cycle]);
   const diarioEnts=useMemo(function(){ return expenseBankEnts(state); },[state.accounts, state.settings]);
   const diarioPrev=useRef(diarioEnts.slice());
@@ -9697,7 +9698,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   // alta hasta que un sync cambiaba `expenses` (B09-A / feedback familia 2026-09-06).
   const budgetApplies=preset==="month"||preset==="cycle";
   const monthSummary=useMemo(function(){
-    const now=new Date(), nowMad=preset==="month"||preset==="last"||preset==="3m"?madridYmdParts(Date.now()):{d:now.getDate(),m:now.getMonth()+1};
+    const now=new Date(), day=monthly?madridYmdParts(Date.now()):{d:now.getDate(),m:now.getMonth()+1};
     const bs=monthBudgetStats(Object.assign({},state,{expenses:expensesDef}),null,null,null,selectedPeriod);
     // No existe una foto histórica del límite ni un presupuesto acumulado para varios meses.
     // Enseñar el límite actual como margen del pasado inventaría dinero disponible.
@@ -9708,17 +9709,17 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     return {
       spent:bs.spent, income:bs.income, balance:bs.balance, mode:bs.mode, against:bs.against,
       budget:bs.budget, reserved:bs.reserved, remaining:bs.remaining,
-      day:nowMad.d,
-      month:monthLong(nowMad.m-1), cycle:!!selectedPeriod.cycle,
+      day:day.d,
+      month:monthLong(day.m-1), cycle:!!selectedPeriod.cycle,
       periodLabel:periodLabel, budgetApplies:budgetApplies
     };
-  },[expensesDef,state.deleted,state.budget,state.reservaLog,state.accounts,state.settings,selectedPeriod,preset,range,budgetApplies,todayKey,madridDayKey]);
+  },[expensesDef,state.deleted,state.budget,state.reservaLog,state.accounts,state.settings,selectedPeriod,preset,range,budgetApplies,todayKey,madridDay]);
   // Desglose por categoría: misma regla/ventana que la cabecera. categoryBudgets en deps
   // porque una fila a 0 con límite tiene que aparecer aunque no haya gastos nuevos.
   const catBreakdown=useMemo(function(){
     const rows=categorySpentByMonth(Object.assign({},state,{expenses:expensesDef}),null,null,selectedPeriod);
     return budgetApplies?rows:rows.filter(function(row){ return row.spent>0; }).map(function(row){ return {id:row.id,spent:row.spent,limit:null}; });
-  },[expensesDef,state.deleted,state.categoryBudgets,state.accounts,state.settings,selectedPeriod,budgetApplies,todayKey,madridDayKey]);
+  },[expensesDef,state.deleted,state.categoryBudgets,state.accounts,state.settings,selectedPeriod,budgetApplies,todayKey,madridDay]);
   /* Abierto o plegado, por cuenta. `!==false` y no `!!`: quien nunca lo ha tocado lo ve ABIERTO
      —es como está hoy y como él lo aprobó—, y solo se pliega quien lo pliegue a mano. */
   const catsOpen=!(state.settings && state.settings.gastosCatsOff);
@@ -9971,9 +9972,9 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       ),
       React.createElement("div",{className:"v4-gastos-progress-marks"},
         React.createElement("span",isFinite(bounds.from)
-          ? new Date(bounds.from).toLocaleDateString(loc(),{day:"2-digit",month:"short",timeZone:preset==="month"||preset==="last"||preset==="3m"?"Europe/Madrid":undefined}) : t("g_all")),
+          ? new Date(bounds.from).toLocaleDateString(loc(),dateOpts) : t("g_all")),
         monthSummary.budgetApplies && React.createElement("span",tf("v4_gastos_today_mark",{d:monthSummary.day})),
-        !monthSummary.cycle && isFinite(bounds.to) && React.createElement("span",new Date(bounds.to).toLocaleDateString(loc(),{day:"2-digit",month:"short",timeZone:preset==="month"||preset==="last"||preset==="3m"?"Europe/Madrid":undefined}))
+        !monthSummary.cycle && isFinite(bounds.to) && React.createElement("span",new Date(bounds.to).toLocaleDateString(loc(),dateOpts))
       ),
       /* SE PUEDE OCULTAR (petición de su pareja, 10/9, y con razón).
          Sus palabras: «esta chulo pero mi pareja lo vio y me dijo que es too much, que le gustaria
@@ -20259,7 +20260,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="222c1cfbe946d48c5c7e91f880c0b7318cca32f5d3b5512a0728d2c431cd0962";
+var _rnSha="0672183be2c83252abcf7407f37304ac8308d30ec880a8f1594ad7840eed3dbf";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
