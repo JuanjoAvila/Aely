@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "id": "inc-2709-09-dashboard-profile-control-ci-relay21",
+  "from": "codex",
+  "coordinatorSession": "relay-run-82bdecb0988d1d4c",
+  "createdAt": "2026-10-07T22:47:22.378Z",
+  "to": "codex",
+  "baseSHA": "155b408a8414bf97643e1c2c7e91c65cc879d603",
+  "objective": "Continuar perfil estructural INC-2709-09 sobre fuente/árbol exactos155b408a8414bf97643e1c2c7e91c65cc879d603/1e3fffbc45df4004f5cea635015224728df75a5a. Revisar control setTimeout con umbrales intactos, ejecutar Chromium/CI completa en rama CI ONLY sin merge a main, recuperar4 informes anteriores y nuevos completos, comprobar longtask/frame/recovery y guard bancario final. Medidas anteriores parciales8computes vs1+7hits virtuales con filas/DOM iguales; NO causa humana ni commits React ni producto. Mantener privacypass/finanzas/invalidation/3000+5200/CPU6/redexterna bloqueada y origenbeta102. Si control vuelvefallar diagnosticar sin bajar gates. Decide próxima unidad coherente sólo con evidencia y presupuesto real (16B margenactual); no incrementar cap ni heredar aprobación ni cerrar lag global. No desplieguesmain/APK/Edge/SQL.",
+  "scope": [
+    "e2e",
+    "tests",
+    "scripts/run-tests.mjs",
+    "scripts/relevant-tests.mjs",
+    "docs/briefs",
+    "docs/BACKLOG.md"
+  ]
+}
