@@ -9,13 +9,13 @@
     },
     "items": {
       "es": [
-        "Al cambiar de sesión, la app retira el aviso anterior de vuelta al primer plano para evitar respuestas repetidas."
+        "Tras cambiar de sesión, volver a la app no repite las mismas acciones."
       ],
       "en": [
-        "When switching sessions, the app removes the previous foreground listener to avoid repeated responses."
+        "After switching sessions, returning to the app does not repeat the same actions."
       ],
       "ca": [
-        "En canviar de sessió, l’app retira l’avís anterior de tornada al primer pla per evitar respostes repetides."
+        "Després de canviar de sessió, tornar a l’app no repeteix les mateixes accions."
       ]
     },
     "tandas": [
