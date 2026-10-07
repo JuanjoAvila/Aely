@@ -1,0 +1,22 @@
+{
+  "status": "blocked",
+  "summary": "PR156 SQUASHmain067371705615e9cc58923509e3f60c3d0c9003ff árbol exacto9b4d2152 trasGOindependiente yCI37617951670SUCCESS841+9/12FAB. Publicadores37624939160 ypostTests37624939139 encurso; producción98 servida aún no acreditada, no limpiar98.",
+  "tests": [
+    {
+      "command": "CI37617951670: node scripts/run-tests.mjs + privacy, 841funcionales/9rendimiento/12FABDOM",
+      "exitCode": 0
+    }
+  ],
+  "productSHA": "067371705615e9cc58923509e3f60c3d0c9003ff",
+  "tree": "9b4d215282c51b4b5254be2c948b2d73648ea3a5",
+  "pr": 156,
+  "limitations": [
+    "Main fresco85b8 yexpectedhead771a verificados antesmerge. SóloCSS exactabetaaprobada b7ab/code7ca1346e; módulosJS/Android/Supabaseintactos.98 aprobación6031246455 exclusiva;99/100 noaprobadas. Publicador/7HTTP/5ZIP ycatalogo98 pendientes; inputsblocked/INC2709-09open."
+  ],
+  "schema": 1,
+  "taskId": "ops-0710-prod98-ci-publish-relay15",
+  "actor": "codex",
+  "sessionId": "relay-run-ssfxj5af3d2rj18m",
+  "createdAt": "2026-10-07T13:03:31.940Z",
+  "released": true
+}
