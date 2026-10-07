@@ -140,6 +140,7 @@ export const E2E_MAP = [
 /** Specs que no son de una pantalla: persistencia, swipes, frames. Si se toca CUALQUIER
  *  módulo de src (no el núcleo: ese ya dispara todo), van con el recorte. */
 export const CROSSCUTTING = [
+  "e2e/lifecycle-listeners.spec.mjs",
   "e2e/bank-merchant-category.spec.mjs",
   "e2e/gasolina-taxi.spec.mjs",
   "e2e/movilidad-categorias.spec.mjs",

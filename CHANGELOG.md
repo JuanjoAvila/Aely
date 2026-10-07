@@ -1,3 +1,8 @@
+## [4.26.100] — 2026-10-07 · Listener de reentrada al cambiar de sesión
+
+- El efecto dependiente de uid libera el handle asíncrono de Capacitor también si resuelve después del cleanup. Un callback de una sesión retirada queda inerte; errores de alta o retirada se absorben sin promesas rechazadas sin tratar. Fuente portada selectivamente, sin historial externo.
+- Guardián causal Node y DOM sintético registrado. Es un defecto reproducible con cambios de uid, sin acreditar causa global ni reparación completa de INC-2709-09. Candidata local; revisión, CI exacta, DOM y aceptación móvil pendientes. Sin APK, Edge, SQL ni sincronización bancaria real.
+
 ## [4.26.99] — 2026-10-07 · Mes de Gastos en Madrid
 
 - Los presets mes, mes pasado y tres meses calculan ambos extremos en Madrid, incluido cambio de año y CET/CEST. Se conserva el contrato local de ciclo/rango. El memo invalida al cambiar el día de Madrid; cabecera y fechas mensuales usan la misma zona.

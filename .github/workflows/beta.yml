@@ -118,6 +118,7 @@ jobs:
           node scripts/stamp-version.mjs
           npm install --no-save --no-audit --no-fund esbuild@0.25.5
           node scripts/minify-html.mjs
+          node tests/presupuesto-rendimiento.test.mjs --artifact
 
       # La versión de la beta lleva sufijo .N para que se distinga de un vistazo en Ajustes y para
       # que _mcNewerVer la vea como NUEVA respecto a la estable del mismo número.
