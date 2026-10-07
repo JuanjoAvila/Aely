@@ -1,0 +1,30 @@
+{
+  "status": "done",
+  "summary": "Candidata101 implementada y durable PR162/source cacc2a0dff55baa3859ddeedcbdcf862925f2fca, tree7526fa9daf180d0d09771d0430939f273a7f0465 idéntico local40b44ea.19files, runtime sólo bankNotif cleanup;30revisiones anteriores y220notas preservadas; nueva identidad separable. GO independiente exacto en tarea review. Node causal/redbase/mutantes/gates ybeta-sources1716funciones+666datos/PERSIST91 exit0; docs/maps/syntax/privacy/security/i18n/catalog/build verdes. DSN95+sello101.99999:1317867/358949gzip9/3 dentro límites. PR163 sóloCI, nunca merge main; run37658712643 en curso. DOM local2discovery0executed, CI/publicador/beta pendiente. No producto publicado101 ni aceptaciónhumana. INC-2709-09 sigue abierto.",
+  "tests": [
+    {
+      "command": "banknotif-listener-cleanup causal actual effect, red baseline, gates/mutants; cleanup100",
+      "exitCode": 0
+    },
+    {
+      "command": "beta-sources full1716function+666data mutations/PERSIST91",
+      "exitCode": 0
+    },
+    {
+      "command": "build/docs/relevant/syntax/privacy/security/i18n/catalog/history and synthetic budget1317867/358949/3",
+      "exitCode": 0
+    }
+  ],
+  "productSHA": "cacc2a0dff55baa3859ddeedcbdcf862925f2fca",
+  "limitations": [
+    "CI37658712643/DOM y gate artefacto real pendientes",
+    "No publicación ni aprobación beta101",
+    "Inputs blocked, INC-2709-09 global open"
+  ],
+  "schema": 1,
+  "taskId": "inc-0710-banknotif-cleanup-relay19",
+  "actor": "codex",
+  "sessionId": "relay-run-un7m4rjsqldezxl2",
+  "createdAt": "2026-10-07T17:27:15.261Z",
+  "released": true
+}
