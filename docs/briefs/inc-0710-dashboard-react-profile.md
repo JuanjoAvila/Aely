@@ -94,7 +94,14 @@ node node_modules/playwright/cli.js test e2e/dashboard-react-profile.spec.mjs --
 ```
 
 Los JSON adjuntos por test contienen resultados completos, hashes, fases y errores; un fallo
-también guarda evidencia. La instrumentación retira RAF, observer y wrapper de Storage al
+también guarda evidencia. El workflow test.yml no sube esos adjuntos: el finally imprime
+además el JSON sintético completo, sin truncar, entre
+`AELY_DASHBOARD_SYNTHETIC_REPORT_BEGIN size=…` y
+`AELY_DASHBOARD_SYNTHETIC_REPORT_END size=…`. Se puede recuperar por el lector oficial de
+logs incluso cuando falle una aserción; no contiene datos reales. Los hashes y size permiten
+vincular cada informe al caso y fuente exactos. Este cambio requiere CI de la nueva fuente;
+una ejecución del head anterior no acredita este transporte de evidencia.
+La instrumentación retira RAF, observer y wrapper de Storage al
 final; el contexto aislado de Playwright se cierra después. No hay proceso en segundo plano.
 
 Siguiente gate: revisión del árbol exacto y CI con Chromium oficial. Si allí aterrizan los
