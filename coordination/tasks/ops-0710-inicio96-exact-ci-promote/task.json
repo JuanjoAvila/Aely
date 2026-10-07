@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "id": "ops-0710-inicio96-exact-ci-promote",
+  "from": "codex",
+  "coordinatorSession": "relay-run-tqjnmmxjddwquexd",
+  "createdAt": "2026-10-07T03:02:04.186Z",
+  "kind": "delivery",
+  "to": "codex",
+  "baseSHA": "68b5ecb6ea479a231023330ddc00829e4473992b",
+  "objective": "Concluir promocion selectiva96 expresamente aprobada por el dueno, sin beta97 ni candidata98. Revalidar PR152 head68b5/treefbf854 y CI37562183860 SUCCESS exacta antes ready+SQUASH expected_head. Revisar rama main fresca537, readback arbol exacto y postTests/Pages/artefactos HTTP. Tras acreditar produccion96 retirar solamente su tarjeta activa en beta mediante publicacion normal conservando otras tandas y rechazos. No repetir publicacion si yaestaentregada.",
+  "scope": [
+    "src/modules/03-tab-dash.js",
+    "src/data/release-notes.json",
+    "scripts/beta-sources.mjs",
+    "tests",
+    "e2e",
+    "docs",
+    "VERSION",
+    "package.json",
+    "package-lock.json",
+    "public"
+  ],
+  "approval": "Directa dueno6oct: inc-0410-inicio-tres-metas beta4.26.96.1 fuenteca6f5e854c58ae7d73f24b604f20c8058b4b50a3 huellaf74ec4d9155e1557; web06180d02b24123caf20a1ca188f1f5f63c12d2d20974a3917b8d3377dd6084d9. APK/Edge/SQL/aceptacionfinanciera separados.",
+  "handoff": "PR152 draftmain durable; preparacion/revision independienteGO exactfbf854. CI enprogress al cierre; no atribuir produccion96. INC-2709-09 sigueabierto."
+}
