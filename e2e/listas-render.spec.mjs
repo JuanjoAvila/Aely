@@ -72,6 +72,28 @@ test("Metas: una tarjeta por meta, con lo ahorrado y el objetivo", async ({ page
   await expect(cards.nth(1)).toContainText("Colchón");
 });
 
+// El resumen no debe recortar el estado ni ocupar el hueco de una meta activa con una terminada.
+for (const lang of ["es", "en", "ca"]) {
+  for (const count of [0, 1, 3, 5]) {
+    test(`Inicio resume como máximo tres metas activas y Plan conserva todas (${lang}, ${count})`, async ({ page }) => {
+      const activas=Array.from({length:count},(_,i)=>({id:"inicio-"+i,name:"Objetivo "+(i+1),target:1000,saved:100+i,emoji:"🎯"}));
+      const todas=[{id:"terminada",name:"Objetivo terminado",target:100,saved:100,done:true},...activas];
+      await abrir(page,"inicio",{goals:todas,settings:{autoPrices:false,theme:"green",lang}});
+      const inicio=paginaActiva(page);
+      const cards=inicio.locator(".v4-goal");
+      await expect(cards).toHaveCount(Math.min(count,3));
+      for(let i=0;i<Math.min(count,3);i++) await expect(cards.nth(i)).toContainText(activas[i].name);
+      await expect(cards.filter({hasText:"Objetivo terminado"})).toHaveCount(0);
+      const link=count? /Ver plan|See plan|Veure pla/:/Crear una meta|Create a goal|Crear un objectiu/;
+      await inicio.getByRole("button",{name:link}).click();
+      await expect(paginaActiva(page).locator(".v4-goal-card")).toHaveCount(todas.length);
+      for(const g of todas) await expect(paginaActiva(page).locator(".v4-goal-card").filter({hasText:g.name}).first()).toBeVisible();
+      const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem("micartera_v3")).goals);
+      expect(saved).toEqual(todas);
+    });
+  }
+}
+
 /* ---------------- Fijos ---------------- */
 const fixed = [
   { id: "f1", name: "Alquiler", amount: 850, freq: "mes", account: "sabadell", day: 1 },
