@@ -1,92 +1,41 @@
 // ============================================================
-// Edge Function: prices
-// Cotizaciones server-side (key oculta, sin CORS). Reemplaza a doGetPrices del Apps Script.
-// - Recibe {symbols:[...]} (POST) o ?symbols=A,B — los tickers reales de la cartera del
-//   usuario. Antes estaba CLAVADA a 6 símbolos fijos: cualquier valor nuevo se quedaba sin
-//   precio para siempre (feedback 2026-07-13, import de Revolut).
-// - Acciones US: Finnhub (FINNHUB_KEY). Lo que Finnhub gratis no cubre (ETF Xetra, oro):
-//   Yahoo Finance sin key, también como fallback genérico.
-// Devuelve un mapa { TICKER_APP: precio }.
+// Edge Function: prices — entrypoint.
+// Lógica en prices_core.ts. Cuota 30/600 = PROPUESTA (apagada por defecto).
 // ============================================================
 
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { withCors } from "../_shared/cors.ts";
+import { rateLimit } from "../_shared/ratelimit.ts";
+import { handlePrices, type PricesDeps } from "./prices_core.ts";
 
-// compat: clientes viejos que llaman sin body reciben lo de siempre
-const DEFAULT_SYMS = ["NVDA", "GOOG", "TSM", "AVGO", "MU", "AMD", "VWCE", "GOLD"];
-// clave usada en la app -> símbolo en Yahoo Finance (GC=F ≈ oro spot USD/onza; Revolut
-// llama XAU al oro y la app histórica GOLD — las dos apuntan al mismo sitio).
-// XAG/XPT/XPD entran con el import de materias primas de Revolut (2026-07-15): son los
-// futuros de plata/platino/paladio, también en USD/onza, que es como Revolut los mide.
-const YAHOO: Record<string, string> = {
-  VWCE: "VWCE.DE", GOLD: "GC=F", XAU: "GC=F", XAG: "SI=F", XPT: "PL=F", XPD: "PA=F",
-};
-
-// El origen permitido lo pone `withCors` en la respuesta (lista blanca, ../_shared/cors.ts).
-const cors = { "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type" };
-
-async function fromFinnhub(sym: string, key: string): Promise<number | null> {
-  const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(sym)}&token=${key}`);
-  const data = JSON.parse(await res.text());
-  return (typeof data.c === "number" && data.c > 0) ? data.c : null;
+function liveDeps(): PricesDeps {
+  return {
+    fetch,
+    async getUser(authHeader) {
+      const supabase = createClient(
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_ANON_KEY")!,
+        { global: { headers: { Authorization: authHeader } } },
+      );
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (error || !user) return null;
+      return { id: user.id };
+    },
+    async rateLimit(bucket, limit, windowSecs) {
+      const admin = createClient(
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+      );
+      return await rateLimit(admin, bucket, limit, windowSecs);
+    },
+    // OFF por defecto: 30/600 es propuesta, no contrato autorizado (SEC-02 / Codex NO-GO).
+    // Un deploy futuro podría poner PRICES_RATE_LIMIT=1 tras autorización explícita;
+    // aun así cuenta peticiones HTTP, no fetches al proveedor (ver brief).
+    applyRateProposal: Deno.env.get("PRICES_RATE_LIMIT") === "1",
+    env: { FINNHUB_KEY: Deno.env.get("FINNHUB_KEY") },
+    sleep: (ms) => new Promise((r) => setTimeout(r, ms)),
+    now: () => Date.now(),
+  };
 }
 
-async function fromYahoo(ySym: string): Promise<number | null> {
-  const res = await fetch(
-    `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ySym)}?interval=1d&range=1d`,
-    { headers: { "User-Agent": "Mozilla/5.0" } },
-  );
-  const data = JSON.parse(await res.text());
-  const p = data?.chart?.result?.[0]?.meta?.regularMarketPrice;
-  return (typeof p === "number" && p > 0) ? p : null;
-}
-
-Deno.serve(withCors(async (req: Request) => {
-  let syms: string[] = [];
-  try {
-    if (req.method === "POST") {
-      const b = await req.json();
-      if (b && Array.isArray(b.symbols)) syms = b.symbols;
-    }
-  } catch (_e) { /* sin body o no-JSON → defaults */ }
-  if (!syms.length) {
-    const q = new URL(req.url).searchParams.get("symbols");
-    if (q) syms = q.split(",");
-  }
-  syms = [...new Set(
-    syms.map((s) => String(s).trim().toUpperCase()).filter((s) => /^[A-Z0-9.=\-]{1,12}$/.test(s)),
-  )].slice(0, 25);
-  if (!syms.length) syms = DEFAULT_SYMS;
-
-  const key = Deno.env.get("FINNHUB_KEY");
-  const prices: Record<string, number> = {};
-  const errors: Array<Record<string, unknown>> = [];
-
-  for (const sym of syms) {
-    try {
-      if (YAHOO[sym]) {
-        const p = await fromYahoo(YAHOO[sym]);
-        if (p) prices[sym] = p;
-        else errors.push({ sym, via: "yahoo:" + YAHOO[sym] });
-        continue;
-      }
-      let p = key ? await fromFinnhub(sym, key) : null;
-      if (p == null) p = await fromYahoo(sym); // fallback: lo que Finnhub gratis no cubra
-      if (p) prices[sym] = p;
-      else errors.push({ sym, via: key ? "finnhub+yahoo" : "yahoo (sin FINNHUB_KEY)" });
-      if (key) await new Promise((r) => setTimeout(r, 120)); // rate limit del tier gratis
-    } catch (e) {
-      errors.push({ sym, status: "exception", body: String(e).slice(0, 150) });
-    }
-  }
-
-  const out: Record<string, unknown> = { ok: true, prices: prices, ts: Date.now() };
-  if (errors.length) out.errors = errors;
-  return json(out, 200);
-}));
-
-function json(obj: unknown, status = 200) {
-  return new Response(JSON.stringify(obj), {
-    status,
-    headers: { ...cors, "Content-Type": "application/json" },
-  });
-}
+Deno.serve(withCors((req) => handlePrices(req, liveDeps())));
