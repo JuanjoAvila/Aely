@@ -1,3 +1,5 @@
+Auditoría de pantallas sobre fuente102: Plan conserva listener/clase si se interrumpe su efecto de entrada antes del evento y fallback. Contraprueba sintética del fragmento exacto, sin corrección de producto ni DOM ejecutado; INC-2709-09 sigue abierto. [Contrato y límites](docs/briefs/inc-2709-09-screen-lifecycle-audit.md).
+
 Auth102 candidata local sobre101/77b7d5e4: cleanup de suscripción y callbacks tras desmontar; no cambia orden inicial ni acredita causa del lag. Nueva identidad propia, sin repin. [Acta](docs/briefs/inc-0710-auth-disposal.md).
 
 Candidata101: `bankNotif` tiene la misma carrera de handle tardío que el listener de reentrada100. Cleanup de Promise y callback inerte; no alterar opción expresa, cupo ni sync. Cambiar uid antes de resolver el alta es necesario para reproducir la fuga: scroll por sí solo no lo acredita. INC-2709-09 sigue abierto. [Acta](docs/briefs/inc-0710-banknotif-cleanup.md).
