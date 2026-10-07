@@ -1,0 +1,29 @@
+{
+  "status": "blocked",
+  "summary": "Disposición auth preparada en fuente9881214ebe93864e2d7570f62094ec785be81163/árbolc3492aedecc783bfa900bb240c4e90b76464913c,base77b7;GO independiente de comportamiento. NO-GO publicación: raw1318101>1317888 (+213);gzip359046<359424/3bloqueantes pasa;DOM0/discovery2 yCI exacta pendientes. Suite global interrumpida por desconexión/recovery del runtime tras1723mutantes funciones observados; datos yexit global unknown, no verde. Fuente/31revisiones/221notas anteriores conservadas,8mutantes causales/focales verdes. NoauthSeen;no causa globalINC-2709-09 ni sync ya iniciada cancelada. Sin escritor/prueba activa tras recuperación;sin producto publicado ni cambios de límites/historial. Optimización de presupuesto debe ser unidad propia revisada antes continuación.",
+  "tests": [
+    {
+      "command": "node tests/auth-disposal.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/beta-sources.test.mjs",
+      "exitCode": null,
+      "status": "interrupted-runtime"
+    }
+  ],
+  "productSHA": "9881214ebe93864e2d7570f62094ec785be81163",
+  "treeSHA": "c3492aedecc783bfa900bb240c4e90b76464913c",
+  "branch": "codex/auth-disposal-relay21",
+  "limitations": [
+    "DOM local no ejecutado; CI exacta pendiente",
+    "Presupuesto raw +213 bytes; no ampliar límites",
+    "INC-2709-09 acumulativo abierto"
+  ],
+  "schema": 1,
+  "taskId": "inc-0710-auth-disposal-relay21",
+  "actor": "codex",
+  "sessionId": "relay-run-82bdecb0988d1d4c",
+  "createdAt": "2026-10-07T19:30:12.028Z",
+  "released": true
+}
