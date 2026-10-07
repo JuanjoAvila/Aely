@@ -1,0 +1,24 @@
+{
+  "status": "done",
+  "summary": "CONFIRMADO con ventana minima: con el SDK vendorizado real (2.110.0) y el efecto exacto, signIn(B) lanzado <=3 microtareas tras montar con A guardada deja sessionRef=A y sync A tardio (con y sin navigator.locks sintetico). Con >=4 microtareas, login lento, switch, signout, refresh y retorno de enlace magico el final es correcto. No alcanzable desde la UI. Guarda minima propuesta (flag authSeen en el efecto, getSession.then inerte tras un evento) y hueco de cobertura 0/31 documentados en handoff/diagnostics/session-order-relay20.md. Sin cambios de producto. Nota: el sessionId de este claim carece de sufijo hex por un fallo del shell (xxd ausente); sin efecto funcional.",
+  "branch": "claude/session-order-diag",
+  "productSHA": "10e166bf9011785b7b5aedc792cc19195935caee",
+  "tests": [
+    {
+      "command": "node handoff/diagnostics/session-order-relay20.mjs handoff/diagnostics/session-order-relay20.json (8 pasadas: veredicto y barrido estables; una fila de orden interno variable, final siempre B)",
+      "exitCode": 0
+    }
+  ],
+  "limitations": [
+    "Sin navegador ni movil; navigator.locks y fetch sinteticos",
+    "No se ejecuto npm test, e2e ni suite completa",
+    "No prueba INC-2709-09 ni rendimiento",
+    "Fila magic-link: orden interno no determinista"
+  ],
+  "schema": 1,
+  "taskId": "inc-0710-initial-session-order-claude-relay20",
+  "actor": "claude",
+  "sessionId": "claude-cloud-20261007-",
+  "createdAt": "2026-10-07T18:12:18.812Z",
+  "released": true
+}
