@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "id": "inc-0710-widget105-isolated-source-relay21",
+  "from": "codex",
+  "coordinatorSession": "relay-run-82bdecb0988d1d4c",
+  "createdAt": "2026-10-07T21:29:37.812Z",
+  "to": "codex",
+  "baseSHA": "6b81279676d66337d7b34b7badc6d1ff2c66bc24",
+  "objective": "Preparar integración AISLADA de residuo útil PR105 journal sobre beta102 actual; recuperar indentación de formato guardado sin liberar pagos sin ACK ni corrupción. No duplicar diagnóstico ni alterar PR/branch105 o reservas anteriores; fuente nueva propia recuperable, sólo delta nativo y guardianes financieros. Revisión fuerte, CI exacta y gatesAPK separados; no desplegar ni publicar APK/web, no inventar causa del caso humano.",
+  "scope": [
+    "android/app/src/main/java/com/micartera/app/WidgetSnapshotArbiter.java",
+    "tests",
+    "scripts/run-tests.mjs",
+    "docs/briefs",
+    "EMPIEZA-AQUI.md"
+  ]
+}
