@@ -9971,10 +9971,10 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
         React.createElement("i",{style:{width:monthSummary.budget==null?"0%":Math.min(100,Math.max(0,monthSummary.against)/monthSummary.budget*100)+"%"}})
       ),
       React.createElement("div",{className:"v4-gastos-progress-marks"},
-        React.createElement("span",isFinite(bounds.from)
+        React.createElement("span",null,isFinite(bounds.from)
           ? new Date(bounds.from).toLocaleDateString(loc(),dateOpts) : t("g_all")),
-        monthSummary.budgetApplies && React.createElement("span",tf("v4_gastos_today_mark",{d:monthSummary.day})),
-        !monthSummary.cycle && isFinite(bounds.to) && React.createElement("span",new Date(bounds.to).toLocaleDateString(loc(),dateOpts))
+        monthSummary.budgetApplies && React.createElement("span",null,tf("v4_gastos_today_mark",{d:monthSummary.day})),
+        !monthSummary.cycle && isFinite(bounds.to) && React.createElement("span",null,new Date(bounds.to).toLocaleDateString(loc(),dateOpts))
       ),
       /* SE PUEDE OCULTAR (petición de su pareja, 10/9, y con razón).
          Sus palabras: «esta chulo pero mi pareja lo vio y me dijo que es too much, que le gustaria
@@ -20260,7 +20260,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="0672183be2c83252abcf7407f37304ac8308d30ec880a8f1594ad7840eed3dbf";
+var _rnSha="ccbab0592f9d18ed3577ce90d219228ce0ff93b675f33b71d587322a088760cf";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
