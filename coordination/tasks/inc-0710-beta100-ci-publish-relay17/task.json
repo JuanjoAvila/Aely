@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "id": "inc-0710-beta100-ci-publish-relay17",
+  "from": "codex",
+  "coordinatorSession": "relay-run-05acdf59215d4b23",
+  "createdAt": "2026-10-07T14:31:57.262Z",
+  "to": "codex",
+  "baseSHA": "2d96f2e85c2e8683897ee9cb5eda4ab8621720c0",
+  "objective": "Sucesor de inc-0710-beta100-publish-relay16 released:true. Beta99.1 source8e103 está servida; NO repetir99. PR155 BETA fuente final2d96f2e85c2e8683897ee9cb5eda4ab8621720c0/tree2996a2a1743d219a18c0afdae8d7ef44e95f7683 GO independiente final. CI37636735303 de PR159 verify355c69d6fa8732077fd8cb775148ffeadda0cc25 MISMO árbol en curso; leer run/jobs/logs finales y checkout tree exacto, presupuesto1317888 raw/359424 gzip/3 sin ampliar. Verificación159 exclusiva: cerrar SIN merge main tras resultado. CIvieja37618709225/37634943660 sólo árboles anteriores. Tras verde final: revalidar beta8e103 y simulación integrada con mismo árbol GO; si cambia nueva revisión/tests. ready155 + SQUASH BETA expectedhead final exacto; readback merge/tree y publicador exacto. Descargar3assets frescos y cotejar ZIP/index/SW/i18n/notas/catálogo/guiones/códigos96-98-99-100/manifiesto/huella/sourceSha y APK52. No declarada publicada por merge/CI. Desbloquea PR160 de catálogo sólo tras100 servida. No main/100approval/APK/Edge/SQL/migraciones/pagos. INC-2709-09 sigue abierto, inputs blocked sin credencial. Fuente quedó código igual d0fb/GO anterior y sólo100.items es/en/ca según AGENTS4,219notas y todas revisiones intactas. No reconstruir PR ni rerun ciego.",
+  "scope": [
+    "src/modules/11-app-main.js",
+    "src/data/release-notes.json",
+    "public",
+    "docs",
+    "scripts",
+    "tests",
+    "e2e"
+  ]
+}
