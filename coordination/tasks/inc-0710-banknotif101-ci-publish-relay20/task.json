@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "id": "inc-0710-banknotif101-ci-publish-relay20",
+  "from": "codex",
+  "coordinatorSession": "relay-run-un7m4rjsqldezxl2",
+  "createdAt": "2026-10-07T17:29:20.757Z",
+  "to": "codex",
+  "baseSHA": "cacc2a0dff55baa3859ddeedcbdcf862925f2fca",
+  "scope": [
+    "PR162/source cacc2a0dff55baa3859ddeedcbdcf862925f2fca/tree7526fa9daf180d0d09771d0430939f273a7f0465",
+    "VerifyPR163/e7421be4aae269136e15b1f44503b4e29bce2b9d/preview1482807c23ffb8b1bd9d35b8a152a2be1310b1f3 mismoárbol",
+    "CI37658712643/job112920402868; posterior integración exclusivamente beta/publicador/HTTP"
+  ],
+  "objective": "Finalizar candidata101 bankNotif: implementación inc-0710-banknotif-cleanup-relay19 y revisión inc-0710-banknotif-review-relay19 cerradas, GO exacto árbol7526/local40b44/remotocacc.19files runtime sólobankNotif,30revisiones y220notas previas intactas; Node causal/redbase/gates/errores/mutantes/beta-sources1716funciones666datos/PERSIST91 y docs/maps/i18n/catalog/build/budget localesverdes. DOM0local/2discovery, noChromium. CI37658712643 aún encurso: exigir logs completos/checkoutexacto preview1482807/tree7526 yNode5Deno/DOM delayedbankNotif funcional+perf verdes sin debilitar. Confirmar beta fresca y dependencia ops-0710-catalog1002-served-relay20 SERVIDA. PR163 NUNCA main: cerrarSINMERGE trasverde. ReadyPR162 ySQUASH exclusivamentebeta expectedheadcacc2a0dff55baa3859ddeedcbdcf862925f2fca; si base cambia revisar merge-tree/alcance sin replaypublic viejo. Verificar readback y publisher con gate --artifact real límites1287/351KiB/3,HTTP3assets/ZIP/sourceSha/APP_VERSION/SW/huella/notas221/i18n/códigos/APK52. Fuente sintética1317867/358949gzip9 con95DSN+sello101.99999 no garantiza configreal. Antefailure diagnóstico causal y corrección antes rerun. No repetir tests locales o reconstruirPR sin cambio pertinente. Cambiosuid antes registro tardío, no atribuir causa general lag. Sin humana99/100/101 ni main/APK/Edge/SQL/pagos; inputsblocked,INC-2709-09open."
+}
