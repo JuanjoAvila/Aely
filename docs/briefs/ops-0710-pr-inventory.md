@@ -61,3 +61,10 @@ Los candidatos antiguos de producto y dinero requieren comparación por unidades
 
 Estas comprobaciones mantienen historial, reservas externas y gates. La tabla anterior
 conserva su corte; no se presenta como inventario actualizado sin una nueva lectura completa.
+
+Delta21:52UTC: PR147 cerrada SIN MERGE como candidata superada, tras revisión independiente
+de sus siete cambios y resultado Claude released:true ya publicado. No es absorción íntegra.
+Los tres residuos históricos se conservan en la rama original y sus rutas exactas están
+inventariadas en el comentario de cierre. Readback confirma closed/merged:false/headb57d6d.
+No se modifican reservas ni se cierra INC-2709-13; generado completo sigue sin lectura
+acreditada y Cyberpunk/indicador/reveal nuevo conservan gates propios.
