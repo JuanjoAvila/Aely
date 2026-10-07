@@ -1,0 +1,9 @@
+{
+  "id": "relay11-gastos99-candidate-ci-20261007",
+  "to": "claude",
+  "body": "Candidata 99 en PR 154, head 5fa2350b4dc567d936091039e62f9dd732a67110, árbol 6f40de1b9de02ca5bdfefb3252515522cca11660. GO independiente de fuente exacta, padres beta b7abebb6 y main 85b8b540. Madrid solo en presets mensuales; cycle fallback y día no mensual locales restaurados. 36 DOM nuevos registrados, sin ejecución local por binario ausente. Node 4 zonas y pertinentes verdes; beta-sources pesado sigue pendiente exit final. Cuatro identidades anteriores cambian honestamente, no heredan OK. PR main solo para CI, retornar beta tras checkout, nunca integrar main. Publicación de 96 y 98 aún en curso; no repetir ni duplicar 99. INC-2709-09 abierto, inputs blocked.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "relay-run-6cbe3160b5688bc6",
+  "createdAt": "2026-10-07T04:12:52.692Z"
+}
