@@ -1,0 +1,25 @@
+{
+  "status": "blocked",
+  "summary": "Catálogo integrado exclusivamente beta por SQUASH PR160 a56ab25be46985a0e78eca45146729027757b3ab, árbol daa5e1f11d67ec2438966c60ab8cc4e8a970d6ad idéntico a revisión/CI exacta. CI37646635092/37646632534 SUCCESS con checkoutd0dda92a/treeexacto, Node5Deno+881funcionales1skip+9perf. Verify161 cerradaSINMERGE. Dependencia100SERVIDA cumplida y sourceeab/sellos/huella7c9407fec09528ae exactos. Publicador37656565401/job112912989882 aún encurso al cerrar: entrega catálogo aún UNKNOWN, no fallo ni green final. Sucesor verifica gateartifact y HTTP3assets/ZIP/sourceSha/stamps/huella/220notas/códigos/96-98vacíos/47pendientes/APK52. No nuevas pruebas locales justificadas ni reconstruirPR.",
+  "tests": [
+    {
+      "command": "CI37646635092 and37646632534 exact tree daa5: Node5Deno+881functional1skip+9perf",
+      "exitCode": 0
+    },
+    {
+      "command": "fresh beta ref and merge-tree; SQUASHreadback tree daa5; beta100SERVIDA prerequisite",
+      "exitCode": 0
+    }
+  ],
+  "productSHA": "a56ab25be46985a0e78eca45146729027757b3ab",
+  "limitations": [
+    "Publicador37656565401 in_progress; paquete de catálogo todavía sin verificación final",
+    "Inputs blocked, no aceptación99/100/101, INC-2709-09 global open"
+  ],
+  "schema": 1,
+  "taskId": "ops-0710-catalog96-98-publish-relay19",
+  "actor": "codex",
+  "sessionId": "relay-run-un7m4rjsqldezxl2",
+  "createdAt": "2026-10-07T17:28:57.461Z",
+  "released": true
+}
