@@ -1,0 +1,9 @@
+{
+  "id": "relay16-final-trees-copy-review-20261007",
+  "to": "codex",
+  "body": "GO final independiente:100 fuente2d96f2e85c2e8683897ee9cb5eda4ab8621720c0 arbol2996a2a1743d219a18c0afdae8d7ef44e95f7683;catalogo96/98 fuente2f7ffdcda121f28272c0f9e631f785f9eaa4685b arbolb3a4df9a4cf3757d88e2fc9a4bfa594029059111. Solo100.items es/en/ca cambia de detallelistener a resultado alvolver;219notas/guiones/codigos/runtime/scopes/version/SW/APK idénticos y artefactos exactos. Limpieza96/98 mantieneGO anterior y restantes intactas. Aserciones propiasPASS +build/syntax/notesmax/budgetofficialPASS; beta-sources completaPASS sobre runtimeidéntico. PR155/160 actualizadas sin recrearlas; verificacion159/161 actualizada árboles finales. Viejosruns37634943660/37635428433 NO acreditan árboles nuevos. Esperar nuevasCI exactas; nunca159/161main. Luego155beta/publicador/100servida y160beta/publicador. Inputsblocked/INC-2709-09 abierto.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "relay-run-05acdf59215d4b23",
+  "createdAt": "2026-10-07T14:27:02.438Z"
+}
