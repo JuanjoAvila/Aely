@@ -36,3 +36,28 @@ PR89/91/93/137/138 yCI ONLY165 quedaron cerradas SINMERGE tras los cotejos docum
 | [43](https://github.com/JuanjoAvila/Aely/pull/43) | `bf450c0b5482` | Pendiente de delta | Cotejar fuentes funcionales, tests y metadatos frente main067/beta102; revisión financiera si afecta dinero. Sin merge ni cierre por antigüedad. |
 
 Los candidatos antiguos de producto y dinero requieren comparación por unidades completas, datos/dependencias y pruebas; no basta encontrar una línea o título coincidente. La lectura de propuestas widget87/90/105/44 está en revisión financiera independiente. Las reservas externas mantienen a su titular. INC-2709-09 y widget permanecen abiertos; APK, Edge, SQL y aceptación móvil son gates separados.
+
+## Delta confirmado a21:50UTC
+
+- PR143 cerrada SIN MERGE, head8ef1525c sin cambios. Sus tres specs completos se cotejaron
+  con blobs oficiales de main067 y revisión independiente. Todos los oráculos DOM y de
+  persistencia están preservados en assertSavedExpense; main añade seis contrapruebas por
+  spec y restauración finally. No se atribuye una CI nueva a la PR cerrada. Rama conservada.
+- PR147 sigue abierta: CSS/registrador absorbidos o sustituidos por98, con una matriz de
+  doce configuraciones y recorrido natural más fuerte. Sus tres archivos históricos de
+  acta/probes no están íntegramente en main; los helpers PNG sí se trasladaron. No afirmar
+  absorción íntegra ni usar este cotejo para cerrar INC-2709-13. Los casos antiguos suprimen
+  pseudos Cyberpunk y no cubren el indicador amarillo ni el nuevo reporte de reveal abrupto.
+- PR90 sigue con absorción parcial: además de Java/tests ya cotejados, la región completa
+  de App que negocia/envía el widget es idéntica a main067. Todavía faltan residuos de
+  documentación, registro y cambios generales; no se cierra por esa igualdad aislada.
+- PR105 conserva su rama/reserva. Residuo Java9ddb aislado en
+  [fuente propia](https://github.com/JuanjoAvila/Aely/tree/codex/widget105-isolated-source-relay21)
+  sobre beta102. GO sólo formato/deduplicación:205 aserciones y88 checks independientes;
+  deuda de saturación heredada documentada, NO-GO entrega APK. CI ONLY168 se cerrará sin merge.
+- PR167 es CI ONLY de perfil estructural, no producto. El nuevo informe sintético completo
+  debe recuperarse desde logs oficiales porque el workflow no sube sus adjuntos. Una CI
+  anterior no acredita la fuente que añade ese transporte. INC-2709-09 continúa abierto.
+
+Estas comprobaciones mantienen historial, reservas externas y gates. La tabla anterior
+conserva su corte; no se presenta como inventario actualizado sin una nueva lectura completa.
