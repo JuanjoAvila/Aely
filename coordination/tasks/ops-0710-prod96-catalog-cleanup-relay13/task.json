@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "id": "ops-0710-prod96-catalog-cleanup-relay13",
+  "from": "codex",
+  "coordinatorSession": "relay-run-0c47148d42bae423",
+  "createdAt": "2026-10-07T04:50:52.646Z",
+  "to": "codex",
+  "baseSHA": "3aeed496442ad9e5a3a7c8c2759a50622853512b",
+  "objective": "96 main85b8 yaentregada:7HTTPartefacto exacto/code06180d02/APK52 verificados yPages37569104431/postTests37569104528 SUCCESS. NO repetirpromocion. Retirar exclusivamente96.tandas de beta conflujoPR/CI/publicador/HTTP; esperara99servida paraevitarreconstrucciones. Preparacioneea6578 parent5fa/revisionGOcondicional durableprivada; aplicar solo delta srcnotes sobrebasefresca+rebuild NO replaypublicstale. Preservarnotas/guiones/historial/rechazo97/98/99/codigos; cotejar catalogofinal ymanifesto exactos.100preparadaseparada, integraordenado tras99. Sinmain/97/98/99approval/APK/Edge/SQL. INC-2709-09abierto.",
+  "scope": [
+    "src/data/release-notes.json",
+    "public",
+    "docs"
+  ]
+}
