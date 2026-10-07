@@ -1,0 +1,13 @@
+{
+  "status": "done",
+  "summary": "Diagnóstico preservado en codex/nav-hidden-diagnosis-relay21/3454124e árbol106adfae. Indicador omite hidden y queda dentro clip declarado; corriente Cyberpunk separada. CSS normal tiene transición; salto al cambiar topología es hipótesis. DOM0; producto NO-GO hasta reproducción causal y revisión exacta. INC-2709-13/UX-06 abiertos.",
+  "tests": [
+    "12controles fuente literal/VM/geométricos; sintaxis/privacy/diff PASS; no DOM/computedStyle/píxeles ni causa humana"
+  ],
+  "schema": 1,
+  "taskId": "inc-0710-nav-hidden-marker-motion-diagnosis-relay21",
+  "actor": "codex",
+  "sessionId": "relay-run-82bdecb0988d1d4c",
+  "createdAt": "2026-10-07T21:10:04.675Z",
+  "released": true
+}
