@@ -1,5 +1,22 @@
-Promoción98 candidata: guardianes botnav-fab-recorte/fab-pixels exactos de beta98; doce configuraciones contorno, movimiento rAF natural, final, reveal/cancel y reduced-motion. Prueba nueva incluida en CROSSCUTTING; CI exacta y DOM local pendientes.
+## Apuntar: fila visible e importe persistido (5/10)
 
+`pulido-numpad` y `efectivo-apuntar` navegan a Gastos después de guardar y comprueban una única
+fila `button[data-expense-id]` con su importe. Inicio y Gastos pueden conservar el mismo texto
+montado: un `getByText(...).first()` global podía elegir una copia oculta y hacer fallar la CI
+aunque el apunte existiera. P10 inglés comprueba además que el único gasto guardado vale 12.5,
+por lo que un parseo erróneo a 1250 sigue fallando. Efectivo conserva las aserciones de banco e
+importe persistidos. Se corrige el alcance de esos guardianes, sin cambiar el cliente ni su
+contrato financiero. Ambos specs ya pertenecen al mapa de pruebas.
+
+## SEC-02 · `prices` (Deno, sin cuota de terceros)
+
+`supabase/functions/prices/prices.test.ts` está en `denoEnLista` de `scripts/run-tests.mjs`. Cubre
+auth 401, cuerpo 413, sleep en `finally` si Finnhub lanza, fail-open de `_shared/ratelimit.ts`, y el
+gate de la **propuesta** 30/600 con `rateLimit` real + RPC `check_rate_limit` simulada (bucket /
+limit / window, aislamiento por usuario, concurrencia, caducidad). Mutantes `limit=1` vs
+`999999` y `window=1` fallan si el mock ignora args. Rojo/verde: fixture `prices_base_fixture.ts`
+(lógica `8bb0398f`) vs candidato. La propuesta **no** está activa en live (`applyRateProposal`
+false salvo `PRICES_RATE_LIMIT=1`). [Brief](briefs/sec02-prices-limites.md).
 ## Exportación de memoria a un repositorio público (5/10)
 
 Sucesora del 6/10: una frase financiera incompleta seguida de línea vacía y cifra desnuda se rechazará también. El contexto heredado dura un solo párrafo inmediato y exige un final reconocido sin valor (etiqueta, «capital», «en», «de», «por», `:` o `=`) y comienzo numérico, incluidas comillas. Una etiqueta enlazada terminal también queda pendiente sin retirar su destino del payload ni residual. Los fixtures cubren LF/CRLF, varias líneas vacías, cifras Unicode, énfasis y cita. Positivos literales conservan bytes técnicos, fecha/versión/SHA rotulados y cifras de una sección o prosa nueva; esos límites no pretenden interpretar el discurso completo. Un mutante que retira solo la herencia reproduce salida 0 y creación de destino; el guardián corregido rechaza con salida 1 sin crear el destino. Todo el contenido es inventado.
@@ -33,6 +50,8 @@ controles sin evidencia de navegador.
 `tests/fechas-cache.test.mjs`, registrado en `run-tests`, ejecuta las funciones reales del bundle y cuenta parseos: barridos de5.200 fechas, orden inverso/barajado, límite de memoria, formatos, aciertos0/NaN y objetos Date independientes. Protege únicamente el cambio aprobado al volver con historial; no prueba el lag global de INC-2709-09 ni conexiones bancarias reales.
 
 ## Carga de tests y lector de alcances (4/10)
+
+Limpieza aprobadas4/10: revisar-beta añade tres DOM es/en/ca contra el catálogo servido actual, recibo generado y APK52: cero filas entregadas y ninguna petición de aprobarlas, sin borrar un rechazo histórico sintético. Las regresiones de las siete antiguas, Metas87→94 y ronda mixta25 cargan explícitamente el catálogo publicado4403b252; el código que ejecutan sigue siendo el actual. beta-sources, beta-veredictos y beta-tandas-vacias conservan igualmente sus escenarios históricos con esa fuente fija. No se salta ni reduce cobertura al retirar las once entregadas. Mapa y runner conservan los ficheros ya registrados. Estos escenarios históricos requieren Git y el commit4403b252 disponible: los workflows de tests/publicación usan checkout con fetch-depth0. Un clon superficial debe traer esa historia; un ensayo con git archive sin .git no sirve para ejecutar estos guardianes históricos. Para ellos usa un worktree con historia completa, conservando el archivo sin .git para los perfiles A/B que no los ejecutan.
 
 `botnav-esconder`, ya transversal, reproduce un scroll real emitido por la página oculta de Gastos después de volver a Inicio: comprueba que el evento llegó, que la pantalla activa sigue en el tope y que la barra no se oculta pasado su plazo de 550 ms. El caso era rojo sin la comprobación de página activa en `onPageScroll`; conserva los gestos táctiles de ocultar, revelar y cambiar pestañas.
 
@@ -76,7 +95,9 @@ Widget banco (4.26.50): `e2e/widget-banco.spec.mjs` abre Ajustes y cambia el ban
 
 # Testing — Aely
 
-Guardado en el commit (4.26.94): `tests/persist-commit.test.mjs`, en `run-tests`, fija el contrato de `mcPersistCommit` —nada al montar, un solo temporizador, histórico solo si cambia la referencia de gastos, y que un estado calculado y abandonado no llega al volcado— y que `set()` ya no toca persistencia. El orden real de React y el disco los prueba `e2e/metas-alta-regla.spec.mjs`: en la carrera registra cada escritura real de `micartera_v3`, exige que ninguna lleve la regla rechazada, que la última coincida con lo que se ve y que una recarga sin resiembra enseñe lo mismo. `beta-sources` añade PERSIST91: nueve mutantes del bloque de guardado mueven las 18 revisiones cuyo código escribe estado y no mueven las 7 que no lo escriben, y comprueba contra el código, en los dos sentidos, que llevar el bloque coincide con llamar a `set` de App (la declaración del método `store.set` no cuenta; un mutante de `store.set` sí mueve el panel de revisión). `beta-veredictos` deja escrito que ninguna aprobación se hereda con código distinto: ayuda de Mi ciclo, que la conservaba por equivalencia exacta, mantiene su historial y pide veredicto nuevo; arranque con poca conexión sigue idéntica y la conserva.
+Caché de fechas (4.26.95, INC-2709-09): `tests/fechas-cache.test.mjs`, en `run-tests`, ejecuta `dateMs`/`parseDate` del bundle con un `Date` que cuenta parseos. Con 5.200 cadenas distintas y techo de 5.000, el segundo y tercer barrido —en orden, al revés y barajados— solo pueden repetir las 200 que no cupieron; la memoria no pasa del techo y el resultado con la caché llena es el mismo que vacía. Mueren los mutantes `clear`, FIFO, sin techo y sin caché. No mide tiempos: el A/B de primer plano se hace con Chromium y turno. [Medida y límites](briefs/inc-2709-09-lag-sostenido.md).
+
+Guardado en el commit (4.26.94): `tests/persist-commit.test.mjs`, en `run-tests`, fija el contrato de `mcPersistCommit` —nada al montar, un solo temporizador, histórico solo si cambia la referencia de gastos, y que un estado calculado y abandonado no llega al volcado— y que `set()` ya no toca persistencia. El orden real de React y el disco los prueba `e2e/metas-alta-regla.spec.mjs`: en la carrera registra cada escritura real de `micartera_v3`, exige que ninguna lleve la regla rechazada, que la última coincida con lo que se ve y que una recarga sin resiembra enseñe lo mismo. `beta-sources` añade PERSIST91: nueve mutantes del bloque de guardado mueven las 18 revisiones cuyo código escribe estado y no mueven las 8 que no lo escriben (la octava es la caché de fechas de la 4.26.95), y comprueba contra el código, en los dos sentidos, que llevar el bloque coincide con llamar a `set` de App (la declaración del método `store.set` no cuenta; un mutante de `store.set` sí mueve el panel de revisión). `beta-veredictos` deja escrito que ninguna aprobación se hereda con código distinto: ayuda de Mi ciclo, que la conservaba por equivalencia exacta, mantiene su historial y pide veredicto nuevo; arranque con poca conexión sigue idéntica y la conserva.
 
 INC-0410 (candidata 4.26.94): `tests/reserva-dinero.test.mjs`, ya en `run-tests`, añade el alta de reglas. Matriz del lector de importes con esperados escritos a mano para decimal coma y decimal punto (miles, céntimos, y lo que no es un importe: signos, letras, exponentes, `1.2.3`, y el caso ambiguo, que se rechaza); el botón real de «Guardar regla» con un React de pruebas que reparte los `useState` en orden; altas inválidas sin escritura de estado y con su aviso; céntimos iguales en fila, reparto y registro; y los seis estados del reparto, incluido que una regla añadida con el ingreso ya repartido no se aplica a ese ingreso y sí al siguiente. Sobre la fuente anterior el mismo test falla. `e2e/metas-alta-regla.spec.mjs`, en el mapa de Metas y motor, abre Plan → Metas en es/en/ca con datos sintéticos: formatos de importe de cada idioma, avisos, línea de estado, céntimos y recarga sin resiembra. No mide rendimiento ni usa cuentas reales.
 
@@ -737,4 +758,16 @@ forma autónoma **solo** las tandas aprobadas, después de preparar y verificar 
 El proceso está en [PROMPT-FLUJO-CONTINUO.md](PROMPT-FLUJO-CONTINUO.md). Una tanda sin veredicto
 identificable o con validación por pago real pendiente continúa en beta.
 
+
+FAB INC-2709-13: `botnav-fab-recorte` (transversal) cubre seis combinaciones Green0/Cyber34 y movimiento normal/app/sistema. Primera captura pausada solo mide contorno; segunda ocultación sin pausa/finish acredita final natural; reveal se registra en primer rAF y cancelación CSS exige intervalo <550ms. `botnav-esconder` conserva gestos y touchcancel del controlador. PNG helpers permanentes en e2e/helpers, sin guiones de captura desechables. Chromium sintético no acredita ola Android ni fluidez.
 Uso prolongado (INC-2709-09): `e2e/rendimiento-sostenido.spec.mjs` está en CROSSCUTTING y se ejecuta en serie como rendimiento. La candidata `lifecycle-network-v3` añade offline real del contexto Chromium, visibilidad controlada del fixture y observaciones por acción. Es investigación, sin arreglo acreditado: [guion v3 y bloqueo de ejecución](briefs/inc-2709-09-lifecycle-network-v3.md). Las series históricas v1/v2 conservan sus guiones exactos y no se atribuyen a v3.
+
+Gastos mensual: `gastos-mes-madrid.test.mjs` verifica límites Madrid en cuatro zonas; `gastos-mes-madrid.spec.mjs` verifica DOM es/en/ca en UTC/Madrid, cambio de mes/año/CET/CEST y cifras2300/500/2900 en resumen, categorías y lista;12casos de memo con la pantalla abierta cruzan el mes/año de Madrid sin editar gastos. Registrados en runner y mapa de Gastos.
+
+Reentrada por sesión: `tests/appstate-listener-cleanup.test.mjs` ejecuta el efecto real con transporte sintético (Promise inmediata/tardía, handle síncrono, errores y callback retirado); `e2e/lifecycle-listeners.spec.mjs` está en CROSSCUTTING y cuenta listeners tras cambios sintéticos de uid. No hay operaciones bancarias ni usuarios reales; no acredita resolución global del lag.
+
+Aviso nativo por sesión: `tests/banknotif-listener-cleanup.test.mjs`, registrado en `scripts/run-tests.mjs`, ejecuta el efecto real y su contraprueba con altas diferidas, errores y callbacks retirados. `e2e/lifecycle-listeners.spec.mjs` (CROSSCUTTING) añade seis cambios de uid antes de resolver los handles y un control positivo del callback activo; sustituye la programación por un contador, sin operaciones bancarias. INC-2709-09 sigue abierto.
+
+`tests/auth-disposal.test.mjs` ejecuta el método y efecto exactos con transporte sintético: disposición, callbacks/promesas/timer/idle tardíos, controles activos y contraprueba77b7. `e2e/auth-disposal.spec.mjs`, transversal, monta y desmonta ese efecto con React/ReactDOM reales del shell en DOM aislado; incluye el rojo anterior. Sin red ni cuentas reales.
+
+`tests/auth-disposal-fit.test.mjs` compara la representación compacta102 con9881214e: retornos, receiver de unsubscribe, excepciones diferidas, mcBootReady real con fallos internos, trazas y dependencias mutadas7/9. Es prueba focal; no sustituye CI completa ni DOM.
