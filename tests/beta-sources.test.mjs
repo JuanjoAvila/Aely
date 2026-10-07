@@ -5,6 +5,8 @@ import {logicFunctions,scopeDependencies,mutateLogic,logicCalls,benignCalls,logi
 import { betaRevision, betaNotes, betaDelivery, betaHistorical, betaCompatible } from "../scripts/beta-revisions.mjs";
 
 const read=f=>fs.readFileSync(new URL("../"+f,import.meta.url),"utf8");
+// Los contratos retirados del panel se prueban con su catálogo publicado, contra el código actual.
+const historicalNotes=JSON.parse(execFileSync("git",["show","4403b252933410741a877eea59b85d812b2fe543:src/data/release-notes.json"],{encoding:"utf8",maxBuffer:5e6}));
 const empty=[{v:"4.26.67",tandas:[]}];
 const boot="inc-2709-01-arranque-red";
 const modern=[{v:"4.26.69",tandas:[{id:boot}]}];
@@ -160,15 +162,15 @@ test("META91 vigila el lector de importes, los avisos, el estado y los céntimos
 });
 // El guardado del estado (INC-0410): si vuelve a apuntarse dentro del updater, deja de colgar del
 // commit o cambia cuándo se reescribe el histórico, tienen que moverse TODAS las revisiones cuyo
-// código escribe estado (llama a `set`, directa o transitivamente). Solo quedan fuera las dos que
-// son geometría y hoja de ayuda: en su alcance no hay ni una llamada a `set`.
+// código escribe estado (llama a `set`, directa o transitivamente). Los alcances de solo lectura,
+// incluido el límite visual de metas de Inicio, no deben invalidarse por cambios de guardado.
 test("PERSIST91: el guardado en el commit invalida toda tanda que escribe estado, y solo esas",()=>{
   const source=f=>read(f).replace(/\r\n/g,"\n"),registro=JSON.parse(read("scripts/beta-sources.json"));
   const marca="INC-0410 guardado: de aquí al límite";
   const dependientes=Object.keys(registro).filter(id=>registro[id].web.some(x=>x.from&&x.from.includes(marca)));
   const ajenas=Object.keys(registro).filter(id=>!dependientes.includes(id));
   assert.equal(dependientes.length,18);
-  assert.deepEqual(ajenas.slice().sort(),["beta-panel-veredictos","inc-0210-01-plan-cuota","inc-2709-01-arranque-red","inc-2709-09-fechas-cache","inc-2709-12-cyber-fab","inc-2709-14-preguntar","ops-0410-panel-cola","tr-descripcion-clasificacion"]);
+  assert.deepEqual(ajenas.slice().sort(),["beta-panel-veredictos","inc-0210-01-plan-cuota","inc-0410-inicio-tres-metas","inc-2709-01-arranque-red","inc-2709-09-fechas-cache","inc-2709-12-cyber-fab","inc-2709-13-fab-contorno","inc-2709-14-preguntar","ops-0410-panel-cola","tr-descripcion-clasificacion"]);
   /* Quién depende del guardado lo decide el CÓDIGO, no la marca del registro (auditoría del
      coordinador, 4/10): se quita de cada alcance el bloque del guardado y se mira si lo que queda
      llama a `set` de App —las dependencias transitivas ya son unidades del alcance—. Tiene que
@@ -284,7 +286,7 @@ test("el lector ignora comentarios/textos/regex y detecta las funciones flecha",
 });
 
 test("referencias ampliadas rechazan HEAD/sha ajeno y mantienen el original",()=>{
-  const scopes=JSON.parse(read("scripts/beta-sources.json")),notes=JSON.parse(read("src/data/release-notes.json"));
+  const scopes=JSON.parse(read("scripts/beta-sources.json")),notes=structuredClone(historicalNotes);
   for(const id of ["tr-descripcion-clasificacion","inc-2809-02-ayuda-ciclo",boot]){
     const g=notes.flatMap(n=>n.tandas||[]).find(x=>x.id===id&&x.codigoDesde),scope=scopes[id];
     const original=JSON.stringify(g),expanded=betaHistorical(g,scope);
@@ -300,7 +302,7 @@ test("referencias ampliadas rechazan HEAD/sha ajeno y mantienen el original",()=
 });
 
 test("un helper cambiado invalida TR frente al commit histórico ampliado",()=>{
-  const notes=JSON.parse(read("src/data/release-notes.json"));
+  const notes=structuredClone(historicalNotes);
   const original=betaNotes(notes).flatMap(n=>n.tandas||[]).find(g=>g.id==="tr-descripcion-clasificacion"&&g.codigoDesde);
   const fn=logicFunctions(read).get("esTraspasoPropio");
   const changed=betaNotes(notes,f=>f===fn.file?mutateLogic(read(f),fn):read(f)).flatMap(n=>n.tandas||[]).find(g=>g.id===original.id&&g.codigoDesde);
@@ -320,7 +322,7 @@ test("los umbrales de categorías, notas y cuotas también invalidan la clasific
   }
 });
 test("rechaza el repin coherente a HEAD aunque conserve el SHA histórico permitido",()=>{
-  const notes=JSON.parse(read("src/data/release-notes.json")),scopes=JSON.parse(read("scripts/beta-sources.json")),id="tr-descripcion-clasificacion";
+  const notes=structuredClone(historicalNotes),scopes=JSON.parse(read("scripts/beta-sources.json")),id="tr-descripcion-clasificacion";
   const fn=logicFunctions(read).get("esTraspasoPropio"),changedRead=f=>f===fn.file?read(f).replace(/\r\n/g,"\n").replace(fn.text,fn.text.replace("{","{ return false;")):read(f);
   const revision=betaRevision(id,changedRead);
   const baseline=scopes[id].auditoria.ampliada;
@@ -357,7 +359,7 @@ test("datos distingue propiedades, comentarios y textos; recoge múltiples inici
   assert.ok(!Object.hasOwn(benignData,"MC_TZ"));assert.ok(!Object.hasOwn(benignData,"DISP"));
 });
 test("zona horaria y días de gracia nuevos invalidan dinero sin repinar historia",()=>{
-  const notes=JSON.parse(read("src/data/release-notes.json")),id="tr-descripcion-clasificacion",original=betaNotes(notes).flatMap(n=>n.tandas||[]).find(g=>g.id===id&&g.codigoDesde);
+  const notes=structuredClone(historicalNotes),id="tr-descripcion-clasificacion",original=betaNotes(notes).flatMap(n=>n.tandas||[]).find(g=>g.id===id&&g.codigoDesde);
   const changed=betaNotes(notes,f=>read(f).replace('const MC_TZ="Europe/Madrid";','const MC_TZ="UTC";')).flatMap(n=>n.tandas||[]).find(g=>g.id===id&&g.codigoDesde);
   assert.notEqual(changed.codigo,original.codigo);assert.equal(changed.codigoDesde,original.codigoDesde);
   const before=betaRevision("inc-3009-01-cargos",read),after=betaRevision("inc-3009-01-cargos",f=>read(f).replace("const REC_GRACE=3;","const REC_GRACE=4;"));assert.notEqual(before.web,after.web);
@@ -421,7 +423,7 @@ test("Widget80 vigila datos de dinero y todos sus cinco archivos Java",()=>{
   assert.notEqual(betaRevision(id,f=>f===period?read(f).replace("CONTRACT = 2","CONTRACT = 1"):read(f)).native,before.native);
 });
 test("Widget80 nuevo no repina historia ni fabrica entrega nativa",()=>{
-  const id="inc-2909-01-widget-periodo",scopes=JSON.parse(read("scripts/beta-sources.json")),notes=JSON.parse(read("src/data/release-notes.json"));
+  const id="inc-2909-01-widget-periodo",scopes=JSON.parse(read("scripts/beta-sources.json")),notes=structuredClone(historicalNotes);
   assert.equal(scopes[id].auditoria,undefined);
   const raw=notes.flatMap(n=>n.tandas||[]).find(g=>g.id===id);
   assert.equal(raw.codigoDesde,undefined);assert.equal(raw.desde,undefined);
@@ -466,7 +468,7 @@ test("la identidad conserva ASI, literales y descendientes CSS",()=>{
   }
 });
 test("la compatibilidad requiere la misma fuente histórica y no acepta aliases escritos a mano",()=>{
-  const scopes=JSON.parse(read("scripts/beta-sources.json")),notes=JSON.parse(read("src/data/release-notes.json")),id="tr-descripcion-clasificacion",g=notes.flatMap(n=>n.tandas||[]).find(g=>g.id===id);
+  const scopes=JSON.parse(read("scripts/beta-sources.json")),notes=structuredClone(historicalNotes),id="tr-descripcion-clasificacion",g=notes.flatMap(n=>n.tandas||[]).find(g=>g.id===id);
   // La integración cambia estos lectores reales; el id no acredita una aprobación anterior.
   for(const changedId of ["fin05-pago-cerrada","fin05-widget-reentrada","inc-2909-01-widget-periodo","inc-2909-02-inicio-natural","inc-2909-03-retirada","inc-3009-01-cargos","inc-3009-nomina-anticipada","widget-app-cerrada","widget-banco","tr-descripcion-clasificacion"]){
     const item=notes.flatMap(n=>n.tandas||[]).find(x=>x.id===changedId);

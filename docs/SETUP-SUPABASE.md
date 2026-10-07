@@ -64,6 +64,7 @@ Qué frena y por qué:
 |---|---|---|
 | `ingest` | 60/min **por IP** | No pide sesión; su única credencial es un token. Sin freno se prueban tokens a la velocidad de la red. Por IP y no por token: contar por token no frena a quien va probando tokens distintos, que es justo el ataque. |
 | `myinvestor-connect` | 10 cada 10 min **por usuario** | Por ahí van el usuario y la CONTRASEÑA reales del banco. Un bucle de reintentos puede dejar al usuario **bloqueado en su propio banco**. |
+| `prices` | **sin cuota activa** (SEC-02) | Propuesta documentada 30/600 por usuario (`PRICES_RATE_PROPOSAL`) **apagada por defecto**. No confundir con `categorize`/`help-assistant`. 30×25 fetches no protege Finnhub ~60/min. Ver [brief](briefs/sec02-prices-limites.md). Activar exigiría autorización + `PRICES_RATE_LIMIT=1` en deploy aparte. |
 
 **Si la migración no está aplicada, no se rompe nada**: `rateLimit()` deja pasar y lo apunta en la
 consola de la función. Un freno de seguridad que tumba la app cuando se rompe convierte un incidente
