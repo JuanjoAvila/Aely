@@ -1,0 +1,222 @@
+{
+  "sourceSHA": "cacc2a0dff55baa3859ddeedcbdcf862925f2fca",
+  "node": "v24.19.0",
+  "startedAt": "2026-10-07T17:58:55.137Z",
+  "durationMs": 26,
+  "exitCode": 0,
+  "sourceFragments": "exact git-show methods / idle scheduler / complete session mount effect",
+  "fragmentSha256": {
+    "methods": "2e783b200de750705046d09610a76469a1f81da5e01477b2ca197db6c2639c14",
+    "idle": "a90495a9a1a0023ffcd606b747a1c24a3ab8cbad5dcb5281a1085946392beca4",
+    "effect": "e01fc6a66bc35745b491258e116de04e0289eeab65cdce7721ff16229cadf927"
+  },
+  "synthetic": true,
+  "network": false,
+  "actualPersistenceWrites": 0,
+  "sync": "spy requests only; syncFromCloud body not executed",
+  "rows": [
+    {
+      "name": "subscription-handle-discarded",
+      "wrapperReturn": "undefined",
+      "transportHandleExists": true,
+      "subscriptions": 1
+    },
+    {
+      "name": "transport-unsubscribe-negative-control",
+      "subscriptions": 0,
+      "unsubscribed": 1
+    },
+    {
+      "name": "auth-after-disposal",
+      "subscriptions": 1,
+      "unsubscribed": 0,
+      "events": [
+        {
+          "kind": "setSession",
+          "disposed": true,
+          "uid": "synthetic-A"
+        },
+        {
+          "kind": "syncRequest",
+          "disposed": true,
+          "uid": "synthetic-A",
+          "opts": {
+            "freshLogin": true,
+            "dropTx": false
+          }
+        },
+        {
+          "kind": "setSession",
+          "disposed": true,
+          "uid": "synthetic-A"
+        },
+        {
+          "kind": "setRecovery",
+          "disposed": true,
+          "value": true
+        },
+        {
+          "kind": "setShowAuth",
+          "disposed": true,
+          "value": true
+        },
+        {
+          "kind": "setSession",
+          "disposed": true,
+          "uid": null
+        },
+        {
+          "kind": "stateUpdater",
+          "disposed": true,
+          "bankTx": []
+        }
+      ]
+    },
+    {
+      "name": "one-remount",
+      "subscriptions": 2,
+      "disposedSyncRequests": 1,
+      "activeSyncRequests": 1
+    },
+    {
+      "name": "six-disposals-then-live-remount",
+      "subscriptions": 7,
+      "unsubscribed": 0,
+      "disposedAuthCallbacks": 6,
+      "disposedSyncRequests": 6,
+      "activeSyncRequests": 1
+    },
+    {
+      "name": "session-resolves-after-disposal",
+      "events": [
+        {
+          "kind": "setSession",
+          "disposed": true,
+          "uid": "synthetic-A"
+        },
+        {
+          "kind": "syncRequest",
+          "disposed": true,
+          "uid": "synthetic-A",
+          "opts": null
+        }
+      ]
+    },
+    {
+      "name": "idle-queued-before-disposal",
+      "events": [
+        {
+          "kind": "setSession",
+          "disposed": false,
+          "uid": "synthetic-A"
+        },
+        {
+          "kind": "syncRequest",
+          "disposed": true,
+          "uid": "synthetic-A",
+          "opts": null
+        }
+      ]
+    },
+    {
+      "name": "timer-and-session-rejection-after-disposal",
+      "events": [
+        {
+          "kind": "bootReady",
+          "disposed": true
+        },
+        {
+          "kind": "bootReady",
+          "disposed": true
+        }
+      ]
+    },
+    {
+      "name": "active-same-user-no-remount",
+      "subscriptions": 1,
+      "syncRequests": 1,
+      "setSessionCalls": 3
+    },
+    {
+      "name": "active-login-switch-signout-control",
+      "events": [
+        {
+          "kind": "setSession",
+          "disposed": false,
+          "uid": "synthetic-A"
+        },
+        {
+          "kind": "syncRequest",
+          "disposed": false,
+          "uid": "synthetic-A",
+          "opts": {
+            "freshLogin": true,
+            "dropTx": false
+          }
+        },
+        {
+          "kind": "setSession",
+          "disposed": false,
+          "uid": "synthetic-B"
+        },
+        {
+          "kind": "syncRequest",
+          "disposed": false,
+          "uid": "synthetic-B",
+          "opts": {
+            "freshLogin": true,
+            "dropTx": true
+          }
+        },
+        {
+          "kind": "setSession",
+          "disposed": false,
+          "uid": null
+        },
+        {
+          "kind": "stateUpdater",
+          "disposed": false,
+          "bankTx": []
+        }
+      ]
+    },
+    {
+      "name": "active-pending-session-after-newer-auth-separate-race",
+      "events": [
+        {
+          "kind": "setSession",
+          "disposed": false,
+          "uid": "synthetic-B"
+        },
+        {
+          "kind": "syncRequest",
+          "disposed": false,
+          "uid": "synthetic-B",
+          "opts": {
+            "freshLogin": true,
+            "dropTx": false
+          }
+        },
+        {
+          "kind": "setSession",
+          "disposed": false,
+          "uid": "synthetic-A"
+        },
+        {
+          "kind": "syncRequest",
+          "disposed": false,
+          "uid": "synthetic-A",
+          "opts": null
+        }
+      ],
+      "finalRefUid": "synthetic-A",
+      "disposed": false
+    },
+    {
+      "name": "cloud-disabled-control",
+      "subscriptions": 0,
+      "timers": 0,
+      "bootReady": 1
+    }
+  ]
+}
