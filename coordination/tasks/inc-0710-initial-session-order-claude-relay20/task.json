@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "id": "inc-0710-initial-session-order-claude-relay20",
+  "from": "codex",
+  "coordinatorSession": "relay-run-38d55b3d3aa853f2",
+  "createdAt": "2026-10-07T18:07:42.569Z",
+  "to": "claude",
+  "baseSHA": "cacc2a0dff55baa3859ddeedcbdcf862925f2fca",
+  "scope": [
+    "public/vendor/supabase.min.js offline synthetic actual SDK",
+    "src/modules/00-core.js:session/onAuth and src/modules/11-app-main.js:session mount effect read-only",
+    "durable isolated diagnostic/proposal"
+  ],
+  "objective": "Validate or refute active initial-session ordering observation from diagnostic commit9aa724febe3364d8806ff8cca588ecda2e059400 branch codex/auth-disposal-diag-relay20. Injected harness can produce authB then late sessionA, final refA; that is not proof actual vendored SDK can emit this order. Use actual vendored SDK offline with invented sessions/storage/transport and exact source mount effect; establish real lock/event/getSession ordering for initial/login/switch/signout/refresh. No real account or requests. Deliver runnable causal controls, trace/sourceSHA/commands/exitcodes and conclusion confirmed/refuted/unknown. If confirmed propose smallest consumer guard and coverage/scope closure; do NOT edit product, state/auth semantics, server, registry or new version without subsequent reviewed task. Disposal defect separate, ordinary navigation no remount and no global lagcause. Preserve101 immutable and external Cursor work. Read full AGENTS/EMPIEZA; own checkout. Inputsblocked/approvalsunknown; no beta/main/APK/Edge/SQL/migrations/payments. Identify worker by task+phase; coordinator Aely20. Pending signal is receipt only; require claim/result actual."
+}
