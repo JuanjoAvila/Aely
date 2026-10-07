@@ -1,5 +1,49 @@
 [
   {
+    "v": "4.26.99",
+    "d": "2026-10-07",
+    "t": {
+      "es": "Gastos respeta el mes de Madrid",
+      "en": "Expenses follows the Madrid calendar month",
+      "ca": "Despeses respecta el mes de Madrid"
+    },
+    "items": {
+      "es": [
+        "Los gastos de medianoche aparecen en su mes correcto. La lista, el resumen, las categorías y las fechas coinciden también en Mes pasado y Últimos 3 meses."
+      ],
+      "en": [
+        "Expenses around midnight appear in the correct month. The list, summary, categories and dates agree for Last month and Last 3 months too."
+      ],
+      "ca": [
+        "Les despeses de mitjanit apareixen al mes correcte. La llista, el resum, les categories i les dates coincideixen també a Mes passat i Últims 3 mesos."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inc-0710-gastos-mes-madrid",
+        "t": {
+          "es": "Gastos respeta el mes de Madrid",
+          "en": "Expenses follows the Madrid calendar month",
+          "ca": "Despeses respecta el mes de Madrid"
+        },
+        "items": {
+          "es": [
+            "1. En Gastos compara Este mes y Mes pasado: los apuntes cercanos a medianoche deben aparecer en su mes de Madrid, con el mismo total en resumen y categorías.",
+            "2. Abre Últimos 3 meses: deben incluirse el mes actual y los dos anteriores, con las fechas correctas y sin el presupuesto de un solo mes."
+          ],
+          "en": [
+            "1. In Expenses compare This month and Last month: entries around midnight should appear in their Madrid month, with matching totals in the summary and categories.",
+            "2. Open Last 3 months: it should include the current month and the previous two, with correct dates and no single-month budget."
+          ],
+          "ca": [
+            "1. A Despeses compara Aquest mes i Mes passat: els apunts prop de mitjanit han de sortir al seu mes de Madrid, amb el mateix total al resum i les categories.",
+            "2. Obre Últims 3 mesos: ha d’incloure el mes actual i els dos anteriors, amb les dates correctes i sense el pressupost d’un sol mes."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.98",
     "d": "2026-10-06",
     "t": {

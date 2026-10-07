@@ -1,6 +1,6 @@
 # INC-0610 · FAB y barra se retiran juntos · candidata98
 
-Estado: implementación local preparada, **NO-GO de diseño y publicación** mientras falte ejecución del guardián contra97 y98. Feedback directo del dueño6/10, 20:59 Madrid: beta97.1 conserva el contorno pero el botón central se queda atrás y desaparece tarde. Encargo/rootclaim `inc-0610-fab-sync-hide-20261006`, confirmado en `b0ecee878ecb17d1147718b06885f98803cf9b49`. Base beta `505fbb6c4db8cf7908c2541c51240ebbb48f20ca`, nueva rama aislada `aely-fab98-prep`. No se toca la candidata de producción96 ni se publica código.
+Estado actualizado el7/10: fuente integrada en beta mediante PR153/SQUASH `b7abebb6db7a74ccc9f7df87b41f5d63981b0c43`, árbol exacto `2d795049e639174539257138230f636a076d70af`. Revisión independiente GO y CI exacta37564577536 SUCCESS. Publicador37569120748 y artefactos servidos pendientes al escribir este corte; aprobación móvil98 pendiente. Los apartados siguientes conservan el historial de preparación y sus límites, superados únicamente por la evidencia actual. Feedback directo del dueño6/10, 20:59 Madrid: beta97.1 conserva el contorno pero el botón central se queda atrás y desaparece tarde. Encargo/rootclaim `inc-0610-fab-sync-hide-20261006`, confirmado en `b0ecee878ecb17d1147718b06885f98803cf9b49`. Base beta `505fbb6c4db8cf7908c2541c51240ebbb48f20ca`, nueva rama aislada `aely-fab98-prep`. No se toca la candidata de producción96 ni se publica código.
 
 ## Causa e intervención
 
@@ -33,3 +33,9 @@ La revisión detectó que reduced-motion del sistema detenía sólo el FAB. La c
 ## Catálogo tras CI exacta fallida
 
 La CI37562554183 del head4ea2d816 terminó roja antes de Playwright: notas-sin-duplicados detectó la misma tarjeta FAB activa en97 y98. Se retira únicamente la tarjeta activa de97; su fecha, título y puntos de Novedades permanecen iguales. Su descriptor original sigue durable en beta505fbb6c y su rechazo directo del dueño (6 de octubre, desaparición tardía del círculo) permanece abierto, sin modificar ni simular veredictos. La tarjeta98 es la revisión pendiente de prueba y aceptación; no hereda ningún OK. La96 aprobada se conserva pendiente de comprobar producción. El registro de scopes y sus auditorías permanecen intactos. La CI fallida no acredita frames; se exige una nueva CI del nuevo head completo. Las huellas anteriores corresponden a la preparación inicial, no al último árbol publicado.
+
+## Verificación exacta posterior · 7 de octubre
+
+CI37564577536 del head `c2309cc268e7677bc062e7bb3553af5b8ccb3959` ejecutó el merge4fa5e2cc y terminó SUCCESS: 844 E2E y9 de rendimiento, privacidad verde. Los logs del job112609271690 acreditan los12 casos FAB (Green/Cyber × safe0/34 × normal/reducido app/reducido sistema). Los cuatro casos normales ejecutan el control negativo CSS97 en el mismo fixture antes del gesto natural98: botón visible con barra menor de3px y offset0; luego progreso conjunto, retirada final, reaparición y cancelación dentro de550ms. Es contraste causal CSS, no una ejecución del ZIP97 ni una medición del WebView real.
+
+Revisión independiente del árbol exacto: GO para beta únicamente. Las216 notas anteriores permanecen intactas;97 conserva sus puntos y su rechazo, con tarjeta activa vacía tras el traslado a98. Solo FAB cambia de revisión;96 y las demás identidades se conservan. Readback del merge confirmó árbol idéntico a la candidata. El rechazo97 permanece abierto y98 no hereda aceptación. INC-2709-09 acumulativo continúa abierto.

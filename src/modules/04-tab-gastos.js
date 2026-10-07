@@ -51,14 +51,21 @@ function budgetPaydayOf(state, nowMs, expenses){
    lag que crecía con el uso (feedback 2026-07-24). Devuelve {from,to} con Infinity de comodín. */
 function presetBoundsMs(preset,range,cycleStart){
   const now=new Date();
-  const monthEnd=new Date(now.getFullYear(),now.getMonth()+1,1).getTime()-1;
+  // Inicio y FIN de mes en Madrid, como `startOfMonth`: con el fin en hora del dispositivo, un
+  // apunte del 1 de octubre a las 00:00 en Madrid (30/9 22:00Z) quedaba fuera del mes en una
+  // máquina en UTC (reporte 2026-10-07). saltar 35 días y volver a `inicioDeMesMs` cae siempre en el mes siguiente.
+  const monthStart=inicioDeMesMs(now);
+  const nextMonthStart=inicioDeMesMs(monthStart+35*864e5);
+  const monthEnd=nextMonthStart-1;
   if(preset==="month") return {from:startOfMonth().getTime(), to:monthEnd};
   if(preset==="cycle"){
     const tomorrow=new Date(now); tomorrow.setHours(24,0,0,0);
-    return {from:(cycleStart||startOfMonth()).getTime(), to:cycleStart?tomorrow.getTime()-1:monthEnd};
+    return {from:(cycleStart||startOfMonth()).getTime(), to:cycleStart?tomorrow.getTime()-1:new Date(now.getFullYear(),now.getMonth()+1,1).getTime()-1};
   }
-  if(preset==="last") return {from:startOfMonth(new Date(now.getFullYear(),now.getMonth()-1,1)).getTime(), to:startOfMonth().getTime()-1};
-  if(preset==="3m") return {from:new Date(now.getFullYear(),now.getMonth()-2,1).getTime(), to:monthEnd};
+  if(preset==="last") return {from:inicioDeMesMs(monthStart-1), to:monthStart-1};
+  // Tres meses naturales de Madrid (mes actual y los dos anteriores): inicio local + fin Madrid
+  // sumaban casi cuatro meses en cuanto el dispositivo no estaba en Madrid.
+  if(preset==="3m") return {from:inicioDeMesMs(inicioDeMesMs(monthStart-1)-1), to:monthEnd};
   if(preset==="custom"){
     let from=-Infinity, to=Infinity;
     if(range&&range.from){ const f=new Date(range.from+"T00:00:00"); if(!isNaN(f.getTime())) from=f.getTime(); }
@@ -518,6 +525,9 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   };
 
   const todayKey=new Date().toDateString();
+  // Las ventanas de mes son de Madrid: el memo también debe caducar al cambiar el día ALLÍ, que
+  // en un dispositivo de otra zona no coincide con `todayKey`.
+  const todayMad=madridYmdParts(Date.now()), madridDayKey=todayMad.ym+"-"+todayMad.d;
   const cycle=useMemo(()=>cycleEnabled?budgetPaydayOf(state,null,expensesDef)
     :lastPaydayOf(expensesDef,null,expenseDeletedSet(state)),
     [expensesDef,state.deleted,state.flows,cycleEnabled,todayKey]);
@@ -526,7 +536,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   // Chips de banco: baratos y SIEMPRE visibles (no dependen de heavyOk → sin flash).
   // `todayKey` invalida ciclo, filtros y cabecera cuando la app queda abierta al cruzar el día;
   // así el 26 o el día 1 no conserva cifras del período anterior en un memo.
-  const bounds=useMemo(function(){ return presetBoundsMs(preset,range,cycle&&cycle.start); },[preset,range,cycle,todayKey]);
+  const bounds=useMemo(function(){ return presetBoundsMs(preset,range,cycle&&cycle.start); },[preset,range,cycle,todayKey,madridDayKey]);
   const selectedPeriod=useMemo(function(){ return gastosPeriodOf(preset,bounds,cycle); },[preset,bounds,cycle]);
   const diarioEnts=useMemo(function(){ return expenseBankEnts(state); },[state.accounts, state.settings]);
   const diarioPrev=useRef(diarioEnts.slice());
@@ -613,7 +623,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   // alta hasta que un sync cambiaba `expenses` (B09-A / feedback familia 2026-09-06).
   const budgetApplies=preset==="month"||preset==="cycle";
   const monthSummary=useMemo(function(){
-    const now=new Date();
+    const now=new Date(), nowMad=preset==="month"||preset==="last"||preset==="3m"?madridYmdParts(Date.now()):{d:now.getDate(),m:now.getMonth()+1};
     const bs=monthBudgetStats(Object.assign({},state,{expenses:expensesDef}),null,null,null,selectedPeriod);
     // No existe una foto histórica del límite ni un presupuesto acumulado para varios meses.
     // Enseñar el límite actual como margen del pasado inventaría dinero disponible.
@@ -624,17 +634,17 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     return {
       spent:bs.spent, income:bs.income, balance:bs.balance, mode:bs.mode, against:bs.against,
       budget:bs.budget, reserved:bs.reserved, remaining:bs.remaining,
-      day:now.getDate(),
-      month:monthLong(now.getMonth()), cycle:!!selectedPeriod.cycle,
+      day:nowMad.d,
+      month:monthLong(nowMad.m-1), cycle:!!selectedPeriod.cycle,
       periodLabel:periodLabel, budgetApplies:budgetApplies
     };
-  },[expensesDef,state.deleted,state.budget,state.reservaLog,state.accounts,state.settings,selectedPeriod,preset,range,budgetApplies,todayKey]);
+  },[expensesDef,state.deleted,state.budget,state.reservaLog,state.accounts,state.settings,selectedPeriod,preset,range,budgetApplies,todayKey,madridDayKey]);
   // Desglose por categoría: misma regla/ventana que la cabecera. categoryBudgets en deps
   // porque una fila a 0 con límite tiene que aparecer aunque no haya gastos nuevos.
   const catBreakdown=useMemo(function(){
     const rows=categorySpentByMonth(Object.assign({},state,{expenses:expensesDef}),null,null,selectedPeriod);
     return budgetApplies?rows:rows.filter(function(row){ return row.spent>0; }).map(function(row){ return {id:row.id,spent:row.spent,limit:null}; });
-  },[expensesDef,state.deleted,state.categoryBudgets,state.accounts,state.settings,selectedPeriod,budgetApplies,todayKey]);
+  },[expensesDef,state.deleted,state.categoryBudgets,state.accounts,state.settings,selectedPeriod,budgetApplies,todayKey,madridDayKey]);
   /* Abierto o plegado, por cuenta. `!==false` y no `!!`: quien nunca lo ha tocado lo ve ABIERTO
      —es como está hoy y como él lo aprobó—, y solo se pliega quien lo pliegue a mano. */
   const catsOpen=!(state.settings && state.settings.gastosCatsOff);
@@ -887,9 +897,9 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       ),
       React.createElement("div",{className:"v4-gastos-progress-marks"},
         React.createElement("span",isFinite(bounds.from)
-          ? new Date(bounds.from).toLocaleDateString(loc(),{day:"2-digit",month:"short"}) : t("g_all")),
+          ? new Date(bounds.from).toLocaleDateString(loc(),{day:"2-digit",month:"short",timeZone:preset==="month"||preset==="last"||preset==="3m"?"Europe/Madrid":undefined}) : t("g_all")),
         monthSummary.budgetApplies && React.createElement("span",tf("v4_gastos_today_mark",{d:monthSummary.day})),
-        !monthSummary.cycle && isFinite(bounds.to) && React.createElement("span",new Date(bounds.to).toLocaleDateString(loc(),{day:"2-digit",month:"short"}))
+        !monthSummary.cycle && isFinite(bounds.to) && React.createElement("span",new Date(bounds.to).toLocaleDateString(loc(),{day:"2-digit",month:"short",timeZone:preset==="month"||preset==="last"||preset==="3m"?"Europe/Madrid":undefined}))
       ),
       /* SE PUEDE OCULTAR (petición de su pareja, 10/9, y con razón).
          Sus palabras: «esta chulo pero mi pareja lo vio y me dijo que es too much, que le gustaria
