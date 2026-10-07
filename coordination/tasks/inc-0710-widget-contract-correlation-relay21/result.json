@@ -1,0 +1,13 @@
+{
+  "status": "done",
+  "summary": "Correlación y propuesta dual conservadas en codex/widget-contract-correlation-relay21/e9108367. Recibo real ingest4oct fuente64b4 y APK52 acreditan incompatibilidad de fuentes entregadas, no función viva/APK instalada ni causa humana. Matriz legacy12 yscope/ACK preservados; cálculo v2 real pendiente. No etiquetas mensuales falsas ni despliegue. Reparación pendiente de evidencia y gates.",
+  "tests": [
+    "12casos net/split,bancos,budget cliente/servidor reales; ciclo discriminante120/420 yventanas; scope4/ACK5; root rerun/privacy/diff PASS; producto intacto; sin Edge/Android real"
+  ],
+  "schema": 1,
+  "taskId": "inc-0710-widget-contract-correlation-relay21",
+  "actor": "codex",
+  "sessionId": "relay-run-82bdecb0988d1d4c",
+  "createdAt": "2026-10-07T21:18:13.774Z",
+  "released": true
+}
