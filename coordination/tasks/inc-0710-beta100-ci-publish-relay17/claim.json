@@ -1,0 +1,8 @@
+{
+  "schema": 1,
+  "taskId": "inc-0710-beta100-ci-publish-relay17",
+  "actor": "codex",
+  "sessionId": "relay-run-9984d70db3ce2438",
+  "createdAt": "2026-10-07T15:03:02.030Z",
+  "baseSHA": "2d96f2e85c2e8683897ee9cb5eda4ab8621720c0"
+}
