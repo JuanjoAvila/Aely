@@ -2,6 +2,29 @@ Prioridad7/10: terminar promoción selectiva98 aprobada (barra y botón juntos);
 
 # Backlog operativo — Aely
 
+## Prioridades técnicas vigentes · 7 de octubre de 2026 · relevo21
+
+Diagnósticos recuperables: [auditoría transversal](https://github.com/JuanjoAvila/Aely/blob/codex/structural-audit-relay21/docs/briefs/inc-2709-09-structural-audit-20261007.md), [widget](https://github.com/JuanjoAvila/Aely/blob/codex/widget-production-diag-relay21/docs/briefs/inc-0710-widget-production-diagnosis.md) e [indicador/transición](https://github.com/JuanjoAvila/Aely/blob/codex/nav-hidden-diagnosis-relay21/docs/briefs/inc-0710-nav-hidden-marker-motion-diagnosis.md). Son evidencia acotada, no reparación ni aprobación de producto. La siguiente medición estructural debe completar React/DOM real, frecuencia de cálculos y A/B financiero; una caché virtual por sí sola no demuestra resolver el lag.
+
+Reconciliación7/10: PR89/91/93/137/138 cerradas sin merge tras delta exacto absorbido; CI ONLY165 cerrada sin merge. PR164 integrada sólo en beta102, publicador/artefacto servido pendientes. [Acta y residuos comprobados](briefs/ops-0710-pr-reconcile.md). PR134 sigue NO-GO y los encargos externos conservan sus reservas.
+
+Este corte fija criterios técnicos de trabajo. No acredita causas humanas, reparaciones,
+aprobaciones nuevas ni despliegues. Los snapshots anteriores permanecen como historia.
+
+| ID y prioridad | Alcance y siguiente prueba |
+|---|---|
+| **INC-2909-01 / FIN-05 · P1 · widget en producción** | Reabrir el flujo pago/notificación → ingest → snapshot → widget cuando persiste el placeholder de actualización. Correlacionar web, APK y fuente Edge realmente entregadas; separar asset publicado de APK instalado y fuente del repo de servidor activo. Reproducción sintética de foreground/background, offline, respuesta incompatible o tardía, ACK, caducidad y recuperación. Conservar la protección ante cifras desconocidas: no sustituirlas por cantidades ficticias ni reparar datos reales. APK/Edge/SQL mantienen gates propios. |
+| **INC-2709-09 / UX-01 / OPS-06 · P1 · saneamiento estructural** | Auditar flujo de estado/sincronización, frecuencia y coste de renders/cálculos, complejidad con históricos3000/5200, trabajo durante scroll/gestos, montaje/cleanup, timers/listeners, almacenamiento y memoria. Cada frontera necesita causa o hipótesis explícita, baseline, control discriminante, límite medible, dependencias y regresiones financieras. Implementar unidades coherentes con A/B; no reescritura indiscriminada ni cadena de listeners presentada como cura general.100/101/102 son parciales y una serie sintética verde no cierra el síntoma humano. |
+| **INC-2709-13 / UX-06 · barra inferior** | Ocultar también el indicador de pestaña cuando la barra está oculta. Conservar el efecto Cyberpunk visible en ese estado. Aparición y ocultación fluidas y reversibles, sin salto ni pérdida de interacción; probar inversión del gesto, inercia, safe area y movimiento reducido. La aceptación anterior del contorno FAB no acredita estos criterios nuevos. |
+| **INC-0710-01-plan-scroll-top / UX-01 · Plan** | Reproducir el salto al iniciar scroll lento desde el tope en Recibos/Deudas/Metas: gesto táctil real, primera pasada y uso prolongado, normal/reduced-motion y controles fuera del tope/otras pestañas. Relacionado con INC-2709-09 y el arbitraje de gestos; distinto de INC-2709-03 (ola nativa de Gestionar/categoría). No asignar causa antes de DOM y trazado discriminante. |
+| **PRO-02 / UX-02 · significado de la gráfica de Inicio** | Documentar magnitud, origen de cada muestra, escritores/migraciones y temporalidad reales. Comprobar onboarding/demo y escala/eje antes de llamarla evolución histórica o rentabilidad. Explicación clara sin alterar dinero ni atribuir datos a una cuenta real. |
+| **OPS-05 · reconciliación de PR** | Inventario actual:34abiertas/30draft antes de este documento. Clasificar por delta: activa con próximo gate, absorbida/sustituida, rechazada o bloqueada. PR164 requiere CI exacta completa; PR165 es sólo CI y debe cerrarse sin merge tras reconciliar resultado. Revisar89/91/93 y137/138 contra lo entregado, sin cerrar por antigüedad ni borrar ramas/worktrees. Una PR no sustituye al backlog. |
+
+Referencias de trabajo: `inc-0710-widget-production-diagnosis-relay21`,
+`inc-2709-09-structural-audit-relay21` y `ops-0710-backlog-pr-reconcile-relay21`.
+WIP103 de cleanup de Plan está detenido y no acredita ensamblado, pruebas ni entrega;
+se conserva para decidir su papel dentro del saneamiento estructural.
+
 Promoción4/10: once tandas actuales aprobadas; candidata revisada en preparación. Producción aún86/APK48 hasta verificar entrega. Prioridad: publicar lo aprobado y retirar del panel solo lo entregado. [Acta](briefs/promocion-aprobadas-2026-10-04.md).
 
 ## INC-0410 · P1 · alta de reglas de Metas · 4/10/2026
