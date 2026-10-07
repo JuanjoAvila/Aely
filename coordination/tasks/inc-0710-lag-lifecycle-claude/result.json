@@ -1,0 +1,40 @@
+{
+  "status": "done",
+  "summary": "Auditoría de ciclo de vida de listeners/timers en 00/10/11/12. Matriz de hipótesis en docs/briefs/inc-0710-lag-lifecycle.md: casi todo pareado. Reproducido un fallo real y acotado: el cleanup del efecto [uid] de appStateChange (11-app-main) leía .remove de una Promesa, dejando un listener por cambio de sesión (solo APK/WebView). Corrección mínima + spec e2e sintético con doble de Capacitor (rojo 2→8 sin fix, verde con fix). NO explica por sí solo el lag sin cambios de sesión: INC-2709-09 sigue abierto, causa unknown; no se hizo A/B de rendimiento. Sin bump ni publicación.",
+  "branch": "claude/inc-0710-lag-lifecycle",
+  "productSHA": "14f9e4fb30886f02ddfc688de0ea27043f961f11",
+  "tests": [
+    {
+      "command": "npx playwright test e2e/lifecycle-listeners.spec.mjs (sin fix)",
+      "exitCode": 1
+    },
+    {
+      "command": "npx playwright test e2e/lifecycle-listeners.spec.mjs (con fix)",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run build",
+      "exitCode": 0
+    }
+  ],
+  "limitations": [
+    "No se ejecutó npm test entero ni el resto de e2e",
+    "Sin WebView/móvil real ni sockets/auth/realtime reales",
+    "No se tocó cloud.onAuth (sin unsubscribe, sin acumulación observable)",
+    "Revisión independiente y CI exacta pendientes"
+  ],
+  "schema": 1,
+  "taskId": "inc-0710-lag-lifecycle-claude",
+  "actor": "claude",
+  "sessionId": "claude-cloud-20261007-9b1cb618",
+  "createdAt": "2026-10-07T04:31:17.196Z",
+  "released": true
+}
