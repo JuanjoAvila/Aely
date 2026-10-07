@@ -32,24 +32,24 @@ for(let i=0;i<6;i++)red.mount()();red.mount();assert.equal(red.live.size,7);red.
 // El alcance nuevo identifica las dos partes y sus guards; las revisiones anteriores no se repinan.
 const id='inc-0710-auth-disposal',rev=betaRevision(id,read).codigo;
 for(const [file,a,b]of [
-['src/modules/00-core.js','r.data.subscription.unsubscribe();','void 0;'],
+['src/modules/00-core.js','sub.data.subscription.unsubscribe();','void 0;'],
 ['src/modules/11-app-main.js','alive=false;','alive=true;'],
-['src/modules/11-app-main.js','alive=false; clearTimeout(sesTope); stopAuth();','alive=false; stopAuth();'],
-['src/modules/11-app-main.js','if(alive) mcBootReady(); }, 2500)','mcBootReady(); }, 2500)'],
-['src/modules/11-app-main.js','clearTimeout(sesTope);\n      if(!alive) return;','clearTimeout(sesTope);'],
-['src/modules/11-app-main.js','if(alive) mcBootReady(); });','mcBootReady(); });'],
+['src/modules/11-app-main.js','alive=false; clearTimeout(tmr); off();','alive=false; off();'],
+['src/modules/11-app-main.js','tmr=setTimeout(boot, 2500)','tmr=setTimeout(mcBootReady, 2500)'],
+['src/modules/11-app-main.js','clearTimeout(tmr);\n      if(!alive) return;','clearTimeout(tmr);'],
+['src/modules/11-app-main.js','()=>{ clearTimeout(tmr); boot(); });','()=>{ clearTimeout(tmr); mcBootReady(); });'],
 ['src/modules/11-app-main.js','if(alive) syncFromCloud(s);','syncFromCloud(s);'],
-['src/modules/11-app-main.js','const stopAuth=cloud.onAuth(function(s, ev){\n      if(!alive) return;','const stopAuth=cloud.onAuth(function(s, ev){']]){
+['src/modules/11-app-main.js','const off=cloud.onAuth((s,ev)=>{\n      if(!alive) return;','const off=cloud.onAuth((s,ev)=>{']]){
  assert.ok(read(file).includes(a),'mutante toca fragmento exacto '+a);
  assert.notEqual(betaRevision(id,f=>f===file?read(f).replace(a,b):read(f)).codigo,rev,a);
  const mutant=authFragments(file==='src/modules/00-core.js'?core.replace(a,b):core,file==='src/modules/11-app-main.js'?app.replace(a,b):app);
  const w=authWorld(mutant),off=w.mount(),timer=[...w.timers.values()][0];
  if(a.includes('alive=false; clearTimeout')){off();assert.equal(w.timers.size,1,'mutante cleanup conserva timer');}
- else if(a==='r.data.subscription.unsubscribe();'){off();assert.equal(w.live.size,1,'mutante transporte no se libera');}
+ else if(a==='sub.data.subscription.unsubscribe();'){off();assert.equal(w.live.size,1,'mutante transporte no se libera');}
  else if(a.includes('if(alive) syncFromCloud')){w.sessions[0].resolve(s('late'));await flush();off();const n=w.trace.length;w.idle();assert.ok(w.trace.length>n,'mutante idle actúa tras cleanup');}
  else if(a.includes('2500')){off();timer();assert.equal(count(w,'boot'),1,'mutante timer actúa tras cleanup');}
- else if(a.includes('const stopAuth')){off();w.event('PASSWORD_RECOVERY',s('late'),true);assert.ok(count(w,'session')>0,'mutante callback actúa tras cleanup');}
- else if(a.includes('mcBootReady(); });')){off();w.sessions[0].reject(Error('synthetic'));await flush();assert.equal(count(w,'boot'),1,'mutante rechazo actúa tras cleanup');}
+ else if(a.includes('const off')){off();w.event('PASSWORD_RECOVERY',s('late'),true);assert.ok(count(w,'session')>0,'mutante callback actúa tras cleanup');}
+ else if(a.includes('clearTimeout(tmr); boot(); });')){off();w.sessions[0].reject(Error('synthetic'));await flush();assert.equal(count(w,'boot'),1,'mutante rechazo actúa tras cleanup');}
  else {off();w.sessions[0].resolve(s('late'));await flush();w.idle();assert.ok(w.trace.length>0,'mutante continuación actúa tras cleanup');}
 
 }

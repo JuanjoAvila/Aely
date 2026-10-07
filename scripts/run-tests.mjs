@@ -34,6 +34,7 @@ if (plan.build !== false) {
 }
 
 const steps = [
+  ["auth-disposal-fit", ["node", "tests/auth-disposal-fit.test.mjs"]],
   ["auth-disposal", ["node", "tests/auth-disposal.test.mjs"]],
   ["banknotif-listener-cleanup", ["node", "tests/banknotif-listener-cleanup.test.mjs"]],
   ["appstate-listener-cleanup", ["node", "tests/appstate-listener-cleanup.test.mjs"]],
