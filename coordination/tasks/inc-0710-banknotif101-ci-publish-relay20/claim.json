@@ -1,0 +1,8 @@
+{
+  "schema": 1,
+  "taskId": "inc-0710-banknotif101-ci-publish-relay20",
+  "actor": "codex",
+  "sessionId": "relay-run-38d55b3d3aa853f2",
+  "createdAt": "2026-10-07T17:44:12.160Z",
+  "baseSHA": "cacc2a0dff55baa3859ddeedcbdcf862925f2fca"
+}
