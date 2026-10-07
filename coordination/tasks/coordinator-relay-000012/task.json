@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "id": "coordinator-relay-000012",
+  "from": "codex",
+  "coordinatorSession": "relay-run-0c47148d42bae423",
+  "createdAt": "2026-10-07T04:20:53.963Z",
+  "kind": "coordinator-relay",
+  "to": "codex",
+  "baseSHA": "c2cbbc66198267f5e520f281555e3bc839c70a23",
+  "previousTaskId": "coordinator-relay-000011",
+  "objective": "Coordinar Aely y entregar el siguiente relevo verificado",
+  "scope": [
+    "coordination/tasks",
+    "coordination/messages"
+  ]
+}
