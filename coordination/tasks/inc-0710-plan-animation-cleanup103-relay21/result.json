@@ -1,0 +1,25 @@
+{
+  "status": "blocked",
+  "summary": "WIP103 detenido por prioridad estructural/widget del dueño; fuente durable NO-GO, no producto integrado/publicado.",
+  "tests": [
+    "Revisión independiente de conservación:884194725eff6f09d8dcfc1a90cab5e8080acfeb/treee9ba7a8d3553d2b48e05da855059c76a0e5a37b1;8files;checkoutclean;runtime sólo clear()trascancelartimer.",
+    "NO-GO:0guardianes103/0DOM;buildaborto porlocator corregido pero no rerun;publicgenerado102heredado;budgetexit0 midió102 yNO valida103.",
+    "32identidadesanteriores/222notas pendientes deauditar;noverdeheredado ni aprobación;sin escritores/procesos.",
+    "Conservación remota9a0dddb4d29d7de74ded68ff4c4a21ad124c1167/treee9ba7a8d3553d2b48e05da855059c76a0e5a37b1 branchcodex/plan-animation-wip103-relay21 readbackexacto."
+  ],
+  "evidence": {
+    "remoteSHA": "9a0dddb4d29d7de74ded68ff4c4a21ad124c1167",
+    "treeSHA": "e9ba7a8d3553d2b48e05da855059c76a0e5a37b1",
+    "branch": "codex/plan-animation-wip103-relay21"
+  },
+  "limits": [
+    "Retomar sólo como unidad conectada al diagnóstico estructural y con gates completos; no causa de lag humano.",
+    "Prioridad widgetproducción y saneamiento transversal;102 CI preservada."
+  ],
+  "schema": 1,
+  "taskId": "inc-0710-plan-animation-cleanup103-relay21",
+  "actor": "codex",
+  "sessionId": "relay-run-82bdecb0988d1d4c",
+  "createdAt": "2026-10-07T20:26:36.605Z",
+  "released": true
+}
