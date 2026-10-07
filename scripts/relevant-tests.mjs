@@ -51,6 +51,7 @@ export const CORE = [
 export const E2E_MAP = [
   {file:"src/modules/16-help-assistant.js",specs:["e2e/help-assistant.spec.mjs","e2e/help-preguntar-borde.spec.mjs"]},
   { file: "src/modules/03-tab-dash.js", specs: ["e2e/help-assistant.spec.mjs",
+    "e2e/dashboard-react-profile.spec.mjs",
     "e2e/listas-render.spec.mjs",
     "e2e/plan-cuota-contabilizada.spec.mjs",
 
@@ -71,7 +72,7 @@ export const E2E_MAP = [
     "e2e/gastos-diario-filtro.spec.mjs", "e2e/gastos-cabecera-bancos.spec.mjs", "e2e/gastos-orden.spec.mjs",
     "e2e/gastos-categorias-presupuesto.spec.mjs", "e2e/gastos-periodo-categorias.spec.mjs", "e2e/gastos-suelta-filas.spec.mjs",
     "e2e/gastos-deudas.spec.mjs", "e2e/cartera-ficha-cuenta.spec.mjs", "e2e/presupuesto-fluido.spec.mjs",
-    "e2e/gastos-ayuda-ciclo.spec.mjs",
+    "e2e/gastos-ayuda-ciclo.spec.mjs", "e2e/gastos-mes-madrid.spec.mjs",
   ] },
   { file: "src/modules/05-dialogs-inv.js", specs: [
     "e2e/help-assistant.spec.mjs",
@@ -140,7 +141,8 @@ export const E2E_MAP = [
 /** Specs que no son de una pantalla: persistencia, swipes, frames. Si se toca CUALQUIER
  *  módulo de src (no el núcleo: ese ya dispara todo), van con el recorte. */
 export const CROSSCUTTING = [
-  "e2e/botnav-fab-recorte.spec.mjs",
+  "e2e/auth-disposal.spec.mjs",
+  "e2e/lifecycle-listeners.spec.mjs",
   "e2e/bank-merchant-category.spec.mjs",
   "e2e/gasolina-taxi.spec.mjs",
   "e2e/movilidad-categorias.spec.mjs",
@@ -163,6 +165,8 @@ export const CROSSCUTTING = [
      JS, que es el camino que nunca se rompió: se quedó verde mientras ella no se escondía con el
      dedo (11/9). Éste baja con `Input.dispatchTouchEvent` y es el que caza eso. */
   "e2e/botnav-esconder.spec.mjs",
+  // INC-2709-13: el FAB no se recorta en recto al esconderse la barra (contorno en el primer frame oculto).
+  "e2e/botnav-fab-recorte.spec.mjs",
   "e2e/rendimiento.spec.mjs",
   "e2e/rendimiento-tabs.spec.mjs",
   "e2e/rendimiento-sostenido.spec.mjs",
