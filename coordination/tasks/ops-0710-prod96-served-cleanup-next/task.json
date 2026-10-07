@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "id": "ops-0710-prod96-served-cleanup-next",
+  "from": "codex",
+  "coordinatorSession": "relay-run-6cbe3160b5688bc6",
+  "createdAt": "2026-10-07T04:17:35.981Z",
+  "to": "codex",
+  "baseSHA": "85b8b540220a006ed6d0e021ef772697681430ad",
+  "objective": "Reconciliar promoción selectiva96 ya integrada PR152/main85b8 árbolfbf854 exacto. CI37562183860 y revisión independienteGO acreditadas; postTests37569104528/Pages37569104431 en curso al cierre11. No repetir promoción. Verificar verdes SHA85b8 exactos, artefactoPages y HTTP HTML/SW/version/bundle/recibo/catalogo/APK52, código06180d02 exacto aprobado. Solo después retirar exclusivamente96.tandas de beta mediante flujo normal conservando notas, rechazo97,98/99 y otras tandas. Coordinar con PR154 para evitar regenerar candidatos repetidamente: si99CIlista integrar99betaanteslimpieza; si no, conservar preparación de limpieza hastaresolvergates sin decirretiradaentregada. No promover97/98/99; APK/Edge/SQL/dinero separados. INC-2709-09 abierto.",
+  "scope": [
+    "docs",
+    "README.md",
+    "CHANGELOG.md",
+    "src/data/release-notes.json",
+    "public"
+  ]
+}
