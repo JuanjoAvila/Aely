@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "id": "inc-0710-appstate100-prepare-relay12",
+  "from": "codex",
+  "coordinatorSession": "relay-run-0c47148d42bae423",
+  "createdAt": "2026-10-07T04:44:59.597Z",
+  "to": "codex",
+  "baseSHA": "3aeed496442ad9e5a3a7c8c2759a50622853512b",
+  "objective": "Preparar candidata beta100 independiente de cleanup[uid] appStateChange tras revisiónGOsourceClaude14f9e4fb. Port selectivo fuentes runtime11+spec/mapa/acta, NO merge/copyparents/mensajesClaude: metadataorigencontiene referencia privada, no propagarla. Base99 head3ae/tree145ccad; mantenerPR154/CI37572568352 intocables. Sólo correctionPromisehandle+disposed; no alegar causa global ni rendimientoA/B niWebView. Añadir tanda propia inc-0710-appstate-listener-cleanup, notas100 es/en/ca, VERSION/package/docs yregistros exactos,mapas/tests; buildpublic. Preservar todasnotas/tandas/guiones/96/98/99/rechazo97 y cambiar honestamente identidadesafectadas por11sinrepin/recortarscope. Mantenerpresupuesto1287/351KiB y3bloqueantes: compactar sólo correction propiaconsemánticapreservada, no toques otraszonas paraarañarbytes. Si no cabe o fuenteNO-GO, dejar bloqueo concreto no candidatefalsa. Chromiumlocalausente: Node causal propio resolucióninmediata/tardía/rejection/synchandle cleanup,scope/catalog/budget/docssyntax/privacy; CI completa/Deno/DOM requisito posterior. Sólo commit local/artefactodurable para root,revisiónindependiente yCIantesready/publicación; integración100 sólo después99servidaverificada,100sinOKmóvil/no main. NoAPK/Android/Edge/SQL/syncbank/datosreales. INC-2709-09 abierto.",
+  "scope": [
+    "src/modules/11-app-main.js",
+    "src/data/release-notes.json",
+    "e2e/lifecycle-listeners.spec.mjs",
+    "scripts/relevant-tests.mjs",
+    "scripts/run-tests.mjs",
+    "scripts/beta-sources.json",
+    "tests",
+    "docs",
+    "README.md",
+    "CHANGELOG.md",
+    "EMPIEZA-AQUI.md",
+    "VERSION",
+    "package.json",
+    "package-lock.json",
+    "public"
+  ]
+}
