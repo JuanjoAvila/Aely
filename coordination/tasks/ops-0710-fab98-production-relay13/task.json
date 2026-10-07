@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "id": "ops-0710-fab98-production-relay13",
+  "from": "codex",
+  "coordinatorSession": "relay-run-30902c29b30d884a",
+  "createdAt": "2026-10-07T05:32:51.775Z",
+  "to": "codex",
+  "baseSHA": "85b8b540220a006ed6d0e021ef772697681430ad",
+  "objective": "Promoción selectiva98 aprobada directamente por dueño7oct06:57Madrid, registro issue130/6031246455. Fuente publicada b7abebb6db7a74ccc9f7df87b41f5d63981b0c43, beta4.26.98.1/f54a36a60d889bc9, unidad inc-2709-13-fab-contorno web7ca1346e56ef835fc348b5656707bb53015ddffc9e22b0896b06f671bd78e470. Copia exclusiva fuente/scope/review/pruebas/docs necesaria desde main85b8; no betaentera ni99/100. Preservar historia rechazo97, notas, APK52/Edge/SQL. Revisión independiente, CI exacta, flujo PR+publisher yHTTP byteexactos antes declarar producción o limpiar98. INC-2709-09 globalabierto.",
+  "scope": [
+    "src/shell.html",
+    "src/data/release-notes.json",
+    "scripts/beta-sources.json",
+    "tests",
+    "e2e",
+    "docs",
+    "public",
+    "VERSION",
+    "package.json",
+    "package-lock.json"
+  ]
+}
