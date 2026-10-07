@@ -1,0 +1,24 @@
+{
+  "status": "blocked",
+  "summary": "Fuente105 aislada f6e1da/treec211 durable, NO-GO integración. Formato/dedup Java205+88 sintéticos; overflow heredado sin reparar. CI37691886612 FAIL identidad: cinco native/code cambian,27/32iguales; web/Edge iguales, sin repins. FullCI/DOM/privacidad no verdes. CI ONLY168 cerradaSINMERGE, fuente y PR105 conservadas. Siguiente unidad inc-0710-widget-unknown-loss-recovery-relay21 pendiente; diseño cincoidentidades/histórico y CI fuerte obligatorios; APK/Edge/SQL no autorizados.",
+  "tests": [
+    {
+      "command": "node tests/widget-unknown-journal.test.mjs; 205 candidate assertions and actual old red",
+      "exitCode": 0
+    },
+    {
+      "command": "independent real Java money/concurrency review; 88 checks",
+      "exitCode": 0
+    },
+    {
+      "command": "GitHub CI37691886612; identity invariant native/code changed for five scopes",
+      "exitCode": 1
+    }
+  ],
+  "schema": 1,
+  "taskId": "inc-0710-widget105-isolated-source-relay21",
+  "actor": "codex",
+  "sessionId": "relay-run-82bdecb0988d1d4c",
+  "createdAt": "2026-10-07T22:21:31.302Z",
+  "released": true
+}
