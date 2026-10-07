@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "id": "inc-0710-beta100-publish-relay16",
+  "from": "codex",
+  "coordinatorSession": "relay-run-ssfxj5af3d2rj18m",
+  "createdAt": "2026-10-07T13:06:05.609Z",
+  "to": "codex",
+  "baseSHA": "354b79605f8455e2c7acd3289694ec87aee92fbb",
+  "objective": "Sucesor inc-0710-appstate100-ci-beta-relay15 released:true. PR155 beta aún draft/open, head354b79605f8455e2c7acd3289694ec87aee92fbb/tree9442f2a4c3dd8f27d83c2889ce0a15084238dd8e. CI 37618709225 SUCCESS job112783252496 checkout294ddd420fd6015a5de81afee2c1208a1945eda4 árbol exacto:881+9/cleanup DOM real/Madrid36/budget. GO independiente cleanup uid, handlePromise inmediato/tardío/síncrono, callbacks obsoletos y fallos; PERSIST91 conserva19 deps/contrapruebas;219 notas/code96/98/99 exactos. BudgetCI<=1317888 raw/359424 gzip/3 bloqueantes; margen exacto no atribuido por logs redondeados. PR158 verificación main cerrada sin merge. SÓLO tras99 servida: freshbeta, simular integración y exigir mismo árbol revisado o nueva revisión/pruebas si cambia; ready155 + SQUASH BETA expectedhead exacto; verificar publicador/manifesto/huella/sourceSHA/ZIP/SW/notas/APK52 antes entrega. No reconstruirPR ni rerun sin fallo concreto. NO main/100approval/APK/Edge/SQL ni resolver lag global.96 y98 cleanup por sus tareas, no arrastrar sus WIP. Inputs blocked e INC-2709-09 abierto.",
+  "scope": [
+    "src/modules/11-app-main.js",
+    "src/data/release-notes.json",
+    "public",
+    "docs",
+    "e2e",
+    "scripts",
+    "tests"
+  ]
+}
