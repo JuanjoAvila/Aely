@@ -146,6 +146,7 @@ export const CROSSCUTTING = [
   "e2e/divisas-sin-cambio.spec.mjs",
   "e2e/fixtures-news.spec.mjs",
   "e2e/persistencia.spec.mjs",
+  "e2e/lifecycle-listeners.spec.mjs",
   "e2e/sync-pull-refresco.spec.mjs",
   "e2e/cloud-historico-completo.spec.mjs",
   /* El banco espera a la nube (15/9): orden entre pull y sync, no una pantalla. */

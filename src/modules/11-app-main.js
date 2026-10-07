@@ -1014,13 +1014,19 @@ function App(){
     document.addEventListener("visibilitychange", onVis);
     // Capacitor: appStateChange (más fiable que visibility en algunos Android)
     const A=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.App;
-    let sub=null;
+    let sub=null, disposed=false;
     if(A&&A.addListener){
-      try{ sub=A.addListener("appStateChange", function(st){ if(st&&st.isActive) onVis(); }); }catch(e){}
+      try{
+        sub=Promise.resolve(A.addListener("appStateChange", function(st){ if(!disposed&&st&&st.isActive) onVis(); }));
+        sub.catch(function(){});
+      }catch(e){}
     }
     return function(){
+      disposed=true;
       document.removeEventListener("visibilitychange", onVis);
-      try{ if(sub&&sub.remove) sub.remove(); }catch(e){}
+      // addListener devuelve una PROMESA: `sub.remove` no existía y cada cambio de sesión dejaba
+      // otro listener vivo, cada uno con su syncCloudExpenses al volver (INC-2709-09, 2026-10-07).
+      if(sub) sub.then(function(h){ if(h&&h.remove) return h.remove(); }).catch(function(){});
     };
   },[uid]);
 
