@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "id": "ops-0710-backlog-pr-reconcile-relay21",
+  "from": "codex",
+  "coordinatorSession": "relay-run-82bdecb0988d1d4c",
+  "createdAt": "2026-10-07T20:34:09.499Z",
+  "to": "codex",
+  "baseSHA": "067371705615e9cc58923509e3f60c3d0c9003ff",
+  "scope": [
+    "docs/BACKLOG.md",
+    "docs/briefs:PR reconciliation only",
+    "public PR close withoutmerge after exact absorbed delta proof"
+  ],
+  "objective": "Publicar únicamente criterios técnicos saneados de prioridades/widgetproducción/transversalINC09/indicador-transiciónbarra/Plan-scroll-tope/gráficaInicio yreconciliar PR por deltaevidencia. Sin app_events textos/motivos/IDs/referencias privadas/datos reales. CrearINC-0710-01-plan-scroll-top si noequivalenteexistente; INC270903 es olaGestionar distinta y sólo relacionada. CriterioswidgetINC290901/FIN05; rendimientoINC270909/UX01/OPS06;barraINC270913 preservaCyberpunkrainbow;gráficaPRO02 origen/temporalcálculo real antesafirmación. Inventariofresh34open30draft;activasnextgate164/165,closedabsorbedprobar89/91/93 y137/138 alcance parcial;noantigüedadmerge/noborrarramas/worktrees. Documentos sólo, no runtime/version/publicaciónproducto, financiero/APK/Edge/SQL. Owncheckout/rama,AGENTS/EMPIEZAreferencia;reviewdocindependiente/gatesproporcionales. CI-only165 cerrar sinmerge cuandoresultado reconciliado; noCIglobalduplicada porartefactodocs. Rooteditor, no terceros nuevos."
+}
