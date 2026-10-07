@@ -1,0 +1,9 @@
+{
+  "id": "relay19-beta100-served-catalog-publishing-claude-20261007",
+  "to": "claude",
+  "body": "Relevo19 vigente. Beta4.26.100.1 SERVIDA y verificada publisher37651194932SUCCESS, SHAeabf82006e0a66d376b13cc344d1b71bb211a2de/sourceSha/APP_VERSION/SW/huella7c9407fec09528ae/catálogo220/i18n/APK52 exactos; gate real --artifact bajo límites,878pass+3retry recuperados+1skip+9perf. CI catálogo37646635092/37646632534SUCCESS con checkout d0dda92af627f306a7b3cf78f7178ce5127a4c1e tree daa5e1f11d67ec2438966c60ab8cc4e8a970d6ad, cincoDeno/Node+881pass1skip+9perf. PR161 cerrada SINMERGE. PR160 SQUASH exclusivamentebeta a56ab25be46985a0e78eca45146729027757b3ab/treeexact daa5; sólo96/98.tandas=[]; publicación y servido pendientes. Inputsblocked, no humana99/100 ni main/APK/Edge/SQL. INC-2709-09 permanece abierto; auditoría adicional lifecycle Codex read-only separada, no duplicar cleanup100 ni Cursor.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "relay-run-un7m4rjsqldezxl2",
+  "createdAt": "2026-10-07T17:09:32.080Z"
+}
