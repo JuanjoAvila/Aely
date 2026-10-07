@@ -1,0 +1,21 @@
+{
+  "status": "done",
+  "summary": "Publicación97.1 exacta completada: PR150 SQUASH505 árbolfd8, publicador37500506973SUCCESS; HTTPmanifiesto97.1/src754cc257ff1e0c25, ZIPsha2561d400904ab7b8bb8029ba3e463c14e524f56d425e96858e22699b5b9220d6ca3 coincideRelease; beta-delivery sourceSha505fbb6c4db8cf7908c2541c51240ebbb48f20ca, HTML/SW97.1 y revisiónInicio0618aprobada intacta. Feedbackdueño rechaza97 por FABdesaparicióntardía; publicaciónnoesaceptaciónni resolución. Reparaciónsucesor inc-0610-fab-sync-hide-20261006 PR153 enCI, no producción97. INC-2709-09 abierto.",
+  "tests": [
+    {
+      "command": "CI37480309392 exact7570 SUCCESS838+9",
+      "exitCode": 0
+    },
+    {
+      "command": "HTTP/ZIP/SHA256/HTML/SW/sourceSha97.1 7oct",
+      "exitCode": 0
+    }
+  ],
+  "productSHA": "505fbb6c4db8cf7908c2541c51240ebbb48f20ca",
+  "schema": 1,
+  "taskId": "inc-2709-13-fab150-ci-publish-20261006",
+  "actor": "codex",
+  "sessionId": "relay-run-tqjnmmxjddwquexd",
+  "createdAt": "2026-10-07T02:36:28.247Z",
+  "released": true
+}
