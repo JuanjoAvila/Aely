@@ -1,0 +1,24 @@
+{
+  "status": "done",
+  "summary": "Beta4.26.99.1 servida verificada; publisher37624861007 SUCCESS fuente8e103e9063f9f1e6f5fee209385c831ef0dc84b2. ZIP/index/SW/i18n/notas/catalogo/sourceSha/APK52 y huella2be6133cc4ebc47c exactos. Desbloquea100.",
+  "tests": [
+    {
+      "command": "Verificacion beta3 assets HTTP200; ZIP seal/sourceSha/219 notes/codes96-98-99/fingerprint exact",
+      "exitCode": 0
+    },
+    {
+      "command": "publisher37624861007 logs:879 functional+8performance passed; four cycles3000/5200",
+      "exitCode": 0
+    }
+  ],
+  "productSHA": "8e103e9063f9f1e6f5fee209385c831ef0dc84b2",
+  "limitations": [
+    "Inputs blocked: falta credencial autorizada.99 no aprobada main. INC-2709-09 abierto; sin cierre global ni operaciones bancarias reales."
+  ],
+  "schema": 1,
+  "taskId": "inc-0710-beta99-served-relay16",
+  "actor": "codex",
+  "sessionId": "relay-run-05acdf59215d4b23",
+  "createdAt": "2026-10-07T14:08:15.389Z",
+  "released": true
+}
