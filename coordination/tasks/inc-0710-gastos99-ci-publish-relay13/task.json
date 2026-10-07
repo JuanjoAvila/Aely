@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "id": "inc-0710-gastos99-ci-publish-relay13",
+  "from": "codex",
+  "coordinatorSession": "relay-run-0c47148d42bae423",
+  "createdAt": "2026-10-07T04:51:44.764Z",
+  "to": "codex",
+  "baseSHA": "3aeed496442ad9e5a3a7c8c2759a50622853512b",
+  "objective": "Concluir PR154 DRAFT/basebeta head3aeed496 árbol145ccad exactos. Revisión independiente GO y pruebas Node/Madrid4TZ/periodo/catalog/scope/syntax/privacy/docs/budget acreditadas. CI37572568352 ejecutándose,36DOM requeridos; original37570338021 falló tamaño y no vale. No elevar topes1287/351KiB/3bloqueantes. Beta98.1 sourceb7ab/huellaf54a36a60d889bc9/publicador37569120748 SUCCESS844+9+12FAB ya servida exacta. Tras CI nuevo SUCCESS y logs/checkout/tree exactos, ready y SQUASH exclusivamente beta con expectedhead3ae; readback árbol esperado, publicador y HTTP artefactos/version/catalog/sourceSHA/digests exactos. No aprobación main99. Después limpieza96 y100 en tareas separadas; no reconstruir PR a ciegas ni integrar99 mientras gates pendientes. INC-2709-09 sigue abierto.",
+  "scope": [
+    "src/parts/04-gastos.jsx",
+    "src/data/release-notes.json",
+    "public",
+    "docs",
+    "e2e",
+    "scripts"
+  ]
+}
