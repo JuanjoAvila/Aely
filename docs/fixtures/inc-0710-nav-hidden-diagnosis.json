@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "baseSHA": "067371705615e9cc58923509e3f60c3d0c9003ff",
+  "sourceHashes": {
+    "src/modules/11-app-main.js": "6a34daa4e6997d4ecb9408d5e0e9497892f10c9cf328031c239d745fcbacd8d2",
+    "src/shell.html": "043bd814eb692e35980e41f962a44bd94c4524b05a3cb02869c463aaa719cdfc"
+  },
+  "fragmentSHA256": "31484f51e58f3ec235d4f1f5bee0d5481d20e6ec5cdfb90bca2ff64ba6eaf5b9",
+  "checks": [
+    "normal scroll hides/reveals by class and mirrors state",
+    "finger movement defers React state; reversal before flush uses latest ref",
+    "terminal flush path is idempotent and edge discard retains class/ref",
+    "inactive-page and tab swipe cannot alter nav",
+    "visible pin prevents hide until expiration",
+    "top reveal pins; tiny movement is ignored",
+    "bottom bounce preserves hidden nav until opposing recent finger direction",
+    "exact marker class ignores hidden state, while overlays hide it",
+    "declared collapsed geometry admits marker band inside clip margin",
+    "selective virtual marker suppression preserves Cyberpunk pseudo rule",
+    "source supplies normal host/nonhost transition and reduced-motion controls",
+    "positive geometry control rejects a zero-margin clipping model"
+  ],
+  "exit": 0,
+  "DOMExecuted": 0,
+  "geometry": {
+    "markerTop": -9,
+    "markerHeight": 3,
+    "clipMargin": 30,
+    "collapsedBoxModelOnly": true
+  },
+  "limits": [
+    "No browser CSS cascade/layout/transition sampling",
+    "No Android touch or human symptom reproduction",
+    "No runtime/financial/network changes",
+    "Reduced-motion intended immediate; normal smoothness not proven",
+    "Host topology switch changes animated properties; cause unknown"
+  ]
+}

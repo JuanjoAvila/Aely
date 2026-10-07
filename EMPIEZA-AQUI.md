@@ -1,3 +1,5 @@
+Diagnóstico7/10 INC-2709-13/UX-06: marcador de pestaña y corriente Cyberpunk son nodos/contratos distintos; el marcador no consulta navHidden y su banda cabe en el margen de clip de la barra colapsada. Fixture literal12controles verde, DOM0; aparición abrupta/causa humana desconocidas. No producto ni duplicación del encargo FAB. [Evidencia y prueba siguiente](docs/briefs/inc-0710-nav-hidden-marker-motion-diagnosis.md).
+
 Promoción selectiva98 preparada7/10: el dueño aprobó ocultar juntos barra y botón en beta4.26.98.1/sourceb7ab. Base main85b8, sólo CSS aprobada, scope y guardianes correspondientes. Producción96 ya servida; candidata98 local pendiente de revisión independiente, CI exacta y entrega. No99/100/APK/Edge/SQL; INC-2709-09 continúa abierto. [Acta](docs/briefs/promocion-fab98-2026-10-07.md).
 
 Promoción selectiva96 local6/10: sólo el límite de tres metas activas en Inicio aprobado directamente para ca6f5e85; rama aislada desde main537. No promover beta completa ni confundir este límite visual con el cierre de INC-2709-09. Revisión independiente, CI exacta y entrega servida pendientes. [Acta](docs/briefs/promocion-inicio96-2026-10-06.md).
