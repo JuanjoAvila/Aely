@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "id": "ops-0710-beta-artifact-budget-gate-relay17",
+  "from": "codex",
+  "coordinatorSession": "relay-run-9984d70db3ce2438",
+  "createdAt": "2026-10-07T15:24:28.991Z",
+  "to": "codex",
+  "baseSHA": "2d96f2e85c2e8683897ee9cb5eda4ab8621720c0",
+  "objective": "Gate dependiente del arreglo ops-0710-bundle-real-budget-relay17, cuyo guard añade --artifact exacto. Padre integra el commit completo revisado sobre2d96, agrega exclusivamente node tests/presupuesto-rendimiento.test.mjs --artifact después build/stamp/DSN/minify en Ensamblar y sellar beta.yml, antes empaquetar/borrar assets/release. Exige presupuesto del HTML realmente servido con configuraciónreal, sin consultar/copiar/imprimir secretos, sin subir1287KiB/351KiB/3 ni afectar notas/códigos/SW/APK. Comprobar orden y sensibilidadroja paqueteanterior95fixture; revisión independiente final/newCI exacta, sin main/Edge/SQL/APK/migraciones/pagos. No publicar producto aún ni aceptarCI antigua paraárbolnuevo. Campo95fixture previene falsosverdes sin depender credencialCI; gateartifact detecta también configuraciónmayor95. Preservar pipeline y permisos existentes. INC-2709-09 abierto; inputsblocked.",
+  "scope": [
+    ".github/workflows/beta.yml",
+    "docs/briefs/inc-0710-bundle-real-budget.md"
+  ]
+}
