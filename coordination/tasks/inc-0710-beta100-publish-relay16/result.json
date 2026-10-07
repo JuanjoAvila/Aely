@@ -1,0 +1,30 @@
+{
+  "status": "blocked",
+  "summary": "Beta 99.1 servida y verificada. PR155 fuente final 2d96f2e85c2e8683897ee9cb5eda4ab8621720c0, árbol 2996a2a1743d219a18c0afdae8d7ef44e95f7683. Reconciliada con beta 8e103; runtime del GO y CI previos exacto, sólo nota100 es/en/ca corregida a lenguaje de uso. GO independiente final. CI final PR159/run37636735303 en curso, verificación 355c69d6fa8732077fd8cb775148ffeadda0cc25 del mismo árbol. No ready ni merge beta antes verde final.",
+  "tests": [
+    {
+      "command": "Simulación beta99 con fuente100 conserva árbol runtime revisado; lectura remota de los cuatro árboles finales confirmada",
+      "exitCode": 0
+    },
+    {
+      "command": "GO independiente de tres textos y artefactos; 219 notas previas, guiones, códigos, runtime, scopes, versión, SW y APK intactos",
+      "exitCode": 0
+    },
+    {
+      "command": "Build, sintaxis7bloques, notasmax y presupuesto oficial sobre árboles finales",
+      "exitCode": 0
+    }
+  ],
+  "productSHA": "2d96f2e85c2e8683897ee9cb5eda4ab8621720c0",
+  "tree": "2996a2a1743d219a18c0afdae8d7ef44e95f7683",
+  "pr": 155,
+  "limitations": [
+    "PR159 es verificación exclusiva: cerrar sin merge a main. Vieja CI37618709225 y runs37634943660/37635428433 no acreditan textos finales. Después de CI final verde: base fresca, ready155, SQUASH BETA con expected_head exacto, publicador y SHA/ZIP/manifiesto/huella/sourceSha/notas/APK52 servidos. 99 y 100 no aprobadas para main; inputs blocked e INC-2709-09 abierto."
+  ],
+  "schema": 1,
+  "taskId": "inc-0710-beta100-publish-relay16",
+  "actor": "codex",
+  "sessionId": "relay-run-05acdf59215d4b23",
+  "createdAt": "2026-10-07T14:31:28.606Z",
+  "released": true
+}
