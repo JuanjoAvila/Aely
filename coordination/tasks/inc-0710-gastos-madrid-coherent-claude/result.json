@@ -1,0 +1,42 @@
+{
+  "status": "done",
+  "summary": "Port mínimo sobre base 505fbb6c: presetBoundsMs usa fin de mes en Madrid (inicioDeMesMs) para Mes, Mes pasado y 3 meses (tres meses naturales de Madrid, sin regresión a ~4 meses); memo de día de Gastos añade clave de día de Madrid; etiqueta/día de monthSummary en Madrid. Importador, dinero y ciclo local intactos. Tests rojo/verde UTC/Madrid/LA/Auckland (cambio de mes, año, DST). Sin bump de versión ni notas (candidata 99 provisional, queda a Codex). Alcances beta de inc-0210-03, feature-0310-01 e inc-0310-gastos-sin-limite ampliados con madridYmdParts y _mcMadridYmdFmt (exigido por beta-sources). Fixture 2300 vs 500 y DOM es/en/ca no ejecutados.",
+  "branch": "claude/pensive-fermat-a96fv9",
+  "productSHA": "2741c262ecf520e6ba01e09251a20e3819e5d51a",
+  "tests": [
+    {
+      "command": "node tests/gastos-mes-madrid.test.mjs (4 TZ)",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/gastos-periodo.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/beta-sources.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run test:syntax",
+      "exitCode": 0
+    }
+  ],
+  "limitations": [
+    "npm test entero no completado (timeout 580s; no es verde acreditado)",
+    "e2e no ejecutados: @playwright/test no instalado en el entorno",
+    "DOM es/en/ca y 3m en navegador no verificados",
+    "month-window.test.mjs falla igual en la base (módulo Deno ausente)",
+    "docs-frescura no aplica: sin bump de VERSION/CHANGELOG/RELEASE_NOTES",
+    "Sin PR creada"
+  ],
+  "schema": 1,
+  "taskId": "inc-0710-gastos-madrid-coherent-claude",
+  "actor": "claude",
+  "sessionId": "claude-cloud-20261007-0fae9674",
+  "createdAt": "2026-10-07T03:41:00.486Z",
+  "released": true
+}
