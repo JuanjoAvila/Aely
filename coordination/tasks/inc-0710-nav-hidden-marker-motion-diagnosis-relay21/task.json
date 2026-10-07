@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "id": "inc-0710-nav-hidden-marker-motion-diagnosis-relay21",
+  "from": "codex",
+  "coordinatorSession": "relay-run-82bdecb0988d1d4c",
+  "createdAt": "2026-10-07T21:03:16.821Z",
+  "to": "codex",
+  "baseSHA": "067371705615e9cc58923509e3f60c3d0c9003ff",
+  "objective": "Diagnóstico causal del marcador activo visible con barra inferior oculta y transición brusca. Conservar efecto Cyberpunk, interacción, movimiento reducido e inversión; enlazar INC-2709-13/UX-06. Reproducción sintética DOM si entorno lo permite; no atribuir causa humana ni publicar sin revisión/CI/gates.",
+  "scope": [
+    "src/modules",
+    "e2e",
+    "tests",
+    "docs/briefs",
+    "EMPIEZA-AQUI.md"
+  ]
+}
