@@ -68,3 +68,27 @@ Los tres residuos históricos se conservan en la rama original y sus rutas exact
 inventariadas en el comentario de cierre. Readback confirma closed/merged:false/headb57d6d.
 No se modifican reservas ni se cierra INC-2709-13; generado completo sigue sin lectura
 acreditada y Cyberpunk/indicador/reveal nuevo conservan gates propios.
+
+## Alcances leídos de la cola restante
+
+Lectura completa de metadatos y listas de archivos a21:53:30UTC:28abiertas/24draft,
+incluyendo CI ONLY167/168. No certifica absorción por título ni autoriza fusionar sus heads.
+
+| Grupo | PR | Próxima comparación concreta |
+| --- | --- | --- |
+| Reglas/reservas Metas |110| motor de liberación, regla y migraciones; regresión de reservas financieras |
+| Categorías/MOVILIDAD |108/106| categorías manuales/ingest/categorize, idiomas y contratos persistidos; gate Edge separado |
+| Retiradas |100/88| confirmación/ACK, cola, reconciliación y UI optimista, no sólo lista visible |
+| Nómina pendiente |96/78| importación y ancla de ciclo; origen BOOK frente pending, recibos/ACK y metadatos beta |
+| Recibos pagados/vencidos |81/76| estado de pago/cuotas, pruebas BOOK y fechas; no fusionar una base antigua |
+| Inicio mes/ciclo |80| presupuesto y alcance mensual/ciclo, selector banco, gasto neto y dependencias |
+| Aceptación/recibos beta |103/92/83| identidad por tanda/revisión, historial, transporte y recibo servido; ningún repin de OK |
+| Source/ACK |43| dos dispatch UUID y helpers financieros ausentes de main; rescate aislado y revisión fuerte |
+
+PR43 **no absorbida** frente main067. Test/runner/brief nuevos tampoco están en main.
+Contraprueba sintética del contrato original: fragmentos reales main2OK/16FAIL, exit1;
+fragmentos y helpers reales PR43,18OK, exit0. No se acredita CI/DOM ni seguridad integral.
+Antes de rescatarla hay que revisar formatos actuales, cambios concurrentes/ABA, UI optimista,
+cola persistente y escritores antiguos. Se conserva abierta, sin merge ni nueva entrega.
+El cotejo de estos otros trece alcances aún está pendiente; los grupos no los convierten en
+activos, aprobados o absorbidos y no sustituyen las prioridades de widget y rendimiento.
