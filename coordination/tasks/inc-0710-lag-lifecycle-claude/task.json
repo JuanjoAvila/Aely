@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "id": "inc-0710-lag-lifecycle-claude",
+  "from": "codex",
+  "coordinatorSession": "relay-run-0c47148d42bae423",
+  "createdAt": "2026-10-07T04:26:47.772Z",
+  "to": "claude",
+  "baseSHA": "5fa2350b4dc567d936091039e62f9dd732a67110",
+  "objective": "Investigar INC-2709-09 acumulativo con fuente fresca. No repetir serie30minad84: ya80ciclos30,5minCPUx6 sin tendencia, pero sin sockets/auth/realtime/suspensionWebView. Auditar ciclo de vida de suscripciones/eventos/timers y explícita conexión/desconexión/resume en runtime (10/11/12 y cloud), hipótesis acotadas y reproducciones sintéticas offline con dobles de transporte; verificar que acción aterriza, acumulación por operación y limpieza ante error/reintento/logout/remount. Elegir causa discriminante por evidencia; sólo si se reproduce bug de runtime preparar corrección mínima, tests DOM/red causal y A/B y documentación en rama propia, sin publicar/merge/bump reservado ni datos reales. Si no se reproduce entregar matriz de hipótesis falsadas y próximo escenario específico, mantener causa unknown/INC abierto; no convertir estabilidad de 30min en cierre ni inventar mejora. No modificar04/Gastos99,shell/FAB98,catálogo/scopes de aprobación,Android,Edge,SQL,APK,syncbancaria ni operaciones financieras. Inputs privados blocked por credencial. No duplicar PR131/Grok. Entrega compacta SHA, comandos exitCode y límites; revisión independiente/CI/móvil posteriores obligatorios.",
+  "scope": [
+    "src/modules/10-app-components.js",
+    "src/modules/11-app-main.js",
+    "src/modules/12-boot.js",
+    "src/modules/00-core.js",
+    "e2e",
+    "tests",
+    "docs/briefs"
+  ],
+  "modelChoice": "Modelo disponible para investigación de lifecycle; priorizar repro causal sobre nueva instrumentación permanente."
+}
