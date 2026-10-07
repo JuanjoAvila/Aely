@@ -1,0 +1,26 @@
+{
+  "status": "done",
+  "summary": "Aely ·20: catálogo100.2 servido exacto; sólo96/98 retiradas del panel, notas e historia preservadas",
+  "tests": [
+    {
+      "command": "Publisher37656565401 attempt1 job112912989882 SUCCESS; logs checkout a56/tree daa5; Node y5Deno,881DOM/1skip,9perf",
+      "exitCode": 0
+    },
+    {
+      "command": "Gate --artifact después de config/stamp/minify antespack; HTTP assets/ZIP huella/catálogos/APK/sourceSha",
+      "exitCode": 0
+    }
+  ],
+  "productSHA": "a56ab25be46985a0e78eca45146729027757b3ab",
+  "version": "4.26.100.2",
+  "limitations": [
+    "Crudo1317872B máximo1317888;gzip9 357027B máximo359424; APK52 intacta.",
+    "47tandas/220notas y30códigos preservados. Sin aprobación humana99/100/101. Inputsblocked; INC-2709-09 global abierto."
+  ],
+  "schema": 1,
+  "taskId": "ops-0710-catalog1002-served-relay20",
+  "actor": "codex",
+  "sessionId": "relay-run-38d55b3d3aa853f2",
+  "createdAt": "2026-10-07T18:02:31.922Z",
+  "released": true
+}
