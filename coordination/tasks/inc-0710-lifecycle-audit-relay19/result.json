@@ -1,0 +1,21 @@
+{
+  "status": "done",
+  "summary": "Defecto adicional confirmado en bankNotif (11-app-main efecto uid): cleanup antes de resolver handle nativo deja callback registrado. Doble sintético del efecto real:1retirado live1/remove0 y6retirados live6; control causal Promise+disposed live0/remove1 y6=>0. Callback ya retirado todavía programa acción; guardia lo mantiene inerte. Sin ejecutar banca ni medir lag móvil; INC-2709-09 global abierto. Existing test inmediata no cubre resolución tardía. Siguiente unidad separable cleanup bankNotif.",
+  "tests": [
+    {
+      "command": "Node synthetic real bankNotif effect: late cleanup/red and Promise+disposed/control; six retired UID registrations",
+      "exitCode": 0
+    }
+  ],
+  "productSHA": "a56ab25be46985a0e78eca45146729027757b3ab",
+  "limitations": [
+    "Reproducción sintética del lifecycle, no atribuye causa general del lag",
+    "Sólo prueba cancelación de callbacks; ninguna acción bancaria real"
+  ],
+  "schema": 1,
+  "taskId": "inc-0710-lifecycle-audit-relay19",
+  "actor": "codex",
+  "sessionId": "relay-run-un7m4rjsqldezxl2",
+  "createdAt": "2026-10-07T17:10:27.578Z",
+  "released": true
+}
