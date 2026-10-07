@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "id": "inc-0710-lifecycle-audit-relay19",
+  "from": "codex",
+  "coordinatorSession": "relay-run-un7m4rjsqldezxl2",
+  "createdAt": "2026-10-07T17:07:48.699Z",
+  "to": "codex",
+  "baseSHA": "a56ab25be46985a0e78eca45146729027757b3ab",
+  "scope": [
+    "src/modules/11-app-main.js",
+    "src/modules/12-boot.js",
+    "e2e/lifecycle-listeners.spec.mjs",
+    "tests/appstate-listener-cleanup.test.mjs"
+  ],
+  "objective": "Auditoría acotada independiente de otros listeners/timers al usar la app y cambiar sesión, mientras publica catálogo. Sólo lectura y fixtures sintéticas scratch; no edición producto ni duplicar cleanup100. Localizar defecto causal adicional en lifecycle repetido, comprobar propietario/cleanup async/timers y entregar reproducción roja concreta si existe o alcance sin evidencia. INC-2709-09 permanece abierto: no declarar reparación general. No red bancaria/datos reales/APK/Edge/SQL. Entrega compacta con líneas/contraprueba/limitaciones y siguiente unidad separable si procede."
+}
