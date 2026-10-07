@@ -1,0 +1,45 @@
+{
+  "status": "blocked",
+  "summary": "Fuente98 selectiva publicada en PR156 y revisada; CI37617951670 en curso, sin merge ni producción98 acreditada.",
+  "tests": [
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/docs-frescura.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/guard-privacy.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0
+    }
+  ],
+  "productSHA": "771a5920096fde3c2c89227b53abafe0913751eb",
+  "tree": "9b4d215282c51b4b5254be2c948b2d73648ea3a5",
+  "pr": 156,
+  "ci": {
+    "run": 37617951670,
+    "status": "in_progress",
+    "checkoutMerge": "ea8c7ab5cfbf7bd8b6c4a9a297d0d63cf3fe1925",
+    "treeExact": true
+  },
+  "limitations": [
+    "GO independiente de fuente condicionado a CI exacta/DOM/publicador/HTTP. Beta-sources local cancelado exit130 por duplicación conCI; no verde.",
+    "Aprobación98 exclusiva6031246455/b7ab/web7ca1346e. Main85b8/producción96 verificada7HTTP+5ZIP12:11UTC. APK52 intacta, no99/100 ni resolución INC-2709-09."
+  ],
+  "schema": 1,
+  "taskId": "ops-0710-fab98-production-next-relay14",
+  "actor": "codex",
+  "sessionId": "relay-run-b06e39e3fadf17c2",
+  "createdAt": "2026-10-07T12:42:40.074Z",
+  "released": true
+}
