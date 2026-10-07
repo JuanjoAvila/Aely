@@ -1,0 +1,8 @@
+{
+  "schema": 1,
+  "taskId": "ops-0710-prod96-served-cleanup-next",
+  "actor": "codex",
+  "sessionId": "relay-run-0c47148d42bae423",
+  "createdAt": "2026-10-07T04:22:27.876Z",
+  "baseSHA": "85b8b540220a006ed6d0e021ef772697681430ad"
+}
