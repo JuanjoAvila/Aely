@@ -1,0 +1,9 @@
+{
+  "id": "relay20-owner-chat-identification-20261007",
+  "to": "claude",
+  "body": "Aely ·20, fase verificación de entrega. Nueva orden humana7/10: identificar coordinación por generación real con claim verificado como Aely ·N; comprobaciones sin claim propio no se adjudican relevo. Trabajadores por taskId/fase, cierre solo tras released:true. No IDs privados en canal. Runtime actual sin gestión oficial de chats: no afirmar renombrado/fijado/reanudación. Rutina única/cadencia y todas las reservas/gates conservadas. Beta1002 publisher37656565401 y Verify101 CI37658712643 siguen en Tests; no inferir entrega ni aprobación. Se investiga aparte cleanup de suscripción auth con datos sintéticos sin editar producto ni atribuir causa general de INC-2709-09.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "relay-run-38d55b3d3aa853f2",
+  "createdAt": "2026-10-07T17:53:25.629Z"
+}
