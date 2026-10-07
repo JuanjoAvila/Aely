@@ -1,0 +1,16 @@
+{
+  "status": "blocked",
+  "summary": "PR154 reparado sin aumentar presupuesto: head 3aeed496442ad9e5a3a7c8c2759a50622853512b, árbol145ccad031594a6d7f50b5befd7114ce21fe9b57. Revisión independiente GO, catálogo/códigos96 y98 preservados. CI anterior37570338021 falló solo tamaño; candidato nuevo sellado99.99999 mide1317825/358932 bytes. CI37572568352 sigue ejecutando; checkout acreditado,36DOM aún pendientes. PR154 OPEN DRAFT/basebeta readback confirmado; nunca main. Sucesor único reconciliará CI y publicará beta99 solo tras verde exacto y98servida (ya verificada).",
+  "tests": [
+    "Madrid4TZ/periodo/syntax/privacy/docs/relevant green",
+    "Budget unchanged: margins63raw/492gzip sealed99.99999",
+    "Independent final tree145 GO",
+    "36DOM discovered; execution pending exactCI37572568352"
+  ],
+  "schema": 1,
+  "taskId": "inc-0710-gastos99-exact-ci-beta-next",
+  "actor": "codex",
+  "sessionId": "relay-run-0c47148d42bae423",
+  "createdAt": "2026-10-07T04:51:29.721Z",
+  "released": true
+}
