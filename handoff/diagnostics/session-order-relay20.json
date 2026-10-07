@@ -1,0 +1,1305 @@
+{
+  "sourceSHA": "cacc2a0dff55baa3859ddeedcbdcf862925f2fca",
+  "node": "v22.22.0",
+  "sdk": "supabase-js 2.110.0 (public/vendor/supabase.min.js)",
+  "fragmentSha256": {
+    "sdk": "fdd149b3183cbc9b80e622a85d8960267a2160cc94d978bc19367f35e4041b87",
+    "onAuth": "8d8362e91934df70266b7bb20be750924a275590dd4ff309f9106a9eb6d291d0",
+    "session": "38d5f2edc31156c077e704e57216f8d4722e2b07a42e71f10293791cfa38cd47",
+    "effect": "e01fc6a66bc35745b491258e116de04e0289eeab65cdce7721ff16229cadf927",
+    "idle": "a90495a9a1a0023ffcd606b747a1c24a3ab8cbad5dcb5281a1085946392beca4"
+  },
+  "synthetic": true,
+  "network": false,
+  "realStorage": false,
+  "lateAAfterBScenarios": [
+    "login-B-during-boot-with-A-stored/nolocks",
+    "login-B-during-boot-with-A-stored/locks"
+  ],
+  "sweep": [
+    {
+      "locks": false,
+      "microtasksBeforeSignIn": 0,
+      "finalRefUid": "synthetic-A",
+      "seq": "EV:SIGNED_IN:synthetic-A > set:synthetic-A > sync:synthetic-A > EV:INITIAL_SESSION:synthetic-A > set:synthetic-A > EV:SIGNED_IN:synthetic-B > set:synthetic-B > sync:synthetic-B > GS:synthetic-A > set:synthetic-A > sync:synthetic-A"
+    },
+    {
+      "locks": false,
+      "microtasksBeforeSignIn": 1,
+      "finalRefUid": "synthetic-A",
+      "seq": "EV:SIGNED_IN:synthetic-A > set:synthetic-A > sync:synthetic-A > EV:INITIAL_SESSION:synthetic-A > set:synthetic-A > GS:synthetic-A > EV:SIGNED_IN:synthetic-B > set:synthetic-B > sync:synthetic-B > set:synthetic-A > sync:synthetic-A"
+    },
+    {
+      "locks": false,
+      "microtasksBeforeSignIn": 2,
+      "finalRefUid": "synthetic-A",
+      "seq": "EV:SIGNED_IN:synthetic-A > set:synthetic-A > sync:synthetic-A > EV:INITIAL_SESSION:synthetic-A > set:synthetic-A > GS:synthetic-A > EV:SIGNED_IN:synthetic-B > set:synthetic-B > sync:synthetic-B > set:synthetic-A > sync:synthetic-A"
+    },
+    {
+      "locks": false,
+      "microtasksBeforeSignIn": 3,
+      "finalRefUid": "synthetic-A",
+      "seq": "EV:SIGNED_IN:synthetic-A > set:synthetic-A > sync:synthetic-A > EV:INITIAL_SESSION:synthetic-A > set:synthetic-A > GS:synthetic-A > EV:SIGNED_IN:synthetic-B > set:synthetic-B > sync:synthetic-B > set:synthetic-A > sync:synthetic-A"
+    },
+    {
+      "locks": false,
+      "microtasksBeforeSignIn": 4,
+      "finalRefUid": "synthetic-B",
+      "seq": "EV:SIGNED_IN:synthetic-A > set:synthetic-A > sync:synthetic-A > EV:INITIAL_SESSION:synthetic-A > set:synthetic-A > GS:synthetic-A > set:synthetic-A > EV:SIGNED_IN:synthetic-B > set:synthetic-B > sync:synthetic-B > sync:synthetic-A"
+    },
+    {
+      "locks": false,
+      "microtasksBeforeSignIn": 6,
+      "finalRefUid": "synthetic-B",
+      "seq": "EV:SIGNED_IN:synthetic-A > set:synthetic-A > sync:synthetic-A > EV:INITIAL_SESSION:synthetic-A > set:synthetic-A > GS:synthetic-A > set:synthetic-A > EV:SIGNED_IN:synthetic-B > set:synthetic-B > sync:synthetic-B > sync:synthetic-A"
+    },
+    {
+      "locks": false,
+      "microtasksBeforeSignIn": 8,
+      "finalRefUid": "synthetic-B",
+      "seq": "EV:SIGNED_IN:synthetic-A > set:synthetic-A > sync:synthetic-A > EV:INITIAL_SESSION:synthetic-A > set:synthetic-A > GS:synthetic-A > set:synthetic-A > EV:SIGNED_IN:synthetic-B > set:synthetic-B > sync:synthetic-B > sync:synthetic-A"
+    },
+    {
+      "locks": false,
+      "microtasksBeforeSignIn": 12,
+      "finalRefUid": "synthetic-B",
+      "seq": "EV:SIGNED_IN:synthetic-A > set:synthetic-A > sync:synthetic-A > EV:INITIAL_SESSION:synthetic-A > set:synthetic-A > GS:synthetic-A > set:synthetic-A > EV:SIGNED_IN:synthetic-B > set:synthetic-B > sync:synthetic-B > sync:synthetic-A"
+    },
+    {
+      "locks": false,
+      "microtasksBeforeSignIn": 20,
+      "finalRefUid": "synthetic-B",
+      "seq": "EV:SIGNED_IN:synthetic-A > set:synthetic-A > sync:synthetic-A > EV:INITIAL_SESSION:synthetic-A > set:synthetic-A > GS:synthetic-A > set:synthetic-A > EV:SIGNED_IN:synthetic-B > set:synthetic-B > sync:synthetic-B > sync:synthetic-A"
+    },
+    {
+      "locks": false,
+      "microtasksBeforeSignIn": 40,
+      "finalRefUid": "synthetic-B",
+      "seq": "EV:SIGNED_IN:synthetic-A > set:synthetic-A > sync:synthetic-A > EV:INITIAL_SESSION:synthetic-A > set:synthetic-A > GS:synthetic-A > set:synthetic-A > EV:SIGNED_IN:synthetic-B > set:synthetic-B > sync:synthetic-B > sync:synthetic-A"
+    },
+    {
+      "locks": true,
+      "microtasksBeforeSignIn": 0,
+      "finalRefUid": "synthetic-A",
+      "seq": "EV:SIGNED_IN:synthetic-A > set:synthetic-A > sync:synthetic-A > EV:INITIAL_SESSION:synthetic-A > set:synthetic-A > EV:SIGNED_IN:synthetic-B > set:synthetic-B > sync:synthetic-B > GS:synthetic-A > set:synthetic-A > sync:synthetic-A"
+    },
+    {
+      "locks": true,
+      "microtasksBeforeSignIn": 1,
+      "finalRefUid": "synthetic-A",
+      "seq": "EV:SIGNED_IN:synthetic-A > set:synthetic-A > sync:synthetic-A > EV:INITIAL_SESSION:synthetic-A > set:synthetic-A > GS:synthetic-A > EV:SIGNED_IN:synthetic-B > set:synthetic-B > sync:synthetic-B > set:synthetic-A > sync:synthetic-A"
+    },
+    {
+      "locks": true,
+      "microtasksBeforeSignIn": 2,
+      "finalRefUid": "synthetic-A",
+      "seq": "EV:SIGNED_IN:synthetic-A > set:synthetic-A > sync:synthetic-A > EV:INITIAL_SESSION:synthetic-A > set:synthetic-A > GS:synthetic-A > EV:SIGNED_IN:synthetic-B > set:synthetic-B > sync:synthetic-B > set:synthetic-A > sync:synthetic-A"
+    },
+    {
+      "locks": true,
+      "microtasksBeforeSignIn": 3,
+      "finalRefUid": "synthetic-A",
+      "seq": "EV:SIGNED_IN:synthetic-A > set:synthetic-A > sync:synthetic-A > EV:INITIAL_SESSION:synthetic-A > set:synthetic-A > GS:synthetic-A > EV:SIGNED_IN:synthetic-B > set:synthetic-B > sync:synthetic-B > set:synthetic-A > sync:synthetic-A"
+    },
+    {
+      "locks": true,
+      "microtasksBeforeSignIn": 4,
+      "finalRefUid": "synthetic-B",
+      "seq": "EV:SIGNED_IN:synthetic-A > set:synthetic-A > sync:synthetic-A > EV:INITIAL_SESSION:synthetic-A > set:synthetic-A > GS:synthetic-A > set:synthetic-A > EV:SIGNED_IN:synthetic-B > set:synthetic-B > sync:synthetic-B > sync:synthetic-A"
+    },
+    {
+      "locks": true,
+      "microtasksBeforeSignIn": 6,
+      "finalRefUid": "synthetic-B",
+      "seq": "EV:SIGNED_IN:synthetic-A > set:synthetic-A > sync:synthetic-A > EV:INITIAL_SESSION:synthetic-A > set:synthetic-A > GS:synthetic-A > set:synthetic-A > EV:SIGNED_IN:synthetic-B > set:synthetic-B > sync:synthetic-B > sync:synthetic-A"
+    },
+    {
+      "locks": true,
+      "microtasksBeforeSignIn": 8,
+      "finalRefUid": "synthetic-B",
+      "seq": "EV:SIGNED_IN:synthetic-A > set:synthetic-A > sync:synthetic-A > EV:INITIAL_SESSION:synthetic-A > set:synthetic-A > GS:synthetic-A > set:synthetic-A > EV:SIGNED_IN:synthetic-B > set:synthetic-B > sync:synthetic-B > sync:synthetic-A"
+    },
+    {
+      "locks": true,
+      "microtasksBeforeSignIn": 12,
+      "finalRefUid": "synthetic-B",
+      "seq": "EV:SIGNED_IN:synthetic-A > set:synthetic-A > sync:synthetic-A > EV:INITIAL_SESSION:synthetic-A > set:synthetic-A > GS:synthetic-A > set:synthetic-A > EV:SIGNED_IN:synthetic-B > set:synthetic-B > sync:synthetic-B > sync:synthetic-A"
+    },
+    {
+      "locks": true,
+      "microtasksBeforeSignIn": 20,
+      "finalRefUid": "synthetic-B",
+      "seq": "EV:SIGNED_IN:synthetic-A > set:synthetic-A > sync:synthetic-A > EV:INITIAL_SESSION:synthetic-A > set:synthetic-A > GS:synthetic-A > set:synthetic-A > EV:SIGNED_IN:synthetic-B > set:synthetic-B > sync:synthetic-B > sync:synthetic-A"
+    },
+    {
+      "locks": true,
+      "microtasksBeforeSignIn": 40,
+      "finalRefUid": "synthetic-B",
+      "seq": "EV:SIGNED_IN:synthetic-A > set:synthetic-A > sync:synthetic-A > EV:INITIAL_SESSION:synthetic-A > set:synthetic-A > GS:synthetic-A > set:synthetic-A > EV:SIGNED_IN:synthetic-B > set:synthetic-B > sync:synthetic-B > sync:synthetic-A"
+    }
+  ],
+  "rows": [
+    {
+      "name": "initial-stored-A/nolocks",
+      "finalRefUid": "synthetic-A",
+      "events": [
+        {
+          "k": "sdk:event",
+          "ev": "SIGNED_IN",
+          "uid": "synthetic-A"
+        },
+        {
+          "k": "setSession",
+          "uid": "synthetic-A",
+          "refAfterAssign": "synthetic-A"
+        },
+        {
+          "k": "syncRequest",
+          "uid": "synthetic-A",
+          "opts": {
+            "freshLogin": true,
+            "dropTx": false
+          }
+        },
+        {
+          "k": "sdk:event",
+          "ev": "INITIAL_SESSION",
+          "uid": "synthetic-A"
+        },
+        {
+          "k": "setSession",
+          "uid": "synthetic-A",
+          "refAfterAssign": "synthetic-A"
+        },
+        {
+          "k": "sdk:getSession->",
+          "uid": "synthetic-A"
+        },
+        {
+          "k": "setSession",
+          "uid": "synthetic-A",
+          "refAfterAssign": "synthetic-A"
+        },
+        {
+          "k": "syncRequest",
+          "uid": "synthetic-A",
+          "opts": null
+        }
+      ],
+      "fetches": 0,
+      "seq": [
+        "EV:SIGNED_IN:synthetic-A",
+        "set:synthetic-A",
+        "sync:synthetic-A",
+        "EV:INITIAL_SESSION:synthetic-A",
+        "set:synthetic-A",
+        "GS:synthetic-A",
+        "set:synthetic-A",
+        "sync:synthetic-A"
+      ]
+    },
+    {
+      "name": "initial-none/nolocks",
+      "finalRefUid": null,
+      "events": [
+        {
+          "k": "sdk:event",
+          "ev": "INITIAL_SESSION",
+          "uid": null
+        },
+        {
+          "k": "setSession",
+          "uid": null,
+          "refAfterAssign": null
+        },
+        {
+          "k": "sdk:getSession->",
+          "uid": null
+        },
+        {
+          "k": "setSession",
+          "uid": null,
+          "refAfterAssign": null
+        },
+        {
+          "k": "bootReady"
+        }
+      ],
+      "fetches": 0,
+      "seq": [
+        "EV:INITIAL_SESSION:null",
+        "set:null",
+        "GS:null",
+        "set:null"
+      ]
+    },
+    {
+      "name": "login-B-during-boot-with-A-stored/nolocks",
+      "finalRefUid": "synthetic-A",
+      "events": [
+        {
+          "k": "sdk:event",
+          "ev": "SIGNED_IN",
+          "uid": "synthetic-A"
+        },
+        {
+          "k": "setSession",
+          "uid": "synthetic-A",
+          "refAfterAssign": "synthetic-A"
+        },
+        {
+          "k": "syncRequest",
+          "uid": "synthetic-A",
+          "opts": {
+            "freshLogin": true,
+            "dropTx": false
+          }
+        },
+        {
+          "k": "sdk:event",
+          "ev": "INITIAL_SESSION",
+          "uid": "synthetic-A"
+        },
+        {
+          "k": "setSession",
+          "uid": "synthetic-A",
+          "refAfterAssign": "synthetic-A"
+        },
+        {
+          "k": "sdk:event",
+          "ev": "SIGNED_IN",
+          "uid": "synthetic-B"
+        },
+        {
+          "k": "setSession",
+          "uid": "synthetic-B",
+          "refAfterAssign": "synthetic-B"
+        },
+        {
+          "k": "syncRequest",
+          "uid": "synthetic-B",
+          "opts": {
+            "freshLogin": true,
+            "dropTx": true
+          }
+        },
+        {
+          "k": "sdk:getSession->",
+          "uid": "synthetic-A"
+        },
+        {
+          "k": "setSession",
+          "uid": "synthetic-A",
+          "refAfterAssign": "synthetic-A"
+        },
+        {
+          "k": "syncRequest",
+          "uid": "synthetic-A",
+          "opts": null
+        }
+      ],
+      "fetches": 1,
+      "seq": [
+        "EV:SIGNED_IN:synthetic-A",
+        "set:synthetic-A",
+        "sync:synthetic-A",
+        "EV:INITIAL_SESSION:synthetic-A",
+        "set:synthetic-A",
+        "EV:SIGNED_IN:synthetic-B",
+        "set:synthetic-B",
+        "sync:synthetic-B",
+        "GS:synthetic-A",
+        "set:synthetic-A",
+        "sync:synthetic-A"
+      ]
+    },
+    {
+      "name": "switch-A-to-B-after-boot/nolocks",
+      "finalRefUid": "synthetic-B",
+      "events": [
+        {
+          "k": "sdk:event",
+          "ev": "SIGNED_IN",
+          "uid": "synthetic-A"
+        },
+        {
+          "k": "setSession",
+          "uid": "synthetic-A",
+          "refAfterAssign": "synthetic-A"
+        },
+        {
+          "k": "syncRequest",
+          "uid": "synthetic-A",
+          "opts": {
+            "freshLogin": true,
+            "dropTx": false
+          }
+        },
+        {
+          "k": "sdk:event",
+          "ev": "INITIAL_SESSION",
+          "uid": "synthetic-A"
+        },
+        {
+          "k": "setSession",
+          "uid": "synthetic-A",
+          "refAfterAssign": "synthetic-A"
+        },
+        {
+          "k": "sdk:getSession->",
+          "uid": "synthetic-A"
+        },
+        {
+          "k": "setSession",
+          "uid": "synthetic-A",
+          "refAfterAssign": "synthetic-A"
+        },
+        {
+          "k": "syncRequest",
+          "uid": "synthetic-A",
+          "opts": null
+        },
+        {
+          "k": "sdk:event",
+          "ev": "SIGNED_IN",
+          "uid": "synthetic-B"
+        },
+        {
+          "k": "setSession",
+          "uid": "synthetic-B",
+          "refAfterAssign": "synthetic-B"
+        },
+        {
+          "k": "syncRequest",
+          "uid": "synthetic-B",
+          "opts": {
+            "freshLogin": true,
+            "dropTx": true
+          }
+        }
+      ],
+      "fetches": 1,
+      "seq": [
+        "EV:SIGNED_IN:synthetic-A",
+        "set:synthetic-A",
+        "sync:synthetic-A",
+        "EV:INITIAL_SESSION:synthetic-A",
+        "set:synthetic-A",
+        "GS:synthetic-A",
+        "set:synthetic-A",
+        "sync:synthetic-A",
+        "EV:SIGNED_IN:synthetic-B",
+        "set:synthetic-B",
+        "sync:synthetic-B"
+      ]
+    },
+    {
+      "name": "signout/nolocks",
+      "finalRefUid": null,
+      "events": [
+        {
+          "k": "sdk:event",
+          "ev": "SIGNED_IN",
+          "uid": "synthetic-A"
+        },
+        {
+          "k": "setSession",
+          "uid": "synthetic-A",
+          "refAfterAssign": "synthetic-A"
+        },
+        {
+          "k": "syncRequest",
+          "uid": "synthetic-A",
+          "opts": {
+            "freshLogin": true,
+            "dropTx": false
+          }
+        },
+        {
+          "k": "sdk:event",
+          "ev": "INITIAL_SESSION",
+          "uid": "synthetic-A"
+        },
+        {
+          "k": "setSession",
+          "uid": "synthetic-A",
+          "refAfterAssign": "synthetic-A"
+        },
+        {
+          "k": "sdk:getSession->",
+          "uid": "synthetic-A"
+        },
+        {
+          "k": "setSession",
+          "uid": "synthetic-A",
+          "refAfterAssign": "synthetic-A"
+        },
+        {
+          "k": "syncRequest",
+          "uid": "synthetic-A",
+          "opts": null
+        },
+        {
+          "k": "sdk:event",
+          "ev": "SIGNED_OUT",
+          "uid": null
+        },
+        {
+          "k": "setSession",
+          "uid": null,
+          "refAfterAssign": null
+        },
+        {
+          "k": "stateUpdater(signout bankTx:[])"
+        },
+        {
+          "k": "sdk:getSession->",
+          "uid": null
+        }
+      ],
+      "fetches": 1,
+      "seq": [
+        "EV:SIGNED_IN:synthetic-A",
+        "set:synthetic-A",
+        "sync:synthetic-A",
+        "EV:INITIAL_SESSION:synthetic-A",
+        "set:synthetic-A",
+        "GS:synthetic-A",
+        "set:synthetic-A",
+        "sync:synthetic-A",
+        "EV:SIGNED_OUT:null",
+        "set:null",
+        "GS:null"
+      ]
+    },
+    {
+      "name": "initial-expired-A-refresh/nolocks",
+      "finalRefUid": "synthetic-A",
+      "events": [
+        {
+          "k": "sdk:event",
+          "ev": "TOKEN_REFRESHED",
+          "uid": "synthetic-A"
+        },
+        {
+          "k": "setSession",
+          "uid": "synthetic-A",
+          "refAfterAssign": "synthetic-A"
+        },
+        {
+          "k": "syncRequest",
+          "uid": "synthetic-A",
+          "opts": {
+            "freshLogin": true,
+            "dropTx": false
+          }
+        },
+        {
+          "k": "sdk:event",
+          "ev": "INITIAL_SESSION",
+          "uid": "synthetic-A"
+        },
+        {
+          "k": "setSession",
+          "uid": "synthetic-A",
+          "refAfterAssign": "synthetic-A"
+        },
+        {
+          "k": "sdk:getSession->",
+          "uid": "synthetic-A"
+        },
+        {
+          "k": "setSession",
+          "uid": "synthetic-A",
+          "refAfterAssign": "synthetic-A"
+        },
+        {
+          "k": "syncRequest",
+          "uid": "synthetic-A",
+          "opts": null
+        }
+      ],
+      "fetches": 1,
+      "seq": [
+        "EV:TOKEN_REFRESHED:synthetic-A",
+        "set:synthetic-A",
+        "sync:synthetic-A",
+        "EV:INITIAL_SESSION:synthetic-A",
+        "set:synthetic-A",
+        "GS:synthetic-A",
+        "set:synthetic-A",
+        "sync:synthetic-A"
+      ]
+    },
+    {
+      "name": "slow-login-B-overlapping-boot/nolocks",
+      "finalRefUid": "synthetic-B",
+      "events": [
+        {
+          "k": "sdk:event",
+          "ev": "SIGNED_IN",
+          "uid": "synthetic-A"
+        },
+        {
+          "k": "setSession",
+          "uid": "synthetic-A",
+          "refAfterAssign": "synthetic-A"
+        },
+        {
+          "k": "syncRequest",
+          "uid": "synthetic-A",
+          "opts": {
+            "freshLogin": true,
+            "dropTx": false
+          }
+        },
+        {
+          "k": "sdk:event",
+          "ev": "INITIAL_SESSION",
+          "uid": "synthetic-A"
+        },
+        {
+          "k": "setSession",
+          "uid": "synthetic-A",
+          "refAfterAssign": "synthetic-A"
+        },
+        {
+          "k": "sdk:getSession->",
+          "uid": "synthetic-A"
+        },
+        {
+          "k": "setSession",
+          "uid": "synthetic-A",
+          "refAfterAssign": "synthetic-A"
+        },
+        {
+          "k": "sdk:event",
+          "ev": "SIGNED_IN",
+          "uid": "synthetic-B"
+        },
+        {
+          "k": "setSession",
+          "uid": "synthetic-B",
+          "refAfterAssign": "synthetic-B"
+        },
+        {
+          "k": "syncRequest",
+          "uid": "synthetic-B",
+          "opts": {
+            "freshLogin": true,
+            "dropTx": true
+          }
+        },
+        {
+          "k": "syncRequest",
+          "uid": "synthetic-A",
+          "opts": null
+        }
+      ],
+      "fetches": 1,
+      "seq": [
+        "EV:SIGNED_IN:synthetic-A",
+        "set:synthetic-A",
+        "sync:synthetic-A",
+        "EV:INITIAL_SESSION:synthetic-A",
+        "set:synthetic-A",
+        "GS:synthetic-A",
+        "set:synthetic-A",
+        "EV:SIGNED_IN:synthetic-B",
+        "set:synthetic-B",
+        "sync:synthetic-B",
+        "sync:synthetic-A"
+      ]
+    },
+    {
+      "name": "login-B-during-boot-nothing-stored/nolocks",
+      "finalRefUid": "synthetic-B",
+      "events": [
+        {
+          "k": "sdk:event",
+          "ev": "INITIAL_SESSION",
+          "uid": null
+        },
+        {
+          "k": "setSession",
+          "uid": null,
+          "refAfterAssign": null
+        },
+        {
+          "k": "sdk:getSession->",
+          "uid": null
+        },
+        {
+          "k": "setSession",
+          "uid": null,
+          "refAfterAssign": null
+        },
+        {
+          "k": "bootReady"
+        },
+        {
+          "k": "sdk:event",
+          "ev": "SIGNED_IN",
+          "uid": "synthetic-B"
+        },
+        {
+          "k": "setSession",
+          "uid": "synthetic-B",
+          "refAfterAssign": "synthetic-B"
+        },
+        {
+          "k": "syncRequest",
+          "uid": "synthetic-B",
+          "opts": {
+            "freshLogin": true,
+            "dropTx": false
+          }
+        }
+      ],
+      "fetches": 1,
+      "seq": [
+        "EV:INITIAL_SESSION:null",
+        "set:null",
+        "GS:null",
+        "set:null",
+        "EV:SIGNED_IN:synthetic-B",
+        "set:synthetic-B",
+        "sync:synthetic-B"
+      ]
+    },
+    {
+      "name": "initial-stored-A/locks",
+      "finalRefUid": "synthetic-A",
+      "events": [
+        {
+          "k": "sdk:event",
+          "ev": "SIGNED_IN",
+          "uid": "synthetic-A"
+        },
+        {
+          "k": "setSession",
+          "uid": "synthetic-A",
+          "refAfterAssign": "synthetic-A"
+        },
+        {
+          "k": "syncRequest",
+          "uid": "synthetic-A",
+          "opts": {
+            "freshLogin": true,
+            "dropTx": false
+          }
+        },
+        {
+          "k": "sdk:event",
+          "ev": "INITIAL_SESSION",
+          "uid": "synthetic-A"
+        },
+        {
+          "k": "setSession",
+          "uid": "synthetic-A",
+          "refAfterAssign": "synthetic-A"
+        },
+        {
+          "k": "sdk:getSession->",
+          "uid": "synthetic-A"
+        },
+        {
+          "k": "setSession",
+          "uid": "synthetic-A",
+          "refAfterAssign": "synthetic-A"
+        },
+        {
+          "k": "syncRequest",
+          "uid": "synthetic-A",
+          "opts": null
+        }
+      ],
+      "fetches": 0,
+      "seq": [
+        "EV:SIGNED_IN:synthetic-A",
+        "set:synthetic-A",
+        "sync:synthetic-A",
+        "EV:INITIAL_SESSION:synthetic-A",
+        "set:synthetic-A",
+        "GS:synthetic-A",
+        "set:synthetic-A",
+        "sync:synthetic-A"
+      ]
+    },
+    {
+      "name": "initial-none/locks",
+      "finalRefUid": null,
+      "events": [
+        {
+          "k": "sdk:event",
+          "ev": "INITIAL_SESSION",
+          "uid": null
+        },
+        {
+          "k": "setSession",
+          "uid": null,
+          "refAfterAssign": null
+        },
+        {
+          "k": "sdk:getSession->",
+          "uid": null
+        },
+        {
+          "k": "setSession",
+          "uid": null,
+          "refAfterAssign": null
+        },
+        {
+          "k": "bootReady"
+        }
+      ],
+      "fetches": 0,
+      "seq": [
+        "EV:INITIAL_SESSION:null",
+        "set:null",
+        "GS:null",
+        "set:null"
+      ]
+    },
+    {
+      "name": "login-B-during-boot-with-A-stored/locks",
+      "finalRefUid": "synthetic-A",
+      "events": [
+        {
+          "k": "sdk:event",
+          "ev": "SIGNED_IN",
+          "uid": "synthetic-A"
+        },
+        {
+          "k": "setSession",
+          "uid": "synthetic-A",
+          "refAfterAssign": "synthetic-A"
+        },
+        {
+          "k": "syncRequest",
+          "uid": "synthetic-A",
+          "opts": {
+            "freshLogin": true,
+            "dropTx": false
+          }
+        },
+        {
+          "k": "sdk:event",
+          "ev": "INITIAL_SESSION",
+          "uid": "synthetic-A"
+        },
+        {
+          "k": "setSession",
+          "uid": "synthetic-A",
+          "refAfterAssign": "synthetic-A"
+        },
+        {
+          "k": "sdk:event",
+          "ev": "SIGNED_IN",
+          "uid": "synthetic-B"
+        },
+        {
+          "k": "setSession",
+          "uid": "synthetic-B",
+          "refAfterAssign": "synthetic-B"
+        },
+        {
+          "k": "syncRequest",
+          "uid": "synthetic-B",
+          "opts": {
+            "freshLogin": true,
+            "dropTx": true
+          }
+        },
+        {
+          "k": "sdk:getSession->",
+          "uid": "synthetic-A"
+        },
+        {
+          "k": "setSession",
+          "uid": "synthetic-A",
+          "refAfterAssign": "synthetic-A"
+        },
+        {
+          "k": "syncRequest",
+          "uid": "synthetic-A",
+          "opts": null
+        }
+      ],
+      "fetches": 1,
+      "seq": [
+        "EV:SIGNED_IN:synthetic-A",
+        "set:synthetic-A",
+        "sync:synthetic-A",
+        "EV:INITIAL_SESSION:synthetic-A",
+        "set:synthetic-A",
+        "EV:SIGNED_IN:synthetic-B",
+        "set:synthetic-B",
+        "sync:synthetic-B",
+        "GS:synthetic-A",
+        "set:synthetic-A",
+        "sync:synthetic-A"
+      ]
+    },
+    {
+      "name": "switch-A-to-B-after-boot/locks",
+      "finalRefUid": "synthetic-B",
+      "events": [
+        {
+          "k": "sdk:event",
+          "ev": "SIGNED_IN",
+          "uid": "synthetic-A"
+        },
+        {
+          "k": "setSession",
+          "uid": "synthetic-A",
+          "refAfterAssign": "synthetic-A"
+        },
+        {
+          "k": "syncRequest",
+          "uid": "synthetic-A",
+          "opts": {
+            "freshLogin": true,
+            "dropTx": false
+          }
+        },
+        {
+          "k": "sdk:event",
+          "ev": "INITIAL_SESSION",
+          "uid": "synthetic-A"
+        },
+        {
+          "k": "setSession",
+          "uid": "synthetic-A",
+          "refAfterAssign": "synthetic-A"
+        },
+        {
+          "k": "sdk:getSession->",
+          "uid": "synthetic-A"
+        },
+        {
+          "k": "setSession",
+          "uid": "synthetic-A",
+          "refAfterAssign": "synthetic-A"
+        },
+        {
+          "k": "syncRequest",
+          "uid": "synthetic-A",
+          "opts": null
+        },
+        {
+          "k": "sdk:event",
+          "ev": "SIGNED_IN",
+          "uid": "synthetic-B"
+        },
+        {
+          "k": "setSession",
+          "uid": "synthetic-B",
+          "refAfterAssign": "synthetic-B"
+        },
+        {
+          "k": "syncRequest",
+          "uid": "synthetic-B",
+          "opts": {
+            "freshLogin": true,
+            "dropTx": true
+          }
+        }
+      ],
+      "fetches": 1,
+      "seq": [
+        "EV:SIGNED_IN:synthetic-A",
+        "set:synthetic-A",
+        "sync:synthetic-A",
+        "EV:INITIAL_SESSION:synthetic-A",
+        "set:synthetic-A",
+        "GS:synthetic-A",
+        "set:synthetic-A",
+        "sync:synthetic-A",
+        "EV:SIGNED_IN:synthetic-B",
+        "set:synthetic-B",
+        "sync:synthetic-B"
+      ]
+    },
+    {
+      "name": "signout/locks",
+      "finalRefUid": null,
+      "events": [
+        {
+          "k": "sdk:event",
+          "ev": "SIGNED_IN",
+          "uid": "synthetic-A"
+        },
+        {
+          "k": "setSession",
+          "uid": "synthetic-A",
+          "refAfterAssign": "synthetic-A"
+        },
+        {
+          "k": "syncRequest",
+          "uid": "synthetic-A",
+          "opts": {
+            "freshLogin": true,
+            "dropTx": false
+          }
+        },
+        {
+          "k": "sdk:event",
+          "ev": "INITIAL_SESSION",
+          "uid": "synthetic-A"
+        },
+        {
+          "k": "setSession",
+          "uid": "synthetic-A",
+          "refAfterAssign": "synthetic-A"
+        },
+        {
+          "k": "sdk:getSession->",
+          "uid": "synthetic-A"
+        },
+        {
+          "k": "setSession",
+          "uid": "synthetic-A",
+          "refAfterAssign": "synthetic-A"
+        },
+        {
+          "k": "syncRequest",
+          "uid": "synthetic-A",
+          "opts": null
+        },
+        {
+          "k": "sdk:event",
+          "ev": "SIGNED_OUT",
+          "uid": null
+        },
+        {
+          "k": "setSession",
+          "uid": null,
+          "refAfterAssign": null
+        },
+        {
+          "k": "stateUpdater(signout bankTx:[])"
+        },
+        {
+          "k": "sdk:getSession->",
+          "uid": null
+        }
+      ],
+      "fetches": 1,
+      "seq": [
+        "EV:SIGNED_IN:synthetic-A",
+        "set:synthetic-A",
+        "sync:synthetic-A",
+        "EV:INITIAL_SESSION:synthetic-A",
+        "set:synthetic-A",
+        "GS:synthetic-A",
+        "set:synthetic-A",
+        "sync:synthetic-A",
+        "EV:SIGNED_OUT:null",
+        "set:null",
+        "GS:null"
+      ]
+    },
+    {
+      "name": "initial-expired-A-refresh/locks",
+      "finalRefUid": "synthetic-A",
+      "events": [
+        {
+          "k": "sdk:event",
+          "ev": "TOKEN_REFRESHED",
+          "uid": "synthetic-A"
+        },
+        {
+          "k": "setSession",
+          "uid": "synthetic-A",
+          "refAfterAssign": "synthetic-A"
+        },
+        {
+          "k": "syncRequest",
+          "uid": "synthetic-A",
+          "opts": {
+            "freshLogin": true,
+            "dropTx": false
+          }
+        },
+        {
+          "k": "sdk:event",
+          "ev": "INITIAL_SESSION",
+          "uid": "synthetic-A"
+        },
+        {
+          "k": "setSession",
+          "uid": "synthetic-A",
+          "refAfterAssign": "synthetic-A"
+        },
+        {
+          "k": "sdk:getSession->",
+          "uid": "synthetic-A"
+        },
+        {
+          "k": "setSession",
+          "uid": "synthetic-A",
+          "refAfterAssign": "synthetic-A"
+        },
+        {
+          "k": "syncRequest",
+          "uid": "synthetic-A",
+          "opts": null
+        }
+      ],
+      "fetches": 1,
+      "seq": [
+        "EV:TOKEN_REFRESHED:synthetic-A",
+        "set:synthetic-A",
+        "sync:synthetic-A",
+        "EV:INITIAL_SESSION:synthetic-A",
+        "set:synthetic-A",
+        "GS:synthetic-A",
+        "set:synthetic-A",
+        "sync:synthetic-A"
+      ]
+    },
+    {
+      "name": "slow-login-B-overlapping-boot/locks",
+      "finalRefUid": "synthetic-B",
+      "events": [
+        {
+          "k": "sdk:event",
+          "ev": "SIGNED_IN",
+          "uid": "synthetic-A"
+        },
+        {
+          "k": "setSession",
+          "uid": "synthetic-A",
+          "refAfterAssign": "synthetic-A"
+        },
+        {
+          "k": "syncRequest",
+          "uid": "synthetic-A",
+          "opts": {
+            "freshLogin": true,
+            "dropTx": false
+          }
+        },
+        {
+          "k": "sdk:event",
+          "ev": "INITIAL_SESSION",
+          "uid": "synthetic-A"
+        },
+        {
+          "k": "setSession",
+          "uid": "synthetic-A",
+          "refAfterAssign": "synthetic-A"
+        },
+        {
+          "k": "sdk:getSession->",
+          "uid": "synthetic-A"
+        },
+        {
+          "k": "setSession",
+          "uid": "synthetic-A",
+          "refAfterAssign": "synthetic-A"
+        },
+        {
+          "k": "sdk:event",
+          "ev": "SIGNED_IN",
+          "uid": "synthetic-B"
+        },
+        {
+          "k": "setSession",
+          "uid": "synthetic-B",
+          "refAfterAssign": "synthetic-B"
+        },
+        {
+          "k": "syncRequest",
+          "uid": "synthetic-B",
+          "opts": {
+            "freshLogin": true,
+            "dropTx": true
+          }
+        },
+        {
+          "k": "syncRequest",
+          "uid": "synthetic-A",
+          "opts": null
+        }
+      ],
+      "fetches": 1,
+      "seq": [
+        "EV:SIGNED_IN:synthetic-A",
+        "set:synthetic-A",
+        "sync:synthetic-A",
+        "EV:INITIAL_SESSION:synthetic-A",
+        "set:synthetic-A",
+        "GS:synthetic-A",
+        "set:synthetic-A",
+        "EV:SIGNED_IN:synthetic-B",
+        "set:synthetic-B",
+        "sync:synthetic-B",
+        "sync:synthetic-A"
+      ]
+    },
+    {
+      "name": "login-B-during-boot-nothing-stored/locks",
+      "finalRefUid": "synthetic-B",
+      "events": [
+        {
+          "k": "sdk:event",
+          "ev": "INITIAL_SESSION",
+          "uid": null
+        },
+        {
+          "k": "setSession",
+          "uid": null,
+          "refAfterAssign": null
+        },
+        {
+          "k": "sdk:getSession->",
+          "uid": null
+        },
+        {
+          "k": "setSession",
+          "uid": null,
+          "refAfterAssign": null
+        },
+        {
+          "k": "bootReady"
+        },
+        {
+          "k": "sdk:event",
+          "ev": "SIGNED_IN",
+          "uid": "synthetic-B"
+        },
+        {
+          "k": "setSession",
+          "uid": "synthetic-B",
+          "refAfterAssign": "synthetic-B"
+        },
+        {
+          "k": "syncRequest",
+          "uid": "synthetic-B",
+          "opts": {
+            "freshLogin": true,
+            "dropTx": false
+          }
+        }
+      ],
+      "fetches": 1,
+      "seq": [
+        "EV:INITIAL_SESSION:null",
+        "set:null",
+        "GS:null",
+        "set:null",
+        "EV:SIGNED_IN:synthetic-B",
+        "set:synthetic-B",
+        "sync:synthetic-B"
+      ]
+    },
+    {
+      "name": "magic-link-return-B-with-A-stored/nolocks",
+      "finalRefUid": "synthetic-B",
+      "events": [
+        {
+          "k": "sdk:event",
+          "ev": "INITIAL_SESSION",
+          "uid": "synthetic-B"
+        },
+        {
+          "k": "setSession",
+          "uid": "synthetic-B",
+          "refAfterAssign": "synthetic-B"
+        },
+        {
+          "k": "syncRequest",
+          "uid": "synthetic-B",
+          "opts": {
+            "freshLogin": true,
+            "dropTx": false
+          }
+        },
+        {
+          "k": "sdk:getSession->",
+          "uid": "synthetic-B"
+        },
+        {
+          "k": "setSession",
+          "uid": "synthetic-B",
+          "refAfterAssign": "synthetic-B"
+        },
+        {
+          "k": "syncRequest",
+          "uid": "synthetic-B",
+          "opts": null
+        }
+      ],
+      "fetches": 1,
+      "seq": [
+        "EV:INITIAL_SESSION:synthetic-B",
+        "set:synthetic-B",
+        "sync:synthetic-B",
+        "GS:synthetic-B",
+        "set:synthetic-B",
+        "sync:synthetic-B"
+      ]
+    },
+    {
+      "name": "magic-link-return-B-with-A-stored/locks",
+      "finalRefUid": "synthetic-B",
+      "events": [
+        {
+          "k": "sdk:event",
+          "ev": "INITIAL_SESSION",
+          "uid": "synthetic-B"
+        },
+        {
+          "k": "setSession",
+          "uid": "synthetic-B",
+          "refAfterAssign": "synthetic-B"
+        },
+        {
+          "k": "syncRequest",
+          "uid": "synthetic-B",
+          "opts": {
+            "freshLogin": true,
+            "dropTx": false
+          }
+        },
+        {
+          "k": "sdk:getSession->",
+          "uid": "synthetic-B"
+        },
+        {
+          "k": "setSession",
+          "uid": "synthetic-B",
+          "refAfterAssign": "synthetic-B"
+        },
+        {
+          "k": "sdk:event",
+          "ev": "SIGNED_IN",
+          "uid": "synthetic-B"
+        },
+        {
+          "k": "setSession",
+          "uid": "synthetic-B",
+          "refAfterAssign": "synthetic-B"
+        },
+        {
+          "k": "syncRequest",
+          "uid": "synthetic-B",
+          "opts": null
+        }
+      ],
+      "fetches": 1,
+      "seq": [
+        "EV:INITIAL_SESSION:synthetic-B",
+        "set:synthetic-B",
+        "sync:synthetic-B",
+        "GS:synthetic-B",
+        "set:synthetic-B",
+        "EV:SIGNED_IN:synthetic-B",
+        "set:synthetic-B",
+        "sync:synthetic-B"
+      ]
+    }
+  ]
+}
