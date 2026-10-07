@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "id": "ops-0710-prod98-served-relay16",
+  "from": "codex",
+  "coordinatorSession": "relay-run-ssfxj5af3d2rj18m",
+  "createdAt": "2026-10-07T13:05:33.871Z",
+  "to": "codex",
+  "baseSHA": "067371705615e9cc58923509e3f60c3d0c9003ff",
+  "objective": "Sucesor de ops-0710-prod98-ci-publish-relay15 released:true. NO repetir merge156: SQUASH main 067371705615e9cc58923509e3f60c3d0c9003ff/tree9b4d215282c51b4b5254be2c948b2d73648ea3a5 exacto, revisión independiente GO y CI 37617951670 SUCCESS 841+9/12FAB. Producción98 aprobada exclusivamente6031246455/beta b7ab/code7ca1346e56ef835fc348b5656707bb53015ddffc9e22b0896b06f671bd78e470. Verificar postTests 37624939139 y Deploy 37624939160 exactos, actualmente en curso; sin rerun ciego. Descargar artefacto Pages del run exacto, verificar 7 HTTP +5 ZIP byteexactos index/SW/i18n/notas/catálogo/manifiesto/sourceSHA y APK52. Sólo después98 servida retirar exclusivamente98 tandas del catálogo beta por flujo normal (siempre preservar historia/rechazo97/resto);96 tiene tarea independiente existente.99/100 no aprobadas, no arrastre main. Inputs blocked e INC-2709-09 abierto. Checkpoint privado relevo15. Si remoto avanzó, revalidar sin borrar trabajo.",
+  "scope": [
+    "src/data/release-notes.json",
+    "public",
+    "docs",
+    "scripts/beta-sources.json",
+    "tests"
+  ]
+}
