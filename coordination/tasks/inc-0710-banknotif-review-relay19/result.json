@@ -1,0 +1,30 @@
+{
+  "status": "done",
+  "summary": "GO técnico independiente árbol7526fa9daf180d0d09771d0430939f273a7f0465; local40b44ea y remoto cacc2a0dff55baa3859ddeedcbdcf862925f2fca idénticos. Causal efecto real/red baseline y mutantes sin off/remove rechazados. Optin/cuota/mutex/idle/runBankSync intactos;30scopes/revisiones y220notas previas/catálogos96/98vacíos preservados. Buildrepro/sintaxis/security/privacy/i18n/mapas/catálogo verdes. DSN95+sello101.99999 raw1317867/gzip9 358949/3, límites intactos. DOMdiscovery2,0ejecutados por Chromium ausente: CIexacta/DOM ygateartefactoreal pendientes. No aceptación101 ni causa global INC-2709-09.",
+  "tests": [
+    {
+      "command": "independent actual bankNotif effect+redbase and no-off/no-remove functional mutants",
+      "exitCode": 0
+    },
+    {
+      "command": "independent registry30/notes220/buildrepro/syntax/security/privacy/i18n/relevant/map/catalog",
+      "exitCode": 0
+    },
+    {
+      "command": "independent synthetic DSN95+seal101.99999 and literal artifact budget1317867/358949/3",
+      "exitCode": 0
+    }
+  ],
+  "productSHA": "cacc2a0dff55baa3859ddeedcbdcf862925f2fca",
+  "limitations": [
+    "DOM ejecución pendiente CI exacta;0casos ejecutados local",
+    "Presupuesto del paquete real sigue gate obligatorio",
+    "INC-2709-09global abierto; inputsblocked y sin aceptaciónhumana99/100/101"
+  ],
+  "schema": 1,
+  "taskId": "inc-0710-banknotif-review-relay19",
+  "actor": "codex",
+  "sessionId": "relay-run-un7m4rjsqldezxl2",
+  "createdAt": "2026-10-07T17:22:45.371Z",
+  "released": true
+}
