@@ -761,17 +761,17 @@
        aporta desbordamiento desplazable bajo el viewport — el stopper del Oppo, rechazo 16/9. */
     overflow:clip;overflow-clip-margin:30px;
   }
-  /* Con la caja ya a max-height:0 el margen de clip dejaba pintar el casquete del FAB (~14px) pegado al
-     borde de abajo, para siempre mientras la barra siguiera oculta (revisión 2026-10-06). Se esconde SOLO
-     el FAB (nada de opacity en la barra: fondo sólido, agosto) y con retardo igual a la bajada, para que
-     el primer frame y el recorrido sigan viéndose; al revelar vuelve de inmediato porque la regla de
-     «oculto» ya no aplica. */
-  .app-shell.scroll-host-on .botnav.botnav-hidden .botnav-fab{
-    visibility:hidden;transition:visibility 0s linear .55s;
+  /* El FAB acompaña el mismo colapso, no se apaga al vencer un reloj: el margen de clip conserva
+     el círculo al salir y su desplazamiento relativo lo lleva entero fuera del borde al final.
+     `top` no transforma la barra ni agranda su caja de scroll; invertir la clase invierte también
+     este recorrido desde su posición actual (feedback 6/10: el botón se quedaba atrás). */
+  .app-shell.scroll-host-on .botnav .botnav-fab{
+    position:relative;top:0;
+    transition:top .55s cubic-bezier(.4,0,.2,1),transform .18s var(--spring);
   }
-  html.reduce-motion .app-shell.scroll-host-on .botnav.botnav-hidden .botnav-fab{transition-delay:0s;}
+  .app-shell.scroll-host-on .botnav.botnav-hidden .botnav-fab{top:30px;}
   @media (prefers-reduced-motion:reduce){
-    .app-shell.scroll-host-on .botnav.botnav-hidden .botnav-fab{transition-delay:0s;}
+    .app-shell.scroll-host-on .botnav .botnav-fab{transition:none;}
   }
   /* Tope: clase residual por si queda colgada de una beta anterior. Ya no se arma
      (parpadeaba al llegar arriba / al swipear tabs — 2026-08-05). */
@@ -20245,7 +20245,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="452c911571c70a74d9e068e18eac4ead2fecc986ae30db59edd63b4878672c0b";
+var _rnSha="2e59648b5d01ac0c4bf8e65a34be48c029072ca240dac82811f128bda71f434f";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){

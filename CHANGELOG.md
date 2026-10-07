@@ -1,3 +1,9 @@
+## [4.26.98] — 2026-10-06 · Apuntar acompaña la retirada de la barra
+
+- Feedback dueño6/10 sobre beta97.1: ya no se corta el círculo, pero el FAB se queda mientras baja la barra y desaparece tarde. Se retira visibility retardada; top relativo de0 a30px comparte duración550ms y curva con max-height/padding de la caja. Al invertir, CSS parte de su posición actual. Se mantienen clip/margen30, fondo sólido, transform:none y bottom:0 en el host; sistema reducido apaga también esta transición del FAB y el ajuste de app conserva su reducción global.
+- Guardián reforzado: doce configuraciones Green/Cyber×safe0/34×normal/reducido app/reducido sistema. Captura separada del contorno inicial, rAF naturales sin finish ni pausa durante otra ocultación, rectángulos/avance de barra y botón, ausencia de apagado discreto, final sin píxeles y cancelación con continuidad antes de550ms. Registro transversal y scope existentes conservados; notas anteriores intactas, guion98 independiente cambia la revisión.
+- Candidata local, NO-GO de diseño mientras falte ejecución DOM rojo97/verde98. Revisión y CI exactas pendientes; ningún resultado de97 acredita esta reparación. Sin publicación, APK/Android/Edge/SQL ni dinero real; INC-2709-09 acumulativo sigue abierto. [Acta](docs/briefs/inc-0610-fab-sync-hide-2026-10-06.md).
+
 ## [4.26.97] — 2026-10-06 · Contorno y final del botón Apuntar
 
 - INC-2709-13: overflow:clip con margen conserva el círculo durante el colapso; visibility retardada solo del FAB elimina el casquete final, inmediata con movimiento reducido. Barra sólida, transform:none y bottom:0 intactos.

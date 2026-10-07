@@ -111,7 +111,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.97** candidata para beta: el botón Apuntar mantiene su contorno y se oculta completamente. Conserva las tres metas de Inicio de96.1. Revisión, CI y entrega pendientes; móvil desconocido. Producción4.26.95 confirmada por HTTP el6/10. INC-2709-09 acumulativo sigue abierto.
+Estado actual: **v4.26.98** candidata local para que Apuntar acompañe la retirada de la barra. Feedback6/10 de beta97.1: conserva el círculo pero el botón se queda y desaparece tarde. Implementación y guardián reforzado preparados; diseño NO-GO hasta acreditar rojo97/verde98 en DOM, revisión y CI. APK52 intacta; INC-2709-09 acumulativo abierto. [Acta](docs/briefs/inc-0610-fab-sync-hide-2026-10-06.md).
 
 Corte anterior (4/10, 12:30 UTC, panel de revisión): **v4.26.93** publicada en beta. Primera entrega4.26.93.1 (fuente1d5dd782), CI37200314653SUCCESS y HTTP/ZIP/HTML/SW/catálogo/huella cotejados el4/10 a12:30UTC:11 tandas/24 puntos, frente a40 antes del cambio. Producción4.26.86 (d366215a), APK beta4.26.80/code52 y estable4.26.32/code48 conservadas. Prueba y aprobación móvil pendientes. [Acta](docs/briefs/ops-0410-panel-cola.md).
 
