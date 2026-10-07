@@ -1,0 +1,32 @@
+{
+  "status": "done",
+  "summary": "Beta4.26.101.1 entregada y verificada; avisos nativos de sesión retirada. Aceptación móvil propia pendiente; INC-2709-09 abierto.",
+  "tests": [
+    "Revisión independiente GO árbol7526fa9daf180d0d09771d0430939f273a7f0465;CI37658712643 SUCCESS del mismo árbol:882DOMpassed+1skip,9perf,funciones/datos/privacidad verdes.",
+    "PR163 CI-only cerrado sinmerge;PR162 SQUASHbeta77b7d5e4d6188ec08c7aea0a598c741bb3025d13 con árbol exacto.",
+    "Publicador37671605914/job112964469977 SUCCESS19:46:47UTC;checkout77b7;gate--artifact tras minificar antesZIP PASS;DOM881passed+1flaky+1skip,9perf.",
+    "Flake registrado e2e/cartera-inversiones.spec.mjs434: screen-close count esperaba0 recibió1;retryPASS. CI previa exacta sinflake;no atribuirlo a banknotif ni ocultarlo.",
+    "HTTP200 version/apk/bundle;4.26.101.1/8491430f6646e1df;huella recalculada igual;ZIPsha2565600dc8decf173dde99371df1cf5e3904240a904f41bcfb5577ac17de07c02e3 igualRESTdigest;APP/SW77b7 correctos.",
+    "Descarga exacta --artifact exit0:1317863raw/357001gzip9/3blocking;221notas48tandas31webscopes exactos;APK52 sin cambios."
+  ],
+  "evidence": {
+    "sourceSHA": "cacc2a0dff55baa3859ddeedcbdcf862925f2fca",
+    "mergeSHA": "77b7d5e4d6188ec08c7aea0a598c741bb3025d13",
+    "treeSHA": "7526fa9daf180d0d09771d0430939f273a7f0465",
+    "version": "4.26.101.1",
+    "fingerprint": "8491430f6646e1df",
+    "sourcePR": 162,
+    "ciOnlyPR": 163,
+    "publisher": 37671605914
+  },
+  "limits": [
+    "Sólo beta; ninguna aceptación móvil inferida;sinproducción/APK/Edge/SQL.",
+    "No acredita causa ni corrección global del lag acumulativo."
+  ],
+  "schema": 1,
+  "taskId": "inc-0710-banknotif101-final-relay21",
+  "actor": "codex",
+  "sessionId": "relay-run-82bdecb0988d1d4c",
+  "createdAt": "2026-10-07T20:01:45.822Z",
+  "released": true
+}
