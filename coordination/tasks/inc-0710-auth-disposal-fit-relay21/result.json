@@ -1,0 +1,30 @@
+{
+  "status": "done",
+  "summary": "Beta102.1 publicada y servida exacta6b812; artefacto real dentro de presupuesto, catálogo íntegro y APK52 sin cambios. Cleanup parcial auth, INC-2709-09 abierto; aceptación propia102 pendiente.",
+  "branch": "beta",
+  "productSHA": "6b81279676d66337d7b34b7badc6d1ff2c66bc24",
+  "tests": [
+    {
+      "command": "CI37677735522 exacta:884DOM+9perf/PERSIST91/finanzas/privacidad",
+      "exitCode": 0
+    },
+    {
+      "command": "Publisher37686143467:884DOM+1skip/9perf; real artifact budget",
+      "exitCode": 0
+    },
+    {
+      "command": "HTTPversion/APK/ZIP; SHA256/huella/SW/catalog/source exactos",
+      "exitCode": 0
+    }
+  ],
+  "limitations": [
+    "raw1317872/gzip357057/3blocking; margen crudo16B",
+    "No cura global, no APK/Edge/SQL nuevos, beta102 requiere veredicto propio"
+  ],
+  "schema": 1,
+  "taskId": "inc-0710-auth-disposal-fit-relay21",
+  "actor": "codex",
+  "sessionId": "relay-run-82bdecb0988d1d4c",
+  "createdAt": "2026-10-07T22:00:24.263Z",
+  "released": true
+}
