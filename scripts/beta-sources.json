@@ -11694,5 +11694,14 @@
         "to": "  // APK alpha22: noti de Caixa/Sabadell/… → evento nativo bankNotif → sync OB (sin parsear importe)."
       }
     ]
+  },
+  "inc-0710-banknotif-cleanup": {
+    "web": [
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  // APK alpha22: noti de Caixa/Sabadell/… → evento nativo bankNotif → sync OB (sin parsear importe).",
+        "to": "  // PUNTO 5 · Noti → ficha del gasto."
+      }
+    ]
   }
 }

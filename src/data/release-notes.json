@@ -1,5 +1,46 @@
 [
   {
+    "v": "4.26.101",
+    "d": "2026-10-07",
+    "t": {
+      "es": "Avisos tras cambiar de sesión",
+      "en": "Notifications after switching sessions",
+      "ca": "Avisos després de canviar de sessió"
+    },
+    "items": {
+      "es": [
+        "Los avisos de banco dejan de conservar acciones de una sesión cerrada."
+      ],
+      "en": [
+        "Bank notifications no longer retain actions from a closed session."
+      ],
+      "ca": [
+        "Els avisos del banc deixen de conservar accions d’una sessió tancada."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inc-0710-banknotif-cleanup",
+        "t": {
+          "es": "Avisos tras cambiar de sesión",
+          "en": "Notifications after switching sessions",
+          "ca": "Avisos després de canviar de sessió"
+        },
+        "items": {
+          "es": [
+            "1. En Android, cambia de sesión y vuelve a la app: los avisos de banco deben seguir respetando la opción de actualización elegida. No hace falta activar avisos ni hacer operaciones."
+          ],
+          "en": [
+            "1. On Android, switch sessions and return: bank notifications should still respect your chosen update setting. There is no need to enable notifications or perform transactions."
+          ],
+          "ca": [
+            "1. A Android, canvia de sessió i torna a l’app: els avisos del banc han de continuar respectant l’opció d’actualització triada. No cal activar avisos ni fer operacions."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.100",
     "d": "2026-10-07",
     "t": {

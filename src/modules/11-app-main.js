@@ -1030,18 +1030,21 @@ function App(){
     if(!uid) return;
     const nat=natPlugin();
     if(!nat||!nat.addListener) return undefined;
-    let h=null;
+    let sub, off;
     const onPing=function(){
+      if(off) return;
       if(!(stateRef.current||{}).hasBankLink) return;
       if(!allowBankNotifSync()) return;
       mcScheduleIdle(function(){ runBankSync({}); });
     };
     try{
-      const p=nat.addListener("bankNotif", onPing);
-      if(p&&p.then) p.then(function(handle){ h=handle; }).catch(function(){});
-      else h=p;
+      sub=Promise.resolve(nat.addListener("bankNotif", onPing)); sub.catch(function(){});
     }catch(e){}
-    return function(){ try{ if(h&&h.remove) h.remove(); }catch(e){} };
+    return ()=>{
+      off=true;
+      // La sesión puede retirarse antes de que el puente entregue el handle.
+      if(sub) sub.then(h=>h&&h.remove&&h.remove()).catch(()=>{});
+    };
   },[uid]);
 
   // PUNTO 5 · Noti → ficha del gasto. Al tocar la notificación de un gasto, la parte nativa deja un
