@@ -1,0 +1,16 @@
+{
+  "status": "done",
+  "summary": "GO independiente SELECTIVO fuente14f9e4fb/tree17c13fe. App appStateChange Promise handle fuga tras cambiosuid; cleanup inmediato/tardio/stale callbacks/errores guardados verificados con8 casos y negativo7 listeners. No integrar commit original por metadata privada. Preparacion limpia100 en tarea propia desde3aeed496; requiere CI/DOM/budget antesbeta. INC-2709-09 global abierto sin causa A/B acreditada.",
+  "tests": [
+    "8 lifecycle Node causal simulations green",
+    "negative parent leaks7 listeners",
+    "scope/map/syntax/privacy green",
+    "independent source review GO selective"
+  ],
+  "schema": 1,
+  "taskId": "inc-0710-lifecycle-fix-review-relay12",
+  "actor": "codex",
+  "sessionId": "relay-run-0c47148d42bae423",
+  "createdAt": "2026-10-07T04:48:57.672Z",
+  "released": true
+}
