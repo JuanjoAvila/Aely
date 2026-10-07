@@ -72,6 +72,20 @@ No se prueba ni se modifica el APK público52; instalado y entrega efectiva sigu
 
 ## Gates siguientes
 
+La revisión independiente añade 88 comprobaciones sobre Java real: la base confunde una
+identidad cuyo texto es sufijo de otra; la candidata conserva ambas hasta ACK exacto.
+Cruces de tickets, appFence, ACK, duplicados y lápidas mantienen el contrato de importes.
+GO limitado al delta de formato/deduplicación para CI, nunca a entrega APK.
+
+Deuda financiera heredada, reproducida tanto en base8e4 como candidata9ddb: al superar
+JOURNAL_MAX (262144 caracteres) una identidad puede no conservarse; una foto posterior de
+la app sin ACK reconstruye sólo las identidades retenidas y puede borrar las banderas de
+incertidumbre. Esta candidata no lo repara ni acredita recuperación segura de saturación.
+Antes de una entrega nativa debe revisarse este límite con un marcador durable de pérdida,
+sin inventar importes ni confirmar por silencio. La prueba es sintética y no atribuye el
+síntoma humano a ese caso. Escritores sincronizados y ausencia de android:process son
+evidencia de fuente; no sustituyen pruebas reales de Android ni de varios procesos.
+
 Revisión independiente fuerte del árbol exacto, matriz y guardianes financieros; CI exacta
 completa antes de cualquier integración. Después, definir la versión/identidad y circuito
 nativo beta con aprobación propia, firma y APK real, si el dueño autoriza esa entrega.
