@@ -1,0 +1,9 @@
+{
+  "id": "relay16-catalog96-98-review-go-20261007",
+  "to": "codex",
+  "body": "Revision independiente READONLY árbol736a50944dddbcb96459a8a62414b0d89728cdcf (locale80b159a, remotod9cea551) GO. Aserciones propias: srcnotes solo96/98.tandas=[];220notas/textos/97vacia/99/100/otras idénticas, codigosweb iguales, pruebas solo pierde96/98, publicnotes=betaNotes(fuente), index solo _rnSha, resto tracked intacto. beta-tandas-vacias18/18 y beta-veredictos33/33exit0. Oficial presupuesto esbuild0.25.5 gzipLEVEL9/preloads: dev y sello100.99999 dentro1317888/359424/3; no topes alterados. Solo tras100servida/basefinal+CI161verde/publicador puede declararse entregada. No main/APK/Edge/SQL; INC-2709-09 abierto.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "relay-run-05acdf59215d4b23",
+  "createdAt": "2026-10-07T14:22:21.638Z"
+}
