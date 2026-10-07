@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "id": "inc-0710-appstate100-ci-beta-relay15",
+  "from": "codex",
+  "coordinatorSession": "relay-run-b06e39e3fadf17c2",
+  "createdAt": "2026-10-07T12:44:38.792Z",
+  "to": "codex",
+  "baseSHA": "354b79605f8455e2c7acd3289694ec87aee92fbb",
+  "objective": "Sucesor inc-0710-appstate100-repair-next-relay14 released:true. PR155beta head354b79605f8455e2c7acd3289694ec87aee92fbb/tree9442f2a4c3dd8f27d83c2889ce0a15084238dd8e incluye repair99 yguardsPERSIST91/DOMbasepositive intactos; reviewindependienteGO cleanupPromise uid, callbacks retirados yerrores. CI37618709225 aún en curso12:41UTC. PR158 sóloverificaciónCI aMAIN, nunca mergeMAIN. Checkout294ddd420fd6015a5de81afee2c1208a1945eda4 árbol exact9442 pasa docs14; localc840 docs red porancestry posterior ancla100, noeditar guard ni fingirverde. Cleanup9/PERSIST91/source scopes+219notas anteriores exactos, fullbeta-sources local cancelled130 redundante noverde. Budgetstress100.99999raw1317882<=1317888,gzip356976<=359424,3blocking; margen estrecho, exigirCIexacta yDOM real. Sólo después99servida freshbeta, source/notas/revisión/CI exactos verdes permiten ready155/SQUASHBETA/publicador/HTTP/sourceSha. No aprobar100/main/APK/Edge/SQL ni resolverlaggeneral. Producción98primera prioridad. TodoWIP durable remoto, checkpointprivado relevo14. No rerun/reconstruirPR sinfallo concreto.",
+  "scope": [
+    "tests",
+    "e2e",
+    "docs",
+    "src/modules/11-app-main.js",
+    "public",
+    "scripts",
+    "VERSION",
+    "package.json",
+    "package-lock.json"
+  ]
+}
