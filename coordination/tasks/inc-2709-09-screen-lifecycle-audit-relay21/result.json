@@ -1,0 +1,26 @@
+{
+  "status": "done",
+  "summary": "Diagnóstico Plan14 confirmado en contrato sintético y revisión independiente; sólo documentación durable, sin fix ni causa general del lag acreditada.",
+  "tests": [
+    "Fragmento literal fuente0fe/hashverificado:12cleanups antes500ms sinanimationend retienen12listeners/3clases/0timers;cleanupvirtualclear()0.",
+    "Controles animationend normal/fallback500ms/bubbling/idempotencia/returnvoid PASS exit0;ruta gesto→setSeg ycapas persistentes/reducedmotionCSS verificados estáticamente.",
+    "Revisión independiente GO commitc3fbb0d9bc724ed5a73b7de34540b12b70e6f9fc/tree81673e1f824fe37248496a8ff3b5a11beeff9e76;2docs+95líneas;producto/scripts/tests/e2e byteiguales0fe;checkoutclean.",
+    "Fuente remota002420276212e377d9f2292fa12cecdc29c38193/tree81673e1f824fe37248496a8ff3b5a11beeff9e76,branchcodex/plan-animation-diag-relay21 readbackexacto."
+  ],
+  "evidence": {
+    "sourceSHA": "0fe497db07f0cd8e2e2e3e947032c13b7ab25d2a",
+    "remoteSHA": "002420276212e377d9f2292fa12cecdc29c38193",
+    "treeSHA": "81673e1f824fe37248496a8ff3b5a11beeff9e76"
+  },
+  "limits": [
+    "DOM0;noinstalacióndeChromium ni mediciónframes/memoriahumana.",
+    "NO fix/productpublicado;INC-2709-09 abierto;no causa de laghumano ni cuantificación de mejora.",
+    "Ningún escritor/testactivo;fallback normal ya limpiaba si no era cancelado."
+  ],
+  "schema": 1,
+  "taskId": "inc-2709-09-screen-lifecycle-audit-relay21",
+  "actor": "codex",
+  "sessionId": "relay-run-82bdecb0988d1d4c",
+  "createdAt": "2026-10-07T20:11:47.254Z",
+  "released": true
+}
