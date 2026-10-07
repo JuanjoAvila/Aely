@@ -1,3 +1,7 @@
+## [4.26.98] — 2026-10-07 · Barra y botón se ocultan juntos
+
+- Promoción selectiva autorizada por el dueño7/10 para beta4.26.98.1/sourceb7ab/huellaf54a36a60d889bc9; registro issue130/6031246455. CSS exacta de la fuente aprobada y revisión web7ca1346e56ef835fc348b5656707bb53015ddffc9e22b0896b06f671bd78e470; guardianes de contorno, final natural, cancelación y reducción de movimiento. Sobre main85b8; ninguna otra unidad runtime ni APK/Edge/SQL. Candidata local, revisión independiente/CI/entrega pendientes; INC-2709-09 global sigue abierto.
+
 ## [4.26.96] — 2026-10-06 · Tres metas a mano en Inicio
 
 - Promoción selectiva autorizada directamente por el dueño6/10: únicamente `inc-0410-inicio-tres-metas`, fuente beta4.26.96.1 `ca6f5e854c58ae7d73f24b604f20c8058b4b50a3`, huella `f74ec4d9155e1557`, revisión web `06180d02b24123caf20a1ca188f1f5f63c12d2d20974a3917b8d3377dd6084d9` y revisión agregada `644e53e3d72722ee5503797dc3727bbacd0797d9b253d279c5479189ea231e0f`. Sobre main `537edc1c33433fe122266e21f0d158c7b943b625`, el bloque de selección de metas es exacto de la fuente aprobada: filtra terminadas antes de limitar a tres. Plan, orden y estado guardado se conservan.

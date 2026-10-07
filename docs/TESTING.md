@@ -1,3 +1,5 @@
+Promoción98 candidata: guardianes botnav-fab-recorte/fab-pixels exactos de beta98; doce configuraciones contorno, movimiento rAF natural, final, reveal/cancel y reduced-motion. Prueba nueva incluida en CROSSCUTTING; CI exacta y DOM local pendientes.
+
 ## Exportación de memoria a un repositorio público (5/10)
 
 Sucesora del 6/10: una frase financiera incompleta seguida de línea vacía y cifra desnuda se rechazará también. El contexto heredado dura un solo párrafo inmediato y exige un final reconocido sin valor (etiqueta, «capital», «en», «de», «por», `:` o `=`) y comienzo numérico, incluidas comillas. Una etiqueta enlazada terminal también queda pendiente sin retirar su destino del payload ni residual. Los fixtures cubren LF/CRLF, varias líneas vacías, cifras Unicode, énfasis y cita. Positivos literales conservan bytes técnicos, fecha/versión/SHA rotulados y cifras de una sección o prosa nueva; esos límites no pretenden interpretar el discurso completo. Un mutante que retira solo la herencia reproduce salida 0 y creación de destino; el guardián corregido rechaza con salida 1 sin crear el destino. Todo el contenido es inventado.
