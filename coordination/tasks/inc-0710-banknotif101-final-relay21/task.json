@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "id": "inc-0710-banknotif101-final-relay21",
+  "from": "codex",
+  "coordinatorSession": "relay-run-38d55b3d3aa853f2",
+  "createdAt": "2026-10-07T18:14:40.315Z",
+  "to": "codex",
+  "baseSHA": "cacc2a0dff55baa3859ddeedcbdcf862925f2fca",
+  "scope": [
+    "PR162/source cacc2a0dff55baa3859ddeedcbdcf862925f2fca/tree7526fa9daf180d0d09771d0430939f273a7f0465",
+    "VerifyPR163 e7421be4aae269136e15b1f44503b4e29bce2b9d preview1482807c23ffb8b1bd9d35b8a152a2be1310b1f3 mismoárbol;PR162preview75e5204dd26b919aab7959345db40a0047fcc3e8",
+    "CI37658712643 attempt1 job112920402868 -> SQUASH beta -> publisher artifact gate -> HTTP/ZIP exact"
+  ],
+  "objective": "Concluir candidata101; predecesor inc-0710-banknotif101-ci-publish-relay20 cerrado blocked sólo por CI remota en curso, no failure. Dependencia catálogo100.2 YA SERVIDA exacta: a56/tree daa5,220notes47tandas30codes sólo96/98=[] yAPK52 intacta; task ops-0710-catalog1002-served-relay20 done. CI actual attempt1 Tests inprogress/Privacy pending: obtener final y logs completos con checkout preview1482807/tree7526,Node5Deno/DOM delayedbankNotif+funcional+perf+privacidad. No repetir suites locales/reconstruirPR/rerun sin cambio pertinente. Fuente19files/runtime sólobankNotif yGOindependiente intactos. PR163 NUNCA main: trasverde cerrarSINMERGE yreadback. Beta fresca; headPR162cacc ybasea56 deben coincidir; si cambian revisar merge-tree/alcance. Ready162 ySQUASH exclusivamente beta expectedheadcacc; readbacktree7526. Publisher debe ejecutar gate literal --artifact trasconfig/stamp/minify antespack con topes1287/351KiB/3; no subirlos. Verificar HTTP version/apk/bundleZIP ysourceSha/APP_VERSION/SW/huella/notas221/i18n/códigos/APK52 exactos antes entrega. Antefailure diagnosticar antes rerun. No humana99/100/101 ni main/APK/Edge/SQL/migraciones/pagos. Inputsblocked;INC-2709-09open. Reserva externaClaude inc-0710-initial-session-order-claude-relay20 viva; no duplicar ni asumirfixlag. Rutina Aely ·Relevos automáticos; identificarse con generación propia real trasclaim, noIDschats públicos."
+}
