@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "id": "inc-0710-widget-production-diagnosis-relay21",
+  "from": "codex",
+  "coordinatorSession": "relay-run-82bdecb0988d1d4c",
+  "createdAt": "2026-10-07T20:29:06.878Z",
+  "to": "codex",
+  "baseSHA": "067371705615e9cc58923509e3f60c3d0c9003ff",
+  "scope": [
+    "widget web/native contracts read-only",
+    "native BankNotification/Widget source and synthetic reproductions",
+    "public deployment/build receipts only",
+    "docs/briefs:diagnosis"
+  ],
+  "objective": "PRIORIDAD técnica: widget de producción permanece en placeholder de actualización tras cada pago; causa desconocida. Main067/servidoHTTP4.26.98/catalogsource067 confirmado por coordinador;APKmanifestsource64b4e5f3543ae440812ecf76a7e3259dfc938d1b/52 correlacionar con bytes/build real. Diagnóstico de flujo pago/notificación→ingest→snapshotwidget→appforeground/background: coherencia, caducidad,orden/respuestas tardías/auth/offline yestado delwidget. Recuperar sólo fuente pública mínima deJava/JS/ingest yrecibosde despliegue; servidorvigenteunknown sin evidencia, noinferirporrepo. No consultar Supabase salvolectorprivado coordinador; nootras tablas/usuarios/cuentas/secrets/functions niAPKsocketsreales. Reproducir con datos sintéticos/controlantes, función exacta/contratos; noinventarcifras ni reparardatos. Entregar causa demostrada ohipótesis/limitaciones ypropuesta acotada condependencias/regresiónfinanciera/gatesAPK/Edge/SQL separados. No publicarproducto/deploy ni cambiarSDK/planes/finanzas porinferencia. Checkoutaislado nuevo desde067;AGENTS/EMPIEZAcompletos. No suitesglobales repetidas ni navegadorinstalado; noUIejecutadafalsa. Commit/Evidenciadurables,procesosrecogidos;independientereview antesfix."
+}
