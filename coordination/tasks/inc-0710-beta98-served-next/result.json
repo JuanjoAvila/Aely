@@ -1,0 +1,16 @@
+{
+  "status": "done",
+  "summary": "Beta98.1 publicada y servida exacta b7abebb6db7a74ccc9f7df87b41f5d63981b0c43; publicador37569120748 SUCCESS 844 E2E+9perf+12FAB. HTTP200 version/bundle/apk, huella f54a36a60d889bc9, digests iguales release, catalog218 y codigo96 intactos; APK52 sin cambio. Requiere veredicto movil propio; no aprobada para main.",
+  "tests": [
+    "Publisher37569120748 SUCCESS",
+    "HTTP ZIP sourceSha/catalog/webcode96 exact",
+    "release asset digests exact",
+    "APK52 binary unchanged"
+  ],
+  "schema": 1,
+  "taskId": "inc-0710-beta98-served-next",
+  "actor": "codex",
+  "sessionId": "relay-run-0c47148d42bae423",
+  "createdAt": "2026-10-07T04:48:41.812Z",
+  "released": true
+}
