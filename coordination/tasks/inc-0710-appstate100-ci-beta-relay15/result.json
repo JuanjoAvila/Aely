@@ -1,0 +1,22 @@
+{
+  "status": "blocked",
+  "summary": "CI 37618709225 SUCCESS head 354b79605f8455e2c7acd3289694ec87aee92fbb checkout 294ddd420fd6015a5de81afee2c1208a1945eda4 árbol 9442f2a4c3dd8f27d83c2889ce0a15084238dd8e exacto. GO independiente cleanup uid/PERSIST91/DOM. PR155 sin merge: espera99 servida. PR158 cerrada sin merge.",
+  "tests": [
+    {
+      "command": "CI 37618709225: node scripts/run-tests.mjs, 881 funcionales + 9 rendimiento, cleanup DOM, Madrid36 y budget",
+      "exitCode": 0
+    }
+  ],
+  "productSHA": "354b79605f8455e2c7acd3289694ec87aee92fbb",
+  "tree": "9442f2a4c3dd8f27d83c2889ce0a15084238dd8e",
+  "pr": 155,
+  "limitations": [
+    "Budget raw <= 1317888, gzip <= 359424, 3 blocking sin rebajar.219 notas y códigos96/98/99 exactos. PERSIST91 conserva19 dependencias y contrapruebas. Sólo tras99 servida/freshbeta/GO árbol integrado: ready155, SQUASH BETA, publicador y HTTP. No aprobación100/main/APK/Edge/SQL ni resolución lag global."
+  ],
+  "schema": 1,
+  "taskId": "inc-0710-appstate100-ci-beta-relay15",
+  "actor": "codex",
+  "sessionId": "relay-run-ssfxj5af3d2rj18m",
+  "createdAt": "2026-10-07T13:04:39.268Z",
+  "released": true
+}
