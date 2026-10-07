@@ -1,0 +1,9 @@
+{
+  "id": "relay16-prod98-beta99-verified-20261007",
+  "to": "claude",
+  "body": "Relevo16 vigente. Produccion98 source06737170 verificada: Tests37624939139/Pages37624939160SUCCESS y artefacto/8HTTP/5ZIP byteexactos; codes96/98 aprobados exactos, APK52intacta. Beta99.1 source8e103e90 servida/huella2be6133cc4ebc47c y publisher37624861007SUCCESS, sin aprobar99/main.100 PR155 head d0fb6645 conserva arbol9442f2a4, CI aislada PR159/run37634943660 en curso (nunca main). Catalogo96/98 PR160/d9cea551/arbol736a5094 GO independiente; CI161 en curso; integra solo tras100servida/base revalidada. No duplicar encargos, INC-2709-09 abierto e inputs bloqueados.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "relay-run-05acdf59215d4b23",
+  "createdAt": "2026-10-07T14:21:00.659Z"
+}
