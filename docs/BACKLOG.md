@@ -1,3 +1,5 @@
+Prioridad7/10: terminar promoción selectiva98 aprobada (barra y botón juntos); candidata local sobre main85b8, gates pendientes. Producción96 ya servida. Gastos99 y listeners100 siguen pendientes de CI y beta; lag global abierto.
+
 # Backlog operativo — Aely
 
 Promoción4/10: once tandas actuales aprobadas; candidata revisada en preparación. Producción aún86/APK48 hasta verificar entrega. Prioridad: publicar lo aprobado y retirar del panel solo lo entregado. [Acta](briefs/promocion-aprobadas-2026-10-04.md).

@@ -1,8 +1,10 @@
+Promoción selectiva98 preparada7/10: el dueño aprobó ocultar juntos barra y botón en beta4.26.98.1/sourceb7ab. Base main85b8, sólo CSS aprobada, scope y guardianes correspondientes. Producción96 ya servida; candidata98 local pendiente de revisión independiente, CI exacta y entrega. No99/100/APK/Edge/SQL; INC-2709-09 continúa abierto. [Acta](briefs/promocion-fab98-2026-10-07.md).
+
 # Roadmap — Aely
 
 Promoción selectiva6/10: candidata4.26.96 local para mostrar hasta tres metas activas en Inicio, aprobada directamente por el dueño para la fuente ca6f5e85. Base main537edc1; únicamente el límite visual aprobado, conservando todas las metas en Plan y el resto de main. Revisión independiente, CI y entrega servida pendientes; INC-2709-09 sigue abierto. [Acta](briefs/promocion-inicio96-2026-10-06.md).
 
-> Estado a 2026-10-06 · **v4.26.96** candidata local selectiva autorizada para el límite visual de Inicio. Revisión independiente, CI y entrega servida pendientes. APK/backend/SQL sin cambios; INC-2709-09 abierto.
+> Estado a 2026-10-07 · **v4.26.98** candidata local selectiva autorizada; revisión, CI y entrega pendientes.
 
 Promoción selectiva5/10: candidata4.26.95 para volver con mucho historial, autorizada directamente por el dueño. Base main8bb0398; solo caché de fechas aprobada en PR133, sin beta completa. Revisión independiente, CI y entrega servida pendientes. INC-2709-09 global sigue abierto. [Acta](briefs/promocion-cache95-2026-10-05.md).
 
@@ -265,7 +267,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.26.96** candidata local selectiva: hasta tres metas activas en Inicio, sobre main537edc1. Revisión/CI/entrega pendientes; lag global abierto. |
+| Web / OTA (`VERSION`) | **4.26.98** candidata local selectiva; producción96 servida, revisión/CI/entrega98 pendientes. |
 | APK (`versionName` / `versionCode`) | **4.26.80 / 52** conservada de la base; Metas87 no genera APK. Cotejo servido en gate de entrega. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **52 / 4.26.80** conservado byte a byte respecto a3467; Metas87 no reemplaza binario ni manifiesto. |

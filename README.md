@@ -1,3 +1,5 @@
+Promoción selectiva98 preparada7/10: el dueño aprobó ocultar juntos barra y botón en beta4.26.98.1/sourceb7ab. Base main85b8, sólo CSS aprobada, scope y guardianes correspondientes. Producción96 ya servida; candidata98 local pendiente de revisión independiente, CI exacta y entrega. No99/100/APK/Edge/SQL; INC-2709-09 continúa abierto. [Acta](docs/briefs/promocion-fab98-2026-10-07.md).
+
 Promoción selectiva6/10: candidata4.26.96 local para mostrar hasta tres metas activas en Inicio, aprobada directamente por el dueño para la fuente ca6f5e85. Base main537edc1; únicamente el límite visual aprobado, conservando todas las metas en Plan y el resto de main. Revisión independiente, CI y entrega servida pendientes; INC-2709-09 sigue abierto. [Acta](docs/briefs/promocion-inicio96-2026-10-06.md).
 
 Apuntar y Gastos permiten distinguir Multas, Zona azul y Peajes. Solo los pagos nuevos con detalle inequívoco los sugieren; elegir una categoría conserva el importe y la fecha.
@@ -110,7 +112,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.96** candidata local de promoción selectiva autorizada de «Tres metas a mano en Inicio». Inicio resume hasta tres metas activas; Ver plan mantiene todas. Revisión independiente, CI y entrega servida pendientes; el lag global sigue abierto. [Acta](docs/briefs/promocion-inicio96-2026-10-06.md).
+Estado actual: **v4.26.98** candidata local selectiva autorizada: botón y barra se ocultan juntos. Revisión/CI/entrega pendientes; lag global abierto.
 
 Corte anterior (4/10, 12:30 UTC, panel de revisión): **v4.26.93** publicada en beta. Primera entrega4.26.93.1 (fuente1d5dd782), CI37200314653SUCCESS y HTTP/ZIP/HTML/SW/catálogo/huella cotejados el4/10 a12:30UTC:11 tandas/24 puntos, frente a40 antes del cambio. Producción4.26.86 (d366215a), APK beta4.26.80/code52 y estable4.26.32/code48 conservadas. Prueba y aprobación móvil pendientes. [Acta](docs/briefs/ops-0410-panel-cola.md).
 

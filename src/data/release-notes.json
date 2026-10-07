@@ -1,5 +1,26 @@
 [
   {
+    "v": "4.26.98",
+    "d": "2026-10-07",
+    "t": {
+      "es": "Apuntar acompaña a la barra al ocultarse",
+      "en": "Add follows the bar as it hides",
+      "ca": "Apuntar acompanya la barra en amagar-se"
+    },
+    "items": {
+      "es": [
+        "El botón central baja y vuelve con la barra, sin quedarse esperando ni desaparecer de golpe al final."
+      ],
+      "en": [
+        "The central button moves down and returns with the bar, without lingering or suddenly disappearing at the end."
+      ],
+      "ca": [
+        "El botó central baixa i torna amb la barra, sense quedar-se esperant ni desaparèixer de cop al final."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.26.96",
     "d": "2026-10-06",
     "t": {
