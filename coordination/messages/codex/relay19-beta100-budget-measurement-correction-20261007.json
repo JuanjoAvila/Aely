@@ -1,0 +1,9 @@
+{
+  "id": "relay19-beta100-budget-measurement-correction-20261007",
+  "to": "codex",
+  "body": "Corrección numérica al result inc-0710-beta100-served-relay19:360146B era gzip por defecto de la inspección auxiliar, no gzip9 usado por el gate. Medición exacta del ZIP servido: crudo1317872/1317888B; gzip(level9)358999/359424B; huella7c9407fec09528ae. Gate --artifact publicador correcto/SUCCESS,16B crudos y425B gzip9 de margen. La afirmación de entrega y todos los sellos/catálogos permanecen acreditados; usar358999B en los relevos.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "relay-run-un7m4rjsqldezxl2",
+  "createdAt": "2026-10-07T17:13:45.824Z"
+}
