@@ -1012,15 +1012,16 @@ function App(){
       }
     };
     document.addEventListener("visibilitychange", onVis);
-    // Capacitor: appStateChange (más fiable que visibility en algunos Android)
+    // Capacitor devuelve una promesa: liberar también el handle que llega después del cleanup.
     const A=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.App;
-    let sub=null;
+    let sub, off;
     if(A&&A.addListener){
-      try{ sub=A.addListener("appStateChange", function(st){ if(st&&st.isActive) onVis(); }); }catch(e){}
+      try{ sub=Promise.resolve(A.addListener("appStateChange", st=>!off&&st&&st.isActive&&onVis())); sub.catch(()=>{}); }catch(e){}
     }
-    return function(){
+    return ()=>{
+      off=true;
       document.removeEventListener("visibilitychange", onVis);
-      try{ if(sub&&sub.remove) sub.remove(); }catch(e){}
+      if(sub) sub.then(h=>h&&h.remove&&h.remove()).catch(()=>{});
     };
   },[uid]);
 
@@ -1029,18 +1030,21 @@ function App(){
     if(!uid) return;
     const nat=natPlugin();
     if(!nat||!nat.addListener) return undefined;
-    let h=null;
+    let sub, off;
     const onPing=function(){
+      if(off) return;
       if(!(stateRef.current||{}).hasBankLink) return;
       if(!allowBankNotifSync()) return;
       mcScheduleIdle(function(){ runBankSync({}); });
     };
     try{
-      const p=nat.addListener("bankNotif", onPing);
-      if(p&&p.then) p.then(function(handle){ h=handle; }).catch(function(){});
-      else h=p;
+      sub=Promise.resolve(nat.addListener("bankNotif", onPing)); sub.catch(function(){});
     }catch(e){}
-    return function(){ try{ if(h&&h.remove) h.remove(); }catch(e){} };
+    return ()=>{
+      off=true;
+      // La sesión puede retirarse antes de que el puente entregue el handle.
+      if(sub) sub.then(h=>h&&h.remove&&h.remove()).catch(()=>{});
+    };
   },[uid]);
 
   // PUNTO 5 · Noti → ficha del gasto. Al tocar la notificación de un gasto, la parte nativa deja un

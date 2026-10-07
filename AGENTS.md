@@ -155,6 +155,15 @@ Va directo a `main` **solo** lo que no puede afectar a lo que él ve: documentac
 
 **Solo se pushea trabajo TERMINADO y verificado.** Nunca a medias. OTA web ≠ APK: si el fix es Java/Kotlin, sin APK nuevo el móvil no lo tiene.
 
+### Prioridad de las aprobadas (feedback 2026-10-04)
+
+Publicar en producción las tandas con aprobación vigente tiene prioridad sobre implementar
+trabajo nuevo. Primero se comprueba su revisión y cada superficie necesaria (web, APK y Edge);
+después se verifica la entrega efectiva y se retiran del catálogo beta las tandas entregadas.
+Se conserva `tandas:[]` al vaciar una versión, junto con las notas y el historial de decisiones.
+La cola debe enseñar solo lo que falta por aprobar o entregar; no se deja una tanda entregada
+pidiendo al dueño que la revise otra vez. Una aprobación antigua no acredita una revisión nueva.
+
 ### ⚠ El promote mezcla con `-X theirs`: revisa el diff, no te fíes del verde
 
 `promote-beta.yml` hace `git merge --no-ff -X theirs origin/beta`. Ese `-X theirs` significa
