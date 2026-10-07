@@ -2,6 +2,11 @@ Promoción3/10: fuente web aprobada86/49a preparada sobre main12884; APK estable
 
 # App nativa Android (Capacitor) — reemplazo de MacroDroid
 
+Candidata aislada del journal desconocido (7/10): fuente Java de PR105 sobre beta102,
+sin APK, versión ni despliegue. Indentación de un salto final antiguo puede bloquear un
+ACK válido; la matriz Java conserva pagos sin ACK y falla cerrado ante corrupción.
+[Fuente, pruebas y gates](briefs/inc-0710-widget105-isolated-source.md).
+
 Objetivo: empaquetar la PWA como app Android y añadir un **servicio nativo** que lee la
 notificación de gasto de Trade Republic y la manda a la Edge Function `ingest` — lo mismo que
 hacía MacroDroid, pero dentro de nuestro proyecto.

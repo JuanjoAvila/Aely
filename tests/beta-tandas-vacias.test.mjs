@@ -29,6 +29,9 @@ const VERSION_ACTUAL = fs.readFileSync(new URL("../VERSION", import.meta.url), "
    las comprobaciones de «queda algo por probar» solo aplican cuando alguna nota tiene tandas. */
 const HAY_RONDA = JSON.parse(fs.readFileSync(new URL("../src/data/release-notes.json", import.meta.url), "utf8"))
   .some((n) => Array.isArray(n.tandas) && n.tandas.length > 0);
+// Las siete pendientes de septiembre siguen protegidas después de su entrega real.
+const historicalNotes=JSON.parse(execFileSync("git",["show","4403b252933410741a877eea59b85d812b2fe543:src/data/release-notes.json"],{encoding:"utf8",maxBuffer:5e6}));
+function conHistoria(fn){const current=cli.RELEASE_NOTES;try{cli.RELEASE_NOTES=historicalNotes;return fn();}finally{cli.RELEASE_NOTES=current;}}
 let failed = 0;
 function t(name, fn) {
   try { fn(); console.log(`  ✓ ${name}`); }
@@ -99,7 +102,7 @@ t("★ entregar web y APK no sustituye el recibo Edge de ninguna tanda real", ()
   assert.equal(cli.betaChecklist(VERSION_ACTUAL,VERSION_ACTUAL,9999).tandas.length,0);
 });
 
-t("★ al subir solo Deudas, el panel conserva las siete pruebas pendientes", () => {
+t("★ al subir solo Deudas, el panel conserva las siete pruebas pendientes", () => conHistoria(() => {
   cli.window._mcProdEntregas=null; cli.window._mcProdApkRevisiones=null;
   const pack = cli.betaChecklist("4.26.70.2", "4.26.67",48);
   const ids = Array.from(pack.tandas, (g) => String(g.id).split("/").at(-1));
@@ -108,9 +111,9 @@ t("★ al subir solo Deudas, el panel conserva las siete pruebas pendientes", ()
     "fin05-pago-cerrada", "tr-descripcion-clasificacion", "widget-banco", "widget-app-cerrada",
   ].sort());
   assert.equal(ids.includes("inc-2709-02-deudas-archivo"), false);
-});
+}));
 
-t("★ guion rechazado de gas71 trasladado a74 conserva las siete anteriores", () => {
+t("★ guion rechazado de gas71 trasladado a74 conserva las siete anteriores", () => conHistoria(() => {
   cli.window._mcProdEntregas=null; cli.window._mcProdApkRevisiones=null;
   const pack=cli.betaChecklist("4.26.71.1", "4.26.67",48);
   const ids=Array.from(pack.tandas,(g)=>String(g.id).split("/").at(-1));
@@ -118,7 +121,7 @@ t("★ guion rechazado de gas71 trasladado a74 conserva las siete anteriores", (
     "inc-2709-01-arranque-red", "inc-2809-02-ayuda-ciclo", "fin05-widget-reentrada",
     "fin05-pago-cerrada", "tr-descripcion-clasificacion", "widget-banco", "widget-app-cerrada",
   ].sort());
-});
+}));
 
 t("★ el snapshot80 conserva trece tandas y81 traslada el panel sin perder historia", () => {
   cli.window._mcProdEntregas=null; cli.window._mcProdApkRevisiones=null;

@@ -531,3 +531,7 @@ Antes el volcado se apuntaba dentro del updater de `set()`. React puede ejecutar
 Como es código común, el bloque de guardado forma parte del alcance de revisión de toda tanda cuyo código llama a `set` de App (18 de 25, decidido contra el código por `beta-sources`): cambiarlo vuelve a pedir su prueba. Una aprobación heredada por equivalencia de código deja de aplicarse cuando el código cambia; su registro histórico no se toca.
 
 Se conserva lo demás: una escritura como mucho cada 400 ms, volcado inmediato en `pagehide` y al pasar a oculto, guardado partido (`micartera_v3` y `micartera_v3_exp`), ninguna escritura al montar ni cuando un updater devuelve el mismo estado, y las salvaguardas del modo pruebas (`mcSkipPersist`, `mcRecargarSinVolcar`). Límite: una escritura pedida y aún no pintada cuando llega `pagehide` no se vuelca; antes tampoco estaba garantizado, salvo cuando React la calculaba por adelantado.
+
+### Ciclo de sesión y desmontaje (candidata102)
+
+El efecto inicial conserva el disposer devuelto por `cloud.onAuth`. Al desmontar, desactiva sus continuaciones, cancela el timer de arranque y libera la suscripción. Una Promise o un idle tardío no inicia otra lectura ni actualiza estado. No cancela trabajos ya iniciados ni modifica el orden de decisiones de identidad.

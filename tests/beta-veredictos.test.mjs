@@ -102,6 +102,8 @@ const changedIds=["tr-descripcion-clasificacion","fin05-widget-reentrada","fin05
    «Arranque» no escribe estado (auditoría del 4/10): su código es el aprobado y conserva el OK. */
 const soloWebIds=["inc-2809-02-ayuda-ciclo"];
 const readSource=f => fs.readFileSync(new URL("../"+f,import.meta.url),"utf8");
+// Cerrar una entrega no debe borrar la regresión de su identidad y sus rechazos históricos.
+const historicalNotes=JSON.parse(execFileSync("git",["show","4403b252933410741a877eea59b85d812b2fe543:src/data/release-notes.json"],{encoding:"utf8",maxBuffer:5e6}));
 const registered=JSON.parse(readSource("scripts/beta-sources.json"));
 const approvedIds=["fin05-widget-reentrada", "fin05-pago-cerrada", "tr-descripcion-clasificacion", "widget-banco", "widget-app-cerrada", "inc-2709-01-arranque-red", "inc-2809-02-ayuda-ciclo"];
 
@@ -307,7 +309,7 @@ t("★ el veredicto no saca nada del panel: aprobar no es publicar", () => {
   assert.deepEqual(ids(pack).sort(), ["9.9.3/nativa", "9.9.3/web-vieja", "9.9.4/web-nueva"]);
 });
 
-t("★ la fuente idéntica conserva OK; cinco cambios web/nativos y uno solo web conservan historia sin aprobar la revisión nueva", () => {
+t("★ la fuente idéntica conserva OK; cinco cambios web/nativos y uno solo web conservan historia sin aprobar la revisión nueva", () => conNotas(betaNotes(historicalNotes), () => {
   const pack=cli.betaChecklist("4.26.75.1","4.26.67",48);
   for(const id of approvedIds) {
     const g=pack.tandas.find(x=>String(x.id).split("/").pop()===id);
@@ -319,7 +321,7 @@ t("★ la fuente idéntica conserva OK; cinco cambios web/nativos y uno solo web
       const edgeChanged=["fin05-pago-cerrada","widget-app-cerrada"].includes(id);
       assert.deepEqual(Array.from(g.cambio),edgeChanged?["web","native","edge"]:["web","native"]);
       assert.equal(g.desde.length,0);
-      assert.notEqual(g.codigo,JSON.parse(readSource("src/data/release-notes.json")).flatMap(n=>n.tandas||[]).find(x=>x.id===id&&x.codigoDesde).codigoDesde);
+      assert.notEqual(g.codigo,structuredClone(historicalNotes).flatMap(n=>n.tandas||[]).find(x=>x.id===id&&x.codigoDesde).codigoDesde);
       assert.notEqual(g.native,registered[id].auditoria.revisiones.native);
       if(g.edge){
         if(edgeChanged) assert.notEqual(g.edge,registered[id].auditoria.revisiones.edge);
@@ -338,14 +340,14 @@ t("★ la fuente idéntica conserva OK; cinco cambios web/nativos y uno solo web
       assert.deepEqual(Array.from(g.cambio),["web"]);
       assert.equal(g.desde.length,0);
       assert.notEqual(g.codigo,registered[id].auditoria.ampliada.codigo);
-      const fuente=JSON.parse(readSource("src/data/release-notes.json")).flatMap(n=>n.tandas||[]).find(x=>x.id===id);
+      const fuente=structuredClone(historicalNotes).flatMap(n=>n.tandas||[]).find(x=>x.id===id);
       assert.equal(fuente.desde,undefined,id+": la equivalencia se retiró del repo");
       assert.ok(fuente.huella&&fuente.codigoDesde&&fuente.historial.length,id+": la referencia histórica se conserva");
       if(g.native) assert.equal(g.native,registered[id].auditoria.revisiones.native);
     }
     assert.ok(registered[id].auditoria.sha,"la auditoría histórica sigue fijada");
   }
-});
+}));
 
 t("★ cada alias `desde` del repo lleva la huella del contenido y apunta a la MISMA tanda", () => {
   const notas = betaNotes(JSON.parse(fs.readFileSync(new URL("../src/data/release-notes.json", import.meta.url), "utf8")));
@@ -360,7 +362,7 @@ t("★ cada alias `desde` del repo lleva la huella del contenido y apunta a la M
 });
 
 t("cambiar web, Android o Edge invalida el alias y señala solo la superficie afectada",()=>{
-  const historical=JSON.parse(readSource("src/data/release-notes.json")).flatMap(n=>n.tandas||[]).find(g=>g.id==="widget-app-cerrada");
+  const historical=structuredClone(historicalNotes).flatMap(n=>n.tandas||[]).find(g=>g.id==="widget-app-cerrada");
   // Referencia sintética vigente para aislar cada mutación; el repo conserva la aprobación antigua.
   const current=betaRevision(historical.id,readSource);
   const source=Object.assign({},historical,{desde:["9.9.1/"+historical.id],codigoDesde:current.codigo,revisionesDesde:Object.fromEntries(Object.entries(current).filter(([key])=>["web","native","edge"].includes(key)))});
