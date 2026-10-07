@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "id": "inc-0710-plan-animation-cleanup103-relay21",
+  "from": "codex",
+  "coordinatorSession": "relay-run-82bdecb0988d1d4c",
+  "createdAt": "2026-10-07T20:12:45.506Z",
+  "to": "codex",
+  "baseSHA": "002420276212e377d9f2292fa12cecdc29c38193",
+  "scope": [
+    "src/modules/14-v4-screens.js:PlanTab entry animation effect cleanup only",
+    "tests/e2e:causal Plan listener cleanup and real route",
+    "docs/briefs/scopes/release-notes/VERSION/generated103"
+  ],
+  "objective": "Corregir únicamente fuga causal Plan14 demostrada por auditoría21: cleanup cancela fallback pero conserva listeneranimationend/clase si evento no llega. Añadir retirada equivalente (clear() existente) encleanup, conservando evento/fallback/bubbling/gesto/financialreads/retornos. Nueva candidata103 separada de auth102; beta103 NO se integra hasta beta102 servida/verificada. Base002420276212e377d9f2292fa12cecdc29c38193 tiene producto0fe. Checkout/rama propios y AGENTS/EMPIEZA completos. Pruebas Node fragmentoREAL rojo en0fe/verdecleanup, retenciónciclos/normalfallback/cancelación/bubbling/idempotencia ymutantes independientes; DOMreal dePlan congestos rápidos/sinmovimiento+normal+retirada antesfallback, sin marcadorruntime ni weakenwaits. Chromiumlocalausente: noinstalar/noDOMfalso, CIexacta pendiente. Registrar nuevo scope funcionalexacto ydependencias mínimas reales; comparar32scopesanteriores completos/222notas; ningúnrepin/alias/approvalheredada. Si un scope previo cambia, informar identidad y NO-GO sin arreglarlo con snapshot; no recortes. Guardián normal yartifact DSN95+sello103.99999 topes1287/351KiB/3 intactos, presupuesto102estrecho12B; si no cabe, devolverNO-GO concreto, no ampliar minificador/helperexterno. Revisión fuerte independiente yCIexacta completa/DOM antesbeta; publicador/servido después. INC-2709-09 abierto, no atribución al lag humano ni ahorro sin medición. Sin SDK/AuthSeen, dinero real,SQL/APK/Edge/backend/deps/planes. Editor noGitHub;commit/Evidenciayceroescritores alfinal."
+}
