@@ -1,0 +1,16 @@
+{
+  "status": "done",
+  "summary": "PR166 docs-only SQUASH70c5d4032f67cb26c07b81fc17f5b8a26f8f10e5 árbol8de2e3577d257c4e9565776e722115c58a730c26; postTests37694049239+Pages37694049262 SUCCESS exactos.841DOM+1skip/9perf/privacidadGO enambos. HTTPversion/index/SW/ZIP200;prod4.26.98indexbyteigualprevio sha455e3685e7e8d5cd8237deeb4d18ddad283445957b81bc899622b9d74830e0fb;index/SWigualZIP;SWsellado70c5d403. Backlogtécnicosaneado/widget+lag+nav+Plan; PRhygienepordelta25abiertas21draft, cerradasabsorbidassustituidasyCIonlysinmerge; ramasconservadas. Nopromociónproducto/APK/Edge/SQL.",
+  "tests": [
+    "preCI37688201667 SUCCESS",
+    "postTests37694049239 SUCCESS:841DOM+1skip/9perf/privacy",
+    "Pages37694049262 SUCCESS mismoSHA:841DOM+1skip/9perf/privacy +build/deploy",
+    "servedHTTP/ZIP/source seal/unchanged production index PASS"
+  ],
+  "schema": 1,
+  "taskId": "ops-0710-backlog-pr-reconcile-relay21",
+  "actor": "codex",
+  "sessionId": "relay-run-82bdecb0988d1d4c",
+  "createdAt": "2026-10-07T22:57:23.761Z",
+  "released": true
+}
