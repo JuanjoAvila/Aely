@@ -1,0 +1,15 @@
+{
+  "status": "blocked",
+  "tests": [
+    "build/syntax7/Madrid4TZ/gastos-periodo/maps/privacy green",
+    "causal React elements oldchildrenempty/fixeddates green",
+    "36DOM and exactCI pending;browser/esbuild absent;fullbeta-sources exitunknown"
+  ],
+  "summary": "CI37572568352 falló36DOM marcasvacías. Corregidos3propsnull fuente04 ygenerados. Candidata durable tree23404fc6501a932d200908bb25dee045a5bfd165 commit98c56fe353f674c71ad78d5f26f1ec03e5e5e2ee creado API sinref/PRupdate. Revisiónroot fuenteGO;96/98scope intactos. Noentrega99. Cierre por orden dueño; sucesor revalidaPR154/publicahead/CIexacta antesbeta. INC-2709-09abierto.",
+  "schema": 1,
+  "taskId": "inc-0710-gastos99-ci-publish-relay13",
+  "actor": "codex",
+  "sessionId": "relay-run-30902c29b30d884a",
+  "createdAt": "2026-10-07T11:34:08.019Z",
+  "released": true
+}

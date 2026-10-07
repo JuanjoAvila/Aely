@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "id": "inc-0710-appstate100-repair-next-relay14",
+  "from": "codex",
+  "coordinatorSession": "relay-run-30902c29b30d884a",
+  "createdAt": "2026-10-07T11:34:11.606Z",
+  "to": "codex",
+  "baseSHA": "c6a6824cce1a97695f1d95716e59ecc7f7d184eb",
+  "objective": "Recuperar reparaciónPERSIST91/DOMbasepositive privada relevo13 desdec6, tests/docs solamente. CI 37573722530 failed expectativa catálogo; cleanupNode9green;DOM/budgetexactospendientes, noheredarverde. PR155headc6 sinupdate. Tras99corregida integrarfuente99mínima+regenerar, revalidarscope/notasprevias/revisiónindependiente, CIexacta yDOM; sólo tras99servida SQUASHbeta/publisher/HTTP. Producción98aprobada prioritaria. Noapproval100/APK/Edge/SQL;4widgetsrevisioneshonestas eINC-2709-09globalabierto.",
+  "scope": [
+    "tests",
+    "e2e",
+    "docs",
+    "src/modules/11-app-main.js",
+    "public",
+    "scripts",
+    "VERSION",
+    "package.json",
+    "package-lock.json"
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "status": "blocked",
+  "tests": [
+    "causalcleanup9 green",
+    "PERSIST91 targeted/maps/syntax/privacy/catalog green",
+    "DOM baseline strengthened;browsermissing;fullsources exitunknown"
+  ],
+  "summary": "CI37573722530 falló expectativaPERSIST91. Clasificado nuevo scope sinset, sinbajar19dependencias/mutantes; guardDOM exige listeners>0. Reparación3test/docs ficheros durableprivada, sinruntime. PR 155 noactualizada; incorporarcorrección99 antes100sinreutilizarpublicstale. CI/DOM/budget pendientes, noentrega100. Cierre dueño. INC-2709-09abierto.",
+  "schema": 1,
+  "taskId": "inc-0710-appstate100-ci-beta-relay13",
+  "actor": "codex",
+  "sessionId": "relay-run-30902c29b30d884a",
+  "createdAt": "2026-10-07T11:34:08.782Z",
+  "released": true
+}

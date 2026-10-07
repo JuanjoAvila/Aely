@@ -1,0 +1,15 @@
+{
+  "status": "blocked",
+  "tests": [
+    "build/syntax7/docs/relevant/privacy green",
+    "independentGO exactshell approvedbeta;216notesold/scopesold intact;generatedrecomputed",
+    "CI/DOM/publisher/HTTP pending"
+  ],
+  "summary": "Promoción98 preparada desde main85b8, soloCSS exacta aprobada beta b7ab web7ca1346e56ef835fc348b5656707bb53015ddffc9e22b0896b06f671bd78e470. Scope+12FABguardianes/notas98tandas[] sin99/100/APK/Edge/SQL. Árbol9b4d215282c51b4b5254be2c948b2d73648ea3a5 durableprivado. CLIpushfalló sincredencial; noPR/nuevaCI/producción. Prioridadsucesor conaprobación6031246455. Rechazo97 intacto;lagglobalabierto.",
+  "schema": 1,
+  "taskId": "ops-0710-fab98-production-relay13",
+  "actor": "codex",
+  "sessionId": "relay-run-30902c29b30d884a",
+  "createdAt": "2026-10-07T11:34:09.470Z",
+  "released": true
+}

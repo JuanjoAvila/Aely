@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "id": "ops-0710-fab98-production-next-relay14",
+  "from": "codex",
+  "coordinatorSession": "relay-run-30902c29b30d884a",
+  "createdAt": "2026-10-07T11:34:10.195Z",
+  "to": "codex",
+  "baseSHA": "85b8b540220a006ed6d0e021ef772697681430ad",
+  "objective": "Concluir promoción98 aprobada6031246455 antes nuevas entregas. Recuperar checkpoint/bundle privado relevo13, candidata tree9b4d215282c51b4b5254be2c948b2d73648ea3a5 conGOindependiente condicional, únicaCSS runtime idénticabeta b7ab/code7ca1346e56ef835fc348b5656707bb53015ddffc9e22b0896b06f671bd78e470. Publicar candidata mainPR vía conector; CLI sincredencial noimplica conectorbloqueado. CIexacta/DOM/review/publicador/HTTP antesproduccióny limpiar98. No99/100/APK/Edge/SQL. INC-2709-09abierto.",
+  "scope": [
+    "src/shell.html",
+    "src/data/release-notes.json",
+    "scripts/beta-sources.json",
+    "e2e",
+    "tests",
+    "docs",
+    "public",
+    "VERSION",
+    "package.json",
+    "package-lock.json"
+  ]
+}
