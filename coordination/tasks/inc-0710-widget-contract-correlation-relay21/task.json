@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "id": "inc-0710-widget-contract-correlation-relay21",
+  "from": "codex",
+  "coordinatorSession": "relay-run-82bdecb0988d1d4c",
+  "createdAt": "2026-10-07T21:10:12.949Z",
+  "to": "codex",
+  "baseSHA": "067371705615e9cc58923509e3f60c3d0c9003ff",
+  "objective": "Correlacionar recibo público ingest4oct run37227204066/job111509228985 source64b4e5f con APK52 y widget; index.ts y ingest_logic byteigualesmain067. Completar diagnóstico por ACK/scope/ventana y propuesta coherente sintética. Recibo histórico no prueba función viva actual ni APK instalado; sin cambios datos ni despliegue. No números ficticios, degradación legacy ni eliminación pendingUnknown. Revisión financiera fuerte y gates Edge/APK separados.",
+  "scope": [
+    "supabase/functions/ingest",
+    "supabase/functions/_shared/ingest_logic.ts",
+    "android/app/src/main/java",
+    "tests",
+    "docs/briefs",
+    "EMPIEZA-AQUI.md"
+  ]
+}
