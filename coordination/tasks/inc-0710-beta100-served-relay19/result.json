@@ -1,0 +1,29 @@
+{
+  "status": "done",
+  "summary": "Beta4.26.100.1 SERVIDA: publisher37651194932 SUCCESS y HTTP3assets cotejados; sourceSha eabf82006e0a66d376b13cc344d1b71bb211a2de, APP_VERSION/SW exactos, huella7c9407fec09528ae recomputada, catálogo220/i18n y web/pruebas byteigual build fuente; APK52 estable intacta. Gate --artifact literal tras config/stamp/minify y antespack OK:1317872B crudos/360146B gzip,3bloqueantes. Publisher878pass+3retry recuperados+1skip y9perf, cincoDeno/Node. Sin aprobación humana99/100 ni resolución global INC-2709-09.",
+  "tests": [
+    {
+      "command": "publisher37651194932 exact checkout eab: Node+Deno+E2E878pass3retry1skip+9perf",
+      "exitCode": 0
+    },
+    {
+      "command": "publisher artifact budget1317872/360146/3",
+      "exitCode": 0
+    },
+    {
+      "command": "HTTP version.json/apk.json/bundle.zip; recompute huella; exact catalog/i18n/delivery/stamps/syntax",
+      "exitCode": 0
+    }
+  ],
+  "productSHA": "eabf82006e0a66d376b13cc344d1b71bb211a2de",
+  "limitations": [
+    "Inputs privados blocked; beta99/100 sin aceptación humana",
+    "INC-2709-09 uso prolongado permanece abierto"
+  ],
+  "schema": 1,
+  "taskId": "inc-0710-beta100-served-relay19",
+  "actor": "codex",
+  "sessionId": "relay-run-un7m4rjsqldezxl2",
+  "createdAt": "2026-10-07T17:06:24.070Z",
+  "released": true
+}
