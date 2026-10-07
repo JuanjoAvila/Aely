@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "id": "inc-0710-plan-slow-top-causal-repro-relay21",
+  "from": "codex",
+  "coordinatorSession": "relay-run-82bdecb0988d1d4c",
+  "createdAt": "2026-10-07T22:33:28.688Z",
+  "to": "codex",
+  "baseSHA": "6b81279676d66337d7b34b7badc6d1ff2c66bc24",
+  "objective": "INC-0710-01-plan-scroll-top: reproducir salto lento desde tope en Recibos/Deudas/Metas con gesto táctil CDP sobre DOM real, primera pasada y tras uso; controles Inicio/Gastos/fuera-tope/horizontal/inversión/cancel/reducedmotion. Instrumentar por fase ownership/mc-touch-own/scrollTop/scroll/layout/frames sin alterar producto ni simular todo mediante scrollTop. Cotejar App y Plan como contrato de gesto único; modelo Node previo no acredita causa humana. Fuente beta102 exacta, fixtures/dobles sólo sintéticos y red bancaria bloqueada; conservar finanzas, formularios y estado. Resultados completos recuperables por logs/artefacto privado y revisión independiente. Si causa queda refutada registrarlo; una corrección coherente sólo después de evidencia, presupuesto real y nueva identidad/pruebas/beta normal. No retomar aislado103 ni duplicar INC-2709-03 ola nativa. No publicación main/APK/Edge/SQL ni aprobación heredada por este encargo.",
+  "scope": [
+    "e2e",
+    "tests",
+    "scripts/run-tests.mjs",
+    "scripts/relevant-tests.mjs",
+    "docs/briefs",
+    "docs/BACKLOG.md"
+  ]
+}
