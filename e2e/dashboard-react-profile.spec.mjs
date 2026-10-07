@@ -117,7 +117,11 @@ for(const size of [3000,5200])test("Dashboard real: frecuencia recientes y A/B v
     expect(sync.check.rows[0].merchant).toBe("Alta nube sintética");
     // Control deliberadamente malo, separado de las métricas naturales y del síntoma humano.
     const bad=await measured(page,"baseline",async()=>{
-      for(let i=0;i<3;i++){await delay(150);await page.evaluate(()=>{const end=performance.now()+180;while(performance.now()<end){}});}
+      // Ejecutar el bloqueo como tarea del navegador, no dentro de la evaluación de DevTools.
+      // La hipótesis sobre la ausencia de longtasks requiere validación en Chromium real.
+      for(let i=0;i<3;i++){await delay(150);await page.evaluate(()=>new Promise(resolve=>setTimeout(()=>{
+        const end=performance.now()+180;while(performance.now()<end){};resolve();
+      },0)));}
     });report.phases.push({...bad,action:"artificial-block-control"});
     expect(Math.max(0,...bad.frames)).toBeGreaterThan(100);
     expect(bad.longtasks.some(ms=>ms>=100)).toBe(true);
@@ -131,6 +135,7 @@ for(const size of [3000,5200])test("Dashboard real: frecuencia recientes y A/B v
     report.status="diagnostic-contract-passed";
   }catch(error){report.status="failed";report.error=String(error);throw error;}
   finally{
+    report.bankCallsAtFinal=await page.evaluate(()=>window.__dashProfile?.bankCalls?.slice()??null).catch(()=>null);
     // test.yml no sube adjuntos: el informe sintético completo debe poder recuperarse del log oficial.
     console.log("AELY_DASHBOARD_SYNTHETIC_REPORT_BEGIN size="+size);
     console.log(JSON.stringify({...report,blockedExternal,htmlResponses}));

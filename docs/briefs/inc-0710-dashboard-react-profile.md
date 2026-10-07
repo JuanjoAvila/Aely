@@ -108,3 +108,23 @@ Siguiente gate: revisión del árbol exacto y CI con Chromium oficial. Si allí 
 controles, usar sus medidas para decidir una unidad de producto separable y financieramente
 equivalente, con presupuesto HTML intacto, invalidaciones completas y nueva identidad cuando
 corresponda. No heredar aprobaciones ni promover beta102 completa por este diagnóstico.
+
+## Campaña parcial y control pendiente (7 de octubre)
+
+CI 37691444682, head de comprobación 951f3949355d788d01ce9007837f16a753706c8d,
+árbol 5cfd4e1b9d25c6fb2b7e817e4533f56a20d23280: FAILURE. Los cuatro informes
+completos (3000/5200, intento y retry) fallaron en el control artificial: hubo frames
+de 166–183 ms, pero longtasks vacío. Los controles anteriores de filas, invalidaciones
+y sincronización sintética pasaron. Ocho intentos de derivación calcularon ocho veces
+en baseline frente a una y siete hits en la variante virtual; no son commits React.
+Las medidas parciales no validan el instrumento completo ni el lag humano.
+La recuperación natural y el control final bancario no llegaron a ejecutarse;
+el guard inicial sí pasó. No interpretar un campo final ausente como cero llamadas.
+
+La revisión del test mantiene todos los umbrales y programa el bloqueo en un callback
+setTimeout, como tarea del navegador. Que la evaluación DevTools explicase la ausencia
+de longtasks es una hipótesis pendiente de Chromium. finally captura bankCallsAtFinal
+como array o null incluso tras un fallo. Guardian Node y revisión independiente GO
+limitado al test; ninguna nueva campaña Chromium ejecutada para esta corrección.
+No hay implementación de producto ni aumento de presupuesto. El siguiente encargo
+debe verificar fuente y árbol corregidos, CI completa, privacidad y controles finales.
