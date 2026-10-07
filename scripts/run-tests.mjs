@@ -34,10 +34,12 @@ if (plan.build !== false) {
 }
 
 const steps = [
+  ["appstate-listener-cleanup", ["node", "tests/appstate-listener-cleanup.test.mjs"]],
   ["supabase-workflow", ["node", "tests/supabase-workflow.test.mjs"]],
   ["debt-payment-state", ["node", "tests/debt-payment-state.test.mjs"]],
 
   ["gastos-periodo", ["node", "tests/gastos-periodo.test.mjs"]],
+  ["gastos-mes-madrid", ["node", "tests/gastos-mes-madrid.test.mjs"]],
   ["retirada-bancaria", ["node", "tests/retirada-bancaria.test.mjs"]],
   ["backup-snapshot", ["node", "tests/backup-snapshot.test.mjs"]],
   ["bank-merchant-category", ["node", "tests/bank-merchant-category.test.mjs"]],
@@ -202,6 +204,7 @@ const denoEnLista = [
   "supabase/functions/_shared/crypto.test.ts",
   "supabase/functions/_shared/enablebanking.test.ts",
   "supabase/functions/delete-account/delete-account.test.ts",
+  "supabase/functions/prices/prices.test.ts",
 ];
 const buscaDeno = (dir) => fs.readdirSync(path.join(root, dir), { withFileTypes: true })
   .flatMap((d) => d.isDirectory() ? buscaDeno(dir + "/" + d.name)
