@@ -32,6 +32,49 @@ Fragmento recent SHA256 `6014d9c52abb332cd393bcdbaab0a99120e4c7dd5786347a257078a
 
 String cuenta conversiones de claves y de comparador, no sólo comparaciones de sort. El set borrado está cacheado; aun así el filtrado y ordenación se repiten. Se prueba una reducción de llamadas en un selector puro, no un factor de aceleración de toda la app. Próxima unidad: consolidar derivaciones de Inicio con entradas explícitas estables, pruebas de equivalencia y perfil React/rAF real; ampliar a otras pantallas sólo si sus invalidaciones están medidas.
 
+### Revisión independiente y mapa de invalidación
+
+La revisión del fixture inicial detectó que comparar IDs no probaba identidad de
+filas. Corrección: cada resultado se compara también por `===`; un negativo con
+filas clonadas conserva IDs pero falla la aserción. Controles pequeños separados
+ejecutan empates de fecha con orden estable, edición de fecha/importe con array
+nuevo, lápida manual con ID, manual legacy compartida entre dos gemelos, lápida
+legacy bancaria y cambio de state ajeno a esas dos referencias. Una variante sin
+dependencia deleted queda refutada por el borrado. Estas pruebas no acreditan
+render React ni todos los writers del producto.
+
+| Derivación | Entradas/invalidez que no se pueden omitir |
+| --- | --- |
+| recent | Referencias expenses/deleted; conservar objetos de fila y sort estable. Edición por reemplazo invalida; mutación in-place queda fuera del contrato y requiere auditar writers antes de cachear. No usa reloj ni cifras agregadas. |
+| presupuesto de Inicio | expenses/deleted/accounts/reservaLog/budget/flows y settings de ciclo/bancos. lastPaydayOf tiene corte móvil de45d en milisegundos: un cache por día no conserva ese borde. Fechas corruptas usan Date.now en dateMs. No sustituir cálculo por totals ni omitir reservas/nómina. |
+| próximos y overdue | fixed/debts/flows/oneoffs/accounts/bankTx/expenses/deleted, pruebas de pago y día/mes/año; fixedPaymentState compara candidatos/cuentas y hechos BOOK. Idioma para etiquetas derivadas. La lista overdue se construye a la vez: memoizar upcoming solo perdiendo ese side result rompería avisos. |
+| partyDebts/goals | debts, partyDismissed y calendario: debtPaidCount lee mes y día actual; goals y done/orden. No reducir fechas de deuda al contador animado ni incorporar otras metas al límite visual aprobado. |
+| informe mes cerrado | Ventana/día, gastos/bancos/reservas/presupuesto y closedMonthDismissed; el cambio de día puede retirar tarjeta aunque arrays sean iguales. |
+| Sparkline | history/current netWorth; sus puntos no tienen fecha comprobada. No crear snapshots ni asignar días mediante el cache. |
+
+Un primer límite coherente separa el contador animado de las derivaciones del
+panel y conserva selectores con entradas completas. Antes de modificar dinero,
+reproducir invalidaciones de cambio de banco/rol/ciclo, nómina tardía y borde45d,
+reservas, BOOK frente pending, pruebas de cuotas/fijos, tombstones/edición,
+import/pull concurrente y cierre de día/mes. No congelar resultados económicos
+por una referencia state entera ni modificar normalización/contabilidad para
+evitar renders. La memoización recent por sí sola demuestra trabajo evitable,
+pero no cierra esa unidad estructural ni el lag humano.
+
+### Viabilidad de tamaño de la representación, sin producto editado
+
+Medición virtual del módulo03 con esbuild existente y las mismas opciones del
+minificador (whitespace/syntax, sin identifiers, utf8/es2018): recent con useMemo
+function-return añade58B; arrow-return44B; levantar deletedSet una vez en la
+función78B. Son deltas de módulo, **no artefacto HTML publicado**. El margen del
+artefacto102 era12B: ninguna representación probada demuestra cabida. No se
+ha encontrado ahorro propio equivalente suficiente; no se suben límites ni se
+recortan helpers ajenos, SDK, historial o minificador. NO-GO de esa propuesta
+hasta presentar representación legible y medir artefacto completo con margen.
+Preauditoría virtual reciente contra32scopes102: ninguno cambia su código, sin
+editar el registro. Un selector más amplio debe repetir esa comprobación y
+asignar identidades nuevas a cualquier alcance realmente afectado, sin repins.
+
 ## INC-0710-01-plan-scroll-top: hipótesis de ownership
 
 Caso nuevo: scroll lento ascendente desde el tope de Plan. Relación UX-01/INC-2709-09 y con INC-2709-03, que sigue describiendo la ola nativa Plan→Gestionar/categoría; **no son el mismo caso**.

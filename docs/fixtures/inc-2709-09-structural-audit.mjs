@@ -31,20 +31,44 @@ for(const sha of shas){
   stats={deletedSetCalls:0,tombstoneCalls:0,stringCalls:0};
   const expected=ctx.select(state),once={...stats};
   const ids=expected.map(e=>e.id);
-  for(let i=0;i<59;i++)assert.deepEqual(ctx.select(state).map(e=>e.id),ids);
+  const sameRows=actual=>{assert.deepEqual(actual.map(e=>e.id),ids);actual.forEach((row,i)=>assert.strictEqual(row,expected[i]));};
+  for(let i=0;i<59;i++)sameRows(ctx.select(state));
   const sixty={...stats};
   let cached,prevExp,prevDeleted,calls=0;
   const selectOnce=s=>{if(s.expenses!==prevExp||s.deleted!==prevDeleted){cached=ctx.select(s);prevExp=s.expenses;prevDeleted=s.deleted;calls++;}return cached;};
   stats={deletedSetCalls:0,tombstoneCalls:0,stringCalls:0};
-  for(let i=0;i<60;i++)assert.deepEqual(selectOnce(state).map(e=>e.id),ids);
+  for(let i=0;i<60;i++)sameRows(selectOnce(state));
   const cachedSixty={...stats};assert.equal(calls,1);
   // Negative controls: changed reference/deletion invalidates; no input sort/mutation.
   const before=expenses.map(e=>e.id);selectOnce({...state,expenses:expenses.slice()});assert.equal(calls,2);
   const changed={...state,deleted:state.deleted.concat(ctx.keyOfExpense(expected[0]))};
   assert.notDeepEqual(selectOnce(changed).map(e=>e.id),ids);assert.equal(calls,3);
   assert.deepEqual(expenses.map(e=>e.id),before);
+  assert.throws(()=>sameRows(expected.map(row=>({...row}))),assert.AssertionError,'IDs alone cannot prove row identity');
   output.recent.push({sha,n,fragmentSHA256:sha256(recent),once,sixty,cachedSixty,virtualSelectorCalls:1,controls:'array-reference and tombstone-reference invalidation; exact output/row identity; input unchanged',durationClaim:false});
  }
+ // Casos pequeños discriminan orden estable, edición y claves manual/legacy sin inventar importes.
+ const row=(id,date,source='manual')=>({id,date,amount:5,merchant:'synthetic '+id,source});
+ const a=row('tie-a','2026-09-26'),b=row('tie-b','2026-09-26'),c=row('older','2026-09-25'),d=row('oldest','2026-09-24');
+ const small={expenses:[a,b,c,d],deleted:[]};
+ let cache,prevE,prevD;
+ const memo=s=>{if(s.expenses!==prevE||s.deleted!==prevD){cache=ctx.select(s);prevE=s.expenses;prevD=s.deleted;}return cache;};
+ const exact=(actual,expected)=>{assert.deepEqual(actual.map(r=>r.id),expected.map(r=>r.id));actual.forEach((r,i)=>assert.strictEqual(r,expected[i]));};
+ exact(memo(small),[a,b,c]); // Empates conservan el orden de entrada (sort estable).
+ const edited={...d,date:'2026-09-27',amount:7};
+ exact(memo({...small,expenses:[a,b,c,edited]}),[edited,a,b]);
+ exact(memo({...small,deleted:[ctx.keyOfExpense(a)]}),[b,c,d]);
+ exact(memo({...small,deleted:[ctx.keyOfExpenseLegacy(a)]}),[b,c,d]);
+ const twin={...a,id:'manual-twin'};
+ exact(memo({expenses:[a,twin,b,c],deleted:[ctx.keyOfExpense(a)]}),[twin,b,c]);
+ exact(memo({expenses:[a,twin,b,c],deleted:[ctx.keyOfExpenseLegacy(a)]}),[b,c]);
+ const bank=row('bank','2026-09-28','ob:synthetic'),legacy=ctx.keyOfExpenseLegacy(bank);
+ exact(memo({expenses:[bank,a,b,c],deleted:[legacy]}),[a,b,c]);
+ // Una cache sin dependency deleted falla este contraejemplo aunque conserve los IDs previos.
+ const first=ctx.select(small),removed=ctx.select({...small,deleted:[ctx.keyOfExpense(a)]});
+ assert.notDeepEqual(first.map(r=>r.id),removed.map(r=>r.id));
+ const saved=memo(small);assert.strictEqual(memo({...small,transientSyntheticFlag:true}),saved,'unrelated state replacement preserves cached array');
+ output.recent.push({sha,caseControls:'=== row identity with clone-negative; stable equal-date ties; edited date/amount replacing reference; manual ID-specific and legacy shared tombstones; bank legacy tombstone; deleted-dependency counterexample; unrelated state replacement',controlsPass:true});
  const source=read('src/modules/14-v4-screens.js');
  const start=source.indexOf('  useEffect(function(){\n    if(simple) return undefined;');
  const end=source.indexOf('  },[simple, seg]);',start)+'  },[simple, seg]);'.length;
@@ -70,6 +94,6 @@ for(const sha of shas){
  const horizontal=world(effect);horizontal.emit('touchstart',100,500);horizontal.emit('touchmove',160,502);assert.equal(horizontal.classes.size,0);horizontal.off();
  output.plan.push({sha,fragmentSHA256:sha256(effect),original,virtualHeldOwnership:held,controls:'outside-top leaves native path alone; horizontal yields; touchcancel makes no segment commit; cleanup removes listeners/classes',nativeScrollSimulated:false,touchActionSpecVerified:false,humanLagCauseVerified:false});
 }
-assert.equal(output.recent[0].fragmentSHA256,output.recent[2].fragmentSHA256);
+assert.equal(output.recent[0].fragmentSHA256,output.recent[3].fragmentSHA256);
 assert.equal(output.plan[0].fragmentSHA256,output.plan[1].fragmentSHA256);
 console.log(JSON.stringify(output,null,2));
