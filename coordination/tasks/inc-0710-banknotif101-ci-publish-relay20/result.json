@@ -1,0 +1,23 @@
+{
+  "status": "blocked",
+  "summary": "Aely ·20: dependencia catálogo100.2 SERVIDA; CI101 aún en curso, integración retenida sin fallo acreditado",
+  "tests": [
+    {
+      "command": "Verificación independiente de cacc/e742/preview1482807/tree7526 y previewPR162 75e5204; beta fresca a56; CI37658712643 attempt1 job112920402868",
+      "exitCode": 0
+    }
+  ],
+  "productSHA": "cacc2a0dff55baa3859ddeedcbdcf862925f2fca",
+  "pr": 162,
+  "limitations": [
+    "Tests in_progress y Privacy pending en comprobación fresca del intento; no acreditar Node/5Deno/DOM/perf/privacidad completados ni checkout final por setup.",
+    "PR163 conserva draft/unmerged y jamás main; PR162 draft/mergeable/headcacc/basebetaa56. No merge/ready/CIrerun. Sucesor inc-0710-banknotif101-final-relay21 debe obtener logs final y concluir beta/publicador/HTTP.",
+    "Sin nueva aprobación humana99/100/101; APK/Edge/SQL/pagos intactos; inputsblocked e INC-2709-09 abierto."
+  ],
+  "schema": 1,
+  "taskId": "inc-0710-banknotif101-ci-publish-relay20",
+  "actor": "codex",
+  "sessionId": "relay-run-38d55b3d3aa853f2",
+  "createdAt": "2026-10-07T18:14:07.745Z",
+  "released": true
+}
