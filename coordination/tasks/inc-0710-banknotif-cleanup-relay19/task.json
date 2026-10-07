@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "id": "inc-0710-banknotif-cleanup-relay19",
+  "from": "codex",
+  "coordinatorSession": "relay-run-un7m4rjsqldezxl2",
+  "createdAt": "2026-10-07T17:10:43.254Z",
+  "to": "codex",
+  "baseSHA": "a56ab25be46985a0e78eca45146729027757b3ab",
+  "scope": [
+    "src/modules/11-app-main.js: efecto bankNotif dependiente uid exclusivamente",
+    "tests y e2e sintéticos bankNotif delayed cleanup y registros respectivos",
+    "config/beta-sources.json nueva identidad separable",
+    "VERSION/package.json/package-lock.json/src/data/release-notes.json/CHANGELOG.md/README.md/docs/ROADMAP.md/docs/TESTING.md/brief nuevo/public regenerado"
+  ],
+  "objective": "Implementar unidad beta101 exclusivamente cleanup asíncrono bankNotif confirmado por auditoría: conservar handle Promise inmediato/tardío/síncrono y liberar incluso tras cleanup; callback retirado inerte, rechazos alta/remove absorbidos. No cambiar allowBankNotifSync, hasBankLink, scheduleIdle/runBankSync ni contrato bancaria demanda, importes/identidad. Reproducción roja base y verde final, Node causal+DOM sintético retraso real registrado con prueba no-vacía. Modelo heredado disponible: implementación acotada; revisión independiente fuerte requerida antes integrar. Catalog160 debe servir antes publicar101. Presupuesto1287/351KiB/3 intacto, catálogo220+nota101 es/en/ca e historia/códigos anteriores conservados; no repin. Rama propia desdea56, entregar commit local+diff+pruebas para PR draft/CI exacta, sin push main/beta ni publicación worker. INC-2709-09 global permanece abierto; inputsblocked, no humana99/100/101 ni APK/Edge/SQL/migraciones/pagos."
+}
