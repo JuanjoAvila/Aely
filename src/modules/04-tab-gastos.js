@@ -897,10 +897,10 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
         React.createElement("i",{style:{width:monthSummary.budget==null?"0%":Math.min(100,Math.max(0,monthSummary.against)/monthSummary.budget*100)+"%"}})
       ),
       React.createElement("div",{className:"v4-gastos-progress-marks"},
-        React.createElement("span",isFinite(bounds.from)
+        React.createElement("span",null,isFinite(bounds.from)
           ? new Date(bounds.from).toLocaleDateString(loc(),dateOpts) : t("g_all")),
-        monthSummary.budgetApplies && React.createElement("span",tf("v4_gastos_today_mark",{d:monthSummary.day})),
-        !monthSummary.cycle && isFinite(bounds.to) && React.createElement("span",new Date(bounds.to).toLocaleDateString(loc(),dateOpts))
+        monthSummary.budgetApplies && React.createElement("span",null,tf("v4_gastos_today_mark",{d:monthSummary.day})),
+        !monthSummary.cycle && isFinite(bounds.to) && React.createElement("span",null,new Date(bounds.to).toLocaleDateString(loc(),dateOpts))
       ),
       /* SE PUEDE OCULTAR (petición de su pareja, 10/9, y con razón).
          Sus palabras: «esta chulo pero mi pareja lo vio y me dijo que es too much, que le gustaria

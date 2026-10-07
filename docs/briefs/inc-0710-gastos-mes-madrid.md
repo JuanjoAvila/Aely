@@ -17,3 +17,9 @@ Sellado de estrés4.26.99.99999 en copia de medición:1317825B crudos/358929B gz
 Revisión de alcance: la declaración compartida queda inmediatamente después de todayKey, dentro del cálculo de periodos. Así no contamina el alcance explícito del editor de cargos (saveEdit→todayKey); se conserva su revisión exacta sin ampliar, recortar ni repinar el registro. Mismo orden efectivo de cálculos y opciones, con semántica y peso equivalentes.
 
 Medición final tras recolocar la declaración:1317815B crudos/358923B gzip; sellado4.26.99.99999:1317825/358932B (márgenes63/492B). Cargos, Inicio96 y FAB98 vuelven a coincidir exactamente con5fa; los guiones se mantienen.
+
+## Corrección del rojo DOM · relevo13
+
+CI37572568352/source3aeed496 alcanzó los36casos reales de `gastos-mes-madrid` y detectó marcas vacías. La causa es de producto: las tres llamadas `React.createElement("span", texto)` trataban fecha/«Hoy» como props, sin hijo que pintar. Se añade exclusivamente `null` como props en las tres, sin cambiar límites, dinero, etiquetas, idiomas, fixtures ni sus aserciones. El guardián DOM existente permanece íntegro.
+
+A/B causal local con el React de producción embebido en `src/shell.html` y la expresión real de las marcas: en3aeed496 los tres `props.children` son `undefined`; en la fuente corregida son `01 oct`, `Hoy 1`, `31 oct`. Es prueba de elementos React, no ejecución DOM. Build, sintaxis7bloques, Madrid4TZ, gastos-periodo, mapas y privacidad pasan. Intento real `chromium.launch` bloqueado antes de página por binario1234 ausente; no se instala. Presupuesto-rendimiento bloqueado por falta de esbuild en las dependencias disponibles; los topes permanecen intactos y su CI exacta sigue obligatoria. Publicación y36DOM corregidos pendientes. INC-2709-09 sigue abierto.

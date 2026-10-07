@@ -28,6 +28,7 @@ test("cambiar de sesión no acumula listeners nativos de primer plano", async ({
   const count = () => page.evaluate(() => ({ a: window.__live.appStateChange.size, n: window.__live.bankNotif.size, b: window.__live.backButton.size }));
   await page.waitForTimeout(500);
   const base = await count();
+  expect(base.a).toBeGreaterThan(0);
   for (let i = 0; i < 6; i++) {
     await page.evaluate((i) => window.__authCb("SIGNED_IN", { user: { id: "user-" + i, email: "u" + i + "@test.local" } }), i);
     await page.waitForTimeout(150);
