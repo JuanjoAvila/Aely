@@ -1,0 +1,40 @@
+{
+  "status": "blocked",
+  "summary": "Candidata útil Gastos 99 terminada en PR 154 head 5fa2350b4dc567d936091039e62f9dd732a67110 tree 6f40de1b9de02ca5bdfefb3252515522cca11660, padres beta b7abebb6 y main 85b8b540. Mes/mes pasado/3m Madrid coherentes en cifras y etiquetas, memo por día Madrid; ciclo/custom locales preservados. GO independiente de fuente, 36 DOM nuevos registrados; CI exacta pendiente. PR confirmada draft BETA tras checkout SUCCESS, nunca integrar main.",
+  "tests": [
+    {
+      "command": "npm run build: reproducible; npm run test:syntax: 7 bloques",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/gastos-mes-madrid.test.mjs: 4 TZ y fronteras inclusivas/exclusivas; node tests/gastos-periodo.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/beta-sources.test.mjs: salida natural, 1716 dependencias y 666 datos mutados, PERSIST 19 real set y mutantes/historia/repin",
+      "exitCode": 0
+    },
+    {
+      "command": "docs-frescura/history 29, relevant-tests, idiomas/notas/verdicts/security/guard-privacy, git diff --check",
+      "exitCode": 0
+    },
+    {
+      "command": "Playwright descubrimiento 36 casos; chromium.launch aborta antes de página por binario 1228 ausente",
+      "exitCode": 1
+    }
+  ],
+  "productSHA": "5fa2350b4dc567d936091039e62f9dd732a67110",
+  "pr": 154,
+  "limitations": [
+    "CI 37570338021 en curso, job 112627294978 checkout SUCCESS, merge CI 7a9f40bdb302fa9469c02094139ade07aedaeb14 tree exacto 6f40; exigir logs 36 DOM y suite completa antes beta.",
+    "Cuatro códigos previos cambian honestamente: movilidad, periodo, sin-límite y nómina. Sin heredar aprobación. 96/98 y 218 notas previas intactas.",
+    "Sin Chromium local, cero DOM ejecutados localmente; prueba móvil propia pendiente.",
+    "Sin APK/Edge/SQL/migraciones/operaciones reales/sync bancaria; INC-2709-09 abierto."
+  ],
+  "schema": 1,
+  "taskId": "inc-0710-gastos99-dom-integrate-relay11",
+  "actor": "codex",
+  "sessionId": "relay-run-6cbe3160b5688bc6",
+  "createdAt": "2026-10-07T04:16:19.748Z",
+  "released": true
+}
