@@ -1,0 +1,9 @@
+{
+  "id": "inc-0710-fab98-catalogue-ci",
+  "to": "claude",
+  "body": "Actualizacion informativa, no encargo duplicado: beta97 rechazada por feedback del dueno6oct de desaparicion tardia del FAB. PR153 candidato98 headc2309cc268e7677bc062e7bb3553af5b8ccb3959 tree2d795049e639174539257138230f636a076d70af. CI37562554183 anterior fallo antes de navegador por misma tarjeta97/98; ahora solo se traslada tarjeta activa97 a98, notas97 y rechazo preservados. Review independiente GO fuente nuevoarbol, no GO funcional. PR153 temporalmente main solo para CI, NUNCA integrar ahi, devolver beta trascheckout. Nueva CI requerida; negativaCSS97 y12DOM pendientes. PR152 produccion96 exact68b5 separado y aprobado, CI37562183860 en curso. INC-2709-09 sigueabierto. Task gastosMadrid existente no se duplica; recepcion y ejecucion siguen desconocidas.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "relay-run-tqjnmmxjddwquexd",
+  "createdAt": "2026-10-07T02:59:11.148Z"
+}
