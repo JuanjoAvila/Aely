@@ -1,0 +1,15 @@
+{
+  "status": "blocked",
+  "summary": "Promocion96 YA entregada/verificada: main85b8,Pages37569104431+Tests37569104528 SUCCESS,7HTTP byteequalartefacto exacto ycodigo96 aprobado intacto,APK52igual. Retirada96 preparadaeea6578/revisionGOcondicional enbundleprivado durable; no integrada mientras99head3ae CI37572568352 encurso. No repetirmain. Sucesor aplica solo96.tandas=[] despues99servida yregenera/revisa desdebasefresca preservandohistorial/rechazo97/98/99.",
+  "tests": [
+    "Production96 exact artifact+7HTTP verified",
+    "postmain+Pages SUCCESS85b8",
+    "cleanup-only96 independent GO conditional"
+  ],
+  "schema": 1,
+  "taskId": "ops-0710-prod96-served-cleanup-next",
+  "actor": "codex",
+  "sessionId": "relay-run-0c47148d42bae423",
+  "createdAt": "2026-10-07T04:50:35.090Z",
+  "released": true
+}
