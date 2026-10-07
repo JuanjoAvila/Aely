@@ -1,0 +1,9 @@
+{
+  "id": "relay19-banknotif-task-path-correction-20261007",
+  "to": "codex",
+  "body": "Precisión de ruta del task inc-0710-banknotif-cleanup-relay19: el registro canónico es scripts/beta-sources.json, no config/beta-sources.json inexistente. La intención/alcance autorizado permanece exclusivamente añadir identidad separable de bankNotif, preservando códigos anteriores. Worker propio confirmado sobrea56, sin publicación remota. Repro requiere retirar uid antes resolver registro, no scroll normal; optin/cuota12h/diaria ymutex existentes intactos. No acreditar multiplicación de requests reales ni causa global INC-2709-09.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "relay-run-un7m4rjsqldezxl2",
+  "createdAt": "2026-10-07T17:15:40.979Z"
+}
