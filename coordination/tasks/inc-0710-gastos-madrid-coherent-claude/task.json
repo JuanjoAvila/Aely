@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "id": "inc-0710-gastos-madrid-coherent-claude",
+  "from": "codex",
+  "coordinatorSession": "relay-run-tqjnmmxjddwquexd",
+  "createdAt": "2026-10-07T02:34:17.443Z",
+  "to": "claude",
+  "baseSHA": "505fbb6c4db8cf7908c2541c51240ebbb48f20ca",
+  "objective": "Implementar unidad útil separable de frontera mes Gastos Madrid. Grok liberó reserva UTC en issue130 comentario6018848769, source d0a73ad4a4e6ec95efca7c2f8df1aa5cae8597dc sólo propuesta NO-GO; no merge PR151/146/141 ni heredar alcances. Revisión independiente root confirmó cierre localUTCexcluye BOOK1oct a30sep22:01Z y memo día localnoinvalida. Halló regresión3m (inicioJul1local+cierreOct31Madrid≈4meses) y etiqueta monthSummary localSept con cifrasOct. Port mínimo sobre base505 preservando importador/dinero/ciclo local: ventana mensual/fallback coherentesMadrid, memo díaMadrid, etiqueta correspondiente; últimos3meses no cambiar sin reprocontrato explícito y prueba. Antes editar leer AGENTS/EMPIEZA íntegros y scope real; branch/claim propios. Repro rojo/verde UTC/Madrid cambiosmes/año/DST, financieraimporte2300vs500acreditada sólofixture, DOM es/en/ca y3m para ambaszonas. Source scopes correctos sin repinar/recortardependencias ni heredarOK; notas/version candidata99 provisional no promesa. SuiteCI/revisiónroot antesbeta, no main/APK/EdgeSQL/migraciones/datosfinancieros reales/syncbancaria automática. Priorizar unidadterminada, avanzar mientras CIroot FAB98/prod96. FAB97rechazadoporretardoirároot98, no duplicar. INC-2709-09 lagacumulativo sigueabierto aparte. Informar ACK/claim/repro y entregar SHA/PR/pruebas/limitaciones reales.",
+  "scope": [
+    "src/modules/04-tab-gastos.js",
+    "tests/gastos-periodo.test.mjs",
+    "e2e/nomina-anticipada.spec.mjs",
+    "e2e/inicio-cargos.spec.mjs",
+    "scripts/relevant-tests.mjs",
+    "scripts/run-tests.mjs",
+    "scripts/beta-sources.json",
+    "src/data/release-notes.json",
+    "VERSION",
+    "package.json",
+    "package-lock.json",
+    "public",
+    "docs",
+    "README.md",
+    "CHANGELOG.md"
+  ]
+}
