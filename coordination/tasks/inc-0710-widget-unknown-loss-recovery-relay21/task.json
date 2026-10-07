@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "id": "inc-0710-widget-unknown-loss-recovery-relay21",
+  "from": "codex",
+  "coordinatorSession": "relay-run-82bdecb0988d1d4c",
+  "createdAt": "2026-10-07T22:19:37.079Z",
+  "to": "codex",
+  "baseSHA": "6b81279676d66337d7b34b7badc6d1ff2c66bc24",
+  "objective": "Siguiente unidad nativa: reproducir y corregir conservación durable de incertidumbre cuando journal saturado no retiene identidad; una foto app sin ACK no debe borrar esa pérdida. Defecto heredado demostrado con Java real tanto8e4 como9ddb, no causa humana acreditada. Preparar desde beta102 publicada en checkout propio, sin copiar cabeza NO-GO105 a main ni tomar PR/reservas anteriores. Revisar persistencia/restart, ACK parcial/ajeno, límites, tickets/fences/concurrencia y moneda sin cifras ficticias. Revisión independiente fuerte y CI exacta. Asignar identidades nuevas afectadas y conservar historial/aceptación; nunca repinar aprobaciones ni relajar guardianes por verde. Sólo fuente/pruebas; APK/Edge/SQL/publicación y aceptación móvil separados, no autorizados por este encargo.",
+  "scope": [
+    "android/app/src/main/java/com/micartera/app/WidgetSnapshotArbiter.java",
+    "android/app/src/main/java/com/micartera/app/MiCarteraWidget.java",
+    "tests",
+    "scripts/run-tests.mjs",
+    "docs/BACKLOG.md",
+    "docs/briefs"
+  ]
+}
