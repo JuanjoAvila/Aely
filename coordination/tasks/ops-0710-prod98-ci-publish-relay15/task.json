@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "id": "ops-0710-prod98-ci-publish-relay15",
+  "from": "codex",
+  "coordinatorSession": "relay-run-b06e39e3fadf17c2",
+  "createdAt": "2026-10-07T12:44:15.606Z",
+  "to": "codex",
+  "baseSHA": "771a5920096fde3c2c89227b53abafe0913751eb",
+  "objective": "Sucesor del encargo ops-0710-fab98-production-next-relay14 ya released:true. Prioridad producción98 aprobada6031246455 exclusivamente inc-2709-13-fab-contorno: beta b7abebb6db7a74ccc9f7df87b41f5d63981b0c43/web7ca1346e56ef835fc348b5656707bb53015ddffc9e22b0896b06f671bd78e470. PR156head771a5920096fde3c2c89227b53abafe0913751eb/tree9b4d215282c51b4b5254be2c948b2d73648ea3a5 GOindependiente; CI37617951670 aún en curso al12:41UTC. Leer status/logs frescos, no rehacerPR ni rerun ciego. Solo verde exacto/fullDOM/review permite SQUASHmain esperadohead; revalidar main fresco, sin arrastrar99/100. Después postTests/Deploy exactos y artefactoPages vs7HTTP+5ZIP/code98/version/SW/APK52. Si ya entregada no repetir; retirar exclusivamente98 de pendientes beta porflujo normal trasHTTP, preservando historial/rechazo97/resto.96 tiene encargo independiente pendiente, no duplicarlo. Checkpoint privado relevo14 recuperable; producción96 HTTP exacta al12:11UTC, inputsblocked, INC-2709-09 abierto. NoAPK/Edge/SQL.",
+  "scope": [
+    "src/shell.html",
+    "src/data/release-notes.json",
+    "scripts/beta-sources.json",
+    "e2e",
+    "tests",
+    "docs",
+    "public",
+    "VERSION",
+    "package.json",
+    "package-lock.json"
+  ]
+}
