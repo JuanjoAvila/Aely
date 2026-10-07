@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "id": "inc-2709-09-structural-audit-relay21",
+  "from": "codex",
+  "coordinatorSession": "relay-run-82bdecb0988d1d4c",
+  "createdAt": "2026-10-07T20:29:25.544Z",
+  "to": "codex",
+  "baseSHA": "067371705615e9cc58923509e3f60c3d0c9003ff",
+  "scope": [
+    "src/modules/state-sync-render-calc-scroll-lifecycle-storage read-only",
+    "existing synthetic perf fixtures and exact pure calculations",
+    "docs/briefs:structural plan and dependencies"
+  ],
+  "objective": "Orden técnica transversal INC-2709-09: diagnosticar/refactorizar por evidencia, no cadena de listeners aislados ni cosméticos. Comparar producción98/main067 ybeta101/77b7;100/101/102 parciales,noarregloglobal;103 WIPdetenido. Mapear flujo estado/sync yfrecuencia/coste render/cálculos conhistórico grande;trabajo durante scroll/gestos;montaje/cleanup/timers/listeners;almacenamiento/presiónmemoria. Usarfuenteexacta yseriesexistentes30min SINrepetirlas: verde sintético/nopendiente nocierre humano. Proponerplan de saneamiento coherente: causa ohipótesis porfrontera,métrica/baseline/control discriminante,límitesmedibles,dependencias,contratofinanciero/regresiones,unidades A/B ycriteriosNO-GO. Medición Nodepurasólosi función exacta justifica, 3000/5200sintéticos;no cifras reales ni mediciónDOM inventada (Chromiumausente, noinstalar). Planhumanoslowtop enlazarINC270903, ocultaciónindicador/transiciónbarraINC270913 preservandoCyberpunkrainbow; noimplementarcosméticos. Revisar significado/cálculo realgráficaInicio para explicación PRO02 sin tocar dinero. No reescritura indiscriminada, money/auth/SDK/caps/historial/API/SQL/APK/Edge,planes oinstrumentsruntime. Checkoutaislado desde067,AGENTS/EMPIEZAcompletos. Fuente beta101 local disponible,102candidatoCIactivo. Doc/fixturelocalpropio siútil,commit/evidenciadurables ysinprocesos alfinal; revisiónindependienteposterior."
+}
