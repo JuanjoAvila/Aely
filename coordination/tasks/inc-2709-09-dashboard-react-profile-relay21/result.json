@@ -1,0 +1,15 @@
+{
+  "status": "blocked",
+  "summary": "Perfil Chromium parcial: CI37691444682 roja por control longtask;4 informes completos conservados.8 cálculos baseline frente1+7hits virtuales, igualdadfilas/DOM y6controles previos pasaron; recuperación y bancariofinal no ejecutados. Fuente corregida155b408a8414bf97643e1c2c7e91c65cc879d603 árbol1e3fffbc45df4004f5cea635015224728df75a5a, GOindependiente limitado altest/Node; Chromium nuevo pendiente. PR167 CI ONLY cerrado SINMERGE, no producto ni resoluciónINC270909.",
+  "tests": [
+    "node tests/dashboard-profile-instrument.test.mjs PASS (0 DOM local)",
+    "node --check spec PASS; git diff --check PASS",
+    "CI37691444682 FAILURE (884 DOM+1skip;9originalperf PASS;2profiles+retry FAIL;privacidadnoacreditada)"
+  ],
+  "schema": 1,
+  "taskId": "inc-2709-09-dashboard-react-profile-relay21",
+  "actor": "codex",
+  "sessionId": "relay-run-82bdecb0988d1d4c",
+  "createdAt": "2026-10-07T22:47:13.575Z",
+  "released": true
+}
