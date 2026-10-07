@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "id": "inc-0710-banknotif-review-relay19",
+  "from": "codex",
+  "coordinatorSession": "relay-run-un7m4rjsqldezxl2",
+  "createdAt": "2026-10-07T17:18:03.387Z",
+  "to": "codex",
+  "baseSHA": "a56ab25be46985a0e78eca45146729027757b3ab",
+  "scope": [
+    "Candidato101 árbol779f43d8563f28dcccfcf9e2476ae9b9f8350093 fuente1435e02fe7b044ffa17f18c3f8e9bf751ef731c2",
+    "Dif18files frentea56: runtime efecto bankNotif únicamente, tests nuevos/registro, notas/docs/versiones/public canónico"
+  ],
+  "objective": "Revisión independiente exacta de cleanup bankNotif101. Verificar contrato de optin/cuota/mutex/schedule/runBankSync intacto y callbacks retirados inertes también bajo alta/retiro rechazados/tardíos; no afirmar causa global del lag. Causal Node real/contraprueba y DOM discriminante no-vacío/sin banca; validar mapa/runner y nuevo scope sin repin de30códigos ni cambios a220notas/historia/rechazos/catálogo96/98vacío. Medir1287/351/3 intacto con DSN95+sello101.99999 y artefacto; source/public reproducible. Worker entrega GO/NO-GO con SHA/tree, errores y pruebas realmente ejecutadas; sólolectura, no publicar producto. Modelo heredado para revisión fuerte por evento bancario; inputsblocked/INC-2709-09open y sin humana99/100/101/main/APK/Edge/SQL."
+}
