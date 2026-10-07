@@ -71,6 +71,8 @@ for(const size of [3000,5200])test("Dashboard real: frecuencia recientes y A/B v
     expect(await page.evaluate(()=>window.__dashProfile.state.expenses.length)).toBe(size);
     expect(await page.evaluate(()=>window.__dashProfile.state.deleted.length)).toBe(100);
     expect(await page.evaluate(()=>typeof window.__dashProfile.sync)).toBe("function");
+    expect(await page.evaluate(()=>!!window.__dashProfile.bankOriginals)).toBe(true);
+    expect(await page.evaluate(()=>window.__dashProfile.bankCalls)).toEqual([]);
     report.appVersion=await page.evaluate(()=>CONFIG.APP_VERSION);
     report.browser=page.context().browser().version();
     const baseline=await measured(page,"baseline",()=>budgetCycles(page));report.phases.push(baseline);
@@ -124,6 +126,8 @@ for(const size of [3000,5200])test("Dashboard real: frecuencia recientes y A/B v
     const ordered=recovered.frames.slice().sort((a,b)=>a-b),median=ordered[Math.floor(ordered.length/2)];
     expect(Math.max(...bad.frames)).toBeGreaterThan(median*3);
     report.controls.push({name:"instrument-discriminates-block",badMaxFrame:Math.max(...bad.frames),recoveredMedianFrame:median});
+    report.bankCalls=await page.evaluate(()=>window.__dashProfile.bankCalls.slice());
+    expect(report.bankCalls,"ninguna acción de este guion autoriza sync bancaria").toEqual([]);
     report.status="diagnostic-contract-passed";
   }catch(error){report.status="failed";report.error=String(error);throw error;}
   finally{save();await page.evaluate(()=>window.__dashProfile?.dispose()).catch(()=>{});await testInfo.attach("dashboard-react-profile",{path:output,contentType:"application/json"});}

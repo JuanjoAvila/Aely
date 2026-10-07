@@ -45,6 +45,11 @@ recientes** en el DOM real, no igualdad del layout de toda App.
 La ruta aborta peticiones externas; Supabase, sync y altas son dobles/datos sintéticos.
 No dispara sync bancaria, no lee cuentas reales, no despliega Edge ni ingiere pagos.
 El setter y la closure conservan su implementación real; no se sustituye el merge.
+El instrumento observa cloud.bankSync/bankSyncHistory desde la primera entrada de Dashboard,
+antes de efectos, y exige cero intentos durante arranque y campaña: abortar red no basta para
+acreditar ausencia de llamadas al doble. Control positivo Node verifica contador, receiver,
+retorno y restauración de ambos métodos. No ejecuta red ni añade anclas de producto.
+`renders` cuenta entradas de derivación/intentos de render, no commits de React.
 
 ## Campaña registrada
 

@@ -55,5 +55,13 @@ for(const size of [3000,5200]){
   assert.equal(p.metrics.computes,1);assert.equal(p.metrics.hits,7);assert.equal(p.metrics.rows,size);
   assert.equal(JSON.stringify(expenses),prior);p.verify();
 }
+// Control positivo: el doble no puede ocultar llamadas bancarias; se conserva this/retorno
+// y el teardown restaura exactamente ambos métodos. No se ejecuta transporte real.
+const bank={tag:"synthetic",bankSync(){return this.tag;},bankSyncHistory(date){return this.tag+date;}};
+const origSync=bank.bankSync,origHistory=bank.bankSyncHistory;
+p.guardBanks(bank);p.guardBanks(bank);
+assert.equal(bank.bankSync(),"synthetic");assert.equal(bank.bankSyncHistory("date"),"syntheticdate");
+assert.deepEqual(Array.from(p.bankCalls),["bankSync","bankSyncHistory"]);
 p.dispose();
+assert.equal(bank.bankSync,origSync);assert.equal(bank.bankSyncHistory,origHistory);
 console.log("Dashboard profile: 3 anclas failclosed; parser; filas===/empates/edición/exacta/legacy/cache/excepciones OK; 0 DOM ejecutados");
