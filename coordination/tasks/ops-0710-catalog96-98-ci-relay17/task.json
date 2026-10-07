@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "id": "ops-0710-catalog96-98-ci-relay17",
+  "from": "codex",
+  "coordinatorSession": "relay-run-05acdf59215d4b23",
+  "createdAt": "2026-10-07T14:32:25.869Z",
+  "to": "codex",
+  "baseSHA": "2f7ffdcda121f28272c0f9e631f785f9eaa4685b",
+  "objective": "Sucesor conjunto de ops-0710-prod96-catalog-cleanup-relay13 y ops-0710-prod98-served-relay16, ambos released:true. Producción98/source06737170 y96 verificadas8HTTP/artefacto Pages/5ZIP/code06180d02/code7ca1346e/APK52; NO repetir promociones. PR160 fuente2f7ffdcda121f28272c0f9e631f785f9eaa4685b/treeb3a4df9a4cf3757d88e2fc9a4bfa594029059111 GO independiente final: sólo96/98.tandas=[] y misma copia100items es/en/ca,220notas/textos/97vacía/99/100/restantes intactos. CI37636739352 de PR161 verify949e265511df58b7b6047b2883ee20e5bc66b09f mismoárbol encurso; inspeccionar run/jobs/logs finales+checkouttree. Cerrar PR161 SIN merge main. DEPENDE de inc-0710-beta100-ci-publish-relay17: después100SERVIDA, obtener beta fresca y simular integración; misma tree GO o revisión/pruebas nuevas si cambió. Resolver conflictos mecánicos contra beta100 sólo si árbolfinal idéntico; no replay public viejo ni reconstruirPR. ready160+SQUASH BETA expectedhead exacto yreadback; verificar publicadorSHA/3assets/ZIP/manifiesto/huella/sourceSha/SW/i18n/notas/catálogo/APK52 finales antes retiradaentregada. Presupuesto final100.99999 local1317883raw/358950gzip/3 (5B margenraw), topes intactos; CI oficial exacta obligatoria. Docs-frescura falla local rama no beta porhistory, excepciónbeta documentada sin tocar guard. Mantener historia/rechazos y toda otra tanda pendiente. No main/99-100approval/APK/Edge/SQL/migraciones/pagos. Inputs blocked eINC-2709-09 abierto.",
+  "scope": [
+    "src/data/release-notes.json",
+    "public",
+    "docs",
+    "tests",
+    "e2e"
+  ]
+}
