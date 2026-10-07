@@ -1,0 +1,46 @@
+{
+  "status": "blocked",
+  "summary": "Reparación99 fuente mínima exacta integrada en PR154/head98c56 y revisiónGO; CI37618116522 en curso, sin publicación beta99.",
+  "tests": [
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/gastos-mes-madrid.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/gastos-periodo.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/guard-privacy.mjs",
+      "exitCode": 0
+    }
+  ],
+  "productSHA": "98c56fe353f674c71ad78d5f26f1ec03e5e5e2ee",
+  "tree": "23404fc6501a932d200908bb25dee045a5bfd165",
+  "pr": 154,
+  "verificationPR": 157,
+  "ci": {
+    "run": 37618116522,
+    "status": "in_progress",
+    "checkoutMerge": "cd3cf83a201cf49b4133f8d859693c86954f46ef",
+    "treeExact": true
+  },
+  "limitations": [
+    "Tres null props React corrigen hijos vacíos; causal A/B real de elementos, no DOM local.36DOM y budget exactos pendientes.",
+    "PR157 sólo verifica CI contra main; jamás fusionarlo a main. Publicación permitida exclusivamente beta154 trasverdeexacto; no aprobación99.96/98 códigos exactos, INC-2709-09 abierto."
+  ],
+  "schema": 1,
+  "taskId": "inc-0710-gastos99-repair-next-relay14",
+  "actor": "codex",
+  "sessionId": "relay-run-b06e39e3fadf17c2",
+  "createdAt": "2026-10-07T12:42:51.791Z",
+  "released": true
+}
