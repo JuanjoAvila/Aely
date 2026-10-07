@@ -1,0 +1,8 @@
+{
+  "schema": 1,
+  "taskId": "ops-0710-prod96-catalog-cleanup-relay13",
+  "actor": "codex",
+  "sessionId": "relay-run-05acdf59215d4b23",
+  "createdAt": "2026-10-07T14:09:50.798Z",
+  "baseSHA": "3aeed496442ad9e5a3a7c8c2759a50622853512b"
+}
