@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "id": "inc-2709-09-dashboard-react-profile-relay21",
+  "from": "codex",
+  "coordinatorSession": "relay-run-82bdecb0988d1d4c",
+  "createdAt": "2026-10-07T21:11:40.405Z",
+  "to": "codex",
+  "baseSHA": "6b81279676d66337d7b34b7badc6d1ff2c66bc24",
+  "objective": "Completar evidencia estructural de Inicio en React/DOM real: frecuencia de renders, filtro/ordenado del histórico3000/5200, frames y trabajo durante interacción local, cambios porción y sync sintética. A/B discriminante de caché virtual sin producto, resultados/identidades financieras y clock intactos. Fixture previo Node no acredita React ni lag humano. Guion registrado y CI exacto; no bancos reales, datos privados, cambios de presupuesto, APK/Edge/SQL.",
+  "scope": [
+    "e2e",
+    "tests",
+    "scripts/relevant-tests.mjs",
+    "scripts/run-tests.mjs",
+    "docs/briefs",
+    "docs/TESTING.md",
+    "EMPIEZA-AQUI.md"
+  ]
+}
