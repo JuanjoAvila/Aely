@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "main": "067371705615e9cc58923509e3f60c3d0c9003ff",
+  "APKDeclaredSource": "64b4e5f3543ae440812ecf76a7e3259dfc938d1b",
+  "headsRereadUnchanged": {
+    "87": "26c2fd082959f168323b6df221b14af71b36953e",
+    "90": "821733fc7d65c895e288dba74d4ed412d01b3285",
+    "105": "9711219766449e4e7c50081b00f7f4da7d7abd1e",
+    "44": "2050ce327bc931510742c3c582a9faf36155da89"
+  },
+  "sourceBlobsTestedExact": {
+    "PR87_presupuesto": "35b12edc71d7a2df647348afc352cea1a07da83e",
+    "main_WidgetSnapshotArbiter": "8e4d634f238464720a87cec5a9a1d141362d0902",
+    "PR105_WidgetSnapshotArbiter": "9ddb3941760e23375c147d267d3677953a6c8c03"
+  },
+  "PR87NodeExit": 0,
+  "PR87ResultsSynthetic": {"positiveAgainst":120,"futureIncludedAgainst":140,"missingAnchorAgainst":-1660,"cycleOffStillCiclo":true},
+  "mainJavaAssertions": 1,
+  "PR105JavaAssertions": 5,
+  "JavaExit": 0,
+  "AndroidReactExecuted": false,
+  "deployedIngestCurrent": "unknown",
+  "installedAPK": "unknown",
+  "humanCause": "unknown",
+  "productEdited": false,
+  "deployAuthorized": false
+}
