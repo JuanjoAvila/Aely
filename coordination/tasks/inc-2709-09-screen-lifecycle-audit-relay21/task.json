@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "id": "inc-2709-09-screen-lifecycle-audit-relay21",
+  "from": "codex",
+  "coordinatorSession": "relay-run-82bdecb0988d1d4c",
+  "createdAt": "2026-10-07T19:57:12.175Z",
+  "to": "codex",
+  "baseSHA": "0fe497db07f0cd8e2e2e3e947032c13b7ab25d2a",
+  "scope": [
+    "src/modules:screen-local lifecycle handlers read-only",
+    "tests:synthetic diagnostic only",
+    "docs/briefs:causal evidence only"
+  ],
+  "objective": "Continuación acotada INC-2709-09 abierto, sin duplicar serie30min ni encargos externos. Auditar handlers/intervalos de pantallas que sí se montan al navegar/back/scroll repetidos y comprobar si cada alta tiene baja real. Excluir AppState100, banknotif101 y auth102 ya tratados. Si hay candidato claro, reproducir con fragmento real y ciclos sintéticos/control negativo/positivo, entregando causa y propuesta reversible; no modificar producto ni declarar lag global resuelto. Si no hay candidato, devolver NO-GO de hipótesis con límites. No repetir suites globales; no instalar navegador ni representar DOM no ejecutado. Checkout/rama propios desde fuente0fe exacta y leer AGENTS/EMPIEZA completos. Sin red bancaria/datos reales/SQL/APK/Edge/SDK ni modificación de límites/historial/planes. Sólo diagnóstico sano, commit local y evidencia recuperable; ningún editor/test activo al finalizar."
+}
