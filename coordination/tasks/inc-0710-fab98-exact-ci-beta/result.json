@@ -1,0 +1,28 @@
+{
+  "status": "blocked",
+  "summary": "FAB 98 integrado únicamente en beta por PR 153 SQUASH b7abebb6db7a74ccc9f7df87b41f5d63981b0c43, árbol 2d795049e639174539257138230f636a076d70af exacto. CI y revisión independientes verdes con 12 casos y negativo CSS 97. Publicador posterior en curso; artefactos servidos y aceptación móvil propios pendientes.",
+  "tests": [
+    {
+      "command": "GitHub Tests 37564577536 exact c2309cc2: 844 E2E, 9 rendimiento, privacidad; 12 FAB Green/Cyber safe 0/34 normal/reducido app/sistema; negativo CSS 97 en fixture, no ZIP anterior",
+      "exitCode": 0
+    },
+    {
+      "command": "git readback merge tree 2d795 exacto e identidad 96 preservada",
+      "exitCode": 0
+    }
+  ],
+  "productSHA": "b7abebb6db7a74ccc9f7df87b41f5d63981b0c43",
+  "pr": 153,
+  "limitations": [
+    "Publicador beta 37569120748 en curso; confirmar release, digest, manifiesto, huella, ZIP/HTML/SW, sourceSha, APK 52 y catálogo exactos.",
+    "Rechazo 97 intacto; sin aceptación 98 ni producción autorizada.",
+    "Documentación exacta 98 reconciliada en candidata 99 PR 154 pendiente, no afirmar que ya está en beta.",
+    "No acredita WebView real ni resuelve INC-2709-09."
+  ],
+  "schema": 1,
+  "taskId": "inc-0710-fab98-exact-ci-beta",
+  "actor": "codex",
+  "sessionId": "relay-run-6cbe3160b5688bc6",
+  "createdAt": "2026-10-07T04:16:05.857Z",
+  "released": true
+}
