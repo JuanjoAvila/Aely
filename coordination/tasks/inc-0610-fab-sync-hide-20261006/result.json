@@ -1,0 +1,21 @@
+{
+  "status": "blocked",
+  "summary": "Implementacion durable PR153 BETA headc2309cc268e7677bc062e7bb3553af5b8ccb3959 tree2d795049e639174539257138230f636a076d70af; review independienteGO fuente, catalogo/veredictos/history localesverdes. CI37564577536 ejecutando checkoutSUCCESS, DOM/contraste todaviaunknown, no publicacion98 ni aceptacion. AnteriorCI37562554183 FAILED notasduplicadas antesDOM; corregido traslado97.tandas manteniendo nota/rechazo. Continuar inc-0710-fab98-exact-ci-beta con nuevo claim, sin duplicarCI. INC-2709-09 abierto.",
+  "tests": [
+    "notas-sin-duplicados exit0",
+    "beta-tandas-vacias exit0",
+    "beta-veredictos exit0",
+    "novedades-idiomas exit0",
+    "privacy exit0",
+    "docs-frescura/history29 exit0",
+    "build exit0",
+    "independentGO source2d795",
+    "CI37564577536 inprogress; DOMunknown"
+  ],
+  "schema": 1,
+  "taskId": "inc-0610-fab-sync-hide-20261006",
+  "actor": "codex",
+  "sessionId": "relay-run-tqjnmmxjddwquexd",
+  "createdAt": "2026-10-07T03:02:42.293Z",
+  "released": true
+}
