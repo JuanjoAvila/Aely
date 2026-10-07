@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "id": "inc-0710-fab98-exact-ci-beta",
+  "from": "codex",
+  "coordinatorSession": "relay-run-tqjnmmxjddwquexd",
+  "createdAt": "2026-10-07T03:02:09.728Z",
+  "kind": "delivery",
+  "to": "codex",
+  "baseSHA": "c2309cc268e7677bc062e7bb3553af5b8ccb3959",
+  "objective": "Concluir reparacion del FAB por rechazo directo de beta97: debe retirarse conbarra, no apagarse despues. PR153 BETAONLY headc2309cc268e7677bc062e7bb3553af5b8ccb3959 tree2d795049e639174539257138230f636a076d70af. Revalidar CI37564577536 exacta SUCCESS y logs negativoCSS97/12DOM con hide/reveal/cancel/reduced/safe0/34. Si falla investigar sin bajar criterios. Solo entonces ready+SQUASH a BETA expected_head, publicador/artefactos exactos. Sin aprobacion98 ni main.",
+  "scope": [
+    "src/shell.html",
+    "e2e/botnav-fab-recorte.spec.mjs",
+    "src/data/release-notes.json",
+    "docs",
+    "VERSION",
+    "package.json",
+    "package-lock.json",
+    "public"
+  ],
+  "handoff": "97 publicado rechazado por desapariciontardia del circulo, rechazo intacto. CI37562554183 anterior fallo antesDOM por tarjeta duplicada97/98. Nuevoarbol retira exclusivamente97.tandas y conserva notas; registro/scopes iguales, 96 y otras tandas intactas. Review independienteGO fuente, funcionalunknown. CI nueva checkoutSUCCESS y PRdevueltaBETA. No heredar verdes antiguos. APK/Edge/SQL intactos. INC-2709-09 acumulativo permaneceabierto."
+}
