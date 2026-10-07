@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "id": "inc-0710-beta99-served-relay16",
+  "from": "codex",
+  "coordinatorSession": "relay-run-ssfxj5af3d2rj18m",
+  "createdAt": "2026-10-07T13:05:50.013Z",
+  "to": "codex",
+  "baseSHA": "8e103e9063f9f1e6f5fee209385c831ef0dc84b2",
+  "objective": "Sucesor inc-0710-gastos99-ci-beta-relay15 released:true. PR154 YA SQUASH a beta 8e103e9063f9f1e6f5fee209385c831ef0dc84b2/tree23404fc6501a932d200908bb25dee045a5bfd165 exacto. CI 37618116522 SUCCESS 880+9/36 Madrid DOM y GO independiente; budget <=1317888 raw/359424 gzip/3 bloqueantes intacto. PR157 verificación main cerrada sin merge. Falta concluir publicador 37624861007 del SHA merge exacto (en curso al cierre15), revisar logs y descargar tres assets release beta frescos. Cotejar manifiesto/huella/sourceSha del ZIP/index/SW/i18n/notas/catálogo/códigos96/98/99 y APK52 byteexactos, no declarar entregada por merge ni CI fuente. Si publisher falla investigar causa específica, no reconstruirPR ni rerun ciego. Tras99 servida desbloquear100 y96 cleanup existentes. No aprobación99/main/APK/Edge/SQL. Inputs blocked, INC-2709-09 abierto.",
+  "scope": [
+    "public",
+    "docs",
+    "scripts",
+    "tests"
+  ]
+}
