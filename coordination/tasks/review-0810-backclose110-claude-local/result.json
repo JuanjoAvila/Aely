@@ -1,0 +1,31 @@
+{
+  "status": "done",
+  "summary": "Revision readonly parcial en sesion cloud nueva (WT original inexistente aqui, sin ACK). OBSERVADO en checkout detached sin rama: fuente 6b3e0c920359611b7585356639eb265f73e2444a (refs/pull/192/head) tree=b5e8db039a479861de96388c3c4deae587a3e3f2, coincide con el encargo. tests/backclose-history.test.mjs PASS (21 contratos del controlador/hook, 27 mutantes110 UI, todos los OK). e2e/backclose-handover.spec.mjs: 16 passed, 2 failed, ambos en :73 'Un unico atras despues del cierre vuelve a la ruta anterior' (ui y browser) por toHaveURL esperando /privacy.html y recibiendo /privacy; apunta a que 'npx --yes serve' sin version fijada reescribe a URL limpia en esta VM (entorno/servidor, no demostrado como ajeno al codigo; sin repetir ni diagnosticar mas, y la segunda ejecucion de diagnostico fallo por falta de PLAYWRIGHT_CHROMIUM_PATH). No auditado a mano linea a linea owner/token/foreignroute, pendingpop, StrictMode ni los demas puntos del foco: solo hay evidencia de los contratos ejecutados. Sin cambios de producto, push, merge ni publicacion. CI 37849872932 no consultado.",
+  "tests": [
+    {
+      "command": "npm ci --ignore-scripts && npm run build (fuente 6b3e0c9)",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/backclose-history.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "npx playwright test e2e/backclose-handover.spec.mjs (PLAYWRIGHT_CHROMIUM_PATH=chromium-1194)",
+      "exitCode": 1
+    }
+  ],
+  "productSHA": "6b3e0c920359611b7585356639eb265f73e2444a",
+  "limitations": [
+    "Checkout nuevo, no el WT original",
+    "Logs no persistentes",
+    "2 fallos e2e sin causa confirmada (sospecha serve/cleanUrls)",
+    "Sin revision manual de codigo ni npm test completo ni movil ni CI"
+  ],
+  "schema": 1,
+  "taskId": "review-0810-backclose110-claude-local",
+  "actor": "claude",
+  "sessionId": "claude-cloud-20261008-5c6cabeb",
+  "createdAt": "2026-10-08T21:59:21.363Z",
+  "released": true
+}
