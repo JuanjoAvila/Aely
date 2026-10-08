@@ -1,0 +1,8 @@
+{
+  "schema": 1,
+  "taskId": "review-0810-backclose110-claude-local",
+  "actor": "claude",
+  "sessionId": "claude-cloud-20261008-5c6cabeb",
+  "createdAt": "2026-10-08T21:57:18.097Z",
+  "baseSHA": "f4ffb9340adfd0a13b631271e8158d2c630613c0"
+}
