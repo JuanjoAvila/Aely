@@ -47,9 +47,9 @@ const notes=JSON.parse(read('src/data/release-notes.json')),oldNotes=JSON.parse(
 assert.equal(notes[0].v,'4.26.106');assert.deepEqual(notes[0].tandas.map(g=>g.id),['inc-0810-dashboard-recents-memo']);
 assert.deepEqual(notes.slice(1),oldNotes);
 const reg=JSON.parse(read('scripts/beta-sources.json')),oldReg=JSON.parse(old('scripts/beta-sources.json'));
-const expectedReg=structuredClone(oldReg);expectedReg['inc-0410-inicio-tres-metas'].web[0].to='\n  const last=';
+const expectedReg=structuredClone(oldReg);
 expectedReg['inc-0810-dashboard-recents-memo']=reg['inc-0810-dashboard-recents-memo'];
-assert.deepEqual(reg,expectedReg,'solo alcance nuevo de106 y terminador exacto de Inicio; auditorías anteriores intactas');
+assert.deepEqual(reg,expectedReg,'solo alcance nuevo de106; todos los alcances y auditorías anteriores intactos');
 assert.equal(reg['inc-0810-dashboard-recents-memo'].web.length,19);
 assert.equal(reg['inc-0810-dashboard-recents-memo'].unidades,true);
 for(const key of ['historial','auditoria','codigosCompatibles','compatibilidadGit'])assert.equal(reg['inc-0810-dashboard-recents-memo'][key],undefined,'sin heredar '+key);

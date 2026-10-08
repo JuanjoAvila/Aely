@@ -147,9 +147,7 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
 
   // Inicio resume tres metas activas; Plan conserva todas sin cambiar su orden ni sus saldos.
   const goals=(state.goals||[]).filter(function(g){ return !g.done; }).slice(0,3);
-  // El presupuesto cambia estado local, pero no el histórico: conservar estos tres objetos
-  // evita repetir filtro y orden sin cambiar lápidas, importes ni desempate estable.
-  const last=useMemo(()=>(state.expenses||[]).filter(e=>!expenseIsTombstoned(e,expenseDeletedSet(state))).sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,3),[state.expenses,state.deleted]);
+  const recent=useMemo((s=state)=>(s.expenses||[]).filter(e=>!expenseIsTombstoned(e,expenseDeletedSet(s))).sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,3),[state.expenses,state.deleted]);
   const p=eurParts(shownNet);
   const ringPct=Math.max(0,Math.min(1,ratio));
   /* P6 — EL ANILLO SE DIBUJA, NO APARECE YA LLENO.
@@ -394,9 +392,9 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
         React.createElement("button",{className:"link",onClick:function(){ if(onGoGastos) onGoGastos(); }}, t("v4_all"))
       ),
       React.createElement("div",{className:"v4-card",style:{padding:"6px 14px"}},
-        last.length===0
+        recent.length===0
           ? React.createElement("div",{style:{padding:"18px 4px",color:"var(--muted)",fontSize:14}}, t("v4_recent_empty"))
-          : last.map(function(e){
+          : recent.map(function(e){
               const c=catOf(e.category); const pos=e.amount<0;
               return React.createElement("div",{key:e.id||(e.date+e.amount+e.merchant),className:"v4-mov"},
                 React.createElement("div",{className:"tile",style:{background:(c.color||"#5FD08A")+"22"}}, c.icon||"📦"),
