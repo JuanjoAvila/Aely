@@ -166,6 +166,8 @@ export const CROSSCUTTING = [
   "e2e/botnav-esconder.spec.mjs",
   // INC-2709-13: el FAB no se recorta en recto al esconderse la barra (contorno en el primer frame oculto).
   "e2e/botnav-fab-recorte.spec.mjs",
+  // INC-2709-13: la rayita de la pestaña activa se va con la barra escondida y la corriente Cyberpunk se queda.
+  "e2e/botnav-indicador.spec.mjs",
   "e2e/rendimiento.spec.mjs",
   "e2e/rendimiento-tabs.spec.mjs",
   "e2e/rendimiento-sostenido.spec.mjs",

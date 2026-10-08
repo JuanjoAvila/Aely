@@ -759,6 +759,13 @@
     transition:transform .32s var(--spring),opacity .2s;pointer-events:none;}
   .botnav-ind span{width:34px;height:3px;border-radius:3px;background:var(--mint);display:block;}
   .botnav-ind.hide{opacity:0;}
+  /* La rayita se va con la barra escondida (INC-2709-13). Con la barra oculta en el host nativo
+     la caja colapsa a 0 pero conserva overflow-clip-margin:30px, y la rayita (top:-9px) cabe
+     dentro de ese margen: se quedaba flotando sola. Selectivo sobre la rayita: la corriente
+     Cyberpunk (.botnav::after) y el + siguen como están. Sin transición: una opacidad a medias
+     pausada con el resto de animaciones de la barra descuadraba la medida del recorte del +
+     (botnav-fab-recorte) y la rayita no tiene nada que deslizar. */
+  .botnav-hidden .botnav-ind{opacity:0;transition:none;}
   /* LA RAYITA RODEA EL + EN VEZ DE ATRAVESARLO (petición suya 2026-07-28, con foto: «la rayita
      que rula al ir de tab en tab que cuando llegue al + en vez de atravesarlo que lo rodee»).
      Yendo de Gastos a Plan el indicador pasa por el hueco del FAB, y como es `position:absolute`
