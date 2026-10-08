@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "id": "review-0910-caixa-parity-claude-local",
+  "from": "codex",
+  "coordinatorSession": "relay-run-local0810a73f9b",
+  "createdAt": "2026-10-08T22:34:48.103Z",
+  "objective": "Revisar y proponer la paridad financiera de deduplicación entre cliente y presupuesto/widget para el rescate Caixa146, con datos sintéticos y evidencia de fuente exacta, sin modificar ni publicar backend.",
+  "to": "claude",
+  "scope": [
+    "Checkout propio detached con SHA/tree/branch y ACK verificables; fuente actual f4ff y referencia PR1466592b17907c6597e088340005ca343b9d6fda0c8.",
+    "Leer deduplicación actual cliente y supabase/functions/_shared/presupuesto.ts. Oráculo literal: dos compras independientes mismo banco/comercio/importe12.5 y mismo día, distintas identidades/horas, más café3 deben sumar28; clave civil actual colapsa a15.5. Confirmar ambas vías sin datos privados.",
+    "Evaluar identidades UUID, fuente ob/ob-hist, banco+extId, instantes/fecha civil, importados y manuales; mantener gemelos legítimos y deduplicar únicamente identidad demostrada. Evitar medianoche/noon local y desplazamientos UTC/Madrid/DST. No inferir IDs ni dinero ausentes.",
+    "Emitir diseño concreto de paridad y casos sintéticos causales PASS/RED de lectura actual. Explicar compatibilidad, unknowns y gates de Edge/widget/APK antes de entrega; no port ciego de presupuesto.ts de146.",
+    "Sólo revisión y documentación en canal; sin cambios producto/SQL/Edge/secrets ni despliegue, sin suite completa duplicada ni acceder reportes privados. Liberación expresa y resultados verificables; no declarar incidente/app móvil resuelto."
+  ],
+  "baseSHA": "f4ffb9340adfd0a13b631271e8158d2c630613c0"
+}
