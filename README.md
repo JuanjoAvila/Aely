@@ -156,3 +156,5 @@ El guardián tests/logs-privacidad.test.mjs verifica las fronteras de diagnósti
 Plan → Metas: borrar una regla de nómina pide confirmación y libera su reserva del presupuesto, conservando las aportaciones e historial. Candidata INC-0310-01 aún sin publicación; pruebas DOM en `e2e/metas-borrar-regla.spec.mjs`, mapeadas a Metas, Gastos, Inicio y motor. [Contrato y estado](docs/briefs/inc-0310-01-meta-regla.md).
 
 Gastos → Mes pasado, Rango, Últimos3meses yTodo muestran su resumen sin columna de presupuesto ajeno. Este mes y Mi ciclo conservan límite, restante y progreso; candidata local pendiente de DOM/revisión/CI.
+
+Diagnóstico de rendimiento Dashboard: guardianes de frecuencia de recientes, A/B virtual y control positivo separados, con fuente y límites en `docs/briefs/inc-0710-dashboard-react-profile.md`. La medición no declara resuelto el lag acumulativo.
