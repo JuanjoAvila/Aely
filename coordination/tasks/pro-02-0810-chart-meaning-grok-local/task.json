@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "id": "pro-02-0810-chart-meaning-grok-local",
+  "from": "codex",
+  "coordinatorSession": "relay-run-local0810a73f9b",
+  "createdAt": "2026-10-08T17:05:23.873Z",
+  "to": "grok",
+  "baseSHA": "8dcc5ed39b6e212ba1e34a90b550685794ce0bd5",
+  "objective": "Resolver PRO-02: Inicio debe explicar claramente qué representa su gráfica usando el origen real de los puntos; entregar cambio visible mínimo de explicación y DOM, sin inventar historial ni rentabilidad.",
+  "scope": [
+    "src/modules/03-tab-dash.js: explicación contextual de gráfica de Inicio",
+    "src/modules/02-ui-shared.js: Sparkline si imprescindible para accesibilidad",
+    "src/modules/01-i18n.js: claves es/en/ca de explicación",
+    "e2e: guard DOM de significado y estados sin datos",
+    "scripts/relevant-tests.mjs: registro si nuevo",
+    "docs/briefs/pro-02-0810-chart-meaning.md"
+  ],
+  "required": [
+    "Grok conserva Cursor. ACK/RESERVA real en issue130 antes de editar; tu comentario6043055926 acreditó libre y liberó UTC. No repetir los encargos antiguos de PR131/141/146/151; no son cola pendiente nueva.",
+    "Checkout/rama nuevos desde baseSHA completo, leer AGENTS/EMPIEZA-AQUI. Auditar lector Sparkline, state.history, todos escritores/semillas/migraciones, punto current y escala. El historial de onboarding/demo no acredita serie temporal real. No llamarlo diario, mensual, rentabilidad ni evolución histórica sin fechas/origen comprobados.",
+    "Si faltan fechas/proveniencia, texto exacto que explique lo acreditado y sus límites; no fabricar números/puntos ni guardar snapshots nuevos. Mantener cifras originales y total financiero intactos. No prometer rentabilidad; priorizar explicación corta útil para familia es/en/ca.",
+    "DOM real con fixtures sintéticos de onboarding/datos ausentes/un punto/serie y patrimonio negativo/moneda; comprobar explicación y magnitud sin cambiar saldos. Guardián registrado, unitarios/syntax/i18n/privacy y build bajo presupuestos oficiales; no aflojar controles para verde.",
+    "Entregar implementación mínima, commit/PR draft contra beta, SHA/tree/diff/tests/exitcodes y límites; revisión independiente y root preparan versión/publicación. Si la UI ya explica exactamente todo, demostrarlo y señalar diferencia restante concreta antes de editar."
+  ],
+  "restrictions": [
+    "No src/shell.html ni 11-app-main.js reservados para Claude; sin saldos reales, escrituras financieras/migraciones/servidor/APK/main/beta/merge/deps ni VERSION/catálogos. No activar dos Cursor con mismo alcance. No atascar esta unidad en diagnósticos de Plan o widget ajenos."
+  ],
+  "modelChoice": "Grok decide trabajador y modelo disponibles; evidencia efectiva en ACK, no modelo atribuido por Codex."
+}
