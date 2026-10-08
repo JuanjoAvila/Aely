@@ -785,34 +785,137 @@ function MiniPie({slices}){
    propia, SALE de la PWA. Metemos una entrada de historial por cada overlay abierto
    y, al retroceder, cerramos SOLO el de arriba (pila LIFO), no todos a la vez. */
 var _mcBackStack=[];        // overlays abiertos, en orden de apertura
-var _mcIgnorePop=false;     // true mientras consumimos nuestra propia entrada (cierre por UI)
+var _mcIgnorePop=false;     // Ayuda consulta esta señal; la propiedad la decide el token, no el booleano
 var _mcBackInit=false;
+var _mcBackHistory=[], _mcBackPending=null, _mcBackAt=null;
+var _mcBackScheduled=false, _mcBackTurn=0, _mcBackNext=0;
+var _mcBackOwner=typeof crypto!=="undefined"&&crypto.randomUUID?crypto.randomUUID():String(Date.now())+"-"+String(performance.now());
+function _mcBackSlot(state){
+  var tag=state&&state.mcBack;
+  if(!tag||tag.owner!==_mcBackOwner) return null;
+  return _mcBackHistory.find(function(s){ return s.id===tag.id; })||null;
+}
+function _mcBackSame(a,b){
+  var seen=[];
+  var same=function(x,y){
+    if(Object.is(x,y)) return true;
+    if(!x||!y||typeof x!=="object"||typeof y!=="object") return false;
+    var kind=Object.prototype.toString.call(x);
+    if(kind!==Object.prototype.toString.call(y)) return false;
+    var pair=seen.find(function(p){ return p[0]===x; });
+    if(pair) return pair[1]===y;
+    seen.push([x,y]);
+    if(kind==="[object Date]") return Object.is(x.getTime(),y.getTime());
+    if(kind==="[object RegExp]") return x.source===y.source&&x.flags===y.flags;
+    if(kind==="[object Map]"||kind==="[object Set]") return x.size===y.size&&same(Array.from(x),Array.from(y));
+    if(kind==="[object ArrayBuffer]"||ArrayBuffer.isView(x)){
+      var xb=new Uint8Array(x.buffer||x,x.byteOffset||0,x.byteLength),yb=new Uint8Array(y.buffer||y,y.byteOffset||0,y.byteLength);
+      return xb.length===yb.length&&xb.every(function(v,i){ return v===yb[i]; });
+    }
+    if(kind!=="[object Object]"&&kind!=="[object Array]") return false;
+    if(kind==="[object Array]"&&x.length!==y.length) return false;
+    var keys=Object.keys(x);return keys.length===Object.keys(y).length&&keys.every(function(k){ return Object.hasOwn(y,k)&&same(x[k],y[k]); });
+  };
+  // History acepta clones con ciclos/Map/Date. JSON los pierde y podría atribuir un pop ajeno.
+  return same(a,b);
+}
+function _mcBackSchedule(){
+  if(_mcBackScheduled) return;
+  _mcBackScheduled=true;
+  // React limpia todos los efectos antes de montar los nuevos. El lote permite transferir
+  // Perfil→Ajustes sin que un back pendiente se lleve la entrada nueva (8/10/2026).
+  Promise.resolve().then(function(){ _mcBackScheduled=false; _mcBackFlush(); });
+}
+function _mcBackAdd(close){
+  _mcBackInitOnce();
+  var e={close:close,active:true,slot:null,_byPop:false,failed:false,url:location.href};
+  _mcBackStack.push(e); _mcBackSchedule();
+  return e;
+}
+function _mcBackDrop(e){
+  if(!e||!e.active) return;
+  e.active=false;
+  var i=_mcBackStack.indexOf(e); if(i>=0) _mcBackStack.splice(i,1);
+  if(e.slot) e.slot.retired=_mcBackTurn;
+  _mcBackSchedule();
+}
+function _mcBackArm(e,replace){
+  var s={id:++_mcBackNext,entry:e,before:replace?replace.before:history.state,
+    beforeUrl:replace?replace.beforeUrl:location.href,retired:null,blocked:false,present:true};
+  var state={mcOverlay:true,mcBack:{owner:_mcBackOwner,id:s.id}};
+  try{
+    if(replace) history.replaceState(state,""); else history.pushState(state,"");
+  }catch(err){ e.failed=true; return false; }
+  if(replace){ var i=_mcBackHistory.indexOf(replace); if(i>=0) _mcBackHistory.splice(i,1); }
+  else _mcBackHistory=_mcBackHistory.filter(function(old){ return old.present; });
+  e.slot=s; _mcBackHistory.push(s); _mcBackAt=s;
+  return true;
+}
+function _mcBackConsume(s){
+  if(_mcBackPending||s.blocked||_mcBackSlot(history.state)!==s) return;
+  // Una entrada ajena o un push fallido nunca autorizan a salir de la ruta por un cierre UI.
+  _mcBackPending={from:s,state:s.before,url:s.beforeUrl}; _mcIgnorePop=true;
+  try{ history.back(); }catch(err){ s.blocked=true; _mcBackPending=null; _mcIgnorePop=false; }
+}
+function _mcBackFlush(){
+  var turn=_mcBackTurn++;
+  if(_mcBackPending) return;
+  var current=_mcBackSlot(history.state);
+  var waiting=_mcBackStack.filter(function(e){ return !e.slot&&!e.failed&&e.url===location.href; });
+  if(current&&!current.entry.active&&current.retired===turn&&waiting.length){
+    // Sólo se sustituye la entrada propia superior retirada en ESTE lote; su padre se conserva.
+    if(_mcBackArm(waiting[0],current)){ waiting.shift(); current=_mcBackAt; }
+  }
+  if(current&&!current.entry.active){ _mcBackConsume(current); return; }
+  waiting.forEach(function(e){ if(!e.failed) _mcBackArm(e,null); });
+}
+function _mcBackCloseNative(){
+  var e=_mcBackStack[_mcBackStack.length-1];
+  if(!e) return false;
+  // Capacitor avisa sin recorrer History: el consumo pertenece al controlador, no a _byPop.
+  _mcBackDrop(e); try{ e.close(); }catch(err){}
+  return true;
+}
 function _mcBackInitOnce(){
   if(_mcBackInit) return; _mcBackInit=true;
-  window.addEventListener("popstate", function(){
-    if(_mcIgnorePop){ _mcIgnorePop=false; return; }   // fue nuestro history.back() de cierre por UI
-    var top=_mcBackStack.pop();
-    if(top){ top._byPop=true; top.close(); }           // cierra el overlay superior
+  window.addEventListener("popstate", function(ev){
+    var current=_mcBackSlot(ev.state), previous=_mcBackAt, pending=_mcBackPending;
+    _mcBackAt=current;
+    if(pending){
+      _mcBackPending=null; _mcIgnorePop=false;
+      if(location.href===pending.url&&_mcBackSame(ev.state,pending.state)){
+        pending.from.present=false;
+      }
+      _mcBackSchedule(); return;
+    }
+    // Llegar desde otra ruta a nuestra entrada no equivale a haber salido de ella.
+    var left=[], s=previous;
+    while(s&&s!==current){
+      left.push(s);
+      if(location.href===s.beforeUrl&&_mcBackSame(ev.state,s.before)) break;
+      s=_mcBackSlot(s.before);
+    }
+    if(left.length&&s&&s!==current&&location.href===s.beforeUrl&&_mcBackSame(ev.state,s.before)){
+      // Un go(-n) puede saltar más de una entrada. Sólo cierra la superior; los padres vivos
+      // saltados recuperan protección sin recibir un callback de cierre ajeno.
+      left.forEach(function(slot){ slot.present=false; if(slot!==previous&&slot.entry.active) slot.entry.slot=null; });
+      var e=previous.entry;
+      if(e.active){ _mcBackDrop(e); e._byPop=true; try{ e.close(); }finally{ _mcBackSchedule(); } }
+    }
+    _mcBackSchedule();
   });
 }
-function useBackClose(open, onClose){
-  const entry=useRef(null);
+function useBackClose(open, onClose, identity){
+  const close=useRef(null);
+  // Conserva la closure de apertura y las refs financieras existentes. Sólo los propietarios
+  // que cambian de paso/diálogo solicitan explícitamente otro registro con identity.
+  useEffect(function(){ close.current=open?onClose:null; },[open]);
   useEffect(function(){
     _mcBackInitOnce();
     if(!open) return undefined;
-    const e={ close:onClose, _byPop:false };
-    entry.current=e;
-    _mcBackStack.push(e);
-    try{ history.pushState({mcOverlay:true}, ""); }catch(err){}
-    return function(){
-      const i=_mcBackStack.indexOf(e);
-      if(i>=0) _mcBackStack.splice(i,1);
-      if(!e._byPop){                                    // cerrado por UI (botón/swipe), no por gesto atrás:
-        _mcIgnorePop=true;                              // consumimos nuestra entrada sin cerrar otro overlay
-        try{ history.back(); }catch(err){ _mcIgnorePop=false; }
-      }
-    };
-  },[open]);
+    const e=_mcBackAdd(close.current);
+    return function(){ _mcBackDrop(e); };
+  },[open,identity]);
 }
 
 /* Pantallas hijas a página completa: dentro de la WebView se puede volver desde cualquier punto,

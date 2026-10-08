@@ -904,8 +904,9 @@ function BillsAddWizard({step, setStep, form, setForm, banks, onClose, set, onSa
     else { swipe.close(); return false; }
     return true;
   },[setStep]);
-  const entryRef=React.useRef(null), stepBackRef=React.useRef(stepBack);
+  const stepBackRef=React.useRef(stepBack);
   stepBackRef.current=stepBack;
+  useBackClose(true,function(){ stepBackRef.current(); },step);
   // El primer paso ya sale con la ola: el callback de Atrás desmonta sin otra salida vertical.
   const side=useEdgePageClose(true,stepBack,step,sideRef);
   React.useLayoutEffect(function(){
@@ -914,22 +915,6 @@ function BillsAddWizard({step, setStep, form, setForm, banks, onClose, set, onSa
     el.classList.remove("mc-page-dragging");
     el.style.cssText="";
   },[step]);
-  React.useEffect(function(){
-    _mcBackInitOnce();
-    const arm=function(){
-      const e={close:function(){ if(stepBackRef.current()) arm(); },_byPop:false};
-      entryRef.current=e;
-      _mcBackStack.push(e);
-      try{ history.pushState({mcOverlay:true}, ""); }catch(err){}
-    };
-    arm();
-    return function(){
-      const e=entryRef.current; if(!e) return;
-      const i=_mcBackStack.indexOf(e); if(i>=0) _mcBackStack.splice(i,1);
-      if(!e._byPop){ _mcIgnorePop=true; try{ history.back(); }catch(err){ _mcIgnorePop=false; } }
-      entryRef.current=null;
-    };
-  },[]);
   // Solo reenfocar título al cambiar de paso — nunca al teclear el form (Codex 2120Z).
   React.useEffect(function(){
     var id=requestAnimationFrame(function(){ if(titleRef.current) titleRef.current.focus(); });

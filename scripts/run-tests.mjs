@@ -34,6 +34,7 @@ if (plan.build !== false) {
 }
 
 const steps = [
+  ["backclose-history", ["node", "tests/backclose-history.test.mjs"]],
   ["dashboard-memo-instrument", ["node", "tests/dashboard-memo-instrument.test.mjs"]],
   ["auth-disposal-fit", ["node", "tests/auth-disposal-fit.test.mjs"]],
   ["auth-disposal", ["node", "tests/auth-disposal.test.mjs"]],

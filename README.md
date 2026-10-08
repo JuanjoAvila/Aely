@@ -58,7 +58,9 @@ mi-cartera/
 │   ├── index.html          #     Generado por `npm run build` — no editar a mano
 │   ├── manifest.json · sw.js · vendor/ · fonts/
 │   └── privacy.html
-├── e2e/                    # Playwright (96 specs: pantallas, persistencia, copias, reglas mensuales y ayuda de Mi ciclo)
+├── e2e/                    # Playwright (103 specs: pantallas, persistencia, copias, reglas mensuales y ayuda de Mi ciclo)
+│   └── backclose-handover.spec.mjs # Dieciocho casos de historial/overlays; preparados, aún sin ejecutar
+├── tests/backclose-history.test.mjs # Controlador y hook reales con cola de eventos History sintética
 ├── tests/                  # Unitarios en Node (lógica, parsers, i18n, seguridad, frescura de doc,
 │                           #  sintaxis de las Edge Functions, despliegue manual de Supabase y presupuesto de rendimiento)
 ├── supabase/               # Postgres, Auth, Edge Functions

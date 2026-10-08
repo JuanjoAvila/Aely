@@ -10220,6 +10220,66 @@
       },
       {
         "file": "src/modules/02-ui-shared.js",
+        "function": "_mcBackSlot"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "_mcBackSame"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "_mcBackSchedule"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "_mcBackAdd"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "_mcBackDrop"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "_mcBackArm"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "_mcBackConsume"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "_mcBackFlush"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "_mcBackHistory"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "_mcBackPending"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "_mcBackAt"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "_mcBackScheduled"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "_mcBackTurn"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "_mcBackNext"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "_mcBackOwner"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
         "data": "_mcBackStack"
       },
       {

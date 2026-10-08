@@ -20,6 +20,28 @@ DSN sintético95bytes y reserva de versión; el HTML real de DOM se identifica p
 Las auditorías Auth de metadatos106 leen8dcc; los controles funcionales y mutantes Auth leen
 la fuente actual. No acredita móvil, WebView nativa, rendimiento sostenido ni entrega de107.
 
+## Historial Perfil → Ajustes (8/10, validación local sobre8dcc)
+
+`backclose-handover.spec.mjs`, registrado en CROSSCUTTING, pasa18 casos: ocho del
+flujo real es/en/ca y retorno a ruta previa, backButton de App con doble Capacitor,
+Ask encadenado y wizard UI/browser/nativo, más cinco contratos de ciclo de vida
+con React real/History del navegador y controles visibles aislados. Esos cinco no
+son pantallas del producto ni sustituyen los ocho del flujo original. Comprueba
+navegación, visibilidad, overlays, pila, cancelaciones y porciones financieras.
+`backclose-history.test.mjs`, registrado en run-tests, carga el controlador/hook
+reales y verifica20 contratos con History/eventqueue sintéticos, incluidos20 mutantes
+UI que invalidan Brókers. Node pasa y DOM18 termina0 sin retries/skips en ventana101.
+Baseline histórico reproduce ocho fallos causales: seis salidas a about:blank y dos
+retornos prematuros a privacy.html. Primer candidato16PASS/2fallos de preparación:
+Novedades catalán («Entesos!») tapaba el avatar; se cierra mediante UI traducida real,
+sin cambiar runtime ni esperar el historial después de Perfil/Ajustes. Build/map/syntax/i18n/
+privacy/security/docs pasan, pero presupuesto rebasa los caps en3362B crudos/741B gzip.
+Ese fallo previo permanece en el acta. Root asignó1291/352 KiB al candidato aislado;
+artefacto sellado real1321274/360181 B pasa con710/267 B de margen, sin sumar caps.
+La suite financiera beta-sources termina exit0:1731 funciones/684 datos mutados sobre8dcc.
+Sin publicación110 ni comprobación de Android físico; unión sobre109 pendiente de validar.
+[Diseño y revisión](briefs/inc-0810-backclose-handover.md).
+
 ## Apuntar: fila visible e importe persistido (5/10)
 
 Edición de reglas de Metas (candidata 8/10): `reserva-dinero` conserva su registro en el runner y añade edición mensual asentada/pendiente y por ingreso, identidad, campos desconocidos, igualdad semántica tras JSONB, estado fresco y no-op. `metas-editar-regla.spec.mjs`, mapeado a motor y Metas, abre la pantalla real en es/en/ca: cancelar, guardar, céntimos, recargar, doble toque, rebase sobre regla/meta borrada o modificada, actualización posterior, mes nuevo de Madrid y replay del updater de App. Datos sintéticos; requiere lease local y no acredita móvil real. Resultados exactos y límites en [el acta](briefs/inc-0810-metas-editar-regla.md).
