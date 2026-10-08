@@ -1,0 +1,18 @@
+{
+  "status": "done",
+  "summary": "Diagnóstico causal y calibración exacta completados; candidata aislada preparada y revisión de fuente GO, sin corrección humana ni producto aceptado. Continuación CI y contratos nativos reservada como tarea pendiente inc-2709-09-plan-candidate-ci-reconcile-relay23. PR180 CI-only draft source bfe535b8c50f753198c914b9b66e3aba4985daa6 tree 31b12d9a628c43402d5cb427ed4b32c7c87b23c1, CI 37751508019 in progress. No integrar beta ancestry a main, no nueva beta ni promoción.",
+  "tests": [
+    "CI 37731175456 SUCCESS: diagnostic original 889 E2E +4flaky+1skip;13perf; association only",
+    "CI 37738099256 SUCCESS: calibration balanced 893 E2E +1skip;13perf;24samples, no human cause proven",
+    "Prior CI 37746792060 FAILURE: raw budget excess99 beforeChromium, zero native/natural reports; retained",
+    "Corrected exact esbuild0.25.5 full unchanged budget independent PASS raw1317884 margin4 gzip359032 margin392;3blocking assets",
+    "12 Booleantransition controls,6Boolean callers, fixedhost/specificity3, nativeoriginal7tests retained; source independentGO only",
+    "CI 37751508019 in progress at 2026-10-08 08:50:30 UTC; no green/natural/native acceptance inferred; both editors stopped and private artifacts durable"
+  ],
+  "schema": 1,
+  "taskId": "inc-2709-09-plan-ownership-causal-relay23",
+  "actor": "codex",
+  "sessionId": "relay-run-0aeaab4c4f09425a",
+  "createdAt": "2026-10-08T08:51:06.422Z",
+  "released": true
+}
