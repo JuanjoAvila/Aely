@@ -1,0 +1,17 @@
+{
+  "status": "done",
+  "tests": [
+    "Independent strong review GO;32 prior identities preserved;17 causal mutations PASS",
+    "Tests37714211916 exact tree7f290 SUCCESS884 functional/1skip,13 performance,privacy;4 full actualReact A/B reports",
+    "Beta SQUASH8dcc5ed39b6e212ba1e34a90b550685794ce0bd5 and publisher37718742824 SUCCESS884+13,artifact budgets",
+    "Served4.26.106.1 source8dcc5ed3 and full metadataSHA exact; fingerprintfe89bb7c152a10e8; catalog exact; nativeAPK52 unchanged",
+    "Post-delivery inputs read; mobile acceptance remains unknown; no production promotion"
+  ],
+  "summary": "Beta4.26.106.1 delivered and verified: memoize recent Dashboard derivation across stable expense/deleted references while retaining invalidation and data equivalence. Budgets preserved. Prolonged lag remains open; mobile acceptance and production are separate gates.",
+  "schema": 1,
+  "taskId": "inc-0810-dashboard-recents-memo-relay22",
+  "actor": "codex",
+  "sessionId": "relay-run-7ec27dca45990401",
+  "createdAt": "2026-10-08T03:34:14.257Z",
+  "released": true
+}
