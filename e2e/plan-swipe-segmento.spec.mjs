@@ -11,6 +11,7 @@
  * Cartera), que vive en `11-app-main.js` y escucha los mismos toques desde más arriba en el DOM. */
 import { test, expect } from "@playwright/test";
 import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
+import { execFileSync } from "node:child_process";
 
 async function appLista(page) {
   await expect(page.locator(".botnav")).toBeVisible({ timeout: 30_000 });
@@ -272,3 +273,148 @@ test("el swipe horizontal entre pestañas sigue funcionando dentro de Plan", asy
   await expect.poll(() => pestanaActiva(page), { timeout: 10_000 }).toBe("plan");
   expect(await segmentoActivo(page)).toBe("recibos");
 });
+
+
+/* INC-0710-01: medir el mismo dedo en el DOM, antes y después de usar Plan. El informe no
+ * convierte un síntoma del móvil en una causa: registra entrega del toque, ownership y scroll
+ * por frame, también si Chromium cancela el gesto. No modifica handlers ni touch-action. */
+async function iniciarPerfilGesto(page) {
+  await page.evaluate(() => {
+    const rows=[], frames=[], tasks=[];
+    const snapshot=(phase,e) => {
+      const pg=document.querySelector(".page.page-scroll-host") || document.querySelector(".page.page-live");
+      const seg=document.querySelector('[data-seg][aria-hidden="false"]');
+      const active=document.querySelector(".botnav-tab.active");
+      return {phase,t:performance.now(),event:e?.type||null,cancelable:e?.cancelable||false,
+        prevented:e?.defaultPrevented||false,target:e?.target?.closest?.(".v4-screen")?"screen":"other",
+        tab:active?.dataset.tour||null,seg:seg?.dataset.seg||null,y:pg?.scrollTop??null,
+        own:pg?.classList.contains("mc-touch-own")||false};
+    };
+    const handlers=[];
+    for(const type of ["touchstart","touchmove","touchend","touchcancel","scroll"]){
+      const fn=e=>{rows.push(snapshot("capture",e));queueMicrotask(()=>rows.push(snapshot("microtask-not-final",e)));};
+      document.addEventListener(type,fn,{capture:true,passive:true});handlers.push([type,fn]);
+    }
+    const observer=new PerformanceObserver(list=>tasks.push(...list.getEntries().map(e=>({start:e.startTime,duration:e.duration}))));
+    observer.observe({type:"longtask",buffered:false});
+    let active=true,raf;
+    const tick=()=>{if(!active)return;frames.push(snapshot("raf"));raf=requestAnimationFrame(tick);};
+    raf=requestAnimationFrame(tick);
+    window.__planGestureProfile={stop:()=>{
+      active=false;cancelAnimationFrame(raf);observer.disconnect();
+      handlers.forEach(([type,fn])=>document.removeEventListener(type,fn,true));
+      return {rows,frames,tasks,instrumentation:"event/microtask/rAF scrollTop+class reads; no style or size read per frame"};
+    }};
+  });
+}
+async function terminarPerfilGesto(page, label, sourceSHA) {
+  const report=await page.evaluate(()=>window.__planGestureProfile.stop());
+  const intervals=report.frames.slice(1).map((r,i)=>r.t-report.frames[i].t);
+  report.label=label;report.sourceSHA=sourceSHA;report.maxFrame=intervals.length?Math.max(...intervals):null;
+  report.framesOver32=intervals.filter(n=>n>32).length;
+  console.log("PLAN_GESTURE_PROFILE "+JSON.stringify(report));
+  return report;
+}
+const perfilSourceSHA=execFileSync("git",["rev-parse","HEAD"],{encoding:"utf8"}).trim();
+
+
+for(const reducedMotion of ["no-preference","reduce"]){
+  test("perfil controles Inicio/Gastos y cancelación/inversión Plan "+reducedMotion,async({page})=>{
+    test.setTimeout(120_000);
+    await page.emulateMedia({reducedMotion});
+    await page.route("**/*",route=>{
+      const url=new URL(route.request().url());
+      return ["127.0.0.1","localhost"].includes(url.hostname)?route.continue():route.abort();
+    });
+    await seedLoggedInDashboard(page,{debts,goals,
+      expenses:Array.from({length:80},(_,i)=>({id:"profile-exp-"+i,date:"2026-09-26",amount:2,
+        merchant:"Sintético "+i,category:"Otros",account:"e2e"}))});
+    await page.goto("/");await appLista(page);
+    const cdp=await page.context().newCDPSession(page);
+    await cdp.send("Emulation.setCPUThrottlingRate",{rate:6});
+    for(const tab of ["inicio","gastos"]){
+      await page.locator('.botnav-tab[data-tour="'+tab+'"]').click();
+      await expect.poll(()=>pestanaActiva(page)).toBe(tab);await page.waitForTimeout(650);
+      await iniciarPerfilGesto(page);
+      await deslizarV(page,cdp,{y0:430,dy:-190,pasos:12});await page.waitForTimeout(400);
+      const report=await terminarPerfilGesto(page,tab+"/control/"+reducedMotion,perfilSourceSHA);
+      expect(report.rows.some(r=>r.event==="touchstart"&&r.tab===tab)).toBe(true);
+      expect(await pestanaActiva(page)).toBe(tab);
+    }
+    await irAPlan(page);
+    for(const endType of ["touchCancel","touchEnd"]){
+      await page.locator(".page.page-scroll-host").evaluate(el=>{el.scrollTop=0;});
+      await page.waitForTimeout(300);
+      const before=await segmentoActivo(page);
+      await iniciarPerfilGesto(page);
+      await cdp.send("Input.dispatchTouchEvent",{type:"touchStart",touchPoints:[{x:196,y:430}]});
+      for(const y of [420,400,370,340,365,395,425]){
+        await cdp.send("Input.dispatchTouchEvent",{type:"touchMove",touchPoints:[{x:196,y}]});
+        await page.waitForTimeout(16);
+      }
+      await cdp.send("Input.dispatchTouchEvent",{type:endType,touchPoints:[]});await page.waitForTimeout(400);
+      const report=await terminarPerfilGesto(page,"plan/inversion/"+endType+"/"+reducedMotion,perfilSourceSHA);
+      expect(report.rows.some(r=>r.event==="touchstart"&&r.tab==="plan"&&r.seg===before)).toBe(true);
+      expect(report.rows.some(r=>r.event==="touchcancel"||r.event==="touchend"),"el navegador no entregó cierre del gesto").toBe(true);
+      expect(await segmentoActivo(page)).toBe(before);
+      expect(await pestanaActiva(page)).toBe("plan");
+      expect(await page.locator(".page.page-scroll-host").evaluate(el=>el.classList.contains("mc-touch-own"))).toBe(false);
+    }
+    await cdp.send("Emulation.setCPUThrottlingRate",{rate:1});await cdp.detach();
+  });
+}
+
+
+for(const reducedMotion of ["no-preference","reduce"]){
+  for(const segment of ["recibos","deudas","metas"]){
+    test("perfil diagnóstico desde tope "+segment+" "+reducedMotion,async({page})=>{
+      test.setTimeout(90_000);
+      await page.emulateMedia({reducedMotion});
+      await page.route("**/*",route=>{
+        const url=new URL(route.request().url());
+        return ["127.0.0.1","localhost"].includes(url.hostname)?route.continue():route.abort();
+      });
+      await seedLoggedInDashboard(page,{
+        debts,goals:Array.from({length:16},(_,i)=>({...goals[i%3],id:"profile-goal-"+i})),
+        fixed:Array.from({length:24},(_,i)=>({id:"profile-fixed-"+i,name:"Recibo sintético "+i,
+          amount:10+i,freq:"mes",day:28,account:"e2e"}))
+      });
+      await page.goto("/");await appLista(page);await irAPlan(page);
+      if(segment!=="recibos"){
+        await page.locator(".v4-seg-btn",{hasText:segment==="deudas"?/deuda/i:/meta/i}).click();
+        await expect.poll(()=>segmentoActivo(page)).toBe(segment);
+      }
+      const cdp=await page.context().newCDPSession(page);
+      await cdp.send("Emulation.setCPUThrottlingRate",{rate:6});
+      const pg=page.locator(".page.page-scroll-host");
+      await expect(pg).toHaveCount(1);
+      await expect.poll(()=>pg.evaluate(el=>el.scrollHeight-el.clientHeight)).toBeGreaterThan(200);
+      const baseline=await page.evaluate(()=>localStorage.getItem("micartera_v3_exp"));
+      for(const phase of ["first","warm"]){
+        // Colocar el caso inicial no sustituye al gesto: las muestras posteriores son CDP.
+        await pg.evaluate(el=>{el.scrollTop=0;});
+        await page.waitForTimeout(300);
+        await iniciarPerfilGesto(page);
+        await deslizarV(page,cdp,{y0:430,dy:-190,pasos:12});
+        await page.waitForTimeout(450);
+        const report=await terminarPerfilGesto(page,segment+"/"+phase+"/"+reducedMotion,perfilSourceSHA);
+        expect(report.rows.some(r=>r.event==="touchstart"&&r.tab==="plan")).toBe(true);
+        expect(report.frames.some(r=>r.y>2),"el dedo real no produjo scroll desde el tope").toBe(true);
+        expect(await segmentoActivo(page)).toBe(segment);
+        expect(await pestanaActiva(page)).toBe("plan");
+        expect(await pg.evaluate(el=>el.classList.contains("mc-touch-own"))).toBe(false);
+        // Control fuera de tope: mismo dedo, la lista ya tiene recorrido y debe seguir bajando.
+        const outsideBefore=await pg.evaluate(el=>el.scrollTop);
+        expect(outsideBefore,"el control debe empezar fuera del tope").toBeGreaterThan(2);
+        await iniciarPerfilGesto(page);
+        await deslizarV(page,cdp,{y0:430,dy:-190,pasos:12});
+        await page.waitForTimeout(350);
+        const outside=await terminarPerfilGesto(page,segment+"/outside-top/"+phase+"/"+reducedMotion,perfilSourceSHA);
+        expect(outside.rows.some(r=>r.event==="touchstart"&&r.tab==="plan"&&r.seg===segment)).toBe(true);
+        expect(await pg.evaluate(el=>el.scrollTop),"el mismo dedo fuera del tope debe continuar el scroll").toBeGreaterThan(outsideBefore);
+      }
+      expect(await page.evaluate(()=>localStorage.getItem("micartera_v3_exp"))).toBe(baseline);
+      await cdp.send("Emulation.setCPUThrottlingRate",{rate:1});await cdp.detach();
+    });
+  }
+}
