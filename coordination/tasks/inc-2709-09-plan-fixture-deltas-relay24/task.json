@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "id": "inc-2709-09-plan-fixture-deltas-relay24",
+  "from": "codex",
+  "coordinatorSession": "relay-run-trulvafdfmkvbvll",
+  "createdAt": "2026-10-08T10:08:37.409Z",
+  "kind": "diagnostic",
+  "to": "codex",
+  "baseSHA": "bfe535b8c50f753198c914b9b66e3aba4985daa6",
+  "objective": "Aislar cambios del fixture y precondiciones táctiles de Plan antes de cualquier aceptación del prototipo",
+  "scope": [
+    "e2e/plan-ownership-candidate.spec.mjs and e2e/plan-ownership-candidate.mjs only: synthetic full before/after persisted-state diff evidence outside frame capture; keep original whole-state equality and all native gates unchanged",
+    "Capture exact initial host classes, active tab, scrollTop, ownership and overlays before assertion; do not change expected none without measured root cause",
+    "CI-only PR180 source ancestry preserved; no main/beta integration, no runtime/CSS/version/registry edits or real financial/network calls",
+    "Exact independent source review, syntax/relevant/privacy checks, official CI exact source; preserve failed CI37751508019 and incomplete A/B, no performance or human-lag claim",
+    "Model inherited current for bounded test diagnosis; independent audit required for all money/concurrency conclusions"
+  ]
+}
