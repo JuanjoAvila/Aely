@@ -1,0 +1,41 @@
+{
+  "status": "done",
+  "summary": "Complemento readonly. LIMITE: soy una sesion cloud nueva; el WT de la sesion 4bd37c02 NO existe aqui y no puedo darle ACK (ni su ruta/logs). OBSERVADO ahora en checkouts frescos detached (sin rama) en esta VM: fuente HEAD=6592b17907c6597e088340005ca343b9d6fda0c8 tree=8b87033d530a2a27a2891881b62333c8c3a31aa6 (origin/cursor/inc-2709-06-scope141-d4cb resuelve al mismo SHA); base HEAD=f4ffb9340adfd0a13b631271e8158d2c630613c0 tree=2f02b447148e6b0e0abbe08e93eec3e5c78d28c4. ack e identidad: PASS en fuente, FAIL (exit 1) en f4ff con los mismos tests copiados. Logs en la VM efimera (no publicados, no persisten); no hay ruta de evidencia duradera. No verificado: otros 4 guardianes (se conserva el resultado previo sin repetir), npm test entero, e2e, movil, manifest/CI/assets web. Resultado original intacto.",
+  "tests": [
+    {
+      "command": "npm ci --ignore-scripts && npm run build (fuente 6592b17)",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/inc-2709-06-ack.test.mjs (fuente)",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/inc-2709-06-identidad.test.mjs (fuente)",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run build (f4ffb93)",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/inc-2709-06-ack.test.mjs (contraprueba f4ffb93)",
+      "exitCode": 1
+    },
+    {
+      "command": "node tests/inc-2709-06-identidad.test.mjs (contraprueba f4ffb93)",
+      "exitCode": 1
+    }
+  ],
+  "limitations": [
+    "Checkout nuevo, no el WT original",
+    "Logs no persistentes",
+    "Sin npm test completo ni e2e ni movil"
+  ],
+  "schema": 1,
+  "taskId": "review-0810-caixa146-identity-claude-local",
+  "actor": "claude",
+  "sessionId": "claude-cloud-20261008-523debcb",
+  "createdAt": "2026-10-08T21:31:02.617Z",
+  "released": true
+}
