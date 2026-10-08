@@ -1,0 +1,15 @@
+{
+  "status": "done",
+  "tests": [
+    "Tests37706060548 SUCCESS exact CI head b9fd854ecf755a594150e3b7359fa69bc2793193/tree1e3fffbc45df4004f5cea635015224728df75a5a",
+    "884 functional PASS/1skip +11 serial performance PASS; privacy PASS",
+    "Complete synthetic 3000/5200 reports; injected 180ms block observed; recovery frames and bank-call guard pass"
+  ],
+  "summary": "Control positivo Dashboard verificado en CI exacta, fuente155b408a8414bf97643e1c2c7e91c65cc879d603 conservada. Diagnóstico original A/B virtual, no corrección de lag ni aprobación móvil. Dos informes completos recuperados; integración de pruebas en main requiere unidad separada sin runtime beta.",
+  "schema": 1,
+  "taskId": "inc-2709-09-dashboard-profile-control-ci-relay21",
+  "actor": "codex",
+  "sessionId": "relay-run-7ec27dca45990401",
+  "createdAt": "2026-10-08T01:06:02.754Z",
+  "released": true
+}
