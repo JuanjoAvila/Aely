@@ -1,0 +1,44 @@
+{
+  "status": "done",
+  "summary": "Correccion CSS revisada y preservada; CI NO-GO por presupuesto antes de E2E",
+  "tests": [
+    {
+      "command": "Official CI37778368506 actual checkoutb17663a913ebbdda3cdacb23f257e7165be7d0f7",
+      "exitCode": 1,
+      "failure": "presupuesto-rendimiento minificado; browser suites unexecuted"
+    },
+    {
+      "command": "Independent full log review",
+      "exitCode": 0,
+      "verdict": "NO-GO product; no native or natural result in this run"
+    },
+    {
+      "command": "Exact local rebuilt parent/candidate reserved-byte control",
+      "exitCode": 0,
+      "parentBytes": 1317884,
+      "candidateBytes": 1317906,
+      "minLimit": 1317888,
+      "selectorDeltaBytes": 22,
+      "onlyMinifiedDifference": true
+    }
+  ],
+  "productSHA": "a370a815138bb866fd4f98fccff78909740cd488",
+  "testedSHA": "b17663a913ebbdda3cdacb23f257e7165be7d0f7",
+  "tree": "e905092420a03e7ae3671237b2405ca6747190d7",
+  "findings": [
+    "Official CI ended12:57:11UTC on rounded minified size budget; gzip and blocking-file budgets passed. Exact18-byte excess is local matched rebuild control, not exposed by CI log",
+    "No sheet/native/natural/performance E2E were reached; do not combine earlier fixture results as acceptance of this distinct source",
+    "No budget increase, production/beta publication or performance correction claimed; source remains recoverable in draft CI-only PR181",
+    "INC-2709-09 remains open; next unit must recover budget with preserved selector context and all finance/native gates, then obtain independent review and exact CI"
+  ],
+  "limitations": [
+    "Removing host/page conditions or broadening important priority is not accepted without proof and reviewed proposal",
+    "No consistent candidate performance advantage in earlier completed A/B; existing product NO-GO retained"
+  ],
+  "schema": 1,
+  "taskId": "inc-2709-09-plan-sheet-priority-relay24",
+  "actor": "codex",
+  "sessionId": "relay-run-trulvafdfmkvbvll",
+  "createdAt": "2026-10-08T13:46:35.037Z",
+  "released": true
+}
