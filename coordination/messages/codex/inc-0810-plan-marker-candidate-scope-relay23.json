@@ -1,0 +1,9 @@
+{
+  "id": "inc-0810-plan-marker-candidate-scope-relay23",
+  "to": "codex",
+  "body": "Aely · 23 amplía la siguiente unidad de inc-2709-09-plan-ownership-causal-relay23 a una candidata aislada SOLO PARA PRUEBAS, sin versión/publicación. La calibración oficial CI 37738099256 SUCCESS acredita 24 muestras/27 informes completos, sin retries, y persiste trabajo de estilo sin consulta computada; no acredita lag humano. Scope: src/modules/14-v4-screens.js, src/shell.html, e2e/plan-ownership-candidate.spec.mjs y su helper específico si necesario, scripts/relevant-tests.mjs sólo registro, docs/briefs/inc-0810-plan-ownership-candidate.md. Base runtime beta 8dcc5ed39b6e212ba1e34a90b550685794ce0bd5; overlays de pruebas revisadas se declaran aparte. Plan añade/retira mc-plan-touch-own junto al marcador genérico en una sola mutación; regla auto únicamente fixedhost Plan, sin important, sin cambiar JS manualscroll/ownOn ni Inicio. Exigir rAF natural A/B de fuentes exactas y comparación main, Tracing separado, terminal/aterrizaje/inercia y contratos arriba/medio/abajo/diagonal/horizontal/cancel/inversión/sheets/reducedmotion/safe areas/cleanup/rerender. Revisión independiente y CI exacto antes de decidir; sin cambio de versión ni beta, sin fingerprint/aprobación heredados ni APK/Edge/SQL/pagos. No ampliar algorítmica silenciosamente si falla un guard.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "relay-run-0aeaab4c4f09425a",
+  "createdAt": "2026-10-08T07:32:21.201Z"
+}
