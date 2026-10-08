@@ -1,0 +1,8 @@
+{
+  "schema": 1,
+  "taskId": "inc-0710-plan-slow-top-causal-repro-relay21",
+  "actor": "codex",
+  "sessionId": "relay-run-7ec27dca45990401",
+  "createdAt": "2026-10-08T00:05:43.990Z",
+  "baseSHA": "6b81279676d66337d7b34b7badc6d1ff2c66bc24"
+}
