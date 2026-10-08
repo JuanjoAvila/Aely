@@ -1,5 +1,110 @@
 [
   {
+    "v": "4.26.106",
+    "d": "2026-10-08",
+    "t": {
+      "es": "Recientes al abrir el presupuesto",
+      "en": "Recent transactions when opening the budget",
+      "ca": "Recents en obrir el pressupost"
+    },
+    "items": {
+      "es": [
+        "Inicio conserva los movimientos recientes al abrir y cerrar el presupuesto, y los actualiza cuando cambian."
+      ],
+      "en": [
+        "Home keeps recent transactions when opening and closing the budget, and updates them when they change."
+      ],
+      "ca": [
+        "Inici conserva els moviments recents en obrir i tancar el pressupost, i els actualitza quan canvien."
+      ]
+    },
+    "tandas": []
+  },
+  {
+    "v": "4.26.102",
+    "d": "2026-10-07",
+    "t": {
+      "es": "Sesión al cerrar",
+      "en": "Session cleanup",
+      "ca": "Sessió en tancar"
+    },
+    "items": {
+      "es": [
+        "Se liberan las acciones de sesión al retirar la app."
+      ],
+      "en": [
+        "Session actions are released when the app is removed."
+      ],
+      "ca": [
+        "S’alliberen les accions de sessió en retirar l’app."
+      ]
+    },
+    "tandas": []
+  },
+  {
+    "v": "4.26.101",
+    "d": "2026-10-07",
+    "t": {
+      "es": "Avisos tras cambiar de sesión",
+      "en": "Notifications after switching sessions",
+      "ca": "Avisos després de canviar de sessió"
+    },
+    "items": {
+      "es": [
+        "Los avisos de banco dejan de conservar acciones de una sesión cerrada."
+      ],
+      "en": [
+        "Bank notifications no longer retain actions from a closed session."
+      ],
+      "ca": [
+        "Els avisos del banc deixen de conservar accions d’una sessió tancada."
+      ]
+    },
+    "tandas": []
+  },
+  {
+    "v": "4.26.100",
+    "d": "2026-10-07",
+    "t": {
+      "es": "Volver tras cambiar de sesión",
+      "en": "Returning after switching sessions",
+      "ca": "Tornar després de canviar de sessió"
+    },
+    "items": {
+      "es": [
+        "Tras cambiar de sesión, volver a la app no repite las mismas acciones."
+      ],
+      "en": [
+        "After switching sessions, returning to the app does not repeat the same actions."
+      ],
+      "ca": [
+        "Després de canviar de sessió, tornar a l’app no repeteix les mateixes accions."
+      ]
+    },
+    "tandas": []
+  },
+  {
+    "v": "4.26.99",
+    "d": "2026-10-07",
+    "t": {
+      "es": "Gastos respeta el mes de Madrid",
+      "en": "Expenses follows the Madrid calendar month",
+      "ca": "Despeses respecta el mes de Madrid"
+    },
+    "items": {
+      "es": [
+        "Los gastos de medianoche aparecen en su mes correcto. La lista, el resumen, las categorías y las fechas coinciden también en Mes pasado y Últimos 3 meses."
+      ],
+      "en": [
+        "Expenses around midnight appear in the correct month. The list, summary, categories and dates agree for Last month and Last 3 months too."
+      ],
+      "ca": [
+        "Les despeses de mitjanit apareixen al mes correcte. La llista, el resum, les categories i les dates coincideixen també a Mes passat i Últims 3 mesos."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.26.98",
     "d": "2026-10-07",
     "t": {

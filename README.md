@@ -1,3 +1,5 @@
+Preparación8/10: candidata selectiva4.26.106 desde main56c7e328 para las aprobadas99/100/101/102/106. Producción comprobada4.26.98, beta4.26.106.1/source8dcc5ed3. Revisión independiente, CI exacta y entrega pendientes. Panel beta solo se retira después de entrega real; lag global abierto. [Acta](docs/briefs/promocion-aprobadas-local26.md).
+
 Promoción selectiva98 preparada7/10: el dueño aprobó ocultar juntos barra y botón en beta4.26.98.1/sourceb7ab. Base main85b8, sólo CSS aprobada, scope y guardianes correspondientes. Producción96 ya servida; candidata98 local pendiente de revisión independiente, CI exacta y entrega. No99/100/APK/Edge/SQL; INC-2709-09 continúa abierto. [Acta](docs/briefs/promocion-fab98-2026-10-07.md).
 
 Promoción selectiva6/10: candidata4.26.96 local para mostrar hasta tres metas activas en Inicio, aprobada directamente por el dueño para la fuente ca6f5e85. Base main537edc1; únicamente el límite visual aprobado, conservando todas las metas en Plan y el resto de main. Revisión independiente, CI y entrega servida pendientes; INC-2709-09 sigue abierto. [Acta](docs/briefs/promocion-inicio96-2026-10-06.md).
@@ -112,7 +114,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.98** candidata local selectiva autorizada: botón y barra se ocultan juntos. Revisión/CI/entrega pendientes; lag global abierto.
+Estado actual: **v4.26.106** candidata selectiva de Gastos, sesión y recientes. Producción4.26.98 verificada; revisión/CI/entrega pendientes.
 
 Corte anterior (4/10, 12:30 UTC, panel de revisión): **v4.26.93** publicada en beta. Primera entrega4.26.93.1 (fuente1d5dd782), CI37200314653SUCCESS y HTTP/ZIP/HTML/SW/catálogo/huella cotejados el4/10 a12:30UTC:11 tandas/24 puntos, frente a40 antes del cambio. Producción4.26.86 (d366215a), APK beta4.26.80/code52 y estable4.26.32/code48 conservadas. Prueba y aprobación móvil pendientes. [Acta](docs/briefs/ops-0410-panel-cola.md).
 
@@ -158,3 +160,5 @@ Plan → Metas: borrar una regla de nómina pide confirmación y libera su reser
 Gastos → Mes pasado, Rango, Últimos3meses yTodo muestran su resumen sin columna de presupuesto ajeno. Este mes y Mi ciclo conservan límite, restante y progreso; candidata local pendiente de DOM/revisión/CI.
 
 Diagnóstico de rendimiento Dashboard: guardianes de frecuencia de recientes, A/B virtual y control positivo separados, con fuente y límites en `docs/briefs/inc-0710-dashboard-react-profile.md`. La medición no declara resuelto el lag acumulativo.
+
+Verificación específica de la promoción106: `node scripts/verify-selective106.mjs --candidate=SHA` ([acta y retirada diferida](docs/briefs/promocion-aprobadas-local26.md)).

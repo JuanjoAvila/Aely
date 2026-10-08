@@ -1,17 +1,4 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no" />
-<meta name="theme-color" content="#0B140F" />
-<meta name="color-scheme" content="light dark" />
-<meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<link rel="manifest" href="manifest.json" />
-<link rel="apple-touch-icon" href="apple-touch-icon.png" />
-<title>Aely</title>
-
-<!-- ================== Content-Security-Policy (2026-07-24) ==================
+<!DOCTYPE html><html lang="es"><head><meta charset=UTF-8><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no"><meta name="theme-color" content="#0B140F"><meta name="color-scheme" content="light dark"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><link rel=manifest href=manifest.json><link rel=apple-touch-icon href=apple-touch-icon.png><title>Aely</title><!-- ================== Content-Security-Policy (2026-07-24) ==================
      Red de seguridad: aunque alguien colara HTML/JS en la página, el navegador no dejaría cargar
      código de un sitio no listado ni mandar los datos de la cartera a ningún lado. Aquí van
      números de cuentas y patrimonio: merece la pena el cinturón además de los tirantes.
@@ -50,41 +37,11 @@
      ⚠ MISMO PATRÓN CON LOS TIPOS DE CAMBIO (2026-08-05): `api.frankfurter.app` hace **301 →
      api.frankfurter.dev**. Sin `.dev` en connect-src, en el WebView el fetch moría y solo el
      dólar «funcionaba» (tipo legacy `state.fx`). La URL canónica es ya `.dev`; `.app` se deja
-     por si queda algún redirect residual. -->
-<meta http-equiv="Content-Security-Policy" content="
-  default-src 'self';
-  base-uri 'none';
-  object-src 'none';
-  form-action 'self';
-  manifest-src 'self';
-  worker-src 'self';
-  script-src 'self' 'unsafe-inline' https://www.google.com https://www.gstatic.com;
-  style-src 'self' 'unsafe-inline';
-  font-src 'self' data:;
-  img-src 'self' data: blob: https://www.gstatic.com;
-  frame-src https://www.google.com;
-  connect-src 'self' blob: https://sfyfjagbnhbplrljpbvh.supabase.co https://api.frankfurter.dev https://api.frankfurter.app https://juanjoavila.github.io https://github.com https://objects.githubusercontent.com https://release-assets.githubusercontent.com https://www.google.com https://www.gstatic.com;
-" />
-<!-- Que no se filtre la URL de la app (ni sus parámetros) al salir hacia el banco. -->
-<meta name="referrer" content="strict-origin-when-cross-origin" />
-
-<!-- Adelanta el TLS de la única conexión externa que queda (la nube) -->
-<link rel="preconnect" href="https://sfyfjagbnhbplrljpbvh.supabase.co" crossorigin>
-<!-- Fuentes AUTO-HOSPEDADAS (public/fonts/, variables, latin+latin-ext): sin CDN de Google,
-     sin CSS bloqueante de terceros, y funcionan offline (las cachea el Service Worker). -->
-<link rel="preload" href="fonts/manrope-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="fonts/fraunces-latin.woff2" as="font" type="font/woff2" crossorigin>
-
-<!-- Tema ANTES del primer pintado: evita el fogonazo oscuro del splash en temas claros -->
-<!-- Tema ANTES del primer pintado (si no, destello blanco). Lee la cartera de pruebas cuando el
-     modo pruebas está activo, para que el tema no baile al entrar y salir de él. -->
-<script>try{var _k=localStorage.getItem("_mcSandbox")==="1"?"micartera_sandbox":"micartera_v3";var _s=JSON.parse(localStorage.getItem(_k));var _th=_s&&_s.settings&&_s.settings.theme;if(_th)document.documentElement.setAttribute("data-theme",_th);}catch(e){}</script>
-
-<!-- Supabase (sincronización en la nube) AUTO-HOSPEDADO y con versión fijada (v2.110.0, public/vendor/).
+     por si queda algún redirect residual. --><meta http-equiv="Content-Security-Policy" content="default-src 'self';base-uri 'none';object-src 'none';form-action 'self';manifest-src 'self';worker-src 'self';script-src 'self' 'unsafe-inline' https://www.google.com https://www.gstatic.com;style-src 'self' 'unsafe-inline';font-src 'self' data:;img-src 'self' data: blob: https://www.gstatic.com;frame-src https://www.google.com;connect-src 'self' blob: https://sfyfjagbnhbplrljpbvh.supabase.co https://api.frankfurter.dev https://api.frankfurter.app https://juanjoavila.github.io https://github.com https://objects.githubusercontent.com https://release-assets.githubusercontent.com https://www.google.com https://www.gstatic.com;"><!-- Que no se filtre la URL de la app (ni sus parámetros) al salir hacia el banco. --><meta name="referrer" content="strict-origin-when-cross-origin"><!-- Adelanta el TLS de la única conexión externa que queda (la nube) --><link rel="preconnect" href="https://sfyfjagbnhbplrljpbvh.supabase.co" crossorigin><!-- Fuentes AUTO-HOSPEDADAS (public/fonts/, variables, latin+latin-ext): sin CDN de Google,
+     sin CSS bloqueante de terceros, y funcionan offline (las cachea el Service Worker). --><link rel="preload" href="fonts/manrope-latin.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="fonts/fraunces-latin.woff2" as="font" type="font/woff2" crossorigin><!-- Tema ANTES del primer pintado: evita el fogonazo oscuro del splash en temas claros --><!-- Tema ANTES del primer pintado (si no, destello blanco). Lee la cartera de pruebas cuando el
+     modo pruebas está activo, para que el tema no baile al entrar y salir de él. --><script>try{var _k=localStorage.getItem("_mcSandbox")==="1"?"micartera_sandbox":"micartera_v3";var _s=JSON.parse(localStorage.getItem(_k));var _th=_s&&_s.settings&&_s.settings.theme;if(_th)document.documentElement.setAttribute("data-theme",_th);}catch(e){}</script><!-- Supabase (sincronización en la nube) AUTO-HOSPEDADO y con versión fijada (v2.110.0, public/vendor/).
      Antes venía de cdn.jsdelivr.net con la etiqueta @2 flotante: una versión nueva con breaking change
-     podía romper la app sin tocar nosotros nada. Si falla (offline), la app sigue con localStorage. -->
-
-<!-- Sentry: NO bloquea el arranque (~340 KB). Se inyecta tras el primer pintado si hay DSN (12-boot). -->
+     podía romper la app sin tocar nosotros nada. Si falla (offline), la app sigue con localStorage. --><!-- Sentry: NO bloquea el arranque (~340 KB). Se inyecta tras el primer pintado si hay DSN (12-boot). -->
 
 
 
@@ -3373,7 +3330,7 @@ const cloud = (function(){
   return {
     enabled(){ return !!sb; },
     async session(){ if(!sb) return null; const {data}=await sb.auth.getSession(); return data.session; },
-    onAuth(cb){ if(sb) sb.auth.onAuthStateChange(function(ev,session){ cb(session, ev); }); },
+    onAuth(cb){ const sub=sb&&sb.auth.onAuthStateChange((ev,s)=>{ cb(s,ev); }); return ()=>{ if(sub) sub.data.subscription.unsubscribe(); }; },
     async signIn(email){
       if(!sb) throw new Error("nube no disponible");
       const {error}=await sb.auth.signInWithOtp({ email:email, options:{ emailRedirectTo: location.href.split('#')[0] } });
@@ -8810,7 +8767,7 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
 
   // Inicio resume tres metas activas; Plan conserva todas sin cambiar su orden ni sus saldos.
   const goals=(state.goals||[]).filter(function(g){ return !g.done; }).slice(0,3);
-  const recent=(state.expenses||[]).filter(function(e){ return !expenseIsTombstoned(e,expenseDeletedSet(state)); }).sort(function(a,b){ return String(b.date).localeCompare(String(a.date)); }).slice(0,3);
+  const recent=useMemo((s=state)=>(s.expenses||[]).filter(e=>!expenseIsTombstoned(e,expenseDeletedSet(s))).sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,3),[state.expenses,state.deleted]);
   const p=eurParts(shownNet);
   const ringPct=Math.max(0,Math.min(1,ratio));
   /* P6 — EL ANILLO SE DIBUJA, NO APARECE YA LLENO.
@@ -9125,14 +9082,21 @@ function budgetPaydayOf(state, nowMs, expenses){
    lag que crecía con el uso (feedback 2026-07-24). Devuelve {from,to} con Infinity de comodín. */
 function presetBoundsMs(preset,range,cycleStart){
   const now=new Date();
-  const monthEnd=new Date(now.getFullYear(),now.getMonth()+1,1).getTime()-1;
+  // Inicio y FIN de mes en Madrid, como `startOfMonth`: con el fin en hora del dispositivo, un
+  // apunte del 1 de octubre a las 00:00 en Madrid (30/9 22:00Z) quedaba fuera del mes en una
+  // máquina en UTC (reporte 2026-10-07). saltar 35 días y volver a `inicioDeMesMs` cae siempre en el mes siguiente.
+  const monthStart=inicioDeMesMs(now);
+  const nextMonthStart=inicioDeMesMs(monthStart+35*864e5);
+  const monthEnd=nextMonthStart-1;
   if(preset==="month") return {from:startOfMonth().getTime(), to:monthEnd};
   if(preset==="cycle"){
     const tomorrow=new Date(now); tomorrow.setHours(24,0,0,0);
-    return {from:(cycleStart||startOfMonth()).getTime(), to:cycleStart?tomorrow.getTime()-1:monthEnd};
+    return {from:(cycleStart||startOfMonth()).getTime(), to:cycleStart?tomorrow.getTime()-1:new Date(now.getFullYear(),now.getMonth()+1,1).getTime()-1};
   }
-  if(preset==="last") return {from:startOfMonth(new Date(now.getFullYear(),now.getMonth()-1,1)).getTime(), to:startOfMonth().getTime()-1};
-  if(preset==="3m") return {from:new Date(now.getFullYear(),now.getMonth()-2,1).getTime(), to:monthEnd};
+  if(preset==="last") return {from:inicioDeMesMs(monthStart-1), to:monthStart-1};
+  // Tres meses naturales de Madrid (mes actual y los dos anteriores): inicio local + fin Madrid
+  // sumaban casi cuatro meses en cuanto el dispositivo no estaba en Madrid.
+  if(preset==="3m") return {from:inicioDeMesMs(inicioDeMesMs(monthStart-1)-1), to:monthEnd};
   if(preset==="custom"){
     let from=-Infinity, to=Infinity;
     if(range&&range.from){ const f=new Date(range.from+"T00:00:00"); if(!isNaN(f.getTime())) from=f.getTime(); }
@@ -9592,6 +9556,10 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   };
 
   const todayKey=new Date().toDateString();
+  const monthly=preset==="month"||preset==="last"||preset==="3m", dateOpts={day:"2-digit",month:"short",timeZone:monthly?"Europe/Madrid":undefined};
+  // Las ventanas de mes son de Madrid: el memo también debe caducar al cambiar el día ALLÍ, que
+  // en un dispositivo de otra zona no coincide con `todayKey`.
+  const mad=madridYmdParts(Date.now()), madridDay=mad.ym+"-"+mad.d;
   const cycle=useMemo(()=>cycleEnabled?budgetPaydayOf(state,null,expensesDef)
     :lastPaydayOf(expensesDef,null,expenseDeletedSet(state)),
     [expensesDef,state.deleted,state.flows,cycleEnabled,todayKey]);
@@ -9600,7 +9568,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   // Chips de banco: baratos y SIEMPRE visibles (no dependen de heavyOk → sin flash).
   // `todayKey` invalida ciclo, filtros y cabecera cuando la app queda abierta al cruzar el día;
   // así el 26 o el día 1 no conserva cifras del período anterior en un memo.
-  const bounds=useMemo(function(){ return presetBoundsMs(preset,range,cycle&&cycle.start); },[preset,range,cycle,todayKey]);
+  const bounds=useMemo(function(){ return presetBoundsMs(preset,range,cycle&&cycle.start); },[preset,range,cycle,todayKey,madridDay]);
   const selectedPeriod=useMemo(function(){ return gastosPeriodOf(preset,bounds,cycle); },[preset,bounds,cycle]);
   const diarioEnts=useMemo(function(){ return expenseBankEnts(state); },[state.accounts, state.settings]);
   const diarioPrev=useRef(diarioEnts.slice());
@@ -9687,7 +9655,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   // alta hasta que un sync cambiaba `expenses` (B09-A / feedback familia 2026-09-06).
   const budgetApplies=preset==="month"||preset==="cycle";
   const monthSummary=useMemo(function(){
-    const now=new Date();
+    const now=new Date(), day=monthly?madridYmdParts(Date.now()):{d:now.getDate(),m:now.getMonth()+1};
     const bs=monthBudgetStats(Object.assign({},state,{expenses:expensesDef}),null,null,null,selectedPeriod);
     // No existe una foto histórica del límite ni un presupuesto acumulado para varios meses.
     // Enseñar el límite actual como margen del pasado inventaría dinero disponible.
@@ -9698,17 +9666,17 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     return {
       spent:bs.spent, income:bs.income, balance:bs.balance, mode:bs.mode, against:bs.against,
       budget:bs.budget, reserved:bs.reserved, remaining:bs.remaining,
-      day:now.getDate(),
-      month:monthLong(now.getMonth()), cycle:!!selectedPeriod.cycle,
+      day:day.d,
+      month:monthLong(day.m-1), cycle:!!selectedPeriod.cycle,
       periodLabel:periodLabel, budgetApplies:budgetApplies
     };
-  },[expensesDef,state.deleted,state.budget,state.reservaLog,state.accounts,state.settings,selectedPeriod,preset,range,budgetApplies,todayKey]);
+  },[expensesDef,state.deleted,state.budget,state.reservaLog,state.accounts,state.settings,selectedPeriod,preset,range,budgetApplies,todayKey,madridDay]);
   // Desglose por categoría: misma regla/ventana que la cabecera. categoryBudgets en deps
   // porque una fila a 0 con límite tiene que aparecer aunque no haya gastos nuevos.
   const catBreakdown=useMemo(function(){
     const rows=categorySpentByMonth(Object.assign({},state,{expenses:expensesDef}),null,null,selectedPeriod);
     return budgetApplies?rows:rows.filter(function(row){ return row.spent>0; }).map(function(row){ return {id:row.id,spent:row.spent,limit:null}; });
-  },[expensesDef,state.deleted,state.categoryBudgets,state.accounts,state.settings,selectedPeriod,budgetApplies,todayKey]);
+  },[expensesDef,state.deleted,state.categoryBudgets,state.accounts,state.settings,selectedPeriod,budgetApplies,todayKey,madridDay]);
   /* Abierto o plegado, por cuenta. `!==false` y no `!!`: quien nunca lo ha tocado lo ve ABIERTO
      —es como está hoy y como él lo aprobó—, y solo se pliega quien lo pliegue a mano. */
   const catsOpen=!(state.settings && state.settings.gastosCatsOff);
@@ -9960,10 +9928,10 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
         React.createElement("i",{style:{width:monthSummary.budget==null?"0%":Math.min(100,Math.max(0,monthSummary.against)/monthSummary.budget*100)+"%"}})
       ),
       React.createElement("div",{className:"v4-gastos-progress-marks"},
-        React.createElement("span",isFinite(bounds.from)
-          ? new Date(bounds.from).toLocaleDateString(loc(),{day:"2-digit",month:"short"}) : t("g_all")),
-        monthSummary.budgetApplies && React.createElement("span",tf("v4_gastos_today_mark",{d:monthSummary.day})),
-        !monthSummary.cycle && isFinite(bounds.to) && React.createElement("span",new Date(bounds.to).toLocaleDateString(loc(),{day:"2-digit",month:"short"}))
+        React.createElement("span",null,isFinite(bounds.from)
+          ? new Date(bounds.from).toLocaleDateString(loc(),dateOpts) : t("g_all")),
+        monthSummary.budgetApplies && React.createElement("span",null,tf("v4_gastos_today_mark",{d:monthSummary.day})),
+        !monthSummary.cycle && isFinite(bounds.to) && React.createElement("span",null,new Date(bounds.to).toLocaleDateString(loc(),dateOpts))
       ),
       /* SE PUEDE OCULTAR (petición de su pareja, 10/9, y con razón).
          Sus palabras: «esta chulo pero mi pareja lo vio y me dijo que es too much, que le gustaria
@@ -20249,7 +20217,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="3d8c16b41c915752fab5c24145064493043773c21d97e5af34dac30a6c9b9592";
+var _rnSha="15d6d5ad66d850437d48ab123d3022aaf859f758fa412deadfac8becc202f015";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -24861,32 +24829,35 @@ function App(){
   };
 
   // Detecta sesión al cargar y escucha cambios (incluida la vuelta del magic link).
-  useEffect(function(){
+  useEffect(()=>{
     if(!cloud.enabled()){ mcBootReady(); return; }   // sin nube no hay nada que esperar detrás del splash
     /* Offline conocido: el estado local ya está listo y no debe aparecer un Inicio vacío ni un
        instante. Con red se conserva el margen de 2500 ms para no pintar cifras que luego saltan. */
-    var offline=false;
-    try{ offline=navigator.onLine===false; }catch(e){}
-    if(offline) mcBootReady();
-    const sesTope=setTimeout(mcBootReady, 2500);
-    cloud.session().then(function(s){
-      clearTimeout(sesTope);
-      sessionRef.current=s; setSession(s);
-      if(s) mcScheduleIdle(function(){ syncFromCloud(s); }); else mcBootReady();
-    }, function(){ clearTimeout(sesTope); mcBootReady(); });
-    cloud.onAuth(function(s, ev){
+    try{ if(navigator.onLine===false) mcBootReady(); }catch(e){}
+    // Al desmontar no deben quedar callbacks que cambien sesión o inicien otra lectura.
+    var alive=true;
+    const boot=()=>{ if(alive) mcBootReady(); }, tmr=setTimeout(boot, 2500);
+    cloud.session().then(s=>{
+      clearTimeout(tmr);
+      if(!alive) return;
+      setSession(sessionRef.current=s);
+      if(s) mcScheduleIdle(()=>{ if(alive) syncFromCloud(s); }); else boot();
+    }, ()=>{ clearTimeout(tmr); boot(); });
+    const off=cloud.onAuth((s,ev)=>{
+      if(!alive) return;
       const prev=sessionRef.current;
-      const changed=(!prev&&s)||(prev&&!s)||(prev&&s&&prev.user.id!==s.user.id);
-      sessionRef.current=s; setSession(s);
+      const login=s&&(!prev||prev.user.id!==s.user.id);
+      setSession(sessionRef.current=s);
       // Cerrar sesión rompe la asociación implícita del extracto local con el titular. El
       // próximo login no debe heredar sus apuntes, aunque no exista cartera en la nube.
-      if(!s&&ev==="SIGNED_OUT") set(function(p){ return Object.assign({},p,{bankTx:[]}); });
+      if(!s&&ev==="SIGNED_OUT") set(p=>Object.assign({},p,{bankTx:[]}));
       // Vuelta del email de recuperación: abre el panel para poner contraseña nueva.
       if(ev==="PASSWORD_RECOVERY"){ setRecovery(true); setShowAuth(true); }
-      // changed = pasó de sin-sesión a con-sesión (o cambió de usuario) → es un LOGIN → la nube manda.
-      if(changed && s) syncFromCloud(s, {freshLogin:true,
-        dropTx:!!(prev&&prev.user.id!==s.user.id)});
+      // login ya acredita otro titular si había sesión; dropTx no debe releer esos IDs.
+      if(login) syncFromCloud(s, {freshLogin:true,
+        dropTx:!!prev});
     });
+    return ()=>{ alive=false; clearTimeout(tmr); off(); };
   },[]);
 
   // Empuja el estado a la nube (debounced) cuando cambie y haya sesión. Sin los gastos (ya en su tabla).
@@ -24947,15 +24918,16 @@ function App(){
       }
     };
     document.addEventListener("visibilitychange", onVis);
-    // Capacitor: appStateChange (más fiable que visibility en algunos Android)
+    // Capacitor devuelve una promesa: liberar también el handle que llega después del cleanup.
     const A=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.App;
-    let sub=null;
+    let sub, off;
     if(A&&A.addListener){
-      try{ sub=A.addListener("appStateChange", function(st){ if(st&&st.isActive) onVis(); }); }catch(e){}
+      try{ sub=Promise.resolve(A.addListener("appStateChange", st=>!off&&st&&st.isActive&&onVis())); sub.catch(()=>{}); }catch(e){}
     }
-    return function(){
+    return ()=>{
+      off=true;
       document.removeEventListener("visibilitychange", onVis);
-      try{ if(sub&&sub.remove) sub.remove(); }catch(e){}
+      if(sub) sub.then(h=>h&&h.remove&&h.remove()).catch(()=>{});
     };
   },[uid]);
 
@@ -24964,18 +24936,21 @@ function App(){
     if(!uid) return;
     const nat=natPlugin();
     if(!nat||!nat.addListener) return undefined;
-    let h=null;
+    let sub, off;
     const onPing=function(){
+      if(off) return;
       if(!(stateRef.current||{}).hasBankLink) return;
       if(!allowBankNotifSync()) return;
       mcScheduleIdle(function(){ runBankSync({}); });
     };
     try{
-      const p=nat.addListener("bankNotif", onPing);
-      if(p&&p.then) p.then(function(handle){ h=handle; }).catch(function(){});
-      else h=p;
+      sub=Promise.resolve(nat.addListener("bankNotif", onPing)); sub.catch(function(){});
     }catch(e){}
-    return function(){ try{ if(h&&h.remove) h.remove(); }catch(e){} };
+    return ()=>{
+      off=true;
+      // La sesión puede retirarse antes de que el puente entregue el handle.
+      if(sub) sub.then(h=>h&&h.remove&&h.remove()).catch(()=>{});
+    };
   },[uid]);
 
   // PUNTO 5 · Noti → ficha del gasto. Al tocar la notificación de un gasto, la parte nativa deja un

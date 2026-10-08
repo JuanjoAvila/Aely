@@ -1,0 +1,357 @@
+{
+  "base": "56c7e328ce801f0e2e2fe5ec1ebd36169f0ac89b",
+  "beta": "8dcc5ed39b6e212ba1e34a90b550685794ce0bd5",
+  "candidate": "working-tree",
+  "version": "4.26.106",
+  "units": [
+    {
+      "id": "inc-0710-gastos-mes-madrid",
+      "before": "f2f6a1950df6c7df02eb1471d50d6bdca41fc8c19ad29a937f4e4f39ec589dfe",
+      "approved": "5fc9d11500312761610d07b9e945f5225a04ecdf6610b4ceb79f58cfb443baf6",
+      "web": "97f952fac1f6a3ee22513195f0ca3de85eedf371f14073318330005df4b3ebf1"
+    },
+    {
+      "id": "inc-0710-appstate-listener-cleanup",
+      "before": null,
+      "beforeReason": "BETA_SCOPE_ABSENT",
+      "approved": "5f759191a838c9b71fd8e4569e59d3515b17a44ea466adbd9e8d60b65953e876",
+      "web": "39dc65f520162e271906514543169e9ecbde165d244989427992afdeb1124bbe"
+    },
+    {
+      "id": "inc-0710-banknotif-cleanup",
+      "before": "c0c5cb97a1bb91f33bb3de5974acedc1f3ae2aa31b1473e7c0e9d45a2198db96",
+      "approved": "44c999c85629a89ed2b21ab1a1b7e78079b7a6658d266ccb2a8c91676970327e",
+      "web": "b59cef0907892dc1d9de916dae649de39c515b5deeb158e5e4abf03574c5421c"
+    },
+    {
+      "id": "inc-0710-auth-disposal",
+      "before": "65904ef2b487bbc42ba265985d16c59161c2e2dcad1ca8f52e4f3634905f333d",
+      "approved": "443f7eca97d8340fa614ad89d8cc4ba9886b2a362a6268c6816fbcd76f61e57f",
+      "web": "c3b1513a343e11e1d8f0f2701c3dbec925bcc52263693178fe9e6f8ac15ed4e0"
+    },
+    {
+      "id": "inc-0810-dashboard-recents-memo",
+      "before": null,
+      "beforeReason": "BETA_SCOPE_ABSENT",
+      "approved": "0ea35f8daf07ce767c88d3ddc3f732a7e6ca4af5ded38dd330f3ea61b45f66aa",
+      "web": "dd837d5ba06e28cd5e39e0509d51cec49e00c8be6683cd1191869c04cd65698a"
+    }
+  ],
+  "priorUnits": [
+    {
+      "id": "inc-3009-01-cargos",
+      "before": "c1c57fdb4c58e084f43c3c96a1d54beac531d3288311d867fd582cad3aa5ba6f",
+      "after": "c1c57fdb4c58e084f43c3c96a1d54beac531d3288311d867fd582cad3aa5ba6f",
+      "approvedBeta": "c1c57fdb4c58e084f43c3c96a1d54beac531d3288311d867fd582cad3aa5ba6f",
+      "changed": false,
+      "expanded": false,
+      "changedSources": []
+    },
+    {
+      "id": "beta-panel-veredictos",
+      "before": "410161fa7923f748d25494a2c7e699ce1f0cd6c7b4871778695e7e3ccf2310e1",
+      "after": "410161fa7923f748d25494a2c7e699ce1f0cd6c7b4871778695e7e3ccf2310e1",
+      "approvedBeta": "410161fa7923f748d25494a2c7e699ce1f0cd6c7b4871778695e7e3ccf2310e1",
+      "changed": false,
+      "expanded": false,
+      "changedSources": []
+    },
+    {
+      "id": "fin05-widget-reentrada",
+      "before": "01d7c339edf3bb36f93ac00942eb6c9c60c4455e6e2bc2cc5e60f8d6cc7b8755",
+      "after": "0df569819d7d36bd74f99be2c171ffd679d3490d3a0f066945b2eb5e0e9fb0b0",
+      "approvedBeta": "0df569819d7d36bd74f99be2c171ffd679d3490d3a0f066945b2eb5e0e9fb0b0",
+      "changed": true,
+      "expanded": false,
+      "changedSources": [
+        {
+          "file": "src/modules/11-app-main.js",
+          "unit": "  useEffect(function(){\n    if(!uid) return;\n    const onVis=function(){"
+        }
+      ]
+    },
+    {
+      "id": "fin05-pago-cerrada",
+      "before": "b0daa5e63231c358b4f88733f8ea7f6643557b92f4b2d3e56090bc5c8131af6f",
+      "after": "52460281a930b809d9de8fae594f3c85aa51ee6e3098bb99d089c56dad694147",
+      "approvedBeta": "52460281a930b809d9de8fae594f3c85aa51ee6e3098bb99d089c56dad694147",
+      "changed": true,
+      "expanded": false,
+      "changedSources": [
+        {
+          "file": "src/modules/11-app-main.js",
+          "unit": "  useEffect(function(){\n    if(!uid) return;\n    const onVis=function(){"
+        }
+      ]
+    },
+    {
+      "id": "tr-descripcion-clasificacion",
+      "before": "d5088834ed29e54f5206b329f07d9d146b980544ab59da1e4b06ad41013d4b89",
+      "after": "d5088834ed29e54f5206b329f07d9d146b980544ab59da1e4b06ad41013d4b89",
+      "approvedBeta": "d5088834ed29e54f5206b329f07d9d146b980544ab59da1e4b06ad41013d4b89",
+      "changed": false,
+      "expanded": false,
+      "changedSources": []
+    },
+    {
+      "id": "widget-banco",
+      "before": "07cac426a88aa1bb49c78c0578e4461c697f2b793667aaeab4a7e98d4877c357",
+      "after": "07cac426a88aa1bb49c78c0578e4461c697f2b793667aaeab4a7e98d4877c357",
+      "approvedBeta": "07cac426a88aa1bb49c78c0578e4461c697f2b793667aaeab4a7e98d4877c357",
+      "changed": false,
+      "expanded": false,
+      "changedSources": []
+    },
+    {
+      "id": "widget-app-cerrada",
+      "before": "b0daa5e63231c358b4f88733f8ea7f6643557b92f4b2d3e56090bc5c8131af6f",
+      "after": "52460281a930b809d9de8fae594f3c85aa51ee6e3098bb99d089c56dad694147",
+      "approvedBeta": "52460281a930b809d9de8fae594f3c85aa51ee6e3098bb99d089c56dad694147",
+      "changed": true,
+      "expanded": false,
+      "changedSources": [
+        {
+          "file": "src/modules/11-app-main.js",
+          "unit": "  useEffect(function(){\n    if(!uid) return;\n    const onVis=function(){"
+        }
+      ]
+    },
+    {
+      "id": "inc-2709-01-arranque-red",
+      "before": "0ff7d998ea1e1084c074447210b3f4c568f896c8516a74c8640da7197bb2600c",
+      "after": "0ff7d998ea1e1084c074447210b3f4c568f896c8516a74c8640da7197bb2600c",
+      "approvedBeta": "0ff7d998ea1e1084c074447210b3f4c568f896c8516a74c8640da7197bb2600c",
+      "changed": false,
+      "expanded": false,
+      "changedSources": []
+    },
+    {
+      "id": "inc-2809-02-ayuda-ciclo",
+      "before": "1dd76de5c3b1c9efa6f3614ebb00c22ded9983a2491c143a58748b8a538e1137",
+      "after": "1dd76de5c3b1c9efa6f3614ebb00c22ded9983a2491c143a58748b8a538e1137",
+      "approvedBeta": "1dd76de5c3b1c9efa6f3614ebb00c22ded9983a2491c143a58748b8a538e1137",
+      "changed": false,
+      "expanded": false,
+      "changedSources": []
+    },
+    {
+      "id": "inc-2909-02-inicio-natural",
+      "before": "04b2b0a114c83ec827ce1382056a990b794c69faa6a8cf1e064568b462a74fcc",
+      "after": "04b2b0a114c83ec827ce1382056a990b794c69faa6a8cf1e064568b462a74fcc",
+      "approvedBeta": "04b2b0a114c83ec827ce1382056a990b794c69faa6a8cf1e064568b462a74fcc",
+      "changed": false,
+      "expanded": false,
+      "changedSources": []
+    },
+    {
+      "id": "inc-2709-12-cyber-fab",
+      "before": "b678c30da24536668653c8695cfb1323579b5fc94c30b9b3ce33a3cd35ea94a5",
+      "after": "b678c30da24536668653c8695cfb1323579b5fc94c30b9b3ce33a3cd35ea94a5",
+      "approvedBeta": "b678c30da24536668653c8695cfb1323579b5fc94c30b9b3ce33a3cd35ea94a5",
+      "changed": false,
+      "expanded": false,
+      "changedSources": []
+    },
+    {
+      "id": "inc-2709-14-preguntar",
+      "before": "361cf50e42af975cde3c04825ffe50deac8ddede48d8644a06df8329e85aaa9e",
+      "after": "361cf50e42af975cde3c04825ffe50deac8ddede48d8644a06df8329e85aaa9e",
+      "approvedBeta": "361cf50e42af975cde3c04825ffe50deac8ddede48d8644a06df8329e85aaa9e",
+      "changed": false,
+      "expanded": false,
+      "changedSources": []
+    },
+    {
+      "id": "inc-2709-10-perfil",
+      "before": "48807362b419ca9dcbf2c84a3ea6a7927ef2ea531039aadeb0dd0787a44c6524",
+      "after": "48807362b419ca9dcbf2c84a3ea6a7927ef2ea531039aadeb0dd0787a44c6524",
+      "approvedBeta": "48807362b419ca9dcbf2c84a3ea6a7927ef2ea531039aadeb0dd0787a44c6524",
+      "changed": false,
+      "expanded": false,
+      "changedSources": []
+    },
+    {
+      "id": "inc-3009-nomina-anticipada",
+      "before": "46064a7201f22be120c80f935c52fa5541e511814f50610869be80d2780784ba",
+      "after": "eeee7f84796bbd648ef0c80d329feead17c3543aea30a5759e4bb05dbe04c13f",
+      "approvedBeta": "eeee7f84796bbd648ef0c80d329feead17c3543aea30a5759e4bb05dbe04c13f",
+      "changed": true,
+      "expanded": false,
+      "changedSources": [
+        {
+          "file": "src/modules/04-tab-gastos.js",
+          "unit": "presetBoundsMs"
+        },
+        {
+          "file": "src/modules/04-tab-gastos.js",
+          "unit": "  const todayKey=new Date().toDateString();"
+        },
+        {
+          "file": "src/modules/04-tab-gastos.js",
+          "unit": "  const bounds=useMemo("
+        },
+        {
+          "file": "src/modules/04-tab-gastos.js",
+          "unit": "  const monthSummary=useMemo("
+        }
+      ]
+    },
+    {
+      "id": "inc-2909-03-retirada",
+      "before": "f884f15863f3d4fa62a2512273d8152bd514bc758442bdfb241cdad077779c79",
+      "after": "f884f15863f3d4fa62a2512273d8152bd514bc758442bdfb241cdad077779c79",
+      "approvedBeta": "f884f15863f3d4fa62a2512273d8152bd514bc758442bdfb241cdad077779c79",
+      "changed": false,
+      "expanded": false,
+      "changedSources": []
+    },
+    {
+      "id": "inc-2909-01-widget-periodo",
+      "before": "2b50bb5d8807a808121051d22a817ef594a64017e9d8a4ed8ad50cb303be7d6c",
+      "after": "850789ed5905f23591ed896f7a32e93001d3f9e5ad5db9ac4b1e88fc9ef4b4d1",
+      "approvedBeta": "850789ed5905f23591ed896f7a32e93001d3f9e5ad5db9ac4b1e88fc9ef4b4d1",
+      "changed": true,
+      "expanded": false,
+      "changedSources": [
+        {
+          "file": "src/modules/11-app-main.js",
+          "unit": "  useEffect(function(){\n    if(!uid) return;\n    const onVis=function(){"
+        }
+      ]
+    },
+    {
+      "id": "inc-0210-01-plan-cuota",
+      "before": "d338d3f3bc226516f2ce0295de3ad52e2e3bba86272c909721e95e349dc83de7",
+      "after": "d338d3f3bc226516f2ce0295de3ad52e2e3bba86272c909721e95e349dc83de7",
+      "approvedBeta": "d338d3f3bc226516f2ce0295de3ad52e2e3bba86272c909721e95e349dc83de7",
+      "changed": false,
+      "expanded": false,
+      "changedSources": []
+    },
+    {
+      "id": "inc-0210-03-gastos-periodo",
+      "before": "d7e8e0ee59b73a97731192f2cbe72d1bc3fe8491a019e813af15be3d0aa92b1c",
+      "after": "96e6682fcd81d1a3d92483940282b49314dd98a7c083aae7d1be42ec405efc7c",
+      "approvedBeta": "96e6682fcd81d1a3d92483940282b49314dd98a7c083aae7d1be42ec405efc7c",
+      "changed": true,
+      "expanded": true,
+      "changedSources": [
+        {
+          "file": "src/modules/04-tab-gastos.js",
+          "unit": "Expenses"
+        },
+        {
+          "file": "src/modules/04-tab-gastos.js",
+          "unit": "presetBoundsMs"
+        }
+      ]
+    },
+    {
+      "id": "feature-0210-01-gasolina-taxi",
+      "before": "b6828b0a6624267efde1c6ca6ea7cc64e7ad34c79f41e78732dcb4421b82c823",
+      "after": "b6828b0a6624267efde1c6ca6ea7cc64e7ad34c79f41e78732dcb4421b82c823",
+      "approvedBeta": "b6828b0a6624267efde1c6ca6ea7cc64e7ad34c79f41e78732dcb4421b82c823",
+      "changed": false,
+      "expanded": false,
+      "changedSources": []
+    },
+    {
+      "id": "inc-0210-02-categoria-elegida",
+      "before": "d782ee49c031354c8a19e8405540053b9db563aec32e7c9a433a9fc803429210",
+      "after": "d782ee49c031354c8a19e8405540053b9db563aec32e7c9a433a9fc803429210",
+      "approvedBeta": "d782ee49c031354c8a19e8405540053b9db563aec32e7c9a433a9fc803429210",
+      "changed": false,
+      "expanded": false,
+      "changedSources": []
+    },
+    {
+      "id": "inc-0310-01-meta-regla",
+      "before": "3f63fa19c50361fc0226594b01f6b1a8eda4b9cf8aa4b171f3bd7750b352752b",
+      "after": "3f63fa19c50361fc0226594b01f6b1a8eda4b9cf8aa4b171f3bd7750b352752b",
+      "approvedBeta": "3f63fa19c50361fc0226594b01f6b1a8eda4b9cf8aa4b171f3bd7750b352752b",
+      "changed": false,
+      "expanded": false,
+      "changedSources": []
+    },
+    {
+      "id": "feature-0310-01-movilidad",
+      "before": "1904905306dadc679cb726a39d7ddde4f4dbe00d97c6ee1c0a44caca8d5d469c",
+      "after": "1d9bc0d9f50019ca4a17bfad0c5605bbf38a0c57e67bc4fca3cb1cc2f0eb09f2",
+      "approvedBeta": "1d9bc0d9f50019ca4a17bfad0c5605bbf38a0c57e67bc4fca3cb1cc2f0eb09f2",
+      "changed": true,
+      "expanded": true,
+      "changedSources": [
+        {
+          "file": "src/modules/04-tab-gastos.js",
+          "unit": "Expenses"
+        }
+      ]
+    },
+    {
+      "id": "inc-0310-broker-resultados",
+      "before": "6d25f317bbfe11956d2f4939437665027ea649f71c3040f1b14028a82512ba05",
+      "after": "6d25f317bbfe11956d2f4939437665027ea649f71c3040f1b14028a82512ba05",
+      "approvedBeta": "6d25f317bbfe11956d2f4939437665027ea649f71c3040f1b14028a82512ba05",
+      "changed": false,
+      "expanded": false,
+      "changedSources": []
+    },
+    {
+      "id": "inc-0310-gastos-sin-limite",
+      "before": "808023bc407fa7c2380888a09464c1eac5357078a75ef6a3473a9ec9694c5f0e",
+      "after": "5fc9d11500312761610d07b9e945f5225a04ecdf6610b4ceb79f58cfb443baf6",
+      "approvedBeta": "5fc9d11500312761610d07b9e945f5225a04ecdf6610b4ceb79f58cfb443baf6",
+      "changed": true,
+      "expanded": true,
+      "changedSources": [
+        {
+          "file": "src/modules/04-tab-gastos.js",
+          "unit": "Expenses"
+        },
+        {
+          "file": "src/modules/04-tab-gastos.js",
+          "unit": "presetBoundsMs"
+        }
+      ]
+    },
+    {
+      "id": "ops-0410-panel-cola",
+      "before": "410161fa7923f748d25494a2c7e699ce1f0cd6c7b4871778695e7e3ccf2310e1",
+      "after": "410161fa7923f748d25494a2c7e699ce1f0cd6c7b4871778695e7e3ccf2310e1",
+      "approvedBeta": "410161fa7923f748d25494a2c7e699ce1f0cd6c7b4871778695e7e3ccf2310e1",
+      "changed": false,
+      "expanded": false,
+      "changedSources": []
+    },
+    {
+      "id": "inc-2709-09-fechas-cache",
+      "before": "7d9b7634191b9f7ae18d1c85d21dd8ce2d527932c589ffe0cc0d1b63c96cb8d9",
+      "after": "7d9b7634191b9f7ae18d1c85d21dd8ce2d527932c589ffe0cc0d1b63c96cb8d9",
+      "approvedBeta": "7d9b7634191b9f7ae18d1c85d21dd8ce2d527932c589ffe0cc0d1b63c96cb8d9",
+      "changed": false,
+      "expanded": false,
+      "changedSources": []
+    },
+    {
+      "id": "inc-0410-inicio-tres-metas",
+      "before": "644e53e3d72722ee5503797dc3727bbacd0797d9b253d279c5479189ea231e0f",
+      "after": "644e53e3d72722ee5503797dc3727bbacd0797d9b253d279c5479189ea231e0f",
+      "approvedBeta": "644e53e3d72722ee5503797dc3727bbacd0797d9b253d279c5479189ea231e0f",
+      "changed": false,
+      "expanded": false,
+      "changedSources": []
+    },
+    {
+      "id": "inc-2709-13-fab-contorno",
+      "before": "74d2e612ce90b39d81ca1329712ab0c0435c8f96f3ef06f16e9c302ecfe912e0",
+      "after": "74d2e612ce90b39d81ca1329712ab0c0435c8f96f3ef06f16e9c302ecfe912e0",
+      "approvedBeta": "74d2e612ce90b39d81ca1329712ab0c0435c8f96f3ef06f16e9c302ecfe912e0",
+      "changed": false,
+      "expanded": false,
+      "changedSources": []
+    }
+  ],
+  "priorNotes": 217,
+  "scope": "web-only",
+  "productionDelivered": false
+}
