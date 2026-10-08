@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "id": "ops-0810-hist-visor-animation-guard-relay22",
+  "from": "codex",
+  "coordinatorSession": "relay-run-7ec27dca45990401",
+  "createdAt": "2026-10-08T01:48:39.757Z",
+  "to": "codex",
+  "baseSHA": "70c5d4032f67cb26c07b81fc17f5b8a26f8f10e5",
+  "objective": "Corregir solo la sincronización del guard hist-visor que lee opacidad mientras hojaentra .34s sigue activa tras clase dentro. Mantener todas las filas >=60 y fila30 dentro/opacidad>0.9 bajo el MISMO plazo combinado8s; no runtime, no forceclick, no cambio de umbral ni supresión de fail. Revisión independiente y CI exacta; no causa humana ni cambio de producto.",
+  "scope": [
+    "e2e/hist-visor.spec.mjs",
+    "docs/briefs/ops-0810-hist-visor-animation-guard.md"
+  ]
+}
