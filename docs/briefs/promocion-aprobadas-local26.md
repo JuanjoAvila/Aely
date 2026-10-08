@@ -62,7 +62,12 @@ Verificación local de preparación: build y siete bloques vm.Script PASS; las s
 focales PASS. Cierre de diez etapas (auth/fit, panel, sintaxis, docs, privacidad, presupuesto,
 mapa y notas duplicadas) exit0 en53,8s. Artefacto temporal sellado por los scripts oficiales:
 1317787bytes minificados,358972gzip9, siete bloques vm.Script y APP_VERSION4.26.106; bajo
-1317888/359424bytes. Discovery lista120DOM en cinco specs, todavía sin ejecutarlos.
+1317888/359424bytes. DOM local sobre a500ffd1/HTMLdf37:116funcionales PASS y4perfiles
+A/B CPU6 seriales PASS, sin fallos, omisiones ni flaky. Ocho renders del presupuesto:
+baseline8cálculos frente memo0cálculos/8hits con3.000/5.200gastos sintéticos; edición,
+alta, borrado, undo, sync y reloj conservan los controles DOM y no sincronizan bancos.
+El encabezado100 conserva15elementos/atributos/orden/CSP/viewport/script según DOMParser
+real, sin red; sonda retirada. Lease95 liberada expresamente, procesos y puerto4210 a cero.
 La primera suite Node sobre WIP cambiante terminó exit1/504,1s; no se atribuye al SHA final.
 Tras corregir la metadata de scopes/producción se repiten los guardianes. Supabase-workflow
 PASS fuera del sandbox. Docs-frescura-history falla29fixtures en Windows porque Git no admite
@@ -73,6 +78,13 @@ Cierre beta-sources actual exit0:1731dependencias mutadas, closure completo, aud
 compatibilidades y mutantes de identidad sin recortes. Verificador completo exit0; contraprueba
 con candidate=beta8dcc falla en conservación del historial main, como debe hacerlo una mezcla
 entera. Los tests del transporte/auth/fit conservan sus controles rojos anteriores.
+
+CI37820790471 sobre checkout e63c44f2 (treec1c8af1b, exacto a a500ffd1) terminó exit1:
+el runner todavía llamaba al instrumento virtual borrado al sustituirlo por memo106.
+Su nueva etapa ya pasaba; todas las otras etapas Node y los cuatro ficheros Deno pasaron.
+DOM/perf remotos no arrancaron y el paso final de privacidad quedó omitido por ese fallo,
+aunque guard-privacy Node pasó. Se retira únicamente el registro obsoleto; el runtime,
+las cinco identidades y el HTML local probado se conservan. CI completa nueva obligatoria.
 
 Producción leída4.26.98, recibo fuente56c7e328 y APK4.26.80/code52. Beta publicador37718742824
 SUCCESS; ZIPsha256 `7c15e9c9cc5db641053293c22defe1215187232c829248cee5216a37c8febd0a`,

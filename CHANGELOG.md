@@ -2,7 +2,7 @@
 
 - Candidata selectiva desde main56c7e328 con las cinco unidades web aprobadas: Gastos99 (ventanas y marcas Madrid), appState100, bankNotif101, auth102 y recientes106. Cuatro módulos exactos a beta8dcc5ed3 y compactación del encabezado HTML de100; no se mezcla su backend ni otra tanda. Solo añade cinco descriptores de alcance originales, sin reanclar auditorías previas. Tres scopes previos de Gastos añaden únicamente madridYmdParts/_mcMadridYmdFmt, el cierre transitivo original de99, conservando todas sus unidades anteriores.
 - Conserva las217notas de main y añade las cinco notas familiares originales es/en/ca con tandas:[] para producción. Las regresiones y el verificador comprueban identidad actual de cada unidad frente a la beta autorizada. El perfil virtual previo se sustituye por el A/B de la memoización real publicado en106; no se atribuye cura del lag móvil.
-- Revisión independiente, CI exacta, merge y entrega aún pendientes. Retirada beta preparada por separado: sólo tras manifest/bundle/SW/recibo de producción verificados; sin borrar pendientes, rechazos o veredictos. Android/APK52, Edge/SQL y datos reales conservados. [Acta](docs/briefs/promocion-aprobadas-local26.md).
+- Revisión independiente del runtime conforme y120DOM/perfiles locales PASS. La primera CI pasó Node y Deno salvo una llamada residual al instrumento virtual sustituido: se retira ese registro del runner; CI exacta nueva, merge y entrega aún pendientes. Retirada beta preparada por separado: sólo tras manifest/bundle/SW/recibo de producción verificados; sin borrar pendientes, rechazos o veredictos. Android/APK52, Edge/SQL y datos reales conservados. [Acta](docs/briefs/promocion-aprobadas-local26.md).
 
 ## [4.26.98] — 2026-10-07 · Barra y botón se ocultan juntos
 

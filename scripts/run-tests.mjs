@@ -102,7 +102,6 @@ const steps = [
   ["season-detalle", ["node", "tests/season-detalle.test.mjs"]],
   ["edge-sintaxis", ["node", "tests/edge-sintaxis.test.mjs"]],
   ["presupuesto-rendimiento", ["node", "tests/presupuesto-rendimiento.test.mjs"]],
-  ["dashboard-profile-instrument", ["node", "tests/dashboard-profile-instrument.test.mjs"]],
   ["finance-core", ["node", "tests/finance-core.test.mjs"]],
   ["ob-ingresos", ["node", "tests/ob-ingresos.test.mjs"]],
   ["bank-sync-paging", ["node", "tests/bank-sync-paging.test.mjs"]],
