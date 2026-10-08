@@ -1,0 +1,9 @@
+{
+  "id": "ops-0810-plan-probe-calibration-relay23",
+  "to": "codex",
+  "body": "Aely · 23: continúa inc-2709-09-plan-ownership-causal-relay23 con calibración test-only 2x2: CSS baseline/neutralizado por sonda computed-style presente/ausente durante la traza, ocho gestos balanceados por recibos/deudas/metas. Base be324e6d78e273bb0418851de339f37456e7ee91 y checkout aislado; scope e2e/plan-swipe-segmento.spec.mjs, e2e/plan-gesture-instrument.mjs, docs/briefs/inc-0810-plan-gesture-profile.md. CI 37731175456 SUCCESS, checkout 809a9223919876035c487b0530bbe3338ac56713, tree 146eba68d3436265b0fb3a2d32db42e23b868fbe. Los 21 informes y 12 pares completos son válidos, pero la sonda puede inducir el coste observado. No atribuir causa humana ni publicar corrección. Mantener JS/manualscroll, comprobar CSS en preflight fuera de medición para no-read y ownership real sin leer estilo, limpiar en fallo/cancelación. Revisión independiente y CI exacta antes de interpretar. PR178 permanece CI SOLO FUENTE y no se integra. Root compondrá también el fixture de Metas ya revisado en main 7741251a dentro de ops-0810-metas-plan-flaky-causal-relay23, conservando el runtime exacto.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "relay-run-0aeaab4c4f09425a",
+  "createdAt": "2026-10-08T06:09:21.385Z"
+}
