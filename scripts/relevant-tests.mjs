@@ -50,7 +50,7 @@ export const CORE = [
  */
 export const E2E_MAP = [
   {file:"src/modules/16-help-assistant.js",specs:["e2e/help-assistant.spec.mjs","e2e/help-preguntar-borde.spec.mjs"]},
-  { file: "src/modules/03-tab-dash.js", specs: ["e2e/help-assistant.spec.mjs",
+  { file: "src/modules/03-tab-dash.js", specs: ["e2e/dashboard-memo-profile.spec.mjs", "e2e/help-assistant.spec.mjs",
     "e2e/listas-render.spec.mjs",
     "e2e/plan-cuota-contabilizada.spec.mjs",
 

@@ -53,5 +53,22 @@ for(const [file,a,b]of [
  else {off();w.sessions[0].resolve(s('late'));await flush();w.idle();assert.ok(w.trace.length>0,'mutante continuación actúa tras cleanup');}
 
 }
-const oldReg=JSON.parse(old('scripts/beta-sources.json'));for(const [key,scope]of Object.entries(oldReg))assert.deepEqual(betaRevision(key,read,undefined,scope),betaRevision(key,old,undefined,scope),key);
-console.log('✓ auth disposal: remount, callbacks/promesas/timer/idle tardíos, controles activos, rojo anterior y '+Object.keys(oldReg).length+' revisiones intactas');
+const oldReg=JSON.parse(old('scripts/beta-sources.json')),currentReg=JSON.parse(read('scripts/beta-sources.json'));
+// Candidata106 renombra el límite de metas y conserva su rango; su revisión cambia y no
+// hereda aprobación. El contrato de auth sigue preservando todas las demás unidades.
+for(const [key,scope]of Object.entries(oldReg)){
+ const previous=betaRevision(key,old,undefined,scope);
+ if(key==='inc-0410-inicio-tres-metas'){
+  const expected=structuredClone(scope);expected.web[0].to='\n  const last=';
+  assert.deepEqual(currentReg[key],expected,'solo cambia el terminador renombrado, sin ampliar rango ni repin');
+  assert.notDeepEqual(betaRevision(key,read,undefined,currentReg[key]),previous,key+': revisión nueva, sin repin');
+ }else{
+  assert.deepEqual(currentReg[key],scope,key+': alcance y auditoría históricos intactos');
+  assert.deepEqual(betaRevision(key,read,undefined,scope),previous,key);
+ }
+}
+console.log('✓ auth disposal: remount, callbacks/promesas/timer/idle tardíos, controles activos, rojo anterior; '+(Object.keys(oldReg).length-1)+' revisiones intactas e Inicio106 invalidado');
+
+const memoReg=currentReg['inc-0810-dashboard-recents-memo'];for(const key of ['historial','auditoria','codigosCompatibles','compatibilidadGit'])assert.equal(memoReg[key],undefined,'memo nueva sin heredar '+key);
+const memoNote=JSON.parse(read('src/data/release-notes.json'))[0].tandas.find(g=>g.id==='inc-0810-dashboard-recents-memo');
+for(const key of ['codigoDesde','revisionesDesde','codigosCompatibles','compatibilidadGit','verdict'])assert.equal(memoNote[key],undefined,'memo nueva sin heredar '+key);

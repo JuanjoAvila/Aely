@@ -535,3 +535,7 @@ Se conserva lo demás: una escritura como mucho cada 400 ms, volcado inmediato e
 ### Ciclo de sesión y desmontaje (candidata102)
 
 El efecto inicial conserva el disposer devuelto por `cloud.onAuth`. Al desmontar, desactiva sus continuaciones, cancela el timer de arranque y libera la suscripción. Una Promise o un idle tardío no inicia otra lectura ni actualiza estado. No cancela trabajos ya iniciados ni modifica el orden de decisiones de identidad.
+
+### Recientes de Dashboard · candidata106
+
+La derivación de tres recientes conserva el filtro de lápidas y el orden estable por fecha. `useMemo` depende de `state.expenses` y `state.deleted`; abrir presupuesto o modificar settings no vuelve a recorrer el histórico. Los setters deben seguir conservando referencias cuando no cambian y generar referencias nuevas al editar/eliminar/sincronizar. No depende de todo state ni de fecha civil: la lista ordena fechas originales sin ventana temporal. No cambia dinero ni sincronización.

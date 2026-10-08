@@ -771,3 +771,7 @@ Aviso nativo por sesión: `tests/banknotif-listener-cleanup.test.mjs`, registrad
 `tests/auth-disposal.test.mjs` ejecuta el método y efecto exactos con transporte sintético: disposición, callbacks/promesas/timer/idle tardíos, controles activos y contraprueba77b7. `e2e/auth-disposal.spec.mjs`, transversal, monta y desmonta ese efecto con React/ReactDOM reales del shell en DOM aislado; incluye el rojo anterior. Sin red ni cuentas reales.
 
 `tests/auth-disposal-fit.test.mjs` compara la representación compacta102 con9881214e: retornos, receiver de unsubscribe, excepciones diferidas, mcBootReady real con fallos internos, trazas y dependencias mutadas7/9. Es prueba focal; no sustituye CI completa ni DOM.
+
+## Recientes de Inicio · candidata106
+
+`e2e/dashboard-memo-profile.spec.mjs` compara el callback de React real con el baseline original en HTML local:3000/5200 filas, CPU×6, invalidaciones y guard bancario. Cuatro casos seriales de rendimiento; informes completos en logs sintéticos. `tests/dashboard-memo-instrument.test.mjs` verifica anclas/parsing sin navegador. DOM/CI pendientes.
