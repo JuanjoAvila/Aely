@@ -11033,7 +11033,7 @@
       {
         "file": "src/modules/03-tab-dash.js",
         "from": "  const goals=(state.goals||[])",
-        "to": "\n  const last="
+        "to": "\n  const recent="
       }
     ]
   },
@@ -11792,12 +11792,12 @@
     "web": [
       {
         "file": "src/modules/03-tab-dash.js",
-        "from": "  const last=useMemo",
+        "from": "  const recent=useMemo",
         "to": "\n  const p=eurParts"
       },
       {
         "file": "src/modules/03-tab-dash.js",
-        "from": "        last.length===0",
+        "from": "        recent.length===0",
         "to": "\n  );\n}"
       },
       {

@@ -6,18 +6,18 @@ export const RECENT = 'const recent=(state.expenses||[]).filter(function(e){ ret
 export const DASH = 'function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProfile, onGoGastos, onGoPlan, showToast}){';
 export const SYNC = 'const syncCloudExpenses=function(){';
 
-export const MEMO = 'const last=useMemo(()=>(state.expenses||[]).filter(e=>!expenseIsTombstoned(e,expenseDeletedSet(state))).sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,3),[state.expenses,state.deleted]);';
+export const MEMO = 'const recent=useMemo((s=state)=>(s.expenses||[]).filter(e=>!expenseIsTombstoned(e,expenseDeletedSet(s))).sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,3),[state.expenses,state.deleted]);';
 export function instrumentDashboard(html, variant){
   if(html.split(MEMO).length!==2)throw new Error("Memo recent ausente/duplicado");
-  const source=variant==="baseline"?html.replace(MEMO,RECENT.replace('const recent=','const last=')):html;
-  for(const anchor of [variant==="baseline"?RECENT.replace("const recent=","const last="):MEMO,DASH,SYNC]){
+  const source=variant==="baseline"?html.replace(MEMO,RECENT):html;
+  for(const anchor of [variant==="baseline"?RECENT:MEMO,DASH,SYNC]){
     if(source.split(anchor).length!==2)throw new Error("Ancla ausente/duplicada");
   }
   const compute='window.__dashProfile.derive(state,function(e){ return !expenseIsTombstoned(e,expenseDeletedSet(state)); },function(a,b){ return String(b.date).localeCompare(String(a.date)); })';
-  const replacement=variant==="baseline"?'const last='+compute+';':'const last=useMemo(()=>'+compute+',[state.expenses,state.deleted]);';
+  const replacement=variant==="baseline"?'const recent='+compute+';':'const recent=useMemo((s=state)=>'+compute.replace('derive(state,','derive(s,').replace('expenseDeletedSet(state)','expenseDeletedSet(s)')+',[state.expenses,state.deleted]);';
   const transformed=source
     .replace(DASH,DASH+'\nwindow.__dashProfile.guardBanks();window.__dashProfile.metrics.renders++;window.__dashProfile.state=state;window.__dashProfile.set=set;window.__dashProfile.totals=totals;')
-    .replace(variant==="baseline"?RECENT.replace("const recent=","const last="):MEMO,replacement)
+    .replace(variant==="baseline"?RECENT:MEMO,replacement)
     .replace(SYNC,'const syncCloudExpenses=window.__dashProfile.sync=function(){');
   return {html:transformed,sourceSHA256:createHash("sha256").update(html).digest("hex"),scenarioSHA256:createHash("sha256").update(source).digest("hex"),instrumentedSHA256:createHash("sha256").update(transformed).digest("hex"),anchors:3};
 }

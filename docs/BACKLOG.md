@@ -510,4 +510,4 @@ Corte4/10 · OPS-0410 panel: PR121 integrado solo beta, CI37198285128 pendiente;
 
 ## INC-0810 · Recientes de Inicio · candidata106
 
-Unidad fuente aislada: hook real conserva derivación al abrir/cerrar presupuesto y se invalida por expenses/deleted. Nueva revisión funcional de Inicio96, sin compatibilidad heredada. Node/budget preliminares verdes; React A/B3000/5200 CPU×6, CI exacta, revisión y publicación pendientes. INC-2709-09 sigue abierto; no cierre de lag general. [Acta](briefs/inc-0810-dashboard-recents-memo.md).
+Unidad fuente aislada: hook real conserva derivación al abrir/cerrar presupuesto y se invalida por expenses/deleted. Unidad106 nueva, sin compatibilidad heredada; todos los alcances e identidades anteriores, incluida Inicio96, se conservan. Node/budget preliminares verdes; React A/B3000/5200 CPU×6, CI exacta, revisión y publicación pendientes. INC-2709-09 sigue abierto; no cierre de lag general. [Acta](briefs/inc-0810-dashboard-recents-memo.md).
