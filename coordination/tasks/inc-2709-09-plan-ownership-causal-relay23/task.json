@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "id": "inc-2709-09-plan-ownership-causal-relay23",
+  "from": "codex",
+  "coordinatorSession": "relay-run-0aeaab4c4f09425a",
+  "createdAt": "2026-10-08T04:56:46.935Z",
+  "to": "codex",
+  "baseSHA": "bcb318e627d6a5c62b3e8805dfcaab6e805cf3b9",
+  "objective": "Atribuir coste de layout y ownership en Plan con controles pareados sobre diagnostico real existente, preservando INC-2709-09 abierto",
+  "scope": [
+    "e2e/plan-gesture-profile.spec.mjs",
+    "e2e/plan-gesture-instrument.mjs",
+    "docs/briefs"
+  ],
+  "instructions": "Diagnostico fuente solamente. Datos sinteticos offline, App+Plan reales, CPUx6, fases marcadas y prueba de aterrizaje; distinguir layout tras touchend del coste durante dedo. Reproducir y aportar comparacion pareada causal con nombres de callsite; no cambiar runtime, dinero, identities, gates o tests para simular verde. Informe completo privado o sintetico saneado. Sin integracion/publicacion. Revision independiente del coordinador. No reutilizar resultados anteriores como ejecutados."
+}
