@@ -44,3 +44,11 @@ Base039d30364dd874c822e3532e1ba329fed3ef3131, worktreepropio. Seaplica solo diff
 
 
 Primera batería de la integración: Node completo1269.3s, único fallo de producto beta-sources por cierre del alcance nuevo sobre los helpers de categoría elegida86; memoria-espejo externo y Deno local omitido. DOM137PASS es/en/ca, CLI0 y cero fallo/skip/flaky/retry/errors,437138ms, HTTP y snapshot iguales antes/después. Corregido SOLO el alcance nuevo con catRuleKey/catStaleAfter/ackCategoryWrite/keepCategoryChoices y USER_CAT_RULES; los21alcances previos permanecen idénticos. Se repite el fullguard y el panel final; no se atribuye la primera pasada al código de revisión ampliado ni se oculta su fallo. Fuente financiera idéntica a los137DOM. CI y revisión final de esta unión pendientes.
+
+## Rescate de constancia final ·8/10/2026
+
+El encabezado y los “pendiente” anteriores describen candidatas del3/10. Para la **fuente PR108**, [CI37116952467](https://github.com/JuanjoAvila/Aely/actions/runs/37116952467) está completed/SUCCESS, head `2205d9632e85e4ba7867838d6d15608baf392730`: logs oficiales registran666 funcionales, una captura omitida y7 de rendimiento; privacidad OK. Los673 e2e comunicados en la PR sumaban ambos grupos; no son673 funcionales.
+
+La integración `60d4863f519f2e9edfa971bdba7d6c52e9629f07` es ancestro de main56c7e328 y beta8dcc5ed3 en el corte de rescate. El contenido fuente de este brief ya estaba conservado, con las dos ampliaciones de integración; esta nota añade la constancia final que sólo estaba en la PR. La CI de fuente no se atribuye retrospectivamente al árbol de aquella unión ni sustituye sus controles.
+
+No se acredita aquí estado Edge activo, RLS real, captura Wallet nueva, APK nueva ni aceptación móvil. El clasificador servidor preparado tiene gate propio. Para decisión administrativa y blobs exactos, ver [matriz de rescate](ops-0810-rescate-documental-local26.md). No se ha cerrado ni fusionado PR108 en este rescate.
