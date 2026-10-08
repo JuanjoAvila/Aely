@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "id": "inc-2709-09-plan-candidate-ci-reconcile-relay23",
+  "from": "codex",
+  "coordinatorSession": "relay-run-0aeaab4c4f09425a",
+  "createdAt": "2026-10-08T08:44:59.386Z",
+  "kind": "review",
+  "to": "codex",
+  "baseSHA": "bfe535b8c50f753198c914b9b66e3aba4985daa6",
+  "objective": "Reconciliar CI exacto y evidencia nativa de candidata Plan, continuando INC-2709-09 sin aceptación de producto inferida",
+  "scope": [
+    "PR180 draft CI-only source bfe535b8c50f753198c914b9b66e3aba4985daa6 tree31b12d9a628c43402d5cb427ed4b32c7c87b23c1",
+    "CI 37751508019 expected merge3051d071c70f32b8ea3415c2ed6f8d2554ce8e27 parents56c7/bfe535; inspect actual checkout and full logs on completion, never repeat unchanged run",
+    "Private collector f82d hash: require25reports/18natural samples/3attempts/4rerender plus all upstream finance/source/release assertions; no stitching retries or cause/perf claim",
+    "Budget unchanged raw1317884 limit1317888 margin4/esbuild0.25.5 independently verified. Preserve earlier CI failure37746792060 +99 raw and0browserreports",
+    "Do not merge diagnostic beta ancestry PR180 to main. Any future beta integration needs new scoped claim, exact independent review/source CI and served source, separate mobile approval gates",
+    "INC270909 human cumulative lag remainsopen; no APK/SQL/migrations/payments or wider runtime changes; external Grok task retained"
+  ]
+}
