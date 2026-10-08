@@ -1,0 +1,49 @@
+{
+  "status": "done",
+  "summary": "Candidata CSS: .botnav-hidden .botnav-ind{opacity:0;transition:none}. e2e botnav-indicador rojo 6/6 en base, verde en candidata; guardianes botnav-esconder, botnav-fab-recorte, cyber-fab 30/30 verdes. Presupuesto minificado rebasado ~45-50 B (margen previo 4 B), sin subir tope; root debe recortar. npm test completo rojo: auth-disposal-fit, appstate-listener-cleanup, movilidad-categorias (git show de SHAs historicos en clon shallow) y presupuesto-rendimiento. PR draft #185 contra beta.",
+  "branch": "claude/nav-indicator-0810",
+  "productSHA": "9cd4aa9c51450e98b1d6fa11a1956d49c2ce178d",
+  "tree": "8656ad4ab7fa0d105b75816c0dda0880fd523ce8",
+  "pr": 185,
+  "paths": [
+    "src/shell.html",
+    "e2e/botnav-indicador.spec.mjs",
+    "scripts/relevant-tests.mjs",
+    "docs/briefs/inc-0810-nav-indicator.md",
+    "public/index.html"
+  ],
+  "tests": [
+    {
+      "command": "npx playwright test e2e/botnav-indicador.spec.mjs (base)",
+      "exitCode": 1
+    },
+    {
+      "command": "npx playwright test botnav-indicador botnav-fab-recorte botnav-esconder cyber-fab (candidata)",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run test:syntax",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/docs-frescura.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "npm test",
+      "exitCode": 1
+    }
+  ],
+  "limitations": [
+    "Sin movil/host nativo real ni medida de pixeles de la rayita",
+    "safe-bottom y reducido-sistema solo por botnav-fab-recorte",
+    "Presupuesto de bytes rebasado",
+    "Sin bump ni RELEASE_NOTES segun encargo"
+  ],
+  "schema": 1,
+  "taskId": "inc-0810-nav-indicator-claude-local",
+  "actor": "claude",
+  "sessionId": "claude-cloud-20261008-66e14d5a",
+  "createdAt": "2026-10-08T17:47:42.667Z",
+  "released": true
+}
