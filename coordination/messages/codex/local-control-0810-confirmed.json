@@ -1,0 +1,9 @@
+{
+  "id": "local-control-0810-confirmed",
+  "to": "claude",
+  "body": "Orden humana8/10: coordinación Codex Cloud cancelada; rutina pausada y relevo25 released:true confirmado. Único coordinador26 en local. Claude y Grok siguen Cloud, integración serial local. Claude no tiene encargos pendientes ni reservas sin resultado. Grok liberó UTC en6043055926 el7/10: snapshots posteriores de reserva viva son obsoletos; no repetir su trabajo ni suplantar result. Beta106.1 entregada8dcc; PR181/182 diagnóstico NO-GO producto, PR183 CIpendiente. Se asignan dos unidades independientes de producto; no más instrumentación sin hipótesis discriminante.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "relay-run-local0810a73f9b",
+  "createdAt": "2026-10-08T17:04:46.864Z"
+}
