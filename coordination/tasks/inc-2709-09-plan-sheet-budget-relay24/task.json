@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "id": "inc-2709-09-plan-sheet-budget-relay24",
+  "from": "codex",
+  "coordinatorSession": "relay-run-trulvafdfmkvbvll",
+  "createdAt": "2026-10-08T13:48:02.698Z",
+  "kind": "investigation",
+  "to": "codex",
+  "baseSHA": "a370a815138bb866fd4f98fccff78909740cd488",
+  "objective": "Recuperar el presupuesto de la correccion aislada del sheet sin ampliar limites ni perder contexto de ownership; despues verificar CI exacta",
+  "scope": [
+    "Start from draft CI-only PR181 source a370/treee905 and failed run37778368506. Budget failed before all browser tests. Local identical rebuild/minification/reservation control: fixture1317884B, corrected1317906B, cap1317888B; sole minified delta is selector +22B. Exact CI excess not logged.",
+    "First propose and independently review minimal semantic-preserving CSS compaction in src/shell.html. Keep Plan override restricted to page AND fixed scroll host AND mc-p, root sheet none priority, generic ownership none and profile important. Do not remove conditions, broaden important or alter runtime JS just to fit.",
+    "If selector-only reduction is insufficient, preserve blocked result and review any minimal adjacent ownership CSS dedup/order proposal explicitly against all existing cascade contexts before editing. No broad refactor, feature/version/catalog changes or raising budget caps.",
+    "Keep complete finance hash including unknown fields/raw bytes, all natural sampling and native sheet-none/cancel/segment/motion/safe-area assertions byte-identical. Add only meaningful source/minification/cascade controls required by the accepted proposal.",
+    "Use isolated worktree and own confirmed claim; independent exact source/tree review, measured build+minify+served reservations under existing1317888/359424/3 caps; actual exact CI and full native/natural guards before any acceptance.",
+    "Prior fixture A/B showed no consistent candidate advantage. Optimization/human lag remains NO-GO and INC-2709-09 open even if budget/native contracts pass. PR181 is CI-only draft with beta ancestry: never merge it into main/beta; product beta/mobile gates remain separate.",
+    "No private event transport, financial operations, APK/Edge/SQL/migrations/payments; preserve external worker reservations. Three-character selector proposal alone cannot recover measured18-byte excess."
+  ]
+}
