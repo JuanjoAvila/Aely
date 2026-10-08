@@ -1,0 +1,38 @@
+{
+  "status": "done",
+  "summary": "Presupuesto de fuente aislada recuperado sin alterar cascada. Revisión fuerte y CI exacta correctas; NO-GO de producto y de mejora del lag conservado.",
+  "tests": [
+    {
+      "command": "node scripts/run-tests.mjs",
+      "exitCode": 0,
+      "environment": "GitHub Actions Ubuntu / Node20 / Chromium sintético",
+      "run": 37798235197,
+      "job": 113383215204,
+      "checkoutSHA": "04c85b7f970e55617aa3eae82ca005d64b93e0f8",
+      "treeSHA": "3586fc3b196f0d1472f223860e1e4b2b0c4c446a",
+      "functionalPassed": 891,
+      "skipped": 1,
+      "performancePassed": 13
+    },
+    {
+      "command": "local build/minify esbuild0.25.5 + unchanged served reserve budget test",
+      "exitCode": 0,
+      "raw": 1317879,
+      "gzip": 359035,
+      "blockingResources": 3
+    }
+  ],
+  "productSHA": "0d443254b4327b79db3a540cc617e36c036fd8b1",
+  "pr": 181,
+  "limitations": [
+    "PR solo CI con ancestría beta; no integrar ni publicar",
+    "7 contratos Plan pasaron; mediciones de esta fuente compartieron grupo funcional",
+    "La optimización no acredita ventaja; INC-2709-09 sigue abierto"
+  ],
+  "schema": 1,
+  "taskId": "inc-2709-09-plan-sheet-budget-relay24",
+  "actor": "codex",
+  "sessionId": "relay-run-aweghzwufqokxcrz",
+  "createdAt": "2026-10-08T16:29:12.604Z",
+  "released": true
+}
