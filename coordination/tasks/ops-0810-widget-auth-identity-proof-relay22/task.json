@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "id": "ops-0810-widget-auth-identity-proof-relay22",
+  "from": "codex",
+  "coordinatorSession": "relay-run-7ec27dca45990401",
+  "createdAt": "2026-10-08T00:59:37.419Z",
+  "to": "codex",
+  "baseSHA": "3a369e3b67ab465d77bba3fdcb1b5bd23bc5fd14",
+  "objective": "Adaptar guard global auth-disposal al cambio nativo real del widget: exigir exactamente cinco códigos/native nuevos (fin05-widget-reentrada, fin05-pago-cerrada, widget-banco, widget-app-cerrada, inc-2909-01-widget-periodo), web/Edge iguales y TODAS las demás identidades antiguas iguales. Registro/auditorías/historial intactos; no repinar ni reutilizar OK. Conservar pruebas causales auth. CI exacta anterior falla solo en igualdad antigua; verificar logs completos y CI final exacta. Java final y nueva prueba de pérdida no se alteran. No APK, integración ni promoción.",
+  "scope": [
+    "tests/auth-disposal.test.mjs",
+    "docs/briefs/inc-0810-widget-unknown-loss.md"
+  ]
+}
