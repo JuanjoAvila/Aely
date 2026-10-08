@@ -87,3 +87,22 @@ presupuestos locales. Sintaxis, privacidad y mapa de suites locales pasan; fresc
 conserva el fallo esperado de esta candidata de diagnóstico sin versión publicable.
 CI exacta, contratos nativos y revisión final siguen pendientes. Este resultado sólo
 recupera presupuesto; no acredita una mejora ni resuelve INC-2709-09.
+
+
+## Contrato del estado crudo e aislamiento · 8/10
+
+La huella anterior conserva todo el estado parseado y los bytes de gastos, pero los
+espacios, escapes equivalentes y claves duplicadas de JSON pueden cambiar `stateRaw`
+sin cambiar esa huella. El control Node reproduce los tres casos con datos inventados.
+Se añade una huella separada de `JSON.stringify(stateRaw)`, conservando el hash y la
+aserción anteriores; también distingue ausencia (`null`) y sustitutos Unicode aislados.
+Una diferencia en cualquiera activa los mismos logs sintéticos completos y su delta.
+
+El runner clasifica exactamente `plan-ownership-candidate.spec.mjs` como rendimiento:
+corre en el grupo existente con `--workers=1`, después de los funcionales, sin cambiar
+muestras, plazos, reintentos o contratos. Los controles Node registrados comprueban
+la implementación del helper, el guard del spec y la selección real del runner.
+La CI anterior `37798235197` seguía en curso al preparar esta corrección; no acredita
+el contrato nuevo. CI exacta y aceptación nativa siguen pendientes; las comparaciones
+anteriores con concurrencia no prueban mejora de rendimiento. INC-2709-09 sigue abierto.
+Sólo se conserva evidencia en logs: no hay upload de artefactos en este workflow.

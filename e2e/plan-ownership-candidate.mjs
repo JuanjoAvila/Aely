@@ -72,6 +72,8 @@ export async function finanzasPlanSnapshot(page){
   const stateRaw=localStorage.getItem("micartera_v3"),expenses=localStorage.getItem("micartera_v3_exp");
   return {state:JSON.parse(stateRaw),expenses,stateRaw};
  });
+ // JSON conserva null y sustitutos Unicode aislados; UTF8 directo puede colapsar cadenas distintas.
+ snapshot.stateRawFingerprint=crypto.createHash("sha256").update(JSON.stringify(snapshot.stateRaw)).digest("hex");
  return {...snapshot,fingerprint:crypto.createHash("sha256").update(JSON.stringify({state:snapshot.state,expenses:snapshot.expenses})).digest("hex")};
 }
 export function deltasFinanzasPlan(before,after){

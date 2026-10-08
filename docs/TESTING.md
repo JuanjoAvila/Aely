@@ -777,3 +777,10 @@ Aviso nativo por sesión: `tests/banknotif-listener-cleanup.test.mjs`, registrad
 ## Recientes de Inicio · candidata106
 
 `e2e/dashboard-memo-profile.spec.mjs` compara el callback de React real con el baseline original en HTML local:3000/5200 filas, CPU×6, invalidaciones y guard bancario. Cuatro casos seriales de rendimiento; informes completos en logs sintéticos. `tests/dashboard-memo-instrument.test.mjs` verifica anclas/parsing sin navegador. DOM/CI pendientes.
+
+
+Diagnóstico de Plan (INC-2709-09): `tests/plan-diagnostic-contract.test.mjs`, registrado
+en el runner, verifica hash crudo adicional sin sustituir la huella parseada, negativos
+JSON equivalentes y aislamiento real de `e2e/plan-ownership-candidate.spec.mjs` en el
+grupo de rendimiento con `--workers=1`. Estos controles Node no acreditan gestos ni
+mejora del lag; la CI del spec y su revisión conservan sus gates propios.

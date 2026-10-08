@@ -42,17 +42,18 @@ async function resetTop(page){await page.locator(".page.page-scroll-host").evalu
 async function released(page){expect(await page.locator(".page.page-scroll-host").evaluate(el=>({own:el.classList.contains("mc-touch-own"),plan:el.classList.contains("mc-p")}))).toEqual({own:false,plan:false});}
 async function unchangedFinanzas(page,before,source,label){
  const after=await finanzasPlanSnapshot(page);
- if(after.fingerprint!==before.fingerprint){
+ if(after.fingerprint!==before.fingerprint||after.stateRawFingerprint!==before.stateRawFingerprint){
   // Datos inventados por boot y red externa bloqueada: el estado íntegro permite auditar
   // también lo que el resumen acotado no alcance, sin perder evidencia al terminar la CI.
   console.log("PLAN_CANDIDATE_SYNTHETIC_FINANCE_SNAPSHOTS "+JSON.stringify({sourceLabel:source.label,sourceSHA:source.sha,
    htmlHash:source.htmlHash,label,syntheticContext:true,before,after}));
   console.log("PLAN_CANDIDATE_SYNTHETIC_FINANCE_DELTA "+JSON.stringify({
   sourceLabel:source.label,sourceSHA:source.sha,htmlHash:source.htmlHash,label,syntheticContext:true,
-  beforeFingerprint:before.fingerprint,afterFingerprint:after.fingerprint,...deltasFinanzasPlan(before,after),
+  beforeFingerprint:before.fingerprint,afterFingerprint:after.fingerprint,beforeStateRawFingerprint:before.stateRawFingerprint,afterStateRawFingerprint:after.stateRawFingerprint,...deltasFinanzasPlan(before,after),
   limitsNote:"Full state/expenses in SYNTHETIC_FINANCE_SNAPSHOTS; pointer summary bounded only, original complete fingerprint equality required; no field ignored or normalized."}));
  }
  expect(after.fingerprint).toBe(before.fingerprint);
+ expect(after.stateRawFingerprint).toBe(before.stateRawFingerprint);
 }
 async function genericOwnershipCssControl(page,source,motion,safe){
  const financeBefore=await finanzasPlanSnapshot(page);
