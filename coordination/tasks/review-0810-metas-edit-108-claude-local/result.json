@@ -1,0 +1,59 @@
+{
+  "status": "done",
+  "summary": "Revision read-only de 3f6ddda (tree 00b698d1, padre 8dcc5ed3 verificados por checkout propio). Sin hallazgos bloqueantes. editReservaRule/reservaRuleSame: CAS semantico por id unico + igualdad profunda contra estado actual (borrada/cambiada => estado intacto), centimos via reservaImporteDe, value>0, pct<=100, meta activa, preserva id/orden/campos legacy (Object.assign sobre la regla original), no-op conserva referencia de state cuando no hay mensual pendiente; applyReservaMensual(onlyId) limita el asiento pendiente a la propia regla y reusa la idempotencia por mes Madrid (asiento ya aplicado no se reescribe; nuevo importe/destino aplica el mes siguiente). Expenses no se tocan. UI: saving ref, rechazo del updater por rebase recupera borrador+error sin cerrar y sin reabrir edicion posterior legitima. Hallazgos: [BAJA] 09-tab-debts-goals.js layout effect repite dos veces la condicion !reservaMetaActiva (saving.current=false y luego setSent(null)); cosmetico, fundir en un if. [BAJA] guardar sin cambios sobre regla mensual con mes pendiente devuelve applyReservaMensual (puede asentar ese mes y devolver estado nuevo): coherente con 'pendiente aplica solo propia regla', pero contradice literalmente 'no-op mantiene referencia' solo en ese caso. [BAJA] pulsar Editar en otra regla con un guardado en vuelo hace setSent(null)/saving=false; el CAS lo hace inocuo (sin doble escritura), solo se pierde el aviso del primero. No ejecutado: mutantes (base missing Edit rojo, rejection rojo) ni guardian19319/local30; no reproducido 108clean ni CI37828167309; beta-sources.test.mjs no termino en 250s (timeout 124, sin veredicto, historia git posiblemente superficial).",
+  "tests": [
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/reserva-dinero.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/presupuesto-rendimiento.test.mjs (cap 1291/352KiB, blocking 3/3)",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/beta-source-parse.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/i18n-keys.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/docs-frescura.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/guard-privacy.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "npx playwright test e2e/metas-editar-regla.spec.mjs (30 pruebas es/en/ca, Chromium sintetico)",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/beta-sources.test.mjs (timeout 250s, parcial)",
+      "exitCode": 124
+    }
+  ],
+  "productSHA": "3f6ddda680d11391d0388574f2aa3f5f2a254098",
+  "limitations": [
+    "No es npm test entero ni movil real",
+    "Sin repins/alias detectados en el diff de beta-sources pero beta-sources.test no concluyo",
+    "Sin modificar producto ni metadata",
+    "session id con sufijo vacio por fallo de xxd; claim y result usan el mismo id"
+  ],
+  "schema": 1,
+  "taskId": "review-0810-metas-edit-108-claude-local",
+  "actor": "claude",
+  "sessionId": "claude-cloud-20261008-",
+  "createdAt": "2026-10-08T19:12:36.209Z",
+  "released": true
+}
