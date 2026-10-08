@@ -1,6 +1,6 @@
 import {test,expect,devices} from "@playwright/test";
 import {seedLoggedInDashboard,dismissNews,installFixtureClock} from "./fixtures.mjs";
-import {prepararFuentesPlan,dedoPlan,resumenFramesPlan,debts,goals,fixed,finanzasPlanFingerprint} from "./plan-ownership-candidate.mjs";
+import {prepararFuentesPlan,dedoPlan,resumenFramesPlan,debts,goals,fixed,finanzasPlanSnapshot,deltasFinanzasPlan} from "./plan-ownership-candidate.mjs";
 let hosted;
 test.beforeAll(async()=>{hosted=await prepararFuentesPlan();});
 test.afterAll(async()=>{await hosted?.close();});
@@ -36,6 +36,20 @@ async function chooseSegment(page,id){
 }
 async function resetTop(page){await page.locator(".page.page-scroll-host").evaluate(el=>{el.scrollTop=0;});await page.waitForTimeout(300);await settled(page);}
 async function released(page){expect(await page.locator(".page.page-scroll-host").evaluate(el=>({own:el.classList.contains("mc-touch-own"),plan:el.classList.contains("mc-p")}))).toEqual({own:false,plan:false});}
+async function unchangedFinanzas(page,before,source,label){
+ const after=await finanzasPlanSnapshot(page);
+ if(after.fingerprint!==before.fingerprint){
+  // Datos inventados por boot y red externa bloqueada: el estado íntegro permite auditar
+  // también lo que el resumen acotado no alcance, sin perder evidencia al terminar la CI.
+  console.log("PLAN_CANDIDATE_SYNTHETIC_FINANCE_SNAPSHOTS "+JSON.stringify({sourceLabel:source.label,sourceSHA:source.sha,
+   htmlHash:source.htmlHash,label,syntheticContext:true,before,after}));
+  console.log("PLAN_CANDIDATE_SYNTHETIC_FINANCE_DELTA "+JSON.stringify({
+  sourceLabel:source.label,sourceSHA:source.sha,htmlHash:source.htmlHash,label,syntheticContext:true,
+  beforeFingerprint:before.fingerprint,afterFingerprint:after.fingerprint,...deltasFinanzasPlan(before,after),
+  limitsNote:"Full state/expenses in SYNTHETIC_FINANCE_SNAPSHOTS; pointer summary bounded only, original complete fingerprint equality required; no field ignored or normalized."}));
+ }
+ expect(after.fingerprint).toBe(before.fingerprint);
+}
 async function naturalSample(page,cdp,source,label){
  await resetTop(page);
  await page.evaluate(()=>{
@@ -61,17 +75,17 @@ for(const seg of ["recibos","deudas","metas"]){
   const order=seg==="deudas"?["candidate","main","beta"]:["beta","main","candidate"];
   for(const name of order){const source=hosted.sources[name],env=await boot(browser,source);
    try{const{page,cdp}=env;await selectTab(page,"plan",cdp);await chooseSegment(page,seg);
-    const financeBefore=await finanzasPlanFingerprint(page);
+    const financeBefore=await finanzasPlanSnapshot(page);
     for(const phase of ["first","after-12-use-cycles"]){
      if(phase!=="first")for(let i=0;i<12;i++){
       await resetTop(page);await dedoPlan(cdp,{steps:12,interval:16});await page.waitForTimeout(100);expect(await page.locator(".page.page-scroll-host").evaluate(el=>el.scrollTop)).toBeGreaterThan(2);
       await selectTab(page,"gastos",cdp);await selectTab(page,"plan",cdp);await chooseSegment(page,seg);
      }
-     expect(await finanzasPlanFingerprint(page)).toBe(financeBefore);
+     await unchangedFinanzas(page,financeBefore,source,name+"/"+seg+"/"+phase+"/before-natural");
      const report=await naturalSample(page,cdp,source,name+"/"+seg+"/"+phase);
-     expect(await finanzasPlanFingerprint(page)).toBe(financeBefore);expect(await tab(page)).toBe("plan");expect(await segment(page)).toBe(seg);reports.push(report);
+     await unchangedFinanzas(page,financeBefore,source,name+"/"+seg+"/"+phase+"/after-natural");expect(await tab(page)).toBe("plan");expect(await segment(page)).toBe(seg);reports.push(report);
     }
-    expect(await finanzasPlanFingerprint(page)).toBe(financeBefore);
+    await unchangedFinanzas(page,financeBefore,source,name+"/"+seg+"/final");
    }finally{await env.close();}
   }
   console.log("PLAN_CANDIDATE_FRAME_GATE "+JSON.stringify({segment:seg,reports,
@@ -82,9 +96,20 @@ for(const motion of ["no-preference","reduce"])for(const safe of [0,34]){
  test("prototipo Plan nativecontracts "+motion+" safe"+safe,async({browser})=>{
   test.setTimeout(120_000);const env=await boot(browser,hosted.sources.candidate,motion,safe);
   try{const{page,cdp}=env;
+   // Una lectura fuera del gesto conserva la precondición real, sin asentarlo ni corregirlo.
+   const precondition=await page.evaluate(()=>{
+    const host=document.querySelector(".page.page-scroll-host"),track=document.querySelector(".track"),root=document.documentElement;
+    return {activeTab:document.querySelector(".botnav-tab.active")?.dataset.tour??null,scrollTop:host?.scrollTop??null,
+     hostClassList:host?Array.from(host.classList):null,trackClassList:track?Array.from(track.classList):null,
+     genericOwnership:host?.classList.contains("mc-touch-own")??null,planOwnership:host?.classList.contains("mc-p")??null,
+     sheetOpen:root.classList.contains("sheet-open"),profileOpen:root.classList.contains("profile-open"),
+     computedTouchAction:host?getComputedStyle(host).touchAction:null,live:host?.classList.contains("page-live")??null,
+     settled:!!track?.matches(".track.scroll-host-park:not(.dragging)")&&!!host?.classList.contains("page-live")&&host.contains(document.elementFromPoint(196,430))};
+   });
+   console.log("PLAN_CANDIDATE_NATIVE_PRECONDITION "+JSON.stringify({sourceLabel:hosted.sources.candidate.label,sourceSHA:hosted.sources.candidate.sha,htmlHash:hosted.sources.candidate.htmlHash,motion,safe,syntheticContext:true,precondition}));
    expect(await page.locator(".page.page-scroll-host").evaluate(el=>({marker:el.classList.contains("mc-p"),touchAction:getComputedStyle(el).touchAction}))).toEqual({marker:false,touchAction:"none"});
    await selectTab(page,"plan",cdp);await chooseSegment(page,"deudas");await resetTop(page);
-   const financeBefore=await finanzasPlanFingerprint(page);
+   const financeBefore=await finanzasPlanSnapshot(page);
    await cdp.send("Input.dispatchTouchEvent",{type:"touchStart",touchPoints:[{x:196,y:430}]});
    expect(await page.locator(".page.page-scroll-host").evaluate(el=>({own:el.classList.contains("mc-touch-own"),plan:el.classList.contains("mc-p"),touchAction:getComputedStyle(el).touchAction}))).toEqual({own:true,plan:true,touchAction:"auto"});
    // offline es una re-renderización real de App, sin sync bancario ni escritura de dinero.
@@ -109,7 +134,7 @@ for(const motion of ["no-preference","reduce"])for(const safe of [0,34]){
    await page.waitForFunction(()=>document.documentElement.classList.contains("sheet-open"));
    expect(await page.locator(".page.page-scroll-host").evaluate(el=>getComputedStyle(el).touchAction)).toBe("none");
    await cdp.send("Input.dispatchTouchEvent",{type:"touchCancel",touchPoints:[]});await released(page);
-   expect(await finanzasPlanFingerprint(page)).toBe(financeBefore);
+   await unchangedFinanzas(page,financeBefore,hosted.sources.candidate,"candidate/nativecontracts/"+motion+"/safe"+safe+"/final");
   }finally{await env.close();}
  });
 }

@@ -65,3 +65,44 @@ export async function finanzasPlanFingerprint(page){
  });
  return crypto.createHash("sha256").update(value).digest("hex");
 }
+// Sólo lo llama el spec con contexto sintético fresco. Se conserva TODO, incluso campos
+// desconocidos y _savedAt: diagnosticar una diferencia no permite rebajar el guardián.
+export async function finanzasPlanSnapshot(page){
+ const snapshot=await page.evaluate(()=>{
+  const stateRaw=localStorage.getItem("micartera_v3"),expenses=localStorage.getItem("micartera_v3_exp");
+  return {state:JSON.parse(stateRaw),expenses,stateRaw};
+ });
+ return {...snapshot,fingerprint:crypto.createHash("sha256").update(JSON.stringify({state:snapshot.state,expenses:snapshot.expenses})).digest("hex")};
+}
+export function deltasFinanzasPlan(before,after){
+ const limits={paths:32,nodes:20_000,valueChars:2048},changes=[];let visited=0,truncated=false;
+ const value=(exists,v)=>{
+  const json=exists?JSON.stringify(v):undefined;
+  return {exists,type:!exists?"missing":v===null?"null":Array.isArray(v)?"array":typeof v,
+   json:json===undefined?null:json.slice(0,limits.valueChars),truncated:json!==undefined&&json.length>limits.valueChars};
+ };
+ const record=(pointer,a,b,aExists,bExists)=>{
+  if(changes.length>=limits.paths){truncated=true;return;}
+  changes.push({pointer,before:value(aExists,a),after:value(bExists,b)});
+ };
+ const walk=(a,b,pointer,aExists=true,bExists=true)=>{
+  if(++visited>limits.nodes||changes.length>=limits.paths){truncated=true;return;}
+  if(aExists===bExists&&Object.is(a,b))return;
+  if(!aExists||!bExists||a===null||b===null||typeof a!=="object"||typeof b!=="object"||Array.isArray(a)!==Array.isArray(b)){
+   record(pointer,a,b,aExists,bExists);return;
+  }
+  if(Array.isArray(a)&&a.length!==b.length)record(pointer+"/length",a.length,b.length,true,true);
+  for(const key of new Set([...Object.keys(a),...Object.keys(b)])){
+   walk(a[key],b[key],pointer+"/"+key.replaceAll("~","~0").replaceAll("/","~1"),Object.hasOwn(a,key),Object.hasOwn(b,key));
+   if(truncated)break;
+  }
+ };
+ walk(before.state,after.state,"/state");
+ // Se incluyen bytes además de los campos: un reordenamiento también cambia el hash original.
+ if(before.stateRaw!==after.stateRaw)record("/stateRaw",before.stateRaw,after.stateRaw,true,true);
+ if(before.expenses!==after.expenses){
+  record("/expensesRaw",before.expenses,after.expenses,true,true);
+  try{walk(JSON.parse(before.expenses),JSON.parse(after.expenses),"/expenses");}catch{ /* Los bytes de JSON no válido siguen registrados. */ }
+ }
+ return {limits,visited,truncated,changes};
+}
