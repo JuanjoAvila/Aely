@@ -10,7 +10,7 @@
  * scroll normal. Y no puede robarle nada al swipe horizontal entre pestañas (Inicio/Gastos/Plan/
  * Cartera), que vive en `11-app-main.js` y escucha los mismos toques desde más arriba en el DOM. */
 import { test, expect } from "@playwright/test";
-import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
+import { seedLoggedInDashboard, dismissNews, installFixtureClock } from "./fixtures.mjs";
 import { execFileSync } from "node:child_process";
 
 async function appLista(page) {
@@ -370,6 +370,51 @@ async function trazarGestoPlan(page, cdp, label, sourceSHA) {
 
 const perfilSourceSHA=execFileSync("git",["rev-parse","HEAD"],{encoding:"utf8"}).trim();
 
+// Una barra ocultada por scroll no es un destino táctil. El diagnóstico sale por el swipe
+// horizontal real, que también debe aterrizar; no se fuerza un click a través del contenido.
+async function navegarPerfil(page, cdp, tab) {
+  const order=["inicio","gastos","plan","cartera"];
+  const current=await pestanaActiva(page),from=order.indexOf(current),to=order.indexOf(tab);
+  expect(from,"pestaña inicial identificable").toBeGreaterThanOrEqual(0);
+  expect(to,"pestaña destino identificable").toBeGreaterThanOrEqual(0);
+  for(let i=from;i!==to;i+=Math.sign(to-from)) {
+    await esperarHostPerfil(page);
+    if(order[i]!=="inicio") expect(await page.locator(".page.page-scroll-host").evaluate(el=>el.classList.contains("mc-touch-own")),"ownership vertical liberado antes de salir").toBe(false);
+    const forward=to>from,W=page.viewportSize().width,x0=forward?W-40:80;
+    await cdp.send("Input.dispatchTouchEvent",{type:"touchStart",touchPoints:[{x:x0,y:200}]});
+    for(let step=1;step<=16;step++) {
+      await cdp.send("Input.dispatchTouchEvent",{type:"touchMove",touchPoints:[{x:x0+(forward?-1:1)*(W-120)*step/16,y:200}]});
+      await page.waitForTimeout(16);
+    }
+    await cdp.send("Input.dispatchTouchEvent",{type:"touchEnd",touchPoints:[]});
+    await expect.poll(()=>pestanaActiva(page),{timeout:10_000}).toBe(order[i+Math.sign(to-from)]);
+    await esperarHostPerfil(page);
+  }
+  await esperarHostPerfil(page);
+  expect(await pestanaActiva(page)).toBe(tab);
+  if(tab!=="inicio") expect(await page.locator(".page.page-scroll-host").evaluate(el=>el.classList.contains("mc-touch-own")),"ownership liberado al aterrizar").toBe(false);
+}
+
+async function esperarHostPerfil(page) {
+  await esperarCarruselQuieto(page);
+  // Un transform constante puede ser una pausa anterior al movimiento. El host fixed sólo
+  // vuelve tras el asentamiento real; el punto del siguiente gesto debe pertenecer a ese host.
+  await page.waitForFunction(()=>{
+    const tr=document.querySelector(".track.scroll-host-park:not(.dragging)");
+    const hosts=document.querySelectorAll(".page.page-scroll-host");
+    return !!tr&&hosts.length===1&&hosts[0].classList.contains("page-live")&&
+      hosts[0].contains(document.elementFromPoint(196,200));
+  },null,{timeout:10_000,polling:"raf"});
+}
+
+async function prepararRecibosPerfil(page) {
+  const visible=page.locator('[data-seg="recibos"][aria-hidden="false"]');
+  // La portada resume tres pendientes aunque existan cuarenta: sembrar más no la alarga.
+  // Expandir por su botón real conserva el host de Plan y la prueba de scroll exigida.
+  await visible.locator("button.v4-link-mini").first().click();
+  await expect(visible.locator(".v4-charge")).toHaveCount(40);
+}
+
 
 for(const reducedMotion of ["no-preference","reduce"]){
   test("perfil controles Inicio/Gastos y cancelación/inversión Plan "+reducedMotion,async({page})=>{
@@ -379,6 +424,7 @@ for(const reducedMotion of ["no-preference","reduce"]){
       const url=new URL(route.request().url());
       return ["127.0.0.1","localhost"].includes(url.hostname)?route.continue():route.abort();
     });
+    await installFixtureClock(page);
     await seedLoggedInDashboard(page,{debts,goals,
       expenses:Array.from({length:80},(_,i)=>({id:"profile-exp-"+i,date:"2026-09-26",amount:2,
         merchant:"Sintético "+i,category:"Otros",account:"e2e"}))});
@@ -386,15 +432,14 @@ for(const reducedMotion of ["no-preference","reduce"]){
     const cdp=await page.context().newCDPSession(page);
     await cdp.send("Emulation.setCPUThrottlingRate",{rate:6});
     for(const tab of ["inicio","gastos"]){
-      await page.locator('.botnav-tab[data-tour="'+tab+'"]').click();
-      await expect.poll(()=>pestanaActiva(page)).toBe(tab);await page.waitForTimeout(650);
+      await navegarPerfil(page,cdp,tab);
       await iniciarPerfilGesto(page);
       await deslizarV(page,cdp,{y0:430,dy:-190,pasos:12});await page.waitForTimeout(400);
       const report=await terminarPerfilGesto(page,tab+"/control/"+reducedMotion,perfilSourceSHA);
       expect(report.rows.some(r=>r.event==="touchstart"&&r.tab===tab)).toBe(true);
       expect(await pestanaActiva(page)).toBe(tab);
     }
-    await irAPlan(page);
+    await navegarPerfil(page,cdp,"plan");
     for(const endType of ["touchCancel","touchEnd"]){
       await page.locator(".page.page-scroll-host").evaluate(el=>{el.scrollTop=0;});
       await page.waitForTimeout(300);
@@ -427,10 +472,11 @@ for(const reducedMotion of ["no-preference","reduce"]){
         const url=new URL(route.request().url());
         return ["127.0.0.1","localhost"].includes(url.hostname)?route.continue():route.abort();
       });
+      await installFixtureClock(page);
       await seedLoggedInDashboard(page,{
         debts,goals:Array.from({length:16},(_,i)=>({...goals[i%3],id:"profile-goal-"+i})),
         fixed:Array.from({length:24},(_,i)=>({id:"profile-fixed-"+i,name:"Recibo sintético "+i,
-          amount:10+i,freq:"mes",day:28,account:"e2e"}))
+          amount:10+i,freq:"mes",day:28,account:"sabadell"}))
       });
       await page.goto("/");await appLista(page);await irAPlan(page);
       if(segment!=="recibos"){
@@ -439,6 +485,8 @@ for(const reducedMotion of ["no-preference","reduce"]){
       }
       const cdp=await page.context().newCDPSession(page);
       await cdp.send("Emulation.setCPUThrottlingRate",{rate:6});
+      await esperarHostPerfil(page);
+      if(segment==="recibos") await prepararRecibosPerfil(page);
       const pg=page.locator(".page.page-scroll-host");
       await expect(pg).toHaveCount(1);
       await expect.poll(()=>pg.evaluate(el=>el.scrollHeight-el.clientHeight)).toBeGreaterThan(200);
@@ -446,14 +494,13 @@ for(const reducedMotion of ["no-preference","reduce"]){
       for(const phase of ["first", "after-12-use-cycles"]){
         if(phase!=="first") {
           for(let cycle=0;cycle<12;cycle++) {
-            await page.locator('.botnav-tab[data-tour="gastos"]').click();
-            await expect.poll(()=>pestanaActiva(page)).toBe("gastos");
-            await esperarCarruselQuieto(page);
-            await irAPlan(page);
+            await navegarPerfil(page,cdp,"gastos");
+            await navegarPerfil(page,cdp,"plan");
             if(await segmentoActivo(page)!==segment) {
               await page.locator(".v4-seg-btn",{hasText:segment==="deudas"?/deuda/i:segment==="metas"?/meta/i:/recibo/i}).click();
               await expect.poll(()=>segmentoActivo(page)).toBe(segment);
             }
+            if(segment==="recibos") await expect(page.locator('[data-seg="recibos"][aria-hidden="false"] .v4-charge')).toHaveCount(40);
             await pg.evaluate(el=>{el.scrollTop=0;});
             await deslizarV(page,cdp,{y0:430,dy:-190,pasos:12});
             await page.waitForTimeout(100);

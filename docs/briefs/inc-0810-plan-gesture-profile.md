@@ -27,3 +27,30 @@ Los siguientes pasos son leer los informes completos del SHA ejecutado y disting
 entrega/ownership, cancelación nativa, trabajo de layout y evolución del scroll antes de
 proponer una corrección conjunta de App y Plan. Este diagnóstico no acepta una solución
 aislada anterior ni modifica gates de presupuesto, aprobación móvil o publicación.
+
+## Corrección del banco tras CI del 8 de octubre
+
+CI37708273878, fuente `fe95f18ff155e9be1ee327183d3b17894971c621`, falló en ambos
+controles Inicio/Gastos al intentar clicar Gastos después de bajar Inicio: contenido de
+Inicio interceptaba el click. La fuente puede ocultar expresamente botnav al bajar y la
+revela al subir o cambiar pestaña. El banco presuponía una barra alcanzable sin comprobarla;
+los logs no acreditan la clase exacta de la barra en ese instante, un carrusel atascado
+ni un fallo humano. La ocultación legítima es compatible con el fallo observado, no una
+causa DOM medida. El diagnóstico ahora cambia por swipe horizontal CDP real a y200,
+sin forceclick, exige la pestaña de destino, host único activo/aparcado, punto de toque
+perteneciente al host y ownership liberado salvo Inicio, donde el tope lo reclama a propósito.
+Un transform repetido durante tres frames ya no basta para dar el carrusel por asentado.
+
+Recibos falló en ambos modos por recorrido de sólo71px frente al requisito>200. La portada
+de Plan resume tres pendientes aunque se siembren muchos. El fixture fija26/9, usa banco
+sabadell para24recibos y abre «Ver más» por su botón real; exige40filas (24recibos y16cuotas)
+antes de medir. La lógica pura confirmó40pendientes y0pagados/traspasos, no acredita el DOM.
+Al volver de cada ciclo la lista debe seguir expandida. Se mantienen altura>200, CPU×6,
+38pasos×32ms,190px, primera/tras12ciclos, tope/fuera, normal/reducido, toque/scroll efectivos,
+segmento, ownership, histórico y trazas separadas. Ningún cambio en producto o presupuesto.
+
+Sintaxis, mapa, privacidad y diffcheck locales pasan; discovery lista15casos (7anteriores y
+8diagnósticos). El adaptador temporal a Playwright instalado se retiró; no se instaló navegador.
+Chromium local ausente: nueva CI y DOM exactos pendientes, sin declarar corregido el incidente.
+El fallo hist-visor de aquella CI queda separado y sin tocar. Los fallos de scroll, ownership,
+segmento o llegada del swipe que subsistan seguirán fallando; no se reinterpretan como verde.
