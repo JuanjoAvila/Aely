@@ -82,6 +82,7 @@ export const E2E_MAP = [
     "e2e/tr-aviso.spec.mjs",
   ] },
   { file: "src/modules/08-motor-bank.js", specs: [
+    "e2e/metas-editar-regla.spec.mjs",
     "e2e/metas-borrar-regla.spec.mjs",
     "e2e/metas-alta-regla.spec.mjs",
     "e2e/metas-mensual.spec.mjs",
@@ -101,6 +102,7 @@ export const E2E_MAP = [
     "e2e/efectivo-apuntar.spec.mjs",
   ] },
   { file: "src/modules/09-tab-debts-goals.js", specs: [
+    "e2e/metas-editar-regla.spec.mjs",
     "e2e/metas-borrar-regla.spec.mjs",
     "e2e/metas-alta-regla.spec.mjs",
     "e2e/metas-mensual.spec.mjs",

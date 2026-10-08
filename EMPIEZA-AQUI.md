@@ -1,3 +1,5 @@
+Edición de reglas de Metas: candidata4.26.108 aislada sobre8dcc, sin publicación. No borrar/recrear para editar: preservar ID, `mensual`/legado y campos desconocidos, comparar estado fresco y conservar los asientos anteriores. El coordinador local26 serializa integración y concede Chromium; los reportes deben usar `MC_E2E_OUTPUT_DIR` propio para no borrar otras evidencias en `test-results`. [Acta](docs/briefs/inc-0810-metas-editar-regla.md).
+
 Auth102 candidata local sobre101/77b7d5e4: cleanup de suscripción y callbacks tras desmontar; no cambia orden inicial ni acredita causa del lag. Nueva identidad propia, sin repin. [Acta](docs/briefs/inc-0710-auth-disposal.md).
 
 Candidata101: `bankNotif` tiene la misma carrera de handle tardío que el listener de reentrada100. Cleanup de Promise y callback inerte; no alterar opción expresa, cupo ni sync. Cambiar uid antes de resolver el alta es necesario para reproducir la fuga: scroll por sí solo no lo acredita. INC-2709-09 sigue abierto. [Acta](docs/briefs/inc-0710-banknotif-cleanup.md).

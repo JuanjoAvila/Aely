@@ -1,5 +1,49 @@
 [
   {
+    "v": "4.26.108",
+    "d": "2026-10-08",
+    "t": {
+      "es": "Editar las reglas de ahorro",
+      "en": "Edit savings rules",
+      "ca": "Edita les regles d’estalvi"
+    },
+    "items": {
+      "es": [
+        "Las reglas de Metas permiten cambiar nombre, importe y destino. Las aportaciones anteriores se conservan."
+      ],
+      "en": [
+        "Goal rules let you change the name, amount and destination. Past contributions are preserved."
+      ],
+      "ca": [
+        "Les regles de Metes permeten canviar nom, import i destinació. Les aportacions anteriors es conserven."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inc-0810-metas-editar-regla",
+        "t": {
+          "es": "Editar las reglas de ahorro",
+          "en": "Edit savings rules",
+          "ca": "Edita les regles d’estalvi"
+        },
+        "items": {
+          "es": [
+            "1. En Plan → Metas → Reservar dinero, edita una regla, cambia el importe con céntimos y cancela: debe conservarse. Vuelve a editarla y guarda: al reabrir y recargar deben mantenerse los cambios.",
+            "2. En una regla ya aplicada este mes, cambia la meta: la aportación anterior y el presupuesto no deben cambiar. La línea de este mes debe seguir mostrando la meta anterior."
+          ],
+          "en": [
+            "1. In Plan → Goals → Reserve money, edit a rule, change the amount with cents and cancel: it should stay unchanged. Edit again and save: reopening and reloading should retain the changes.",
+            "2. For a rule already applied this month, change the goal: the past contribution and budget should stay unchanged. This month’s line should still show the original goal."
+          ],
+          "ca": [
+            "1. A Pla → Metes → Reservar diners, edita una regla, canvia l’import amb cèntims i cancel·la: s’ha de conservar. Torna a editar-la i desa: en reobrir i recarregar s’han de mantenir els canvis.",
+            "2. En una regla ja aplicada aquest mes, canvia la meta: l’aportació anterior i el pressupost no han de canviar. La línia d’aquest mes ha de continuar mostrant la meta anterior."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.106",
     "d": "2026-10-08",
     "t": {

@@ -174,7 +174,13 @@ const PRESUPUESTO = {
   // 8ff6402a), 282 B por encima del crudo. Tope crudo a 1287 KiB (quedan 742 B); gzip
   // sigue en 351 KiB (680 B). No se recortan guardas, notas ni idiomas para caber; un
   // cambio posterior exige medir de nuevo.
-  minificado: 1287 * 1024,
+  // INC-0810: edición real de reglas, asignación medida del coordinador local26 (8/10).
+  // Misma reserva DSN95 y versión4.26.108.99999: LF base8dcc1.317.888/359.021 B;
+  // candidata1.321.489/360.040 B, +3.601/+1.019. Textos ES +373/+127;
+  // lógica y metadatos +3.228/+892. +4/+1 KiB dejan495/408 B de margen.
+  // Windows conserva24 CR exteriores:1.321.513/360.056 B, margen471/392.
+  // sin dependencias nuevas, idiomas ni guardas recortadas, tres bloqueantes iguales.
+  minificado: 1291 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -182,7 +188,7 @@ const PRESUPUESTO = {
   // caso de exceso, deja 342.031 B gzip (15 B sobre 334 KiB). +1 KiB medido para
   // no ocultar cifras financieras ni recortar los tres idiomas; quedan 1.009 B.
   // La misma candidata mide 343.257 B gzip, 217 B sobre 335 KiB: +1 KiB medido.
-  gzip: 351 * 1024,
+  gzip: 352 * 1024,
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 
