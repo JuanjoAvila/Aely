@@ -84,7 +84,10 @@ public class MiCarteraWidget extends AppWidgetProvider {
         s.events = p.getString("events", "");
         s.journal = p.getString("journal", "");
         s.journalFull = p.getBoolean("journalFull", false);
-        s.unknownPending = p.getBoolean("unknownPending", false);
+        // El estado antiguo no distinguía saturación recuperable de identidad perdida.
+        // Sin esa prueba migramos el bloqueo a incertidumbre, nunca a cifras confirmadas.
+        s.unknownLoss = p.getBoolean("unknownLoss", s.journalFull);
+        s.unknownPending = p.getBoolean("unknownPending", false) || s.unknownLoss;
         s.unknownJournal = p.getString("unknownJournal", "");
         s.coveredEvents = p.getString("coveredEvents", "");
         s.deletedKeys = p.getString("deletedKeys", "");
@@ -104,7 +107,7 @@ public class MiCarteraWidget extends AppWidgetProvider {
           .remove("delta").putString("cashEnt", s.cashEnt)
           .putString("cashLabel", s.cashLabel).putString("events", s.events)
           .putString("journal", s.journal).putBoolean("journalFull", s.journalFull)
-          .putBoolean("unknownPending", s.unknownPending)
+          .putBoolean("unknownPending", s.unknownPending).putBoolean("unknownLoss", s.unknownLoss)
           .putString("unknownJournal", s.unknownJournal)
           .putString("coveredEvents", s.coveredEvents).putString("deletedKeys", s.deletedKeys);
         ed.remove("afford");
@@ -244,7 +247,7 @@ public class MiCarteraWidget extends AppWidgetProvider {
            HOY. Se compara el período del snapshot con el mes de AHORA; si no coinciden, se pinta
            «—» sin disponible ni saldo en vez de inventar un cero. En cuanto la app empuje el
            dato real del mes nuevo, esto se sustituye solo. */
-        boolean sinDato = p.getBoolean("journalFull", false) || p.getBoolean("unknownPending", false)
+        boolean sinDato = p.getBoolean("unknownLoss", false) || p.getBoolean("journalFull", false) || p.getBoolean("unknownPending", false)
                 || p.getBoolean("negotiating", false);
         // Con Mi ciclo la ventana no acaba el día 1: caduca cuando el cobro queda fuera de plazo.
         int contract = p.getInt("contract", 0);

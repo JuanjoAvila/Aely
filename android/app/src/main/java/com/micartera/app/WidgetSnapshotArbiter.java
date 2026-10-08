@@ -8,7 +8,7 @@ final class WidgetSnapshotArbiter {
         boolean hasBudgetLeft, hasSafeLiq, hasCash;
         String cashEnt = "", cashLabel = "", events = "", journal = "";
         String coveredEvents = "", deletedKeys = "", unknownJournal = "";
-        boolean journalFull, unknownPending;
+        boolean journalFull, unknownPending, unknownLoss;
 
         double safeLiq() { return Math.max(0, hasCash
                 ? Math.min(baseSafeLiq - spendDelta, baseCash - cashDelta)
@@ -30,7 +30,11 @@ final class WidgetSnapshotArbiter {
         // una foto de la app sin ACK no es prueba de que ya incluya ese pago (revisión 30/9).
         String line = event + "\t" + (expenseKey != null ? expenseKey : "");
         if (!s.unknownJournal.contains(line + "\n")) {
-            if (s.unknownJournal.length() + line.length() + 1 > JOURNAL_MAX) s.journalFull = true;
+            if (s.unknownJournal.length() + line.length() + 1 > JOURNAL_MAX) {
+                // Sin identidad retenida ningún ACK posterior demuestra que cubra este pago.
+                s.journalFull = true;
+                s.unknownLoss = true;
+            }
             else s.unknownJournal += line + "\n";
         }
         s.unknownPending = true;
@@ -73,7 +77,7 @@ final class WidgetSnapshotArbiter {
             if (!has(coveredEvents, p[0]) && !has(deletedKeys, p[1])) unknownKeep.append(line).append('\n');
         }
         if (unknownKeep.length() > JOURNAL_MAX) { s.journalFull = true; return false; }
-        boolean unknown = unknownKeep.length() > 0;
+        boolean unknown = s.unknownLoss || unknownKeep.length() > 0;
         if (s.periodStart == periodStart) {
             for (String line : s.journal.split("\\n")) {
                 if (line.trim().isEmpty()) continue;
@@ -145,13 +149,16 @@ final class WidgetSnapshotArbiter {
             s.events = "";
             s.journal = "";
             s.journalFull = false;
-            s.unknownPending = false;
+            s.unknownPending = s.unknownLoss || !s.unknownJournal.isEmpty();
             s.coveredEvents = "";
             s.deletedKeys = "";
             s.serverReadAt = 0;
             s.serverTicket = 0;
         }
-        if (s.journalFull) return false;
+        if (s.journalFull) {
+            // El bloqueo de otra entrada tampoco autoriza a olvidar un pago nuevo.
+            return pendingUnknown(s, event, expenseKey);
+        }
         boolean newEvent = event != null && !event.isEmpty() && !has(s.events, event);
         if (newEvent) {
             String line = event + "\t" + shownDelta + "\t" + againstDelta + "\t" + amount
@@ -160,6 +167,7 @@ final class WidgetSnapshotArbiter {
             int separator = s.journal.isEmpty() ? 0 : 1;
             if (s.journal.length() + separator + line.length() > JOURNAL_MAX) {
                 s.journalFull = true;
+                pendingUnknown(s, event, expenseKey);
                 return true;
             }
             s.events += "|" + event + "|";

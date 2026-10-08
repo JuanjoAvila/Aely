@@ -48,6 +48,7 @@ t("solo Android: widget, sin e2e", () => {
   const p = planFromFiles(["android/app/src/main/java/com/micartera/app/MiCarteraWidget.java"]);
   assert.equal(p.playwright, false);
   assert.ok(p.steps.includes("widget-coherente"));
+  assert.ok(p.steps.includes("widget-unknown-loss"));
   assert.ok(p.steps.includes("webdebug-guard"));
 });
 
