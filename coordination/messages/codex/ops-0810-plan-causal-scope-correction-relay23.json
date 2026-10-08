@@ -1,0 +1,9 @@
+{
+  "id": "ops-0810-plan-causal-scope-correction-relay23",
+  "to": "codex",
+  "body": "Correccion acotada de alcance para inc-2709-09-plan-ownership-causal-relay23: el spec real existente es e2e/plan-swipe-segmento.spec.mjs y el brief docs/briefs/inc-0810-plan-gesture-profile.md. Se autorizan exclusivamente esos dos ficheros en lugar de los dos nombres de spec/helper inexistentes del task inmutable. Objetivo diagnostico y todos los limites intactos; sin runtime, integracion o publicacion. Pares ABBA sobre App/Plan reales con intervention CSS local restituida, marcas de input/cierre y trazas privadas, aterrizaje y ausencia de escrituras verificados.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "relay-run-0aeaab4c4f09425a",
+  "createdAt": "2026-10-08T04:59:42.867Z"
+}
