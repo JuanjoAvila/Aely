@@ -12,6 +12,7 @@
  *      restarlo del presupuesto (ver `reservedSince`, que usa `monthSummary` en 04-tab-gastos.js).
  */
 import assert from "node:assert/strict";
+import fs from "node:fs";
 import { execFileSync } from "node:child_process";
 import { loadPureLogic, loadPureLogicFromFile } from "../scripts/load-pure-logic.mjs";
 
@@ -715,6 +716,27 @@ t("botón real de edición: updater repetido conserva un solo asiento aunque cum
   assert.equal(next.reservaLog.length,1);assert.equal(next.reservaLog[0].amount,75);
   assert.equal(next.goals[0].saved,75);assert.equal(next.goals[0].done,true);
   assert.equal(next.settings.reservaRules[0].id,r.id);assert.strictEqual(next.expenses,s.expenses);
+});
+
+t("la tanda de edición actual conserva sus guardas sin congelar el historial futuro", () => {
+  const read=f=>fs.readFileSync(new URL("../"+f,import.meta.url),"utf8");
+  const reg=JSON.parse(read("scripts/beta-sources.json")),id="inc-0810-metas-editar-regla",scope=reg[id];
+  const note=JSON.parse(read("src/data/release-notes.json")).find(n=>n.v==="4.26.108");
+  assert.ok(note&&note.tandas.some(g=>g.id===id),"la edición tiene su propia comprobación vigente");
+  const unit=note.tandas.find(g=>g.id===id);
+  assert.equal(scope.unidades,true);assert.ok(scope.web.length>=75,"el cierre de lectores no se recorta");
+  for(const name of ["reservaRuleSame","editReservaRule"]){
+    const entry={file:"src/modules/08-motor-bank.js",function:name};
+    assert.deepEqual(scope.web.filter(x=>x.function===name),[entry]);
+    assert.deepEqual(reg["inc-0310-01-meta-regla"].web.filter(x=>x.function===name),[entry]);
+  }
+  for(const key of ["historial","auditoria","codigosCompatibles","compatibilidadGit","codigoDesde","revisionesDesde","verdict"]){
+    assert.equal(scope[key],undefined,"sin equivalencias heredadas: "+key);assert.equal(unit[key],undefined,key);
+  }
+  const previous=JSON.parse(execFileSync("git",["show","8dcc5ed39b6e212ba1e34a90b550685794ce0bd5:scripts/beta-sources.json"],{encoding:"utf8",maxBuffer:8e6}))["inc-0310-01-meta-regla"];
+  const current=reg["inc-0310-01-meta-regla"];
+  for(const entry of previous.web)assert.ok(current.web.some(x=>JSON.stringify(x)===JSON.stringify(entry)),"la alta anterior conserva "+JSON.stringify(entry));
+  for(const key of Object.keys(previous).filter(k=>k!=="web"))assert.deepEqual(current[key],previous[key],"la alta conserva "+key);
 });
 
 console.log("\nreserva-dinero: OK");
