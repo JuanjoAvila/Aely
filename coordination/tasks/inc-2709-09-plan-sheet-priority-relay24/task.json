@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "id": "inc-2709-09-plan-sheet-priority-relay24",
+  "from": "codex",
+  "coordinatorSession": "relay-run-trulvafdfmkvbvll",
+  "createdAt": "2026-10-08T11:51:12.864Z",
+  "kind": "prototype",
+  "to": "codex",
+  "baseSHA": "fe4f1a5487be588c91b8c67886b6697779d60087",
+  "objective": "Preparar corrección aislada del conflicto CSS de Plan con sheet, sin alterar ni sustituir la CI de fixture en curso",
+  "scope": [
+    "Only src/shell.html: restrict existing Plan mc-p auto override to html:not(.sheet-open), preserving auto declaration, generic ownership none, profile freeze important and all other runtime/CSS/version/registry bytes",
+    "Independent exact selector/cascade proof across normal/generic/Plan/other-page/sheet/profile; no claimed marker survival, gesture permission, background scroll leakage or human lag correction from static evidence",
+    "Isolated own worktree/commit; preserve current PR180 head fe4 and running CI37772570681 until result reconciled; no push/CI dispatch/overwrite by worker",
+    "Keep whole-state finance and every actual native sheet none/Plan contract unchanged; no Inicio repair, money/network operations or product integration/publication",
+    "Freeze recoverable source and proofs, independent exact source review; product GO requires full official CI/source gates and discriminating A/B, beta/mobile gates remain"
+  ]
+}
