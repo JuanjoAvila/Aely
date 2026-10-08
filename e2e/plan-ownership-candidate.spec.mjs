@@ -35,7 +35,7 @@ async function chooseSegment(page,id){
  await settled(page);await expect.poll(()=>page.locator(".page.page-scroll-host").evaluate(el=>el.scrollHeight-el.clientHeight)).toBeGreaterThan(200);
 }
 async function resetTop(page){await page.locator(".page.page-scroll-host").evaluate(el=>{el.scrollTop=0;});await page.waitForTimeout(300);await settled(page);}
-async function released(page){expect(await page.locator(".page.page-scroll-host").evaluate(el=>({own:el.classList.contains("mc-touch-own"),plan:el.classList.contains("mc-plan-touch-own")}))).toEqual({own:false,plan:false});}
+async function released(page){expect(await page.locator(".page.page-scroll-host").evaluate(el=>({own:el.classList.contains("mc-touch-own"),plan:el.classList.contains("mc-p")}))).toEqual({own:false,plan:false});}
 async function naturalSample(page,cdp,source,label){
  await resetTop(page);
  await page.evaluate(()=>{
@@ -82,11 +82,11 @@ for(const motion of ["no-preference","reduce"])for(const safe of [0,34]){
  test("prototipo Plan nativecontracts "+motion+" safe"+safe,async({browser})=>{
   test.setTimeout(120_000);const env=await boot(browser,hosted.sources.candidate,motion,safe);
   try{const{page,cdp}=env;
-   expect(await page.locator(".page.page-scroll-host").evaluate(el=>({marker:el.classList.contains("mc-plan-touch-own"),touchAction:getComputedStyle(el).touchAction}))).toEqual({marker:false,touchAction:"none"});
+   expect(await page.locator(".page.page-scroll-host").evaluate(el=>({marker:el.classList.contains("mc-p"),touchAction:getComputedStyle(el).touchAction}))).toEqual({marker:false,touchAction:"none"});
    await selectTab(page,"plan",cdp);await chooseSegment(page,"deudas");await resetTop(page);
    const financeBefore=await finanzasPlanFingerprint(page);
    await cdp.send("Input.dispatchTouchEvent",{type:"touchStart",touchPoints:[{x:196,y:430}]});
-   expect(await page.locator(".page.page-scroll-host").evaluate(el=>({own:el.classList.contains("mc-touch-own"),plan:el.classList.contains("mc-plan-touch-own"),touchAction:getComputedStyle(el).touchAction}))).toEqual({own:true,plan:true,touchAction:"auto"});
+   expect(await page.locator(".page.page-scroll-host").evaluate(el=>({own:el.classList.contains("mc-touch-own"),plan:el.classList.contains("mc-p"),touchAction:getComputedStyle(el).touchAction}))).toEqual({own:true,plan:true,touchAction:"auto"});
    // offline es una re-renderización real de App, sin sync bancario ni escritura de dinero.
    await expect(page.locator(".offline-pill")).toHaveCount(0);
    await page.evaluate(()=>window.dispatchEvent(new Event("offline")));
@@ -94,7 +94,7 @@ for(const motion of ["no-preference","reduce"])for(const safe of [0,34]){
    // App sync clears generic Plan ownership on this observed React update.
    // The Plan-only marker may survive unchanged className reconciliation; record it,
    // require fixed-host auto in either case, then require both absent at terminal.
-   const rerenderOwnership=await page.locator(".page.page-scroll-host").evaluate(el=>({own:el.classList.contains("mc-touch-own"),plan:el.classList.contains("mc-plan-touch-own"),touchAction:getComputedStyle(el).touchAction,sheet:document.documentElement.classList.contains("sheet-open")}));
+   const rerenderOwnership=await page.locator(".page.page-scroll-host").evaluate(el=>({own:el.classList.contains("mc-touch-own"),plan:el.classList.contains("mc-p"),touchAction:getComputedStyle(el).touchAction,sheet:document.documentElement.classList.contains("sheet-open")}));
    expect(rerenderOwnership.own).toBe(false);expect(rerenderOwnership.touchAction).toBe("auto");expect(rerenderOwnership.sheet).toBe(false);
    console.log("PLAN_CANDIDATE_RERENDER "+JSON.stringify({sourceSHA:hosted.sources.candidate.sha,motion,safe,offlinePillObserved:true,ownership:rerenderOwnership}));
    await cdp.send("Input.dispatchTouchEvent",{type:"touchCancel",touchPoints:[]});await released(page);expect(await segment(page)).toBe("deudas");

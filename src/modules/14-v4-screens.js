@@ -173,12 +173,11 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
     const resist=function(px){ return Math.pow(Math.min(1,px/160),0.72)*MAX_PULL; };
     const cleanup=function(el){ if(el){ el.style.transition=""; el.style.transform=""; } };
     const atTopOf=function(pg){ return !pg || (pg.scrollTop||0)<=2; };
-    const setOwn=function(on){
-      if(!pageEl||!pageEl.classList) return;
+    const setOwn=on=>{
+      if(!pageEl||!pageEl.classList||on===ownOn) return;
       // La marca propia permite liberar el scroll del host de Plan sin cambiar Inicio ni
       // el gesto/manual scroll. Ambas clases nacen y se limpian en una sola mutación.
-      if(on && !ownOn){ pageEl.classList.add("mc-touch-own","mc-plan-touch-own"); ownOn=true; }
-      else if(!on && ownOn){ pageEl.classList.remove("mc-touch-own","mc-plan-touch-own"); ownOn=false; }
+      pageEl.classList[on?"add":"remove"]("mc-touch-own","mc-p"); ownOn=on;
     };
     const onStart=function(e){
       if(document.documentElement.classList.contains("sheet-open")) return;

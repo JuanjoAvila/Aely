@@ -11,10 +11,10 @@ antes de atribuir una optimización. Este prototipo lleva esa comparación a una
 
 ## Delta acotado
 
-Sólo `PlanTab.setOwn` añade/retira `mc-plan-touch-own` junto a `mc-touch-own` en una misma
+Sólo `PlanTab.setOwn` añade/retira `mc-p` junto a `mc-touch-own` en una misma
 mutación de clase. Conserva ownOn, scroll manual, prevención/propagación, ejes, umbrales,
 commit y cancelación. Una regla posterior al ownership genérico deja `touch-action:auto`
-exclusivamente en `.page.page-scroll-host.mc-plan-touch-own`. No lleva `!important`:
+exclusivamente en `.page.page-scroll-host.mc-p`. No lleva `!important`:
 los bloqueos de sheet/perfil siguen ganando. No cambia App, Inicio ni el host no aparcado.
 El marcador propio debe desaparecer al terminar, cancelar o limpiar el efecto.
 
