@@ -744,3 +744,13 @@ Uso prolongado (INC-2709-09): `e2e/rendimiento-sostenido.spec.mjs` está en CROS
 ### Diagnóstico App/Dashboard y control positivo
 
 `e2e/dashboard-react-profile.spec.mjs` compara renders y cálculo de los tres recientes con una caché virtual en App real, CPU6 y datos sintéticos de 3000/5200 filas. Se ejecuta en el grupo serial de rendimiento; el mapa de Dashboard y el runner incluyen su guardián `tests/dashboard-profile-instrument.test.mjs`. Conserva medición natural, bloqueo deliberado y recuperación separados, y exige cero llamadas bancarias. Los informes completos salen por logs de CI. Véase `docs/briefs/inc-0710-dashboard-react-profile.md` para SHA, alcance y límites: no constituye arreglo del lag acumulativo ni prueba de memo106.
+
+
+`e2e/lifecycle-inflight.spec.mjs` (CROSSCUTTING) conserva dos contratos cortos de
+lifecycle con un pull retenido antes de entregar las filas al callsite. Hidden/offline
+provoca un rechazo explícito del doble; online/reentrada recupera el mismo payload.
+El éxito y el rechazo antiguos deben drenar sin cambiar bytes del estado/gastos ni
+escrituras posteriores al pull recuperado, sin rechazo no manejado ni banco automático.
+Los readbacks y resolvers establecen el orden; no impone un máximo global de concurrencia.
+Es cobertura sintética de integración, no cancelación de sockets, suspensión del SO,
+reproducción del lag ni mejora de rendimiento. CI exacta pendiente al preparar la fuente.

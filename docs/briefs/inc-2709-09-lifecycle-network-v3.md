@@ -98,3 +98,28 @@ son los de v3 y duran 22,6-23,2 s. Hashes: guion `9538afa0…9d69e`, HTML `cdd42
 Límites: no es una WebView ni suspensión del SO, ni sockets/auth/realtime reales; RAF de escritorio;
 una sola semilla y una sola pasada (sin repetición ni IC). Un recorrido de 30 min a ritmo de guion
 no equivale a días de uso ni a la memoria de un móvil real. Sigue pendiente el input humano.
+
+
+## Lectura en vuelo · contrato separable 8/10
+
+Preparación de tooling desde main `56c7e328ce801f0e2e2fe5ec1ebd36169f0ac89b`, sin
+runtime de la candidata Plan. La serie v3 original y sus cifras permanecen intactas.
+`e2e/lifecycle-inflight.spec.mjs` cubre el hueco que v3 declara: no retiene una lectura
+cuando cambia la conectividad. Reutiliza cuenta, gasto y nube inventados del fixture;
+las respuestas A/C son idénticas y no se contacta ningún banco o servicio externo.
+
+A se retiene después de obtener las filas del doble y antes de entregarlas a App.
+Hidden/offline/visible inicia B, cuyo rechazo offline se confirma; online/reentrada
+inicia C, que termina y deja lastSync persistido nuevo. Sólo entonces se libera A
+como éxito antiguo o rechazo tardío. Dos contratos exigen tres starts, settlements y
+drenaje; comparan bytes íntegros y contadores de escritura desde C. Hidden vuelve a
+volcar el commit de React para no ocultar una escritura por debounce. También vigilan
+rechazos no manejados y cero bankSync automático. Los finally liberan y recogen todas
+las promesas retenidas y restauran los wrappers. Un pendiente durante este orden
+es una precondición de la carrera, no una norma maxInFlight1.
+
+Offline es real en el contexto Chromium; el error de la promesa se inyecta en el doble.
+No acredita cancelar sockets, suspender la WebView, reproducir acumulación ni explicar
+el lag. Fuente, versiones, public, workflows y presupuestos quedan intactos. Navegador
+local no disponible en este runtime: sólo checks de fuente, registro, sintaxis y
+privacidad; revisión fuerte y CI exacta pendientes. No se repite la serie de 30 minutos.
