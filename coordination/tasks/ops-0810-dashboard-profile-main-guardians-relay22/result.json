@@ -1,0 +1,16 @@
+{
+  "status": "done",
+  "tests": [
+    "Independent review GO; runtime/public/registry/VERSION byte-identical",
+    "Tests37711782074 exact tree SUCCESS:841 functional/1skip,11 performance,privacy",
+    "SQUASH53d194e3 verified tree1914ec; postTests37716112301 SUCCESS841+11/privacy",
+    "Pages37716112278 SUCCESS build/deploy; served SW4.26.98-2026-10-08-53d194e3 verified"
+  ],
+  "summary": "Dashboard positive-control guardians integrated into main without runtime changes; exact source and post-main CI, publisher and served source verified. Prolonged lag remains open.",
+  "schema": 1,
+  "taskId": "ops-0810-dashboard-profile-main-guardians-relay22",
+  "actor": "codex",
+  "sessionId": "relay-run-7ec27dca45990401",
+  "createdAt": "2026-10-08T03:01:42.355Z",
+  "released": true
+}
