@@ -40,6 +40,11 @@ const segmentoActivo = (page) =>
 async function irAPlan(page) {
   await page.locator('.botnav-tab[data-tour="plan"]').click();
   await expect.poll(() => pestanaActiva(page), { timeout: 10_000 }).toBe("plan");
+  await esperarCarruselQuieto(page);
+}
+
+async function esperarCarruselQuieto(page) {
+  await page.evaluate(()=>{window.__trQuieto=null;});
   await page.waitForFunction(
     () => {
       const tr = document.querySelector(".track");
@@ -58,11 +63,11 @@ async function irAPlan(page) {
  *  un gesto sintético de Playwright siempre acaba en `touchend` limpio, así que esto basta para
  *  probar el camino normal; no hace falta simular `touchcancel` aquí porque eso ya lo cubre
  *  `swipe-pestanas.spec.mjs` para el mecanismo compartido del `.viewport`. */
-async function deslizarV(page, cdp, { x = 196, y0, dy, pasos = 10 } = {}) {
+async function deslizarV(page, cdp, { x = 196, y0, dy, pasos = 10, intervalo = 16 } = {}) {
   await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x, y: y0 }] });
   for (let i = 1; i <= pasos; i++) {
     await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x, y: y0 + (dy * i) / pasos }] });
-    await new Promise((r) => setTimeout(r, 16));
+    await new Promise((r) => setTimeout(r, intervalo));
   }
   await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
 }
@@ -315,6 +320,54 @@ async function terminarPerfilGesto(page, label, sourceSHA) {
   console.log("PLAN_GESTURE_PROFILE "+JSON.stringify(report));
   return report;
 }
+// Traza separada: no acumula lecturas por rAF mientras atribuye trabajo al renderer.
+async function trazarGestoPlan(page, cdp, label, sourceSHA) {
+  await cdp.send("Tracing.start", { categories: "devtools.timeline", transferMode: "ReturnAsStream" });
+  try {
+    await deslizarV(page, cdp, { y0: 430, dy: -190, pasos: 38, intervalo: 32 });
+    await page.waitForTimeout(350);
+  } finally {
+    let timer;
+    let onComplete;
+    const completed = new Promise((resolve, reject) => {
+      timer=setTimeout(()=>reject(new Error("Tracing.tracingComplete no llegó")),30000);
+      onComplete=resolve;cdp.once("Tracing.tracingComplete", onComplete);
+    });
+    let event;
+    try {
+      // Esperar ambos juntos consume también el rechazo si Tracing.end falla.
+      [,event]=await Promise.all([cdp.send("Tracing.end"),completed]);
+    } finally { clearTimeout(timer);cdp.removeListener("Tracing.tracingComplete",onComplete); }
+    expect(event.stream, "la traza debe ofrecer un stream completo").toBeTruthy();
+    const chunks=[];let bytes=0;
+    try {
+      for(let i=0;i<1000;i++) {
+        const chunk=await cdp.send("IO.read",{handle:event.stream,size:65536});
+        const data=Buffer.from(chunk.data,chunk.base64Encoded?"base64":"utf8");
+        chunks.push(data);bytes+=data.length;
+        if(bytes>30*1024*1024)throw new Error("traza mayor que el límite diagnóstico");
+        if(chunk.eof)break;
+        if(i===999)throw new Error("stream de traza incompleto");
+      }
+    } finally { await cdp.send("IO.close",{handle:event.stream}); }
+    const events=JSON.parse(Buffer.concat(chunks).toString("utf8")).traceEvents;
+    const renderer=new Set(events.filter(e=>e.ph==="M"&&e.name==="thread_name"&&e.args?.name==="CrRendererMain")
+      .map(e=>e.pid+"/"+e.tid));
+    expect(renderer.size,"identidad del hilo renderer no encontrada").toBeGreaterThan(0);
+    const totals={};
+    for(const e of events) {
+      if(e.ph!=="X"||!renderer.has(e.pid+"/"+e.tid)||
+        !["EventDispatch","Layout","UpdateLayoutTree","Paint","RunTask"].includes(e.name))continue;
+      const row=totals[e.name]||(totals[e.name]={count:0,totalUs:0,maxUs:0});
+      row.count++;row.totalUs+=e.dur||0;row.maxUs=Math.max(row.maxUs,e.dur||0);
+    }
+    expect(totals.EventDispatch?.count||0,"la traza debe incluir eventos del gesto").toBeGreaterThan(0);
+    // Nunca emitir args, URLs, documentos ni el stream de la traza a logs públicos.
+    console.log("PLAN_LAYOUT_TRACE "+JSON.stringify({label,sourceSHA,totals,
+      scope:"complete X events on CrRendererMain; nested durations overlap; separate uninstrumented gesture"}));
+  }
+}
+
 const perfilSourceSHA=execFileSync("git",["rev-parse","HEAD"],{encoding:"utf8"}).trim();
 
 
@@ -368,7 +421,7 @@ for(const reducedMotion of ["no-preference","reduce"]){
 for(const reducedMotion of ["no-preference","reduce"]){
   for(const segment of ["recibos","deudas","metas"]){
     test("perfil diagnóstico desde tope "+segment+" "+reducedMotion,async({page})=>{
-      test.setTimeout(90_000);
+      test.setTimeout(180_000);
       await page.emulateMedia({reducedMotion});
       await page.route("**/*",route=>{
         const url=new URL(route.request().url());
@@ -390,12 +443,31 @@ for(const reducedMotion of ["no-preference","reduce"]){
       await expect(pg).toHaveCount(1);
       await expect.poll(()=>pg.evaluate(el=>el.scrollHeight-el.clientHeight)).toBeGreaterThan(200);
       const baseline=await page.evaluate(()=>localStorage.getItem("micartera_v3_exp"));
-      for(const phase of ["first","warm"]){
+      for(const phase of ["first", "after-12-use-cycles"]){
+        if(phase!=="first") {
+          for(let cycle=0;cycle<12;cycle++) {
+            await page.locator('.botnav-tab[data-tour="gastos"]').click();
+            await expect.poll(()=>pestanaActiva(page)).toBe("gastos");
+            await esperarCarruselQuieto(page);
+            await irAPlan(page);
+            if(await segmentoActivo(page)!==segment) {
+              await page.locator(".v4-seg-btn",{hasText:segment==="deudas"?/deuda/i:segment==="metas"?/meta/i:/recibo/i}).click();
+              await expect.poll(()=>segmentoActivo(page)).toBe(segment);
+            }
+            await pg.evaluate(el=>{el.scrollTop=0;});
+            await deslizarV(page,cdp,{y0:430,dy:-190,pasos:12});
+            await page.waitForTimeout(100);
+            expect(await pg.evaluate(el=>el.scrollTop),"el ciclo de uso debe entregar scroll real").toBeGreaterThan(2);
+            expect(await segmentoActivo(page)).toBe(segment);
+            await deslizarV(page,cdp,{y0:220,dy:100,pasos:10});
+            await page.waitForTimeout(100);
+          }
+        }
         // Colocar el caso inicial no sustituye al gesto: las muestras posteriores son CDP.
         await pg.evaluate(el=>{el.scrollTop=0;});
         await page.waitForTimeout(300);
         await iniciarPerfilGesto(page);
-        await deslizarV(page,cdp,{y0:430,dy:-190,pasos:12});
+        await deslizarV(page,cdp,{y0:430,dy:-190,pasos:38,intervalo:32});
         await page.waitForTimeout(450);
         const report=await terminarPerfilGesto(page,segment+"/"+phase+"/"+reducedMotion,perfilSourceSHA);
         expect(report.rows.some(r=>r.event==="touchstart"&&r.tab==="plan")).toBe(true);
@@ -407,11 +479,22 @@ for(const reducedMotion of ["no-preference","reduce"]){
         const outsideBefore=await pg.evaluate(el=>el.scrollTop);
         expect(outsideBefore,"el control debe empezar fuera del tope").toBeGreaterThan(2);
         await iniciarPerfilGesto(page);
-        await deslizarV(page,cdp,{y0:430,dy:-190,pasos:12});
+        await deslizarV(page,cdp,{y0:430,dy:-190,pasos:38,intervalo:32});
         await page.waitForTimeout(350);
         const outside=await terminarPerfilGesto(page,segment+"/outside-top/"+phase+"/"+reducedMotion,perfilSourceSHA);
         expect(outside.rows.some(r=>r.event==="touchstart"&&r.tab==="plan"&&r.seg===segment)).toBe(true);
         expect(await pg.evaluate(el=>el.scrollTop),"el mismo dedo fuera del tope debe continuar el scroll").toBeGreaterThan(outsideBefore);
+      }
+      if(reducedMotion==="no-preference") {
+        await pg.evaluate(el=>{el.scrollTop=0;});await page.waitForTimeout(300);
+        await trazarGestoPlan(page,cdp,segment+"/top/after-use",perfilSourceSHA);
+        const traceOutsideBefore=await pg.evaluate(el=>el.scrollTop);
+        expect(traceOutsideBefore).toBeGreaterThan(2);
+        await trazarGestoPlan(page,cdp,segment+"/outside-top/after-use",perfilSourceSHA);
+        expect(await pg.evaluate(el=>el.scrollTop)).toBeGreaterThan(traceOutsideBefore);
+        expect(await segmentoActivo(page)).toBe(segment);
+        expect(await pestanaActiva(page)).toBe("plan");
+        expect(await pg.evaluate(el=>el.classList.contains("mc-touch-own"))).toBe(false);
       }
       expect(await page.evaluate(()=>localStorage.getItem("micartera_v3_exp"))).toBe(baseline);
       await cdp.send("Emulation.setCPUThrottlingRate",{rate:1});await cdp.detach();

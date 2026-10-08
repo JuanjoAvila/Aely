@@ -5,7 +5,7 @@ Preparación de pruebas, sin cambio de producto, publicación ni causa acreditad
 
 La prueba existente de segmentos recibe ocho casos de diagnóstico. El dedo llega por CDP
 al DOM real con CPU seis veces limitada. Recibos, Deudas y Metas se comparan desde el tope
-y fuera del tope, en primera pasada y repetición, con movimiento normal y reducido. Se
+y fuera del tope, en primera pasada y tras doce ciclos reales de pestañas y scroll, con movimiento normal y reducido. El dedo de diagnóstico avanza 190 px en 38 pasos separados 32 ms para cubrir el arranque lento. Se
 registran eventos, cancelación, clase de ownership, scroll por frame y tareas largas. Los
 controles de Inicio/Gastos, inversión y cancelación conservan la ruta y limpian ownership.
 El spec conserva los guardianes anteriores de segmento y swipe horizontal y ya figura en
@@ -14,8 +14,7 @@ el mapa de selección; no se crea una prueba que el runner deje dormida.
 Los eventos de captura y sus microtasks no son una lectura final garantizada de los handlers
 ni del scroll nativo. Los frames muestran la evolución posterior, con la sobrecarga de la
 instrumentación. No hay lecturas de estilo ni dimensiones por frame. Un máximo de frame
-aislado no demuestra causa humana ni mejora de rendimiento. Primera pasada y repetición
-no sustituyen uso prolongado; INC-2709-09 continúa abierto.
+aislado no demuestra causa humana ni mejora de rendimiento. Doce ciclos de uso no sustituyen una sesión humana larga; INC-2709-09 continúa abierto. Una segunda pasada separada usa CDP Tracing sin lector de frames y agrega únicamente eventos completos del hilo CrRendererMain (Layout, UpdateLayoutTree, Paint, EventDispatch y RunTask). Sus duraciones anidadas se solapan y no deben sumarse como tiempo exclusivo. El stream y sus argumentos nunca se imprimen en logs. Un timeout, límite o stream incompleto falla explícitamente; no se presenta una traza parcial como evidencia.
 
 El banco usa exclusivamente filas inventadas y dobles de nube; las peticiones fuera de
 localhost se bloquean. No se pulsa sincronización bancaria, ni se editan importes o cuentas.
