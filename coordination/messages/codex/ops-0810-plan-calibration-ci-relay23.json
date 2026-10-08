@@ -1,0 +1,9 @@
+{
+  "id": "ops-0810-plan-calibration-ci-relay23",
+  "to": "codex",
+  "body": "Aely · 23: PR177 y PR179 integrados por SQUASH tras revisión independiente y CI exacto verdes, árboles preservados. Postmain/Pages pendientes. PR178 permanece borrador CI SOLO FUENTE, nunca integrar beta completa en main. La primera traza mostró asociación con CSS de ownership bajo una sonda getComputedStyle; no acredita causa del lag. Calibración 2x2 revisada independientemente: source 170fccb2045e3f06105f1576a6837aac71bd4243, tree d6056a67eff9fd324664822f57e76382cc55be9f, CI 37738099256 en curso; checkout esperado 64c864cdac8b76f444be236dff88b388e449197a. Ocho rutas de tests/docs, runtime/versión beta intactos. Sondas auxiliares canceladas con cero clics/invariancia y ventana de estilo estricta; colector independiente validado. Esperar trazas oficiales antes de proponer runtime. INC-2709-09 acumulativo sigue abierto. Claim externo Grok conservado.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "relay-run-0aeaab4c4f09425a",
+  "createdAt": "2026-10-08T06:33:23.217Z"
+}
