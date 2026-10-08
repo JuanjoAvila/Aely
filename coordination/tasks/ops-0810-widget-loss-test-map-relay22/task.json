@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "id": "ops-0810-widget-loss-test-map-relay22",
+  "from": "codex",
+  "coordinatorSession": "relay-run-7ec27dca45990401",
+  "createdAt": "2026-10-08T00:10:34.320Z",
+  "to": "codex",
+  "baseSHA": "6b81279676d66337d7b34b7badc6d1ff2c66bc24",
+  "objective": "Registrar widget-unknown-loss.test.mjs en selecciones Android e ingest sin reducir pasos ni ejecutar datos reales. Extensión mínima del encargo widget-loss; conservar fuente e962f84a y guardias exactas. Prueba relevant-tests y revisión independiente; fuente CI sin publicación APK,main,beta,Edge,SQL.",
+  "scope": [
+    "scripts/relevant-tests.mjs",
+    "tests/relevant-tests.test.mjs",
+    "docs/briefs/inc-0810-widget-unknown-loss.md"
+  ]
+}
