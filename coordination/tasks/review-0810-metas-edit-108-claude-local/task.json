@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "id": "review-0810-metas-edit-108-claude-local",
+  "from": "codex",
+  "coordinatorSession": "relay-run-local0810a73f9b",
+  "createdAt": "2026-10-08T18:57:45.003Z",
+  "to": "claude",
+  "baseSHA": "3f6ddda680d11391d0388574f2aa3f5f2a254098",
+  "objective": "Revision independiente READ-ONLY de candidata Metas108 exacta 3f6ddda680d11391d0388574f2aa3f5f2a254098 tree00b698d17024319d876743feb5ea2722db49b79d rama codex/metas-editar-regla-local26 padre8dcc5ed39b6e212ba1e34a90b550685794ce0bd5. Antes leer AGENTS y contrato. No implementar ni modificar producto/metadata; no push beta/main/merge/APK/Edge/SQL/deps. Revisar editReservaRule/reservaRuleSame y UI: preservar ID/orden/campos legacy, CAS semantico contra estado actual/deletion, centimos finitos positivos y porcentaje<=100, meta activa, ya aplicado mes Madrid no cambiar asiento/goal/budget actual y nuevo importe/destino solo mes siguiente; pendiente aplica solo propia regla idempotente. Expenses/saldos sin cambios, no-op mantiene referencia; React commit provisional rechazado por rebase conserva borrador/error sin cerrar/reabrir edicion legitima. Comprobar alcancebeta completo sin repins/alias y dos helpers añadidos al viejo alcance alta con anclas originales. Revisar pruebas nuevas y causal base missing Edit rojo y mutante rejection rojo; guardian19319/local30edicion0;108DOM107PASS+1race toast recuperado mismo caso sin cambiar fuente, no 108clean. CI37828167309 activa. Nuevo cap aprobado1291/352KiB por coste real +3601raw/+1019gzip, blocking3 igual. Usar solo datos sinteticos. Entregar ACK real con checkout propio, SHA/tree y luego informe lineas/hallazgos severidad/controles ejecutados con terminales y limites, statusdone o blocked y releasedtrue. Si hay fallo, describir evidencia exacta para correccion local; no crear PR producto ni reabrir reserva anteriorNav. Esta tarea es revision financiera independiente, no nueva tanda. Fuente publica, no datos/reportes privados.",
+  "scope": [
+    "src/modules/08-motor-bank.js",
+    "src/modules/09-tab-debts-goals.js",
+    "src/modules/01-i18n.js",
+    "scripts/beta-sources.json",
+    "tests/reserva-dinero.test.mjs",
+    "tests/presupuesto-rendimiento.test.mjs",
+    "e2e/metas-editar-regla.spec.mjs",
+    "src/data/release-notes.json",
+    "docs/briefs"
+  ]
+}
