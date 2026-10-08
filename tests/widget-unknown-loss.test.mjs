@@ -52,6 +52,54 @@ ${readWrite}
     return WidgetSnapshotArbiter.ingest(s,ticket,period,period,200,id,id+"Key",50,100,50,10,10,10,true,true);
   }
   public static void main(String[] args) {
+    // Un journal retenido sobredimensionado sólo es pérdida si impide migrar otras identidades.
+    for (boolean missing : new boolean[]{false,true}) {
+      WidgetSnapshotArbiter.State over=base();
+      String retainedHuge=new String(new char[262145]).replace('\\0','q');
+      over.unknownJournal=retainedHuge+"\\tK\\n";
+      if(missing) over.journal="missing\\tnot-a-number\\t10\\t10\\t1\\t1\\tmissingKey";
+      over.journalFull=true; over.unknownPending=true; over=restart(over);
+      if(missing) {
+        SharedPreferences disk=new SharedPreferences(); write(disk.edit(),over);
+        ok(!WidgetSnapshotArbiter.app(over,2,40,100,60.0,150.0,200.0,"trade_republic","Cuenta","",""),"app no resetea si migración falla");
+        writeBlocked(disk.edit(),over); over=read(disk);
+        ok(over.journal.startsWith("missing\\t")&&!over.unknownLoss,"app fallida conserva las identidades originales");
+      }
+      ok(ing(over,WidgetSnapshotArbiter.begin(over),2,"later"),"rollover con retenido grande");
+      over=restart(over); photo(over,2,"|"+retainedHuge+"|later|","","trade_republic");
+      ok(over.unknownPending==missing&&over.unknownLoss==missing,"sólo migración fallida pierde identidad; retenido solo recupera");
+    }
+    // Datos irreconocibles del mismo alcance no se convierten en certeza al cambiar periodo.
+    for (String broken : new String[]{"damaged-entry","\\t10\\t10\\t10\\t1\\t1\\tkey"}) {
+      WidgetSnapshotArbiter.State corrupt=base(); corrupt.journal=broken;
+      SharedPreferences disk=new SharedPreferences(); write(disk.edit(),corrupt); corrupt=read(disk);
+      ok(!WidgetSnapshotArbiter.app(corrupt,1,40,100,60.0,150.0,200.0,"trade_republic","Cuenta","",""),"journal corrupto falla");
+      writeBlocked(disk.edit(),corrupt); corrupt=read(disk);
+      ok(corrupt.unknownLoss,"identidad ilegible queda señalada");
+      ok(ing(corrupt,WidgetSnapshotArbiter.begin(corrupt),2,"later"),"periodo nuevo");
+      corrupt=restart(corrupt); photo(corrupt,2,"|later|","","trade_republic");
+      ok(corrupt.unknownPending&&corrupt.unknownLoss,"corrupción no cubierta por ACK ajeno");
+    }
+    // Una cifra dañada aún conserva identidad: ACK del mismo periodo puede recuperarla.
+    for (int rollover : new int[]{0,1,2}) {
+      WidgetSnapshotArbiter.State numeric=base(); numeric.journal="known\\tnot-a-number\\t10\\t10\\t1\\t1\\tknownKey";
+      SharedPreferences disk=new SharedPreferences(); write(disk.edit(),numeric); numeric=read(disk);
+      ok(!WidgetSnapshotArbiter.app(numeric,1,40,100,60.0,150.0,200.0,"trade_republic","Cuenta","",""),"cifra inválida falla");
+      writeBlocked(disk.edit(),numeric); numeric=read(disk);
+      ok(!numeric.unknownLoss,"identidad numérica conservada");
+      if(rollover>0) {
+        if(rollover==1) ok(ing(numeric,WidgetSnapshotArbiter.begin(numeric),2,"later"),"ingest conserva identidad bloqueada");
+        else photo(numeric,2,"|later|","","trade_republic");
+        numeric=restart(numeric); photo(numeric,2,"|later|","","trade_republic");
+        ok(numeric.unknownPending&&!numeric.unknownLoss,"ACK ajeno deja la identidad conocida pendiente");
+      }
+      photo(numeric,rollover>0?2:1,"|known|later|","","trade_republic");
+      ok(!numeric.unknownPending&&!numeric.unknownLoss,"ACK exacto recupera la cifra dañada");
+    }
+    WidgetSnapshotArbiter.State badUnknown=base(); badUnknown.unknownJournal="unparseable";
+    ok(!WidgetSnapshotArbiter.app(badUnknown,1,40,100,60.0,150.0,200.0,"trade_republic","Cuenta","",""),"journal desconocido ilegible");
+    SharedPreferences badDisk=new SharedPreferences(); writeBlocked(badDisk.edit(),badUnknown);
+    ok(read(badDisk).unknownLoss&&read(badDisk).unknownPending,"fallo ilegible persiste pérdida");
     // Una identidad que excede el límite no deja ninguna fila: una foto sin ACK no la cubre.
     WidgetSnapshotArbiter.State emptyLoss=base();
     String tooLarge=new String(new char[262145]).replace('\\0','z');
@@ -78,6 +126,20 @@ ${readWrite}
     ok(s.unknownPending&&s.unknownLoss,"ingest tampoco limpia pérdida");
     s=restart(s); photo(s,3,"|new|","","trade_republic");
     ok(s.unknownPending,"fence y ACK de otro evento no limpian pérdida");
+    // saveApp fallido conserva sólo flags reales, nunca la foto/identidades parciales.
+    WidgetSnapshotArbiter.State scope=base();
+    scope.journal="old\\t10\\t10\\t10\\t1\\t1\\toldKey"; scope.events="|old|";
+    scope.unknownJournal=huge+"\\tK\\n"; scope.unknownPending=true;
+    SharedPreferences beforeScope=new SharedPreferences(); write(beforeScope.edit(),scope);
+    WidgetSnapshotArbiter.State failed=read(beforeScope);
+    ok(!WidgetSnapshotArbiter.invalidateScope(failed),"scope saturado falla");
+    writeBlocked(beforeScope.edit(),failed); scope=read(beforeScope);
+    ok(scope.unknownLoss&&scope.unknownPending,"flags fallidos persistidos");
+    ok(scope.unknownJournal.equals(huge+"\\tK\\n"),"no guarda identidades parciales");
+    ok(scope.journal.startsWith("old\\t"),"no pisa journal previo"); eq(scope.spent,40);
+    ok(ing(scope,WidgetSnapshotArbiter.begin(scope),2,"newScope"),"respuesta nuevo periodo");
+    scope=restart(scope); photo(scope,2,"|"+huge+"|newScope|","","trade_republic");
+    ok(scope.unknownPending&&scope.unknownLoss,"ACK restante no cubre lo perdido al cambiar scope");
     // El límite permite la identidad exacta; una unidad más no se admite ni simula cobertura.
     WidgetSnapshotArbiter.State limit=base();
     String exact=new String(new char[262140]).replace('\\0','e');
