@@ -1,0 +1,90 @@
+{
+  "status": "done",
+  "summary": "Guard crudo adicional y aislamiento Plan verificados con revisión fuerte y CI exacta. Huella/aserción anteriores intactas; rendimiento/producto NO-GO.",
+  "tests": [
+    {
+      "command": "node tests/plan-diagnostic-contract.test.mjs",
+      "exitCode": 0,
+      "cases": 8,
+      "independentRerun": true
+    },
+    {
+      "command": "node scripts/run-tests.mjs",
+      "exitCode": 0,
+      "environment": "GitHub Actions Ubuntu / Node20 / Chromium sintético",
+      "run": 37799640112,
+      "job": 113388110889,
+      "checkoutSHA": "7d0f1ee25c0910b76de17f8a4205720773d986d9",
+      "treeSHA": "434746f4ea60d1c44f15c3d672015f3586eb79fe",
+      "functionalPassed": 884,
+      "skipped": 1,
+      "performancePassed": 20,
+      "planCases": 7,
+      "planWorkers": 1
+    }
+  ],
+  "productSHA": "e404dd3960d356161674de34b2adc51928dc283d",
+  "pr": 182,
+  "measurements": {
+    "reports": 18,
+    "sourceBeta": "8dcc5ed39b6e212ba1e34a90b550685794ce0bd5",
+    "sourceMain": "56c7e328ce801f0e2e2fe5ec1ebd36169f0ac89b",
+    "touchFramesOver32": {
+      "recibos": {
+        "beta": [
+          1,
+          0
+        ],
+        "main": [
+          1,
+          0
+        ],
+        "candidate": [
+          1,
+          1
+        ]
+      },
+      "deudas": {
+        "beta": [
+          1,
+          1
+        ],
+        "main": [
+          1,
+          0
+        ],
+        "candidate": [
+          1,
+          0
+        ]
+      },
+      "metas": {
+        "beta": [
+          0,
+          0
+        ],
+        "main": [
+          0,
+          0
+        ],
+        "candidate": [
+          0,
+          0
+        ]
+      }
+    },
+    "afterCloseOver32": 0
+  },
+  "limitations": [
+    "PR solo CI; runtime/public/VERSION/topes/workflows idénticos al padre",
+    "No artefactos retenidos: informes completos en logs",
+    "No degradación progresiva ni ventaja consistente; sin GO de producto ni reparación humana",
+    "Próximo paso: discriminador de uso prolongado compuesto antes de otra corrección runtime"
+  ],
+  "schema": 1,
+  "taskId": "inc-2709-09-plan-raw-state-contract-relay25",
+  "actor": "codex",
+  "sessionId": "relay-run-aweghzwufqokxcrz",
+  "createdAt": "2026-10-08T16:29:31.166Z",
+  "released": true
+}
