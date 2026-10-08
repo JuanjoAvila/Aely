@@ -52,6 +52,37 @@ ${readWrite}
     return WidgetSnapshotArbiter.ingest(s,ticket,period,period,200,id,id+"Key",50,100,50,10,10,10,true,true);
   }
   public static void main(String[] args) {
+    // Datos irreconocibles del mismo alcance no se convierten en certeza al cambiar periodo.
+    for (String broken : new String[]{"damaged-entry","\\t10\\t10\\t10\\t1\\t1\\tkey"}) {
+      WidgetSnapshotArbiter.State corrupt=base(); corrupt.journal=broken;
+      SharedPreferences disk=new SharedPreferences(); write(disk.edit(),corrupt); corrupt=read(disk);
+      ok(!WidgetSnapshotArbiter.app(corrupt,1,40,100,60.0,150.0,200.0,"trade_republic","Cuenta","",""),"journal corrupto falla");
+      writeBlocked(disk.edit(),corrupt); corrupt=read(disk);
+      ok(corrupt.unknownLoss,"identidad ilegible queda señalada");
+      ok(ing(corrupt,WidgetSnapshotArbiter.begin(corrupt),2,"later"),"periodo nuevo");
+      corrupt=restart(corrupt); photo(corrupt,2,"|later|","","trade_republic");
+      ok(corrupt.unknownPending&&corrupt.unknownLoss,"corrupción no cubierta por ACK ajeno");
+    }
+    // Una cifra dañada aún conserva identidad: ACK del mismo periodo puede recuperarla.
+    for (int rollover : new int[]{0,1,2}) {
+      WidgetSnapshotArbiter.State numeric=base(); numeric.journal="known\\tnot-a-number\\t10\\t10\\t1\\t1\\tknownKey";
+      SharedPreferences disk=new SharedPreferences(); write(disk.edit(),numeric); numeric=read(disk);
+      ok(!WidgetSnapshotArbiter.app(numeric,1,40,100,60.0,150.0,200.0,"trade_republic","Cuenta","",""),"cifra inválida falla");
+      writeBlocked(disk.edit(),numeric); numeric=read(disk);
+      ok(!numeric.unknownLoss,"identidad numérica conservada");
+      if(rollover>0) {
+        if(rollover==1) ok(ing(numeric,WidgetSnapshotArbiter.begin(numeric),2,"later"),"ingest conserva identidad bloqueada");
+        else photo(numeric,2,"|later|","","trade_republic");
+        numeric=restart(numeric); photo(numeric,2,"|later|","","trade_republic");
+        ok(numeric.unknownPending&&!numeric.unknownLoss,"ACK ajeno deja la identidad conocida pendiente");
+      }
+      photo(numeric,rollover>0?2:1,"|known|later|","","trade_republic");
+      ok(!numeric.unknownPending&&!numeric.unknownLoss,"ACK exacto recupera la cifra dañada");
+    }
+    WidgetSnapshotArbiter.State badUnknown=base(); badUnknown.unknownJournal="unparseable";
+    ok(!WidgetSnapshotArbiter.app(badUnknown,1,40,100,60.0,150.0,200.0,"trade_republic","Cuenta","",""),"journal desconocido ilegible");
+    SharedPreferences badDisk=new SharedPreferences(); writeBlocked(badDisk.edit(),badUnknown);
+    ok(read(badDisk).unknownLoss&&read(badDisk).unknownPending,"fallo ilegible persiste pérdida");
     // Una identidad que excede el límite no deja ninguna fila: una foto sin ACK no la cubre.
     WidgetSnapshotArbiter.State emptyLoss=base();
     String tooLarge=new String(new char[262145]).replace('\\0','z');
