@@ -1,0 +1,15 @@
+{
+  "status": "done",
+  "tests": [
+    "Tests37710922572 SUCCESS CI head b58fc98771f4144a90f41236cbe8f417bf42efb2; checkout4f8f7a321bd6273a4034edea41b7671a00cb7b71 tree7fdb90ba2b003c077714a02b82251c0bd48745b2 exact",
+    "Java real: durable loss, restart, partial/foreign ACK, period boundary, fence and migration PASS",
+    "884 functional PASS/1skip +9 serial performance PASS; privacy PASS"
+  ],
+  "summary": "Guard auth conserva pruebas causales y exige exactamente cinco identidades native nuevas, web/Edge iguales y el resto antiguo exacto; registro/historial/auditorías intactos. Fuente f4142b0e3d0b14bbb50623c9d6842e7ee8258a16/PR170 y CI exacta verdes; Java final inalterado. Sin heredar aprobación ni publicación.",
+  "schema": 1,
+  "taskId": "ops-0810-widget-auth-identity-proof-relay22",
+  "actor": "codex",
+  "sessionId": "relay-run-7ec27dca45990401",
+  "createdAt": "2026-10-08T01:55:44.679Z",
+  "released": true
+}
