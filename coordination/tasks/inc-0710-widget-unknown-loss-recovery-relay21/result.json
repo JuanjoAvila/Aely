@@ -1,0 +1,15 @@
+{
+  "status": "done",
+  "tests": [
+    "Tests37710922572 SUCCESS CI head b58fc98771f4144a90f41236cbe8f417bf42efb2; checkout4f8f7a321bd6273a4034edea41b7671a00cb7b71 tree7fdb90ba2b003c077714a02b82251c0bd48745b2 exact",
+    "Java real: durable loss, restart, partial/foreign ACK, period boundary, fence and migration PASS",
+    "884 functional PASS/1skip +9 serial performance PASS; privacy PASS"
+  ],
+  "summary": "Fuente/pruebas widget recuperadas y verificadas: pérdida durable no se borra por foto app sin ACK suficiente; fixes independientes de corrupción y migration/invalidation cubiertos. Source f4142b0e3d0b14bbb50623c9d6842e7ee8258a16/tree7fdb90ba2b003c077714a02b82251c0bd48745b2/PR170 en draft. Revisión Java fuerte y CI exacta verdes. Alcance solo fuente/pruebas cumplido; APK, publicación, integración y aceptación móvil no autorizadas por este encargo, quedan separadas. No causa humana global acreditada.",
+  "schema": 1,
+  "taskId": "inc-0710-widget-unknown-loss-recovery-relay21",
+  "actor": "codex",
+  "sessionId": "relay-run-7ec27dca45990401",
+  "createdAt": "2026-10-08T01:56:00.427Z",
+  "released": true
+}
