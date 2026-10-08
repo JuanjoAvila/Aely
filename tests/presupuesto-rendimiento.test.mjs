@@ -174,7 +174,11 @@ const PRESUPUESTO = {
   // 8ff6402a), 282 B por encima del crudo. Tope crudo a 1287 KiB (quedan 742 B); gzip
   // sigue en 351 KiB (680 B). No se recortan guardas, notas ni idiomas para caber; un
   // cambio posterior exige medir de nuevo.
-  minificado: 1287 * 1024,
+  // Coordinador8/10: 1291/352 KiB autorizados para Metas108, Inicio109 y navegación107.
+  // Inicio109, A/B oficialLF con mismo sello y reserva95B:1.317.888/359.021→
+  // 1.318.229/359.168 B (+341/+147). Conserva la ayuda financiera española de TR;
+  // no se recortan textos ajenos ni se añaden dependencias. La unión debe medirse aparte.
+  minificado: 1291 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -182,7 +186,7 @@ const PRESUPUESTO = {
   // caso de exceso, deja 342.031 B gzip (15 B sobre 334 KiB). +1 KiB medido para
   // no ocultar cifras financieras ni recortar los tres idiomas; quedan 1.009 B.
   // La misma candidata mide 343.257 B gzip, 217 B sobre 335 KiB: +1 KiB medido.
-  gzip: 351 * 1024,
+  gzip: 352 * 1024,
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 

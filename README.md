@@ -111,7 +111,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.106** candidata local: Inicio conserva sus tres recientes al abrir y cerrar presupuesto. Revisión, CI, DOM y publicación pendientes; INC-2709-09 sigue abierto. [Acta](docs/briefs/inc-0810-dashboard-recents-memo.md).
+Estado actual: **v4.26.109** candidata local: Inicio explica las cifras sin fecha de su gráfica, su escala relativa y su moneda EUR. DOM25/25 y guards de lógica verificados; revisión final, CI y publicación pendientes. [Acta](docs/briefs/pro-02-0810-chart-meaning.md).
 
 Corte anterior (4/10, 12:30 UTC, panel de revisión): **v4.26.93** publicada en beta. Primera entrega4.26.93.1 (fuente1d5dd782), CI37200314653SUCCESS y HTTP/ZIP/HTML/SW/catálogo/huella cotejados el4/10 a12:30UTC:11 tandas/24 puntos, frente a40 antes del cambio. Producción4.26.86 (d366215a), APK beta4.26.80/code52 y estable4.26.32/code48 conservadas. Prueba y aprobación móvil pendientes. [Acta](docs/briefs/ops-0410-panel-cola.md).
 
@@ -139,6 +139,8 @@ En Ajustes → Revisar esta beta, toca la cabecera de una tanda para encogerla o
 > Esta línea la vigila `tests/docs-frescura.test.mjs`: si no coincide con `VERSION`, `npm test` falla. Se puso porque el README se quedó siete versiones atrás (v4.1.0 con la app en la 4.8.0) sin que saltara nada.
 
 Notas rápidas del rediseño v4 (para no perderse):
+
+- **Gráfica de Inicio:** la nota bajo el total distingue ausencia de cifras anteriores de una línea con cifras sin fecha en EUR. La escala se ajusta del mínimo al máximo; no indica una ganancia. Candidata local109, sin entrega todavía.
 - **Rol de cuenta** (Recibos / Gasto diario / Todo): Cartera → Editar.
 - **Hogar y gastos compartidos:** toca tu avatar en Inicio → Perfil → **«Tu gente»** (movido ahí en 4.10.0; antes al final de Cartera, donde no lo veía nadie) — [docs/HOGAR.md](docs/HOGAR.md).
 - **Ordenar los bloques de Cartera:** Cartera → «⇅ Ordenar secciones» al pie (4.10.0).

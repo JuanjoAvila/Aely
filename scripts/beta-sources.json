@@ -1,4 +1,33 @@
 {
+  "inc-0810-inicio-grafica-significado": {
+    "web": [
+      {
+        "file": "src/modules/03-tab-dash.js",
+        "from": "      // INC-0810 gráfica: significado de las cifras sin fecha.",
+        "to": "\n    // Sin presupuesto, Inicio escondia"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "Sparkline"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "    // INC-0810 es: límite del significado de la gráfica.",
+        "to": "    // INC-0810 es: fin del significado de la gráfica."
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "    // INC-0810 en: límite del significado de la gráfica.",
+        "to": "    // INC-0810 en: fin del significado de la gráfica."
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "    // INC-0810 ca: límite del significado de la gráfica.",
+        "to": "    // INC-0810 ca: fin del significado de la gráfica."
+      }
+    ],
+    "unidades": true
+  },
   "inc-3009-01-cargos": {
     "historial": [
       "4.26.71/inc-3009-01-cargos"

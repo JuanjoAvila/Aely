@@ -1,53 +1,48 @@
-# PRO-02 · qué dice la gráfica de Inicio
+# INC-0810 · significado de la gráfica de Inicio
 
-Unidad `pro-02-0810-chart-meaning-grok-local`. Base `8dcc5ed39b6e212ba1e34a90b550685794ce0bd5` (beta 4.26.106.1). Implementación en la rama de esta unidad, sin push a `beta` ni a `main` y sin versión nueva. El backlog antiguo llama PRO-02 a la proyección de fin de mes; esta unidad es solo el significado de la gráfica, como pide el encargo.
+Unidad `inc-0810-inicio-grafica-significado`, candidata local `4.26.109`. Base beta `8dcc5ed39b6e212ba1e34a90b550685794ce0bd5`; entrega Grok PR187 `edc84ecd9743e4888f4ae4a8b802ed31164289da`. Fuente, guards, metadatos y build preparados; Node y presupuesto autorizado verificados salvo la auditoría histórica de versión pendiente de commit. DOM25/25 y control causal6 rojos esperados terminales. Preparación de commit/PR propio, sin publicación todavía. Nav107 y Meta108 son unidades separadas del coordinador.
 
-## Auditoría
+## Auditoría de la fuente
 
-`Sparkline` (`src/modules/02-ui-shared.js`) concatena `data` con `current` si no es null. Con menos de dos puntos no pinta. La escala es el mínimo y el máximo de esos números, estirados al alto del dibujo (70 px, 4 px de margen). Si mínimo y máximo coinciden, el rango vale 1 y la raya queda abajo. No hay eje, fechas ni porcentaje.
+Se revisaron los cinco ficheros de PR187 y los escritores de `state.history`. `Sparkline` concatena los números guardados y el patrimonio actual en EUR; con menos de dos puntos no pinta. Escala entre mínimo/máximo con rango1 si coinciden, sin base cero, eje temporal ni porcentaje. `buildEmpty` y estado vacío guardan `[]`; `buildInitial` copia la semilla sintética `[42000,42150,42300,42450,42600,42750,42800]`; alta guarda `[0]`; `seedFlows` repone una lista vacía si falta. No se acreditan snapshots diarios ni fechas. El cero de alta y la semilla no acreditan una ganancia.
 
-Inicio (`src/modules/03-tab-dash.js`) le pasa `state.history` y, como último punto, `totals.netWorth`. Ese total es lo que tienes menos lo que debes (líquido + inversiones + bienes − saldo de deudas), calculado al pintar. No se guarda en `history`.
+Se conserva el dibujo y todos sus números. No hay cambios en `Sparkline`, saldos, curva, cálculos, escritores, onboarding ni semillas. La nota debajo de la cifra principal es texto visible accesible. La moneda de visualización convierte la cifra grande; la línea conserva EUR.
 
-Escritores de `state.history` en esta base:
+La revisión local corrige los dos hallazgos de PR187: elimina «Tu histórico empieza hoy» y adapta su guard de DOM sin retirar la ausencia de SVG/pastilla de cero; restaura íntegro `pt_trb_hint` español desde beta8dcc5ed3. El recorte de ese texto financiero no pertenece a esta tarea.
 
-| Origen | Qué escribe |
-|---|---|
-| `buildEmpty` y el estado en blanco de `00-core.js` | `[]` |
-| `buildInitial` / `DATA.history` | `[42000, 42150, 42300, 42450, 42600, 42750, 42800]`, semilla sintética, sin día |
-| Alta (`Onboarding.finish` en `10-app-components.js`) | `[0]`. Es un cero guardado, no un total medido |
-| `seedFlows` | si falta la clave, `[]`. No añade puntos |
-| `migrate` | no toca la serie |
+## Texto propuesto
 
-No hay otro escritor, ni semilla diaria, ni migración que feche esos números. `invHistory` y el histórico de saldo de una cuenta son otras series, con día, y no alimentan esta gráfica. El histórico de onboarding y el de la semilla no acreditan una serie temporal.
+Sin cifras guardadas:
 
-Antes de este cambio, sin puntos se leía «Tu histórico empieza hoy» / «Your history starts today» / «El teu històric comença avui». Con puntos, la raya no decía nada. Eso no explica el origen ni el límite.
+- es: Solo se muestra el total actual; aún no hay cifras anteriores. No es un histórico con fechas ni una ganancia.
+- en: Only the current total is shown; there are no earlier figures yet. This is not a dated history or a gain.
+- ca: Només es mostra el total actual; encara no hi ha xifres anteriors. No és un històric amb dates ni un guany.
 
-## Decisión
+Con cifras guardadas:
 
-Se deja la raya como está (mismos números, mismo total, sin puntos nuevos). Debajo, una frase distinta si hay números guardados o si no los hay. No se toca `Sparkline`: la frase visible es el texto accesible; el dibujo sigue siendo el de siempre.
+- es: La línea termina en el total actual. Cifras sin fecha en EUR; escala relativa del mínimo al máximo, no desde cero. No indica una ganancia.
+- en: The line ends at the current total. Undated figures in EUR; relative scale from minimum to maximum, not from zero. It does not show a gain.
+- ca: La línia acaba en el total actual. Xifres sense data en EUR; escala relativa del mínim al màxim, no des de zero. No indica un guany.
 
-La frase vacía en castellano conserva «Tu histórico empieza hoy» porque `e2e/pulido-vacios.spec.mjs` lo exige y ese fichero está fuera de esta unidad. La frase siguiente dice el límite.
+## Alcance aprobado y plan pendiente de ventana del coordinador
 
-El índice minificado estaba justo en el tope crudo (1.317.888 bytes, 0 de margen; gzip 403 bytes libres). Para no subir el tope, el castellano de `pt_trb_hint` pierde el tramo del recálculo, el interés y el reanclaje. En `src/` nadie llama `t("pt_trb_hint")`. Inglés y catalán de esa clave no cambian. Si algún día se pinta, el castellano queda más corto que los otros dos.
+El coordinador raíz aprobó el alcance es/en/ca, EUR/mínimo-máximo/sin base cero/sin fechas y restauración de `pt_trb_hint`. La ampliación autorizada de los dos guards de autenticación usa un lector cacheado de106 para sus notas, registro y auditoría histórica de revisiones; conserva todas las aserciones de106 y la comprobación aparte de los33 descriptores contra la candidata actual. Partes funcionales, `authWorld`, mutantes causales y7funciones/9datos siguen leyendo la fuente actual normalizada aLF. La nueva unidad109 tiene su propio alcance y mutantes actuales, sin repins. Todavía no se han ejecutado los guards.
 
-## Texto final
+- Fuente: dos claves es/en/ca y nota de Inicio; ninguna operación financiera nueva. Nueva identidad con el bloque real de la gráfica, `Sparkline` y los tres bloques de texto. Los33 descriptores anteriores, repins históricos y anclas conservan su contenido.
+- Guards: `inicio-grafica-significado` ya mapeado a Inicio; vacío, un número, cero de alta, semilla, negativos, iguales, USD y matriz es/en/ca vacío/serie a360px. Verifica texto accesible, ausencia de recorte, curva y saldo, y estado financiero al ir a Plan y volver. `pulido-vacios` conserva cobertura previa. `beta-sources` cubre alcance y mutaciones de nota/textos/dibujo.
+- Versión109/package/lock, nota familiar es/en/ca y guion propio; README/ROADMAP/CHANGELOG/TESTING veraces. No se cambian topes, notas anteriores ni dependencias.
+- Solo tras concesión expresa y lectura del lease canónico: `npm run build`, sellado/minificación y coste contra1287/351KiB de la base y1291/352KiB autorizados para la integración Meta108. Se reportará el coste antes de resolver presupuesto con el coordinador, sin recortar explicaciones ajenas.
+- Node tras concesión: sintaxis, i18n, docs-frescura, relevant-tests, privacidad, beta-source-parse y beta-sources; coste oficial. DOM en puerto exclusivo por asignar: `inicio-grafica-significado` + `pulido-vacios` una vez. Solo repetir si hay cambios/fallo no resuelto. Rojo causal acotado al texto vacío anterior y falta de EUR/escala, sin usarlo como prueba móvil.
+- Si gates locales y revisión final permiten cierre: commit propio, draftPR contra beta, workflow `test.yml` sobre SHA exacto una vez. Este chat no integra ni publica.
 
-Sin números guardados:
+## Límites y evidencia
 
-- es: Tu histórico empieza hoy. Solo el total de ahora: sin fechas y sin ganancia.
-- en: Only today's total is here: no dates and no gain.
-- ca: Només hi ha el total d'ara: sense dates i sense guany.
+Tras concesión expresa de Node, build salida0. A/B con fuentes baseLF y producto candidato normalizadoLF, minificador oficial sin renombrado, reserva sintética95bytes y sello común `4.26.109.99999`: base1.317.888/359.021bytes crudos/gzip9; candidata1.318.229/359.168bytes, delta+341/+147. Ayuda española ajena restaurada íntegra. Supera1287KiB crudos por341bytes y queda256bytes bajo351KiB gzip. Dentro del presupuesto autorizado para la integración Meta108 de1291/352KiB quedan3.755/1.280bytes; en ese primer corte aún no se había cambiado el tope. Artefacto build local SHA256 `5c2be0318e85a23008703fb5705dc6c0df7439208f6ff153d6d15f66ffd30a77`. Los33 digests web anteriores coinciden exactamente con beta8dcc; unidad109 nueva `d05bb0d4d86dce14c5ba4794a0be2a265e52f3a167cf8eadce87aa198e5cd38d`.
 
-Con números guardados (la raya acaba en el total de ahora):
+Gates Node terminales: sintaxis, i18n, mapa de pruebas, privacidad, parser de alcances, ambos guards de autenticación y `beta-sources` completo salieron0. El registro completo confirma mutantes109, dependencias funcionales/datos y el guard PERSIST91 sobre34 alcances sin retirar cobertura. `docs-frescura` salió1: confirma todas las versiones/textos y su único fallo es la auditoría histórica de código posterior al ancla106 mientras el bump109 sigue sin commit. No se altera ni elude ese guard; se comprobará después del commit. El primer presupuesto oficial salió1 exclusivamente por los341bytes crudos sobre1287KiB; gzip y3 recursos bloqueantes pasaron. Runner inicial salida1 por esas dos condiciones, conservado en su informe.
 
-- es: La raya acaba en el total de hoy. Lo anterior no tiene fecha y el dibujo solo compara esas cifras: no es una ganancia.
-- en: The line ends at today's total. Earlier figures have no date and the drawing only compares them: it is not a gain.
-- ca: La ratlla acaba en el total d'avui. Les xifres anteriors no tenen data i el dibuix només les compara: no és un guany.
+Tras autorización expresa del coordinador, esta unidad adopta el mismo presupuesto1291/352KiB de Metas108/navegación107, con3 bloqueantes. Se repite únicamente el guard de presupuesto tras cambiar sus constantes/comentario: salida0, tres límites dentro. Los ocho guards previos y mutantes completos se conservan sin repetición, con runtime y hash de build idénticos. Este resultado es de109 aislada; ninguna suma teórica acredita que la integración conjunta pase, y el coordinador deberá medirla oficialmente.
 
-## Límites
+DOM con lease98, loopback4430 y un worker: gráfica14 + vacíos11 =25/25, salida0 en37,4s, sin omisiones, retries ni flaky. Control causal sobre `git archive 8dcc… public` exacto (HTML SHA256 `b6b6a52c9eae4677163574c85f49668b3deaf2c11e95097614ec8addc40cec65`): seis casos idénticos de vacío, un punto, USD y serie es/en/ca fallan por falta de la nota; el contexto DOM vacío conserva la promesa antigua. No se fuerza fuente ni CSS. Candidato conserva hash/curva y saldo/estado tras vista, con accesibilidad y ausencia de recorte a360px. El primer intento restringido no llegó a DOM por bloqueo del socket; se cerró y verificó0 procesos/listener antes del único pase efectivo con acceso local elevado.
 
-- No es un diario, un mes, una rentabilidad ni una evolución con fechas. Un cero del alta, al lado del total de ahora, parece una subida y no lo es: la frase lo dice.
-- La altura solo separa el mínimo del máximo. Una diferencia pequeña puede verse grande.
-- El último punto es el total en euros de la cuenta. La cifra grande puede mostrarse en otra moneda; la raya no se convierte.
-- No se guardan snapshots nuevos. Los saldos y `history` no se reescriben al abrir Inicio.
-- Margen medido tras el cambio, con el sello sintético del presupuesto: crudo 39 bytes, gzip 417 bytes. Topes 1287 KiB y 351 KiB, sin tocarlos.
+Runner y servidores terminales, con verificación posterior de0 procesos propios/Chromium y listener4430; liberación expresa98. No se recupera un lease por reloj ni se modifica el JSON del coordinador. Auditoría histórica postcommit, revisión final, CI y aceptación móvil pendientes; cifras sintéticas no acreditan uso real. Sin APK, servidor externo, SQL, cambios de saldos ni entrega beta/producción. El presupuesto de39bytes informado por Grok pertenece a su candidato recortado y no acredita esta revisión. Archivos y checkouts temporales de las mediciones se retiran en esta misma tanda.

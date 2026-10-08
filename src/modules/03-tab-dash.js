@@ -224,6 +224,7 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
         p.sign+p.ent, React.createElement("span",{style:{fontSize:28,color:"var(--muted)"}},","+(p.dec||"00")+" "+p.sym)),
       // Sin una foto real del día 1, «este mes» era patrimonio menos un seed antiguo: parecía
       // una ganancia de miles de euros. Se retira en vez de inventar una base (feedback 18/9).
+      // INC-0810 gráfica: significado de las cifras sin fecha.
       React.createElement("div",{style:{marginTop:14}},
         // `state.history` son números sueltos: el alta guarda un 0, la semilla de ejemplo no
         // tiene día y no hay otro escritor. El último punto es el total de ahora y solo se

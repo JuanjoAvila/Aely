@@ -1,3 +1,9 @@
+## [4.26.109] — 2026-10-08 · Significado de la gráfica de Inicio
+
+- INC-0810: la nota distingue ausencia de cifras anteriores y cifras guardadas sin fecha. Con línea explica EUR y escala relativa mínimo/máximo sin base cero; no promete calendario ni ganancia. Conserva exactamente `state.history`, `tt.netWorth`, `Sparkline` y los cálculos de dinero.
+- Revisión de PR187: se elimina la promesa «Tu histórico empieza hoy» también del guard `pulido-vacios`; se restaura íntegro `pt_trb_hint` español desde beta8dcc5ed3, cuyo recorte era ajeno a esta unidad. La integridad del texto financiero no se usa para liberar presupuesto.
+- Cobertura DOM25/25: vacío, un número, cero de alta, semilla sintética, negativos, cifras iguales, moneda USD y es/en/ca a360px, accesibilidad y conservación de saldo/estado. Seis oráculos idénticos rojos en el public exacto8dcc por falta de nota; sin omisiones/retries/flaky. Descriptor propio sin repinar ni reducir los33 alcances anteriores. Build0 y A/B oficialLF +341bytes crudos/+147gzip; el coordinador autoriza adoptar1291/352KiB compartidos con Metas108 y navegación107. La integración exige medición propia. Ocho guards Node0, incluidos registro completo y autenticación actual; docs-frescura requiere commit109. Revisión final y CI pendientes; sin publicación ni aceptación móvil ni mejora de rendimiento atribuida.
+
 ## [4.26.106] — 2026-10-08 · Recientes de Inicio al abrir presupuesto
 
 - Dashboard conserva la derivación real de tres recientes mediante useMemo con expenses/deleted como dependencias. Mantiene filtro de lápidas, orden estable por fecha y objetos originales; las actualizaciones relevantes invalidan.

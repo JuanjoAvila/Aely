@@ -26,7 +26,12 @@ test("★ app recién instalada: ni gráfico plano ni pastilla de cero, y el hue
 
   // P1: sin dos puntos no hay svg de sparkline, pero el hueco está reservado.
   await expect(page.locator("svg.spark")).toHaveCount(0);
-  await expect(page.getByText(/Tu histórico empieza hoy/i)).toBeVisible();
+  const nota = page.getByTestId("inicio-chart-note");
+  await expect(nota).toBeVisible();
+  await expect(nota).toContainText("Solo se muestra el total actual");
+  await expect(nota).toContainText("aún no hay cifras anteriores");
+  await expect(nota).toContainText("No es un histórico con fechas ni una ganancia");
+  await expect(nota).not.toContainText(/empieza hoy/i);
 
   // P2: la pastilla del mes no sale con delta 0 y sin histórico.
   await expect(page.getByText(/\+0\s*€\s*este mes/i)).toHaveCount(0);

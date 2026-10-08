@@ -1,5 +1,46 @@
 [
   {
+    "v": "4.26.109",
+    "d": "2026-10-08",
+    "t": {
+      "es": "Qué muestra la gráfica de Inicio",
+      "en": "What the Home chart shows",
+      "ca": "Què mostra la gràfica d’Inici"
+    },
+    "items": {
+      "es": [
+        "La gráfica de Inicio explica que compara cifras sin fecha en euros con una escala relativa; no representa una ganancia. Sin cifras anteriores, solo se muestra el total actual."
+      ],
+      "en": [
+        "The Home chart explains that it compares undated figures in euros on a relative scale; it does not represent a gain. Without earlier figures, only the current total is shown."
+      ],
+      "ca": [
+        "La gràfica d’Inici explica que compara xifres sense data en euros amb una escala relativa; no representa un guany. Sense xifres anteriors, només es mostra el total actual."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inc-0810-inicio-grafica-significado",
+        "t": {
+          "es": "Significado de la gráfica de Inicio",
+          "en": "Meaning of the Home chart",
+          "ca": "Significat de la gràfica d’Inici"
+        },
+        "items": {
+          "es": [
+            "1. En Inicio, comprueba la explicación bajo el total: sin cifras anteriores indica que solo hay un total actual. Con línea indica cifras sin fecha en EUR y escala relativa del mínimo al máximo, no desde cero; no es una ganancia. Al cambiar la moneda, la línea sigue en EUR y los saldos conservan su valor."
+          ],
+          "en": [
+            "1. On Home, check the explanation below the total: without earlier figures it states that only the current total is available. With a line it states undated figures in EUR and a relative scale from minimum to maximum, not from zero; it is not a gain. When changing currency, the line stays in EUR and balances retain their value."
+          ],
+          "ca": [
+            "1. A Inici, comprova l’explicació sota el total: sense xifres anteriors indica que només hi ha el total actual. Amb línia indica xifres sense data en EUR i escala relativa del mínim al màxim, no des de zero; no és un guany. En canviar la moneda, la línia segueix en EUR i els saldos conserven el valor."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.106",
     "d": "2026-10-08",
     "t": {
