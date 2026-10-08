@@ -730,8 +730,7 @@
   @media (prefers-reduced-motion:reduce){
     /* El ajuste del sistema también retira la barra sin transición: reducir sólo el FAB
        separaría otra vez sus recorridos aunque ya no exista el apagado por reloj. */
-    .app-shell.scroll-host-on .botnav.botnav-hidden,
-    .app-shell.scroll-host-on .botnav:not(.botnav-hidden){transition:none;}
+    .scroll-host-on.app-shell .botnav{transition:none;}
     .app-shell.scroll-host-on .botnav .botnav-fab{transition:none;}
   }
   /* Tope: clase residual por si queda colgada de una beta anterior. Ya no se arma
@@ -759,6 +758,13 @@
     transition:transform .32s var(--spring),opacity .2s;pointer-events:none;}
   .botnav-ind span{width:34px;height:3px;border-radius:3px;background:var(--mint);display:block;}
   .botnav-ind.hide{opacity:0;}
+  /* La rayita se va con la barra escondida (INC-2709-13). Con la barra oculta en el host nativo
+     la caja colapsa a 0 pero conserva overflow-clip-margin:30px, y la rayita (top:-9px) cabe
+     dentro de ese margen: se quedaba flotando sola. Selectivo sobre la rayita: la corriente
+     Cyberpunk (.botnav::after) y el + siguen como están. Sin transición: una opacidad a medias
+     pausada con el resto de animaciones de la barra descuadraba la medida del recorte del +
+     (botnav-fab-recorte) y la rayita no tiene nada que deslizar. */
+  .botnav-hidden .botnav-ind{opacity:0;transition:none;}
   /* LA RAYITA RODEA EL + EN VEZ DE ATRAVESARLO (petición suya 2026-07-28, con foto: «la rayita
      que rula al ir de tab en tab que cuando llegue al + en vez de atravesarlo que lo rodee»).
      Yendo de Gastos a Plan el indicador pasa por el hueco del FAB, y como es `position:absolute`
@@ -20217,7 +20223,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="0331ffc55ee004266c0aa2a1b83502a3ffae59382d953be8e8020e3a5eb5d05c";
+var _rnSha="a8cacec274db3fd23bd0b9ab3157de3c2851a963aee714a2cf49707995fe5b56";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){

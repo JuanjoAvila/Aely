@@ -1,3 +1,25 @@
+## Indicador al esconder la barra · candidata107 (8/10)
+
+`botnav-indicador`, transversal, reúne doce combinaciones green/cyber × safe0/34 × movimiento
+normal/reducido app/reducido sistema. Usa gestos reales CDP, `touchcancel`, re-render, perfil,
+Ajustes y teclado de Apuntar. Compara píxeles de la rayita contra su span suprimido, esperando
+la inercia sin forzar el scroll; los pseudos Cyberpunk siguen intactos. Exige `transitionDuration`
+calculada `0s` de la barra oculta y visible con reducción del sistema. La corrida de39 casos
+añade esconder8, contornoFAB12, arco3 y perfil4. Pasan12 nuevos y27 regresiones; base12 FAIL
+por opacidad1 con barra oculta. Perfil y Ajustes se abren y cierran por entradas independientes:
+la transferencia Perfil→Ajustes→‹ sale a about:blank también en8dcc y queda OPEN aparte. CI
+exacta es gate del PR, sin acreditar publicación o móvil.
+
+El nuevo alcance `inc-0810-nav-indicator` registra CSS, preferencias, geometría y controladores
+de la navegación, sin cambiar las33 referencias existentes. Incluye gestureAxis, GEST_LEAD,
+GEST_MAX y tabOrderOf explícitos: unidades:true canonicaliza, no añade dependencias. Los15
+mutantes específicos de `beta-sources`
+vigilan esos bloques; contorno tiene un código nuevo por el ahorro de CSS real. La tanda no
+hereda97/98 ni aprobación anterior. Mediciones minificadas usan LF canónico ANTES de minificar,
+DSN sintético95bytes y reserva de versión; el HTML real de DOM se identifica por hash aparte.
+Las auditorías Auth de metadatos106 leen8dcc; los controles funcionales y mutantes Auth leen
+la fuente actual. No acredita móvil, WebView nativa, rendimiento sostenido ni entrega de107.
+
 ## Apuntar: fila visible e importe persistido (5/10)
 
 `pulido-numpad` y `efectivo-apuntar` navegan a Gastos después de guardar y comprueban una única

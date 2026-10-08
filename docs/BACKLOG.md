@@ -1,5 +1,14 @@
 # Backlog operativo — Aely
 
+## INC-0810 · historial de Perfil a Ajustes · OPEN · 8/10/2026
+
+Hallazgo sintético al verificar Indicador107: abrir Perfil → «Ir a Ajustes» → cerrar con «‹»
+sale de la app hacia `about:blank`. Reproducido también en la base beta `8dcc5ed3`; no lo
+introduce el CSS de la rayita. El cleanup de `useBackClose` consume la entrada del perfil
+mientras se crea la de Ajustes: al cerrar queda una vuelta fuera del origen. Reparación
+separada de Indicador107, pendiente de guardia de historial y comprobación móvil; no se
+declara corregido ni se fuerza el historial en las pruebas. [Evidencia](briefs/inc-0810-nav-indicator.md).
+
 Corte7/10: FAB98 integrada en beta por PR153/b7abebb6; GO independiente y CI37564577536 SUCCESS con12FAB/contrasteCSS97. Publicador y artefactos pendientes al escribir este corte, aceptación móvil98 pendiente. Beta97 rechazó desaparición tardía del círculo; se conserva ese rechazo. Producción96 aprobada exclusivamente e integrada por PR152/85b8b540, Pages/servido pendientes. Gastos Madrid de Claude2741 requiere reparar etiqueta local y DOM antes candidata99. No resuelve INC-2709-09 acumulativo.
 
 Promoción4/10: las once tandas de beta4.26.94.1 tienen aprobación vigente. Producción4.26.94/source8bb0398f servida y cotejada; APK52 estable y las tres funciones Edge entregadas. La limpieza conserva notas y decisiones; solo retira las once entregadas, sin producto nuevo. Prioridad permanente: producción de lo aprobado antes de otra implementación. [Acta](briefs/promocion-aprobadas-2026-10-04.md).

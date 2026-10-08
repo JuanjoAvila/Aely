@@ -4,7 +4,9 @@ import {execFileSync} from 'node:child_process';
 import {authFragments,authWorld} from './helpers/auth-disposal-fixture.mjs';
 import {scopeDependencies,scopeDataDependencies,mutateLogic,mutateData} from '../scripts/beta-source-code.mjs';
 import {betaRevision} from '../scripts/beta-revisions.mjs';
-const read=f=>fs.readFileSync(new URL('../'+f,import.meta.url),'utf8');
+const read=f=>fs.readFileSync(new URL('../'+f,import.meta.url),'utf8').replace(/\r\n/g,'\n');
+// La auditoría de106 conserva su fuente publicada; el runtime y sus mutantes leen la candidata.
+const cache106=new Map(),source106=f=>{if(!cache106.has(f))cache106.set(f,execFileSync('git',['show','8dcc5ed39b6e212ba1e34a90b550685794ce0bd5:'+f],{encoding:'utf8',maxBuffer:8e6}));return cache106.get(f);};
 const old=f=>execFileSync('git',['show','9881214ebe93864e2d7570f62094ec785be81163:'+f],{encoding:'utf8',maxBuffer:8e6});
 const core=read('src/modules/00-core.js'),app=read('src/modules/11-app-main.js');
 const parts=authFragments(core,app),before=authFragments(old('src/modules/00-core.js'),old('src/modules/11-app-main.js'));
@@ -42,11 +44,11 @@ const reader=f=>read(f),scope=JSON.parse(read('scripts/beta-sources.json'))['inc
 let fns=0,data=0;for(const f of scopeDependencies(scope,reader)){assert.notEqual(betaRevision('inc-0710-auth-disposal',x=>x===f.file?mutateLogic(read(x),f):read(x)).web,revision,f.name);fns++;}
 for(const d of scopeDataDependencies(scope,reader)){assert.notEqual(betaRevision('inc-0710-auth-disposal',x=>x===d.file?mutateData(read(x),d):read(x)).web,revision,d.name);data++;}
 assert.equal(fns,7);assert.equal(data,9);
-const notes=JSON.parse(read('src/data/release-notes.json')),oldNotes=JSON.parse(old('src/data/release-notes.json'));
+const notes=JSON.parse(source106('src/data/release-notes.json')),oldNotes=JSON.parse(old('src/data/release-notes.json'));
 // La unidad106 añade una sola nota y alcance; el histórico102 conserva todos sus datos.
 assert.equal(notes[0].v,'4.26.106');assert.deepEqual(notes[0].tandas.map(g=>g.id),['inc-0810-dashboard-recents-memo']);
 assert.deepEqual(notes.slice(1),oldNotes);
-const reg=JSON.parse(read('scripts/beta-sources.json')),oldReg=JSON.parse(old('scripts/beta-sources.json'));
+const reg=JSON.parse(source106('scripts/beta-sources.json')),oldReg=JSON.parse(old('scripts/beta-sources.json'));
 const expectedReg=structuredClone(oldReg);
 expectedReg['inc-0810-dashboard-recents-memo']=reg['inc-0810-dashboard-recents-memo'];
 assert.deepEqual(reg,expectedReg,'solo alcance nuevo de106; todos los alcances y auditorías anteriores intactos');

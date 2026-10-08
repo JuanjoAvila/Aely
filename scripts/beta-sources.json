@@ -1,4 +1,28 @@
 {
+  "inc-0810-nav-indicator": {
+    "unidades": true,
+    "web": [
+      {"file":"src/shell.html","from":"  .botnav{position:absolute","to":"  .botnav-row{"},
+      {"file":"src/shell.html","from":"  .botnav-row{","to":"  .botnav-tab.active svg{"},
+      {"file":"src/shell.html","from":"  /* z-index: el + sobresale de la barra y la corriente","to":"  /* Temáticas de temporada"},
+      {"file":"src/shell.html","from":"  html.reduce-motion *,","to":"  /* Más contraste"},
+      {"file":"src/shell.html","from":"    .rise,.v4-sheet,.v4-sheet-back,.botnav,","to":"\n"},
+      {"file":"src/shell.html","from":"    --safe-top:env(safe-area-inset-top,0px);","to":"\n"},
+      {"file":"src/modules/11-app-main.js","from":"  const [navHidden,setNavHidden]","to":"  const applyNavHideRef="},
+      {"file":"src/modules/11-app-main.js","from":"  const tabIds = tabOrderState || tabOrderOf(state);","to":"  /* swipe — distingue"},
+      {"file":"src/modules/11-app-main.js","from":"  const trackAnchoAhora=function()","to":"  const onStart="},
+      {"file":"src/modules/11-app-main.js","from":"  const onStart=","to":"  /* LOS TOQUES DE LAS PESTAÑAS"},
+      {"file":"src/modules/11-app-main.js","from":"  const indRef=useRef(null);","to":"  /* AQUÍ HABÍA UNA RACHA DE TEMPORADA"},
+      {"file":"src/modules/11-app-main.js","from":"  const cancelSwipe=function(","to":"  useEffect(function(){\n    var id=tabIds[tab];"},
+      {"file":"src/modules/11-app-main.js","from":"  const [drawerOpen,setDrawerOpen]","to":"\n"},
+      {"file":"src/modules/11-app-main.js","from":"  const [profileOpen,setProfileOpen]","to":"\n"},
+      {"file":"src/modules/11-app-main.js","from":"    React.createElement(\"div\",{className:\"app-shell\"","to":"    React.createElement(AskHost,null),"},
+      {"file":"src/modules/00-core.js","function":"gestureAxis"},
+      {"file":"src/modules/00-core.js","data":"GEST_LEAD"},
+      {"file":"src/modules/00-core.js","data":"GEST_MAX"},
+      {"file":"src/modules/10-app-components.js","function":"tabOrderOf"}
+    ]
+  },
   "inc-3009-01-cargos": {
     "historial": [
       "4.26.71/inc-3009-01-cargos"

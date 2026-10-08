@@ -18,6 +18,16 @@ Histórico 3/10 (superado por el corte de arriba): Candidata90 local, con CI/pub
 
 # Empieza aquí
 
+Candidata107 de navegación: la rayita activa se oculta con la barra, con una revisión nueva
+`inc-0810-nav-indicator`. No reutilizar las decisiones de contorno97/98: el ahorro de CSS cambia
+su código, y el nuevo alcance conserva los controladores y geometría reales. La comparación
+de tamaño se hace con finales LF normalizados ANTES del minificador; el blob de Git y un build
+Windows CRLF difieren en24bytes exteriores. [Acta y límites](docs/briefs/inc-0810-nav-indicator.md).
+39 comprobaciones de navegador sintético pasan; la base falla12 por rayita visible. CI exacta
+en el PR; publicación y móvil pendientes. El coordinador integra tras entregar las cinco
+aprobadas. No confundir107 fuente con versión servida. La transferencia Perfil→Ajustes→‹
+rompe el historial también en8dcc y conserva una incidencia OPEN separada.
+
 FEATURE-0210-01 candidata aislada85: no mover keywords nuevas a autoCategory, porque seedFlows reevalúa Otros antiguos. La división Gasolina/Taxi vive solo en categoryOfNewMerchant y MCC de altas bancarias. Fuente Edge preparada pero sin desplegar; la web no necesita Edge para elegir/filtrar/fijar límites. [Acta](docs/briefs/feature-0210-01-gasolina-taxi.md).
 
 INC-0210-01 candidata83: cuota vinculada contabilizada antes del vencimiento retirada del pendiente de Plan/Inicio y eventos futuros; saldo/anclas intactos. Base3467/candidata82, sin publicar. Pruebas sintéticas; revisión, CI, beta y móvil pendientes. [Acta](docs/briefs/inc-0210-01-plan-cuota.md).
