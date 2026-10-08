@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "id": "ops-0810-plan-hist-guard-ci-relay22",
+  "from": "codex",
+  "coordinatorSession": "relay-run-7ec27dca45990401",
+  "createdAt": "2026-10-08T02:39:35.564Z",
+  "to": "codex",
+  "baseSHA": "067647b01bed3b847ada47a954621cba8f32950a",
+  "objective": "Aplicar al candidato diagnóstico Plan únicamente el guard hist-visor f77aa70b ya revisado: mismo8s conjunto, >=60dentro, fila30opacidad>0.9 y aserciónfinaldentro; segundo guard exacto. CI37713846795 acredita15casosPlan+9rendimiento pero falla solo en carrera class/opacity; no declararla verde. Conservar todo Plan/runtimes/registros/versiones; revisión de delta y nueva CI exacta, sin publicación ni integración de producto.",
+  "scope": [
+    "e2e/hist-visor.spec.mjs",
+    "docs/briefs/inc-0810-plan-gesture-profile.md"
+  ]
+}
