@@ -730,8 +730,7 @@
   @media (prefers-reduced-motion:reduce){
     /* El ajuste del sistema también retira la barra sin transición: reducir sólo el FAB
        separaría otra vez sus recorridos aunque ya no exista el apagado por reloj. */
-    .app-shell.scroll-host-on .botnav.botnav-hidden,
-    .app-shell.scroll-host-on .botnav:not(.botnav-hidden){transition:none;}
+    .scroll-host-on.app-shell .botnav{transition:none;}
     .app-shell.scroll-host-on .botnav .botnav-fab{transition:none;}
   }
   /* Tope: clase residual por si queda colgada de una beta anterior. Ya no se arma

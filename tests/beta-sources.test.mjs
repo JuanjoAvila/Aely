@@ -14,6 +14,56 @@ let failed=0;
 function test(name,fn){ try{fn();console.log("  ✓ "+name);}catch(e){failed++;console.error("  ✗ "+name+"\n    "+e.message);} }
 console.log("beta-sources");
 
+// La rayita comparte controlador y geometría con la barra: una aprobación de CSS aislada no
+// vigilaría un cambio de clase, margen, cancelación o preferencia que la volviera a dejar sola.
+test("Indicador107 vigila CSS, geometría y controladores sin reabrir dinero ajeno",()=>{
+  const id="inc-0810-nav-indicator",source=f=>read(f).replace(/\r\n/g,"\n"),before=betaRevision(id,source).web;
+  for(const [file,from,to] of [
+    ["src/shell.html",'.botnav-hidden .botnav-ind{opacity:0;transition:none;}','.botnav-hidden .botnav-ind{opacity:1;transition:none;}'],
+    ["src/shell.html",'.botnav-hidden .botnav-ind{opacity:0;transition:none;}','.botnav-hidden .botnav-ind{opacity:0;transition:opacity .2s;}'],
+    ["src/shell.html",'.scroll-host-on.app-shell .botnav{transition:none;}','.scroll-host-on.app-shell .botnav{transition:all .1s;}'],
+    ["src/shell.html",'.botnav-ind{position:absolute;top:-9px','.botnav-ind{position:absolute;top:-8px'],
+    ["src/shell.html",'overflow:clip;overflow-clip-margin:30px;','overflow:clip;overflow-clip-margin:31px;'],
+    ["src/shell.html",'.app-shell.scroll-host-on .botnav.botnav-hidden .botnav-fab{top:30px;}','.app-shell.scroll-host-on .botnav.botnav-hidden .botnav-fab{top:31px;}'],
+    ["src/shell.html",'background:var(--bg-2);backdrop-filter:blur(16px)','background:transparent;backdrop-filter:blur(16px)'],
+    ["src/shell.html",'animation:cybercurrent 7s','animation:cybercurrent 8s'],
+    ["src/shell.html",'--safe-bottom:env(safe-area-inset-bottom,0px);','--safe-bottom:env(safe-area-inset-bottom,1px);'],
+    ["src/modules/11-app-main.js",'navHiddenRef.current=true;','navHiddenRef.current=false;'],
+    ["src/modules/11-app-main.js",'if(trackRef.current && e.currentTarget!==trackRef.current.children[tab]) return;','if(false) return;'],
+    ["src/modules/11-app-main.js",'if(keepDomOnly) discardNavHideFlush();','if(false) discardNavHideFlush();'],
+    ["src/modules/11-app-main.js",'((navHidden||navHiddenRef.current)&&!drawerOpen&&!profileOpen?','(false?'],
+    ["src/modules/11-app-main.js",'tab<=1?tab*100:(tab+1)*100','tab<=1?tab*99:(tab+1)*100'],
+    ["src/modules/10-app-components.js",'return ["dash","gastos","plan","cartera"];','return ["gastos","dash","plan","cartera"];'],
+  ]){
+    assert.ok(source(file).includes(from),"el mutante toca fuente real: "+from);
+    assert.notEqual(betaRevision(id,f=>f===file?source(f).replace(from,to):source(f)).web,before,from);
+  }
+  const ajeno='rr_name_ph:"Nombre (opcional';
+  assert.ok(source("src/modules/01-i18n.js").includes(ajeno));
+  assert.equal(betaRevision(id,f=>f==="src/modules/01-i18n.js"?source(f).replace(ajeno,'rr_name_ph:"Otro (opcional'):source(f)).web,before,"un texto financiero ajeno no pertenece al indicador");
+});
+test("Indicador107 conserva las33 unidades previas y declara el cambio real de contorno",()=>{
+  const cache=new Map(),base=f=>{if(!cache.has(f))cache.set(f,execFileSync("git",["show","8dcc5ed39b6e212ba1e34a90b550685794ce0bd5:"+f],{encoding:"utf8",maxBuffer:8e6}));return cache.get(f);};
+  const antes=JSON.parse(base("scripts/beta-sources.json")),actual=JSON.parse(read("scripts/beta-sources.json"));
+  assert.equal(Object.keys(antes).length,33);
+  assert.deepEqual(Object.keys(actual).filter(id=>!antes[id]),["inc-0810-nav-indicator"]);
+  assert.equal(actual["inc-0810-nav-indicator"].unidades,true,"helpers y datos transitivos reales forman la revisión");
+  for(const [id,scope] of Object.entries(antes)){
+    assert.deepEqual(actual[id],scope,id+": alcance y auditorías intactos");
+    const previo=betaRevision(id,base,undefined,scope).web,vigente=betaRevision(id,read,undefined,scope).web;
+    if(id==="inc-2709-13-fab-contorno") assert.notEqual(vigente,previo,"el CSS reducido realmente cambia contorno");
+    else assert.equal(vigente,previo,id+": identidad previa intacta");
+  }
+  const notas=JSON.parse(read("src/data/release-notes.json"));
+  assert.equal(notas[0].v,"4.26.107");
+  assert.deepEqual(notas[0].tandas.map(g=>g.id),["inc-0810-nav-indicator"]);
+  assert.deepEqual(notas.slice(1),JSON.parse(base("src/data/release-notes.json")),"notas y guiones anteriores intactos");
+  for(const clave of ["historial","auditoria","codigosCompatibles","compatibilidadGit"]){
+    assert.equal(actual["inc-0810-nav-indicator"][clave],undefined,"revisión independiente sin "+clave);
+  }
+});
+if(process.argv.includes("--nav-indicator-only")) process.exit(failed?1:0);
+
 // La revisión debe invalidarse si vuelve la columna ajena o cambia el periodo o la cifra.
 test("Gastos90 vigila columna, ancho, periodo y cifras",()=>{
   const id="inc-0310-gastos-sin-limite",source=f=>read(f).replace(/\r\n/g,"\n"),before=betaRevision(id,source).web;
@@ -171,7 +221,7 @@ test("PERSIST91: el guardado en el commit invalida toda tanda que escribe estado
   const ajenas=Object.keys(registro).filter(id=>!dependientes.includes(id));
   assert.equal(dependientes.length,20);
   assert.ok(dependientes.includes("inc-0710-gastos-mes-madrid"),"Gastos99 conserva la dependencia real de guardado de Expenses");
-  assert.deepEqual(ajenas.slice().sort(),["beta-panel-veredictos","inc-0210-01-plan-cuota","inc-0410-inicio-tres-metas","inc-0710-appstate-listener-cleanup","inc-0710-banknotif-cleanup","inc-0810-dashboard-recents-memo","inc-2709-01-arranque-red","inc-2709-09-fechas-cache","inc-2709-12-cyber-fab","inc-2709-13-fab-contorno","inc-2709-14-preguntar","ops-0410-panel-cola","tr-descripcion-clasificacion"]);
+  assert.deepEqual(ajenas.slice().sort(),["beta-panel-veredictos","inc-0210-01-plan-cuota","inc-0410-inicio-tres-metas","inc-0710-appstate-listener-cleanup","inc-0710-banknotif-cleanup","inc-0810-dashboard-recents-memo","inc-0810-nav-indicator","inc-2709-01-arranque-red","inc-2709-09-fechas-cache","inc-2709-12-cyber-fab","inc-2709-13-fab-contorno","inc-2709-14-preguntar","ops-0410-panel-cola","tr-descripcion-clasificacion"]);
   /* Quién depende del guardado lo decide el CÓDIGO, no la marca del registro (auditoría del
      coordinador, 4/10): se quita de cada alcance el bloque del guardado y se mira si lo que queda
      llama a `set` de App —las dependencias transitivas ya son unidades del alcance—. Tiene que

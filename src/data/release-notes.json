@@ -1,5 +1,24 @@
 [
   {
+    "v": "4.26.107",
+    "d": "2026-10-08",
+    "t": {"es":"El indicador acompaña a la barra","en":"The indicator follows the navigation bar","ca":"L’indicador acompanya la barra"},
+    "items": {
+      "es":["La rayita de la pestaña activa se esconde junto a la barra y vuelve al subir. El botón Apuntar conserva su recorrido."],
+      "en":["The active tab indicator hides with the navigation bar and returns when scrolling up. The Add button keeps moving with the bar."],
+      "ca":["La ratlleta de la pestanya activa s’amaga amb la barra i torna en pujar. El botó Apuntar conserva el seu recorregut."]
+    },
+    "tandas": [{
+      "id":"inc-0810-nav-indicator",
+      "t":{"es":"El indicador acompaña a la barra","en":"The indicator follows the navigation bar","ca":"L’indicador acompanya la barra"},
+      "items": {
+        "es":["1. En Inicio, baja despacio hasta que se esconda la barra: la rayita de la pestaña debe desaparecer. Sube de nuevo: deben volver la barra, la rayita y el botón Apuntar.","2. Con el tema Cyberpunk, repite el gesto: el botón Apuntar debe acompañar a la barra, conservar su círculo y no quedar atravesado por la corriente. Repite con Reducir animaciones activado.","3. Abre y cierra el perfil. Desliza desde el borde izquierdo de Inicio para abrir Ajustes y vuelve: la rayita debe reaparecer al cerrar. Toca Apuntar y comprueba que se abre el teclado."],
+        "en":["1. On Home, scroll down slowly until the navigation bar hides: the active tab indicator should disappear. Scroll up again: the bar, indicator and Add button should return.","2. With the Cyberpunk theme, repeat the gesture: the Add button should move with the bar, retain its circle and stay in front of the current. Repeat with Reduce motion enabled.","3. Open and close the profile. Swipe from the left edge of Home to open Settings and return: the indicator should reappear after closing. Tap Add and check that the keypad opens."],
+        "ca":["1. A Inici, baixa a poc a poc fins que s’amagui la barra: la ratlleta de la pestanya ha de desaparèixer. Torna a pujar: han de tornar la barra, la ratlleta i el botó Apuntar.","2. Amb el tema Cyberpunk, repeteix el gest: el botó Apuntar ha d’acompanyar la barra, conservar el cercle i quedar davant del corrent. Repeteix-ho amb Reduir animacions activat.","3. Obre i tanca el perfil. Llisca des de la vora esquerra d’Inici per obrir Ajustos i torna: la ratlleta ha de reaparèixer en tancar. Toca Apuntar i comprova que s’obre el teclat."]
+      }
+    }]
+  },
+  {
     "v": "4.26.106",
     "d": "2026-10-08",
     "t": {
