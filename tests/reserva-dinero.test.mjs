@@ -12,6 +12,7 @@
  *      restarlo del presupuesto (ver `reservedSince`, que usa `monthSummary` en 04-tab-gastos.js).
  */
 import assert from "node:assert/strict";
+import fs from "node:fs";
 import { execFileSync } from "node:child_process";
 import { loadPureLogic, loadPureLogicFromFile } from "../scripts/load-pure-logic.mjs";
 
@@ -634,6 +635,108 @@ t("mensual: las reglas por ingreso conservan su contrato y las mensuales no entr
   const plan = ctx.reservaPlanFor(s1, 2000);
   assert.deepEqual(Array.from(plan.plan, (p) => p.ruleId), ["old"], "el ingreso solo reparte las antiguas");
   assert.equal(ctx.reservaEstadoDe(ctx.addReservaRule(mensualBase(), reglaM(), OCT), null).estado, "sinReglas");
+});
+
+t("editar mensual asentada conserva identidad, campos desconocidos, referencias e historial", () => {
+  const r=reglaM({unknown:{keep:7}}), s=ctx.addReservaRule(mensualBase(),r,OCT);
+  const patch={id:"no",mensual:false,name:"Nueva",kind:"pct",value:12.5,goalId:"gB",unknown:null};
+  const next=ctx.editReservaRule(s,JSON.parse(JSON.stringify(r)),patch,OCT);
+  assert.equal(JSON.stringify(next.settings.reservaRules[0]),JSON.stringify({...r,name:"Nueva",kind:"pct",value:12.5,goalId:"gB"}));
+  for(const key of ["goals","reservaLog","expenses"]) assert.strictEqual(next[key],s[key],key+" intacto");
+  assert.strictEqual(ctx.applyReservaMensual(next,OCT),next);
+  assert.strictEqual(ctx.editReservaRule(next,r,patch,OCT),next,"repetir escritura con copia anterior no vuelve a editar");
+  const nov=ctx.applyReservaMensual(next,Date.UTC(2026,9,31,23,30));
+  assert.equal(nov.reservaLog[1].id,"mensual|m1|2026-11");
+  assert.equal(nov.reservaLog[1].goalId,"gB"); assert.equal(nov.reservaLog[1].amount,125);
+  assert.equal(nov.goals.find(g=>g.id==="gA").saved,s.goals.find(g=>g.id==="gA").saved);
+  assert.equal(nov.goals.find(g=>g.id==="gB").saved,s.goals.find(g=>g.id==="gB").saved+125);
+  assert.equal(JSON.stringify(nov.reservaLog[0]),JSON.stringify(s.reservaLog[0]));
+});
+
+t("editar valida contra estado fresco: borrada, duplicada o modificada y meta no activa no escriben", () => {
+  const r=reglaM(), s=ctx.addReservaRule(mensualBase(),r,OCT), patch={...r,value:150};
+  const states=[ctx.removeReservaRule(s,r.id),
+    {...s,settings:{reservaRules:[{...r,value:99}]}},
+    {...s,settings:{reservaRules:[{...r,unknown:true}]}},
+    {...s,settings:{reservaRules:[r,r]}},
+    {...s,goals:s.goals.filter(g=>g.id!==r.goalId)},
+    {...s,goals:s.goals.map(g=>g.id===r.goalId?{...g,done:true}:g)}];
+  for(const fresh of states) assert.strictEqual(ctx.editReservaRule(fresh,r,patch,OCT),fresh);
+  for(const delta of [{kind:"other"},{value:NaN},{value:Infinity},{value:0},{value:-1},{value:100.001},{value:1e20},{value:"10"},{kind:"pct",value:100.01},{goalId:"gone"}]){
+    assert.strictEqual(ctx.editReservaRule(s,r,{...patch,...delta},OCT),s,JSON.stringify(delta));
+  }
+  const full=ctx.editReservaRule(s,r,{...patch,kind:"pct",value:100},OCT);
+  assert.equal(full.settings.reservaRules[0].value,100);
+  assert.strictEqual(ctx.editReservaRule(s,r,r,OCT),s,"sin cambio ni aporte pendiente devuelve el mismo estado");
+  const reordered={goalId:r.goalId,value:r.value,kind:r.kind,name:r.name,mensual:r.mensual,id:r.id};
+  assert.equal(ctx.reservaRuleSame(r,reordered),true,"JSONB puede reordenar claves sin cambiar el dato");
+  assert.equal(ctx.editReservaRule(s,reordered,patch,OCT).settings.reservaRules[0].value,150);
+});
+
+t("editar mensual pendiente aporta una vez con los nuevos valores y no revive un asiento liberado", () => {
+  const r=reglaM({kind:"pct",value:10});
+  const s=ctx.addReservaRule(mensualBase({budget:0}),r,OCT);
+  const next=ctx.editReservaRule(s,r,{...r,kind:"fixed",value:75.5,goalId:"gB"},OCT);
+  assert.equal(next.reservaLog.length,1); assert.equal(next.reservaLog[0].amount,75.5);
+  assert.equal(next.goals.find(g=>g.id==="gB").saved,275.5);
+  assert.strictEqual(ctx.applyReservaMensual(next,OCT),next);
+  const released=ctx.removeReservaRule(next,r.id);
+  const revived={...released,settings:{reservaRules:next.settings.reservaRules}};
+  const edited=ctx.editReservaRule(revived,revived.settings.reservaRules[0],{...r,kind:"fixed",value:90},OCT);
+  assert.strictEqual(edited.reservaLog,revived.reservaLog); assert.strictEqual(edited.goals,revived.goals);
+  const other=reglaM({id:"other",kind:"fixed",value:50,goalId:"gA"});
+  const withOther={...s,settings:{reservaRules:[r,other]}};
+  const own=ctx.editReservaRule(withOther,r,{...r,kind:"fixed",value:75.5},OCT);
+  assert.equal(own.reservaLog.length,1,"editar solo asienta la regla editada, no otra pendiente");
+  assert.equal(own.reservaLog[0].ruleId,r.id);
+});
+
+t("editar regla por ingreso conserva contrato y reparto anterior; el siguiente usa la edición", () => {
+  const r={id:"old",name:"Antes",kind:"fixed",value:50,goalId:"gA",legacy:{keep:1}};
+  const s0=mensualBase({settings:{reservaRules:[r]}}), income={date:"2026-10-04",amount:-2000,merchant:"NOMINA"};
+  const s=ctx.applyReserva(s0,income,ctx.reservaPlanFor(s0,2000).plan);
+  const next=ctx.editReservaRule(s,r,{name:"Después",kind:"pct",value:5,goalId:"gB"},OCT);
+  assert.equal(Object.hasOwn(next.settings.reservaRules[0],"mensual"),false);
+  assert.equal(JSON.stringify(next.settings.reservaRules[0].legacy),JSON.stringify(r.legacy));
+  assert.strictEqual(next.goals,s.goals); assert.strictEqual(next.reservaLog,s.reservaLog);
+  assert.strictEqual(ctx.applyReserva(next,income,ctx.reservaPlanFor(next,2000).plan),next);
+  const another=ctx.applyReserva(next,{...income,date:"2026-11-04"},ctx.reservaPlanFor(next,2000).plan);
+  assert.equal(another.reservaLog[1].amount,100); assert.equal(another.reservaLog[1].goalId,"gB");
+  assert.strictEqual(ctx.applyReservaMensual(next,OCT),next);
+});
+
+t("botón real de edición: updater repetido conserva un solo asiento aunque cumpla la meta", () => {
+  const r=reglaM({kind:"pct",value:10}), s=mensualBase({budget:0,goals:[{...goalA,target:50,saved:0}],settings:{reservaRules:[r]}});
+  cola.estados=[{valor:true},{valor:{name:"Nueva",kind:"fixed",value:"75",goalId:"gA"}},{error:true},{valor:null},{valor:r}];
+  cola.errores=[]; let next=s,calls=0;
+  const tree=ui.ReservaRules({state:s,set:update=>{next=update(next);next=update(next);calls++;}});
+  const buttons=[],walk=n=>{if(!n||typeof n!=="object")return;if(n.type==="button"&&n.props.className==="btn btn-primary btn-block")buttons.push(n);(n.children||[]).forEach(walk);};
+  walk(tree); assert.equal(buttons.length,1);buttons[0].props.onClick();buttons[0].props.onClick();
+  assert.equal(calls,1,"ref sincrónica evita un segundo envío");
+  assert.equal(next.reservaLog.length,1);assert.equal(next.reservaLog[0].amount,75);
+  assert.equal(next.goals[0].saved,75);assert.equal(next.goals[0].done,true);
+  assert.equal(next.settings.reservaRules[0].id,r.id);assert.strictEqual(next.expenses,s.expenses);
+});
+
+t("la tanda de edición actual conserva sus guardas sin congelar el historial futuro", () => {
+  const read=f=>fs.readFileSync(new URL("../"+f,import.meta.url),"utf8");
+  const reg=JSON.parse(read("scripts/beta-sources.json")),id="inc-0810-metas-editar-regla",scope=reg[id];
+  const note=JSON.parse(read("src/data/release-notes.json")).find(n=>n.v==="4.26.108");
+  assert.ok(note&&note.tandas.some(g=>g.id===id),"la edición tiene su propia comprobación vigente");
+  const unit=note.tandas.find(g=>g.id===id);
+  assert.equal(scope.unidades,true);assert.ok(scope.web.length>=75,"el cierre de lectores no se recorta");
+  for(const name of ["reservaRuleSame","editReservaRule"]){
+    const entry={file:"src/modules/08-motor-bank.js",function:name};
+    assert.deepEqual(scope.web.filter(x=>x.function===name),[entry]);
+    assert.deepEqual(reg["inc-0310-01-meta-regla"].web.filter(x=>x.function===name),[entry]);
+  }
+  for(const key of ["historial","auditoria","codigosCompatibles","compatibilidadGit","codigoDesde","revisionesDesde","verdict"]){
+    assert.equal(scope[key],undefined,"sin equivalencias heredadas: "+key);assert.equal(unit[key],undefined,key);
+  }
+  const previous=JSON.parse(execFileSync("git",["show","8dcc5ed39b6e212ba1e34a90b550685794ce0bd5:scripts/beta-sources.json"],{encoding:"utf8",maxBuffer:8e6}))["inc-0310-01-meta-regla"];
+  const current=reg["inc-0310-01-meta-regla"];
+  for(const entry of previous.web)assert.ok(current.web.some(x=>JSON.stringify(x)===JSON.stringify(entry)),"la alta anterior conserva "+JSON.stringify(entry));
+  for(const key of Object.keys(previous).filter(k=>k!=="web"))assert.deepEqual(current[key],previous[key],"la alta conserva "+key);
 });
 
 console.log("\nreserva-dinero: OK");

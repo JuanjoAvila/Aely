@@ -1267,6 +1267,25 @@ function addReservaRule(state, rule, nowMs){
   const next=Object.assign({},state,{settings:Object.assign({},state.settings,{reservaRules:rules.concat([rule])})});
   return rule.mensual===true ? applyReservaMensual(next,nowMs) : next;
 }
+// Editar no borra ni recrea: el asiento anterior pertenece a su regla y meta originales.
+// La copia que abrió el formulario evita pisar cambios de nube o revivir una regla borrada.
+function reservaRuleSame(a,b){
+  if(a===b) return true;
+  if(!a || !b || typeof a!=="object" || typeof b!=="object" || Array.isArray(a)!==Array.isArray(b)) return false;
+  const keys=Object.keys(a);
+  return keys.length===Object.keys(b).length && keys.every(function(k){ return Object.prototype.hasOwnProperty.call(b,k)&&reservaRuleSame(a[k],b[k]); });
+}
+function editReservaRule(state, before, patch, nowMs){
+  const rules=(state.settings&&state.settings.reservaRules)||[];
+  const matches=rules.filter(function(r){ return r&&before&&r.id===before.id; });
+  if(matches.length!==1 || !reservaRuleSame(matches[0],before)) return state;
+  if(!patch || !reservaMetaActiva(state,patch.goalId) || (patch.kind!=="fixed"&&patch.kind!=="pct") ||
+    typeof patch.value!=="number" || reservaImporteDe(String(patch.value),".")!==patch.value || patch.value<=0 || (patch.kind==="pct"&&patch.value>100)) return state;
+  const rule=Object.assign({},matches[0],{name:patch.name||"",kind:patch.kind,value:patch.value,goalId:patch.goalId});
+  if(reservaRuleSame(rule,matches[0])) return rule.mensual===true?applyReservaMensual(state,nowMs,rule.id):state;
+  const next=Object.assign({},state,{settings:Object.assign({},state.settings,{reservaRules:rules.map(function(r){ return r===matches[0]?rule:r; })})});
+  return rule.mensual===true ? applyReservaMensual(next,nowMs,rule.id) : next;
+}
 // Borrar la configuración no liberaba el presupuesto ya apartado (INC-0310-01). El asiento
 // inverso conserva la aportación, su fecha y la identidad de nómina, también para lectores
 // antiguos de nube/widget que suman el mismo registro. No es un movimiento bancario.
@@ -1346,8 +1365,8 @@ function reservaMensualImporte(state, rule){
 }
 // Aplica las reglas mensuales que aún no tienen asiento en este mes. PURA; si no hay nada que
 // aplicar devuelve el MISMO estado (ni re-render ni reescritura).
-function applyReservaMensual(state, nowMs){
-  const rules=((state.settings&&state.settings.reservaRules)||[]).filter(function(r){ return r&&r.mensual===true&&r.id; });
+function applyReservaMensual(state, nowMs, onlyId){
+  const rules=((state.settings&&state.settings.reservaRules)||[]).filter(function(r){ return r&&r.mensual===true&&r.id&&(!onlyId||r.id===onlyId); });
   if(!rules.length) return state;
   const now=nowMs!=null?nowMs:Date.now();
   if(!isFinite(now)) return state;

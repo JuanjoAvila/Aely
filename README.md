@@ -111,7 +111,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.107** candidata local: el indicador activo se esconde con la barra de navegación;39 comprobaciones DOM sintéticas verificadas. CI exacta en el PR; revisión, publicación y aceptación móvil pendientes. INC-2709-09 sigue abierto. [Acta](docs/briefs/inc-0810-nav-indicator.md).
+Estado actual: **v4.26.108** candidata de integración local: el indicador se esconde con la barra y las reglas de Metas se pueden editar conservando identidad e historial. Las pruebas locales de cada unidad están documentadas; CI, integración conjunta, entrega y aceptación móvil pendientes. INC-2709-09 sigue abierto. [Navegación](docs/briefs/inc-0810-nav-indicator.md) · [Metas](docs/briefs/inc-0810-metas-editar-regla.md).
 
 Corte anterior (4/10, 12:30 UTC, panel de revisión): **v4.26.93** publicada en beta. Primera entrega4.26.93.1 (fuente1d5dd782), CI37200314653SUCCESS y HTTP/ZIP/HTML/SW/catálogo/huella cotejados el4/10 a12:30UTC:11 tandas/24 puntos, frente a40 antes del cambio. Producción4.26.86 (d366215a), APK beta4.26.80/code52 y estable4.26.32/code48 conservadas. Prueba y aprobación móvil pendientes. [Acta](docs/briefs/ops-0410-panel-cola.md).
 
@@ -148,6 +148,7 @@ Notas rápidas del rediseño v4 (para no perderse):
 - **Confirmar un cargo (integración beta):** Gastos → ficha → Paga un recibo muestra pendientes del mes, también si la factura o divisa varió. El diálogo enseña cargo real e importe/banco previstos: confirma solo el pago completo o cancela si es parcial. Puedes deshacer. Ya pagado muestra el banco real y separa Cargo y Previsto si difieren; la parte propia de un compartido conserva su previsión. No cambian clasificación ni saldo del cargo.
 - **Tus recibos v4.1:** Plan → Recibos → Gestionar —o Ajustes → Dinero— abre una pantalla propia con buscador, grupos, iconos por tipo, fichas y alta por pasos; el gesto Atrás acompaña también cada paso del alta, la ficha confirma antes de cerrar y las altas muestran tipo y nombre al guardar. La comparación con el banco vive en Ajustes → Mis bancos.
 - **Updates:** transporte en `12-boot.js`, estado de UI en `useUpdates()` (`10-app-components.js`).
+- **Editar regla de Metas (candidata local, sin publicar):** Plan → Metas → Reservar dinero → Editar regla conserva la identidad y las aportaciones anteriores. Una mensual ya asentada usa los cambios el mes siguiente; las anteriores siguen por ingreso. [Contrato y pruebas](docs/briefs/inc-0810-metas-editar-regla.md).
 - **Canal beta y banco de pruebas** (solo `is_admin`): Ajustes → Dev → Pruebas; cada tanda distingue revisión y entrega, incluso plegada — [docs/TESTING.md](docs/TESTING.md).
 
 El guardián tests/logs-privacidad.test.mjs verifica las fronteras de diagnóstico con marcadores sintéticos. Cobertura y límites, incluyendo servidor sin desplegar, en [SEC-03](docs/briefs/sec03-privacidad-logs.md).

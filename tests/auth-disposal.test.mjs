@@ -4,8 +4,8 @@ import {execFileSync} from 'node:child_process';
 import {authFragments,authWorld} from './helpers/auth-disposal-fixture.mjs';
 import {betaRevision} from '../scripts/beta-revisions.mjs';
 const read=f=>fs.readFileSync(new URL('../'+f,import.meta.url),'utf8').replace(/\r\n/g,'\n');
-// El histórico106 tiene un corte estable; disposal y todos sus mutantes siguen siendo actuales.
-const cache106=new Map(),source106=f=>{if(!cache106.has(f))cache106.set(f,execFileSync('git',['show','8dcc5ed39b6e212ba1e34a90b550685794ce0bd5:'+f],{encoding:'utf8',maxBuffer:8e6}));return cache106.get(f);};
+// El contrato histórico106 no puede exigir que su nota y todos los lectores sigan siendo los últimos.
+const historyCache=new Map(),history106=f=>{if(!historyCache.has(f))historyCache.set(f,execFileSync('git',['show','8dcc5ed39b6e212ba1e34a90b550685794ce0bd5:'+f],{encoding:'utf8',maxBuffer:8e6}));return historyCache.get(f);};
 const core=read('src/modules/00-core.js'),app=read('src/modules/11-app-main.js'),parts=authFragments(core,app);
 const flush=async()=>{for(let i=0;i<6;i++)await Promise.resolve();};
 const s=id=>({user:{id}});
@@ -55,14 +55,16 @@ for(const [file,a,b]of [
  else {off();w.sessions[0].resolve(s('late'));await flush();w.idle();assert.ok(w.trace.length>0,'mutante continuación actúa tras cleanup');}
 
 }
-const oldReg=JSON.parse(old('scripts/beta-sources.json')),currentReg=JSON.parse(read('scripts/beta-sources.json'));
+const oldReg=JSON.parse(old('scripts/beta-sources.json')),historicalReg=JSON.parse(history106('scripts/beta-sources.json')),currentReg=JSON.parse(read('scripts/beta-sources.json'));
 // La candidata106 conserva todos los alcances, auditorías y códigos anteriores.
 for(const [key,scope]of Object.entries(oldReg)){
- assert.deepEqual(currentReg[key],scope,key+': alcance y auditoría históricos intactos');
- assert.deepEqual(betaRevision(key,source106,undefined,scope),betaRevision(key,old,undefined,scope),key);
+ assert.deepEqual(historicalReg[key],scope,key+': alcance y auditoría históricos intactos');
+ assert.deepEqual(betaRevision(key,history106,undefined,scope),betaRevision(key,old,undefined,scope),key);
 }
+assert.deepEqual(currentReg[id],historicalReg[id],'el alcance auth actual conserva el contrato106');
+assert.deepEqual(betaRevision(id,read),betaRevision(id,history106),'la identidad auth actual conserva el contrato106');
 console.log('✓ auth disposal: remount, callbacks/promesas/timer/idle tardíos, controles activos, rojo anterior; '+Object.keys(oldReg).length+' revisiones anteriores intactas');
 
 const memoReg=currentReg['inc-0810-dashboard-recents-memo'];for(const key of ['historial','auditoria','codigosCompatibles','compatibilidadGit'])assert.equal(memoReg[key],undefined,'memo nueva sin heredar '+key);
-const memoNote=JSON.parse(source106('src/data/release-notes.json'))[0].tandas.find(g=>g.id==='inc-0810-dashboard-recents-memo');
+const memoNote=JSON.parse(history106('src/data/release-notes.json'))[0].tandas.find(g=>g.id==='inc-0810-dashboard-recents-memo');
 for(const key of ['codigoDesde','revisionesDesde','codigosCompatibles','compatibilidadGit','verdict'])assert.equal(memoNote[key],undefined,'memo nueva sin heredar '+key);

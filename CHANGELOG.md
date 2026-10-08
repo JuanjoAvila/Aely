@@ -1,10 +1,13 @@
+## [4.26.108] — 2026-10-08 · Edición de reglas de Metas (candidata)
+
+Edición de reglas de Metas, candidata separada del 8/10, sin versión final ni publicación: `editReservaRule` compara la copia semántica del formulario contra el estado fresco y conserva ID, contrato y campos desconocidos; los asientos previos permanecen en su meta y la mensual pendiente se aplica solo a la regla editada. El cierre requiere configuración confirmada; el rechazo al rebasar un updater provisional recupera el borrador sin reabrir por una edición posterior legítima. Nuevos guardianes de edición, céntimos y replay; integración, revisión, CI y aceptación móvil pendientes en [el acta](docs/briefs/inc-0810-metas-editar-regla.md).
+
 ## [4.26.107] — 2026-10-08 · Indicador al esconder la navegación
 
 - El indicador absoluto quedaba dentro del margen de overflow:clip cuando el host colapsaba la barra. La clase botnav-hidden oculta únicamente el indicador sin transición; FAB, fondo sólido y pseudos Cyberpunk conservan sus reglas.
 - La unión de los estados visible/oculto en movimiento reducido ahorra84 bytes CSS minificados. Se mantiene el marcador único del catálogo y duración calculada0s del sistema. Final107 con LF antes del minificador y reserva DSN95/sello107.99999:1317857raw/359030gzip, frente1317888/359021 de la base, sin ampliar topes. WindowsCRLF real1317881/359048, margen7/376.
 - Tanda nueva inc-0810-nav-indicator con19 alcances de CSS, geometría, controladores y dependencias reales. Preserva las33 unidades previas; contorno cambia por CSS real, sin aliasar ni repinar aprobaciones. DOM sintético12 nuevos+27 regresiones PASS; base12 FAIL por opacidad1 con barra oculta. La ruta Perfil→Ajustes→‹ reproduce una salida de historial también en8dcc y queda OPEN aparte; los paneles se prueban por entradas independientes.
 - Auditorías de metadatos106 en Auth leen el corte histórico8dcc, manteniendo runtime y todos los mutantes actuales. Así una nota107 no hace fallar la preservación de106 por su posición en el array. CI exacta es gate separado; candidata local, sin publicación ni aceptación móvil. [Acta](docs/briefs/inc-0810-nav-indicator.md).
-
 ## [4.26.106] — 2026-10-08 · Recientes de Inicio al abrir presupuesto
 
 - Dashboard conserva la derivación real de tres recientes mediante useMemo con expenses/deleted como dependencias. Mantiene filtro de lápidas, orden estable por fecha y objetos originales; las actualizaciones relevantes invalidan.

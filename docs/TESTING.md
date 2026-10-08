@@ -22,6 +22,8 @@ la fuente actual. No acredita móvil, WebView nativa, rendimiento sostenido ni e
 
 ## Apuntar: fila visible e importe persistido (5/10)
 
+Edición de reglas de Metas (candidata 8/10): `reserva-dinero` conserva su registro en el runner y añade edición mensual asentada/pendiente y por ingreso, identidad, campos desconocidos, igualdad semántica tras JSONB, estado fresco y no-op. `metas-editar-regla.spec.mjs`, mapeado a motor y Metas, abre la pantalla real en es/en/ca: cancelar, guardar, céntimos, recargar, doble toque, rebase sobre regla/meta borrada o modificada, actualización posterior, mes nuevo de Madrid y replay del updater de App. Datos sintéticos; requiere lease local y no acredita móvil real. Resultados exactos y límites en [el acta](briefs/inc-0810-metas-editar-regla.md).
+
 `pulido-numpad` y `efectivo-apuntar` navegan a Gastos después de guardar y comprueban una única
 fila `button[data-expense-id]` con su importe. Inicio y Gastos pueden conservar el mismo texto
 montado: un `getByText(...).first()` global podía elegir una copia oculta y hacer fallar la CI

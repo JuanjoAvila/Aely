@@ -337,7 +337,7 @@ function ReservaRules({state, set}){
   const mensualTexto=function(r){
     const id="mensual|"+r.id+"|"+clave, log=state.reservaLog||[];
     const hecho=log.find(function(x){ return x&&x.id===id; });
-    if(hecho && !log.some(function(x){ return x&&x.releaseOf===id; })) return tf("rr_m_ok",{x:reservaEur(hecho.amount)});
+    if(hecho && !log.some(function(x){ return x&&x.releaseOf===id; })) return tf("rr_m_ok",{x:reservaEur(hecho.amount)})+(hecho.goalId!==r.goalId?" → "+goalName(hecho.goalId):"");
     const motivo=reservaMensualImporte(state,r).motivo;
     return motivo==="base"?t("rr_m_base"):(motivo==="meta"?t("rr_m_meta"):t("rr_m_none"));
   };
@@ -350,16 +350,26 @@ function ReservaRules({state, set}){
      cargado puede tardar). Por eso NO se olvida por tiempo: solo la sustituye otra alta, o la
      descartan Cancelar, abrir el formulario de nuevo o borrar esa misma regla. */
   const [sent,setSent]=useState(null);
-  const sentIn=!!sent && rules.some(function(r){ return r.id===sent.id; });
+  const [editing,setEditing]=useState(null);
+  const saving=useRef(false);
+  const editResult=useRef(null);
+  const sentIn=!!sent && rules.some(function(r){ return r.id===sent.id && (!sent.edit || sent.seen || reservaRuleSame(r,sent.rule)); });
   // En el propio commit (layout): el cierre y la recuperación no esperan al trabajo pendiente del
   // planificador, que en un móvil cargado puede tardar justo cuando más falta hace el aviso.
   useLayoutEffect(function(){
     if(!sent) return;
-    if(sentIn){ if(!sent.seen){ setSent(Object.assign({},sent,{seen:true})); setAdding(false); setForm(blank); setErr(""); } return; }
+    // React puede pintar el guardado antes de rebasarlo sobre una escritura anterior en cola.
+    // Recuperar SOLO el rechazo de ese updater no reabre una edición posterior legítima.
+    const rejected=sent.edit && editResult.current && editResult.current.id===sent.id && editResult.current.error;
+    if(rejected){ saving.current=false; setSent(null); setEditing(sent.edit); setForm(sent.form); setErr(rejected); setAdding(true); return; }
+    if(sentIn){ if(!sent.seen){ setSent(Object.assign({},sent,{seen:true})); saving.current=false; setAdding(false); setEditing(null); setForm(blank); setErr(""); } return; }
+    const changed=sent.edit && !sent.seen && (rules.filter(function(r){ return r.id===sent.id; }).length!==1 || !rules.some(function(r){ return reservaRuleSame(r,sent.edit); }));
+    if(changed){ saving.current=false; setSent(null); setEditing(sent.edit); setForm(sent.form); setErr("changed"); setAdding(true); return; }
+    if(!reservaMetaActiva(state,sent.goalId)) saving.current=false;
     if(!reservaMetaActiva(state,sent.goalId)){ setSent(null); setForm(sent.form); setErr("goal"); setAdding(true); }
-  },[sent,sentIn,state.goals]);
+  },[sent,sentIn,state.goals,rules]);
   const addRule=function(){
-    if(sent && !sent.seen) return;   // ya hay un alta en camino: un segundo toque no crea otra
+    if(saving.current || (sent && !sent.seen)) return;
     /* Un alta que no vale se quedaba con el formulario abierto y sin una palabra (feedback 3/10).
        La meta se comprueba AL GUARDAR: el formulario abierto puede conservar una que entretanto
        se cumplió o se borró (otro móvil, la nube), y no se elige otra por él.
@@ -368,10 +378,23 @@ function ReservaRules({state, set}){
     const v=reservaImporteDe(form.value);
     if(v==null || !(v>0)){ setErr("amount"); return; }
     if(form.kind==="pct" && v>100){ setErr("pct"); return; }
-    // Las reglas nuevas son mensuales: descuentan y aportan en esta misma escritura (4/10).
-    const r={id:uid(),name:form.name||"",kind:form.kind,value:v,goalId:form.goalId,mensual:true};
-    setErr(""); setSent({id:r.id,goalId:r.goalId,form:form});
-    set(function(s){ return addReservaRule(s,r); });
+    // Solo las altas eligen contrato mensual; editar conserva también campos desconocidos.
+    const r=editing?Object.assign({},editing,{name:form.name||"",kind:form.kind,value:v,goalId:form.goalId})
+      :{id:uid(),name:form.name||"",kind:form.kind,value:v,goalId:form.goalId,mensual:true};
+    const outcome={id:r.id,error:""};
+    saving.current=true; editResult.current=outcome;
+    if(editing){ setErr(""); setSent({id:r.id,goalId:r.goalId,form:form,edit:editing,rule:r}); }
+    else{ setErr(""); setSent({id:r.id,goalId:r.goalId,form:form}); }
+    set(function(s){
+      const next=editing?editReservaRule(s,editing,r):addReservaRule(s,r);
+      if(editing && editResult.current===outcome){
+        const present=((next.settings&&next.settings.reservaRules)||[]).filter(function(x){ return x&&x.id===r.id; });
+        const active=reservaMetaActiva(s,r.goalId);
+        outcome.accepted=present.length===1&&reservaRuleSame(present[0],r)&&(outcome.accepted||active);
+        outcome.error=outcome.accepted?"":active?"changed":"goal";
+      }
+      return next;
+    });
   };
   const delRule=function(id){
     askConfirm({title:t("rr_delete_q"),sub:t("rr_delete_sub"),ok:t("rr_delete"),danger:true})
@@ -394,6 +417,7 @@ function ReservaRules({state, set}){
             :(r.kind==="pct"?tf("rr_row_pct",{v:r.value}):tf("rr_row_fixed",{v:reservaEur(r.value)})))+" → "+goalName(r.goalId)),
           r.mensual===true && React.createElement("div",{className:"sub-meta","data-reserva-mensual":r.id}, mensualTexto(r))
         ),
+        React.createElement("button",{className:"chip",onClick:function(){ saving.current=false; setSent(null); setEditing(JSON.parse(JSON.stringify(r))); setForm({name:r.name||"",kind:r.kind,value:String(r.value).replace(".",numPadDecSep()),goalId:r.goalId}); setErr(""); setAdding(true); }},t("rr_edit")),
         React.createElement("button",{className:"chip","aria-label":t("rr_delete"),style:{fontSize:11.5,padding:"3px 10px"},onClick:function(){ delRule(r.id); }}, "✕")
       );
     }),
@@ -404,17 +428,17 @@ function ReservaRules({state, set}){
           React.createElement("div",{className:"af-row"},
             React.createElement("select",{className:"af-in",value:form.kind,onChange:function(e){ setErr(""); setForm(Object.assign({},form,{kind:e.target.value})); }},
               React.createElement("option",{value:"fixed"},t("rr_kind_fixed")),
-              React.createElement("option",{value:"pct"},t("rr_kind_pct_m"))),
+              React.createElement("option",{value:"pct"},t(editing&&editing.mensual!==true?"rr_kind_pct":"rr_kind_pct_m"))),
             React.createElement("input",{className:"af-in num",inputMode:"decimal",placeholder:form.kind==="pct"?"%":"€",value:form.value,onChange:function(e){ setErr(""); setForm(Object.assign({},form,{value:e.target.value})); }})
           ),
           React.createElement("select",{className:"af-in",value:form.goalId,onChange:function(e){ setErr(""); setForm(Object.assign({},form,{goalId:e.target.value})); }},
             goals.map(function(g){ return React.createElement("option",{key:g.id,value:g.id}, (g.emoji||"🎯")+" "+g.name); })),
-          err && React.createElement("div",{className:"hint",role:"alert",style:{color:"var(--coral)",marginTop:6}}, err==="pct"?t("rr_err_pct"):(err==="goal"?t("rr_err_goal"):t("rr_err_amount"))),
-          React.createElement("div",{className:"hint",style:{marginTop:6}}, t("rr_m_hint")),
+          err && React.createElement("div",{className:"hint",role:"alert",style:{color:"var(--coral)",marginTop:6}}, err==="changed"?t("rr_err_changed"):(err==="pct"?t("rr_err_pct"):(err==="goal"?t("rr_err_goal"):t("rr_err_amount")))),
+          React.createElement("div",{className:"hint",style:{marginTop:6}}, t(editing?(editing.mensual===true?"rr_edit_monthly_hint":"rr_edit_income_hint"):"rr_m_hint")),
           React.createElement("button",{className:"btn btn-primary btn-block",style:{marginTop:8},onClick:addRule}, t("rr_save")),
-          React.createElement("button",{className:"btn btn-ghost btn-block",onClick:function(){ setSent(null); setAdding(false); setErr(""); setForm(blank); }}, t("gl_cancel"))
+          React.createElement("button",{className:"btn btn-ghost btn-block",onClick:function(){ saving.current=false; setSent(null); setEditing(null); setAdding(false); setErr(""); setForm(blank); }}, t("gl_cancel"))
         )
-      : React.createElement("button",{className:"v4-ghost-add",style:{marginTop:8},onClick:function(){ setSent(null); setForm(blank); setErr(""); setAdding(true); }}, t("rr_add"))
+      : React.createElement("button",{className:"v4-ghost-add",style:{marginTop:8},onClick:function(){ saving.current=false; setSent(null); setEditing(null); setForm(blank); setErr(""); setAdding(true); }}, t("rr_add"))
     )
   );
 }

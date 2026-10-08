@@ -44,17 +44,18 @@ test("Indicador107 vigila CSS, geometría y controladores sin reabrir dinero aje
 });
 test("Indicador107 conserva las33 unidades previas y declara el cambio real de contorno",()=>{
   const cache=new Map(),base=f=>{if(!cache.has(f))cache.set(f,execFileSync("git",["show","8dcc5ed39b6e212ba1e34a90b550685794ce0bd5:"+f],{encoding:"utf8",maxBuffer:8e6}));return cache.get(f);};
-  const antes=JSON.parse(base("scripts/beta-sources.json")),actual=JSON.parse(read("scripts/beta-sources.json"));
+  const cache107=new Map(),source107=f=>{if(!cache107.has(f))cache107.set(f,execFileSync("git",["show","70ffea58b515c333d76a33a34426f76d5476a6d9:"+f],{encoding:"utf8",maxBuffer:8e6}));return cache107.get(f);};
+  const antes=JSON.parse(base("scripts/beta-sources.json")),actual=JSON.parse(source107("scripts/beta-sources.json"));
   assert.equal(Object.keys(antes).length,33);
   assert.deepEqual(Object.keys(actual).filter(id=>!antes[id]),["inc-0810-nav-indicator"]);
   assert.equal(actual["inc-0810-nav-indicator"].unidades,true,"helpers y datos transitivos reales forman la revisión");
   for(const [id,scope] of Object.entries(antes)){
     assert.deepEqual(actual[id],scope,id+": alcance y auditorías intactos");
-    const previo=betaRevision(id,base,undefined,scope).web,vigente=betaRevision(id,read,undefined,scope).web;
+    const previo=betaRevision(id,base,undefined,scope).web,vigente=betaRevision(id,source107,undefined,scope).web;
     if(id==="inc-2709-13-fab-contorno") assert.notEqual(vigente,previo,"el CSS reducido realmente cambia contorno");
     else assert.equal(vigente,previo,id+": identidad previa intacta");
   }
-  const notas=JSON.parse(read("src/data/release-notes.json"));
+  const notas=JSON.parse(source107("src/data/release-notes.json"));
   assert.equal(notas[0].v,"4.26.107");
   assert.deepEqual(notas[0].tandas.map(g=>g.id),["inc-0810-nav-indicator"]);
   assert.deepEqual(notas.slice(1),JSON.parse(base("src/data/release-notes.json")),"notas y guiones anteriores intactos");
@@ -219,7 +220,8 @@ test("PERSIST91: el guardado en el commit invalida toda tanda que escribe estado
   const marca="INC-0410 guardado: de aquí al límite";
   const dependientes=Object.keys(registro).filter(id=>registro[id].web.some(x=>x.from&&x.from.includes(marca)));
   const ajenas=Object.keys(registro).filter(id=>!dependientes.includes(id));
-  assert.equal(dependientes.length,20);
+  assert.equal(dependientes.length,21);
+  assert.ok(dependientes.includes("inc-0810-metas-editar-regla"),"editar una regla escribe con el set real y conserva el cierre de persistencia");
   assert.ok(dependientes.includes("inc-0710-gastos-mes-madrid"),"Gastos99 conserva la dependencia real de guardado de Expenses");
   assert.deepEqual(ajenas.slice().sort(),["beta-panel-veredictos","inc-0210-01-plan-cuota","inc-0410-inicio-tres-metas","inc-0710-appstate-listener-cleanup","inc-0710-banknotif-cleanup","inc-0810-dashboard-recents-memo","inc-0810-nav-indicator","inc-2709-01-arranque-red","inc-2709-09-fechas-cache","inc-2709-12-cyber-fab","inc-2709-13-fab-contorno","inc-2709-14-preguntar","ops-0410-panel-cola","tr-descripcion-clasificacion"]);
   /* Quién depende del guardado lo decide el CÓDIGO, no la marca del registro (auditoría del

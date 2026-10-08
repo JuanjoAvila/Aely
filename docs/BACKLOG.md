@@ -15,6 +15,8 @@ Promoción4/10: las once tandas de beta4.26.94.1 tienen aprobación vigente. Pro
 
 ## INC-0410 · P1 · alta de reglas de Metas · 4/10/2026
 
+Editar reglas existentes se prepara en la candidata propia4.26.108 del 8/10 sobre8dcc: conserva ID, contrato mensual/por ingreso, campos desconocidos y asientos ya aplicados; valida estado fresco y recupera el borrador ante rechazo. DOM local y guardianes afectados verificados; revisión, CI, integración y aceptación móvil pendientes. No cierra lag, escrituras simultáneas LWW ni máximo de tres metas en Inicio. [Estado y pruebas](briefs/inc-0810-metas-editar-regla.md).
+
 Snapshot16:02UTC, superado por el OK vigente de Metas94 a17:11:22UTC: rechazo histórico de la4.26.87 conservado. El contrato decidido el4/10 está implementado en la candidata94: guardar descuenta del presupuesto mensual y aporta a la meta, por regla y mes de Madrid; las reglas antiguas conservan el reparto por ingreso. Cierre local16:02UTC:162 casos DOM incluidos dos clientes en secuencia, Node completo sobre094a7d23 con único fallo local de memoria-espejo, revisión por lectura de Claude sin bloqueantes y sello1317221raw/358763gzip dentro de1287/351KiB/3. CI, Deno y publicación beta pendientes. **Sigue abierto:** lag no reproducido en el banco, escrituras simultáneas LWW, editar una regla ya creada y máximo de tres metas en Inicio. El aviso de reparto antiguo acepta cualquier ingreso grande reciente, sin acreditar que sea una nómina. Actas: [contrato mensual](briefs/inc-0410-metas-mensual.md) · [alta de reglas](briefs/inc-0410-metas-alta.md).
 ## OPS-0410 · prioridad humana: cola beta y coste de tests
 

@@ -1,22 +1,94 @@
 [
   {
+    "v": "4.26.108",
+    "d": "2026-10-08",
+    "t": {
+      "es": "Editar las reglas de ahorro",
+      "en": "Edit savings rules",
+      "ca": "Edita les regles d’estalvi"
+    },
+    "items": {
+      "es": [
+        "Las reglas de Metas permiten cambiar nombre, importe y destino. Las aportaciones anteriores se conservan."
+      ],
+      "en": [
+        "Goal rules let you change the name, amount and destination. Past contributions are preserved."
+      ],
+      "ca": [
+        "Les regles de Metes permeten canviar nom, import i destinació. Les aportacions anteriors es conserven."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inc-0810-metas-editar-regla",
+        "t": {
+          "es": "Editar las reglas de ahorro",
+          "en": "Edit savings rules",
+          "ca": "Edita les regles d’estalvi"
+        },
+        "items": {
+          "es": [
+            "1. En Plan → Metas → Reservar dinero, edita una regla, cambia el importe con céntimos y cancela: debe conservarse. Vuelve a editarla y guarda: al reabrir y recargar deben mantenerse los cambios.",
+            "2. En una regla ya aplicada este mes, cambia la meta: la aportación anterior y el presupuesto no deben cambiar. La línea de este mes debe seguir mostrando la meta anterior."
+          ],
+          "en": [
+            "1. In Plan → Goals → Reserve money, edit a rule, change the amount with cents and cancel: it should stay unchanged. Edit again and save: reopening and reloading should retain the changes.",
+            "2. For a rule already applied this month, change the goal: the past contribution and budget should stay unchanged. This month’s line should still show the original goal."
+          ],
+          "ca": [
+            "1. A Pla → Metes → Reservar diners, edita una regla, canvia l’import amb cèntims i cancel·la: s’ha de conservar. Torna a editar-la i desa: en reobrir i recarregar s’han de mantenir els canvis.",
+            "2. En una regla ja aplicada aquest mes, canvia la meta: l’aportació anterior i el pressupost no han de canviar. La línia d’aquest mes ha de continuar mostrant la meta anterior."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.107",
     "d": "2026-10-08",
-    "t": {"es":"El indicador acompaña a la barra","en":"The indicator follows the navigation bar","ca":"L’indicador acompanya la barra"},
-    "items": {
-      "es":["La rayita de la pestaña activa se esconde junto a la barra y vuelve al subir. El botón Apuntar conserva su recorrido."],
-      "en":["The active tab indicator hides with the navigation bar and returns when scrolling up. The Add button keeps moving with the bar."],
-      "ca":["La ratlleta de la pestanya activa s’amaga amb la barra i torna en pujar. El botó Apuntar conserva el seu recorregut."]
+    "t": {
+      "es": "El indicador acompaña a la barra",
+      "en": "The indicator follows the navigation bar",
+      "ca": "L’indicador acompanya la barra"
     },
-    "tandas": [{
-      "id":"inc-0810-nav-indicator",
-      "t":{"es":"El indicador acompaña a la barra","en":"The indicator follows the navigation bar","ca":"L’indicador acompanya la barra"},
-      "items": {
-        "es":["1. En Inicio, baja despacio hasta que se esconda la barra: la rayita de la pestaña debe desaparecer. Sube de nuevo: deben volver la barra, la rayita y el botón Apuntar.","2. Con el tema Cyberpunk, repite el gesto: el botón Apuntar debe acompañar a la barra, conservar su círculo y no quedar atravesado por la corriente. Repite con Reducir animaciones activado.","3. Abre y cierra el perfil. Desliza desde el borde izquierdo de Inicio para abrir Ajustes y vuelve: la rayita debe reaparecer al cerrar. Toca Apuntar y comprueba que se abre el teclado."],
-        "en":["1. On Home, scroll down slowly until the navigation bar hides: the active tab indicator should disappear. Scroll up again: the bar, indicator and Add button should return.","2. With the Cyberpunk theme, repeat the gesture: the Add button should move with the bar, retain its circle and stay in front of the current. Repeat with Reduce motion enabled.","3. Open and close the profile. Swipe from the left edge of Home to open Settings and return: the indicator should reappear after closing. Tap Add and check that the keypad opens."],
-        "ca":["1. A Inici, baixa a poc a poc fins que s’amagui la barra: la ratlleta de la pestanya ha de desaparèixer. Torna a pujar: han de tornar la barra, la ratlleta i el botó Apuntar.","2. Amb el tema Cyberpunk, repeteix el gest: el botó Apuntar ha d’acompanyar la barra, conservar el cercle i quedar davant del corrent. Repeteix-ho amb Reduir animacions activat.","3. Obre i tanca el perfil. Llisca des de la vora esquerra d’Inici per obrir Ajustos i torna: la ratlleta ha de reaparèixer en tancar. Toca Apuntar i comprova que s’obre el teclat."]
+    "items": {
+      "es": [
+        "La rayita de la pestaña activa se esconde junto a la barra y vuelve al subir. El botón Apuntar conserva su recorrido."
+      ],
+      "en": [
+        "The active tab indicator hides with the navigation bar and returns when scrolling up. The Add button keeps moving with the bar."
+      ],
+      "ca": [
+        "La ratlleta de la pestanya activa s’amaga amb la barra i torna en pujar. El botó Apuntar conserva el seu recorregut."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inc-0810-nav-indicator",
+        "t": {
+          "es": "El indicador acompaña a la barra",
+          "en": "The indicator follows the navigation bar",
+          "ca": "L’indicador acompanya la barra"
+        },
+        "items": {
+          "es": [
+            "1. En Inicio, baja despacio hasta que se esconda la barra: la rayita de la pestaña debe desaparecer. Sube de nuevo: deben volver la barra, la rayita y el botón Apuntar.",
+            "2. Con el tema Cyberpunk, repite el gesto: el botón Apuntar debe acompañar a la barra, conservar su círculo y no quedar atravesado por la corriente. Repite con Reducir animaciones activado.",
+            "3. Abre y cierra el perfil. Desliza desde el borde izquierdo de Inicio para abrir Ajustes y vuelve: la rayita debe reaparecer al cerrar. Toca Apuntar y comprueba que se abre el teclado."
+          ],
+          "en": [
+            "1. On Home, scroll down slowly until the navigation bar hides: the active tab indicator should disappear. Scroll up again: the bar, indicator and Add button should return.",
+            "2. With the Cyberpunk theme, repeat the gesture: the Add button should move with the bar, retain its circle and stay in front of the current. Repeat with Reduce motion enabled.",
+            "3. Open and close the profile. Swipe from the left edge of Home to open Settings and return: the indicator should reappear after closing. Tap Add and check that the keypad opens."
+          ],
+          "ca": [
+            "1. A Inici, baixa a poc a poc fins que s’amagui la barra: la ratlleta de la pestanya ha de desaparèixer. Torna a pujar: han de tornar la barra, la ratlleta i el botó Apuntar.",
+            "2. Amb el tema Cyberpunk, repeteix el gest: el botó Apuntar ha d’acompanyar la barra, conservar el cercle i quedar davant del corrent. Repeteix-ho amb Reduir animacions activat.",
+            "3. Obre i tanca el perfil. Llisca des de la vora esquerra d’Inici per obrir Ajustos i torna: la ratlleta ha de reaparèixer en tancar. Toca Apuntar i comprova que s’obre el teclat."
+          ]
+        }
       }
-    }]
+    ]
   },
   {
     "v": "4.26.106",
