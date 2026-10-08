@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "id": "review-0810-backclose110-claude-local",
+  "from": "codex",
+  "coordinatorSession": "relay-run-local0810a73f9b",
+  "createdAt": "2026-10-08T21:56:15.717Z",
+  "to": "claude",
+  "baseSHA": "f4ffb9340adfd0a13b631271e8158d2c630613c0",
+  "objective": "Readonly review source6b3e0c920359611b7585356639eb265f73e2444a/treeb5e8db039a479861de96388c3c4deae587a3e3f2 PR192 draftbeta110. Audit controller02, Ask05, NativeApp11, BillsWizard14: owner/token/foreignroute, pendingpop/sameturnhandover, openingclosures/currentidentityrefs, financialcancel/savecallbacks unchanged, parent/child/unmount/StrictMode. Root30selectedguards1782func701data +21contracts47UI mutants,18DOM104PASS0retry; not wholeCI/mobile. CI37849872932 pending; beta106.1 actual untilpublisher109 terminal. No productchanges/push/merge/publication/backend/SQL/privateuserdata. Require own actualWT/branch-or-detached/sourceSHA/tree/PR/testcommands and terminal results in valid ACK/result. Preserve limits/released:true. Focus existingcontracts; no redundant wholeCI.",
+  "scope": [
+    "src/modules/02-ui-shared.js",
+    "src/modules/05-dialogs-inv.js",
+    "src/modules/11-app-main.js",
+    "src/modules/14-v4-screens.js",
+    "tests/backclose-history.test.mjs",
+    "e2e/backclose-handover.spec.mjs",
+    "docs/briefs/inc-0810-backclose-handover.md"
+  ]
+}
