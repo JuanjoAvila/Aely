@@ -112,6 +112,21 @@ test("Integración109 conserva las tres revisiones y solo cambia dos identidades
   assert.deepEqual(changed.sort(),["inc-0310-01-meta-regla","inc-2709-13-fab-contorno"]);
 });
 
+// El retiro es selectivo: se apoya en código publicado inmutable y conserva cada guion
+// pendiente/rechazado. El gate HTTP/ZIP previo queda en el acta, no se infiere de este test.
+test("Retiro109 elimina solo las cinco aprobadas entregadas y conserva todo el historial",()=>{
+  const cache=new Map(),at=(sha,f)=>{const k=sha+":"+f;if(!cache.has(k))cache.set(k,execFileSync("git",["show",k],{encoding:"utf8",maxBuffer:10e6}));return cache.get(k);};
+  const published=f=>at("b1ad23f34f2a94933e57246dfdf12c451f5360a1",f);
+  const ids=["inc-0710-gastos-mes-madrid","inc-0710-appstate-listener-cleanup","inc-0710-banknotif-cleanup","inc-0710-auth-disposal","inc-0810-dashboard-recents-memo"];
+  for(const id of ids)assert.equal(betaRevision(id,read).web,betaRevision(id,published).web,id+": código idéntico al entregado");
+  const before=JSON.parse(at("b1f871750469a5439ada6cea2284fc0ff407cd46","src/data/release-notes.json"));
+  const expected=before.map(n=>Array.isArray(n.tandas)?{...n,tandas:n.tandas.filter(g=>!ids.includes(g.id))}:n);
+  const actual=JSON.parse(read("src/data/release-notes.json"));assert.deepEqual(actual,expected,"sólo se retiran esas cinco, sin borrar notas, pendientes ni rechazos");
+  assert.equal(actual.length,226);assert.ok(!actual.some(n=>(n.tandas||[]).some(g=>ids.includes(g.id))));
+});
+
+if(process.argv.includes("--integration-only")) process.exit(failed?1:0);
+
 // La revisión debe invalidarse si vuelve la columna ajena o cambia el periodo o la cifra.
 test("Gastos90 vigila columna, ancho, periodo y cifras",()=>{
   const id="inc-0310-gastos-sin-limite",source=f=>read(f).replace(/\r\n/g,"\n"),before=betaRevision(id,source).web;

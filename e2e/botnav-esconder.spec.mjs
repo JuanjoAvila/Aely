@@ -152,13 +152,21 @@ test("si Android CANCELA el scroll vertical, la barra sigue oculta y el estado q
   const cdp = await page.context().newCDPSession(page);
 
   const y0 = 600;
+  // En este fixture la nota de Inicio añade 18 px de recorrido: el gesto fijo dejaba 22 px
+  // sin bajar y nunca probaba el cancel en el borde (CI 8/10/2026). Se llega con el dedo,
+  // midiendo el borde real; el límite de 4 px y las comprobaciones posteriores no cambian.
+  expect((await alturaScroll(page)).max, "el escenario necesita un recorrido real").toBeGreaterThan(60);
+  let bordeAlcanzado = false;
   await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: 187, y: y0 }] });
-  for (let i = 1; i <= 30; i++) {
+  for (let i = 1; i <= Math.floor((y0 - 40) / 16); i++) {
     await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: 187, y: y0 - i * 16 }] });
     await page.waitForTimeout(16);
+    const s = await alturaScroll(page);
+    if (s.max > 0 && s.max - s.y <= 4) { bordeAlcanzado = true; break; }
   }
   // El navegador se lleva el gesto: nada de touchEnd.
   await cdp.send("Input.dispatchTouchEvent", { type: "touchCancel", touchPoints: [] });
+  expect(bordeAlcanzado, "el dedo debe alcanzar el borde antes del touchcancel").toBe(true);
   await expect.poll(async () => {
     const s = await alturaScroll(page);
     return s.max - s.y;

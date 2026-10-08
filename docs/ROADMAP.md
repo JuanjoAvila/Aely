@@ -2,7 +2,7 @@
 
 Promoción4/10: las once tandas de beta4.26.94.1 tienen aprobación vigente. Producción4.26.94/source8bb0398f servida y cotejada; APK52 estable y las tres funciones Edge entregadas. La limpieza conserva notas y decisiones; solo retira las once entregadas, sin producto nuevo. Prioridad permanente: producción de lo aprobado antes de otra implementación. [Acta](briefs/promocion-aprobadas-2026-10-04.md).
 
-> Estado a 2026-10-08 · **v4.26.109** candidata de integración local: indicador oculto con la barra, edición de reglas de Metas conservando identidad e historial, y explicación de la gráfica de Inicio sin fechas, con escala relativa y EUR. Pruebas locales individuales documentadas; CI, verificación conjunta, entrega y aceptación móvil pendientes. INC-2709-09 sigue abierto.
+> Estado a 2026-10-08 · **v4.26.109** candidata de integración local: indicador oculto con la barra, edición de reglas de Metas conservando identidad e historial, y explicación de la gráfica de Inicio sin fechas, con escala relativa y EUR. Pruebas conjuntas67/67 y guardianes verificados; CI final, entrega y aceptación móvil pendientes. INC-2709-09 sigue abierto.
 
 > Promoción96 fusionada en main `85b8b540`; fuente separada de beta98/99. El merge acredita integración, no artefactos servidos: CI/publicador/HTTP exactos deben confirmarse antes de retirar Inicio96 del catálogo beta. [Acta de origen](briefs/promocion-inicio96-2026-10-06.md).
 
@@ -265,7 +265,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.26.109** candidata de integración local: Navegación, Metas e Inicio. CI, verificación conjunta, entrega y aceptación móvil pendientes. |
+| Web / OTA (`VERSION`) | **4.26.109** candidata de integración local: Navegación, Metas e Inicio. Verificación conjunta local67/67; CI final, entrega y aceptación móvil pendientes. |
 | APK (`versionName` / `versionCode`) | **4.26.80 / 52** conservada de la base; Metas87 no genera APK. Cotejo servido en gate de entrega. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **52 / 4.26.80** conservado byte a byte respecto a3467; Metas87 no reemplaza binario ni manifiesto. |

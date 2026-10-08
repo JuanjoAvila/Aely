@@ -150,27 +150,7 @@
         "Inici conserva els moviments recents en obrir i tancar el pressupost, i els actualitza quan canvien."
       ]
     },
-    "tandas": [
-      {
-        "id": "inc-0810-dashboard-recents-memo",
-        "t": {
-          "es": "Recientes al abrir el presupuesto",
-          "en": "Recent transactions when opening the budget",
-          "ca": "Recents en obrir el pressupost"
-        },
-        "items": {
-          "es": [
-            "1. En Inicio, abre y cierra el presupuesto varias veces: los tres movimientos recientes deben conservar importe y orden. Después añade, edita o elimina un movimiento: la lista debe actualizarse."
-          ],
-          "en": [
-            "1. On Home, open and close the budget several times: the three recent transactions should retain their amount and order. Then add, edit or delete a transaction: the list should update."
-          ],
-          "ca": [
-            "1. A Inici, obre i tanca el pressupost diverses vegades: els tres moviments recents han de conservar import i ordre. Després afegeix, edita o elimina un moviment: la llista s’ha d’actualitzar."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.102",
@@ -191,27 +171,7 @@
         "S’alliberen les accions de sessió en retirar l’app."
       ]
     },
-    "tandas": [
-      {
-        "id": "inc-0710-auth-disposal",
-        "t": {
-          "es": "Sesión al cerrar",
-          "en": "Session cleanup",
-          "ca": "Sessió en tancar"
-        },
-        "items": {
-          "es": [
-            "1. Prueba inicio, cierre de sesión y recuperación de contraseña."
-          ],
-          "en": [
-            "1. Test sign-in, sign-out and password recovery."
-          ],
-          "ca": [
-            "1. Prova inici, tancament de sessió i recuperació de contrasenya."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.101",
@@ -232,27 +192,7 @@
         "Els avisos del banc deixen de conservar accions d’una sessió tancada."
       ]
     },
-    "tandas": [
-      {
-        "id": "inc-0710-banknotif-cleanup",
-        "t": {
-          "es": "Avisos tras cambiar de sesión",
-          "en": "Notifications after switching sessions",
-          "ca": "Avisos després de canviar de sessió"
-        },
-        "items": {
-          "es": [
-            "1. En Android, cambia de sesión y vuelve a la app: los avisos de banco deben seguir respetando la opción de actualización elegida. No hace falta activar avisos ni hacer operaciones."
-          ],
-          "en": [
-            "1. On Android, switch sessions and return: bank notifications should still respect your chosen update setting. There is no need to enable notifications or perform transactions."
-          ],
-          "ca": [
-            "1. A Android, canvia de sessió i torna a l’app: els avisos del banc han de continuar respectant l’opció d’actualització triada. No cal activar avisos ni fer operacions."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.100",
@@ -273,30 +213,7 @@
         "Després de canviar de sessió, tornar a l’app no repeteix les mateixes accions."
       ]
     },
-    "tandas": [
-      {
-        "id": "inc-0710-appstate-listener-cleanup",
-        "t": {
-          "es": "Volver tras cambiar de sesión",
-          "en": "Returning after switching sessions",
-          "ca": "Tornar després de canviar de sessió"
-        },
-        "items": {
-          "es": [
-            "1. Si cambias de sesión durante el uso normal, vuelve a abrir la app varias veces: debe seguir respondiendo sin repetir acciones al regresar.",
-            "2. Prueba también volver tras usar otras pantallas. Si aparece lentitud acumulada, indica si hubo un cambio de sesión; esta prueba no confirma su resolución general."
-          ],
-          "en": [
-            "1. If you switch sessions during normal use, return to the app several times: it should remain responsive without repeating actions on return.",
-            "2. Also return after using other screens. If sluggishness accumulates, indicate whether the session changed; this test does not confirm a general resolution."
-          ],
-          "ca": [
-            "1. Si canvies de sessió durant l’ús normal, torna a obrir l’app diverses vegades: ha de continuar responent sense repetir accions en tornar.",
-            "2. Prova també tornar després d’utilitzar altres pantalles. Si s’acumula lentitud, indica si hi ha hagut un canvi de sessió; aquesta prova no confirma una resolució general."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.99",
@@ -317,30 +234,7 @@
         "Les despeses de mitjanit apareixen al mes correcte. La llista, el resum, les categories i les dates coincideixen també a Mes passat i Últims 3 mesos."
       ]
     },
-    "tandas": [
-      {
-        "id": "inc-0710-gastos-mes-madrid",
-        "t": {
-          "es": "Gastos respeta el mes de Madrid",
-          "en": "Expenses follows the Madrid calendar month",
-          "ca": "Despeses respecta el mes de Madrid"
-        },
-        "items": {
-          "es": [
-            "1. En Gastos compara Este mes y Mes pasado: los apuntes cercanos a medianoche deben aparecer en su mes de Madrid, con el mismo total en resumen y categorías.",
-            "2. Abre Últimos 3 meses: deben incluirse el mes actual y los dos anteriores, con las fechas correctas y sin el presupuesto de un solo mes."
-          ],
-          "en": [
-            "1. In Expenses compare This month and Last month: entries around midnight should appear in their Madrid month, with matching totals in the summary and categories.",
-            "2. Open Last 3 months: it should include the current month and the previous two, with correct dates and no single-month budget."
-          ],
-          "ca": [
-            "1. A Despeses compara Aquest mes i Mes passat: els apunts prop de mitjanit han de sortir al seu mes de Madrid, amb el mateix total al resum i les categories.",
-            "2. Obre Últims 3 mesos: ha d’incloure el mes actual i els dos anteriors, amb les dates correctes i sense el pressupost d’un sol mes."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.98",

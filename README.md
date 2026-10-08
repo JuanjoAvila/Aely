@@ -111,7 +111,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.109** candidata de integración local: indicador oculto con la barra, edición de reglas de Metas conservando identidad e historial, y explicación de la gráfica de Inicio sin fechas, con escala relativa y EUR. Pruebas locales individuales documentadas; CI, verificación conjunta, entrega y aceptación móvil pendientes. INC-2709-09 sigue abierto. [Navegación](docs/briefs/inc-0810-nav-indicator.md) · [Metas](docs/briefs/inc-0810-metas-editar-regla.md) · [Inicio](docs/briefs/pro-02-0810-chart-meaning.md).
+Estado actual: **v4.26.109** candidata de integración local: indicador oculto con la barra, edición de reglas de Metas conservando identidad e historial, y explicación de la gráfica de Inicio sin fechas, con escala relativa y EUR. Pruebas conjuntas67/67 y guardianes verificados; CI final, entrega y aceptación móvil pendientes. INC-2709-09 sigue abierto. [Navegación](docs/briefs/inc-0810-nav-indicator.md) · [Metas](docs/briefs/inc-0810-metas-editar-regla.md) · [Inicio](docs/briefs/pro-02-0810-chart-meaning.md).
 
 Corte anterior (4/10, 12:30 UTC, panel de revisión): **v4.26.93** publicada en beta. Primera entrega4.26.93.1 (fuente1d5dd782), CI37200314653SUCCESS y HTTP/ZIP/HTML/SW/catálogo/huella cotejados el4/10 a12:30UTC:11 tandas/24 puntos, frente a40 antes del cambio. Producción4.26.86 (d366215a), APK beta4.26.80/code52 y estable4.26.32/code48 conservadas. Prueba y aprobación móvil pendientes. [Acta](docs/briefs/ops-0410-panel-cola.md).
 
