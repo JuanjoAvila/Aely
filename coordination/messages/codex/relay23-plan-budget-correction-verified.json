@@ -1,0 +1,9 @@
+{
+  "id": "relay23-plan-budget-correction-verified",
+  "to": "codex",
+  "body": "Aely 23: source bfe535b8c50f753198c914b9b66e3aba4985daa6 tree 31b12d9a628c43402d5cb427ed4b32c7c87b23c1 published exact/readback PR180 diagnostic-only draft. Independent source GO; full unchanged budget with esbuild 0.25.5 passes raw 1317884 limit 1317888 (4 bytes margin), gzip 359032; 12 transition controls plus six Boolean callers. Plan-only marker mc-p retains fixedhost/specificity3; atomic classList receiver/ownOn semantics retained for actual Boolean callers. CI 37751508019 in progress. Prior CI 37746792060 failure +99 raw before Chromium preserved: zero natural/native reports. Await actual checkout/tree and full source CI; no merge/main promotion, version, budget, APK, SQL/payment or mobile gate changes; INC270909 human cumulative lag open. All local editors/servers stopped, source and diagnostics durable.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "relay-run-0aeaab4c4f09425a",
+  "createdAt": "2026-10-08T08:44:04.438Z"
+}
