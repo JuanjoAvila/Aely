@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "id": "inc-2709-09-lifecycle-inflight-contract-relay25",
+  "from": "codex",
+  "coordinatorSession": "relay-run-aweghzwufqokxcrz",
+  "createdAt": "2026-10-08T16:35:53.575Z",
+  "kind": "investigation",
+  "to": "codex",
+  "baseSHA": "56c7e328ce801f0e2e2fe5ec1ebd36169f0ac89b",
+  "objective": "Verificar lifecycle y drenaje de lecturas sintéticas en vuelo sin modificar producto ni inferir causa del lag",
+  "scope": [
+    "Clean main56c7e328ce801f0e2e2fe5ec1ebd36169f0ac89b isolated checkout. Existing concurrent tasks and CI-only PR181/182 preserved. Read full AGENTS/EMPIEZA-AQUI at this base before any edit.",
+    "Proposal independently reviewed: existing Node late-success and browser overlap tests do not cover hidden/offline while a cloud-double read remains held, followed by newer success and late rejection. Add only two short browser contracts with real App lifecycle handlers and unchanged equal synthetic payloads.",
+    "Hold initial A before delivery to callsite, handshake start; hidden/offline/visible B fails with navigator.onLine/document state readback; online/hidden/visible C completes, then settle A as success or failure in independent cases. Attribute double Promise rejection explicitly, never claim setOffline cancels a real socket.",
+    "Require explicit starts/settlements/drainage and no unhandled rejection; exact synthetic finance raw state/expenses invariance as applicable, no newer result regression, no bankSync automatic. Do not impose global maxInFlight1 or new financial semantics. Preserve original tests, source runtime, public, versions/catalog and workflows byte-identical.",
+    "Minimal e2e existing persistencia/helper or dedicated spec with relevant registration and truthful docs; no private input text, real banks, credentials, SQL, timing budgets/retries/skips or long-series rerun. Strong independent final review and exact CI before result. No claim of performance fix or closing INC-2709-09."
+  ]
+}
