@@ -1,0 +1,38 @@
+{
+  "status": "done",
+  "summary": "ACK: WT=/tmp/claude-0/pr43 (git worktree detached, propio, solo lectura), rama=ninguna (HEAD detached; refs/pull/43/head), SHA=bf450c0b54828e3c0f59f3c6955e30e569f94355, tree=3552aaa2f0aab5c0c7fd0b7c71d73efec4187b62. merge-base con main y beta = b7912fb1 (main actual b1ad23f3, beta 8dcc5ed3). nonce=claude-review-fin04-pr43-4205f06b. VEREDICTO: la PR resuelve lo que dice (identidad UUID por id+user_id, source leido de la fila exacta y UPDATE condicionado al source leido = CAS, ACK solo con mismo id y source esperado, cero filas/error/sesion perdida/fuente desconocida no son exito, reintento max 3 que rebasa cambio del OTRO campo y falla ante cambio concurrente del MISMO campo, no sustituye UUID ausente por gemelo, no toca otras columnas). NADA de esto esta en main ni en beta: setExpenseBank/Dup siguen con expenseCloudEq + expenseSourceForCloud(copia local) y return silencioso sin sesion. Contraprueba: el test de la PR ejecutado sobre el 00-core de main (worktree b1ad23f3) da 2 OK / 16 FAIL EXIT 1; sobre la PR 18 OK / 0 FAIL EXIT 0. FINDINGS: [MEDIO] 00-core.js:1203-1210 el CAS solo cubre filas con UUID y escritores nuevos; un cliente antiguo puede pisar despues (documentado en el brief, sin RPC/revision de servidor ni deteccion ABA). [MEDIO] src/modules/04-tab-gastos.js (llamantes en main: l.272 y l.435) siguen con .catch(function(){}) y cambio local optimista: el rechazo nuevo (conflict/unsupported/unconfirmed) queda invisible; rescatar solo el transporte no da guardado fiable, necesita cola/estado pendiente (paso siguiente del brief). [BAJO] 00-core.js:1171-1184 cambio de comportamiento: banco/decision sobre fuentes macrodroid, tr, ob-hist (dup) o desconocidas ahora lanza 'unsupported' en vez de escribir o no-op; correcto y conservador, pero los llamantes lo tragan. Quitar banco (null) en filas ob lanza 'bank required'. [BAJO] 00-core.js:1203 el valor de campo se calcula parseando row.source a mano (split) en vez de reutilizar el regex de expenseSourceField; hoy coincide, pero son dos parsers que pueden divergir. [BAJO] tests/expense-source-ack.test.mjs:15-22 el helper extrae el cuerpo de setExpenseBank/Dup cortando por el texto '\\n    },': fragil ante reformateo; si no encuentra el marcador falla ruidosamente (aceptable). [INFO] La PR NO es integrable tal cual: base b7912fb1 muy atrasada, git apply --check falla en 00-core.js (contexto ~l.1163 y metodos movidos de l.660 a l.1105), run-tests.mjs, README y ARQUITECTURA; incluye public/index.html generado (debe regenerarse con npm run build, no mezclarse; riesgo -X theirs del promote). Media el hueco isExpenseUuid ya existe en main (l.1714). PLAN ACOTADO DE RESCATE: 1) rama nueva desde main actual; 2) portar a mano a src/modules/00-core.js solo expenseSourceField + writeExpenseSourceField y las dos lineas de guarda en setExpenseBank/Dup (UUID->writeExpenseSourceField, legado intacto); 3) copiar tests/expense-source-ack.test.mjs y comprobar que da 16 FAIL en main sin el arreglo y 18 OK con el; 4) registrar en steps de scripts/run-tests.mjs (+ comprobar presupuesto de descarga, estaba justo: 329/330 KB gzip en la base antigua); 5) npm run build, npm test, sin tocar public/ a mano; 6) docs: ARQUITECTURA, TESTING, brief y CHANGELOG; sin RELEASE_NOTES visibles hasta que exista la cola de confirmacion en UI; 7) siguiente entrega aparte: cola persistente + estado pendiente + proteccion del pull antes de refrescar por UUID; 8) prueba SQL/RLS real queda para Codex/dueno. No se ejecuto nada contra datos privados, SQL, Edge ni APK; no se edito producto ni se comento en la PR.",
+  "tests": [
+    {
+      "command": "node tests/expense-source-ack.test.mjs (en PR bf450c0b)",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/expense-id-cloud.test.mjs (en PR bf450c0b)",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/security.test.mjs (en PR bf450c0b)",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/expense-source-ack.test.mjs copiado sobre main b1ad23f3 (contraprueba, fallo esperado)",
+      "exitCode": 1
+    },
+    {
+      "command": "git apply --check parche PR sobre main b1ad23f3",
+      "exitCode": 1
+    }
+  ],
+  "productSHA": "bf450c0b54828e3c0f59f3c6955e30e569f94355",
+  "limitations": [
+    "Revision read-only; no se ejecuto npm test entero, e2e ni movil",
+    "Transporte simulado, sin SQL/RLS desplegado",
+    "No se reviso la UI de Gastos mas alla de los llamantes en main"
+  ],
+  "schema": 1,
+  "taskId": "review-0810-fin04-pr43-claude-local",
+  "actor": "claude",
+  "sessionId": "claude-cloud-20261008-4205f06b",
+  "createdAt": "2026-10-08T20:06:38.746Z",
+  "released": true
+}
