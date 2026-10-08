@@ -64,6 +64,53 @@ test("Indicador107 conserva las33 unidades previas y declara el cambio real de c
   }
 });
 if(process.argv.includes("--nav-indicator-only")) process.exit(failed?1:0);
+// La promesa visible necesita identidad propia: no debe heredar la aprobación de recientes106.
+test("Inicio109 vigila ausencia de fechas, moneda, escala y dibujo en los tres idiomas",()=>{
+  const id="inc-0810-inicio-grafica-significado",source=f=>read(f).replace(/\r\n/g,"\n"),before=betaRevision(id,source).web;
+  for(const [file,from,to] of [
+    ["src/modules/03-tab-dash.js",'?t("v4_chart_line"):t("v4_hist_empty")','?t("v4_hist_empty"):t("v4_chart_line")'],
+    ["src/modules/03-tab-dash.js",'data:state.history,current:tt.netWorth','data:state.history,current:0'],
+    ["src/modules/02-ui-shared.js",'const rng=(max-min)||1;','const rng=max||1;'],
+    ...[
+      ["Solo se muestra el total actual", "Tu histórico empieza hoy"],
+      ["Only the current total is shown", "Your history starts today"],
+      ["Només es mostra el total actual", "El teu històric comença avui"],
+      ["Cifras sin fecha en EUR", "Cifras sin fecha"],
+      ["Undated figures in EUR", "Undated figures"],
+      ["Xifres sense data en EUR", "Xifres sense data"],
+      ["escala relativa del mínimo al máximo, no desde cero", "escala desde cero"],
+      ["relative scale from minimum to maximum, not from zero", "scale from zero"],
+      ["escala relativa del mínim al màxim, no des de zero", "escala des de zero"],
+    ].map(([from,to])=>["src/modules/01-i18n.js",from,to]),
+  ]){
+    assert.ok(source(file).includes(from),"el mutante debe tocar la fuente real: "+from);
+    assert.notEqual(betaRevision(id,f=>f===file?source(f).replace(from,to):source(f)).web,before,from);
+  }
+  const ajeno='pt_trb_hint:"';
+  assert.equal(betaRevision(id,f=>f==="src/modules/01-i18n.js"?source(f).replace(ajeno,ajeno+"· "):source(f)).web,before,"una ayuda financiera ajena no cambia esta unidad");
+});
+
+// La integración debe mantener las identidades ya probadas en cada candidata, sin aprobar
+// trabajo ajeno por compartir VERSION. Los dos cambios antiguos se declaran y no se aliasan.
+test("Integración109 conserva las tres revisiones y solo cambia dos identidades anteriores",()=>{
+  const cache=new Map(),at=(sha,f)=>{const k=sha+":"+f;if(!cache.has(k))cache.set(k,execFileSync("git",["show",k],{encoding:"utf8",maxBuffer:10e6}));return cache.get(k);};
+  const base=f=>at("8dcc5ed39b6e212ba1e34a90b550685794ce0bd5",f),before=JSON.parse(base("scripts/beta-sources.json")),actual=JSON.parse(read("scripts/beta-sources.json"));
+  const leaves={"inc-0810-nav-indicator":"70ffea58b515c333d76a33a34426f76d5476a6d9","inc-0810-metas-editar-regla":"088229a9b8f96868ca774e98fa7343f986cb5056","inc-0810-inicio-grafica-significado":"24593dd252b02656f7fc0c2c4c70a54784114379"};
+  assert.equal(Object.keys(actual).length,36);assert.deepEqual(Object.keys(actual).filter(id=>!before[id]).sort(),Object.keys(leaves).sort());
+  for(const [id,sha] of Object.entries(leaves)){
+    const leaf=f=>at(sha,f),scope=JSON.parse(leaf("scripts/beta-sources.json"))[id];
+    assert.deepEqual(actual[id],scope,id+": cierre transitorio intacto");
+    assert.equal(betaRevision(id,read).web,betaRevision(id,leaf).web,id+": código idéntico al probado");
+  }
+  const changed=[];for(const [id,scope] of Object.entries(before)){
+    if(id==="inc-0310-01-meta-regla"){
+      const extra=[{file:"src/modules/08-motor-bank.js",function:"reservaRuleSame"},{file:"src/modules/08-motor-bank.js",function:"editReservaRule"}];
+      assert.deepEqual(actual[id],{...scope,web:[...scope.web,...extra]},"alta conserva su alcance y suma sus dos lectores reales");
+    }else assert.deepEqual(actual[id],scope,id+": descriptor y referencias anteriores intactos");
+    if(betaRevision(id,base,undefined,scope).web!==betaRevision(id,read).web)changed.push(id);
+  }
+  assert.deepEqual(changed.sort(),["inc-0310-01-meta-regla","inc-2709-13-fab-contorno"]);
+});
 
 // La revisión debe invalidarse si vuelve la columna ajena o cambia el periodo o la cifra.
 test("Gastos90 vigila columna, ancho, periodo y cifras",()=>{
@@ -223,7 +270,7 @@ test("PERSIST91: el guardado en el commit invalida toda tanda que escribe estado
   assert.equal(dependientes.length,21);
   assert.ok(dependientes.includes("inc-0810-metas-editar-regla"),"editar una regla escribe con el set real y conserva el cierre de persistencia");
   assert.ok(dependientes.includes("inc-0710-gastos-mes-madrid"),"Gastos99 conserva la dependencia real de guardado de Expenses");
-  assert.deepEqual(ajenas.slice().sort(),["beta-panel-veredictos","inc-0210-01-plan-cuota","inc-0410-inicio-tres-metas","inc-0710-appstate-listener-cleanup","inc-0710-banknotif-cleanup","inc-0810-dashboard-recents-memo","inc-0810-nav-indicator","inc-2709-01-arranque-red","inc-2709-09-fechas-cache","inc-2709-12-cyber-fab","inc-2709-13-fab-contorno","inc-2709-14-preguntar","ops-0410-panel-cola","tr-descripcion-clasificacion"]);
+  assert.deepEqual(ajenas.slice().sort(),["beta-panel-veredictos","inc-0210-01-plan-cuota","inc-0410-inicio-tres-metas","inc-0710-appstate-listener-cleanup","inc-0710-banknotif-cleanup","inc-0810-dashboard-recents-memo","inc-0810-inicio-grafica-significado","inc-0810-nav-indicator","inc-2709-01-arranque-red","inc-2709-09-fechas-cache","inc-2709-12-cyber-fab","inc-2709-13-fab-contorno","inc-2709-14-preguntar","ops-0410-panel-cola","tr-descripcion-clasificacion"]);
   /* Quién depende del guardado lo decide el CÓDIGO, no la marca del registro (auditoría del
      coordinador, 4/10): se quita de cada alcance el bloque del guardado y se mira si lo que queda
      llama a `set` de App —las dependencias transitivas ya son unidades del alcance—. Tiene que

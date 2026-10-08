@@ -95,7 +95,11 @@ const LANG = {
     v4_hola:"Hola, {n}", v4_hola_anon:"Hola",
     v4_money_total:"Tu dinero en total", v4_of_month:"del mes", v4_of_cycle:"del ciclo", v4_cycle_start_h:"Aquí empieza tu ciclo",
     v4_budget_spent:"Has gastado {spent} de tus {budget}.", v4_budget_daily:"Puedes gastar {x}/día hasta fin de mes.", v4_cycle_net:"Gasto neto desde el cobro: {used} de tus {budget}.", v4_cycle_left:"Te quedan {x}.", v4_cycle_over:"Te faltan {x}.",
-    v4_streak:"{n} meses sin pasarte", v4_streak_zero:"Mes en curso", v4_hist_empty:"Tu histórico empieza hoy", v4_nobud_t:"Ponle un presupuesto", v4_nobud_p:"Es la mitad de la app: sin un tope al mes no se puede saber cuánto te queda. Puedes cambiarlo cuando quieras.", v4_nobud_cta:"Ponle un presupuesto", v4_noup_t:"Aún no hay recibos", v4_noup_p:"Conecta tu banco y los recibos del mes aparecen solos, con su día y su importe.", v4_noup_cta:"Conecta tu banco", v4_nogoal_t:"Ponte tu primera meta", v4_nogoal_p:"Un viaje, un colchón, lo que sea: la app te dice cuánto falta y cuándo llegas.", v4_nogoal_cta:"Crear una meta", v4_see_gastos:"Ver gastos ›", v4_see_plan:"Ver plan ›",
+    v4_streak:"{n} meses sin pasarte", v4_streak_zero:"Mes en curso",
+    // INC-0810 es: límite del significado de la gráfica.
+    v4_hist_empty:"Solo se muestra el total actual; aún no hay cifras anteriores. No es un histórico con fechas ni una ganancia.", v4_chart_line:"La línea termina en el total actual. Cifras sin fecha en EUR; escala relativa del mínimo al máximo, no desde cero. No indica una ganancia.",
+    // INC-0810 es: fin del significado de la gráfica.
+    v4_nobud_t:"Ponle un presupuesto", v4_nobud_p:"Es la mitad de la app: sin un tope al mes no se puede saber cuánto te queda. Puedes cambiarlo cuando quieras.", v4_nobud_cta:"Ponle un presupuesto", v4_noup_t:"Aún no hay recibos", v4_noup_p:"Conecta tu banco y los recibos del mes aparecen solos, con su día y su importe.", v4_noup_cta:"Conecta tu banco", v4_nogoal_t:"Ponte tu primera meta", v4_nogoal_p:"Un viaje, un colchón, lo que sea: la app te dice cuánto falta y cuándo llegas.", v4_nogoal_cta:"Crear una meta", v4_see_gastos:"Ver gastos ›", v4_see_plan:"Ver plan ›",
     v4_upcoming:"Próximos cargos", v4_upcoming_empty:"Nada pendiente este mes. Los recibos aparecen aquí.",
     v4_charges_overdue:"Cargos vencidos", v4_charge_unconfirmed:"Sin pago acreditado",
     v4_charge_actual:"Cargo {x}", v4_charge_expected:"Previsto {x}",
@@ -400,7 +404,11 @@ const LANG = {
     v4_hola:"Hi, {n}", v4_hola_anon:"Hi",
     v4_money_total:"All your money", v4_of_month:"of month", v4_of_cycle:"of cycle", v4_cycle_start_h:"Your cycle starts here",
     v4_budget_spent:"You've spent {spent} of your {budget}.", v4_budget_daily:"You can spend {x}/day until month end.", v4_cycle_net:"Net spending since payday: {used} of your {budget}.", v4_cycle_left:"{x} left.", v4_cycle_over:"{x} over budget.",
-    v4_streak:"{n} months on track", v4_streak_zero:"Month in progress", v4_hist_empty:"Your history starts today", v4_nobud_t:"Set a monthly budget", v4_nobud_p:"It is half the app: without a monthly cap there is no way to know what you have left. You can change it whenever you want.", v4_nobud_cta:"Set a budget", v4_noup_t:"No bills yet", v4_noup_p:"Connect your bank and this month's bills show up on their own, with day and amount.", v4_noup_cta:"Connect your bank", v4_nogoal_t:"Set your first goal", v4_nogoal_p:"A trip, a safety net, anything: the app tells you how much is missing and when you get there.", v4_nogoal_cta:"Create a goal", v4_see_gastos:"See spending ›", v4_see_plan:"See plan ›",
+    v4_streak:"{n} months on track", v4_streak_zero:"Month in progress",
+    // INC-0810 en: límite del significado de la gráfica.
+    v4_hist_empty:"Only the current total is shown; there are no earlier figures yet. This is not a dated history or a gain.", v4_chart_line:"The line ends at the current total. Undated figures in EUR; relative scale from minimum to maximum, not from zero. It does not show a gain.",
+    // INC-0810 en: fin del significado de la gráfica.
+    v4_nobud_t:"Set a monthly budget", v4_nobud_p:"It is half the app: without a monthly cap there is no way to know what you have left. You can change it whenever you want.", v4_nobud_cta:"Set a budget", v4_noup_t:"No bills yet", v4_noup_p:"Connect your bank and this month's bills show up on their own, with day and amount.", v4_noup_cta:"Connect your bank", v4_nogoal_t:"Set your first goal", v4_nogoal_p:"A trip, a safety net, anything: the app tells you how much is missing and when you get there.", v4_nogoal_cta:"Create a goal", v4_see_gastos:"See spending ›", v4_see_plan:"See plan ›",
     v4_upcoming:"Upcoming", v4_upcoming_empty:"Nothing pending this month. Bills show up here.",
     v4_charges_overdue:"Overdue charges", v4_charge_unconfirmed:"Payment unconfirmed",
     v4_charge_actual:"Charge {x}", v4_charge_expected:"Expected {x}",
@@ -692,7 +700,11 @@ const LANG = {
     v4_hola:"Hola, {n}", v4_hola_anon:"Hola",
     v4_money_total:"Els teus diners en total", v4_of_month:"del mes", v4_of_cycle:"del cicle", v4_cycle_start_h:"Aquí comença el teu cicle",
     v4_budget_spent:"Has gastat {spent} dels teus {budget}.", v4_budget_daily:"Pots gastar {x}/dia fins a fi de mes.", v4_cycle_net:"Despesa neta des del cobrament: {used} dels teus {budget}.", v4_cycle_left:"Et queden {x}.", v4_cycle_over:"Et falten {x}.",
-    v4_streak:"{n} mesos sense passar-te", v4_streak_zero:"Mes en curs", v4_hist_empty:"El teu històric comença avui", v4_nobud_t:"Posa-li un pressupost", v4_nobud_p:"És la meitat de l'app: sense un límit al mes no es pot saber quant et queda. El pots canviar quan vulguis.", v4_nobud_cta:"Posa-li un pressupost", v4_noup_t:"Encara no hi ha rebuts", v4_noup_p:"Connecta el teu banc i els rebuts del mes apareixen sols, amb el seu dia i el seu import.", v4_noup_cta:"Connecta el teu banc", v4_nogoal_t:"Posa't el teu primer objectiu", v4_nogoal_p:"Un viatge, un coixí, el que sigui: l'app et diu quant falta i quan hi arribes.", v4_nogoal_cta:"Crear un objectiu", v4_see_gastos:"Veure despeses ›", v4_see_plan:"Veure pla ›",
+    v4_streak:"{n} mesos sense passar-te", v4_streak_zero:"Mes en curs",
+    // INC-0810 ca: límite del significado de la gráfica.
+    v4_hist_empty:"Només es mostra el total actual; encara no hi ha xifres anteriors. No és un històric amb dates ni un guany.", v4_chart_line:"La línia acaba en el total actual. Xifres sense data en EUR; escala relativa del mínim al màxim, no des de zero. No indica un guany.",
+    // INC-0810 ca: fin del significado de la gráfica.
+    v4_nobud_t:"Posa-li un pressupost", v4_nobud_p:"És la meitat de l'app: sense un límit al mes no es pot saber quant et queda. El pots canviar quan vulguis.", v4_nobud_cta:"Posa-li un pressupost", v4_noup_t:"Encara no hi ha rebuts", v4_noup_p:"Connecta el teu banc i els rebuts del mes apareixen sols, amb el seu dia i el seu import.", v4_noup_cta:"Connecta el teu banc", v4_nogoal_t:"Posa't el teu primer objectiu", v4_nogoal_p:"Un viatge, un coixí, el que sigui: l'app et diu quant falta i quan hi arribes.", v4_nogoal_cta:"Crear un objectiu", v4_see_gastos:"Veure despeses ›", v4_see_plan:"Veure pla ›",
     v4_upcoming:"Pròxims càrrecs", v4_upcoming_empty:"Res pendent aquest mes. Els rebuts surten aquí.",
     v4_charges_overdue:"Càrrecs vençuts", v4_charge_unconfirmed:"Sense pagament acreditat",
     v4_charge_actual:"Càrrec {x}", v4_charge_expected:"Previst {x}",

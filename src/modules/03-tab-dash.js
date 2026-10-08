@@ -224,12 +224,17 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
         p.sign+p.ent, React.createElement("span",{style:{fontSize:28,color:"var(--muted)"}},","+(p.dec||"00")+" "+p.sym)),
       // Sin una foto real del día 1, «este mes» era patrimonio menos un seed antiguo: parecía
       // una ganancia de miles de euros. Se retira en vez de inventar una base (feedback 18/9).
+      // INC-0810 gráfica: significado de las cifras sin fecha.
       React.createElement("div",{style:{marginTop:14}},
-        // Sin al menos dos puntos, `Sparkline` devuelve null (P1). Se reserva el hueco con una
-        // linea discreta para que el hero no pegue un salto en cuanto haya histórico.
+        // `state.history` son números sueltos: el alta guarda un 0, la semilla de ejemplo no
+        // tiene día y no hay otro escritor. El último punto es el total de ahora y solo se
+        // añade al pintar. Sin fecha, la altura (mínimo a máximo) no es una ganancia (2026-10-08).
         (state.history&&state.history.length>=1)
           ? React.createElement(Sparkline,{data:state.history,current:tt.netWorth})
-          : React.createElement("div",{style:{fontSize:12.5,color:"var(--muted-2)",padding:"6px 0 2px"}}, t("v4_hist_empty")))
+          : null,
+        React.createElement("div",{"data-testid":"inicio-chart-note",style:{fontSize:12.5,color:"var(--muted-2)",padding:"6px 0 2px"}},
+          (state.history&&state.history.length>=1)?t("v4_chart_line"):t("v4_hist_empty"))
+      )
     ),
 
     // Sin presupuesto, Inicio escondia su tarjeta estrella y te quedabas sin la mitad de la app

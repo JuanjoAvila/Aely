@@ -5,7 +5,8 @@ import {betaRevision} from "../scripts/beta-revisions.mjs";
 
 // Ejecuta el efecto real aislado: un doble de transporte permite resolver el handle después
 // de cambiar de sesión y comprobar causalmente que un callback retirado no vuelve a actuar.
-const source=fs.readFileSync(new URL("../src/modules/11-app-main.js",import.meta.url),"utf8");
+// Git usa CRLF en Windows; las anclas describen el efecto real con saltos LF.
+const source=fs.readFileSync(new URL("../src/modules/11-app-main.js",import.meta.url),"utf8").replace(/\r\n/g,"\n");
 const start='  useEffect(function(){\n    if(!uid) return;\n    const onVis=function(){';
 function effect(s){const i=s.indexOf(start),j=s.indexOf('  },[uid]);',i);assert.ok(i>=0&&j>i);return s.slice(i+start.indexOf('function(){')+11,j);}
 const flush=async()=>{for(let i=0;i<8;i++)await Promise.resolve();};

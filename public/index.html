@@ -5111,7 +5111,11 @@ const LANG = {
     v4_hola:"Hola, {n}", v4_hola_anon:"Hola",
     v4_money_total:"Tu dinero en total", v4_of_month:"del mes", v4_of_cycle:"del ciclo", v4_cycle_start_h:"Aquí empieza tu ciclo",
     v4_budget_spent:"Has gastado {spent} de tus {budget}.", v4_budget_daily:"Puedes gastar {x}/día hasta fin de mes.", v4_cycle_net:"Gasto neto desde el cobro: {used} de tus {budget}.", v4_cycle_left:"Te quedan {x}.", v4_cycle_over:"Te faltan {x}.",
-    v4_streak:"{n} meses sin pasarte", v4_streak_zero:"Mes en curso", v4_hist_empty:"Tu histórico empieza hoy", v4_nobud_t:"Ponle un presupuesto", v4_nobud_p:"Es la mitad de la app: sin un tope al mes no se puede saber cuánto te queda. Puedes cambiarlo cuando quieras.", v4_nobud_cta:"Ponle un presupuesto", v4_noup_t:"Aún no hay recibos", v4_noup_p:"Conecta tu banco y los recibos del mes aparecen solos, con su día y su importe.", v4_noup_cta:"Conecta tu banco", v4_nogoal_t:"Ponte tu primera meta", v4_nogoal_p:"Un viaje, un colchón, lo que sea: la app te dice cuánto falta y cuándo llegas.", v4_nogoal_cta:"Crear una meta", v4_see_gastos:"Ver gastos ›", v4_see_plan:"Ver plan ›",
+    v4_streak:"{n} meses sin pasarte", v4_streak_zero:"Mes en curso",
+    // INC-0810 es: límite del significado de la gráfica.
+    v4_hist_empty:"Solo se muestra el total actual; aún no hay cifras anteriores. No es un histórico con fechas ni una ganancia.", v4_chart_line:"La línea termina en el total actual. Cifras sin fecha en EUR; escala relativa del mínimo al máximo, no desde cero. No indica una ganancia.",
+    // INC-0810 es: fin del significado de la gráfica.
+    v4_nobud_t:"Ponle un presupuesto", v4_nobud_p:"Es la mitad de la app: sin un tope al mes no se puede saber cuánto te queda. Puedes cambiarlo cuando quieras.", v4_nobud_cta:"Ponle un presupuesto", v4_noup_t:"Aún no hay recibos", v4_noup_p:"Conecta tu banco y los recibos del mes aparecen solos, con su día y su importe.", v4_noup_cta:"Conecta tu banco", v4_nogoal_t:"Ponte tu primera meta", v4_nogoal_p:"Un viaje, un colchón, lo que sea: la app te dice cuánto falta y cuándo llegas.", v4_nogoal_cta:"Crear una meta", v4_see_gastos:"Ver gastos ›", v4_see_plan:"Ver plan ›",
     v4_upcoming:"Próximos cargos", v4_upcoming_empty:"Nada pendiente este mes. Los recibos aparecen aquí.",
     v4_charges_overdue:"Cargos vencidos", v4_charge_unconfirmed:"Sin pago acreditado",
     v4_charge_actual:"Cargo {x}", v4_charge_expected:"Previsto {x}",
@@ -8856,12 +8860,17 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
         p.sign+p.ent, React.createElement("span",{style:{fontSize:28,color:"var(--muted)"}},","+(p.dec||"00")+" "+p.sym)),
       // Sin una foto real del día 1, «este mes» era patrimonio menos un seed antiguo: parecía
       // una ganancia de miles de euros. Se retira en vez de inventar una base (feedback 18/9).
+      // INC-0810 gráfica: significado de las cifras sin fecha.
       React.createElement("div",{style:{marginTop:14}},
-        // Sin al menos dos puntos, `Sparkline` devuelve null (P1). Se reserva el hueco con una
-        // linea discreta para que el hero no pegue un salto en cuanto haya histórico.
+        // `state.history` son números sueltos: el alta guarda un 0, la semilla de ejemplo no
+        // tiene día y no hay otro escritor. El último punto es el total de ahora y solo se
+        // añade al pintar. Sin fecha, la altura (mínimo a máximo) no es una ganancia (2026-10-08).
         (state.history&&state.history.length>=1)
           ? React.createElement(Sparkline,{data:state.history,current:tt.netWorth})
-          : React.createElement("div",{style:{fontSize:12.5,color:"var(--muted-2)",padding:"6px 0 2px"}}, t("v4_hist_empty")))
+          : null,
+        React.createElement("div",{"data-testid":"inicio-chart-note",style:{fontSize:12.5,color:"var(--muted-2)",padding:"6px 0 2px"}},
+          (state.history&&state.history.length>=1)?t("v4_chart_line"):t("v4_hist_empty"))
+      )
     ),
 
     // Sin presupuesto, Inicio escondia su tarjeta estrella y te quedabas sin la mitad de la app
@@ -20272,7 +20281,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="39c9dbc6f3ddcf468acb8dd905d859513bf5b1ab0446e2e8d54b1c8c5e40149b";
+var _rnSha="963efee28277fa0247e6df71f3ab81349da171cd942f06e5598ef4249eb0509a";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
