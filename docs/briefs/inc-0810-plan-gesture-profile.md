@@ -54,3 +54,18 @@ Sintaxis, mapa, privacidad y diffcheck locales pasan; discovery lista15casos (7a
 Chromium local ausente: nueva CI y DOM exactos pendientes, sin declarar corregido el incidente.
 El fallo hist-visor de aquella CI queda separado y sin tocar. Los fallos de scroll, ownership,
 segmento o llegada del swipe que subsistan seguirán fallando; no se reinterpretan como verde.
+
+## CI exacta y guard del visor · 8 de octubre
+
+CI37713846795 terminó FAIL por un único fallo de `hist-visor`: el primer guard obtuvo
+opacidad 0 y 0.6429 en su retry tras contar las clases. Los 15 casos de Plan pasaron; también
+891 funcionales/1 skip y 9 de rendimiento. Hubo 1 fallo del visor. No se declara CI global verde;
+la comprobación final de privacidad de esa CI quedó sin ejecutar.
+
+Se incorpora byteexact el guard de `f77aa70bce5296615dcd2b2cf07bd8b3721a280e`: espera
+conjuntamente 60 clases y opacidad de fila 30 superior a 0.9 dentro de los mismos 8000 ms.
+Conserva snapshot/aserciones finales y segundo guard. No modifica los 15 casos Plan, sus
+umbrales, CPU×6, trazas ni los contratos de llegada/ownership/scroll; tampoco runtime,
+registros, versiones o presupuesto. Es una corrección del banco de pruebas, sin atribuir
+la causa del lag humano. Nueva revisión y CI exacta pendientes. Sintaxis/mapa/relevant,
+privacidad y diff locales comprobados; DOM local ejecutado 0, Chromium ausente.
