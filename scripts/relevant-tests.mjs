@@ -126,6 +126,7 @@ export const E2E_MAP = [
   { file: "src/modules/12-boot.js", specs: ["e2e/splash.spec.mjs", "e2e/smoke.spec.mjs", "e2e/csp.spec.mjs"] },
   { file: "src/modules/13-hogar.js", specs: ["e2e/cartera-orden-hogar.spec.mjs"] },
   { file: "src/modules/14-v4-screens.js", specs: [
+    "e2e/plan-ownership-candidate.spec.mjs",
     "e2e/inicio-cargos.spec.mjs",
     "e2e/help-assistant.spec.mjs",
     "e2e/pulido-apuntar.spec.mjs", "e2e/pulido-numpad.spec.mjs",

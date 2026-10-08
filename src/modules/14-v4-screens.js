@@ -175,8 +175,10 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
     const atTopOf=function(pg){ return !pg || (pg.scrollTop||0)<=2; };
     const setOwn=function(on){
       if(!pageEl||!pageEl.classList) return;
-      if(on && !ownOn){ pageEl.classList.add("mc-touch-own"); ownOn=true; }
-      else if(!on && ownOn){ pageEl.classList.remove("mc-touch-own"); ownOn=false; }
+      // La marca propia permite liberar el scroll del host de Plan sin cambiar Inicio ni
+      // el gesto/manual scroll. Ambas clases nacen y se limpian en una sola mutación.
+      if(on && !ownOn){ pageEl.classList.add("mc-touch-own","mc-plan-touch-own"); ownOn=true; }
+      else if(!on && ownOn){ pageEl.classList.remove("mc-touch-own","mc-plan-touch-own"); ownOn=false; }
     };
     const onStart=function(e){
       if(document.documentElement.classList.contains("sheet-open")) return;

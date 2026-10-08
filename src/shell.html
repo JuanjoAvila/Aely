@@ -618,6 +618,9 @@
   /* Con el host fixed, no recortar el estirón nativo (Ajustes NO vive dentro de overflow:hidden). */
   .viewport.scroll-host-open{overflow:visible;}
   .page.page-scroll-host.mc-touch-own{touch-action:none;}
+  /* Prototipo aislado: el marcador lógico de Plan no bloquea por CSS el host fixed.
+     No usar !important: los sheets/perfil conservan su bloqueo explícito del gesto. */
+  .page.page-scroll-host.mc-plan-touch-own{touch-action:auto;}
   .track.scroll-host-park{transform:none !important;will-change:auto;overflow:hidden;}
   /* Al deslizar tabs se QUITA `.page-scroll-host` (hace falta translate3d en el track).
      Antes eso bajaba el padding de ST+10 a 6px con el mismo scrollTop → cabecera cortada
