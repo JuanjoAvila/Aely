@@ -1,0 +1,41 @@
+{
+  "status": "cancelled",
+  "summary": "Coordinación Cloud cancelada por orden directa del dueño y transferida al coordinador local. Fuente sintética revisada durable en PR183; CI exacta aún en curso. Ningún writer activo; sin merge ni publicación.",
+  "tests": [
+    {
+      "command": "node --check e2e/lifecycle-inflight.spec.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/check-syntax.mjs; node tests/relevant-tests.test.mjs; node scripts/guard-privacy.mjs; git diff --check",
+      "exitCode": 0,
+      "environment": "local source checks; no browser"
+    },
+    {
+      "command": "GitHub Actions Tests",
+      "run": 37810907496,
+      "sourceSHA": "11e516ced5f9a270c01aec89767ac1423bc5f58a",
+      "status": "in_progress",
+      "conclusion": null,
+      "observedAt": "2026-10-08T16:56:45Z"
+    }
+  ],
+  "branch": "codex/lifecycle-inflight-relay25",
+  "productSHA": "11e516ced5f9a270c01aec89767ac1423bc5f58a",
+  "productTree": "506923d7f45fc72cc113e1f16f20fd0f998a6aa4",
+  "baseSHA": "56c7e328ce801f0e2e2fe5ec1ebd36169f0ac89b",
+  "pr": 183,
+  "review": "Independent exact-tree GO for commit and CI only; browser pending",
+  "nextAction": "Local coordinator may reconcile run37810907496 and decide under current owner authorization; Cloud creates no successor or dispatch",
+  "limitations": [
+    "No source/runtime/public/version/workflow/budget change",
+    "No browser result or lag reproduction inferred",
+    "External Claude/Grok work retained under local direction; no foreign claim released"
+  ],
+  "schema": 1,
+  "taskId": "inc-2709-09-lifecycle-inflight-contract-relay25",
+  "actor": "codex",
+  "sessionId": "relay-run-aweghzwufqokxcrz",
+  "createdAt": "2026-10-08T16:57:55.832Z",
+  "released": true
+}
