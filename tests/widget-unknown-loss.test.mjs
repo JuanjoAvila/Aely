@@ -78,6 +78,20 @@ ${readWrite}
     ok(s.unknownPending&&s.unknownLoss,"ingest tampoco limpia pérdida");
     s=restart(s); photo(s,3,"|new|","","trade_republic");
     ok(s.unknownPending,"fence y ACK de otro evento no limpian pérdida");
+    // saveApp fallido conserva sólo flags reales, nunca la foto/identidades parciales.
+    WidgetSnapshotArbiter.State scope=base();
+    scope.journal="old\\t10\\t10\\t10\\t1\\t1\\toldKey"; scope.events="|old|";
+    scope.unknownJournal=huge+"\\tK\\n"; scope.unknownPending=true;
+    SharedPreferences beforeScope=new SharedPreferences(); write(beforeScope.edit(),scope);
+    WidgetSnapshotArbiter.State failed=read(beforeScope);
+    ok(!WidgetSnapshotArbiter.invalidateScope(failed),"scope saturado falla");
+    writeBlocked(beforeScope.edit(),failed); scope=read(beforeScope);
+    ok(scope.unknownLoss&&scope.unknownPending,"flags fallidos persistidos");
+    ok(scope.unknownJournal.equals(huge+"\\tK\\n"),"no guarda identidades parciales");
+    ok(scope.journal.startsWith("old\\t"),"no pisa journal previo"); eq(scope.spent,40);
+    ok(ing(scope,WidgetSnapshotArbiter.begin(scope),2,"newScope"),"respuesta nuevo periodo");
+    scope=restart(scope); photo(scope,2,"|"+huge+"|newScope|","","trade_republic");
+    ok(scope.unknownPending&&scope.unknownLoss,"ACK restante no cubre lo perdido al cambiar scope");
     // El límite permite la identidad exacta; una unidad más no se admite ni simula cobertura.
     WidgetSnapshotArbiter.State limit=base();
     String exact=new String(new char[262140]).replace('\\0','e');

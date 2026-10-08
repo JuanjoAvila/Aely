@@ -114,6 +114,13 @@ public class MiCarteraWidget extends AppWidgetProvider {
         ed.putLong("updated", System.currentTimeMillis());
     }
 
+    // Una foto fallida no se guarda a medias; la incertidumbre detectada sí debe sobrevivir.
+    private static void writeBlocked(SharedPreferences.Editor ed, WidgetSnapshotArbiter.State s) {
+        ed.putBoolean("journalFull", s.journalFull)
+          .putBoolean("unknownLoss", s.unknownLoss)
+          .putBoolean("unknownPending", s.unknownPending || s.unknownLoss);
+    }
+
     static synchronized long beginIngest(Context ctx) {
         SharedPreferences p = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         WidgetSnapshotArbiter.State s = read(p);
@@ -137,14 +144,18 @@ public class MiCarteraWidget extends AppWidgetProvider {
         if ((!sameWindow(p, contract, kind) || (contract >= WidgetPeriod.CONTRACT
                 && !WidgetPeriod.sameScope(p.getString("scope", ""), scope)))
                 && !WidgetSnapshotArbiter.invalidateScope(s)) {
-            p.edit().putBoolean("journalFull", true).commit();
+            SharedPreferences.Editor blocked = p.edit();
+            writeBlocked(blocked, s);
+            blocked.commit();
             refreshAll(ctx);
             return;
         }
         if (!WidgetSnapshotArbiter.app(s, periodStart, spent, budget, budgetLeft, safeLiq, cash,
                 cashEnt, cashLabel, coveredEvents, deletedKeys)) {
             if (s.journalFull) {
-                p.edit().putBoolean("journalFull", true).commit();
+                SharedPreferences.Editor blocked = p.edit();
+                writeBlocked(blocked, s);
+                blocked.commit();
                 refreshAll(ctx);
             }
             return;

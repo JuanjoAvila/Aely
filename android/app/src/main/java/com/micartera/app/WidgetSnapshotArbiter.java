@@ -53,11 +53,11 @@ final class WidgetSnapshotArbiter {
         for (String line : s.journal.split("\\n")) {
             if (line.trim().isEmpty()) continue;
             String[] p = entry(line);
-            if (p.length != 7) { s.journalFull = true; return false; }
+            if (p.length != 7) { s.journalFull = true; s.unknownLoss = true; return false; }
             String unknown = p[0].trim() + "\t" + p[6] + "\n";
             if (!s.unknownJournal.contains(unknown)) s.unknownJournal += unknown;
         }
-        if (s.unknownJournal.length() > JOURNAL_MAX) { s.journalFull = true; return false; }
+        if (s.unknownJournal.length() > JOURNAL_MAX) { s.journalFull = true; s.unknownLoss = true; return false; }
         s.periodStart = 0;
         return true;
     }

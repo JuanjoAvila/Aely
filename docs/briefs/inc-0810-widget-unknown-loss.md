@@ -8,6 +8,8 @@ Java real en la base: un `unknownJournal` válido casi lleno rechaza la identida
 
 La candidata conserva `unknownLoss` en preferencias cuando no cabe la identidad. App, cambios de banco/periodo y respuestas servidor no borran esa pérdida. El render conserva «sin dato»; los importes se mantienen sin inventar deltas. Si desborda el journal de deltas pero cabe la identidad compacta, se conserva ésta y un ACK/lápida exactos sí permiten recuperarla. Un journal ya bloqueado también conserva las nuevas identidades recibidas.
 
+Segundo caso Java rojo en la primera candidata: al invalidar el alcance, la conversión del journal excede el límite y saveApp sólo guardaba journalFull. Una respuesta del periodo nuevo podía perder la identidad previa y un ACK de otras identidades borraba incertidumbre. La candidata final persiste los flags de pérdida mediante writeBlocked también al fallar saveApp; nunca guarda cifras o identidades parciales. El test ejecuta ese helper real y read/write tras reinicio.
+
 El esquema antiguo no distingue bloqueo de formato de identidad perdida. Al releer una preferencia antigua con `journalFull:true` y sin `unknownLoss`, se conserva incertidumbre de forma conservadora. Una preferencia nueva con `unknownLoss:false` mantiene la recuperación habitual de indentación XML.
 
 No existe un protocolo que demuestre cobertura de una identidad que ya se perdió. Por eso `unknownLoss` no se limpia mediante una foto ni ACK aparente; una recuperación explícita acreditada requiere otro encargo. Esta limitación reduce disponibilidad antes que mostrar certeza financiera sin evidencia.
