@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "id": "ops-0810-metas-plan-flaky-causal-relay23",
+  "from": "codex",
+  "coordinatorSession": "relay-run-0aeaab4c4f09425a",
+  "createdAt": "2026-10-08T04:58:38.230Z",
+  "to": "codex",
+  "baseSHA": "a4d0128199e496bba181edd4cfc661ed5b8407c3",
+  "objective": "Investigar los tres fallos intermitentes post-main y corregir exclusivamente el banco si se demuestra causa; preservar todas las aserciones monetarias",
+  "scope": [
+    "e2e/metas-mensual.spec.mjs",
+    "e2e/plan-gestionar.spec.mjs",
+    "docs/TESTING.md",
+    "docs/briefs"
+  ],
+  "instructions": "Dos fallos de toast mensual y uno de grupo tras limpiar busqueda fueron verdes al retry1 en CI37719554158. No asumir causa. Leer logs exactos y fuente. Banco real, fixture sintetica. No eliminar assertions, bajar gates, aumentar retries o tocar runtime. Nueva fuente/propuesta con demostracion y pruebas; si detecta bug producto, documentar y detener cambio de producto. No integrar ni publicar por cuenta propia."
+}
