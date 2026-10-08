@@ -16,6 +16,63 @@
  * grupos y las filas se buscan por su TEXTO dentro de su contenedor, que es lo que ve él. */
 import { test, expect } from "@playwright/test";
 import { seedLoggedInDashboard, dismissNews, FIXTURE_NOW, installFixtureClock } from "./fixtures.mjs";
+import { execFileSync } from "node:child_process";
+
+// Sólo el caso de vaciado activa estas sondas. La evidencia no cambia el foco, el buscador
+// ni las esperas; así una nueva pasada fallida distingue entrega de input y estado pintado.
+const searchDiagnostics=new WeakMap();
+test.afterEach(async({page},testInfo)=>{
+  const report=searchDiagnostics.get(page); if(!report)return;
+  searchDiagnostics.delete(page);
+  let timer;
+  try{
+    const result=await Promise.race([
+      page.evaluate(()=>{
+        const d=window.__planSearchDiagnostic; if(!d)return null;
+        const final=d.snapshot(); d.stop(); delete window.__planSearchDiagnostic;
+        return {final,events:d.events,dropped:d.dropped};
+      }),
+      new Promise(resolve=>{timer=setTimeout(()=>resolve(null),1000);})
+    ]);
+    report.capture=result?"complete":"unavailable";
+    if(result)Object.assign(report,result);
+  }catch{report.capture="unavailable";}
+  finally{
+    clearTimeout(timer);
+    report.status=testInfo.status;
+    // Sólo etiquetas, longitudes, clases conocidas y contadores de un fixture sintético.
+    console.log("PLAN_SEARCH_DIAGNOSTIC "+JSON.stringify(report));
+  }
+});
+
+async function iniciarDiagnosticoBusqueda(page){
+  searchDiagnostics.set(page,{sourceSHA:execFileSync("git",["rev-parse","HEAD"],{encoding:"utf8"}).trim(),snapshots:[]});
+  await page.evaluate(()=>{
+    const label=value=>typeof value!=="string"?null:{kind:value===""?"empty":value==="zzzz"?"zzzz":"other",length:value.length};
+    const element=el=>el?{tag:el.tagName,
+      classes:["v4-bills-search","v4-bills-group","settings-push-h","back","v4-title"].filter(c=>el.classList?.contains(c))}:null;
+    const snapshot=()=>{
+      const hub=document.querySelector("[data-bills-manage]"),search=hub?.querySelector("input.v4-bills-search");
+      return {hubCount:document.querySelectorAll("[data-bills-manage]").length,
+        searchCount:hub?.querySelectorAll("input.v4-bills-search").length||0,
+        value:label(search?.value),active:element(document.activeElement),searchFocused:!!search&&document.activeElement===search,
+        groupCount:hub?.querySelectorAll(".v4-bills-group").length||0,
+        noResultsCount:hub?.querySelectorAll("[data-bills-noresults]").length||0};
+    };
+    const d={events:[],dropped:0,snapshot};
+    const listener=e=>{
+      if(d.events.length>=64){d.dropped++;return;}
+      d.events.push({type:e.type,t:Math.round(performance.now()),target:element(e.target),value:label(e.target?.value),state:snapshot()});
+    };
+    for(const type of ["focusin","input","change"])document.addEventListener(type,listener,{capture:true,passive:true});
+    d.stop=()=>{for(const type of ["focusin","input","change"])document.removeEventListener(type,listener,true);};
+    window.__planSearchDiagnostic=d;
+  });
+}
+async function diagnosticoBusqueda(page,phase){
+  const state=await page.evaluate(()=>window.__planSearchDiagnostic.snapshot());
+  searchDiagnostics.get(page).snapshots.push({phase,...state});
+}
 
 test.beforeEach(async ({ page }, testInfo) => {
   if (!testInfo.annotations.some(a => a.type === "own-clock")) await installFixtureClock(page);
@@ -847,13 +904,18 @@ test("sin nada apuntado: una tarjeta que explica", async ({ page }) => {
 test("buscar algo que no existe lo dice, y un nombre larguísimo no rompe el ancho", async ({ page }) => {
   const largo = "Seguro del hogar de la casa del pueblo con ampliación de contenido y responsabilidad civil";
   await appLista(page, { fixed: fixed.concat([{ id: "largo", name: largo, amount: 22, freq: "mes", account: "sabadell" }]) });
+  await iniciarDiagnosticoBusqueda(page);
   await abreTusRecibos(page);
 
   const buscar = hub(page).locator("input.v4-bills-search").first();
   await buscar.fill("zzzz");
+  await diagnosticoBusqueda(page,"after-fill-zzzz");
   await expect(hub(page).locator(".v4-bills-empty")).toContainText("No hay ningún recibo con ese nombre.");
+  await diagnosticoBusqueda(page,"before-fill-empty");
   await buscar.fill("");
+  await diagnosticoBusqueda(page,"after-fill-empty");
 
+  await diagnosticoBusqueda(page,"before-group-click");
   await grupo(page, "Servicios y suministros").click();
   const f = fila(page, "Seguro del hogar");
   await expect(f).toBeVisible();
