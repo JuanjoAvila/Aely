@@ -1,0 +1,75 @@
+{
+  "status": "done",
+  "released": true,
+  "summary": "Auditoria read-only. (1) Source 6592b179 (cursor/inc-2709-06-scope141-d4cb, verificado vivo = ese SHA) esta basado en dd59064 (beta95) y NO en baseSHA f4ffb934: 'git diff f4ffb93..6592b17 -- src' arrastra 1019+/573- en 11 ficheros ajenos (01-i18n, 03-tab-dash, 09-tab-debts-goals, shell.html...) = deriva de beta; no se puede mezclar el source entero ni con -X theirs ni public/index.html generado. (2) Los 6 guardianes sinteticos (ack, caixa-extid, diario-diferido, fecha-invalida, hist-durante-ack, identidad) pasan exit 0 en el source tras npm ci + build, y contraprueba sobre la fuente actual f4ffb93 (mismos 6 tests copiados): TODOS exit 1. Hueco real confirmado, mesMadrid99 no absorbe Caixa: ack y diario-diferido ni encuentran los marcadores OB-ACK-HIST/OB-ACK-DAILY (callback de 11-app-main.js ausente); caixa-extid falla en aplanar dos referencias/uid opaco, sello por cuenta y sello historico=diario; identidad falla en historico incremental A+B, dos clientes parciales (A+A), salado 0/Az/BY; fecha-invalida falla en filas validas de referencia y fecha invalida que lanza RangeError/invent a el dia (2026-02-30); hist-durante-ack falla en canonico durante ACK, borrar durante ACK que revive, A/B distintos. (3) Minimo port completo para conectar UI: 08-motor-bank.js (+792: identidad por banco/UUID/extId, diaValido en importObExpenses, obSettleDaily/obDailyCommit, persistHistImport/obHistNoticeCommit, mcSinRecibo), 00-core.js (+76: expenseTombKeys/lapida obid, mcSinRecibo en guardado y slimForCloud), 04-tab-gastos.js (+26, usar expenseTombKeys al borrar/deshacer), 10-app-components.js (+38: persistHistImport en vez del addExpensesBatch inline) y 11-app-main.js (+18: obHistNoticeCommit y obDailyCommit en el mismo useLayoutEffect que mcPersistCommit, showToastRef). Debe portarse como cherry-pick manual por hunks de esos 5 ficheros desde el diff dd59064..6592b17 (no desde f4ffb93..6592b17), mas los 6 tests con paso en scripts/run-tests.mjs y relevant-tests (el source ya toca ambos; e2e/gastos-caixa-extid.spec.mjs a E2E_MAP), CHANGELOG/RELEASE_NOTES/brief. (4) NO-GO / heredado: supabase/functions/_shared/presupuesto.ts claveComoLaApp (+18, Edge/backend; widget-arbitraje sigue rojo 186.45 !== 174.45 segun el brief, necesita contrato ISO y deploy revisado por humano) queda fuera; tests/widget-arbitraje.test.mjs, retirada-bancaria.test.mjs, hist-uniq-por-banco.test.mjs, scripts/beta-sources.json, public/* y docs/BACKLOG no se portan. 'ayudasUI' no aparece en src/ ni docs/briefs de ninguna de las dos ramas: no verificado, no inventado. 'presupuesto.ts' ya listado. (5) Nonce/claim del encargo: claim propio claude-cloud-20261008-4bd37c02 publicado (commit 094da0a5); no se pudo verificar un ACK WT/branch/SHA/tree externo ni beta f4ff109/publicador37844972496/assets106.1 ni main b1ad23f produccion106 mas alla de que origin/main = b1ad23f34f2a94933e57246dfdf12c451f5360a1 y el tag beta resuelve en el fetch. Riesgos del port: el source reescribe flujo ACK/commit con effects de App (React), requiere e2e o DOM real que no se ha corrido; -Xtheirs perderia CHANGELOG/RELEASE_NOTES.",
+  "tests": [
+    {
+      "command": "npm ci --ignore-scripts && npm run build (worktree source 6592b17)",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/inc-2709-06-ack.test.mjs (source)",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/inc-2709-06-caixa-extid.test.mjs (source)",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/inc-2709-06-diario-diferido.test.mjs (source)",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/inc-2709-06-fecha-invalida.test.mjs (source)",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/inc-2709-06-hist-durante-ack.test.mjs (source)",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/inc-2709-06-identidad.test.mjs (source)",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run build (worktree f4ffb93)",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/inc-2709-06-ack.test.mjs (contraprueba f4ffb93)",
+      "exitCode": 1
+    },
+    {
+      "command": "node tests/inc-2709-06-caixa-extid.test.mjs (contraprueba f4ffb93)",
+      "exitCode": 1
+    },
+    {
+      "command": "node tests/inc-2709-06-diario-diferido.test.mjs (contraprueba f4ffb93)",
+      "exitCode": 1
+    },
+    {
+      "command": "node tests/inc-2709-06-fecha-invalida.test.mjs (contraprueba f4ffb93)",
+      "exitCode": 1
+    },
+    {
+      "command": "node tests/inc-2709-06-hist-durante-ack.test.mjs (contraprueba f4ffb93)",
+      "exitCode": 1
+    },
+    {
+      "command": "node tests/inc-2709-06-identidad.test.mjs (contraprueba f4ffb93)",
+      "exitCode": 1
+    }
+  ],
+  "productSHA": "6592b17907c6597e088340005ca343b9d6fda0c8",
+  "limitations": [
+    "Solo lectura: sin edicion de producto, sin push de producto, sin npm test entero, e2e, DOM React ni movil",
+    "No se ejecutaron los guardianes de widget-arbitraje, retirada-bancaria ni hist-uniq-por-banco",
+    "No verificados: ACK externo WT/branch/tree, beta f4ff109 publicador, assets106.1, ayudasUI, mesMadrid99 (no existe en src de base)",
+    "Cada guardian corre ya en UTC y Europe/Madrid internamente cuando aplica; el exit 0 del source lo cubre el propio script"
+  ],
+  "schema": 1,
+  "taskId": "review-0810-caixa146-claude-local",
+  "actor": "claude",
+  "sessionId": "claude-cloud-20261008-4bd37c02",
+  "createdAt": "2026-10-08T21:19:09.374Z"
+}
