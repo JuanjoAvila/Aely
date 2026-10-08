@@ -1,0 +1,50 @@
+{
+  "status": "done",
+  "summary": "Diagnóstico exacto de fixture confirmado; prototipo Plan sigue NO-GO",
+  "tests": [
+    {
+      "command": "Official CI37762320934 actual checkout da510d92ed9a96ba0dc53ffdbb06ed52700da738",
+      "exitCode": 1,
+      "e2ePassed": 884,
+      "e2eFailed": 7,
+      "e2eSkipped": 1,
+      "perfPassed": 13
+    },
+    {
+      "command": "Reviewed strict full synthetic snapshots and native preconditions collector",
+      "exitCode": 0,
+      "financePairs": 6,
+      "nativeRecords": 8,
+      "errors": 0
+    },
+    {
+      "command": "Independent complete-data causal assessment",
+      "exitCode": 0
+    },
+    {
+      "command": "Original strict frame collector",
+      "exitCode": 1,
+      "reports": 5,
+      "complete": false
+    }
+  ],
+  "productSHA": "63326cdb2cb58faafa31ca7f5cc31990a2ff9a33",
+  "testedSHA": "da510d92ed9a96ba0dc53ffdbb06ed52700da738",
+  "tree": "a69e066d39eaa7d47fc6c3225ca8ce849e95de02",
+  "findings": [
+    "Six complete synthetic snapshot pairs change only lastBackup/_savedAt and their serialization; remaining fields and raw expenses unchanged in those observations, no global financial safety claim",
+    "All four native cases and retries fail initial precondition: settled Inicio/top with no ownership and touch-action auto; later Plan contracts unexecuted",
+    "Five frame reports with zero complete source-phase blocks; no improvement or cumulative human lag resolution",
+    "Separate static sheet selector precedence risk remains unobserved; preserve exact sheet none gate"
+  ],
+  "nextTask": "inc-2709-09-plan-fixture-correction-relay24",
+  "limitations": [
+    "PR180 stays draft CI-only, no main/beta/version/registry change or approval"
+  ],
+  "schema": 1,
+  "taskId": "inc-2709-09-plan-fixture-deltas-relay24",
+  "actor": "codex",
+  "sessionId": "relay-run-trulvafdfmkvbvll",
+  "createdAt": "2026-10-08T11:28:59.839Z",
+  "released": true
+}
