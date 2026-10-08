@@ -46,3 +46,11 @@ A/B del mismo host/minificador con sellos86.99→87.99:1.301.821/354.536→1.303
 - DOM conjunto:128/128 (39Plan,5Gastos,6Gasolina/Taxi,3categoría elegida,12Metas,63panel),326270.386 ms, CLI0 y cero fallos/omisiones/reintentos/flaky/errores. Datos sintéticos es/en/ca. HTTP200 local-servido antes/después idéntico al HTMLc57145528ed55b61e0c1b1699318014e2b987885f7df7f3e9c13fc6eb29612d8. ROOT53 liberada expresamente tras cierre servidor y puerto4448 sin listener.
 - Conservación exacta:207 notas anteriores idénticas y en el mismo orden, solo87 delante; los20 alcances anteriores idénticos y el nuevoMeta igual al revisadoBAB. El presupuesto final sellado87.99 mide1303649/355027 B frente1301821/354536 de86.99:delta1828/491 B,3 bloqueantes; margen927/301 B bajo1274/347KiB.
 - SHA final, revisión independiente y CI se acreditan en el PR/proveedor y evidencia ignorada; no amend posterior por URLs. La CI completa del SHA final es gate necesaria por los límites locales, antes de integrar/publicar. Sin aceptación móvil, reparación de huérfanas, Edge activa ni nuevaAPK acreditadas.
+
+## Rescate de constancia final ·8/10/2026
+
+Los “pendiente” anteriores pertenecen al desarrollo y unión del3/10. La fuente final de PR110 `bab0d0a301843e2c2ce068bb45a292e785f88f75` tiene [CI37118946223](https://github.com/JuanjoAvila/Aely/actions/runs/37118946223) completed/SUCCESS comprobada:663 DOM funcionales y7 de rendimiento PASS, privacidad OK. La PR conserva el GO exacto y distingue sus candidatas c88/1fc rechazadas y CI canceladas; no se recuperan como gates válidos.
+
+La unión87 `039d30364dd874c822e3532e1ba329fed3ef3131` es ancestro de main56c7e328 y beta8dcc5ed3. El brief fuente y su cierre local conjunto ya estaban íntegros; esta adición conserva el resultado final de fuente que faltaba en ellos. No acredita por sí sola CI de otra unión, aceptación familiar ni servidor activo.
+
+Los límites siguen separados: asignaciones huérfanas borradas por versiones antiguas, registros ambiguos, ediciones simultáneas last-write-wins, RLS/Edge y comprobación móvil. La edición actual de reglas tiene propietario y tarea propios; no se incorpora a PR110 por asociación. [Matriz de rescate](ops-0810-rescate-documental-local26.md), sin merge/cierre de PR110.

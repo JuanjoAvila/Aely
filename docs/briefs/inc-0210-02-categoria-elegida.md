@@ -91,3 +91,11 @@ Un seguro con otro nombre seguía en Recibos antes y después: es el comportamie
 - Mutantes sobre bundle reconstruido que mueren: guarda de saldo de la cuota, protección de la categoría, frontera de fecha de la regla, confirmación fija, ventana de categorías, Uber Eats y los nombres «Benzina» y «Fuel». Quitar «Taxi» del catalán no se nota (se escribe igual en el idioma de respaldo) y no cuenta. `i18n-keys` y `categories` no detectan un `cat_<id>` ausente porque la clave es dinámica: hueco anterior a esta tanda.
 - DOM conjunto con lease 51: 116 de 116 (Plan 39, Gastos por periodo 5, Gasolina/Taxi 6, categoría elegida 3, panel 63) en es/en/ca, sin reintentos, HTML `bcd6e54187c2e88d…`.
 - Pendiente: CI exacta, entrega beta y móvil.
+
+## Rescate de constancia final ·8/10/2026
+
+La candidata y los resultados del3/10 son historia de desarrollo. La CI que el cuerpo de PR106 aún llamaba pendiente, [37111269065](https://github.com/JuanjoAvila/Aely/actions/runs/37111269065), se ha leído completed/SUCCESS con head `9a232f1f01550c4413704c75dc560eb6521d2d7e`. Logs:654 funcionales y7 de rendimiento PASS, privacidad OK. No se ha repetido la suite local ni se atribuye esa CI a una unión distinta.
+
+La integración `2264e90e6d0647bc65020e5ae7e077132c303d09` es ancestro de main56c7e328 y beta8dcc5ed3. El brief fuente y la ampliación de beta85 ya estaban conservados; se rescata esta constancia final, no un segundo contrato de categorías.
+
+Permanecen los límites descritos: escritura sin ACK, lectores antiguos, reglas último-en-escribir-gana, identidades indistinguibles y servidor que todavía puede ver su categoría hasta confirmar la subida. No hay comprobación nueva de tabla/RLS/Edge activos ni móvil. La equivalencia observada de fuente no cierra FIN-04 ni el editor completo. [Matriz exacta](ops-0810-rescate-documental-local26.md); sin cierre de PR106 en esta tarea.
