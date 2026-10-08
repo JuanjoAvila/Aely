@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import crypto from "node:crypto";
+import { execFileSync } from "node:child_process";
 import { betaRevision } from "../scripts/beta-revisions.mjs";
 import { test, expect } from "@playwright/test";
 import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
@@ -172,7 +173,10 @@ for(const lang of ["es","en","ca"])test(`cola beta: solo novedades y entregas pe
  * Supabase de los tests devuelve null → la sección Dev no se pinta. Por eso aquí se monta el panel
  * directamente: lo que hay que probar es la REGLA de aprobación, no el menú que lleva a ella. */
 
-async function abrirRevisionBeta(page, lang) {
+// Las regresiones de tandas ya entregadas usan el catálogo publicado; las pruebas de cola actual
+// cargan el JSON servido de verdad, sin este fixture. El código del panel siempre es el actual.
+const historicalNotes=JSON.parse(execFileSync("git",["show","4403b252933410741a877eea59b85d812b2fe543:public/release-notes.json"],{encoding:"utf8",maxBuffer:5e6}));
+async function abrirRevisionBeta(page, lang, historical = false) {
   // La producción real no puede pisar los recibos sintéticos de una prueba histórica.
   await page.route("https://juanjoavila.github.io/Aely/**",route=>route.abort());
   await seedLoggedInDashboard(page, lang?{settings:{autoPrices:false,theme:"green",lang:lang}}:{});
@@ -191,6 +195,7 @@ async function abrirRevisionBeta(page, lang) {
     window._mcProdVersion=()=>Promise.resolve(null);
     delete window._mcProdDeliveryChecked;
   });
+  if(historical)await page.evaluate(notes=>{RELEASE_NOTES=notes;},historicalNotes);
 }
 
 /* Tras promote a prod con nota única, TODAS las entradas llevan `tandas:[]` → panel a 0
@@ -1057,7 +1062,7 @@ test("la marca caduca: si vuelve al día siguiente entra en su app, no en el pan
 
 /* Tras promocionar solo Deudas, las otras pruebas deben seguir visibles en la beta. */
 test("producción 4.26.67 conserva las siete tandas pendientes", async ({ page }) => {
-  await abrirRevisionBeta(page);
+  await abrirRevisionBeta(page,undefined,true);
   await page.evaluate(() => { CONFIG.APP_VERSION = "4.26.70.2"; });
   const panel = await conProduccionEn(page, "4.26.67");
   await expect(panel.locator(".beta-tanda")).toHaveCount(7);
@@ -1076,7 +1081,7 @@ test("producción 4.26.67 conserva las siete tandas pendientes", async ({ page }
 });
 
 test("guion de recibos71 retirado en favor de74 conserva las siete pendientes", async ({ page }) => {
-  await abrirRevisionBeta(page);
+  await abrirRevisionBeta(page,undefined,true);
   await page.evaluate(() => { CONFIG.APP_VERSION = "4.26.71.1"; });
   const panel = await conProduccionEn(page, "4.26.67");
   await expect(panel.locator(".beta-tanda")).toHaveCount(7);
@@ -1088,7 +1093,7 @@ test("guion de recibos71 retirado en favor de74 conserva las siete pendientes", 
 });
 
 test("Inicio73 conserva sus pruebas tras trasladar el guion de recibos a74", async ({ page }) => {
-  await abrirRevisionBeta(page);
+  await abrirRevisionBeta(page,undefined,true);
   await page.evaluate(() => { CONFIG.APP_VERSION = "4.26.73.1"; });
   const panel = await conProduccionEn(page, "4.26.67");
   await expect(panel.locator(".beta-tanda")).toHaveCount(8);
@@ -1099,7 +1104,7 @@ test("Inicio73 conserva sus pruebas tras trasladar el guion de recibos a74", asy
   await expect(panel).not.toContainText("Inicio y Mi ciclo");
 });
 test("corrección74 conserva todas las tandas y muestra una sola prueba de recibos", async ({ page }) => {
-  await abrirRevisionBeta(page);
+  await abrirRevisionBeta(page,undefined,true);
   await page.evaluate(() => { CONFIG.APP_VERSION = "4.26.74.1"; });
   const panel=await conProduccionEn(page,"4.26.67");
   await expect(panel.locator(".beta-tanda")).toHaveCount(9);
@@ -1146,7 +1151,7 @@ for(const lang of ["es","en","ca"]) for(const verdict of ["approved","rejected"]
     const previous=JSON.parse(execFileSync("git",["-c","safe.directory="+process.cwd(),"show","4e65fa114c4f647c95b9e97ad926faad5115e94b:public/release-notes.json"],{encoding:"utf8"}));
     const note=previous.find(n=>n.v==="4.26.87");
     const old=note.tandas.find(g=>g.id==="inc-0310-01-meta-regla");
-    await abrirRevisionBeta(page,lang);
+    await abrirRevisionBeta(page,lang,true);
     const record=await page.evaluate(({note,old,verdict})=>{
       CONFIG.APP_VERSION="4.26.94.1";
       const current=RELEASE_NOTES.find(n=>n.v==="4.26.94").tandas.find(g=>g.id===old.id);
@@ -1181,7 +1186,7 @@ for(const lang of ["es","en","ca"]) {
      decisión anterior sigue en el historial; el store de 4.26.68 no se toca). «Arranque con poca
      conexión» no escribe estado: su código sigue siendo el aprobado y conserva el OK. */
   test(`revisión exacta: la fuente idéntica conserva OK; un cambio solo web y cinco web/nativos piden nueva revisión (${lang})`, async ({page}) => {
-    await abrirRevisionBeta(page,lang);
+    await abrirRevisionBeta(page,lang,true);
     await sembrarAprobadasEn4267(page);
     await page.evaluate(async lang => { await ensureLangPack(lang); CURLANG=lang; CONFIG.APP_VERSION="4.26.76.1"; window._mcProdApk=48; window._mcProdEntregas=null; window._mcProdApkRevisiones=null; },lang);
     const panel=await conProduccionEn(page,"4.26.67");
@@ -1224,7 +1229,7 @@ for(const lang of ["es","en","ca"]) {
   test(`entrega exacta: producción menor retira las siete tandas reales al llegar sus recibos (${lang})`, async ({page}) => {
     // El recibo sintético no puede competir con una consulta real que arrancó al abrir la app.
     await page.route("https://juanjoavila.github.io/Aely/**",route=>route.abort());
-    await abrirRevisionBeta(page,lang);
+    await abrirRevisionBeta(page,lang,true);
     await page.evaluate(async()=>{ if(_mcProdVerCache) await _mcProdVerCache; });
     await sembrarAprobadasEn4267(page);
     await page.evaluate(async lang => {
@@ -1307,7 +1312,7 @@ async function sembrarAprobadasEn4267(page) {
 }
 
 test("las nativas conservan el historial y sus cinco cambios web exigen revisión nueva", async ({ page }) => {
-  await abrirRevisionBeta(page);
+  await abrirRevisionBeta(page,undefined,true);
   await sembrarAprobadasEn4267(page);
   const historial=await page.evaluate(() => store.get("_betaReview_4.26.68.1_v"));
   await page.evaluate(() => { CONFIG.APP_VERSION="4.26.75.1"; window._mcProdApk = 48; window._mcProdEntregas=null; });
@@ -1324,7 +1329,7 @@ test("las nativas conservan el historial y sus cinco cambios web exigen revisió
 });
 
 test("producción web por delante no retira las nativas mientras la APK estable no las lleve", async ({ page }) => {
-  await abrirRevisionBeta(page);
+  await abrirRevisionBeta(page,undefined,true);
   await page.evaluate(() => { CONFIG.APP_VERSION = "4.26.71.1"; window._mcProdApk = 48; window._mcProdEntregas=null; });
   const panel = await conProduccionEn(page, "4.26.69");
   for (const title of NATIVAS) await expect(panel.locator(".beta-tanda-t").filter({ hasText: title })).toHaveCount(1);
@@ -1458,7 +1463,7 @@ for(const lang of ["es","en","ca"])for(const mode of ["texto repetido","sin marc
 
 for(const lang of ["es","en","ca"]) {
   test(`ronda mixta: conserva la checklist actual, modernas y comentarios con producción desconocida (${lang})`,async({page})=>{
-    await abrirRevisionBeta(page,lang);
+    await abrirRevisionBeta(page,lang,true);
     const expected=await page.evaluate(async lang=>{
       await ensureLangPack(lang);CURLANG=lang;
       const ids=betaChecklist(RELEASE_NOTES[0].v+".1",null,48).tandas.map(g=>g.id.split("/").pop()).sort();
@@ -1490,3 +1495,19 @@ for(const lang of ["es","en","ca"]) {
     expect(await page.evaluate(()=>betaChecklist(CONFIG.APP_VERSION,null,48).tandas.map(g=>g.id.split("/").pop()).sort())).toEqual(expected);
   });
 }
+
+for(const lang of ["es","en","ca"])test(`cola publicada: no vuelve a pedir las once entregadas (${lang})`,async({page})=>{
+  await abrirRevisionBeta(page,lang);
+  const closed=["inc-0310-01-meta-regla","ops-0410-panel-cola","inc-0310-gastos-sin-limite","inc-0310-broker-resultados","feature-0310-01-movilidad","inc-2909-01-widget-periodo","fin05-widget-reentrada","fin05-pago-cerrada","tr-descripcion-clasificacion","widget-banco","widget-app-cerrada"];
+  expect(await page.evaluate(ids=>RELEASE_NOTES.flatMap(n=>n.tandas||[]).filter(g=>ids.includes(g.id)).map(g=>g.id),closed)).toEqual([]);
+  const deliveries=JSON.parse(fs.readFileSync(new URL("../public/beta-delivery.json",import.meta.url),"utf8"));
+  await page.evaluate(deliveries=>{
+    window._mcProdEntregas=deliveries;window._mcProdApkRevisiones={};
+    CONFIG.APP_VERSION=RELEASE_NOTES[0].v+".1";window._mcProdApk=52;
+    store.set("_betaReview_4.26.87.1_v",{_h:1,"h:historia-sintetica":{verdict:"rejected",at:100}});
+  },deliveries);
+  const panel=await conProduccionEn(page,"4.26.94");
+  await expect(panel.locator(".beta-tanda")).toHaveCount(0);
+  await expect(panel.getByRole("button",{name:/Aprobar esta tanda/})).toHaveCount(0);
+  expect(await page.evaluate(()=>store.get("_betaReview_4.26.87.1_v"))).toEqual({_h:1,"h:historia-sintetica":{verdict:"rejected",at:100}});
+});
