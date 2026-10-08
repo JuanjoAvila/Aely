@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "id": "review-0810-fin04-pr43-claude-local",
+  "from": "codex",
+  "coordinatorSession": "relay-run-local0810a73f9b",
+  "createdAt": "2026-10-08T20:03:12.499Z",
+  "to": "claude",
+  "baseSHA": "bf450c0b54828e3c0f59f3c6955e30e569f94355",
+  "objective": "Revision read-only de PR43 FIN04.1 sourceACK por UUID. Checkout propio exacto bf450c0b; comparar contra beta8dcc5ed39b6e212ba1e34a90b550685794ce0bd5 y mainb1ad23f34f2a94933e57246dfdf12c451f5360a1. Determinar que falta rescatar realmente: identidad UUID, ACK parcial, CAS, referencias/versiones concurrentes, no duplicar ni pisar movimientos o datos desconocidos. Ejecutar pruebas sinteticas existentes y contrapruebas cuando posibles. No consultar datos privados, no SQL/Edge/APK, no editar producto, no merge/publicacion ni comentarios en PR. Entregar ACK con WT/branch/SHA/tree reales, findings con severidad/archivo/linea y plan acotado para rescate futuro. Registrar fallos/limites y liberar explicitamente; nonce no vacio y unico.",
+  "scope": [
+    "src/modules/00-core.js",
+    "tests/expense-source-ack.test.mjs",
+    "docs/briefs/fin04-paso1-source-ack.md"
+  ]
+}
