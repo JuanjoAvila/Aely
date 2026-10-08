@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "id": "review-0810-caixa146-claude-local",
+  "from": "codex",
+  "coordinatorSession": "relay-run-local0810a73f9b",
+  "createdAt": "2026-10-08T21:16:00.873Z",
+  "to": "claude",
+  "baseSHA": "f4ffb9340adfd0a13b631271e8158d2c630613c0",
+  "objective": "Auditoria read-only del rescate Caixa/identidad y ACK diario-historico PR146 source6592b17907c6597e088340005ca343b9d6fda0c8, rama cursor/inc-2709-06-scope141-d4cb, y familia131/141/151. Mainb1ad produccion106 entregada; beta f4ff109 publicador37844972496 pendiente (assets106.1). Verifica vivo nonce/claim y ACK WT/branch/SHA/tree. Ejecuta seis guardianes sinteticos relevantes del source y contraprueba sobre fuente actual: identidad exacta por banco/UUID/extId, fecha invalida, diario diferido, historico duranteACK, fallo/parcial sin exito falso, ingest reordenado/idempotencia y concurrencia. Determina huecos reales y minimo port completo para conectarUI/source; no asumir que mesMadrid99 absorbe Caixa. Identifica cambios heredados/NO-GO, especialmente presupuesto.ts/backend y ayudasUI. Nada de SQL/RLS/datosprivados/Edge/APK/edicionproducto/pushPR/publicacion ni comentarios externos. Lee AGENTS y registra limites; source viejo no se mezcla con-Xtheirs ni public generado. Entrega findings con pruebas y plan acotado, sessionId valido con nonce no vacio y released:true. No ampliar aFIN03/FIN04 que tienen chatlocal propio.",
+  "scope": [
+    "src/modules/00-core.js",
+    "src/modules/04-tab-gastos.js",
+    "src/modules/08-motor-bank.js",
+    "tests/inc-2709-06-ack.test.mjs",
+    "tests/inc-2709-06-caixa-extid.test.mjs",
+    "tests/inc-2709-06-diario-diferido.test.mjs",
+    "tests/inc-2709-06-fecha-invalida.test.mjs",
+    "tests/inc-2709-06-hist-durante-ack.test.mjs",
+    "tests/inc-2709-06-identidad.test.mjs",
+    "docs/briefs/inc-2709-06-caixa-ausentes.md"
+  ]
+}
