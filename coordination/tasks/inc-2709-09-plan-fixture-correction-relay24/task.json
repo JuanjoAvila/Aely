@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "id": "inc-2709-09-plan-fixture-correction-relay24",
+  "from": "codex",
+  "coordinatorSession": "relay-run-trulvafdfmkvbvll",
+  "createdAt": "2026-10-08T11:30:02.394Z",
+  "kind": "diagnostic",
+  "to": "codex",
+  "baseSHA": "63326cdb2cb58faafa31ca7f5cc31990a2ff9a33",
+  "objective": "Corregir preparación sintética de Plan tras evidencia completa de CI, sin debilitar invariancia financiera ni contratos táctiles",
+  "scope": [
+    "Only e2e/plan-ownership-candidate.spec.mjs: seed current fixture backup day from FIXTURE_NOW for all sources and assert actual browser day outside measurement; retain every complete finance hash equality without field exclusions/normalization",
+    "Replace disproven startup none assumption with exact measured settled Inicio/top/no ownership/auto guard; add isolated disposable real CSS generic ownership none control, no forced live host or native permissions claim",
+    "Keep all subsequent real Plan acquisition/rerender/cancel/scroll/segment/horizontal/sheet contracts byteexact, safe0/34 and reduced motion; original naturalSample byteexact and full A/B gates",
+    "No runtime/CSS/version/registry edits; keep separate source-proven sheet priority risk and exact none assertion unchanged; PR180 remains CI-only draft, no integration/beta/production",
+    "Exact independent review, appropriate source guards and official CI; preserve failed runs and open human cumulative lag; no real finance/network operations"
+  ]
+}
