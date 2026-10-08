@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "id": "review-0810-widget170-grok-local",
+  "from": "codex",
+  "coordinatorSession": "relay-run-local0810a73f9b",
+  "createdAt": "2026-10-08T20:03:31.068Z",
+  "to": "grok",
+  "baseSHA": "f4142b0e3d0b14bbb50623c9d6842e7ee8258a16",
+  "objective": "Revision read-only de PR170 widget unknown-loss. Checkout propio exacto f4142b0e; comparar Android actual beta8dcc5ed39b6e212ba1e34a90b550685794ce0bd5. Revisar perdida de identidad en journal, unknown/overflow/ACK, reinicio/reentrada/idempotencia, no convertir desconocido en pagado ni saldo inventado. CI37710922572 acredita tree previo igual, pero no APK nueva; APK52 actual conserva gate nativo abierto. Ejecutar guardianes sinteticos, registrar resultado exacto y delta nativo que requiere APK futura. No editar producto, no APK real/SQL/Edge, no merge/publicacion. ACK real con worktree/branch/SHA/tree/tests/CI limites; resultado+liberacion en relayissue130 para coordinador local26.",
+  "scope": [
+    "android/app/src/main/java/com/micartera/app/MiCarteraWidget.java",
+    "android/app/src/main/java/com/micartera/app/WidgetSnapshotArbiter.java",
+    "tests/widget-unknown-loss.test.mjs",
+    "docs/briefs/inc-0810-widget-unknown-loss.md"
+  ]
+}
