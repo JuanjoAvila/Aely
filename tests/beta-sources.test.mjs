@@ -90,24 +90,24 @@ test("Inicio109 vigila ausencia de fechas, moneda, escala y dibujo en los tres i
   assert.equal(betaRevision(id,f=>f==="src/modules/01-i18n.js"?source(f).replace(ajeno,ajeno+"· "):source(f)).web,before,"una ayuda financiera ajena no cambia esta unidad");
 });
 
-// La integración debe mantener las identidades ya probadas en cada candidata, sin aprobar
-// trabajo ajeno por compartir VERSION. Los dos cambios antiguos se declaran y no se aliasan.
-test("Integración109 conserva las tres revisiones y solo cambia dos identidades anteriores",()=>{
+// Este registro describe la integración cerrada109, no los cambios posteriores110.
+// Su metadata se lee del commit inmutable; los contratos y mutantes runtime siguen en read.
+test("Integración109 histórica conserva las tres revisiones y solo cambia dos identidades anteriores",()=>{
   const cache=new Map(),at=(sha,f)=>{const k=sha+":"+f;if(!cache.has(k))cache.set(k,execFileSync("git",["show",k],{encoding:"utf8",maxBuffer:10e6}));return cache.get(k);};
-  const base=f=>at("8dcc5ed39b6e212ba1e34a90b550685794ce0bd5",f),before=JSON.parse(base("scripts/beta-sources.json")),actual=JSON.parse(read("scripts/beta-sources.json"));
+  const base=f=>at("8dcc5ed39b6e212ba1e34a90b550685794ce0bd5",f),integrated=f=>at("f4ffb9340adfd0a13b631271e8158d2c630613c0",f),before=JSON.parse(base("scripts/beta-sources.json")),actual=JSON.parse(integrated("scripts/beta-sources.json"));
   const leaves={"inc-0810-nav-indicator":"70ffea58b515c333d76a33a34426f76d5476a6d9","inc-0810-metas-editar-regla":"088229a9b8f96868ca774e98fa7343f986cb5056","inc-0810-inicio-grafica-significado":"24593dd252b02656f7fc0c2c4c70a54784114379"};
   assert.equal(Object.keys(actual).length,36);assert.deepEqual(Object.keys(actual).filter(id=>!before[id]).sort(),Object.keys(leaves).sort());
   for(const [id,sha] of Object.entries(leaves)){
     const leaf=f=>at(sha,f),scope=JSON.parse(leaf("scripts/beta-sources.json"))[id];
     assert.deepEqual(actual[id],scope,id+": cierre transitorio intacto");
-    assert.equal(betaRevision(id,read).web,betaRevision(id,leaf).web,id+": código idéntico al probado");
+    assert.equal(betaRevision(id,integrated,undefined,actual[id]).web,betaRevision(id,leaf,undefined,scope).web,id+": código idéntico al probado en109");
   }
   const changed=[];for(const [id,scope] of Object.entries(before)){
     if(id==="inc-0310-01-meta-regla"){
       const extra=[{file:"src/modules/08-motor-bank.js",function:"reservaRuleSame"},{file:"src/modules/08-motor-bank.js",function:"editReservaRule"}];
       assert.deepEqual(actual[id],{...scope,web:[...scope.web,...extra]},"alta conserva su alcance y suma sus dos lectores reales");
     }else assert.deepEqual(actual[id],scope,id+": descriptor y referencias anteriores intactos");
-    if(betaRevision(id,base,undefined,scope).web!==betaRevision(id,read).web)changed.push(id);
+    if(betaRevision(id,base,undefined,scope).web!==betaRevision(id,integrated,undefined,actual[id]).web)changed.push(id);
   }
   assert.deepEqual(changed.sort(),["inc-0310-01-meta-regla","inc-2709-13-fab-contorno"]);
 });
@@ -121,8 +121,32 @@ test("Retiro109 elimina solo las cinco aprobadas entregadas y conserva todo el h
   for(const id of ids)assert.equal(betaRevision(id,read).web,betaRevision(id,published).web,id+": código idéntico al entregado");
   const before=JSON.parse(at("b1f871750469a5439ada6cea2284fc0ff407cd46","src/data/release-notes.json"));
   const expected=before.map(n=>Array.isArray(n.tandas)?{...n,tandas:n.tandas.filter(g=>!ids.includes(g.id))}:n);
-  const actual=JSON.parse(read("src/data/release-notes.json"));assert.deepEqual(actual,expected,"sólo se retiran esas cinco, sin borrar notas, pendientes ni rechazos");
+  const actual=JSON.parse(at("f4ffb9340adfd0a13b631271e8158d2c630613c0","src/data/release-notes.json"));assert.deepEqual(actual,expected,"sólo se retiran esas cinco en109, sin borrar notas, pendientes ni rechazos");
   assert.equal(actual.length,226);assert.ok(!actual.some(n=>(n.tandas||[]).some(g=>ids.includes(g.id))));
+});
+
+test("BackClose110 actual conserva las36 unidades109 y declara únicamente el cambio real de Brókers",()=>{
+  const cache=new Map(),base=f=>{if(!cache.has(f))cache.set(f,execFileSync("git",["show","f4ffb9340adfd0a13b631271e8158d2c630613c0:"+f],{encoding:"utf8",maxBuffer:10e6}));return cache.get(f);};
+  const before=JSON.parse(base("scripts/beta-sources.json")),actual=JSON.parse(read("scripts/beta-sources.json")),id="inc-0810-backclose-handover";
+  assert.equal(Object.keys(before).length,36);assert.equal(Object.keys(actual).length,37);
+  assert.deepEqual(Object.keys(actual).filter(key=>!before[key]),[id]);
+  assert.equal(actual[id].unidades,true);
+  for(const key of ["historial","auditoria","codigosCompatibles","compatibilidadGit","compatibilidadSha"])assert.equal(actual[id][key],undefined,"sin referencia heredada: "+key);
+  const changed=[];
+  for(const [key,scope] of Object.entries(before)){
+    if(key==="inc-0310-broker-resultados"){
+      assert.deepEqual({...actual[key],web:scope.web},scope,"Brókers conserva auditorías/historial y amplía sólo web");
+      assert.deepEqual(actual[key].web.filter(d=>scope.web.some(s=>JSON.stringify(s)===JSON.stringify(d))),scope.web,"ninguna dependencia antigua se retira ni reordena");
+      assert.equal(actual[key].web.length,scope.web.length+15,"ocho helpers y siete datos transitivos reales");
+    }else assert.deepEqual(actual[key],scope,key+": descriptor intacto");
+    if(betaRevision(key,read,undefined,actual[key]).web!==betaRevision(key,base,undefined,scope).web)changed.push(key);
+  }
+  assert.deepEqual(changed,["inc-0310-broker-resultados"],"35 códigos anteriores intactos, incluidas las tres unidades109 y las cinco entregadas");
+  const notes=JSON.parse(read("src/data/release-notes.json")),old=JSON.parse(base("src/data/release-notes.json"));
+  assert.equal(notes[0].v,"4.26.110");assert.deepEqual(notes[0].tandas.map(g=>g.id),[id]);
+  assert.deepEqual(notes.slice(1),old,"las226 notas y guiones109 siguen exactos, incluidas pendientes/rechazadas");
+  const retired=["inc-0710-gastos-mes-madrid","inc-0710-appstate-listener-cleanup","inc-0710-banknotif-cleanup","inc-0710-auth-disposal","inc-0810-dashboard-recents-memo"];
+  assert.ok(!notes.some(n=>(n.tandas||[]).some(g=>retired.includes(g.id))),"no resucitar las cinco retiradas");
 });
 
 if(process.argv.includes("--integration-only")) process.exit(failed?1:0);
@@ -285,7 +309,7 @@ test("PERSIST91: el guardado en el commit invalida toda tanda que escribe estado
   assert.equal(dependientes.length,21);
   assert.ok(dependientes.includes("inc-0810-metas-editar-regla"),"editar una regla escribe con el set real y conserva el cierre de persistencia");
   assert.ok(dependientes.includes("inc-0710-gastos-mes-madrid"),"Gastos99 conserva la dependencia real de guardado de Expenses");
-  assert.deepEqual(ajenas.slice().sort(),["beta-panel-veredictos","inc-0210-01-plan-cuota","inc-0410-inicio-tres-metas","inc-0710-appstate-listener-cleanup","inc-0710-banknotif-cleanup","inc-0810-dashboard-recents-memo","inc-0810-inicio-grafica-significado","inc-0810-nav-indicator","inc-2709-01-arranque-red","inc-2709-09-fechas-cache","inc-2709-12-cyber-fab","inc-2709-13-fab-contorno","inc-2709-14-preguntar","ops-0410-panel-cola","tr-descripcion-clasificacion"]);
+  assert.deepEqual(ajenas.slice().sort(),["beta-panel-veredictos","inc-0210-01-plan-cuota","inc-0410-inicio-tres-metas","inc-0710-appstate-listener-cleanup","inc-0710-banknotif-cleanup","inc-0810-backclose-handover","inc-0810-dashboard-recents-memo","inc-0810-inicio-grafica-significado","inc-0810-nav-indicator","inc-2709-01-arranque-red","inc-2709-09-fechas-cache","inc-2709-12-cyber-fab","inc-2709-13-fab-contorno","inc-2709-14-preguntar","ops-0410-panel-cola","tr-descripcion-clasificacion"]);
   /* Quién depende del guardado lo decide el CÓDIGO, no la marca del registro (auditoría del
      coordinador, 4/10): se quita de cada alcance el bloque del guardado y se mira si lo que queda
      llama a `set` de App —las dependencias transitivas ya son unidades del alcance—. Tiene que

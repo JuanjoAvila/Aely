@@ -789,7 +789,7 @@ var _mcIgnorePop=false;     // Ayuda consulta esta señal; la propiedad la decid
 var _mcBackInit=false;
 var _mcBackHistory=[], _mcBackPending=null, _mcBackAt=null;
 var _mcBackScheduled=false, _mcBackTurn=0, _mcBackNext=0;
-var _mcBackOwner=typeof crypto!=="undefined"&&crypto.randomUUID?crypto.randomUUID():String(Date.now())+"-"+String(performance.now());
+var _mcBackOwner=typeof crypto!=="undefined"&&crypto.randomUUID?crypto.randomUUID():String(Date.now())+"-"+String(typeof performance!=="undefined"&&performance.now?performance.now():0);
 function _mcBackSlot(state){
   var tag=state&&state.mcBack;
   if(!tag||tag.owner!==_mcBackOwner) return null;

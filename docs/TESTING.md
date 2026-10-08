@@ -29,8 +29,9 @@ con React real/History del navegador y controles visibles aislados. Esos cinco n
 son pantallas del producto ni sustituyen los ocho del flujo original. Comprueba
 navegación, visibilidad, overlays, pila, cancelaciones y porciones financieras.
 `backclose-history.test.mjs`, registrado en run-tests, carga el controlador/hook
-reales y verifica20 contratos con History/eventqueue sintéticos, incluidos20 mutantes
-UI que invalidan Brókers. Node pasa y DOM18 termina0 sin retries/skips en ventana101.
+reales y verifica21 contratos con History/eventqueue sintéticos:20 mutantes UI invalidan
+Brókers y27 invalidan el controlador completo/entradas App, Ask y Recibos de110. La versión
+aislada de20 contratos pasó; DOM18 termina0 sin retries/skips en ventana101.
 Baseline histórico reproduce ocho fallos causales: seis salidas a about:blank y dos
 retornos prematuros a privacy.html. Primer candidato16PASS/2fallos de preparación:
 Novedades catalán («Entesos!») tapaba el avatar; se cierra mediante UI traducida real,
@@ -39,7 +40,14 @@ privacy/security/docs pasan, pero presupuesto rebasa los caps en3362B crudos/741
 Ese fallo previo permanece en el acta. Root asignó1291/352 KiB al candidato aislado;
 artefacto sellado real1321274/360181 B pasa con710/267 B de margen, sin sumar caps.
 La suite financiera beta-sources termina exit0:1731 funciones/684 datos mutados sobre8dcc.
-Sin publicación110 ni comprobación de Android físico; unión sobre109 pendiente de validar.
+Port actual110 sobre109f4ff: conserva36 unidades y añade una independiente; sólo Brókers
+cambia por el cierre transitorio real, sin repin/alias. Metadata histórica109 se lee de
+f4ff; invariantes y mutantes actuales conservan read actual. Las226 notas109 permanecen
+exactas detrás de110 y no resucitan las cinco retiradas. Presupuesto conjunto oficial con
+DSN95/sello110.99999/gzip9 pasa1295/353/3:1.325.236/361.308 B, delta3.413/1.134 B
+tras acotar performance en el fallback de token para la VM financiera, sin cambiar UUID.
+La primera medida default6 se conserva corregida en el acta. Guardia y DOM104 en curso;
+sin publicación110 ni comprobación de Android físico.
 [Diseño y revisión](briefs/inc-0810-backclose-handover.md).
 
 ## Apuntar: fila visible e importe persistido (5/10)

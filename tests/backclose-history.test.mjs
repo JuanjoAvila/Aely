@@ -230,4 +230,32 @@ check("estado externo con ciclo/Map/Date conserva contenido y permite reconocer 
   assert.equal(p.ctx._mcBackSame({map:new Map([["id",3]])},{map:new Map([["id",4]])}),false);
 });
 
+check("unidad110 vigila controlador completo y sus entradas reales de App, Ask y Recibos",()=>{
+  const read=f=>fs.readFileSync(new URL("../"+f,import.meta.url),"utf8"),file="src/modules/02-ui-shared.js",id="inc-0810-backclose-handover";
+  const scope=JSON.parse(read("scripts/beta-sources.json"))[id],before=betaRevision(id,read).web;
+  const normalized=source.replace(/\r\n/g,"\n"),start=normalized.indexOf("var _mcBackStack=[];"),stop=normalized.indexOf("/* Pantallas hijas a página completa",start);
+  let mutants=0;
+  for(const [kind,all] of [["function",logicFunctions(read,[file])],["data",logicData(read,[file])]])for(const item of all.values()){
+    if(item.start<start||item.start>=stop)continue;
+    assert.ok(scope.web.some(s=>s.file===file&&s[kind]===item.name),"dependencia110 ausente: "+item.name);
+    const changed=betaRevision(id,f=>f===file?(kind==="function"?mutateLogic(read(f),item):mutateData(read(f),item)):read(f)).web;
+    assert.notEqual(changed,before,item.name);mutants++;
+  }
+  assert.equal(mutants,21,"incluye el helper nativo y todos los datos de propiedad");
+  for(const [target,from,to] of [
+    ["src/modules/11-app-main.js","useBackClose(drawerOpen, function(){ setDrawerOpen(false); });","useBackClose(drawerOpen, function(){ setDrawerOpen(true); });"],
+    ["src/modules/11-app-main.js","useBackClose(profileOpen, function(){ setProfileOpen(false); });","useBackClose(profileOpen, function(){ setProfileOpen(true); });"],
+    ["src/modules/11-app-main.js","if(_mcBackCloseNative()) return;","if(false) return;"],
+    ["src/modules/11-app-main.js","onOpenSettings:function(){ setProfileOpen(false); setDrawerOpen(true); }})","onOpenSettings:function(){ setProfileOpen(false); setDrawerOpen(false); }})"],
+    ["src/modules/05-dialogs-inv.js","useBackClose(!!cur,function(){ if(cancelRef.current) cancelRef.current(); },cur);","useBackClose(!!cur,function(){ if(cancelRef.current) cancelRef.current(); });"],
+    ["src/modules/14-v4-screens.js","useBackClose(true,function(){ stepBackRef.current(); },step);","useBackClose(true,function(){ stepBackRef.current(); });"],
+  ]){
+    assert.ok(read(target).includes(from),"mutante de entrada real: "+from);
+    let changed;try{changed=betaRevision(id,f=>f===target?read(f).replace(from,to):read(f)).web;}
+    catch(error){assert.ok(["BETA_SCOPE_ABSENT","BETA_SCOPE_AMBIGUOUS"].includes(error.code));changed="abortado";}
+    assert.notEqual(changed,before,from);mutants++;
+  }
+  console.log("  "+mutants+" mutantes110 de UI/entradas; guardianes financieros actuales independientes");
+});
+
 console.log(`${cases} contratos del controlador/hook reales preparados y verificados`);

@@ -1,5 +1,36 @@
 [
   {
+    "v": "4.26.110",
+    "d": "2026-10-08",
+    "t": {"es":"Volver de Ajustes","en":"Back from Settings","ca":"Tornar d’Ajustos"},
+    "items": {
+      "es":["Al ir del perfil a Ajustes, volver atrás mantiene la app abierta. Los diálogos y los pasos de un recibo se cierran en orden."],
+      "en":["After going from your profile to Settings, going back keeps the app open. Dialogs and bill steps close in order."],
+      "ca":["En anar del perfil a Ajustos, tornar enrere manté l’app oberta. Els diàlegs i els passos d’un rebut es tanquen en ordre."]
+    },
+    "tandas":[{
+      "id":"inc-0810-backclose-handover",
+      "t":{"es":"Volver de Ajustes sin salir","en":"Back from Settings without leaving","ca":"Tornar d’Ajustos sense sortir"},
+      "items":{
+        "es":[
+          "1. Abre el perfil, toca «Ir a Ajustes» y vuelve con ‹: debe seguir abierta la app. Repite y vuelve con Atrás del móvil.",
+          "2. Abre de nuevo el perfil y ciérralo con Atrás: debe cerrarse solo el perfil y quedar Inicio visible.",
+          "3. En Plan → Recibos → Gestionar, empieza a añadir un recibo y avanza dos pasos. Vuelve paso a paso y cancela: debe quedar Gestionar abierto, sin guardar un recibo ni cambiar los importes."
+        ],
+        "en":[
+          "1. Open your profile, tap “Go to Settings” and go back with ‹: the app should stay open. Repeat using your phone’s Back action.",
+          "2. Open your profile again and close it with Back: only the profile should close, leaving Home visible.",
+          "3. In Plan → Bills → Manage, start adding a bill and move forward two steps. Go back step by step and cancel: Manage should stay open, without saving a bill or changing amounts."
+        ],
+        "ca":[
+          "1. Obre el perfil, toca «Ves a Ajustos» i torna amb ‹: l’app ha de continuar oberta. Repeteix-ho amb Enrere del mòbil.",
+          "2. Torna a obrir el perfil i tanca’l amb Enrere: només s’ha de tancar el perfil i quedar Inici visible.",
+          "3. A Pla → Rebuts → Gestionar, comença a afegir un rebut i avança dos passos. Torna pas a pas i cancel·la: Gestionar ha de continuar obert, sense desar cap rebut ni canviar els imports."
+        ]
+      }
+    }]
+  },
+  {
     "v": "4.26.109",
     "d": "2026-10-08",
     "t": {

@@ -1,6 +1,6 @@
 # Arquitectura — Aely
 
-## Historial de overlays · fuente local110 validada sobre8dcc
+## Historial de overlays · candidata110 sobre109
 
 El controlador de02 mantiene propietarios vivos, slots de History y un consumo pendiente
 identificado. Altas/bajas se reconcilian al final del lote de efectos; sólo una entrada propia
@@ -11,8 +11,11 @@ no produjo una navegación web. El hook conserva la closure de apertura; sólo W
 solicitan rearme por identidad de paso/diálogo, leyendo sus refs existentes. Sin cambios de
 sincronización, guardado ni importes. Node/build y18 DOM comprobados en ventana101; los ocho
 flujos principales reproducen rojo en la base histórica. El artefacto
-aislado pasa los caps1291/352 asignados por root; la unión sobre109 exige medir de nuevo.
-VERSION/package siguen106 y no se ha publicado110. [Acta](briefs/inc-0810-backclose-handover.md).
+aislado pasa los caps1291/352 asignados por root. La unión oficial sobre109 se midió
+con gzipSync({level:9}): delta final3.413 B crudos/1.134 B gzip; topes1295/353/3 autorizados.
+VERSION/package son110, con nota y unidad propias es/en/ca; gates conjuntos aún en curso,
+sin publicación110 ni aceptación móvil. Las tres unidades109 y las cinco retiradas siguen
+intactas. [Acta](briefs/inc-0810-backclose-handover.md).
 
 ## Cola de revisión beta (4.26.92)
 
