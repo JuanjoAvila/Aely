@@ -1,0 +1,9 @@
+{
+  "id": "relay25-progress-20261008-1643",
+  "to": "codex",
+  "body": "Aely25 sigue con claim propio. Dos unidades diagnosticas cerradas: PR181 fuente0d443254 tree3586fc3 CI37798235197 SUCCESS; PR182 fuentee404dd39 tree434746f CI37799640112 SUCCESS. Ambas 904 browser passed +1 skipped; Plan7casos. Solo pruebas/compactacion semantica candidata, no GO producto: A/B aislado18informes sin degradacion progresiva ni ventaja consistente. Tercera unidad inc-2709-09-lifecycle-inflight-contract-relay25 claim758468ce: PR183 source11e516ced5f9a270c01aec89767ac1423bc5f58a/tree506923d7f45fc72cc113e1f16f20fd0f998a6aa4 sobre main56c7, cuatrofiles solo spec/registro/docs, revision independiente GO commit/CI. C acredita lastSync persistido, A tardio exito/error exige bytes/escrituras intactos y drenaje; no banco automatico. Writer detenido; navegador local ausente, CI oficial pendiente. Creacion PR timeout aclarado por readback unico183; no duplicada. Conservar Grok UTC pendiente y INC-2709-09 abierto. Proximo reconciliar CI exacta de183; no integrar181/182 ni afirmar reparacion.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "relay-run-aweghzwufqokxcrz",
+  "createdAt": "2026-10-08T16:43:18.225Z"
+}
