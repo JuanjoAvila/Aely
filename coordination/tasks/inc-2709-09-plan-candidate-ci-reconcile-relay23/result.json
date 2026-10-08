@@ -1,0 +1,42 @@
+{
+  "status": "done",
+  "summary": "CI exacta reconciliada; candidato Plan NO-GO por siete fallos e información A/B incompleta",
+  "tests": [
+    {
+      "command": "Official CI 37751508019 actual checkout 3051d071c70f32b8ea3415c2ed6f8d2554ce8e27",
+      "exitCode": 1,
+      "e2ePassed": 884,
+      "e2eFailed": 7,
+      "e2eSkipped": 1,
+      "perfPassed": 13
+    },
+    {
+      "command": "Strict candidate frame collector over complete official job log",
+      "exitCode": 1,
+      "reports": 5,
+      "attempts": 5,
+      "complete": false
+    },
+    {
+      "command": "Independent read-only source and CI audit",
+      "exitCode": 0,
+      "verdict": "NO-GO"
+    }
+  ],
+  "productSHA": "bfe535b8c50f753198c914b9b66e3aba4985daa6",
+  "testedSHA": "3051d071c70f32b8ea3415c2ed6f8d2554ce8e27",
+  "tree": "31b12d9a628c43402d5cb427ed4b32c7c87b23c1",
+  "limitations": [
+    "Three whole-state fingerprint failures also occur with unchanged beta; field changes not recorded, money regression or safety not inferred",
+    "Four native cases fail at initial none assertion before entering Plan; downstream contracts untested",
+    "No complete source-phase block; no optimization or human cumulative lag conclusion",
+    "PR180 remains CI-only draft, not integrated or approved"
+  ],
+  "nextTask": "inc-2709-09-plan-fixture-deltas-relay24",
+  "schema": 1,
+  "taskId": "inc-2709-09-plan-candidate-ci-reconcile-relay23",
+  "actor": "codex",
+  "sessionId": "relay-run-trulvafdfmkvbvll",
+  "createdAt": "2026-10-08T10:12:46.504Z",
+  "released": true
+}
