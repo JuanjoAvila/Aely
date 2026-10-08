@@ -202,3 +202,5 @@ Integración88 actual: fuente mínima PR108/2205 sobrebeta039d, preservando21alc
 WT aislado desde beta ba206, fuente y pruebas de resultados separados; [acta](docs/briefs/inc-0310-broker-resultados.md). No confundir fuente/DOM sintético con sync bancaria real ni con el pago ausente. La producción113 se fusionó con autorización humana directa solo para20webaprobadas; no promover beta completa.
 
 Autorización vigente del3/10: se permiten subidas a producción de superficies con aprobación humana acreditada para su código exacto y alcance separable. CI o revisión técnica no sustituyen el veredicto humano. No promover beta entera si contiene otras superficies; APK/Edge/SQL/migraciones y dinero real conservan sus gates propios. PR113 está fusionada en d366 con veinte web aprobadas; su entrega requiere los artefactos servidos, no solo el merge.
+
+Candidata106: memo de recientes en Inicio con deps expenses/deleted. A/B con callback React real, no virtual. DOM/CI/revisión/presupuesto sellado/publicación pendientes; INC-2709-09 abierto. No heredar aprobaciones de otras tandas de Inicio. [Acta](docs/briefs/inc-0810-dashboard-recents-memo.md).

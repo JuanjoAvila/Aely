@@ -42,7 +42,16 @@ const reader=f=>read(f),scope=JSON.parse(read('scripts/beta-sources.json'))['inc
 let fns=0,data=0;for(const f of scopeDependencies(scope,reader)){assert.notEqual(betaRevision('inc-0710-auth-disposal',x=>x===f.file?mutateLogic(read(x),f):read(x)).web,revision,f.name);fns++;}
 for(const d of scopeDataDependencies(scope,reader)){assert.notEqual(betaRevision('inc-0710-auth-disposal',x=>x===d.file?mutateData(read(x),d):read(x)).web,revision,d.name);data++;}
 assert.equal(fns,7);assert.equal(data,9);
-assert.deepEqual(JSON.parse(read('src/data/release-notes.json')),JSON.parse(old('src/data/release-notes.json')));
-const reg=JSON.parse(read('scripts/beta-sources.json'));assert.deepEqual(reg,JSON.parse(old('scripts/beta-sources.json')));
+const notes=JSON.parse(read('src/data/release-notes.json')),oldNotes=JSON.parse(old('src/data/release-notes.json'));
+// La unidad106 añade una sola nota y alcance; el histórico102 conserva todos sus datos.
+assert.equal(notes[0].v,'4.26.106');assert.deepEqual(notes[0].tandas.map(g=>g.id),['inc-0810-dashboard-recents-memo']);
+assert.deepEqual(notes.slice(1),oldNotes);
+const reg=JSON.parse(read('scripts/beta-sources.json')),oldReg=JSON.parse(old('scripts/beta-sources.json'));
+const expectedReg=structuredClone(oldReg);
+expectedReg['inc-0810-dashboard-recents-memo']=reg['inc-0810-dashboard-recents-memo'];
+assert.deepEqual(reg,expectedReg,'solo alcance nuevo de106; todos los alcances y auditorías anteriores intactos');
+assert.equal(reg['inc-0810-dashboard-recents-memo'].web.length,19);
+assert.equal(reg['inc-0810-dashboard-recents-memo'].unidades,true);
+for(const key of ['historial','auditoria','codigosCompatibles','compatibilidadGit'])assert.equal(reg['inc-0810-dashboard-recents-memo'][key],undefined,'sin heredar '+key);
 assert.notEqual(betaRevision('inc-0710-auth-disposal',reader).codigo,betaRevision('inc-0710-auth-disposal',old).codigo);
-console.log('✓ fit102: retornos/receiver/excepciones diferidas, boot real sin throw, trazas equivalentes;7funciones/9datos y notas/registro intactos; identidad102 nueva');
+console.log('✓ fit102: retornos/receiver/excepciones diferidas, boot real sin throw, trazas equivalentes;7funciones/9datos e histórico de notas/registro intacto salvo unidad106 declarada; identidad102 nueva');

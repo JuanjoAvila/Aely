@@ -53,5 +53,14 @@ for(const [file,a,b]of [
  else {off();w.sessions[0].resolve(s('late'));await flush();w.idle();assert.ok(w.trace.length>0,'mutante continuación actúa tras cleanup');}
 
 }
-const oldReg=JSON.parse(old('scripts/beta-sources.json'));for(const [key,scope]of Object.entries(oldReg))assert.deepEqual(betaRevision(key,read,undefined,scope),betaRevision(key,old,undefined,scope),key);
-console.log('✓ auth disposal: remount, callbacks/promesas/timer/idle tardíos, controles activos, rojo anterior y '+Object.keys(oldReg).length+' revisiones intactas');
+const oldReg=JSON.parse(old('scripts/beta-sources.json')),currentReg=JSON.parse(read('scripts/beta-sources.json'));
+// La candidata106 conserva todos los alcances, auditorías y códigos anteriores.
+for(const [key,scope]of Object.entries(oldReg)){
+ assert.deepEqual(currentReg[key],scope,key+': alcance y auditoría históricos intactos');
+ assert.deepEqual(betaRevision(key,read,undefined,scope),betaRevision(key,old,undefined,scope),key);
+}
+console.log('✓ auth disposal: remount, callbacks/promesas/timer/idle tardíos, controles activos, rojo anterior; '+Object.keys(oldReg).length+' revisiones anteriores intactas');
+
+const memoReg=currentReg['inc-0810-dashboard-recents-memo'];for(const key of ['historial','auditoria','codigosCompatibles','compatibilidadGit'])assert.equal(memoReg[key],undefined,'memo nueva sin heredar '+key);
+const memoNote=JSON.parse(read('src/data/release-notes.json'))[0].tandas.find(g=>g.id==='inc-0810-dashboard-recents-memo');
+for(const key of ['codigoDesde','revisionesDesde','codigosCompatibles','compatibilidadGit','verdict'])assert.equal(memoNote[key],undefined,'memo nueva sin heredar '+key);

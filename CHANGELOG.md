@@ -1,3 +1,9 @@
+## [4.26.106] — 2026-10-08 · Recientes de Inicio al abrir presupuesto
+
+- Dashboard conserva la derivación real de tres recientes mediante useMemo con expenses/deleted como dependencias. Mantiene filtro de lápidas, orden estable por fecha y objetos originales; las actualizaciones relevantes invalidan.
+- A/B de React real con CPU×6 y3000/5200 filas sintéticas; contadores de render y callback separados, controles de edición/alta/lápidas/restauración/pull. Sin cache virtual en la candidata. Candidata local, CI/revisión/DOM/publicación pendientes; no causa ni cierre del lag humano INC-2709-09.
+- Nueva identidad funcional, sin heredar aprobación ni repinar alcances anteriores. Presupuesto sin aumento; sellado exacto pendiente. [Acta](docs/briefs/inc-0810-dashboard-recents-memo.md).
+
 ## [4.26.102] — 2026-10-07 · Disposición de sesión al desmontar
 
 - Ajuste de representación del mismo cleanup: callbacks locales equivalentes, predicado de login sin relecturas de identidad y callback boot compartido. Ahorro225bytes crudos, dentro del presupuesto sintético por12bytes; gate real del publicador, CI y DOM pendientes. Sin cambios de minificador, topes, SDK, historial ni aprobaciones.

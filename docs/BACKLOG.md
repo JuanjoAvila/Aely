@@ -507,3 +507,7 @@ operación de efectivo importado explicada. FIN-04/RLS y suma compartida siguen 
 Movilidad88 se integra en worktree propio sobre039d; no incorpora arreglos nuevos de los extras3/10 ni acredita aprobación móvil o producción.
 
 Corte4/10 · OPS-0410 panel: PR121 integrado solo beta, CI37198285128 pendiente; cierre93 de dos hallazgos independientes implementado y comprobado, sin añadir otra tanda. Metas mensual automática encargada a Claude en paralelo, versión>=94; no incluida ni declarada completada en este cambio.
+
+## INC-0810 · Recientes de Inicio · candidata106
+
+Unidad fuente aislada: hook real conserva derivación al abrir/cerrar presupuesto y se invalida por expenses/deleted. Unidad106 nueva, sin compatibilidad heredada; todos los alcances e identidades anteriores, incluida Inicio96, se conservan. Node/budget preliminares verdes; React A/B3000/5200 CPU×6, CI exacta, revisión y publicación pendientes. INC-2709-09 sigue abierto; no cierre de lag general. [Acta](briefs/inc-0810-dashboard-recents-memo.md).

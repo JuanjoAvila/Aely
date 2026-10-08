@@ -1,5 +1,46 @@
 [
   {
+    "v": "4.26.106",
+    "d": "2026-10-08",
+    "t": {
+      "es": "Recientes al abrir el presupuesto",
+      "en": "Recent transactions when opening the budget",
+      "ca": "Recents en obrir el pressupost"
+    },
+    "items": {
+      "es": [
+        "Inicio conserva los movimientos recientes al abrir y cerrar el presupuesto, y los actualiza cuando cambian."
+      ],
+      "en": [
+        "Home keeps recent transactions when opening and closing the budget, and updates them when they change."
+      ],
+      "ca": [
+        "Inici conserva els moviments recents en obrir i tancar el pressupost, i els actualitza quan canvien."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inc-0810-dashboard-recents-memo",
+        "t": {
+          "es": "Recientes al abrir el presupuesto",
+          "en": "Recent transactions when opening the budget",
+          "ca": "Recents en obrir el pressupost"
+        },
+        "items": {
+          "es": [
+            "1. En Inicio, abre y cierra el presupuesto varias veces: los tres movimientos recientes deben conservar importe y orden. Después añade, edita o elimina un movimiento: la lista debe actualizarse."
+          ],
+          "en": [
+            "1. On Home, open and close the budget several times: the three recent transactions should retain their amount and order. Then add, edit or delete a transaction: the list should update."
+          ],
+          "ca": [
+            "1. A Inici, obre i tanca el pressupost diverses vegades: els tres moviments recents han de conservar import i ordre. Després afegeix, edita o elimina un moviment: la llista s’ha d’actualitzar."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.102",
     "d": "2026-10-07",
     "t": {
