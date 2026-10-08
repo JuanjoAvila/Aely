@@ -1,0 +1,16 @@
+{
+  "status": "done",
+  "tests": [
+    "Independent source GO; tree2d70e520ddc09fe26b2a572995bd6fbead924d31",
+    "Tests37719592429/job113123937845 checkout15d4a44b1e3caf6c6b5a9bebbd3d1af41774a378 SUCCESS892functional/1skip,9performance,privacy",
+    "All15Plan cases pass;32complete gesture reports and6complete separate layout summaries retained",
+    "Prior5failure and laterhistorical-only failure retained; finalCI-only PR171 closed without merge"
+  ],
+  "summary": "Reviewed historical visibility guard applied byte-identically to the Plan diagnostic source; exact final CI SUCCESS, thresholds/runtime/version/registry unchanged.",
+  "schema": 1,
+  "taskId": "ops-0810-plan-hist-guard-ci-relay22",
+  "actor": "codex",
+  "sessionId": "relay-run-7ec27dca45990401",
+  "createdAt": "2026-10-08T03:45:13.772Z",
+  "released": true
+}
