@@ -738,3 +738,7 @@ El proceso está en [PROMPT-FLUJO-CONTINUO.md](PROMPT-FLUJO-CONTINUO.md). Una ta
 identificable o con validación por pago real pendiente continúa en beta.
 
 Uso prolongado (INC-2709-09): `e2e/rendimiento-sostenido.spec.mjs` está en CROSSCUTTING y se ejecuta en serie como rendimiento. La candidata `lifecycle-network-v3` añade offline real del contexto Chromium, visibilidad controlada del fixture y observaciones por acción. Es investigación, sin arreglo acreditado: [guion v3 y bloqueo de ejecución](briefs/inc-2709-09-lifecycle-network-v3.md). Las series históricas v1/v2 conservan sus guiones exactos y no se atribuyen a v3.
+
+### Diagnóstico App/Dashboard y control positivo
+
+`e2e/dashboard-react-profile.spec.mjs` compara renders y cálculo de los tres recientes con una caché virtual en App real, CPU6 y datos sintéticos de 3000/5200 filas. Se ejecuta en el grupo serial de rendimiento; el mapa de Dashboard y el runner incluyen su guardián `tests/dashboard-profile-instrument.test.mjs`. Conserva medición natural, bloqueo deliberado y recuperación separados, y exige cero llamadas bancarias. Los informes completos salen por logs de CI. Véase `docs/briefs/inc-0710-dashboard-react-profile.md` para SHA, alcance y límites: no constituye arreglo del lag acumulativo ni prueba de memo106.
