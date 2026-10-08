@@ -52,6 +52,13 @@ ${readWrite}
     return WidgetSnapshotArbiter.ingest(s,ticket,period,period,200,id,id+"Key",50,100,50,10,10,10,true,true);
   }
   public static void main(String[] args) {
+    // Una identidad que excede el límite no deja ninguna fila: una foto sin ACK no la cubre.
+    WidgetSnapshotArbiter.State emptyLoss=base();
+    String tooLarge=new String(new char[262145]).replace('\\0','z');
+    ok(WidgetSnapshotArbiter.pendingUnknown(emptyLoss,tooLarge,"lostKey"),"pérdida sin fila");
+    ok(emptyLoss.unknownJournal.isEmpty()&&emptyLoss.unknownLoss,"identidad no retenida");
+    emptyLoss=restart(emptyLoss); photo(emptyLoss,1,"","","trade_republic");
+    ok(emptyLoss.unknownPending&&emptyLoss.unknownLoss,"foto sin ACK no limpia pérdida");
     // El journal lleno de identidades válidas no deja sitio al pago incompatible nuevo.
     WidgetSnapshotArbiter.State s=base();
     String huge=new String(new char[262140]).replace('\\0','x');
