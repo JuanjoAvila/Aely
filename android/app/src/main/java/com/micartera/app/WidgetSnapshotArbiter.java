@@ -146,7 +146,8 @@ final class WidgetSnapshotArbiter {
         if (s.periodStart != responsePeriod) {
             // Un bloqueo de cifras no autoriza a perder identidades al entrar en otro periodo.
             // Si aún se leen, pasan a cobertura pendiente; si no, se conserva la pérdida.
-            if (s.journalFull && !s.journal.isEmpty()) invalidateScope(s);
+            if (s.journalFull && !s.journal.isEmpty() && !invalidateScope(s))
+                s.unknownLoss = true; // Este reset sí retirará identidades que no se pudieron migrar.
             s.periodStart = responsePeriod;
             s.spent = 0;
             s.hasBudgetLeft = false;

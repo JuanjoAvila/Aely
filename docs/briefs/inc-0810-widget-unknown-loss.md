@@ -12,6 +12,8 @@ Segundo caso Java rojo en la primera candidata: al invalidar el alcance, la conv
 
 La revisión independiente detectó otra pérdida con un journal corrupto del mismo alcance: el fallo de app sólo marcaba bloqueo y el cambio de periodo lo borraba. Aridad/identidad ilegibles marcan pérdida durable. Una cifra dañada con identidad legible conserva recuperación por ACK exacto: al cambiar periodo se migran sus identidades pendientes antes de retirar deltas. La conversión es acotada y no guarda filas parciales si falla. La indentación XML recuperable sigue sin pérdida irreversible.
 
+También se cubre un journal de identidades retenido por encima del límite: el rollover de ingest sólo puede retirar otro journal si la migración terminó, o conservando pérdida durable si falló. El sobredimensionado retenido por sí solo mantiene recuperación por ACK exacto. App no resetea ningún journal tras una migración fallida; sus preferencias originales permanecen intactas.
+
 El esquema antiguo no distingue bloqueo de formato de identidad perdida. Al releer una preferencia antigua con `journalFull:true` y sin `unknownLoss`, se conserva incertidumbre de forma conservadora. Una preferencia nueva con `unknownLoss:false` mantiene la recuperación habitual de indentación XML.
 
 No existe un protocolo que demuestre cobertura de una identidad que ya se perdió. Por eso `unknownLoss` no se limpia mediante una foto ni ACK aparente; una recuperación explícita acreditada requiere otro encargo. Esta limitación reduce disponibilidad antes que mostrar certeza financiera sin evidencia.

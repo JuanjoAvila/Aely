@@ -52,6 +52,23 @@ ${readWrite}
     return WidgetSnapshotArbiter.ingest(s,ticket,period,period,200,id,id+"Key",50,100,50,10,10,10,true,true);
   }
   public static void main(String[] args) {
+    // Un journal retenido sobredimensionado sólo es pérdida si impide migrar otras identidades.
+    for (boolean missing : new boolean[]{false,true}) {
+      WidgetSnapshotArbiter.State over=base();
+      String retainedHuge=new String(new char[262145]).replace('\\0','q');
+      over.unknownJournal=retainedHuge+"\\tK\\n";
+      if(missing) over.journal="missing\\tnot-a-number\\t10\\t10\\t1\\t1\\tmissingKey";
+      over.journalFull=true; over.unknownPending=true; over=restart(over);
+      if(missing) {
+        SharedPreferences disk=new SharedPreferences(); write(disk.edit(),over);
+        ok(!WidgetSnapshotArbiter.app(over,2,40,100,60.0,150.0,200.0,"trade_republic","Cuenta","",""),"app no resetea si migración falla");
+        writeBlocked(disk.edit(),over); over=read(disk);
+        ok(over.journal.startsWith("missing\\t")&&!over.unknownLoss,"app fallida conserva las identidades originales");
+      }
+      ok(ing(over,WidgetSnapshotArbiter.begin(over),2,"later"),"rollover con retenido grande");
+      over=restart(over); photo(over,2,"|"+retainedHuge+"|later|","","trade_republic");
+      ok(over.unknownPending==missing&&over.unknownLoss==missing,"sólo migración fallida pierde identidad; retenido solo recupera");
+    }
     // Datos irreconocibles del mismo alcance no se convierten en certeza al cambiar periodo.
     for (String broken : new String[]{"damaged-entry","\\t10\\t10\\t10\\t1\\t1\\tkey"}) {
       WidgetSnapshotArbiter.State corrupt=base(); corrupt.journal=broken;
