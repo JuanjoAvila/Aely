@@ -46,3 +46,7 @@ causales de timer/suscripción/continuaciones no cambian. No se usa una excepci�
 
 PERSIST91 añade el ID de la nueva unidad a su inventario de alcances de solo lectura.
 Sus veinte dependientes de escritura y sus mutantes causales permanecen intactos.
+
+El guardián fit102 verifica el histórico completo como cola del catálogo nuevo; permite
+únicamente la nota106 y su nuevo alcance, más el terminador de Inicio renombrado. Retornos,
+receiver, excepciones, trazas y sus siete funciones/nueve datos conservan los criterios.
