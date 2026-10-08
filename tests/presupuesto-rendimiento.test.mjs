@@ -19,6 +19,9 @@
  * cero CDNs y todo auto-hospedado, y cada `<script src>` o `<link rel=preload>` nuevo es una
  * ronda más de red en la peor conexión.
  *
+ * `--artifact` mide public/index.html ya sellado/minificado, sin reserva ni reconstrucción.
+ * El publicador debe ejecutarlo después de inyectar su configuración real.
+ *
  * Al pasarse: mirar primero si hay algo duplicado (pasó con `bkBrand`, que eran tres copias del
  * mismo bloque) antes de tocar el número.
  */
@@ -184,13 +187,32 @@ const PRESUPUESTO = {
 };
 
 const tmp = path.join(root, ".presupuesto.tmp.html");
+const artifact = process.argv.includes("--artifact");
 let fallos = 0;
 console.log("presupuesto-rendimiento");
 
 try {
   // Minificar a un fichero aparte: la fuente editable no se toca (ARQUITECTURA #2).
-  execFileSync(process.execPath, [path.join(root, "scripts", "minify-html.mjs"), "--out", tmp], { stdio: "pipe" });
-  const min = fs.readFileSync(tmp);
+  if (!artifact) execFileSync(process.execPath, [path.join(root, "scripts", "minify-html.mjs"), "--out", tmp], { stdio: "pipe" });
+  // El publicador añade configuración y una revisión beta: medir solo el build vacío
+  // daba un falso verde con 6 B de margen. Se reserva el caso servido sin leer secretos.
+  let empaquetado = fs.readFileSync(artifact ? path.join(root, "public", "index.html") : tmp, "utf8");
+  const dsns = [...empaquetado.matchAll(/SENTRY_DSN:("(?:[^"\\]|\\.)*")/g)];
+  if (dsns.length !== 1) throw new Error("Configuración de monitorización ausente o ambigua");
+  const dsn = dsns[0];
+  const fixture = "https://" + "0123456789abcdef".repeat(2) + "@" + "fedcba9876543210".repeat(2) + ".invalid/0123456789012";
+  if (Buffer.byteLength(fixture) !== 95) throw new Error("Reserva sintética de configuración desalineada");
+  // Una configuración real mayor se mide entera; nunca se sustituye por una menor.
+  if (!artifact && Buffer.byteLength(dsn[1]) < Buffer.byteLength(JSON.stringify(fixture))) {
+    empaquetado = empaquetado.replace(dsn[0], "SENTRY_DSN:" + JSON.stringify(fixture));
+  }
+  const version = fs.readFileSync(path.join(root, "VERSION"), "utf8").trim() + ".99999";
+  const versiones = [...empaquetado.matchAll(/APP_VERSION:"([^"]*)"/g)];
+  if (versiones.length !== 1) throw new Error("Versión de paquete ausente o ambigua");
+  empaquetado = empaquetado.replace(/APP_VERSION:"([^"]*)"/, function(full, actual) {
+    return !artifact && actual.length < version.length ? "APP_VERSION:" + JSON.stringify(version) : full;
+  });
+  const min = Buffer.from(empaquetado);
   const gz = zlib.gzipSync(min, { level: 9 });
 
   const html = fs.readFileSync(path.join(root, "public", "index.html"), "utf8");

@@ -1,16 +1,15 @@
-Promoción selectiva98 preparada7/10: el dueño aprobó ocultar juntos barra y botón en beta4.26.98.1/sourceb7ab. Base main85b8, sólo CSS aprobada, scope y guardianes correspondientes. Producción96 ya servida; candidata98 local pendiente de revisión independiente, CI exacta y entrega. No99/100/APK/Edge/SQL; INC-2709-09 continúa abierto. [Acta](docs/briefs/promocion-fab98-2026-10-07.md).
-
-Promoción selectiva6/10: candidata4.26.96 local para mostrar hasta tres metas activas en Inicio, aprobada directamente por el dueño para la fuente ca6f5e85. Base main537edc1; únicamente el límite visual aprobado, conservando todas las metas en Plan y el resto de main. Revisión independiente, CI y entrega servida pendientes; INC-2709-09 sigue abierto. [Acta](docs/briefs/promocion-inicio96-2026-10-06.md).
-
 Apuntar y Gastos permiten distinguir Multas, Zona azul y Peajes. Solo los pagos nuevos con detalle inequívoco los sugieren; elegir una categoría conserva el importe y la fecha.
 
+Promoción4/10: las once tandas de beta4.26.94.1 tienen aprobación vigente. Producción4.26.94/source8bb0398f servida y cotejada; APK52 estable y las tres funciones Edge entregadas. La limpieza conserva notas y decisiones; solo retira las once entregadas, sin producto nuevo. Prioridad permanente: producción de lo aprobado antes de otra implementación. [Acta](docs/briefs/promocion-aprobadas-2026-10-04.md).
 Promoción selectiva5/10: candidata4.26.95 para volver con mucho historial, autorizada directamente por el dueño. Base main8bb0398; solo caché de fechas aprobada en PR133, sin beta completa. Revisión independiente, CI y entrega servida pendientes. INC-2709-09 global sigue abierto. [Acta](docs/briefs/promocion-cache95-2026-10-05.md).
 
-La base80/source955765a9 incluye Retirada y Nómina junto con Widget y las tres correcciones de pantalla.78/79 son snapshots de integración, no versiones publicadas por separado. Esta candidata conserva sus cambios; prueba móvil pendiente. [Actas](docs/briefs/ops-0110-validaciones-persistentes.md).
+La base80/source955765a9 incluye Retirada y Nómina junto con Widget y las tres correcciones de pantalla.78/79 son snapshots de integración, no versiones publicadas por separado. Snapshot anterior de integración: la promoción actual conserva sus cambios y cuenta con los once OK de beta94.1. [Actas](docs/briefs/ops-0110-validaciones-persistentes.md).
 
 # Aely
 
-Candidata Gasolina/Taxi: Apuntar → todas las categorías permite elegirlas por separado; Gastos comparte esos IDs en filtros y límites. Los apuntes antiguos y el límite de Transporte se conservan. [Estado sin publicar](docs/briefs/feature-0210-01-gasolina-taxi.md).
+Inicio resume hasta tres metas activas; Ver plan permite consultar todas con sus importes intactos.
+
+Gasolina/Taxi: Apuntar → todas las categorías permite elegirlas por separado; Gastos comparte esos IDs en filtros y límites. Los apuntes antiguos y el límite de Transporte se conservan. [Acta histórica de preparación](docs/briefs/feature-0210-01-gasolina-taxi.md).
 
 
 
@@ -112,7 +111,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.98** candidata local selectiva autorizada: botón y barra se ocultan juntos. Revisión/CI/entrega pendientes; lag global abierto.
+Estado actual: **v4.26.106** candidata local: Inicio conserva sus tres recientes al abrir y cerrar presupuesto. Revisión, CI, DOM y publicación pendientes; INC-2709-09 sigue abierto. [Acta](docs/briefs/inc-0810-dashboard-recents-memo.md).
 
 Corte anterior (4/10, 12:30 UTC, panel de revisión): **v4.26.93** publicada en beta. Primera entrega4.26.93.1 (fuente1d5dd782), CI37200314653SUCCESS y HTTP/ZIP/HTML/SW/catálogo/huella cotejados el4/10 a12:30UTC:11 tandas/24 puntos, frente a40 antes del cambio. Producción4.26.86 (d366215a), APK beta4.26.80/code52 y estable4.26.32/code48 conservadas. Prueba y aprobación móvil pendientes. [Acta](docs/briefs/ops-0410-panel-cola.md).
 
@@ -156,5 +155,3 @@ El guardián tests/logs-privacidad.test.mjs verifica las fronteras de diagnósti
 Plan → Metas: borrar una regla de nómina pide confirmación y libera su reserva del presupuesto, conservando las aportaciones e historial. Candidata INC-0310-01 aún sin publicación; pruebas DOM en `e2e/metas-borrar-regla.spec.mjs`, mapeadas a Metas, Gastos, Inicio y motor. [Contrato y estado](docs/briefs/inc-0310-01-meta-regla.md).
 
 Gastos → Mes pasado, Rango, Últimos3meses yTodo muestran su resumen sin columna de presupuesto ajeno. Este mes y Mi ciclo conservan límite, restante y progreso; candidata local pendiente de DOM/revisión/CI.
-
-Diagnóstico de rendimiento Dashboard: guardianes de frecuencia de recientes, A/B virtual y control positivo separados, con fuente y límites en `docs/briefs/inc-0710-dashboard-react-profile.md`. La medición no declara resuelto el lag acumulativo.
