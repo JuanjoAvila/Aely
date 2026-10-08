@@ -13,7 +13,7 @@ sincronización, guardado ni importes. Node/build y18 DOM comprobados en ventana
 flujos principales reproducen rojo en la base histórica. El artefacto
 aislado pasa los caps1291/352 asignados por root. La unión oficial sobre109 se midió
 con gzipSync({level:9}): delta final3.413 B crudos/1.134 B gzip; topes1295/353/3 autorizados.
-VERSION/package son110, con nota y unidad propias es/en/ca; gates conjuntos aún en curso,
+VERSION/package son110, con nota y unidad propias es/en/ca;30 guardianes/18 DOM del port pasan,
 sin publicación110 ni aceptación móvil. Las tres unidades109 y las cinco retiradas siguen
 intactas. [Acta](briefs/inc-0810-backclose-handover.md).
 

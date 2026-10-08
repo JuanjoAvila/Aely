@@ -1,12 +1,13 @@
 # Historial Perfil → Ajustes · fuente local110 para revisión · 8/10/2026
 
-Base exacta `8dcc5ed39b6e212ba1e34a90b550685794ce0bd5`. Trabajo local aislado;
-runtime implementado, Node/build/18 DOM comprobados y presupuesto aislado aprobado con
-caps asignados. Sin publicación ni aceptación móvil; integración sobre109 pendiente.
+Origen exacto `8dcc5ed39b6e212ba1e34a90b550685794ce0bd5`, preservado en checkpoint local
+edf1f3e3 antes del port. Runtime aislado, Node/build/18 DOM comprobados y presupuesto
+aislado aprobado con caps asignados. Candidata actual110 portada sobre109dded con reparación
+test-onlyf4ff incorporada; gates conjuntos en curso. Sin publicación ni aceptación móvil.
 Objetivo propio `inc-0810-backclose-handover`, separado de Nav107 y del lag general.
-El diseño recibió aprobación del coordinador; versión4.26.110 y notas esperan
-los gates locales. VERSION/package siguen4.26.106; la beta publicada indicada al abrir
-esta tarea era4.26.106.1. No se ha publicado nada desde esta unidad.
+El diseño recibió aprobación del coordinador. VERSION/package son4.26.110 y las notas/
+unidad propias nacen en es/en/ca. La beta indicada al abrir esta tarea era4.26.106.1,
+snapshot histórico. No se ha publicado nada desde esta unidad.
 
 ## Causa acreditada y alcance
 
@@ -116,13 +117,15 @@ botones propios y no reparan ni fuerzan el DOM/estado del producto. Hay18 DOM co
 no acreditan Android físico.
 
 `backclose-history.test.mjs`, registrado en run-tests, extrae controlador/hook REAL de02
-y verifica20 contratos con cola separada de microtasks/tareas de History. El destino
+y verifica21 contratos con cola separada de microtasks/tareas de History. El destino
 del recorrido se fija al solicitarlo, conservando la carrera original. No copia el
 algoritmo del controlador. Vigila alta cancelada durante back, fallos de replace/back,
 closure inicial, identidad explícita, go(-2), forward, retención acotada de slots y
 estado externo clonado con ciclo/Map/Date.20/20 Node pasan. El contrato adicional de
 alcance muta los20 helpers/datos UI registrados de Brókers y exige invalidar su digest;
-no reemplaza los mutantes financieros/persistencia de `beta-sources`.
+no reemplaza los mutantes financieros/persistencia de `beta-sources`. El nuevo guard110
+añade21 mutantes del controlador completo, incluido el helper nativo, y seis de las entradas
+reales App/Ask/Wizard;47 mutantes UI junto a los20 de Brókers.
 
 La prueba de pop ajeno se endureció antes de congelar: un recorrido externo ya pedido
 llega primero a otra ruta mientras el consumo propio está pendiente, libera la señal
@@ -161,7 +164,7 @@ Conserva los contratos financieros/persistencia, no sustituye sus mutantes por l
 La diferencia con el inventario posterior del integrador es de fuente: esta rama sigue
 sobre8dcc, sin las nuevas unidades/tooling del lote107/108/109.
 El alcance nuevo110 se preparará completo tras esa revisión, sin alias para retener un OK.
-No se han cambiado beta-revisions/beta-source-code, notas ni clasificación de aprobaciones.
+En esta fase aislada no se cambiaron beta-revisions/beta-source-code, notas ni clasificación.
 
 ## Gates y presupuesto A/B · runtime congelado para el futuro causal
 
@@ -253,3 +256,62 @@ los mismos seis about:blank/dos privacy.html prematuros,0skips/0flaky/0retries. 
 ambos terminales, preflight elevado propio acredita0 procesos Chromium/runner/servidor y
 0 listeners4432. Liberación expresa101 en el ACK privado; sólo root cambia el JSON canónico.
 Hashes de HTML/runtime permanecen los congelados; no se hizo build/minificación adicional.
+
+## Port109 y cierre de candidata110
+
+Tras release101, el WIP se preservó en commit localedf1f3e3. Rebase exclusivo sobre
+dded70935ee341f5adaf0c45a9d212c5f402f2c6 y cherry-pick de la reparación test-only
+f4ffb9340adfd0a13b631271e8158d2c630613c0; ningún cambio de runtime109 en ese commit.
+Las tres unidades109, las cinco retiradas y las226 notas quedan exactas detrás de110.
+Nueva unidad `inc-0810-backclose-handover` con11 funciones,10 datos del controlador y
+seis entradas de App/Ask/Wizard. Brókers conserva todas sus dependencias previas en el
+mismo orden relativo y añade ocho helpers/siete datos reales; las otras35 identidades
+anteriores deben permanecer iguales. Sin alias, repin ni cambios en beta-revisions/parser.
+
+VERSION/package110, nota familiar y checklist nuevas es/en/ca. La arquitectura financiera,
+callbacks de guardar/cancelar, autenticación, importes, historial y persistencia permanecen
+intactos. El test histórico de integración109 lee metadata y fuente cerradasf4ff, mientras
+los invariantes/mutantes de runtime siguen leyendo la fuente actual. Un guard adicional
+verifica37 unidades, las35 identidades iguales, las226 notas exactas y las cinco retiradas.
+
+Primera medida de102 usó por error gzip predeterminado6: base361329 y candidato362452 B.
+Se releyeron los MISMOS HTML con gzipSync({level:9}):360174/361297 B, sin rebuild. Root
+cotejó ambos hashes y autorizó1295/353 KiB/3 bloqueantes, sin aumentar a354. JSON inicial6
+y corrección9 se conservan privados. El nivel6 no acredita el guard oficial ni una regresión109.
+
+Primera pasada conjunta104, sesión47265, exit1,30 etapas seleccionadas,324.6s. Ejecutó
+1782 mutaciones de funciones/701 de datos. Detectó que `performance` no existe en la VM
+de lógica y el token lo evaluaba al caer de UUID; no fue un fallo de dinero. Se acota
+ese fallback con typeof, preservando UUID del navegador. Dos oráculos nuevos se ajustan:
+dependencias Brókers intercaladas conservadas por subsecuencia exacta, y BackClose como
+unidad ajena a `set()` de App, contrastada por el lector independiente. El guard de versión
+detectó correctamente el checkpoint sin ancla110 commiteada; la candidata se preservó
+con VERSION/notas en4126b61e. No se salta ni reduce ninguno de los mutantes financieros.
+
+Después del fallback,21 contratos y47 mutantes UI pasan. Minificador oficial0.25.5, DSN95
+sintético idéntico y sello110.99999: base1.321.823/360.174 B; candidato1.325.236/361.308 B
+crudos/gzip9, delta3.413/1.134, márgenes844/164 B con1295/353. LF canónico:
+base1.321.799/360.157, candidato1.325.212/361.292 B. Ambos gates oficiales --artifact terminan0,
+base con1291/352 y candidata con1295/353. No hay textos financieros recortados ni dependencia nueva.
+HTML final candidato `5a11a355d945ce6b7a846e69366595c16dccd3f2acd621d7f957a9062b71f1b7`,
+baseline109 reconstruido `41a755fc4f7965d83a8dd0a310d2836af92f05beab807bf0fc5cd22c49e313d0`.
+Estos hashes se informan antes del DOM104; no reutilizan los18 verdes del aislado101.
+
+Segunda pasada de30 guardianes actuales, sesión60579: exit0 en368.3s, incluidas1782 funciones/
+701 datos mutados,21 contratos/47 mutantes UI, finanzas/persistencia/auth/panel/idiomas/sintaxis/
+registro y presupuesto. El guard de versión pasa con el checkpoint110 real4126b61e. Deno y
+suite completa local no ejecutadas; no se presenta npm test completo ni CI propia como verdes.
+
+DOM104 candidato final, sesión2605: exit0,18PASS,0retry/skip/flaky, workers1, sobreHTML5a11.
+HTTP200/Content-Type/SHA se comprueban antes de ready. El causal8rojos del mismo guion sobre
+8dcc se preserva de101; no se ejecutó otro causal DOM sobre109 ni se le atribuyen esos fallos.
+El coordinador ha leído identidad/presupuesto/resultados y emitido revisión favorable de
+alcance. Integración110 sigue separada y no se publica antes de acreditar entrega109.
+CI/publicación propias110 no ejecutadas; el coordinador es el único publicador.
+
+Limpieza de la misma tanda: se retiran generadores de una sola pasada, relector de gzip,
+auditor temporal, servidor/configuración104, archivos tar, fuentes extraídas y copias del
+tooling/tests del empaquetado. Quedan privados e ignorados sólo informes, trazas sintéticas,
+presupuestos/identidades y snapshots públicos congelados necesarios para revisar la evidencia.
+No se borran ramas ni worktrees. El ACK104 identifica terminales, source/tree finales y
+preflight de0 procesos propios/Chromium/runner y0 listeners4432 antes de liberación expresa.

@@ -46,7 +46,9 @@ f4ff; invariantes y mutantes actuales conservan read actual. Las226 notas109 per
 exactas detrás de110 y no resucitan las cinco retiradas. Presupuesto conjunto oficial con
 DSN95/sello110.99999/gzip9 pasa1295/353/3:1.325.236/361.308 B, delta3.413/1.134 B
 tras acotar performance en el fallback de token para la VM financiera, sin cambiar UUID.
-La primera medida default6 se conserva corregida en el acta. Guardia y DOM104 en curso;
+La primera medida default6 se conserva corregida en el acta. Guardianes104:30 etapas exit0,
+1782 funciones/701 datos mutados,21 contratos/47 mutantes UI y18 DOM exit0 sin retries,
+skips ni flakies. Deno y suite completa no ejecutados localmente; CI de110 pendiente.
 sin publicación110 ni comprobación de Android físico.
 [Diseño y revisión](briefs/inc-0810-backclose-handover.md).
 
