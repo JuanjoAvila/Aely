@@ -1,0 +1,49 @@
+{
+  "status": "done",
+  "summary": "Fixture comprobado con tres bloques A/B completos; prototipo NO-GO por sheet y ausencia de ventaja consistente",
+  "tests": [
+    {
+      "command": "Official CI37772570681 actual checkout13f63fa36ba8a58016750dd294ac0e3b97c42ff0",
+      "exitCode": 1,
+      "e2ePassed": 887,
+      "e2eFailed": 4,
+      "e2eSkipped": 1,
+      "perfPassed": 13
+    },
+    {
+      "command": "Original strict full frame collector",
+      "exitCode": 0,
+      "complete": true,
+      "reports": 29,
+      "naturalReports": 18,
+      "attempts": 3,
+      "errors": 0,
+      "optimizationGate": false
+    },
+    {
+      "command": "Independent complete official log/source/phase/native assessment",
+      "exitCode": 0,
+      "verdict": "NO-GO product or optimization"
+    }
+  ],
+  "productSHA": "fe4f1a5487be588c91b8c67886b6697779d60087",
+  "testedSHA": "13f63fa36ba8a58016750dd294ac0e3b97c42ff0",
+  "tree": "8620092f3255293bd15770613eee2401b80ced66",
+  "findings": [
+    "All three natural tests passed on beta/main/candidate first and after12usecycles, with unchanged complete finance guards; eighteen accepted natural reports in three complete blocks",
+    "All four native cases and retries pass preceding contracts and then fail actual sheet CSS none versus auto; post-sheet cancellation and final native finance guard not executed",
+    "Candidate has no consistent frame advantage and is worse than beta in this run for Deudas/Metas; no causal regression, speedup or human accumulated lag correction inferred",
+    "Diagnostic failure-only finance reader has no pairs here, expected no failure data; full natural test pass plus exact unchanged guard proves tested natural checkpoints only, not global absence"
+  ],
+  "nextTask": "inc-2709-09-plan-sheet-priority-relay24",
+  "limitations": [
+    "Separate PR181/a370 source CI37778368506 assessed independently; no source/retry splicing",
+    "PR180 remains CI-only draft; no main/beta/version/registry or product approval"
+  ],
+  "schema": 1,
+  "taskId": "inc-2709-09-plan-fixture-correction-relay24",
+  "actor": "codex",
+  "sessionId": "relay-run-trulvafdfmkvbvll",
+  "createdAt": "2026-10-08T13:05:03.286Z",
+  "released": true
+}
