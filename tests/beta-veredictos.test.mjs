@@ -78,9 +78,13 @@ t("ronda mixta conserva una vez la checklist implícita actual con o sin producc
 });
 
 t("ronda mixta no resucita una nota actual con tandas vacías",()=>{
-  const catalog=cli.RELEASE_NOTES,empty={v:"4.26.99",t:{es:"Sin puntos"},items:{es:["Nota familiar"]},tandas:[]};
-  const expected=Array.from(cli.betaChecklist("4.26.99.1",null,48).tandas,g=>g.id.split("/").pop()).sort();
-  conNotas([empty,...catalog],()=>{
+  // El catálogo real ya puede contener versiones posteriores a99: comparar su fallback
+  // offline con una ronda online acotada a99 mezclaba dos entradas distintas (CI8/10).
+  // Esta carrera usa un catálogo cerrado y un oráculo literal, independiente de la versión.
+  const empty={v:"4.26.99",t:{es:"Sin puntos"},items:{es:["Nota familiar"]},tandas:[]};
+  const previous={v:"4.26.98",t:{es:"Pendiente anterior"},items:{es:["Nota familiar anterior"]},tandas:[tanda("pendiente-anterior",{codigo:"a".repeat(64)})]};
+  const expected=["pendiente-anterior"];
+  conNotas([empty,previous],()=>{
     for(const production of [null,"4.26.67"]){
       const actual=cli.betaChecklist("4.26.99.1",production,48);
       assert.deepEqual(Array.from(actual.tandas,g=>g.id.split("/").pop()).sort(),expected);

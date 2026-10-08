@@ -1,6 +1,7 @@
 ## [4.26.109] — 2026-10-08 · Navegación, reglas de Metas y gráfica de Inicio
 
 - Integración local de107/108/109: conserva las tres identidades revisadas, historial y cinco aprobadas hasta acreditar entrega. Presupuesto conjunto medido con minificador oficial; [acta](docs/briefs/integracion-local26-109.md). DOM conjunto67/67 verificado; CI y publicación pendientes.
+- El fixture de tandas vacías usa catálogo sintético cerrado y oráculo literal; el mutante de resurrección sigue fallando. Reparar este guardián exige CI completa en beta para no recortar las pantallas de una unión cuyo publicador anterior falló antes de DOM. Runtime y huellas de producto intactos.
 
 - INC-0810: la nota distingue ausencia de cifras anteriores y cifras guardadas sin fecha. Con línea explica EUR y escala relativa mínimo/máximo sin base cero; no promete calendario ni ganancia. Conserva exactamente `state.history`, `tt.netWorth`, `Sparkline` y los cálculos de dinero.
 - Revisión de PR187: se elimina la promesa «Tu histórico empieza hoy» también del guard `pulido-vacios`; se restaura íntegro `pt_trb_hint` español desde beta8dcc5ed3, cuyo recorte era ajeno a esta unidad. La integridad del texto financiero no se usa para liberar presupuesto.

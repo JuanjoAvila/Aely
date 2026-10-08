@@ -410,6 +410,8 @@ Tras v3.108.0 la lógica vive en **`src/modules/*.js`**. No edites `public/index
 - `.github/workflows/beta.yml` — push a **beta**: recorte por carpetas (`scripts/relevant-tests.mjs`).
   Docs → sin Chromium. Ingest → Deno, sin e2e. Gastos → sus specs + transversales (persistencia,
   swipe, frames). Núcleo (motor, i18n, shell, runner) o un workflow → todo.
+  El guardián `beta-veredictos` también exige la suite completa: corregir su fixture tras
+  un publicador fallido no permite servir una unión pendiente sin abrir sus pantallas.
   **Si añades un e2e o un módulo de `src/`**, una línea en `E2E_MAP` / `CROSSCUTTING` / `CORE`
   en el mismo commit: el test `relevant-tests` recorre el disco y aborta si falta. Un unitario
   nuevo va a `steps` en `run-tests.mjs` (igual: aborta). Un `*.test.ts` de Deno, a `denoTests`.

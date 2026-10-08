@@ -39,6 +39,9 @@ export const CORE = [
   "src/shell.html",
   "playwright.config.mjs",
   "scripts/run-tests.mjs",
+  // Reparar el guardián de revisión tras un CI fallido no puede publicar la unión
+  // pendiente sólo con Node y saltarse sus pantallas (publicador109, 8/10/2026).
+  "tests/beta-veredictos.test.mjs",
 ];
 
 /**
