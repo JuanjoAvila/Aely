@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "id": "inc-0810-dashboard-recents-memo-relay22",
+  "from": "codex",
+  "coordinatorSession": "relay-run-7ec27dca45990401",
+  "createdAt": "2026-10-08T00:21:55.589Z",
+  "to": "codex",
+  "baseSHA": "6b81279676d66337d7b34b7badc6d1ff2c66bc24",
+  "objective": "Preparar unidad útil de Inicio: evitar recalcular filtro/orden/3 recientes al abrir/cerrar presupuesto si expenses y deleted conservan identidad; React useMemo real con mismos selectores, orden estable, lápidas e importes. Evidencia previa parcial: App real8computes frente1+7hits virtuales con3filas/DOM iguales, todavía no causa humana. Tamaño aislado medido195B original208B hookflechas, delta13B contra16B margen beta102; verificar artefacto sellado real sin elevar cap. Publicación sólo tras controles de instrumentación existentes exactos, revisión independiente, A/B real DOM CPU6 3000/5200 e invalidación por alta/edición/borrado/restauración/syncdoble y referencias inmutables; sin syncbancaria real. Nueva identidad funcional y revisión de TODAS superficies afectadas, preservar historial/rechazos/códigosDesde sin heredarOK ni repin. Alcance acotado, no resolverlagglobal INC-2709-09. Fuente/tests/docs primero; nueva beta por flujo normal sólo si CI/alcance/artefacto cumplen. No main/APK/Edge/SQL/finanzas reales.",
+  "scope": [
+    "src/modules/03-tab-dash.js",
+    "e2e",
+    "tests",
+    "scripts/run-tests.mjs",
+    "scripts/relevant-tests.mjs",
+    "scripts/beta-sources.json",
+    "src/data/release-notes.json",
+    "VERSION",
+    "package.json",
+    "package-lock.json",
+    "CHANGELOG.md",
+    "README.md",
+    "EMPIEZA-AQUI.md",
+    "docs/ROADMAP.md",
+    "docs/TESTING.md",
+    "docs/ARQUITECTURA.md",
+    "docs/BACKLOG.md",
+    "docs/briefs",
+    "public"
+  ]
+}
