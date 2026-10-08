@@ -1,0 +1,9 @@
+{
+  "id": "inc-0810-plan-candidate-official-ci-relay23",
+  "to": "codex",
+  "body": "Aely · 23 continúa INC-2709-09 con prototipo aislado PR180 exclusivamente CI, NO INTEGRAR main ni publicar beta. Source 70e4b7c70d495f927ac1d12441cfeb866f7a7ce3/tree 58b2b627937e683b979688bf3fdb3959b1ab0814, revisión independiente exacta GO para pruebas, checkout preparado 2ca490205ab35c2e4fcd9ace6e2c6c5f9486a140, CI 37746792060 en curso. Marca propia de Plan atómica junto a la genérica y CSS auto sólo fixedhost Plan, sin important/algoritmo/cambio de versión. Archivos nativos originales Plan byteexactos beta; historial de calibración preservado PR178 cerrado sin integrar. A/B archivos beta/main/candidata separados compilados/servidos; 7casos nuevos naturales/contratos por motion/safe con invariancia de estado íntegro y gastos, rerender real y frames de bordes preservados. DOM y discriminación real de frames pendientes, no causa/velocidad/solución humana acreditadas. PR177/179 postmain/Pages/servido exacto terminados; task Metas liberada. La reserva Grok no se modifica.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "relay-run-0aeaab4c4f09425a",
+  "createdAt": "2026-10-08T08:02:52.947Z"
+}
