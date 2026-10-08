@@ -53,8 +53,13 @@ async function abrirConLote(page, n) {
 
 test("★ pasado el tope de animación, las filas del medio NO se quedan transparentes", async ({ page }) => {
   const overlay = await abrirConLote(page, 95);
-  // 24×~34 ms + margen: la animación tiene que haber llegado al tope.
-  await expect.poll(async () => overlay.locator(".hist-fila.dentro").count(), { timeout: 8_000 }).toBeGreaterThanOrEqual(60);
+  // La clase inicia hojaentra: alcanzar 60 clases no garantiza que la fila30 ya sea visible.
+  // Ambas condiciones comparten el mismo plazo; se conserva el guard de opacidad final.
+  await expect.poll(async () => overlay.evaluate((el) => {
+    if (el.querySelectorAll(".hist-fila.dentro").length < 60) return 0;
+    const mid = el.querySelectorAll(".hist-fila")[30];
+    return mid ? Number(getComputedStyle(mid).opacity) : 0;
+  }), { timeout: 8_000 }).toBeGreaterThan(0.9);
   const mid = await overlay.locator(".hist-fila").nth(30).evaluate((el) => {
     const cs = getComputedStyle(el);
     return { op: cs.opacity, dentro: el.classList.contains("dentro"), text: el.textContent.slice(0, 40) };
