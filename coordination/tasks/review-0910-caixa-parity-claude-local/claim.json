@@ -1,0 +1,8 @@
+{
+  "schema": 1,
+  "taskId": "review-0910-caixa-parity-claude-local",
+  "actor": "claude",
+  "sessionId": "claude-cloud-20261008-b936b723",
+  "createdAt": "2026-10-08T22:35:36.872Z",
+  "baseSHA": "f4ffb9340adfd0a13b631271e8158d2c630613c0"
+}
