@@ -1,5 +1,22 @@
 # Arquitectura — Aely
 
+## Historial de overlays · candidata110 sobre109
+
+El controlador de02 mantiene propietarios vivos, slots de History y un consumo pendiente
+identificado. Altas/bajas se reconcilian al final del lote de efectos; sólo una entrada propia
+retirada en ese lote puede transferirse por replaceState. Los padres cubiertos se retiran sin
+consumir al hijo y se compactan al alcanzarlos. Se preserva el estado de la ruta anterior y no
+se hace back si la entrada actual es ajena. El botón Capacitor delega en el controlador porque
+no produjo una navegación web. El hook conserva la closure de apertura; sólo Wizard/Ask
+solicitan rearme por identidad de paso/diálogo, leyendo sus refs existentes. Sin cambios de
+sincronización, guardado ni importes. Node/build y18 DOM comprobados en ventana101; los ocho
+flujos principales reproducen rojo en la base histórica. El artefacto
+aislado pasa los caps1291/352 asignados por root. La unión oficial sobre109 se midió
+con gzipSync({level:9}): delta final3.413 B crudos/1.134 B gzip; topes1295/353/3 autorizados.
+VERSION/package son110, con nota y unidad propias es/en/ca;30 guardianes/18 DOM del port pasan,
+sin publicación110 ni aceptación móvil. Las tres unidades109 y las cinco retiradas siguen
+intactas. [Acta](briefs/inc-0810-backclose-handover.md).
+
 ## Cola de revisión beta (4.26.92)
 
 El recibo web acredita código y añade el guion estrenado en `pruebas`. La cola elimina una función antigua cuando ese guion está en producción y existe su recibo web; las diferencias en dependencias siguen en la auditoría, sin resucitar automáticamente la petición antigua. Una corrección nueva tiene nota y tanda en una versión posterior a producción. APK y Edge requieren sus recibos propios. Para recibos anteriores, solo se usa el histórico servido cuando su cabecera coincide con producción; sin evidencia se mantiene pendiente. Reabrir y volver a primer plano refrescan esta consulta de artefactos públicos, sin sincronizar bancos.

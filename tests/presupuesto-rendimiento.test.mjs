@@ -180,7 +180,14 @@ const PRESUPUESTO = {
   // no se recortan textos ajenos ni se añaden dependencias. La unión debe medirse aparte.
   // Metas108 individual: +3.601/+1.019 B; navegación107: -31/+9 B.
   // Estas medidas individuales no acreditan el coste de la unión.
-  minificado: 1291 * 1024,
+  // BackClose110 sobre109dded, mismo HTML oficial sellado110.99999 y DSN95B:
+  // 1.321.823/360.174 → 1.325.185/361.297 B, gzipSync({level:9}), delta3.362/1.123.
+  // Root autoriza1295/353 KiB el8/10 tras cotejar ambos hashes; márgenes895/175B,
+  // 3 bloqueantes. La primera medida default6 se conserva corregida en el acta.
+  // No sumar topes individuales ni recortar textos/datos financieros para esconder el coste.
+  // Tras acotar performance en el fallback del token, artefacto final1.325.236/361.308 B:
+  // delta3.413/1.134 sobre109, márgenes844/164 B; mantiene los topes autorizados.
+  minificado: 1295 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -188,7 +195,7 @@ const PRESUPUESTO = {
   // caso de exceso, deja 342.031 B gzip (15 B sobre 334 KiB). +1 KiB medido para
   // no ocultar cifras financieras ni recortar los tres idiomas; quedan 1.009 B.
   // La misma candidata mide 343.257 B gzip, 217 B sobre 335 KiB: +1 KiB medido.
-  gzip: 352 * 1024,
+  gzip: 353 * 1024,
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 

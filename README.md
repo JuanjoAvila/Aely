@@ -58,7 +58,9 @@ mi-cartera/
 │   ├── index.html          #     Generado por `npm run build` — no editar a mano
 │   ├── manifest.json · sw.js · vendor/ · fonts/
 │   └── privacy.html
-├── e2e/                    # Playwright (96 specs: pantallas, persistencia, copias, reglas mensuales y ayuda de Mi ciclo)
+├── e2e/                    # Playwright (106 specs: pantallas, persistencia, copias, reglas mensuales y ayuda de Mi ciclo)
+│   └── backclose-handover.spec.mjs # Dieciocho casos de historial/overlays; retorno cleanUrls2PASS/base1092RED
+├── tests/backclose-history.test.mjs # Controlador y hook reales con cola de eventos History sintética
 ├── tests/                  # Unitarios en Node (lógica, parsers, i18n, seguridad, frescura de doc,
 │                           #  sintaxis de las Edge Functions, despliegue manual de Supabase y presupuesto de rendimiento)
 ├── supabase/               # Postgres, Auth, Edge Functions
@@ -111,7 +113,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.109** candidata de integración local: indicador oculto con la barra, edición de reglas de Metas conservando identidad e historial, y explicación de la gráfica de Inicio sin fechas, con escala relativa y EUR. Pruebas conjuntas67/67 y guardianes verificados; CI final, entrega y aceptación móvil pendientes. INC-2709-09 sigue abierto. [Navegación](docs/briefs/inc-0810-nav-indicator.md) · [Metas](docs/briefs/inc-0810-metas-editar-regla.md) · [Inicio](docs/briefs/pro-02-0810-chart-meaning.md).
+Estado actual: **v4.26.110** candidata local sobre109: volver de Perfil → Ajustes mantiene la app abierta y los diálogos/pasos de Recibos conservan su orden. Mantiene las tres unidades de Navegación, Metas e Inicio y las cinco retiradas entregadas. Port104:30 guardianes,18 DOM sin retries/skips/flaky con servidor congelado sin cleanUrls y presupuesto oficial1295/353/3; causal8rojos sobre8dcc preservado. Revisión externa comunicada:16PASS/2FAIL por redirección de privacidad; corrección test-only validada con serve oficial2PASS/base1092RED, sin retries ni runtime nuevo. CI nueva pendiente. PR192 sigue draft; integración/publicación110 y aceptación móvil pendientes. INC-2709-09 sigue abierto. [Historial](docs/briefs/inc-0810-backclose-handover.md) · [Navegación](docs/briefs/inc-0810-nav-indicator.md) · [Metas](docs/briefs/inc-0810-metas-editar-regla.md) · [Inicio](docs/briefs/pro-02-0810-chart-meaning.md).
 
 Corte anterior (4/10, 12:30 UTC, panel de revisión): **v4.26.93** publicada en beta. Primera entrega4.26.93.1 (fuente1d5dd782), CI37200314653SUCCESS y HTTP/ZIP/HTML/SW/catálogo/huella cotejados el4/10 a12:30UTC:11 tandas/24 puntos, frente a40 antes del cambio. Producción4.26.86 (d366215a), APK beta4.26.80/code52 y estable4.26.32/code48 conservadas. Prueba y aprobación móvil pendientes. [Acta](docs/briefs/ops-0410-panel-cola.md).
 

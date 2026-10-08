@@ -1,4 +1,123 @@
 {
+  "inc-0810-backclose-handover": {
+    "web": [
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "_mcBackSlot"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "_mcBackSame"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "_mcBackSchedule"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "_mcBackAdd"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "_mcBackDrop"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "_mcBackArm"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "_mcBackConsume"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "_mcBackFlush"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "_mcBackCloseNative"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "_mcBackInitOnce"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "useBackClose"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "_mcBackStack"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "_mcIgnorePop"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "_mcBackInit"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "_mcBackHistory"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "_mcBackPending"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "_mcBackAt"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "_mcBackScheduled"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "_mcBackTurn"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "_mcBackNext"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "_mcBackOwner"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  useBackClose(drawerOpen, function(){ setDrawerOpen(false); });",
+        "to": "\n  /* 15/9:"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  useBackClose(profileOpen, function(){ setProfileOpen(false); });",
+        "to": "\n  useEffect(function(){"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "    const h=A.addListener(\"backButton\", function(){",
+        "to": "\n  const [locked,setLocked]"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "        onOpenSettings:function(){ setProfileOpen(false); setDrawerOpen(true); }})",
+        "to": "\n    )"
+      },
+      {
+        "file": "src/modules/05-dialogs-inv.js",
+        "from": "  const done=function(r){",
+        "to": "\n  useEffect(function(){"
+      },
+      {
+        "file": "src/modules/14-v4-screens.js",
+        "from": "  const stepRef=React.useRef(step), formRef=React.useRef(form);",
+        "to": "\n  // El primer paso ya sale con la ola:"
+      }
+    ],
+    "unidades": true
+  },
   "inc-0810-nav-indicator": {
     "unidades": true,
     "web": [
@@ -10217,6 +10336,66 @@
       {
         "file": "src/modules/02-ui-shared.js",
         "function": "_mcBackInitOnce"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "_mcBackSlot"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "_mcBackSame"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "_mcBackSchedule"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "_mcBackAdd"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "_mcBackDrop"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "_mcBackArm"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "_mcBackConsume"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "_mcBackFlush"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "_mcBackHistory"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "_mcBackPending"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "_mcBackAt"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "_mcBackScheduled"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "_mcBackTurn"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "_mcBackNext"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "_mcBackOwner"
       },
       {
         "file": "src/modules/02-ui-shared.js",
