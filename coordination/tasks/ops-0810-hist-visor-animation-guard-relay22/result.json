@@ -1,0 +1,17 @@
+{
+  "status": "done",
+  "tests": [
+    "Independent source GO; shared8s/classes>=60 and opacity>0.9 guards preserved",
+    "Exact sourceTests37715134198 SUCCESS841functional/1skip,9perf,privacy; SQUASHa4d0128199e496bba181edd4cfc661ed5b8407c3 uniontree3c20c0 verified",
+    "PostTests37719554158 SUCCESS838passed+3flaky recovered at retry1+1skip,11perf,privacy; both hist guards first attempt",
+    "CI retry policy unchanged; three unrelated flaky causes remain pending, including monetary causality not inferred",
+    "Pages37719554229 SUCCESS; servedSW4.26.98-2026-10-08-a4d01281 verified; runtime/registry/VERSION unchanged"
+  ],
+  "summary": "Historical viewer animation guard integrated and served as tests-only; exact source CI and publisher verified. Three post-main flaky cases remain explicitly unresolved; no product or prolonged-lag fix claimed.",
+  "schema": 1,
+  "taskId": "ops-0810-hist-visor-animation-guard-relay22",
+  "actor": "codex",
+  "sessionId": "relay-run-7ec27dca45990401",
+  "createdAt": "2026-10-08T03:46:40.842Z",
+  "released": true
+}
