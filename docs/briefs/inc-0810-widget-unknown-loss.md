@@ -25,3 +25,7 @@ No existe un protocolo que demuestre cobertura de una identidad que ya se perdi�
 Suites existentes `widget-arbitraje`, `widget-coherente` y `relevant-tests` verdes. Comparación real de `betaRevision` contra la base: cambian las cinco superficies nativas `fin05-widget-reentrada`, `fin05-pago-cerrada`, `widget-banco`, `widget-app-cerrada` e `inc-2909-01-widget-periodo`; sus identidades publicadas no se han repinado.
 
 Pendientes: revisión independiente fuerte del SHA exacto, suites existentes y CI exacta; identidades nuevas de todas las tandas nativas afectadas conservando historial y aceptación. Fuente/pruebas solamente: no VERSION, catálogo, APK, Edge, SQL, main ni beta. Los guardianes de identidad no se repinan ni se relajan; si fallan se conserva evidencia y candidato para una integración autorizada posterior.
+
+## Identidad histórica y CI
+
+La CI exacta del árbol `04df37c30c5c9506d97fc403951653fbec037a32` falló en la igualdad global de identidades antiguas de `auth-disposal`, tras pasar los guardianes Java. El test conserva sus controles causales y exige ahora exactamente cinco revisiones nativas nuevas, código combinado nuevo, web/Edge iguales y todas las demás identidades antiguas iguales. El registro completo permanece byte idéntico a beta102; ninguna auditoría, compatibilidad o aprobación se repina. Esta evidencia de cambio no acredita APK, aceptación móvil ni publicación. La CI final corregida sigue pendiente.
