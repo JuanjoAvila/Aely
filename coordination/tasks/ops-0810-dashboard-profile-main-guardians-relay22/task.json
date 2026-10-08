@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "id": "ops-0810-dashboard-profile-main-guardians-relay22",
+  "from": "codex",
+  "coordinatorSession": "relay-run-7ec27dca45990401",
+  "createdAt": "2026-10-08T01:07:43.382Z",
+  "to": "codex",
+  "baseSHA": "70c5d4032f67cb26c07b81fc17f5b8a26f8f10e5",
+  "objective": "Integrar solo los guardianes y documentación Dashboard ya verificados en main, sin traer runtime de beta. Runtime/src/public/registry/versiones byteintactos; revisión independiente y CI exacta requeridas. El diagnóstico A/B virtual no acredita corrección del lag humano. No APK, Edge, SQL ni pagos.",
+  "scope": [
+    "e2e/dashboard-profile-instrument.mjs",
+    "e2e/dashboard-react-profile.spec.mjs",
+    "tests/dashboard-profile-instrument.test.mjs",
+    "scripts/run-tests.mjs",
+    "scripts/relevant-tests.mjs",
+    "docs/briefs/inc-0710-dashboard-react-profile.md",
+    "docs/TESTING.md",
+    "README.md"
+  ]
+}
