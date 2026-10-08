@@ -20,6 +20,15 @@ function t(name, fn) {
 
 console.log("relevant-tests");
 
+t("reparar el guardián del panel exige la suite completa antes de publicar", () => {
+  const p = planFromFiles(["tests/beta-veredictos.test.mjs", "docs/briefs/integracion-local26-109.md"]);
+  assert.equal(p.build, true);
+  assert.equal(p.deno, true);
+  assert.equal(p.playwright, true);
+  assert.equal(p.steps, "all");
+  assert.equal(p.e2e, "all");
+});
+
 t("solo un .md no instala Chromium", () => {
   const p = planFromFiles(["docs/TESTING.md", "CHANGELOG.md"]);
   assert.equal(p.playwright, false);
