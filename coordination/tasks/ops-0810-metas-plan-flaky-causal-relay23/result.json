@@ -1,0 +1,15 @@
+{
+  "status": "done",
+  "summary": "Metas fixture y diagnóstico acotado de búsqueda Plan entregados por PR177/PR179 con revisión independiente, CI exacto, SQUASH y postmain/Pages/HTTP cotejados. Sólo tests/docs: avisos/logros y conflicto sintético aislados sin relajar dinero/transporte; búsqueda conserva acciones/asserts/timeout/retry y añade captura limitada sin causa acreditada. INC-2709-09 humano sigue abierto.",
+  "tests": [
+    "PR177 source aa0166ae5398648642aa04e7b6d63c5d5526cae7; tree 0b7f0542d63d795621167fa32b75490bb6d58215; CI 37730682991 SUCCESS 841 E2E +11 perf; 6 casos es/en/ca primer intento; merge 7741251a947d3d634939d097847d9efc1addffb4 árbol exacto; postmain 37735247097 SUCCESS y Pages 37735247215 SUCCESS.",
+    "PR179 source 6b1e0b7daf5813292a10218df54a3141e2c36dbe; tree 849d951e3d24b6d132c154956e41479537e93982; CI 37732311706 SUCCESS 841 E2E +11 perf; capture complete 7 events/4 snapshots/dropped0; merge 56c7e328ce801f0e2e2fe5ec1ebd36169f0ac89b árbol exacto; postmain 37736997159 SUCCESS 841 E2E +11 perf y capture complete; Pages 37736997197 SUCCESS.",
+    "HTTP 8/10 07:41 UTC: producción 4.26.98; SW 4.26.98-2026-10-08-56c7e328 en HTTP/ZIP; index HTTP=ZIP=servido774 byteexacto, APK80/code52 intacta; ZIP SHA256 619fec98f7db3fbca086260dfd650d292453fd6d5a71739df5634f0e29aff9fb."
+  ],
+  "schema": 1,
+  "taskId": "ops-0810-metas-plan-flaky-causal-relay23",
+  "actor": "codex",
+  "sessionId": "relay-run-0aeaab4c4f09425a",
+  "createdAt": "2026-10-08T07:42:02.793Z",
+  "released": true
+}
