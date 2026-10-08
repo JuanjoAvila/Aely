@@ -1,7 +1,8 @@
 import {test,expect,devices} from "@playwright/test";
-import {seedLoggedInDashboard,dismissNews,installFixtureClock} from "./fixtures.mjs";
+import {seedLoggedInDashboard,dismissNews,installFixtureClock,FIXTURE_NOW} from "./fixtures.mjs";
 import {prepararFuentesPlan,dedoPlan,resumenFramesPlan,debts,goals,fixed,finanzasPlanSnapshot,deltasFinanzasPlan} from "./plan-ownership-candidate.mjs";
 let hosted;
+const backupDay=new Date(FIXTURE_NOW).toISOString().slice(0,10);
 test.beforeAll(async()=>{hosted=await prepararFuentesPlan();});
 test.afterAll(async()=>{await hosted?.close();});
 const tab=page=>page.evaluate(()=>document.querySelector(".botnav-tab.active")?.dataset.tour);
@@ -22,9 +23,12 @@ async function selectTab(page,id,cdp){
 async function boot(browser,source,mode="no-preference",safe=0){
  const context=await browser.newContext({...devices["Pixel 5"],baseURL:source.url,reducedMotion:mode});const page=await context.newPage();
  await page.route("**/*",route=>["127.0.0.1","localhost"].includes(new URL(route.request().url()).hostname)?route.continue():route.abort());
- await installFixtureClock(page);await seedLoggedInDashboard(page,{debts,goals,fixed,badges:["first_goal","first_underbudget","first_reto","streak_3","save_100","save_500","save_1000","save_5000"]});
+ // El backup diario sintético ya existe: evita su escritura de arranque, sin ignorar
+ // lastBackup/_savedAt ni ningún otro campo en el guardián financiero completo.
+ await installFixtureClock(page);await seedLoggedInDashboard(page,{debts,goals,fixed,lastBackup:backupDay,badges:["first_goal","first_underbudget","first_reto","streak_3","save_100","save_500","save_1000","save_5000"]});
  const response=await page.goto("/");expect(response.headers()["x-aely-source"]).toBe(source.sha);expect(response.headers()["x-aely-html-sha"]).toBe(source.htmlHash);
  await page.waitForFunction(()=>!document.getElementById("mc-load"));await dismissNews(page);
+ expect(await page.evaluate(()=>new Date().toISOString().slice(0,10))).toBe(backupDay);
  await page.evaluate(safe=>document.documentElement.style.setProperty("--safe-bottom",safe+"px"),safe);
  const cdp=await context.newCDPSession(page);await cdp.send("Emulation.setCPUThrottlingRate",{rate:6});
  return {page,cdp,close:async()=>{await cdp.send("Emulation.setCPUThrottlingRate",{rate:1});await cdp.detach();await context.close();}};
@@ -49,6 +53,24 @@ async function unchangedFinanzas(page,before,source,label){
   limitsNote:"Full state/expenses in SYNTHETIC_FINANCE_SNAPSHOTS; pointer summary bounded only, original complete fingerprint equality required; no field ignored or normalized."}));
  }
  expect(after.fingerprint).toBe(before.fingerprint);
+}
+async function genericOwnershipCssControl(page,source,motion,safe){
+ const financeBefore=await finanzasPlanSnapshot(page);
+ const control=await page.evaluate(()=>{
+  const host=document.querySelector(".page.page-scroll-host"),root=document.getElementById("root");
+  if(!host||!root)throw new Error("Falta host/root para el control CSS aislado");
+  const live=()=>({classList:Array.from(host.classList),scrollTop:host.scrollTop,style:host.getAttribute("style"),touchAction:getComputedStyle(host).touchAction});
+  const before=live(),probe=document.createElement("div");
+  // Sólo prueba la cascada cargada: nunca fuerza ownership sobre el host real ni
+  // demuestra permisos de gesto. La sonda no pinta ni sobrevive al evaluate.
+  probe.className="page page-scroll-host mc-touch-own";probe.style.display="none";
+  let touchAction;try{root.appendChild(probe);touchAction=getComputedStyle(probe).touchAction;}finally{probe.remove();}
+  return {before,after:live(),touchAction,removed:!probe.isConnected};
+ });
+ expect(control.touchAction).toBe("none");expect(control.removed).toBe(true);expect(control.after).toEqual(control.before);
+ await unchangedFinanzas(page,financeBefore,source,"candidate/css-control/"+motion+"/safe"+safe);
+ console.log("PLAN_CANDIDATE_GENERIC_CSS_CONTROL "+JSON.stringify({sourceLabel:source.label,sourceSHA:source.sha,htmlHash:source.htmlHash,motion,safe,syntheticContext:true,
+  control,limits:"Hidden disposable node tests loaded CSS cascade only; live host and complete finance hash unchanged; no native permissions or performance claim."}));
 }
 async function naturalSample(page,cdp,source,label){
  await resetTop(page);
@@ -107,7 +129,11 @@ for(const motion of ["no-preference","reduce"])for(const safe of [0,34]){
      settled:!!track?.matches(".track.scroll-host-park:not(.dragging)")&&!!host?.classList.contains("page-live")&&host.contains(document.elementFromPoint(196,430))};
    });
    console.log("PLAN_CANDIDATE_NATIVE_PRECONDITION "+JSON.stringify({sourceLabel:hosted.sources.candidate.label,sourceSHA:hosted.sources.candidate.sha,htmlHash:hosted.sources.candidate.htmlHash,motion,safe,syntheticContext:true,precondition}));
-   expect(await page.locator(".page.page-scroll-host").evaluate(el=>({marker:el.classList.contains("mc-p"),touchAction:getComputedStyle(el).touchAction}))).toEqual({marker:false,touchAction:"none"});
+   // Las ocho observaciones oficiales arrancaron aquí sin ownership y en auto.
+   // El contrato none genérico se comprueba aparte, sin falsear el host de Inicio.
+   expect(precondition).toEqual({activeTab:"inicio",scrollTop:0,hostClassList:["page","page-live","page-scroll-host"],trackClassList:["track","scroll-host-park"],
+    genericOwnership:false,planOwnership:false,sheetOpen:false,profileOpen:false,computedTouchAction:"auto",live:true,settled:true});
+   await genericOwnershipCssControl(page,hosted.sources.candidate,motion,safe);
    await selectTab(page,"plan",cdp);await chooseSegment(page,"deudas");await resetTop(page);
    const financeBefore=await finanzasPlanSnapshot(page);
    await cdp.send("Input.dispatchTouchEvent",{type:"touchStart",touchPoints:[{x:196,y:430}]});
