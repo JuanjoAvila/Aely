@@ -6,7 +6,19 @@ const settingsNames={es:"Ir a Ajustes",en:"Go to Settings",ca:"Ves a Ajustos"};
 
 async function start(page,lang,previous=false){
   await seedLoggedInDashboard(page,{settings:{autoPrices:false,theme:"green",lang}});
-  if(previous) await page.goto("/privacy.html");
+  let previousUrl;
+  if(previous){
+    await page.goto("/privacy.html");
+    previousUrl=page.url();
+    // serve redirige .html a la ruta limpia: el historial guarda el destino real,
+    // no el nombre del fichero pedido (revisión externa 2026-10-09).
+    const prior=new URL(previousUrl);
+    expect(prior.origin).toBe(new URL(test.info().project.use.baseURL).origin);
+    expect(prior.pathname).toMatch(/^\/privacy(?:\.html)?$/);
+    expect(prior.search).toBe("");expect(prior.hash).toBe("");
+    await expect(page).toHaveTitle("Privacidad — Aely");
+    await expect(page.getByRole("heading",{name:"Privacidad y datos",exact:true})).toBeVisible();
+  }
   await page.goto("/");
   await expect(page.locator(".botnav")).toBeVisible();
   await page.locator("#mc-load").waitFor({state:"detached"});
@@ -19,6 +31,7 @@ async function start(page,lang,previous=false){
     await news.getByRole("button",{name:close,exact:true}).click();
   }
   await expect(news).toHaveCount(0);
+  return previousUrl;
 }
 
 async function handover(page,lang){
@@ -71,7 +84,7 @@ for(const lang of Object.keys(settingsNames)) for(const method of ["ui","browser
 
 for(const method of ["ui","browser"]){
   test(`Un único atrás después del cierre vuelve a la ruta anterior: ${method}`,async({page})=>{
-    await start(page,"es",true);
+    const previousUrl=await start(page,"es",true);
     const appUrl=page.url();
     await handover(page,"es");
     await closeSettings(page,method);
@@ -80,7 +93,7 @@ for(const method of ["ui","browser"]){
       .toEqual({stack:0,pending:false});
     // Navegación real previa: una entrada muerta obligaría a pulsar dos veces.
     await page.goBack();
-    await expect(page).toHaveURL(new URL("/privacy.html",appUrl).href);
+    await expect(page).toHaveURL(previousUrl);
   });
 }
 

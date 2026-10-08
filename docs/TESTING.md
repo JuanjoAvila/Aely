@@ -48,8 +48,25 @@ DSN95/sello110.99999/gzip9 pasa1295/353/3:1.325.236/361.308 B, delta3.413/1.134 
 tras acotar performance en el fallback de token para la VM financiera, sin cambiar UUID.
 La primera medida default6 se conserva corregida en el acta. Guardianes104:30 etapas exit0,
 1782 funciones/701 datos mutados,21 contratos/47 mutantes UI y18 DOM exit0 sin retries,
-skips ni flakies. Deno y suite completa no ejecutados localmente; CI de110 pendiente.
-sin publicación110 ni comprobación de Android físico.
+skips ni flakies, con servidor congelado sin redirección de rutas. Deno y suite completa no
+ejecutados localmente. PR192 draft y CI37849872932 corresponden al spec anterior en6b3e0c92;
+su resultado no se acredita como verde aquí. Sin publicación110 ni Android físico.
+
+La revisión externa comunicada por root el9/10 sobre6b3e0c92 informó16PASS/2FAIL DOM:
+el servidor oficial `npx --yes serve` devuelve `/privacy` tras pedir `/privacy.html`, mientras
+el spec exigía el nombre de fichero al volver. Su subconjunto de21 contratos/27 mutantes
+no equivale a los47 mutantes locales; revisión manual no realizada y logs efímeros.
+La corrección test-only registra la URL real antes de entrar en la app y comprueba origen,
+ruta de privacidad sin query/hash, título y cabecera del documento. Tras cerrar Ajustes sigue
+exigiendo la URL de la app y pila vacía; sólo después de UN atrás exige exactamente la URL
+previa registrada. No acepta cualquier ruta ni elimina el control causal sobre8dcc.
+Turno107 concedido: serve oficial sobre snapshots congelados exactos,1worker/0retries,
+candidato2PASS en8.720s, base109f4ff2FAIL causales en19.122s. En ambos casos de la base,
+cerrar Ajustes lleva prematuramente a `/privacy` cuando aún se exige la URL de la app,
+antes del atrás adicional. HTTP200/Content-Type/hash y redirección al documento correcto
+verificados antes del DOM. HTML candidato5a11a355 y baseline41a755fc conservados; cuatro
+blobs de runtime exactos6b3 antes/después. No se repiten18 casos ni30 guardianes; el causal
+8dcc y los límites de revisión externa permanecen aparte. CI nueva requerida para este spec.
 [Diseño y revisión](briefs/inc-0810-backclose-handover.md).
 
 ## Apuntar: fila visible e importe persistido (5/10)

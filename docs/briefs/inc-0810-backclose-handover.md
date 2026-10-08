@@ -315,3 +315,65 @@ tooling/tests del empaquetado. Quedan privados e ignorados sólo informes, traza
 presupuestos/identidades y snapshots públicos congelados necesarios para revisar la evidencia.
 No se borran ramas ni worktrees. El ACK104 identifica terminales, source/tree finales y
 preflight de0 procesos propios/Chromium/runner y0 listeners4432 antes de liberación expresa.
+
+## Revisión externa y precondición de rutas (9/10, preparación test-only)
+
+La PR192 draft y la CI37849872932 se abrieron sobre6b3e0c920359611b7585356639eb265f73e2444a,
+treeb5e8db039a479861de96388c3c4deae587a3e3f2. Son evidencia del spec anterior, no de esta
+corrección pendiente. El coordinador comunicó la revisión externa identificada5c6cabeb:
+21 contratos pasan con27 mutantes del subconjunto cloud, DOM16PASS/2FAIL en los retornos
+a privacidad UI/browser. Revisión manual no realizada y logs efímeros; no acredita full PASS
+ni sustituye los47 mutantes locales. No se atribuye un resultado terminal a la CI sin leerlo.
+
+Root contrastó la configuración oficial: `npx --yes serve public` usa cleanUrls y redirige
+`/privacy.html` a `/privacy`. El servidor congelado104 no hacía esa redirección; sus18 verdes
+se conservan con ese límite. El fallo de expectativa descubre una precondición incompleta
+del test, aunque el retorno a la ruta realmente visitada sea correcto.
+
+La preparación modifica exclusivamente el spec y documentación: start registra page.url()
+después del goto previo, verifica origen del baseURL, pathname `/privacy` o `/privacy.html`
+sin query/hash, título y cabecera de privacidad antes de entrar en la app, y devuelve esa URL.
+Ambos casos mantienen el cierre real, la comprobación de seguir en app y pila vacía, un único
+page.goBack() adicional y la igualdad exacta con la URL registrada. No se cambia controlador,
+esperas del handover, callbacks, datos financieros, oráculo causal ni rutas del producto.
+
+Durante la preparación no se ejecutó Chrome ni Node pesado y no se subió nada. La validación
+focal con serve oficial quedó pendiente de la concesión107 de root después del turno106;
+su ejecución posterior y límites se registran abajo. No se repiten30 guardianes/1782 mutaciones.
+
+## Turno107: candidato y causal109 con serve oficial (9/10)
+
+Root concedió107 al dueño de este chat, puerto4432, tras release106 explícito y preflight0.
+El lector local verifica el mismo owner/lease antes de cada arranque; servidor oficial
+`npx --yes serve` sobre los públicos congelados104, sin reuse,1worker/0retries. Antes del
+DOM se verifica HTTP200, Content-Type HTML y SHA del cuerpo contra el fichero congelado;
+`/privacy.html` redirige realmente a `/privacy` y título/cabecera acreditan el documento.
+
+Candidato: exit0,2PASS en8720.118ms. Baseline109f4ff: sesión47254 terminal1,2FAIL causales
+en19121.879ms. Los dos fallan en la aserción de seguir en la app tras cerrar Ajustes: esperaba
+`http://127.0.0.1:4432/`, recibió `/privacy`, antes del atrás adicional. Por tanto el spec
+corregido sigue detectando la salida prematura del controlador anterior; el rojo no procede
+de redirección esperada, preparación ni servidor. Ambos reportes0retry/skip/flaky.
+
+Un primer intento de CLI terminó1 antes de servidor/navegador por resolver node_modules
+en el worktree; se usó después el CLI ya instalado en la raíz. Se conserva el log privado;
+no se cuenta como caso DOM, causal rojo, ni retry de una prueba. No hubo dependencias nuevas.
+
+HTML candidato antes/servido/después:
+`5a11a355d945ce6b7a846e69366595c16dccd3f2acd621d7f957a9062b71f1b7`.
+Baseline109f4ff compilado/congelado en104 antes/servido/después:
+`41a755fc4f7965d83a8dd0a310d2836af92f05beab807bf0fc5cd22c49e313d0`.
+Los cuatro blobs siguen exactos al source6b3 antes y después:02-ui-shared4f2d5cf6,
+05-dialogs-inv3e343226,11-app-mainfc43b2db,14-v4-screensc3bb3e4a. Ningún build ni cambio
+de runtime en107. El spec validado SHA256 es7536288eb8c2353f888485b2461b30e0822446b238744ea7ed2d2c31aa294369.
+
+Informes privados107 guardan stats, errores, contextos y preflights de fuente/HTTP. Se conserva
+el18PASS104 bajo su servidor sin cleanUrls, el causal8dcc101 y el reporte externo16/2;
+este turno acredita sólo los dos retornos corregidos y el causal nuevo109. Se necesitan
+commit test-only y CI nueva exacta; PR192 permanece draft, root integrador único,
+sin merge/publicación110 ni aceptación Android físico.
+
+Gates cortos107: syntax del spec y scripts del HTML, docs-frescura, guard-privacy y mapa
+relevant-tests terminan0 (sesión7041 terminal0), junto con git diff --check. No se repite
+la suite completa local ni los30 guardianes. Se retiran configuración y setup temporales
+del turno después del DOM; sólo quedan ignorados los informes/logs/contextos de evidencia.
