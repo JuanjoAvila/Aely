@@ -53,5 +53,25 @@ for(const [file,a,b]of [
  else {off();w.sessions[0].resolve(s('late'));await flush();w.idle();assert.ok(w.trace.length>0,'mutante continuación actúa tras cleanup');}
 
 }
-const oldReg=JSON.parse(old('scripts/beta-sources.json'));for(const [key,scope]of Object.entries(oldReg))assert.deepEqual(betaRevision(key,read,undefined,scope),betaRevision(key,old,undefined,scope),key);
-console.log('✓ auth disposal: remount, callbacks/promesas/timer/idle tardíos, controles activos, rojo anterior y '+Object.keys(oldReg).length+' revisiones intactas');
+// La revisión nueva del widget cambia exactamente cinco superficies nativas. El guard
+// de auth conserva todas las demás identidades, no convierte ese cambio en aprobación.
+const oldReg=JSON.parse(old('scripts/beta-sources.json'));
+const currentReg=JSON.parse(read('scripts/beta-sources.json'));
+const widgetChanged=['fin05-widget-reentrada','fin05-pago-cerrada','widget-banco','widget-app-cerrada','inc-2909-01-widget-periodo'];
+const changed=[];
+for(const [key,scope]of Object.entries(oldReg)) {
+  assert.deepEqual(currentReg[key],scope,key+' metadata/auditoría histórica intacta');
+  const before=betaRevision(key,old,undefined,scope),after=betaRevision(key,read,undefined,scope);
+  if(widgetChanged.includes(key)) {
+    assert.equal(after.web,before.web,key+' web intacta');
+    assert.equal(after.edge,before.edge,key+' Edge intacta');
+    assert.ok(before.native&&after.native,key+' dos revisiones nativas reales');
+    assert.notEqual(after.native,before.native,key+' nativo nuevo exige aceptación propia');
+    assert.notEqual(after.codigo,before.codigo,key+' código nuevo no hereda OK');
+    changed.push(key);
+  } else assert.deepEqual(after,before,key);
+}
+assert.deepEqual(changed.sort(),widgetChanged.slice().sort(),'exactamente cinco cambios nativos');
+const baseRegistry=execFileSync('git',['show','6b81279676d66337d7b34b7badc6d1ff2c66bc24:scripts/beta-sources.json'],{encoding:'utf8',maxBuffer:8e6});
+assert.equal(read('scripts/beta-sources.json'),baseRegistry,'registro completo sin repin ni cambios de gates');
+console.log('✓ auth disposal: remount, callbacks/promesas/timer/idle tardíos, controles activos, rojo anterior y '+Object.keys(oldReg).length+' referencias históricas comprobadas; exactamente cinco cambios nativos, web/Edge y otras identidades intactas');
