@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "id": "inc-2709-09-plan-raw-state-contract-relay25",
+  "from": "codex",
+  "coordinatorSession": "relay-run-aweghzwufqokxcrz",
+  "createdAt": "2026-10-08T15:10:32.488Z",
+  "kind": "investigation",
+  "to": "codex",
+  "baseSHA": "0d443254b4327b79db3a540cc617e36c036fd8b1",
+  "objective": "Corregir la evidencia sintética de Plan antes de valorar invariancia y rendimiento, sin cambiar producto",
+  "scope": [
+    "Read exact CI-only source0d443254b4327b79db3a540cc617e36c036fd8b1/tree3586fc3b196f0d1472f223860e1e4b2b0c4c446a, preserving PR181 and run37798235197. Existing minifier/limits/source selector are unchanged.",
+    "Investigate diagnostic correctness in e2e/plan-ownership-candidate.mjs/.spec.mjs and scripts/run-tests.mjs. Review found parsed full-state fingerprint includes unknown fields but not raw stateRaw bytes; raw expense bytes are included. JSON whitespace/escape/duplicate-key byte changes can be invisible. Reproduce with wholly synthetic control before proposing minimal stronger guard; preserve original fingerprint and all assertions, add raw-state invariance without normalizing or skipping savedAt.",
+    "Review runner isolation: Plan candidate CPU6x natural sampling currently functional parallel group. Propose explicit performance classification with workers1 matching existing dedicated performance policy; no altered rAF/time budgets/retries/skipped cases. Distinguish guard correctness from performance benefit.",
+    "FIRST proposal and strong independent review before edits. Own isolated checkout. Only diagnostic e2e/helper/runner and truthful relevant documentation; no runtime/finance features/versions/catalog/minifier/budgets or private event data. Preserve source financial behavior byte-identical.",
+    "After review, meaningful negative controls for raw-byte-only mutation and runner selection/isolation; exact tree review and new CI only on separable branch. No merging CI-only diagnostic ancestry to main/beta; no publication/approval inference.",
+    "Do not claim artifact retention: current workflow has no upload-artifact; retain structured logs evidence only. Artifact/workflow changes are outside this unit. INC-2709-09 remains open and old confounded A/B is not acceptance evidence."
+  ]
+}
