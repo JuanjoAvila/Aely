@@ -68,3 +68,22 @@ Chromium local ausente: cero gestos reales ejecutados aquí. Revisión fuerte y 
 pendientes; conservar NO-GO previo y detenerse si una guardia no pasa. INC-2709-09 sigue abierto.
 
 La clasificación conserva cada intervalo que cruza inicio/cierre y `touchIntersecting` incluye todos los intervalos que intersectan el toque: este resumen solapa las fases y no se suma a ellas. El guard de invariancia compara el estado local completo y el historial serializados mediante SHA-256, antes/después de cada muestra y bloque de uso. La prueba de re-render exige la píldora offline visible y comprueba que App ha retirado el marcador genérico y que el host fijo conserva CSS auto sin sheet antes de cancelar. Registra por separado si React conserva el marcador específico Plan; no exige ni atribuye supervivencia. Al terminal exige ambos ausentes.
+
+
+## Presupuesto del sheet · 8/10
+
+Sobre `a370a815138bb866fd4f98fccff78909740cd488`, la regla de Plan sigue limitada a
+`html:not(.sheet-open) .page.page-scroll-host.mc-p`; se conservan el `none` del sheet,
+el ownership genérico y el `!important` del perfil. Tras revisión independiente de
+la propuesta, sólo se elimina `overscroll-behavior-y:auto` inmediatamente posterior
+al shorthand `overscroll-behavior:auto` del mismo host: ambos ya asignan `auto` al eje Y.
+No cambian selectores, JavaScript, muestreo, huellas financieras, pruebas ni topes.
+
+Build y minificador oficiales, esbuild 0.25.5 y reserva servida del test sin cambios:
+base 1.317.906 B / 359.038 B gzip; compactación 1.317.879 B / 359.035 B gzip.
+Se recuperan 27 B crudos y 3 B gzip: márgenes de 9 B y 389 B, con tres recursos
+bloqueantes. El control base rebasa el crudo en 18 B; la compactación pasa los tres
+presupuestos locales. Sintaxis, privacidad y mapa de suites locales pasan; frescura
+conserva el fallo esperado de esta candidata de diagnóstico sin versión publicable.
+CI exacta, contratos nativos y revisión final siguen pendientes. Este resultado sólo
+recupera presupuesto; no acredita una mejora ni resuelve INC-2709-09.
