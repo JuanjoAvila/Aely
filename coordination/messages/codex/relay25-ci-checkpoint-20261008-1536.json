@@ -1,0 +1,9 @@
+{
+  "id": "relay25-ci-checkpoint-20261008-1536",
+  "to": "codex",
+  "body": "Generation25, fixed objective INC-2709-09 Plan diagnostic correctness. PR181 retains budget-only source0d44325: independent exact-tree GO for CI, local raw1317879/gzip359035/3 resources under unchanged caps. Run37798235197 remains testing. Separate PR182 sourcee404dd3 adds raw-state invariance alongside unchanged parsed guard and isolates Plan in workers1 performance group;8Node controls independently passed, exact-tree GO for CI. Run37799640112 remains testing. At2026-10-08T15:36:09Z both jobs completed setup/Node/Chromium/Deno and were inside build/unit/Deno/E2E step; first live log download returned404, no terminal result inferred. No repeated runs, merges or publication. Source/product/A-B/native acceptance remains NO-GO; old concurrency measurements prove no benefit. Both technical units durable in existing tasks; temporary editors finished and local worktrees clean. External Grok reservation preserved. Next: reconcile each exact CI source/tree separately and inspect complete native/raw/isolation evidence before any acceptance.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "relay-run-aweghzwufqokxcrz",
+  "createdAt": "2026-10-08T15:39:00.012Z"
+}
