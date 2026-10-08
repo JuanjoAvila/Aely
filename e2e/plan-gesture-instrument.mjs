@@ -1,6 +1,6 @@
 // Acotar la traza evita atribuir al dedo el layout que sucede después del cierre nativo.
 // Las duraciones inclusivas de eventos anidados se solapan: nunca son tiempo exclusivo.
-export function resumirTrazaGesto(events) {
+export function resumirTrazaGesto(events,{styleProbe=null}={}) {
   const renderer=new Set(events.filter(e=>e.ph==="M"&&e.name==="thread_name"&&e.args?.name==="CrRendererMain")
     .map(e=>e.pid+"/"+e.tid));
   if(!renderer.size)throw new Error("identidad del hilo renderer no encontrada");
@@ -21,6 +21,16 @@ export function resumirTrazaGesto(events) {
   if(![start,inputEnd,end,terminal?.ts].every(Number.isFinite)||
     !(start<=terminal.ts&&terminal.ts<=inputEnd&&inputEnd<=end))throw new Error("marcas de gesto incompletas o desordenadas");
   const windows={duringTouch:[start,terminal.ts],afterNativeClose:[terminal.ts,end],afterInputEnd:[inputEnd,end]};
+  const probeStart=marks.filter(e=>e.args.data.message==="plan-causal/style-probe-start");
+  const probeEnd=marks.filter(e=>e.args.data.message==="plan-causal/style-probe-end");
+  if(styleProbe===true){
+    if(probeStart.length!==1||probeEnd.length!==1||!Number.isFinite(probeStart[0].ts)||
+      !Number.isFinite(probeEnd[0].ts)||!(start<probeStart[0].ts&&probeStart[0].ts<probeEnd[0].ts&&
+      probeEnd[0].ts<terminal.ts))throw new Error("marcas de sonda de estilo incompletas o desordenadas");
+    windows.styleProbe=[probeStart[0].ts,probeEnd[0].ts];
+  }else if(probeStart.length||probeEnd.length){
+    throw new Error("marcas de sonda de estilo inesperadas sin lectura");
+  }
   const totals=Object.fromEntries(Object.keys(windows).map(k=>[k,{}]));
   for(const e of events){
     if(e.ph!=="X"||e.pid+"/"+e.tid!==gestureThread||!Number.isFinite(e.dur)||e.dur<0||

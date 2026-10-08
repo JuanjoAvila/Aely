@@ -120,3 +120,70 @@ temporales se retiran incluso si falla la traza, y la comprobación final exige 
 Cambiar CSS después de comenzar un toque no cambia retroactivamente los permisos nativos
 decididos al inicio: el contraste sigue limitado a la regla CSS, con handlers intactos.
 DOM y pares remotos continúan pendientes; no hay mejora ni causa humana acreditadas.
+
+## Calibración de la sonda de estilo · relevo 23
+
+Preparación de pruebas sobre `be324e6d78e273bb0418851de339f37456e7ee91`, sin
+runtime, publicación ni causa humana acreditada. La fase anterior conserva sus 21 informes
+`PLAN_LAYOUT_TRACE`/`PLAN_CAUSAL_PAIRS`; la nueva usa marcadores separados
+`PLAN_PROBE_LAYOUT_TRACE` y `PLAN_PROBE_CALIBRATION`. El lector de la fase anterior no
+mezcla ambas. Se añade sólo a los tres segmentos con movimiento normal, tras el uso previo.
+
+Cruza baseline/neutralización CSS con lectura de estilo activada/desactivada. Ocho gestos
+por segmento siguen el orden: lectura-baseline, sin-lectura-baseline, sin-lectura-neutral,
+lectura-neutral, lectura-neutral, sin-lectura-neutral, sin-lectura-baseline, lectura-baseline.
+Cada modo obtiene ABBA, dos muestras por condición. El dedo, CPU×6, punto inicial en el tope,
+host, segmento, aterrizaje, scroll efectivo, histórico y handlers permanecen iguales.
+
+Una lectura computada en un toque independiente confirma el tratamiento antes y después de
+cada muestra, fuera de Tracing. Ese toque termina y libera ownership; la muestra vuelve al
+tope y se asienta antes de comenzar. No se presenta esa comprobación separada como una lectura
+del estilo de la muestra sin lectura. Su sonda real sólo registra clase de ownership y
+pertenencia del destino al host/pantalla: `touchAction:null` significa no consultado. No hay
+lecturas de estilo/dimensiones por frame ni indirectas en esa sonda. Class/target, listeners,
+marcas y la instrumentación CDP siguen teniendo coste: no se llama «sin sobrecarga».
+
+El modo con lectura marca el intervalo exacto alrededor de su único `getComputedStyle`.
+El clasificador exige un par de marcas completo, único, ordenado y en el renderer del gesto;
+el modo sin lectura rechaza esas marcas. La ventana opcional `styleProbe` es subconjunto de
+`duringTouch`, no tiempo adicional que se pueda sumar a él. Recorta eventos completos
+inclusivos al intervalo; no acredita exclusividad ni un callsite. La fase original no añade
+esa ventana. Listeners, datos temporales y regla CSS se retiran y comprueban en `finally`.
+
+La comparación busca distinguir un flush provocado por la sonda de una diferencia que
+persista sin consultar estilo durante el gesto. No permite concluir corrección, mejora ni
+causa del lag prolongado. RunTask no capturado puede depender de categorías/nombres de traza;
+una ventana vacía no demuestra ausencia de trabajo. Cambiar `touch-action` cuando la acción
+nativa ya se ha determinado no cambia retroactivamente esa acción; véase la
+[especificación Pointer Events](https://www.w3.org/TR/pointerevents/latest/#the-touch-action-css-property).
+El tratamiento CSS observado tras `touchstart` no acredita permisos nativos anteriores al
+gesto; JS y scroll manual siguen presentes.
+
+El caso sintético del spec prueba ventana opcional, límites y marcas inválidas. La prueba
+Node adicional comprueba fronteras, ausencia/duplicados/hilos mezclados y ejecución de la
+sonda real con getter de estilo prohibido en modo sin lectura, además de retirada de todos
+los listeners. Pasa 26 aserciones principales; no sustituye DOM. Chromium local ausente:
+cero gestos de esta calibración ejecutados; revisión independiente y CI exacta pendientes.
+INC-2709-09 sigue abierto. No se sobrescribe la historia NO-GO ni el diagnóstico anterior.
+
+### Corrección de la calibración tras NO-GO de revisión
+
+La fuente inicial de calibración `8f156ee7d64836cf052e0a88a7dcb06fa0c40886` queda
+NO-GO: su toque estacionario terminado podía generar un click sobre un descendiente
+interactivo. No hay evidencia de que sucediera, pero no es un control seguro/fiel. Las
+sondas independientes ahora envían únicamente `touchStart` seguido de `touchCancel`,
+incluso si falla el inicio. Exigen un único cierre nativo `touchcancel` con cero dedos,
+cero clicks capturados y ownership liberado. Su listener de click sólo observa, no intercepta.
+Antes/después comparan pestaña, segmento, presencia de sheets y hashes completos del estado
+y del histórico sintéticos. Cualquier cambio invalida el control. Los hashes evitan emitir
+el fixture completo; no acreditan operaciones reales. Todos los listeners se retiran incluso
+al fallar. Los gestos medidos conservan sus 38 movimientos y `touchEnd` original.
+
+La ventana de lectura exige ahora `inicio < sonda-inicio < sonda-fin < cierre-nativo`.
+Un intervalo de longitud cero o toda la ventana durante el toque se rechaza; no se añade
+una tolerancia que convierta marcas incompletas en válidas. Se mantienen rechazos por
+marca ausente, duplicada, hilo mezclado o cierre tardío. El proof Node anterior y su informe
+se conservan como historia. Un proof separado reejecuta sus 26 aserciones principales y
+controla cuatro fronteras estrictas, cancelación/cleanup al fallar el inicio y rechazo de
+mutaciones simuladas de fixture y UI. No prueba cancelación DOM real: las nuevas guardias
+deben pasar en la CI exacta. Revisión independiente pendiente; INC-2709-09 sigue abierto.

@@ -12,6 +12,7 @@
 import { test, expect } from "@playwright/test";
 import { seedLoggedInDashboard, dismissNews, installFixtureClock } from "./fixtures.mjs";
 import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { resumirTrazaGesto } from "./plan-gesture-instrument.mjs";
 
 test("clasificador de traza separa cierre nativo y fin de input sin sumar otros hilos",()=>{
@@ -33,6 +34,15 @@ test("clasificador de traza separa cierre nativo y fin de input sin sumar otros 
   expect(()=>resumirTrazaGesto([...events,...unrelated,
     {...mark("start",100),pid:77,tid:88}])).toThrow(/hilos/);
   expect(()=>resumirTrazaGesto(events.filter(e=>e.args?.data?.message!=="plan-causal/input-end"))).toThrow(/marcas/);
+  const probe=[mark("style-probe-start",150),mark("style-probe-end",170)];
+  expect(resumirTrazaGesto([...events,...probe],{styleProbe:true}).totals.styleProbe.Layout.totalUs).toBe(20);
+  expect(resumirTrazaGesto(events,{styleProbe:false}).totals.styleProbe).toBeUndefined();
+  expect(()=>resumirTrazaGesto(events,{styleProbe:true})).toThrow(/sonda/);
+  expect(()=>resumirTrazaGesto([...events,...probe],{styleProbe:false})).toThrow(/sonda/);
+  expect(()=>resumirTrazaGesto([...events,probe[0],probe[0],probe[1]],{styleProbe:true})).toThrow(/sonda/);
+  expect(()=>resumirTrazaGesto([...events,probe[0],mark("style-probe-end",250)],{styleProbe:true})).toThrow(/sonda/);
+  expect(()=>resumirTrazaGesto([...events,mark("style-probe-start",100),mark("style-probe-end",200)],{styleProbe:true})).toThrow(/sonda/);
+  expect(()=>resumirTrazaGesto([...events,mark("style-probe-start",150),mark("style-probe-end",150)],{styleProbe:true})).toThrow(/sonda/);
 });
 
 async function appLista(page) {
@@ -343,16 +353,23 @@ async function terminarPerfilGesto(page, label, sourceSHA) {
   return report;
 }
 // Traza separada: no acumula lecturas por rAF mientras atribuye trabajo al renderer.
-async function trazarGestoPlan(page, cdp, label, sourceSHA, treatment=null) {
+async function trazarGestoPlan(page, cdp, label, sourceSHA, treatment=null, calibration=null) {
   let result,ownProbe;
-  await page.evaluate(()=>{
+  await page.evaluate(calibration=>{
     const host=document.querySelector(".page.page-scroll-host");
     window.__planOwnProbe=[];
     // Una lectura tras el handler de Plan acredita el tratamiento del gesto real. Su coste
     // de estilo existe en ambas condiciones; no se hace por frame ni se presenta como gratis.
-    const acquisition=e=>window.__planOwnProbe.push({own:host.classList.contains("mc-touch-own"),
-      touchAction:getComputedStyle(host).touchAction,hostIsExpected:host.contains(e.target),
-      screenTarget:!!e.target.closest?.(".v4-screen")});
+    const acquisition=e=>{
+      const row={own:host.classList.contains("mc-touch-own"),touchAction:null,
+        hostIsExpected:host.contains(e.target),screenTarget:!!e.target.closest?.(".v4-screen")};
+      if(calibration===null||calibration.styleProbe){
+        if(calibration)console.timeStamp("plan-causal/style-probe-start");
+        row.touchAction=getComputedStyle(host).touchAction;
+        if(calibration)console.timeStamp("plan-causal/style-probe-end");
+      }
+      window.__planOwnProbe.push(row);
+    };
     document.addEventListener("touchstart",acquisition,{passive:true});
     const terminal=e=>console.timeStamp("plan-causal/"+e.type);
     document.addEventListener("touchend",terminal,{capture:true,passive:true});
@@ -364,7 +381,7 @@ async function trazarGestoPlan(page, cdp, label, sourceSHA, treatment=null) {
       const samples=window.__planOwnProbe;delete window.__planOwnProbe;
       delete window.__planTraceCleanup;return samples;
     };
-  });
+  },calibration);
   try {
     await cdp.send("Tracing.start", { categories: "devtools.timeline,blink.console", transferMode: "ReturnAsStream" });
   } catch(err) {
@@ -403,19 +420,75 @@ async function trazarGestoPlan(page, cdp, label, sourceSHA, treatment=null) {
       }
     } finally { await cdp.send("IO.close",{handle:event.stream}); }
     const events=JSON.parse(Buffer.concat(chunks).toString("utf8")).traceEvents;
-    const summary=resumirTrazaGesto(events);
+    const summary=resumirTrazaGesto(events,{styleProbe:calibration?calibration.styleProbe:null});
     if(treatment!==null){
       expect(ownProbe).toHaveLength(1);
-      expect(ownProbe[0]).toEqual({own:true,touchAction:treatment?"auto":"none",
+      expect(ownProbe[0]).toEqual({own:true,touchAction:calibration&&!calibration.styleProbe?null:treatment?"auto":"none",
         hostIsExpected:true,screenTarget:true});
     }
     expect(Object.values(summary.totals).some(t=>(t.EventDispatch?.count||0)>0),
       "la traza debe incluir eventos del gesto").toBe(true);
     // Nunca emitir args, URLs, documentos ni el stream de la traza a logs públicos.
-    console.log("PLAN_LAYOUT_TRACE "+JSON.stringify({label,sourceSHA,ownProbe,...summary}));
+    console.log((calibration?"PLAN_PROBE_LAYOUT_TRACE ":"PLAN_LAYOUT_TRACE ")+JSON.stringify({label,sourceSHA,
+      ...(calibration?{styleProbe:calibration.styleProbe}:{}),ownProbe,...summary}));
     result={ownProbe,...summary};
   }
   return result;
+}
+
+// Fuera de Tracing: este control prueba el CSS del host durante un toque independiente.
+// No se atribuye su lectura de estilo al gesto medido sin lectura ni se cambia la clase a mano.
+async function estadoCalibracionPerfil(page){
+  const raw=await page.evaluate(()=>({
+    tab:document.querySelector(".botnav-tab.active")?.dataset.tour||null,
+    segment:document.querySelector('[data-seg][aria-hidden="false"]')?.dataset.seg||null,
+    sheetOpen:document.documentElement.classList.contains("sheet-open"),
+    sheets:document.querySelectorAll(".v4-sheet-back,.settings-push.open").length,
+    state:localStorage.getItem("micartera_v3"),expenses:localStorage.getItem("micartera_v3_exp")
+  }));
+  // Sólo hashes del fixture inventado salen al informe; no se emite su cartera completa.
+  const {state,expenses,...ui}=raw;
+  return {...ui,stateHash:createHash("sha256").update(state||"").digest("hex"),
+    expensesHash:createHash("sha256").update(expenses||"").digest("hex")};
+}
+async function comprobarTratamientoPerfil(page,cdp,neutralized){
+  const before=await estadoCalibracionPerfil(page);
+  let probes;
+  await page.evaluate(()=>{
+    const host=document.querySelector(".page.page-scroll-host"),rows=[],closures=[];
+    let clicks=0;
+    const listener=e=>rows.push({own:host.classList.contains("mc-touch-own"),
+      touchAction:getComputedStyle(host).touchAction,hostIsExpected:host.contains(e.target),
+      screenTarget:!!e.target.closest?.(".v4-screen")});
+    const terminal=e=>closures.push({type:e.type,touches:e.touches.length});
+    const click=()=>{clicks++;};
+    document.addEventListener("touchstart",listener,{passive:true});
+    document.addEventListener("touchcancel",terminal,{capture:true,passive:true});
+    document.addEventListener("touchend",terminal,{capture:true,passive:true});
+    document.addEventListener("click",click,{capture:true,passive:true});
+    window.__planTreatmentCleanup=()=>{
+      document.removeEventListener("touchstart",listener);
+      document.removeEventListener("touchcancel",terminal,true);
+      document.removeEventListener("touchend",terminal,true);
+      document.removeEventListener("click",click,true);
+      delete window.__planTreatmentCleanup;return {rows,closures,clicks};
+    };
+  });
+  try {
+    await cdp.send("Input.dispatchTouchEvent",{type:"touchStart",touchPoints:[{x:196,y:430}]});
+  } finally {
+    // Un toque estacionario terminado podría activar el botón bajo el dedo. Cancelarlo
+    // permite comprobar CSS/ownership sin convertir la sonda en una operación del usuario.
+    try {await cdp.send("Input.dispatchTouchEvent",{type:"touchCancel",touchPoints:[]});}
+    finally {probes=await page.evaluate(()=>window.__planTreatmentCleanup());}
+  }
+  expect(probes.rows).toEqual([{own:true,touchAction:neutralized?"auto":"none",hostIsExpected:true,screenTarget:true}]);
+  expect(probes.closures).toEqual([{type:"touchcancel",touches:0}]);
+  expect(probes.clicks).toBe(0);
+  expect(await page.locator(".page.page-scroll-host").evaluate(el=>el.classList.contains("mc-touch-own"))).toBe(false);
+  const after=await estadoCalibracionPerfil(page);
+  expect(after).toEqual(before);
+  return {acquisition:probes.rows,closures:probes.closures,clicks:probes.clicks,before,after};
 }
 
 const perfilSourceSHA=execFileSync("git",["rev-parse","HEAD"],{encoding:"utf8"}).trim();
@@ -623,6 +696,42 @@ for(const reducedMotion of ["no-preference","reduce"]){
         }
         console.log("PLAN_CAUSAL_PAIRS "+JSON.stringify({sourceSHA:perfilSourceSHA,segment,paired,
           limit:"CSS-only ownership intervention; JS ownership/manual scroll unchanged; order ABBA; no speedup assertion"}));
+        // Cada modo de sonda obtiene ABBA; alternar modos evita medir dos bloques por orden.
+        const calibrated=[],order=[[true,false],[false,false],[false,true],[true,true],
+          [true,true],[false,true],[false,false],[true,false]];
+        for(const [index,[styleProbe,neutralized]] of order.entries()){
+          let style;
+          try {
+            if(neutralized)style=await page.addStyleTag({content:
+              ".page.page-scroll-host.mc-touch-own{touch-action:auto!important;}"});
+            await pg.evaluate(el=>{el.scrollTop=0;});await page.waitForTimeout(300);
+            await esperarHostPerfil(page);
+            expect(await pg.evaluate(el=>el.contains(document.elementFromPoint(196,430)))).toBe(true);
+            const preflight=await comprobarTratamientoPerfil(page,cdp,neutralized);
+            await pg.evaluate(el=>{el.scrollTop=0;});await page.waitForTimeout(300);
+            expect(await pg.evaluate(el=>el.scrollTop)).toBe(0);
+            await esperarHostPerfil(page);
+            const summary=await trazarGestoPlan(page,cdp,segment+"/calibrated/"+index+"/"+
+              (styleProbe?"style-read":"class-only")+"/"+(neutralized?"css-own-neutralized":"baseline"),
+              perfilSourceSHA,neutralized,{styleProbe});
+            const scroll=await pg.evaluate(el=>el.scrollTop);
+            expect(scroll).toBeGreaterThan(2);
+            expect(await segmentoActivo(page)).toBe(segment);expect(await pestanaActiva(page)).toBe("plan");
+            expect(await pg.evaluate(el=>el.classList.contains("mc-touch-own"))).toBe(false);
+            // Volver al tope para que el postcheck confirme el mismo tratamiento, ya sin Tracing.
+            await pg.evaluate(el=>{el.scrollTop=0;});await page.waitForTimeout(300);
+            const postcheck=await comprobarTratamientoPerfil(page,cdp,neutralized);
+            calibrated.push({index,styleProbe,neutralized,scroll,preflight,postcheck,...summary});
+          } finally {
+            if(style)await style.evaluate(el=>el.remove());
+            expect(await page.evaluate(()=>[typeof window.__planTraceCleanup,typeof window.__planOwnProbe,
+              typeof window.__planTreatmentCleanup])).toEqual(["undefined","undefined","undefined"]);
+            expect(await page.locator("style").evaluateAll(els=>els.some(el=>el.textContent===
+              ".page.page-scroll-host.mc-touch-own{touch-action:auto!important;}"))).toBe(false);
+          }
+        }
+        console.log("PLAN_PROBE_CALIBRATION "+JSON.stringify({sourceSHA:perfilSourceSHA,segment,calibrated,
+          limit:"ABBA within each probe mode; class-only measurement has no computed-style read; preflight/postcheck separate; JS/native startup unchanged; no causal or speedup claim"}));
       }
       expect(await page.evaluate(()=>localStorage.getItem("micartera_v3_exp"))).toBe(baseline);
       await cdp.send("Emulation.setCPUThrottlingRate",{rate:1});await cdp.detach();

@@ -9,6 +9,9 @@ const textos={
 const octubre="2026-10-31T12:00:00Z", noviembre="2026-11-02T12:00:00Z";
 const goal={id:"g1",name:"Ahorro sintetico",emoji:"🎯",target:5000,saved:0};
 const salary={id:"salary",date:"2026-10-25T12:00:00Z",amount:-2000,merchant:"NOMINA SINTETICA",category:"ingreso",ent:"sabadell",source:"ob:sabadell",status:"BOOK"};
+// El alta y el cambio de mes desbloquean logros; sus avisos comparten el único toast de App
+// con los errores de nube. Esta suite prueba el transporte mensual, no los avisos de logros.
+const badges=["first_goal","first_underbudget","first_reto","streak_3","save_100","save_500","save_1000","save_5000"];
 
 async function boot(page,reload=false){
   if(reload) await page.reload(); else await page.goto("/");
@@ -42,7 +45,7 @@ async function presupuesto(page,amount){
 }
 async function alta(page,lang,cycle=false){
   await page.clock.install({time:new Date(octubre)});
-  await seedLoggedInDashboard(page,{__seedOnce:true,budget:1000,goals:[goal],expenses:[salary],
+  await seedLoggedInDashboard(page,{__seedOnce:true,budget:1000,goals:[goal],expenses:[salary],badges,
     accounts:[{id:"bank",ent:"sabadell",name:"Diaria",value:3000,role:"diario",spendFrom:true}],
     settings:{autoPrices:false,theme:"green",lang,gTotalMode:"split",budgetCycle:cycle,expenseBanks:["sabadell"],reservaRules:[]}});
   await boot(page);
@@ -61,8 +64,15 @@ async function alta(page,lang,cycle=false){
 }
 async function interceptar(page){
   await page.evaluate(()=>{
-    window.__mensualPulls=0; window.__mensualBank=0;
+    window.__mensualPulls=0; window.__mensualBank=0; window.__mensualPushes=[];
     cloud.bankSync=async function(){ window.__mensualBank++; return {}; };
+    // El doble compartido no guarda app_state: un UPDATE con sello devuelve [] y fabrica un
+    // conflicto tras la nube inválida. Guardar aquí la copia enviada conserva el rescate real
+    // sin introducir un segundo pull ajeno al caso ni ocultar un asiento mensual en el payload.
+    cloud.pushState=async function(uid,data,lastKnownUpdatedAt){
+      window.__mensualPushes.push({uid,data:JSON.parse(JSON.stringify(data)),lastKnownUpdatedAt});
+      return {updated_at:new Date().toISOString()};
+    };
     cloud.pullState=function(){
       window.__mensualPulls++;
       return new Promise(function(resolve,reject){ window.__mensualResolve=resolve; window.__mensualReject=reject; });
@@ -153,6 +163,10 @@ for(const lang of Object.keys(textos)){
     // Recuperar la copia local no acredita que el estado remoto carezca ya de un asiento del mes.
     await saved(page,100);
     expect((await disk(page)).reservaLog).toHaveLength(1);
+    const rescue=await page.evaluate(()=>window.__mensualPushes.find(x=>x.lastKnownUpdatedAt==="2026-11-02T12:00:00Z"));
+    expect(rescue.uid).toBe("e2e-user");
+    expect(rescue.data.goals.find(x=>x.id==="g1").saved).toBe(100);
+    expect(rescue.data.reservaLog.map(x=>[x.mensual,x.amount])).toEqual([["2026-10",100]]);
     expect(await page.evaluate(()=>window.__mensualBank)).toBe(0);
   });
 
