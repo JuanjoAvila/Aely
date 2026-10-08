@@ -744,3 +744,8 @@ Uso prolongado (INC-2709-09): `e2e/rendimiento-sostenido.spec.mjs` está en CROS
 ### Diagnóstico App/Dashboard y control positivo
 
 `e2e/dashboard-react-profile.spec.mjs` compara renders y cálculo de los tres recientes con una caché virtual en App real, CPU6 y datos sintéticos de 3000/5200 filas. Se ejecuta en el grupo serial de rendimiento; el mapa de Dashboard y el runner incluyen su guardián `tests/dashboard-profile-instrument.test.mjs`. Conserva medición natural, bloqueo deliberado y recuperación separados, y exige cero llamadas bancarias. Los informes completos salen por logs de CI. Véase `docs/briefs/inc-0710-dashboard-react-profile.md` para SHA, alcance y límites: no constituye arreglo del lag acumulativo ni prueba de memo106.
+
+
+## Candidata selectiva99/100/101/102/106
+
+Guardianes Node gastos-mes-madrid, appstate-listener-cleanup, banknotif-listener-cleanup, auth-disposal/fit y dashboard-memo-instrument registrados. DOM gastos-mes-madrid, lifecycle-listeners, auth-disposal y dashboard-memo-profile en mapa/transversales, perfil serial con CPU6. El perfil virtual anterior dashboard-react-profile y su instrumento/Node se sustituyen por la regresión A/B real de106. promocion-aprobadas106 verifica cinco identidades exactas y resto del runtime contra las fuentes fijas, historial main conservado y exclusión de Android/Edge. [Preparación y gates](briefs/promocion-aprobadas-local26.md).

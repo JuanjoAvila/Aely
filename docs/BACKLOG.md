@@ -1,3 +1,5 @@
+Preparación8/10: candidata selectiva4.26.106 desde main56c7e328 para las aprobadas99/100/101/102/106. Producción comprobada4.26.98, beta4.26.106.1/source8dcc5ed3. Revisión independiente, CI exacta y entrega pendientes. Panel beta solo se retira después de entrega real; lag global abierto. [Acta](briefs/promocion-aprobadas-local26.md).
+
 Prioridad7/10: terminar promoción selectiva98 aprobada (barra y botón juntos); candidata local sobre main85b8, gates pendientes. Producción96 ya servida. Gastos99 y listeners100 siguen pendientes de CI y beta; lag global abierto.
 
 # Backlog operativo — Aely

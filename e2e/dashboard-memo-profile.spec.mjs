@@ -3,14 +3,14 @@ import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { seedLoggedInDashboard, installFixtureClock, dismissNews } from "./fixtures.mjs";
-import { instrumentDashboard, installDashboardProfile } from "./dashboard-profile-instrument.mjs";
+import { instrumentDashboard, installDashboardProfile } from "./dashboard-memo-instrument.mjs";
 
 /* Diagnóstico de App/Dashboard reales, no un componente reconstruido.
-   El A/B es una transformación VIRTUAL de la respuesta local: nunca producto entregado. */
+   El A/B conserva el hook real de la candidata; baseline quita sólo ese hook en la respuesta local. */
 test.use({serviceWorkers:"block"});
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const html=readFileSync("public/index.html","utf8");
-const instrumented=instrumentDashboard(html);
+
 const guionSHA256=createHash("sha256").update(readFileSync(new URL(import.meta.url))).digest("hex");
 
 function fixture(n){
@@ -44,7 +44,8 @@ async function measured(page,mode,action){
   return result;
 }
 
-for(const size of [3000,5200])test("Dashboard real: frecuencia recientes y A/B virtual "+size,async({page},testInfo)=>{
+for(const size of [3000,5200])for(const variant of ["baseline","memo"])test("Dashboard recent hook real "+variant+" "+size,async({page},testInfo)=>{
+  const instrumented=instrumentDashboard(html,variant);
   test.setTimeout(90000);
   const localOrigin=new URL(testInfo.project.use.baseURL).origin;
   let blockedExternal=0,htmlResponses=0;
@@ -59,10 +60,10 @@ for(const size of [3000,5200])test("Dashboard real: frecuencia recientes y A/B v
   await installFixtureClock(page);await seedLoggedInDashboard(page,fixture(size));
   await page.addInitScript(installDashboardProfile);
   const cdp=await page.context().newCDPSession(page);await cdp.send("Emulation.setCPUThrottlingRate",{rate:6});
-  const report={schema:1,sourceSHA:execFileSync("git",["rev-parse","HEAD"],{encoding:"utf8"}).trim(),declaredSourceSHA:process.env.MC_DASH_SOURCE_SHA||null,size,cpuRate:6,guionSHA256,
-    htmlSHA256:instrumented.sourceSHA256,instrumentedSHA256:instrumented.instrumentedSHA256,
-    model:"App real; fixture Supabase; cache virtual expenses/deleted; no red bancaria",phases:[],controls:[],status:"running"};
-  const output=testInfo.outputPath("dashboard-react-profile.json");mkdirSync(testInfo.outputDir,{recursive:true});
+  const report={schema:1,sourceSHA:execFileSync("git",["rev-parse","HEAD"],{encoding:"utf8"}).trim(),declaredSourceSHA:process.env.MC_DASH_SOURCE_SHA||null,size,variant,cpuRate:6,guionSHA256,
+    htmlSHA256:instrumented.sourceSHA256,instrumentedSHA256:instrumented.instrumentedSHA256,scenarioSHA256:instrumented.scenarioSHA256,
+    model:"App real; fixture Supabase; hook React real expenses/deleted; no red bancaria",phases:[],controls:[],status:"running"};
+  const output=testInfo.outputPath("dashboard-memo-profile.json");mkdirSync(testInfo.outputDir,{recursive:true});
   const save=()=>writeFileSync(output,JSON.stringify({...report,blockedExternal,htmlResponses},null,2));
   try{
     await page.goto("/");await page.waitForFunction(()=>!!window.__dashProfile.state&&!!document.querySelector('.botnav')&&!document.getElementById('mc-load'));
@@ -75,20 +76,19 @@ for(const size of [3000,5200])test("Dashboard real: frecuencia recientes y A/B v
     expect(await page.evaluate(()=>window.__dashProfile.bankCalls)).toEqual([]);
     report.appVersion=await page.evaluate(()=>CONFIG.APP_VERSION);
     report.browser=page.context().browser().version();
-    const baseline=await measured(page,"baseline",()=>budgetCycles(page));report.phases.push(baseline);
-    const cached=await measured(page,"virtual-cache",()=>budgetCycles(page));report.phases.push(cached);
+    const baseline=await measured(page,variant,()=>budgetCycles(page));report.phases.push(baseline);
     expect(baseline.metrics.renders).toBeGreaterThanOrEqual(8);
-    expect(baseline.metrics.computes).toBe(baseline.metrics.renders);
-    expect(cached.metrics.hits).toBeGreaterThanOrEqual(7);
-    expect(cached.metrics.computes).toBeLessThan(cached.metrics.renders);
-    expect(cached.check).toEqual(baseline.check);expect(cached.dom).toEqual(baseline.dom);
-    expect(baseline.expensesWrites).toBe(0);expect(cached.expensesWrites).toBe(0);
+    if(variant==="baseline")expect(baseline.metrics.computes).toBe(baseline.metrics.renders);
+    else{expect(baseline.metrics.computes).toBeLessThanOrEqual(1);expect(baseline.metrics.hits).toBeGreaterThanOrEqual(7);}
+    expect(baseline.expensesWrites).toBe(0);
     await page.evaluate(()=>{const p=window.__dashProfile;p.originalExpenses=p.state.expenses;p.originalDeleted=p.state.deleted;});
     // Idéntico contrato con state nuevo y referencias relevantes conservadas.
     for(const [name,mutate] of [
       ["settings",()=>{const p=window.__dashProfile;p.set(s=>({...s,settings:{...s.settings,profileSyntheticToggle:!s.settings.profileSyntheticToggle}}));}],
       ["edit",()=>{const p=window.__dashProfile;p.set(s=>({...s,expenses:s.expenses.map((e,i)=>i===0?{...e,amount:e.amount+1,merchant:"Edición sintética"}:e)}));}],
       ["undo-edit",()=>{const p=window.__dashProfile;p.set(s=>({...s,expenses:p.originalExpenses}));}],
+      ["manual-add",()=>{const p=window.__dashProfile;p.set(s=>({...s,expenses:[...s.expenses,{id:"33333333-3333-4333-8333-333333333333",date:"2026-09-28T10:00:00Z",amount:23,merchant:"Alta manual sintética",category:"super",source:"manual",ent:"sabadell"}]}));}],
+      ["undo-add",()=>{const p=window.__dashProfile;p.set(s=>({...s,expenses:p.originalExpenses}));}],
       ["manual-legacy",()=>{const p=window.__dashProfile;p.set(s=>({...s,deleted:(s.deleted||[]).concat([keyOfExpenseLegacy(s.expenses[0])])}));}],
       ["undo-remove",()=>{const p=window.__dashProfile;p.set(s=>({...s,deleted:p.originalDeleted}));}],
       ["clock",()=>{const p=window.__dashProfile,NativeDate=Date,shift=86400000;
@@ -96,20 +96,21 @@ for(const size of [3000,5200])test("Dashboard real: frecuencia recientes y A/B v
         Object.setPrototypeOf(FixtureDate,NativeDate);FixtureDate.prototype=NativeDate.prototype;FixtureDate.now=()=>NativeDate.now()+shift;window.Date=FixtureDate;
         p.set(s=>({...s,settings:{...s.settings,profileSyntheticClock:true}}));}],
     ]){
-      const before=await page.evaluate(()=>{const p=window.__dashProfile;p.before={expenses:p.state.expenses,deleted:p.state.deleted,json:JSON.stringify(p.state.expenses)};return {computes:p.metrics.computes,hits:p.metrics.hits,rows:p.verify().rows};});
+      const before=await page.evaluate(()=>{const p=window.__dashProfile;p.before={expenses:p.state.expenses,deleted:p.state.deleted,json:JSON.stringify(p.state.expenses)};return {computes:p.metrics.computes,hits:p.metrics.renders-p.metrics.computes,rows:p.verify().rows};});
       await page.evaluate(mutate);await delay(350);
-      const after=await page.evaluate(()=>{const p=window.__dashProfile;if(JSON.stringify(p.before.expenses)!==p.before.json)throw new Error("Mutación in-place del histórico");return {computes:p.metrics.computes,hits:p.metrics.hits,check:p.verify(),dom:p.verifyDOM(),sameExpenses:p.state.expenses===p.before.expenses,sameDeleted:p.state.deleted===p.before.deleted};});
-      if(name==="settings"||name==="clock"){expect(after.check.rows).toEqual(before.rows);expect(after.hits).toBeGreaterThan(before.hits);}
+      const after=await page.evaluate(()=>{const p=window.__dashProfile;if(JSON.stringify(p.before.expenses)!==p.before.json)throw new Error("Mutación in-place del histórico");return {computes:p.metrics.computes,hits:p.metrics.renders-p.metrics.computes,check:p.verify(),dom:p.verifyDOM(),sameExpenses:p.state.expenses===p.before.expenses,sameDeleted:p.state.deleted===p.before.deleted};});
+      if(name==="settings"||name==="clock"){expect(after.check.rows).toEqual(before.rows);if(variant==="memo")expect(after.hits).toBeGreaterThan(before.hits);else expect(after.computes).toBeGreaterThan(before.computes);}
       else expect(after.computes).toBeGreaterThan(before.computes);
       if(name==="settings"||name==="clock"){expect(after.sameExpenses).toBe(true);expect(after.sameDeleted).toBe(true);}
-      if(name==="edit"||name==="undo-edit"){expect(after.sameExpenses).toBe(false);expect(after.sameDeleted).toBe(true);}
+      if(name==="edit"||name==="undo-edit"||name==="manual-add"||name==="undo-add"){expect(after.sameExpenses).toBe(false);expect(after.sameDeleted).toBe(true);}
       if(name==="manual-legacy"||name==="undo-remove"){expect(after.sameExpenses).toBe(true);expect(after.sameDeleted).toBe(false);}
       if(name==="edit")expect(after.check.rows[0].merchant).toBe("Edición sintética");
+      if(name==="manual-add")expect(after.check.rows[0].merchant).toBe("Alta manual sintética");
       if(name==="manual-legacy")expect(after.check.rows.some(e=>e.id===before.rows[0].id)).toBe(false);
-      if(name==="undo-edit"||name==="undo-remove")expect(after.check.rows).toEqual(baseline.check.rows);
+      if(name==="undo-edit"||name==="undo-add"||name==="undo-remove")expect(after.check.rows).toEqual(baseline.check.rows);
       report.controls.push({name,before,after});
     }
-    const sync=await measured(page,"virtual-cache",async()=>{
+    const sync=await measured(page,variant,async()=>{
       await page.evaluate(async()=>{const p=window.__dashProfile;
         window.__e2eCloudRows.expenses.push({id:"22222222-2222-4222-8222-222222222222",fecha:"2026-09-28T12:00:00Z",importe:17,comercio:"Alta nube sintética",cat:"super",source:"manual:sabadell"});
         await p.sync();});await delay(500);
@@ -137,10 +138,10 @@ for(const size of [3000,5200])test("Dashboard real: frecuencia recientes y A/B v
   finally{
     report.bankCallsAtFinal=await page.evaluate(()=>window.__dashProfile?.bankCalls?.slice()??null).catch(()=>null);
     // test.yml no sube adjuntos: el informe sintético completo debe poder recuperarse del log oficial.
-    console.log("AELY_DASHBOARD_SYNTHETIC_REPORT_BEGIN size="+size);
+    console.log("AELY_DASHBOARD_MEMO_SYNTHETIC_REPORT_BEGIN size="+size);
     console.log(JSON.stringify({...report,blockedExternal,htmlResponses}));
-    console.log("AELY_DASHBOARD_SYNTHETIC_REPORT_END size="+size);
+    console.log("AELY_DASHBOARD_MEMO_SYNTHETIC_REPORT_END size="+size);
     save();await page.evaluate(()=>window.__dashProfile?.dispose()).catch(()=>{});
-    await testInfo.attach("dashboard-react-profile",{path:output,contentType:"application/json"});
+    await testInfo.attach("dashboard-memo-profile",{path:output,contentType:"application/json"});
   }
 });

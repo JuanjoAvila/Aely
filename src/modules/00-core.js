@@ -978,7 +978,7 @@ const cloud = (function(){
   return {
     enabled(){ return !!sb; },
     async session(){ if(!sb) return null; const {data}=await sb.auth.getSession(); return data.session; },
-    onAuth(cb){ if(sb) sb.auth.onAuthStateChange(function(ev,session){ cb(session, ev); }); },
+    onAuth(cb){ const sub=sb&&sb.auth.onAuthStateChange((ev,s)=>{ cb(s,ev); }); return ()=>{ if(sub) sub.data.subscription.unsubscribe(); }; },
     async signIn(email){
       if(!sb) throw new Error("nube no disponible");
       const {error}=await sb.auth.signInWithOtp({ email:email, options:{ emailRedirectTo: location.href.split('#')[0] } });

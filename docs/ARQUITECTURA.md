@@ -531,3 +531,8 @@ Antes el volcado se apuntaba dentro del updater de `set()`. React puede ejecutar
 Como es código común, el bloque de guardado forma parte del alcance de revisión de toda tanda cuyo código llama a `set` de App (18 de 25, decidido contra el código por `beta-sources`): cambiarlo vuelve a pedir su prueba. Una aprobación heredada por equivalencia de código deja de aplicarse cuando el código cambia; su registro histórico no se toca.
 
 Se conserva lo demás: una escritura como mucho cada 400 ms, volcado inmediato en `pagehide` y al pasar a oculto, guardado partido (`micartera_v3` y `micartera_v3_exp`), ninguna escritura al montar ni cuando un updater devuelve el mismo estado, y las salvaguardas del modo pruebas (`mcSkipPersist`, `mcRecargarSinVolcar`). Límite: una escritura pedida y aún no pintada cuando llega `pagehide` no se vuelca; antes tampoco estaba garantizado, salvo cuando React la calculaba por adelantado.
+
+
+## Ciclo de vida y recientes · candidata selectiva106
+
+cloud.onAuth devuelve la retirada de su suscripción. App cancela timer y callbacks de sesión al desmontar; los handles tardíos de appStateChange/bankNotif se liberan aunque lleguen después del cleanup. Conserva las opciones de login/cambio de titular. Dashboard memoiza sólo sus tres recientes por las referencias expenses/deleted: editar, altas y lápidas invalidan; abrir presupuesto no repite filtro/sort. No añade sincronización bancaria automática.

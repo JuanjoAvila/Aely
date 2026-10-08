@@ -30,6 +30,7 @@ const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 /** Tocar uno de estos = suite e2e entera. Son el suelo compartido: un cambio aquí no se puede
  *  acotar a una pantalla sin mentir. */
 export const CORE = [
+  "scripts/verify-selective106.mjs",
   "scripts/beta-source-code.mjs", "scripts/beta-revisions.mjs", "scripts/beta-sources.json", "scripts/build-app.mjs", "scripts/load-pure-logic.mjs",
   "src/modules/00-core.js",
   "src/modules/01-i18n.js",
@@ -51,7 +52,7 @@ export const CORE = [
 export const E2E_MAP = [
   {file:"src/modules/16-help-assistant.js",specs:["e2e/help-assistant.spec.mjs","e2e/help-preguntar-borde.spec.mjs"]},
   { file: "src/modules/03-tab-dash.js", specs: ["e2e/help-assistant.spec.mjs",
-    "e2e/dashboard-react-profile.spec.mjs",
+    "e2e/dashboard-memo-profile.spec.mjs",
     "e2e/listas-render.spec.mjs",
     "e2e/plan-cuota-contabilizada.spec.mjs",
 
@@ -72,7 +73,7 @@ export const E2E_MAP = [
     "e2e/gastos-diario-filtro.spec.mjs", "e2e/gastos-cabecera-bancos.spec.mjs", "e2e/gastos-orden.spec.mjs",
     "e2e/gastos-categorias-presupuesto.spec.mjs", "e2e/gastos-periodo-categorias.spec.mjs", "e2e/gastos-suelta-filas.spec.mjs",
     "e2e/gastos-deudas.spec.mjs", "e2e/cartera-ficha-cuenta.spec.mjs", "e2e/presupuesto-fluido.spec.mjs",
-    "e2e/gastos-ayuda-ciclo.spec.mjs",
+    "e2e/gastos-ayuda-ciclo.spec.mjs", "e2e/gastos-mes-madrid.spec.mjs",
   ] },
   { file: "src/modules/05-dialogs-inv.js", specs: [
     "e2e/help-assistant.spec.mjs",
@@ -141,6 +142,7 @@ export const E2E_MAP = [
 /** Specs que no son de una pantalla: persistencia, swipes, frames. Si se toca CUALQUIER
  *  módulo de src (no el núcleo: ese ya dispara todo), van con el recorte. */
 export const CROSSCUTTING = [
+  "e2e/auth-disposal.spec.mjs", "e2e/lifecycle-listeners.spec.mjs",
   "e2e/botnav-fab-recorte.spec.mjs",
   "e2e/bank-merchant-category.spec.mjs",
   "e2e/gasolina-taxi.spec.mjs",
