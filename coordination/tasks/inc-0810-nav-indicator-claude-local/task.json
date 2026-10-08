@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "id": "inc-0810-nav-indicator-claude-local",
+  "from": "codex",
+  "coordinatorSession": "relay-run-local0810a73f9b",
+  "createdAt": "2026-10-08T17:05:05.420Z",
+  "to": "claude",
+  "baseSHA": "8dcc5ed39b6e212ba1e34a90b550685794ce0bd5",
+  "objective": "Corregir INC-2709-13: retirar indicador activo al ocultar barra y conservar decoración Cyberpunk conforme movimiento reducido. Entregar candidata de producto separable y comprobada, no solo diagnóstico.",
+  "scope": [
+    "src/shell.html: ocultación selectiva botnav-ind y decoración Cyberpunk",
+    "src/modules/11-app-main.js: clase/estado de indicador, solo si necesario",
+    "e2e/botnav: DOM causal y guardias de indicador/Cyberpunk",
+    "scripts/relevant-tests.mjs: registrar guardian si nuevo",
+    "docs/briefs/inc-0810-nav-indicator.md"
+  ],
+  "required": [
+    "Checkout/rama propios desde baseSHA; leer AGENTS/EMPIEZA-AQUI completos y diagnóstico codex/nav-hidden-diagnosis-relay21 docs/briefs/inc-0710-nav-hidden-marker-motion-diagnosis.md. Resultado FAB147 anterior ya absorbido; no repetirlo.",
+    "Repro roja con DOM/pintura reales sintéticos: indicador visible antes, oculto al esconder y vuelve al revelar; Cyberpunk visible cuando corresponde sin desactivar sus pseudos en la prueba. Temas normal/cyber, safe0/34, normal/reducido app/sistema, hide/show invertido/cancel, perfil/drawer, puntero oculto y fondo sólido. No usar solamente análisis fuente/fixture literal.",
+    "Cambio mínimo causal. Conservar callbacks, ola nativa, FAB, pestaña activa, topología y dinero. No asumir navHidden React oportuno durante arrastre: comprobar class/ref/estado antes de elegir selector.",
+    "Node y DOM relevantes con comandos/exitcodes; guard rojo contra base y verde en candidata; registrar mapa si nuevo. Build/minificado y límites oficiales intactos: beta actual solo4B de margen raw; no ampliar topes ni minifyIdentifiers. Limitar diagnóstico repetido.",
+    "Commit completo en rama propia y PR draft contra beta; entrega SHA/tree/paths/tests/limitaciones por result. No bump de VERSION ni edición RELEASE_NOTES/catálogos ahora: root prepara versión final y revisa antes de beta."
+  ],
+  "restrictions": [
+    "Sin publicación/merge/main/beta/APK/Edge/SQL/datos reales ni nuevasdeps. No editar 01/02/03 reservados para Grok. No duplicar Plan181/182 ni reabrir mejora global lag. Si otro claim real existe, informar y conservar."
+  ],
+  "modelChoice": "Claude elige modelo disponible apropiado para UI y revisión; no atribuir modelo sin evidencia."
+}
