@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "id": "audit-48-current-edge-packet-0910-claude",
+  "from": "codex",
+  "coordinatorSession": "relay-run-local0810a73f9b",
+  "createdAt": "2026-10-09T02:31:08.149Z",
+  "scope": [
+    "Leer AGENTS y EMPIEZA completos sobre baseSHA en checkout propio; pull request numero 48, origen historico 1ddcf25cd2ace00e405287491003aa958a43130c, es referencia y no base de codigo",
+    "Revisar paquete antiguo de cuatro entradas frente a funciones y helpers actuales; preservar Gasolina, Taxi, Multas, Zona Azul y Peajes, SQLSTATE y controles de permisos vigentes",
+    "Reproducir los controles historicos de paquete/categorizacion con fixtures inventados y dos vias independientes; distinguir casos realmente absorbidos de huecos actuales",
+    "Preparar propuesta verificable de herramienta y pruebas sobre dependencia y fuentes actuales, sin dependencias nuevas ni copiar bundle antiguo; no cambiar runtime ni fuentes de funciones",
+    "Puede ejecutar Node/Deno y tests offline en su nube propia; no usa el lease local ni lanza otro coordinador, chat, bucle o automatizacion",
+    "No Supabase live, SQL, RPC, migraciones, Edge deployment, secrets, datos reales, APK, pagos, main, beta, merge, promote ni cierre de PR 48",
+    "Resultado inmutable y released:true en este mismo encargo con SHA/base, comandos, exits, inventario de fuentes y limites; una reserva o un paquete compilado no acreditan backend entregado",
+    "Un unico objetivo finito: preflight y propuesta. Si falta herramienta o acceso, documentar bloqueo tras intento acotado; no improvisar servicios externos ni pedir credenciales"
+  ],
+  "objective": "Auditar el rescate viable de PR 48 con fuentes actuales, empaquetado y oraculos sinteticos, sin desplegar backend",
+  "to": "claude",
+  "baseSHA": "a8f258deb641264561dd34f284be12b099ee72b8"
+}
