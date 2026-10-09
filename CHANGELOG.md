@@ -1,5 +1,7 @@
 ## [4.26.110] — 2026-10-09 · Barra, reglas de ahorro y Atrás
 
+- Guardián histórico de VERSION (9/10): una integración documental con MAIN ya versionado como segundo padre se contaba contra su primer padre antiguo y bloqueaba PR196 aun con runtime exacto de MAIN. Se auditan por separado todos los commits no merge y cada resolución contra un padre descendiente del ancla cuando existe, manteniendo deuda lateral y reverts. Cuatro grafos Git adicionales protegen la excepción y sus tres negativos; no cambia versión ni producto.
+
 - Cobertura offline del handler actual de `categorize` (9/10): la guardia estática del limitador no ejecutaba sus rutas y el harness de PR48 cargaba un paquete histórico que perdería movilidad y saneado SQLSTATE. El nuevo test carga las cuatro fuentes actuales con Deno/SDK/DB/LLM sintéticos, oráculos literales y siete controles negativos en memoria; se registra en el runner y en el recorte servidor de beta, protegido por `relevant-tests`. Conserva runtime, imports, versiones y dependencias; no acredita gateway JWT, RLS, SDK remoto ni despliegue. [Alcance y evidencia inicial](docs/briefs/categorize-handler-current-local26.md).
 
 - Preparación selectiva desde main798226ce para las identidades web aprobadas107/108/110 de betac7593e86: indicador de navegación, edición de reglas sin recrear aportaciones y propiedad del historial de overlays. La gráfica109 rechazada conserva main; no se traslada Edge/precios ni tooling ajeno.

@@ -211,13 +211,30 @@ ok(`VERSION = ${VERSION}`);
       indeterminate(invalid >= 0 ? `VERSION histórica ilegible o no numérica en ${refs[invalid].slice(0, 7)}`
         : "sin ancla y ascendencia verificables");
     } else {
-      // Lo que el usuario NOTA y viaja por OTA. Revisamos el conjunto de commits, no sólo
-      // el árbol final: un revert tampoco debe esconder código publicable intermedio.
-      // --full-history incluye deuda de ramas que entran después del ancla; los merges se
-      // comparan con su primer padre para ver resoluciones sin contar producto ya cubierto
-      // sólo porque el segundo padre de una PR de documentación salió de una base antigua.
+      // Un refresh documental puede traer MAIN versionado como segundo padre antes de la
+      // fusión de la PR. Compararlo sólo con el padre viejo contaría producto ya cubierto.
+      // Los commits no merge se auditan todos, incluidos reverts y deuda lateral; cada
+      // resolución se compara con un padre descendiente del ancla, si existe, o el primero.
       const zonas = ["src/", "supabase/functions/", "android/app/src/", "public/vendor/", "public/sw.js"];
-      const sueltos = git(["log", "--full-history", "--diff-merges=first-parent", `${anchor}..HEAD`, "--name-only", "--format=", "--"].concat(zonas));
+      const rango = `${anchor}..HEAD`;
+      const simples = git(["log", "--full-history", "--no-merges", rango, "--name-only", "--format=", "--"].concat(zonas));
+      const fusiones = git(["log", "--full-history", "--min-parents=2", "--format=%H %P", rango]);
+      const posteriores = git(["rev-list", "--ancestry-path", rango]);
+      let sueltos = simples;
+      if (fusiones === null || posteriores === null) sueltos = null;
+      else if (sueltos !== null) {
+        const descendientes = new Set([anchor].concat(posteriores.split("\n").filter(Boolean)));
+        for (const fila of fusiones.split("\n").filter(Boolean)) {
+          const [ref, ...padres] = fila.split(/\s+/);
+          if (padres.length < 2 || [ref, ...padres].some(valor => !/^[a-f0-9]{40}$/.test(valor))) {
+            sueltos = null; break;
+          }
+          const padre = padres.find(valor => descendientes.has(valor)) || padres[0];
+          const cambios = git(["diff-tree", "--no-commit-id", "--name-only", "-r", padre, ref, "--"].concat(zonas));
+          if (cambios === null) { sueltos = null; break; }
+          if (cambios) sueltos += "\n" + cambios;
+        }
+      }
       if (sueltos === null) {
         indeterminate("no se pudieron auditar los commits posteriores al ancla");
       } else if (sueltos || greater(anchorVersion, VERSION)) {

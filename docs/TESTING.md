@@ -310,6 +310,12 @@ curl -s "https://juanjoavila.github.io/Aely/version.json"
 Desde la 4.9.1 esto lo vigila `tests/docs-frescura.test.mjs`: si quedan cambios en `src/`,
 `supabase/functions/` o `android/app/src/` después del último bump de `VERSION`, `npm test` falla.
 
+`docs-frescura-history` conserva los 29 repositorios Git originales y añade cuatro grafos de
+refresh documental: MAIN versionado llega como segundo padre antes de la fusión sintética.
+No se cuenta de nuevo el producto cubierto por esa línea; siguen fallando código lateral
+sin versión, una resolución nueva y código lateral revertido. La auditoría recorre todos los
+commits no merge y las resoluciones; no se limita al árbol final ni al delta de la PR.
+
 ### Dos guardas más, de la 4.10.0
 
 - **`tests/edge-sintaxis.test.mjs`** — las Edge Functions se despliegan manualmente con autorización, en un
