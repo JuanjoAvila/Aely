@@ -98,3 +98,44 @@ son los de v3 y duran 22,6-23,2 s. Hashes: guion `9538afa0…9d69e`, HTML `cdd42
 Límites: no es una WebView ni suspensión del SO, ni sockets/auth/realtime reales; RAF de escritorio;
 una sola semilla y una sola pasada (sin repetición ni IC). Un recorrido de 30 min a ritmo de guion
 no equivale a días de uso ni a la memoria de un móvil real. Sigue pendiente el input humano.
+
+
+## Lectura en vuelo · contrato separable 8/10
+
+Preparación de tooling desde main `56c7e328ce801f0e2e2fe5ec1ebd36169f0ac89b`, sin
+runtime de la candidata Plan. La serie v3 original y sus cifras permanecen intactas.
+`e2e/lifecycle-inflight.spec.mjs` cubre el hueco que v3 declara: no retiene una lectura
+cuando cambia la conectividad. Reutiliza cuenta, gasto y nube inventados del fixture;
+las respuestas A/C son idénticas y no se contacta ningún banco o servicio externo.
+
+A se retiene después de obtener las filas del doble y antes de entregarlas a App.
+Hidden/offline/visible inicia B, cuyo rechazo offline se confirma; online/reentrada
+inicia C, que termina y deja lastSync persistido nuevo. Sólo entonces se libera A
+como éxito antiguo o rechazo tardío. Dos contratos exigen tres starts, settlements y
+drenaje; comparan bytes íntegros y contadores de escritura desde C. Hidden vuelve a
+volcar el commit de React para no ocultar una escritura por debounce. También vigilan
+rechazos no manejados y cero bankSync automático. Los finally liberan y recogen todas
+las promesas retenidas y restauran los wrappers. Un pendiente durante este orden
+es una precondición de la carrera, no una norma maxInFlight1.
+
+Offline es real en el contexto Chromium; el error de la promesa se inyecta en el doble.
+No acredita cancelar sockets, suspender la WebView, reproducir acumulación ni explicar
+el lag. Fuente, versiones, public, workflows y presupuestos quedan intactos. Navegador
+local no disponible en el runtime de preparación original: sólo checks de fuente, registro, sintaxis y
+privacidad. La fuente183 tiene CI37810907496 SUCCESS; el port sobre main106 requiere revisión y CI exactas propias antes de integrar. No se repite la serie de 30 minutos.
+
+### Port sobre main106 · comprobación local 8/10
+
+Base `b1ad23f34f2a94933e57246dfdf12c451f5360a1`, sin delta runtime. Pasan sintaxis del
+spec/mapa, build, sintaxis del HTML, relevant-tests, privacy y docs-frescura. El HTML
+servido coincide byte a byte con el local, SHA256
+`c7477df17c406c71655c8c9d1b3aac361ff3dcd118939fe4a0dfa980cc76341e`.
+Chromium149, viewport Pixel5, worker1/retry0: **2/2 contratos pasan**; tres starts y
+cero pendientes, rechazos no manejados y bankSync automáticos en ambos finales.
+
+Control causal: al retirar sólo `ps!==wS.current` del HTML temporal, el mismo caso
+de éxito antiguo falla en la comparación de persistencia: las escrituras del estado
+pasan de una a dos y cambian lastSync/_savedAt. Se restauran los bytes y el hash
+oficiales, también verificados por HTTP. La fuente permanece intacta. Este control
+acredita que el contrato detecta esa escritura tardía; mantiene todos los límites
+sintéticos anteriores. CI exacta del port y revisión independiente pendientes.

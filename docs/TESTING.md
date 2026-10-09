@@ -749,3 +749,12 @@ Uso prolongado (INC-2709-09): `e2e/rendimiento-sostenido.spec.mjs` está en CROS
 ## Candidata selectiva99/100/101/102/106
 
 Guardianes Node gastos-mes-madrid, appstate-listener-cleanup, banknotif-listener-cleanup, auth-disposal/fit y dashboard-memo-instrument registrados. DOM gastos-mes-madrid, lifecycle-listeners, auth-disposal y dashboard-memo-profile en mapa/transversales, perfil serial con CPU6. El perfil virtual anterior dashboard-react-profile y su instrumento/Node se sustituyen por la regresión A/B real de106. promocion-aprobadas106 verifica cinco identidades exactas y resto del runtime contra las fuentes fijas, historial main conservado y exclusión de Android/Edge. [Preparación y gates](briefs/promocion-aprobadas-local26.md).
+
+`e2e/lifecycle-inflight.spec.mjs` (CROSSCUTTING) conserva dos contratos cortos de
+lifecycle con un pull retenido antes de entregar las filas al callsite. Hidden/offline
+provoca un rechazo explícito del doble; online/reentrada recupera el mismo payload.
+El éxito y el rechazo antiguos deben drenar sin cambiar bytes del estado/gastos ni
+escrituras posteriores al pull recuperado, sin rechazo no manejado ni banco automático.
+Los readbacks y resolvers establecen el orden; no impone un máximo global de concurrencia.
+Es cobertura sintética de integración, no cancelación de sockets, suspensión del SO,
+reproducción del lag ni mejora de rendimiento. La fuente183 tiene CI37810907496 SUCCESS; este port sobre main106 necesita su propia CI exacta antes de integrar.
