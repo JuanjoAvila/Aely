@@ -64,6 +64,7 @@ const steps = [
   ["beta-veredictos", ["node", "tests/beta-veredictos.test.mjs"]],
   ["listo-actor", ["node", "tests/listo-actor.test.mjs"]],
   ["beta-sources", ["node", "tests/beta-sources.test.mjs"]],
+  ["beta-source-context", ["node", "tests/beta-source-context.test.mjs"]],
   ["novedades-idiomas", ["node", "tests/novedades-idiomas.test.mjs"]],
   ["categorias-dual", ["node", "tests/categorias-dual.test.mjs"]],
   ["suministros-legacy", ["node", "tests/suministros-legacy.test.mjs"]],
