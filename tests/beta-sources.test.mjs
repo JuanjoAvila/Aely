@@ -125,9 +125,12 @@ test("Retiro109 elimina solo las cinco aprobadas entregadas y conserva todo el h
   assert.equal(actual.length,226);assert.ok(!actual.some(n=>(n.tandas||[]).some(g=>ids.includes(g.id))));
 });
 
-test("BackClose110 actual conserva las36 unidades109 y declara únicamente el cambio real de Brókers",()=>{
-  const cache=new Map(),base=f=>{if(!cache.has(f))cache.set(f,execFileSync("git",["show","f4ffb9340adfd0a13b631271e8158d2c630613c0:"+f],{encoding:"utf8",maxBuffer:10e6}));return cache.get(f);};
-  const before=JSON.parse(base("scripts/beta-sources.json")),actual=JSON.parse(read("scripts/beta-sources.json")),id="inc-0810-backclose-handover";
+// El cierre publicado110 es un contrato histórico: un cambio posterior de scripts no
+// debe ampliar sus deltas ni alterar sus notas (rojo real del turno136, 9/10).
+test("BackClose110 histórica conserva las36 unidades109 y declara únicamente el cambio real de Brókers",()=>{
+  const cache=new Map(),at=(sha,f)=>{const key=sha+":"+f;if(!cache.has(key))cache.set(key,execFileSync("git",["show",key],{encoding:"utf8",maxBuffer:10e6}));return cache.get(key);};
+  const base=f=>at("f4ffb9340adfd0a13b631271e8158d2c630613c0",f),source110=f=>at("c7593e86f6665d69fa20bd3f5f8f20c4710a5d9c",f);
+  const before=JSON.parse(base("scripts/beta-sources.json")),actual=JSON.parse(source110("scripts/beta-sources.json")),id="inc-0810-backclose-handover";
   assert.equal(Object.keys(before).length,36);assert.equal(Object.keys(actual).length,37);
   assert.deepEqual(Object.keys(actual).filter(key=>!before[key]),[id]);
   assert.equal(actual[id].unidades,true);
@@ -139,15 +142,39 @@ test("BackClose110 actual conserva las36 unidades109 y declara únicamente el ca
       assert.deepEqual(actual[key].web.filter(d=>scope.web.some(s=>JSON.stringify(s)===JSON.stringify(d))),scope.web,"ninguna dependencia antigua se retira ni reordena");
       assert.equal(actual[key].web.length,scope.web.length+15,"ocho helpers y siete datos transitivos reales");
     }else assert.deepEqual(actual[key],scope,key+": descriptor intacto");
-    if(betaRevision(key,read,undefined,actual[key]).web!==betaRevision(key,base,undefined,scope).web)changed.push(key);
+    if(betaRevision(key,source110,undefined,actual[key]).web!==betaRevision(key,base,undefined,scope).web)changed.push(key);
   }
   assert.deepEqual(changed,["inc-0310-broker-resultados"],"35 códigos anteriores intactos, incluidas las tres unidades109 y las cinco entregadas");
-  const notes=JSON.parse(read("src/data/release-notes.json")),old=JSON.parse(base("src/data/release-notes.json"));
+  const notes=JSON.parse(source110("src/data/release-notes.json")),old=JSON.parse(base("src/data/release-notes.json"));
   assert.equal(notes[0].v,"4.26.110");assert.deepEqual(notes[0].tandas.map(g=>g.id),[id]);
   assert.deepEqual(notes.slice(1),old,"las226 notas y guiones109 siguen exactos, incluidas pendientes/rechazadas");
   const retired=["inc-0710-gastos-mes-madrid","inc-0710-appstate-listener-cleanup","inc-0710-banknotif-cleanup","inc-0710-auth-disposal","inc-0810-dashboard-recents-memo"];
   assert.ok(!notes.some(n=>(n.tandas||[]).some(g=>retired.includes(g.id))),"no resucitar las cinco retiradas");
 });
+// Los scripts completos también son fuente de identidad: dos deltas reales del candidato
+// deben quedar visibles sin heredar aprobación ni mover el contrato histórico110.
+test("Contexto candidato actual conserva las37 unidades110 salvo dos deltas web de scripts",()=>{
+  const cache=new Map(),base=f=>{if(!cache.has(f))cache.set(f,execFileSync("git",["show","c7593e86f6665d69fa20bd3f5f8f20c4710a5d9c:"+f],{encoding:"utf8",maxBuffer:10e6}));return cache.get(f);};
+  const before=JSON.parse(base("scripts/beta-sources.json")),actual=JSON.parse(read("scripts/beta-sources.json"));
+  assert.equal(Object.keys(before).length,37);assert.equal(Object.keys(actual).length,37);
+  assert.deepEqual(actual,before,"registro, alcances, dependencias, historial, auditorías y referencias exactos, sin alias ni repin");
+  const expected=["beta-panel-veredictos","ops-0410-panel-cola"],changed=[];
+  for(const [key,scope] of Object.entries(before)){
+    const previous=betaRevision(key,base,undefined,scope),current=betaRevision(key,read,undefined,actual[key]);
+    if(expected.includes(key)){
+      assert.notEqual(current.web,previous.web,key+": cambiar scripts completos cambia realmente web");
+      assert.notEqual(current.codigo,previous.codigo,key+": ninguna aprobación se conserva por identidad anterior");
+      const {web:previousWeb,codigo:previousCode,...previousOther}=previous,{web:currentWeb,codigo:currentCode,...currentOther}=current;
+      assert.deepEqual(currentOther,previousOther,key+": native, Edge, historial y cualquier otra superficie intactos");
+    }else assert.deepEqual(current,previous,key+": revisión completa intacta, incluidas las35 unidades restantes");
+    if(current.web!==previous.web)changed.push(key);
+  }
+  assert.deepEqual(changed.sort(),expected,"sólo dos deltas web legítimas, sin superficies extra ni equivalencia inventada");
+  const notes=JSON.parse(read("src/data/release-notes.json")),old=JSON.parse(base("src/data/release-notes.json"));
+  assert.equal(old.length,227);assert.equal(notes.length,227);
+  assert.deepEqual(notes,old,"las227 notas, guiones, referencias, pendientes y rechazos110 siguen exactos; sin resucitar las cinco retiradas");
+});
+
 
 if(process.argv.includes("--integration-only")) process.exit(failed?1:0);
 

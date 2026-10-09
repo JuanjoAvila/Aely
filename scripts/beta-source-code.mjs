@@ -1,5 +1,42 @@
 import vm from "node:vm";
 
+const revisionReaders=new WeakMap();
+// Una revisión ya congela cada fichero al leerlo. Su análisis debe vivir con esa copia,
+// no con el nombre del lector: el siguiente mutante puede usar el mismo callback y otro texto.
+export function revisionReader(read){
+  const files=new Map(),reader=file=>{
+    if(!files.has(file))files.set(file,read(file).replace(/\r\n/g,"\n"));
+    return files.get(file);
+  };
+  revisionReaders.set(reader,{functions:new Map(),data:new Map(),pieces:new Map(),masks:new Map()});
+  return reader;
+}
+function parsedInRevision(read,file,text,kind){
+  const entry=revisionReaders.get(read)?.[kind].get(file);
+  return entry&&entry.text===text?entry.units:undefined;
+}
+function rememberInRevision(read,file,text,kind,units){
+  revisionReaders.get(read)[kind].set(file,{text,units});
+}
+function revisionMask(read,file,text){
+  const context=revisionReaders.get(read);
+  if(!context)return codeMask(text);
+  const entry=context.masks.get(file);
+  if(entry&&entry.text===text)return entry.mask;
+  const mask=codeMask(text);context.masks.set(file,{text,mask});return mask;
+}
+// Los índices solo contienen números/textos. Guardamos copias privadas congeladas y
+// devolvemos otras copias: editar el resultado público no debe envenenar otro mutante.
+function rememberUnits(cache,key,own){
+  const units=new Map();
+  for(const [name,unit] of own)units.set(name,Object.freeze({...unit}));
+  cache.set(key,units);if(cache.size>32)cache.delete(cache.keys().next().value);
+  return units;
+}
+function copyUnits(units,result){
+  for(const [name,unit] of units)result.set(name,{...unit});
+}
+
 // El guardián recorre llamadas, no palabras dentro de comentarios, textos o regex.
 export function codeMask(text) {
   const out=text.split(""); let prev="",word="";
@@ -68,11 +105,12 @@ export function logicFunctions(read, files=["src/modules/00-core.js","src/module
   const result=new Map();
   for(const file of files){
     const text=read(file).replace(/\r\n/g,"\n");
-    const cached=parsedFiles.get(file+"\0"+text);
-    if(cached){for(const [name,fn] of cached)result.set(name,fn);continue;}
+    const local=revisionReaders.has(read),key=file+"\0"+text;
+    const cached=(local&&parsedInRevision(read,file,text,"functions"))||parsedFiles.get(key);
+    if(cached){if(local)rememberInRevision(read,file,text,"functions",cached);copyUnits(cached,result);continue;}
     const own=new Map();
     const re=/^(?:(?:async )?function\s+([\w$]+)\s*\(|(?:const|let|var)\s+([\w$]+)\s*=\s*(?:(?:async\s*)?function\b|(?:\([^;\n]*\)|[\w$]+)\s*=>))/gm;
-    const scan=codeMask(text);
+    const scan=revisionMask(read,file,text);
     let m;while((m=re.exec(scan))){
       const name=m[1]||m[2],start=m.index;
       const endings=/[;}](?=[ \t]*(?:\/\/[^\n]*)?(?:\n|$))/g;endings.lastIndex=start+m[0].length;
@@ -93,12 +131,22 @@ export function logicFunctions(read, files=["src/modules/00-core.js","src/module
       while((end=endings.exec(text))){const piece=text.slice(start,end.index+1);try{new vm.Script(piece);if(result.has(name))throw new Error("Función duplicada "+name);const fn={name,file,start,end:end.index+1,text:piece};result.set(name,fn);own.set(name,fn);break;}catch(error){if(error.message.startsWith("Función duplicada"))throw error;}}
       if(!end)throw new Error("Función no delimitada "+file+":"+name);
     }
-    parsedFiles.set(file+"\0"+text,own);if(parsedFiles.size>32)parsedFiles.delete(parsedFiles.keys().next().value);
+    const units=rememberUnits(parsedFiles,key,own);
+    if(local)rememberInRevision(read,file,text,"functions",units);
   }
   return result;
 }
 
 export function scopeText(source,read){
+  const context=revisionReaders.get(read);
+  if(!context)return extractScopeText(source,read);
+  const file=typeof source==="string"?source:source.file,text=read(file),key=JSON.stringify(source);
+  let entry=context.pieces.get(file);
+  if(!entry||entry.text!==text){entry={text,pieces:new Map()};context.pieces.set(file,entry);}
+  if(!entry.pieces.has(key))entry.pieces.set(key,extractScopeText(source,read));
+  return entry.pieces.get(key);
+}
+function extractScopeText(source,read){
   const file=typeof source==="string"?source:source.file;
   const text=read(file).replace(/\r\n/g,"\n");
   if(typeof source==="string")return text;
@@ -258,9 +306,10 @@ const parsedData=new Map();
 export function logicData(read,files=["src/modules/00-core.js","src/modules/01-i18n.js","src/modules/08-motor-bank.js"]){
   const result=new Map(),functions=logicFunctions(read,files);
   for(const file of files){
-    const text=read(file).replace(/\r\n/g,"\n"),key=file+"\0"+text;
-    if(parsedData.has(key)){for(const [name,data] of parsedData.get(key))result.set(name,data);continue;}
-    const scan=codeMask(text),own=new Map(),re=/^(?:const|let|var)\s+([\w$]+)\s*=/gm;let m;
+    const text=read(file).replace(/\r\n/g,"\n"),local=revisionReaders.has(read);
+    const key=file+"\0"+text,cached=(local&&parsedInRevision(read,file,text,"data"))||parsedData.get(key);
+    if(cached){if(local)rememberInRevision(read,file,text,"data",cached);copyUnits(cached,result);continue;}
+    const scan=revisionMask(read,file,text),own=new Map(),re=/^(?:const|let|var)\s+([\w$]+)\s*=/gm;let m;
     while((m=re.exec(scan))){
       if(functions.has(m[1]))continue;
       const start=m.index,endings=/[;}](?=[ \t]*(?:\/\/[^\n]*)?(?:\n|$))/g;endings.lastIndex=start+m[0].length;let end,piece;
@@ -273,7 +322,8 @@ export function logicData(read,files=["src/modules/00-core.js","src/modules/01-i
       while((item=names.exec(clean))){if(depths[item.index]!==0)continue;const name=item[1];if(result.has(name))throw new Error("Dato duplicado "+name);let init=piece.indexOf("=",item.index)+1;while(/\s/.test(piece[init]||"")&&init<piece.length)init++;const data={name,file,start,end:end.index+1,init:start+init,text:piece};result.set(name,data);own.set(name,data);}
       re.lastIndex=end.index+1;
     }
-    parsedData.set(key,own);if(parsedData.size>32)parsedData.delete(parsedData.keys().next().value);
+    const units=rememberUnits(parsedData,key,own);
+    if(local)rememberInRevision(read,file,text,"data",units);
   }
   return result;
 }

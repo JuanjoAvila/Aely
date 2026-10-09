@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import {execFileSync} from "node:child_process";
-import { scopeText, scopeIdentity } from "./beta-source-code.mjs";
+import { scopeText, scopeIdentity, revisionReader } from "./beta-source-code.mjs";
 import path from "node:path";
 import crypto from "node:crypto";
 import { fileURLToPath } from "node:url";
@@ -9,8 +9,7 @@ const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const registry = JSON.parse(fs.readFileSync(path.join(root, "scripts/beta-sources.json"), "utf8"));
 // Falta de alcance es un error de preparación: nunca se traslada al móvil como siete pruebas nuevas.
 export function betaRevision(id, read = f => fs.readFileSync(path.join(root, f), "utf8"), surfaces = ["web", "native", "edge"], scope = registry[id]) {
-  const files=new Map();
-  const reader=f=>{if(!files.has(f))files.set(f,read(f).replace(/\r\n/g,"\n"));return files.get(f);};
+  const reader=revisionReader(read);
   if(!scope || !Array.isArray(scope.web) || !scope.web.length) throw new Error("Tanda beta sin alcance: " + id);
   const result = {};
   for (const surface of surfaces) {
