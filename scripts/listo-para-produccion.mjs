@@ -14,10 +14,10 @@
  *
  * CÓMO SE SUBE UNA TANDA SUELTA, que es lo que él quiere:
  *   El workflow ya sabe hacerlo, pero SOLO si esa tanda vive en su propia rama `tanda/<id>`.
- *   Si la ronda se commiteó mezclada en `beta` no se puede trocear, y el propio workflow lo dice
- *   y se niega en vez de subir algo a medias. Por eso este script comprueba la rama y no se
- *   limita a mirar el veredicto: un «aprobada» sin rama es un «aprobada que NO se puede subir
- *   sola», y más vale saberlo antes que descubrirlo con producción a medio promocionar.
+ *   Una ronda mezclada puede requerir un porte aislado sobre main. La rama identifica una
+ *   candidata, pero no acredita revisión, dependencias ni entrega. Este listado tampoco
+ *   descubre por sí solo portes ya publicados con otra versión: contrastar su alcance y
+ *   artefactos antes de preparar otro o de promover la ronda (PR44, 10/9).
  *
  * Uso:
  *   npm run listo
@@ -181,7 +181,7 @@ for (const r of rows) {
   });
 }
 
-/* ---- ¿Se puede subir esa tanda SOLA? Solo si tiene su rama ---- */
+/* Una rama localiza una candidata; la ausencia de rama no descarta un porte ya entregado. */
 const ramas = new Set(
   (git(["branch", "-r", "--list", "origin/tanda/*", "--format=%(refname:lstrip=4)"]) || "")
     .split("\n").map((s) => s.trim()).filter(Boolean)
@@ -218,7 +218,7 @@ if (flag("json")) {
 }
 
 const ico = { approved: "✅", rejected: "⛔", "sin probar": "⬜" };
-console.log("\n📦  LISTO PARA PRODUCCIÓN\n");
+console.log("\n📦  CANDIDATAS PARA PRODUCCIÓN\n");
 console.log(`  en su móvil ${VERSION_CANAL || VERSION_REPO + " (del repo: sin red para leer el canal)"} · producción ${prod || "(sin red)"} · APK estable ${prodApk || "(sin red)"}`);
 if (VERSION_CANAL && VERSION_CANAL.indexOf(VERSION_REPO) !== 0) {
   console.log(`  ⚠ aquí hay ${VERSION_REPO} sin publicar: sus tandas todavía no le han llegado.`);
@@ -226,7 +226,7 @@ if (VERSION_CANAL && VERSION_CANAL.indexOf(VERSION_REPO) !== 0) {
 console.log("");
 
 if (!filas.length) {
-  console.log("  No hay ninguna tanda pendiente de revisar. Nada que promocionar por tandas.\n");
+  console.log("  Esta lista no contiene tandas pendientes; comprobar el alcance y los artefactos de cualquier promoción.\n");
   process.exit(0);
 }
 
@@ -239,8 +239,8 @@ for (const f of filas) {
   if (f.entregaPendiente && f.estado === "approved") console.log(`      ⏳ aprobada, pendiente de entrega exacta${f.superficies.length ? ": " + f.superficies.join(" + ") : " web"}`);
   if (f.estado === "approved") {
     console.log(f.superficies.length ? `      ⚠ requiere entrega acreditada de ${f.superficies.join(" y ")}; la rama web no entrega esas superficies` : f.rama
-      ? `      ↑ se puede subir sola:  rama ${f.rama}`
-      : `      ⚠ aprobada pero SIN rama propia: no se puede subir sola (está mezclada en beta)`);
+      ? `      ↑ rama candidata: ${f.rama} · revisar diff, dependencias, pruebas y entrega`
+      : `      ⚠ sin rama propia: comprobar si existe un porte entregado; si falta, preparar uno aislado`);
   }
 }
 
@@ -253,18 +253,19 @@ console.log("\n  ─────────────────────
 console.log(`  ${aprobadas.length} aprobada(s) · ${filas.filter((f) => f.estado === "rejected").length} rechazada(s) · ${filas.filter((f) => f.estado === "sin probar").length} sin probar\n`);
 
 if (conRama.length) {
-  console.log("  PUEDES SUBIR YA, sin esperar al resto:");
-  console.log("    Actions → «Promocionar beta a producción» → confirmar SUBIR");
+  console.log("  CANDIDATAS CON RAMA: pendientes de revisión técnica y entrega acreditada:");
+  console.log("    Antes de promover: comprobar alcance, aprobación vigente, dependencias y artefactos.");
   console.log(`    tandas: ${conRama.map((f) => f.corto).join(",")}\n`);
 }
 if (sinRama.length) {
-  console.log("  APROBADAS QUE NO SE PUEDEN TROCEAR (se commitearon mezcladas en beta):");
+  console.log("  APROBADAS SIN RAMA PROPIA: revisar posibles portes y lo ya entregado:");
   sinRama.forEach((f) => console.log(`    · ${f.corto}`));
-  console.log("    Suben cuando suba la ronda entera, o sea cuando no quede nada pendiente.\n");
+  console.log("    Si falta entrega, preparar un porte aislado y revisarlo antes de promover.\n");
 }
 if (!pendientes.length && !filas.some(f => f.superficies.length)) {
-  console.log("  ✔ NO QUEDA NADA PENDIENTE: la ronda entera está aprobada.");
-  console.log("    Actions → «Promocionar beta a producción», deja «tandas» vacío y confirma SUBIR.\n");
+  console.log("  ✔ Todas las tandas de esta lista tienen aprobación.");
+  console.log("    Esto no acredita aprobación del diff completo ni entrega de todas sus superficies.\n");
 } else {
-  console.log(`  Falta que pruebes ${pendientes.length}: ${pendientes.map((f) => f.corto).join(", ")}\n`);
+  console.log(`  Veredictos pendientes: ${pendientes.length}${pendientes.length ? ": " + pendientes.map((f) => f.corto).join(", ") : ""}`);
+  console.log("    La entrega web, APK y Edge se acredita por separado.\n");
 }

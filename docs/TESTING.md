@@ -605,9 +605,10 @@ cuando falta una rama es el fallo silencioso que ya costó dos promociones a med
 
 Petición suya del 2026-08-01: **«se han implementado montonazo de cosas y hay cosas urgentes para
 subir a prod por bugs gordos para mi pareja y mi padre y no se puede subir esos parches»**. Las
-tandas resuelven esto SI la ronda nació troceada desde el primer commit — pero si no (la 4.13.0 se
-commiteó mezclada), no hay rama que mergear y toca esperar a que TODO esté listo, que es
-exactamente lo que no puede pasar con un bug gordo delante de la familia.
+tandas resuelven esto si la ronda nació troceada desde el primer commit. Si se commiteó mezclada,
+puede prepararse un porte aislado con alcance y fuente identificados, revisión y pruebas propias;
+la ausencia de una rama no obliga por sí sola a esperar a toda la ronda. Comprobar antes lo ya
+entregado evita duplicar un porte publicado con otra versión.
 
 La vía de emergencia: **`commits`**, cherry-pick de los commits exactos que hacen falta, sin tocar
 el resto de `beta`.
@@ -656,6 +657,8 @@ INC-3009-01 tras rechazo: inicio-cargos abre el vínculo explícito en Gastos y 
 `npm run listo` acredita primero exactamente un `profiles.user_id` con `is_admin=true`, el mismo rol que abre Dev. Pide el total exacto de perfiles: una respuesta recortada, sin total, ambigua, inválida o inaccesible deja el resultado indeterminado y termina con código 2. En `--json` devuelve `veredictos:"indeterminado"` y ninguna tanda evaluada; no significa que estén aprobadas o que no queden pruebas. No se selecciona por correo ni se conserva un UID en el repo.
 
 Los eventos se filtran por ese actor en Supabase antes del límite y de nuevo en el CLI; una aprobación o rechazo ajeno no cambia la decisión ni su historial. Un `null` explícito del actor autorizado retira la aprobación previa; una decisión ausente o de valor inválido no se interpreta como retirada. `tests/listo-actor.test.mjs`, registrado en `run-tests`, ejecuta el CLI con transporte simulado sin red: rechazo propio + OK ajeno, OK propio + rechazo ajeno, retirada propia (incluido `null`), autor ausente y configuración no acreditada. `--source-ref SHA` repite esos contratos contra el script histórico de Git. Esta protección de tooling no cambia la persistencia del panel móvil ni certifica los roles del servidor real.
+
+Port de mensajes PR44: el CLI distingue rama candidata, revisión, posible porte y entrega acreditada. Una lista de aprobaciones no acredita el diff completo ni las superficies requeridas. El mismo guardián añade nueve casos de salida textual con ramas/tandas y transporte simulados, conservando las reglas reales de actor, huella y entrega: con/sin rama, lista aprobada, APK/Edge pendientes, rechazo propio frente a OK ajeno, identidad ambigua y lista vacía. `--source-ref SHA` también aplica esos oráculos de texto; una fuente histórica con promesas de publicación debe fallarlos. [Alcance y verificaciones pendientes](briefs/tooling44-cli-candidatas-local26.md).
 
 `scripts/beta-sources.json` declara fuentes y bloques inequívocos por tanda/superficie; `beta-revisions.mjs` normaliza CRLF y genera SHA-256. Una tanda moderna sin alcance o bloque activo ausente/ambiguo aborta build. No hay fallback global ni recibo de Android/Edge a partir de Git. `beta-delivery.json` acredita web ensamblada y sourceSha real en CI (null local). Los alcances no son un análisis automático de dependencias: deben auditarse al cambiar lectores o helpers.
 
