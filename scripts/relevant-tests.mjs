@@ -84,6 +84,7 @@ export const E2E_MAP = [
     "e2e/tr-aviso.spec.mjs",
   ] },
   { file: "src/modules/08-motor-bank.js", specs: [
+    "e2e/metas-editar-regla.spec.mjs",
     "e2e/metas-borrar-regla.spec.mjs",
     "e2e/metas-alta-regla.spec.mjs",
     "e2e/metas-mensual.spec.mjs",
@@ -103,6 +104,7 @@ export const E2E_MAP = [
     "e2e/efectivo-apuntar.spec.mjs",
   ] },
   { file: "src/modules/09-tab-debts-goals.js", specs: [
+    "e2e/metas-editar-regla.spec.mjs",
     "e2e/metas-borrar-regla.spec.mjs",
     "e2e/metas-alta-regla.spec.mjs",
     "e2e/metas-mensual.spec.mjs",
@@ -142,6 +144,7 @@ export const E2E_MAP = [
 /** Specs que no son de una pantalla: persistencia, swipes, frames. Si se toca CUALQUIER
  *  módulo de src (no el núcleo: ese ya dispara todo), van con el recorte. */
 export const CROSSCUTTING = [
+  "e2e/backclose-handover.spec.mjs", "e2e/botnav-indicador.spec.mjs",
   "e2e/auth-disposal.spec.mjs", "e2e/lifecycle-listeners.spec.mjs",
   "e2e/botnav-fab-recorte.spec.mjs",
   "e2e/bank-merchant-category.spec.mjs",

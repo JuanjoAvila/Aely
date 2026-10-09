@@ -1,5 +1,68 @@
 [
   {
+    "v": "4.26.110",
+    "d": "2026-10-08",
+    "t": {
+      "es": "Volver de Ajustes",
+      "en": "Back from Settings",
+      "ca": "Tornar d’Ajustos"
+    },
+    "items": {
+      "es": [
+        "Al ir del perfil a Ajustes, volver atrás mantiene la app abierta. Los diálogos y los pasos de un recibo se cierran en orden."
+      ],
+      "en": [
+        "After going from your profile to Settings, going back keeps the app open. Dialogs and bill steps close in order."
+      ],
+      "ca": [
+        "En anar del perfil a Ajustos, tornar enrere manté l’app oberta. Els diàlegs i els passos d’un rebut es tanquen en ordre."
+      ]
+    },
+    "tandas": []
+  },
+  {
+    "v": "4.26.108",
+    "d": "2026-10-08",
+    "t": {
+      "es": "Editar las reglas de ahorro",
+      "en": "Edit savings rules",
+      "ca": "Edita les regles d’estalvi"
+    },
+    "items": {
+      "es": [
+        "Las reglas de Metas permiten cambiar nombre, importe y destino. Las aportaciones anteriores se conservan."
+      ],
+      "en": [
+        "Goal rules let you change the name, amount and destination. Past contributions are preserved."
+      ],
+      "ca": [
+        "Les regles de Metes permeten canviar nom, import i destinació. Les aportacions anteriors es conserven."
+      ]
+    },
+    "tandas": []
+  },
+  {
+    "v": "4.26.107",
+    "d": "2026-10-08",
+    "t": {
+      "es": "El indicador acompaña a la barra",
+      "en": "The indicator follows the navigation bar",
+      "ca": "L’indicador acompanya la barra"
+    },
+    "items": {
+      "es": [
+        "La rayita de la pestaña activa se esconde junto a la barra y vuelve al subir. El botón Apuntar conserva su recorrido."
+      ],
+      "en": [
+        "The active tab indicator hides with the navigation bar and returns when scrolling up. The Add button keeps moving with the bar."
+      ],
+      "ca": [
+        "La ratlleta de la pestanya activa s’amaga amb la barra i torna en pujar. El botó Apuntar conserva el seu recorregut."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.26.106",
     "d": "2026-10-08",
     "t": {

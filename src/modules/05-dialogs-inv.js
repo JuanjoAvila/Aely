@@ -58,9 +58,9 @@ function AskHost(){
   // caminos posibles, un `false` se confundiría con haber elegido el primero.
   const cancel=function(){ done((cur.input||(cur.options||[]).length>0)?null:false); };
   const cancelRef=useRef(null); cancelRef.current=cancel;
-  // `cur` puede pasar de un diálogo a otro dentro del mismo render. La entrada de historial no se
-  // remonta en ese caso, así que lee siempre el cancel actual y no el del primer Ask de la cadena.
-  useBackClose(!!cur,function(){ if(cancelRef.current) cancelRef.current(); });
+  // Al encadenar diálogos la entrada cambia, pero la closure de apertura conserva esta ref:
+  // Atrás debe resolver el Ask actual, no volver a cancelar el primero de la cadena.
+  useBackClose(!!cur,function(){ if(cancelRef.current) cancelRef.current(); },cur);
   useEffect(function(){
     if(!cur) return undefined;
     // El callback predictivo vive fuera de React y tiene prioridad sobre AndroidX mientras una

@@ -1262,7 +1262,7 @@ function App(){
     const A=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.App;
     if(!A||!A.addListener) return undefined;
     const h=A.addListener("backButton", function(){
-      if(_mcBackStack.length){ const top=_mcBackStack.pop(); top._byPop=true; try{ top.close(); }catch(e){} return; }
+      if(_mcBackCloseNative()) return;
       if(tabRef.current>0){ setTab(0); return; }
       try{ A.exitApp(); }catch(e){}
     });

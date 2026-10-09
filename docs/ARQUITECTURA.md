@@ -536,3 +536,9 @@ Se conserva lo demás: una escritura como mucho cada 400 ms, volcado inmediato e
 ## Ciclo de vida y recientes · candidata selectiva106
 
 cloud.onAuth devuelve la retirada de su suscripción. App cancela timer y callbacks de sesión al desmontar; los handles tardíos de appStateChange/bankNotif se liberan aunque lleguen después del cleanup. Conserva las opciones de login/cambio de titular. Dashboard memoiza sólo sus tres recientes por las referencias expenses/deleted: editar, altas y lápidas invalidan; abrir presupuesto no repite filtro/sort. No añade sincronización bancaria automática.
+
+## Candidata107/108/110 · 9/10/2026
+
+`useBackClose(open,onClose,identity)` transfiere la entrada propia de historial entre overlays dentro del mismo lote de efectos. Tokens y propietario distinguen pops propios/ajenos; el callback Capacitor usa el mismo controlador y BillsAddWizard registra la identidad del paso. AskHost re-registra el diálogo actual. Corresponde a la revisión110 aprobada; la cualificación de esta selección todavía está pendiente.
+
+`editReservaRule` compara la copia de apertura con el estado fresco, conserva id/contrato/campos desconocidos y no reescribe un asiento mensual ya aplicado. `applyReservaMensual` admite limitar el asiento pendiente a la regla editada. La línea mensual conserva la meta original del asiento si la regla cambia de destino. Corresponde a108; no se introducen sincronizaciones bancarias nuevas. [Alcance y gates](briefs/promocion-107-108-110-local26.md).
