@@ -1500,19 +1500,58 @@ for(const lang of ["es","en","ca"])test(`cola publicada: no vuelve a pedir las c
   await abrirRevisionBeta(page,lang);
   const before=JSON.parse(execFileSync("git",["show","c7593e86f6665d69fa20bd3f5f8f20c4710a5d9c:src/data/release-notes.json"],{encoding:"utf8",maxBuffer:5e6}));
   const retired=["inc-0810-nav-indicator","inc-0810-metas-editar-regla","inc-0810-backclose-handover"];
-  const expected=betaNotes(before.map(n=>Array.isArray(n.tandas)?{...n,tandas:n.tandas.filter(g=>!retired.includes(g.id))}:n));
-  expect(expected.length).toBe(227);
+  // La nota111 se fija por separado: el catálogo actual no puede fabricar su propio oráculo.
+  const note111={"v":"4.26.111","d":"2026-10-09","t":{"es":"Tocar Bienes para editar","en":"Tap assets to edit","ca":"Toca els béns per editar"},"items":{"es":["Tocar un bien abre su editor. La opción Editar bienes sigue disponible."],"en":["Tap an asset to open its editor. Edit assets is still available."],"ca":["Toca un bé per obrir-ne l’editor. L’opció Edita els béns continua disponible."]},"tandas":[{"id":"inc-2709-07-bienes-toque","t":{"es":"Abrir el editor de Bienes","en":"Open the asset editor","ca":"Obre l’editor de béns"},"items":{"es":["1. En Cartera → Bienes, tocar una fila abre el editor. Arrastrar para bajar no lo abre. Abrir no cambia los valores; Guardar sin modificarlos los conserva. Editar bienes sigue disponible."],"en":["1. In Wallet → Property, tap a row to open the editor. Scrolling does not open it. Opening keeps values unchanged; saving without edits preserves them. Edit assets is still available."],"ca":["1. A Cartera → Béns, toca una fila per obrir l’editor. Arrossegar per baixar no l’obre. Obrir no canvia els valors; desar sense modificar-los els conserva. Edita els béns continua disponible."]}}]};
+  expect(before.length).toBe(227);
+  const expected=betaNotes([note111,...before.map(n=>Array.isArray(n.tandas)?{...n,tandas:n.tandas.filter(g=>!retired.includes(g.id))}:n)]);
+  expect(expected.length).toBe(228);
   expect(await page.evaluate(()=>RELEASE_NOTES)).toEqual(expected);
   const closed=["inc-0310-01-meta-regla","ops-0410-panel-cola","inc-0310-gastos-sin-limite","inc-0310-broker-resultados","feature-0310-01-movilidad","inc-2909-01-widget-periodo","fin05-widget-reentrada","fin05-pago-cerrada","tr-descripcion-clasificacion","widget-banco","widget-app-cerrada",...retired];
   expect(await page.evaluate(ids=>RELEASE_NOTES.flatMap(n=>n.tandas||[]).filter(g=>ids.includes(g.id)).map(g=>g.id),closed)).toEqual([]);
   const deliveries=JSON.parse(fs.readFileSync(new URL("../public/beta-delivery.json",import.meta.url),"utf8"));
-  await page.evaluate(deliveries=>{
+  const id111="inc-2709-07-bienes-toque",without111=structuredClone(deliveries);
+  delete without111.web[id111];delete without111.pruebas[id111];
+  expect(deliveries.web[id111]).toBe(expected[0].tandas[0].web);
+  expect(deliveries.pruebas[id111]).toEqual({v:"4.26.111",contenido:JSON.stringify([id111,note111.tandas[0].t.es,note111.tandas[0].items.es,1])});
+  const host="e2e-retirement111-"+lang;
+  // Un recibo sintético completo no debe esconder que111 sigue pendiente cuando falta sólo el suyo.
+  await page.evaluate(({deliveries,host})=>{
     window._mcProdEntregas=deliveries;window._mcProdApkRevisiones={};
     CONFIG.APP_VERSION=RELEASE_NOTES[0].v+".1";window._mcProdApk=52;
+    window._mcProdDeliveryChecked=true;window._mcProdVersion=()=>Promise.resolve("4.26.94");
     store.set("_betaReview_4.26.87.1_v",{_h:1,"h:historia-sintetica":{verdict:"rejected",at:100}});
-  },deliveries);
-  const panel=await conProduccionEn(page,"4.26.94");
-  await expect(panel.locator(".beta-tanda")).toHaveCount(0);
-  await expect(panel.getByRole("button",{name:/Aprobar esta tanda/})).toHaveCount(0);
-  expect(await page.evaluate(()=>store.get("_betaReview_4.26.87.1_v"))).toEqual({_h:1,"h:historia-sintetica":{verdict:"rejected",at:100}});
+    const h=document.createElement("div");h.id=host;document.body.appendChild(h);
+    window.__retirement111Root=ReactDOM.createRoot(h);
+    window.__retirement111Root.render(React.createElement(BetaReviewPanel,{onClose:()=>{},showToast:()=>{}}));
+  },{deliveries:without111,host});
+  const panel=page.locator("#"+host+" .beta-review");
+  try{
+    await expect(panel).toBeVisible();
+    await expect(panel.locator(".beta-tanda")).toHaveCount(1);
+    await expect(panel.locator(".beta-tanda-t")).toHaveText("v4.26.111 · Abrir el editor de Bienes");
+    await expect(panel.locator(".beta-tanda-n.ok")).toHaveCount(0);
+    await expect(panel.getByRole("button",{name:/Aprobar esta tanda/})).toBeDisabled();
+    expect(await page.evaluate(id=>{
+      const pack=betaChecklist(CONFIG.APP_VERSION,"4.26.94",52),g=pack.tandas.find(g=>g.id.split("/").pop()===id);
+      return {ids:pack.tandas.map(g=>g.id.split("/").pop()),pending:betaPruebaPendiente(g,52,CONFIG.APP_VERSION,"4.26.94"),
+        verdict:betaSavedVerdicts(pack)[g.id]||null};
+    },id111)).toEqual({ids:[id111],pending:true,verdict:null});
+    expect(await page.evaluate(()=>window._mcProdEntregas)).toEqual(without111);
+    // Desmontar evita que el primer panel conserve estado o callbacks al comprobar el recibo exacto.
+    await page.evaluate(({deliveries,host})=>{
+      window.__retirement111Root.unmount();window._mcProdEntregas=deliveries;
+      window.__retirement111Root=ReactDOM.createRoot(document.getElementById(host));
+      window.__retirement111Root.render(React.createElement(BetaReviewPanel,{onClose:()=>{},showToast:()=>{}}));
+    },{deliveries,host});
+    await expect(panel).toBeVisible();
+    await expect(panel.locator(".beta-tanda")).toHaveCount(0);
+    await expect(panel.getByRole("button",{name:/Aprobar esta tanda/})).toHaveCount(0);
+    expect(await page.evaluate(()=>window._mcProdEntregas)).toEqual(deliveries);
+    expect(await page.evaluate(()=>store.get("_betaReview_4.26.87.1_v"))).toEqual({_h:1,"h:historia-sintetica":{verdict:"rejected",at:100}});
+  }finally{
+    await page.evaluate(host=>{
+      if(window.__retirement111Root)window.__retirement111Root.unmount();
+      const h=document.getElementById(host);if(h)h.remove();delete window.__retirement111Root;
+    },host);
+  }
 });
