@@ -1,0 +1,45 @@
+{
+  "status": "done",
+  "summary": "Preflight y propuesta, sin cambios de producto ni backend. PR48 (1ddcf25c) NO es rescatable tal cual: su objetivo (retirar Bizum de ALLOWED/HINTS/KW de categorize) ya esta absorbido en las fuentes actuales de a8f258de, y desplegar su paquete congelado REGRESARIA el backend: el baseline (categorize16, commit 6f61bfc6, ya no alcanzable en el historial clonado) carece de gasolina/taxi/multas/zona_azul/peajes en ALLOWED y HINTS (0 apariciones en el candidato preparado) y de rateLogCode (logs de ratelimit solo SQLSTATE; el baseline loguea error.message). Controles vigentes verificados con oraculo sintetico sobre fuentes actuales: auth 401, 405/400, preflight, KW sin IA ni limitador, limitador 40/600 con bucket por usuario y ai:limit, ai:error por red/HTTP, categoria IA invalida o bizum -> otros, categorias de movilidad aceptadas. Inventario actual: categorize/index.ts f76ee79b, _shared/ingest_logic.ts f5c7c67d, _shared/cors.ts 8d98ed71 (identico al baseline), _shared/ratelimit.ts ab76c56f (difiere del baseline solo por rateLogCode). Importacion actual @supabase/supabase-js@2 sin fijar (PR48 fijaba 2.116.0). PROPUESTA: (1) cerrar PR48 sin rescatar su baseline ni su change.patch; (2) si se quiere un cierre exclusivo de categorize, generar el paquete desde las fuentes actuales (index+ingest_logic+cors+ratelimit, tambien clasificarConMotivo viaja en ingest_logic, que es el motivo por el que PR48 congelo), con manifiesto de hashes tomado en el SHA vigente y import map fijando la version de SDK resuelta en el activo, sin dependencias nuevas; (3) portar el test de handler de PR48 (15 grupos, util: harness con Deno/createClient/fetch simulados via esbuild) reapuntado a supabase/functions y ampliado a movilidad y SQLSTATE; hoy ningun test ejecuta el handler, solo categorize-limitador comprueba su forma por texto; (4) antes de cualquier despliegue, comparar metadatos/hash del categorize activo con las fuentes actuales (no hecho aqui: sin acceso Supabase) y requerir autorizacion y permiso edge_functions_write del dueno (PR48 fallo con 403). El oraculo de 8 grupos escrito aqui quedo solo en scratchpad efimero, no commiteado.",
+  "tests": [
+    {
+      "command": "npm ci --ignore-scripts (checkout a8f258de)",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/categorize-handler.test.mjs (checkout PR48 1ddcf25c; reproduccion historica, 15 grupos PASS)",
+      "exitCode": 0
+    },
+    {
+      "command": "node oracle-current.mjs <a8f258de> (oraculo sintetico ad hoc sobre fuentes actuales, 8 grupos PASS; segunda via: lectura de hashes/fuentes y diff de ratelimit.ts)",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/categorize-limitador.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/edge-sintaxis.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/movilidad-categorias.test.mjs (primera vez exit 1 por clon superficial sin objeto b51b095d; tras git fetch --unshallow: 45 PASS)",
+      "exitCode": 0
+    }
+  ],
+  "productSHA": "a8f258deb641264561dd34f284be12b099ee72b8",
+  "limitations": [
+    "Sin rama ni PR de producto: ningun commit; solo preflight y propuesta",
+    "No se ejecuto npm test entero, ni e2e, ni Deno (no instalado); sin movil",
+    "Sin acceso Supabase: no se comparo el categorize activo con las fuentes actuales ni se verifico su version",
+    "El commit baseline 6f61bfc6 no existe en el clon; coincidencia de los 4 baselineSha256 no reverificable salvo con los hashes del manifiesto de PR48",
+    "El oraculo ad hoc no esta en el repo",
+    "No se toco PR48, main, beta, Edge, SQL ni APK"
+  ],
+  "schema": 1,
+  "taskId": "audit-48-current-edge-packet-0910-claude",
+  "actor": "claude",
+  "sessionId": "claude-cloud-20261009-6d316c8d",
+  "createdAt": "2026-10-09T02:55:31.220Z",
+  "released": true
+}
