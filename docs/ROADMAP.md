@@ -1,4 +1,6 @@
-Preparación8/10: candidata selectiva4.26.106 desde main56c7e328 para las aprobadas99/100/101/102/106. Producción comprobada4.26.98, beta4.26.106.1/source8dcc5ed3. Revisión independiente, CI exacta y entrega pendientes. Panel beta solo se retira después de entrega real; lag global abierto. [Acta](briefs/promocion-aprobadas-local26.md).
+Selección web4.26.110: indicador de barra, Plan → Metas → Reservar dinero y vuelta desde Perfil/Ajustes y Recibos/Gestionar, con las identidades aprobadas107/108/110. Gráfica109 excluida e historial conservado. [Alcance y cualificación local](briefs/promocion-107-108-110-local26.md).
+
+Snapshot8/10 previo a la entrega106: candidata selectiva4.26.106 desde main56c7e328 para las aprobadas99/100/101/102/106. Producción comprobada4.26.98, beta4.26.106.1/source8dcc5ed3. Revisión independiente, CI exacta y entrega pendientes. Panel beta solo se retira después de entrega real; lag global abierto. [Acta](briefs/promocion-aprobadas-local26.md).
 
 Promoción selectiva98 preparada7/10: el dueño aprobó ocultar juntos barra y botón en beta4.26.98.1/sourceb7ab. Base main85b8, sólo CSS aprobada, scope y guardianes correspondientes. Producción96 ya servida; candidata98 local pendiente de revisión independiente, CI exacta y entrega. No99/100/APK/Edge/SQL; INC-2709-09 continúa abierto. [Acta](briefs/promocion-fab98-2026-10-07.md).
 
@@ -6,7 +8,9 @@ Promoción selectiva98 preparada7/10: el dueño aprobó ocultar juntos barra y b
 
 Promoción selectiva6/10: candidata4.26.96 local para mostrar hasta tres metas activas en Inicio, aprobada directamente por el dueño para la fuente ca6f5e85. Base main537edc1; únicamente el límite visual aprobado, conservando todas las metas en Plan y el resto de main. Revisión independiente, CI y entrega servida pendientes; INC-2709-09 sigue abierto. [Acta](briefs/promocion-inicio96-2026-10-06.md).
 
-> Estado a 2026-10-08 · **v4.26.106** candidata selectiva local; revisión, CI y entrega pendientes.
+> Estado a 2026-10-09 · **v4.26.110** selección web107/108/110: indicador de barra, edición de reglas de ahorro y propiedad del historial al volver. Gráfica109 rechazada fuera; historial, idiomas y APK52 conservados. [Cualificación local y límites de la evidencia](briefs/promocion-107-108-110-local26.md).
+
+> Snapshot previo a la entrega106, 2026-10-08 · **v4.26.106** candidata selectiva local; revisión, CI y entrega pendientes.
 
 Promoción selectiva5/10: candidata4.26.95 para volver con mucho historial, autorizada directamente por el dueño. Base main8bb0398; solo caché de fechas aprobada en PR133, sin beta completa. Revisión independiente, CI y entrega servida pendientes. INC-2709-09 global sigue abierto. [Acta](briefs/promocion-cache95-2026-10-05.md).
 
@@ -269,7 +273,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.26.106** candidata selectiva; producción4.26.98 servida, revisión/CI/entrega106 pendientes. |
+| Web / OTA (`VERSION`) | **4.26.110** selección107/108/110: barra, reglas de ahorro y Atrás; gráfica109 excluida. Cualificación local y límites en el acta. |
 | APK (`versionName` / `versionCode`) | **4.26.80 / 52** conservada de la base; Metas87 no genera APK. Cotejo servido en gate de entrega. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **52 / 4.26.80** conservado byte a byte respecto a3467; Metas87 no reemplaza binario ni manifiesto. |

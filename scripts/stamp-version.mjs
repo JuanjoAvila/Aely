@@ -45,7 +45,8 @@ let sw = readFileSync(swPath, "utf8");
 const before = sw;
 sw = sw.replace(/const VERSION = ".*?";/, `const VERSION = "${stamp}";`);
 
-if (sw === before) {
+// El test de idiomas reconstruye el HTML sin cambiar el SW: el mismo sello debe permitir restaurar APP_VERSION.
+if (!/const VERSION = ".*?";/.test(before)) {
   console.error('⚠️  No se encontró `const VERSION = "...";` en public/sw.js');
   process.exit(1);
 }

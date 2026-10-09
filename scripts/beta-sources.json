@@ -9312,6 +9312,14 @@
         "file": "src/modules/11-app-main.js",
         "from": "  const pinNavVisible=function(ms){",
         "to": "  // clear del tope: solo API residual"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reservaRuleSame"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "editReservaRule"
       }
     ],
     "unidades": true
@@ -10113,6 +10121,66 @@
       {
         "file": "src/modules/02-ui-shared.js",
         "function": "_mcBackInitOnce"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "_mcBackSlot"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "_mcBackSame"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "_mcBackSchedule"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "_mcBackAdd"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "_mcBackDrop"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "_mcBackArm"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "_mcBackConsume"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "_mcBackFlush"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "_mcBackHistory"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "_mcBackPending"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "_mcBackAt"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "_mcBackScheduled"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "_mcBackTurn"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "_mcBackNext"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "_mcBackOwner"
       },
       {
         "file": "src/modules/02-ui-shared.js",
@@ -11867,6 +11935,537 @@
       {
         "file": "src/modules/00-core.js",
         "data": "CATEGORIES"
+      }
+    ],
+    "unidades": true
+  },
+  "inc-0810-nav-indicator": {
+    "unidades": true,
+    "web": [
+      {
+        "file": "src/shell.html",
+        "from": "  .botnav{position:absolute",
+        "to": "  .botnav-row{"
+      },
+      {
+        "file": "src/shell.html",
+        "from": "  .botnav-row{",
+        "to": "  .botnav-tab.active svg{"
+      },
+      {
+        "file": "src/shell.html",
+        "from": "  /* z-index: el + sobresale de la barra y la corriente",
+        "to": "  /* Temáticas de temporada"
+      },
+      {
+        "file": "src/shell.html",
+        "from": "  html.reduce-motion *,",
+        "to": "  /* Más contraste"
+      },
+      {
+        "file": "src/shell.html",
+        "from": "    .rise,.v4-sheet,.v4-sheet-back,.botnav,",
+        "to": "\n"
+      },
+      {
+        "file": "src/shell.html",
+        "from": "    --safe-top:env(safe-area-inset-top,0px);",
+        "to": "\n"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  const [navHidden,setNavHidden]",
+        "to": "  const applyNavHideRef="
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  const tabIds = tabOrderState || tabOrderOf(state);",
+        "to": "  /* swipe — distingue"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  const trackAnchoAhora=function()",
+        "to": "  const onStart="
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  const onStart=",
+        "to": "  /* LOS TOQUES DE LAS PESTAÑAS"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  const indRef=useRef(null);",
+        "to": "  /* AQUÍ HABÍA UNA RACHA DE TEMPORADA"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  const cancelSwipe=function(",
+        "to": "  useEffect(function(){\n    var id=tabIds[tab];"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  const [drawerOpen,setDrawerOpen]",
+        "to": "\n"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  const [profileOpen,setProfileOpen]",
+        "to": "\n"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "    React.createElement(\"div\",{className:\"app-shell\"",
+        "to": "    React.createElement(AskHost,null),"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "gestureAxis"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "GEST_LEAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "GEST_MAX"
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "tabOrderOf"
+      }
+    ]
+  },
+  "inc-0810-metas-editar-regla": {
+    "web": [
+      {
+        "file": "src/modules/09-tab-debts-goals.js",
+        "function": "ReservaRules"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reservaRuleSame"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "editReservaRule"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "  // INC-0810 es: textos propios de edición de reglas, sin cambiar el contrato de alta.",
+        "to": "  // INC-0810 es: límite de textos de edición."
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "  // INC-0810 en: textos propios de edición de reglas, sin cambiar el contrato de alta.",
+        "to": "  // INC-0810 en: límite de textos de edición."
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "  // INC-0810 ca: textos propios de edición de reglas, sin cambiar el contrato de alta.",
+        "to": "  // INC-0810 ca: límite de textos de edición."
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  // INC-0410 guardado: de aquí al límite está cuándo y qué estado se escribe en disco. Cambiarlo invalida las revisiones que prometen conservar algo al cerrar o recargar.",
+        "to": "  // INC-0410 guardado: límite."
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  /* Las reglas mensuales de Metas se aplican al guardarlas; esto asienta el MES EN CURSO al abrir",
+        "to": "  // INC-0410 mensual: límite del asiento del mes en App."
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "    pullOkRef.current=pull.then(function(){ return true; }, function(){ return false; });",
+        "to": "    // INC-0410 mensual: límite del pull de estado del que depende el asiento."
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "    // INC-0410 mensual: el asiento solo vale si ESTE pull leyó un estado válido (o aún no hay ninguno).",
+        "to": "      // INC-0410 mensual: límite de la lectura válida."
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  const onPageScroll=function(e){",
+        "to": "  const applyNavHideRef=useRef(applyNavHide);"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  const syncPageTouchAction=function(pageEl, pageIdx){",
+        "to": "  const onPageScroll=function(e){"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  const revealNav=function(){",
+        "to": "  // Marca de tiempo del último scroll REAL de una página."
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  const pinNavVisible=function(ms){",
+        "to": "  // clear del tope: solo API residual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcPersistCommit"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseDeletedSet"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reservaEstadoDe"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reservaMensualClave"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reservaMensualImporte"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reservaMetaActiva"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reservaImporteDe"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "uid"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "addReservaRule"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "removeReservaRule"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "applyReservaMensual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSkipPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSaveRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcStateKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reservaMensualPendiente"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reservaMensualPuerta"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reservaAlreadyApplied"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reservaKeyOf"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reservaPlanFor"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "madridYmdParts"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSandbox"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reservaMensualNubeLeida"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSandboxFlag"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "validCloudState"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "cloud"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "expenseDeletedSets"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcSkipPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "EXP_SUFFIX"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "store"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "STATE_KEY_TEST"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "STATE_KEY_REAL"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "_mcMadridYmdFmt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcSandboxPinned"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CONFIG"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcNotaCols"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "USO_OK"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mem"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcDivisaCols"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcObNameCol"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcPullExpensesPaged"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseSourceForCloud"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isExpenseUuid"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "withNotaFallback"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseCloudEq"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "_isMissingNotaCol"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "canRecognizeWithdrawal"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "withdrawalRowMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcLogEvent"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcBetaLog"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "deudaSufijo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "_isMissingDivisaCol"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "_isMissingObNameCol"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseCloudKeys"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "withdrawalReceiptLink"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedExpenseKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentIdentity"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseBankOf"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "keyOfExpense"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "partirEntDeuda"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "keyOfExpenseLegacy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isManualExpenseSource"
+      }
+    ],
+    "unidades": true
+  },
+  "inc-0810-backclose-handover": {
+    "web": [
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "_mcBackSlot"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "_mcBackSame"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "_mcBackSchedule"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "_mcBackAdd"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "_mcBackDrop"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "_mcBackArm"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "_mcBackConsume"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "_mcBackFlush"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "_mcBackCloseNative"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "_mcBackInitOnce"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "useBackClose"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "_mcBackStack"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "_mcIgnorePop"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "_mcBackInit"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "_mcBackHistory"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "_mcBackPending"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "_mcBackAt"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "_mcBackScheduled"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "_mcBackTurn"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "_mcBackNext"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "_mcBackOwner"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  useBackClose(drawerOpen, function(){ setDrawerOpen(false); });",
+        "to": "\n  /* 15/9:"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  useBackClose(profileOpen, function(){ setProfileOpen(false); });",
+        "to": "\n  useEffect(function(){"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "    const h=A.addListener(\"backButton\", function(){",
+        "to": "\n  const [locked,setLocked]"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "        onOpenSettings:function(){ setProfileOpen(false); setDrawerOpen(true); }})",
+        "to": "\n    )"
+      },
+      {
+        "file": "src/modules/05-dialogs-inv.js",
+        "from": "  const done=function(r){",
+        "to": "\n  useEffect(function(){"
+      },
+      {
+        "file": "src/modules/14-v4-screens.js",
+        "from": "  const stepRef=React.useRef(step), formRef=React.useRef(form);",
+        "to": "\n  // El primer paso ya sale con la ola:"
       }
     ],
     "unidades": true

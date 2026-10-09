@@ -2332,6 +2332,12 @@ Object.assign(LANG.es,{
   gl_empty_t:"Aún no tienes metas", gl_empty_d:"Crea tu primera meta de ahorro y mira cómo se acerca cada mes.",
   gl_widget_title:"Tu meta", wl_goal:"Meta",
   rr_add:"+ Añadir regla", rr_save:"Guardar regla",
+  // INC-0810 es: textos propios de edición de reglas, sin cambiar el contrato de alta.
+  rr_edit:"Editar regla",
+  rr_edit_monthly_hint:"Lo ya aportado no cambia. Si esta regla ya se aplicó este mes, los cambios se aplicarán el próximo mes.",
+  rr_edit_income_hint:"Lo ya repartido no cambia. Los cambios se aplicarán al siguiente ingreso que se reparta.",
+  rr_err_changed:"Esta regla cambió o se borró. Cancela y vuelve a abrirla para editar la versión actual.",
+  // INC-0810 es: límite de textos de edición.
   // INC-0310-01 es: el texto de confirmación también debe invalidar su revisión.
   rr_delete:"Borrar regla", rr_delete_q:"¿Borrar esta regla?", rr_delete_sub:"Se libera del presupuesto lo que siga reservado por esta regla y pueda comprobarse. Las aportaciones ya guardadas en la meta y su historial se conservan; no se mueve dinero.",
   // INC-0310-01 es: límite para no invalidar textos ajenos al borrado.
@@ -2390,6 +2396,12 @@ Object.assign(LANG.en,{
   gl_empty_t:"No goals yet", gl_empty_d:"Create your first savings goal and watch it get closer each month.",
   gl_widget_title:"Your goal", wl_goal:"Goal",
   rr_add:"+ Add rule", rr_save:"Save rule",
+  // INC-0810 en: textos propios de edición de reglas, sin cambiar el contrato de alta.
+  rr_edit:"Edit rule",
+  rr_edit_monthly_hint:"Past contributions stay unchanged. If this rule has already been applied this month, changes will apply next month.",
+  rr_edit_income_hint:"Past distributions stay unchanged. Changes will apply to the next income you distribute.",
+  rr_err_changed:"This rule changed or was deleted. Cancel and reopen it to edit the current version.",
+  // INC-0810 en: límite de textos de edición.
   // INC-0310-01 en: el texto de confirmación también debe invalidar su revisión.
   rr_delete:"Delete rule", rr_delete_q:"Delete this rule?", rr_delete_sub:"Any remaining reservation that can be verified is released from the budget. Contributions already saved towards the goal and their history are kept; no money moves.",
   // INC-0310-01 en: límite para no invalidar textos ajenos al borrado.
@@ -2448,6 +2460,12 @@ Object.assign(LANG.ca,{
   gl_empty_t:"Encara no tens objectius", gl_empty_d:"Crea el teu primer objectiu d'estalvi i mira com s'acosta cada mes.",
   gl_widget_title:"El teu objectiu", wl_goal:"Objectiu",
   rr_add:"+ Afegir regla", rr_save:"Desar regla",
+  // INC-0810 ca: textos propios de edición de reglas, sin cambiar el contrato de alta.
+  rr_edit:"Edita la regla",
+  rr_edit_monthly_hint:"Les aportacions fetes no canvien. Si aquesta regla ja s'ha aplicat aquest mes, els canvis s'aplicaran el mes vinent.",
+  rr_edit_income_hint:"El que ja s'ha repartit no canvia. Els canvis s'aplicaran al següent ingrés que es reparteixi.",
+  rr_err_changed:"Aquesta regla ha canviat o s'ha esborrat. Cancel·la i torna-la a obrir per editar la versió actual.",
+  // INC-0810 ca: límite de textos de edición.
   // INC-0310-01 ca: el texto de confirmación también debe invalidar su revisión.
   rr_delete:"Esborrar regla", rr_delete_q:"Vols esborrar aquesta regla?", rr_delete_sub:"S’allibera del pressupost el que segueixi reservat per aquesta regla i es pugui comprovar. Es conserven les aportacions ja desades a la meta i el seu historial; no es mouen diners.",
   // INC-0310-01 ca: límite para no invalidar textos ajenos al borrado.

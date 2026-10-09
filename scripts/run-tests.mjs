@@ -34,6 +34,7 @@ if (plan.build !== false) {
 }
 
 const steps = [
+  ["backclose-history", ["node", "tests/backclose-history.test.mjs"]],
   ["gastos-mes-madrid", ["node", "tests/gastos-mes-madrid.test.mjs"]],
   ["appstate-listener-cleanup", ["node", "tests/appstate-listener-cleanup.test.mjs"]],
   ["banknotif-listener-cleanup", ["node", "tests/banknotif-listener-cleanup.test.mjs"]],
