@@ -75,6 +75,19 @@ function docs(repo) {
   write(repo, "docs/brief.md", "Documentación posterior\n");
   commit(repo, "solo documentación");
 }
+function refreshedDocs(repo, { beforeMain, resolution } = {}) {
+  git(repo, "checkout", "-qb", "docs");
+  if (beforeMain) beforeMain(repo);
+  docs(repo);
+  git(repo, "checkout", "-q", "main");
+  promote(repo);
+  git(repo, "checkout", "-q", "docs");
+  git(repo, "merge", "--no-ff", "--no-commit", "main");
+  if (resolution) resolution(repo);
+  commit(repo, "refresh documental con MAIN como segundo padre");
+  git(repo, "checkout", "-q", "main");
+  git(repo, "merge", "--no-ff", "-qm", "synthetic merge de docs refrescadas", "docs");
+}
 function code(repo, file = "src/modules/later.js") {
   write(repo, file, "// cambio publicable sin datos reales\n");
   commit(repo, "código posterior");
@@ -113,6 +126,20 @@ try {
   test("docs-synthetic-merge-after-promote", repo => {
     git(repo, "checkout", "-qb", "docs"); docs(repo); git(repo, "checkout", "-q", "main");
     promote(repo); git(repo, "merge", "--no-ff", "-qm", "synthetic merge de docs", "docs"); verdict(repo, 0, pass);
+  });
+  test("docs-refreshed-from-main-second-parent", repo => {
+    refreshedDocs(repo); verdict(repo, 0, pass);
+  });
+  test("refreshed-docs-with-lateral-unversioned-code", repo => {
+    refreshedDocs(repo, { beforeMain: code }); verdict(repo, 1, fail);
+  });
+  test("refreshed-docs-with-new-merge-resolution", repo => {
+    refreshedDocs(repo, { resolution: repo => write(repo, "src/modules/resolution.js", "// resolución nueva\n") });
+    verdict(repo, 1, fail);
+  });
+  test("refreshed-docs-with-reverted-lateral-code", repo => {
+    refreshedDocs(repo, { beforeMain: repo => { code(repo); git(repo, "revert", "--no-edit", "HEAD"); } });
+    verdict(repo, 1, fail);
   });
   test("branch-debt-before-anchor-merged-after", repo => {
     git(repo, "checkout", "-qb", "deuda"); code(repo); git(repo, "checkout", "-q", "main");

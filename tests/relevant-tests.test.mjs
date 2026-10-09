@@ -37,6 +37,17 @@ t("solo ingest: Deno sí, Playwright no", () => {
   assert.ok(p.steps.includes("presupuesto-servidor"));
 });
 
+t("categorize y sus helpers ejecutan el contrato real también en el recorte servidor", () => {
+  for (const file of ["supabase/functions/categorize/index.ts", "supabase/functions/_shared/ingest_logic.ts",
+    "supabase/functions/_shared/cors.ts", "supabase/functions/_shared/ratelimit.ts"]) {
+    const p = planFromFiles([file]);
+    assert.equal(p.playwright, false);
+    assert.equal(p.e2e, "none");
+    assert.ok(p.steps.includes("categorize-handler"), file);
+    assert.ok(p.steps.includes("categorize-limitador"), file);
+  }
+});
+
 t("solo bank-sync conserva los guardianes de paginado sin arrancar Chromium", () => {
   const p = planFromFiles(["supabase/functions/bank-sync/index.ts"]);
   assert.equal(p.playwright, false);

@@ -193,6 +193,7 @@ const STEPS_SUPABASE = [
   "help-assistant", "guard-privacy", "edge-sintaxis", "presupuesto-servidor", "cuotas-deudas", "widget-coherente", "widget-arbitraje",
   "month-window", "wallet-notis", "ingest-classify", "ingest-identity", "ingest-handler", "divisa-original", "presupuesto-rendimiento",
   "grants-migraciones", "entrada-edge", "bank-sync-paging", "tr-open-banking",
+  "categorize-limitador", "categorize-handler",
 ];
 
 export function posixPath(p) {
