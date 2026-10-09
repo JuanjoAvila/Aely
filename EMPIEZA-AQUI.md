@@ -1,3 +1,54 @@
+# Corte verificado · 9/10/2026
+
+Este corte reúne la evidencia confirmada por el coordinador local al escribirlo;
+**no garantiza que estas fuentes sigan siendo HEAD**. Revalidar ramas, publicación
+terminal y artefactos servidos antes de continuar. El contenido anterior se conserva
+debajo como histórico; sus estados de preparación no sustituyen este corte.
+
+- **Beta 4.26.110.1 entregada:** fuente
+  `c7593e86f6665d69fa20bd3f5f8f20c4710a5d9c`, árbol
+  `69447c060d8530effc72447f0ae313b7321e6ed2`;
+  [publisher 37859699536](https://github.com/JuanjoAvila/Aely/actions/runs/37859699536)
+  terminal SUCCESS. Evidencia: 958 casos funcionales, 13 de rendimiento, una captura
+  opcional omitida, cero fallos/flaky/reintentos; 131 guardianes Node y cinco ficheros
+  Deno. ZIP SHA256
+  `b1c697b2b89411bd19bc6c10cea40c436d08b32c3e74affd31646610df973147`,
+  cotejado en 19 rutas primarias y legacy. Navegación, edición de Metas, gráfico y Back
+  están entregados **solo en beta**, pendientes de aprobación móvil y producción.
+- **Histórico de promoción web 4.26.106:** entregada desde la fuente
+  `b1ad23f34f2a94933e57246dfdf12c451f5360a1`, con promoción selectiva de **99, 100, 101,
+  102 y 106** exclusivamente. Se retiraron del panel solo esas cinco entregas;
+  historial y pendientes se conservaron. La APK sigue en 4.26.80/code52, sin binario
+  nuevo: la entrega web no acredita una instalación ni una entrega nativa.
+- **Producción web 4.26.106, reseal PR193 entregado:** merge
+  `a8f258deb641264561dd34f284be12b099ee72b8`, árbol
+  `5f6c990ac384481316632ec52e3afbd58bea6330`, idéntico al de su fuente revisada.
+  Solo cuatro paths de tooling/documentación; runtime, public, versiones, Android,
+  Supabase, workflows y catálogo conservados.
+  [Pruebas 37866587660](https://github.com/JuanjoAvila/Aely/actions/runs/37866587660) y
+  [publisher 37866587771](https://github.com/JuanjoAvila/Aely/actions/runs/37866587771)
+  terminales SUCCESS. Entrega primaria y legacy cotejada en **19 checks HTTP exactos
+  el 9/10/2026 a las 01:45 UTC**. Código, 33 identidades beta y 222 notas conservados;
+  cambia el sellado del SW y sourceSha. ZIP SHA256
+  `bad634e24f074e43cd0f66399f06034d7c13923e4c49cc3e274eb4057538dfe3`.
+  Puente legacy desde `7b64f91fb72c202947d422152ba5f13eca0a0024`,
+  [publisher 37871245943](https://github.com/JuanjoAvila/Aely/actions/runs/37871245943)
+  terminal SUCCESS. [PR183](https://github.com/JuanjoAvila/Aely/pull/183) cerrada por
+  entrega real el 9/10 a las 01:45:51 UTC; ramas conservadas.
+  INC-2709-09 sigue abierto y mantiene su aceptación móvil pendiente.
+- **Coordinación local26:** ventana autorizada de cuatro horas, con un único
+  coordinador para conceder leases y serializar revisión, integración y publicación.
+  Codex Cloud está detenido en este corte; Claude y Grok conservan su ámbito en nube.
+  Un claim, una activación o una CI no acreditan trabajo entregado. No duplicar el
+  coordinador ni liberar una concesión por reloj.
+- **Finanzas abiertas:** FIN120 conserva ocho variantes sintéticas RED por diferencia
+  cliente/servidor; presupuesto, metadatos y caso del mismo instante mantienen
+  sus propios gates pendientes o RED, según sus pruebas independientes.
+  No acredita cierre financiero ni autoriza reparar datos. Conservar evidencia
+  saneada y no recopilar filas, capturas o cifras familiares actuales en el repo.
+
+## Contenido anterior conservado
+
 Promoción selectiva98 preparada7/10: el dueño aprobó ocultar juntos barra y botón en beta4.26.98.1/sourceb7ab. Base main85b8, sólo CSS aprobada, scope y guardianes correspondientes. Producción96 ya servida; candidata98 local pendiente de revisión independiente, CI exacta y entrega. No99/100/APK/Edge/SQL; INC-2709-09 continúa abierto. [Acta](docs/briefs/promocion-fab98-2026-10-07.md).
 
 Promoción selectiva96 local6/10: sólo el límite de tres metas activas en Inicio aprobado directamente para ca6f5e85; rama aislada desde main537. No promover beta completa ni confundir este límite visual con el cierre de INC-2709-09. Revisión independiente, CI exacta y entrega servida pendientes. [Acta](docs/briefs/promocion-inicio96-2026-10-06.md).

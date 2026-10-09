@@ -15,19 +15,35 @@ const cli = loadPureLogicFromFile();
 const g = cli.betaChecklist(version,"4.26.67",48).tandas.find(x=>x.id.endsWith("/inc-3009-01-cargos"));
 assert.ok(g,"la fixture necesita una tanda real con huella");
 const sourceArg = process.argv.indexOf("--source-ref");
-let source;
+let source = fs.readFileSync(new URL(cliUrl),"utf8");
 if (sourceArg >= 0) {
   source = execFileSync("git",["show",process.argv[sourceArg+1]+":scripts/listo-para-produccion.mjs"],{cwd:root,encoding:"utf8"});
-  source = source.replace('from "./load-pure-logic.mjs"', 'from '+JSON.stringify(new URL("../scripts/load-pure-logic.mjs",import.meta.url).href))
-    .replace("fileURLToPath(import.meta.url)", "fileURLToPath("+JSON.stringify(cliUrl)+")");
 }
+source = source.replace('from "./load-pure-logic.mjs"', 'from '+JSON.stringify(new URL("../scripts/load-pure-logic.mjs",import.meta.url).href))
+  .replace("fileURLToPath(import.meta.url)", "fileURLToPath("+JSON.stringify(cliUrl)+")");
 const part = (actor, verdict, hour=9) => ({user_id:actor,kind:"beta",created_at:`2026-10-01T${String(hour).padStart(2,"0")}:00:00Z`,
   detail:{tanda:g.id,huella:g.huella,verdict}});
 const profile = {user_id:owner,is_admin:true};
 function run(rows, options={}) {
+  let target=source;
+  // Un .env.local de otra sesión no debe sustituir la clave ficticia del transporte.
+  const fsImport='import fs from "node:fs";';
+  assert.ok(target.includes(fsImport),"la fixture necesita aislar la lectura de credenciales");
+  target=target.replace(fsImport,'import fixtureFs from "node:fs";\nconst fs={...fixtureFs,existsSync:f=>String(f).endsWith(".env.local")?false:fixtureFs.existsSync(f)};');
+  if(options.text){
+    // La rama y las tandas del doble fijan cada condición del informe; actor, huella,
+    // historial y entrega siguen usando las reglas reales, sin red ni refs de otras sesiones.
+    const gitImport='import { execFileSync } from "node:child_process";';
+    assert.ok(target.includes(gitImport),"la fixture necesita el transporte Git del CLI");
+    target=target.replace(gitImport,'const execFileSync=()=>'+JSON.stringify((options.branches||[]).join("\n"))+';');
+    const logicImport='import { loadPureLogicFromFile } from '+JSON.stringify(new URL("../scripts/load-pure-logic.mjs",import.meta.url).href)+';';
+    assert.ok(target.includes(logicImport),"la fixture necesita las reglas reales del CLI");
+    target=target.replace(logicImport,'import { loadPureLogicFromFile as fixtureLogic } from '+JSON.stringify(new URL("../scripts/load-pure-logic.mjs",import.meta.url).href)+';\n'+
+      'function loadPureLogicFromFile(){const c=fixtureLogic();c.betaChecklist=()=>({tandas:'+JSON.stringify(options.tandas)+'});return c;}');
+  }
   const script = `
     import assert from 'node:assert/strict';
-    process.argv=[process.execPath,'fixture','--json'];
+    process.argv=[process.execPath,...${JSON.stringify(options.text?["fixture"]:["fixture","--json"])}];
     globalThis.fetch=async (url,init)=>{
       const u=new URL(String(url));
       if(u.pathname.endsWith('/profiles')){
@@ -50,7 +66,7 @@ function run(rows, options={}) {
       if(u.pathname.endsWith('/version.json')) return Response.json({version:u.pathname.includes('/beta/')?${JSON.stringify(version)}:'4.26.67'});
       throw new Error('la fixture bloquea toda red no prevista');
     };
-    await import(${JSON.stringify(source?'data:text/javascript;base64,'+Buffer.from(source).toString('base64'):cliUrl)});`;
+    await import(${JSON.stringify('data:text/javascript;base64,'+Buffer.from(target).toString('base64'))});`;
   return spawnSync(process.execPath,["--input-type=module","-e",script],{
     cwd:root,encoding:"utf8",env:{...process.env,SUPABASE_SERVICE_ROLE_KEY:"synthetic-test-key"},maxBuffer:2e6
   });
@@ -103,6 +119,61 @@ for(const [name,options] of [
   assert.equal(data.veredictos,"indeterminado");
   assert.deepEqual(data.tandas,[]);
   assert.ok(!r.stdout.includes(owner)&&!r.stdout.includes(other),"no volcar identidades");
+});
+
+const corto=g.id.split("/").slice(1).join("/");
+const web=Object.assign({},g,{native:false,edge:false});
+function informe(options={},rows=[part(owner,"approved")]){
+  const r=run(rows,{text:true,tandas:[web],...options});
+  assert.equal(r.status,0,r.stderr);
+  assert.doesNotMatch(r.stdout,/PUEDES SUBIR YA|se puede subir sola|NO QUEDA NADA PENDIENTE|NO SE PUEDEN TROCEAR|deja «tandas» vacío|confirmar SUBIR/,
+    "el listado no autoriza una publicación ni descarta un porte");
+  assert.ok(!r.stdout.includes(owner)&&!r.stdout.includes(other),"no volcar identidades");
+  return r.stdout;
+}
+t("texto: aprobada con rama es candidata y conserva entrega pendiente",()=>{
+  const out=informe({branches:[corto]});
+  assert.ok(out.includes("rama candidata: tanda/"+corto));
+  assert.ok(out.includes("revisar diff, dependencias, pruebas y entrega"));
+  assert.ok(out.includes("pendientes de revisión técnica y entrega acreditada"));
+  assert.ok(out.includes("aprobada, pendiente de entrega exacta web"));
+});
+t("texto: aprobada sin rama permite comprobar un porte previo o preparar uno",()=>{
+  const out=informe();
+  assert.ok(out.includes("sin rama propia: comprobar si existe un porte entregado"));
+  assert.ok(out.includes("Si falta entrega, preparar un porte aislado"));
+  assert.doesNotMatch(out,/Suben cuando suba la ronda entera/);
+});
+t("texto: toda la lista aprobada no acredita el diff completo ni su entrega",()=>{
+  const out=informe({branches:[corto]});
+  assert.ok(out.includes("Todas las tandas de esta lista tienen aprobación"));
+  assert.ok(out.includes("no acredita aprobación del diff completo ni entrega de todas sus superficies"));
+  assert.doesNotMatch(out,/la ronda entera está aprobada/);
+});
+for(const [name,native,edge] of [["APK",true,false],["Edge",false,true],["APK y Edge",true,true]])
+t("texto: "+name+" pendientes no se entregan por tener rama web",()=>{
+  const out=informe({branches:[corto],tandas:[Object.assign({},g,{native,edge})]});
+  assert.ok(out.includes("requiere entrega acreditada de "+name));
+  assert.ok(out.includes("aprobada, pendiente de entrega exacta: "+name.replace(" y "," + ")));
+  assert.ok(out.includes("Veredictos pendientes: 0"));
+  assert.ok(out.includes("La entrega web, APK y Edge se acredita por separado"));
+  assert.doesNotMatch(out,/rama candidata:|CANDIDATAS CON RAMA:|Todas las tandas de esta lista tienen aprobación/);
+});
+t("texto: rechazo propio y OK ajeno conservan el veredicto pendiente",()=>{
+  const out=informe({branches:[corto]},[part(other,"approved",10),part(owner,"rejected")]);
+  assert.ok(out.includes("Veredictos pendientes: 1: "+corto));
+  assert.doesNotMatch(out,/rama candidata:|Todas las tandas de esta lista tienen aprobación/);
+});
+t("texto: identidad ambigua sigue indeterminada sin evaluar candidatas",()=>{
+  const r=run([part(owner,"approved")],{text:true,tandas:[web],branches:[corto],profiles:[profile,{user_id:other,is_admin:true}],count:"0-1/2"});
+  assert.equal(r.status,2);
+  assert.match(r.stderr,/Identidad autorizada indeterminada/);
+  assert.equal(r.stdout,"");
+});
+t("texto: lista vacía exige contrastar cualquier promoción",()=>{
+  const out=informe({tandas:[]});
+  assert.ok(out.includes("Esta lista no contiene tandas pendientes"));
+  assert.ok(out.includes("comprobar el alcance y los artefactos de cualquier promoción"));
 });
 if(failed){console.error(`\nlisto-actor: ${failed} fallo(s)`);process.exit(1);}
 console.log("\nlisto-actor: OK");
