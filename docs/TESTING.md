@@ -78,6 +78,28 @@ Widget banco (4.26.50): `e2e/widget-banco.spec.mjs` abre Ajustes y cambia el ban
 
 # Testing — Aely
 
+## Contrato offline de categorize
+
+`tests/categorize-handler.test.mjs`, registrado en `scripts/run-tests.mjs` y en la selección
+servidor de `scripts/relevant-tests.mjs`, carga directamente
+`supabase/functions/categorize/index.ts` y sus tres helpers actuales (`ingest_logic`, `cors`,
+`ratelimit`). Usa esbuild ya instalado para quitar tipos y un contexto VM con Deno, SDK,
+autenticación, RPC y fetch sintéticos; ningún import remoto ni acceso a tablas está permitido.
+No carga el paquete histórico de PR48 ni requiere credenciales, Deno o servicios locales.
+
+Los oráculos literales cubren las palabras clave, ambigüedades de movilidad, catálogo IA actual,
+Bizum sin finalidad, permisos del handler, métodos/preflight, recorte del comercio, CORS y
+fallos de transporte/JSON. El helper real prueba rechazo sin IA, fallo con paso permitido,
+`checked`, bucket por usuario y logs limitados a los cinco códigos SQLSTATE/PostgREST
+permitidos o `unavailable`. Siete mutaciones en memoria deben fallar las mismas aserciones
+del contrato positivo, sin escribir fuentes. El test `categorize-limitador` conserva su guardia
+estática anterior. `tests/relevant-tests.test.mjs` exige ambos guardianes al cambiar cualquiera
+de las cuatro fuentes, para que el recorte de beta también ejecute el contrato.
+
+Comando focal: `node tests/categorize-handler.test.mjs`. La prueba no acredita el gateway JWT,
+la versión compilada del SDK remoto, RLS, DB/IA real, despliegue ni aceptación móvil.
+[Alcance y evidencia inicial fechada](briefs/categorize-handler-current-local26.md).
+
 Guardado en el commit (4.26.94): `tests/persist-commit.test.mjs`, en `run-tests`, fija el contrato de `mcPersistCommit` —nada al montar, un solo temporizador, histórico solo si cambia la referencia de gastos, y que un estado calculado y abandonado no llega al volcado— y que `set()` ya no toca persistencia. El orden real de React y el disco los prueba `e2e/metas-alta-regla.spec.mjs`: en la carrera registra cada escritura real de `micartera_v3`, exige que ninguna lleve la regla rechazada, que la última coincida con lo que se ve y que una recarga sin resiembra enseñe lo mismo. `beta-sources` añade PERSIST91: nueve mutantes del bloque de guardado mueven las 18 revisiones cuyo código escribe estado y no mueven las 7 que no lo escriben, y comprueba contra el código, en los dos sentidos, que llevar el bloque coincide con llamar a `set` de App (la declaración del método `store.set` no cuenta; un mutante de `store.set` sí mueve el panel de revisión). `beta-veredictos` deja escrito que ninguna aprobación se hereda con código distinto: ayuda de Mi ciclo, que la conservaba por equivalencia exacta, mantiene su historial y pide veredicto nuevo; arranque con poca conexión sigue idéntica y la conserva.
 
 INC-0410 (candidata 4.26.94): `tests/reserva-dinero.test.mjs`, ya en `run-tests`, añade el alta de reglas. Matriz del lector de importes con esperados escritos a mano para decimal coma y decimal punto (miles, céntimos, y lo que no es un importe: signos, letras, exponentes, `1.2.3`, y el caso ambiguo, que se rechaza); el botón real de «Guardar regla» con un React de pruebas que reparte los `useState` en orden; altas inválidas sin escritura de estado y con su aviso; céntimos iguales en fila, reparto y registro; y los seis estados del reparto, incluido que una regla añadida con el ingreso ya repartido no se aplica a ese ingreso y sí al siguiente. Sobre la fuente anterior el mismo test falla. `e2e/metas-alta-regla.spec.mjs`, en el mapa de Metas y motor, abre Plan → Metas en es/en/ca con datos sintéticos: formatos de importe de cada idioma, avisos, línea de estado, céntimos y recarga sin resiembra. No mide rendimiento ni usa cuentas reales.
