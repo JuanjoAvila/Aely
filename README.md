@@ -1,4 +1,6 @@
-Preparación8/10: candidata selectiva4.26.106 desde main56c7e328 para las aprobadas99/100/101/102/106. Producción comprobada4.26.98, beta4.26.106.1/source8dcc5ed3. Revisión independiente, CI exacta y entrega pendientes. Panel beta solo se retira después de entrega real; lag global abierto. [Acta](docs/briefs/promocion-aprobadas-local26.md).
+Selección web4.26.110: la rayita de la barra desaparece al ocultarla; Plan → Metas → Reservar dinero permite editar reglas conservando sus aportaciones; Perfil/Ajustes y Recibos → Gestionar conservan la pantalla al volver. Incluye únicamente las identidades aprobadas107/108/110 de beta; la gráfica109 rechazada conserva la implementación anterior. Historial, idiomas y APK52 conservados. [Alcance y cualificación local](docs/briefs/promocion-107-108-110-local26.md).
+
+Snapshot8/10 previo a la entrega106: candidata selectiva4.26.106 desde main56c7e328 para las aprobadas99/100/101/102/106. Producción comprobada4.26.98, beta4.26.106.1/source8dcc5ed3. Revisión independiente, CI exacta y entrega pendientes. Panel beta solo se retira después de entrega real; lag global abierto. [Acta](docs/briefs/promocion-aprobadas-local26.md).
 
 Promoción selectiva98 preparada7/10: el dueño aprobó ocultar juntos barra y botón en beta4.26.98.1/sourceb7ab. Base main85b8, sólo CSS aprobada, scope y guardianes correspondientes. Producción96 ya servida; candidata98 local pendiente de revisión independiente, CI exacta y entrega. No99/100/APK/Edge/SQL; INC-2709-09 continúa abierto. [Acta](docs/briefs/promocion-fab98-2026-10-07.md).
 
@@ -52,6 +54,8 @@ mi-cartera/
 ├── tests/pure-logic-notes.test.mjs · beta-source-parse.test.mjs # Carga diferida y cortes exactos sin debilitar auditorías
 ├── tests/beta-veredictos.test.mjs # Contrato compartido del panel y listo; beta-sources protege el ensamblado
 ├── tests/listo-actor.test.mjs # CLI real sin red: actor Dev autorizado y fallo cerrado si no se acredita
+├── tests/backclose-history.test.mjs # Propiedad del historial y transferencias de overlays (selección110)
+├── e2e/backclose-handover.spec.mjs · botnav-indicador.spec.mjs · metas-editar-regla.spec.mjs # Pantallas reales de110/107/108
 ├── tests/sync-memoria.test.mjs # Exportación sintética: cantidades, aviso Cloud e idempotencia; rechazo sin escrituras/borrados
 ├── src/                    # 👈 Fuente editable (v3.108+)
 │   ├── shell.html          #     HTML shell (React, CSS, vendors)
@@ -114,7 +118,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.106** candidata selectiva de Gastos, sesión y recientes. Producción4.26.98 verificada; revisión/CI/entrega pendientes.
+Estado actual: **v4.26.110** selección web107/108/110: indicador de barra, edición de reglas de ahorro y propiedad del historial al volver. Gráfica109 fuera; notas es/en/ca, historial y APK52 conservados. La cualificación local y sus límites están en el acta; no sustituyen evidencia de publicación ni aceptación móvil.
 
 Corte anterior (4/10, 12:30 UTC, panel de revisión): **v4.26.93** publicada en beta. Primera entrega4.26.93.1 (fuente1d5dd782), CI37200314653SUCCESS y HTTP/ZIP/HTML/SW/catálogo/huella cotejados el4/10 a12:30UTC:11 tandas/24 puntos, frente a40 antes del cambio. Producción4.26.86 (d366215a), APK beta4.26.80/code52 y estable4.26.32/code48 conservadas. Prueba y aprobación móvil pendientes. [Acta](docs/briefs/ops-0410-panel-cola.md).
 

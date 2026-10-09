@@ -171,7 +171,11 @@ const PRESUPUESTO = {
   // 8ff6402a), 282 B por encima del crudo. Tope crudo a 1287 KiB (quedan 742 B); gzip
   // sigue en 351 KiB (680 B). No se recortan guardas, notas ni idiomas para caber; un
   // cambio posterior exige medir de nuevo.
-  minificado: 1287 * 1024,
+  // Selección107/108/110, 9/10/2026: sellado4.26.110 con DSN95B y minificador oficial
+  // mide1.324.865/361.209 B min/gzip y3bloqueantes. Excede1287/351KiB en6.977/1.785 B;
+  // el guardián original falló y se conserva esa evidencia.1295/353 autorizado por el
+  // coordinador conserva las3unidades aprobadas,225notas y los3idiomas; margen1.215/263 B.
+  minificado: 1295 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -179,7 +183,7 @@ const PRESUPUESTO = {
   // caso de exceso, deja 342.031 B gzip (15 B sobre 334 KiB). +1 KiB medido para
   // no ocultar cifras financieras ni recortar los tres idiomas; quedan 1.009 B.
   // La misma candidata mide 343.257 B gzip, 217 B sobre 335 KiB: +1 KiB medido.
-  gzip: 351 * 1024,
+  gzip: 353 * 1024,
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 

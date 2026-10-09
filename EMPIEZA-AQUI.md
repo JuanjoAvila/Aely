@@ -1,11 +1,15 @@
 # Corte verificado · 9/10/2026
 
+Selección web4.26.110 sobre base798226ce, comparada con betac7593e86: las tres CODE/WEB oficiales107/108/110 coinciden con la aprobación móvil;109 queda rechazada y fuera. La cualificación local del9/10 reúne196 casos originales distintos en tres tramos, no una suite única:18+161+17. Conserva los fallos anteriores, el diagnóstico de salida a about:blank en Chrome completo y el bloqueo CSP previo con DSN real. El estado de integración, CI exacta y publicación se consulta en el registro privado de coordinación; esta evidencia local no acredita esos gates. [Alcance, historial y límites](docs/briefs/promocion-107-108-110-local26.md).
+
 Este corte reúne la evidencia confirmada por el coordinador local al escribirlo;
 **no garantiza que estas fuentes sigan siendo HEAD**. Revalidar ramas, publicación
 terminal y artefactos servidos antes de continuar. El contenido anterior se conserva
 debajo como histórico; sus estados de preparación no sustituyen este corte.
 
-- **Beta 4.26.110.1 entregada:** fuente
+## Corte histórico de coordinación anterior a la selección
+
+- **Beta 4.26.110.1 entregada en este corte histórico:** fuente
   `c7593e86f6665d69fa20bd3f5f8f20c4710a5d9c`, árbol
   `69447c060d8530effc72447f0ae313b7321e6ed2`;
   [publisher 37859699536](https://github.com/JuanjoAvila/Aely/actions/runs/37859699536)

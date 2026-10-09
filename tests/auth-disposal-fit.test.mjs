@@ -49,10 +49,42 @@ assert.deepEqual(notes.slice(1),oldNotes);
 const reg=JSON.parse(read('scripts/beta-sources.json')),oldReg=JSON.parse(execFileSync('git',['show','56c7e328ce801f0e2e2fe5ec1ebd36169f0ac89b:scripts/beta-sources.json'],{encoding:'utf8',maxBuffer:8e6}));
 const expectedReg=structuredClone(oldReg);
 for(const id of ['inc-0210-03-gastos-periodo','feature-0310-01-movilidad','inc-0310-gastos-sin-limite'])expectedReg[id].web.push({file:'src/modules/08-motor-bank.js',function:'madridYmdParts'},{file:'src/modules/08-motor-bank.js',data:'_mcMadridYmdFmt'});
-for(const id of ['inc-0710-gastos-mes-madrid','inc-0710-appstate-listener-cleanup','inc-0710-banknotif-cleanup','inc-0710-auth-disposal','inc-0810-dashboard-recents-memo'])expectedReg[id]=reg[id];
-assert.deepEqual(reg,expectedReg,'sólo cinco alcances autorizados nuevos; todos los descriptores de main intactos');
+// El registro anterior y los tres alcances nuevos se anclan a commits fijos; nunca copiamos expectativas del registro bajo prueba.
+const mainReg=JSON.parse(execFileSync('git',['show','798226ce2ddcc506c3f0768a5daf9619eff97e15:scripts/beta-sources.json'],{encoding:'utf8',maxBuffer:8e6}));
+for(const id of ['inc-0710-gastos-mes-madrid','inc-0710-appstate-listener-cleanup','inc-0710-banknotif-cleanup','inc-0710-auth-disposal','inc-0810-dashboard-recents-memo'])expectedReg[id]=mainReg[id];
+for(const key of ['inc-0310-01-meta-regla','inc-0310-broker-resultados']){
+ const expected=expectedReg[key];
+ if(key==='inc-0310-01-meta-regla')expected.web.push(...['reservaRuleSame','editReservaRule'].map(name=>({file:'src/modules/08-motor-bank.js',function:name})));
+ if(key==='inc-0310-broker-resultados'){
+  const at=expected.web.findIndex(s=>s.file==='src/modules/02-ui-shared.js'&&s.data==='_mcBackStack');assert.ok(at>=0,'ancla histórica del controlador');
+  expected.web.splice(at,0,
+   ...['_mcBackSlot','_mcBackSame','_mcBackSchedule','_mcBackAdd','_mcBackDrop','_mcBackArm','_mcBackConsume','_mcBackFlush'].map(name=>({file:'src/modules/02-ui-shared.js',function:name})),
+   ...['_mcBackHistory','_mcBackPending','_mcBackAt','_mcBackScheduled','_mcBackTurn','_mcBackNext','_mcBackOwner'].map(name=>({file:'src/modules/02-ui-shared.js',data:name})));
+ }
+}
+const selected=f=>execFileSync('git',['show','c7593e86f6665d69fa20bd3f5f8f20c4710a5d9c:'+f],{encoding:'utf8',maxBuffer:8e6}),selectedReg=JSON.parse(selected('scripts/beta-sources.json'));
+for(const [id,codigo,web]of [
+ ['inc-0810-nav-indicator','8b644a448f776abfcc21e55bd8acf8847aad84a9f75a5bdb83b4a25d4cd933d5','dedbc947435fa355ba649412debdd8db9088a0a3ecaa2882fb4b99c6b39b373d'],
+ ['inc-0810-metas-editar-regla','d2b3e32be047450e3467da377120e721a8db89d09230d17ea15d54afc32dbe1d','84c832707f16ecbe5099f9dc889bae4ae81bccc7269d1cb49685add3bb16e975'],
+ ['inc-0810-backclose-handover','a14e101c0e2ce2e8a778e26df1e342bff2e417e5037c6def254a41696e441aed','05048c3b8ea28237cefc7a17baa5d5c33e2d033e04b2b87efbb429e9d347c089'],
+]){
+ expectedReg[id]=selectedReg[id];
+ assert.deepEqual(betaRevision(id,reader),{web,codigo},id+': identidad web aprobada exacta, sin native/edge');
+ assert.deepEqual(betaRevision(id,selected,undefined,selectedReg[id]),{web,codigo},id+': ancla beta fija aprobada');
+ for(const key of ['historial','auditoria','codigosCompatibles','compatibilidadGit'])assert.equal(reg[id][key],undefined,id+': sin aprobación heredada '+key);
+}
+assert.deepEqual(reg,expectedReg,'sólo tres alcances nuevos 107/108/110; cierres históricos explícitos y resto del registro intacto');
+// Los tres cambios históricos son dependencias de lo aprobado, no tandas adicionales ni reutilización del OK antiguo.
+for(const [id,codigo,web]of [
+ ['inc-0310-01-meta-regla','9d7b6a271c9bd35c5db3639f5b679f6eb7f904c94429aa279a2793e0d89a8981','74a3f1fadd6c79f870bc3fbe27008065f6950e1dab0644be8dfa14475f8300aa'],
+ ['inc-0310-broker-resultados','027baca86c47ba94e97a63ef8efe6a28eb7245f5f23dacad8423821cece278a8','8149f3d99d8be6aad6de5811f3aa0f737cd847cd5cc1b5353ecad394ee5c48ce'],
+ ['inc-2709-13-fab-contorno','7d83273ce4d3cedc0980a5b89452594bba8d91c0e48211f853ede13e80c0f45b','78fbc4dc2e857c7a7a513ecb9f302feeaaf6f56ed47fb3030f26f3fdfbcd128c'],
+]){
+ const current=betaRevision(id,reader),previous=betaRevision(id,f=>execFileSync('git',['show','798226ce2ddcc506c3f0768a5daf9619eff97e15:'+f],{encoding:'utf8',maxBuffer:8e6}),undefined,mainReg[id]);
+ assert.deepEqual(current,{web,codigo},id+': cierre compartido revisado exacto');assert.notEqual(current.codigo,previous.codigo,id+': no heredar identidad anterior');
+}
 assert.equal(reg['inc-0810-dashboard-recents-memo'].web.length,19);
 assert.equal(reg['inc-0810-dashboard-recents-memo'].unidades,true);
 for(const key of ['historial','auditoria','codigosCompatibles','compatibilidadGit'])assert.equal(reg['inc-0810-dashboard-recents-memo'][key],undefined,'sin heredar '+key);
 assert.notEqual(betaRevision('inc-0710-auth-disposal',reader).codigo,betaRevision('inc-0710-auth-disposal',old).codigo);
-console.log('✓ fit102: retornos/receiver/excepciones diferidas, boot real sin throw, trazas equivalentes;7funciones/9datos e histórico de notas/registro intacto salvo unidad106 declarada; identidad102 nueva');
+console.log('✓ fit102: retornos/receiver/excepciones diferidas, boot real sin throw, trazas equivalentes;7funciones/9datos, notas históricas106 intactas y registro con cierres107/108/110 explícitos; identidad102 nueva');
