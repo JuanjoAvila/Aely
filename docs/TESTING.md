@@ -42,8 +42,11 @@ artefacto sellado real1321274/360181 B pasa con710/267 B de margen, sin sumar ca
 La suite financiera beta-sources termina exit0:1731 funciones/684 datos mutados sobre8dcc.
 Port actual110 sobre109f4ff: conserva36 unidades y añade una independiente; sólo Brókers
 cambia por el cierre transitorio real, sin repin/alias. Metadata histórica109 se lee de
-f4ff; invariantes y mutantes actuales conservan read actual. Las226 notas109 permanecen
-exactas detrás de110 y no resucitan las cinco retiradas. Presupuesto conjunto oficial con
+f4ff; invariantes y mutantes actuales conservan read actual. El alta110 usa el catálogo
+pre-retiro c759 para conservar las226 notas109 y sus guiones anteriores como historia.
+El guard actual compara227 notas completas contra c759 retirando exclusivamente107/108/110,
+conserva109 y todas las demás tandas y rechaza ocho mutantes de retiro en memoria.
+Presupuesto conjunto oficial con
 DSN95/sello110.99999/gzip9 pasa1295/353/3:1.325.236/361.308 B, delta3.413/1.134 B
 tras acotar performance en el fallback de token para la VM financiera, sin cambiar UUID.
 La primera medida default6 se conserva corregida en el acta. Guardianes104:30 etapas exit0,
@@ -125,6 +128,7 @@ controles sin evidencia de navegador.
 ## Carga de tests y lector de alcances (4/10)
 
 Limpieza aprobadas4/10: revisar-beta añade tres DOM es/en/ca contra el catálogo servido actual, recibo generado y APK52: cero filas entregadas y ninguna petición de aprobarlas, sin borrar un rechazo histórico sintético. Las regresiones de las siete antiguas, Metas87→94 y ronda mixta25 cargan explícitamente el catálogo publicado4403b252; el código que ejecutan sigue siendo el actual. beta-sources, beta-veredictos y beta-tandas-vacias conservan igualmente sus escenarios históricos con esa fuente fija. No se salta ni reduce cobertura al retirar las once entregadas. Mapa y runner conservan los ficheros ya registrados. Estos escenarios históricos requieren Git y el commit4403b252 disponible: los workflows de tests/publicación usan checkout con fetch-depth0. Un clon superficial debe traer esa historia; un ensayo con git archive sin .git no sirve para ejecutar estos guardianes históricos. Para ellos usa un worktree con historia completa, conservando el archivo sin .git para los perfiles A/B que no los ejecutan.
+Retirada selectiva107/108/110: el catálogo previo c759 fija solamente los inputs de guion de alta110 (`beta-sources`) y edición108 (`reserva-dinero`); registro, identidades, controles financieros y mutantes siguen leyendo el runtime actual. El guard LIVE exige las227 notas completas iguales a ese commit salvo las tres tandas retiradas. Sus ocho controles negativos reponen cada entregada o eliminan109/otra pendiente/una nota, alteran un texto o metadata, sólo sobre clones en memoria. `revisar-beta`, ya transversal, mantiene sus casos y amplía el DOM actual es/en/ca a las catorce entregadas; compara el catálogo servido completo sin sustituirlo por un fixture. Git con historia completa sigue siendo requisito. No se añade harness ni spec fuera del mapa. El resultado de un catálogo sintético o de CI previa no acredita la publicación del retiro.
 
 `botnav-esconder`, ya transversal, reproduce un scroll real emitido por la página oculta de Gastos después de volver a Inicio: comprueba que el evento llegó, que la pantalla activa sigue en el tope y que la barra no se oculta pasado su plazo de 550 ms. El caso era rojo sin la comprobación de página activa en `onPageScroll`; conserva los gestos táctiles de ocultar, revelar y cambiar pestañas.
 

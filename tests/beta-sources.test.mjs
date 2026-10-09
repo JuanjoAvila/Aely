@@ -7,6 +7,8 @@ import { betaRevision, betaNotes, betaDelivery, betaHistorical, betaCompatible }
 const read=f=>fs.readFileSync(new URL("../"+f,import.meta.url),"utf8");
 // Los contratos retirados del panel se prueban con su catálogo publicado, contra el código actual.
 const historicalNotes=JSON.parse(execFileSync("git",["show","4403b252933410741a877eea59b85d812b2fe543:src/data/release-notes.json"],{encoding:"utf8",maxBuffer:5e6}));
+// El alta110 pertenece al commit previo al retiro; los lectores y mutantes siguen usando read actual.
+const delivered110Notes=JSON.parse(execFileSync("git",["show","c7593e86f6665d69fa20bd3f5f8f20c4710a5d9c:src/data/release-notes.json"],{encoding:"utf8",maxBuffer:5e6}));
 const empty=[{v:"4.26.67",tandas:[]}];
 const boot="inc-2709-01-arranque-red";
 const modern=[{v:"4.26.69",tandas:[{id:boot}]}];
@@ -142,11 +144,39 @@ test("BackClose110 actual conserva las36 unidades109 y declara únicamente el ca
     if(betaRevision(key,read,undefined,actual[key]).web!==betaRevision(key,base,undefined,scope).web)changed.push(key);
   }
   assert.deepEqual(changed,["inc-0310-broker-resultados"],"35 códigos anteriores intactos, incluidas las tres unidades109 y las cinco entregadas");
-  const notes=JSON.parse(read("src/data/release-notes.json")),old=JSON.parse(base("src/data/release-notes.json"));
+  const notes=delivered110Notes,old=JSON.parse(base("src/data/release-notes.json"));
   assert.equal(notes[0].v,"4.26.110");assert.deepEqual(notes[0].tandas.map(g=>g.id),[id]);
   assert.deepEqual(notes.slice(1),old,"las226 notas y guiones109 siguen exactos, incluidas pendientes/rechazadas");
   const retired=["inc-0710-gastos-mes-madrid","inc-0710-appstate-listener-cleanup","inc-0710-banknotif-cleanup","inc-0710-auth-disposal","inc-0810-dashboard-recents-memo"];
   assert.ok(!notes.some(n=>(n.tandas||[]).some(g=>retired.includes(g.id))),"no resucitar las cinco retiradas");
+});
+
+// Retirar el panel no permite borrar una nota familiar, otro guion o su metadata.
+test("Retiro110 actual conserva227notas y retira exclusivamente107/108/110",()=>{
+  const ids=["inc-0810-nav-indicator","inc-0810-metas-editar-regla","inc-0810-backclose-handover"],rejected="inc-0810-inicio-grafica-significado";
+  assert.equal(delivered110Notes.length,227);
+  for(const id of ids)assert.equal(delivered110Notes.flatMap(n=>n.tandas||[]).filter(g=>g.id===id).length,1,id+": fixture previo exacto");
+  const expected=delivered110Notes.map(n=>Array.isArray(n.tandas)?{...n,tandas:n.tandas.filter(g=>!ids.includes(g.id))}:n);
+  const verify=notes=>{assert.equal(notes.length,227);assert.deepEqual(notes,expected,"227notas completas, todos los otros guiones/textos/metadata intactos");};
+  const actual=JSON.parse(read("src/data/release-notes.json"));verify(actual);
+  assert.deepEqual(actual.find(n=>n.v==="4.26.109"),delivered110Notes.find(n=>n.v==="4.26.109"),"109 rechazada íntegra");
+  for(const id of ids){
+    assert.equal(actual.flatMap(n=>n.tandas||[]).filter(g=>g.id===id).length,0);
+    const changed=structuredClone(actual),old=delivered110Notes.find(n=>(n.tandas||[]).some(g=>g.id===id));
+    changed.find(n=>n.v===old.v).tandas.push(structuredClone(old.tandas.find(g=>g.id===id)));
+    assert.throws(()=>verify(changed),id+": reponer una entregada debe fallar");
+  }
+  const withoutRejected=structuredClone(actual);
+  withoutRejected.find(n=>n.v==="4.26.109").tandas=withoutRejected.find(n=>n.v==="4.26.109").tandas.filter(g=>g.id!==rejected);
+  assert.throws(()=>verify(withoutRejected),"borrar109 debe fallar");
+  const other=actual.find(n=>(n.tandas||[]).some(g=>g.id!==rejected));assert.ok(other,"queda otro guion pendiente");
+  const otherId=other.tandas.find(g=>g.id!==rejected).id,withoutOther=structuredClone(actual);
+  withoutOther.find(n=>n.v===other.v).tandas=withoutOther.find(n=>n.v===other.v).tandas.filter(g=>g.id!==otherId);
+  assert.throws(()=>verify(withoutOther),"borrar otra pendiente debe fallar");
+  const withoutNote=structuredClone(actual);withoutNote.pop();assert.throws(()=>verify(withoutNote),"borrar una nota debe fallar");
+  const changedText=structuredClone(actual);changedText[0].items.es[0]+=" · mutante";assert.throws(()=>verify(changedText),"cambiar texto familiar debe fallar");
+  const changedMetadata=structuredClone(actual);changedMetadata.find(n=>n.v===other.v).tandas.find(g=>g.id===otherId).rev=999;
+  assert.throws(()=>verify(changedMetadata),"cambiar metadata pendiente debe fallar");
 });
 
 if(process.argv.includes("--integration-only")) process.exit(failed?1:0);

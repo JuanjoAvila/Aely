@@ -721,7 +721,8 @@ t("botón real de edición: updater repetido conserva un solo asiento aunque cum
 t("la tanda de edición actual conserva sus guardas sin congelar el historial futuro", () => {
   const read=f=>fs.readFileSync(new URL("../"+f,import.meta.url),"utf8");
   const reg=JSON.parse(read("scripts/beta-sources.json")),id="inc-0810-metas-editar-regla",scope=reg[id];
-  const note=JSON.parse(read("src/data/release-notes.json")).find(n=>n.v==="4.26.108");
+  // La aprobación108 conserva su guion previo al retiro; los contratos financieros siguen sobre fuente actual.
+  const note=JSON.parse(execFileSync("git",["show","c7593e86f6665d69fa20bd3f5f8f20c4710a5d9c:src/data/release-notes.json"],{encoding:"utf8",maxBuffer:5e6})).find(n=>n.v==="4.26.108");
   assert.ok(note&&note.tandas.some(g=>g.id===id),"la edición tiene su propia comprobación vigente");
   const unit=note.tandas.find(g=>g.id===id);
   assert.equal(scope.unidades,true);assert.ok(scope.web.length>=75,"el cierre de lectores no se recorta");

@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import crypto from "node:crypto";
 import { execFileSync } from "node:child_process";
-import { betaRevision } from "../scripts/beta-revisions.mjs";
+import { betaRevision, betaNotes } from "../scripts/beta-revisions.mjs";
 import { test, expect } from "@playwright/test";
 import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
 
@@ -1496,9 +1496,14 @@ for(const lang of ["es","en","ca"]) {
   });
 }
 
-for(const lang of ["es","en","ca"])test(`cola publicada: no vuelve a pedir las once entregadas (${lang})`,async({page})=>{
+for(const lang of ["es","en","ca"])test(`cola publicada: no vuelve a pedir las catorce entregadas (${lang})`,async({page})=>{
   await abrirRevisionBeta(page,lang);
-  const closed=["inc-0310-01-meta-regla","ops-0410-panel-cola","inc-0310-gastos-sin-limite","inc-0310-broker-resultados","feature-0310-01-movilidad","inc-2909-01-widget-periodo","fin05-widget-reentrada","fin05-pago-cerrada","tr-descripcion-clasificacion","widget-banco","widget-app-cerrada"];
+  const before=JSON.parse(execFileSync("git",["show","c7593e86f6665d69fa20bd3f5f8f20c4710a5d9c:src/data/release-notes.json"],{encoding:"utf8",maxBuffer:5e6}));
+  const retired=["inc-0810-nav-indicator","inc-0810-metas-editar-regla","inc-0810-backclose-handover"];
+  const expected=betaNotes(before.map(n=>Array.isArray(n.tandas)?{...n,tandas:n.tandas.filter(g=>!retired.includes(g.id))}:n));
+  expect(expected.length).toBe(227);
+  expect(await page.evaluate(()=>RELEASE_NOTES)).toEqual(expected);
+  const closed=["inc-0310-01-meta-regla","ops-0410-panel-cola","inc-0310-gastos-sin-limite","inc-0310-broker-resultados","feature-0310-01-movilidad","inc-2909-01-widget-periodo","fin05-widget-reentrada","fin05-pago-cerrada","tr-descripcion-clasificacion","widget-banco","widget-app-cerrada",...retired];
   expect(await page.evaluate(ids=>RELEASE_NOTES.flatMap(n=>n.tandas||[]).filter(g=>ids.includes(g.id)).map(g=>g.id),closed)).toEqual([]);
   const deliveries=JSON.parse(fs.readFileSync(new URL("../public/beta-delivery.json",import.meta.url),"utf8"));
   await page.evaluate(deliveries=>{
