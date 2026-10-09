@@ -668,7 +668,12 @@ function Wealth({state, set, totals, v4Embed, parte, showToast, onBankSync, onRe
         // dejaría «Bienes» dos veces seguidas.
         parte!=="bienes" && React.createElement("div",{className:"v4-sec-h"}, t("pt_goods")),
         state.assets.map(function(a){
-          return React.createElement("div",{className:"v4-mov",key:a.id},
+          // Bienes parecía bloqueado al tocar una fila (INC-2709-07): abre el mismo editor
+          // que el enlace inferior; en edición deja de ser botón para no envolver el input.
+          return React.createElement(astEd.editing?"div":"button",{className:"v4-mov",key:a.id,
+            type:astEd.editing?undefined:"button",
+            style:{width:"100%",textAlign:"left",color:"var(--text)"},
+            onClick:astEd.editing?undefined:function(){ astEd.start(); }},
             React.createElement("div",{className:"tile"},a.kind==="piso"?"🏡":"🚙"),
             React.createElement("div",{className:"nm"},
               React.createElement("div",null,a.name),

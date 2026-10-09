@@ -1,3 +1,7 @@
+## INC-2709-07 · acceso al editor por toque · candidata4.26.111
+
+Unidad concreta: Cartera → Bienes → fila abre el editor existente sin escribir al abrir. Seis RED y seis GREEN reales en el aislamiento local del coordinador (leases228/229); receta de integración sobre beta d6b3ddef, branch codex/local30-bienes-beta. Integración beta validada57/57 DOM sin fallos/skips/flaky/retries,16guardianes localesPASS y revisión final favorable; CI, publicación y aceptación móvil pendientes. Alta/quitar y rediseño general del editor permanecen abiertos.
+
 # Backlog operativo — Aely
 
 ## INC-0810 · historial de Perfil a Ajustes · OPEN · 8/10/2026

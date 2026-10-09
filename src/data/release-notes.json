@@ -1,5 +1,46 @@
 [
   {
+    "v": "4.26.111",
+    "d": "2026-10-09",
+    "t": {
+      "es": "Tocar Bienes para editar",
+      "en": "Tap assets to edit",
+      "ca": "Toca els béns per editar"
+    },
+    "items": {
+      "es": [
+        "Tocar un bien abre su editor. La opción Editar bienes sigue disponible."
+      ],
+      "en": [
+        "Tap an asset to open its editor. Edit assets is still available."
+      ],
+      "ca": [
+        "Toca un bé per obrir-ne l’editor. L’opció Edita els béns continua disponible."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inc-2709-07-bienes-toque",
+        "t": {
+          "es": "Abrir el editor de Bienes",
+          "en": "Open the asset editor",
+          "ca": "Obre l’editor de béns"
+        },
+        "items": {
+          "es": [
+            "1. En Cartera → Bienes, tocar una fila abre el editor. Arrastrar para bajar no lo abre. Abrir no cambia los valores; Guardar sin modificarlos los conserva. Editar bienes sigue disponible."
+          ],
+          "en": [
+            "1. In Wallet → Property, tap a row to open the editor. Scrolling does not open it. Opening keeps values unchanged; saving without edits preserves them. Edit assets is still available."
+          ],
+          "ca": [
+            "1. A Cartera → Béns, toca una fila per obrir l’editor. Arrossegar per baixar no l’obre. Obrir no canvia els valors; desar sense modificar-los els conserva. Edita els béns continua disponible."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.110",
     "d": "2026-10-08",
     "t": {

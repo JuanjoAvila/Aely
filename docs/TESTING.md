@@ -1,3 +1,9 @@
+## Bienes: acceso al editor por toque · candidata4.26.111
+
+`e2e/cartera-bienes-toque.spec.mjs`, registrado en E2E_MAP07 y14, recorre Cartera con dos bienes sintéticos: es/en/ca × letra normal/enorme. Seis RED reales sobre fila DIV y seis GREEN en el aislamiento local del coordinador (leases228/229), sin retries/skips/flaky. Controla arrastre táctil que no abre, tap/Enter, apertura sin escrituras, input fuera de botón, guardado intacto, puerta Editar bienes, pagehide y recarga __seedOnce. Compara assets/accounts/investments/expenses/debts/fixed/flows/oneoffs/goals/history. La integración sobre beta d6b3ddef pasó57/57 DOM (Bienes y cuatro suites vecinas), sin fallos/skips/flaky/retries, y16guardianes localesPASS. No equivale a aceptación móvil ni cierre de alta/borrado/rediseño.
+
+PERSIST91 pasa21→22 y conserva lista ajenas y comprobación bidireccional escritor/dependencia. El catálogo actual exige nota111 literal independiente más227 notas/guiones históricos exactos; conserva fixture delivered110Notes, retiro de107/108/110, rechazo109 y todos los mutantes, incluyendo texto111 y texto histórico. auth-disposal-fit y guardianes históricos197 permanecen intactos.
+
 ## Indicador al esconder la barra · candidata107 (8/10)
 
 `botnav-indicador`, transversal, reúne doce combinaciones green/cyber × safe0/34 × movimiento

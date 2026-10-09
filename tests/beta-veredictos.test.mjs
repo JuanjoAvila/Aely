@@ -63,9 +63,11 @@ function conStore(values, fn) {
 console.log("beta-veredictos");
 t("ronda mixta conserva una vez la checklist implícita actual con o sin producción",()=>{
   const catalog=cli.RELEASE_NOTES,points=["1. Comprobar A","2. Comprobar B","3. Comprobar C"];
-  const implicit={v:"4.26.99",t:{es:"Actual implícita",en:"Current implicit",ca:"Actual implícita"},items:{es:points,en:points,ca:points}};
+  // El fixture representa la versión corriente, no una beta antigua filtrada por fecha.
+  const parts=catalog[0].v.split(".").map(Number),base=[parts[0],parts[1],parts[2]+1].join("."),beta=base+".1";
+  const implicit={v:base,t:{es:"Actual implícita",en:"Current implicit",ca:"Actual implícita"},items:{es:points,en:points,ca:points}};
   conNotas([implicit,...catalog],()=>{
-    const offline=cli.betaChecklist("4.26.99.1",null,48),online=cli.betaChecklist("4.26.99.1","4.26.67",48);
+    const offline=cli.betaChecklist(beta,null,48),online=cli.betaChecklist(beta,"4.26.67",48);
     for(const pack of [offline,online]){
       const own=pack.tandas.filter(g=>g.id.split("/").pop()==="todo");
       assert.equal(own.length,1,"la versión que corre sigue pendiente una sola vez");

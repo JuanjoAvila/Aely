@@ -127,11 +127,15 @@ test("Retiro109 elimina solo las cinco aprobadas entregadas y conserva todo el h
   assert.equal(actual.length,226);assert.ok(!actual.some(n=>(n.tandas||[]).some(g=>ids.includes(g.id))));
 });
 
-test("BackClose110 actual conserva las36 unidades109 y declara únicamente el cambio real de Brókers",()=>{
+test("BackClose110 y Bienes111 conservan las36 unidades109 y declaran únicamente Brókers y Nómina",()=>{
   const cache=new Map(),base=f=>{if(!cache.has(f))cache.set(f,execFileSync("git",["show","f4ffb9340adfd0a13b631271e8158d2c630613c0:"+f],{encoding:"utf8",maxBuffer:10e6}));return cache.get(f);};
   const before=JSON.parse(base("scripts/beta-sources.json")),actual=JSON.parse(read("scripts/beta-sources.json")),id="inc-0810-backclose-handover";
-  assert.equal(Object.keys(before).length,36);assert.equal(Object.keys(actual).length,37);
-  assert.deepEqual(Object.keys(actual).filter(key=>!before[key]),[id]);
+  assert.equal(Object.keys(before).length,36);assert.equal(Object.keys(actual).length,38);
+  assert.deepEqual(Object.keys(actual).filter(key=>!before[key]),["inc-2709-07-bienes-toque",id]);
+  // El alta111 se contrasta con un descriptor literal independiente del registro que vigila.
+  const scope111={"unidades":true,"web":[{"file":"src/modules/07-tab-patri-fijos.js","from":"      parte!==\"cuentas\" && (state.assets||[]).length>0 && React.createElement(React.Fragment,null,","to":"    );\n  }\n  return React.createElement(\"div\",null,"},{"file":"src/modules/07-tab-patri-fijos.js","from":"  const astEd=useEditable(state.assets,it=>set(s=>Object.assign({},s,{assets:it})));","to":"  const accSum=totals.liquid;"},{"file":"src/modules/02-ui-shared.js","function":"useEditable"},{"file":"src/modules/00-core.js","function":"eur0"},{"file":"src/modules/00-core.js","data":"NF0"},{"file":"src/modules/00-core.js","data":"DISP"},{"file":"src/shell.html","from":"  .v4-mov{display:flex","to":"  .v4-mov.v4-mov-skip"},{"file":"src/shell.html","from":"  button.v4-mov{","to":"  .set-card>.set-row:first-child"},{"file":"src/modules/11-app-main.js","from":"  // INC-0410 guardado: de aquí al límite está cuándo y qué estado se escribe en disco. Cambiarlo invalida las revisiones que prometen conservar algo al cerrar o recargar.","to":"  // INC-0410 guardado: límite."},{"file":"src/modules/00-core.js","function":"mcPersistCommit"},{"file":"src/modules/00-core.js","function":"mcSaveRaw"},{"file":"src/modules/00-core.js","function":"mcSkipPersist"},{"file":"src/modules/00-core.js","function":"mcStateKey"},{"file":"src/modules/00-core.js","function":"mcSandbox"},{"file":"src/modules/00-core.js","function":"mcSandboxFlag"},{"file":"src/modules/00-core.js","data":"EXP_SUFFIX"},{"file":"src/modules/00-core.js","data":"store"},{"file":"src/modules/00-core.js","data":"_mcSkipPersist"},{"file":"src/modules/00-core.js","data":"STATE_KEY_TEST"},{"file":"src/modules/00-core.js","data":"STATE_KEY_REAL"},{"file":"src/modules/00-core.js","data":"_mcSandboxPinned"},{"file":"src/modules/00-core.js","data":"_mem"}]};
+  assert.equal(scope111.web.length,22);
+  assert.deepEqual(actual["inc-2709-07-bienes-toque"],scope111,"111 declara exclusivamente sus22 dependencias reales, sin alias ni aprobación");
   assert.equal(actual[id].unidades,true);
   for(const key of ["historial","auditoria","codigosCompatibles","compatibilidadGit","compatibilidadSha"])assert.equal(actual[id][key],undefined,"sin referencia heredada: "+key);
   const changed=[];
@@ -143,7 +147,7 @@ test("BackClose110 actual conserva las36 unidades109 y declara únicamente el ca
     }else assert.deepEqual(actual[key],scope,key+": descriptor intacto");
     if(betaRevision(key,read,undefined,actual[key]).web!==betaRevision(key,base,undefined,scope).web)changed.push(key);
   }
-  assert.deepEqual(changed,["inc-0310-broker-resultados"],"35 códigos anteriores intactos, incluidas las tres unidades109 y las cinco entregadas");
+  assert.deepEqual(changed,["inc-3009-nomina-anticipada","inc-0310-broker-resultados"],"34 códigos109 intactos; Brókers cambió en110 y Nómina incluye el hunk Wealth111, sin cambiar descriptor, guion ni historial");
   const notes=delivered110Notes,old=JSON.parse(base("src/data/release-notes.json"));
   assert.equal(notes[0].v,"4.26.110");assert.deepEqual(notes[0].tandas.map(g=>g.id),[id]);
   assert.deepEqual(notes.slice(1),old,"las226 notas y guiones109 siguen exactos, incluidas pendientes/rechazadas");
@@ -152,12 +156,14 @@ test("BackClose110 actual conserva las36 unidades109 y declara únicamente el ca
 });
 
 // Retirar el panel no permite borrar una nota familiar, otro guion o su metadata.
-test("Retiro110 actual conserva227notas y retira exclusivamente107/108/110",()=>{
+test("Retiro110 y alta111 conservan228notas y retiran exclusivamente107/108/110",()=>{
   const ids=["inc-0810-nav-indicator","inc-0810-metas-editar-regla","inc-0810-backclose-handover"],rejected="inc-0810-inicio-grafica-significado";
   assert.equal(delivered110Notes.length,227);
   for(const id of ids)assert.equal(delivered110Notes.flatMap(n=>n.tandas||[]).filter(g=>g.id===id).length,1,id+": fixture previo exacto");
-  const expected=delivered110Notes.map(n=>Array.isArray(n.tandas)?{...n,tandas:n.tandas.filter(g=>!ids.includes(g.id))}:n);
-  const verify=notes=>{assert.equal(notes.length,227);assert.deepEqual(notes,expected,"227notas completas, todos los otros guiones/textos/metadata intactos");};
+  // La nota111 se fija aquí por separado: el catálogo actual no fabrica su propio oráculo.
+  const note111={"v":"4.26.111","d":"2026-10-09","t":{"es":"Tocar Bienes para editar","en":"Tap assets to edit","ca":"Toca els béns per editar"},"items":{"es":["Tocar un bien abre su editor. La opción Editar bienes sigue disponible."],"en":["Tap an asset to open its editor. Edit assets is still available."],"ca":["Toca un bé per obrir-ne l’editor. L’opció Edita els béns continua disponible."]},"tandas":[{"id":"inc-2709-07-bienes-toque","t":{"es":"Abrir el editor de Bienes","en":"Open the asset editor","ca":"Obre l’editor de béns"},"items":{"es":["1. En Cartera → Bienes, tocar una fila abre el editor. Arrastrar para bajar no lo abre. Abrir no cambia los valores; Guardar sin modificarlos los conserva. Editar bienes sigue disponible."],"en":["1. In Wallet → Property, tap a row to open the editor. Scrolling does not open it. Opening keeps values unchanged; saving without edits preserves them. Edit assets is still available."],"ca":["1. A Cartera → Béns, toca una fila per obrir l’editor. Arrossegar per baixar no l’obre. Obrir no canvia els valors; desar sense modificar-los els conserva. Edita els béns continua disponible."]}}]};
+  const expected=[note111,...delivered110Notes.map(n=>Array.isArray(n.tandas)?{...n,tandas:n.tandas.filter(g=>!ids.includes(g.id))}:n)];
+  const verify=notes=>{assert.equal(notes.length,228);assert.deepEqual(notes,expected,"nota111 exacta y las227notas históricas completas, todos los otros guiones/textos/metadata intactos");};
   const actual=JSON.parse(read("src/data/release-notes.json"));verify(actual);
   assert.deepEqual(actual.find(n=>n.v==="4.26.109"),delivered110Notes.find(n=>n.v==="4.26.109"),"109 rechazada íntegra");
   for(const id of ids){
@@ -169,12 +175,13 @@ test("Retiro110 actual conserva227notas y retira exclusivamente107/108/110",()=>
   const withoutRejected=structuredClone(actual);
   withoutRejected.find(n=>n.v==="4.26.109").tandas=withoutRejected.find(n=>n.v==="4.26.109").tandas.filter(g=>g.id!==rejected);
   assert.throws(()=>verify(withoutRejected),"borrar109 debe fallar");
-  const other=actual.find(n=>(n.tandas||[]).some(g=>g.id!==rejected));assert.ok(other,"queda otro guion pendiente");
+  const other=actual.find(n=>n.v!=="4.26.111"&&(n.tandas||[]).some(g=>g.id!==rejected));assert.ok(other,"queda otro guion pendiente histórico");
   const otherId=other.tandas.find(g=>g.id!==rejected).id,withoutOther=structuredClone(actual);
   withoutOther.find(n=>n.v===other.v).tandas=withoutOther.find(n=>n.v===other.v).tandas.filter(g=>g.id!==otherId);
   assert.throws(()=>verify(withoutOther),"borrar otra pendiente debe fallar");
   const withoutNote=structuredClone(actual);withoutNote.pop();assert.throws(()=>verify(withoutNote),"borrar una nota debe fallar");
   const changedText=structuredClone(actual);changedText[0].items.es[0]+=" · mutante";assert.throws(()=>verify(changedText),"cambiar texto familiar debe fallar");
+  const changedHistoricalText=structuredClone(actual);changedHistoricalText[1].items.es[0]+=" · mutante";assert.throws(()=>verify(changedHistoricalText),"cambiar texto familiar histórico debe fallar");
   const changedMetadata=structuredClone(actual);changedMetadata.find(n=>n.v===other.v).tandas.find(g=>g.id===otherId).rev=999;
   assert.throws(()=>verify(changedMetadata),"cambiar metadata pendiente debe fallar");
 });
@@ -336,7 +343,7 @@ test("PERSIST91: el guardado en el commit invalida toda tanda que escribe estado
   const marca="INC-0410 guardado: de aquí al límite";
   const dependientes=Object.keys(registro).filter(id=>registro[id].web.some(x=>x.from&&x.from.includes(marca)));
   const ajenas=Object.keys(registro).filter(id=>!dependientes.includes(id));
-  assert.equal(dependientes.length,21);
+  assert.equal(dependientes.length,22);
   assert.ok(dependientes.includes("inc-0810-metas-editar-regla"),"editar una regla escribe con el set real y conserva el cierre de persistencia");
   assert.ok(dependientes.includes("inc-0710-gastos-mes-madrid"),"Gastos99 conserva la dependencia real de guardado de Expenses");
   assert.deepEqual(ajenas.slice().sort(),["beta-panel-veredictos","inc-0210-01-plan-cuota","inc-0410-inicio-tres-metas","inc-0710-appstate-listener-cleanup","inc-0710-banknotif-cleanup","inc-0810-backclose-handover","inc-0810-dashboard-recents-memo","inc-0810-inicio-grafica-significado","inc-0810-nav-indicator","inc-2709-01-arranque-red","inc-2709-09-fechas-cache","inc-2709-12-cyber-fab","inc-2709-13-fab-contorno","inc-2709-14-preguntar","ops-0410-panel-cola","tr-descripcion-clasificacion"]);
