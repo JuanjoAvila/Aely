@@ -54,15 +54,22 @@ for(const [file,a,b]of [
 
 }
 const oldReg=JSON.parse(execFileSync('git',['show','56c7e328ce801f0e2e2fe5ec1ebd36169f0ac89b:scripts/beta-sources.json'],{encoding:'utf8',maxBuffer:8e6})),currentReg=JSON.parse(read('scripts/beta-sources.json'));
-// La promoción conserva los descriptores de main; las cinco unidades autorizadas pueden cambiar sus dependencias reales.
+// 107/108/110 cambian dependencias compartidas: sólo añadimos los cierres revisados, sin repinar auditorías ni heredar aprobaciones.
 for(const [key,scope]of Object.entries(oldReg)){
  const expected=structuredClone(scope);
  if(['inc-0210-03-gastos-periodo','feature-0310-01-movilidad','inc-0310-gastos-sin-limite'].includes(key))expected.web.push({file:'src/modules/08-motor-bank.js',function:'madridYmdParts'},{file:'src/modules/08-motor-bank.js',data:'_mcMadridYmdFmt'});
- assert.deepEqual(currentReg[key],expected,key+': alcance histórico conservado con cierre Madrid99');
+ if(key==='inc-0310-01-meta-regla')expected.web.push(...['reservaRuleSame','editReservaRule'].map(name=>({file:'src/modules/08-motor-bank.js',function:name})));
+ if(key==='inc-0310-broker-resultados'){
+  const at=expected.web.findIndex(s=>s.file==='src/modules/02-ui-shared.js'&&s.data==='_mcBackStack');assert.ok(at>=0,'ancla histórica del controlador');
+  expected.web.splice(at,0,
+   ...['_mcBackSlot','_mcBackSame','_mcBackSchedule','_mcBackAdd','_mcBackDrop','_mcBackArm','_mcBackConsume','_mcBackFlush'].map(name=>({file:'src/modules/02-ui-shared.js',function:name})),
+   ...['_mcBackHistory','_mcBackPending','_mcBackAt','_mcBackScheduled','_mcBackTurn','_mcBackNext','_mcBackOwner'].map(name=>({file:'src/modules/02-ui-shared.js',data:name})));
+ }
+ assert.deepEqual(currentReg[key],expected,key+': alcance histórico conservado salvo cierres Madrid99/108/110 explícitos');
 }
 const approved=f=>execFileSync('git',['show','8dcc5ed39b6e212ba1e34a90b550685794ce0bd5:'+f],{encoding:'utf8',maxBuffer:8e6});
 assert.deepEqual(betaRevision('inc-0710-auth-disposal',read),betaRevision('inc-0710-auth-disposal',approved),'identidad auth exacta aprobada en106');
-console.log('✓ auth disposal: remount, callbacks/promesas/timer/idle tardíos, controles activos, rojo anterior; '+Object.keys(oldReg).length+' revisiones anteriores intactas');
+console.log('✓ auth disposal: remount, callbacks/promesas/timer/idle tardíos, controles activos, rojo anterior; '+Object.keys(oldReg).length+' descriptores históricos conservados salvo cierres Madrid99/108/110 explícitos');
 
 const memoReg=currentReg['inc-0810-dashboard-recents-memo'];for(const key of ['historial','auditoria','codigosCompatibles','compatibilidadGit'])assert.equal(memoReg[key],undefined,'memo nueva sin heredar '+key);
 const memoNote=JSON.parse(execFileSync('git',['show','8dcc5ed39b6e212ba1e34a90b550685794ce0bd5:src/data/release-notes.json'],{encoding:'utf8',maxBuffer:8e6}))[0].tandas.find(g=>g.id==='inc-0810-dashboard-recents-memo');
