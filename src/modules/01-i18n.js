@@ -103,6 +103,11 @@ const LANG = {
     v4_streak:"{n} meses sin pasarte", v4_streak_zero:"Mes en curso",
     // INC-0810 es: patrimonio de ahora.
     v4_hist_empty:"Tu histórico empieza hoy", v4_net_unknown:"El total actual no está disponible.",
+    v42_net_info_title:"Sobre el patrimonio", v42_net_info:"Cuentas e inversiones, con su saldo de cada día. Los bienes entran con el valor de hoy: no tienen historial.", v42_net_chart:"Evolución del patrimonio",
+    v42_net_missing:"Faltan saldos fiables para mostrar la gráfica.",
+    v42_range_1m:"1M", v42_range_6m:"6M", v42_range_1y:"1A", v42_range_all:"Todo",
+    v42_net_more_1m:"{x} más que hace un mes", v42_net_less_1m:"{x} menos que hace un mes", v42_net_more_6m:"{x} más que hace 6 meses", v42_net_less_6m:"{x} menos que hace 6 meses", v42_net_more_1y:"{x} más que hace un año", v42_net_less_1y:"{x} menos que hace un año", v42_net_more_all:"{x} más desde que empezaste", v42_net_less_all:"{x} menos desde que empezaste",
+    v42_this_cycle:"Este ciclo", v42_cycle_over:"Te has pasado {x}", v42_cycle_start:"Ciclo recién empezado", v42_cycle_comfort:"Vas sobrado", v42_cycle_good:"Vas bien", v42_cycle_tight:"Vas justito", v42_cycle_slow:"Toca frenar un poco", v42_cycle_of:"de {x}", v42_cycle_daily:"{x} al día", v42_cycle_day:"durante 1 día", v42_cycle_days:"durante {n} días",
     // INC-0810 es: fin del patrimonio de ahora.
     v4_nobud_t:"Ponle un presupuesto", v4_nobud_p:"Es la mitad de la app: sin un tope al mes no se puede saber cuánto te queda. Puedes cambiarlo cuando quieras.", v4_nobud_cta:"Ponle un presupuesto", v4_noup_t:"Aún no hay recibos", v4_noup_p:"Conecta tu banco y los recibos del mes aparecen solos, con su día y su importe.", v4_noup_cta:"Conecta tu banco", v4_nogoal_t:"Ponte tu primera meta", v4_nogoal_p:"Un viaje, un colchón, lo que sea: la app te dice cuánto falta y cuándo llegas.", v4_nogoal_cta:"Crear una meta", v4_see_gastos:"Ver gastos ›", v4_see_plan:"Ver plan ›",
     v4_upcoming:"Próximos cargos", v4_upcoming_empty:"Nada pendiente este mes. Los recibos aparecen aquí.",
@@ -418,6 +423,11 @@ const LANG = {
     v4_streak:"{n} months on track", v4_streak_zero:"Month in progress",
     // INC-0810 en: patrimonio de ahora.
     v4_hist_empty:"Your history starts today", v4_net_unknown:"The current total is unavailable.",
+    v42_net_info_title:"About net worth", v42_net_info:"Accounts and investments, using each day's balance. Assets use today's value: they have no history.", v42_net_chart:"Net worth history",
+    v42_net_missing:"Reliable balances are missing to display the chart.",
+    v42_range_1m:"1M", v42_range_6m:"6M", v42_range_1y:"1Y", v42_range_all:"All",
+    v42_net_more_1m:"{x} more than a month ago", v42_net_less_1m:"{x} less than a month ago", v42_net_more_6m:"{x} more than 6 months ago", v42_net_less_6m:"{x} less than 6 months ago", v42_net_more_1y:"{x} more than a year ago", v42_net_less_1y:"{x} less than a year ago", v42_net_more_all:"{x} more since you started", v42_net_less_all:"{x} less since you started",
+    v42_this_cycle:"This cycle", v42_cycle_over:"You are {x} over budget", v42_cycle_start:"Cycle just started", v42_cycle_comfort:"Plenty of room", v42_cycle_good:"On track", v42_cycle_tight:"Getting tight", v42_cycle_slow:"Time to slow down", v42_cycle_of:"of {x}", v42_cycle_daily:"{x} a day", v42_cycle_day:"for 1 day", v42_cycle_days:"for {n} days",
     // INC-0810 en: fin del patrimonio de ahora.
     v4_nobud_t:"Set a monthly budget", v4_nobud_p:"It is half the app: without a monthly cap there is no way to know what you have left. You can change it whenever you want.", v4_nobud_cta:"Set a budget", v4_noup_t:"No bills yet", v4_noup_p:"Connect your bank and this month's bills show up on their own, with day and amount.", v4_noup_cta:"Connect your bank", v4_nogoal_t:"Set your first goal", v4_nogoal_p:"A trip, a safety net, anything: the app tells you how much is missing and when you get there.", v4_nogoal_cta:"Create a goal", v4_see_gastos:"See spending ›", v4_see_plan:"See plan ›",
     v4_upcoming:"Upcoming", v4_upcoming_empty:"Nothing pending this month. Bills show up here.",
@@ -720,6 +730,11 @@ const LANG = {
     v4_streak:"{n} mesos sense passar-te", v4_streak_zero:"Mes en curs",
     // INC-0810 ca: patrimonio de ahora.
     v4_hist_empty:"El teu històric comença avui", v4_net_unknown:"El total actual no està disponible.",
+    v42_net_info_title:"Sobre el patrimoni", v42_net_info:"Comptes i inversions, amb el saldo de cada dia. Els béns entren amb el valor d'avui: no tenen historial.", v42_net_chart:"Evolució del patrimoni",
+    v42_net_missing:"Falten saldos fiables per mostrar la gràfica.",
+    v42_range_1m:"1M", v42_range_6m:"6M", v42_range_1y:"1A", v42_range_all:"Tot",
+    v42_net_more_1m:"{x} més que fa un mes", v42_net_less_1m:"{x} menys que fa un mes", v42_net_more_6m:"{x} més que fa 6 mesos", v42_net_less_6m:"{x} menys que fa 6 mesos", v42_net_more_1y:"{x} més que fa un any", v42_net_less_1y:"{x} menys que fa un any", v42_net_more_all:"{x} més des que vas començar", v42_net_less_all:"{x} menys des que vas començar",
+    v42_this_cycle:"Aquest cicle", v42_cycle_over:"T'has passat {x}", v42_cycle_start:"Cicle acabat de començar", v42_cycle_comfort:"Vas sobrat", v42_cycle_good:"Vas bé", v42_cycle_tight:"Vas justet", v42_cycle_slow:"Toca frenar una mica", v42_cycle_of:"de {x}", v42_cycle_daily:"{x} al dia", v42_cycle_day:"durant 1 dia", v42_cycle_days:"durant {n} dies",
     // INC-0810 ca: fin del patrimonio de ahora.
     v4_nobud_t:"Posa-li un pressupost", v4_nobud_p:"És la meitat de l'app: sense un límit al mes no es pot saber quant et queda. El pots canviar quan vulguis.", v4_nobud_cta:"Posa-li un pressupost", v4_noup_t:"Encara no hi ha rebuts", v4_noup_p:"Connecta el teu banc i els rebuts del mes apareixen sols, amb el seu dia i el seu import.", v4_noup_cta:"Connecta el teu banc", v4_nogoal_t:"Posa't el teu primer objectiu", v4_nogoal_p:"Un viatge, un coixí, el que sigui: l'app et diu quant falta i quan hi arribes.", v4_nogoal_cta:"Crear un objectiu", v4_see_gastos:"Veure despeses ›", v4_see_plan:"Veure pla ›",
     v4_upcoming:"Pròxims càrrecs", v4_upcoming_empty:"Res pendent aquest mes. Els rebuts surten aquí.",

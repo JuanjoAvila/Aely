@@ -28,12 +28,12 @@ for(const caso of [
   await page.waitForFunction(()=>!document.getElementById("mc-load"));
   await dismissNews(page);
   const dash=page.locator(".v4-budget");
-  await expect(dash.locator(".v4-ring")).toContainText(caso.month);
-  await expect(dash.locator(".v4-budget-txt .ph")).toContainText(caso.ahead);
-  await expect(dash).toContainText(/300/);
-  await expect(dash.locator(".v4-budget-txt .ph")).toContainText(/Puedes gastar|You can spend|Pots gastar/);
+  await expect(dash.locator(".v4-ring")).toContainText("30%");
+  await expect(dash.locator(".v42-cycle-amount>.serif")).toHaveText("700 €");
+  await expect(dash.locator(".v42-cycle-of")).toContainText("1000");
+  await expect(dash.getByTestId("inicio-cycle-pace")).toHaveCount(0);
   await expect(dash).not.toContainText(caso.start);
-  await expect(page.locator("[data-testid='dash-budget-streak']")).toHaveText({es:"Mes en curso",en:"Month in progress",ca:"Mes en curs"}[caso.lang]);
+  await expect(page.locator("[data-testid='dash-budget-streak']")).toHaveCount(0);
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
   const gastos=page.locator(".v4-gastos-summary");
   await expect(gastos).toContainText(/700/);
@@ -63,10 +63,11 @@ for(const caso of [
   await dismissNews(page);
   const dash=page.locator(".v4-budget");
   await expect(dash.locator(".v4-ring")).toContainText("98%");
-  await expect(dash.locator(".v4-ring")).toContainText(caso.cycle);
-  await expect(dash.locator(".v4-budget-txt .ph")).toHaveText(caso.net+" "+caso.left);
-  await expect(page.locator(".v4-budget-foot")).toContainText(caso.period);
-  await expect(dash.locator(".v4-budget-txt .ph")).not.toContainText("1450,00");
+  await expect(dash.locator(".v42-cycle-amount>.serif")).toHaveText("20 €");
+  await expect(dash.locator(".v42-cycle-of")).toContainText("1000");
+  await expect(dash.getByTestId("inicio-cycle-pace")).toContainText("0 €");
+  await expect(page.locator(".v4-budget-foot")).toHaveCount(0);
+  await expect(dash.locator(".v4-budget-txt .ph")).not.toContainText("1450");
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
   await expect(page.locator(".v4-period-btn.on")).toHaveText(caso.period);
   const gastos=page.locator(".v4-gastos-summary");
@@ -97,8 +98,9 @@ for(const caso of [
   await dismissNews(page);
   const dash=page.locator(".v4-budget");
   await expect(dash.locator(".v4-ring")).toContainText(caso.pct);
-  await expect(dash.locator(".v4-budget-txt .ph")).toContainText(caso.net);
-  await expect(dash.locator(".v4-budget-txt .ph")).toContainText(caso.left);
+  await expect(dash.locator(".v42-cycle-amount>.serif")).toHaveText((caso.income===780?"1680":"-150")+" €");
+  await expect(dash).toHaveAttribute("data-state",caso.income===780?"start":"over");
+  await expect(dash.getByTestId("inicio-cycle-pace")).toHaveCount(caso.income===780?1:0);
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
   const gastos=page.locator(".v4-gastos-summary");
   await expect(gastos.locator(".v4-gastos-summary-left")).toContainText(caso.remaining);
@@ -120,12 +122,12 @@ test("Inicio conserva la frase de gasto también con balance desfavorable",async
   await page.waitForFunction(()=>!document.getElementById("mc-load"));
   await dismissNews(page);
   const dash=page.locator(".v4-budget");
-  await expect(dash.locator(".v4-ring")).toContainText("del mes");
-  await expect(dash.locator(".v4-budget-txt .ph")).toContainText("Has gastado 300");
+  await expect(dash.locator(".v4-ring")).toContainText("30%");
+  await expect(dash.locator(".v42-cycle-amount>.serif")).toHaveText("700 €");
   await expect(dash.locator(".v4-budget-txt .ph")).not.toContainText(/[−-]\s*300/);
   await expect(dash.locator(".v4-budget-txt .ph")).not.toContainText("Balance en contra");
-  await expect(dash.locator(".v4-budget-txt .ph")).toContainText("Puedes gastar");
-  await expect(dash.locator(".v4-budget-txt .st")).toContainText("Vas muy bien");
+  await expect(dash.getByTestId("inicio-cycle-pace")).toHaveCount(0);
+  await expect(dash.locator(".v4-budget-txt .st")).toHaveText("Vas sobrado");
 });
 
 test("el cobro del 26 reinicia el presupuesto opcional y Mi ciclo abre por defecto",async({page})=>{
@@ -147,7 +149,7 @@ test("el cobro del 26 reinicia el presupuesto opcional y Mi ciclo abre por defec
   await dismissNews(page);
   const ajustesIniciales=page.locator(".settings-push.open").filter({has:page.getByRole("heading",{name:/Ajustes/i})});
   if(await ajustesIniciales.count()) await ajustesIniciales.locator(".settings-push-h .back").click();
-  await expect(page.locator(".v4-budget")).toContainText(/600/);
+  await expect(page.locator(".v42-cycle-amount>.serif")).toHaveText("400 €");
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
   await expect(page.locator(".v4-period-btn.on")).toHaveText("Mi ciclo");
   await expect(page.locator(".v4-cycle-box")).toContainText(/26\/0?8/);
@@ -164,7 +166,7 @@ test("el cobro del 26 reinicia el presupuesto opcional y Mi ciclo abre por defec
   await expect(page.locator(".v4-gastos-summary")).toContainText(/1\.?000/);
   await expect(page.locator(".v4-gastos-summary")).not.toContainText(/600/);
   await page.locator('.botnav-tab[data-tour="inicio"]').click();
-  await expect(page.locator(".v4-budget")).toContainText("Aquí empieza tu ciclo");
+  await expect(page.locator(".v4-budget .st")).toHaveText("Ciclo recién empezado");
   await page.clock.pauseAt(new Date("2026-09-28T10:00:00Z"));
   await page.clock.resume();
   await page.reload();
