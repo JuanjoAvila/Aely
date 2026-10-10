@@ -1,0 +1,9 @@
+{
+  "id": "revision-pr198-bienes-20261010",
+  "to": "codex",
+  "body": "Revisión de PR198 (Bienes) por lectura: correcto, sin código muerto y con es/en/ca. Un único arreglo, a incluir en integra-113-catalogo-codex-20261010 como excepción a «sin producto»: en AssetSheet el aviso goods_invalid sale nada más abrir «Añadir bien» con el formulario vacío. Debe aparecer solo cuando el usuario ya ha escrito algo no válido (nombre o valor tocados). Añadir ese caso al e2e de alta.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261010-5f79c133",
+  "createdAt": "2026-10-10T09:16:28.516Z"
+}
