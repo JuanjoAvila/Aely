@@ -1,0 +1,52 @@
+{
+  "status": "done",
+  "summary": "Causa encontrada y arreglo en PR draft 205. Verificado en GitHub: PR 205 abierto como draft contra beta, head dd9619fabb74cd2977239268bd002b9ff7e783a8, un commit con padre 684a839d286f68d66c8855cf6e1a626b7220fd64 (cabeza actual de beta), mergeable clean, 3 ficheros +130/-3: src/shell.html (+15/-3), e2e/inicio-solape-gastos.spec.mjs (nuevo, +112) y scripts/relevant-tests.mjs (+3). Sin merge, sin push a beta/main, sin VERSION, catalogos ni tope, sin tocar otros PR ni el gesto ni el premontaje. CAUSA: la lista de categorias vista encima de Inicio es el desglose de Gastos, premontado, que atraviesa visibility:hidden. La pista si estaba asentada (tras el idle y al volver de Apuntar el track es scroll-host-park, transform none, left 0, la pagina 0 es page-scroll-host y la barra activa es Inicio, que no pinta categorias). El host de la pestana activa es position:fixed y sale del flujo, asi que la pagina vecina premontada ocupa el mismo rectangulo; .v4-gastos-cats-body.abierto y el cuerpo de filtros forzaban visibility:visible, y un hijo visible se pinta aunque el padre este hidden. Medido con Inicio activa: diez categorias con caja dentro del viewport (por ejemplo el desglose en 37,246). Sin tematica el host lleva background opaco y las tapa; con tematica el host es transparente y la tarjeta vacia de recibos no tiene fondo, asi que las filas se leen encima de Aun no hay recibos y Tus metas. Letra grande, viewport estrecho, reduced-motion y CPU x6 sin tematica no lo muestran; con tematica si; Apuntar deja la barra en Gastos y al volver a Inicio el solape sigue. ARREGLO: en src/shell.html el desglose abierto y el filtro abierto pasan a visibility:inherit y pointer-events:inherit, siguen el hidden de la pagina inactiva y se ven cuando Gastos es el host. Se descarto una guarda con visibility hidden !important sobre toda la pagina inactiva porque a CPU x6 la primera vuelta a Inicio pagaba unos 65 ms de estilo (el log crudo de esa pasada no se conserva). RENDIMIENTO CPU x6 (tres pasadas, frame maximo en ms): tareas largas 0 antes y despues. Click a Gastos antes 33,17,17 y despues 33,17,17; click a Inicio antes 17,17,17 y despues 17,33,17; swipe a Gastos antes 33,33,33 y despues 33,33,17; swipe a Inicio antes 17,17,33 y despues 33,33,33. Una primera pasada con inherit tuvo un frame de 83 ms en el primer click a Gastos, no repetido. ROJOS frente a beta 684a839d (las dos suites completas corrieron a la vez): rama 998 passed, 5 failed, 1 skipped; beta 997 passed, 5 failed, 1 skipped; el passed de mas es el e2e nuevo. Fallan en las dos e2e/rendimiento.spec.mjs linea 93 (cache de parseDate: rama 13.0/5.7 ms, beta 16.3/6.1) y casos de e2e/botnav-indicador, pero no son los mismos casos en cada suite; en solitario en beta fallan 8 de 12 de botnav-indicador (timeout de .settings-push.open): fichero ya rojo en beta, nada de esta rama. No se toco ningun test existente. PROPUESTA: incluir en un commit el public/index.html regenerado (+18/-3, mismo CSS) si se quiere que Playwright sirva el arreglo sin npm run build previo; un checkout limpio de la rama no lo lleva en el bundle y no esta commiteado. LIMITES: los datos del movil del dueno (OnePlus 11 a 120 Hz) llegaron tras lanzar el agente y no se le pasaron; la medicion es Chromium de escritorio con CPU x6, no ese movil, asi que el arreglo no esta confirmado en el dispositivo real y si el solape reaparece en el movil hace falta un chat nuevo con esos datos.",
+  "productSHA": "dd9619fabb74cd2977239268bd002b9ff7e783a8",
+  "tests": [
+    {
+      "command": "npm run build",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "npx playwright test e2e/inicio-solape-gastos.spec.mjs (bundle de 684a839d, sin arreglo)",
+      "exitCode": 1,
+      "note": "1 failed: cajas v4-gastos-cats-body abierto en 37,246"
+    },
+    {
+      "command": "npx playwright test e2e/inicio-solape-gastos.spec.mjs (con arreglo)",
+      "exitCode": 0,
+      "note": "1 passed; tambien pasa dentro de la suite de la rama"
+    },
+    {
+      "command": "npx playwright test (suite entera, rama)",
+      "exitCode": 1,
+      "note": "998 passed, 5 failed, 1 skipped, 31,7 min"
+    },
+    {
+      "command": "npx playwright test (suite entera, beta 684a839d)",
+      "exitCode": 1,
+      "note": "997 passed, 5 failed, 1 skipped, 31,6 min"
+    },
+    {
+      "command": "npx playwright test e2e/botnav-indicador.spec.mjs workers=1 (beta 684a839d)",
+      "exitCode": 1,
+      "note": "8 failed, 4 passed"
+    }
+  ],
+  "limitations": [
+    "Resultados tomados del informe del agente Cursor bc-c59544c2; solo he verificado en GitHub el PR 205, su head, base, padre y ficheros",
+    "No probado en movil real (OnePlus 11, 120 Hz)",
+    "public/index.html regenerado no esta commiteado",
+    "Datos sinteticos; sin Edge, SQL ni APK"
+  ],
+  "schema": 1,
+  "taskId": "inicio-solape-gastos-grok-20261010",
+  "actor": "grok",
+  "sessionId": "grok-bot-20261010-s",
+  "createdAt": "2026-10-10T17:26:38.555Z",
+  "released": true
+}
