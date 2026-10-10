@@ -86,9 +86,10 @@ public class MiCarteraWidget extends AppWidgetProvider {
         s.journalFull = p.getBoolean("journalFull", false);
         s.unknownJournal = p.getString("unknownJournal", "");
         s.recoveryJournal = p.getString("recoveryJournal", "");
-        // Releer todas las identidades antiguas distingue formato recuperable de pérdida;
-        // no convertir journalFull en un bloqueo irreversible antes de intentar el ACK.
-        s.unknownLoss = p.getBoolean("unknownLoss", s.journalFull && WidgetSnapshotArbiter.legacyLoss(s));
+        // APK52 podía omitir el evento que desbordaba sin guardar su identidad ni la causa.
+        // La misma preferencia también nace de indentación: legibilidad y ACK retenidos no
+        // prueban ausencia de pérdida. Sin marca moderna conservar incertidumbre (10/10).
+        s.unknownLoss = p.getBoolean("unknownLoss", s.journalFull);
         s.identityLost = p.getBoolean("identityLost", s.unknownLoss && s.recoveryJournal.isEmpty());
         s.unknownPending = p.getBoolean("unknownPending", false) || s.unknownLoss;
         s.coveredEvents = p.getString("coveredEvents", "");

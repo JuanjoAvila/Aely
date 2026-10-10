@@ -38,6 +38,9 @@ assert.notEqual(snapshots[0].periodStart,snapshots[1].periodStart);
 assert.notEqual(snapshots[0].spent,snapshots[1].spent);
 const dir=fs.mkdtempSync(path.join(os.tmpdir(),'aely-widget-notificacion-'));
 try {
+const legacy=spawnSync('git',['show','74c5f075:android/app/src/main/java/com/micartera/app/WidgetSnapshotArbiter.java'],{cwd:root,encoding:'utf8'});assert.equal(legacy.status,0);fs.writeFileSync(path.join(dir,'LegacyWidgetSnapshotArbiter.java'),legacy.stdout.replaceAll('WidgetSnapshotArbiter','LegacyWidgetSnapshotArbiter'));
+const legacyWidget=spawnSync('git',['show','74c5f075:android/app/src/main/java/com/micartera/app/MiCarteraWidget.java'],{cwd:root,encoding:'utf8'});assert.equal(legacyWidget.status,0);
+const legacyReadWrite=legacyWidget.stdout.slice(legacyWidget.stdout.indexOf('    private static WidgetSnapshotArbiter.State read('),legacyWidget.stdout.indexOf('    static synchronized long beginIngest(')).replaceAll('WidgetSnapshotArbiter','LegacyWidgetSnapshotArbiter');
 fs.writeFileSync(path.join(dir,'WidgetNotificationTest.java'),`package com.micartera.app;
 import java.util.*;
 import java.text.NumberFormat;
@@ -96,6 +99,9 @@ public class WidgetNotificationTest {
     static void refreshAll(Context ctx){last=build(ctx);}
     static long monthStart(long when){return WidgetPeriod.monthStart(when);}
 ${methods}
+  }
+  static class LegacyPrefs {
+${legacyReadWrite}
   }
   static class JSONObject {
     static final Map<String,JSONObject> encoded=new HashMap<>();
@@ -187,9 +193,82 @@ ${response}
     ok(MiCarteraWidget.last.text.get(R.id.w_amount).equals("—"),"ACK de registro retenido no limpia identidad realmente perdida");
     System.out.println("PASS causal: saveApp concilia ACK/lápidas antes de migrar registros casi llenos al cambiar scope");
   }
+  static LegacyWidgetSnapshotArbiter.State ambiguousOld(long m) {
+    LegacyWidgetSnapshotArbiter.State s=new LegacyWidgetSnapshotArbiter.State();
+    s.periodStart=m;s.issued=1;s.spent=50;s.budget=100;s.hasBudgetLeft=true;s.budgetLeft=50;
+    s.hasSafeLiq=true;s.baseSafeLiq=150;s.hasCash=true;s.baseCash=200;s.cashEnt="trade_republic";s.cashLabel="Cuenta";
+    s.journal="old\\t10\\t10\\t10\\t1\\t1\\toldKey";s.events="|old|";
+    s.unknownJournal="known\\tknownKey\\n    ";s.unknownPending=true;return s;
+  }
+  static void identicalLegacyPrefs() {
+    long m=WidgetPeriod.monthStart(System.currentTimeMillis());
+    LegacyWidgetSnapshotArbiter.State format=ambiguousOld(m),loss=ambiguousOld(m);
+    ok(!LegacyWidgetSnapshotArbiter.app(format,m,50,100,50.0,150.0,200.0,"trade_republic","Cuenta","|old|known|",""),"Java74 real bloquea indentación pequeña");
+    String missing=new String(new char[262150]).replace('\\0','x');
+    LegacyWidgetSnapshotArbiter.ingest(loss,1,m,m,100,missing,"lostKey",50,100,50,1,1,1,true,true);
+    ok(loss.journalFull&&!loss.journal.contains(missing),"Java74 real omite ID que no cabe sobre registro pequeño");
+    Listener a=production52(m),b=production52(m);
+    for(int n=0;n<100;n++) { LegacyPrefs.write(a.prefs.edit(),format);LegacyPrefs.write(b.prefs.edit(),loss);if(a.prefs.values.equals(b.prefs.values))break; }
+    ok(a.prefs.values.equals(b.prefs.values),"Java74 escribe preferencias idénticas con causa de formato o pérdida real");
+    for(Listener c:new Listener[]{a,b}) {
+      MiCarteraWidget.saveApp(c,m,50,100,50.0,150.0,200.0,"trade_republic","Cuenta","|old|known|","",2,"mes","gasto","es",monthlyScope(m));render(c);
+      ok(MiCarteraWidget.last.text.get(R.id.w_amount).equals("—"),"preferencias indistinguibles no permiten recuperar sin contrato de Claude");
+    }
+    System.out.println("PASS causal: Java74 real escribe prefs idénticas por formato pequeño o pérdida; candidata conserva ambas inciertas");
+  }
+  static void legacyOverflow() {
+    for(boolean formatting:new boolean[]{false,true}) {
+      long m=WidgetPeriod.monthStart(System.currentTimeMillis());
+      LegacyWidgetSnapshotArbiter.State old=new LegacyWidgetSnapshotArbiter.State(); old.periodStart=m; old.cashEnt="trade_republic";
+      StringBuilder journal=new StringBuilder(),events=new StringBuilder(); int i=0;
+      while(true){ String id="retained"+(++i),line=id+"\\t1\\t1\\t1\\t1\\t1\\tkey"+i;
+        if(journal.length()+line.length()+1>262144-8)break;
+        if(journal.length()>0)journal.append('\\n');journal.append(line);events.append('|').append(id).append('|'); }
+      old.journal=journal.toString();old.events=events.toString();
+      old.unknownJournal=formatting?"known\\tknownKey\\n    ":"";
+      old.unknownPending=formatting;
+      String missing="lost-"+new String(new char[64]).replace('\\0','x');
+      LegacyWidgetSnapshotArbiter.ingest(old,LegacyWidgetSnapshotArbiter.begin(old),m,m,100,missing,"lostKey",50,100,50,1,1,1,true,true);
+      ok(old.journalFull&&!old.journal.contains(missing),"Java74 real pierde evento al desbordar");
+      Listener migrated=production52(m); migrated.prefs.edit().putString("journal",old.journal).putString("events",old.events)
+        .putBoolean("journalFull",old.journalFull).putBoolean("unknownPending",old.unknownPending).putString("unknownJournal",old.unknownJournal).commit();
+      render(migrated);ok(MiCarteraWidget.last.text.get(R.id.w_amount).equals("—"),"estado antiguo bloqueado antes del ACK");
+      MiCarteraWidget.saveApp(migrated,m,50,100,50.0,150.0,200.0,"trade_republic","Cuenta",old.events+"|known|","",2,"mes","gasto","es",monthlyScope(m));render(migrated);
+      ok(MiCarteraWidget.last.text.get(R.id.w_amount).equals("—"),"ACK sólo retenido NO demuestra evento perdido en APK52");
+      render(migrated);
+      ok(migrated.prefs.getBoolean("identityLost",false),"pérdida antigua sin marca queda durable tras relectura");
+    }
+      Listener ambiguous=production52(WidgetPeriod.monthStart(System.currentTimeMillis()));
+      ambiguous.prefs.edit().putBoolean("journalFull",true).commit();
+      MiCarteraWidget.saveApp(ambiguous,WidgetPeriod.monthStart(System.currentTimeMillis()),50,100,50.0,150.0,200.0,"trade_republic","Cuenta","|old|","",2,"mes","gasto","es",monthlyScope(WidgetPeriod.monthStart(System.currentTimeMillis())));render(ambiguous);
+      ok(MiCarteraWidget.last.text.get(R.id.w_amount).equals("—"),"registro antiguo pequeño sin causa de formato no demuestra pérdida ausente");
+      System.out.println("PASS: overflow Java74 real, prefs sin marca, sólo ACK retenido mantiene pérdida bloqueada");
+    }
   public static void main(String[] args){
+    if(args.length>0&&args[0].equals("legacyoverflow")){legacyOverflow();return;}
+    legacyOverflow();
+    identicalLegacyPrefs();
     if(args.length>0&&args[0].equals("pressure")){pressure();return;}
     long now=System.currentTimeMillis(),month=WidgetPeriod.monthStart(now),cycle=${snapshots[1].periodStart}L;
+    Listener persistedCycle=production52(cycle);
+    persistedCycle.prefs.edit().putString("periodKind","ciclo").putString("magnitude","neto")
+      .putString("scope",${JSON.stringify(snapshots[1].scope)}).putFloat("spent",${snapshots[1].spent}f).commit();
+    render(persistedCycle);
+    ok(MiCarteraWidget.last.text.get(R.id.w_title).equals("AELY · MI CICLO · GASTO NETO"),"cabecera exacta de foto ciclo persistida APK52");
+    persistedCycle.handleResponse(notification(month,false).toString(),MiCarteraWidget.beginIngest(persistedCycle),"raw"); render(persistedCycle);
+    ok(MiCarteraWidget.last.text.get(R.id.w_amount).equals("${Math.round(snapshots[1].spent+5)} €"),"pago cerrado legacy sobre foto ciclo persistida conserva cifra neta");
+    ok(!MiCarteraWidget.last.text.get(R.id.w_sub).equals("Abre la app para actualizar"),"pago conocido no deja aviso bloqueado");
+    JSONObject uncertainCycle=notification(month,false).put("ack","uncertain-cycle").put("fecha","2000-01-01T00:00:00.000Z");
+    uncertainCycle.optJSONObject("month").put("eventKey","uncertain-cycle").put("expenseKey","uncertain-key");
+    persistedCycle.handleResponse(uncertainCycle.toString(),MiCarteraWidget.beginIngest(persistedCycle),"raw"); render(persistedCycle);
+    ok(MiCarteraWidget.last.text.get(R.id.w_amount).equals("—")&&MiCarteraWidget.last.text.get(R.id.w_sub).equals("Abre la app para actualizar"),"fecha realmente incierta mantiene aviso visible");
+    MiCarteraWidget.saveApp(persistedCycle,cycle,${snapshots[1].spent+5},100,45.0,135.0,185.0,"trade_republic","Cuenta",
+      "|old|payment|","",2,"ciclo","neto","es",${JSON.stringify(snapshots[1].scope)}); render(persistedCycle);
+    ok(MiCarteraWidget.last.text.get(R.id.w_amount).equals("—"),"abrir sin cobertura del evento incierto no inventa ACK");
+    MiCarteraWidget.saveApp(persistedCycle,cycle,${snapshots[1].spent+5},100,45.0,135.0,185.0,"trade_republic","Cuenta",
+      "|old|payment|uncertain-cycle|","",2,"ciclo","neto","es",${JSON.stringify(snapshots[1].scope)}); render(persistedCycle);
+    ok(MiCarteraWidget.last.text.get(R.id.w_title).equals("AELY · MI CICLO · GASTO NETO")&&MiCarteraWidget.last.text.get(R.id.w_amount).equals("${Math.round(snapshots[1].spent+5)} €"),"cobertura real recupera cifra y cabecera ciclo");
+    System.out.println("PASS suplemento móvil: foto ciclo APK52 persistida, legacy cerrado, incertidumbre y recuperación sólo con cobertura exacta");
     Listener c=production52(month); render(c);
     ok(MiCarteraWidget.last.text.get(R.id.w_amount).equals("50 €"),"foto APK52 inicial");
     long ticket=MiCarteraWidget.beginIngest(c);
@@ -254,7 +333,15 @@ ${response}
       .putString("unknownJournal","payment\\tpaymentKey\\n    ").commit();
     MiCarteraWidget.saveApp(migrated,month,55,100,45.0,135.0,185.0,"trade_republic","Cuenta",
       "|old|payment|","",2,"mes","gasto","es",monthlyScope(month)); render(migrated);
-    ok(MiCarteraWidget.last.text.get(R.id.w_amount).equals("55 €"),"migración real saveApp/read/build recupera");
+    ok(MiCarteraWidget.last.text.get(R.id.w_amount).equals("—"),"migración antigua sin causa no se acredita por ACK retenido");
+    Listener modernFormatting=production52(month);
+    WidgetSnapshotArbiter.State modernState=MiCarteraWidget.read(modernFormatting.prefs);
+    modernState.journalFull=true; modernState.unknownPending=true;
+    modernState.unknownJournal="payment\\tpaymentKey\\n    ";
+    MiCarteraWidget.write(modernFormatting.prefs.edit(),modernState);
+    MiCarteraWidget.saveApp(modernFormatting,month,55,100,45.0,135.0,185.0,"trade_republic","Cuenta",
+      "|old|payment|","",2,"mes","gasto","es",monthlyScope(month)); render(modernFormatting);
+    ok(MiCarteraWidget.last.text.get(R.id.w_amount).equals("55 €"),"formato moderno con marca de identidad conservada recupera");
     Listener uncertain=production52(month); JSONObject old=notification(month,false);
     old.put("fecha","2000-01-01T00:00:00.000Z");
     uncertain.handleResponse(old.toString(),MiCarteraWidget.beginIngest(uncertain),"raw"); render(uncertain);
@@ -268,7 +355,7 @@ ${response}
 }`);
 const jdk=process.env.JAVA_HOME?path.join(process.env.JAVA_HOME,'bin'):'C:/Program Files/Android/Android Studio/jbr/bin';
 const probe=process.argv.find(a=>a.startsWith('--probe='));
-for(const [name,args] of [['javac',['-encoding','UTF-8','-d',dir,path.join(native,'WidgetSnapshotArbiter.java'),path.join(native,'WidgetPeriod.java'),path.join(dir,'WidgetNotificationTest.java')]],['java',['-cp',dir,'com.micartera.app.WidgetNotificationTest',...(probe?[probe.slice(8)]:[])]]]) {
+for(const [name,args] of [['javac',['-encoding','UTF-8','-d',dir,path.join(native,'WidgetSnapshotArbiter.java'),path.join(native,'WidgetPeriod.java'),path.join(dir,'WidgetNotificationTest.java'),path.join(dir,'LegacyWidgetSnapshotArbiter.java')]],['java',['-cp',dir,'com.micartera.app.WidgetNotificationTest',...(probe?[probe.slice(8)]:[])]]]) {
  const executable=path.join(jdk,name+(process.platform==='win32'?'.exe':''));
  const r=spawnSync(fs.existsSync(executable)?executable:name,args,{encoding:'utf8',cwd:root});
  assert.equal(r.status,0,String(r.error||r.stderr||r.stdout)); process.stdout.write(r.stdout);

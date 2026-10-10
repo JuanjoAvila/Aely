@@ -578,3 +578,5 @@ El efecto inicial conserva el disposer devuelto por `cloud.onAuth`. Al desmontar
 ### Recientes de Dashboard · candidata106
 
 La derivación de tres recientes conserva el filtro de lápidas y el orden estable por fecha. `useMemo` depende de `state.expenses` y `state.deleted`; abrir presupuesto o modificar settings no vuelve a recorrer el histórico. Los setters deben seguir conservando referencias cuando no cambian y generar referencias nuevas al editar/eliminar/sincronizar. No depende de todo state ni de fecha civil: la lista ordena fechas originales sin ventana temporal. No cambia dinero ni sincronización.
+
+APK52 no guardaba el ID que desbordaba el journal ni la causa del bloqueo. Java74 real puede escribir exactamente las mismas preferencias por formato pequeño o pérdida; todos los flags antiguos sin marca moderna conservan incertidumbre durable. Los ACK retenidos y el tamaño no prueban integridad. La recuperación moderna con identidad conservada sigue exigiendo cobertura exacta; la recuperación del legado queda bloqueada hasta un contrato o criterio de Claude.

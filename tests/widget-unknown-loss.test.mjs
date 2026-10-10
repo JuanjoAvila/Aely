@@ -60,14 +60,19 @@ ${readWrite}
             .putBoolean("unknownPending",true).putString("unknownJournal","known\\tknownKey\\n    ");
         WidgetSnapshotArbiter.State migrated=read(old);
         photo(migrated,1,"|foreign|","","trade_republic");
-        ok(migrated.unknownPending&&!migrated.unknownLoss,"migración legible no declara pérdida");
+        ok(migrated.unknownPending&&migrated.unknownLoss&&migrated.identityLost,"legibilidad antigua no prueba ausencia de pérdida");
         migrated=restart(migrated);
         photo(migrated,1,tombstone?"":"|known|",tombstone?"|knownKey|":"","trade_republic");
-        ok(!migrated.unknownPending&&!migrated.unknownLoss,"abrir app recupera migración con cobertura exacta");
+        ok(migrated.unknownPending&&migrated.unknownLoss,"ACK retenido no recupera causa antigua ambigua");
         migrated=restart(migrated); photo(migrated,1,"","","trade_republic");
-        ok(!migrated.unknownPending,"reinicio conserva recuperación");
+        ok(migrated.unknownPending,"reinicio conserva incertidumbre antigua");
+        WidgetSnapshotArbiter.State modern=base(); modern.journalFull=true;
+        modern.unknownJournal="known\\tknownKey\\n    "; modern.unknownPending=true;
+        modern=restart(modern);
+        photo(modern,1,tombstone?"":"|known|",tombstone?"|knownKey|":"","trade_republic");
+        ok(!modern.unknownPending&&!modern.unknownLoss,"formato moderno con identidad conservada y cobertura exacta sí recupera");
       }
-      System.out.println("  PASS causal: migración code52, indentación, ACK y lápida exactos"); return;
+      System.out.println("  PASS causal: legado ambiguo bloqueado; formato moderno recupera con ACK o lápida exactos"); return;
     }
     if(args.length>0&&args[0].equals("period")) {
       for(boolean server:new boolean[]{false,true}) {

@@ -273,11 +273,12 @@ Ajustes → Banco del widget elige `settings.widgetBank` (entidad bancaria), sin
 
 El registro nativo se escribe sin salto final y tolera indentación XML al releerse. La foto de la app reevalúa un bloqueo previo, conserva eventos aún no confirmados y sus deltas; las entradas dañadas o contribuciones desconocidas no se descartan. Actualizar el APK es obligatorio: la OTA4.26.54.1 corrige presupuesto pero no este parser Java. APK51 instalada en el móvil de pruebas; widget recuperado y Gastado/Disponible estables al reabrir; saldo entre fotos y pago real pendientes. No borrar preferencias para forzar una cifra.
 
-La corrección `widget-estado-correccion-codex-20261010` relee todas las identidades antes
-de migrar `journalFull` de APK52 a pérdida: un registro legible con indentación XML conserva
-sus pendientes hasta ACK o lápida y puede recuperarse al abrir la app. Un bloqueo antiguo
-sin ninguna identidad recuperable mantiene la incertidumbre. La migración no puede reconstruir
-un evento que una APK antigua hubiese descartado sin dejar registro de esa pérdida.
+La corrección `widget-estado-correccion-codex-20261010` conserva incertidumbre durable al
+migrar cualquier `journalFull` de APK52 que no tenga una marca moderna de pérdida. La APK
+antigua podía omitir una identidad y producir las mismas preferencias que un fallo de
+indentación pequeño; legibilidad y ACK o lápidas de los IDs retenidos no distinguen las causas.
+La candidata no reconstruye ese evento ni desbloquea esos estados. El formato del esquema
+moderno sí se recupera cuando conserva identidad y la foto acredita cobertura exacta.
 
 Si el registro principal alcanza 262144 caracteres, una reserva `recoveryJournal` de 4096
 conserva nuevas identidades pequeñas hasta cobertura exacta. `unknownLoss` vuelve a false
@@ -331,3 +332,5 @@ a Claude. Java y una compilación local no acreditan instalación ni aceptación
 ### Widget80 / APK52: preasset real, entrega final pendiente
 
 Runtime821 sobre79, gradle52/versionName4.26.80; widgetContract2, cifra/periodo de Inicio en es/en/ca, scope exacto y unknownJournal hasta ACK/lápida. Prebuild26a verificado y asset beta602841368 descargado/cotejado; public/apk.json52 local apunta a URL real. Exige CI/build final del SHA con52 y reemplazo/cotejo binario antes de entregar. APK78 histórica no acredita80. No editar ingest ni instalar. [Plan](briefs/inc-2909-01-apk-beta-plan.md).
+
+Migración APK52 sin marca de pérdida: Java74 real produce preferencias idénticas por un fallo de indentación pequeño o por una identidad que no cabe, sin conservar el evento omitido. Por eso cualquier `journalFull` sin `unknownLoss` explícito permanece incierto y se sella como `identityLost`; ni el tamaño ni los ACK retenidos prueban integridad. No se usa un margen de capacidad como prueba. La recuperación de estos estados requiere un contrato o criterio de Claude y evidencia del titular. Candidata bloqueada; no hay reseteo, ACK inventado ni reparación de identidad perdida. f24854bd y su APK local quedan revocados para instalar o integrar.

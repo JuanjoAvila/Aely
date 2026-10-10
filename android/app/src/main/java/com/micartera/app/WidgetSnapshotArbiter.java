@@ -68,22 +68,6 @@ final class WidgetSnapshotArbiter {
     private static final int RECOVERY_MAX = 4096;
     private static String[] entry(String line) { return line.split("\\t", -1); }
 
-    /** La APK52 conservaba las entradas; journalFull por formato no demuestra pérdida. */
-    static boolean legacyLoss(State s) {
-        boolean any = false;
-        String[] records = {s.journal, s.unknownJournal};
-        for (int i = 0; i < records.length; i++) {
-            String data = records[i];
-            for (String line : data.split("\\n")) {
-                if (line.trim().isEmpty() && line.indexOf('\t') < 0) continue;
-                String[] p = entry(line);
-                if (p.length != (i == 0 ? 7 : 2) || p[0].trim().isEmpty()) return true;
-                any = true;
-            }
-        }
-        return !any;
-    }
-
     private static boolean lost(State s) {
         s.journalFull = true;
         s.identityLost = true;
