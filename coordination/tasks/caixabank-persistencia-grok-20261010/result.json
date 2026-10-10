@@ -1,0 +1,49 @@
+{
+  "status": "blocked",
+  "summary": "Persistencia del re-sellado arreglada y PR 200 rebasada sobre beta actual; queda bloqueado por rojos que decide el coordinador (tope de tamano, entrega de beta y 5 specs de la barra inferior). Verificado en GitHub: PR 200 abierto como draft, head ed09ce1d97ddd3609efcc8613aced0b0b1148ab3 (un commit sobre 77fd108c), base beta 684a839d286f68d66c8855cf6e1a626b7220fd64 (es la cabeza actual de beta), mergeable clean, 6 commits, 13 ficheros, +1695/-117. El rebase fue un force-with-lease solo en la rama de este PR; el ultimo commit es un avance normal; sin merge, sin push a beta/main, sin tocar PR 131/141/146/151, VERSION, catalogos, notas ni tope. Causa real hallada: el re-sellado sin altas ya devolvia un array nuevo y se guardaba, pero al abrir la app el pull de la nube fundia los dos cargos del mediodia porque comparten clave (se quedaba el primero) y el sync a demanda daba de alta al otro con id nuevo. Ahora el pull no funde dos cargos del mediodia con distinta referencia (00-core.js) y el sync a demanda usa obExpensesAfterSync, que solo devuelve array nuevo si cambia alguna fila y no reescribe sin cambio (08-motor-bank.js y 11-app-main.js). Tras sincronizar sin altas y recargar siguen e-caixa-a y e-caixa-b, con el sello nuevo y dos filas, sin duplicar. Guardianes: inc-2709-06-caixa-extid, identidad y merge-expenses-cloud en 0; e2e/gastos-caixa-extid 4 passed. Rojos: beta-sources y docs-frescura (esperados: codigo nuevo sin subir VERSION ni refrescar catalogos); presupuesto-rendimiento (minificado 1302 KB con tope 1295 KB, gzip 356 KB con tope 354 KB; tope no subido); Playwright completo 927 passed, 1 skipped, 79 failed: 72 en e2e/revisar-beta.spec.mjs y 2 en e2e/beta-panel-reopen.spec.mjs (esperan las notas de version cargadas, timeout de 10 s: el index las deja vacias y las baja del JSON, y los hashes de entrega se dejaron como en beta) y 5 en e2e/botnav-indicador.spec.mjs (no abren Ajustes en parte de la matriz); ninguno es de Caixa y no se relajaron esperas. PROPUESTAS para el coordinador: A) subir el tope de presupuesto-rendimiento al integrar con las cifras anteriores; B) refrescar la entrega de beta al integrar, si no el panel de revision sigue en timeout; C) los 5 fallos de botnav-indicador no salen de este arreglo, mirarlos aparte; D) caveat: no he verificado si esos 79 fallos de Playwright ocurren tambien en beta limpia, solo que revisar-beta y beta-panel-reopen dependen del recibo de entrega. Los PR 131, 141, 146 y 151 siguen abiertos.",
+  "productSHA": "ed09ce1d97ddd3609efcc8613aced0b0b1148ab3",
+  "tests": [
+    {
+      "command": "npm run build",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/inc-2709-06-caixa-extid.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/inc-2709-06-identidad.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/merge-expenses-cloud.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "npx playwright test e2e/gastos-caixa-extid.spec.mjs",
+      "exitCode": 0,
+      "note": "4 passed"
+    },
+    {
+      "command": "npm test",
+      "exitCode": 1,
+      "note": "422 s; rojos beta-sources, docs-frescura, presupuesto-rendimiento; no llega a Playwright"
+    },
+    {
+      "command": "npx playwright test (completo)",
+      "exitCode": 1,
+      "note": "927 passed, 1 skipped, 79 failed (72 revisar-beta, 2 beta-panel-reopen, 5 botnav-indicador)"
+    }
+  ],
+  "limitations": [
+    "Resultados tomados del informe del agente Cursor bc-97e88f10; solo he verificado en GitHub el estado del PR 200, su head, base, padre del ultimo commit y los ficheros de ese commit",
+    "No se ha comprobado si los 79 fallos de Playwright se reproducen en beta limpia",
+    "Datos sinteticos; sin movil, Edge, SQL ni APK"
+  ],
+  "schema": 1,
+  "taskId": "caixabank-persistencia-grok-20261010",
+  "actor": "grok",
+  "sessionId": "grok-bot-20261010-pr5t8k2w",
+  "createdAt": "2026-10-10T13:18:20.864Z",
+  "released": true
+}
