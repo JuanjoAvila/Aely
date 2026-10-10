@@ -1,0 +1,39 @@
+{
+  "status": "done",
+  "summary": "Dos specs e2e estabilizados solo con cambios de prueba. PR draft 203 contra beta, rama cursor/tests-inestables-grok-959b, un commit con padre 684a839d (verificado en GitHub: +38/-1, solo e2e/metas-mensual.spec.mjs y e2e/cartera-bienes-toque.spec.mjs; fixtures.mjs sin tocar; sin producto, VERSION ni catalogo). Metas: el alta de 100 euros desbloquea el logro y lo anuncia en el unico toast, que pisaba el aviso del error de la nube; se siembra el logro save_100 con gmLevel 0, se espera a __mcBootReady antes de interceptar (el pull del hueco inicial llegaba a contar dos veces) y se exige que no quede toast. Bienes: el espia de localStorage se instalaba con el arranque a medias y contaba volcados tardios del arranque como escrituras del toque; el que coincide con abrir Cartera es el cierre diario de saldo (efecto accountBalanceHistory en 07-tab-patri-fijos.js, set en la linea 388, volcado con debounce de 400 ms). En el mismo hueco escriben syncCloudExpenses (lastSync), ensureBudgetMonthSnap, logros, refreshFx y la copia del dia (lastBackup). La prueba espera a que todo este en disco y vuelca pagehide antes de espiar. No se propone quitar esas escrituras: es el arranque normal. Sin timeouts subidos, sin retries ni skips. Sin checks en el PR porque test.yml solo corre en PR a main.",
+  "productSHA": "4c5e24a6fc869afe90a285d4685f2d094b15db61",
+  "tests": [
+    {
+      "command": "npx playwright test e2e/cartera-bienes-toque.spec.mjs --workers=6 --repeat-each=5 (base 684a839d)",
+      "exitCode": 0,
+      "note": "30 passed, no fallo en esa pasada"
+    },
+    {
+      "command": "npx playwright test e2e/metas-mensual.spec.mjs --workers=6 --repeat-each=5 (base 684a839d)",
+      "exitCode": 1,
+      "note": "1 failed, 74 passed: __mensualPulls 2 en vez de 1 en el alta del ciclo"
+    },
+    {
+      "command": "npx playwright test e2e/cartera-bienes-toque.spec.mjs --workers=6 --repeat-each=5 (con arreglo)",
+      "exitCode": 0,
+      "note": "30 passed"
+    },
+    {
+      "command": "npx playwright test e2e/metas-mensual.spec.mjs --workers=6 --repeat-each=5 (con arreglo)",
+      "exitCode": 0,
+      "note": "75 passed"
+    }
+  ],
+  "limitations": [
+    "Resultados tomados del informe del agente Cursor bc-22248b04; solo he verificado en GitHub el commit, su padre y los ficheros",
+    "Bienes no fallo en la base en la pasada de 30, la mejora de ese spec se apoya en el diagnostico de seis arranques (escritura a 1 ms del espia)",
+    "Solo Chromium de Playwright, datos sinteticos",
+    "La espera de Bienes exige que el tipo de cambio llegue a disco: si esa peticion no responde, el spec falla en la espera en vez de espiar a medias"
+  ],
+  "schema": 1,
+  "taskId": "tests-inestables-grok-20261010",
+  "actor": "grok",
+  "sessionId": "grok-bot-20261010-s2pwz",
+  "createdAt": "2026-10-10T11:35:46.839Z",
+  "released": true
+}
