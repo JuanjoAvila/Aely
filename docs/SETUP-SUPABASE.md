@@ -7,6 +7,10 @@ usuarios. La candidata prepara `ingest/widget.ts`: respuesta widget v2 de la ven
 por la app, validando ancla y scope; month conserva su payload mensual legacy para APK antiguas.
 El total v2 requiere conteo exacto, páginas completas con identidades únicas y el pago visible.
 Conteo ausente/cambiante, consulta fallida o truncada y pago ausente devuelven `widget:null`.
+La matriz contra Inicio distingue presupuesto ausente (scope null) de todo reservado (scope 0,
+con margen conocido). V2 aplica el filtro por categoría de Inicio también a filas con marca
+de cuota; el cálculo de month legacy no cambia. La marca por sí sola no sustituye una categoría
+explícita de ese lector. Esta fuente se valida con datos sintéticos, sin modificar gastos.
 El listener candidato admite ambos servidores. Sin secretos, esquema ni migraciones nuevos.
 Fuente sin despliegue: Claude activa únicamente ingest mediante `supabase.yml`, migraciones=no,
 después de probar el APK. Push del PR no activa ese workflow manual. Validación sintética en

@@ -229,6 +229,14 @@ duplicados de página, consulta fallida y pago ausente; no aceptan un cero de le
 El pintado Java comprueba también que un pago TR no descuenta el saldo de otro banco elegido.
 `deno check` del
 handler mantiene tres errores de tipos reproducidos en la base, ajenos a esta corrección.
+`widget-inicio-paridad`, registrado en el runner y en Android/backend, compara 1584 casos
+contra `dashboardBudgetStats`, `widgetScopeOf` y `monthBudgetStats` reales: Mes/Mi ciclo;
+presupuesto ausente/cero/positivo/todo reservado; banco diario/fijos; ancla actual/anterior/ausente;
+compra, Bizum, nómina, neutras, cuota con categoría explícita, duplicado y lápida; pago actual,
+futuro o anterior. Verifica scope, cifra, against, presupuesto, margen y ambos deltas al céntimo.
+`--server-sha=b7b4b71e` ejecuta el mismo oráculo contra el helper previo: falla por null/0 y
+por filtrar la marca de cuota independientemente de su categoría. La corrección v2 sigue
+el lector actual de Inicio; el contrato `month` legacy conserva sus reglas anteriores.
 `widget-unknown-journal` ejecuta los
 read/write reales con formato inyectado, identidad con clave vacía, reinicio del estado y
 cobertura exacta. `--native-dir` permite ejecutar el mismo oráculo contra una fuente base;

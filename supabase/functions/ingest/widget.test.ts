@@ -71,3 +71,15 @@ Deno.test("widget v2 respeta lápidas, posibles duplicados y reservas; estado le
   assertEquals(w.spent, 5.45);
   assertEquals(widgetSnapshot({ ...s, reservaLog: [{ date: "2026-10-07", amount: 10 }] }, rows, now, payment), null);
 });
+
+Deno.test("widget v2 distingue presupuesto ausente de todo reservado, como el scope de Inicio", () => {
+  const s = state(), scope = JSON.parse(s.widgetPeriod.scope);
+  scope[5] = null;
+  const noBudget = { ...s, budget: 0, widgetPeriod: { ...s.widgetPeriod, scope: JSON.stringify(scope) } };
+  assertEquals(widgetSnapshot(noBudget, rows, now, payment)?.spent, 35.45);
+  assertEquals(widgetSnapshot(noBudget, rows, now, payment)?.budgetLeft, -1);
+  const c = state(true), reservedScope = JSON.parse(c.widgetPeriod.scope); reservedScope[5] = 0;
+  const reserved = { ...c, reservaLog: [{ date: "2026-10-07", amount: 100 }],
+    widgetPeriod: { ...c.widgetPeriod, scope: JSON.stringify(reservedScope) } };
+  assertEquals(widgetSnapshot(reserved, rows, now, payment)?.budgetLeft, 14.55);
+});

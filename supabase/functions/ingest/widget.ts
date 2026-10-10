@@ -1,10 +1,10 @@
 import {
-  bancosDeGastoDiario, claveComoLaApp, cuentaParaPresupuesto, esCuotaDeDeuda,
+  bancoDeSource, bancosDeGastoDiario, claveComoLaApp,
   esPosibleRepetido, filasComoLaApp, inicioDeMesMs, statsDelMes, type FilaGasto,
 } from "../_shared/presupuesto.ts";
 
 const neutral = (f: FilaGasto) => ["inversion", "traspaso", "deudas"].includes(String(f.cat))
-  || esCuotaDeDeuda(f.source) || esPosibleRepetido(f.source);
+  || esPosibleRepetido(f.source);
 
 /** El límite por defecto de la API no acredita un total: contar y paginar sólo el contrato v2. */
 // deno-lint-ignore no-explicit-any
@@ -67,30 +67,42 @@ export function widgetSnapshot(data: any, rows: FilaGasto[], now: number, paymen
       && f.cat !== "bizum" && Date.parse(String(f.fecha)) > Date.parse(String(anchor.fecha)))) return null;
   }
   const ents = bancosDeGastoDiario(data);
-  const scopedData = { ...data, settings: { ...data.settings, gTotalMode: cycle ? "net" : "split" },
+  const rawBudget = typeof data.budget === "number" && Number.isFinite(data.budget) ? data.budget : 0;
+  const budgetKnown = rawBudget > 0;
+  const scopedData = { ...data, budget: rawBudget, settings: { ...data.settings, gTotalMode: cycle ? "net" : "split" },
     reservaLog: (data.reservaLog || []).filter((x: { date: string }) => Date.parse(x.date) < end) };
+  const daily = (f: FilaGasto) => { const bank = bancoDeSource(f.source); return !bank || ents.includes(bank); };
   function stats(filas: FilaGasto[]) {
     const eligible = filas.filter(f => !(cycle && claveComoLaApp(f) === w.anchor));
-    const result = statsDelMes(eligible, scopedData, start);
-    if (cycle) {
-      const income = eligible.reduce((sum, f) => sum + (Number(f.importe) < 0 && !neutral(f) ? -Number(f.importe) : 0), 0);
-      result.against = +(result.spent - income).toFixed(2);
+    // El contrato antiguo filtra también la marca de cuota. Inicio manda por categoría:
+    // una categoría explícita ajena a Deudas sigue contando, igual que expenseCountsBudget.
+    // La matriz diferencial 10/10 protege esta diferencia sin alterar month legacy.
+    const result = statsDelMes([], scopedData, start);
+    let spent = 0, income = 0;
+    for (const f of eligible) {
+      if (neutral(f)) continue;
+      const amount = Number(f.importe);
+      if (amount < 0 && (cycle || daily(f))) income -= amount;
+      else if (amount > 0 && daily(f)) spent += amount;
     }
+    result.spent = +spent.toFixed(2); result.income = +income.toFixed(2);
+    result.against = +(cycle ? spent - income : spent).toFixed(2);
+    result.shown = cycle ? +Math.abs(income - spent).toFixed(2) : result.spent;
     return result;
   }
   const after = stats(visible), before = stats(visible.filter(f => String(f.id) !== payment.id));
   const accounts = data.accounts || [], chosen = data.settings?.widgetBank;
   const bank = accounts.find((a: { ent: string }) => a.ent === chosen && !["efectivo", "familia"].includes(a.ent))
     || accounts.find((a: { spendFrom: boolean }) => a.spendFrom);
-  const scope = JSON.stringify([2, start, w.kind, cycle ? "neto" : "gasto", w.anchor || "", after.budget, ents.slice().sort(), bank?.ent || ""]);
+  const scope = JSON.stringify([2, start, w.kind, cycle ? "neto" : "gasto", w.anchor || "", budgetKnown ? after.budget : null, ents.slice().sort(), bank?.ent || ""]);
   // No repetir un scope de la app si reservas/bancos/ancla ya han cambiado en la nube.
   if (w.scope !== scope) return null;
   const amount = visible.find(f => String(f.id) === payment.id);
   const shown = cycle ? after.against : after.spent, oldShown = cycle ? before.against : before.spent;
   return { contract: 2, periodKind: w.kind, scope, periodStart: start, readAt: now,
     eventKey: payment.event, expenseKey: payment.key, spent: shown, budget: after.budget,
-    against: after.against, budgetLeft: after.budget > 0 ? +Math.max(0, after.budget - after.against).toFixed(2) : -1,
+    against: after.against, budgetLeft: budgetKnown ? +Math.max(0, after.budget - after.against).toFixed(2) : -1,
     shownDelta: +(shown - oldShown).toFixed(2), againstDelta: +(after.against - before.against).toFixed(2),
-    counts: amount && !neutral(amount) && ((cycle && Number(amount.importe) < 0) || cuentaParaPresupuesto(amount, ents)) ? 1 : 0,
+    counts: amount && !neutral(amount) && ((cycle && Number(amount.importe) < 0) || daily(amount)) ? 1 : 0,
     cashCounts: 1 };
 }
