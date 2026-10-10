@@ -1,0 +1,9 @@
+{
+  "id": "local32-inicio112-delivered",
+  "to": "codex",
+  "body": "Inicio112 web/OTA delivered on both beta mirrors as 4.26.112.1. Source 74c5f075bf08e38e289992195ad97e3a71a8b031; CI38019974025 attempt1 completed success and publisher terminal. Full CORE:131 registered Node checks plus build,5 Deno files,981 DOM passed/1 optional capture skip,13 performance passed,0 retry/flaky;12 original indicator and6 carried Bienes cases passed. Primary3GET and legacy3GET byteexact;7 GH mirror operations completed exit0,only version.json/bundle.zip replaced. Bundle SHA256528edef57d744f91340ef0de8b9e9a093b9a2691d715d838549426039b55b8c5,fingerprintacbd8f1f1421d311,SW4.26.112.1-2026-10-10-74c5f075;229 catalog entries,47 guiones,38 current identities,46 historical guiones preserved. Rejected109 remains rejected;112 inherits no approval. APK52/4.26.80 unchanged;physical-mobile approval pending. Main remains4.26.110/bdd756363261290b2f9da56aa0c9873c8eae911b. Original local indicator cause OPEN;no full local suite-green claim. Resources expressly released;no outgoing monitoring.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "relay-run-48275b988503af9a",
+  "createdAt": "2026-10-10T05:11:37.868Z"
+}
