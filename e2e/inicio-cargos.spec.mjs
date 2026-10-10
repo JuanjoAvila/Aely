@@ -19,6 +19,49 @@ async function open(page,lang,overrides={}){
 }
 
 for(const lang of ["es","en","ca"]){
+  for(const [kind,charge] of [
+    ["nombre bancario original",{source:"ob",ent:"sabadell",merchant:"Nombre legible distinto",obName:"Gas ficticio"}],
+    ["otra entidad por notificación",{source:"macrodroid",ent:"trade_republic",merchant:"GAS FICTICIO SA"}]
+  ]){
+    test(lang+": acredita cargo guardado sin extracto · "+kind,async({page,browser})=>{
+      const cargo=Object.assign({id:"guardado",date:"2026-09-24",amount:42,category:"otros"},charge);
+      await open(page,lang,{expenses:[cargo]});
+      const before=await page.evaluate(()=>{ const s=mcLoadRaw(mcStateKey()); return JSON.stringify([s.accounts,s.expenses,s.fixed]); });
+      await expect(page.locator('.page-scroll-host .v4-charge').filter({hasText:fixed.name})).toHaveCount(0);
+      await page.locator('.botnav-tab[data-tour="plan"]').click();
+      const paid=page.locator('div[data-seg="recibos"] .v4-paid').filter({hasText:fixed.name});
+      await expect(paid).toHaveCount(1);
+      await expect(paid).toContainText("24");
+      await expect(paid).toContainText(charge.ent==="sabadell"?"Sabadell":"Trade Republic");
+      const snapshot=await page.evaluate(()=>slimForCloud(mcLoadRaw(mcStateKey())));
+      expect(snapshot.bankTx).toBeUndefined();
+      const deviceB=await browser.newContext({baseURL:test.info().project.use.baseURL,viewport:{width:393,height:851},isMobile:true,hasTouch:true});
+      try{
+        const pageB=await deviceB.newPage();
+        // app_state y Gastos viajan por separado: el móvil nuevo tiene el cargo, sin feed.
+        await open(pageB,lang,Object.assign({},snapshot,{expenses:[cargo],bankTx:[]}));
+        await expect(pageB.locator('.page-scroll-host .v4-charge').filter({hasText:fixed.name})).toHaveCount(0);
+        await pageB.locator('.botnav-tab[data-tour="plan"]').click();
+        await expect(pageB.locator('div[data-seg="recibos"] .v4-paid').filter({hasText:fixed.name})).toHaveCount(1);
+      }finally{ await deviceB.close(); }
+      await page.reload(); await dismissNews(page);
+      await expect(paid).toHaveCount(1);
+      expect(await page.evaluate(()=>{ const s=mcLoadRaw(mcStateKey()); return JSON.stringify([s.accounts,s.expenses,s.fixed]); })).toBe(before);
+    });
+  }
+  for(const [kind,patch] of [["solo importe",{merchant:"Comercio diferente"}],["token genérico",{merchant:"Otro ficticio"}],["importe parecido",{amount:42.40}],["pendiente",{status:"PDNG"}]]){
+    test(lang+": cargo guardado insuficiente sigue vencido · "+kind,async({page})=>{
+      const cargo=Object.assign({id:"sin-identidad",date:"2026-09-24",merchant:"Gas ficticio",amount:42,ent:"trade_republic",category:"otros",source:"macrodroid"},patch);
+      await open(page,lang,{expenses:[cargo]});
+      const row=page.locator('.page-scroll-host .v4-charge').filter({hasText:fixed.name});
+      await expect(row).toHaveCount(1);
+      await expect(row).toContainText(labels[lang].unknown);
+      await expect(row.locator('.dt .d')).toHaveText("25");
+      await page.locator('.botnav-tab[data-tour="plan"]').click();
+      await expect(page.locator('div[data-seg="recibos"] .v4-paid').filter({hasText:fixed.name})).toHaveCount(0);
+      await expect(page.locator('div[data-seg="recibos"]')).toContainText(labels[lang].unknown);
+    });
+  }
   for(const [planned,actual,name,gross] of [[32,32.40,"Agua variable ficticia"],[32,35.10,"Agua variable ficticia"],[18,18.15,"Suscripción ficticia"],[21,44,"Recibo compartido ficticio",42]]){
     test(lang+": confirma importe variable "+actual+" frente a previsto "+planned,async({page})=>{
       const bill=Object.assign({},fixed,{name:name,amount:planned},gross?{bankAmount:gross}:{});
