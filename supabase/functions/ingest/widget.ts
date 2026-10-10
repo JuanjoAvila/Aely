@@ -6,6 +6,26 @@ import {
 const neutral = (f: FilaGasto) => ["inversion", "traspaso", "deudas"].includes(String(f.cat))
   || esCuotaDeDeuda(f.source) || esPosibleRepetido(f.source);
 
+/** El límite por defecto de la API no acredita un total: contar y paginar sólo el contrato v2. */
+// deno-lint-ignore no-explicit-any
+export async function readWidgetRows(db: any, userId: string, start: number): Promise<FilaGasto[] | null> {
+  const rows: FilaGasto[] = [], ids = new Set<string>();
+  let total: number | null = null;
+  for (let from = 0; ; from += 1000) {
+    const page = await db.from("expenses").select("id,importe,cat,source,fecha,comercio", { count: "exact" })
+      .eq("user_id", userId).gte("fecha", new Date(start).toISOString())
+      .order("id", { ascending: true }).range(from, from + 999);
+    if (page.error || !Array.isArray(page.data) || !Number.isSafeInteger(page.count) || page.count < 0) return null;
+    if (total == null) total = page.count;
+    if (page.count !== total || page.data.length !== Math.min(1000, Math.max(0, total! - from))) return null;
+    for (const row of page.data) {
+      if (!row.id || ids.has(String(row.id))) return null;
+      ids.add(String(row.id)); rows.push(row);
+    }
+    if (rows.length === total) return rows;
+  }
+}
+
 // El ciclo termina mañana en Madrid, como Inicio; no sumar apuntes de otro día futuro.
 function tomorrow(now: number): number {
   const fmt = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Madrid", year: "numeric", month: "2-digit", day: "2-digit" });
@@ -37,12 +57,14 @@ export function widgetSnapshot(data: any, rows: FilaGasto[], now: number, paymen
   const visible = filasComoLaApp(rows, data.deleted).filter(f => {
     const ms = Date.parse(String(f.fecha)); return ms >= start && ms < end;
   });
+  // Una lectura vacía/parcial o una fila retirada no prueba el delta de este pago.
+  if (!visible.some(f => String(f.id) === payment.id)) return null;
   if (cycle) {
-    const anchor = visible.find(f => claveComoLaApp(f) === w.anchor && Number(f.importe) <= -200 && !neutral(f));
+    const anchor = visible.find(f => claveComoLaApp(f) === w.anchor && Number(f.importe) <= -200 && !neutral(f) && f.cat !== "bizum");
     if (!anchor) return null;
     // Un cobro grande posterior podría ser la nueva ancla aún no leída por la app.
     if (visible.some(f => f !== anchor && Number(f.importe) <= -200 && !neutral(f)
-      && Date.parse(String(f.fecha)) >= start + 86400000)) return null;
+      && f.cat !== "bizum" && Date.parse(String(f.fecha)) > Date.parse(String(anchor.fecha)))) return null;
   }
   const ents = bancosDeGastoDiario(data);
   const scopedData = { ...data, settings: { ...data.settings, gTotalMode: cycle ? "net" : "split" },

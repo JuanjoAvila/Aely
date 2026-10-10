@@ -318,8 +318,11 @@ declara que faltan ancla o scope compatibles y mantiene la cobertura pendiente.
 
 `ingest/widget.ts` prepara una respuesta `widget` v2 separada; `month` conserva su cálculo
 legacy para APK antiguas. El servidor valida ancla, periodo, presupuesto, reservas y bancos
-contra el scope de la app; devuelve null si no puede acreditarlo. El listener nuevo prefiere
-`widget` y admite también `month` del servidor antiguo. Fuente preparada, sin despliegue;
+contra el scope de la app; devuelve null si no puede acreditarlo. La lectura v2 pagina con
+conteo exacto e identidades únicas; una página corta, conteo ausente
+o cambiante, fallo de consulta o pago no visible mantiene `widget:null`, sin confirmar cero.
+El listener nuevo prefiere `widget` y admite también `month` del servidor antiguo.
+Fuente preparada, sin despliegue;
 la integración, el APK de beta, la activación única de ingest y el pago real corresponden
 a Claude. Java y una compilación local no acreditan instalación ni aceptación móvil.
 

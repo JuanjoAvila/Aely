@@ -36,12 +36,14 @@ function fakeDb(opts = {}) {
   function table(name) {
     const q = { name, op: "select", cols: "*", filters: [], row: null, returning: false };
     const api = {
-      select(cols = "*") { q.cols = cols; if (q.op === "upsert") q.returning = true; else q.op = "select"; return api; },
+      select(cols = "*", options) { q.cols = cols; q.count = options?.count; if (q.op === "upsert") q.returning = true; else q.op = "select"; return api; },
       eq(k, v) { q.filters.push(["eq", k, v]); return api; },
       in(k, values) { q.filters.push(["in", k, values]); return api; },
       gte(k, v) { q.filters.push(["gte", k, v]); return api; },
       lte(k, v) { q.filters.push(["lte", k, v]); return api; },
       limit() { return api; },
+      order(k) { q.order = k; return api; },
+      range(from, to) { q.range = [from, to]; return api; },
       upsert(row) { q.op = "upsert"; q.row = { ...row }; return api; },
       update(row) { q.op = "update"; q.row = { ...row }; return api; },
       delete() { q.op = "delete"; return api; },
@@ -85,7 +87,12 @@ function fakeDb(opts = {}) {
           opts.hideEventPrecheckOnce = false;
           return { data: [], error: null };
         }
-        return { data: filtered(), error: null };
+        const all = filtered();
+        if (q.order) all.sort((a,b) => String(a[q.order]).localeCompare(String(b[q.order])));
+        if (q.count && opts.widgetReadError) return { data: null, count: null, error: { message: "lectura v2 fallida" } };
+        const data = q.range ? all.slice(q.range[0], q.range[1] + 1) : all.slice(0, opts.rowLimit || all.length);
+        return { data: opts.widgetTruncated && q.count ? data.slice(0,1) : data, error: null,
+          ...(q.count ? { count: opts.widgetCountMissing ? null : all.length } : {}) };
       }
       if (q.op === "upsert") {
         if (opts.race23505) return { data: null, error: { code: "23505", message: "duplicate key" } };
@@ -126,7 +133,7 @@ function makeHandler(db, classifier=logic) {
     "extraerConcepto", "extraerImporte", "extraerPersona", "limpiarTexto", "aEuros", "parseWallet",
     "claveEvento", "esGemeloIngest", "tieneGemeloAnterior", "bucketKey", "callerIp", "rateLimit",
     "bancosDeGastoDiario", "cuentaParaPresupuesto", "filasComoLaApp", "inicioDeMesMs", "statsDelMes",
-    "widgetSnapshot", "widgetStart",
+    "widgetSnapshot", "widgetStart", "readWidgetRows",
     "INGEST_MAX_BODY", "INGEST_MAX_COMERCIO", "INGEST_MAX_NOTA", "INGEST_MAX_TEXTO", "recortar", "timingSafeEqual",
   ];
   new Function(...names, handlerJs)(
@@ -137,7 +144,7 @@ function makeHandler(db, classifier=logic) {
     async () => "bucket", () => "127.0.0.1", async () => ({ ok: true }),
     budget.bancosDeGastoDiario, budget.cuentaParaPresupuesto, budget.filasComoLaApp,
     budget.inicioDeMesMs, budget.statsDelMes,
-    widgetBudget.widgetSnapshot, widgetBudget.widgetStart,
+    widgetBudget.widgetSnapshot, widgetBudget.widgetStart, widgetBudget.readWidgetRows,
     entrada.INGEST_MAX_BODY, entrada.INGEST_MAX_COMERCIO, entrada.INGEST_MAX_NOTA,
     entrada.INGEST_MAX_TEXTO, entrada.recortar, entrada.timingSafeEqual,
   );
@@ -161,8 +168,8 @@ console.log("ingest-handler");
 
 const denoCases=[];
 const widgetTest=read('supabase/functions/ingest/widget.test.ts').replace(/^import\s[\s\S]*?from\s+"[^"]+";\r?\n/gm,'');
-new Function('Deno','assertEquals','widgetSnapshot','widgetStart','claveComoLaApp','inicioDeMesMs',transformSync(widgetTest,{loader:'ts'}).code)(
-  {test:(name,fn)=>denoCases.push([name,fn])},assert.deepEqual,widgetBudget.widgetSnapshot,widgetBudget.widgetStart,budget.claveComoLaApp,budget.inicioDeMesMs);
+new Function('Deno','assertEquals','widgetSnapshot','widgetStart','readWidgetRows','claveComoLaApp','inicioDeMesMs',transformSync(widgetTest,{loader:'ts'}).code)(
+  {test:(name,fn)=>denoCases.push([name,fn])},assert.deepEqual,widgetBudget.widgetSnapshot,widgetBudget.widgetStart,widgetBudget.readWidgetRows,budget.claveComoLaApp,budget.inicioDeMesMs);
 for(const [name,fn] of denoCases) await t('Node ejecuta cuerpo Deno: '+name,fn);
 
 await t("respuesta dual: month legado intacto y widget v2 bruto para la misma compra", async () => {
@@ -183,6 +190,21 @@ await t("servidor v2 no repite un scope si cambiaron las reservas", async () => 
     widgetPeriod:{v:2,kind:'mes',start,anchor:'',scope:JSON.stringify([2,start,'mes','gasto','',100,['trade_republic'],'trade_republic'])}};
   const r=await post(fakeDb({state}),{fuente:'tr',titulo:'Trade Republic',texto:'Has gastado 5,45 € en Compra sintetica',fecha:String(now),evento:'changed'});
   assert.equal(r.data.widget,null); assert.ok(r.data.month);
+});
+
+await t("v2 pagina más de mil filas; una lectura parcial o sin conteo no confirma cero", async () => {
+  const now=Date.now(),start=budget.inicioDeMesMs(now),state={budget:3000,
+    accounts:[{ent:'trade_republic',role:'diario',spendFrom:true}],settings:{},
+    widgetPeriod:{v:2,kind:'mes',start,anchor:'',scope:JSON.stringify([2,start,'mes','gasto','',3000,['trade_republic'],'trade_republic'])}};
+  const rows=Array.from({length:1005},(_,i)=>({id:'synthetic-'+i,user_id:'user',fecha:new Date(now-1000).toISOString(),
+    importe:1,cat:'super',source:'macrodroid',comercio:'Compra '+i}));
+  const body={fuente:'tr',titulo:'Trade Republic',texto:'Has gastado 5,45 € en Compra actual',fecha:String(now),evento:'pagination'};
+  const all=await post(fakeDb({state,rows,rowLimit:1000}),body);
+  assert.equal(all.data.widget.spent,1010.45); assert.equal(all.data.widget.shownDelta,5.45);
+  for(const opts of [{widgetTruncated:true},{widgetCountMissing:true},{widgetReadError:true}]) {
+    const partial=await post(fakeDb({state,rows,...opts}),body);
+    assert.equal(partial.data.widget,null); assert.ok(partial.data.month,'month legacy sigue su camino propio');
+  }
 });
 
 await t("ciclo que cruza el mes relee el ancla anterior sin cambiar month legado", async () => {

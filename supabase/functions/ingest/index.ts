@@ -38,7 +38,7 @@ import { aEuros, parseWallet } from "../_shared/wallet.ts";
 import { claveEvento, esGemeloIngest, tieneGemeloAnterior } from "../_shared/ingest_identity.ts";
 import { bucketKey, callerIp, rateLimit } from "../_shared/ratelimit.ts";
 import { bancosDeGastoDiario, cuentaParaPresupuesto, filasComoLaApp, inicioDeMesMs, statsDelMes } from "../_shared/presupuesto.ts";
-import { widgetSnapshot, widgetStart } from "./widget.ts";
+import { readWidgetRows, widgetSnapshot, widgetStart } from "./widget.ts";
 // Comparación del token en tiempo constante (2026-07-24) y topes de entrada (SEC-01, 14/9): en _shared.
 import {
   INGEST_MAX_BODY, INGEST_MAX_COMERCIO, INGEST_MAX_NOTA, INGEST_MAX_TEXTO, recortar, timingSafeEqual,
@@ -399,17 +399,10 @@ Deno.serve(async (req) => {
     // desde la ventana/ancla guardada por la app y una lectura suficiente de sus filas.
     const start = widgetStart(st?.data, readAt);
     if (start != null) {
-      let widgetRows = rows || [];
-      if (start < desdeMs) {
-        const { data: older, error: olderError } = await supabase.from("expenses")
-          .select("id,importe,cat,source,fecha,comercio").eq("user_id", userId)
-          .gte("fecha", new Date(start).toISOString());
-        if (!olderError) widgetRows = older || [];
-        else widgetRows = [];
-      }
-      widget = widgetSnapshot(st?.data, widgetRows, readAt, {
-        id: String(ackId), event: eventKey || "", key: String(month.expenseKey),
-      });
+      const widgetRows = await readWidgetRows(supabase, userId, start);
+      if (widgetRows != null) widget = widgetSnapshot(st?.data, widgetRows, readAt, {
+          id: String(ackId), event: eventKey || "", key: String(month.expenseKey),
+        });
     }
     if (tipo === "gasto" && budget > 0 && mueveElPresupuesto) {
       const before = after - importe;

@@ -5,6 +5,8 @@ bundle sha256 `7abcba1594db74ef5eb8a42351c99db9bddb0141d91c9f01d18aa04513e95fb7`
 v2 en month. La metadata no expone SHA Git desplegado. No se consultaron gastos ni datos de
 usuarios. La candidata prepara `ingest/widget.ts`: respuesta widget v2 de la ventana guardada
 por la app, validando ancla y scope; month conserva su payload mensual legacy para APK antiguas.
+El total v2 requiere conteo exacto, páginas completas con identidades únicas y el pago visible.
+Conteo ausente/cambiante, consulta fallida o truncada y pago ausente devuelven `widget:null`.
 El listener candidato admite ambos servidores. Sin secretos, esquema ni migraciones nuevos.
 Fuente sin despliegue: Claude activa únicamente ingest mediante `supabase.yml`, migraciones=no,
 después de probar el APK. Push del PR no activa ese workflow manual. Validación sintética en

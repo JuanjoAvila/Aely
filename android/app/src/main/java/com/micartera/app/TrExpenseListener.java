@@ -446,10 +446,11 @@ public class TrExpenseListener extends NotificationListenerService {
                 }
             }
 
+            JSONObject month = r.optJSONObject("month");
             // La APK antigua sigue leyendo month. El cálculo nuevo viaja aparte para no
             // hacerle pasar un neto de ciclo por gasto mensual (despliegues en distinto orden).
-            JSONObject month = r.optJSONObject("widget");
-            if (month == null) month = r.optJSONObject("month");
+            JSONObject widget = r.optJSONObject("widget");
+            if (widget != null) month = widget;
             if (month != null) {
                 // Presupuesto y efectivo tienen reglas distintas: una inversión no gasta
                 // presupuesto pero sí resta saldo. La Edge vieja solo mandaba `counts`.

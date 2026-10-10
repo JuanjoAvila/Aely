@@ -220,7 +220,11 @@ en f8c1b7ae y pasan con la corrección; todos se ejecutan también sin flags en 
 de alcance con registros casi llenos: ACK/lápidas completos recuperan la cifra; identidad
 perdida de verdad mantiene «—». También corre en la ejecución normal. Las pruebas Deno
 de `ingest/widget.test.ts` están registradas y validan el payload separado y su alcance;
-el handler Node compara Mes y Mi ciclo con el cálculo real de Inicio. `deno check` del
+el handler Node compara Mes y Mi ciclo con el cálculo real de Inicio.
+Los dos runners verifican paginación de más de mil filas, conteo ausente/cambiante,
+duplicados de página, consulta fallida y pago ausente; no aceptan un cero de lectura parcial.
+El pintado Java comprueba también que un pago TR no descuenta el saldo de otro banco elegido.
+`deno check` del
 handler mantiene tres errores de tipos reproducidos en la base, ajenos a esta corrección.
 `widget-unknown-journal` ejecuta los
 read/write reales con formato inyectado, identidad con clave vacía, reinicio del estado y

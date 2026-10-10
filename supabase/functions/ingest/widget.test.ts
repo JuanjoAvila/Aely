@@ -1,5 +1,5 @@
 import { assertEquals } from "jsr:@std/assert";
-import { widgetSnapshot, widgetStart } from "./widget.ts";
+import { readWidgetRows, widgetSnapshot, widgetStart } from "./widget.ts";
 import { claveComoLaApp, inicioDeMesMs } from "../_shared/presupuesto.ts";
 
 const now = Date.parse("2026-10-10T12:00:00Z"), start = inicioDeMesMs(now);
@@ -33,11 +33,34 @@ Deno.test("widget v2 no afirma scope cambiado, ancla ausente, futuro ni ciclo ca
   const s = state(true);
   assertEquals(widgetSnapshot({ ...s, budget: 90 }, rows, now, payment), null);
   assertEquals(widgetSnapshot(s, rows.filter(r => r.id !== "anchor"), now, payment), null);
+  assertEquals(widgetSnapshot(s, rows.map(r => r.id === "anchor" ? { ...r, cat: "bizum" } : r), now, payment), null);
+  assertEquals(widgetSnapshot(state(), [], now, payment), null);
+  assertEquals(widgetSnapshot(state(), rows.filter(r => r.id !== "payment"), now, payment), null);
   assertEquals(widgetStart(s, now + 46 * 86400000), null);
   assertEquals(widgetStart({ ...s, settings: { budgetCycle: false } }, now), null);
   assertEquals(widgetSnapshot(s, rows.concat([{ ...rows[1], id: "new-anchor", fecha: "2026-10-09T10:00:00Z" }]), now, payment), null);
+  assertEquals(widgetSnapshot(s, rows.concat([{ ...rows[1], id: "same-day-anchor", importe: -900, fecha: "2026-10-05T11:00:00Z" }]), now, payment), null);
+  assertEquals(widgetSnapshot(s, rows.concat([{ ...rows[3], id: "large-bizum", importe: -300, cat: "bizum" }]), now, payment)?.spent, -314.55);
   const w = widgetSnapshot(s, rows.concat([{ ...rows[2], id: "future", fecha: "2026-10-11T10:00:00Z", importe: 500 }]), now, payment)!;
   assertEquals(w.spent, -14.55);
+});
+
+Deno.test("widget v2 exige conteo exacto y todas las páginas con identidades únicas", async () => {
+  const data = Array.from({ length: 1005 }, (_, i) => ({ ...rows[2], id: "synthetic-" + i }));
+  function db(bad = "") {
+    let from = 0, to = 0;
+    const api = { select: () => api, eq: () => api, gte: () => api, order: () => api,
+      range: (a: number, b: number) => { from = a; to = b; return api; },
+      then: (resolve: (x: unknown) => unknown) => Promise.resolve(resolve({
+        data: bad === "truncated" ? data.slice(from, from + 1) : bad === "duplicate" && from > 0 ? data.slice(0,5) : data.slice(from, to + 1),
+        count: bad === "count" ? null : bad === "changed" && from > 0 ? 1006 : data.length,
+        error: bad === "error" ? { message: "synthetic" } : null,
+      })) };
+    return { from: () => api };
+  }
+  assertEquals((await readWidgetRows(db(), "synthetic", start))?.length, 1005);
+  for (const bad of ["truncated", "duplicate", "count", "changed", "error"])
+    assertEquals(await readWidgetRows(db(bad), "synthetic", start), null);
 });
 Deno.test("widget v2 respeta lápidas, posibles duplicados y reservas; estado legacy no inventa v2", () => {
   const s = state();

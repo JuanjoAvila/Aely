@@ -231,10 +231,21 @@ ${response}
     cyclePay.optJSONObject("month").put("eventKey","cycle-payment").put("expenseKey","cycle-key");
     legacy.handleResponse(cyclePay.toString(),MiCarteraWidget.beginIngest(legacy),"raw"); render(legacy);
     ok(MiCarteraWidget.last.text.get(R.id.w_amount).equals("${Math.round(snapshots[1].spent+5)} €"),"legacy aplica importe conocido al neto firmado, no el total mensual55");
+    JSONObject bizum=notification(month,false).put("ack","large-bizum").put("importe",-300).put("cat","bizum");
+    bizum.optJSONObject("month").put("eventKey","large-bizum").put("expenseKey","bizum-key");
+    legacy.handleResponse(bizum.toString(),MiCarteraWidget.beginIngest(legacy),"raw"); render(legacy);
+    ok(MiCarteraWidget.last.text.get(R.id.w_amount).equals("${Math.round(snapshots[1].spent+5-300)} €"),
+      "Bizum conocido no abre otra nómina aunque supere200, conserva signo del ciclo");
     MiCarteraWidget.saveApp(legacy,${snapshots[0].periodStart}L,${snapshots[0].spent},${snapshots[0].budget},45.0,135.0,185.0,"trade_republic","Cuenta",
-      "|old|payment|cycle-payment|","",2,"mes","gasto","es",${JSON.stringify(snapshots[0].scope)}); render(legacy);
+      "|old|payment|cycle-payment|large-bizum|","",2,"mes","gasto","es",${JSON.stringify(snapshots[0].scope)}); render(legacy);
     ok(MiCarteraWidget.last.text.get(R.id.w_title).contains("ESTE MES")
       &&MiCarteraWidget.last.text.get(R.id.w_amount).equals("${Math.round(snapshots[0].spent)} €"),"preferencia mes restaura gasto bruto");
+    Listener otherBank=production52(month);
+    MiCarteraWidget.saveApp(otherBank,month,50,100,50.0,150.0,200.0,"sabadell","Otra cuenta",
+      "|old|","",2,"mes","gasto","es",${JSON.stringify(JSON.stringify([2,snapshots[0].periodStart,'mes','gasto','',100,['trade_republic'],'sabadell']))});
+    otherBank.handleResponse(notification(month,false).toString(),MiCarteraWidget.beginIngest(otherBank),"raw"); render(otherBank);
+    ok(otherBank.prefs.getFloat("cashDelta",-1)==0 && MiCarteraWidget.last.text.get(R.id.w_foot).contains("200 €"),
+      "el pago TR no descuenta saldo/liquidez de otro banco elegido");
     Listener migrated=production52(month);
     migrated.prefs.edit().putBoolean("journalFull",true).putBoolean("unknownPending",true)
       .putString("unknownJournal","payment\\tpaymentKey\\n    ").commit();

@@ -199,9 +199,10 @@ public class MiCarteraWidget extends AppWidgetProvider {
                 || Math.abs(amount - Math.round(amount * 100) / 100.0) > .000001
                 || category == null || category.isEmpty()) return false;
         // Un ingreso grande podría abrir otro ciclo: sin el cobro/ancla actuales no se
-        // puede afirmar que siga en esta ventana. Un Bizum pequeño sí tiene signo conocido.
+        // puede afirmar que siga en esta ventana. Bizums y neutras no abren nómina en la app.
         boolean cycle = WidgetPeriod.CICLO.equals(kind);
-        if (cycle && amount <= -200) return false;
+        boolean neutral = "inversion".equals(category) || "traspaso".equals(category) || "deudas".equals(category);
+        if (cycle && amount <= -200 && !neutral && !"bizum".equals(category)) return false;
         if (!cycle && WidgetPeriod.monthStart(eventAt) != start) return false;
         try {
             org.json.JSONArray scope = new org.json.JSONArray(p.getString("scope", ""));
@@ -212,7 +213,6 @@ public class MiCarteraWidget extends AppWidgetProvider {
             boolean daily = false;
             for (int i = 0; i < banks.length(); i++)
                 if ("trade_republic".equals(banks.optString(i, ""))) daily = true;
-            boolean neutral = "inversion".equals(category) || "traspaso".equals(category) || "deudas".equals(category);
             boolean counts = !neutral && (daily || (cycle && amount < 0));
             double cents = Math.round(amount * 100) / 100.0;
             double delta = counts && (cycle || cents > 0) ? cents : 0;
