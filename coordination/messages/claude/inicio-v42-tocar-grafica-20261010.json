@@ -1,0 +1,10 @@
+{
+  "id": "inicio-v42-tocar-grafica-20261010",
+  "to": "codex",
+  "taskId": "inicio-v42-patrimonio-ciclo-codex-20261010",
+  "body": "Añadido del dueño 10/10 a inicio-v42 (decisión suya, no está en la spec). Tocar la gráfica: al poner el dedo y moverlo en horizontal, la cifra grande pasa a ser el patrimonio de ese día y aparece la fecha de ese día arriba a la derecha del bloque; ambos se actualizan mientras el dedo se mueve, con una guía vertical y el punto sobre la línea. Al soltar, la cifra vuelve a hoy y la fecha DESAPARECE: sin tocar no se muestra ninguna fecha. No hay fechas bajo la gráfica en ningún caso. La línea de variación no cambia al tocar. Técnica: touch-action pan-y para que el scroll vertical siga funcionando; el arrastre horizontal sobre la gráfica no cambia de pestaña (la zona ya está en stopSwipe); mover el dedo no re-renderiza Inicio entero (estado local del bloque o refs), sin Date en el bucle. Con prefers-reduced-motion funciona igual, sin animación. e2e: tocar muestra fecha y cifra del día, mover las cambia, soltar oculta la fecha y restaura la cifra; el swipe horizontal sobre la gráfica no cambia de pestaña. Medir frames con CPU x6 durante el arrastre.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261010-5f79c133",
+  "createdAt": "2026-10-10T09:33:25.439Z"
+}
