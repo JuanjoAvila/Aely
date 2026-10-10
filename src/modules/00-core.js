@@ -1549,6 +1549,38 @@ const cloud = (function(){
   };
 })();
 
+/* recoverGaps no puede vivir dentro de cloud.bankSync: ese objeto entero entra en la
+   huella de otras tandas. Un segundo cliente lee la misma sesión (misma URL) y manda
+   el campo que una función vieja ignora. No es dateFrom: eso abriría el histórico. */
+var obGapClient = null;
+var bankSyncSinHueco = cloud.bankSync.bind(cloud);
+cloud.bankSync = async function(body){
+  var manual = typeof obGapManual !== "undefined" && obGapManual;
+  if(typeof obGapManual !== "undefined") obGapManual = false;
+  var payload = (body && typeof body === "object") ? body : {recoverGaps:true};
+  var via = null;
+  try{
+    var lib = (typeof window !== "undefined") ? window.supabase : null;
+    if(lib && lib.createClient && CONFIG.SUPABASE_URL && CONFIG.SUPABASE_ANON_KEY){
+      if(!obGapClient) obGapClient = lib.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+      via = await obGapClient.functions.invoke('bank-sync', {body:payload});
+    }
+  }catch(e){ via = null; }
+  if(!via) return bankSyncSinHueco();
+  if(via.error) throw via.error;
+  if(!via.data || !via.data.ok) throw new Error((via.data && via.data.error) || "sync falló");
+  if(typeof obGapNoteFromLinks === "function") obGapNoteFromLinks(via.data, manual);
+  return via.data;
+};
+if(typeof window !== "undefined" && window.addEventListener){
+  window.addEventListener("click", function(ev){
+    var el = ev.target && ev.target.closest ? ev.target.closest("button") : null;
+    if(!el || typeof obGapMarkManual !== "function") return;
+    var name = String(el.getAttribute("aria-label") || el.textContent || "").replace(/\s+/g, " ").trim().toLowerCase();
+    if(/sincronizar bancos|sync banks|sincronitza els bancs|actualizar todos|refresh all|actualitza tots/.test(name)) obGapMarkManual();
+  }, true);
+}
+
 /* Escritura de gastos a la nube CON rastro (2026-09-11). Antes cada sitio hacia
    `.catch(function(){})` y la fila se quedaba solo en el movil -> widget != app
    (512 sin abrir / 497 en pantalla). Un helper, un log; la proxima escritura no nace muda.

@@ -89,7 +89,7 @@ export async function ebApi(jwt: string, path: string, init: { method?: string; 
 // y devolver continuation_key. Mismo contrato para sync diario e histórico (15/9/2026).
 // https://enablebanking.com/docs/faq/
 export async function fetchBankTransactions(jwt: string, uid: string, dateFrom: string | null,
-  api = ebApi, timeoutMs = 15000, preferLongest = false) {
+  api = ebApi, timeoutMs = 15000, preferLongest = false, maxPages = 12, dateTo: string | null = null) {
   if (timeoutMs <= 0) throw new Error("transactions_timeout");
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -98,12 +98,16 @@ export async function fetchBankTransactions(jwt: string, uid: string, dateFrom: 
   const visited = new Set<string>();
   /* En el HISTÓRICO, `longest` va desde la primera petición. Caixa puede aceptar el periodo y
      devolver vacío sin `WRONG_TRANSACTIONS_PERIOD`; esperar al error dejaba la pantalla a cero.
-     El sync diario no activa `preferLongest`: allí interesa la ventana reciente exacta. */
+     El sync diario no activa `preferLongest`: allí interesa la ventana reciente exacta.
+     maxPages y dateTo los usa el sync a demanda para partir ventana y tramo antiguo sin
+     pasar del tope de 12 llamadas por cuenta. El histórico no los manda: sigue en 12. */
+  const pageCap = maxPages > 0 ? maxPages : 12;
   let continuation: string | null = null, longest = !!dateFrom && !!preferLongest, pages = 0;
   try {
-    while (pages < 12 && transactions.length < 2000) {
+    while (pages < pageCap && transactions.length < 2000) {
       const qs = new URLSearchParams();
       if (dateFrom) qs.set("date_from", dateFrom);
+      if (dateTo) qs.set("date_to", dateTo);
       if (longest) qs.set("strategy", "longest");
       if (continuation) qs.set("continuation_key", continuation);
       let page;
@@ -118,20 +122,20 @@ export async function fetchBankTransactions(jwt: string, uid: string, dateFrom: 
           continue;
         }
         if (!pages) throw err;
-        return {transactions, truncated:true, transactionError:controller.signal.aborted ? "timeout" : "transactions_unavailable"};
+        return {transactions, truncated:true, pages, transactionError:controller.signal.aborted ? "timeout" : "transactions_unavailable"};
       }
       pages++;
       const rows = page.transactions;
       const room = 2000 - transactions.length;
       transactions.push(...rows.slice(0, room));
       continuation = page.continuation_key || null;
-      if (rows.length > room) return {transactions, truncated:true};
-      if (!continuation) return {transactions, truncated:false};
+      if (rows.length > room) return {transactions, truncated:true, pages};
+      if (!continuation) return {transactions, truncated:false, pages};
       // Un cursor cíclico no autoriza a dar por completo el extracto ni a repetir doce páginas.
-      if (visited.has(continuation)) return {transactions, truncated:true};
+      if (visited.has(continuation)) return {transactions, truncated:true, pages};
       visited.add(continuation);
     }
-    return {transactions, truncated:true};
+    return {transactions, truncated:true, pages};
   } finally {
     clearTimeout(timer);
   }

@@ -1072,6 +1072,7 @@ function App(){
       if(parts[1]==="ok"){
         showToast("✓ "+t("bank_connected"));
         set(function(s){ return s.hasBankLink?s:Object.assign({},s,{hasBankLink:true}); });
+        obGapMarkManual();
         limpiaCartelReconectado();
         runBankSync({manual:true});
       } else {
@@ -1204,7 +1205,7 @@ function App(){
   // era una consulta al abrir y consumía el cupo sin tocar ningún botón.
   useEffect(function(){
     if(!uid) return;
-    if(bankJustConnected.current){ bankJustConnected.current=false; limpiaCartelReconectado(); runBankSync({manual:true}); return; }
+    if(bankJustConnected.current){ obGapMarkManual(); bankJustConnected.current=false; limpiaCartelReconectado(); runBankSync({manual:true}); return; }
   },[uid, state.hasBankLink]);
 
   // Y lo mismo para los brókers que SÍ sincronizan solos (TR nativo + MyInvestor): al abrir,

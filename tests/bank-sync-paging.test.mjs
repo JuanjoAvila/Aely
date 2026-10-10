@@ -9,7 +9,8 @@ const root = new URL("../", import.meta.url);
 const read = p => fs.readFileSync(new URL(p, root), "utf8");
 const shared = transformSync(read("supabase/functions/_shared/enablebanking.ts"), {loader:"ts",format:"esm"}).code;
 const E = await import("data:text/javascript;base64," + Buffer.from(shared).toString("base64"));
-const src = transformSync(read("supabase/functions/bank-sync/index.ts").replace(/^import .*?;\r?\n/gm,""), {loader:"ts"}).code;
+const demand = transformSync(read("supabase/functions/bank-sync/demand-window.ts"), {loader:"ts"}).code.replace(/^export /gm, "");
+const src = demand + "\n" + transformSync(read("supabase/functions/bank-sync/index.ts").replace(/^import .*?;\r?\n/gm,""), {loader:"ts"}).code;
 const movement = (id="tx-1") => ({entry_reference:id, booking_date:"2026-09-15", transaction_amount:{amount:"12.50"},credit_debit_indicator:"DBIT",creditor:{name:"Comercio sintético"}});
 const link = (name="CaixaBank", status="active") => ({id:name,aspsp_name:name,status,accounts:[{uid:name+"-cuenta"}]});
 
@@ -32,9 +33,9 @@ async function sync(links, reply, body={}, clock=null) {
   new Function(...names,src)(
     {serve:f=>{handler=f;},env:{get:()=>"synthetic"}},()=>db,api,()=>({}),
     (x,status=200)=>new Response(JSON.stringify(x),{status}),async()=>"jwt",E.mapTransaction,f=>f,
-    (jwt,uid,from,ignored,timeout,preferLongest)=>{
+    (jwt,uid,from,apiFn,timeout,preferLongest,maxPages,dateTo)=>{
       budgets.push({uid,timeout});
-      return E.fetchBankTransactions(jwt,uid,from,api,timeout,preferLongest);
+      return E.fetchBankTransactions(jwt,uid,from,apiFn,timeout,preferLongest,maxPages,dateTo);
     },clock||Date
   );
   const res=await handler(new Request("https://app.invalid",{method:"POST",body:JSON.stringify(body)}));
@@ -213,5 +214,95 @@ await t("tope de filas y de páginas siempre declara parcial",async()=>{
   let n=0;
   const empty=await E.fetchBankTransactions("jwt","test",null,async()=>({transactions:[],continuation_key:String(++n)}));
   assert.equal(n,12);assert.equal(empty.truncated,true);
+});
+function txUrl(calls){
+  return calls.filter(p=>p.includes("/transactions?")).map(p=>new URL(p,"https://bank.invalid"));
+}
+function demandEvent(events){
+  return events.filter(e=>e.kind==="performance" && String(e.message||"").startsWith("OB sync"));
+}
+await t("sin recoverGaps la petición sigue siendo el margen y un hueco no adelanta last_sync",async()=>{
+  const ms=Date.parse("2026-10-10T12:00:00Z");
+  class FakeDate extends Date { constructor(...args){super(...(args.length?args:[ms]));} static now(){return ms;} }
+  const caixa=link(); caixa.last_sync="2026-07-01T09:00:00Z";
+  const r=await sync([caixa],()=>({transactions:[movement()]}),{},FakeDate);
+  const asked=txUrl(r.calls)[0].searchParams.get("date_from");
+  assert.equal(asked,"2026-09-23");
+  assert.equal(r.data.history,undefined);
+  assert.equal(r.data.links[0].syncFrom,"2026-09-23");
+  assert.equal(r.data.links[0].gapBeyondCap,false);
+  assert.equal(r.writes[0].last_sync,undefined,"un cliente viejo no puede quemar el hueco");
+  assert.equal(r.writes[0].status,"active");
+});
+await t("recoverGaps pide desde el último éxito menos 3 días y solo entonces adelanta last_sync",async()=>{
+  const ms=Date.parse("2026-10-10T12:00:00Z");
+  class FakeDate extends Date { constructor(...args){super(...(args.length?args:[ms]));} static now(){return ms;} }
+  const caixa=link(); caixa.last_sync="2026-08-15T21:00:00.000Z";
+  const r=await sync([caixa],()=>({transactions:[movement()]}),{recoverGaps:true},FakeDate);
+  assert.equal(r.data.history,undefined,"recoverGaps no es el histórico");
+  const froms=txUrl(r.calls).map(u=>u.searchParams.get("date_from"));
+  assert.equal(froms[0],"2026-09-23","primero la ventana de siempre");
+  assert.equal(froms[1],"2026-08-12","después el tramo desde el último éxito menos 3 días");
+  assert.equal(r.data.links[0].gapBeyondCap,false);
+  assert.equal(typeof r.writes[0].last_sync,"string");
+  const ev=demandEvent(r.events)[0];
+  const d=JSON.parse(ev.detail);
+  assert.equal(d.dateFrom,"2026-08-12");
+  assert.equal(d.pages,2);
+  assert.equal(d.count,2);
+  assert.equal(d.accounts,1);
+  assert.equal(d.truncated,false);
+  assert.equal(d.status,"ok");
+  assert.equal(d.capped,false);
+  assert.equal(JSON.stringify(ev).includes("CaixaBank-cuenta"),false);
+  assert.equal(JSON.stringify(ev).includes("Comercio"),false);
+  assert.equal(JSON.stringify(ev).includes("12.50"),false);
+});
+await t("un hueco mayor de 90 días se corta, se traza y se avisa",async()=>{
+  const ms=Date.parse("2026-10-10T12:00:00Z");
+  class FakeDate extends Date { constructor(...args){super(...(args.length?args:[ms]));} static now(){return ms;} }
+  const caixa=link(); caixa.last_sync="2026-05-01T00:00:00Z";
+  const r=await sync([caixa],()=>({transactions:[movement()]}),{recoverGaps:true},FakeDate);
+  const froms=txUrl(r.calls).map(u=>u.searchParams.get("date_from"));
+  assert.equal(froms[0],"2026-09-23");
+  assert.equal(froms[1],"2026-07-12");
+  assert.equal(r.data.links[0].gapBeyondCap,true);
+  assert.equal(JSON.parse(demandEvent(r.events)[0].detail).capped,true);
+  assert.equal(typeof r.writes[0].last_sync,"string");
+});
+await t("sin último éxito recoverGaps se queda en el margen de siempre",async()=>{
+  const ms=Date.parse("2026-10-10T12:00:00Z");
+  class FakeDate extends Date { constructor(...args){super(...(args.length?args:[ms]));} static now(){return ms;} }
+  const r=await sync([link()],()=>({transactions:[]}),{recoverGaps:true},FakeDate);
+  assert.equal(txUrl(r.calls)[0].searchParams.get("date_from"),"2026-09-23");
+  assert.equal(r.data.links[0].gapBeyondCap,false);
+  assert.equal(JSON.parse(demandEvent(r.events)[0].detail).status,"empty");
+  assert.equal(typeof r.writes[0].last_sync,"string");
+});
+await t("una página cortada o un 429 no adelantan last_sync",async()=>{
+  const ms=Date.parse("2026-10-10T12:00:00Z");
+  class FakeDate extends Date { constructor(...args){super(...(args.length?args:[ms]));} static now(){return ms;} }
+  const caixa=link(); caixa.last_sync="2026-08-01T00:00:00Z";
+  const cut=await sync([caixa],()=>({transactions:[movement()],continuation_key:"next"}),{recoverGaps:true},FakeDate);
+  assert.equal(cut.data.links[0].accounts[0].truncated,true);
+  assert.equal(cut.writes[0].last_sync,undefined);
+  assert.equal(JSON.parse(demandEvent(cut.events)[0].detail).truncated,true);
+  const rate=await sync([caixa],()=>{throw new Error("EB 429");},{recoverGaps:true},FakeDate);
+  assert.equal(rate.writes.at(-1).last_sync,undefined);
+  assert.equal(rate.data.links[0].accounts[0].ok,false);
+});
+await t("dos páginas del tramo se cuentan y no se abre otra sesión",async()=>{
+  const ms=Date.parse("2026-10-10T12:00:00Z");
+  class FakeDate extends Date { constructor(...args){super(...(args.length?args:[ms]));} static now(){return ms;} }
+  const caixa=link(); caixa.last_sync="2026-08-01T00:00:00Z";
+  let n=0;
+  const r=await sync([caixa],()=>{
+    n++;
+    return n===1?{transactions:[movement("a")],continuation_key:"p2"}:{transactions:[movement("b")]};
+  },{recoverGaps:true},FakeDate);
+  const froms=txUrl(r.calls).map(u=>u.searchParams.get("date_from"));
+  assert.deepEqual(froms,["2026-09-23","2026-09-23","2026-07-29"]);
+  assert.equal(JSON.parse(demandEvent(r.events)[0].detail).pages,3);
+  assert.equal(r.data.links[0].accounts[0].transactions.length,3);
 });
 if(failures) process.exitCode=1;

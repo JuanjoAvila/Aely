@@ -113,7 +113,11 @@ export async function seedLoggedInDashboard(page, overrides = {}) {
           signOut: async () => {},
         },
         from: (t) => makeChain(t),
-        functions: { invoke: async (nombre) => cloudFns[nombre] || { data: {}, error: null } },
+        functions: { invoke: async (nombre, opts) => {
+          const rec = window.__e2eInvokes || (window.__e2eInvokes = []);
+          rec.push({ name: nombre, body: (opts && opts.body) || null });
+          return cloudFns[nombre] || { data: {}, error: null };
+        } },
       };
     };
 

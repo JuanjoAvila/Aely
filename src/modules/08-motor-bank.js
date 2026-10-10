@@ -1010,6 +1010,136 @@ function importObExpenses(s, txs){
   return add.length? add : null;
 }
 
+/* El tramo anterior a la ventana de siempre no puede vivir dentro de importObExpenses
+   ni de reconcileBank: esas funciones ya están en la huella de otras tandas. El suelo
+   entra solo por opts.syncFromByEnt (o por el recuerdo que deja bankSync). Escribir
+   prev._obSyncFrom dentro del updater no cuenta: si el llamador no pasa el suelo, el
+   cargo viejo no entra. */
+var obGapFloors = null;
+var obGapSummary = null;
+var obGapManual = false;
+function obGapMarkManual(){ obGapManual = true; }
+function obGapRemember(floors){ obGapFloors = floors || null; }
+function obGapTakeFloors(){
+  var floors = obGapFloors;
+  obGapFloors = null;
+  return floors;
+}
+function obGapParts(links){
+  var floors = {}, names = [], seen = {};
+  (links || []).forEach(function(l){
+    if(!l) return;
+    if(typeof l.syncFrom === "string" && /^\d{4}-\d{2}-\d{2}$/.test(l.syncFrom)){
+      var ent = entFromAspsp(l.aspsp);
+      if(ent && (!floors[ent] || l.syncFrom < floors[ent])) floors[ent] = l.syncFrom;
+    }
+    if(l.gapBeyondCap !== true) return;
+    var ent2 = entFromAspsp(l.aspsp);
+    var label = ent2 ? entOf(ent2).label : String(l.aspsp || "").trim();
+    if(!label || seen[label]) return;
+    seen[label] = 1;
+    names.push(label);
+  });
+  return {floors:floors, names:names};
+}
+function obGapNoteFromLinks(data, manual){
+  var parts = obGapParts((data && data.links) || []);
+  obGapFloors = parts.floors;
+  obGapSummary = (manual && parts.names.length) ? ("⚠ " + tf("bank_gap_title", {bank:parts.names.join(", ")}) + " " + t("bank_gap_sub")) : null;
+  if(!obGapSummary) return;
+  var asked = parts.names.slice();
+  setTimeout(function(){
+    if(typeof document !== "undefined" && document.querySelector && document.querySelector(".askback")) return;
+    askConfirm({
+      title: tf("bank_gap_title", {bank:asked.join(", ")}),
+      sub: t("bank_gap_sub"),
+      ok: t("bp_hist_btn")
+    }).then(function(yes){
+      if(!yes) return;
+      try{ window.dispatchEvent(new CustomEvent("mc-open-settings")); }catch(e){}
+      setTimeout(function(){
+        try{ window.dispatchEvent(new CustomEvent("mc-open-history")); }catch(e){}
+      }, 200);
+    });
+  }, 0);
+}
+function obDemandSom(){ return new Date(startOfMonth().getTime() - 8*86400000); }
+/* El tramo viejo reutiliza el importador de siempre: si no, cada regla nueva
+   (dedup, fijo, deuda) habría que copiarla y el bundle no cabe. `parseDate` es
+   reasignable (no es const). Mientras dura la llamada, una fecha anterior al
+   margen parece el margen, así que el corte no la tira; la fila guarda la fecha
+   real, que se construye con `new Date(texto)`, no con `parseDate`. El aporte
+   no puede comprar: la cuenta clonada lleva monthlyInvest a 0. */
+function importObGapStretch(s, txs, already){
+  if(!txs || !txs.length) return null;
+  var real = parseDate, som = obDemandSom(), add;
+  parseDate = function(v){ var d = real(v); return d < som ? som : d; };
+  try{
+    add = importObCore(Object.assign({}, s, {
+      accounts:(s.accounts||[]).map(function(a){ return a && a.monthlyInvest ? Object.assign({}, a, {monthlyInvest:0}) : a; }),
+      expenses:(s.expenses||[]).concat(already||[])
+    }), txs);
+  }finally{ parseDate = real; }
+  if(!add) return null;
+  var otras = (s.expenses||[]).filter(function(e){ return e && e.source !== "ob" && e.source !== "ob-hist"; });
+  var used = {};
+  return add.map(function(e){
+    // El gemelo de dentro se calculó con la fecha fingida: se descarta y se mira otra vez con la real.
+    var out = Object.assign({}, e);
+    delete out.possibleDup; delete out.possibleDupOf;
+    if(out.category === "inversion") out.category = categoryOfBankTx(out);
+    if(!sinComercioReal(out.merchant) || !out.ent) return out;
+    var ms = real(out.date).getTime();
+    var i = otras.findIndex(function(x, n){
+      if(used[n] || expenseBankOf(x) !== out.ent || Math.abs((x.amount||0) - out.amount) > 0.005) return false;
+      return Math.abs(dateMs(x.date) - ms) <= DUP_DIAS_MS;
+    });
+    if(i < 0) return out;
+    used[i] = 1;
+    return Object.assign({}, out, {possibleDup:true, possibleDupOf:otras[i].id});
+  });
+}
+var importObCore = importObExpenses;
+importObExpenses = function(s, txs, opts){
+  const floors = (opts && opts.syncFromByEnt) || obGapTakeFloors();
+  if(!txs || !txs.length || !floors) return importObCore(s, txs);
+  const som = obDemandSom();
+  const recent = [], gap = [];
+  txs.forEach(function(tx){
+    const ymd = floors && tx && tx.ent ? floors[tx.ent] : null;
+    const floor = (typeof ymd === "string" && /^\d{4}-\d{2}-\d{2}$/.test(ymd)) ? parseDate(ymd) : null;
+    const when = tx && tx.date ? parseDate(tx.date) : null;
+    if(floor && when && when >= floor && when < som) gap.push(tx);
+    else recent.push(tx);
+  });
+  const addRecent = recent.length ? (importObCore(s, recent) || []) : [];
+  const addGap = gap.length ? (importObGapStretch(s, gap, addRecent) || []) : [];
+  const all = addRecent.concat(addGap);
+  return all.length ? all : null;
+};
+var reconcileBankCore = reconcileBank;
+// Solo el mes en curso: un cargo de julio sigue confirmando julio. El de antes
+// del margen no puede dar por pagado el recibo de este mes (el día 18 anterior,
+// con hoy día 10, cae en la cola del mes pasado y antes salía confirmed).
+reconcileBank = function(state, y, m, today){
+  var now = new Date();
+  if(!state || !state.bankTx || y !== now.getFullYear() || m !== now.getMonth() + 1) return reconcileBankCore(state, y, m, today);
+  var som = obDemandSom(), kept = [];
+  state.bankTx.forEach(function(t){
+    if(t && t.date && parseDate(String(t.date).slice(0, 10)) < som) return;
+    kept.push(t);
+  });
+  if(kept.length === state.bankTx.length) return reconcileBankCore(state, y, m, today);
+  return reconcileBankCore(Object.assign({}, state, {bankTx:kept}), y, m, today);
+};
+var listaAvisosCore = listaAvisosSync;
+listaAvisosSync = function(list){
+  var rows = listaAvisosCore(list);
+  if(obGapSummary && rows.indexOf(obGapSummary) < 0) rows = rows.concat([obGapSummary]);
+  obGapSummary = null;
+  return rows;
+};
+
 /* LAS CUOTAS DE TUS DEUDAS, EN «DEUDAS» (4.21.0).
    Idea suya del 12/9. Medido con sus datos antes de picar: NINGUNA cuota casa por nombre. El
    banco llama a la hipoteca «PRESTAMOS ADEUDO CUOTA N.…», al préstamo del piso por el nombre de

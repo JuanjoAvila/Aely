@@ -93,7 +93,7 @@ export const E2E_MAP = [
     "e2e/help-assistant.spec.mjs",
     "e2e/hist-pagos-mensuales.spec.mjs", "e2e/bancos-historico-filtro.spec.mjs",
     "e2e/bancos-quitar-pending.spec.mjs", "e2e/gastos-deudas.spec.mjs",
-    "e2e/bank-callback-msg.spec.mjs", "e2e/plan-gestionar.spec.mjs",
+    "e2e/bank-callback-msg.spec.mjs", "e2e/bancos-hueco-sync.spec.mjs", "e2e/plan-gestionar.spec.mjs",
     "e2e/plan-cover.spec.mjs",
   ] },
   { file: "src/modules/07-tab-patri-fijos.js", specs: [

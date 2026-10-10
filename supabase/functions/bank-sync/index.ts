@@ -9,6 +9,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { ebApi, ebConfig, jsonResp, makeJWT, mapTransaction, fetchBankTransactions } from "../_shared/enablebanking.ts";
 import { withCors } from "../_shared/cors.ts";
+import { OB_DEMAND_MAX_PAGES, demandReadComplete, demandSyncFrom, ymdAddDays } from "./demand-window.ts";
 
 /* Los movimientos crudos no salen a `app_events`. El diagnóstico temporal del signo de TR
    guardaba hasta ocho payloads completos y seguía activo el 23/9, cuando apareció en telemetría
@@ -64,6 +65,29 @@ async function logObHistoryResult(admin: any, userId: string, aspsp: string, dat
   } catch (_) { /* diagnóstico best-effort: nunca cambia el resultado bancario */ }
 }
 
+// Sync a demanda: mismos conteos que el histórico, sin uid, IBAN, importes ni comercios.
+// La fecha mínima es la pedida al banco, no la de un movimiento.
+function newestBookingDay(rows: Array<{ booking_date?: string; value_date?: string }> | null): string | null {
+  let best: string | null = null;
+  for (const t of rows || []) {
+    const d = String(t?.booking_date || t?.value_date || "").slice(0, 10);
+    if (/^\d{4}-\d{2}-\d{2}$/.test(d) && (!best || d > best)) best = d;
+  }
+  return best;
+}
+
+// deno-lint-ignore no-explicit-any
+async function logObDemandResult(admin: any, userId: string, aspsp: string, dateFrom: string, status: string, accounts: number, count: number, pages: number, truncated: boolean, capped: boolean) {
+  try {
+    await admin.from("app_events").insert({
+      user_id: userId, email: null, kind: "performance",
+      message: `OB sync (${obLogBank(aspsp)}): ${status}`,
+      detail: JSON.stringify({ status, accounts, count, pages, truncated, dateFrom, capped }),
+      app_version: "edge", platform: "server",
+    });
+  } catch (_) { /* diagnóstico best-effort: nunca cambia el resultado bancario */ }
+}
+
 Deno.serve(withCors(async (req: Request) => {
   // El límite por cuenta no basta: muchas cuentas lentas podrían agotar la Edge y perder
   // también las respuestas buenas. Se reserva margen para devolverlas y cerrar la petición.
@@ -83,6 +107,10 @@ Deno.serve(withCors(async (req: Request) => {
     const body = await req.json().catch(() => ({}));
     const dateFrom = (typeof body?.dateFrom === "string" && /^\d{4}-\d{2}-\d{2}$/.test(body.dateFrom))
       ? body.dateFrom : null;
+    // Campo distinto de dateFrom a propósito: dateFrom abre el histórico de solo lectura
+    // (no toca saldos). Un cliente nuevo contra una función vieja manda esto y la vieja lo
+    // ignora; una función nueva contra un cliente viejo no lo ve y no ensancha.
+    const recoverGaps = body?.recoverGaps === true;
     const hasAspspFilter = Array.isArray(body?.aspsps);
     const wantedAspsps = hasAspspFilter
       ? body.aspsps.map((x: unknown) => String(x || "").trim().toLowerCase()).filter(Boolean).slice(0, 12)
@@ -185,6 +213,23 @@ Deno.serve(withCors(async (req: Request) => {
         out.push({ aspsp: link.aspsp_name, iban: link.iban, ok: false, expired: true, error: "cuenta sin uid · reconecta", balances: [], count: 0, transactions: [], accounts: [] });
         continue;
       }
+      // Primero la ventana de siempre, completa. El tramo antiguo va después y
+      // comparte el tope de 12 llamadas: si la ventana ya lo gasta, no se empieza
+      // el hueco y last_sync no avanza. Sin recoverGaps no se ensancha.
+      const demanded = demandSyncFrom(new Date(), link.last_sync, recoverGaps);
+      const windowStart = demanded.windowStart;
+      const wantOld = recoverGaps && demanded.gap && demanded.from < windowStart;
+      const recentFrom = wantOld ? demanded.from : windowStart;
+      let pages = 0;
+      let recentAllOk = true;
+      let oldAllDone = true;
+      let cursorBlocked = false;
+      let partialCursor: string | null = null;
+      const countingApi = async (jwtArg: string, path: string, init: { method?: string; body?: unknown; signal?: AbortSignal } = {}) => {
+        const data = await ebApi(jwtArg, path, init);
+        if (String(path).includes("/transactions")) pages++;
+        return data;
+      };
       // deno-lint-ignore no-explicit-any
       const acctOut: any[] = [];
       let anyAcctOk = false, anyExpired = false, lastErr = "";
@@ -201,11 +246,37 @@ Deno.serve(withCors(async (req: Request) => {
         const balTimer = setTimeout(() => balController.abort(), accountDeadline - Date.now());
         try {
           const bal = await ebApi(jwt, `/accounts/${uid}/balances`, {signal:balController.signal});
-          const now = new Date();
-          // Debe cubrir al menos `som` de importObExpenses (mes de Madrid menos 8 días).
-          // En el borde de mes UTC puede pedir un mes adicional, pero nunca uno de menos.
-          const recentFrom = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1) - 8 * 86400000).toISOString().slice(0, 10);
-          const tx = await fetchBankTransactions(jwt, uid, recentFrom, ebApi, accountDeadline - Date.now());
+          // La ventana de siempre va primero. Lo reciente no puede quedar peor que
+          // un sync de hoy aunque detrás haya un hueco de meses.
+          const beforeRecent = pages;
+          const recentTx = await fetchBankTransactions(jwt, uid, windowStart, countingApi, accountDeadline - Date.now(), false, OB_DEMAND_MAX_PAGES);
+          const usedRecent = pages - beforeRecent;
+          // deno-lint-ignore no-explicit-any
+          let raw: any[] = recentTx.transactions || [];
+          let truncated = !!recentTx.truncated;
+          let transactionError = recentTx.transactionError;
+          const recentOk = !recentTx.truncated && !recentTx.transactionError;
+          if (!recentOk) recentAllOk = false;
+          if (wantOld) {
+            const remain = OB_DEMAND_MAX_PAGES - usedRecent;
+            if (recentOk && remain > 0) {
+              const oldTx = await fetchBankTransactions(jwt, uid, demanded.from, countingApi, accountDeadline - Date.now(), false, remain, ymdAddDays(windowStart, -1));
+              const oldRows = oldTx.transactions || [];
+              raw = oldRows.concat(raw);
+              if (oldTx.truncated || oldTx.transactionError) {
+                truncated = true;
+                transactionError = transactionError || oldTx.transactionError;
+                oldAllDone = false;
+                const newest = newestBookingDay(oldRows);
+                if (!newest) cursorBlocked = true;
+                else if (!cursorBlocked && (!partialCursor || newest < partialCursor)) partialCursor = newest;
+              }
+            } else {
+              truncated = true;
+              oldAllDone = false;
+              cursorBlocked = true;
+            }
+          }
           // deno-lint-ignore no-explicit-any
           const balances = (bal.balances || []).map((b: any) => ({
             type: b.balance_type || b.name || "",
@@ -213,9 +284,9 @@ Deno.serve(withCors(async (req: Request) => {
             currency: b?.balance_amount?.currency || "",
           }));
           // deno-lint-ignore no-explicit-any
-          const transactions = (tx.transactions || []).map((t: any) => mapTransaction(t));
+          const transactions = raw.map((t: any) => mapTransaction(t));
           acctOut.push({ uid, iban: ac.iban || null, name: ac.name || null, currency: ac.currency || null, ok: true, balances,
-            count: transactions.length, transactions, truncated: tx.truncated, transactionError: tx.transactionError });
+            count: transactions.length, transactions, truncated, transactionError });
           anyAcctOk = true;
         } catch (err) {
           const msg = String((err as Error)?.message || err);
@@ -236,10 +307,31 @@ Deno.serve(withCors(async (req: Request) => {
           clearTimeout(balTimer);
         }
       }
+      const readCount = acctOut.reduce((n, a) => n + (typeof a?.count === "number" ? a.count : (a?.transactions || []).length), 0);
+      const readTruncated = acctOut.some((a) => !!(a && (a.truncated || a.transactionError)));
+      const readFailed = acctOut.filter((a) => a && a.ok === false).length;
+      const readPartial = !acctOut.length || readFailed > 0 || readTruncated;
+      const readStatus = readPartial ? (readCount ? "partial" : "error") : (readCount ? "ok" : "empty");
+      await logObDemandResult(admin, user.id, link.aspsp_name, recentFrom, readStatus, acctOut.length, readCount, pages, readTruncated, demanded.gapBeyondCap);
       // Solo EB 401 firme caduca el permiso; 403/404/429/5xx conservan el enlace activo.
-      if (anyAcctOk) {
+      // last_sync solo avanza con la lectura completa. Un corte o un 429 dejarían el
+      // siguiente sync empezando después del hueco. Tampoco avanza si había hueco y el
+      // cliente no pidió recuperarlo: la función nueva no puede quemar el cursor de un
+      // móvil que todavía descarta lo anterior al margen.
+      const readComplete = demandReadComplete(acctOut);
+      const covered = readComplete && anyAcctOk && (!demanded.gap || recoverGaps) && (!wantOld || oldAllDone);
+      // Tramo antiguo a medias: el cursor sube al día más nuevo que sí llegó, no a
+      // hoy. La próxima pulsación sigue más adelante y la ventana reciente ya vino.
+      const lastDay = typeof link.last_sync === "string" ? link.last_sync.slice(0, 10) : "";
+      const partialSync = !covered && recoverGaps && demanded.gap && recentAllOk && anyAcctOk && !cursorBlocked && partialCursor && (!lastDay || partialCursor > lastDay)
+        ? partialCursor + "T12:00:00.000Z" : null;
+      if (covered || partialSync) {
         await admin.from("bank_links")
-          .update({ last_sync: new Date().toISOString(), status: "active", updated_at: new Date().toISOString() })
+          .update({ last_sync: partialSync || new Date().toISOString(), status: "active", updated_at: new Date().toISOString() })
+          .eq("id", link.id);
+      } else if (anyAcctOk) {
+        await admin.from("bank_links")
+          .update({ status: "active", updated_at: new Date().toISOString() })
           .eq("id", link.id);
       } else {
         await admin.from("bank_links")
@@ -252,6 +344,7 @@ Deno.serve(withCors(async (req: Request) => {
         aspsp: link.aspsp_name, iban: link.iban, ok: anyAcctOk, expired: !anyAcctOk && anyExpired,
         error: anyAcctOk ? undefined : lastErr,
         balances: primary.balances, count: primary.count, transactions: primary.transactions,
+        syncFrom: recentFrom, gapBeyondCap: demanded.gapBeyondCap,
         accounts: acctOut,
       });
     }
