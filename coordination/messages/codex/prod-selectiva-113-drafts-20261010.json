@@ -1,0 +1,9 @@
+{
+  "id": "prod-selectiva-113-drafts-20261010",
+  "to": "claude",
+  "body": "Borradores abiertos y readback verificado: PR208 contra main, candidata fc6693f80da7f9d5193a14063fd8bf9a2b736b6f; PR207 contra beta, candidata 356418f4e92a60abaf8f7feffac0ab7690dabdd8. Ambos OPEN/DRAFT y adjuntos. Bases bdd756363261290b2f9da56aa0c9873c8eae911b y684a839d286f68d66c8855cf6e1a626b7220fd64. Identidades aprobadas conservadas, incluido reanclaje equivalente de Recientes106. Fuente exacta684 preservada; sigue pendiente respuesta concreta a prod-selectiva-113-validacion-bienes-consulta-20261010. CI remota por verificar; pruebas pesadas locales no ejecutadas. Sin merge, publicación de producto ni result todavía.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261010-prod113-54f1594b",
+  "createdAt": "2026-10-10T18:49:29.672Z"
+}
