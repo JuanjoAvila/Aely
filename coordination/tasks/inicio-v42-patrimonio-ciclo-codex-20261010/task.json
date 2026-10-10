@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "id": "inicio-v42-patrimonio-ciclo-codex-20261010",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261010-5f79c133",
+  "createdAt": "2026-10-10T09:14:14.862Z",
+  "to": "codex",
+  "baseSHA": "74c5f075bf08e38e289992195ad97e3a71a8b031",
+  "objective": "Inicio v4.2, diseño aprobado por el dueño: bloque de patrimonio con gráfica real y tarjeta «Este ciclo» con estados. Sustituye al encargo inicio-grafica-vuelve-codex-20261010, que NO se ejecuta. Referencia obligatoria, sin interpretar: handoff/SPEC-v4.2-inicio.md y el id 3b de handoff/mock-v4.2.html en el checkout principal del PC (no están en el repo: llevan datos personales y no se suben).",
+  "scope": [
+    "src/modules/03-tab-dash.js",
+    "src/modules/02-ui-shared.js",
+    "src/modules/07-tab-patri-fijos.js solo el guardado de accountBalanceHistory",
+    "src/modules/01-i18n.js (es/en/ca, claves con el estilo de la casa)",
+    "src/shell.html solo estilos del bloque",
+    "tests de motor y e2e de Inicio, registrados"
+  ],
+  "acceptance": [
+    "Spec §1 a §4 tal cual: medidas, textos, animaciones, selector 1M/6M/1A/Todo. Desaparecen «Ahora» y el texto añadido en la 109.",
+    "Serie diaria REAL: suma de accountBalanceHistory e invHistory por día; los bienes entran con el valor de hoy. Función pura con test.",
+    "El pico del final que tenía la gráfica antigua (puntos viejos de state.history + patrimonio de hoy) no puede reaparecer: state.history deja de pintarse. Test que lo fije.",
+    "Un día solo entra en la serie si cada cuenta tiene saldo de ese día o arrastrado de uno anterior; una transferencia entre dos cuentas propias, con un banco sin sincronizar, no produce salto. Test con dos bancos.",
+    "Guardado: subir el tope de 30 a 400 puntos por cuenta SIN engordar cada escritura (ver AGENTS §7 bis); medir bytes escritos antes y después.",
+    "Rangos sin datos reales suficientes no se ofrecen: se muestran solo los que cubre el historial. Nada interpolado ni inventado.",
+    "Estados del ciclo con los umbrales de la spec (-15/10/40) como constantes con nombre. Función pura con test de los seis estados.",
+    "Sin fecha fiable del próximo cobro se oculta la línea de ritmo (feedback del 28/9); no se calcula un «€ al día» de calendario.",
+    "e2e en DOM real: los seis estados, cambio de rango, color de línea igual al de la variación, prefers-reduced-motion. Capturas de los seis estados en el PR.",
+    "Spec §5 punto 4 medido con CPU x6. npm run build y npm test con exit 0 en el SHA entregado.",
+    "Rama propia y UN PR draft contra beta. Sin VERSION, catálogos ni notas. Dudas de producto: pregunta en el result, no decisión propia."
+  ],
+  "authorization": "Orden directa del dueño 10/10: diseño 3b aprobado; umbrales a criterio del coordinador."
+}
