@@ -8,7 +8,7 @@ final class WidgetSnapshotArbiter {
         boolean hasBudgetLeft, hasSafeLiq, hasCash;
         String cashEnt = "", cashLabel = "", events = "", journal = "";
         String coveredEvents = "", deletedKeys = "", unknownJournal = "";
-        boolean journalFull, unknownPending;
+        boolean journalFull, unknownPending, unknownLoss;
 
         double safeLiq() { return Math.max(0, hasCash
                 ? Math.min(baseSafeLiq - spendDelta, baseCash - cashDelta)
@@ -29,9 +29,15 @@ final class WidgetSnapshotArbiter {
         // No conocemos ningún delta de una respuesta incompatible. Solo conservamos identidad;
         // una foto de la app sin ACK no es prueba de que ya incluya ese pago (revisión 30/9).
         String line = event + "\t" + (expenseKey != null ? expenseKey : "");
-        if (!s.unknownJournal.contains(line + "\n")) {
-            if (s.unknownJournal.length() + line.length() + 1 > JOURNAL_MAX) s.journalFull = true;
-            else s.unknownJournal += line + "\n";
+        if (!("\n" + s.unknownJournal + "\n").contains("\n" + line + "\n")) {
+            int separator = s.unknownJournal.isEmpty() ? 0 : 1;
+            if (s.unknownJournal.length() + separator + line.length() > JOURNAL_MAX) {
+                // Sin identidad retenida ningún ACK posterior demuestra que cubra este pago.
+                s.journalFull = true;
+                s.unknownLoss = true;
+            }
+            // El salto final puede reaparecer como indentación al releer preferencias Android.
+            else s.unknownJournal += (separator == 0 ? "" : "\n") + line;
         }
         s.unknownPending = true;
         return true;
@@ -46,14 +52,25 @@ final class WidgetSnapshotArbiter {
 
     /** Los deltas de otra selección no se trasladan; su identidad sigue esperando cobertura. */
     static boolean invalidateScope(State s) {
+        if (s.unknownJournal.length() > JOURNAL_MAX) { s.journalFull = true; return false; }
+        StringBuilder unknownKeep = new StringBuilder(s.unknownJournal);
         for (String line : s.journal.split("\\n")) {
             if (line.trim().isEmpty()) continue;
             String[] p = entry(line);
-            if (p.length != 7) { s.journalFull = true; return false; }
-            String unknown = p[0].trim() + "\t" + p[6] + "\n";
-            if (!s.unknownJournal.contains(unknown)) s.unknownJournal += unknown;
+            if (p.length != 7) { s.journalFull = true; s.unknownLoss = true; return false; }
+            p[0] = p[0].trim();
+            if (p[0].isEmpty()) { s.journalFull = true; s.unknownLoss = true; return false; }
+            String unknown = p[0] + "\t" + p[6];
+            if (!("\n" + unknownKeep + "\n").contains("\n" + unknown + "\n")) {
+                int separator = unknownKeep.length() == 0 ? 0 : 1;
+                if (unknownKeep.length() + separator + unknown.length() > JOURNAL_MAX) {
+                    s.journalFull = true; s.unknownLoss = true; return false;
+                }
+                if (separator != 0) unknownKeep.append('\n');
+                unknownKeep.append(unknown);
+            }
         }
-        if (s.unknownJournal.length() > JOURNAL_MAX) { s.journalFull = true; return false; }
+        s.unknownJournal = unknownKeep.toString();
         s.periodStart = 0;
         return true;
     }
@@ -63,24 +80,35 @@ final class WidgetSnapshotArbiter {
                     String coveredEvents, String deletedKeys) {
         // El XML de preferencias puede añadir indentación al salto final del journal. Una foto
         // de la app permite releerlo y recuperar ese bloqueo sin perder eventos no confirmados.
+        // Cambiar de periodo retira sus deltas, pero no acredita los pagos de esa ventana.
+        // También los de delta desconocido necesitan conservar identidad hasta ACK exacto.
+        if (s.periodStart != periodStart && !s.journal.isEmpty()
+                && !invalidateScope(s)) return false;
         StringBuilder keep = new StringBuilder(), ids = new StringBuilder();
         double shown = 0, against = 0, cashPart = 0, spendPart = 0;
         StringBuilder unknownKeep = new StringBuilder();
         for (String line : s.unknownJournal.split("\\n")) {
-            if (line.isEmpty()) continue;
+            // Una línea blanca sin TAB es indentación; con TAB sigue siendo una entrada que
+            // necesita identidad. No marcar pérdida irreversible por formato recuperable.
+            if (line.trim().isEmpty() && line.indexOf('\t') < 0) continue;
             String[] p = entry(line);
-            if (p.length != 2) { s.journalFull = true; return false; }
-            if (!has(coveredEvents, p[0]) && !has(deletedKeys, p[1])) unknownKeep.append(line).append('\n');
+            if (p.length != 2) { s.journalFull = true; s.unknownLoss = true; return false; }
+            p[0] = p[0].trim();
+            if (p[0].isEmpty()) { s.journalFull = true; s.unknownLoss = true; return false; }
+            if (!has(coveredEvents, p[0]) && !has(deletedKeys, p[1])) {
+                if (unknownKeep.length() > 0) unknownKeep.append('\n');
+                unknownKeep.append(p[0]).append('\t').append(p[1]);
+            }
         }
         if (unknownKeep.length() > JOURNAL_MAX) { s.journalFull = true; return false; }
-        boolean unknown = unknownKeep.length() > 0;
+        boolean unknown = s.unknownLoss || unknownKeep.length() > 0;
         if (s.periodStart == periodStart) {
             for (String line : s.journal.split("\\n")) {
                 if (line.trim().isEmpty()) continue;
                 String[] p = entry(line);
-                if (p.length != 7) { s.journalFull = true; return false; }
+                if (p.length != 7) { s.journalFull = true; s.unknownLoss = true; return false; }
                 p[0] = p[0].trim();
-                if (p[0].isEmpty()) { s.journalFull = true; return false; }
+                if (p[0].isEmpty()) { s.journalFull = true; s.unknownLoss = true; return false; }
                 if (has(coveredEvents, p[0]) || has(deletedKeys, p[6])) continue;
                 if (keep.length() > 0) keep.append('\n');
                 for (int i = 0; i < p.length; i++) {
@@ -135,6 +163,10 @@ final class WidgetSnapshotArbiter {
         if (responsePeriod != currentPeriod || ticket <= 0 || has(s.coveredEvents, event)
                 || has(s.deletedKeys, expenseKey)) return false;
         if (s.periodStart != responsePeriod) {
+            // Un bloqueo de cifras no autoriza a perder identidades al entrar en otro periodo.
+            // Si aún se leen, pasan a cobertura pendiente; si no, se conserva la pérdida.
+            if (!s.journal.isEmpty() && !invalidateScope(s))
+                s.unknownLoss = true; // Este reset sí retirará identidades que no se pudieron migrar.
             s.periodStart = responsePeriod;
             s.spent = 0;
             s.hasBudgetLeft = false;
@@ -145,13 +177,16 @@ final class WidgetSnapshotArbiter {
             s.events = "";
             s.journal = "";
             s.journalFull = false;
-            s.unknownPending = false;
+            s.unknownPending = s.unknownLoss || !s.unknownJournal.isEmpty();
             s.coveredEvents = "";
             s.deletedKeys = "";
             s.serverReadAt = 0;
             s.serverTicket = 0;
         }
-        if (s.journalFull) return false;
+        if (s.journalFull) {
+            // El bloqueo de otra entrada tampoco autoriza a olvidar un pago nuevo.
+            return pendingUnknown(s, event, expenseKey);
+        }
         boolean newEvent = event != null && !event.isEmpty() && !has(s.events, event);
         if (newEvent) {
             String line = event + "\t" + shownDelta + "\t" + againstDelta + "\t" + amount
@@ -160,6 +195,7 @@ final class WidgetSnapshotArbiter {
             int separator = s.journal.isEmpty() ? 0 : 1;
             if (s.journal.length() + separator + line.length() > JOURNAL_MAX) {
                 s.journalFull = true;
+                pendingUnknown(s, event, expenseKey);
                 return true;
             }
             s.events += "|" + event + "|";
