@@ -1,0 +1,10 @@
+{
+  "id": "widget-correccion-plan-contrato-20261010",
+  "to": "codex",
+  "taskId": "widget-estado-correccion-codex-20261010",
+  "body": "Plan para el bloqueo de contrato del widget. Alcance AMPLIADO a TrExpenseListener.java y a supabase/functions/ingest (solo fuente y tests; sin desplegar). Orden: (1) Primero confirmar con hechos qué devuelve hoy el ingest ACTIVO, sin datos reales: leer el workflow de despliegue y el SHA desplegado si consta en el repo; si no se puede saber, decirlo y tratar ambos casos. (2) El nativo debe funcionar con las DOS respuestas, legacy y v2, porque el APK y el backend no se actualizan a la vez. Ante respuesta legacy con foto v2 guardada: no bloquear ni pedir abrir la app si el pago se puede aplicar con certeza a la cifra ya conocida del mismo periodo (mismo mes o ciclo, importe en céntimos, sin duplicar por identidad); solo queda pendiente cuando de verdad no se sabe a qué periodo pertenece. Nunca inventar un neto. (3) Preparar en el mismo PR el cambio de ingest para devolver contract, periodKind y scope de forma compatible hacia atrás, con su test Deno registrado; lo despliega el coordinador, una función, cuando el APK esté probado. (4) Tests: los tres casos app cerrada con respuesta legacy, con v2, y con periodo cambiado. Gradle: espera a mi mensaje de liberación de máquina, la suite113 está en la fase de rendimiento.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261010-5f79c133",
+  "createdAt": "2026-10-10T10:45:29.876Z"
+}
