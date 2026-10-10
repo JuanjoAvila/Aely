@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "id": "caixabank-correccion-revision-grok-20261010",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261010-5f79c133",
+  "createdAt": "2026-10-10T13:29:26.223Z",
+  "to": "grok",
+  "baseSHA": "ed09ce1d97ddd3609efcc8613aced0b0b1148ab3",
+  "objective": "PR200 NO se integra todavía. Una revisión independiente, con sondas contra el bundle del PR y contra la base, encontró que el arreglo cumple el caso feliz pero rompe otros: ahora TODO cargo bancario con referencia, de cualquier banco, recibe hora salada y deja de pasar por la red día-importe-comercio. Corregir en el mismo PR. Entre paréntesis, filas resultantes PR frente a base.",
+  "scope": [
+    "los ficheros que ya toca PR200"
+  ],
+  "acceptance": [
+    "Criterio nuevo de separación: la red día-importe-comercio sigue siendo la regla por defecto para todos los bancos. Dos cargos solo se tratan como distintos cuando el banco los presenta A LA VEZ, con referencias distintas, en la misma respuesta de sincronización. Una referencia distinta que llega en otra sincronización no basta.",
+    "1 GRAVE zona horaria servidor-cliente: presupuesto.ts líneas 118-121 calcula el mediodía en la zona del servidor (UTC) y el cliente en la del móvil; las claves no coinciden. Una fila de CaixaBank de mediodía con lápida vieja: el cliente la tapa y el servidor la deja, así que el widget vuelve a sumar un gasto borrado. Mediodía calculado explícitamente en Europe/Madrid en los dos lados. Test cruzado: cliente en Madrid contra servidor en UTC en la MISMA pasada.",
+    "2 GRAVE pendiente a contabilizado: primera sincronización con el cargo pendiente y referencia X, segunda con el mismo cargo contabilizado y referencia Y: hoy 2 filas (base 1). Debe quedar 1.",
+    "3 GRAVE filas de la nube sin referencia (segundo móvil, reinstalación, web): mediodía más ranura de histórico con dos cargos en el feed da 3 filas para 2 cargos (base 2); fila salada sin referencia más su cargo da 2 (base 1). Deben quedar 2 y 1.",
+    "4 GRAVE lápidas: con lápida vieja y dos hermanas, si el usuario borra también la segunda, la siguiente sincronización da de alta la primera (obidHit en líneas 939 y 955 anula la lápida vieja). Borradas las dos, no reaparece ninguna.",
+    "5 GRAVE zona del dispositivo: keyOfExpense (00-core.js 1577-1587) compara con el mediodía local. Con el móvil en Canarias una fila de mediodía de Madrid más su cargo da 2 filas (base 1). El resultado no puede depender de la zona del dispositivo.",
+    "6 GRAVE otra vía: una fila manual o de notificación con el mismo banco, día, importe y nombre, más el cargo del banco con referencia: 2 filas (base 1). Debe quedar 1.",
+    "7 rendimiento: keyOfExpense crea cuatro Date por fila; 20.000 filas pasan de 6 ms a 70 ms y corre en cada vuelta a primer plano y en renders. Sin Date por fila (dateMs); medir antes y después y no empeorar la base.",
+    "8 el histórico con referencia no puede viajar como movimiento normal: al volver en otro móvil entraba en reconcileObDupes, que lo excluía a propósito.",
+    "9 quitar código muerto: obReassignSkipped y obExtIdFromCloudSource solo los llama un test.",
+    "10 la hermana re-sellada debe llegar a la nube, y obResealOldNoon no puede mutar objetos del estado dentro del updater.",
+    "Servidor: decir en el result si el cambio exige desplegar una Edge Function. El cliente nuevo contra la función vieja no puede ser peor que hoy, y la función nueva contra un cliente viejo tampoco.",
+    "Un test por cada punto 1 a 6 que falle con el head actual y pase con el arreglo, en UTC y en Madrid. Otros bancos: un test con dos bancos sembrados que demuestre que nada cambia para el que no tiene hermanas.",
+    "Playwright completo comparado contra la beta limpia: indicar qué rojos existen ya en 684a839d. Sin VERSION, catálogos ni topes."
+  ],
+  "authorization": "Orden directa del dueño 10/10: Claude coordina y verifica que no se rompa nada."
+}
