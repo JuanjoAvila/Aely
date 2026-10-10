@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "id": "inicio-v42-desbloqueo-codex-20261011",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261010-6a2f79b5",
+  "createdAt": "2026-10-10T23:29:06.902Z",
+  "to": "codex",
+  "baseSHA": "38aea2efb3efa92eb9735a34e47f3a1d6c7e741b",
+  "objective": "Orden directa del dueño esta noche: Inicio v4.2 no se queda bloqueado, Codex lo termina. Llevar el PR 204 de blocked a entregable, en la misma rama y el mismo PR, resolviendo uno a uno los gates rojos del result anterior. Va DESPUÉS del widget en el runner pesado, pero el trabajo de código puede avanzar ya en paralelo.",
+  "scope": [
+    "la rama y los ficheros del PR 204",
+    "tests y e2e propios y los que el cambio deja obsoletos",
+    "sin VERSION, catálogos ni notas: los pone la integración"
+  ],
+  "acceptance": [
+    "Los 9 fallos de Playwright completo a cero, uno por uno y con causa: los 5 de metas mensual (toast) y el de Bienes con escritura extra, comprobar primero si ya fallan en beta 684a839d; si son ajenos, demostrarlo con la misma prueba sobre beta y rebasar sobre el PR 203 de tests inestables si los arregla; si los causa Inicio, arreglar Inicio. El smoke que espera el selector de racha retirado: adaptar el test SOLO si la retirada de la racha está en el diseño 3b; si no lo está, la racha vuelve.",
+    "Los guardianes de npm test que dependan del producto en verde (auth-disposal, beta-veredictos, beta-sources, presupuesto-rendimiento). docs-frescura y memoria-espejo se resuelven en la integración: decir cuáles quedan y por qué. Ejecutar npm test con la variable AELY_MEMORY_SOURCE apuntando a una ruta inexistente y con deno en el PATH.",
+    "Rendimiento de entrada: 45 fps está por debajo del umbral de 50. Medir A/B contra beta 684a839d con CPU frenada x6, encontrar qué trabajo añade Inicio al entrar (serie por flujos recalculada en cada render, memo que no acierta por depender del estado entero, fechas creadas dentro de bucles) y arreglarlo hasta pasar de forma estable en tres pasadas. No tocar el umbral.",
+    "Tamaño: el exceso era de unos 15 KB crudos y 4 KB gzip sobre el tope. Primero recortar lo propio (código muerto del Inicio anterior que v4.2 sustituye, textos duplicados, helpers repetidos). NO subir el tope. Si tras recortar de verdad sigue sin caber, entregar igualmente con la cifra exacta de exceso y la lista de lo recortado: la decisión del tope la toma el dueño y es lo único que puede quedar abierto.",
+    "Decisión de producto provisional, para no bloquear: deudas con su valor de hoy y cuota vinculada como neutra, tal como está. Dejarlo en un único punto del código fácil de cambiar y decirlo en el result.",
+    "Result done solo con suite entera verde; si queda algo, blocked con exactamente qué y por qué, sin lista de límites genéricos. SHA empujado al PR 204."
+  ],
+  "restrictions": [
+    "No rediseñar: el diseño es el 3b ya dado",
+    "Datos sintéticos; repo público",
+    "Sin merge ni push a beta o main",
+    "Un solo runner pesado en la máquina, serializado, y el widget va primero"
+  ],
+  "authorization": "Orden directa del dueño al coordinador en la madrugada del 11/10: que Codex siga y lo arregle, no dejarlo bloqueado."
+}
