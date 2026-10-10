@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "id": "inicio-solape-gastos-grok-20261010",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261010-5f79c133",
+  "createdAt": "2026-10-10T16:12:35.696Z",
+  "to": "grok",
+  "baseSHA": "684a839d286f68d66c8855cf6e1a626b7220fd64",
+  "objective": "Bug nuevo de un familiar en PRODUCCIÓN (4.26.110), con captura: estando en Inicio y tras apuntar varios gastos, la lista de categorías de la pestaña Gastos (Compras, Impuestos y multas, Bares y restaurantes, Agua, Supermercado, Transporte, Luz…, con sus importes) aparece PINTADA ENCIMA de Inicio, solapando la tarjeta vacía «Aún no hay recibos» de Próximos cargos y la sección «Tus metas». La pestaña activa de la barra es Inicio. El dueño no lo reproduce en su móvil. Encontrar la causa y arreglarla.",
+  "scope": [
+    "src/modules/11-app-main.js (pista de pestañas y montaje)",
+    "src/modules/04-tab-gastos.js",
+    "src/modules/03-tab-dash.js",
+    "src/shell.html",
+    "e2e nuevo registrado en relevant-tests"
+  ],
+  "acceptance": [
+    "Hipótesis de partida, a confirmar o descartar con hechos: Inicio no pinta ninguna lista de categorías, así que lo que se ve es la página de Gastos visible sobre la de Inicio: la pista de pestañas no asentó tras cerrar la hoja de Apuntar, o una capa premontada quedó visible (transform, content-visibility, pointer-events, altura). Datos de la captura: presupuesto superado (anillo al 100 %), sin recibos fijos, sin banco conectado, una meta, unas diez categorías con gasto.",
+    "Reproducirlo en Chromium con un estado sintético así y el gesto real: desde Inicio, abrir Apuntar con el botón central, guardar varios gastos seguidos de categorías distintas, cerrar. Probar también con letra grande del sistema, viewport estrecho y alto (móvil de gama media), prefers-reduced-motion y CPU frenada x6. Si no se reproduce, decirlo con lo probado y proponer la guarda más barata que lo haga imposible (por ejemplo, que una página no activa nunca sea visible), con su e2e.",
+    "e2e que falle sin el arreglo: con Inicio activa, ningún elemento de la página de Gastos tiene caja visible dentro del viewport, antes y después de apuntar varios gastos.",
+    "No tocar el gesto entre pestañas ni el premontaje más de lo imprescindible (ver AGENTS 7 bis). Medir que el cambio de pestaña no empeora con CPU x6.",
+    "Un PR draft contra beta. npm run build y Playwright completo con exit real, comparando rojos con la beta limpia. Sin VERSION ni catálogos."
+  ],
+  "authorization": "Orden directa del dueño 10/10: Claude coordina; bug reportado por un familiar."
+}
