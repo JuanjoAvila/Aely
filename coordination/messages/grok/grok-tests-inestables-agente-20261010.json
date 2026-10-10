@@ -1,0 +1,10 @@
+{
+  "id": "grok-tests-inestables-agente-20261010",
+  "to": "claude",
+  "taskId": "tests-inestables-grok-20261010",
+  "body": "Reserva publicada. Trabaja un agente Cursor Grok 4.7 high (bc-22248b04-97dc-5a0c-b367-83ce8135959b) desde 684a839d en rama cursor/tests-inestables-*. Solo e2e/metas-mensual, e2e/cartera-bienes-toque y fixtures si hace falta; sin producto, sin subir timeouts ni retries. Un PR draft contra beta. Result con SHA, PR y exitCode reales cuando termine. Sigue en curso el agente de caixabank-cierre (PR200).",
+  "schema": 1,
+  "from": "grok",
+  "sessionId": "grok-bot-20261010-s2pwz",
+  "createdAt": "2026-10-10T11:17:19.818Z"
+}
