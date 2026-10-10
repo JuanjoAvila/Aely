@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "id": "bancos-sin-hueco-correccion-grok-20261010",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261010-6a2f79b5",
+  "createdAt": "2026-10-10T18:42:30.663Z",
+  "to": "grok",
+  "baseSHA": "e2e0512cf64f3da5eb6c7fc35b1a99e821db152a",
+  "objective": "NO-GO de la revisión independiente del PR 206 en e2e0512c. Corregir en la MISMA rama y el mismo PR, en borrador, sin desplegar. El servidor valida bien y no se halló camino en que last_sync avance con lectura incompleta; lo que bloquea es lo de abajo.",
+  "scope": [
+    "supabase/functions/bank-sync (fuente y tests, sin desplegar)",
+    "src/modules/08-motor-bank.js y 11-app-main.js en lo que toca al tramo recuperado",
+    "tests Node, Deno y e2e propios con su registro",
+    "tests/beta-veredictos si el origen edge es legítimo"
+  ],
+  "acceptance": [
+    "B1 progreso garantizado. Sonda del revisor sobre el handler real: banco que pagina de 20 en orden antiguo a nuevo, 4 movimientos por día, hueco de 60 días: 12 llamadas, truncated, faltan los 4 días más recientes y last_sync no avanza; el siguiente sync repite lo mismo para siempre, con el triple de llamadas por pulsación y el mes en curso sin llegar. Con la ventana actual esa cuenta se lee entera en 4 llamadas. Hace falta garantía de progreso: lo reciente nunca puede quedar peor que hoy (primero la ventana de siempre, completa; el tramo antiguo aparte y con cursor parcial que avance, o equivalente). Nunca más llamadas al banco por pulsación que un tope fijo y declarado. Test que reproduzca la sonda, rojo en e2e0512c.",
+    "B2 movimientos recuperados anteriores a la ventana de siempre NO tocan valores de inversión. Sonda: cargo igual al aporte mensual de hace 40 días entra como inversión y sube el fondo de 1000 a 1150. En el tramo antiguo el defecto es NO TOCAR saldos ni posiciones: se registra el movimiento, no se compra nada. Test rojo en e2e0512c.",
+    "B3 recibos fijos del tramo recuperado reciben el mismo trato que los del mes en curso: un fijo ya modelado no entra como gasto (sonda: alquiler de hace 40 días entra en categoría recibos; el mismo cargo este mes se descarta). Y reconcileBank no puede dar por pagado el recibo de este mes con el cargo del mes pasado (sonda: fijo del día 18, hoy día 10, sale confirmed por el cargo del 18 anterior). Tests rojos en e2e0512c.",
+    "B4 tests/beta-veredictos.test.mjs da exit 1 en este SHA (aparece edge donde espera web y native) y con el contenido de beta da 0: arreglar la causa, no el test, salvo que edge sea un origen legítimo y se justifique. npm run build no debe dejar sucios beta-delivery ni release-notes por huellas de tandas ajenas (cambian las de 4 tandas, entre ellas la de nómina anticipada): averiguar por qué y evitarlo.",
+    "R1 reconectar un banco pone last_sync a null en bank-callback y ese hueco no se recupera: proponer arreglo mínimo o dejarlo descrito como límite, sin ampliar alcance por tu cuenta.",
+    "R2 el aviso de más de 90 días solo en sync manual (hoy salta también en el de notificación y en cambio de rol), sin pisar otro diálogo abierto ni dejar bankSyncing atascado si lo pisan, y sin perder el resumen de avisos. R3 hueco mayor de 90 días: no puede quedar silencioso para siempre tras cancelar; y comprobar si Importar histórico alcanza de verdad ese tramo (tiene el mismo tope de 90 días): si no alcanza, el aviso no puede prometerlo. Lo que sea decisión de producto, proponlo en el result en vez de inventarlo.",
+    "R4 gap salta 3 días antes de que haya hueco real y congela last_sync con cliente viejo: con cliente viejo y sin hueco real la función nueva debe comportarse como la actual. R5 no mutar el estado dentro del updater (prev._obSyncFrom): usar la vía opts.syncFromByEnt también en producción. R6 mutación superviviente: que el llamador no pase el suelo debe cazarlo un test Node, no solo el e2e.",
+    "Tests en UTC y en Madrid. Playwright completo y npm test con AELY_MEMORY_SOURCE apuntando a una ruta inexistente, con exit real. Result con SHA, y la matriz cliente nuevo o viejo contra función nueva o vieja verificada de nuevo."
+  ],
+  "restrictions": [
+    "Sin VERSION, catálogos, notas ni topes; sin merge, push a beta o main, ni despliegue",
+    "Datos sintéticos; repo público",
+    "Solo a demanda: ningún sync nuevo al abrir o volver a primer plano"
+  ],
+  "authorization": "Encargo del dueño vigente para INC-2709-06; el despliegue de bank-sync lo hace el coordinador tras un GO."
+}
