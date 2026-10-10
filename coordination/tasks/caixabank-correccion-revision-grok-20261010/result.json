@@ -1,0 +1,71 @@
+{
+  "status": "blocked",
+  "summary": "Correccion de la revision aplicada en la misma rama del PR 200; queda bloqueado por tres decisiones del coordinador (tope de tamano, pines de beta-sources y despliegue de la funcion ingest). Verificado en GitHub: PR 200 abierto como draft, head 457416e6755049f950899ad8a7c7edbda1aa0551 (padre 8a95bd5d, ultimo commit solo toca public/release-notes.json), base beta 684a839d286f68d66c8855cf6e1a626b7220fd64 (cabeza actual de beta), mergeable clean, 10 commits, 15 ficheros, +1962/-98. Sin PR nuevo, sin merge, sin push a beta/main, sin tocar PR 131/141/146/151, VERSION, scripts/beta-sources.json ni tope; public/beta-delivery.json queda como en beta. Puntos de la revision cubiertos por tests/inc-2709-06-correccion.test.mjs (nuevo): 1) mediodia civil de Europe/Madrid en cliente (madridNoonIso) y servidor (mediodiaMadridIso), mismo resultado en UTC; 2) pendiente con referencia X y luego contabilizado con Y: una fila; 3) filas de la nube sin referencia: el par da 2 y el cargo suelto 1; 4) borradas las dos hermanas el sync no devuelve ninguna (la lapida de dia se gasta en el id menor); 5) clave del mediodia independiente de la zona del dispositivo; 6) apunte manual o notificacion del mismo banco, dia, importe y nombre mas el cargo con referencia: una fila; 7) keyOfExpense compara contra el mediodia cacheado y no construye Date por fila; 8) ob-hist sigue como ob-hist:ent y no entra en reconcileObDupes; 9) eliminadas obReassignSkipped y obExtIdFromCloudSource; 10) obResealOldNoon devuelve copias y publicarResello sube la hermana con _moveFecha. La red dia|importe|comercio sigue siendo la regla de todos los bancos; solo se parten dos cargos si el banco los manda a la vez, con referencias distintas, en la misma respuesta. Ese fichero de tests sale exit 1 en ed09ce1d (11 fallos por zona, UTC y Madrid) y exit 0 en 457416e6 en las dos zonas. Rendimiento de keyOfExpense con 20000 filas (mediana de 8 pasadas): beta 6 ms con 0 Date; ed09ce1d 68 ms con 100000 Date; 457416e6 8 ms con 0 Date. EDGE: hay que desplegar la funcion ingest (unica que importa supabase/functions/_shared/presupuesto.ts); no se ha desplegado. Cliente nuevo contra funcion de beta: la clave ignora la hora, mediodia y hermana cuentan como una fila, el widget sigue como hoy. Cliente nuevo contra la funcion de ed09ce1d: el mediodia de Madrid no es las 12:00 Z, la lapida de dia no tapa (ya fallaba con el cliente de ed09ce1d). Funcion nueva contra cliente viejo: T10, T11 y T12 en .000Z siguen en la red de dia; una hora salada (T16Z) no. BUNDLE: tope 1326080 B min y 362496 B gzip; beta 1325091 min (bajo 989) y 361875 gzip (bajo 621); ed09ce1d 1333305 (sobre 7225) y 364501 (sobre 2005); 457416e6 1333675 (sobre 7595) y 364842 (sobre 2346). No se subio el tope. PROPUESTAS: A) autorizar unos 8 KiB minificados y unos 3 KiB gzip de tope, o recortar en otra tanda; B) declarar madridNoonIso y refrescar los pines Retiro109 (inc-0710-gastos-mes-madrid), inc-3009-01-cargos (dependencia sin vigilar madridNoonIso) y Recientes106 en scripts/beta-sources.json, fuera del alcance del PR (la prueba 'cada dato leido' pasa); C) desplegar ingest cuando se integre. PLAYWRIGHT: suite entera con el JS de 8a95bd5d (catalogo aun sin sellar): rama exit 1, 923 passed, 83 failed, 1 skipped (41,8 min); beta 684a839d exit 1, 995 passed, 7 failed, 1 skipped (31,9 min). Los 7 de beta son e2e/botnav-indicador (.settings-push.open no se ve en 5 s), asi que no son rojos de esta rama. Los otros 76 de la rama eran revisar-beta y beta-panel-reopen: el panel rechazaba release-notes.json porque el bundle sella otra huella; con el catalogo alineado, repeticion de revisar-beta, beta-panel-reopen y botnav-indicador: exit 1, 94 passed, 7 failed, solo los 7 de botnav-indicador. e2e/gastos-caixa-extid.spec.mjs: 4 passed en la suite entera. No se ha ejecutado de nuevo la suite entera ya con el catalogo alineado.",
+  "productSHA": "457416e6755049f950899ad8a7c7edbda1aa0551",
+  "tests": [
+    {
+      "command": "node tests/inc-2709-06-correccion.test.mjs (UTC y Europe/Madrid)",
+      "exitCode": 0,
+      "note": "en ed09ce1d sale 1"
+    },
+    {
+      "command": "TZ=UTC node tests/inc-2709-06-caixa-extid.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "TZ=Europe/Madrid node tests/inc-2709-06-identidad.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/i18n-keys.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/guard-privacy.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/security.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/retirada-bancaria.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/presupuesto-rendimiento.test.mjs",
+      "exitCode": 1,
+      "note": "tope de tamano superado, no subido"
+    },
+    {
+      "command": "node tests/beta-sources.test.mjs",
+      "exitCode": 1,
+      "note": "Retiro109, inc-3009-01-cargos y Recientes106"
+    },
+    {
+      "command": "npx playwright test (suite entera, JS de 8a95bd5d)",
+      "exitCode": 1,
+      "note": "923 passed, 83 failed, 1 skipped; beta limpia 995 passed, 7 failed"
+    },
+    {
+      "command": "npx playwright test revisar-beta beta-panel-reopen botnav-indicador (catalogo alineado)",
+      "exitCode": 1,
+      "note": "94 passed, 7 failed, solo botnav-indicador"
+    }
+  ],
+  "limitations": [
+    "Resultados tomados del informe del agente Cursor bc-e0de8134; solo he verificado en GitHub el estado del PR 200, su head, base, padre y ficheros del ultimo commit",
+    "La suite entera de Playwright no se repitio con el catalogo alineado",
+    "Datos sinteticos; sin movil, Edge desplegado, SQL ni APK"
+  ],
+  "schema": 1,
+  "taskId": "caixabank-correccion-revision-grok-20261010",
+  "actor": "grok",
+  "sessionId": "grok-bot-20261010-crw5qsv6",
+  "createdAt": "2026-10-10T16:09:56.185Z",
+  "released": true
+}
