@@ -184,6 +184,18 @@ SQL/RLS. La caracterización anterior vive en SHA `bc2fa093`. Registrado para m�
 
 Widget banco (4.26.50): `e2e/widget-banco.spec.mjs` abre Ajustes y cambia el banco con saldo idéntico, verifica el payload nativo y persistencia tras recarga, suma de cuentas sin opciones repetidas y retirada del banco elegido. Registrado para el módulo 10; el módulo 11 obliga a suite completa.
 
+Widget pendiente (`widget-estado-codex-20261010`): `widget-unknown-journal` ejecuta los
+read/write reales con formato inyectado, identidad con clave vacía, reinicio del estado y
+cobertura exacta. `--native-dir` permite ejecutar el mismo oráculo contra una fuente base;
+`--loss-probe` distingue pérdida real de formato recuperable. `widget-unknown-loss` prueba
+pérdida durable, desbordamiento, corrupción, cambio de periodo, ACK parcial/ajeno y
+writeBlocked sin foto parcial. `widget-offline` ejecuta transporte/cola del listener con HTTP
+y preferencias en memoria: recreación, retry y una sola entrega al recuperar red. Los tres
+están en run-tests y en recortes Android/backend; los dobles no ejecutan el serializador
+Android, el sistema de reinicio ni un pago real. `widget-banco.spec.mjs` comprueba el contrato
+v2 frente al DOM de Inicio (mes bruto/Mi ciclo neto, es/en/ca); la APK antigua sigue con su
+contrato mensual legado. La aceptación móvil queda pendiente hasta disponer de APK instalada.
+
 # Testing — Aely
 
 Caché de fechas (4.26.95, INC-2709-09): `tests/fechas-cache.test.mjs`, en `run-tests`, ejecuta `dateMs`/`parseDate` del bundle con un `Date` que cuenta parseos. Con 5.200 cadenas distintas y techo de 5.000, el segundo y tercer barrido —en orden, al revés y barajados— solo pueden repetir las 200 que no cupieron; la memoria no pasa del techo y el resultado con la caché llena es el mismo que vacía. Mueren los mutantes `clear`, FIFO, sin techo y sin caché. No mide tiempos: el A/B de primer plano se hace con Chromium y turno. [Medida y límites](briefs/inc-2709-09-lag-sostenido.md).

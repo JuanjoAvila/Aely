@@ -273,6 +273,19 @@ Ajustes → Banco del widget elige `settings.widgetBank` (entidad bancaria), sin
 
 El registro nativo se escribe sin salto final y tolera indentación XML al releerse. La foto de la app reevalúa un bloqueo previo, conserva eventos aún no confirmados y sus deltas; las entradas dañadas o contribuciones desconocidas no se descartan. Actualizar el APK es obligatorio: la OTA4.26.54.1 corrige presupuesto pero no este parser Java. APK51 instalada en el móvil de pruebas; widget recuperado y Gastado/Disponible estables al reabrir; saldo entre fotos y pago real pendientes. No borrar preferencias para forzar una cifra.
 
+La candidata de `widget-estado-codex-20261010` extiende la recuperación al registro de
+identidades `unknownJournal`: separadores entre entradas, tolerancia a blancos de formato y
+ACK o lápida exactos, incluso después de releer preferencias. `unknownLoss` conserva la
+incertidumbre cuando una identidad ya no cabe o resulta ilegible; una foto nueva, otro periodo
+o un ACK ajeno no permiten mostrar dinero confirmado. Un fallo de foto guarda sólo los flags
+de bloqueo, sin sobrescribir las cifras ni un registro parcial. La migración antigua de un
+`journalFull` sin ese campo es prudente. Estas modificaciones requieren APK nueva y prueba
+de pago con app cerrada/reinicio: Java y una compilación local no acreditan instalación ni
+aceptación móvil. Mes bruto y Mi ciclo neto ya forman parte del contrato v2 de la base;
+no existe un selector nativo de modos que se pueda activar con esta recuperación.
+El cambio de periodo migra también identidades con delta desconocido aunque `journalFull`
+sea falso; retira el dinero de la ventana anterior y mantiene el pendiente hasta cobertura exacta.
+
 ### Widget80 / APK52: preasset real, entrega final pendiente
 
 Runtime821 sobre79, gradle52/versionName4.26.80; widgetContract2, cifra/periodo de Inicio en es/en/ca, scope exacto y unknownJournal hasta ACK/lápida. Prebuild26a verificado y asset beta602841368 descargado/cotejado; public/apk.json52 local apunta a URL real. Exige CI/build final del SHA con52 y reemplazo/cotejo binario antes de entregar. APK78 histórica no acredita80. No editar ingest ni instalar. [Plan](briefs/inc-2909-01-apk-beta-plan.md).
