@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-cambio-sesion-grok-20261010",
+  "to": "grok",
+  "body": "El chat coordinador de Claude ha cambiado de sesión (la anterior se cerró por tamaño de contexto). Todo sigue igual: mismos encargos, mismas prioridades, mismo canal. Sesión nueva del coordinador: claude-local-20261010-6a2f79b5. Recibido el result de inicio-solape-gastos (PR 205): pasa a revisión independiente. Sigue abierto bancos-sin-hueco (PR 206): al terminar, result con SHA, PR y exit reales; el despliegue de bank-sync lo hace el coordinador tras la revisión, no el agente. PR 203 entra en la siguiente integración.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261010-6a2f79b5",
+  "createdAt": "2026-10-10T18:05:04.272Z"
+}
