@@ -1,8 +1,14 @@
 # INC-2709-06 · cargos CaixaBank ausentes · diagnóstico del 29/9/2026
 
+> **10/10/2026, rama `cursor/caixabank-integracion-6602`, sin integrar en `beta`.**
+> El cliente de esta rama ya no funde dos `entry_reference` distintas del mismo día, importe y
+> comercio (`tests/inc-2709-06-caixa-extid.test.mjs`). El cierre de «Este mes» en hora de Madrid
+> ya estaba en `74c5f075` (`8e103e906`); aquí no se ha tocado. El cotejo con el perfil real y con
+> el Edge desplegado sigue abierto. Lo de abajo describe el código anterior a este arreglo, no el canal publicado.
+
 ## Estado y límite
 
-**Abierto.** Los cargos ausentes de otro perfil después de sincronizar a demanda no se han atribuido a una causa concreta. No se han leído ni modificado extractos, cuentas, enlaces o filas familiares; tampoco se ha llamado a Enable Banking, desplegado Edge, aplicado SQL o importado histórico. La comprobación del 24/9 de cargos Caixa de otro caso no cierra este incidente.
+**Abierto en `origin/beta`.** En esta rama el colapso cliente de dos referencias distintas está corregido; no está en el canal hasta que se integre. Los cargos ausentes de otro perfil después de sincronizar a demanda no se han atribuido a una causa concreta. No se han leído ni modificado extractos, cuentas, enlaces o filas familiares; tampoco se ha llamado a Enable Banking, desplegado Edge, aplicado SQL o importado histórico. La comprobación del 24/9 de cargos Caixa de otro caso no cierra este incidente.
 
 La beta efectiva al iniciar esta investigación era `b0be08c07cb2e1adab711184f056b1903dcb2ad0`; `main` era `e6e3edff8220de822c45b7851f25d3e26873a539`. GitHub mostraba PR #64/#65 integradas y Actions beta 36612627888/36614618899 en SUCCESS. El manifiesto público de beta servía `4.26.68.1`, huella `829684d38c95aa44`; el ZIP descargado dio SHA-256 `89daf97957c81fbf34f07ebaa05e323eab6187276e1dd9ec0f47f4545a6bf495` y contenía HTML `4.26.68.1` y SW `4.26.68.1-2026-09-29-17aeacc`. Beta anunciaba APK `4.26.55`/code 51, asset HTTP 200. Pages seguía en web `4.26.66`, ZIP `439161b6a2793810bddf4c2f863d0db4d3df5a24aad8d5caed4b46535dcd0f29` con HTML/SW de esa versión, y APK `4.26.32`/code 48, asset HTTP 200. `npm run listo` no pudo leer veredictos por falta de `SUPABASE_SERVICE_ROLE_KEY` local: ninguna aprobación nueva se infiere de CI o de estas comprobaciones.
 

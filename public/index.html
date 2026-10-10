@@ -948,6 +948,8 @@
   .v4-inicio-date{font-size:14px;color:var(--muted-2);font-weight:600;}
   .v4-inicio-hi{font-family:'Fraunces',Georgia,serif;font-size:24px;font-weight:560;font-variation-settings:"opsz" 24;letter-spacing:-.2px;margin-top:2px;}
   .v4-hero{text-align:center;padding:22px 0 8px;}
+  .v4-net-current-head{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;}
+  .v4-net-now{font-size:12.5px;font-weight:700;color:var(--mint);}
   /* inline-block: el tour (y cualquiera que mida la caja) ve el ancho REAL de la cifra, no
      todo el ancho de la pantalla — con 999 € es chico; con 192.148,45 €, más ancho. */
   /* P13 — la Fraunces se carga como variable con `opsz` 9-144 y no se estaba usando: los numeros
@@ -3914,15 +3916,41 @@ function keyOfExpenseLegacy(e){
 function keyOfExpense(e){
   const base=keyOfExpenseLegacy(e);
   if(isManualExpenseSource(e&&e.source)) return base+"|"+String((e&&e.id)||"");
+  /* Dos cargos Open Banking del mismo día, importe y comercio no caben en la clave de día
+     (APOLLON: la hora NO entra en macrodroid; un «Movimiento» de TR a los 97 min sigue siendo
+     uno). Solo la fila cuya fecha ya no es el mediodía local de `histDate` —la segunda ranura
+     que choca con `expenses_dedup_idx`— alarga la clave. Comparar con `histDate(día)` y no con
+     el texto UTC «12:00:00»: en Madrid el mediodía local es T10:00:00.000Z en verano, y tratarlo
+     como salado partía TODOS los cargos de Caixa al hacer pull (INC-2709-06, 2026-10-04). */
+  const s=String(e&&e.source||"");
+  const ob=s==="ob"||s.indexOf("ob:")===0||s==="ob-hist"||s.indexOf("ob-hist:")===0;
+  if(ob && typeof histDate==="function"){
+    const full=String(e&&e.date||""), day=full.slice(0,10);
+    if(day.length===10 && full!==histDate(day)) return base+"|"+full;
+  }
   return base;
 }
-/* Lápidas anteriores al Paso 0 guardaban la clave sin id: siguen ocultando ese manual. */
+/* Lápidas anteriores al Paso 0 guardaban la clave sin id: siguen ocultando ese manual.
+   No se amplía al día entero de un OB: borrar el cargo del mediodía escondería al hermano
+   salado, que es otro entry_reference (INC-2709-06). */
 function expenseIsTombstoned(e, delSet){
   if(!delSet) return false;
   const k=keyOfExpense(e);
   if(delSet[k]) return true;
   if(isManualExpenseSource(e&&e.source) && delSet[keyOfExpenseLegacy(e)]) return true;
   return false;
+}
+/* Claves que hay que enterrar al borrar. La de pantalla y, si el cargo trae referencia de
+   banco, `obid|banco|extId`: si no, el sync devolvería a la vida solo esa referencia mientras
+   la lápida de día sigue tapando a la otra. El renombrar no usa esto: la fila sigue viva. */
+function expenseTombKeys(e){
+  const keys=[keyOfExpense(e)];
+  const s=String(e&&e.source||"");
+  const ob=s==="ob"||s.indexOf("ob:")===0||s==="ob-hist"||s.indexOf("ob-hist:")===0;
+  if(!ob || e.extId==null || e.extId==="") return keys;
+  const bank=(typeof expenseBankOf==="function" ? expenseBankOf(e) : null)||(e&&e.ent)||"";
+  if(bank) keys.push("obid|"+bank+"|"+e.extId);
+  return keys;
 }
 function _errCloudMsg(err){
   return mcLogCode(err);
@@ -3996,6 +4024,15 @@ function deudaSufijo(debtId){
   const id=String(debtId||"").replace(/[^A-Za-z0-9_-]/g,"");
   return id ? "~deuda."+id : "";
 }
+/* La referencia del banco no tiene columna. Viaja en el `source` como `#x.` porque el
+   servidor ya desplegado parte `ob:` por `#` y se queda el banco (`presupuesto.ts`). `#dup`
+   gana: un posible repetido no puede llevar las dos colas. Sin recorte: 120 caracteres
+   partían un id de 150 y el siguiente sync lo daba por nuevo (INC-2709-06). */
+function obExtCloudSuffix(e){
+  if(!e || e.possibleDup || e.extId==null || e.extId==="") return "";
+  const safe=encodeURIComponent(String(e.extId));
+  return safe ? "#x."+safe : "";
+}
 /* Parte el tramo de banco de un `source` OB: «sabadell~deuda.x» → {ent:"sabadell", debtId:"x"}. */
 function partirEntDeuda(tramo){
   const s=String(tramo||""), i=s.indexOf("~deuda.");
@@ -4022,8 +4059,17 @@ function expenseSourceForCloud(e){
   //
   // Lo que NO viaja es `possibleDupOf` (el gemelo): tras reinstalar, «es el mismo» sigue
   // borrando la fila OB pero ya no puede traspasarle el extId al gemelo.
-  if(ent&&(s==="ob"||String(s).indexOf("ob:")===0)) return "ob:"+ent+deudaSufijo(e&&e.debtId)+((e&&e.possibleDup)?"#dup":"");
-  if(ent&&(s==="ob-hist"||String(s).indexOf("ob-hist:")===0)) return "ob-hist:"+ent+((e&&e.possibleDup)?"#dup":"");
+  if(ent&&(s==="ob"||String(s).indexOf("ob:")===0)) return "ob:"+ent+deudaSufijo(e&&e.debtId)+((e&&e.possibleDup)?"#dup":obExtCloudSuffix(e));
+  /* `ob-hist:` NO se parte por `#` en el servidor desplegado: `ob-hist:caja#x.id` se leería
+     como un banco que no está en la lista y el widget dejaría de contar el cargo. Con extId
+     se escribe `ob:` (ese sí se parte) para que la referencia vuelva en el pull. Sin extId
+     se queda `ob-hist:`. `#dup` sigue en `ob-hist` y no arrastra `#x.`. */
+  if(ent&&(s==="ob-hist"||String(s).indexOf("ob-hist:")===0)){
+    if(e&&e.possibleDup) return "ob-hist:"+ent+"#dup";
+    const suf=obExtCloudSuffix(e);
+    if(suf) return "ob:"+ent+deudaSufijo(e&&e.debtId)+suf;
+    return "ob-hist:"+ent;
+  }
   // Un alias TR/Wallet pendiente usa temporalmente el encoding OB que entienden también las OTA
   // anteriores; al resolver «son distintos» vuelve a su origen real `macrodroid`.
   if(s==="macrodroid"||s==="tr") return (e&&e.possibleDup)?"ob:trade_republic#dup":"macrodroid";
@@ -4566,12 +4612,12 @@ function resolvePossibleDup(state, expenseId, same){
 /* Convierte una fila de la tabla `expenses` al formato interno de la app. */
 function expenseFromRow(r){
   const raw=String(r.source||"manual");
-  let ent=null, source=raw, dup=false, debtId=null;
+  let ent=null, source=raw, dup=false, debtId=null, extFrom;
   if(raw==="macrodroid"||raw==="tr"){ ent="trade_republic"; source="macrodroid"; }
   // «ob:ent#dup» = posible repetido que sigue pendiente de su decisión (B09-D): vuelve marcado,
   // así que la app lo sigue dejando fuera del total tras un pull, un reinicio o un segundo móvil.
   // «ob:ent~deuda.id» = cuota de esa deuda (4.21.0): vuelve con su `debtId` para el filtro.
-  else if(raw.indexOf("ob:")===0){ const p=raw.slice(3).split("#"); const pe=partirEntDeuda(p[0]); ent=pe.ent; debtId=pe.debtId; source=(r.ingest_event_id&&p[1]==="dup")?"macrodroid":"ob"; dup=p[1]==="dup"; }
+  else if(raw.indexOf("ob:")===0){ const p=raw.slice(3).split("#"); const pe=partirEntDeuda(p[0]); ent=pe.ent; debtId=pe.debtId; source=(r.ingest_event_id&&p[1]==="dup")?"macrodroid":"ob"; dup=p[1]==="dup"; if(p[1]&&p[1].indexOf("x.")===0){ try{ extFrom=decodeURIComponent(p[1].slice(2))||undefined; }catch(err){ extFrom=undefined; } } }
   else if(raw.indexOf("ob-hist:")===0){ const p=raw.slice(8).split("#"); ent=p[0]||null; source="ob-hist"; dup=p[1]==="dup"; }
   else if(raw.indexOf("manual:")===0){ ent=raw.slice(7)||null; source="manual"; }   // manual con banco elegido
   else if(raw==="supabase"){ source="manual"; }   // legado: antes el pull marcaba todo como supabase
@@ -4597,6 +4643,9 @@ function expenseFromRow(r){
     obName: r.ob_name!=null ? String(r.ob_name) : undefined,
     possibleDup: dup ? true : undefined,
     debtId: debtId || undefined,
+    // `#x.` del source diario (INC-2709-06). Sin esto un segundo móvil pierde el entry_reference
+    // y el siguiente sync vuelve a salar el cargo del mediodía: el par se duplica.
+    extId: extFrom || undefined,
   };
 }
 
@@ -4659,6 +4708,10 @@ function refreshExpenseFromCloud(local, incoming, readStartedAt){
   /* Cuota de deuda (4.21.0): la marca que baja se adopta; una fila de la nube SIN marca no borra
      la local — el upsert con ignoreDuplicates puede dejar la fila vieja de la nube sin el sufijo. */
   if(incoming.debtId) put("debtId", incoming.debtId);
+  /* Rellenar extId si la nube ya lo trae en `#x.` y este móvil lo perdió. No pisar el local:
+     un upsert con ignoreDuplicates puede devolver la fila vieja, sin sufijo, y borrar la
+     referencia que evita el duplicado en el próximo sync. */
+  if(incoming.extId && !local.extId) put("extId", incoming.extId);
   if(!local.noteEdited && Object.prototype.hasOwnProperty.call(incoming,"note")) put("note", incoming.note);
   /* NO realinear `id` aquí: settings.expenseOrder indexa por id local, y en OB el uuid de la
      nube suele diferir (ignoreDuplicates). Cambiarlo huérfana el orden a mano (4.19.74). Tanda
@@ -5107,7 +5160,7 @@ const LANG = {
     v4_budget_spent:"Has gastado {spent} de tus {budget}.", v4_budget_daily:"Puedes gastar {x}/día hasta fin de mes.", v4_cycle_net:"Gasto neto desde el cobro: {used} de tus {budget}.", v4_cycle_left:"Te quedan {x}.", v4_cycle_over:"Te faltan {x}.",
     v4_streak:"{n} meses sin pasarte", v4_streak_zero:"Mes en curso",
     // INC-0810 es: patrimonio de ahora.
-    v4_hist_empty:"Tu histórico empieza hoy", v4_net_unknown:"El total actual no está disponible.",
+    v4_net_now:"Ahora", v4_net_unknown:"El total actual no está disponible.",
     // INC-0810 es: fin del patrimonio de ahora.
     v4_nobud_t:"Ponle un presupuesto", v4_nobud_p:"Es la mitad de la app: sin un tope al mes no se puede saber cuánto te queda. Puedes cambiarlo cuando quieras.", v4_nobud_cta:"Ponle un presupuesto", v4_noup_t:"Aún no hay recibos", v4_noup_p:"Conecta tu banco y los recibos del mes aparecen solos, con su día y su importe.", v4_noup_cta:"Conecta tu banco", v4_nogoal_t:"Ponte tu primera meta", v4_nogoal_p:"Un viaje, un colchón, lo que sea: la app te dice cuánto falta y cuándo llegas.", v4_nogoal_cta:"Crear una meta", v4_see_gastos:"Ver gastos ›", v4_see_plan:"Ver plan ›",
     v4_upcoming:"Próximos cargos", v4_upcoming_empty:"Nada pendiente este mes. Los recibos aparecen aquí.",
@@ -5169,7 +5222,6 @@ const LANG = {
     bk_tr_ob_cta:"Renovar el permiso del banco",
     v4_acc_locked:"El saldo de las cuentas conectadas lo trae el banco solo; el nombre y el rol sí puedes cambiarlos.",
     v4_sel_partial:"Seleccionado", v4_edit_goods:"Editar bienes",
-    goods_add:"Añadir bien", goods_name:"Nombre del bien", goods_value:"Valor en euros", goods_home:"Vivienda", goods_car:"Vehículo", goods_invalid:"Escribe un nombre y un valor válido, con hasta dos decimales.", goods_delete:"Borrar bien", goods_delete_q:"¿Borrar {name}?", goods_delete_sub:"Dejará de contar en el patrimonio. No se borran cuentas ni movimientos.",
     v4_gestionar_h:"Edita fijos, cuotas, flujos y conciliación del banco — sin llenar la vista diaria.",
     v4_debts_foot_a:"Deudas", v4_debts_foot_b:"ya descontadas",
     v4_apuntar:"Apuntar", v4_gasto:"Gasto", v4_ingreso:"Ingreso", v4_apuntar_ph:"¿En qué? (ej. Cena)",
@@ -7841,34 +7893,6 @@ function useCountUp(target, ready, replay){
   return shown;
 }
 
-function Sparkline({data, current}){
-  const pts = data.concat(current!=null?[current]:[]);
-  // Con 0 o 1 puntos esto pintaba una recta de lado a lado con su puntito final: parece un grafico
-  // de verdad que dice cero, y es lo primero que ve alguien que acaba de instalar la app. Sin
-  // datos no hay grafico (P1). Quien lo llama reserva el hueco para que no salte el layout.
-  if(pts.length<2) return null;
-  const w=320, h=70, pad=4;
-  const min=Math.min.apply(null,pts), max=Math.max.apply(null,pts);
-  const rng=(max-min)||1;
-  const xs=(i)=> pad + (pts.length>1 ? i*(w-2*pad)/(pts.length-1) : 0);
-  const ys=(v)=> pad + (1-(v-min)/rng)*(h-2*pad);
-  let d="M"+xs(0)+" "+ys(pts[0]);
-  for(let i=1;i<pts.length;i++) d+=" L"+xs(i)+" "+ys(pts[i]);
-  const area=d+" L"+xs(pts.length-1)+" "+h+" L"+xs(0)+" "+h+" Z";
-  const lastX=xs(pts.length-1), lastY=ys(pts[pts.length-1]);
-  return React.createElement("svg",{className:"spark",viewBox:"0 0 "+w+" "+h,preserveAspectRatio:"none"},
-    React.createElement("defs",null,
-      React.createElement("linearGradient",{id:"sparkfill",x1:"0",y1:"0",x2:"0",y2:"1"},
-        React.createElement("stop",{offset:"0",stopColor:"#5FD08A",stopOpacity:"0.28"}),
-        React.createElement("stop",{offset:"1",stopColor:"#5FD08A",stopOpacity:"0"})
-      )
-    ),
-    React.createElement("path",{d:area,fill:"url(#sparkfill)"}),
-    React.createElement("path",{d:d,fill:"none",stroke:"#5FD08A",strokeWidth:"2.4",strokeLinecap:"round",strokeLinejoin:"round",vectorEffect:"non-scaling-stroke"}),
-    React.createElement("circle",{cx:lastX,cy:lastY,r:"3.5",fill:"#7DE8A8"})
-  );
-}
-
 // Snapshot diario del total invertido (valor + coste opcional). Idempotente por día.
 function recordInvSnapshot(hist, today, value, cost){
   const h=(hist||[]).slice();
@@ -8696,20 +8720,20 @@ function dashOrderOf(s, allIds){
   const saved=((s.settings&&s.settings.dashOrder)||[]).filter(function(id){ return allIds.indexOf(id)>=0; });
   return saved.concat(allIds.filter(function(id){ return saved.indexOf(id)<0; }));
 }
-function NetWorthNow({value, shown, simple, history}){
-  // Retirar la variante109 no autorizaba quitar la gráfica de producción110 (feedback10/10).
-  // Se recupera su dibujo, sin convertir el histórico en ganancias ni reescribirlo.
+function NetWorthNow({value, shown, simple}){
+  // Los números guardados no acreditan fechas ni observaciones reales: unir el cero de alta
+  // o la semilla al patrimonio parecía una evolución. Se muestra solo el total de ahora
+  // (rechazo 9/10/2026), sin interpretar, borrar ni reescribir ese histórico.
   const valid=typeof value==="number" && Number.isFinite(value);
   const p=valid?eurParts(typeof shown==="number" && Number.isFinite(shown)?shown:value):null;
   return React.createElement("div",{className:"v4-hero rise","data-tour":"hero","data-testid":"inicio-net-current",style:{animationDelay:".05s"}},
-    React.createElement("div",{className:"v4-micro"}, t(simple?"v4_money_total":"d_networth")),
+    React.createElement("div",{className:"v4-net-current-head"},
+      React.createElement("div",{className:"v4-micro"}, t(simple?"v4_money_total":"d_networth")),
+      React.createElement("span",{className:"v4-net-now","data-testid":"inicio-net-now"}, t("v4_net_now"))
+    ),
     React.createElement("div",{className:"v4-hero-amt num","data-tour":"hero-amt"},
       p?p.sign+p.ent:"—", p&&React.createElement("span",{style:{fontSize:28,color:"var(--muted)"}},","+(p.dec||"00")+" "+p.sym)),
-    !valid&&React.createElement("div",{className:"hint",role:"status"}, t("v4_net_unknown")),
-    valid&&React.createElement("div",{style:{marginTop:14}},
-      (history&&history.length>=1)
-        ? React.createElement(Sparkline,{data:history,current:value})
-        : React.createElement("div",{style:{fontSize:12.5,color:"var(--muted-2)",padding:"6px 0 2px"}}, t("v4_hist_empty")))
+    !valid&&React.createElement("div",{className:"hint",role:"status"}, t("v4_net_unknown"))
   );
 }
 function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProfile, onGoGastos, onGoPlan, showToast}){
@@ -8924,7 +8948,7 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
       }}, t("mr_share"))
     ),
 
-    !showSkel && React.createElement(NetWorthNow,{value:tt.netWorth, shown:shownNet, simple:simple, history:state.history}),
+    !showSkel && React.createElement(NetWorthNow,{value:tt.netWorth, shown:shownNet, simple:simple}),
 
     // Sin presupuesto, Inicio escondia su tarjeta estrella y te quedabas sin la mitad de la app
     // sin saber por que (P3). En vez de esconderla, la misma tarjeta en vacio y con salida: abre
@@ -9326,16 +9350,22 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   const keyOfE=keyOfExpense;
   const delExpense=function(e){
     if(undoTimerRef.current) clearTimeout(undoTimerRef.current);
-    const key=keyOfE(e), list=state.expenses||[], index=list.findIndex(function(x){ return x.id===e.id; });
+    const keys=expenseTombKeys(e), list=state.expenses||[], index=list.findIndex(function(x){ return x.id===e.id; });
     const wasCloud=cloud.enabled();
     // La lápida entra junto con la retirada local: si la nube refresca durante los cinco segundos,
     // no puede resucitar la fila por detrás del toast. La escritura remota sí se encadena para que
     // Deshacer vuelva a subir el MISMO id después de que termine cualquier delete aún en vuelo.
-    set(function(s){ return Object.assign({},s,{
-      expenses:(s.expenses||[]).filter(function(x){ return x.id!==e.id; }),
-      deleted:pushDeleted(s.deleted,key)
-    }); });
-    const pending={expense:e,key:key,index:index<0?list.length:index,wasCloud:wasCloud,
+    // `obid|` va junto a la clave de pantalla: borrar uno de dos cargos Caixa del mismo día no
+    // puede tapar al otro, ni dejar que el sync devuelva solo el borrado (INC-2709-06).
+    set(function(s){
+      let deleted=s.deleted;
+      keys.forEach(function(k){ deleted=pushDeleted(deleted,k); });
+      return Object.assign({},s,{
+        expenses:(s.expenses||[]).filter(function(x){ return x.id!==e.id; }),
+        deleted:deleted
+      });
+    });
+    const pending={expense:e,keys:keys,index:index<0?list.length:index,wasCloud:wasCloud,
       cloudDelete:wasCloud?borrarGastoNube(e,"gastos-borrar"):Promise.resolve()};
     undoDeleteRef.current=pending; setUndoDelete(pending);
     undoTimerRef.current=setTimeout(function(){
@@ -9350,7 +9380,9 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     undoTimerRef.current=null; undoDeleteRef.current=null; setUndoDelete(null);
     set(function(s){
       const deleted=(s.deleted||[]).slice();
-      const di=deleted.lastIndexOf(pending.key); if(di>=0) deleted.splice(di,1);
+      (pending.keys||(pending.key?[pending.key]:[])).forEach(function(k){
+        const di=deleted.lastIndexOf(k); if(di>=0) deleted.splice(di,1);
+      });
       const expenses=(s.expenses||[]).slice();
       if(!expenses.some(function(x){ return x.id===pending.expense.id; })){
         expenses.splice(Math.min(pending.index,expenses.length),0,pending.expense);
@@ -9368,7 +9400,9 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     set(function(s){
       let next=resolvePossibleDup(s, e.id, same);
       if(same){
-        next=Object.assign({},next,{deleted:pushDeleted(next.deleted, keyOfE(e))});
+        let deleted=next.deleted;
+        expenseTombKeys(e).forEach(function(k){ deleted=pushDeleted(deleted,k); });
+        next=Object.assign({},next,{deleted:deleted});
         if(cloud.enabled()) borrarGastoNube(e, "gastos-dup");
       }
       // «Son distintos»: hay que QUITAR la marca también en la nube (B09-D). Si no, la fila sigue
@@ -12694,55 +12728,9 @@ function AccountSheet({open, cuenta, state, set, totals, onClose, onRemove, onSa
     ), document.body);
 }
 
-// El nombre se guardaba al escribir y cancelar no era posible. La ficha mantiene todo local
-// hasta Guardar; cerrar, volver atrás y cancelar el borrado no cambian el patrimonio (10/10).
-function AssetSheet({asset,set,onClose}){
-  const [name,setName]=useState(asset.name||"");
-  const [raw,setRaw]=useState(asset.value==null?"":String(asset.value));
-  const [kind,setKind]=useState(asset.kind||"piso");
-  useBackClose(true,onClose);
-  const swipe=useSheetSwipe(true,onClose);
-  const amount=Number(raw.replace(",","."));
-  const valid=name.trim()&&/^\d+(?:[.,]\d{1,2})?$/.test(raw)&&Number.isSafeInteger(Math.round(amount*100));
-  const save=function(){
-    if(!valid) return;
-    const next=Object.assign({},asset,{id:asset.id||uid(),name:name.trim(),kind:kind,value:amount});
-    set(function(s){
-      const old=(s.assets||[]).find(function(a){ return a.id===asset.id; });
-      if(asset.id&&!old) return s;
-      if(old&&old.name===next.name&&old.kind===next.kind&&old.value===next.value) return s;
-      return Object.assign({},s,{assets:asset.id?s.assets.map(function(a){ return a.id===asset.id?Object.assign({},a,{name:next.name,kind:next.kind,value:next.value}):a; }):(s.assets||[]).concat(next)});
-    });
-    onClose();
-  };
-  const remove=function(){
-    askConfirm({title:tf("goods_delete_q",{name:asset.name}),sub:t("goods_delete_sub"),ok:t("goods_delete")}).then(function(ok){
-      if(!ok) return;
-      set(function(s){ return Object.assign({},s,{assets:(s.assets||[]).filter(function(a){ return a.id!==asset.id; })}); });
-      onClose();
-    });
-  };
-  return ReactDOM.createPortal(React.createElement("div",{className:"tabsheet-back",onClick:onClose},
-    React.createElement("div",Object.assign({className:"tabsheet",role:"dialog","aria-modal":true,"aria-label":t(asset.id?"v4_edit_goods":"goods_add"),ref:swipe.sheetRef,onClick:function(e){e.stopPropagation();}},swipe.sheetTouch),
-      React.createElement("div",{className:"v4-sheet-handle"}),
-      React.createElement("h2",{className:"serif"},t(asset.id?"v4_edit_goods":"goods_add")),
-      React.createElement("div",{className:"add-form"},
-        React.createElement("label",null,t("goods_name"),React.createElement("input",{className:"af-in",value:name,onChange:function(e){setName(e.target.value);}})),
-        React.createElement("label",null,t("goods_value"),React.createElement("input",{className:"af-in num",inputMode:"decimal",value:raw,"aria-invalid":!!raw&&!valid,onChange:function(e){setRaw(e.target.value);}})),
-        React.createElement("div",{className:"row"},["piso","coche"].map(function(k){return React.createElement("button",{type:"button",className:"chip"+(kind===k?" active":""),key:k,"aria-pressed":kind===k,onClick:function(){setKind(k);}},t(k==="piso"?"goods_home":"goods_car"));})),
-        !valid&&React.createElement("div",{className:"hint"},t("goods_invalid")),
-        React.createElement("div",{className:"row"},
-          React.createElement("button",{type:"button",className:"btn btn-ghost",onClick:onClose},t("fj_cancel")),
-          React.createElement("button",{type:"button",className:"btn btn-primary",disabled:!valid,onClick:save},t("save"))),
-        asset.id&&React.createElement("button",{type:"button",className:"btn btn-ghost",onClick:remove},t("goods_delete"))
-      )
-    )),document.body);
-}
-
 function Wealth({state, set, totals, v4Embed, parte, showToast, onBankSync, onReconnectBank, bankBusy}){
   const [delAcc,setDelAcc]=React.useState("");   // id de la cuenta manual pendiente de confirmar borrado
   const [sheetAcc,setSheetAcc]=React.useState("");   // id de la cuenta cuya ficha está abierta (v4)
-  const [sheetAsset,setSheetAsset]=useState(null);
   const [balanceReady,setBalanceReady]=React.useState(function(){ return !!window.__mcBootReady; });
   React.useEffect(function(){
     if(balanceReady) return;
@@ -13188,22 +13176,35 @@ function Wealth({state, set, totals, v4Embed, parte, showToast, onBankSync, onRe
         // dejaría «Bienes» dos veces seguidas.
         parte!=="bienes" && React.createElement("div",{className:"v4-sec-h"}, t("pt_goods")),
         state.assets.map(function(a){
-          return React.createElement("button",{className:"v4-mov",key:a.id,
-            type:"button",
+          // Bienes parecía bloqueado al tocar una fila (INC-2709-07): abre el mismo editor
+          // que el enlace inferior; en edición deja de ser botón para no envolver el input.
+          return React.createElement(astEd.editing?"div":"button",{className:"v4-mov",key:a.id,
+            type:astEd.editing?undefined:"button",
             style:{width:"100%",textAlign:"left",color:"var(--text)"},
-            onClick:function(){ setSheetAsset(a); }},
+            onClick:astEd.editing?undefined:function(){ astEd.start(); }},
             React.createElement("div",{className:"tile"},a.kind==="piso"?"🏡":"🚙"),
             React.createElement("div",{className:"nm"},
               React.createElement("div",null,a.name),
               a.note && React.createElement("div",{className:"meta"},a.note)
             ),
-            React.createElement("div",{className:"am num"},eur0(a.value))
+            astEd.editing
+              ? React.createElement("input",{className:"editv num",value:astEd.draft[a.id],inputMode:"decimal",onChange:function(e){const v=e.target.value;astEd.setDraft(function(d){return Object.assign({},d,{[a.id]:v});})}})
+              : React.createElement("div",{className:"am num"},eur0(a.value))
           );
-        })
-      ),
-      parte!=="cuentas" && React.createElement(React.Fragment,null,
-        React.createElement("button",{type:"button",className:"btn btn-ghost",onClick:function(){setSheetAsset({});}},t("goods_add")),
-        sheetAsset&&React.createElement(AssetSheet,{asset:sheetAsset,set:set,onClose:function(){setSheetAsset(null);}})
+        }),
+        // El botón de editar bienes «desapareció» con el rediseño (feedback 2026-07-18):
+        // mismo patrón edit-link que las cuentas de arriba.
+        React.createElement("button",{className:"edit-link",style:{margin:"8px 4px"},onClick:function(){ astEd.editing?astEd.save():astEd.start(); }},astEd.editing?t("fj_save"):t("v4_edit_goods")),
+        astEd.editing && React.createElement("div",{className:"add-form",style:{marginTop:4}},
+          state.assets.map(function(a){
+            return React.createElement("div",{className:"af-row",key:"an_"+a.id,style:{alignItems:"center"}},
+              React.createElement("span",{style:{flex:"0 0 auto",fontSize:18}},a.kind==="piso"?"🏡":"🚙"),
+              React.createElement("input",{className:"af-in",style:{flex:1,fontSize:13,padding:"7px 10px"},value:a.name||"",
+                onChange:function(e){ const v=e.target.value; set(function(s){ return Object.assign({},s,{assets:s.assets.map(function(x){ return x.id===a.id?Object.assign({},x,{name:v}):x; })}); }); }})
+            );
+          }),
+          React.createElement("div",{className:"hint"}, t("pt_nonliquid"))
+        )
       )
     );
   }
@@ -14270,15 +14271,21 @@ function flattenBankTx(links){
     // En multicuenta el top-level solo contiene la PRIMERA cuenta compatible. Los movimientos
     // nuevos de una segunda cuenta estaban en `accounts[].transactions` y el cliente ni los
     // miraba: el banco figuraba sincronizado pero Gastos decía que no había nada nuevo.
-    let txs=[];
-    const accountTx=(lk.accounts||[]).filter(function(a){ return a&&Array.isArray(a.transactions); });
-    if(accountTx.length) accountTx.forEach(function(a){ txs=txs.concat(a.transactions); });
-    else txs=(lk.transactions||[]).slice();   // shape antiguo: una sola cuenta en top-level
-    txs.forEach(function(t){
+    const pushTx=function(t, acctUid){
+      if(!t) return;
       // `note` = concepto del extracto (remittance_information): lo que hace que el histórico se
       // entienda sin abrir la app del banco (2026-07-24).
-      out.push({ ent:ent, id:t.ext_id||null, date:String(t.date||"").slice(0,10), amount:Number(t.amount)||0, merchant:t.merchant||"", note:t.note||"", card:!!t.card, status:t.status||"", ...(t.mcc?{mcc:t.mcc}:{}), ...(t.concept?{concept:t.concept}:{}) });
+      // `acctUid` es el uid opaco que ya manda el banco. No se fabrica desde el IBAN: hace falta
+      // para no fundir un pendiente y un contabilizado de CUENTAS distintas. La idea de
+      // conservarlo está en el PR 128 (`788fa1f`); aquí no entra en la clave de la nube.
+      out.push({ ent:ent, id:t.ext_id||null, date:String(t.date||"").slice(0,10), amount:Number(t.amount)||0, merchant:t.merchant||"", note:t.note||"", card:!!t.card, status:t.status||"", ...(acctUid?{acctUid:String(acctUid)}:{}), ...(t.mcc?{mcc:t.mcc}:{}), ...(t.concept?{concept:t.concept}:{}) });
+    };
+    const accountTx=(lk.accounts||[]).filter(function(a){ return a&&Array.isArray(a.transactions); });
+    if(accountTx.length) accountTx.forEach(function(a){
+      const uid=a&&a.uid?String(a.uid):"";
+      (a.transactions||[]).forEach(function(t){ pushTx(t, uid); });
     });
+    else (lk.transactions||[]).forEach(function(t){ pushTx(t, ""); });   // shape antiguo: una sola cuenta en top-level
   });
   out.sort(function(a,b){ return String(b.date).localeCompare(String(a.date)); });
   // El servidor ya acota por cuenta. Un tope GLOBAL de 150 dejaba fuera un banco entero
@@ -14340,6 +14347,135 @@ function importObExpenses(s, txs){
   /* Lápidas: «es el mismo» borra la fila OB y deja clave en `deleted`. Sin esto el siguiente
      sync de TR volvería a meter el Movimiento y a marcarlo otra vez contra la noti. */
   const delSet={}; (s.deleted||[]).forEach(function(k){ delSet[k]=1; });
+  /* Una fecha que no es un día del calendario no se apunta (INC-2709-06, 5/10). Las pasadas de
+     abajo solo miraban `!tx.date`: con «invalid» `histDate` lanzaba RangeError y tumbaba el lote
+     entero, y un «2026-02-30» entraba como 2 de marzo (`parseDate` de algo ilegible da HOY).
+     Las tres pasadas y el gasto usan la misma regla que ya tenía el ingreso. */
+  const diaValido=function(tx){
+    const date=String(tx&&tx.date||""), p=date.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    return !!p && dayKey(new Date(Number(p[1]),Number(p[2])-1,Number(p[3]),12))===date;
+  };
+  /* Dos entry_reference del mismo banco no son el mismo cargo aunque coincidan día, importe y
+     comercio (INC-2709-06). La tabla deduplica por fecha+importe+comercio y no hay columna
+     ext_id: cada id lleva su sello (`ob-ext|banco|id`), el mismo en el sync y en el histórico,
+     sin mirar qué otro id vio antes este cliente. El mediodía solo se reclama si ya hay una
+     fila vieja ahí sin referencia: si cada móvil le diera el mediodía al único id que ve, el
+     índice se queda uno y el otro lo da por guardado. Si el hash choca, el sello siguiente
+     se elige contra las fechas ya ocupadas de esa terna, no se supone único. */
+  const obMerchant=function(tx){ return tx.merchant||(Number(tx.amount)<0?"Ingreso":"Compra"); };
+  const obScope=function(tx){ return (tx.ent||"")+"|"+String(tx.date||"").slice(0,10)+"|"+(Number(tx.amount)||0)+"|"+obMerchant(tx); };
+  const obTwin=function(tx){ return (tx.ent||"")+"|"+(tx.acctUid||"")+"|"+String(tx.date||"").slice(0,10)+"|"+(Number(tx.amount)||0)+"|"+obMerchant(tx); };
+  const identifiedTwin={};
+  txs.forEach(function(tx){
+    if(!tx||!tx.id||!diaValido(tx)||parseDate(tx.date)<som) return;
+    identifiedTwin[obTwin(tx)]=1;
+  });
+  const liveByScope={};
+  (s.expenses||[]).forEach(function(ex){
+    const sk=scopedKOf(ex);
+    (liveByScope[sk]=liveByScope[sk]||[]).push(ex);
+  });
+  const winner={};
+  txs.forEach(function(tx){
+    if(!tx||!tx.id||!diaValido(tx)||parseDate(tx.date)<som) return;
+    const bank=tx.ent||"", id=String(tx.id);
+    if(seen[bank+"|"+id]||seenLegacy[tx.id]||delSet["obid|"+bank+"|"+id]) return;
+    const sk=obScope(tx);
+    if(!winner[sk]||id<winner[sk]) winner[sk]=id;
+  });
+  const claimedNoon={};
+  const ternaBlock=function(e){
+    const sk=scopedKOf(e);
+    const live=(liveByScope[sk]||[]).filter(function(x){ return !expenseIsTombstoned(x, delSet); });
+    const dayTomb=!!(delSet[sk]||delSet[kOf(e)]);
+    if(dayTomb&&!live.length) return "all";
+    if(dayTomb) return "noon";
+    return "";
+  };
+  /* Sello por id, en orden de id y no de llegada. `occ` es la terna del índice
+     (importe+comercio+fecha), incluidas las filas que este lote ya ha colocado. */
+  const occ={};
+  const markOcc=function(amount, merchant, fecha){
+    const iso=obCanonIso(fecha);
+    if(iso) occ[obIndexGroup(amount, merchant)+"|"+iso]=1;
+  };
+  (s.expenses||[]).forEach(function(ex){
+    if(!ex || expenseIsTombstoned(ex, delSet)) return;
+    markOcc(ex.amount, ex.merchant, ex.date);
+    if(ex.obName!=null && ex.obName!==ex.merchant) markOcc(ex.amount, ex.obName, ex.date);
+  });
+  const plan={};
+  const pendingIds=[];
+  txs.forEach(function(tx){
+    if(!tx||!tx.id||!diaValido(tx)||parseDate(tx.date)<som) return;
+    const bank=tx.ent||"", id=String(tx.id);
+    if(seen[bank+"|"+id]||seenLegacy[tx.id]||delSet["obid|"+bank+"|"+id]) return;
+    pendingIds.push(tx);
+  });
+  pendingIds.sort(function(a,b){
+    const ia=String(a.id), ib=String(b.id);
+    if(ia<ib) return -1;
+    if(ia>ib) return 1;
+    return String(a.ent||"").localeCompare(String(b.ent||""));
+  });
+  pendingIds.forEach(function(tx){
+    const bank=tx.ent||"", id=String(tx.id);
+    const merchant=obMerchant(tx), amount=Number(tx.amount)||0, day=String(tx.date).slice(0,10);
+    const sk=obScope(tx);
+    const probe={ date:day, amount:amount, merchant:merchant, obName:merchant, ent:tx.ent, source:"ob" };
+    const live=(liveByScope[sk]||[]).filter(function(x){ return !expenseIsTombstoned(x, delSet); });
+    if(live.some(function(x){ return String(x.extId||"")===id; })){ plan[bank+"|"+id]="skip"; return; }
+    const block=ternaBlock(probe);
+    if(block==="all"){ plan[bank+"|"+id]="skip"; return; }
+    const canon=histDate(day);
+    const noonRow=live.filter(function(x){ return obCanonIso(x.date)===obCanonIso(canon); })[0];
+    /* Fila vieja en el mediodía sin referencia: el id menor es ese cargo y no se inserta otra
+       vez. El resto entra con su sello. No se le da el mediodía a un id nuevo: dos clientes
+       con vistas parciales lo pisarían. */
+    if(noonRow&&(noonRow.extId==null||noonRow.extId==="")&&id===winner[sk]&&!claimedNoon[sk]&&block!=="noon"){
+      claimedNoon[sk]=1; plan[bank+"|"+id]="skip"; return;
+    }
+    const prefIso=obCanonIso(histDate(day, obExtSaltKey(bank, id, 0)));
+    const rival=pendingIds.some(function(o){
+      if(o===tx || (o.ent||"")!==bank || String(o.date).slice(0,10)!==day) return false;
+      if((Number(o.amount)||0)!==amount || obMerchant(o)!==merchant) return false;
+      return obCanonIso(histDate(day, obExtSaltKey(bank, String(o.id), 0)))===prefIso;
+    });
+    if(!rival && live.some(function(x){ return (x.extId==null||x.extId==="") && obCanonIso(x.date)===prefIso; })){
+      plan[bank+"|"+id]="skip"; return;
+    }
+    const g=obIndexGroup(amount, merchant);
+    const occupied={};
+    Object.keys(occ).forEach(function(k){ if(k.indexOf(g+"|")===0) occupied[k.slice(g.length+1)]=1; });
+    const stamp=obPickExtStamp(day, bank, id, occupied);
+    if(!stamp){ plan[bank+"|"+id]="skip"; return; }
+    plan[bank+"|"+id]=stamp;
+    markOcc(amount, merchant, stamp);
+  });
+  const reserveFecha=function(tx, e){
+    if(!tx.id) return "legacy";
+    const p=plan[(tx.ent||"")+"|"+String(tx.id)];
+    if(!p || p==="skip") return "skip";
+    return p;
+  };
+  const remember=function(e){
+    const sk=scopedKOf(e);
+    keys[sk]=1;
+    (liveByScope[sk]=liveByScope[sk]||[]).push(e);
+    if(e.extId) seen[(e.ent||"")+"|"+e.extId]=1;
+  };
+  const commitOb=function(tx, e){
+    const slot=reserveFecha(tx, e);
+    if(slot==="skip") return;
+    if(slot==="legacy"){
+      if(keys[scopedKOf(e)]||delSet[scopedKOf(e)]||delSet[kOf(e)]) return;
+    } else e.date=slot;
+    if(tx.acctUid) e.acctUid=String(tx.acctUid);
+    const gem=gemeloOtraVia(tx);
+    if(gem&&gem.id){ e.possibleDup=true; e.possibleDupOf=gem.id; }
+    remember(e);
+    add.push(e);
+  };
   /* POSIBLE REPETIDO, NO DESCARTE (2026-09-07). TR por OB no manda id/comercio/hora: un
      «Movimiento» sin nombre puede ser el mismo cargo que ya entró por la noti del móvil, o una
      compra distinta del mismo importe. Descartar callaba pérdidas (y, sin filtrar banco, un
@@ -14384,6 +14520,10 @@ function importObExpenses(s, txs){
   };
   const add=[];
   txs.forEach(function(tx){
+    if(!tx) return;
+    /* Pendiente sin referencia y contabilizado con referencia, misma cuenta: un solo cargo.
+       Misma regla que `histFlattenHistoryLinks`. Dos BOOK con id distinto no entran aquí. */
+    if(!tx.id && identifiedTwin[obTwin(tx)]) return;
     const esIngreso = tx.amount<0;
     if(esIngreso){
       // Un abono pendiente o futuro no acredita dinero disponible (feedback 30/9).
@@ -14405,18 +14545,13 @@ function importObExpenses(s, txs){
       if(tx.ent && !allow[tx.ent]) e.budgetSkip=true;
       if(tx.id) e.extId=tx.id;
       const nt=cleanNote(tx.note, e.merchant); if(nt) e.note=nt;
-      if(keys[scopedKOf(e)] || delSet[scopedKOf(e)] || delSet[kOf(e)]) return;
-      const gemIn=gemeloOtraVia(tx);
-      if(gemIn && gemIn.id){ e.possibleDup=true; e.possibleDupOf=gemIn.id; }
-      keys[scopedKOf(e)]=1;
-      if(tx.id) seen[(tx.ent||"")+"|"+tx.id]=1;
-      add.push(e);
+      commitOb(tx, e);
       return;
     }
     // GASTO: entra de cualquier banco. Fijos y puntuales modelados no se duplican; las deudas se marcan.
     const mod=modeledHit(tx.ent, tx.merchant, tx.amount);
     if(mod && !mod.debtId) return;
-    if(!tx.date || parseDate(tx.date)<som) return;
+    if(!diaValido(tx) || parseDate(tx.date)<som) return;
     if(tx.id && (seen[(tx.ent||"")+"|"+tx.id]||seenLegacy[tx.id])) return;
     const esDiario=tx.ent===dailyEnt;
     const esAporteInv = esDiario && daily && daily.monthlyInvest>0 && Math.abs(tx.amount-daily.monthlyInvest)<0.01;
@@ -14427,15 +14562,11 @@ function importObExpenses(s, txs){
     if(tx.ent && !allow[tx.ent]) e.budgetSkip=true;
     if(tx.id) e.extId=tx.id;
     const nt=cleanNote(tx.note, e.merchant); if(nt) e.note=nt;
-    if(keys[scopedKOf(e)] || delSet[scopedKOf(e)] || delSet[kOf(e)]) return;
-    const gem=gemeloOtraVia(tx);
-    if(gem && gem.id){ e.possibleDup=true; e.possibleDupOf=gem.id; }
-    keys[scopedKOf(e)]=1;
-    if(tx.id) seen[(tx.ent||"")+"|"+tx.id]=1;
-    add.push(e);
+    commitOb(tx, e);
   });
   return add.length? add : null;
 }
+
 
 /* LAS CUOTAS DE TUS DEUDAS, EN «DEUDAS» (4.21.0).
    Idea suya del 12/9. Medido con sus datos antes de picar: NINGUNA cuota casa por nombre. El
@@ -15259,9 +15390,54 @@ function histCandExisting(cands, expenses){
     const k=histCandDupKey(e.date, e.amount, nombre);
     (porClave[k]=porClave[k]||[]).push(e);
   });
+  const usados=[];
+  const tomar=function(e){
+    if(!e || usados.indexOf(e)>=0) return null;
+    usados.push(e);
+    Object.keys(porClave).forEach(function(k){
+      const list=porClave[k], j=list.indexOf(e);
+      if(j>=0) list.splice(j,1);
+    });
+    return e;
+  };
   const out={};
+  /* Dos entry_reference del mismo día, importe y comercio NO son el mismo cargo
+     (INC-2709-06). Casarlos aquí marcaba el segundo como duplicado y el commit no
+     creaba fila: el histórico incremental perdía B aunque el flatten lo hubiera
+     conservado. Solo casa la misma referencia, o una fila vieja sin referencia cuyo
+     sello es exactamente el de este id. El camino sin id (TR «Movimiento») sigue
+     por día|importe|comercio, 1:1, y ya no puede reutilizar la fila que se llevó un id. */
   (cands||[]).forEach(function(x,i){
-    if(!x) return;
+    if(!x || x.id==null || x.id==="") return;
+    const signed = x.kind==="in" ? -Math.abs(x.amount) : Math.abs(x.amount);
+    const hit=(expenses||[]).find(function(e){
+      if(!e || usados.indexOf(e)>=0) return false;
+      const eb=expenseBankOf(e)||e.ent||"";
+      if(x.ent && eb && eb!==x.ent) return false;
+      if(e.extId!=null && String(e.extId)!=="") return String(e.extId)===String(x.id);
+      if(!x.stamp || obCanonIso(e.date)!==obCanonIso(x.stamp)) return false;
+      if(Math.abs((Number(e.amount)||0)-signed)>0.005) return false;
+      const nombre=e.obName!=null ? e.obName : (e.merchant||"");
+      return nombre===String(x.merchant||"") || String(e.merchant||"")===String(x.merchant||"");
+    });
+    const cogido=tomar(hit);
+    if(cogido){ out[i]=cogido; return; }
+    /* Sin sello (un candidato que no pasó por el flatten) no se sabe qué referencia
+       ocupa la fila vieja. Se reclama una, por día|importe|comercio, y nunca una fila
+       que ya trae otro id: si el sello viene y no coincide, es otro cargo. */
+    if(x.stamp) return;
+    const list=porClave[histCandDupKey(x.date, signed, x.merchant)];
+    if(!list || !list.length) return;
+    const idx=list.findIndex(function(e){
+      if(e.extId!=null && String(e.extId)!=="") return false;
+      if(sinComercioReal(x.merchant) && x.ent) return expenseBankOf(e)===x.ent;
+      return true;
+    });
+    if(idx<0) return;
+    out[i]=tomar(list[idx]);
+  });
+  (cands||[]).forEach(function(x,i){
+    if(!x || out[i] || (x.id!=null && x.id!=="")) return;
     const signed = x.kind==="in" ? -Math.abs(x.amount) : Math.abs(x.amount);
     const list=porClave[histCandDupKey(x.date, signed, x.merchant)];
     if(!list || !list.length) return;
@@ -15282,6 +15458,7 @@ function histCandExisting(cands, expenses){
   });
   return out;
 }
+
 
 /* «PUEDE QUE YA LO TENGAS» — el de arriba compara al DIA EXACTO; este es la red de debajo, y
    solo para candidatos SIN comercio de verdad (ver `sinComercioReal`: TR manda «Movimiento»).
@@ -15471,30 +15648,139 @@ function histFlattenHistoryLinks(res, expenses, allow){
            Es la MISMA familia que los otros dos de hoy: una clave de identidad sin banco. */
         const cloudK=entKey+"|"+kOf(dt,isIn?-abs:abs,merchant);
         let g=groups[cloudK]; if(!g){ g=groups[cloudK]={rows:[],byAcct:{}}; groupOrder.push(cloudK); }
-        const prevI=g.byAcct[acct];
-        if(prevI!=null){
-          // El pendiente y el contabilizado de UNA cuenta siguen siendo un solo cargo. Se elige
-          // el final con id; solo una cuenta distinta gana otra ranura en la nube.
+        const row={tx:tx,dt:dt,abs:abs,isIn:isIn,merchant:merchant,entKey:entKey,entLabel:entLabel};
+        const ext=tx.ext_id!=null && String(tx.ext_id)!=="" ? String(tx.ext_id) : "";
+        /* Ranuras por referencia, no por día|importe|comercio (PR 128, `788fa1f`).
+           La misma referencia es un reintento de página. Un pendiente SIN id y el contabilizado
+           CON id de la misma cuenta siguen siendo un cargo. Dos id distintos son dos cargos:
+           antes el segundo caía en skippedUniq y no llegaba a Gastos. */
+        const idSlot=ext ? (acct+"|id:"+ext) : (acct+"|weak");
+        const weakSlot=acct+"|weak";
+        const prevIdI=ext ? g.byAcct[idSlot] : null;
+        if(prevIdI!=null){
           skippedUniq++;
-          if(quality(tx)>quality(g.rows[prevI].tx)) g.rows[prevI]={tx:tx,dt:dt,abs:abs,isIn:isIn,merchant:merchant,entKey:entKey,entLabel:entLabel};
+          if(quality(tx)>quality(g.rows[prevIdI].tx)) g.rows[prevIdI]=row;
           return;
         }
-        g.byAcct[acct]=g.rows.length;
-        g.rows.push({tx:tx,dt:dt,abs:abs,isIn:isIn,merchant:merchant,entKey:entKey,entLabel:entLabel});
+        if(ext){
+          const prevWeakI=g.byAcct[weakSlot];
+          if(prevWeakI!=null){
+            skippedUniq++;
+            if(quality(tx)>quality(g.rows[prevWeakI].tx)){
+              g.rows[prevWeakI]=row;
+              g.byAcct[idSlot]=prevWeakI;
+              delete g.byAcct[weakSlot];
+            }
+            return;
+          }
+          g.byAcct[idSlot]=g.rows.length;
+          g.rows.push(row);
+          return;
+        }
+        const prevWeakI=g.byAcct[weakSlot];
+        if(prevWeakI!=null){
+          skippedUniq++;
+          if(quality(tx)>quality(g.rows[prevWeakI].tx)) g.rows[prevWeakI]=row;
+          return;
+        }
+        const prevAny=Object.keys(g.byAcct).find(function(k){ return k.indexOf(acct+"|")===0; });
+        if(prevAny!=null){
+          const prevI=g.byAcct[prevAny];
+          skippedUniq++;
+          if(quality(tx)>quality(g.rows[prevI].tx)) g.rows[prevI]=row;
+          return;
+        }
+        g.byAcct[weakSlot]=g.rows.length;
+        g.rows.push(row);
       });
     });
   });
+  /* Mediodía ya ocupado por una fila local de esa terna. Si no se mira, el histórico le
+     asignaría el mismo sello a otro entry_reference y la nube se quedaría uno de los dos. */
+  const noonBusy={};
+  (expenses||[]).forEach(function(e){
+    if(!e||!e.date) return;
+    const day=String(e.date).slice(0,10);
+    if(e.date!==histDate(day)) return;
+    const bank=expenseBankOf(e)||e.ent||"";
+    const mc=e.obName!=null?e.obName:(e.merchant||"");
+    noonBusy[bank+"|"+day+"|"+(Number(e.amount)||0)+"|"+mc]={extId:e.extId!=null&&e.extId!==""?String(e.extId):""};
+  });
   groupOrder.forEach(function(cloudK){
-    groups[cloudK].rows.forEach(function(row,slot){
+    const rows=groups[cloudK].rows;
+    let minExt=null;
+    rows.forEach(function(row){
+      const ext=row.tx.ext_id!=null && String(row.tx.ext_id)!=="" ? String(row.tx.ext_id) : "";
+      if(!ext||seen[row.entKey+"|"+ext]||seenLegacy[ext]) return;
+      if(minExt==null||ext<minExt) minExt=ext;
+    });
+    const busy=noonBusy[cloudK];
+    let gaveNoon=!!busy, consumed=false;
+    const emit=[];
+    rows.forEach(function(row,slot){
       const tx=row.tx;
-      if(tx.ext_id && (seen[row.entKey+"|"+tx.ext_id]||seenLegacy[tx.ext_id])){ skippedExt++; return; }
+      const ext=tx.ext_id!=null && String(tx.ext_id)!=="" ? String(tx.ext_id) : "";
+      if(ext && (seen[row.entKey+"|"+ext]||seenLegacy[ext])){ skippedExt++; return; }
+      /* La fila del mediodía no trae referencia (source viejo, sin `#x.`). El id menor es
+         ese cargo: no se vuelve a proponer. Los demás no heredan el mediodía. */
+      if(ext && busy && !busy.extId && !consumed && ext===minExt){ consumed=true; return; }
+      emit.push({row:row, slot:slot, ext:ext});
+    });
+    const occ={};
+    const mark=function(amount, merchant, fecha){
+      const iso=obCanonIso(fecha);
+      if(iso) occ[obIndexGroup(amount, merchant)+"|"+iso]=1;
+    };
+    (expenses||[]).forEach(function(ex){
+      if(!ex) return;
+      mark(ex.amount, ex.merchant, ex.date);
+      if(ex.obName!=null && ex.obName!==ex.merchant) mark(ex.amount, ex.obName, ex.date);
+    });
+    const extEmit=emit.filter(function(it){ return it.ext; }).slice().sort(function(a,b){
+      return a.ext<b.ext ? -1 : (a.ext>b.ext ? 1 : 0);
+    });
+    extEmit.forEach(function(it){
+      const signed=it.row.isIn ? -it.row.abs : it.row.abs;
+      const merchant=it.row.merchant;
+      const prefIso=obCanonIso(histDate(it.row.dt, obExtSaltKey(it.row.entKey, it.ext, 0)));
+      const rival=extEmit.some(function(o){
+        if(o===it || o.row.entKey!==it.row.entKey || o.row.dt!==it.row.dt || o.row.merchant!==merchant) return false;
+        const os=o.row.isIn ? -o.row.abs : o.row.abs;
+        if(os!==signed) return false;
+        return obCanonIso(histDate(o.row.dt, obExtSaltKey(o.row.entKey, o.ext, 0)))===prefIso;
+      });
+      if(!rival && (expenses||[]).some(function(ex){
+        if(!ex || (ex.extId!=null && ex.extId!=="")) return false;
+        if((Number(ex.amount)||0)!==signed) return false;
+        const mc=ex.obName!=null ? ex.obName : (ex.merchant||"");
+        if(mc!==merchant && (ex.merchant||"")!==merchant) return false;
+        const bank=expenseBankOf(ex)||ex.ent||"";
+        if(bank && bank!==it.row.entKey) return false;
+        return obCanonIso(ex.date)===prefIso;
+      })){ it.skip=true; return; }
+      const g=obIndexGroup(signed, merchant);
+      const occupied={};
+      Object.keys(occ).forEach(function(k){ if(k.indexOf(g+"|")===0) occupied[k.slice(g.length+1)]=1; });
+      const stamp=obPickExtStamp(it.row.dt, it.row.entKey, it.ext, occupied);
+      if(!stamp){ it.skip=true; return; }
+      it.stamp=stamp;
+      mark(signed, merchant, stamp);
+    });
+    emit.forEach(function(it){
+      if(it.ext) return;
+      if(!it.slot && !gaveNoon){ it.stamp=histDate(it.row.dt); gaveNoon=true; }
+      else it.stamp=histDate(it.row.dt,"ob-slot|"+cloudK+"|"+it.slot);
+    });
+    emit.forEach(function(it){
+      if(it.skip || !it.stamp) return;
+      const tx=it.row.tx, row=it.row;
       out.push({
         id:tx.ext_id||null, date:row.dt, amount:row.abs,
         merchant:row.merchant,
         ...(tx.mcc?{mcc:tx.mcc}:{}),
         ...(tx.concept?{concept:tx.concept}:{}),
         note:tx.note||"", card:!!tx.card, ent:row.entKey, entLabel:row.entLabel,
-        stamp:slot ? histDate(row.dt,"ob-slot|"+cloudK+"|"+slot) : histDate(row.dt),
+        stamp:it.stamp,
         kind:row.isIn?"in":"out"
       });
     });
@@ -15508,6 +15794,89 @@ function histFlattenHistoryLinks(res, expenses, allow){
       acctAtCap:acctAtCap
     }
   };
+}
+
+function obCanonIso(fecha){
+  const ms=+new Date(fecha);
+  return isFinite(ms) ? new Date(ms).toISOString() : "";
+}
+function obIndexGroup(amount, merchant){
+  return (Number(amount)||0)+"|"+(merchant==null ? "" : String(merchant));
+}
+function obExtSaltKey(bank, extId, n){
+  const base="ob-ext|"+(bank||"")+"|"+String(extId==null ? "" : extId);
+  return n ? base+"#"+n : base;
+}
+function obPickExtStamp(day, bank, extId, occupied){
+  for(let n=0; n<=48; n++){
+    const stamp=histDate(day, obExtSaltKey(bank, extId, n));
+    const iso=obCanonIso(stamp);
+    if(iso && !(occupied && occupied[iso])) return stamp;
+  }
+  return null;
+}
+function obExtIdFromCloudSource(source){
+  const raw=String(source||"");
+  const h=raw.indexOf("#");
+  if(h<0) return "";
+  const tail=raw.slice(h+1);
+  if(tail.indexOf("x.")!==0) return "";
+  try{ return decodeURIComponent(tail.slice(2))||""; }catch(err){ return ""; }
+}
+function obApplyDedupIndex(cloudRows, incoming){
+  const seen={};
+  (cloudRows||[]).forEach(function(r){
+    if(!r) return;
+    const fecha=r.fecha!=null ? r.fecha : r.date;
+    const importe=r.importe!=null ? r.importe : r.amount;
+    const comercio=r.comercio!=null ? r.comercio : r.merchant;
+    seen[obCanonIso(fecha)+"|"+(Number(importe)||0)+"|"+(comercio||"")]=1;
+  });
+  const accepted=[], ignored=[];
+  (incoming||[]).forEach(function(e){
+    if(!e) return;
+    const k=obCanonIso(e.date)+"|"+(Number(e.amount)||0)+"|"+(e.merchant||"");
+    if(seen[k]){ ignored.push(e); return; }
+    seen[k]=1;
+    accepted.push(e);
+  });
+  return { accepted:accepted, ignored:ignored };
+}
+function obReassignSkipped(skipped, occupiedRows){
+  const occ={};
+  const have={};
+  (occupiedRows||[]).forEach(function(r){
+    if(!r) return;
+    const amount=r.importe!=null ? r.importe : r.amount;
+    const merchant=r.comercio!=null ? r.comercio : r.merchant;
+    const fecha=r.fecha!=null ? r.fecha : r.date;
+    const iso=obCanonIso(fecha);
+    if(iso) occ[obIndexGroup(amount, merchant)+"|"+iso]=1;
+    const ext=r.extId!=null && r.extId!=="" ? String(r.extId) : obExtIdFromCloudSource(r.source);
+    const bank=r.ent||"";
+    if(ext) have[(bank?bank+"|":"")+ext]=1;
+  });
+  const out=[];
+  (skipped||[]).forEach(function(e){
+    if(!e || e.extId==null || e.extId==="") return;
+    const bank=e.ent||"";
+    const id=String(e.extId);
+    if(have[bank+"|"+id] || have[id]) return;
+    const day=String(e.date||"").slice(0,10);
+    const group=obIndexGroup(e.amount, e.merchant);
+    const isoNow=obCanonIso(e.date);
+    if(isoNow) occ[group+"|"+isoNow]=1;
+    let stamp=null;
+    for(let n=0; n<=48; n++){
+      const c=histDate(day, obExtSaltKey(bank, id, n));
+      const k=group+"|"+obCanonIso(c);
+      if(!occ[k]){ stamp=c; occ[k]=1; break; }
+    }
+    if(!stamp || obCanonIso(stamp)===isoNow) return;
+    have[bank+"|"+id]=1;
+    out.push(Object.assign({}, e, {date:stamp}));
+  });
+  return out;
 }
 
 /* La tabla deduplica por fecha COMPLETA pero el histórico solo trae el día. Sin `k` se conserva
@@ -20409,7 +20778,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="7972b7e14ae1773dc35ba3a5611fc8bf5468512197cac644877343fc75fdc3f8";
+var _rnSha="769ec5ee37c532417546618a0529b909ac46eaa3e484f2a5315bfb75bfabed60";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -23102,7 +23471,7 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
       ) },
       // Bienes (piso, coche…) es su propio bloque: no son cuentas de banco y el usuario quiere
       // colocarlos donde le apetezca (feedback 2026-07-25).
-      { id:"bienes", label:t("pt_goods"), el:React.createElement(React.Fragment,null,
+      (state.assets||[]).length>0 && { id:"bienes", label:t("pt_goods"), el:React.createElement(React.Fragment,null,
         React.createElement("div",{className:"v4-sec-h"}, t("pt_goods")),
         React.createElement(Wealth,{state:state,set:set,totals:totals,v4Embed:true,parte:"bienes"})
       ) },

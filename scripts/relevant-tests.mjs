@@ -75,6 +75,7 @@ export const E2E_MAP = [
     "e2e/gastos-categorias-presupuesto.spec.mjs", "e2e/gastos-periodo-categorias.spec.mjs", "e2e/gastos-suelta-filas.spec.mjs",
     "e2e/gastos-deudas.spec.mjs", "e2e/cartera-ficha-cuenta.spec.mjs", "e2e/presupuesto-fluido.spec.mjs",
     "e2e/gastos-ayuda-ciclo.spec.mjs", "e2e/gastos-mes-madrid.spec.mjs",
+    "e2e/gastos-caixa-extid.spec.mjs",
   ] },
   { file: "src/modules/05-dialogs-inv.js", specs: [
     "e2e/help-assistant.spec.mjs",
@@ -95,6 +96,7 @@ export const E2E_MAP = [
     "e2e/bancos-quitar-pending.spec.mjs", "e2e/gastos-deudas.spec.mjs",
     "e2e/bank-callback-msg.spec.mjs", "e2e/plan-gestionar.spec.mjs",
     "e2e/plan-cover.spec.mjs",
+    "e2e/gastos-caixa-extid.spec.mjs",
   ] },
   { file: "src/modules/07-tab-patri-fijos.js", specs: [
     "e2e/cartera-bienes-completo.spec.mjs",

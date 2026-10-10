@@ -221,16 +221,22 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   const keyOfE=keyOfExpense;
   const delExpense=function(e){
     if(undoTimerRef.current) clearTimeout(undoTimerRef.current);
-    const key=keyOfE(e), list=state.expenses||[], index=list.findIndex(function(x){ return x.id===e.id; });
+    const keys=expenseTombKeys(e), list=state.expenses||[], index=list.findIndex(function(x){ return x.id===e.id; });
     const wasCloud=cloud.enabled();
     // La lápida entra junto con la retirada local: si la nube refresca durante los cinco segundos,
     // no puede resucitar la fila por detrás del toast. La escritura remota sí se encadena para que
     // Deshacer vuelva a subir el MISMO id después de que termine cualquier delete aún en vuelo.
-    set(function(s){ return Object.assign({},s,{
-      expenses:(s.expenses||[]).filter(function(x){ return x.id!==e.id; }),
-      deleted:pushDeleted(s.deleted,key)
-    }); });
-    const pending={expense:e,key:key,index:index<0?list.length:index,wasCloud:wasCloud,
+    // `obid|` va junto a la clave de pantalla: borrar uno de dos cargos Caixa del mismo día no
+    // puede tapar al otro, ni dejar que el sync devuelva solo el borrado (INC-2709-06).
+    set(function(s){
+      let deleted=s.deleted;
+      keys.forEach(function(k){ deleted=pushDeleted(deleted,k); });
+      return Object.assign({},s,{
+        expenses:(s.expenses||[]).filter(function(x){ return x.id!==e.id; }),
+        deleted:deleted
+      });
+    });
+    const pending={expense:e,keys:keys,index:index<0?list.length:index,wasCloud:wasCloud,
       cloudDelete:wasCloud?borrarGastoNube(e,"gastos-borrar"):Promise.resolve()};
     undoDeleteRef.current=pending; setUndoDelete(pending);
     undoTimerRef.current=setTimeout(function(){
@@ -245,7 +251,9 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     undoTimerRef.current=null; undoDeleteRef.current=null; setUndoDelete(null);
     set(function(s){
       const deleted=(s.deleted||[]).slice();
-      const di=deleted.lastIndexOf(pending.key); if(di>=0) deleted.splice(di,1);
+      (pending.keys||(pending.key?[pending.key]:[])).forEach(function(k){
+        const di=deleted.lastIndexOf(k); if(di>=0) deleted.splice(di,1);
+      });
       const expenses=(s.expenses||[]).slice();
       if(!expenses.some(function(x){ return x.id===pending.expense.id; })){
         expenses.splice(Math.min(pending.index,expenses.length),0,pending.expense);
@@ -263,7 +271,9 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     set(function(s){
       let next=resolvePossibleDup(s, e.id, same);
       if(same){
-        next=Object.assign({},next,{deleted:pushDeleted(next.deleted, keyOfE(e))});
+        let deleted=next.deleted;
+        expenseTombKeys(e).forEach(function(k){ deleted=pushDeleted(deleted,k); });
+        next=Object.assign({},next,{deleted:deleted});
         if(cloud.enabled()) borrarGastoNube(e, "gastos-dup");
       }
       // «Son distintos»: hay que QUITAR la marca también en la nube (B09-D). Si no, la fila sigue

@@ -81,7 +81,9 @@ export type FilaGasto = {
 
 /**
  * La misma clave que usa la app al bajar gastos (`keyOfExpense` / `mergeExpenses`).
- * SIN la hora, a propósito (APOLLON Wallet+TR a 97 min = un solo cargo).
+ * macrodroid SIN la hora, a propósito (APOLLON Wallet+TR a 97 min = un solo cargo).
+ * Un Open Banking que ya no es el mediodía local sí lleva la fecha entera: si no, dos
+ * cargos Caixa del mismo día e importe se cuentan como uno.
  *
  * 2026-09-11 Paso 0: si es MANUAL, la clave lleva el `id`. Él apuntó Bizums de 14,90 € a mano
  * tras perderlos en OB y la fusión se los comía otra vez. Comercio específico sigue sin id.
@@ -98,8 +100,20 @@ export function claveComoLaApp(f: {
   source?: string | null;
   id?: string | null;
 }): string {
-  const base = String(f.fecha || "").slice(0, 10) + "|" + (Number(f.importe) || 0) + "|" + (f.comercio || "");
+  const fecha = String(f.fecha || "");
+  const base = fecha.slice(0, 10) + "|" + (Number(f.importe) || 0) + "|" + (f.comercio || "");
   if (esSourceManual(f.source)) return base + "|" + String(f.id || "");
+  /* Dos cargos Open Banking del mismo día, importe y comercio son dos referencias: si la
+     clave se queda en el día, el widget se come uno (12,50 + 12,50 + 3 → 15,50 en vez de 28).
+     macrodroid sigue en el día — APOLLON Wallet+TR a 97 min es UN cargo, la hora de la noti
+     no es otro. Misma regla que `keyOfExpense`: solo la fila que ya no es el mediodía local
+     alarga la clave. */
+  const s = String(f.source || "");
+  const ob = s === "ob" || s.indexOf("ob:") === 0 || s === "ob-hist" || s.indexOf("ob-hist:") === 0;
+  if (ob && fecha.length >= 10) {
+    const noon = new Date(fecha.slice(0, 10) + "T12:00:00").toISOString();
+    if (fecha !== noon) return base + "|" + fecha;
+  }
   return base;
 }
 
