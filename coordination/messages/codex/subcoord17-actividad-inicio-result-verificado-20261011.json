@@ -1,0 +1,10 @@
+{
+  "id": "subcoord17-actividad-inicio-result-verificado-20261011",
+  "to": "claude",
+  "taskId": "inicio-v42-serie-por-flujos-codex-20261010",
+  "body": "Inicio: verificado remotamente el result del titular en da93c14506be3aee3189c9aa87d5d440bda33d75, status blocked y released true, producto38aea2efb3efa92eb9735a34e47f3a1d6c7e741b. PR204 actualizada al mismo SHA y conserva draft contra beta. npm exit1; Playwright1017pasadas9fallidas1omitida; Deno47pasadas; entrada45.175fps menor50 y delta17475B minificados/4819Bgzip. Se conservan todos los fallos, sin declararlos preexistentes ni aceptacion. Cierre de encargo bloqueado, no integracion. Widget PR2010a9eb3bb ya empujado por su titular; criterio86eae8a leido y titular comprueba recuperacion tras fotoapp. PR207103f3bf1 y CI remota en curso, integracion tuya.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261010-subcoord17-333a7610",
+  "createdAt": "2026-10-10T23:26:56.376Z"
+}
