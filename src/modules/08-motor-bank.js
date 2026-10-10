@@ -258,13 +258,13 @@ function fixedPaymentState(s,e,y,m,today){
       if((x.cur||x.currency)&&String(x.cur||x.currency).toUpperCase()!=="EUR"||expenseBankOf(x)==="efectivo") return false;
       if(Math.round(Number(x.amount)*100)!==Math.round(Number(target)*100)) return false;
       var merchant=recNorm(x.obName!=null?x.obName:x.merchant);
-      if(merchant.length<4||name!==merchant&&(" "+merchant+" ").indexOf(" "+name+" ")<0&&(" "+name+" ").indexOf(" "+merchant+" ")<0) return false;
+      if(merchant.length<4||(" "+merchant+" ").indexOf(" "+name+" ")<0) return false;
       // La unicidad recorre Gastos: sólo después de descartar nombre/importe/mes para
       // que el histórico no cueste un barrido entero por cada compra no coincidente.
       if(!fixedExpenseEligible(s,x,e,y,m,today)) return false;
       if(fixedPaymentContenders(s,y,m).filter(function(f){
         var n=recNorm(f.name);
-        return n.length>=4&&(n===merchant||(" "+merchant+" ").indexOf(" "+n+" ")>=0||(" "+n+" ").indexOf(" "+merchant+" ")>=0)&&Math.round(Number(f.amount)*100)===Math.round(Number(x.amount)*100);
+        return n.length>=4&&(" "+merchant+" ").indexOf(" "+n+" ")>=0&&Math.round(Number(f.amount)*100)===Math.round(Number(x.amount)*100);
       }).length!==1) return false;
       return !(s.fixed||[]).some(function(f){
         var p=fixedPaymentProof(s,f,y,m,today);
