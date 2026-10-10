@@ -1,0 +1,222 @@
+{
+  "status": "blocked",
+  "summary": "Candidato de Inicio por flujos, seis estados y consulta tactil; historial partido recuperable y calendario Madrid. Rama propia y PR204 draft actualizados al SHA final. Validacion completa terminal; gates rojos, sin integracion ni aceptacion movil.",
+  "baseSHA": "684a839d286f68d66c8855cf6e1a626b7220fd64",
+  "productSHA": "38aea2efb3efa92eb9735a34e47f3a1d6c7e741b",
+  "htmlSHA256": "d0b68f87cd39176f36bd04bc66b7246d9ef6d2f29a6cdf2e1f7e90321bfb43a1",
+  "pullRequest": 204,
+  "branch": "codex/inicio-flujos-47707522",
+  "candidateBranchPublished": true,
+  "tests": [
+    {
+      "command": "npm run build",
+      "exitCode": 0
+    },
+    {
+      "command": "TZ=UTC node tests/inicio-v42.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "TZ=Europe/Madrid node tests/inicio-v42.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/i18n-keys.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "Playwright installed CLI: test seven focal specs --config=playwright.config.mjs --workers=1",
+      "exitCode": 0,
+      "passed": 117,
+      "phase": "before final freeze; functional group also passed in final full run"
+    },
+    {
+      "command": "npm test",
+      "exitCode": 1,
+      "durationSeconds": 608.5,
+      "denoOmittedByPATH": true,
+      "playwrightOmittedAfterFailures": true,
+      "failures": [
+        "auth-disposal",
+        "beta-veredictos",
+        "beta-sources",
+        "docs-frescura",
+        "memoria-espejo",
+        "presupuesto-rendimiento"
+      ]
+    },
+    {
+      "command": "Playwright installed CLI: test --config=playwright.config.mjs --workers=1",
+      "exitCode": 1,
+      "durationSeconds": 3659.565594,
+      "passed": 1017,
+      "failed": 9,
+      "skipped": 1
+    },
+    {
+      "command": "deno test supabase/functions/ingest/ingest.test.ts",
+      "exitCode": 0
+    },
+    {
+      "command": "deno test --allow-env supabase/functions/_shared/crypto.test.ts",
+      "exitCode": 0
+    },
+    {
+      "command": "deno test supabase/functions/_shared/enablebanking.test.ts",
+      "exitCode": 0
+    },
+    {
+      "command": "deno test supabase/functions/delete-account/delete-account.test.ts",
+      "exitCode": 0
+    },
+    {
+      "command": "deno test supabase/functions/prices/prices.test.ts",
+      "exitCode": 0
+    }
+  ],
+  "fullFocalGroupOnFinalSource": {
+    "passed": 117,
+    "failed": 0,
+    "skipped": 0
+  },
+  "fullPlaywrightFailures": [
+    {
+      "file": "cartera-bienes-toque.spec.mjs",
+      "line": 42,
+      "title": "Bienes: tocar abre el editor existente sin cambiar datos (es, normal)"
+    },
+    {
+      "file": "cartera-bienes-toque.spec.mjs",
+      "line": 42,
+      "title": "Bienes: tocar abre el editor existente sin cambiar datos (en, huge)"
+    },
+    {
+      "file": "inicio-v42-rendimiento.spec.mjs",
+      "line": 4,
+      "title": "Inicio y arrastre con historial grande a CPU x6"
+    },
+    {
+      "file": "metas-mensual.spec.mjs",
+      "line": 128,
+      "title": "pull fallido al volver no aporta y el siguiente retorno sí lo reintenta (es)"
+    },
+    {
+      "file": "metas-mensual.spec.mjs",
+      "line": 146,
+      "title": "estado de nube inválido no acredita un mes con la copia local (es)"
+    },
+    {
+      "file": "metas-mensual.spec.mjs",
+      "line": 128,
+      "title": "pull fallido al volver no aporta y el siguiente retorno sí lo reintenta (en)"
+    },
+    {
+      "file": "metas-mensual.spec.mjs",
+      "line": 128,
+      "title": "pull fallido al volver no aporta y el siguiente retorno sí lo reintenta (ca)"
+    },
+    {
+      "file": "metas-mensual.spec.mjs",
+      "line": 146,
+      "title": "estado de nube inválido no acredita un mes con la copia local (ca)"
+    },
+    {
+      "file": "smoke.spec.mjs",
+      "line": 21,
+      "title": "Inicio no inventa una ganancia mensual ni hereda la racha antigua"
+    }
+  ],
+  "performance": {
+    "cpuRate": 6,
+    "expenses": 20000,
+    "accountPoints": 400,
+    "entry": {
+      "frames": 64,
+      "fps": 45.17540763746736,
+      "over32": 4,
+      "max": 199.9000000000001
+    },
+    "drag": {
+      "frames": 134,
+      "fps": 60.00358230342113,
+      "over32": 0,
+      "max": 16.800000000000182
+    },
+    "interaction": {
+      "ms": 13,
+      "opened": true
+    }
+  },
+  "entryAB": {
+    "baseFps": [
+      32.14285714285715,
+      33.88394747988141
+    ],
+    "candidateFps": [
+      38.865402972862405,
+      57.11393869288607
+    ],
+    "threshold": 50,
+    "passed": false,
+    "expenses": 20000,
+    "points": 400,
+    "cpuRate": 6,
+    "profiler": false
+  },
+  "foregroundAB": {
+    "baseTotalBytes": 7384,
+    "candidateTotalBytes": 3256,
+    "passes": 3,
+    "candidateHistoryWrites": 0,
+    "candidateExpenseWrites": 0,
+    "exitCode": 0
+  },
+  "size": {
+    "normalization": "LF, official esbuild options without identifier renaming, gzip level9",
+    "base": {
+      "minifiedBytes": 1324985,
+      "gzip9Bytes": 361834
+    },
+    "candidate": {
+      "minifiedBytes": 1342460,
+      "gzip9Bytes": 366653
+    },
+    "delta": {
+      "minifiedBytes": 17475,
+      "gzip9Bytes": 4819
+    }
+  },
+  "limitations": [
+    "Entry45.175fps below50; AB38.865 and57.114 not a stable pass",
+    "Nine full browser failures remain; six full npm guardians fail",
+    "Bienes extra main write while selected financial state is equal; no verified baseline attribution",
+    "Five Metas monthly toast assertions fail before later assertions; no financial acceptance credited",
+    "Smoke still expects removed streak selector; no adaptation after final freeze",
+    "Catalog, version, notes, documentation alignment and size limit delegated to Claude; build-generated catalog/notes excluded from commit and must be rebuilt at integration",
+    "Assets and debt current values constant; linked debt payment neutral pending owner confirmation",
+    "No real-device acceptance, product publication, APK or backend changes",
+    "Previous partial full browser runs invalidated; not credited as full passes",
+    "Legacy sustained platform/source labels not trusted; final HTML hash checked"
+  ],
+  "remoteReadback": {
+    "branchSHA": "38aea2efb3efa92eb9735a34e47f3a1d6c7e741b",
+    "prHeadSHA": "38aea2efb3efa92eb9735a34e47f3a1d6c7e741b",
+    "prDraft": true,
+    "prBase": "beta",
+    "prBodyVerified": true
+  },
+  "schema": 1,
+  "taskId": "inicio-v42-serie-por-flujos-codex-20261010",
+  "actor": "codex",
+  "sessionId": "codex-local-20261010-flujos-47707522b991",
+  "createdAt": "2026-10-10T23:25:41.536Z",
+  "released": true
+}
