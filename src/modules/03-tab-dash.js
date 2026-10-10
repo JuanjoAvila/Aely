@@ -5,20 +5,86 @@ function dashOrderOf(s, allIds){
   const saved=((s.settings&&s.settings.dashOrder)||[]).filter(function(id){ return allIds.indexOf(id)>=0; });
   return saved.concat(allIds.filter(function(id){ return saved.indexOf(id)<0; }));
 }
-function NetWorthNow({value, shown, simple, history}){
-  // Retirar la variante109 no autorizaba quitar la gráfica de producción110 (feedback10/10).
-  // Se recupera su dibujo, sin convertir el histórico en ganancias ni reescribirlo.
+const CYCLE_COMFORT_DIFF=-15, CYCLE_GOOD_DIFF=10, CYCLE_TIGHT_DIFF=40;
+function cyclePaceState(spent,budget,elapsed,days){
+  const used=Math.round(spent*100), limit=Math.round(budget*100), excess=Math.max(0,used-limit)/100;
+  if(used>limit) return {id:"over",tone:"coral",excess:excess};
+  if(elapsed<3) return {id:"start",tone:"mint",excess:0};
+  const diff=limit>0&&days>0?used/limit*100-elapsed/days*100:0;
+  return {id:diff<=CYCLE_COMFORT_DIFF?"comfort":diff<=CYCLE_GOOD_DIFF?"good":diff<=CYCLE_TIGHT_DIFF?"tight":"slow",
+    tone:diff<=CYCLE_GOOD_DIFF?"mint":"tan",excess:0};
+}
+function cycleMoney(value){
+  // Los euros enteros caben como en la maqueta; un céntimo real no desaparece al redondear.
+  return Number.isInteger(Math.round(value*DISP.k*100)/100)?eur0(value):eur(value);
+}
+function cycleTiming(bud,nowMs){
+  const now=new Date(nowMs==null?Date.now():nowMs), start=new Date(bud.periodStart);
+  const civil=function(d){ return Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()); };
+  let end=new Date(start.getFullYear(),start.getMonth()+1,1);
+  // El lector financiero sólo marca ciclo tras identificar el cobro; conserva esa ancla
+  // sin recorrer otra vez el histórico para decidir si se puede mostrar el ritmo.
+  if(bud.cycle){
+    const last=new Date(start.getFullYear(),start.getMonth()+2,0).getDate();
+    end=new Date(start.getFullYear(),start.getMonth()+1,Math.min(start.getDate(),last));
+  }
+  const days=Math.max(1,(civil(end)-civil(start))/864e5), elapsed=Math.max(0,(civil(now)-civil(start))/864e5);
+  return {days:days,elapsed:elapsed,left:Math.max(0,(civil(end)-civil(now))/864e5),reliable:!!bud.cycle};
+}
+function NetWorthNow({value, shown, simple, series, ready}){
+  series=series||[];
+  const today=dayKey(new Date()), current=series.length&&series[series.length-1].day===today;
+  const ranges=useMemo(function(){ return netWorthRanges(series,today); },[series,today]);
+  const [picked,setPicked]=useState("1m"), [touch,setTouch]=useState(null), [info,setInfo]=useState(false);
+  const svgRef=useRef(null), frameRef=useRef(0), fingerRef=useRef(null);
+  const range=ranges.find(function(r){ return r.id===picked; })||ranges[0];
+  const points=range?range.points:[], active=touch!=null?points[touch]:null;
+  const delta=points.length>1?points[points.length-1].value-points[0].value:null;
+  const color=delta!=null&&delta<0?"var(--coral)":"var(--mint)";
+  const chart=useMemo(function(){ return netWorthChartGeometry(points); },[points]);
+  useEffect(function(){ setTouch(null); },[range&&range.id]);
+  useEffect(function(){ return function(){ cancelAnimationFrame(frameRef.current); }; },[]);
+  useBackClose(info,function(){ setInfo(false); });
   const valid=typeof value==="number" && Number.isFinite(value);
-  const p=valid?eurParts(typeof shown==="number" && Number.isFinite(shown)?shown:value):null;
-  return React.createElement("div",{className:"v4-hero rise","data-tour":"hero","data-testid":"inicio-net-current",style:{animationDelay:".05s"}},
-    React.createElement("div",{className:"v4-micro"}, t(simple?"v4_money_total":"d_networth")),
+  const p=valid?eurParts(active?active.value:typeof shown==="number" && Number.isFinite(shown)?shown:value):null;
+  const move=function(e){
+    e.stopPropagation();
+    if(!chart||!svgRef.current||!e.touches.length) return;
+    const rect=svgRef.current.getBoundingClientRect(), x=e.touches[0].clientX;
+    const local=(x-rect.left)/rect.width*320;
+    fingerRef.current=Math.max(0,Math.min(points.length-1,Math.round((local-4)/312*(points.length-1))));
+    if(!frameRef.current) frameRef.current=requestAnimationFrame(function(){ frameRef.current=0; setTouch(fingerRef.current); });
+  };
+  const release=function(e){ e.stopPropagation(); cancelAnimationFrame(frameRef.current); frameRef.current=0; setTouch(null); };
+  const id=React.useId();
+  return React.createElement("div",{className:"v4-hero v42-net","data-tour":"hero","data-testid":"inicio-net-current",style:{"--v42-play":ready===false?"paused":"running"}},
+    React.createElement("div",{className:"v4-net-current-head"},
+      React.createElement("div",{className:"v4-micro"}, t(simple?"v4_money_total":"d_networth")),
+      React.createElement("button",{type:"button",className:"v42-net-info","aria-label":t("v42_net_info_title"),onClick:function(){ setInfo(!info); }},"i")
+    ),
+    active&&React.createElement("span",{className:"v42-net-date","data-testid":"inicio-net-date"},new Date(active.day+"T12:00:00").toLocaleDateString(loc(),{day:"numeric",month:"short",year:"numeric"})),
     React.createElement("div",{className:"v4-hero-amt num","data-tour":"hero-amt"},
-      p?p.sign+p.ent:"—", p&&React.createElement("span",{style:{fontSize:28,color:"var(--muted)"}},","+(p.dec||"00")+" "+p.sym)),
+      p?p.sign+p.ent:"—", p&&React.createElement("span",null,","+(p.dec||"00")+" "+p.sym)),
     !valid&&React.createElement("div",{className:"hint",role:"status"}, t("v4_net_unknown")),
-    valid&&React.createElement("div",{style:{marginTop:14}},
-      (history&&history.length>=1)
-        ? React.createElement(Sparkline,{data:history,current:value})
-        : React.createElement("div",{style:{fontSize:12.5,color:"var(--muted-2)",padding:"6px 0 2px"}}, t("v4_hist_empty")))
+    valid&&series.length<2&&React.createElement("div",{className:"hint"},t("v42_net_missing")),
+    valid&&current&&delta!=null&&React.createElement("div",{className:"v42-net-delta","data-testid":"inicio-net-delta",style:{color:color}},
+      tf("v42_net_"+(delta<0?"less_":"more_")+range.id,{x:netWorthDeltaMoney(delta)})),
+    valid&&chart&&React.createElement("div",{className:"v42-net-chart","data-noswipe":"1",onTouchStart:move,onTouchMove:move,onTouchEnd:release,onTouchCancel:release},
+      React.createElement("svg",{ref:svgRef,key:range.id,viewBox:"0 0 320 80",preserveAspectRatio:"none",role:"img","aria-label":t("v42_net_chart"),style:{color:color}},
+        React.createElement("defs",null,React.createElement("linearGradient",{id:id,x1:"0",x2:"0",y1:"0",y2:"1"},
+          React.createElement("stop",{offset:"0%",stopColor:"currentColor",stopOpacity:.2}),React.createElement("stop",{offset:"100%",stopColor:"currentColor",stopOpacity:0}))),
+        React.createElement("path",{className:"v42-net-fill",d:chart.fill,fill:"url(#"+id+")"}),
+        React.createElement("path",{className:"v42-net-line",d:chart.path,fill:"none",stroke:"currentColor",strokeWidth:2,strokeLinecap:"round",strokeLinejoin:"round",vectorEffect:"non-scaling-stroke",pathLength:1}),
+        React.createElement("circle",{className:"v42-net-halo",cx:chart.xy[points.length-1].x,cy:chart.xy[points.length-1].y,r:4,fill:"currentColor"}),
+        React.createElement("circle",{className:"v42-net-dot",cx:chart.xy[points.length-1].x,cy:chart.xy[points.length-1].y,r:4,fill:"currentColor"}),
+        active&&React.createElement("g",{"data-testid":"inicio-net-guide"},
+          React.createElement("line",{x1:chart.xy[touch].x,x2:chart.xy[touch].x,y1:0,y2:80,stroke:"var(--muted)",strokeDasharray:"2 3"}),
+          React.createElement("circle",{cx:chart.xy[touch].x,cy:chart.xy[touch].y,r:4,fill:"currentColor"}))
+      )),
+    valid&&ranges.length>0&&React.createElement("div",{className:"v42-net-ranges"},ranges.map(function(r){
+      return React.createElement("button",{key:r.id,type:"button","aria-pressed":range.id===r.id,onClick:function(){ setPicked(r.id); setTouch(null); }},t("v42_range_"+r.id));
+    })),
+    info&&React.createElement("div",{className:"hint",role:"note"},t("v42_net_info"))
   );
 }
 function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProfile, onGoGastos, onGoPlan, showToast}){
@@ -92,23 +158,10 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
   // Mismas filas computables; bruto mensual o neto del ciclo, según lo que dice la tarjeta.
   const bud=dashboardBudgetStats(state);
   const budAmt=bud.budget!=null?bud.budget:(state.budget||0);
-  const spentAgainst=Math.max(0, bud.against);
-  const hasMonthActivity=bud.spent>0.005 || bud.income>0.005;
-  const ratio=budAmt>0 ? spentAgainst/budAmt : spentAgainst>0 ? Infinity : 0;
-  const dim=new Date(tt.curYear, tt.curMonth, 0).getDate();
-  const elapsed=Math.max(1, tt.today||1);
-  const leftDays=Math.max(1, dim-elapsed);
-  const rem=bud.remaining!=null?bud.remaining:(budAmt-spentAgainst);
-  const dailyAllow=rem/leftDays;
-  const pace=spentAgainst/elapsed;
-  const projected=spentAgainst+pace*leftDays;
-  // Sin fecha fiable del próximo cobro no proyectamos un «€/día hasta fin de mes» que
-  // mezclaría el ciclo de ella con el calendario (feedback pareja 28/9).
-  const overTrack=!bud.cycle && projected>budAmt+0.5;
-  // En ciclo, un neto negativo con compras reales no significa un período vacío.
-  let stCls="st", stHead=hasMonthActivity ? t("st_good_h") : t(bud.cycle?"v4_cycle_start_h":"st_start_h");
-  if(ratio>1 || overTrack&&ratio>0.85){ stCls="st bad"; stHead=t("st_over_h"); }
-  else if(ratio>0.8){ stCls="st warn"; stHead=t("st_tight_h"); }
+  const spentAgainst=Math.max(0,bud.against), rem=bud.remaining!=null?bud.remaining:budAmt-spentAgainst;
+  const timing=cycleTiming(bud), paceState=cyclePaceState(spentAgainst,budAmt,timing.elapsed,timing.days);
+  const series=useMemo(function(){ return netWorthSeries(state,{today:dayKey(new Date()),debtTotal:tt.debtTotal}); },
+    [state.accounts,state.obAccounts,state.accountBalanceHistory,state.invHistory,state.investments,state.assets,state.expenses,state.deleted,tt.debtTotal]);
 
   const overdue=[];
   // La fecha prevista no es un pago: la misma lectura de evidencia que Plan conserva los
@@ -164,25 +217,9 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
   // Inicio resume tres metas activas; Plan conserva todas sin cambiar su orden ni sus saldos.
   const goals=(state.goals||[]).filter(function(g){ return !g.done; }).slice(0,3);
   const recent=useMemo((s=state)=>(s.expenses||[]).filter(e=>!expenseIsTombstoned(e,expenseDeletedSet(s))).sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,3),[state.expenses,state.deleted]);
-  const ringPct=Math.max(0,Math.min(1,ratio));
-  /* P6 — EL ANILLO SE DIBUJA, NO APARECE YA LLENO.
-     El circulo recibia el `strokeDashoffset` FINAL y una `transition` de 1s, y una transicion no
-     anima el primer pintado: el anillo salia relleno de golpe y la animacion del spec §10 no se
-     veia nunca. Se monta vacio (offset = circunferencia entera) y se pasa al valor real en el
-     frame siguiente, que es cuando la transicion si tiene de donde salir.
-     Enganchado al MISMO `mc-splash-gone` que el count-up: si no, se gasta detras de la cortina
-     de entrada, que es exactamente lo que ya le paso una vez con el numero del hero.
-     `prefers-reduced-motion` -> valor final directo, sin animar. */
-  const [ringDraw,setRingDraw]=useState(false);
-  useEffect(function(){
-    const reduce=window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches;
-    if(reduce){ setRingDraw(true); return undefined; }
-    let raf=0, cancelado=false;
-    const arrancar=function(){ if(cancelado) return; raf=requestAnimationFrame(function(){ if(!cancelado) setRingDraw(true); }); };
-    if(window.__mcSplashGone || !document.getElementById("mc-load")){ arrancar(); }
-    else window.addEventListener("mc-splash-gone", arrancar, {once:true});
-    return function(){ cancelado=true; cancelAnimationFrame(raf); window.removeEventListener("mc-splash-gone", arrancar); };
-  },[]);
+  const ringPct=budAmt>0?Math.max(0,Math.min(1,spentAgainst/budAmt)):spentAgainst>0?1:0;
+  /* P6 — el anillo usa una animación de montaje, con estado final directo si se reduce
+     el movimiento. Pausarla hasta que salga el splash evita gastarla detrás de la cortina. */
   const monthName=monthLong(new Date().getMonth());
   const closedCard=closedMonthCardOf(state);
 
@@ -233,7 +270,7 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
       }}, t("mr_share"))
     ),
 
-    !showSkel && React.createElement(NetWorthNow,{value:tt.netWorth, shown:shownNet, simple:simple, history:state.history}),
+    !showSkel && React.createElement(NetWorthNow,{value:tt.netWorth, shown:shownNet, simple:simple, series:series, ready:splashGone}),
 
     // Sin presupuesto, Inicio escondia su tarjeta estrella y te quedabas sin la mitad de la app
     // sin saber por que (P3). En vez de esconderla, la misma tarjeta en vacio y con salida: abre
@@ -247,37 +284,29 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
       )
     ),
 
-    !showSkel && state.budget>0 && React.createElement("div",{className:"v4-card rise",style:{animationDelay:".1s",marginTop:8}},
-      React.createElement("div",{className:"v4-budget",role:"button",tabIndex:0,onClick:function(){ setBudgetOpen(true); },onKeyDown:function(e){ if(e.key==="Enter") setBudgetOpen(true); }},
-        /* Misma geometría que Plan (V4Ring). ringDraw=false al montar → 0% y luego anima al % real
-           tras el splash (mc-splash-gone); en Plan animate=false a propósito. */
-        React.createElement(V4Ring,{
-          pct:ringDraw?ringPct:0,
-          tone:stCls.indexOf("bad")>=0?"bad":(stCls.indexOf("warn")>=0?"warn":"ok"),
-          label:Math.round(ringPct*100)+"%",
-          sub:t(bud.cycle?"v4_of_cycle":"v4_of_month"),
-          animate:true
-        }),
+    !showSkel && state.budget>0 && React.createElement("div",{className:"v42-cycle-section"},
+      React.createElement("div",{className:"v42-cycle-head"},
+        React.createElement("span",null,t("v42_this_cycle")),
+        React.createElement("button",{type:"button",className:"link",onClick:function(){ if(onGoGastos) onGoGastos(); }},t("v4_see_gastos"))),
+      React.createElement("div",{className:"v4-card v4-budget v42-cycle",role:"button",tabIndex:0,"data-state":paceState.id,
+        style:{color:"var(--"+paceState.tone+")","--cycle-color":"var(--"+paceState.tone+")","--v42-play":splashGone?"running":"paused"},onClick:function(){ setBudgetOpen(true); },
+        onKeyDown:function(e){ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); setBudgetOpen(true); } }},
+        React.createElement("div",{className:"v4-ring v42-cycle-ring","aria-hidden":true},
+          React.createElement("svg",{width:76,height:76,viewBox:"0 0 76 76"},
+            React.createElement("circle",{cx:38,cy:38,r:32,fill:"none",stroke:"var(--sur2)",strokeWidth:6}),
+            React.createElement("circle",{className:"v42-cycle-draw",cx:38,cy:38,r:32,fill:"none",stroke:"currentColor",strokeWidth:6,
+              strokeLinecap:"round",pathLength:100,strokeDasharray:(ringPct*100)+" 100",transform:"rotate(-90 38 38)",
+              style:{"--cycle-pct":ringPct*100}})),
+          React.createElement("div",{className:"v42-cycle-percent num"},Math.round(ringPct*100),React.createElement("span",null,"%"))),
         React.createElement("div",{className:"v4-budget-txt"},
-          React.createElement("div",{className:stCls}, stHead),
-          React.createElement("div",{className:"ph"},
-            // Texto, anillo y margen comparten bruto mensual o neto desde el cobro.
-            bud.cycle
-              ? tf("v4_cycle_net",{used:eur(bud.against),budget:eur(budAmt)})
-              : tf("v4_budget_spent",{spent:eur0(bud.spent),budget:eur0(budAmt)}),
-            " ",
-            bud.cycle
-              ? tf(rem>=0?"v4_cycle_left":"v4_cycle_over",{x:eur(Math.abs(rem))})
-              : rem>=0 ? tf("v4_budget_daily",{x:eur0(Math.max(0,dailyAllow))}) : t("st_over_l")
-          )
+          React.createElement("div",{className:"st",style:{color:"inherit"}},tf("v42_cycle_"+paceState.id,{x:cycleMoney(paceState.excess)})),
+          React.createElement("div",{className:"ph v42-cycle-amount"},
+            React.createElement("span",{className:"serif num",style:{color:paceState.id==="over"?"var(--coral)":"var(--text)"}},cycleMoney(rem)),
+            React.createElement("span",{className:"v42-cycle-of"},tf("v42_cycle_of",{x:cycleMoney(budAmt)}))),
+          paceState.id!=="over"&&timing.reliable&&timing.left>0&&React.createElement("div",{className:"v42-cycle-pace","data-testid":"inicio-cycle-pace"},
+            React.createElement("b",null,tf("v42_cycle_daily",{x:eur0(Math.floor(Math.max(0,rem)/timing.left))})),
+            " ",tf(timing.left===1?"v42_cycle_day":"v42_cycle_days",{n:timing.left}))
         )
-      ),
-      React.createElement("div",{className:"v4-budget-foot"},
-        bud.cycle ? React.createElement("span",null,t("g_cycle")) : (function(){
-          const n=budgetStreak?budgetStreak.current:0;
-          return React.createElement("span",{"data-testid":"dash-budget-streak"},n>0?tf("v4_streak",{n:n}):t("v4_streak_zero"));
-        })(),
-        React.createElement("button",{className:"link",onClick:function(e){ e.stopPropagation(); if(onGoGastos) onGoGastos(); }}, t("v4_see_gastos"))
       )
     ),
     React.createElement(BudgetSheet,{open:budgetOpen,budget:state.budget,onClose:function(){ setBudgetOpen(false); },onSave:function(b){
