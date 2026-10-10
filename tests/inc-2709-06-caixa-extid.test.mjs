@@ -269,6 +269,25 @@ t("00:30 Madrid del día 1 cuenta en el mes nuevo", () => {
   }
 });
 
+t("el pull no funde dos cargos del mediodía con distinta referencia", () => {
+  const fila = (id, ext) => ({
+    id, date: ctx.histDate(ymd), amount: 12.5, merchant: "MERCADONA", obName: "MERCADONA",
+    source: "ob", ent: "caixabank", extId: ext,
+  });
+  const a = fila("e-caixa-a", "cargo-A");
+  const b = fila("e-caixa-b", "cargo-B");
+  const m = ctx.mergeExpensesFromCloud([a, b], []);
+  assert.equal(m.changed, false);
+  assert.equal(m.list.length, 2);
+  assert.equal(m.list[0].id, "e-caixa-a");
+  assert.equal(m.list[1].id, "e-caixa-b");
+  const u = ctx.mergeExpenses([a, b], []);
+  assert.equal(u.list.length, 2);
+  assert.equal(u.nuevos, 0);
+  const tr = { source: "ob", date: ctx.histDate(ymd), amount: 9.9, merchant: "Movimiento", ent: "trade_republic" };
+  assert.equal(ctx.mergeExpensesFromCloud([tr, Object.assign({}, tr)], []).list.length, 1);
+});
+
 t("re-sellado: array nuevo y una escritura; sin cambio, el mismo array y cero escrituras", () => {
   const src = fs.readFileSync(new URL("../src/modules/11-app-main.js", import.meta.url), "utf8");
   assert.ok(src.includes("const add=importObExpenses(prev, txs);"));

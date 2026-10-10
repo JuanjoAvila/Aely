@@ -2306,13 +2306,43 @@ function expenseFromRow(r){
   };
 }
 
+/* Referencia de un cargo OB, o "" si no hay (un «Movimiento» de TR no trae ext_id y
+   sigue siendo un solo cargo). */
+function obRowExt(e){
+  if(!e || e.extId==null || e.extId==="") return "";
+  const s=String(e.source||"");
+  if(s!=="ob" && s.indexOf("ob:")!==0 && s!=="ob-hist" && s.indexOf("ob-hist:")!==0) return "";
+  return String(e.extId);
+}
+/* Dos cargos Caixa del mismo día, importe y comercio comparten `keyOfExpense` mientras
+   los dos siguen en el mediodía: la lápida vieja tiene que nombrar al id menor. Un pull
+   que indexa solo por esa clave se quedaba el primero y el sync a demanda daba de alta
+   al otro con un id nuevo — el re-sellado no llegaba a ver la fila guardada
+   (INC-2709-06, 2026-10-10). La ranura extra solo existe si la referencia es otra. */
+function obMergeHit(byKey, e){
+  const k=keyOfExpense(e);
+  const ext=obRowExt(e);
+  if(ext && byKey[k+"\u0000"+ext]) return { key:k+"\u0000"+ext, row:byKey[k+"\u0000"+ext] };
+  const loc=byKey[k];
+  if(!loc) return { key:k, row:null };
+  const locExt=obRowExt(loc);
+  if(ext && locExt && ext!==locExt) return { key:k+"\u0000"+ext, row:null };
+  return { key:k, row:loc };
+}
 /* Une gastos en la lista local con dedup. ADITIVO: nunca borra los que ya tenías.
    Manuales: clave con id (Paso 0, 2026-09-11) — no se comen entre sí ni con el banco. */
 function mergeExpenses(prevList, incoming){
   const seen={}; const list=[];
-  (prevList||[]).forEach(function(e){ const k=keyOfExpense(e); if(!seen[k]){ seen[k]=1; list.push(e); } });
+  (prevList||[]).forEach(function(e){
+    const hit=obMergeHit(seen, e);
+    if(!hit.row){ seen[hit.key]=e; list.push(e); }
+  });
   let nuevos=0;
-  (incoming||[]).forEach(function(e){ const k=keyOfExpense(e); if(!seen[k]){ seen[k]=1; list.push(e); nuevos++; } });
+  (incoming||[]).forEach(function(e){
+    const hit=obMergeHit(seen, e);
+    if(hit.row) return;
+    seen[hit.key]=e; list.push(e); nuevos++;
+  });
   return { list:list, nuevos:nuevos };
 }
 /* Refresca una fila LOCAL con lo que manda la nube SIN sustituir el array entero (12/9).
@@ -2380,18 +2410,17 @@ function refreshExpenseFromCloud(local, incoming, readStartedAt){
 function mergeExpensesFromCloud(prevList, incoming, readStartedAt){
   const byKey={}; const order=[];
   (prevList||[]).forEach(function(e){
-    const k=keyOfExpense(e);
-    if(!byKey[k]){ byKey[k]=e; order.push(k); }
+    const hit=obMergeHit(byKey, e);
+    if(!hit.row){ byKey[hit.key]=e; order.push(hit.key); }
   });
   let changed=false; let nuevos=0; const seen={};
   (incoming||[]).forEach(function(inc){
-    const k=keyOfExpense(inc);
-    if(seen[k]) return;
-    seen[k]=1;
-    const loc=byKey[k];
-    if(!loc){ byKey[k]=inc; order.push(k); changed=true; nuevos++; return; }
-    const merged=refreshExpenseFromCloud(loc, inc, readStartedAt);
-    if(merged!==loc){ byKey[k]=merged; changed=true; }
+    const hit=obMergeHit(byKey, inc);
+    if(seen[hit.key]) return;
+    seen[hit.key]=1;
+    if(!hit.row){ byKey[hit.key]=inc; order.push(hit.key); changed=true; nuevos++; return; }
+    const merged=refreshExpenseFromCloud(hit.row, inc, readStartedAt);
+    if(merged!==hit.row){ byKey[hit.key]=merged; changed=true; }
   });
   const list=order.map(function(k){ return byKey[k]; });
   return { list:list, changed:changed, nuevos:nuevos };

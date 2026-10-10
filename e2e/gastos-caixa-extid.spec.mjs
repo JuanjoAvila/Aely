@@ -88,6 +88,7 @@ test("sync a demanda sin altas: el sello nuevo sigue tras recargar y no duplica"
     return {
       n: rows.length,
       ids: rows.map((e) => e.extId).sort().join(","),
+      rowIds: rows.map((e) => e.id).sort().join(","),
       a: a && a.date,
       b: b && b.date,
       noon: histDate(d),
@@ -96,6 +97,7 @@ test("sync a demanda sin altas: el sello nuevo sigue tras recargar y no duplica"
   }, day);
   expect(antes.n).toBe(2);
   expect(antes.ids).toBe("cargo-A,cargo-B");
+  expect(antes.rowIds).toBe("e-caixa-a,e-caixa-b");
   expect(antes.a).toBe(antes.noon);
   expect(antes.b).toBe(antes.salt);
   await page.reload();
@@ -107,11 +109,12 @@ test("sync a demanda sin altas: el sello nuevo sigue tras recargar y no duplica"
     return {
       n: rows.length,
       ids: rows.map((e) => e && e.extId).sort().join(","),
+      rowIds: rows.map((e) => e && e.id).sort().join(","),
       a: (rows.find((e) => e.extId === "cargo-A") || {}).date,
       b: (rows.find((e) => e.extId === "cargo-B") || {}).date,
     };
   });
-  expect(despues).toEqual({ n: 2, ids: "cargo-A,cargo-B", a: antes.a, b: antes.b });
+  expect(despues).toEqual({ n: 2, ids: "cargo-A,cargo-B", rowIds: "e-caixa-a,e-caixa-b", a: antes.a, b: antes.b });
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
   const filas = page.locator(".v4-gastos-list-body button.v4-mov");
   await expect(filas).toHaveCount(2);
