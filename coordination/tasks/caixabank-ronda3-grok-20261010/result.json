@@ -1,0 +1,15 @@
+{
+  "status": "cancelled",
+  "summary": "Cancelada por la pausa de Claude (caixabank-ronda3-en-pausa-decision-20261010) antes de empezar: no se lanzo ningun agente, no hay commits nuevos. PR 200 queda aparcado sin cerrar con head 457416e6755049f950899ad8a7c7edbda1aa0551; sustituido por bancos-sin-hueco-grok-20261010.",
+  "tests": [],
+  "productSHA": "457416e6755049f950899ad8a7c7edbda1aa0551",
+  "limitations": [
+    "Sin trabajo realizado; R1 a R5 siguen abiertos en PR 200 si se retoma"
+  ],
+  "schema": 1,
+  "taskId": "caixabank-ronda3-grok-20261010",
+  "actor": "grok",
+  "sessionId": "grok-bot-20261010-9568b6d0",
+  "createdAt": "2026-10-10T16:37:06.712Z",
+  "released": true
+}
