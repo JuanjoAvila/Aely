@@ -57,10 +57,11 @@ t("dos bancos: el hueco entra con su fecha y no duplica noti, mano ni histórico
   assert.equal(otra, null);
 });
 
-t("el mismo suelo llega por obAcceptFrom, que es como llama la app", () => {
-  ctx.obAcceptFrom = floors;
-  const add = ctx.importObExpenses(cartera([]), [tx("caixabank", day(-40), 8, "Librería", "cx-lib")]) || [];
-  ctx.obAcceptFrom = null;
+t("el mismo suelo llega por el estado, que es como llama la app", () => {
+  const s = cartera([]);
+  s._obSyncFrom = floors;
+  const add = ctx.importObExpenses(s, [tx("caixabank", day(-40), 8, "Librería", "cx-lib")]) || [];
+  assert.equal(s._obSyncFrom, undefined);
   assert.equal(add.length, 1);
   assert.equal(add[0].date.slice(0, 10), day(-40));
 });
@@ -80,8 +81,9 @@ t("cliente nuevo con función vieja: sin syncFrom no entra lo anterior al margen
 });
 
 t("función nueva con cliente viejo: el suelo no se aplica si nadie lo pasó", () => {
-  assert.equal(ctx.obAcceptFrom, null);
-  const add = ctx.importObExpenses(cartera([]), [tx("caixabank", day(-45), 4, "Viejo", "cx-old")]);
+  const s = cartera([]);
+  const add = ctx.importObExpenses(s, [tx("caixabank", day(-45), 4, "Viejo", "cx-old")]);
+  assert.equal(s._obSyncFrom, undefined);
   assert.equal(add, null);
 });
 
@@ -94,13 +96,28 @@ t("el llamador pide recoverGaps y no dateFrom", () => {
 });
 
 t("un hueco por encima de 90 días nombra el banco y solo ese", () => {
-  const names = ctx.obGapBanks([
+  const main = fs.readFileSync(new URL("../src/modules/11-app-main.js", import.meta.url), "utf8");
+  const cut = (name) => {
+    const at = main.indexOf("function " + name + "(");
+    assert.ok(at > 0, name);
+    let i = main.indexOf("{", at), depth = 0;
+    for (; i < main.length; i++) {
+      if (main[i] === "{") depth++;
+      else if (main[i] === "}" && --depth === 0) return main.slice(at, i + 1);
+    }
+    throw new Error("sin cierre " + name);
+  };
+  const entOf = (id) => ({ caixabank: { label: "CaixaBank" }, sabadell: { label: "Sabadell" } }[id] || { label: id });
+  const box = new Function("entFromAspsp", "entOf", "t",
+    cut("obSyncFromByEnt") + "\n" + cut("obGapBanks") + "\nreturn {obSyncFromByEnt:obSyncFromByEnt, obGapBanks:obGapBanks};"
+  )(ctx.entFromAspsp, entOf, (k) => k);
+  const names = box.obGapBanks([
     { aspsp: "CaixaBank", gapBeyondCap: true, syncFrom: "2026-07-12" },
     { aspsp: "Banco de Sabadell", gapBeyondCap: false, syncFrom: "2026-09-01" },
     { aspsp: "CaixaBank", gapBeyondCap: true },
   ]);
   assert.equal(JSON.stringify(names), JSON.stringify(["CaixaBank"]));
-  assert.equal(ctx.obSyncFromByEnt([
+  assert.equal(box.obSyncFromByEnt([
     { aspsp: "CaixaBank", syncFrom: "2026-07-12" },
     { aspsp: "Banco de Sabadell", syncFrom: "2026-09-01" },
   ]).sabadell, "2026-09-01");

@@ -588,6 +588,30 @@ function App(){
   const avisaSync=function(opts,m){ if(opts&&opts.collect) opts.collect.push(m); else showToast(m); };
   const runBankSync=function(opts){
     opts=opts||{};
+    // Van aquí, no en el motor: el motor ya está en el alcance de varias tandas y una
+    // función nueva suya queda sin vigilar. Este cuerpo sí entra en la revisión de nómina.
+    function obSyncFromByEnt(links){
+      const map={};
+      (links||[]).forEach(function(l){
+        if(!l || typeof l.syncFrom!=="string" || !/^\d{4}-\d{2}-\d{2}$/.test(l.syncFrom)) return;
+        const ent=entFromAspsp(l.aspsp);
+        if(!ent) return;
+        if(!map[ent] || l.syncFrom<map[ent]) map[ent]=l.syncFrom;
+      });
+      return map;
+    }
+    function obGapBanks(links){
+      const out=[], seen={};
+      (links||[]).forEach(function(l){
+        if(!l || l.gapBeyondCap!==true) return;
+        const ent=entFromAspsp(l.aspsp);
+        const label=ent ? entOf(ent).label : (String(l.aspsp||"").trim() || t("bp_hist_bank_unknown"));
+        if(!label || seen[label]) return;
+        seen[label]=1;
+        out.push(label);
+      });
+      return out;
+    }
     if(!cloud.enabled() || !sessionRef.current || bankSyncing.current) return Promise.resolve();
     bankSyncing.current=true;
     /* Las filas de `bank_links` en crudo, EN PARALELO al sync. Hacen falta porque el sync no ve
@@ -637,10 +661,10 @@ function App(){
         const txs=flattenBankTx(links);
         // ORDEN anti-doble-conteo: primero entran las compras de tarjeta como gastos, y DESPUÉS
         // se re-ancla con el saldo real del banco (que ya incluye esas compras).
-        // El suelo por banco va al lado: la llamada en sí es ancla de la revisión de nómina.
-        obAcceptFrom=obFloors;
+        // El suelo va en el propio estado: un argumento nuevo reescribiría la línea
+        // que vigila la revisión de nómina. importObExpenses lo lee y lo quita.
+        prev._obSyncFrom=obFloors;
         const add=importObExpenses(prev, txs);
-        obAcceptFrom=null;
         // Aporte automático reconocido (categoría "inversion", ver importObExpenses): compra ya
         // mismo participaciones en el fondo enlazado, con el importe REAL del banco — mismo cálculo
         // que `reconcileTR` usaba a ciegas, ahora disparado por el dato de verdad (2026-08-03).

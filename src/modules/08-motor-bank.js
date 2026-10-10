@@ -869,38 +869,12 @@ function flattenBankTx(links){
    En bancos fuera de gasto diario: también cualquier cargo (misma exclusión de modelados).
 
    INGRESOS: de cualquier banco (para «Mi ciclo»). Idempotente por ext_id + dedup. */
-/* Suelo por banco del sync a demanda. Lo rellena el llamador justo antes de importar
-   (la línea del import es ancla de la revisión de nómina y no se reescribe). */
-var obAcceptFrom=null;
-function obFloorDate(ent, som, floors){
-  const ymd=floors && ent ? floors[ent] : null;
-  if(typeof ymd!=="string" || !/^\d{4}-\d{2}-\d{2}$/.test(ymd)) return som;
-  const asked=parseDate(ymd);
-  return asked<som ? asked : som;
-}
-function obSyncFromByEnt(links){
-  const map={};
-  (links||[]).forEach(function(l){
-    if(!l || typeof l.syncFrom!=="string" || !/^\d{4}-\d{2}-\d{2}$/.test(l.syncFrom)) return;
-    const ent=entFromAspsp(l.aspsp);
-    if(!ent) return;
-    if(!map[ent] || l.syncFrom<map[ent]) map[ent]=l.syncFrom;
-  });
-  return map;
-}
-function obGapBanks(links){
-  const out=[], seen={};
-  (links||[]).forEach(function(l){
-    if(!l || l.gapBeyondCap!==true) return;
-    const ent=entFromAspsp(l.aspsp);
-    const label=ent ? entOf(ent).label : (String(l.aspsp||"").trim() || t("bp_hist_bank_unknown"));
-    if(!label || seen[label]) return;
-    seen[label]=1;
-    out.push(label);
-  });
-  return out;
-}
 function importObExpenses(s, txs, opts){
+  // La clave la pone el llamador porque la línea de llamada no admite otro argumento.
+  // Se quita ya, antes de cualquier salida: si se quedara en el estado, el siguiente
+  // sync aceptaría un tramo que el banco ya no está entregando.
+  const borrowed=s&&s._obSyncFrom;
+  if(s) delete s._obSyncFrom;
   if(!txs || !txs.length) return null;
   const ents=expenseBankEnts(s);
   const allow={}; ents.forEach(function(e){ allow[e]=1; });
@@ -918,11 +892,17 @@ function importObExpenses(s, txs, opts){
      histórico en cada sync. Los duplicados que esto pueda rozar ya los para la red de arriba
      (mismo importe ±3 días contra lo que entró por otra vía) más el dedup por ext_id y clave.
      INC-2709-06: si el sync a demanda pidió más atrás (último éxito − 3 días, tope 90), ese
-     suelo llega en `opts.syncFromByEnt` o en `obAcceptFrom`. Sin él —función vieja, o banco
-     sin último éxito— se queda el margen de 8 días. Nunca se acorta. */
+     suelo llega en `opts.syncFromByEnt` o en la clave que el llamador dejó en el estado
+     (ya copiada a `borrowed`). Sin él —función vieja, o banco sin último éxito— se queda
+     el margen de 8 días. Nunca se acorta. */
   const som=new Date(startOfMonth().getTime() - 8*86400000);
-  const floors=(opts&&opts.syncFromByEnt) || obAcceptFrom;
-  const floorOf=function(ent){ return obFloorDate(ent, som, floors); };
+  const floors=(opts&&opts.syncFromByEnt) || borrowed;
+  const floorOf=function(ent){
+    const ymd=floors && ent ? floors[ent] : null;
+    if(typeof ymd!=="string" || !/^\d{4}-\d{2}-\d{2}$/.test(ymd)) return som;
+    const asked=parseDate(ymd);
+    return asked<som ? asked : som;
+  };
   /* `entry_reference` solo es única DENTRO de su banco. Sin entidad, un id de Sabadell podía
      hacer desaparecer un movimiento distinto de Caixa. La identidad local mínima es banco+id. */
   const seen={}, seenLegacy={}; (s.expenses||[]).forEach(function(e){
