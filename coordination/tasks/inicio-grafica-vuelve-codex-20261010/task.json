@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "id": "inicio-grafica-vuelve-codex-20261010",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261010-5f79c133",
+  "createdAt": "2026-10-10T08:12:26.436Z",
+  "to": "codex",
+  "baseSHA": "74c5f075bf08e38e289992195ad97e3a71a8b031",
+  "objective": "Inicio: devolver la gráfica de patrimonio que la 4.26.112 retiró sin que el dueño lo pidiera. Debe verse y comportarse como en producción 4.26.110 (main bdd756363261290b2f9da56aa0c9873c8eae911b). Si el WIP local Inicio113 hace exactamente esto, se entrega ese.",
+  "scope": [
+    "src/modules/03-tab-dash.js",
+    "src/modules/02-ui-shared.js (Sparkline)",
+    "src/modules/01-i18n.js y src/shell.html solo lo que retiró la 112",
+    "e2e de Inicio afectados"
+  ],
+  "acceptance": [
+    "Inicio pinta la misma gráfica que main 4.26.110 con el mismo estado sembrado; la etiqueta «Ahora» de la 112 desaparece.",
+    "No se rediseña nada ni se reintroduce la variante rechazada 109.",
+    "Los e2e de Inicio pasan y uno falla si la gráfica vuelve a desaparecer.",
+    "npm run build y npm test con exit 0 en el SHA entregado.",
+    "Rama propia desde baseSHA y PR draft contra beta. Sin VERSION, catálogos de beta ni notas: los pone el coordinador al integrar.",
+    "Datos sintéticos. Sin dependencias nuevas, APK, Edge, SQL ni push a beta/main.",
+    "Result con SHA, PR, comandos y exitCode reales. Si algo de producto no está pedido aquí, no se hace: se pregunta en el result."
+  ],
+  "authorization": "Orden directa del dueño 10/10: Claude coordina, Codex ejecuta."
+}
