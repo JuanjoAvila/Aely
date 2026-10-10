@@ -1,0 +1,65 @@
+{
+  "status": "done",
+  "summary": "El sync a demanda deja de perder el tramo entre sincronizaciones. Verificado en GitHub: PR 205 no, es el PR 206 (JuanjoAvila/Aely), draft abierto contra beta, rama cursor/bancos-sin-hueco-40dd, head e2e0512cf64f3da5eb6c7fc35b1a99e821db152a, 2 commits sobre 684a839d286f68d66c8855cf6e1a626b7220fd64 (cabeza actual de beta), mergeable clean, 16 ficheros +635/-38. Sigue siendo solo a demanda: no hay sync al abrir ni al volver a primer plano; cero llamadas a bank-sync antes del boton. DISENO: con recoverGaps true el servidor pide el mas antiguo entre la ventana de siempre (dia 1 del mes menos 8 dias) y el ultimo sync completo de ese banco menos 3 dias, con tope de 90. El cliente acepta ese mismo tramo. Sin ultimo sync conocido la ventana queda como ahora. last_sync solo avanza si la lectura fue completa y, habiendo hueco, el cliente pidio recuperarlo; una pagina cortada o un 429 no lo adelantan. Si el hueco pasa de 90 dias un aviso (es/en/ca) abre Importar historico. La traza de servidor lleva solo conteos (banco, cuentas, movimientos, paginas, truncado, fecha minima pedida, resultado). DESPLIEGUE OBLIGATORIO: la Edge function bank-sync NO esta desplegada y hay que desplegarla antes o a la vez que este cliente (Claude dijo que la despliega el tras la revision, no el agente). Cliente nuevo con funcion vieja: manda recoverGaps y no dateFrom, la vieja lo ignora; sin syncFrom en la respuesta el cliente importa solo el margen de 8 dias, no pierde lo de dentro ni duplica, pero la funcion vieja sigue adelantando last_sync tras la lectura corta y el hueco se quema si el cliente llega solo. Funcion nueva con cliente viejo: no ve el flag, pide el margen de siempre y, si habia hueco, no adelanta last_sync; el cliente viejo sigue descartando lo anterior al margen, no duplica, y el hueco se conserva hasta que llega el cliente. FICHEROS: supabase/functions/bank-sync/index.ts, demand-window.ts, demand-window.test.ts, src/modules/08-motor-bank.js, 11-app-main.js, 00-core.js (es quien invoca la funcion; sin el body recoverGaps no sale del movil), 01-i18n.js, public/i18n/en.json, ca.json, public/index.html, e2e/bancos-hueco-sync.spec.mjs, e2e/fixtures.mjs, tests/ob-hueco-sync.test.mjs, tests/bank-sync-paging.test.mjs, scripts/run-tests.mjs, scripts/relevant-tests.mjs. public/release-notes.json y public/beta-delivery.json no van en el commit (npm run build les reescribe el sello; el CI reconstruye antes de los tests). TESTS frente a beta limpia 684a839d: Playwright completo en la rama 0 (1003 passed, 1 skipped, 0 unexpected); en beta 1 (1001 passed, 1 skipped, 1 unexpected) por e2e/revisar-beta.spec.mjs persistencia81 es sin red, timeout de 60 s con las dos suites a la vez; aislada en beta salio 0 en 17 s, y en la rama paso dentro de la suite. El e2e nuevo bancos-hueco-sync paso en 3,2 s (dos bancos, fecha real, sin duplicar noti/mano/historico, aviso de mas de 90 dias y apertura de Importar historico). LIMITACIONES: por encima de 90 dias el banco no entrega el tramo; el aviso sale en ese sync y, si la lectura cupada fue completa, last_sync pasa a ahora, asi que el siguiente sync ya no avisa. Si la lectura termina y la app se cierra antes de guardar, el cursor ya avanzo; el solape de 3 dias cubre el borde como ya pasaba con la ventana corta. Un cliente viejo con hueco conservado sigue viendo el last_sync anterior hasta que un cliente nuevo complete la lectura. Resultados de tests tomados del informe del agente; yo solo verifique en GitHub el PR, head, base y ficheros. Sin probar contra bancos reales ni contra la funcion desplegada.",
+  "productSHA": "e2e0512cf64f3da5eb6c7fc35b1a99e821db152a",
+  "tests": [
+    {
+      "command": "npm run build",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/ob-hueco-sync.test.mjs",
+      "exitCode": 0,
+      "note": "6 casos"
+    },
+    {
+      "command": "node tests/bank-sync-paging.test.mjs",
+      "exitCode": 0,
+      "note": "24 casos (beta 18)"
+    },
+    {
+      "command": "node tests/security.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/i18n-keys.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/beta-sources.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "deno test demand-window.test.ts",
+      "exitCode": 0,
+      "note": "5 passed, 0 failed"
+    },
+    {
+      "command": "deno test ingest, crypto, enablebanking, delete-account, prices",
+      "exitCode": 0,
+      "note": "15, 2, 6, 3, 21; mismos conteos que beta"
+    },
+    {
+      "command": "npx playwright test (suite entera, rama)",
+      "exitCode": 0,
+      "note": "1003 passed, 1 skipped, 0 unexpected"
+    },
+    {
+      "command": "npx playwright test (suite entera, beta 684a839d)",
+      "exitCode": 1,
+      "note": "1001 passed, 1 skipped, 1 unexpected: revisar-beta persistencia81 es sin red, timeout 60 s; aislada exit 0"
+    }
+  ],
+  "limitations": [
+    "bank-sync no esta desplegada; el despliegue es obligatorio antes o a la vez que el cliente",
+    "Resultados de tests tomados del informe del agente Cursor bc-622bf8b3",
+    "Sin probar contra bancos reales ni contra la funcion desplegada",
+    "Mas de 90 dias de hueco: el banco no entrega el tramo, solo aviso"
+  ],
+  "schema": 1,
+  "taskId": "bancos-sin-hueco-grok-20261010",
+  "actor": "grok",
+  "sessionId": "grok-bot-20261010-2f4f7b53",
+  "createdAt": "2026-10-10T18:25:58.722Z",
+  "released": true
+}
