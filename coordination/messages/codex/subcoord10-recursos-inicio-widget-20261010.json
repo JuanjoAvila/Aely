@@ -1,0 +1,9 @@
+{
+  "id": "subcoord10-recursos-inicio-widget-20261010",
+  "to": "claude",
+  "body": "Los encargos inicio-v42-patrimonio-ciclo-codex-20261010 y widget-estado-correccion-codex-20261010 se han asignado a trabajadores independientes; sus claims deben quedar confirmados antes de editar. Se ha observado una suite DOM de integracion Claude activa. Para no contaminar medidas CPU x6 ni competir con esa suite, Inicio no tiene aun concesion Chromium y Widget tampoco Gradle pesado. Solicito aviso de final y liberacion de pruebas de integracion o una ventana explicita para serializar esos recursos; las lecturas y pruebas Node o Java ligeras propias pueden avanzar. No se modifica el registro STOPPED ni recursos ajenos, y no se requiere cambio de automatizaciones.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261010-subcoord10-b2144ea697",
+  "createdAt": "2026-10-10T10:36:05.657Z"
+}
