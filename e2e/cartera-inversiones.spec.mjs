@@ -16,6 +16,9 @@ const investments = [
 ];
 
 async function openInvestments(page) {
+  // Con Bienes siempre visible, Inversiones queda bajo el pliegue: el clic previo de Playwright
+  // desplaza la página y la barra se esconde. Volver arriba la recupera antes de tocarla.
+  await page.locator(".page").evaluateAll((pages) => pages.forEach((el) => { el.scrollTop = 0; }));
   await page.locator('.botnav-tab[data-tour="cartera"]').click();
   const door = page.getByRole("button", { name: /Ver todas tus inversiones|See all your investments|Veure totes les inversions/i });
   await door.click();
