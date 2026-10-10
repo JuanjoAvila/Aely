@@ -11861,7 +11861,8 @@
       {
         "file": "src/modules/03-tab-dash.js",
         "from": "  const recent=useMemo",
-        "to": "\n  const p=eurParts"
+        "to": ",[state.expenses,state.deleted]);",
+        "includeTo": true
       },
       {
         "file": "src/modules/03-tab-dash.js",
