@@ -6,16 +6,14 @@
  *
  *  1. Histórico incremental: A ya está; Edge devuelve A+B. Clasificar y commitir tienen
  *     que crear B, no marcarlo duplicado de A.
- *  2. Dos clientes con vistas parciales. El `onConflict` desplegado ignora la segunda
- *     escritura de la misma terna. Esa escritura no puede quedar en local como guardada,
- *     y al releer A+B la nube no puede acabar en A+A.
- *  3. El salado choca: `0`, `Az` y `BY`. La clave que cuenta es la del índice
- *     (fecha+importe+comercio), no el hash.
- *  4. Ida y vuelta del id: 150 caracteres, y también `ob-hist`. Perder la referencia
- *     del que ocupaba el mediodía no puede casar A y reinsertar B.
+ *  2. Dos sync distintos del mismo día no parten el cargo: el índice se queda una fila.
+ *     La respuesta que trae las dos referencias juntas sí añade la que falta.
+ *  3. El salado choca: `0`, `Az` y `BY` en la MISMA respuesta. Tres sync sueltos no.
+ *  4. Ida y vuelta del id diario: 150 caracteres. `ob-hist` no lleva la referencia:
+ *     otro móvil no la mete en `reconcileObDupes`.
  *
  * El widget cuenta el par igual que la app: `claveComoLaApp` alarga la clave de un OB
- * que ya no es el mediodía local. macrodroid sigue en el día (APOLLON).
+ * que ya no es el mediodía de Madrid. macrodroid sigue en el día (APOLLON).
  * Ese límite se afirma aquí, no se disfraza de total arreglado. `#dup` y `~deuda` siguen
  * ganando su contrato. No hay extractos ni cuentas reales.
  */
@@ -42,7 +40,7 @@ if (!process.argv.includes("--zone-child")) {
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const srvSrc = fs.readFileSync(path.join(root, "supabase/functions/_shared/presupuesto.ts"), "utf8");
 const srvJs = transformSync(srvSrc, { loader: "ts", format: "esm" }).code;
-const { claveComoLaApp, filasComoLaApp, statsDelMes, bancoDeSource, esCuotaDeDeuda, esPosibleRepetido, inicioDeMesMs } =
+const { claveComoLaApp, filasComoLaApp, statsDelMes, bancoDeSource, esCuotaDeDeuda, esPosibleRepetido, inicioDeMesMs, mediodiaMadridIso } =
   await import("data:text/javascript;base64," + Buffer.from(srvJs).toString("base64"));
 
 const ctx = loadPureLogicFromFile();
@@ -149,20 +147,22 @@ t("1. histórico incremental: A ya está, Edge manda A+B, el commit crea B", () 
   assert.notEqual(cm.expAdds[0].date, ya[0].date);
 });
 
-t("2. dos clientes parciales: la escritura ignorada no se queda y la nube no acaba A+A", () => {
+t("2. dos sync distintos no parten el cargo; la respuesta conjunta añade la hermana", () => {
   const cloud = [];
   const c1 = guardarCliente(cloud, ctx.importObExpenses(estado(), [cargo("cargo-A")]));
   const c2 = guardarCliente(cloud, ctx.importObExpenses(estado(), [cargo("cargo-B")]));
   assert.equal(c1.kept.length, 1);
-  const pull2 = cloud.map(desdeFila);
-  const mezclado = ctx.mergeExpensesFromCloud(c2.kept, pull2).list;
-  const otra = ctx.importObExpenses(estado(mezclado), [cargo("cargo-A"), cargo("cargo-B")]);
-  if (otra) guardarCliente(cloud, otra);
+  assert.equal(c2.ignored.length, 1, "B choca con el mediodía y no se reubica");
+  assert.equal(cloud.length, 1, "dos sync sueltos son un cargo");
+  const pull = cloud.map(desdeFila);
+  const joint = ctx.importObExpenses(estado(pull), [cargo("cargo-A"), cargo("cargo-B")]);
+  assert.ok(joint && joint.length === 1, "la conjunta añade la que falta");
+  assert.equal(joint[0].extId, "cargo-B");
+  guardarCliente(cloud, joint);
   const ids = extIdsNube(cloud).slice().sort();
-  assert.deepEqual(ids, ["cargo-A", "cargo-B"], "nube=" + ids.join(",") + " ignoredB=" + c2.ignored.length);
+  assert.deepEqual(ids, ["cargo-A", "cargo-B"], "nube=" + ids.join(","));
   assert.equal(cloud.length, 2);
   assert.equal(new Set(cloud.map((r) => indexKey(r.fecha, r.importe, r.comercio))).size, 2);
-  assert.equal(c2.ignored.length, 0, "B no puede darse por guardado si el índice lo ignoró");
 });
 
 t("3a. salado 0/Az/BY en el sync diario: tres filas, tres fechas, el índice no tira ninguna", () => {
@@ -171,6 +171,8 @@ t("3a. salado 0/Az/BY en el sync diario: tres filas, tres fechas, el índice no 
   assert.equal(add && add.length, 3, "diario conservó " + (add ? add.length : 0));
   const fechas = new Set(add.map((e) => new Date(e.date).toISOString()));
   assert.equal(fechas.size, 3, "fechas diarias=" + [...fechas].join(" "));
+  const duena = add.find((e) => e.extId === "0");
+  assert.equal(duena.date, ctx.madridNoonIso(ymd));
   add.forEach((e) => mismoDiaCivil(e.date));
   const ix = simularIndice([], add);
   assert.equal(ix.ignored.length, 0, "el índice tira " + ix.ignored.map((e) => e.extId).join(","));
@@ -192,17 +194,18 @@ t("3b. salado 0/Az/BY en el histórico: commit e índice conservan los tres", ()
   assert.equal(ixH.accepted.length, 3);
 });
 
-t("3c. tres clientes, cada uno con una referencia que colisiona: la nube se queda las tres", () => {
+t("3c. tres sync sueltos se quedan en una fila; la conjunta recupera las otras dos", () => {
   const cloud = [];
   guardarCliente(cloud, ctx.importObExpenses(estado(), [cargo("0")]));
   guardarCliente(cloud, ctx.importObExpenses(estado(), [cargo("Az")]));
   guardarCliente(cloud, ctx.importObExpenses(estado(), [cargo("BY")]));
+  assert.equal(cloud.length, 1, "cada sync suelto cae en el mismo mediodía");
   const pull = cloud.map(desdeFila);
   const full = ctx.importObExpenses(estado(pull), [cargo("BY"), cargo("0"), cargo("Az")]);
-  if (full) guardarCliente(cloud, full);
+  assert.ok(full && full.length === 2, "la conjunta añade " + (full ? full.length : 0));
+  guardarCliente(cloud, full);
   assert.deepEqual(extIdsNube(cloud).slice().sort(), ["0", "Az", "BY"], "nube=" + extIdsNube(cloud).join(","));
   assert.equal(cloud.length, 3);
-  assert.equal(full, null, "resync no añade otra tanda");
 });
 
 t("4. extId de 150 caracteres sobrevive al pull y el segundo sync no duplica", () => {
@@ -218,21 +221,24 @@ t("4. extId de 150 caracteres sobrevive al pull y el segundo sync no duplica", (
   assert.equal(cloud.length, 1);
 });
 
-t("4b. ob-hist conserva el extId: el mediodía de B no casa con A ni reinserta B", () => {
+t("4b. ob-hist no viaja la referencia y la conjunta no crea una tercera fila", () => {
   const soloB = ctx.histFlattenHistoryLinks(linkDe(["cargo-B"]), [], {});
   const clB = ctx.histClassifyCandidates(soloB.out, estado());
   const cmB = ctx.histBuildCommit(soloB.out, clB.rows, estado(), { batchId: "hist-b" });
   assert.equal(cmB.expAdds.length, 1);
+  assert.equal(ctx.expenseSourceForCloud(cmB.expAdds[0]), "ob-hist:caixabank");
   const back = desdeFila(filaNube(cmB.expAdds[0]));
-  assert.equal(back.extId, "cargo-B", "el pull de ob-hist perdió la referencia");
+  assert.equal(back.source, "ob-hist");
+  assert.equal(back.extId, undefined, "el histórico no devuelve la referencia");
   assert.equal(back.ent, "caixabank");
   const mas = ctx.importObExpenses(estado([back]), [cargo("cargo-A"), cargo("cargo-B")]);
   assert.ok(mas && mas.length === 1, "entraron " + (mas ? mas.length : 0));
-  assert.equal(mas[0].extId, "cargo-A");
-  assert.notEqual(mas[0].date, back.date);
-  const ids = [back.extId, mas[0].extId].slice().sort();
-  assert.deepEqual(ids, ["cargo-A", "cargo-B"]);
-  const cloud = [filaNube(back)];
+  const juntos = [back].concat(mas);
+  assert.equal(juntos.length, 2, "no hay tercera fila");
+  assert.equal(ctx.importObExpenses(estado(juntos), [cargo("cargo-A"), cargo("cargo-B")]), null);
+  const rec = ctx.reconcileObDupes({ expenses: juntos, accounts: estado().accounts });
+  assert.equal(rec.recat.length, 0, "ob-hist no entra en reconcileObDupes");
+  const cloud = [filaNube(cmB.expAdds[0])];
   const ix = simularIndice(cloud, mas);
   assert.equal(ix.accepted.length, 1);
   assert.equal(ix.ignored.length, 0);
@@ -241,7 +247,7 @@ t("4b. ob-hist conserva el extId: el mediodía de B no casa con A ni reinserta B
   const cl = ctx.histClassifyCandidates(par.out, estado());
   const cm = ctx.histBuildCommit(par.out, cl.rows, estado(), { batchId: "hist-par" });
   const pulled = cm.expAdds.map((e) => desdeFila(filaNube(e)));
-  assert.deepEqual(Array.from(pulled, (e) => e.extId).sort(), ["cargo-A", "cargo-B"]);
+  assert.ok(pulled.every((e) => e.source === "ob-hist" && e.extId == null));
   const flat2 = ctx.histFlattenHistoryLinks(linkDe(["cargo-A", "cargo-B"]), pulled, {});
   const cl2 = ctx.histClassifyCandidates(flat2.out, estado(pulled));
   const cm2 = ctx.histBuildCommit(flat2.out, cl2.rows, estado(pulled), { batchId: "hist-par-2" });
@@ -269,8 +275,8 @@ t("el id con separadores raros vuelve entero; #dup gana y ~deuda se queda", () =
   assert.equal(bancoDeSource("ob-hist:caixabank"), "caixabank");
 });
 
-t("lápida vieja del widget tapa una fila del mediodía y deja a la hermana", () => {
-  const noon = ctx.histDate(ymd).replace(".000Z", "Z");
+t("lápida vieja del widget tapa una fila del mediodía de Madrid y deja a la hermana", () => {
+  const noon = mediodiaMadridIso(ymd).replace(".000Z", "Z");
   const salt = ctx.histDate(ymd, "ob-ext|caixabank|cargo-B");
   const filas = [
     { fecha: noon, importe: 12.5, comercio: "MERCADONA", cat: "super", source: "ob:caixabank" },

@@ -631,13 +631,17 @@ function App(){
       }catch(e){}
       const preview=applyBankBalances(stateRef.current, links);   // función pura: solo para decidir el aviso
       let obAdded=[];                                             // compras de tarjeta importadas (roles de cuenta)
+      let obResealed=[];                                          // hermanas cuya hora nueva hay que subir
       set(function(prev){
         const txs=flattenBankTx(links);
         // ORDEN anti-doble-conteo: primero entran las compras de tarjeta como gastos, y DESPUÉS
         // se re-ancla con el saldo real del banco (que ya incluye esas compras).
-        // El re-sellado mueve la hora en el sitio. Sin altas el array seguiría siendo el
-        // mismo, la clave de gastos no se reescribiría y al cerrar volverían los sellos viejos.
-        const stamps=(prev.expenses||[]).map(function(e){ return e?e.date:e; });
+        // El re-sello copia la hermana. Mutar el objeto del estado dentro del updater dejaba
+        // la hora vieja en la nube y, al cerrar, el guardado partido podía no ver el cambio.
+        const reseal=obResealOldNoon(prev.expenses);
+        obResealed=reseal?reseal.moved:[];
+        // Reasignar el parámetro: el import y el aporte usan la copia, no la hora vieja.
+        if(reseal) prev=Object.assign({},prev,{expenses:reseal.list});
         const add=importObExpenses(prev, txs);
         // Aporte automático reconocido (categoría "inversion", ver importObExpenses): compra ya
         // mismo participaciones en el fondo enlazado, con el importe REAL del banco — mismo cálculo
@@ -660,7 +664,7 @@ function App(){
         }
         obAdded=add||[];
         const lived=invState.expenses||[];
-        const baseExp=obExpensesAfterSync(stamps, lived, add);
+        const baseExp=(add&&add.length)?add.concat(lived):lived;
         // Rellena el CONCEPTO de lo que ya estaba apuntado con lo que acaba de traer el banco
         // (2026-07-24): si no, el histórico viejo —el que se consulta— seguiría sin explicar nada.
         const withNotes=enrichNotesFromBankTx(baseExp, txs);
@@ -672,7 +676,10 @@ function App(){
         return Object.assign({}, r.state, { lastBankSync:Date.now(), hasBankLink: links.length?true:prev.hasBankLink, bankTx: txs, bankIssues: bankIssuesOf(links, dbLinks) });
       });
       // sube las importadas a la tabla expenses (best-effort; el estado local ya las tiene)
-      setTimeout(function(){ obAdded.forEach(function(e){ subirGasto(e, "ob-import"); }); }, 0);
+      setTimeout(function(){
+        obResealed.forEach(function(m){ publicarResello(m.expense, m.prevDate); });
+        obAdded.forEach(function(e){ subirGasto(e, "ob-import"); });
+      }, 0);
       // En sync automática (la que dispara la noti del banco) se avisa solo de lo que ha entrado.
       // Si has pulsado tú «↻ Sincronizar bancos», esto se junta con el resultado de abajo: dos
       // avisos seguidos por una sola acción tuya eran ruido (feedback 2026-07-26).

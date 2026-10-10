@@ -25,7 +25,7 @@ if (!process.argv.includes("--zone-child")) {
     });
     if (r.status !== 0) process.exit(r.status || 1);
   }
-  // El mutante devuelve el mediodía a todos los entry_reference. Si el arreglo sigue
+  // El mutante sella las dos referencias en el mediodía de Madrid. Si el arreglo sigue
   // vivo, los dos cargos no se funden y este proceso no puede acabar en 0.
   const mutant = spawnSync(process.execPath, [fileURLToPath(import.meta.url), "--zone-child", "--mutation=mismo-sello"], {
     env: { ...process.env, TZ: "UTC" },
@@ -44,7 +44,7 @@ if (mutarSello) {
   const html = fs.readFileSync(new URL("../public/index.html", import.meta.url), "utf8");
   const needle = "function obPickExtStamp(day, bank, extId, occupied){";
   assert.equal(html.split(needle).length, 2, "el sello por entry_reference está una sola vez en el bundle");
-  ctx = loadPureLogic(html.replace(needle, needle + "\n  return histDate(day);"));
+  ctx = loadPureLogic(html.replace(needle, needle + "\n  return madridNoonIso(day);"));
 } else {
   ctx = loadPureLogicFromFile();
 }
@@ -83,21 +83,22 @@ t("aplanar conserva las dos referencias y el uid opaco de cada cuenta", () => {
   assert.equal(Array.from(flat.map((x) => x.acctUid)).sort().join(","), "cx-a,cx-b");
 });
 
-t("sync diario: los dos BOOK entran, cada uno con su sello y ninguno en el mediodía", () => {
+t("sync diario: la referencia menor se queda el mediodía de Madrid y la otra se sala", () => {
   const add = ctx.importObExpenses(estado(), par);
   assert.ok(add && add.length === 2, "tienen que entrar los dos");
   assert.equal(new Set(add.map((e) => ctx.keyOfExpense(e))).size, 2);
   const a = add.find((e) => e.extId === "cargo-A");
   const b = add.find((e) => e.extId === "cargo-B");
-  // El mediodía no se reparte: dos clientes con una sola referencia se lo quedarían los dos.
-  assert.equal(a.date, ctx.histDate(ymd, "ob-ext|caixabank|cargo-A"));
+  // El id menor nombra la lápida de día. La otra referencia de la MISMA respuesta no puede
+  // caer en ese mediodía: si no, el widget las cuenta como una.
+  assert.equal(a.date, ctx.madridNoonIso(ymd));
   assert.equal(b.date, ctx.histDate(ymd, "ob-ext|caixabank|cargo-B"));
-  assert.notEqual(a.date, ctx.histDate(ymd));
-  assert.notEqual(b.date, ctx.histDate(ymd));
+  assert.notEqual(a.date, b.date);
+  assert.equal(ctx.keyOfExpense(a), ymd + "|12.5|MERCADONA");
+  assert.notEqual(ctx.keyOfExpense(b), ctx.keyOfExpense(a));
   assert.equal(a.date.slice(0, 10), ymd);
   assert.equal(b.date.slice(0, 10), ymd);
   assert.equal(a.acctUid, "cx-a");
-  assert.notEqual(a.date, b.date);
 });
 
 t("el histórico sella igual que el sync diario, aunque el id mayor llegue antes", () => {
@@ -133,7 +134,7 @@ t("pendiente sin id y contabilizado con id, misma cuenta: solo el BOOK", () => {
   ]);
   assert.ok(add && add.length === 1);
   assert.equal(add[0].extId, "cargo-book");
-  assert.equal(add[0].date, ctx.histDate(ymd, "ob-ext|caixabank|cargo-book"));
+  assert.equal(add[0].date, ctx.madridNoonIso(ymd));
 });
 
 t("el pull devuelve el extId y el segundo sync no duplica", () => {
@@ -158,8 +159,8 @@ t("sin extId el source diario no cambia; #dup gana a #x", () => {
   assert.equal(ctx.expenseSourceForCloud({ source: "ob", ent: "caixabank" }), "ob:caixabank");
   assert.equal(ctx.expenseSourceForCloud({ source: "ob", ent: "caixabank", extId: "cargo-A", possibleDup: true }), "ob:caixabank#dup");
   assert.equal(ctx.expenseSourceForCloud({ source: "ob-hist", ent: "caixabank" }), "ob-hist:caixabank");
-  // El servidor desplegado no parte `#` en `ob-hist:`. La referencia viaja en `ob:` para volver en el pull.
-  assert.equal(ctx.expenseSourceForCloud({ source: "ob-hist", ent: "caixabank", extId: "cargo-A" }), "ob:caixabank#x.cargo-A");
+  // El histórico no se reescribe como `ob:`: en otro móvil entraría en reconcileObDupes.
+  assert.equal(ctx.expenseSourceForCloud({ source: "ob-hist", ent: "caixabank", extId: "cargo-A" }), "ob-hist:caixabank");
   assert.equal(ctx.expenseSourceForCloud({ source: "ob-hist", ent: "caixabank", extId: "cargo-A", possibleDup: true }), "ob-hist:caixabank#dup");
 });
 
@@ -184,9 +185,9 @@ t("borrar una referencia no esconde al hermano ni la resucita el sync", () => {
   assert.equal(ctx.importObExpenses(estado([other], [legacy]), par), null);
 });
 
-t("lápida vieja casa el mediodía canónico y no tapa a la hermana", () => {
+t("lápida vieja casa el mediodía de Madrid y no tapa a la hermana", () => {
   const legacy = ymd + "|12.5|MERCADONA";
-  const noon = ctx.histDate(ymd).replace(".000Z", "Z");
+  const noon = ctx.madridNoonIso(ymd).replace(".000Z", "Z");
   const duena = {
     id: "old-a", date: noon, amount: 12.5, merchant: "MERCADONA", obName: "MERCADONA",
     source: "ob", ent: "caixabank", extId: "cargo-A",
@@ -196,7 +197,7 @@ t("lápida vieja casa el mediodía canónico y no tapa a la hermana", () => {
     merchant: "MERCADONA", obName: "MERCADONA", source: "ob", ent: "caixabank", extId: "cargo-B",
   };
   assert.equal(ctx.keyOfExpense(duena), legacy);
-  assert.equal(ctx.obCanonIso(noon), ctx.obCanonIso(ctx.histDate(ymd)));
+  assert.equal(ctx.obCanonIso(noon), ctx.obCanonIso(ctx.madridNoonIso(ymd)));
   assert.equal(ctx.expenseIsTombstoned(duena, { [legacy]: 1 }), true);
   assert.equal(ctx.expenseIsTombstoned(hermana, { [legacy]: 1 }), false);
   assert.notEqual(ctx.keyOfExpense(duena), ctx.keyOfExpense(hermana));
@@ -212,23 +213,14 @@ t("sync a demanda: fila guardada con el sello viejo, los dos cargos y sin duplic
   const add = ctx.importObExpenses(estado([vieja]), par);
   assert.ok(add && add.length === 1, "entraron " + (add ? add.length : 0));
   assert.equal(add[0].extId, "cargo-B");
-  assert.equal(add[0].date, ctx.histDate(ymd, "ob-ext|caixabank|cargo-B"));
+  const noonOcupado = ctx.obCanonIso(vieja.date) === ctx.obCanonIso(ctx.madridNoonIso(ymd));
+  const esperada = noonOcupado ? ctx.histDate(ymd, "ob-ext|caixabank|cargo-B") : ctx.madridNoonIso(ymd);
+  assert.equal(add[0].date, esperada);
   assert.notEqual(ctx.keyOfExpense(vieja), ctx.keyOfExpense(add[0]));
   const juntos = [vieja].concat(add);
   assert.equal(ctx.importObExpenses(estado(juntos), par), null);
   assert.equal(new Set(juntos.map((e) => e.extId)).size, 2);
-  // Las dos ya estaban en el mediodía (sello de antes). El id menor se queda; la otra
-  // cambia de hora en el sitio. No hay tercera fila.
-  const a = Object.assign({}, vieja, { id: "old-a", date: ctx.histDate(ymd) });
-  const b = Object.assign({}, vieja, { id: "old-b", extId: "cargo-B", date: ctx.histDate(ymd) });
-  const guardadas = [a, b];
-  assert.equal(ctx.importObExpenses(estado(guardadas), par), null);
-  assert.equal(a.date, ctx.histDate(ymd));
-  assert.equal(b.date, ctx.histDate(ymd, "ob-ext|caixabank|cargo-B"));
-  assert.equal(guardadas.length, 2);
-  const lap = ymd + "|12.5|MERCADONA";
-  assert.equal(ctx.expenseIsTombstoned(a, { [lap]: 1 }), true);
-  assert.equal(ctx.expenseIsTombstoned(b, { [lap]: 1 }), false);
+  assert.equal(vieja.date, ctx.histDate(ymd), "el import no reescribe la fila que ya estaba");
 });
 
 t("una fila vieja sin extId ocupa el id menor y el otro entra una sola vez", () => {
@@ -239,7 +231,9 @@ t("una fila vieja sin extId ocupa el id menor y el otro entra una sola vez", () 
   const add = ctx.importObExpenses(estado([unlabeled]), par);
   assert.ok(add && add.length === 1);
   assert.equal(add[0].extId, "cargo-B");
-  assert.equal(add[0].date, ctx.histDate(ymd, "ob-ext|caixabank|cargo-B"));
+  const noonOcupado = ctx.obCanonIso(unlabeled.date) === ctx.obCanonIso(ctx.madridNoonIso(ymd));
+  const esperada = noonOcupado ? ctx.histDate(ymd, "ob-ext|caixabank|cargo-B") : ctx.madridNoonIso(ymd);
+  assert.equal(add[0].date, esperada);
   assert.equal(ctx.importObExpenses(estado([unlabeled].concat(add)), par), null);
 });
 
@@ -288,10 +282,11 @@ t("el pull no funde dos cargos del mediodía con distinta referencia", () => {
   assert.equal(ctx.mergeExpensesFromCloud([tr, Object.assign({}, tr)], []).list.length, 1);
 });
 
-t("re-sellado: array nuevo y una escritura; sin cambio, el mismo array y cero escrituras", () => {
+t("re-sellado: copia, no muta el estado; array nuevo y una escritura", () => {
   const src = fs.readFileSync(new URL("../src/modules/11-app-main.js", import.meta.url), "utf8");
-  assert.ok(src.includes("const add=importObExpenses(prev, txs);"));
-  assert.ok(src.includes("obExpensesAfterSync(stamps, lived, add)"), "el sync a demanda no usa el array del re-sellado");
+  assert.ok(src.includes("obResealOldNoon(prev.expenses)"));
+  assert.ok(src.includes("publicarResello("));
+  assert.equal(src.includes("obExpensesAfterSync"), false);
   const mem = new Map();
   const writes = { exp: 0 };
   ctx.localStorage = {
@@ -310,19 +305,23 @@ t("re-sellado: array nuevo y una escritura; sin cambio, el mismo array y cero es
   const b = fila("old-b", "cargo-B");
   const expenses = [a, b];
   const state = estado(expenses);
-  // La clave ya está partida: si no, el primer guardado escribiría gastos aunque no cambiaran.
   ctx.localStorage.setItem("micartera_v3_exp", JSON.stringify(expenses));
   writes.exp = 0;
-  const stamps = expenses.map((e) => e.date);
-  const add = ctx.importObExpenses(state, par);
+  const reseal = ctx.obResealOldNoon(expenses);
+  assert.ok(reseal && reseal.list, "hay hermana que mover");
+  assert.equal(a.date, ctx.histDate(ymd), "no muta la dueña");
+  assert.equal(b.date, ctx.histDate(ymd), "no muta la hermana del estado");
+  assert.notStrictEqual(reseal.list, expenses);
+  assert.strictEqual(reseal.list[0], a);
+  assert.notStrictEqual(reseal.list[1], b);
+  assert.equal(reseal.moved.length, 1);
+  assert.equal(reseal.moved[0].prevDate, ctx.histDate(ymd));
+  assert.equal(reseal.moved[0].expense.date, ctx.histDate(ymd, "ob-ext|caixabank|cargo-B"));
+  assert.equal(reseal.list[1].date, reseal.moved[0].expense.date);
+  const add = ctx.importObExpenses(Object.assign({}, state, { expenses: reseal.list }), par);
   assert.equal(add, null);
-  const nextList = ctx.obExpensesAfterSync(stamps, state.expenses, add);
-  assert.notStrictEqual(nextList, state.expenses, "al cambiar una fila el array tiene que ser nuevo");
-  assert.equal(nextList.length, 2);
-  assert.equal(a.date, ctx.histDate(ymd));
-  assert.equal(b.date, ctx.histDate(ymd, "ob-ext|caixabank|cargo-B"));
   const prev = state;
-  const next = Object.assign({}, state, { expenses: nextList, lastBankSync: 1 });
+  const next = Object.assign({}, state, { expenses: reseal.list, lastBankSync: 1 });
   const slot = { t: null, val: null, exp: false };
   assert.equal(ctx.mcPersistCommit(slot, prev, next, () => 1), true);
   assert.equal(slot.exp, true);
@@ -330,15 +329,12 @@ t("re-sellado: array nuevo y una escritura; sin cambio, el mismo array y cero es
   assert.equal(writes.exp, 1, "escrituras de la clave de gastos tras re-sellar: " + writes.exp);
   const guardado = JSON.parse(ctx.localStorage.getItem("micartera_v3_exp"));
   assert.equal(guardado.length, 2);
-  assert.equal(guardado.find((e) => e.extId === "cargo-B").date, b.date);
-  const stamps2 = nextList.map((e) => e.date);
-  const state2 = Object.assign({}, state, { expenses: nextList });
-  const add2 = ctx.importObExpenses(state2, par);
-  assert.equal(add2, null);
-  const same = ctx.obExpensesAfterSync(stamps2, state2.expenses, add2);
-  assert.strictEqual(same, state2.expenses, "sin cambio hay que devolver el mismo array");
+  assert.equal(guardado.find((e) => e.extId === "cargo-B").date, reseal.list[1].date);
+  const otra = ctx.obResealOldNoon(reseal.list);
+  assert.equal(otra, null, "ya partidas, no hay nada que mover");
+  const state2 = Object.assign({}, state, { expenses: reseal.list });
   const slot2 = { t: null, val: null, exp: false };
-  const next2 = Object.assign({}, state2, { expenses: same, lastBankSync: 2 });
+  const next2 = Object.assign({}, state2, { expenses: reseal.list, lastBankSync: 2 });
   ctx.mcPersistCommit(slot2, state2, next2, () => 1);
   assert.equal(slot2.exp, false);
   writes.exp = 0;

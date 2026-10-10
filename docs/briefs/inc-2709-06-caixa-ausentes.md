@@ -1,10 +1,16 @@
 # INC-2709-06 · cargos CaixaBank ausentes · diagnóstico del 29/9/2026
 
+> **10/10/2026, corrección sobre la misma rama, sin integrar en `beta`.**
+> La red día|importe|comercio sigue siendo la regla de todos los bancos. Dos cargos solo se
+> tratan como distintos cuando el banco los presenta a la vez, con referencias distintas, en la
+> misma respuesta de sincronización. Una referencia distinta que llega en otra sincronización
+> no basta: si no, todo cargo con id salía de la red. El párrafo de abajo que decía que esta
+> rama ya no funde dos referencias quedó caducado ese mismo día.
+>
 > **10/10/2026, rama `cursor/caixabank-integracion-6602`, sin integrar en `beta`.**
-> El cliente de esta rama ya no funde dos `entry_reference` distintas del mismo día, importe y
-> comercio (`tests/inc-2709-06-caixa-extid.test.mjs`). El cierre de «Este mes» en hora de Madrid
-> ya estaba en `74c5f075` (`8e103e906`); aquí no se ha tocado. El cotejo con el perfil real y con
-> el Edge desplegado sigue abierto. Lo de abajo describe el código anterior a este arreglo, no el canal publicado.
+> El cierre de «Este mes» en hora de Madrid ya estaba en `74c5f075` (`8e103e906`); aquí no se ha
+> tocado. El cotejo con el perfil real y con el Edge desplegado sigue abierto. Lo de abajo
+> describe el código anterior a este arreglo, no el canal publicado.
 
 ## Estado y límite
 

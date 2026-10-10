@@ -93,6 +93,66 @@ export function esSourceManual(source?: string | null): boolean {
   return !s || s === "manual" || s.indexOf("manual:") === 0 || s === "supabase";
 }
 
+/* Mediodía civil en Europe/Madrid. El proceso de ingest corre en UTC: `T12:00:00` sin
+   zona es mediodía UTC, no el de la casa, y la lápida del móvil (que sella en Madrid) deja
+   de tapar el gasto borrado. Misma búsqueda que `madridNoonIso` en el cliente. */
+let _mediodiaFmt: Intl.DateTimeFormat | null = null;
+const _mediodiaMs: Record<string, number> = {};
+const _mediodiaIso: Record<string, string> = {};
+
+export function mediodiaMadridMs(day: string): number {
+  const hit = _mediodiaMs[day];
+  if (hit != null) return hit;
+  if (!_mediodiaFmt) {
+    _mediodiaFmt = new Intl.DateTimeFormat("en-CA", {
+      timeZone: MC_TZ, year: "numeric", month: "2-digit", day: "2-digit",
+      hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23",
+    });
+  }
+  const p = String(day || "").split("-");
+  const y = +p[0], mo = +p[1], d = +p[2];
+  const target = day + "T12:00:00";
+  const local = (ms: number) => {
+    const parts = _mediodiaFmt!.formatToParts(new Date(ms));
+    const g = (t: string) => {
+      for (let i = 0; i < parts.length; i++) if (parts[i].type === t) return parts[i].value;
+      return "";
+    };
+    return g("year") + "-" + g("month") + "-" + g("day") + "T" + g("hour") + ":" + g("minute") + ":" + g("second");
+  };
+  let lo = Date.UTC(y, mo - 1, d, 12) - 14 * 3600_000;
+  let hi = Date.UTC(y, mo - 1, d, 12) + 14 * 3600_000;
+  while (lo < hi) {
+    const mid = Math.floor((lo + hi) / 2);
+    if (local(mid) < target) lo = mid + 1;
+    else hi = mid;
+  }
+  _mediodiaMs[day] = lo;
+  return lo;
+}
+
+export function mediodiaMadridIso(day: string): string {
+  const hit = _mediodiaIso[day];
+  if (hit) return hit;
+  const iso = new Date(mediodiaMadridMs(day)).toISOString();
+  _mediodiaIso[day] = iso;
+  return iso;
+}
+
+/* `T10:00:00Z` y `T10:00:00.000Z` son el mismo instante. Sin esto la lápida no casa. */
+export function canonIsoGasto(fecha: string): string {
+  const s = String(fecha || "").trim();
+  const m = s.match(/^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})(?:\.(\d+))?Z$/);
+  if (m) {
+    let frac = m[2] || "0";
+    if (frac.length > 3) frac = frac.slice(0, 3);
+    while (frac.length < 3) frac += "0";
+    return m[1] + "." + frac + "Z";
+  }
+  const ms = Date.parse(s);
+  return Number.isFinite(ms) ? new Date(ms).toISOString() : s;
+}
+
 export function claveComoLaApp(f: {
   fecha?: string | null;
   importe?: number | string;
@@ -100,23 +160,17 @@ export function claveComoLaApp(f: {
   source?: string | null;
   id?: string | null;
 }): string {
-  const raw = String(f.fecha || "");
-  const ms = Date.parse(raw);
-  /* La lápida del móvil guarda `Date.toISOString()` (con milisegundos). La tabla a veces
-     devuelve la misma hora sin `.000`. Si la clave alarga con el texto crudo, el widget no
-     reconoce la lápida y vuelve a sumar el cargo borrado (186,45 frente a 174,45, 2026-10-10). */
-  const fecha = Number.isFinite(ms) ? new Date(ms).toISOString() : raw;
+  const fecha = canonIsoGasto(String(f.fecha || ""));
   const base = fecha.slice(0, 10) + "|" + (Number(f.importe) || 0) + "|" + (f.comercio || "");
   if (esSourceManual(f.source)) return base + "|" + String(f.id || "");
-  /* Dos cargos Open Banking del mismo día, importe y comercio son dos referencias: si la
-     clave se queda en el día, el widget se come uno (12,50 + 12,50 + 3 → 15,50 en vez de 28).
-     macrodroid sigue en el día — APOLLON Wallet+TR a 97 min es UN cargo, la hora de la noti
-     no es otro. Misma regla que `keyOfExpense`: solo la fila que ya no es el mediodía local
-     alarga la clave. */
+  /* macrodroid sigue en el día — APOLLON Wallet+TR a 97 min es UN cargo. En Open Banking
+     la red también es el día. Solo se alarga la hermana que ya no está en el mediodía de
+     Madrid (la segunda referencia de la MISMA respuesta). Comparar con el mediodía del
+     proceso partía la lápida: el widget volvía a sumar el cargo borrado. */
   const s = String(f.source || "");
   const ob = s === "ob" || s.indexOf("ob:") === 0 || s === "ob-hist" || s.indexOf("ob-hist:") === 0;
   if (ob && fecha.length >= 20) {
-    const noon = new Date(fecha.slice(0, 10) + "T12:00:00").toISOString();
+    const noon = mediodiaMadridIso(fecha.slice(0, 10));
     if (fecha !== noon) return base + "|" + fecha;
   }
   return base;

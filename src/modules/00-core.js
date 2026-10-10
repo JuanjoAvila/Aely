@@ -1031,6 +1031,16 @@ const cloud = (function(){
       if(!sb) return;
       const {data:{session}}=await sb.auth.getSession();
       if(!session) return;
+      /* La hermana re-sellada ya tiene fila en el mediodía. El upsert con ignoreDuplicates
+         no mueve esa hora: si no, el otro móvil no ve el sello nuevo. Cero filas no es
+         error — esa hora nunca llegó y el alta de abajo es la que entra. */
+      const prevFecha=e&&e._moveFecha;
+      if(prevFecha && e.date && prevFecha!==e.date && isExpenseUuid(e.id)){
+        const q=sb.from("expenses").update({ fecha:e.date }).eq("user_id", session.user.id).eq("id", e.id).eq("fecha", prevFecha);
+        const moved=await (typeof q.select==="function" ? q.select("id") : q);
+        if(moved.error) throw moved.error;
+        if(Array.isArray(moved.data) && moved.data.length) return;
+      }
       // source lleva el banco embebido (ob:caixa…) para filtrar en Gastos tras reinstalación
       // sin columna nueva en Supabase (feedback 2026-07-16).
       const base={ user_id:session.user.id, fecha:e.date, importe:e.amount, comercio:e.merchant, cat:e.category, source:expenseSourceForCloud(e), no_card:!!e.noCard };
@@ -1567,29 +1577,19 @@ function keyOfExpenseLegacy(e){
 function keyOfExpense(e){
   const base=keyOfExpenseLegacy(e);
   if(isManualExpenseSource(e&&e.source)) return base+"|"+String((e&&e.id)||"");
-  /* Dos cargos Open Banking del mismo día, importe y comercio no caben en la clave de día
-     (APOLLON: la hora NO entra en macrodroid; un «Movimiento» de TR a los 97 min sigue siendo
-     uno). Solo la fila cuya fecha ya no es el mediodía local de `histDate` —la segunda ranura
-     que choca con `expenses_dedup_idx`— alarga la clave. Comparar con `histDate(día)` y no con
-     el texto UTC «12:00:00»: en Madrid el mediodía local es T10:00:00.000Z en verano, y tratarlo
-     como salado partía TODOS los cargos de Caixa al hacer pull (INC-2709-06, 2026-10-04). */
-  const s=String(e&&e.source||"");
-  const ob=s==="ob"||s.indexOf("ob:")===0||s==="ob-hist"||s.indexOf("ob-hist:")===0;
-  /* Misma hora canónica que la lápida (`toISOString`). `T10:00:00Z` y `T10:00:00.000Z` son el
-     mediodía en Madrid en verano: comparar el texto alargaba la clave y la lápida vieja
-     día|importe|comercio dejaba de casar (FIN-05, 819 → 831). La hermana salada sigue con otra clave. */
-  if(ob){
-    const full=String(e&&e.date||""), day=full.slice(0,10);
-    if(day.length===10){
-      const canon=obCanonIso(full), noon=obCanonIso(histDate(day));
-      if(canon && noon && canon!==noon) return base+"|"+canon;
-    }
+  /* La hora no entra en macrodroid (APOLLON). En Open Banking solo alarga la hermana que
+     ya no está en el mediodía de Madrid: la segunda referencia de la MISMA respuesta.
+     El caso normal sale sin Date: el mediodía va cacheado por día (INC-2709-06). */
+  const s=e&&e.source, full=e&&e.date;
+  if(typeof full==="string" && full.length>=20 && (s==="ob"||s==="ob-hist"||(typeof s==="string"&&s.indexOf("ob:")===0))){
+    const day=full.slice(0,10), box=madridNoonIso.c;
+    const noon=(box && box[day]) || madridNoonIso(day);
+    const iso=full.length===20&&full.charCodeAt(19)===90?full.slice(0,19)+".000Z":full;
+    if(iso!==noon) return base+"|"+iso;
   }
   return base;
 }
-/* Lápidas anteriores al Paso 0 guardaban la clave sin id: siguen ocultando ese manual.
-   No se amplía al día entero de un OB: borrar el cargo del mediodía escondería al hermano
-   salado, que es otro entry_reference (INC-2709-06). */
+/* Lápidas anteriores al Paso 0 guardaban la clave sin id: siguen ocultando ese manual. */
 function expenseIsTombstoned(e, delSet){
   if(!delSet) return false;
   const k=keyOfExpense(e);
@@ -1597,16 +1597,15 @@ function expenseIsTombstoned(e, delSet){
   if(isManualExpenseSource(e&&e.source) && delSet[keyOfExpenseLegacy(e)]) return true;
   return false;
 }
-/* Claves que hay que enterrar al borrar. La de pantalla y, si el cargo trae referencia de
-   banco, `obid|banco|extId`: si no, el sync devolvería a la vida solo esa referencia mientras
-   la lápida de día sigue tapando a la otra. El renombrar no usa esto: la fila sigue viva. */
+/* Al borrar un cargo con referencia, la lápida de día tapa al del mediodía y `obid|`
+   tapa a ESA referencia. Si no, el sync devolvería solo la que se borró. */
 function expenseTombKeys(e){
   const keys=[keyOfExpense(e)];
   const s=String(e&&e.source||"");
-  const ob=s==="ob"||s.indexOf("ob:")===0||s==="ob-hist"||s.indexOf("ob-hist:")===0;
-  if(!ob || e.extId==null || e.extId==="") return keys;
-  const bank=expenseBankOf(e)||(e&&e.ent)||"";
-  if(bank) keys.push("obid|"+bank+"|"+e.extId);
+  if((s==="ob"||s.indexOf("ob:")===0||s==="ob-hist"||s.indexOf("ob-hist:")===0) && e&&e.extId!=null && e.extId!==""){
+    const b=(typeof expenseBankOf==="function"?expenseBankOf(e):"")||e.ent||"";
+    if(b) keys.push("obid|"+b+"|"+e.extId);
+  }
   return keys;
 }
 function _errCloudMsg(err){
@@ -1617,6 +1616,10 @@ function subirGasto(e, donde){
   return cloud.addExpense(e).catch(function(err){
     cloud.logEvent("error","addExpense "+(donde||"?")+": "+keyOfExpense(e), _errCloudMsg(err));
   });
+}
+/* El re-sello cambia la fecha de una fila que ya existe. `_moveFecha` es la hora vieja. */
+function publicarResello(e, prevDate){
+  return subirGasto(Object.assign({}, e, {_moveFecha:prevDate}), "ob-resello");
 }
 function borrarGastoNube(e, donde){
   if(!cloud.enabled()) return Promise.resolve();
@@ -1681,15 +1684,6 @@ function deudaSufijo(debtId){
   const id=String(debtId||"").replace(/[^A-Za-z0-9_-]/g,"");
   return id ? "~deuda."+id : "";
 }
-/* La referencia del banco no tiene columna. Viaja en el `source` como `#x.` porque el
-   servidor ya desplegado parte `ob:` por `#` y se queda el banco (`presupuesto.ts`). `#dup`
-   gana: un posible repetido no puede llevar las dos colas. Sin recorte: 120 caracteres
-   partían un id de 150 y el siguiente sync lo daba por nuevo (INC-2709-06). */
-function obExtCloudSuffix(e){
-  if(!e || e.possibleDup || e.extId==null || e.extId==="") return "";
-  const safe=encodeURIComponent(String(e.extId));
-  return safe ? "#x."+safe : "";
-}
 /* Parte el tramo de banco de un `source` OB: «sabadell~deuda.x» → {ent:"sabadell", debtId:"x"}. */
 function partirEntDeuda(tramo){
   const s=String(tramo||""), i=s.indexOf("~deuda.");
@@ -1716,17 +1710,10 @@ function expenseSourceForCloud(e){
   //
   // Lo que NO viaja es `possibleDupOf` (el gemelo): tras reinstalar, «es el mismo» sigue
   // borrando la fila OB pero ya no puede traspasarle el extId al gemelo.
-  if(ent&&(s==="ob"||String(s).indexOf("ob:")===0)) return "ob:"+ent+deudaSufijo(e&&e.debtId)+((e&&e.possibleDup)?"#dup":obExtCloudSuffix(e));
-  /* `ob-hist:` NO se parte por `#` en el servidor desplegado: `ob-hist:caja#x.id` se leería
-     como un banco que no está en la lista y el widget dejaría de contar el cargo. Con extId
-     se escribe `ob:` (ese sí se parte) para que la referencia vuelva en el pull. Sin extId
-     se queda `ob-hist:`. `#dup` sigue en `ob-hist` y no arrastra `#x.`. */
-  if(ent&&(s==="ob-hist"||String(s).indexOf("ob-hist:")===0)){
-    if(e&&e.possibleDup) return "ob-hist:"+ent+"#dup";
-    const suf=obExtCloudSuffix(e);
-    if(suf) return "ob:"+ent+deudaSufijo(e&&e.debtId)+suf;
-    return "ob-hist:"+ent;
-  }
+  /* `#x.` lleva la referencia: no hay columna. `#dup` gana. El histórico NO: si viajara
+     como `ob:` o con `#x.`, otro móvil lo metería en reconcileObDupes (INC-2709-06). */
+  if(ent&&(s==="ob"||String(s).indexOf("ob:")===0)) return "ob:"+ent+deudaSufijo(e&&e.debtId)+((e&&e.possibleDup)?"#dup":(e&&e.extId!=null&&e.extId!==""?"#x."+encodeURIComponent(String(e.extId)):""));
+  if(ent&&(s==="ob-hist"||String(s).indexOf("ob-hist:")===0)) return "ob-hist:"+ent+((e&&e.possibleDup)?"#dup":"");
   // Un alias TR/Wallet pendiente usa temporalmente el encoding OB que entienden también las OTA
   // anteriores; al resolver «son distintos» vuelve a su origen real `macrodroid`.
   if(s==="macrodroid"||s==="tr") return (e&&e.possibleDup)?"ob:trade_republic#dup":"macrodroid";
@@ -2300,49 +2287,31 @@ function expenseFromRow(r){
     obName: r.ob_name!=null ? String(r.ob_name) : undefined,
     possibleDup: dup ? true : undefined,
     debtId: debtId || undefined,
-    // `#x.` del source diario (INC-2709-06). Sin esto un segundo móvil pierde el entry_reference
-    // y el siguiente sync vuelve a salar el cargo del mediodía: el par se duplica.
     extId: extFrom || undefined,
   };
 }
-
-/* Referencia de un cargo OB, o "" si no hay (un «Movimiento» de TR no trae ext_id y
-   sigue siendo un solo cargo). */
-function obRowExt(e){
-  if(!e || e.extId==null || e.extId==="") return "";
-  const s=String(e.source||"");
-  if(s!=="ob" && s.indexOf("ob:")!==0 && s!=="ob-hist" && s.indexOf("ob-hist:")!==0) return "";
-  return String(e.extId);
-}
-/* Dos cargos Caixa del mismo día, importe y comercio comparten `keyOfExpense` mientras
-   los dos siguen en el mediodía: la lápida vieja tiene que nombrar al id menor. Un pull
-   que indexa solo por esa clave se quedaba el primero y el sync a demanda daba de alta
-   al otro con un id nuevo — el re-sellado no llegaba a ver la fila guardada
-   (INC-2709-06, 2026-10-10). La ranura extra solo existe si la referencia es otra. */
+/* Dos cargos del mismo día con distinta referencia no pueden fundirse en el pull
+   mientras los dos sigan en el mismo instante. Sin referencia siguen siendo uno. */
 function obMergeHit(byKey, e){
   const k=keyOfExpense(e);
-  const ext=obRowExt(e);
-  if(ext && byKey[k+"\u0000"+ext]) return { key:k+"\u0000"+ext, row:byKey[k+"\u0000"+ext] };
+  const s=String(e&&e.source||"");
+  const ob=s==="ob"||s.indexOf("ob:")===0||s==="ob-hist"||s.indexOf("ob-hist:")===0;
+  const x=ob&&e&&e.extId!=null&&e.extId!==""?String(e.extId):"";
+  if(x && byKey[k+"\0"+x]) return {key:k+"\0"+x, row:byKey[k+"\0"+x]};
   const loc=byKey[k];
-  if(!loc) return { key:k, row:null };
-  const locExt=obRowExt(loc);
-  if(ext && locExt && ext!==locExt) return { key:k+"\u0000"+ext, row:null };
-  return { key:k, row:loc };
+  if(!loc) return {key:k, row:null};
+  const y=loc.extId!=null&&loc.extId!==""?String(loc.extId):"";
+  if(x && y && x!==y) return {key:k+"\0"+x, row:null};
+  return {key:k, row:loc};
 }
+
 /* Une gastos en la lista local con dedup. ADITIVO: nunca borra los que ya tenías.
    Manuales: clave con id (Paso 0, 2026-09-11) — no se comen entre sí ni con el banco. */
 function mergeExpenses(prevList, incoming){
   const seen={}; const list=[];
-  (prevList||[]).forEach(function(e){
-    const hit=obMergeHit(seen, e);
-    if(!hit.row){ seen[hit.key]=e; list.push(e); }
-  });
+  (prevList||[]).forEach(function(e){ const hit=obMergeHit(seen, e); if(!hit.row){ seen[hit.key]=e; list.push(e); } });
   let nuevos=0;
-  (incoming||[]).forEach(function(e){
-    const hit=obMergeHit(seen, e);
-    if(hit.row) return;
-    seen[hit.key]=e; list.push(e); nuevos++;
-  });
+  (incoming||[]).forEach(function(e){ const hit=obMergeHit(seen, e); if(!hit.row){ seen[hit.key]=e; list.push(e); nuevos++; } });
   return { list:list, nuevos:nuevos };
 }
 /* Refresca una fila LOCAL con lo que manda la nube SIN sustituir el array entero (12/9).
@@ -2395,9 +2364,6 @@ function refreshExpenseFromCloud(local, incoming, readStartedAt){
   /* Cuota de deuda (4.21.0): la marca que baja se adopta; una fila de la nube SIN marca no borra
      la local — el upsert con ignoreDuplicates puede dejar la fila vieja de la nube sin el sufijo. */
   if(incoming.debtId) put("debtId", incoming.debtId);
-  /* Rellenar extId si la nube ya lo trae en `#x.` y este móvil lo perdió. No pisar el local:
-     un upsert con ignoreDuplicates puede devolver la fila vieja, sin sufijo, y borrar la
-     referencia que evita el duplicado en el próximo sync. */
   if(incoming.extId && !local.extId) put("extId", incoming.extId);
   if(!local.noteEdited && Object.prototype.hasOwnProperty.call(incoming,"note")) put("note", incoming.note);
   /* NO realinear `id` aquí: settings.expenseOrder indexa por id local, y en OB el uuid de la
