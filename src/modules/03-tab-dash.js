@@ -5,20 +5,20 @@ function dashOrderOf(s, allIds){
   const saved=((s.settings&&s.settings.dashOrder)||[]).filter(function(id){ return allIds.indexOf(id)>=0; });
   return saved.concat(allIds.filter(function(id){ return saved.indexOf(id)<0; }));
 }
-function NetWorthNow({value, shown, simple}){
-  // Los números guardados no acreditan fechas ni observaciones reales: unir el cero de alta
-  // o la semilla al patrimonio parecía una evolución. Se muestra solo el total de ahora
-  // (rechazo 9/10/2026), sin interpretar, borrar ni reescribir ese histórico.
+function NetWorthNow({value, shown, simple, history}){
+  // Retirar la variante109 no autorizaba quitar la gráfica de producción110 (feedback10/10).
+  // Se recupera su dibujo, sin convertir el histórico en ganancias ni reescribirlo.
   const valid=typeof value==="number" && Number.isFinite(value);
   const p=valid?eurParts(typeof shown==="number" && Number.isFinite(shown)?shown:value):null;
   return React.createElement("div",{className:"v4-hero rise","data-tour":"hero","data-testid":"inicio-net-current",style:{animationDelay:".05s"}},
-    React.createElement("div",{className:"v4-net-current-head"},
-      React.createElement("div",{className:"v4-micro"}, t(simple?"v4_money_total":"d_networth")),
-      React.createElement("span",{className:"v4-net-now","data-testid":"inicio-net-now"}, t("v4_net_now"))
-    ),
+    React.createElement("div",{className:"v4-micro"}, t(simple?"v4_money_total":"d_networth")),
     React.createElement("div",{className:"v4-hero-amt num","data-tour":"hero-amt"},
       p?p.sign+p.ent:"—", p&&React.createElement("span",{style:{fontSize:28,color:"var(--muted)"}},","+(p.dec||"00")+" "+p.sym)),
-    !valid&&React.createElement("div",{className:"hint",role:"status"}, t("v4_net_unknown"))
+    !valid&&React.createElement("div",{className:"hint",role:"status"}, t("v4_net_unknown")),
+    valid&&React.createElement("div",{style:{marginTop:14}},
+      (history&&history.length>=1)
+        ? React.createElement(Sparkline,{data:history,current:value})
+        : React.createElement("div",{style:{fontSize:12.5,color:"var(--muted-2)",padding:"6px 0 2px"}}, t("v4_hist_empty")))
   );
 }
 function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProfile, onGoGastos, onGoPlan, showToast}){
@@ -233,7 +233,7 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
       }}, t("mr_share"))
     ),
 
-    !showSkel && React.createElement(NetWorthNow,{value:tt.netWorth, shown:shownNet, simple:simple}),
+    !showSkel && React.createElement(NetWorthNow,{value:tt.netWorth, shown:shownNet, simple:simple, history:state.history}),
 
     // Sin presupuesto, Inicio escondia su tarjeta estrella y te quedabas sin la mitad de la app
     // sin saber por que (P3). En vez de esconderla, la misma tarjeta en vacio y con salida: abre

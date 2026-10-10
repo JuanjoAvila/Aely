@@ -2,7 +2,13 @@
 
 `cartera-bienes-toque` y `cartera-bienes-completo` comprueban el DOM real de Cartera con datos sintéticos. Cubren los tres idiomas, toque/arrastre, apertura sin escritura, cancelación, alta desde lista vacía, importes inválidos, cero, edición, borrado confirmado/cancelado, recarga y patrimonio exacto. Ambos están mapeados a07/14; la validación y límites finales se entregan por el canal. No acreditan aceptación móvil ni publicación.
 
-## InicioAhora · candidata local aplicada4.26.112
+## Restauración de la gráfica · encargo10/10
+
+`e2e/inicio-grafica-significado.spec.mjs` abre Inicio y exige el área degradada, trazo y punto final de producción110. Comprueba históricos vacíos/semilla/cero, importes positivos/negativos, moneda, es/en/ca, recarga, vuelta desde Plan, letra grande y la protección de total desconocido de112. Los25 casos comunes pasan contra main110/bdd75636; los tres de total desconocido sólo pertenecen al candidato. `pulido-vacios` vuelve a exigir el vacío original o la gráfica según el histórico. El spec ya pertenece al mapa de03 y02 es CORE; no se crea un test huérfano.
+
+El catálogo112 aún referencia dos reglas CSS eliminadas. Un ensayo DOM con esas dos selecciones omitidas en memoria es una fixture de integración, no un build oficial verde. El build normal y la suite sin excepciones siguen siendo los gates de entrega. [Acta y límites](briefs/inicio-grafica-vuelve-20261010.md).
+
+## InicioAhora · snapshot anterior4.26.112
 
 Presupuesto oficial del paquete integrado PASS:1.321.606 bytes minificados/360.945 gzip/3 cargas frente a topes1.326.080/361.472/3 intactos. El A/B conserva el fallo previo y mide1.328.880/362.544→1.321.606/360.945: ahorro7.274/1.599 bytes y527 de margen gzip.
 

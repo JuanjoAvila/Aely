@@ -102,7 +102,7 @@ const LANG = {
     v4_budget_spent:"Has gastado {spent} de tus {budget}.", v4_budget_daily:"Puedes gastar {x}/día hasta fin de mes.", v4_cycle_net:"Gasto neto desde el cobro: {used} de tus {budget}.", v4_cycle_left:"Te quedan {x}.", v4_cycle_over:"Te faltan {x}.",
     v4_streak:"{n} meses sin pasarte", v4_streak_zero:"Mes en curso",
     // INC-0810 es: patrimonio de ahora.
-    v4_net_now:"Ahora", v4_net_unknown:"El total actual no está disponible.",
+    v4_hist_empty:"Tu histórico empieza hoy", v4_net_unknown:"El total actual no está disponible.",
     // INC-0810 es: fin del patrimonio de ahora.
     v4_nobud_t:"Ponle un presupuesto", v4_nobud_p:"Es la mitad de la app: sin un tope al mes no se puede saber cuánto te queda. Puedes cambiarlo cuando quieras.", v4_nobud_cta:"Ponle un presupuesto", v4_noup_t:"Aún no hay recibos", v4_noup_p:"Conecta tu banco y los recibos del mes aparecen solos, con su día y su importe.", v4_noup_cta:"Conecta tu banco", v4_nogoal_t:"Ponte tu primera meta", v4_nogoal_p:"Un viaje, un colchón, lo que sea: la app te dice cuánto falta y cuándo llegas.", v4_nogoal_cta:"Crear una meta", v4_see_gastos:"Ver gastos ›", v4_see_plan:"Ver plan ›",
     v4_upcoming:"Próximos cargos", v4_upcoming_empty:"Nada pendiente este mes. Los recibos aparecen aquí.",
@@ -417,7 +417,7 @@ const LANG = {
     v4_budget_spent:"You've spent {spent} of your {budget}.", v4_budget_daily:"You can spend {x}/day until month end.", v4_cycle_net:"Net spending since payday: {used} of your {budget}.", v4_cycle_left:"{x} left.", v4_cycle_over:"{x} over budget.",
     v4_streak:"{n} months on track", v4_streak_zero:"Month in progress",
     // INC-0810 en: patrimonio de ahora.
-    v4_net_now:"Now", v4_net_unknown:"The current total is unavailable.",
+    v4_hist_empty:"Your history starts today", v4_net_unknown:"The current total is unavailable.",
     // INC-0810 en: fin del patrimonio de ahora.
     v4_nobud_t:"Set a monthly budget", v4_nobud_p:"It is half the app: without a monthly cap there is no way to know what you have left. You can change it whenever you want.", v4_nobud_cta:"Set a budget", v4_noup_t:"No bills yet", v4_noup_p:"Connect your bank and this month's bills show up on their own, with day and amount.", v4_noup_cta:"Connect your bank", v4_nogoal_t:"Set your first goal", v4_nogoal_p:"A trip, a safety net, anything: the app tells you how much is missing and when you get there.", v4_nogoal_cta:"Create a goal", v4_see_gastos:"See spending ›", v4_see_plan:"See plan ›",
     v4_upcoming:"Upcoming", v4_upcoming_empty:"Nothing pending this month. Bills show up here.",
@@ -719,7 +719,7 @@ const LANG = {
     v4_budget_spent:"Has gastat {spent} dels teus {budget}.", v4_budget_daily:"Pots gastar {x}/dia fins a fi de mes.", v4_cycle_net:"Despesa neta des del cobrament: {used} dels teus {budget}.", v4_cycle_left:"Et queden {x}.", v4_cycle_over:"Et falten {x}.",
     v4_streak:"{n} mesos sense passar-te", v4_streak_zero:"Mes en curs",
     // INC-0810 ca: patrimonio de ahora.
-    v4_net_now:"Ara", v4_net_unknown:"El total actual no està disponible.",
+    v4_hist_empty:"El teu històric comença avui", v4_net_unknown:"El total actual no està disponible.",
     // INC-0810 ca: fin del patrimonio de ahora.
     v4_nobud_t:"Posa-li un pressupost", v4_nobud_p:"És la meitat de l'app: sense un límit al mes no es pot saber quant et queda. El pots canviar quan vulguis.", v4_nobud_cta:"Posa-li un pressupost", v4_noup_t:"Encara no hi ha rebuts", v4_noup_p:"Connecta el teu banc i els rebuts del mes apareixen sols, amb el seu dia i el seu import.", v4_noup_cta:"Connecta el teu banc", v4_nogoal_t:"Posa't el teu primer objectiu", v4_nogoal_p:"Un viatge, un coixí, el que sigui: l'app et diu quant falta i quan hi arribes.", v4_nogoal_cta:"Crear un objectiu", v4_see_gastos:"Veure despeses ›", v4_see_plan:"Veure pla ›",
     v4_upcoming:"Pròxims càrrecs", v4_upcoming_empty:"Res pendent aquest mes. Els rebuts surten aquí.",

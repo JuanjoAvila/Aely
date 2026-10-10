@@ -612,6 +612,34 @@ function useCountUp(target, ready, replay){
   return shown;
 }
 
+function Sparkline({data, current}){
+  const pts = data.concat(current!=null?[current]:[]);
+  // Con 0 o 1 puntos esto pintaba una recta de lado a lado con su puntito final: parece un grafico
+  // de verdad que dice cero, y es lo primero que ve alguien que acaba de instalar la app. Sin
+  // datos no hay grafico (P1). Quien lo llama reserva el hueco para que no salte el layout.
+  if(pts.length<2) return null;
+  const w=320, h=70, pad=4;
+  const min=Math.min.apply(null,pts), max=Math.max.apply(null,pts);
+  const rng=(max-min)||1;
+  const xs=(i)=> pad + (pts.length>1 ? i*(w-2*pad)/(pts.length-1) : 0);
+  const ys=(v)=> pad + (1-(v-min)/rng)*(h-2*pad);
+  let d="M"+xs(0)+" "+ys(pts[0]);
+  for(let i=1;i<pts.length;i++) d+=" L"+xs(i)+" "+ys(pts[i]);
+  const area=d+" L"+xs(pts.length-1)+" "+h+" L"+xs(0)+" "+h+" Z";
+  const lastX=xs(pts.length-1), lastY=ys(pts[pts.length-1]);
+  return React.createElement("svg",{className:"spark",viewBox:"0 0 "+w+" "+h,preserveAspectRatio:"none"},
+    React.createElement("defs",null,
+      React.createElement("linearGradient",{id:"sparkfill",x1:"0",y1:"0",x2:"0",y2:"1"},
+        React.createElement("stop",{offset:"0",stopColor:"#5FD08A",stopOpacity:"0.28"}),
+        React.createElement("stop",{offset:"1",stopColor:"#5FD08A",stopOpacity:"0"})
+      )
+    ),
+    React.createElement("path",{d:area,fill:"url(#sparkfill)"}),
+    React.createElement("path",{d:d,fill:"none",stroke:"#5FD08A",strokeWidth:"2.4",strokeLinecap:"round",strokeLinejoin:"round",vectorEffect:"non-scaling-stroke"}),
+    React.createElement("circle",{cx:lastX,cy:lastY,r:"3.5",fill:"#7DE8A8"})
+  );
+}
+
 // Snapshot diario del total invertido (valor + coste opcional). Idempotente por día.
 function recordInvSnapshot(hist, today, value, cost){
   const h=(hist||[]).slice();
