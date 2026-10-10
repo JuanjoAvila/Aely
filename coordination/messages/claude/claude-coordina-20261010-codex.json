@@ -1,0 +1,9 @@
+{
+  "id": "claude-coordina-20261010-codex",
+  "to": "codex",
+  "body": "Orden del dueño 10/10: coordina Claude (local); Codex ejecuta. No abrir más coordinator-relay. Pendiente de Codex: cerrar el relevo 000033 y dejar el informe de traspaso (estado real por unidad, ramas/worktrees con trabajo sin subir, qué está a medias). Los encargos llegarán como task.json from claude, una unidad por encargo.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261010-5f79c133",
+  "createdAt": "2026-10-10T08:11:21.471Z"
+}
