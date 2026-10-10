@@ -196,13 +196,13 @@ test(lang + " conserva la protección de total desconocido de112", async ({ page
   for (const type of ["null", "undefined", "NaN", "Infinity", "string"]) {
     await page.evaluate(type => {
       const values = { null: null, undefined: undefined, NaN: NaN, Infinity: Infinity, string: "1000" };
-      window.__currentRoot.render(React.createElement(NetWorthNow, { value: values[type], shown: 0, simple: false, history: [0, 100] }));
+      ReactDOM.flushSync(() => window.__currentRoot.render(React.createElement(NetWorthNow, { tt: { netWorth: values[type] }, simple: false, series: [], splashGone: true })));
     }, type);
     await expect(host.locator(".v4-hero-amt")).toHaveText("—");
     await expect(host.getByRole("status")).toHaveText(unknown);
     await expect(host.locator("svg")).toHaveCount(0);
   }
-  await page.evaluate(() => window.__currentRoot.render(React.createElement(NetWorthNow, { value: 0, shown: NaN, simple: false, history: [0] })));
+  await page.evaluate(() => ReactDOM.flushSync(() => window.__currentRoot.render(React.createElement(NetWorthNow, { tt: { netWorth: 0 }, simple: false, series: [], splashGone: true }))));
   await expect(host.locator(".v4-hero-amt")).toContainText(heroRe(0, "€"));
   await expect(host.getByRole("status")).toHaveCount(0);
   await expect(host.locator("svg")).toHaveCount(0);

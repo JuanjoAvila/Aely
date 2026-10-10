@@ -77,10 +77,11 @@ test("con recibos y metas de verdad, las tarjetas fantasma desaparecen", { annot
   await expect(page.locator(".v4-empty")).toHaveCount(0);
 });
 
-test("★ P5: la racha a cero se dice en positivo, no «0 meses sin pasarte»", async ({ page }) => {
+test("★ P5: sin racha histórica, el estado actual se dice en positivo", async ({ page }) => {
   await inicio(page, { history: [], budget: 500, streak: 0 });
   await expect(page.getByText(/0 meses sin pasarte/i)).toHaveCount(0);
-  await expect(page.getByText(/Mes en curso/i)).toBeVisible();
+  await expect(page.locator(".v42-cycle .st")).toHaveText("Vas sobrado");
+  await expect(page.getByTestId("inicio-cycle-pace")).toHaveCount(0);
 });
 
 test("la tarjeta del ciclo reemplaza la racha de meses cerrados", async ({ page }) => {
@@ -102,7 +103,8 @@ test("la tarjeta del ciclo reemplaza la racha de meses cerrados", async ({ page 
   });
   const streak=page.getByTestId("dash-budget-streak");
   await expect(streak).toHaveCount(0);
-  await expect(page.locator(".v42-cycle")).toContainText(/Mes en curso/i);
+  await expect(page.locator(".v42-cycle")).toHaveAttribute("data-state","comfort");
+  await expect(page.locator(".v42-cycle-amount>.serif")).toHaveText("500 €");
 });
 
 test("con presupuesto y movimientos cubiertos, Inicio muestra la gráfica por flujos", async ({ page }) => {
@@ -124,7 +126,7 @@ test("★ P6: el anillo arranca vacío y se llena, no aparece relleno", async ({
   const anillo = page.locator(".v4-screen:has(.v4-inicio-head) .v4-budget svg circle").last();
   await expect(anillo).toHaveAttribute("pathLength","100");
   await expect(anillo).toHaveAttribute("stroke-dasharray","20 100");
-  expect(await anillo.evaluate(el=>el.getAnimations()[0].effect.getKeyframes()[0].strokeDasharray)).toBe("0 100");
+  expect(await anillo.evaluate(el=>el.getAnimations()[0].effect.getKeyframes()[0].strokeDasharray.replace(/px/g,"").split(/[,\s]+/).filter(Boolean).map(Number))).toEqual([0,100]);
   await expect.poll(()=>anillo.evaluate(el=>parseFloat(getComputedStyle(el).strokeDasharray)),{timeout:10000}).toBe(20);
 });
 
