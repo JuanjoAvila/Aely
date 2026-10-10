@@ -49,10 +49,11 @@ for(const lang of ["es","en","ca"]){
       expect(await page.evaluate(()=>{ const s=mcLoadRaw(mcStateKey()); return JSON.stringify([s.accounts,s.expenses,s.fixed]); })).toBe(before);
     });
   }
-  for(const [kind,patch] of [["solo importe",{merchant:"Comercio diferente"}],["token genérico",{merchant:"Otro ficticio"}],["importe parecido",{amount:42.40}],["pendiente",{status:"PDNG"}]]){
+  for(const [kind,patch] of [["solo importe",{merchant:"Comercio diferente"}],["token genérico",{merchant:"Otro ficticio"}],["nombre bancario genérico",{merchant:"Ficticio"}],["importe parecido",{amount:42.40}],["pendiente",{status:"PDNG"}]]){
     test(lang+": cargo guardado insuficiente sigue vencido · "+kind,async({page})=>{
       const cargo=Object.assign({id:"sin-identidad",date:"2026-09-24",merchant:"Gas ficticio",amount:42,ent:"trade_republic",category:"otros",source:"macrodroid"},patch);
       await open(page,lang,{expenses:[cargo]});
+      const before=await page.evaluate(()=>{ const s=mcLoadRaw(mcStateKey()); return JSON.stringify([s.accounts,s.expenses,s.fixed]); });
       const row=page.locator('.page-scroll-host .v4-charge').filter({hasText:fixed.name});
       await expect(row).toHaveCount(1);
       await expect(row).toContainText(labels[lang].unknown);
@@ -60,6 +61,7 @@ for(const lang of ["es","en","ca"]){
       await page.locator('.botnav-tab[data-tour="plan"]').click();
       await expect(page.locator('div[data-seg="recibos"] .v4-paid').filter({hasText:fixed.name})).toHaveCount(0);
       await expect(page.locator('div[data-seg="recibos"]')).toContainText(labels[lang].unknown);
+      expect(await page.evaluate(()=>{ const s=mcLoadRaw(mcStateKey()); return JSON.stringify([s.accounts,s.expenses,s.fixed]); })).toBe(before);
     });
   }
   for(const [planned,actual,name,gross] of [[32,32.40,"Agua variable ficticia"],[32,35.10,"Agua variable ficticia"],[18,18.15,"Suscripción ficticia"],[21,44,"Recibo compartido ficticio",42]]){

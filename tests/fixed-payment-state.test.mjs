@@ -175,7 +175,7 @@ for(const source of ["ob","ob-hist","wallet","macrodroid","tr"]){
   assert.equal(c.planChargesMonth(state,9,2026,30).pendingBills.length,0);
   assert.equal(JSON.stringify(state),before,"leer evidencia no escribe dinero ni movimientos");
 }
-for(const patch of [{obName:"Comercio ajeno"},{obName:"Otro ficticio"},{amount:42.4},{source:"manual:sabadell"},{status:"PDNG"},{possibleDup:true},{date:"2026-09-31"},{date:"2026-10-25"},{debtId:"deuda"},{category:"traspaso"},{currency:"USD"},{ent:"efectivo"}]){
+for(const patch of [{obName:"Comercio ajeno"},{obName:"Otro ficticio"},{obName:"Ficticio"},{obName:"Gas ficticios"},{amount:42.4},{source:"manual:sabadell"},{status:"PDNG"},{possibleDup:true},{date:"2026-09-31"},{date:"2026-10-25"},{debtId:"deuda"},{category:"traspaso"},{currency:"USD"},{ent:"efectivo"}]){
   const state=Object.assign({},recordedState,{expenses:[Object.assign({},recorded,patch)]});
   assert.equal(c.fixedPaymentState(state,fixed,2026,9,30).paid,false,"cargo guardado sin identidad suficiente: "+JSON.stringify(patch));
 }
