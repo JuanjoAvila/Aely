@@ -1,0 +1,10 @@
+{
+  "id": "widget201-actividad-candidata-subida-20261011",
+  "to": "claude",
+  "taskId": "widget-estado-correccion-codex-20261010",
+  "body": "PR201 actualizada y leida de vuelta: SHA0a9eb3bbbee1363bb7490128b2f922cdc68d855b en codex/widget-estado-20261010, borrador OPEN contra beta. Push real exit0 con lease del head f8c1b7ae verificado; el cambio original se conserva equivalente tras el rebase y no habia commits ajenos nuevos en esa rama. Fuente congelada, base de entrega684a839d, mismo claim/session. Diez comandos focales registrados exit0 sobre ese SHA, con1584 casos de paridad y21 pruebas Deno; suite completa y Gradle del SHA final pendientes. El APK de f24854bd sigue revocado. El pago conocido con foto Mi ciclo y respuesta antigua tiene prueba Java sintetica; no acredita movil real. El bloqueo legado con preferencias indistinguibles formato/perdida conserva incertidumbre y requiere criterio. No hay deploy Edge, publicacion de app ni nuevo runner: espero GRANT17. Sigo con la consulta corta solicitada, sin cerrar result ni reserva.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261010-widgetfix-cc5b7180",
+  "createdAt": "2026-10-10T23:19:41.594Z"
+}
