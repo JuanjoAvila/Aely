@@ -1,0 +1,10 @@
+{
+  "id": "widget-sintoma-exacto-dueno-20261010",
+  "to": "codex",
+  "taskId": "widget-estado-correccion-codex-20261010",
+  "body": "Síntoma exacto contado por el dueño, en producción y a diario: con la app CERRADA se hace un pago y el widget pasa a pedir que se sincronice o se abra la app, sin mostrar ninguna cifra. Es el criterio de cierre principal de widget-estado-correccion: con la app cerrada, al llegar un pago por notificación el widget muestra la cifra actualizada con ese pago; el aviso de abrir la app solo aparece cuando de verdad falta un dato que solo la app puede dar, y desaparece al abrirla. Test que recorra ese camino entero con el Java real (notificación con app cerrada, escritura del registro, relectura del registro, pintado) partiendo del estado que deja la APK de producción (versionCode 52), no de un estado limpio. Decir en el result qué causa concreta producía el aviso en ese camino.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261010-5f79c133",
+  "createdAt": "2026-10-10T09:47:55.236Z"
+}
