@@ -269,6 +269,20 @@ t("el id con separadores raros vuelve entero; #dup gana y ~deuda se queda", () =
   assert.equal(bancoDeSource("ob-hist:caixabank"), "caixabank");
 });
 
+t("lápida vieja del widget tapa una fila del mediodía y deja a la hermana", () => {
+  const noon = ctx.histDate(ymd).replace(".000Z", "Z");
+  const salt = ctx.histDate(ymd, "ob-ext|caixabank|cargo-B");
+  const filas = [
+    { fecha: noon, importe: 12.5, comercio: "MERCADONA", cat: "super", source: "ob:caixabank" },
+    { fecha: salt, importe: 12.5, comercio: "MERCADONA", cat: "super", source: "ob:caixabank#x.cargo-B" },
+    { fecha: noon, importe: 12.5, comercio: "MERCADONA", cat: "super", source: "ob:caixabank#x.cargo-C" },
+  ];
+  const vis = filasComoLaApp(filas, [ymd + "|12.5|MERCADONA"]);
+  assert.equal(vis.length, 2, "quedaron " + vis.length);
+  assert.equal(vis[0].fecha, salt);
+  assert.ok(vis.every((f) => f.source.indexOf("cargo-B") >= 0 || f.source.indexOf("cargo-C") >= 0));
+});
+
 t("app y widget cuentan los dos; #dup y ~deuda siguen fuera", () => {
   const a = ctx.importObExpenses(estado(), [cargo("cargo-A"), cargo("cargo-B")]);
   assert.equal(a.length, 2);

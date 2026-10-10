@@ -135,11 +135,18 @@ function claveLegacySinId(f: { fecha?: string | null; importe?: number | string;
 export function filasComoLaApp<T extends FilaGasto>(filas: T[] | null | undefined, deleted: string[] | null | undefined): T[] {
   const lap = new Set(deleted || []);
   const vistas = new Set<string>();
+  const legacyUsada = new Set<string>();
   const out: T[] = [];
   for (const f of filas || []) {
     const k = claveComoLaApp(f);
-    if (lap.has(k)) continue;
-    if (esSourceManual(f.source) && lap.has(claveLegacySinId(f))) continue;
+    const leg = claveLegacySinId(f);
+    if (esSourceManual(f.source) && lap.has(leg)) continue;
+    /* Lápida vieja día|importe|comercio: tapa la fila del mediodía (la que esa clave nombraba)
+       y solo una. La hermana con otra hora tiene otra clave y sigue contando. Dos filas en el
+       mismo mediodía: la segunda no hereda la lápida. */
+    if (!esSourceManual(f.source) && k === leg && lap.has(leg)) {
+      if (!legacyUsada.has(leg)) { legacyUsada.add(leg); continue; }
+    } else if (lap.has(k)) continue;
     if (vistas.has(k)) continue;
     vistas.add(k);
     out.push(f);

@@ -174,14 +174,61 @@ t("borrar una referencia no esconde al hermano ni la resucita el sync", () => {
   assert.equal(ctx.expenseIsTombstoned(other, del), false);
   assert.equal(ctx.importObExpenses(estado([other], keys), par), null);
   const legacy = ctx.keyOfExpenseLegacy(gone);
-  assert.equal(ctx.importObExpenses(estado([], [legacy]), par), null);
+  // La lápida vieja (día|importe|comercio) tapa al id menor —el que ocupaba el mediodía—
+  // y solo a él. La hermana entra. Con la hermana ya viva, el borrado no resucita al dueño.
+  const soloHermana = ctx.importObExpenses(estado([], [legacy]), par);
+  assert.ok(soloHermana && soloHermana.length === 1, "entraron " + (soloHermana ? soloHermana.length : 0));
+  assert.equal(soloHermana[0].extId, "cargo-B");
   assert.equal(ctx.expenseIsTombstoned(other, { [legacy]: 1 }), false);
-  // Sin `obid` no se sabe qué referencia se borró. Con el hermano vivo, esa referencia
-  // puede volver con su sello. El borrado de ahora escribe `obid` y no vuelve (arriba).
-  const back = ctx.importObExpenses(estado([other], [legacy]), par);
-  assert.ok(back && back.length === 1);
-  assert.equal(back[0].extId, "cargo-A");
-  assert.notEqual(back[0].date, other.date);
+  assert.equal(ctx.expenseIsTombstoned(soloHermana[0], { [legacy]: 1 }), false);
+  assert.equal(ctx.importObExpenses(estado([other], [legacy]), par), null);
+});
+
+t("lápida vieja casa el mediodía canónico y no tapa a la hermana", () => {
+  const legacy = ymd + "|12.5|MERCADONA";
+  const noon = ctx.histDate(ymd).replace(".000Z", "Z");
+  const duena = {
+    id: "old-a", date: noon, amount: 12.5, merchant: "MERCADONA", obName: "MERCADONA",
+    source: "ob", ent: "caixabank", extId: "cargo-A",
+  };
+  const hermana = {
+    id: "old-b", date: ctx.histDate(ymd, "ob-ext|caixabank|cargo-B"), amount: 12.5,
+    merchant: "MERCADONA", obName: "MERCADONA", source: "ob", ent: "caixabank", extId: "cargo-B",
+  };
+  assert.equal(ctx.keyOfExpense(duena), legacy);
+  assert.equal(ctx.obCanonIso(noon), ctx.obCanonIso(ctx.histDate(ymd)));
+  assert.equal(ctx.expenseIsTombstoned(duena, { [legacy]: 1 }), true);
+  assert.equal(ctx.expenseIsTombstoned(hermana, { [legacy]: 1 }), false);
+  assert.notEqual(ctx.keyOfExpense(duena), ctx.keyOfExpense(hermana));
+  const otra = Object.assign({}, hermana, { id: "old-c", extId: "cargo-C" });
+  assert.equal(ctx.expenseIsTombstoned(otra, { [legacy]: 1 }), false);
+});
+
+t("sync a demanda: fila guardada con el sello viejo, los dos cargos y sin duplicar", () => {
+  const vieja = {
+    id: "old", date: ctx.histDate(ymd), amount: 12.5, merchant: "MERCADONA", obName: "MERCADONA",
+    source: "ob", ent: "caixabank", extId: "cargo-A",
+  };
+  const add = ctx.importObExpenses(estado([vieja]), par);
+  assert.ok(add && add.length === 1, "entraron " + (add ? add.length : 0));
+  assert.equal(add[0].extId, "cargo-B");
+  assert.equal(add[0].date, ctx.histDate(ymd, "ob-ext|caixabank|cargo-B"));
+  assert.notEqual(ctx.keyOfExpense(vieja), ctx.keyOfExpense(add[0]));
+  const juntos = [vieja].concat(add);
+  assert.equal(ctx.importObExpenses(estado(juntos), par), null);
+  assert.equal(new Set(juntos.map((e) => e.extId)).size, 2);
+  // Las dos ya estaban en el mediodía (sello de antes). El id menor se queda; la otra
+  // cambia de hora en el sitio. No hay tercera fila.
+  const a = Object.assign({}, vieja, { id: "old-a", date: ctx.histDate(ymd) });
+  const b = Object.assign({}, vieja, { id: "old-b", extId: "cargo-B", date: ctx.histDate(ymd) });
+  const guardadas = [a, b];
+  assert.equal(ctx.importObExpenses(estado(guardadas), par), null);
+  assert.equal(a.date, ctx.histDate(ymd));
+  assert.equal(b.date, ctx.histDate(ymd, "ob-ext|caixabank|cargo-B"));
+  assert.equal(guardadas.length, 2);
+  const lap = ymd + "|12.5|MERCADONA";
+  assert.equal(ctx.expenseIsTombstoned(a, { [lap]: 1 }), true);
+  assert.equal(ctx.expenseIsTombstoned(b, { [lap]: 1 }), false);
 });
 
 t("una fila vieja sin extId ocupa el id menor y el otro entra una sola vez", () => {

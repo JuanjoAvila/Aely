@@ -1575,9 +1575,15 @@ function keyOfExpense(e){
      como salado partía TODOS los cargos de Caixa al hacer pull (INC-2709-06, 2026-10-04). */
   const s=String(e&&e.source||"");
   const ob=s==="ob"||s.indexOf("ob:")===0||s==="ob-hist"||s.indexOf("ob-hist:")===0;
-  if(ob && typeof histDate==="function"){
+  /* Misma hora canónica que la lápida (`toISOString`). `T10:00:00Z` y `T10:00:00.000Z` son el
+     mediodía en Madrid en verano: comparar el texto alargaba la clave y la lápida vieja
+     día|importe|comercio dejaba de casar (FIN-05, 819 → 831). La hermana salada sigue con otra clave. */
+  if(ob){
     const full=String(e&&e.date||""), day=full.slice(0,10);
-    if(day.length===10 && full!==histDate(day)) return base+"|"+full;
+    if(day.length===10){
+      const canon=obCanonIso(full), noon=obCanonIso(histDate(day));
+      if(canon && noon && canon!==noon) return base+"|"+canon;
+    }
   }
   return base;
 }
@@ -1599,7 +1605,7 @@ function expenseTombKeys(e){
   const s=String(e&&e.source||"");
   const ob=s==="ob"||s.indexOf("ob:")===0||s==="ob-hist"||s.indexOf("ob-hist:")===0;
   if(!ob || e.extId==null || e.extId==="") return keys;
-  const bank=(typeof expenseBankOf==="function" ? expenseBankOf(e) : null)||(e&&e.ent)||"";
+  const bank=expenseBankOf(e)||(e&&e.ent)||"";
   if(bank) keys.push("obid|"+bank+"|"+e.extId);
   return keys;
 }
