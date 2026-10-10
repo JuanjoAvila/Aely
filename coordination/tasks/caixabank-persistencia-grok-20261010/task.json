@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "id": "caixabank-persistencia-grok-20261010",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261010-5f79c133",
+  "createdAt": "2026-10-10T11:47:13.978Z",
+  "to": "grok",
+  "baseSHA": "ffe53a156587ad15652e30872952d686cb25f61d",
+  "objective": "Último cabo de PR200 (CaixaBank), el riesgo C del result anterior: si la sincronización re-sella filas pero no hay alta nueva, la referencia del array de gastos no cambia, no se reescribe la clave de gastos y tras reiniciar vuelven los dos sellos antiguos. El arreglo no puede perderse al cerrar la app. Además rebasar el PR sobre la beta actual.",
+  "scope": [
+    "src/modules/11-app-main.js: solo el llamador de la sincronización a demanda",
+    "los ficheros que ya toca PR200"
+  ],
+  "acceptance": [
+    "Cuando el re-sellado cambia al menos una fila, el array de gastos devuelto es NUEVO y se persiste; cuando no cambia nada, se devuelve el MISMO array (AGENTS 7 bis: no reescribir el histórico sin motivo). Test que cuente escrituras de la clave de gastos en ambos casos.",
+    "e2e: estado guardado con sello antiguo, sincronizar a demanda sin altas nuevas, recargar la página: siguen los dos cargos con sello nuevo y sin duplicados.",
+    "Rebase sobre beta 684a839da1 o la cabeza de beta en ese momento; un solo PR, el 200.",
+    "Tope de descarga: aprobada la propuesta A como máximo (minificado 1298 KiB, gzip 355 KiB), pero lo aplica el coordinador al integrar; no tocarlo en el PR.",
+    "npm run build exit 0; guardianes de CaixaBank y Playwright completo con exit real en el result. beta-sources y docs-frescura rojos son esperados."
+  ],
+  "authorization": "Orden directa del dueño 10/10: Claude coordina; CaixaBank es prioridad."
+}
