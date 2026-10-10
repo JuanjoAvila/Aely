@@ -2246,6 +2246,24 @@ function obResealOldNoon(expenses){
     }
   });
 }
+/* importObExpenses re-sella en el sitio y devuelve null si no hay altas. Sin un
+   array NUEVO, mcPersistCommit no reescribe la clave de gastos y al cerrar vuelven
+   los sellos viejos. Si no cambió ninguna hora y no hay altas, el MISMO array:
+   reescribir el histórico no aporta (AGENTS §7 bis). `stamps` son las fechas de
+   antes de esa mutación, en el mismo orden. */
+function obExpensesAfterSync(stamps, expenses, add){
+  const list=expenses||[];
+  let changed=false;
+  if(stamps && stamps.length===list.length){
+    for(let i=0;i<list.length;i++){
+      const d=list[i]&&list[i].date;
+      if(d!==stamps[i]){ changed=true; break; }
+    }
+  }
+  if(add && add.length) return add.concat(list);
+  if(changed) return list.slice();
+  return list;
+}
 function obExtIdFromCloudSource(source){
   const raw=String(source||""), h=raw.indexOf("#");
   if(h<0) return "";

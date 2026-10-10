@@ -635,6 +635,9 @@ function App(){
         const txs=flattenBankTx(links);
         // ORDEN anti-doble-conteo: primero entran las compras de tarjeta como gastos, y DESPUÉS
         // se re-ancla con el saldo real del banco (que ya incluye esas compras).
+        // El re-sellado mueve la hora en el sitio. Sin altas el array seguiría siendo el
+        // mismo, la clave de gastos no se reescribiría y al cerrar volverían los sellos viejos.
+        const stamps=(prev.expenses||[]).map(function(e){ return e?e.date:e; });
         const add=importObExpenses(prev, txs);
         // Aporte automático reconocido (categoría "inversion", ver importObExpenses): compra ya
         // mismo participaciones en el fondo enlazado, con el importe REAL del banco — mismo cálculo
@@ -656,11 +659,12 @@ function App(){
           });
         }
         obAdded=add||[];
-        const baseExp=add? add.concat(invState.expenses||[]) : (invState.expenses||[]);
+        const lived=invState.expenses||[];
+        const baseExp=obExpensesAfterSync(stamps, lived, add);
         // Rellena el CONCEPTO de lo que ya estaba apuntado con lo que acaba de traer el banco
         // (2026-07-24): si no, el histórico viejo —el que se consulta— seguiría sin explicar nada.
         const withNotes=enrichNotesFromBankTx(baseExp, txs);
-        const withExp=(withNotes!==(invState.expenses||[])) ? Object.assign({},invState,{expenses:withNotes}) : invState;
+        const withExp=(withNotes!==lived) ? Object.assign({},invState,{expenses:withNotes}) : invState;
         const now=new Date(), withTx=Object.assign({},withExp,{bankTx:txs});
         const withProofs=reconcileFixedPaymentProofs(withTx,now.getFullYear(),now.getMonth()+1,now.getDate());
         const anchored=reconcileEarlyIncomeAnchors(withProofs,now.getFullYear(),now.getMonth()+1,now.getDate());

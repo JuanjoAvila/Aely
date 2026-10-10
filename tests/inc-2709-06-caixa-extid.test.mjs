@@ -269,5 +269,63 @@ t("00:30 Madrid del día 1 cuenta en el mes nuevo", () => {
   }
 });
 
+t("re-sellado: array nuevo y una escritura; sin cambio, el mismo array y cero escrituras", () => {
+  const src = fs.readFileSync(new URL("../src/modules/11-app-main.js", import.meta.url), "utf8");
+  assert.ok(src.includes("const add=importObExpenses(prev, txs);"));
+  assert.ok(src.includes("obExpensesAfterSync(stamps, lived, add)"), "el sync a demanda no usa el array del re-sellado");
+  const mem = new Map();
+  const writes = { exp: 0 };
+  ctx.localStorage = {
+    getItem(k) { return mem.has(k) ? mem.get(k) : null; },
+    setItem(k, v) {
+      if (k === "micartera_v3_exp") writes.exp++;
+      mem.set(k, String(v));
+    },
+    removeItem(k) { mem.delete(k); },
+  };
+  const fila = (id, ext) => ({
+    id, date: ctx.histDate(ymd), amount: 12.5, merchant: "MERCADONA", obName: "MERCADONA",
+    source: "ob", ent: "caixabank", extId: ext,
+  });
+  const a = fila("old-a", "cargo-A");
+  const b = fila("old-b", "cargo-B");
+  const expenses = [a, b];
+  const state = estado(expenses);
+  // La clave ya está partida: si no, el primer guardado escribiría gastos aunque no cambiaran.
+  ctx.localStorage.setItem("micartera_v3_exp", JSON.stringify(expenses));
+  writes.exp = 0;
+  const stamps = expenses.map((e) => e.date);
+  const add = ctx.importObExpenses(state, par);
+  assert.equal(add, null);
+  const nextList = ctx.obExpensesAfterSync(stamps, state.expenses, add);
+  assert.notStrictEqual(nextList, state.expenses, "al cambiar una fila el array tiene que ser nuevo");
+  assert.equal(nextList.length, 2);
+  assert.equal(a.date, ctx.histDate(ymd));
+  assert.equal(b.date, ctx.histDate(ymd, "ob-ext|caixabank|cargo-B"));
+  const prev = state;
+  const next = Object.assign({}, state, { expenses: nextList, lastBankSync: 1 });
+  const slot = { t: null, val: null, exp: false };
+  assert.equal(ctx.mcPersistCommit(slot, prev, next, () => 1), true);
+  assert.equal(slot.exp, true);
+  ctx.mcSaveRaw("micartera_v3", slot.val, { expenses: slot.exp });
+  assert.equal(writes.exp, 1, "escrituras de la clave de gastos tras re-sellar: " + writes.exp);
+  const guardado = JSON.parse(ctx.localStorage.getItem("micartera_v3_exp"));
+  assert.equal(guardado.length, 2);
+  assert.equal(guardado.find((e) => e.extId === "cargo-B").date, b.date);
+  const stamps2 = nextList.map((e) => e.date);
+  const state2 = Object.assign({}, state, { expenses: nextList });
+  const add2 = ctx.importObExpenses(state2, par);
+  assert.equal(add2, null);
+  const same = ctx.obExpensesAfterSync(stamps2, state2.expenses, add2);
+  assert.strictEqual(same, state2.expenses, "sin cambio hay que devolver el mismo array");
+  const slot2 = { t: null, val: null, exp: false };
+  const next2 = Object.assign({}, state2, { expenses: same, lastBankSync: 2 });
+  ctx.mcPersistCommit(slot2, state2, next2, () => 1);
+  assert.equal(slot2.exp, false);
+  writes.exp = 0;
+  ctx.mcSaveRaw("micartera_v3", slot2.val, { expenses: slot2.exp });
+  assert.equal(writes.exp, 0, "sin cambio no se reescribe la clave de gastos");
+});
+
 console.log(fallos ? "inc-2709-06-caixa-extid: " + fallos + " fallo(s) (" + zona + ")" : "inc-2709-06-caixa-extid: OK (" + zona + ")");
 process.exit(fallos ? (mutarSello ? 2 : 1) : 0);
