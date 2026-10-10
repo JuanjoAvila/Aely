@@ -1,5 +1,74 @@
 [
   {
+    "v": "4.26.113",
+    "d": "2026-10-10",
+    "t": {
+      "es": "Bienes completos y vuelve la gráfica de Inicio",
+      "en": "Complete assets and the Home chart returns",
+      "ca": "Béns complets i torna la gràfica d’Inici"
+    },
+    "items": {
+      "es": [
+        "En Cartera → Bienes ya puedes añadir un bien, editarlo y borrarlo, también cuando la lista está vacía.",
+        "Inicio recupera la gráfica del patrimonio."
+      ],
+      "en": [
+        "In Wallet → Property, you can now add, edit and delete an asset, even when the list is empty.",
+        "Home brings back the net worth chart."
+      ],
+      "ca": [
+        "A Cartera → Béns ja pots afegir un bé, editar-lo i esborrar-lo, també quan la llista és buida.",
+        "Inici recupera la gràfica del patrimoni."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "bienes-completo",
+        "t": {
+          "es": "Bienes completos",
+          "en": "Complete assets",
+          "ca": "Béns complets"
+        },
+        "items": {
+          "es": [
+            "1. En Cartera → Bienes, añade un bien con nombre y valor: aparece en la lista y sube el patrimonio.",
+            "2. Tócalo, cambia el valor y guarda. Ábrelo otra vez y pulsa Cancelar: no cambia nada.",
+            "3. Bórralo: pide confirmación. Al cancelar sigue ahí; al confirmar desaparece."
+          ],
+          "en": [
+            "1. In Wallet → Property, add an asset with a name and value: it appears in the list and increases net worth.",
+            "2. Tap it, change the value and save. Open it again and press Cancel: nothing changes.",
+            "3. Delete it: confirmation is requested. Cancelling keeps it there; confirming removes it."
+          ],
+          "ca": [
+            "1. A Cartera → Béns, afegeix un bé amb nom i valor: apareix a la llista i puja el patrimoni.",
+            "2. Toca’l, canvia el valor i desa. Obre’l una altra vegada i prem Cancel·la: no canvia res.",
+            "3. Esborra’l: demana confirmació. En cancel·lar continua allà; en confirmar desapareix."
+          ]
+        }
+      },
+      {
+        "id": "inicio-grafica-vuelve",
+        "t": {
+          "es": "Vuelve la gráfica de Inicio",
+          "en": "The Home chart returns",
+          "ca": "Torna la gràfica d’Inici"
+        },
+        "items": {
+          "es": [
+            "1. Abre Inicio: vuelve a verse la gráfica bajo el patrimonio y ya no aparece «Ahora»."
+          ],
+          "en": [
+            "1. Open Home: the chart is visible below net worth again and “Now” no longer appears."
+          ],
+          "ca": [
+            "1. Obre Inici: torna a veure’s la gràfica sota el patrimoni i ja no apareix «Ara»."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.112",
     "d": "2026-10-10",
     "t": {
@@ -18,36 +87,7 @@
         "Inici mostra el patrimoni actual amb l’etiqueta «Ara», sense una línia que es pugui confondre amb una evolució. Si el total no està disponible, apareix «—» amb una explicació."
       ]
     },
-    "tandas": [
-      {
-        "id": "inc-0910-inicio-solo-actual",
-        "t": {
-          "es": "Inicio: total actual",
-          "en": "Home: current total",
-          "ca": "Inici: total actual"
-        },
-        "items": {
-          "es": [
-            "1. Abre Inicio y comprueba el patrimonio: conserva el importe y la moneda, con la etiqueta «Ahora».",
-            "2. Comprueba que no aparece una línea de evolución, tanto sin cifras anteriores como con ellas.",
-            "3. Cambia entre el modo simple y el completo: cambia el título, pero se conserva el mismo total.",
-            "4. Cambia la moneda de presentación y vuelve a la anterior: los saldos guardados se conservan."
-          ],
-          "en": [
-            "1. Open Home and check your net worth: the amount and currency are preserved, with the “Now” label.",
-            "2. Check that no trend line appears, both with and without earlier figures.",
-            "3. Switch between simple and full mode: the title changes, but the total stays the same.",
-            "4. Change the display currency and switch back: stored balances are preserved."
-          ],
-          "ca": [
-            "1. Obre Inici i comprova el patrimoni: conserva l’import i la moneda, amb l’etiqueta «Ara».",
-            "2. Comprova que no apareix una línia d’evolució, tant sense xifres anteriors com amb elles.",
-            "3. Canvia entre el mode simple i el complet: canvia el títol, però es conserva el mateix total.",
-            "4. Canvia la moneda de presentació i torna a l’anterior: els saldos desats es conserven."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.111",
@@ -68,27 +108,7 @@
         "Toca un bé per obrir-ne l’editor. L’opció Edita els béns continua disponible."
       ]
     },
-    "tandas": [
-      {
-        "id": "inc-2709-07-bienes-toque",
-        "t": {
-          "es": "Abrir el editor de Bienes",
-          "en": "Open the asset editor",
-          "ca": "Obre l’editor de béns"
-        },
-        "items": {
-          "es": [
-            "1. En Cartera → Bienes, tocar una fila abre el editor. Arrastrar para bajar no lo abre. Abrir no cambia los valores; Guardar sin modificarlos los conserva. Editar bienes sigue disponible."
-          ],
-          "en": [
-            "1. In Wallet → Property, tap a row to open the editor. Scrolling does not open it. Opening keeps values unchanged; saving without edits preserves them. Edit assets is still available."
-          ],
-          "ca": [
-            "1. A Cartera → Béns, toca una fila per obrir l’editor. Arrossegar per baixar no l’obre. Obrir no canvia els valors; desar sense modificar-los els conserva. Edita els béns continua disponible."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.110",

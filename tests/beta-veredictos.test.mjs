@@ -456,7 +456,7 @@ t("109 histórica sigue rechazada con B90 y no hereda decisión a la unidad actu
   assert.equal(g.huella,expected);assert.equal(g.codigo,ref.codigo);
   const rows=[{tanda:"4.26.109/"+id,huella:g.huella,verdict:"rejected"},{tanda:id,huella:g.huella,verdict:"approved"}];
   assert.equal(cli.betaVerdictFor(g,rows).verdict,"rejected");
-  const current={id:"inc-0910-inicio-solo-actual",t:{es:"Caso actual sintético"},items:{es:["1. Total actual"]},...betaRevision("inc-0910-inicio-solo-actual")};
+  const current={id:"inicio-grafica-vuelve",t:{es:"Caso actual sintético"},items:{es:["1. Total actual"]},...betaRevision("inicio-grafica-vuelve")};
   assert.equal(cli.betaVerdictFor(cli.betaTandas({tandas:[current]})[0],rows),null);
   const previous=cli.window._mcProdEntregas;
   try{
@@ -475,7 +475,7 @@ t("detalle histórico es de sólo lectura y exige identidad/huella exactas",()=>
   const values={_betaReviewMarks:{[g.huella]:detail,[foreignHuella]:{marks:{0:"ko"},notes:{0:"Comentario ajeno"}}}};
   conStore(values,()=>{
     assert.equal(JSON.stringify(cli.betaHistoricalDetails(g)),JSON.stringify([{mark:"ko",note:detail.notes[0]}]));
-    assert.equal(JSON.stringify(cli.betaHistoricalDetails({...g,id:"inc-0910-inicio-solo-actual"})),"[]");
+    assert.equal(JSON.stringify(cli.betaHistoricalDetails({...g,id:"inicio-grafica-vuelve"})),"[]");
     assert.ok(Object.hasOwn(values._betaReviewMarks,foreignHuella),"el negativo debe apuntar a una nota ajena existente");
     for(const wrong of [foreignHuella,"huella-ausente"])
       assert.equal(JSON.stringify(cli.betaHistoricalDetails({...g,huella:wrong})),"[]",wrong+": se deniega antes de leer el ledger");
@@ -504,7 +504,7 @@ t("detalle histórico es de sólo lectura y exige identidad/huella exactas",()=>
 t("el contador activo excluye109 histórica sin perder índices ni ledger",()=>{
   const ref=JSON.parse(fs.readFileSync(new URL("../scripts/beta-archives.json",import.meta.url),"utf8")).refs["inc-0810-inicio-grafica-significado"];
   const old=cli.betaTandas(betaNotes([{v:ref.version,tandas:[ref.guion]}])[0])[0];
-  const current=cli.betaTandas({tandas:[{id:"inc-0910-inicio-solo-actual",t:{es:"Tres puntos sintéticos"},items:{es:["1. A","2. B","3. C"]},...betaRevision("inc-0910-inicio-solo-actual")} ]})[0];
+  const current=cli.betaTandas({tandas:[{id:"inicio-grafica-vuelve",t:{es:"Tres puntos sintéticos"},items:{es:["1. A","2. B","3. C"]},...betaRevision("inicio-grafica-vuelve")} ]})[0];
   const history={marks:{0:"ko"},notes:{0:"Rechazo histórico que no cuenta como fallo actual"}};
   const values={_betaReviewMarks:{[old.huella]:history}};
   const pack={v:"9.9.9",tandas:[old,current],items:old.items.concat(current.items)};

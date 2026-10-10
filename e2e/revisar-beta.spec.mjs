@@ -1502,7 +1502,7 @@ for(const lang of ["es","en","ca"])test(`contador activo: archivo109 no añade p
   await abrirRevisionBeta(page,lang);
   const ref=JSON.parse(fs.readFileSync(new URL("../scripts/beta-archives.json",import.meta.url),"utf8")).refs["inc-0810-inicio-grafica-significado"];
   const historical=betaNotes([{v:ref.version,tandas:[ref.guion]}])[0];
-  const current={id:"inc-0910-inicio-solo-actual",t:{es:"Contador sintético"},items:{es:["1. Punto A","2. Punto B","3. Punto C"]},...betaRevision("inc-0910-inicio-solo-actual")};
+  const current={id:"inicio-grafica-vuelve",t:{es:"Contador sintético"},items:{es:["1. Punto A","2. Punto B","3. Punto C"]},...betaRevision("inicio-grafica-vuelve")};
   const snapshot=await page.evaluate(({historical,current})=>{
     CONFIG.APP_VERSION="9.9.9.1";RELEASE_NOTES=[{v:"9.9.9",t:{es:"Caso de contador"},tandas:[current]},historical];
     const old=betaTandas(historical)[0],history={marks:{0:"ko"},notes:{0:"Fallo histórico conservado, sin sumar al contador"}};
@@ -1554,7 +1554,7 @@ for(const lang of ["es","en","ca"])test(`contador activo: archivo109 no añade p
   await expect(fresh.locator(".beta-veredicto")).toContainText("Aprobada");
   const reports=await page.evaluate(()=>window.__counterReports);
   expect(reports).toHaveLength(1);
-  expect(reports[0]).toMatchObject({tanda:"inc-0910-inicio-solo-actual",probados:2,fallos:0,sinProbar:0,noProbable:1,heredados:0});
+  expect(reports[0]).toMatchObject({tanda:"inicio-grafica-vuelve",probados:2,fallos:0,sinProbar:0,noProbable:1,heredados:0});
   expect(await page.evaluate(h=>(store.get("_betaReview_9.9.9.1_v")||{})["h:"+h],snapshot.huella)).toEqual(snapshot.decision);
   expect(await page.evaluate(h=>(store.get("_betaReviewMarks")||{})[h],snapshot.huella)).toEqual(snapshot.history);
   expect(await page.evaluate(()=>localStorage.getItem(BETA_ABIERTO_KEY))).toBeNull();
@@ -1595,7 +1595,7 @@ for(const lang of ["es","en","ca"])test(`contador activo: archivo109 no añade p
 for(const lang of ["es","en","ca"])test(`109 histórica: conserva rechazo y guion, sin aprobación ni entrega actual (${lang})`,async({page})=>{
   await abrirRevisionBeta(page,lang);
   const archives=JSON.parse(fs.readFileSync(new URL("../scripts/beta-archives.json",import.meta.url),"utf8"));
-  const oldId="inc-0810-inicio-grafica-significado",newId="inc-0910-inicio-solo-actual",ref=archives.refs[oldId];
+  const oldId="inc-0810-inicio-grafica-significado",newId="inicio-grafica-vuelve",ref=archives.refs[oldId];
   const historical=betaNotes([{v:ref.version,tandas:[ref.guion]}])[0];
   const current={id:newId,t:{es:"Total actual sintético"},items:{es:ref.guion.items.es.slice()},...betaRevision(newId)};
   const snapshot=await page.evaluate(({historical,current})=>{
@@ -1642,55 +1642,59 @@ for(const lang of ["es","en","ca"])test(`109 histórica: conserva rechazo y guio
 
 for(const lang of ["es","en","ca"])test(`cola publicada: no vuelve a pedir las catorce entregadas (${lang})`,async({page})=>{
   await abrirRevisionBeta(page,lang);
-  const before=JSON.parse(execFileSync("git",["show","c7593e86f6665d69fa20bd3f5f8f20c4710a5d9c:src/data/release-notes.json"],{encoding:"utf8",maxBuffer:5e6}));
+  // El retiro113 modifica sólo los dos guiones sustituidos: el histórico112 queda fijado
+  // por Git, y la copia autorizada113 es un oráculo literal independiente del build.
+  const before=JSON.parse(execFileSync("git",["show","74c5f075bf08e38e289992195ad97e3a71a8b031:src/data/release-notes.json"],{encoding:"utf8",maxBuffer:5e6}));
   const retired=["inc-0810-nav-indicator","inc-0810-metas-editar-regla","inc-0810-backclose-handover"];
-  const note111={"v":"4.26.111","d":"2026-10-09","t":{"es":"Tocar Bienes para editar","en":"Tap assets to edit","ca":"Toca els béns per editar"},"items":{"es":["Tocar un bien abre su editor. La opción Editar bienes sigue disponible."],"en":["Tap an asset to open its editor. Edit assets is still available."],"ca":["Toca un bé per obrir-ne l’editor. L’opció Edita els béns continua disponible."]},"tandas":[{"id":"inc-2709-07-bienes-toque","t":{"es":"Abrir el editor de Bienes","en":"Open the asset editor","ca":"Obre l’editor de béns"},"items":{"es":["1. En Cartera → Bienes, tocar una fila abre el editor. Arrastrar para bajar no lo abre. Abrir no cambia los valores; Guardar sin modificarlos los conserva. Editar bienes sigue disponible."],"en":["1. In Wallet → Property, tap a row to open the editor. Scrolling does not open it. Opening keeps values unchanged; saving without edits preserves them. Edit assets is still available."],"ca":["1. A Cartera → Béns, toca una fila per obrir l’editor. Arrossegar per baixar no l’obre. Obrir no canvia els valors; desar sense modificar-los els conserva. Edita els béns continua disponible."]}}]};
-  const prior=[note111,...before.map(n=>Array.isArray(n.tandas)?{...n,tandas:n.tandas.filter(g=>!retired.includes(g.id))}:n)];
-  expect(prior.length).toBe(228);
+  const replaced=["inc-2709-07-bienes-toque","inc-0910-inicio-solo-actual"];
+  const note113={v:'4.26.113',d:'2026-10-10',t:{es:'Bienes completos y vuelve la gráfica de Inicio',en:'Complete assets and the Home chart returns',ca:'Béns complets i torna la gràfica d’Inici'},items:{es:['En Cartera → Bienes ya puedes añadir un bien, editarlo y borrarlo, también cuando la lista está vacía.','Inicio recupera la gráfica del patrimonio.'],en:['In Wallet → Property, you can now add, edit and delete an asset, even when the list is empty.','Home brings back the net worth chart.'],ca:['A Cartera → Béns ja pots afegir un bé, editar-lo i esborrar-lo, també quan la llista és buida.','Inici recupera la gràfica del patrimoni.']},tandas:[{id:'bienes-completo',t:{es:'Bienes completos',en:'Complete assets',ca:'Béns complets'},items:{es:['1. En Cartera → Bienes, añade un bien con nombre y valor: aparece en la lista y sube el patrimonio.','2. Tócalo, cambia el valor y guarda. Ábrelo otra vez y pulsa Cancelar: no cambia nada.','3. Bórralo: pide confirmación. Al cancelar sigue ahí; al confirmar desaparece.'],en:['1. In Wallet → Property, add an asset with a name and value: it appears in the list and increases net worth.','2. Tap it, change the value and save. Open it again and press Cancel: nothing changes.','3. Delete it: confirmation is requested. Cancelling keeps it there; confirming removes it.'],ca:['1. A Cartera → Béns, afegeix un bé amb nom i valor: apareix a la llista i puja el patrimoni.','2. Toca’l, canvia el valor i desa. Obre’l una altra vegada i prem Cancel·la: no canvia res.','3. Esborra’l: demana confirmació. En cancel·lar continua allà; en confirmar desapareix.']}},{id:'inicio-grafica-vuelve',t:{es:'Vuelve la gráfica de Inicio',en:'The Home chart returns',ca:'Torna la gràfica d’Inici'},items:{es:['1. Abre Inicio: vuelve a verse la gráfica bajo el patrimonio y ya no aparece «Ahora».'],en:['1. Open Home: the chart is visible below net worth again and “Now” no longer appears.'],ca:['1. Obre Inici: torna a veure’s la gràfica sota el patrimoni i ja no apareix «Ara».']}}]};
+  const prior=before.map(n=>n.tandas?{...n,tandas:n.tandas.filter(g=>!replaced.includes(g.id))}:n);
+  expect(prior.length).toBe(229);
   const live=JSON.parse(fs.readFileSync(new URL("../src/data/release-notes.json",import.meta.url),"utf8"));
-  expect(live.slice(1)).toEqual(prior);
-  expect(live[0].v).toBe("4.26.112");
-  expect(live[0].tandas.map(g=>g.id)).toEqual(["inc-0910-inicio-solo-actual"]);
-  const expected=betaNotes([live[0],...prior]);
-  expect(expected.length).toBe(229);
+  expect(live).toEqual([note113,...prior]);
+  const expected=betaNotes([note113,...prior]);
+  expect(expected.length).toBe(230);
   expect(await page.evaluate(()=>RELEASE_NOTES)).toEqual(expected);
   const closed=["inc-0310-01-meta-regla","ops-0410-panel-cola","inc-0310-gastos-sin-limite","inc-0310-broker-resultados","feature-0310-01-movilidad","inc-2909-01-widget-periodo","fin05-widget-reentrada","fin05-pago-cerrada","tr-descripcion-clasificacion","widget-banco","widget-app-cerrada",...retired];
   expect(await page.evaluate(ids=>RELEASE_NOTES.flatMap(n=>n.tandas||[]).filter(g=>ids.includes(g.id)).map(g=>g.id),closed)).toEqual([]);
   const deliveries=JSON.parse(fs.readFileSync(new URL("../public/beta-delivery.json",import.meta.url),"utf8"));
-  const id111="inc-2709-07-bienes-toque",without111=structuredClone(deliveries);
-  delete without111.web[id111];delete without111.pruebas[id111];
-  expect(deliveries.web[id111]).toBe(expected[1].tandas[0].web);
-  expect(deliveries.pruebas[id111]).toEqual({v:"4.26.111",contenido:JSON.stringify([id111,note111.tandas[0].t.es,note111.tandas[0].items.es,1])});
-  const host="e2e-retirement111-"+lang;
-  // Un recibo sintético completo no debe esconder que111 sigue pendiente cuando falta sólo el suyo.
+  expect(deliveries.web["inc-2709-07-bienes-toque"]).toBeUndefined();
+  expect(deliveries.web["inc-0910-inicio-solo-actual"]).toBeUndefined();
+  for(const group113 of note113.tandas){
+  const id113=group113.id,without113=structuredClone(deliveries);
+  delete without113.web[id113];delete without113.pruebas[id113];
+  expect(deliveries.web[id113]).toBe(expected[0].tandas.find(g=>g.id===id113).web);
+  expect(deliveries.pruebas[id113]).toEqual({v:"4.26.113",contenido:JSON.stringify([id113,group113.t.es,group113.items.es,1])});
+  const host="e2e-retirement113-"+lang+"-"+id113;
+  // Un recibo sintético completo no debe esconder una tanda113 cuando falta sólo el suyo.
   await page.evaluate(({deliveries,host})=>{
     window._mcProdEntregas=deliveries;window._mcProdApkRevisiones={};
     CONFIG.APP_VERSION=RELEASE_NOTES[0].v+".1";window._mcProdApk=52;
     window._mcProdDeliveryChecked=true;window._mcProdVersion=()=>Promise.resolve("4.26.94");
     store.set("_betaReview_4.26.87.1_v",{_h:1,"h:historia-sintetica":{verdict:"rejected",at:100}});
     const h=document.createElement("div");h.id=host;document.body.appendChild(h);
-    window.__retirement111Root=ReactDOM.createRoot(h);
-    window.__retirement111Root.render(React.createElement(BetaReviewPanel,{onClose:()=>{},showToast:()=>{}}));
-  },{deliveries:without111,host});
+    window.__retirement113Root=ReactDOM.createRoot(h);
+    window.__retirement113Root.render(React.createElement(BetaReviewPanel,{onClose:()=>{},showToast:()=>{}}));
+  },{deliveries:without113,host});
   const panel=page.locator("#"+host+" .beta-review"),active=panel.locator('.beta-tanda:not([data-beta-historical="true"])');
   try{
     await expect(panel).toBeVisible();
     await expect(panel.locator('.beta-tanda[data-beta-historical="true"]')).toHaveCount(1);
     await expect(active).toHaveCount(1);
-    await expect(active.locator(".beta-tanda-t")).toHaveText("v4.26.111 · Abrir el editor de Bienes");
+    await expect(active.locator(".beta-tanda-t")).toHaveText("v4.26.113 · "+group113.t.es);
     await expect(active.locator(".beta-tanda-n.ok")).toHaveCount(0);
     await expect(active.getByRole("button",{name:/Aprobar esta tanda/})).toBeDisabled();
     expect(await page.evaluate(id=>{
       const pack=betaChecklist(CONFIG.APP_VERSION,"4.26.94",52),current=pack.tandas.filter(g=>!g.referenciaHistorica),g=current.find(g=>g.id.split("/").pop()===id);
       return {ids:current.map(g=>g.id.split("/").pop()),pending:betaPruebaPendiente(g,52,CONFIG.APP_VERSION,"4.26.94"),
         verdict:betaSavedVerdicts(pack)[g.id]||null};
-    },id111)).toEqual({ids:[id111],pending:true,verdict:null});
-    expect(await page.evaluate(()=>window._mcProdEntregas)).toEqual(without111);
+    },id113)).toEqual({ids:[id113],pending:true,verdict:null});
+    expect(await page.evaluate(()=>window._mcProdEntregas)).toEqual(without113);
     // Desmontar evita que el primer panel conserve estado o callbacks al comprobar el recibo exacto.
     await page.evaluate(({deliveries,host})=>{
-      window.__retirement111Root.unmount();window._mcProdEntregas=deliveries;
-      window.__retirement111Root=ReactDOM.createRoot(document.getElementById(host));
-      window.__retirement111Root.render(React.createElement(BetaReviewPanel,{onClose:()=>{},showToast:()=>{}}));
+      window.__retirement113Root.unmount();window._mcProdEntregas=deliveries;
+      window.__retirement113Root=ReactDOM.createRoot(document.getElementById(host));
+      window.__retirement113Root.render(React.createElement(BetaReviewPanel,{onClose:()=>{},showToast:()=>{}}));
     },{deliveries,host});
     await expect(panel).toBeVisible();
     await expect(panel.locator('.beta-tanda[data-beta-historical="true"]')).toHaveCount(1);
@@ -1700,8 +1704,9 @@ for(const lang of ["es","en","ca"])test(`cola publicada: no vuelve a pedir las c
     expect(await page.evaluate(()=>store.get("_betaReview_4.26.87.1_v"))).toEqual({_h:1,"h:historia-sintetica":{verdict:"rejected",at:100}});
   }finally{
     await page.evaluate(host=>{
-      if(window.__retirement111Root)window.__retirement111Root.unmount();
-      const h=document.getElementById(host);if(h)h.remove();delete window.__retirement111Root;
+      if(window.__retirement113Root)window.__retirement113Root.unmount();
+      const h=document.getElementById(host);if(h)h.remove();delete window.__retirement113Root;
     },host);
+  }
   }
 });

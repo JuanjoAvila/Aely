@@ -1,3 +1,9 @@
+## Catálogo de la candidata4.26.113
+
+`beta-veredictos` y los controles de catálogo de `revisar-beta` usan las identidades113. La cola DOM compara las230 notas con113 literal y229 históricas fijadas en Git, conserva archivo/rechazo109 y prueba por separado la ausencia del recibo de cada una de las dos tandas nuevas. No elimina negativos ni modifica otros recorridos.
+
+`beta-sources` mantiene los contratos históricos112 en su fuente inmutable y prueba el catálogo actual: textos es/en/ca autorizados, retiros exclusivos111/112, notas y otras pendientes intactas, identidades nuevas sin herencia, puerta de Bienes vacíos, ficha, cancelación y borrado. El inventario general de funciones y datos sigue mutando la fuente actual de113. Ambos tests nuevos viven en el fichero ya registrado en el runner. El presupuesto conserva1295 KiB minificados y3 cargas bloqueantes; gzip pasa de353 a354 KiB tras medir el sello113.99999 con configuración sintética95 B. La suite y sus límites se entregan con comandos y exitcodes del SHA final; no acreditan móvil ni publicación.
+
 ## Bienes completo · candidata por encargo de Claude
 
 `cartera-bienes-toque` y `cartera-bienes-completo` comprueban el DOM real de Cartera con datos sintéticos. Cubren los tres idiomas, toque/arrastre, apertura sin escritura, cancelación, alta desde lista vacía, importes inválidos, cero, edición, borrado confirmado/cancelado, recarga y patrimonio exacto. Ambos están mapeados a07/14; la validación y límites finales se entregan por el canal. No acreditan aceptación móvil ni publicación.
@@ -6,7 +12,7 @@
 
 `e2e/inicio-grafica-significado.spec.mjs` abre Inicio y exige el área degradada, trazo y punto final de producción110. Comprueba históricos vacíos/semilla/cero, importes positivos/negativos, moneda, es/en/ca, recarga, vuelta desde Plan, letra grande y la protección de total desconocido de112. Los25 casos comunes pasan contra main110/bdd75636; los tres de total desconocido sólo pertenecen al candidato. `pulido-vacios` vuelve a exigir el vacío original o la gráfica según el histórico. El spec ya pertenece al mapa de03 y02 es CORE; no se crea un test huérfano.
 
-El catálogo112 aún referencia dos reglas CSS eliminadas. Un ensayo DOM con esas dos selecciones omitidas en memoria es una fixture de integración, no un build oficial verde. El build normal y la suite sin excepciones siguen siendo los gates de entrega. [Acta y límites](briefs/inicio-grafica-vuelve-20261010.md).
+El catálogo113 retira las unidades111/112 sustituidas y registra dos identidades nuevas: `bienes-completo` e `inicio-grafica-vuelve`. El pin, guion y rechazo109 permanecen intactos; las notas anteriores se conservan con `tandas:[]` en111/112.
 
 ## InicioAhora · snapshot anterior4.26.112
 

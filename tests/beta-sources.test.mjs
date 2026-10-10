@@ -9,6 +9,8 @@ const read=f=>fs.readFileSync(new URL("../"+f,import.meta.url),"utf8");
 const historicalNotes=JSON.parse(execFileSync("git",["show","4403b252933410741a877eea59b85d812b2fe543:src/data/release-notes.json"],{encoding:"utf8",maxBuffer:5e6}));
 // El alta110 pertenece al commit previo al retiro; los lectores y mutantes siguen usando read actual.
 const delivered110Notes=JSON.parse(execFileSync("git",["show","c7593e86f6665d69fa20bd3f5f8f20c4710a5d9c:src/data/release-notes.json"],{encoding:"utf8",maxBuffer:5e6}));
+const source112Cache=new Map();
+const source112=f=>{if(!source112Cache.has(f))source112Cache.set(f,execFileSync("git",["show","74c5f075bf08e38e289992195ad97e3a71a8b031:"+f],{encoding:"utf8",maxBuffer:10e6}));return source112Cache.get(f);};
 const empty=[{v:"4.26.67",tandas:[]}];
 const archiveRefs=JSON.parse(read("scripts/beta-archives.json"));
 const archiveId="inc-0810-inicio-grafica-significado";
@@ -111,13 +113,16 @@ test("Inicio109 histórico vigila ausencia de fechas, moneda, escala y dibujo en
 
 // La fuente actual necesita su propia unidad y todos los lectores reales de importe/divisa.
 // Este guardián de identidad no acredita por sí solo DOM ni aceptación de la corrección.
-test("Inicio solo actual cubre renderer, llamada, animación, textos, CSS y moneda vigentes",()=>{
-  const id="inc-0910-inicio-solo-actual",source=f=>read(f).replace(/\r\n/g,"\n"),scopes=JSON.parse(source("scripts/beta-sources.json")),scope=scopes[id],before=betaRevision(id,source);
+test("Inicio113 cubre renderer, llamada, animación, textos, CSS y moneda vigentes",()=>{
+  const id="inicio-grafica-vuelve",source=f=>read(f).replace(/\r\n/g,"\n"),scopes=JSON.parse(source("scripts/beta-sources.json")),scope=scopes[id],before=betaRevision(id,source);
   assert.equal(scope.unidades,true);
   for(const key of ["historial","auditoria","codigosCompatibles","compatibilidadGit","compatibilidadSha"])
     assert.equal(scope[key],undefined,"no hereda identidad anterior: "+key);
   assert.notEqual(before.codigo,"b90e6223cd45ef64e8689d4c772560c31c7db47939694211a892316030a283f0");
   for(const [file,from,to] of [
+    ["src/modules/03-tab-dash.js",'history:state.history','history:[]'],
+    ["src/modules/03-tab-dash.js",'data:history,current:value','data:history,current:0'],
+    ["src/modules/02-ui-shared.js",'const rng=(max-min)||1;','const rng=max||1;'],
     ["src/modules/03-tab-dash.js",'const valid=typeof value==="number" && Number.isFinite(value);','const valid=true;'],
     ["src/modules/03-tab-dash.js",'p?p.sign+p.ent:"—"','p?p.sign+p.ent:"0"'],
     ["src/modules/03-tab-dash.js",'value:tt.netWorth, shown:shownNet','value:0, shown:shownNet'],
@@ -129,9 +134,6 @@ test("Inicio solo actual cubre renderer, llamada, animación, textos, CSS y mone
     ["src/modules/02-ui-shared.js",'document.documentElement.classList.contains("reduce-motion")','false'],
     ["src/modules/01-i18n.js",'Math.abs((n||0)*DISP.k)','Math.abs(n||0)'],
     ["src/modules/01-i18n.js",'sign:n<0?"-":""','sign:""'],
-    ["src/modules/01-i18n.js",'v4_net_now:"Ahora"','v4_net_now:"Antes"'],
-    ["src/modules/01-i18n.js",'v4_net_now:"Now"','v4_net_now:"Before"'],
-    ["src/modules/01-i18n.js",'v4_net_now:"Ara"','v4_net_now:"Abans"'],
     ["src/modules/01-i18n.js",'v4_net_unknown:"El total actual no está disponible."','v4_net_unknown:"0"'],
     ["src/modules/01-i18n.js",'v4_net_unknown:"The current total is unavailable."','v4_net_unknown:"0"'],
     ["src/modules/01-i18n.js",'v4_net_unknown:"El total actual no està disponible."','v4_net_unknown:"0"'],
@@ -150,8 +152,6 @@ test("Inicio solo actual cubre renderer, llamada, animación, textos, CSS y mone
     ["src/modules/11-app-main.js",'DISP.k=1/r;','DISP.k=r;'],
     ["src/modules/11-app-main.js",'DISP.sym="€"; DISP.k=1;','DISP.sym="USD"; DISP.k=1;'],
     ["src/modules/11-app-main.js",'CURLANG = (state.settings&&state.settings.lang) || "es"','CURLANG = "es"'],
-    ["src/shell.html",'.v4-net-current-head{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;}','.v4-net-current-head{display:flex;flex-wrap:nowrap;}'],
-    ["src/shell.html",'.v4-net-now{font-size:12.5px;font-weight:700;color:var(--mint);}','.v4-net-now{display:none;}'],
     ["src/shell.html",'.v4-hero{text-align:center;padding:22px 0 8px;}','.v4-hero{display:none;}'],
     ["src/shell.html",'.v4-hero-amt{display:inline-block;','.v4-hero-amt{display:none;'],
     ["src/shell.html",'.v4-micro{font-size:12.5px;','.v4-micro{font-size:1px;'],
@@ -171,7 +171,7 @@ test("Inicio solo actual cubre renderer, llamada, animación, textos, CSS y mone
     }else assert.notEqual(betaRevision(id,changed).web,before.web,from);
   }
   const functions=logicFunctions(source,["src/modules/00-core.js","src/modules/01-i18n.js","src/modules/02-ui-shared.js","src/modules/03-tab-dash.js"]);
-  for(const name of ["NetWorthNow","useCountUp","mcReduced","eurParts","fxRateOf","fxTableOf"]){
+  for(const name of ["NetWorthNow","Sparkline","useCountUp","mcReduced","eurParts","fxRateOf","fxTableOf"]){
     const fn=functions.get(name);assert.ok(fn,name+": función real localizada");
     assert.notEqual(betaRevision(id,f=>f===fn.file?mutateLogic(source(f),fn):source(f)).web,before.web,name);
   }
@@ -184,27 +184,27 @@ test("Inicio solo actual cubre renderer, llamada, animación, textos, CSS y mone
   assert.equal(betaRevision(id,f=>f==="src/modules/01-i18n.js"?source(f).replace(other,other+"· "):source(f)).web,before.web,"no absorbe ayuda financiera ajena");
 });
 
-test("la candidata actual no cambia las otras unidades ni repina el rechazo109",()=>{
+test("La integración112 histórica no cambia las otras unidades ni repina el rechazo109",()=>{
   const cache=new Map(),base=f=>{if(!cache.has(f))cache.set(f,execFileSync("git",["show","23a7808f65ef6d28e8a906f7100ffdf229917abb:"+f],{encoding:"utf8",maxBuffer:10e6}));return cache.get(f);};
-  const before=JSON.parse(base("scripts/beta-sources.json")),actual=JSON.parse(read("scripts/beta-sources.json")),old="inc-0810-inicio-grafica-significado",current="inc-0910-inicio-solo-actual";
+  const before=JSON.parse(base("scripts/beta-sources.json")),actual=JSON.parse(source112("scripts/beta-sources.json")),old="inc-0810-inicio-grafica-significado",current="inc-0910-inicio-solo-actual";
   assert.deepEqual(Object.keys(actual).filter(id=>!before[id]),[current]);
   for(const [id,scope] of Object.entries(before)){
     const expected=structuredClone(scope);
     if(id==="inc-0810-dashboard-recents-memo"){
       expected.web[0]={file:"src/modules/03-tab-dash.js",from:"  const recent=useMemo",to:",[state.expenses,state.deleted]);",includeTo:true};
-      assert.equal(scopeText(scope.web[0],base),scopeText(expected.web[0],read),"106 reanclada cubre exactamente la expresión completa anterior");
+      assert.equal(scopeText(scope.web[0],base),scopeText(expected.web[0],source112),"106 reanclada cubre exactamente la expresión completa anterior");
     }
     if(["beta-panel-veredictos","ops-0410-panel-cola"].includes(id))
       expected.web.splice(expected.web.indexOf("scripts/beta-source-code.mjs")+1,0,"scripts/beta-archives.json",...[{"file":"src/modules/01-i18n.js","from":"    // Archivo109 es: una función retirada no acredita entrega vigente.","to":"    // Archivo109 es: fin de la referencia."},{"file":"src/modules/01-i18n.js","from":"    // Archivo109 en: una función retirada no acredita entrega vigente.","to":"    // Archivo109 en: fin de la referencia."},{"file":"src/modules/01-i18n.js","from":"    // Archivo109 ca: una función retirada no acredita entrega vigente.","to":"    // Archivo109 ca: fin de la referencia."}],...[{"file":"src/modules/10-app-components.js","function":"betaHistoricalDetails"},"scripts/listo-para-produccion.mjs"]);
     assert.deepEqual(actual[id],expected,id+": sólo los dos consumidores cubren el archivo explícito");
     if(id===old){
       assert.equal(betaRevision(id,base,undefined,scope).codigo,"b90e6223cd45ef64e8689d4c772560c31c7db47939694211a892316030a283f0");
-      assert.notEqual(betaRevision(current,read).web,betaRevision(id,base,undefined,scope).web,"el renderer nuevo no hereda el digest del dibujo antiguo");
+      assert.notEqual(betaRevision(current,source112,undefined,actual[current]).web,betaRevision(id,base,undefined,scope).web,"el renderer nuevo no hereda el digest del dibujo antiguo");
     }else if(["beta-panel-veredictos","ops-0410-panel-cola"].includes(id)){
-      assert.notEqual(betaRevision(id,read,undefined,actual[id]).web,betaRevision(id,base,undefined,scope).web,id+": archivo109 cambia la maquinaria cubierta y requiere revisión propia");
-    }else assert.equal(betaRevision(id,read,undefined,actual[id]).web,betaRevision(id,base,undefined,scope).web,id+": identidad ajena conservada");
+      assert.notEqual(betaRevision(id,source112,undefined,actual[id]).web,betaRevision(id,base,undefined,scope).web,id+": archivo109 cambia la maquinaria cubierta y requiere revisión propia");
+    }else assert.equal(betaRevision(id,source112,undefined,actual[id]).web,betaRevision(id,base,undefined,scope).web,id+": identidad ajena conservada");
   }
-  const notes=JSON.parse(read("src/data/release-notes.json")),oldNotes=JSON.parse(base("src/data/release-notes.json"));
+  const notes=JSON.parse(source112("src/data/release-notes.json")),oldNotes=JSON.parse(base("src/data/release-notes.json"));
   for(const note of oldNotes)assert.deepEqual(notes.find(n=>n.v===note.v),note,note.v+": notas y guiones históricos intactos");
 });
 
@@ -243,9 +243,9 @@ test("Retiro109 elimina solo las cinco aprobadas entregadas y conserva todo el h
   assert.equal(actual.length,226);assert.ok(!actual.some(n=>(n.tandas||[]).some(g=>ids.includes(g.id))));
 });
 
-test("BackClose110 y Bienes111 siguen LIVE con sólo las dependencias de Inicio112",()=>{
+test("Integración112 histórica conserva BackClose110 y Bienes111",()=>{
   const cache=new Map(),base=f=>{if(!cache.has(f))cache.set(f,execFileSync("git",["show","f4ffb9340adfd0a13b631271e8158d2c630613c0:"+f],{encoding:"utf8",maxBuffer:10e6}));return cache.get(f);};
-  const before=JSON.parse(base("scripts/beta-sources.json")),actual=JSON.parse(read("scripts/beta-sources.json")),id="inc-0810-backclose-handover";
+  const before=JSON.parse(base("scripts/beta-sources.json")),actual=JSON.parse(source112("scripts/beta-sources.json")),id="inc-0810-backclose-handover";
   assert.equal(Object.keys(before).length,36);assert.equal(Object.keys(actual).length,39);
   assert.deepEqual(Object.keys(actual).filter(key=>!before[key]),["inc-2709-07-bienes-toque",id,"inc-0910-inicio-solo-actual"]);
   // El alta111 se contrasta con un descriptor literal independiente del registro que vigila.
@@ -264,13 +264,13 @@ test("BackClose110 y Bienes111 siguen LIVE con sólo las dependencias de Inicio1
     const expected=structuredClone(scope);
     if(key==="inc-0810-dashboard-recents-memo"){
       expected.web[0]={file:"src/modules/03-tab-dash.js",from:"  const recent=useMemo",to:",[state.expenses,state.deleted]);",includeTo:true};
-      assert.equal(scopeText(scope.web[0],base),scopeText(expected.web[0],read),"106 reanclada cubre exactamente la expresión completa histórica");
+      assert.equal(scopeText(scope.web[0],base),scopeText(expected.web[0],source112),"106 reanclada cubre exactamente la expresión completa histórica");
     }
     if(["beta-panel-veredictos","ops-0410-panel-cola"].includes(key))
       expected.web.splice(expected.web.indexOf("scripts/beta-source-code.mjs")+1,0,"scripts/beta-archives.json",...[{"file":"src/modules/01-i18n.js","from":"    // Archivo109 es: una función retirada no acredita entrega vigente.","to":"    // Archivo109 es: fin de la referencia."},{"file":"src/modules/01-i18n.js","from":"    // Archivo109 en: una función retirada no acredita entrega vigente.","to":"    // Archivo109 en: fin de la referencia."},{"file":"src/modules/01-i18n.js","from":"    // Archivo109 ca: una función retirada no acredita entrega vigente.","to":"    // Archivo109 ca: fin de la referencia."}],...[{"file":"src/modules/10-app-components.js","function":"betaHistoricalDetails"},"scripts/listo-para-produccion.mjs"]);
     assert.deepEqual(actual[key],expected,key+": sólo los dos consumidores cubren el archivo explícito");
     }
-    const source=key===archiveId?base:read;
+    const source=key===archiveId?base:source112;
     if(betaRevision(key,source,undefined,actual[key]).web!==betaRevision(key,base,undefined,scope).web)changed.push(key);
   }
   assert.deepEqual(changed.sort(),["beta-panel-veredictos","inc-0310-broker-resultados","inc-3009-nomina-anticipada","ops-0410-panel-cola"],"Brókers110/Nómina111 ya cambiaron;112 añade sólo los dos consumidores del archivo, con109 fijo en f4ff");
@@ -294,12 +294,12 @@ test("Retiro110 y altas111/112 conservan229notas sin duplicar ni reabrir tandas"
   const verify=notes=>{
     assert.equal(notes.length,229);
     const first=notes[0];
-    assert.equal(JSON.parse(read("package.json")).version,"4.26.112");
+    assert.equal(JSON.parse(source112("package.json")).version,"4.26.112");
     assert.match(first.d,/^\d{4}-\d{2}-\d{2}$/);
     assert.deepEqual(first,{v:"4.26.112",d:first.d,...newCopy},"sólo la unidad112 con copia propia es/en/ca, sin alias");
     assert.deepEqual(notes.slice(1),expected,"111 literal y227notas completas, sin cambios a guiones/textos/metadata");
   };
-  const actual=JSON.parse(read("src/data/release-notes.json"));verify(actual);
+  const actual=JSON.parse(source112("src/data/release-notes.json"));verify(actual);
   assert.deepEqual(actual.find(n=>n.v==="4.26.109"),delivered110Notes.find(n=>n.v==="4.26.109"),"109 rechazada íntegra");
   for(const id of ids){
     assert.equal(actual.flatMap(n=>n.tandas||[]).filter(g=>g.id===id).length,0);
@@ -323,6 +323,54 @@ test("Retiro110 y altas111/112 conservan229notas sin duplicar ni reabrir tandas"
   const duplicateCurrent=structuredClone(actual);duplicateCurrent[0].tandas.push(structuredClone(duplicateCurrent[0].tandas[0]));assert.throws(()=>verify(duplicateCurrent),"duplicar la unidad actual debe fallar");
   const inheritedCurrent=structuredClone(actual);inheritedCurrent[0].tandas[0].desde=rejected;assert.throws(()=>verify(inheritedCurrent),"heredar el rechazo109 debe fallar");
   const unreserved=structuredClone(actual);unreserved[0].v=expected[0].v;assert.throws(()=>verify(unreserved),"reutilizar la versión previa debe fallar");
+});
+
+
+// Los textos autorizados y los dos retiros se fijan independientemente: alterar una nota
+// histórica o reciclar el OK de una puerta anterior tiene que dejar rojo el catálogo.
+const expected113={v:'4.26.113',d:'2026-10-10',t:{es:'Bienes completos y vuelve la gráfica de Inicio',en:'Complete assets and the Home chart returns',ca:'Béns complets i torna la gràfica d’Inici'},items:{es:['En Cartera → Bienes ya puedes añadir un bien, editarlo y borrarlo, también cuando la lista está vacía.','Inicio recupera la gráfica del patrimonio.'],en:['In Wallet → Property, you can now add, edit and delete an asset, even when the list is empty.','Home brings back the net worth chart.'],ca:['A Cartera → Béns ja pots afegir un bé, editar-lo i esborrar-lo, també quan la llista és buida.','Inici recupera la gràfica del patrimoni.']},tandas:[{id:'bienes-completo',t:{es:'Bienes completos',en:'Complete assets',ca:'Béns complets'},items:{es:['1. En Cartera → Bienes, añade un bien con nombre y valor: aparece en la lista y sube el patrimonio.','2. Tócalo, cambia el valor y guarda. Ábrelo otra vez y pulsa Cancelar: no cambia nada.','3. Bórralo: pide confirmación. Al cancelar sigue ahí; al confirmar desaparece.'],en:['1. In Wallet → Property, add an asset with a name and value: it appears in the list and increases net worth.','2. Tap it, change the value and save. Open it again and press Cancel: nothing changes.','3. Delete it: confirmation is requested. Cancelling keeps it there; confirming removes it.'],ca:['1. A Cartera → Béns, afegeix un bé amb nom i valor: apareix a la llista i puja el patrimoni.','2. Toca’l, canvia el valor i desa. Obre’l una altra vegada i prem Cancel·la: no canvia res.','3. Esborra’l: demana confirmació. En cancel·lar continua allà; en confirmar desapareix.']}},{id:'inicio-grafica-vuelve',t:{es:'Vuelve la gráfica de Inicio',en:'The Home chart returns',ca:'Torna la gràfica d’Inici'},items:{es:['1. Abre Inicio: vuelve a verse la gráfica bajo el patrimonio y ya no aparece «Ahora».'],en:['1. Open Home: the chart is visible below net worth again and “Now” no longer appears.'],ca:['1. Obre Inici: torna a veure’s la gràfica sota el patrimoni i ja no apareix «Ara».']}}]};
+test("Catálogo113 sustituye sólo111/112 y conserva notas, pendientes y rechazo109",()=>{
+  const before=JSON.parse(source112("src/data/release-notes.json"));
+  const retired=["inc-2709-07-bienes-toque","inc-0910-inicio-solo-actual"];
+  const expected=[expected113,...before.map(n=>n.tandas?{...n,tandas:n.tandas.filter(g=>!retired.includes(g.id))}:n)];
+  const verify=notes=>assert.deepEqual(notes,expected);
+  const notes=JSON.parse(read("src/data/release-notes.json"));verify(notes);
+  assert.equal(notes.length,230);assert.equal(JSON.parse(read("package.json")).version,"4.26.113");
+  for(const id of retired){
+    const changed=structuredClone(notes),old=before.find(n=>(n.tandas||[]).some(g=>g.id===id));
+    changed.find(n=>n.v===old.v).tandas.push(old.tandas.find(g=>g.id===id));
+    assert.throws(()=>verify(changed),"no reabrir "+id);
+  }
+  const changed=structuredClone(notes);changed[0].tandas[0].desde=retired[0];assert.throws(()=>verify(changed));
+  const missing=structuredClone(notes);missing.pop();assert.throws(()=>verify(missing));
+  const text=structuredClone(notes);text[1].items.es[0]+="mutante";assert.throws(()=>verify(text));
+  const scopes=JSON.parse(read("scripts/beta-sources.json")),oldScopes=JSON.parse(source112("scripts/beta-sources.json"));
+  assert.deepEqual(Object.keys(scopes).filter(id=>!oldScopes[id]),["bienes-completo","inicio-grafica-vuelve"]);
+  for(const [id,scope] of Object.entries(oldScopes))if(!retired.includes(id))assert.deepEqual(scopes[id],scope,id+": descriptor ajeno intacto");
+  for(const id of retired)assert.equal(scopes[id],undefined,"no repinar "+id);
+  assert.deepEqual(JSON.parse(read("scripts/beta-archives.json")),JSON.parse(source112("scripts/beta-archives.json")),"pin y juicio109 intactos");
+  const built=betaNotes(notes),receipt=betaDelivery(built);
+  for(const id of retired){assert.equal(receipt.web[id],undefined);assert.equal(receipt.pruebas[id],undefined);}
+  for(const g of built[0].tandas){
+    assert.equal(receipt.web[g.id],g.web);assert.equal(receipt.pruebas[g.id].v,"4.26.113");
+    for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica"])assert.equal(g[key],undefined,"identidad nueva sin "+key);
+  }
+});
+test("Bienes113 vigila la puerta vacía, ficha, cancelación, borrado y textos",()=>{
+  const source=f=>read(f).replace(/\r\n/g,"\n"),id="bienes-completo",before=betaRevision(id,source).web;
+  for(const [file,from,to] of [
+    ["src/modules/14-v4-screens.js",'{ id:"bienes", label:t("pt_goods")','(state.assets||[]).length>0 && { id:"bienes", label:t("pt_goods")'],
+    ["src/modules/07-tab-patri-fijos.js",'setSheetAsset({});','setSheetAsset(null);'],
+    ["src/modules/07-tab-patri-fijos.js",'if(!valid) return;','if(false) return;'],
+    ["src/modules/07-tab-patri-fijos.js",'if(!ok) return;','if(false) return;'],
+    ["src/modules/07-tab-patri-fijos.js",'onClick:onClose},t("fj_cancel")','onClick:save},t("fj_cancel")'],
+    ["src/modules/01-i18n.js",'goods_delete_sub:"Dejará de contar','goods_delete_sub:"Texto cambiado'],
+    ["src/modules/01-i18n.js",'goods_delete_sub:"It will no longer count','goods_delete_sub:"Changed text'],
+    ["src/modules/01-i18n.js",'goods_delete_sub:"Deixarà de comptar','goods_delete_sub:"Text canviat'],
+  ]){
+    assert.ok(source(file).includes(from),"mutante sobre fuente real: "+from);
+    assert.notEqual(betaRevision(id,f=>f===file?source(f).replace(from,to):source(f)).web,before,from);
+  }
 });
 
 if(process.argv.includes("--integration-only")) process.exit(failed?1:0);
@@ -485,7 +533,7 @@ test("PERSIST91: el guardado en el commit invalida toda tanda que escribe estado
   assert.equal(dependientes.length,22);
   assert.ok(dependientes.includes("inc-0810-metas-editar-regla"),"editar una regla escribe con el set real y conserva el cierre de persistencia");
   assert.ok(dependientes.includes("inc-0710-gastos-mes-madrid"),"Gastos99 conserva la dependencia real de guardado de Expenses");
-  assert.deepEqual(ajenas.slice().sort(),["beta-panel-veredictos","inc-0210-01-plan-cuota","inc-0410-inicio-tres-metas","inc-0710-appstate-listener-cleanup","inc-0710-banknotif-cleanup","inc-0810-backclose-handover","inc-0810-dashboard-recents-memo","inc-0810-inicio-grafica-significado","inc-0810-nav-indicator","inc-0910-inicio-solo-actual","inc-2709-01-arranque-red","inc-2709-09-fechas-cache","inc-2709-12-cyber-fab","inc-2709-13-fab-contorno","inc-2709-14-preguntar","ops-0410-panel-cola","tr-descripcion-clasificacion"]);
+  assert.deepEqual(ajenas.slice().sort(),["beta-panel-veredictos","inc-0210-01-plan-cuota","inc-0410-inicio-tres-metas","inc-0710-appstate-listener-cleanup","inc-0710-banknotif-cleanup","inc-0810-backclose-handover","inc-0810-dashboard-recents-memo","inc-0810-inicio-grafica-significado","inc-0810-nav-indicator","inc-2709-01-arranque-red","inc-2709-09-fechas-cache","inc-2709-12-cyber-fab","inc-2709-13-fab-contorno","inc-2709-14-preguntar","inicio-grafica-vuelve","ops-0410-panel-cola","tr-descripcion-clasificacion"]);
   /* Quién depende del guardado lo decide el CÓDIGO, no la marca del registro (auditoría del
      coordinador, 4/10): se quita de cada alcance el bloque del guardado y se mira si lo que queda
      llama a `set` de App —las dependencias transitivas ya son unidades del alcance—. Tiene que
@@ -883,7 +931,7 @@ test("archivo109 conserva descriptor, guion y B90 contra f4ff, nunca entrega vig
   const receipt=betaDelivery(built,read,scopes,archiveRefs,archiveHistory);
   assert.equal(Object.hasOwn(receipt.web,archiveId),false);assert.equal(Object.hasOwn(receipt.pruebas,archiveId),false);
   assert.equal(receipt.referenciasHistoricas[archiveId].estado,"ausente");
-  assert.equal(receipt.web["inc-0910-inicio-solo-actual"],betaRevision("inc-0910-inicio-solo-actual").web);
+  assert.equal(receipt.web["inicio-grafica-vuelve"],betaRevision("inicio-grafica-vuelve").web);
 });
 test("archivo109 aborta ante SHA ausente, pin/code forjado y descriptor o guion cambiado",()=>{
   const scopes=JSON.parse(read("scripts/beta-sources.json")),ref=archiveRefs.refs[archiveId];
@@ -913,7 +961,8 @@ test("la unidad actual no admite alias ni compatibilidad heredada de109",()=>{
   const id="inc-0910-inicio-solo-actual",g={id,t:{es:"Caso sintético"},items:{es:["1. Comprobar total actual"]}};
   for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica"])
     assert.throws(()=>betaNotes([{v:"9.9.9",tandas:[{...g,[key]:[]}]}]),/no hereda identidad ni aprobación/,key);
-  assert.deepEqual(betaCompatible(g,betaRevision(id),JSON.parse(read("scripts/beta-sources.json"))[id]),{});
+  const scope=JSON.parse(source112("scripts/beta-sources.json"))[id];
+  assert.deepEqual(betaCompatible(g,betaRevision(id,source112,undefined,scope),scope),{});
 });
 
 test("los dos consumidores del archivo cambian identidad y no heredan compatibilidad vieja",()=>{
@@ -938,7 +987,7 @@ test("la referencia histórica visible vigila el texto completo en los tres idio
     const changed=f=>f==="src/modules/01-i18n.js"?text.replace(block,mutant):source(f);
     for(const id of ["beta-panel-veredictos","ops-0410-panel-cola"])
       assert.notEqual(betaRevision(id,changed).web,betaRevision(id,source).web,id+": "+lang);
-    assert.equal(betaRevision("inc-0910-inicio-solo-actual",changed).web,betaRevision("inc-0910-inicio-solo-actual",source).web,"no repina la propuesta de patrimonio actual");
+    assert.equal(betaRevision("inicio-grafica-vuelve",changed).web,betaRevision("inicio-grafica-vuelve",source).web,"no repina la propuesta de patrimonio actual");
   }
 });
 
@@ -979,7 +1028,9 @@ test("Recientes106 reanclada conserva expresión, identidad y recibo completos",
   const old=f=>at("23a7808f65ef6d28e8a906f7100ffdf229917abb",f);
   assert.equal(logicFunctions(read,["src/modules/01-i18n.js"]).get("seedFlows").text,logicFunctions(old,["src/modules/01-i18n.js"]).get("seedFlows").text,"seedFlows entero conserva los bytes111, incluido el incidente fechado");
   const scopes=JSON.parse(read("scripts/beta-sources.json"));
-  assert.equal(betaRevision("inc-3009-nomina-anticipada",read).web,betaRevision("inc-3009-nomina-anticipada",old,undefined,scopes["inc-3009-nomina-anticipada"]).web,"Nómina111 conserva identidad real");
+  // Wealth pertenece al alcance de Nómina: el editor de Bienes113 cambia esa dependencia
+  // real. Recortarla para conservar el OK111 ocultaría producto modificado (10/10).
+  assert.notEqual(betaRevision("inc-3009-nomina-anticipada",read).web,betaRevision("inc-3009-nomina-anticipada",old,undefined,scopes["inc-3009-nomina-anticipada"]).web,"Bienes113 cambia Wealth compartida con Nómina; no conservar la identidad111");
 });
 
 process.exitCode=failed?1:0;

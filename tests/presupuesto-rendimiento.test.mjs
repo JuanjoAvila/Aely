@@ -195,7 +195,10 @@ const PRESUPUESTO = {
   // caso de exceso, deja 342.031 B gzip (15 B sobre 334 KiB). +1 KiB medido para
   // no ocultar cifras financieras ni recortar los tres idiomas; quedan 1.009 B.
   // La misma candidata mide 343.257 B gzip, 217 B sobre 335 KiB: +1 KiB medido.
-  gzip: 353 * 1024,
+  // Bienes completo y gráfica113: tras retirar las selecciones111/112 sustituidas,
+  // el sello113.99999 con DSN sintético95 B mide361.889 B,417 B sobre353 KiB.
+  // +1 KiB es el incremento mínimo por KiB; crudo1295 y3 bloqueantes intactos.
+  gzip: 354 * 1024,
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 

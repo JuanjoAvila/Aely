@@ -948,8 +948,6 @@
   .v4-inicio-date{font-size:14px;color:var(--muted-2);font-weight:600;}
   .v4-inicio-hi{font-family:'Fraunces',Georgia,serif;font-size:24px;font-weight:560;font-variation-settings:"opsz" 24;letter-spacing:-.2px;margin-top:2px;}
   .v4-hero{text-align:center;padding:22px 0 8px;}
-  .v4-net-current-head{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;}
-  .v4-net-now{font-size:12.5px;font-weight:700;color:var(--mint);}
   /* inline-block: el tour (y cualquiera que mida la caja) ve el ancho REAL de la cifra, no
      todo el ancho de la pantalla — con 999 € es chico; con 192.148,45 €, más ancho. */
   /* P13 — la Fraunces se carga como variable con `opsz` 9-144 y no se estaba usando: los numeros
@@ -5109,7 +5107,7 @@ const LANG = {
     v4_budget_spent:"Has gastado {spent} de tus {budget}.", v4_budget_daily:"Puedes gastar {x}/día hasta fin de mes.", v4_cycle_net:"Gasto neto desde el cobro: {used} de tus {budget}.", v4_cycle_left:"Te quedan {x}.", v4_cycle_over:"Te faltan {x}.",
     v4_streak:"{n} meses sin pasarte", v4_streak_zero:"Mes en curso",
     // INC-0810 es: patrimonio de ahora.
-    v4_net_now:"Ahora", v4_net_unknown:"El total actual no está disponible.",
+    v4_hist_empty:"Tu histórico empieza hoy", v4_net_unknown:"El total actual no está disponible.",
     // INC-0810 es: fin del patrimonio de ahora.
     v4_nobud_t:"Ponle un presupuesto", v4_nobud_p:"Es la mitad de la app: sin un tope al mes no se puede saber cuánto te queda. Puedes cambiarlo cuando quieras.", v4_nobud_cta:"Ponle un presupuesto", v4_noup_t:"Aún no hay recibos", v4_noup_p:"Conecta tu banco y los recibos del mes aparecen solos, con su día y su importe.", v4_noup_cta:"Conecta tu banco", v4_nogoal_t:"Ponte tu primera meta", v4_nogoal_p:"Un viaje, un colchón, lo que sea: la app te dice cuánto falta y cuándo llegas.", v4_nogoal_cta:"Crear una meta", v4_see_gastos:"Ver gastos ›", v4_see_plan:"Ver plan ›",
     v4_upcoming:"Próximos cargos", v4_upcoming_empty:"Nada pendiente este mes. Los recibos aparecen aquí.",
@@ -5171,6 +5169,7 @@ const LANG = {
     bk_tr_ob_cta:"Renovar el permiso del banco",
     v4_acc_locked:"El saldo de las cuentas conectadas lo trae el banco solo; el nombre y el rol sí puedes cambiarlos.",
     v4_sel_partial:"Seleccionado", v4_edit_goods:"Editar bienes",
+    goods_add:"Añadir bien", goods_name:"Nombre del bien", goods_value:"Valor en euros", goods_home:"Vivienda", goods_car:"Vehículo", goods_invalid:"Escribe un nombre y un valor válido, con hasta dos decimales.", goods_delete:"Borrar bien", goods_delete_q:"¿Borrar {name}?", goods_delete_sub:"Dejará de contar en el patrimonio. No se borran cuentas ni movimientos.",
     v4_gestionar_h:"Edita fijos, cuotas, flujos y conciliación del banco — sin llenar la vista diaria.",
     v4_debts_foot_a:"Deudas", v4_debts_foot_b:"ya descontadas",
     v4_apuntar:"Apuntar", v4_gasto:"Gasto", v4_ingreso:"Ingreso", v4_apuntar_ph:"¿En qué? (ej. Cena)",
@@ -7842,6 +7841,34 @@ function useCountUp(target, ready, replay){
   return shown;
 }
 
+function Sparkline({data, current}){
+  const pts = data.concat(current!=null?[current]:[]);
+  // Con 0 o 1 puntos esto pintaba una recta de lado a lado con su puntito final: parece un grafico
+  // de verdad que dice cero, y es lo primero que ve alguien que acaba de instalar la app. Sin
+  // datos no hay grafico (P1). Quien lo llama reserva el hueco para que no salte el layout.
+  if(pts.length<2) return null;
+  const w=320, h=70, pad=4;
+  const min=Math.min.apply(null,pts), max=Math.max.apply(null,pts);
+  const rng=(max-min)||1;
+  const xs=(i)=> pad + (pts.length>1 ? i*(w-2*pad)/(pts.length-1) : 0);
+  const ys=(v)=> pad + (1-(v-min)/rng)*(h-2*pad);
+  let d="M"+xs(0)+" "+ys(pts[0]);
+  for(let i=1;i<pts.length;i++) d+=" L"+xs(i)+" "+ys(pts[i]);
+  const area=d+" L"+xs(pts.length-1)+" "+h+" L"+xs(0)+" "+h+" Z";
+  const lastX=xs(pts.length-1), lastY=ys(pts[pts.length-1]);
+  return React.createElement("svg",{className:"spark",viewBox:"0 0 "+w+" "+h,preserveAspectRatio:"none"},
+    React.createElement("defs",null,
+      React.createElement("linearGradient",{id:"sparkfill",x1:"0",y1:"0",x2:"0",y2:"1"},
+        React.createElement("stop",{offset:"0",stopColor:"#5FD08A",stopOpacity:"0.28"}),
+        React.createElement("stop",{offset:"1",stopColor:"#5FD08A",stopOpacity:"0"})
+      )
+    ),
+    React.createElement("path",{d:area,fill:"url(#sparkfill)"}),
+    React.createElement("path",{d:d,fill:"none",stroke:"#5FD08A",strokeWidth:"2.4",strokeLinecap:"round",strokeLinejoin:"round",vectorEffect:"non-scaling-stroke"}),
+    React.createElement("circle",{cx:lastX,cy:lastY,r:"3.5",fill:"#7DE8A8"})
+  );
+}
+
 // Snapshot diario del total invertido (valor + coste opcional). Idempotente por día.
 function recordInvSnapshot(hist, today, value, cost){
   const h=(hist||[]).slice();
@@ -8669,20 +8696,20 @@ function dashOrderOf(s, allIds){
   const saved=((s.settings&&s.settings.dashOrder)||[]).filter(function(id){ return allIds.indexOf(id)>=0; });
   return saved.concat(allIds.filter(function(id){ return saved.indexOf(id)<0; }));
 }
-function NetWorthNow({value, shown, simple}){
-  // Los números guardados no acreditan fechas ni observaciones reales: unir el cero de alta
-  // o la semilla al patrimonio parecía una evolución. Se muestra solo el total de ahora
-  // (rechazo 9/10/2026), sin interpretar, borrar ni reescribir ese histórico.
+function NetWorthNow({value, shown, simple, history}){
+  // Retirar la variante109 no autorizaba quitar la gráfica de producción110 (feedback10/10).
+  // Se recupera su dibujo, sin convertir el histórico en ganancias ni reescribirlo.
   const valid=typeof value==="number" && Number.isFinite(value);
   const p=valid?eurParts(typeof shown==="number" && Number.isFinite(shown)?shown:value):null;
   return React.createElement("div",{className:"v4-hero rise","data-tour":"hero","data-testid":"inicio-net-current",style:{animationDelay:".05s"}},
-    React.createElement("div",{className:"v4-net-current-head"},
-      React.createElement("div",{className:"v4-micro"}, t(simple?"v4_money_total":"d_networth")),
-      React.createElement("span",{className:"v4-net-now","data-testid":"inicio-net-now"}, t("v4_net_now"))
-    ),
+    React.createElement("div",{className:"v4-micro"}, t(simple?"v4_money_total":"d_networth")),
     React.createElement("div",{className:"v4-hero-amt num","data-tour":"hero-amt"},
       p?p.sign+p.ent:"—", p&&React.createElement("span",{style:{fontSize:28,color:"var(--muted)"}},","+(p.dec||"00")+" "+p.sym)),
-    !valid&&React.createElement("div",{className:"hint",role:"status"}, t("v4_net_unknown"))
+    !valid&&React.createElement("div",{className:"hint",role:"status"}, t("v4_net_unknown")),
+    valid&&React.createElement("div",{style:{marginTop:14}},
+      (history&&history.length>=1)
+        ? React.createElement(Sparkline,{data:history,current:value})
+        : React.createElement("div",{style:{fontSize:12.5,color:"var(--muted-2)",padding:"6px 0 2px"}}, t("v4_hist_empty")))
   );
 }
 function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProfile, onGoGastos, onGoPlan, showToast}){
@@ -8897,7 +8924,7 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
       }}, t("mr_share"))
     ),
 
-    !showSkel && React.createElement(NetWorthNow,{value:tt.netWorth, shown:shownNet, simple:simple}),
+    !showSkel && React.createElement(NetWorthNow,{value:tt.netWorth, shown:shownNet, simple:simple, history:state.history}),
 
     // Sin presupuesto, Inicio escondia su tarjeta estrella y te quedabas sin la mitad de la app
     // sin saber por que (P3). En vez de esconderla, la misma tarjeta en vacio y con salida: abre
@@ -12667,9 +12694,55 @@ function AccountSheet({open, cuenta, state, set, totals, onClose, onRemove, onSa
     ), document.body);
 }
 
+// El nombre se guardaba al escribir y cancelar no era posible. La ficha mantiene todo local
+// hasta Guardar; cerrar, volver atrás y cancelar el borrado no cambian el patrimonio (10/10).
+function AssetSheet({asset,set,onClose}){
+  const [name,setName]=useState(asset.name||"");
+  const [raw,setRaw]=useState(asset.value==null?"":String(asset.value));
+  const [kind,setKind]=useState(asset.kind||"piso");
+  useBackClose(true,onClose);
+  const swipe=useSheetSwipe(true,onClose);
+  const amount=Number(raw.replace(",","."));
+  const valid=name.trim()&&/^\d+(?:[.,]\d{1,2})?$/.test(raw)&&Number.isSafeInteger(Math.round(amount*100));
+  const save=function(){
+    if(!valid) return;
+    const next=Object.assign({},asset,{id:asset.id||uid(),name:name.trim(),kind:kind,value:amount});
+    set(function(s){
+      const old=(s.assets||[]).find(function(a){ return a.id===asset.id; });
+      if(asset.id&&!old) return s;
+      if(old&&old.name===next.name&&old.kind===next.kind&&old.value===next.value) return s;
+      return Object.assign({},s,{assets:asset.id?s.assets.map(function(a){ return a.id===asset.id?Object.assign({},a,{name:next.name,kind:next.kind,value:next.value}):a; }):(s.assets||[]).concat(next)});
+    });
+    onClose();
+  };
+  const remove=function(){
+    askConfirm({title:tf("goods_delete_q",{name:asset.name}),sub:t("goods_delete_sub"),ok:t("goods_delete")}).then(function(ok){
+      if(!ok) return;
+      set(function(s){ return Object.assign({},s,{assets:(s.assets||[]).filter(function(a){ return a.id!==asset.id; })}); });
+      onClose();
+    });
+  };
+  return ReactDOM.createPortal(React.createElement("div",{className:"tabsheet-back",onClick:onClose},
+    React.createElement("div",Object.assign({className:"tabsheet",role:"dialog","aria-modal":true,"aria-label":t(asset.id?"v4_edit_goods":"goods_add"),ref:swipe.sheetRef,onClick:function(e){e.stopPropagation();}},swipe.sheetTouch),
+      React.createElement("div",{className:"v4-sheet-handle"}),
+      React.createElement("h2",{className:"serif"},t(asset.id?"v4_edit_goods":"goods_add")),
+      React.createElement("div",{className:"add-form"},
+        React.createElement("label",null,t("goods_name"),React.createElement("input",{className:"af-in",value:name,onChange:function(e){setName(e.target.value);}})),
+        React.createElement("label",null,t("goods_value"),React.createElement("input",{className:"af-in num",inputMode:"decimal",value:raw,"aria-invalid":!!raw&&!valid,onChange:function(e){setRaw(e.target.value);}})),
+        React.createElement("div",{className:"row"},["piso","coche"].map(function(k){return React.createElement("button",{type:"button",className:"chip"+(kind===k?" active":""),key:k,"aria-pressed":kind===k,onClick:function(){setKind(k);}},t(k==="piso"?"goods_home":"goods_car"));})),
+        !valid&&React.createElement("div",{className:"hint"},t("goods_invalid")),
+        React.createElement("div",{className:"row"},
+          React.createElement("button",{type:"button",className:"btn btn-ghost",onClick:onClose},t("fj_cancel")),
+          React.createElement("button",{type:"button",className:"btn btn-primary",disabled:!valid,onClick:save},t("save"))),
+        asset.id&&React.createElement("button",{type:"button",className:"btn btn-ghost",onClick:remove},t("goods_delete"))
+      )
+    )),document.body);
+}
+
 function Wealth({state, set, totals, v4Embed, parte, showToast, onBankSync, onReconnectBank, bankBusy}){
   const [delAcc,setDelAcc]=React.useState("");   // id de la cuenta manual pendiente de confirmar borrado
   const [sheetAcc,setSheetAcc]=React.useState("");   // id de la cuenta cuya ficha está abierta (v4)
+  const [sheetAsset,setSheetAsset]=useState(null);
   const [balanceReady,setBalanceReady]=React.useState(function(){ return !!window.__mcBootReady; });
   React.useEffect(function(){
     if(balanceReady) return;
@@ -13115,35 +13188,22 @@ function Wealth({state, set, totals, v4Embed, parte, showToast, onBankSync, onRe
         // dejaría «Bienes» dos veces seguidas.
         parte!=="bienes" && React.createElement("div",{className:"v4-sec-h"}, t("pt_goods")),
         state.assets.map(function(a){
-          // Bienes parecía bloqueado al tocar una fila (INC-2709-07): abre el mismo editor
-          // que el enlace inferior; en edición deja de ser botón para no envolver el input.
-          return React.createElement(astEd.editing?"div":"button",{className:"v4-mov",key:a.id,
-            type:astEd.editing?undefined:"button",
+          return React.createElement("button",{className:"v4-mov",key:a.id,
+            type:"button",
             style:{width:"100%",textAlign:"left",color:"var(--text)"},
-            onClick:astEd.editing?undefined:function(){ astEd.start(); }},
+            onClick:function(){ setSheetAsset(a); }},
             React.createElement("div",{className:"tile"},a.kind==="piso"?"🏡":"🚙"),
             React.createElement("div",{className:"nm"},
               React.createElement("div",null,a.name),
               a.note && React.createElement("div",{className:"meta"},a.note)
             ),
-            astEd.editing
-              ? React.createElement("input",{className:"editv num",value:astEd.draft[a.id],inputMode:"decimal",onChange:function(e){const v=e.target.value;astEd.setDraft(function(d){return Object.assign({},d,{[a.id]:v});})}})
-              : React.createElement("div",{className:"am num"},eur0(a.value))
+            React.createElement("div",{className:"am num"},eur0(a.value))
           );
-        }),
-        // El botón de editar bienes «desapareció» con el rediseño (feedback 2026-07-18):
-        // mismo patrón edit-link que las cuentas de arriba.
-        React.createElement("button",{className:"edit-link",style:{margin:"8px 4px"},onClick:function(){ astEd.editing?astEd.save():astEd.start(); }},astEd.editing?t("fj_save"):t("v4_edit_goods")),
-        astEd.editing && React.createElement("div",{className:"add-form",style:{marginTop:4}},
-          state.assets.map(function(a){
-            return React.createElement("div",{className:"af-row",key:"an_"+a.id,style:{alignItems:"center"}},
-              React.createElement("span",{style:{flex:"0 0 auto",fontSize:18}},a.kind==="piso"?"🏡":"🚙"),
-              React.createElement("input",{className:"af-in",style:{flex:1,fontSize:13,padding:"7px 10px"},value:a.name||"",
-                onChange:function(e){ const v=e.target.value; set(function(s){ return Object.assign({},s,{assets:s.assets.map(function(x){ return x.id===a.id?Object.assign({},x,{name:v}):x; })}); }); }})
-            );
-          }),
-          React.createElement("div",{className:"hint"}, t("pt_nonliquid"))
-        )
+        })
+      ),
+      parte!=="cuentas" && React.createElement(React.Fragment,null,
+        React.createElement("button",{type:"button",className:"btn btn-ghost",onClick:function(){setSheetAsset({});}},t("goods_add")),
+        sheetAsset&&React.createElement(AssetSheet,{asset:sheetAsset,set:set,onClose:function(){setSheetAsset(null);}})
       )
     );
   }
@@ -20349,7 +20409,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="f23168cb2e00d8c9e32e305c66b78f275d8904b5b4ea6dcdc2e3bbe181f1e5a9";
+var _rnSha="7972b7e14ae1773dc35ba3a5611fc8bf5468512197cac644877343fc75fdc3f8";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -23042,7 +23102,7 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
       ) },
       // Bienes (piso, coche…) es su propio bloque: no son cuentas de banco y el usuario quiere
       // colocarlos donde le apetezca (feedback 2026-07-25).
-      (state.assets||[]).length>0 && { id:"bienes", label:t("pt_goods"), el:React.createElement(React.Fragment,null,
+      { id:"bienes", label:t("pt_goods"), el:React.createElement(React.Fragment,null,
         React.createElement("div",{className:"v4-sec-h"}, t("pt_goods")),
         React.createElement(Wealth,{state:state,set:set,totals:totals,v4Embed:true,parte:"bienes"})
       ) },

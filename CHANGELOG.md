@@ -1,3 +1,9 @@
+## [4.26.113] — 2026-10-10
+
+- Integra Bienes completo (PR198) y la gráfica restaurada de Inicio (PR199), sin añadir producto a su fuente combinada. El catálogo112 exigía dos anclas CSS retiradas y abortaba el build: se sustituyen las unidades111/112 por `bienes-completo` e `inicio-grafica-vuelve`, con identidades propias, incluida la puerta de Bienes vacíos. Se conservan notas históricas y referencia/rechazo109 sin repinar ni heredar aprobaciones.
+- Notas y pasos es/en/ca según el encargo, versión y documentación alineadas. Guardias actuales de catálogo y mutaciones de puerta/ficha/borrado; los contratos históricos112 se contrastan con su SHA fijo. Nómina conserva su alcance completo: su digest cambia porque incluye Wealth modificada por Bienes; no se recorta para preservar una aprobación anterior.
+- Presupuesto: examinadas y retiradas selecciones de catálogo sin uso111/112; no queda código de producto prescindible dentro del alcance autorizado. La medida sellada113.99999 con configuración sintética95 B da1.325.115 B minificados/361.889 B gzip: exceso417 B frente353 KiB. Se amplía gzip sólo1 KiB a354, el mínimo en la unidad existente y por debajo del máximo2 KiB autorizado; crudo1295 KiB y3 cargas intactos. Publicación beta, CI y aceptación móvil corresponden a Claude.
+
 ## [4.26.112] — 2026-10-10 · Inicio: sólo patrimonio actual (candidata)
 
 - El paquete cargaba componentes y estilos sin consumidores: se retiran Ring, MiniPie, TabCoach y su CSS asociado, además de doce iconos sin uso. Se conservan V4Ring, Tour, SparklineInv, .spark, los tres idiomas y el historial. El A/B oficial reduce7.274 bytes minificados y1.599 gzip sin cambiar los topes. El candidato integrado pasa57 casos del guardián de identidades,1.792 mutaciones de funciones y713 de datos; presupuesto de paquete, DOM y entrega se verifican aparte.

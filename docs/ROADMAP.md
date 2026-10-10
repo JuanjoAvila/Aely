@@ -1,14 +1,10 @@
 # Roadmap — Aely
 
-Candidata por encargo de Claude: [Bienes completo](briefs/bienes-completo-20261010.md), alta alcanzable con lista vacía y ficha de edición con Guardar/Cancelar y borrado confirmado. Pendiente de integración y publicación; no cambia la versión publicada ni acredita aceptación móvil.
-
-Candidata del encargo `inicio-grafica-vuelve-codex-20261010`: restaurar en Inicio el dibujo de main4.26.110, sin la etiqueta «Ahora». Conserva cálculo, moneda y cartera. Integración retenida por las anclas CSS del catálogo112; versión y publicación corresponden a Claude. [Acta](briefs/inicio-grafica-vuelve-20261010.md).
-
 MAIN4.26.110 incorpora PR196 (bdd75636), sólo pruebas, herramientas y documentación. Tests38005461796 y DeployPages38005461732 terminaron SUCCESS y sus artefactos se comprobaron; ese cierre no publica Inicio112 ni acredita APK nuevo o aceptación móvil. Las aprobadas99/100/101/102/106 ya entregadas conservan su cierre;109 sigue rechazada.
 
 Promoción4/10: las once tandas de beta4.26.94.1 tienen aprobación vigente. Producción4.26.94/source8bb0398f servida y cotejada; APK52 estable y las tres funciones Edge entregadas. La limpieza conserva notas y decisiones; solo retira las once entregadas, sin producto nuevo. Prioridad permanente: producción de lo aprobado antes de otra implementación. [Acta](briefs/promocion-aprobadas-2026-10-04.md).
 
-> Estado a 2026-10-10 · **v4.26.112**, canal beta sobre c9181f14. Inicio muestra sólo el patrimonio actual con «Ahora», con el mismo cálculo y moneda. Bienes111, el cuerpo111 de Nómina e identidad106 se conservan.109 mantiene f4ff/B90/d05, guion y rechazo como referencia de sólo lectura;112 no hereda su aprobación. Catálogo229 notas,38 identidades web y47 guiones vigentes:109 sale de web/pruebas y entra112.107/108/110 permanecen retiradas. Presupuesto oficial del paquete integrado PASS:1.321.606 bytes minificados/360.945 gzip/3 cargas frente a topes1.326.080/361.472/3 intactos. El A/B conserva el fallo previo y mide1.328.880/362.544→1.321.606/360.945: ahorro7.274/1.599 bytes y527 de margen gzip. Validación del candidato integrado: guardián completo57 casos/1.792 mutaciones de funciones/713 de datos PASS;131 DOM de Inicio/panel/reapertura/Tour/vacíos PASS. La continuación funcional aporta728 PASS y1 captura opcional omitida, además de92 casos previos y12 del FAB;963 PASS y1 omisión en total, con12 casos del indicador abiertos por salida inesperada del documento en Chromium local. Rendimiento13 PASS serial, sin reintentos.130 de131 etapas Node pasan; el espejo local de memoria aborta por privacidad y Deno no está instalado. No se atribuye suite local completa verde. CI de la fuente exacta y cotejo de artefactos se acreditan antes de la entrega; aceptación móvil, producción y APK nuevo requieren sus gates propios.
+> Estado a 2026-10-10 · **v4.26.113** — Candidata integrada: Bienes permite añadir, editar y borrar; Inicio recupera la gráfica sin «Ahora». Catálogo y notas preparados; publicación beta y aceptación móvil pendientes de Claude.
 
 > Promoción96 fusionada en main `85b8b540`; fuente separada de beta98/99. El merge acredita integración, no artefactos servidos: CI/publicador/HTTP exactos deben confirmarse antes de retirar Inicio96 del catálogo beta. [Acta de origen](briefs/promocion-inicio96-2026-10-06.md).
 
@@ -271,7 +267,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.26.112**, canal beta sobre c9181f14. Inicio muestra sólo el patrimonio actual con «Ahora», con el mismo cálculo y moneda. Bienes111, el cuerpo111 de Nómina e identidad106 se conservan.109 mantiene f4ff/B90/d05, guion y rechazo como referencia de sólo lectura;112 no hereda su aprobación. Catálogo229 notas,38 identidades web y47 guiones vigentes:109 sale de web/pruebas y entra112.107/108/110 permanecen retiradas. Presupuesto y131 DOM propios PASS; rendimiento13 PASS. CI/artefactos y gates móvil/producción/APK se acreditan por separado. |
+| Web / OTA (`VERSION`) | **4.26.113**, candidata integrada de Bienes e Inicio; publicación beta y aceptación móvil pendientes. |
 | APK (`versionName` / `versionCode`) | **4.26.80 / 52** conservada de la base; Metas87 no genera APK. Cotejo servido en gate de entrega. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | **52 / 4.26.80** conservado byte a byte respecto a3467; Metas87 no reemplaza binario ni manifiesto. |

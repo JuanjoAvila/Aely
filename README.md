@@ -7,13 +7,11 @@ La base80/source955765a9 incluye Retirada y Nómina junto con Widget y las tres 
 
 # Aely
 
-Candidata del encargo `inicio-grafica-vuelve-codex-20261010`: Inicio recupera la gráfica de producción4.26.110 y retira «Ahora». El catálogo112 todavía exige dos reglas CSS retiradas y bloquea el build normal; Claude resuelve la integración, versión y publicación. [Alcance y evidencia](docs/briefs/inicio-grafica-vuelve-20261010.md).
+Candidata4.26.113: Candidata integrada: Bienes permite añadir, editar y borrar; Inicio recupera la gráfica sin «Ahora». Catálogo y notas preparados; publicación beta y aceptación móvil pendientes de Claude.
 
 MAIN4.26.110 incorpora PR196 (bdd75636), sólo pruebas, herramientas y documentación. Tests38005461796 y DeployPages38005461732 terminaron SUCCESS y sus artefactos se comprobaron; ese cierre no publica Inicio112 ni acredita APK nuevo o aceptación móvil. Las aprobadas99/100/101/102/106 ya entregadas conservan su cierre;109 sigue rechazada.
 
-En la versión4.26.112, Inicio muestra sólo el patrimonio actual con la etiqueta «Ahora». Conserva el mismo total y moneda; las cifras guardadas no se conectan como evolución. Ajustes → Revisar esta beta conserva la gráfica109 rechazada como referencia de sólo lectura; su rechazo y detalle no aprueban la corrección actual.
-
-Cartera → Bienes: candidata [alta, edición y borrado](docs/briefs/bienes-completo-20261010.md) por encargo de Claude. Añadir está disponible con la lista vacía; tocar una fila abre una ficha con Guardar/Cancelar y borrado confirmado. Pendiente de integración y publicación. La unidad111 anterior sólo recuperaba el toque; su entrega no acredita esta candidata.
+Cartera → Bienes incluye alta con la lista vacía y una ficha de edición con Guardar/Cancelar y borrado confirmado. [Bienes](docs/briefs/bienes-completo-20261010.md) · [Inicio](docs/briefs/inicio-grafica-vuelve-20261010.md).
 
 Inicio resume hasta tres metas activas; Ver plan permite consultar todas con sus importes intactos.
 
@@ -122,7 +120,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.112**, canal beta sobre c9181f14. Inicio muestra sólo el patrimonio actual con «Ahora», con el mismo cálculo y moneda. Bienes111, el cuerpo111 de Nómina e identidad106 se conservan.109 mantiene f4ff/B90/d05, guion y rechazo como referencia de sólo lectura;112 no hereda su aprobación. Catálogo229 notas,38 identidades web y47 guiones vigentes:109 sale de web/pruebas y entra112.107/108/110 permanecen retiradas. Presupuesto oficial del paquete integrado PASS:1.321.606 bytes minificados/360.945 gzip/3 cargas frente a topes1.326.080/361.472/3 intactos. El A/B conserva el fallo previo y mide1.328.880/362.544→1.321.606/360.945: ahorro7.274/1.599 bytes y527 de margen gzip. Validación del candidato integrado: guardián completo57 casos/1.792 mutaciones de funciones/713 de datos PASS;131 DOM de Inicio/panel/reapertura/Tour/vacíos PASS. La continuación funcional aporta728 PASS y1 captura opcional omitida, además de92 casos previos y12 del FAB;963 PASS y1 omisión en total, con12 casos del indicador abiertos por salida inesperada del documento en Chromium local. Rendimiento13 PASS serial, sin reintentos.130 de131 etapas Node pasan; el espejo local de memoria aborta por privacidad y Deno no está instalado. No se atribuye suite local completa verde. CI de la fuente exacta y cotejo de artefactos se acreditan antes de la entrega; aceptación móvil, producción y APK nuevo requieren sus gates propios.
+Estado actual: **v4.26.113** — Candidata integrada: Bienes permite añadir, editar y borrar; Inicio recupera la gráfica sin «Ahora». Catálogo y notas preparados; publicación beta y aceptación móvil pendientes de Claude.
 
 Corte anterior (4/10, 12:30 UTC, panel de revisión): **v4.26.93** publicada en beta. Primera entrega4.26.93.1 (fuente1d5dd782), CI37200314653SUCCESS y HTTP/ZIP/HTML/SW/catálogo/huella cotejados el4/10 a12:30UTC:11 tandas/24 puntos, frente a40 antes del cambio. Producción4.26.86 (d366215a), APK beta4.26.80/code52 y estable4.26.32/code48 conservadas. Prueba y aprobación móvil pendientes. [Acta](docs/briefs/ops-0410-panel-cola.md).
 
