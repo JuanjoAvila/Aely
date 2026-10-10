@@ -1,0 +1,115 @@
+{
+  "repository": "JuanjoAvila/Aely",
+  "causalEvidence": [
+    "Base74c5 unknown-journal format and lost-identity probes exit1; corrected source exit0",
+    "Independent reviewer probe base74c5 app/ingest rollover: javac0 java1 node1; corrected source javac0 java0 node0",
+    "New unknown-loss oracle against previous combined105170 exit1 on NaN rollover; final source exit0"
+  ],
+  "status": "blocked",
+  "productSHA": "f8c1b7ae73fbedfd8087cd0932457ed475263a8b",
+  "pullRequest": 201,
+  "baseSHA": "74c5f075bf08e38e289992195ad97e3a71a8b031",
+  "modes": "Base already includes PR87 v2: month gross and cycle net equal Inicio, tested es/en/ca. Legacy APK retains monthly Balance compatibility. No native mode selector exists in reviewed code; none invented.",
+  "review": {
+    "arbiterSHA256": "6714d2a71632b674e11ae9ce2e845a75be60e6f7cdb20a211c4025ad9bdf0f4c",
+    "verdict": "favorable after rollover fix",
+    "threadId": "01a12521-5b4f-7af0-9003-adf7627f316c"
+  },
+  "branch": "codex/widget-estado-20261010",
+  "questions": [
+    "Does modes mean existing Month/My cycle or an additional selector? Current sources only expose the existing periods through app preference."
+  ],
+  "tests": [
+    {
+      "command": "npm run build",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/widget-arbitraje.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/widget-coherente.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/widget-offline.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/widget-unknown-loss.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/widget-unknown-journal.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/widget-unknown-journal.test.mjs --loss-probe",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "skipped": 0,
+      "flaky": 0,
+      "passed": 37,
+      "exitCode": 0,
+      "command": "playwright test e2e/widget-banco.spec.mjs --config=playwright.config.mjs --workers=1"
+    },
+    {
+      "command": "gradlew.bat assembleRelease --offline --no-daemon",
+      "exitCode": 0,
+      "debug": false,
+      "unsignedLocal": true,
+      "webDebug": false,
+      "published": false
+    },
+    {
+      "fullE2E": "runner did not start after failed steps; widget DOM separate",
+      "failed": [
+        "supabase-workflow: sandbox Bash status3221225794",
+        "docs-frescura-history: sandbox temp Git config permission",
+        "memoria-espejo: privacy guard refuses local memory"
+      ],
+      "deno": "not installed; runner omitted",
+      "exitCode": 1,
+      "command": "npm test"
+    },
+    {
+      "command": "node tests/supabase-workflow.test.mjs in permitted environment",
+      "exitCode": 0
+    },
+    {
+      "passed": 29,
+      "exitCode": 0,
+      "command": "node tests/docs-frescura-history.test.mjs in permitted environment"
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0
+    }
+  ],
+  "nextAction": "Claude integrates or requests correction; resolves full npm/privacy environment without weakening guard, updates revision identity/version/catalogue, decides deployed APK/contract and real-device validation.",
+  "summary": "Candidata Widget entregada y revisada: conserva pendientes por identidad hasta ACK exacto, formato recuperable105 más pérdida durable170 y rollover NaN adicional. PR201 draft beta confirmada. Tests focales, 37 DOM y assembleRelease WEBDEBUG0 verdes; npm test completo exit1 por entorno/guard privado de memoria, no se declara gate completo ni aceptación Android.",
+  "limitations": [
+    "Synthetic preferences reconstruction is not Android reboot/kill or serializer evidence; FIN05 real closed-app payment remains pending",
+    "No new APK announced, signed, installed or published. Local unsigned compile code52/name4.26.80 inherited; no sealed web bundle delivery asserted",
+    "No VERSION, catalogue, notes, dependencies, Edge/SQL or beta/main changed",
+    "Full npm exit0 not achieved; privacy guard was neither modified nor skipped; two sandbox failed guards subsequently passed in permitted environment",
+    "37 DOM validates existing v2 contract from base; native source requires a future APK decided by Claude"
+  ],
+  "superseded": {
+    "PR105": "Native goal and guards covered by201; can close after integration and revision metadata update",
+    "PR170": "Native loss/read/writeBlocked/guards covered and extended by201; can close after integration and revision metadata update",
+    "PR87": "Web/native v2 already in base74c5. Entire87 not safely superseded because Edge proposal and deployment order are outside this task; Claude decides separately."
+  },
+  "schema": 1,
+  "taskId": "widget-estado-codex-20261010",
+  "actor": "codex",
+  "sessionId": "codex-local-20261010-f4a08dab5394",
+  "createdAt": "2026-10-10T09:36:19.805Z",
+  "released": true
+}
