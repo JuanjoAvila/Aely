@@ -1,0 +1,60 @@
+{
+  "status": "blocked",
+  "summary": "Bienes entregado en PR draft 198: alta desde vacío, ficha con borrador local, Guardar/Cancelar y borrado confirmado. Once DOM pasan. Pendiente del gate de npm test: contratos de identidad de beta, presupuesto y espejo de memoria local. Claude resuelve e integra; no hay publicación.",
+  "productSHA": "65335fa254f7f01939b1d0c41cf0767ff9f69099",
+  "branch": "codex/bienes-completo-20261010",
+  "pullRequest": 198,
+  "tests": [
+    {
+      "command": "node scripts/build-app.mjs",
+      "productSHA": "65335fa254f7f01939b1d0c41cf0767ff9f69099",
+      "exitCode": 0
+    },
+    {
+      "command": "playwright test e2e/cartera-bienes-toque.spec.mjs e2e/cartera-bienes-completo.spec.mjs --workers=1",
+      "productSHA": "65335fa254f7f01939b1d0c41cf0767ff9f69099",
+      "exitCode": 0,
+      "passed": 11
+    },
+    {
+      "command": "npm test",
+      "phase": "precommit, misma fuente de producto; no afirmar gate del SHA aprobado",
+      "failures": [
+        "beta-sources: dos expectativas de identidad antigua Bienes111 y Nómina que incluye Wealth",
+        "memoria-espejo: aborta por privacidad local",
+        "presupuesto-rendimiento: 236B gzip sobretope"
+      ],
+      "exitCode": 1
+    },
+    {
+      "exitCode": 1,
+      "blockingLoads": 3,
+      "minifiedBytes": 1323954,
+      "gzipBytes": 361708,
+      "gzipLimit": 361472,
+      "command": "presupuesto-rendimiento oficial con reserva de sello",
+      "minifiedLimit": 1326080
+    },
+    {
+      "command": "DOM base: alta vacía es",
+      "expectedFailure": "Añadir bien ausente en74c5",
+      "exitCode": 1
+    }
+  ],
+  "limitations": [
+    "Deno no instalado; runner lo omite",
+    "Suite DOM general no se ejecutó tras fallos Node; sólo se acreditan11 propios",
+    "No VERSION, catálogos, notas, APK, backend, merge ni publicación beta/main",
+    "No aprobación móvil; presupuesto y contratos de integración comunicados a Claude",
+    "Ampliación14 aprobada en message bienes-alcance-14-ok-20261010; una línea para lista vacía"
+  ],
+  "documentation": "docs/briefs/bienes-completo-20261010.md",
+  "resources": "Ejecuciones propias terminales; checkout conservado. No se adoptan ni se liberan procesos ajenos.",
+  "repository": "JuanjoAvila/Aely",
+  "schema": 1,
+  "taskId": "bienes-completo-codex-20261010",
+  "actor": "codex",
+  "sessionId": "codex-local-20261010-73e34bcaeb50",
+  "createdAt": "2026-10-10T08:40:48.940Z",
+  "released": true
+}
