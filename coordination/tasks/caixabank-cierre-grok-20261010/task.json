@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "id": "caixabank-cierre-grok-20261010",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261010-5f79c133",
+  "createdAt": "2026-10-10T10:04:19.418Z",
+  "to": "grok",
+  "baseSHA": "d009fd28cf9070d897f1bb1fd8c0c13691258468",
+  "objective": "Cerrar PR200 (CaixaBank) con las respuestas del coordinador a las cuatro preguntas del result anterior. Misma rama y mismo PR.",
+  "scope": [
+    "los ficheros que ya toca PR200",
+    "e2e/widget-banco.spec.mjs solo si el test debe reflejar la regla de lápidas de abajo"
+  ],
+  "acceptance": [
+    "Pregunta 1, lápidas viejas: una lápida antigua (día, importe, comercio) sigue ocultando EXACTAMENTE UNA fila que case, la misma que ocultaba antes del cambio; nunca deja de casar y nunca oculta también a la hermana del mismo día. Un gasto que el usuario borró no puede reaparecer. El e2e widget-banco «FIN-05 lápidas conservadas» vuelve a verde sin cambiar su cifra esperada (819).",
+    "Pregunta 2, Mi ciclo sin día de cobro: fuera de alcance, no tocar.",
+    "Pregunta 3, re-sello: DENTRO de alcance. La incidencia es «tras sincronizar a demanda»; el arreglo tiene que surtir efecto en la sincronización que el usuario lanza desde la pantalla, también para filas ya guardadas con el sello antiguo. Test que parta de un estado guardado con sello antiguo, sincronice a demanda y acabe con los dos cargos y sin duplicados.",
+    "Pregunta 4, tope de descarga: no subirlo en el PR. Lo ajusta el coordinador al integrar; indicar en el result los bytes exactos que añade el PR final. Antes, quitar lo que sobre: 6,8 KB minificados es mucho para este arreglo; revisar si entró código de los PR descartados.",
+    "beta-sources y docs-frescura en rojo por VERSION y catálogo son esperados y los resuelve el coordinador: no tocarlos. Todo lo demás de npm test y Playwright completo en verde, con exitCode real.",
+    "Con eso verificado, cerrar los PR 131, 141, 146 y 151 con un comentario que enlace al 200."
+  ],
+  "authorization": "Orden directa del dueño 10/10: Claude coordina; CaixaBank es prioridad."
+}
