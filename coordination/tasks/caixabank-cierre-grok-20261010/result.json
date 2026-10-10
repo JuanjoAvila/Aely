@@ -1,0 +1,50 @@
+{
+  "status": "blocked",
+  "summary": "Cierre tecnico hecho, queda bloqueado solo por el tope de tamano (decision de Claude/dueno) y por rojos esperados. Rama cursor/caixabank-integracion-6602, head ffe53a156587ad15652e30872952d686cb25f61d (verificado en GitHub: dos commits nuevos sobre d009fd28, 44ca2a91 y ffe53a15); PR 200 sigue siendo el unico PR draft contra beta; no se creo PR nuevo, ni comentarios ni cierres de PR 131/141/146/151. Respuestas aplicadas: 1) una lapida vieja dia|importe|comercio oculta solo la fila del mediodia local (id menor si hay varias), la hermana salada no reaparece ni se tapa; e2e/widget-banco FIN-05 vuelve a verde con 819 sin tocar el spec (37 passed). 2) Mi ciclo sin dia de cobro: no tocado (presetBoundsMs). 3) El sync a demanda (importObExpenses, el que lanza la pantalla) re-sella la fila guardada con sello antiguo y deja los dos cargos sin duplicar, probado en UTC y Europe/Madrid; el guardian inc-2709-06-caixa-extid y el de identidad pasan, el mutante mismo-sello muere. 4) Tope de descarga NO subido. Se recorto el planificador duplicado de esta rama (obDecideStamp, obMarkGroup, obIndexGroup y la lapida que ocultaba todas las filas del dia); no habia simbolos de los PR 131/141/146/151 en la rama. Bytes de presupuesto-rendimiento: base 74c5f075 min 1321606 gzip 360945; head min 1328934 gzip 363286; delta del PR +7328 min y +2341 gzip; tope 1326080 min y 361472 gzip, el head se pasa 2854 min y 1814 gzip (antes de recortar eran +11329 y +3514). Sin VERSION, catalogos, notas ni topes tocados. Rojos de npm test: beta-sources y docs-frescura (esperados: ancla en 74c5f07 y VERSION sin subir; docs-frescura senala 00-core.js, 08-motor-bank.js, presupuesto.ts y 04-tab-gastos.js) y presupuesto-rendimiento. Playwright completo: 996 passed, 1 skipped, 1 failed en e2e/cartera-inversiones.spec.mjs linea 356 (no encuentra .botnav en 15 s tras goto dentro de la suite de 998 tests con 2 workers); aislado pasa; ajeno a CaixaBank, no tocado. PROPUESTAS pendientes de coordinador: A) tope minificado de 1295 a 1298 KiB (margen 218 B) y gzip de 353 a 355 KiB (margen 234 B) para que quepa sin recortar el incidente; no aplicado. B) El timeout de .botnav es de la suite completa, no de este diff: no tocarlo aqui. C) Riesgo conocido: si no hay alta nueva, la referencia del array no cambia y mcPersistCommit no reescribe la clave de gastos, asi que un reinicio devolveria los dos sellos de mediodia; el caso de una fila guardada mas la hermana que trae el banco si persiste. El llamador esta en 11-app-main.js, fuera de la lista de ficheros del PR; pide otra tanda si se quiere cerrar. Los PR 131, 141, 146 y 151 siguen abiertos: cerrarlos queda para Claude o el dueno cuando el resultado este verde.",
+  "productSHA": "ffe53a156587ad15652e30872952d686cb25f61d",
+  "tests": [
+    {
+      "command": "npm run build",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/inc-2709-06-caixa-extid.test.mjs (UTC y Europe/Madrid)",
+      "exitCode": 0,
+      "note": "mutante mismo-sello falla 6 casos"
+    },
+    {
+      "command": "node tests/inc-2709-06-identidad.test.mjs (UTC y Europe/Madrid)",
+      "exitCode": 0
+    },
+    {
+      "command": "npx playwright test e2e/widget-banco.spec.mjs",
+      "exitCode": 0,
+      "note": "37 passed, incluye FIN-05"
+    },
+    {
+      "command": "npm test",
+      "exitCode": 1,
+      "note": "408 s; rojos beta-sources, docs-frescura, presupuesto-rendimiento"
+    },
+    {
+      "command": "npx playwright test (completo)",
+      "exitCode": 1,
+      "note": "996 passed, 1 skipped, 1 failed en cartera-inversiones.spec.mjs:356"
+    },
+    {
+      "command": "npx playwright test e2e/cartera-inversiones.spec.mjs:356 (aislado)",
+      "exitCode": 0
+    }
+  ],
+  "limitations": [
+    "Resultados tomados del informe del agente Cursor bc-0c0df2fa; solo he verificado en GitHub el head de la rama, sus dos commits y que PR 200 sigue abierto como draft",
+    "Datos sinteticos; sin movil, Edge, SQL ni APK",
+    "Mi ciclo sin dia de cobro no tocado ni medido"
+  ],
+  "schema": 1,
+  "taskId": "caixabank-cierre-grok-20261010",
+  "actor": "grok",
+  "sessionId": "grok-bot-20261010-gmq",
+  "createdAt": "2026-10-10T11:45:33.676Z",
+  "released": true
+}
