@@ -705,6 +705,19 @@ function mcLoadRaw(key){
   const exp=store.get(key+EXP_SUFFIX);
   if(Array.isArray(exp)) base.expenses=exp;      // formato nuevo (partido)
   else if(!Array.isArray(base.expenses)) base.expenses=[];
+  const hist=store.get(key+"_balhist");
+  if(hist&&typeof hist==="object"&&!Array.isArray(hist)){
+    // Las dos escrituras pueden fallar por separado: gana la revisión durable más
+    // reciente, tanto si quedó en la clave ligera como si quedó en la partida.
+    const partition=hist.schema===1&&hist.history&&typeof hist.history==="object";
+    if(partition){
+      if(!base.accountBalanceHistory || !(base._balHistoryRevision>hist.revision)) base.accountBalanceHistory=hist.history;
+    }else if(!(base._balHistoryRevision>0)){
+      // Compatibilidad con el primer formato partido, aún sin revisión.
+      base.accountBalanceHistory=Object.assign({},base.accountBalanceHistory||{},hist);
+    }
+  }
+  delete base._balHistoryRevision;
   return base;
 }
 /* SE GUARDA LO QUE SE HA PINTADO, NO LO QUE SE CALCULÓ (INC-0410, 4/10/2026).
@@ -735,6 +748,28 @@ function mcSaveRaw(key, s, opts){
   if(!s) return;
   const rest=Object.assign({},s);
   delete rest.expenses;
+  // La caché pertenece a este escritor; su inicialización queda dentro de la función
+  // que vigilan las revisiones, sin otro dato global compartido fuera de su alcance.
+  const saved=mcSaveRaw.balanceHistory||(mcSaveRaw.balanceHistory={});
+  const history=s.accountBalanceHistory||{}, cached=saved[key];
+  if(!cached||cached.ref!==history){
+    const body=JSON.stringify(history);
+    const partition=store.get(key+"_balhist"), main=store.get(key);
+    const versioned=partition&&partition.schema===1&&partition.history;
+    const previous=cached?cached.body:partition?JSON.stringify(versioned?partition.history:partition):null;
+    const revision=Math.max(cached&&cached.revision||0,versioned&&partition.revision||0,main&&main._balHistoryRevision||0);
+    // Referencia nueva con el mismo contenido no vuelve a escribir 400 cierres por cuenta.
+    const next=body===previous&&versioned?revision:revision+1;
+    saved[key]={ref:history,body:body,revision:next,partition:JSON.stringify({schema:1,revision:next,history:history})};
+  }
+  const entry=saved[key];
+  rest._balHistoryRevision=entry.revision;
+  // Un fallo no marca el contenido como guardado: el mismo objeto reintenta cuando
+  // vuelve a haber espacio. Sin fallo, primer plano sólo escribe la parte ligera.
+  try{
+    if(localStorage.getItem(key+"_balhist")!==entry.partition) store.set(key+"_balhist",JSON.parse(entry.partition));
+    if(localStorage.getItem(key+"_balhist")===entry.partition) delete rest.accountBalanceHistory;
+  }catch(e){}
   const yaPartido=(function(){ try{ return localStorage.getItem(key+EXP_SUFFIX)!=null; }catch(e){ return false; } })();
   const skipExp = yaPartido && opts && opts.expenses===false;
   if(!skipExp) store.set(key+EXP_SUFFIX, s.expenses||[]);   // primero los gastos: si algo peta a
@@ -869,7 +904,7 @@ function mcRecargarSinVolcar(){
    Las DOS mitades: borrar solo la ligera dejaba `micartera_sandbox_exp` huérfana, y la siguiente
    entrada al banco de pruebas se encontraba los gastos de la sesión anterior mezclados con la
    copia nueva de la cartera real. */
-function mcResetSandbox(){ store.del(STATE_KEY_TEST); store.del(STATE_KEY_TEST+EXP_SUFFIX); try{ localStorage.removeItem("_mcSandboxVacio"); }catch(e){} }
+function mcResetSandbox(){ store.del(STATE_KEY_TEST); store.del(STATE_KEY_TEST+EXP_SUFFIX); store.del(STATE_KEY_TEST+"_balhist"); if(mcSaveRaw.balanceHistory) delete mcSaveRaw.balanceHistory[STATE_KEY_TEST]; try{ localStorage.removeItem("_mcSandboxVacio"); }catch(e){} }
 
 /* ---------- ACUSE del cursor de bancos: LOCAL a este dispositivo (12/10/2026) ----------
    `bank-sync` no mueve su cursor al leer del banco: entrega en cada respuesta el que le tocaría

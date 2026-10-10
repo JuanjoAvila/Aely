@@ -31,7 +31,11 @@ function cycleTiming(bud,nowMs){
   const days=Math.max(1,(civil(end)-civil(start))/864e5), elapsed=Math.max(0,(civil(now)-civil(start))/864e5);
   return {days:days,elapsed:elapsed,left:Math.max(0,(civil(end)-civil(now))/864e5),reliable:!!bud.cycle};
 }
-function NetWorthNow({value, shown, simple, series, ready}){
+function NetWorthNow({tt, simple, series, splashGone}){
+  // La animación pertenece a esta tarjeta; repintar todo Inicio en cada frame
+  // dispara las lecturas de layout de navegación con el histórico grande.
+  const shownNet=useCountUp(tt.netWorth||0, splashGone);
+  const value=tt.netWorth, shown=shownNet, ready=splashGone;
   series=series||[];
   const today=dayKey(new Date()), current=series.length&&series[series.length-1].day===today;
   const ranges=useMemo(function(){ return netWorthRanges(series,today); },[series,today]);
@@ -134,7 +138,6 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
     }, topeMs);
     return function(){ window.removeEventListener("mc-boot-ready", on); clearTimeout(tope); };
   },[bootReady, splashGone]);
-  const shownNet=useCountUp(tt.netWorth||0, splashGone);
   const showSkel=splashGone && !bootReady && !window.__mcSplashTimedOut;
 
   const nameGuess=(function(){
@@ -155,13 +158,19 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
     return ((parts[0]||"M").charAt(0)+(parts[1]||parts[0]||"C").charAt(0)).toUpperCase();
   })();
 
-  // Mismas filas computables; bruto mensual o neto del ciclo, según lo que dice la tarjeta.
+  const seriesToday=dayKey(new Date());
+  // El contador repinta Inicio en cada frame; sólo un cambio financiero o de día
+  // justifica volver a recorrer el histórico para el presupuesto y su nómina.
+  const bud=useMemo(function(){
   const bud=dashboardBudgetStats(state);
+    return bud;
+  },
+    [state.expenses,state.deleted,state.accounts,state.settings,state.flows,state.budget,state.reservaLog,seriesToday]);
   const budAmt=bud.budget!=null?bud.budget:(state.budget||0);
   const spentAgainst=Math.max(0,bud.against), rem=bud.remaining!=null?bud.remaining:budAmt-spentAgainst;
   const timing=cycleTiming(bud), paceState=cyclePaceState(spentAgainst,budAmt,timing.elapsed,timing.days);
-  const series=useMemo(function(){ return netWorthSeries(state,{today:dayKey(new Date()),debtTotal:tt.debtTotal}); },
-    [state.accounts,state.obAccounts,state.accountBalanceHistory,state.invHistory,state.investments,state.assets,state.expenses,state.deleted,tt.debtTotal]);
+  const series=useMemo(function(){ return netWorthSeries(state,{today:seriesToday,liquid:tt.liquid,invested:tt.invested,debtTotal:tt.debtTotal}); },
+    [state.accounts,state.obAccounts,state.accountBalanceHistory,state.invHistory,state.investments,state.assets,state.expenses,state.deleted,state.fx,state.fxRates,tt.liquid,tt.invested,tt.debtTotal,seriesToday]);
 
   const overdue=[];
   // La fecha prevista no es un pago: la misma lectura de evidencia que Plan conserva los
@@ -270,7 +279,7 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
       }}, t("mr_share"))
     ),
 
-    !showSkel && React.createElement(NetWorthNow,{value:tt.netWorth, shown:shownNet, simple:simple, series:series, ready:splashGone}),
+    !showSkel && React.createElement(NetWorthNow,{tt:tt, simple:simple, series:series, splashGone:splashGone}),
 
     // Sin presupuesto, Inicio escondia su tarjeta estrella y te quedabas sin la mitad de la app
     // sin saber por que (P3). En vez de esconderla, la misma tarjeta en vacio y con salida: abre

@@ -103,7 +103,7 @@ const LANG = {
     v4_streak:"{n} meses sin pasarte", v4_streak_zero:"Mes en curso",
     // INC-0810 es: patrimonio de ahora.
     v4_hist_empty:"Tu histórico empieza hoy", v4_net_unknown:"El total actual no está disponible.",
-    v42_net_info_title:"Sobre el patrimonio", v42_net_info:"Cuentas e inversiones, con su saldo de cada día. Los bienes entran con el valor de hoy: no tienen historial.", v42_net_chart:"Evolución del patrimonio",
+    v42_net_info_title:"Sobre el patrimonio", v42_net_info:"El efectivo se calcula desde el saldo de hoy y los ingresos y gastos de cada día. Los traspasos entre cuentas propias no cambian el total. Las inversiones usan su historial; las cuentas manuales, los saldos guardados. Bienes y deudas mantienen su valor de hoy. Una cuota vinculada a una deuda no reduce esta gráfica.", v42_net_chart:"Evolución del patrimonio",
     v42_net_missing:"Faltan saldos fiables para mostrar la gráfica.",
     v42_range_1m:"1M", v42_range_6m:"6M", v42_range_1y:"1A", v42_range_all:"Todo",
     v42_net_more_1m:"{x} más que hace un mes", v42_net_less_1m:"{x} menos que hace un mes", v42_net_more_6m:"{x} más que hace 6 meses", v42_net_less_6m:"{x} menos que hace 6 meses", v42_net_more_1y:"{x} más que hace un año", v42_net_less_1y:"{x} menos que hace un año", v42_net_more_all:"{x} más desde que empezaste", v42_net_less_all:"{x} menos desde que empezaste",
@@ -423,7 +423,7 @@ const LANG = {
     v4_streak:"{n} months on track", v4_streak_zero:"Month in progress",
     // INC-0810 en: patrimonio de ahora.
     v4_hist_empty:"Your history starts today", v4_net_unknown:"The current total is unavailable.",
-    v42_net_info_title:"About net worth", v42_net_info:"Accounts and investments, using each day's balance. Assets use today's value: they have no history.", v42_net_chart:"Net worth history",
+    v42_net_info_title:"About net worth", v42_net_info:"Cash is calculated from today's balance and each day's income and spending. Transfers between your own accounts leave the total unchanged. Investments use their history; manual accounts use saved balances. Assets and debts keep today's value. A payment linked to a debt does not reduce this chart.", v42_net_chart:"Net worth history",
     v42_net_missing:"Reliable balances are missing to display the chart.",
     v42_range_1m:"1M", v42_range_6m:"6M", v42_range_1y:"1Y", v42_range_all:"All",
     v42_net_more_1m:"{x} more than a month ago", v42_net_less_1m:"{x} less than a month ago", v42_net_more_6m:"{x} more than 6 months ago", v42_net_less_6m:"{x} less than 6 months ago", v42_net_more_1y:"{x} more than a year ago", v42_net_less_1y:"{x} less than a year ago", v42_net_more_all:"{x} more since you started", v42_net_less_all:"{x} less since you started",
@@ -730,7 +730,7 @@ const LANG = {
     v4_streak:"{n} mesos sense passar-te", v4_streak_zero:"Mes en curs",
     // INC-0810 ca: patrimonio de ahora.
     v4_hist_empty:"El teu històric comença avui", v4_net_unknown:"El total actual no està disponible.",
-    v42_net_info_title:"Sobre el patrimoni", v42_net_info:"Comptes i inversions, amb el saldo de cada dia. Els béns entren amb el valor d'avui: no tenen historial.", v42_net_chart:"Evolució del patrimoni",
+    v42_net_info_title:"Sobre el patrimoni", v42_net_info:"L'efectiu es calcula des del saldo d'avui i els ingressos i les despeses de cada dia. Els traspassos entre comptes propis no canvien el total. Les inversions fan servir el seu historial; els comptes manuals, els saldos desats. Béns i deutes mantenen el valor d'avui. Una quota vinculada a un deute no redueix aquesta gràfica.", v42_net_chart:"Evolució del patrimoni",
     v42_net_missing:"Falten saldos fiables per mostrar la gràfica.",
     v42_range_1m:"1M", v42_range_6m:"6M", v42_range_1y:"1A", v42_range_all:"Tot",
     v42_net_more_1m:"{x} més que fa un mes", v42_net_less_1m:"{x} menys que fa un mes", v42_net_more_6m:"{x} més que fa 6 mesos", v42_net_less_6m:"{x} menys que fa 6 mesos", v42_net_more_1y:"{x} més que fa un any", v42_net_less_1y:"{x} menys que fa un any", v42_net_more_all:"{x} més des que vas començar", v42_net_less_all:"{x} menys des que vas començar",

@@ -654,88 +654,86 @@ function recordAccountBalances(hist, day, rows){
   });
   return out;
 }
-// Sin una ventana completa por cuenta, los movimientos no prueban que un día sin filas
-// fuera un día sin gasto. Las reconstrucciones reciben esa cobertura expresamente.
+// Las fotos de bancos desacompasados inventaban pérdidas de traspasos. El total de hoy
+// se recorre hacia atrás con flujos; sólo las cuentas manuales sin movimientos usan escalones.
 function netWorthSeries(state, options){
   options=options||{};
-  const rows=accountRowsInOrder(state), hist=state.accountBalanceHistory||{};
+  const today=options.today||dayKey(new Date()), rows=accountRowsInOrder(state), hist=state.accountBalanceHistory||{};
   const utcFmt=new Intl.DateTimeFormat("en-CA",{timeZone:"UTC",year:"numeric",month:"2-digit",day:"2-digit"});
+  const fmt=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Madrid",year:"numeric",month:"2-digit",day:"2-digit"});
   const clean=function(list,day,value){
     const by={};
     (list||[]).forEach(function(p){
       const d=p&&p[day], v=p&&p[value];
-      if(!/^\d{4}-\d{2}-\d{2}$/.test(d||"")||typeof v!=="number"||!Number.isFinite(v)) return;
-      // Date.parse normaliza un 31 de septiembre: esa fecha no acredita un saldo del día.
+      if(!/^\d{4}-\d{2}-\d{2}$/.test(d||"")||typeof v!=="number"||!Number.isFinite(v)||d>today) return;
       const ms=Date.parse(d+"T12:00:00Z");
       if(Number.isFinite(ms)&&utcFmt.format(ms)===d) by[d]={day:d,value:v};
     });
     return Object.keys(by).sort().map(function(d){ return by[d]; });
   };
-  const sources=rows.map(function(r){ return {key:r.key,ent:r.item.ent,points:clean(hist[r.key],"day","value")}; });
-  if(sources.some(function(s){ return !s.points.length; })) return [];
-  const investments=clean(state.invHistory,"d","v");
-  if((state.investments||[]).length&&!investments.length) return [];
-  if(investments.length) sources.push({key:"investments",points:investments});
-  if(!sources.length) return [];
-  const coverage=options.coverage||{}, daily={}, del=expenseDeletedSet(state);
-  const fmt=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Madrid",year:"numeric",month:"2-digit",day:"2-digit"});
-  const banks={};
-  sources.forEach(function(s){
-    if(!s.ent) return;
-    if(Object.prototype.hasOwnProperty.call(banks,s.ent)) banks[s.ent]=null;
-    else banks[s.ent]=s;
-  });
-  const covered=sources.some(function(s){ return s.ent&&coverage[s.key]&&coverage[s.key].complete; });
-  (covered?state.expenses||[]:[]).forEach(function(e){
-    if(!e||e.possibleDup||expenseIsTombstoned(e,del)||typeof e.amount!=="number"||!Number.isFinite(e.amount)) return;
-    const bank=expenseBankOf(e), src=banks[bank];
-    // Dos cuentas de un banco no se pueden repartir por el nombre del banco.
-    if(!src||!coverage[src.key]||!coverage[src.key].complete) return;
-    // dateMs recupera «hoy» ante una fecha rota; para reconstruir no vale esa sustitución.
+  const del=expenseDeletedSet(state), firstByBank={}, daily={}, entries=[];
+  (state.expenses||[]).forEach(function(e){
+    if(!e||e.possibleDup||expenseIsTombstoned(e,del)||typeof e.amount!=="number"||!Number.isFinite(e.amount)||
+      (e.status&&String(e.status).toUpperCase()!=="BOOK")) return;
     const ms=_pdMs(String(e.date||"").trim()); if(!Number.isFinite(ms)) return;
-    const d=fmt.format(ms);
-    const map=daily[src.key]||(daily[src.key]={}); map[d]=(map[d]||0)-e.amount;
+    const day=fmt.format(ms); if(day>today) return;
+    const bank=expenseBankOf(e);
+    if(bank&&(!firstByBank[bank]||day<firstByBank[bank])) firstByBank[bank]=day;
+    entries.push({expense:e,day:day});
   });
-  sources.forEach(function(s){
-    const c=coverage[s.key], first=s.points[0];
-    if(!c||!c.complete||!c.from||c.through<first.day||c.from>=first.day||!s.ent) return;
-    const same=sources.filter(function(x){ return x.ent===s.ent; }); if(same.length!==1) return;
-    const from=Date.parse(c.from+"T12:00:00Z"), to=Date.parse(first.day+"T12:00:00Z");
-    if(!Number.isFinite(from)||to-from>400*864e5) return;
-    let v=first.value, nextDay=first.day; const before=[];
-    for(let ms=to-864e5;ms>=from;ms-=864e5){
-      v-=((daily[s.key]||{})[nextDay]||0);
-      const d=utcFmt.format(ms); before.push({day:d,value:+v.toFixed(2)}); nextDay=d;
-    }
-    s.points=before.reverse().concat(s.points);
+  // Inicio ya trae estos saldos calculados: no recorrer el histórico otra vez con parseDate.
+  const ins=options.liquid!=null&&options.invested!=null?{}:insumosSaldoGasto(state);
+  const values=rows.map(function(r){ return r.kind==="ob"?toEurAmt(r.item.value,r.item.cur||"EUR",state):saldoCuentaMostrada(r.item,ins); });
+  if(values.some(function(v){ return typeof v!=="number"||!Number.isFinite(v); })) return [];
+  const manual=[], banks={};
+  rows.forEach(function(r,i){
+    const bank=r.item.ent;
+    if(r.kind==="ob"||r.item.bankIban||firstByBank[bank]) banks[bank]=true;
+    else manual.push({value:values[i],points:clean(hist[r.key],"day","value")});
   });
-  const start=sources.reduce(function(d,s){ return s.points[0].day>d?s.points[0].day:d; },"");
-  // Fechas de observación distintas no acreditan una foto conjunta: cortar al último día
-  // común aún mezclaba un origen actualizado con un destino pendiente (traspaso10/10).
-  const lastDay=sources[0].points[sources[0].points.length-1].day;
-  if(sources.some(function(s){ return s.points[s.points.length-1].day!==lastDay; })) return [];
-  const end=sources.reduce(function(d,s){ const last=s.points[s.points.length-1].day; return !d||last<d?last:d; },options.today||"");
-  if(start>end) return [];
-  // Un cierre final conjunto tampoco valida el tramo anterior. Si sólo una parte de las
-  // cuentas aporta una foto de un día, no se suma esa foto con cierres anteriores de otras.
-  const observed={};
-  sources.forEach(function(s){ s.points.forEach(function(p){
-    if(p.day>=start&&p.day<=end) observed[p.day]=(observed[p.day]||0)+1;
-  }); });
-  if(Object.keys(observed).some(function(d){ return observed[d]!==sources.length; })) return [];
+  const bankNames=Object.keys(banks);
+  if(bankNames.some(function(b){ return !firstByBank[b]; })) return [];
+  let start=bankNames.reduce(function(d,b){ return firstByBank[b]>d?firstByBank[b]:d; },"");
+  // Un movimiento manual también puede acreditar el comienzo cuando no hay bancos conectados.
+  if(!start&&entries.length) start=entries.reduce(function(d,e){ return !d||e.day<d?e.day:d; },"");
+  if(!start) manual.forEach(function(s){ if(s.points.length&&(!start||s.points[0].day<start)) start=s.points[0].day; });
+  const investments=clean(state.invHistory,"d","v");
+  if((state.investments||[]).some(function(i){ return invValueEur(i,state)==null; })) return [];
+  const invested=options.invested!=null?options.invested:(state.investments||[]).reduce(function(sum,i){ return sum+(invValueEur(i,state)||0); },0)+(ins.roundup||0)+(ins.monthlyInvest||0);
+  if(((state.investments||[]).length||invested!==0)&&!investments.length) return [];
+  if(investments.length&&(!start||investments[0].day>start)) start=investments[0].day;
+  start=start||today;
+  entries.forEach(function(row){
+    const e=row.expense;
+    // Excluir las DOS patas completas evita picos aun cuando se contabilicen en días distintos.
+    if(e.category==="traspaso"||(e.category==="deudas"&&e.debtId)) return;
+    daily[row.day]=(daily[row.day]||0)-Math.round(e.amount*100);
+  });
+  const liquid=options.liquid!=null?options.liquid:values.reduce(function(sum,v){ return sum+v; },0);
   const assets=(state.assets||[]).reduce(function(sum,a){ return sum+(typeof a.value==="number"&&Number.isFinite(a.value)?a.value:0); },0);
-  const constant=assets-(Number.isFinite(options.debtTotal)?options.debtTotal:0);
-  const indices=sources.map(function(){ return -1; }), out=[];
-  const from=Date.parse(start+"T12:00:00Z"), to=Date.parse(end+"T12:00:00Z");
-  for(let ms=Math.max(from,to-399*864e5);ms<=to;ms+=864e5){
-    const day=utcFmt.format(ms); let value=constant;
-    sources.forEach(function(s,i){
-      while(indices[i]+1<s.points.length&&s.points[indices[i]+1].day<=day) indices[i]++;
-      if(indices[i]>=0) value+=s.points[indices[i]].value;
+  const debt=options.debtTotal!=null?options.debtTotal:(state.debts||[]).reduce(function(sum,d){ return sum+debtBalance(d); },0);
+  const manualNow=manual.reduce(function(sum,s){ return sum+Math.round(s.value*100); },0);
+  const constant=Math.round((assets-debt)*100), out=[];
+  // Inicio redondea el total, no cada divisa por separado: conservar ese mismo céntimo
+  // en el ancla impide una diferencia final por conversión o por coma flotante.
+  let cash=Math.round((liquid+invested+assets-debt)*100)-Math.round(invested*100)-constant-manualNow;
+  const from=Date.parse(start+"T12:00:00Z"), to=Date.parse(today+"T12:00:00Z");
+  if(!Number.isFinite(from)||!Number.isFinite(to)||from>to) return [];
+  let invIndex=investments.length-1;
+  const indices=manual.map(function(s){ return s.points.length-1; });
+  for(let ms=to;ms>=from;ms-=864e5){
+    const day=utcFmt.format(ms);
+    let value=cash+constant;
+    manual.forEach(function(s,i){
+      while(indices[i]>0&&s.points[indices[i]].day>day) indices[i]--;
+      value+=Math.round((day===today||!s.points.length?s.value:s.points[indices[i]].value)*100);
     });
-    if(indices.every(function(i){ return i>=0; })) out.push({day:day,value:+value.toFixed(2)});
+    while(invIndex>0&&investments[invIndex].day>day) invIndex--;
+    value+=Math.round((day===today?invested:invIndex>=0?investments[invIndex].value:0)*100);
+    out.push({day:day,value:value/100});
+    cash-=daily[day]||0;
   }
-  return out;
+  return out.reverse();
 }
 function netWorthRanges(series, today){
   if(!series||series.length<2) return [];

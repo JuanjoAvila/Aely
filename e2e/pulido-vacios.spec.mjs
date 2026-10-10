@@ -25,9 +25,9 @@ test("★ app recién instalada: sin gráfico plano ni pastilla de cero", async 
   await inicio(page, { history: [], budget: 0, expenses: [], accounts: [] });
 
   // Sin histórico se mantiene el vacío de producción110, sin inventar una serie de ceros.
-  await expect(page.locator("svg.spark")).toHaveCount(0);
+  await expect(page.locator(".v42-net-chart")).toHaveCount(0);
   await expect(page.getByTestId("inicio-net-now")).toHaveCount(0);
-  await expect(page.locator(".v4-hero")).toContainText("Tu histórico empieza hoy");
+  await expect(page.locator(".v4-hero")).toContainText("Faltan saldos fiables para mostrar la gráfica");
   await expect(page.locator(".v4-hero-amt")).toContainText("0,00 €");
   await expect(page.getByTestId("inicio-chart-note")).toHaveCount(0);
 
@@ -83,7 +83,7 @@ test("★ P5: la racha a cero se dice en positivo, no «0 meses sin pasarte»", 
   await expect(page.getByText(/Mes en curso/i)).toBeVisible();
 });
 
-test("tres presupuestos mensuales cerrados crean racha sin llama", async ({ page }) => {
+test("la tarjeta del ciclo reemplaza la racha de meses cerrados", async ({ page }) => {
   const now=new Date(FIXTURE_NOW), budgetByMonth={}, expenses=[];
   for(let back=1;back<=3;back++){
     const d=new Date(now.getFullYear(),now.getMonth()-back,1);
@@ -101,15 +101,15 @@ test("tres presupuestos mensuales cerrados crean racha sin llama", async ({ page
     ],
   });
   const streak=page.getByTestId("dash-budget-streak");
-  await expect(streak).toHaveText(/3 meses sin pasarte/i);
-  await expect(streak).not.toContainText("🔥");
+  await expect(streak).toHaveCount(0);
+  await expect(page.locator(".v42-cycle")).toContainText(/Mes en curso/i);
 });
 
-test("con presupuesto e histórico, Inicio recupera su gráfica de producción", async ({ page }) => {
-  await inicio(page, { history: [100, 200], budget: 500 });
+test("con presupuesto y movimientos cubiertos, Inicio muestra la gráfica por flujos", async ({ page }) => {
+  await inicio(page, { history: [100, 200], budget: 500, expenses:[{id:"first",date:"2026-09-25T12:00:00Z",amount:10,category:"super",ent:"sabadell"}] });
 
   await expect(page.getByTestId("inicio-net-now")).toHaveCount(0);
-  await expect(page.locator(".v4-hero svg.spark")).toBeVisible();
+  await expect(page.locator(".v42-net-chart svg")).toBeVisible();
   await expect(page.locator(".v4-empty").filter({ hasText: /presupuesto|budget|pressupost/i })).toHaveCount(0);
 });
 

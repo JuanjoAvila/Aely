@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
+import { seedLoggedInDashboard, dismissNews, installFixtureClock, FIXTURE_NOW } from "./fixtures.mjs";
 export const states=[
   {id:"over",spent:1001,text:"Te has pasado 1 €",tone:"coral"},
   {id:"start",spent:900,text:"Ciclo recién empezado",tone:"mint",day:3},
@@ -14,8 +14,8 @@ async function open(page,{spent=500,day=13,lang="es",historyDays=370,falling=fal
   const history=Array.from({length:historyDays},(_,i)=>({day:new Date(end-(historyDays-1-i)*864e5).toISOString().slice(0,10),value:1000+(falling?-i:i)}));
   await seedLoggedInDashboard(page,{accounts:[{id:"a",ent:"sabadell",name:"Cuenta sintética",value:5000,role:"diario",spendFrom:true}],
     budget:1000,history:[0,999999],accountBalanceHistory:{"acc:a":history},settings:{autoPrices:false,theme:"green",lang,budgetCycle:cycle},
-    expenses:[{id:"salary",date:"2026-09-01T12:00:00Z",amount:-2000,merchant:"Nómina sintética",category:"ingreso",ent:"sabadell"},
-      {id:"spending",date:"2026-09-02T12:00:00Z",amount:spent,merchant:"Compra sintética",category:"super",ent:"sabadell"}]});
+    expenses:history.map((p,i)=>({id:"series-"+i,date:p.day+"T12:00:00Z",amount:i?(falling?1:-1):0,category:"inversion",ent:"sabadell",merchant:"Flujo sintético"})).concat([{id:"salary",date:"2026-09-01T12:00:00Z",amount:-2000,merchant:"Nómina sintética",category:"ingreso",ent:"sabadell"},
+      {id:"spending",date:"2026-09-02T12:00:00Z",amount:spent,merchant:"Compra sintética",category:"super",ent:"sabadell"}])});
   await page.goto("/"); await page.waitForFunction(()=>!document.getElementById("mc-load")); await dismissNews(page);
   await expect(page.locator(".v42-cycle")).toBeVisible();
 }
@@ -32,7 +32,7 @@ for(const state of states) test("estado real "+state.id,async({page},testInfo)=>
   expect(painted.state).toBe(painted.card);expect(painted.ring).toBe(painted.card);expect(painted.font).toBe("12.5px");
   await expect(card.getByTestId("inicio-cycle-pace")).toHaveCount(state.id==="over"?0:1);
   await expect(card.locator(".v4-budget-foot")).toHaveCount(0);
-  await page.screenshot({path:testInfo.outputPath("cycle-"+state.id+"-synthetic.png")});
+  await card.screenshot({animations:"disabled",path:testInfo.outputPath("cycle-"+state.id+"-synthetic.png")});
   await testInfo.attach("cycle-"+state.id+"-synthetic",{path:testInfo.outputPath("cycle-"+state.id+"-synthetic.png"),contentType:"image/png"});
 });
 for(const lang of ["es","en","ca"]) test("rangos, colores y puertas "+lang,async({page})=>{
@@ -60,11 +60,11 @@ test("historial corto no ofrece rangos inventados y sin ciclo oculta ritmo",asyn
   await open(page,{historyDays:10,cycle:false});await expect(page.locator(".v42-net-ranges button")).toHaveText(["Todo"]);
   await expect(page.getByTestId("inicio-cycle-pace")).toHaveCount(0);
 });
-test("foto atrasada conserva la gráfica sin comparar con hoy",async({page})=>{
+test("fotos atrasadas no recortan los flujos hasta hoy",async({page})=>{
   await open(page,{lag:20});const hero=page.getByTestId("inicio-net-current");
   await expect(hero.locator(".v42-net-chart svg")).toBeVisible();
-  await expect(hero.locator(".v42-net-ranges button")).toHaveText(["Todo"]);
-  await expect(hero.getByTestId("inicio-net-delta")).toHaveCount(0);
+  await expect(hero.locator(".v42-net-ranges button")).toHaveCount(4);
+  await expect(hero.getByTestId("inicio-net-delta")).toBeVisible();
 });
 for(const commonEnd of [false,true]) test("fotos escalonadas no pintan pérdida de un traspaso "+commonEnd,async({page})=>{
   await seedLoggedInDashboard(page,{budget:1000,accounts:[
@@ -72,28 +72,65 @@ for(const commonEnd of [false,true]) test("fotos escalonadas no pintan pérdida 
     {id:"b",ent:"revolut",value:300,role:"diario",spendFrom:true}],accountBalanceHistory:{
       "acc:a":[{day:"2026-09-01",value:500},{day:"2026-09-02",value:300}].concat(commonEnd?[{day:"2026-09-03",value:300}]:[]),
       "acc:b":[{day:"2026-09-01",value:100},{day:"2026-09-03",value:300}]},expenses:[
+        {id:"coverage-a",date:"2026-09-01T12:00:00Z",amount:0,ent:"sabadell",category:"super"},
+        {id:"coverage-b",date:"2026-09-01T12:00:00Z",amount:0,ent:"revolut",category:"super"},
         {id:"out",date:"2026-09-02T12:00:00Z",amount:200,ent:"sabadell",category:"traspaso"},
-        {id:"in",date:"2026-09-02T12:00:00Z",amount:-200,ent:"revolut",category:"traspaso"}]});
+        {id:"in",date:"2026-09-03T12:00:00Z",amount:-200,ent:"revolut",category:"traspaso"}]});
   await page.goto("/");await page.waitForFunction(()=>!document.getElementById("mc-load"));await dismissNews(page);
   const hero=page.getByTestId("inicio-net-current");
   await expect(hero.locator(".v4-hero-amt")).toContainText("600,00 €");
-  await expect(hero.locator("svg")).toHaveCount(0);await expect(hero.getByTestId("inicio-net-delta")).toHaveCount(0);
-  await expect(hero).toContainText("Faltan saldos fiables para mostrar la gráfica.");
+  await expect(hero.locator("svg")).toHaveCount(1);
+  const path=await hero.locator(".v42-net-line").getAttribute("d");
+  expect([...path.matchAll(/[ML][\d.]+ ([\d.]+)/g)].map(m=>m[1]).every(y=>y==="40.00")).toBe(true);
 });
 for(const reduced of [false,true]) test("dedo consulta y suelta "+reduced,async({page})=>{
+  // Contador de render sin cambiar el comportamiento: comprueba que el dedo sólo toca
+  // el bloque local, no toda la pantalla. El HTML servido sigue siendo el candidato real.
+  await page.route("http://127.0.0.1:*/",async route=>{
+    const response=await route.fetch(),html=await response.text();
+    const marker="function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProfile, onGoGastos, onGoPlan, showToast}){";
+    expect(html.split(marker)).toHaveLength(2);
+    await route.fulfill({response,body:html.replace(marker,marker+"window.__v42DashboardRenders=(window.__v42DashboardRenders||0)+1;")});
+  });
   await page.emulateMedia({reducedMotion:reduced?"reduce":"no-preference"});await open(page);
-  await page.waitForTimeout(1200);
+  await page.waitForTimeout(2200);
   const hero=page.getByTestId("inicio-net-current"), amount=hero.locator(".v4-hero-amt"), before=await amount.innerText(),delta=await hero.getByTestId("inicio-net-delta").innerText();
   const chart=page.locator(".v42-net-chart"),box=await chart.boundingBox();
+  expect(await chart.evaluate(el=>getComputedStyle(el).touchAction)).toBe("pan-y");
+  const renders=await page.evaluate(()=>window.__v42DashboardRenders);
   const client=await page.context().newCDPSession(page);
   const touch=async(type,x)=>client.send("Input.dispatchTouchEvent",{type,touchPoints:type==="touchEnd"?[]:[{x:box.x+x*box.width,y:box.y+35}]});
-  await touch("touchStart",.1);await expect(hero.getByTestId("inicio-net-date")).toBeVisible();const first=await amount.innerText(),date=await hero.getByTestId("inicio-net-date").innerText();
+  await touch("touchStart",.1);await expect(hero.getByTestId("inicio-net-date")).toBeVisible();await expect(hero.getByTestId("inicio-net-guide")).toBeVisible();const first=await amount.innerText(),date=await hero.getByTestId("inicio-net-date").innerText();
   await touch("touchMove",.8);await expect(amount).not.toHaveText(first);await expect(hero.getByTestId("inicio-net-date")).not.toHaveText(date);
   await expect(hero.getByTestId("inicio-net-delta")).toHaveText(delta);await expect(page.locator('.botnav-tab[data-tour="inicio"].active')).toBeVisible();
-  await touch("touchEnd",.8);await expect(hero.getByTestId("inicio-net-date")).toHaveCount(0);await expect(amount).toHaveText(before);
+  await touch("touchEnd",.8);await expect(hero.getByTestId("inicio-net-date")).toHaveCount(0);await expect(hero.getByTestId("inicio-net-guide")).toHaveCount(0);await expect(amount).toHaveText(before);
+  expect(await page.evaluate(()=>window.__v42DashboardRenders)).toBe(renders);
   await hero.locator(".v42-net-ranges button").last().click();
   await touch("touchStart",316/320);await expect(hero.getByTestId("inicio-net-date")).toContainText(/^13\b/);
   await touch("touchEnd",316/320);await expect(hero.getByTestId("inicio-net-date")).toHaveCount(0);await expect(amount).toHaveText(before);
   if(reduced){expect(await chart.locator(".v42-net-line").evaluate(el=>getComputedStyle(el).animationName)).toBe("none");await expect(chart.locator(".v42-net-halo")).toBeHidden();}
   await client.detach();
+});
+
+for(const sandbox of [false,true]) test("historial partido migra 400 puntos y recarga "+sandbox,async({page})=>{
+  await installFixtureClock(page);
+  const key=sandbox?"micartera_sandbox":"micartera_v3";
+  const history=Array.from({length:400},(_,i)=>({day:new Date(FIXTURE_NOW-(399-i)*864e5).toISOString().slice(0,10),value:1000+i}));
+  await seedLoggedInDashboard(page,{__seedOnce:true,budget:1000,accounts:[{id:"a",ent:"efectivo",value:1399,role:"fijos"}],expenses:[],accountBalanceHistory:{"acc:a":history}});
+  await page.addInitScript(sandbox=>{
+    if(sandbox){
+      if(!localStorage.getItem("micartera_sandbox")) localStorage.setItem("micartera_sandbox",localStorage.getItem("micartera_v3"));
+      localStorage.setItem("_mcSandbox","1");
+    }
+    const original=Storage.prototype.setItem;window.__v42Writes=[];
+    Storage.prototype.setItem=function(k,v){window.__v42Writes.push({key:k,bytes:new TextEncoder().encode(v).length});return original.call(this,k,v);};
+  },sandbox);
+  await page.goto("/");await page.waitForFunction(()=>!document.getElementById("mc-load"));await dismissNews(page);
+  await page.locator(".v42-cycle").click();const sheet=page.locator(".v4-budget-sheet");
+  await sheet.getByRole("button",{name:"+",exact:true}).click();await sheet.locator(".v4-cta").click();await page.waitForTimeout(700);
+  const stored=await page.evaluate(key=>({main:JSON.parse(localStorage.getItem(key)),history:JSON.parse(localStorage.getItem(key+"_balhist"))}),key);
+  expect(stored.main.accountBalanceHistory).toBeUndefined();expect(stored.history.history["acc:a"]).toEqual(history);
+  await page.reload();await page.waitForFunction(()=>!document.getElementById("mc-load"));await dismissNews(page);
+  await expect(page.locator(".v42-cycle-of")).toContainText("1050");
+  expect(await page.evaluate(key=>JSON.parse(localStorage.getItem(key+"_balhist")).history["acc:a"],key)).toEqual(history);
 });

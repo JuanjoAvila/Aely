@@ -1,5 +1,7 @@
 import { test, expect } from "@playwright/test";
-import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
+import { seedLoggedInDashboard, dismissNews, installFixtureClock } from "./fixtures.mjs";
+
+test.beforeEach(async({page})=>installFixtureClock(page));
 
 /* La gráfica nueva usa saldos acreditados. Los ceros del alta y el antiguo state.history
  * no se convierten en puntos ni se reescriben al mirar Inicio, recargar o cambiar de pestaña. */
