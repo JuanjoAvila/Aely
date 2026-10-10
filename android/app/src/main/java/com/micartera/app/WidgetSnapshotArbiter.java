@@ -27,7 +27,7 @@ final class WidgetSnapshotArbiter {
                                 double delta, double amount, boolean counts, boolean cashCounts) {
         // Reutilizar la rama de contribución exacta evita introducir otro escritor absoluto.
         // Sellar también este pago evita que un absoluto v2 iniciado antes lo deshaga.
-        s.appFence = Math.max(s.appFence, ticket);
+        s.appFence = Math.max(s.appFence, Math.max(ticket, s.issued));
         return ingest(s, ticket, s.periodStart, s.periodStart, 0, event, key,
                 0, s.budget, -1, delta, delta, amount, counts, cashCounts);
     }

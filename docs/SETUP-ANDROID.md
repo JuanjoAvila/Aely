@@ -310,7 +310,9 @@ La corrección del listener conserva el importe en céntimos y su identidad cuan
 pertenece a la ventana guardada de la app y ésta sigue vigente. La selección de bancos de
 su scope decide qué cuenta: gasto bruto en Mes, contribución con signo en Mi ciclo; no se
 copia el total mensual legacy. La reentrega no duplica y una respuesta v2 anterior no deshace
-el pago incremental. Fecha/categoría ausentes, céntimos inválidos, scope ilegible, periodo
+el pago incremental, incluso si había recibido un ticket posterior antes de esa confirmación.
+La barrera cubre todas las peticiones ya en vuelo, como la foto completa de la app.
+Fecha/categoría ausentes, céntimos inválidos, scope ilegible, periodo
 caducado o un ingreso grande que podría abrir un ciclo nuevo siguen pidiendo una foto real.
 El ACK de la app recupera esos pendientes. No se rebaja el contrato v2 ni se añade selector.
 Si el servidor nuevo devuelve `widget:null`, no se interpreta como una respuesta legacy:

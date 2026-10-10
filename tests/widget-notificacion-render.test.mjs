@@ -202,14 +202,17 @@ ${response}
     ok(MiCarteraWidget.last.text.get(R.id.w_foot).contains("185 €"),"pago resta saldo una sola vez");
     c.handleResponse(notification(month,true).toString(),ticket,"raw"); render(c);
     ok(MiCarteraWidget.last.text.get(R.id.w_foot).contains("185 €"),"reentrega no duplica");
+    for (boolean legacyFirst : new boolean[]{false,true}) {
     Listener crossed=production52(month);
     long early=MiCarteraWidget.beginIngest(crossed),late=MiCarteraWidget.beginIngest(crossed);
-    crossed.handleResponse(notification(month,false).toString(),late,"raw");
+    crossed.handleResponse(notification(month,false).toString(),legacyFirst?early:late,"raw");
     JSONObject oldV2=notification(month,true).put("importe",2);
     oldV2.optJSONObject("month").put("eventKey","older").put("expenseKey","older-key")
       .put("spent",52).put("shownDelta",2).put("againstDelta",2);
-    crossed.handleResponse(oldV2.toString(),early,"raw"); render(crossed);
-    ok(MiCarteraWidget.last.text.get(R.id.w_amount).equals("57 €"),"absoluto v2 previo no deshace pago legacy nuevo");
+    crossed.handleResponse(oldV2.toString(),legacyFirst?late:early,"raw"); render(crossed);
+    ok(MiCarteraWidget.last.text.get(R.id.w_amount).equals("57 €"),"absoluto en vuelo no deshace pago legacy: ticket primero="+legacyFirst);
+    }
+    if(args.length>0&&"crossed".equals(args[0])) return;
     Listener legacy=production52(month);
     legacy.handleResponse(notification(month,false).toString(),MiCarteraWidget.beginIngest(legacy),"raw"); render(legacy);
     ok(MiCarteraWidget.last.text.get(R.id.w_amount).equals("55 €"),"legacy acredita pago conocido del periodo actual sin copiar total");

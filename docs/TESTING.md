@@ -210,10 +210,13 @@ Widget pendiente (`widget-estado-correccion-codex-20261010`): `widget-notificaci
 ejecuta `handleResponse`, `saveMonth`, preferencias y `build` reales con dobles de Android/JSON,
 partiendo de una foto persistida APK52 con journal indentado y un pago superpuesto. La respuesta
 v2 compatible y la legacy con pago de ventana conocida actualizan gasto/saldo sin duplicar;
-un absoluto v2 anterior no deshace el pago legacy. Una fecha fuera de ventana conserva «—»,
+un absoluto v2 anterior no deshace el pago legacy. Una fecha fuera de ventana conserva «—»
 y `saveApp` con ACK recupera. Evalúa además el constructor real del payload web
 con `settings.budgetCycle` false/true y comprueba título/cifra en el pintado Java. No demuestra
 servidor activo, serializador XML Android, widget del launcher ni pago real. Está en el runner.
+`--probe=crossed` comprueba ambos órdenes de tickets: la confirmación legacy conserva el pago
+frente a cualquier absoluto ya en vuelo. El orden legacy-primero falla en a7380075 y se corrige
+con la barrera de peticiones emitidas; el mismo control corre sin flags en el runner.
 `widget-unknown-loss --probe=migration|period|recovery` aísla tres controles causales que fallan
 en f8c1b7ae y pasan con la corrección; todos se ejecutan también sin flags en el runner.
 `widget-notificacion-render --probe=pressure` añade el mismo control causal para cambio
