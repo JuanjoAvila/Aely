@@ -1224,7 +1224,7 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
       ) },
       // Bienes (piso, coche…) es su propio bloque: no son cuentas de banco y el usuario quiere
       // colocarlos donde le apetezca (feedback 2026-07-25).
-      (state.assets||[]).length>0 && { id:"bienes", label:t("pt_goods"), el:React.createElement(React.Fragment,null,
+      { id:"bienes", label:t("pt_goods"), el:React.createElement(React.Fragment,null,
         React.createElement("div",{className:"v4-sec-h"}, t("pt_goods")),
         React.createElement(Wealth,{state:state,set:set,totals:totals,v4Embed:true,parte:"bienes"})
       ) },

@@ -95,7 +95,11 @@ const LANG = {
     v4_hola:"Hola, {n}", v4_hola_anon:"Hola",
     v4_money_total:"Tu dinero en total", v4_of_month:"del mes", v4_of_cycle:"del ciclo", v4_cycle_start_h:"Aquí empieza tu ciclo",
     v4_budget_spent:"Has gastado {spent} de tus {budget}.", v4_budget_daily:"Puedes gastar {x}/día hasta fin de mes.", v4_cycle_net:"Gasto neto desde el cobro: {used} de tus {budget}.", v4_cycle_left:"Te quedan {x}.", v4_cycle_over:"Te faltan {x}.",
-    v4_streak:"{n} meses sin pasarte", v4_streak_zero:"Mes en curso", v4_hist_empty:"Tu histórico empieza hoy", v4_nobud_t:"Ponle un presupuesto", v4_nobud_p:"Es la mitad de la app: sin un tope al mes no se puede saber cuánto te queda. Puedes cambiarlo cuando quieras.", v4_nobud_cta:"Ponle un presupuesto", v4_noup_t:"Aún no hay recibos", v4_noup_p:"Conecta tu banco y los recibos del mes aparecen solos, con su día y su importe.", v4_noup_cta:"Conecta tu banco", v4_nogoal_t:"Ponte tu primera meta", v4_nogoal_p:"Un viaje, un colchón, lo que sea: la app te dice cuánto falta y cuándo llegas.", v4_nogoal_cta:"Crear una meta", v4_see_gastos:"Ver gastos ›", v4_see_plan:"Ver plan ›",
+    v4_streak:"{n} meses sin pasarte", v4_streak_zero:"Mes en curso",
+    // INC-0810 es: patrimonio de ahora.
+    v4_hist_empty:"Tu histórico empieza hoy", v4_net_unknown:"El total actual no está disponible.",
+    // INC-0810 es: fin del patrimonio de ahora.
+    v4_nobud_t:"Ponle un presupuesto", v4_nobud_p:"Es la mitad de la app: sin un tope al mes no se puede saber cuánto te queda. Puedes cambiarlo cuando quieras.", v4_nobud_cta:"Ponle un presupuesto", v4_noup_t:"Aún no hay recibos", v4_noup_p:"Conecta tu banco y los recibos del mes aparecen solos, con su día y su importe.", v4_noup_cta:"Conecta tu banco", v4_nogoal_t:"Ponte tu primera meta", v4_nogoal_p:"Un viaje, un colchón, lo que sea: la app te dice cuánto falta y cuándo llegas.", v4_nogoal_cta:"Crear una meta", v4_see_gastos:"Ver gastos ›", v4_see_plan:"Ver plan ›",
     v4_upcoming:"Próximos cargos", v4_upcoming_empty:"Nada pendiente este mes. Los recibos aparecen aquí.",
     v4_charges_overdue:"Cargos vencidos", v4_charge_unconfirmed:"Sin pago acreditado",
     v4_charge_actual:"Cargo {x}", v4_charge_expected:"Previsto {x}",
@@ -155,6 +159,7 @@ const LANG = {
     bk_tr_ob_cta:"Renovar el permiso del banco",
     v4_acc_locked:"El saldo de las cuentas conectadas lo trae el banco solo; el nombre y el rol sí puedes cambiarlos.",
     v4_sel_partial:"Seleccionado", v4_edit_goods:"Editar bienes",
+    goods_add:"Añadir bien", goods_name:"Nombre del bien", goods_value:"Valor en euros", goods_home:"Vivienda", goods_car:"Vehículo", goods_invalid:"Escribe un nombre y un valor válido, con hasta dos decimales.", goods_delete:"Borrar bien", goods_delete_q:"¿Borrar {name}?", goods_delete_sub:"Dejará de contar en el patrimonio. No se borran cuentas ni movimientos.",
     v4_gestionar_h:"Edita fijos, cuotas, flujos y conciliación del banco — sin llenar la vista diaria.",
     v4_debts_foot_a:"Deudas", v4_debts_foot_b:"ya descontadas",
     v4_apuntar:"Apuntar", v4_gasto:"Gasto", v4_ingreso:"Ingreso", v4_apuntar_ph:"¿En qué? (ej. Cena)",
@@ -400,7 +405,11 @@ const LANG = {
     v4_hola:"Hi, {n}", v4_hola_anon:"Hi",
     v4_money_total:"All your money", v4_of_month:"of month", v4_of_cycle:"of cycle", v4_cycle_start_h:"Your cycle starts here",
     v4_budget_spent:"You've spent {spent} of your {budget}.", v4_budget_daily:"You can spend {x}/day until month end.", v4_cycle_net:"Net spending since payday: {used} of your {budget}.", v4_cycle_left:"{x} left.", v4_cycle_over:"{x} over budget.",
-    v4_streak:"{n} months on track", v4_streak_zero:"Month in progress", v4_hist_empty:"Your history starts today", v4_nobud_t:"Set a monthly budget", v4_nobud_p:"It is half the app: without a monthly cap there is no way to know what you have left. You can change it whenever you want.", v4_nobud_cta:"Set a budget", v4_noup_t:"No bills yet", v4_noup_p:"Connect your bank and this month's bills show up on their own, with day and amount.", v4_noup_cta:"Connect your bank", v4_nogoal_t:"Set your first goal", v4_nogoal_p:"A trip, a safety net, anything: the app tells you how much is missing and when you get there.", v4_nogoal_cta:"Create a goal", v4_see_gastos:"See spending ›", v4_see_plan:"See plan ›",
+    v4_streak:"{n} months on track", v4_streak_zero:"Month in progress",
+    // INC-0810 en: patrimonio de ahora.
+    v4_hist_empty:"Your history starts today", v4_net_unknown:"The current total is unavailable.",
+    // INC-0810 en: fin del patrimonio de ahora.
+    v4_nobud_t:"Set a monthly budget", v4_nobud_p:"It is half the app: without a monthly cap there is no way to know what you have left. You can change it whenever you want.", v4_nobud_cta:"Set a budget", v4_noup_t:"No bills yet", v4_noup_p:"Connect your bank and this month's bills show up on their own, with day and amount.", v4_noup_cta:"Connect your bank", v4_nogoal_t:"Set your first goal", v4_nogoal_p:"A trip, a safety net, anything: the app tells you how much is missing and when you get there.", v4_nogoal_cta:"Create a goal", v4_see_gastos:"See spending ›", v4_see_plan:"See plan ›",
     v4_upcoming:"Upcoming", v4_upcoming_empty:"Nothing pending this month. Bills show up here.",
     v4_charges_overdue:"Overdue charges", v4_charge_unconfirmed:"Payment unconfirmed",
     v4_charge_actual:"Charge {x}", v4_charge_expected:"Expected {x}",
@@ -458,6 +467,7 @@ const LANG = {
     bk_tr_ob_cta:"Renew the bank permission",
     v4_acc_locked:"Connected accounts get their balance from the bank; you can still change the name and role.",
     v4_sel_partial:"Selected", v4_edit_goods:"Edit assets",
+    goods_add:"Add asset", goods_name:"Asset name", goods_value:"Value in euros", goods_home:"Home", goods_car:"Vehicle", goods_invalid:"Enter a name and a valid value with up to two decimal places.", goods_delete:"Delete asset", goods_delete_q:"Delete {name}?", goods_delete_sub:"It will no longer count towards net worth. Accounts and transactions are kept.",
     v4_gestionar_h:"Edit fixed bills, installments, cash flows and bank reconciliation — without cluttering the daily view.",
     v4_debts_foot_a:"Debts", v4_debts_foot_b:"already subtracted",
     v4_apuntar:"Add", v4_gasto:"Expense", v4_ingreso:"Income", v4_apuntar_ph:"What for? (e.g. Dinner)",
@@ -692,7 +702,11 @@ const LANG = {
     v4_hola:"Hola, {n}", v4_hola_anon:"Hola",
     v4_money_total:"Els teus diners en total", v4_of_month:"del mes", v4_of_cycle:"del cicle", v4_cycle_start_h:"Aquí comença el teu cicle",
     v4_budget_spent:"Has gastat {spent} dels teus {budget}.", v4_budget_daily:"Pots gastar {x}/dia fins a fi de mes.", v4_cycle_net:"Despesa neta des del cobrament: {used} dels teus {budget}.", v4_cycle_left:"Et queden {x}.", v4_cycle_over:"Et falten {x}.",
-    v4_streak:"{n} mesos sense passar-te", v4_streak_zero:"Mes en curs", v4_hist_empty:"El teu històric comença avui", v4_nobud_t:"Posa-li un pressupost", v4_nobud_p:"És la meitat de l'app: sense un límit al mes no es pot saber quant et queda. El pots canviar quan vulguis.", v4_nobud_cta:"Posa-li un pressupost", v4_noup_t:"Encara no hi ha rebuts", v4_noup_p:"Connecta el teu banc i els rebuts del mes apareixen sols, amb el seu dia i el seu import.", v4_noup_cta:"Connecta el teu banc", v4_nogoal_t:"Posa't el teu primer objectiu", v4_nogoal_p:"Un viatge, un coixí, el que sigui: l'app et diu quant falta i quan hi arribes.", v4_nogoal_cta:"Crear un objectiu", v4_see_gastos:"Veure despeses ›", v4_see_plan:"Veure pla ›",
+    v4_streak:"{n} mesos sense passar-te", v4_streak_zero:"Mes en curs",
+    // INC-0810 ca: patrimonio de ahora.
+    v4_hist_empty:"El teu històric comença avui", v4_net_unknown:"El total actual no està disponible.",
+    // INC-0810 ca: fin del patrimonio de ahora.
+    v4_nobud_t:"Posa-li un pressupost", v4_nobud_p:"És la meitat de l'app: sense un límit al mes no es pot saber quant et queda. El pots canviar quan vulguis.", v4_nobud_cta:"Posa-li un pressupost", v4_noup_t:"Encara no hi ha rebuts", v4_noup_p:"Connecta el teu banc i els rebuts del mes apareixen sols, amb el seu dia i el seu import.", v4_noup_cta:"Connecta el teu banc", v4_nogoal_t:"Posa't el teu primer objectiu", v4_nogoal_p:"Un viatge, un coixí, el que sigui: l'app et diu quant falta i quan hi arribes.", v4_nogoal_cta:"Crear un objectiu", v4_see_gastos:"Veure despeses ›", v4_see_plan:"Veure pla ›",
     v4_upcoming:"Pròxims càrrecs", v4_upcoming_empty:"Res pendent aquest mes. Els rebuts surten aquí.",
     v4_charges_overdue:"Càrrecs vençuts", v4_charge_unconfirmed:"Sense pagament acreditat",
     v4_charge_actual:"Càrrec {x}", v4_charge_expected:"Previst {x}",
@@ -750,6 +764,7 @@ const LANG = {
     bk_tr_ob_cta:"Renovar el permís del banc",
     v4_acc_locked:"El saldo dels comptes connectats el porta el banc sol; el nom i el rol sí que els pots canviar.",
     v4_sel_partial:"Seleccionat", v4_edit_goods:"Edita els béns",
+    goods_add:"Afegeix un bé", goods_name:"Nom del bé", goods_value:"Valor en euros", goods_home:"Habitatge", goods_car:"Vehicle", goods_invalid:"Escriu un nom i un valor vàlid, amb fins a dos decimals.", goods_delete:"Esborra el bé", goods_delete_q:"Vols esborrar {name}?", goods_delete_sub:"Deixarà de comptar en el patrimoni. No s'esborren comptes ni moviments.",
     v4_gestionar_h:"Edita fixes, quotes, fluxos i conciliació del banc — sense omplir la vista diària.",
     v4_debts_foot_a:"Deutes", v4_debts_foot_b:"ja descomptats",
     v4_apuntar:"Apuntar", v4_gasto:"Despesa", v4_ingreso:"Ingrés", v4_apuntar_ph:"En què? (ex. Sopar)",

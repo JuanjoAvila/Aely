@@ -791,3 +791,7 @@ escrituras posteriores al pull recuperado, sin rechazo no manejado ni banco auto
 Los readbacks y resolvers establecen el orden; no impone un máximo global de concurrencia.
 Es cobertura sintética de integración, no cancelación de sockets, suspensión del SO,
 reproducción del lag ni mejora de rendimiento. La fuente183 tiene CI37810907496 SUCCESS; este port sobre main106 necesita su propia CI exacta antes de integrar.
+
+## Selección web111: Bienes y gráfica de Inicio
+
+`e2e/cartera-bienes-completo.spec.mjs` protege alta vacía, validación, edición, borrado confirmado/cancelado, cero, recarga y conservación de los demás datos. `e2e/cartera-bienes-toque.spec.mjs` comprueba abrir y cancelar por toque/teclado en es/en/ca y letra normal/grande. Ambos están en E2E_MAP para07 y14. `e2e/inicio-grafica-significado.spec.mjs`, registrado para03, protege el dibujo original, moneda, histórico y total desconocido. Son datos sintéticos; no sustituyen la aceptación móvil. Suite completa y CI pendientes de ejecución sobre el SHA del PR.

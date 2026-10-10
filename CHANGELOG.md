@@ -1,3 +1,13 @@
+## [4.26.111] — 2026-10-10
+
+- Cartera → Bienes admite alta con la lista vacía, edición en borrador y borrado con confirmación. Se traslada la fuente aprobada de beta `684a839d`, incluidos los textos es/en/ca y la puerta vacía de Cartera; cancelar conserva los datos.
+- Inicio utiliza el componente `NetWorthNow` de esa fuente, manteniendo la gráfica que ya existía en producción y la protección del total desconocido. No incorpora Inicio V42 ni la limpieza de componentes de beta112.
+- Se añaden los tres e2e propios y sus mapas; la prueba de inversiones vuelve arriba antes de reutilizar la barra, porque Bienes permanece visible. Los dos descriptores de alcance se incorporan íntegros para acreditar sus recibos web; el resto del catálogo e historial permanece intacto. Una línea en blanco separa los estilos de tutorial del alcance CSS aprobado, sin retirarlos. El guardián de persistencia incorpora Bienes entre los alcances que escriben y la gráfica entre los de solo lectura.
+- Reserva de revisión: la fuente aprobada conserva el aviso de validación al abrir el alta vacía. Claude tiene la discrepancia con su revisión previa; no se modifica el producto aprobado sin una respuesta concreta.
+- El guardián de tamaño original falla con1.327.718B minificados y362.088B gzip frente a1295/353KiB. Se fijan los mínimos medidos1297/354KiB (margen410/408B), manteniendo tres cargas bloqueantes y todo el producto aprobado. No se importa la limpieza112 para ganar espacio.
+- Bloqueo de catálogo: el descriptor antiguo de Recientes106 termina en `const p=eurParts`, retirado por la fuente exacta de Inicio113. El build omite su recibo ausente y beta-sources falla al recorrerlo. No se recorta ni repina el alcance; requiere decisión del coordinador.
+- Candidata para PR de producción; suite completa, CI, revisión e integración pendientes. El retiro de las dos tandas se prepara en un PR separado contra beta. Sin publicación ni APK/backend.
+
 ## [4.26.110] — 2026-10-09 · Barra, reglas de ahorro y Atrás
 
 - Guardián histórico de VERSION (9/10): una integración documental con MAIN ya versionado como segundo padre se contaba contra su primer padre antiguo y bloqueaba PR196 aun con runtime exacto de MAIN. Se auditan por separado todos los commits no merge y cada resolución contra un padre descendiente del ancla cuando existe, manteniendo deuda lateral y reverts. Cuatro grafos Git adicionales protegen la excepción y sus tres negativos; no cambia versión ni producto.

@@ -12469,5 +12469,345 @@
       }
     ],
     "unidades": true
+  },
+  "bienes-completo": {
+    "unidades": true,
+    "web": [
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "from": "      parte!==\"cuentas\" && (state.assets||[]).length>0 && React.createElement(React.Fragment,null,",
+        "to": "    );\n  }\n  return React.createElement(\"div\",null,"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "eur0"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF0"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "DISP"
+      },
+      {
+        "file": "src/shell.html",
+        "from": "  .v4-mov{display:flex",
+        "to": "  .v4-mov.v4-mov-skip"
+      },
+      {
+        "file": "src/shell.html",
+        "from": "  button.v4-mov{",
+        "to": "  .set-card>.set-row:first-child"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  // INC-0410 guardado: de aquí al límite está cuándo y qué estado se escribe en disco. Cambiarlo invalida las revisiones que prometen conservar algo al cerrar o recargar.",
+        "to": "  // INC-0410 guardado: límite."
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcPersistCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSaveRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSkipPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcStateKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSandbox"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSandboxFlag"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "EXP_SUFFIX"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "store"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcSkipPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "STATE_KEY_TEST"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "STATE_KEY_REAL"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcSandboxPinned"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mem"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "AssetSheet"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "from": "      parte!==\"cuentas\" && React.createElement(React.Fragment,null,",
+        "to": "    );\n  }\n  return React.createElement(\"div\",null,"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "from": "  const [sheetAsset,setSheetAsset]=useState(null);",
+        "to": "\n",
+        "includeTo": true
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "    goods_add:\"Añadir bien\"",
+        "to": "\n",
+        "includeTo": true
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "    goods_add:\"Add asset\"",
+        "to": "\n",
+        "includeTo": true
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "    goods_add:\"Afegeix un bé\"",
+        "to": "\n",
+        "includeTo": true
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "uid"
+      },
+      {
+        "file": "src/modules/14-v4-screens.js",
+        "from": "      // Bienes (piso, coche…) es su propio bloque:",
+        "to": "      !simple && { id:\"inversiones\""
+      },
+      {
+        "file": "src/shell.html",
+        "from": "  .tabsheet-back{",
+        "to": "  .ts-title{"
+      },
+      {
+        "file": "src/shell.html",
+        "from": "  .chip{",
+        "to": "  .range{"
+      },
+      {
+        "file": "src/shell.html",
+        "from": "  .add-form{",
+        "to": "\n\n"
+      },
+      {
+        "file": "src/shell.html",
+        "from": "  .btn{",
+        "to": "  .btn-block{"
+      }
+    ]
+  },
+  "inicio-grafica-vuelve": {
+    "web": [
+      {
+        "file": "src/modules/03-tab-dash.js",
+        "function": "NetWorthNow"
+      },
+      {
+        "file": "src/modules/03-tab-dash.js",
+        "from": "    !showSkel && React.createElement(NetWorthNow,",
+        "to": "\n    // Sin presupuesto, Inicio escondia"
+      },
+      {
+        "file": "src/modules/03-tab-dash.js",
+        "from": "  const tt=totals;",
+        "to": "  const [budgetOpen,setBudgetOpen]"
+      },
+      {
+        "file": "src/modules/03-tab-dash.js",
+        "from": "  const shownNet=useCountUp(tt.netWorth||0, splashGone);",
+        "to": "\n",
+        "includeTo": true
+      },
+      {
+        "file": "src/modules/03-tab-dash.js",
+        "from": "  const [splashGone,setSplashGone]=useState(function(){",
+        "to": "  const [bootReady,setBootReady]"
+      },
+      {
+        "file": "src/modules/03-tab-dash.js",
+        "from": "  useEffect(function(){\n    if(splashGone)",
+        "to": "  useEffect(function(){\n    if(bootReady"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "useCountUp"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "mcReduced"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "eurParts"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "t"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "CURLANG"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "SIMPLEMODE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "    // INC-0810 es: patrimonio de ahora.",
+        "to": "    // INC-0810 es: fin del patrimonio de ahora."
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "    // INC-0810 en: patrimonio de ahora.",
+        "to": "    // INC-0810 en: fin del patrimonio de ahora."
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "    // INC-0810 ca: patrimonio de ahora.",
+        "to": "    // INC-0810 ca: fin del patrimonio de ahora."
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "    v4_money_total:\"Tu dinero en total\"",
+        "to": ", v4_of_month:"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "    v4_money_total:\"All your money\"",
+        "to": ", v4_of_month:"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "    v4_money_total:\"Els teus diners en total\"",
+        "to": ", v4_of_month:"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "  d_networth:\"Patrimonio neto\"",
+        "to": ", d_assets:"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "  d_networth:\"Net worth\"",
+        "to": ", d_assets:"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "  d_networth:\"Patrimoni net\"",
+        "to": ", d_assets:"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "  es:{ d_networth:\"Tu dinero en total\"",
+        "to": ", d_assets:"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "  en:{ d_networth:\"All your money\"",
+        "to": ", d_assets:"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "  ca:{ d_networth:\"Els teus diners en total\"",
+        "to": ", d_assets:"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "DISP"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CUR_SYM"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "fxRateOf"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "fxTableOf"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  // Moneda de visualización: convierte todos los importes (en €)",
+        "to": "\n  CURLANG ="
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  CURLANG = (state.settings&&state.settings.lang)",
+        "to": "\n\n  /* ---------- Sincronización"
+      },
+      {
+        "file": "src/shell.html",
+        "from": "  .v4-micro{",
+        "to": "\n",
+        "includeTo": true
+      },
+      {
+        "file": "src/shell.html",
+        "from": "  .v4-hero{",
+        "to": "\n",
+        "includeTo": true
+      },
+      {
+        "file": "src/shell.html",
+        "from": "  .v4-hero-amt{",
+        "to": "\n",
+        "includeTo": true
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "Sparkline"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "    v4_hist_empty:\"Tu histórico empieza hoy\"",
+        "to": "\n",
+        "includeTo": true
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "    v4_hist_empty:\"Your history starts today\"",
+        "to": "\n",
+        "includeTo": true
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "    v4_hist_empty:\"El teu històric comença avui\"",
+        "to": "\n",
+        "includeTo": true
+      }
+    ],
+    "unidades": true
   }
 }

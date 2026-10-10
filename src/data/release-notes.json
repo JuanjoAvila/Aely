@@ -1,5 +1,26 @@
 [
   {
+    "v": "4.26.111",
+    "d": "2026-10-10",
+    "t": {
+      "es": "Bienes completos",
+      "en": "Complete assets",
+      "ca": "Béns complets"
+    },
+    "items": {
+      "es": [
+        "En Cartera → Bienes ya puedes añadir un bien, editarlo y borrarlo, también cuando la lista está vacía."
+      ],
+      "en": [
+        "In Wallet → Property, you can now add, edit and delete an asset, even when the list is empty."
+      ],
+      "ca": [
+        "A Cartera → Béns ja pots afegir un bé, editar-lo i esborrar-lo, també quan la llista és buida."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.26.110",
     "d": "2026-10-08",
     "t": {
