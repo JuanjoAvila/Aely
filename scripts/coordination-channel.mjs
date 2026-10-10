@@ -9,6 +9,9 @@ import { fileURLToPath } from "node:url";
 export const CHANNEL_BRANCH = "codex/coordinacion";
 const prefix = "coordination";
 const actors = ["codex", "claude", "grok"];
+// Quién reparte encargos. Claude entra por orden del dueño del 10/10/2026: le pasó la
+// coordinación y Codex queda de ejecutor. Los relevos coordinator-relay siguen siendo de Codex.
+const coordinators = ["codex", "claude"];
 export const RELAY_OBJECTIVE = "Coordinar Aely y entregar el siguiente relevo verificado";
 export const RELAY_SCOPE = ["coordination/tasks", "coordination/messages"];
 const relayPrefix = "coordinator-relay-";
@@ -167,7 +170,7 @@ export function prepareOperation(cwd, sha, operation) {
   let file, value;
   const current = taskId ? state(cwd, sha, taskId) : null;
   if (type === "task") {
-    if (actor !== "codex") throw new Error("Solo el coordinador crea encargos");
+    if (!coordinators.includes(actor)) throw new Error("Solo el coordinador crea encargos");
     if (current.task) return { status: "exists", task: current.task };
     if (!actors.includes(payload.to) || !/^[a-f0-9]{40}$/.test(payload.baseSHA || "") || typeof payload.objective !== "string" || !payload.objective.trim() || !Array.isArray(payload.scope)) throw new Error("Encargo incompleto");
     file = taskPath(taskId, "task");

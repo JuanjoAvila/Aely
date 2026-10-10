@@ -5,6 +5,14 @@ El dueño pidió trasladar Claude y Codex a la nube el 5 de octubre de 2026.
 El issue130 conserva el trabajo de Cursor gestionado por Grok; ya no es el buzón común.
 No fusionar esta rama a `main` ni a `beta`: contiene coordinación, no una versión de producto.
 
+## Quién coordina desde el 10 de octubre de 2026
+
+Orden directa del dueño: **Claude coordina desde el PC**; Codex (local) y Grok con sus agentes
+Cursor (nube) ejecutan. Claude crea los encargos, verifica las entregas e integra en serie. Los
+relevos `coordinator-relay-*` de Codex quedan cerrados y no se abre otro. Todo ACK, reserva y
+resultado va por esta rama; el issue130 deja de usarse para eso. Lo que este documento diga más
+abajo sobre «Codex coordina» describe la etapa anterior.
+
 ## Estado que sobrevive a cada sesión
 
 - `coordination/tasks/<id>/task.json`: encargo inmutable creado por Codex, con destinatario,

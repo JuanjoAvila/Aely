@@ -80,7 +80,7 @@ try {
   assert.equal(git(bare, "show", final + ":README.md"), "Datos sintéticos");
   assert.throws(() => publishOperation(one, { ...task("private-task"), payload: { ...task("private-task").payload, objective: "No publicar ghp_synthetic" } }), /privado/);
   assert.throws(() => publishOperation(one, task("../escape")), /no válida/);
-  assert.throws(() => publishOperation(one, { ...task("bad-actor"), actor: "claude" }), /coordinador/);
+  assert.throws(() => publishOperation(one, { ...task("bad-actor"), actor: "grok" }), /coordinador/);
   assert.throws(() => publishOperation(one, { ...task("missing-sha"), payload: { ...task("missing-sha").payload, baseSHA: "beta" } }), /incompleto/);
   console.log("PASS coordination-channel: una reserva, dos mensajes conservados, cierre idempotente, WIP intacto y filtros");
 } finally {
