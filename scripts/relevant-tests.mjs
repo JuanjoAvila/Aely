@@ -98,6 +98,7 @@ export const E2E_MAP = [
   ] },
   { file: "src/modules/07-tab-patri-fijos.js", specs: [
     "e2e/cartera-bienes-toque.spec.mjs",
+    "e2e/cartera-bienes.spec.mjs",
     "e2e/plan-cuota-contabilizada.spec.mjs",
     "e2e/listas-render.spec.mjs", "e2e/bancos-acordeon.spec.mjs", "e2e/bancos-reconnect.spec.mjs",
     "e2e/bancos-historico-filtro.spec.mjs", "e2e/cartera-ficha-cuenta.spec.mjs",
@@ -133,6 +134,7 @@ export const E2E_MAP = [
   { file: "src/modules/13-hogar.js", specs: ["e2e/cartera-orden-hogar.spec.mjs"] },
   { file: "src/modules/14-v4-screens.js", specs: [
     "e2e/cartera-bienes-toque.spec.mjs",
+    "e2e/cartera-bienes.spec.mjs",
     "e2e/inicio-cargos.spec.mjs",
     "e2e/help-assistant.spec.mjs",
     "e2e/pulido-apuntar.spec.mjs", "e2e/pulido-numpad.spec.mjs",
