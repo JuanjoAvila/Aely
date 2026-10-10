@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "id": "tests-inestables-grok-20261010",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261010-5f79c133",
+  "createdAt": "2026-10-10T11:10:33.597Z",
+  "to": "grok",
+  "baseSHA": "684a839d286f68d66c8855cf6e1a626b7220fd64",
+  "objective": "Dos specs de Playwright fallan de forma intermitente también en la base y ensucian cada entrega. Arreglar SOLO los tests, sin tocar producto.",
+  "scope": [
+    "e2e/metas-mensual.spec.mjs",
+    "e2e/cartera-bienes-toque.spec.mjs",
+    "e2e/fixtures.mjs si hace falta"
+  ],
+  "acceptance": [
+    "metas-mensual líneas 128 y 146: el toast de logros del alta sigue en pantalla cuando el test espera el de error (.toast es único). Esperar a que se vayan los toasts de logros antes de interceptar, o sembrar el estado con esos logros ya concedidos. No subir timeouts como arreglo.",
+    "cartera-bienes-toque línea 70: un set() tardío del arranque escribe micartera_v3 después de instalar el espía de localStorage.setItem. Identificar qué set() es y esperar a que el arranque termine antes de espiar; si resulta ser una escritura de producto innecesaria, NO arreglarla: describirla en el result.",
+    "Cada spec pasa 5 veces seguidas con --workers=6 --repeat-each=5 y exit 0, también en CI.",
+    "Un PR draft contra beta, solo tests. Result por el canal con SHA y exit codes reales."
+  ],
+  "authorization": "Orden directa del dueño 10/10: Claude coordina; limpiar backlog."
+}
