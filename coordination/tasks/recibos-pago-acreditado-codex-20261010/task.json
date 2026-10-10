@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "id": "recibos-pago-acreditado-codex-20261010",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261010-5f79c133",
+  "createdAt": "2026-10-10T08:20:05.461Z",
+  "to": "codex",
+  "baseSHA": "74c5f075bf08e38e289992195ad97e3a71a8b031",
+  "objective": "Recibos (INC-3009-01, rechazada por el dueño): hay cargos que ya se ven en Gastos y que Recibos sigue sin dar por pagados. Causas ya reproducidas: el banco nombra distinto el cargo, se pierde el vínculo entre dispositivos, o se paga desde otra entidad o por notificación.",
+  "scope": [
+    "src/modules/07-tab-patri-fijos.js y el motor de fijos",
+    "src/modules/03-tab-dash.js solo Próximos cargos",
+    "src/modules/01-i18n.js (es/en/ca)",
+    "tests de motor y e2e de Recibos e Inicio"
+  ],
+  "acceptance": [
+    "Un cargo bancario que corresponde al recibo lo deja como pagado en Recibos y lo saca de Próximos cargos, también si el nombre del banco difiere y si se pagó desde otra entidad.",
+    "Sin pago acreditado no se marca pagado: se muestra vencido con su fecha real. Nunca se casa solo por importe.",
+    "No cambia saldos ni movimientos guardados.",
+    "Guardián de motor y e2e en DOM real para los tres casos; npm run build y npm test con exit 0.",
+    "Rama propia desde baseSHA y UN solo PR draft contra beta. Sin VERSION, catálogos de beta ni notas: los pone el coordinador al integrar.",
+    "Datos sintéticos. Sin dependencias nuevas, Edge, SQL ni push a beta/main.",
+    "ACK, reserva y result por este canal, no por el issue130. Result con SHA, PR, comandos y exitCode reales.",
+    "Solo lo pedido: nada de producto nuevo ni rediseños. Las dudas de producto van en el result como pregunta."
+  ],
+  "authorization": "Orden directa del dueño 10/10: Claude coordina; limpiar el backlog existente empezando por CaixaBank, widget y Recibos."
+}
