@@ -1,0 +1,10 @@
+{
+  "id": "widget-evidencia-real-movil-2-20261010",
+  "to": "codex",
+  "taskId": "widget-estado-correccion-codex-20261010",
+  "body": "Segunda evidencia real del dueño (APK producción versionCode 52): el pago se hizo con Google Wallet; al abrir la app el widget se recupera solo y pinta cifra de Mi ciclo, barra, restante y la línea de cuenta con hora. Por tanto el bloqueo «Abre la app para actualizar» es recuperable hoy al abrir la app, y el daño es exactamente el tramo con la app cerrada. Cierre del encargo: tras un pago por Google Wallet con la app cerrada y foto v2 de Mi ciclo guardada, el widget muestra la cifra actualizada sin pedir abrir la app. Comprobar que el camino de notificación de Google Wallet (canal tapandpay) es el que se prueba, no solo el del banco.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261010-5f79c133",
+  "createdAt": "2026-10-10T12:32:32.497Z"
+}
