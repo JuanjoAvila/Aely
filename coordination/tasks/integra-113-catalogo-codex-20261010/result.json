@@ -1,0 +1,91 @@
+{
+  "status": "blocked",
+  "sha": "4dda002747de607af88601100e7f3541e9868ebe",
+  "baseSHA": "615e069189030949d7692ae72c0f57262c3fca15",
+  "branch": "claude/integra-113",
+  "summary": "Entregado por push normal y confirmado remotamente el candidato4.26.113. Versión, catálogo, notas es/en/ca, documentación y presupuesto preparados; fuente de producto idéntica a la base615e0691. Sustituidas las tandas111/112 por bienes-completo e inicio-grafica-vuelve, incluidas las puertas de Bienes vacíos. Histórico109 conserva referencia, guion y rechazo sin repinar ni heredar aprobación. Estado blocked por los exits1 literales de npm test: memoria-espejo es el ÚNICO rojo local en Madrid y UTC; excepción local expresamente separada por el encargo, sin modificar memoria ajena ni cantar suite verde. Reserva propia liberada; CI, publicación y aceptación móvil corresponden a Claude.",
+  "tests": [
+    {
+      "command": "npm run build",
+      "sha": "4dda002747de607af88601100e7f3541e9868ebe",
+      "exitCode": 0
+    },
+    {
+      "command": "npm test",
+      "timezone": "Europe/Madrid",
+      "sha": "4dda002747de607af88601100e7f3541e9868ebe",
+      "exitCode": 1,
+      "onlyFailure": "memoria-espejo",
+      "nodeStagesCompleted": 131,
+      "nodeStagesWithoutFailure": 130
+    },
+    {
+      "command": "TZ=UTC npm test",
+      "timezone": "UTC",
+      "sha": "4dda002747de607af88601100e7f3541e9868ebe",
+      "exitCode": 1,
+      "onlyFailure": "memoria-espejo",
+      "nodeStagesCompleted": 131,
+      "nodeStagesWithoutFailure": 130
+    },
+    {
+      "command": "node scripts/sync-memoria.mjs --check",
+      "sha": "4dda002747de607af88601100e7f3541e9868ebe",
+      "exitCode": 1,
+      "purpose": "confirmación separada del único rojo local; sin escrituras"
+    },
+    {
+      "command": "Playwright CLI test --config=playwright.config.mjs e2e/revisar-beta.spec.mjs --grep 'contador activo|109 histórica|cola publicada' --workers=1 --retries=0",
+      "sha": "4dda002747de607af88601100e7f3541e9868ebe",
+      "exitCode": 0,
+      "passed": 9,
+      "failed": 0,
+      "port": 49137,
+      "syntheticData": true
+    },
+    {
+      "command": "Playwright CLI test --config=playwright.config.mjs e2e/cartera-bienes-completo.spec.mjs e2e/inicio-grafica-significado.spec.mjs e2e/revisar-beta.spec.mjs --workers=1 --retries=0 --max-failures=3",
+      "sha": "cc5bb67fb3a10b148dbc74973b6242326ade49db",
+      "exitCode": 1,
+      "passed": 109,
+      "failed": 3,
+      "didNotRun": 6,
+      "purpose": "pasada anterior con tres expectativas de metadatos112 obsoletas; corregidas y repetidas en los nueve DOM finales. Bundle y fuentes de producto iguales al SHA final; no se atribuyen109 casos al SHA final"
+    },
+    {
+      "command": "git diff --check 615e069189030949d7692ae72c0f57262c3fca15 HEAD",
+      "sha": "4dda002747de607af88601100e7f3541e9868ebe",
+      "exitCode": 0
+    },
+    {
+      "command": "git push origin HEAD:refs/heads/claude/integra-113",
+      "sha": "4dda002747de607af88601100e7f3541e9868ebe",
+      "exitCode": 0,
+      "normalFastForward": true,
+      "remoteReadbackConfirmed": true
+    }
+  ],
+  "limits": [
+    "Deno no instalado: tests ingest-deno omitidos por el runner en ambas pasadas.",
+    "El runner completo no ejecutó playwright-e2e ni performance porque hubo un fallo Node; la evidencia DOM final son únicamente los nueve focales indicados.",
+    "Nómina conserva su alcance íntegro: su digest cambia al incluir Wealth modificada por Bienes en PR198; no se recorta para mantener una aprobación anterior.",
+    "Presupuesto gzip +1KiB a354KiB, medido361889B frente al anterior361472B; mínimo en la unidad existente. Crudo1295KiB y tres cargas permanecen en su tope.",
+    "No hay publicación beta/main, APK, backend, aprobación móvil ni CI nueva realizada por este worker. Rama y checkout exclusivos conservados."
+  ],
+  "chromium": {
+    "released": true,
+    "grant": "codex-subcoordination-09-chromium-grant3",
+    "terminalUTC": "2026-10-10T09:56:31.641Z",
+    "freshCensusUTC": "2026-10-10T09:57:01.4518205Z",
+    "ownProcessesRemaining": 0,
+    "listener49137Remaining": 0,
+    "legacyLease322Adopted": false,
+    "foreignResourcesAdopted": false
+  },
+  "schema": 1,
+  "taskId": "integra-113-catalogo-codex-20261010",
+  "actor": "codex",
+  "sessionId": "codex-local-20261010-ti0kawllu6",
+  "createdAt": "2026-10-10T10:15:01.303Z",
+  "released": true
+}
