@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "id": "widget-estado-correccion-codex-20261010",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261010-5f79c133",
+  "createdAt": "2026-10-10T09:40:33.252Z",
+  "to": "codex",
+  "baseSHA": "f8c1b7ae73fbedfd8087cd0932457ed475263a8b",
+  "objective": "Corregir PR201 (widget) antes de integrar. Revisión independiente con el Java real del PR: el widget puede quedarse en «—» para siempre justo en los móviles que hoy tienen el fallo. Mismo PR y misma rama codex/widget-estado-20261010.",
+  "scope": [
+    "android/app: MiCarteraWidget.java y WidgetSnapshotArbiter.java",
+    "tests/widget-*.test.mjs",
+    "docs/SETUP-ANDROID.md si cambia el contrato"
+  ],
+  "acceptance": [
+    "GRAVE. unknownLoss se pone a true en nueve sitios de WidgetSnapshotArbiter y nunca vuelve a false; MiCarteraWidget.java línea 89 migra journalFull=true a unknownLoss=true. Reproducido con el Java del PR: estado antiguo con journalFull y unknownPending a true, sin clave unknownLoss, y un unknownJournal de una entrada seguida de salto de línea e indentación; tras tres fotos de la app con ACK y lápida exactos siguen unknownPending y unknownLoss a true. Debe existir salida: «Abre la app» tiene que ser verdad. Una foto completa de la app que cubre o descarta cada entrada pendiente limpia la pérdida, y la migración no declara pérdida cuando el registro antiguo se relee entero.",
+    "Test que falla hoy y pasa con el arreglo: ese estado migrado se recupera al abrir la app; y otro que mantiene «—» cuando de verdad falta identidad. Revisar los dos tests de widget-unknown-loss que hoy fijan el bloqueo permanente.",
+    "MEDIO. Cambio de periodo (Arbiter 85-86 y 168-169): un pago del periodo anterior pasa a pendiente y exige ACK o lápida. Demostrar con test qué pasa si esa fila no vuelve en pullExpenses ni está en state.deleted; no puede acabar en «Abre la app» sin fin.",
+    "Decir en el result, con fichero y línea, dónde se garantiza que la cifra del widget coincide con Inicio, ya que el PR no toca src/modules.",
+    "Quitar la redundancia unknownLoss|| de MiCarteraWidget.java:261 si sigue sobrando. widget-offline no cuenta como prueba de este arreglo: no citarlo como tal.",
+    "Sin VERSION, versionCode, notas ni APK publicado: integra el coordinador. Tests de widget exit 0 y assembleRelease local con WEBDEBUG=0.",
+    "La pregunta de los modos está trasladada al dueño; no implementar selector hasta su respuesta."
+  ],
+  "authorization": "Orden directa del dueño 10/10: Claude coordina y verifica; Codex ejecuta."
+}
