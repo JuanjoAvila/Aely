@@ -1,0 +1,100 @@
+{
+  "branch": "codex/inicio-grafica-vuelve-20261010",
+  "status": "blocked",
+  "evidence": {
+    "maxPixelChannelDifference": 1,
+    "heroPNGDimensions": "982x542 ambas",
+    "sparklineMatchesReference": true,
+    "sparklineSHA256": "d88a1e85f7657bc87b8eddd4ef46f2629dc985d0b9f8aad84c30cfb8319627b6",
+    "runtime": "Chromium local; Europe/Madrid; datos sintéticos",
+    "fixtureBundleSHA256": "182bc04e638b123fdd69655190d22e6c70638de3d82c3e1624911c442f064ba3",
+    "brief": "docs/briefs/inicio-grafica-vuelve-20261010.md",
+    "differentPixels": 7733
+  },
+  "limitations": [
+    "Falta actualización del descriptor, identidad y guion por Claude. La fuente restaurada ya no describe Inicio112 sin gráfica; no heredar su aprobación.",
+    "La fixture DOM no sustituye el build oficial ni npm test. Sin cambios de VERSION, catálogos, notas, backend o APK.",
+    "Sin merge ni push main/beta ni publicación. Sin aceptación móvil.",
+    "No se adopta WIP113 ni claims ajenos. El result entrega candidato bloqueado, no cumplimiento del requisito build/npm exit0."
+  ],
+  "referenceSHA": "bdd756363261290b2f9da56aa0c9873c8eae911b",
+  "repository": "JuanjoAvila/Aely",
+  "resources": {
+    "checkout": "Preservado y limpio; generados temporales retirados",
+    "claim": "Liberar únicamente mediante este result titular",
+    "ownProcesses": "Pruebas y servidores propios terminados; puertos propios sin listeners. Sin liberar procesos ajenos"
+  },
+  "baseSHA": "74c5f075bf08e38e289992195ad97e3a71a8b031",
+  "tests": [
+    {
+      "detail": "BETA_SCOPE_ABSENT src/shell.html: .v4-net-current-head y .v4-net-now requeridas por descriptor112",
+      "command": "npm run build",
+      "productSHA": "e1862a433f946373d92d1241100dca9e5661cc66",
+      "exitCode": 1
+    },
+    {
+      "detail": "Plan suite entera; aborta en build-app inicial. No se ejecuta la suite completa ni su DOM general",
+      "command": "npm test",
+      "productSHA": "e1862a433f946373d92d1241100dca9e5661cc66",
+      "exitCode": 1
+    },
+    {
+      "fixtureOnly": true,
+      "command": "node --require ./test-results/inicio-fixture-registry.cjs scripts/build-app.mjs",
+      "detail": "Fixture temporal: sólo se omiten dos selecciones CSS obsoletas del descriptor en memoria. Catálogo del repo intacto; no aplica a npm test; preload retirado al cerrar",
+      "exitCode": 0
+    },
+    {
+      "failed": 0,
+      "flaky": 0,
+      "retries": 0,
+      "skipped": 0,
+      "command": "node node_modules/@playwright/test/cli.js test --config=playwright.config.mjs e2e/inicio-grafica-significado.spec.mjs e2e/pulido-vacios.spec.mjs e2e/inicio-offline.spec.mjs e2e/inicio-mes-natural.spec.mjs e2e/indicador-arco.spec.mjs e2e/smoke.spec.mjs e2e/informe-mes.spec.mjs --workers=1",
+      "exitCode": 0,
+      "fixtureOnly": true,
+      "passed": 74,
+      "productSHA": "e1862a433f946373d92d1241100dca9e5661cc66",
+      "durationMs": 142830
+    },
+    {
+      "detail": "Mismos fixtures contra servidor separado110; HTML servido SHA256 exacto a disco",
+      "command": "node node_modules/@playwright/test/cli.js test --config=playwright.config.mjs e2e/inicio-grafica-significado.spec.mjs --grep-invert \"protección de total desconocido\" --workers=1",
+      "exitCode": 0,
+      "referenceSHA": "bdd756363261290b2f9da56aa0c9873c8eae911b",
+      "passed": 25
+    },
+    {
+      "command": "node node_modules/@playwright/test/cli.js test --config=playwright.config.mjs e2e/inicio-grafica-significado.spec.mjs --grep \"dibujo de producción110\" --workers=1",
+      "detail": "Control negativo real sobre artefacto112: falla por svg.spark ausente",
+      "exitCode": 1
+    },
+    {
+      "fixtureOnly": true,
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/i18n-keys.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "fixtureOnly": true,
+      "command": "node tests/presupuesto-rendimiento.test.mjs",
+      "detail": "Mismos topes1295KiB minificado/353KiB gzip/3 cargas, sin ampliarlos",
+      "exitCode": 0
+    }
+  ],
+  "productSHA": "e1862a433f946373d92d1241100dca9e5661cc66",
+  "pullRequest": 199,
+  "summary": "Restaurada la gráfica exacta de producción110 y retirado Ahora. PR199 draft entregado, con74 DOM de fixture verdes y25 casos contrastados contra main110. Integración bloqueada: build y npm test oficiales exit1 por el descriptor112 que exige dos CSS retirados; Claude conserva catálogo, identidad, guion y publicación.",
+  "schema": 1,
+  "taskId": "inicio-grafica-vuelve-codex-20261010",
+  "actor": "codex",
+  "sessionId": "codex-local-20261010-b4170763cace",
+  "createdAt": "2026-10-10T09:09:58.704Z",
+  "released": true
+}
