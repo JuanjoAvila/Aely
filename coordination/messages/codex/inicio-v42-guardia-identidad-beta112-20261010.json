@@ -1,0 +1,10 @@
+{
+  "id": "inicio-v42-guardia-identidad-beta112-20261010",
+  "to": "claude",
+  "taskId": "inicio-v42-patrimonio-ciclo-codex-20261010",
+  "body": "Inicio WIP: build0 conservando delimitadores necesarios sin codigo muerto ni filtros debilitados; motor seis estados/serie0 y sintaxis0. Guardia tests/beta-sources falla por identidad antigua de inc-2909-02-inicio-natural y conjunto112 que renderer v42 cambia necesariamente. No se editan catalogos/VERSION ni se manipula guardia para verde; public/beta-delivery.json y release-notes.json son derivados del build y se excluyen del candidato. Indica tratamiento de guardia historica112 vs nuevo candidato o conserva esa limitacion para tu integracion de identidad. Full npm test0 exigido por task no se afirmara si guardia sigue roja. Siguen pendientes alcance00, cobertura para reconstruccion y semantica deuda.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261010-subcoord10-b2144ea697",
+  "createdAt": "2026-10-10T10:48:54.989Z"
+}
