@@ -206,17 +206,40 @@ SQL/RLS. La caracterización anterior vive en SHA `bc2fa093`. Registrado para m�
 
 Widget banco (4.26.50): `e2e/widget-banco.spec.mjs` abre Ajustes y cambia el banco con saldo idéntico, verifica el payload nativo y persistencia tras recarga, suma de cuentas sin opciones repetidas y retirada del banco elegido. Registrado para el módulo 10; el módulo 11 obliga a suite completa.
 
-Widget pendiente (`widget-estado-codex-20261010`): `widget-unknown-journal` ejecuta los
+Widget pendiente (`widget-estado-correccion-codex-20261010`): `widget-notificacion-render`
+ejecuta `handleResponse`, `saveMonth`, preferencias y `build` reales con dobles de Android/JSON,
+partiendo de una foto persistida APK52 con journal indentado y un pago superpuesto. La respuesta
+v2 compatible y la legacy con pago de ventana conocida actualizan gasto/saldo sin duplicar;
+un absoluto v2 anterior no deshace el pago legacy. Una fecha fuera de ventana conserva «—»,
+y `saveApp` con ACK recupera. Evalúa además el constructor real del payload web
+con `settings.budgetCycle` false/true y comprueba título/cifra en el pintado Java. No demuestra
+servidor activo, serializador XML Android, widget del launcher ni pago real. Está en el runner.
+`widget-unknown-loss --probe=migration|period|recovery` aísla tres controles causales que fallan
+en f8c1b7ae y pasan con la corrección; todos se ejecutan también sin flags en el runner.
+`widget-notificacion-render --probe=pressure` añade el mismo control causal para cambio
+de alcance con registros casi llenos: ACK/lápidas completos recuperan la cifra; identidad
+perdida de verdad mantiene «—». También corre en la ejecución normal. Las pruebas Deno
+de `ingest/widget.test.ts` están registradas y validan el payload separado y su alcance;
+el handler Node compara Mes y Mi ciclo con el cálculo real de Inicio. `deno check` del
+handler mantiene tres errores de tipos reproducidos en la base, ajenos a esta corrección.
+`widget-unknown-journal` ejecuta los
 read/write reales con formato inyectado, identidad con clave vacía, reinicio del estado y
 cobertura exacta. `--native-dir` permite ejecutar el mismo oráculo contra una fuente base;
 `--loss-probe` distingue pérdida real de formato recuperable. `widget-unknown-loss` prueba
 pérdida durable, desbordamiento, corrupción, cambio de periodo, ACK parcial/ajeno y
 writeBlocked sin foto parcial. `widget-offline` ejecuta transporte/cola del listener con HTTP
-y preferencias en memoria: recreación, retry y una sola entrega al recuperar red. Los tres
-están en run-tests y en recortes Android/backend; los dobles no ejecutan el serializador
+y preferencias en memoria: recreación, retry y una sola entrega al recuperar red. Estas pruebas
+están en run-tests y en recortes Android/backend; offline no prueba la recuperación financiera.
+Los dobles no ejecutan el serializador
 Android, el sistema de reinicio ni un pago real. `widget-banco.spec.mjs` comprueba el contrato
 v2 frente al DOM de Inicio (mes bruto/Mi ciclo neto, es/en/ca); la APK antigua sigue con su
 contrato mensual legado. La aceptación móvil queda pendiente hasta disponer de APK instalada.
+
+`ingest/widget.test.ts` está registrado como Deno: mes bruto, ciclo neto firmado, ancla,
+ingresos de otro banco, lápidas, posibles duplicados, reservas, futuro y caducidad. El guardián
+Node `ingest-handler` ejecuta también esos mismos cuerpos y el handler real con BD en memoria,
+comprobando respuesta dual `month` legacy / `widget` v2 y rechazo de scope desfasado.
+Ese pase Node no equivale al runtime ni al chequeo de tipos Deno; CI debe ejecutar el Deno real.
 
 # Testing — Aely
 

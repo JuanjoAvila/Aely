@@ -1,0 +1,50 @@
+import { assertEquals } from "jsr:@std/assert";
+import { widgetSnapshot, widgetStart } from "./widget.ts";
+import { claveComoLaApp, inicioDeMesMs } from "../_shared/presupuesto.ts";
+
+const now = Date.parse("2026-10-10T12:00:00Z"), start = inicioDeMesMs(now);
+const rows = [
+  { id: "before", fecha: "2026-10-02T10:00:00Z", importe: 30, cat: "super", source: "macrodroid", comercio: "Compra" },
+  { id: "anchor", fecha: "2026-10-05T10:00:00Z", importe: -1000, cat: "ingreso", source: "ob:sabadell", comercio: "Nomina" },
+  { id: "payment", fecha: "2026-10-10T10:00:00Z", importe: 5.45, cat: "super", source: "macrodroid", comercio: "Compra actual" },
+  { id: "return", fecha: "2026-10-09T10:00:00Z", importe: -20, cat: "ingreso", source: "ob:sabadell", comercio: "Devolucion" },
+];
+function state(cycle = false) {
+  const from = cycle ? Date.parse("2026-10-05T00:00:00+02:00") : start;
+  const anchor = cycle ? claveComoLaApp(rows[1]) : "", kind = cycle ? "ciclo" : "mes";
+  return { accounts: [{ ent: "trade_republic", role: "diario", spendFrom: true }, { ent: "sabadell", role: "fijos" }],
+    settings: { budgetCycle: cycle }, budget: 100, deleted: [], reservaLog: [],
+    widgetPeriod: { v: 2, kind, start: from, anchor,
+      scope: JSON.stringify([2, from, kind, cycle ? "neto" : "gasto", anchor, 100, ["trade_republic"], "trade_republic"]) } };
+}
+const payment = { id: "payment", event: "tr:synthetic", key: "synthetic-key" };
+
+Deno.test("widget v2 mes bruto y delta exacto; el contrato no copia Balance legacy", () => {
+  const w = widgetSnapshot(state(), rows, now, payment)!;
+  assertEquals(w.contract, 2); assertEquals(w.periodKind, "mes");
+  assertEquals(w.spent, 35.45); assertEquals(w.shownDelta, 5.45); assertEquals(w.budgetLeft, 64.55);
+});
+Deno.test("widget v2 ciclo: excluye ancla, incluye ingreso de otro banco y conserva signo", () => {
+  const s = state(true), w = widgetSnapshot(s, rows, now, payment)!;
+  assertEquals(w.periodStart, s.widgetPeriod.start); assertEquals(w.periodKind, "ciclo");
+  assertEquals(w.spent, -14.55); assertEquals(w.shownDelta, 5.45); assertEquals(w.scope, s.widgetPeriod.scope);
+});
+Deno.test("widget v2 no afirma scope cambiado, ancla ausente, futuro ni ciclo caducado", () => {
+  const s = state(true);
+  assertEquals(widgetSnapshot({ ...s, budget: 90 }, rows, now, payment), null);
+  assertEquals(widgetSnapshot(s, rows.filter(r => r.id !== "anchor"), now, payment), null);
+  assertEquals(widgetStart(s, now + 46 * 86400000), null);
+  assertEquals(widgetStart({ ...s, settings: { budgetCycle: false } }, now), null);
+  assertEquals(widgetSnapshot(s, rows.concat([{ ...rows[1], id: "new-anchor", fecha: "2026-10-09T10:00:00Z" }]), now, payment), null);
+  const w = widgetSnapshot(s, rows.concat([{ ...rows[2], id: "future", fecha: "2026-10-11T10:00:00Z", importe: 500 }]), now, payment)!;
+  assertEquals(w.spent, -14.55);
+});
+Deno.test("widget v2 respeta lápidas, posibles duplicados y reservas; estado legacy no inventa v2", () => {
+  const s = state();
+  assertEquals(widgetSnapshot({ ...s, widgetPeriod: undefined }, rows, now, payment), null);
+  const w = widgetSnapshot({ ...s, deleted: [claveComoLaApp(rows[0])] }, rows.concat([
+    { ...rows[2], id: "dup", importe: 90, source: "ob:trade_republic#dup" },
+  ]), now, payment)!;
+  assertEquals(w.spent, 5.45);
+  assertEquals(widgetSnapshot({ ...s, reservaLog: [{ date: "2026-10-07", amount: 10 }] }, rows, now, payment), null);
+});

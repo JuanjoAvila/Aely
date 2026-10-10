@@ -38,6 +38,7 @@ import { aEuros, parseWallet } from "../_shared/wallet.ts";
 import { claveEvento, esGemeloIngest, tieneGemeloAnterior } from "../_shared/ingest_identity.ts";
 import { bucketKey, callerIp, rateLimit } from "../_shared/ratelimit.ts";
 import { bancosDeGastoDiario, cuentaParaPresupuesto, filasComoLaApp, inicioDeMesMs, statsDelMes } from "../_shared/presupuesto.ts";
+import { widgetSnapshot, widgetStart } from "./widget.ts";
 // Comparación del token en tiempo constante (2026-07-24) y topes de entrada (SEC-01, 14/9): en _shared.
 import {
   INGEST_MAX_BODY, INGEST_MAX_COMERCIO, INGEST_MAX_NOTA, INGEST_MAX_TEXTO, recortar, timingSafeEqual,
@@ -333,6 +334,7 @@ Deno.serve(async (req) => {
   //    app esté cerrada. Mismas reglas que la app (al_over > al_80 > al_big).
   let alert: Record<string, unknown> | null = null;
   let month: Record<string, number | string> | null = null;
+  let widget: Record<string, number | string> | null = null;
   try {
     const { data: st } = await supabase.from("app_state").select("data").eq("user_id", userId).maybeSingle();
     const now = new Date(fecha);
@@ -393,6 +395,22 @@ Deno.serve(async (req) => {
       // Una inversión/traspaso no gasta presupuesto, pero sí sale del efectivo de TR.
       cashCounts: 1,
     };
+    // Mantener month idéntico para APK antiguas. El contrato de Inicio se acredita aparte,
+    // desde la ventana/ancla guardada por la app y una lectura suficiente de sus filas.
+    const start = widgetStart(st?.data, readAt);
+    if (start != null) {
+      let widgetRows = rows || [];
+      if (start < desdeMs) {
+        const { data: older, error: olderError } = await supabase.from("expenses")
+          .select("id,importe,cat,source,fecha,comercio").eq("user_id", userId)
+          .gte("fecha", new Date(start).toISOString());
+        if (!olderError) widgetRows = older || [];
+        else widgetRows = [];
+      }
+      widget = widgetSnapshot(st?.data, widgetRows, readAt, {
+        id: String(ackId), event: eventKey || "", key: String(month.expenseKey),
+      });
+    }
     if (tipo === "gasto" && budget > 0 && mueveElPresupuesto) {
       const before = after - importe;
       // Umbrales 50/95 añadidos 2026-07-18 (petición: avisos aunque la app esté cerrada —
@@ -410,7 +428,7 @@ Deno.serve(async (req) => {
   } catch (_) { /* opcional; el movimiento ya está guardado */ }
 
   return json({ ok: true, tipo, fecha, importe, comercio, cat, nota: nota || null,
-    ack: ackId, alert, month });
+    ack: ackId, alert, month, widget });
 });
 
 function json(obj: unknown, status = 200) {

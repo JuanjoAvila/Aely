@@ -68,9 +68,11 @@ mi-cartera/
 ├── e2e/                    # Playwright (106 specs: pantallas, persistencia, copias, reglas mensuales y ayuda de Mi ciclo)
 │   └── backclose-handover.spec.mjs # Dieciocho casos de historial/overlays; retorno cleanUrls2PASS/base1092RED
 ├── tests/backclose-history.test.mjs # Controlador y hook reales con cola de eventos History sintética
+├── tests/widget-notificacion-render.test.mjs # Java real sobre preferencias APK52: notificación, registro, relectura y pintado
 ├── tests/                  # Unitarios en Node (lógica, parsers, i18n, seguridad, frescura de doc,
 │                           #  sintaxis de las Edge Functions, despliegue manual de Supabase y presupuesto de rendimiento)
 ├── supabase/               # Postgres, Auth, Edge Functions
+│   └── functions/ingest/widget.ts · widget.test.ts # Contrato widget v2 separado del mes legado y guardián Deno
 ├── scripts/
 │   ├── build-app.mjs       # Ensambla src/ → public/index.html
 │   ├── run-tests.mjs       # build + unit + Deno + E2E; tiempos por etapa en test-results/

@@ -464,6 +464,16 @@ escribir `Access-Control-Allow-Origin: "*"`.
 - Play Store (Data safety + NotificationListener).
 - Feedback de uso real.
 
+### Compatibilidad del pago del widget (candidata10/10/2026)
+
+El listener candidato prefiere la respuesta `widget` v2 de ingest y conserva compatibilidad con
+`month` legacy. Con fecha/identidad/céntimos fiables aplica únicamente la contribución del pago
+a la foto guardada de Inicio, usando sus bancos y magnitud; nunca sustituye un neto de ciclo por
+un total mensual. Una barrera de ticket protege el pago incremental frente a absolutos previos.
+El servidor candidato mantiene month intacto para APK antiguas y calcula widget desde el periodo,
+ancla y scope de app_state; si no los acredita, devuelve null. Sin sync bancaria nueva ni SQL.
+Fuente sin despliegue: entrega Android/Edge y aceptación real pendientes del circuito de Claude.
+
 ### Elección del banco del widget (4.26.50)
 
 `settings.widgetBank` guarda una entidad bancaria del estado principal. `widgetBankOf` resuelve la elección y vuelve a la cuenta `spendFrom` si falta. App envía `cashEnt`, `cashLabel`, `cash` y `safeLiq` de ese banco con el presupuesto global existente. El efecto depende también de `cashEnt`: bancos con cifras iguales deben actualizar el widget. No cambia los roles, filtros de gasto, servidor ni contrato nativo; las cuentas del mismo banco se agregan. Efectivo y Familia se excluyen de la elección explícita y sus opciones. El automático conserva el spendFrom original, incluido Efectivo si era diario.

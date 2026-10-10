@@ -84,11 +84,13 @@ public class MiCarteraWidget extends AppWidgetProvider {
         s.events = p.getString("events", "");
         s.journal = p.getString("journal", "");
         s.journalFull = p.getBoolean("journalFull", false);
-        // El estado antiguo no distinguía saturación recuperable de identidad perdida.
-        // Sin esa prueba migramos el bloqueo a incertidumbre, nunca a cifras confirmadas.
-        s.unknownLoss = p.getBoolean("unknownLoss", s.journalFull);
-        s.unknownPending = p.getBoolean("unknownPending", false) || s.unknownLoss;
         s.unknownJournal = p.getString("unknownJournal", "");
+        s.recoveryJournal = p.getString("recoveryJournal", "");
+        // Releer todas las identidades antiguas distingue formato recuperable de pérdida;
+        // no convertir journalFull en un bloqueo irreversible antes de intentar el ACK.
+        s.unknownLoss = p.getBoolean("unknownLoss", s.journalFull && WidgetSnapshotArbiter.legacyLoss(s));
+        s.identityLost = p.getBoolean("identityLost", s.unknownLoss && s.recoveryJournal.isEmpty());
+        s.unknownPending = p.getBoolean("unknownPending", false) || s.unknownLoss;
         s.coveredEvents = p.getString("coveredEvents", "");
         s.deletedKeys = p.getString("deletedKeys", "");
         return s;
@@ -108,6 +110,7 @@ public class MiCarteraWidget extends AppWidgetProvider {
           .putString("cashLabel", s.cashLabel).putString("events", s.events)
           .putString("journal", s.journal).putBoolean("journalFull", s.journalFull)
           .putBoolean("unknownPending", s.unknownPending).putBoolean("unknownLoss", s.unknownLoss)
+          .putBoolean("identityLost", s.identityLost).putString("recoveryJournal", s.recoveryJournal)
           .putString("unknownJournal", s.unknownJournal)
           .putString("coveredEvents", s.coveredEvents).putString("deletedKeys", s.deletedKeys);
         ed.remove("afford");
@@ -118,6 +121,7 @@ public class MiCarteraWidget extends AppWidgetProvider {
     private static void writeBlocked(SharedPreferences.Editor ed, WidgetSnapshotArbiter.State s) {
         ed.putBoolean("journalFull", s.journalFull)
           .putBoolean("unknownLoss", s.unknownLoss)
+          .putBoolean("identityLost", s.identityLost)
           .putBoolean("unknownPending", s.unknownPending || s.unknownLoss);
     }
 
@@ -143,7 +147,7 @@ public class MiCarteraWidget extends AppWidgetProvider {
         // Cambiar de mes a ciclo (o al revés) es otra ventana: el journal de la anterior no vale.
         if ((!sameWindow(p, contract, kind) || (contract >= WidgetPeriod.CONTRACT
                 && !WidgetPeriod.sameScope(p.getString("scope", ""), scope)))
-                && !WidgetSnapshotArbiter.invalidateScope(s)) {
+                && !WidgetSnapshotArbiter.invalidateScope(s, coveredEvents, deletedKeys, periodStart)) {
             SharedPreferences.Editor blocked = p.edit();
             writeBlocked(blocked, s);
             blocked.commit();
@@ -181,6 +185,43 @@ public class MiCarteraWidget extends AppWidgetProvider {
         String k = WidgetPeriod.CICLO.equals(kind) && contract >= WidgetPeriod.CONTRACT ? WidgetPeriod.CICLO : WidgetPeriod.MES;
         String stored = p.getInt("contract", 0) >= WidgetPeriod.CONTRACT ? p.getString("periodKind", WidgetPeriod.MES) : WidgetPeriod.MES;
         return k.equals(stored);
+    }
+
+    static synchronized boolean saveLegacyPayment(Context ctx, long ticket, long eventAt,
+                          String event, String key, double amount, String category, boolean cashCounts) {
+        SharedPreferences p = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+        int contract = p.getInt("contract", 0);
+        String kind = p.getString("periodKind", WidgetPeriod.MES);
+        long start = p.getLong("periodStart", 0), now = System.currentTimeMillis();
+        if (contract < WidgetPeriod.CONTRACT || event == null || event.isEmpty()
+                || !WidgetPeriod.acceptApp(contract, kind, start, now)
+                || eventAt < start || eventAt > now || !Double.isFinite(amount)
+                || Math.abs(amount - Math.round(amount * 100) / 100.0) > .000001
+                || category == null || category.isEmpty()) return false;
+        // Un ingreso grande podría abrir otro ciclo: sin el cobro/ancla actuales no se
+        // puede afirmar que siga en esta ventana. Un Bizum pequeño sí tiene signo conocido.
+        boolean cycle = WidgetPeriod.CICLO.equals(kind);
+        if (cycle && amount <= -200) return false;
+        if (!cycle && WidgetPeriod.monthStart(eventAt) != start) return false;
+        try {
+            org.json.JSONArray scope = new org.json.JSONArray(p.getString("scope", ""));
+            if (scope.length() != 8 || scope.optInt(0, 0) != 2 || scope.optLong(1, 0) != start
+                    || !kind.equals(scope.optString(2, ""))) return false;
+            org.json.JSONArray banks = scope.optJSONArray(6);
+            if (banks == null) return false;
+            boolean daily = false;
+            for (int i = 0; i < banks.length(); i++)
+                if ("trade_republic".equals(banks.optString(i, ""))) daily = true;
+            boolean neutral = "inversion".equals(category) || "traspaso".equals(category) || "deudas".equals(category);
+            boolean counts = !neutral && (daily || (cycle && amount < 0));
+            double cents = Math.round(amount * 100) / 100.0;
+            double delta = counts && (cycle || cents > 0) ? cents : 0;
+            WidgetSnapshotArbiter.State s = read(p);
+            if (WidgetSnapshotArbiter.knownPayment(s, ticket, event, key, delta, cents, counts, cashCounts)) {
+                SharedPreferences.Editor ed = p.edit(); write(ed, s); ed.commit(); refreshAll(ctx);
+            }
+            return true;
+        } catch (Exception invalid) { return false; }
     }
 
     static synchronized void saveMonth(Context ctx, long ticket, long periodStart, long readAt,
@@ -258,7 +299,7 @@ public class MiCarteraWidget extends AppWidgetProvider {
            HOY. Se compara el período del snapshot con el mes de AHORA; si no coinciden, se pinta
            «—» sin disponible ni saldo en vez de inventar un cero. En cuanto la app empuje el
            dato real del mes nuevo, esto se sustituye solo. */
-        boolean sinDato = p.getBoolean("unknownLoss", false) || p.getBoolean("journalFull", false) || p.getBoolean("unknownPending", false)
+        boolean sinDato = p.getBoolean("journalFull", false) || p.getBoolean("unknownPending", false)
                 || p.getBoolean("negotiating", false);
         // Con Mi ciclo la ventana no acaba el día 1: caduca cuando el cobro queda fuera de plazo.
         int contract = p.getInt("contract", 0);

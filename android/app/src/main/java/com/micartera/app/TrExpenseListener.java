@@ -446,7 +446,10 @@ public class TrExpenseListener extends NotificationListenerService {
                 }
             }
 
-            JSONObject month = r.optJSONObject("month");
+            // La APK antigua sigue leyendo month. El cálculo nuevo viaja aparte para no
+            // hacerle pasar un neto de ciclo por gasto mensual (despliegues en distinto orden).
+            JSONObject month = r.optJSONObject("widget");
+            if (month == null) month = r.optJSONObject("month");
             if (month != null) {
                 // Presupuesto y efectivo tienen reglas distintas: una inversión no gasta
                 // presupuesto pero sí resta saldo. La Edge vieja solo mandaba `counts`.
@@ -469,6 +472,18 @@ public class TrExpenseListener extends NotificationListenerService {
                 // cubre el pull. El evento crudo carece del prefijo guardado por la Edge (FIN-05).
                 if (widgetEvent.isEmpty()) widgetEvent = r.optString("ack", "");
                 if (widgetEvent.isEmpty()) widgetEvent = event;
+                // widget=null de un servidor nuevo declara ventana/scope no acreditados;
+                // sólo la ausencia del campo identifica el servidor legacy compatible.
+                if (!r.has("widget") && month.optInt("contract", 0) < WidgetPeriod.CONTRACT) {
+                    long eventAt = 0;
+                    try {
+                        java.text.SimpleDateFormat fmt = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.ROOT);
+                        fmt.setLenient(false); fmt.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
+                        eventAt = fmt.parse(r.optString("fecha", "")).getTime();
+                    } catch (Exception ignored) {}
+                    if (MiCarteraWidget.saveLegacyPayment(this, widgetTicket, eventAt, widgetEvent,
+                            month.optString("expenseKey", ""), importe, r.optString("cat", ""), cashCounts)) return;
+                }
                 MiCarteraWidget.saveMonth(this, widgetTicket, periodStart, month.optLong("readAt", 0),
                         widgetEvent, month.optString("expenseKey", ""),
                         month.optDouble("spent", 0),

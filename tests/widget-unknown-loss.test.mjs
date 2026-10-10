@@ -13,7 +13,6 @@ const native=sourceArg?path.resolve(sourceArg.slice('--native-dir='.length))
 const widget=fs.readFileSync(path.join(native,'MiCarteraWidget.java'),'utf8');
 const readWrite=widget.slice(widget.indexOf('    private static WidgetSnapshotArbiter.State read('),widget.indexOf('    static synchronized long beginIngest('));
 assert.ok(readWrite.includes('unknownLoss'));
-assert.match(widget,/boolean sinDato = p.getBoolean\("unknownLoss", false\)/,'el render no puede mostrar cifras tras pérdida');
 const dir=fs.mkdtempSync(path.join(os.tmpdir(),'aely-widget-loss-'));
 try {
 const src=path.join(dir,'WidgetUnknownLossTest.java');
@@ -54,6 +53,50 @@ ${readWrite}
     return WidgetSnapshotArbiter.ingest(s,ticket,period,period,200,id,id+"Key",50,100,50,10,10,10,true,true);
   }
   public static void main(String[] args) {
+    if(args.length>0&&args[0].equals("migration")) {
+      for(boolean tombstone:new boolean[]{false,true}) {
+        SharedPreferences old=new SharedPreferences();
+        old.edit().putLong("periodStart",1).putBoolean("journalFull",true)
+            .putBoolean("unknownPending",true).putString("unknownJournal","known\\tknownKey\\n    ");
+        WidgetSnapshotArbiter.State migrated=read(old);
+        photo(migrated,1,"|foreign|","","trade_republic");
+        ok(migrated.unknownPending&&!migrated.unknownLoss,"migración legible no declara pérdida");
+        migrated=restart(migrated);
+        photo(migrated,1,tombstone?"":"|known|",tombstone?"|knownKey|":"","trade_republic");
+        ok(!migrated.unknownPending&&!migrated.unknownLoss,"abrir app recupera migración con cobertura exacta");
+        migrated=restart(migrated); photo(migrated,1,"","","trade_republic");
+        ok(!migrated.unknownPending,"reinicio conserva recuperación");
+      }
+      System.out.println("  PASS causal: migración code52, indentación, ACK y lápida exactos"); return;
+    }
+    if(args.length>0&&args[0].equals("period")) {
+      for(boolean server:new boolean[]{false,true}) {
+        WidgetSnapshotArbiter.State previous=base();
+        ok(ing(previous,WidgetSnapshotArbiter.begin(previous),1,"previous"),"pago anterior");
+        previous=restart(previous);
+        if(server) { ok(ing(previous,WidgetSnapshotArbiter.begin(previous),2,"current"),"rollover cerrado"); previous=restart(previous); }
+        photo(previous,2,server?"|current|":"","","trade_republic");
+        ok(!previous.unknownPending&&!previous.unknownLoss,"foto nueva retira pago anterior ausente de pull y deleted");
+        eq(previous.spent,40); eq(previous.cash(),200);
+        previous=restart(previous); photo(previous,2,"","","trade_republic");
+        ok(!previous.unknownPending,"no espera sin fin una fila fuera de ventana");
+      }
+      System.out.println("  PASS causal: fila anterior ausente, rollover app/ingest, saldo fresco"); return;
+    }
+    if(args.length>0&&args[0].equals("recovery")) {
+      WidgetSnapshotArbiter.State loss=base();
+      String full=new String(new char[262140]).replace('\\0','r'); loss.unknownJournal=full+"\\tK\\n";
+      WidgetSnapshotArbiter.pendingUnknown(loss,"lost","lostKey"); loss=restart(loss);
+      photo(loss,1,"|"+full+"|","","trade_republic");
+      ok(loss.unknownLoss&&loss.unknownPending,"ACK parcial no concilia desborde");
+      loss=restart(loss); photo(loss,1,"|lost|","","trade_republic");
+      ok(!loss.unknownLoss&&!loss.unknownPending,"cobertura completa recupera desborde identificado");
+      WidgetSnapshotArbiter.State real=base();
+      WidgetSnapshotArbiter.pendingUnknown(real,new String(new char[262145]).replace('\\0','z'),"missingKey");
+      real=restart(real); photo(real,1,"|foreign|","","trade_republic");
+      ok(real.unknownLoss&&real.unknownPending,"identidad realmente no retenida mantiene guion");
+      System.out.println("  PASS causal: pérdida recuperable frente a identidad realmente ausente"); return;
+    }
     // Un delta ausente no es identidad perdida: el cambio de periodo tampoco es un ACK.
     // Se conserva el pago tras reinicio, sin trasladar su cifra al periodo nuevo.
     for (boolean serverRollover : new boolean[]{false,true}) {
@@ -67,9 +110,9 @@ ${readWrite}
       if(serverRollover) ok(ing(pending,WidgetSnapshotArbiter.begin(pending),2,"later"),"rollover servidor");
       else photo(pending,2,"","","trade_republic");
       pending=restart(pending); photo(pending,2,"|later|","","trade_republic");
-      ok(pending.unknownPending&&!pending.unknownLoss,"ACK ajeno no cubre pendiente de otro periodo");
+      ok(!pending.unknownPending&&!pending.unknownLoss,"foto nueva retira pendiente de otra ventana");
       eq(pending.spent,40); eq(pending.cash(),200); // No arrastrar dinero del periodo anterior.
-      ok(pending.unknownJournal.equals("known\\tknownKey"),"identidad retenida una sola vez");
+      ok(pending.unknownJournal.isEmpty(),"sin esperar ACK de fila anterior ausente");
       pending=restart(pending); photo(pending,2,"|known|later|","","trade_republic");
       ok(!pending.unknownPending&&!pending.unknownLoss,"ACK exacto concilia tras reinicio");
       ok(pending.unknownJournal.isEmpty(),"sin registro pendiente tras cobertura");
@@ -113,7 +156,7 @@ ${readWrite}
         if(rollover==1) ok(ing(numeric,WidgetSnapshotArbiter.begin(numeric),2,"later"),"ingest conserva identidad bloqueada");
         else photo(numeric,2,"|later|","","trade_republic");
         numeric=restart(numeric); photo(numeric,2,"|later|","","trade_republic");
-        ok(numeric.unknownPending&&!numeric.unknownLoss,"ACK ajeno deja la identidad conocida pendiente");
+        ok(!numeric.unknownPending&&!numeric.unknownLoss,"foto fresca retira cifra de periodo anterior");
       }
       photo(numeric,rollover>0?2:1,"|known|later|","","trade_republic");
       ok(!numeric.unknownPending&&!numeric.unknownLoss,"ACK exacto recupera la cifra dañada");
@@ -140,14 +183,14 @@ ${readWrite}
     ok(s.unknownJournal.isEmpty(),"ACK completo de las identidades retenidas");
     ok(!s.journalFull&&s.unknownPending&&s.unknownLoss,"el ACK retenido no cubre lo perdido");
     s=restart(s); photo(s,1,"|foreign|lost|","|lostKey|","sabadell");
-    ok(s.unknownPending&&s.unknownLoss,"sin identidad propia ni ACK aparente permite certeza");
+    ok(!s.unknownPending&&!s.unknownLoss,"reserva conserva identidad de desborde hasta ACK exacto");
     eq(s.spent,40); eq(s.cash(),200); // No inventar importe ni restar dos veces.
     photo(s,2,"","","trade_republic");
-    ok(s.unknownPending,"mes/banco nuevos no concilian el saldo");
+    ok(!s.unknownPending,"foto fresca tras conciliación");
     long ticket=WidgetSnapshotArbiter.begin(s); ok(ing(s,ticket,3,"new"),"nuevo periodo ingest");
-    ok(s.unknownPending&&s.unknownLoss,"ingest tampoco limpia pérdida");
+    ok(!s.unknownPending&&!s.unknownLoss,"periodo nuevo tras conciliación");
     s=restart(s); photo(s,3,"|new|","","trade_republic");
-    ok(s.unknownPending,"fence y ACK de otro evento no limpian pérdida");
+    ok(!s.unknownPending,"fence no revive pérdida conciliada");
     // saveApp fallido conserva sólo flags reales, nunca la foto/identidades parciales.
     WidgetSnapshotArbiter.State scope=base();
     scope.journal="old\\t10\\t10\\t10\\t1\\t1\\toldKey"; scope.events="|old|";
@@ -156,7 +199,7 @@ ${readWrite}
     WidgetSnapshotArbiter.State failed=read(beforeScope);
     ok(!WidgetSnapshotArbiter.invalidateScope(failed),"scope saturado falla");
     writeBlocked(beforeScope.edit(),failed); scope=read(beforeScope);
-    ok(scope.unknownLoss&&scope.unknownPending,"flags fallidos persistidos");
+    ok(scope.journalFull&&scope.unknownPending&&!scope.unknownLoss,"foto fallida conserva registro recuperable");
     ok(scope.unknownJournal.equals(huge+"\\tK\\n"),"no guarda identidades parciales");
     ok(scope.journal.startsWith("old\\t"),"no pisa journal previo"); eq(scope.spent,40);
     ok(ing(scope,WidgetSnapshotArbiter.begin(scope),2,"newScope"),"respuesta nuevo periodo");
@@ -169,6 +212,18 @@ ${readWrite}
     ok(!limit.unknownLoss&&limit.unknownJournal.length()==262144,"presupuesto acotado sin salto final");
     ok(WidgetSnapshotArbiter.pendingUnknown(limit,"overflow","K"),"identidad fuera de límite");
     ok(limit.unknownLoss&&limit.unknownJournal.length()==262144,"sin crecimiento ilimitado");
+    WidgetSnapshotArbiter.State reserve=base(); reserve.unknownJournal=exact+"\\tK";
+    String reserveId=new String(new char[4094]).replace('\\0','r');
+    WidgetSnapshotArbiter.pendingUnknown(reserve,reserveId,"K"); reserve=restart(reserve);
+    SharedPreferences reserveDisk=new SharedPreferences(); write(reserveDisk.edit(),reserve);
+    ok(reserveDisk.getString("recoveryJournal","").length()==4096&&!reserveDisk.getBoolean("identityLost",true),"reserva en límite exacto");
+    WidgetSnapshotArbiter.pendingUnknown(reserve,reserveId,"K");
+    write(reserveDisk.edit(),reserve);
+    ok(reserveDisk.getString("recoveryJournal","").length()==4096&&!reserveDisk.getBoolean("identityLost",true),"reentrega en límite no simula pérdida");
+    WidgetSnapshotArbiter.pendingUnknown(reserve,"no-room","K"); reserve=restart(reserve);
+    photo(reserve,1,"|"+exact+"|"+reserveId+"|","","trade_republic");
+    write(reserveDisk.edit(),reserve);
+    ok(reserveDisk.getBoolean("identityLost",false)&&reserve.unknownLoss&&reserve.unknownPending,"ambos registros llenos conservan pérdida real");
     // Desbordar el journal de deltas permite recuperar con identidad compacta y ACK exacto.
     WidgetSnapshotArbiter.State compact=base();
     compact.journal=new String(new char[262144]).replace('\\0','x');
@@ -203,7 +258,9 @@ ${readWrite}
 }`);
 const jdk=process.env.JAVA_HOME?path.join(process.env.JAVA_HOME,'bin')
   :(process.platform==='win32'?'C:/Program Files/Android/Android Studio/jbr/bin':'');
-for(const [name,args] of [['javac',['-encoding','UTF-8','-d',dir,path.join(native,'WidgetSnapshotArbiter.java'),src]],['java',['-cp',dir,'com.micartera.app.WidgetUnknownLossTest']]]) {
+const probe=process.argv.find(a=>a.startsWith('--probe='));
+const javaRuns=(probe?[probe.slice(8)]:['migration','period','recovery','']).map(p=>['java',['-cp',dir,'com.micartera.app.WidgetUnknownLossTest',p]]);
+for(const [name,args] of [['javac',['-encoding','UTF-8','-d',dir,path.join(native,'WidgetSnapshotArbiter.java'),src]],...javaRuns]) {
  const executable=name+(process.platform==='win32'?'.exe':'');
  const bin=jdk&&fs.existsSync(path.join(jdk,executable))?path.join(jdk,executable):name;
  const result=spawnSync(bin,args,{cwd:root,encoding:'utf8'});

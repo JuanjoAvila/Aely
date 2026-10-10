@@ -1,5 +1,16 @@
 # Setup Supabase — Fase 1 (Aely)
 
+Widget, corrección 10/10/2026: lectura MCP sólo de código confirma ingest ACTIVE versión50,
+bundle sha256 `7abcba1594db74ef5eb8a42351c99db9bddb0141d91c9f01d18aa04513e95fb7`, sin contrato
+v2 en month. La metadata no expone SHA Git desplegado. No se consultaron gastos ni datos de
+usuarios. La candidata prepara `ingest/widget.ts`: respuesta widget v2 de la ventana guardada
+por la app, validando ancla y scope; month conserva su payload mensual legacy para APK antiguas.
+El listener candidato admite ambos servidores. Sin secretos, esquema ni migraciones nuevos.
+Fuente sin despliegue: Claude activa únicamente ingest mediante `supabase.yml`, migraciones=no,
+después de probar el APK. Push del PR no activa ese workflow manual. Validación sintética en
+`ingest/widget.test.ts` (Deno registrado) y handler real con BD en memoria; no llamar al ingest
+activo con pagos de prueba. Contrato/limitaciones nativas en [Setup Android](SETUP-ANDROID.md).
+
 FEATURE-0210-01: ingest_logic y ALLOWED/HINTS de categorize incorporan Gasolina/Taxi solo en fuente de la candidata85. No se ha desplegado ninguna función ni se ha consultado el hash/BD de Supabase vivo; el clasificador anterior puede seguir dando Transporte hasta un gate de despliegue específico. El catálogo/selector/filtros/límites y altas manuales/MCC web funcionan sin despliegue; las notificaciones clasificadas por el servidor anterior aún pueden entrar como Transporte. La migración0001 define expenses.cat como text sin whitelist y las migraciones registradas no la restringen; no requiere SQL nueva. Tests sintéticos ejecutan alta cloud/pull con ambos IDs, presupuesto.ts del SHA3467 y retry/ACK/conflicto de ingest con clasificador de ese baseline: preservan elección manual y cuentan categorías diarias. Esto prueba fuente/contratos, no estado vivo ni captura Wallet nueva.
 
 ## bank-sync desplegado para beta 4.26.53.1: concepto y MCC opcionales

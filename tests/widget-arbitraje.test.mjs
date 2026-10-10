@@ -333,7 +333,7 @@ public class WidgetSnapshotArbiterTest {
     WidgetSnapshotArbiter.State scopeChange=base(cobro,"trade_republic");
     ing(scopeChange,WidgetSnapshotArbiter.begin(scopeChange),cobro,cobro,100,"scope-event",50,100,50,10,true,true);
     ok(WidgetSnapshotArbiter.invalidateScope(scopeChange));
-    ok(scopeChange.unknownJournal.equals("scope-event\\tscope-eventKey"));
+    ok(scopeChange.unknownJournal.equals("scope-event\\tscope-eventKey\\t"+cobro));
     ok(!scopeChange.unknownJournal.endsWith("\\n"));
     System.out.println("  ✓ E2: ciclo que cruza el mes, caducidad a 45 días, servidor viejo sin pisar y textos es/en/ca");
     System.out.println("  ✓ INC-0210-04: respuesta incompatible conserva foto, oculta cifra hasta ACK y contrato compatible no bloquea");

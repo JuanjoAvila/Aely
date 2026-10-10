@@ -273,18 +273,55 @@ Ajustes → Banco del widget elige `settings.widgetBank` (entidad bancaria), sin
 
 El registro nativo se escribe sin salto final y tolera indentación XML al releerse. La foto de la app reevalúa un bloqueo previo, conserva eventos aún no confirmados y sus deltas; las entradas dañadas o contribuciones desconocidas no se descartan. Actualizar el APK es obligatorio: la OTA4.26.54.1 corrige presupuesto pero no este parser Java. APK51 instalada en el móvil de pruebas; widget recuperado y Gastado/Disponible estables al reabrir; saldo entre fotos y pago real pendientes. No borrar preferencias para forzar una cifra.
 
-La candidata de `widget-estado-codex-20261010` extiende la recuperación al registro de
-identidades `unknownJournal`: separadores entre entradas, tolerancia a blancos de formato y
-ACK o lápida exactos, incluso después de releer preferencias. `unknownLoss` conserva la
-incertidumbre cuando una identidad ya no cabe o resulta ilegible; una foto nueva, otro periodo
-o un ACK ajeno no permiten mostrar dinero confirmado. Un fallo de foto guarda sólo los flags
-de bloqueo, sin sobrescribir las cifras ni un registro parcial. La migración antigua de un
-`journalFull` sin ese campo es prudente. Estas modificaciones requieren APK nueva y prueba
-de pago con app cerrada/reinicio: Java y una compilación local no acreditan instalación ni
-aceptación móvil. Mes bruto y Mi ciclo neto ya forman parte del contrato v2 de la base;
-no existe un selector nativo de modos que se pueda activar con esta recuperación.
-El cambio de periodo migra también identidades con delta desconocido aunque `journalFull`
-sea falso; retira el dinero de la ventana anterior y mantiene el pendiente hasta cobertura exacta.
+La corrección `widget-estado-correccion-codex-20261010` relee todas las identidades antes
+de migrar `journalFull` de APK52 a pérdida: un registro legible con indentación XML conserva
+sus pendientes hasta ACK o lápida y puede recuperarse al abrir la app. Un bloqueo antiguo
+sin ninguna identidad recuperable mantiene la incertidumbre. La migración no puede reconstruir
+un evento que una APK antigua hubiese descartado sin dejar registro de esa pérdida.
+
+Si el registro principal alcanza 262144 caracteres, una reserva `recoveryJournal` de 4096
+conserva nuevas identidades pequeñas hasta cobertura exacta. `unknownLoss` vuelve a false
+cuando todas esas entradas quedan cubiertas; `identityLost` mantiene «—» si no cupo la identidad
+ni en la reserva o si es ilegible. Un ACK parcial o ajeno no concilia esa pérdida real. Un fallo
+de foto guarda sólo flags, sin cifras ni registros parciales. No borrar preferencias para forzar
+dinero confirmado.
+
+Antes de migrar registros por cambio de alcance, se concilian las identidades cubiertas
+por la foto entrante. Así un registro casi lleno puede recuperarse con ACK completos;
+si la migración aún no cabe, conserva ambos registros originales sin sustituirlos a medias.
+
+El cambio de periodo conserva la ventana de los pagos conocidos junto con su identidad;
+una foto válida de la app de una ventana posterior retira esas entradas y usa su saldo actual,
+aunque el pull ya no devuelva la fila anterior ni exista lápida. Un ingest de la nueva ventana
+por sí solo no aporta ese saldo completo. Los eventos incompatibles sin ventana conocida
+siguen necesitando ACK o lápida: el calendario no demuestra que los cubra la foto.
+
+Mes bruto y Mi ciclo neto ya forman parte del contrato v2 de la base. La preferencia
+`settings.budgetCycle` llega a `dashboardBudgetStats`, compartido por Inicio y el payload
+de `11-app-main.js`; no hay selector en el widget. La cifra con signo del ciclo es `against`
+y la del mes es `shown`, redondeadas a céntimos al enviarse y a euros al pintarse en nativo.
+
+**Pago con la app cerrada:** la lectura MCP del 10/10 confirma `ingest` activo versión50,
+con `month` sin `contract`, `periodKind` ni `scope`; la metadata no proporciona un SHA de Git
+desplegado. Ese contrato legacy explica el aviso del Java APK52/v2: rechazaba el total mensual
+y registraba el pago como desconocido incluso con fecha e importe suficientes.
+
+La corrección del listener conserva el importe en céntimos y su identidad cuando la fecha
+pertenece a la ventana guardada de la app y ésta sigue vigente. La selección de bancos de
+su scope decide qué cuenta: gasto bruto en Mes, contribución con signo en Mi ciclo; no se
+copia el total mensual legacy. La reentrega no duplica y una respuesta v2 anterior no deshace
+el pago incremental. Fecha/categoría ausentes, céntimos inválidos, scope ilegible, periodo
+caducado o un ingreso grande que podría abrir un ciclo nuevo siguen pidiendo una foto real.
+El ACK de la app recupera esos pendientes. No se rebaja el contrato v2 ni se añade selector.
+Si el servidor nuevo devuelve `widget:null`, no se interpreta como una respuesta legacy:
+declara que faltan ancla o scope compatibles y mantiene la cobertura pendiente.
+
+`ingest/widget.ts` prepara una respuesta `widget` v2 separada; `month` conserva su cálculo
+legacy para APK antiguas. El servidor valida ancla, periodo, presupuesto, reservas y bancos
+contra el scope de la app; devuelve null si no puede acreditarlo. El listener nuevo prefiere
+`widget` y admite también `month` del servidor antiguo. Fuente preparada, sin despliegue;
+la integración, el APK de beta, la activación única de ingest y el pago real corresponden
+a Claude. Java y una compilación local no acreditan instalación ni aceptación móvil.
 
 ### Widget80 / APK52: preasset real, entrega final pendiente
 
