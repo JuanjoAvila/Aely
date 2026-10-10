@@ -21,52 +21,7 @@
         "Inici recupera la gràfica del patrimoni."
       ]
     },
-    "tandas": [
-      {
-        "id": "bienes-completo",
-        "t": {
-          "es": "Bienes completos",
-          "en": "Complete assets",
-          "ca": "Béns complets"
-        },
-        "items": {
-          "es": [
-            "1. En Cartera → Bienes, añade un bien con nombre y valor: aparece en la lista y sube el patrimonio.",
-            "2. Tócalo, cambia el valor y guarda. Ábrelo otra vez y pulsa Cancelar: no cambia nada.",
-            "3. Bórralo: pide confirmación. Al cancelar sigue ahí; al confirmar desaparece."
-          ],
-          "en": [
-            "1. In Wallet → Property, add an asset with a name and value: it appears in the list and increases net worth.",
-            "2. Tap it, change the value and save. Open it again and press Cancel: nothing changes.",
-            "3. Delete it: confirmation is requested. Cancelling keeps it there; confirming removes it."
-          ],
-          "ca": [
-            "1. A Cartera → Béns, afegeix un bé amb nom i valor: apareix a la llista i puja el patrimoni.",
-            "2. Toca’l, canvia el valor i desa. Obre’l una altra vegada i prem Cancel·la: no canvia res.",
-            "3. Esborra’l: demana confirmació. En cancel·lar continua allà; en confirmar desapareix."
-          ]
-        }
-      },
-      {
-        "id": "inicio-grafica-vuelve",
-        "t": {
-          "es": "Vuelve la gráfica de Inicio",
-          "en": "The Home chart returns",
-          "ca": "Torna la gràfica d’Inici"
-        },
-        "items": {
-          "es": [
-            "1. Abre Inicio: vuelve a verse la gráfica bajo el patrimonio y ya no aparece «Ahora»."
-          ],
-          "en": [
-            "1. Open Home: the chart is visible below net worth again and “Now” no longer appears."
-          ],
-          "ca": [
-            "1. Obre Inici: torna a veure’s la gràfica sota el patrimoni i ja no apareix «Ara»."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.112",
