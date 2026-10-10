@@ -1,0 +1,93 @@
+{
+  "status": "blocked",
+  "summary": "Candidato funcional terminado en PR draft: Inicio y Recibos acreditan un cargo importado o notificado guardado aunque falte el extracto local, con nombre completo original, centimos y mes exactos, unicidad y fecha/entidad reales. Sin mutaciones financieras. Integracion bloqueada por identidades del catalogo, incremento de version/documentacion y espejo de memoria; no se declara npm test verde ni aceptacion movil.",
+  "baseSHA": "74c5f075bf08e38e289992195ad97e3a71a8b031",
+  "productSHA": "4ceac993e53c9d470b0453f405904cc10b23a5a3",
+  "branch": "codex/recibos-pago-acreditado-20261010",
+  "pr": "JuanjoAvila/Aely#202",
+  "draft": true,
+  "files": [
+    "src/modules/08-motor-bank.js",
+    "tests/fixed-payment-state.test.mjs",
+    "e2e/inicio-cargos.spec.mjs"
+  ],
+  "tests": [
+    {
+      "command": "npm run build",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/fixed-payment-state.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "Chromium inicio-cargos + plan-cover + plan-gestionar --workers=1 --retries=0",
+      "exitCode": 0,
+      "passed": 107,
+      "skipped": 0,
+      "flaky": 0,
+      "unexpected": 0,
+      "languages": [
+        "es",
+        "en",
+        "ca"
+      ],
+      "data": "synthetic"
+    },
+    {
+      "command": "npm test",
+      "exitCode": 1,
+      "durationMs": 635637,
+      "timezone": "Europe/Madrid",
+      "failures": [
+        "beta-sources",
+        "docs-frescura",
+        "memoria-espejo"
+      ],
+      "deno": "not installed; omitted"
+    },
+    {
+      "command": "git diff --check base HEAD",
+      "exitCode": 0
+    }
+  ],
+  "limitations": [
+    "beta-sources: identidad transitiva de Nomina111 cambia; no repinar historia ni heredar aprobaciones.",
+    "docs-frescura: motor cambiado sin incremento de VERSION; version, notas y catalogo reservados a integracion de Claude.",
+    "memoria-espejo: filtro de privacidad aborta sin escribir; no se modifica memoria ni filtro fuera del encargo.",
+    "Deno omitido por no estar instalado; no se ha acreditado aceptacion o rendimiento en movil real.",
+    "Nombres completamente ajenos sin obName reconocible necesitan el vinculo explicito ya existente; nunca se infiere solo por importe.",
+    "PR draft contra beta sin checks publicados en el readback; no integrado ni publicado web/APK."
+  ],
+  "affectedIdentities": [
+    "feature-0310-01-movilidad",
+    "inc-0210-01-plan-cuota",
+    "inc-0210-03-gastos-periodo",
+    "inc-0310-gastos-sin-limite",
+    "inc-0710-gastos-mes-madrid",
+    "inc-2909-02-inicio-natural",
+    "inc-2909-03-retirada",
+    "inc-3009-01-cargos",
+    "inc-3009-nomina-anticipada"
+  ],
+  "chromium": {
+    "terminalExitCode": 0,
+    "serverTerminalExitCode": 0,
+    "ownProcessesAbsent": true,
+    "portFree": true,
+    "headlessCount": 0,
+    "playwrightCount": 0,
+    "releasedByClock": false
+  },
+  "cleanup": "Solo los tres archivos fuente/pruebas en el PR. Artefactos propios generados restaurados tras conservar evidencia. Servidor temporal desmontado. Worktree y rama conservados.",
+  "questionsForClaude": [
+    "Confirmar que para un comercio completamente ajeno se mantiene la confirmacion expresa existente cuando no hay obName reconocible ni vinculo previo."
+  ],
+  "nextAction": "Claude decide integracion, version/documentacion, identidades sin heredar aprobaciones y tratamiento de bloqueos; Codex no integra ni elige nuevos trabajos.",
+  "schema": 1,
+  "taskId": "recibos-pago-acreditado-codex-20261010",
+  "actor": "codex",
+  "sessionId": "codex-local-20261010-d337eb6c29c7",
+  "createdAt": "2026-10-10T10:14:31.424Z",
+  "released": true
+}
