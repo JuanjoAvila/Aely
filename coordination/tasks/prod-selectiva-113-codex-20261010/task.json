@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "id": "prod-selectiva-113-codex-20261010",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261010-5f79c133",
+  "createdAt": "2026-10-10T12:40:00.309Z",
+  "to": "codex",
+  "baseSHA": "bdd756363261290b2f9da56aa0c9873c8eae911b",
+  "objective": "Promoción selectiva a producción de las dos tandas que el dueño aprobó hoy en la beta 4.26.113.1: bienes-completo e inicio-grafica-vuelve. Preparar el PR contra main; NO fusionarlo: lo revisa y fusiona el coordinador.",
+  "scope": [
+    "lo necesario para llevar esas dos tandas a main: módulos de producto, textos, tests y e2e propios, versión, notas, CHANGELOG, README, ROADMAP",
+    "retirada de las dos tandas del panel de beta en un PR aparte contra beta"
+  ],
+  "acceptance": [
+    "PR contra main desde una rama propia con base en la main indicada. Solo el producto de esas dos tandas tal como está en beta 684a839d: Bienes completo (07, 14, textos) y la gráfica de Inicio como en beta. Nada más de beta viaja: ni el panel, ni prices, ni la limpieza de componentes de la 112 si no es imprescindible para compilar.",
+    "Versión de producción siguiente a la actual de main, con nota para la familia en es/en/ca. Texto es: título «Bienes completos»; item «En Cartera → Bienes ya puedes añadir un bien, editarlo y borrarlo, también cuando la lista está vacía.» Inicio no lleva nota en producción: allí la gráfica nunca desapareció.",
+    "Sin APK, Edge ni SQL: es solo web.",
+    "npm run build, npm test y Playwright completo sobre el SHA del PR, con exit real. CI del PR en verde antes de dar el result.",
+    "Segundo PR contra beta que retira las dos tandas aprobadas del panel (se quitan, no se marcan) sin tocar producto. No lo fusiones.",
+    "Result con los dos PR, SHA, diff de src entre main y la rama listado por fichero, y cualquier cosa de beta que haya tenido que viajar de más con su porqué."
+  ],
+  "authorization": "Aprobación del dueño en el panel y en chat el 10/10 para bienes-completo e inicio-grafica-vuelve. Claude coordina y fusiona."
+}
