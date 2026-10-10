@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "id": "caixabank-ronda3-grok-20261010",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261010-5f79c133",
+  "createdAt": "2026-10-10T16:19:23.501Z",
+  "to": "grok",
+  "baseSHA": "457416e6755049f950899ad8a7c7edbda1aa0551",
+  "objective": "PR200 sigue sin integrarse. Segunda revisión independiente con sondas propias sobre 457416e6: los diez puntos anteriores se confirman en un solo dispositivo, pero hay tres regresiones que duplican o resucitan gastos. Corregir en el mismo PR y SIMPLIFICAR: el arreglo debe tocar lo mínimo. Entre paréntesis, base frente a head.",
+  "scope": [
+    "los ficheros que ya toca PR200"
+  ],
+  "acceptance": [
+    "Principio: partir dos cargos SOLO ocurre al importar la respuesta del banco, cuando esa misma respuesta trae dos movimientos CONTABILIZADOS con referencias distintas y mismo día, importe y comercio. En ningún otro punto (pull de la nube, fusión, re-sello, servidor) se separan filas por tener referencias distintas. Las filas ya guardadas conservan la clave que tenían en la beta.",
+    "R1 ALTA servidor (presupuesto.ts 201-212): la regla «la lápida de día tapa solo una fila» se aplica también a notificaciones. Dos notificaciones gemelas del mismo día, importe y comercio más una lápida de día: base 0 en servidor y cliente; head 1 en servidor y 0 en cliente, así que el widget suma un gasto borrado. Igual con fila bancaria de mediodía más su notificación. La regla de «solo una» vale únicamente entre filas bancarias hermanas; para todo lo demás, el comportamiento de la beta.",
+    "R2 ALTA dos móviles (00-core.js 2306-2316 obMergeHit y 08-motor-bank.js 2240): el móvil 1 importa el cargo pendiente con referencia X y lo sube; el móvil 2, antes de bajar la nube, lo importa contabilizado con referencia Y y luego hace pull. Base 1 fila; head 2, y el re-sello la fija en la nube. El pull no parte por referencias distintas.",
+    "R3 MEDIA rotación junto a gemelo (08-motor-bank.js 993-998 y 1013-1015): X guardado y luego respuesta con Y (X ya contabilizado) y Z (gemelo real): head 3 filas para 2 cargos. Y el mismo cargo como pendiente X y contabilizado Y en la misma respuesta: head 2, base 1. El plan debe mirar el estado: pendiente y contabilizado del mismo día, importe y comercio son el mismo cargo.",
+    "R4 MEDIA claves de filas ya guardadas (00-core.js 1583-1589): una fila bancaria con hora real que la nube libera a notificación pasa de 1 fila a 2 y la lápida de día deja de taparla; histórico con ranura salada de la beta más lápida de día resucita (base 0, head 1); filas selladas por la beta fuera de Madrid cambian de clave. Arrastra cuotaNo, comprobantes de Fijos y wAnchor, que guardan keyOfExpense. La clave de cualquier fila existente no puede cambiar respecto a la beta.",
+    "R5 BAJA rendimiento: importObExpenses con 20.000 filas y 300 movimientos gemelos pasa de 21 ms a 177 ms por un bucle sobre todo el histórico por grupo (líneas 989-991). Índice por clave, una sola pasada.",
+    "Código que sobra, quitarlo: e.acctUid que nadie lee (08 línea 1012); respaldo pending.key (04 línea 254); si R2 se corrige, obResealOldNoon y publicarResello sobran enteros; el predicado «es bancario» copiado en cuatro sitios; cachés duplicadas y mediodiaMadridMs exportada sin uso en presupuesto.ts; guardas typeof que solo sirven a mocks; ext calculado tres veces (08 líneas 2143, 2171, 2177). Objetivo: bajar claramente de los 7,6 KB minificados añadidos.",
+    "Un test por R1 a R4 que falle en 457416e6. Las pasadas con zona horaria deben fijar la zona de verdad: desde Git Bash en Windows TZ no llega a Node; comprobar Intl.DateTimeFormat().resolvedOptions().timeZone dentro del test y abortar si no coincide.",
+    "Límite conocido que NO hay que arreglar aquí y sí decir en el result: si el gemelo llega solo en una respuesta posterior, se funde como en la beta.",
+    "Servidor: dejar escrito si, con estos cambios, desplegar ingest es obligatorio, y que función nueva con cliente viejo y cliente nuevo con función vieja no son peores que hoy, con un test de cada cruce."
+  ],
+  "authorization": "Orden directa del dueño 10/10: Claude coordina y verifica que no se rompa nada."
+}
