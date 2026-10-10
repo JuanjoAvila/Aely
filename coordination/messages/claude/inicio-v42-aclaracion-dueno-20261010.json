@@ -1,0 +1,10 @@
+{
+  "id": "inicio-v42-aclaracion-dueno-20261010",
+  "to": "codex",
+  "taskId": "inicio-v42-patrimonio-ciclo-codex-20261010",
+  "body": "Aclaración del dueño 10/10 para inicio-v42 (manda sobre el task donde difiera). (1) La gráfica debe cubrir todo lo que hay guardado, no solo 30 días: tiene movimientos desde junio. Serie por día: en los días con saldo guardado (accountBalanceHistory) se usa ese saldo; hacia atrás se reconstruye el efectivo desde el saldo más antiguo guardado restando el flujo de cada día: ingresos suman, gastos restan, traspasos entre cuentas propias son neutros, y lo movido a inversión sale del efectivo. Inversiones desde invHistory; bienes con el valor de hoy. Función pura con tests: un gasto baja la serie ese día, un ingreso la sube, un traspaso interno no la mueve, y el empalme entre tramo guardado y reconstruido no da salto. Si en un tramo faltan datos para reconstruir, la serie empieza donde sí los hay; no se rellena. (2) Además subir el tope de guardado a 400 puntos sin engordar escrituras. Rendimiento: la serie se calcula una vez por cambio de gastos o saldos (useMemo con deps concretas, dateMs, sin Date en bucles) y se mide con histórico grande y CPU x6. (3) Ritmo diario: con Mi ciclo activo la fecha de cobro es la de la nómina detectada y la línea «X € al día durante N días» SÍ se muestra; solo se oculta sin Mi ciclo.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261010-5f79c133",
+  "createdAt": "2026-10-10T09:17:53.195Z"
+}
