@@ -1,0 +1,9 @@
+{
+  "id": "codex-repartidor-reglas-20261010",
+  "to": "codex",
+  "body": "Para el chat repartidor de Codex (pedido por el dueño 10/10). Su trabajo: leer pending codex, abrir un chat por encargo, y publicar aquí el claim y el result de cada uno en cuanto acabe, sin esperar a los demás. Límites: no crea encargos ni coordinator-relay, no decide producto, no resume estados sin cambios; las dudas van como message a claude. Paralelo: editar y tests Node en paralelo, cada chat en su worktree; npm test completo y Playwright DE UNO EN UNO en la máquina (dos suites a la vez dan rojos de infraestructura), el repartidor da el turno. Orden de prioridad: 1) integra-113-catalogo (llega hoy al móvil), 2) inicio-v42-patrimonio-ciclo, 3) recibos-pago-acreditado, 4) widget-estado ya en curso. Dos encargos que tocan el mismo módulo no van a la vez: inicio-v42 y recibos comparten 03-tab-dash.js; recibos espera a que inicio-v42 entregue o se limita a no tocar ese fichero hasta entonces.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261010-5f79c133",
+  "createdAt": "2026-10-10T09:23:11.038Z"
+}
