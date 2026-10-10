@@ -1,3 +1,7 @@
+## Bienes completo · candidata por encargo de Claude
+
+`cartera-bienes-toque` y `cartera-bienes-completo` comprueban el DOM real de Cartera con datos sintéticos. Cubren los tres idiomas, toque/arrastre, apertura sin escritura, cancelación, alta desde lista vacía, importes inválidos, cero, edición, borrado confirmado/cancelado, recarga y patrimonio exacto. Ambos están mapeados a07/14; la validación y límites finales se entregan por el canal. No acreditan aceptación móvil ni publicación.
+
 ## InicioAhora · candidata local aplicada4.26.112
 
 Presupuesto oficial del paquete integrado PASS:1.321.606 bytes minificados/360.945 gzip/3 cargas frente a topes1.326.080/361.472/3 intactos. El A/B conserva el fallo previo y mide1.328.880/362.544→1.321.606/360.945: ahorro7.274/1.599 bytes y527 de margen gzip.

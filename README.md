@@ -11,7 +11,7 @@ MAIN4.26.110 incorpora PR196 (bdd75636), sólo pruebas, herramientas y documenta
 
 En la versión4.26.112, Inicio muestra sólo el patrimonio actual con la etiqueta «Ahora». Conserva el mismo total y moneda; las cifras guardadas no se conectan como evolución. Ajustes → Revisar esta beta conserva la gráfica109 rechazada como referencia de sólo lectura; su rechazo y detalle no aprueban la corrección actual.
 
-Cartera → Bienes: tocar una fila abre el editor que también se alcanza desde Editar bienes; abrir no guarda la cartera. Unidad111 entregada en webOTA4.26.111.1 sobre c9181f14 y cotejada en ambos espejos (261/263); aceptación móvil pendiente. Sin promoción ni APK nuevo.
+Cartera → Bienes: candidata [alta, edición y borrado](docs/briefs/bienes-completo-20261010.md) por encargo de Claude. Añadir está disponible con la lista vacía; tocar una fila abre una ficha con Guardar/Cancelar y borrado confirmado. Pendiente de integración y publicación. La unidad111 anterior sólo recuperaba el toque; su entrega no acredita esta candidata.
 
 Inicio resume hasta tres metas activas; Ver plan permite consultar todas con sus importes intactos.
 

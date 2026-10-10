@@ -1,5 +1,7 @@
 # Roadmap — Aely
 
+Candidata por encargo de Claude: [Bienes completo](briefs/bienes-completo-20261010.md), alta alcanzable con lista vacía y ficha de edición con Guardar/Cancelar y borrado confirmado. Pendiente de integración y publicación; no cambia la versión publicada ni acredita aceptación móvil.
+
 MAIN4.26.110 incorpora PR196 (bdd75636), sólo pruebas, herramientas y documentación. Tests38005461796 y DeployPages38005461732 terminaron SUCCESS y sus artefactos se comprobaron; ese cierre no publica Inicio112 ni acredita APK nuevo o aceptación móvil. Las aprobadas99/100/101/102/106 ya entregadas conservan su cierre;109 sigue rechazada.
 
 Promoción4/10: las once tandas de beta4.26.94.1 tienen aprobación vigente. Producción4.26.94/source8bb0398f servida y cotejada; APK52 estable y las tres funciones Edge entregadas. La limpieza conserva notas y decisiones; solo retira las once entregadas, sin producto nuevo. Prioridad permanente: producción de lo aprobado antes de otra implementación. [Acta](briefs/promocion-aprobadas-2026-10-04.md).

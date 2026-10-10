@@ -8,9 +8,9 @@ const goods = [
   {id:"goods-touch-car",kind:"coche",name:"Vehículo de prueba",value:7500,note:"Nota sintética de vehículo"},
 ];
 const labels = {
-  es:{edit:"Editar bienes",save:"Guardar"},
-  en:{edit:"Edit assets",save:"Save"},
-  ca:{edit:"Edita els béns",save:"Desa"},
+  es:{edit:"Editar bienes",save:"Guardar",name:"Nombre del bien",value:"Valor en euros",cancel:"Cancelar"},
+  en:{edit:"Edit assets",save:"Save",name:"Asset name",value:"Value in euros",cancel:"Cancel"},
+  ca:{edit:"Edita els béns",save:"Desa",name:"Nom del bé",value:"Valor en euros",cancel:"Cancel·la"},
 };
 test.use({hasTouch:true});
 
@@ -72,15 +72,16 @@ for(const lang of ["es","en","ca"]) for(const textSize of ["normal","huge"]){
       await row.focus();
       await page.keyboard.press("Enter");
     }else await row.tap();
-    const editingRow=page.locator(".v4-mov").filter({hasText:goods[0].name}).first();
-    await expect(editingRow.locator("input.editv")).toHaveValue(String(goods[0].value));
-    await expect(editingRow).toHaveJSProperty("tagName","DIV");
-    await expect(editingRow.locator("button input")).toHaveCount(0);
-    await expect(page.locator(".add-form .af-in").filter({visible:true})).toHaveCount(2);
+    const sheet=page.getByRole("dialog",{name:labels[lang].edit,exact:true});
+    await expect(sheet).toBeVisible();
+    await expect(sheet.getByLabel(labels[lang].value)).toHaveValue(String(goods[0].value));
+    await expect(sheet.getByLabel(labels[lang].name)).toHaveValue(goods[0].name);
+    await expect(row).toHaveJSProperty("tagName","BUTTON");
+    await expect(row.locator("input")).toHaveCount(0);
     await page.evaluate(()=>window.dispatchEvent(new Event("pagehide")));
     expect(await financialState(page)).toEqual(before);
     expect(await page.evaluate(()=>window.__goodsStateWrites)).toEqual([]);
-    const save=page.locator("button.edit-link").filter({hasText:new RegExp("^"+labels[lang].save+"$")});
+    const save=sheet.getByRole("button",{name:labels[lang].save,exact:true});
     await expect(save).toHaveCount(1);
     await save.click();
     await expect(row).toHaveJSProperty("tagName","BUTTON");
@@ -88,10 +89,11 @@ for(const lang of ["es","en","ca"]) for(const textSize of ["normal","huge"]){
     // El volcado tiene debounce: pagehide comprueba lo que realmente quedará guardado.
     await page.evaluate(()=>window.dispatchEvent(new Event("pagehide")));
     expect(await financialState(page)).toEqual(before);
-    // La puerta anterior sigue operativa y conserva el mismo editor.
-    await page.getByRole("button",{name:labels[lang].edit,exact:true}).click();
-    await expect(editingRow.locator("input.editv")).toHaveValue(String(goods[0].value));
-    await save.click();
+    // Un borrador de nombre y valor también se cancela sin escribir.
+    await row.tap();
+    await sheet.getByLabel(labels[lang].name).fill("Borrador cancelado");
+    await sheet.getByLabel(labels[lang].value).fill("99");
+    await sheet.getByRole("button",{name:labels[lang].cancel,exact:true}).click();
     await page.evaluate(()=>window.dispatchEvent(new Event("pagehide")));
     expect(await financialState(page)).toEqual(before);
     await page.reload();
