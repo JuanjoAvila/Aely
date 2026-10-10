@@ -1,0 +1,144 @@
+{
+  "status": "blocked",
+  "sha": "1ca48a826eca31a8901fb99b2312b919003e6f55",
+  "pr": null,
+  "branch": "codex/inicio-v42-979da433",
+  "baseSHA": "74c5f075bf08e38e289992195ad97e3a71a8b031",
+  "deliveryBase": "684a839d286f68d66c8855cf6e1a626b7220fd64",
+  "baseInstructionCommit": "544fc5cdbbb75d4f7a4d63f59a4184c5a935d713",
+  "productIntegrable": false,
+  "productPushed": false,
+  "worktree": ".worktrees/inicio-v42-979da433",
+  "summary": "Candidata local NO integrable. Patrimonio por saldos diarios, gráfica táctil, rangos cubiertos y tarjeta de seis estados preparados, sin VERSION ni catálogo fuente nuevos. Dos contraejemplos sintéticos de traspaso revelaron caídas ficticias con fotos escalonadas, incluso con cierre final común. El motor ahora falla cerrado y explica falta de saldos fiables en es/en/ca. Esto limita ese daño; no acredita fotos antiguas rotuladas hoy, cobertura completa real ni deuda histórica. El historial de 400 puntos sigue aumentando escrituras ajenas. El tamaño supera topes. Rebase sobre 684a839d completado, WIP preservado sólo en local, sin push ni PR.",
+  "tests": [
+    {
+      "command": "npm run build",
+      "exit": 0,
+      "sha": "1ca48a826eca31a8901fb99b2312b919003e6f55"
+    },
+    {
+      "command": "node tests/inicio-v42.test.mjs",
+      "exit": 0,
+      "sha": "1ca48a826eca31a8901fb99b2312b919003e6f55",
+      "scope": "Comprobación ligera"
+    },
+    {
+      "command": "npm run test:syntax",
+      "exit": 0,
+      "sha": "1ca48a826eca31a8901fb99b2312b919003e6f55",
+      "scope": "Comprobación ligera"
+    },
+    {
+      "command": "node tests/i18n-keys.test.mjs",
+      "exit": 0,
+      "sha": "1ca48a826eca31a8901fb99b2312b919003e6f55",
+      "scope": "Comprobación ligera"
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exit": 0,
+      "sha": "1ca48a826eca31a8901fb99b2312b919003e6f55",
+      "scope": "Comprobación ligera"
+    },
+    {
+      "command": "node --check e2e/inicio-v42.spec.mjs",
+      "exit": 0,
+      "sha": "1ca48a826eca31a8901fb99b2312b919003e6f55",
+      "scope": "Sólo sintaxis de spec; no DOM"
+    },
+    {
+      "command": "node tests/presupuesto-rendimiento.test.mjs",
+      "exit": 1,
+      "sha": "1ca48a826eca31a8901fb99b2312b919003e6f55",
+      "scope": "Comprobación ligera"
+    },
+    {
+      "command": "replay Node de netWorthSeries anterior sobre dos fixtures sintéticas",
+      "exit": 1,
+      "sha": "d3ddff781876edfa59e815351907667fedc760c6",
+      "phase": "Rojo causal anterior",
+      "actual": [
+        "600 → 400",
+        "600 → 400 → 600"
+      ],
+      "expected": "Fallar cerrado, sin serie"
+    },
+    {
+      "command": "replay Node de netWorthSeries final sobre las mismas dos fixtures",
+      "exit": 0,
+      "sha": "1ca48a826eca31a8901fb99b2312b919003e6f55",
+      "phase": "Verde de contención",
+      "actual": "Ambas devuelven serie vacía"
+    },
+    {
+      "command": "node tests/beta-sources.test.mjs",
+      "exit": 1,
+      "scope": "Diagnóstico anterior del WIP rebasado en 113; no se repitió sobre el SHA final",
+      "details": [
+        "Inicio113 exige history:state.history sustituido por v42",
+        "inicio-grafica-vuelve no vigila dayKey"
+      ]
+    },
+    {
+      "command": "git diff --check",
+      "exit": 0,
+      "sha": "1ca48a826eca31a8901fb99b2312b919003e6f55"
+    }
+  ],
+  "notExecuted": [
+    {
+      "scope": "npm test completo",
+      "reason": "Sin grant propio y cierre operativo del coordinador Codex por bloqueos financieros"
+    },
+    {
+      "scope": "Playwright DOM y tacto real",
+      "reason": "Specs preparadas, sin ejecución ni éxito atribuido"
+    },
+    {
+      "scope": "Seis capturas y comprobación visual",
+      "reason": "Sin turno de navegador; ninguna captura producida"
+    },
+    {
+      "scope": "CPU x6 y frames de entrada/arrastre",
+      "reason": "Sin grant; no hay evidencia de 50 fps"
+    }
+  ],
+  "blockers": [
+    "07 sigue etiquetando como hoy cuentas potencialmente atrasadas. Coincidir en un día nominal no prueba observación conjunta ni frescura intradía.",
+    "No hay contrato acreditado de cobertura completa por cuenta ni asignación inequívoca de movimientos cuando varias cuentas comparten banco. Reconstrucción validada sólo con cobertura explícita sintética, sin integración real.",
+    "La deducción de deuda actual en la serie mantiene provisionalmente el total vigente, sin política histórica decidida.",
+    "Historial de 31 frente a 400 puntos: cambio exclusivo de idioma mediante mcSaveRaw real escribe 1.093 frente a 13.270 B; hace falta partición/migración en 00-core.js todavía no autorizada.",
+    "Contrato beta 113 todavía exige renderer histórico sustituido y no cubre todas las dependencias nuevas; Sparkline sin llamadas sigue exigida por catálogo.",
+    "Tamaño final minificado de 1.340.126 B y gzip de 365.969 B; topes de 1.326.080 y 362.496 B. Delta contrsobre 684a839d:15035 y4094 B. Topes intactos.",
+    "DOM, tacto, capturas y CPU no ejecutados; no existe npm test completo con exit 0."
+  ],
+  "questions": [
+    "¿Se amplía el alcance a 00-core.js para guardar/migrar accountBalanceHistory en clave separada real y sandbox, manteniendo referencias y limpieza?",
+    "¿Qué evidencia por cuenta acredita cobertura completa, origen de movimientos y fecha real de cada saldo, incluidos varios productos del mismo banco?",
+    "¿Cómo debe tratarse la deuda en la serie histórica? No se presume una política nueva.",
+    "¿Quién actualiza el contrato de catálogo/guardias de v42 y decide el presupuesto de tamaño con este delta medido?"
+  ],
+  "evidence": [
+    "test-results/inicio-v42-final-checks.json",
+    "test-results/inicio-v42-checkpoint.json",
+    "test-results/inicio-v42-transfer-staggered.json",
+    "test-results/inicio-v42-size-ab-final.json",
+    "test-results/inicio-v42-beta-sources.log",
+    "test-results/inicio-v42-beta-sources-exit.json"
+  ],
+  "resources": {
+    "heavyGrant": null,
+    "heavyStarted": false,
+    "activeOwnPids": [],
+    "activeOwnPorts": [],
+    "reservedPortNotUsed": 4422
+  },
+  "closureAuthority": "Decisión operativa del coordinador Codex del encargo. No atribuir a Claude una orden nueva de omitir pruebas ni inferir rechazo suyo.",
+  "nextSteps": "Claude debe resolver el contrato financiero y alcance. Después, ampliar persistencia si procede, actualizar guardias sin heredar aprobaciones y validar DOM/capturas/CPU/suite completa en nuevo turno antes de integrar o publicar.",
+  "schema": 1,
+  "taskId": "inicio-v42-patrimonio-ciclo-codex-20261010",
+  "actor": "codex",
+  "sessionId": "codex-local-20261010-979da43398df",
+  "createdAt": "2026-10-10T12:02:47.243Z",
+  "released": true
+}
