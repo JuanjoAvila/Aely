@@ -111,6 +111,113 @@ await check("doble importación bancaria conserva la retirada corregida y sus sa
   assert.equal(ctx.importObExpenses(marked,[tx,tx]),null);
   assert.equal(marked.accounts,imported.accounts);
 });
+// La referencia no tiene columna: viaja en source como `#x.` + encodeURIComponent (obExtCloudSuffix).
+// Un source legado `ob:banco` solo casa con una fila SIN extId. Con extId, omitir el sufijo no es
+// la misma identidad y no puede servir para forzar el verde.
+function cloudSourceOf(e){
+  return "ob:"+e.ent+"#x."+encodeURIComponent(e.extId);
+}
+await check("legacy sin extId: source sin sufijo y ACK solo cambia cat",async()=>{
+  assert.equal(Object.hasOwn(expense,"extId"),false);
+  assert.equal(ctx.expenseSourceForCloud(expense),"ob:caixabank");
+  assert.equal(row.source,ctx.expenseSourceForCloud(expense));
+  const c=client();
+  const ack=await run(c);
+  assert.equal(ack.cat,"traspaso");
+  assert.equal(ack.source,row.source);
+  assert.equal(ack.id,expense.id);
+  assert.equal(ack.fecha,expense.date);
+  assert.equal(ack.importe,80);
+  assert.equal(ack.comercio,expense.merchant);
+  assert.deepEqual(c.ops.find(op=>op[0]==="update")[2],{cat:"traspaso"});
+  assert.equal(c.data.id,expense.id);
+  assert.equal(c.data.source,row.source);
+  assert.equal(c.data.importe,80);
+  assert.equal(c.data.comercio,expense.merchant);
+  assert.equal(c.data.fecha,expense.date);
+});
+await check("extId con caracteres reservados: source remoto codificado y ACK solo cambia cat",async()=>{
+  const extId="retiro/prueba #1";
+  const e={...expense,extId,noCard:true};
+  const cloudSource=cloudSourceOf(e);
+  assert.notEqual(cloudSource,"ob:caixabank#x."+extId);
+  assert.equal(ctx.expenseSourceForCloud(e),cloudSource);
+  assert.equal(ctx.canRecognizeWithdrawal(e),true);
+  const remote={...row,source:cloudSource};
+  const c=client({row:remote});
+  const ack=await run(c,e);
+  assert.equal(ack.cat,"traspaso");
+  assert.equal(ack.id,e.id);
+  assert.equal(ack.source,cloudSource);
+  assert.equal(ack.fecha,e.date);
+  assert.equal(ack.importe,80);
+  assert.equal(ack.comercio,e.merchant);
+  assert.deepEqual(c.ops.find(op=>op[0]==="update")[2],{cat:"traspaso"});
+  assert.equal(c.updates,1);
+  await run(c,e);
+  assert.equal(c.updates,1,"reintento con extId no repite el UPDATE");
+  const back=ctx.expenseFromRow(ack);
+  assert.equal(back.extId,extId);
+  assert.equal(back.ent,"caixabank");
+  assert.equal(back.source,"ob");
+  assert.equal(e.noCard,true);
+});
+await check("extId divergente o ausente, u otro banco/UUID/fecha/importe/comercio: no UPDATE",async()=>{
+  const e={...expense,extId:"withdrawal-book-fixture",noCard:true};
+  const cloudSource=cloudSourceOf(e);
+  const good={...row,source:cloudSource};
+  assert.equal(ctx.expenseSourceForCloud(e),cloudSource);
+  assert.equal(ctx.withdrawalRowMatches(e,good),true);
+  const otherId="550e8400-e29b-41d4-a716-446655440001";
+  const variants=[
+    ["extId ausente en la nube",e,{...good,source:"ob:caixabank"}],
+    ["extId ausente en local",expense,good],
+    ["extId divergente",e,{...good,source:cloudSourceOf({ent:"caixabank",extId:"otro-ext"})}],
+    ["banco distinto",e,{...good,source:cloudSourceOf({ent:"sabadell",extId:e.extId})}],
+    ["UUID distinto",e,{...good,id:otherId}],
+    ["fecha distinta",e,{...good,fecha:"2026-09-27T12:00:00.000Z"}],
+    ["importe distinto",e,{...good,importe:81}],
+    ["comercio distinto",e,{...good,comercio:"Otro"}],
+  ];
+  for(const [name,local,remote] of variants){
+    assert.equal(ctx.withdrawalRowMatches(local,remote),false,name);
+    const c=client({row:remote});
+    await assert.rejects(()=>run(c,local),/withdrawal identity changed/);
+    assert.equal(c.updates,0,name);
+    assert.equal(c.ops.some(op=>op[0]==="update"),false,name);
+  }
+});
+for(const [name,opts] of [["cero filas",{zero:true}],["RLS denegada",{error:true}]])
+  await check("extId coherente, "+name+": rechazo",async()=>{
+    const e={...expense,extId:"withdrawal-book-fixture",noCard:true};
+    const remote={...row,source:cloudSourceOf(e)};
+    await assert.rejects(()=>run(client({row:remote,...opts}),e));
+  });
+await check("ACK inválido con extId: sin éxito y sin neutralizar",async()=>{
+  const e={...expense,extId:"withdrawal-book-fixture",noCard:true};
+  const cloudSource=cloudSourceOf(e);
+  const remote={...row,source:cloudSource};
+  const local={expenses:[structuredClone(e)],fixed:[]};
+  const bad=[
+    null,
+    [remote],
+    [{...remote,cat:"traspaso",id:"550e8400-e29b-41d4-a716-446655440001"}],
+    [{...remote,cat:"traspaso",importe:1}],
+    [{...remote,cat:"traspaso",source:"ob:caixabank"}],
+    [{...remote,cat:"traspaso",source:cloudSourceOf({ent:"sabadell",extId:e.extId})}],
+    [{...remote,cat:"traspaso",source:cloudSourceOf({ent:"caixabank",extId:"otro-ext"})}],
+    [{...remote,cat:"traspaso",fecha:"2026-09-27T12:00:00.000Z"}],
+    [{...remote,cat:"traspaso",comercio:"Otro"}],
+  ];
+  for(const ack of bad){
+    const c=client({row:remote,ack});
+    await assert.rejects(()=>run(c,e));
+    const forged=Array.isArray(ack)?Object.assign({},ack[0]||{},{withdrawalUpdated:true}):ack;
+    assert.equal(ctx.reconcileConfirmedWithdrawal(local,e,forged,Date.now()),local);
+    assert.equal(local.expenses[0].category,"otros");
+    assert.equal(local.expenses[0].noCard,true);
+  }
+});
 for(const role of ["fijos","diario","ambos"])await check(`magnitud bancaria ${role}: ACK 80→0 de presupuesto conserva banco 420 antes/después y tras sync B`,async()=>{
   const now=new Date(), day=now.toISOString().slice(0,10);
   const e={...expense,date:now.toISOString(),extId:"withdrawal-book-fixture",noCard:true};
@@ -131,8 +238,25 @@ for(const role of ["fijos","diario","ambos"])await check(`magnitud bancaria ${ro
   assert.equal(before.accounts[0].balTipo,"CLBD");
   assert.equal(shown(before),420,"se ejecuta la misma fórmula que pinta Cartera");
   assert.equal(ctx.monthBudgetStats(before).spent,80);
-  const c=client({row:{...row,fecha:e.date}}), ack=await run(c,e);
+  // El BOOK trae extId. La fixture remota tiene que llevar el mismo sufijo que expenseSourceForCloud;
+  // `ob:caixabank` a secas es la fila vieja sin referencia y withdrawalRowMatches la rechaza.
+  assert.equal(ctx.withdrawalRowMatches(e,{...row,fecha:e.date}),false);
+  const cloudSource=cloudSourceOf(e);
+  assert.equal(ctx.expenseSourceForCloud(e),cloudSource);
+  assert.equal(e.noCard,true);
+  const c=client({row:{...row,fecha:e.date,source:cloudSource}});
+  const ack=await run(c,e);
+  assert.equal(ack.cat,"traspaso");
+  assert.equal(ack.id,e.id);
+  assert.equal(ack.source,cloudSource);
+  assert.equal(ack.fecha,e.date);
+  assert.equal(ack.importe,80);
+  assert.equal(ack.comercio,e.merchant);
+  const update=c.ops.find(op=>op[0]==="update");
+  assert.deepEqual(update[2],{cat:"traspaso"});
+  assert.ok(update[3].some(v=>v[0]==="source"&&v[1]===cloudSource));
   const marked=ctx.applyRecognizedWithdrawal(before,e,Date.now());
+  assert.equal(marked.expenses[0].noCard,true,"noCard sigue en la fila reconocida");
   assert.equal(ctx.monthBudgetStats(marked).spent,0);
   assert.equal(ctx.monthBudgetStats(marked).against,0);
   assert.equal(shown(marked),420,"neutra de presupuesto sigue siendo salida del banco; nunca 500");

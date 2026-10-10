@@ -2395,25 +2395,6 @@ function obExtIdFromCloudSource(source){
   if(tail.indexOf("x.")!==0) return "";
   try{ return decodeURIComponent(tail.slice(2))||""; }catch(err){ return ""; }
 }
-function obApplyDedupIndex(cloudRows, incoming){
-  const seen={};
-  (cloudRows||[]).forEach(function(r){
-    if(!r) return;
-    const fecha=r.fecha!=null ? r.fecha : r.date;
-    const importe=r.importe!=null ? r.importe : r.amount;
-    const comercio=r.comercio!=null ? r.comercio : r.merchant;
-    seen[obCanonIso(fecha)+"|"+(Number(importe)||0)+"|"+(comercio||"")]=1;
-  });
-  const accepted=[], ignored=[];
-  (incoming||[]).forEach(function(e){
-    if(!e) return;
-    const k=obCanonIso(e.date)+"|"+(Number(e.amount)||0)+"|"+(e.merchant||"");
-    if(seen[k]){ ignored.push(e); return; }
-    seen[k]=1;
-    accepted.push(e);
-  });
-  return { accepted:accepted, ignored:ignored };
-}
 function obReassignSkipped(skipped, occupiedRows){
   const occ={};
   const have={};

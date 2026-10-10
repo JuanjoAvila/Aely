@@ -100,7 +100,12 @@ export function claveComoLaApp(f: {
   source?: string | null;
   id?: string | null;
 }): string {
-  const fecha = String(f.fecha || "");
+  const raw = String(f.fecha || "");
+  const ms = Date.parse(raw);
+  /* La lápida del móvil guarda `Date.toISOString()` (con milisegundos). La tabla a veces
+     devuelve la misma hora sin `.000`. Si la clave alarga con el texto crudo, el widget no
+     reconoce la lápida y vuelve a sumar el cargo borrado (186,45 frente a 174,45, 2026-10-10). */
+  const fecha = Number.isFinite(ms) ? new Date(ms).toISOString() : raw;
   const base = fecha.slice(0, 10) + "|" + (Number(f.importe) || 0) + "|" + (f.comercio || "");
   if (esSourceManual(f.source)) return base + "|" + String(f.id || "");
   /* Dos cargos Open Banking del mismo día, importe y comercio son dos referencias: si la
@@ -110,7 +115,7 @@ export function claveComoLaApp(f: {
      alarga la clave. */
   const s = String(f.source || "");
   const ob = s === "ob" || s.indexOf("ob:") === 0 || s === "ob-hist" || s.indexOf("ob-hist:") === 0;
-  if (ob && fecha.length >= 10) {
+  if (ob && fecha.length >= 20) {
     const noon = new Date(fecha.slice(0, 10) + "T12:00:00").toISOString();
     if (fecha !== noon) return base + "|" + fecha;
   }
