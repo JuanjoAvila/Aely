@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "id": "caixabank-cargos-grok-20261010",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261010-5f79c133",
+  "createdAt": "2026-10-10T08:19:57.286Z",
+  "to": "grok",
+  "baseSHA": "74c5f075bf08e38e289992195ad97e3a71a8b031",
+  "objective": "CaixaBank (INC-2709-06): cargos distintos del mismo importe se pierden o se funden tras sincronizar a demanda, y el mes de Gastos no cierra en hora de Madrid. Hay cuatro PR draft de Cursor sobre beta95 sin integrar (131, 141, 146, 151): rescatar lo que valga en UN PR sobre la beta actual y cerrar los otros.",
+  "scope": [
+    "src/modules del motor bancario y de Gastos que ya tocan esos PR",
+    "tests y e2e de esos PR, registrados en run-tests y relevant-tests"
+  ],
+  "acceptance": [
+    "Dos cargos reales distintos del mismo importe y día se conservan como dos tras sincronizar; un duplicado verdadero sigue sin duplicarse.",
+    "Un gasto de las 00:30 de Madrid del día 1 cuenta en el mes nuevo (probar también con TZ=UTC).",
+    "Guardián financiero que falla sin el arreglo, y e2e de Gastos en DOM real.",
+    "npm run build y npm test con exit 0 en el SHA entregado; los PR 131, 141, 146 y 151 quedan cerrados con enlace al nuevo.",
+    "Rama propia desde baseSHA y UN solo PR draft contra beta. Sin VERSION, catálogos de beta ni notas: los pone el coordinador al integrar.",
+    "Datos sintéticos. Sin dependencias nuevas, Edge, SQL ni push a beta/main.",
+    "ACK, reserva y result por este canal, no por el issue130. Result con SHA, PR, comandos y exitCode reales.",
+    "Solo lo pedido: nada de producto nuevo ni rediseños. Las dudas de producto van en el result como pregunta."
+  ],
+  "authorization": "Orden directa del dueño 10/10: Claude coordina; limpiar el backlog existente empezando por CaixaBank, widget y Recibos."
+}
