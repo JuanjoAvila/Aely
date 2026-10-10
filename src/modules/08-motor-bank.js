@@ -869,12 +869,7 @@ function flattenBankTx(links){
    En bancos fuera de gasto diario: también cualquier cargo (misma exclusión de modelados).
 
    INGRESOS: de cualquier banco (para «Mi ciclo»). Idempotente por ext_id + dedup. */
-function importObExpenses(s, txs, opts){
-  // La clave la pone el llamador porque la línea de llamada no admite otro argumento.
-  // Se quita ya, antes de cualquier salida: si se quedara en el estado, el siguiente
-  // sync aceptaría un tramo que el banco ya no está entregando.
-  const borrowed=s&&s._obSyncFrom;
-  if(s) delete s._obSyncFrom;
+function importObExpenses(s, txs){
   if(!txs || !txs.length) return null;
   const ents=expenseBankEnts(s);
   const allow={}; ents.forEach(function(e){ allow[e]=1; });
@@ -890,19 +885,8 @@ function importObExpenses(s, txs, opts){
      además muchos bancos contabilizan a caballo entre los dos meses.
      8 días —y no 45— a propósito: cubre el borde de fin de mes sin arrastrar meses enteros de
      histórico en cada sync. Los duplicados que esto pueda rozar ya los para la red de arriba
-     (mismo importe ±3 días contra lo que entró por otra vía) más el dedup por ext_id y clave.
-     INC-2709-06: si el sync a demanda pidió más atrás (último éxito − 3 días, tope 90), ese
-     suelo llega en `opts.syncFromByEnt` o en la clave que el llamador dejó en el estado
-     (ya copiada a `borrowed`). Sin él —función vieja, o banco sin último éxito— se queda
-     el margen de 8 días. Nunca se acorta. */
+     (mismo importe ±3 días contra lo que entró por otra vía) más el dedup por ext_id y clave. */
   const som=new Date(startOfMonth().getTime() - 8*86400000);
-  const floors=(opts&&opts.syncFromByEnt) || borrowed;
-  const floorOf=function(ent){
-    const ymd=floors && ent ? floors[ent] : null;
-    if(typeof ymd!=="string" || !/^\d{4}-\d{2}-\d{2}$/.test(ymd)) return som;
-    const asked=parseDate(ymd);
-    return asked<som ? asked : som;
-  };
   /* `entry_reference` solo es única DENTRO de su banco. Sin entidad, un id de Sabadell podía
      hacer desaparecer un movimiento distinto de Caixa. La identidad local mínima es banco+id. */
   const seen={}, seenLegacy={}; (s.expenses||[]).forEach(function(e){
@@ -984,7 +968,7 @@ function importObExpenses(s, txs, opts){
       if(!parts) return;
       const day=new Date(Number(parts[1]),Number(parts[2])-1,Number(parts[3]),12);
       if(dayKey(day)!==date || date>todayKey) return;
-      if(!tx.date || parseDate(tx.date)<floorOf(tx.ent)) return;
+      if(!tx.date || parseDate(tx.date)<som) return;
       if(tx.id && (seen[(tx.ent||"")+"|"+tx.id]||seenLegacy[tx.id])) return;
       const e={ id:mcExpenseId(), date:new Date(tx.date+"T12:00:00").toISOString(),
         merchant:tx.merchant||"Ingreso", amount:tx.amount,
@@ -1002,14 +986,10 @@ function importObExpenses(s, txs, opts){
       add.push(e);
       return;
     }
-    // GASTO: entra de cualquier banco. Fijos y puntuales de ESTE mes no se duplican; las deudas se marcan.
-    // Un cargo recuperado de un mes anterior no es la cuota de este mes: el modelado solo mira
-    // el mes en curso, y aplicarlo al hueco tiraría un recibo viejo por parecerse al de ahora.
-    if(!tx.date || parseDate(tx.date)<floorOf(tx.ent)) return;
-    if(parseDate(tx.date)>=som){
-      const mod=modeledHit(tx.ent, tx.merchant, tx.amount);
-      if(mod && !mod.debtId) return;
-    }
+    // GASTO: entra de cualquier banco. Fijos y puntuales modelados no se duplican; las deudas se marcan.
+    const mod=modeledHit(tx.ent, tx.merchant, tx.amount);
+    if(mod && !mod.debtId) return;
+    if(!tx.date || parseDate(tx.date)<som) return;
     if(tx.id && (seen[(tx.ent||"")+"|"+tx.id]||seenLegacy[tx.id])) return;
     const esDiario=tx.ent===dailyEnt;
     const esAporteInv = esDiario && daily && daily.monthlyInvest>0 && Math.abs(tx.amount-daily.monthlyInvest)<0.01;

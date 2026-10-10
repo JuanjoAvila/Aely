@@ -33,9 +33,9 @@ async function sync(links, reply, body={}, clock=null) {
   new Function(...names,src)(
     {serve:f=>{handler=f;},env:{get:()=>"synthetic"}},()=>db,api,()=>({}),
     (x,status=200)=>new Response(JSON.stringify(x),{status}),async()=>"jwt",E.mapTransaction,f=>f,
-    (jwt,uid,from,apiFn,timeout,preferLongest)=>{
+    (jwt,uid,from,apiFn,timeout,preferLongest,maxPages,dateTo)=>{
       budgets.push({uid,timeout});
-      return E.fetchBankTransactions(jwt,uid,from,apiFn,timeout,preferLongest);
+      return E.fetchBankTransactions(jwt,uid,from,apiFn,timeout,preferLongest,maxPages,dateTo);
     },clock||Date
   );
   const res=await handler(new Request("https://app.invalid",{method:"POST",body:JSON.stringify(body)}));
@@ -240,14 +240,16 @@ await t("recoverGaps pide desde el último éxito menos 3 días y solo entonces 
   const caixa=link(); caixa.last_sync="2026-08-15T21:00:00.000Z";
   const r=await sync([caixa],()=>({transactions:[movement()]}),{recoverGaps:true},FakeDate);
   assert.equal(r.data.history,undefined,"recoverGaps no es el histórico");
-  assert.equal(txUrl(r.calls)[0].searchParams.get("date_from"),"2026-08-12");
+  const froms=txUrl(r.calls).map(u=>u.searchParams.get("date_from"));
+  assert.equal(froms[0],"2026-09-23","primero la ventana de siempre");
+  assert.equal(froms[1],"2026-08-12","después el tramo desde el último éxito menos 3 días");
   assert.equal(r.data.links[0].gapBeyondCap,false);
   assert.equal(typeof r.writes[0].last_sync,"string");
   const ev=demandEvent(r.events)[0];
   const d=JSON.parse(ev.detail);
   assert.equal(d.dateFrom,"2026-08-12");
-  assert.equal(d.pages,1);
-  assert.equal(d.count,1);
+  assert.equal(d.pages,2);
+  assert.equal(d.count,2);
   assert.equal(d.accounts,1);
   assert.equal(d.truncated,false);
   assert.equal(d.status,"ok");
@@ -261,7 +263,9 @@ await t("un hueco mayor de 90 días se corta, se traza y se avisa",async()=>{
   class FakeDate extends Date { constructor(...args){super(...(args.length?args:[ms]));} static now(){return ms;} }
   const caixa=link(); caixa.last_sync="2026-05-01T00:00:00Z";
   const r=await sync([caixa],()=>({transactions:[movement()]}),{recoverGaps:true},FakeDate);
-  assert.equal(txUrl(r.calls)[0].searchParams.get("date_from"),"2026-07-12");
+  const froms=txUrl(r.calls).map(u=>u.searchParams.get("date_from"));
+  assert.equal(froms[0],"2026-09-23");
+  assert.equal(froms[1],"2026-07-12");
   assert.equal(r.data.links[0].gapBeyondCap,true);
   assert.equal(JSON.parse(demandEvent(r.events)[0].detail).capped,true);
   assert.equal(typeof r.writes[0].last_sync,"string");
@@ -296,8 +300,9 @@ await t("dos páginas del tramo se cuentan y no se abre otra sesión",async()=>{
     n++;
     return n===1?{transactions:[movement("a")],continuation_key:"p2"}:{transactions:[movement("b")]};
   },{recoverGaps:true},FakeDate);
-  assert.equal(txUrl(r.calls).length,2);
-  assert.equal(JSON.parse(demandEvent(r.events)[0].detail).pages,2);
-  assert.equal(r.data.links[0].accounts[0].transactions.length,2);
+  const froms=txUrl(r.calls).map(u=>u.searchParams.get("date_from"));
+  assert.deepEqual(froms,["2026-09-23","2026-09-23","2026-07-29"]);
+  assert.equal(JSON.parse(demandEvent(r.events)[0].detail).pages,3);
+  assert.equal(r.data.links[0].accounts[0].transactions.length,3);
 });
 if(failures) process.exitCode=1;

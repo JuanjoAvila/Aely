@@ -39,6 +39,16 @@ Deno.test("el cliente que no recupera huecos no ensancha la petición", () => {
   assertEquals(r.gap, true);
 });
 
+Deno.test("R4 el solape de 3 días no es un hueco si el último éxito está en la ventana", () => {
+  const inside = demandSyncFrom(now, "2026-09-25T09:00:00Z", false);
+  assertEquals(inside.from, windowStart);
+  assertEquals(inside.gap, false);
+  assertEquals(inside.gapBeyondCap, false);
+  const same = demandSyncFrom(now, "2026-09-25T09:00:00Z", true);
+  assertEquals(same.from, windowStart);
+  assertEquals(same.gap, false);
+});
+
 Deno.test("una lectura parcial o con 429 no cuenta como completa", () => {
   assertEquals(demandReadComplete([{ ok: true, truncated: false }]), true);
   assertEquals(demandReadComplete([{ ok: true, truncated: true }]), false);

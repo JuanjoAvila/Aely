@@ -12,6 +12,10 @@
 export const OB_DEMAND_CAP_DAYS = 90;
 export const OB_DEMAND_OVERLAP_DAYS = 3;
 export const OB_DEMAND_MARGIN_DAYS = 8;
+// Tope fijo de llamadas a /transactions por cuenta y pulsación. Lo comparten
+// la ventana de siempre y el tramo antiguo: nunca 12 + 12. Es el mismo techo
+// que ya tenía el bucle de páginas (2026-10-10).
+export const OB_DEMAND_MAX_PAGES = 12;
 
 export function utcYmd(ms: number): string {
   return new Date(ms).toISOString().slice(0, 10);
@@ -33,18 +37,18 @@ export function parseLastSyncDay(lastSync: unknown): string | null {
   return /^\d{4}-\d{2}-\d{2}$/.test(raw) ? raw : null;
 }
 
-export function demandSyncFrom(now: Date, lastSync: unknown, recover: boolean): { from: string; gapBeyondCap: boolean; gap: boolean } {
+export function demandSyncFrom(now: Date, lastSync: unknown, recover: boolean): { from: string; gapBeyondCap: boolean; gap: boolean; windowStart: string } {
   const windowStart = currentDemandWindowStart(now);
   const day = parseLastSyncDay(lastSync);
-  if (!day) return { from: windowStart, gapBeyondCap: false, gap: false };
+  // Hueco real: el último éxito cae ANTES de la ventana. El solape de 3 días
+  // solo ensancha al cliente nuevo. Si el éxito ya está dentro, marcarlo como
+  // hueco congelaba last_sync en un móvil viejo tres días antes de tiempo.
+  const gap = !!day && day < windowStart;
+  if (!day || !recover || !gap) return { from: windowStart, gapBeyondCap: false, gap, windowStart };
   const overlap = ymdAddDays(day, -OB_DEMAND_OVERLAP_DAYS);
-  const oldest = overlap < windowStart ? overlap : windowStart;
-  const gap = oldest < windowStart;
-  // Cliente viejo: misma petición de siempre. El hueco se conserva en last_sync.
-  if (!recover) return { from: windowStart, gapBeyondCap: false, gap };
   const floor = utcYmd(now.getTime() - OB_DEMAND_CAP_DAYS * 86400000);
-  if (oldest < floor) return { from: floor, gapBeyondCap: true, gap: true };
-  return { from: oldest, gapBeyondCap: false, gap };
+  if (overlap < floor) return { from: floor, gapBeyondCap: true, gap: true, windowStart };
+  return { from: overlap, gapBeyondCap: false, gap: true, windowStart };
 }
 
 /** Lectura completa: todas las cuentas respondieron, sin corte de páginas y sin 429.
