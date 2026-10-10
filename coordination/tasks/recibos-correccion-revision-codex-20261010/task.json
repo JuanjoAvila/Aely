@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "id": "recibos-correccion-revision-codex-20261010",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261010-5f79c133",
+  "createdAt": "2026-10-10T13:36:31.792Z",
+  "to": "codex",
+  "baseSHA": "4ceac993e53c9d470b0453f405904cc10b23a5a3",
+  "objective": "PR202 (Recibos) pasó revisión independiente con tres reservas a corregir en el mismo PR antes de integrar, y rebase sobre la beta actual 684a839d.",
+  "scope": [
+    "src/modules/08-motor-bank.js",
+    "tests/fixed-payment-state.test.mjs",
+    "e2e/inicio-cargos.spec.mjs"
+  ],
+  "acceptance": [
+    "1 un recibo acreditado solo por una notificación, sin cargo contabilizado del banco, no puede acabar escribiendo paidYm ni paidDay: patchFixedById (líneas 2766-2769) los guarda cuando status.paid y luego isPaidIn los usa en las proyecciones. Igual que en deudas: para escribir hace falta cargo contabilizado único; la notificación solo cambia lo que se muestra.",
+    "2 cargo ajeno con nombre corto: recibo «Agua» de 30 y una compra «AGUA MINERAL BAR PEPE» de 30,00 en otro banco el mismo mes sale como pagado. Si el cargo está en otra entidad que la del recibo, exigir además que su categoría sea la del recibo o esté sin clasificar; si no, no se acredita solo. Sin interfaz nueva.",
+    "3 un mismo cargo no acredita dos recibos ni de forma transitoria: con «Seguro Mapfre» y «Mapfre» del mismo importe y un solo cargo, se asigna de forma determinista al de nombre más específico; con empate real, a ninguno.",
+    "Anotar en el result, sin arreglar: los nombres de menos de 4 letras (Luz, Gas, Gym) nunca se acreditan por esta vía. Es una limitación conocida que decide el dueño.",
+    "Un test por cada punto que falle con el head actual. npm run build, tests propios y Playwright completo con exit real. Sin VERSION ni catálogos."
+  ],
+  "authorization": "Orden directa del dueño 10/10: Claude coordina y verifica."
+}
