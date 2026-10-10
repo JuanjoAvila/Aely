@@ -1024,6 +1024,27 @@
       },
       "scripts/beta-revisions.mjs",
       "scripts/beta-source-code.mjs",
+      "scripts/beta-archives.json",
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "    // Archivo109 es: una función retirada no acredita entrega vigente.",
+        "to": "    // Archivo109 es: fin de la referencia."
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "    // Archivo109 en: una función retirada no acredita entrega vigente.",
+        "to": "    // Archivo109 en: fin de la referencia."
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "    // Archivo109 ca: una función retirada no acredita entrega vigente.",
+        "to": "    // Archivo109 ca: fin de la referencia."
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "betaHistoricalDetails"
+      },
+      "scripts/listo-para-produccion.mjs",
       {
         "file": "src/modules/00-core.js",
         "data": "store"
@@ -11351,6 +11372,27 @@
       },
       "scripts/beta-revisions.mjs",
       "scripts/beta-source-code.mjs",
+      "scripts/beta-archives.json",
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "    // Archivo109 es: una función retirada no acredita entrega vigente.",
+        "to": "    // Archivo109 es: fin de la referencia."
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "    // Archivo109 en: una función retirada no acredita entrega vigente.",
+        "to": "    // Archivo109 en: fin de la referencia."
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "    // Archivo109 ca: una función retirada no acredita entrega vigente.",
+        "to": "    // Archivo109 ca: fin de la referencia."
+      },
+      {
+        "file": "src/modules/10-app-components.js",
+        "function": "betaHistoricalDetails"
+      },
+      "scripts/listo-para-produccion.mjs",
       {
         "file": "src/modules/00-core.js",
         "data": "store"
@@ -12174,7 +12216,8 @@
       {
         "file": "src/modules/03-tab-dash.js",
         "from": "  const recent=useMemo",
-        "to": "\n  const p=eurParts"
+        "to": ",[state.expenses,state.deleted]);",
+        "includeTo": true
       },
       {
         "file": "src/modules/03-tab-dash.js",
@@ -12593,6 +12636,185 @@
         "file": "src/modules/01-i18n.js",
         "from": "    // INC-0810 ca: límite del significado de la gráfica.",
         "to": "    // INC-0810 ca: fin del significado de la gráfica."
+      }
+    ],
+    "unidades": true
+  },
+  "inc-0910-inicio-solo-actual": {
+    "web": [
+      {
+        "file": "src/modules/03-tab-dash.js",
+        "function": "NetWorthNow"
+      },
+      {
+        "file": "src/modules/03-tab-dash.js",
+        "from": "    !showSkel && React.createElement(NetWorthNow,",
+        "to": "\n    // Sin presupuesto, Inicio escondia"
+      },
+      {
+        "file": "src/modules/03-tab-dash.js",
+        "from": "  const tt=totals;",
+        "to": "  const [budgetOpen,setBudgetOpen]"
+      },
+      {
+        "file": "src/modules/03-tab-dash.js",
+        "from": "  const shownNet=useCountUp(tt.netWorth||0, splashGone);",
+        "to": "\n",
+        "includeTo": true
+      },
+      {
+        "file": "src/modules/03-tab-dash.js",
+        "from": "  const [splashGone,setSplashGone]=useState(function(){",
+        "to": "  const [bootReady,setBootReady]"
+      },
+      {
+        "file": "src/modules/03-tab-dash.js",
+        "from": "  useEffect(function(){\n    if(splashGone)",
+        "to": "  useEffect(function(){\n    if(bootReady"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "useCountUp"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "mcReduced"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "eurParts"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "t"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "CURLANG"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "SIMPLEMODE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "    // INC-0810 es: patrimonio de ahora.",
+        "to": "    // INC-0810 es: fin del patrimonio de ahora."
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "    // INC-0810 en: patrimonio de ahora.",
+        "to": "    // INC-0810 en: fin del patrimonio de ahora."
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "    // INC-0810 ca: patrimonio de ahora.",
+        "to": "    // INC-0810 ca: fin del patrimonio de ahora."
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "    v4_money_total:\"Tu dinero en total\"",
+        "to": ", v4_of_month:"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "    v4_money_total:\"All your money\"",
+        "to": ", v4_of_month:"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "    v4_money_total:\"Els teus diners en total\"",
+        "to": ", v4_of_month:"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "  d_networth:\"Patrimonio neto\"",
+        "to": ", d_assets:"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "  d_networth:\"Net worth\"",
+        "to": ", d_assets:"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "  d_networth:\"Patrimoni net\"",
+        "to": ", d_assets:"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "  es:{ d_networth:\"Tu dinero en total\"",
+        "to": ", d_assets:"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "  en:{ d_networth:\"All your money\"",
+        "to": ", d_assets:"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "  ca:{ d_networth:\"Els teus diners en total\"",
+        "to": ", d_assets:"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "DISP"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CUR_SYM"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "fxRateOf"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "fxTableOf"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  // Moneda de visualización: convierte todos los importes (en €)",
+        "to": "\n  CURLANG ="
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  CURLANG = (state.settings&&state.settings.lang)",
+        "to": "\n\n  /* ---------- Sincronización"
+      },
+      {
+        "file": "src/shell.html",
+        "from": "  .v4-micro{",
+        "to": "\n",
+        "includeTo": true
+      },
+      {
+        "file": "src/shell.html",
+        "from": "  .v4-hero{",
+        "to": "\n",
+        "includeTo": true
+      },
+      {
+        "file": "src/shell.html",
+        "from": "  .v4-net-current-head{",
+        "to": "\n",
+        "includeTo": true
+      },
+      {
+        "file": "src/shell.html",
+        "from": "  .v4-net-now{",
+        "to": "\n",
+        "includeTo": true
+      },
+      {
+        "file": "src/shell.html",
+        "from": "  .v4-hero-amt{",
+        "to": "\n",
+        "includeTo": true
       }
     ],
     "unidades": true

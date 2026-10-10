@@ -1,26 +1,6 @@
 /* ============================================================
    APP
    ============================================================ */
-/* Mini-tutorial por pestaña: la primera vez que se abre una pestaña sale desplegado
-   (feedback: «mi pareja no encontraba el lápiz de editar gastos»); al cerrarlo queda un
-   botoncito «💡 ¿Cómo va esto?» para releerlo. Estado por pestaña en localStorage. */
-const TabCoach=React.memo(function TabCoach({tabId}){
-  const tips=t("coach_"+tabId);
-  // v2 en roles Gastos/Fijos/Patri: tras aclarar variable vs fijo + filtro banco (2026-07-16)
-  // se vuelve a mostrar una vez aunque ya hubieran cerrado el coach antiguo.
-  const coachKey="_coach_"+tabId+((tabId==="gastos"||tabId==="fijos"||tabId==="patri")?"_v2":"");
-  const [seen,setSeen]=useState(function(){ try{ return localStorage.getItem(coachKey)==="1"; }catch(e){ return true; } });
-  const [open,setOpen]=useState(!seen);
-  if(!Array.isArray(tips)||!tips.length) return null;
-  const dismiss=function(){ try{ localStorage.setItem(coachKey,"1"); }catch(e){} setSeen(true); setOpen(false); };
-  if(!open) return React.createElement("button",{className:"coach-pill",onClick:function(){ setOpen(true); }},"💡 "+t("coach_btn"));
-  return React.createElement("div",{className:"coach-card"},
-    React.createElement("div",{style:{fontWeight:800,fontSize:13.5,color:"var(--text)",marginBottom:4}},"💡 "+tf("coach_title",{tab:t("tab_"+tabId)})),
-    tips.map(function(tip,i){ return React.createElement("div",{key:i,style:{display:"flex",gap:8,fontSize:12.5,color:"var(--muted)",lineHeight:1.5,marginTop:5}},
-      React.createElement("span",{style:{flex:"0 0 auto"}},"·"),React.createElement("span",null,tip)); }),
-    React.createElement("button",{className:"btn btn-ghost btn-block",style:{marginTop:10},onClick:dismiss},t("coach_ok"))
-  );
-});
 const TABS=[
   {id:"dash",label:"Inicio",icon:I.home},
   {id:"gastos",label:"Gastos",icon:I.expense},
@@ -1132,6 +1112,7 @@ function betaVerdictFor(g, rows){
 }
 // El veredicto no acredita entrega: sin recibo se explica la duda, no se oculta la tanda.
 function betaEstadoEntrega(g, prodApk){
+  if(g.referenciaHistorica)return {web:"historical-absent"};
   var id=String(g.id).split("/").pop(), d=window._mcProdEntregas||{}, a=window._mcProdApkRevisiones||{}, out={};
   if(g.codigo){
     ["web","edge"].forEach(function(s){
@@ -1151,13 +1132,14 @@ function betaPruebasEntrega(recibo, notes, version){
   notes.forEach(function(n){
     if(!n||!n.v||!Array.isArray(n.tandas)||mcIsNewer(n.v,mcVerBase(version))) return;
     n.tandas.forEach(function(g){
-      if(!g||!g.id||!rnItems(g,"es").length) return;
+      if(!g||!g.id||g.referenciaHistorica||!rnItems(g,"es").length) return;
       if(!pruebas[g.id]) pruebas[g.id]={v:n.v,contenido:JSON.stringify([String(g.id),rnT(g.t,"es"),rnItems(g,"es"),g.rev||1])};
     });
   });
   return Object.assign({},recibo,{pruebas:pruebas});
 }
 function betaEstadoPrueba(g, prodApk, version, prodVersion){
+  if(g.referenciaHistorica)return betaEstadoEntrega(g,prodApk);
   var estado=betaEstadoEntrega(g,prodApk), id=String(g.id).split("/").pop();
   var recibo=window._mcProdEntregas, prueba=recibo&&recibo.pruebas&&recibo.pruebas[id];
   // Una dependencia compartida puede cambiar sin volver a estrenar la función ya entregada.
@@ -1272,7 +1254,7 @@ function betaTandas(notes){
       var id=String(g.id), t=rnT(g.t,"es"), items=rnItems(g,"es"), h=betaHuella(id,t,items,g.rev,g.codigo);
       // `desde` solo vale mientras la huella fijada al escribirlo siga siendo la del contenido.
       var alias=g.huella===h.slice(0,8)&&(!g.codigo||g.codigoDesde===g.codigo);
-      return { id:id, t:t, items:items, huella:h, rev:g.rev||1, codigo:g.codigo, web:g.web, native:g.native, edge:g.edge,
+      return { id:id, t:t, items:items, huella:h, rev:g.rev||1, codigo:g.codigo, web:g.web, native:g.native, edge:g.edge, referenciaHistorica:g.referenciaHistorica,
         revisionesCompatibles:g.compatibilidadGit||[],
         huellasCompatibles:(g.codigosCompatibles||[]).map(function(c){ return h.slice(0,8)+":"+c; }),
         apk:g.apk||0, historial:g.historial||[], cambio:g.revisionesDesde?Object.keys(g.revisionesDesde).filter(function(s){ return g[s]!==g.revisionesDesde[s]; }):g.codigoDesde&&g.codigoDesde!==g.codigo?["—"]:[], desde:alias&&g.desde||[] };
@@ -1297,10 +1279,35 @@ function betaScopedMarks(pack,values,indexed,kind,byIndex){
   });
   return out;
 }
+// El detalle se rescata por la huella exacta. Ni los alias ni un texto repetido bastan
+// para adjudicar un fallo histórico a otra propuesta.
+function betaHistoricalDetails(g){
+  var ref=g.referenciaHistorica, scopedId=String(g.id), id=scopedId.split("/").pop(), title=g.t;
+  if(!ref||id!=="inc-0810-inicio-grafica-significado"||typeof title!=="string"||!Array.isArray(g.items)
+    ||ref.sha!=="f4ffb9340adfd0a13b631271e8158d2c630613c0"||ref.version!=="4.26.109"||ref.estado!=="ausente"
+    ||ref.codigo!=="b90e6223cd45ef64e8689d4c772560c31c7db47939694211a892316030a283f0"
+    ||ref.web!=="d05bb0d4d86dce14c5ba4794a0be2a265e52f3a167cf8eadce87aa198e5cd38d"
+    ||g.codigo!==ref.codigo||g.web!==ref.web)return [];
+  // La checklist añade versión al id/título visibles; la identidad sigue siendo la original.
+  if(scopedId!==id){
+    var prefix="v"+ref.version+" · ";
+    if(scopedId!==ref.version+"/"+id||title.indexOf(prefix)!==0)return [];
+    title=title.slice(prefix.length);
+  }
+  if(betaHuella(id,title,g.items,g.rev,g.codigo)!==g.huella)return [];
+  var own=Object.assign({},g,{huellasCompatibles:[],desde:[]}),one={tandas:[own]};
+  var marks=betaScopedMarks(one,store.get("_betaReviewOk")||{},false,"marks",true);
+  var notes=betaScopedMarks(one,store.get("_betaReviewNotas")||{},false,"notes",true);
+  return g.items.map(function(_,j){return {
+    mark:/^(ok|ko|na)$/.test(marks[j]||"")?marks[j]:null,
+    note:typeof notes[j]==="string"?notes[j]:""
+  };});
+}
 function betaRememberMarks(pack,marks,notes){
   // Dos tandas pueden decir «volver a abrir»: el texto no identifica quién lo probó.
   var saved=store.get("_betaReviewMarks")||{},i=0;
   (pack.tandas||[]).forEach(function(g){
+    if(g.referenciaHistorica){i+=g.items.length;return;}
     var row={marks:{},notes:{}};
     g.items.forEach(function(it,j){ if(marks[i]!==undefined)row.marks[j]=marks[i]; if(notes&&notes[i])row.notes[j]=notes[i]; i++; });
     saved[g.huella]=row;
@@ -1327,12 +1334,17 @@ function betaStoredMarks(pack,byIndex){
 function betaMarksCount(pack){
   var prev=betaStoredMarks(pack,true);
   var propias=betaScopedMarks(pack,store.get("_betaReview_"+CONFIG.APP_VERSION)||{},true);
-  var n=0;
+  // El archivo conserva índices y decisiones; no representa trabajo que aún se pueda probar.
+  var archived={},cursor=0;
+  (pack.tandas||[]).forEach(function(g){g.items.forEach(function(){if(g.referenciaHistorica)archived[cursor]=true;cursor++;});});
+  var n=0,total=0;
   pack.items.forEach(function(it,i){
+    if(archived[i])return;
+    total++;
     var v=propias[i]!==undefined ? propias[i] : prev[i];
     if(v==="ok"||v==="na"||v==="ko") n++;
   });
-  return { n:n, tot:pack.items.length };
+  return { n:n, tot:total };
 }
 function betaSavedVerdicts(pack){
   const sent={};
@@ -1523,17 +1535,24 @@ function BetaReviewPanel({onClose, showToast}){
   // Se separan los ✓/«no probable» de los ✗: el aviso de arriba no puede decir «los diste por
   // buenos» de una cruz, y las cruces heredadas además se señalan una a una (viene de antes →
   // compruébalo), que es la diferencia entre ahorrarle trabajo y mentirle.
-  const heredadas=useRef((function(){ var h=heredarOk(), propias=store.get(storeKey)||{}, buenos=0, ko={};
-    Object.keys(h).forEach(function(i){ if(propias[i]!==undefined) return; if(h[i]==="ko") ko[i]=true; else buenos++; });
+  const heredadas=useRef((function(){ var h=heredarOk(), propias=store.get(storeKey)||{}, buenos=0, ko={}, archived={}, cursor=0;
+    pack.tandas.forEach(function(g){g.items.forEach(function(){if(g.referenciaHistorica)archived[cursor]=true;cursor++;});});
+    Object.keys(h).forEach(function(i){ if(archived[i]||propias[i]!==undefined) return; if(h[i]==="ko") ko[i]=true; else buenos++; });
     return {buenos:buenos, ko:ko, nKo:Object.keys(ko).length}; })());
   const heredados=useRef(heredadas.current.buenos);
   const save=function(m,n){ store.set(storeKey,m); if(n) store.set(storeKey+"_n",n); };
   const recordarOk=function(m,n){
     var prev=store.get(okKey)||{};
-    var ids=store.get("_betaMarksHuella")||{}, i=0;
-    pack.tandas.forEach(function(g){ g.items.forEach(function(it){ if(m[i]) ids[it]=g.huella; else delete ids[it]; i++; }); });
+    var ids=store.get("_betaMarksHuella")||{}, i=0, historicalItems={};
+    pack.tandas.forEach(function(g){if(g.referenciaHistorica)g.items.forEach(function(it){historicalItems[it]=true;});});
+    // Un texto legado puede repetirse: el punto nuevo usa su ledger propio sin sobrescribir el archivo.
+    pack.tandas.forEach(function(g){ g.items.forEach(function(it){
+      if(!g.referenciaHistorica&&!historicalItems[it]){if(m[i]) ids[it]=g.huella; else delete ids[it];}
+      i++;
+    }); });
     store.set("_betaMarksHuella",ids);
     pack.items.forEach(function(it,i){
+      if(historicalItems[it])return;
       if(m[i]==="ok"||m[i]==="na"||m[i]==="ko") prev[it]=m[i]; else delete prev[it];
     });
     store.set(okKey,prev);
@@ -1544,6 +1563,7 @@ function BetaReviewPanel({onClose, showToast}){
   const recordarNota=function(i,txt){
     var prev=store.get(notaKey)||{};
     var it=pack.items[i]; if(it==null) return;
+    if(pack.tandas.some(function(g){return g.referenciaHistorica&&g.items.indexOf(it)>=0;}))return;
     if(txt&&txt.trim()) prev[it]=txt; else delete prev[it];
     store.set(notaKey,prev);
   };
@@ -1595,14 +1615,17 @@ function BetaReviewPanel({onClose, showToast}){
     r.pend=idx.length-r.ok-r.ko-r.na;
     return r;
   };
-  const total=pack.items.length;
-  const ok=pack.items.filter(function(_,i){ return marks[i]==="ok"; }).length;
-  const ko=pack.items.filter(function(_,i){ return marks[i]==="ko"; }).length;
+  // No se reindexa el ledger: sólo los puntos activos intervienen en el progreso de esta revisión.
+  const activos=[];
+  grupos.forEach(function(g){if(!g.referenciaHistorica)activos.push.apply(activos,g.idx);});
+  const total=activos.length;
+  const ok=activos.filter(function(i){ return marks[i]==="ok"; }).length;
+  const ko=activos.filter(function(i){ return marks[i]==="ko"; }).length;
   // «No se puede probar» (petición suya 2026-07-26): hay cosas que no dependen de él —que llegue
   // la nómina, que el banco mande una notificación, un icono que solo se ve con la APK instalada—
   // y no tenían casilla. Al no poder marcarlas, contaban como pendientes y BLOQUEABAN el aprobar,
   // así que o mentía marcando «va bien» o la beta se quedaba sin veredicto. Esto NO bloquea.
-  const na=pack.items.filter(function(_,i){ return marks[i]==="na"; }).length;
+  const na=activos.filter(function(i){ return marks[i]==="na"; }).length;
   const pend=total-ok-ko-na;
 
   /* EL VEREDICTO DICE TAMBIÉN QUÉ APK LLEVABA PUESTA (2026-07-26).
@@ -1624,7 +1647,7 @@ function BetaReviewPanel({onClose, showToast}){
      por línea. Cuando una versión no declara tandas, el id es "todo" y el parte queda igual que
      siempre — el histórico de veredictos se sigue leyendo sin cambiar nada. */
   const enviar=function(g, verdict){
-    if(busy) return;
+    if(busy||g.referenciaHistorica) return;
     setBusy(true);
     const c=cuenta(g.idx);
     const fallos=g.idx.map(function(i,j){ return marks[i]==="ko" ? {item:g.items[j].slice(0,140), nota:(notes[i]||"").slice(0,300)} : null; }).filter(Boolean);
@@ -1651,9 +1674,11 @@ function BetaReviewPanel({onClose, showToast}){
           saved["h:"+g.huella]={verdict:verdict,at:Date.now()}; saved._h=1;
           store.set(storeKey+"_v",saved);   // no retirar el OK local si el servidor rechaza la retirada
           /* 15/9: si ya no quedan tandas sin veredicto en esta compilación, no reabrir Ajustes. */
-          var ids=grupos.length ? grupos.map(function(x){ return x.id; }) : ["todo"];
+          var activeGroups=grupos.filter(function(x){return !x.referenciaHistorica;});
+          var ids=activeGroups.length ? activeGroups.map(function(x){ return x.id; }) : ["todo"];
           var todas=ids.every(function(id){ return n[id]==="approved"||n[id]==="rejected"; });
-          if(todas) betaOlvidarVuelta();
+          // El scroll pendiente de este gesto no debe reabrir una revisión ya terminada.
+          if(todas){ gestoReal.current=false; betaOlvidarVuelta(); }
           return n;
         });
         // Encoger SIEMPRE al enviar, apruebe o rechace. Dejar la rechazada abierta era lo que le
@@ -1701,7 +1726,7 @@ function BetaReviewPanel({onClose, showToast}){
         ". No hace falta que lo vuelvas a teclear: si esta compilación lo arregla, tócalo y ponlo en ✓.")),
 
     // Progreso
-    !yaEnProd && total>0 && React.createElement("div",{style:{display:"flex",gap:10,alignItems:"center",marginBottom:14}},
+    !yaEnProd && total>0 && React.createElement("div",{"data-testid":"beta-active-progress",style:{display:"flex",gap:10,alignItems:"center",marginBottom:14}},
       React.createElement("div",{style:{flex:1,height:8,borderRadius:8,background:"var(--surface-2)",overflow:"hidden"}},
         React.createElement("div",{style:{width:(total?Math.round((ok+ko+na)/total*100):0)+"%",height:"100%",
           background:ko?"var(--coral)":"var(--mint)",transition:"width .25s ease"}})),
@@ -1710,8 +1735,9 @@ function BetaReviewPanel({onClose, showToast}){
     /* Dos casos distintos con la lista vacía, y decir el que no es despista (review de Cursor,
        8/9): si la versión declara `tandas` es que las aprobó TODAS —el caso normal a partir de
        ahora—; si no declara ninguna es una versión suelta sin checklist. */
-    !yaEnProd && pack.items.length===0 && React.createElement("div",{style:{fontSize:13,color:"var(--muted)"}},
+    !yaEnProd && total===0 && React.createElement("div",{"data-testid":"beta-active-empty",style:{fontSize:13,color:"var(--muted)"}},
       proofMissing||!(RELEASE_NOTES&&RELEASE_NOTES.length) ? t("beta_notes_unavailable") :
+      grupos.some(function(g){return !!g.referenciaHistorica;})?t("beta_historical_no_active"):
       pack.tandas.length===0 && (RELEASE_NOTES||[]).some(function(n){ return n && n.tandas; })
         ? "✅ No queda nada por probar: has aprobado todas las tandas de esta ronda."
         : "Esta versión no trae notas, así que no hay checklist. Prueba lo que hayas tocado."),
@@ -1725,7 +1751,8 @@ function BetaReviewPanel({onClose, showToast}){
        cualquier sitio bloqueaba lo demás — que es justo lo que le pasa en el trabajo cuando una
        rama se queda atrás y arrastra a las otras. */
     grupos.map(function(g){
-      const c=cuenta(g.idx);
+      const historicalDetails=g.referenciaHistorica?betaHistoricalDetails(g):null;
+      const c=cuenta(g.referenciaHistorica?[]:g.idx);
       const v=sent[g.id];
       const listo=c.pend===0 && c.ko===0;
       const entrega=g.entrega||betaEstadoEntrega(g,window._mcProdApk);
@@ -1737,21 +1764,30 @@ function BetaReviewPanel({onClose, showToast}){
          y el motivo es el mismo en los dos casos: una tanda ya juzgada solo estorba entre las que
          le faltan por probar. Se sigue pudiendo abrir para repasar lo que escribió. */
       const open=expanded[g.id]!==undefined ? expanded[g.id] : !v;
-      return React.createElement("div",{key:g.id,className:"beta-tanda"},
+      return React.createElement("div",{key:g.id,className:"beta-tanda","data-beta-historical":g.referenciaHistorica?"true":undefined},
         React.createElement("button",{type:"button",className:"beta-tanda-h beta-tanda-toggle",
           "aria-expanded":open,"aria-controls":"beta-body-"+g.id,
           onClick:function(){ setExpanded(function(p){ return Object.assign({},p,{[g.id]:!open}); }); }},
           React.createElement("span",{className:"beta-tanda-t"}, g.t||t("beta_group")),
           React.createElement("span",{className:"beta-tanda-n"+(v==="approved"?" ok":v==="rejected"?" ko":"")},
-            v==="approved" ? "✅ aprobada" : v==="rejected" ? "⛔ rechazada" : (c.ok+c.ko+c.na)+"/"+g.idx.length),
+            v==="approved" ? "✅ aprobada" : v==="rejected" ? "⛔ rechazada" : g.referenciaHistorica?t("beta_historical_no_verdict"):(c.ok+c.ko+c.na)+"/"+g.idx.length),
           React.createElement("span",{className:"beta-tanda-fold"},(open?"▾ ":"▸ ")+t(open?"beta_collapse":"beta_expand"))),
-        v==="approved" && React.createElement("div",{className:"hint beta-tanda-estado"},t("beta_approved_pending")),
+        g.referenciaHistorica && React.createElement("div",{className:"hint beta-tanda-entrega"},t("beta_historical_absent")),
+        !g.referenciaHistorica && v==="approved" && React.createElement("div",{className:"hint beta-tanda-estado"},t("beta_approved_pending")),
         !v && (g.cambio||[]).length>0 && React.createElement("div",{className:"hint beta-tanda-estado"},tf("beta_revision_changed",{x:g.cambio.map(function(s){ return s==="native"?"Android":s==="edge"?t("beta_server"):s; }).join(", ")})),
         (pendientes||inciertas) && React.createElement("div",{className:"hint beta-tanda-entrega"},
           [pendientes?tf("beta_delivery_pending",{x:pendientes}):"",inciertas?tf("beta_delivery_unknown",{x:inciertas}):""].filter(Boolean).join(" ")),
         React.createElement("div",{id:"beta-body-"+g.id,hidden:!open},
         g.idx.map(function(i,j){
           const it=g.items[j], m=marks[i];
+          if(g.referenciaHistorica){
+            const detail=historicalDetails[j]||{}, label=detail.mark==="ko"?"beta_historical_failed":detail.mark==="ok"?"beta_historical_ok":detail.mark==="na"?"beta_historical_na":null;
+            return React.createElement("div",{key:i,className:"beta-item","data-beta-historical-item":"true"},
+              React.createElement("div",null,it),
+              label&&React.createElement("div",{className:"hint beta-historical-mark"},t(label)),
+              detail.note?React.createElement("div",{className:"hint beta-historical-note",style:{whiteSpace:"pre-wrap"},"aria-label":t("beta_historical_note")},detail.note)
+                :React.createElement("div",{className:"hint beta-historical-note-missing"},t("beta_historical_note_missing")));
+          }
           const borde=m==="ko"?"var(--coral)":m==="ok"?"var(--mint)":m==="na"?"var(--muted-2)":"var(--line-soft)";
           /* Resuelto = encogido. Abierto queda lo que le falta por probar y lo que falla (que
              lleva debajo el comentario), más lo que él abra a mano para repasar. */
@@ -1799,7 +1835,8 @@ function BetaReviewPanel({onClose, showToast}){
         // El `ref` es el destino del último ✓: probado el último punto, lo que se le trae a la
         // vista es el botón de aprobar, no un hueco.
         React.createElement("div",{ref:function(el){ itemRefs.current["fin-"+g.id]=el; }},
-        yaEnProd ? null
+        g.referenciaHistorica ? React.createElement("div",{className:"hint beta-veredicto"},v==="rejected"?t("beta_historical_rejected"):v==="approved"?t("beta_historical_approved"):t("beta_historical_no_verdict"))
+        : yaEnProd ? null
         : v ? React.createElement("div",{className:"beta-veredicto",style:{borderColor:v==="approved"?"var(--mint)":"var(--coral)"}},
             React.createElement("div",{style:{fontWeight:800,fontSize:14,marginBottom:5}},
               v==="approved" ? "✅ Aprobada" : "⛔ Rechazada"),
@@ -1832,7 +1869,7 @@ function BetaReviewPanel({onClose, showToast}){
       }},
       "↺ Empezar la revisión de cero"),
     grupos.some(function(g){ return sent[g.id]==="approved"||sent[g.id]==="rejected"; }) &&
-      React.createElement("div",{className:"hint",style:{marginTop:8}},t("beta_reset_verdicts"))
+      React.createElement("div",{className:"hint",style:{marginTop:8}},t(grupos.some(function(g){return !g.referenciaHistorica&&(sent[g.id]==="approved"||sent[g.id]==="rejected");})?"beta_reset_verdicts":"beta_historical_reset_locked"))
   ));
 }
 

@@ -1,22 +1,13 @@
 import { test, expect } from "@playwright/test";
 import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
 
-/* PRO-02: la raya de Inicio junta `state.history` (números sin fecha) con el total de ahora.
- * El alta guarda un 0, la semilla de ejemplo no es un calendario y no hay otro escritor.
- * Aquí se comprueba el texto y la escala, con importes sintéticos, sin reescribir saldos. */
-
-const NOTA = '[data-testid="inicio-chart-note"]';
+/* El alta y la semilla guardan números sin observaciones fechadas. Inicio no debe convertirlos
+ * en una evolución ni rescatarlos en otra lista: el DOM enseña solo el patrimonio de ahora.
+ * Los importes y cambios de moneda son sintéticos; la cartera guardada debe conservarse. */
 const CUENTA = { id: "a1", ent: "sabadell", name: "Banco", value: 1000, role: "fijos", spendFrom: false };
 
-function ysDe(valores) {
-  const min = Math.min.apply(null, valores);
-  const max = Math.max.apply(null, valores);
-  const rng = (max - min) || 1;
-  const h = 70, pad = 4;
-  return valores.map(function (v) { return pad + (1 - (v - min) / rng) * (h - 2 * pad); });
-}
-
 async function inicio(page, estado) {
+  await page.route("https://api.frankfurter.dev/**", route => route.abort());
   await seedLoggedInDashboard(page, estado);
   await page.goto("/");
   await page.waitForFunction(() => !document.getElementById("mc-load"));
@@ -24,199 +15,181 @@ async function inicio(page, estado) {
 }
 
 function heroRe(amount, sym) {
-  const neg = amount < 0 ? "-" : "";
   const raw = Math.abs(amount).toFixed(2).replace(".", ",");
   const miles = raw.replace(/^(\d+)(,)/, function (_, ent, comma) {
     return ent.replace(/\B(?=(\d{3})+(?!\d))/g, ".") + comma;
   });
-  return new RegExp(neg + "(?:" + miles.replace(/\./g, "\\.") + "|" + raw + ") " + sym);
+  return new RegExp((amount < 0 ? "-" : "") + "(?:" + miles.replace(/\./g, "\\.") + "|" + raw + ") " + sym);
 }
 
-async function nota(page) {
-  const el = page.locator(NOTA);
-  await expect(el).toBeVisible();
-  const texto = (await el.innerText()).replace(/\s+/g, " ").trim();
-  expect(await el.ariaSnapshot()).toContain(texto);
-  expect(await el.evaluate(el => el.scrollWidth <= el.clientWidth + 1)).toBe(true);
-  return texto;
+async function actual(page, amount, sym = "€", now = "Ahora") {
+  const hero = page.getByTestId("inicio-net-current");
+  await expect(hero).toBeVisible();
+  await expect(hero.getByTestId("inicio-net-now")).toHaveText(now);
+  await expect(hero.locator(".v4-hero-amt")).toContainText(heroRe(amount, sym));
+  await expect(hero.locator("svg, table, ul, ol")).toHaveCount(0);
+  await expect(page.getByTestId("inicio-chart-note")).toHaveCount(0);
+  return hero;
 }
 
-async function guardado(page) {
+async function carteraGuardada(page) {
   return page.evaluate(() => {
     const s = JSON.parse(localStorage.getItem("micartera_v3") || "{}");
-    const a = (s.accounts || [])[0];
-    return { history: s.history, value: a ? a.value : null };
+    // La app sella otros campos al guardar. Aquí importan los bytes lógicos de la cartera,
+    // incluidos el orden y los valores del histórico, no la fecha de esa escritura.
+    return JSON.stringify([s.accounts, s.investments, s.assets, s.debts, s.history]);
   });
 }
 
-async function puntos(page) {
-  const d = await page.locator(".v4-hero svg.spark path").nth(1).getAttribute("d");
-  const nums = (d || "").match(/-?\d+(?:\.\d+)?/g).map(Number);
-  const out = [];
-  for (let i = 0; i < nums.length; i += 2) out.push(nums[i + 1]);
-  return out;
-}
-
-test("sin cifras guardadas solo está el total de ahora", async ({ page }) => {
-  await inicio(page, { history: [], accounts: [CUENTA], budget: 500 });
-  await expect(page.locator(".v4-hero svg.spark")).toHaveCount(0);
-  const texto = await nota(page);
-  expect(texto).toMatch(/Solo se muestra el total actual/i);
-  expect(texto).toMatch(/aún no hay cifras anteriores/i);
-  expect(texto).toMatch(/No es un histórico con fechas ni una ganancia/i);
-  expect(texto).not.toMatch(/empieza hoy|diario|mensual|rentabilidad|evolución/i);
-  await expect(page.locator(".v4-hero-amt")).toContainText(heroRe(1000, "€"));
-  const g = await guardado(page);
-  expect(g.history).toEqual([]);
-  expect(g.value).toBe(1000);
+for (const [nombre, history] of [
+  ["vacío", []],
+  ["cero del alta", [0]],
+  ["un número", [250]],
+  ["varios números", [100, 800, 300]],
+  ["semilla de ejemplo", [42000, 42150, 42300, 42450, 42600, 42750, 42800]],
+  ["igual al actual", [1000]],
+  ["valores sin importe válido", [null, "?", {}]],
+]) test("solo el actual, sin interpretar el histórico: " + nombre, async ({ page }) => {
+  await inicio(page, { history, accounts: [CUENTA], budget: 500 });
+  const hero = await actual(page, 1000);
+  await expect(hero).not.toContainText(/ganancia|rentabilidad|evolución|EUR/);
+  const guardado = JSON.parse(await carteraGuardada(page));
+  expect(guardado[0][0].value).toBe(1000);
+  expect(guardado[4]).toEqual(history);
 });
 
-test("el alta no convierte el cero guardado en una serie", async ({ page }) => {
-  await seedLoggedInDashboard(page, {
-    onboarded: false,
-    history: [],
-    budget: 0,
-    accounts: [{ id: "a1", ent: "sabadell", name: "Banco", value: 1500, role: "fijos", spendFrom: false }],
-  });
-  await page.goto("/");
+// Una cantidad de una sola cuenta no probaría que el renderer conserva también Bienes111.
+// El esperado es literal y las entradas son sintéticas; recargar no debe volver a sembrarlas.
+for (const [lang, now] of [["es", "Ahora"], ["en", "Now"], ["ca", "Ara"]])
+test(lang + " conserva patrimonio compuesto y cartera al recargar", async ({ page }) => {
+  const accounts = [CUENTA, { ...CUENTA, id: "a2", ent: "caixa", name: "Segunda cuenta", value: 250 }];
+  const assets = [
+    { id: "house-current", kind: "piso", name: "Bien sintético A", value: 500 },
+    { id: "car-current", kind: "coche", name: "Bien sintético B", value: 750 },
+  ];
+  await inicio(page, { __seedOnce: true, accounts, assets, investments: [], debts: [], obAccounts: [],
+    expenses: [], fixed: [], flows: [], oneoffs: [], aportaciones: [], history: [0, 99, 5000],
+    settings: { autoPrices: false, lang, currency: "EUR" } });
+  // Este selector ya existe en111: un A/B puede comprobar la cifra antes de acusar la gráfica.
+  await expect(page.locator(".v4-hero-amt").first()).toContainText(heroRe(2500, "€"));
+  await page.evaluate(() => window.dispatchEvent(new Event("pagehide")));
+  const before = await carteraGuardada(page);
+  const stored = JSON.parse(before);
+  expect(stored[0].map(a => [a.id, a.ent, a.value])).toEqual([["a1", "sabadell", 1000], ["a2", "caixa", 250]]);
+  expect(stored[1]).toEqual([]);
+  expect(stored[2].map(a => [a.id, a.kind, a.value])).toEqual([["house-current", "piso", 500], ["car-current", "coche", 750]]);
+  expect(stored[3]).toEqual([]);
+  expect(stored[4]).toEqual([0, 99, 5000]);
+  await actual(page, 2500, "€", now);
+  await page.reload();
   await page.waitForFunction(() => !document.getElementById("mc-load"));
-  await page.getByRole("button", { name: "Saltar" }).click();
-  await expect(page.locator(".v4-hero svg.spark")).toHaveCount(1);
-  const texto = await nota(page);
-  expect(texto).toMatch(/No indica una ganancia/i);
-  expect(texto).not.toMatch(/diario|mensual|rentabilidad|evolución/i);
-  await expect(page.locator(".v4-hero-amt")).toContainText(heroRe(1500, "€"));
-  const ys = ysDe([0, 1500]);
-  const dibujo = await puntos(page);
-  expect(dibujo.length).toBe(2);
-  expect(dibujo[1]).toBeCloseTo(ys[1], 4);
-  const g = await guardado(page);
-  expect(g.history).toEqual([0]);
-  expect(g.value).toBe(1500);
+  await dismissNews(page);
+  await actual(page, 2500, "€", now);
+  await page.evaluate(() => window.dispatchEvent(new Event("pagehide")));
+  expect(await carteraGuardada(page)).toBe(before);
 });
 
-test("un solo número guardado no se lee como calendario", async ({ page }) => {
-  await inicio(page, { history: [250], accounts: [CUENTA], budget: 500 });
-  const texto = await nota(page);
-  expect(texto).toMatch(/Cifras sin fecha en EUR/i);
-  expect(texto).toMatch(/escala relativa del mínimo al máximo, no desde cero/i);
-  expect(texto).toMatch(/No indica una ganancia/i);
-  const ys = ysDe([250, 1000]);
-  const dibujo = await puntos(page);
-  expect(dibujo.length).toBe(2);
-  expect(dibujo[0]).toBeCloseTo(ys[0], 4);
-  expect(dibujo[1]).toBeCloseTo(ys[1], 4);
-  await expect(page.locator(".v4-hero-amt")).toContainText(heroRe(1000, "€"));
-  expect((await guardado(page)).history).toEqual([250]);
-});
-
-test("una serie sin fechas acaba en el total y no reescribe el saldo", async ({ page }) => {
-  const history = [100, 800, 300];
-  await inicio(page, { history: history.slice(), accounts: [CUENTA], budget: 500 });
-  const texto = await nota(page);
-  expect(texto).toMatch(/termina en el total actual/i);
-  expect(texto).not.toMatch(/diario|mensual|rentabilidad|evolución/i);
-  const ys = ysDe(history.concat([1000]));
-  const dibujo = await puntos(page);
-  expect(dibujo.length).toBe(4);
-  for (let i = 0; i < ys.length; i++) expect(dibujo[i]).toBeCloseTo(ys[i], 4);
-  expect(dibujo[1]).toBeLessThan(dibujo[0]);
-  expect(dibujo[1]).toBeLessThan(dibujo[2]);
-  await expect(page.locator(".v4-hero-amt")).toContainText(heroRe(1000, "€"));
-  const g = await guardado(page);
-  expect(g.history).toEqual(history);
-  expect(g.value).toBe(1000);
-  const antes = await page.evaluate(() => {
-    const s = JSON.parse(localStorage.getItem("micartera_v3"));
-    return [s.accounts, s.investments, s.assets, s.debts, s.history];
-  });
-  await page.locator('.botnav-tab[data-tour="plan"]').click();
-  await page.locator('.botnav-tab[data-tour="inicio"]').click();
-  await expect(page.locator(NOTA)).toBeVisible();
-  const despues = await page.evaluate(() => {
-    const s = JSON.parse(localStorage.getItem("micartera_v3"));
-    return [s.accounts, s.investments, s.assets, s.debts, s.history];
-  });
-  expect(despues).toEqual(antes);
-});
-
-test("la semilla de ejemplo no sustituye al total de ahora", async ({ page }) => {
-  const history = [42000, 42150, 42300, 42450, 42600, 42750, 42800];
-  await inicio(page, { history: history.slice(), accounts: [CUENTA], budget: 500 });
-  await expect(page.locator(".v4-hero-amt")).toContainText(heroRe(1000, "€"));
-  await expect(page.locator(".v4-hero-amt")).not.toContainText("42.800");
-  const texto = await nota(page);
-  expect(texto).toMatch(/No indica una ganancia/i);
-  const ys = ysDe(history.concat([1000]));
-  const dibujo = await puntos(page);
-  expect(dibujo[dibujo.length - 1]).toBeCloseTo(ys[ys.length - 1], 4);
-  expect((await guardado(page)).history).toEqual(history);
-  expect((await guardado(page)).value).toBe(1000);
-});
-
-test("patrimonio negativo: el final queda abajo y el saldo no cambia", async ({ page }) => {
-  const history = [100, 200];
-  const cuenta = { id: "a1", ent: "sabadell", name: "Banco", value: -2500, role: "fijos", spendFrom: false };
-  await inicio(page, { history: history.slice(), accounts: [cuenta], budget: 500 });
-  await expect(page.locator(".v4-hero-amt")).toContainText(heroRe(-2500, "€"));
-  const ys = ysDe(history.concat([-2500]));
-  const dibujo = await puntos(page);
-  expect(dibujo[dibujo.length - 1]).toBeCloseTo(ys[ys.length - 1], 4);
-  expect(dibujo[dibujo.length - 1]).toBeGreaterThan(dibujo[0]);
-  const g = await guardado(page);
-  expect(g.history).toEqual(history);
-  expect(g.value).toBe(-2500);
-});
-
-test("otra moneda cambia el total pintado y no la escala en euros", async ({ page }) => {
-  const history = [100, 500, 2000];
-  await page.route("https://api.frankfurter.dev/**", function (route) { return route.abort(); });
+test("el alta conserva su cero pero no dibuja una serie", async ({ page }) => {
   await inicio(page, {
-    history: history.slice(),
-    accounts: [CUENTA],
-    budget: 500,
-    settings: { autoPrices: false, theme: "green", currency: "USD" },
-    fxRates: { USD: 0.5 },
+    onboarded: false, history: [], budget: 0,
+    accounts: [{ ...CUENTA, value: 1500 }],
   });
-  await expect(page.locator(".v4-hero-amt")).toContainText(heroRe(2000, "\\$"));
-  const texto = await nota(page);
-  expect(texto).toMatch(/Cifras sin fecha en EUR/i);
-  expect(texto).toMatch(/escala relativa del mínimo al máximo, no desde cero/i);
-  expect(texto).toMatch(/No indica una ganancia/i);
-  expect(texto).not.toMatch(/%|rentabilidad/i);
-  const ys = ysDe(history.concat([1000]));
-  const dibujo = await puntos(page);
-  expect(dibujo[dibujo.length - 1]).toBeCloseTo(ys[ys.length - 1], 4);
-  expect(Math.abs(dibujo[dibujo.length - 1] - 4)).toBeGreaterThan(10);
-  expect((await guardado(page)).value).toBe(1000);
-  expect((await guardado(page)).history).toEqual(history);
+  await page.getByRole("button", { name: "Saltar" }).click();
+  await actual(page, 1500);
+  const guardado = JSON.parse(await carteraGuardada(page));
+  expect(guardado[4]).toEqual([0]);
+  expect(guardado[0][0].value).toBe(1500);
 });
 
-test("cifras iguales conservan el rango relativo y el saldo", async ({ page }) => {
-  await inicio(page, { history: [1000], accounts: [CUENTA], budget: 500 });
-  expect(await puntos(page)).toEqual([66, 66]);
-  expect(await nota(page)).toMatch(/mínimo al máximo, no desde cero/i);
-  expect(await guardado(page)).toEqual({ history: [1000], value: 1000 });
+for (const value of [0, -2500, 9876543.21]) test("importe actual íntegro: " + value, async ({ page }) => {
+  await inicio(page, { history: [100, 200], accounts: [{ ...CUENTA, value }], budget: 500 });
+  const hero = await actual(page, value);
+  await expect(hero.getByRole("status")).toHaveCount(0);
+  expect(JSON.parse(await carteraGuardada(page))[0][0].value).toBe(value);
 });
 
-for (const [lang, vacio, serie, escala] of [
-  ["es", "aún no hay cifras anteriores", "No indica una ganancia", "escala relativa del mínimo al máximo, no desde cero"],
-  ["en", "there are no earlier figures yet", "It does not show a gain", "relative scale from minimum to maximum, not from zero"],
-  ["ca", "encara no hi ha xifres anteriors", "No indica un guany", "escala relativa del mínim al màxim, no des de zero"],
-]) for (const history of [[], [100, 200]]) {
-  test(lang + " explica el límite accesible a 360px: " + (history.length ? "serie" : "vacío"), async ({ page }) => {
+for (const [nombre, settings, fx, fxRates, value, sym] of [
+  ["USD con cambio guardado", { currency: "USD" }, null, { USD: 0.5 }, 2000, "\\$"],
+  ["USD sin cambio", { currency: "USD" }, null, {}, 1000, "€"],
+  ["JPY con cambio guardado", { currency: "JPY" }, null, { JPY: 0.00625 }, 160000, "¥"],
+]) test("moneda existente sin cambiar el saldo: " + nombre, async ({ page }) => {
+  await inicio(page, { history: [100, 500, 2000], accounts: [CUENTA], budget: 500,
+    settings: { autoPrices: false, theme: "green", ...settings }, fx, fxRates });
+  await actual(page, value, sym);
+  const guardado = JSON.parse(await carteraGuardada(page));
+  expect(guardado[0][0].value).toBe(1000);
+  expect(guardado[4]).toEqual([100, 500, 2000]);
+});
+
+test("Plan y vuelta a Inicio conservan la cartera y sus puertas", async ({ page }) => {
+  await inicio(page, { history: [100, 800, 300], accounts: [CUENTA], budget: 500 });
+  await actual(page, 1000);
+  const antes = await carteraGuardada(page);
+  await page.locator('.botnav-tab[data-tour="plan"]').click();
+  await expect(page.locator('.botnav-tab[data-tour="plan"].active')).toBeVisible();
+  await page.locator('.botnav-tab[data-tour="inicio"]').click();
+  await actual(page, 1000);
+  expect(await carteraGuardada(page)).toBe(antes);
+  await expect(page.locator('.botnav-fab')).toBeVisible();
+});
+
+for (const [lang, now] of [["es", "Ahora"], ["en", "Now"], ["ca", "Ara"]]) {
+  test(lang + " a 360px con la letra máxima", async ({ page }) => {
     await page.setViewportSize({ width: 360, height: 800 });
-    await inicio(page, {
-      history: history.slice(), accounts: [CUENTA], budget: 500,
-      settings: { autoPrices: false, theme: "green", lang },
+    await inicio(page, { history: [42000, 42800], accounts: [{ ...CUENTA, value: 9500 }], budget: 500,
+      settings: { autoPrices: false, theme: "green", lang, textSize: "huge" } });
+    await expect(page.locator("html")).toHaveClass(/hugetext/);
+    const hero = await actual(page, 9500, "€", now);
+    const cabe = await hero.evaluate(el => {
+      const nodes = [el, el.querySelector(".v4-net-current-head"), el.querySelector(".v4-hero-amt")];
+      return nodes.every(n => n.scrollWidth <= n.clientWidth + 1 &&
+        n.getBoundingClientRect().left >= 0 && n.getBoundingClientRect().right <= innerWidth + 1);
     });
-    const texto = await nota(page);
-    expect(texto).toContain(history.length ? serie : vacio);
-    if (history.length) {
-      expect(texto).toContain("EUR");
-      expect(texto).toContain(escala);
-    }
-    await expect(page.locator(".v4-hero-amt")).toContainText(heroRe(1000, "€"));
-    expect(await guardado(page)).toEqual({ history, value: 1000 });
+    expect(cabe).toBe(true);
+    expect((await hero.ariaSnapshot())).toContain(now);
   });
 }
+
+test("modo sencillo conserva su etiqueta y el total", async ({ page }) => {
+  await inicio(page, { accounts: [CUENTA], history: [0],
+    settings: { autoPrices: false, theme: "green", simpleMode: true } });
+  const hero = await actual(page, 1000);
+  await expect(hero.locator(".v4-micro")).toHaveText("Tu dinero en total");
+});
+
+for (const [lang, unknown] of [
+  ["es", "El total actual no está disponible."],
+  ["en", "The current total is unavailable."],
+  ["ca", "El total actual no està disponible."],
+]) test(lang + " distingue desconocido de cero en el renderer real", async ({ page }) => {
+  await inicio(page, { accounts: [CUENTA], settings: { autoPrices: false, theme: "green", lang } });
+  const antes = await carteraGuardada(page);
+  // JSON no transporta NaN/Infinity. Se monta la misma pieza real usada por Dashboard y se
+  // comprueba su DOM, sin alterar totals ni la cartera y sin sustituir su implementación.
+  await page.evaluate(() => {
+    const host = document.createElement("div");
+    host.id = "e2e-current-host";
+    document.body.appendChild(host);
+    window.__currentRoot = ReactDOM.createRoot(host);
+  });
+  const host = page.locator("#e2e-current-host");
+  for (const type of ["null", "undefined", "NaN", "Infinity", "string"]) {
+    await page.evaluate(type => {
+      const values = { null: null, undefined: undefined, NaN: NaN, Infinity: Infinity, string: "1000" };
+      window.__currentRoot.render(React.createElement(NetWorthNow, { value: values[type], shown: 0, simple: false }));
+    }, type);
+    await expect(host.locator(".v4-hero-amt")).toHaveText("—");
+    await expect(host.getByRole("status")).toHaveText(unknown);
+    await expect(host.locator("svg")).toHaveCount(0);
+  }
+  await page.evaluate(() => window.__currentRoot.render(React.createElement(NetWorthNow,
+    { value: 0, shown: NaN, simple: false })));
+  await expect(host.locator(".v4-hero-amt")).toContainText(heroRe(0, "€"));
+  await expect(host.getByRole("status")).toHaveCount(0);
+  expect(await carteraGuardada(page)).toBe(antes);
+  await page.evaluate(() => {
+    window.__currentRoot.unmount();
+    delete window.__currentRoot;
+    document.getElementById("e2e-current-host").remove();
+  });
+});

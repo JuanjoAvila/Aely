@@ -21,17 +21,14 @@ async function inicio(page, estado) {
   await dismissNews(page);
 }
 
-test("★ app recién instalada: ni gráfico plano ni pastilla de cero, y el hueco no salta", async ({ page }) => {
+test("★ app recién instalada: solo el actual, sin gráfico plano ni pastilla de cero", async ({ page }) => {
   await inicio(page, { history: [], budget: 0, expenses: [], accounts: [] });
 
-  // P1: sin dos puntos no hay svg de sparkline, pero el hueco está reservado.
+  // El cero inicial no acredita una evolución: el hero solo identifica el total de ahora.
   await expect(page.locator("svg.spark")).toHaveCount(0);
-  const nota = page.getByTestId("inicio-chart-note");
-  await expect(nota).toBeVisible();
-  await expect(nota).toContainText("Solo se muestra el total actual");
-  await expect(nota).toContainText("aún no hay cifras anteriores");
-  await expect(nota).toContainText("No es un histórico con fechas ni una ganancia");
-  await expect(nota).not.toContainText(/empieza hoy/i);
+  await expect(page.getByTestId("inicio-net-now")).toHaveText("Ahora");
+  await expect(page.locator(".v4-hero-amt")).toContainText("0,00 €");
+  await expect(page.getByTestId("inicio-chart-note")).toHaveCount(0);
 
   // P2: la pastilla del mes no sale con delta 0 y sin histórico.
   await expect(page.getByText(/\+0\s*€\s*este mes/i)).toHaveCount(0);
@@ -107,10 +104,11 @@ test("tres presupuestos mensuales cerrados crean racha sin llama", async ({ page
   await expect(streak).not.toContainText("🔥");
 });
 
-test("con presupuesto e histórico, el hero vuelve a ser el de siempre", async ({ page }) => {
+test("con presupuesto e histórico, Inicio sigue mostrando solo el actual", async ({ page }) => {
   await inicio(page, { history: [100, 200], budget: 500 });
 
-  await expect(page.locator("svg.spark")).toHaveCount(1);
+  await expect(page.getByTestId("inicio-net-now")).toHaveText("Ahora");
+  await expect(page.locator(".v4-hero svg.spark")).toHaveCount(0);
   await expect(page.locator(".v4-empty").filter({ hasText: /presupuesto|budget|pressupost/i })).toHaveCount(0);
 });
 

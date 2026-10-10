@@ -948,6 +948,8 @@
   .v4-inicio-date{font-size:14px;color:var(--muted-2);font-weight:600;}
   .v4-inicio-hi{font-family:'Fraunces',Georgia,serif;font-size:24px;font-weight:560;font-variation-settings:"opsz" 24;letter-spacing:-.2px;margin-top:2px;}
   .v4-hero{text-align:center;padding:22px 0 8px;}
+  .v4-net-current-head{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;}
+  .v4-net-now{font-size:12.5px;font-weight:700;color:var(--mint);}
   /* inline-block: el tour (y cualquiera que mida la caja) ve el ancho REAL de la cifra, no
      todo el ancho de la pantalla — con 999 € es chico; con 192.148,45 €, más ancho. */
   /* P13 — la Fraunces se carga como variable con `opsz` 9-144 y no se estaba usando: los numeros
@@ -1491,14 +1493,6 @@
   .metric-big{font-size:30px;font-weight:600;line-height:1.05;margin-top:10px;}
   .metric-sub{font-size:12px;color:var(--muted-2);margin-top:5px;}
 
-  .ring-wrap{display:flex;flex-direction:column;align-items:center;}
-  .ring{position:relative;width:124px;height:124px;margin:6px 0 2px;}
-  .ring svg{transform:rotate(-90deg);}
-  .ring-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
-  .ring-center .big{font-size:23px;font-weight:700;line-height:1;}
-  .ring-center .small{font-size:11px;color:var(--muted-2);margin-top:3px;font-weight:600;}
-  .ring-foot{display:flex;justify-content:space-between;width:100%;margin-top:10px;font-size:12px;}
-  .ring-foot .muted{color:var(--muted-2);}
 
   .culprit-row{display:flex;align-items:center;gap:16px;margin-top:8px;}
   .legend{flex:1;display:flex;flex-direction:column;gap:7px;}
@@ -1586,9 +1580,6 @@
   .liqrow{display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:2px 0;}
   .liqrow.strong{font-weight:800;font-size:15px;border-top:1px solid var(--line-soft);margin-top:5px;padding-top:7px;}
   .alarmbox{background:rgba(226,112,95,.12);border:1px solid rgba(226,112,95,.45);color:var(--coral);border-radius:12px;padding:11px 13px;font-size:13px;font-weight:600;margin-bottom:8px;line-height:1.45;}
-  /* Mini-tutorial por pestaña */
-  .coach-card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px;}
-  .coach-pill{display:block;margin:0 0 8px auto;background:none;border:none;color:var(--muted-2);font-size:12px;cursor:pointer;padding:2px 4px;}
 
   .ex-row{display:flex;align-items:center;gap:13px;padding:13px 4px;border-bottom:1px solid var(--line-soft);}
   .ex-row:last-child{border-bottom:none;}
@@ -5026,6 +5017,11 @@ const LANG = {
     beta_review_intro:"Revisa lo nuevo. Aprobar una tanda no la publica; su entrega se comprueba aparte.",
     notes_unavailable:"No se han podido comprobar las novedades. Conecta y vuelve a intentarlo.",
     beta_notes_unavailable:"Comprobaciones sin confirmar. Conecta y vuelve a abrir para cargar las de esta versión.", beta_android_app:"app Android", beta_approved_pending:"Aprobada. No necesitas aprobarla otra vez; falta confirmar su entrega.", beta_delivery_pending:"Pendiente de publicar: {x}.", beta_delivery_unknown:"Entrega sin confirmar: {x}.",
+    // Archivo109 es: una función retirada no acredita entrega vigente.
+    beta_historical_absent:"Referencia histórica: esta función ya no está en la app. Se conserva la decisión anterior; no acredita una entrega ni necesita probarse otra vez.", beta_historical_no_verdict:"Decisión anterior sin confirmar.", beta_historical_failed:"✗ Fallo guardado", beta_historical_ok:"✓ Resultado guardado: va bien", beta_historical_na:"— Resultado guardado: no se pudo probar", beta_historical_note:"Comentario guardado", beta_historical_note_missing:"El comentario anterior no está disponible aquí.",
+    beta_historical_rejected:"⛔ Rechazada", beta_historical_approved:"✅ Aprobada",
+    beta_historical_no_active:"No hay comprobaciones activas pendientes. Las referencias históricas conservan las decisiones guardadas.", beta_historical_reset_locked:"El reinicio conserva las decisiones históricas y no puede borrarlas.",
+    // Archivo109 es: fin de la referencia.
     beta_revoked:"↺ Veredicto retirado", beta_server:"servidor", beta_revision_changed:"El código cambió ({x}). El resultado anterior sigue guardado; prueba esta revisión.", beta_reset_verdicts:"Para empezar de cero, retira antes cada veredicto con «Cambiar de opinión».",
     log_private:"[dato privado omitido]",
     help_ai_matched:"La IA ha encontrado estas guías de Aely.",
@@ -5112,9 +5108,9 @@ const LANG = {
     v4_money_total:"Tu dinero en total", v4_of_month:"del mes", v4_of_cycle:"del ciclo", v4_cycle_start_h:"Aquí empieza tu ciclo",
     v4_budget_spent:"Has gastado {spent} de tus {budget}.", v4_budget_daily:"Puedes gastar {x}/día hasta fin de mes.", v4_cycle_net:"Gasto neto desde el cobro: {used} de tus {budget}.", v4_cycle_left:"Te quedan {x}.", v4_cycle_over:"Te faltan {x}.",
     v4_streak:"{n} meses sin pasarte", v4_streak_zero:"Mes en curso",
-    // INC-0810 es: límite del significado de la gráfica.
-    v4_hist_empty:"Solo se muestra el total actual; aún no hay cifras anteriores. No es un histórico con fechas ni una ganancia.", v4_chart_line:"La línea termina en el total actual. Cifras sin fecha en EUR; escala relativa del mínimo al máximo, no desde cero. No indica una ganancia.",
-    // INC-0810 es: fin del significado de la gráfica.
+    // INC-0810 es: patrimonio de ahora.
+    v4_net_now:"Ahora", v4_net_unknown:"El total actual no está disponible.",
+    // INC-0810 es: fin del patrimonio de ahora.
     v4_nobud_t:"Ponle un presupuesto", v4_nobud_p:"Es la mitad de la app: sin un tope al mes no se puede saber cuánto te queda. Puedes cambiarlo cuando quieras.", v4_nobud_cta:"Ponle un presupuesto", v4_noup_t:"Aún no hay recibos", v4_noup_p:"Conecta tu banco y los recibos del mes aparecen solos, con su día y su importe.", v4_noup_cta:"Conecta tu banco", v4_nogoal_t:"Ponte tu primera meta", v4_nogoal_p:"Un viaje, un colchón, lo que sea: la app te dice cuánto falta y cuándo llegas.", v4_nogoal_cta:"Crear una meta", v4_see_gastos:"Ver gastos ›", v4_see_plan:"Ver plan ›",
     v4_upcoming:"Próximos cargos", v4_upcoming_empty:"Nada pendiente este mes. Los recibos aparecen aquí.",
     v4_charges_overdue:"Cargos vencidos", v4_charge_unconfirmed:"Sin pago acreditado",
@@ -6962,6 +6958,8 @@ function fixMovInvasion(state){
 }
 // Motor de cash-flow: si el estado no tiene movimientos recurrentes, siembra los del usuario
 // (nómina + transferencias). Idempotente: no pisa ediciones una vez que ya hay flows.
+// history conserva el formato legado al cargar estados. Inicio muestra sólo el total
+// actual; ya no conecta esos números sin fecha como evolución (4.26.112).
 function seedFlows(s){
   if(!s) return s;
   /* EL EFECTIVO QUE YA EXISTE, A «SOLO GASTO DIARIO» — sin flag, en cada carga (13/9, hotfix).
@@ -7237,17 +7235,11 @@ const I = {
   // v4 nav: casa / lista / calendario / tendencia (stroke 2.1, ~22 px)
   home:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.1",width:22,height:22},p),React.createElement("path",{d:"M3 10.5L12 3l9 7.5"}),React.createElement("path",{d:"M5 10v10h14V10"}),React.createElement("path",{d:"M10 20v-6h4v6"})),
   calendar:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.1",width:22,height:22},p),React.createElement("rect",{x:3,y:5,width:18,height:16,rx:2}),React.createElement("path",{d:"M3 10h18M8 3v4M16 3v4"})),
-  dash:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.2"},p),React.createElement("path",{d:"M3 13h8V3H3zM13 21h8V11h-8zM13 3v6h8V3zM3 17v4h8v-4z"})),
   expense:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.1",width:22,height:22},p),React.createElement("path",{d:"M3 7h18M3 12h18M3 17h12"})),
   invest:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.1",width:22,height:22},p),React.createElement("path",{d:"M3 17l6-6 4 4 7-8M21 7v6M21 7h-6"})),
-  wealth:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.2"},p),React.createElement("path",{d:"M4 21h16M5 21V9l7-5 7 5v12M9 21v-6h6v6"})),
-  debt:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.2"},p),React.createElement("circle",{cx:"12",cy:"12",r:"9"}),React.createElement("path",{d:"M9 9.5a3 3 0 0 1 5.5 1.2c0 2-3 2.3-3 4M12 17h.01"})),
-  fixed:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.2"},p),React.createElement("path",{d:"M17 2l4 4-4 4"}),React.createElement("path",{d:"M3 11V9a4 4 0 0 1 4-4h14"}),React.createElement("path",{d:"M7 22l-4-4 4-4"}),React.createElement("path",{d:"M21 13v2a4 4 0 0 1-4 4H3"})),
   sync:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.2"},p),React.createElement("path",{d:"M21 12a9 9 0 1 1-2.6-6.4M21 4v4h-4"})),
   plus:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.4"},p),React.createElement("path",{d:"M12 5v14M5 12h14"})),
   chev:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.4",width:"18",height:"18"},p),React.createElement("path",{d:"M6 9l6 6 6-6"})),
-  up:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.6",width:"13",height:"13"},p),React.createElement("path",{d:"M12 19V5M5 12l7-7 7 7"})),
-  down:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.6",width:"13",height:"13"},p),React.createElement("path",{d:"M12 5v14M5 12l7 7 7-7"})),
   /* A-DOT BADGE — el logo de Aely (brief), rehecho el 10/9 contra la referencia de verdad.
      La primera versión era una A de trazo fino nadando en un marco vacío y él la despachó en dos
      palabras: «esto es un mierdón, la foto original es la chula». Tenía razón, y la diferencia se
@@ -7288,12 +7280,6 @@ const I = {
         // El punto vive DENTRO del hueco, donde iría el travesaño. Casi rozando las patas.
         React.createElement("circle",{cx:31.8,cy:43.7,r:5.1,fill:"currentColor"})));
   },
-  cloud:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.2"},p),React.createElement("path",{d:"M17.5 19a4.5 4.5 0 0 0 .5-8.97A6 6 0 0 0 6.2 9.2 4 4 0 0 0 6.5 19z"})),
-  cloudOff:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.2"},p),React.createElement("path",{d:"M17.5 19a4.5 4.5 0 0 0 1.9-8.58M9 5.2A6 6 0 0 1 18 9.2M6.5 19a4 4 0 0 1-.3-7.8"}),React.createElement("path",{d:"M3 3l18 18"})),
-  gear:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2"},p),React.createElement("circle",{cx:12,cy:12,r:3}),React.createElement("path",{d:"M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 8 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H2a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 3.6 8a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.05a1.65 1.65 0 0 0 1-1.51V2a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.05a1.65 1.65 0 0 0 1.51 1H22a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"})),
-  goal:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.2"},p),React.createElement("circle",{cx:12,cy:12,r:9}),React.createElement("circle",{cx:12,cy:12,r:5}),React.createElement("circle",{cx:12,cy:12,r:1.5,fill:"currentColor"})),
-  share:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.2"},p),React.createElement("circle",{cx:18,cy:5,r:3}),React.createElement("circle",{cx:6,cy:12,r:3}),React.createElement("circle",{cx:18,cy:19,r:3}),React.createElement("path",{d:"M8.6 10.6l6.8-4M8.6 13.4l6.8 4"})),
-  medal:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.2"},p),React.createElement("path",{d:"M8 3l3 6M16 3l-3 6"}),React.createElement("circle",{cx:12,cy:15,r:6})),
 };
 
 /* ============================================================
@@ -7856,34 +7842,6 @@ function useCountUp(target, ready, replay){
   return shown;
 }
 
-function Sparkline({data, current}){
-  const pts = data.concat(current!=null?[current]:[]);
-  // Con 0 o 1 puntos esto pintaba una recta de lado a lado con su puntito final: parece un grafico
-  // de verdad que dice cero, y es lo primero que ve alguien que acaba de instalar la app. Sin
-  // datos no hay grafico (P1). Quien lo llama reserva el hueco para que no salte el layout.
-  if(pts.length<2) return null;
-  const w=320, h=70, pad=4;
-  const min=Math.min.apply(null,pts), max=Math.max.apply(null,pts);
-  const rng=(max-min)||1;
-  const xs=(i)=> pad + (pts.length>1 ? i*(w-2*pad)/(pts.length-1) : 0);
-  const ys=(v)=> pad + (1-(v-min)/rng)*(h-2*pad);
-  let d="M"+xs(0)+" "+ys(pts[0]);
-  for(let i=1;i<pts.length;i++) d+=" L"+xs(i)+" "+ys(pts[i]);
-  const area=d+" L"+xs(pts.length-1)+" "+h+" L"+xs(0)+" "+h+" Z";
-  const lastX=xs(pts.length-1), lastY=ys(pts[pts.length-1]);
-  return React.createElement("svg",{className:"spark",viewBox:"0 0 "+w+" "+h,preserveAspectRatio:"none"},
-    React.createElement("defs",null,
-      React.createElement("linearGradient",{id:"sparkfill",x1:"0",y1:"0",x2:"0",y2:"1"},
-        React.createElement("stop",{offset:"0",stopColor:"#5FD08A",stopOpacity:"0.28"}),
-        React.createElement("stop",{offset:"1",stopColor:"#5FD08A",stopOpacity:"0"})
-      )
-    ),
-    React.createElement("path",{d:area,fill:"url(#sparkfill)"}),
-    React.createElement("path",{d:d,fill:"none",stroke:"#5FD08A",strokeWidth:"2.4",strokeLinecap:"round",strokeLinejoin:"round",vectorEffect:"non-scaling-stroke"}),
-    React.createElement("circle",{cx:lastX,cy:lastY,r:"3.5",fill:"#7DE8A8"})
-  );
-}
-
 // Snapshot diario del total invertido (valor + coste opcional). Idempotente por día.
 function recordInvSnapshot(hist, today, value, cost){
   const h=(hist||[]).slice();
@@ -7957,27 +7915,6 @@ function StackedBar({segments}){
   );
 }
 
-function Ring({ratio, spent, budget}){
-  const r=54, c=2*Math.PI*r, clamped=Math.min(ratio,1);
-  const col = ratio>1 ? "#E2705F" : ratio>=0.7 ? "#E6C36A" : "#5FD08A";
-  return React.createElement("div",{className:"ring-wrap"},
-    React.createElement("div",{className:"ring"},
-      React.createElement("svg",{width:"124",height:"124",viewBox:"0 0 124 124"},
-        React.createElement("circle",{cx:"62",cy:"62",r:r,fill:"none",stroke:"#16291E",strokeWidth:"11"}),
-        React.createElement("circle",{cx:"62",cy:"62",r:r,fill:"none",stroke:col,strokeWidth:"11",strokeLinecap:"round",strokeDasharray:c,strokeDashoffset:c*(1-clamped),style:{transition:"stroke-dashoffset .6s ease"}})
-      ),
-      React.createElement("div",{className:"ring-center"},
-        React.createElement("div",{className:"big num",style:{color:col}},Math.round(ratio*100)+"%"),
-        React.createElement("div",{className:"small"},"del límite")
-      )
-    ),
-    React.createElement("div",{className:"ring-foot"},
-      React.createElement("span",{className:"num",style:{fontWeight:700}},eur0(spent)),
-      React.createElement("span",{className:"muted num"},"de "+eur0(budget))
-    )
-  );
-}
-
 /* Anillo v4.1 compartido (Inicio y portada de Plan). Geometría 104/r=48/stroke10 — la de 96/r=54
    de la spec se sale del viewBox (audit Claude 17/9). Sin animación al montar en Plan. */
 function V4Ring({pct, tone, label, sub, animate}){
@@ -7998,18 +7935,6 @@ function V4Ring({pct, tone, label, sub, animate}){
       )
     )
   );
-}
-
-function MiniPie({slices}){
-  const total=slices.reduce((a,s)=>a+s.value,0)||1;
-  let acc=0; const r=42,cx=48,cy=48;
-  const arcs=slices.map((s,i)=>{
-    const frac=s.value/total, a0=acc*2*Math.PI-Math.PI/2; acc+=frac; const a1=acc*2*Math.PI-Math.PI/2;
-    const large=frac>0.5?1:0;
-    const x0=cx+r*Math.cos(a0),y0=cy+r*Math.sin(a0),x1=cx+r*Math.cos(a1),y1=cy+r*Math.sin(a1);
-    return React.createElement("path",{key:i,d:"M"+cx+" "+cy+" L"+x0+" "+y0+" A"+r+" "+r+" 0 "+large+" 1 "+x1+" "+y1+" Z",fill:s.color,stroke:"#0E1A14",strokeWidth:"1.5"});
-  });
-  return React.createElement("svg",{width:"96",height:"96",viewBox:"0 0 96 96"},arcs,React.createElement("circle",{cx:cx,cy:cy,r:"20",fill:"#0E1A14"}));
 }
 
 /* ---- Cierre de overlays con el gesto/botón "atrás" del móvil (History API) ----
@@ -8744,6 +8669,22 @@ function dashOrderOf(s, allIds){
   const saved=((s.settings&&s.settings.dashOrder)||[]).filter(function(id){ return allIds.indexOf(id)>=0; });
   return saved.concat(allIds.filter(function(id){ return saved.indexOf(id)<0; }));
 }
+function NetWorthNow({value, shown, simple}){
+  // Los números guardados no acreditan fechas ni observaciones reales: unir el cero de alta
+  // o la semilla al patrimonio parecía una evolución. Se muestra solo el total de ahora
+  // (rechazo 9/10/2026), sin interpretar, borrar ni reescribir ese histórico.
+  const valid=typeof value==="number" && Number.isFinite(value);
+  const p=valid?eurParts(typeof shown==="number" && Number.isFinite(shown)?shown:value):null;
+  return React.createElement("div",{className:"v4-hero rise","data-tour":"hero","data-testid":"inicio-net-current",style:{animationDelay:".05s"}},
+    React.createElement("div",{className:"v4-net-current-head"},
+      React.createElement("div",{className:"v4-micro"}, t(simple?"v4_money_total":"d_networth")),
+      React.createElement("span",{className:"v4-net-now","data-testid":"inicio-net-now"}, t("v4_net_now"))
+    ),
+    React.createElement("div",{className:"v4-hero-amt num","data-tour":"hero-amt"},
+      p?p.sign+p.ent:"—", p&&React.createElement("span",{style:{fontSize:28,color:"var(--muted)"}},","+(p.dec||"00")+" "+p.sym)),
+    !valid&&React.createElement("div",{className:"hint",role:"status"}, t("v4_net_unknown"))
+  );
+}
 function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProfile, onGoGastos, onGoPlan, showToast}){
   const tt=totals;
   const simple=!!(state.settings&&state.settings.simpleMode);
@@ -8887,7 +8828,6 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
   // Inicio resume tres metas activas; Plan conserva todas sin cambiar su orden ni sus saldos.
   const goals=(state.goals||[]).filter(function(g){ return !g.done; }).slice(0,3);
   const recent=useMemo((s=state)=>(s.expenses||[]).filter(e=>!expenseIsTombstoned(e,expenseDeletedSet(s))).sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,3),[state.expenses,state.deleted]);
-  const p=eurParts(shownNet);
   const ringPct=Math.max(0,Math.min(1,ratio));
   /* P6 — EL ANILLO SE DIBUJA, NO APARECE YA LLENO.
      El circulo recibia el `strokeDashoffset` FINAL y una `transition` de 1s, y una transicion no
@@ -8957,24 +8897,7 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
       }}, t("mr_share"))
     ),
 
-    !showSkel && React.createElement("div",{className:"v4-hero rise","data-tour":"hero",style:{animationDelay:".05s"}},
-      React.createElement("div",{className:"v4-micro"}, t(simple?"v4_money_total":"d_networth")),
-      React.createElement("div",{className:"v4-hero-amt num","data-tour":"hero-amt"},
-        p.sign+p.ent, React.createElement("span",{style:{fontSize:28,color:"var(--muted)"}},","+(p.dec||"00")+" "+p.sym)),
-      // Sin una foto real del día 1, «este mes» era patrimonio menos un seed antiguo: parecía
-      // una ganancia de miles de euros. Se retira en vez de inventar una base (feedback 18/9).
-      // INC-0810 gráfica: significado de las cifras sin fecha.
-      React.createElement("div",{style:{marginTop:14}},
-        // `state.history` son números sueltos: el alta guarda un 0, la semilla de ejemplo no
-        // tiene día y no hay otro escritor. El último punto es el total de ahora y solo se
-        // añade al pintar. Sin fecha, la altura (mínimo a máximo) no es una ganancia (2026-10-08).
-        (state.history&&state.history.length>=1)
-          ? React.createElement(Sparkline,{data:state.history,current:tt.netWorth})
-          : null,
-        React.createElement("div",{"data-testid":"inicio-chart-note",style:{fontSize:12.5,color:"var(--muted-2)",padding:"6px 0 2px"}},
-          (state.history&&state.history.length>=1)?t("v4_chart_line"):t("v4_hist_empty"))
-      )
-    ),
+    !showSkel && React.createElement(NetWorthNow,{value:tt.netWorth, shown:shownNet, simple:simple}),
 
     // Sin presupuesto, Inicio escondia su tarjeta estrella y te quedabas sin la mitad de la app
     // sin saber por que (P3). En vez de esconderla, la misma tarjeta en vacio y con salida: abre
@@ -13192,7 +13115,12 @@ function Wealth({state, set, totals, v4Embed, parte, showToast, onBankSync, onRe
         // dejaría «Bienes» dos veces seguidas.
         parte!=="bienes" && React.createElement("div",{className:"v4-sec-h"}, t("pt_goods")),
         state.assets.map(function(a){
-          return React.createElement("div",{className:"v4-mov",key:a.id},
+          // Bienes parecía bloqueado al tocar una fila (INC-2709-07): abre el mismo editor
+          // que el enlace inferior; en edición deja de ser botón para no envolver el input.
+          return React.createElement(astEd.editing?"div":"button",{className:"v4-mov",key:a.id,
+            type:astEd.editing?undefined:"button",
+            style:{width:"100%",textAlign:"left",color:"var(--text)"},
+            onClick:astEd.editing?undefined:function(){ astEd.start(); }},
             React.createElement("div",{className:"tile"},a.kind==="piso"?"🏡":"🚙"),
             React.createElement("div",{className:"nm"},
               React.createElement("div",null,a.name),
@@ -18279,26 +18207,6 @@ function SheetImport({state, set, onClose, showToast, goGastos}){
 /* ============================================================
    APP
    ============================================================ */
-/* Mini-tutorial por pestaña: la primera vez que se abre una pestaña sale desplegado
-   (feedback: «mi pareja no encontraba el lápiz de editar gastos»); al cerrarlo queda un
-   botoncito «💡 ¿Cómo va esto?» para releerlo. Estado por pestaña en localStorage. */
-const TabCoach=React.memo(function TabCoach({tabId}){
-  const tips=t("coach_"+tabId);
-  // v2 en roles Gastos/Fijos/Patri: tras aclarar variable vs fijo + filtro banco (2026-07-16)
-  // se vuelve a mostrar una vez aunque ya hubieran cerrado el coach antiguo.
-  const coachKey="_coach_"+tabId+((tabId==="gastos"||tabId==="fijos"||tabId==="patri")?"_v2":"");
-  const [seen,setSeen]=useState(function(){ try{ return localStorage.getItem(coachKey)==="1"; }catch(e){ return true; } });
-  const [open,setOpen]=useState(!seen);
-  if(!Array.isArray(tips)||!tips.length) return null;
-  const dismiss=function(){ try{ localStorage.setItem(coachKey,"1"); }catch(e){} setSeen(true); setOpen(false); };
-  if(!open) return React.createElement("button",{className:"coach-pill",onClick:function(){ setOpen(true); }},"💡 "+t("coach_btn"));
-  return React.createElement("div",{className:"coach-card"},
-    React.createElement("div",{style:{fontWeight:800,fontSize:13.5,color:"var(--text)",marginBottom:4}},"💡 "+tf("coach_title",{tab:t("tab_"+tabId)})),
-    tips.map(function(tip,i){ return React.createElement("div",{key:i,style:{display:"flex",gap:8,fontSize:12.5,color:"var(--muted)",lineHeight:1.5,marginTop:5}},
-      React.createElement("span",{style:{flex:"0 0 auto"}},"·"),React.createElement("span",null,tip)); }),
-    React.createElement("button",{className:"btn btn-ghost btn-block",style:{marginTop:10},onClick:dismiss},t("coach_ok"))
-  );
-});
 const TABS=[
   {id:"dash",label:"Inicio",icon:I.home},
   {id:"gastos",label:"Gastos",icon:I.expense},
@@ -19410,6 +19318,7 @@ function betaVerdictFor(g, rows){
 }
 // El veredicto no acredita entrega: sin recibo se explica la duda, no se oculta la tanda.
 function betaEstadoEntrega(g, prodApk){
+  if(g.referenciaHistorica)return {web:"historical-absent"};
   var id=String(g.id).split("/").pop(), d=window._mcProdEntregas||{}, a=window._mcProdApkRevisiones||{}, out={};
   if(g.codigo){
     ["web","edge"].forEach(function(s){
@@ -19429,13 +19338,14 @@ function betaPruebasEntrega(recibo, notes, version){
   notes.forEach(function(n){
     if(!n||!n.v||!Array.isArray(n.tandas)||mcIsNewer(n.v,mcVerBase(version))) return;
     n.tandas.forEach(function(g){
-      if(!g||!g.id||!rnItems(g,"es").length) return;
+      if(!g||!g.id||g.referenciaHistorica||!rnItems(g,"es").length) return;
       if(!pruebas[g.id]) pruebas[g.id]={v:n.v,contenido:JSON.stringify([String(g.id),rnT(g.t,"es"),rnItems(g,"es"),g.rev||1])};
     });
   });
   return Object.assign({},recibo,{pruebas:pruebas});
 }
 function betaEstadoPrueba(g, prodApk, version, prodVersion){
+  if(g.referenciaHistorica)return betaEstadoEntrega(g,prodApk);
   var estado=betaEstadoEntrega(g,prodApk), id=String(g.id).split("/").pop();
   var recibo=window._mcProdEntregas, prueba=recibo&&recibo.pruebas&&recibo.pruebas[id];
   // Una dependencia compartida puede cambiar sin volver a estrenar la función ya entregada.
@@ -19550,7 +19460,7 @@ function betaTandas(notes){
       var id=String(g.id), t=rnT(g.t,"es"), items=rnItems(g,"es"), h=betaHuella(id,t,items,g.rev,g.codigo);
       // `desde` solo vale mientras la huella fijada al escribirlo siga siendo la del contenido.
       var alias=g.huella===h.slice(0,8)&&(!g.codigo||g.codigoDesde===g.codigo);
-      return { id:id, t:t, items:items, huella:h, rev:g.rev||1, codigo:g.codigo, web:g.web, native:g.native, edge:g.edge,
+      return { id:id, t:t, items:items, huella:h, rev:g.rev||1, codigo:g.codigo, web:g.web, native:g.native, edge:g.edge, referenciaHistorica:g.referenciaHistorica,
         revisionesCompatibles:g.compatibilidadGit||[],
         huellasCompatibles:(g.codigosCompatibles||[]).map(function(c){ return h.slice(0,8)+":"+c; }),
         apk:g.apk||0, historial:g.historial||[], cambio:g.revisionesDesde?Object.keys(g.revisionesDesde).filter(function(s){ return g[s]!==g.revisionesDesde[s]; }):g.codigoDesde&&g.codigoDesde!==g.codigo?["—"]:[], desde:alias&&g.desde||[] };
@@ -19575,10 +19485,35 @@ function betaScopedMarks(pack,values,indexed,kind,byIndex){
   });
   return out;
 }
+// El detalle se rescata por la huella exacta. Ni los alias ni un texto repetido bastan
+// para adjudicar un fallo histórico a otra propuesta.
+function betaHistoricalDetails(g){
+  var ref=g.referenciaHistorica, scopedId=String(g.id), id=scopedId.split("/").pop(), title=g.t;
+  if(!ref||id!=="inc-0810-inicio-grafica-significado"||typeof title!=="string"||!Array.isArray(g.items)
+    ||ref.sha!=="f4ffb9340adfd0a13b631271e8158d2c630613c0"||ref.version!=="4.26.109"||ref.estado!=="ausente"
+    ||ref.codigo!=="b90e6223cd45ef64e8689d4c772560c31c7db47939694211a892316030a283f0"
+    ||ref.web!=="d05bb0d4d86dce14c5ba4794a0be2a265e52f3a167cf8eadce87aa198e5cd38d"
+    ||g.codigo!==ref.codigo||g.web!==ref.web)return [];
+  // La checklist añade versión al id/título visibles; la identidad sigue siendo la original.
+  if(scopedId!==id){
+    var prefix="v"+ref.version+" · ";
+    if(scopedId!==ref.version+"/"+id||title.indexOf(prefix)!==0)return [];
+    title=title.slice(prefix.length);
+  }
+  if(betaHuella(id,title,g.items,g.rev,g.codigo)!==g.huella)return [];
+  var own=Object.assign({},g,{huellasCompatibles:[],desde:[]}),one={tandas:[own]};
+  var marks=betaScopedMarks(one,store.get("_betaReviewOk")||{},false,"marks",true);
+  var notes=betaScopedMarks(one,store.get("_betaReviewNotas")||{},false,"notes",true);
+  return g.items.map(function(_,j){return {
+    mark:/^(ok|ko|na)$/.test(marks[j]||"")?marks[j]:null,
+    note:typeof notes[j]==="string"?notes[j]:""
+  };});
+}
 function betaRememberMarks(pack,marks,notes){
   // Dos tandas pueden decir «volver a abrir»: el texto no identifica quién lo probó.
   var saved=store.get("_betaReviewMarks")||{},i=0;
   (pack.tandas||[]).forEach(function(g){
+    if(g.referenciaHistorica){i+=g.items.length;return;}
     var row={marks:{},notes:{}};
     g.items.forEach(function(it,j){ if(marks[i]!==undefined)row.marks[j]=marks[i]; if(notes&&notes[i])row.notes[j]=notes[i]; i++; });
     saved[g.huella]=row;
@@ -19605,12 +19540,17 @@ function betaStoredMarks(pack,byIndex){
 function betaMarksCount(pack){
   var prev=betaStoredMarks(pack,true);
   var propias=betaScopedMarks(pack,store.get("_betaReview_"+CONFIG.APP_VERSION)||{},true);
-  var n=0;
+  // El archivo conserva índices y decisiones; no representa trabajo que aún se pueda probar.
+  var archived={},cursor=0;
+  (pack.tandas||[]).forEach(function(g){g.items.forEach(function(){if(g.referenciaHistorica)archived[cursor]=true;cursor++;});});
+  var n=0,total=0;
   pack.items.forEach(function(it,i){
+    if(archived[i])return;
+    total++;
     var v=propias[i]!==undefined ? propias[i] : prev[i];
     if(v==="ok"||v==="na"||v==="ko") n++;
   });
-  return { n:n, tot:pack.items.length };
+  return { n:n, tot:total };
 }
 function betaSavedVerdicts(pack){
   const sent={};
@@ -19801,17 +19741,24 @@ function BetaReviewPanel({onClose, showToast}){
   // Se separan los ✓/«no probable» de los ✗: el aviso de arriba no puede decir «los diste por
   // buenos» de una cruz, y las cruces heredadas además se señalan una a una (viene de antes →
   // compruébalo), que es la diferencia entre ahorrarle trabajo y mentirle.
-  const heredadas=useRef((function(){ var h=heredarOk(), propias=store.get(storeKey)||{}, buenos=0, ko={};
-    Object.keys(h).forEach(function(i){ if(propias[i]!==undefined) return; if(h[i]==="ko") ko[i]=true; else buenos++; });
+  const heredadas=useRef((function(){ var h=heredarOk(), propias=store.get(storeKey)||{}, buenos=0, ko={}, archived={}, cursor=0;
+    pack.tandas.forEach(function(g){g.items.forEach(function(){if(g.referenciaHistorica)archived[cursor]=true;cursor++;});});
+    Object.keys(h).forEach(function(i){ if(archived[i]||propias[i]!==undefined) return; if(h[i]==="ko") ko[i]=true; else buenos++; });
     return {buenos:buenos, ko:ko, nKo:Object.keys(ko).length}; })());
   const heredados=useRef(heredadas.current.buenos);
   const save=function(m,n){ store.set(storeKey,m); if(n) store.set(storeKey+"_n",n); };
   const recordarOk=function(m,n){
     var prev=store.get(okKey)||{};
-    var ids=store.get("_betaMarksHuella")||{}, i=0;
-    pack.tandas.forEach(function(g){ g.items.forEach(function(it){ if(m[i]) ids[it]=g.huella; else delete ids[it]; i++; }); });
+    var ids=store.get("_betaMarksHuella")||{}, i=0, historicalItems={};
+    pack.tandas.forEach(function(g){if(g.referenciaHistorica)g.items.forEach(function(it){historicalItems[it]=true;});});
+    // Un texto legado puede repetirse: el punto nuevo usa su ledger propio sin sobrescribir el archivo.
+    pack.tandas.forEach(function(g){ g.items.forEach(function(it){
+      if(!g.referenciaHistorica&&!historicalItems[it]){if(m[i]) ids[it]=g.huella; else delete ids[it];}
+      i++;
+    }); });
     store.set("_betaMarksHuella",ids);
     pack.items.forEach(function(it,i){
+      if(historicalItems[it])return;
       if(m[i]==="ok"||m[i]==="na"||m[i]==="ko") prev[it]=m[i]; else delete prev[it];
     });
     store.set(okKey,prev);
@@ -19822,6 +19769,7 @@ function BetaReviewPanel({onClose, showToast}){
   const recordarNota=function(i,txt){
     var prev=store.get(notaKey)||{};
     var it=pack.items[i]; if(it==null) return;
+    if(pack.tandas.some(function(g){return g.referenciaHistorica&&g.items.indexOf(it)>=0;}))return;
     if(txt&&txt.trim()) prev[it]=txt; else delete prev[it];
     store.set(notaKey,prev);
   };
@@ -19873,14 +19821,17 @@ function BetaReviewPanel({onClose, showToast}){
     r.pend=idx.length-r.ok-r.ko-r.na;
     return r;
   };
-  const total=pack.items.length;
-  const ok=pack.items.filter(function(_,i){ return marks[i]==="ok"; }).length;
-  const ko=pack.items.filter(function(_,i){ return marks[i]==="ko"; }).length;
+  // No se reindexa el ledger: sólo los puntos activos intervienen en el progreso de esta revisión.
+  const activos=[];
+  grupos.forEach(function(g){if(!g.referenciaHistorica)activos.push.apply(activos,g.idx);});
+  const total=activos.length;
+  const ok=activos.filter(function(i){ return marks[i]==="ok"; }).length;
+  const ko=activos.filter(function(i){ return marks[i]==="ko"; }).length;
   // «No se puede probar» (petición suya 2026-07-26): hay cosas que no dependen de él —que llegue
   // la nómina, que el banco mande una notificación, un icono que solo se ve con la APK instalada—
   // y no tenían casilla. Al no poder marcarlas, contaban como pendientes y BLOQUEABAN el aprobar,
   // así que o mentía marcando «va bien» o la beta se quedaba sin veredicto. Esto NO bloquea.
-  const na=pack.items.filter(function(_,i){ return marks[i]==="na"; }).length;
+  const na=activos.filter(function(i){ return marks[i]==="na"; }).length;
   const pend=total-ok-ko-na;
 
   /* EL VEREDICTO DICE TAMBIÉN QUÉ APK LLEVABA PUESTA (2026-07-26).
@@ -19902,7 +19853,7 @@ function BetaReviewPanel({onClose, showToast}){
      por línea. Cuando una versión no declara tandas, el id es "todo" y el parte queda igual que
      siempre — el histórico de veredictos se sigue leyendo sin cambiar nada. */
   const enviar=function(g, verdict){
-    if(busy) return;
+    if(busy||g.referenciaHistorica) return;
     setBusy(true);
     const c=cuenta(g.idx);
     const fallos=g.idx.map(function(i,j){ return marks[i]==="ko" ? {item:g.items[j].slice(0,140), nota:(notes[i]||"").slice(0,300)} : null; }).filter(Boolean);
@@ -19929,9 +19880,11 @@ function BetaReviewPanel({onClose, showToast}){
           saved["h:"+g.huella]={verdict:verdict,at:Date.now()}; saved._h=1;
           store.set(storeKey+"_v",saved);   // no retirar el OK local si el servidor rechaza la retirada
           /* 15/9: si ya no quedan tandas sin veredicto en esta compilación, no reabrir Ajustes. */
-          var ids=grupos.length ? grupos.map(function(x){ return x.id; }) : ["todo"];
+          var activeGroups=grupos.filter(function(x){return !x.referenciaHistorica;});
+          var ids=activeGroups.length ? activeGroups.map(function(x){ return x.id; }) : ["todo"];
           var todas=ids.every(function(id){ return n[id]==="approved"||n[id]==="rejected"; });
-          if(todas) betaOlvidarVuelta();
+          // El scroll pendiente de este gesto no debe reabrir una revisión ya terminada.
+          if(todas){ gestoReal.current=false; betaOlvidarVuelta(); }
           return n;
         });
         // Encoger SIEMPRE al enviar, apruebe o rechace. Dejar la rechazada abierta era lo que le
@@ -19979,7 +19932,7 @@ function BetaReviewPanel({onClose, showToast}){
         ". No hace falta que lo vuelvas a teclear: si esta compilación lo arregla, tócalo y ponlo en ✓.")),
 
     // Progreso
-    !yaEnProd && total>0 && React.createElement("div",{style:{display:"flex",gap:10,alignItems:"center",marginBottom:14}},
+    !yaEnProd && total>0 && React.createElement("div",{"data-testid":"beta-active-progress",style:{display:"flex",gap:10,alignItems:"center",marginBottom:14}},
       React.createElement("div",{style:{flex:1,height:8,borderRadius:8,background:"var(--surface-2)",overflow:"hidden"}},
         React.createElement("div",{style:{width:(total?Math.round((ok+ko+na)/total*100):0)+"%",height:"100%",
           background:ko?"var(--coral)":"var(--mint)",transition:"width .25s ease"}})),
@@ -19988,8 +19941,9 @@ function BetaReviewPanel({onClose, showToast}){
     /* Dos casos distintos con la lista vacía, y decir el que no es despista (review de Cursor,
        8/9): si la versión declara `tandas` es que las aprobó TODAS —el caso normal a partir de
        ahora—; si no declara ninguna es una versión suelta sin checklist. */
-    !yaEnProd && pack.items.length===0 && React.createElement("div",{style:{fontSize:13,color:"var(--muted)"}},
+    !yaEnProd && total===0 && React.createElement("div",{"data-testid":"beta-active-empty",style:{fontSize:13,color:"var(--muted)"}},
       proofMissing||!(RELEASE_NOTES&&RELEASE_NOTES.length) ? t("beta_notes_unavailable") :
+      grupos.some(function(g){return !!g.referenciaHistorica;})?t("beta_historical_no_active"):
       pack.tandas.length===0 && (RELEASE_NOTES||[]).some(function(n){ return n && n.tandas; })
         ? "✅ No queda nada por probar: has aprobado todas las tandas de esta ronda."
         : "Esta versión no trae notas, así que no hay checklist. Prueba lo que hayas tocado."),
@@ -20003,7 +19957,8 @@ function BetaReviewPanel({onClose, showToast}){
        cualquier sitio bloqueaba lo demás — que es justo lo que le pasa en el trabajo cuando una
        rama se queda atrás y arrastra a las otras. */
     grupos.map(function(g){
-      const c=cuenta(g.idx);
+      const historicalDetails=g.referenciaHistorica?betaHistoricalDetails(g):null;
+      const c=cuenta(g.referenciaHistorica?[]:g.idx);
       const v=sent[g.id];
       const listo=c.pend===0 && c.ko===0;
       const entrega=g.entrega||betaEstadoEntrega(g,window._mcProdApk);
@@ -20015,21 +19970,30 @@ function BetaReviewPanel({onClose, showToast}){
          y el motivo es el mismo en los dos casos: una tanda ya juzgada solo estorba entre las que
          le faltan por probar. Se sigue pudiendo abrir para repasar lo que escribió. */
       const open=expanded[g.id]!==undefined ? expanded[g.id] : !v;
-      return React.createElement("div",{key:g.id,className:"beta-tanda"},
+      return React.createElement("div",{key:g.id,className:"beta-tanda","data-beta-historical":g.referenciaHistorica?"true":undefined},
         React.createElement("button",{type:"button",className:"beta-tanda-h beta-tanda-toggle",
           "aria-expanded":open,"aria-controls":"beta-body-"+g.id,
           onClick:function(){ setExpanded(function(p){ return Object.assign({},p,{[g.id]:!open}); }); }},
           React.createElement("span",{className:"beta-tanda-t"}, g.t||t("beta_group")),
           React.createElement("span",{className:"beta-tanda-n"+(v==="approved"?" ok":v==="rejected"?" ko":"")},
-            v==="approved" ? "✅ aprobada" : v==="rejected" ? "⛔ rechazada" : (c.ok+c.ko+c.na)+"/"+g.idx.length),
+            v==="approved" ? "✅ aprobada" : v==="rejected" ? "⛔ rechazada" : g.referenciaHistorica?t("beta_historical_no_verdict"):(c.ok+c.ko+c.na)+"/"+g.idx.length),
           React.createElement("span",{className:"beta-tanda-fold"},(open?"▾ ":"▸ ")+t(open?"beta_collapse":"beta_expand"))),
-        v==="approved" && React.createElement("div",{className:"hint beta-tanda-estado"},t("beta_approved_pending")),
+        g.referenciaHistorica && React.createElement("div",{className:"hint beta-tanda-entrega"},t("beta_historical_absent")),
+        !g.referenciaHistorica && v==="approved" && React.createElement("div",{className:"hint beta-tanda-estado"},t("beta_approved_pending")),
         !v && (g.cambio||[]).length>0 && React.createElement("div",{className:"hint beta-tanda-estado"},tf("beta_revision_changed",{x:g.cambio.map(function(s){ return s==="native"?"Android":s==="edge"?t("beta_server"):s; }).join(", ")})),
         (pendientes||inciertas) && React.createElement("div",{className:"hint beta-tanda-entrega"},
           [pendientes?tf("beta_delivery_pending",{x:pendientes}):"",inciertas?tf("beta_delivery_unknown",{x:inciertas}):""].filter(Boolean).join(" ")),
         React.createElement("div",{id:"beta-body-"+g.id,hidden:!open},
         g.idx.map(function(i,j){
           const it=g.items[j], m=marks[i];
+          if(g.referenciaHistorica){
+            const detail=historicalDetails[j]||{}, label=detail.mark==="ko"?"beta_historical_failed":detail.mark==="ok"?"beta_historical_ok":detail.mark==="na"?"beta_historical_na":null;
+            return React.createElement("div",{key:i,className:"beta-item","data-beta-historical-item":"true"},
+              React.createElement("div",null,it),
+              label&&React.createElement("div",{className:"hint beta-historical-mark"},t(label)),
+              detail.note?React.createElement("div",{className:"hint beta-historical-note",style:{whiteSpace:"pre-wrap"},"aria-label":t("beta_historical_note")},detail.note)
+                :React.createElement("div",{className:"hint beta-historical-note-missing"},t("beta_historical_note_missing")));
+          }
           const borde=m==="ko"?"var(--coral)":m==="ok"?"var(--mint)":m==="na"?"var(--muted-2)":"var(--line-soft)";
           /* Resuelto = encogido. Abierto queda lo que le falta por probar y lo que falla (que
              lleva debajo el comentario), más lo que él abra a mano para repasar. */
@@ -20077,7 +20041,8 @@ function BetaReviewPanel({onClose, showToast}){
         // El `ref` es el destino del último ✓: probado el último punto, lo que se le trae a la
         // vista es el botón de aprobar, no un hueco.
         React.createElement("div",{ref:function(el){ itemRefs.current["fin-"+g.id]=el; }},
-        yaEnProd ? null
+        g.referenciaHistorica ? React.createElement("div",{className:"hint beta-veredicto"},v==="rejected"?t("beta_historical_rejected"):v==="approved"?t("beta_historical_approved"):t("beta_historical_no_verdict"))
+        : yaEnProd ? null
         : v ? React.createElement("div",{className:"beta-veredicto",style:{borderColor:v==="approved"?"var(--mint)":"var(--coral)"}},
             React.createElement("div",{style:{fontWeight:800,fontSize:14,marginBottom:5}},
               v==="approved" ? "✅ Aprobada" : "⛔ Rechazada"),
@@ -20110,7 +20075,7 @@ function BetaReviewPanel({onClose, showToast}){
       }},
       "↺ Empezar la revisión de cero"),
     grupos.some(function(g){ return sent[g.id]==="approved"||sent[g.id]==="rejected"; }) &&
-      React.createElement("div",{className:"hint",style:{marginTop:8}},t("beta_reset_verdicts"))
+      React.createElement("div",{className:"hint",style:{marginTop:8}},t(grupos.some(function(g){return !g.referenciaHistorica&&(sent[g.id]==="approved"||sent[g.id]==="rejected");})?"beta_reset_verdicts":"beta_historical_reset_locked"))
   ));
 }
 
@@ -20384,7 +20349,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="db0038402cacbb0b65cb872fbd76b288c80fb092bbde58469b50e4033b4bcad7";
+var _rnSha="f23168cb2e00d8c9e32e305c66b78f275d8904b5b4ea6dcdc2e3bbe181f1e5a9";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){

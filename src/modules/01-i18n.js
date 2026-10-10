@@ -10,6 +10,11 @@ const LANG = {
     beta_review_intro:"Revisa lo nuevo. Aprobar una tanda no la publica; su entrega se comprueba aparte.",
     notes_unavailable:"No se han podido comprobar las novedades. Conecta y vuelve a intentarlo.",
     beta_notes_unavailable:"Comprobaciones sin confirmar. Conecta y vuelve a abrir para cargar las de esta versión.", beta_android_app:"app Android", beta_approved_pending:"Aprobada. No necesitas aprobarla otra vez; falta confirmar su entrega.", beta_delivery_pending:"Pendiente de publicar: {x}.", beta_delivery_unknown:"Entrega sin confirmar: {x}.",
+    // Archivo109 es: una función retirada no acredita entrega vigente.
+    beta_historical_absent:"Referencia histórica: esta función ya no está en la app. Se conserva la decisión anterior; no acredita una entrega ni necesita probarse otra vez.", beta_historical_no_verdict:"Decisión anterior sin confirmar.", beta_historical_failed:"✗ Fallo guardado", beta_historical_ok:"✓ Resultado guardado: va bien", beta_historical_na:"— Resultado guardado: no se pudo probar", beta_historical_note:"Comentario guardado", beta_historical_note_missing:"El comentario anterior no está disponible aquí.",
+    beta_historical_rejected:"⛔ Rechazada", beta_historical_approved:"✅ Aprobada",
+    beta_historical_no_active:"No hay comprobaciones activas pendientes. Las referencias históricas conservan las decisiones guardadas.", beta_historical_reset_locked:"El reinicio conserva las decisiones históricas y no puede borrarlas.",
+    // Archivo109 es: fin de la referencia.
     beta_revoked:"↺ Veredicto retirado", beta_server:"servidor", beta_revision_changed:"El código cambió ({x}). El resultado anterior sigue guardado; prueba esta revisión.", beta_reset_verdicts:"Para empezar de cero, retira antes cada veredicto con «Cambiar de opinión».",
     log_private:"[dato privado omitido]",
     help_ai_matched:"La IA ha encontrado estas guías de Aely.",
@@ -96,9 +101,9 @@ const LANG = {
     v4_money_total:"Tu dinero en total", v4_of_month:"del mes", v4_of_cycle:"del ciclo", v4_cycle_start_h:"Aquí empieza tu ciclo",
     v4_budget_spent:"Has gastado {spent} de tus {budget}.", v4_budget_daily:"Puedes gastar {x}/día hasta fin de mes.", v4_cycle_net:"Gasto neto desde el cobro: {used} de tus {budget}.", v4_cycle_left:"Te quedan {x}.", v4_cycle_over:"Te faltan {x}.",
     v4_streak:"{n} meses sin pasarte", v4_streak_zero:"Mes en curso",
-    // INC-0810 es: límite del significado de la gráfica.
-    v4_hist_empty:"Solo se muestra el total actual; aún no hay cifras anteriores. No es un histórico con fechas ni una ganancia.", v4_chart_line:"La línea termina en el total actual. Cifras sin fecha en EUR; escala relativa del mínimo al máximo, no desde cero. No indica una ganancia.",
-    // INC-0810 es: fin del significado de la gráfica.
+    // INC-0810 es: patrimonio de ahora.
+    v4_net_now:"Ahora", v4_net_unknown:"El total actual no está disponible.",
+    // INC-0810 es: fin del patrimonio de ahora.
     v4_nobud_t:"Ponle un presupuesto", v4_nobud_p:"Es la mitad de la app: sin un tope al mes no se puede saber cuánto te queda. Puedes cambiarlo cuando quieras.", v4_nobud_cta:"Ponle un presupuesto", v4_noup_t:"Aún no hay recibos", v4_noup_p:"Conecta tu banco y los recibos del mes aparecen solos, con su día y su importe.", v4_noup_cta:"Conecta tu banco", v4_nogoal_t:"Ponte tu primera meta", v4_nogoal_p:"Un viaje, un colchón, lo que sea: la app te dice cuánto falta y cuándo llegas.", v4_nogoal_cta:"Crear una meta", v4_see_gastos:"Ver gastos ›", v4_see_plan:"Ver plan ›",
     v4_upcoming:"Próximos cargos", v4_upcoming_empty:"Nada pendiente este mes. Los recibos aparecen aquí.",
     v4_charges_overdue:"Cargos vencidos", v4_charge_unconfirmed:"Sin pago acreditado",
@@ -318,6 +323,11 @@ const LANG = {
     beta_review_intro:"Review new changes. Approving a batch does not publish it; delivery is checked separately.",
     notes_unavailable:"The updates could not be verified. Connect and try again.",
     beta_notes_unavailable:"Checks are unconfirmed. Connect and reopen to load the checks for this version.", beta_android_app:"Android app", beta_approved_pending:"Approved. You do not need to approve it again; delivery still needs confirmation.", beta_delivery_pending:"Awaiting publication: {x}.", beta_delivery_unknown:"Delivery unconfirmed: {x}.",
+    // Archivo109 en: una función retirada no acredita entrega vigente.
+    beta_historical_absent:"Historical reference: this feature is no longer in the app. The previous decision is retained; it does not confirm a delivery or require another test.", beta_historical_no_verdict:"Previous decision unconfirmed.", beta_historical_failed:"✗ Saved failure", beta_historical_ok:"✓ Saved result: works", beta_historical_na:"— Saved result: could not test", beta_historical_note:"Saved comment", beta_historical_note_missing:"The previous comment is not available here.",
+    beta_historical_rejected:"⛔ Rejected", beta_historical_approved:"✅ Approved",
+    beta_historical_no_active:"There are no active checks pending. Historical references retain saved decisions.", beta_historical_reset_locked:"Starting over preserves historical decisions and cannot erase them.",
+    // Archivo109 en: fin de la referencia.
     beta_revoked:"↺ Verdict withdrawn", beta_server:"server", beta_revision_changed:"The code changed ({x}). The previous result stays in history; this revision needs new checks.", beta_reset_verdicts:"To start over, first withdraw each verdict with “Change my mind”.",
     log_private:"[private data omitted]",
     help_ai_matched:"AI found these Aely guides.",
@@ -405,9 +415,9 @@ const LANG = {
     v4_money_total:"All your money", v4_of_month:"of month", v4_of_cycle:"of cycle", v4_cycle_start_h:"Your cycle starts here",
     v4_budget_spent:"You've spent {spent} of your {budget}.", v4_budget_daily:"You can spend {x}/day until month end.", v4_cycle_net:"Net spending since payday: {used} of your {budget}.", v4_cycle_left:"{x} left.", v4_cycle_over:"{x} over budget.",
     v4_streak:"{n} months on track", v4_streak_zero:"Month in progress",
-    // INC-0810 en: límite del significado de la gráfica.
-    v4_hist_empty:"Only the current total is shown; there are no earlier figures yet. This is not a dated history or a gain.", v4_chart_line:"The line ends at the current total. Undated figures in EUR; relative scale from minimum to maximum, not from zero. It does not show a gain.",
-    // INC-0810 en: fin del significado de la gráfica.
+    // INC-0810 en: patrimonio de ahora.
+    v4_net_now:"Now", v4_net_unknown:"The current total is unavailable.",
+    // INC-0810 en: fin del patrimonio de ahora.
     v4_nobud_t:"Set a monthly budget", v4_nobud_p:"It is half the app: without a monthly cap there is no way to know what you have left. You can change it whenever you want.", v4_nobud_cta:"Set a budget", v4_noup_t:"No bills yet", v4_noup_p:"Connect your bank and this month's bills show up on their own, with day and amount.", v4_noup_cta:"Connect your bank", v4_nogoal_t:"Set your first goal", v4_nogoal_p:"A trip, a safety net, anything: the app tells you how much is missing and when you get there.", v4_nogoal_cta:"Create a goal", v4_see_gastos:"See spending ›", v4_see_plan:"See plan ›",
     v4_upcoming:"Upcoming", v4_upcoming_empty:"Nothing pending this month. Bills show up here.",
     v4_charges_overdue:"Overdue charges", v4_charge_unconfirmed:"Payment unconfirmed",
@@ -614,6 +624,11 @@ const LANG = {
     beta_review_intro:"Revisa els canvis nous. Aprovar una tanda no la publica; l’entrega es comprova a part.",
     notes_unavailable:"No s’han pogut comprovar les novetats. Connecta i torna-ho a provar.",
     beta_notes_unavailable:"Comprovacions sense confirmar. Connecta i torna a obrir per carregar les d’aquesta versió.", beta_android_app:"app Android", beta_approved_pending:"Aprovada. No cal que l’aprovis de nou; falta confirmar-ne l’entrega.", beta_delivery_pending:"Pendent de publicar: {x}.", beta_delivery_unknown:"Entrega sense confirmar: {x}.",
+    // Archivo109 ca: una función retirada no acredita entrega vigente.
+    beta_historical_absent:"Referència històrica: aquesta funció ja no és a l’app. Es conserva la decisió anterior; no acredita cap entrega ni cal tornar-la a provar.", beta_historical_no_verdict:"Decisió anterior sense confirmar.", beta_historical_failed:"✗ Fallada desada", beta_historical_ok:"✓ Resultat desat: va bé", beta_historical_na:"— Resultat desat: no es va poder provar", beta_historical_note:"Comentari desat", beta_historical_note_missing:"El comentari anterior no està disponible aquí.",
+    beta_historical_rejected:"⛔ Rebutjada", beta_historical_approved:"✅ Aprovada",
+    beta_historical_no_active:"No hi ha comprovacions actives pendents. Les referències històriques conserven les decisions desades.", beta_historical_reset_locked:"Reiniciar conserva les decisions històriques i no les pot esborrar.",
+    // Archivo109 ca: fin de la referencia.
     beta_revoked:"↺ Veredicte retirat", beta_server:"servidor", beta_revision_changed:"El codi ha canviat ({x}). El resultat anterior queda a l’historial; aquesta revisió necessita proves noves.", beta_reset_verdicts:"Per començar de zero, retira abans cada veredicte amb «Canviar d’opinió».",
     log_private:"[dada privada omesa]",
     help_ai_matched:"La IA ha trobat aquestes guies d’Aely.",
@@ -701,9 +716,9 @@ const LANG = {
     v4_money_total:"Els teus diners en total", v4_of_month:"del mes", v4_of_cycle:"del cicle", v4_cycle_start_h:"Aquí comença el teu cicle",
     v4_budget_spent:"Has gastat {spent} dels teus {budget}.", v4_budget_daily:"Pots gastar {x}/dia fins a fi de mes.", v4_cycle_net:"Despesa neta des del cobrament: {used} dels teus {budget}.", v4_cycle_left:"Et queden {x}.", v4_cycle_over:"Et falten {x}.",
     v4_streak:"{n} mesos sense passar-te", v4_streak_zero:"Mes en curs",
-    // INC-0810 ca: límite del significado de la gráfica.
-    v4_hist_empty:"Només es mostra el total actual; encara no hi ha xifres anteriors. No és un històric amb dates ni un guany.", v4_chart_line:"La línia acaba en el total actual. Xifres sense data en EUR; escala relativa del mínim al màxim, no des de zero. No indica un guany.",
-    // INC-0810 ca: fin del significado de la gráfica.
+    // INC-0810 ca: patrimonio de ahora.
+    v4_net_now:"Ara", v4_net_unknown:"El total actual no està disponible.",
+    // INC-0810 ca: fin del patrimonio de ahora.
     v4_nobud_t:"Posa-li un pressupost", v4_nobud_p:"És la meitat de l'app: sense un límit al mes no es pot saber quant et queda. El pots canviar quan vulguis.", v4_nobud_cta:"Posa-li un pressupost", v4_noup_t:"Encara no hi ha rebuts", v4_noup_p:"Connecta el teu banc i els rebuts del mes apareixen sols, amb el seu dia i el seu import.", v4_noup_cta:"Connecta el teu banc", v4_nogoal_t:"Posa't el teu primer objectiu", v4_nogoal_p:"Un viatge, un coixí, el que sigui: l'app et diu quant falta i quan hi arribes.", v4_nogoal_cta:"Crear un objectiu", v4_see_gastos:"Veure despeses ›", v4_see_plan:"Veure pla ›",
     v4_upcoming:"Pròxims càrrecs", v4_upcoming_empty:"Res pendent aquest mes. Els rebuts surten aquí.",
     v4_charges_overdue:"Càrrecs vençuts", v4_charge_unconfirmed:"Sense pagament acreditat",
@@ -3805,6 +3820,8 @@ function fixMovInvasion(state){
 }
 // Motor de cash-flow: si el estado no tiene movimientos recurrentes, siembra los del usuario
 // (nómina + transferencias). Idempotente: no pisa ediciones una vez que ya hay flows.
+// history conserva el formato legado al cargar estados. Inicio muestra sólo el total
+// actual; ya no conecta esos números sin fecha como evolución (4.26.112).
 function seedFlows(s){
   if(!s) return s;
   /* EL EFECTIVO QUE YA EXISTE, A «SOLO GASTO DIARIO» — sin flag, en cada carga (13/9, hotfix).

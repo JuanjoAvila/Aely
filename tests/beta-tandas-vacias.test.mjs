@@ -44,12 +44,55 @@ function entregasHasta(version, apk) {
   cli.window._mcProdEntregas={web:{},edge:{}};
   cli.window._mcProdApkRevisiones={};
   for(const n of cli.RELEASE_NOTES) if(!cli.mcIsNewer(n.v,version)) for(const g of n.tandas||[]) {
+    if(g.referenciaHistorica) continue; // no simular una entrega del código retirado
     cli.window._mcProdEntregas.web[g.id]=g.web;
     // Edge tiene recibo propio: ligarlo a la APK dejaba una entrega sin nativo siempre
     // pendiente incluso al simular «todo entregado» (CI movilidad88, 3/10).
     if(g.edge) cli.window._mcProdEntregas.edge[g.id]=g.edge;
     if(apk>=g.apk) cli.window._mcProdApkRevisiones[g.id]=g.native;
   }
+}
+
+// El archivo109 conserva su identidad y decisión; nunca cuenta como tarea activa.
+const ARCHIVE109_ID="inc-0810-inicio-grafica-significado";
+const archive109=JSON.parse(fs.readFileSync(new URL("../scripts/beta-archives.json",import.meta.url),"utf8")).refs[ARCHIVE109_ID];
+const EXPECTED109={
+  sha:"f4ffb9340adfd0a13b631271e8158d2c630613c0",version:"4.26.109",
+  codigo:"b90e6223cd45ef64e8689d4c772560c31c7db47939694211a892316030a283f0",
+  web:"d05bb0d4d86dce14c5ba4794a0be2a265e52f3a167cf8eadce87aa198e5cd38d",estado:"ausente"
+};
+function activeWithExactArchive(pack){
+  const archived=Array.from(pack.tandas).filter(g=>g.referenciaHistorica);
+  assert.deepEqual(archived.map(g=>String(g.id)),["4.26.109/"+ARCHIVE109_ID],
+    "queda exactamente el archivo109: ni perdido ni mezclado con otra tanda");
+  const g=archived[0];
+  assert.deepEqual(JSON.parse(JSON.stringify(g.referenciaHistorica)),EXPECTED109);
+  assert.equal(g.codigo,EXPECTED109.codigo);assert.equal(g.web,EXPECTED109.web);
+  assert.equal(g.t,"v4.26.109 · "+archive109.guion.t.es);
+  assert.deepEqual(Array.from(g.items),archive109.guion.items.es);
+  assert.equal(g.huella,cli.betaHuella(ARCHIVE109_ID,archive109.guion.t.es,archive109.guion.items.es,1,EXPECTED109.codigo));
+  assert.equal(g.native,undefined);assert.equal(g.edge,undefined);assert.equal(g.apk,0);
+  assert.deepEqual(Array.from(g.desde),[]);assert.deepEqual(Array.from(g.huellasCompatibles),[]);
+  assert.deepEqual(JSON.parse(JSON.stringify(g.entrega)),{web:"historical-absent"});
+  assert.deepEqual(JSON.parse(JSON.stringify(cli.betaEstadoPrueba(g,9999,VERSION_ACTUAL,VERSION_ACTUAL))),{web:"historical-absent"});
+  assert.equal(cli.betaVerdictFor(g,[]),null,"el archivo no fabrica una aprobación");
+  assert.deepEqual(Array.from(pack.items),Array.from(pack.tandas).flatMap(x=>Array.from(x.items)),
+    "los índices históricos permanecen junto a los activos");
+  return Array.from(pack.tandas).filter(x=>!x.referenciaHistorica);
+}
+function latestSurfaceIds(predicate){
+  const seen=new Set(),ids=[];
+  for(const n of cli.RELEASE_NOTES) if(!cli.mcIsNewer(n.v,VERSION_ACTUAL)) for(const g of n.tandas||[]){
+    if(seen.has(g.id))continue;
+    seen.add(g.id);
+    if(!g.referenciaHistorica&&predicate(g))ids.push(n.v+"/"+g.id);
+  }
+  return ids.sort();
+}
+function onlyArchive109(pack){
+  assert.deepEqual(activeWithExactArchive(pack),[],"cero pendientes activos, sin fallback antiguo");
+  assert.deepEqual(JSON.parse(JSON.stringify(cli.betaMarksCount(pack))),{n:0,tot:0},
+    "el archivo no se suma al progreso activo");
 }
 
 t("array VACÍO → cero tandas (la aprobada no vuelve)", () => {
@@ -76,18 +119,29 @@ t("con tandas declaradas, salen esas y ninguna «todo»", () => {
   assert.equal(out[0].id, "una");
 });
 
-t("★ producción al día (web y APK) → cero tandas, sin fallback a versiones antiguas", () => {
+t("★ producción al día → cero activos y exactamente109 histórica sin entrega", () => {
   entregasHasta(VERSION_ACTUAL,9999);
   const pack = cli.betaChecklist(VERSION_ACTUAL, VERSION_ACTUAL, 9999);
-  assert.equal(pack.tandas.length, 0);
-  assert.equal(pack.items.length, 0);
+  onlyArchive109(pack);
+  assert.equal(pack.items.length,archive109.guion.items.es.length);
+  const before=JSON.stringify(pack),receipt={web:{},edge:{}};
+  const proof=cli.betaPruebasEntrega(receipt,cli.RELEASE_NOTES,VERSION_ACTUAL);
+  assert.equal(Object.hasOwn(proof.pruebas,ARCHIVE109_ID),false,"un guion archivado no acredita entrega");
+  assert.equal(JSON.stringify(receipt),JSON.stringify({web:{},edge:{}}),"el recibo de entrada no se modifica");
+  assert.equal(JSON.stringify(pack),before,"no se cambia la identidad ni se reinicia el archivo");
 });
 
 // 30/9: la web al día no entrega lo nativo; solo quedan las tandas con `apk` sin APK estable.
 t("★ web al día con APK estable atrasada → solo quedan las tandas nativas", () => {
   entregasHasta(VERSION_ACTUAL,48);
   const pack = cli.betaChecklist(VERSION_ACTUAL, VERSION_ACTUAL, 48);
-  assert.ok(pack.tandas.every((g) => g.apk > 48), "ninguna tanda web vuelve al panel");
+  const active=activeWithExactArchive(pack),expected=latestSurfaceIds(g=>g.apk>48);
+  assert.deepEqual(active.map(g=>String(g.id)).sort(),expected,"exactamente las tandas nativas, sin ocultar extras");
+  active.forEach(g=>{
+    assert.ok(g.apk>48);
+    assert.deepEqual(Object.keys(g.entrega),["native"],"el recibo web/Edge no entrega una APK atrasada");
+    assert.ok(["pending","unknown"].includes(g.entrega.native));
+  });
 });
 
 t("★ entregar web y APK no sustituye el recibo Edge de ninguna tanda real", () => {
@@ -96,10 +150,14 @@ t("★ entregar web y APK no sustituye el recibo Edge de ninguna tanda real", ()
     !cli.mcIsNewer(n.v,VERSION_ACTUAL)?(n.tandas||[]).filter((g)=>g.edge).map((g)=>g.id):[])));
   edgeIds.forEach((id)=>{ delete cli.window._mcProdEntregas.edge[id]; });
   const pending=cli.betaChecklist(VERSION_ACTUAL,VERSION_ACTUAL,9999);
-  edgeIds.forEach((id)=>assert.ok(pending.tandas.some((g)=>String(g.id).endsWith("/"+id)),
-    "sin recibo Edge sigue pendiente: "+id));
+  const active=activeWithExactArchive(pending),expected=latestSurfaceIds(g=>!!g.edge);
+  assert.deepEqual(active.map(g=>String(g.id)).sort(),expected,"exactamente las tandas sin recibo Edge");
+  active.forEach(g=>{
+    assert.deepEqual(Object.keys(g.entrega),["edge"],"web/APK entregadas no ocultan la falta de Edge");
+    assert.ok(["pending","unknown"].includes(g.entrega.edge));
+  });
   entregasHasta(VERSION_ACTUAL,9999);
-  assert.equal(cli.betaChecklist(VERSION_ACTUAL,VERSION_ACTUAL,9999).tandas.length,0);
+  onlyArchive109(cli.betaChecklist(VERSION_ACTUAL,VERSION_ACTUAL,9999));
 });
 
 t("★ al subir solo Deudas, el panel conserva las siete pruebas pendientes", () => conHistoria(() => {

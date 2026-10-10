@@ -7,7 +7,11 @@ La base80/source955765a9 incluye Retirada y Nómina junto con Widget y las tres 
 
 # Aely
 
-Cartera → Bienes: tocar una fila abre el editor que también se alcanza desde Editar bienes; abrir no guarda la cartera. Unidad candidata4.26.111, publicación y aceptación móvil pendientes.
+MAIN4.26.110 incorpora PR196 (bdd75636), sólo pruebas, herramientas y documentación. Tests38005461796 y DeployPages38005461732 terminaron SUCCESS y sus artefactos se comprobaron; ese cierre no publica Inicio112 ni acredita APK nuevo o aceptación móvil. Las aprobadas99/100/101/102/106 ya entregadas conservan su cierre;109 sigue rechazada.
+
+En la versión4.26.112, Inicio muestra sólo el patrimonio actual con la etiqueta «Ahora». Conserva el mismo total y moneda; las cifras guardadas no se conectan como evolución. Ajustes → Revisar esta beta conserva la gráfica109 rechazada como referencia de sólo lectura; su rechazo y detalle no aprueban la corrección actual.
+
+Cartera → Bienes: tocar una fila abre el editor que también se alcanza desde Editar bienes; abrir no guarda la cartera. Unidad111 entregada en webOTA4.26.111.1 sobre c9181f14 y cotejada en ambos espejos (261/263); aceptación móvil pendiente. Sin promoción ni APK nuevo.
 
 Inicio resume hasta tres metas activas; Ver plan permite consultar todas con sus importes intactos.
 
@@ -48,6 +52,7 @@ En Plan → Deudas, un saldo estimado a cero pide confirmar la liquidación. Des
 mi-cartera/
 ├── scripts/beta-source-code.mjs # Guardia de funciones/datos transitivos y delimitación por sintaxis, sin dependencias
 ├── scripts/beta-sources.json # Alcances explícitos de revisión; beta-revisions.mjs genera digests/recibo
+├── scripts/beta-archives.json # Pins nominativos para referencias históricas de sólo lectura
 ├── tests/pure-logic-notes.test.mjs · beta-source-parse.test.mjs # Carga diferida y cortes exactos sin debilitar auditorías
 ├── tests/beta-veredictos.test.mjs # Contrato compartido del panel y listo; beta-sources protege el ensamblado
 ├── tests/listo-actor.test.mjs # CLI real sin red: actor Dev autorizado y fallo cerrado si no se acredita
@@ -115,7 +120,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.111** candidata beta sobre d6b3ddef: en Cartera → Bienes, tocar una fila abre el editor existente. Editar bienes sigue disponible; abrir no guarda y Guardar confirma los valores. Seis RED/GREEN causales y57/57 DOM sobre beta integrada, sin fallos ni reintentos;16guardianes localesPASS y revisión independiente favorable. CI, publicación y aceptación móvil pendientes. Catálogo previo, guiones, historial y rechazo de gráfica109 conservados; producción4.26.110 y APK4.26.80/code52 según el corte del coordinador. Alta/quitar y rediseño de Bienes siguen abiertos; INC-2709-09 sigue abierto.
+Estado actual: **v4.26.112**, canal beta sobre c9181f14. Inicio muestra sólo el patrimonio actual con «Ahora», con el mismo cálculo y moneda. Bienes111, el cuerpo111 de Nómina e identidad106 se conservan.109 mantiene f4ff/B90/d05, guion y rechazo como referencia de sólo lectura;112 no hereda su aprobación. Catálogo229 notas,38 identidades web y47 guiones vigentes:109 sale de web/pruebas y entra112.107/108/110 permanecen retiradas. Presupuesto oficial del paquete integrado PASS:1.321.606 bytes minificados/360.945 gzip/3 cargas frente a topes1.326.080/361.472/3 intactos. El A/B conserva el fallo previo y mide1.328.880/362.544→1.321.606/360.945: ahorro7.274/1.599 bytes y527 de margen gzip. Validación del candidato integrado: guardián completo57 casos/1.792 mutaciones de funciones/713 de datos PASS;131 DOM de Inicio/panel/reapertura/Tour/vacíos PASS. La continuación funcional aporta728 PASS y1 captura opcional omitida, además de92 casos previos y12 del FAB;963 PASS y1 omisión en total, con12 casos del indicador abiertos por salida inesperada del documento en Chromium local. Rendimiento13 PASS serial, sin reintentos.130 de131 etapas Node pasan; el espejo local de memoria aborta por privacidad y Deno no está instalado. No se atribuye suite local completa verde. CI de la fuente exacta y cotejo de artefactos se acreditan antes de la entrega; aceptación móvil, producción y APK nuevo requieren sus gates propios.
 
 Corte anterior (4/10, 12:30 UTC, panel de revisión): **v4.26.93** publicada en beta. Primera entrega4.26.93.1 (fuente1d5dd782), CI37200314653SUCCESS y HTTP/ZIP/HTML/SW/catálogo/huella cotejados el4/10 a12:30UTC:11 tandas/24 puntos, frente a40 antes del cambio. Producción4.26.86 (d366215a), APK beta4.26.80/code52 y estable4.26.32/code48 conservadas. Prueba y aprobación móvil pendientes. [Acta](docs/briefs/ops-0410-panel-cola.md).
 
@@ -159,6 +164,6 @@ Notas rápidas del rediseño v4 (para no perderse):
 
 El guardián tests/logs-privacidad.test.mjs verifica las fronteras de diagnóstico con marcadores sintéticos. Cobertura y límites, incluyendo servidor sin desplegar, en [SEC-03](docs/briefs/sec03-privacidad-logs.md).
 
-Plan → Metas: borrar una regla de nómina pide confirmación y libera su reserva del presupuesto, conservando las aportaciones e historial. Candidata INC-0310-01 aún sin publicación; pruebas DOM en `e2e/metas-borrar-regla.spec.mjs`, mapeadas a Metas, Gastos, Inicio y motor. [Contrato y estado](docs/briefs/inc-0310-01-meta-regla.md).
+Plan → Metas: borrar una regla de nómina pide confirmación y libera su reserva del presupuesto, conservando las aportaciones e historial. Unidad INC-0310-01 ya entregada; pruebas DOM en `e2e/metas-borrar-regla.spec.mjs`, mapeadas a Metas, Gastos, Inicio y motor. [Contrato y estado](docs/briefs/inc-0310-01-meta-regla.md).
 
 Gastos → Mes pasado, Rango, Últimos3meses yTodo muestran su resumen sin columna de presupuesto ajeno. Este mes y Mi ciclo conservan límite, restante y progreso; candidata local pendiente de DOM/revisión/CI.

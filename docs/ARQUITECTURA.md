@@ -1,5 +1,15 @@
 # Arquitectura — Aely
 
+## InicioAhora y archivo109 · versión4.26.112 del canal beta
+
+Se retiran Ring, MiniPie y TabCoach sin consumidores, su CSS asociado y doce iconos sin uso. V4Ring, Tour, SparklineInv y .spark siguen activos; el flujo financiero, idiomas, notas e histórico se conservan. El presupuesto del paquete integrado y131 comprobaciones DOM propias pasan; el guardián conserva identidades111/106 y archivo109.
+
+Dashboard pasa `tt.netWorth` y el `shownNet` existente a `NetWorthNow`. La animación, idioma/divisa, total financiero e histórico persistido conservan su comportamiento; una entrada no numérica/finita se presenta como «—» y se explica. Sparkline se retira y los snapshots no se tratan como observaciones fechadas. El cuerpo de seedFlows es exactamente el de111, preservando Nómina. Recientes106 se reancla a la misma expresión sin cambiar su identidad ni recibo.
+
+`beta-archives.json` fija exclusivamente109 con descriptor/guion originales, f4ff/B90/d05. El motor coteja pin, fuente Git y digest antes de leer HEAD; no recalcula109 contra NetWorthNow. El catálogo conserva el guion y añade `referenciaHistorica.estado="ausente"`; el recibo omite109 de web/pruebas y separa referenciasHistoricas. Panel y listo bloquean nuevas decisiones/promoción, conservan rechazo y detalle por su huella exacta, sin alias ni aprobación heredada. Los dos consumidores del motor cambian identidad por sus nuevos lectores; ops-0410 retirado no vuelve al catálogo.
+
+Al enviar el último veredicto activo, `gestoReal.current=false` impide que el scroll posterior renueve la marca de reapertura. Restaurar scroll no cuenta como gesto; pointerdown sí la renueva. La integración sobre c9181f14 conserva Bienes111, Nómina111 e identidad106. Presupuesto oficial del paquete integrado PASS:1.321.606 bytes minificados/360.945 gzip/3 cargas frente a topes1.326.080/361.472/3 intactos. El A/B conserva el fallo previo y mide1.328.880/362.544→1.321.606/360.945: ahorro7.274/1.599 bytes y527 de margen gzip. Validación del candidato integrado: guardián completo57 casos/1.792 mutaciones de funciones/713 de datos PASS;131 DOM de Inicio/panel/reapertura/Tour/vacíos PASS. La continuación funcional aporta728 PASS y1 captura opcional omitida, además de92 casos previos y12 del FAB;963 PASS y1 omisión en total, con12 casos del indicador abiertos por salida inesperada del documento en Chromium local. Rendimiento13 PASS serial, sin reintentos.130 de131 etapas Node pasan; el espejo local de memoria aborta por privacidad y Deno no está instalado. No se atribuye suite local completa verde. CI de la fuente exacta y cotejo de artefactos se acreditan antes de la entrega; aceptación móvil, producción y APK nuevo requieren sus gates propios.
+
 ## Historial de overlays · candidata110 sobre109
 
 El controlador de02 mantiene propietarios vivos, slots de History y un consumo pendiente

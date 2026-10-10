@@ -5,6 +5,14 @@ apk.json a releases fantasma, promote encolado…). Detalle técnico en `AGENTS.
 
 Prioridad del dueño (4/10): cerrar primero la entrega a producción de las aprobadas vigentes; después retirar esas tandas del catálogo beta conservando arrays vacíos, notas y veredictos. No estrenar otra ronda mientras se deja lo aprobado esperando sin un bloqueo concreto. El recibo web no sustituye APK ni Edge; sus entregas se acreditan por separado.
 
+## InicioAhora y una referencia rechazada · candidata4.26.112
+
+La versión4.26.112 añade `inc-0910-inicio-solo-actual` al catálogo229.109 conserva rechazo, f4ff/B90/d05 y guion original como referencia de sólo lectura; queda fuera de web/pruebas vigentes. SHA histórico ausente, pin o guion distinto abortan la construcción. Los dos consumidores del motor no heredan OK antiguo; ops-0410 sigue retirado. Recientes106 conserva su expresión e identidad y Nómina el cuerpo111 de seedFlows.
+
+Presupuesto oficial del paquete integrado PASS:1.321.606 bytes minificados/360.945 gzip/3 cargas frente a topes1.326.080/361.472/3 intactos. El A/B conserva el fallo previo y mide1.328.880/362.544→1.321.606/360.945: ahorro7.274/1.599 bytes y527 de margen gzip. Validación del candidato integrado: guardián completo57 casos/1.792 mutaciones de funciones/713 de datos PASS;131 DOM de Inicio/panel/reapertura/Tour/vacíos PASS. La continuación funcional aporta728 PASS y1 captura opcional omitida, además de92 casos previos y12 del FAB;963 PASS y1 omisión en total, con12 casos del indicador abiertos por salida inesperada del documento en Chromium local. Rendimiento13 PASS serial, sin reintentos.130 de131 etapas Node pasan; el espejo local de memoria aborta por privacidad y Deno no está instalado. No se atribuye suite local completa verde. CI de la fuente exacta y cotejo de artefactos se acreditan antes de la entrega; aceptación móvil, producción y APK nuevo requieren sus gates propios.
+
+VERSION, package/lock y documentación describen4.26.112 del canal beta. Build genera index, notas y recibo. La entrega exige CI terminal de la fuente exacta, manifiesto/ZIP/HTML/SW/catálogo/recibo coherentes y bytes cotejados en ambos espejos. La corrección112 necesita aprobación móvil propia;109 REJECTED permanece. APK, Edge y producción se acreditan por separado.
+
 ## Los 6 pasos
 
 1. **Trabaja en `beta`** (`git push origin refs/heads/beta:refs/heads/beta` — hay tag `beta`).

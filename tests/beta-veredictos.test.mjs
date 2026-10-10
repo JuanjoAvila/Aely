@@ -447,5 +447,76 @@ t("recibos antiguos solo aceptan el guion de la versión servida",()=>{
   assert.equal(proof.pruebas.entregada.contenido,JSON.stringify(["entregada","Tanda entregada",["1. Probar entregada"],1]));
   assert.equal(receipt.pruebas,undefined,"no modifica el artefacto original");
 });
+
+t("109 histórica sigue rechazada con B90 y no hereda decisión a la unidad actual",()=>{
+  const archives=JSON.parse(fs.readFileSync(new URL("../scripts/beta-archives.json",import.meta.url),"utf8"));
+  const id="inc-0810-inicio-grafica-significado",ref=archives.refs[id];
+  const old=betaNotes([{v:ref.version,tandas:[ref.guion]}])[0],g=cli.betaTandas(old)[0];
+  const expected=cli.betaHuella(id,ref.guion.t.es,ref.guion.items.es,1,ref.codigo);
+  assert.equal(g.huella,expected);assert.equal(g.codigo,ref.codigo);
+  const rows=[{tanda:"4.26.109/"+id,huella:g.huella,verdict:"rejected"},{tanda:id,huella:g.huella,verdict:"approved"}];
+  assert.equal(cli.betaVerdictFor(g,rows).verdict,"rejected");
+  const current={id:"inc-0910-inicio-solo-actual",t:{es:"Caso actual sintético"},items:{es:["1. Total actual"]},...betaRevision("inc-0910-inicio-solo-actual")};
+  assert.equal(cli.betaVerdictFor(cli.betaTandas({tandas:[current]})[0],rows),null);
+  const previous=cli.window._mcProdEntregas;
+  try{
+    // Incluso un recibo antiguo auténtico no convierte una referencia retirada en entrega actual.
+    cli.window._mcProdEntregas={web:{[id]:ref.revisiones.web},pruebas:{[id]:{v:ref.version,contenido:JSON.stringify([id,g.t,g.items,1])}}};
+    assert.equal(JSON.stringify(cli.betaEstadoEntrega(g,52)),JSON.stringify({web:"historical-absent"}));
+    assert.equal(JSON.stringify(cli.betaEstadoPrueba(g,52,ref.version,ref.version)),JSON.stringify({web:"historical-absent"}));
+  }finally{cli.window._mcProdEntregas=previous;}
+});
+
+t("detalle histórico es de sólo lectura y exige identidad/huella exactas",()=>{
+  const ref=JSON.parse(fs.readFileSync(new URL("../scripts/beta-archives.json",import.meta.url),"utf8")).refs["inc-0810-inicio-grafica-significado"];
+  const g=cli.betaTandas(betaNotes([{v:ref.version,tandas:[ref.guion]}])[0])[0];
+  const detail={marks:{0:"ko"},notes:{0:"Fallo histórico sintético\nSegunda línea"}};
+  const foreignHuella=cli.betaHuella("otra-tanda","Tanda ajena",g.items,1,"f".repeat(64));
+  const values={_betaReviewMarks:{[g.huella]:detail,[foreignHuella]:{marks:{0:"ko"},notes:{0:"Comentario ajeno"}}}};
+  conStore(values,()=>{
+    assert.equal(JSON.stringify(cli.betaHistoricalDetails(g)),JSON.stringify([{mark:"ko",note:detail.notes[0]}]));
+    assert.equal(JSON.stringify(cli.betaHistoricalDetails({...g,id:"inc-0910-inicio-solo-actual"})),"[]");
+    assert.ok(Object.hasOwn(values._betaReviewMarks,foreignHuella),"el negativo debe apuntar a una nota ajena existente");
+    for(const wrong of [foreignHuella,"huella-ausente"])
+      assert.equal(JSON.stringify(cli.betaHistoricalDetails({...g,huella:wrong})),"[]",wrong+": se deniega antes de leer el ledger");
+    assert.equal(JSON.stringify(cli.betaHistoricalDetails({...g,id:ref.version+"/"+g.id,t:"v"+ref.version+" · "+g.t})),JSON.stringify([{mark:"ko",note:detail.notes[0]}]),"la checklist conserva la identidad aunque prefije el título visible");
+    for(const bad of [
+      {...g,id:"9.9.9/"+g.id,t:"v9.9.9 · "+g.t},
+      {...g,codigo:"0".repeat(64)},
+      {...g,web:"0".repeat(64)},
+      {...g,t:g.t+" cambiado"},
+      {...g,items:g.items.concat("punto ajeno")},
+      {...g,rev:g.rev+1},
+      {...g,referenciaHistorica:{...g.referenciaHistorica,sha:"0".repeat(40)}},
+      {...g,referenciaHistorica:{...g.referenciaHistorica,version:"9.9.9"}},
+      {...g,referenciaHistorica:{...g.referenciaHistorica,estado:"presente"}},
+      {...g,referenciaHistorica:{...g.referenciaHistorica,codigo:"0".repeat(64)}},
+      {...g,referenciaHistorica:{...g.referenciaHistorica,web:"0".repeat(64)}}
+    ]) assert.equal(JSON.stringify(cli.betaHistoricalDetails(bad)),"[]","una identidad adulterada no lee otra nota");
+    const forgedCode="0".repeat(64),forged={...g,codigo:forgedCode,referenciaHistorica:{...g.referenciaHistorica,codigo:forgedCode}};
+    forged.huella=cli.betaHuella(g.id,g.t,g.items,g.rev,forgedCode);
+    values._betaReviewMarks[forged.huella]={marks:{0:"ko"},notes:{0:"Nota de un código forjado"}};
+    assert.equal(JSON.stringify(cli.betaHistoricalDetails(forged)),"[]","ref y código forjados juntos tampoco bastan");
+    assert.equal(JSON.stringify(values._betaReviewMarks[g.huella]),JSON.stringify(detail));
+  });
+});
+
+t("el contador activo excluye109 histórica sin perder índices ni ledger",()=>{
+  const ref=JSON.parse(fs.readFileSync(new URL("../scripts/beta-archives.json",import.meta.url),"utf8")).refs["inc-0810-inicio-grafica-significado"];
+  const old=cli.betaTandas(betaNotes([{v:ref.version,tandas:[ref.guion]}])[0])[0];
+  const current=cli.betaTandas({tandas:[{id:"inc-0910-inicio-solo-actual",t:{es:"Tres puntos sintéticos"},items:{es:["1. A","2. B","3. C"]},...betaRevision("inc-0910-inicio-solo-actual")} ]})[0];
+  const history={marks:{0:"ko"},notes:{0:"Rechazo histórico que no cuenta como fallo actual"}};
+  const values={_betaReviewMarks:{[old.huella]:history}};
+  const pack={v:"9.9.9",tandas:[old,current],items:old.items.concat(current.items)};
+  const preserved=JSON.stringify(history);
+  conStore(values,()=>{
+    assert.equal(JSON.stringify(cli.betaMarksCount(pack)),JSON.stringify({n:0,tot:3}));
+    values._betaReviewMarks[current.huella]={marks:{0:"ok",1:"ko",2:"na"},notes:{1:"Fallo actual sintético"}};
+    assert.equal(JSON.stringify(cli.betaMarksCount(pack)),JSON.stringify({n:3,tot:3}),"las tres categorías son activas, sin sumar la antigua");
+    assert.equal(JSON.stringify(values._betaReviewMarks[old.huella]),preserved);
+    assert.equal(JSON.stringify(cli.betaMarksCount({v:"9.9.9",tandas:[old],items:old.items})),JSON.stringify({n:0,tot:0}));
+    assert.equal(JSON.stringify(cli.betaHistoricalDetails(old)),JSON.stringify([{mark:"ko",note:history.notes[0]}]));
+  });
+});
 if (failed) { console.error(`\nbeta-veredictos: ${failed} fallo(s)`); process.exit(1); }
 console.log("\nbeta-veredictos: OK");

@@ -1496,22 +1496,170 @@ for(const lang of ["es","en","ca"]) {
   });
 }
 
+
+
+for(const lang of ["es","en","ca"])test(`contador activo: archivo109 no añade puntos ni fallos (${lang})`,async({page})=>{
+  await abrirRevisionBeta(page,lang);
+  const ref=JSON.parse(fs.readFileSync(new URL("../scripts/beta-archives.json",import.meta.url),"utf8")).refs["inc-0810-inicio-grafica-significado"];
+  const historical=betaNotes([{v:ref.version,tandas:[ref.guion]}])[0];
+  const current={id:"inc-0910-inicio-solo-actual",t:{es:"Contador sintético"},items:{es:["1. Punto A","2. Punto B","3. Punto C"]},...betaRevision("inc-0910-inicio-solo-actual")};
+  const snapshot=await page.evaluate(({historical,current})=>{
+    CONFIG.APP_VERSION="9.9.9.1";RELEASE_NOTES=[{v:"9.9.9",t:{es:"Caso de contador"},tandas:[current]},historical];
+    const old=betaTandas(historical)[0],history={marks:{0:"ko"},notes:{0:"Fallo histórico conservado, sin sumar al contador"}};
+    const decision={verdict:"rejected",at:200};
+    store.set("_betaReview_9.9.9.1_v",{_h:1,["h:"+old.huella]:decision});
+    store.set("_betaReviewMarks",{[old.huella]:history});
+    window._mcProdEntregas={web:{},pruebas:{}};window._mcProdApk=52;window.__counterReports=[];
+    cloud.betaReport=function(payload){window.__counterReports.push(payload);return Promise.resolve();};
+    return {huella:old.huella,history,decision};
+  },{historical,current});
+  // Cada escenario consulta su propio panel; cambiar una global no desmonta el anterior.
+  async function mountCounterPanel(){
+    await page.evaluate(()=>{
+      window._mcProdDeliveryChecked=true;window._mcProdVersion=()=>Promise.resolve(null);
+      if(window.__counterRoot)window.__counterRoot.unmount();
+      let host=document.getElementById("e2e-counter-own");
+      if(!host){host=document.createElement("div");host.id="e2e-counter-own";document.body.appendChild(host);}
+      window.__counterRoot=ReactDOM.createRoot(host);
+      window.__counterRoot.render(React.createElement(BetaReviewPanel,{onClose:function(){},showToast:function(){}}));
+    });
+    return page.locator("#e2e-counter-own .beta-review");
+  }
+  const panel=await mountCounterPanel(),fresh=panel.locator('.beta-tanda:not([data-beta-historical="true"])'),old=panel.locator('.beta-tanda[data-beta-historical="true"]');
+  const progress=panel.getByTestId("beta-active-progress");
+  await expect(progress).toHaveText("0/3");
+  await expect(fresh.locator(".beta-tanda-n")).toHaveText("0/3");
+  expect(await page.evaluate(()=>betaMarksCount(betaChecklist(CONFIG.APP_VERSION,null,52)))).toEqual({n:0,tot:3});
+  await expect(panel.getByRole("button",{name:"↺ Empezar la revisión de cero",exact:true})).toBeDisabled();
+  await old.locator(".beta-tanda-toggle").click();
+  await expect(old.locator(".beta-historical-note")).toHaveText(snapshot.history.notes[0]);
+  await expect(old.locator(".beta-veredicto")).toHaveText({es:"⛔ Rechazada",en:"⛔ Rejected",ca:"⛔ Rebutjada"}[lang]);
+  await expect(fresh.getByRole("button",{name:"✅ Aprobar esta tanda",exact:true})).toBeDisabled();
+  await fresh.getByRole("button",{name:"✓ Va bien",exact:true}).nth(0).click();
+  await expect(progress).toHaveText("1/3");
+  await fresh.getByRole("button",{name:"✗ Falla",exact:true}).nth(0).click();
+  await expect(progress).toHaveText("2/3");
+  await fresh.getByRole("button",{name:"— No lo puedo probar",exact:true}).nth(1).click();
+  await expect(progress).toHaveText("3/3");
+  await expect(fresh.getByRole("button",{name:"✅ Aprobar esta tanda",exact:true})).toBeDisabled();
+  await fresh.getByRole("button",{name:"✓ Va bien",exact:true}).nth(0).click();
+  await expect(progress).toHaveText("3/3");
+  await expect(fresh.getByRole("button",{name:"✅ Aprobar esta tanda",exact:true})).toBeEnabled();
+  expect(await page.evaluate(()=>betaMarksCount(betaChecklist(CONFIG.APP_VERSION,null,52)))).toEqual({n:3,tot:3});
+  await expect(panel).not.toContainText(/fallo que marcaste antes sigue aquí|punto viene ya marcado/);
+  await expect(old.locator(".beta-historical-note")).toHaveText(snapshot.history.notes[0]);
+  expect(await page.evaluate(h=>(store.get("_betaReviewMarks")||{})[h],snapshot.huella)).toEqual(snapshot.history);
+  expect(await page.evaluate(()=>window.__counterReports.length)).toBe(0);
+  await fresh.getByRole("button",{name:"✅ Aprobar esta tanda",exact:true}).click();
+  await expect(fresh.locator(".beta-veredicto")).toContainText("Aprobada");
+  const reports=await page.evaluate(()=>window.__counterReports);
+  expect(reports).toHaveLength(1);
+  expect(reports[0]).toMatchObject({tanda:"inc-0910-inicio-solo-actual",probados:2,fallos:0,sinProbar:0,noProbable:1,heredados:0});
+  expect(await page.evaluate(h=>(store.get("_betaReview_9.9.9.1_v")||{})["h:"+h],snapshot.huella)).toEqual(snapshot.decision);
+  expect(await page.evaluate(h=>(store.get("_betaReviewMarks")||{})[h],snapshot.huella)).toEqual(snapshot.history);
+  expect(await page.evaluate(()=>localStorage.getItem(BETA_ABIERTO_KEY))).toBeNull();
+  // Un scroll ya pendiente no es un gesto nuevo; tocar después sí permite volver a revisar.
+  const lifecycle=await page.evaluate(()=>{
+    const wrap=document.querySelector("#e2e-counter-own .beta-review");
+    if(!wrap)throw new Error("Falta el panel propio del contador");
+    wrap.dispatchEvent(new Event("scroll",{bubbles:true}));
+    const afterScroll=localStorage.getItem(BETA_ABIERTO_KEY)===null;
+    wrap.dispatchEvent(new PointerEvent("pointerdown",{bubbles:true,pointerType:"touch"}));
+    const afterPointer=localStorage.getItem(BETA_ABIERTO_KEY)!==null;
+    const close=Array.from(wrap.querySelectorAll("button")).find(el=>el.textContent==="‹ Ajustes");
+    if(!close)throw new Error("Falta el cierre del panel");
+    close.click();
+    wrap.dispatchEvent(new Event("scroll",{bubbles:true}));
+    return {afterScroll,afterPointer,afterCloseScroll:localStorage.getItem(BETA_ABIERTO_KEY)===null};
+  });
+  expect(lifecycle).toEqual({afterScroll:true,afterPointer:true,afterCloseScroll:true});
+  await page.evaluate(h=>{RELEASE_NOTES=[h];},historical);
+  const only=await mountCounterPanel();
+  await expect(only).toHaveCount(1);
+  await expect(only.locator('.beta-tanda[data-beta-historical="true"]')).toHaveCount(1);
+  await expect(only.locator('.beta-tanda:not([data-beta-historical="true"])')).toHaveCount(0);
+  expect(await page.evaluate(()=>betaMarksCount(betaChecklist(CONFIG.APP_VERSION,null,52)))).toEqual({n:0,tot:0});
+  expect(await page.evaluate(h=>(store.get("_betaReviewMarks")||{})[h],snapshot.huella)).toEqual(snapshot.history);
+  expect(await page.evaluate(h=>(store.get("_betaReview_9.9.9.1_v")||{})["h:"+h],snapshot.huella)).toEqual(snapshot.decision);
+  expect(await page.evaluate(()=>window.__counterReports.length)).toBe(1);
+  await expect(only.getByTestId("beta-active-progress")).toHaveCount(0);
+  await expect(only.getByTestId("beta-active-empty")).toHaveText({
+    es:"No hay comprobaciones activas pendientes. Las referencias históricas conservan las decisiones guardadas.",
+    en:"There are no active checks pending. Historical references retain saved decisions.",
+    ca:"No hi ha comprovacions actives pendents. Les referències històriques conserven les decisions desades."
+  }[lang]);
+  await expect(only.getByRole("button",{name:"↺ Empezar la revisión de cero",exact:true})).toBeDisabled();
+  await expect(only.getByRole("button",{name:/Aprobar esta tanda|Reportar/})).toHaveCount(0);
+});
+
+for(const lang of ["es","en","ca"])test(`109 histórica: conserva rechazo y guion, sin aprobación ni entrega actual (${lang})`,async({page})=>{
+  await abrirRevisionBeta(page,lang);
+  const archives=JSON.parse(fs.readFileSync(new URL("../scripts/beta-archives.json",import.meta.url),"utf8"));
+  const oldId="inc-0810-inicio-grafica-significado",newId="inc-0910-inicio-solo-actual",ref=archives.refs[oldId];
+  const historical=betaNotes([{v:ref.version,tandas:[ref.guion]}])[0];
+  const current={id:newId,t:{es:"Total actual sintético"},items:{es:ref.guion.items.es.slice()},...betaRevision(newId)};
+  const snapshot=await page.evaluate(({historical,current})=>{
+    CONFIG.APP_VERSION="9.9.9.1";RELEASE_NOTES=[{v:"9.9.9",t:{es:"Caso sintético"},tandas:[current]},historical];
+    const old=betaTandas(historical)[0];
+    const state={_h:1,["h:"+old.huella]:{verdict:"rejected",at:200}};
+    store.set("_betaReview_9.9.9.1_v",state);
+    const ledger={marks:{0:"ko"},notes:{0:"Fallo histórico sintético109\nSegunda línea conservada"}};
+    store.set("_betaReviewMarks",{[old.huella]:ledger,["otra-huella"]:{marks:{0:"ko"},notes:{0:"Nota ajena que no debe aparecer"}}});
+    const legacy={marks:{[old.items[0]]:"ko"},notes:{[old.items[0]]:"Comentario legado conservado"},owners:{[old.items[0]]:old.huella}};
+    store.set("_betaReviewOk",legacy.marks);store.set("_betaReviewNotas",legacy.notes);store.set("_betaMarksHuella",legacy.owners);
+    window._mcProdEntregas={web:{[historical.tandas[0].id]:historical.tandas[0].web},pruebas:{[historical.tandas[0].id]:{v:historical.v,contenido:JSON.stringify([old.id,old.t,old.items,1])}}};window._mcProdApk=52;window.__historicalReportCalls=0;
+    cloud.betaReport=function(){window.__historicalReportCalls++;return Promise.resolve();};
+    return {state,huella:old.huella,ledger,legacy};
+  },{historical,current});
+  const panel=await conProduccionEn(page,null),old=panel.locator('.beta-tanda[data-beta-historical="true"]'),fresh=panel.locator('.beta-tanda:not([data-beta-historical="true"])');
+  await expect(old).toHaveCount(1);await expect(fresh).toHaveCount(1);
+  await expect(old.locator(".beta-tanda-n")).toContainText("rechazada");
+  await expect(old.locator(".beta-tanda-entrega")).toContainText({
+    es:"Referencia histórica",en:"Historical reference",ca:"Referència històrica"
+  }[lang]);
+  await old.locator(".beta-tanda-toggle").click();
+  await expect(old.locator(".beta-item")).toContainText(ref.guion.items.es[0]);
+  await expect(old.locator(".beta-historical-mark")).toContainText({es:"Fallo guardado",en:"Saved failure",ca:"Fallada desada"}[lang]);
+  await expect(old.locator(".beta-veredicto")).toHaveText({es:"⛔ Rechazada",en:"⛔ Rejected",ca:"⛔ Rebutjada"}[lang]);
+  await expect(old.locator(".beta-historical-note")).toHaveText(snapshot.ledger.notes[0]);
+  await expect(old).not.toContainText("Nota ajena que no debe aparecer");
+  await expect(old.getByRole("button",{name:/Aprobar|Cambiar de opinión|Va bien|Falla|No lo puedo probar|Reportar/})).toHaveCount(0);
+  await expect(old.locator("input")).toHaveCount(0);
+  await expect(fresh.locator(".beta-tanda-n")).not.toContainText(/aprobada|rechazada/);
+  await expect(fresh.getByRole("button",{name:"✅ Aprobar esta tanda",exact:true})).toBeVisible();
+  expect(await page.evaluate(()=>window.__historicalReportCalls)).toBe(0);
+  expect(await page.evaluate(()=>store.get("_betaReview_9.9.9.1_v"))).toEqual(snapshot.state);
+  expect(snapshot.huella.endsWith(":"+ref.codigo)).toBe(true);
+  await fresh.getByRole("button",{name:"✓ Va bien",exact:true}).click();
+  await expect(old.locator(".beta-historical-note")).toHaveText(snapshot.ledger.notes[0]);
+  await expect(fresh).not.toContainText(snapshot.ledger.notes[0]);
+  expect(await page.evaluate(h=>(store.get("_betaReviewMarks")||{})[h],snapshot.huella)).toEqual(snapshot.ledger);
+  expect(await page.evaluate(()=>store.get("_betaReviewOk"))).toEqual(snapshot.legacy.marks);
+  expect(await page.evaluate(()=>store.get("_betaReviewNotas"))).toEqual(snapshot.legacy.notes);
+  expect(await page.evaluate(()=>store.get("_betaMarksHuella"))).toEqual(snapshot.legacy.owners);
+  expect(await page.evaluate(()=>window.__historicalReportCalls)).toBe(0);
+});
+
 for(const lang of ["es","en","ca"])test(`cola publicada: no vuelve a pedir las catorce entregadas (${lang})`,async({page})=>{
   await abrirRevisionBeta(page,lang);
   const before=JSON.parse(execFileSync("git",["show","c7593e86f6665d69fa20bd3f5f8f20c4710a5d9c:src/data/release-notes.json"],{encoding:"utf8",maxBuffer:5e6}));
   const retired=["inc-0810-nav-indicator","inc-0810-metas-editar-regla","inc-0810-backclose-handover"];
-  // La nota111 se fija por separado: el catálogo actual no puede fabricar su propio oráculo.
   const note111={"v":"4.26.111","d":"2026-10-09","t":{"es":"Tocar Bienes para editar","en":"Tap assets to edit","ca":"Toca els béns per editar"},"items":{"es":["Tocar un bien abre su editor. La opción Editar bienes sigue disponible."],"en":["Tap an asset to open its editor. Edit assets is still available."],"ca":["Toca un bé per obrir-ne l’editor. L’opció Edita els béns continua disponible."]},"tandas":[{"id":"inc-2709-07-bienes-toque","t":{"es":"Abrir el editor de Bienes","en":"Open the asset editor","ca":"Obre l’editor de béns"},"items":{"es":["1. En Cartera → Bienes, tocar una fila abre el editor. Arrastrar para bajar no lo abre. Abrir no cambia los valores; Guardar sin modificarlos los conserva. Editar bienes sigue disponible."],"en":["1. In Wallet → Property, tap a row to open the editor. Scrolling does not open it. Opening keeps values unchanged; saving without edits preserves them. Edit assets is still available."],"ca":["1. A Cartera → Béns, toca una fila per obrir l’editor. Arrossegar per baixar no l’obre. Obrir no canvia els valors; desar sense modificar-los els conserva. Edita els béns continua disponible."]}}]};
-  expect(before.length).toBe(227);
-  const expected=betaNotes([note111,...before.map(n=>Array.isArray(n.tandas)?{...n,tandas:n.tandas.filter(g=>!retired.includes(g.id))}:n)]);
-  expect(expected.length).toBe(228);
+  const prior=[note111,...before.map(n=>Array.isArray(n.tandas)?{...n,tandas:n.tandas.filter(g=>!retired.includes(g.id))}:n)];
+  expect(prior.length).toBe(228);
+  const live=JSON.parse(fs.readFileSync(new URL("../src/data/release-notes.json",import.meta.url),"utf8"));
+  expect(live.slice(1)).toEqual(prior);
+  expect(live[0].v).toBe("4.26.112");
+  expect(live[0].tandas.map(g=>g.id)).toEqual(["inc-0910-inicio-solo-actual"]);
+  const expected=betaNotes([live[0],...prior]);
+  expect(expected.length).toBe(229);
   expect(await page.evaluate(()=>RELEASE_NOTES)).toEqual(expected);
   const closed=["inc-0310-01-meta-regla","ops-0410-panel-cola","inc-0310-gastos-sin-limite","inc-0310-broker-resultados","feature-0310-01-movilidad","inc-2909-01-widget-periodo","fin05-widget-reentrada","fin05-pago-cerrada","tr-descripcion-clasificacion","widget-banco","widget-app-cerrada",...retired];
   expect(await page.evaluate(ids=>RELEASE_NOTES.flatMap(n=>n.tandas||[]).filter(g=>ids.includes(g.id)).map(g=>g.id),closed)).toEqual([]);
   const deliveries=JSON.parse(fs.readFileSync(new URL("../public/beta-delivery.json",import.meta.url),"utf8"));
   const id111="inc-2709-07-bienes-toque",without111=structuredClone(deliveries);
   delete without111.web[id111];delete without111.pruebas[id111];
-  expect(deliveries.web[id111]).toBe(expected[0].tandas[0].web);
+  expect(deliveries.web[id111]).toBe(expected[1].tandas[0].web);
   expect(deliveries.pruebas[id111]).toEqual({v:"4.26.111",contenido:JSON.stringify([id111,note111.tandas[0].t.es,note111.tandas[0].items.es,1])});
   const host="e2e-retirement111-"+lang;
   // Un recibo sintético completo no debe esconder que111 sigue pendiente cuando falta sólo el suyo.
@@ -1524,16 +1672,17 @@ for(const lang of ["es","en","ca"])test(`cola publicada: no vuelve a pedir las c
     window.__retirement111Root=ReactDOM.createRoot(h);
     window.__retirement111Root.render(React.createElement(BetaReviewPanel,{onClose:()=>{},showToast:()=>{}}));
   },{deliveries:without111,host});
-  const panel=page.locator("#"+host+" .beta-review");
+  const panel=page.locator("#"+host+" .beta-review"),active=panel.locator('.beta-tanda:not([data-beta-historical="true"])');
   try{
     await expect(panel).toBeVisible();
-    await expect(panel.locator(".beta-tanda")).toHaveCount(1);
-    await expect(panel.locator(".beta-tanda-t")).toHaveText("v4.26.111 · Abrir el editor de Bienes");
-    await expect(panel.locator(".beta-tanda-n.ok")).toHaveCount(0);
-    await expect(panel.getByRole("button",{name:/Aprobar esta tanda/})).toBeDisabled();
+    await expect(panel.locator('.beta-tanda[data-beta-historical="true"]')).toHaveCount(1);
+    await expect(active).toHaveCount(1);
+    await expect(active.locator(".beta-tanda-t")).toHaveText("v4.26.111 · Abrir el editor de Bienes");
+    await expect(active.locator(".beta-tanda-n.ok")).toHaveCount(0);
+    await expect(active.getByRole("button",{name:/Aprobar esta tanda/})).toBeDisabled();
     expect(await page.evaluate(id=>{
-      const pack=betaChecklist(CONFIG.APP_VERSION,"4.26.94",52),g=pack.tandas.find(g=>g.id.split("/").pop()===id);
-      return {ids:pack.tandas.map(g=>g.id.split("/").pop()),pending:betaPruebaPendiente(g,52,CONFIG.APP_VERSION,"4.26.94"),
+      const pack=betaChecklist(CONFIG.APP_VERSION,"4.26.94",52),current=pack.tandas.filter(g=>!g.referenciaHistorica),g=current.find(g=>g.id.split("/").pop()===id);
+      return {ids:current.map(g=>g.id.split("/").pop()),pending:betaPruebaPendiente(g,52,CONFIG.APP_VERSION,"4.26.94"),
         verdict:betaSavedVerdicts(pack)[g.id]||null};
     },id111)).toEqual({ids:[id111],pending:true,verdict:null});
     expect(await page.evaluate(()=>window._mcProdEntregas)).toEqual(without111);
@@ -1544,7 +1693,8 @@ for(const lang of ["es","en","ca"])test(`cola publicada: no vuelve a pedir las c
       window.__retirement111Root.render(React.createElement(BetaReviewPanel,{onClose:()=>{},showToast:()=>{}}));
     },{deliveries,host});
     await expect(panel).toBeVisible();
-    await expect(panel.locator(".beta-tanda")).toHaveCount(0);
+    await expect(panel.locator('.beta-tanda[data-beta-historical="true"]')).toHaveCount(1);
+    await expect(active).toHaveCount(0);
     await expect(panel.getByRole("button",{name:/Aprobar esta tanda/})).toHaveCount(0);
     expect(await page.evaluate(()=>window._mcProdEntregas)).toEqual(deliveries);
     expect(await page.evaluate(()=>store.get("_betaReview_4.26.87.1_v"))).toEqual({_h:1,"h:historia-sintetica":{verdict:"rejected",at:100}});

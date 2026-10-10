@@ -57,10 +57,27 @@ for (const tm of TEMAS) for (const mv of MOVS) {
     // Franja del borde inferior donde el casquete quedaba: con el FAB oculto por CSS tiene que ser idéntica.
     const franja = { x: 0, y: 812 - 40, width: 393, height: 40 };
     const casquete = async () => {
+      // El gesto ya se midió en rAF naturales. Para comparar píxeles, la inercia del fondo
+      // debe haber acabado: moverlo entre dos capturas parecía un resto del FAB (10/10/2026).
+      const fondo=await page.evaluate(()=>new Promise((resolve,reject)=>{
+        const p=document.querySelector(".page.page-live"),start=performance.now();
+        let last=p.scrollTop,stable=start;
+        function frame(now){
+          const y=p.scrollTop;if(y!==last){stable=now;last=y;}
+          if(now-stable>=100){resolve(y);return;}
+          if(now-start>2000){reject(Error("El fondo sigue desplazándose"));return;}
+          requestAnimationFrame(frame);
+        }
+        requestAnimationFrame(frame);
+      }));
+      expect(await oculta(),"la captura final conserva la barra oculta").toBe(true);
       const a = decodePng(await page.screenshot({ clip: franja }));
       const st = await page.addStyleTag({ content: ".botnav-fab{visibility:hidden!important}" });
       const b = decodePng(await page.screenshot({ clip: franja }));
       await st.evaluate((n) => n.remove());
+      expect(await page.evaluate(()=>document.querySelector(".page.page-live").scrollTop),
+        "ambas capturas comparan el mismo fondo").toBe(fondo);
+      expect(await oculta(),"el fondo estable no ha revelado la barra").toBe(true);
       let dif = 0;
       for (let i = 0; i < a.px.length; i += 4) {
         if (Math.abs(a.px[i] - b.px[i]) + Math.abs(a.px[i + 1] - b.px[i + 1]) + Math.abs(a.px[i + 2] - b.px[i + 2]) > 40) dif++;

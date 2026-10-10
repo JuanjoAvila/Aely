@@ -5,17 +5,11 @@ const I = {
   // v4 nav: casa / lista / calendario / tendencia (stroke 2.1, ~22 px)
   home:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.1",width:22,height:22},p),React.createElement("path",{d:"M3 10.5L12 3l9 7.5"}),React.createElement("path",{d:"M5 10v10h14V10"}),React.createElement("path",{d:"M10 20v-6h4v6"})),
   calendar:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.1",width:22,height:22},p),React.createElement("rect",{x:3,y:5,width:18,height:16,rx:2}),React.createElement("path",{d:"M3 10h18M8 3v4M16 3v4"})),
-  dash:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.2"},p),React.createElement("path",{d:"M3 13h8V3H3zM13 21h8V11h-8zM13 3v6h8V3zM3 17v4h8v-4z"})),
   expense:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.1",width:22,height:22},p),React.createElement("path",{d:"M3 7h18M3 12h18M3 17h12"})),
   invest:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.1",width:22,height:22},p),React.createElement("path",{d:"M3 17l6-6 4 4 7-8M21 7v6M21 7h-6"})),
-  wealth:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.2"},p),React.createElement("path",{d:"M4 21h16M5 21V9l7-5 7 5v12M9 21v-6h6v6"})),
-  debt:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.2"},p),React.createElement("circle",{cx:"12",cy:"12",r:"9"}),React.createElement("path",{d:"M9 9.5a3 3 0 0 1 5.5 1.2c0 2-3 2.3-3 4M12 17h.01"})),
-  fixed:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.2"},p),React.createElement("path",{d:"M17 2l4 4-4 4"}),React.createElement("path",{d:"M3 11V9a4 4 0 0 1 4-4h14"}),React.createElement("path",{d:"M7 22l-4-4 4-4"}),React.createElement("path",{d:"M21 13v2a4 4 0 0 1-4 4H3"})),
   sync:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.2"},p),React.createElement("path",{d:"M21 12a9 9 0 1 1-2.6-6.4M21 4v4h-4"})),
   plus:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.4"},p),React.createElement("path",{d:"M12 5v14M5 12h14"})),
   chev:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.4",width:"18",height:"18"},p),React.createElement("path",{d:"M6 9l6 6 6-6"})),
-  up:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.6",width:"13",height:"13"},p),React.createElement("path",{d:"M12 19V5M5 12l7-7 7 7"})),
-  down:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.6",width:"13",height:"13"},p),React.createElement("path",{d:"M12 5v14M5 12l7 7 7-7"})),
   /* A-DOT BADGE — el logo de Aely (brief), rehecho el 10/9 contra la referencia de verdad.
      La primera versión era una A de trazo fino nadando en un marco vacío y él la despachó en dos
      palabras: «esto es un mierdón, la foto original es la chula». Tenía razón, y la diferencia se
@@ -56,12 +50,6 @@ const I = {
         // El punto vive DENTRO del hueco, donde iría el travesaño. Casi rozando las patas.
         React.createElement("circle",{cx:31.8,cy:43.7,r:5.1,fill:"currentColor"})));
   },
-  cloud:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.2"},p),React.createElement("path",{d:"M17.5 19a4.5 4.5 0 0 0 .5-8.97A6 6 0 0 0 6.2 9.2 4 4 0 0 0 6.5 19z"})),
-  cloudOff:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.2"},p),React.createElement("path",{d:"M17.5 19a4.5 4.5 0 0 0 1.9-8.58M9 5.2A6 6 0 0 1 18 9.2M6.5 19a4 4 0 0 1-.3-7.8"}),React.createElement("path",{d:"M3 3l18 18"})),
-  gear:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2"},p),React.createElement("circle",{cx:12,cy:12,r:3}),React.createElement("path",{d:"M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 8 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H2a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 3.6 8a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.05a1.65 1.65 0 0 0 1-1.51V2a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.05a1.65 1.65 0 0 0 1.51 1H22a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"})),
-  goal:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.2"},p),React.createElement("circle",{cx:12,cy:12,r:9}),React.createElement("circle",{cx:12,cy:12,r:5}),React.createElement("circle",{cx:12,cy:12,r:1.5,fill:"currentColor"})),
-  share:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.2"},p),React.createElement("circle",{cx:18,cy:5,r:3}),React.createElement("circle",{cx:6,cy:12,r:3}),React.createElement("circle",{cx:18,cy:19,r:3}),React.createElement("path",{d:"M8.6 10.6l6.8-4M8.6 13.4l6.8 4"})),
-  medal:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.2"},p),React.createElement("path",{d:"M8 3l3 6M16 3l-3 6"}),React.createElement("circle",{cx:12,cy:15,r:6})),
 };
 
 /* ============================================================
@@ -624,34 +612,6 @@ function useCountUp(target, ready, replay){
   return shown;
 }
 
-function Sparkline({data, current}){
-  const pts = data.concat(current!=null?[current]:[]);
-  // Con 0 o 1 puntos esto pintaba una recta de lado a lado con su puntito final: parece un grafico
-  // de verdad que dice cero, y es lo primero que ve alguien que acaba de instalar la app. Sin
-  // datos no hay grafico (P1). Quien lo llama reserva el hueco para que no salte el layout.
-  if(pts.length<2) return null;
-  const w=320, h=70, pad=4;
-  const min=Math.min.apply(null,pts), max=Math.max.apply(null,pts);
-  const rng=(max-min)||1;
-  const xs=(i)=> pad + (pts.length>1 ? i*(w-2*pad)/(pts.length-1) : 0);
-  const ys=(v)=> pad + (1-(v-min)/rng)*(h-2*pad);
-  let d="M"+xs(0)+" "+ys(pts[0]);
-  for(let i=1;i<pts.length;i++) d+=" L"+xs(i)+" "+ys(pts[i]);
-  const area=d+" L"+xs(pts.length-1)+" "+h+" L"+xs(0)+" "+h+" Z";
-  const lastX=xs(pts.length-1), lastY=ys(pts[pts.length-1]);
-  return React.createElement("svg",{className:"spark",viewBox:"0 0 "+w+" "+h,preserveAspectRatio:"none"},
-    React.createElement("defs",null,
-      React.createElement("linearGradient",{id:"sparkfill",x1:"0",y1:"0",x2:"0",y2:"1"},
-        React.createElement("stop",{offset:"0",stopColor:"#5FD08A",stopOpacity:"0.28"}),
-        React.createElement("stop",{offset:"1",stopColor:"#5FD08A",stopOpacity:"0"})
-      )
-    ),
-    React.createElement("path",{d:area,fill:"url(#sparkfill)"}),
-    React.createElement("path",{d:d,fill:"none",stroke:"#5FD08A",strokeWidth:"2.4",strokeLinecap:"round",strokeLinejoin:"round",vectorEffect:"non-scaling-stroke"}),
-    React.createElement("circle",{cx:lastX,cy:lastY,r:"3.5",fill:"#7DE8A8"})
-  );
-}
-
 // Snapshot diario del total invertido (valor + coste opcional). Idempotente por día.
 function recordInvSnapshot(hist, today, value, cost){
   const h=(hist||[]).slice();
@@ -725,27 +685,6 @@ function StackedBar({segments}){
   );
 }
 
-function Ring({ratio, spent, budget}){
-  const r=54, c=2*Math.PI*r, clamped=Math.min(ratio,1);
-  const col = ratio>1 ? "#E2705F" : ratio>=0.7 ? "#E6C36A" : "#5FD08A";
-  return React.createElement("div",{className:"ring-wrap"},
-    React.createElement("div",{className:"ring"},
-      React.createElement("svg",{width:"124",height:"124",viewBox:"0 0 124 124"},
-        React.createElement("circle",{cx:"62",cy:"62",r:r,fill:"none",stroke:"#16291E",strokeWidth:"11"}),
-        React.createElement("circle",{cx:"62",cy:"62",r:r,fill:"none",stroke:col,strokeWidth:"11",strokeLinecap:"round",strokeDasharray:c,strokeDashoffset:c*(1-clamped),style:{transition:"stroke-dashoffset .6s ease"}})
-      ),
-      React.createElement("div",{className:"ring-center"},
-        React.createElement("div",{className:"big num",style:{color:col}},Math.round(ratio*100)+"%"),
-        React.createElement("div",{className:"small"},"del límite")
-      )
-    ),
-    React.createElement("div",{className:"ring-foot"},
-      React.createElement("span",{className:"num",style:{fontWeight:700}},eur0(spent)),
-      React.createElement("span",{className:"muted num"},"de "+eur0(budget))
-    )
-  );
-}
-
 /* Anillo v4.1 compartido (Inicio y portada de Plan). Geometría 104/r=48/stroke10 — la de 96/r=54
    de la spec se sale del viewBox (audit Claude 17/9). Sin animación al montar en Plan. */
 function V4Ring({pct, tone, label, sub, animate}){
@@ -766,18 +705,6 @@ function V4Ring({pct, tone, label, sub, animate}){
       )
     )
   );
-}
-
-function MiniPie({slices}){
-  const total=slices.reduce((a,s)=>a+s.value,0)||1;
-  let acc=0; const r=42,cx=48,cy=48;
-  const arcs=slices.map((s,i)=>{
-    const frac=s.value/total, a0=acc*2*Math.PI-Math.PI/2; acc+=frac; const a1=acc*2*Math.PI-Math.PI/2;
-    const large=frac>0.5?1:0;
-    const x0=cx+r*Math.cos(a0),y0=cy+r*Math.sin(a0),x1=cx+r*Math.cos(a1),y1=cy+r*Math.sin(a1);
-    return React.createElement("path",{key:i,d:"M"+cx+" "+cy+" L"+x0+" "+y0+" A"+r+" "+r+" 0 "+large+" 1 "+x1+" "+y1+" Z",fill:s.color,stroke:"#0E1A14",strokeWidth:"1.5"});
-  });
-  return React.createElement("svg",{width:"96",height:"96",viewBox:"0 0 96 96"},arcs,React.createElement("circle",{cx:cx,cy:cy,r:"20",fill:"#0E1A14"}));
 }
 
 /* ---- Cierre de overlays con el gesto/botón "atrás" del móvil (History API) ----

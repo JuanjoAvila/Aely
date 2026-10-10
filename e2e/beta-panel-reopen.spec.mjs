@@ -13,11 +13,71 @@ import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
  */
 
 async function bootBeta(page) {
+  // Estas cuatro regresiones de UI no dependen de una entrega real ni pueden consultarla.
+  await page.route("https://juanjoavila.github.io/Aely/**", route => route.abort());
   await seedLoggedInDashboard(page);
   await page.addInitScript(() => { localStorage.setItem("_mcChannel", "beta"); });
   await page.goto("/");
   await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
   await dismissNews(page);
+}
+
+async function seedActiveReopenChecklist(page, count) {
+  await page.waitForFunction(() => Array.isArray(window.RELEASE_NOTES) && window.RELEASE_NOTES.length > 0, null, { timeout: 10_000 });
+  const fixture = await page.evaluate(async count => {
+    // La consulta anterior debe terminar antes del stub: su cierre podría pisar el fixture.
+    if (_mcProdVerCache) await _mcProdVerCache;
+    CONFIG.APP_VERSION = "9.9.9.1";
+    const items = Array.from({ length: count }, (_, i) => "punto sintético " + i + " con texto de sobra para que el panel tenga scroll y la altura guardada se pueda restaurar");
+    RELEASE_NOTES = [{
+      v: "9.9.9", d: "e2e",
+      t: { es: "Reapertura sintética", en: "Synthetic reopening", ca: "Reobertura sintètica" },
+      items: { es: items, en: items, ca: items },
+      tandas: [{
+        id: "reopen-fixture",
+        t: { es: "Reapertura sintética", en: "Synthetic reopening", ca: "Reobertura sintètica" },
+        items: { es: items, en: items, ca: items },
+        codigo: "a".repeat(64), web: "b".repeat(64),
+      }],
+    }];
+    // Como el fixture de revisar-beta: se aísla la UI del transporte, sin inventar recibos.
+    _mcProdVerLast = null;
+    window._mcProdEntregas = null;
+    window._mcProdApk = null;
+    window._mcProdApkRevisiones = null;
+    window._mcProdVersion = function () { return Promise.resolve(null); };
+    delete window._mcProdDeliveryChecked;
+    const pack = betaChecklist(CONFIG.APP_VERSION, null, null);
+    window.__reopenFixture = { id: pack.tandas[0].id, huella: pack.tandas[0].huella };
+    return {
+      pending: _mcProdVerPending,
+      ids: pack.tandas.map(g => g.id),
+      historical: pack.tandas.map(g => !!g.referenciaHistorica),
+      items: pack.items.length,
+      verdict: betaSavedVerdicts(pack),
+      receipt: window._mcProdEntregas,
+      identity: window.__reopenFixture,
+    };
+  }, count);
+  expect(fixture.pending).toBe(false);
+  expect(fixture.ids).toEqual(["reopen-fixture"]);
+  expect(fixture.historical).toEqual([false]);
+  expect(fixture.items).toBe(count);
+  expect(fixture.verdict).toEqual({});
+  expect(fixture.receipt).toBe(null);
+  return fixture.identity;
+}
+
+async function openReopenChecklist(page) {
+  await page.evaluate(() => window.dispatchEvent(new CustomEvent("mc-open-settings")));
+  // El listener beta vive en Ajustes: esperar su pantalla conserva la puerta real.
+  await expect(page.getByRole("heading", { name: /Ajustes|Settings|Ajustos/i })).toBeVisible({ timeout: 8_000 });
+  await page.evaluate(() => window.dispatchEvent(new CustomEvent("mc-open-beta-review")));
+  const panel = page.locator(".beta-review");
+  await expect(panel).toBeVisible({ timeout: 8_000 });
+  await expect(panel.locator(".beta-tanda")).toHaveCount(1);
+  await expect(panel.locator(".beta-tanda")).toContainText("Reapertura sintética");
+  return panel;
 }
 
 function ajustesAbierto(page) {
@@ -68,52 +128,49 @@ test("cerrar el cajón de Ajustes olvida la marca: recargar aterriza en Inicio",
 
 test("enviar el último veredicto olvida la marca: recargar aterriza en Inicio", async ({ page }) => {
   await bootBeta(page);
-  await page.waitForFunction(() => Array.isArray(window.RELEASE_NOTES) && window.RELEASE_NOTES.length > 0, null, { timeout: 10_000 });
-
+  const fixture = await seedActiveReopenChecklist(page, 1);
   await page.evaluate(() => {
-    CONFIG.APP_VERSION = "4.24.4.1";
-    const notes = {
-      v: "4.24.4", d: "e2e",
-      t: { es: "e2e", en: "e2e", ca: "e2e" },
-      items: { es: ["punto e2e"], en: ["e2e point"], ca: ["punt e2e"] },
-      tandas: [{
-        id: "solo",
-        t: { es: "sola", en: "only", ca: "sola" },
-        items: { es: ["punto e2e"], en: ["e2e point"], ca: ["punt e2e"] },
-      }],
-    };
-    RELEASE_NOTES.unshift(notes);
-    window._mcProdVersion = function () { return Promise.resolve(null); };
     localStorage.setItem("_betaPanelAbierto", String(Date.now() - 30_000));
     localStorage.removeItem("_betaPanelReabierto");
-    const sk = "_betaReview_" + CONFIG.APP_VERSION;
-    localStorage.setItem(sk, JSON.stringify({ 0: "ok" }));
+    window.__reopenReports = [];
+    cloud.betaReport = function (payload) { window.__reopenReports.push(payload); return Promise.resolve({ ok: true }); };
   });
 
-  await page.evaluate(() => window.dispatchEvent(new CustomEvent("mc-open-settings")));
-  // Con la suite cargada, 0 ms podía disparar el segundo evento antes de montar SettingsPanel.
-  // Esperar su pantalla reproduce la puerta real y evita un verde/rojo según la velocidad del PC.
-  await expect(page.getByRole("heading", { name: /Ajustes|Settings|Ajustos/i })).toBeVisible({ timeout: 8_000 });
-  await page.evaluate(() => window.dispatchEvent(new CustomEvent("mc-open-beta-review")));
-  await expect(page.locator(".beta-review")).toBeVisible({ timeout: 8_000 });
-
-  await page.evaluate(() => {
-    cloud.betaReport = function () { return Promise.resolve({ ok: true }); };
-  });
-
-  const aprobar = page.locator(".beta-review button").filter({ hasText: /Aprobar|Approve|Aprovar/i }).first();
-  await expect(aprobar).toBeVisible({ timeout: 8_000 });
+  const panel = await openReopenChecklist(page);
+  const row = panel.locator(".beta-tanda");
+  await expect(row.locator(".beta-item")).toHaveCount(1);
+  await expect(row.locator(".beta-tanda-n")).toHaveText("0/1");
+  const aprobar = row.getByRole("button", { name: /Aprobar esta tanda/ });
+  await expect(aprobar).toBeDisabled();
+  await row.getByRole("button", { name: /Va bien/ }).click();
+  await expect(row.locator(".beta-tanda-n")).toHaveText("1/1");
+  await expect(aprobar).toBeEnabled();
   await aprobar.click();
   await page.waitForTimeout(600);
 
-  const abierto = await page.evaluate(() => localStorage.getItem("_betaPanelAbierto"));
-  expect(abierto, "último veredicto borra la marca").toBe(null);
+  const sent = await page.evaluate(() => ({
+    reports: window.__reopenReports,
+    verdict: store.get("_betaReview_" + CONFIG.APP_VERSION + "_v"),
+    abierto: localStorage.getItem("_betaPanelAbierto"),
+    reabierto: localStorage.getItem("_betaPanelReabierto"),
+    receipt: window._mcProdEntregas,
+  }));
+  expect(sent.reports).toHaveLength(1);
+  expect(sent.reports[0]).toMatchObject({
+    verdict: "approved", version: "9.9.9.1", notas: "9.9.9",
+    tanda: fixture.id, huella: fixture.huella, probados: 1, fallos: 0, sinProbar: 0, noProbable: 0,
+  });
+  expect(sent.verdict["h:" + fixture.huella].verdict).toBe("approved");
+  expect(sent.abierto, "último veredicto borra la marca").toBe(null);
+  expect(sent.reabierto).toBe(null);
+  expect(sent.receipt, "aprobar una prueba no acredita entrega").toBe(null);
 
   await page.reload();
   await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
   await dismissNews(page);
   await page.waitForTimeout(800);
   expect(await ajustesAbierto(page)).toBe(false);
+  await expect(page.locator(".beta-review")).toHaveCount(0);
 });
 
 /* ⚠ LA PUERTA DE ATRÁS DEL MISMO BUCLE (review 16/9).
@@ -124,20 +181,8 @@ test("enviar el último veredicto olvida la marca: recargar aterriza en Inicio",
  * ni el «ya reabierto» pueden moverse. Falla con el código de 4.24.4 tal cual llegó. */
 test("★ restaurar la altura NO cuenta como interacción: la marca no se renueva sola", async ({ page }) => {
   await bootBeta(page);
-  await page.waitForFunction(() => Array.isArray(window.RELEASE_NOTES) && window.RELEASE_NOTES.length > 0, null, { timeout: 10_000 });
-
+  await seedActiveReopenChecklist(page, 25);
   const marca = await page.evaluate(() => {
-    CONFIG.APP_VERSION = "4.24.4.1";
-    // Lo bastante largo para que el panel tenga scroll de verdad y la altura se pueda restaurar.
-    const items = [];
-    for (let i = 0; i < 25; i++) items.push("punto de prueba " + i + " con texto de sobra para que el panel tenga scroll y la altura guardada se pueda restaurar");
-    RELEASE_NOTES.unshift({
-      v: "4.24.4", d: "e2e",
-      t: { es: "e2e", en: "e2e", ca: "e2e" },
-      items: { es: items, en: items, ca: items },
-      tandas: [{ id: "solo", t: { es: "sola", en: "only", ca: "sola" }, items: { es: items, en: items, ca: items } }],
-    });
-    window._mcProdVersion = function () { return Promise.resolve(null); };
     const t = String(Date.now() - 60_000);
     localStorage.setItem("_betaPanelAbierto", t);
     localStorage.setItem("_betaPanelReabierto", t);   // esta marca YA gastó su reapertura
@@ -145,24 +190,25 @@ test("★ restaurar la altura NO cuenta como interacción: la marca no se renuev
     return t;
   });
 
-  // Reapertura automática: el panel se monta sin que él toque la pantalla.
-  await page.evaluate(() => {
-    window.dispatchEvent(new CustomEvent("mc-open-settings"));
-    setTimeout(() => window.dispatchEvent(new CustomEvent("mc-open-beta-review")), 0);
-  });
-  await expect(page.locator(".beta-review")).toBeVisible({ timeout: 8_000 });
-  await expect.poll(() => page.evaluate(() => document.querySelector(".beta-review").scrollTop), { timeout: 5_000 }).toBe(300);
+  // Reapertura automática: los eventos esperan Ajustes sin introducir ningún gesto.
+  const panel = await openReopenChecklist(page);
+  await expect(panel.locator(".beta-item")).toHaveCount(25);
+  await expect(panel.locator(".beta-tanda-n")).toHaveText("0/25");
+  expect(await panel.evaluate(el => el.scrollHeight - el.clientHeight)).toBeGreaterThanOrEqual(300);
+  await expect.poll(() => panel.evaluate(el => el.scrollTop), { timeout: 5_000 }).toBe(300);
   await page.waitForTimeout(600);
 
   const d = await page.evaluate(() => ({
     abierto: localStorage.getItem("_betaPanelAbierto"),
     reabierto: localStorage.getItem("_betaPanelReabierto"),
+    scroll: localStorage.getItem("_betaPanelScroll"),
   }));
   expect(d.abierto, "restaurar la altura no puede renovar la marca").toBe(marca);
   expect(d.reabierto, "restaurar la altura no puede devolverle la reapertura").toBe(marca);
+  expect(d.scroll).toBe("300");
 
   // Y el dedo SÍ: mientras lee, la marca no caduca debajo de él.
-  await page.locator(".beta-review").dispatchEvent("pointerdown");
+  await panel.dispatchEvent("pointerdown");
   await expect.poll(() => page.evaluate(() => localStorage.getItem("_betaPanelAbierto")), { timeout: 3_000 }).not.toBe(marca);
   expect(await page.evaluate(() => localStorage.getItem("_betaPanelReabierto"))).toBe(null);
 });

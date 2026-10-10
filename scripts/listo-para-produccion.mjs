@@ -34,12 +34,12 @@ import { loadPureLogicFromFile } from "./load-pure-logic.mjs";
 
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const PROJECT_REF = "sfyfjagbnhbplrljpbvh";
-const BASE = `https://${PROJECT_REF}.supabase.co`;
+const BASE = ("https://"+String(PROJECT_REF)+".supabase.co");
 
 const args = process.argv.slice(2);
-const flag = (n) => args.includes(`--${n}`);
+const flag = (n) => args.includes(("--"+String(n)+""));
 const val = (n, d) => {
-  const a = args.find((x) => x.startsWith(`--${n}=`));
+  const a = args.find((x) => x.startsWith(("--"+String(n)+"=")));
   return a ? a.slice(n.length + 3) : d;
 };
 
@@ -65,8 +65,8 @@ if (!KEY) {
    Dev usa profiles.is_admin. Sin un único titular verificable no elegimos entre cuentas. */
 async function reviewerAutorizado() {
   const q = new URLSearchParams({ select:"user_id,is_admin", is_admin:"eq.true", limit:"2" });
-  const r = await fetch(`${BASE}/rest/v1/profiles?${q}`, {
-    headers: { apikey:KEY, Authorization:`Bearer ${KEY}`, Prefer:"count=exact" },
+  const r = await fetch((""+String(BASE)+"/rest/v1/profiles?"+String(q)+""), {
+    headers: { apikey:KEY, Authorization:("Bearer "+String(KEY)+""), Prefer:"count=exact" },
   });
   if (!r.ok) throw new Error("no se pudo consultar el rol Dev");
   const profiles = await r.json();
@@ -151,11 +151,11 @@ qs.set("kind", "eq.beta");
 qs.set("user_id", "eq." + reviewer);
 qs.set("order", "created_at.desc");
 qs.set("limit", val("limit", "200"));
-const res = await fetch(`${BASE}/rest/v1/app_events?${qs}`, {
-  headers: { apikey: KEY, Authorization: `Bearer ${KEY}` },
+const res = await fetch((""+String(BASE)+"/rest/v1/app_events?"+String(qs)+""), {
+  headers: { apikey: KEY, Authorization: ("Bearer "+String(KEY)+"") },
 });
 if (!res.ok) {
-  console.error(`Supabase respondió ${res.status} ${res.statusText}`);
+  console.error(("Supabase respondió "+String(res.status)+" "+String(res.statusText)+""));
   process.exit(1);
 }
 const rows = await res.json();
@@ -205,10 +205,11 @@ const filas = tandas.map((g) => {
     version: v ? v.version : null,
     heredado: v && v.tanda !== g.id ? v.tanda : null,
     apk: g.apk || null,
-    entregaPendiente: cli.betaSinEntregar(g, prodApk),
+    referenciaHistorica: g.referenciaHistorica||null,
+    entregaPendiente: !g.referenciaHistorica&&cli.betaSinEntregar(g, prodApk),
     superficies: [g.native ? "APK" : null, g.edge ? "Edge" : null].filter(Boolean),
     rechazoAnterior: rechazoAnterior ? { tanda:rechazoAnterior.tanda, cuando:rechazoAnterior.cuando, version:rechazoAnterior.version } : null,
-    rama: ramas.has(corto) ? `tanda/${corto}` : null,
+    rama: !g.referenciaHistorica&&ramas.has(corto) ? ("tanda/"+String(corto)+"") : null,
   };
 });
 
@@ -219,9 +220,9 @@ if (flag("json")) {
 
 const ico = { approved: "✅", rejected: "⛔", "sin probar": "⬜" };
 console.log("\n📦  LISTO PARA PRODUCCIÓN\n");
-console.log(`  en su móvil ${VERSION_CANAL || VERSION_REPO + " (del repo: sin red para leer el canal)"} · producción ${prod || "(sin red)"} · APK estable ${prodApk || "(sin red)"}`);
+console.log(("  en su móvil "+String(VERSION_CANAL || VERSION_REPO + " (del repo: sin red para leer el canal)")+" · producción "+String(prod || "(sin red)")+" · APK estable "+String(prodApk || "(sin red)")+""));
 if (VERSION_CANAL && VERSION_CANAL.indexOf(VERSION_REPO) !== 0) {
-  console.log(`  ⚠ aquí hay ${VERSION_REPO} sin publicar: sus tandas todavía no le han llegado.`);
+  console.log(("  ⚠ aquí hay "+String(VERSION_REPO)+" sin publicar: sus tandas todavía no le han llegado."));
 }
 console.log("");
 
@@ -232,39 +233,43 @@ if (!filas.length) {
 
 for (const f of filas) {
   const cuando = f.cuando ? new Date(f.cuando).toLocaleString("es-ES", { day: "numeric", month: "numeric", hour: "2-digit", minute: "2-digit" }) : "";
-  console.log(`  ${ico[f.estado] || "·"} ${f.titulo || f.id}`);
-  console.log(`      ${f.id}${cuando ? "  ·  " + cuando : ""}${f.version ? "  ·  probada en " + f.version : ""}`);
-  if (f.heredado) console.log(`      ↳ veredicto de ${f.heredado}, mismo contenido`);
-  if (f.estado === "sin probar" && f.rechazoAnterior) console.log(`      ⛔ rechazo histórico de ${f.rechazoAnterior.tanda}; esta revisión requiere veredicto nuevo`);
-  if (f.entregaPendiente && f.estado === "approved") console.log(`      ⏳ aprobada, pendiente de entrega exacta${f.superficies.length ? ": " + f.superficies.join(" + ") : " web"}`);
+  console.log(("  "+String(ico[f.estado] || "·")+" "+String(f.titulo || f.id)+""));
+  console.log(("      "+String(f.id)+""+String(cuando ? "  ·  " + cuando : "")+""+String(f.version ? "  ·  probada en " + f.version : "")+""));
+  if(f.referenciaHistorica){console.log("      Referencia histórica: función ausente; se conserva la decisión y no acredita entrega actual.");continue;}
+  if (f.heredado) console.log(("      ↳ veredicto de "+String(f.heredado)+", mismo contenido"));
+  if (f.estado === "sin probar" && f.rechazoAnterior) console.log(("      ⛔ rechazo histórico de "+String(f.rechazoAnterior.tanda)+"; esta revisión requiere veredicto nuevo"));
+  if (f.entregaPendiente && f.estado === "approved") console.log(("      ⏳ aprobada, pendiente de entrega exacta"+String(f.superficies.length ? ": " + f.superficies.join(" + ") : " web")+""));
   if (f.estado === "approved") {
-    console.log(f.superficies.length ? `      ⚠ requiere entrega acreditada de ${f.superficies.join(" y ")}; la rama web no entrega esas superficies` : f.rama
-      ? `      ↑ se puede subir sola:  rama ${f.rama}`
+    console.log(f.superficies.length ? ("      ⚠ requiere entrega acreditada de "+String(f.superficies.join(" y "))+"; la rama web no entrega esas superficies") : f.rama
+      ? ("      ↑ se puede subir sola:  rama "+String(f.rama)+"")
       : `      ⚠ aprobada pero SIN rama propia: no se puede subir sola (está mezclada en beta)`);
   }
 }
 
-const aprobadas = filas.filter((f) => f.estado === "approved");
+const activas = filas.filter((f) => !f.referenciaHistorica);
+const aprobadas = activas.filter((f) => f.estado === "approved");
 const conRama = aprobadas.filter((f) => f.rama && !f.superficies.length);
 const sinRama = aprobadas.filter((f) => !f.rama);
-const pendientes = filas.filter((f) => f.estado !== "approved");
+const pendientes = activas.filter((f) => f.estado !== "approved");
 
 console.log("\n  ─────────────────────────────────────────");
-console.log(`  ${aprobadas.length} aprobada(s) · ${filas.filter((f) => f.estado === "rejected").length} rechazada(s) · ${filas.filter((f) => f.estado === "sin probar").length} sin probar\n`);
+console.log(("  "+String(aprobadas.length)+" aprobada(s) · "+String(activas.filter((f) => f.estado === "rejected").length)+" rechazada(s) · "+String(activas.filter((f) => f.estado === "sin probar").length)+" sin probar\n"));
 
 if (conRama.length) {
   console.log("  PUEDES SUBIR YA, sin esperar al resto:");
   console.log("    Actions → «Promocionar beta a producción» → confirmar SUBIR");
-  console.log(`    tandas: ${conRama.map((f) => f.corto).join(",")}\n`);
+  console.log(("    tandas: "+String(conRama.map((f) => f.corto).join(","))+"\n"));
 }
 if (sinRama.length) {
   console.log("  APROBADAS QUE NO SE PUEDEN TROCEAR (se commitearon mezcladas en beta):");
-  sinRama.forEach((f) => console.log(`    · ${f.corto}`));
+  sinRama.forEach((f) => console.log(("    · "+String(f.corto)+"")));
   console.log("    Suben cuando suba la ronda entera, o sea cuando no quede nada pendiente.\n");
 }
-if (!pendientes.length && !filas.some(f => f.superficies.length)) {
+if (activas.length && !pendientes.length && !activas.some(f => f.superficies.length)) {
   console.log("  ✔ NO QUEDA NADA PENDIENTE: la ronda entera está aprobada.");
   console.log("    Actions → «Promocionar beta a producción», deja «tandas» vacío y confirma SUBIR.\n");
+} else if (!activas.length) {
+  console.log("  Sin comprobaciones activas pendientes. Las referencias históricas conservan sus decisiones.\n");
 } else {
-  console.log(`  Falta que pruebes ${pendientes.length}: ${pendientes.map((f) => f.corto).join(", ")}\n`);
+  console.log(("  Falta que pruebes "+String(pendientes.length)+": "+String(pendientes.map((f) => f.corto).join(", "))+"\n"));
 }

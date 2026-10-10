@@ -5,6 +5,22 @@ function dashOrderOf(s, allIds){
   const saved=((s.settings&&s.settings.dashOrder)||[]).filter(function(id){ return allIds.indexOf(id)>=0; });
   return saved.concat(allIds.filter(function(id){ return saved.indexOf(id)<0; }));
 }
+function NetWorthNow({value, shown, simple}){
+  // Los números guardados no acreditan fechas ni observaciones reales: unir el cero de alta
+  // o la semilla al patrimonio parecía una evolución. Se muestra solo el total de ahora
+  // (rechazo 9/10/2026), sin interpretar, borrar ni reescribir ese histórico.
+  const valid=typeof value==="number" && Number.isFinite(value);
+  const p=valid?eurParts(typeof shown==="number" && Number.isFinite(shown)?shown:value):null;
+  return React.createElement("div",{className:"v4-hero rise","data-tour":"hero","data-testid":"inicio-net-current",style:{animationDelay:".05s"}},
+    React.createElement("div",{className:"v4-net-current-head"},
+      React.createElement("div",{className:"v4-micro"}, t(simple?"v4_money_total":"d_networth")),
+      React.createElement("span",{className:"v4-net-now","data-testid":"inicio-net-now"}, t("v4_net_now"))
+    ),
+    React.createElement("div",{className:"v4-hero-amt num","data-tour":"hero-amt"},
+      p?p.sign+p.ent:"—", p&&React.createElement("span",{style:{fontSize:28,color:"var(--muted)"}},","+(p.dec||"00")+" "+p.sym)),
+    !valid&&React.createElement("div",{className:"hint",role:"status"}, t("v4_net_unknown"))
+  );
+}
 function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProfile, onGoGastos, onGoPlan, showToast}){
   const tt=totals;
   const simple=!!(state.settings&&state.settings.simpleMode);
@@ -148,7 +164,6 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
   // Inicio resume tres metas activas; Plan conserva todas sin cambiar su orden ni sus saldos.
   const goals=(state.goals||[]).filter(function(g){ return !g.done; }).slice(0,3);
   const recent=useMemo((s=state)=>(s.expenses||[]).filter(e=>!expenseIsTombstoned(e,expenseDeletedSet(s))).sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,3),[state.expenses,state.deleted]);
-  const p=eurParts(shownNet);
   const ringPct=Math.max(0,Math.min(1,ratio));
   /* P6 — EL ANILLO SE DIBUJA, NO APARECE YA LLENO.
      El circulo recibia el `strokeDashoffset` FINAL y una `transition` de 1s, y una transicion no
@@ -218,24 +233,7 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
       }}, t("mr_share"))
     ),
 
-    !showSkel && React.createElement("div",{className:"v4-hero rise","data-tour":"hero",style:{animationDelay:".05s"}},
-      React.createElement("div",{className:"v4-micro"}, t(simple?"v4_money_total":"d_networth")),
-      React.createElement("div",{className:"v4-hero-amt num","data-tour":"hero-amt"},
-        p.sign+p.ent, React.createElement("span",{style:{fontSize:28,color:"var(--muted)"}},","+(p.dec||"00")+" "+p.sym)),
-      // Sin una foto real del día 1, «este mes» era patrimonio menos un seed antiguo: parecía
-      // una ganancia de miles de euros. Se retira en vez de inventar una base (feedback 18/9).
-      // INC-0810 gráfica: significado de las cifras sin fecha.
-      React.createElement("div",{style:{marginTop:14}},
-        // `state.history` son números sueltos: el alta guarda un 0, la semilla de ejemplo no
-        // tiene día y no hay otro escritor. El último punto es el total de ahora y solo se
-        // añade al pintar. Sin fecha, la altura (mínimo a máximo) no es una ganancia (2026-10-08).
-        (state.history&&state.history.length>=1)
-          ? React.createElement(Sparkline,{data:state.history,current:tt.netWorth})
-          : null,
-        React.createElement("div",{"data-testid":"inicio-chart-note",style:{fontSize:12.5,color:"var(--muted-2)",padding:"6px 0 2px"}},
-          (state.history&&state.history.length>=1)?t("v4_chart_line"):t("v4_hist_empty"))
-      )
-    ),
+    !showSkel && React.createElement(NetWorthNow,{value:tt.netWorth, shown:shownNet, simple:simple}),
 
     // Sin presupuesto, Inicio escondia su tarjeta estrella y te quedabas sin la mitad de la app
     // sin saber por que (P3). En vez de esconderla, la misma tarjeta en vacio y con salida: abre

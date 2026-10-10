@@ -1,5 +1,55 @@
 [
   {
+    "v": "4.26.112",
+    "d": "2026-10-10",
+    "t": {
+      "es": "El total de ahora en Inicio",
+      "en": "Your current total on Home",
+      "ca": "El total d’ara a Inici"
+    },
+    "items": {
+      "es": [
+        "Inicio muestra el patrimonio actual con la etiqueta «Ahora», sin una línea que pueda confundirse con una evolución. Si el total no está disponible, aparece «—» con una explicación."
+      ],
+      "en": [
+        "Home shows your current net worth with a “Now” label, without a line that could be mistaken for a trend. If the total is unavailable, “—” appears with an explanation."
+      ],
+      "ca": [
+        "Inici mostra el patrimoni actual amb l’etiqueta «Ara», sense una línia que es pugui confondre amb una evolució. Si el total no està disponible, apareix «—» amb una explicació."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inc-0910-inicio-solo-actual",
+        "t": {
+          "es": "Inicio: total actual",
+          "en": "Home: current total",
+          "ca": "Inici: total actual"
+        },
+        "items": {
+          "es": [
+            "1. Abre Inicio y comprueba el patrimonio: conserva el importe y la moneda, con la etiqueta «Ahora».",
+            "2. Comprueba que no aparece una línea de evolución, tanto sin cifras anteriores como con ellas.",
+            "3. Cambia entre el modo simple y el completo: cambia el título, pero se conserva el mismo total.",
+            "4. Cambia la moneda de presentación y vuelve a la anterior: los saldos guardados se conservan."
+          ],
+          "en": [
+            "1. Open Home and check your net worth: the amount and currency are preserved, with the “Now” label.",
+            "2. Check that no trend line appears, both with and without earlier figures.",
+            "3. Switch between simple and full mode: the title changes, but the total stays the same.",
+            "4. Change the display currency and switch back: stored balances are preserved."
+          ],
+          "ca": [
+            "1. Obre Inici i comprova el patrimoni: conserva l’import i la moneda, amb l’etiqueta «Ara».",
+            "2. Comprova que no apareix una línia d’evolució, tant sense xifres anteriors com amb elles.",
+            "3. Canvia entre el mode simple i el complet: canvia el títol, però es conserva el mateix total.",
+            "4. Canvia la moneda de presentació i torna a l’anterior: els saldos desats es conserven."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.111",
     "d": "2026-10-09",
     "t": {
