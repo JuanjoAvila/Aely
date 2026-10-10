@@ -3945,13 +3945,24 @@ function expenseIsTombstoned(e, delSet){
   return false;
 }
 /* Al borrar un cargo con referencia, la lápida de día tapa al del mediodía y `obid|`
-   tapa a ESA referencia. Si no, el sync devolvería solo la que se borró. */
-function expenseTombKeys(e){
+   tapa a ESA referencia. Si no, el sync devolvería solo la que se borró.
+   Un sello viejo de Canarias no es el mediodía de Madrid: su clave lleva la hora.
+   Si ese cargo está solo, la lápida de día también — si no, otra referencia del
+   mismo día lo devuelve. Con una hermana viva no: esa lápida se comería a las dos. */
+function expenseTombKeys(e, list){
   const keys=[keyOfExpense(e)];
   const s=String(e&&e.source||"");
-  if((s==="ob"||s.indexOf("ob:")===0||s==="ob-hist"||s.indexOf("ob-hist:")===0) && e&&e.extId!=null && e.extId!==""){
+  const ob=s==="ob"||s.indexOf("ob:")===0||s==="ob-hist"||s.indexOf("ob-hist:")===0;
+  if(ob && e&&e.extId!=null && e.extId!==""){
     const b=(typeof expenseBankOf==="function"?expenseBankOf(e):"")||e.ent||"";
     if(b) keys.push("obid|"+b+"|"+e.extId);
+  }
+  const leg=keyOfExpenseLegacy(e);
+  if(ob && list && keys.indexOf(leg)<0){
+    const sola=!list.some(function(x){
+      return x && x!==e && (!e.id || x.id!==e.id) && keyOfExpenseLegacy(x)===leg;
+    });
+    if(sola) keys.push(leg);
   }
   return keys;
 }
@@ -9378,7 +9389,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   const keyOfE=keyOfExpense;
   const delExpense=function(e){
     if(undoTimerRef.current) clearTimeout(undoTimerRef.current);
-    const keys=expenseTombKeys(e), list=state.expenses||[], index=list.findIndex(function(x){ return x.id===e.id; });
+    const list=state.expenses||[], keys=expenseTombKeys(e, list), index=list.findIndex(function(x){ return x.id===e.id; });
     const wasCloud=cloud.enabled();
     // La lápida entra junto con la retirada local: si la nube refresca durante los cinco segundos,
     // no puede resucitar la fila por detrás del toast. La escritura remota sí se encadena para que
@@ -9429,7 +9440,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       let next=resolvePossibleDup(s, e.id, same);
       if(same){
         let deleted=next.deleted;
-        expenseTombKeys(e).forEach(function(k){ deleted=pushDeleted(deleted,k); });
+        expenseTombKeys(e, s.expenses).forEach(function(k){ deleted=pushDeleted(deleted,k); });
         next=Object.assign({},next,{deleted:deleted});
         if(cloud.enabled()) borrarGastoNube(e, "gastos-dup");
       }
@@ -14495,6 +14506,9 @@ function importObExpenses(s, txs){
     if(how==="x") return false;
     if(how==="s"){ e.date=obPickExtStamp(day, tx.ent||"", id, obOcc); if(!e.date) return false; }
     else e.date=madridNoonIso(day);
+    /* `obid|` también vale cuando la referencia llega sola. El plan de hermanas
+       ya la miraba; un sync posterior con solo ese id se la saltaba. */
+    if(!how && id && delSet["obid|"+(tx.ent||"")+"|"+id]) return false;
     if(tx.acctUid) e.acctUid=String(tx.acctUid);
     /* `n` y `s` ya decidieron que esta respuesta trae dos referencias: la red de día no
        puede tragarse a la hermana. El cargo suelto (sin plan) sí sigue esa red. */
@@ -15757,8 +15771,10 @@ function histDate(d,k){
   // UTC estabiliza la excepción ante DST; un milisegundo evita el remoto caso de casar `legacy`.
   let ms=+new Date(d+"T06:00:00Z")+(h%432e5);
   const iso=new Date(ms).toISOString();
-  // Ni el mediodía local ni el de Madrid: si el sello cae ahí, la hermana vuelve a la red de día.
-  if(iso===legacy || iso===madridNoonIso(d)) ms++;
+  /* Ni el mediodía local, ni el de Madrid, ni las tres horas exactas que sella
+     el cliente viejo (península, Canarias, UTC). Si la hermana cae en una de
+     ellas, la lápida de día se la traga. */
+  if(iso===legacy || iso===madridNoonIso(d) || iso===d+"T10:00:00.000Z" || iso===d+"T11:00:00.000Z" || iso===d+"T12:00:00.000Z") ms++;
   return new Date(ms).toISOString();
 }
 
@@ -20646,7 +20662,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="edde283a6329b35bf1bf7eaf8ea79755b2c2f72d3d92678c756edde1a0ab9468";
+var _rnSha="c4b0587d184105ca267a40d20f816b2b5bdd6134e7a065a87f4c03dc11e15896";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){

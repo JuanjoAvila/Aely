@@ -1006,6 +1006,9 @@ function importObExpenses(s, txs){
     if(how==="x") return false;
     if(how==="s"){ e.date=obPickExtStamp(day, tx.ent||"", id, obOcc); if(!e.date) return false; }
     else e.date=madridNoonIso(day);
+    /* `obid|` también vale cuando la referencia llega sola. El plan de hermanas
+       ya la miraba; un sync posterior con solo ese id se la saltaba. */
+    if(!how && id && delSet["obid|"+(tx.ent||"")+"|"+id]) return false;
     if(tx.acctUid) e.acctUid=String(tx.acctUid);
     /* `n` y `s` ya decidieron que esta respuesta trae dos referencias: la red de día no
        puede tragarse a la hermana. El cargo suelto (sin plan) sí sigue esa red. */
@@ -2268,8 +2271,10 @@ function histDate(d,k){
   // UTC estabiliza la excepción ante DST; un milisegundo evita el remoto caso de casar `legacy`.
   let ms=+new Date(d+"T06:00:00Z")+(h%432e5);
   const iso=new Date(ms).toISOString();
-  // Ni el mediodía local ni el de Madrid: si el sello cae ahí, la hermana vuelve a la red de día.
-  if(iso===legacy || iso===madridNoonIso(d)) ms++;
+  /* Ni el mediodía local, ni el de Madrid, ni las tres horas exactas que sella
+     el cliente viejo (península, Canarias, UTC). Si la hermana cae en una de
+     ellas, la lápida de día se la traga. */
+  if(iso===legacy || iso===madridNoonIso(d) || iso===d+"T10:00:00.000Z" || iso===d+"T11:00:00.000Z" || iso===d+"T12:00:00.000Z") ms++;
   return new Date(ms).toISOString();
 }
 

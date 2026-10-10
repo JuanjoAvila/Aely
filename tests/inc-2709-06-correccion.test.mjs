@@ -117,6 +117,8 @@ t("1. mediodía de Madrid: el cliente y el servidor en UTC tapan la misma lápid
   assert.equal(ctx.expenseIsTombstoned(row, { [legacy]: 1 }), true);
   const salt = ctx.histDate(verano, "ob-ext|caixabank|cargo-B");
   const hermana = Object.assign({}, row, { date: salt, extId: "cargo-B" });
+  assert.notEqual(ctx.keyOfExpense(hermana), legacy, "la hermana volvió a la red de día");
+  assert.notEqual(claveComoLaApp({ fecha: salt, importe: 12.5, comercio: "MERCADONA", source: "ob" }), legacy);
   assert.equal(ctx.expenseIsTombstoned(hermana, { [legacy]: 1 }), false);
   assert.equal(claveComoLaApp({ fecha: noon.replace(".000Z", "Z"), importe: 12.5, comercio: "MERCADONA", source: "ob" }), legacy);
   const vis = filasComoLaApp([
@@ -172,10 +174,34 @@ t("5. la clave del mediodía de Madrid no depende de la zona del dispositivo", (
   const noon = mediodiaPropio(ymd);
   const row = { source: "ob", ent: "caixabank", date: noon, amount: 12.5, merchant: "MERCADONA" };
   assert.equal(ctx.keyOfExpense(row), ymd + "|12.5|MERCADONA");
+  /* Servidor: el cliente viejo sella el mediodía de SU zona. Península cae en
+     Madrid; Canarias es T11Z en verano y T12Z en invierno; UTC es T12Z. Esas
+     tres horas siguen siendo la lápida de día, o al desplegar reaparece el cargo. */
+  ["10", "11", "12"].forEach((hh) => {
+    assert.equal(
+      claveComoLaApp({ fecha: ymd + "T" + hh + ":00:00.000Z", importe: 12.5, comercio: "MERCADONA", source: "ob" }),
+      ymd + "|12.5|MERCADONA",
+      "servidor T" + hh + "Z",
+    );
+  });
   const add = ctx.importObExpenses(estado("caixabank"), [cargo("solo")]);
   assert.ok(add && add.length === 1);
   assert.equal(add[0].date, noon, "el cargo suelto no se sala");
   assert.equal(ctx.keyOfExpense(add[0]), ymd + "|12.5|MERCADONA");
+  const canarias = {
+    id: "c1", source: "ob", ent: "caixabank", extId: "viejo",
+    date: ymd + "T12:00:00.000Z", amount: 12.5, merchant: "MERCADONA",
+  };
+  const solas = ctx.expenseTombKeys(canarias, [canarias]);
+  assert.ok(solas.indexOf(ymd + "|12.5|MERCADONA") >= 0, "el sello viejo de Canarias deja la lápida de día");
+  assert.equal(ctx.importObExpenses(estado("caixabank", [], solas), [cargo("otra-ref")]), null);
+  const hermana = {
+    id: "h", source: "ob", ent: "caixabank", extId: "cargo-B",
+    date: ctx.histDate(ymd, "ob-ext|caixabank|cargo-B"), amount: 12.5, merchant: "MERCADONA",
+  };
+  const duena = Object.assign({}, canarias, { id: "d", extId: "cargo-A", date: noon });
+  const deHermana = ctx.expenseTombKeys(hermana, [duena, hermana]);
+  assert.equal(deHermana.indexOf(ymd + "|12.5|MERCADONA"), -1, "borrar la hermana no deja la lápida de día");
 });
 
 t("6. apunte manual o noti del mismo banco, día, importe y nombre: una fila", () => {

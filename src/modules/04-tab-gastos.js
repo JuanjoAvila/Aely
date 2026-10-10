@@ -221,7 +221,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   const keyOfE=keyOfExpense;
   const delExpense=function(e){
     if(undoTimerRef.current) clearTimeout(undoTimerRef.current);
-    const keys=expenseTombKeys(e), list=state.expenses||[], index=list.findIndex(function(x){ return x.id===e.id; });
+    const list=state.expenses||[], keys=expenseTombKeys(e, list), index=list.findIndex(function(x){ return x.id===e.id; });
     const wasCloud=cloud.enabled();
     // La lápida entra junto con la retirada local: si la nube refresca durante los cinco segundos,
     // no puede resucitar la fila por detrás del toast. La escritura remota sí se encadena para que
@@ -272,7 +272,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       let next=resolvePossibleDup(s, e.id, same);
       if(same){
         let deleted=next.deleted;
-        expenseTombKeys(e).forEach(function(k){ deleted=pushDeleted(deleted,k); });
+        expenseTombKeys(e, s.expenses).forEach(function(k){ deleted=pushDeleted(deleted,k); });
         next=Object.assign({},next,{deleted:deleted});
         if(cloud.enabled()) borrarGastoNube(e, "gastos-dup");
       }

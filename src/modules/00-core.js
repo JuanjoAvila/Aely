@@ -1598,13 +1598,24 @@ function expenseIsTombstoned(e, delSet){
   return false;
 }
 /* Al borrar un cargo con referencia, la lápida de día tapa al del mediodía y `obid|`
-   tapa a ESA referencia. Si no, el sync devolvería solo la que se borró. */
-function expenseTombKeys(e){
+   tapa a ESA referencia. Si no, el sync devolvería solo la que se borró.
+   Un sello viejo de Canarias no es el mediodía de Madrid: su clave lleva la hora.
+   Si ese cargo está solo, la lápida de día también — si no, otra referencia del
+   mismo día lo devuelve. Con una hermana viva no: esa lápida se comería a las dos. */
+function expenseTombKeys(e, list){
   const keys=[keyOfExpense(e)];
   const s=String(e&&e.source||"");
-  if((s==="ob"||s.indexOf("ob:")===0||s==="ob-hist"||s.indexOf("ob-hist:")===0) && e&&e.extId!=null && e.extId!==""){
+  const ob=s==="ob"||s.indexOf("ob:")===0||s==="ob-hist"||s.indexOf("ob-hist:")===0;
+  if(ob && e&&e.extId!=null && e.extId!==""){
     const b=(typeof expenseBankOf==="function"?expenseBankOf(e):"")||e.ent||"";
     if(b) keys.push("obid|"+b+"|"+e.extId);
+  }
+  const leg=keyOfExpenseLegacy(e);
+  if(ob && list && keys.indexOf(leg)<0){
+    const sola=!list.some(function(x){
+      return x && x!==e && (!e.id || x.id!==e.id) && keyOfExpenseLegacy(x)===leg;
+    });
+    if(sola) keys.push(leg);
   }
   return keys;
 }

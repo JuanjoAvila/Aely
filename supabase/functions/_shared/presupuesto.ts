@@ -170,8 +170,17 @@ export function claveComoLaApp(f: {
   const s = String(f.source || "");
   const ob = s === "ob" || s.indexOf("ob:") === 0 || s === "ob-hist" || s.indexOf("ob-hist:") === 0;
   if (ob && fecha.length >= 20) {
-    const noon = mediodiaMadridIso(fecha.slice(0, 10));
-    if (fecha !== noon) return base + "|" + fecha;
+    const day = fecha.slice(0, 10);
+    const noon = mediodiaMadridIso(day);
+    /* Ranura de día: mediodía de Madrid y el mediodía local del cliente viejo.
+       Canarias no comparte zona (T11Z en verano, T12Z en invierno) y un proceso
+       UTC sella T12Z. Aceptar solo Madrid haría reaparecer en el widget, al
+       desplegar, un cargo ya borrado en ese móvil. */
+    const ranura = fecha === noon
+      || fecha === day + "T10:00:00.000Z"
+      || fecha === day + "T11:00:00.000Z"
+      || fecha === day + "T12:00:00.000Z";
+    if (!ranura) return base + "|" + fecha;
   }
   return base;
 }
