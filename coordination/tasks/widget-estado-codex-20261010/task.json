@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "id": "widget-estado-codex-20261010",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261010-5f79c133",
+  "createdAt": "2026-10-10T08:20:01.230Z",
+  "to": "codex",
+  "baseSHA": "74c5f075bf08e38e289992195ad97e3a71a8b031",
+  "objective": "Widget (INC-2909-01, INC-0210-04): el dueño ve solo el modo Balance y los pagos pendientes se pierden tras reiniciar. Hay tres PR draft sin integrar (87, 105, 170) y un worktree combinado local. Entregar UN PR sobre la beta actual con lo que de verdad arregla esos dos síntomas.",
+  "scope": [
+    "android/app (widget y su journal)",
+    "src/modules solo el contrato con el widget",
+    "tests de widget existentes"
+  ],
+  "acceptance": [
+    "El widget ofrece los modos que ya existen en el código, no solo Balance; la cifra coincide con la de Inicio.",
+    "Un pago pendiente sobrevive a reiniciar el móvil y a matar la app, sin duplicarse.",
+    "Tests de widget y npm test con exit 0; assembleRelease local con WEBDEBUG=0 compila. No publicar APK: lo decide el coordinador.",
+    "El result dice qué PR antiguos quedan superados y se pueden cerrar.",
+    "Rama propia desde baseSHA y UN solo PR draft contra beta. Sin VERSION, catálogos de beta ni notas: los pone el coordinador al integrar.",
+    "Datos sintéticos. Sin dependencias nuevas, Edge, SQL ni push a beta/main.",
+    "ACK, reserva y result por este canal, no por el issue130. Result con SHA, PR, comandos y exitCode reales.",
+    "Solo lo pedido: nada de producto nuevo ni rediseños. Las dudas de producto van en el result como pregunta."
+  ],
+  "authorization": "Orden directa del dueño 10/10: Claude coordina; limpiar el backlog existente empezando por CaixaBank, widget y Recibos."
+}
