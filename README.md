@@ -119,7 +119,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.110** selección web107/108/110: indicador de barra, edición de reglas de ahorro y propiedad del historial al volver. Gráfica109 fuera; notas es/en/ca, historial y APK52 conservados. La cualificación local y sus límites están en el acta; no sustituyen evidencia de publicación ni aceptación móvil.
+Estado actual: **v4.26.111** candidata selectiva para PR: Bienes permite añadir, editar y borrar también con la lista vacía. Inicio conserva la gráfica de producción y admite total desconocido. Fuente aprobada de beta113; pruebas completas, CI, revisión e integración pendientes. APK y backend conservan sus versiones.
 
 Corte anterior (4/10, 12:30 UTC, panel de revisión): **v4.26.93** publicada en beta. Primera entrega4.26.93.1 (fuente1d5dd782), CI37200314653SUCCESS y HTTP/ZIP/HTML/SW/catálogo/huella cotejados el4/10 a12:30UTC:11 tandas/24 puntos, frente a40 antes del cambio. Producción4.26.86 (d366215a), APK beta4.26.80/code52 y estable4.26.32/code48 conservadas. Prueba y aprobación móvil pendientes. [Acta](docs/briefs/ops-0410-panel-cola.md).
 
@@ -149,6 +149,7 @@ En Ajustes → Revisar esta beta, toca la cabecera de una tanda para encogerla o
 Notas rápidas del rediseño v4 (para no perderse):
 - **Rol de cuenta** (Recibos / Gasto diario / Todo): Cartera → Editar.
 - **Hogar y gastos compartidos:** toca tu avatar en Inicio → Perfil → **«Tu gente»** (movido ahí en 4.10.0; antes al final de Cartera, donde no lo veía nadie) — [docs/HOGAR.md](docs/HOGAR.md).
+- **Bienes:** Cartera → Bienes → Añadir bien, incluso con la lista vacía. Tocar una fila abre su ficha; Guardar confirma el borrador y Borrar bien pide confirmación.
 - **Ordenar los bloques de Cartera:** Cartera → «⇅ Ordenar secciones» al pie (4.10.0).
 - **Open Banking se sincroniza a demanda** (botón en Cartera), no al abrir la app.
 - **Orden manual de movimientos:** en Gastos, arrastra el asa de una fila para colocarla dentro del mismo día; la fecha real no cambia.

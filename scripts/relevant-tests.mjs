@@ -60,7 +60,7 @@ export const E2E_MAP = [
     "e2e/metas-alta-regla.spec.mjs",
     "e2e/metas-mensual.spec.mjs",
     "e2e/inicio-cargos.spec.mjs",
-    "e2e/pulido-vacios.spec.mjs","e2e/indicador-arco.spec.mjs", "e2e/smoke.spec.mjs", "e2e/informe-mes.spec.mjs",
+    "e2e/pulido-vacios.spec.mjs","e2e/inicio-grafica-significado.spec.mjs","e2e/indicador-arco.spec.mjs", "e2e/smoke.spec.mjs", "e2e/informe-mes.spec.mjs",
     "e2e/ultima-cuota-descartar.spec.mjs", "e2e/inicio-offline.spec.mjs", "e2e/presupuesto-fluido.spec.mjs", "e2e/inicio-mes-natural.spec.mjs"] },
   { file: "src/modules/04-tab-gastos.js", specs: [
     "e2e/metas-borrar-regla.spec.mjs",
@@ -96,6 +96,8 @@ export const E2E_MAP = [
     "e2e/plan-cover.spec.mjs",
   ] },
   { file: "src/modules/07-tab-patri-fijos.js", specs: [
+    "e2e/cartera-bienes-completo.spec.mjs",
+    "e2e/cartera-bienes-toque.spec.mjs",
     "e2e/plan-cuota-contabilizada.spec.mjs",
     "e2e/listas-render.spec.mjs", "e2e/bancos-acordeon.spec.mjs", "e2e/bancos-reconnect.spec.mjs",
     "e2e/bancos-historico-filtro.spec.mjs", "e2e/cartera-ficha-cuenta.spec.mjs",
@@ -130,6 +132,8 @@ export const E2E_MAP = [
   { file: "src/modules/12-boot.js", specs: ["e2e/splash.spec.mjs", "e2e/smoke.spec.mjs", "e2e/csp.spec.mjs"] },
   { file: "src/modules/13-hogar.js", specs: ["e2e/cartera-orden-hogar.spec.mjs"] },
   { file: "src/modules/14-v4-screens.js", specs: [
+    "e2e/cartera-bienes-completo.spec.mjs",
+    "e2e/cartera-bienes-toque.spec.mjs",
     "e2e/inicio-cargos.spec.mjs",
     "e2e/help-assistant.spec.mjs",
     "e2e/pulido-apuntar.spec.mjs", "e2e/pulido-numpad.spec.mjs",

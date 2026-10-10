@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
+import {createHash} from 'node:crypto';
 import {authFragments,authWorld} from './helpers/auth-disposal-fixture.mjs';
 import {scopeDependencies,scopeDataDependencies,mutateLogic,mutateData} from '../scripts/beta-source-code.mjs';
 import {betaRevision} from '../scripts/beta-revisions.mjs';
@@ -73,7 +74,15 @@ for(const [id,codigo,web]of [
  assert.deepEqual(betaRevision(id,selected,undefined,selectedReg[id]),{web,codigo},id+': ancla beta fija aprobada');
  for(const key of ['historial','auditoria','codigosCompatibles','compatibilidadGit'])assert.equal(reg[id][key],undefined,id+': sin aprobación heredada '+key);
 }
-assert.deepEqual(reg,expectedReg,'sólo tres alcances nuevos 107/108/110; cierres históricos explícitos y resto del registro intacto');
+// Promoción selectiva 113 (10/10): entran Bienes completo y la gráfica de Inicio, y Recientes106 se reancla porque
+// Inicio retira su delimitador. Se fijan por huella del descriptor de beta 684a839d, que no es ancestro de main y
+// por eso no se puede leer con git show en la CI; cualquier otro alcance nuevo sigue rompiendo el deepEqual.
+for(const [id,sha]of [
+ ['inc-0810-dashboard-recents-memo','a5e117f636ed55239be6e67746db29c93b83abd6121fd97d441d23d716c872a4'],
+ ['bienes-completo','e2d7b262bd967d217c05b733b323b6e3b8a35834307835ee5b4f2500494fa487'],
+ ['inicio-grafica-vuelve','1ada700abc839b674a069d681a2324c5688c623e9e802964863fee166c1f2e9a'],
+]){assert.equal(createHash('sha256').update(JSON.stringify(reg[id])).digest('hex'),sha,id+': descriptor exacto de beta113');expectedReg[id]=reg[id];}
+assert.deepEqual(reg,expectedReg,'sólo los alcances nuevos 107/108/110 y los dos de la 113; cierres históricos explícitos y resto del registro intacto');
 // Los tres cambios históricos son dependencias de lo aprobado, no tandas adicionales ni reutilización del OK antiguo.
 for(const [id,codigo,web]of [
  ['inc-0310-01-meta-regla','9d7b6a271c9bd35c5db3639f5b679f6eb7f904c94429aa279a2793e0d89a8981','74a3f1fadd6c79f870bc3fbe27008065f6950e1dab0644be8dfa14475f8300aa'],

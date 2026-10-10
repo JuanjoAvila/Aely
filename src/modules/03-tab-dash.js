@@ -5,6 +5,22 @@ function dashOrderOf(s, allIds){
   const saved=((s.settings&&s.settings.dashOrder)||[]).filter(function(id){ return allIds.indexOf(id)>=0; });
   return saved.concat(allIds.filter(function(id){ return saved.indexOf(id)<0; }));
 }
+function NetWorthNow({value, shown, simple, history}){
+  // Retirar la variante109 no autorizaba quitar la gráfica de producción110 (feedback10/10).
+  // Se recupera su dibujo, sin convertir el histórico en ganancias ni reescribirlo.
+  const valid=typeof value==="number" && Number.isFinite(value);
+  const p=valid?eurParts(typeof shown==="number" && Number.isFinite(shown)?shown:value):null;
+  return React.createElement("div",{className:"v4-hero rise","data-tour":"hero","data-testid":"inicio-net-current",style:{animationDelay:".05s"}},
+    React.createElement("div",{className:"v4-micro"}, t(simple?"v4_money_total":"d_networth")),
+    React.createElement("div",{className:"v4-hero-amt num","data-tour":"hero-amt"},
+      p?p.sign+p.ent:"—", p&&React.createElement("span",{style:{fontSize:28,color:"var(--muted)"}},","+(p.dec||"00")+" "+p.sym)),
+    !valid&&React.createElement("div",{className:"hint",role:"status"}, t("v4_net_unknown")),
+    valid&&React.createElement("div",{style:{marginTop:14}},
+      (history&&history.length>=1)
+        ? React.createElement(Sparkline,{data:history,current:value})
+        : React.createElement("div",{style:{fontSize:12.5,color:"var(--muted-2)",padding:"6px 0 2px"}}, t("v4_hist_empty")))
+  );
+}
 function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProfile, onGoGastos, onGoPlan, showToast}){
   const tt=totals;
   const simple=!!(state.settings&&state.settings.simpleMode);
@@ -148,7 +164,6 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
   // Inicio resume tres metas activas; Plan conserva todas sin cambiar su orden ni sus saldos.
   const goals=(state.goals||[]).filter(function(g){ return !g.done; }).slice(0,3);
   const recent=useMemo((s=state)=>(s.expenses||[]).filter(e=>!expenseIsTombstoned(e,expenseDeletedSet(s))).sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,3),[state.expenses,state.deleted]);
-  const p=eurParts(shownNet);
   const ringPct=Math.max(0,Math.min(1,ratio));
   /* P6 — EL ANILLO SE DIBUJA, NO APARECE YA LLENO.
      El circulo recibia el `strokeDashoffset` FINAL y una `transition` de 1s, y una transicion no
@@ -218,19 +233,7 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
       }}, t("mr_share"))
     ),
 
-    !showSkel && React.createElement("div",{className:"v4-hero rise","data-tour":"hero",style:{animationDelay:".05s"}},
-      React.createElement("div",{className:"v4-micro"}, t(simple?"v4_money_total":"d_networth")),
-      React.createElement("div",{className:"v4-hero-amt num","data-tour":"hero-amt"},
-        p.sign+p.ent, React.createElement("span",{style:{fontSize:28,color:"var(--muted)"}},","+(p.dec||"00")+" "+p.sym)),
-      // Sin una foto real del día 1, «este mes» era patrimonio menos un seed antiguo: parecía
-      // una ganancia de miles de euros. Se retira en vez de inventar una base (feedback 18/9).
-      React.createElement("div",{style:{marginTop:14}},
-        // Sin al menos dos puntos, `Sparkline` devuelve null (P1). Se reserva el hueco con una
-        // linea discreta para que el hero no pegue un salto en cuanto haya histórico.
-        (state.history&&state.history.length>=1)
-          ? React.createElement(Sparkline,{data:state.history,current:tt.netWorth})
-          : React.createElement("div",{style:{fontSize:12.5,color:"var(--muted-2)",padding:"6px 0 2px"}}, t("v4_hist_empty")))
-    ),
+    !showSkel && React.createElement(NetWorthNow,{value:tt.netWorth, shown:shownNet, simple:simple, history:state.history}),
 
     // Sin presupuesto, Inicio escondia su tarjeta estrella y te quedabas sin la mitad de la app
     // sin saber por que (P3). En vez de esconderla, la misma tarjeta en vacio y con salida: abre

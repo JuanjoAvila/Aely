@@ -220,9 +220,55 @@ function AccountSheet({open, cuenta, state, set, totals, onClose, onRemove, onSa
     ), document.body);
 }
 
+// El nombre se guardaba al escribir y cancelar no era posible. La ficha mantiene todo local
+// hasta Guardar; cerrar, volver atrás y cancelar el borrado no cambian el patrimonio (10/10).
+function AssetSheet({asset,set,onClose}){
+  const [name,setName]=useState(asset.name||"");
+  const [raw,setRaw]=useState(asset.value==null?"":String(asset.value));
+  const [kind,setKind]=useState(asset.kind||"piso");
+  useBackClose(true,onClose);
+  const swipe=useSheetSwipe(true,onClose);
+  const amount=Number(raw.replace(",","."));
+  const valid=name.trim()&&/^\d+(?:[.,]\d{1,2})?$/.test(raw)&&Number.isSafeInteger(Math.round(amount*100));
+  const save=function(){
+    if(!valid) return;
+    const next=Object.assign({},asset,{id:asset.id||uid(),name:name.trim(),kind:kind,value:amount});
+    set(function(s){
+      const old=(s.assets||[]).find(function(a){ return a.id===asset.id; });
+      if(asset.id&&!old) return s;
+      if(old&&old.name===next.name&&old.kind===next.kind&&old.value===next.value) return s;
+      return Object.assign({},s,{assets:asset.id?s.assets.map(function(a){ return a.id===asset.id?Object.assign({},a,{name:next.name,kind:next.kind,value:next.value}):a; }):(s.assets||[]).concat(next)});
+    });
+    onClose();
+  };
+  const remove=function(){
+    askConfirm({title:tf("goods_delete_q",{name:asset.name}),sub:t("goods_delete_sub"),ok:t("goods_delete")}).then(function(ok){
+      if(!ok) return;
+      set(function(s){ return Object.assign({},s,{assets:(s.assets||[]).filter(function(a){ return a.id!==asset.id; })}); });
+      onClose();
+    });
+  };
+  return ReactDOM.createPortal(React.createElement("div",{className:"tabsheet-back",onClick:onClose},
+    React.createElement("div",Object.assign({className:"tabsheet",role:"dialog","aria-modal":true,"aria-label":t(asset.id?"v4_edit_goods":"goods_add"),ref:swipe.sheetRef,onClick:function(e){e.stopPropagation();}},swipe.sheetTouch),
+      React.createElement("div",{className:"v4-sheet-handle"}),
+      React.createElement("h2",{className:"serif"},t(asset.id?"v4_edit_goods":"goods_add")),
+      React.createElement("div",{className:"add-form"},
+        React.createElement("label",null,t("goods_name"),React.createElement("input",{className:"af-in",value:name,onChange:function(e){setName(e.target.value);}})),
+        React.createElement("label",null,t("goods_value"),React.createElement("input",{className:"af-in num",inputMode:"decimal",value:raw,"aria-invalid":!!raw&&!valid,onChange:function(e){setRaw(e.target.value);}})),
+        React.createElement("div",{className:"row"},["piso","coche"].map(function(k){return React.createElement("button",{type:"button",className:"chip"+(kind===k?" active":""),key:k,"aria-pressed":kind===k,onClick:function(){setKind(k);}},t(k==="piso"?"goods_home":"goods_car"));})),
+        !valid&&React.createElement("div",{className:"hint"},t("goods_invalid")),
+        React.createElement("div",{className:"row"},
+          React.createElement("button",{type:"button",className:"btn btn-ghost",onClick:onClose},t("fj_cancel")),
+          React.createElement("button",{type:"button",className:"btn btn-primary",disabled:!valid,onClick:save},t("save"))),
+        asset.id&&React.createElement("button",{type:"button",className:"btn btn-ghost",onClick:remove},t("goods_delete"))
+      )
+    )),document.body);
+}
+
 function Wealth({state, set, totals, v4Embed, parte, showToast, onBankSync, onReconnectBank, bankBusy}){
   const [delAcc,setDelAcc]=React.useState("");   // id de la cuenta manual pendiente de confirmar borrado
   const [sheetAcc,setSheetAcc]=React.useState("");   // id de la cuenta cuya ficha está abierta (v4)
+  const [sheetAsset,setSheetAsset]=useState(null);
   const [balanceReady,setBalanceReady]=React.useState(function(){ return !!window.__mcBootReady; });
   React.useEffect(function(){
     if(balanceReady) return;
@@ -668,30 +714,22 @@ function Wealth({state, set, totals, v4Embed, parte, showToast, onBankSync, onRe
         // dejaría «Bienes» dos veces seguidas.
         parte!=="bienes" && React.createElement("div",{className:"v4-sec-h"}, t("pt_goods")),
         state.assets.map(function(a){
-          return React.createElement("div",{className:"v4-mov",key:a.id},
+          return React.createElement("button",{className:"v4-mov",key:a.id,
+            type:"button",
+            style:{width:"100%",textAlign:"left",color:"var(--text)"},
+            onClick:function(){ setSheetAsset(a); }},
             React.createElement("div",{className:"tile"},a.kind==="piso"?"🏡":"🚙"),
             React.createElement("div",{className:"nm"},
               React.createElement("div",null,a.name),
               a.note && React.createElement("div",{className:"meta"},a.note)
             ),
-            astEd.editing
-              ? React.createElement("input",{className:"editv num",value:astEd.draft[a.id],inputMode:"decimal",onChange:function(e){const v=e.target.value;astEd.setDraft(function(d){return Object.assign({},d,{[a.id]:v});})}})
-              : React.createElement("div",{className:"am num"},eur0(a.value))
+            React.createElement("div",{className:"am num"},eur0(a.value))
           );
-        }),
-        // El botón de editar bienes «desapareció» con el rediseño (feedback 2026-07-18):
-        // mismo patrón edit-link que las cuentas de arriba.
-        React.createElement("button",{className:"edit-link",style:{margin:"8px 4px"},onClick:function(){ astEd.editing?astEd.save():astEd.start(); }},astEd.editing?t("fj_save"):t("v4_edit_goods")),
-        astEd.editing && React.createElement("div",{className:"add-form",style:{marginTop:4}},
-          state.assets.map(function(a){
-            return React.createElement("div",{className:"af-row",key:"an_"+a.id,style:{alignItems:"center"}},
-              React.createElement("span",{style:{flex:"0 0 auto",fontSize:18}},a.kind==="piso"?"🏡":"🚙"),
-              React.createElement("input",{className:"af-in",style:{flex:1,fontSize:13,padding:"7px 10px"},value:a.name||"",
-                onChange:function(e){ const v=e.target.value; set(function(s){ return Object.assign({},s,{assets:s.assets.map(function(x){ return x.id===a.id?Object.assign({},x,{name:v}):x; })}); }); }})
-            );
-          }),
-          React.createElement("div",{className:"hint"}, t("pt_nonliquid"))
-        )
+        })
+      ),
+      parte!=="cuentas" && React.createElement(React.Fragment,null,
+        React.createElement("button",{type:"button",className:"btn btn-ghost",onClick:function(){setSheetAsset({});}},t("goods_add")),
+        sheetAsset&&React.createElement(AssetSheet,{asset:sheetAsset,set:set,onClose:function(){setSheetAsset(null);}})
       )
     );
   }
