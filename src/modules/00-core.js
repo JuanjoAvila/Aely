@@ -1278,9 +1278,12 @@ const cloud = (function(){
       return data.aspsps||[];
     },
     // Trae saldo (+ movimientos, que en Capa 2 ignoramos) de los bancos enlazados.
-    async bankSync(){
+    async bankSync(body){
       if(!sb) throw new Error("nube no disponible");
-      const {data,error}=await sb.functions.invoke('bank-sync');
+      // recoverGaps pide el tramo desde el último éxito. No es dateFrom: ese campo abre el
+      // histórico de solo lectura y una función vieja lo interpretaría así. Sin body, igual que antes.
+      const opts=(body&&typeof body==="object")?{body:body}:undefined;
+      const {data,error}=await sb.functions.invoke('bank-sync', opts);
       if(error) throw error;
       if(!data || !data.ok) throw new Error((data&&data.error)||"sync falló");
       return data;   // { ok, dryRun, links:[{aspsp, iban, balances, transactions}] }

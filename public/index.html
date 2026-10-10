@@ -3625,9 +3625,12 @@ const cloud = (function(){
       return data.aspsps||[];
     },
     // Trae saldo (+ movimientos, que en Capa 2 ignoramos) de los bancos enlazados.
-    async bankSync(){
+    async bankSync(body){
       if(!sb) throw new Error("nube no disponible");
-      const {data,error}=await sb.functions.invoke('bank-sync');
+      // recoverGaps pide el tramo desde el último éxito. No es dateFrom: ese campo abre el
+      // histórico de solo lectura y una función vieja lo interpretaría así. Sin body, igual que antes.
+      const opts=(body&&typeof body==="object")?{body:body}:undefined;
+      const {data,error}=await sb.functions.invoke('bank-sync', opts);
       if(error) throw error;
       if(!data || !data.ok) throw new Error((data&&data.error)||"sync falló");
       return data;   // { ok, dryRun, links:[{aspsp, iban, balances, transactions}] }
@@ -6024,6 +6027,8 @@ Object.assign(LANG.es,{
   bank_read_partial:"{bank}: la descarga está incompleta. Lo recibido se conserva, pero pueden faltar movimientos.",
   bank_read_empty:"{bank}: el banco ha devuelto 0 movimientos para ese periodo.",
   bank_read_retry:"No se han podido consultar los movimientos. Comprueba la conexión y vuelve a buscar.",
+  bank_gap_title:"{bank}: hay movimientos de hace más de 90 días",
+  bank_gap_sub:"La actualización solo alcanza los últimos 90 días. El resto se revisa en Importar histórico.",
   bp_hist_sign:"En {banks} casi todo llega como ingreso: revisa el signo antes de importar.",
   bp_hist_more:"Ver {n} más…",
   bp_hist_confirm_fijos:"¿Crear {n} recibo(s) fijo(s)?",
@@ -14296,7 +14301,38 @@ function flattenBankTx(links){
    En bancos fuera de gasto diario: también cualquier cargo (misma exclusión de modelados).
 
    INGRESOS: de cualquier banco (para «Mi ciclo»). Idempotente por ext_id + dedup. */
-function importObExpenses(s, txs){
+/* Suelo por banco del sync a demanda. Lo rellena el llamador justo antes de importar
+   (la línea del import es ancla de la revisión de nómina y no se reescribe). */
+var obAcceptFrom=null;
+function obFloorDate(ent, som, floors){
+  const ymd=floors && ent ? floors[ent] : null;
+  if(typeof ymd!=="string" || !/^\d{4}-\d{2}-\d{2}$/.test(ymd)) return som;
+  const asked=parseDate(ymd);
+  return asked<som ? asked : som;
+}
+function obSyncFromByEnt(links){
+  const map={};
+  (links||[]).forEach(function(l){
+    if(!l || typeof l.syncFrom!=="string" || !/^\d{4}-\d{2}-\d{2}$/.test(l.syncFrom)) return;
+    const ent=entFromAspsp(l.aspsp);
+    if(!ent) return;
+    if(!map[ent] || l.syncFrom<map[ent]) map[ent]=l.syncFrom;
+  });
+  return map;
+}
+function obGapBanks(links){
+  const out=[], seen={};
+  (links||[]).forEach(function(l){
+    if(!l || l.gapBeyondCap!==true) return;
+    const ent=entFromAspsp(l.aspsp);
+    const label=ent ? entOf(ent).label : (String(l.aspsp||"").trim() || t("bp_hist_bank_unknown"));
+    if(!label || seen[label]) return;
+    seen[label]=1;
+    out.push(label);
+  });
+  return out;
+}
+function importObExpenses(s, txs, opts){
   if(!txs || !txs.length) return null;
   const ents=expenseBankEnts(s);
   const allow={}; ents.forEach(function(e){ allow[e]=1; });
@@ -14312,8 +14348,13 @@ function importObExpenses(s, txs){
      además muchos bancos contabilizan a caballo entre los dos meses.
      8 días —y no 45— a propósito: cubre el borde de fin de mes sin arrastrar meses enteros de
      histórico en cada sync. Los duplicados que esto pueda rozar ya los para la red de arriba
-     (mismo importe ±3 días contra lo que entró por otra vía) más el dedup por ext_id y clave. */
+     (mismo importe ±3 días contra lo que entró por otra vía) más el dedup por ext_id y clave.
+     INC-2709-06: si el sync a demanda pidió más atrás (último éxito − 3 días, tope 90), ese
+     suelo llega en `opts.syncFromByEnt` o en `obAcceptFrom`. Sin él —función vieja, o banco
+     sin último éxito— se queda el margen de 8 días. Nunca se acorta. */
   const som=new Date(startOfMonth().getTime() - 8*86400000);
+  const floors=(opts&&opts.syncFromByEnt) || obAcceptFrom;
+  const floorOf=function(ent){ return obFloorDate(ent, som, floors); };
   /* `entry_reference` solo es única DENTRO de su banco. Sin entidad, un id de Sabadell podía
      hacer desaparecer un movimiento distinto de Caixa. La identidad local mínima es banco+id. */
   const seen={}, seenLegacy={}; (s.expenses||[]).forEach(function(e){
@@ -14395,7 +14436,7 @@ function importObExpenses(s, txs){
       if(!parts) return;
       const day=new Date(Number(parts[1]),Number(parts[2])-1,Number(parts[3]),12);
       if(dayKey(day)!==date || date>todayKey) return;
-      if(!tx.date || parseDate(tx.date)<som) return;
+      if(!tx.date || parseDate(tx.date)<floorOf(tx.ent)) return;
       if(tx.id && (seen[(tx.ent||"")+"|"+tx.id]||seenLegacy[tx.id])) return;
       const e={ id:mcExpenseId(), date:new Date(tx.date+"T12:00:00").toISOString(),
         merchant:tx.merchant||"Ingreso", amount:tx.amount,
@@ -14413,10 +14454,14 @@ function importObExpenses(s, txs){
       add.push(e);
       return;
     }
-    // GASTO: entra de cualquier banco. Fijos y puntuales modelados no se duplican; las deudas se marcan.
-    const mod=modeledHit(tx.ent, tx.merchant, tx.amount);
-    if(mod && !mod.debtId) return;
-    if(!tx.date || parseDate(tx.date)<som) return;
+    // GASTO: entra de cualquier banco. Fijos y puntuales de ESTE mes no se duplican; las deudas se marcan.
+    // Un cargo recuperado de un mes anterior no es la cuota de este mes: el modelado solo mira
+    // el mes en curso, y aplicarlo al hueco tiraría un recibo viejo por parecerse al de ahora.
+    if(!tx.date || parseDate(tx.date)<floorOf(tx.ent)) return;
+    if(parseDate(tx.date)>=som){
+      const mod=modeledHit(tx.ent, tx.merchant, tx.amount);
+      if(mod && !mod.debtId) return;
+    }
     if(tx.id && (seen[(tx.ent||"")+"|"+tx.id]||seenLegacy[tx.id])) return;
     const esDiario=tx.ent===dailyEnt;
     const esAporteInv = esDiario && daily && daily.monthlyInvest>0 && Math.abs(tx.amount-daily.monthlyInvest)<0.01;
@@ -20409,7 +20454,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="7972b7e14ae1773dc35ba3a5611fc8bf5468512197cac644877343fc75fdc3f8";
+var _rnSha="3cdf5b93b2597a41a07a520275f4d5883854504e37bed0efe5c81a33fa7d7d3d";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -24691,7 +24736,7 @@ function App(){
     });
     return nubeLista.then(function(ok){
       if(!ok) throw SYNC_SIN_NUBE;
-      return Promise.all([cloud.bankSync(), pDb]);
+      return Promise.all([cloud.bankSync({recoverGaps:true}), pDb]);
     }).then(function(par){
       const res=par[0], dbLinks=par[1]||[];
       const links=(res&&res.links)||[];
@@ -24710,12 +24755,17 @@ function App(){
         });
       }catch(e){}
       const preview=applyBankBalances(stateRef.current, links);   // función pura: solo para decidir el aviso
+      const gapNames=obGapBanks(links);
+      const obFloors=obSyncFromByEnt(links);
       let obAdded=[];                                             // compras de tarjeta importadas (roles de cuenta)
       set(function(prev){
         const txs=flattenBankTx(links);
         // ORDEN anti-doble-conteo: primero entran las compras de tarjeta como gastos, y DESPUÉS
         // se re-ancla con el saldo real del banco (que ya incluye esas compras).
+        // El suelo por banco va al lado: la llamada en sí es ancla de la revisión de nómina.
+        obAcceptFrom=obFloors;
         const add=importObExpenses(prev, txs);
+        obAcceptFrom=null;
         // Aporte automático reconocido (categoría "inversion", ver importObExpenses): compra ya
         // mismo participaciones en el fondo enlazado, con el importe REAL del banco — mismo cálculo
         // que `reconcileTR` usaba a ciegas, ahora disparado por el dato de verdad (2026-08-03).
@@ -24783,7 +24833,8 @@ function App(){
       if(opts.manual && readWarnings.length){
         readWarnings.forEach(function(w){ avisaSync(opts,"⚠ "+tf(w.key,{bank:w.bank})); });
       }
-      if(opts.manual && preview.synced.length && !issues.length && !readWarnings.length){
+      if(gapNames.length && opts.manual) avisaSync(opts, "⚠ "+tf("bank_gap_title",{bank:gapNames.join(", ")})+" "+t("bank_gap_sub"));
+      if(opts.manual && preview.synced.length && !issues.length && !readWarnings.length && !gapNames.length){
         const ents={}; preview.synced.forEach(function(x){ if(x&&x.ent) ents[x.ent]=1; });
         const bancos=Object.keys(ents);
         let msg = bancos.length===1
@@ -24833,6 +24884,23 @@ function App(){
         avisaSync(opts, t("bank_none"));
         setTimeout(function(){ try{ window.dispatchEvent(new CustomEvent("mc-open-banks",{detail:{focus:null}})); }catch(e){} }, 700);
       }
+      // El hueco de más de 90 días no se calla: el banco no lo va a entregar en este sync.
+      // El botón abre Importar histórico, que es el camino para revisarlo a mano.
+      if(!gapNames.length) return {openedHistory:false};
+      return askConfirm({
+        title:tf("bank_gap_title",{bank:gapNames.join(", ")}),
+        sub:t("bank_gap_sub"),
+        ok:t("bp_hist_btn")
+      }).then(function(yes){
+        if(!yes) return {openedHistory:false};
+        try{ window.dispatchEvent(new CustomEvent("mc-open-settings")); }catch(e){}
+        return new Promise(function(resolve){
+          setTimeout(function(){
+            try{ window.dispatchEvent(new CustomEvent("mc-open-history")); }catch(e){}
+            resolve({openedHistory:true});
+          }, 200);
+        });
+      });
     }).catch(function(e){
       if(e===SYNC_SIN_NUBE){
         cloud.logEvent("error","bankSync sin pull de la nube: no se llama al banco", opts.manual?"manual":"auto");
@@ -24924,7 +24992,8 @@ function App(){
   /* Botón «Actualizar» (Cartera y Ajustes): bancos y brókers a la vez, y UN aviso con todo. */
   const sincronizarAMano=function(){
     const col=[];
-    return Promise.all([runBankSync({manual:true, collect:col}), runBrokerSync({manual:true, collect:col})]).then(function(){
+    return Promise.all([runBankSync({manual:true, collect:col}), runBrokerSync({manual:true, collect:col})]).then(function(par){
+      if(par[0]&&par[0].openedHistory) return;
       const rows=listaAvisosSync(col); if(rows.length) setSyncReport(rows);
     });
   };

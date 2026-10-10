@@ -611,7 +611,7 @@ function App(){
     });
     return nubeLista.then(function(ok){
       if(!ok) throw SYNC_SIN_NUBE;
-      return Promise.all([cloud.bankSync(), pDb]);
+      return Promise.all([cloud.bankSync({recoverGaps:true}), pDb]);
     }).then(function(par){
       const res=par[0], dbLinks=par[1]||[];
       const links=(res&&res.links)||[];
@@ -630,12 +630,17 @@ function App(){
         });
       }catch(e){}
       const preview=applyBankBalances(stateRef.current, links);   // función pura: solo para decidir el aviso
+      const gapNames=obGapBanks(links);
+      const obFloors=obSyncFromByEnt(links);
       let obAdded=[];                                             // compras de tarjeta importadas (roles de cuenta)
       set(function(prev){
         const txs=flattenBankTx(links);
         // ORDEN anti-doble-conteo: primero entran las compras de tarjeta como gastos, y DESPUÉS
         // se re-ancla con el saldo real del banco (que ya incluye esas compras).
+        // El suelo por banco va al lado: la llamada en sí es ancla de la revisión de nómina.
+        obAcceptFrom=obFloors;
         const add=importObExpenses(prev, txs);
+        obAcceptFrom=null;
         // Aporte automático reconocido (categoría "inversion", ver importObExpenses): compra ya
         // mismo participaciones en el fondo enlazado, con el importe REAL del banco — mismo cálculo
         // que `reconcileTR` usaba a ciegas, ahora disparado por el dato de verdad (2026-08-03).
@@ -703,7 +708,8 @@ function App(){
       if(opts.manual && readWarnings.length){
         readWarnings.forEach(function(w){ avisaSync(opts,"⚠ "+tf(w.key,{bank:w.bank})); });
       }
-      if(opts.manual && preview.synced.length && !issues.length && !readWarnings.length){
+      if(gapNames.length && opts.manual) avisaSync(opts, "⚠ "+tf("bank_gap_title",{bank:gapNames.join(", ")})+" "+t("bank_gap_sub"));
+      if(opts.manual && preview.synced.length && !issues.length && !readWarnings.length && !gapNames.length){
         const ents={}; preview.synced.forEach(function(x){ if(x&&x.ent) ents[x.ent]=1; });
         const bancos=Object.keys(ents);
         let msg = bancos.length===1
@@ -753,6 +759,23 @@ function App(){
         avisaSync(opts, t("bank_none"));
         setTimeout(function(){ try{ window.dispatchEvent(new CustomEvent("mc-open-banks",{detail:{focus:null}})); }catch(e){} }, 700);
       }
+      // El hueco de más de 90 días no se calla: el banco no lo va a entregar en este sync.
+      // El botón abre Importar histórico, que es el camino para revisarlo a mano.
+      if(!gapNames.length) return {openedHistory:false};
+      return askConfirm({
+        title:tf("bank_gap_title",{bank:gapNames.join(", ")}),
+        sub:t("bank_gap_sub"),
+        ok:t("bp_hist_btn")
+      }).then(function(yes){
+        if(!yes) return {openedHistory:false};
+        try{ window.dispatchEvent(new CustomEvent("mc-open-settings")); }catch(e){}
+        return new Promise(function(resolve){
+          setTimeout(function(){
+            try{ window.dispatchEvent(new CustomEvent("mc-open-history")); }catch(e){}
+            resolve({openedHistory:true});
+          }, 200);
+        });
+      });
     }).catch(function(e){
       if(e===SYNC_SIN_NUBE){
         cloud.logEvent("error","bankSync sin pull de la nube: no se llama al banco", opts.manual?"manual":"auto");
@@ -844,7 +867,8 @@ function App(){
   /* Botón «Actualizar» (Cartera y Ajustes): bancos y brókers a la vez, y UN aviso con todo. */
   const sincronizarAMano=function(){
     const col=[];
-    return Promise.all([runBankSync({manual:true, collect:col}), runBrokerSync({manual:true, collect:col})]).then(function(){
+    return Promise.all([runBankSync({manual:true, collect:col}), runBrokerSync({manual:true, collect:col})]).then(function(par){
+      if(par[0]&&par[0].openedHistory) return;
       const rows=listaAvisosSync(col); if(rows.length) setSyncReport(rows);
     });
   };

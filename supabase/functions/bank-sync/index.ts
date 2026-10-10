@@ -9,6 +9,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { ebApi, ebConfig, jsonResp, makeJWT, mapTransaction, fetchBankTransactions } from "../_shared/enablebanking.ts";
 import { withCors } from "../_shared/cors.ts";
+import { demandReadComplete, demandSyncFrom } from "./demand-window.ts";
 
 /* Los movimientos crudos no salen a `app_events`. El diagnóstico temporal del signo de TR
    guardaba hasta ocho payloads completos y seguía activo el 23/9, cuando apareció en telemetría
@@ -64,6 +65,20 @@ async function logObHistoryResult(admin: any, userId: string, aspsp: string, dat
   } catch (_) { /* diagnóstico best-effort: nunca cambia el resultado bancario */ }
 }
 
+// Sync a demanda: mismos conteos que el histórico, sin uid, IBAN, importes ni comercios.
+// La fecha mínima es la pedida al banco, no la de un movimiento.
+// deno-lint-ignore no-explicit-any
+async function logObDemandResult(admin: any, userId: string, aspsp: string, dateFrom: string, status: string, accounts: number, count: number, pages: number, truncated: boolean, capped: boolean) {
+  try {
+    await admin.from("app_events").insert({
+      user_id: userId, email: null, kind: "performance",
+      message: `OB sync (${obLogBank(aspsp)}): ${status}`,
+      detail: JSON.stringify({ status, accounts, count, pages, truncated, dateFrom, capped }),
+      app_version: "edge", platform: "server",
+    });
+  } catch (_) { /* diagnóstico best-effort: nunca cambia el resultado bancario */ }
+}
+
 Deno.serve(withCors(async (req: Request) => {
   // El límite por cuenta no basta: muchas cuentas lentas podrían agotar la Edge y perder
   // también las respuestas buenas. Se reserva margen para devolverlas y cerrar la petición.
@@ -83,6 +98,10 @@ Deno.serve(withCors(async (req: Request) => {
     const body = await req.json().catch(() => ({}));
     const dateFrom = (typeof body?.dateFrom === "string" && /^\d{4}-\d{2}-\d{2}$/.test(body.dateFrom))
       ? body.dateFrom : null;
+    // Campo distinto de dateFrom a propósito: dateFrom abre el histórico de solo lectura
+    // (no toca saldos). Un cliente nuevo contra una función vieja manda esto y la vieja lo
+    // ignora; una función nueva contra un cliente viejo no lo ve y no ensancha.
+    const recoverGaps = body?.recoverGaps === true;
     const hasAspspFilter = Array.isArray(body?.aspsps);
     const wantedAspsps = hasAspspFilter
       ? body.aspsps.map((x: unknown) => String(x || "").trim().toLowerCase()).filter(Boolean).slice(0, 12)
@@ -185,6 +204,17 @@ Deno.serve(withCors(async (req: Request) => {
         out.push({ aspsp: link.aspsp_name, iban: link.iban, ok: false, expired: true, error: "cuenta sin uid · reconecta", balances: [], count: 0, transactions: [], accounts: [] });
         continue;
       }
+      // Una sola ventana por banco. Sin recoverGaps se queda el margen de 8 días aunque
+      // last_sync sea viejo: el cliente que no pidió el hueco tiraría esos cargos y, si
+      // aquí se adelantara last_sync, la próxima vez ya no habría hueco que pedir.
+      const demanded = demandSyncFrom(new Date(), link.last_sync, recoverGaps);
+      const recentFrom = demanded.from;
+      let pages = 0;
+      const countingApi = async (jwtArg: string, path: string, init: { method?: string; body?: unknown; signal?: AbortSignal } = {}) => {
+        const data = await ebApi(jwtArg, path, init);
+        if (String(path).includes("/transactions")) pages++;
+        return data;
+      };
       // deno-lint-ignore no-explicit-any
       const acctOut: any[] = [];
       let anyAcctOk = false, anyExpired = false, lastErr = "";
@@ -201,11 +231,9 @@ Deno.serve(withCors(async (req: Request) => {
         const balTimer = setTimeout(() => balController.abort(), accountDeadline - Date.now());
         try {
           const bal = await ebApi(jwt, `/accounts/${uid}/balances`, {signal:balController.signal});
-          const now = new Date();
-          // Debe cubrir al menos `som` de importObExpenses (mes de Madrid menos 8 días).
-          // En el borde de mes UTC puede pedir un mes adicional, pero nunca uno de menos.
-          const recentFrom = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1) - 8 * 86400000).toISOString().slice(0, 10);
-          const tx = await fetchBankTransactions(jwt, uid, recentFrom, ebApi, accountDeadline - Date.now());
+          // recentFrom ya cubre el margen de Madrid (día 1 UTC − 8) y, si el cliente lo pidió,
+          // el tramo hasta el último éxito − 3 días, con tope de 90.
+          const tx = await fetchBankTransactions(jwt, uid, recentFrom, countingApi, accountDeadline - Date.now());
           // deno-lint-ignore no-explicit-any
           const balances = (bal.balances || []).map((b: any) => ({
             type: b.balance_type || b.name || "",
@@ -236,10 +264,26 @@ Deno.serve(withCors(async (req: Request) => {
           clearTimeout(balTimer);
         }
       }
+      const readCount = acctOut.reduce((n, a) => n + (typeof a?.count === "number" ? a.count : (a?.transactions || []).length), 0);
+      const readTruncated = acctOut.some((a) => !!(a && (a.truncated || a.transactionError)));
+      const readFailed = acctOut.filter((a) => a && a.ok === false).length;
+      const readPartial = !acctOut.length || readFailed > 0 || readTruncated;
+      const readStatus = readPartial ? (readCount ? "partial" : "error") : (readCount ? "ok" : "empty");
+      await logObDemandResult(admin, user.id, link.aspsp_name, recentFrom, readStatus, acctOut.length, readCount, pages, readTruncated, demanded.gapBeyondCap);
       // Solo EB 401 firme caduca el permiso; 403/404/429/5xx conservan el enlace activo.
-      if (anyAcctOk) {
+      // last_sync solo avanza con la lectura completa. Un corte o un 429 dejarían el
+      // siguiente sync empezando después del hueco. Tampoco avanza si había hueco y el
+      // cliente no pidió recuperarlo: la función nueva no puede quemar el cursor de un
+      // móvil que todavía descarta lo anterior al margen.
+      const readComplete = demandReadComplete(acctOut);
+      const covered = readComplete && anyAcctOk && (!demanded.gap || recoverGaps);
+      if (covered) {
         await admin.from("bank_links")
           .update({ last_sync: new Date().toISOString(), status: "active", updated_at: new Date().toISOString() })
+          .eq("id", link.id);
+      } else if (anyAcctOk) {
+        await admin.from("bank_links")
+          .update({ status: "active", updated_at: new Date().toISOString() })
           .eq("id", link.id);
       } else {
         await admin.from("bank_links")
@@ -252,6 +296,7 @@ Deno.serve(withCors(async (req: Request) => {
         aspsp: link.aspsp_name, iban: link.iban, ok: anyAcctOk, expired: !anyAcctOk && anyExpired,
         error: anyAcctOk ? undefined : lastErr,
         balances: primary.balances, count: primary.count, transactions: primary.transactions,
+        syncFrom: recentFrom, gapBeyondCap: demanded.gapBeyondCap,
         accounts: acctOut,
       });
     }
