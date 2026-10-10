@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "id": "bancos-sin-hueco-grok-20261010",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261010-5f79c133",
+  "createdAt": "2026-10-10T16:32:07.794Z",
+  "to": "grok",
+  "baseSHA": "684a839d286f68d66c8855cf6e1a626b7220fd64",
+  "objective": "Causa REAL de INC-2709-06 (cargos de CaixaBank ausentes), hallada cotejando en solo lectura movimientos crudos contra gastos: el importador no descarta nada sin motivo. Faltan los cargos que el banco nunca entregó: (a) hasta el arreglo de paginación del 15/9 (commit 5730fc7c7) CaixaBank devolvía solo los 20 movimientos MÁS ANTIGUOS de unos 90 días; (b) desde entonces el sync a demanda pide desde «día 1 del mes menos 8 días» (bank-sync/index.ts línea 207, recentFrom) y el cliente descarta lo anterior (08-motor-bank.js líneas 889, 971 y 992). Quien sincroniza poco o cruza un cambio de mes pierde ese tramo para siempre; un usuario tiene un hueco de unas 11 semanas. Arreglar que el sync a demanda no deje huecos. Sustituye a PR200, que queda aparcado.",
+  "scope": [
+    "supabase/functions/bank-sync (solo fuente y tests; sin desplegar)",
+    "src/modules/08-motor-bank.js: ventana del importador a demanda",
+    "src/modules/11-app-main.js solo el llamador si hace falta",
+    "src/modules/01-i18n.js (es/en/ca) si hay aviso nuevo",
+    "tests y e2e registrados"
+  ],
+  "acceptance": [
+    "La sincronización a demanda pide desde el más antiguo de: (inicio de la ventana actual) y (último sync CON ÉXITO de ese banco menos 3 días), con tope de 90 días hacia atrás. El cliente acepta ese mismo tramo. Sin último sync conocido, se comporta como hoy.",
+    "No reintroducir sincronizaciones automáticas: sigue siendo solo a demanda (AGENTS 7). No aumentar el número de llamadas al banco por sincronización salvo las páginas que exija el tramo.",
+    "Los cargos recuperados de meses anteriores entran con su fecha real y pasan por la red de duplicados existente: un cargo ya apuntado por notificación, a mano o por histórico no se duplica. Test con dos bancos sembrados.",
+    "Si el hueco supera los 90 días que se pueden pedir, la app lo dice con un aviso que lleve a «Importar histórico»; no se calla. Textos en es/en/ca, tono de la casa.",
+    "Traza del sync a demanda en servidor, solo conteos y sin datos personales: banco, cuentas, movimientos recibidos, páginas, truncado, fecha mínima pedida y resultado. Hoy no queda rastro y por eso el incidente estuvo dos semanas sin causa.",
+    "El último sync con éxito solo se actualiza cuando la lectura fue completa; una lectura parcial o con error 429 no lo adelanta.",
+    "Compatibilidad: cliente nuevo con función vieja y función nueva con cliente viejo no pierden ni duplican; test de cada cruce. Decir en el result si desplegar bank-sync es obligatorio.",
+    "Un PR draft contra beta. npm run build, tests propios y Deno, y Playwright completo con exit real comparado con la beta limpia. Sin VERSION ni catálogos."
+  ],
+  "authorization": "Orden directa del dueño 10/10: Claude coordina; CaixaBank es prioridad."
+}
