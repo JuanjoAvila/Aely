@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import crypto from "node:crypto";
 import { execFileSync } from "node:child_process";
-import { betaRevision, betaNotes } from "../scripts/beta-revisions.mjs";
+import { betaRevision, betaNotes, betaDelivery } from "../scripts/beta-revisions.mjs";
 import { test, expect } from "@playwright/test";
 import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
 
@@ -1651,8 +1651,8 @@ for(const lang of ["es","en","ca"])test(`cola publicada: no vuelve a pedir las c
   const prior=before.map(n=>n.tandas?{...n,tandas:n.tandas.filter(g=>!replaced.includes(g.id))}:n);
   expect(prior.length).toBe(229);
   const live=JSON.parse(fs.readFileSync(new URL("../src/data/release-notes.json",import.meta.url),"utf8"));
-  expect(live).toEqual([note113,...prior]);
-  const expected=betaNotes([note113,...prior]);
+  expect(live).toEqual([{...note113,tandas:[]},...prior]);
+  const expected=betaNotes([{...note113,tandas:[]},...prior]);
   expect(expected.length).toBe(230);
   expect(await page.evaluate(()=>RELEASE_NOTES)).toEqual(expected);
   const closed=["inc-0310-01-meta-regla","ops-0410-panel-cola","inc-0310-gastos-sin-limite","inc-0310-broker-resultados","feature-0310-01-movilidad","inc-2909-01-widget-periodo","fin05-widget-reentrada","fin05-pago-cerrada","tr-descripcion-clasificacion","widget-banco","widget-app-cerrada",...retired];
@@ -1660,14 +1660,22 @@ for(const lang of ["es","en","ca"])test(`cola publicada: no vuelve a pedir las c
   const deliveries=JSON.parse(fs.readFileSync(new URL("../public/beta-delivery.json",import.meta.url),"utf8"));
   expect(deliveries.web["inc-2709-07-bienes-toque"]).toBeUndefined();
   expect(deliveries.web["inc-0910-inicio-solo-actual"]).toBeUndefined();
+  // El catálogo actual retira las dos pruebas; el guion publicado sigue como fixture sintético.
+  for(const g of note113.tandas){
+    expect(deliveries.pruebas[g.id]).toBeUndefined();
+    await expect(page.locator(".beta-tanda-t").filter({hasText:"v4.26.113 · "+g.t.es})).toHaveCount(0);
+  }
+  const published=betaNotes([note113,...prior]),publishedDeliveries=betaDelivery(published);
   for(const group113 of note113.tandas){
+  const deliveries=publishedDeliveries;
   const id113=group113.id,without113=structuredClone(deliveries);
   delete without113.web[id113];delete without113.pruebas[id113];
-  expect(deliveries.web[id113]).toBe(expected[0].tandas.find(g=>g.id===id113).web);
+  expect(deliveries.web[id113]).toBe(published[0].tandas.find(g=>g.id===id113).web);
   expect(deliveries.pruebas[id113]).toEqual({v:"4.26.113",contenido:JSON.stringify([id113,group113.t.es,group113.items.es,1])});
   const host="e2e-retirement113-"+lang+"-"+id113;
   // Un recibo sintético completo no debe esconder una tanda113 cuando falta sólo el suyo.
-  await page.evaluate(({deliveries,host})=>{
+  await page.evaluate(({deliveries,host,notes})=>{
+    RELEASE_NOTES=notes;
     window._mcProdEntregas=deliveries;window._mcProdApkRevisiones={};
     CONFIG.APP_VERSION=RELEASE_NOTES[0].v+".1";window._mcProdApk=52;
     window._mcProdDeliveryChecked=true;window._mcProdVersion=()=>Promise.resolve("4.26.94");
@@ -1675,7 +1683,7 @@ for(const lang of ["es","en","ca"])test(`cola publicada: no vuelve a pedir las c
     const h=document.createElement("div");h.id=host;document.body.appendChild(h);
     window.__retirement113Root=ReactDOM.createRoot(h);
     window.__retirement113Root.render(React.createElement(BetaReviewPanel,{onClose:()=>{},showToast:()=>{}}));
-  },{deliveries:without113,host});
+  },{deliveries:without113,host,notes:published});
   const panel=page.locator("#"+host+" .beta-review"),active=panel.locator('.beta-tanda:not([data-beta-historical="true"])');
   try{
     await expect(panel).toBeVisible();
@@ -1703,10 +1711,11 @@ for(const lang of ["es","en","ca"])test(`cola publicada: no vuelve a pedir las c
     expect(await page.evaluate(()=>window._mcProdEntregas)).toEqual(deliveries);
     expect(await page.evaluate(()=>store.get("_betaReview_4.26.87.1_v"))).toEqual({_h:1,"h:historia-sintetica":{verdict:"rejected",at:100}});
   }finally{
-    await page.evaluate(host=>{
+    await page.evaluate(({host,notes})=>{
+      RELEASE_NOTES=notes;
       if(window.__retirement113Root)window.__retirement113Root.unmount();
       const h=document.getElementById(host);if(h)h.remove();delete window.__retirement113Root;
-    },host);
+    },{host,notes:expected});
   }
   }
 });

@@ -29,7 +29,7 @@ function auditedRevision(id,source){
 const boot="inc-2709-01-arranque-red";
 const modern=[{v:"4.26.69",tandas:[{id:boot}]}];
 let failed=0;
-function test(name,fn){ try{fn();console.log("  ✓ "+name);}catch(e){failed++;console.error("  ✗ "+name+"\n    "+e.message);} }
+function test(name,fn){ if(process.argv.includes("--retirement113-only")&&!name.startsWith("Catálogo113 "))return; try{fn();console.log("  ✓ "+name);}catch(e){failed++;console.error("  ✗ "+name+"\n    "+e.message);} }
 console.log("beta-sources");
 
 // La rayita comparte controlador y geometría con la barra: una aprobación de CSS aislada no
@@ -332,7 +332,7 @@ const expected113={v:'4.26.113',d:'2026-10-10',t:{es:'Bienes completos y vuelve 
 test("Catálogo113 sustituye sólo111/112 y conserva notas, pendientes y rechazo109",()=>{
   const before=JSON.parse(source112("src/data/release-notes.json"));
   const retired=["inc-2709-07-bienes-toque","inc-0910-inicio-solo-actual"];
-  const expected=[expected113,...before.map(n=>n.tandas?{...n,tandas:n.tandas.filter(g=>!retired.includes(g.id))}:n)];
+  const expected=[{...expected113,tandas:[]},...before.map(n=>n.tandas?{...n,tandas:n.tandas.filter(g=>!retired.includes(g.id))}:n)];
   const verify=notes=>assert.deepEqual(notes,expected);
   const notes=JSON.parse(read("src/data/release-notes.json"));verify(notes);
   assert.equal(notes.length,230);assert.equal(JSON.parse(read("package.json")).version,"4.26.113");
@@ -341,7 +341,8 @@ test("Catálogo113 sustituye sólo111/112 y conserva notas, pendientes y rechazo
     changed.find(n=>n.v===old.v).tandas.push(old.tandas.find(g=>g.id===id));
     assert.throws(()=>verify(changed),"no reabrir "+id);
   }
-  const changed=structuredClone(notes);changed[0].tandas[0].desde=retired[0];assert.throws(()=>verify(changed));
+  for(const g of expected113.tandas){const changed=structuredClone(notes);changed[0].tandas.push(g);assert.throws(()=>verify(changed),"no resucitar "+g.id);}
+  const changed=structuredClone(notes);delete changed[0].tandas;assert.throws(()=>verify(changed),"no fabricar una tanda todo");
   const missing=structuredClone(notes);missing.pop();assert.throws(()=>verify(missing));
   const text=structuredClone(notes);text[1].items.es[0]+="mutante";assert.throws(()=>verify(text));
   const scopes=JSON.parse(read("scripts/beta-sources.json")),oldScopes=JSON.parse(source112("scripts/beta-sources.json"));
@@ -351,9 +352,9 @@ test("Catálogo113 sustituye sólo111/112 y conserva notas, pendientes y rechazo
   assert.deepEqual(JSON.parse(read("scripts/beta-archives.json")),JSON.parse(source112("scripts/beta-archives.json")),"pin y juicio109 intactos");
   const built=betaNotes(notes),receipt=betaDelivery(built);
   for(const id of retired){assert.equal(receipt.web[id],undefined);assert.equal(receipt.pruebas[id],undefined);}
-  for(const g of built[0].tandas){
-    assert.equal(receipt.web[g.id],g.web);assert.equal(receipt.pruebas[g.id].v,"4.26.113");
-    for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica"])assert.equal(g[key],undefined,"identidad nueva sin "+key);
+  for(const g of expected113.tandas){
+    assert.equal(receipt.web[g.id],betaRevision(g.id).web,"el producto sigue íntegro");
+    assert.equal(receipt.pruebas[g.id],undefined,"el guion retirado no permanece marcado");
   }
 });
 test("Bienes113 vigila la puerta vacía, ficha, cancelación, borrado y textos",()=>{
