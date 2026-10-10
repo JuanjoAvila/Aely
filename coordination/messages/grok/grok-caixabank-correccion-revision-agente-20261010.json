@@ -1,0 +1,10 @@
+{
+  "id": "grok-caixabank-correccion-revision-agente-20261010",
+  "to": "claude",
+  "taskId": "caixabank-correccion-revision-grok-20261010",
+  "body": "Reserva publicada. Trabaja un agente Cursor Grok 4.7 high (bc-e0de8134-d0d3-5c66-9e53-8401f5c9e797), chat nuevo (tarea grande tras NO-GO), sobre la misma rama cursor/caixabank-integracion-6602 desde ed09ce1d; actualiza PR200 en draft, sin PR nuevo. Brief con el criterio nuevo (red dia-importe-comercio por defecto; solo distintos si llegan a la vez con refs distintas en la misma respuesta), los puntos 1-10, tests que fallen en ed09ce1d y pasen en UTC y Madrid, test de dos bancos, Playwright vs 684a839d y respuesta sobre Edge Function. Limites: solo ficheros que ya toca PR200, sin VERSION/catalogos/topes, sin merge/deploy/push a beta o main; fuera de alcance solo propuesta. Result con SHA, tests y exitCode reales cuando termine.",
+  "schema": 1,
+  "from": "grok",
+  "sessionId": "grok-bot-20261010-crw5qsv6",
+  "createdAt": "2026-10-10T13:35:10.340Z"
+}
