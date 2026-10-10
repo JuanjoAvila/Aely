@@ -54,6 +54,24 @@ const time=c.cycleTiming(detected,now);
 assert.deepEqual(plain(time),{days:30,elapsed:29,left:1,reliable:true},"el próximo cobro desde el31 se acota al mes corto");
 assert.equal(c.cycleTiming(c.dashboardBudgetStats({...payState,expenses:[]}),now).reliable,false,"preferencia activa sin nómina fiable no inventa ritmo");
 c.Date=nativeDate;
+const madridMonth=c.cycleTiming({periodStart:Date.parse("2026-08-31T22:00:00Z"),cycle:false},Date.parse("2026-09-26T12:00:00Z"));
+assert.deepEqual(plain(madridMonth),{days:30,elapsed:25,left:5,reliable:false},"el mes natural de Madrid no dura un día en un dispositivo UTC");
+assert.equal(c.cyclePaceState(950,1000,madridMonth.elapsed,madridMonth.days).id,"tight","un límite casi agotado no puede decir sobrado por la zona horaria");
+for(const [start,now,cycle,expected] of [
+  ["2026-08-30T22:00:00Z","2026-09-29T12:00:00Z",true,{days:30,elapsed:29,left:1,reliable:true}],
+  ["2026-10-24T22:00:00Z","2026-10-25T23:30:00Z",true,{days:31,elapsed:1,left:30,reliable:true}],
+  ["2026-03-27T23:00:00Z","2026-03-29T22:30:00Z",true,{days:31,elapsed:2,left:29,reliable:true}],
+  ["2024-01-31T23:00:00Z","2024-02-29T12:00:00Z",false,{days:29,elapsed:28,left:1,reliable:false}],
+  ["2026-12-30T23:00:00Z","2027-01-01T12:00:00Z",true,{days:31,elapsed:1,left:30,reliable:true}],
+]) assert.deepEqual(plain(c.cycleTiming({periodStart:Date.parse(start),cycle},Date.parse(now))),expected,"mes, ciclo, mes corto y cambio horario usan días civiles de Madrid");
+const midnight=Date.parse("2026-09-25T22:30:00Z");
+c.Date=class extends Date{ constructor(...args){ super(...(args.length?args:[midnight])); } static now(){ return midnight; } };
+const midnightSeries=c.netWorthSeries({...base,accounts:[{...base.accounts[0],value:500},base.accounts[1]],
+  expenses:coverage.concat({id:"midnight-income",date:"2026-09-25T22:10:00Z",amount:-200,category:"ingreso",ent:"sabadell"})},{liquid:800,invested:0,debtTotal:0});
+assert.equal(midnightSeries.at(-1).day,"2026-09-26","hoy y los movimientos usan Madrid también antes de medianoche UTC");
+assert.equal(midnightSeries.at(-2).value,600,"el ingreso de hoy no se adelanta al día anterior");
+assert.equal(midnightSeries.at(-1).value,800);
+c.Date=nativeDate;
 const points=Array.from({length:400},(_,i)=>({day:new Date(Date.UTC(2025,7,i+1)).toISOString().slice(0,10),value:i}));
 const hist={"acc:a":points},last=points.at(-1).day;
 assert.equal(c.recordAccountBalances(hist,last,[{key:"acc:a",value:399}]),hist,"sin cambio mantiene referencia completa");

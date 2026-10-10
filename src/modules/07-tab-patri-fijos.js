@@ -373,7 +373,7 @@ function Wealth({state, set, totals, v4Embed, parte, showToast, onBankSync, onRe
      movimientos potencialmente truncados: hasta el segundo día la ficha dice que empieza hoy. */
   React.useEffect(function(){
     if(!v4Embed||parte!=="cuentas"||!balanceReady) return;
-    const today=dayKey(new Date());
+    const today=netWorthDay();
     const rows=(state.accounts||[]).map(function(a){
       return {key:a.accountOrderKey||("acc:"+a.id),value:+Number(shownAcc(a)).toFixed(2)};
     }).concat((state.obAccounts||[]).map(function(o){

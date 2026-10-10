@@ -19,17 +19,19 @@ function cycleMoney(value){
   return Number.isInteger(Math.round(value*DISP.k*100)/100)?eur0(value):eur(value);
 }
 function cycleTiming(bud,nowMs){
-  const now=new Date(nowMs==null?Date.now():nowMs), start=new Date(bud.periodStart);
-  const civil=function(d){ return Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()); };
-  let end=new Date(start.getFullYear(),start.getMonth()+1,1);
+  // El calendario financiero es el de Madrid: su medianoche en UTC caía el día
+  // anterior y septiembre duraba un día. Fechas civiles evitan también contar la hora del cambio horario.
+  const now=madridYmdParts(nowMs==null?Date.now():nowMs), start=madridYmdParts(bud.periodStart);
+  const civil=function(d){ return Date.UTC(d.y,d.m-1,d.d); };
+  let end=Date.UTC(start.y,start.m,1);
   // El lector financiero sólo marca ciclo tras identificar el cobro; conserva esa ancla
   // sin recorrer otra vez el histórico para decidir si se puede mostrar el ritmo.
   if(bud.cycle){
-    const last=new Date(start.getFullYear(),start.getMonth()+2,0).getDate();
-    end=new Date(start.getFullYear(),start.getMonth()+1,Math.min(start.getDate(),last));
+    const last=new Date(Date.UTC(start.y,start.m+1,0)).getUTCDate();
+    end=Date.UTC(start.y,start.m,Math.min(start.d,last));
   }
-  const days=Math.max(1,(civil(end)-civil(start))/864e5), elapsed=Math.max(0,(civil(now)-civil(start))/864e5);
-  return {days:days,elapsed:elapsed,left:Math.max(0,(civil(end)-civil(now))/864e5),reliable:!!bud.cycle};
+  const days=Math.max(1,(end-civil(start))/864e5), elapsed=Math.max(0,(civil(now)-civil(start))/864e5);
+  return {days:days,elapsed:elapsed,left:Math.max(0,(end-civil(now))/864e5),reliable:!!bud.cycle};
 }
 function NetWorthNow({tt, simple, series, splashGone}){
   // La animación pertenece a esta tarjeta; repintar todo Inicio en cada frame
@@ -37,7 +39,7 @@ function NetWorthNow({tt, simple, series, splashGone}){
   const shownNet=useCountUp(tt.netWorth||0, splashGone);
   const value=tt.netWorth, shown=shownNet, ready=splashGone;
   series=series||[];
-  const today=dayKey(new Date()), current=series.length&&series[series.length-1].day===today;
+  const today=netWorthDay(), current=series.length&&series[series.length-1].day===today;
   const ranges=useMemo(function(){ return netWorthRanges(series,today); },[series,today]);
   const [picked,setPicked]=useState("1m"), [touch,setTouch]=useState(null), [info,setInfo]=useState(false);
   const svgRef=useRef(null), frameRef=useRef(0), fingerRef=useRef(null);
@@ -158,9 +160,9 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
     return ((parts[0]||"M").charAt(0)+(parts[1]||parts[0]||"C").charAt(0)).toUpperCase();
   })();
 
-  const seriesToday=dayKey(new Date());
-  // El contador repinta Inicio en cada frame; sólo un cambio financiero o de día
-  // justifica volver a recorrer el histórico para el presupuesto y su nómina.
+  const seriesToday=netWorthDay();
+  // Sólo un cambio financiero o de día justifica volver a recorrer el histórico
+  // para el presupuesto y su nómina, también al abrir una hoja de Inicio.
   const bud=useMemo(function(){
   const bud=dashboardBudgetStats(state);
     return bud;

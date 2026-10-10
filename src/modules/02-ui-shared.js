@@ -656,9 +656,14 @@ function recordAccountBalances(hist, day, rows){
 }
 // Las fotos de bancos desacompasados inventaban pérdidas de traspasos. El total de hoy
 // se recorre hacia atrás con flujos; sólo las cuentas manuales sin movimientos usan escalones.
+function netWorthDay(nowMs){
+  // La serie etiqueta movimientos en Madrid; «hoy» no puede cerrarla un día antes en UTC.
+  const p=madridYmdParts(nowMs==null?Date.now():nowMs);
+  return p.ym+"-"+String(p.d).padStart(2,"0");
+}
 function netWorthSeries(state, options){
   options=options||{};
-  const today=options.today||dayKey(new Date()), rows=accountRowsInOrder(state), hist=state.accountBalanceHistory||{};
+  const today=options.today||netWorthDay(), rows=accountRowsInOrder(state), hist=state.accountBalanceHistory||{};
   const utcFmt=new Intl.DateTimeFormat("en-CA",{timeZone:"UTC",year:"numeric",month:"2-digit",day:"2-digit"});
   const fmt=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Madrid",year:"numeric",month:"2-digit",day:"2-digit"});
   const clean=function(list,day,value){

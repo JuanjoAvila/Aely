@@ -35,6 +35,48 @@ for(const state of states) test("estado real "+state.id,async({page},testInfo)=>
   await card.screenshot({animations:"disabled",path:testInfo.outputPath("cycle-"+state.id+"-synthetic.png")});
   await testInfo.attach("cycle-"+state.id+"-synthetic",{path:testInfo.outputPath("cycle-"+state.id+"-synthetic.png"),contentType:"image/png"});
 });
+for(const zone of ["UTC","Europe/Madrid"]) test.describe("calendario de Madrid en "+zone,()=>{
+  test.use({timezoneId:zone});
+  test("casi agotado dice justo y conserva el margen sin inventar ritmo",async({page})=>{
+    await open(page,{cycle:false,day:26,spent:950});
+    await expect(page.locator(".v42-cycle")).toHaveAttribute("data-state","tight");
+    await expect(page.locator(".v42-cycle .st")).toHaveText("Vas justito");
+    await expect(page.locator(".v42-cycle-amount>.serif")).toHaveText("50 €");
+    await expect(page.getByTestId("inicio-cycle-pace")).toHaveCount(0);
+  });
+  test("el cambio horario no inventa un día más de margen diario",async({page})=>{
+    await page.clock.install({time:new Date("2026-10-25T23:30:00Z")});
+    await seedLoggedInDashboard(page,{budget:1000,settings:{autoPrices:false,theme:"green",budgetCycle:true},
+      accounts:[{id:"a",ent:"sabadell",value:5000,role:"diario",spendFrom:true}],expenses:[
+        {id:"salary",date:"2026-10-25T12:00:00Z",amount:-2000,merchant:"Nómina sintética",category:"ingreso",ent:"sabadell"},
+        {id:"expense",date:"2026-10-25T16:00:00Z",amount:100,merchant:"Compra sintética",category:"super",ent:"sabadell"}]});
+    await page.goto("/");await page.waitForFunction(()=>!document.getElementById("mc-load"));await dismissNews(page);
+    await expect(page.getByTestId("inicio-cycle-pace")).toHaveText("30 € al día durante 30 días");
+    await expect(page.locator(".v42-cycle-amount>.serif")).toHaveText("900 €");
+  });
+  test("la gráfica y el dedo incluyen el ingreso de hoy tras medianoche de Madrid",async({page})=>{
+    await page.clock.install({time:new Date("2026-09-25T22:30:00Z")});
+    await seedLoggedInDashboard(page,{budget:1000,settings:{autoPrices:false,theme:"green",budgetCycle:false},accounts:[
+      {id:"a",ent:"sabadell",value:500,role:"fijos",bankIban:"ES-SYNTHETIC-A"},
+      {id:"b",ent:"revolut",value:300,role:"fijos",bankIban:"ES-SYNTHETIC-B"}],expenses:[
+      {id:"coverage-a",date:"2026-09-25T12:00:00Z",amount:0,category:"super",ent:"sabadell"},
+      {id:"coverage-b",date:"2026-09-25T12:00:00Z",amount:0,category:"super",ent:"revolut"},
+      {id:"income",date:"2026-09-25T22:10:00Z",amount:-200,category:"ingreso",ent:"sabadell",merchant:"Ingreso sintético"}]});
+    await page.goto("/");await page.waitForFunction(()=>!document.getElementById("mc-load"));await dismissNews(page);
+    const hero=page.getByTestId("inicio-net-current"),amount=hero.locator(".v4-hero-amt");
+    await expect(amount).toContainText("800,00 €");
+    await expect(hero.locator(".v42-net-ranges button")).toHaveText(["Todo"]);
+    await expect(hero.getByTestId("inicio-net-delta")).toContainText("200");
+    const path=await hero.locator(".v42-net-line").getAttribute("d");expect([...path.matchAll(/[ML]/g)]).toHaveLength(2);
+    const box=await hero.locator(".v42-net-chart").boundingBox(),client=await page.context().newCDPSession(page);
+    await client.send("Input.dispatchTouchEvent",{type:"touchStart",touchPoints:[{x:box.x+4,y:box.y+35}]});
+    await expect(hero.getByTestId("inicio-net-date")).toContainText(/^25\b/);await expect(amount).toContainText("600,00 €");
+    await expect(hero.getByTestId("inicio-net-guide")).toBeVisible();
+    await client.send("Input.dispatchTouchEvent",{type:"touchEnd",touchPoints:[]});
+    await expect(amount).toContainText("800,00 €");await expect(hero.getByTestId("inicio-net-date")).toHaveCount(0);
+    await expect(hero.getByTestId("inicio-net-guide")).toHaveCount(0);await client.detach();
+  });
+});
 for(const lang of ["es","en","ca"]) test("rangos, colores y puertas "+lang,async({page})=>{
   await open(page,{lang,falling:true});
   const hero=page.getByTestId("inicio-net-current"), ranges=hero.locator(".v42-net-ranges button");
