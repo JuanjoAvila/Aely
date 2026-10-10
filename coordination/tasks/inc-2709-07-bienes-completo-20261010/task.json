@@ -4,9 +4,9 @@
   "from": "codex",
   "coordinatorSession": "relay-run-8d5dfa67b7cb406d",
   "createdAt": "2026-10-10T07:55:14.466Z",
-  "to": "claude",
+  "to": "codex",
   "baseSHA": "74c5f075bf08e38e289992195ad97e3a71a8b031",
-  "objective": "Terminar la petición existente de Bienes: añadir, borrar y editor integrado en el diseño actual. Editar ya existía; la puerta111.1 no resolvió estas necesidades, señaladas expresamente por el dueño10/10.",
+  "objective": "CANCELADO POR ORDEN HUMANA. Terminar la petición existente de Bienes: añadir, borrar y editor integrado en el diseño actual. Editar ya existía; la puerta111.1 no resolvió estas necesidades, señaladas expresamente por el dueño10/10.",
   "scope": [
     "src/modules/07-tab-patri-fijos.js: flujo Bienes y editor",
     "src/modules/01-i18n.js: textos es/en/ca",
@@ -26,5 +26,10 @@
   "restrictions": [
     "Datos sintéticos; sin secretos, datos familiares, dependencias nuevas, escrituras backend, APK/SQL/Edge, pagos o cambios de decisiones financieras.",
     "Sin VERSION/catálogos/publicaciones. Inicio113 está en Codex, independiente; no retirar su gráfica ni añadir AHORA. Mantener asignación a través de relevos sin reiniciarla."
-  ]
+  ],
+  "originalTo": "claude",
+  "status": "cancelled",
+  "cancelledBy": "human",
+  "cancelledAt": "2026-10-10 08:09:19 UTC",
+  "cancellationReason": "Orden humana directa 10/10: cancelar coordinación Codex y encargos recién emitidos; Claude local toma el control. No ejecutar este encargo. Conservar trabajo existente, no publicar ni generar relevos."
 }
