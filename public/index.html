@@ -15330,8 +15330,9 @@ function histCandExisting(cands, expenses){
     return e;
   };
   const out={};
-  /* Con entry_reference solo casa ESA referencia. El día|importe|comercio marcaría el
-     segundo cargo Caixa como duplicado del primero (INC-2709-06). */
+  /* Con entry_reference solo casa ESA referencia. Si el guardado no tiene referencia,
+     se reclama una fila por día|importe|comercio (1:1): si no, un recibo ya apuntado
+     no se reconocía. Una fila con OTRA referencia no vale: sería el segundo cargo Caixa. */
   (cands||[]).forEach(function(x,i){
     if(!x || x.id==null || x.id==="") return;
     const hit=(expenses||[]).find(function(e){
@@ -15340,7 +15341,17 @@ function histCandExisting(cands, expenses){
       return !x.ent || !eb || eb===x.ent;
     });
     const cogido=tomar(hit);
-    if(cogido) out[i]=cogido;
+    if(cogido){ out[i]=cogido; return; }
+    const signed=x.kind==="in" ? -Math.abs(x.amount) : Math.abs(x.amount);
+    const list=porClave[histCandDupKey(x.date, signed, x.merchant)];
+    if(!list||!list.length) return;
+    const idx=list.findIndex(function(e){
+      if(e.extId!=null && String(e.extId)!=="") return false;
+      if(sinComercioReal(x.merchant) && x.ent) return expenseBankOf(e)===x.ent;
+      return true;
+    });
+    if(idx<0) return;
+    out[i]=tomar(list[idx]);
   });
   (cands||[]).forEach(function(x,i){
     if(!x || out[i] || (x.id!=null && x.id!=="")) return;
@@ -20601,7 +20612,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="97010b95c5d9ab64a915dfb79cf6196c1cdd5be2a5f8c6c3b8e3c05881834d0d";
+var _rnSha="b8562707f7e39be92dec46aa00a073ddc72f515367345d2baeaf127d2e07d885";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){

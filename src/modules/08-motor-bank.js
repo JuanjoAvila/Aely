@@ -1896,8 +1896,9 @@ function histCandExisting(cands, expenses){
     return e;
   };
   const out={};
-  /* Con entry_reference solo casa ESA referencia. El día|importe|comercio marcaría el
-     segundo cargo Caixa como duplicado del primero (INC-2709-06). */
+  /* Con entry_reference solo casa ESA referencia. Si el guardado no tiene referencia,
+     se reclama una fila por día|importe|comercio (1:1): si no, un recibo ya apuntado
+     no se reconocía. Una fila con OTRA referencia no vale: sería el segundo cargo Caixa. */
   (cands||[]).forEach(function(x,i){
     if(!x || x.id==null || x.id==="") return;
     const hit=(expenses||[]).find(function(e){
@@ -1906,7 +1907,17 @@ function histCandExisting(cands, expenses){
       return !x.ent || !eb || eb===x.ent;
     });
     const cogido=tomar(hit);
-    if(cogido) out[i]=cogido;
+    if(cogido){ out[i]=cogido; return; }
+    const signed=x.kind==="in" ? -Math.abs(x.amount) : Math.abs(x.amount);
+    const list=porClave[histCandDupKey(x.date, signed, x.merchant)];
+    if(!list||!list.length) return;
+    const idx=list.findIndex(function(e){
+      if(e.extId!=null && String(e.extId)!=="") return false;
+      if(sinComercioReal(x.merchant) && x.ent) return expenseBankOf(e)===x.ent;
+      return true;
+    });
+    if(idx<0) return;
+    out[i]=tomar(list[idx]);
   });
   (cands||[]).forEach(function(x,i){
     if(!x || out[i] || (x.id!=null && x.id!=="")) return;
