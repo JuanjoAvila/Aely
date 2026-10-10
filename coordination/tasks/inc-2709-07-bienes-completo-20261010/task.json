@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "id": "inc-2709-07-bienes-completo-20261010",
+  "from": "codex",
+  "coordinatorSession": "relay-run-8d5dfa67b7cb406d",
+  "createdAt": "2026-10-10T07:55:14.466Z",
+  "to": "claude",
+  "baseSHA": "74c5f075bf08e38e289992195ad97e3a71a8b031",
+  "objective": "Terminar la petición existente de Bienes: añadir, borrar y editor integrado en el diseño actual. Editar ya existía; la puerta111.1 no resolvió estas necesidades, señaladas expresamente por el dueño10/10.",
+  "scope": [
+    "src/modules/07-tab-patri-fijos.js: flujo Bienes y editor",
+    "src/modules/01-i18n.js: textos es/en/ca",
+    "src/shell.html: estilos del editor si imprescindibles",
+    "e2e Bienes y registro relevant-tests",
+    "tests financieros necesarios y registro run-tests",
+    "docs de la petición y evidencia"
+  ],
+  "acceptance": [
+    "Crear checkout y rama propios desde baseSHA; leer AGENTS y EMPIEZA-AQUI completos. Reclamar este encargo con sesión cloud propia y push/lectura confirmados antes de editar; no duplicar reserva existente del mismo alcance.",
+    "Primera acción real: abrir Cartera→Bienes con fixture sintética, reproducir las puertas ausentes de añadir/borrar y el editor antiguo. Publicar ACK con worktree/rama/SHA y reproducción, sin contar solicitud como trabajo.",
+    "Implementar alta alcanzable también con lista vacía, cancelar sin escribir, borrado mediante askConfirm y editor con componentes/variables del diseño actual. Conservar precisión financiera, validación y patrimonio derivado; no rediseñar otras pantallas ni inventar una función nueva.",
+    "DOM real: alta válida/inválida/cancelación, edición, cancelación de borrado/borrado confirmado, recarga y total correcto. Registrar cualquier test nuevo; es/en/ca, build, sintaxis, guardias y pruebas pertinentes. Cursor por Grok prepara pruebas/revisión separadas, sin disputar tu módulo.",
+    "Continuar autónomamente en la nube sin depender de la presencia del coordinador local. Entregar SHA/tree/PR draft contra beta, alcance, comandos/exitcodes, límites y result con liberación. Codex integra/publica en serie y prepara versión/catálogos; no push beta/main ni producción/APK/backend."
+  ],
+  "authorization": "Orden humana directa10/10: simplificar, priorizar lo pedido, terminar backlog y usar Claude y Cursor disponibles; continuidad cloud y sin huecos por horario. La autonomía resuelve cómo, no inventa producto ni aceptación móvil.",
+  "restrictions": [
+    "Datos sintéticos; sin secretos, datos familiares, dependencias nuevas, escrituras backend, APK/SQL/Edge, pagos o cambios de decisiones financieras.",
+    "Sin VERSION/catálogos/publicaciones. Inicio113 está en Codex, independiente; no retirar su gráfica ni añadir AHORA. Mantener asignación a través de relevos sin reiniciarla."
+  ]
+}
