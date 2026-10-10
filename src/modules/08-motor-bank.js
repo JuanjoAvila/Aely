@@ -247,10 +247,36 @@ function fixedPaymentState(s,e,y,m,today){
       return f.bank===bank&&recNameMatch(f.name,tx.merchant)&&recAmtClose(f.amount,Number(tx.amount));
     }).length!==1) tx=null;
   }
-  var proof=fixedPaymentProof(s,e,y,m,today),paid=!!proof||!!persisted||!!tx;
-  return {paid:paid,day:paid?(proof?recDay(proof.date):persisted?paidDay:recDay(tx.date)):day,
-    overdue:!paid&&day!=null&&day<today,bankTx:tx,paidBank:paid?(proof?proof.bank:tx?tx.ent:bank):null,
-    paidAmount:proof?Number(proof.amount):tx?Number(tx.amount):null};
+  var proof=fixedPaymentProof(s,e,y,m,today),expense=null;
+  // El extracto es local, pero Gastos conserva el cargo importado o notificado. El
+  // nombre completo y los céntimos deben identificar un único recibo incluso en otra
+  // entidad; un token genérico o importe parecido requiere confirmación expresa (10/10).
+  var name=recNorm(e.name);
+  if(!proof&&!persisted&&!tx&&matches.length<2&&name.length>=4&&!(e.paymentProofs&&e.paymentProofs[y*12+m])){
+    var rows=(s.expenses||[]).filter(function(x){
+      if(!x||["ob","ob-hist","wallet","macrodroid","tr"].indexOf(x.source)<0||String(x.date||"").slice(0,7)!==ym) return false;
+      if((x.cur||x.currency)&&String(x.cur||x.currency).toUpperCase()!=="EUR"||expenseBankOf(x)==="efectivo") return false;
+      if(Math.round(Number(x.amount)*100)!==Math.round(Number(target)*100)) return false;
+      var merchant=recNorm(x.obName!=null?x.obName:x.merchant);
+      if(merchant.length<4||(" "+merchant+" ").indexOf(" "+name+" ")<0) return false;
+      // La unicidad recorre Gastos: sólo después de descartar nombre/importe/mes para
+      // que el histórico no cueste un barrido entero por cada compra no coincidente.
+      if(!fixedExpenseEligible(s,x,e,y,m,today)) return false;
+      if(fixedPaymentContenders(s,y,m).filter(function(f){
+        var n=recNorm(f.name);
+        return n.length>=4&&(" "+merchant+" ").indexOf(" "+n+" ")>=0&&Math.round(Number(f.amount)*100)===Math.round(Number(x.amount)*100);
+      }).length!==1) return false;
+      return !(s.fixed||[]).some(function(f){
+        var p=fixedPaymentProof(s,f,y,m,today);
+        return f.id!==e.id&&p&&p.identity===fixedPaymentIdentity(expenseBankOf(x),x);
+      });
+    });
+    expense=rows.length===1?rows[0]:null;
+  }
+  var paid=!!proof||!!persisted||!!tx||!!expense;
+  return {paid:paid,day:paid?(proof?recDay(proof.date):persisted?paidDay:recDay((tx||expense).date)):day,
+    overdue:!paid&&day!=null&&day<today,bankTx:tx,paidBank:paid?(proof?proof.bank:tx?tx.ent:expense?expenseBankOf(expense):bank):null,
+    paidAmount:proof?Number(proof.amount):tx?Number(tx.amount):expense?Number(expense.amount):null};
 }
 /* Una cuota vinculada ya contabilizada puede adelantarse al vencimiento. El vínculo identifica
    la deuda; el cargo cercano identifica SU mes, también al cruzar el día 1. No reanclamos el

@@ -158,3 +158,44 @@ assert.equal(sharedPaid.plannedBankAmount,42);
 assert.equal(sharedPaid.paidAmount,44);
 assert.equal(sharedLinked.accounts,sharedState.accounts);
 assert.equal(sharedLinked.expenses,sharedState.expenses);
+
+// Gastos conserva cargos aunque el extracto local falte en otro móvil (INC-3009-01).
+const recorded=Object.assign({},expense,{source:"ob",ent:"sabadell",merchant:"Nombre legible",obName:fixed.name});
+const recordedState=Object.assign({},base,{bankTx:[],expenses:[recorded]});
+assert.equal(c.fixedPaymentState(recordedState,fixed,2026,9,30).paid,true,"el nombre original acredita el cargo guardado sin feed");
+assert.equal(c.fixedPaymentState(recordedState,fixed,2026,9,30).day,25,"fecha real del cargo, no la prevista");
+for(const source of ["ob","ob-hist","wallet","macrodroid","tr"]){
+  const row=Object.assign({},recorded,{source:source,ent:"revolut"});
+  const state=Object.assign({},recordedState,{expenses:[row]});
+  const before=JSON.stringify(state);
+  const result=c.fixedPaymentState(state,fixed,2026,9,30);
+  assert.equal(result.paid,true,"cargo reconocido desde otra entidad: "+source);
+  assert.equal(result.paidBank,"revolut");
+  assert.equal(result.paidAmount,42);
+  assert.equal(c.planChargesMonth(state,9,2026,30).pendingBills.length,0);
+  assert.equal(JSON.stringify(state),before,"leer evidencia no escribe dinero ni movimientos");
+}
+for(const patch of [{obName:"Comercio ajeno"},{obName:"Otro ficticio"},{obName:"Ficticio"},{obName:"Gas ficticios"},{amount:42.4},{source:"manual:sabadell"},{status:"PDNG"},{possibleDup:true},{date:"2026-09-31"},{date:"2026-10-25"},{debtId:"deuda"},{category:"traspaso"},{currency:"USD"},{ent:"efectivo"}]){
+  const state=Object.assign({},recordedState,{expenses:[Object.assign({},recorded,patch)]});
+  assert.equal(c.fixedPaymentState(state,fixed,2026,9,30).paid,false,"cargo guardado sin identidad suficiente: "+JSON.stringify(patch));
+}
+const otherBill=Object.assign({},fixed,{id:"gas-otro",account:"revolut"});
+assert.equal(c.fixedPaymentState(Object.assign({},recordedState,{fixed:[fixed,otherBill]}),fixed,2026,9,30).paid,false,"no elige entre recibos compatibles de bancos distintos");
+assert.equal(c.fixedPaymentState(Object.assign({},recordedState,{expenses:[recorded,Object.assign({},recorded,{id:"duplicado"})]}),fixed,2026,9,30).paid,false,"dos cargos guardados no acreditan un único pago");
+assert.equal(c.fixedPaymentState(Object.assign({},recordedState,{deleted:[c.keyOfExpense(recorded)]}),fixed,2026,9,30).paid,false,"borrado no acredita pago");
+assert.equal(c.fixedPaymentState(Object.assign({},recordedState,{bankTx:[Object.assign({},recorded,{status:"PDNG"})]}),fixed,2026,9,30).paid,false,"feed contradice el cargo guardado");
+const remoteRecord=c.expenseFromRow({id:"id-remoto",fecha:recorded.date,comercio:recorded.merchant,importe:42,cat:"otros",source:"ob:sabadell",ob_name:recorded.obName});
+assert.equal(c.fixedPaymentState(Object.assign({},recordedState,{expenses:[remoteRecord]}),fixed,2026,9,30).paid,true,"pull con UUID nuevo y nombre bancario conserva el pago sin vínculo local");
+const eligible=c.fixedExpenseEligible;
+for(const length of [500,20000]){
+  let checks=0;
+  c.fixedExpenseEligible=function(){ checks++;return eligible.apply(this,arguments); };
+  const history=Array.from({length:length},(_,i)=>Object.assign({},recorded,{id:"historico-"+i,merchant:"Negocio "+i,obName:"Negocio "+i}));
+  const state=Object.assign({},recordedState,{expenses:history});
+  const started=performance.now();
+  assert.equal(c.fixedPaymentState(state,fixed,2026,9,30).paid,false);
+  assert.equal(checks,0,"un histórico sin nombre compatible no repite el barrido de unicidad por compra");
+  console.log("fixed-payment-state: histórico "+length+", eligible="+checks+", ms="+Math.round(performance.now()-started));
+}
+c.fixedExpenseEligible=eligible;
+console.log("fixed-payment-state: cargos guardados sin feed OK");
