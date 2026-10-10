@@ -19,6 +19,55 @@ async function open(page,lang,overrides={}){
 }
 
 for(const lang of ["es","en","ca"]){
+  test(lang+": editar un recibo notificado no confirma dinero en el calendario",async({page})=>{
+    const cargo={id:"notificado",date:"2026-09-24",merchant:"Gas ficticio",amount:42,ent:"trade_republic",category:"otros",source:"macrodroid"};
+    await open(page,lang,{expenses:[cargo]});
+    await expect(page.locator('.page-scroll-host .v4-charge').filter({hasText:fixed.name})).toHaveCount(0);
+    await page.locator('.botnav-tab[data-tour="plan"]').click();
+    const manage=await page.evaluate(()=>t("v4_gestionar"));
+    await page.locator('.v4-screen > [data-seg="recibos"]').getByRole("button",{name:manage,exact:true}).click();
+    const hub=page.locator('[data-bills-manage]');
+    await hub.locator('.v4-bills-group').first().click();
+    await hub.locator('.v4-bills-row').filter({hasText:fixed.name}).click();
+    const sheet=page.locator('.v4-sheet[data-sheet="bill"]');
+    await sheet.locator('input[inputmode="numeric"]').fill("26");
+    await expect.poll(()=>page.evaluate(()=>mcLoadRaw(mcStateKey()).fixed[0].day)).toBe(26);
+    const edited=await page.evaluate(()=>mcLoadRaw(mcStateKey()).fixed[0]);
+    expect(edited.day).toBe(26);
+    expect(edited.paidYm).toBeUndefined();
+    expect(edited.paidDay).toBeUndefined();
+    await sheet.locator('.settings-push-h .back').click();
+    await hub.locator(':scope > .v4-bills-push > [data-screen="bills-group"] > .settings-push-h .back').click();
+    await hub.locator(':scope > [data-screen="bills-home"] > .settings-push-h .back').click();
+    await expect(page.locator('div[data-seg="recibos"] .v4-paid').filter({hasText:fixed.name})).toHaveCount(1);
+    await page.reload(); await dismissNews(page);
+    expect(await page.evaluate(()=>mcLoadRaw(mcStateKey()).fixed[0].paidYm)).toBeUndefined();
+  });
+  test(lang+": Agua de otro banco con categoría distinta sigue sin acreditar",async({page})=>{
+    const bill=Object.assign({},fixed,{name:"Agua",amount:30,category:"hogar"});
+    const cargo={id:"agua-bar",date:"2026-09-24",merchant:"AGUA MINERAL BAR PEPE",amount:30,ent:"trade_republic",category:"restaurantes",source:"macrodroid"};
+    await open(page,lang,{fixed:[bill],expenses:[cargo]});
+    await expect(page.locator('.page-scroll-host .v4-charge').filter({hasText:"Agua"})).toHaveCount(1);
+    await page.locator('.botnav-tab[data-tour="plan"]').click();
+    await expect(page.locator('div[data-seg="recibos"] .v4-paid').filter({hasText:"Agua"})).toHaveCount(0);
+    await expect(page.locator('div[data-seg="recibos"]')).toContainText(labels[lang].unknown);
+  });
+  for(const tie of [false,true]){
+    test(lang+": un cargo no acredita dos recibos · "+(tie?"empate real":"nombre más específico"),async({page})=>{
+      const specific=Object.assign({},fixed,{id:"seguro",name:"Seguro Mapfre"});
+      const generic=Object.assign({},fixed,{id:"mapfre",name:tie?"SEGURO MAPFRE":"Mapfre",account:"trade_republic"});
+      const cargo={id:"seguro-tr",date:"2026-09-24",merchant:"SEGURO MAPFRE SA",amount:42,ent:"trade_republic",category:"otros",source:"ob"};
+      const book=Object.assign({},tx,{ent:"trade_republic",date:cargo.date,merchant:cargo.merchant});
+      await open(page,lang,{accounts:[{id:"sb",ent:"sabadell",value:800,role:"fijos"},{id:"tr",ent:"trade_republic",value:300,role:"fijos"}],fixed:[generic,specific],expenses:[cargo],bankTx:[book]});
+      await expect(page.locator('.page-scroll-host .v4-charge')).toHaveCount(tie?2:1);
+      await page.locator('.botnav-tab[data-tour="plan"]').click();
+      const paid=page.locator('div[data-seg="recibos"] .v4-paid');
+      await expect(paid).toHaveCount(tie?0:1);
+      if(!tie) await expect(paid).toContainText(specific.name);
+      await page.reload(); await dismissNews(page);
+      await expect(paid).toHaveCount(tie?0:1);
+    });
+  }
   for(const [kind,charge] of [
     ["nombre bancario original",{source:"ob",ent:"sabadell",merchant:"Nombre legible distinto",obName:"Gas ficticio"}],
     ["otra entidad por notificación",{source:"macrodroid",ent:"trade_republic",merchant:"GAS FICTICIO SA"}]

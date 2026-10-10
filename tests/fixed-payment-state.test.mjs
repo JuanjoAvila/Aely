@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { test } from "node:test";
 import { loadPureLogicFromFile } from "../scripts/load-pure-logic.mjs";
 const c=loadPureLogicFromFile();
 c.Date=class extends Date { constructor(...args){ super(...(args.length?args:[new Date("2026-09-30T12:00:00+02:00").getTime()])); } };
@@ -199,3 +200,65 @@ for(const length of [500,20000]){
 }
 c.fixedExpenseEligible=eligible;
 console.log("fixed-payment-state: cargos guardados sin feed OK");
+
+test("notificación visual no escribe una confirmación financiera al editar",()=>{
+  const row=Object.assign({},recorded,{source:"macrodroid",ent:"revolut"});
+  for(const source of ["macrodroid","wallet","ob","ob-hist","tr"]){
+    for(const patch of [{day:26},{amount:42},{account:"sabadell"}]){
+      const charge=Object.assign({},row,{source});
+      let state=Object.assign({},recordedState,{expenses:[charge]});
+      assert.equal(c.fixedPaymentState(state,fixed,2026,9,30).paid,true);
+      c.patchFixedById(update=>{ state=update(state); },fixed.id,patch);
+      assert.equal(state.fixed[0].paidYm,undefined,"solo BOOK único permite guardar paidYm");
+      assert.equal(state.fixed[0].paidDay,undefined);
+      assert.equal(state.accounts,recordedState.accounts);
+      assert.equal(state.expenses[0],charge);
+    }
+  }
+  let state=base;
+  c.patchFixedById(update=>{ state=update(state); },fixed.id,{day:26});
+  assert.equal(state.fixed[0].paidYm,2026*12+9,"BOOK único conserva la escritura existente");
+  assert.equal(state.fixed[0].paidDay,25);
+});
+
+test("Agua no acredita una compra de otra categoría en otro banco",()=>{
+  const bill=Object.assign({},fixed,{name:"Agua",amount:30,category:"hogar"});
+  const row=Object.assign({},recorded,{obName:"AGUA MINERAL BAR PEPE",amount:30,ent:"revolut",category:"restaurantes"});
+  const state=Object.assign({},recordedState,{fixed:[bill],expenses:[row]});
+  assert.equal(c.fixedPaymentState(state,bill,2026,9,30).paid,false);
+  for(const category of ["hogar","otros",undefined]){
+    assert.equal(c.fixedPaymentState(Object.assign({},state,{expenses:[Object.assign({},row,{category})]}),bill,2026,9,30).paid,true,"otra entidad con categoría compatible o sin clasificar");
+  }
+  assert.equal(c.fixedPaymentState(Object.assign({},state,{expenses:[Object.assign({},row,{ent:"sabadell"})]}),bill,2026,9,30).paid,true,"mismo banco conserva el contrato anterior");
+});
+
+test("un cargo tiene un único recibo más específico desde la primera lectura",()=>{
+  const specific=Object.assign({},fixed,{id:"seguro",name:"Seguro Mapfre"});
+  const generic=Object.assign({},fixed,{id:"mapfre",name:"Mapfre",account:"revolut"});
+  const row=Object.assign({},recorded,{obName:"SEGURO MAPFRE SA",merchant:"SEGURO MAPFRE SA",ent:"revolut"});
+  const book=Object.assign({},tx,{ent:"revolut",merchant:row.obName});
+  for(const bills of [[specific,generic],[generic,specific]]){
+    for(const bankTx of [[],[book]]){
+      const state=Object.assign({},recordedState,{accounts:base.accounts.concat([{id:"rv",ent:"revolut",role:"fijos"}]),fixed:bills,expenses:[row],bankTx});
+      const before=JSON.stringify(state);
+      assert.equal(c.fixedPaymentState(state,generic,2026,9,30).paid,false,"el genérico no se adelanta por tener el feed local");
+      assert.equal(c.fixedPaymentState(state,specific,2026,9,30).paid,true,"gana el nombre completo más específico");
+      assert.equal(JSON.stringify(state),before,"la asignación no depende de una escritura previa");
+      const reconciled=c.reconcileFixedPaymentProofs(state,2026,9,30);
+      assert.equal(reconciled.fixed.filter(f=>c.fixedPaymentState(reconciled,f,2026,9,30).paid).length,1);
+    }
+  }
+  const tie=Object.assign({},specific,{id:"empate",name:"SEGURO MAPFRE",account:"revolut"});
+  for(const bankTx of [[],[book]]){
+    const state=Object.assign({},recordedState,{accounts:base.accounts.concat([{id:"rv",ent:"revolut",role:"fijos"}]),fixed:[specific,tie],expenses:[row],bankTx});
+    assert.equal(state.fixed.some(f=>c.fixedPaymentState(state,f,2026,9,30).paid),false,"empate real no acredita ninguno, tampoco primero el BOOK local");
+  }
+  const sameBank=Object.assign({},generic,{account:"sabadell"});
+  const localBook=Object.assign({},book,{ent:"sabadell"});
+  const state=Object.assign({},base,{fixed:[sameBank,specific],bankTx:[localBook]});
+  const reconciled=c.reconcileFixedPaymentProofs(state,2026,9,30),snapshot=c.slimForCloud(reconciled);
+  assert.equal(c.fixedPaymentState(state,specific,2026,9,30).paid,true,"BOOK usa la misma preferencia por especificidad");
+  assert.equal(c.fixedPaymentState(state,sameBank,2026,9,30).paid,false);
+  assert.equal(c.fixedPaymentState(snapshot,snapshot.fixed[1],2026,9,30).paid,true,"la prueba BOOK conserva el ganador sin extracto");
+  assert.equal(c.fixedPaymentState(snapshot,snapshot.fixed[0],2026,9,30).paid,false);
+});
