@@ -55,6 +55,7 @@ test("el sync a demanda recupera el hueco, no duplica y avisa si supera 90 días
   await expect(ask.locator("#ask-dialog-title")).toContainText("más de 90 días");
   await expect(ask).toContainText("Importar histórico");
 
+  await expect(page.locator(".sync-report")).toContainText("90 días");
   const calls = await page.evaluate(() => (window.__e2eInvokes || []).filter((x) => x.name === "bank-sync"));
   expect(calls).toHaveLength(1);
   expect(calls[0].body).toEqual({ recoverGaps: true });
@@ -70,4 +71,45 @@ test("el sync a demanda recupera el hueco, no duplica y avisa si supera 90 días
   await ask.locator("button.btn-primary").click();
   await expect(page.locator(".hist-import")).toBeVisible({ timeout: 15_000 });
   expect(FIXTURE_NOW).toBe(Date.parse("2026-09-26T12:00:00Z"));
+});
+
+test("mientras el aviso está abierto se puede volver a sincronizar", async ({ page }) => {
+  await seedLoggedInDashboard(page, {
+    hasBankLink: true,
+    accounts: [{ id: "cx", ent: "caixabank", name: "Caixa", role: "diario", value: 80 }],
+    settings: { autoPrices: false, theme: "green", expenseBanks: ["caixabank"] },
+    expenses: [], fixed: [], debts: [], oneoffs: [], flows: [], bankTx: [],
+    __cloudRows: { bank_links: [{ aspsp_name: "CaixaBank", status: "active", last_sync: "2026-05-01T00:00:00Z" }] },
+    __cloudFns: { "bank-sync": { data: { ok: true, links: [links[0]] }, error: null } },
+  });
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
+  await page.waitForFunction(() => !document.getElementById("mc-load"));
+  await dismissNews(page);
+  await page.locator('.botnav-tab[data-tour="cartera"]').click();
+  await page.getByRole("button", { name: /Sincronizar bancos/i }).click();
+  await expect(page.locator(".askback")).toBeVisible({ timeout: 15_000 });
+  await page.evaluate(() => {
+    const b = [...document.querySelectorAll("button")].find((el) => /sincronizar bancos/i.test(el.getAttribute("aria-label") || ""));
+    if (b) b.click();
+  });
+  await expect.poll(() => page.evaluate(() => (window.__e2eInvokes || []).filter((x) => x.name === "bank-sync").length)).toBe(2);
+});
+
+test("cambiar el rol de un banco no abre el aviso de más de 90 días", async ({ page }) => {
+  await seedLoggedInDashboard(page, {
+    hasBankLink: true,
+    accounts: [{ id: "cx", ent: "caixabank", name: "Caixa", role: "diario", value: 80 }],
+    settings: { autoPrices: false, theme: "green", expenseBanks: ["caixabank"] },
+    expenses: [], fixed: [], debts: [], oneoffs: [], flows: [], bankTx: [],
+    __cloudRows: { bank_links: [{ aspsp_name: "CaixaBank", status: "active", last_sync: "2026-05-01T00:00:00Z" }] },
+    __cloudFns: { "bank-sync": { data: { ok: true, links: [links[0]] }, error: null } },
+  });
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
+  await page.waitForFunction(() => !document.getElementById("mc-load"));
+  await dismissNews(page);
+  await page.evaluate(() => window.dispatchEvent(new CustomEvent("mc-bank-role-changed")));
+  await expect.poll(() => page.evaluate(() => (window.__e2eInvokes || []).filter((x) => x.name === "bank-sync").length)).toBe(1);
+  await expect(page.locator(".askback")).toHaveCount(0);
 });

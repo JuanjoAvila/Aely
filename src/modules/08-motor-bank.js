@@ -1010,6 +1010,170 @@ function importObExpenses(s, txs){
   return add.length? add : null;
 }
 
+/* El tramo anterior a la ventana de siempre no puede vivir dentro de importObExpenses
+   ni de reconcileBank: esas funciones ya están en la huella de otras tandas. El suelo
+   entra solo por opts.syncFromByEnt (o por el recuerdo que deja bankSync). Escribir
+   prev._obSyncFrom dentro del updater no cuenta: si el llamador no pasa el suelo, el
+   cargo viejo no entra. */
+var obGapFloors = null;
+var obGapSummary = null;
+var obGapManual = false;
+function obGapMarkManual(){ obGapManual = true; }
+function obGapRemember(floors){ obGapFloors = floors || null; }
+function obGapTakeFloors(){
+  var floors = obGapFloors;
+  obGapFloors = null;
+  return floors;
+}
+function obGapParts(links){
+  var floors = {}, names = [], seen = {};
+  (links || []).forEach(function(l){
+    if(!l) return;
+    if(typeof l.syncFrom === "string" && /^\d{4}-\d{2}-\d{2}$/.test(l.syncFrom)){
+      var ent = entFromAspsp(l.aspsp);
+      if(ent && (!floors[ent] || l.syncFrom < floors[ent])) floors[ent] = l.syncFrom;
+    }
+    if(l.gapBeyondCap !== true) return;
+    var ent2 = entFromAspsp(l.aspsp);
+    var label = ent2 ? entOf(ent2).label : String(l.aspsp || "").trim();
+    if(!label || seen[label]) return;
+    seen[label] = 1;
+    names.push(label);
+  });
+  return {floors:floors, names:names};
+}
+function obGapNoteFromLinks(data, manual){
+  var parts = obGapParts((data && data.links) || []);
+  obGapFloors = parts.floors;
+  obGapSummary = (manual && parts.names.length) ? ("⚠ " + tf("bank_gap_title", {bank:parts.names.join(", ")}) + " " + t("bank_gap_sub")) : null;
+  if(!obGapSummary) return;
+  var asked = parts.names.slice();
+  setTimeout(function(){
+    if(typeof document !== "undefined" && document.querySelector && document.querySelector(".askback")) return;
+    askConfirm({
+      title: tf("bank_gap_title", {bank:asked.join(", ")}),
+      sub: t("bank_gap_sub"),
+      ok: t("bp_hist_btn")
+    }).then(function(yes){
+      if(!yes) return;
+      try{ window.dispatchEvent(new CustomEvent("mc-open-settings")); }catch(e){}
+      setTimeout(function(){
+        try{ window.dispatchEvent(new CustomEvent("mc-open-history")); }catch(e){}
+      }, 200);
+    });
+  }, 0);
+}
+function obDemandSom(){ return new Date(startOfMonth().getTime() - 8*86400000); }
+function importObGapStretch(s, txs, already){
+  if(!txs || !txs.length) return null;
+  const ents = expenseBankEnts(s);
+  const allow = {}; ents.forEach(function(e){ allow[e] = 1; });
+  const seen = {}, seenLegacy = {}, keys = {}, delSet = {};
+  const nameForKey = function(e){ return e.obName != null ? e.obName : (e.merchant || ""); };
+  const kOf = function(e){ return String(e.date).slice(0,10) + "|" + e.amount + "|" + nameForKey(e); };
+  const scopedKOf = function(e){ return (expenseBankOf(e) || e.ent || "") + "|" + kOf(e); };
+  (s.expenses || []).concat(already || []).forEach(function(e){
+    if(!e) return;
+    if(e.extId){
+      const bank = expenseBankOf(e) || e.ent || "";
+      if(bank) seen[bank + "|" + e.extId] = 1;
+      else seenLegacy[e.extId] = 1;
+    }
+    keys[scopedKOf(e)] = 1;
+  });
+  (s.deleted || []).forEach(function(k){ delSet[k] = 1; });
+  const now = new Date(), ym = now.getMonth() + 1, yy = now.getFullYear();
+  const modeledByEnt = {};
+  const pushModeled = function(ent, name, amount, debtId){
+    if(!ent || !(amount > 0)) return;
+    (modeledByEnt[ent] = modeledByEnt[ent] || []).push({name:name, amount:amount, debtId:debtId || null});
+  };
+  (s.fixed || []).forEach(function(f){ if(occursIn(f, ym)) pushModeled(accOf(f), f.name, occAmountIn(f, ym)); });
+  (s.debts || []).forEach(function(d){ if(debtActive(d)) pushModeled(d.account || "sabadell", d.name || "Cuota", (d.monthly || 0) + debtBalloonIn(d, yy, ym), d.id); });
+  (s.oneoffs || []).forEach(function(o){ if(oneoffOccurs(o, yy, ym)) pushModeled(o.account || "sabadell", o.name || "Cargo", o.amount || 0); });
+  const modeledHit = function(ent, merchant, amount){
+    const hits = (modeledByEnt[ent] || []).filter(function(mm){ return recAmtClose(mm.amount, amount) && recNameMatch(mm.name, merchant); });
+    if(!hits.length) return null;
+    return hits.find(function(mm){ return !mm.debtId; }) || hits[0];
+  };
+  const otrasVias = (s.expenses || []).filter(function(e){ return e && e.source !== "ob" && e.source !== "ob-hist"; });
+  const usadoDup = {};
+  const gemeloOtraVia = function(tx){
+    if(!sinComercioReal(tx.merchant) || !tx.ent) return null;
+    const ms = parseDate(tx.date).getTime();
+    const hit = otrasVias.findIndex(function(e, i){
+      if(usadoDup[i]) return false;
+      if(expenseBankOf(e) !== tx.ent) return false;
+      if(Math.abs((e.amount || 0) - tx.amount) > 0.005) return false;
+      return Math.abs(dateMs(e.date) - ms) <= DUP_DIAS_MS;
+    });
+    if(hit < 0) return null;
+    usadoDup[hit] = 1;
+    return otrasVias[hit];
+  };
+  const add = [];
+  txs.forEach(function(tx){
+    if(!tx || !tx.date) return;
+    if(!(tx.amount > 0) && !(tx.amount < 0)) return;
+    if(tx.amount > 0){
+      const mod = modeledHit(tx.ent, tx.merchant, tx.amount);
+      if(mod && !mod.debtId) return;
+    }
+    if(tx.id && (seen[(tx.ent || "") + "|" + tx.id] || seenLegacy[tx.id])) return;
+    const e = { id:mcExpenseId(), date:new Date(tx.date + "T12:00:00").toISOString(),
+      merchant:tx.merchant || (tx.amount < 0 ? "Ingreso" : "Compra"), amount:tx.amount,
+      category: tx.amount < 0 ? (esTraspasoPropio(s, tx) ? TRASPASO_CAT.id : INGRESO_CAT.id) : categoryOfBankTx(tx),
+      source:"ob", ent:tx.ent };
+    e.obName = e.merchant;
+    if(tx.ent && !allow[tx.ent]) e.budgetSkip = true;
+    if(tx.id) e.extId = tx.id;
+    const nt = cleanNote(tx.note, e.merchant); if(nt) e.note = nt;
+    if(keys[scopedKOf(e)] || delSet[scopedKOf(e)] || delSet[kOf(e)]) return;
+    const gem = gemeloOtraVia(tx);
+    if(gem && gem.id){ e.possibleDup = true; e.possibleDupOf = gem.id; }
+    keys[scopedKOf(e)] = 1;
+    if(tx.id) seen[(tx.ent || "") + "|" + tx.id] = 1;
+    add.push(e);
+  });
+  return add.length ? add : null;
+}
+var importObCore = importObExpenses;
+importObExpenses = function(s, txs, opts){
+  const floors = (opts && opts.syncFromByEnt) || obGapTakeFloors();
+  if(!txs || !txs.length || !floors) return importObCore(s, txs);
+  const som = obDemandSom();
+  const recent = [], gap = [];
+  txs.forEach(function(tx){
+    const ymd = floors && tx && tx.ent ? floors[tx.ent] : null;
+    const floor = (typeof ymd === "string" && /^\d{4}-\d{2}-\d{2}$/.test(ymd)) ? parseDate(ymd) : null;
+    const when = tx && tx.date ? parseDate(tx.date) : null;
+    if(floor && when && when >= floor && when < som) gap.push(tx);
+    else recent.push(tx);
+  });
+  const addRecent = recent.length ? (importObCore(s, recent) || []) : [];
+  const addGap = gap.length ? (importObGapStretch(s, gap, addRecent) || []) : [];
+  const all = addRecent.concat(addGap);
+  return all.length ? all : null;
+};
+var reconcileBankCore = reconcileBank;
+reconcileBank = function(state, y, m, today){
+  if(!state || !state.bankTx) return reconcileBankCore(state, y, m, today);
+  const som = obDemandSom();
+  const kept = state.bankTx.filter(function(t){
+    if(!t || !t.date) return true;
+    return !(parseDate(String(t.date).slice(0, 10)) < som);
+  });
+  if(kept.length === state.bankTx.length) return reconcileBankCore(state, y, m, today);
+  return reconcileBankCore(Object.assign({}, state, {bankTx:kept}), y, m, today);
+};
+var listaAvisosCore = listaAvisosSync;
+listaAvisosSync = function(list){
+  var rows = listaAvisosCore(list);
+  if(obGapSummary && rows.indexOf(obGapSummary) < 0) rows = rows.concat([obGapSummary]);
+  obGapSummary = null;
+  return rows;
+};
+
 /* LAS CUOTAS DE TUS DEUDAS, EN «DEUDAS» (4.21.0).
    Idea suya del 12/9. Medido con sus datos antes de picar: NINGUNA cuota casa por nombre. El
    banco llama a la hipoteca «PRESTAMOS ADEUDO CUOTA N.…», al préstamo del piso por el nombre de

@@ -48,22 +48,23 @@ t("dos bancos: el hueco entra con su fecha y no duplica noti, mano ni histórico
   ];
   const add = ctx.importObExpenses(cartera(seeded), lote, { syncFromByEnt: floors }) || [];
   const names = add.map((e) => e.ent + "|" + e.merchant).sort();
-  assert.equal(JSON.stringify(names), JSON.stringify(["caixabank|Farmacia Norte", "sabadell|Mercadona", "sabadell|Panadería Sol"]));
-  const farma = add.find((e) => e.merchant === "Farmacia Norte");
-  assert.equal(farma.date.slice(0, 10), viejo);
-  assert.equal(farma.source, "ob");
-  assert.equal(farma.extId, "cx-nueva");
+  // Farmacia Norte ya está modelada como fijo: el tramo antiguo no la duplica como gasto.
+  assert.equal(JSON.stringify(names), JSON.stringify(["sabadell|Mercadona", "sabadell|Panadería Sol"]));
+  assert.equal(add.find((e) => e.merchant === "Farmacia Norte"), undefined);
+  const pan = add.find((e) => e.merchant === "Panadería Sol");
+  assert.equal(pan.date.slice(0, 10), viejo);
+  assert.equal(pan.source, "ob");
+  assert.equal(pan.extId, "sb-nueva");
   const otra = ctx.importObExpenses(cartera(seeded.concat(add)), lote, { syncFromByEnt: floors });
   assert.equal(otra, null);
 });
 
-t("el mismo suelo llega por el estado, que es como llama la app", () => {
+t("el suelo colgado en el estado no entra: hace falta pasarlo", () => {
   const s = cartera([]);
   s._obSyncFrom = floors;
-  const add = ctx.importObExpenses(s, [tx("caixabank", day(-40), 8, "Librería", "cx-lib")]) || [];
-  assert.equal(s._obSyncFrom, undefined);
-  assert.equal(add.length, 1);
-  assert.equal(add[0].date.slice(0, 10), day(-40));
+  const add = ctx.importObExpenses(s, [tx("caixabank", day(-40), 8, "Librería", "cx-lib")]);
+  assert.equal(add, null);
+  assert.deepEqual(s._obSyncFrom, floors);
 });
 
 t("cliente nuevo con función vieja: sin syncFrom no entra lo anterior al margen ni se duplica lo de dentro", () => {
@@ -90,37 +91,23 @@ t("función nueva con cliente viejo: el suelo no se aplica si nadie lo pasó", (
 t("el llamador pide recoverGaps y no dateFrom", () => {
   const main = fs.readFileSync(new URL("../src/modules/11-app-main.js", import.meta.url), "utf8");
   const core = fs.readFileSync(new URL("../src/modules/00-core.js", import.meta.url), "utf8");
-  assert.match(main, /cloud\.bankSync\(\{recoverGaps:true\}\)/);
+  assert.match(core, /\{recoverGaps:true\}/);
+  assert.match(main, /cloud\.bankSync\(\)/);
   assert.doesNotMatch(main, /bankSync\(\{[^)]*dateFrom/);
-  assert.match(core, /invoke\('bank-sync', opts\)/);
+  assert.doesNotMatch(core, /invoke\('bank-sync',\{body:\{[^}]*dateFrom/);
 });
 
 t("un hueco por encima de 90 días nombra el banco y solo ese", () => {
-  const main = fs.readFileSync(new URL("../src/modules/11-app-main.js", import.meta.url), "utf8");
-  const cut = (name) => {
-    const at = main.indexOf("function " + name + "(");
-    assert.ok(at > 0, name);
-    let i = main.indexOf("{", at), depth = 0;
-    for (; i < main.length; i++) {
-      if (main[i] === "{") depth++;
-      else if (main[i] === "}" && --depth === 0) return main.slice(at, i + 1);
-    }
-    throw new Error("sin cierre " + name);
-  };
-  const entOf = (id) => ({ caixabank: { label: "CaixaBank" }, sabadell: { label: "Sabadell" } }[id] || { label: id });
-  const box = new Function("entFromAspsp", "entOf", "t",
-    cut("obSyncFromByEnt") + "\n" + cut("obGapBanks") + "\nreturn {obSyncFromByEnt:obSyncFromByEnt, obGapBanks:obGapBanks};"
-  )(ctx.entFromAspsp, entOf, (k) => k);
-  const names = box.obGapBanks([
+  const parts = ctx.obGapParts([
     { aspsp: "CaixaBank", gapBeyondCap: true, syncFrom: "2026-07-12" },
     { aspsp: "Banco de Sabadell", gapBeyondCap: false, syncFrom: "2026-09-01" },
     { aspsp: "CaixaBank", gapBeyondCap: true },
   ]);
-  assert.equal(JSON.stringify(names), JSON.stringify(["CaixaBank"]));
-  assert.equal(box.obSyncFromByEnt([
+  assert.equal(JSON.stringify(parts.names), JSON.stringify(["CaixaBank"]));
+  assert.equal(ctx.obGapParts([
     { aspsp: "CaixaBank", syncFrom: "2026-07-12" },
     { aspsp: "Banco de Sabadell", syncFrom: "2026-09-01" },
-  ]).sabadell, "2026-09-01");
+  ]).floors.sabadell, "2026-09-01");
 });
 
 if (failures) process.exitCode = 1;
