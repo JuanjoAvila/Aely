@@ -1,0 +1,61 @@
+{
+  "status": "blocked",
+  "summary": "Entrega parcial verificada en GitHub, pendiente de decision del coordinador. Un PR draft contra beta (PR 200, rama cursor/caixabank-integracion-6602, 2 commits, mergeable clean) arregla INC-2709-06: dos cargos CaixaBank con referencia distinta, mismo dia, importe y comercio se conservan los dos; un duplicado verdadero sigue siendo uno. El cierre de Este mes en Madrid y el caso de las 00:30 del dia 1 ya funcionaban en 74c5f075 (guardian lo prueba tambien con TZ=UTC, verde en la base); no se toco presetBoundsMs. NO cumple 'npm test exit 0': quedan rojos que estaban verdes en la base (beta-sources, docs-frescura por no subir VERSION, presupuesto-rendimiento +6812 B min y +2884 B gzip sobre el tope) y e2e/widget-banco 'FIN-05 lapidas conservadas' (budgetLeft 831 vs 819). No se subio VERSION ni el tope ni se reescribio el catalogo. Rescatado de PR 131: identidad (sello por entry_reference, clave, lapida obid, historico alineado con el diario), fixture de retirada y diaValido; descartado de PR 131 reintento diario, ACK del historico, tests ack/diario-diferido/hist-durante-ack/fecha-invalida y contrato ISO del widget. PR 141 nada propio; PR 146 descartado entero (solo beta-sources.json); PR 151 descartado (cierre de mes ya en la base). Los PR 131, 141, 146 y 151 siguen ABIERTOS: no se cerraron por no cumplir la aceptacion. Preguntas de producto: 1) lapida vieja dia|importe|comercio debe seguir ocultando el cargo aunque tape al hermano del mismo dia, o solo la fila del mediodia (hoy deja de casar; causa del rojo widget-banco)? 2) Mi ciclo sin dia de cobro cierra en hora local: debe cerrar a medianoche de Madrid? 3) El re-sello no esta enganchado al sync de la pantalla: otra tanda? 4) Se autoriza subir el tope de descarga en 6812 B min / 2884 B gzip al integrar?",
+  "productSHA": "d009fd28cf9070d897f1bb1fd8c0c13691258468",
+  "pullRequest": "JuanjoAvila/Aely PR 200 (draft contra beta)",
+  "tests": [
+    {
+      "command": "npm run build",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/inc-2709-06-caja-extid.test.mjs (bundle de 74c5f075, sin arreglo)",
+      "exitCode": 1,
+      "note": "8 fallos en UTC"
+    },
+    {
+      "command": "node tests/inc-2709-06-caja-extid.test.mjs (con arreglo, UTC y Europe/Madrid)",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/inc-2709-06-caja-extid.test.mjs mutante mismo-sello",
+      "exitCode": 2,
+      "note": "5 fallos, el mutante muere"
+    },
+    {
+      "command": "npx playwright test e2e/gastos-caixa-extid.spec.mjs",
+      "exitCode": 0,
+      "note": "3 passed es/en/ca"
+    },
+    {
+      "command": "node tests/beta-sources.test.mjs (74c5f075)",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/beta-sources.test.mjs (d009fd28)",
+      "exitCode": 1
+    },
+    {
+      "command": "npm test (d009fd28)",
+      "exitCode": 1,
+      "note": "rojos: beta-sources, docs-frescura, presupuesto-rendimiento"
+    },
+    {
+      "command": "npx playwright test completo (d009fd28)",
+      "exitCode": 1,
+      "note": "996 passed, 1 skipped, 1 failed: e2e/widget-banco FIN-05 lapidas conservadas; verde en 74c5f075"
+    }
+  ],
+  "limitations": [
+    "Datos sinteticos",
+    "Sin movil, Edge, SQL ni APK",
+    "Mi ciclo sin dia de cobro no medido",
+    "Resultado tomado del informe del agente Cursor bc-7727f51a; solo he verificado en GitHub el PR, su head, base y estado draft"
+  ],
+  "schema": 1,
+  "taskId": "caixabank-cargos-grok-20261010",
+  "actor": "grok",
+  "sessionId": "grok-bot-20261010-cx7q4k2m",
+  "createdAt": "2026-10-10T10:02:34.516Z",
+  "released": true
+}
