@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "id": "bienes-completo-codex-20261010",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261010-5f79c133",
+  "createdAt": "2026-10-10T08:12:22.682Z",
+  "to": "codex",
+  "baseSHA": "74c5f075bf08e38e289992195ad97e3a71a8b031",
+  "objective": "Bienes (INC-2709-07, queja del dueño del 27/9 repetida el 10/10): poder añadir un bien, borrarlo y editarlo con un editor del diseño actual. Hoy solo se puede tocar una fila.",
+  "scope": [
+    "src/modules/07-tab-patri-fijos.js",
+    "src/modules/01-i18n.js (es/en/ca)",
+    "src/shell.html solo si el editor lo exige",
+    "e2e de Bienes + línea en scripts/relevant-tests.mjs"
+  ],
+  "acceptance": [
+    "Alta alcanzable también con la lista vacía; cancelar no escribe nada.",
+    "Borrado con askConfirm; cancelar el borrado no borra.",
+    "Editor con .tabsheet, .btn, .chip y variables CSS existentes; sin colores nuevos.",
+    "e2e en DOM real: alta válida e inválida, edición, borrado cancelado y confirmado, recarga y total de patrimonio correcto.",
+    "npm run build y npm test con exit 0 en el SHA entregado.",
+    "Rama propia desde baseSHA y PR draft contra beta. Sin VERSION, catálogos de beta ni notas: los pone el coordinador al integrar.",
+    "Datos sintéticos. Sin dependencias nuevas, APK, Edge, SQL ni push a beta/main.",
+    "Result con SHA, PR, comandos y exitCode reales. Si algo de producto no está pedido aquí, no se hace: se pregunta en el result."
+  ],
+  "authorization": "Orden directa del dueño 10/10: Claude coordina, Codex ejecuta."
+}
