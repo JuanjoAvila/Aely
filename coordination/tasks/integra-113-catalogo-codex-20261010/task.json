@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "id": "integra-113-catalogo-codex-20261010",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261010-5f79c133",
+  "createdAt": "2026-10-10T09:16:04.326Z",
+  "to": "codex",
+  "baseSHA": "615e069189030949d7692ae72c0f57262c3fca15",
+  "objective": "Dejar publicable como beta 4.26.113 la rama claude/integra-113, que ya une PR198 (Bienes completo) y PR199 (vuelve la gráfica de Inicio) sobre beta 74c5f075. Hoy npm run build aborta con BETA_SCOPE_ABSENT en src/shell.html. Solo versión, catálogo de beta, notas y presupuesto: ni una línea de producto nueva.",
+  "scope": [
+    "VERSION, package.json, package-lock.json",
+    "src/data/release-notes.json y generados de build",
+    "scripts/beta-sources.json, scripts/beta-archives.json y sus tests",
+    "CHANGELOG.md, README.md, docs/ROADMAP.md, docs/TESTING.md",
+    "tests de presupuesto solo si hace falta el tope"
+  ],
+  "acceptance": [
+    "Commits sobre claude/integra-113 (push normal a esa rama, sin force). Nada a beta ni main: publica el coordinador.",
+    "La tanda inc-0910-inicio-solo-actual (112) se retira del panel: su función ya no existe y el dueño la rechazó. La de Bienes111 queda sustituida por la nueva.",
+    "Nota 4.26.113 con dos tandas nuevas, bienes-completo e inicio-grafica-vuelve, con estos textos EXACTOS en es (traducir en/ca con el mismo tono, sin jerga interna). Título: «Bienes completos y vuelve la gráfica de Inicio». Items: «En Cartera → Bienes ya puedes añadir un bien, editarlo y borrarlo, también cuando la lista está vacía.» · «Inicio recupera la gráfica del patrimonio.»",
+    "Pasos del panel, bienes-completo: «1. En Cartera → Bienes, añade un bien con nombre y valor: aparece en la lista y sube el patrimonio.» «2. Tócalo, cambia el valor y guarda. Ábrelo otra vez y pulsa Cancelar: no cambia nada.» «3. Bórralo: pide confirmación. Al cancelar sigue ahí; al confirmar desaparece.» inicio-grafica-vuelve: «1. Abre Inicio: vuelve a verse la gráfica bajo el patrimonio y ya no aparece «Ahora».»",
+    "Presupuesto de paquete: primero recortar código sin uso. Si no alcanza, subir el tope gzip lo mínimo (máximo 2 KiB) y explicarlo en CHANGELOG.",
+    "CHANGELOG técnico breve con el porqué; ROADMAP y README con una línea de estado, no un párrafo de cifras.",
+    "npm run build exit 0 y npm test exit 0 en el SHA entregado (memoria-espejo local aparte: decir si es el único rojo). TZ=UTC npm test también.",
+    "Result con SHA, comandos y exitCode reales. Prioridad sobre widget y Recibos: es lo que llega hoy al móvil del dueño."
+  ],
+  "authorization": "Orden directa del dueño 10/10: Claude coordina e integra; Codex ejecuta."
+}
