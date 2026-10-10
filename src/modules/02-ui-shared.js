@@ -640,6 +640,134 @@ function Sparkline({data, current}){
   );
 }
 
+function recordAccountBalances(hist, day, rows){
+  var out=hist||{}, changed=false;
+  (rows||[]).forEach(function(r){
+    if(!r.key||typeof r.value!=="number"||!Number.isFinite(r.value)) return;
+    const prev=out[r.key]||[], last=prev[prev.length-1];
+    if(last&&last.day===day&&last.value===r.value) return;
+    if(!changed){ out=Object.assign({},out); changed=true; }
+    const list=prev.filter(function(p){ return p&&p.day&&typeof p.value==="number"&&Number.isFinite(p.value); }).slice(last&&last.day===day?-400:-399);
+    if(list.length&&list[list.length-1].day===day) list[list.length-1]={day:day,value:r.value};
+    else list.push({day:day,value:r.value});
+    out[r.key]=list;
+  });
+  return out;
+}
+// Sin una ventana completa por cuenta, los movimientos no prueban que un día sin filas
+// fuera un día sin gasto. Las reconstrucciones reciben esa cobertura expresamente.
+function netWorthSeries(state, options){
+  options=options||{};
+  const rows=accountRowsInOrder(state), hist=state.accountBalanceHistory||{};
+  const utcFmt=new Intl.DateTimeFormat("en-CA",{timeZone:"UTC",year:"numeric",month:"2-digit",day:"2-digit"});
+  const clean=function(list,day,value){
+    const by={};
+    (list||[]).forEach(function(p){
+      const d=p&&p[day], v=p&&p[value];
+      if(!/^\d{4}-\d{2}-\d{2}$/.test(d||"")||typeof v!=="number"||!Number.isFinite(v)) return;
+      // Date.parse normaliza un 31 de septiembre: esa fecha no acredita un saldo del día.
+      const ms=Date.parse(d+"T12:00:00Z");
+      if(Number.isFinite(ms)&&utcFmt.format(ms)===d) by[d]={day:d,value:v};
+    });
+    return Object.keys(by).sort().map(function(d){ return by[d]; });
+  };
+  const sources=rows.map(function(r){ return {key:r.key,ent:r.item.ent,points:clean(hist[r.key],"day","value")}; });
+  if(sources.some(function(s){ return !s.points.length; })) return [];
+  const investments=clean(state.invHistory,"d","v");
+  if((state.investments||[]).length&&!investments.length) return [];
+  if(investments.length) sources.push({key:"investments",points:investments});
+  if(!sources.length) return [];
+  const coverage=options.coverage||{}, daily={}, del=expenseDeletedSet(state);
+  const fmt=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Madrid",year:"numeric",month:"2-digit",day:"2-digit"});
+  const banks={};
+  sources.forEach(function(s){
+    if(!s.ent) return;
+    if(Object.prototype.hasOwnProperty.call(banks,s.ent)) banks[s.ent]=null;
+    else banks[s.ent]=s;
+  });
+  const covered=sources.some(function(s){ return s.ent&&coverage[s.key]&&coverage[s.key].complete; });
+  (covered?state.expenses||[]:[]).forEach(function(e){
+    if(!e||e.possibleDup||expenseIsTombstoned(e,del)||typeof e.amount!=="number"||!Number.isFinite(e.amount)) return;
+    const bank=expenseBankOf(e), src=banks[bank];
+    // Dos cuentas de un banco no se pueden repartir por el nombre del banco.
+    if(!src||!coverage[src.key]||!coverage[src.key].complete) return;
+    // dateMs recupera «hoy» ante una fecha rota; para reconstruir no vale esa sustitución.
+    const ms=_pdMs(String(e.date||"").trim()); if(!Number.isFinite(ms)) return;
+    const d=fmt.format(ms);
+    const map=daily[src.key]||(daily[src.key]={}); map[d]=(map[d]||0)-e.amount;
+  });
+  sources.forEach(function(s){
+    const c=coverage[s.key], first=s.points[0];
+    if(!c||!c.complete||!c.from||c.through<first.day||c.from>=first.day||!s.ent) return;
+    const same=sources.filter(function(x){ return x.ent===s.ent; }); if(same.length!==1) return;
+    const from=Date.parse(c.from+"T12:00:00Z"), to=Date.parse(first.day+"T12:00:00Z");
+    if(!Number.isFinite(from)||to-from>400*864e5) return;
+    let v=first.value, nextDay=first.day; const before=[];
+    for(let ms=to-864e5;ms>=from;ms-=864e5){
+      v-=((daily[s.key]||{})[nextDay]||0);
+      const d=utcFmt.format(ms); before.push({day:d,value:+v.toFixed(2)}); nextDay=d;
+    }
+    s.points=before.reverse().concat(s.points);
+  });
+  const start=sources.reduce(function(d,s){ return s.points[0].day>d?s.points[0].day:d; },"");
+  // Fechas de observación distintas no acreditan una foto conjunta: cortar al último día
+  // común aún mezclaba un origen actualizado con un destino pendiente (traspaso10/10).
+  const lastDay=sources[0].points[sources[0].points.length-1].day;
+  if(sources.some(function(s){ return s.points[s.points.length-1].day!==lastDay; })) return [];
+  const end=sources.reduce(function(d,s){ const last=s.points[s.points.length-1].day; return !d||last<d?last:d; },options.today||"");
+  if(start>end) return [];
+  // Un cierre final conjunto tampoco valida el tramo anterior. Si sólo una parte de las
+  // cuentas aporta una foto de un día, no se suma esa foto con cierres anteriores de otras.
+  const observed={};
+  sources.forEach(function(s){ s.points.forEach(function(p){
+    if(p.day>=start&&p.day<=end) observed[p.day]=(observed[p.day]||0)+1;
+  }); });
+  if(Object.keys(observed).some(function(d){ return observed[d]!==sources.length; })) return [];
+  const assets=(state.assets||[]).reduce(function(sum,a){ return sum+(typeof a.value==="number"&&Number.isFinite(a.value)?a.value:0); },0);
+  const constant=assets-(Number.isFinite(options.debtTotal)?options.debtTotal:0);
+  const indices=sources.map(function(){ return -1; }), out=[];
+  const from=Date.parse(start+"T12:00:00Z"), to=Date.parse(end+"T12:00:00Z");
+  for(let ms=Math.max(from,to-399*864e5);ms<=to;ms+=864e5){
+    const day=utcFmt.format(ms); let value=constant;
+    sources.forEach(function(s,i){
+      while(indices[i]+1<s.points.length&&s.points[indices[i]+1].day<=day) indices[i]++;
+      if(indices[i]>=0) value+=s.points[indices[i]].value;
+    });
+    if(indices.every(function(i){ return i>=0; })) out.push({day:day,value:+value.toFixed(2)});
+  }
+  return out;
+}
+function netWorthRanges(series, today){
+  if(!series||series.length<2) return [];
+  const first=series[0].day, last=series[series.length-1].day;
+  const end=new Date(last+"T12:00:00Z");
+  const out=[];
+  [["1m",1],["6m",6],["1y",12]].forEach(function(r){
+    // Los meses del selector se comparan con hoy, no con una foto bancaria atrasada.
+    if(today&&last!==today) return;
+    const d=new Date(Date.UTC(end.getUTCFullYear(),end.getUTCMonth()-r[1],1,12));
+    const max=new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth()+1,0)).getUTCDate();
+    d.setUTCDate(Math.min(max,end.getUTCDate()));
+    const start=d.toISOString().slice(0,10);
+    if(first<=start) out.push({id:r[0],points:series.filter(function(p){ return p.day>=start; })});
+  });
+  out.push({id:"all",points:series}); return out;
+}
+function netWorthChartGeometry(points){
+  if(!points||points.length<2) return null;
+  const values=points.map(function(p){ return p.value; }), min=Math.min.apply(null,values), max=Math.max.apply(null,values);
+  const mean=values.reduce(function(a,b){ return a+b; },0)/values.length;
+  const span=Math.max(max-min,Math.abs(mean)*.06,1);
+  // Una media sesgada puede dejar el extremo fuera del SVG. Se desplaza lo mínimo el
+  // centro para conservar el margen y mostrar todos los valores, nunca recortar un pico.
+  const mid=Math.max(max-span/2,Math.min(min+span/2,mean));
+  const xy=values.map(function(v,i){ return {x:4+i/(values.length-1)*312,y:40-(v-mid)/span*64}; });
+  const path=xy.map(function(p,i){ return (i?"L":"M")+p.x.toFixed(2)+" "+p.y.toFixed(2); }).join(" ");
+  return {xy:xy,path:path,fill:path+" L316 80 L4 80 Z",span:span};
+}
+function netWorthDeltaMoney(value){
+  return String(Math.round(Math.abs(value)*DISP.k)).replace(/\B(?=(\d{3})+(?!\d))/g,".")+" "+DISP.sym;
+}
 // Snapshot diario del total invertido (valor + coste opcional). Idempotente por día.
 function recordInvSnapshot(hist, today, value, cost){
   const h=(hist||[]).slice();

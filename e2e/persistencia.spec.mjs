@@ -41,7 +41,7 @@ test("widget se refresca al volver por el evento nativo sin visibilitychange", a
   });
   await page.goto("/");
   await dismissNews(page);
-  await expect(page.locator(".v4-screen:has(.v4-inicio-head) .v4-budget-txt .ph")).toContainText("Has gastado 40 €");
+  await expect(page.locator(".v4-screen:has(.v4-inicio-head) .v4-budget-txt .ph")).toContainText("60 €");
   await expect.poll(() => page.evaluate(() => window.__widgetSnapshot?.spent)).toBe(40);
   expect(await page.evaluate(() => ({ budget: window.__widgetSnapshot.budget,
     left: window.__widgetSnapshot.budgetLeft, bank: window.__widgetSnapshot.cashEnt })))
@@ -58,7 +58,7 @@ test("widget se refresca al volver por el evento nativo sin visibilitychange", a
     for (const cb of window.__nativeListeners.appStateChange || []) cb({ isActive: true });
   });
   await expect.poll(() => page.evaluate(() => window.__widgetSnapshot?.spent)).toBe(40);
-  await expect(page.locator(".v4-screen:has(.v4-inicio-head) .v4-budget-txt .ph")).toContainText("Has gastado 40 €");
+  await expect(page.locator(".v4-screen:has(.v4-inicio-head) .v4-budget-txt .ph")).toContainText("60 €");
 });
 
 test.describe("medianoche local", () => {
@@ -88,13 +88,13 @@ test.describe("medianoche local", () => {
     await page.goto("/");
     await dismissNews(page);
     const title = page.locator(".v4-screen:has(.v4-inicio-head) .v4-budget-txt .ph");
-    await expect(title).toContainText("Has gastado 40 €");
+    await expect(title).toContainText("60 €");
     await expect.poll(() => page.evaluate(() => window.__widgetSnapshot?.spent)).toBe(40);
     const oldPeriod = await page.evaluate(() => window.__widgetSnapshot.periodStart);
     // UTC sigue en 30/9: solo Europe/Madrid ha pasado a octubre.
     await page.clock.setFixedTime(new Date("2026-09-30T22:05:00Z"));
     await page.evaluate(() => { for (const cb of window.__nativeListeners.appStateChange || []) cb({ isActive: true }); });
-    await expect(title).toContainText("Has gastado 0 €");
+    await expect(title).toContainText("100 €");
     await expect.poll(() => page.evaluate(() => window.__widgetSnapshot?.spent)).toBe(0);
     expect(await page.evaluate(() => window.__widgetSnapshot.periodStart)).toBeGreaterThan(oldPeriod);
     expect(await page.evaluate(() => window.__widgetSnapshot.budgetLeft)).toBe(100);
@@ -145,7 +145,7 @@ test("reentrada espera el gasto nuevo de la nube antes de sobrescribir el widget
   await expect.poll(() => page.evaluate(() => window.__widgetSnapshot?.budgetLeft)).toBe(30);
   expect(await page.evaluate(() => window.__widgetSnapshot.coveredEvents)).toContain("|tr:trade_republic:v1_second|");
   expect(await page.evaluate(() => window.__widgetSnapshot.coveredEvents)).toContain("|550e8400-e29b-41d4-a716-446655440002|");
-  await expect(page.locator(".v4-screen:has(.v4-inicio-head) .v4-budget-txt .ph")).toContainText("Has gastado 70 €");
+  await expect(page.locator(".v4-screen:has(.v4-inicio-head) .v4-budget-txt .ph")).toContainText("30 €");
   expect(await page.evaluate(() => window.__widgetSnapshot.spent)).toBe(70);
   await page.evaluate(() => {
     window.__e2eCloudDelays.expenses = [400, 50];
@@ -160,7 +160,7 @@ test("reentrada espera el gasto nuevo de la nube antes de sobrescribir el widget
   await expect.poll(() => page.evaluate(() => window.__widgetSnapshot?.spent)).toBe(80);
   await page.waitForTimeout(430);
   expect(await page.evaluate(() => window.__widgetSnapshot.spent)).toBe(80);
-  await expect(page.locator(".v4-screen:has(.v4-inicio-head) .v4-budget-txt .ph")).toContainText("Has gastado 80 €");
+  await expect(page.locator(".v4-screen:has(.v4-inicio-head) .v4-budget-txt .ph")).toContainText("20 €");
 });
 
 test("nube conserva inversión y traspaso al pintar Inicio y Gastos", async ({ page }) => {
@@ -178,7 +178,7 @@ test("nube conserva inversión y traspaso al pintar Inicio y Gastos", async ({ p
   await page.goto("/");
   await dismissNews(page);
   // La cifra que este caso protege es la de Inicio; se acota porque las pestañas se premontan.
-  await expect(page.locator(".v4-screen:has(.v4-inicio-head) .v4-budget-txt .ph")).toContainText("Has gastado 20 €");
+  await expect(page.locator(".v4-screen:has(.v4-inicio-head) .v4-budget-txt .ph")).toContainText("480 €");
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
   await expect(page.locator("button.v4-mov").filter({ hasText: "Aporte prueba" })).toHaveClass(/v4-mov-skip/);
   await expect(page.locator("button.v4-mov").filter({ hasText: "Traspaso prueba" })).toHaveClass(/v4-mov-skip/);

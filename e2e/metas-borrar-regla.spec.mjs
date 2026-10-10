@@ -58,7 +58,8 @@ async function presupuesto(page,value,mode){
   await expect(summary.locator(".v4-gastos-summary-budget")).toContainText(value+",00");
   await expect(summary.locator(".v4-gastos-summary-amount")).toContainText(mode==="net"?/1[.,\s]?900/:"100");
   await nav(page,"inicio");
-  await expect(page.locator(".v4-budget .ph")).toContainText(String(value));
+  await expect(page.locator(".v42-cycle-of")).toContainText(String(value));
+  await expect(page.locator(".v42-cycle-amount>.serif")).toHaveText(String(value-100)+" €");
 }
 async function disk(page){ return page.evaluate(()=>{
   const s=JSON.parse(localStorage.getItem("micartera_v3"));

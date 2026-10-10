@@ -38,7 +38,7 @@ async function presupuesto(page,amount){
   await nav(page,"gastos");
   await expect(page.locator(".v4-gastos-summary-budget")).toContainText(amount+",00");
   await nav(page,"inicio");
-  await expect(page.locator(".v4-budget .ph")).toContainText(String(amount));
+  await expect(page.locator(".v42-cycle-of")).toContainText(String(amount));
 }
 async function alta(page,lang,cycle=false){
   await page.clock.install({time:new Date(octubre)});
