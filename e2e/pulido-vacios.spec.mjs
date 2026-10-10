@@ -21,12 +21,13 @@ async function inicio(page, estado) {
   await dismissNews(page);
 }
 
-test("★ app recién instalada: solo el actual, sin gráfico plano ni pastilla de cero", async ({ page }) => {
+test("★ app recién instalada: sin gráfico plano ni pastilla de cero", async ({ page }) => {
   await inicio(page, { history: [], budget: 0, expenses: [], accounts: [] });
 
-  // El cero inicial no acredita una evolución: el hero solo identifica el total de ahora.
+  // Sin histórico se mantiene el vacío de producción110, sin inventar una serie de ceros.
   await expect(page.locator("svg.spark")).toHaveCount(0);
-  await expect(page.getByTestId("inicio-net-now")).toHaveText("Ahora");
+  await expect(page.getByTestId("inicio-net-now")).toHaveCount(0);
+  await expect(page.locator(".v4-hero")).toContainText("Tu histórico empieza hoy");
   await expect(page.locator(".v4-hero-amt")).toContainText("0,00 €");
   await expect(page.getByTestId("inicio-chart-note")).toHaveCount(0);
 
@@ -104,11 +105,11 @@ test("tres presupuestos mensuales cerrados crean racha sin llama", async ({ page
   await expect(streak).not.toContainText("🔥");
 });
 
-test("con presupuesto e histórico, Inicio sigue mostrando solo el actual", async ({ page }) => {
+test("con presupuesto e histórico, Inicio recupera su gráfica de producción", async ({ page }) => {
   await inicio(page, { history: [100, 200], budget: 500 });
 
-  await expect(page.getByTestId("inicio-net-now")).toHaveText("Ahora");
-  await expect(page.locator(".v4-hero svg.spark")).toHaveCount(0);
+  await expect(page.getByTestId("inicio-net-now")).toHaveCount(0);
+  await expect(page.locator(".v4-hero svg.spark")).toBeVisible();
   await expect(page.locator(".v4-empty").filter({ hasText: /presupuesto|budget|pressupost/i })).toHaveCount(0);
 });
 

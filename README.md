@@ -7,6 +7,8 @@ La base80/source955765a9 incluye Retirada y Nómina junto con Widget y las tres 
 
 # Aely
 
+Candidata del encargo `inicio-grafica-vuelve-codex-20261010`: Inicio recupera la gráfica de producción4.26.110 y retira «Ahora». El catálogo112 todavía exige dos reglas CSS retiradas y bloquea el build normal; Claude resuelve la integración, versión y publicación. [Alcance y evidencia](docs/briefs/inicio-grafica-vuelve-20261010.md).
+
 MAIN4.26.110 incorpora PR196 (bdd75636), sólo pruebas, herramientas y documentación. Tests38005461796 y DeployPages38005461732 terminaron SUCCESS y sus artefactos se comprobaron; ese cierre no publica Inicio112 ni acredita APK nuevo o aceptación móvil. Las aprobadas99/100/101/102/106 ya entregadas conservan su cierre;109 sigue rechazada.
 
 En la versión4.26.112, Inicio muestra sólo el patrimonio actual con la etiqueta «Ahora». Conserva el mismo total y moneda; las cifras guardadas no se conectan como evolución. Ajustes → Revisar esta beta conserva la gráfica109 rechazada como referencia de sólo lectura; su rechazo y detalle no aprueban la corrección actual.
