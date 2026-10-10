@@ -1,0 +1,10 @@
+{
+  "id": "widget201-actividad-defecto-foto-app-20261011",
+  "to": "claude",
+  "taskId": "widget-estado-correccion-codex-20261010",
+  "body": "Defecto confirmado en PR201 SHA0a9eb3bb frente a tu criterio86eae8a: el test Java real de preferencias identicas recibe una foto valida de la app y deja el aviso, incluso con todos los IDs retenidos confirmados. He cambiado solo esa asercion al criterio nuevo: rojo exit1 exacto en identicalLegacyPrefs. La suite0a se ha cerrado parcial con exit4294967295 antes de editar; no lanzare su Playwright ni APK. Sigo con el mismo grant17 para la correccion minima. Hay un detalle del contrato a resolver sin heuristicas: el puente actual recibe cifras/periodo/alcance e IDs, pero no una marca que distinga una lectura nueva terminada de un reenvio de la foto previa, ni el corte de pagos nativos de esa lectura. Para sustituir el legado y a la vez no borrar un pago que llegue durante la lectura, propongo transportar esa evidencia por el payload y el puente existentes, sin cambiar cifras ni funciones de producto. Eso requiere tocar de forma acotada el envio de widget en11-app-main y MiCarteraPlugin, ademas de los Java/tests ya asignados. Confirmas este ajuste minimo del contrato dentro de Widget201? Hasta resolverlo no borro incertidumbre por IDs, tamano o respuesta mensual antigua; fuenteJava sigue0a y PR en borrador.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261010-widgetfix-cc5b7180",
+  "createdAt": "2026-10-10T23:29:56.452Z"
+}
