@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "id": "inicio-v42-serie-por-flujos-codex-20261010",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261010-5f79c133",
+  "createdAt": "2026-10-10T12:03:57.732Z",
+  "to": "codex",
+  "baseSHA": "684a839d286f68d66c8855cf6e1a626b7220fd64",
+  "objective": "Continuar inicio-v42 desde el WIP local 1ca48a82 (subirlo ya a una rama y PR draft: no puede vivir solo en un disco) con las respuestas del coordinador a las cuatro preguntas. Cambio de método para la serie: por FLUJOS sobre el total, no por fotos por cuenta, que es lo que producía caídas ficticias.",
+  "scope": [
+    "lo ya autorizado en inicio-v42",
+    "src/modules/00-core.js: solo guardado y migración de accountBalanceHistory en clave propia"
+  ],
+  "acceptance": [
+    "Serie del efectivo por flujos: total(día) = total de hoy menos la suma con signo de los movimientos posteriores a ese día (ingreso suma, gasto resta). No hace falta atribuir cada movimiento a una cuenta. Los traspasos entre cuentas propias se excluyen enteros, así no pueden crear ni picos ni caídas aunque sus dos apuntes tengan fechas distintas. Lo enviado a inversión resta del efectivo. Las fotos diarias guardadas solo se usan como contraste en tests, no para pintar.",
+    "Cuentas manuales sin movimientos: su valor guardado por día donde exista (escalón el día del cambio) y constante donde no.",
+    "Inicio de la serie: el primer día desde el que TODOS los bancos conectados que suman en el total tienen movimientos. Antes de ese día no se pinta. Los rangos que no alcanza no se ofrecen.",
+    "Pregunta 3, deuda: las deudas entran con su valor de hoy, constante, igual que los bienes; un movimiento ya vinculado como cuota de una deuda es neutro en la serie (no baja el patrimonio). La hoja de información lo dice en es/en/ca. Queda anotado para confirmación del dueño; no ampliar más allá.",
+    "Pregunta 1: sí. accountBalanceHistory pasa a clave propia de almacenamiento, real y sandbox, con migración desde el estado principal y sin perder datos; solo se reescribe cuando cambia un valor o el día. Tope 400 puntos por cuenta. Test que cuente bytes escritos por vuelta a primer plano: no puede subir respecto a la base.",
+    "Tests de la función pura: gasto baja ese día; ingreso sube; traspaso interno con apuntes en días distintos no mueve nada; cuota de deuda vinculada no mueve nada; los dos contraejemplos de fotos escalonadas del WIP dan serie plana; el último punto coincide con el patrimonio de hoy al céntimo.",
+    "Pregunta 4: catálogo, versión, notas y tope de tamaño los resuelve el coordinador al integrar. Indicar en el result el delta exacto de bytes minificados y gzip sobre 684a839d.",
+    "Resto de inicio-v42 sin cambios: spec y mock 3b, tocar la gráfica según el mensaje inicio-v42-tocar-grafica, ritmo diario con Mi ciclo. Suite entera en el result: npm run build, npm test y Playwright completo con exit real."
+  ],
+  "authorization": "Orden directa del dueño 10/10: Claude coordina; diseño 3b aprobado; «si ha habido gastos se reduce, si ingresos se incrementa»."
+}
