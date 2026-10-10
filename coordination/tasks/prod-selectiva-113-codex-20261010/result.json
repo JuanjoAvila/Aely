@@ -1,0 +1,215 @@
+{
+  "status": "blocked",
+  "summary": "Cierre parcial solicitado por Claude: producción4.26.111 de PR208 entregada y verificada enb2dfd2c0; PR207 corregida y lista en103f3bf1, CI remota en curso e integración beta pendiente. No se presenta el retiro beta como publicado ni la tarea entera como verde.",
+  "production": {
+    "pr": 208,
+    "originalCandidate": "fc6693f80da7f9d5193a14063fd8bf9a2b736b6f",
+    "originalCIRun": 38077286160,
+    "originalCIExit": 1,
+    "correctionBy": "Claude",
+    "correctedHead": "ca883db59f9459e8f17384430b2f42f8314720ac",
+    "correctionFiles": [
+      "tests/auth-disposal-fit.test.mjs"
+    ],
+    "merge": "b2dfd2c01d7ec6a9a30b74ae71d473054932c42f",
+    "version": "4.26.111",
+    "ciRun": 38081483586,
+    "ciCheckout": "9262e0be79ade1b86e1b61fe0ffec30da1627008",
+    "ciTree": "e6ba69f5196d4630b00ebbc37a309da689fe0012",
+    "ciTreeEqualsCorrected": true,
+    "mainCIRun": 38085363470,
+    "publisherRun": 38085363469,
+    "servedSourceSHA": "b2dfd2c01d7ec6a9a30b74ae71d473054932c42f",
+    "manifestZipHTMLSWNotesReceiptsVerified": true,
+    "bridgeZipIdentical": true,
+    "zipSHA256": "44e41666d4d9e86561827c02b8cddd617bb9da8d6a51db3cd60019df203da742"
+  },
+  "beta": {
+    "pr": 207,
+    "base": "684a839d286f68d66c8855cf6e1a626b7220fd64",
+    "candidate": "103f3bf101b14585e9cb2b87287f14591d23c624",
+    "draft": true,
+    "merged": false,
+    "changeAfter356": "Sólo retirada del filtro retirement113-only no invocado.",
+    "productAndDescriptorsByteIdenticalToBase": true,
+    "ciRun": 38094708129,
+    "ciEvent": "workflow_dispatch",
+    "ciStatus": "in_progress",
+    "ciConclusion": null,
+    "fullSuiteVerified": false,
+    "integrationBy": "Claude pending"
+  },
+  "srcDiff": [
+    {
+      "file": "src/data/release-notes.json",
+      "added": 21,
+      "deleted": 0
+    },
+    {
+      "file": "src/modules/01-i18n.js",
+      "added": 18,
+      "deleted": 3
+    },
+    {
+      "file": "src/modules/03-tab-dash.js",
+      "added": 17,
+      "deleted": 14
+    },
+    {
+      "file": "src/modules/07-tab-patri-fijos.js",
+      "added": 56,
+      "deleted": 18
+    },
+    {
+      "file": "src/modules/14-v4-screens.js",
+      "added": 1,
+      "deleted": 1
+    },
+    {
+      "file": "src/shell.html",
+      "added": 1,
+      "deleted": 0
+    }
+  ],
+  "extraDeltas": [
+    {
+      "file": "src/shell.html",
+      "why": "Una línea en blanco separa el CSS del tutorial del descriptor CSS aprobado de Bienes; no se elimina ni cambia ningún estilo de main."
+    },
+    {
+      "file": "scripts/beta-sources.json",
+      "why": "Añadidos íntegros los dos descriptores aprobados de beta y reanclado únicamente el cierre de Recientes106 con autorización del coordinador12; identidad original conservada. Todos los demás descriptores, pins y referencias permanecen intactos."
+    },
+    {
+      "file": "tests/beta-sources.test.mjs",
+      "why": "El inventario pasa de21 a22 escritores por Bienes y añade gráfica113 como solo lectura. Se conserva el guardián de mutaciones y no se altera ningún historial."
+    },
+    {
+      "file": "tests/presupuesto-rendimiento.test.mjs",
+      "why": "El guardián original1295/353KiB falló. Minificador oficial midió1327718/362088B; mínimos1297/354KiB, margen410/408B y3bloqueantes. No se importa limpieza112."
+    },
+    {
+      "file": "e2e/cartera-inversiones.spec.mjs",
+      "why": "Tres líneas del fixture de beta recuperan la barra tras el desplazamiento ocasionado por Bienes siempre visible."
+    },
+    {
+      "file": "tests/auth-disposal-fit.test.mjs",
+      "why": "Corrección de Claudeca883db5: fija por huella los dos descriptores113 y el reanclaje106, sin depender de beta no ancestral."
+    },
+    {
+      "file": "public/beta-delivery.json",
+      "why": "El alcance histórico de nómina cubre la función Wealth completa. Bienes aprobado modifica esa función; su huella web pasa a la de beta. Las tres porciones nominales de Dashboard son idénticas y no se modifican los módulos de cálculo/confirmación de nómina.",
+      "nominaOld": "8f8a632e00e32d6f14b021c06924b7d1fed4a2c993918ac8d420690b3352d659",
+      "nominaNew": "bf222062c1f429bde9d254935930fda0a3665b0b2b7b7f5a22320e05a8fbd6a9",
+      "matchesBeta": true
+    }
+  ],
+  "tests": [
+    {
+      "command": "GitHub Tests PR208 original node scripts/run-tests.mjs",
+      "runId": 38077286160,
+      "head": "fc6693f80da7f9d5193a14063fd8bf9a2b736b6f",
+      "checkout": "ce3c68d0091627365ee06bbfd1bbd507770962d0",
+      "exitCode": 1,
+      "playwrightExecuted": false
+    },
+    {
+      "command": "GitHub Tests PR208 corregida: build+Node+Deno+Playwright+rendimiento+privacidad",
+      "runId": 38081483586,
+      "head": "ca883db59f9459e8f17384430b2f42f8314720ac",
+      "checkout": "9262e0be79ade1b86e1b61fe0ffec30da1627008",
+      "exitCode": 0,
+      "functionalPassed": 982,
+      "functionalSkipped": 1,
+      "performancePassed": 13,
+      "denoFiles": 4
+    },
+    {
+      "command": "GitHub Tests main integrada",
+      "runId": 38085363470,
+      "checkout": "b2dfd2c01d7ec6a9a30b74ae71d473054932c42f",
+      "exitCode": 0,
+      "functionalPassed": 982,
+      "functionalSkipped": 1,
+      "performancePassed": 13
+    },
+    {
+      "command": "GitHub publisher Pages test/build/deploy",
+      "runId": 38085363469,
+      "checkout": "b2dfd2c01d7ec6a9a30b74ae71d473054932c42f",
+      "exitCode": 0
+    },
+    {
+      "command": "Verificación por contenido manifest ZIP HTML SW notas recibos y puente",
+      "exitCode": 0,
+      "sourceSHA": "b2dfd2c01d7ec6a9a30b74ae71d473054932c42f"
+    },
+    {
+      "candidate": "beta",
+      "sha": "103f3bf101b14585e9cb2b87287f14591d23c624",
+      "command": "node --check tests/beta-sources.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "candidate": "beta",
+      "sha": "103f3bf101b14585e9cb2b87287f14591d23c624",
+      "command": "node tests/beta-tandas-vacias.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "candidate": "beta",
+      "sha": "103f3bf101b14585e9cb2b87287f14591d23c624",
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "candidate": "beta",
+      "sha": "103f3bf101b14585e9cb2b87287f14591d23c624",
+      "command": "git diff --check",
+      "exitCode": 0
+    },
+    {
+      "candidate": "beta",
+      "sha": "103f3bf101b14585e9cb2b87287f14591d23c624",
+      "command": "assert only retirement113-only filter removed; product/descriptors equal beta684",
+      "exitCode": 0
+    }
+  ],
+  "reservations": [
+    "Aviso goods_invalid conservado exactamente por respuesta explícita de Claude en prod113-recibidos-y-widget-empujar-20261010t1855; no se corrige en esta promoción.",
+    "CI verde atribuida a ca883db5 con arreglo Claude, no a fc6693f8 cuyo run falló.",
+    "Topes1297/354KiB intactos; margen medido410/408B, servido310/319B; tres cargas bloqueantes.",
+    "Fuente de producto beta y descriptores idénticos a684; integración y CI beta pendientes.",
+    "No suite pesada local, nuevo APK, Edge, SQL ni aceptación física inferida. RootWIP y checkouts ajenos conservados."
+  ],
+  "documentationPending": [
+    {
+      "file": "README.md",
+      "lines": [
+        "Estado actual: **v4.26.111** candidata selectiva para PR: Bienes permite añadir, editar y borrar también con la lista vacía. Inicio conserva la gráfica de producción y admite total desconocido. Fuente aprobada de beta113; pruebas completas, CI, revisión e integración pendientes. APK y backend conservan sus versiones."
+      ]
+    },
+    {
+      "file": "docs/ROADMAP.md",
+      "lines": [
+        "Candidata selectiva web4.26.111: Cartera → Bienes permite alta vacía, edición y borrado con confirmación. Inicio conserva la gráfica aprobada de beta113, sin Inicio V42. Dos PR separados, sin fusionar ni publicar; pruebas completas, CI y revisión pendientes.",
+        "> Estado a 2026-10-10 · **v4.26.111** candidata selectiva de Bienes completo y gráfica de Inicio. Fuente beta `684a839d`, pruebas completas, CI e integración pendientes; historial y APK conservados.",
+        "| Web / OTA (`VERSION`) | **4.26.111** candidata selectiva: Bienes completo y gráfica de Inicio; pruebas completas, CI e integración pendientes. |"
+      ]
+    },
+    {
+      "file": "CHANGELOG.md",
+      "lines": [
+        "- Reserva de revisión: la fuente aprobada conserva el aviso de validación al abrir el alta vacía. Claude tiene la discrepancia con su revisión previa; no se modifica el producto aprobado sin una respuesta concreta.",
+        "- Candidata para PR de producción; suite completa, CI, revisión e integración pendientes. El retiro de las dos tandas se prepara en un PR separado contra beta. Sin publicación ni APK/backend."
+      ]
+    }
+  ],
+  "closureReason": "Orden explícita Claude5d273d43 y supervisor17: cerrar con producción entregada y beta pendiente, conservando límites reales; blocked señala los gates que siguen abiertos, no un fallo del producto servido.",
+  "schema": 1,
+  "taskId": "prod-selectiva-113-codex-20261010",
+  "actor": "codex",
+  "sessionId": "codex-local-20261010-prod113-54f1594b",
+  "createdAt": "2026-10-10T23:28:22.036Z",
+  "released": true
+}
