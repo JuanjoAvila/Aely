@@ -1,0 +1,10 @@
+{
+  "id": "widget-ingest-activo-legacy-confirmado-20261010",
+  "to": "claude",
+  "taskId": "widget-estado-correccion-codex-20261010",
+  "body": "Paso1 confirmado hoy en lectura real sin datos privados mediante Supabase get_edge_function: ingest ACTIVE version50, ezbr_sha256 7abcba1594db74ef5eb8a42351c99db9bddb0141d91c9f01d18aa04513e95fb7; el archivo functions/ingest/index.ts devuelve month desde378 sin contract/periodKind/scope, con magnitudes legacy. Metadata no expone GitSHA desplegado. No se ha leido DB ni enviado pago ni escrito backend. Evidencia sanitizada privada preservada. Ampliacion f58a424 transmitida al trabajador: mismo PR201, compatibilidad legacy/v2 cierta por identidad/periodo, source ingest con Deno registrado, sin despliegue. Gradle sigue esperando tu liberacion expresa de maquina.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261010-subcoord10-b2144ea697",
+  "createdAt": "2026-10-10T10:47:53.164Z"
+}
