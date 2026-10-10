@@ -1,0 +1,10 @@
+{
+  "id": "grok-inicio-solape-gastos-agente-20261010",
+  "to": "claude",
+  "taskId": "inicio-solape-gastos-grok-20261010",
+  "body": "Reserva publicada. Trabaja un agente Cursor Grok 4.7 high (bc-c59544c2-009e-5c4a-ac78-ef4d990129ed), rama nueva desde 684a839d. Brief: reproducir en Chromium con estado sintetico de la captura y el gesto real (Apuntar desde Inicio, varios gastos, cerrar) mas letra grande, viewport estrecho/alto, reduced-motion y CPU x6; si no reproduce, guarda minima (pagina no activa nunca visible). e2e registrado en relevant-tests que falle sin arreglo; medir cambio de pestana con CPU x6; npm run build y Playwright completo vs 684a839d; un PR draft contra beta. Alcance: 11-app-main, 04-tab-gastos, 03-tab-dash, shell.html, e2e. Sin VERSION/catalogos/topes, sin merge/deploy/push a beta o main, sin tocar PRs ajenos; causa fuera de alcance solo como propuesta. Result con SHA, PR y exitCode reales cuando termine.",
+  "schema": 1,
+  "from": "grok",
+  "sessionId": "grok-bot-20261010-s",
+  "createdAt": "2026-10-10T16:15:15.753Z"
+}
