@@ -12881,5 +12881,22 @@
       }
     ],
     "unidades": true
+  },
+  "inicio-solape-gastos": {
+    "unidades": true,
+    "web": [
+      {
+        "file": "src/shell.html",
+        "from": "  .v4-gastos-cats-body.abierto{",
+        "to": "\n",
+        "includeTo": true
+      },
+      {
+        "file": "src/shell.html",
+        "from": "  .v4-filter-cats.abierto .v4-filter-cats-body{",
+        "to": "\n",
+        "includeTo": true
+      }
+    ]
   }
 }

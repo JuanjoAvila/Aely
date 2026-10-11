@@ -1,4 +1,10 @@
-## Catálogo de la candidata4.26.113
+## Inicio sin solapes · candidata4.26.114
+
+`e2e/inicio-solape-gastos.spec.mjs` abre Inicio con temática y diez categorías de gasto sintéticas, y exige que ningún nodo de la página de Gastos premontada tenga caja visible en el viewport: antes de apuntar, tras apuntar tres gastos con el botón + y al volver desde Gastos. Comprueba además que el desglose sigue visible cuando Gastos es la pestaña activa, para que la guarda no lo esconda donde sí toca. Es transversal (`CROSSCUTTING`): el fallo nace en `src/shell.html` y no en un módulo de pantalla. Volver a `visibility:visible` en `.v4-gastos-cats-body.abierto` lo deja rojo.
+
+`beta-sources` lee el catálogo113 de su commit inmutable y prueba el actual: nota, pasos y descriptor de `inicio-solape-gastos` como oráculo literal en es/en/ca, 231 notas, un único alcance nuevo, descriptores ajenos intactos y las otras identidades web sin cambio de huella entre la beta anterior y el commit del arreglo (ambos fijados en Git). Volver cualquiera de las dos reglas a `visible` invalida la tanda; una regla vecina no la reabre. La cola DOM de `revisar-beta` compara las 231 notas con la 114 y la 113 literales. Topes de tamaño sin cambios.
+
+## Catálogo de la candidata4.26.113 · snapshot anterior
 
 `beta-veredictos` y los controles de catálogo de `revisar-beta` usan las identidades113. La cola DOM compara las230 notas con113 literal y229 históricas fijadas en Git, conserva archivo/rechazo109 y prueba por separado la ausencia del recibo de cada una de las dos tandas nuevas. No elimina negativos ni modifica otros recorridos.
 

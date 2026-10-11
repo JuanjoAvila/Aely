@@ -11,6 +11,11 @@ const historicalNotes=JSON.parse(execFileSync("git",["show","4403b252933410741a8
 const delivered110Notes=JSON.parse(execFileSync("git",["show","c7593e86f6665d69fa20bd3f5f8f20c4710a5d9c:src/data/release-notes.json"],{encoding:"utf8",maxBuffer:5e6}));
 const source112Cache=new Map();
 const source112=f=>{if(!source112Cache.has(f))source112Cache.set(f,execFileSync("git",["show","74c5f075bf08e38e289992195ad97e3a71a8b031:"+f],{encoding:"utf8",maxBuffer:10e6}));return source112Cache.get(f);};
+// Fuentes inmutables de la integración114: catálogo113 ya retirado (103f3bf1), beta113 servida
+// (684a839d) y el arreglo del solape tal como se revisó (dd9619fa, que nace de esa beta).
+const sourceAtCache=new Map();
+const sourceAt=sha=>f=>{const k=sha+":"+f;if(!sourceAtCache.has(k))sourceAtCache.set(k,execFileSync("git",["show",k],{encoding:"utf8",maxBuffer:10e6}));return sourceAtCache.get(k);};
+const source113=sourceAt("103f3bf101b14585e9cb2b87287f14591d23c624");
 const empty=[{v:"4.26.67",tandas:[]}];
 const archiveRefs=JSON.parse(read("scripts/beta-archives.json"));
 const archiveId="inc-0810-inicio-grafica-significado";
@@ -329,7 +334,9 @@ test("Retiro110 y altas111/112 conservan229notas sin duplicar ni reabrir tandas"
 // Los textos autorizados y los dos retiros se fijan independientemente: alterar una nota
 // histórica o reciclar el OK de una puerta anterior tiene que dejar rojo el catálogo.
 const expected113={v:'4.26.113',d:'2026-10-10',t:{es:'Bienes completos y vuelve la gráfica de Inicio',en:'Complete assets and the Home chart returns',ca:'Béns complets i torna la gràfica d’Inici'},items:{es:['En Cartera → Bienes ya puedes añadir un bien, editarlo y borrarlo, también cuando la lista está vacía.','Inicio recupera la gráfica del patrimonio.'],en:['In Wallet → Property, you can now add, edit and delete an asset, even when the list is empty.','Home brings back the net worth chart.'],ca:['A Cartera → Béns ja pots afegir un bé, editar-lo i esborrar-lo, també quan la llista és buida.','Inici recupera la gràfica del patrimoni.']},tandas:[{id:'bienes-completo',t:{es:'Bienes completos',en:'Complete assets',ca:'Béns complets'},items:{es:['1. En Cartera → Bienes, añade un bien con nombre y valor: aparece en la lista y sube el patrimonio.','2. Tócalo, cambia el valor y guarda. Ábrelo otra vez y pulsa Cancelar: no cambia nada.','3. Bórralo: pide confirmación. Al cancelar sigue ahí; al confirmar desaparece.'],en:['1. In Wallet → Property, add an asset with a name and value: it appears in the list and increases net worth.','2. Tap it, change the value and save. Open it again and press Cancel: nothing changes.','3. Delete it: confirmation is requested. Cancelling keeps it there; confirming removes it.'],ca:['1. A Cartera → Béns, afegeix un bé amb nom i valor: apareix a la llista i puja el patrimoni.','2. Toca’l, canvia el valor i desa. Obre’l una altra vegada i prem Cancel·la: no canvia res.','3. Esborra’l: demana confirmació. En cancel·lar continua allà; en confirmar desapareix.']}},{id:'inicio-grafica-vuelve',t:{es:'Vuelve la gráfica de Inicio',en:'The Home chart returns',ca:'Torna la gràfica d’Inici'},items:{es:['1. Abre Inicio: vuelve a verse la gráfica bajo el patrimonio y ya no aparece «Ahora».'],en:['1. Open Home: the chart is visible below net worth again and “Now” no longer appears.'],ca:['1. Obre Inici: torna a veure’s la gràfica sota el patrimoni i ja no apareix «Ara».']}}]};
-test("Catálogo113 sustituye sólo111/112 y conserva notas, pendientes y rechazo109",()=>{
+// Catálogo cerrado: desde la114 se lee de su commit inmutable, igual que los contratos112.
+test("Catálogo113 histórico sustituye sólo111/112 y conserva notas, pendientes y rechazo109",()=>{
+  const read=source113;
   const before=JSON.parse(source112("src/data/release-notes.json"));
   const retired=["inc-2709-07-bienes-toque","inc-0910-inicio-solo-actual"];
   const expected=[{...expected113,tandas:[]},...before.map(n=>n.tandas?{...n,tandas:n.tandas.filter(g=>!retired.includes(g.id))}:n)];
@@ -350,12 +357,59 @@ test("Catálogo113 sustituye sólo111/112 y conserva notas, pendientes y rechazo
   for(const [id,scope] of Object.entries(oldScopes))if(!retired.includes(id))assert.deepEqual(scopes[id],scope,id+": descriptor ajeno intacto");
   for(const id of retired)assert.equal(scopes[id],undefined,"no repinar "+id);
   assert.deepEqual(JSON.parse(read("scripts/beta-archives.json")),JSON.parse(source112("scripts/beta-archives.json")),"pin y juicio109 intactos");
-  const built=betaNotes(notes),receipt=betaDelivery(built);
+  const built=betaNotes(notes,read,scopes),receipt=betaDelivery(built,read,scopes);
   for(const id of retired){assert.equal(receipt.web[id],undefined);assert.equal(receipt.pruebas[id],undefined);}
   for(const g of expected113.tandas){
-    assert.equal(receipt.web[g.id],betaRevision(g.id).web,"el producto sigue íntegro");
+    assert.equal(receipt.web[g.id],betaRevision(g.id,read,undefined,scopes[g.id]).web,"el producto sigue íntegro");
     assert.equal(receipt.pruebas[g.id],undefined,"el guion retirado no permanece marcado");
   }
+});
+// La114 añade UNA nota con UNA tanda y UN alcance. Texto, pasos y descriptor se fijan aquí
+// aparte del catálogo que vigilan: tocar otra nota, otro alcance o la huella de otra tanda
+// tiene que dejar esto en rojo.
+const expected114={v:'4.26.114',d:'2026-10-11',t:{es:'Inicio sin solapes',en:'Home without overlaps',ca:'Inici sense solapaments'},items:{es:['Inicio ya no muestra por error la lista de categorías de Gastos encima de sus tarjetas.'],en:['Home no longer shows the Expenses category list on top of its cards by mistake.'],ca:['Inici ja no mostra per error la llista de categories de Despeses a sobre de les seves targetes.']},tandas:[{id:'inicio-solape-gastos',t:{es:'Inicio sin solapes',en:'Home without overlaps',ca:'Inici sense solapaments'},items:{es:['1. Activa una temática en Ajustes → Apariencia → Temática (cualquiera que no sea «Ninguna»).','2. Entra en Gastos y abre el desglose «Por categoría».','3. Vuelve a Inicio: no debe verse ninguna lista de categorías encima de las tarjetas.','4. Desde Inicio, apunta dos gastos seguidos con el botón + y cierra: Inicio debe seguir limpio.','5. Vuelve a Gastos: el desglose sigue ahí y se puede abrir y cerrar.'],en:['1. Turn on a theme in Settings → Look & feel → Theme (any except “None”).','2. Go to Spending and open the “By category” breakdown.','3. Go back to Home: no category list should appear on top of the cards.','4. From Home, log two expenses in a row with the + button and close: Home should stay clean.','5. Go back to Spending: the breakdown is still there and can be opened and closed.'],ca:['1. Activa una temàtica a Ajustos → Aparença → Temàtica (qualsevol que no sigui «Cap»).','2. Entra a Despeses i obre el desglossament «Per categoria».','3. Torna a Inici: no s’ha de veure cap llista de categories a sobre de les targetes.','4. Des d’Inici, apunta dues despeses seguides amb el botó + i tanca: Inici ha de seguir net.','5. Torna a Despeses: el desglossament continua allà i es pot obrir i tancar.']}}]};
+test("Catálogo114 añade sólo la tanda del solape y conserva notas, alcances y huellas ajenas",()=>{
+  const id="inicio-solape-gastos",before=JSON.parse(source113("src/data/release-notes.json"));
+  const expected=[expected114,...before];
+  const verify=notes=>assert.deepEqual(notes,expected);
+  const notes=JSON.parse(read("src/data/release-notes.json"));verify(notes);
+  assert.equal(notes.length,231);assert.equal(JSON.parse(read("package.json")).version,"4.26.114");
+  assert.deepEqual(notes.flatMap(n=>n.tandas||[]).filter(g=>g.id===id).length,1,"una sola vez en todo el catálogo");
+  for(const g of expected113.tandas){const changed=structuredClone(notes);changed[1].tandas.push(g);assert.throws(()=>verify(changed),"no resucitar "+g.id);}
+  const twice=structuredClone(notes);twice[0].tandas.push(structuredClone(twice[0].tandas[0]));assert.throws(()=>verify(twice),"no duplicar la tanda");
+  const inherited=structuredClone(notes);inherited[0].tandas[0].desde="inicio-grafica-vuelve";assert.throws(()=>verify(inherited),"no heredar una aprobación");
+  const missing=structuredClone(notes);missing.pop();assert.throws(()=>verify(missing));
+  const text=structuredClone(notes);text[1].items.es[0]+="mutante";assert.throws(()=>verify(text));
+  const scopes=JSON.parse(read("scripts/beta-sources.json")),oldScopes=JSON.parse(source113("scripts/beta-sources.json"));
+  assert.deepEqual(Object.keys(scopes).filter(key=>!oldScopes[key]),[id]);
+  assert.deepEqual(Object.keys(oldScopes).filter(key=>!scopes[key]),[],"ningún alcance se retira");
+  for(const [key,scope] of Object.entries(oldScopes))assert.deepEqual(scopes[key],scope,key+": descriptor ajeno intacto");
+  assert.deepEqual(scopes[id],{unidades:true,web:[
+    {file:"src/shell.html",from:"  .v4-gastos-cats-body.abierto{",to:"\n",includeTo:true},
+    {file:"src/shell.html",from:"  .v4-filter-cats.abierto .v4-filter-cats-body{",to:"\n",includeTo:true}]},"dos reglas CSS, sin alias ni referencia heredada");
+  assert.deepEqual(JSON.parse(read("scripts/beta-archives.json")),JSON.parse(source113("scripts/beta-archives.json")),"pin y juicio109 intactos");
+  // El arreglo sólo mueve SU identidad: beta113 servida frente al commit revisado del solape.
+  const base=sourceAt("684a839d286f68d66c8855cf6e1a626b7220fd64"),fix=sourceAt("dd9619fabb74cd2977239268bd002b9ff7e783a8");
+  for(const [key,scope] of Object.entries(oldScopes)){
+    if(key===archiveId)continue; // 109 es referencia fija, nunca código vigente.
+    assert.equal(betaRevision(key,fix,undefined,scope).web,betaRevision(key,base,undefined,scope).web,key+": huella ajena intacta");
+  }
+  const source=f=>read(f).replace(/\r\n/g,"\n"),current=betaRevision(id,source).web;
+  assert.equal(current,betaRevision(id,fix,undefined,scopes[id]).web,"la fuente integrada lleva exactamente el CSS revisado");
+  assert.notEqual(current,betaRevision(id,base,undefined,scopes[id]).web,"la beta anterior no acredita el arreglo");
+  for(const from of ["  .v4-gastos-cats-body.abierto{grid-template-rows:1fr;opacity:1;visibility:inherit;","  .v4-filter-cats.abierto .v4-filter-cats-body{grid-template-rows:1fr;opacity:1;visibility:inherit;"]){
+    assert.ok(source("src/shell.html").includes(from),"mutante sobre fuente real: "+from);
+    const to=from.replace("visibility:inherit;","visibility:visible;");
+    assert.notEqual(betaRevision(id,f=>f==="src/shell.html"?source(f).replace(from,to):source(f)).web,current,"volver a `visible` invalida: "+from);
+  }
+  const neighbour="  .v4-gastos-cats-inner{min-height:0;overflow:hidden;}";
+  assert.ok(source("src/shell.html").includes(neighbour));
+  assert.equal(betaRevision(id,f=>f==="src/shell.html"?source(f).replace(neighbour,neighbour.replace("0;","1px;")):source(f)).web,current,"una regla vecina no reabre la tanda");
+  const built=betaNotes(notes),receipt=betaDelivery(built),group=built[0].tandas[0];
+  assert.equal(group.web,current);assert.equal(receipt.web[id],current);
+  assert.deepEqual(receipt.pruebas[id],{v:"4.26.114",contenido:JSON.stringify([id,expected114.tandas[0].t.es,expected114.tandas[0].items.es,1])});
+  for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica","native","edge"])assert.equal(group[key],undefined,"identidad nueva sin "+key);
+  for(const g of expected113.tandas)assert.equal(receipt.pruebas[g.id],undefined,"el guion retirado no permanece marcado");
 });
 test("Bienes113 vigila la puerta vacía, ficha, cancelación, borrado y textos",()=>{
   const source=f=>read(f).replace(/\r\n/g,"\n"),id="bienes-completo",before=betaRevision(id,source).web;
@@ -534,7 +588,7 @@ test("PERSIST91: el guardado en el commit invalida toda tanda que escribe estado
   assert.equal(dependientes.length,22);
   assert.ok(dependientes.includes("inc-0810-metas-editar-regla"),"editar una regla escribe con el set real y conserva el cierre de persistencia");
   assert.ok(dependientes.includes("inc-0710-gastos-mes-madrid"),"Gastos99 conserva la dependencia real de guardado de Expenses");
-  assert.deepEqual(ajenas.slice().sort(),["beta-panel-veredictos","inc-0210-01-plan-cuota","inc-0410-inicio-tres-metas","inc-0710-appstate-listener-cleanup","inc-0710-banknotif-cleanup","inc-0810-backclose-handover","inc-0810-dashboard-recents-memo","inc-0810-inicio-grafica-significado","inc-0810-nav-indicator","inc-2709-01-arranque-red","inc-2709-09-fechas-cache","inc-2709-12-cyber-fab","inc-2709-13-fab-contorno","inc-2709-14-preguntar","inicio-grafica-vuelve","ops-0410-panel-cola","tr-descripcion-clasificacion"]);
+  assert.deepEqual(ajenas.slice().sort(),["beta-panel-veredictos","inc-0210-01-plan-cuota","inc-0410-inicio-tres-metas","inc-0710-appstate-listener-cleanup","inc-0710-banknotif-cleanup","inc-0810-backclose-handover","inc-0810-dashboard-recents-memo","inc-0810-inicio-grafica-significado","inc-0810-nav-indicator","inc-2709-01-arranque-red","inc-2709-09-fechas-cache","inc-2709-12-cyber-fab","inc-2709-13-fab-contorno","inc-2709-14-preguntar","inicio-grafica-vuelve","inicio-solape-gastos","ops-0410-panel-cola","tr-descripcion-clasificacion"]);
   /* Quién depende del guardado lo decide el CÓDIGO, no la marca del registro (auditoría del
      coordinador, 4/10): se quita de cada alcance el bloque del guardado y se mira si lo que queda
      llama a `set` de App —las dependencias transitivas ya son unidades del alcance—. Tiene que

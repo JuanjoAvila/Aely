@@ -1,5 +1,58 @@
 [
   {
+    "v": "4.26.114",
+    "d": "2026-10-11",
+    "t": {
+      "es": "Inicio sin solapes",
+      "en": "Home without overlaps",
+      "ca": "Inici sense solapaments"
+    },
+    "items": {
+      "es": [
+        "Inicio ya no muestra por error la lista de categorías de Gastos encima de sus tarjetas."
+      ],
+      "en": [
+        "Home no longer shows the Expenses category list on top of its cards by mistake."
+      ],
+      "ca": [
+        "Inici ja no mostra per error la llista de categories de Despeses a sobre de les seves targetes."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inicio-solape-gastos",
+        "t": {
+          "es": "Inicio sin solapes",
+          "en": "Home without overlaps",
+          "ca": "Inici sense solapaments"
+        },
+        "items": {
+          "es": [
+            "1. Activa una temática en Ajustes → Apariencia → Temática (cualquiera que no sea «Ninguna»).",
+            "2. Entra en Gastos y abre el desglose «Por categoría».",
+            "3. Vuelve a Inicio: no debe verse ninguna lista de categorías encima de las tarjetas.",
+            "4. Desde Inicio, apunta dos gastos seguidos con el botón + y cierra: Inicio debe seguir limpio.",
+            "5. Vuelve a Gastos: el desglose sigue ahí y se puede abrir y cerrar."
+          ],
+          "en": [
+            "1. Turn on a theme in Settings → Look & feel → Theme (any except “None”).",
+            "2. Go to Spending and open the “By category” breakdown.",
+            "3. Go back to Home: no category list should appear on top of the cards.",
+            "4. From Home, log two expenses in a row with the + button and close: Home should stay clean.",
+            "5. Go back to Spending: the breakdown is still there and can be opened and closed."
+          ],
+          "ca": [
+            "1. Activa una temàtica a Ajustos → Aparença → Temàtica (qualsevol que no sigui «Cap»).",
+            "2. Entra a Despeses i obre el desglossament «Per categoria».",
+            "3. Torna a Inici: no s’ha de veure cap llista de categories a sobre de les targetes.",
+            "4. Des d’Inici, apunta dues despeses seguides amb el botó + i tanca: Inici ha de seguir net.",
+            "5. Torna a Despeses: el desglossament continua allà i es pot obrir i tancar."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.113",
     "d": "2026-10-10",
     "t": {
