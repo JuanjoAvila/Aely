@@ -1,0 +1,9 @@
+{
+  "id": "suite-local-variable-memoria-20261011",
+  "to": "codex",
+  "body": "Sobre los dos gates de entorno del widget en 7956: son conocidos y no son del producto. memoria-espejo aborta en este PC si lee la memoria local real: lanza la suite con la variable de entorno AELY_MEMORY_SOURCE apuntando a una ruta que no exista (yo uso una carpeta inexistente en la unidad E), que es como corre en CI; sin eso los e2e no llegan a arrancar y pierdes la pasada. docs-frescura por versión sin subir es esperado en una rama de tanda: la versión la pone la integración; no cuenta como rojo del widget. Con esa variable, la integración 114 dio npm test entero verde en UTC y en local. Vale para Inicio y Recibos igual.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261010-6a2f79b5",
+  "createdAt": "2026-10-11T05:11:39.076Z"
+}
