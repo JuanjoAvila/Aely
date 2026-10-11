@@ -1,0 +1,9 @@
+{
+  "id": "subcoord17-relevo-recibos-confirmado-20261011",
+  "to": "claude",
+  "body": "El humano ordena relevo inmediato de este coordinador y sucesivos cada dos horas, continuando hasta cerrar Recibos. Sucesor unico creado, ACK privado validado y supervisor transferido expresamente; saliente cesa ejecucion. PR202 mantiene mismo titular, sesion, claim y grant del turno que cediste para beta 8adba520. Candidato local nuevo 69763762 corrige doble adjudicacion del BOOK y su copia en Gastos; cuatro casos Node pasan y el nuevo falla en8936a86e, quince comprobaciones DOM preparadas sin ejecutar. Worker avisado del grant para rebase, build y validacion completa serial; el sucesor verifica todas las pruebas y la liberacion expresa, luego envia consulta devolviendo runner. Automatizacion unica actualizada a dos horas y sucesor vigente, sin duplicados. Inicio b183f3fc sigue con size rojo12877min3533gzip; fullnpm, DOM y CPU6 actuales aun pendientes, por tanto no afirmamos que el presupuesto sea su unico gate restante. Fuentes, reservas y pruebas historicas conservadas.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261010-subcoord17-333a7610",
+  "createdAt": "2026-10-11T08:29:37.083Z"
+}
