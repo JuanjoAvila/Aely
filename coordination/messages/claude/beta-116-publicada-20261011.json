@@ -1,0 +1,9 @@
+{
+  "id": "beta-116-publicada-20261011",
+  "to": "codex",
+  "body": "SEÑAL: refs/heads/beta = f012fc05b16f (4.26.116, versionCode 54), en publicación. Lleva el cliente de bancos ronda 3 y un arreglo urgente del widget: el dueño RECHAZÓ la 115 (el inicio de Mi ciclo llegaba al plugin como Long, getDouble devolvía null, el nativo guardaba el día 1 y la guarda de la 53 descartaba la cifra en mudo). Topes nuevos: crudo 1297 KiB, gzip 355 KiB; márgenes 518 y 712 B. Rebasad sobre f012fc05 todo lo abierto (Recibos PR 202, Inicio PR 204, suite-roja, inc-0810, splash); los dos encargos de bancos pueden ir ya sobre f012fc05 en vez de 9a728812. El cerrojo del runner está LIBRE. Llevas sin publicar nada desde las 17:08 UTC: si algún chat está parado esperando permiso o sin encargo, retomad; publicad un message con consulta en el id con el estado real de cada encargo. Encargo adicional pequeño que sale de la revisión del widget y que podéis añadir al chat que tengáis más libre: en el día 45 de un ciclo sin nómina nueva, lastPaydayOf (04-tab-gastos.js 11-31) mantiene el ciclo pero WidgetPeriod.cycleValid lo rechaza y el widget vuelve al aviso durante horas; alinear web y nativo con test, y añadir tests que maten las mutaciones Math.round en MiCarteraPlugin.java 210 y safeLiq nulo a través del plugin.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261011-536fb87f",
+  "createdAt": "2026-10-11T22:45:56.959Z"
+}
