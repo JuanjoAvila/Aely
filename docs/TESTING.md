@@ -206,55 +206,13 @@ SQL/RLS. La caracterización anterior vive en SHA `bc2fa093`. Registrado para m�
 
 Widget banco (4.26.50): `e2e/widget-banco.spec.mjs` abre Ajustes y cambia el banco con saldo idéntico, verifica el payload nativo y persistencia tras recarga, suma de cuentas sin opciones repetidas y retirada del banco elegido. Registrado para el módulo 10; el módulo 11 obliga a suite completa.
 
-Widget pendiente (`widget-estado-correccion-codex-20261010`): `widget-notificacion-render`
-ejecuta `handleResponse`, `saveMonth`, preferencias y `build` reales con dobles de Android/JSON,
-partiendo de una foto persistida APK52 con journal indentado y un pago superpuesto. La respuesta
-v2 compatible y la legacy con pago de ventana conocida actualizan gasto/saldo sin duplicar;
-un absoluto v2 anterior no deshace el pago legacy. Una fecha fuera de ventana conserva «—»
-y `saveApp` con ACK recupera. Evalúa además el constructor real del payload web
-con `settings.budgetCycle` false/true y comprueba título/cifra en el pintado Java. No demuestra
-servidor activo, serializador XML Android, widget del launcher ni pago real. Está en el runner.
-`--probe=crossed` comprueba ambos órdenes de tickets: la confirmación legacy conserva el pago
-frente a cualquier absoluto ya en vuelo. El orden legacy-primero falla en a7380075 y se corrige
-con la barrera de peticiones emitidas; el mismo control corre sin flags en el runner.
-`widget-unknown-loss --probe=migration|period|recovery` aísla tres controles causales que fallan
-en f8c1b7ae y pasan con la corrección; todos se ejecutan también sin flags en el runner.
-`widget-notificacion-render --probe=pressure` añade el mismo control causal para cambio
-de alcance con registros casi llenos: ACK/lápidas completos recuperan la cifra; identidad
-perdida de verdad mantiene «—». También corre en la ejecución normal. Las pruebas Deno
-de `ingest/widget.test.ts` están registradas y validan el payload separado y su alcance;
-el handler Node compara Mes y Mi ciclo con el cálculo real de Inicio.
-Los dos runners verifican paginación de más de mil filas, conteo ausente/cambiante,
-duplicados de página, consulta fallida y pago ausente; no aceptan un cero de lectura parcial.
-El pintado Java comprueba también que un pago TR no descuenta el saldo de otro banco elegido.
-`deno check` del
-handler mantiene tres errores de tipos reproducidos en la base, ajenos a esta corrección.
-`widget-inicio-paridad`, registrado en el runner y en Android/backend, compara 1584 casos
-contra `dashboardBudgetStats`, `widgetScopeOf` y `monthBudgetStats` reales: Mes/Mi ciclo;
-presupuesto ausente/cero/positivo/todo reservado; banco diario/fijos; ancla actual/anterior/ausente;
-compra, Bizum, nómina, neutras, cuota con categoría explícita, duplicado y lápida; pago actual,
-futuro o anterior. Verifica scope, cifra, against, presupuesto, margen y ambos deltas al céntimo.
-`--server-sha=b7b4b71e` ejecuta el mismo oráculo contra el helper previo: falla por null/0 y
-por filtrar la marca de cuota independientemente de su categoría. La corrección v2 sigue
-el lector actual de Inicio; el contrato `month` legacy conserva sus reglas anteriores.
-`widget-unknown-journal` ejecuta los
-read/write reales con formato inyectado, identidad con clave vacía, reinicio del estado y
-cobertura exacta. `--native-dir` permite ejecutar el mismo oráculo contra una fuente base;
-`--loss-probe` distingue pérdida real de formato recuperable. `widget-unknown-loss` prueba
-pérdida durable, desbordamiento, corrupción, cambio de periodo, ACK parcial/ajeno y
-writeBlocked sin foto parcial. `widget-offline` ejecuta transporte/cola del listener con HTTP
-y preferencias en memoria: recreación, retry y una sola entrega al recuperar red. Estas pruebas
-están en run-tests y en recortes Android/backend; offline no prueba la recuperación financiera.
-Los dobles no ejecutan el serializador
-Android, el sistema de reinicio ni un pago real. `widget-banco.spec.mjs` comprueba el contrato
-v2 frente al DOM de Inicio (mes bruto/Mi ciclo neto, es/en/ca); la APK antigua sigue con su
-contrato mensual legado. La aceptación móvil queda pendiente hasta disponer de APK instalada.
+Pruebas del widget: `widget-notificacion-render` ejecuta el listener, preferencias, recuperación y pintado Java reales con dobles sólo de Android/JSON. Genera con el escritor histórico estados de formato y pérdida que producen exactamente las mismas preferencias: sin marca nueva se conserva la duda; con lectura nueva completa se recuperan ambos. Cubre Mi ciclo persistido, pago legacy con app cerrada, foto nueva/reenvío, pagos durante y después de la lectura, cobertura que evita duplicar, espera de POST previos y rechazo de cifras no finitas. `--probe=fresh` aísla la recuperación; `--probe=guards` ejecuta seis reglas de dinero: ingreso grande que abre ciclo, banco ajeno a gasto diario, fecha futura, inversión neutra, fracción de céntimo y abono sin restar gasto bruto mensual. Los mismos controles corren sin flags en el runner.
 
-`ingest/widget.test.ts` está registrado como Deno: mes bruto, ciclo neto firmado, ancla,
-ingresos de otro banco, lápidas, posibles duplicados, reservas, futuro y caducidad. El guardián
-Node `ingest-handler` ejecuta también esos mismos cuerpos y el handler real con BD en memoria,
-comprobando respuesta dual `month` legacy / `widget` v2 y rechazo de scope desfasado.
-Ese pase Node no equivale al runtime ni al chequeo de tipos Deno; CI debe ejecutar el Deno real.
+`widget-unknown-journal` y `widget-unknown-loss` ejecutan lectura/escritura reales: formato XML, clave vacía, reinicio, pérdida durable, desbordamiento, corrupción, cambio de periodo y cobertura parcial/ajena. La recuperación por ACK sin marca conserva el criterio de identidad; la sustitución del legado se prueba por separado con marca de lectura. `widget-offline` ejecuta transporte y cola reales con HTTP en memoria: red caída, retry, recreación, entrega única y terminación de tickets incluso con error. No usa operaciones bancarias.
+
+`widget-inicio-paridad` compara 1584 casos al céntimo con los lectores reales de Inicio: Mes/Mi ciclo, presupuesto ausente/cero/positivo/reservado, banco diario/fijos, anclas, compras, ingresos, neutras, cuotas, duplicados, lápidas y fechas anteriores/futuras. Vigila ventana, alcance, cifra, margen y deltas. `ingest-handler` ejecuta el handler real contra BD sintética y los cuerpos de `ingest/widget.test.ts`: respuesta mensual intacta, contrato v2 separado, paginación de más de mil filas, conteo ausente/cambiante, IDs repetidos, lectura fallida y pago ausente. Una guarda en el doble corta las páginas sin progreso: retirar el rechazo de página parcial debe dar rojo, nunca colgar el runner. Un error del cálculo opcional conserva el aviso de presupuesto y la respuesta mensual. El pase Node no equivale al runtime ni al chequeo de tipos Deno; el Deno real está registrado en el runner.
+
+`e2e/widget-banco.spec.mjs`, registrado también para el envío de `11-app-main.js`, comprueba el payload frente al DOM de Inicio, Mes/Mi ciclo e idiomas. Incluye preparación del corte sin envío prematuro, marca sólo tras lectura terminada, error de lectura sin foto y APK anterior que no conoce el método nuevo. Estos e2e requieren navegador. Los dobles Java no ejecutan el serializador XML de Android, el launcher ni un pago real; la aceptación móvil necesita APK instalada y uso real.
 
 # Testing — Aely
 
@@ -947,7 +905,3 @@ Aviso nativo por sesión: `tests/banknotif-listener-cleanup.test.mjs`, registrad
 La nota exige moneda EUR, escala relativa mínimo/máximo sin base cero y ausencia de ganancia acreditada. `beta-sources` completo salió0, con mutantes de las tres traducciones y el dibujo y los33 descriptores anteriores íntegros. Ocho guards Node salieron0; `docs-frescura` postcommit109 salió0 y cerró su fallo histórico inicial. El presupuesto oficial vuelve a salir0 tras adoptar1291/352KiB expresamente autorizados; solo se repite ese guard y no se atribuye su resultado a la integración conjunta. DOM conjunto25/25 y seis casos idénticos rojos esperados en el public8dcc exacto, sin omisiones/retries/flaky; CI y aceptación móvil pendientes. [Plan y límites](briefs/pro-02-0810-chart-meaning.md).
 
 Integración local26 de Navegación107, Metas108 e Inicio109: auditoría de identidades y comprobación de descarga conjunta en [el acta](briefs/integracion-local26-109.md). La CI y los resultados locales de las fuentes se distinguen de las pruebas del bundle unido y su entrega.
-
-El test registrado `widget-notificacion-render` ejecuta además el árbitro histórico74c5f075 real para generar desbordamiento, conserva sus preferencias sin marcas modernas y comprueba que ACK sólo de IDs retenidos mantiene el bloqueo, con y sin indentación. Los workflows traen historia completa; un checkout sin ese commit no acredita la migración. El mismo test parte de foto v2 de Mi ciclo persistida, verifica cabecera exacta y cifra tras pago cerrado, y exige cobertura real para recuperarse de un evento incierto. El candidatof248 fue rojo en el desbordamiento; su validación anterior y el Playwright parcial cancelado no se atribuyen a la contención posterior.
-
-La prueba histórica ejecuta también `app`, `ingest` y `write` de Java74: una indentación pequeña y un evento omitido generan mapas de preferencias exactamente iguales. La candidata mantiene ambos bloqueados, con independencia del tamaño. No acredita recuperación del legado ni aceptación real. La candidataf24854bd y su APK local se revocan para instalación/integración; la continuación sólo aporta contención y controles causales, sin una nueva suite completa ni APK.

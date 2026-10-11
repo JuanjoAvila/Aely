@@ -268,7 +268,8 @@ public class TrExpenseListener extends NotificationListenerService {
         } catch (Exception e) {
             return REINTENTAR;   // sin red, DNS caído, timeout… todo esto se cura esperando
         } finally {
-            if (conn != null) conn.disconnect();
+            try { if (conn != null) conn.disconnect(); }
+            finally { MiCarteraWidget.finishIngest(this, widgetTicket); }
         }
     }
 

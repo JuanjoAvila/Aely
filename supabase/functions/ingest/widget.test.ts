@@ -48,9 +48,14 @@ Deno.test("widget v2 no afirma scope cambiado, ancla ausente, futuro ni ciclo ca
 Deno.test("widget v2 exige conteo exacto y todas las páginas con identidades únicas", async () => {
   const data = Array.from({ length: 1005 }, (_, i) => ({ ...rows[2], id: "synthetic-" + i }));
   function db(bad = "") {
-    let from = 0, to = 0;
+    let from = 0, to = 0, pages = 0;
     const api = { select: () => api, eq: () => api, gte: () => api, order: () => api,
-      range: (a: number, b: number) => { from = a; to = b; return api; },
+      range: (a: number, b: number) => {
+        // Sin la guarda de página parcial el lector repetiría páginas vacías sin acabar.
+        // El doble aborta esa regresión como fallo del test, sin dejar colgado el runner.
+        if (++pages > 3) throw new Error("widget leyó páginas sin progreso ni rechazo");
+        from = a; to = b; return api;
+      },
       then: (resolve: (x: unknown) => unknown) => Promise.resolve(resolve({
         data: bad === "truncated" ? data.slice(from, from + 1) : bad === "duplicate" && from > 0 ? data.slice(0,5) : data.slice(from, to + 1),
         count: bad === "count" ? null : bad === "changed" && from > 0 ? 1006 : data.length,

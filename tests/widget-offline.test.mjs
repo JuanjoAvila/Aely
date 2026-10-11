@@ -39,7 +39,7 @@ public class ListenerOfflineTest {
   ${constants}
   static final Prefs prefs=new Prefs();
   static final WidgetSnapshotArbiter.State state=new WidgetSnapshotArbiter.State();
-  static int code, sent, received; static boolean offline; static String response, lastBody, lastEvent;
+  static int code, sent, received, finished; static boolean offline; static String response, lastBody, lastEvent;
   static class Prefs {
     String value="[]";
     String getString(String k,String fallback){return value;}
@@ -72,6 +72,7 @@ public class ListenerOfflineTest {
   }
   static class MiCarteraWidget {
     static long beginIngest(Object ctx){return WidgetSnapshotArbiter.begin(state);}
+    static void finishIngest(Object ctx,long ticket){finished++;}
     static long monthStart(long t){return WidgetPeriod.monthStart(t);}
   }
   Prefs getSharedPreferences(String key,int mode){return prefs;}
@@ -106,6 +107,7 @@ public class ListenerOfflineTest {
     offline=false; code=503; reboot.vaciarCola(); ok(leerCola(prefs).length()==1);
     code=200; reboot.vaciarCola();
     ok(leerCola(prefs).length()==0 && received==1 && lastEvent.equals(id) && lastBody.equals(body));
+    ok(finished==state.issued); // También error de red y 503 terminan el ticket de la lectura.
     reboot.vaciarCola(); ok(received==1); // una cola vacía no reenvía el pago
     code=429; ok(reboot.postIngest("https://fixture.invalid",body)==REINTENTAR);
     code=401; ok(reboot.postIngest("https://fixture.invalid",body)==DESCARTAR);

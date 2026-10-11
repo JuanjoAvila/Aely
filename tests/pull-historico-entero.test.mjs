@@ -118,13 +118,13 @@ test("FIN07: mezcla conserva adicionales, lápidas, notas editadas y possibleDup
 });
 
 // Ejecuta el call site de App: no basta con que el paginador rechace si el sync confirma un parcial.
-function syncHarness(pull){
+function syncHarness(pull,native=null){
   const main=fs.readFileSync(new URL("../src/modules/11-app-main.js",import.meta.url),"utf8");
   const ini=main.indexOf("const syncCloudExpenses=function(){"),end=main.indexOf("\n  };",ini)+5;
   const cli=loadPureLogicFromFile(),local={id:uuid(9999),date:"2019-01-01T12:00:00.000Z",amount:5,merchant:"Solo local",source:"manual"};
-  const h={wS:{current:0},wR:{current:true},wP:{current:null},wC:{current:"|anterior|"},stateRef:{current:{expenses:[local],deleted:["lapida"]}},sets:0,uploads:0};
+  const h={wS:{current:0},wR:{current:true},wP:{current:null},wC:{current:"|anterior|"},wRead:{current:null},stateRef:{current:{expenses:[local],deleted:["lapida"]}},sets:0,uploads:0};
   const env={...cli,...h,cloud:{pullExpenses:pull,setExpenseCat:()=>Promise.resolve()},inicioDeMesMs:()=>0,
-    subirGasto:()=>h.uploads++,fixMovInvasion:s=>s,reconcileObDupes:s=>({state:s,recat:[]}),
+    natPlugin:()=>native,subirGasto:()=>h.uploads++,fixMovInvasion:s=>s,reconcileObDupes:s=>({state:s,recat:[]}),
     set:fn=>{h.sets++;h.stateRef.current=fn(h.stateRef.current);}};
   const sync=new Function(...Object.keys(env),main.slice(ini,end)+";return syncCloudExpenses;")(...Object.values(env));
   return Object.assign(h,{sync});
@@ -138,7 +138,9 @@ test("FIN07: fallo intermedio no mezcla, no backfill, no ACK de FIN05 ni lápida
 });
 test("FIN07: sync nuevo termina antes, el viejo no pisa ni ACK ni histórico",async()=>{
   const pending=[];const h=syncHarness(()=>new Promise(resolve=>pending.push(resolve)));
-  const old=h.sync(),latest=h.sync();pending[1]([{...rows(1)[0],source:"macrodroid",ingest_event_id:"nuevo"}]);
+  const old=h.sync();await new Promise(resolve=>setImmediate(resolve));
+  const latest=h.sync();await new Promise(resolve=>setImmediate(resolve));
+  pending[1]([{...rows(1)[0],source:"macrodroid",ingest_event_id:"nuevo"}]);
   await latest;const before=h.stateRef.current,ack=h.wC.current;
   pending[0]([{...rows(2)[1],source:"macrodroid",ingest_event_id:"viejo"}]);await old;
   assert.equal(h.stateRef.current,before);assert.equal(h.wC.current,ack);
@@ -147,4 +149,26 @@ test("FIN07: sync nuevo termina antes, el viejo no pisa ni ACK ni histórico",as
   const covered=loadPureLogicFromFile().widgetCoveredEvents(ack,0,Date.now(),true);
   assert.ok(covered.includes("nuevo"));assert.ok(!covered.includes("viejo"));
   assert.equal(h.wR.current,true);assert.equal(h.sets,1);
+});
+
+test("widget: la marca no existe hasta terminar el pull completo; fallo no la acredita",async()=>{
+  const mark={readGeneration:"synthetic-read",nativeCut:"4"};let finish;
+  const h=syncHarness(()=>new Promise(resolve=>{finish=resolve;}),{beginWidgetRead:()=>Promise.resolve(mark)});
+  const pull=h.sync();await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(h.wRead.current,null);assert.equal(h.wR.current,false);
+  finish(rows(1));await pull;assert.deepEqual(h.wRead.current,mark);assert.equal(h.wR.current,true);
+  const failed=syncHarness(()=>Promise.reject(new Error("offline")),{beginWidgetRead:()=>Promise.resolve(mark)});
+  await assert.rejects(failed.sync(),/offline/);assert.equal(failed.wRead.current,null);assert.equal(failed.wR.current,false);
+});
+test("widget: lectura superada no publica su marca; APK anterior conserva lectura sin marca",async()=>{
+  const marks=[],pending=[],h=syncHarness(()=>new Promise(resolve=>pending.push(resolve)),{
+    beginWidgetRead:()=>new Promise(resolve=>marks.push(resolve))});
+  const old=h.sync();await new Promise(resolve=>setImmediate(resolve));
+  marks[0]({readGeneration:"old",nativeCut:"1"});await new Promise(resolve=>setImmediate(resolve));
+  const latest=h.sync();await new Promise(resolve=>setImmediate(resolve));
+  marks[1]({readGeneration:"new",nativeCut:"2"});await new Promise(resolve=>setImmediate(resolve));
+  pending[1](rows(1));await latest;pending[0](rows(2));await old;
+  assert.equal(h.wRead.current.readGeneration,"new");assert.equal(h.sets,1);
+  const legacy=syncHarness(()=>Promise.resolve(rows(1)),{beginWidgetRead:()=>Promise.reject(new Error("no disponible"))});
+  await legacy.sync();assert.equal(legacy.wRead.current,null);assert.equal(legacy.wR.current,true);
 });

@@ -7,6 +7,10 @@ usuarios. La candidata prepara `ingest/widget.ts`: respuesta widget v2 de la ven
 por la app, validando ancla y scope; month conserva su payload mensual legacy para APK antiguas.
 El total v2 requiere conteo exacto, páginas completas con identidades únicas y el pago visible.
 Conteo ausente/cambiante, consulta fallida o truncada y pago ausente devuelven `widget:null`.
+El cálculo opcional de `widget` se ejecuta después del aviso de presupuesto y en su propio
+bloque de errores: una excepción de paginación o cálculo conserva `month` y `alert` para las
+APK anteriores. El rechazo de páginas parciales tiene un límite de consultas en su doble de
+prueba, para que su eliminación falle en lugar de dejar el runner en bucle.
 La matriz contra Inicio distingue presupuesto ausente (scope null) de todo reservado (scope 0,
 con margen conocido). V2 aplica el filtro por categoría de Inicio también a filas con marca
 de cuota; el cálculo de month legacy no cambia. La marca por sí sola no sustituye una categoría

@@ -68,6 +68,7 @@ function fakeDb(opts = {}) {
       if (name === "app_state") return { data: [], error: null };
       if (name !== "expenses") return { data: [], error: null };
       if (q.op === "select") {
+        if (q.count && opts.widgetThrows) throw new Error("fallo sintético del widget opcional");
         if (opts.monthReadError && q.cols === "id,importe,cat,source,fecha,comercio")
           return { data: null, error: { message: "lectura mensual fallida" } };
         const usesEvent = q.cols.includes("ingest_event_id") || q.filters.some(([, k]) => k === "ingest_event_id");
@@ -190,6 +191,18 @@ await t("servidor v2 no repite un scope si cambiaron las reservas", async () => 
     widgetPeriod:{v:2,kind:'mes',start,anchor:'',scope:JSON.stringify([2,start,'mes','gasto','',100,['trade_republic'],'trade_republic'])}};
   const r=await post(fakeDb({state}),{fuente:'tr',titulo:'Trade Republic',texto:'Has gastado 5,45 € en Compra sintetica',fecha:String(now),evento:'changed'});
   assert.equal(r.data.widget,null); assert.ok(r.data.month);
+});
+
+await t("un error del widget opcional conserva el aviso y month para APK anteriores", async () => {
+  const now=Date.now(),start=budget.inicioDeMesMs(now),state={budget:100,
+    accounts:[{ent:'trade_republic',role:'diario',spendFrom:true}],settings:{},
+    widgetPeriod:{v:2,kind:'mes',start,anchor:'',scope:JSON.stringify([2,start,'mes','gasto','',100,['trade_republic'],'trade_republic'])}};
+  const r=await post(fakeDb({state,widgetThrows:true,rows:[{id:'before',user_id:'user',fecha:new Date(now-1000).toISOString(),
+    importe:90,cat:'super',source:'macrodroid',comercio:'Compra anterior'}]}),
+    {fuente:'tr',titulo:'Trade Republic',texto:'Has gastado 20,00 € en Compra sintética',fecha:String(now),evento:'widget-error'});
+  assert.equal(r.status,200);assert.equal(r.data.widget,null);
+  assert.equal(r.data.month.spent,110);assert.equal(r.data.alert.kind,'over');
+  assert.equal(r.data.alert.monthSpent,110);assert.equal(r.data.alert.budget,100);
 });
 
 await t("v2 pagina más de mil filas; una lectura parcial o sin conteo no confirma cero", async () => {

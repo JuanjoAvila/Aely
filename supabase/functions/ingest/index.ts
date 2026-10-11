@@ -395,15 +395,6 @@ Deno.serve(async (req) => {
       // Una inversión/traspaso no gasta presupuesto, pero sí sale del efectivo de TR.
       cashCounts: 1,
     };
-    // Mantener month idéntico para APK antiguas. El contrato de Inicio se acredita aparte,
-    // desde la ventana/ancla guardada por la app y una lectura suficiente de sus filas.
-    const start = widgetStart(st?.data, readAt);
-    if (start != null) {
-      const widgetRows = await readWidgetRows(supabase, userId, start);
-      if (widgetRows != null) widget = widgetSnapshot(st?.data, widgetRows, readAt, {
-          id: String(ackId), event: eventKey || "", key: String(month.expenseKey),
-        });
-    }
     if (tipo === "gasto" && budget > 0 && mueveElPresupuesto) {
       const before = after - importe;
       // Umbrales 50/95 añadidos 2026-07-18 (petición: avisos aunque la app esté cerrada —
@@ -418,6 +409,17 @@ Deno.serve(async (req) => {
       else if (importe >= budget * 0.15 && importe >= 50)
                                                     alert = { kind: "big", monthSpent: after, budget };
     }
+    // El widget es opcional: un fallo de su lectura no puede retirar los avisos de
+    // presupuesto que las APK anteriores ya reciben con el contrato mensual.
+    try {
+      const start = widgetStart(st?.data, readAt);
+      if (start != null) {
+        const widgetRows = await readWidgetRows(supabase, userId, start);
+        if (widgetRows != null) widget = widgetSnapshot(st?.data, widgetRows, readAt, {
+            id: String(ackId), event: eventKey || "", key: String(month.expenseKey),
+          });
+      }
+    } catch (_) { /* month y alert siguen disponibles */ }
   } catch (_) { /* opcional; el movimiento ya está guardado */ }
 
   return json({ ok: true, tipo, fecha, importe, comercio, cat, nota: nota || null,
