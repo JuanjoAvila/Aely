@@ -1,0 +1,81 @@
+{
+  "status": "blocked",
+  "summary": "Correccion del NO-GO de PR 206 hecha y verde en los tests dirigidos, pero npm test completo sale 1 por tres puertas que necesitan decision del coordinador. Verificado en GitHub: PR 206 de JuanjoAvila/Aely sigue en borrador contra beta, rama cursor/bancos-sin-hueco-40dd, head bea5ab10cec178e15f550358b929a7639240f8ec, 3 commits nuevos sobre e2e0512cf64f3da5eb6c7fc35b1a99e821db152a (659bf6e6 la ventana reciente va antes que el hueco; 09075acc el tramo recuperado no compra ni confirma el mes; bea5ab10 el mes cerrado sigue conciliando). Beta sigue en 684a839d, el PR esta mergeable clean y suma 5 commits, 20 ficheros +1211/-27 contra beta (15 ficheros tocados en la correccion). Sin merge, sin deploy de bank-sync (no desplegada), sin push a beta ni main, sin nuevo PR, sin tocar VERSION, catalogos, notas ni topes. HECHO: tope fijo OB_DEMAND_MAX_PAGES=12 llamadas a movimientos por cuenta y pulsacion, compartido entre la ventana de siempre (dia 1 UTC del mes menos 8 dias) y el tramo antiguo. La ventana de siempre se lee primero (con el reloj de la sonda 2026-10-10 cabe en 4 llamadas e incluye el 7-10 de octubre); si hay hueco real y el cliente manda recoverGaps, el tramo antiguo usa las paginas que sobran. Si lo reciente esta completo y lo antiguo se corta, last_sync pasa al dia mas nuevo ya leido de ese tramo; si lo reciente no cabe, last_sync no se mueve. Un movimiento anterior a la ventana se apunta con su fecha y no compra participaciones; un fijo ya modelado no entra como gasto; reconcileBank solo aparta cargos anteriores al margen cuando el mes pedido es el mes en curso (un julio sigue confirmando julio y el cargo del 18 del mes pasado no paga el recibo de este mes). El aviso de mas de 90 dias solo sale en sync manual, en un turno posterior al sincronizador, sin pisar otro dialogo y dejando la fila en el resumen; cambiar el rol no lo abre. Hueco real = ultimo exito anterior a la ventana; un cliente viejo cuyo ultimo exito ya cae dentro sigue adelantando last_sync. 00-core.js entra porque cloud.bankSync vive dentro de la huella de otra tanda y el recoverGaps va en un envoltorio posterior. tr-descripcion-clasificacion declara como superficie edge el fichero entero de bank-sync, por eso el veredicto anade edge; las 38 huellas web coinciden con beta-delivery.json y npm run build deja limpios beta-delivery.json y release-notes.json. ROJOS DE e2e0512c AHORA VERDES (UTC y Madrid): bank-sync-progreso, ob-hueco-recuperado, deno demand-window.test.ts, beta-veredictos. Tambien verdes: bank-sync-paging, ob-hueco-sync, reconcile-bank, cartel-reconectar y e2e/bancos-hueco-sync (3 passed). EN e2e0512c: la sonda de 60 dias hacia 12 llamadas, salia truncada, faltaban los cuatro dias mas recientes y last_sync no avanzaba; el aporte de hace 40 dias subia el fondo de 1000 a 1150; el alquiler antiguo entraba en recibos y el cargo del 18 anterior confirmaba el recibo de este mes. BLOQUEOS: npm test en UTC y en Madrid sale 1 por las mismas tres puertas. (1) logs-privacidad: el inventario espera 2 inserciones en app_events dentro de bank-sync/index.ts; en e2e0512c ya habia 3 (logObDemandResult) y en beta hay 2; no se toco el test. (2) docs-frescura: la rama no se llama beta y hay codigo de app sin subir VERSION; no se sube la version. (3) presupuesto-rendimiento: en e2e0512c el bundle ya pasaba el tope (1.326.975 B minificados, +895 sobre 1295 KiB, y 362.544 B gzip, +48); en bea5ab10 son 1.330.455 B (+4375) y 363.700 B gzip (+1204); no se sube el tope; el comportamiento vive fuera de las huellas de otras tandas porque meterlo dentro ensuciaba nomina anticipada y otras tres. Como esas etapas fallan el runner no llega a Playwright; la suite de navegador va aparte: UTC 1 (999 passed, 6 failed, 1 skipped, 31,3 min), Madrid 1 (1000 passed, 5 failed, 1 skipped, 31,4 min). Los fallos son variantes de e2e/botnav-indicador (el cajon de Ajustes no llega a .settings-push.open en 5 s) y, solo en UTC, e2e/rendimiento-sostenido con 5200 filas; el conjunto de variantes cambia de una pasada a otra; botnav-indicador ya estaba rojo en beta. No se subieron timeouts ni reintentos. MATRIZ: cliente nuevo (recoverGaps true, sin dateFrom) con funcion nueva: con hueco real ventana completa y luego tramo antiguo con tope 12, sin hueco una lectura y last_sync avanza; con funcion vieja ignora el campo, no abre el historico, pide el margen y adelanta last_sync, el hueco no se rellena. Cliente viejo sin body con funcion nueva: sin hueco real igual que hoy, con hueco real solo la ventana y last_sync quieto; con funcion vieja, comportamiento actual de produccion. La funcion vieja no se ejecuto en el entorno; el contrato esta en la forma del body y en tests sin recoverGaps. PROPUESTAS SIN IMPLEMENTAR: R1 en supabase/functions/bank-callback/index.ts una reconexion correcta escribe last_sync null; un ultimo exito vacio no es hueco, asi que el siguiente sync pide solo la ventana de siempre y el tramo anterior al reenganche no se recupera; arreglo minimo fuera de alcance: conservar el last_sync que ya tenia el enlace, o la fecha de alta del consentimiento, en vez de borrarlo. R3 cuando la lectura del suelo de 90 dias termina entera last_sync pasa a ahora y el aviso no vuelve a salir; Importar historico ofrece 1, 2 o 3 meses y llama a bankSyncHistory(dateFrom) con el mismo tope de unos 90 dias, no llega mas atras; el texto actual de bank_gap_sub dice que el resto se revisa ahi; propuesta de copia: el enlace solo entrega unos 90 dias y lo anterior no esta disponible por esta conexion; las cadenas no se cambiaron. Resultados de tests tomados del informe del agente Cursor bc-08064150; yo verifique en GitHub PR, head, base, commits y ficheros.",
+  "productSHA": "bea5ab10cec178e15f550358b929a7639240f8ec",
+  "tests": [
+    {
+      "command": "node tests/bank-sync-progreso.test.mjs",
+      "exitCode": 0,
+      "note": "era 1 en e2e0512c; UTC y Madrid"
+    },
+    {
+      "command": "node tests/ob-hueco-recuperado.test.mjs",
+      "exitCode": 0,
+      "note": "era 1 en e2e0512c"
+    },
+    {
+      "command": "deno test supabase/functions/bank-sync/demand-window.test.ts",
+      "exitCode": 0,
+      "note": "era 1 en e2e0512c"
+    },
+    {
+      "command": "node tests/beta-veredictos.test.mjs",
+      "exitCode": 0,
+      "note": "era 1 en e2e0512c"
+    },
+    {
+      "command": "node tests/bank-sync-paging.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/ob-hueco-sync.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/reconcile-bank.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/cartel-reconectar.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "npx playwright test e2e/bancos-hueco-sync.spec.mjs",
+      "exitCode": 0,
+      "note": "3 passed"
+    },
+    {
+      "command": "TZ=UTC npm test",
+      "exitCode": 1,
+      "note": "falla logs-privacidad, docs-frescura, presupuesto-rendimiento"
+    },
+    {
+      "command": "TZ=Europe/Madrid npm test",
+      "exitCode": 1,
+      "note": "mismas tres"
+    },
+    {
+      "command": "TZ=UTC npx playwright test",
+      "exitCode": 1,
+      "note": "999 passed, 6 failed, 1 skipped; botnav-indicador y rendimiento-sostenido"
+    },
+    {
+      "command": "TZ=Europe/Madrid npx playwright test",
+      "exitCode": 1,
+      "note": "1000 passed, 5 failed, 1 skipped; botnav-indicador"
+    }
+  ],
+  "limitations": [
+    "Tres puertas de npm test en rojo que requieren decision del coordinador: inventario de app_events, VERSION/rama, tope de bundle",
+    "bank-sync no desplegada; despliegue obligatorio antes o a la vez que el cliente",
+    "La funcion vieja no se ejecuto; contrato verificado por forma del body y tests",
+    "Resultados de tests tomados del informe del agente bc-08064150",
+    "R1 y R3 solo propuestas"
+  ],
+  "schema": 1,
+  "taskId": "bancos-sin-hueco-correccion-grok-20261010",
+  "actor": "grok",
+  "sessionId": "grok-bot-20261010-1acecef0",
+  "createdAt": "2026-10-11T01:12:51.515Z",
+  "released": true
+}
