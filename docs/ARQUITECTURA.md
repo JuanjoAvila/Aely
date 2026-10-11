@@ -180,6 +180,35 @@ petición `bank-sync(dateFrom,[banco])` por cada uno. Así conserva la cola estr
 pero cada banco estrena el deadline de 60 segundos; uno lento no puede dejar al siguiente sin
 turno. La Edge deja un diagnóstico cerrado por lectura (`ok`/`empty`/`partial`/`error`, cuentas,
 filas, duración y `dateFrom`) sin uid, IBAN, comercio, importe ni payload bancario.
+
+**Tramo antiguo del sync a demanda (INC-2709-06).** El sync pide el día 1 del mes menos 8 días y
+el cliente tiraba lo anterior: quien pasaba semanas sin sincronizar perdía ese tramo. Ahora, si
+el cliente manda `recoverGaps:true` y el último éxito (`bank_links.last_sync`) cae antes de esa
+ventana, `bank-sync` lee además lo que falta, con estas reglas (`bank-sync/demand-window.ts`):
+
+- La lectura de siempre (saldos y ventana) va primero, para todos los bancos, y nada del tramo
+  puede cambiarla: el tramo va después, en su propio `try`, y su fallo solo deja el cursor quieto.
+- El tramo se pide por trozos de fechas cerrados (`date_from` y `date_to`), de antiguo a nuevo. Un
+  trozo solo cuenta si todas las cuentas del enlace lo paginaron entero; el primero es un solo día.
+- `last_sync` hace de cursor, sin columna nueva: un trozo sellado deja el último milisegundo de
+  su último día, y el final del tramo deja «ahora». No sale de la fecha de las filas, así que el
+  orden en que pagine el banco da igual, y solo sube (`lt`).
+- Doce llamadas a `/transactions` por cuenta y pulsación, compartidas entre ventana y tramo. Un
+  hueco largo se rellena en varias pulsaciones; la respuesta lo dice con `gapPending`.
+- Si la ventana no cabe en esas doce llamadas (o en las 2000 filas del lector) no hay tramo posible y `last_sync` sube a «ahora»,
+  como antes de existir el tramo. Con un error a media lectura o una cuenta caída no se mueve.
+- El banco no entrega más de 90 días: un hueco mayor se pide desde ese tope y se señala con
+  `gapBeyondCap`. Reconectar un banco deja `last_sync` a null (`bank-callback`) y ese hueco no se
+  recupera por esta vía.
+- Un cliente que no manda `recoverGaps` recibe solo la ventana; con hueco, su `last_sync` no sube
+  para no quemar el tramo que un cliente nuevo sí puede guardar.
+
+Cada enlace de la respuesta lleva `syncFrom` (día más antiguo que puede traer; el cliente solo
+acepta lo anterior a su margen desde ahí, por banco) y `balanceAt` (hora de lectura del saldo, que
+es lo que pinta «Saldo actualizado»: `last_sync` puede ir por detrás). En `importObExpenses` lo
+anterior al margen se apunta con su fecha real pero no compra participaciones, y casa contra todo
+lo modelado, toque o no este mes.
+
 La misma frontera rige el sync diario: `app_events` puede guardar el banco, una clase estable y
 recuentos agregados, pero nunca transacciones ni campos del proveedor. El volcado temporal usado
 para diagnosticar el signo de Trade Republic se retiró al encontrarlo todavía activo en una

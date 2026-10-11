@@ -300,6 +300,14 @@ Lectura bancaria 4.25.4: `tests/bank-sync-paging.test.mjs` ejecuta el handler re
 simulados (sin consultar bancos): páginas vacías, fallback de periodo, fallo parcial, cursor cíclico,
 cuentas inactivas, aislamiento, timeout y topes. Registrado en `run-tests.mjs` y `STEPS_SUPABASE`;
 el recorte de un cambio solo de servidor conserva paginado y `tr-open-banking` sin Chromium.
+Tramo antiguo del sync a demanda (INC-2709-06): `tests/bank-sync-progreso.test.mjs` pulsa el handler
+real contra un banco simulado con `last_sync` persistente entre pulsaciones (orden ascendente y
+descendente, páginas de 20, huecos de 15 a 120 días, una y dos cuentas, 429 intermitente) y exige
+que no se pierda ni se repita nada, que el cursor no retroceda y que ninguna cuenta pase de 12
+llamadas; también va en `STEPS_SUPABASE`. `supabase/functions/bank-sync/demand-window.test.ts` (Deno)
+cubre el plan de fechas. En cliente, `tests/ob-hueco-sync.test.mjs` y `tests/ob-hueco-recuperado.test.mjs`
+fijan el suelo por banco y las reglas de dinero del tramo (no compra, no duplica fijos, repetido con
+la fecha real), y `e2e/bancos-hueco-sync.spec.mjs` los avisos y la fecha de «Saldo actualizado».
 `e2e/bancos-historico-filtro.spec.mjs` comprueba la selección previa, avisos visibles y que un banco
 no esconda las filas recibidas de otro. `e2e/sync-resumen.spec.mjs` impide que los resultados mixtos
 vuelvan a concatenarse en un toast gigante. Los e2e de barra fuerzan además un repintado React con
