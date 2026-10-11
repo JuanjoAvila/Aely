@@ -27,7 +27,7 @@ async function sync(links, reply, body={}, clock=null) {
   };
   const db={auth:{getUser:async()=>({data:{user:{id:"synthetic"}}})},from:()=>({
     select:()=>({eq:()=>({in:async()=>({data:links})})}),
-    update:x=>({eq:async()=>{writes.push(x);return {};}}),insert:async x=>{events.push(x);return {};}
+    update:x=>{const q={eq:()=>q,lt:()=>q,then:(ok,ko)=>{writes.push(x);return Promise.resolve({}).then(ok,ko);}};return q;},insert:async x=>{events.push(x);return {};}
   })};
   const names=["Deno","createClient","ebApi","ebConfig","jsonResp","makeJWT","mapTransaction","withCors","fetchBankTransactions","Date"];
   new Function(...names,src)(
@@ -234,26 +234,31 @@ await t("sin recoverGaps la petición sigue siendo el margen y un hueco no adela
   assert.equal(r.writes[0].last_sync,undefined,"un cliente viejo no puede quemar el hueco");
   assert.equal(r.writes[0].status,"active");
 });
-await t("recoverGaps pide desde el último éxito menos 3 días y solo entonces adelanta last_sync",async()=>{
+await t("recoverGaps lee primero la ventana y después el tramo por días cerrados, y solo al acabarlo sella last_sync",async()=>{
   const ms=Date.parse("2026-10-10T12:00:00Z");
   class FakeDate extends Date { constructor(...args){super(...(args.length?args:[ms]));} static now(){return ms;} }
   const caixa=link(); caixa.last_sync="2026-08-15T21:00:00.000Z";
-  const r=await sync([caixa],()=>({transactions:[movement()]}),{recoverGaps:true},FakeDate);
+  let n=0;
+  const r=await sync([caixa],()=>({transactions:[movement("m"+(++n))]}),{recoverGaps:true},FakeDate);
   assert.equal(r.data.history,undefined,"recoverGaps no es el histórico");
-  const froms=txUrl(r.calls).map(u=>u.searchParams.get("date_from"));
-  assert.equal(froms[0],"2026-09-23","primero la ventana de siempre");
-  assert.equal(froms[1],"2026-08-12","después el tramo desde el último éxito menos 3 días");
+  const asked=txUrl(r.calls).map(u=>[u.searchParams.get("date_from"),u.searchParams.get("date_to")]);
+  assert.deepEqual(asked,[["2026-09-23",null],["2026-08-15","2026-08-15"],["2026-08-12","2026-08-14"],
+    ["2026-08-16","2026-08-17"],["2026-08-18","2026-08-21"],["2026-08-22","2026-08-29"],["2026-08-30","2026-09-14"],["2026-09-15","2026-09-22"]]);
+  assert.equal(r.data.links[0].syncFrom,"2026-08-12");
   assert.equal(r.data.links[0].gapBeyondCap,false);
-  assert.equal(typeof r.writes[0].last_sync,"string");
+  assert.equal(r.data.links[0].gapPending,false);
+  assert.equal(r.writes[0].last_sync,undefined,"la lectura de siempre no sella con tramo pendiente");
+  assert.equal(r.writes.at(-1).last_sync,new Date(ms).toISOString());
   const ev=demandEvent(r.events)[0];
   const d=JSON.parse(ev.detail);
   assert.equal(d.dateFrom,"2026-08-12");
-  assert.equal(d.pages,2);
-  assert.equal(d.count,2);
+  assert.equal(d.pages,8);
+  assert.equal(d.count,8);
   assert.equal(d.accounts,1);
   assert.equal(d.truncated,false);
   assert.equal(d.status,"ok");
   assert.equal(d.capped,false);
+  assert.equal(d.pending,false);
   assert.equal(JSON.stringify(ev).includes("CaixaBank-cuenta"),false);
   assert.equal(JSON.stringify(ev).includes("Comercio"),false);
   assert.equal(JSON.stringify(ev).includes("12.50"),false);
@@ -262,13 +267,15 @@ await t("un hueco mayor de 90 días se corta, se traza y se avisa",async()=>{
   const ms=Date.parse("2026-10-10T12:00:00Z");
   class FakeDate extends Date { constructor(...args){super(...(args.length?args:[ms]));} static now(){return ms;} }
   const caixa=link(); caixa.last_sync="2026-05-01T00:00:00Z";
-  const r=await sync([caixa],()=>({transactions:[movement()]}),{recoverGaps:true},FakeDate);
-  const froms=txUrl(r.calls).map(u=>u.searchParams.get("date_from"));
-  assert.equal(froms[0],"2026-09-23");
-  assert.equal(froms[1],"2026-07-12");
+  let n=0;
+  const r=await sync([caixa],()=>({transactions:[movement("m"+(++n))]}),{recoverGaps:true},FakeDate);
+  const asked=txUrl(r.calls).map(u=>[u.searchParams.get("date_from"),u.searchParams.get("date_to")]);
+  assert.deepEqual(asked[0],["2026-09-23",null]);
+  assert.deepEqual(asked[1],["2026-07-12","2026-07-12"]);
+  assert.equal(asked.every(a=>a[0]>="2026-07-12"),true,"nada por debajo de lo que entrega el banco");
   assert.equal(r.data.links[0].gapBeyondCap,true);
   assert.equal(JSON.parse(demandEvent(r.events)[0].detail).capped,true);
-  assert.equal(typeof r.writes[0].last_sync,"string");
+  assert.equal(r.writes.at(-1).last_sync,new Date(ms).toISOString());
 });
 await t("sin último éxito recoverGaps se queda en el margen de siempre",async()=>{
   const ms=Date.parse("2026-10-10T12:00:00Z");
@@ -291,18 +298,19 @@ await t("una página cortada o un 429 no adelantan last_sync",async()=>{
   assert.equal(rate.writes.at(-1).last_sync,undefined);
   assert.equal(rate.data.links[0].accounts[0].ok,false);
 });
-await t("dos páginas del tramo se cuentan y no se abre otra sesión",async()=>{
+await t("la ventana paginada y el tramo comparten el contador de llamadas",async()=>{
   const ms=Date.parse("2026-10-10T12:00:00Z");
   class FakeDate extends Date { constructor(...args){super(...(args.length?args:[ms]));} static now(){return ms;} }
   const caixa=link(); caixa.last_sync="2026-08-01T00:00:00Z";
   let n=0;
   const r=await sync([caixa],()=>{
     n++;
-    return n===1?{transactions:[movement("a")],continuation_key:"p2"}:{transactions:[movement("b")]};
+    return n===1?{transactions:[movement("a")],continuation_key:"p2"}:{transactions:[movement("m"+n)]};
   },{recoverGaps:true},FakeDate);
-  const froms=txUrl(r.calls).map(u=>u.searchParams.get("date_from"));
-  assert.deepEqual(froms,["2026-09-23","2026-09-23","2026-07-29"]);
-  assert.equal(JSON.parse(demandEvent(r.events)[0].detail).pages,3);
-  assert.equal(r.data.links[0].accounts[0].transactions.length,3);
+  const asked=txUrl(r.calls).map(u=>[u.searchParams.get("date_from"),u.searchParams.get("date_to")]);
+  assert.deepEqual(asked.slice(0,3),[["2026-09-23",null],["2026-09-23",null],["2026-08-01","2026-08-01"]]);
+  assert.equal(asked.length<=12,true);
+  assert.equal(JSON.parse(demandEvent(r.events)[0].detail).pages,asked.length);
+  assert.equal(r.data.links[0].accounts[0].transactions.length,asked.length);
 });
 if(failures) process.exitCode=1;

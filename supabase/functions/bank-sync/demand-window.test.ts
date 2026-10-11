@@ -1,60 +1,91 @@
 import { assertEquals } from "jsr:@std/assert@1";
-import { currentDemandWindowStart, demandReadComplete, demandSyncFrom, ymdAddDays } from "./demand-window.ts";
+import { chunkCursor, currentDemandWindowStart, demandPlan, demandReadComplete, nextChunkDays, ymdAddDays, ymdSpan } from "./demand-window.ts";
 
 const now = new Date("2026-10-10T12:00:00Z");
 const windowStart = currentDemandWindowStart(now);
 
 Deno.test("sin último éxito la ventana es la de siempre", () => {
   for (const last of [null, "", "pendiente", "2026/07/01"]) {
-    const r = demandSyncFrom(now, last, true);
-    assertEquals(r.from, windowStart);
+    const r = demandPlan(now, last, true);
+    assertEquals(r.windowStart, windowStart);
     assertEquals(r.gap, false);
     assertEquals(r.gapBeyondCap, false);
   }
 });
 
-Deno.test("pide el más antiguo entre el margen y el último éxito menos 3 días", () => {
-  const recent = demandSyncFrom(now, "2026-10-09T08:00:00Z", true);
-  assertEquals(recent.from, windowStart);
+Deno.test("el tramo va del día del último éxito a la víspera de la ventana, con 3 días de cortesía", () => {
+  const recent = demandPlan(now, "2026-10-09T08:00:00Z", true);
   assertEquals(recent.gap, false);
-  const last = "2026-08-15T21:00:00Z";
-  const wide = demandSyncFrom(now, last, true);
-  assertEquals(wide.from, ymdAddDays("2026-08-15", -3));
+  const wide = demandPlan(now, "2026-08-15T21:00:00Z", true);
   assertEquals(wide.gap, true);
+  assertEquals(wide.from, "2026-08-15");
+  assertEquals(wide.to, ymdAddDays(windowStart, -1));
+  assertEquals(wide.overlapFrom, "2026-08-12");
   assertEquals(wide.gapBeyondCap, false);
-  assertEquals(wide.from < windowStart, true);
 });
 
-Deno.test("un hueco de más de 90 días se corta y se señala", () => {
-  const r = demandSyncFrom(now, "2026-05-01T00:00:00Z", true);
-  assertEquals(r.from, "2026-07-12");
-  assertEquals(r.gapBeyondCap, true);
+Deno.test("un trozo sellado se reanuda en el día siguiente y sin solape", () => {
+  const r = demandPlan(now, chunkCursor("2026-08-20"), true);
+  assertEquals(r.from, "2026-08-21");
+  assertEquals(r.overlapFrom, null);
   assertEquals(r.gap, true);
+  // PostgREST devuelve el mismo instante con otro formato.
+  assertEquals(demandPlan(now, "2026-08-20T23:59:59.999+00:00", true).from, "2026-08-21");
+  assertEquals(demandPlan(now, "2026-08-21T01:59:59.999+02:00", true).from, "2026-08-21");
+  // La víspera de la ventana sellada ya no deja tramo.
+  assertEquals(demandPlan(now, chunkCursor(ymdAddDays(windowStart, -1)), true).gap, false);
 });
 
-Deno.test("el cliente que no recupera huecos no ensancha la petición", () => {
-  const r = demandSyncFrom(now, "2026-05-01T00:00:00Z", false);
-  assertEquals(r.from, windowStart);
+Deno.test("solo un hueco REAL de más de 90 días se corta y se señala", () => {
+  const far = demandPlan(now, "2026-05-01T00:00:00Z", true);
+  assertEquals(far.from, "2026-07-12");
+  assertEquals(far.overlapFrom, null);
+  assertEquals(far.gapBeyondCap, true);
+  assertEquals(far.gap, true);
+  // 90 días justos: el día del último éxito todavía lo entrega el banco.
+  const edge = demandPlan(now, "2026-07-12T12:00:00Z", true);
+  assertEquals(edge.from, "2026-07-12");
+  assertEquals(edge.gapBeyondCap, false);
+  assertEquals(edge.overlapFrom, null);
+  // 89 días: antes saltaba por el solape de 3. El solape se recorta al tope, sin aviso.
+  const near = demandPlan(now, "2026-07-13T12:00:00Z", true);
+  assertEquals(near.gapBeyondCap, false);
+  assertEquals(near.overlapFrom, "2026-07-12");
+  assertEquals(demandPlan(now, "2026-07-11T12:00:00Z", true).gapBeyondCap, true);
+});
+
+Deno.test("el cliente que no recupera huecos no recibe aviso de tope", () => {
+  const r = demandPlan(now, "2026-05-01T00:00:00Z", false);
   assertEquals(r.gapBeyondCap, false);
   assertEquals(r.gap, true);
 });
 
-Deno.test("R4 el solape de 3 días no es un hueco si el último éxito está en la ventana", () => {
-  const inside = demandSyncFrom(now, "2026-09-25T09:00:00Z", false);
-  assertEquals(inside.from, windowStart);
-  assertEquals(inside.gap, false);
-  assertEquals(inside.gapBeyondCap, false);
-  const same = demandSyncFrom(now, "2026-09-25T09:00:00Z", true);
-  assertEquals(same.from, windowStart);
-  assertEquals(same.gap, false);
+Deno.test("R4 el último éxito dentro de la ventana no es un hueco", () => {
+  for (const recover of [false, true]) {
+    const r = demandPlan(now, "2026-09-25T09:00:00Z", recover);
+    assertEquals(r.gap, false);
+    assertEquals(r.gapBeyondCap, false);
+  }
+  assertEquals(demandPlan(now, windowStart + "T00:00:00Z", true).gap, false);
+  assertEquals(demandPlan(now, ymdAddDays(windowStart, -1) + "T10:00:00Z", true).gap, true);
 });
 
-Deno.test("una lectura parcial o con 429 no cuenta como completa", () => {
+Deno.test("el trozo crece al doble mientras quepa y se reduce a la mitad hasta un día", () => {
+  assertEquals(nextChunkDays(1, 1, 1, 7), 2);
+  assertEquals(nextChunkDays(4, 3, 7, 5), 8);
+  assertEquals(nextChunkDays(8, 5, 15, 3), 8);
+  assertEquals(nextChunkDays(8, 7, 23, 1), 2);
+  assertEquals(nextChunkDays(16, 12, 4, 2), 1);
+  assertEquals(nextChunkDays(4, 3, 7, 0), 1);
+  assertEquals(ymdSpan("2026-08-30", "2026-09-02"), 4);
+});
+
+Deno.test("una lectura parcial o con una cuenta caída no cuenta como entera", () => {
   assertEquals(demandReadComplete([{ ok: true, truncated: false }]), true);
   assertEquals(demandReadComplete([{ ok: true, truncated: true }]), false);
   assertEquals(demandReadComplete([{ ok: true, transactionError: "timeout" }]), false);
-  assertEquals(demandReadComplete([{ ok: false, error: "EB 429" }]), false);
-  assertEquals(demandReadComplete([{ ok: true }, { ok: false, error: "EB 429" }]), false);
+  assertEquals(demandReadComplete([{ ok: false }]), false);
+  assertEquals(demandReadComplete([{ ok: true }, { ok: false }]), false);
   assertEquals(demandReadComplete([]), false);
   assertEquals(demandReadComplete(null), false);
 });

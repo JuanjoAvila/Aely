@@ -4,10 +4,9 @@
 // cruza un cambio de mes, pierde ese tramo para siempre: el banco no lo vuelve a entregar
 // si la siguiente lectura ya no lo pide.
 //
-// Se pide el más antiguo entre el margen de siempre y (último éxito − 3 días), sin pasar
-// de 90 días. Sin último éxito conocido se queda el margen: igual que hoy. `recover` en
-// false es un cliente que no ha dicho que va a guardar el tramo; ensanchar igual y luego
-// adelantar last_sync quemaría el hueco en un móvil que todavía tira lo anterior al margen.
+// La ventana de siempre no cambia. Lo que queda entre el último éxito y esa ventana es el
+// TRAMO ANTIGUO, y se recorre aparte, por trozos de fechas cerrados y de antiguo a nuevo.
+// `last_sync` hace de cursor: no hay otra columna y no se añade ninguna.
 
 export const OB_DEMAND_CAP_DAYS = 90;
 export const OB_DEMAND_OVERLAP_DAYS = 3;
@@ -16,6 +15,8 @@ export const OB_DEMAND_MARGIN_DAYS = 8;
 // la ventana de siempre y el tramo antiguo: nunca 12 + 12. Es el mismo techo
 // que ya tenía el bucle de páginas (2026-10-10).
 export const OB_DEMAND_MAX_PAGES = 12;
+
+const DAY_MS = 86400000;
 
 export function utcYmd(ms: number): string {
   return new Date(ms).toISOString().slice(0, 10);
@@ -26,40 +27,76 @@ export function ymdAddDays(ymd: string, days: number): string {
   return utcYmd(Date.UTC(p[0], p[1] - 1, p[2] + days));
 }
 
+export function ymdSpan(from: string, to: string): number {
+  return Math.round((Date.parse(to) - Date.parse(from)) / DAY_MS) + 1;
+}
+
 /** Día 1 UTC del mes menos 8 días. Es el `recentFrom` de antes: cubre el margen de Madrid
     y, en el borde de mes, puede pedir un mes de más, nunca uno de menos. */
 export function currentDemandWindowStart(now: Date): string {
-  return utcYmd(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1) - OB_DEMAND_MARGIN_DAYS * 86400000);
+  return utcYmd(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1) - OB_DEMAND_MARGIN_DAYS * DAY_MS);
 }
 
-export function parseLastSyncDay(lastSync: unknown): string | null {
-  const raw = typeof lastSync === "string" ? lastSync.slice(0, 10) : "";
-  return /^\d{4}-\d{2}-\d{2}$/.test(raw) ? raw : null;
+/** Cursor de un tramo a medias: el último milisegundo del último día leído ENTERO en todas
+    las cuentas. No sale de las filas (el banco pagina en el orden que quiere), sino del
+    trozo de fechas que se pidió. Leído de vuelta significa «ese día está completo, sigue
+    por el siguiente», que es justo lo que diría un sync real hecho en ese instante. */
+export function chunkCursor(ymd: string): string {
+  return ymd + "T23:59:59.999Z";
 }
 
-export function demandSyncFrom(now: Date, lastSync: unknown, recover: boolean): { from: string; gapBeyondCap: boolean; gap: boolean; windowStart: string } {
+export type DemandPlan = {
+  windowStart: string;
+  /** El último éxito cae antes de la ventana: hay tramo que el margen de siempre no cubre. */
+  gap: boolean;
+  /** Primer y último día del tramo. Solo valen con `gap`. */
+  from: string;
+  to: string;
+  /** Días anteriores a `from` que se releen por cortesía, o null. */
+  overlapFrom: string | null;
+  gapBeyondCap: boolean;
+};
+
+export function demandPlan(now: Date, lastSync: unknown, recover: boolean): DemandPlan {
   const windowStart = currentDemandWindowStart(now);
-  const day = parseLastSyncDay(lastSync);
-  // Hueco real: el último éxito cae ANTES de la ventana. El solape de 3 días
-  // solo ensancha al cliente nuevo. Si el éxito ya está dentro, marcarlo como
-  // hueco congelaba last_sync en un móvil viejo tres días antes de tiempo.
-  const gap = !!day && day < windowStart;
-  if (!day || !recover || !gap) return { from: windowStart, gapBeyondCap: false, gap, windowStart };
-  const overlap = ymdAddDays(day, -OB_DEMAND_OVERLAP_DAYS);
-  const floor = utcYmd(now.getTime() - OB_DEMAND_CAP_DAYS * 86400000);
-  if (overlap < floor) return { from: floor, gapBeyondCap: true, gap: true, windowStart };
-  return { from: overlap, gapBeyondCap: false, gap: true, windowStart };
+  const to = ymdAddDays(windowStart, -1);
+  const ms = typeof lastSync === "string" && /^\d{4}-\d{2}-\d{2}/.test(lastSync) ? Date.parse(lastSync) : NaN;
+  // Sin último éxito conocido se queda el margen: igual que siempre.
+  if (!Number.isFinite(ms)) return { windowStart, gap: false, from: windowStart, to, overlapFrom: null, gapBeyondCap: false };
+  const day = utcYmd(ms);
+  const sealed = ((ms % DAY_MS) + DAY_MS) % DAY_MS === DAY_MS - 1;
+  // Un sync real a media tarde no vio lo que el banco apuntó ese día más tarde: su día se
+  // relee. Un día sellado por `chunkCursor` ya está entero.
+  const resume = sealed ? ymdAddDays(day, 1) : day;
+  const floor = utcYmd(now.getTime() - OB_DEMAND_CAP_DAYS * DAY_MS);
+  const beyond = resume < floor;
+  const from = beyond ? floor : resume;
+  // Solape de 3 días solo detrás de un sync real, por si el banco contabilizó tarde. Detrás
+  // de un trozo sellado sobra: hace más de una semana que esos días se cerraron.
+  const back = ymdAddDays(from, -OB_DEMAND_OVERLAP_DAYS);
+  const overlapFrom = sealed || beyond ? null : (back < floor ? floor : back);
+  return {
+    windowStart, gap: resume < windowStart, from, to,
+    overlapFrom: overlapFrom && overlapFrom < from ? overlapFrom : null,
+    // `recover` en false es un cliente que no ha dicho que va a guardar el tramo: no se le
+    // anuncia un tope que no va a pedir.
+    gapBeyondCap: recover && resume < windowStart && beyond,
+  };
 }
 
-/** Lectura completa: todas las cuentas respondieron, sin corte de páginas y sin 429.
-    Un saldo bueno con el extracto a medias no es un éxito: adelantar last_sync ahí
-    dejaría el hueco fuera de la próxima petición. */
-export function demandReadComplete(accounts: Array<{ ok?: boolean; truncated?: boolean; transactionError?: string; error?: string } | null> | null): boolean {
+/** Días del siguiente trozo. Crece al doble mientras la densidad vista (páginas por día)
+    diga que cabe en las llamadas libres; si no, se reduce a la mitad hasta un día. La
+    reducción se decide ANTES de pedir: un trozo que no cabe gasta todas las llamadas que
+    quedaban y no hay dónde apuntar un tamaño para la siguiente pulsación. */
+export function nextChunkDays(prev: number, pages: number, days: number, free: number): number {
+  let size = Math.max(1, prev) * 2;
+  while (size > 1 && Math.ceil(size * pages / Math.max(1, days)) > free) size = Math.floor(size / 2);
+  return size;
+}
+
+/** Lectura entera: todas las cuentas respondieron, sin corte de páginas y sin error a
+    media paginación. Un saldo bueno con el extracto a medias no es un extracto leído. */
+export function demandReadComplete(accounts: Array<{ ok?: boolean; truncated?: boolean; transactionError?: string } | null> | null): boolean {
   if (!accounts || !accounts.length) return false;
-  return accounts.every((a) => {
-    if (!a || a.ok !== true) return false;
-    if (a.truncated || a.transactionError) return false;
-    if (/\b429\b/.test(String(a.error || ""))) return false;
-    return true;
-  });
+  return accounts.every((a) => !!a && a.ok === true && !a.truncated && !a.transactionError);
 }
