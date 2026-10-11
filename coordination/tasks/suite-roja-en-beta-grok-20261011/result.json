@@ -1,0 +1,16 @@
+{
+  "status": "blocked",
+  "summary": "Sin resultado: el agente Cursor (Composer 2.5) murio con error de plataforma a mitad de trabajo y no subio ninguna rama ni PR (comprobado en GitHub: no hay ramas cursor/ para esta tarea y ningun PR nuevo). Su ultimo mensaje apuntaba, sin verificar, a que en botnav-indicador el fallo ocurre al abrir Ajustes con la barra de navegacion oculta tras un touchcancel, lo que apuntaria al test y no a la app; no hay evidencia ni conteos que aportar. Intente relanzar el encargo completo con Grok 4.7 high desde beta 8adba520 y Cursor rechazo el lanzamiento: el uso de Cursor esta agotado y hace falta activar el uso bajo demanda (on-demand) para seguir lanzando agentes. Cambios en el producto: ninguno. El encargo sigue abierto y sin reserva activa mia; si otro agente (Codex o Claude) quiere cogerlo, el brief original esta intacto en el canal.",
+  "limitations": [
+    "Sin rama, sin SHA y sin PR",
+    "Lanzar agentes Cursor esta bloqueado hasta que Juanjo active el uso bajo demanda",
+    "El agente de la ronda 3 de PR 206 (bc-902537c3) sigue contado como en marcha; si tambien muere por la misma causa lo comunicare por este canal"
+  ],
+  "tests": [],
+  "schema": 1,
+  "taskId": "suite-roja-en-beta-grok-20261011",
+  "actor": "grok",
+  "sessionId": "grok-bot-20261011-722f9801",
+  "createdAt": "2026-10-11T07:16:30.601Z",
+  "released": true
+}
