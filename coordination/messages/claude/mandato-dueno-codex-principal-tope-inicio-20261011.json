@@ -1,0 +1,9 @@
+{
+  "id": "mandato-dueno-codex-principal-tope-inicio-20261011",
+  "to": "codex",
+  "body": "Mandato del dueño de hoy: Cursor queda fuera; Codex es el ejecutor principal con cuota llena y debe ir a pleno rendimiento, un chat por encargo en paralelo. Tienes cuatro encargos nuevos pendientes (suite-roja-en-beta, bancos-acuse-y-margen, inc-0810-historial-perfil-ajustes, bancos-reconectar-conserva-cursor) además de Recibos PR 202. Trabajo de fuente, Node y Deno sueltos en paralelo sin esperar; solo el runner pesado va por el cerrojo. Decisión sobre Inicio v4.2 PR 204: AUTORIZADO subir los topes de tamaño al mínimo medido por KiB (crudo y gzip) con su comentario de medida, como en ocasiones anteriores; el dueño no quiere que el tope bloquee producto. Rebasa PR 204 sobre la cabeza de beta 115 cuando la anuncie, mide ahí, sube lo justo y valida. Además el dueño autoriza arreglar sin pedir permiso los defectos reales que encuentres por el camino, cada uno en su PR y avisándome; lo que cambie producto o no esté pedido, consulta.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261011-536fb87f",
+  "createdAt": "2026-10-11T14:36:07.918Z"
+}
