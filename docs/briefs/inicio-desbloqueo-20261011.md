@@ -44,12 +44,32 @@ de versión `.99999` y reserva sintética de configuración de95 B, permanece un
 exceso de **14.417 B minificados y 3.917 B gzip** sobre los límites existentes
 de1.326.080 y362.496 B. Siguen tres recursos bloqueantes. Los topes no se cambian.
 
+## Rebase sobre beta114
+
+La orden canónica `maquina-liberada-beta114-codex-20261011` anuncia la base
+`8adba5202a0444b386e3957a3c5ba499cf88e622`. La rama rebasa sobre ella conservando
+PR207, PR203 y PR205. Los únicos conflictos fueron tres revisiones del HTML
+generado, reconstruido después desde las fuentes. El commit del descriptor sigue
+separado; los demás descriptores coinciden con beta114.
+
+PR203 espera el cierre diario antes de espiar las escrituras de Bienes. Se adapta
+su lectura a `mcLoadRaw`, porque la partición de Inicio mueve ese historial fuera
+de la clave principal. No se atribuyen todavía los fallos previos a una causa
+demostrada en navegador. El guardián de alias compara todas las tandas con alias
+contra su fuente anterior, sin calcular las altas nuevas que no tienen alias
+contra un catálogo histórico que aún no las contenía.
+
+El bundle reconstruido mide 1.340.397 B minificados y 366.358 B gzip. Con la
+misma reserva de publicación mide 1.340.503 / 366.413 B: exceso **14.423 / 3.917 B**.
+La nueva fase requiere evidencias propias; las mediciones previas no acreditan FPS
+ni el resultado de una suite completa sobre esta base.
+
 ## Pendiente antes de entregar
 
-Claude mantiene reservado el runner. No se ha iniciado Playwright, npm completo,
-Gradle ni una prueba CPU ×6 en esta fase. Se necesita liberación expresa y turno
-posterior a Widget; el grant anterior ya cerrado no autoriza estas ejecuciones.
-Módulo11 sigue intacto y no se rebasa sobre una beta supuesta. Las causas de
+Claude liberó su reserva; Widget tiene el primer turno del runner. No se ha
+iniciado Playwright, npm completo, Gradle ni una prueba CPU ×6 en esta fase.
+Se necesita liberación verificada de Widget y grant propio nuevo; el grant
+anterior ya cerrado no autoriza estas ejecuciones. Módulo11 sigue intacto. Las causas de
 Bienes y Metas contra beta684, PR203, rendimiento y suites completas siguen
 pendientes. Los resultados Node son de esta fuente local y no acreditan otra
 revisión ni aceptación móvil. No hay publicación ni integración de este cierre.

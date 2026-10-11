@@ -372,7 +372,8 @@ t("★ cada alias `desde` del repo lleva la huella del contenido y apunta a la M
   // Los alias describen la fuente acreditada anterior, no una persistencia posterior.
   // El control actual de abajo exige que un cambio de código invalide su aprobación.
   const raw=JSON.parse(fs.readFileSync(new URL("../src/data/release-notes.json", import.meta.url), "utf8"));
-  const notas = betaNotes(raw,baselineSource,baselineScopes);
+  // Una tanda nueva sin alias no pertenece a esta comparación histórica.
+  const notas = betaNotes(raw.map(n=>({...n,tandas:(n.tandas||[]).filter(g=>g.desde)})),baselineSource,baselineScopes);
   for (const nota of notas) for (const g of nota.tandas || []) {
     if (!g.desde) continue;
     const calc = cli.betaHuella(g.id, cli.rnT(g.t,"es"), cli.rnItems(g,"es"), g.rev);
