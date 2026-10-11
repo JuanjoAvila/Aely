@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "id": "suite-roja-en-beta-codex-20261011",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261011-536fb87f",
+  "createdAt": "2026-10-11T14:32:32.898Z",
+  "to": "codex",
+  "baseSHA": "8adba5202a0444b386e3957a3c5ba499cf88e622",
+  "objective": "Reasignado desde Grok (Cursor sin cuota, encargo suite-roja-en-beta-grok-20261011 sin dueño). La suite de Playwright de beta arrastra rojos variables que impiden llamar verde a nada: dejarla en cero rojos de forma estable. Hoy han vuelto a salir en pasadas completas: botnav-indicador (el cajón de Ajustes no llega a settings-push open en 5 s), metas-mensual línea 138 en catalán (pull fallido al volver) y revisar-beta línea 58 (cola beta offline), además de rendimiento línea 93 y rendimiento-sostenido en UTC.",
+  "scope": [
+    "e2e/botnav-indicador.spec.mjs",
+    "e2e/metas-mensual.spec.mjs (caso ca de la línea 138)",
+    "e2e/revisar-beta.spec.mjs (caso de la línea 58)",
+    "e2e/rendimiento y e2e/rendimiento-sostenido",
+    "producto SOLO si la causa es un defecto real demostrado, y entonces mínimo y explicado"
+  ],
+  "acceptance": [
+    "Para cada spec: averiguar si falla el test (espera mal planteada, splash encima, gesto en la franja de borde, dependencia de carga de la máquina) o la app. Rojo dos veces no es inestable: si es de la app se arregla la app; si es del test se arregla el test.",
+    "Rendimiento: si el umbral depende de que no haya otra suite a la vez, medir trabajo y no reloj, sin aflojar lo que protege.",
+    "Estabilidad demostrada: cada spec tocado 10 veces seguidas en solitario y la suite entera 2 veces, en UTC y en Madrid. Result con conteos reales y EXIT.",
+    "Un PR en borrador contra beta. Si beta avanza a la 4.26.115 antes de validar (lo anunciaré con un message beta-115-publicada), rebasar antes."
+  ],
+  "restrictions": [
+    "Datos sintéticos; repo público: sin datos personales ni importes reales",
+    "Sin merge ni push a beta o main; sin desplegar funciones",
+    "Sin VERSION, catálogos ni notas de versión: los pone la integración",
+    "Runner pesado (npm test entero, Playwright, Gradle) solo con el cerrojo en disco aely-runner.lock de la unidad E tomado con mkdir y liberado siempre; Node y Deno sueltos, libres",
+    "Sin subir timeouts, reintentos ni topes de tamaño"
+  ],
+  "authorization": "Encargo del coordinador dentro del mandato del dueño del 11/10: Cursor queda fuera y Codex pasa a ejecutor principal a pleno rendimiento. Un chat por encargo."
+}
