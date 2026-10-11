@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "id": "splash-animado-carga-codex-20261011",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261011-536fb87f",
+  "createdAt": "2026-10-11T14:41:36.869Z",
+  "to": "codex",
+  "baseSHA": "8adba5202a0444b386e3957a3c5ba499cf88e622",
+  "objective": "Petición directa del dueño el 11/10: aprovechar la pantalla de carga con una animación cuidada antes de entrar en la app, de modo que todo lo que necesite cargar ocurra detrás de ella y al entrar nada vaya a tirones. Prioridad por debajo de los encargos de dinero.",
+  "scope": [
+    "src/shell.html (splash mc-load) y su CSS",
+    "src/modules/12-boot.js y el punto donde hoy se retira el splash",
+    "e2e propio",
+    "NO el splash nativo de Android (saga aparcada en wip/splash-icono-nativo): solo el de la web"
+  ],
+  "acceptance": [
+    "La animación usa la marca que ya existe (logo y colores de las variables CSS; sin colores, fuentes ni dependencias nuevas, sin CDNs) y es solo CSS o SVG en línea: tiene que pintarse antes de que cargue el JavaScript.",
+    "El splash se retira cuando la app está lista de verdad para usarse: primera pantalla montada, pestañas premontadas y fuentes listas, de forma que el primer gesto tras entrar no tenga frames largos. Medirlo como manda AGENTS 7 bis: CPU frenada 6x, deltas de requestAnimationFrame, frames de más de 32 ms en el primer segundo tras retirar el splash, A/B contra beta.",
+    "No alargar la espera artificialmente: si la app está lista en 300 ms, entra en 300 ms con una salida suave; tope duro de espera para no dejar a nadie atrapado si algo falla, y con ese tope la app entra igualmente.",
+    "Respeta prefers-reduced-motion. Sin parpadeo entre el splash nativo y el web en la APK (mismo fondo en el primer frame).",
+    "Los e2e que esperan a que desaparezca mc-load siguen pasando sin tocar sus esperas.",
+    "Tanda de panel propuesta en el result (pasos para que el dueño lo pruebe), PR en borrador contra beta; es un cambio que se ve: decide él en beta."
+  ],
+  "restrictions": [
+    "Sin VERSION, catálogos ni notas",
+    "Sin merge ni push a beta o main",
+    "Runner pesado solo con el cerrojo en disco aely-runner.lock de la unidad E",
+    "Topes de tamaño: medir; si excede, subir al mínimo medido con comentario (autorizado)"
+  ],
+  "authorization": "Petición directa del dueño el 11/10 por chat."
+}
