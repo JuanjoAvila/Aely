@@ -164,16 +164,19 @@ t("R2 el aviso del tramo no espera respuesta dentro de runBankSync", () => {
 
 t("los textos del tramo no prometen lo que el banco no entrega", () => {
   const i18n = fs.readFileSync(new URL("../src/modules/01-i18n.js", import.meta.url), "utf8");
-  const caps = [...i18n.matchAll(/bank_gap_cap:"([^"]+)"/g)], mores = [...i18n.matchAll(/bank_gap_more:"([^"]+)"/g)];
+  const caps = [...i18n.matchAll(/bank_gap_cap:"([^"]+)"/g)];
   assert.equal(caps.length, 3, "es, en y ca");
-  assert.equal(mores.length, 3, "es, en y ca");
+  const partes = [/solo entrega los últimos 90 días; lo anterior no está disponible por esta vía/, /only provides the last 90 days; anything older is not available this way/, /només lliura els últims 90 dies; l'anterior no està disponible per aquesta via/];
   for (let i = 0; i < 3; i++) {
-    const cap = caps[i][1], more = mores[i][1];
-    assert.match(cap, /\{bank\}/);
-    assert.match(more, /\{bank\}/);
-    assert.match(cap, /90/);
-    assert.doesNotMatch(cap + more, /hist[oò]ric|history/i);
+    const cap = caps[i][1];
+    assert.match(cap, /^\{bank\}: /);
+    assert.match(cap, partes[i]);
+    assert.doesNotMatch(cap, /hist[oò]ric|history/i);
   }
+  // Lo que queda por traer se dice con el aviso de lectura incompleta que ya existía: tampoco promete nada.
+  const main = fs.readFileSync(new URL("../src/modules/11-app-main.js", import.meta.url), "utf8");
+  assert.match(main, /if\(l&&l\.gapPending\) avisaSync\(opts,"⚠ "\+tf\("bank_read_partial",/);
+  assert.doesNotMatch([...i18n.matchAll(/bank_read_partial:"([^"]+)"/g)].map((m) => m[1]).join(" "), /hist[oò]ric|history/i);
 });
 
 if (failures) process.exitCode = 1;

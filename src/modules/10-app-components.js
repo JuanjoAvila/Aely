@@ -975,12 +975,11 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onL
       // de botones que veníamos a quitar. Al plegar se cancela un «¿quitar?» a medias, que si no
       // quedaría armado y saltaría al volver a abrir.
       const toggle=function(){ setConfirming(""); setOpenBank(abierto?"":l.aspsp_name); };
-      /* «Saldo actualizado» pinta la hora en que el servidor leyó el saldo (`obBalAt`, de la
-         última sync de este móvil). `last_sync` es el cursor del extracto: con el tramo antiguo
-         a medias va por detrás y enseñaba una fecha vieja con el saldo de hoy. Gana el más
-         reciente de los dos, porque otro móvil pudo sincronizar después. */
-      const balAt=(state.obBalAt||{})[String(l.aspsp_name).toLowerCase()];
-      const saldoAt=balAt && !(Date.parse(l.last_sync)>Date.parse(balAt)) ? balAt : l.last_sync;
+      /* «Saldo actualizado» pinta la hora en que el servidor leyó el saldo (`obBalAt`, que viaja
+         en el estado junto a los saldos que describe). `last_sync` es el cursor del extracto: con
+         el tramo antiguo a medias va por detrás y enseñaba una fecha vieja con el saldo de hoy.
+         Solo queda de reserva para lo sincronizado antes de existir `obBalAt`. */
+      const saldoAt=(state.obBalAt||{})[l.aspsp_name]||l.last_sync;
       return React.createElement("div",{key:l.aspsp_name,"data-aspsp":l.aspsp_name,ref:isFocus?focusRef:null,className:isFocus?"bk-focus":undefined,style:{marginBottom:6}},
         React.createElement("div",{className:"v4-mov",role:"button",tabIndex:0,"aria-expanded":abierto?"true":"false",
           onClick:toggle,

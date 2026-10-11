@@ -121,8 +121,8 @@ t("runBankSync pasa el suelo de la respuesta al importador", () => {
 });
 
 t("el cliente pide recoverGaps por el cliente de siempre, sin dateFrom y sin adivinar quién pulsó", () => {
-  assert.match(core, /invoke\('bank-sync',\{body:\{recoverGaps:!!recoverGaps\}\}\)/);
-  assert.match(main, /cloud\.bankSync\(true\)/);
+  assert.match(core, /async bankSync\(body\)\{[\s\S]{0,120}invoke\('bank-sync',\{ body \}\)/);
+  assert.match(main, /cloud\.bankSync\(\{recoverGaps:true\}\)/);
   assert.doesNotMatch(main, /bankSync\(\{[^)]*dateFrom/);
   assert.equal((core.match(/createClient\(/g) || []).length, 1, "un solo cliente de Supabase");
   assert.doesNotMatch(core, /addEventListener\("click"[\s\S]{0,400}sincronizar bancos/);

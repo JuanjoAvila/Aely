@@ -68,7 +68,8 @@ test("el sync a demanda recupera el hueco, no duplica y dice sin diálogo lo que
   await expect(cap).toContainText("solo entrega los últimos 90 días");
   await expect(cap).toContainText("no está disponible por esta vía");
   await expect(report).not.toContainText("Importar histórico");
-  const more = report.locator(".sync-report-row", { hasText: "quedan movimientos antiguos" });
+  // Lo que queda por traer usa el aviso de lectura incompleta de siempre: otra pulsación sigue.
+  const more = report.locator(".sync-report-row", { hasText: "la descarga está incompleta" });
   await expect(more).toHaveCount(1);
   await expect(more).toContainText("CaixaBank");
   await expect(page.locator(".askback")).toHaveCount(0);
@@ -120,5 +121,5 @@ test("un sync que no has pedido tú no enseña avisos del tramo", async ({ page 
   await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("micartera_v3_exp") || "[]").length)).toBe(3);
   await expect(page.locator(".askback")).toHaveCount(0);
   await expect(page.locator(".sync-report")).toHaveCount(0);
-  await expect(page.getByText(/más de 90 días|quedan movimientos antiguos/)).toHaveCount(0);
+  await expect(page.getByText(/más de 90 días|la descarga está incompleta/)).toHaveCount(0);
 });
