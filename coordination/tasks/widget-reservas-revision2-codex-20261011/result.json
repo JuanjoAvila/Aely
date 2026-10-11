@@ -1,0 +1,473 @@
+{
+  "status": "done",
+  "sha": "844ce4b0e9877210d5333d626e7d7415283687c5",
+  "baseSHA": "79563064e0127d2768fc5b584d193df68aa38bce",
+  "pr": {
+    "repository": "JuanjoAvila/Aely",
+    "number": 201,
+    "headSHA": "844ce4b0e9877210d5333d626e7d7415283687c5",
+    "draft": true
+  },
+  "branch": "codex/widget-estado-20261010",
+  "summary": "R1-R3 y guardianes de segunda revisión cerrados sobre844c: espera nativa máxima4s con pull sin marca al vencer; marca sólo tras lectura completa comprobada con la misma sesión antes/después, nunca en modo pruebas; ingreso200 o más durante Mes a Ciclo requiere abrir app. Guardianes de alcance, envío web y cifras no finitas campo a campo; docs propias sin cocina. Focales25comandos/Deno en ambas zonas,8mutantes negativos rechazados+2baselines,build limpio yDOM40/40 verificados. Nuevo claim/result; entrega anterior86a2 inmutable.",
+  "tests": [
+    {
+      "command": "node tests/widget-coherente.test.mjs",
+      "tz": "UTC",
+      "exitCode": 0,
+      "sha": "844ce4b0e9877210d5333d626e7d7415283687c5",
+      "startedAtUTC": "2026-10-11T06:58:26.537Z",
+      "endedAtUTC": "2026-10-11T06:58:26.678Z",
+      "scope": "Focal Node and actual Java harness"
+    },
+    {
+      "command": "node tests/widget-arbitraje.test.mjs",
+      "tz": "UTC",
+      "exitCode": 0,
+      "sha": "844ce4b0e9877210d5333d626e7d7415283687c5",
+      "startedAtUTC": "2026-10-11T06:58:26.678Z",
+      "endedAtUTC": "2026-10-11T06:58:27.440Z",
+      "scope": "Focal Node and actual Java harness"
+    },
+    {
+      "command": "node tests/widget-offline.test.mjs",
+      "tz": "UTC",
+      "exitCode": 0,
+      "sha": "844ce4b0e9877210d5333d626e7d7415283687c5",
+      "startedAtUTC": "2026-10-11T06:58:27.441Z",
+      "endedAtUTC": "2026-10-11T06:58:28.074Z",
+      "scope": "General offline regression only; not recovery proof"
+    },
+    {
+      "command": "node tests/widget-unknown-loss.test.mjs",
+      "tz": "UTC",
+      "exitCode": 0,
+      "sha": "844ce4b0e9877210d5333d626e7d7415283687c5",
+      "startedAtUTC": "2026-10-11T06:58:28.075Z",
+      "endedAtUTC": "2026-10-11T06:58:28.937Z",
+      "scope": "Focal Node and actual Java harness"
+    },
+    {
+      "command": "node tests/widget-unknown-journal.test.mjs",
+      "tz": "UTC",
+      "exitCode": 0,
+      "sha": "844ce4b0e9877210d5333d626e7d7415283687c5",
+      "startedAtUTC": "2026-10-11T06:58:28.937Z",
+      "endedAtUTC": "2026-10-11T06:58:29.472Z",
+      "scope": "Focal Node and actual Java harness"
+    },
+    {
+      "command": "node tests/widget-notificacion-render.test.mjs",
+      "tz": "UTC",
+      "exitCode": 0,
+      "sha": "844ce4b0e9877210d5333d626e7d7415283687c5",
+      "startedAtUTC": "2026-10-11T06:58:29.473Z",
+      "endedAtUTC": "2026-10-11T06:58:30.768Z",
+      "scope": "Focal Node and actual Java harness"
+    },
+    {
+      "command": "node tests/widget-inicio-paridad.test.mjs",
+      "tz": "UTC",
+      "exitCode": 0,
+      "sha": "844ce4b0e9877210d5333d626e7d7415283687c5",
+      "startedAtUTC": "2026-10-11T06:58:30.768Z",
+      "endedAtUTC": "2026-10-11T06:58:30.994Z",
+      "scope": "Focal Node and actual Java harness"
+    },
+    {
+      "command": "node tests/ingest-classify.test.mjs",
+      "tz": "UTC",
+      "exitCode": 0,
+      "sha": "844ce4b0e9877210d5333d626e7d7415283687c5",
+      "startedAtUTC": "2026-10-11T06:58:30.995Z",
+      "endedAtUTC": "2026-10-11T06:58:31.085Z",
+      "scope": "Focal Node and actual Java harness"
+    },
+    {
+      "command": "node tests/ingest-identity.test.mjs",
+      "tz": "UTC",
+      "exitCode": 0,
+      "sha": "844ce4b0e9877210d5333d626e7d7415283687c5",
+      "startedAtUTC": "2026-10-11T06:58:31.085Z",
+      "endedAtUTC": "2026-10-11T06:58:31.211Z",
+      "scope": "Focal Node and actual Java harness"
+    },
+    {
+      "command": "node tests/ingest-handler.test.mjs",
+      "tz": "UTC",
+      "exitCode": 0,
+      "sha": "844ce4b0e9877210d5333d626e7d7415283687c5",
+      "startedAtUTC": "2026-10-11T06:58:31.212Z",
+      "endedAtUTC": "2026-10-11T06:58:31.421Z",
+      "scope": "Focal Node and actual Java harness"
+    },
+    {
+      "command": "node tests/pull-historico-entero.test.mjs",
+      "tz": "UTC",
+      "exitCode": 0,
+      "sha": "844ce4b0e9877210d5333d626e7d7415283687c5",
+      "startedAtUTC": "2026-10-11T06:58:31.421Z",
+      "endedAtUTC": "2026-10-11T06:58:44.004Z",
+      "scope": "Focal Node and actual Java harness"
+    },
+    {
+      "command": "node tests/widget-coherente.test.mjs",
+      "tz": "Europe/Madrid",
+      "exitCode": 0,
+      "sha": "844ce4b0e9877210d5333d626e7d7415283687c5",
+      "startedAtUTC": "2026-10-11T06:58:44.005Z",
+      "endedAtUTC": "2026-10-11T06:58:44.170Z",
+      "scope": "Focal Node and actual Java harness"
+    },
+    {
+      "command": "node tests/widget-arbitraje.test.mjs",
+      "tz": "Europe/Madrid",
+      "exitCode": 0,
+      "sha": "844ce4b0e9877210d5333d626e7d7415283687c5",
+      "startedAtUTC": "2026-10-11T06:58:44.171Z",
+      "endedAtUTC": "2026-10-11T06:58:44.893Z",
+      "scope": "Focal Node and actual Java harness"
+    },
+    {
+      "command": "node tests/widget-offline.test.mjs",
+      "tz": "Europe/Madrid",
+      "exitCode": 0,
+      "sha": "844ce4b0e9877210d5333d626e7d7415283687c5",
+      "startedAtUTC": "2026-10-11T06:58:44.894Z",
+      "endedAtUTC": "2026-10-11T06:58:45.515Z",
+      "scope": "General offline regression only; not recovery proof"
+    },
+    {
+      "command": "node tests/widget-unknown-loss.test.mjs",
+      "tz": "Europe/Madrid",
+      "exitCode": 0,
+      "sha": "844ce4b0e9877210d5333d626e7d7415283687c5",
+      "startedAtUTC": "2026-10-11T06:58:45.516Z",
+      "endedAtUTC": "2026-10-11T06:58:46.366Z",
+      "scope": "Focal Node and actual Java harness"
+    },
+    {
+      "command": "node tests/widget-unknown-journal.test.mjs",
+      "tz": "Europe/Madrid",
+      "exitCode": 0,
+      "sha": "844ce4b0e9877210d5333d626e7d7415283687c5",
+      "startedAtUTC": "2026-10-11T06:58:46.367Z",
+      "endedAtUTC": "2026-10-11T06:58:46.893Z",
+      "scope": "Focal Node and actual Java harness"
+    },
+    {
+      "command": "node tests/widget-notificacion-render.test.mjs",
+      "tz": "Europe/Madrid",
+      "exitCode": 0,
+      "sha": "844ce4b0e9877210d5333d626e7d7415283687c5",
+      "startedAtUTC": "2026-10-11T06:58:46.894Z",
+      "endedAtUTC": "2026-10-11T06:58:48.166Z",
+      "scope": "Focal Node and actual Java harness"
+    },
+    {
+      "command": "node tests/widget-inicio-paridad.test.mjs",
+      "tz": "Europe/Madrid",
+      "exitCode": 0,
+      "sha": "844ce4b0e9877210d5333d626e7d7415283687c5",
+      "startedAtUTC": "2026-10-11T06:58:48.167Z",
+      "endedAtUTC": "2026-10-11T06:58:48.370Z",
+      "scope": "Focal Node and actual Java harness"
+    },
+    {
+      "command": "node tests/ingest-classify.test.mjs",
+      "tz": "Europe/Madrid",
+      "exitCode": 0,
+      "sha": "844ce4b0e9877210d5333d626e7d7415283687c5",
+      "startedAtUTC": "2026-10-11T06:58:48.370Z",
+      "endedAtUTC": "2026-10-11T06:58:48.457Z",
+      "scope": "Focal Node and actual Java harness"
+    },
+    {
+      "command": "node tests/ingest-identity.test.mjs",
+      "tz": "Europe/Madrid",
+      "exitCode": 0,
+      "sha": "844ce4b0e9877210d5333d626e7d7415283687c5",
+      "startedAtUTC": "2026-10-11T06:58:48.458Z",
+      "endedAtUTC": "2026-10-11T06:58:48.581Z",
+      "scope": "Focal Node and actual Java harness"
+    },
+    {
+      "command": "node tests/ingest-handler.test.mjs",
+      "tz": "Europe/Madrid",
+      "exitCode": 0,
+      "sha": "844ce4b0e9877210d5333d626e7d7415283687c5",
+      "startedAtUTC": "2026-10-11T06:58:48.582Z",
+      "endedAtUTC": "2026-10-11T06:58:48.785Z",
+      "scope": "Focal Node and actual Java harness"
+    },
+    {
+      "command": "node tests/pull-historico-entero.test.mjs",
+      "tz": "Europe/Madrid",
+      "exitCode": 0,
+      "sha": "844ce4b0e9877210d5333d626e7d7415283687c5",
+      "startedAtUTC": "2026-10-11T06:58:48.785Z",
+      "endedAtUTC": "2026-10-11T06:59:00.216Z",
+      "scope": "Focal Node and actual Java harness"
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "tz": "UTC",
+      "exitCode": 0,
+      "sha": "844ce4b0e9877210d5333d626e7d7415283687c5",
+      "startedAtUTC": "2026-10-11T06:59:00.217Z",
+      "endedAtUTC": "2026-10-11T06:59:00.276Z",
+      "scope": "Focal Node and actual Java harness"
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "tz": "UTC",
+      "exitCode": 0,
+      "sha": "844ce4b0e9877210d5333d626e7d7415283687c5",
+      "startedAtUTC": "2026-10-11T06:59:00.277Z",
+      "endedAtUTC": "2026-10-11T06:59:00.322Z",
+      "scope": "Focal Node and actual Java harness"
+    },
+    {
+      "command": "node tests/security.test.mjs",
+      "tz": "UTC",
+      "exitCode": 0,
+      "sha": "844ce4b0e9877210d5333d626e7d7415283687c5",
+      "startedAtUTC": "2026-10-11T06:59:00.323Z",
+      "endedAtUTC": "2026-10-11T06:59:00.382Z",
+      "scope": "Focal Node and actual Java harness"
+    },
+    {
+      "command": "deno test --no-lock supabase/functions/ingest/widget.test.ts supabase/functions/ingest/ingest.test.ts",
+      "tz": "UTC",
+      "exitCode": 0,
+      "sha": "844ce4b0e9877210d5333d626e7d7415283687c5",
+      "startedAtUTC": "2026-10-11T06:59:15.692Z",
+      "endedAtUTC": "2026-10-11T06:59:16.199Z",
+      "scope": "Actual Deno runtime"
+    },
+    {
+      "command": "deno test --no-lock supabase/functions/ingest/widget.test.ts supabase/functions/ingest/ingest.test.ts",
+      "tz": "Europe/Madrid",
+      "exitCode": 0,
+      "sha": "844ce4b0e9877210d5333d626e7d7415283687c5",
+      "startedAtUTC": "2026-10-11T06:59:16.199Z",
+      "endedAtUTC": "2026-10-11T06:59:16.643Z",
+      "scope": "Actual Deno runtime"
+    },
+    {
+      "name": "baseline",
+      "kind": "Positive contrast baseline",
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "specificAssertion": "",
+      "expectedAssertionObserved": true,
+      "baseSHA": "844ce4b0e9877210d5333d626e7d7415283687c5",
+      "startedAtUTC": "2026-10-11T07:00:11.823Z",
+      "endedAtUTC": "2026-10-11T07:00:13.129Z"
+    },
+    {
+      "name": "scope",
+      "kind": "Temporary negative mutant derived from844c",
+      "exitCode": 1,
+      "expectedExitCode": 1,
+      "specificAssertion": "GUARD alcance de foto con marca",
+      "expectedAssertionObserved": true,
+      "baseSHA": "844ce4b0e9877210d5333d626e7d7415283687c5",
+      "startedAtUTC": "2026-10-11T07:00:13.130Z",
+      "endedAtUTC": "2026-10-11T07:00:14.401Z"
+    },
+    {
+      "name": "finite-spent",
+      "kind": "Temporary negative mutant derived from844c",
+      "exitCode": 1,
+      "expectedExitCode": 1,
+      "specificAssertion": "GUARD cifra no finita campo",
+      "expectedAssertionObserved": true,
+      "baseSHA": "844ce4b0e9877210d5333d626e7d7415283687c5",
+      "startedAtUTC": "2026-10-11T07:00:14.401Z",
+      "endedAtUTC": "2026-10-11T07:00:15.695Z"
+    },
+    {
+      "name": "finite-budget",
+      "kind": "Temporary negative mutant derived from844c",
+      "exitCode": 1,
+      "expectedExitCode": 1,
+      "specificAssertion": "GUARD cifra no finita campo",
+      "expectedAssertionObserved": true,
+      "baseSHA": "844ce4b0e9877210d5333d626e7d7415283687c5",
+      "startedAtUTC": "2026-10-11T07:00:15.696Z",
+      "endedAtUTC": "2026-10-11T07:00:16.964Z"
+    },
+    {
+      "name": "finite-budgetLeft",
+      "kind": "Temporary negative mutant derived from844c",
+      "exitCode": 1,
+      "expectedExitCode": 1,
+      "specificAssertion": "GUARD cifra no finita campo",
+      "expectedAssertionObserved": true,
+      "baseSHA": "844ce4b0e9877210d5333d626e7d7415283687c5",
+      "startedAtUTC": "2026-10-11T07:00:16.965Z",
+      "endedAtUTC": "2026-10-11T07:00:18.233Z"
+    },
+    {
+      "name": "finite-safeLiq",
+      "kind": "Temporary negative mutant derived from844c",
+      "exitCode": 1,
+      "expectedExitCode": 1,
+      "specificAssertion": "GUARD cifra no finita campo",
+      "expectedAssertionObserved": true,
+      "baseSHA": "844ce4b0e9877210d5333d626e7d7415283687c5",
+      "startedAtUTC": "2026-10-11T07:00:18.234Z",
+      "endedAtUTC": "2026-10-11T07:00:19.525Z"
+    },
+    {
+      "name": "finite-cash",
+      "kind": "Temporary negative mutant derived from844c",
+      "exitCode": 1,
+      "expectedExitCode": 1,
+      "specificAssertion": "GUARD cifra no finita campo",
+      "expectedAssertionObserved": true,
+      "baseSHA": "844ce4b0e9877210d5333d626e7d7415283687c5",
+      "startedAtUTC": "2026-10-11T07:00:19.526Z",
+      "endedAtUTC": "2026-10-11T07:00:20.811Z"
+    },
+    {
+      "name": "cycle-income",
+      "kind": "Temporary negative mutant derived from844c",
+      "exitCode": 1,
+      "expectedExitCode": 1,
+      "specificAssertion": "GUARD abono grande Mes a Ciclo",
+      "expectedAssertionObserved": true,
+      "baseSHA": "844ce4b0e9877210d5333d626e7d7415283687c5",
+      "startedAtUTC": "2026-10-11T07:00:20.812Z",
+      "endedAtUTC": "2026-10-11T07:00:22.097Z"
+    },
+    {
+      "name": "web-baseline",
+      "kind": "Positive contrast baseline",
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "specificAssertion": "GUARD web manda marca completa",
+      "expectedAssertionObserved": true,
+      "baseSHA": "844ce4b0e9877210d5333d626e7d7415283687c5",
+      "startedAtUTC": "2026-10-11T07:00:22.098Z",
+      "endedAtUTC": "2026-10-11T07:00:22.151Z"
+    },
+    {
+      "name": "web-mark-removed",
+      "kind": "Temporary negative mutant derived from844c",
+      "exitCode": 1,
+      "expectedExitCode": 1,
+      "specificAssertion": "GUARD web manda marca completa",
+      "expectedAssertionObserved": true,
+      "baseSHA": "844ce4b0e9877210d5333d626e7d7415283687c5",
+      "startedAtUTC": "2026-10-11T07:00:22.151Z",
+      "endedAtUTC": "2026-10-11T07:00:22.186Z"
+    },
+    {
+      "command": "npm run build",
+      "exitCode": 0,
+      "sha": "844ce4b0e9877210d5333d626e7d7415283687c5",
+      "trackedDiffAfterBuild": false
+    },
+    {
+      "command": "node node_modules/playwright/cli.js test --config=playwright.config.mjs e2e/widget-banco.spec.mjs --workers=1 --retries=0",
+      "exitCode": 0,
+      "sha": "844ce4b0e9877210d5333d626e7d7415283687c5",
+      "tz": "UTC",
+      "passed": 40,
+      "failed": 0,
+      "skipped": 0,
+      "flaky": 0,
+      "workers": 1,
+      "retries": 0,
+      "servedHTMLVerified": true,
+      "htmlGitAndLFWorkingSHA256": "00e7bbda892d1b528b2ba5afb548ece88fb19d57c5397799317856ce5bbeaa48",
+      "htmlRawWorkingAndServedSHA256": "c1768901b386069b3cfc2c685ab8a265d065343b85074f79a02093bb948a636c",
+      "startedAtUTC": "2026-10-11T07:04:41.700Z",
+      "endedAtUTC": "2026-10-11T07:05:48.369Z"
+    }
+  ],
+  "acceptanceEvidence": {
+    "R1": {
+      "file": "src/modules/11-app-main.js",
+      "test": "tests/pull-historico-entero.test.mjs",
+      "timeoutMs": 4000,
+      "lateMarkIgnored": true
+    },
+    "R2": {
+      "files": [
+        "src/modules/00-core.js",
+        "src/modules/11-app-main.js"
+      ],
+      "test": "tests/pull-historico-entero.test.mjs",
+      "cases": [
+        "valid empty read",
+        "missing session",
+        "lost session",
+        "changed user",
+        "expired session",
+        "unproven read",
+        "both sandbox modes"
+      ]
+    },
+    "R3": {
+      "file": "android/app/src/main/java/com/micartera/app/MiCarteraWidget.java",
+      "test": "tests/widget-notificacion-render.test.mjs",
+      "scope": "Only post-cut payment reapplied in new cycle; Bizum and neutral rules preserved"
+    },
+    "guardians": {
+      "scopeMutationRejected": true,
+      "webMarkRemovalRejected": true,
+      "finiteFields": [
+        "spent",
+        "budget",
+        "budgetLeft",
+        "safeLiq",
+        "cash"
+      ],
+      "values": [
+        "NaN",
+        "positive Infinity",
+        "negative Infinity"
+      ]
+    },
+    "docs": [
+      "docs/SETUP-ANDROID.md",
+      "docs/SETUP-SUPABASE.md"
+    ]
+  },
+  "resourceRelease": {
+    "grant": "subcoord17-widget-revision2-grant1",
+    "phase": "released_verified",
+    "holderExplicit": true,
+    "holderCensusAtUTC": "2026-10-11T07:07:03Z",
+    "independentReadback17": true,
+    "independentCensusAtUTC": "2026-10-11T07:07:34Z",
+    "heavyAllowed": false,
+    "port": 4423,
+    "runnersTerminal": true
+  },
+  "cleanup": {
+    "ownScaffoldingRemoved": true,
+    "sourceClean": true,
+    "evidencePreserved": true,
+    "branchesAndWorktreesPreserved": true
+  },
+  "limitations": [
+    "Only the requested focal, Deno and Widget DOM validation ran on844c. Full suite and Gradle are explicitly deferred to Claude integration; results7956 do not validate844c.",
+    "Navigation failures recorded on7956 remain owned by the independent suite-roja Grok/CursorVM task; no navigation/CSS/assertion edits here and no claim that global suite is green.",
+    "PR201 remains draft. Claude owns independent review, integration, VERSION/versionCode53/catalogues/notes, signed aligned beta APK and ingest deployment. No publication, APK build/install, backend writes or deployment in this correction.",
+    "Synthetic fixtures and actual Java with Android/transports as doubles; does not establish launcher or real mobile acceptance."
+  ],
+  "fullSuiteRun": false,
+  "gradleRun": false,
+  "published": false,
+  "mobileAccepted": false,
+  "schema": 1,
+  "taskId": "widget-reservas-revision2-codex-20261011",
+  "actor": "codex",
+  "sessionId": "codex-local-20261011-widgetrev2-cc5b7180",
+  "createdAt": "2026-10-11T07:09:24.762Z",
+  "released": true
+}
