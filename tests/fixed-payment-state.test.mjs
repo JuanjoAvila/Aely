@@ -223,7 +223,7 @@ test("notificación visual no escribe una confirmación financiera al editar",()
 
 test("Agua no acredita una compra de otra categoría en otro banco",()=>{
   const bill=Object.assign({},fixed,{name:"Agua",amount:30,category:"hogar"});
-  const row=Object.assign({},recorded,{obName:"AGUA MINERAL BAR PEPE",amount:30,ent:"revolut",category:"restaurantes"});
+  const row=Object.assign({},recorded,{obName:"AGUA MINERAL BAR PEPE",amount:30,ent:"revolut",category:"bares"});
   const state=Object.assign({},recordedState,{fixed:[bill],expenses:[row]});
   assert.equal(c.fixedPaymentState(state,bill,2026,9,30).paid,false);
   for(const category of ["hogar","otros",undefined]){
@@ -261,4 +261,20 @@ test("un cargo tiene un único recibo más específico desde la primera lectura"
   assert.equal(c.fixedPaymentState(state,sameBank,2026,9,30).paid,false);
   assert.equal(c.fixedPaymentState(snapshot,snapshot.fixed[1],2026,9,30).paid,true,"la prueba BOOK conserva el ganador sin extracto");
   assert.equal(c.fixedPaymentState(snapshot,snapshot.fixed[0],2026,9,30).paid,false);
+});
+
+test("BOOK tolerante y gasto exacto no reparten el mismo cargo entre dos recibos",()=>{
+  const specific=Object.assign({},fixed,{id:"seguro",name:"Seguro Mapfre",amount:42.4});
+  const generic=Object.assign({},fixed,{id:"mapfre",name:"Mapfre",account:"revolut"});
+  const book=Object.assign({},tx,{merchant:"SEGURO MAPFRE SA"});
+  const row=Object.assign({},recorded,{date:book.date,merchant:book.merchant,obName:book.merchant});
+  for(const bills of [[specific,generic],[generic,specific]]){
+    const state=Object.assign({},base,{fixed:bills,bankTx:[book],expenses:[row]});
+    const before=JSON.stringify(state);
+    assert.equal(c.fixedPaymentState(state,specific,2026,9,30).paid,true,"el BOOK conserva su tolerancia y ganador específico");
+    assert.equal(c.fixedPaymentState(state,generic,2026,9,30).paid,false,"el gasto exacto no vuelve a adjudicar ese BOOK");
+    assert.equal(JSON.stringify(state),before);
+    const reconciled=c.reconcileFixedPaymentProofs(state,2026,9,30);
+    assert.equal(reconciled.fixed.filter(f=>c.fixedPaymentState(reconciled,f,2026,9,30).paid).length,1);
+  }
 });

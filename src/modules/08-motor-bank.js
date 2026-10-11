@@ -276,7 +276,12 @@ function fixedPaymentState(s,e,y,m,today){
       // La unicidad recorre Gastos: sólo después de descartar nombre/importe/mes para
       // que el histórico no cueste un barrido entero por cada compra no coincidente.
       if(!fixedExpenseEligible(s,x,e,y,m,today)) return false;
-      if(!fixedPaymentAutoOwner(s,e,y,m,expenseBankOf(x),merchant,Number(x.amount),x.category,false)) return false;
+      // El BOOK admite tolerancia de importe; su copia en Gastos no puede eliminar
+      // a ese ganador y adjudicar el mismo cargo a otro recibo con céntimos exactos.
+      var identity=fixedPaymentIdentity(expenseBankOf(x),x),book=(s.bankTx||[]).some(function(tx){
+        return String(tx.status||"").toUpperCase()==="BOOK"&&fixedPaymentIdentity(tx.ent,tx)===identity;
+      });
+      if(!fixedPaymentAutoOwner(s,e,y,m,expenseBankOf(x),merchant,Number(x.amount),x.category,book)) return false;
       return !(s.fixed||[]).some(function(f){
         var p=fixedPaymentProof(s,f,y,m,today);
         return f.id!==e.id&&p&&p.identity===fixedPaymentIdentity(expenseBankOf(x),x);

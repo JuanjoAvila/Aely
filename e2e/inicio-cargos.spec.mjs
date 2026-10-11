@@ -41,23 +41,30 @@ for(const lang of ["es","en","ca"]){
     await hub.locator(':scope > [data-screen="bills-home"] > .settings-push-h .back').click();
     await expect(page.locator('div[data-seg="recibos"] .v4-paid').filter({hasText:fixed.name})).toHaveCount(1);
     await page.reload(); await dismissNews(page);
-    expect(await page.evaluate(()=>mcLoadRaw(mcStateKey()).fixed[0].paidYm)).toBeUndefined();
+    const reloaded=await page.evaluate(()=>mcLoadRaw(mcStateKey()).fixed[0]);
+    expect(reloaded.paidYm).toBeUndefined();
+    expect(reloaded.paidDay).toBeUndefined();
+    await expect(page.locator('div[data-seg="recibos"] .v4-paid').filter({hasText:fixed.name})).toHaveCount(1);
   });
   test(lang+": Agua de otro banco con categoría distinta sigue sin acreditar",async({page})=>{
     const bill=Object.assign({},fixed,{name:"Agua",amount:30,category:"hogar"});
-    const cargo={id:"agua-bar",date:"2026-09-24",merchant:"AGUA MINERAL BAR PEPE",amount:30,ent:"trade_republic",category:"restaurantes",source:"macrodroid"};
+    const cargo={id:"agua-bar",date:"2026-09-24",merchant:"AGUA MINERAL BAR PEPE",amount:30,ent:"trade_republic",category:"bares",source:"macrodroid"};
     await open(page,lang,{fixed:[bill],expenses:[cargo]});
     await expect(page.locator('.page-scroll-host .v4-charge').filter({hasText:"Agua"})).toHaveCount(1);
     await page.locator('.botnav-tab[data-tour="plan"]').click();
     await expect(page.locator('div[data-seg="recibos"] .v4-paid').filter({hasText:"Agua"})).toHaveCount(0);
     await expect(page.locator('div[data-seg="recibos"]')).toContainText(labels[lang].unknown);
+    await page.reload(); await dismissNews(page);
+    await expect(page.locator('div[data-seg="recibos"] .v4-paid').filter({hasText:"Agua"})).toHaveCount(0);
+    await expect(page.locator('div[data-seg="recibos"]')).toContainText(labels[lang].unknown);
   });
-  for(const tie of [false,true]){
-    test(lang+": un cargo no acredita dos recibos · "+(tie?"empate real":"nombre más específico"),async({page})=>{
-      const specific=Object.assign({},fixed,{id:"seguro",name:"Seguro Mapfre"});
+  for(const [kind,tie,tolerant] of [["nombre más específico",false,false],["empate real",true,false],["BOOK tolerante y gasto exacto",false,true]]){
+    test(lang+": un cargo no acredita dos recibos · "+kind,async({page})=>{
+      const specific=Object.assign({},fixed,{id:"seguro",name:"Seguro Mapfre",amount:tolerant?42.4:42});
       const generic=Object.assign({},fixed,{id:"mapfre",name:tie?"SEGURO MAPFRE":"Mapfre",account:"trade_republic"});
       const cargo={id:"seguro-tr",date:"2026-09-24",merchant:"SEGURO MAPFRE SA",amount:42,ent:"trade_republic",category:"otros",source:"ob"};
-      const book=Object.assign({},tx,{ent:"trade_republic",date:cargo.date,merchant:cargo.merchant});
+      if(tolerant) cargo.ent="sabadell";
+      const book=Object.assign({},tx,{ent:cargo.ent,date:cargo.date,merchant:cargo.merchant});
       await open(page,lang,{accounts:[{id:"sb",ent:"sabadell",value:800,role:"fijos"},{id:"tr",ent:"trade_republic",value:300,role:"fijos"}],fixed:[generic,specific],expenses:[cargo],bankTx:[book]});
       await expect(page.locator('.page-scroll-host .v4-charge')).toHaveCount(tie?2:1);
       await page.locator('.botnav-tab[data-tour="plan"]').click();
