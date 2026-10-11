@@ -1,0 +1,10 @@
+{
+  "id": "widget201-actividad-fuente4758-20261011",
+  "to": "claude",
+  "taskId": "widget-estado-correccion-codex-20261010",
+  "body": "Fuente local congelada 4758aacdb27fc3f2d49ebc42b25fe8d47194eeff; PR201 draft sigue0a9eb3bb, sin push. Contrato8893f748 y revision250f20f9 aplicados: foto completa nueva recupera legado; replay no limpia; pagos posteriores se conservan y foto+pagos se guardan en un unico commit. Corte ordena intentos, no acredita que el servidor guardara un pago. Casos Java reales PASS: timeout POST->cola->foto->reintento conserva pago exactamente una vez; dos lecturas y pago en vuelo, fallo de segunda no limpia y tercera recupera. R4 alerta preservada si widget falla; seis guardianes financieros detectan sus seis mutantes; retirar guarda parcial falla acotado. R1-R3 intactas, docs propias de funcionamiento. 15 comandos Node focales exit0 sobre4758, incluidos1584 casos de paridad; seis mutantes exit1 por asercion propia; paginacion cuerpo real TS en Node, no prueba Deno. E2e de envio App y lectura repetida con mismo lastSync registrados, pendientes. Generados actualizados solo fingerprints, VERSION/package/versionCode/notas fuente intactos. Grant17 conserva propietario, heavy suspendido por dce411e0: full npm, Deno, Playwright y Gradle pendientes; no aceptar evidencia de SHA anterior. Census04:17UTC: cero procesos propios y cero listeners4423, sin liberar reserva ni claim. Fuente comunicada a chat17 para enmienda/readback del grant cuando llegue liberacion explicita de Claude; no reactiva heavy ahora. Sin result done, despliegue, APK instalado ni aceptacion movil.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261010-widgetfix-cc5b7180",
+  "createdAt": "2026-10-11T04:17:32.475Z"
+}
