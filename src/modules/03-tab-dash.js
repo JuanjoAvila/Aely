@@ -1,10 +1,6 @@
 /* ============================================================
    TAB: INICIO (v4) — SPEC-v4.md §3
    ============================================================ */
-function dashOrderOf(s, allIds){
-  const saved=((s.settings&&s.settings.dashOrder)||[]).filter(function(id){ return allIds.indexOf(id)>=0; });
-  return saved.concat(allIds.filter(function(id){ return saved.indexOf(id)<0; }));
-}
 const CYCLE_COMFORT_DIFF=-15, CYCLE_GOOD_DIFF=10, CYCLE_TIGHT_DIFF=40;
 function cyclePaceState(spent,budget,elapsed,days){
   const used=Math.round(spent*100), limit=Math.round(budget*100), excess=Math.max(0,used-limit)/100;
@@ -93,7 +89,7 @@ function NetWorthNow({tt, simple, series, splashGone}){
     info&&React.createElement("div",{className:"hint",role:"note"},t("v42_net_info"))
   );
 }
-function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProfile, onGoGastos, onGoPlan, showToast}){
+function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGastos, onGoPlan, showToast}){
   const tt=totals;
   const simple=!!(state.settings&&state.settings.simpleMode);
   const [budgetOpen,setBudgetOpen]=useState(false);

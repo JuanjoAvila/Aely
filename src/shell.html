@@ -947,7 +947,6 @@
   .v4-paid-fold{display:flex;width:100%;align-items:center;justify-content:space-between;gap:10px;min-height:44px;padding:12px 4px;margin-top:8px;background:transparent;border:0;border-top:1px solid var(--line);color:var(--text);font-size:13.5px;font-weight:700;text-align:left;cursor:pointer;}
   .v4-plan-cover-simple .v4-plan-simple-hero{display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;padding:8px 4px 4px;}
   .v4-plan-simple-amt{font-size:56px;font-weight:550;line-height:1.05;letter-spacing:-0.5px;}
-  .v4-plan-cover .v4-budget-foot{align-items:baseline;}
   .v4-seg-btn.on{background:var(--mint);color:var(--on-mint);}
   /* Entrada al cambiar de segmento de Plan DESLIZANDO (petición 2026-08-03). Solo transform+
      opacity (compositor, sin repintar) — mismo criterio de coste que el resto de este archivo. */
@@ -1028,8 +1027,6 @@
   .v4-budget-txt .st.bad{color:var(--coral);}
   /* `text-wrap:pretty` en las frases humanas: quita la palabra huerfana al final. Es gratis. */
   .v4-budget-txt .ph{font-size:14.5px;color:var(--muted);line-height:1.45;margin-top:6px;text-wrap:pretty;}
-  .v4-budget-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:14px;padding-top:12px;border-top:1px solid var(--line-soft);font-size:12.5px;color:var(--muted-2);}
-  .v4-budget-foot a,.v4-budget-foot button.link{color:var(--mint);font-weight:700;background:none;border:none;padding:0;font-size:12.5px;}
   .v4-section{margin-top:22px;}
   .v4-section-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;font-size:15px;font-weight:800;}
   .v4-section-h button.link{color:var(--mint);font-weight:700;font-size:13px;background:none;border:none;min-height:44px;padding:10px 8px;cursor:pointer;}
@@ -1085,8 +1082,6 @@
     --mint-ink:#1A6B3F;
   }
   html[data-theme="light"] .dc-badge,
-  html[data-theme="light"] .v4-budget-foot a,
-  html[data-theme="light"] .v4-budget-foot button.link,
   html[data-theme="light"] .v4-section-h button.link,
   html[data-theme="light"] .profile-handle,
   html[data-theme="light"] .profile-row .pr-edit,
@@ -1533,7 +1528,6 @@
   .pill.pos{background:rgba(95,208,138,.14);color:var(--mint);}
   .pill.neg{background:rgba(226,112,95,.14);color:var(--coral);}
   .pill.ghost{background:rgba(255,255,255,.04);color:var(--muted);border:1px solid var(--line-soft);}
-  .spark{width:100%;height:70px;display:block;}
 
   .stack{display:flex;gap:3px;height:14px;border-radius:8px;overflow:hidden;background:var(--surface-2);}
   .stack > span{height:100%;border-radius:3px;transition:width .5s ease;}

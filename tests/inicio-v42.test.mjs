@@ -34,6 +34,19 @@ assert.equal(cent.value,880.39,"último punto igual al patrimonio de hoy al cén
 assert.equal(c.netWorthSeries({...invested,assets:[]},{...opts,liquid:.004,invested:.004}).at(-1).value,.01,"se redondea el total completo como Inicio, también al convertir divisas");
 assert.deepEqual(plain(c.netWorthSeries({...invested,investments:[{value:10,cur:"XYZ"}]},{...opts,invested:0})),[],"sin conversión fiable no inventa inversión cero");
 assert.deepEqual(values({...base,history:[-900000]}),values(base),"state.history no afecta a la gráfica");
+// Contraste independiente por cada fecha, sin la agrupación por horas del lector optimizado.
+// Atraviesa medianoches y ambos cambios horarios: el gasto pertenece al día civil de Madrid.
+for(const start of ["2026-03-27T20:00:00Z","2026-10-23T20:00:00Z"]){
+  const initial=Date.parse(start), fmt=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Madrid",year:"numeric",month:"2-digit",day:"2-digit"});
+  const movements=Array.from({length:145},(_,i)=>({id:"calendar-"+i,date:new Date(initial+i*1800000).toISOString(),amount:i===0?0:i%3===0?-2:1,category:"super",ent:"sabadell"}));
+  const through=fmt.format(initial+144*1800000), current=1000;
+  const result=plain(c.netWorthSeries({accounts:[account("a","sabadell")],expenses:movements},{today:through,liquid:current,invested:0,debtTotal:0}));
+  for(const point of result){
+    const after=movements.filter(e=>fmt.format(Date.parse(e.date))>point.day).reduce((sum,e)=>sum+e.amount,0);
+    assert.equal(point.value,current+after,"cada cierre equivale al total actual menos los flujos posteriores, incluso con cambio horario");
+  }
+  assert.equal(result.at(-1).value,current);
+}
 
 for(const [spent,budget,elapsed,days,id,tone] of [[1001,1000,1,30,"over","coral"],[900,1000,2,30,"start","mint"],
   [250,1000,12,30,"comfort","mint"],[500,1000,12,30,"good","mint"],[800,1000,12,30,"tight","tan"],[801,1000,12,30,"slow","tan"]]){

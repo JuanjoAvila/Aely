@@ -612,34 +612,6 @@ function useCountUp(target, ready, replay){
   return shown;
 }
 
-function Sparkline({data, current}){
-  const pts = data.concat(current!=null?[current]:[]);
-  // Con 0 o 1 puntos esto pintaba una recta de lado a lado con su puntito final: parece un grafico
-  // de verdad que dice cero, y es lo primero que ve alguien que acaba de instalar la app. Sin
-  // datos no hay grafico (P1). Quien lo llama reserva el hueco para que no salte el layout.
-  if(pts.length<2) return null;
-  const w=320, h=70, pad=4;
-  const min=Math.min.apply(null,pts), max=Math.max.apply(null,pts);
-  const rng=(max-min)||1;
-  const xs=(i)=> pad + (pts.length>1 ? i*(w-2*pad)/(pts.length-1) : 0);
-  const ys=(v)=> pad + (1-(v-min)/rng)*(h-2*pad);
-  let d="M"+xs(0)+" "+ys(pts[0]);
-  for(let i=1;i<pts.length;i++) d+=" L"+xs(i)+" "+ys(pts[i]);
-  const area=d+" L"+xs(pts.length-1)+" "+h+" L"+xs(0)+" "+h+" Z";
-  const lastX=xs(pts.length-1), lastY=ys(pts[pts.length-1]);
-  return React.createElement("svg",{className:"spark",viewBox:"0 0 "+w+" "+h,preserveAspectRatio:"none"},
-    React.createElement("defs",null,
-      React.createElement("linearGradient",{id:"sparkfill",x1:"0",y1:"0",x2:"0",y2:"1"},
-        React.createElement("stop",{offset:"0",stopColor:"#5FD08A",stopOpacity:"0.28"}),
-        React.createElement("stop",{offset:"1",stopColor:"#5FD08A",stopOpacity:"0"})
-      )
-    ),
-    React.createElement("path",{d:area,fill:"url(#sparkfill)"}),
-    React.createElement("path",{d:d,fill:"none",stroke:"#5FD08A",strokeWidth:"2.4",strokeLinecap:"round",strokeLinejoin:"round",vectorEffect:"non-scaling-stroke"}),
-    React.createElement("circle",{cx:lastX,cy:lastY,r:"3.5",fill:"#7DE8A8"})
-  );
-}
-
 function recordAccountBalances(hist, day, rows){
   var out=hist||{}, changed=false;
   (rows||[]).forEach(function(r){
@@ -661,6 +633,11 @@ function netWorthDay(nowMs){
   const p=madridYmdParts(nowMs==null?Date.now():nowMs);
   return p.ym+"-"+String(p.d).padStart(2,"0");
 }
+function netWorthDebtPolicy(state, total){
+  // Decisión provisional del dueño: deuda de hoy constante y cuotas vinculadas neutras.
+  // Ambos criterios se cambian aquí juntos, sin alterar los lectores de Plan ni Gastos.
+  return {total:total!=null?total:(state.debts||[]).reduce(function(sum,d){ return sum+debtBalance(d); },0),linkedPaymentsNeutral:true};
+}
 function netWorthSeries(state, options){
   options=options||{};
   const today=options.today||netWorthDay(), rows=accountRowsInOrder(state), hist=state.accountBalanceHistory||{};
@@ -676,15 +653,23 @@ function netWorthSeries(state, options){
     });
     return Object.keys(by).sort().map(function(d){ return by[d]; });
   };
-  const del=expenseDeletedSet(state), firstByBank={}, daily={}, entries=[];
+  const del=expenseDeletedSet(state), firstByBank={}, daily={}, hours={}, debtPolicy=netWorthDebtPolicy(state,options.debtTotal);
+  let first="";
   (state.expenses||[]).forEach(function(e){
     if(!e||e.possibleDup||expenseIsTombstoned(e,del)||typeof e.amount!=="number"||!Number.isFinite(e.amount)||
       (e.status&&String(e.status).toUpperCase()!=="BOOK")) return;
-    const ms=_pdMs(String(e.date||"").trim()); if(!Number.isFinite(ms)) return;
-    const day=fmt.format(ms); if(day>today) return;
+    const raw=String(e.date||"").trim(), ms=/^\d{4}-\d{2}-\d{2}/.test(raw)?Date.parse(raw):_pdMs(raw);
+    if(!Number.isFinite(ms)) return;
+    // Cientos de cargos comparten hora. Se formatean sus extremos una sola vez;
+    // la hora que cruza medianoche conserva la fecha exacta de cada movimiento.
+    const hour=Math.floor(ms/3600000), bounds=hours[hour]||(hours[hour]=[fmt.format(hour*3600000),fmt.format(hour*3600000+3599999)]);
+    const day=bounds[0]===bounds[1]?bounds[0]:fmt.format(ms); if(day>today) return;
     const bank=expenseBankOf(e);
     if(bank&&(!firstByBank[bank]||day<firstByBank[bank])) firstByBank[bank]=day;
-    entries.push({expense:e,day:day});
+    if(!first||day<first) first=day;
+    // Excluir las DOS patas completas evita picos aun cuando se contabilicen en días distintos.
+    if(e.category!=="traspaso"&&!(debtPolicy.linkedPaymentsNeutral&&e.category==="deudas"&&e.debtId))
+      daily[day]=(daily[day]||0)-Math.round(e.amount*100);
   });
   // Inicio ya trae estos saldos calculados: no recorrer el histórico otra vez con parseDate.
   const ins=options.liquid!=null&&options.invested!=null?{}:insumosSaldoGasto(state);
@@ -700,7 +685,7 @@ function netWorthSeries(state, options){
   if(bankNames.some(function(b){ return !firstByBank[b]; })) return [];
   let start=bankNames.reduce(function(d,b){ return firstByBank[b]>d?firstByBank[b]:d; },"");
   // Un movimiento manual también puede acreditar el comienzo cuando no hay bancos conectados.
-  if(!start&&entries.length) start=entries.reduce(function(d,e){ return !d||e.day<d?e.day:d; },"");
+  if(!start) start=first;
   if(!start) manual.forEach(function(s){ if(s.points.length&&(!start||s.points[0].day<start)) start=s.points[0].day; });
   const investments=clean(state.invHistory,"d","v");
   if((state.investments||[]).some(function(i){ return invValueEur(i,state)==null; })) return [];
@@ -708,15 +693,9 @@ function netWorthSeries(state, options){
   if(((state.investments||[]).length||invested!==0)&&!investments.length) return [];
   if(investments.length&&(!start||investments[0].day>start)) start=investments[0].day;
   start=start||today;
-  entries.forEach(function(row){
-    const e=row.expense;
-    // Excluir las DOS patas completas evita picos aun cuando se contabilicen en días distintos.
-    if(e.category==="traspaso"||(e.category==="deudas"&&e.debtId)) return;
-    daily[row.day]=(daily[row.day]||0)-Math.round(e.amount*100);
-  });
   const liquid=options.liquid!=null?options.liquid:values.reduce(function(sum,v){ return sum+v; },0);
   const assets=(state.assets||[]).reduce(function(sum,a){ return sum+(typeof a.value==="number"&&Number.isFinite(a.value)?a.value:0); },0);
-  const debt=options.debtTotal!=null?options.debtTotal:(state.debts||[]).reduce(function(sum,d){ return sum+debtBalance(d); },0);
+  const debt=debtPolicy.total;
   const manualNow=manual.reduce(function(sum,s){ return sum+Math.round(s.value*100); },0);
   const constant=Math.round((assets-debt)*100), out=[];
   // Inicio redondea el total, no cada divisa por separado: conservar ese mismo céntimo

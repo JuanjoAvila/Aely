@@ -110,6 +110,8 @@ const soloWebIds=["inc-2809-02-ayuda-ciclo"];
 const readSource=f => fs.readFileSync(new URL("../"+f,import.meta.url),"utf8");
 // Cerrar una entrega no debe borrar la regresión de su identidad y sus rechazos históricos.
 const historicalNotes=JSON.parse(execFileSync("git",["show","4403b252933410741a877eea59b85d812b2fe543:src/data/release-notes.json"],{encoding:"utf8",maxBuffer:5e6}));
+const baselineCache=new Map(),baselineSource=f=>{if(!baselineCache.has(f))baselineCache.set(f,execFileSync("git",["show","684a839d286f68d66c8855cf6e1a626b7220fd64:"+f],{encoding:"utf8",maxBuffer:10e6}));return baselineCache.get(f);};
+const baselineScopes=JSON.parse(baselineSource("scripts/beta-sources.json"));
 const registered=JSON.parse(readSource("scripts/beta-sources.json"));
 const approvedIds=["fin05-widget-reentrada", "fin05-pago-cerrada", "tr-descripcion-clasificacion", "widget-banco", "widget-app-cerrada", "inc-2709-01-arranque-red", "inc-2809-02-ayuda-ciclo"];
 
@@ -202,7 +204,8 @@ t("CLI real: revocación remota, rechazo histórico exacto y entrega desconocida
   assert.equal(actual.estado,'sin probar');
   assert.equal(actual.rechazoAnterior.tanda,'4.26.71/inc-3009-01-cargos');
   assert.equal(actual.entregaPendiente,true);
-  assert.deepEqual(data.tandas.filter(x=>x.estado==="approved").map(x=>x.corto),["inc-2709-01-arranque-red"],"solo la revisión que sigue idéntica conserva el OK; la otra cambió con el guardado de la 4.26.94");
+  assert.deepEqual(data.tandas.filter(x=>x.estado==="approved").map(x=>x.corto),[],"la partición cambia también el lector de Arranque: ningún OK antiguo acredita la revisión actual");
+  assert.equal(data.tandas.find(x=>x.corto==="inc-2709-01-arranque-red").estado,"sin probar","Arranque conserva el historial pero exige revisión de la persistencia nueva");
   for(const id of soloWebIds) assert.equal(data.tandas.find(x=>x.corto===id).estado,"sin probar",id+" pide veredicto nuevo");
 });
 
@@ -322,7 +325,7 @@ t("★ el veredicto no saca nada del panel: aprobar no es publicar", () => {
   assert.deepEqual(ids(pack).sort(), ["9.9.3/nativa", "9.9.3/web-vieja", "9.9.4/web-nueva"]);
 });
 
-t("★ la fuente idéntica conserva OK; cinco cambios web/nativos y uno solo web conservan historia sin aprobar la revisión nueva", () => conNotas(betaNotes(historicalNotes), () => {
+t("★ la fuente idéntica conserva OK; cinco cambios web/nativos y uno solo web conservan historia sin aprobar la revisión nueva", () => conNotas(betaNotes(historicalNotes,baselineSource,baselineScopes), () => {
   const pack=cli.betaChecklist("4.26.75.1","4.26.67",48);
   for(const id of approvedIds) {
     const g=pack.tandas.find(x=>String(x.id).split("/").pop()===id);
@@ -366,7 +369,10 @@ t("★ la fuente idéntica conserva OK; cinco cambios web/nativos y uno solo web
 }));
 
 t("★ cada alias `desde` del repo lleva la huella del contenido y apunta a la MISMA tanda", () => {
-  const notas = betaNotes(JSON.parse(fs.readFileSync(new URL("../src/data/release-notes.json", import.meta.url), "utf8")));
+  // Los alias describen la fuente acreditada anterior, no una persistencia posterior.
+  // El control actual de abajo exige que un cambio de código invalide su aprobación.
+  const raw=JSON.parse(fs.readFileSync(new URL("../src/data/release-notes.json", import.meta.url), "utf8"));
+  const notas = betaNotes(raw,baselineSource,baselineScopes);
   for (const nota of notas) for (const g of nota.tandas || []) {
     if (!g.desde) continue;
     const calc = cli.betaHuella(g.id, cli.rnT(g.t,"es"), cli.rnItems(g,"es"), g.rev);
@@ -374,6 +380,8 @@ t("★ cada alias `desde` del repo lleva la huella del contenido y apunta a la M
     assert.equal(g.codigoDesde, g.codigo, `${nota.v}/${g.id}: el código cambió; retira el alias y exige veredicto nuevo`);
     assert.match(registered[g.id].auditoria.sha,/^[0-9a-f]{40}$/);
     for (const a of g.desde) assert.match(a, new RegExp("^\\d+\\.\\d+\\.\\d+/" + g.id + "$"), `${nota.v}/${g.id}: alias ajeno ${a}`);
+    const current=cli.betaTandas({tandas:[betaNotes([{v:nota.v,tandas:[raw.find(n=>n.v===nota.v).tandas.find(x=>x.id===g.id)]}])[0].tandas[0]]})[0];
+    if(current.codigo!==g.codigo)for(const alias of g.desde)assert.equal(cli.betaVerdictFor(current,[{tanda:alias,verdict:"approved"}]),null,"el alias histórico no aprueba la persistencia nueva");
   }
 });
 
