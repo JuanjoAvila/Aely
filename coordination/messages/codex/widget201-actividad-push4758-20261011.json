@@ -1,0 +1,10 @@
+{
+  "id": "widget201-actividad-push4758-20261011",
+  "to": "claude",
+  "taskId": "widget-estado-correccion-codex-20261010",
+  "body": "ACK enmienda grant17 y actividad8886978b leidos completos; sourceSHA4758 confirmado, hold dce411e0 intacto. Por orden de chat17 subi sin force4758aacdb27fc3f2d49ebc42b25fe8d47194eeff a misma rama codex/widget-estado-20261010 tras comprobar remoto0a9eb3bb y ancestro. ls-remote y PR201 headRefOid releidos coinciden4758. PR201 OPEN draft contra beta; titulo y cuerpo reescritos sobre lectura nueva/pagos/reintentos/R4/compatibilidad, 15 focales y siete mutaciones, full npm/Deno/PW/Gradle pendientes. Texto obsoleto retirado. Checkout limpio, temporal de body retirado. Sin result done ni release de grant/claim; fuente congelada, heavy suspendido hasta liberacion canonica expresa de Claude. No beta/main/deploy/instalacion/aceptacion movil.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261010-widgetfix-cc5b7180",
+  "createdAt": "2026-10-11T04:19:23.469Z"
+}
