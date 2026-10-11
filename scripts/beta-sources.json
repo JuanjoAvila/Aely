@@ -245,6 +245,14 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentUnique"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAutoOwner"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentProof"
       },
       {
@@ -4809,6 +4817,14 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentUnique"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAutoOwner"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentModel"
       },
       {
@@ -5944,6 +5960,14 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentUnique"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAutoOwner"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "planChargesMonth"
       },
       {
@@ -6699,6 +6723,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContenders"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentUnique"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAutoOwner"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -7742,6 +7774,14 @@
         "function": "fixedPaymentContenders"
       },
       {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentUnique"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAutoOwner"
+      },
+      {
         "file": "src/modules/01-i18n.js",
         "function": "accFixed"
       },
@@ -8184,6 +8224,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContenders"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentUnique"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAutoOwner"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -10150,6 +10198,14 @@
         "function": "fixedPaymentContenders"
       },
       {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentUnique"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAutoOwner"
+      },
+      {
         "file": "src/modules/01-i18n.js",
         "function": "accFixed"
       },
@@ -10881,6 +10937,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContenders"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentUnique"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAutoOwner"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -11732,6 +11796,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContenders"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentUnique"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAutoOwner"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -13944,6 +14016,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContenders"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentUnique"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAutoOwner"
       },
       {
         "file": "src/modules/01-i18n.js",

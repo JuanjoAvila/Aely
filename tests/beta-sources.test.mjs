@@ -248,7 +248,10 @@ test("Retiro109 elimina solo las cinco aprobadas entregadas y conserva todo el h
   const cache=new Map(),at=(sha,f)=>{const k=sha+":"+f;if(!cache.has(k))cache.set(k,execFileSync("git",["show",k],{encoding:"utf8",maxBuffer:10e6}));return cache.get(k);};
   const published=f=>at("b1ad23f34f2a94933e57246dfdf12c451f5360a1",f);
   const ids=["inc-0710-gastos-mes-madrid","inc-0710-appstate-listener-cleanup","inc-0710-banknotif-cleanup","inc-0710-auth-disposal","inc-0810-dashboard-recents-memo"];
-  for(const id of ids)assert.equal(betaRevision(id,read).web,betaRevision(id,published).web,id+": código idéntico al entregado");
+  // El retiro ya entregado se contrasta con su fuente y alcance inmutables; un fix posterior
+  // de Recibos no debe fingir que aquella entrega cambió (12/10/2026).
+  const retired=f=>at("f4ffb9340adfd0a13b631271e8158d2c630613c0",f),scopes=JSON.parse(retired("scripts/beta-sources.json"));
+  for(const id of ids)assert.equal(betaRevision(id,retired,undefined,scopes[id]).web,betaRevision(id,published,undefined,scopes[id]).web,id+": código idéntico al entregado");
   const before=JSON.parse(at("b1f871750469a5439ada6cea2284fc0ff407cd46","src/data/release-notes.json"));
   const expected=before.map(n=>Array.isArray(n.tandas)?{...n,tandas:n.tandas.filter(g=>!ids.includes(g.id))}:n);
   const actual=JSON.parse(at("f4ffb9340adfd0a13b631271e8158d2c630613c0","src/data/release-notes.json"));assert.deepEqual(actual,expected,"sólo se retiran esas cinco en109, sin borrar notas, pendientes ni rechazos");
