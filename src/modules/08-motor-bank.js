@@ -119,10 +119,13 @@ function fixedPaymentContenders(s,y,m){
     return {name:o.name,bank:o.account||"sabadell",amount:o.bankAmount>0?o.bankAmount:o.amount};
   }));
 }
-function fixedPaymentAutoOwner(s,e,y,m,bank,merchant,amount,category,book){
+function fixedPaymentUnique(s,e){
   // Un id repetido hacía que el ganador por nombre acreditara ambos registros (11/10).
-  // Sin una identidad única no hay forma de atribuir ese cargo con seguridad.
-  if(!e.id||(s.fixed||[]).filter(function(f){ return f.id===e.id; }).length!==1) return false;
+  // La misma guarda protege la confirmación y su prueba al viajar entre móviles.
+  return !!e.id&&(s.fixed||[]).filter(function(f){ return f.id===e.id; }).length===1;
+}
+function fixedPaymentAutoOwner(s,e,y,m,bank,merchant,amount,category,book){
+  if(!fixedPaymentUnique(s,e)) return false;
   var name=recNorm(merchant),best=-1,winners=[];
   fixedPaymentContenders(s,y,m).forEach(function(f){
     var n=recNorm(f.name),full=n.length>=4&&(" "+name+" ").indexOf(" "+n+" ")>=0;
@@ -140,7 +143,7 @@ function fixedPaymentAutoOwner(s,e,y,m,bank,merchant,amount,category,book){
 }
 function fixedPaymentProof(s,e,y,m,today){
   var p=e.paymentProofs&&e.paymentProofs[y*12+m];
-  if(!p||!p.identity||!(p.amount>0)||!p.bank||!occursIn(e,m)||p.model!==fixedPaymentModel(e,m)||!fixedPaymentDate(p.date,y,m,today)) return null;
+  if(!p||!fixedPaymentUnique(s,e)||!p.identity||!(p.amount>0)||!p.bank||!occursIn(e,m)||p.model!==fixedPaymentModel(e,m)||!fixedPaymentDate(p.date,y,m,today)) return null;
   if(p.kind!=="expense"&&p.kind!=="book") return null;
   if(p.kind==="expense"){
     if(!fixedPaymentFeedClear(s,p.identity)) return null;
@@ -170,7 +173,7 @@ function fixedPaymentProof(s,e,y,m,today){
 }
 function fixedExpenseEligible(s,x,e,y,m,today){
   var target=e.bankAmount>0?e.bankAmount:occAmountIn(e,m);
-  return !!x&&!x.possibleDup&&!x.debtId&&(!x.status||String(x.status).toUpperCase()==="BOOK")&&!!expenseBankOf(x)&&!CAT_NEUTRAS[x.category]&&x.category!=="ingreso"&&
+  return !!x&&fixedPaymentUnique(s,e)&&!x.possibleDup&&!x.debtId&&(!x.status||String(x.status).toUpperCase()==="BOOK")&&!!expenseBankOf(x)&&!CAT_NEUTRAS[x.category]&&x.category!=="ingreso"&&
     Number.isFinite(Number(x.amount))&&Number.isFinite(Number(target))&&Number(x.amount)>0&&target>0&&occursIn(e,m)&&
     fixedPaymentDate(x.date,y,m,today)&&!expenseIsTombstoned(x,expenseDeletedSet(s))&&fixedPaymentFeedClear(s,fixedPaymentIdentity(expenseBankOf(x),x))&&
     (s.expenses||[]).filter(function(r){ return fixedPaymentIdentity(expenseBankOf(r),r)===fixedPaymentIdentity(expenseBankOf(x),x); }).length===1;

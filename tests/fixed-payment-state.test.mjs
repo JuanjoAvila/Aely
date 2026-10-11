@@ -293,6 +293,16 @@ test("una identidad de recibo ausente o repetida no comparte el ganador por nomb
         const reconciled=c.reconcileFixedPaymentProofs(state,2026,9,30);
         assert.equal(reconciled.fixed.some(f=>c.fixedPaymentState(reconciled,f,2026,9,30).paid),false);
         assert.equal(JSON.stringify(state),before,"no repara ni modifica identidades al leer");
+        const manual=Object.assign({},row,{source:"manual:sabadell",merchant:"Cargo ficticio",obName:"Cargo ficticio"});
+        const ambiguous=Object.assign({},state,{bankTx:[],expenses:[manual]});
+        assert.equal(c.linkFixedPayment(ambiguous,manual.id,id,2026,9,30),ambiguous,"confirmar no multiplica una identidad ambigua");
+        const unique=Object.assign({},specific,{id:"prueba-unica"});
+        const linked=c.linkFixedPayment(Object.assign({},ambiguous,{fixed:[unique]}),manual.id,unique.id,2026,9,30);
+        const proof=linked.fixed[0].paymentProofs[2026*12+9];
+        const saved=Object.assign({},ambiguous,{fixed:bills.map(f=>Object.assign({},f,{paymentProofs:{[2026*12+9]:Object.assign({},proof,{model:c.fixedPaymentModel(f,9)})}}))});
+        for(const restored of [saved,c.slimForCloud(saved)]){
+          assert.equal(restored.fixed.some(f=>c.fixedPaymentState(restored,f,2026,9,30).paid),false,"una prueba guardada no comparte un identificador ambiguo, tampoco sin extracto");
+        }
       }
     }
   }
