@@ -123,6 +123,7 @@ const steps = [
   ["widget-unknown-journal", ["node", "tests/widget-unknown-journal.test.mjs"]],
   ["widget-notificacion-render", ["node", "tests/widget-notificacion-render.test.mjs"]],
   ["widget-inicio-paridad", ["node", "tests/widget-inicio-paridad.test.mjs"]],
+  ["widget-puente-ciclo", ["node", "tests/widget-puente-ciclo.test.mjs"]],
   ["ob-renombrar", ["node", "tests/ob-renombrar.test.mjs"]],
   ["divisa-original", ["node", "tests/divisa-original.test.mjs"]],
   ["wallet-notis", ["node", "tests/wallet-notis.test.mjs"]],

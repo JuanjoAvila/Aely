@@ -70,6 +70,7 @@ mi-cartera/
 ├── tests/backclose-history.test.mjs # Controlador y hook reales con cola de eventos History sintética
 ├── tests/widget-notificacion-render.test.mjs # Java real sobre preferencias APK52: notificación, registro, relectura y pintado
 ├── tests/widget-inicio-paridad.test.mjs # 1584 casos contra los lectores reales de Inicio: alcance, céntimos y presupuesto
+├── tests/widget-puente-ciclo.test.mjs # JSON real del puente → plugin → widget con el Java de las APK 52, 53 y 54 a la vez
 ├── tests/                  # Unitarios en Node (lógica, parsers, i18n, seguridad, frescura de doc,
 │                           #  sintaxis de las Edge Functions, despliegue manual de Supabase y presupuesto de rendimiento)
 ├── supabase/               # Postgres, Auth, Edge Functions
