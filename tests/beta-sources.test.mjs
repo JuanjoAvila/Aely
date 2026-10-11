@@ -146,7 +146,7 @@ test("Inicio v4.2 cubre flujos, ciclo, renderer, llamada, animación, textos, CS
     ["src/modules/02-ui-shared.js",'daily[day]=(daily[day]||0)-Math.round(e.amount*100)','daily[day]=(daily[day]||0)+Math.round(e.amount*100)'],
     ["src/modules/03-tab-dash.js",'const valid=typeof value==="number" && Number.isFinite(value);','const valid=true;'],
     ["src/modules/03-tab-dash.js",'p?p.sign+p.ent:"—"','p?p.sign+p.ent:"0"'],
-    ["src/modules/03-tab-dash.js",'const value=tt.netWorth, shown=shownNet','const value=0, shown=shownNet'],
+    ["src/modules/03-tab-dash.js",'const value=tt.netWorth, shown=useCountUp','const value=0, shown=useCountUp'],
     ["src/modules/03-tab-dash.js",'const tt=totals;','const tt={netWorth:0};'],
     ["src/modules/03-tab-dash.js",'useCountUp(tt.netWorth||0, splashGone)','useCountUp(tt.netWorth||0, true)'],
     ["src/modules/03-tab-dash.js",'!!(window.__mcSplashGone)','false'],
