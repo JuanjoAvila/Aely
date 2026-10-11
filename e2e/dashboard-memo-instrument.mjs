@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 /* Sólo altera la respuesta local del test. Ningún byte de producto se escribe.
    Las tres anclas completas fallan cerradas si cambia el contrato observado. */
 export const RECENT = 'const recent=(state.expenses||[]).filter(function(e){ return !expenseIsTombstoned(e,expenseDeletedSet(state)); }).sort(function(a,b){ return String(b.date).localeCompare(String(a.date)); }).slice(0,3);';
-export const DASH = 'function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProfile, onGoGastos, onGoPlan, showToast}){';
+export const DASH = 'function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGastos, onGoPlan, showToast}){';
 export const SYNC = 'const syncCloudExpenses=function(){';
 
 export const MEMO = 'const recent=useMemo((s=state)=>(s.expenses||[]).filter(e=>!expenseIsTombstoned(e,expenseDeletedSet(s))).sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,3),[state.expenses,state.deleted]);';

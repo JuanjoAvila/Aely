@@ -66,10 +66,27 @@ ni el resultado de una suite completa sobre esta base.
 
 ## Pendiente antes de entregar
 
-Claude liberó su reserva; Widget tiene el primer turno del runner. No se ha
-iniciado Playwright, npm completo, Gradle ni una prueba CPU ×6 en esta fase.
-Se necesita liberación verificada de Widget y grant propio nuevo; el grant
-anterior ya cerrado no autoriza estas ejecuciones. Módulo11 sigue intacto. Las causas de
-Bienes y Metas contra beta684, PR203, rendimiento y suites completas siguen
-pendientes. Los resultados Node son de esta fuente local y no acreditan otra
-revisión ni aceptación móvil. No hay publicación ni integración de este cierre.
+Widget liberó el recurso y el grant propio autorizó la fuente ae8edf51. npm completo
+terminó con salida1 en583,75 s: instrumento de recientes, beta-sources por el
+contrato histórico114, docs-frescura por código posterior al ancla versionada y
+presupuesto de tamaño. Las cinco suites Deno se ejecutaron con salida0; el runner
+no abrió Playwright porque ya había fallos de Node. La ruta de memoria inexistente
+produjo la omisión prevista del espejo privado, sin alterar su filtro.
+
+Se corrige la firma exacta que el instrumento busca en Dashboard, conservando sus
+controles de ancla ausente/duplicada, parser y callback real. La entrega histórica114
+se contrasta con su SHA8adba520; en la fuente actual se exige que todos los demás
+descriptores sigan idénticos y el guardián propio vigila el descriptor de Inicio.
+La prueba focal de Inicio incluye ahora esa comparación histórica relacionada.
+No se aflojan asserts de identidad, umbrales de rendimiento ni límites de tamaño.
+
+Los dos JSON públicos de catálogo/notas derivados por build se restauran a su
+contenido comprometido después del terminal y se retira el deno.lock creado por
+esta ejecución. Estos archivos de prueba no cambian las notas fuente ni su versión.
+Las nuevas correcciones sólo tocan instrumentación, tests y esta acta: el HTML de
+producto sigue igual al normalizar LF. Antes de repetir pruebas pesadas se publica
+y lee el nuevo SHA congelado, con actualización del grant por el delegado.
+
+Módulo11 sigue intacto. Las causas de Bienes y Metas contra beta684, PR203,
+rendimiento y suites de navegador siguen pendientes. Los resultados Node no
+acreditan otra revisión ni aceptación móvil. No hay integración de este cierre.

@@ -48,7 +48,7 @@ const boot="inc-2709-01-arranque-red";
 const modern=[{v:"4.26.69",tandas:[{id:boot}]}];
 let failed=0;
 const inicioOnly=process.argv.includes("--inicio-v42-only");
-function test(name,fn){ if(inicioOnly&&!name.startsWith("Inicio v4.2 "))return;try{fn();console.log("  ✓ "+name);}catch(e){failed++;console.error("  ✗ "+name+"\n    "+e.message);} }
+function test(name,fn){ if(inicioOnly&&!name.startsWith("Inicio v4.2 ")&&!name.startsWith("Catálogo114 "))return;try{fn();console.log("  ✓ "+name);}catch(e){failed++;console.error("  ✗ "+name+"\n    "+e.message);} }
 console.log("beta-sources");
 
 // La rayita comparte controlador y geometría con la barra: una aprobación de CSS aislada no
@@ -215,7 +215,6 @@ test("Inicio v4.2 cubre flujos, ciclo, renderer, llamada, animación, textos, CS
   const other='pt_trb_hint:"';
   assert.equal(betaRevision(id,f=>f==="src/modules/01-i18n.js"?source(f).replace(other,other+"· "):source(f)).web,before.web,"no absorbe ayuda financiera ajena");
 });
-if(inicioOnly)process.exit(failed?1:0);
 
 test("La integración112 histórica no cambia las otras unidades ni repina el rechazo109",()=>{
   const cache=new Map(),base=f=>{if(!cache.has(f))cache.set(f,execFileSync("git",["show","23a7808f65ef6d28e8a906f7100ffdf229917abb:"+f],{encoding:"utf8",maxBuffer:10e6}));return cache.get(f);};
@@ -413,7 +412,13 @@ test("Catálogo114 histórico añade sólo la tanda del solape y conserva notas,
   const inherited=structuredClone(notes);inherited[0].tandas[0].desde="inicio-grafica-vuelve";assert.throws(()=>verify(inherited),"no heredar una aprobación");
   const missing=structuredClone(notes);missing.pop();assert.throws(()=>verify(missing));
   const text=structuredClone(notes);text[1].items.es[0]+="mutante";assert.throws(()=>verify(text));
-  const scopes=JSON.parse(read("scripts/beta-sources.json")),oldScopes=JSON.parse(source113("scripts/beta-sources.json"));
+  // La comparación de la entrega114 usa su propio SHA; el descriptor de Inicio fue
+  // delegado después para v4.2, sin autorizar cambios en los demás alcances.
+  const source114=sourceAt("8adba5202a0444b386e3957a3c5ba499cf88e622");
+  const scopes=JSON.parse(source114("scripts/beta-sources.json")),oldScopes=JSON.parse(source113("scripts/beta-sources.json"));
+  const actualScopes=JSON.parse(read("scripts/beta-sources.json"));
+  assert.deepEqual(Object.keys(actualScopes),Object.keys(scopes),"la revisión de Inicio no añade ni retira alcances");
+  for(const [key,scope] of Object.entries(scopes))if(key!=="inicio-grafica-vuelve")assert.deepEqual(actualScopes[key],scope,key+": descriptor ajeno sigue intacto");
   assert.deepEqual(Object.keys(scopes).filter(key=>!oldScopes[key]),[id]);
   assert.deepEqual(Object.keys(oldScopes).filter(key=>!scopes[key]),[],"ningún alcance se retira");
   for(const [key,scope] of Object.entries(oldScopes))assert.deepEqual(scopes[key],scope,key+": descriptor ajeno intacto");
@@ -754,6 +759,7 @@ test("Splash117 conserva descriptor vivo, mutantes y retirada del panel",()=>{
   assert.equal(receipt.web[id],before.web,"la tanda vigente usa la fuente actual");
 });
 
+if(inicioOnly)process.exit(failed?1:0);
 test("Bienes113 vigila la puerta vacía, ficha, cancelación, borrado y textos",()=>{
   const source=f=>read(f).replace(/\r\n/g,"\n"),id="bienes-completo",before=betaRevision(id,source).web;
   for(const [file,from,to] of [
