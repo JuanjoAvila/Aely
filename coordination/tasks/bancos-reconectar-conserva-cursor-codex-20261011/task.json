@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "id": "bancos-reconectar-conserva-cursor-codex-20261011",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261011-536fb87f",
+  "createdAt": "2026-10-11T14:36:01.784Z",
+  "to": "codex",
+  "baseSHA": "9a7288125ca7984f4d01577cd9c9271e04c23ef4",
+  "objective": "Aprobado por el dueño el 11/10: reconectar un banco no puede borrar el punto desde el que se sincroniza. Hoy bank-callback deja last_sync a null al reconectar y la siguiente lectura trata el enlace como nuevo: lo que cayó entre la última sincronización y la reconexión puede quedar fuera. Sobre la rama claude/bancos-sin-hueco-r3 (9a728812), en PR aparte del encargo bancos-acuse-y-margen (coordinad ficheros entre los dos chats: este toca bank-callback, aquel bank-sync).",
+  "scope": [
+    "supabase/functions/bank-callback (fuente y tests)",
+    "supabase/functions/bank-sync solo si la lectura del cursor heredado lo exige",
+    "tests Deno y Node propios"
+  ],
+  "acceptance": [
+    "Al reconectar el MISMO banco y las mismas cuentas, el cursor anterior se conserva y la siguiente sincronización recupera el hueco entero con el tramo por trozos ya existente: cero perdidos, cero duplicados (dedup por ext_id).",
+    "Si tras reconectar cambian las cuentas (alta o baja de una cuenta), las nuevas arrancan como nuevas y las que siguen conservan su cursor; ninguna hereda el de otra.",
+    "Banco distinto o enlace nuevo de verdad: comportamiento igual que hoy.",
+    "Tests sobre los handlers reales con hueco de 10 y 60 días entre última sincronización y reconexión. Sin migración SQL si es posible; si exige columna nueva, parar y consultar con un message con consulta en el id.",
+    "Result con SHA, conteos y orden de despliegue."
+  ],
+  "restrictions": [
+    "Datos sintéticos; repo público",
+    "Sin merge ni push a beta o main; sin desplegar",
+    "Sin VERSION, catálogos ni notas",
+    "Runner pesado solo con el cerrojo en disco aely-runner.lock de la unidad E"
+  ],
+  "authorization": "Aprobado expresamente por el dueño el 11/10 (arreglar lo que se encuentre sin pedir permiso)."
+}
