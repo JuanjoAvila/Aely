@@ -125,7 +125,7 @@ export const E2E_MAP = [
     "e2e/revisar-beta.spec.mjs", "e2e/beta-panel-reopen.spec.mjs", "e2e/ajustes-versiones.spec.mjs", "e2e/widget-banco.spec.mjs", "e2e/ajustes-importaciones.spec.mjs",
     "e2e/tour-tutorial.spec.mjs", "e2e/modo-pruebas.spec.mjs", "e2e/tr-aviso.spec.mjs",
     "e2e/presupuesto-bancos.spec.mjs", "e2e/quitar-banco.spec.mjs",
-    "e2e/bancos-quitar-pending.spec.mjs",
+    "e2e/bancos-quitar-pending.spec.mjs", "e2e/bancos-hueco-sync.spec.mjs",
     "e2e/hist-pagos-mensuales.spec.mjs",
     "e2e/bancos-historico-filtro.spec.mjs",
     "e2e/hist-visor.spec.mjs", "e2e/plan-gestionar.spec.mjs",

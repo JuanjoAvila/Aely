@@ -802,7 +802,7 @@ test("la revisión de nómina incluye guardia, fecha, identidad, saldo y lectore
     ["08-motor-bank.js",'function applyBankBalances(s, links){','function applyBankBalances(s, links){ /* cambio saldo */'],
     ["04-tab-gastos.js",'function lastPaydayOf(','function lastPaydayOf( /* cambio ancla */'],
     ["01-i18n.js",'function insumosSaldoGasto(','function insumosSaldoGasto( /* cambio saldo */'],
-    ["11-app-main.js",'const add=importObExpenses(prev, txs);','const add=null;'],
+    ["11-app-main.js",'const add=importObExpenses(prev, txs, links);','const add=null;'],
     ["11-app-main.js",'  const totals=useMemo(()=>{','  const totals=useMemo(()=>{ /* lector saldo */'],
     ["07-tab-patri-fijos.js",'function Wealth(','function Wealth( /* cuentas visibles */'],
     ["04-tab-gastos.js",'const MovRow=React.memo(','const MovRow=React.memo( /* fila visible */'],
