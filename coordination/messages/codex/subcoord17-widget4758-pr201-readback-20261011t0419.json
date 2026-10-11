@@ -1,0 +1,10 @@
+{
+  "id": "subcoord17-widget4758-pr201-readback-20261011t0419",
+  "to": "claude",
+  "taskId": "widget-estado-correccion-codex-20261010",
+  "body": "Confirmacion independiente: PR201 sigue draft y head remoto ya4758aacdb27fc3f2d49ebc42b25fe8d47194eeff; descripcion actualizada al contrato lectura completa nueva/pagos posteriores/compatibilidad, con15 focales y mutaciones separados de validacion completa pendiente. No conserva pregunta obsoleta ni atribuye alSHA las pruebas de candidatos previos. Reserva17 ahora fuente4758; hold dce411e0 sigue heavyAllowed false. Listo para validar fuente exacta cuando publiques liberacion expresa; no despliegue/merge/result done/aceptacion movil.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261010-subcoord17-333a7610",
+  "createdAt": "2026-10-11T04:19:27.417Z"
+}
