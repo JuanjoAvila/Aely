@@ -4,7 +4,10 @@ import { loadPureLogicFromFile } from "../scripts/load-pure-logic.mjs";
 
 const ctx = loadPureLogicFromFile();
 const day = (delta) => new Date(Date.now() + delta * 86400000).toISOString().slice(0, 10);
-const floors = { caixabank: day(-60), sabadell: day(-60) };
+// El suelo llega como en la respuesta del sync: un `syncFrom` por enlace.
+const links = [{ aspsp: "CaixaBank", syncFrom: day(-60) }, { aspsp: "Banco de Sabadell", syncFrom: day(-60) }];
+const main = fs.readFileSync(new URL("../src/modules/11-app-main.js", import.meta.url), "utf8");
+const core = fs.readFileSync(new URL("../src/modules/00-core.js", import.meta.url), "utf8");
 
 function cartera(expenses) {
   return {
@@ -46,7 +49,7 @@ t("dos bancos: el hueco entra con su fecha y no duplica noti, mano ni histórico
     tx("sabadell", viejo, 3.4, "Panadería Sol", "sb-nueva"),
     tx("sabadell", viejo, 22.15, "Mercadona", "sb-mismo-importe"),
   ];
-  const add = ctx.importObExpenses(cartera(seeded), lote, { syncFromByEnt: floors }) || [];
+  const add = ctx.importObExpenses(cartera(seeded), lote, links) || [];
   const names = add.map((e) => e.ent + "|" + e.merchant).sort();
   // Farmacia Norte ya está modelada como fijo: el tramo antiguo no la duplica como gasto.
   assert.equal(JSON.stringify(names), JSON.stringify(["sabadell|Mercadona", "sabadell|Panadería Sol"]));
@@ -55,59 +58,77 @@ t("dos bancos: el hueco entra con su fecha y no duplica noti, mano ni histórico
   assert.equal(pan.date.slice(0, 10), viejo);
   assert.equal(pan.source, "ob");
   assert.equal(pan.extId, "sb-nueva");
-  const otra = ctx.importObExpenses(cartera(seeded.concat(add)), lote, { syncFromByEnt: floors });
+  const otra = ctx.importObExpenses(cartera(seeded.concat(add)), lote, links);
   assert.equal(otra, null);
+});
+
+t("el suelo es por banco: el de uno no abre el tramo de otro y con dos enlaces gana el más antiguo", () => {
+  const viejo = day(-40);
+  const lote = [tx("caixabank", viejo, 8, "Librería", "cx-lib"), tx("sabadell", viejo, 9, "Quiosco", "sb-q")];
+  const soloCaixa = ctx.importObExpenses(cartera([]), lote, [{ aspsp: "CaixaBank", syncFrom: day(-60) }, { aspsp: "Banco de Sabadell" }]) || [];
+  assert.equal(JSON.stringify(soloCaixa.map((e) => e.merchant)), JSON.stringify(["Librería"]));
+  const corto = ctx.importObExpenses(cartera([]), lote, [{ aspsp: "CaixaBank", syncFrom: day(-20) }]);
+  assert.equal(corto, null, "lo anterior al suelo no entra");
+  const dos = ctx.importObExpenses(cartera([]), lote, [{ aspsp: "CaixaBank", syncFrom: day(-20) }, { aspsp: "CaixaBank", syncFrom: day(-60) }]) || [];
+  assert.equal(dos.length, 1);
 });
 
 t("el suelo colgado en el estado no entra: hace falta pasarlo", () => {
   const s = cartera([]);
-  s._obSyncFrom = floors;
+  s._obSyncFrom = { caixabank: day(-60) };
   const add = ctx.importObExpenses(s, [tx("caixabank", day(-40), 8, "Librería", "cx-lib")]);
   assert.equal(add, null);
-  assert.deepEqual(s._obSyncFrom, floors);
+});
+
+t("llamado dos veces con lo mismo devuelve lo mismo: no hay suelo que se gaste", () => {
+  const lote = [tx("caixabank", day(-40), 8, "Librería", "cx-lib")];
+  const una = ctx.importObExpenses(cartera([]), lote, links) || [];
+  const otra = ctx.importObExpenses(cartera([]), lote, links) || [];
+  assert.equal(una.length, 1);
+  assert.equal(otra.length, 1);
+  assert.equal(otra[0].extId, "cx-lib");
 });
 
 t("cliente nuevo con función vieja: sin syncFrom no entra lo anterior al margen ni se duplica lo de dentro", () => {
   const dentro = day(-2), fuera = day(-45);
+  const viejos = [{ aspsp: "CaixaBank" }, { aspsp: "Banco de Sabadell" }];
   const primero = ctx.importObExpenses(cartera([]), [
     tx("caixabank", dentro, 11, "Dentro", "cx-in"),
     tx("caixabank", fuera, 12, "Fuera", "cx-out"),
     tx("sabadell", dentro, 11, "Dentro", "sb-in"),
-  ]) || [];
+  ], viejos) || [];
   assert.equal(JSON.stringify(primero.map((e) => e.ent + "|" + e.merchant).sort()), JSON.stringify(["caixabank|Dentro", "sabadell|Dentro"]));
   assert.equal(ctx.importObExpenses(cartera(primero), [
     tx("caixabank", dentro, 11, "Dentro", "cx-in"),
     tx("sabadell", dentro, 11, "Dentro", "sb-in"),
-  ]), null);
+  ], viejos), null);
 });
 
-t("función nueva con cliente viejo: el suelo no se aplica si nadie lo pasó", () => {
-  const s = cartera([]);
-  const add = ctx.importObExpenses(s, [tx("caixabank", day(-45), 4, "Viejo", "cx-old")]);
-  assert.equal(s._obSyncFrom, undefined);
-  assert.equal(add, null);
+// El llamador de verdad: se ejecutan las dos sentencias de runBankSync tal como están
+// escritas. Si deja de pasar la respuesta al importador, el tramo se tira y esto lo ve.
+t("runBankSync pasa el suelo de la respuesta al importador", () => {
+  const m = main.match(/const txs=flattenBankTx\(links\);[\s\S]*?const add=importObExpenses\([^;]*\);/);
+  assert.ok(m, "no se encuentra la llamada en runBankSync");
+  const run = new Function("flattenBankTx", "importObExpenses", "prev", "links", m[0] + " return add;");
+  const viejo = day(-40);
+  const respuesta = [{
+    aspsp: "CaixaBank", ok: true, syncFrom: day(-60),
+    accounts: [{ uid: "cx", ok: true, transactions: [{ ext_id: "cx-lib", date: viejo, amount: 8, merchant: "Librería", status: "BOOK", card: true }] }],
+  }];
+  const add = run(ctx.flattenBankTx, ctx.importObExpenses, cartera([]), respuesta) || [];
+  assert.equal(add.length, 1);
+  assert.equal(add[0].date.slice(0, 10), viejo);
 });
 
-t("el llamador pide recoverGaps y no dateFrom", () => {
-  const main = fs.readFileSync(new URL("../src/modules/11-app-main.js", import.meta.url), "utf8");
-  const core = fs.readFileSync(new URL("../src/modules/00-core.js", import.meta.url), "utf8");
-  assert.match(core, /\{recoverGaps:true\}/);
-  assert.match(main, /cloud\.bankSync\(\)/);
+t("el cliente pide recoverGaps por el cliente de siempre, sin dateFrom y sin adivinar quién pulsó", () => {
+  assert.match(core, /invoke\('bank-sync',\{body:\{recoverGaps:!!recoverGaps\}\}\)/);
+  assert.match(main, /cloud\.bankSync\(true\)/);
   assert.doesNotMatch(main, /bankSync\(\{[^)]*dateFrom/);
-  assert.doesNotMatch(core, /invoke\('bank-sync',\{body:\{[^}]*dateFrom/);
-});
-
-t("un hueco por encima de 90 días nombra el banco y solo ese", () => {
-  const parts = ctx.obGapParts([
-    { aspsp: "CaixaBank", gapBeyondCap: true, syncFrom: "2026-07-12" },
-    { aspsp: "Banco de Sabadell", gapBeyondCap: false, syncFrom: "2026-09-01" },
-    { aspsp: "CaixaBank", gapBeyondCap: true },
-  ]);
-  assert.equal(JSON.stringify(parts.names), JSON.stringify(["CaixaBank"]));
-  assert.equal(ctx.obGapParts([
-    { aspsp: "CaixaBank", syncFrom: "2026-07-12" },
-    { aspsp: "Banco de Sabadell", syncFrom: "2026-09-01" },
-  ]).floors.sabadell, "2026-09-01");
+  assert.equal((core.match(/createClient\(/g) || []).length, 1, "un solo cliente de Supabase");
+  assert.doesNotMatch(core, /addEventListener\("click"[\s\S]{0,400}sincronizar bancos/);
+  for (const src of [core, main, fs.readFileSync(new URL("../src/modules/08-motor-bank.js", import.meta.url), "utf8")]) {
+    assert.doesNotMatch(src, /obGap(Manual|Floors|Summary|Client)|importObCore|reconcileBankCore|listaAvisosCore/);
+  }
 });
 
 if (failures) process.exitCode = 1;

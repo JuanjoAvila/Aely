@@ -746,7 +746,12 @@ function reconcileBank(state, y, m, today){
   // como "aún no aparece" — se buscan también ahí y cuentan como confirmados.
   const prevY=(m===1)?y-1:y, prevM=(m===1)?12:m-1;
   const pym=prevY+"-"+(prevM<10?"0":"")+prevM;
-  const prevTail=tx.filter(function(t){ return String(t.date||"").slice(0,7)===pym && obEnts[t.ent] && (t.amount||0)>0 && (recDay(t.date)||0)>=15; })
+  /* Para el mes EN CURSO la cola no pasa de la ventana de siempre. Hasta el tramo recuperado
+     (INC-2709-06) `bankTx` nunca traía nada anterior, así que «día ≥15» eran en la práctica los
+     últimos 8 días; con el tramo dentro, el alquiler del 18 pasado daba por pagado el de este
+     mes. Un mes ya cerrado conserva su cola entera. */
+  const hoy=new Date(), corte=(hoy.getFullYear()===y && hoy.getMonth()+1===m) ? dayKey(obSom()) : "";
+  const prevTail=tx.filter(function(t){ return String(t.date||"").slice(0,7)===pym && obEnts[t.ent] && (t.amount||0)>0 && (recDay(t.date)||0)>=15 && String(t.date)>=corte; })
     .map(function(t){ return Object.assign({},t); });
   // avisos que el usuario ha ocultado ("Ocultar aviso") y movimientos ignorados
   const dismissed={}; (state.bankDismissed||[]).forEach(function(k){ dismissed[k]=1; });
@@ -869,7 +874,9 @@ function flattenBankTx(links){
    En bancos fuera de gasto diario: también cualquier cargo (misma exclusión de modelados).
 
    INGRESOS: de cualquier banco (para «Mi ciclo»). Idempotente por ext_id + dedup. */
-function importObExpenses(s, txs){
+// Corte de la ventana de siempre: día 1 del mes menos 8 días (el porqué, dentro de importObExpenses).
+function obSom(){ return new Date(startOfMonth().getTime() - 8*86400000); }
+function importObExpenses(s, txs, links){
   if(!txs || !txs.length) return null;
   const ents=expenseBankEnts(s);
   const allow={}; ents.forEach(function(e){ allow[e]=1; });
@@ -886,7 +893,19 @@ function importObExpenses(s, txs){
      8 días —y no 45— a propósito: cubre el borde de fin de mes sin arrastrar meses enteros de
      histórico en cada sync. Los duplicados que esto pueda rozar ya los para la red de arriba
      (mismo importe ±3 días contra lo que entró por otra vía) más el dedup por ext_id y clave. */
-  const som=new Date(startOfMonth().getTime() - 8*86400000);
+  const som=obSom();
+  /* TRAMO RECUPERADO (INC-2709-06). Quien pasaba semanas sin sincronizar perdía para siempre lo
+     anterior a `som`. Ahora el servidor lo lee y dice desde qué día (`syncFrom`, por banco): ese
+     suelo llega aquí en `links`, la propia respuesta del sync, sin nada guardado por el camino,
+     porque el updater que llama puede ejecutarse dos veces. Sin suelo —función vieja, o un
+     llamador que no lo pasa— lo anterior a `som` se sigue tirando como siempre. */
+  const floors={};
+  (links||[]).forEach(function(l){
+    const ent=entFromAspsp(l&&l.aspsp), d=l&&l.syncFrom;
+    if(ent && typeof d==="string" && !(floors[ent]<=d)) floors[ent]=d;
+  });
+  const viejo=function(tx){ return parseDate(tx.date)<som; };
+  const fuera=function(tx){ return viejo(tx) && !(floors[tx.ent]<=tx.date); };
   /* `entry_reference` solo es única DENTRO de su banco. Sin entidad, un id de Sabadell podía
      hacer desaparecer un movimiento distinto de Caixa. La identidad local mínima es banco+id. */
   const seen={}, seenLegacy={}; (s.expenses||[]).forEach(function(e){
@@ -942,16 +961,26 @@ function importObExpenses(s, txs){
   const now=new Date(), ym=now.getMonth()+1, yy=now.getFullYear();
   const today=madridYmdParts(now.getTime());
   const todayKey=today.ym+"-"+String(today.d).padStart(2,"0");
-  const modeledByEnt={};
-  const pushModeled=function(ent,name,amount,debtId){ if(!ent||!(amount>0)) return; (modeledByEnt[ent]=modeledByEnt[ent]||[]).push({name:name,amount:amount,debtId:debtId||null}); };
-  (s.fixed||[]).forEach(function(f){ if(occursIn(f,ym)) pushModeled(accOf(f), f.name, occAmountIn(f,ym)); });
-  (s.debts||[]).forEach(function(d){ if(debtActive(d)) pushModeled(d.account||"sabadell", d.name||"Cuota", (d.monthly||0)+debtBalloonIn(d,yy,ym), d.id); });
-  (s.oneoffs||[]).forEach(function(o){ if(oneoffOccurs(o,yy,ym)) pushModeled(o.account||"sabadell", o.name||"Cargo", o.amount||0); });
+  /* El tramo recuperado casa contra TODO lo modelado (`modeledOld`), toque o no este mes: el
+     seguro anual de agosto o el recibo bimestral del mes pasado también son fijos que ya se
+     cuentan por su lado, y con la lista del mes en curso entraban otra vez como gasto. */
+  const modeledByEnt={}, modeledOld={};
+  const pushModeled=function(map,ent,name,amount,debtId){ if(!ent||!(amount>0)) return; (map[ent]=map[ent]||[]).push({name:name,amount:amount,debtId:debtId||null}); };
+  (s.fixed||[]).forEach(function(f){
+    if(occursIn(f,ym)) pushModeled(modeledByEnt, accOf(f), f.name, occAmountIn(f,ym));
+    const meses=chargeMonths(f);
+    (meses.length?meses:[ym]).forEach(function(mm){ pushModeled(modeledOld, accOf(f), f.name, occAmountIn(f,mm)); });
+  });
+  (s.debts||[]).forEach(function(d){ if(debtActive(d)) pushModeled(modeledByEnt, d.account||"sabadell", d.name||"Cuota", (d.monthly||0)+debtBalloonIn(d,yy,ym), d.id); });
+  (s.oneoffs||[]).forEach(function(o){
+    if(oneoffOccurs(o,yy,ym)) pushModeled(modeledByEnt, o.account||"sabadell", o.name||"Cargo", o.amount||0);
+    pushModeled(modeledOld, o.account||"sabadell", o.name||"Cargo", o.amount||0);
+  });
   /* QUÉ casó, no solo SI casó (4.21.0). Un Fijo o un puntual casado se sigue tirando como siempre;
      una DEUDA casada ya NO se tira: entra y `marcarCuotasDeDeuda` la pone en «Deudas», fuera del
      gastado. Si casan las dos cosas, gana el descarte de siempre. */
-  const modeledHit=function(ent,merchant,amount){
-    const hits=(modeledByEnt[ent]||[]).filter(function(mm){ return recAmtClose(mm.amount,amount) && recNameMatch(mm.name,merchant); });
+  const modeledHit=function(map,ent,merchant,amount){
+    const hits=(map[ent]||[]).filter(function(mm){ return recAmtClose(mm.amount,amount) && recNameMatch(mm.name,merchant); });
     if(!hits.length) return null;
     return hits.find(function(mm){ return !mm.debtId; }) || hits[0];
   };
@@ -968,7 +997,7 @@ function importObExpenses(s, txs){
       if(!parts) return;
       const day=new Date(Number(parts[1]),Number(parts[2])-1,Number(parts[3]),12);
       if(dayKey(day)!==date || date>todayKey) return;
-      if(!tx.date || parseDate(tx.date)<som) return;
+      if(fuera(tx)) return;
       if(tx.id && (seen[(tx.ent||"")+"|"+tx.id]||seenLegacy[tx.id])) return;
       const e={ id:mcExpenseId(), date:new Date(tx.date+"T12:00:00").toISOString(),
         merchant:tx.merchant||"Ingreso", amount:tx.amount,
@@ -987,12 +1016,14 @@ function importObExpenses(s, txs){
       return;
     }
     // GASTO: entra de cualquier banco. Fijos y puntuales modelados no se duplican; las deudas se marcan.
-    const mod=modeledHit(tx.ent, tx.merchant, tx.amount);
+    if(!tx.date || fuera(tx)) return;
+    const antiguo=viejo(tx);
+    const mod=modeledHit(antiguo?modeledOld:modeledByEnt, tx.ent, tx.merchant, tx.amount);
     if(mod && !mod.debtId) return;
-    if(!tx.date || parseDate(tx.date)<som) return;
     if(tx.id && (seen[(tx.ent||"")+"|"+tx.id]||seenLegacy[tx.id])) return;
     const esDiario=tx.ent===dailyEnt;
-    const esAporteInv = esDiario && daily && daily.monthlyInvest>0 && Math.abs(tx.amount-daily.monthlyInvest)<0.01;
+    // El aporte de hace dos meses ya se compró en su día o ya no toca: se apunta, pero no compra.
+    const esAporteInv = !antiguo && esDiario && daily && daily.monthlyInvest>0 && Math.abs(tx.amount-daily.monthlyInvest)<0.01;
     const e={ id:mcExpenseId(), date:new Date(tx.date+"T12:00:00").toISOString(),
       merchant:tx.merchant||"Compra", amount:tx.amount,
       category: esAporteInv ? "inversion" : categoryOfBankTx(tx), source:"ob", ent:tx.ent };
@@ -1009,136 +1040,6 @@ function importObExpenses(s, txs){
   });
   return add.length? add : null;
 }
-
-/* El tramo anterior a la ventana de siempre no puede vivir dentro de importObExpenses
-   ni de reconcileBank: esas funciones ya están en la huella de otras tandas. El suelo
-   entra solo por opts.syncFromByEnt (o por el recuerdo que deja bankSync). Escribir
-   prev._obSyncFrom dentro del updater no cuenta: si el llamador no pasa el suelo, el
-   cargo viejo no entra. */
-var obGapFloors = null;
-var obGapSummary = null;
-var obGapManual = false;
-function obGapMarkManual(){ obGapManual = true; }
-function obGapRemember(floors){ obGapFloors = floors || null; }
-function obGapTakeFloors(){
-  var floors = obGapFloors;
-  obGapFloors = null;
-  return floors;
-}
-function obGapParts(links){
-  var floors = {}, names = [], seen = {};
-  (links || []).forEach(function(l){
-    if(!l) return;
-    if(typeof l.syncFrom === "string" && /^\d{4}-\d{2}-\d{2}$/.test(l.syncFrom)){
-      var ent = entFromAspsp(l.aspsp);
-      if(ent && (!floors[ent] || l.syncFrom < floors[ent])) floors[ent] = l.syncFrom;
-    }
-    if(l.gapBeyondCap !== true) return;
-    var ent2 = entFromAspsp(l.aspsp);
-    var label = ent2 ? entOf(ent2).label : String(l.aspsp || "").trim();
-    if(!label || seen[label]) return;
-    seen[label] = 1;
-    names.push(label);
-  });
-  return {floors:floors, names:names};
-}
-function obGapNoteFromLinks(data, manual){
-  var parts = obGapParts((data && data.links) || []);
-  obGapFloors = parts.floors;
-  obGapSummary = (manual && parts.names.length) ? ("⚠ " + tf("bank_gap_title", {bank:parts.names.join(", ")}) + " " + t("bank_gap_sub")) : null;
-  if(!obGapSummary) return;
-  var asked = parts.names.slice();
-  setTimeout(function(){
-    if(typeof document !== "undefined" && document.querySelector && document.querySelector(".askback")) return;
-    askConfirm({
-      title: tf("bank_gap_title", {bank:asked.join(", ")}),
-      sub: t("bank_gap_sub"),
-      ok: t("bp_hist_btn")
-    }).then(function(yes){
-      if(!yes) return;
-      try{ window.dispatchEvent(new CustomEvent("mc-open-settings")); }catch(e){}
-      setTimeout(function(){
-        try{ window.dispatchEvent(new CustomEvent("mc-open-history")); }catch(e){}
-      }, 200);
-    });
-  }, 0);
-}
-function obDemandSom(){ return new Date(startOfMonth().getTime() - 8*86400000); }
-/* El tramo viejo reutiliza el importador de siempre: si no, cada regla nueva
-   (dedup, fijo, deuda) habría que copiarla y el bundle no cabe. `parseDate` es
-   reasignable (no es const). Mientras dura la llamada, una fecha anterior al
-   margen parece el margen, así que el corte no la tira; la fila guarda la fecha
-   real, que se construye con `new Date(texto)`, no con `parseDate`. El aporte
-   no puede comprar: la cuenta clonada lleva monthlyInvest a 0. */
-function importObGapStretch(s, txs, already){
-  if(!txs || !txs.length) return null;
-  var real = parseDate, som = obDemandSom(), add;
-  parseDate = function(v){ var d = real(v); return d < som ? som : d; };
-  try{
-    add = importObCore(Object.assign({}, s, {
-      accounts:(s.accounts||[]).map(function(a){ return a && a.monthlyInvest ? Object.assign({}, a, {monthlyInvest:0}) : a; }),
-      expenses:(s.expenses||[]).concat(already||[])
-    }), txs);
-  }finally{ parseDate = real; }
-  if(!add) return null;
-  var otras = (s.expenses||[]).filter(function(e){ return e && e.source !== "ob" && e.source !== "ob-hist"; });
-  var used = {};
-  return add.map(function(e){
-    // El gemelo de dentro se calculó con la fecha fingida: se descarta y se mira otra vez con la real.
-    var out = Object.assign({}, e);
-    delete out.possibleDup; delete out.possibleDupOf;
-    if(out.category === "inversion") out.category = categoryOfBankTx(out);
-    if(!sinComercioReal(out.merchant) || !out.ent) return out;
-    var ms = real(out.date).getTime();
-    var i = otras.findIndex(function(x, n){
-      if(used[n] || expenseBankOf(x) !== out.ent || Math.abs((x.amount||0) - out.amount) > 0.005) return false;
-      return Math.abs(dateMs(x.date) - ms) <= DUP_DIAS_MS;
-    });
-    if(i < 0) return out;
-    used[i] = 1;
-    return Object.assign({}, out, {possibleDup:true, possibleDupOf:otras[i].id});
-  });
-}
-var importObCore = importObExpenses;
-importObExpenses = function(s, txs, opts){
-  const floors = (opts && opts.syncFromByEnt) || obGapTakeFloors();
-  if(!txs || !txs.length || !floors) return importObCore(s, txs);
-  const som = obDemandSom();
-  const recent = [], gap = [];
-  txs.forEach(function(tx){
-    const ymd = floors && tx && tx.ent ? floors[tx.ent] : null;
-    const floor = (typeof ymd === "string" && /^\d{4}-\d{2}-\d{2}$/.test(ymd)) ? parseDate(ymd) : null;
-    const when = tx && tx.date ? parseDate(tx.date) : null;
-    if(floor && when && when >= floor && when < som) gap.push(tx);
-    else recent.push(tx);
-  });
-  const addRecent = recent.length ? (importObCore(s, recent) || []) : [];
-  const addGap = gap.length ? (importObGapStretch(s, gap, addRecent) || []) : [];
-  const all = addRecent.concat(addGap);
-  return all.length ? all : null;
-};
-var reconcileBankCore = reconcileBank;
-// Solo el mes en curso: un cargo de julio sigue confirmando julio. El de antes
-// del margen no puede dar por pagado el recibo de este mes (el día 18 anterior,
-// con hoy día 10, cae en la cola del mes pasado y antes salía confirmed).
-reconcileBank = function(state, y, m, today){
-  var now = new Date();
-  if(!state || !state.bankTx || y !== now.getFullYear() || m !== now.getMonth() + 1) return reconcileBankCore(state, y, m, today);
-  var som = obDemandSom(), kept = [];
-  state.bankTx.forEach(function(t){
-    if(t && t.date && parseDate(String(t.date).slice(0, 10)) < som) return;
-    kept.push(t);
-  });
-  if(kept.length === state.bankTx.length) return reconcileBankCore(state, y, m, today);
-  return reconcileBankCore(Object.assign({}, state, {bankTx:kept}), y, m, today);
-};
-var listaAvisosCore = listaAvisosSync;
-listaAvisosSync = function(list){
-  var rows = listaAvisosCore(list);
-  if(obGapSummary && rows.indexOf(obGapSummary) < 0) rows = rows.concat([obGapSummary]);
-  obGapSummary = null;
-  return rows;
-};
 
 /* LAS CUOTAS DE TUS DEUDAS, EN «DEUDAS» (4.21.0).
    Idea suya del 12/9. Medido con sus datos antes de picar: NINGUNA cuota casa por nombre. El

@@ -3625,9 +3625,12 @@ const cloud = (function(){
       return data.aspsps||[];
     },
     // Trae saldo (+ movimientos, que en Capa 2 ignoramos) de los bancos enlazados.
-    async bankSync(){
+    // `recoverGaps` avisa al servidor de que este cliente guarda también lo anterior a la
+    // ventana de siempre (INC-2709-06); una función vieja ignora el campo. No es `dateFrom`:
+    // eso abriría el histórico de solo lectura, que no toca saldos.
+    async bankSync(recoverGaps){
       if(!sb) throw new Error("nube no disponible");
-      const {data,error}=await sb.functions.invoke('bank-sync');
+      const {data,error}=await sb.functions.invoke('bank-sync',{body:{recoverGaps:!!recoverGaps}});
       if(error) throw error;
       if(!data || !data.ok) throw new Error((data&&data.error)||"sync falló");
       return data;   // { ok, dryRun, links:[{aspsp, iban, balances, transactions}] }
@@ -3895,38 +3898,6 @@ const cloud = (function(){
     },
   };
 })();
-
-/* recoverGaps no puede vivir dentro de cloud.bankSync: ese objeto entero entra en la
-   huella de otras tandas. Un segundo cliente lee la misma sesión (misma URL) y manda
-   el campo que una función vieja ignora. No es dateFrom: eso abriría el histórico. */
-var obGapClient = null;
-var bankSyncSinHueco = cloud.bankSync.bind(cloud);
-cloud.bankSync = async function(body){
-  var manual = typeof obGapManual !== "undefined" && obGapManual;
-  if(typeof obGapManual !== "undefined") obGapManual = false;
-  var payload = (body && typeof body === "object") ? body : {recoverGaps:true};
-  var via = null;
-  try{
-    var lib = (typeof window !== "undefined") ? window.supabase : null;
-    if(lib && lib.createClient && CONFIG.SUPABASE_URL && CONFIG.SUPABASE_ANON_KEY){
-      if(!obGapClient) obGapClient = lib.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
-      via = await obGapClient.functions.invoke('bank-sync', {body:payload});
-    }
-  }catch(e){ via = null; }
-  if(!via) return bankSyncSinHueco();
-  if(via.error) throw via.error;
-  if(!via.data || !via.data.ok) throw new Error((via.data && via.data.error) || "sync falló");
-  if(typeof obGapNoteFromLinks === "function") obGapNoteFromLinks(via.data, manual);
-  return via.data;
-};
-if(typeof window !== "undefined" && window.addEventListener){
-  window.addEventListener("click", function(ev){
-    var el = ev.target && ev.target.closest ? ev.target.closest("button") : null;
-    if(!el || typeof obGapMarkManual !== "function") return;
-    var name = String(el.getAttribute("aria-label") || el.textContent || "").replace(/\s+/g, " ").trim().toLowerCase();
-    if(/sincronizar bancos|sync banks|sincronitza els bancs|actualizar todos|refresh all|actualitza tots/.test(name)) obGapMarkManual();
-  }, true);
-}
 
 /* Escritura de gastos a la nube CON rastro (2026-09-11). Antes cada sitio hacia
    `.catch(function(){})` y la fila se quedaba solo en el movil -> widget != app
@@ -6056,8 +6027,8 @@ Object.assign(LANG.es,{
   bank_read_partial:"{bank}: la descarga está incompleta. Lo recibido se conserva, pero pueden faltar movimientos.",
   bank_read_empty:"{bank}: el banco ha devuelto 0 movimientos para ese periodo.",
   bank_read_retry:"No se han podido consultar los movimientos. Comprueba la conexión y vuelve a buscar.",
-  bank_gap_title:"{bank}: hay movimientos de hace más de 90 días",
-  bank_gap_sub:"La actualización solo alcanza los últimos 90 días. El resto se revisa en Importar histórico.",
+  bank_gap_cap:"{bank}: llevaba más de 90 días sin sincronizar. La conexión con el banco solo entrega los últimos 90 días; lo anterior no está disponible por esta vía.",
+  bank_gap_more:"{bank}: quedan movimientos antiguos por traer. Vuelve a sincronizar para seguir.",
   bp_hist_sign:"En {banks} casi todo llega como ingreso: revisa el signo antes de importar.",
   bp_hist_more:"Ver {n} más…",
   bp_hist_confirm_fijos:"¿Crear {n} recibo(s) fijo(s)?",
@@ -14207,7 +14178,12 @@ function reconcileBank(state, y, m, today){
   // como "aún no aparece" — se buscan también ahí y cuentan como confirmados.
   const prevY=(m===1)?y-1:y, prevM=(m===1)?12:m-1;
   const pym=prevY+"-"+(prevM<10?"0":"")+prevM;
-  const prevTail=tx.filter(function(t){ return String(t.date||"").slice(0,7)===pym && obEnts[t.ent] && (t.amount||0)>0 && (recDay(t.date)||0)>=15; })
+  /* Para el mes EN CURSO la cola no pasa de la ventana de siempre. Hasta el tramo recuperado
+     (INC-2709-06) `bankTx` nunca traía nada anterior, así que «día ≥15» eran en la práctica los
+     últimos 8 días; con el tramo dentro, el alquiler del 18 pasado daba por pagado el de este
+     mes. Un mes ya cerrado conserva su cola entera. */
+  const hoy=new Date(), corte=(hoy.getFullYear()===y && hoy.getMonth()+1===m) ? dayKey(obSom()) : "";
+  const prevTail=tx.filter(function(t){ return String(t.date||"").slice(0,7)===pym && obEnts[t.ent] && (t.amount||0)>0 && (recDay(t.date)||0)>=15 && String(t.date)>=corte; })
     .map(function(t){ return Object.assign({},t); });
   // avisos que el usuario ha ocultado ("Ocultar aviso") y movimientos ignorados
   const dismissed={}; (state.bankDismissed||[]).forEach(function(k){ dismissed[k]=1; });
@@ -14330,7 +14306,9 @@ function flattenBankTx(links){
    En bancos fuera de gasto diario: también cualquier cargo (misma exclusión de modelados).
 
    INGRESOS: de cualquier banco (para «Mi ciclo»). Idempotente por ext_id + dedup. */
-function importObExpenses(s, txs){
+// Corte de la ventana de siempre: día 1 del mes menos 8 días (el porqué, dentro de importObExpenses).
+function obSom(){ return new Date(startOfMonth().getTime() - 8*86400000); }
+function importObExpenses(s, txs, links){
   if(!txs || !txs.length) return null;
   const ents=expenseBankEnts(s);
   const allow={}; ents.forEach(function(e){ allow[e]=1; });
@@ -14347,7 +14325,19 @@ function importObExpenses(s, txs){
      8 días —y no 45— a propósito: cubre el borde de fin de mes sin arrastrar meses enteros de
      histórico en cada sync. Los duplicados que esto pueda rozar ya los para la red de arriba
      (mismo importe ±3 días contra lo que entró por otra vía) más el dedup por ext_id y clave. */
-  const som=new Date(startOfMonth().getTime() - 8*86400000);
+  const som=obSom();
+  /* TRAMO RECUPERADO (INC-2709-06). Quien pasaba semanas sin sincronizar perdía para siempre lo
+     anterior a `som`. Ahora el servidor lo lee y dice desde qué día (`syncFrom`, por banco): ese
+     suelo llega aquí en `links`, la propia respuesta del sync, sin nada guardado por el camino,
+     porque el updater que llama puede ejecutarse dos veces. Sin suelo —función vieja, o un
+     llamador que no lo pasa— lo anterior a `som` se sigue tirando como siempre. */
+  const floors={};
+  (links||[]).forEach(function(l){
+    const ent=entFromAspsp(l&&l.aspsp), d=l&&l.syncFrom;
+    if(ent && typeof d==="string" && !(floors[ent]<=d)) floors[ent]=d;
+  });
+  const viejo=function(tx){ return parseDate(tx.date)<som; };
+  const fuera=function(tx){ return viejo(tx) && !(floors[tx.ent]<=tx.date); };
   /* `entry_reference` solo es única DENTRO de su banco. Sin entidad, un id de Sabadell podía
      hacer desaparecer un movimiento distinto de Caixa. La identidad local mínima es banco+id. */
   const seen={}, seenLegacy={}; (s.expenses||[]).forEach(function(e){
@@ -14403,16 +14393,26 @@ function importObExpenses(s, txs){
   const now=new Date(), ym=now.getMonth()+1, yy=now.getFullYear();
   const today=madridYmdParts(now.getTime());
   const todayKey=today.ym+"-"+String(today.d).padStart(2,"0");
-  const modeledByEnt={};
-  const pushModeled=function(ent,name,amount,debtId){ if(!ent||!(amount>0)) return; (modeledByEnt[ent]=modeledByEnt[ent]||[]).push({name:name,amount:amount,debtId:debtId||null}); };
-  (s.fixed||[]).forEach(function(f){ if(occursIn(f,ym)) pushModeled(accOf(f), f.name, occAmountIn(f,ym)); });
-  (s.debts||[]).forEach(function(d){ if(debtActive(d)) pushModeled(d.account||"sabadell", d.name||"Cuota", (d.monthly||0)+debtBalloonIn(d,yy,ym), d.id); });
-  (s.oneoffs||[]).forEach(function(o){ if(oneoffOccurs(o,yy,ym)) pushModeled(o.account||"sabadell", o.name||"Cargo", o.amount||0); });
+  /* El tramo recuperado casa contra TODO lo modelado (`modeledOld`), toque o no este mes: el
+     seguro anual de agosto o el recibo bimestral del mes pasado también son fijos que ya se
+     cuentan por su lado, y con la lista del mes en curso entraban otra vez como gasto. */
+  const modeledByEnt={}, modeledOld={};
+  const pushModeled=function(map,ent,name,amount,debtId){ if(!ent||!(amount>0)) return; (map[ent]=map[ent]||[]).push({name:name,amount:amount,debtId:debtId||null}); };
+  (s.fixed||[]).forEach(function(f){
+    if(occursIn(f,ym)) pushModeled(modeledByEnt, accOf(f), f.name, occAmountIn(f,ym));
+    const meses=chargeMonths(f);
+    (meses.length?meses:[ym]).forEach(function(mm){ pushModeled(modeledOld, accOf(f), f.name, occAmountIn(f,mm)); });
+  });
+  (s.debts||[]).forEach(function(d){ if(debtActive(d)) pushModeled(modeledByEnt, d.account||"sabadell", d.name||"Cuota", (d.monthly||0)+debtBalloonIn(d,yy,ym), d.id); });
+  (s.oneoffs||[]).forEach(function(o){
+    if(oneoffOccurs(o,yy,ym)) pushModeled(modeledByEnt, o.account||"sabadell", o.name||"Cargo", o.amount||0);
+    pushModeled(modeledOld, o.account||"sabadell", o.name||"Cargo", o.amount||0);
+  });
   /* QUÉ casó, no solo SI casó (4.21.0). Un Fijo o un puntual casado se sigue tirando como siempre;
      una DEUDA casada ya NO se tira: entra y `marcarCuotasDeDeuda` la pone en «Deudas», fuera del
      gastado. Si casan las dos cosas, gana el descarte de siempre. */
-  const modeledHit=function(ent,merchant,amount){
-    const hits=(modeledByEnt[ent]||[]).filter(function(mm){ return recAmtClose(mm.amount,amount) && recNameMatch(mm.name,merchant); });
+  const modeledHit=function(map,ent,merchant,amount){
+    const hits=(map[ent]||[]).filter(function(mm){ return recAmtClose(mm.amount,amount) && recNameMatch(mm.name,merchant); });
     if(!hits.length) return null;
     return hits.find(function(mm){ return !mm.debtId; }) || hits[0];
   };
@@ -14429,7 +14429,7 @@ function importObExpenses(s, txs){
       if(!parts) return;
       const day=new Date(Number(parts[1]),Number(parts[2])-1,Number(parts[3]),12);
       if(dayKey(day)!==date || date>todayKey) return;
-      if(!tx.date || parseDate(tx.date)<som) return;
+      if(fuera(tx)) return;
       if(tx.id && (seen[(tx.ent||"")+"|"+tx.id]||seenLegacy[tx.id])) return;
       const e={ id:mcExpenseId(), date:new Date(tx.date+"T12:00:00").toISOString(),
         merchant:tx.merchant||"Ingreso", amount:tx.amount,
@@ -14448,12 +14448,14 @@ function importObExpenses(s, txs){
       return;
     }
     // GASTO: entra de cualquier banco. Fijos y puntuales modelados no se duplican; las deudas se marcan.
-    const mod=modeledHit(tx.ent, tx.merchant, tx.amount);
+    if(!tx.date || fuera(tx)) return;
+    const antiguo=viejo(tx);
+    const mod=modeledHit(antiguo?modeledOld:modeledByEnt, tx.ent, tx.merchant, tx.amount);
     if(mod && !mod.debtId) return;
-    if(!tx.date || parseDate(tx.date)<som) return;
     if(tx.id && (seen[(tx.ent||"")+"|"+tx.id]||seenLegacy[tx.id])) return;
     const esDiario=tx.ent===dailyEnt;
-    const esAporteInv = esDiario && daily && daily.monthlyInvest>0 && Math.abs(tx.amount-daily.monthlyInvest)<0.01;
+    // El aporte de hace dos meses ya se compró en su día o ya no toca: se apunta, pero no compra.
+    const esAporteInv = !antiguo && esDiario && daily && daily.monthlyInvest>0 && Math.abs(tx.amount-daily.monthlyInvest)<0.01;
     const e={ id:mcExpenseId(), date:new Date(tx.date+"T12:00:00").toISOString(),
       merchant:tx.merchant||"Compra", amount:tx.amount,
       category: esAporteInv ? "inversion" : categoryOfBankTx(tx), source:"ob", ent:tx.ent };
@@ -14470,136 +14472,6 @@ function importObExpenses(s, txs){
   });
   return add.length? add : null;
 }
-
-/* El tramo anterior a la ventana de siempre no puede vivir dentro de importObExpenses
-   ni de reconcileBank: esas funciones ya están en la huella de otras tandas. El suelo
-   entra solo por opts.syncFromByEnt (o por el recuerdo que deja bankSync). Escribir
-   prev._obSyncFrom dentro del updater no cuenta: si el llamador no pasa el suelo, el
-   cargo viejo no entra. */
-var obGapFloors = null;
-var obGapSummary = null;
-var obGapManual = false;
-function obGapMarkManual(){ obGapManual = true; }
-function obGapRemember(floors){ obGapFloors = floors || null; }
-function obGapTakeFloors(){
-  var floors = obGapFloors;
-  obGapFloors = null;
-  return floors;
-}
-function obGapParts(links){
-  var floors = {}, names = [], seen = {};
-  (links || []).forEach(function(l){
-    if(!l) return;
-    if(typeof l.syncFrom === "string" && /^\d{4}-\d{2}-\d{2}$/.test(l.syncFrom)){
-      var ent = entFromAspsp(l.aspsp);
-      if(ent && (!floors[ent] || l.syncFrom < floors[ent])) floors[ent] = l.syncFrom;
-    }
-    if(l.gapBeyondCap !== true) return;
-    var ent2 = entFromAspsp(l.aspsp);
-    var label = ent2 ? entOf(ent2).label : String(l.aspsp || "").trim();
-    if(!label || seen[label]) return;
-    seen[label] = 1;
-    names.push(label);
-  });
-  return {floors:floors, names:names};
-}
-function obGapNoteFromLinks(data, manual){
-  var parts = obGapParts((data && data.links) || []);
-  obGapFloors = parts.floors;
-  obGapSummary = (manual && parts.names.length) ? ("⚠ " + tf("bank_gap_title", {bank:parts.names.join(", ")}) + " " + t("bank_gap_sub")) : null;
-  if(!obGapSummary) return;
-  var asked = parts.names.slice();
-  setTimeout(function(){
-    if(typeof document !== "undefined" && document.querySelector && document.querySelector(".askback")) return;
-    askConfirm({
-      title: tf("bank_gap_title", {bank:asked.join(", ")}),
-      sub: t("bank_gap_sub"),
-      ok: t("bp_hist_btn")
-    }).then(function(yes){
-      if(!yes) return;
-      try{ window.dispatchEvent(new CustomEvent("mc-open-settings")); }catch(e){}
-      setTimeout(function(){
-        try{ window.dispatchEvent(new CustomEvent("mc-open-history")); }catch(e){}
-      }, 200);
-    });
-  }, 0);
-}
-function obDemandSom(){ return new Date(startOfMonth().getTime() - 8*86400000); }
-/* El tramo viejo reutiliza el importador de siempre: si no, cada regla nueva
-   (dedup, fijo, deuda) habría que copiarla y el bundle no cabe. `parseDate` es
-   reasignable (no es const). Mientras dura la llamada, una fecha anterior al
-   margen parece el margen, así que el corte no la tira; la fila guarda la fecha
-   real, que se construye con `new Date(texto)`, no con `parseDate`. El aporte
-   no puede comprar: la cuenta clonada lleva monthlyInvest a 0. */
-function importObGapStretch(s, txs, already){
-  if(!txs || !txs.length) return null;
-  var real = parseDate, som = obDemandSom(), add;
-  parseDate = function(v){ var d = real(v); return d < som ? som : d; };
-  try{
-    add = importObCore(Object.assign({}, s, {
-      accounts:(s.accounts||[]).map(function(a){ return a && a.monthlyInvest ? Object.assign({}, a, {monthlyInvest:0}) : a; }),
-      expenses:(s.expenses||[]).concat(already||[])
-    }), txs);
-  }finally{ parseDate = real; }
-  if(!add) return null;
-  var otras = (s.expenses||[]).filter(function(e){ return e && e.source !== "ob" && e.source !== "ob-hist"; });
-  var used = {};
-  return add.map(function(e){
-    // El gemelo de dentro se calculó con la fecha fingida: se descarta y se mira otra vez con la real.
-    var out = Object.assign({}, e);
-    delete out.possibleDup; delete out.possibleDupOf;
-    if(out.category === "inversion") out.category = categoryOfBankTx(out);
-    if(!sinComercioReal(out.merchant) || !out.ent) return out;
-    var ms = real(out.date).getTime();
-    var i = otras.findIndex(function(x, n){
-      if(used[n] || expenseBankOf(x) !== out.ent || Math.abs((x.amount||0) - out.amount) > 0.005) return false;
-      return Math.abs(dateMs(x.date) - ms) <= DUP_DIAS_MS;
-    });
-    if(i < 0) return out;
-    used[i] = 1;
-    return Object.assign({}, out, {possibleDup:true, possibleDupOf:otras[i].id});
-  });
-}
-var importObCore = importObExpenses;
-importObExpenses = function(s, txs, opts){
-  const floors = (opts && opts.syncFromByEnt) || obGapTakeFloors();
-  if(!txs || !txs.length || !floors) return importObCore(s, txs);
-  const som = obDemandSom();
-  const recent = [], gap = [];
-  txs.forEach(function(tx){
-    const ymd = floors && tx && tx.ent ? floors[tx.ent] : null;
-    const floor = (typeof ymd === "string" && /^\d{4}-\d{2}-\d{2}$/.test(ymd)) ? parseDate(ymd) : null;
-    const when = tx && tx.date ? parseDate(tx.date) : null;
-    if(floor && when && when >= floor && when < som) gap.push(tx);
-    else recent.push(tx);
-  });
-  const addRecent = recent.length ? (importObCore(s, recent) || []) : [];
-  const addGap = gap.length ? (importObGapStretch(s, gap, addRecent) || []) : [];
-  const all = addRecent.concat(addGap);
-  return all.length ? all : null;
-};
-var reconcileBankCore = reconcileBank;
-// Solo el mes en curso: un cargo de julio sigue confirmando julio. El de antes
-// del margen no puede dar por pagado el recibo de este mes (el día 18 anterior,
-// con hoy día 10, cae en la cola del mes pasado y antes salía confirmed).
-reconcileBank = function(state, y, m, today){
-  var now = new Date();
-  if(!state || !state.bankTx || y !== now.getFullYear() || m !== now.getMonth() + 1) return reconcileBankCore(state, y, m, today);
-  var som = obDemandSom(), kept = [];
-  state.bankTx.forEach(function(t){
-    if(t && t.date && parseDate(String(t.date).slice(0, 10)) < som) return;
-    kept.push(t);
-  });
-  if(kept.length === state.bankTx.length) return reconcileBankCore(state, y, m, today);
-  return reconcileBankCore(Object.assign({}, state, {bankTx:kept}), y, m, today);
-};
-var listaAvisosCore = listaAvisosSync;
-listaAvisosSync = function(list){
-  var rows = listaAvisosCore(list);
-  if(obGapSummary && rows.indexOf(obGapSummary) < 0) rows = rows.concat([obGapSummary]);
-  obGapSummary = null;
-  return rows;
-};
 
 /* LAS CUOTAS DE TUS DEUDAS, EN «DEUDAS» (4.21.0).
    Idea suya del 12/9. Medido con sus datos antes de picar: NINGUNA cuota casa por nombre. El
@@ -19405,6 +19277,12 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onL
       // de botones que veníamos a quitar. Al plegar se cancela un «¿quitar?» a medias, que si no
       // quedaría armado y saltaría al volver a abrir.
       const toggle=function(){ setConfirming(""); setOpenBank(abierto?"":l.aspsp_name); };
+      /* «Saldo actualizado» pinta la hora en que el servidor leyó el saldo (`obBalAt`, de la
+         última sync de este móvil). `last_sync` es el cursor del extracto: con el tramo antiguo
+         a medias va por detrás y enseñaba una fecha vieja con el saldo de hoy. Gana el más
+         reciente de los dos, porque otro móvil pudo sincronizar después. */
+      const balAt=(state.obBalAt||{})[String(l.aspsp_name).toLowerCase()];
+      const saldoAt=balAt && !(Date.parse(l.last_sync)>Date.parse(balAt)) ? balAt : l.last_sync;
       return React.createElement("div",{key:l.aspsp_name,"data-aspsp":l.aspsp_name,ref:isFocus?focusRef:null,className:isFocus?"bk-focus":undefined,style:{marginBottom:6}},
         React.createElement("div",{className:"v4-mov",role:"button",tabIndex:0,"aria-expanded":abierto?"true":"false",
           onClick:toggle,
@@ -19413,7 +19291,7 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onL
           React.createElement(Mono,{ent:ent||"",size:40}),
           React.createElement("div",{style:{flex:1,minWidth:0}},
             React.createElement("div",{className:"nm"}, bankLabel(l.aspsp_name), (Array.isArray(l.accounts)&&l.accounts.length>1)?React.createElement("span",{style:{marginLeft:7,fontSize:11,fontWeight:700,color:"var(--mint)"}}, tf("bp_naccts",{n:l.accounts.length})):null),
-            React.createElement("div",{className:"meta"}, l.last_sync?tf("bank_updated",{x:fmtDT(l.last_sync)}):t("bank_neversync")),
+            React.createElement("div",{className:"meta"}, saldoAt?tf("bank_updated",{x:fmtDT(saldoAt)}):t("bank_neversync")),
             l.valid_until?React.createElement("div",{className:"meta",style:{color:soon?"var(--coral)":undefined}}, tf("bank_consent",{x:fmtD(l.valid_until)})):null),
           sp,
           // Flecha: sin ella la tarjeta no se ve pulsable y el usuario no descubre las acciones.
@@ -20573,7 +20451,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="7972b7e14ae1773dc35ba3a5611fc8bf5468512197cac644877343fc75fdc3f8";
+var _rnSha="37dc9d6b6c19c1bc47fc0bfd0324d6575508abaf5b511ac0cacf9d2c97447672";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -24855,7 +24733,7 @@ function App(){
     });
     return nubeLista.then(function(ok){
       if(!ok) throw SYNC_SIN_NUBE;
-      return Promise.all([cloud.bankSync(), pDb]);
+      return Promise.all([cloud.bankSync(true), pDb]);
     }).then(function(par){
       const res=par[0], dbLinks=par[1]||[];
       const links=(res&&res.links)||[];
@@ -24879,7 +24757,8 @@ function App(){
         const txs=flattenBankTx(links);
         // ORDEN anti-doble-conteo: primero entran las compras de tarjeta como gastos, y DESPUÉS
         // se re-ancla con el saldo real del banco (que ya incluye esas compras).
-        const add=importObExpenses(prev, txs);
+        // `links` lleva el suelo del tramo recuperado (`syncFrom`): sin él, lo anterior al margen se tira.
+        const add=importObExpenses(prev, txs, links);
         // Aporte automático reconocido (categoría "inversion", ver importObExpenses): compra ya
         // mismo participaciones en el fondo enlazado, con el importe REAL del banco — mismo cálculo
         // que `reconcileTR` usaba a ciegas, ahora disparado por el dato de verdad (2026-08-03).
@@ -24909,7 +24788,11 @@ function App(){
         const withProofs=reconcileFixedPaymentProofs(withTx,now.getFullYear(),now.getMonth()+1,now.getDate());
         const anchored=reconcileEarlyIncomeAnchors(withProofs,now.getFullYear(),now.getMonth()+1,now.getDate());
         const r=applyBankBalances(anchored, links);
-        return Object.assign({}, r.state, { lastBankSync:Date.now(), hasBankLink: links.length?true:prev.hasBankLink, bankTx: txs, bankIssues: bankIssuesOf(links, dbLinks) });
+        /* Cuándo se leyó el saldo de cada banco, dicho por el servidor. `last_sync` ya no vale
+           para pintarlo: con el tramo antiguo a medias es un cursor que va por detrás. */
+        const balAt=Object.assign({},prev.obBalAt);
+        links.forEach(function(l){ if(l&&l.balanceAt) balAt[String(l.aspsp).toLowerCase()]=l.balanceAt; });
+        return Object.assign({}, r.state, { lastBankSync:Date.now(), hasBankLink: links.length?true:prev.hasBankLink, bankTx: txs, bankIssues: bankIssuesOf(links, dbLinks), obBalAt:balAt });
       });
       // sube las importadas a la tabla expenses (best-effort; el estado local ya las tiene)
       setTimeout(function(){ obAdded.forEach(function(e){ subirGasto(e, "ob-import"); }); }, 0);
@@ -24947,6 +24830,12 @@ function App(){
       if(opts.manual && readWarnings.length){
         readWarnings.forEach(function(w){ avisaSync(opts,"⚠ "+tf(w.key,{bank:w.bank})); });
       }
+      // Tramo antiguo (INC-2709-06), solo si lo has pedido tú: lo que el banco ya no entrega y
+      // lo que queda por traer. Son filas del aviso de siempre, no un diálogo que espere respuesta.
+      if(opts.manual) links.forEach(function(l){
+        if(l&&l.gapBeyondCap) avisaSync(opts,"⚠ "+tf("bank_gap_cap",{bank:bankLabelOf(l)}));
+        if(l&&l.gapPending) avisaSync(opts,"⚠ "+tf("bank_gap_more",{bank:bankLabelOf(l)}));
+      });
       if(opts.manual && preview.synced.length && !issues.length && !readWarnings.length){
         const ents={}; preview.synced.forEach(function(x){ if(x&&x.ent) ents[x.ent]=1; });
         const bancos=Object.keys(ents);
@@ -25316,7 +25205,6 @@ function App(){
       if(parts[1]==="ok"){
         showToast("✓ "+t("bank_connected"));
         set(function(s){ return s.hasBankLink?s:Object.assign({},s,{hasBankLink:true}); });
-        obGapMarkManual();
         limpiaCartelReconectado();
         runBankSync({manual:true});
       } else {
@@ -25449,7 +25337,7 @@ function App(){
   // era una consulta al abrir y consumía el cupo sin tocar ningún botón.
   useEffect(function(){
     if(!uid) return;
-    if(bankJustConnected.current){ obGapMarkManual(); bankJustConnected.current=false; limpiaCartelReconectado(); runBankSync({manual:true}); return; }
+    if(bankJustConnected.current){ bankJustConnected.current=false; limpiaCartelReconectado(); runBankSync({manual:true}); return; }
   },[uid, state.hasBankLink]);
 
   // Y lo mismo para los brókers que SÍ sincronizan solos (TR nativo + MyInvestor): al abrir,
