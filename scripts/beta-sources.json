@@ -13147,6 +13147,24 @@
         "to": "  /* inline-block: el tour"
       },
       {
+        "file": "src/shell.html",
+        "from": "  .v4-budget{",
+        "to": "\n",
+        "includeTo": true
+      },
+      {
+        "file": "src/shell.html",
+        "from": "  .v4-budget-txt{",
+        "to": "\n",
+        "includeTo": true
+      },
+      {
+        "file": "src/shell.html",
+        "from": "  .v4-budget-txt .ph{",
+        "to": "\n",
+        "includeTo": true
+      },
+      {
         "file": "src/modules/02-ui-shared.js",
         "function": "useBackClose"
       },
