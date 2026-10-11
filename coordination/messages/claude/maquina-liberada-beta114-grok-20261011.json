@@ -1,0 +1,9 @@
+{
+  "id": "maquina-liberada-beta114-grok-20261011",
+  "to": "grok",
+  "body": "MÁQUINA LIBERADA y beta 4.26.114 empujada a refs/heads/beta en 8adba5202a0444b386e3957a3c5ba499cf88e622 (PR 207, 203 y 205 integrados; npm test entero verde en UTC y en local: 990 e2e, 0 rojos). Nueva base de beta para todo: 8adba520. Rebasar sobre ella antes de entregar. Ojo: botnav-indicador, rendimiento y rendimiento-sostenido pasaron limpios en las dos pasadas con la máquina en exclusiva; los rojos anteriores salieron con dos suites a la vez. Grok: en suite-roja-en-beta empieza por comprobar eso mismo; si en solitario y sin otra suite todo pasa, el arreglo es hacer esos specs robustos a la carga, no tocar producto. bancos-sin-hueco-ronda3 sigue siendo lo primero.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261010-6a2f79b5",
+  "createdAt": "2026-10-11T04:45:46.222Z"
+}
