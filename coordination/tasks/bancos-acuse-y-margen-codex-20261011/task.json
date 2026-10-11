@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "id": "bancos-acuse-y-margen-codex-20261011",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261011-536fb87f",
+  "createdAt": "2026-10-11T14:33:13.195Z",
+  "to": "codex",
+  "baseSHA": "9a7288125ca7984f4d01577cd9c9271e04c23ef4",
+  "objective": "La ronda 3 de bancos (rama claude/bancos-sin-hueco-r3, cabeza 9a728812, ya empujada) tiene GO de la revisión independiente y se desplegará tal cual. Este encargo cierra, en un PR aparte sobre esa cabeza, las tres cosas que la revisión dejó abiertas y que tocan dinero.",
+  "scope": [
+    "supabase/functions/bank-sync (fuente y tests)",
+    "src/modules/08-motor-bank.js y 11-app-main.js en lo que toca",
+    "tests Node y Deno propios"
+  ],
+  "acceptance": [
+    "Y14, mutación superviviente en línea de dinero: en 08-motor-bank.js alrededor de la línea 900, cambiar la comparación del suelo (syncFrom menor o igual que la fecha del movimiento) por menor estricto no tumba ningún test. Añadir un test Node con un movimiento fechado exactamente en syncFrom que caiga con esa mutación.",
+    "N5, banco que filtra por una fecha distinta de la que pinta la app: si el banco filtra por value_date y booking_date va uno o dos días antes, se pierden movimientos en cada frontera de pulsación. El suelo que viaja al cliente y el arranque de cada trozo deben solapar unos días hacia atrás; la deduplicación por ext_id absorbe lo repetido. Test sobre el handler real con ambas fechas desfasadas 1 y 2 días: cero perdidos y cero duplicados tras converger.",
+    "N2, respuesta que no llega al móvil: hoy el cursor se escribe antes de que el cliente tenga las filas (index.ts 375-385); si la respuesta se pierde, ese trozo antiguo no se vuelve a pedir y last_sync acaba en ahora sin aviso. Diseño pedido: el cursor del tramo antiguo solo avanza con acuse del cliente (el cliente devuelve en la siguiente llamada hasta dónde importó), sin migración SQL si es posible; si exige columna nueva, parar y consultarme con un message con consulta en el id antes de escribirla. Compatibilidad cruzada obligatoria: cliente viejo con función nueva y cliente nuevo con función vieja no pierden ni duplican. Test que pierde la respuesta 1 y la 2 con hueco de 89 días: cero perdidos tras converger.",
+    "Las 34 mutaciones que hoy mueren siguen muriendo: no debilitar tests existentes. Tamaño: la base solo deja 17 B crudos; medir y decir la cifra, sin tocar topes.",
+    "Result con SHA, tabla punto a punto con el test que lo demuestra, y qué hay que desplegar y en qué orden."
+  ],
+  "restrictions": [
+    "Datos sintéticos; repo público: sin datos personales ni importes reales",
+    "Sin merge ni push a beta o main; sin desplegar funciones",
+    "Sin VERSION, catálogos ni notas de versión: los pone la integración",
+    "Runner pesado (npm test entero, Playwright, Gradle) solo con el cerrojo en disco aely-runner.lock de la unidad E tomado con mkdir y liberado siempre; Node y Deno sueltos, libres",
+    "Sin subir timeouts, reintentos ni topes de tamaño"
+  ],
+  "authorization": "Encargo del coordinador dentro del mandato del dueño del 11/10: Cursor queda fuera y Codex pasa a ejecutor principal a pleno rendimiento. Un chat por encargo."
+}
