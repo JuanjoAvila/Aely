@@ -118,6 +118,11 @@ const steps = [
   ["cuotas-deudas", ["node", "tests/cuotas-deudas.test.mjs"]],
   ["widget-coherente", ["node", "tests/widget-coherente.test.mjs"]],
   ["widget-arbitraje", ["node", "tests/widget-arbitraje.test.mjs"]],
+  ["widget-offline", ["node", "tests/widget-offline.test.mjs"]],
+  ["widget-unknown-loss", ["node", "tests/widget-unknown-loss.test.mjs"]],
+  ["widget-unknown-journal", ["node", "tests/widget-unknown-journal.test.mjs"]],
+  ["widget-notificacion-render", ["node", "tests/widget-notificacion-render.test.mjs"]],
+  ["widget-inicio-paridad", ["node", "tests/widget-inicio-paridad.test.mjs"]],
   ["ob-renombrar", ["node", "tests/ob-renombrar.test.mjs"]],
   ["divisa-original", ["node", "tests/divisa-original.test.mjs"]],
   ["wallet-notis", ["node", "tests/wallet-notis.test.mjs"]],
@@ -206,6 +211,7 @@ if (huerfanos.length) {
 
 const denoEnLista = [
   "supabase/functions/ingest/ingest.test.ts",
+  "supabase/functions/ingest/widget.test.ts",
   "supabase/functions/_shared/crypto.test.ts",
   "supabase/functions/_shared/enablebanking.test.ts",
   "supabase/functions/delete-account/delete-account.test.ts",

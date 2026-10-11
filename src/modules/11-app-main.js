@@ -450,7 +450,7 @@ function App(){
     };
   },[]);
   // INC-0410 mensual: límite del asiento del mes en App.
-  const wR=useRef(false),wS=useRef(0),wP=useRef(null),wC=useRef([]);
+  const wR=useRef(false),wS=useRef(0),wP=useRef(null),wC=useRef([]),wRead=useRef(null);
   const bankJustConnected=useRef(false);    // marca la vuelta de ?bank=ok para sincronizar en cuanto haya sesión
 
   // Trae los gastos de la tabla y los mezcla en el estado (dedup).
@@ -458,7 +458,24 @@ function App(){
     const readStartedAt=Date.now();
     const ps=++wS.current;
     wR.current=false;
-    const pull=cloud.pullExpenses().then(function(rows){
+    wRead.current=null;
+    // Sólo la lectura terminada puede retirar el aviso heredado. La APK anterior ignora
+    // estos campos; si no conoce el inicio de lectura, seguimos enviando sin acreditarlo.
+    const native=natPlugin();
+    // Un POST nativo sin cobertura no debe retener el histórico de la app. Si el corte
+    // tarda, esta lectura continúa sin prueba y conserva la incertidumbre del widget.
+    const readMark=new Promise(function(resolve){
+      let finished=false;
+      const done=function(mark){ if(finished) return; finished=true; clearTimeout(tm); resolve(mark); };
+      const tm=setTimeout(function(){ done(null); },4000);
+      Promise.resolve().then(function(){
+        return !mcSandbox()&&native&&native.beginWidgetRead?native.beginWidgetRead():null;
+      }).then(done,function(){ done(null); });
+    });
+    const readProof={valid:false,userId:null};
+    const pull=readMark.then(function(mark){
+      if(ps!==wS.current){ return wP.current; }
+      return cloud.pullExpenses(readProof).then(function(rows){
       // Si otra lectura empezó después, este resultado puede ser una foto anterior aunque
       // haya llegado el último. No mezclarlo con el estado ni reenviarlo al widget (FIN-05).
       if(ps!==wS.current) return wP.current;
@@ -518,7 +535,12 @@ function App(){
         return rec.state;
       });
       wR.current=true;
+      // Una lista vacía sin sesión o del modo pruebas no acredita el histórico remoto.
+      const current=sessionRef.current;
+      wRead.current=readProof.valid && current && current.user && readProof.userId===current.user.id
+        && !mcSandbox() && mark && typeof mark.readGeneration==="string" && typeof mark.nativeCut==="string"?mark:null;
       return { total:incoming.length, nuevos:count };
+      });
     });
     wP.current=pull;
     return pull;
@@ -2103,6 +2125,7 @@ function App(){
       budget:budW.budget!=null?budW.budget:(state.budget||0)
     };
     if(wV2){ data.contract=2; data.periodKind=budW.cycle?"ciclo":"mes"; data.magnitude=budW.cycle?"neto":"gasto"; data.lang=CURLANG; data.scope=wScope; }
+    if(wRead.current){ data.readGeneration=wRead.current.readGeneration; data.nativeCut=wRead.current.nativeCut; }
     if(widgetCash!=null){ data.cash=widgetCash; data.cashEnt=trAccW.ent; data.cashLabel=entOf(trAccW.ent).label; }
     if(widgetBudgetLeft!=null) data.budgetLeft=widgetBudgetLeft;
     if(widgetSafeLiq!=null) data.safeLiq=widgetSafeLiq;
@@ -2135,7 +2158,9 @@ function App(){
       // addListener puede resolver después del cleanup: liberar también ese handle tardío.
       if(sub) sub.then(function(h){ if(h&&h.remove) return h.remove(); }).catch(function(){});
     };
-  },[budW.shown,budW.against,budW.cycle,budW.periodStart,budW.budget,wV2,wScope,CURLANG,state.budget,state.deleted,state.lastSync,widgetCash,trAccW&&trAccW.ent,widgetBudgetLeft,widgetSafeLiq,calendarDay,uid]);
+  // Otra lectura con filas idénticas también recupera el legado: no depender sólo de
+  // cifras o del reloj, que puede coincidir con el último lastSync.
+  },[budW.shown,budW.against,budW.cycle,budW.periodStart,budW.budget,wV2,wScope,CURLANG,state.budget,state.deleted,state.lastSync,widgetCash,trAccW&&trAccW.ent,widgetBudgetLeft,widgetSafeLiq,calendarDay,uid,wRead.current]);
   // Tour de bienvenida: 1ª vez tras el onboarding (tourSeen=false), con la app ya pintada
   useEffect(function(){
     // No arrancar el tour encima del login (showAuth) ni con el cajón abierto: causaba el caos

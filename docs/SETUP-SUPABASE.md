@@ -1,5 +1,23 @@
 # Setup Supabase — Fase 1 (Aely)
 
+`ingest/widget.ts` calcula la respuesta widget v2 de la ventana guardada
+por la app, validando ancla y scope; month conserva su payload mensual legacy para APK antiguas.
+El total v2 requiere conteo exacto, páginas completas con identidades únicas y el pago visible.
+Conteo ausente/cambiante, consulta fallida o truncada y pago ausente devuelven `widget:null`.
+El cálculo opcional de `widget` se ejecuta después del aviso de presupuesto y en su propio
+bloque de errores: una excepción de paginación o cálculo conserva `month` y `alert` para las
+APK anteriores. El rechazo de páginas parciales tiene un límite de consultas en su doble de
+prueba, para que su eliminación falle en lugar de dejar el runner en bucle.
+La matriz contra Inicio distingue presupuesto ausente (scope null) de todo reservado (scope 0,
+con margen conocido). V2 aplica el filtro por categoría de Inicio también a filas con marca
+de cuota; el cálculo de month legacy no cambia. La marca por sí sola no sustituye una categoría
+explícita de ese lector. Esta fuente se valida con datos sintéticos, sin modificar gastos.
+El listener admite ambos contratos. No requiere secretos, esquema ni migraciones nuevos.
+El despliegue de ingest se ejecuta mediante el workflow manual `supabase.yml`, con migraciones=no.
+Un push no activa ese workflow. Validación sintética en
+`ingest/widget.test.ts` (Deno registrado) y handler real con BD en memoria; no llamar al ingest
+activo con pagos de prueba. Contrato/limitaciones nativas en [Setup Android](SETUP-ANDROID.md).
+
 FEATURE-0210-01: ingest_logic y ALLOWED/HINTS de categorize incorporan Gasolina/Taxi solo en fuente de la candidata85. No se ha desplegado ninguna función ni se ha consultado el hash/BD de Supabase vivo; el clasificador anterior puede seguir dando Transporte hasta un gate de despliegue específico. El catálogo/selector/filtros/límites y altas manuales/MCC web funcionan sin despliegue; las notificaciones clasificadas por el servidor anterior aún pueden entrar como Transporte. La migración0001 define expenses.cat como text sin whitelist y las migraciones registradas no la restringen; no requiere SQL nueva. Tests sintéticos ejecutan alta cloud/pull con ambos IDs, presupuesto.ts del SHA3467 y retry/ACK/conflicto de ingest con clasificador de ese baseline: preservan elección manual y cuentan categorías diarias. Esto prueba fuente/contratos, no estado vivo ni captura Wallet nueva.
 
 ## bank-sync desplegado para beta 4.26.53.1: concepto y MCC opcionales

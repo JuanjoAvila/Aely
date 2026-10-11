@@ -57,6 +57,8 @@ t("solo Android: widget, sin e2e", () => {
   const p = planFromFiles(["android/app/src/main/java/com/micartera/app/MiCarteraWidget.java"]);
   assert.equal(p.playwright, false);
   assert.ok(p.steps.includes("widget-coherente"));
+  for (const name of ["widget-arbitraje", "widget-offline", "widget-unknown-loss", "widget-unknown-journal"])
+    assert.ok(p.steps.includes(name), "Android conserva el guardián " + name);
   assert.ok(p.steps.includes("webdebug-guard"));
 });
 

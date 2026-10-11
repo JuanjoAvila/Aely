@@ -211,6 +211,73 @@ async function bridgeV2(page) {
     } };
   });
 }
+
+for (const mode of ["new", "old-apk", "failed-read"]) {
+  test(`foto del widget acredita sólo lectura completa nueva: ${mode}`, async ({ page }) => {
+    await page.clock.install({ time: new Date("2026-09-27T10:00:00Z") });
+    await seedLoggedInDashboard(page, { budget: 100, expenses: [],
+      accounts: [{ id: "tr", ent: "trade_republic", role: "diario", spendFrom: true, value: 200 }],
+      settings: { autoPrices: false, budgetCycle: false, expenseBanks: ["trade_republic"] },
+      __cloudRows: { expenses: [{ id: "synthetic-pay", fecha: "2026-09-27T09:00:00Z",
+        importe: 5.45, comercio: "Compra sintética", cat: "super", source: "macrodroid", ingest_event_id: "synthetic-event" }] },
+      __cloudDelays: { expenses: 700 },
+      ...(mode === "failed-read" ? { __cloudErrors: { expenses: "fallo sintético" } } : {}) });
+    await page.addInitScript((mode) => {
+      window.__widgetCalls = [];
+      window.__widgetReadGeneration = 0;
+      const reads = [];
+      window.__widgetReleaseRead = () => reads.splice(0).forEach(resolve => resolve());
+      window.Capacitor = { isNativePlatform: () => false, Plugins: {
+        MiCartera: new Proxy({
+          widgetContract: async () => ({ v: 2 }),
+          beginWidgetRead: () => {
+            window.__widgetReadStarted = true;
+            const generation = "synthetic-generation-" + (++window.__widgetReadGeneration);
+            if (mode === "old-apk") return Promise.reject(new Error("método no disponible"));
+            return new Promise(resolve => { reads.push(() => resolve({ readGeneration: generation, nativeCut: "4" })); });
+          },
+          updateWidget: async data => { window.__widgetCalls.push(data); },
+          addListener: async () => ({ remove() {} }),
+        }, { get: (target, key) => target[key] || (() => Promise.resolve({})) }),
+      } };
+    }, mode);
+    await page.goto("/");
+    await expect.poll(() => page.evaluate(() => !!window.__widgetReadStarted)).toBe(true);
+    expect(await page.evaluate(() => window.__widgetCalls.length)).toBe(0);
+    if (mode !== "old-apk") await page.evaluate(() => window.__widgetReleaseRead());
+    // Ni preparar el corte ni empezar el pull autoriza aún a retirar el aviso.
+    await page.waitForTimeout(100);
+    expect(await page.evaluate(() => window.__widgetCalls.length)).toBe(0);
+    if (mode === "failed-read") {
+      await page.waitForTimeout(1000);
+      expect(await page.evaluate(() => window.__widgetCalls.length)).toBe(0);
+      return;
+    }
+    await expect.poll(() => page.evaluate(() => window.__widgetCalls.at(-1)?.spent)).toBe(5.45);
+    const snapshot = await page.evaluate(() => window.__widgetCalls.at(-1));
+    expect(snapshot.budgetLeft).toBe(94.55);
+    expect(snapshot.coveredEvents).toContain("|synthetic-event|");
+    if (mode === "new") expect(snapshot.readGeneration).toMatch(/^synthetic-generation-\d+$/);
+    else expect(snapshot.readGeneration).toBeUndefined();
+    expect(snapshot.nativeCut).toBe(mode === "new" ? "4" : undefined);
+    await page.waitForFunction(() => !document.getElementById("mc-load"));
+    await dismissNews(page);
+    await expect(page.locator(".v4-budget .ph")).toContainText("Has gastado 5");
+    if (mode === "new") {
+      await expect.poll(() => page.evaluate(() => !!JSON.parse(localStorage.getItem("micartera_v3") || "{}").lastSync)).toBe(true);
+      const lastSync = await page.evaluate(() => JSON.parse(localStorage.getItem("micartera_v3")).lastSync);
+      await page.clock.setFixedTime(new Date(lastSync));
+      const generation = await page.evaluate(() => window.__widgetReadGeneration);
+      await page.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
+      await expect.poll(() => page.evaluate(() => window.__widgetReadGeneration)).toBeGreaterThan(generation);
+      await page.evaluate(() => window.__widgetReleaseRead());
+      await expect.poll(() => page.evaluate(() => window.__widgetCalls.at(-1)?.readGeneration)).not.toBe(snapshot.readGeneration);
+      const again = await page.evaluate(() => window.__widgetCalls.at(-1));
+      expect(again.spent).toBe(5.45);expect(again.budgetLeft).toBe(94.55);
+      expect(await page.evaluate(() => JSON.parse(localStorage.getItem("micartera_v3")).lastSync)).toBe(lastSync);
+    }
+  });
+}
 const CICLO = [
   { id: "antes", date: "2026-09-02T10:00:00Z", amount: 250, merchant: "Compra anterior", category: "super", ent: "trade_republic" },
   { id: "nomina", date: "2026-09-05T10:00:00Z", amount: -2000, merchant: "NOMINA EMPRESA", category: "ingreso", ent: "trade_republic" },

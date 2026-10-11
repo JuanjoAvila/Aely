@@ -271,7 +271,7 @@ en la base `f7b66aef`, modificaba `app_state` y podía resucitar borrados por ba
 de una aplicación financiera requiere identidad/revisión/ACK y autorización propios.
 [Ensayo histórico, aceptación del visor y límites](briefs/ops02-restauracion-probada.md).
 
-El widget recibe `monthBudgetStats` desde la app al cambiar sus cifras. Al volver a primer plano,
+El widget recibe la cifra de `dashboardBudgetStats` desde la app al cambiar sus cifras. Al volver a primer plano,
 `visibilitychange` o `App.appStateChange` disparan primero la lectura de gastos de Supabase y
 solo tras completarla se envía el snapshot local: el estado anterior a la notificación no puede
 deshacer su cifra. No se sincroniza Open Banking. En Android, `WidgetSnapshotArbiter` asigna un
@@ -281,6 +281,10 @@ los eventos todavía ausentes del pull y descarta los cubiertos o borrados. Los 
 vuelo se aplican por su contribución a gasto y presupuesto; una inversión
 planificada baja el efectivo sin volver a reservarse en la liquidez segura. El período
 es Europe/Madrid; si cambia sin una lectura nueva, el widget muestra «—» hasta recibir datos.
+Antes del pull, `beginWidgetRead` espera a que terminen los intentos POST nativos previos y entrega una generación de lectura y su corte de tickets. Terminar un intento no acredita un pago: la cola de retry se conserva y su siguiente intento recibe un ticket posterior. `syncCloudExpenses` conserva la marca sólo después de recibir todas las páginas y mezclar sus filas; un error o una lectura superada no la envía. La foto con marca nueva sustituye el registro heredado, incluidos los flags de identidad perdida. Los pagos posteriores al corte se reaplican con las mismas reglas e identidades: los cubiertos por la foto no se suman otra vez y los ausentes conservan su contribución pendiente. La marca se consume una vez; reenviar la foto no retira una incertidumbre nueva.
+
+Los campos `readGeneration` y `nativeCut` son aditivos. Una APK anterior los ignora. Una APK nueva con web anterior mantiene la conciliación por ACK y el aviso de identidad perdida hasta recibir la web que acredita la lectura; con ambas partes actualizadas, abrir y completar la lectura recupera el widget sin borrar datos. Una lectura fallida conserva la duda.
+
 Al convertir `expenses` con `expenseFromRow`, las categorías especiales `ingreso`, `inversion`
 y `traspaso` se conservan aunque no pertenezcan al catálogo ordinario de categorías.
 
@@ -463,6 +467,16 @@ escribir `Access-Control-Allow-Origin: "*"`.
 - **Freemium / suscripciones** (ver ROADMAP — solo diseño, nada implementado).
 - Play Store (Data safety + NotificationListener).
 - Feedback de uso real.
+
+### Compatibilidad y recuperación del widget
+
+El listener prefiere la respuesta `widget` v2 de ingest y conserva compatibilidad con
+`month` legacy. Con fecha/identidad/céntimos fiables aplica únicamente la contribución del pago
+a la foto guardada de Inicio, usando sus bancos y magnitud; nunca sustituye un neto de ciclo por
+un total mensual. Una barrera de ticket protege el pago incremental frente a absolutos previos.
+El servidor mantiene month intacto para APK antiguas y calcula widget desde el periodo,
+ancla y scope de app_state; si no los acredita, devuelve null. Sin sync bancaria nueva ni SQL.
+El cálculo opcional del widget tiene su propio bloque de errores: si falla, los avisos de presupuesto y la respuesta mensual siguen disponibles.
 
 ### Elección del banco del widget (4.26.50)
 

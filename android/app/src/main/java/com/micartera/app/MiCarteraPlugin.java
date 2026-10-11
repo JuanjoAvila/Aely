@@ -162,6 +162,16 @@ public class MiCarteraPlugin extends Plugin {
     }
 
     @PluginMethod
+    public void beginWidgetRead(PluginCall call) {
+        MiCarteraWidget.beginAppRead(getContext(), (generation, cut) -> {
+            JSObject r = new JSObject();
+            r.put("readGeneration", generation);
+            r.put("nativeCut", cut);
+            call.resolve(r);
+        });
+    }
+
+    @PluginMethod
     public void updateWidget(PluginCall call) {
         Context ctx = getContext();
         Double spent = call.getDouble("spent");
@@ -182,7 +192,8 @@ public class MiCarteraPlugin extends Plugin {
                 budgetLeft, safeLiq, cash, call.getString("cashEnt"), label,
                 call.getString("coveredEvents"), call.getString("deletedKeys"),
                 contract != null ? contract : 0, call.getString("periodKind"),
-                call.getString("magnitude"), call.getString("lang"), call.getString("scope"));
+                call.getString("magnitude"), call.getString("lang"), call.getString("scope"),
+                call.getString("readGeneration"), call.getString("nativeCut"));
         call.resolve();
     }
 

@@ -52,6 +52,7 @@ export const CORE = [
  * (mejor un minuto de más que un verde ciego).
  */
 export const E2E_MAP = [
+  { file: "src/modules/11-app-main.js", specs: ["e2e/widget-banco.spec.mjs"] },
   {file:"src/modules/16-help-assistant.js",specs:["e2e/help-assistant.spec.mjs","e2e/help-preguntar-borde.spec.mjs"]},
   { file: "src/modules/03-tab-dash.js", specs: ["e2e/dashboard-memo-profile.spec.mjs", "e2e/help-assistant.spec.mjs",
     "e2e/listas-render.spec.mjs",
@@ -199,9 +200,9 @@ export const CROSSCUTTING = [
 ];
 
 const STEPS_DOCS = ["guard-privacy", "docs-frescura", "memoria-espejo"];
-const STEPS_ANDROID = ["guard-privacy", "webdebug-guard", "widget-coherente", "widget-arbitraje", "ingest-identity", "ingest-handler"];
+const STEPS_ANDROID = ["guard-privacy", "webdebug-guard", "widget-coherente", "widget-arbitraje", "widget-offline", "widget-unknown-loss", "widget-unknown-journal", "widget-notificacion-render", "widget-inicio-paridad", "ingest-identity", "ingest-handler"];
 const STEPS_SUPABASE = [
-  "help-assistant", "guard-privacy", "edge-sintaxis", "presupuesto-servidor", "cuotas-deudas", "widget-coherente", "widget-arbitraje",
+  "help-assistant", "guard-privacy", "edge-sintaxis", "presupuesto-servidor", "cuotas-deudas", "widget-coherente", "widget-arbitraje", "widget-offline", "widget-unknown-loss", "widget-unknown-journal", "widget-notificacion-render", "widget-inicio-paridad",
   "month-window", "wallet-notis", "ingest-classify", "ingest-identity", "ingest-handler", "divisa-original", "presupuesto-rendimiento",
   "grants-migraciones", "entrada-edge", "bank-sync-paging", "tr-open-banking",
 ];
