@@ -268,8 +268,12 @@ public class MiCarteraWidget extends AppWidgetProvider {
     static synchronized boolean saveLegacyPayment(Context ctx, long ticket, long eventAt,
                           String event, String key, double amount, String category, boolean cashCounts) {
         SharedPreferences p = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
-        duringRead(p, ticket, (s, contract, kind, scope) ->
-                applyLegacyPayment(s, contract, kind, scope, ticket, eventAt, event, key, amount, category, cashCounts));
+        duringRead(p, ticket, (s, contract, kind, scope) -> {
+            // La foto puede pasar de Mes a Ciclo: un cobro grande posterior al corte
+            // requiere releer su ancla, aunque en la ventana anterior no abriera nómina.
+            if (applyLegacyPayment(s, contract, kind, scope, ticket, eventAt, event, key, amount, category, cashCounts) == -1)
+                WidgetSnapshotArbiter.pendingUnknown(s, event, key);
+        });
         WidgetSnapshotArbiter.State s = read(p);
         int accepted = applyLegacyPayment(s, p.getInt("contract", 0), p.getString("periodKind", WidgetPeriod.MES),
                 p.getString("scope", ""), ticket, eventAt, event, key, amount, category, cashCounts);
@@ -291,7 +295,7 @@ public class MiCarteraWidget extends AppWidgetProvider {
         // puede afirmar que siga en esta ventana. Bizums y neutras no abren nómina en la app.
         boolean cycle = WidgetPeriod.CICLO.equals(kind);
         boolean neutral = "inversion".equals(category) || "traspaso".equals(category) || "deudas".equals(category);
-        if (cycle && amount <= -200 && !neutral && !"bizum".equals(category)) return 0;
+        if (cycle && amount <= -200 && !neutral && !"bizum".equals(category)) return -1;
         if (!cycle && WidgetPeriod.monthStart(eventAt) != start) return 0;
         try {
             org.json.JSONArray scope = new org.json.JSONArray(savedScope);

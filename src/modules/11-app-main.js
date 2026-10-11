@@ -462,12 +462,20 @@ function App(){
     // Sólo la lectura terminada puede retirar el aviso heredado. La APK anterior ignora
     // estos campos; si no conoce el inicio de lectura, seguimos enviando sin acreditarlo.
     const native=natPlugin();
-    const readMark=Promise.resolve().then(function(){
-      return native&&native.beginWidgetRead?native.beginWidgetRead():null;
-    }).catch(function(){ return null; });
+    // Un POST nativo sin cobertura no debe retener el histórico de la app. Si el corte
+    // tarda, esta lectura continúa sin prueba y conserva la incertidumbre del widget.
+    const readMark=new Promise(function(resolve){
+      let finished=false;
+      const done=function(mark){ if(finished) return; finished=true; clearTimeout(tm); resolve(mark); };
+      const tm=setTimeout(function(){ done(null); },4000);
+      Promise.resolve().then(function(){
+        return !mcSandbox()&&native&&native.beginWidgetRead?native.beginWidgetRead():null;
+      }).then(done,function(){ done(null); });
+    });
+    const readProof={valid:false,userId:null};
     const pull=readMark.then(function(mark){
       if(ps!==wS.current){ return wP.current; }
-      return cloud.pullExpenses().then(function(rows){
+      return cloud.pullExpenses(readProof).then(function(rows){
       // Si otra lectura empezó después, este resultado puede ser una foto anterior aunque
       // haya llegado el último. No mezclarlo con el estado ni reenviarlo al widget (FIN-05).
       if(ps!==wS.current) return wP.current;
@@ -527,7 +535,10 @@ function App(){
         return rec.state;
       });
       wR.current=true;
-      wRead.current=mark&&typeof mark.readGeneration==="string"&&typeof mark.nativeCut==="string"?mark:null;
+      // Una lista vacía sin sesión o del modo pruebas no acredita el histórico remoto.
+      const current=sessionRef.current;
+      wRead.current=readProof.valid && current && current.user && readProof.userId===current.user.id
+        && !mcSandbox() && mark && typeof mark.readGeneration==="string" && typeof mark.nativeCut==="string"?mark:null;
       return { total:incoming.length, nuevos:count };
       });
     });

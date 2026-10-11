@@ -41,6 +41,14 @@ cli.Date=RealDate;
 assert.equal(snapshots[0].periodKind,'mes'); assert.equal(snapshots[1].periodKind,'ciclo');
 assert.notEqual(snapshots[0].periodStart,snapshots[1].periodStart);
 assert.notEqual(snapshots[0].spent,snapshots[1].spent);
+// Ejecutar también el constructor que manda la marca: observar sólo el ref no prueba el puente.
+const photoStart=main.indexOf('    const data={');
+const photoSource=main.slice(photoStart,main.indexOf('    if(widgetCash',photoStart));
+const markedPhoto=new Function('budW','state','wC','wV2','CURLANG','wScope','widgetCoveredEvents','Date','wRead',photoSource+'\nreturn data;');
+const proof={readGeneration:'synthetic-complete-read',nativeCut:'4'};
+const sent=markedPhoto(cli.dashboardBudgetStats(state),state,{current:[]},true,'es',snapshots[1].scope,cli.widgetCoveredEvents,cli.Date,{current:proof});
+assert.equal(sent.readGeneration,proof.readGeneration,'la foto web envía la generación de la lectura completa');
+assert.equal(sent.nativeCut,proof.nativeCut,'la foto web envía el corte de esa misma lectura');
 const dir=fs.mkdtempSync(path.join(os.tmpdir(),'aely-widget-notificacion-'));
 try {
 const legacy=spawnSync('git',['show','74c5f075:android/app/src/main/java/com/micartera/app/WidgetSnapshotArbiter.java'],{cwd:root,encoding:'utf8'});assert.equal(legacy.status,0);fs.writeFileSync(path.join(dir,'LegacyWidgetSnapshotArbiter.java'),legacy.stdout.replaceAll('WidgetSnapshotArbiter','LegacyWidgetSnapshotArbiter'));
@@ -234,14 +242,42 @@ ${transport}
     long later=MiCarteraWidget.beginIngest(c);photo(c,m,50,"",wait);
     c.handleResponse(notification(m,false).toString(),later,"raw");MiCarteraWidget.finishIngest(c,later);
     ok(c.prefs.getFloat("spent",0)==55,"respuesta después de foto aporta delta, nunca absoluto viejo");
-    Listener bad=production52(m);bad.prefs.edit().putBoolean("identityLost",true).putBoolean("unknownLoss",true).commit();
-    String[] proof=startRead(bad);photo(bad,m,Double.NaN,"",proof);
-    ok(bad.prefs.getBoolean("identityLost",false),"foto no finita no limpia incertidumbre ni consume marca");
-    photo(bad,m,50,"",proof);ok(!bad.prefs.getBoolean("identityLost",true),"foto válida posterior recupera sin borrar datos de app");
+    for(int field=0;field<5;field++)for(double invalid:new double[]{Double.NaN,Double.POSITIVE_INFINITY,Double.NEGATIVE_INFINITY}){
+      Listener bad=production52(m);bad.prefs.edit().putBoolean("identityLost",true).putBoolean("unknownLoss",true).commit();
+      String[] proof=startRead(bad);int commits=bad.prefs.commits;
+      MiCarteraWidget.saveApp(bad,m,field==0?invalid:50,field==1?invalid:100,field==2?invalid:50.0,
+        field==3?invalid:150.0,field==4?invalid:200.0,"trade_republic","Cuenta","","",
+        2,"mes","gasto","es",monthlyScope(m),proof[0],proof[1]);render(bad);
+      ok(bad.prefs.getBoolean("identityLost",false)&&bad.prefs.commits==commits,"GUARD cifra no finita campo "+field+" no limpia ni guarda");
+      photo(bad,m,50,"",proof);ok(!bad.prefs.getBoolean("identityLost",true),"foto válida posterior conserva marca no consumida campo "+field);
+    }
+    for(int invalid=0;invalid<5;invalid++){
+      Listener bad=production52(m);bad.prefs.edit().putBoolean("identityLost",true).putBoolean("unknownLoss",true).commit();
+      String[] proof=startRead(bad);int commits=bad.prefs.commits;
+      String scope=invalid==0?"{}":invalid==1?monthlyScope(m).replaceFirst("2,","1,"):
+        invalid==2?monthlyScope(m).replace(Long.toString(m),Long.toString(m-86400000L)):
+        invalid==3?monthlyScope(m).replace("mes","ciclo"):monthlyScope(m);
+      MiCarteraWidget.saveApp(bad,m,50,100,50.0,150.0,200.0,"trade_republic","Cuenta","","",
+        2,"mes",invalid==4?"neto":"gasto","es",scope,proof[0],proof[1]);render(bad);
+      ok(bad.prefs.getBoolean("identityLost",false)&&bad.prefs.commits==commits,"GUARD alcance de foto con marca "+invalid+" no acredita pérdida");
+      photo(bad,m,50,"",proof);ok(!bad.prefs.getBoolean("identityLost",true),"alcance válido reutiliza marca rechazada");
+    }
     System.out.println("PASS causal: lectura nueva, corte sin peticiones previas, reenvío, pago durante/después, cobertura y cifras válidas");
   }
   static boolean networkFailed;
   static String networkResponse;
+  static void cycleDuringRead(){
+    long now=System.currentTimeMillis(),m=WidgetPeriod.monthStart(now),cycle=now-2*86400000L;
+    for(String category:new String[]{"ingreso","bizum","inversion"}){
+      Listener c=production52(m);String[] proof=startRead(c);long ticket=MiCarteraWidget.beginIngest(c);
+      ok(MiCarteraWidget.saveLegacyPayment(c,ticket,now,"large-income","income-key",-200,category,true),"abono durante lectura admite ventana Mes anterior");
+      MiCarteraWidget.finishIngest(c,ticket);
+      MiCarteraWidget.saveApp(c,cycle,20,100,80.0,150.0,200.0,"trade_republic","Cuenta","","",
+        2,"ciclo","neto","es",monthlyScope(cycle).replace("mes","ciclo"),proof[0],proof[1]);render(c);
+      ok(c.prefs.getBoolean("unknownPending",false)==category.equals("ingreso"),"GUARD abono grande Mes a Ciclo pide ancla nueva sin afectar Bizum ni neutras");
+      ok(!category.equals("ingreso")||MiCarteraWidget.last.text.get(R.id.w_amount).equals("—"),"abono sin ancla no pinta cifra de ciclo confirmada");
+    }
+  }
   static class Connection extends HttpURLConnection {
     Connection(URL u){super(u);}
     public void connect(){} public void disconnect(){} public boolean usingProxy(){return false;}
@@ -342,7 +378,7 @@ ${transport}
     ok(a.prefs.values.equals(b.prefs.values),"Java74 escribe preferencias idénticas con causa de formato o pérdida real");
     for(Listener c:new Listener[]{a,b}) {
       photo(c,m,50,"|old|known|",startRead(c));
-      ok(MiCarteraWidget.last.text.get(R.id.w_amount).equals("50 €"),"foto nueva de app tras lectura completa recupera ambas causas sin ID nativo antiguo (criterio Claude 11/10)");
+      ok(MiCarteraWidget.last.text.get(R.id.w_amount).equals("50 €"),"foto nueva tras lectura completa recupera ambas causas sin ID nativo antiguo");
     }
     System.out.println("PASS causal: preferencias idénticas se recuperan sólo con lectura nueva terminada");
   }
@@ -381,7 +417,7 @@ ${transport}
     if(args.length>0&&args[0].equals("legacyoverflow")){legacyOverflow();return;}
     legacyOverflow();
     identicalLegacyPrefs();
-    freshRecovery();moneyGuards();readRaces();
+    freshRecovery();moneyGuards();readRaces();cycleDuringRead();
     if(args.length>0&&args[0].equals("pressure")){pressure();return;}
     long now=System.currentTimeMillis(),month=WidgetPeriod.monthStart(now),cycle=${snapshots[1].periodStart}L;
     Listener persistedCycle=production52(cycle);

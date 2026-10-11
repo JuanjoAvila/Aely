@@ -1013,8 +1013,20 @@ const cloud = (function(){
       if(error) throw error;
       return { updated_at: rows && rows[0] && rows[0].updated_at };
     },
-    async pullExpenses(){
+    async pullExpenses(readProof){
+      if(readProof){ readProof.valid=false; readProof.userId=null; }
       if(!sb) return [];
+      // Sólo el lector que confirma una foto nativa necesita esta prueba explícita: ni
+      // una sesión caída ni otra cuenta pueden acreditar la ausencia de pagos pendientes.
+      const readSession=async function(){
+        const {data,error}=await sb.auth.getSession();
+        const s=data&&data.session;
+        if(error) throw error;
+        if(!s || !s.user || !s.user.id || (s.expires_at!=null
+          && (!Number.isFinite(Number(s.expires_at)) || Number(s.expires_at)*1000<=Date.now()))) throw new Error("exp_pull_session");
+        return s.user.id;
+      };
+      const readUser=readProof?await readSession():null;
       const PAGE=1000;
       const fetchPage=async function(cursor){
         let q=sb.from('expenses').select('*')
@@ -1025,7 +1037,12 @@ const cloud = (function(){
         if(error) throw error;
         return data;
       };
-      return mcPullExpensesPaged(fetchPage);
+      const rows=await mcPullExpensesPaged(fetchPage);
+      if(readProof){
+        if(await readSession()!==readUser) throw new Error("exp_pull_session_changed");
+        readProof.userId=readUser; readProof.valid=true;
+      }
+      return rows;
     },
     async addExpense(e){
       if(!sb) return;
