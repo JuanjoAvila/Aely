@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import crypto from "node:crypto";
 import { execFileSync } from "node:child_process";
-import { betaRevision, betaNotes } from "../scripts/beta-revisions.mjs";
+import { betaRevision, betaNotes, betaDelivery } from "../scripts/beta-revisions.mjs";
 import { test, expect } from "@playwright/test";
 import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
 
@@ -1648,26 +1648,37 @@ for(const lang of ["es","en","ca"])test(`cola publicada: no vuelve a pedir las c
   const retired=["inc-0810-nav-indicator","inc-0810-metas-editar-regla","inc-0810-backclose-handover"];
   const replaced=["inc-2709-07-bienes-toque","inc-0910-inicio-solo-actual"];
   const note113={v:'4.26.113',d:'2026-10-10',t:{es:'Bienes completos y vuelve la gráfica de Inicio',en:'Complete assets and the Home chart returns',ca:'Béns complets i torna la gràfica d’Inici'},items:{es:['En Cartera → Bienes ya puedes añadir un bien, editarlo y borrarlo, también cuando la lista está vacía.','Inicio recupera la gráfica del patrimonio.'],en:['In Wallet → Property, you can now add, edit and delete an asset, even when the list is empty.','Home brings back the net worth chart.'],ca:['A Cartera → Béns ja pots afegir un bé, editar-lo i esborrar-lo, també quan la llista és buida.','Inici recupera la gràfica del patrimoni.']},tandas:[{id:'bienes-completo',t:{es:'Bienes completos',en:'Complete assets',ca:'Béns complets'},items:{es:['1. En Cartera → Bienes, añade un bien con nombre y valor: aparece en la lista y sube el patrimonio.','2. Tócalo, cambia el valor y guarda. Ábrelo otra vez y pulsa Cancelar: no cambia nada.','3. Bórralo: pide confirmación. Al cancelar sigue ahí; al confirmar desaparece.'],en:['1. In Wallet → Property, add an asset with a name and value: it appears in the list and increases net worth.','2. Tap it, change the value and save. Open it again and press Cancel: nothing changes.','3. Delete it: confirmation is requested. Cancelling keeps it there; confirming removes it.'],ca:['1. A Cartera → Béns, afegeix un bé amb nom i valor: apareix a la llista i puja el patrimoni.','2. Toca’l, canvia el valor i desa. Obre’l una altra vegada i prem Cancel·la: no canvia res.','3. Esborra’l: demana confirmació. En cancel·lar continua allà; en confirmar desapareix.']}},{id:'inicio-grafica-vuelve',t:{es:'Vuelve la gráfica de Inicio',en:'The Home chart returns',ca:'Torna la gràfica d’Inici'},items:{es:['1. Abre Inicio: vuelve a verse la gráfica bajo el patrimonio y ya no aparece «Ahora».'],en:['1. Open Home: the chart is visible below net worth again and “Now” no longer appears.'],ca:['1. Obre Inici: torna a veure’s la gràfica sota el patrimoni i ja no apareix «Ara».']}}]};
+  // La nota114 y su única tanda son otro oráculo literal: el catálogo vivo no se valida contra sí mismo.
+  const note114={"v":"4.26.114","d":"2026-10-11","t":{"es":"Inicio sin solapes","en":"Home without overlaps","ca":"Inici sense solapaments"},"items":{"es":["Inicio ya no muestra por error la lista de categorías de Gastos encima de sus tarjetas."],"en":["Home no longer shows the Expenses category list on top of its cards by mistake."],"ca":["Inici ja no mostra per error la llista de categories de Despeses a sobre de les seves targetes."]},"tandas":[{"id":"inicio-solape-gastos","t":{"es":"Inicio sin solapes","en":"Home without overlaps","ca":"Inici sense solapaments"},"items":{"es":["1. Activa una temática en Ajustes → Apariencia → Temática (cualquiera que no sea «Ninguna»).","2. Entra en Gastos y abre el desglose «Por categoría».","3. Vuelve a Inicio: no debe verse ninguna lista de categorías encima de las tarjetas.","4. Desde Inicio, apunta dos gastos seguidos con el botón + y cierra: Inicio debe seguir limpio.","5. Vuelve a Gastos: el desglose sigue ahí y se puede abrir y cerrar."],"en":["1. Turn on a theme in Settings → Look & feel → Theme (any except “None”).","2. Go to Spending and open the “By category” breakdown.","3. Go back to Home: no category list should appear on top of the cards.","4. From Home, log two expenses in a row with the + button and close: Home should stay clean.","5. Go back to Spending: the breakdown is still there and can be opened and closed."],"ca":["1. Activa una temàtica a Ajustos → Aparença → Temàtica (qualsevol que no sigui «Cap»).","2. Entra a Despeses i obre el desglossament «Per categoria».","3. Torna a Inici: no s’ha de veure cap llista de categories a sobre de les targetes.","4. Des d’Inici, apunta dues despeses seguides amb el botó + i tanca: Inici ha de seguir net.","5. Torna a Despeses: el desglossament continua allà i es pot obrir i tancar."]}}]};
   const prior=before.map(n=>n.tandas?{...n,tandas:n.tandas.filter(g=>!replaced.includes(g.id))}:n);
   expect(prior.length).toBe(229);
   const live=JSON.parse(fs.readFileSync(new URL("../src/data/release-notes.json",import.meta.url),"utf8"));
-  expect(live).toEqual([note113,...prior]);
-  const expected=betaNotes([note113,...prior]);
-  expect(expected.length).toBe(230);
+  expect(live).toEqual([note114,{...note113,tandas:[]},...prior]);
+  const expected=betaNotes([note114,{...note113,tandas:[]},...prior]);
+  expect(expected.length).toBe(231);
+  expect(expected.slice(0,2).map(n=>[n.v,n.tandas.map(g=>g.id)])).toEqual([["4.26.114",["inicio-solape-gastos"]],["4.26.113",[]]]);
   expect(await page.evaluate(()=>RELEASE_NOTES)).toEqual(expected);
   const closed=["inc-0310-01-meta-regla","ops-0410-panel-cola","inc-0310-gastos-sin-limite","inc-0310-broker-resultados","feature-0310-01-movilidad","inc-2909-01-widget-periodo","fin05-widget-reentrada","fin05-pago-cerrada","tr-descripcion-clasificacion","widget-banco","widget-app-cerrada",...retired];
   expect(await page.evaluate(ids=>RELEASE_NOTES.flatMap(n=>n.tandas||[]).filter(g=>ids.includes(g.id)).map(g=>g.id),closed)).toEqual([]);
   const deliveries=JSON.parse(fs.readFileSync(new URL("../public/beta-delivery.json",import.meta.url),"utf8"));
   expect(deliveries.web["inc-2709-07-bienes-toque"]).toBeUndefined();
   expect(deliveries.web["inc-0910-inicio-solo-actual"]).toBeUndefined();
+  // El catálogo actual retira las dos pruebas; el guion publicado sigue como fixture sintético.
+  for(const g of note113.tandas){
+    expect(deliveries.pruebas[g.id]).toBeUndefined();
+    await expect(page.locator(".beta-tanda-t").filter({hasText:"v4.26.113 · "+g.t.es})).toHaveCount(0);
+  }
+  const published=betaNotes([note113,...prior]),publishedDeliveries=betaDelivery(published);
   for(const group113 of note113.tandas){
+  const deliveries=publishedDeliveries;
   const id113=group113.id,without113=structuredClone(deliveries);
   delete without113.web[id113];delete without113.pruebas[id113];
-  expect(deliveries.web[id113]).toBe(expected[0].tandas.find(g=>g.id===id113).web);
+  expect(deliveries.web[id113]).toBe(published[0].tandas.find(g=>g.id===id113).web);
   expect(deliveries.pruebas[id113]).toEqual({v:"4.26.113",contenido:JSON.stringify([id113,group113.t.es,group113.items.es,1])});
   const host="e2e-retirement113-"+lang+"-"+id113;
   // Un recibo sintético completo no debe esconder una tanda113 cuando falta sólo el suyo.
-  await page.evaluate(({deliveries,host})=>{
+  await page.evaluate(({deliveries,host,notes})=>{
+    RELEASE_NOTES=notes;
     window._mcProdEntregas=deliveries;window._mcProdApkRevisiones={};
     CONFIG.APP_VERSION=RELEASE_NOTES[0].v+".1";window._mcProdApk=52;
     window._mcProdDeliveryChecked=true;window._mcProdVersion=()=>Promise.resolve("4.26.94");
@@ -1675,7 +1686,7 @@ for(const lang of ["es","en","ca"])test(`cola publicada: no vuelve a pedir las c
     const h=document.createElement("div");h.id=host;document.body.appendChild(h);
     window.__retirement113Root=ReactDOM.createRoot(h);
     window.__retirement113Root.render(React.createElement(BetaReviewPanel,{onClose:()=>{},showToast:()=>{}}));
-  },{deliveries:without113,host});
+  },{deliveries:without113,host,notes:published});
   const panel=page.locator("#"+host+" .beta-review"),active=panel.locator('.beta-tanda:not([data-beta-historical="true"])');
   try{
     await expect(panel).toBeVisible();
@@ -1703,10 +1714,11 @@ for(const lang of ["es","en","ca"])test(`cola publicada: no vuelve a pedir las c
     expect(await page.evaluate(()=>window._mcProdEntregas)).toEqual(deliveries);
     expect(await page.evaluate(()=>store.get("_betaReview_4.26.87.1_v"))).toEqual({_h:1,"h:historia-sintetica":{verdict:"rejected",at:100}});
   }finally{
-    await page.evaluate(host=>{
+    await page.evaluate(({host,notes})=>{
+      RELEASE_NOTES=notes;
       if(window.__retirement113Root)window.__retirement113Root.unmount();
       const h=document.getElementById(host);if(h)h.remove();delete window.__retirement113Root;
-    },host);
+    },{host,notes:expected});
   }
   }
 });

@@ -187,6 +187,9 @@ export const CROSSCUTTING = [
   "e2e/pulsacion-larga.spec.mjs",
   /* UX-01: geometría de `.page-scroll-host` en `shell.html` (layout-shift al cambiar tab). */
   "e2e/ux01-layout-shift.spec.mjs",
+  /* 2026-10-10: una página que no es el host no puede tener cajas visibles en el viewport
+     (el desglose de Gastos atravesaba `visibility:hidden` y, con temática, tapaba Inicio). */
+  "e2e/inicio-solape-gastos.spec.mjs",
   /* A/B idiomas: en/ca fuera del bundle; arranque debe esperar el JSON. */
   "e2e/i18n-pack.spec.mjs",
   /* Regresión 4.19.100: hojas sin body tienen que scrollear; Apuntar mantiene CTA fijo. */

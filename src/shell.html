@@ -613,7 +613,10 @@
   html[data-season] .page.page-scroll-host{background:transparent!important;}
   /* Host transparente deja ver el lavado fijo (portal z-1) al scrollear; las hermanas montadas
      por mountNeighbors se filtraban por debajo (Inicio sobre Gastos). Fuera del pintado.
-     e2e acota a `.page-scroll-host` (listas-render) — los nodos siguen en DOM pero hidden. */
+     e2e acota a `.page-scroll-host` (listas-render) — los nodos siguen en DOM pero hidden.
+     2026-10-10: esto solo no alcanza si un hijo fuerza `visibility:visible` (el desglose
+     abierto). Ese caso se cierra donde se abre, con `inherit`, no con un `*` sobre toda
+     la página: el asterisco invalidaba cada nodo de Gastos al soltar la pestaña. */
   .track.scroll-host-park .page:not(.page-scroll-host){visibility:hidden;pointer-events:none;}
   /* Con el host fixed, no recortar el estirón nativo (Ajustes NO vive dentro de overflow:hidden). */
   .viewport.scroll-host-open{overflow:visible;}
@@ -891,7 +894,15 @@
      adivinar un max-height y la opacidad evita que la última fila parpadee. */
   .v4-gastos-cats-body{display:grid;grid-template-rows:0fr;opacity:0;visibility:hidden;pointer-events:none;
     transition:grid-template-rows .34s var(--ease),opacity .24s ease,visibility 0s linear .34s;}
-  .v4-gastos-cats-body.abierto{grid-template-rows:1fr;opacity:1;visibility:visible;pointer-events:auto;transition-delay:0s;}
+  /* `inherit` y no `visible` (2026-10-10): un hijo con `visibility:visible` se pinta aunque
+     la página lleve `hidden`. Gastos premontada ocupa el mismo recto que Inicio (el host es
+     `position:fixed` y sale del flujo). Con temática el host es transparente y la tarjeta
+     vacía de recibos no tiene fondo, así que el desglose se leía encima de Inicio con la
+     pestaña activa todavía ahí. Sin temática el fondo opaco lo tapa: por eso no salía en
+     todos los móviles. Heredar sigue el `hidden` de la página inactiva y, en la activa,
+     sigue siendo visible. Un `*` con !important sobre toda la página también lo cerraba,
+     pero a CPU x6 la primera vuelta a Inicio pagaba ~65 ms de estilo; esto no añade regla. */
+  .v4-gastos-cats-body.abierto{grid-template-rows:1fr;opacity:1;visibility:inherit;pointer-events:inherit;transition-delay:0s;}
   .v4-gastos-cats-inner{min-height:0;overflow:hidden;}
   .v4-gastos-cat{display:block;width:100%;text-align:left;background:transparent;border:0;padding:6px 0 2px;cursor:pointer;color:inherit;font:inherit;}
   .v4-gastos-cat-row{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:13px;}
@@ -910,7 +921,8 @@
   .v4-filter-cats-state{color:var(--muted);font-size:11.5px;font-weight:700;letter-spacing:0;text-transform:none;white-space:nowrap;}
   .v4-filter-cats-body{display:grid;grid-template-rows:0fr;opacity:0;visibility:hidden;pointer-events:none;
     transition:grid-template-rows .34s var(--ease),opacity .24s ease,visibility 0s linear .34s;}
-  .v4-filter-cats.abierto .v4-filter-cats-body{grid-template-rows:1fr;opacity:1;visibility:visible;pointer-events:auto;transition-delay:0s;}
+  /* Mismo agujero que el desglose de categorías: `visible` atravesaba la página hidden. */
+  .v4-filter-cats.abierto .v4-filter-cats-body{grid-template-rows:1fr;opacity:1;visibility:inherit;pointer-events:inherit;transition-delay:0s;}
   .v4-filter-cats-inner{min-height:0;overflow:hidden;padding:0 12px;}
   .v4-filter-cats.abierto .v4-filter-cats-inner{padding-bottom:2px;}
   .v4-card-hero{border-radius:24px;}
