@@ -61,22 +61,24 @@ for(const lang of ["es","en","ca"]){
     await expect(page.locator('div[data-seg="recibos"] .v4-paid').filter({hasText:"Agua"})).toHaveCount(0);
     await expect(page.locator('div[data-seg="recibos"]')).toContainText(labels[lang].unknown);
   });
-  for(const [kind,tie,tolerant] of [["nombre más específico",false,false],["empate real",true,false],["BOOK tolerante y gasto exacto",false,true]]){
+  for(const [kind,tie,tolerant,duplicate] of [["nombre más específico",false,false],["empate real",true,false],["BOOK tolerante y gasto exacto",false,true],["identificador duplicado",false,false,true]]){
     test(lang+": un cargo no acredita dos recibos · "+kind,async({page})=>{
       // load reclasifica Mapfre: la categoría compatible aísla aquí la disputa por nombre.
       const specific=Object.assign({},fixed,{id:"seguro",name:"Seguro Mapfre",category:"recibos",amount:tolerant?42.4:42});
       const generic=Object.assign({},fixed,{id:"mapfre",name:tie?"SEGURO MAPFRE":"Mapfre",category:"recibos",account:"trade_republic"});
+      if(duplicate) generic.id=specific.id;
       const cargo={id:"seguro-tr",date:"2026-09-24",merchant:"SEGURO MAPFRE SA",amount:42,ent:"trade_republic",category:"recibos",source:"ob"};
       if(tolerant) cargo.ent="sabadell";
       const book=Object.assign({},tx,{ent:cargo.ent,date:cargo.date,merchant:cargo.merchant});
       await open(page,lang,{accounts:[{id:"sb",ent:"sabadell",value:800,role:"fijos"},{id:"tr",ent:"trade_republic",value:300,role:"fijos"}],fixed:[generic,specific],expenses:[cargo],bankTx:[book]});
-      await expect(page.locator('.page-scroll-host .v4-charge')).toHaveCount(tie?2:1);
+      const unconfirmed=tie||duplicate;
+      await expect(page.locator('.page-scroll-host .v4-charge')).toHaveCount(unconfirmed?2:1);
       await page.locator('.botnav-tab[data-tour="plan"]').click();
       const paid=page.locator('div[data-seg="recibos"] .v4-paid');
-      await expect(paid).toHaveCount(tie?0:1);
-      if(!tie) await expect(paid).toContainText(specific.name);
+      await expect(paid).toHaveCount(unconfirmed?0:1);
+      if(!unconfirmed) await expect(paid).toContainText(specific.name);
       await page.reload(); await dismissNews(page);
-      await expect(paid).toHaveCount(tie?0:1);
+      await expect(paid).toHaveCount(unconfirmed?0:1);
     });
   }
   for(const [kind,charge] of [

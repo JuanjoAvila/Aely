@@ -120,6 +120,9 @@ function fixedPaymentContenders(s,y,m){
   }));
 }
 function fixedPaymentAutoOwner(s,e,y,m,bank,merchant,amount,category,book){
+  // Un id repetido hacía que el ganador por nombre acreditara ambos registros (11/10).
+  // Sin una identidad única no hay forma de atribuir ese cargo con seguridad.
+  if(!e.id||(s.fixed||[]).filter(function(f){ return f.id===e.id; }).length!==1) return false;
   var name=recNorm(merchant),best=-1,winners=[];
   fixedPaymentContenders(s,y,m).forEach(function(f){
     var n=recNorm(f.name),full=n.length>=4&&(" "+name+" ").indexOf(" "+n+" ")>=0;

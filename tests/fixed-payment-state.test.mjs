@@ -278,3 +278,22 @@ test("BOOK tolerante y gasto exacto no reparten el mismo cargo entre dos recibos
     assert.equal(reconciled.fixed.filter(f=>c.fixedPaymentState(reconciled,f,2026,9,30).paid).length,1);
   }
 });
+
+test("una identidad de recibo ausente o repetida no comparte el ganador por nombre",()=>{
+  const row=Object.assign({},recorded,{merchant:"SEGURO MAPFRE SA",obName:"SEGURO MAPFRE SA"});
+  const book=Object.assign({},tx,{merchant:row.obName});
+  for(const id of ["duplicado",undefined]){
+    const specific=Object.assign({},fixed,{id,name:"Seguro Mapfre"});
+    const generic=Object.assign({},fixed,{id,name:"Mapfre"});
+    for(const bills of [[specific,generic],[generic,specific]]){
+      for(const bankTx of [[],[book]]){
+        const state=Object.assign({},base,{fixed:bills,expenses:[row],bankTx});
+        const before=JSON.stringify(state);
+        assert.equal(state.fixed.some(f=>c.fixedPaymentState(state,f,2026,9,30).paid),false,"sin identidad única no acredita ninguno");
+        const reconciled=c.reconcileFixedPaymentProofs(state,2026,9,30);
+        assert.equal(reconciled.fixed.some(f=>c.fixedPaymentState(reconciled,f,2026,9,30).paid),false);
+        assert.equal(JSON.stringify(state),before,"no repara ni modifica identidades al leer");
+      }
+    }
+  }
+});
