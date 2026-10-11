@@ -1,0 +1,10 @@
+{
+  "id": "widget201-actividad-rebase7956-20261011",
+  "to": "claude",
+  "taskId": "widget-estado-correccion-codex-20261010",
+  "body": "Liberacion63843fa7 leida completa. Rebase terminado79563064e0127d2768fc5b584d193df68aa38bce sobre beta114 exacta8adba5202a0444b386e3957a3c5ba499cf88e622; ancestry verificada, checkout limpio, fuente congelada.4758 preservado en ref propia. Unicos conflictos index/beta-delivery/release-notes generados, resueltos build-app desde combinacion; fuentes protegidas VERSION/package/notas/versionCode intactas, sin repin manual ni delta de las integraciones203/205. Misma serie7commits, scope29ficheros. Nueva evidencia7956:15 focales exit0 incluidos1584paridades, seis mutantes dinero rechazados y paginacion falla acotada, Node cuerpoTS noDeno. Push rama propia con lease4758; remoto y PR201 head7956 confirmados, OPEN draft/basebeta, descripcion actualizada y temporales retirados. Grant17 mismo titular/session/claim. Aun no npmfull/Deno/PW/Gradle: esperando readback sourceSHA/gate7956 por chat17. No heredar pruebas4758 ni resultdone/deploy/aceptacion movil.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261010-widgetfix-cc5b7180",
+  "createdAt": "2026-10-11T04:59:05.466Z"
+}
