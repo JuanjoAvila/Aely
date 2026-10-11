@@ -32,8 +32,7 @@ function cycleTiming(bud,nowMs){
 function NetWorthNow({tt, simple, series, splashGone}){
   // La animación pertenece a esta tarjeta; repintar todo Inicio en cada frame
   // dispara las lecturas de layout de navegación con el histórico grande.
-  const shownNet=useCountUp(tt.netWorth||0, splashGone);
-  const value=tt.netWorth, shown=shownNet, ready=splashGone;
+  const value=tt.netWorth, shown=useCountUp(tt.netWorth||0, splashGone);
   series=series||[];
   const today=netWorthDay(), current=series.length&&series[series.length-1].day===today;
   const ranges=useMemo(function(){ return netWorthRanges(series,today); },[series,today]);
@@ -59,7 +58,7 @@ function NetWorthNow({tt, simple, series, splashGone}){
   };
   const release=function(e){ e.stopPropagation(); cancelAnimationFrame(frameRef.current); frameRef.current=0; setTouch(null); };
   const id=React.useId();
-  return React.createElement("div",{className:"v4-hero v42-net","data-tour":"hero","data-testid":"inicio-net-current",style:{"--v42-play":ready===false?"paused":"running"}},
+  return React.createElement("div",{className:"v4-hero v42-net","data-tour":"hero","data-testid":"inicio-net-current",style:{"--v42-play":splashGone===false?"paused":"running"}},
     React.createElement("div",{className:"v4-net-current-head"},
       React.createElement("div",{className:"v4-micro"}, t(simple?"v4_money_total":"d_networth")),
       React.createElement("button",{type:"button",className:"v42-net-info","aria-label":t("v42_net_info_title"),onClick:function(){ setInfo(!info); }},"i")

@@ -107,6 +107,36 @@ abierto Chromium para esta revisión.
 Los demás cálculos y reglas de dinero quedan intactos. La identidad de fuente
 cambia: antes de las suites completas necesita la base anunciada y un grant nuevo.
 
+## Auditoría acotada del delta de Inicio
+
+La revisión de03, los helpers nuevos de02, el historial de07, las claves propias
+de01 y el CSS v4.2 conserva todos los lectores y textos activos. Las27 claves
+nuevas por idioma cubren información, falta de datos, cuatro rangos, ocho frases
+de variación y los seis estados del ciclo. El historial ya comparte un único
+helper; su comprobación previa evita llamar al setter sin cambios y la validación
+del reducer conserva referencias y el límite de400 puntos. Fechas, cobertura de
+bancos, conversión, céntimos y escalones históricos cumplen contratos distintos.
+
+Se retiran únicamente los alias locales `shownNet` y `ready` de la tarjeta y el
+valor CSS de animación duplicado: el renderer ya establece siempre `paused` o
+`running`. La variable intermedia del presupuesto se conserva porque otros
+descriptores beta usan su literal como ancla; el primer build abortó al retirarla
+y el build final pasó tras restaurarla. No cambian los descriptores ni sus límites;
+el mutante propio de patrimonio se adapta explícitamente a la nueva asignación.
+
+Esta pasada reduce **49 B minificados /21 B gzip** respecto a42ff44e5. Bundle LF
+oficial: **1.338.851 /365.976 B**; con la misma reserva: **1.338.957 /366.029 B**.
+Exceso restante: **12.877 /3.533 B**, con tres recursos bloqueantes y salida1 del
+guardián de tamaño. Build, sintaxis, Inicio en UTC/Madrid, instrumento de memo,
+veredictos, i18n y beta-sources focal terminan con salida0. No se encuentra otro
+corte seguro pertinente dentro del delta revisado; no se recortan funciones,
+textos, historial ni criterios de dinero para hacer caber el bundle.
+
+La revisión42ff44e5 se preserva en el historial y en una referencia local previa.
+Esta auditoría no abre navegador ni ejecuta suites completas, Deno o pruebas de
+CPU. El claim del desbloqueo sigue abierto y el turno pesado continúa reservado
+por Claude; la liberación y el grant anterior no autorizan esta fuente nueva.
+
 Módulo11 sigue intacto. Las causas de Bienes y Metas contra beta684, PR203,
 rendimiento y suites de navegador siguen pendientes. Los resultados Node no
 acreditan otra revisión ni aceptación móvil. No hay integración de este cierre.
