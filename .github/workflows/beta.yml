@@ -19,13 +19,13 @@ on:
 permissions:
   contents: write        # crear/actualizar la release `beta` y subir sus assets
 
-concurrency:
-  group: beta
-  cancel-in-progress: false
-
 jobs:
   beta:
     runs-on: ubuntu-latest
+    # Solo publicar va en cola: dos publicaciones a la vez pisarían la release.
+    concurrency:
+      group: beta-publicar
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
         with:
@@ -38,39 +38,14 @@ jobs:
       - name: Instalar dependencias
         run: npm ci
 
-      # Una beta que no arranca no sirve de nada para probar. PERO no hace falta la suite
-      # de 139 e2e para un commit de documentación: `relevant-tests` recorta por carpetas
-      # (docs → sin Chromium; ingest → Deno; Gastos → sus specs). Si se toca el núcleo
-      # (motor, i18n, shell, el runner) o un workflow, corre TODO. Promote y test.yml
-      # de main NO usan esto — ahí la red de seguridad es la suite entera.
-      - name: Plan de tests
-        id: plan
-        env:
-          GITHUB_EVENT_NAME: ${{ github.event_name }}
-          GITHUB_EVENT_BEFORE: ${{ github.event.before }}
-          GITHUB_SHA: ${{ github.sha }}
-        run: node scripts/relevant-tests.mjs --ci
-
-      - uses: denoland/setup-deno@v2
-        if: steps.plan.outputs.deno == 'true'
-        with:
-          deno-version: v2.x
-
-      - name: Chromium (Playwright)
-        if: steps.plan.outputs.playwright == 'true'
-        run: |
-          # El repo de Google Chrome sirve a veces un indice apt con el hash cambiado y tumba
-          # `--with-deps` (9/9/2026: dos runs seguidos de la beta). No usamos Chrome, solo el
-          # Chromium que trae Playwright, asi que se quita esa fuente antes de instalar. No se
-          # relaja nada: los deps siguen instalandose con --with-deps.
-          # Borrar SOLO el .list no basta: la imagen del runner trae la fuente tambien en
-          # formato deb822 (.sources). Se quita cualquier fuente que apunte a dl.google.com.
-          sudo rm -f /etc/apt/sources.list.d/google*.list /etc/apt/sources.list.d/google*.sources || true
-          sudo grep -rl "dl.google.com" /etc/apt/sources.list /etc/apt/sources.list.d/ 2>/dev/null | xargs -r sudo rm -f || true
-          npx playwright install chromium --with-deps
-
-      - name: Tests
-        run: node scripts/run-tests.mjs --plan relevant-plan.json
+      # PUBLICAR YA NO ESPERA A LA SUITE (orden suya, 2026-10-11: «¿cómo hemos pasado de 5 min a
+      # 55? recórtalo pero ya; prefiero que salte en beta y tener más cosas ahí más rápido»).
+      # La suite entera con Chromium eran ~50 de los ~55 minutos, y la beta solo la lleva su
+      # móvil: para eso existe el canal. Aquí queda lo mínimo para no servir un bundle que no
+      # arranca; la suite corre EN PARALELO en el job `tests` de abajo y avisa en rojo, pero no
+      # frena. La red de seguridad antes de la familia sigue entera: promote y test.yml de main.
+      - name: Sintaxis del bundle
+        run: npm run test:syntax
 
       # El número de la beta se calcula ANTES de sellar: el bundle tiene que llevar dentro
       # exactamente la misma versión que va a anunciar el manifiesto (ver más abajo).
@@ -214,3 +189,56 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "Llega SOLO a los móviles con el canal beta activado (Ajustes → Dev → Pruebas)." >> $GITHUB_STEP_SUMMARY
           echo "La estable de GitHub Pages no se ha tocado." >> $GITHUB_STEP_SUMMARY
+
+  # La suite que antes bloqueaba la publicación. Un push nuevo cancela la pasada del anterior:
+  # lo que interesa es el veredicto de la cabeza de beta, no el de un commit ya superado.
+  tests:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: beta-tests
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      # Una beta que no arranca no sirve de nada para probar. PERO no hace falta la suite
+      # de 139 e2e para un commit de documentación: `relevant-tests` recorta por carpetas
+      # (docs → sin Chromium; ingest → Deno; Gastos → sus specs). Si se toca el núcleo
+      # (motor, i18n, shell, el runner) o un workflow, corre TODO. Promote y test.yml
+      # de main NO usan esto — ahí la red de seguridad es la suite entera.
+      - name: Plan de tests
+        id: plan
+        env:
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          GITHUB_EVENT_BEFORE: ${{ github.event.before }}
+          GITHUB_SHA: ${{ github.sha }}
+        run: node scripts/relevant-tests.mjs --ci
+
+      - uses: denoland/setup-deno@v2
+        if: steps.plan.outputs.deno == 'true'
+        with:
+          deno-version: v2.x
+
+      - name: Chromium (Playwright)
+        if: steps.plan.outputs.playwright == 'true'
+        run: |
+          # El repo de Google Chrome sirve a veces un indice apt con el hash cambiado y tumba
+          # `--with-deps` (9/9/2026: dos runs seguidos de la beta). No usamos Chrome, solo el
+          # Chromium que trae Playwright, asi que se quita esa fuente antes de instalar. No se
+          # relaja nada: los deps siguen instalandose con --with-deps.
+          # Borrar SOLO el .list no basta: la imagen del runner trae la fuente tambien en
+          # formato deb822 (.sources). Se quita cualquier fuente que apunte a dl.google.com.
+          sudo rm -f /etc/apt/sources.list.d/google*.list /etc/apt/sources.list.d/google*.sources || true
+          sudo grep -rl "dl.google.com" /etc/apt/sources.list /etc/apt/sources.list.d/ 2>/dev/null | xargs -r sudo rm -f || true
+          npx playwright install chromium --with-deps
+
+      - name: Tests
+        run: node scripts/run-tests.mjs --plan relevant-plan.json
