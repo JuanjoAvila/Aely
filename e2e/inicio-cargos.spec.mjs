@@ -37,8 +37,11 @@ for(const lang of ["es","en","ca"]){
     expect(edited.paidYm).toBeUndefined();
     expect(edited.paidDay).toBeUndefined();
     await sheet.locator('.settings-push-h .back').click();
+    await expect(sheet).toHaveCount(0);
     await hub.locator(':scope > .v4-bills-push > [data-screen="bills-group"] > .settings-push-h .back').click();
+    await expect(hub.locator(':scope > .v4-bills-push')).toHaveCount(0);
     await hub.locator(':scope > [data-screen="bills-home"] > .settings-push-h .back').click();
+    await expect(hub).toHaveCount(0);
     await expect(page.locator('div[data-seg="recibos"] .v4-paid').filter({hasText:fixed.name})).toHaveCount(1);
     await page.reload(); await dismissNews(page);
     const reloaded=await page.evaluate(()=>mcLoadRaw(mcStateKey()).fixed[0]);
@@ -60,9 +63,10 @@ for(const lang of ["es","en","ca"]){
   });
   for(const [kind,tie,tolerant] of [["nombre más específico",false,false],["empate real",true,false],["BOOK tolerante y gasto exacto",false,true]]){
     test(lang+": un cargo no acredita dos recibos · "+kind,async({page})=>{
-      const specific=Object.assign({},fixed,{id:"seguro",name:"Seguro Mapfre",amount:tolerant?42.4:42});
-      const generic=Object.assign({},fixed,{id:"mapfre",name:tie?"SEGURO MAPFRE":"Mapfre",account:"trade_republic"});
-      const cargo={id:"seguro-tr",date:"2026-09-24",merchant:"SEGURO MAPFRE SA",amount:42,ent:"trade_republic",category:"otros",source:"ob"};
+      // load reclasifica Mapfre: la categoría compatible aísla aquí la disputa por nombre.
+      const specific=Object.assign({},fixed,{id:"seguro",name:"Seguro Mapfre",category:"recibos",amount:tolerant?42.4:42});
+      const generic=Object.assign({},fixed,{id:"mapfre",name:tie?"SEGURO MAPFRE":"Mapfre",category:"recibos",account:"trade_republic"});
+      const cargo={id:"seguro-tr",date:"2026-09-24",merchant:"SEGURO MAPFRE SA",amount:42,ent:"trade_republic",category:"recibos",source:"ob"};
       if(tolerant) cargo.ent="sabadell";
       const book=Object.assign({},tx,{ent:cargo.ent,date:cargo.date,merchant:cargo.merchant});
       await open(page,lang,{accounts:[{id:"sb",ent:"sabadell",value:800,role:"fijos"},{id:"tr",ent:"trade_republic",value:300,role:"fijos"}],fixed:[generic,specific],expenses:[cargo],bankTx:[book]});
