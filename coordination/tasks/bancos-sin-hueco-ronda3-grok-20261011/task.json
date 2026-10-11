@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "id": "bancos-sin-hueco-ronda3-grok-20261011",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261010-6a2f79b5",
+  "createdAt": "2026-10-11T01:36:01.263Z",
+  "to": "grok",
+  "baseSHA": "bea5ab10cec178e15f550358b929a7639240f8ec",
+  "objective": "Segundo NO-GO de la revisión independiente del PR 206, en bea5ab10. B2, B3 y B4 aguantan las sondas: bien. B1 solo está cerrado para un banco que pagina de antiguo a nuevo y sin errores; el servidor sigue perdiendo movimientos en tres escenarios y en uno queda PEOR que beta. Tercera y última ronda: mismo PR, misma rama, sin desplegar. Esta vez con el diseño dado, para no iterar más. Chat de agente nuevo.",
+  "scope": [
+    "supabase/functions/bank-sync (fuente y tests)",
+    "src/modules 08-motor-bank, 11-app-main, 00-core, 01-i18n en lo que toca a este arreglo",
+    "tests Node, Deno y e2e propios; tests/logs-privacidad (inventario)"
+  ],
+  "acceptance": [
+    "DISEÑO del servidor, obligatorio. (a) La lectura de siempre (ventana reciente y saldos) va primero y queda AISLADA: nada de lo que pase en el tramo antiguo puede cambiar su resultado, ni acc.ok, ni saldos, ni el estado del enlace. Sonda roja hoy en index.ts 262-279: hueco de 60 días y el banco responde 429 o 400 a la petición del tramo antiguo: la cuenta sale ok false, saldos 0, 0 movimientos, tres pulsaciones seguidas; con 401 solo en el tramo antiguo el enlace pasa a expired y obliga a reconectar. En beta ese mismo banco da ok, saldo y 72 movimientos. El tramo antiguo va en su propio try, su fallo solo significa que el cursor no avanza, y si la lectura reciente agota el plazo de la cuenta tampoco lanza.",
+    "(b) El cursor NO puede depender del orden en que pagina el banco. Sonda roja hoy en index.ts 265-273 y 326: banco que pagina de nuevo a antiguo, hueco de 60 días: la pulsación 1 pone last_sync a mitad y la 2 a ahora; faltan 24 movimientos para siempre; con 89 o 120 días faltan 132. Diseño: el tramo antiguo se recorre por TROZOS DE FECHAS, del más antiguo al más nuevo, con date_from y date_to; un trozo solo cuenta si se leyó ENTERO (paginación hasta el final dentro del presupuesto de llamadas); el cursor avanza al final del último trozo entero, nunca a una fecha deducida de las filas. Si un trozo no cabe en las llamadas que quedan, se reduce (mitad, hasta un día) y se reintenta en la siguiente pulsación. Así el orden del banco da igual y un mismo día nunca queda partido.",
+    "(c) El cursor del enlace solo avanza hasta donde TODAS sus cuentas han completado. Sonda roja hoy en index.ts 326: dos cuentas, la segunda con 429 en la pulsación 1: last_sync sube y la segunda pierde 36 movimientos para siempre.",
+    "(d) Convergencia demostrada con tests sobre el handler real, en orden ascendente Y descendente, páginas de 20, huecos de 15, 45, 60, 89 y 120 días, una y dos cuentas, con y sin 429 intermitente: pulsando N veces el hueco se rellena entero, sin perder ni duplicar, last_sync termina en ahora, nunca retrocede, y nunca más de 12 llamadas de movimientos por cuenta y pulsación. Caso de mucho volumen (ventana reciente de 11 páginas, hueco de 40 días): no puede quedar atascado para siempre; si solo queda una llamada libre, que avance un día. Caso en que lo reciente no cabe en 12 llamadas: comportamiento IGUAL que beta, incluido el avance de last_sync que beta sí hace.",
+    "(e) Seis mutaciones sobreviven hoy y necesitan un test que falle con cada una: dar la lectura por completa siempre; cursor parcial con lo reciente incompleto; leer el tramo aunque lo reciente se corte; que el cursor pueda retroceder; que el llamador no pase el suelo (test Node, no solo e2e); no recalcular el posible repetido con la fecha real.",
+    "CLIENTE, quitar el andamiaje, que además es lo que revienta el tope de tamaño (el PR añade 5364 B y 1825 B gzip y sobra por 4399 y 1218): fuera el segundo cliente de Supabase de 00-core 1555-1566 (misma clave de sesión, comportamiento indefinido): usar el cliente que ya existe y pasar recoverGaps como argumento; fuera la escucha global de clics y la detección de manual por el texto del botón (00-core 1575-1581): el llamador pasa manual de forma explícita, incluida la ficha de cuenta; fuera el suelo en una global consumida dentro del updater (08-motor-bank 1023-1027 y 1106: llamado dos veces devuelve 5 y luego 0 filas): el suelo viaja como dato de la respuesta hasta el importador, sin estado oculto; fuera los envoltorios de importObExpenses, reconcileBank y listaAvisosSync: la regla va dentro de la función, una vez. Si eso obliga a tocar líneas dentro de la huella de otra tanda, hazlo y dímelo: prefiero rehacer una huella a tener envoltorios. Objetivo: caber en el tope actual sin subirlo; di la cifra final.",
+    "Textos honestos en es, en y ca: el aviso no puede prometer que el resto se revisa en Importar histórico, porque tiene el mismo límite. Texto: la conexión con el banco solo entrega los últimos 90 días; lo anterior no está disponible por esta vía. El aviso sale solo con hueco real de más de 90 días, no con 89 por el solape. Y un fijo modelado que no toca este mes (anual, o el del mes pasado) tampoco entra como gasto en el tramo recuperado: casar contra los fijos modelados, no contra el mes en curso.",
+    "tests/logs-privacidad: actualizar el inventario a tres inserciones de forma explícita; la tercera lleva solo conteos, fechas y nombre del banco, comprobado.",
+    "Fecha de Saldo actualizado: hoy se pinta con last_sync, que con cursor parcial enseña una fecha vieja aunque el saldo sea de ahora. El servidor devuelve la hora de lectura del saldo y el cliente nuevo pinta esa. Sin migración SQL. Reconectar con last_sync null (bank-callback): sigue fuera de alcance, solo descrito.",
+    "UTC y Madrid. npm test entero con AELY_MEMORY_SOURCE en ruta inexistente: solo puede quedar rojo docs-frescura por la versión. Playwright completo. Result con SHA y conteos reales, y la matriz de cuatro cruces cliente y función otra vez."
+  ],
+  "restrictions": [
+    "Sin VERSION, catálogos, notas ni topes",
+    "Sin merge, push a beta o main, ni despliegue",
+    "Solo a demanda",
+    "Datos sintéticos; repo público",
+    "Sin migraciones SQL"
+  ],
+  "authorization": "Encargo vigente del dueño para INC-2709-06; despliegue de bank-sync por el coordinador tras un GO."
+}
