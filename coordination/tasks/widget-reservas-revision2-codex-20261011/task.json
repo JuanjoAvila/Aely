@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "id": "widget-reservas-revision2-codex-20261011",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261010-6a2f79b5",
+  "createdAt": "2026-10-11T06:41:46.217Z",
+  "to": "codex",
+  "baseSHA": "79563064e0127d2768fc5b584d193df68aa38bce",
+  "objective": "Segunda revisión independiente del widget: GO con reservas. Bloqueante cerrado, 78 escenarios sobre el Java real sin cifra falsa, regresión idéntica byte a byte, R4 y las mutaciones de dinero en rojo. Antes de publicar la APK de beta hay que cerrar tres reservas pequeñas, en la misma rama del PR 201. Corrección corta y PRIORITARIA: va por delante de Inicio y Recibos, porque de ella depende la APK que el dueño prueba hoy.",
+  "scope": [
+    "src/modules/11-app-main.js (solo el envío de la foto y la espera del corte)",
+    "src/modules/00-core.js solo si hace falta para saber si la lectura fue válida",
+    "android MiCarteraWidget.java",
+    "tests propios y docs del widget"
+  ],
+  "acceptance": [
+    "R1 (afecta fuera del widget): el pull de gastos ahora espera a una llamada nativa sin tope de tiempo (11-app-main 463-470, MiCarteraWidget 165). Con un pago con mala cobertura y el POST de la notificación colgado, al abrir la app no se leen los gastos de la nube ni el banco hasta que el POST expire, hasta unos 30 s; antes leía al instante. Arreglo: carrera con tope de 3 a 5 s; si vence, la lectura sigue SIN marca (el widget conserva su estado y se recupera en la siguiente lectura). Abrir la app nunca puede tardar más que hoy por culpa del widget. Test.",
+    "R2 (puede dejar la cifra baja): una lectura vacía sin error acredita marca. pullExpenses (00-core 1016-1029) no comprueba sesión: sin sesión devuelve lista vacía y el paginador la da por completa; hoy solo lo frena la guarda de uid del efecto (11-app-main 2105). Si la sesión cae justo entonces, la foto local con marca borra los pendientes nativos y el widget pinta de menos hasta el siguiente pull válido; lo mismo en el modo inicial de pruebas (00-core 1636). Arreglo: la marca solo se emite si la lectura terminó con sesión válida y sin error, comprobado de forma explícita en el punto donde se emite; en modo pruebas no se emite marca. Test que falle sin el arreglo.",
+    "R3: abono de 200 o más que llega durante una lectura en la que la foto pasa de Mes a Ciclo se descarta sin aviso (MiCarteraWidget 272) y pinta la cifra de ciclo; debe pedir abrir la app, como el resto de ingresos grandes en ciclo. Test.",
+    "Huecos de test: dos mutaciones sobreviven y necesitan guardián Node o Java: quitar la validación de alcance de la foto con marca (MiCarteraWidget 207) y no enviar la marca desde la web (hoy solo lo cubre el e2e). La guarda de cifra no finita, probada campo a campo y no solo con todos a NaN.",
+    "Docs: quitar la cocina que queda en docs/SETUP-SUPABASE.md líneas 4, 6, 18 y 19 (candidata, listener candidato, quién activa qué, un hash) y la mención al criterio del coordinador en un mensaje de tests/widget-notificacion-render.test.mjs.",
+    "Sin tocar nada más. Tests focales del widget e ingest en UTC y Madrid, Deno de ingest, npm run build limpio, y el e2e del widget. NO hace falta repetir la suite entera ni Gradle: los paso yo en la integración. Result con SHA en cuanto esté empujado."
+  ],
+  "restrictions": [
+    "Sin VERSION, versionCode, catálogos ni notas: los pone la integración",
+    "Sin despliegue ni APK",
+    "Datos sintéticos"
+  ],
+  "authorization": "Encargo vigente del dueño para el widget; integración, APK de beta y despliegue de ingest autorizados al coordinador el 11/10."
+}
