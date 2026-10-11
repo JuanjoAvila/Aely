@@ -87,6 +87,26 @@ Las nuevas correcciones sólo tocan instrumentación, tests y esta acta: el HTML
 producto sigue igual al normalizar LF. Antes de repetir pruebas pesadas se publica
 y lee el nuevo SHA congelado, con actualización del grant por el delegado.
 
+Durante la reserva de Claude para integra115 se revisa sólo el CSS propio. El
+título del ciclo nuevo sustituye todas las declaraciones del `.st` antiguo;
+sus variantes `warn`/`bad` no tienen llamadas y el color de tema claro queda
+sustituido por el color heredado explícito del renderer. Se retiran esas reglas
+y el subtítulo del patrimonio hereda su peso y color ya definidos en `.v4-micro`.
+Se mantienen las dimensiones, animaciones, textos y las tres reglas base activas
+del ciclo. También se retira `V4Ring`: la base684 lo llamaba desde Inicio, pero tras
+su sustitución por el anillo de76 px no queda ninguna llamada en las fuentes.
+Las tres reglas base activas entran en el descriptor propio con mutantes explícitos,
+en un commit técnico separado; ningún descriptor ajeno cambia.
+
+El corte conjunto ahorra **1.497 B minificados / 361 B gzip** respecto a662588c3.
+Bundle LF oficial: **1.338.900 / 365.997 B**; con la misma reserva de publicación:
+**1.339.006 / 366.051 B**. Permanece un exceso de **12.926 / 3.555 B**. El guardián
+de tamaño mantiene salida1 y tres recursos bloqueantes. Build, sintaxis, lógica de
+Inicio en UTC y Madrid, auth, veredictos y los guardianes focales pasan; no se ha
+abierto Chromium para esta revisión.
+Los demás cálculos y reglas de dinero quedan intactos. La identidad de fuente
+cambia: antes de las suites completas necesita la base anunciada y un grant nuevo.
+
 Módulo11 sigue intacto. Las causas de Bienes y Metas contra beta684, PR203,
 rendimiento y suites de navegador siguen pendientes. Los resultados Node no
 acreditan otra revisión ni aceptación móvil. No hay integración de este cierre.

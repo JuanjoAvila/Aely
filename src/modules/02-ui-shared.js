@@ -823,28 +823,6 @@ function StackedBar({segments}){
   );
 }
 
-/* Anillo v4.1 compartido (Inicio y portada de Plan). Geometría 104/r=48/stroke10 — la de 96/r=54
-   de la spec se sale del viewBox (audit Claude 17/9). Sin animación al montar en Plan. */
-function V4Ring({pct, tone, label, sub, animate}){
-  const ringC=2*Math.PI*48;
-  const p=Math.max(0,Math.min(1,Number(pct)||0));
-  const stroke=tone==="bad"?"var(--coral)":(tone==="warn"?"var(--tan)":"var(--mint)");
-  return React.createElement("div",{className:"v4-ring",style:{position:"relative",width:104,height:104,flex:"0 0 auto"},"aria-hidden":true},
-    React.createElement("svg",{width:104,height:104,viewBox:"0 0 104 104"},
-      React.createElement("circle",{cx:52,cy:52,r:48,fill:"none",stroke:"var(--sur2)",strokeWidth:10}),
-      React.createElement("circle",{cx:52,cy:52,r:48,fill:"none",stroke:stroke,strokeWidth:10,strokeLinecap:"round",
-        strokeDasharray:String(ringC),strokeDashoffset:String(ringC*(1-p)),
-        transform:"rotate(-90 52 52)",style:animate?{transition:"stroke-dashoffset 1s var(--ease)"}:null})
-    ),
-    React.createElement("div",{style:{position:"absolute",inset:0,display:"grid",placeItems:"center",textAlign:"center",pointerEvents:"none"}},
-      React.createElement("div",null,
-        React.createElement("div",{className:"num",style:{fontFamily:"'Fraunces',Georgia,serif",fontWeight:600,fontSize:22,lineHeight:1}}, label!=null?label:(Math.round(p*100)+"%")),
-        sub && React.createElement("div",{style:{fontSize:10.5,color:"var(--muted-2)",fontWeight:600,marginTop:1}}, sub)
-      )
-    )
-  );
-}
-
 /* ---- Cierre de overlays con el gesto/botón "atrás" del móvil (History API) ----
    Sin esto, el gesto de retroceso hace history.back() y, al no haber una entrada
    propia, SALE de la PWA. Metemos una entrada de historial por cada overlay abierto
