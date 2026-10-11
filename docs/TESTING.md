@@ -522,7 +522,11 @@ Tras v3.108.0 la lógica vive en **`src/modules/*.js`**. No edites `public/index
 - `.github/workflows/promote-beta.yml` — al subir a producción: suite **entera**
 - `tests/wait-promote-deploy.test.mjs` — reproduce un deploy cuya suite supera diez minutos,
   un fallo real y la comprobación del sello de Pages; se ejecuta desde `scripts/run-tests.mjs`.
-- `.github/workflows/beta.yml` — push a **beta**: recorte por carpetas (`scripts/relevant-tests.mjs`).
+- `.github/workflows/beta.yml` — push a **beta**: desde el 11/10/2026 **publicar no espera a la
+  suite** (orden del dueño: 55 min por beta era inasumible). El job `beta` solo pasa
+  `test:syntax` y publica (~5 min); la suite corre en paralelo en el job `tests`, que avisa en
+  rojo sin frenar. Un rojo ahí hay que mirarlo igual: la beta ya está en su móvil.
+  El job `tests` usa el recorte por carpetas (`scripts/relevant-tests.mjs`).
   Docs → sin Chromium. Ingest → Deno, sin e2e. Gastos → sus specs + transversales (persistencia,
   swipe, frames). Núcleo (motor, i18n, shell, runner) o un workflow → todo.
   El guardián `beta-veredictos` también exige la suite completa: corregir su fixture tras
