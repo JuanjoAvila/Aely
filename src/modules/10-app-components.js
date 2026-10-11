@@ -975,6 +975,11 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onL
       // de botones que veníamos a quitar. Al plegar se cancela un «¿quitar?» a medias, que si no
       // quedaría armado y saltaría al volver a abrir.
       const toggle=function(){ setConfirming(""); setOpenBank(abierto?"":l.aspsp_name); };
+      /* «Saldo actualizado» pinta la hora en que el servidor leyó el saldo (`obBalAt`, que viaja
+         en el estado junto a los saldos que describe). `last_sync` es el cursor del extracto: con
+         el tramo antiguo a medias va por detrás y enseñaba una fecha vieja con el saldo de hoy.
+         Solo queda de reserva para lo sincronizado antes de existir `obBalAt`. */
+      const saldoAt=(state.obBalAt||{})[l.aspsp_name]||l.last_sync;
       return React.createElement("div",{key:l.aspsp_name,"data-aspsp":l.aspsp_name,ref:isFocus?focusRef:null,className:isFocus?"bk-focus":undefined,style:{marginBottom:6}},
         React.createElement("div",{className:"v4-mov",role:"button",tabIndex:0,"aria-expanded":abierto?"true":"false",
           onClick:toggle,
@@ -983,7 +988,7 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onL
           React.createElement(Mono,{ent:ent||"",size:40}),
           React.createElement("div",{style:{flex:1,minWidth:0}},
             React.createElement("div",{className:"nm"}, bankLabel(l.aspsp_name), (Array.isArray(l.accounts)&&l.accounts.length>1)?React.createElement("span",{style:{marginLeft:7,fontSize:11,fontWeight:700,color:"var(--mint)"}}, tf("bp_naccts",{n:l.accounts.length})):null),
-            React.createElement("div",{className:"meta"}, l.last_sync?tf("bank_updated",{x:fmtDT(l.last_sync)}):t("bank_neversync")),
+            React.createElement("div",{className:"meta"}, saldoAt?tf("bank_updated",{x:fmtDT(saldoAt)}):t("bank_neversync")),
             l.valid_until?React.createElement("div",{className:"meta",style:{color:soon?"var(--coral)":undefined}}, tf("bank_consent",{x:fmtD(l.valid_until)})):null),
           sp,
           // Flecha: sin ella la tarjeta no se ve pulsable y el usuario no descubre las acciones.

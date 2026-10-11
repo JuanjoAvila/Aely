@@ -19,6 +19,8 @@ const source113=sourceAt("103f3bf101b14585e9cb2b87287f14591d23c624");
 // Integración115: beta114 servida (8adba520) y el arreglo del widget tal como se revisó
 // (844ce4b0, que nace de esa beta).
 const source114=sourceAt("8adba5202a0444b386e3957a3c5ba499cf88e622");
+// Integración116: beta115 servida (dfc02866), con el catálogo y el widget tal como se revisaron.
+const source115=sourceAt("dfc028661935130acc66d416f26d95a09b758497");
 const empty=[{v:"4.26.67",tandas:[]}];
 const archiveRefs=JSON.parse(read("scripts/beta-archives.json"));
 const archiveId="inc-0810-inicio-grafica-significado";
@@ -420,7 +422,9 @@ test("Catálogo114 histórico añade sólo la tanda del solape y conserva notas,
 // gastos y el envío al widget, que otras tandas ya entregadas también vigilan: aquí se fija, como
 // oráculo literal, QUÉ huellas ajenas mueve y cuáles no. Una más o una menos deja esto en rojo.
 const expected115={"v":"4.26.115","d":"2026-10-11","t":{"es":"Widget al día","en":"Widget up to date","ca":"Widget al dia"},"items":{"es":["El widget se actualiza al pagar con el móvil aunque la app esté cerrada, sin pedir que la abras. Hace falta instalar la versión nueva de la app."],"en":["The widget updates when you pay with your phone even if the app is closed, without asking you to open it. The new version of the app needs to be installed."],"ca":["El widget s'actualitza en pagar amb el mòbil encara que l'app estigui tancada, sense demanar que l'obris. Cal instal·lar la versió nova de l'app."]},"tandas":[{"id":"widget-pago-app-cerrada","t":{"es":"Widget: pago con la app cerrada","en":"Widget: payment with the app closed","ca":"Widget: pagament amb l'app tancada"},"items":{"es":["1. Instala la versión nueva de la app cuando la beta te la ofrezca y ábrela una vez con conexión, hasta que cargue Inicio.","2. Mira el widget: debe enseñar la misma cifra que «Mi ciclo» en Inicio, sin el aviso «Abre la app para actualizar».","3. Cierra la app del todo y paga algo pequeño con el móvil.","4. Cuando llegue la notificación del gasto, mira el widget: la cifra sube ese importe y no aparece el aviso.","5. Abre la app: Inicio y el widget coinciden, y el pago no está sumado dos veces."],"en":["1. Install the new version of the app when the beta offers it and open it once while online, until Home loads.","2. Look at the widget: it must show the same figure as “My cycle” on Home, without the “Open the app to update” notice.","3. Close the app completely and pay for something small with your phone.","4. When the expense notification arrives, look at the widget: the figure goes up by that amount and the notice does not appear.","5. Open the app: Home and the widget match, and the payment is not counted twice."],"ca":["1. Instal·la la versió nova de l'app quan la beta te l'ofereixi i obre-la una vegada amb connexió, fins que carregui Inici.","2. Mira el widget: ha de mostrar la mateixa xifra que «El meu cicle» a Inici, sense l'avís «Obre l'app per actualitzar».","3. Tanca l'app del tot i paga alguna cosa petita amb el mòbil.","4. Quan arribi la notificació de la despesa, mira el widget: la xifra puja aquest import i no apareix l'avís.","5. Obre l'app: Inici i el widget coincideixen, i el pagament no està sumat dues vegades."]},"apk":53}]};
-test("Catálogo115 añade sólo la tanda del widget y fija qué huellas ajenas mueve su lectura",()=>{
+// Catálogo cerrado: desde la116 se lee de su commit inmutable (la116 mueve la huella web de esta tanda).
+test("Catálogo115 histórico añade sólo la tanda del widget y fija qué huellas ajenas mueve su lectura",()=>{
+  const read=source115;
   const id="widget-pago-app-cerrada",before=JSON.parse(source114("src/data/release-notes.json"));
   const expected=[expected115,...before];
   const verify=notes=>assert.deepEqual(notes,expected);
@@ -469,7 +473,7 @@ test("Catálogo115 añade sólo la tanda del widget y fija qué huellas ajenas m
     "feature-0310-01-movilidad":["web"],"inc-0810-metas-editar-regla":["web"]},"sólo quien ya vigilaba la lectura de gastos, el envío al widget o su Java");
   // De las movidas, sólo dos conservan guion en el catálogo y ninguna cambia de texto ni de versión.
   assert.deepEqual(notes.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id])).filter(([,key])=>moved[key]),[["4.26.79","inc-2909-03-retirada"],["4.26.78","inc-3009-nomina-anticipada"]]);
-  const source=f=>read(f).replace(/\r\n/g,"\n"),current=betaRevision(id,source);
+  const source=f=>read(f).replace(/\r\n/g,"\n"),current=betaRevision(id,source,undefined,scopes[id]);
   const reviewed=betaRevision(id,fix,undefined,scopes[id]);
   assert.equal(current.web,reviewed.web,"la web integrada es exactamente la revisada");
   assert.equal(current.native,reviewed.native,"el Java integrado es exactamente el revisado");
@@ -484,20 +488,97 @@ test("Catálogo115 añade sólo la tanda del widget y fija qué huellas ajenas m
     [java("MiCarteraWidget.java"),'if (cycle && amount <= -200 && !neutral && !"bizum".equals(category)) return -1;','if (cycle && amount <= -200 && !neutral && !"bizum".equals(category)) return 0;',"native"],
     [java("TrExpenseListener.java"),"finally { MiCarteraWidget.finishIngest(this, widgetTicket); }","finally { }","native"]]){
     assert.equal(source(file).split(from).length,2,"mutante sobre fuente real: "+from);
-    const changed=betaRevision(id,f=>f===file?source(f).replace(from,to):source(f));
+    const changed=betaRevision(id,f=>f===file?source(f).replace(from,to):source(f),undefined,scopes[id]);
     for(const other of ["web","native"])assert.equal(changed[other]!==current[other],other===surface,surface+" y sólo "+surface+": "+from);
   }
   const neighbour="  const bankSyncing=useRef(false);";
   assert.equal(source(main).split(neighbour).length,2);
-  assert.deepEqual(betaRevision(id,f=>f===main?source(f).replace(neighbour,neighbour.replace("false","true")):source(f)),current,"un estado vecino no reabre la tanda");
+  assert.deepEqual(betaRevision(id,f=>f===main?source(f).replace(neighbour,neighbour.replace("false","true")):source(f),undefined,scopes[id]),current,"un estado vecino no reabre la tanda");
   assert.deepEqual(betaRevision(id,f=>f==="supabase/functions/ingest/widget.ts"?source(f)+"\n// mutante":source(f)),current,"la fuente de ingest sin desplegar no pertenece a esta tanda");
-  const built=betaNotes(notes),receipt=betaDelivery(built),group=built[0].tandas[0];
+  const built=betaNotes(notes,read,scopes),receipt=betaDelivery(built,read,scopes),group=built[0].tandas[0];
   assert.equal(group.web,current.web);assert.equal(group.native,current.native);assert.equal(group.codigo,current.codigo);
   assert.equal(group.apk,53);assert.equal(receipt.web[id],current.web);
   assert.deepEqual(receipt.pruebas[id],{v:"4.26.115",contenido:JSON.stringify([id,expected115.tandas[0].t.es,expected115.tandas[0].items.es,1])});
   for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica","edge"])assert.equal(group[key],undefined,"identidad nueva sin "+key);
   // El recibo web no acredita el binario: sólo la entrega de la APK puede dar su huella nativa.
   assert.equal(JSON.stringify(receipt).includes(current.native),false,"el recibo web no fabrica entrega nativa");
+});
+// La116 añade UNA nota con UNA tanda (sólo web, sin APK ni Edge propia: bank-sync ya está desplegada)
+// y UN alcance. El cliente cambia el sync de bancos, que otras tandas ya entregadas vigilan: aquí se
+// fija, como oráculo literal, QUÉ huellas ajenas mueve (la del widget115, aún sin aprobar, incluida).
+const expected116={"v":"4.26.116","d":"2026-10-11","t":{"es":"Bancos sin huecos","en":"Banks without gaps","ca":"Bancs sense forats"},"items":{"es":["Si pasas días sin sincronizar, ya no se queda nada por el camino: lo que faltaba entra poco a poco cada vez que pulsas sincronizar bancos.","La fecha de «Saldo actualizado» es la de la última lectura real del banco.","Si llevas más de 90 días sin sincronizar un banco, la app te avisa de que el banco solo entrega los últimos 90 días."],"en":["If you go days without syncing, nothing is left behind anymore: what was missing comes in little by little each time you tap sync banks.","The “Balance updated” date is the time of the last real reading from the bank.","If you have gone more than 90 days without syncing a bank, the app tells you that the bank only provides the last 90 days."],"ca":["Si passes dies sense sincronitzar, ja no es queda res pel camí: el que faltava entra a poc a poc cada vegada que prems sincronitza bancs.","La data de «Saldo actualitzat» és la de l'última lectura real del banc.","Si portes més de 90 dies sense sincronitzar un banc, l'app t'avisa que el banc només lliura els últims 90 dies."]},"tandas":[{"id":"bancos-sin-hueco","t":{"es":"Bancos sin huecos","en":"Banks without gaps","ca":"Bancs sense forats"},"items":{"es":["1. En Cartera, dentro de «Tus cuentas», toca el icono «Sincronizar bancos» y espera a que termine.","2. Abre Gastos: los movimientos nuevos de tus bancos aparecen, cada uno una sola vez, sin repetidos.","3. Vuelve a Cartera y toca el icono «Conectar cuentas» para abrir «Mis bancos»: en cada banco, la línea «Saldo actualizado» marca la hora de ahora.","4. Toca «Sincronizar bancos» otra vez: no aparece ningún movimiento repetido en Gastos y «Saldo actualizado» pasa a la hora nueva."],"en":["1. In Portfolio, inside “Your accounts”, tap the “Sync banks” icon and wait for it to finish.","2. Open Spending: the new transactions from your banks appear, each one only once, with no repeats.","3. Go back to Portfolio and tap the “Connect accounts” icon to open “My banks”: on each bank, the “Balance updated” line shows the time right now.","4. Tap “Sync banks” again: no repeated transaction appears in Spending and “Balance updated” moves to the new time."],"ca":["1. A Cartera, dins de «Els teus comptes», toca la icona «Sincronitza els bancs» i espera que acabi.","2. Obre Despeses: els moviments nous dels teus bancs apareixen, cadascun una sola vegada, sense repetits.","3. Torna a Cartera i toca la icona «Connectar comptes» per obrir «Els meus bancs»: a cada banc, la línia «Saldo actualitzat» marca l'hora d'ara.","4. Toca «Sincronitza els bancs» una altra vegada: no apareix cap moviment repetit a Despeses i «Saldo actualitzat» passa a l'hora nova."]}}]};
+test("Catálogo116 añade sólo la tanda de los bancos y fija qué huellas ajenas mueve su lectura",()=>{
+  const id="bancos-sin-hueco",before=JSON.parse(source115("src/data/release-notes.json"));
+  const expected=[expected116,...before];
+  const verify=notes=>assert.deepEqual(notes,expected);
+  const notes=JSON.parse(read("src/data/release-notes.json"));verify(notes);
+  assert.equal(notes.length,233);assert.equal(JSON.parse(read("package.json")).version,"4.26.116");
+  assert.equal(notes.flatMap(n=>n.tandas||[]).filter(g=>g.id===id).length,1,"una sola vez en todo el catálogo");
+  assert.deepEqual(notes[1].tandas.map(g=>g.id),["widget-pago-app-cerrada"],"la tanda115 sigue pendiente");
+  assert.equal(notes[1].tandas[0].apk,53,"y conserva su APK");
+  assert.deepEqual(notes[2].tandas.map(g=>g.id),["inicio-solape-gastos"],"la tanda114 sigue pendiente");
+  const twice=structuredClone(notes);twice[0].tandas.push(structuredClone(twice[0].tandas[0]));assert.throws(()=>verify(twice),"no duplicar la tanda");
+  const inherited=structuredClone(notes);inherited[0].tandas[0].desde="tr-descripcion-clasificacion";assert.throws(()=>verify(inherited),"no heredar una aprobación");
+  const withApk=structuredClone(notes);withApk[0].tandas[0].apk=54;assert.throws(()=>verify(withApk),"no hay APK que probar");
+  const missing=structuredClone(notes);missing.pop();assert.throws(()=>verify(missing));
+  const text=structuredClone(notes);text[1].items.es[0]+="mutante";assert.throws(()=>verify(text));
+  const scopes=JSON.parse(read("scripts/beta-sources.json")),oldScopes=JSON.parse(source115("scripts/beta-sources.json"));
+  assert.deepEqual(Object.keys(scopes).filter(key=>!oldScopes[key]),[id]);
+  assert.deepEqual(Object.keys(oldScopes).filter(key=>!scopes[key]),[],"ningún alcance se retira");
+  for(const [key,scope] of Object.entries(oldScopes))assert.deepEqual(scopes[key],scope,key+": descriptor ajeno intacto");
+  assert.deepEqual(Object.keys(scopes[id]),["web","unidades"],"sin APK ni Edge: bank-sync ya está desplegada y el APK se queda en 53");
+  assert.equal(scopes[id].unidades,true);
+  // Las seis piezas (y el límite de guardado, porque el sync escribe estado) del cliente van primero; el resto son sus dependencias transitivas, que exigen las auditorías de lógica, datos y métodos de cloud.
+  assert.equal(scopes[id].web.length,148);
+  assert.deepEqual(scopes[id].web.slice(0,7).map(u=>[u.file,u.function||u.data||u.from]),[
+    ["src/modules/00-core.js","cloud"],["src/modules/08-motor-bank.js","flattenBankTx"],["src/modules/08-motor-bank.js","importObExpenses"],
+    ["src/modules/08-motor-bank.js","reconcileBank"],["src/modules/10-app-components.js","BankPanel"],["src/modules/11-app-main.js","  const avisaSync=function(opts,m){"],["src/modules/11-app-main.js","  // INC-0410 guardado: de aquí al límite está cuándo y qué estado se escribe en disco. Cambiarlo invalida las revisiones que prometen conservar algo al cerrar o recargar."]]);
+  assert.ok(scopes[id].web[0].members.includes("bankSync"));
+  assert.deepEqual(JSON.parse(read("scripts/beta-archives.json")),JSON.parse(source115("scripts/beta-archives.json")),"pin y juicio109 intactos");
+  // Beta115 servida frente a la fuente integrada: superficies que cambian, una a una.
+  const base=source115,moved={};
+  for(const [key,scope] of Object.entries(oldScopes)){
+    if(key===archiveId)continue; // 109 es referencia fija, nunca código vigente.
+    const a=betaRevision(key,base,undefined,scope),b=betaRevision(key,read,undefined,scopes[key]);
+    const surfaces=["web","native","edge"].filter(surface=>a[surface]!==b[surface]);
+    if(surfaces.length)moved[key]=surfaces;
+  }
+  assert.deepEqual(moved,{
+    "inc-3009-01-cargos":["web"],"fin05-widget-reentrada":["web"],"fin05-pago-cerrada":["web"],
+    "tr-descripcion-clasificacion":["web","edge"],"widget-banco":["web"],"widget-app-cerrada":["web"],
+    "inc-2909-02-inicio-natural":["web"],"inc-3009-nomina-anticipada":["web"],"inc-2909-01-widget-periodo":["web"],
+    "inc-0810-metas-editar-regla":["web"],"widget-pago-app-cerrada":["web"]},"sólo quien ya vigilaba el sync de bancos o la importación de movimientos");
+  // De las movidas, cuatro conservan guion en el catálogo: la del widget115 sigue pendiente y ninguna cambia de texto ni de versión.
+  assert.deepEqual(notes.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id])).filter(([,key])=>moved[key]),[["4.26.115","widget-pago-app-cerrada"],["4.26.78","inc-3009-nomina-anticipada"],["4.26.74","inc-3009-01-cargos"],["4.26.73","inc-2909-02-inicio-natural"]]);
+  const source=f=>read(f).replace(/\r\n/g,"\n"),current=betaRevision(id,source,undefined,scopes[id]);
+  assert.equal(current.native,undefined);assert.equal(current.edge,undefined);
+  assert.notEqual(current.web,betaRevision("widget-pago-app-cerrada",source,undefined,scopes["widget-pago-app-cerrada"]).web);
+  assert.notEqual(betaRevision(id,source115,undefined,scopes[id]).web,current.web,"la beta anterior no acredita el cliente");
+  // Cada unidad vigilada reabre la tanda; la vecina no.
+  const main="src/modules/11-app-main.js",motor="src/modules/08-motor-bank.js";
+  for(const [file,from,to] of [
+    ["src/modules/00-core.js","sb.functions.invoke('bank-sync',{ body })","sb.functions.invoke('bank-sync')"],
+    [main,"cloud.bankSync({recoverGaps:true})","cloud.bankSync()"],
+    [main,"if(l&&l.gapBeyondCap) avisaSync","if(l&&l.gapBeyondCapX) avisaSync"],
+    [main,"importObExpenses(prev, txs, links)","importObExpenses(prev, txs)"],
+    [main,"if(l&&l.balanceAt) balAt[l.aspsp]=l.balanceAt;","if(l&&l.balanceAt) balAt[l.aspsp]=null;"],
+    [motor,"l.syncFrom<=tx.date","l.syncFrom<tx.date"],
+    [motor,"new Date(y,m-1,-7).getDate() : 15;","new Date(y,m-1,-7).getDate() : 14;"],
+    ["src/modules/10-app-components.js","const saldoAt=(state.obBalAt||{})[l.aspsp_name]||l.last_sync;","const saldoAt=l.last_sync;"]]){
+    assert.equal(source(file).split(from).length,2,"mutante sobre fuente real: "+from);
+    const changed=betaRevision(id,f=>f===file?source(f).replace(from,to):source(f),undefined,scopes[id]);
+    assert.notEqual(changed.web,current.web,"reabre la tanda: "+from);
+  }
+  const neighbour="  const bankSyncing=useRef(false);";
+  assert.equal(source(main).split(neighbour).length,2);
+  assert.deepEqual(betaRevision(id,f=>f===main?source(f).replace(neighbour,neighbour.replace("false","true")):source(f),undefined,scopes[id]),current,"un estado vecino no reabre la tanda");
+  assert.deepEqual(betaRevision(id,f=>f==="supabase/functions/bank-sync/index.ts"?source(f)+"\n// mutante":source(f),undefined,scopes[id]),current,"la Edge ya desplegada no pertenece a esta tanda");
+  const built=betaNotes(notes,read,scopes),receipt=betaDelivery(built,read,scopes),group=built[0].tandas[0];
+  assert.equal(group.web,current.web);assert.equal(group.native,undefined);assert.equal(group.edge,undefined);assert.equal(group.apk,undefined);
+  assert.equal(receipt.web[id],current.web);
+  assert.deepEqual(receipt.pruebas[id],{v:"4.26.116",contenido:JSON.stringify([id,expected116.tandas[0].t.es,expected116.tandas[0].items.es,1])});
+  assert.deepEqual(receipt.pruebas["widget-pago-app-cerrada"].v,"4.26.115","la prueba115 sigue en el recibo");
+  for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica","native","edge"])assert.equal(group[key],undefined,"identidad nueva sin "+key);
 });
 test("Bienes113 vigila la puerta vacía, ficha, cancelación, borrado y textos",()=>{
   const source=f=>read(f).replace(/\r\n/g,"\n"),id="bienes-completo",before=betaRevision(id,source).web;
@@ -673,7 +754,8 @@ test("PERSIST91: el guardado en el commit invalida toda tanda que escribe estado
   const marca="INC-0410 guardado: de aquí al límite";
   const dependientes=Object.keys(registro).filter(id=>registro[id].web.some(x=>x.from&&x.from.includes(marca)));
   const ajenas=Object.keys(registro).filter(id=>!dependientes.includes(id));
-  assert.equal(dependientes.length,23);
+  assert.equal(dependientes.length,24);
+  assert.ok(dependientes.includes("bancos-sin-hueco"),"el sync de bancos escribe estado con el set real");
   assert.ok(dependientes.includes("widget-pago-app-cerrada"),"la lectura que acredita el widget mezcla gastos con el set real");
   assert.ok(dependientes.includes("inc-0810-metas-editar-regla"),"editar una regla escribe con el set real y conserva el cierre de persistencia");
   assert.ok(dependientes.includes("inc-0710-gastos-mes-madrid"),"Gastos99 conserva la dependencia real de guardado de Expenses");
@@ -891,7 +973,7 @@ test("la revisión de nómina incluye guardia, fecha, identidad, saldo y lectore
     ["08-motor-bank.js",'function applyBankBalances(s, links){','function applyBankBalances(s, links){ /* cambio saldo */'],
     ["04-tab-gastos.js",'function lastPaydayOf(','function lastPaydayOf( /* cambio ancla */'],
     ["01-i18n.js",'function insumosSaldoGasto(','function insumosSaldoGasto( /* cambio saldo */'],
-    ["11-app-main.js",'const add=importObExpenses(prev, txs);','const add=null;'],
+    ["11-app-main.js",'const add=importObExpenses(prev, txs, links);','const add=null;'],
     ["11-app-main.js",'  const totals=useMemo(()=>{','  const totals=useMemo(()=>{ /* lector saldo */'],
     ["07-tab-patri-fijos.js",'function Wealth(','function Wealth( /* cuentas visibles */'],
     ["04-tab-gastos.js",'const MovRow=React.memo(','const MovRow=React.memo( /* fila visible */'],

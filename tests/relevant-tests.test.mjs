@@ -50,6 +50,7 @@ t("solo bank-sync conserva los guardianes de paginado sin arrancar Chromium", ()
   const p = planFromFiles(["supabase/functions/bank-sync/index.ts"]);
   assert.equal(p.playwright, false);
   assert.ok(p.steps.includes("bank-sync-paging"));
+  assert.ok(p.steps.includes("bank-sync-progreso"), "la convergencia del tramo antiguo es de servidor");
   assert.ok(p.steps.includes("tr-open-banking"));
 });
 

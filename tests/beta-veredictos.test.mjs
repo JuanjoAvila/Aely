@@ -324,7 +324,10 @@ t("★ la fuente idéntica conserva OK; cinco cambios web/nativos y uno solo web
     const part=cli.betaVerdictFor(g,[{tanda:g.historial[0],verdict:"approved"}]);
     if(changedIds.includes(id)) {
       assert.equal(part,null,id+" no reutiliza la aprobación anterior");
-      const edgeChanged=["fin05-pago-cerrada","widget-app-cerrada"].includes(id);
+      // tr-descripcion-clasificacion declara como edge el fichero entero de bank-sync.
+      // El progreso del hueco (ventana primero, tramo antiguo con cursor) vive ahí: el
+      // origen edge es el cambio, no una huella web de otra tanda.
+      const edgeChanged=["fin05-pago-cerrada","widget-app-cerrada","tr-descripcion-clasificacion"].includes(id);
       assert.deepEqual(Array.from(g.cambio),edgeChanged?["web","native","edge"]:["web","native"]);
       assert.equal(g.desde.length,0);
       assert.notEqual(g.codigo,structuredClone(historicalNotes).flatMap(n=>n.tandas||[]).find(x=>x.id===id&&x.codigoDesde).codigoDesde);

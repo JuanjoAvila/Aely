@@ -1,3 +1,7 @@
+## Bancos sin huecos · candidata4.26.116
+
+`beta-sources` fija como oráculo literal la nota 116 (es/en/ca, una tanda sin APK ni Edge: `bank-sync` ya está desplegada), su descriptor web (`cloud.bankSync`, `flattenBankTx`, `importObExpenses`, `reconcileBank`, `BankPanel` y el sync de `11-app-main.js`, más sus dependencias transitivas) y la lista exacta de once identidades antiguas que mueven su huella entre la beta 115 servida y esta fuente, entre ellas la del widget115 aún sin aprobar. Hay ocho mutantes sobre la fuente real, uno por pieza del cliente, y un estado vecino y la Edge que no reabren la tanda. El Catálogo115 pasa a leerse de su commit inmutable. `tests/ob-hueco-sync`, `ob-hueco-recuperado`, `bank-sync-progreso`, `bank-sync-paging`, `supabase/functions/bank-sync/demand-window.test.ts` y `e2e/bancos-hueco-sync.spec.mjs` cubren el tramo recuperado, el cursor y la fecha de «Saldo actualizado». No se ha probado contra los bancos reales.
+
 ## Widget con la app cerrada · candidata4.26.115
 
 `beta-sources` fija como oráculo literal la nota 115 (es/en/ca, una tanda con `apk:53`, sin Edge), su descriptor de 162 unidades web y cinco ficheros Java, el reanclaje de `pullExpenses(readProof)` en los cuatro descriptores del widget ya entregado y la lista exacta de diez identidades antiguas que mueven su huella entre la beta 114 servida y el commit revisado del PR201. Hay seis mutantes sobre la fuente real (tope de 4 s, `mcSandbox`, prueba de lectura, sesión tras paginar, cobro grande en ciclo, `finishIngest`) y cada uno invalida solo la superficie que le toca. La cola DOM de `revisar-beta` compara las 232 notas con la 115, la 114 y la 113 literales. `tests/pull-historico-entero` y `tests/widget-notificacion-render` cubren la prueba de lectura y el render del aviso. La compilación Android y su firma no las ejecuta `npm test`.
@@ -312,6 +316,14 @@ Lectura bancaria 4.25.4: `tests/bank-sync-paging.test.mjs` ejecuta el handler re
 simulados (sin consultar bancos): páginas vacías, fallback de periodo, fallo parcial, cursor cíclico,
 cuentas inactivas, aislamiento, timeout y topes. Registrado en `run-tests.mjs` y `STEPS_SUPABASE`;
 el recorte de un cambio solo de servidor conserva paginado y `tr-open-banking` sin Chromium.
+Tramo antiguo del sync a demanda (INC-2709-06): `tests/bank-sync-progreso.test.mjs` pulsa el handler
+real contra un banco simulado con `last_sync` persistente entre pulsaciones (orden ascendente y
+descendente, páginas de 20, huecos de 15 a 120 días, una y dos cuentas, 429 intermitente) y exige
+que no se pierda ni se repita nada, que el cursor no retroceda y que ninguna cuenta pase de 12
+llamadas; también va en `STEPS_SUPABASE`. `supabase/functions/bank-sync/demand-window.test.ts` (Deno)
+cubre el plan de fechas. En cliente, `tests/ob-hueco-sync.test.mjs` y `tests/ob-hueco-recuperado.test.mjs`
+fijan el suelo por banco y las reglas de dinero del tramo (no compra, no duplica fijos, repetido con
+la fecha real), y `e2e/bancos-hueco-sync.spec.mjs` los avisos y la fecha de «Saldo actualizado».
 `e2e/bancos-historico-filtro.spec.mjs` comprueba la selección previa, avisos visibles y que un banco
 no esconda las filas recibidas de otro. `e2e/sync-resumen.spec.mjs` impide que los resultados mixtos
 vuelvan a concatenarse en un toast gigante. Los e2e de barra fuerzan además un repintado React con

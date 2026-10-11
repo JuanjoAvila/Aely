@@ -1,5 +1,61 @@
 [
   {
+    "v": "4.26.116",
+    "d": "2026-10-11",
+    "t": {
+      "es": "Bancos sin huecos",
+      "en": "Banks without gaps",
+      "ca": "Bancs sense forats"
+    },
+    "items": {
+      "es": [
+        "Si pasas días sin sincronizar, ya no se queda nada por el camino: lo que faltaba entra poco a poco cada vez que pulsas sincronizar bancos.",
+        "La fecha de «Saldo actualizado» es la de la última lectura real del banco.",
+        "Si llevas más de 90 días sin sincronizar un banco, la app te avisa de que el banco solo entrega los últimos 90 días."
+      ],
+      "en": [
+        "If you go days without syncing, nothing is left behind anymore: what was missing comes in little by little each time you tap sync banks.",
+        "The “Balance updated” date is the time of the last real reading from the bank.",
+        "If you have gone more than 90 days without syncing a bank, the app tells you that the bank only provides the last 90 days."
+      ],
+      "ca": [
+        "Si passes dies sense sincronitzar, ja no es queda res pel camí: el que faltava entra a poc a poc cada vegada que prems sincronitza bancs.",
+        "La data de «Saldo actualitzat» és la de l'última lectura real del banc.",
+        "Si portes més de 90 dies sense sincronitzar un banc, l'app t'avisa que el banc només lliura els últims 90 dies."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "bancos-sin-hueco",
+        "t": {
+          "es": "Bancos sin huecos",
+          "en": "Banks without gaps",
+          "ca": "Bancs sense forats"
+        },
+        "items": {
+          "es": [
+            "1. En Cartera, dentro de «Tus cuentas», toca el icono «Sincronizar bancos» y espera a que termine.",
+            "2. Abre Gastos: los movimientos nuevos de tus bancos aparecen, cada uno una sola vez, sin repetidos.",
+            "3. Vuelve a Cartera y toca el icono «Conectar cuentas» para abrir «Mis bancos»: en cada banco, la línea «Saldo actualizado» marca la hora de ahora.",
+            "4. Toca «Sincronizar bancos» otra vez: no aparece ningún movimiento repetido en Gastos y «Saldo actualizado» pasa a la hora nueva."
+          ],
+          "en": [
+            "1. In Portfolio, inside “Your accounts”, tap the “Sync banks” icon and wait for it to finish.",
+            "2. Open Spending: the new transactions from your banks appear, each one only once, with no repeats.",
+            "3. Go back to Portfolio and tap the “Connect accounts” icon to open “My banks”: on each bank, the “Balance updated” line shows the time right now.",
+            "4. Tap “Sync banks” again: no repeated transaction appears in Spending and “Balance updated” moves to the new time."
+          ],
+          "ca": [
+            "1. A Cartera, dins de «Els teus comptes», toca la icona «Sincronitza els bancs» i espera que acabi.",
+            "2. Obre Despeses: els moviments nous dels teus bancs apareixen, cadascun una sola vegada, sense repetits.",
+            "3. Torna a Cartera i toca la icona «Connectar comptes» per obrir «Els meus bancs»: a cada banc, la línia «Saldo actualitzat» marca l'hora d'ara.",
+            "4. Toca «Sincronitza els bancs» una altra vegada: no apareix cap moviment repetit a Despeses i «Saldo actualitzat» passa a l'hora nova."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.115",
     "d": "2026-10-11",
     "t": {
