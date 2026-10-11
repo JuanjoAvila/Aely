@@ -1,5 +1,59 @@
 [
   {
+    "v": "4.26.115",
+    "d": "2026-10-11",
+    "t": {
+      "es": "Widget al día",
+      "en": "Widget up to date",
+      "ca": "Widget al dia"
+    },
+    "items": {
+      "es": [
+        "El widget se actualiza al pagar con el móvil aunque la app esté cerrada, sin pedir que la abras. Hace falta instalar la versión nueva de la app."
+      ],
+      "en": [
+        "The widget updates when you pay with your phone even if the app is closed, without asking you to open it. The new version of the app needs to be installed."
+      ],
+      "ca": [
+        "El widget s'actualitza en pagar amb el mòbil encara que l'app estigui tancada, sense demanar que l'obris. Cal instal·lar la versió nova de l'app."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "widget-pago-app-cerrada",
+        "t": {
+          "es": "Widget: pago con la app cerrada",
+          "en": "Widget: payment with the app closed",
+          "ca": "Widget: pagament amb l'app tancada"
+        },
+        "items": {
+          "es": [
+            "1. Instala la versión nueva de la app cuando la beta te la ofrezca y ábrela una vez con conexión, hasta que cargue Inicio.",
+            "2. Mira el widget: debe enseñar la misma cifra que «Mi ciclo» en Inicio, sin el aviso «Abre la app para actualizar».",
+            "3. Cierra la app del todo y paga algo pequeño con el móvil.",
+            "4. Cuando llegue la notificación del gasto, mira el widget: la cifra sube ese importe y no aparece el aviso.",
+            "5. Abre la app: Inicio y el widget coinciden, y el pago no está sumado dos veces."
+          ],
+          "en": [
+            "1. Install the new version of the app when the beta offers it and open it once while online, until Home loads.",
+            "2. Look at the widget: it must show the same figure as “My cycle” on Home, without the “Open the app to update” notice.",
+            "3. Close the app completely and pay for something small with your phone.",
+            "4. When the expense notification arrives, look at the widget: the figure goes up by that amount and the notice does not appear.",
+            "5. Open the app: Home and the widget match, and the payment is not counted twice."
+          ],
+          "ca": [
+            "1. Instal·la la versió nova de l'app quan la beta te l'ofereixi i obre-la una vegada amb connexió, fins que carregui Inici.",
+            "2. Mira el widget: ha de mostrar la mateixa xifra que «El meu cicle» a Inici, sense l'avís «Obre l'app per actualitzar».",
+            "3. Tanca l'app del tot i paga alguna cosa petita amb el mòbil.",
+            "4. Quan arribi la notificació de la despesa, mira el widget: la xifra puja aquest import i no apareix l'avís.",
+            "5. Obre l'app: Inici i el widget coincideixen, i el pagament no està sumat dues vegades."
+          ]
+        },
+        "apk": 53
+      }
+    ]
+  },
+  {
     "v": "4.26.114",
     "d": "2026-10-11",
     "t": {

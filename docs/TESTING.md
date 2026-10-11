@@ -1,3 +1,7 @@
+## Widget con la app cerrada · candidata4.26.115
+
+`beta-sources` fija como oráculo literal la nota 115 (es/en/ca, una tanda con `apk:53`, sin Edge), su descriptor de 162 unidades web y cinco ficheros Java, el reanclaje de `pullExpenses(readProof)` en los cuatro descriptores del widget ya entregado y la lista exacta de diez identidades antiguas que mueven su huella entre la beta 114 servida y el commit revisado del PR201. Hay seis mutantes sobre la fuente real (tope de 4 s, `mcSandbox`, prueba de lectura, sesión tras paginar, cobro grande en ciclo, `finishIngest`) y cada uno invalida solo la superficie que le toca. La cola DOM de `revisar-beta` compara las 232 notas con la 115, la 114 y la 113 literales. `tests/pull-historico-entero` y `tests/widget-notificacion-render` cubren la prueba de lectura y el render del aviso. La compilación Android y su firma no las ejecuta `npm test`.
+
 ## Inicio sin solapes · candidata4.26.114
 
 `e2e/inicio-solape-gastos.spec.mjs` abre Inicio con temática y diez categorías de gasto sintéticas, y exige que ningún nodo de la página de Gastos premontada tenga caja visible en el viewport: antes de apuntar, tras apuntar tres gastos con el botón + y al volver desde Gastos. Comprueba además que el desglose sigue visible cuando Gastos es la pestaña activa, para que la guarda no lo esconda donde sí toca. Es transversal (`CROSSCUTTING`): el fallo nace en `src/shell.html` y no en un módulo de pantalla. Volver a `visibility:visible` en `.v4-gastos-cats-body.abierto` lo deja rojo.

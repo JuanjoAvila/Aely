@@ -7,7 +7,7 @@ La base80/source955765a9 incluye Retirada y Nómina junto con Widget y las tres 
 
 # Aely
 
-Candidata4.26.114: Inicio deja de mostrar el desglose de categorías de Gastos encima de sus tarjetas cuando hay una temática activa. Una sola tanda en revisión (`inicio-solape-gastos`); Bienes completo y la gráfica de Inicio de la 4.26.113 salen del panel por estar aprobadas y servidas. Publicación beta y aceptación móvil pendientes.
+Candidata4.26.115: el widget se actualiza al pagar con el móvil aunque la app esté cerrada (PR201). Requiere APK nueva (53). Dos tandas en revisión: `widget-pago-app-cerrada` (web + APK 53) e `inicio-solape-gastos` (4.26.114, sigue pendiente). Publicación beta, compilación y subida de la APK y aceptación móvil pendientes.
 
 MAIN4.26.110 incorpora PR196 (bdd75636), sólo pruebas, herramientas y documentación. Tests38005461796 y DeployPages38005461732 terminaron SUCCESS y sus artefactos se comprobaron; ese cierre no publica Inicio112 ni acredita APK nuevo o aceptación móvil. Las aprobadas99/100/101/102/106 ya entregadas conservan su cierre;109 sigue rechazada.
 
@@ -123,9 +123,9 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.114** — candidata de beta: Inicio sin el desglose de Gastos solapado con temática activa. Una tanda en revisión (`inicio-solape-gastos`); las dos de la 4.26.113 salen del panel por estar aprobadas y servidas. Publicación beta y aceptación móvil pendientes.
+Estado actual: **v4.26.115** — candidata de beta: el widget se actualiza al pagar con el móvil aunque la app esté cerrada (PR201), con APK 53. Tanda nueva `widget-pago-app-cerrada`; `inicio-solape-gastos` (4.26.114) sigue en revisión. Publicación beta, APK y aceptación móvil pendientes.
 
-Corte anterior (10/10): **v4.26.113**, Bienes con alta, edición y borrado e Inicio con la gráfica recuperada sin «Ahora».
+Corte anterior (11/10): **v4.26.114**, Inicio sin el desglose de Gastos solapado con temática activa. Antes (10/10): **v4.26.113**, Bienes con alta, edición y borrado e Inicio con la gráfica recuperada sin «Ahora».
 
 Corte anterior (4/10, 12:30 UTC, panel de revisión): **v4.26.93** publicada en beta. Primera entrega4.26.93.1 (fuente1d5dd782), CI37200314653SUCCESS y HTTP/ZIP/HTML/SW/catálogo/huella cotejados el4/10 a12:30UTC:11 tandas/24 puntos, frente a40 antes del cambio. Producción4.26.86 (d366215a), APK beta4.26.80/code52 y estable4.26.32/code48 conservadas. Prueba y aprobación móvil pendientes. [Acta](docs/briefs/ops-0410-panel-cola.md).
 

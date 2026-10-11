@@ -4,9 +4,9 @@ MAIN4.26.110 incorpora PR196 (bdd75636), sólo pruebas, herramientas y documenta
 
 Promoción4/10: las once tandas de beta4.26.94.1 tienen aprobación vigente. Producción4.26.94/source8bb0398f servida y cotejada; APK52 estable y las tres funciones Edge entregadas. La limpieza conserva notas y decisiones; solo retira las once entregadas, sin producto nuevo. Prioridad permanente: producción de lo aprobado antes de otra implementación. [Acta](briefs/promocion-aprobadas-2026-10-04.md).
 
-> Estado a 2026-10-11 · **v4.26.114** — candidata de beta: Inicio sin el desglose de Gastos solapado con temática activa. Una tanda en revisión (`inicio-solape-gastos`); las dos de la 4.26.113 salen del panel por estar aprobadas y servidas. Publicación beta y aceptación móvil pendientes.
+> Estado a 2026-10-11 · **v4.26.115** — candidata de beta: el widget se actualiza al pagar con la app cerrada (PR201), con APK 53. Tanda nueva `widget-pago-app-cerrada`; `inicio-solape-gastos` (4.26.114) sigue en revisión. Publicación beta, APK y aceptación móvil pendientes.
 
-> Anterior: 2026-10-10 · v4.26.113 — Bienes con alta, edición y borrado; Inicio recupera la gráfica sin «Ahora».
+> Anterior: 2026-10-11 · v4.26.114 — Inicio sin el desglose de Gastos solapado con temática activa.
 
 > Promoción96 fusionada en main `85b8b540`; fuente separada de beta98/99. El merge acredita integración, no artefactos servidos: CI/publicador/HTTP exactos deben confirmarse antes de retirar Inicio96 del catálogo beta. [Acta de origen](briefs/promocion-inicio96-2026-10-06.md).
 
@@ -269,10 +269,10 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.26.114**, candidata de beta con el arreglo del solape de Gastos sobre Inicio; publicación beta y aceptación móvil pendientes. |
-| APK (`versionName` / `versionCode`) | **4.26.80 / 52** conservada de la base; Metas87 no genera APK. Cotejo servido en gate de entrega. |
+| Web / OTA (`VERSION`) | **4.26.115**, candidata de beta con el widget al día al pagar con la app cerrada (PR201); publicación beta y aceptación móvil pendientes. |
+| APK (`versionName` / `versionCode`) | **4.26.115 / 53** en `build.gradle`; binario aún sin compilar ni subir (asset `Aely-4.26.115-beta-53.apk` de la release `beta`). La 52 (4.26.80) sigue siendo la servida hasta entonces. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
-| `public/apk.json` | **52 / 4.26.80** conservado byte a byte respecto a3467; Metas87 no reemplaza binario ni manifiesto. |
+| `public/apk.json` | **53 / 4.26.115** provisional: apunta al asset de beta que se sube tras compilar; no publicar la rama hasta que ese asset exista. |
 
 ## Pendiente / limitaciones conocidas
 

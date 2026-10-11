@@ -16,6 +16,9 @@ const source112=f=>{if(!source112Cache.has(f))source112Cache.set(f,execFileSync(
 const sourceAtCache=new Map();
 const sourceAt=sha=>f=>{const k=sha+":"+f;if(!sourceAtCache.has(k))sourceAtCache.set(k,execFileSync("git",["show",k],{encoding:"utf8",maxBuffer:10e6}));return sourceAtCache.get(k);};
 const source113=sourceAt("103f3bf101b14585e9cb2b87287f14591d23c624");
+// Integración115: beta114 servida (8adba520) y el arreglo del widget tal como se revisó
+// (844ce4b0, que nace de esa beta).
+const source114=sourceAt("8adba5202a0444b386e3957a3c5ba499cf88e622");
 const empty=[{v:"4.26.67",tandas:[]}];
 const archiveRefs=JSON.parse(read("scripts/beta-archives.json"));
 const archiveId="inc-0810-inicio-grafica-significado";
@@ -368,7 +371,9 @@ test("Catálogo113 histórico sustituye sólo111/112 y conserva notas, pendiente
 // aparte del catálogo que vigilan: tocar otra nota, otro alcance o la huella de otra tanda
 // tiene que dejar esto en rojo.
 const expected114={v:'4.26.114',d:'2026-10-11',t:{es:'Inicio sin solapes',en:'Home without overlaps',ca:'Inici sense solapaments'},items:{es:['Inicio ya no muestra por error la lista de categorías de Gastos encima de sus tarjetas.'],en:['Home no longer shows the Expenses category list on top of its cards by mistake.'],ca:['Inici ja no mostra per error la llista de categories de Despeses a sobre de les seves targetes.']},tandas:[{id:'inicio-solape-gastos',t:{es:'Inicio sin solapes',en:'Home without overlaps',ca:'Inici sense solapaments'},items:{es:['1. Activa una temática en Ajustes → Apariencia → Temática (cualquiera que no sea «Ninguna»).','2. Entra en Gastos y abre el desglose «Por categoría».','3. Vuelve a Inicio: no debe verse ninguna lista de categorías encima de las tarjetas.','4. Desde Inicio, apunta dos gastos seguidos con el botón + y cierra: Inicio debe seguir limpio.','5. Vuelve a Gastos: el desglose sigue ahí y se puede abrir y cerrar.'],en:['1. Turn on a theme in Settings → Look & feel → Theme (any except “None”).','2. Go to Spending and open the “By category” breakdown.','3. Go back to Home: no category list should appear on top of the cards.','4. From Home, log two expenses in a row with the + button and close: Home should stay clean.','5. Go back to Spending: the breakdown is still there and can be opened and closed.'],ca:['1. Activa una temàtica a Ajustos → Aparença → Temàtica (qualsevol que no sigui «Cap»).','2. Entra a Despeses i obre el desglossament «Per categoria».','3. Torna a Inici: no s’ha de veure cap llista de categories a sobre de les targetes.','4. Des d’Inici, apunta dues despeses seguides amb el botó + i tanca: Inici ha de seguir net.','5. Torna a Despeses: el desglossament continua allà i es pot obrir i tancar.']}}]};
-test("Catálogo114 añade sólo la tanda del solape y conserva notas, alcances y huellas ajenas",()=>{
+// Catálogo cerrado: desde la115 se lee de su commit inmutable, igual que el113.
+test("Catálogo114 histórico añade sólo la tanda del solape y conserva notas, alcances y huellas ajenas",()=>{
+  const read=source114;
   const id="inicio-solape-gastos",before=JSON.parse(source113("src/data/release-notes.json"));
   const expected=[expected114,...before];
   const verify=notes=>assert.deepEqual(notes,expected);
@@ -394,22 +399,105 @@ test("Catálogo114 añade sólo la tanda del solape y conserva notas, alcances y
     if(key===archiveId)continue; // 109 es referencia fija, nunca código vigente.
     assert.equal(betaRevision(key,fix,undefined,scope).web,betaRevision(key,base,undefined,scope).web,key+": huella ajena intacta");
   }
-  const source=f=>read(f).replace(/\r\n/g,"\n"),current=betaRevision(id,source).web;
+  const source=f=>read(f).replace(/\r\n/g,"\n"),current=betaRevision(id,source,undefined,scopes[id]).web;
   assert.equal(current,betaRevision(id,fix,undefined,scopes[id]).web,"la fuente integrada lleva exactamente el CSS revisado");
   assert.notEqual(current,betaRevision(id,base,undefined,scopes[id]).web,"la beta anterior no acredita el arreglo");
   for(const from of ["  .v4-gastos-cats-body.abierto{grid-template-rows:1fr;opacity:1;visibility:inherit;","  .v4-filter-cats.abierto .v4-filter-cats-body{grid-template-rows:1fr;opacity:1;visibility:inherit;"]){
     assert.ok(source("src/shell.html").includes(from),"mutante sobre fuente real: "+from);
     const to=from.replace("visibility:inherit;","visibility:visible;");
-    assert.notEqual(betaRevision(id,f=>f==="src/shell.html"?source(f).replace(from,to):source(f)).web,current,"volver a `visible` invalida: "+from);
+    assert.notEqual(betaRevision(id,f=>f==="src/shell.html"?source(f).replace(from,to):source(f),undefined,scopes[id]).web,current,"volver a `visible` invalida: "+from);
   }
   const neighbour="  .v4-gastos-cats-inner{min-height:0;overflow:hidden;}";
   assert.ok(source("src/shell.html").includes(neighbour));
-  assert.equal(betaRevision(id,f=>f==="src/shell.html"?source(f).replace(neighbour,neighbour.replace("0;","1px;")):source(f)).web,current,"una regla vecina no reabre la tanda");
-  const built=betaNotes(notes),receipt=betaDelivery(built),group=built[0].tandas[0];
+  assert.equal(betaRevision(id,f=>f==="src/shell.html"?source(f).replace(neighbour,neighbour.replace("0;","1px;")):source(f),undefined,scopes[id]).web,current,"una regla vecina no reabre la tanda");
+  const built=betaNotes(notes,read,scopes),receipt=betaDelivery(built,read,scopes),group=built[0].tandas[0];
   assert.equal(group.web,current);assert.equal(receipt.web[id],current);
   assert.deepEqual(receipt.pruebas[id],{v:"4.26.114",contenido:JSON.stringify([id,expected114.tandas[0].t.es,expected114.tandas[0].items.es,1])});
   for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica","native","edge"])assert.equal(group[key],undefined,"identidad nueva sin "+key);
   for(const g of expected113.tandas)assert.equal(receipt.pruebas[g.id],undefined,"el guion retirado no permanece marcado");
+});
+// La115 añade UNA nota con UNA tanda (web + APK53) y UN alcance. El arreglo toca la lectura de
+// gastos y el envío al widget, que otras tandas ya entregadas también vigilan: aquí se fija, como
+// oráculo literal, QUÉ huellas ajenas mueve y cuáles no. Una más o una menos deja esto en rojo.
+const expected115={"v":"4.26.115","d":"2026-10-11","t":{"es":"Widget al día","en":"Widget up to date","ca":"Widget al dia"},"items":{"es":["El widget se actualiza al pagar con el móvil aunque la app esté cerrada, sin pedir que la abras. Hace falta instalar la versión nueva de la app."],"en":["The widget updates when you pay with your phone even if the app is closed, without asking you to open it. The new version of the app needs to be installed."],"ca":["El widget s'actualitza en pagar amb el mòbil encara que l'app estigui tancada, sense demanar que l'obris. Cal instal·lar la versió nova de l'app."]},"tandas":[{"id":"widget-pago-app-cerrada","t":{"es":"Widget: pago con la app cerrada","en":"Widget: payment with the app closed","ca":"Widget: pagament amb l'app tancada"},"items":{"es":["1. Instala la versión nueva de la app cuando la beta te la ofrezca y ábrela una vez con conexión, hasta que cargue Inicio.","2. Mira el widget: debe enseñar la misma cifra que «Mi ciclo» en Inicio, sin el aviso «Abre la app para actualizar».","3. Cierra la app del todo y paga algo pequeño con el móvil.","4. Cuando llegue la notificación del gasto, mira el widget: la cifra sube ese importe y no aparece el aviso.","5. Abre la app: Inicio y el widget coinciden, y el pago no está sumado dos veces."],"en":["1. Install the new version of the app when the beta offers it and open it once while online, until Home loads.","2. Look at the widget: it must show the same figure as “My cycle” on Home, without the “Open the app to update” notice.","3. Close the app completely and pay for something small with your phone.","4. When the expense notification arrives, look at the widget: the figure goes up by that amount and the notice does not appear.","5. Open the app: Home and the widget match, and the payment is not counted twice."],"ca":["1. Instal·la la versió nova de l'app quan la beta te l'ofereixi i obre-la una vegada amb connexió, fins que carregui Inici.","2. Mira el widget: ha de mostrar la mateixa xifra que «El meu cicle» a Inici, sense l'avís «Obre l'app per actualitzar».","3. Tanca l'app del tot i paga alguna cosa petita amb el mòbil.","4. Quan arribi la notificació de la despesa, mira el widget: la xifra puja aquest import i no apareix l'avís.","5. Obre l'app: Inici i el widget coincideixen, i el pagament no està sumat dues vegades."]},"apk":53}]};
+test("Catálogo115 añade sólo la tanda del widget y fija qué huellas ajenas mueve su lectura",()=>{
+  const id="widget-pago-app-cerrada",before=JSON.parse(source114("src/data/release-notes.json"));
+  const expected=[expected115,...before];
+  const verify=notes=>assert.deepEqual(notes,expected);
+  const notes=JSON.parse(read("src/data/release-notes.json"));verify(notes);
+  assert.equal(notes.length,232);assert.equal(JSON.parse(read("package.json")).version,"4.26.115");
+  assert.equal(notes.flatMap(n=>n.tandas||[]).filter(g=>g.id===id).length,1,"una sola vez en todo el catálogo");
+  assert.deepEqual(notes[1].tandas.map(g=>g.id),["inicio-solape-gastos"],"la tanda114 sigue pendiente");
+  const twice=structuredClone(notes);twice[0].tandas.push(structuredClone(twice[0].tandas[0]));assert.throws(()=>verify(twice),"no duplicar la tanda");
+  const inherited=structuredClone(notes);inherited[0].tandas[0].desde="widget-app-cerrada";assert.throws(()=>verify(inherited),"no heredar una aprobación");
+  const noApk=structuredClone(notes);delete noApk[0].tandas[0].apk;assert.throws(()=>verify(noApk),"sin APK53 no hay nada que probar");
+  const missing=structuredClone(notes);missing.pop();assert.throws(()=>verify(missing));
+  const text=structuredClone(notes);text[1].items.es[0]+="mutante";assert.throws(()=>verify(text));
+  const scopes=JSON.parse(read("scripts/beta-sources.json")),oldScopes=JSON.parse(source114("scripts/beta-sources.json"));
+  assert.deepEqual(Object.keys(scopes).filter(key=>!oldScopes[key]),[id]);
+  assert.deepEqual(Object.keys(oldScopes).filter(key=>!scopes[key]),[],"ningún alcance se retira");
+  // `pullExpenses` cambia de firma: los cuatro alcances del widget ya entregado se reanclan a la
+  // cabecera nueva de ESA MISMA unidad. Nada más de ningún descriptor ajeno se mueve.
+  const anchorOld='"from":"    async pullExpenses(){"',anchorNew='"from":"    async pullExpenses(readProof){"';
+  const reanchored=["fin05-widget-reentrada","fin05-pago-cerrada","widget-app-cerrada","inc-2909-01-widget-periodo"];
+  for(const [key,scope] of Object.entries(oldScopes)){
+    if(!reanchored.includes(key)){assert.deepEqual(scopes[key],scope,key+": descriptor ajeno intacto");continue;}
+    const now=JSON.stringify(scopes[key]);
+    assert.equal(now.split(anchorNew).length,2,key+": un solo ancla nueva");assert.equal(now.includes(anchorOld),false);
+    assert.equal(now.replace(anchorNew,anchorOld),JSON.stringify(scope),key+": sólo cambia el ancla de pullExpenses");
+  }
+  const java=file=>"android/app/src/main/java/com/micartera/app/"+file;
+  assert.deepEqual(Object.keys(scopes[id]),["web","native","unidades"],"sin Edge: esta beta no despliega ingest y el pago se aplica con la respuesta antigua");
+  assert.equal(scopes[id].unidades,true);
+  assert.deepEqual(scopes[id].native,["WidgetSnapshotArbiter.java","MiCarteraPlugin.java","TrExpenseListener.java","MiCarteraWidget.java","WidgetPeriod.java"].map(java));
+  assert.deepEqual(scopes[id].web,scopes["inc-2909-01-widget-periodo"].web,"mismas162 unidades que ya vigilaban cifra, foto y lectura del widget");
+  assert.equal(scopes[id].web.length,162);
+  assert.deepEqual(JSON.parse(read("scripts/beta-archives.json")),JSON.parse(source114("scripts/beta-archives.json")),"pin y juicio109 intactos");
+  // Beta114 servida frente al commit revisado del widget: superficies que cambian, una a una.
+  const base=source114,fix=sourceAt("844ce4b0e9877210d5333d626e7d7415283687c5"),moved={};
+  for(const [key,scope] of Object.entries(oldScopes)){
+    if(key===archiveId)continue; // 109 es referencia fija, nunca código vigente.
+    const a=betaRevision(key,base,undefined,scope),b=betaRevision(key,fix,undefined,scopes[key]);
+    const surfaces=["web","native","edge"].filter(surface=>a[surface]!==b[surface]);
+    if(surfaces.length)moved[key]=surfaces;
+  }
+  assert.deepEqual(moved,{
+    "fin05-widget-reentrada":["web","native"],"fin05-pago-cerrada":["web","native","edge"],
+    "tr-descripcion-clasificacion":["native"],"widget-banco":["web","native"],
+    "widget-app-cerrada":["web","native","edge"],"inc-3009-nomina-anticipada":["web"],
+    "inc-2909-03-retirada":["web"],"inc-2909-01-widget-periodo":["web","native"],
+    "feature-0310-01-movilidad":["web"],"inc-0810-metas-editar-regla":["web"]},"sólo quien ya vigilaba la lectura de gastos, el envío al widget o su Java");
+  // De las movidas, sólo dos conservan guion en el catálogo y ninguna cambia de texto ni de versión.
+  assert.deepEqual(notes.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id])).filter(([,key])=>moved[key]),[["4.26.79","inc-2909-03-retirada"],["4.26.78","inc-3009-nomina-anticipada"]]);
+  const source=f=>read(f).replace(/\r\n/g,"\n"),current=betaRevision(id,source);
+  const reviewed=betaRevision(id,fix,undefined,scopes[id]);
+  assert.equal(current.web,reviewed.web,"la web integrada es exactamente la revisada");
+  assert.equal(current.native,reviewed.native,"el Java integrado es exactamente el revisado");
+  assert.equal(current.edge,undefined);
+  assert.throws(()=>betaRevision(id,base,undefined,scopes[id]),error=>error.code==="BETA_SCOPE_ABSENT","la beta anterior no acredita el arreglo");
+  const main="src/modules/11-app-main.js";
+  for(const [file,from,to,surface] of [
+    [main,"function(){ done(null); },4000);","function(){ done(null); },9000);","web"],
+    [main,"return !mcSandbox()&&native&&native.beginWidgetRead?","return native&&native.beginWidgetRead?","web"],
+    [main,"wRead.current=readProof.valid && current","wRead.current=current","web"],
+    ["src/modules/00-core.js",'if(await readSession()!==readUser) throw new Error("exp_pull_session_changed");',"","web"],
+    [java("MiCarteraWidget.java"),'if (cycle && amount <= -200 && !neutral && !"bizum".equals(category)) return -1;','if (cycle && amount <= -200 && !neutral && !"bizum".equals(category)) return 0;',"native"],
+    [java("TrExpenseListener.java"),"finally { MiCarteraWidget.finishIngest(this, widgetTicket); }","finally { }","native"]]){
+    assert.equal(source(file).split(from).length,2,"mutante sobre fuente real: "+from);
+    const changed=betaRevision(id,f=>f===file?source(f).replace(from,to):source(f));
+    for(const other of ["web","native"])assert.equal(changed[other]!==current[other],other===surface,surface+" y sólo "+surface+": "+from);
+  }
+  const neighbour="  const bankSyncing=useRef(false);";
+  assert.equal(source(main).split(neighbour).length,2);
+  assert.deepEqual(betaRevision(id,f=>f===main?source(f).replace(neighbour,neighbour.replace("false","true")):source(f)),current,"un estado vecino no reabre la tanda");
+  assert.deepEqual(betaRevision(id,f=>f==="supabase/functions/ingest/widget.ts"?source(f)+"\n// mutante":source(f)),current,"la fuente de ingest sin desplegar no pertenece a esta tanda");
+  const built=betaNotes(notes),receipt=betaDelivery(built),group=built[0].tandas[0];
+  assert.equal(group.web,current.web);assert.equal(group.native,current.native);assert.equal(group.codigo,current.codigo);
+  assert.equal(group.apk,53);assert.equal(receipt.web[id],current.web);
+  assert.deepEqual(receipt.pruebas[id],{v:"4.26.115",contenido:JSON.stringify([id,expected115.tandas[0].t.es,expected115.tandas[0].items.es,1])});
+  for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica","edge"])assert.equal(group[key],undefined,"identidad nueva sin "+key);
+  // El recibo web no acredita el binario: sólo la entrega de la APK puede dar su huella nativa.
+  assert.equal(JSON.stringify(receipt).includes(current.native),false,"el recibo web no fabrica entrega nativa");
 });
 test("Bienes113 vigila la puerta vacía, ficha, cancelación, borrado y textos",()=>{
   const source=f=>read(f).replace(/\r\n/g,"\n"),id="bienes-completo",before=betaRevision(id,source).web;
@@ -585,7 +673,8 @@ test("PERSIST91: el guardado en el commit invalida toda tanda que escribe estado
   const marca="INC-0410 guardado: de aquí al límite";
   const dependientes=Object.keys(registro).filter(id=>registro[id].web.some(x=>x.from&&x.from.includes(marca)));
   const ajenas=Object.keys(registro).filter(id=>!dependientes.includes(id));
-  assert.equal(dependientes.length,22);
+  assert.equal(dependientes.length,23);
+  assert.ok(dependientes.includes("widget-pago-app-cerrada"),"la lectura que acredita el widget mezcla gastos con el set real");
   assert.ok(dependientes.includes("inc-0810-metas-editar-regla"),"editar una regla escribe con el set real y conserva el cierre de persistencia");
   assert.ok(dependientes.includes("inc-0710-gastos-mes-madrid"),"Gastos99 conserva la dependencia real de guardado de Expenses");
   assert.deepEqual(ajenas.slice().sort(),["beta-panel-veredictos","inc-0210-01-plan-cuota","inc-0410-inicio-tres-metas","inc-0710-appstate-listener-cleanup","inc-0710-banknotif-cleanup","inc-0810-backclose-handover","inc-0810-dashboard-recents-memo","inc-0810-inicio-grafica-significado","inc-0810-nav-indicator","inc-2709-01-arranque-red","inc-2709-09-fechas-cache","inc-2709-12-cyber-fab","inc-2709-13-fab-contorno","inc-2709-14-preguntar","inicio-grafica-vuelve","inicio-solape-gastos","ops-0410-panel-cola","tr-descripcion-clasificacion"]);
