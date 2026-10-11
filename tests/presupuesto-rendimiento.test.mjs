@@ -187,7 +187,12 @@ const PRESUPUESTO = {
   // No sumar topes individuales ni recortar textos/datos financieros para esconder el coste.
   // Tras acotar performance en el fallback del token, artefacto final1.325.236/361.308 B:
   // delta3.413/1.134 sobre109, márgenes844/164 B; mantiene los topes autorizados.
-  minificado: 1295 * 1024,
+  // Widget115 sobre beta 8adba520: la lectura acreditada con sesión y el corte acotado
+  // (00-core y 11-app-main, +52 líneas) más el sello miden 1.326.516/362.362 B,
+  // 436 B sobre 1295 KiB. +1 KiB mínimo solo al crudo (quedan 588 B); el gzip cabe
+  // en 354 KiB con 134 B y no se amplía. No se recortan las guardas del pago con la
+  // app cerrada ni los pasos de la tanda en tres idiomas. La unión con bancos se mide aparte.
+  minificado: 1296 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
