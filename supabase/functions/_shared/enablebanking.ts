@@ -122,20 +122,20 @@ export async function fetchBankTransactions(jwt: string, uid: string, dateFrom: 
           continue;
         }
         if (!pages) throw err;
-        return {transactions, truncated:true, pages, transactionError:controller.signal.aborted ? "timeout" : "transactions_unavailable"};
+        return {transactions, truncated:true, transactionError:controller.signal.aborted ? "timeout" : "transactions_unavailable"};
       }
       pages++;
       const rows = page.transactions;
       const room = 2000 - transactions.length;
       transactions.push(...rows.slice(0, room));
       continuation = page.continuation_key || null;
-      if (rows.length > room) return {transactions, truncated:true, pages};
-      if (!continuation) return {transactions, truncated:false, pages};
+      if (rows.length > room) return {transactions, truncated:true};
+      if (!continuation) return {transactions, truncated:false};
       // Un cursor cíclico no autoriza a dar por completo el extracto ni a repetir doce páginas.
-      if (visited.has(continuation)) return {transactions, truncated:true, pages};
+      if (visited.has(continuation)) return {transactions, truncated:true};
       visited.add(continuation);
     }
-    return {transactions, truncated:true, pages};
+    return {transactions, truncated:true};
   } finally {
     clearTimeout(timer);
   }

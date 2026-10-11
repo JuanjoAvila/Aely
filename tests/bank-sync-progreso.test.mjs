@@ -118,7 +118,7 @@ async function pulsa(db, bank, { body = { recoverGaps: true }, fail = null, afte
       if (st) throw new Error("EB " + st);
       return { balances: [{ balance_type: "ITAV", balance_amount: { amount: "100", currency: "EUR" } }] };
     }
-    const call = { uid, from: u.searchParams.get("date_from"), to: u.searchParams.get("date_to"), cont: u.searchParams.get("continuation_key"), n: calls.length };
+    const call = { uid, from: u.searchParams.get("date_from"), to: u.searchParams.get("date_to"), cont: u.searchParams.get("continuation_key"), longest: u.searchParams.get("strategy") === "longest", n: calls.length };
     calls.push(call);
     const st = fail && fail(call);
     if (st) throw new Error("EB " + st);
@@ -284,6 +284,19 @@ for (const order of ["asc", "desc"]) {
   });
 }
 
+await t("el reintento de periodo del tramo también cuenta: con una llamada libre no hay decimotercera", async () => {
+  // El banco rechaza el periodo y el lector reintenta con `longest` sin contar página: sin
+  // el tope al PEDIR, esa segunda petición sería la número 13 de la cuenta.
+  const bank = banco({ perDay: denso });
+  const link = enlace(haceDias(40));
+  const r = await pulsa(baseDatos([link]), bank, { fail: (c) => (c.to && !c.longest ? "400 WRONG_TRANSACTIONS_PERIOD" : 0) });
+  assert.equal(r.calls.filter((c) => !c.to).length, 11);
+  assert.equal(r.maxCalls, CAP);
+  assert.equal(link.last_sync, haceDias(40));
+  assert.equal(r.data.links[0].accounts[0].ok, true);
+  assert.equal(r.data.links[0].accounts[0].transactions.length, 216);
+});
+
 await t("un día que no cabe en las llamadas libres no se parte ni se da por leído", async () => {
   // Ventana de 10 páginas: quedan 2 llamadas. El día del último éxito tiene 50 movimientos (3 páginas).
   const perDay = (d) => (d >= WINDOW ? 11 : d === "2026-08-31" ? 50 : 4);
@@ -321,16 +334,53 @@ for (const last of [null, haceDias(15)]) {
   });
 }
 
-await t("ventana desbordada con hueco: ni se lee el tramo ni se mueve el cursor", async () => {
-  const bank = banco({ perDay: desbordado });
+// Con hueco y la ventana desbordada no hay llamadas para el tramo, ni hoy ni en la siguiente
+// pulsación: esperar sería quedarse atascado para siempre. Igual que beta, cliente viejo o nuevo.
+for (const gap of [60, 120]) {
+  await t("ventana desbordada con hueco de " + gap + " días: no se lee el tramo y last_sync sube a ahora, como beta", async () => {
+    const bank = banco({ perDay: desbordado });
+    for (const body of [{}, { recoverGaps: true }]) {
+      const link = enlace(haceDias(gap));
+      const r = await pulsa(baseDatos([link]), bank, { body });
+      assert.equal(r.calls.length, CAP);
+      assert.equal(r.calls.filter((c) => c.to).length, 0, "ni una llamada al tramo");
+      assert.equal(link.last_sync, NOW);
+      assert.equal(r.data.links[0].accounts[0].truncated, true, "el corte se declara");
+      assert.equal(r.data.links[0].accounts[0].count, 240);
+      assert.equal(!!r.data.links[0].gapPending, false);
+    }
+  });
+}
+
+await t("ventana que choca con el tope de 2000 filas antes que con el de llamadas: también es desbordar", async () => {
+  const bank = banco({ page: 500, perDay: (d) => (d >= WINDOW ? 150 : 4) });
   const link = enlace(haceDias(60));
-  const db = baseDatos([link]);
-  const r = await pulsa(db, bank);
-  assert.equal(r.calls.length, CAP);
+  const r = await pulsa(baseDatos([link]), bank);
+  assert.equal(r.calls.length, 4);
+  assert.equal(r.data.links[0].accounts[0].truncated, true);
+  assert.equal(r.data.links[0].accounts[0].count, 2000);
+  assert.equal(link.last_sync, NOW);
+});
+
+await t("el banco repite el cursor de página: eso no es desbordar y el cursor del tramo espera", async () => {
+  const bank = banco();
+  const link = enlace(haceDias(60));
+  const ciclo = { reply: (uid, q) => (q.get("date_to") ? bank.reply(uid, q) : { transactions: bank.reply(uid, q).transactions, continuation_key: "igual" }) };
+  const r = await pulsa(baseDatos([link]), ciclo);
+  assert.equal(r.data.links[0].accounts[0].truncated, true);
   assert.equal(r.calls.filter((c) => c.to).length, 0);
   assert.equal(link.last_sync, haceDias(60));
-  assert.equal(r.data.links[0].accounts[0].truncated, true);
   assert.equal(r.data.links[0].gapPending, true);
+});
+
+await t("dos cuentas y solo una desbordada: tampoco hay tramo posible y last_sync sube, como beta", async () => {
+  const bank = banco({ uids: ["cx", "cx2"], perDay: (d, uid) => (uid === "cx2" ? desbordado(d) : 4) });
+  const link = enlace(haceDias(60), ["cx", "cx2"]);
+  const r = await pulsa(baseDatos([link]), bank);
+  assert.ok(r.maxCalls <= CAP);
+  assert.equal(r.calls.filter((c) => c.to).length, 0);
+  assert.equal(link.last_sync, NOW);
+  assert.equal(r.data.links[0].accounts[0].count, 72, "la cuenta ligera se lee entera");
 });
 
 await t("lo reciente cortado por un error a media paginación: sin tramo y sin cursor", async () => {

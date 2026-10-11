@@ -271,17 +271,22 @@ Deno.serve(withCors(async (req: Request) => {
       }
       // Solo EB 401 firme caduca el permiso; 403/404/429/5xx conservan el enlace activo.
       /* last_sync es del ENLACE y dice hasta dónde está leído en TODAS sus cuentas. Sin tramo
-         pendiente sube a «ahora» en cuanto todas respondieron, también si la ventana no cupo
-         en 12 llamadas: así lo hacía ya y ese extracto no se termina por esta vía. Con una
-         cuenta caída no sube (su trozo de ventana quedaría fuera de la próxima petición), y
-         con tramo pendiente lo mueve solo el propio tramo, más abajo: ni el cliente que no
-         lo pide ni una lectura reciente a medias pueden quemarlo. */
+         pendiente sube a «ahora» en cuanto todas respondieron. Con una cuenta caída o un
+         error a media paginación no sube (ese trozo quedaría fuera de la próxima petición),
+         y con tramo pendiente lo mueve solo el propio tramo, más abajo: ni el cliente que
+         no lo pide ni una lectura reciente a medias pueden quemarlo.
+         La excepción es la ventana que NO CABE en los topes del lector (12 llamadas o
+         2000 filas): ahí no hay sitio para el tramo ni lo habrá en la pulsación
+         siguiente, así que esperar dejaría el cursor quieto para siempre. Sube a
+         «ahora», haya hueco o no, que es lo que hacía antes de existir el tramo. Un
+         corte por otra causa (el banco repite el cursor de página) no es desbordar. */
       const allRead = acctOut.length > 0 && acctOut.every((a) => a.ok && !a.transactionError);
-      const wantOld = recoverGaps && plan.gap;
+      const overflow = allRead && acctOut.some((a) => a.truncated && ((used[a.uid] || 0) >= OB_DEMAND_MAX_PAGES || a.count >= 2000));
+      const wantOld = recoverGaps && plan.gap && !overflow;
       const nowIso = new Date().toISOString();
       await admin.from("bank_links")
         .update(anyAcctOk
-          ? { ...(allRead && !plan.gap ? { last_sync: nowIso } : {}), status: "active", updated_at: nowIso }
+          ? { ...(allRead && (!plan.gap || overflow) ? { last_sync: nowIso } : {}), status: "active", updated_at: nowIso }
           : { status: anyExpired ? "expired" : link.status, updated_at: nowIso })
         .eq("id", link.id);
       // top-level (balances/transactions/count) = primera cuenta OK: retrocompat con la Capa 2/3 antigua.
