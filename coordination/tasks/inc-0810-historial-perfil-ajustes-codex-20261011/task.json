@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "id": "inc-0810-historial-perfil-ajustes-codex-20261011",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261011-536fb87f",
+  "createdAt": "2026-10-11T14:33:32.338Z",
+  "to": "codex",
+  "baseSHA": "8adba5202a0444b386e3957a3c5ba499cf88e622",
+  "objective": "INC-0810 del backlog, abierto desde el 8/10: abrir Perfil, pulsar Ir a Ajustes y cerrar con la flecha saca de la app hacia about:blank. La limpieza de useBackClose consume la entrada del perfil mientras se crea la de Ajustes y al cerrar queda una vuelta fuera del origen. Primero comprobar si sigue reproduciéndose en beta 8adba520 (después entró BackClose110); si ya no ocurre, cerrarlo con el e2e que lo demuestre y nada más.",
+  "scope": [
+    "src/modules: useBackClose y sus consumidores de Perfil y Ajustes",
+    "e2e propio del recorrido",
+    "docs/BACKLOG.md solo la entrada INC-0810"
+  ],
+  "acceptance": [
+    "Reproducción en un e2e con historial real (sin forzar el historial en la prueba): Perfil, Ir a Ajustes, cerrar con la flecha, y también con el botón atrás del sistema: la app sigue en su origen y vuelve a la pantalla anterior correcta.",
+    "Si el defecto existe: arreglo mínimo en la guardia de historial, sin cambiar el comportamiento del resto de hojas que usan useBackClose; el e2e falla antes y pasa después.",
+    "e2e registrado en E2E_MAP o CROSSCUTTING. Un PR en borrador contra beta; rebasar si beta avanza a la 115.",
+    "Result con SHA y conteos."
+  ],
+  "restrictions": [
+    "Datos sintéticos; repo público: sin datos personales ni importes reales",
+    "Sin merge ni push a beta o main; sin desplegar funciones",
+    "Sin VERSION, catálogos ni notas de versión: los pone la integración",
+    "Runner pesado (npm test entero, Playwright, Gradle) solo con el cerrojo en disco aely-runner.lock de la unidad E tomado con mkdir y liberado siempre; Node y Deno sueltos, libres",
+    "Sin subir timeouts, reintentos ni topes de tamaño"
+  ],
+  "authorization": "Encargo del coordinador dentro del mandato del dueño del 11/10: Cursor queda fuera y Codex pasa a ejecutor principal a pleno rendimiento. Un chat por encargo."
+}
