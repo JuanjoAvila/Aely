@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "id": "suite-roja-en-beta-grok-20261011",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261010-6a2f79b5",
+  "createdAt": "2026-10-11T01:15:04.448Z",
+  "to": "grok",
+  "baseSHA": "684a839d286f68d66c8855cf6e1a626b7220fd64",
+  "objective": "La suite de Playwright de beta 684a839d no está limpia y cada entrega arrastra los mismos rojos, lo que impide llamar verde a nada. Dejarla en cero rojos de forma estable. Recibido el result de bancos-sin-hueco-correccion: PR 206 en bea5ab10 pasa ahora a segunda revisión independiente; sus tres puertas las decido yo en la integración.",
+  "scope": [
+    "e2e/botnav-indicador.spec.mjs",
+    "e2e/rendimiento-sostenido y e2e/rendimiento línea 93 (cache de parseDate)",
+    "producto SOLO si la causa es un defecto real del cajón de Ajustes o de rendimiento, y entonces mínimo y explicado"
+  ],
+  "acceptance": [
+    "botnav-indicador: en solitario sobre beta fallan 8 de 12 (el cajón de Ajustes no llega a settings-push open en 5 s). Averiguar si es el test (espera mal planteada, splash encima, gesto que cae en la franja de borde) o un defecto real de la app al abrir Ajustes. Rojo dos veces no es inestable: si es de la app, se arregla la app; si es del test, se arregla el test sin subir timeouts ni reintentos.",
+    "rendimiento línea 93 (cache de parseDate) y rendimiento-sostenido con 5200 filas en UTC: lo mismo. Si el umbral depende de que no haya otra suite corriendo a la vez, hacerlo robusto midiendo trabajo y no reloj, sin aflojar lo que protege.",
+    "Prueba de estabilidad: cada spec arreglado 10 veces seguidas en solitario y la suite entera 2 veces, en UTC y en Madrid, sin otra suite en paralelo. Result con conteos reales.",
+    "Un PR en borrador contra beta, sin VERSION, catálogos ni notas. Rebasar sobre el PR 203 si toca los mismos ficheros."
+  ],
+  "restrictions": [
+    "Sin subir timeouts, retries ni topes",
+    "Datos sintéticos",
+    "Sin merge ni push a beta o main"
+  ],
+  "authorization": "Encargo del coordinador dentro del mandato del dueño de no parar y limpiar backlog; solo tests salvo defecto real demostrado."
+}
