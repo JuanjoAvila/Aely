@@ -47,7 +47,8 @@ function auditedRevision(id,source){
 const boot="inc-2709-01-arranque-red";
 const modern=[{v:"4.26.69",tandas:[{id:boot}]}];
 let failed=0;
-function test(name,fn){ try{fn();console.log("  ✓ "+name);}catch(e){failed++;console.error("  ✗ "+name+"\n    "+e.message);} }
+const inicioOnly=process.argv.includes("--inicio-v42-only");
+function test(name,fn){ if(inicioOnly&&!name.startsWith("Inicio v4.2 "))return;try{fn();console.log("  ✓ "+name);}catch(e){failed++;console.error("  ✗ "+name+"\n    "+e.message);} }
 console.log("beta-sources");
 
 // La rayita comparte controlador y geometría con la barra: una aprobación de CSS aislada no
@@ -131,22 +132,27 @@ test("Inicio109 histórico vigila ausencia de fechas, moneda, escala y dibujo en
 
 // La fuente actual necesita su propia unidad y todos los lectores reales de importe/divisa.
 // Este guardián de identidad no acredita por sí solo DOM ni aceptación de la corrección.
-test("Inicio113 cubre renderer, llamada, animación, textos, CSS y moneda vigentes",()=>{
+test("Inicio v4.2 cubre flujos, ciclo, renderer, llamada, animación, textos, CSS y moneda vigentes",()=>{
   const id="inicio-grafica-vuelve",source=f=>read(f).replace(/\r\n/g,"\n"),scopes=JSON.parse(source("scripts/beta-sources.json")),scope=scopes[id],before=betaRevision(id,source);
   assert.equal(scope.unidades,true);
   for(const key of ["historial","auditoria","codigosCompatibles","compatibilidadGit","compatibilidadSha"])
     assert.equal(scope[key],undefined,"no hereda identidad anterior: "+key);
   assert.notEqual(before.codigo,"b90e6223cd45ef64e8689d4c772560c31c7db47939694211a892316030a283f0");
   for(const [file,from,to] of [
-    ["src/modules/03-tab-dash.js",'history:state.history','history:[]'],
-    ["src/modules/03-tab-dash.js",'data:history,current:value','data:history,current:0'],
-    ["src/modules/02-ui-shared.js",'const rng=(max-min)||1;','const rng=max||1;'],
+    ["src/modules/03-tab-dash.js",'series:series, splashGone:splashGone','series:[], splashGone:splashGone'],
+    ["src/modules/03-tab-dash.js",'today:seriesToday,liquid:tt.liquid','today:"1900-01-01",liquid:tt.liquid'],
+    ["src/modules/02-ui-shared.js",'Math.abs(mean)*.06','Math.abs(mean)*.6'],
+    ["src/modules/02-ui-shared.js",'linkedPaymentsNeutral:true','linkedPaymentsNeutral:false'],
+    ["src/modules/02-ui-shared.js",'daily[day]=(daily[day]||0)-Math.round(e.amount*100)','daily[day]=(daily[day]||0)+Math.round(e.amount*100)'],
     ["src/modules/03-tab-dash.js",'const valid=typeof value==="number" && Number.isFinite(value);','const valid=true;'],
     ["src/modules/03-tab-dash.js",'p?p.sign+p.ent:"—"','p?p.sign+p.ent:"0"'],
-    ["src/modules/03-tab-dash.js",'value:tt.netWorth, shown:shownNet','value:0, shown:shownNet'],
+    ["src/modules/03-tab-dash.js",'const value=tt.netWorth, shown=shownNet','const value=0, shown=shownNet'],
     ["src/modules/03-tab-dash.js",'const tt=totals;','const tt={netWorth:0};'],
     ["src/modules/03-tab-dash.js",'useCountUp(tt.netWorth||0, splashGone)','useCountUp(tt.netWorth||0, true)'],
     ["src/modules/03-tab-dash.js",'!!(window.__mcSplashGone)','false'],
+    ["src/modules/03-tab-dash.js",'Math.floor(Math.max(0,rem)/timing.left)','Math.ceil(Math.max(0,rem)/timing.left)'],
+    ["src/modules/03-tab-dash.js",'timing.reliable&&timing.left>0','timing.left>0'],
+    ["src/modules/03-tab-dash.js",'Math.round((local-4)/312*(points.length-1))','0'],
     ["src/modules/02-ui-shared.js",'const t0=performance.now(), dur=950;','const t0=performance.now(), dur=1;'],
     ["src/modules/02-ui-shared.js",'if(mcReduced()){','if(false){'],
     ["src/modules/02-ui-shared.js",'document.documentElement.classList.contains("reduce-motion")','false'],
@@ -155,6 +161,9 @@ test("Inicio113 cubre renderer, llamada, animación, textos, CSS y moneda vigent
     ["src/modules/01-i18n.js",'v4_net_unknown:"El total actual no está disponible."','v4_net_unknown:"0"'],
     ["src/modules/01-i18n.js",'v4_net_unknown:"The current total is unavailable."','v4_net_unknown:"0"'],
     ["src/modules/01-i18n.js",'v4_net_unknown:"El total actual no està disponible."','v4_net_unknown:"0"'],
+    ["src/modules/01-i18n.js",'v42_this_cycle:"Este ciclo"','v42_this_cycle:"Otro ciclo"'],
+    ["src/modules/01-i18n.js",'v42_this_cycle:"This cycle"','v42_this_cycle:"Other cycle"'],
+    ["src/modules/01-i18n.js",'v42_this_cycle:"Aquest cicle"','v42_this_cycle:"Altre cicle"'],
     ["src/modules/01-i18n.js",'v4_money_total:"Tu dinero en total"','v4_money_total:"Otro total"'],
     ["src/modules/01-i18n.js",'v4_money_total:"All your money"','v4_money_total:"Other total"'],
     ["src/modules/01-i18n.js",'v4_money_total:"Els teus diners en total"','v4_money_total:"Altre total"'],
@@ -173,12 +182,15 @@ test("Inicio113 cubre renderer, llamada, animación, textos, CSS y moneda vigent
     ["src/shell.html",'.v4-hero{text-align:center;padding:22px 0 8px;}','.v4-hero{display:none;}'],
     ["src/shell.html",'.v4-hero-amt{display:inline-block;','.v4-hero-amt{display:none;'],
     ["src/shell.html",'.v4-micro{font-size:12.5px;','.v4-micro{font-size:1px;'],
+    ["src/shell.html",'.v42-net .v4-hero-amt{font-size:46px;','.v42-net .v4-hero-amt{font-size:1px;'],
+    ["src/shell.html",'animation:v42-net-line 1.1s','animation:v42-net-line .1s'],
+    ["src/shell.html",'.v42-net-line,.v42-net-fill,.v42-net-dot,.v42-cycle-draw{animation:none;}','.v42-net-line{animation:none;}'],
   ]){
     assert.ok(source(file).includes(from),"mutante sobre la fuente actual real: "+from);
     const changed=f=>f===file?source(f).replace(from,to):source(f);
     // Cambiar el propio literal delimitador debe abortar; el resto sí exige otro digest.
     const anchorMutants=[
-      'const tt=totals;','useCountUp(tt.netWorth||0, splashGone)',
+      'const tt=totals;',
       'v4_money_total:"Tu dinero en total"','v4_money_total:"All your money"','v4_money_total:"Els teus diners en total"',
       'd_networth:"Patrimonio neto"','d_networth:"Net worth"','d_networth:"Patrimoni net"',
       'CURLANG = (state.settings&&state.settings.lang) || "es"'
@@ -188,19 +200,22 @@ test("Inicio113 cubre renderer, llamada, animación, textos, CSS y moneda vigent
       assert.throws(()=>betaRevision(id,changed),{code:"BETA_SCOPE_ABSENT"},from+": delimitador cambiado falla cerrado");
     }else assert.notEqual(betaRevision(id,changed).web,before.web,from);
   }
-  const functions=logicFunctions(source,["src/modules/00-core.js","src/modules/01-i18n.js","src/modules/02-ui-shared.js","src/modules/03-tab-dash.js"]);
-  for(const name of ["NetWorthNow","Sparkline","useCountUp","mcReduced","eurParts","fxRateOf","fxTableOf"]){
+  const files=["src/modules/00-core.js","src/modules/01-i18n.js","src/modules/02-ui-shared.js","src/modules/03-tab-dash.js","src/modules/08-motor-bank.js"],functions=logicFunctions(source,files);
+  for(const name of ["NetWorthNow","netWorthSeries","netWorthDay","netWorthRanges","netWorthChartGeometry","netWorthDeltaMoney","netWorthDebtPolicy","recordAccountBalances","mcLoadRaw","mcSaveRaw","mcResetSandbox","cyclePaceState","cycleTiming","cycleMoney","useCountUp","mcReduced","eurParts","fxRateOf","fxTableOf"]){
     const fn=functions.get(name);assert.ok(fn,name+": función real localizada");
     assert.notEqual(betaRevision(id,f=>f===fn.file?mutateLogic(source(f),fn):source(f)).web,before.web,name);
   }
-  const data=logicData(source);
-  for(const name of ["NF","DISP","CUR_SYM","CURLANG","SIMPLEMODE"]){
+  // La lista explícita de lectores monetarios no se sustituye por un hash del renderer.
+  for(const fn of scopeDependencies(scope,source,functions))assert.ok(scope.web.some(s=>s.file===fn.file&&s.function===fn.name),"dependencia v4.2 vigilada: "+fn.name);
+  const data=logicData(source,files);
+  for(const name of ["NF","DISP","CUR_SYM","CURLANG","SIMPLEMODE","CYCLE_COMFORT_DIFF","CYCLE_GOOD_DIFF","CYCLE_TIGHT_DIFF"]){
     const value=data.get(name);assert.ok(value,name+": dato real localizado");
     assert.notEqual(betaRevision(id,f=>f===value.file?mutateData(source(f),value):source(f)).web,before.web,name);
   }
   const other='pt_trb_hint:"';
   assert.equal(betaRevision(id,f=>f==="src/modules/01-i18n.js"?source(f).replace(other,other+"· "):source(f)).web,before.web,"no absorbe ayuda financiera ajena");
 });
+if(inicioOnly)process.exit(failed?1:0);
 
 test("La integración112 histórica no cambia las otras unidades ni repina el rechazo109",()=>{
   const cache=new Map(),base=f=>{if(!cache.has(f))cache.set(f,execFileSync("git",["show","23a7808f65ef6d28e8a906f7100ffdf229917abb:"+f],{encoding:"utf8",maxBuffer:10e6}));return cache.get(f);};
