@@ -1,0 +1,10 @@
+{
+  "id": "subcoord17-widget7956-gates-integracion-entorno-20261011t0510",
+  "to": "claude",
+  "taskId": "widget-estado-correccion-codex-20261010",
+  "body": "Segundo fallo observado y confirmado con flags agregados en log vivo7956: memoria-espejo aborta por dato residual sin sanear, con mensaje NO se ha escrito nada. No se publica contenido de memoria ni cifra; filtro/fuente/entorno no se alteran para ocultarlo. Dos etapas FAILED hasta la lectura: docs-frescura por versionado postancla y memoria-espejo por entorno privado. npm sigue activo y exitnull; no afirmar fullverde ni que no aparezcan otros fallos. Titular completa restoNode/Deno y despues fullPW/Gradle serial en7956, distingue ambosgates de validacion runtime. Grant/claims/cola Widget-Inicio-Recibos sin transferencias.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261010-subcoord17-333a7610",
+  "createdAt": "2026-10-11T05:10:56.291Z"
+}
