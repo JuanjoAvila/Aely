@@ -20465,7 +20465,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="5766e8ae989bbb01a0253ecb9dd9c2db539c56c4f114a73156f97ccc2dc4877f";
+var _rnSha="816088abc08834a82c8d5d6554ddf966d1f0c167929b6ea83a45a46064f18437";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -26223,8 +26223,11 @@ function App(){
         try{ Promise.resolve(nat.widgetWaiting()).catch(function(){}); }catch(e){}
         tm=setTimeout(query,3000);
       },3000);
+      // `wV2` guarda además QUÉ APK es (su versionCode): la 53 necesita el inicio del ciclo
+      // de otra forma (ver el payload). Sin ese dato vale `true`: contrato completo.
       Promise.resolve().then(function(){ return nat.widgetContract(); })
-        .then(function(r){ if(vivo&&!expired){ clearTimeout(tm); setWV2(!!(r&&r.v>=2)); } })
+        .then(function(r){ return r&&r.v>=2?(nat.appInfo?nat.appInfo().then(function(i){ return i&&i.versionCode||true; },function(){ return true; }):true):false; })
+        .then(function(v){ if(vivo&&!expired){ clearTimeout(tm); setWV2(v); } })
         .catch(function(){ if(vivo&&!expired){ clearTimeout(tm); setWV2(false); } });
     };
     query();
@@ -26264,7 +26267,14 @@ function App(){
     if(wV2==null) return;
     if(cloud.enabled() && (!uid || !wR.current)) return;
     const data={
-      periodStart:budW.periodStart,
+      /* LA APK 53 NO SABE LEER UN INICIO DE CICLO ENTERO (rechazo de la beta 115, feedback
+         2026-10-11): los milisegundos le llegan como Long, su lector solo admite Double y se
+         queda con el día 1 del mes. Al compararlo con el alcance descarta la foto en mudo y el
+         widget no sale de «Abre la app para actualizar». Con medio milisegundo viaja como
+         Double y ella misma lo trunca al valor exacto: la 53 se cura sin instalar nada, también
+         el pago con la app cerrada. Solo la 53 y solo en ciclo: en el mes natural el día 1 ya
+         era lo correcto, la 52 sigue como estaba y desde la 54 el nativo lee cualquier número. */
+      periodStart:budW.periodStart+(wV2===53&&budW.cycle?.5:0),
       // V2 acredita también filas anteriores recibidas: pueden afectar al saldo aunque ya no
       // consuman esta ventana. No se confirma por fecha, ni por una foto sin identidad.
       coveredEvents:widgetCoveredEvents(wC.current,budW.periodStart,Date.now(),!!wV2),

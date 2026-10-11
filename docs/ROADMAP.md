@@ -4,9 +4,9 @@ MAIN4.26.110 incorpora PR196 (bdd75636), sólo pruebas, herramientas y documenta
 
 Promoción4/10: las once tandas de beta4.26.94.1 tienen aprobación vigente. Producción4.26.94/source8bb0398f servida y cotejada; APK52 estable y las tres funciones Edge entregadas. La limpieza conserva notas y decisiones; solo retira las once entregadas, sin producto nuevo. Prioridad permanente: producción de lo aprobado antes de otra implementación. [Acta](briefs/promocion-aprobadas-2026-10-04.md).
 
-> Estado a 2026-10-11 · **v4.26.116** — candidata de beta: los bancos se sincronizan sin dejar huecos tras días sin sincronizar (cliente de la ronda 3, sin APK nueva). Tanda nueva `bancos-sin-hueco`; `widget-pago-app-cerrada` (4.26.115, APK 53) e `inicio-solape-gastos` (4.26.114) siguen en revisión. Publicación beta y aceptación móvil pendientes.
+> Estado a 2026-10-11 · **v4.26.116** — candidata de beta: bancos sin huecos (cliente de la ronda 3) y widget arreglado (cifra de «Mi ciclo» y pago con la app cerrada), con APK 54. Tandas nuevas `bancos-sin-hueco` y `widget-ciclo-puente`; la `widget-pago-app-cerrada` de la 4.26.115 fue rechazada y `inicio-solape-gastos` (4.26.114) sigue en revisión. Publicación beta, APK y aceptación móvil pendientes.
 
-> Anterior: 2026-10-11 · v4.26.115 — el widget se actualiza al pagar con la app cerrada (PR201), con APK 53.
+> Anterior: 2026-10-11 · v4.26.115 — el widget se actualiza al pagar con la app cerrada (PR201), con APK 53; rechazada por el dueño en su móvil.
 
 > Promoción96 fusionada en main `85b8b540`; fuente separada de beta98/99. El merge acredita integración, no artefactos servidos: CI/publicador/HTTP exactos deben confirmarse antes de retirar Inicio96 del catálogo beta. [Acta de origen](briefs/promocion-inicio96-2026-10-06.md).
 
@@ -269,10 +269,10 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.26.116**, candidata de beta con los bancos sin huecos (cliente de la ronda 3; la función `bank-sync` ya está desplegada); publicación beta y aceptación móvil pendientes. |
-| APK (`versionName` / `versionCode`) | **4.26.115 / 53** en `build.gradle`; binario aún sin compilar ni subir (asset `Aely-4.26.115-beta-53.apk` de la release `beta`). La 52 (4.26.80) sigue siendo la servida hasta entonces. |
+| Web / OTA (`VERSION`) | **4.26.116**, candidata de beta con los bancos sin huecos (cliente de la ronda 3; `bank-sync` ya está desplegada) y el widget arreglado; publicación beta y aceptación móvil pendientes. |
+| APK (`versionName` / `versionCode`) | **4.26.116 / 54** en `build.gradle` (el puente lee el inicio del ciclo como cualquier número); binario aún sin compilar ni subir (asset `Aely-4.26.116-beta-54.apk` de la release `beta`). La 53 (4.26.115) se recupera por OTA; la 52 sigue siendo la servida hasta entonces. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
-| `public/apk.json` | **53 / 4.26.115** provisional: apunta al asset de beta que se sube tras compilar; no publicar la rama hasta que ese asset exista. |
+| `public/apk.json` | **54 / 4.26.116** provisional: apunta al asset de beta que se sube tras compilar; no publicar la rama hasta que ese asset exista. |
 
 ## Pendiente / limitaciones conocidas
 

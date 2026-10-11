@@ -503,29 +503,34 @@ test("Catálogo115 histórico añade sólo la tanda del widget y fija qué huell
   // El recibo web no acredita el binario: sólo la entrega de la APK puede dar su huella nativa.
   assert.equal(JSON.stringify(receipt).includes(current.native),false,"el recibo web no fabrica entrega nativa");
 });
-// La116 añade UNA nota con UNA tanda (sólo web, sin APK ni Edge propia: bank-sync ya está desplegada)
-// y UN alcance. El cliente cambia el sync de bancos, que otras tandas ya entregadas vigilan: aquí se
+// La116 añade UNA nota con DOS tandas: los bancos (sólo web, sin Edge propia: bank-sync ya está
+// desplegada) y el widget corregido (web + APK54, identidad nueva: la tanda115 fue rechazada y sale
+// del panel sin alias) y DOS alcances. El cliente cambia el sync de bancos, que otras tandas ya entregadas vigilan: aquí se
 // fija, como oráculo literal, QUÉ huellas ajenas mueve (la del widget115, aún sin aprobar, incluida).
-const expected116={"v":"4.26.116","d":"2026-10-11","t":{"es":"Bancos sin huecos","en":"Banks without gaps","ca":"Bancs sense forats"},"items":{"es":["Si pasas días sin sincronizar, ya no se queda nada por el camino: lo que faltaba entra poco a poco cada vez que pulsas sincronizar bancos.","La fecha de «Saldo actualizado» es la de la última lectura real del banco.","Si llevas más de 90 días sin sincronizar un banco, la app te avisa de que el banco solo entrega los últimos 90 días."],"en":["If you go days without syncing, nothing is left behind anymore: what was missing comes in little by little each time you tap sync banks.","The “Balance updated” date is the time of the last real reading from the bank.","If you have gone more than 90 days without syncing a bank, the app tells you that the bank only provides the last 90 days."],"ca":["Si passes dies sense sincronitzar, ja no es queda res pel camí: el que faltava entra a poc a poc cada vegada que prems sincronitza bancs.","La data de «Saldo actualitzat» és la de l'última lectura real del banc.","Si portes més de 90 dies sense sincronitzar un banc, l'app t'avisa que el banc només lliura els últims 90 dies."]},"tandas":[{"id":"bancos-sin-hueco","t":{"es":"Bancos sin huecos","en":"Banks without gaps","ca":"Bancs sense forats"},"items":{"es":["1. En Cartera, dentro de «Tus cuentas», toca el icono «Sincronizar bancos» y espera a que termine.","2. Abre Gastos: los movimientos nuevos de tus bancos aparecen, cada uno una sola vez, sin repetidos.","3. Vuelve a Cartera y toca el icono «Conectar cuentas» para abrir «Mis bancos»: en cada banco, la línea «Saldo actualizado» marca la hora de ahora.","4. Toca «Sincronizar bancos» otra vez: no aparece ningún movimiento repetido en Gastos y «Saldo actualizado» pasa a la hora nueva."],"en":["1. In Portfolio, inside “Your accounts”, tap the “Sync banks” icon and wait for it to finish.","2. Open Spending: the new transactions from your banks appear, each one only once, with no repeats.","3. Go back to Portfolio and tap the “Connect accounts” icon to open “My banks”: on each bank, the “Balance updated” line shows the time right now.","4. Tap “Sync banks” again: no repeated transaction appears in Spending and “Balance updated” moves to the new time."],"ca":["1. A Cartera, dins de «Els teus comptes», toca la icona «Sincronitza els bancs» i espera que acabi.","2. Obre Despeses: els moviments nous dels teus bancs apareixen, cadascun una sola vegada, sense repetits.","3. Torna a Cartera i toca la icona «Connectar comptes» per obrir «Els meus bancs»: a cada banc, la línia «Saldo actualitzat» marca l'hora d'ara.","4. Toca «Sincronitza els bancs» una altra vegada: no apareix cap moviment repetit a Despeses i «Saldo actualitzat» passa a l'hora nova."]}}]};
+const expected116={"v":"4.26.116","d":"2026-10-11","t":{"es":"Bancos sin huecos y widget arreglado","en":"Banks without gaps and widget fixed","ca":"Bancs sense forats i widget arreglat"},"items":{"es":["Si pasas días sin sincronizar, ya no se queda nada por el camino: lo que faltaba entra poco a poco cada vez que pulsas sincronizar bancos.","La fecha de «Saldo actualizado» es la de la última lectura real del banco.","Si llevas más de 90 días sin sincronizar un banco, la app te avisa de que el banco solo entrega los últimos 90 días.","El widget vuelve a mostrar tu cifra de «Mi ciclo» y se actualiza al pagar con el móvil aunque la app esté cerrada. Para el pago con la app cerrada hace falta instalar la versión nueva de la app."],"en":["If you go days without syncing, nothing is left behind anymore: what was missing comes in little by little each time you tap sync banks.","The “Balance updated” date is the time of the last real reading from the bank.","If you have gone more than 90 days without syncing a bank, the app tells you that the bank only provides the last 90 days.","The widget shows your “My cycle” figure again and updates when you pay with your phone even if the app is closed. Paying with the app closed needs the new version of the app to be installed."],"ca":["Si passes dies sense sincronitzar, ja no es queda res pel camí: el que faltava entra a poc a poc cada vegada que prems sincronitza bancs.","La data de «Saldo actualitzat» és la de l'última lectura real del banc.","Si portes més de 90 dies sense sincronitzar un banc, l'app t'avisa que el banc només lliura els últims 90 dies.","El widget torna a mostrar la xifra de «El meu cicle» i s'actualitza en pagar amb el mòbil encara que l'app estigui tancada. Per al pagament amb l'app tancada cal instal·lar la versió nova de l'app."]},"tandas":[{"id":"bancos-sin-hueco","t":{"es":"Bancos sin huecos","en":"Banks without gaps","ca":"Bancs sense forats"},"items":{"es":["1. En Cartera, dentro de «Tus cuentas», toca el icono «Sincronizar bancos» y espera a que termine.","2. Abre Gastos: los movimientos nuevos de tus bancos aparecen, cada uno una sola vez, sin repetidos.","3. Vuelve a Cartera y toca el icono «Conectar cuentas» para abrir «Mis bancos»: en cada banco, la línea «Saldo actualizado» marca la hora de ahora.","4. Toca «Sincronizar bancos» otra vez: no aparece ningún movimiento repetido en Gastos y «Saldo actualizado» pasa a la hora nueva."],"en":["1. In Portfolio, inside “Your accounts”, tap the “Sync banks” icon and wait for it to finish.","2. Open Spending: the new transactions from your banks appear, each one only once, with no repeats.","3. Go back to Portfolio and tap the “Connect accounts” icon to open “My banks”: on each bank, the “Balance updated” line shows the time right now.","4. Tap “Sync banks” again: no repeated transaction appears in Spending and “Balance updated” moves to the new time."],"ca":["1. A Cartera, dins de «Els teus comptes», toca la icona «Sincronitza els bancs» i espera que acabi.","2. Obre Despeses: els moviments nous dels teus bancs apareixen, cadascun una sola vegada, sense repetits.","3. Torna a Cartera i toca la icona «Connectar comptes» per obrir «Els meus bancs»: a cada banc, la línia «Saldo actualitzat» marca l'hora d'ara.","4. Toca «Sincronitza els bancs» una altra vegada: no apareix cap moviment repetit a Despeses i «Saldo actualitzat» passa a l'hora nova."]}},{"id":"widget-ciclo-puente","t":{"es":"Widget: cifra de Mi ciclo y pago con la app cerrada","en":"Widget: My cycle figure and payment with the app closed","ca":"Widget: xifra de El meu cicle i pagament amb l'app tancada"},"items":{"es":["1. Actualiza la app web (sin instalar nada todavía) y ábrela: el widget vuelve a mostrar la cifra de «Mi ciclo», sin el aviso «Abre la app para actualizar».","2. Instala la app nueva (54) y ábrela: la cifra del widget sigue igual.","3. Cierra la app del todo y paga algo pequeño con el móvil: cuando llegue la notificación del gasto, la cifra del widget sube ese importe y no sale el aviso.","4. Abre la app: la cifra coincide con la de «Mi ciclo» en Inicio y el pago no está sumado dos veces."],"en":["1. Update the web app (without installing anything yet) and open it: the widget shows the “My cycle” figure again, without the “Open the app to update” notice.","2. Install the new app (54) and open it: the widget figure stays the same.","3. Close the app completely and pay for something small with your phone: when the expense notification arrives, the widget figure goes up by that amount and the notice does not appear.","4. Open the app: the figure matches “My cycle” on Home and the payment is not counted twice."],"ca":["1. Actualitza l'app web (sense instal·lar res encara) i obre-la: el widget torna a mostrar la xifra de «El meu cicle», sense l'avís «Obre l'app per actualitzar».","2. Instal·la l'app nova (54) i obre-la: la xifra del widget continua igual.","3. Tanca l'app del tot i paga alguna cosa petita amb el mòbil: quan arribi la notificació de la despesa, la xifra del widget puja aquest import i no surt l'avís.","4. Obre l'app: la xifra coincideix amb la d'«El meu cicle» a Inici i el pagament no està sumat dues vegades."]},"apk":54}]};
 test("Catálogo116 añade sólo la tanda de los bancos y fija qué huellas ajenas mueve su lectura",()=>{
   const id="bancos-sin-hueco",before=JSON.parse(source115("src/data/release-notes.json"));
-  const expected=[expected116,...before];
+  const expected=[expected116,{...before[0],tandas:[]},...before.slice(1)];
   const verify=notes=>assert.deepEqual(notes,expected);
   const notes=JSON.parse(read("src/data/release-notes.json"));verify(notes);
   assert.equal(notes.length,233);assert.equal(JSON.parse(read("package.json")).version,"4.26.116");
   assert.equal(notes.flatMap(n=>n.tandas||[]).filter(g=>g.id===id).length,1,"una sola vez en todo el catálogo");
-  assert.deepEqual(notes[1].tandas.map(g=>g.id),["widget-pago-app-cerrada"],"la tanda115 sigue pendiente");
-  assert.equal(notes[1].tandas[0].apk,53,"y conserva su APK");
+  assert.deepEqual(notes[1].tandas,[],"la tanda115 rechazada sale del panel y su nota se conserva");
+  assert.equal(notes[0].tandas.length,2);assert.deepEqual(notes[0].tandas.map(g=>[g.id,g.apk||0]),[[id,0],["widget-ciclo-puente",54]]);
+  assert.equal(notes.flatMap(n=>n.tandas||[]).filter(g=>g.id==="widget-pago-app-cerrada").length,0,"la rechazada no sigue en el catálogo vivo");
   assert.deepEqual(notes[2].tandas.map(g=>g.id),["inicio-solape-gastos"],"la tanda114 sigue pendiente");
   const twice=structuredClone(notes);twice[0].tandas.push(structuredClone(twice[0].tandas[0]));assert.throws(()=>verify(twice),"no duplicar la tanda");
   const inherited=structuredClone(notes);inherited[0].tandas[0].desde="tr-descripcion-clasificacion";assert.throws(()=>verify(inherited),"no heredar una aprobación");
+  const alias=structuredClone(notes);alias[0].tandas[1].desde="widget-pago-app-cerrada";assert.throws(()=>verify(alias),"la corregida no hereda ni alias de la rechazada");
+  const noApk=structuredClone(notes);delete noApk[0].tandas[1].apk;assert.throws(()=>verify(noApk),"sin APK54 no hay widget que probar");
   const withApk=structuredClone(notes);withApk[0].tandas[0].apk=54;assert.throws(()=>verify(withApk),"no hay APK que probar");
   const missing=structuredClone(notes);missing.pop();assert.throws(()=>verify(missing));
   const text=structuredClone(notes);text[1].items.es[0]+="mutante";assert.throws(()=>verify(text));
   const scopes=JSON.parse(read("scripts/beta-sources.json")),oldScopes=JSON.parse(source115("scripts/beta-sources.json"));
-  assert.deepEqual(Object.keys(scopes).filter(key=>!oldScopes[key]),[id]);
-  assert.deepEqual(Object.keys(oldScopes).filter(key=>!scopes[key]),[],"ningún alcance se retira");
+  assert.deepEqual(Object.keys(scopes).filter(key=>!oldScopes[key]),[id,"widget-ciclo-puente"]);
+  assert.deepEqual(Object.keys(oldScopes).filter(key=>!scopes[key]),[],"ningún alcance se retira: el de la rechazada queda como historia");
   for(const [key,scope] of Object.entries(oldScopes))assert.deepEqual(scopes[key],scope,key+": descriptor ajeno intacto");
+  assert.deepEqual(scopes["widget-ciclo-puente"],scopes["widget-pago-app-cerrada"],"la corregida vigila exactamente las mismas unidades web y los mismos cinco Java");
   assert.deepEqual(Object.keys(scopes[id]),["web","unidades"],"sin APK ni Edge: bank-sync ya está desplegada y el APK se queda en 53");
   assert.equal(scopes[id].unidades,true);
   // Las seis piezas (y el límite de guardado, porque el sync escribe estado) del cliente van primero; el resto son sus dependencias transitivas, que exigen las auditorías de lógica, datos y métodos de cloud.
@@ -544,19 +549,32 @@ test("Catálogo116 añade sólo la tanda de los bancos y fija qué huellas ajena
     if(surfaces.length)moved[key]=surfaces;
   }
   assert.deepEqual(moved,{
-    "inc-3009-01-cargos":["web"],"fin05-widget-reentrada":["web"],"fin05-pago-cerrada":["web"],
-    "tr-descripcion-clasificacion":["web","edge"],"widget-banco":["web"],"widget-app-cerrada":["web"],
-    "inc-2909-02-inicio-natural":["web"],"inc-3009-nomina-anticipada":["web"],"inc-2909-01-widget-periodo":["web"],
-    "inc-0810-metas-editar-regla":["web"],"widget-pago-app-cerrada":["web"]},"sólo quien ya vigilaba el sync de bancos o la importación de movimientos");
-  // De las movidas, cuatro conservan guion en el catálogo: la del widget115 sigue pendiente y ninguna cambia de texto ni de versión.
-  assert.deepEqual(notes.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id])).filter(([,key])=>moved[key]),[["4.26.115","widget-pago-app-cerrada"],["4.26.78","inc-3009-nomina-anticipada"],["4.26.74","inc-3009-01-cargos"],["4.26.73","inc-2909-02-inicio-natural"]]);
+    "inc-3009-01-cargos":["web"],"fin05-widget-reentrada":["web","native"],"fin05-pago-cerrada":["web","native"],
+    "tr-descripcion-clasificacion":["web","edge"],"widget-banco":["web","native"],"widget-app-cerrada":["web","native"],
+    "inc-2909-02-inicio-natural":["web"],"inc-3009-nomina-anticipada":["web"],"inc-2909-01-widget-periodo":["web","native"],
+    "inc-0810-metas-editar-regla":["web"],"widget-pago-app-cerrada":["web","native"]},"sólo quien ya vigilaba el sync de bancos o la importación de movimientos");
+  // De las movidas, tres conservan guion en el catálogo (la del widget115 ya no: rechazada) y ninguna cambia de texto ni de versión.
+  assert.deepEqual(notes.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id])).filter(([,key])=>moved[key]),[["4.26.78","inc-3009-nomina-anticipada"],["4.26.74","inc-3009-01-cargos"],["4.26.73","inc-2909-02-inicio-natural"]]);
+  const main="src/modules/11-app-main.js",motor="src/modules/08-motor-bank.js";
   const source=f=>read(f).replace(/\r\n/g,"\n"),current=betaRevision(id,source,undefined,scopes[id]);
+  const wid="widget-ciclo-puente",widget=betaRevision(wid,source,undefined,scopes[wid]),java=file=>"android/app/src/main/java/com/micartera/app/"+file;
+  assert.deepEqual(betaRevision("widget-pago-app-cerrada",source,undefined,scopes["widget-pago-app-cerrada"]),widget,"misma huella que la rechazada: lo que cambia es la identidad, no el alcance");
+  assert.notEqual(widget.web,betaRevision("widget-pago-app-cerrada",source115,undefined,scopes["widget-pago-app-cerrada"]).web,"la web corregida no es la que se rechazó");
+  assert.notEqual(widget.native,betaRevision("widget-pago-app-cerrada",source115,undefined,scopes["widget-pago-app-cerrada"]).native,"el Java corregido no es el que se rechazó");
+  for(const [file,from,to,surface] of [
+    [main,"periodStart:budW.periodStart+(wV2===53&&budW.cycle?.5:0)","periodStart:budW.periodStart","web"],
+    [main,"return i&&i.versionCode||true;","return true;","web"],
+    [java("MiCarteraPlugin.java"),"Number period = bridgeNumber(call, \"periodStart\");","Number period = null;","native"],
+    [java("MiCarteraPlugin.java"),"return value instanceof Number ? (Number) value : null;","return null;","native"]]){
+    assert.equal(source(file).split(from).length,2,"mutante sobre fuente real: "+from);
+    const changed=betaRevision(wid,f=>f===file?source(f).replace(from,to):source(f),undefined,scopes[wid]);
+    for(const other of ["web","native"])assert.equal(changed[other]!==widget[other],other===surface,surface+" y sólo "+surface+": "+from);
+  }
   assert.equal(current.native,undefined);assert.equal(current.edge,undefined);
   assert.notEqual(current.web,betaRevision("widget-pago-app-cerrada",source,undefined,scopes["widget-pago-app-cerrada"]).web);
   assert.notEqual(betaRevision(id,source115,undefined,scopes[id]).web,current.web,"la beta anterior no acredita el cliente");
   // Cada unidad vigilada reabre la tanda; la vecina no.
-  const main="src/modules/11-app-main.js",motor="src/modules/08-motor-bank.js";
-  for(const [file,from,to] of [
+    for(const [file,from,to] of [
     ["src/modules/00-core.js","sb.functions.invoke('bank-sync',{ body })","sb.functions.invoke('bank-sync')"],
     [main,"cloud.bankSync({recoverGaps:true})","cloud.bankSync()"],
     [main,"if(l&&l.gapBeyondCap) avisaSync","if(l&&l.gapBeyondCapX) avisaSync"],
@@ -573,11 +591,15 @@ test("Catálogo116 añade sólo la tanda de los bancos y fija qué huellas ajena
   assert.equal(source(main).split(neighbour).length,2);
   assert.deepEqual(betaRevision(id,f=>f===main?source(f).replace(neighbour,neighbour.replace("false","true")):source(f),undefined,scopes[id]),current,"un estado vecino no reabre la tanda");
   assert.deepEqual(betaRevision(id,f=>f==="supabase/functions/bank-sync/index.ts"?source(f)+"\n// mutante":source(f),undefined,scopes[id]),current,"la Edge ya desplegada no pertenece a esta tanda");
-  const built=betaNotes(notes,read,scopes),receipt=betaDelivery(built,read,scopes),group=built[0].tandas[0];
+  const built=betaNotes(notes,read,scopes),receipt=betaDelivery(built,read,scopes),group=built[0].tandas[0],wgroup=built[0].tandas[1];
   assert.equal(group.web,current.web);assert.equal(group.native,undefined);assert.equal(group.edge,undefined);assert.equal(group.apk,undefined);
+  assert.equal(wgroup.id,wid);assert.equal(wgroup.web,widget.web);assert.equal(wgroup.native,widget.native);assert.equal(wgroup.apk,54);assert.equal(wgroup.edge,undefined);
+  for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica","edge"])assert.equal(wgroup[key],undefined,"la corregida nace sin "+key);
   assert.equal(receipt.web[id],current.web);
   assert.deepEqual(receipt.pruebas[id],{v:"4.26.116",contenido:JSON.stringify([id,expected116.tandas[0].t.es,expected116.tandas[0].items.es,1])});
-  assert.deepEqual(receipt.pruebas["widget-pago-app-cerrada"].v,"4.26.115","la prueba115 sigue en el recibo");
+  assert.equal(receipt.pruebas["widget-pago-app-cerrada"],undefined,"el guion rechazado no permanece marcado");
+  assert.deepEqual(receipt.pruebas[wid],{v:"4.26.116",contenido:JSON.stringify([wid,expected116.tandas[1].t.es,expected116.tandas[1].items.es,1])});
+  assert.equal(JSON.stringify(receipt).includes(widget.native),false,"el recibo web no fabrica entrega nativa");
   for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica","native","edge"])assert.equal(group[key],undefined,"identidad nueva sin "+key);
 });
 test("Bienes113 vigila la puerta vacía, ficha, cancelación, borrado y textos",()=>{
@@ -754,7 +776,8 @@ test("PERSIST91: el guardado en el commit invalida toda tanda que escribe estado
   const marca="INC-0410 guardado: de aquí al límite";
   const dependientes=Object.keys(registro).filter(id=>registro[id].web.some(x=>x.from&&x.from.includes(marca)));
   const ajenas=Object.keys(registro).filter(id=>!dependientes.includes(id));
-  assert.equal(dependientes.length,24);
+  assert.equal(dependientes.length,25);
+  assert.ok(dependientes.includes("widget-ciclo-puente"),"el widget corregido lee gastos con el set real");
   assert.ok(dependientes.includes("bancos-sin-hueco"),"el sync de bancos escribe estado con el set real");
   assert.ok(dependientes.includes("widget-pago-app-cerrada"),"la lectura que acredita el widget mezcla gastos con el set real");
   assert.ok(dependientes.includes("inc-0810-metas-editar-regla"),"editar una regla escribe con el set real y conserva el cierre de persistencia");

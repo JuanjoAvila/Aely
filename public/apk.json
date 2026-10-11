@@ -1,6 +1,6 @@
 {
-  "versionCode": 53,
-  "versionName": "4.26.115",
-  "url": "https://github.com/JuanjoAvila/Aely/releases/download/beta/Aely-4.26.115-beta-53.apk",
-  "notes": "El widget se actualiza al pagar con el móvil aunque la app esté cerrada."
+  "versionCode": 54,
+  "versionName": "4.26.116",
+  "url": "https://github.com/JuanjoAvila/Aely/releases/download/beta/Aely-4.26.116-beta-54.apk",
+  "notes": "El widget vuelve a mostrar tu cifra de Mi ciclo y se actualiza al pagar con el móvil aunque la app esté cerrada."
 }

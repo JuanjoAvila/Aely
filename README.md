@@ -7,7 +7,7 @@ La base80/source955765a9 incluye Retirada y Nómina junto con Widget y las tres 
 
 # Aely
 
-Candidata4.26.116: sincronizar los bancos ya no deja huecos tras días sin abrir la app (cliente de «bancos sin hueco», ronda 3; la función del servidor ya está desplegada). No hay APK nueva (sigue la 53). Tres tandas en revisión: `bancos-sin-hueco` (nueva), `widget-pago-app-cerrada` (4.26.115, web + APK 53, sigue pendiente; su huella web cambia porque vigila la importación de movimientos) e `inicio-solape-gastos` (4.26.114, sigue pendiente). Publicación beta y aceptación móvil pendientes.
+Candidata4.26.116: los bancos se sincronizan sin dejar huecos tras días sin abrir la app (cliente de «bancos sin hueco», ronda 3; la función del servidor ya está desplegada) y el widget vuelve a mostrar la cifra de «Mi ciclo» (arreglo del puente web→Java; necesita APK 54, y la 53 se recupera por OTA). Tres tandas en revisión: `bancos-sin-hueco` (web), `widget-ciclo-puente` (web + APK 54; sustituye a `widget-pago-app-cerrada`, rechazada) e `inicio-solape-gastos` (4.26.114, sigue pendiente). Publicación beta, compilación y subida de la APK y aceptación móvil pendientes.
 
 MAIN4.26.110 incorpora PR196 (bdd75636), sólo pruebas, herramientas y documentación. Tests38005461796 y DeployPages38005461732 terminaron SUCCESS y sus artefactos se comprobaron; ese cierre no publica Inicio112 ni acredita APK nuevo o aceptación móvil. Las aprobadas99/100/101/102/106 ya entregadas conservan su cierre;109 sigue rechazada.
 
@@ -70,6 +70,7 @@ mi-cartera/
 ├── tests/backclose-history.test.mjs # Controlador y hook reales con cola de eventos History sintética
 ├── tests/widget-notificacion-render.test.mjs # Java real sobre preferencias APK52: notificación, registro, relectura y pintado
 ├── tests/widget-inicio-paridad.test.mjs # 1584 casos contra los lectores reales de Inicio: alcance, céntimos y presupuesto
+├── tests/widget-puente-ciclo.test.mjs # JSON real del puente → plugin → widget con el Java de las APK 52, 53 y 54 a la vez
 ├── tests/                  # Unitarios en Node (lógica, parsers, i18n, seguridad, frescura de doc,
 │                           #  sintaxis de las Edge Functions, despliegue manual de Supabase y presupuesto de rendimiento)
 ├── supabase/               # Postgres, Auth, Edge Functions
@@ -123,9 +124,9 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.116** — candidata de beta: los bancos se sincronizan sin dejar huecos tras días sin sincronizar (cliente de la ronda 3; sin APK nueva). Tanda nueva `bancos-sin-hueco`; `widget-pago-app-cerrada` (4.26.115) e `inicio-solape-gastos` (4.26.114) siguen en revisión. Publicación beta y aceptación móvil pendientes.
+Estado actual: **v4.26.116** — candidata de beta: bancos sin huecos tras días sin sincronizar (cliente de la ronda 3) y widget arreglado (la cifra de «Mi ciclo» y el pago con la app cerrada), con APK 54. Tandas nuevas `bancos-sin-hueco` y `widget-ciclo-puente` (la `widget-pago-app-cerrada` de la 4.26.115 fue rechazada); `inicio-solape-gastos` (4.26.114) sigue en revisión. Publicación beta, APK y aceptación móvil pendientes.
 
-Corte anterior (11/10): **v4.26.115**, el widget se actualiza al pagar con la app cerrada (APK 53). Antes (11/10): **v4.26.114**, Inicio sin el desglose de Gastos solapado con temática activa. Antes (10/10): **v4.26.113**, Bienes con alta, edición y borrado e Inicio con la gráfica recuperada sin «Ahora».
+Corte anterior (11/10): **v4.26.115**, el widget se actualiza al pagar con la app cerrada (APK 53); rechazada en el móvil. Antes (11/10): **v4.26.114**, Inicio sin el desglose de Gastos solapado con temática activa. Antes (10/10): **v4.26.113**, Bienes con alta, edición y borrado e Inicio con la gráfica recuperada sin «Ahora».
 
 Corte anterior (4/10, 12:30 UTC, panel de revisión): **v4.26.93** publicada en beta. Primera entrega4.26.93.1 (fuente1d5dd782), CI37200314653SUCCESS y HTTP/ZIP/HTML/SW/catálogo/huella cotejados el4/10 a12:30UTC:11 tandas/24 puntos, frente a40 antes del cambio. Producción4.26.86 (d366215a), APK beta4.26.80/code52 y estable4.26.32/code48 conservadas. Prueba y aprobación móvil pendientes. [Acta](docs/briefs/ops-0410-panel-cola.md).
 

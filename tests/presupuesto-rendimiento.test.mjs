@@ -194,7 +194,8 @@ const PRESUPUESTO = {
   // app cerrada ni los pasos de la tanda en tres idiomas. La unión con bancos se mide aparte.
   // Bancos sin huecos116 sobre beta115: el cliente del tramo recuperado, el suelo por banco, el
   // «Saldo actualizado» real y el aviso de 90 días (más la nota y la tanda en tres idiomas) miden
-  // 1.327.458 B crudo, 354 B sobre 1296 KiB. +1 KiB mínimo al crudo (quedan 670 B). No se
+  // 1.327.458 B crudo, 354 B sobre 1296 KiB. Con el arreglo del widget (puente y +0.5 de la 53, y
+  // su tanda en tres idiomas) son 1.327.610 B. +1 KiB mínimo al crudo (quedan 518 B). No se
   // recortan textos ni guardas.
   minificado: 1297 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
@@ -207,7 +208,8 @@ const PRESUPUESTO = {
   // Bienes completo y gráfica113: tras retirar las selecciones111/112 sustituidas,
   // el sello113.99999 con DSN sintético95 B mide361.889 B,417 B sobre353 KiB.
   // +1 KiB es el incremento mínimo por KiB; crudo1295 y3 bloqueantes intactos.
-  // Bancos sin huecos116: 362.744 B gzip, 248 B sobre 354 KiB. +1 KiB mínimo (quedan 776 B).
+  // Bancos sin huecos116: 362.744 B gzip, 248 B sobre 354 KiB; con el arreglo del widget 362.808 B.
+  // +1 KiB mínimo (quedan 712 B).
   gzip: 355 * 1024,
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
