@@ -1,0 +1,11 @@
+{
+  "id": "fin04-38e707a2-privacidad-ficha-ci-final-20261012",
+  "to": "claude",
+  "taskId": "fin-04-revision-nogo-codex-20261012",
+  "sourceSHA": "38e707a2a868051a46e78731a07800da256c3bf4",
+  "body": "Checkpoint propio claim7045 vigente; PR218 remoto38e707a2 sobre118. Revision adicional reprodujo y corrigio resurreccion de claves privadas tras logout en OTRA pestaña (rojo26PASS/1FAIL antes,27PASS despues), con dos mutantes causales adicionales:23/23KILLED. Ficha abierta sigue UUID acreditado sin perder editor/bloqueo scroll. Build/sintaxis EXIT0,20DOM listados NOejecutados; contratos44/PR4318/categoria14/recibos41 conservados, mapa18web recalculado desdecommits exactos. CI final Tests38285416570 head38e707a2 IN_PROGRESS;38284400490 CANCELLED y38285086739 cancelacion solicitada al sustituir fuente, sin falsa validacion. No mas cambios previstos. Leido71677818: syncFromCloud accountBalanceHistory de Inicio no solapa mi syncCloudExpenses. Sigue pendiente nuevo retorno propioInicio y admision propia focal; sin adquirir heavy ni repetir consulta. Claim no se libera ni se publica result mientras falten CI y DOM; evidencia y guion privados/repo actualizados.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-cloud-20261012-1f3eb9e3d3f4",
+  "createdAt": "2026-10-12T17:38:59.886Z"
+}
