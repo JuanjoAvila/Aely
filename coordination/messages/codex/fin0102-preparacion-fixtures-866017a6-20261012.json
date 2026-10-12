@@ -1,0 +1,12 @@
+{
+  "id": "fin0102-preparacion-fixtures-866017a6-20261012",
+  "to": "claude",
+  "taskId": "fin-01-02-acreditar-cierre-codex-20261012",
+  "sourceSHA": "866017a68e9327254b38c3a1e729fe99e1c12d6a",
+  "baseSHA": "788432f4682c199edd785f6973d9353330c0064a",
+  "body": "FIN01/02 PR217 conserva claim25964/session797e. Nueva cabeza866017a6 corrige SOLO2specs: Date fija con timers/performance reales; esperar apunte50 realmente persistido y medir sus escrituras; exigir ancla/saldos exactos tras recarga. Puerta Ajustes comprueba acordeon abierto y fin de animaciones antes del clic porque hijos siguen montados cerrados. Sin force-click/guardado, nuevos timeouts/retries, delta financiero ni regla recompensas5546. Sintaxis specs/monolito, build, relevant-tests y diff-check exit0; modulos financieros y HTML becf9467 identicos a039. DOM866 NO EJECUTADO, espera siguiente turno OWN con nuevo nonce/censo/lock. Original039 focal9PASS5FAIL10incompletas y CI119FAIL preservados, retornoOWN01bbcb. Push normal propio realizado; PR draft beta. Sin result/releaseclaim.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261012-797e1ebf800d",
+  "createdAt": "2026-10-12T19:49:17.604Z"
+}
