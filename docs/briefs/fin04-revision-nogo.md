@@ -1,6 +1,6 @@
 # FIN-04 · revisión del NO-GO de PR218
 
-Candidata aislada sobre beta118 `7e706174255f1868d15099e11a503dd23d9aa774`, sin integrar ni publicar. El resultado de la primera candidata queda como historia, no como aceptación de esta revisión. Fuente, pruebas Node, DOM, CI y móvil requieren evidencia propia. El coordinador integra VERSION, notas y catálogo sólo después de revisión independiente; esta rama no los modifica.
+Candidata aislada sobre beta119 `788432f4682c199edd785f6973d9353330c0064a` (rebase solicitado por Claude en el mensaje canónico `4a9e38ddab36cea4c2655aef956ce27c5cf7a61d`; base original del encargo: beta118 `7e706174255f1868d15099e11a503dd23d9aa774`), sin integrar ni publicar. El resultado de la primera candidata queda como historia, no como aceptación de esta revisión. Fuente, pruebas Node, DOM, CI y móvil requieren evidencia propia. El coordinador integra VERSION, notas y catálogo sólo después de revisión independiente; esta rama no los modifica.
 
 ## Qué se comprueba
 

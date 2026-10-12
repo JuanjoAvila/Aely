@@ -22,7 +22,7 @@ Promoción selectiva98 preparada7/10: el dueño aprobó ocultar juntos barra y b
 
 # Roadmap — Aely
 
-FIN-04, candidata revisada sobre beta118 sin publicar: Gastos → pendientes con Reintentar/Descartar; ficha → confirmación pendiente. Drenado por sesión/red/foreground/pull, identidad exacta única, base del gesto sin red y plazo de Deshacer durable. Revisión independiente, DOM/CI y aceptación móvil se acreditan por separado; VERSION, catálogo y promoción corresponden a integración.
+FIN-04, candidata revisada sobre beta119 sin publicar: Gastos → pendientes con Reintentar/Descartar; ficha → confirmación pendiente. Drenado por sesión/red/foreground/pull, identidad exacta única, base del gesto sin red y plazo de Deshacer durable. Revisión independiente, DOM/CI y aceptación móvil se acreditan por separado; VERSION, catálogo y promoción corresponden a integración.
 
 MAIN4.26.110 incorpora PR196 (bdd75636), sólo pruebas, herramientas y documentación. Tests38005461796 y DeployPages38005461732 terminaron SUCCESS y sus artefactos se comprobaron; ese cierre no publica Inicio112 ni acredita APK nuevo o aceptación móvil. Las aprobadas99/100/101/102/106 ya entregadas conservan su cierre;109 sigue rechazada.
 
