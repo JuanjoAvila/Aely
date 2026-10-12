@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "id": "fin-04-revision-nogo-codex-20261012",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261012-7c41a9d2",
+  "createdAt": "2026-10-12T16:34:59.348Z",
+  "to": "codex",
+  "baseSHA": "7e706174255f1868d15099e11a503dd23d9aa774",
+  "objective": "Revisión independiente de PR 218 en 18275e02: NO-GO. El transporte es sólido (acuse exacto, sin duplicar ni fusionar; dos clientes con campos distintos sobreviven; timeout tras commit sin alta repetida; sesiones aisladas; local inmediato; modo pruebas correcto), pero la cola no se vacía sola, hay estados sin salida y tres regresiones frente a la base. Corregir en el mismo PR, mismo titular. El revisor usó un servidor falso con índice único, clave primaria y RLS por sesión contra el bundle real.",
+  "scope": [
+    "src/modules/00-core.js, 04-tab-gastos.js, 11-app-main.js",
+    "tests de transporte y cola; e2e de Gastos",
+    "docs/ARQUITECTURA.md"
+  ],
+  "acceptance": [
+    "1 ALTA: la cola NO se drena nunca sola; solo con el gesto original o el botón Reintentar. Sonda: sin red cambiar categoría, nota y no-tarjeta; vuelve la red; dos pulls: siguen las tres pendientes y el servidor sin enterarse. Debe drenarse sola y en orden, fuera de updaters de React: al arrancar con sesión, al volver la red, al volver a primer plano y tras cada pull de gastos; sin tormenta de reintentos (un intento por disparo y por operación, sin bucle)",
+    "2 ALTA, REGRESIÓN: borrar un gasto y salir de la app antes de 5 segundos deja la fila VIVA en la nube para siempre (la espera es un temporizador en memoria y al reabrir nadie la retoma); en la base el servidor quedaba sin la fila. El borrado con la espera vencida se drena como cualquier otra operación al reabrir",
+    "3 ALTA: estados sin salida. No existe forma de descartar una operación y una atascada bloquea las siguientes de esa fila. Casos reproducidos: fila borrada en el otro móvil (queda identidad y pendiente para siempre); choque con el índice único al editar (Mantener mi cambio vuelve a chocar; el móvil pinta dos gastos y el servidor otro); importe con 3 decimales contra una columna de 2 (el acuse compara 12.345 con 12.35 y nunca casa: redondea a céntimos ANTES de encolar y de comparar); gestos sin sesión que quedan con propietario nulo y huérfanos en disco al iniciar sesión. Reglas: toda operación tiene salida visible, Descartar (acepta lo que hay en la nube y lo trae a local) además de Reintentar; cierre automático cuando la fila ya no existe y la operación era un borrado o hay lápida; sin sesión no se encola con propietario nulo: se liga al propietario al iniciar sesión con la MISMA cuenta o no se encola",
+    "4 ALTA, REGRESIÓN: con identificador local corto o UUID divergente (habitual en filas de Open Banking, lo dice el propio código) la candidata hace cero escrituras y deja un aviso permanente, donde la base sí guardaba: cambiar categoría de una fila de banco, o recategorizar con aprender 12 filas. No puede perderse lo que hoy funciona. Solución aceptable: realinear el identificador local con el de la fila del servidor por su clave única exacta (propietario, fecha, importe, comercio y origen), que es identidad exacta y no parecido, cuando haya UNA sola candidata; con cero o varias, conflicto explícito. Mide con un estado sintético representativo cuántas filas caerían en cada caso",
+    "5 MEDIA: marcar Son distintos sobre un pago de Trade Republic cambia su origen (queda como banco donde la base lo dejaba como aviso del móvil): al quitar la marca de duplicado en una fila con evento de ingest se restaura el origen que tenía. Test",
+    "6 MEDIA: un cambio hecho sin red pisa sin conflicto una decisión POSTERIOR del otro móvil en el mismo campo, porque la base de comparación se toma en la primera lectura del servidor y no al hacer el gesto. Guarda el valor local previo como base al encolar; si al enviar el servidor tiene otro valor distinto de esa base, es conflicto y decide el usuario",
+    "7 MEDIA, cliente viejo conviviendo: ediciones cruzadas de la misma fila dejan al viejo con dos filas locales; y la lápida de la clave vieja viaja antes que la actualización, así que con una edición pendiente el otro móvil deja de ver el gasto hasta el reintento. Con el drenado automático del punto 1 el segundo caso se acorta: demuéstralo y deja documentado el primero con su alcance",
+    "8 Privacidad: las claves de la cola guardan comercio, nota, importe y fecha; se borran al cerrar sesión y al borrar la cuenta. Test",
+    "9 Menores: cada operación dispara de 4 a 6 actualizaciones con array nuevo y re-renderiza Gastos entero aunque la cola esté vacía (AGENTS 7 bis: sin referencias nuevas cuando nada cambia); el registro de acuses crece sin límite en memoria; singular de 1 cambio pendiente en los tres idiomas; alias sin uso",
+    "10 Tests que maten las mutaciones supervivientes: deshacer permitido tras un borrado ya intentado; no adoptar lo remoto más nuevo tras el acuse; quitar la época de sesión; el backfill que convierte una edición pendiente en alta (hoy fuera del alcance de Node: llévalo a un test); borrar sin comparar la fila leída; choque de índice sin marcar como conflicto; edición que admite columnas fuera de la lista",
+    "11 El dato 2 pasan y 16 fallan en la base no es reproducible tal como está el contrato (usa una función que no existe en la base): deja un contrato que se pueda ejecutar contra la base y contra la candidata, o retira la cifra",
+    "Rebasa sobre la beta 118. Result con SHA, EXIT reales, mutaciones, las 17 huellas que mueve, y pasos de prueba para el dueño usando el modo avión"
+  ],
+  "restrictions": [
+    "Datos sintéticos; repo público; sin llamar a Supabase real; sin migración SQL",
+    "Sin merge ni push a beta o main; sin VERSION, catálogos ni notas",
+    "Nunca resolver por parecido aproximado; la realineación del punto 4 es por clave única exacta y con una sola candidata",
+    "Offline-first intacto: el cambio local sigue siendo inmediato",
+    "Build y Node libres; navegador focal con cerrojo propio; suite entera por la CI",
+    "Sin subir timeouts, reintentos ni topes"
+  ],
+  "authorization": "Encargo del coordinador; continuación de fin-04-ack-decisiones. Mismo titular. Es integridad de dinero: no se integra hasta nueva revisión independiente."
+}
