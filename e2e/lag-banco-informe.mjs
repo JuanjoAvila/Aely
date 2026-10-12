@@ -1,5 +1,11 @@
 const xml=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]));
 
+// Warmup es una muestra, las fases son arrays: el diagnóstico no debe tapar el error original.
+export function ultimaMuestra(report){
+  if(report.phase==='warmup')return report.warmup||null;
+  const samples=report[report.phase];return Array.isArray(samples)?samples.at(-1)||null:null;
+}
+
 // SVG sin dependencias: sólo dibuja observaciones válidas, nunca ceros inventados para huecos.
 export function curvasSVG(report){
   const panels=[['domNodes','Nodos DOM',1],['listeners','Listeners CDP',1],['timeouts','Timeouts vivos',1],

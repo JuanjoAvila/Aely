@@ -9,6 +9,7 @@ function existing(name){
 // Reutiliza las acciones publicadas, sin importar el spec y registrar sus tests otra vez.
 // Su lifecycle antiguo toma heap dentro de la ventana; éste observa sólo contadores pequeños.
 const cycleSource=existing('cycle').replace('const states=await lifecycle(page,cdp);','const states=await lifecycle(page);')
+  .replace('await page.evaluate(()=>{document.querySelector(".page-scroll-host").scrollTop=0;});','')
   .replace('await delay(1200);','await bankReport(page);')
   .replace('if(tab==="gastos"){','if(tab==="gastos"){\n      await filters(page);')
   .replace('const states=await lifecycle(page);','await click(page,\'.botnav-fab\');await apunta(page);\n  const states=await lifecycle(page);');
@@ -16,28 +17,73 @@ const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const make=new Function('delay','scroll','markAction','lifecycle','bankReport','filters','apunta',existing('fixture')+'\n'+existing('click')+'\n'+cycleSource+'\nreturn {fixture,cycle};');
 async function markAction(page,name){await page.evaluate(name=>{window.__lagBanco.actionName=name;},name);}
 
-export async function scroll(page,cdp,down){
-  const before=await page.evaluate(()=>{
-    const host=document.querySelector('.page-scroll-host');
-    document.addEventListener('touchend',()=>{window.__lagBanco.fingerEnd=host.scrollTop;},{once:true,capture:true});
-    return host.scrollTop;
-  });
-  const y=down?600:230;
-  await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:187,y}]});
-  for(let i=1;i<=14;i++){
-    await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:187,y:y+(down?-1:1)*i*22}]});
-    await delay(16);
-  }
-  await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await delay(500);
-  const after=await page.evaluate(()=>({top:document.querySelector('.page-scroll-host').scrollTop,
-    fingerEnd:window.__lagBanco.fingerEnd,hidden:document.querySelector('.botnav').classList.contains('botnav-hidden')}));
-  const fingerEnd=after.fingerEnd;
-  if(down&&after.top<before+20||!down&&after.top>before-20)throw new Error('scroll-no-land');
-  const inertia=Math.abs(after.top-fingerEnd);
-  await windowlessRecord(page,{action:down?'scroll-down':'scroll-up',before,fingerEnd,after:after.top,inertia,hidden:after.hidden});
-  if(down&&(!after.hidden||inertia<=1))throw new Error('scroll-without-inertia');
+export function planScroll(context,down){
+  if(context.error)throw new Error(context.error);
+  const room=down?context.max-context.top:context.top;
+  if(!Number.isFinite(room)||room<120)throw new Error('scroll-insufficient-room');
+  if(!context.point)throw new Error('scroll-target-not-visible');
+  return {...context.point,travel:Math.min(96,Math.floor(room/3)),steps:6,stepMs:16,room,down};
 }
-async function windowlessRecord(page,record){await page.evaluate(record=>window.__lagBanco.landings.push(record),record);}
+
+export function contextoScroll(down){
+  const p=window.__lagBanco;
+  return p.measureSync('harness-scroll-context',()=>{
+    const tabs=[...document.querySelectorAll('.botnav-tab')],active=tabs.findIndex(b=>b.classList.contains('active'));
+    const page=document.querySelectorAll('.track > .page')[active];
+    if(!page)return {error:'scroll-active-page-missing',active};
+    const rect=page.getBoundingClientRect(),max=Math.max(0,page.scrollHeight-page.clientHeight);
+    const out={active,tab:tabs[active].dataset.tour,top:page.scrollTop,max,height:page.clientHeight,scrollHeight:page.scrollHeight,
+      rect:{left:rect.left,top:rect.top,right:rect.right,bottom:rect.bottom},host:page.classList.contains('page-scroll-host'),
+      touchAction:getComputedStyle(page).touchAction,overlay:document.documentElement.classList.contains('sheet-open'),point:null};
+    if(out.overlay)return {...out,error:'scroll-overlay-open'};
+    const left=Math.max(rect.left+60,60),right=Math.min(rect.right-60,window.innerWidth-60);
+    const top=Math.max(rect.top+120,120),bottom=Math.min(rect.bottom-130,window.innerHeight-130);
+    for(const fy of (down?[.8,.6,.4]:[.2,.4,.6]))for(const fx of [.5,.3,.7]){
+      const x=Math.round(left+(right-left)*fx),y=Math.round(top+(bottom-top)*fy),el=document.elementFromPoint(x,y);
+      if(!el||!page.contains(el)||el.closest('[data-noswipe],button,a,[role="button"],input,textarea,select,canvas,.botnav'))continue;
+      let horizontal=false;
+      for(let n=el;n&&n!==page;n=n.parentElement){const css=getComputedStyle(n);
+        if(n.scrollWidth>n.clientWidth+4&&/^(auto|scroll)$/.test(css.overflowX)){horizontal=true;break;}}
+      if(horizontal)continue;
+      out.point={x,y,target:el.tagName,classes:String(el.className||'').slice(0,100)};break;
+    }
+    p.scrollTarget=new WeakRef(page);return out;
+  },'e2e/lag-banco-recorrido.mjs');
+}
+
+// Los dos comandos salen antes de esperar: no meter un viaje Node entre lectura y touchEnd.
+export async function liberaDedo(cdp){
+  const read=cdp.send('Runtime.evaluate',{expression:"(()=>{const p=window.__lagBanco,h=p.scrollTarget?.deref();p.physicalRelease={top:h?h.scrollTop:null,at:performance.now()};})()"});
+  const end=cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+  const [result]=await Promise.all([read,end]);
+  if(result?.exceptionDetails)throw new Error('scroll-release-evaluation-failed');
+}
+
+export function validaScroll(record){
+  if(!record.after?.connected)throw new Error('scroll-page-detached');
+  if(!Number.isFinite(record.release?.top)||!Number.isFinite(record.after?.top))throw new Error('scroll-release-unavailable');
+  const sign=record.down?1:-1,delta=sign*(record.after.top-record.before.top),inertia=sign*(record.after.top-record.release.top);
+  if(delta<20)throw new Error('scroll-no-land');
+  if(inertia<=1||record.down&&!record.after.hidden)throw new Error('scroll-without-inertia');
+  return {delta,inertia};
+}
+
+export async function scroll(page,cdp,down){
+  const record={action:down?'scroll-down':'scroll-up',down,valid:false};
+  try{
+    record.before=await page.evaluate(contextoScroll,down);record.plan=planScroll(record.before,down);
+    const {x,y,travel,steps,stepMs}=record.plan;
+    await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y}]});
+    for(let i=1;i<=steps;i++){
+      await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x,y:y+(down?-1:1)*i*travel/steps}]});await delay(stepMs);
+    }
+    await liberaDedo(cdp);await delay(500);
+    const after=await page.evaluate(()=>{const p=window.__lagBanco,h=p.scrollTarget?.deref();return {release:p.physicalRelease,
+      after:{top:h?h.scrollTop:null,connected:!!h?.isConnected,hidden:!!document.querySelector('.botnav')?.classList.contains('botnav-hidden')}};});
+    Object.assign(record,after);Object.assign(record,validaScroll(record));record.valid=true;
+  }catch(error){record.failure={code:error.message};error.scrollRecord=record;throw error;}
+  finally{await page.evaluate(record=>{const p=window.__lagBanco;(p.landings||(p.landings=[])).push(record);p.scrollTarget=null;},record).catch(()=>{});}
+}
 
 async function lifecycle(page){
   const change=async state=>{
@@ -89,6 +135,8 @@ export const recorrido={cycle:base.cycle,fixture:function(n){
   const f=base.fixture(n);
   // La119 guarda el acuse después de sus filas; omitirlo mediría el contrato anterior.
   f.__cloudFns['bank-sync'].data.links[0].ack=syntheticAck;
+  // Dos grupos reales de recibos dan recorrido a Inicio; ningún relleno CSS fabrica scroll.
+  f.fixed=Array.from({length:6},(_,i)=>({id:'lag-fixed-'+i,name:'Recibo sintético '+i,amount:12+i,freq:'m',day:i<3?10:28,account:'sabadell'}));
   return f;
 }};
 export async function preparaTransporte(page){

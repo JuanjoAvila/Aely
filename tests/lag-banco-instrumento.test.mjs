@@ -2,10 +2,10 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {recta,resumen,discrimina,atribuciones} from '../e2e/lag-banco-metricas.mjs';
 import {instalaSonda,inyectaFuga,retiraFuga} from '../e2e/lag-banco-sonda.mjs';
-import {curvasSVG} from '../e2e/lag-banco-informe.mjs';
-import {preparaTransporte,recorrido,syntheticAck} from '../e2e/lag-banco-recorrido.mjs';
+import {curvasSVG,ultimaMuestra} from '../e2e/lag-banco-informe.mjs';
+import {preparaTransporte,recorrido,syntheticAck,planScroll,validaScroll,liberaDedo,contextoScroll,scroll} from '../e2e/lag-banco-recorrido.mjs';
 import {loadPureLogic} from '../scripts/load-pure-logic.mjs';
-import {instalaRetorno,instrumentaTotales,instrumentaArranque,bloqueoPorCausa} from '../e2e/lag-banco-retorno.mjs';
+import {instalaRetorno,instrumentaTotales,instrumentaArranque,bloqueoPorCausa,ventanaCruda} from '../e2e/lag-banco-retorno.mjs';
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 
@@ -138,7 +138,8 @@ test('instrumentación usa anclas únicas de la fuente real y conserva sintaxis,
 });
 test('fixture119 devuelve el acuse sin cambiar volumen ni las filas del pull',()=>{
   for(const n of [2000,20000]){const f=recorrido.fixture(n);assert.equal(f.expenses.length,n);assert.equal(f.__cloudRows.expenses.length,n);
-    assert.equal(f.__cloudFns['bank-sync'].data.links[0].ack,syntheticAck);}
+    assert.equal(f.__cloudFns['bank-sync'].data.links[0].ack,syntheticAck);assert.equal(f.fixed.length,6);
+    assert.deepEqual(f.fixed.map(x=>x.day),[10,10,10,28,28,28]);}
 });
 test('hook de totales parseado y ejecutado conserva resultado financiero, dependencias y un cálculo por llamada',()=>{
   const html=readFileSync(new URL('../public/index.html',import.meta.url),'utf8'),main=readFileSync(new URL('../src/modules/11-app-main.js',import.meta.url),'utf8');
@@ -153,4 +154,76 @@ test('hook de totales parseado y ejecutado conserva resultado financiero, depend
   const after=execute(instrumentaTotales(html,main));
   assert.deepEqual(JSON.parse(JSON.stringify(after)),JSON.parse(JSON.stringify(before)));assert.equal(after.netWorth,1400);
   assert.deepEqual(Array.from(ctx._lagDeps),deps);assert.equal(deps.length,16);assert.deepEqual(record,['totals']);
+});
+
+test('emisor conserva warmup objeto, última fase y fallo original sin invocar at sobre objetos',()=>{
+  const warmup={valid:false,failure:{code:'scroll-no-land'},inertia:[{before:{max:100}}]};
+  const report={phase:'warmup',warmup,normal:[],leak:[],recovered:[]};
+  assert.equal(ultimaMuestra(report),warmup);
+  const decoded=JSON.parse(JSON.stringify({...report,last:ultimaMuestra(report)}));assert.deepEqual(decoded.last,warmup);
+  assert.equal(ultimaMuestra({...report,phase:'normal',normal:[warmup]}),warmup);
+  for(const phase of ['complete','validating','normal','failure'])assert.equal(ultimaMuestra({...report,phase,failure:{message:'primary'}}),null);
+});
+test('gesto inválido conserva toda la ventana pendiente y una ventana ausente no fabrica cifras',async()=>{
+  let resolve;const window={__lagBanco:{windowDone:new Promise(r=>{resolve=r;}),finishWindow(){throw new Error('premature');}}};
+  const page={evaluate:fn=>new Function('window',`return (${fn.toString()})();`)(window)};
+  let finished=false;const work=ventanaCruda(page);work.then(()=>{finished=true;});await Promise.resolve();assert.equal(finished,false);
+  const metric={elapsedMs:5000,frames:240};resolve(metric);assert.equal(await work,metric);
+  delete window.__lagBanco.windowDone;assert.equal(await ventanaCruda(page),null);
+});
+test('stroke reserva recorrido para el fling; falta de sitio y objetivo ausente se rechazan',()=>{
+  const context={top:0,max:480,point:{x:187,y:500}};
+  const p=planScroll(context,true);assert.equal(p.travel,96);assert.ok(p.room-p.travel>=p.travel*2);
+  assert.equal(planScroll({...context,top:180},false).travel,60);
+  assert.throws(()=>planScroll({...context,max:119},true),/insufficient-room/);
+  assert.throws(()=>planScroll({...context,point:null},true),/target-not-visible/);
+  assert.throws(()=>planScroll({...context,error:'scroll-active-page-missing'},true),/active-page-missing/);
+});
+test('oráculo físico exige desplazamiento, liberación finita, inercia en dirección correcta y barra oculta',()=>{
+  const r={down:true,before:{top:0},release:{top:80},after:{top:130,connected:true,hidden:true}};
+  assert.deepEqual(validaScroll(r),{delta:130,inertia:50});
+  assert.throws(()=>validaScroll({...r,release:{top:null}}),/release-unavailable/);
+  assert.throws(()=>validaScroll({...r,after:{...r.after,connected:false}}),/page-detached/);
+  assert.throws(()=>validaScroll({...r,after:{...r.after,top:19}}),/no-land/);
+  assert.throws(()=>validaScroll({...r,after:{...r.after,top:81}}),/without-inertia/);
+  assert.throws(()=>validaScroll({...r,after:{...r.after,top:70}}),/without-inertia/);
+  assert.throws(()=>validaScroll({...r,after:{...r.after,hidden:false}}),/without-inertia/);
+  assert.deepEqual(validaScroll({down:false,before:{top:200},release:{top:150},after:{top:100,connected:true}}),{delta:100,inertia:50});
+});
+test('lectura y touchEnd se envían antes de esperar la respuesta CDP; excepción de lectura no se acepta',async()=>{
+  const calls=[],resolve=[];const cdp={send(name){calls.push(name);return new Promise(r=>resolve.push(r));}};
+  const work=liberaDedo(cdp);assert.deepEqual(calls,['Runtime.evaluate','Input.dispatchTouchEvent']);
+  resolve[0]({});resolve[1]({});await work;
+  await assert.rejects(liberaDedo({send:async name=>name==='Runtime.evaluate'?{exceptionDetails:{text:'failure'}}:{}}),/evaluation-failed/);
+});
+
+function scrollEnvironment(){
+  const classes=names=>({contains:name=>names.includes(name)});
+  const host={scrollTop:0,scrollHeight:1200,clientHeight:800,clientWidth:375,scrollWidth:375,isConnected:true,
+    classList:classes([]),getBoundingClientRect:()=>({left:0,right:375,top:0,bottom:800}),contains:el=>el===target};
+  const target={tagName:'DIV',className:'v4-section',parentElement:host,clientWidth:100,scrollWidth:100,closest:()=>null};
+  const tabs=[{classList:classes([]),dataset:{tour:'inicio'}},{classList:classes(['active']),dataset:{tour:'gastos'}}];
+  const document={querySelectorAll:selector=>selector==='.botnav-tab'?tabs:[{},host],elementFromPoint:()=>target,
+    documentElement:{classList:classes([])},querySelector:()=>({classList:classes(['botnav-hidden'])})};
+  const p={landings:[],measureSync:(_kind,fn)=>fn()},window={__lagBanco:p,innerWidth:375,innerHeight:812};
+  const style=()=>({touchAction:'pan-y',overflowX:'visible'});
+  const evaluate=(fn,arg)=>new Function('window','document','getComputedStyle','arg','performance',`return (${fn.toString()})(arg);`)(window,document,style,arg,{now:()=>123});
+  return {host,tabs,document,p,window,evaluate};
+}
+test('contexto usa la página activa durante el tránsito sin depender de un host todavía ausente',()=>{
+  const h=scrollEnvironment(),c=h.evaluate(contextoScroll,true);
+  assert.equal(c.tab,'gastos');assert.equal(c.host,false);assert.equal(c.max,400);assert.ok(c.point);
+  assert.equal(h.p.scrollTarget.deref(),h.host);
+  h.tabs[1].classList={contains:()=>false};assert.equal(h.evaluate(contextoScroll,true).error,'scroll-active-page-missing');
+});
+test('fling ausente deja el contexto y las lecturas crudas antes de propagar el fallo original',async()=>{
+  const h=scrollEnvironment(),cdp={send:async(name,args)=>{
+    if(name==='Input.dispatchTouchEvent'&&args.type==='touchMove')h.host.scrollTop+=15;
+    if(name==='Runtime.evaluate')new Function('window','performance',args.expression)(h.window,{now:()=>123});
+    return {};}};
+  let error;try{await scroll({evaluate:async(fn,arg)=>h.evaluate(fn,arg)},cdp,true);}catch(e){error=e;}
+  assert.match(error.message,/scroll-without-inertia/);assert.equal(h.p.landings.length,1);
+  assert.equal(error.scrollRecord,h.p.landings[0]);assert.equal(error.scrollRecord.valid,false);
+  assert.equal(error.scrollRecord.release.top,90);assert.equal(error.scrollRecord.after.top,90);
+  assert.ok(error.scrollRecord.before.point);assert.equal(h.p.scrollTarget,null);
 });

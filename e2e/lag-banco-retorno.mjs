@@ -75,6 +75,11 @@ export function instrumentaArranque(html){
   return html.replace(anchor,'window.__lagBanco.installCauses();'+anchor);
 }
 
+// Un gesto rechazado no acorta los5/15s pactados; sin ventana iniciada no inventar métricas.
+export async function ventanaCruda(page){
+  return page.evaluate(async()=>{const p=window.__lagBanco;return p.windowDone?await p.windowDone:null;});
+}
+
 // Intersección de longtasks con tramos medidos; no sumar tiempos anidados como trabajo exclusivo.
 export function bloqueoPorCausa(tasks,events){
   const totals={};

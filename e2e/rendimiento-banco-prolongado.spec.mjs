@@ -5,9 +5,9 @@ import {execFileSync} from 'node:child_process';
 import {seedLoggedInDashboard,installFixtureClock,dismissNews} from './fixtures.mjs';
 import {instalaSonda,inyectaFuga,retiraFuga} from './lag-banco-sonda.mjs';
 import {recorrido,preparaTransporte,scroll,syntheticAck} from './lag-banco-recorrido.mjs';
-import {instalaRetorno,instrumentaTotales,instrumentaArranque,bloqueoPorCausa} from './lag-banco-retorno.mjs';
+import {instalaRetorno,instrumentaTotales,instrumentaArranque,bloqueoPorCausa,ventanaCruda} from './lag-banco-retorno.mjs';
 import {resumen,discrimina,atribuciones} from './lag-banco-metricas.mjs';
-import {curvasSVG} from './lag-banco-informe.mjs';
+import {curvasSVG,ultimaMuestra} from './lag-banco-informe.mjs';
 
 test.use({serviceWorkers:'block',timezoneId:'Europe/Madrid'});
 test.describe.configure({mode:'default',retries:0});
@@ -91,8 +91,9 @@ test('arranque 5s: '+size+' '+tab+' scroll segundo '+second,async({page},testInf
     expect(report.metrics.frames).toBeGreaterThan(0);
     expect(await page.evaluate(()=>document.querySelector('.botnav-tab.active')?.dataset.tour)).toBe(tab);
     report.valid=true;report.phase='complete';
-  }catch(error){report.failure={code:error.message.match(/scroll-[\w-]+/)?.[0]||'startup-invalid'};throw error;}
-  finally{if(!report.metrics)report.metrics=await page.evaluate(()=>window.__lagBanco.windowResult||window.__lagBanco.finishWindow()).catch(()=>null);
+  }catch(error){report.failure={code:error.message.match(/scroll-[\w-]+/)?.[0]||'startup-invalid',record:error.scrollRecord};throw error;}
+  finally{report.landings=await page.evaluate(()=>window.__lagBanco.landings||[]).catch(()=>[]);
+    if(!report.metrics)report.metrics=await ventanaCruda(page).catch(()=>null);
     await prioritySave(page,testInfo,setup,'banco-arranque');}
 });
 
@@ -126,8 +127,9 @@ for(const hours of [false,true])test('retorno 15s: '+size+' '+boundary+' '+(hour
     expect(report.after.transport.pullExpenses?.succeeded||0).toBeGreaterThan(0);
     expect(report.metrics.elapsedMs).toBeGreaterThanOrEqual(15000);expect(report.metrics.frames).toBeGreaterThan(0);
     report.valid=true;report.phase='complete';
-  }catch(error){report.failure={code:error.message.match(/scroll-[\w-]+/)?.[0]||'foreground-invalid'};throw error;}
-  finally{if(!report.metrics)report.metrics=await page.evaluate(()=>window.__lagBanco.windowResult||window.__lagBanco.finishWindow()).catch(()=>null);
+  }catch(error){report.failure={code:error.message.match(/scroll-[\w-]+/)?.[0]||'foreground-invalid',record:error.scrollRecord};throw error;}
+  finally{report.landings=await page.evaluate(()=>window.__lagBanco.landings||[]).catch(()=>[]);
+    if(!report.metrics)report.metrics=await ventanaCruda(page).catch(()=>null);
     await page.evaluate(()=>window.__lagBanco.restoreTransport?.()).catch(()=>{});await prioritySave(page,testInfo,setup,'banco-retorno');}
 });
 
@@ -181,7 +183,7 @@ for(const size of [2000,20000])test('banco de pendiente con fuga de lifecycle: '
       valid=true;
     }catch(error){failure={code:error.name==='TimeoutError'?'browser-timeout':'action-not-landed',
       action:await page.evaluate(()=>window.__lagBanco.actionName||'unknown').catch(()=> 'unavailable'),
-      reason:error.message.match(/(?:scroll|foreground|automatic|unchanged|Back|Segmento)[\w -]*/)?.[0]||'unclassified'};}
+      reason:error.message.match(/(?:scroll|foreground|automatic|unchanged|Back|Segmento)[\w -]*/)?.[0]||'unclassified',record:error.scrollRecord};}
     const metric=await page.evaluate(()=>({ ...window.__lagBanco.end(),inertia:window.__lagBanco.landings,
       bytes:window.__lagBanco.storageBytes,bank:window.__lagBanco.bankSync}));
     const retained=await checkpoint();
@@ -221,8 +223,9 @@ for(const size of [2000,20000])test('banco de pendiente con fuga de lifecycle: '
       guionSHA256:report.guionSHA256,size,full,normalMeasuredMinutes:report.normalMeasuredMinutes,
       normal:report.normalSummary,leak:report.leakSummary,recovered:report.recoveredSummary,
       growingSources:report.growingSources,discrimination:report.discrimination.passed}));
-  }finally{
-    if(report.phase!=='complete')console.log(JSON.stringify({variant:report.variant,sourceSHA:report.sourceSHA,size,phase:report.phase,warmup:report.warmup,last:report[report.phase]?.at(-1)}));
+  }catch(error){report.failure={name:error.name,message:error.message};throw error;}
+  finally{
+    report.last=ultimaMuestra(report);save();console.log(JSON.stringify(report));
     await page.evaluate(()=>{for(const fn of window.__lagBanco.leaks)window.removeEventListener('visibilitychange',fn);
       window.__lagBanco.leaks=[];window.__lagBanco.restoreTransport();window.__lagBanco.restore();}).catch(()=>{});
     save();await testInfo.attach('banco-pendientes',{path:out,contentType:'application/json'});
