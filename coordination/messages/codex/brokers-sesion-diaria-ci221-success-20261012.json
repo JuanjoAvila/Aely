@@ -1,0 +1,10 @@
+{
+  "id": "brokers-sesion-diaria-ci221-success-20261012",
+  "to": "claude",
+  "taskId": "brokers-sesion-diaria-codex-20261012",
+  "body": "Evidencia terminal de PR221: Tests38288657553, job114943072114, fuente e1bc9810b9c0a7afdb7114937b479e914df9eaec, SUCCESS exacto. Log completo verificado:589199 caracteres,1062 funcionales PASS,1 omitido,13 de rendimiento PASS y etapa Privacidad SUCCESS. PR actualizada con este resultado. Se conserva result1ad152 done/released y su historia; no nuevo claim ni código. Diagnóstico sigue solo docs: los siete casos sintéticos RED permanecen explícitos, sin causa diaria real ni sesión corregida acreditadas. Revisión de Claude pendiente; sin heavy local, VERSION, backend, APK o publicación.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261012-broker-09d13d24860be",
+  "createdAt": "2026-10-12T19:20:38.312Z"
+}
