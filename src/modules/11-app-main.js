@@ -488,11 +488,13 @@ function App(){
       // Backfill: sube a la tabla TODO gasto local que aún no esté en ella (no solo los manuales).
       // Esto garantiza que la tabla sea la fuente de verdad COMPLETA antes de dejar de duplicar
       // los gastos en app_state (ver slimForCloud). Upsert idempotente (ignoreDuplicates).
-      const tableKeys={}; incoming.forEach(function(e){ tableKeys[keyOfExpense(e)]=1; });
-      // Una fila local con lápida nunca vuelve en `incoming` (se filtra arriba), así que sin esta
-      // comprobación se resubía en CADA pull como «huérfana» (revisión 12/10/2026): él ya dijo que
-      // ese apunte no cuenta, y la tabla no tiene que volver a verlo.
-      (stateRef.current.expenses||[]).forEach(function(e){ if(e.amount!==0 && !tableKeys[keyOfExpense(e)] && !expenseIsTombstoned(e, delSet)) subirGasto(e, "backfill"); });
+      const tableKeys={}, tableIds={}, writeGuards=mcExpenseReadGuards(readStartedAt);
+      incoming.forEach(function(e){ tableKeys[keyOfExpense(e)]=1; tableIds[e.id]=1; });
+      (stateRef.current.expenses||[]).forEach(function(e){
+        // Una edición pendiente o de UUID divergente no se convierte en un alta durante
+        // el pull. Renombrar también conserva el UUID, aunque cambie la clave por atributos.
+        if(e.amount!==0 && !tableKeys[keyOfExpense(e)] && !tableIds[e.id] && !writeGuards[e.id] && !e.catStale && !expenseIsTombstoned(e, delSet)) subirGasto(e, "backfill");
+      });
       /* AQUÍ NO VA UN REPASO QUE RE-MARQUE LOS POSIBLES REPETIDOS VIEJOS (B09-D, 2026-09-08).
          Lo escribí y lo retiré: `addExpense` va con ignoreDuplicates y nunca cambia el `source` de
          una fila ya presente, así que los pendientes anteriores a esta versión siguen contando en

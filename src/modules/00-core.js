@@ -1079,6 +1079,198 @@ async function mcPullExpensesPaged(fetchPage){
 }
 
 
+/* FIN-04: la intención se guarda antes de viajar. Cada operación tiene su clave propia para
+   no sobrescribir la cola de otra pestaña; nunca se mezcla con app_state ni con otro titular. */
+var _mcExpenseOwner=null, _mcExpenseEpoch=0, _mcExpenseOps={}, _mcExpenseBusy={}, _mcExpenseAcks={};
+var _mcExpenseListeners=[];
+function mcExpenseChanged(){ _mcExpenseListeners.slice().forEach(function(fn){ try{ fn(); }catch(e){} }); }
+function mcExpenseSession(s){
+  const owner=s&&s.user&&s.user.id||null;
+  if(owner!==_mcExpenseOwner){ _mcExpenseOwner=owner; _mcExpenseEpoch++; mcExpenseChanged(); }
+  return s;
+}
+function mcOnExpenseWrites(fn){ _mcExpenseListeners.push(fn); return function(){ _mcExpenseListeners=_mcExpenseListeners.filter(function(x){ return x!==fn; }); }; }
+function mcExpenseOpKey(op){ return "mc-expense-op:"+encodeURIComponent(op.owner||"")+":"+op.opId; }
+function mcExpensePending(owner){
+  try{
+    const prefix="mc-expense-op:"+encodeURIComponent(owner||"")+":", seen={};
+    for(let i=0;i<localStorage.length;i++){
+      const key=localStorage.key(i); if(!key || key.indexOf(prefix)!==0) continue;
+      const op=JSON.parse(localStorage.getItem(key));
+      if(op && op.owner===owner && typeof op.opId==="string"){
+        seen[op.opId]=true;
+        if(!_mcExpenseBusy[op.opId]) _mcExpenseOps[op.opId]=Object.assign(_mcExpenseOps[op.opId]||{},op);
+      }
+    }
+    Object.keys(_mcExpenseOps).forEach(function(k){ const op=_mcExpenseOps[k];
+      if(op.owner===owner && !seen[k] && !_mcExpenseBusy[k] && op.status!=="storage") delete _mcExpenseOps[k];
+    });
+  }catch(e){}
+  return Object.keys(_mcExpenseOps).map(function(k){ return _mcExpenseOps[k]; })
+    .filter(function(op){ return op.owner===owner; }).sort(function(a,b){ return a.at-b.at || a.opId.localeCompare(b.opId); });
+}
+function mcExpensePersist(op){
+  _mcExpenseOps[op.opId]=op;
+  // Guardar sólo en memoria NO acredita una cola durable. Sin espacio no se envía nada.
+  try{ localStorage.setItem(mcExpenseOpKey(op),JSON.stringify(op)); }
+  catch(e){ op.status="storage"; mcExpenseChanged(); throw new Error("expense storage unavailable"); }
+  mcExpenseChanged();
+}
+function mcExpenseForget(op){
+  localStorage.removeItem(mcExpenseOpKey(op)); delete _mcExpenseOps[op.opId]; mcExpenseChanged();
+}
+function mcExpenseFailure(code){ const err=new Error("expense "+code); err.expenseCode=code; return err; }
+function mcExpenseSame(a,b){ return JSON.stringify(a)===JSON.stringify(b); }
+function mcExpenseValueSame(k,a,b){
+  if(k==="fecha") return Number.isFinite(Date.parse(a)) && Date.parse(a)===Date.parse(b);
+  return (a==null?null:a)===b;
+}
+function mcExpenseSourceParts(source){
+  const s=source==null?"manual":String(source), m=s.match(/^(ob|ob-hist|manual)(?::([^~#]+))?(~deuda\.[A-Za-z0-9_-]+)?(#dup)?$/);
+  if(m) return {origin:m[1],bank:m[2]||"",debt:m[3]||"",dup:!!m[4]};
+  if(s==="macrodroid" || s==="wallet" || s==="tr" || s==="supabase") return {origin:s,bank:"",debt:"",dup:false};
+  throw mcExpenseFailure("identity");
+}
+function mcExpenseSource(p){ return p.origin+(p.bank?":"+p.bank:"")+p.debt+(p.dup?"#dup":""); }
+function mcExpensePatch(row,op){
+  const k=op.kind,v=op.value,p=(k==="bank"||k==="dup"||k==="category"||k==="debt")?mcExpenseSourceParts(row.source):null;
+  if(k==="bank"){
+    if(v && !/^[A-Za-z0-9_-]+$/.test(v) || ["manual","supabase","ob","ob-hist"].indexOf(p.origin)<0) throw mcExpenseFailure("identity");
+    if(p.origin==="supabase") p.origin="manual";
+    p.bank=v||""; return {source:mcExpenseSource(p)};
+  }
+  if(k==="dup"){
+    if(["ob","ob-hist"].indexOf(p.origin)<0 && v) throw mcExpenseFailure("identity");
+    p.dup=!!v; return {source:mcExpenseSource(p)};
+  }
+  if(k==="category"){
+    const patch={cat:String(v||"otros")};
+    if(p.debt && v!=="deudas"){ p.debt=""; patch.source=mcExpenseSource(p); }
+    return patch;
+  }
+  if(k==="debt"){
+    if(!v || !/^[A-Za-z0-9_-]+$/.test(v)) throw mcExpenseFailure("identity");
+    const patch={cat:"deudas"};
+    if(p.origin==="ob"){ p.debt="~deuda."+v; patch.source=mcExpenseSource(p); }
+    return patch;
+  }
+  if(k==="note") return {nota:String(v||"").slice(0,160)||null,nota_edit:true};
+  if(k==="card") return {no_card:!!v};
+  if(k==="edit"){
+    const patch={}, allowed=["comercio","importe","fecha","cat","no_card","ob_name","importe_orig","divisa"];
+    if(!v || typeof v!=="object" || Object.keys(v).some(function(x){ return allowed.indexOf(x)<0; })) throw mcExpenseFailure("identity");
+    Object.keys(v).forEach(function(x){ patch[x]=v[x]; });
+    if("importe" in patch && !Number.isFinite(patch.importe) || "fecha" in patch && !Number.isFinite(Date.parse(patch.fecha))) throw mcExpenseFailure("identity");
+    return patch;
+  }
+  if(k==="delete" || k==="deleteIds") return null;
+  throw mcExpenseFailure("identity");
+}
+function mcExpenseBase(row,op,patch){
+  const p=(op.kind==="bank"||op.kind==="dup"||op.kind==="debt"||op.kind==="category")?mcExpenseSourceParts(row.source):null;
+  if(op.kind==="bank") return p.bank;
+  if(op.kind==="dup") return p.dup;
+  if(op.kind==="debt"||op.kind==="category") return {cat:row.cat,debt:p.debt};
+  const out={}; Object.keys(patch||row).sort().forEach(function(k){ out[k]=row[k]==null?null:row[k]; }); return out;
+}
+async function mcExpenseAuth(sb,owner,epoch){
+  if(!sb) throw mcExpenseFailure("session");
+  const r=await mcExpenseRequest(sb.auth.getSession()), s=r&&r.data&&r.data.session;
+  if(r.error || !s || !s.user || s.user.id!==owner || epoch!==_mcExpenseEpoch
+    || s.expires_at!=null && !(Number(s.expires_at)*1000>Date.now())) throw mcExpenseFailure("session");
+}
+async function mcExpenseRequest(q){
+  let timer;
+  try{ return await Promise.race([q,new Promise(function(_,reject){ timer=setTimeout(function(){ reject(mcExpenseFailure("pending")); },10000); })]); }
+  finally{ clearTimeout(timer); }
+}
+async function mcExpenseSendOne(sb,op,id,epoch){
+  if(!isExpenseUuid(id)) throw mcExpenseFailure("identity");
+  for(let attempt=0;attempt<3;attempt++){
+    await mcExpenseAuth(sb,op.owner,epoch);
+    const r=await mcExpenseRequest(expenseCloudEq(sb.from("expenses").select("*"),op.owner,{id:id}).maybeSingle());
+    if(r.error) throw r.error;
+    const row=r.data;
+    if(!row || String(row.id).toLowerCase()!==id.toLowerCase() || row.user_id!==op.owner
+      || !Object.prototype.hasOwnProperty.call(row,"source")) throw mcExpenseFailure("identity");
+    const patch=mcExpensePatch(row,op), same=patch && Object.keys(patch).every(function(k){ return Object.prototype.hasOwnProperty.call(row,k)&&mcExpenseValueSame(k,row[k],patch[k]); });
+    const base=mcExpenseBase(row,op,patch);
+    op.bases=op.bases||{};
+    if(!Object.prototype.hasOwnProperty.call(op.bases,id)){ op.bases[id]=base; mcExpensePersist(op); }
+    else if(!same && !mcExpenseSame(op.bases[id],base)) throw mcExpenseFailure("conflict");
+    await mcExpenseAuth(sb,op.owner,epoch);
+    if(same) return row; // Respuesta perdida tras commit: el mismo valor exacto confirma, sin repetir el cambio.
+    let q=sb.from("expenses"); q=patch?q.update(patch):q.delete();
+    q=expenseCloudEq(q,op.owner,{id:id});
+    const conditions=patch?Object.keys(patch):Object.keys(row).filter(function(k){ return k!=="id"&&k!=="user_id"; });
+    conditions.forEach(function(k){ q=row[k]==null?q.is(k,null):q.eq(k,row[k]); });
+    op.attempted=true; mcExpensePersist(op);
+    const w=await mcExpenseRequest(q.select("*").maybeSingle());
+    if(w.error) throw w.error;
+    await mcExpenseAuth(sb,op.owner,epoch);
+    if(!w.data) continue;
+    if(w.data.user_id!==op.owner || String(w.data.id).toLowerCase()!==id.toLowerCase()
+      || patch && !Object.keys(patch).every(function(k){ return Object.prototype.hasOwnProperty.call(w.data,k)&&mcExpenseValueSame(k,w.data[k],patch[k]); })) throw mcExpenseFailure("identity");
+    return w.data;
+  }
+  throw mcExpenseFailure("pending");
+}
+async function mcExpenseRun(sb,op){
+  if(_mcExpenseBusy[op.opId]) return _mcExpenseBusy[op.opId];
+  const run=(async function(){
+    const epoch=_mcExpenseEpoch;
+    try{
+      if(op.holdUntil>Date.now()) await new Promise(function(resolve){ setTimeout(resolve,op.holdUntil-Date.now()); });
+      if(op.cancelled) return {cancelled:true};
+      // Dos gestos seguidos no pueden llegar al servidor al revés. Si el primero sigue
+      // incierto, el segundo conserva su intención y espera a que se revise/reintente.
+      const older=mcExpensePending(op.owner).find(function(x){ return x.opId!==op.opId && x.at<op.at
+        && (x.id===op.id || x.kind==="deleteIds"&&x.value.indexOf(op.id)>=0); });
+      if(older){
+        if(_mcExpenseBusy[older.opId]) await _mcExpenseBusy[older.opId];
+        else throw mcExpenseFailure("pending");
+      }
+      op.status="pending"; mcExpensePersist(op);
+      const ids=op.kind==="deleteIds"?op.value:[op.id]; let ack;
+      for(const id of ids){
+        if(op.done && op.done.indexOf(id)>=0) continue;
+        ack=await mcExpenseSendOne(sb,op,id,epoch);
+        if(op.kind==="deleteIds"){ op.done=(op.done||[]).concat([id]); mcExpensePersist(op); }
+      }
+      ids.forEach(function(id){
+        const k=op.owner+"|"+id, receipts=_mcExpenseAcks[k]||{};
+        receipts[op.kind]={at:Date.now(),op:op}; _mcExpenseAcks[k]=receipts;
+      });
+      mcExpenseForget(op); return ack||{id:op.id,user_id:op.owner};
+    }catch(err){
+      op.status=err&&err.code==="23505"?"conflict":err.expenseCode||"pending";
+      try{ mcExpensePersist(op); }catch(e){}
+      throw err;
+    }
+  })();
+  _mcExpenseBusy[op.opId]=run;
+  try{ return await run; }finally{ delete _mcExpenseBusy[op.opId]; mcExpenseChanged(); }
+}
+async function writeExpenseField(sb,e,kind,value,holdUntil){
+  if(mcSandbox()) return null;
+  const known=_mcExpenseOwner, epoch=_mcExpenseEpoch;
+  const pending=mcExpensePending(known);
+  let op=pending.slice().reverse().find(function(x){ return x.id===(e&&e.id) && x.kind===kind && mcExpenseSame(x.value,value) && !x.cancelled; });
+  const created=!op;
+  if(!op){ op={opId:mcExpenseId(),owner:known,id:e&&e.id,label:String(e&&e.merchant||"").slice(0,100),kind:kind,value:value,
+    at:Math.max(Date.now(),pending.length?pending[pending.length-1].at+1:0),holdUntil:holdUntil||0,status:"pending"}; mcExpensePersist(op); }
+  let session=null;
+  try{ const r=sb&&await mcExpenseRequest(sb.auth.getSession()); session=r&&r.data&&r.data.session; }catch(err){}
+  // Sólo la llamada recién creada puede acreditar su dueño; una cola huérfana recuperada
+  // tras recargar nunca se atribuye al siguiente usuario que inicie sesión.
+  if(created && !known && session && epoch===_mcExpenseEpoch){
+    const key=mcExpenseOpKey(op); op.owner=session.user.id; mcExpensePersist(op); localStorage.removeItem(key);
+  }
+  if(!session || !session.user || session.user.id!==op.owner || epoch!==_mcExpenseEpoch){ op.status="session"; mcExpensePersist(op); throw mcExpenseFailure("session"); }
+  return mcExpenseRun(sb,op);
+}
+function writeExpenseSourceField(sb,e,field,value){ return writeExpenseField(sb,e,field,value); }
+
 const cloud = (function(){
   let sb = null;
   try {
@@ -1088,8 +1280,23 @@ const cloud = (function(){
   } catch(e){ sb = null; }
   return {
     enabled(){ return !!sb; },
-    async session(){ if(!sb) return null; const {data}=await sb.auth.getSession(); return data.session; },
-    onAuth(cb){ const sub=sb&&sb.auth.onAuthStateChange((ev,s)=>{ cb(s,ev); }); return ()=>{ if(sub) sub.data.subscription.unsubscribe(); }; },
+    async session(){ if(!sb) return null; const {data}=await sb.auth.getSession(); return mcExpenseSession(data.session); },
+    onAuth(cb){ const sub=sb&&sb.auth.onAuthStateChange((ev,s)=>{ mcExpenseSession(s); cb(s,ev); }); return ()=>{ if(sub) sub.data.subscription.unsubscribe(); }; },
+    expenseWrites(){ return mcSandbox()?[]:mcExpensePending(_mcExpenseOwner); },
+    async retryExpenseWrite(opId, acceptConflict){
+      const op=mcExpensePending(_mcExpenseOwner).find(function(x){ return x.opId===opId; });
+      if(!op || !op.owner) throw mcExpenseFailure("session");
+      if(op.status==="conflict" && acceptConflict===true){ delete op.bases; mcExpensePersist(op); }
+      return mcExpenseRun(sb,op);
+    },
+    cancelExpenseDelete(id){
+      if(mcSandbox()) return true;
+      const ops=mcExpensePending(_mcExpenseOwner).filter(function(x){ return x.id===id && x.kind==="delete"; });
+      if(!ops.length || ops.some(function(x){ return x.attempted; })) return false;
+      ops.forEach(function(op){ op.cancelled=true; mcExpenseForget(op); });
+      return true;
+    },
+    async editExpense(e,patch){ return writeExpenseField(sb,e,"edit",patch); },
     async signIn(email){
       if(!sb) throw new Error("nube no disponible");
       const {error}=await sb.auth.signInWithOtp({ email:email, options:{ emailRedirectTo: location.href.split('#')[0] } });
@@ -1244,75 +1451,39 @@ const cloud = (function(){
       const rows=(r&&r.data)||[];
       return { cloudIds:rows.map(function(row){ return row.id; }).filter(Boolean), offline:false };
     },
-    /* Borrado SOLO por id (uuid). Camino del undo del histórico: nunca por terna.
-       No sustituye a deleteExpense (gastos viejos sin uuid siguen el fallback de atributos). */
+    /* El lote conserva los ACK parciales: reintentar no confunde una fila que ya borramos
+       con otra sin identidad o inaccesible. El importador conserva su propia transacción. */
     async deleteExpensesByIds(ids){
-      if(!sb) throw new Error("cloud unavailable");
-      const {data:{session}}=await sb.auth.getSession();
-      if(!session) throw new Error("session unavailable");
-      const uuids=(ids||[]).filter(isExpenseUuid);
-      if(!uuids.length) return;
-      const {error}=await sb.from('expenses').delete().eq('user_id', session.user.id).in('id', uuids);
-      if(error) throw error;
+      if(!Array.isArray(ids) || !ids.length || ids.some(function(id){ return !isExpenseUuid(id); })) throw mcExpenseFailure("identity");
+      return writeExpenseField(sb,{id:ids[0]},"deleteIds",Array.from(new Set(ids)).sort());
     },
     // Persiste el BANCO elegido de un gasto (va embebido en source: manual:caixabank…) para
     // que sobreviva a reinstalaciones — mismo truco que ob: (2026-07-18).
     async setExpenseBank(e, ent){
-      if(!sb) return;
-      const {data:{session}}=await sb.auth.getSession();
-      if(!session) return;
-      const src=expenseSourceForCloud(Object.assign({},e,{ent:ent||undefined}));
-      const {error}=await expenseCloudEq(sb.from('expenses').update({ source:src }), session.user.id, e);
-      if(error) throw error;
+      return writeExpenseSourceField(sb,e,"bank",ent||"");
     },
     // Persiste la DECISIÓN sobre un posible repetido (B09-D, 2026-09-08). Sin esto, «son
     // distintos» solo quitaba la marca en el móvil: la fila seguía siendo `ob:ent#dup` en la nube,
     // el servidor la seguía descontando del presupuesto y el siguiente pull volvía a apagarla.
     // Tocar solo el estado local no arregla nada; la fila vuelve de la nube.
     async setExpenseDup(e, isDup){
-      if(!sb) return;
-      const {data:{session}}=await sb.auth.getSession();
-      if(!session) return;
-      const src=expenseSourceForCloud(Object.assign({},e,{possibleDup:!!isDup}));
-      const {error}=await expenseCloudEq(sb.from('expenses').update({ source:src }), session.user.id, e);
-      if(error) throw error;
+      return writeExpenseSourceField(sb,e,"dup",!!isDup);
     },
     // Persiste el flag 💳/🔄 en la tabla (si no, el siguiente pull lo pisaría en gastos de la nube).
     async setExpenseNoCard(e, noCard){
-      if(!sb) return;
-      const {data:{session}}=await sb.auth.getSession();
-      if(!session) return;
-      const {error}=await expenseCloudEq(sb.from('expenses').update({ no_card:!!noCard }), session.user.id, e);
-      if(error) throw error;
+      return writeExpenseField(sb,e,"card",!!noCard);
     },
     // Concepto escrito a mano (o corregido) por el usuario. `nota_edit` lo blinda: el siguiente
     // sync del banco no lo pisa con la descripción cruda del extracto (2026-07-24).
     async setExpenseNote(e, note){
-      if(!sb) return;
-      const {data:{session}}=await sb.auth.getSession();
-      if(!session) return;
-      // Si la migración 0017 aún no está aplicada, esto no puede hacer nada útil: se avisa al
-      // llamante en vez de fallar mudo (aquí el concepto ES el dato que el usuario quiere guardar).
-      const {error}=await expenseCloudEq(sb.from('expenses').update({ nota:String(note||"").slice(0,160)||null, nota_edit:true }), session.user.id, e);
-      if(error){ if(_isMissingNotaCol(error)) _mcNotaCols=false; throw error; }
+      return writeExpenseField(sb,e,"note",String(note||"").slice(0,160));
     },
     // CATEGORÍA en la tabla. Sin esto, `syncCloudExpenses` —que reemplaza los gastos de origen
     // "supabase" con lo que hay en la tabla— pisaba en el siguiente pull cualquier recategorización
     // hecha en el móvil, incluida la que aparta un cashback a «Inversión» (2026-08-04).
     async setExpenseCat(e, cat){
-      if(!sb) return;
-      const {data:{session}}=await sb.auth.getSession();
-      if(!session) return;
-      const upd={ cat:String(cat||"otros") };
-      // Sacar una cuota de «Deudas» a mano le quita también la marca en la nube; si no, el
-      // siguiente pull le devolvería el `debtId` (4.21.0).
-      if(e&&e.debtId&&cat!=="deudas") upd.source=expenseSourceForCloud(Object.assign({},e,{debtId:undefined}));
-      // Devuelve cuántas filas cambió: un UPDATE por id que no casa no da error, y sin ese número
-      // la app daba por subida una categoría que la tabla nunca recibió (2026-10-02).
-      const q=expenseCloudEq(sb.from('expenses').update(upd), session.user.id, e);
-      const {data,error}=await (typeof q.select==="function" ? q.select("id") : q);
-      if(error) throw error;
-      return Array.isArray(data) ? data.length : 0;
+      await writeExpenseField(sb,e,"category",String(cat||"otros"));
+      return 1;
     },
     // Un UPDATE sin filas no confirma una retirada: FIN-04 permite UUID locales divergentes.
     // No buscar gemelos por parecido ni tocar importe, origen o saldo para salvar esa identidad.
@@ -1345,18 +1516,10 @@ const cloud = (function(){
     // Banking, la marca en `source`. La de la noti (`macrodroid`) conserva su source: un
     // `macrodroid~…` lo leería el servidor como «a mano» y lo SUMARÍA; ahí basta `cat:deudas`.
     async setExpenseDeuda(e){
-      if(!sb) return;
-      const {data:{session}}=await sb.auth.getSession();
-      if(!session) return;
-      const {error}=await expenseCloudEq(sb.from('expenses').update({ cat:"deudas", source:expenseSourceForCloud(e) }), session.user.id, e);
-      if(error) throw error;
+      return writeExpenseField(sb,e,"debt",e&&e.debtId||"");
     },
-    async deleteExpense(e){
-      if(!sb) return;
-      const {data:{session}}=await sb.auth.getSession();
-      if(!session) return;
-      const {error}=await expenseCloudEq(sb.from('expenses').delete(), session.user.id, e);
-      if(error) throw error;
+    async deleteExpense(e, holdUntil){
+      return writeExpenseField(sb,e,"delete",null,holdUntil);
     },
     async prices(symbols){
       if(!sb) throw new Error("nube no disponible");
@@ -1797,7 +1960,7 @@ function borrarGastoNube(e, donde){
 
    Si añades un método a `cloud` que ESCRIBA algo, añádelo a esta lista. */
 const CLOUD_WRITES=[
-  "pushState","addExpense","addExpensesBatch","setExpenseBank","setExpenseDup","setExpenseNoCard","setExpenseNote","setExpenseCat","confirmExpenseWithdrawal","setExpenseDeuda","setExpenseRecibo","deleteExpense","deleteExpensesByIds",
+  "pushState","addExpense","addExpensesBatch","setExpenseBank","setExpenseDup","setExpenseNoCard","setExpenseNote","setExpenseCat","confirmExpenseWithdrawal","setExpenseDeuda","setExpenseRecibo","deleteExpense","deleteExpensesByIds","editExpense","retryExpenseWrite",
   "backupState","bankConnect","bankDisconnect","myinvestorConnect","myinvestorStore",
   "myinvestorDisconnect","setIngestToken","clearIngestToken","logEvent","logUso","logPerf","feedback","betaReport",
   "deleteAccount","createHousehold","joinHousehold","publishHouseholdSnapshot","leaveHousehold",
@@ -1960,23 +2123,15 @@ function mcExpenseId(){
     const r=Math.random()*16|0; return (ch==="x"?r:(r&0x3|0x8)).toString(16);
   });
 }
-/* Clave de escritura en la tabla: uuid si lo hay; si no, atributos (gastos viejos del móvil).
-   Sin fecha o importe NO se escribe: un .eq solo por user_id borraría (o tocaría) TODOS los
-   gastos del usuario — agujero viejo que el botón «es el mismo» pisa a diario (2026-09-07). */
+/* Un gasto antiguo con id corto sigue en local, pero no autoriza una escritura sobre
+   otro UUID por compartir importe/comercio/fecha. Queda pendiente con motivo visible. */
 function expenseCloudKeys(e){
-  if(isExpenseUuid(e&&e.id)) return {by:"id", id:e.id};
-  const fecha=e&&e.date;
-  const importe=e&&e.amount;
-  if(fecha==null || fecha==="" || importe==null || importe==="") return {by:"abort"};
-  return {by:"attrs", fecha:fecha, importe:importe, comercio:(e&&e.merchant)||""};
+  return isExpenseUuid(e&&e.id)?{by:"id",id:e.id}:{by:"abort"};
 }
-function expenseCloudEq(q, userId, e){
+function expenseCloudEq(q,userId,e){
   const k=expenseCloudKeys(e);
-  // Abort silencioso: el llamante hace `const {error}=await …` y no revienta; cero queries.
-  if(k.by==="abort") return { data:null, error:null };
-  q=q.eq("user_id", userId);
-  if(k.by==="id") return q.eq("id", k.id);
-  return q.eq("fecha",k.fecha).eq("importe",k.importe).eq("comercio",k.comercio);
+  if(k.by!=="id" || !userId) throw mcExpenseFailure("identity");
+  return q.eq("user_id",userId).eq("id",k.id);
 }
 
 /* ---------- Lápidas de gastos borrados ----------
@@ -2603,8 +2758,11 @@ function mergeExpenses(prevList, incoming){
 function refreshExpenseFromCloud(local, incoming, readStartedAt){
   if(!local||!incoming) return local||incoming;
   const manual=isManualExpenseSource(local.source);
+  const exact=isExpenseUuid(local.id)&&local.id===incoming.id;
+  const guard=arguments[3]||{};
   let out=local;
   const put=function(k,v){
+    if(guard[k]) return;
     const a=local[k], b=v;
     if(a===b) return;
     if(a==null && (b==null||b===undefined||b==="")) return;
@@ -2616,7 +2774,12 @@ function refreshExpenseFromCloud(local, incoming, readStartedAt){
   // subida puede ir por detrás del pull, y la fila de la noti ni siquiera lleva la marca en `source`.
   const cuotaLocal=local.debtId && local.category==="deudas";
   const withdrawalRecent=readStartedAt!=null && local.withdrawalConfirmedAt>=readStartedAt;
-  if(!manual && !cuotaLocal && !withdrawalRecent && incoming.category!=null && incoming.category!=="") put("category", incoming.category);
+  if((exact || !manual && !cuotaLocal) && !withdrawalRecent && incoming.category!=null && incoming.category!=="") put("category", incoming.category);
+  if(exact){
+    put("date",incoming.date);
+    if(Object.prototype.hasOwnProperty.call(incoming,"ent")) put("ent",incoming.ent);
+    if(Object.prototype.hasOwnProperty.call(incoming,"debtId")) put("debtId",incoming.debtId);
+  }
   if(incoming.amount!=null && isFinite(incoming.amount)) put("amount", incoming.amount);
   if(incoming.merchant!=null && incoming.merchant!=="") put("merchant", incoming.merchant);
   if(Object.prototype.hasOwnProperty.call(incoming,"noCard")) put("noCard", incoming.noCard||undefined);
@@ -2648,20 +2811,42 @@ function refreshExpenseFromCloud(local, incoming, readStartedAt){
      la nube sin marca tampoco borra la local; la RETIRADA viaja por `reciboNo` en el estado, y
      `cargoDeRecibo` la respeta aunque esta fila siga marcada aquí. */
   if(incoming.reciboId && !incoming.debtId && !local.debtId && esFilaDeBanco(local)) put("reciboId", incoming.reciboId);
-  if(!local.noteEdited && Object.prototype.hasOwnProperty.call(incoming,"note")) put("note", incoming.note);
+  if((exact || !local.noteEdited) && Object.prototype.hasOwnProperty.call(incoming,"note")) put("note", incoming.note);
+  if(exact && Object.prototype.hasOwnProperty.call(incoming,"noteEdited")) put("noteEdited",incoming.noteEdited);
   /* NO realinear `id` aquí: settings.expenseOrder indexa por id local, y en OB el uuid de la
      nube suele diferir (ignoreDuplicates). Cambiarlo huérfana el orden a mano (4.19.74). Tanda
      propia con remap de expenseOrder + possibleDupOf si hace falta para los PATCH. */
+  return out;
+}
+// La cola sólo protege los campos decididos en ESTE titular. Una lectura anterior al ACK
+// también los conserva; las posteriores pueden adoptar una decisión hecha en otro móvil.
+function mcExpenseReadGuards(readStartedAt){
+  const out={}, owner=_mcExpenseOwner;
+  const add=function(op,id){
+    const g=out[id]||(out[id]={});
+    const fields={bank:["ent"],dup:["possibleDup","possibleDupOf","source"],category:["category","debtId"],
+      debt:["category","debtId"],note:["note","noteEdited"],card:["noCard"]};
+    if(op.kind==="delete"||op.kind==="deleteIds"){ g.deleted=true; return; }
+    const names={comercio:"merchant",importe:"amount",fecha:"date",cat:"category",no_card:"noCard",ob_name:"obName",importe_orig:"origAmount",divisa:"origCur"};
+    (op.kind==="edit"?Object.keys(op.value).map(function(k){ return names[k]; }):fields[op.kind]||[])
+      .forEach(function(k){ g[k]=true; });
+  };
+  mcExpensePending(owner).forEach(function(op){ (op.kind==="deleteIds"?op.value:[op.id]).forEach(function(id){ add(op,id); }); });
+  Object.keys(_mcExpenseAcks).forEach(function(k){ const receipts=_mcExpenseAcks[k];
+    Object.keys(receipts).forEach(function(kind){ const a=receipts[kind];
+      if(a.op.owner===owner && (readStartedAt==null || readStartedAt<=a.at)) add(a.op,k.slice(owner.length+1));
+    });
+  });
   return out;
 }
 /* Mezcla el pull con lo local: refresca campos de claves ya vistas y solo AÑADE las nuevas.
    Nunca elimina una clave que solo exista en local (contención 4.18.6 / FIN-07). */
 function esFilaDeBanco(e){ return e.source==="ob" || e.source==="ob-hist"; }
 function mergeExpensesFromCloud(prevList, incoming, readStartedAt){
-  const byKey={}; const order=[];
+  const byKey={}, byId={}, guards=mcExpenseReadGuards(readStartedAt); const order=[];
   (prevList||[]).forEach(function(e){
     const k=keyOfExpense(e);
-    if(!byKey[k]){ byKey[k]=e; order.push(k); }
+    if(!byKey[k]){ byKey[k]=e; order.push(k); if(isExpenseUuid(e.id)) byId[e.id]=k; }
   });
   let changed=false; let nuevos=0; const seen={};
   /* EL AVISO DEL MÓVIL GANA AL CARGO DE RECIBO DE SU MISMO DÍA, IMPORTE Y COMERCIO, llegue cuando
@@ -2685,13 +2870,14 @@ function mergeExpensesFromCloud(prevList, incoming, readStartedAt){
     return true;
   };
   (incoming||[]).forEach(function(inc){
-    const k=keyOfExpense(inc);
+    if(guards[inc.id]&&guards[inc.id].deleted) return;
+    const k=byId[inc.id]||keyOfExpense(inc);
     if(seen[k]){ ganaAviso(k,inc); return; }
     seen[k]=1;
     const loc=byKey[k];
     if(!loc){ byKey[k]=inc; order.push(k); changed=true; nuevos++; return; }
     if(ganaAviso(k,inc)) return;
-    const merged=refreshExpenseFromCloud(loc, inc, readStartedAt);
+    const merged=refreshExpenseFromCloud(loc, inc, readStartedAt,guards[loc.id]);
     if(merged!==loc){ byKey[k]=merged; changed=true; }
   });
   const list=order.map(function(k){ return byKey[k]; });
@@ -2725,10 +2911,9 @@ function catStaleAfter(e, newCat){
 }
 // La nube confirmó que escribió `cat` en esa fila: desde `at`, lo que lea de ella es verdad.
 function ackCategoryWrite(list, row, cat, at){
-  const k=keyOfExpense(row);
   let out=list;
   (list||[]).forEach(function(e,i){
-    if(!e.catStale || e.category!==cat || e.catAckAt!=null || keyOfExpense(e)!==k) return;
+    if(!e.catStale || e.category!==cat || e.catAckAt!=null || e.id!==row.id) return;
     if(out===list) out=list.slice();
     out[i]=Object.assign({},e,{catAckAt:at});
   });
@@ -2736,6 +2921,7 @@ function ackCategoryWrite(list, row, cat, at){
 }
 function keepCategoryChoices(prevList, incoming, readStartedAt){
   const out={ prev:prevList, incoming:incoming, recat:[] };
+  const guards=mcExpenseReadGuards(readStartedAt);
   const stale={}; let hayStale=false;
   (prevList||[]).forEach(function(e,i){ if(e && e.catStale){ stale[keyOfExpense(e)]=i; hayStale=true; } });
   let minAt=Infinity;
@@ -2760,9 +2946,17 @@ function keepCategoryChoices(prevList, incoming, readStartedAt){
       if(at!=null){
         const loc=out.prev[at];
         if(!loc.catStale) return;   // misma clave repetida en el pull: ya se resolvió arriba
-        if(loc.catAckAt!=null){
+        // Una semejanza no autoriza cambiar el UUID ajeno. La cola ya conserva la intención
+        // exacta, y el pull no debe fabricarle otra escritura ni reactivar una decisión vieja.
+        if(loc.id!==inc.id || guards[loc.id]&&guards[loc.id].category){
+          if(inc.category!==loc.category) swap(i,Object.assign({},inc,{category:loc.category}));
+          return;
+        }
+        const receipts=_mcExpenseAcks[_mcExpenseOwner+"|"+loc.id], writeAck=receipts&&receipts.category;
+        const ackAt=loc.catAckAt!=null?loc.catAckAt:writeAck&&writeAck.op.kind==="category"&&writeAck.op.value===loc.category?writeAck.at:null;
+        if(ackAt!=null){
           // Lectura empezada antes de la confirmación (o sin hora): puede ser una foto vieja.
-          if(readStartedAt!=null && loc.catAckAt<readStartedAt) soltar(at, loc);
+          if(readStartedAt!=null && ackAt<readStartedAt) soltar(at, loc);
           else if(inc.category!==loc.category) swap(i, Object.assign({},inc,{category:loc.category}));
         }else if(inc.category!==loc.category && loc.catStale.indexOf(inc.category)>=0){
           swap(i, Object.assign({},inc,{category:loc.category}));

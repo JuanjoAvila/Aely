@@ -469,9 +469,44 @@ y `traspaso` se conservan aunque no pertenezcan al catálogo ordinario de catego
 La categoría elegida a mano no la deshace un pull (4.26.86). Antes de mezclar,
 `keepCategoryChoices` mira la procedencia local de la fila: `catStale` son las categorías que
 la tabla puede devolver todavía y `catAckAt` la hora en que `cloud.setExpenseCat` confirmó que
-escribió al menos una fila. Sin confirmación se conserva lo local y se reintenta con el id de la
-fila de la nube. Con confirmación, una lectura empezada después es la verdad, diga lo que diga.
+escribió la fila del mismo propietario y UUID. Un UUID divergente no autoriza escribir en un
+gemelo por fecha, importe o comercio. Con confirmación, una lectura empezada después es la verdad, diga lo que diga.
 Ninguno de los dos campos viaja a la nube.
+
+FIN-04 (candidata sin publicar): banco, duplicidad, categoría, nota, no-tarjeta, marca de deuda,
+edición y borrado usan `writeExpenseField`. El gesto se aplica localmente al momento, sin depender
+de la conexión. Antes de enviar se registra una intención en `localStorage`, una clave
+`mc-expense-op:<propietario>:<opId>` por operación, fuera de `app_state`. Contiene UUID, campo,
+valor, base observada y estado. Cada consulta restringe propietario y UUID; cada ACK comprueba
+ambos, el valor solicitado y la sesión vigente. No existe fallback de escritura por atributos.
+Un id legado, cero filas, sesión perdida o error siguen pendientes y visibles en Gastos, también
+tras recargar. Sin espacio de almacenamiento no sale la petición y se avisa de que la cola aún
+no es durable. Las operaciones de otra cuenta quedan aisladas; una operación huérfana recuperada
+no se asigna a quien inicie sesión después.
+
+La lectura remota precede al UPDATE con condiciones sobre los campos que se cambian. Para
+`source` se conserva el origen y las marcas ajenas de banco, deuda y duplicidad; sólo cambia
+el componente decidido. Hay como máximo tres intentos CAS y cada petición tiene corte de 10 s.
+El corte no acredita cancelación del servidor. Un cambio concurrente del mismo campo produce
+conflicto; Reintentar exige confirmar que se desea mantener el cambio antes de tomar una nueva
+base. Una colisión del índice único también es conflicto, nunca fusión ni borrado de otra fila.
+El reintento de un UPDATE cuyo valor exacto ya está presente confirma sin repetir la escritura.
+Los gestos sucesivos sobre la misma fila se ordenan y no adelantan una intención aún incierta.
+
+Editar comercio, importe o fecha conserva el UUID y hace UPDATE, no DELETE seguido de INSERT.
+El borrado local conserva la lápida y una intención durable; el individual espera los cinco
+segundos de Deshacer antes de enviar, por lo que deshacer cancela la intención sin recrear una
+fila remota. Los lotes guardan los UUID ya confirmados para reintentar sólo los restantes.
+Si un DELETE hizo commit pero se perdió el retorno, la ausencia posterior no demuestra ACK:
+permanece pendiente para revisión. Tampoco se interpreta la ausencia en un pull como borrado.
+No hay SQL, recibo remoto de operación ni revisión global: esto no resuelve ABA ni arbitra
+clientes antiguos, y una colisión/identidad no recuperable requiere revisión antes de entrega.
+
+El pull empareja primero por UUID, incluso si la edición cambió la clave por atributos, y
+actualiza también banco, fecha, nota y categoría manual. Conserva los campos de intenciones
+pendientes y de lecturas iniciadas antes del ACK; el resto puede refrescarse. No convierte una
+decisión pendiente ni una fila con UUID ya presente en un alta de backfill. La UI muestra
+pendiente/conflicto y Reintentar en es/en/ca; los envíos salen del gesto, fuera del updater React.
 
 Las equivalencias futuras son `catRules` (en `app_state`): comercio exacto + banco + con o sin
 tarjeta → categoría e instante en que se enseñó; vale para fechas posteriores a ese instante. Solo las aplica el pull, y solo a filas que el

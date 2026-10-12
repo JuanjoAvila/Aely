@@ -121,6 +121,23 @@ function SubRow({sp, state, set, showToast}){
   );
 }
 function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe, cancelSwipe, focusExp, clearFocus, forceAllTs}){
+  const [expenseWrites,setExpenseWrites]=useState(function(){ return cloud.expenseWrites(); });
+  const [expenseRetry,setExpenseRetry]=useState(null);
+  useEffect(function(){
+    const update=function(){ setExpenseWrites(cloud.expenseWrites()); };
+    const off=mcOnExpenseWrites(update); window.addEventListener("storage",update); update();
+    return function(){ off(); window.removeEventListener("storage",update); };
+  },[]);
+  const retryExpense=async function(op){
+    if(expenseRetry) return;
+    const conflict=op.status==="conflict";
+    if(conflict && !await askConfirm({title:t("exp_conflict_title"),sub:t("exp_conflict_confirm"),ok:t("exp_conflict_keep")})) return;
+    setExpenseRetry(op.opId);
+    cloud.retryExpenseWrite(op.opId,conflict).then(function(){
+      if(op.kind==="category") set(function(s){ const list=ackCategoryWrite(s.expenses,{id:op.id},op.value,Date.now());
+        return list===s.expenses?s:Object.assign({},s,{expenses:list}); });
+    }).catch(function(){}).finally(function(){ setExpenseRetry(null); });
+  };
   /* «Ver todo» desde una ficha puede llegar antes de que Gastos termine de montar. Conservamos
      ese destino solo durante la navegación: el estado inicial lo consume y el evento cubre el
      caso en que la pestaña ya estaba viva. No se guarda en preferencias. */
@@ -222,10 +239,9 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   const delExpense=function(e){
     if(undoTimerRef.current) clearTimeout(undoTimerRef.current);
     const key=keyOfE(e), list=state.expenses||[], index=list.findIndex(function(x){ return x.id===e.id; });
-    const wasCloud=cloud.enabled();
-    // La lápida entra junto con la retirada local: si la nube refresca durante los cinco segundos,
-    // no puede resucitar la fila por detrás del toast. La escritura remota sí se encadena para que
-    // Deshacer vuelva a subir el MISMO id después de que termine cualquier delete aún en vuelo.
+    const wasCloud=cloud.enabled()&&!mcSandbox();
+    // La intención queda durable ahora, pero el DELETE espera al cierre de Deshacer.
+    // Así deshacer no fabrica un INSERT después de un borrado de resultado desconocido.
     set(function(s){
       const next=Object.assign({},s,{
         expenses:(s.expenses||[]).filter(function(x){ return x.id!==e.id; }),
@@ -237,7 +253,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       return next;
     });
     const pending={expense:e,key:key,index:index<0?list.length:index,wasCloud:wasCloud,
-      cloudDelete:wasCloud?borrarGastoNube(e,"gastos-borrar"):Promise.resolve()};
+      cloudDelete:wasCloud?cloud.deleteExpense(e,Date.now()+5000).catch(function(){}):Promise.resolve()};
     undoDeleteRef.current=pending; setUndoDelete(pending);
     undoTimerRef.current=setTimeout(function(){
       if(undoDeleteRef.current!==pending) return;
@@ -247,6 +263,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   const undoLastDelete=function(){
     const pending=undoDeleteRef.current;
     if(!pending) return;
+    if(pending.wasCloud && !cloud.cancelExpenseDelete(pending.expense.id)) return;
     if(undoTimerRef.current) clearTimeout(undoTimerRef.current);
     undoTimerRef.current=null; undoDeleteRef.current=null; setUndoDelete(null);
     set(function(s){
@@ -258,9 +275,6 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       }
       return Object.assign({},s,{expenses:expenses,deleted:deleted});
     });
-    if(pending.wasCloud){
-      Promise.resolve(pending.cloudDelete).then(function(){ return subirGasto(pending.expense,"gastos-deshacer"); });
-    }
   };
   /* Posible repetido OB↔noti (2026-09-07): «es el mismo» borra la fila OB; «son distintos»
      quita la marca y la fila ya cuenta. La lápida solo al borrar (mismo camino que delExpense). */
@@ -270,14 +284,13 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       let next=resolvePossibleDup(s, e.id, same);
       if(same){
         next=Object.assign({},next,{deleted:pushDeleted(next.deleted, keyOfE(e))});
-        if(cloud.enabled()) borrarGastoNube(e, "gastos-dup");
       }
       // «Son distintos»: hay que QUITAR la marca también en la nube (B09-D). Si no, la fila sigue
       // siendo `ob-dup:` allí, el servidor la deja fuera del presupuesto y el siguiente pull la
       // vuelve a apagar en el móvil.
-      else if(cloud.enabled()) cloud.setExpenseDup(e, false).catch(function(err){ cloud.logEvent("error","setExpenseDup gastos-dup: "+keyOfExpense(e), _errCloudMsg(err)); });
       return next;
     });
+    if(cloud.enabled()) (same?cloud.deleteExpense(e):cloud.setExpenseDup(e,false)).catch(function(){});
     if(same) showToast(t("g_dup_same"));
     else showToast(t("g_dup_diff"));
   };
@@ -330,6 +343,9 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     // Y "Inversión" NUNCA se aprende como override, venga de donde venga el comercio: es un destino
     // del dinero, no un tipo de tienda (ver el blindaje gemelo en `autoCategory`, 00-core.js).
     const learnable = mkey && ex.merchant!=="Movimiento" && !CAT_NEUTRAS[newCat];
+    const twinAt=newCat==="inversion"?findCashbackTwin(state.expenses,ex):-1;
+    const writeTargets=(state.expenses||[]).filter(function(e,i){ return e.id===ex.id || i===twinAt
+      || learnable && catKey(e.merchant)===mkey && e.category==="otros"; });
     set(function(s){
       const ov=Object.assign({}, s.catOverrides||{}); if(learnable) ov[mkey]=newCat;
       USER_OVERRIDES=Object.assign({},ov);
@@ -379,15 +395,6 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
         }
         return upd;
       });
-      // Durable en la tabla: sin esto el siguiente pull —que reemplaza los gastos de la nube con
-      // lo que hay en `expenses`— devolvía la categoría vieja (2026-08-04).
-      if(cloud.enabled()){
-        cloud.setExpenseCat(ex,newCat).then(function(n){
-          // Solo una escritura confirmada deja de protegerse (cero filas no es un error en Supabase).
-          if(n>0) set(function(p){ const l=ackCategoryWrite(p.expenses, ex, newCat, Date.now()); return l===p.expenses?p:Object.assign({},p,{expenses:l}); });
-        }).catch(function(){});
-        if(twinId){ const tw=s.expenses.find(function(e){ return e.id===twinId; }); if(tw) cloud.setExpenseCat(tw,newCat).catch(function(){}); }
-      }
       const fuera={expenses:exps,catOverrides:ov,catRules:rules};
       // «Esto no es la cuota»: lápida para que `marcarCuotasDeDeuda` no la vuelva a meter (4.21.0).
       if((ex.debtId||ex.category==="deudas") && newCat!=="deudas"){
@@ -399,6 +406,12 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       }
       return Object.assign({},invState,fuera);
     });
+    // React puede evaluar un updater más de una vez: los envíos pertenecen al gesto.
+    if(cloud.enabled()) writeTargets.forEach(function(row){
+      cloud.setExpenseCat(row,newCat).then(function(n){
+        if(n>0) set(function(p){ const l=ackCategoryWrite(p.expenses,row,newCat,Date.now()); return l===p.expenses?p:Object.assign({},p,{expenses:l}); });
+      }).catch(function(){});
+    });
     setCatEdit(null);
     const cc=CATEGORIES.concat([INGRESO_CAT,INVERSION_CAT,TRASPASO_CAT]).find(function(x){ return x.id===newCat; });
     if(showToast) showToast(tf("v4_moved_cat",{cat:(cc?cc.icon+" ":"")+catName(newCat)}));
@@ -406,9 +419,9 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   /* «Es la cuota de…» desde la ficha (4.22.2, su rechazo: «no la puedo cambiar manualmente?»).
      La fila va a «Deudas» con esa deuda y el comercio se aprende para el mes que viene. */
   const setCuota=function(ex,debtId){
-    let subir=null;
-    set(function(s){ const r=marcarCuotaAMano(s, ex.id, debtId); if(!r) return s; subir=r.e; return r.state; });
-    if(subir && cloud.enabled()) cloud.setExpenseDeuda(subir).catch(function(){});
+    const chosen=marcarCuotaAMano(state,ex.id,debtId);
+    set(function(s){ const r=marcarCuotaAMano(s, ex.id, debtId); return r?r.state:s; });
+    if(chosen && cloud.enabled()) cloud.setExpenseDeuda(chosen.e).catch(function(){});
     if(showToast) showToast(tf("v4_moved_cat",{cat:DEUDA_CAT.icon+" "+catName("deudas")}));
   };
   /* «No es este recibo» (12/10/2026): el sync casa por nombre e importe parecidos y puede
@@ -476,9 +489,8 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     if(cloud.enabled()) cloud.setExpenseNote(ex,raw).catch(function(){});
   };
   // EDITAR un gasto (comercio / importe / gasto↔ingreso): para corregir lo que la ingesta parsea
-  // mal (financiación Cofidis que notifica el TOTAL pero TR solo cobra la cuota, bizums antiguos
-  // que entraron como gasto…). En la nube la clave es fecha|importe|comercio → se hace tombstone
-  // de la fila vieja (deleted + deleteExpense) y se inserta la corregida, o el pull la resucitaría.
+  // mal. La edición conserva el UUID y el origen: borrar e insertar podía duplicar el gasto
+  // si fallaba sólo una de las dos peticiones, o deshacer una decisión tomada en otro móvil.
   const [editExp,setEditExp]=useState(null);   // {id, merchant, amount, income} — usado por el sheet de detalle
   const [detailId,setDetailId]=useState(null);     // id del gasto abierto en sheet (SPEC §14)
   // PUNTO 5: al tocar la noti de un gasto, App pasa focusExp ({amount,merchant}) → abrimos la ficha
@@ -550,7 +562,11 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       expenses:s.expenses.map(function(x){ return x.id===orig.id?upd:x; }),
       deleted:pushDeleted(s.deleted, keyOfE(orig))
     }),orig,upd); });
-    if(cloud.enabled()){ borrarGastoNube(orig, "gastos-editar"); subirGasto(upd, "gastos-editar"); }
+    if(cloud.enabled()){
+      const patch={}, names={merchant:"comercio",amount:"importe",date:"fecha",category:"cat",noCard:"no_card",obName:"ob_name",origAmount:"importe_orig",origCur:"divisa"};
+      Object.keys(names).forEach(function(k){ if(upd[k]!==orig[k]) patch[names[k]]=upd[k]==null?null:upd[k]; });
+      cloud.editExpense(orig,patch).catch(function(){});
+    }
     sincroniza(upd); showToast(t("g_edited"));
   };
 
@@ -879,6 +895,16 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
 
   return React.createElement("div",{className:"v4-screen",ref:rootRef},
     React.createElement("h1",{className:"v4-title serif"}, t("v4_gastos_title")),
+    expenseWrites.length>0 && React.createElement("details",{className:"hint","data-testid":"expense-pending"},
+      React.createElement("summary",{role:"status"},tf("exp_pending_n",{n:expenseWrites.length})),
+      React.createElement("p",null,t("exp_pending_help")),
+      expenseWrites.map(function(op){
+        return React.createElement("div",{className:"row",key:op.opId,"data-testid":"expense-pending-row"},
+          React.createElement("div",null,
+            React.createElement("strong",null,op.label||t("exp_pending_movement")),
+            React.createElement("div",null,t(op.status==="conflict"?"exp_pending_conflict":op.status==="identity"?"exp_pending_identity":op.status==="session"?"exp_pending_session":op.status==="storage"?"exp_pending_storage":"exp_pending_wait"))),
+          React.createElement("button",{type:"button",className:"btn btn-ghost",disabled:!!expenseRetry,onClick:function(){ retryExpense(op); }},t("exp_pending_retry")));
+      })),
     React.createElement("section",{className:"v4-gastos-summary"},
       React.createElement("div",{className:"v4-gastos-summary-top"},
         React.createElement("div",{className:"v4-gastos-summary-main"},
@@ -1099,6 +1125,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       },
       setCat:setCat, setCuota:setCuota, setReceipt:setReceipt, quitarRecibo:quitarRecibo, setCardFlag:setCardFlag, setBank:setBank, delExpense:delExpense, saveEdit:saveEdit, saveNote:saveNote,
       resolveDup:resolveDup, recognizeWithdrawal:recognizeWithdrawal, withdrawalStatus:withdrawalStatus,
+      writePending:expenseWrites.some(function(op){ return op.id===detailId; }),
       showToast:showToast, aiBusy:aiBusy, suggestAi:suggestAi, state:state
     }),
     undoDelete && ReactDOM.createPortal(
@@ -1310,7 +1337,7 @@ function PeriodMoreSheet({open, onClose, preset, setPreset}){
 }
 
 /* Sheet detalle/edición de un movimiento. Layout alineado con Apuntar/Cartera (feedback 2026-07-17). */
-function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota, setReceipt, quitarRecibo, setCardFlag, setBank, delExpense, saveEdit, saveNote, resolveDup, showToast, aiBusy, suggestAi, state, recognizeWithdrawal, withdrawalStatus}){
+function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota, setReceipt, quitarRecibo, setCardFlag, setBank, delExpense, saveEdit, saveNote, resolveDup, showToast, aiBusy, suggestAi, state, recognizeWithdrawal, withdrawalStatus, writePending}){
   /* UNA SOLA CONDICIÓN para pintarse y para los candados. Iban por separado (`!!exp` en los hooks,
      `!exp || !editExp` para pintar) y en cuanto se separaban el sheet desaparecía dejando el
      `overflow:hidden` y el bloqueo de `touchmove` puestos sobre una pantalla vacía: nada respondía
@@ -1475,7 +1502,7 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
   };
   const footer=React.createElement("div",{className:"v4-ficha-foot"},
     React.createElement("button",{type:"button",className:"v4-ficha-del",onClick:doDel},"🗑 "+t("f_del")),
-    React.createElement("span",{className:"v4-ficha-saved"},t(withdrawalStatus && withdrawalStatus.id===exp.id && withdrawalStatus.status!=="done"
+    React.createElement("span",{className:"v4-ficha-saved",role:"status"},t(writePending?"exp_pending_wait":withdrawalStatus && withdrawalStatus.id===exp.id && withdrawalStatus.status!=="done"
       ? (withdrawalStatus.status==="pending"?"f_withdraw_pending":"f_withdraw_unconfirmed") : "f_autosaved")),
     React.createElement("button",{type:"button",className:"v4-ficha-done",onClick:done},t("done")));
   const main=ReactDOM.createPortal(

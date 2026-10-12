@@ -22,6 +22,8 @@ Promoción selectiva6/10: candidata4.26.96 local para mostrar hasta tres metas a
 
 Apuntar y Gastos permiten distinguir Multas, Zona azul y Peajes. Solo los pagos nuevos con detalle inequívoco los sugieren; elegir una categoría conserva el importe y la fecha.
 
+Candidata FIN-04, sin publicar: Gastos aplica los cambios sin conexión y muestra los pendientes de sincronizar, con reintento y aviso de conflicto. Una edición conserva la identidad del movimiento; la confirmación exige la fila exacta. [Contrato y límites](docs/ARQUITECTURA.md).
+
 Promoción4/10: las once tandas de beta4.26.94.1 tienen aprobación vigente. Producción4.26.94/source8bb0398f servida y cotejada; APK52 estable y las tres funciones Edge entregadas. La limpieza conserva notas y decisiones; solo retira las once entregadas, sin producto nuevo. Prioridad permanente: producción de lo aprobado antes de otra implementación. [Acta](docs/briefs/promocion-aprobadas-2026-10-04.md).
 Promoción selectiva5/10: candidata4.26.95 para volver con mucho historial, autorizada directamente por el dueño. Base main8bb0398; solo caché de fechas aprobada en PR133, sin beta completa. Revisión independiente, CI y entrega servida pendientes. INC-2709-09 global sigue abierto. [Acta](docs/briefs/promocion-cache95-2026-10-05.md).
 

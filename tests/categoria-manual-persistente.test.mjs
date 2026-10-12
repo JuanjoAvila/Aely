@@ -6,7 +6,7 @@
  *
  * Lo que se fija aquí, y por qué cada caso:
  *   · sin confirmación de escritura, la fila corregida no se revierte mientras la nube repita la
- *     categoría vieja, y la subida se reintenta con la identidad de la NUBE;
+ *     categoría vieja, y la subida exige la misma identidad exacta, nunca la de un gemelo;
  *   · con la escritura confirmada, una lectura posterior es la verdad AUNQUE diga la categoría
  *     vieja: es otro móvil que la devolvió ahí. Proteger no es dejar de escuchar;
  *   · un UPDATE de cero filas no es una confirmación;
@@ -49,7 +49,7 @@ test("sin el arreglo el nombre manda: la palabra clave lleva el comedor y el seg
   assert.equal(cli.autoCategory("Allianz Seguros"), "recibos");
 });
 
-test("sin confirmar: la fila corregida no vuelve a Recibos y se reintenta con el id de la nube", () => {
+test("sin confirmar: UUID divergente conserva lo local y no autoriza escribir en un gemelo", () => {
   const cli = conRegla();
   // El id local difiere del de la nube: es el caso en que el UPDATE por id no tocaba nada.
   const local = [corregida(cli, 1, T1, { id: "LOCAL-1" })];
@@ -57,7 +57,7 @@ test("sin confirmar: la fila corregida no vuelve a Recibos y se reintenta con el
   assert.deepEqual(cats(r.list), ["bares"]);
   assert.equal(r.list[0], local[0], "sin cambios no se crea una fila nueva");
   assert.equal(r.changed, false);
-  assert.deepEqual(Array.from(r.kept.recat, (x) => [x.expense.id, x.cat]), [[uuid(1), "bares"]]);
+  assert.equal(r.kept.recat.length, 0, "no se adopta el UUID de un gemelo para escribir");
 });
 
 test("cuando la nube se entera se deja de proteger, y un reinicio no cambia nada", () => {
@@ -105,48 +105,27 @@ test("ackCategoryWrite solo confirma la fila, la categoría y la decisión que s
   const list = [corregida(cli, 1, T1, { id: "LOCAL-1" }), corregida(cli, 2, T2), cli.expenseFromRow(fila(3, T2, "recibos"))];
   const nube = cli.expenseFromRow(fila(1, T1, "recibos"));
   const out = cli.ackCategoryWrite(list, nube, "bares", 77);
-  assert.equal(out[0].catAckAt, 77, "casa por clave aunque el id local sea otro");
+  assert.equal(out[0].catAckAt, undefined, "un UUID ajeno no acredita la decisión local");
   assert.equal(out[1], list[1]);
   assert.equal(out[2], list[2]);
   assert.equal(cli.ackCategoryWrite(list, nube, "super", 77), list, "otra categoría: no es esta decisión");
-  assert.equal(cli.ackCategoryWrite(out, nube, "bares", 99)[0].catAckAt, 77, "la primera confirmación manda");
+  const exact=cli.ackCategoryWrite(list,list[0],"bares",77);
+  assert.equal(exact[0].catAckAt,77);
+  assert.equal(cli.ackCategoryWrite(exact,list[0],"bares",99)[0].catAckAt,77);
   assert.equal(cli.ackCategoryWrite(list, cli.expenseFromRow(fila(3, T2, "recibos")), "recibos", 77), list, "sin nada pendiente no se toca");
 });
 
-test("setExpenseCat cuenta filas: cero filas o un error no son una confirmación", async () => {
-  const cli = loadPureLogicFromFile();
-  const core = fs.readFileSync(new URL("../src/modules/00-core.js", import.meta.url), "utf8");
-  const body = core.match(/async setExpenseCat\(e, cat\)\{([\s\S]*?)\r?\n    \},/)[1];
-  const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
-  const run = new AsyncFunction("sb", "expenseCloudEq", "expenseSourceForCloud", "e", "cat", body);
-  const tabla = (rows, fallo) => {
-    const escritos = [];
-    const sb = {
-      auth: { getSession: async () => ({ data: { session: { user: { id: "synthetic-user" } } } }) },
-      from: () => ({ update: (upd) => {
-        const filtros = {};
-        const q = { eq: (k, v) => { filtros[k] = v; return q; },
-          select: async () => {
-            if (fallo) return { data: null, error: new Error("synthetic 503") };
-            const hit = rows.filter((r) => r.id === filtros.id);
-            hit.forEach((r) => { Object.assign(r, upd); escritos.push(r.id); });
-            return { data: hit.map((r) => ({ id: r.id })), error: null };
-          } };
-        return q;
-      } }),
-    };
-    return { sb, escritos };
-  };
-  const call = (t, e) => run(t.sb, cli.expenseCloudEq, cli.expenseSourceForCloud, e, "bares");
-  const rows = [{ id: uuid(1), cat: "recibos" }];
-  const ok = tabla(rows);
-  assert.equal(await call(ok, { id: uuid(1) }), 1);
-  assert.equal(rows[0].cat, "bares");
-  assert.equal(await call(tabla([{ id: uuid(1), cat: "recibos" }]), { id: uuid(9) }), 0, "otro uuid: cero filas, sin error");
-  await assert.rejects(call(tabla(rows, true), { id: uuid(1) }), /synthetic 503/);
-  assert.equal(await call(ok, { id: "sin-uuid" }), 0, "sin identidad no hay consulta ni confirmación");
+test("setExpenseCat exige ACK exacto y deja pendiente cero filas, fallo o UUID legado", async () => {
+  const {client,database,expense,id,other}=await import('./expense-write-fixture.mjs');
+  const ok=await client();assert.equal(await ok.cloud.setExpenseCat(expense,'super'),1);assert.equal(ok.db.rows[0].cat,'super');
+  for(const options of [{zeroAck:true},{error:true},{rows:[]}]){
+    const a=await client(database(options));await assert.rejects(()=>a.cloud.setExpenseCat(expense,'super'));
+    assert.equal(a.cloud.expenseWrites().length,1);
+  }
+  const a=await client();await assert.rejects(()=>a.cloud.setExpenseCat({...expense,id:other},'super'));
+  const b=await client();await assert.rejects(()=>b.cloud.setExpenseCat({...expense,id:'legacy'},'super'));
+  assert.equal(b.db.calls.length,0);
 });
-
 test("el equivalente del día siguiente nace con lo aprendido y sobrevive a los pulls siguientes", () => {
   const cli = conRegla();
   const local = [corregida(cli, 1, T1)];

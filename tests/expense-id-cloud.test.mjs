@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
  * Identidad de fila de gasto (2026-09-07): uuid en altas nuevas; escrituras por id cuando
- * es uuid; fallback eterno por fecha|importe|comercio si el id es corto (legado del móvil).
- * Sin ese fallback el borrado queda mudo — peor que impreciso.
+ * es uuid; un id corto del legado no acredita identidad para escribir.
+ * Sin identidad exacta el borrado queda pendiente con aviso, nunca se atribuye a un gemelo.
  */
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -37,65 +37,15 @@ t("mcExpenseId: genera uuid válido (y distinto en dos llamadas)", () => {
   assert.notEqual(a, b);
 });
 
-t("expenseCloudKeys: uuid → by id; id corto → by atributos (legado)", () => {
-  const uuid = "550e8400-e29b-41d4-a716-446655440000";
-  const u = ctx.expenseCloudKeys({ id: uuid, date: "2026-09-01T12:00:00.000Z", amount: 12.5, merchant: "X" });
-  assert.equal(u.by, "id");
-  assert.equal(u.id, uuid);
-
-  const legacy = ctx.expenseCloudKeys({
-    id: "k7x9m2ab",
-    date: "2026-09-01T12:00:00.000Z",
-    amount: 40,
-    merchant: "Bizum a Pedro",
-  });
-  assert.equal(legacy.by, "attrs");
-  assert.equal(legacy.fecha, "2026-09-01T12:00:00.000Z");
-  assert.equal(legacy.importe, 40);
-  assert.equal(legacy.comercio, "Bizum a Pedro");
+t("expenseCloudKeys: sólo un UUID permite escritura; el legado queda pendiente", () => {
+  const uuid="550e8400-e29b-41d4-a716-446655440000";
+  assert.equal(ctx.expenseCloudKeys({id:uuid}).id,uuid);
+  for(const id of ["legacy","",null]) assert.equal(ctx.expenseCloudKeys({id,date:"2026-09-01",amount:12,merchant:"Fixture"}).by,"abort");
+  let calls=0; const q={eq(){calls++;return this}};
+  assert.throws(()=>ctx.expenseCloudEq(q,"owner",{id:"legacy",date:"2026-09-01",amount:12,merchant:"Fixture"}),/identity/);
+  assert.equal(calls,0);
+  ctx.expenseCloudEq(q,"owner",{id:uuid});assert.equal(calls,2);
 });
-
-t("expenseCloudKeys: comercio vacío si falta (mismo contrato que el .eq viejo)", () => {
-  const k = ctx.expenseCloudKeys({ id: "shortid1", date: "2026-01-01T12:00:00.000Z", amount: 1 });
-  assert.equal(k.by, "attrs");
-  assert.equal(k.comercio, "");
-});
-
-t("expenseCloudKeys: sin fecha o importe → abort (nunca solo user_id)", () => {
-  assert.equal(ctx.expenseCloudKeys({ id: "k7x9m2ab", amount: 40 }).by, "abort");
-  assert.equal(ctx.expenseCloudKeys({ id: "k7x9m2ab", date: "2026-09-01T12:00:00.000Z" }).by, "abort");
-  assert.equal(ctx.expenseCloudKeys({ id: "k7x9m2ab", date: "", amount: 40 }).by, "abort");
-  // importe 0 es válido (no «falta»)
-  assert.equal(ctx.expenseCloudKeys({ id: "k7x9m2ab", date: "2026-09-01T12:00:00.000Z", amount: 0 }).by, "attrs");
-});
-
-t("expenseCloudEq: abort no emite ninguna query", () => {
-  let eqs = 0;
-  const q = {
-    eq() { eqs++; return this; },
-    delete() { eqs++; return this; },
-    update() { eqs++; return this; },
-  };
-  const out = ctx.expenseCloudEq(q, "user-1", { id: "corto", amount: 12.5 });
-  assert.equal(eqs, 0, "sin fecha no debe llamar a .eq");
-  assert.equal(out.error, null);
-});
-
-t("fuente: las cinco escrituras van por expenseCloudEq (rama id/attrs)", () => {
-  const names = ["setExpenseBank", "setExpenseNoCard", "setExpenseNote", "setExpenseCat", "deleteExpense"];
-  for (const n of names) {
-    const i = core.indexOf("async " + n + "(");
-    assert.ok(i >= 0, "falta " + n);
-    const chunk = core.slice(i, i + 700);
-    assert.match(chunk, /expenseCloudEq\(/, n + " debe filtrar con expenseCloudEq");
-    assert.doesNotMatch(
-      chunk,
-      /\.eq\(['"]fecha['"]/,
-      n + " no debe volver al .eq fecha/importe/comercio a pelo"
-    );
-  }
-});
-
 t("fuente: addExpense manda id cuando es uuid", () => {
   const i = core.indexOf("async addExpense(");
   assert.ok(i >= 0);
@@ -121,20 +71,16 @@ t("altas de gasto usan mcExpenseId; uid() global intacto", () => {
   assert.match(i18n, /const uid=\(\)=>\s*Math\.random\(\)\.toString\(36\)\.slice\(2,10\)/);
 });
 
-// Ejecuta el método real con una sesión desaparecida: resolver sin DELETE mentía a la UI.
-const deleteSource = core.match(/async deleteExpensesByIds\(ids\)\{([\s\S]*?)\n    \},/)[1];
-const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
-const deleteBatch = new AsyncFunction("sb", "isExpenseUuid", "ids", deleteSource);
-await assert.rejects(() => deleteBatch(null, ctx.isExpenseUuid, ["550e8400-e29b-41d4-a716-446655440000"]));
-await assert.rejects(() => deleteBatch({ auth:{ getSession:async()=>({data:{session:null}}) } }, ctx.isExpenseUuid,
-  ["550e8400-e29b-41d4-a716-446655440000"]));
-const ops=[];
-const query={ delete(){ ops.push("delete"); return this; }, eq(k,v){ ops.push([k,v]); return this; },
-  async in(k,v){ ops.push([k,v]); return {error:null}; } };
-const sbBatch={ auth:{getSession:async()=>({data:{session:{user:{id:"test-owner"}}}})},
-  from(table){ ops.push(table); return query; } };
-await deleteBatch(sbBatch,ctx.isExpenseUuid,["550e8400-e29b-41d4-a716-446655440000","legacy"]);
-assert.deepEqual(ops,["expenses","delete",["user_id","test-owner"],["id",["550e8400-e29b-41d4-a716-446655440000"]]]);
-query.in=async()=>({error:new Error("DELETE failed")});
-await assert.rejects(()=>deleteBatch(sbBatch,ctx.isExpenseUuid,["550e8400-e29b-41d4-a716-446655440000"]),/DELETE failed/);
-console.log("\nexpense-id-cloud: OK (incluye sesión perdida, filtro por dueño e ids y error de DELETE)");
+// El transporte completo se ejecuta también con ACK parcial y sesión perdida.
+const {client,database,id,other,owner}=await import('./expense-write-fixture.mjs');
+let a=await client();a.db.login(null);await assert.rejects(()=>a.cloud.deleteExpensesByIds([id]));assert.equal(a.db.calls.length,0);
+a=await client();await assert.rejects(()=>a.cloud.deleteExpensesByIds([id,'legacy']));assert.equal(a.db.calls.length,0);
+const db=database();db.rows.push({...db.rows[0],id:other});a=await client(db);
+await a.cloud.deleteExpensesByIds([id,other]);assert.equal(db.rows.length,0);assert.equal(a.cloud.expenseWrites().length,0);
+for(const q of db.calls){assert(q.filters.some(([k,v])=>k==='user_id'&&v===owner));assert(q.filters.some(([k,v])=>k==='id'&&[id,other].includes(v)));}
+const partial=database({before({deleted,rows,calls}){if(deleted&&calls.filter(x=>x.deleted).length===2)throw Error('partial');}});
+partial.rows.push({...partial.rows[0],id:other});a=await client(partial);
+await assert.rejects(()=>a.cloud.deleteExpensesByIds([id,other]),/partial/);
+assert.equal(a.cloud.expenseWrites()[0].done[0],id);assert.equal(partial.rows.length,1);
+delete partial.options.before;await a.cloud.retryExpenseWrite(a.cloud.expenseWrites()[0].opId);assert.equal(partial.rows.length,0);
+console.log('expense-id-cloud: OK (UUID exacto, sesión perdida y lote parcial reintentable)');
