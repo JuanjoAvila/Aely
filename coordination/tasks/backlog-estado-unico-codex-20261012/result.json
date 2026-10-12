@@ -1,0 +1,195 @@
+{
+  "status": "done",
+  "summary": "Backlog revisable en PR214: una tabla de72IDs, cuatro versiones históricas íntegramente conservadas y rechazos/limitaciones visibles. CI exacta SUCCESS; PR permanece draft para Claude.",
+  "productSHA": "76364e89e9d2057ac23bc56c128dfc8328613633",
+  "baseCheckedSHA": "c5f62d6603d016150afd9d0e20547b608b323045",
+  "mainCheckedSHA": "b2dfd2c01d7ec6a9a30b74ae71d473054932c42f",
+  "pullRequest": "JuanjoAvila/Aely#214",
+  "dependency": {
+    "taskId": "ops-05-pr-abiertas-triaje-codex-20261012",
+    "resultCommit": "139a4d7679c508552cab85bbf25f4f44c64f921a",
+    "status": "done",
+    "released": true
+  },
+  "artifacts": [
+    "docs/BACKLOG.md",
+    "docs/BACKLOG-HISTORIA.md",
+    "README.md",
+    "EMPIEZA-AQUI.md"
+  ],
+  "tests": [
+    {
+      "command": "node tests/docs-frescura.test.mjs",
+      "timezone": "UTC",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/docs-frescura.test.mjs",
+      "timezone": "Europe/Madrid",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/docs-frescura-history.test.mjs",
+      "timezone": "UTC",
+      "exitCode": 0,
+      "passed": 29
+    },
+    {
+      "command": "node tests/docs-frescura-history.test.mjs",
+      "timezone": "Europe/Madrid",
+      "exitCode": 0,
+      "passed": 29
+    },
+    {
+      "command": "node scripts/guard-privacy.mjs",
+      "timezone": "UTC",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/guard-privacy.mjs",
+      "timezone": "Europe/Madrid",
+      "exitCode": 0
+    },
+    {
+      "command": "Document inventory, links, UTF8, privacy and exact archived Git blobs",
+      "exitCode": 0,
+      "rows": 72,
+      "historicalIdsCovered": 71,
+      "snapshots": 4
+    },
+    {
+      "command": "Negative controls: duplicate ID, missing ID, altered history, broken link",
+      "exitCode": 0,
+      "rejectedControls": 4,
+      "individualExitCodes": [
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "command": "git diff --check, clean checkout and fresh beta ancestry",
+      "exitCode": 0
+    },
+    {
+      "command": "CI38239057206 node scripts/run-tests.mjs exact76364e89",
+      "exitCode": 0,
+      "functionalPass": 1003,
+      "skipped": 1,
+      "performancePass": 13,
+      "environment": "Ubuntu CI; complete build/Node/Deno/E2E job"
+    },
+    {
+      "command": "CI38239057206 standalone privacy",
+      "exitCode": 0
+    },
+    {
+      "command": "gh run view38239057206 job114776849404 complete log",
+      "exitCode": 0,
+      "lines": 4415
+    },
+    {
+      "command": "gh run watch38239057206 --exit-status after completion",
+      "exitCode": 0
+    }
+  ],
+  "ci": {
+    "run": 38239057206,
+    "job": 114776849404,
+    "headSHA": "76364e89e9d2057ac23bc56c128dfc8328613633",
+    "status": "completed",
+    "conclusion": "success",
+    "allStepsSuccess": true,
+    "fullJobRead": true,
+    "cliLogSHA256": "a570dbf98c6230d465a226afdd54750924a0659e1d81c54aa9c1020edc7d73b1",
+    "reference": "JuanjoAvila/Aely/actions/runs/38239057206"
+  },
+  "history": [
+    {
+      "sourceSHA": "f695a299ba2d9402e40b81dbf5e5bffccdf3949c",
+      "bytes": 92064,
+      "sha256": "b58e135a48faf2a6f0769789aefc3fea1d7369ac4827e2dc3b590898b96865df"
+    },
+    {
+      "sourceSHA": "c5f62d6603d016150afd9d0e20547b608b323045",
+      "bytes": 92395,
+      "sha256": "4cb31471a4166f01427af68e8003840c2e7dc66b37215e55da85363c70759b98"
+    },
+    {
+      "sourceSHA": "ffe95ce99fb4038741b57a27b07b51e0c8c96f31",
+      "bytes": 92077,
+      "sha256": "2feb4fcbea17eed1eb9c48b0fc6086e1e381b348bb138e47f312d339cfd57546"
+    },
+    {
+      "sourceSHA": "db884002160dd09c5cd1b6e36afad6ec996718e7",
+      "bytes": 91665,
+      "sha256": "cde1a4f3bdcbfd2557c1fa7b76ad42e546652f85c3970d9460c3e4d17bca9cfe"
+    }
+  ],
+  "preparationExits": [
+    {
+      "command": "initial channel pending sandbox",
+      "exitCode": 1,
+      "meaning": "update-ref failure; only authorized read retry passed"
+    },
+    {
+      "command": "initial sandbox remote read",
+      "exitCode": 128,
+      "meaning": "getaddrinfo failure; authorized remote reads subsequently confirmed"
+    },
+    {
+      "command": "first document inventory",
+      "exitCode": 1,
+      "meaning": "FIN-04-ACK proposal missing; added as an explicit proposed, unclaimed objective"
+    },
+    {
+      "command": "private document privacy checks during preparation",
+      "exitCode": 1,
+      "meaning": "Technical URL and CI-number-SUCCESS matched broad patterns; private checker corrected, product privacy filters unchanged"
+    },
+    {
+      "command": "initial sandbox Git in own worktree",
+      "exitCode": 1,
+      "meaning": "Authorized own-checkout verification passed"
+    },
+    {
+      "command": "gh run watch38239057206 before external checkpoint",
+      "exitCode": 1,
+      "meaning": "Local watcher explicitly stopped while remote CI continued; this was not a CI failure"
+    }
+  ],
+  "mutations": {
+    "product": [],
+    "documentation": [
+      "single current table",
+      "four exact historical snapshots",
+      "entrypoint/history links"
+    ],
+    "negativeControls": [
+      "duplicate ID",
+      "missing ID",
+      "history byte changed",
+      "missing relative target"
+    ],
+    "productFiltersChanged": false,
+    "newRepositoryTests": false
+  },
+  "limitations": [
+    "PR214 remains open/draft; independent review and integration belong to Claude. No merge or publication to beta/main.",
+    "Current incorporation into main is source/receipt evidence, not a new HTTP served-artifact verification.",
+    "FIN-04 retains2PASS/16FAIL from OPS05; FIN-05/widget115 rejection, mobile gates and day45 remain open. Plan optimization NO-GO and INC-2709-09 remain open.",
+    "Closing48/87/105/170/180/181 is proposed only;43/182/195 retained. No PR closed and no branches/worktrees deleted.",
+    "PR195 saving54.3372percent applies only to primary local Node; original guardian port exit1 and total CI saving remain unproved.",
+    "SEC-01/PR211 snapshot and row preserved; integration must update only that row and append full concurrent history before resolving conflicts.",
+    "No VERSION/catalogue/release-notes/product/APK/Edge/SQL/backend changes, no personal data, no heavy local runner.",
+    "Any acceptance or endpoint state not verified at this source cut stays explicitly unverified; no new private mobile verdict queried."
+  ],
+  "changeLogReason": "Replace contradictory historical operational photos with one evidence-based row per ID while preserving every source snapshot, human rejection and financial/server/mobile limitation without erasing parallel OPS/SEC work.",
+  "schema": 1,
+  "taskId": "backlog-estado-unico-codex-20261012",
+  "actor": "codex",
+  "sessionId": "codex-cloud-20261012-38ca7144fe48203c",
+  "createdAt": "2026-10-12T11:49:43.077Z",
+  "released": true
+}
