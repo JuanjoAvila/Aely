@@ -632,6 +632,10 @@ test("Catálogo116 histórico añade sólo la tanda de los bancos y fija qué hu
 // queda intacto a propósito: ese alcance está auditado). Se fija como oráculo literal que NINGUNA
 // huella ajena se mueve; si algún día se mueve una, este test la nombra en vez de reabrirla en silencio.
 const expected117={"v":"4.26.117","d":"2026-10-12","t":{"es":"Nueva pantalla de entrada","en":"New opening screen","ca":"Nova pantalla d'entrada"},"items":{"es":["Nueva pantalla de entrada: el logo aparece con una luz suave mientras la app se prepara, y al entrar todo responde desde el primer gesto. En tema claro el nombre ya se lee bien."],"en":["New opening screen: the logo appears with a soft glow while the app gets ready, and everything responds from the very first swipe. The name is now easy to read in the light theme."],"ca":["Nova pantalla d'entrada: el logotip apareix amb una llum suau mentre l'app es prepara, i en entrar tot respon des del primer gest. Amb el tema clar el nom ja es llegeix bé."]},"tandas":[{"id":"splash-animado","t":{"es":"Nueva pantalla de entrada","en":"New opening screen","ca":"Nova pantalla d'entrada"},"items":{"es":["1. Actualiza la app y ciérrala del todo (quítala de recientes); el cambio se ve en la segunda apertura tras actualizar. Ábrela: debe verse la tarjeta con el logo, una luz verde suave que respira detrás y el nombre debajo, sin barras ni cortes.","2. Fíjate en el momento de entrar: primero desaparece el logo y después el fondo. En ningún instante debe verse el logo encima de la pantalla de Inicio.","3. Nada más entrar, desliza a Gastos, Plan y Cartera. Deben ir fluidas desde el primer deslizamiento.","4. En Ajustes pon el tema claro, cierra la app del todo y ábrela. No debe haber fogonazo ni salto brusco de color, y «Aely» debe leerse bien."],"en":["1. Update the app and close it completely (remove it from recent apps); the change shows on the second opening after updating. Open it: you should see the card with the logo, a soft green glow breathing behind it and the name below, with no bars or cuts.","2. Watch the moment you enter: first the logo disappears and then the background. At no point should the logo be visible on top of the Home screen.","3. Right after entering, swipe to Spending, Plan and Portfolio. They should be smooth from the very first swipe.","4. In Settings choose the light theme, close the app completely and open it. There should be no flash or abrupt colour jump, and “Aely” should be easy to read."],"ca":["1. Actualitza l'app i tanca-la del tot (treu-la de recents); el canvi es veu a la segona obertura després d'actualitzar. Obre-la: s'ha de veure la targeta amb el logotip, una llum verda suau que respira al darrere i el nom a sota, sense barres ni talls.","2. Fixa't en el moment d'entrar: primer desapareix el logotip i després el fons. En cap instant s'ha de veure el logotip damunt de la pantalla d'Inici.","3. Just en entrar, llisca a Despeses, Pla i Cartera. Han d'anar fluides des del primer lliscament.","4. A Ajustos posa el tema clar, tanca l'app del tot i obre-la. No hi ha d'haver cap fogonada ni salt brusc de color, i «Aely» s'ha de llegir bé."]}}]};
+// El contrato de integración y retirada es histórico; los cuerpos y mutantes117
+// quedan literales. Las auditorías generales y la guarda vigente siguen leyendo src.
+{
+const read=sourceAt("c5f62d6603d016150afd9d0e20547b608b323045");
 test("Catálogo117 añade sólo la tanda de la pantalla de entrada y no mueve ninguna huella ajena",()=>{
   const id="splash-animado",before=JSON.parse(source116("src/data/release-notes.json"));
   // Retiro117: bancos-sin-hueco, APROBADA en el móvil (12/10, 4 ok / 0 fallos sobre 4.26.116.1), sale del panel; su nota, su descriptor y todo el historial se quedan.
@@ -708,6 +712,28 @@ test("Retiro117 elimina solo bancos-sin-hueco y conserva todo el historial",()=>
   assert.equal(receipt.web[id],betaRevision(id,read,undefined,scopes[id]).web,"el producto sigue íntegro");assert.equal(receipt.pruebas[id],undefined,"el guion aprobado no permanece marcado");
   assert.equal(receipt.web[widget],betaRevision(widget,read,undefined,scopes[widget]).web);
 });
+}
+test("Splash117 conserva descriptor vivo, mutantes y retirada del panel",()=>{
+  const id="splash-animado",snapshot=sourceAt("c5f62d6603d016150afd9d0e20547b608b323045"),scopes=JSON.parse(read("scripts/beta-sources.json"));
+  assert.deepEqual(scopes[id],JSON.parse(snapshot("scripts/beta-sources.json"))[id],"no recortar el descriptor vigente del splash");
+  const source=f=>read(f).replace(/\r\n/g,"\n"),before=betaRevision(id,source,undefined,scopes[id]);
+  for(const [file,from,to] of [
+    ["src/shell.html",'var _s=JSON.parse(localStorage.getItem(_k));','var _s=JSON.parse(localStorage.getItem(_k+"x"));'],
+    ["src/shell.html",'animation:mclpop .5s cubic-bezier(.32,.72,0,1) backwards;}','animation:mclpop .5s cubic-bezier(.32,.72,0,1) both;}'],
+    ["src/shell.html",'html[data-mc-nativo] #mc-load::before{content:"";position:absolute;inset:0;background:#0A1310;','html[data-mc-nativo] #mc-load::before{content:"";position:absolute;inset:0;background:#0A1311;'],
+    ["src/shell.html",'html[data-theme="light"] #mc-load .mcl-name{color:var(--text);}','html[data-theme="light"] #mc-load .mcl-name{color:var(--brand-word);}'],
+    ["src/shell.html",'<div class="mcl-mark" aria-hidden="true">','<div class="mcl-mark">'],
+    ["src/modules/11-app-main.js",'if(state.onboarded===false||locked||window.__mcSplashGone||!document.getElementById("mc-load")) return;','if(state.onboarded===false||locked||window.__mcSplashGone) return;']
+  ]){
+    assert.equal(source(file).split(from).length,2,"mutación de fuente actual: "+from);
+    assert.notEqual(betaRevision(id,f=>f===file?source(f).replace(from,to):source(f),undefined,scopes[id]).web,before.web,"reabre el splash vigente: "+from);
+  }
+  const notes=JSON.parse(read("src/data/release-notes.json")),receipt=betaDelivery(betaNotes(notes,read,scopes),read,scopes);
+  assert.equal(notes.flatMap(n=>n.tandas||[]).some(g=>g.id==="bancos-sin-hueco"),false,"no resucitar la tanda retirada en117");
+  assert.equal(receipt.pruebas["bancos-sin-hueco"],undefined);
+  assert.equal(receipt.web[id],before.web,"la tanda vigente usa la fuente actual");
+});
+
 test("Bienes113 vigila la puerta vacía, ficha, cancelación, borrado y textos",()=>{
   const source=f=>read(f).replace(/\r\n/g,"\n"),id="bienes-completo",before=betaRevision(id,source).web;
   for(const [file,from,to] of [
