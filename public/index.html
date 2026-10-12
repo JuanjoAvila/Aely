@@ -3669,7 +3669,7 @@ async function mcExpenseRun(sb,op){
       // Dos gestos seguidos no pueden llegar al servidor al revés. Si el primero sigue
       // incierto, el segundo conserva su intención y espera a que se revise/reintente.
       const ids=op.kind==="deleteIds"?op.value:[op.id];
-      const older=mcExpensePending(op.owner).find(function(x){ return (x.at<op.at || x.at===op.at&&x.opId<op.opId)
+      const older=mcExpensePending(op.owner).slice().reverse().find(function(x){ return (x.at<op.at || x.at===op.at&&x.opId<op.opId)
         && (x.kind==="deleteIds"?x.value:[x.id]).some(function(id){ return ids.indexOf(id)>=0; }); });
       if(older){
         if(_mcExpenseBusy[older.opId]) await _mcExpenseBusy[older.opId];
@@ -3700,8 +3700,12 @@ async function writeExpenseField(sb,e,kind,value,holdUntil){
   if(mcSandbox()) return null;
   const known=mcExpenseContextOwner(), epoch=_mcExpenseEpoch;
   const pending=mcExpensePending(known);
-  let op=pending.slice().reverse().find(function(x){ return x.id===(e&&e.id) && x.kind===kind && !x.cancelled; });
-  if(op && !mcExpenseSame(op.value,value)) op=null;
+  // Repetir el valor inicial tras otra decisión es un gesto nuevo, incluso si cambió de
+  // tipo (categoría → cuota → categoría). Sólo se reutiliza la última intención de esa fila.
+  const ids=kind==="deleteIds"?value:[e&&e.id];
+  let op=pending.slice().reverse().find(function(x){ return !x.cancelled &&
+    (x.kind==="deleteIds"?x.value:[x.id]).some(function(id){ return ids.indexOf(id)>=0; }); });
+  if(op && (op.kind!==kind || !mcExpenseSame(op.value,value))) op=null;
   const created=!op;
   if(!op){ op={opId:mcExpenseId(),owner:known,id:e&&e.id,label:String(e&&e.merchant||"").slice(0,100),kind:kind,value:value,
     at:Math.max(Date.now(),pending.length?pending[pending.length-1].at+1:0),holdUntil:holdUntil||0,status:"pending"}; mcExpensePersist(op); }

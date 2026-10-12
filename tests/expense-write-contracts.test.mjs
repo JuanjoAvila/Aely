@@ -168,4 +168,18 @@ await test('volver al primer valor después de otro gesto crea la última intenc
  for(const op of ops)await a.cloud.retryExpenseWrite(op.opId);
  assert.equal(db.rows[0].nota,'Primero');assert.equal(db.calls.filter(q=>q.patch).length,3);
 });
+await test('categoría, cuota y categoría inicial conservan las tres intenciones',async()=>{
+ const db=database({error:true}),a=await client(db);
+ await assert.rejects(()=>a.cloud.setExpenseCat(expense,'super'));
+ await assert.rejects(()=>a.cloud.setExpenseDeuda({...expense,debtId:'debt-fixture'}));
+ await assert.rejects(()=>a.cloud.setExpenseCat(expense,'super'));
+ const ops=a.cloud.expenseWrites();assert.equal(ops.length,3);delete db.options.error;
+ for(const op of ops)await a.cloud.retryExpenseWrite(op.opId);
+ assert.equal(db.rows[0].cat,'super');assert.equal(db.rows[0].source,'ob:trade_republic#dup');
+});
+await test('tres escrituras en vuelo esperan a su predecesora inmediata',async()=>{
+ const writes=[],db=database({async beforeWrite(rows,n){await new Promise(r=>setTimeout(r,n===2?15:1));},afterWrite(row){writes.push(row.nota)}}),a=await client(db);
+ await Promise.all(['Primera','Segunda','Tercera'].map(v=>a.cloud.setExpenseNote(expense,v)));
+ assert.deepEqual(writes,['Primera','Segunda','Tercera']);assert.equal(db.rows[0].nota,'Tercera');assert.equal(a.cloud.expenseWrites().length,0);
+});
 console.log('expense-write-contracts: '+count+' PASS');

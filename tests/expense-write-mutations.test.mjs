@@ -44,6 +44,16 @@ const cases=[
  ['identidad sin gemelos','if(!isExpenseUuid(id)) throw mcExpenseFailure("identity");','if(!isExpenseUuid(id)) id="'+id+'";',async make=>{
    const a=await make();await assert.rejects(()=>a.cloud.setExpenseNote({...expense,id:'legacy'},'New'));assert.equal(a.db.calls.length,0);
  }],
+ ['último gesto entre tipos','return !x.cancelled &&','return x.kind===kind && !x.cancelled &&',async make=>{
+   const a=await make(database({error:true}));await assert.rejects(()=>a.cloud.setExpenseCat(expense,'super'));
+   await assert.rejects(()=>a.cloud.setExpenseDeuda({...expense,debtId:'debt-fixture'}));await assert.rejects(()=>a.cloud.setExpenseCat(expense,'super'));
+   assert.equal(a.cloud.expenseWrites().length,3);
+ }],
+ ['orden de tres vuelos','mcExpensePending(op.owner).slice().reverse().find','mcExpensePending(op.owner).find',async make=>{
+   const writes=[],a=await make(database({async beforeWrite(rows,n){await new Promise(r=>setTimeout(r,n===2?15:1));},afterWrite(row){writes.push(row.nota)}}));
+   const results=await Promise.allSettled(['Primera','Segunda','Tercera'].map(v=>a.cloud.setExpenseNote(expense,v)));
+   assert(results.every(x=>x.status==='fulfilled'));assert.deepEqual(writes,['Primera','Segunda','Tercera']);
+ }],
 ];
 for(const [name,from,to,check] of cases){
  await check(client);
