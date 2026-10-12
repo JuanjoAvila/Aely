@@ -187,14 +187,37 @@ test('oráculo físico exige desplazamiento, liberación finita, inercia en dire
   assert.throws(()=>validaScroll({...r,after:{...r.after,top:19}}),/no-land/);
   assert.throws(()=>validaScroll({...r,after:{...r.after,top:81}}),/without-inertia/);
   assert.throws(()=>validaScroll({...r,after:{...r.after,top:70}}),/without-inertia/);
-  assert.throws(()=>validaScroll({...r,after:{...r.after,hidden:false}}),/without-inertia/);
+  assert.throws(()=>validaScroll({...r,after:{...r.after,hidden:false}}),/navigation-visible/);
   assert.deepEqual(validaScroll({down:false,before:{top:200},release:{top:150},after:{top:100,connected:true}}),{delta:100,inertia:50});
 });
-test('lectura y touchEnd se envían antes de esperar la respuesta CDP; excepción de lectura no se acepta',async()=>{
+test('lectura posterior requiere ACK del touchEnd; excepción de lectura no se acepta',async()=>{
   const calls=[],resolve=[];const cdp={send(name){calls.push(name);return new Promise(r=>resolve.push(r));}};
-  const work=liberaDedo(cdp);assert.deepEqual(calls,['Runtime.evaluate','Input.dispatchTouchEvent']);
-  resolve[0]({});resolve[1]({});await work;
+  const work=liberaDedo(cdp);assert.deepEqual(calls,['Input.dispatchTouchEvent']);
+  resolve[0]({});await Promise.resolve();assert.deepEqual(calls,['Input.dispatchTouchEvent','Runtime.evaluate']);
+  resolve[1]({});await work;
   await assert.rejects(liberaDedo({send:async name=>name==='Runtime.evaluate'?{exceptionDetails:{text:'failure'}}:{}}),/evaluation-failed/);
+});
+test('crudos de Gastos no se reinterpretan como falta de inercia ni se aceptan con la barra visible',()=>{
+  for(const after of [123,126,127]){
+    const r={down:true,before:{top:0},release:{top:81},after:{top:after,connected:true,hidden:false}};
+    assert.throws(()=>validaScroll(r),/navigation-visible/);
+    assert.deepEqual(validaScroll({...r,after:{...r.after,hidden:true}}),{delta:after,inertia:after-81});
+  }
+  assert.throws(()=>planScroll({tab:'inicio',top:0,max:637,point:{x:197,y:406}},true,'gastos'),/active-tab-mismatch/);
+});
+test('un último paso pendiente sin inercia no es movimiento post-ACK; control positivo separado',async()=>{
+  async function scenario(momentum){
+    const host={scrollTop:65,isConnected:true},window={__lagBanco:{scrollTarget:new WeakRef(host)}};
+    const cdp={send:async(name,args)=>{
+      if(name==='Input.dispatchTouchEvent'){host.scrollTop=81;return {};}
+      new Function('window','performance',args.expression)(window,{now:()=>123});return {};
+    }};
+    await liberaDedo(cdp);host.scrollTop+=momentum;
+    return {down:true,before:{top:0},release:window.__lagBanco.physicalRelease,after:{top:host.scrollTop,connected:true,hidden:true}};
+  }
+  const bad=await scenario(0);assert.equal(bad.release.top,81);assert.equal(bad.release.boundary,'after-touchEnd-ack');
+  assert.throws(()=>validaScroll(bad),/without-inertia/);
+  assert.deepEqual(validaScroll(await scenario(42)),{delta:123,inertia:42});
 });
 
 function scrollEnvironment(){

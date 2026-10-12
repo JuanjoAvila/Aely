@@ -82,7 +82,7 @@ test('arranque 5s: '+size+' '+tab+' scroll segundo '+second,async({page},testInf
       const remaining=second*1000-await page.evaluate(()=>performance.now()-window.__lagBanco.elapsedStart);
       if(remaining>0)await pause(remaining);
       report.actualScrollSecond=await page.evaluate(()=>(performance.now()-window.__lagBanco.elapsedStart)/1000);
-      await scroll(page,setup.cdp,true);
+      await scroll(page,setup.cdp,true,tab);
       expect(report.actualScrollSecond).toBeLessThan(second+1);
     }
     report.metrics=await page.evaluate(()=>window.__lagBanco.windowDone);
@@ -116,9 +116,9 @@ for(const hours of [false,true])test('retorno 15s: '+size+' '+boundary+' '+(hour
     },hours);
     report.background={realMs:returning.real-before.real,calendarMs:returning.calendar-before.calendar,
       theoreticalCalendarOverdueTimers:returning.theoreticalCalendarOverdueTimers,overdueLimit:'Calendar deadlines do not reschedule native callbacks'};
-    await scroll(page,setup.cdp,true);await scroll(page,setup.cdp,false);
+    await scroll(page,setup.cdp,true,'inicio');await scroll(page,setup.cdp,false,'inicio');
     await page.evaluate(()=>document.querySelector('.botnav-tab[data-tour="gastos"]').click());await pause(750);
-    await scroll(page,setup.cdp,true);
+    await scroll(page,setup.cdp,true,'gastos');
     report.metrics=await page.evaluate(()=>window.__lagBanco.windowDone);
     report.landings=await page.evaluate(()=>window.__lagBanco.landings);
     report.after=await page.evaluate(()=>{const p=window.__lagBanco;return {snapshot:p.snapshot(),bank:p.bankSync,transport:p.transport};});

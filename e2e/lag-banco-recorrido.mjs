@@ -12,13 +12,16 @@ const cycleSource=existing('cycle').replace('const states=await lifecycle(page,c
   .replace('await page.evaluate(()=>{document.querySelector(".page-scroll-host").scrollTop=0;});','')
   .replace('await delay(1200);','await bankReport(page);')
   .replace('if(tab==="gastos"){','if(tab==="gastos"){\n      await filters(page);')
+  .replaceAll('await scroll(page,cdp,true);','await scroll(page,cdp,true,tab);')
+  .replaceAll('await scroll(page,cdp,false);','await scroll(page,cdp,false,tab);')
   .replace('const states=await lifecycle(page);','await click(page,\'.botnav-fab\');await apunta(page);\n  const states=await lifecycle(page);');
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const make=new Function('delay','scroll','markAction','lifecycle','bankReport','filters','apunta',existing('fixture')+'\n'+existing('click')+'\n'+cycleSource+'\nreturn {fixture,cycle};');
 async function markAction(page,name){await page.evaluate(name=>{window.__lagBanco.actionName=name;},name);}
 
-export function planScroll(context,down){
+export function planScroll(context,down,expectedTab){
   if(context.error)throw new Error(context.error);
+  if(expectedTab&&context.tab!==expectedTab)throw new Error('scroll-active-tab-mismatch');
   const room=down?context.max-context.top:context.top;
   if(!Number.isFinite(room)||room<120)throw new Error('scroll-insufficient-room');
   if(!context.point)throw new Error('scroll-target-not-visible');
@@ -51,11 +54,11 @@ export function contextoScroll(down){
   },'e2e/lag-banco-recorrido.mjs');
 }
 
-// Los dos comandos salen antes de esperar: no meter un viaje Node entre lectura y touchEnd.
+// Una lectura anterior al ACK puede ver aún el penúltimo movimiento: esos16px no prueban fling.
+// Soltar primero no añade una espera ANTES del touchEnd; la base posterior puede ser conservadora.
 export async function liberaDedo(cdp){
-  const read=cdp.send('Runtime.evaluate',{expression:"(()=>{const p=window.__lagBanco,h=p.scrollTarget?.deref();p.physicalRelease={top:h?h.scrollTop:null,at:performance.now()};})()"});
-  const end=cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
-  const [result]=await Promise.all([read,end]);
+  await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
+  const result=await cdp.send('Runtime.evaluate',{expression:"(()=>{const p=window.__lagBanco,h=p.scrollTarget?.deref();p.physicalRelease={top:h?h.scrollTop:null,at:performance.now(),boundary:'after-touchEnd-ack'};})()"});
   if(result?.exceptionDetails)throw new Error('scroll-release-evaluation-failed');
 }
 
@@ -64,14 +67,15 @@ export function validaScroll(record){
   if(!Number.isFinite(record.release?.top)||!Number.isFinite(record.after?.top))throw new Error('scroll-release-unavailable');
   const sign=record.down?1:-1,delta=sign*(record.after.top-record.before.top),inertia=sign*(record.after.top-record.release.top);
   if(delta<20)throw new Error('scroll-no-land');
-  if(inertia<=1||record.down&&!record.after.hidden)throw new Error('scroll-without-inertia');
+  if(inertia<=1)throw new Error('scroll-without-inertia');
+  if(record.down&&!record.after.hidden)throw new Error('scroll-navigation-visible');
   return {delta,inertia};
 }
 
-export async function scroll(page,cdp,down){
-  const record={action:down?'scroll-down':'scroll-up',down,valid:false};
+export async function scroll(page,cdp,down,expectedTab){
+  const record={action:down?'scroll-down':'scroll-up',down,requestedTab:expectedTab||null,valid:false};
   try{
-    record.before=await page.evaluate(contextoScroll,down);record.plan=planScroll(record.before,down);
+    record.before=await page.evaluate(contextoScroll,down);record.plan=planScroll(record.before,down,expectedTab);
     const {x,y,travel,steps,stepMs}=record.plan;
     await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y}]});
     for(let i=1;i<=steps;i++){
