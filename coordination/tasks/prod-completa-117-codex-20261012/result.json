@@ -1,0 +1,89 @@
+{
+  "status": "done",
+  "summary": "Preparación de producción117 completada en PR215 draft, cabeza9921fb5c, base main111 b2dfd2c0. CI completa SUCCESS, Tests y Privacidad verdes. Conservados los30commits propios de main, runtime aprobado beta117, catálogo117+226notas de main con tandas vacías, identidades/veredictos/archivos y compatibilidad con servidor desplegado. APK55 estable real verificado por metadata y digest. Corrección final del spec realizada por Claude. Entrega para revisión e integración de Claude; no se ha fusionado main/beta ni desplegado servidor desde este chat.",
+  "productSHA": "9921fb5c16f347c528d76434a8057839d8683e9f",
+  "baseSHA": "b2dfd2c01d7ec6a9a30b74ae71d473054932c42f",
+  "betaBaseSHA": "c5f62d6603d016150afd9d0e20547b608b323045",
+  "pullRequest": 215,
+  "ciRunId": 38259710337,
+  "ciJobId": 114846789777,
+  "ciConclusion": "success",
+  "ciDuration": "1h0m54s",
+  "tests": [
+    {
+      "command": "CI38259710337 job114846789777 - node scripts/run-tests.mjs (build, Node, siete ficheros Deno, E2E funcionales y rendimiento)",
+      "exitCode": 0
+    },
+    {
+      "command": "CI38259710337 - node scripts/guard-privacy.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "CI Playwright funcional -1008passed,0failed,0flaky,0retries,1skip opcional preexistente MC_TIROS",
+      "exitCode": 0
+    },
+    {
+      "command": "CI Playwright rendimiento -13passed,0failed,0flaky,0retries",
+      "exitCode": 0
+    },
+    {
+      "command": "CI revisar-beta -cola publicada y promoción117 es/en/ca,227versiones DOM ordenadas,109/112ausentes y decisiones intactas; transporte real pasa al primer intento",
+      "exitCode": 0
+    }
+  ],
+  "previousRuns": [
+    {
+      "run": 38245537730,
+      "head": "c1fed1ca34dc0ec487481c9bdb472e228931ffc5",
+      "conclusion": "failure",
+      "functional": {
+        "passed": 1002,
+        "failed": 6,
+        "flaky": 0,
+        "skipped": 1
+      },
+      "performancePassed": 13,
+      "privacy": "skipped",
+      "correction": "fa78e812 fija catálogo histórico c5 e identifica el span de versión"
+    },
+    {
+      "run": 38251983261,
+      "head": "fa78e812c7eb7c23454858903deedbe95e2ad914",
+      "conclusion": "failure",
+      "functional": {
+        "passed": 1004,
+        "failed": 3,
+        "flaky": 1,
+        "skipped": 1
+      },
+      "performancePassed": 13,
+      "privacy": "skipped",
+      "correction": "Claude9921fb5c comprueba ausencias sobre versiones de filas; no sobre texto corrido que concatena fecha"
+    }
+  ],
+  "apk": {
+    "versionName": "4.26.117",
+    "versionCode": 55,
+    "sourceSHA": "4eb0641036c1b6b1b4c51fe657fcdd9933da18f2",
+    "assetId": 633636646,
+    "bytes": 6530659,
+    "sha256": "bc24468bc8eef7a973c3072a88760bf68dc3c1dbd9e1b7eb4b63f59e50979003",
+    "nativeRevisions": 7,
+    "stableRelease": true
+  },
+  "limitations": [
+    "Preparación verificada; PRdraft. Claude conserva revisión, fusión, Pages exacto, puente antiguo y renumeración beta preservando decisiones. No acredita despliegue web ni aceptación móvil.",
+    "APK55 publicado por Claude; este chat verificó metadata/asset/digest. Firma,aapt y ausencia de depuración reportados por Claude, sin verificación independiente del binario aquí.",
+    "No Chromium ni Gradle local ejecutados por este chat. Se reconoció empuje previo a leer la instrucción local. Claude asumió corrección y reportó un spec local terminado/devuelto en4b34202c, sin recuentos ni exit code adjuntos. Los resultados completos aquí son de CI remota.",
+    "Memoria local abortó sin escribir; limitación aceptada0e377982. CI no tiene esa entrada local y sync-memoria pasa sus fixtures; no se modificó memoria ni filtro.",
+    "El inestable de transporte observado en la segunda CI queda en suite-roja separada por instrucción949497f6. En la ejecución definitiva pasa a la primera; no se declara curada su causa general.",
+    "Compatibilidad Edge y widget sintética; ingest50 y prices13 siguen siendo los contratos desplegados inventariados. Fuentes futuras no desplegadas ni anunciadas como activas.",
+    "Después de c1fed1ca sólo cambiaron e2e/revisar-beta.spec.mjs y el acta; producto y manifiesto APK intactos. Worktree y ramas conservados; sin agentes ni automatizaciones nuevas."
+  ],
+  "schema": 1,
+  "taskId": "prod-completa-117-codex-20261012",
+  "actor": "codex",
+  "sessionId": "codex-cloud-20261012-830305b96420",
+  "createdAt": "2026-10-12T15:04:45.324Z",
+  "released": true
+}
