@@ -112,6 +112,9 @@ Deno.test("la clave del enlace cambia con cada autorización: un acuse de antes 
   assertEquals(antes, ackLinkKey("L1", "2026-09-01T10:00:00.123Z"));
   const despues = ackLinkKey("L1", "2026-10-09T08:00:00.000Z");
   assertEquals(antes === despues, false);
+  // Al milisegundo, no al día: dos reconexiones la misma tarde son dos autorizaciones.
+  assertEquals(antes === ackLinkKey("L1", "2026-09-01T10:00:00.124Z"), false);
+  assertEquals(ackLinkKey("L1", "2026-09-01T00:00:00.000Z") === ackLinkKey("L1", "2026-09-01T23:59:59.999Z"), false);
   assertEquals(ackLinkKey("L1", null), "L1.0");
   const viejo = ackToken(chunkCursor("2026-08-20"), antes);
   assertEquals(ackCursor(viejo, antes, null, now), "2026-08-20T23:59:59.999Z");

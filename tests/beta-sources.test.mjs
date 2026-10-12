@@ -1289,10 +1289,12 @@ test("Recientes106 reanclada conserva expresión, identidad y recibo completos",
   const scopes=JSON.parse(read("scripts/beta-sources.json"));
   // Wealth pertenece al alcance de Nómina: el editor de Bienes113 cambia esa dependencia
   // real. Recortarla para conservar el OK111 ocultaría producto modificado (10/10).
-  // El acuse local del cursor (12/10) no existía en la fuente111: contra ella se compara lo que ya había.
+  // El acuse local del cursor (12/10) no existía en la fuente111: se compara lo que ya había, y con
+  // el MISMO alcance en los dos lados. Con el alcance entero en la fuente actual y el recortado en la
+  // 111 las huellas ya diferían por las tres unidades de más y la aserción no podía fallar.
   const nomina=scopes["inc-3009-nomina-anticipada"],nomina111={...nomina,web:nomina.web.filter(u=>!["obAckLoad","obAckSave","OB_ACK_KEY"].includes(u.function||u.data))};
   assert.equal(nomina111.web.length,nomina.web.length-3);
-  assert.notEqual(betaRevision("inc-3009-nomina-anticipada",read).web,betaRevision("inc-3009-nomina-anticipada",old,undefined,nomina111).web,"Bienes113 cambia Wealth compartida con Nómina; no conservar la identidad111");
+  assert.notEqual(betaRevision("inc-3009-nomina-anticipada",read,undefined,nomina111).web,betaRevision("inc-3009-nomina-anticipada",old,undefined,nomina111).web,"Bienes113 cambia Wealth compartida con Nómina; no conservar la identidad111");
 });
 
 process.exitCode=failed?1:0;

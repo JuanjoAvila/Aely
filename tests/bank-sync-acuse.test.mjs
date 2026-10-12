@@ -3,8 +3,8 @@ import { execFileSync } from "node:child_process";
 import vm from "node:vm";
 import {
   ACK_KEY, CLIENTES, DAY, Demand, FLOOR, K1, MS, NOW, STATE_KEY, SYNC as NUEVA, WINDOW, acuseDe, addDays, banco, contexto, ctx, cuenta,
-  cuerpoNuevo, day, discos, enlace, haceDias, handlerSrc, importa, limpio, llama, main, movil, ponAcuse, read, recibe, recogeAcuse,
-  relojMovil, usa,
+  cuerpoNuevo, day, discos, efectoAcuse, enlace, haceDias, handlerSrc, importa, limpio, llama, main, movil, ponAcuse, read, recibe,
+  recogeAcuse, reloj, relojMovil, usa,
 } from "./helpers/banco-sintetico.mjs";
 
 // Acuse del cursor (N2) y banco que filtra por fecha valor (N5), de punta a punta: el handler
@@ -45,6 +45,7 @@ let failures = 0;
 async function t(name, fn) {
   try { const extra = await fn(); console.log("  ✓ " + name + (extra ? " · " + extra : "")); }
   catch (e) { failures++; console.error("  ✗ " + name + ": " + e.message); }
+  finally { reloj.ms = MS; }
 }
 
 console.log("bank-sync-acuse");
@@ -84,15 +85,124 @@ await t("N2 sin tramo tampoco se escribe «ahora» hasta el acuse", async () => 
   assert.equal(link.last_sync, NOW);
 });
 
-await t("N2 un enlace recién conectado (last_sync nulo) también acepta el acuse", async () => {
+// ── Enlace sin cursor: el punto de partida queda en el SERVIDOR ──────────────────────
+// Con `last_sync` nulo no hay tramo que proteger, pero sí un punto de partida que fijar. Si
+// solo vive en el acuse del móvil que pulsó, otro dispositivo encuentra el enlace en null y
+// lee «la ventana de hoy», no «desde la primera lectura».
+const semilla = (ms) => Demand.chunkCursor(addDays(Demand.currentDemandWindowStart(new Date(ms)), -1));
+
+await t("N1 un enlace recién conectado recibe su punto de partida al leer, y el acuse lo lleva a «ahora»", async () => {
   const bank = banco();
   const link = enlace(null);
   const state = movil();
   const r = await llama(NUEVA, link, bank, CLIENTES.nuevo(state));
-  assert.equal(link.last_sync, null);
+  assert.equal(link.last_sync, semilla(MS), "la víspera de la ventana, sellada: se sigue desde su primer día");
+  assert.equal(r.data.links[0].ack, NOW + "|" + K1, "«ahora» no se escribe: viaja en el acuse");
+  assert.equal(r.calls.some((c) => c.to), false, "en la primera lectura no hay tramo");
+  // Mientras la ventana no se mueva, ese cursor no abre tramo ninguno.
+  const r2 = await llama(NUEVA, link, bank, { recoverGaps: true, acks: {} });
+  assert.equal(r2.calls.some((c) => c.to), false);
+  assert.equal(r2.data.links[0].gapPending, false);
   recibe(state, r.data.links, "nuevo");
   await llama(NUEVA, link, bank, CLIENTES.nuevo(state));
   assert.equal(link.last_sync, NOW);
+  // El cliente que no acusa sigue como siempre: «ahora» en la misma pulsación.
+  for (const body of [{ recoverGaps: true }, {}]) {
+    const viejo = enlace(null);
+    await llama(NUEVA, viejo, bank, body);
+    assert.equal(viejo.last_sync, NOW, JSON.stringify(body));
+  }
+});
+
+await t("N1 el punto de partida no pisa el cursor que otro móvil escribió entretanto, ni se escribe si el banco no respondió", async () => {
+  const bank = banco();
+  const link = enlace(null);
+  await llama(NUEVA, link, bank, { recoverGaps: true, acks: {} }, null, { trasLeer: (rows) => { rows[0].last_sync = haceDias(2); } });
+  assert.equal(link.last_sync, haceDias(2));
+  const caido = enlace(null);
+  const r = await llama(NUEVA, caido, bank, { recoverGaps: true, acks: {} }, () => true);
+  assert.equal(r.data.links[0].ok, false, "el extracto no respondió en ninguna cuenta");
+  assert.equal(r.data.links[0].ack, undefined);
+  assert.equal(caido.last_sync, null);
+});
+
+// La secuencia exacta que midió la revisión: 206 de 370 movimientos sin pedir.
+await t("N1 primera pulsación hace 60 días en el móvil A, la siguiente hoy en el móvil B (que ya tiene los gastos de A): cero perdidos", async () => {
+  const bank = banco();
+  const link = enlace(null);
+  const A = movil();
+  reloj.ms = MS - 60 * DAY;
+  const r = await llama(NUEVA, link, bank, CLIENTES.nuevo(A));
+  assert.equal(r.data.links[0].accounts[0].transactions.some((x) => x.date > day(-60)), false, "el banco no entrega el futuro");
+  recibe(A, r.data.links, "nuevo");
+  assert.ok(A.expenses.length > 30 && acuseDe(A).CaixaBank, "A guardó su ventana y su acuse, que no sale de A");
+  reloj.ms = MS;
+  // B recibió por la nube los gastos de A, pero no su acuse: es local a cada dispositivo.
+  const B = movil();
+  B.expenses = JSON.parse(JSON.stringify(A.expenses));
+  let presses = 0;
+  while (presses < 80 && link.last_sync !== NOW) {
+    presses++;
+    recibe(B, (await llama(NUEVA, link, bank, CLIENTES.nuevo(B))).data.links, "nuevo");
+  }
+  assert.equal(link.last_sync, NOW, "sin converger tras " + presses + " pulsaciones");
+  return limpio(Object.assign({ presses }, cuenta(B, bank, Demand.currentDemandWindowStart(new Date(MS - 60 * DAY)))));
+});
+
+// Lo que el acuse protege, también en la PRIMERA lectura. La versión sin acuse escribía «ahora»
+// al leer: si esa respuesta se perdía y la ventana se movía antes de volver, lo de la primera
+// ventana no se pedía más. 45 días y no 60: el tope del banco son 90 y la ventana de entonces
+// puede empezar 39 días antes de aquella pulsación.
+for (const quien of ["el mismo móvil", "otro móvil"]) {
+  await t("N1 la PRIMERA respuesta se pierde y la siguiente pulsación llega 45 días después desde " + quien + ": cero perdidos", async () => {
+    const bank = banco();
+    const link = enlace(null);
+    const A = movil();
+    reloj.ms = MS - 45 * DAY;
+    await llama(NUEVA, link, bank, CLIENTES.nuevo(A));   // la respuesta no llega
+    reloj.ms = MS;
+    const state = quien === "el mismo móvil" ? A : movil();
+    let presses = 0;
+    while (presses < 80 && link.last_sync !== NOW) {
+      presses++;
+      recibe(state, (await llama(NUEVA, link, bank, CLIENTES.nuevo(state))).data.links, "nuevo");
+    }
+    assert.equal(link.last_sync, NOW, "sin converger tras " + presses + " pulsaciones");
+    return limpio(Object.assign({ presses }, cuenta(state, bank, Demand.currentDemandWindowStart(new Date(MS - 45 * DAY)))), 200);
+  });
+}
+
+await t("N2 carrera entre dos móviles: un acuse más viejo que lo que el otro acaba de escribir no hace retroceder el cursor", async () => {
+  const bank = banco();
+  // Esta petición lee la fila (cursor de hace 40 días, o nulo) y trae un acuse de hace 10. Antes
+  // de que lo escriba, el otro móvil deja el cursor en hace 5. La decisión se tomó con la foto
+  // vieja: lo único que impide retroceder es el filtro de la propia escritura.
+  for (const inicio of [haceDias(40), null]) {
+    const link = enlace(inicio);
+    const r = await llama(NUEVA, link, bank, { recoverGaps: true, acks: { CaixaBank: haceDias(10) + "|" + K1 } }, null,
+      { trasLeer: (rows) => { rows[0].last_sync = haceDias(5); } });
+    assert.equal(link.last_sync, haceDias(5), "cursor de partida " + inicio);
+    assert.equal(r.data.links[0].ok, true);
+  }
+});
+
+await t("N2 ventana que no cabe en los topes, con cliente de acuse: se le entrega «ahora» y el cursor no se queda quieto para siempre", async () => {
+  // Páginas de 2 filas: la ventana más corta del mes ya pasa de las 12 llamadas.
+  const bank = banco({ page: 2 });
+  for (const inicio of [haceDias(60), null]) {
+    const link = enlace(inicio);
+    const state = movil();
+    const r = await llama(NUEVA, link, bank, CLIENTES.nuevo(state));
+    const l = r.data.links[0];
+    assert.equal(l.accounts[0].truncated, true, "la ventana desborda");
+    assert.equal(r.calls.some((c) => c.to), false, "no queda sitio para el tramo, ni hoy ni mañana");
+    assert.equal(l.gapPending, false);
+    assert.equal(l.ack, NOW + "|" + K1, "sin este acuse el cursor no saldría nunca de donde está");
+    assert.notEqual(link.last_sync, NOW, "y sigue sin escribirse hasta que vuelva");
+    recibe(state, r.data.links, "nuevo");
+    await llama(NUEVA, link, bank, CLIENTES.nuevo(state));
+    assert.equal(link.last_sync, NOW, "cursor de partida " + inicio);
+  }
 });
 
 await t("N2 se pierden las respuestas 1 y 2 con hueco de 89 días: cero perdidos y cero repetidos", async () => {
@@ -177,6 +287,9 @@ await t("M13 frontera de ackCursor: un milisegundo por detrás avanza; igual o p
   // La clave: el id solo, otra autorización u otro enlace no son este.
   assert.equal(Demand.ackLinkKey("L1", null), K1);
   assert.notEqual(Demand.ackLinkKey("L1", haceDias(1)), Demand.ackLinkKey("L1", haceDias(2)));
+  // Al milisegundo, no al día: quien reconecta dos veces la misma tarde tiene dos autorizaciones.
+  assert.notEqual(Demand.ackLinkKey("L1", "2026-10-01T10:00:00.123Z"), Demand.ackLinkKey("L1", "2026-10-01T10:00:00.124Z"));
+  assert.notEqual(Demand.ackLinkKey("L1", "2026-10-01T00:00:00.000Z"), Demand.ackLinkKey("L1", "2026-10-01T23:59:59.999Z"));
   assert.equal(Demand.ackLinkKey("L1", "2026-10-01T10:00:00.123+00:00"), Demand.ackLinkKey("L1", "2026-10-01T10:00:00.123Z"), "misma emisión, otra escritura");
   for (const otra of ["L1", "L1.1", "L2.0"]) assert.equal(Demand.ackCursor(tok, otra, null, now), null);
 });
@@ -294,8 +407,100 @@ await t("runBankSync fija la marca fuera del updater, vuelca el estado y solo en
   assert.match(main, /obAckPend\.current=\{at:at,ack:ack\};\s*set\(function\(prev\)\{/, "el acuse queda pendiente antes del set");
   assert.match(main, /lastBankSync:at,/, "la marca del estado es la del acuse pendiente");
   assert.doesNotMatch(main, /lastBankSync:Date\.now\(\)/);
-  assert.match(main, /if\(!p \|\| state\.lastBankSync!==p\.at\) return;\s*obAckPend\.current=null;\s*flushPersist\(\);\s*obAckSave\(p\.at, p\.ack\);\s*\},\[state\.lastBankSync\]\);/);
+  assert.match(main, /if\(!p \|\| state\.lastBankSync!==p\.at\) return;\s*obAckPend\.current=null;\s*flushPersist\(\);\s*obAckSave\(p\.at, p\.ack, state\.expenses\);\s*\},\[state\.lastBankSync\]\);/);
   assert.doesNotMatch(main, /obAck\s*:/, "el acuse no vuelve al estado");
+});
+
+// Lo anterior casa texto. Esto ejecuta el efecto tal como está escrito, contra el guardado
+// real: si los dos pasos se cruzan, `obAckSave` mira el disco antes del volcado y no acusa.
+await t("el efecto del acuse vuelca primero y acusa después: al escribirse el acuse sus filas ya están en la clave de gastos", async () => {
+  const m = contexto();
+  const EXP = STATE_KEY + m.clave("EXP_SUFFIX");
+  const bank = banco();
+  const link = enlace(haceDias(89));
+  const prev = movil();
+  m.ctx.mcSaveRaw(STATE_KEY, prev);   // lo que había en disco antes de sincronizar
+  const r = await llama(NUEVA, link, bank, cuerpoNuevo(m.ctx.obAckLoad));
+  const add = importa(m.ctx.flattenBankTx, m.ctx.importObExpenses, prev, r.data.links);
+  assert.ok(add.length > 20);
+  const p = recogeAcuse(r.data.links, relojMovil);
+  const next = Object.assign({}, prev, { expenses: add.concat(prev.expenses), lastBankSync: p.at });
+  const orden = [];
+  let filasAlAcusar = -1;
+  m.disco.alEscribir = (k) => {
+    orden.push(k);
+    if (k === ACK_KEY) filasAlAcusar = JSON.parse(m.disco.actual.get(EXP)).length;
+  };
+  const flush = () => m.ctx.mcSaveRaw(STATE_KEY, next, { expenses: true });
+  // Un estado que no lleva la marca de esta respuesta no vuelca ni acusa: el acuse sigue pendiente.
+  assert.equal(efectoAcuse(m.ctx, p, prev, flush), false);
+  assert.deepEqual(orden, []);
+  assert.equal(efectoAcuse(m.ctx, p, next, flush), true, "con el volcado delante, el acuse entra");
+  assert.deepEqual(orden, [EXP, STATE_KEY, ACK_KEY], "gastos, estado y, lo último, el acuse");
+  assert.equal(filasAlAcusar, add.length, "las filas ya estaban en disco cuando se escribió el acuse");
+  assert.deepEqual(JSON.parse(m.disco.actual.get(ACK_KEY)), p.ack);
+});
+
+// ── Sin cuota: el estado ligero entra y el histórico de gastos no ────────────────────
+await t("si el histórico de gastos no entra en disco no hay acuse, aunque el estado con la marca sí entre", async () => {
+  const m = contexto();
+  const EXP = STATE_KEY + m.clave("EXP_SUFFIX");
+  const bank = banco();
+  const inicio = haceDias(89);
+  const link = enlace(inicio);
+  const state = movil();
+  m.ctx.mcSaveRaw(STATE_KEY, state);
+  const pulsa = async () => recibe(state, (await llama(NUEVA, link, bank, cuerpoNuevo(m.ctx.obAckLoad))).data.links, "nuevo", { c: m.ctx });
+  m.disco.lleno = (k) => k === EXP;
+  assert.equal(await pulsa(), false, "las filas no están en disco: sin acuse");
+  assert.ok(state.expenses.length > 20, "en memoria sí están");
+  assert.equal(JSON.parse(m.disco.actual.get(STATE_KEY)).lastBankSync, state.lastBankSync, "el estado ligero entró, con su marca");
+  assert.equal(JSON.parse(m.disco.actual.get(EXP)).length, 0, "el histórico en disco sigue siendo el de antes");
+  assert.equal(m.disco.actual.has(ACK_KEY), false);
+  // El servidor repite el trozo; ya no hay nada nuevo que importar y el histórico no se
+  // reescribe. Un acuse aquí daría por guardadas las filas de la pulsación anterior.
+  const antes = state.expenses.length;
+  assert.equal(await pulsa(), false, "la marca nueva entra, pero el disco sigue sin las filas");
+  assert.equal(state.expenses.length, antes);
+  assert.equal(link.last_sync, inicio, "y el cursor del servidor no se ha movido");
+  // Vuelve a haber sitio y el histórico se reescribe: ahora sí.
+  m.disco.lleno = null;
+  m.ctx.mcSaveRaw(STATE_KEY, state);
+  assert.equal(await pulsa(), true);
+  assert.ok(m.disco.actual.has(ACK_KEY));
+});
+
+await t("un móvil al que nunca le falló el guardado no relee el histórico para acusar", async () => {
+  const m = contexto();
+  const EXP = STATE_KEY + m.clave("EXP_SUFFIX");
+  const state = movil();
+  state.expenses = [{ id: "x", extId: "x" }];
+  state.lastBankSync = 7;
+  m.ctx.mcSaveRaw(STATE_KEY, state);
+  let lecturas = 0;
+  const leer = m.ctx.localStorage.getItem;
+  m.ctx.localStorage.getItem = (k) => { if (k === EXP) lecturas++; return leer(k); };
+  assert.equal(m.ctx.obAckSave(7, { CaixaBank: NOW + "|" + K1 }, state.expenses), true);
+  assert.equal(lecturas, 0, "la clave grande no se toca en el camino normal");
+});
+
+await t("sin cuota a ratos y la app muerta tras cada sincronización: lo que queda en DISCO no pierde ni repite nada", async () => {
+  const m = contexto();
+  const EXP = STATE_KEY + m.clave("EXP_SUFFIX");
+  const bank = banco();
+  const link = enlace(haceDias(89));
+  m.ctx.mcSaveRaw(STATE_KEY, movil());
+  let presses = 0;
+  while (presses < 80 && link.last_sync !== NOW) {
+    presses++;
+    // Cada pulsación arranca de lo que hay en disco: lo que no se guardó, no existe.
+    const state = m.ctx.mcLoadRaw(STATE_KEY);
+    m.disco.lleno = [1, 3, 4, 7].includes(presses) ? (k) => k === EXP : null;
+    recibe(state, (await llama(NUEVA, link, bank, cuerpoNuevo(m.ctx.obAckLoad))).data.links, "nuevo", { c: m.ctx });
+  }
+  m.disco.lleno = null;
+  assert.equal(link.last_sync, NOW, "sin converger tras " + presses + " pulsaciones");
+  return limpio(Object.assign({ presses }, cuenta(m.ctx.mcLoadRaw(STATE_KEY), bank, day(-89))));
 });
 
 // ── H2: el banco de pruebas no acusa ─────────────────────────────────────────────────

@@ -105,7 +105,8 @@ Deno.serve(withCors(async (req: Request) => {
     const recoverGaps = body?.recoverGaps === true;
     /* `acks` (aunque venga vacío) lo manda solo el cliente que devuelve acuse. Con él esta
        función NO mueve last_sync por lo que acaba de leer: se lo entrega en `ack` y lo
-       escribe cuando vuelva, en la pulsación siguiente. El cliente que no lo manda no puede
+       escribe cuando vuelva, en la pulsación siguiente (un enlace sin cursor recibe además su
+       punto de partida, que no depende de lo leído). El cliente que no lo manda no puede
        acusar nada, así que con él el cursor se sigue escribiendo aquí, como hasta ahora. */
     const acks: Record<string, unknown> | null = recoverGaps && body?.acks && typeof body.acks === "object" && !Array.isArray(body.acks)
       ? body.acks : null;
@@ -315,6 +316,25 @@ Deno.serve(withCors(async (req: Request) => {
       const wantOld = recoverGaps && plan.gap && !overflow;
       const nowIso = new Date().toISOString();
       const toNow = allRead && (!plan.gap || overflow);
+      /* ENLACE SIN CURSOR Y CLIENTE DE ACUSE (revisión del 12/10). Esperar al acuse dejaba el
+         cursor en null, y un null no es «desde aquí»: es «solo la ventana de hoy». El punto de
+         partida vivía entonces únicamente en el acuse del móvil que pulsó; si la siguiente
+         pulsación llegaba desde OTRO dispositivo (o el mismo tras reinstalar) con la ventana
+         ya corrida, lo de en medio no se pedía nunca. Medido: primera lectura hace 60 días en
+         un móvil, siguiente hoy en otro → 206 de 370 movimientos sin pedir.
+         No se escribe «ahora», que es lo que hacía la versión sin acuse: eso daría por
+         entregada una respuesta que puede no llegar. Se escribe la VÍSPERA de la ventana,
+         sellada: no afirma que nadie tenga ninguna fila, solo desde qué día hay que seguir
+         leyendo. Si la respuesta llega, el acuse lo adelanta a «ahora» como siempre; si no
+         llega, el tramo entero sigue pendiente para cualquier dispositivo.
+         `is null`: si otro móvil lo escribió entretanto, manda el suyo. Y si esta escritura
+         falla no pasa nada: el enlace sigue en null y la pulsación siguiente lo reintenta. */
+      if (acks && !link.last_sync && anyAcctOk) {
+        try {
+          await admin.from("bank_links").update({ last_sync: chunkCursor(ymdAddDays(plan.windowStart, -1)) })
+            .eq("id", link.id).is("last_sync", null);
+        } catch (_) { /* corte de red: como un error devuelto */ }
+      }
       await admin.from("bank_links")
         .update(anyAcctOk
           ? { ...(toNow && !acks ? { last_sync: nowIso } : {}), status: "active", updated_at: nowIso }

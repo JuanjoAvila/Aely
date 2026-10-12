@@ -893,11 +893,23 @@ function obAckLoad(){
 }
 /* Se escribe DESPUÉS de las filas y solo si están en disco. `at` es el `lastBankSync` que el
    mismo `set` dejó en el estado junto a ellas: si el volcado no ha llegado (la app se cerró
-   antes, o se descartó a propósito) no hay acuse, y la pulsación siguiente repite el trozo. */
-function obAckSave(at, ack){
+   antes, o se descartó a propósito) no hay acuse, y la pulsación siguiente repite el trozo.
+   Esa marca vive en la clave LIGERA y las filas en la de gastos, que es la grande: sin cuota
+   puede entrar la primera y no la segunda, y el acuse se guardaba sin sus filas (revisión del
+   12/10). `store.set` deja en `_mem` lo que no pudo escribir, así que mirar si la clave de
+   gastos está ahí cuesta una búsqueda y no toca el histórico: si nunca falló, lo último que
+   se escribió es lo que hay en disco. Solo cuando alguna vez falló en esta sesión se compara
+   de verdad (`expenses` es el histórico del estado que lleva la marca), y eso serializa el
+   histórico entero: es caro, pero solo lo paga un móvil que ya se quedó sin sitio, una vez
+   por sincronización. Si sigue sin entrar no hay acuse hasta que los gastos se reescriban. */
+function obAckSave(at, ack, expenses){
   if(mcSandbox()) return false;
   const disk=store.get(STATE_KEY_REAL);
   if(!disk || disk.lastBankSync!==at) return false;
+  const expKey=STATE_KEY_REAL+EXP_SUFFIX;
+  if(expKey in _mem){
+    try{ if(localStorage.getItem(expKey)!==JSON.stringify(expenses||[])) return false; }catch(e){ return false; }
+  }
   store.set(OB_ACK_KEY, Object.assign(obAckLoad(), ack));
   return true;
 }

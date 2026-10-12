@@ -125,6 +125,7 @@ Deno.serve(async (req) => {
     // Fallback: el POST no trajo cuentas usables pero sí hay session_id → pídelas con GET.
     // Algunos bancos (p.ej. Revolut) rellenan las cuentas con un pequeño retardo tras autorizar,
     // así que reintentamos el GET un par de veces con espera.
+    let getFailed = false;
     if (!accts.length && sessionId) {
       const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
       for (let attempt = 0; attempt < 3 && !accts.length; attempt++) {
@@ -133,10 +134,20 @@ Deno.serve(async (req) => {
           const full = await ebApi(jwt, `/sessions/${sessionId}`);
           accts = buildAccts(collect(full));
         } catch (_) {
+          getFailed = true;
           break;   // un error (404/permiso) no se va a arreglar reintentando
         }
       }
     }
+    /* «SIN CUENTAS» SOLO VALE CONFIRMADO (revisión del 12/10). Si el GET no llegó a responder
+       (red, 5xx, 404 pasajero) no se sabe qué cuentas autorizó: escribir el enlace con cero
+       cuentas y sin cursor destruía lo que había por un fallo que se arregla reintentando, y
+       la reconexión siguiente ya no tenía con qué comparar para conservar el cursor.
+       Se sale ANTES de tocar la fila: el enlace se queda como lo dejó `bank-connect`
+       (pendiente, con sus cuentas y su `last_sync`) y la app recibe el código genérico. Es lo
+       que pasaba hasta ahora, pero por accidente: el `catch` de arriba asignaba a una
+       variable sin declarar y en Deno, que es modo estricto, eso lanzaba. */
+    if (!accts.length && getFailed) throw new CallbackFallo("error", "GET /sessions sin respuesta");
     const uid = accts.length ? accts[0].uid : null;   // primera cuenta = "primaria" (retrocompat)
     const iban = accts.length ? accts[0].iban : null;
 
