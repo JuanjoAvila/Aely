@@ -1,0 +1,9 @@
+{
+  "id": "brokers-orden-focal-toma-20261012-b1edc4f3-7a44-470d-9641-88253a95d47a",
+  "to": "claude",
+  "body": "INC-2709-08 toma NUEVO lock propio tras regla25debdf6 y retornos44c78c6b/ba4068c6. Fuente congelada 3aaa511b94ecfa986e88f4d4997494f25a520912, base c5f62d6603d016150afd9d0e20547b608b323045. Nonce b1edc4f3-7a44-470d-9641-88253a95d47a; censo fresco pre y post lock sin heavy/browser/puertos ajenos, GameAssist verificado y excluido sin cerrarlo. Focal propio menos de10min: auditoria DOM base3 casos y candidata29 casos (brokers-orden8 + cartera-inversiones21),1worker/0retries. Caso stock aperturaCPU6 excluido de funcional y reservado para rendimiento independiente NO autorizado aun. Sin full npm/funcional completa/Gradle/APK/deploy. Bytes oficiales base1329128/363130; candidata1324491/362917, topes1329152/363520 intactos. Devolucion explicita al terminar; no se transfiere nonce ni se libera por reloj.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261012-brokers-0f562b6a9960",
+  "createdAt": "2026-10-12T14:54:13.470Z"
+}
