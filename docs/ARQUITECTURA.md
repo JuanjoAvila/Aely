@@ -466,6 +466,35 @@ que repetir un botón no vuelva a gastar peticiones durante la ventana indicada 
 **No reintroducir** un sync por apertura/foreground sin repensar esto: el histórico está en el
 CHANGELOG 4.1.0 y en el comentario del propio código.
 
+### Sesiones de inversión entre días · diagnóstico sobre beta119 (12/10/2026)
+
+Los últimos valores de `state.investments` se guardan independientemente del enlace del bróker.
+`lastPriceSync` corresponde a cotizaciones; `lastTrSync`/`lastMiSync` al sincronizador general.
+Aplicar la previsualización de las tarjetas TR/MI no sella esas dos últimas marcas. En la vista
+completa se muestra solo la hora de cotizaciones, sin fecha por origen: conservar posiciones
+no acredita que estén actualizadas hoy. Una fecha ausente no debe reconstruirse por suposición.
+
+TR conserva cookies `tr_*` en el jar nativo y snapshot privado; valida/refresca en el sync manual.
+MyInvestor conserva tokens cifrados en `myinvestor_links`; refresca tras401 y la migración0011
+programa keepalive cada10 minutos para enlaces activos. Esa migración en Git no prueba ejecución
+actual del cron. Revolut por Open Banking es efectivo/movimientos, separado de sus inversiones
+importadas. Enable Banking gestiona el refresco del token bancario; su JWT de aplicación se
+genera en cada invocación. Aely solicita89 días de permiso y no guarda en callback una vigencia
+efectiva diferente; el máximo del ASPSP tampoco se conserva en `bank-aspsps`.
+La reconexión119 conserva el cursor de las mismas cuentas y los acuses quedan ligados a la
+autorización nueva; la entrega del extracto y la vigencia de la sesión son contratos distintos.
+
+La afirmación anterior de «EB401 firme» describe el clasificador actual, pero no garantiza
+consentimiento caducado: la FAQ de EB exige distinguir `EXPIRED_SESSION` de otros errores401.
+En MI, acceso401 seguido de refresh403/429/5xx/respuesta200 incompleta conserva ese401 y acaba
+en `expired`, aunque el keepalive trata esos fallos como temporales. Ambas ramas se reprodujeron
+sintéticamente de nuevo sobre119; no se atribuyen a la incidencia del móvil sin observación.
+El encargo/claim conservan su base118 histórica y la ejecución sigue119 autorizada.
+Este encargo solo
+documenta propuestas: no cambia handlers, sesiones, sync, APK ni presentación.
+Véase [sesiones de brókers](briefs/brokers-sesion-diaria-2026-10-12.md) para matriz, líneas,
+fuentes oficiales, pruebas, prioridades y límites. Open Banking sigue solo a demanda.
+
 **El `state` del OAuth (v4.10.0).** `bank-connect` genera un `state` (uuid, con sufijo `.app` si la
 petición viene de la APK) y lo guarda en `bank_links` junto a `state_issued_at`. `bank-callback`
 —que no tiene sesión— localiza al usuario por ese `state`, y es lo ÚNICO que ata la vuelta del banco
