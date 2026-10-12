@@ -19,6 +19,9 @@
  * cero CDNs y todo auto-hospedado, y cada `<script src>` o `<link rel=preload>` nuevo es una
  * ronda más de red en la peor conexión.
  *
+ * `--artifact` mide public/index.html ya sellado/minificado, sin reserva ni reconstrucción.
+ * El publicador debe ejecutarlo después de inyectar su configuración real.
+ *
  * Al pasarse: mirar primero si hay algo duplicado (pasó con `bkBrand`, que eran tres copias del
  * mismo bloque) antes de tocar el número.
  */
@@ -178,7 +181,36 @@ const PRESUPUESTO = {
   // Selección111, 10/10: Bienes completo y hero aprobado, sin retirar estilos de main.
   // Minificador oficial:1.327.718/362.088 B,3bloqueantes; el guardián1295/353 falló.
   // Mínimos1297/354KiB dejan410/408 B, sin recortar idiomas ni producto aprobado.
-  minificado: 1297 * 1024,
+  // Coordinador8/10: 1291/352 KiB autorizados para Metas108, Inicio109 y navegación107.
+  // Inicio109, A/B oficialLF con mismo sello y reserva95B:1.317.888/359.021→
+  // 1.318.229/359.168 B (+341/+147). Conserva la ayuda financiera española de TR;
+  // no se recortan textos ajenos ni se añaden dependencias. La unión debe medirse aparte.
+  // Metas108 individual: +3.601/+1.019 B; navegación107: -31/+9 B.
+  // Estas medidas individuales no acreditan el coste de la unión.
+  // BackClose110 sobre109dded, mismo HTML oficial sellado110.99999 y DSN95B:
+  // 1.321.823/360.174 → 1.325.185/361.297 B, gzipSync({level:9}), delta3.362/1.123.
+  // Root autoriza1295/353 KiB el8/10 tras cotejar ambos hashes; márgenes895/175B,
+  // 3 bloqueantes. La primera medida default6 se conserva corregida en el acta.
+  // No sumar topes individuales ni recortar textos/datos financieros para esconder el coste.
+  // Tras acotar performance en el fallback del token, artefacto final1.325.236/361.308 B:
+  // delta3.413/1.134 sobre109, márgenes844/164 B; mantiene los topes autorizados.
+  // Widget115 sobre beta 8adba520: la lectura acreditada con sesión y el corte acotado
+  // (00-core y 11-app-main, +52 líneas) más el sello miden 1.326.516/362.362 B,
+  // 436 B sobre 1295 KiB. +1 KiB mínimo solo al crudo (quedan 588 B); el gzip cabe
+  // en 354 KiB con 134 B y no se amplía. No se recortan las guardas del pago con la
+  // app cerrada ni los pasos de la tanda en tres idiomas. La unión con bancos se mide aparte.
+  // Bancos sin huecos116 sobre beta115: el cliente del tramo recuperado, el suelo por banco, el
+  // «Saldo actualizado» real y el aviso de 90 días (más la nota y la tanda en tres idiomas) miden
+  // 1.327.458 B crudo, 354 B sobre 1296 KiB. Con el arreglo del widget (puente y +0.5 de la 53, y
+  // su tanda en tres idiomas) son 1.327.610 B. +1 KiB mínimo al crudo (quedan 518 B). No se
+  // recortan textos ni guardas.
+  // Entrada animada (11/10) sobre beta f695a299, mismo host y minificador, sin sello:
+  // 1.327.610/362.808 → 1.329.128/363.132 B (+1.518/+324). Es CSS del splash (halo, tarjeta en
+  // capas, velo del color nativo en la APK, salida del logo), el montaje de las pestañas detrás
+  // de la cortina y dos lecturas en el script del <head>; sin dependencias ni peticiones nuevas.
+  // 1.000 B sobre 1297 KiB: +1 KiB mínimo al crudo, autorizado por el dueño. Quedan solo 24 B:
+  // la tanda y la nota de esta entrega se miden aparte. El gzip cabe en 355 KiB (quedan 388 B).
+  minificado: 1298 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -186,18 +218,42 @@ const PRESUPUESTO = {
   // caso de exceso, deja 342.031 B gzip (15 B sobre 334 KiB). +1 KiB medido para
   // no ocultar cifras financieras ni recortar los tres idiomas; quedan 1.009 B.
   // La misma candidata mide 343.257 B gzip, 217 B sobre 335 KiB: +1 KiB medido.
-  gzip: 354 * 1024,
+  // Bienes completo y gráfica113: tras retirar las selecciones111/112 sustituidas,
+  // el sello113.99999 con DSN sintético95 B mide361.889 B,417 B sobre353 KiB.
+  // +1 KiB es el incremento mínimo por KiB; crudo1295 y3 bloqueantes intactos.
+  // Bancos sin huecos116: 362.744 B gzip, 248 B sobre 354 KiB; con el arreglo del widget 362.808 B.
+  // +1 KiB mínimo (quedan 712 B).
+  gzip: 355 * 1024,
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 
 const tmp = path.join(root, ".presupuesto.tmp.html");
+const artifact = process.argv.includes("--artifact");
 let fallos = 0;
 console.log("presupuesto-rendimiento");
 
 try {
   // Minificar a un fichero aparte: la fuente editable no se toca (ARQUITECTURA #2).
-  execFileSync(process.execPath, [path.join(root, "scripts", "minify-html.mjs"), "--out", tmp], { stdio: "pipe" });
-  const min = fs.readFileSync(tmp);
+  if (!artifact) execFileSync(process.execPath, [path.join(root, "scripts", "minify-html.mjs"), "--out", tmp], { stdio: "pipe" });
+  // El publicador añade configuración y una revisión beta: medir solo el build vacío
+  // daba un falso verde con 6 B de margen. Se reserva el caso servido sin leer secretos.
+  let empaquetado = fs.readFileSync(artifact ? path.join(root, "public", "index.html") : tmp, "utf8");
+  const dsns = [...empaquetado.matchAll(/SENTRY_DSN:("(?:[^"\\]|\\.)*")/g)];
+  if (dsns.length !== 1) throw new Error("Configuración de monitorización ausente o ambigua");
+  const dsn = dsns[0];
+  const fixture = "https://" + "0123456789abcdef".repeat(2) + "@" + "fedcba9876543210".repeat(2) + ".invalid/0123456789012";
+  if (Buffer.byteLength(fixture) !== 95) throw new Error("Reserva sintética de configuración desalineada");
+  // Una configuración real mayor se mide entera; nunca se sustituye por una menor.
+  if (!artifact && Buffer.byteLength(dsn[1]) < Buffer.byteLength(JSON.stringify(fixture))) {
+    empaquetado = empaquetado.replace(dsn[0], "SENTRY_DSN:" + JSON.stringify(fixture));
+  }
+  const version = fs.readFileSync(path.join(root, "VERSION"), "utf8").trim() + ".99999";
+  const versiones = [...empaquetado.matchAll(/APP_VERSION:"([^"]*)"/g)];
+  if (versiones.length !== 1) throw new Error("Versión de paquete ausente o ambigua");
+  empaquetado = empaquetado.replace(/APP_VERSION:"([^"]*)"/, function(full, actual) {
+    return !artifact && actual.length < version.length ? "APP_VERSION:" + JSON.stringify(version) : full;
+  });
+  const min = Buffer.from(empaquetado);
   const gz = zlib.gzipSync(min, { level: 9 });
 
   const html = fs.readFileSync(path.join(root, "public", "index.html"), "utf8");

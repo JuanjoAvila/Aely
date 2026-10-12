@@ -39,7 +39,10 @@
      dólar «funcionaba» (tipo legacy `state.fx`). La URL canónica es ya `.dev`; `.app` se deja
      por si queda algún redirect residual. --><meta http-equiv="Content-Security-Policy" content="default-src 'self';base-uri 'none';object-src 'none';form-action 'self';manifest-src 'self';worker-src 'self';script-src 'self' 'unsafe-inline' https://www.google.com https://www.gstatic.com;style-src 'self' 'unsafe-inline';font-src 'self' data:;img-src 'self' data: blob: https://www.gstatic.com;frame-src https://www.google.com;connect-src 'self' blob: https://sfyfjagbnhbplrljpbvh.supabase.co https://api.frankfurter.dev https://api.frankfurter.app https://juanjoavila.github.io https://github.com https://objects.githubusercontent.com https://release-assets.githubusercontent.com https://www.google.com https://www.gstatic.com;"><!-- Que no se filtre la URL de la app (ni sus parámetros) al salir hacia el banco. --><meta name="referrer" content="strict-origin-when-cross-origin"><!-- Adelanta el TLS de la única conexión externa que queda (la nube) --><link rel="preconnect" href="https://sfyfjagbnhbplrljpbvh.supabase.co" crossorigin><!-- Fuentes AUTO-HOSPEDADAS (public/fonts/, variables, latin+latin-ext): sin CDN de Google,
      sin CSS bloqueante de terceros, y funcionan offline (las cachea el Service Worker). --><link rel="preload" href="fonts/manrope-latin.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="fonts/fraunces-latin.woff2" as="font" type="font/woff2" crossorigin><!-- Tema ANTES del primer pintado: evita el fogonazo oscuro del splash en temas claros --><!-- Tema ANTES del primer pintado (si no, destello blanco). Lee la cartera de pruebas cuando el
-     modo pruebas está activo, para que el tema no baile al entrar y salir de él. --><script>try{var _k=localStorage.getItem("_mcSandbox")==="1"?"micartera_sandbox":"micartera_v3";var _s=JSON.parse(localStorage.getItem(_k));var _th=_s&&_s.settings&&_s.settings.theme;if(_th)document.documentElement.setAttribute("data-theme",_th);}catch(e){}</script><!-- Supabase (sincronización en la nube) AUTO-HOSPEDADO y con versión fijada (v2.110.0, public/vendor/).
+     modo pruebas está activo, para que el tema no baile al entrar y salir de él.
+     De paso deja puestas las dos cosas que el splash necesita saber ANTES de pintarse y que solo
+     sabe JS (2026-10-11): si el usuario pidió reducir animaciones en Ajustes, y si esto corre
+     dentro de la APK (ver `data-mc-nativo` junto a `#mc-load`). --><script>try{var _k=localStorage.getItem("_mcSandbox")==="1"?"micartera_sandbox":"micartera_v3";var _s=JSON.parse(localStorage.getItem(_k));var _th=_s&&_s.settings&&_s.settings.theme;if(_th)document.documentElement.setAttribute("data-theme",_th);if(_s.settings.reduceMotion)document.documentElement.classList.add("reduce-motion");}catch(e){}try{if(Capacitor.isNativePlatform())document.documentElement.setAttribute("data-mc-nativo","1");}catch(e){}</script><!-- Supabase (sincronización en la nube) AUTO-HOSPEDADO y con versión fijada (v2.110.0, public/vendor/).
      Antes venía de cdn.jsdelivr.net con la etiqueta @2 flotante: una versión nueva con breaking change
      podía romper la app sin tocar nosotros nada. Si falla (offline), la app sigue con localStorage. --><!-- Sentry: NO bloquea el arranque (~340 KB). Se inyecta tras el primer pintado si hay DSN (12-boot). -->
 
@@ -613,7 +616,10 @@
   html[data-season] .page.page-scroll-host{background:transparent!important;}
   /* Host transparente deja ver el lavado fijo (portal z-1) al scrollear; las hermanas montadas
      por mountNeighbors se filtraban por debajo (Inicio sobre Gastos). Fuera del pintado.
-     e2e acota a `.page-scroll-host` (listas-render) — los nodos siguen en DOM pero hidden. */
+     e2e acota a `.page-scroll-host` (listas-render) — los nodos siguen en DOM pero hidden.
+     2026-10-10: esto solo no alcanza si un hijo fuerza `visibility:visible` (el desglose
+     abierto). Ese caso se cierra donde se abre, con `inherit`, no con un `*` sobre toda
+     la página: el asterisco invalidaba cada nodo de Gastos al soltar la pestaña. */
   .track.scroll-host-park .page:not(.page-scroll-host){visibility:hidden;pointer-events:none;}
   /* Con el host fixed, no recortar el estirón nativo (Ajustes NO vive dentro de overflow:hidden). */
   .viewport.scroll-host-open{overflow:visible;}
@@ -891,7 +897,15 @@
      adivinar un max-height y la opacidad evita que la última fila parpadee. */
   .v4-gastos-cats-body{display:grid;grid-template-rows:0fr;opacity:0;visibility:hidden;pointer-events:none;
     transition:grid-template-rows .34s var(--ease),opacity .24s ease,visibility 0s linear .34s;}
-  .v4-gastos-cats-body.abierto{grid-template-rows:1fr;opacity:1;visibility:visible;pointer-events:auto;transition-delay:0s;}
+  /* `inherit` y no `visible` (2026-10-10): un hijo con `visibility:visible` se pinta aunque
+     la página lleve `hidden`. Gastos premontada ocupa el mismo recto que Inicio (el host es
+     `position:fixed` y sale del flujo). Con temática el host es transparente y la tarjeta
+     vacía de recibos no tiene fondo, así que el desglose se leía encima de Inicio con la
+     pestaña activa todavía ahí. Sin temática el fondo opaco lo tapa: por eso no salía en
+     todos los móviles. Heredar sigue el `hidden` de la página inactiva y, en la activa,
+     sigue siendo visible. Un `*` con !important sobre toda la página también lo cerraba,
+     pero a CPU x6 la primera vuelta a Inicio pagaba ~65 ms de estilo; esto no añade regla. */
+  .v4-gastos-cats-body.abierto{grid-template-rows:1fr;opacity:1;visibility:inherit;pointer-events:inherit;transition-delay:0s;}
   .v4-gastos-cats-inner{min-height:0;overflow:hidden;}
   .v4-gastos-cat{display:block;width:100%;text-align:left;background:transparent;border:0;padding:6px 0 2px;cursor:pointer;color:inherit;font:inherit;}
   .v4-gastos-cat-row{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:13px;}
@@ -910,7 +924,8 @@
   .v4-filter-cats-state{color:var(--muted);font-size:11.5px;font-weight:700;letter-spacing:0;text-transform:none;white-space:nowrap;}
   .v4-filter-cats-body{display:grid;grid-template-rows:0fr;opacity:0;visibility:hidden;pointer-events:none;
     transition:grid-template-rows .34s var(--ease),opacity .24s ease,visibility 0s linear .34s;}
-  .v4-filter-cats.abierto .v4-filter-cats-body{grid-template-rows:1fr;opacity:1;visibility:visible;pointer-events:auto;transition-delay:0s;}
+  /* Mismo agujero que el desglose de categorías: `visible` atravesaba la página hidden. */
+  .v4-filter-cats.abierto .v4-filter-cats-body{grid-template-rows:1fr;opacity:1;visibility:inherit;pointer-events:inherit;transition-delay:0s;}
   .v4-filter-cats-inner{min-height:0;overflow:hidden;padding:0 12px;}
   .v4-filter-cats.abierto .v4-filter-cats-inner{padding-bottom:2px;}
   .v4-card-hero{border-radius:24px;}
@@ -1491,14 +1506,6 @@
   .metric-big{font-size:30px;font-weight:600;line-height:1.05;margin-top:10px;}
   .metric-sub{font-size:12px;color:var(--muted-2);margin-top:5px;}
 
-  .ring-wrap{display:flex;flex-direction:column;align-items:center;}
-  .ring{position:relative;width:124px;height:124px;margin:6px 0 2px;}
-  .ring svg{transform:rotate(-90deg);}
-  .ring-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
-  .ring-center .big{font-size:23px;font-weight:700;line-height:1;}
-  .ring-center .small{font-size:11px;color:var(--muted-2);margin-top:3px;font-weight:600;}
-  .ring-foot{display:flex;justify-content:space-between;width:100%;margin-top:10px;font-size:12px;}
-  .ring-foot .muted{color:var(--muted-2);}
 
   .culprit-row{display:flex;align-items:center;gap:16px;margin-top:8px;}
   .legend{flex:1;display:flex;flex-direction:column;gap:7px;}
@@ -1586,10 +1593,6 @@
   .liqrow{display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:2px 0;}
   .liqrow.strong{font-weight:800;font-size:15px;border-top:1px solid var(--line-soft);margin-top:5px;padding-top:7px;}
   .alarmbox{background:rgba(226,112,95,.12);border:1px solid rgba(226,112,95,.45);color:var(--coral);border-radius:12px;padding:11px 13px;font-size:13px;font-weight:600;margin-bottom:8px;line-height:1.45;}
-
-  /* Mini-tutorial por pestaña */
-  .coach-card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px;}
-  .coach-pill{display:block;margin:0 0 8px auto;background:none;border:none;color:var(--muted-2);font-size:12px;cursor:pointer;padding:2px 4px;}
 
   .ex-row{display:flex;align-items:center;gap:13px;padding:13px 4px;border-bottom:1px solid var(--line-soft);}
   .ex-row:last-child{border-bottom:none;}
@@ -1957,31 +1960,74 @@
      tipografía y sus colores, y respeta el tema (el script del <head> pone data-theme antes del
      primer pintado, así que en tema claro no hay fogonazo). */
   #mc-load{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:var(--bg,#0B140F);}
-  #mc-load .mcl-mark{width:94px;height:94px;border-radius:26px;background:var(--sur,#132119);border:1px solid var(--line-soft,#1C2A22);
-    display:grid;place-items:center;color:var(--mint,#6CC688);box-shadow:0 26px 60px -30px var(--mint,#6CC688);
-    animation:mclpop .5s cubic-bezier(.32,.72,0,1) both;}
-  #mc-load .mcl-mark svg{width:56px;height:56px;display:block;}
+  /* LA TARJETA Y SU HALO SON DOS CAPAS DE `.mcl-mark`, NO SU FONDO (2026-10-11). El halo tiene que
+     quedar DETRÁS de la tarjeta, y un pseudo-elemento con z-index negativo se pinta por encima
+     del fondo de su propio elemento: con el fondo puesto en `.mcl-mark`, la luz teñía la tarjeta
+     en vez de asomar por detrás. Así `::before` es el halo, `::after` la tarjeta y el dibujo va
+     encima de los dos. Y como siguen siendo parte de `.mcl-mark`, se van con ella cuando el
+     vigilante la desvanece al salir: nunca queda un resplandor suelto encima de la app.
+     ⚠ Las entradas usan `backwards`, NO `both`. Con `both` la animación, ya terminada, seguía
+     mandando sobre `opacity`/`transform`, y una animación CSS gana a un estilo en línea: el
+     fundido de salida que el vigilante le pone a la marca no llegaba a aplicarse, y el logo se
+     iba con la cortina en vez de antes que ella. El estado final de estas entradas es el natural
+     del elemento, así que no hace falta sostenerlo. */
+  #mc-load .mcl-mark{position:relative;isolation:isolate;width:94px;height:94px;display:grid;place-items:center;color:var(--mint,#6CC688);
+    animation:mclpop .5s cubic-bezier(.32,.72,0,1) backwards;}
+  #mc-load .mcl-mark::after{content:"";position:absolute;inset:0;z-index:-1;border-radius:26px;background:var(--sur,#132119);
+    border:1px solid var(--line-soft,#1C2A22);box-shadow:0 26px 60px -30px var(--mint,#6CC688);}
+  /* EL HALO QUE RESPIRA (2026-10-11, petición suya: aprovechar la pantalla de carga con una
+     animación cuidada). Es lo único que se mueve mientras se espera, y a propósito NO mide nada:
+     la barra de carga se quitó el 26/7 porque «una barra que no mide nada solo dice que esto va
+     lento». Una luz que respira dice que la app está viva, no cuánto falta.
+     ⚠ SOLO `transform` Y `opacity`. Detrás de esta pantalla el hilo principal está ocupado de
+     verdad (evaluar el bundle, montar React y las cuatro pestañas): cualquier propiedad que no
+     anime el compositor —un `stroke-dashoffset`, un `box-shadow`, un `background`— se queda
+     clavada justo mientras se mira. Por eso el halo es un degradado FIJO que solo cambia de
+     escala, y su entrada va por opacidad en otra animación. */
+  #mc-load .mcl-mark::before{content:"";position:absolute;inset:-39px;z-index:-2;border-radius:50%;
+    background:radial-gradient(closest-side,color-mix(in srgb,var(--mint,#6CC688) 24%,transparent),transparent);
+    animation:mclentra .7s ease-out .12s backwards, mclhalo 3.4s ease-in-out .12s infinite;}
+  /* El dibujo se asienta un instante después que su tarjeta: primero el sitio, luego la marca. */
+  #mc-load .mcl-mark svg{width:56px;height:56px;display:block;animation:mclmarca .62s cubic-bezier(.32,.72,0,1) .07s backwards;}
+  /* SIN SALTO DE COLOR AL PASAR DEL SPLASH NATIVO AL WEB (APK). El de Android es siempre
+     `colorPrimary` (#0A1310, android/app/src/main/res/values/colors.xml) porque se pinta antes
+     de saber el tema; con el tema claro —o el azul— el primer frame web cambiaba de color de
+     golpe. Dentro de la APK el primer frame web arranca con ESE mismo color y se funde al del
+     tema. Fuera de la APK no se pone: en un navegador no hay splash nativo y sería un fogonazo
+     oscuro inventado. La marca del <html> la deja el script del <head>. */
+  html[data-mc-nativo] #mc-load::before{content:"";position:absolute;inset:0;background:#0A1310;opacity:0;pointer-events:none;
+    animation:mclnativo .34s ease-out backwards;}
   /* EL NOMBRE NO SE ENSEÑA HASTA QUE ESTÁ SU TIPOGRAFÍA (2026-07-28). Con `font-display:swap`
      el navegador pinta «Aely» en Georgia al momento y la CAMBIA a Fraunces cuando la
      fuente carga: en un arranque en frío ese cambio de forma se ve, y es lo primero que enseña
      la app. Feedback suyo: «antes aparece algo raro en vez de aparecer el icono». Ahora el icono
      entra solo y el nombre se suma cuando puede hacerlo bien (tope de 500 ms en `mcl-fuente`,
      abajo: si la fuente se atasca, mejor Georgia que un hueco). */
-  #mc-load .mcl-name{font-family:'Fraunces',Georgia,serif;font-size:27px;font-weight:560;letter-spacing:-.3px;color:var(--brand-word,#E8EEEC);
+  #mc-load .mcl-name{position:relative;font-family:'Fraunces',Georgia,serif;font-size:27px;font-weight:560;letter-spacing:-.3px;color:var(--brand-word,#E8EEEC);
     opacity:0;}
-  #mc-load .mcl-name.lista{animation:mclpop .42s cubic-bezier(.32,.72,0,1) both;}
+  #mc-load .mcl-name.lista{opacity:1;animation:mclpop .42s cubic-bezier(.32,.72,0,1) backwards;}
+  /* `--brand-word` es casi blanco y el tema claro no lo redefine: sobre su fondo el nombre no se
+     leía (cazado en la captura del 11/10). Ahí va con el color de texto del propio tema. */
+  html[data-theme="light"] #mc-load .mcl-name{color:var(--text);}
   /* SIN BARRA DE CARGA (2026-07-26). Había una barra indeterminada debajo del nombre; fuera, por
      petición desde el móvil: «quitar lo de la barra de carga al abrir la app, el resto de apps no
      lo tienen; el tiempo ese que se queda el logo está bien». Una barra que no mide nada solo
      dice «esto va lento». El botón de reintentar SÍ se queda: ese aparece únicamente si algo se
      ha atascado de verdad, y es la única salida cuando pasa. */
-  #mc-load .mcl-retry{display:none;margin-top:2px;background:none;border:none;font-family:'Manrope',sans-serif;font-size:13px;font-weight:700;
+  #mc-load .mcl-retry{position:relative;display:none;margin-top:2px;background:none;border:none;font-family:'Manrope',sans-serif;font-size:13px;font-weight:700;
     color:var(--mint,#6CC688);text-decoration:underline;padding:8px 12px;cursor:pointer;}
   @keyframes mclpop{from{opacity:0;transform:translateY(9px) scale(.94);}to{opacity:1;transform:none;}}
+  @keyframes mclmarca{from{opacity:0;transform:scale(.8);}to{opacity:1;transform:none;}}
+  @keyframes mclentra{from{opacity:0;}to{opacity:1;}}
+  @keyframes mclhalo{0%,100%{transform:none;}50%{transform:scale(1.2);}}
+  @keyframes mclnativo{from{opacity:1;}to{opacity:0;}}
+  /* Con «reducir movimiento» la marca está puesta desde el primer frame y nada entra, respira ni
+     se encoge al salir: solo queda el fundido. El `!important` del `transform` es para ganarle
+     al estilo en línea que pone el vigilante en la salida. (El ajuste propio de la app lo cubre
+     `html.reduce-motion *`, que el script del <head> deja puesto antes del primer pintado.) */
   @media (prefers-reduced-motion:reduce){
-    #mc-load .mcl-mark{animation:none !important;}
-    #mc-load .mcl-name{animation:none !important;}
-    #mc-load .mcl-name.lista{opacity:1;}
+    #mc-load .mcl-mark,#mc-load .mcl-mark::before,#mc-load .mcl-mark svg,#mc-load .mcl-name,html[data-mc-nativo] #mc-load::before{animation:none !important;}
+    #mc-load,#mc-load .mcl-mark,#mc-load .mcl-name{transform:none !important;}
   }
 
 /* Ayuda: composer fijo abajo; el teclado (visualViewport) sube la hoja, no la tapa.
@@ -3372,8 +3418,20 @@ const cloud = (function(){
       if(error) throw error;
       return { updated_at: rows && rows[0] && rows[0].updated_at };
     },
-    async pullExpenses(){
+    async pullExpenses(readProof){
+      if(readProof){ readProof.valid=false; readProof.userId=null; }
       if(!sb) return [];
+      // Sólo el lector que confirma una foto nativa necesita esta prueba explícita: ni
+      // una sesión caída ni otra cuenta pueden acreditar la ausencia de pagos pendientes.
+      const readSession=async function(){
+        const {data,error}=await sb.auth.getSession();
+        const s=data&&data.session;
+        if(error) throw error;
+        if(!s || !s.user || !s.user.id || (s.expires_at!=null
+          && (!Number.isFinite(Number(s.expires_at)) || Number(s.expires_at)*1000<=Date.now()))) throw new Error("exp_pull_session");
+        return s.user.id;
+      };
+      const readUser=readProof?await readSession():null;
       const PAGE=1000;
       const fetchPage=async function(cursor){
         let q=sb.from('expenses').select('*')
@@ -3384,7 +3442,12 @@ const cloud = (function(){
         if(error) throw error;
         return data;
       };
-      return mcPullExpensesPaged(fetchPage);
+      const rows=await mcPullExpensesPaged(fetchPage);
+      if(readProof){
+        if(await readSession()!==readUser) throw new Error("exp_pull_session_changed");
+        readProof.userId=readUser; readProof.valid=true;
+      }
+      return rows;
     },
     async addExpense(e){
       if(!sb) return;
@@ -3637,9 +3700,12 @@ const cloud = (function(){
       return data.aspsps||[];
     },
     // Trae saldo (+ movimientos, que en Capa 2 ignoramos) de los bancos enlazados.
-    async bankSync(){
+    // `body` es `{recoverGaps:true}`: avisa al servidor de que este cliente guarda también lo
+    // anterior a la ventana de siempre (INC-2709-06); una función vieja ignora el campo. No es
+    // `dateFrom`: eso abriría el histórico de solo lectura, que no toca saldos.
+    async bankSync(body){
       if(!sb) throw new Error("nube no disponible");
-      const {data,error}=await sb.functions.invoke('bank-sync');
+      const {data,error}=await sb.functions.invoke('bank-sync',{ body });
       if(error) throw error;
       if(!data || !data.ok) throw new Error((data&&data.error)||"sync falló");
       return data;   // { ok, dryRun, links:[{aspsp, iban, balances, transactions}] }
@@ -5027,6 +5093,11 @@ const LANG = {
     beta_review_intro:"Revisa lo nuevo. Aprobar una tanda no la publica; su entrega se comprueba aparte.",
     notes_unavailable:"No se han podido comprobar las novedades. Conecta y vuelve a intentarlo.",
     beta_notes_unavailable:"Comprobaciones sin confirmar. Conecta y vuelve a abrir para cargar las de esta versión.", beta_android_app:"app Android", beta_approved_pending:"Aprobada. No necesitas aprobarla otra vez; falta confirmar su entrega.", beta_delivery_pending:"Pendiente de publicar: {x}.", beta_delivery_unknown:"Entrega sin confirmar: {x}.",
+    // Archivo109 es: una función retirada no acredita entrega vigente.
+    beta_historical_absent:"Referencia histórica: esta función ya no está en la app. Se conserva la decisión anterior; no acredita una entrega ni necesita probarse otra vez.", beta_historical_no_verdict:"Decisión anterior sin confirmar.", beta_historical_failed:"✗ Fallo guardado", beta_historical_ok:"✓ Resultado guardado: va bien", beta_historical_na:"— Resultado guardado: no se pudo probar", beta_historical_note:"Comentario guardado", beta_historical_note_missing:"El comentario anterior no está disponible aquí.",
+    beta_historical_rejected:"⛔ Rechazada", beta_historical_approved:"✅ Aprobada",
+    beta_historical_no_active:"No hay comprobaciones activas pendientes. Las referencias históricas conservan las decisiones guardadas.", beta_historical_reset_locked:"El reinicio conserva las decisiones históricas y no puede borrarlas.",
+    // Archivo109 es: fin de la referencia.
     beta_revoked:"↺ Veredicto retirado", beta_server:"servidor", beta_revision_changed:"El código cambió ({x}). El resultado anterior sigue guardado; prueba esta revisión.", beta_reset_verdicts:"Para empezar de cero, retira antes cada veredicto con «Cambiar de opinión».",
     log_private:"[dato privado omitido]",
     help_ai_matched:"La IA ha encontrado estas guías de Aely.",
@@ -6031,6 +6102,7 @@ Object.assign(LANG.es,{
   bank_read_partial:"{bank}: la descarga está incompleta. Lo recibido se conserva, pero pueden faltar movimientos.",
   bank_read_empty:"{bank}: el banco ha devuelto 0 movimientos para ese periodo.",
   bank_read_retry:"No se han podido consultar los movimientos. Comprueba la conexión y vuelve a buscar.",
+  bank_gap_cap:"{bank}: más de 90 días sin sincronizar. La conexión con el banco solo entrega los últimos 90 días; lo anterior no está disponible por esta vía.",
   bp_hist_sign:"En {banks} casi todo llega como ingreso: revisa el signo antes de importar.",
   bp_hist_more:"Ver {n} más…",
   bp_hist_confirm_fijos:"¿Crear {n} recibo(s) fijo(s)?",
@@ -6964,6 +7036,8 @@ function fixMovInvasion(state){
 }
 // Motor de cash-flow: si el estado no tiene movimientos recurrentes, siembra los del usuario
 // (nómina + transferencias). Idempotente: no pisa ediciones una vez que ya hay flows.
+// history conserva el formato legado al cargar estados. Inicio muestra sólo el total
+// actual; ya no conecta esos números sin fecha como evolución (4.26.112).
 function seedFlows(s){
   if(!s) return s;
   /* EL EFECTIVO QUE YA EXISTE, A «SOLO GASTO DIARIO» — sin flag, en cada carga (13/9, hotfix).
@@ -7239,17 +7313,11 @@ const I = {
   // v4 nav: casa / lista / calendario / tendencia (stroke 2.1, ~22 px)
   home:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.1",width:22,height:22},p),React.createElement("path",{d:"M3 10.5L12 3l9 7.5"}),React.createElement("path",{d:"M5 10v10h14V10"}),React.createElement("path",{d:"M10 20v-6h4v6"})),
   calendar:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.1",width:22,height:22},p),React.createElement("rect",{x:3,y:5,width:18,height:16,rx:2}),React.createElement("path",{d:"M3 10h18M8 3v4M16 3v4"})),
-  dash:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.2"},p),React.createElement("path",{d:"M3 13h8V3H3zM13 21h8V11h-8zM13 3v6h8V3zM3 17v4h8v-4z"})),
   expense:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.1",width:22,height:22},p),React.createElement("path",{d:"M3 7h18M3 12h18M3 17h12"})),
   invest:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.1",width:22,height:22},p),React.createElement("path",{d:"M3 17l6-6 4 4 7-8M21 7v6M21 7h-6"})),
-  wealth:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.2"},p),React.createElement("path",{d:"M4 21h16M5 21V9l7-5 7 5v12M9 21v-6h6v6"})),
-  debt:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.2"},p),React.createElement("circle",{cx:"12",cy:"12",r:"9"}),React.createElement("path",{d:"M9 9.5a3 3 0 0 1 5.5 1.2c0 2-3 2.3-3 4M12 17h.01"})),
-  fixed:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.2"},p),React.createElement("path",{d:"M17 2l4 4-4 4"}),React.createElement("path",{d:"M3 11V9a4 4 0 0 1 4-4h14"}),React.createElement("path",{d:"M7 22l-4-4 4-4"}),React.createElement("path",{d:"M21 13v2a4 4 0 0 1-4 4H3"})),
   sync:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.2"},p),React.createElement("path",{d:"M21 12a9 9 0 1 1-2.6-6.4M21 4v4h-4"})),
   plus:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.4"},p),React.createElement("path",{d:"M12 5v14M5 12h14"})),
   chev:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.4",width:"18",height:"18"},p),React.createElement("path",{d:"M6 9l6 6 6-6"})),
-  up:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.6",width:"13",height:"13"},p),React.createElement("path",{d:"M12 19V5M5 12l7-7 7 7"})),
-  down:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.6",width:"13",height:"13"},p),React.createElement("path",{d:"M12 5v14M5 12l7 7 7-7"})),
   /* A-DOT BADGE — el logo de Aely (brief), rehecho el 10/9 contra la referencia de verdad.
      La primera versión era una A de trazo fino nadando en un marco vacío y él la despachó en dos
      palabras: «esto es un mierdón, la foto original es la chula». Tenía razón, y la diferencia se
@@ -7290,12 +7358,6 @@ const I = {
         // El punto vive DENTRO del hueco, donde iría el travesaño. Casi rozando las patas.
         React.createElement("circle",{cx:31.8,cy:43.7,r:5.1,fill:"currentColor"})));
   },
-  cloud:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.2"},p),React.createElement("path",{d:"M17.5 19a4.5 4.5 0 0 0 .5-8.97A6 6 0 0 0 6.2 9.2 4 4 0 0 0 6.5 19z"})),
-  cloudOff:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.2"},p),React.createElement("path",{d:"M17.5 19a4.5 4.5 0 0 0 1.9-8.58M9 5.2A6 6 0 0 1 18 9.2M6.5 19a4 4 0 0 1-.3-7.8"}),React.createElement("path",{d:"M3 3l18 18"})),
-  gear:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2"},p),React.createElement("circle",{cx:12,cy:12,r:3}),React.createElement("path",{d:"M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 8 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H2a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 3.6 8a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.05a1.65 1.65 0 0 0 1-1.51V2a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.05a1.65 1.65 0 0 0 1.51 1H22a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"})),
-  goal:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.2"},p),React.createElement("circle",{cx:12,cy:12,r:9}),React.createElement("circle",{cx:12,cy:12,r:5}),React.createElement("circle",{cx:12,cy:12,r:1.5,fill:"currentColor"})),
-  share:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.2"},p),React.createElement("circle",{cx:18,cy:5,r:3}),React.createElement("circle",{cx:6,cy:12,r:3}),React.createElement("circle",{cx:18,cy:19,r:3}),React.createElement("path",{d:"M8.6 10.6l6.8-4M8.6 13.4l6.8 4"})),
-  medal:(p)=>React.createElement("svg",Object.assign({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor",strokeWidth:"2.2"},p),React.createElement("path",{d:"M8 3l3 6M16 3l-3 6"}),React.createElement("circle",{cx:12,cy:15,r:6})),
 };
 
 /* ============================================================
@@ -7959,27 +8021,6 @@ function StackedBar({segments}){
   );
 }
 
-function Ring({ratio, spent, budget}){
-  const r=54, c=2*Math.PI*r, clamped=Math.min(ratio,1);
-  const col = ratio>1 ? "#E2705F" : ratio>=0.7 ? "#E6C36A" : "#5FD08A";
-  return React.createElement("div",{className:"ring-wrap"},
-    React.createElement("div",{className:"ring"},
-      React.createElement("svg",{width:"124",height:"124",viewBox:"0 0 124 124"},
-        React.createElement("circle",{cx:"62",cy:"62",r:r,fill:"none",stroke:"#16291E",strokeWidth:"11"}),
-        React.createElement("circle",{cx:"62",cy:"62",r:r,fill:"none",stroke:col,strokeWidth:"11",strokeLinecap:"round",strokeDasharray:c,strokeDashoffset:c*(1-clamped),style:{transition:"stroke-dashoffset .6s ease"}})
-      ),
-      React.createElement("div",{className:"ring-center"},
-        React.createElement("div",{className:"big num",style:{color:col}},Math.round(ratio*100)+"%"),
-        React.createElement("div",{className:"small"},"del límite")
-      )
-    ),
-    React.createElement("div",{className:"ring-foot"},
-      React.createElement("span",{className:"num",style:{fontWeight:700}},eur0(spent)),
-      React.createElement("span",{className:"muted num"},"de "+eur0(budget))
-    )
-  );
-}
-
 /* Anillo v4.1 compartido (Inicio y portada de Plan). Geometría 104/r=48/stroke10 — la de 96/r=54
    de la spec se sale del viewBox (audit Claude 17/9). Sin animación al montar en Plan. */
 function V4Ring({pct, tone, label, sub, animate}){
@@ -8000,18 +8041,6 @@ function V4Ring({pct, tone, label, sub, animate}){
       )
     )
   );
-}
-
-function MiniPie({slices}){
-  const total=slices.reduce((a,s)=>a+s.value,0)||1;
-  let acc=0; const r=42,cx=48,cy=48;
-  const arcs=slices.map((s,i)=>{
-    const frac=s.value/total, a0=acc*2*Math.PI-Math.PI/2; acc+=frac; const a1=acc*2*Math.PI-Math.PI/2;
-    const large=frac>0.5?1:0;
-    const x0=cx+r*Math.cos(a0),y0=cy+r*Math.sin(a0),x1=cx+r*Math.cos(a1),y1=cy+r*Math.sin(a1);
-    return React.createElement("path",{key:i,d:"M"+cx+" "+cy+" L"+x0+" "+y0+" A"+r+" "+r+" 0 "+large+" 1 "+x1+" "+y1+" Z",fill:s.color,stroke:"#0E1A14",strokeWidth:"1.5"});
-  });
-  return React.createElement("svg",{width:"96",height:"96",viewBox:"0 0 96 96"},arcs,React.createElement("circle",{cx:cx,cy:cy,r:"20",fill:"#0E1A14"}));
 }
 
 /* ---- Cierre de overlays con el gesto/botón "atrás" del móvil (History API) ----
@@ -14223,7 +14252,12 @@ function reconcileBank(state, y, m, today){
   // como "aún no aparece" — se buscan también ahí y cuentan como confirmados.
   const prevY=(m===1)?y-1:y, prevM=(m===1)?12:m-1;
   const pym=prevY+"-"+(prevM<10?"0":"")+prevM;
-  const prevTail=tx.filter(function(t){ return String(t.date||"").slice(0,7)===pym && obEnts[t.ent] && (t.amount||0)>0 && (recDay(t.date)||0)>=15; })
+  /* Para el mes EN CURSO la cola empieza donde la ventana de siempre (día 1 menos 8). Hasta el
+     tramo recuperado (INC-2709-06) `bankTx` nunca traía nada anterior, así que «día ≥15» eran en
+     la práctica esos 8 días; con el tramo dentro, el alquiler del 18 pasado daba por pagado el
+     de este mes. Un mes ya cerrado conserva su cola desde el 15. */
+  const tailDay=new Date(y,m)>Date.now() ? new Date(y,m-1,-7).getDate() : 15;   // (y,m) aún no ha terminado
+  const prevTail=tx.filter(function(t){ return String(t.date||"").slice(0,7)===pym && obEnts[t.ent] && (t.amount||0)>0 && (recDay(t.date)||0)>=tailDay; })
     .map(function(t){ return Object.assign({},t); });
   // avisos que el usuario ha ocultado ("Ocultar aviso") y movimientos ignorados
   const dismissed={}; (state.bankDismissed||[]).forEach(function(k){ dismissed[k]=1; });
@@ -14346,7 +14380,7 @@ function flattenBankTx(links){
    En bancos fuera de gasto diario: también cualquier cargo (misma exclusión de modelados).
 
    INGRESOS: de cualquier banco (para «Mi ciclo»). Idempotente por ext_id + dedup. */
-function importObExpenses(s, txs){
+function importObExpenses(s, txs, links){
   if(!txs || !txs.length) return null;
   const ents=expenseBankEnts(s);
   const allow={}; ents.forEach(function(e){ allow[e]=1; });
@@ -14364,6 +14398,14 @@ function importObExpenses(s, txs){
      histórico en cada sync. Los duplicados que esto pueda rozar ya los para la red de arriba
      (mismo importe ±3 días contra lo que entró por otra vía) más el dedup por ext_id y clave. */
   const som=new Date(startOfMonth().getTime() - 8*86400000);
+  /* TRAMO RECUPERADO (INC-2709-06). Quien pasaba semanas sin sincronizar perdía para siempre lo
+     anterior a `som`. Ahora el servidor lo lee y dice desde qué día (`syncFrom`, por banco): ese
+     suelo llega aquí en `links`, la propia respuesta del sync, sin nada guardado por el camino,
+     porque el updater que llama puede ejecutarse dos veces. Sin suelo —función vieja, o un
+     llamador que no lo pasa— lo anterior a `som` se sigue tirando como siempre. */
+  const fuera=function(tx){
+    return parseDate(tx.date)<som && !(links||[]).some(function(l){ return l && entFromAspsp(l.aspsp)===tx.ent && l.syncFrom<=tx.date; });
+  };
   /* `entry_reference` solo es única DENTRO de su banco. Sin entidad, un id de Sabadell podía
      hacer desaparecer un movimiento distinto de Caixa. La identidad local mínima es banco+id. */
   const seen={}, seenLegacy={}; (s.expenses||[]).forEach(function(e){
@@ -14419,16 +14461,19 @@ function importObExpenses(s, txs){
   const now=new Date(), ym=now.getMonth()+1, yy=now.getFullYear();
   const today=madridYmdParts(now.getTime());
   const todayKey=today.ym+"-"+String(today.d).padStart(2,"0");
+  /* `otro` marca lo modelado que NO toca este mes. Dentro de la ventana no cuenta, como siempre.
+     El tramo recuperado sí casa contra ello: el seguro anual de agosto o el recibo bimestral del
+     mes pasado ya se cuentan por su lado, y con la lista del mes en curso entraban otra vez. */
   const modeledByEnt={};
-  const pushModeled=function(ent,name,amount,debtId){ if(!ent||!(amount>0)) return; (modeledByEnt[ent]=modeledByEnt[ent]||[]).push({name:name,amount:amount,debtId:debtId||null}); };
-  (s.fixed||[]).forEach(function(f){ if(occursIn(f,ym)) pushModeled(accOf(f), f.name, occAmountIn(f,ym)); });
+  const pushModeled=function(ent,name,amount,debtId,otro){ if(!ent||!(amount>0)) return; (modeledByEnt[ent]=modeledByEnt[ent]||[]).push({name:name,amount:amount,debtId:debtId||null,otro:otro}); };
+  (s.fixed||[]).forEach(function(f){ chargeMonths(f).concat(ym).forEach(function(mm){ pushModeled(accOf(f), f.name, occAmountIn(f,mm), 0, mm!==ym||!occursIn(f,ym)); }); });
   (s.debts||[]).forEach(function(d){ if(debtActive(d)) pushModeled(d.account||"sabadell", d.name||"Cuota", (d.monthly||0)+debtBalloonIn(d,yy,ym), d.id); });
-  (s.oneoffs||[]).forEach(function(o){ if(oneoffOccurs(o,yy,ym)) pushModeled(o.account||"sabadell", o.name||"Cargo", o.amount||0); });
+  (s.oneoffs||[]).forEach(function(o){ pushModeled(o.account||"sabadell", o.name||"Cargo", o.amount||0, 0, !oneoffOccurs(o,yy,ym)); });
   /* QUÉ casó, no solo SI casó (4.21.0). Un Fijo o un puntual casado se sigue tirando como siempre;
      una DEUDA casada ya NO se tira: entra y `marcarCuotasDeDeuda` la pone en «Deudas», fuera del
      gastado. Si casan las dos cosas, gana el descarte de siempre. */
-  const modeledHit=function(ent,merchant,amount){
-    const hits=(modeledByEnt[ent]||[]).filter(function(mm){ return recAmtClose(mm.amount,amount) && recNameMatch(mm.name,merchant); });
+  const modeledHit=function(ent,merchant,amount,antiguo){
+    const hits=(modeledByEnt[ent]||[]).filter(function(mm){ return (antiguo||!mm.otro) && recAmtClose(mm.amount,amount) && recNameMatch(mm.name,merchant); });
     if(!hits.length) return null;
     return hits.find(function(mm){ return !mm.debtId; }) || hits[0];
   };
@@ -14445,7 +14490,7 @@ function importObExpenses(s, txs){
       if(!parts) return;
       const day=new Date(Number(parts[1]),Number(parts[2])-1,Number(parts[3]),12);
       if(dayKey(day)!==date || date>todayKey) return;
-      if(!tx.date || parseDate(tx.date)<som) return;
+      if(fuera(tx)) return;
       if(tx.id && (seen[(tx.ent||"")+"|"+tx.id]||seenLegacy[tx.id])) return;
       const e={ id:mcExpenseId(), date:new Date(tx.date+"T12:00:00").toISOString(),
         merchant:tx.merchant||"Ingreso", amount:tx.amount,
@@ -14464,12 +14509,14 @@ function importObExpenses(s, txs){
       return;
     }
     // GASTO: entra de cualquier banco. Fijos y puntuales modelados no se duplican; las deudas se marcan.
-    const mod=modeledHit(tx.ent, tx.merchant, tx.amount);
+    if(!tx.date || fuera(tx)) return;
+    const antiguo=parseDate(tx.date)<som;
+    const mod=modeledHit(tx.ent, tx.merchant, tx.amount, antiguo);
     if(mod && !mod.debtId) return;
-    if(!tx.date || parseDate(tx.date)<som) return;
     if(tx.id && (seen[(tx.ent||"")+"|"+tx.id]||seenLegacy[tx.id])) return;
     const esDiario=tx.ent===dailyEnt;
-    const esAporteInv = esDiario && daily && daily.monthlyInvest>0 && Math.abs(tx.amount-daily.monthlyInvest)<0.01;
+    // El aporte de hace dos meses ya se compró en su día o ya no toca: se apunta, pero no compra.
+    const esAporteInv = !antiguo && esDiario && daily && daily.monthlyInvest>0 && Math.abs(tx.amount-daily.monthlyInvest)<0.01;
     const e={ id:mcExpenseId(), date:new Date(tx.date+"T12:00:00").toISOString(),
       merchant:tx.merchant||"Compra", amount:tx.amount,
       category: esAporteInv ? "inversion" : categoryOfBankTx(tx), source:"ob", ent:tx.ent };
@@ -18317,26 +18364,6 @@ function SheetImport({state, set, onClose, showToast, goGastos}){
 /* ============================================================
    APP
    ============================================================ */
-/* Mini-tutorial por pestaña: la primera vez que se abre una pestaña sale desplegado
-   (feedback: «mi pareja no encontraba el lápiz de editar gastos»); al cerrarlo queda un
-   botoncito «💡 ¿Cómo va esto?» para releerlo. Estado por pestaña en localStorage. */
-const TabCoach=React.memo(function TabCoach({tabId}){
-  const tips=t("coach_"+tabId);
-  // v2 en roles Gastos/Fijos/Patri: tras aclarar variable vs fijo + filtro banco (2026-07-16)
-  // se vuelve a mostrar una vez aunque ya hubieran cerrado el coach antiguo.
-  const coachKey="_coach_"+tabId+((tabId==="gastos"||tabId==="fijos"||tabId==="patri")?"_v2":"");
-  const [seen,setSeen]=useState(function(){ try{ return localStorage.getItem(coachKey)==="1"; }catch(e){ return true; } });
-  const [open,setOpen]=useState(!seen);
-  if(!Array.isArray(tips)||!tips.length) return null;
-  const dismiss=function(){ try{ localStorage.setItem(coachKey,"1"); }catch(e){} setSeen(true); setOpen(false); };
-  if(!open) return React.createElement("button",{className:"coach-pill",onClick:function(){ setOpen(true); }},"💡 "+t("coach_btn"));
-  return React.createElement("div",{className:"coach-card"},
-    React.createElement("div",{style:{fontWeight:800,fontSize:13.5,color:"var(--text)",marginBottom:4}},"💡 "+tf("coach_title",{tab:t("tab_"+tabId)})),
-    tips.map(function(tip,i){ return React.createElement("div",{key:i,style:{display:"flex",gap:8,fontSize:12.5,color:"var(--muted)",lineHeight:1.5,marginTop:5}},
-      React.createElement("span",{style:{flex:"0 0 auto"}},"·"),React.createElement("span",null,tip)); }),
-    React.createElement("button",{className:"btn btn-ghost btn-block",style:{marginTop:10},onClick:dismiss},t("coach_ok"))
-  );
-});
 const TABS=[
   {id:"dash",label:"Inicio",icon:I.home},
   {id:"gastos",label:"Gastos",icon:I.expense},
@@ -19311,6 +19338,11 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onL
       // de botones que veníamos a quitar. Al plegar se cancela un «¿quitar?» a medias, que si no
       // quedaría armado y saltaría al volver a abrir.
       const toggle=function(){ setConfirming(""); setOpenBank(abierto?"":l.aspsp_name); };
+      /* «Saldo actualizado» pinta la hora en que el servidor leyó el saldo (`obBalAt`, que viaja
+         en el estado junto a los saldos que describe). `last_sync` es el cursor del extracto: con
+         el tramo antiguo a medias va por detrás y enseñaba una fecha vieja con el saldo de hoy.
+         Solo queda de reserva para lo sincronizado antes de existir `obBalAt`. */
+      const saldoAt=(state.obBalAt||{})[l.aspsp_name]||l.last_sync;
       return React.createElement("div",{key:l.aspsp_name,"data-aspsp":l.aspsp_name,ref:isFocus?focusRef:null,className:isFocus?"bk-focus":undefined,style:{marginBottom:6}},
         React.createElement("div",{className:"v4-mov",role:"button",tabIndex:0,"aria-expanded":abierto?"true":"false",
           onClick:toggle,
@@ -19319,7 +19351,7 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onL
           React.createElement(Mono,{ent:ent||"",size:40}),
           React.createElement("div",{style:{flex:1,minWidth:0}},
             React.createElement("div",{className:"nm"}, bankLabel(l.aspsp_name), (Array.isArray(l.accounts)&&l.accounts.length>1)?React.createElement("span",{style:{marginLeft:7,fontSize:11,fontWeight:700,color:"var(--mint)"}}, tf("bp_naccts",{n:l.accounts.length})):null),
-            React.createElement("div",{className:"meta"}, l.last_sync?tf("bank_updated",{x:fmtDT(l.last_sync)}):t("bank_neversync")),
+            React.createElement("div",{className:"meta"}, saldoAt?tf("bank_updated",{x:fmtDT(saldoAt)}):t("bank_neversync")),
             l.valid_until?React.createElement("div",{className:"meta",style:{color:soon?"var(--coral)":undefined}}, tf("bank_consent",{x:fmtD(l.valid_until)})):null),
           sp,
           // Flecha: sin ella la tarjeta no se ve pulsable y el usuario no descubre las acciones.
@@ -19448,6 +19480,7 @@ function betaVerdictFor(g, rows){
 }
 // El veredicto no acredita entrega: sin recibo se explica la duda, no se oculta la tanda.
 function betaEstadoEntrega(g, prodApk){
+  if(g.referenciaHistorica)return {web:"historical-absent"};
   var id=String(g.id).split("/").pop(), d=window._mcProdEntregas||{}, a=window._mcProdApkRevisiones||{}, out={};
   if(g.codigo){
     ["web","edge"].forEach(function(s){
@@ -19467,13 +19500,14 @@ function betaPruebasEntrega(recibo, notes, version){
   notes.forEach(function(n){
     if(!n||!n.v||!Array.isArray(n.tandas)||mcIsNewer(n.v,mcVerBase(version))) return;
     n.tandas.forEach(function(g){
-      if(!g||!g.id||!rnItems(g,"es").length) return;
+      if(!g||!g.id||g.referenciaHistorica||!rnItems(g,"es").length) return;
       if(!pruebas[g.id]) pruebas[g.id]={v:n.v,contenido:JSON.stringify([String(g.id),rnT(g.t,"es"),rnItems(g,"es"),g.rev||1])};
     });
   });
   return Object.assign({},recibo,{pruebas:pruebas});
 }
 function betaEstadoPrueba(g, prodApk, version, prodVersion){
+  if(g.referenciaHistorica)return betaEstadoEntrega(g,prodApk);
   var estado=betaEstadoEntrega(g,prodApk), id=String(g.id).split("/").pop();
   var recibo=window._mcProdEntregas, prueba=recibo&&recibo.pruebas&&recibo.pruebas[id];
   // Una dependencia compartida puede cambiar sin volver a estrenar la función ya entregada.
@@ -19588,7 +19622,7 @@ function betaTandas(notes){
       var id=String(g.id), t=rnT(g.t,"es"), items=rnItems(g,"es"), h=betaHuella(id,t,items,g.rev,g.codigo);
       // `desde` solo vale mientras la huella fijada al escribirlo siga siendo la del contenido.
       var alias=g.huella===h.slice(0,8)&&(!g.codigo||g.codigoDesde===g.codigo);
-      return { id:id, t:t, items:items, huella:h, rev:g.rev||1, codigo:g.codigo, web:g.web, native:g.native, edge:g.edge,
+      return { id:id, t:t, items:items, huella:h, rev:g.rev||1, codigo:g.codigo, web:g.web, native:g.native, edge:g.edge, referenciaHistorica:g.referenciaHistorica,
         revisionesCompatibles:g.compatibilidadGit||[],
         huellasCompatibles:(g.codigosCompatibles||[]).map(function(c){ return h.slice(0,8)+":"+c; }),
         apk:g.apk||0, historial:g.historial||[], cambio:g.revisionesDesde?Object.keys(g.revisionesDesde).filter(function(s){ return g[s]!==g.revisionesDesde[s]; }):g.codigoDesde&&g.codigoDesde!==g.codigo?["—"]:[], desde:alias&&g.desde||[] };
@@ -19613,10 +19647,35 @@ function betaScopedMarks(pack,values,indexed,kind,byIndex){
   });
   return out;
 }
+// El detalle se rescata por la huella exacta. Ni los alias ni un texto repetido bastan
+// para adjudicar un fallo histórico a otra propuesta.
+function betaHistoricalDetails(g){
+  var ref=g.referenciaHistorica, scopedId=String(g.id), id=scopedId.split("/").pop(), title=g.t;
+  if(!ref||id!=="inc-0810-inicio-grafica-significado"||typeof title!=="string"||!Array.isArray(g.items)
+    ||ref.sha!=="f4ffb9340adfd0a13b631271e8158d2c630613c0"||ref.version!=="4.26.109"||ref.estado!=="ausente"
+    ||ref.codigo!=="b90e6223cd45ef64e8689d4c772560c31c7db47939694211a892316030a283f0"
+    ||ref.web!=="d05bb0d4d86dce14c5ba4794a0be2a265e52f3a167cf8eadce87aa198e5cd38d"
+    ||g.codigo!==ref.codigo||g.web!==ref.web)return [];
+  // La checklist añade versión al id/título visibles; la identidad sigue siendo la original.
+  if(scopedId!==id){
+    var prefix="v"+ref.version+" · ";
+    if(scopedId!==ref.version+"/"+id||title.indexOf(prefix)!==0)return [];
+    title=title.slice(prefix.length);
+  }
+  if(betaHuella(id,title,g.items,g.rev,g.codigo)!==g.huella)return [];
+  var own=Object.assign({},g,{huellasCompatibles:[],desde:[]}),one={tandas:[own]};
+  var marks=betaScopedMarks(one,store.get("_betaReviewOk")||{},false,"marks",true);
+  var notes=betaScopedMarks(one,store.get("_betaReviewNotas")||{},false,"notes",true);
+  return g.items.map(function(_,j){return {
+    mark:/^(ok|ko|na)$/.test(marks[j]||"")?marks[j]:null,
+    note:typeof notes[j]==="string"?notes[j]:""
+  };});
+}
 function betaRememberMarks(pack,marks,notes){
   // Dos tandas pueden decir «volver a abrir»: el texto no identifica quién lo probó.
   var saved=store.get("_betaReviewMarks")||{},i=0;
   (pack.tandas||[]).forEach(function(g){
+    if(g.referenciaHistorica){i+=g.items.length;return;}
     var row={marks:{},notes:{}};
     g.items.forEach(function(it,j){ if(marks[i]!==undefined)row.marks[j]=marks[i]; if(notes&&notes[i])row.notes[j]=notes[i]; i++; });
     saved[g.huella]=row;
@@ -19643,12 +19702,17 @@ function betaStoredMarks(pack,byIndex){
 function betaMarksCount(pack){
   var prev=betaStoredMarks(pack,true);
   var propias=betaScopedMarks(pack,store.get("_betaReview_"+CONFIG.APP_VERSION)||{},true);
-  var n=0;
+  // El archivo conserva índices y decisiones; no representa trabajo que aún se pueda probar.
+  var archived={},cursor=0;
+  (pack.tandas||[]).forEach(function(g){g.items.forEach(function(){if(g.referenciaHistorica)archived[cursor]=true;cursor++;});});
+  var n=0,total=0;
   pack.items.forEach(function(it,i){
+    if(archived[i])return;
+    total++;
     var v=propias[i]!==undefined ? propias[i] : prev[i];
     if(v==="ok"||v==="na"||v==="ko") n++;
   });
-  return { n:n, tot:pack.items.length };
+  return { n:n, tot:total };
 }
 function betaSavedVerdicts(pack){
   const sent={};
@@ -19839,17 +19903,24 @@ function BetaReviewPanel({onClose, showToast}){
   // Se separan los ✓/«no probable» de los ✗: el aviso de arriba no puede decir «los diste por
   // buenos» de una cruz, y las cruces heredadas además se señalan una a una (viene de antes →
   // compruébalo), que es la diferencia entre ahorrarle trabajo y mentirle.
-  const heredadas=useRef((function(){ var h=heredarOk(), propias=store.get(storeKey)||{}, buenos=0, ko={};
-    Object.keys(h).forEach(function(i){ if(propias[i]!==undefined) return; if(h[i]==="ko") ko[i]=true; else buenos++; });
+  const heredadas=useRef((function(){ var h=heredarOk(), propias=store.get(storeKey)||{}, buenos=0, ko={}, archived={}, cursor=0;
+    pack.tandas.forEach(function(g){g.items.forEach(function(){if(g.referenciaHistorica)archived[cursor]=true;cursor++;});});
+    Object.keys(h).forEach(function(i){ if(archived[i]||propias[i]!==undefined) return; if(h[i]==="ko") ko[i]=true; else buenos++; });
     return {buenos:buenos, ko:ko, nKo:Object.keys(ko).length}; })());
   const heredados=useRef(heredadas.current.buenos);
   const save=function(m,n){ store.set(storeKey,m); if(n) store.set(storeKey+"_n",n); };
   const recordarOk=function(m,n){
     var prev=store.get(okKey)||{};
-    var ids=store.get("_betaMarksHuella")||{}, i=0;
-    pack.tandas.forEach(function(g){ g.items.forEach(function(it){ if(m[i]) ids[it]=g.huella; else delete ids[it]; i++; }); });
+    var ids=store.get("_betaMarksHuella")||{}, i=0, historicalItems={};
+    pack.tandas.forEach(function(g){if(g.referenciaHistorica)g.items.forEach(function(it){historicalItems[it]=true;});});
+    // Un texto legado puede repetirse: el punto nuevo usa su ledger propio sin sobrescribir el archivo.
+    pack.tandas.forEach(function(g){ g.items.forEach(function(it){
+      if(!g.referenciaHistorica&&!historicalItems[it]){if(m[i]) ids[it]=g.huella; else delete ids[it];}
+      i++;
+    }); });
     store.set("_betaMarksHuella",ids);
     pack.items.forEach(function(it,i){
+      if(historicalItems[it])return;
       if(m[i]==="ok"||m[i]==="na"||m[i]==="ko") prev[it]=m[i]; else delete prev[it];
     });
     store.set(okKey,prev);
@@ -19860,6 +19931,7 @@ function BetaReviewPanel({onClose, showToast}){
   const recordarNota=function(i,txt){
     var prev=store.get(notaKey)||{};
     var it=pack.items[i]; if(it==null) return;
+    if(pack.tandas.some(function(g){return g.referenciaHistorica&&g.items.indexOf(it)>=0;}))return;
     if(txt&&txt.trim()) prev[it]=txt; else delete prev[it];
     store.set(notaKey,prev);
   };
@@ -19911,14 +19983,17 @@ function BetaReviewPanel({onClose, showToast}){
     r.pend=idx.length-r.ok-r.ko-r.na;
     return r;
   };
-  const total=pack.items.length;
-  const ok=pack.items.filter(function(_,i){ return marks[i]==="ok"; }).length;
-  const ko=pack.items.filter(function(_,i){ return marks[i]==="ko"; }).length;
+  // No se reindexa el ledger: sólo los puntos activos intervienen en el progreso de esta revisión.
+  const activos=[];
+  grupos.forEach(function(g){if(!g.referenciaHistorica)activos.push.apply(activos,g.idx);});
+  const total=activos.length;
+  const ok=activos.filter(function(i){ return marks[i]==="ok"; }).length;
+  const ko=activos.filter(function(i){ return marks[i]==="ko"; }).length;
   // «No se puede probar» (petición suya 2026-07-26): hay cosas que no dependen de él —que llegue
   // la nómina, que el banco mande una notificación, un icono que solo se ve con la APK instalada—
   // y no tenían casilla. Al no poder marcarlas, contaban como pendientes y BLOQUEABAN el aprobar,
   // así que o mentía marcando «va bien» o la beta se quedaba sin veredicto. Esto NO bloquea.
-  const na=pack.items.filter(function(_,i){ return marks[i]==="na"; }).length;
+  const na=activos.filter(function(i){ return marks[i]==="na"; }).length;
   const pend=total-ok-ko-na;
 
   /* EL VEREDICTO DICE TAMBIÉN QUÉ APK LLEVABA PUESTA (2026-07-26).
@@ -19940,7 +20015,7 @@ function BetaReviewPanel({onClose, showToast}){
      por línea. Cuando una versión no declara tandas, el id es "todo" y el parte queda igual que
      siempre — el histórico de veredictos se sigue leyendo sin cambiar nada. */
   const enviar=function(g, verdict){
-    if(busy) return;
+    if(busy||g.referenciaHistorica) return;
     setBusy(true);
     const c=cuenta(g.idx);
     const fallos=g.idx.map(function(i,j){ return marks[i]==="ko" ? {item:g.items[j].slice(0,140), nota:(notes[i]||"").slice(0,300)} : null; }).filter(Boolean);
@@ -19967,9 +20042,11 @@ function BetaReviewPanel({onClose, showToast}){
           saved["h:"+g.huella]={verdict:verdict,at:Date.now()}; saved._h=1;
           store.set(storeKey+"_v",saved);   // no retirar el OK local si el servidor rechaza la retirada
           /* 15/9: si ya no quedan tandas sin veredicto en esta compilación, no reabrir Ajustes. */
-          var ids=grupos.length ? grupos.map(function(x){ return x.id; }) : ["todo"];
+          var activeGroups=grupos.filter(function(x){return !x.referenciaHistorica;});
+          var ids=activeGroups.length ? activeGroups.map(function(x){ return x.id; }) : ["todo"];
           var todas=ids.every(function(id){ return n[id]==="approved"||n[id]==="rejected"; });
-          if(todas) betaOlvidarVuelta();
+          // El scroll pendiente de este gesto no debe reabrir una revisión ya terminada.
+          if(todas){ gestoReal.current=false; betaOlvidarVuelta(); }
           return n;
         });
         // Encoger SIEMPRE al enviar, apruebe o rechace. Dejar la rechazada abierta era lo que le
@@ -20017,7 +20094,7 @@ function BetaReviewPanel({onClose, showToast}){
         ". No hace falta que lo vuelvas a teclear: si esta compilación lo arregla, tócalo y ponlo en ✓.")),
 
     // Progreso
-    !yaEnProd && total>0 && React.createElement("div",{style:{display:"flex",gap:10,alignItems:"center",marginBottom:14}},
+    !yaEnProd && total>0 && React.createElement("div",{"data-testid":"beta-active-progress",style:{display:"flex",gap:10,alignItems:"center",marginBottom:14}},
       React.createElement("div",{style:{flex:1,height:8,borderRadius:8,background:"var(--surface-2)",overflow:"hidden"}},
         React.createElement("div",{style:{width:(total?Math.round((ok+ko+na)/total*100):0)+"%",height:"100%",
           background:ko?"var(--coral)":"var(--mint)",transition:"width .25s ease"}})),
@@ -20026,8 +20103,9 @@ function BetaReviewPanel({onClose, showToast}){
     /* Dos casos distintos con la lista vacía, y decir el que no es despista (review de Cursor,
        8/9): si la versión declara `tandas` es que las aprobó TODAS —el caso normal a partir de
        ahora—; si no declara ninguna es una versión suelta sin checklist. */
-    !yaEnProd && pack.items.length===0 && React.createElement("div",{style:{fontSize:13,color:"var(--muted)"}},
+    !yaEnProd && total===0 && React.createElement("div",{"data-testid":"beta-active-empty",style:{fontSize:13,color:"var(--muted)"}},
       proofMissing||!(RELEASE_NOTES&&RELEASE_NOTES.length) ? t("beta_notes_unavailable") :
+      grupos.some(function(g){return !!g.referenciaHistorica;})?t("beta_historical_no_active"):
       pack.tandas.length===0 && (RELEASE_NOTES||[]).some(function(n){ return n && n.tandas; })
         ? "✅ No queda nada por probar: has aprobado todas las tandas de esta ronda."
         : "Esta versión no trae notas, así que no hay checklist. Prueba lo que hayas tocado."),
@@ -20041,7 +20119,8 @@ function BetaReviewPanel({onClose, showToast}){
        cualquier sitio bloqueaba lo demás — que es justo lo que le pasa en el trabajo cuando una
        rama se queda atrás y arrastra a las otras. */
     grupos.map(function(g){
-      const c=cuenta(g.idx);
+      const historicalDetails=g.referenciaHistorica?betaHistoricalDetails(g):null;
+      const c=cuenta(g.referenciaHistorica?[]:g.idx);
       const v=sent[g.id];
       const listo=c.pend===0 && c.ko===0;
       const entrega=g.entrega||betaEstadoEntrega(g,window._mcProdApk);
@@ -20053,21 +20132,30 @@ function BetaReviewPanel({onClose, showToast}){
          y el motivo es el mismo en los dos casos: una tanda ya juzgada solo estorba entre las que
          le faltan por probar. Se sigue pudiendo abrir para repasar lo que escribió. */
       const open=expanded[g.id]!==undefined ? expanded[g.id] : !v;
-      return React.createElement("div",{key:g.id,className:"beta-tanda"},
+      return React.createElement("div",{key:g.id,className:"beta-tanda","data-beta-historical":g.referenciaHistorica?"true":undefined},
         React.createElement("button",{type:"button",className:"beta-tanda-h beta-tanda-toggle",
           "aria-expanded":open,"aria-controls":"beta-body-"+g.id,
           onClick:function(){ setExpanded(function(p){ return Object.assign({},p,{[g.id]:!open}); }); }},
           React.createElement("span",{className:"beta-tanda-t"}, g.t||t("beta_group")),
           React.createElement("span",{className:"beta-tanda-n"+(v==="approved"?" ok":v==="rejected"?" ko":"")},
-            v==="approved" ? "✅ aprobada" : v==="rejected" ? "⛔ rechazada" : (c.ok+c.ko+c.na)+"/"+g.idx.length),
+            v==="approved" ? "✅ aprobada" : v==="rejected" ? "⛔ rechazada" : g.referenciaHistorica?t("beta_historical_no_verdict"):(c.ok+c.ko+c.na)+"/"+g.idx.length),
           React.createElement("span",{className:"beta-tanda-fold"},(open?"▾ ":"▸ ")+t(open?"beta_collapse":"beta_expand"))),
-        v==="approved" && React.createElement("div",{className:"hint beta-tanda-estado"},t("beta_approved_pending")),
+        g.referenciaHistorica && React.createElement("div",{className:"hint beta-tanda-entrega"},t("beta_historical_absent")),
+        !g.referenciaHistorica && v==="approved" && React.createElement("div",{className:"hint beta-tanda-estado"},t("beta_approved_pending")),
         !v && (g.cambio||[]).length>0 && React.createElement("div",{className:"hint beta-tanda-estado"},tf("beta_revision_changed",{x:g.cambio.map(function(s){ return s==="native"?"Android":s==="edge"?t("beta_server"):s; }).join(", ")})),
         (pendientes||inciertas) && React.createElement("div",{className:"hint beta-tanda-entrega"},
           [pendientes?tf("beta_delivery_pending",{x:pendientes}):"",inciertas?tf("beta_delivery_unknown",{x:inciertas}):""].filter(Boolean).join(" ")),
         React.createElement("div",{id:"beta-body-"+g.id,hidden:!open},
         g.idx.map(function(i,j){
           const it=g.items[j], m=marks[i];
+          if(g.referenciaHistorica){
+            const detail=historicalDetails[j]||{}, label=detail.mark==="ko"?"beta_historical_failed":detail.mark==="ok"?"beta_historical_ok":detail.mark==="na"?"beta_historical_na":null;
+            return React.createElement("div",{key:i,className:"beta-item","data-beta-historical-item":"true"},
+              React.createElement("div",null,it),
+              label&&React.createElement("div",{className:"hint beta-historical-mark"},t(label)),
+              detail.note?React.createElement("div",{className:"hint beta-historical-note",style:{whiteSpace:"pre-wrap"},"aria-label":t("beta_historical_note")},detail.note)
+                :React.createElement("div",{className:"hint beta-historical-note-missing"},t("beta_historical_note_missing")));
+          }
           const borde=m==="ko"?"var(--coral)":m==="ok"?"var(--mint)":m==="na"?"var(--muted-2)":"var(--line-soft)";
           /* Resuelto = encogido. Abierto queda lo que le falta por probar y lo que falla (que
              lleva debajo el comentario), más lo que él abra a mano para repasar. */
@@ -20115,7 +20203,8 @@ function BetaReviewPanel({onClose, showToast}){
         // El `ref` es el destino del último ✓: probado el último punto, lo que se le trae a la
         // vista es el botón de aprobar, no un hueco.
         React.createElement("div",{ref:function(el){ itemRefs.current["fin-"+g.id]=el; }},
-        yaEnProd ? null
+        g.referenciaHistorica ? React.createElement("div",{className:"hint beta-veredicto"},v==="rejected"?t("beta_historical_rejected"):v==="approved"?t("beta_historical_approved"):t("beta_historical_no_verdict"))
+        : yaEnProd ? null
         : v ? React.createElement("div",{className:"beta-veredicto",style:{borderColor:v==="approved"?"var(--mint)":"var(--coral)"}},
             React.createElement("div",{style:{fontWeight:800,fontSize:14,marginBottom:5}},
               v==="approved" ? "✅ Aprobada" : "⛔ Rechazada"),
@@ -20148,7 +20237,7 @@ function BetaReviewPanel({onClose, showToast}){
       }},
       "↺ Empezar la revisión de cero"),
     grupos.some(function(g){ return sent[g.id]==="approved"||sent[g.id]==="rejected"; }) &&
-      React.createElement("div",{className:"hint",style:{marginTop:8}},t("beta_reset_verdicts"))
+      React.createElement("div",{className:"hint",style:{marginTop:8}},t(grupos.some(function(g){return !g.referenciaHistorica&&(sent[g.id]==="approved"||sent[g.id]==="rejected");})?"beta_reset_verdicts":"beta_historical_reset_locked"))
   ));
 }
 
@@ -20422,7 +20511,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="69b9fff19dcd15d8aedb7a07cce690445e25c4589696527b0dd788c7d8999aec";
+var _rnSha="3a133145fbb904e9128a4d80c3c0b449cd18ff3842f2efcd462753ec52688da4";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -24543,7 +24632,7 @@ function App(){
     };
   },[]);
   // INC-0410 mensual: límite del asiento del mes en App.
-  const wR=useRef(false),wS=useRef(0),wP=useRef(null),wC=useRef([]);
+  const wR=useRef(false),wS=useRef(0),wP=useRef(null),wC=useRef([]),wRead=useRef(null);
   const bankJustConnected=useRef(false);    // marca la vuelta de ?bank=ok para sincronizar en cuanto haya sesión
 
   // Trae los gastos de la tabla y los mezcla en el estado (dedup).
@@ -24551,7 +24640,24 @@ function App(){
     const readStartedAt=Date.now();
     const ps=++wS.current;
     wR.current=false;
-    const pull=cloud.pullExpenses().then(function(rows){
+    wRead.current=null;
+    // Sólo la lectura terminada puede retirar el aviso heredado. La APK anterior ignora
+    // estos campos; si no conoce el inicio de lectura, seguimos enviando sin acreditarlo.
+    const native=natPlugin();
+    // Un POST nativo sin cobertura no debe retener el histórico de la app. Si el corte
+    // tarda, esta lectura continúa sin prueba y conserva la incertidumbre del widget.
+    const readMark=new Promise(function(resolve){
+      let finished=false;
+      const done=function(mark){ if(finished) return; finished=true; clearTimeout(tm); resolve(mark); };
+      const tm=setTimeout(function(){ done(null); },4000);
+      Promise.resolve().then(function(){
+        return !mcSandbox()&&native&&native.beginWidgetRead?native.beginWidgetRead():null;
+      }).then(done,function(){ done(null); });
+    });
+    const readProof={valid:false,userId:null};
+    const pull=readMark.then(function(mark){
+      if(ps!==wS.current){ return wP.current; }
+      return cloud.pullExpenses(readProof).then(function(rows){
       // Si otra lectura empezó después, este resultado puede ser una foto anterior aunque
       // haya llegado el último. No mezclarlo con el estado ni reenviarlo al widget (FIN-05).
       if(ps!==wS.current) return wP.current;
@@ -24611,7 +24717,12 @@ function App(){
         return rec.state;
       });
       wR.current=true;
+      // Una lista vacía sin sesión o del modo pruebas no acredita el histórico remoto.
+      const current=sessionRef.current;
+      wRead.current=readProof.valid && current && current.user && readProof.userId===current.user.id
+        && !mcSandbox() && mark && typeof mark.readGeneration==="string" && typeof mark.nativeCut==="string"?mark:null;
       return { total:incoming.length, nuevos:count };
+      });
     });
     wP.current=pull;
     return pull;
@@ -24704,7 +24815,7 @@ function App(){
     });
     return nubeLista.then(function(ok){
       if(!ok) throw SYNC_SIN_NUBE;
-      return Promise.all([cloud.bankSync(), pDb]);
+      return Promise.all([cloud.bankSync({recoverGaps:true}), pDb]);
     }).then(function(par){
       const res=par[0], dbLinks=par[1]||[];
       const links=(res&&res.links)||[];
@@ -24728,7 +24839,8 @@ function App(){
         const txs=flattenBankTx(links);
         // ORDEN anti-doble-conteo: primero entran las compras de tarjeta como gastos, y DESPUÉS
         // se re-ancla con el saldo real del banco (que ya incluye esas compras).
-        const add=importObExpenses(prev, txs);
+        // `links` lleva el suelo del tramo recuperado (`syncFrom`): sin él, lo anterior al margen se tira.
+        const add=importObExpenses(prev, txs, links);
         // Aporte automático reconocido (categoría "inversion", ver importObExpenses): compra ya
         // mismo participaciones en el fondo enlazado, con el importe REAL del banco — mismo cálculo
         // que `reconcileTR` usaba a ciegas, ahora disparado por el dato de verdad (2026-08-03).
@@ -24758,7 +24870,12 @@ function App(){
         const withProofs=reconcileFixedPaymentProofs(withTx,now.getFullYear(),now.getMonth()+1,now.getDate());
         const anchored=reconcileEarlyIncomeAnchors(withProofs,now.getFullYear(),now.getMonth()+1,now.getDate());
         const r=applyBankBalances(anchored, links);
-        return Object.assign({}, r.state, { lastBankSync:Date.now(), hasBankLink: links.length?true:prev.hasBankLink, bankTx: txs, bankIssues: bankIssuesOf(links, dbLinks) });
+        /* Cuándo se leyó el saldo de cada banco, dicho por el servidor. `last_sync` ya no vale
+           para pintarlo: con el tramo antiguo a medias es un cursor que va por detrás. El banco
+           que hoy no dio saldo conserva la hora del que sigue en pantalla. */
+        const balAt=Object.assign({},prev.obBalAt);
+        links.forEach(function(l){ if(l&&l.balanceAt) balAt[l.aspsp]=l.balanceAt; });
+        return Object.assign({}, r.state, { lastBankSync:Date.now(), hasBankLink: links.length?true:prev.hasBankLink, bankTx: txs, bankIssues: bankIssuesOf(links, dbLinks), obBalAt:balAt });
       });
       // sube las importadas a la tabla expenses (best-effort; el estado local ya las tiene)
       setTimeout(function(){ obAdded.forEach(function(e){ subirGasto(e, "ob-import"); }); }, 0);
@@ -24796,6 +24913,13 @@ function App(){
       if(opts.manual && readWarnings.length){
         readWarnings.forEach(function(w){ avisaSync(opts,"⚠ "+tf(w.key,{bank:w.bank})); });
       }
+      // Tramo antiguo (INC-2709-06), solo si lo has pedido tú: lo que el banco ya no entrega y,
+      // si queda tramo por traer, el mismo «descarga incompleta» de una lectura cortada (otra
+      // pulsación sigue). Son filas del aviso de siempre, no un diálogo que espere respuesta.
+      if(opts.manual) links.forEach(function(l){
+        if(l&&l.gapBeyondCap) avisaSync(opts,"⚠ "+tf("bank_gap_cap",{bank:bankLabelOf(l)}));
+        if(l&&l.gapPending) avisaSync(opts,"⚠ "+tf("bank_read_partial",{bank:bankLabelOf(l)}));
+      });
       if(opts.manual && preview.synced.length && !issues.length && !readWarnings.length){
         const ents={}; preview.synced.forEach(function(x){ if(x&&x.ent) ents[x.ent]=1; });
         const bancos=Object.keys(ents);
@@ -26145,8 +26269,11 @@ function App(){
         try{ Promise.resolve(nat.widgetWaiting()).catch(function(){}); }catch(e){}
         tm=setTimeout(query,3000);
       },3000);
+      // `wV2` guarda además QUÉ APK es (su versionCode): la 53 necesita el inicio del ciclo
+      // de otra forma (ver el payload). Sin ese dato vale `true`: contrato completo.
       Promise.resolve().then(function(){ return nat.widgetContract(); })
-        .then(function(r){ if(vivo&&!expired){ clearTimeout(tm); setWV2(!!(r&&r.v>=2)); } })
+        .then(function(r){ return r&&r.v>=2?(nat.appInfo?nat.appInfo().then(function(i){ return i&&i.versionCode||true; },function(){ return true; }):true):false; })
+        .then(function(v){ if(vivo&&!expired){ clearTimeout(tm); setWV2(v); } })
         .catch(function(){ if(vivo&&!expired){ clearTimeout(tm); setWV2(false); } });
     };
     query();
@@ -26186,7 +26313,14 @@ function App(){
     if(wV2==null) return;
     if(cloud.enabled() && (!uid || !wR.current)) return;
     const data={
-      periodStart:budW.periodStart,
+      /* LA APK 53 NO SABE LEER UN INICIO DE CICLO ENTERO (rechazo de la beta 115, feedback
+         2026-10-11): los milisegundos le llegan como Long, su lector solo admite Double y se
+         queda con el día 1 del mes. Al compararlo con el alcance descarta la foto en mudo y el
+         widget no sale de «Abre la app para actualizar». Con medio milisegundo viaja como
+         Double y ella misma lo trunca al valor exacto: la 53 se cura sin instalar nada, también
+         el pago con la app cerrada. Solo la 53 y solo en ciclo: en el mes natural el día 1 ya
+         era lo correcto, la 52 sigue como estaba y desde la 54 el nativo lee cualquier número. */
+      periodStart:budW.periodStart+(wV2===53&&budW.cycle?.5:0),
       // V2 acredita también filas anteriores recibidas: pueden afectar al saldo aunque ya no
       // consuman esta ventana. No se confirma por fecha, ni por una foto sin identidad.
       coveredEvents:widgetCoveredEvents(wC.current,budW.periodStart,Date.now(),!!wV2),
@@ -26196,6 +26330,7 @@ function App(){
       budget:budW.budget!=null?budW.budget:(state.budget||0)
     };
     if(wV2){ data.contract=2; data.periodKind=budW.cycle?"ciclo":"mes"; data.magnitude=budW.cycle?"neto":"gasto"; data.lang=CURLANG; data.scope=wScope; }
+    if(wRead.current){ data.readGeneration=wRead.current.readGeneration; data.nativeCut=wRead.current.nativeCut; }
     if(widgetCash!=null){ data.cash=widgetCash; data.cashEnt=trAccW.ent; data.cashLabel=entOf(trAccW.ent).label; }
     if(widgetBudgetLeft!=null) data.budgetLeft=widgetBudgetLeft;
     if(widgetSafeLiq!=null) data.safeLiq=widgetSafeLiq;
@@ -26228,7 +26363,9 @@ function App(){
       // addListener puede resolver después del cleanup: liberar también ese handle tardío.
       if(sub) sub.then(function(h){ if(h&&h.remove) return h.remove(); }).catch(function(){});
     };
-  },[budW.shown,budW.against,budW.cycle,budW.periodStart,budW.budget,wV2,wScope,CURLANG,state.budget,state.deleted,state.lastSync,widgetCash,trAccW&&trAccW.ent,widgetBudgetLeft,widgetSafeLiq,calendarDay,uid]);
+  // Otra lectura con filas idénticas también recupera el legado: no depender sólo de
+  // cifras o del reloj, que puede coincidir con el último lastSync.
+  },[budW.shown,budW.against,budW.cycle,budW.periodStart,budW.budget,wV2,wScope,CURLANG,state.budget,state.deleted,state.lastSync,widgetCash,trAccW&&trAccW.ent,widgetBudgetLeft,widgetSafeLiq,calendarDay,uid,wRead.current]);
   // Tour de bienvenida: 1ª vez tras el onboarding (tourSeen=false), con la app ya pintada
   useEffect(function(){
     // No arrancar el tour encima del login (showAuth) ni con el cajón abierto: causaba el caos
@@ -27426,6 +27563,33 @@ function App(){
     }, 3200);
     return function(){ cancelled=true; };
   },[state.onboarded, locked, tabIds.join("|")]);
+  // CALENTAR DETRÁS DEL SPLASH (2026-10-11, petición suya: que lo que tenga que cargar ocurra
+  // detrás de la pantalla de entrada y al entrar nada vaya a tirones). El efecto de arriba elige
+  // CUÁNDO se paga el montaje de las otras pestañas, pero sin garantía de acabar antes de que se
+  // levante la cortina: va por huecos libres, una pestaña por hueco. Medido con la CPU x6, en la
+  // mitad de los arranques se entraba con 3 de 4 montadas y la que faltaba caía en el primer
+  // segundo a la vista (frames de 50 ms). Mientras la cortina está puesta nadie mira, así que
+  // se pagan ahí, todas.
+  // TODAS EN UNA SOLA TANDA, A PROPÓSITO, y no una por hueco como arriba: el vigilante que
+  // retira la cortina (final de shell.html) corre en este mismo hilo, así que mientras dura este
+  // render NO puede levantarla, y cuando por fin puede todavía deja pasar dos frames antes de
+  // empezar el fundido. La cortina no se levanta con las pestañas a medio montar sin que haga
+  // falta ninguna señal nueva entre la app y el vigilante. Repartido en huecos, el vigilante se
+  // colaría entre dos pestañas y se entraría con el trabajo a medias.
+  // Va en un efecto y no en el estado inicial: así el primer commit sigue siendo solo Inicio y
+  // los efectos de arranque (la primera lectura de la nube) salen ANTES de este trabajo, que
+  // corre mientras la red contesta en vez de retrasarla.
+  // Solo con la cortina puesta. Si ya no está (se desbloqueó el candado, se terminó el alta) hay
+  // alguien mirando: una tarea así de larga sería justo el tirón que se quiere evitar, y de eso
+  // se sigue encargando el reparto en huecos libres de arriba.
+  useEffect(function(){
+    if(state.onboarded===false||locked||window.__mcSplashGone||!document.getElementById("mc-load")) return;
+    setMountedTabs(function(m){
+      var n=Object.assign({},m);
+      tabIds.forEach(function(id){ n[id]=true; });
+      return n;
+    });
+  },[]);
   useEffect(function(){ if(tab>tabIds.length-1) setTab(0); },[tabIds.length]);   // modo simple reduce pestañas → no dejar un índice fuera de rango
   // Ocultar bloques por pestaña: publica el estado para CollapsibleCard (que no recibe props
   // de App) y escucha el toggle. settings.cardHidden se sincroniza con la nube como todo.

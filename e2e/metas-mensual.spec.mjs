@@ -45,7 +45,7 @@ async function presupuesto(page,amount){
 }
 async function alta(page,lang,cycle=false){
   await page.clock.install({time:new Date(octubre)});
-  await seedLoggedInDashboard(page,{__seedOnce:true,budget:1000,goals:[goal],expenses:[salary],badges,
+  await seedLoggedInDashboard(page,{__seedOnce:true,budget:1000,goals:[goal],expenses:[salary],badges,gmLevel:0,
     accounts:[{id:"bank",ent:"sabadell",name:"Diaria",value:3000,role:"diario",spendFrom:true}],
     settings:{autoPrices:false,theme:"green",lang,gTotalMode:"split",budgetCycle:cycle,expenseBanks:["sabadell"],reservaRules:[]}});
   await boot(page);
@@ -63,6 +63,12 @@ async function alta(page,lang,cycle=false){
   return disk(page);
 }
 async function interceptar(page){
+  // El pull del arranque va en un hueco (hasta 2,5 s). Si sustituimos pullState antes, esa
+  // lectura cuenta como la del mes y el segundo retorno parece un reintento.
+  await expect.poll(()=>page.evaluate(()=>window.__mcBootReady===true)).toBe(true);
+  // Si aun así quedara un aviso de logro, que se retire antes de provocar el error:
+  // los dos comparten el único `.toast`.
+  await expect(page.locator(".toast")).toHaveCount(0);
   await page.evaluate(()=>{
     window.__mensualPulls=0; window.__mensualBank=0; window.__mensualPushes=[];
     cloud.bankSync=async function(){ window.__mensualBank++; return {}; };

@@ -29,10 +29,13 @@ android {
         applicationId "com.micartera.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        /* 52 incorpora el contrato v2 del widget y conserva identidades hasta ACK.
-           La OTA no puede cambiar estos receptores; APK exclusiva beta antes de aceptación real. */
-        versionCode 52
-        versionName "4.26.80"
+        /* 53 deja que el widget se actualice al pagar con la app cerrada: acredita la lectura del
+           histórico con la sesión y reaplica los cobros grandes llegados durante ella. Es Java; la
+           OTA no puede cambiar estos receptores y la APK 52 instalada no lo recibe.
+           54 hace que el puente lea el inicio del ciclo como cualquier número (antes un timestamp
+           entero llegaba como Long, devolvía null y el widget guardaba el día 1 del mes). */
+        versionCode 55
+        versionName "4.26.117"
         /* ⚠ INGEST_URL VACÍA POR DEFECTO — solo la APK `.debug` la lleva (14/9/2026, OPS-06).
            Estaba aquí, en defaultConfig, así que valía TAMBIÉN para release: la APK que publica
            `release:apk` en un repo PÚBLICO llevaba dentro la URL de ingest con el token del dueño.

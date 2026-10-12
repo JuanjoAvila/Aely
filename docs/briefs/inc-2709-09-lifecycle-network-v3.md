@@ -100,6 +100,7 @@ una sola semilla y una sola pasada (sin repetición ni IC). Un recorrido de 30 m
 no equivale a días de uso ni a la memoria de un móvil real. Sigue pendiente el input humano.
 
 
+
 ## Lectura en vuelo · contrato separable 8/10
 
 Preparación de tooling desde main `56c7e328ce801f0e2e2fe5ec1ebd36169f0ac89b`, sin

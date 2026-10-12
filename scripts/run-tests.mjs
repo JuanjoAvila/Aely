@@ -34,6 +34,7 @@ if (plan.build !== false) {
 }
 
 const steps = [
+  ["prod117-edge-compat", ["node", "tests/prod117-edge-compat.test.mjs"]],
   ["backclose-history", ["node", "tests/backclose-history.test.mjs"]],
   ["gastos-mes-madrid", ["node", "tests/gastos-mes-madrid.test.mjs"]],
   ["appstate-listener-cleanup", ["node", "tests/appstate-listener-cleanup.test.mjs"]],
@@ -106,6 +107,9 @@ const steps = [
   ["finance-core", ["node", "tests/finance-core.test.mjs"]],
   ["ob-ingresos", ["node", "tests/ob-ingresos.test.mjs"]],
   ["bank-sync-paging", ["node", "tests/bank-sync-paging.test.mjs"]],
+  ["bank-sync-progreso", ["node", "tests/bank-sync-progreso.test.mjs"]],
+  ["ob-hueco-sync", ["node", "tests/ob-hueco-sync.test.mjs"]],
+  ["ob-hueco-recuperado", ["node", "tests/ob-hueco-recuperado.test.mjs"]],
   ["reserva-dinero", ["node", "tests/reserva-dinero.test.mjs"]],
   ["metas-pull-transport", ["node", "tests/metas-pull-transport.test.mjs"]],
   ["persist-commit", ["node", "tests/persist-commit.test.mjs"]],
@@ -118,6 +122,12 @@ const steps = [
   ["cuotas-deudas", ["node", "tests/cuotas-deudas.test.mjs"]],
   ["widget-coherente", ["node", "tests/widget-coherente.test.mjs"]],
   ["widget-arbitraje", ["node", "tests/widget-arbitraje.test.mjs"]],
+  ["widget-offline", ["node", "tests/widget-offline.test.mjs"]],
+  ["widget-unknown-loss", ["node", "tests/widget-unknown-loss.test.mjs"]],
+  ["widget-unknown-journal", ["node", "tests/widget-unknown-journal.test.mjs"]],
+  ["widget-notificacion-render", ["node", "tests/widget-notificacion-render.test.mjs"]],
+  ["widget-inicio-paridad", ["node", "tests/widget-inicio-paridad.test.mjs"]],
+  ["widget-puente-ciclo", ["node", "tests/widget-puente-ciclo.test.mjs"]],
   ["ob-renombrar", ["node", "tests/ob-renombrar.test.mjs"]],
   ["divisa-original", ["node", "tests/divisa-original.test.mjs"]],
   ["wallet-notis", ["node", "tests/wallet-notis.test.mjs"]],
@@ -207,9 +217,12 @@ if (huerfanos.length) {
 
 const denoEnLista = [
   "supabase/functions/ingest/ingest.test.ts",
+  "supabase/functions/ingest/widget.test.ts",
   "supabase/functions/_shared/crypto.test.ts",
   "supabase/functions/_shared/enablebanking.test.ts",
   "supabase/functions/delete-account/delete-account.test.ts",
+  "supabase/functions/prices/prices.test.ts",
+  "supabase/functions/bank-sync/demand-window.test.ts",
 ];
 const buscaDeno = (dir) => fs.readdirSync(path.join(root, dir), { withFileTypes: true })
   .flatMap((d) => d.isDirectory() ? buscaDeno(dir + "/" + d.name)
@@ -286,7 +299,7 @@ if (!failed && plan.playwright !== false && plan.e2e !== "none") {
   // Las mediciones con CPU frenada competían con otros tres navegadores: scroll→swipe
   // daba 108/109 ms en dos completas y pasaba aislado (15/9). Medir después conserva
   // el umbral real; los funcionales siguen en paralelo y ningún caso del plan se pierde.
-  const isPerf = p => /(?:^|\/)(?:rendimiento(?:-(?:tabs|sostenido))?|dashboard-(?:react-profile|memo-profile))\.spec\.mjs$/.test(p.replaceAll("\\", "/"));
+  const isPerf = p => p.replaceAll("\\", "/").endsWith("/dashboard-memo-profile.spec.mjs") || /(?:^|\/)rendimiento(?:-(?:tabs|sostenido))?\.spec\.mjs$/.test(p.replaceAll("\\", "/"));
   const groups = [["playwright-e2e", specs.filter(p => !isPerf(p)), []],
     ["playwright-perf", specs.filter(isPerf), ["--workers=1"]]];
   const reports = [];

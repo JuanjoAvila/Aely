@@ -1,6 +1,37 @@
+Promoción117: inventario12/10 confirma bank-syncv33 alineado; ingestv50 y pricesv13 se prueban con fuentes desplegadas exactas y transportes sintéticos en prod117-edge-compat. SEC02/ingest-widget viajan como fuente sin despliegue ni anuncio de funciones activas. [Pins y límites](briefs/prod-completa-117.md).
+
 # Setup Supabase — Fase 1 (Aely)
 
+`ingest/widget.ts` calcula la respuesta widget v2 de la ventana guardada
+por la app, validando ancla y scope; month conserva su payload mensual legacy para APK antiguas.
+El total v2 requiere conteo exacto, páginas completas con identidades únicas y el pago visible.
+Conteo ausente/cambiante, consulta fallida o truncada y pago ausente devuelven `widget:null`.
+El cálculo opcional de `widget` se ejecuta después del aviso de presupuesto y en su propio
+bloque de errores: una excepción de paginación o cálculo conserva `month` y `alert` para las
+APK anteriores. El rechazo de páginas parciales tiene un límite de consultas en su doble de
+prueba, para que su eliminación falle en lugar de dejar el runner en bucle.
+La matriz contra Inicio distingue presupuesto ausente (scope null) de todo reservado (scope 0,
+con margen conocido). V2 aplica el filtro por categoría de Inicio también a filas con marca
+de cuota; el cálculo de month legacy no cambia. La marca por sí sola no sustituye una categoría
+explícita de ese lector. Esta fuente se valida con datos sintéticos, sin modificar gastos.
+El listener admite ambos contratos. No requiere secretos, esquema ni migraciones nuevos.
+El despliegue de ingest se ejecuta mediante el workflow manual `supabase.yml`, con migraciones=no.
+Un push no activa ese workflow. Validación sintética en
+`ingest/widget.test.ts` (Deno registrado) y handler real con BD en memoria; no llamar al ingest
+activo con pagos de prueba. Contrato/limitaciones nativas en [Setup Android](SETUP-ANDROID.md).
+
 FEATURE-0210-01: ingest_logic y ALLOWED/HINTS de categorize incorporan Gasolina/Taxi solo en fuente de la candidata85. No se ha desplegado ninguna función ni se ha consultado el hash/BD de Supabase vivo; el clasificador anterior puede seguir dando Transporte hasta un gate de despliegue específico. El catálogo/selector/filtros/límites y altas manuales/MCC web funcionan sin despliegue; las notificaciones clasificadas por el servidor anterior aún pueden entrar como Transporte. La migración0001 define expenses.cat como text sin whitelist y las migraciones registradas no la restringen; no requiere SQL nueva. Tests sintéticos ejecutan alta cloud/pull con ambos IDs, presupuesto.ts del SHA3467 y retry/ACK/conflicto de ingest con clasificador de ese baseline: preservan elección manual y cuentan categorías diarias. Esto prueba fuente/contratos, no estado vivo ni captura Wallet nueva.
+
+## bank-sync con tramo antiguo (INC-2709-06): solo en fuente, SIN desplegar
+
+`bank-sync` y `_shared/enablebanking.ts` (parámetros `maxPages` y `dateTo` de `fetchBankTransactions`)
+cambian para recuperar el tramo anterior a la ventana del sync a demanda; el detalle está en
+`ARQUITECTURA.md`. No hay migración, secreto ni función nueva: `last_sync` hace de cursor. Orden de
+despliegue: primero `bank-sync` (solo esa función) y después el cliente. Los cuatro cruces son
+seguros: la función nueva con cliente viejo entrega la ventana de siempre, y el cliente nuevo con
+la función vieja manda un campo que esta ignora y no recibe `syncFrom`, así que no guarda nada
+anterior a su margen. Rollback: desplegar el `bank-sync` anterior; un cursor sellado que quede en
+`last_sync` es una fecha válida para él.
 
 ## bank-sync desplegado para beta 4.26.53.1: concepto y MCC opcionales
 
@@ -64,6 +95,7 @@ Qué frena y por qué:
 |---|---|---|
 | `ingest` | 60/min **por IP** | No pide sesión; su única credencial es un token. Sin freno se prueban tokens a la velocidad de la red. Por IP y no por token: contar por token no frena a quien va probando tokens distintos, que es justo el ataque. |
 | `myinvestor-connect` | 10 cada 10 min **por usuario** | Por ahí van el usuario y la CONTRASEÑA reales del banco. Un bucle de reintentos puede dejar al usuario **bloqueado en su propio banco**. |
+| `prices` | **sin cuota activa** (SEC-02) | Propuesta documentada 30/600 por usuario (`PRICES_RATE_PROPOSAL`) **apagada por defecto**. No confundir con `categorize`/`help-assistant`. 30×25 fetches no protege Finnhub ~60/min. Ver [brief](briefs/sec02-prices-limites.md). Activar exigiría autorización + `PRICES_RATE_LIMIT=1` en deploy aparte. |
 
 **Si la migración no está aplicada, no se rompe nada**: `rateLimit()` deja pasar y lo apunta en la
 consola de la función. Un freno de seguridad que tumba la app cuando se rompe convierte un incidente

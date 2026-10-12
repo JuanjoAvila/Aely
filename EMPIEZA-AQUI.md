@@ -1,3 +1,7 @@
+Preparación de promoción completa117 (12/10/2026): rama reconciliada desde beta `c5f62d66` con main `b2dfd2c0`, inventario y tratamiento de109/115/servidor aceptados por el coordinador. Sin publicación todavía. CI exacta y revisión pendientes; APK estable52 anunciada, fuente nativa117/code55 pendiente de compilación y asset por el coordinador. Los cortes fechados de abajo conservan la historia, no son instrucciones de coordinación vigentes. [Contrato de esta reconciliación](docs/briefs/prod-completa-117.md).
+
+Edición de reglas de Metas108 integrada en fuente109: no borrar/recrear para editar. Preservar ID, `mensual`/legado y campos desconocidos, comparar estado fresco y conservar los asientos anteriores. El coordinador local26 serializa integración y concede Chromium; reportes propios mediante `MC_E2E_OUTPUT_DIR` para no borrar otras evidencias. [Acta](docs/briefs/inc-0810-metas-editar-regla.md).
+
 # Corte verificado · 9/10/2026
 
 Selección web4.26.110 sobre base798226ce, comparada con betac7593e86: las tres CODE/WEB oficiales107/108/110 coinciden con la aprobación móvil;109 queda rechazada y fuera. La cualificación local del9/10 reúne196 casos originales distintos en tres tramos, no una suite única:18+161+17. Conserva los fallos anteriores, el diagnóstico de salida a about:blank en Chrome completo y el bloqueo CSP previo con DSN real. El estado de integración, CI exacta y publicación se consulta en el registro privado de coordinación; esta evidencia local no acredita esos gates. [Alcance, historial y límites](docs/briefs/promocion-107-108-110-local26.md).
@@ -59,13 +63,37 @@ Promoción selectiva96 local6/10: sólo el límite de tres metas activas en Inic
 
 Borrador 4.26.94 local (4/10), sin terminar ni publicar: en Metas, una regla nueva descuenta del presupuesto del mes y aporta a la meta al guardarla (contrato decidido por el dueño tras su rechazo de la 4.26.87), además del importe leído como se escribe y el aviso si el alta no vale. Las reglas anteriores siguen repartiendo por ingreso. El rechazo sigue abierto hasta que él lo pruebe; la pasada de pantalla, la suite completa y la revisión del commit final están pendientes: no inferir aprobación. Actas: [contrato mensual](docs/briefs/inc-0410-metas-mensual.md) · [alta de reglas](docs/briefs/inc-0410-metas-alta.md).
 
-Promoción4/10: once tandas actuales aprobadas; candidata revisada en preparación. Producción aún86/APK48 hasta verificar entrega. Prioridad: publicar lo aprobado y retirar del panel solo lo entregado. [Acta](docs/briefs/promocion-aprobadas-2026-10-04.md).
+Historial Perfil → Ajustes110: checkpoint aisladoedf1f3e3 sobre8dcc preservado; port exclusivo sobre109dded + reparación test-onlyf4ff. VERSION/package110, notas es/en/ca y unidad propia; conserva las36 unidades109 y las cinco retiradas. Port104:30 guardianes exit0 con1782func/701datos,21 contratos/47mutantes UI y18 DOM sin retries/skips/flaky con servidor congelado sin cleanUrls. Revisión externa9/10 comunicada por root:16PASS/2FAIL por URL privacy.html→privacy;21 contratos/27mutantes cloud, sin revisión manual. Corrección test-only registra/valida documento previo y exige su URL real tras UN atrás; turno107 oficial2PASS/base109f4ff2RED por salida prematura,1worker/0retry/skip/flaky. Runtime4blobs y HTML5a11/41a7 exactos antes/servido/después. PR192 draft/CI37849872932 pertenecen al spec6b3e anterior; nueva CI requerida para testfix. Causal8rojos sobre8dcc preservado aparte. Presupuesto oficial gzip9:1.325.236/361.308 B, delta3.413/1.134; topes1295/353/3, margen844/164 B. Sólo Brókers cambia entre36 identidades antiguas. Integración/publicación110 y móvil pendientes. [Acta](docs/briefs/inc-0810-backclose-handover.md).
+
+Auth102 candidata local sobre101/77b7d5e4: cleanup de suscripción y callbacks tras desmontar; no cambia orden inicial ni acredita causa del lag. Nueva identidad propia, sin repin. [Acta](docs/briefs/inc-0710-auth-disposal.md).
+
+Candidata101: `bankNotif` tiene la misma carrera de handle tardío que el listener de reentrada100. Cleanup de Promise y callback inerte; no alterar opción expresa, cupo ni sync. Cambiar uid antes de resolver el alta es necesario para reproducir la fuga: scroll por sí solo no lo acredita. INC-2709-09 sigue abierto. [Acta](docs/briefs/inc-0710-banknotif-cleanup.md).
+
+Promoción96 consta fusionada en main85b8b540: preservar su [acta](docs/briefs/promocion-inicio96-2026-10-06.md) y comprobar publicador/artefactos exactos antes de limpiar el catálogo. El merge no acredita entrega ni aprueba99.
+
+Gastos99 candidata local: ambos extremos y etiquetas de mes/mes pasado/3m usan Madrid; ciclo y rango siguen locales. No heredar aprobaciones de scopes afectados. [Acta](docs/briefs/inc-0710-gastos-mes-madrid.md).
+
+Candidata98 local6/10 para el feedback de beta97.1: el FAB conserva contorno pero se queda atrás y desaparece tarde. Movimiento geométrico conjunto y guardián rAF natural preparados desde beta505; NO-GO visual hasta ejecutar rojo97/verde98. No reutilizar el verde97 como cierre; INC-2709-09 continúa abierto. [Acta](docs/briefs/inc-0610-fab-sync-hide-2026-10-06.md).
+
+Snapshot de preparación4/10, superado por la aprobación de beta94.1 y la integraciónmain descritas arriba: borrador4.26.94 local, entonces sin terminar ni publicar. en Metas, una regla nueva descuenta del presupuesto del mes y aporta a la meta al guardarla (contrato decidido por el dueño tras su rechazo de la 4.26.87), además del importe leído como se escribe y el aviso si el alta no vale. Las reglas anteriores siguen repartiendo por ingreso. El rechazo sigue abierto hasta que él lo pruebe; la pasada de pantalla, la suite completa y la revisión del commit final están pendientes: no inferir aprobación. Actas: [contrato mensual](docs/briefs/inc-0410-metas-mensual.md) · [alta de reglas](docs/briefs/inc-0410-metas-alta.md).
+
+Promoción4/10: las once tandas de beta4.26.94.1 tienen aprobación vigente. Producción4.26.94/source8bb0398f servida y cotejada; APK52 estable y las tres funciones Edge entregadas. La limpieza conserva notas y decisiones; solo retira las once entregadas, sin producto nuevo. Prioridad permanente: producción de lo aprobado antes de otra implementación. [Acta](docs/briefs/promocion-aprobadas-2026-10-04.md).
 
 Corte 4/10, 02:35 UTC: el canal beta sirve 4.26.90.2 desde la fuente `7f3da23b` ([PR117](https://github.com/JuanjoAvila/Aely/pull/117), que solo añade una guardia de tests; publicación [37168006229](https://github.com/JuanjoAvila/Aely/actions/runs/37168006229) cerrada y cotejada). Lo que se usa es lo de 4.26.90.1 (merge `4a2e3c54`, [PR116](https://github.com/JuanjoAvila/Aely/pull/116)): Gastos oculta presupuesto fuera de mes/ciclo y usa todo el ancho, sin cambiar dinero, sobre Brókers89 ya entregada como 4.26.89.1 (merge `0f825c45`, [PR115](https://github.com/JuanjoAvila/Aely/pull/115)). Producción sigue en 4.26.86 (`d366215a`), sin promoción. Este corte describe lo acreditado al escribirlo: si `beta` ha avanzado, coteja el manifiesto antes de dar nada por servido. Nadie ha aceptado 89 ni 90 en el móvil; APK beta 4.26.80/code52 sin binario nuevo; Edge/SQL sin entregas. Entrega en beta, CI verde y aprobación son tres cosas distintas. [Gastos](docs/briefs/inc-0310-gastos-sin-limite.md) · [Brókers](docs/briefs/inc-0310-broker-resultados.md).
 
 Histórico 3/10 (superado por el corte de arriba): Candidata90 local, con CI/publicación89 y DOM/revisión/CI90 pendientes; beta88.1 y producción86 eran las últimas acreditadas.
 
 # Empieza aquí
+
+Candidata107 de navegación: la rayita activa se oculta con la barra, con una revisión nueva
+`inc-0810-nav-indicator`. No reutilizar las decisiones de contorno97/98: el ahorro de CSS cambia
+su código, y el nuevo alcance conserva los controladores y geometría reales. La comparación
+de tamaño se hace con finales LF normalizados ANTES del minificador; el blob de Git y un build
+Windows CRLF difieren en24bytes exteriores. [Acta y límites](docs/briefs/inc-0810-nav-indicator.md).
+39 comprobaciones de navegador sintético pasan; la base falla12 por rayita visible. CI exacta
+en el PR; publicación y móvil pendientes. El coordinador integra tras entregar las cinco
+aprobadas. No confundir107 fuente con versión servida. La transferencia Perfil→Ajustes→‹
+rompe el historial también en8dcc y conserva una incidencia OPEN separada.
 
 FEATURE-0210-01 candidata aislada85: no mover keywords nuevas a autoCategory, porque seedFlows reevalúa Otros antiguos. La división Gasolina/Taxi vive solo en categoryOfNewMerchant y MCC de altas bancarias. Fuente Edge preparada pero sin desplegar; la web no necesita Edge para elegir/filtrar/fijar límites. [Acta](docs/briefs/feature-0210-01-gasolina-taxi.md).
 
@@ -251,3 +279,5 @@ Integración88 actual: fuente mínima PR108/2205 sobrebeta039d, preservando21alc
 WT aislado desde beta ba206, fuente y pruebas de resultados separados; [acta](docs/briefs/inc-0310-broker-resultados.md). No confundir fuente/DOM sintético con sync bancaria real ni con el pago ausente. La producción113 se fusionó con autorización humana directa solo para20webaprobadas; no promover beta completa.
 
 Autorización vigente del3/10: se permiten subidas a producción de superficies con aprobación humana acreditada para su código exacto y alcance separable. CI o revisión técnica no sustituyen el veredicto humano. No promover beta entera si contiene otras superficies; APK/Edge/SQL/migraciones y dinero real conservan sus gates propios. PR113 está fusionada en d366 con veinte web aprobadas; su entrega requiere los artefactos servidos, no solo el merge.
+
+Candidata106: memo de recientes en Inicio con deps expenses/deleted. A/B con callback React real, no virtual. DOM/CI/revisión/presupuesto sellado/publicación pendientes; INC-2709-09 abierto. No heredar aprobaciones de otras tandas de Inicio. [Acta](docs/briefs/inc-0810-dashboard-recents-memo.md).

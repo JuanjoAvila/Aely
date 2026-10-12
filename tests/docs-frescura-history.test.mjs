@@ -13,8 +13,9 @@ const guardIndex = process.argv.indexOf("--guard");
 const guard = fs.readFileSync(guardIndex < 0 ? path.join(root, "tests/docs-frescura.test.mjs")
   : path.resolve(process.argv[guardIndex + 1]), "utf8");
 const scratch = fs.mkdtempSync(path.join(os.tmpdir(), "aely-docs-history-"));
-// Git de Windows rechaza os.devNull como config; el archivo vacío mantiene el aislamiento sin leer la del usuario.
-const gitConfig = path.join(scratch, "git-config-empty");
+// Git for Windows no admite la ruta especial os.devNull; un fichero vacío conserva
+// el aislamiento de configuración sin cambiar ninguna historia ni aserción del guardián.
+const gitConfig = path.join(scratch, "empty.gitconfig");
 fs.writeFileSync(gitConfig, "");
 const env = { ...process.env, GITHUB_REF_NAME: "", GIT_CONFIG_NOSYSTEM: "1", GIT_CONFIG_GLOBAL: gitConfig };
 for (const key of Object.keys(env)) if (/^GIT_(DIR|WORK_TREE|INDEX_FILE|SHALLOW_FILE|OBJECT_DIRECTORY|ALTERNATE_OBJECT_DIRECTORIES)$/.test(key)) delete env[key];
