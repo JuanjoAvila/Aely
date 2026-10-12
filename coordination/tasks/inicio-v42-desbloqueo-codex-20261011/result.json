@@ -1,0 +1,66 @@
+{
+  "tests": [
+    {
+      "details": "docs-frescura VERSION reservado a integración y widget-puente-ciclo ENOENT; siete Deno ejecutados; Playwright no ejecutado por npm",
+      "exitCode": 1,
+      "command": "npm test",
+      "sourceSHA": "172a9fa0dfab61c50759870b9101e97e640f8694"
+    },
+    {
+      "exitCode": 0,
+      "command": "node tests/widget-puente-ciclo.test.mjs after shared dependency junction",
+      "sourceSHA": "172a9fa0dfab61c50759870b9101e97e640f8694"
+    },
+    {
+      "command": "seven actual Deno commands captured separately",
+      "sourceSHA": "172a9fa0dfab61c50759870b9101e97e640f8694",
+      "exitCode": 0,
+      "failed": 0,
+      "passed": 61,
+      "skipped": 0
+    },
+    {
+      "command": "Playwright complete functional workers1 retries0",
+      "sourceSHA": "172a9fa0dfab61c50759870b9101e97e640f8694",
+      "exitCode": 1,
+      "failed": 5,
+      "passed": 1021,
+      "flaky": 0,
+      "skipped": 1
+    },
+    {
+      "passed": 63,
+      "sourceSHA": "cd85617523b38904a94c3033b71a3a052b4f7d56",
+      "durationMs": 112270.575,
+      "exitCode": 0,
+      "skipped": 0,
+      "command": "Playwright two complete specs inicio-v42 and widget-banco workers1 retries0",
+      "flaky": 0,
+      "failed": 0
+    }
+  ],
+  "limitations": [
+    "Las 63 del focal no se suman con 1021 históricas como una suite verde",
+    "Las trece reservas y el rendimiento final se corrigen/prueban en el encargo de continuación; no se declara entrega beta ni móvil"
+  ],
+  "continuationTaskId": "inicio-v42-revision-nogo-codex-20261012",
+  "independentReviewTaskCommit": "0e61402cd62ad9f29e627cbf4962d7dc87f39a2d",
+  "pullRequest": 204,
+  "status": "blocked",
+  "productSHA": "fcce27dd431f59b25168aa8674a2dcb99e054101",
+  "summary": "PR204 entregada como borrador; revisión independiente 0e61402c NO-GO por trece reservas de cifras/render/persistencia. Continúa con el mismo titular en inicio-v42-revision-nogo-codex-20261012. No se acredita rendimiento final ni funcional completa corregida.",
+  "resourceReturn": {
+    "ownLeaseReturned": true,
+    "nonce": "90cc2d95-ee1f-4438-bc6c-09220e8226d2",
+    "oldForeign4366ReturnCertified": false,
+    "commit": "ba4068c66b5b450fa62e44fee7a7d9daba2daba2"
+  },
+  "sourceParity": "fcce27dd solo acta después de cd856175; producto y dos specs idénticos al focal probado",
+  "repository": "JuanjoAvila/Aely",
+  "schema": 1,
+  "taskId": "inicio-v42-desbloqueo-codex-20261011",
+  "actor": "codex",
+  "sessionId": "codex-local-20261011-desbloqueo-47707522b991",
+  "createdAt": "2026-10-12T16:55:58.338Z",
+  "released": true
+}
