@@ -1,0 +1,257 @@
+{
+  "status": "done",
+  "summary": "Same PR202 revision3 closes bank expense proof day edit, missing category with real creators, five surviving mutations, measured monthly index/budget and Metas badge race; focal93/93.",
+  "productSHA": "028f32cc0a0749c21f15bf4fc86f2d0ffc5cb38a",
+  "baseSHA": "c5f62d6603d016150afd9d0e20547b608b323045",
+  "pullRequest": "JuanjoAvila/Aely#202",
+  "tests": [
+    {
+      "command": "node --test tests/fixed-payment-state.test.mjs",
+      "exitCode": 0,
+      "passed": 41,
+      "mutantsKilled": 12
+    },
+    {
+      "command": "AELY_FIXED_TEST_SOURCE_REF=dbc030dc node --test --test-name-pattern=R3 tests/fixed-payment-state.test.mjs",
+      "exitCode": 1,
+      "expectedNegative": true,
+      "failedCausal": [
+        "R3.1 bank-linked day edit",
+        "R3.2 real creator without category",
+        "R3.4 monthly-only index"
+      ]
+    },
+    {
+      "command": "npm run build",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run test:syntax",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/plan-charges.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/reconcile-bank.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/presupuesto-rendimiento.test.mjs plus same official calculation exact-byte probe",
+      "exitCode": 0,
+      "rawBytes": 1333562,
+      "gzipBytes": 364349,
+      "blocking": 3
+    },
+    {
+      "command": "node expose-gc actual planChargesMonth A/B against dbc030dc",
+      "exitCode": 0
+    },
+    {
+      "command": "actual betaRevision old and current descriptors for ten receipt consumers",
+      "exitCode": 0,
+      "live": 6,
+      "retired": 4
+    },
+    {
+      "command": "Playwright inicio-cargos and metas-mensual --workers=1 --retries=0",
+      "exitCode": 0,
+      "sourceSHA": "028f32cc0a0749c21f15bf4fc86f2d0ffc5cb38a",
+      "passed": 93,
+      "failed": 0,
+      "skipped": 0,
+      "flaky": 0,
+      "recibos": 78,
+      "metas": 15
+    },
+    {
+      "command": "node tests/docs-frescura.test.mjs",
+      "exitCode": 1,
+      "reason": "Exactly one own source file after117 anchor; CHANGELOG/version alignment checks pass. VERSION belongs to integration and is forbidden in this task."
+    }
+  ],
+  "reservations": {
+    "one": "Validated local expense proof from ob or ob-hist protects paidYm/paidDay when moving day; notification/manual/missing local origin still do not persist. Causal oldDBC fails and excluding bankExpense mutant killed.",
+    "two": "No receipt category means no equality requirement; explicit category retains cross-bank incompatibility veto. Real BillsAddWizard/SubRow/Reconcile/histFijosFromSelection creators with real categoryOfBankTx, twenty combinations across Netflix/Vodafone/BasicFit/Mercadona/Iberdrola and four classified categories. Debt/transfer/cash/manual/cent differences and tied owners vetoed.",
+    "three": {
+      "killed": [
+        "expense-path cargo linked to another receipt",
+        "notification BOOK pair different banks",
+        "automatic owner cents50.00 versus50.30",
+        "no persisted confirmation guard",
+        "duplicate identity among proofs"
+      ],
+      "plusRegression": "bank expense proof excluded from day edit",
+      "priorSixGuardsStillPass": true
+    },
+    "four": {
+      "budgetIncreaseDeclared": true,
+      "fromBeta117": {
+        "rawKiB": 1298,
+        "gzipKiB": 355
+      },
+      "minimumCandidate": {
+        "rawKiB": 1303,
+        "gzipKiB": 356
+      },
+      "increaseKiB": {
+        "raw": 5,
+        "gzip": 1
+      },
+      "exactBytes": {
+        "raw": 1333562,
+        "gzip": 364349,
+        "bloqueantes": 3,
+        "versionReserve": "4.26.117.99999",
+        "syntheticDSNBytes": 95
+      },
+      "marginBytes": {
+        "raw": 710,
+        "gzip": 195
+      },
+      "relativeToRevision2": {
+        "rawBytes": 217,
+        "gzipBytes": 83,
+        "noFurtherCapIncrease": true
+      },
+      "index": "Only current queried month names/keys, one bucket per amount, global ids preserve reused-id veto",
+      "retainedHeap20000": {
+        "allCurrentMonthBefore": 19243680,
+        "allCurrentMonthAfter": 14322976,
+        "spreadBefore": 20364400,
+        "spreadAfter": 2573312
+      },
+      "method": "same host synthetic Node expose-gc, retained heap delta; warm median around0.06ms, not mobile acceptance"
+    },
+    "five": {
+      "cause": "Month jump closes underbudget month and unlocks first_underbudget plus correlated first_reto; badges overwrite shared error toast",
+      "fixtureBadges": [
+        "save_100",
+        "first_underbudget",
+        "first_reto"
+      ],
+      "oracleAndTimeoutUnchanged": true,
+      "relatedTask": "suite-roja-en-beta-codex-20261011",
+      "causeMessageCommit": "7941f9c362e1e90b637a975a8d69cd9ad79e1c4f"
+    }
+  },
+  "residuals": [
+    "Notification and posted charge more than3 days apart in another bank remain ambiguous and may withdraw paid state",
+    "Charge plus refund for same merchant is not netted to decide receipt payment",
+    "Notification at00:30 Madrid on day1 may be attributed to previous UTC month",
+    "H5 displaying and undoing automatic attribution from charge detail remains owner decision"
+  ],
+  "activeFingerprints": [
+    {
+      "id": "inc-3009-01-cargos",
+      "inPanel": true,
+      "before": "f5bed7851151720ae0f4fda2cd2b3f7ca8b29e52b058656df73ca7dfa128e33c",
+      "after": "651cc3412cc317a4b2400a07fab42db4f988ef45651aa729e8fa87471e3aad12"
+    },
+    {
+      "id": "inc-2909-02-inicio-natural",
+      "inPanel": true,
+      "before": "2274a0fac94c162338b8d0352ee8f9cc6dfabdaff821b713a661446db2c682a8",
+      "after": "18fb475f3ac703fe841eb53413714958df07a267dcab7be0f2e427e074c84feb"
+    },
+    {
+      "id": "inc-3009-nomina-anticipada",
+      "inPanel": true,
+      "before": "b1d0408c709dcf7e397ca1ae11119e1f7fed625da58f00834dac3accb2085606",
+      "after": "14b3a954cbe0124f5a5d5c83a3ecf50532a0db5bda5b38a46d689f79c77fe5f0"
+    },
+    {
+      "id": "inc-2909-03-retirada",
+      "inPanel": true,
+      "before": "5d3e9a322d8024e3e704a9cc6678c829958594ce2900cd641a29afbf11f5a090",
+      "after": "371ebef775dd38529b951895315b73166f1ecbf487c50d0d44311518e0e5b76b"
+    },
+    {
+      "id": "inc-0210-01-plan-cuota",
+      "inPanel": true,
+      "before": "ad724bc2d62837dbf3b005289bd87dd991cde32df15efd2ddde15e0dc3d34345",
+      "after": "a2488f65ea342578f1d8f532a534bf5ca94543c56b265176509132fd3c55897b"
+    },
+    {
+      "id": "inc-0210-03-gastos-periodo",
+      "inPanel": true,
+      "before": "81f03ee94f3db9d82c8e94f83db1927be8e9e00725d89c72dffd362a8081b17a",
+      "after": "cf60e4fd7183b67d21e1278a79a7ca9a5ff22d92593e8316f38c22e13cedef6f"
+    }
+  ],
+  "retiredFingerprints": [
+    {
+      "id": "feature-0310-01-movilidad",
+      "inPanel": false,
+      "before": "8fc23b5a0286218b5d34f5b5892f80e3017be3d2a64ad307c8c2318be2ef75d9",
+      "after": "640295026c0a1268b67969aa18f243766076f0c18042e47bd4fa20bcc27f69ec"
+    },
+    {
+      "id": "inc-0310-gastos-sin-limite",
+      "inPanel": false,
+      "before": "97f952fac1f6a3ee22513195f0ca3de85eedf371f14073318330005df4b3ebf1",
+      "after": "e37d5f260aff3e105deb07de6e1fc413be4d4c897a2b081d1c67f6d7a576386c"
+    },
+    {
+      "id": "inc-0710-gastos-mes-madrid",
+      "inPanel": false,
+      "before": "97f952fac1f6a3ee22513195f0ca3de85eedf371f14073318330005df4b3ebf1",
+      "after": "e37d5f260aff3e105deb07de6e1fc413be4d4c897a2b081d1c67f6d7a576386c"
+    },
+    {
+      "id": "bancos-sin-hueco",
+      "inPanel": false,
+      "before": "9806b3013e6aae885ab455fbc3d092400bdde3301af5312a96d3231366db9bc4",
+      "after": "844208d64168ac42288a848ff568d2d7652906aeaa02bdb69e3dac4a2982362e"
+    }
+  ],
+  "retiredReopened": false,
+  "oldMobileApprovalInferred": false,
+  "previousEvidence": {
+    "revision2ResultCommit": "2422015bf4c2c9b491470e685dd56c4ea9279937",
+    "npmExit": 1,
+    "fullFunctionalExit": 1,
+    "fullStats": {
+      "passed": 1050,
+      "failed": 1,
+      "skipped": 1
+    },
+    "focalDiagnosis150EachExit0": true,
+    "preservedAndNotRelabeled": true
+  },
+  "limitations": [
+    "Full npm and functional suite not repeated per task; focal93 green does not replace historical full-suite exits",
+    "VERSION, catalogue and release notes belong to Claude integration; candidate only, no beta/main/production/APK or mobile acceptance",
+    "A traveled expense proof without its local row does not prove bank origin; only BOOK proof can preserve financial calendar without local feed",
+    "Index memory/timing is synthetic Node; GameAssist was excluded only under explicit current slot and host verification",
+    "Current standalone docs-frescura exit1 requires integration version bump; npm itself was not rerun."
+  ],
+  "resourcesReturned": true,
+  "cleanupRequiredBeforePublish": false,
+  "servedHTMLSHA256": "3de7633cafcf57a2cd6063ab6e3334105702eb4b7e21ba698da1370ea23bc8bf",
+  "scope": [
+    "CHANGELOG.md",
+    "e2e/inicio-cargos.spec.mjs",
+    "e2e/metas-mensual.spec.mjs",
+    "public/beta-delivery.json",
+    "public/index.html",
+    "public/release-notes.json",
+    "src/modules/08-motor-bank.js",
+    "tests/fixed-payment-state.test.mjs",
+    "tests/presupuesto-rendimiento.test.mjs"
+  ],
+  "claimTransferred": false,
+  "privateAndamiosRemoved": true,
+  "privateEvidenceRetained": true,
+  "schema": 1,
+  "taskId": "recibos-revision3-reservas-codex-20261012",
+  "actor": "codex",
+  "sessionId": "codex-local-20261012-3d797dfc05e2",
+  "createdAt": "2026-10-12T14:32:30.153Z",
+  "released": true
+}
