@@ -1782,7 +1782,10 @@ for(const lang of ["es","en","ca"])test(`promoción117: entrega por superficies,
   await news.locator('.btn-ghost.btn-block').click();
   await expect(versions).toHaveCount(227);
   expect((await versions.locator("span:first-child").allTextContents()).map(x=>x.match(/^v(\d+\.\d+\.\d+)/)[1])).toEqual(["4.26.117",...production.map(n=>n.v)]);
-  await expect(news).not.toContainText("v4.26.109");await expect(news).not.toContainText("v4.26.112");
+  // Se mira la versión de cada fila, no el texto corrido del panel: «v4.26.11» seguido de su
+  // fecha «22 sep 2026» se lee como «v4.26.112» y daba un falso positivo (CI del 12/10/2026).
+  const shown=(await versions.locator("span:first-child").allTextContents()).map(x=>x.match(/^v(\d+\.\d+\.\d+)/)[1]);
+  expect(shown).not.toContain("4.26.109");expect(shown).not.toContain("4.26.112");
   await expect(news).toContainText(production.find(n=>n.v==="4.26.111").t[lang]);
   expect(await page.evaluate(h=>(store.get("_betaReviewMarks")||{})[h],saved.huella)).toEqual(saved.ledger);
   expect(await page.evaluate(()=>store.get("_betaReview_4.26.117.1_v"))).toEqual(saved.decisions);
