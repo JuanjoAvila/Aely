@@ -233,7 +233,10 @@ const PRESUPUESTO = {
   // nombre entero vive una sola vez (`recFrase`) y se fueron dos funciones que se solapaban.
   // 1304 KiB se queda corto por 10.875 B: 1315 es el mínimo y deja 389 B. No se recortan
   // guardas ni idiomas para caber. La integración tiene que volver a medir con su sello.
-  minificado: 1315 * 1024,
+  // Cuarta revisión (13/10): quitar la marca en la nube al borrar el recibo, la vuelta atrás de
+  // un puntual, el veto que se levanta desde otro móvil y el aviso que gana al cargo marcado
+  // miden 1.348.175/368.865 B (+2.004/+590). Mínimos 1317/361, márgenes 433/799 B.
+  minificado: 1317 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -249,7 +252,7 @@ const PRESUPUESTO = {
   // Recibos118: 364.346 B gzip, 826 B sobre 355 KiB. +1 KiB mínimo (quedan 198 B).
   // Bancos119: 364.664 B gzip, 120 B sobre 356 KiB. +1 KiB mínimo (quedan 904 B).
   // Cargo de recibo en Gastos: 368.275 B gzip, 2.707 B sobre 357 KiB. 360 es el mínimo (quedan 365 B).
-  gzip: 360 * 1024,
+  gzip: 361 * 1024,
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 

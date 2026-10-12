@@ -20,6 +20,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import vm from "node:vm";
 import { test } from "node:test";
+import { transformSync } from "esbuild";
 import { loadPureLogic, extractPureLogicSource, createLogicSandbox } from "../scripts/load-pure-logic.mjs";
 
 const source=file=>fs.readFileSync(new URL("../"+file,import.meta.url),"utf8");
@@ -41,7 +42,7 @@ const TX_COM=T("t1","sabadell","2026-10-12",50,"COMUNIDAD DE PROPIETARIOS");
 const TX_MOV=T("t2","sabadell","2026-10-05",102,"Pepe Mobile, S.L.U.");
 const ASPSP={sabadell:"Banco de Sabadell",caixabank:"CaixaBank"};
 // Respuesta de `bank-sync`: un enlace por banco, con su saldo real y sus movimientos.
-const enlaces=(txs,saldos)=>Object.keys(saldos).map(ent=>({aspsp:ASPSP[ent],ok:true,
+const enlaces=(txs,saldos)=>Object.keys(saldos).map(ent=>({aspsp:ASPSP[ent]||ent,ok:true,
   accounts:[{uid:ent,ok:true,balances:[{type:"ITAV",amount:saldos[ent],currency:"EUR"}],transactions:txs.filter(t=>t.ent===ent)}]}));
 const unaCuenta=[{id:"sb",ent:"sabadell",role:"fijos",value:2000},{id:"tr",ent:"trade_republic",role:"diario",spendFrom:true,value:500}];
 const estado=o=>Object.assign({accounts:clon(unaCuenta),fixed:clon(fijos),bankTx:[],debts:[],oneoffs:[],expenses:[],flows:[],settings:{},deleted:[]},o);
@@ -117,7 +118,7 @@ for(const [rol,accounts,settings] of ROLES){
     assert.equal(j(["sabadell","caixabank"].map(ent=>c.monthNetForAccount(d,ent,2026,10,12))),j([-152,-61.4]),"el recibo resta una vez");
     assert.equal(c.planChargesMonth(d,10,2026,12).pendingBillsTotal,0,"los tres salen pagados en Plan");
     // La medida no está ciega: si la fila contara, el gastado subiría donde el banco cuenta.
-    const contando=Object.assign({},d,{reciboNo:d.expenses.filter(e=>e.reciboId).map(e=>e.reciboId+"|#"+e.id)});
+    const contando=Object.assign({},d,{reciboNo:d.expenses.filter(e=>e.reciboId).map(e=>e.reciboId+"|#"+e.id+"|x")});
     const cuentaSb=rol!=="solo recibos",cuentaCx=rol==="para todo";
     assert.equal(+(gastado(contando)-gastado(d)).toFixed(2),(cuentaSb?152:0)+(cuentaCx?61.4:0));
   });
@@ -352,6 +353,33 @@ for(const [rol,accounts,settings] of ROLES){
       const otraVez=c.quitarCargoDeRecibo(A,fila.id).state;
       assert.equal(c.reciboNoUnion(Bbaja,otraVez).reciboNo.length,2);
       assert.equal(c.reciboNoUnion(otraVez,Bbaja).reciboNo.length,2);
+      // MISMA FILA, OTRO ID LOCAL (cuarta revisión). En B la fila la bajó de la nube con otro id:
+      // al levantar el veto encuentra por identidad la clave de fila que puso A, y A queda libre.
+      ahora=OCT12+60000;
+      const enB=Object.assign({},sinExtracto,{expenses:sinExtracto.expenses.map(e=>e.id===fila.id?Object.assign({},e,{id:"id-en-b"}):e)});
+      const rb=c.reponerCargoDeRecibo(enB,"id-en-b","com",2026,10,12);
+      assert.equal(rb.state.reciboNo.length,0,"B levanta las dos claves, también la que lleva el id de A");
+      const Abaja=Object.assign({},sinExtracto,{fixed:rb.state.fixed,expenses:c.mergeExpensesFromCloud(sinExtracto.expenses,[c.expenseFromRow({id:"99999999-9999-4999-8999-999999999999",fecha:fila.date,importe:fila.amount,comercio:fila.merchant,cat:fila.category,source:c.expenseSourceForCloud(rb.e),ob_name:fila.obName})],ahora).list},c.reciboNoUnion(sinExtracto,rb.state));
+      assert.equal(gastado(Abaja),gastado(r.state),"y A vuelve a no contarlo");
+      assert.equal(pagados(Abaja),"com,mov");
+      // RELOJ ATRASADO: B levanta con una hora ANTERIOR a la del veto de A y aun así gana, porque
+      // conoce ese veto y lo que dice es posterior.
+      ahora=OCT12-3600000;
+      const tarde=c.reponerCargoDeRecibo(sinExtracto,fila.id,"com",2026,10,12).state;
+      assert.equal(c.reciboNoUnion(sinExtracto,tarde).reciboNo.length,0);
+      assert.ok(Object.values(tarde.reciboNoAt).every(t=>t===OCT12+1));
+      // EL RECIBO CAMBIÓ DE BANCO tras el veto: la marca no puede volver (el cargo no es de ese
+      // banco). Se guarda el vínculo, como en uno cualquiera, y el diálogo no promete otra cosa.
+      ahora=OCT12+60000;
+      const mudado=Object.assign({},sinExtracto,{fixed:sinExtracto.fixed.map(f=>f.id==="com"?Object.assign({},f,{account:"caixabank"}):f)});
+      const cargo=mudado.expenses.find(e=>e.id===fila.id);
+      assert.equal(c.admiteMarcaDe(cargo,mudado.fixed.find(f=>f.id==="com")),false);
+      assert.equal(c.admiteMarcaDe(cargo,sinExtracto.fixed.find(f=>f.id==="com")),true);
+      const rm=c.reponerCargoDeRecibo(mudado,fila.id,"com",2026,10,12);
+      assert.equal(rm.e,null,"no se marca un cargo de otro banco");
+      assert.equal(rm.state.expenses.some(e=>e.reciboId==="com"),false);
+      assert.equal(pagados(rm.state),"com,mov","el vínculo sí se guarda");
+      assert.equal(gastado(rm.state),gastado(mudado),"y el gastado se conserva, como dice su diálogo");
     } finally { ahora=OCT12; }
     // Renombrar el comercio de la fila no devuelve el pago: el veto también va por su id.
     const renombrada=Object.assign({},q.state,{bankTx:[],expenses:q.state.expenses.map(e=>e.id===fila.id?Object.assign({},e,{merchant:"Comunidad",obName:"Comunidad"}):e)});
@@ -413,8 +441,11 @@ for(const [rol,accounts,settings] of ROLES){
     const r=sincroniza(estado({accounts:clon(accounts),settings:clon(settings),oneoffs:[puntual]}),[TX_COM,TX_MOV,T("t3","sabadell","2026-10-09",45,"ITV COCHE MADRID")],{sabadell:1803});
     assert.equal(mostrado(r.state)[0],1803);
     for(const [lista,id,importe] of [["fixed","com",50],["oneoffs","o1",45]]){
-      const sin=c.sinCargoDelPlan(r.state,lista,id);
+      const borrado=c.sinCargoDelPlan(r.state,lista,id), sin=borrado.state;
       assert.equal(sin[lista].some(x=>x.id===id),false);
+      // Sus filas pierden la marca, y son las que hay que reescribir en la nube.
+      assert.equal(sin.expenses.some(e=>e.reciboId===id),false);
+      assert.equal(j(borrado.subir.map(e=>[e.amount,e.reciboId||null,c.expenseSourceForCloud(e)])),j([[importe,null,"ob:sabadell"]]));
       assert.equal(j(mostrado(sin)),j(mostrado(r.state)),lista+": el saldo pintado sigue siendo el del banco");
       assert.equal(+(gastado(sin)-gastado(r.state)).toFixed(2),rol==="solo recibos"?0:importe,lista+": el cargo pasa a contar como un gasto");
       // Lo que entra por la puerta de la pantalla es esto mismo.
@@ -423,7 +454,10 @@ for(const [rol,accounts,settings] of ROLES){
     }
     // Sin ningún cargo suyo en Gastos, borrar hace exactamente lo de siempre.
     const sinFilas=Object.assign({},r.state,{expenses:r.state.expenses.filter(e=>e.reciboId!=="com")});
-    assert.equal(j(c.sinCargoDelPlan(sinFilas,"fixed","com")),j(Object.assign({},sinFilas,{fixed:sinFilas.fixed.filter(f=>f.id!=="com")})));
+    const nada=c.sinCargoDelPlan(sinFilas,"fixed","com");
+    assert.equal(j(nada.state),j(Object.assign({},sinFilas,{fixed:sinFilas.fixed.filter(f=>f.id!=="com")})));
+    assert.equal(nada.state.expenses,sinFilas.expenses,"y no reescribe el histórico");
+    assert.equal(nada.subir.length,0);
     if(rol==="gasto diario"){
       // El control: sin sujetar, la cuenta de gasto diario bajaba el importe del cargo.
       const crudo=Object.assign({},r.state,{fixed:r.state.fixed.filter(f=>f.id!=="com")});
@@ -511,10 +545,12 @@ function nubeFalsa(previas){
       const res={data:null,error:null};
       return {then:(ok,ko)=>Promise.resolve(res).then(ok,ko),select:()=>Promise.resolve({data:nuevas,error:null})};
     },
-    update(patch){ const conds=[]; const q={ eq(col,val){ conds.push([col,val]); return q; },
-      then(ok,ko){ const hit=tabla.filter(r=>conds.every(([col,v])=>col==="fecha"?Date.parse(r[col])===Date.parse(v):col==="importe"?Number(r[col])===Number(v):r[col]===v));
-        log.push("cambia "+hit.length); hit.forEach(r=>Object.assign(r,patch)); return Promise.resolve({data:null,error:null}).then(ok,ko); } }; return q; },
+    select(){ return consulta(hit=>{ log.push("lee "+hit.length); return hit.map(r=>({id:r.id,source:r.source})); }); },
+    update(patch){ return consulta(hit=>{ log.push("cambia "+hit.length); hit.forEach(r=>Object.assign(r,patch)); return null; }); },
   });
+  const consulta=hace=>{ const conds=[]; const q={ eq(col,val){ conds.push([col,val]); return q; },
+    then(ok,ko){ const hit=tabla.filter(r=>conds.every(([col,v])=>col==="fecha"?Date.parse(r[col])===Date.parse(v):col==="importe"?Number(r[col])===Number(v):r[col]===v));
+      return Promise.resolve({data:hace(hit),error:null}).then(ok,ko); } }; return q; };
   return {tabla,log,client:{auth:{getSession:async()=>({data:{session:{user:{id:"u1"},expires_at:9e9}},error:null}),onAuthStateChange(){ return {data:{subscription:{unsubscribe(){}}}}; }},from}};
 }
 function appConNube(n){
@@ -527,14 +563,16 @@ const MARCADA={id:"11111111-1111-4111-8111-111111111111",date:"2026-10-05T10:00:
 const YA={fecha:MARCADA.date,importe:102,comercio:MARCADA.merchant,cat:"otros"};
 for(const [caso,previa,queda,peticiones] of [
   ["nube vacía: entra ya marcada y no hace falta nada más",null,"ob:sabadell~recibo.mov",["alta"]],
-  ["la fila ya estaba sin marca, del sync diario de otro móvil","ob:sabadell","ob:sabadell~recibo.mov",["alta","cambia 1","cambia 0"]],
-  ["la fila ya estaba sin marca, de Importar histórico: conserva su origen","ob-hist:sabadell","ob-hist:sabadell~recibo.mov",["alta","cambia 0","cambia 1"]],
-  ["era un posible repetido pendiente de su decisión: no se toca","ob:sabadell#dup","ob:sabadell#dup",["alta","cambia 0","cambia 0"]],
-  ["estaba marcada a mano como cuota de una deuda: no se toca","ob:sabadell~deuda.hipoteca","ob:sabadell~deuda.hipoteca",["alta","cambia 0","cambia 0"]],
-  ["es un aviso del móvil con la misma fecha, importe y comercio: no se toca","macrodroid","macrodroid",["alta","cambia 0","cambia 0"]],
-  ["es un gasto a mano: no se toca","manual:sabadell","manual:sabadell",["alta","cambia 0","cambia 0"]],
-  ["es de Trade Republic pendiente de decisión: no se toca","ob:trade_republic#dup","ob:trade_republic#dup",["alta","cambia 0","cambia 0"]],
-  ["es de otro banco: no se toca","ob:caixabank","ob:caixabank",["alta","cambia 0","cambia 0"]],
+  ["la fila ya estaba sin marca, del sync diario de otro móvil","ob:sabadell","ob:sabadell~recibo.mov",["alta","lee 1","cambia 1"]],
+  ["la fila ya estaba sin marca, de Importar histórico: conserva su origen","ob-hist:sabadell","ob-hist:sabadell~recibo.mov",["alta","lee 1","cambia 1"]],
+  ["ya estaba, con el ordinal de un apunte igual del mismo día: lo conserva detrás","ob:sabadell#n2","ob:sabadell~recibo.mov#n2",["alta","lee 1","cambia 1"]],
+  ["ya llevaba la marca: no se escribe nada","ob:sabadell~recibo.mov","ob:sabadell~recibo.mov",["alta","lee 1"]],
+  ["era un posible repetido pendiente de su decisión: no se toca","ob:sabadell#dup","ob:sabadell#dup",["alta","lee 1"]],
+  ["estaba marcada a mano como cuota de una deuda: no se toca","ob:sabadell~deuda.hipoteca","ob:sabadell~deuda.hipoteca",["alta","lee 1"]],
+  ["es un aviso del móvil con la misma fecha, importe y comercio: no se toca","macrodroid","macrodroid",["alta","lee 1"]],
+  ["es un gasto a mano: no se toca","manual:sabadell","manual:sabadell",["alta","lee 1"]],
+  ["es de Trade Republic pendiente de decisión: no se toca","ob:trade_republic#dup","ob:trade_republic#dup",["alta","lee 1"]],
+  ["es de otro banco: no se toca","ob:caixabank","ob:caixabank",["alta","lee 1"]],
 ]){
   test("subir el cargo de un recibo · "+caso, async ()=>{
     const n=nubeFalsa(previa?[Object.assign({},YA,{source:previa})]:[]), app=appConNube(n);
@@ -554,4 +592,104 @@ test("subir una fila normal sigue siendo una sola escritura, y el modo pruebas n
   vm.runInContext("mcSandbox=function(){ return true; }",pruebas);
   await pruebas.subirGasto(MARCADA,"test");
   assert.equal(j([m.log,m.tabla[0].source]),j([[],"ob:sabadell"]));
+});
+
+test("quitar la marca en la nube encuentra la fila aunque su id aquí sea otro, y conserva `#dup` y `#n<k>`", async ()=>{
+  const sinMarca=Object.assign({},MARCADA,{reciboId:undefined});
+  for(const [antes,despues] of [["ob:sabadell~recibo.mov","ob:sabadell"],["ob-hist:sabadell~recibo.mov#n2","ob-hist:sabadell#n2"],["ob:sabadell~recibo.mov#dup#n3","ob:sabadell#dup#n3"],["ob:sabadell~deuda.d1","ob:sabadell~deuda.d1"],["macrodroid","macrodroid"]]){
+    // El id de la fila en la nube («old0») no es el del móvil: un UPDATE por id no tocaría nada.
+    const n=nubeFalsa([Object.assign({},YA,{source:antes})]), app=appConNube(n);
+    await vm.runInContext("cloud",app).setExpenseRecibo(sinMarca);
+    assert.equal(n.tabla[0].source,despues,antes);
+  }
+});
+
+// ───── Widget y app tras borrar el recibo: el servidor (`presupuesto.ts`, el fichero real) deja
+// fuera todo `~recibo.` sin saber si el recibo existe. Con la marca en la nube, la app contaba el
+// cargo y el widget no. Se borra por la puerta de la pantalla y se comparan las dos cuentas.
+const { statsDelMes }=await import("data:text/javascript;base64,"+Buffer.from(transformSync(source("supabase/functions/_shared/presupuesto.ts"),{loader:"ts",format:"esm"}).code).toString("base64"));
+for(const [lista,id] of [["fixed","com"],["oneoffs","o1"]]){
+  test("borrar un "+(lista==="fixed"?"recibo":"puntual")+" con su cargo marcado: el widget y la app siguen diciendo lo mismo", async ()=>{
+    const puntual={id:"o1",name:"ITV coche",amount:45,account:"sabadell",month:10,year:2026,day:9};
+    const r=sincroniza(todo({oneoffs:[puntual]}),[TX_COM,TX_MOV,T("t3","sabadell","2026-10-09",45,"ITV COCHE MADRID"),T("p1","sabadell","2026-10-07",3.4,"Panadería Sol",{card:true})],{sabadell:1799.6});
+    const n=nubeFalsa([]), app=appConNube(n);
+    app.Date=c.Date;
+    for(const e of r.state.expenses) await app.subirGasto(e,"test");
+    const octubre=new Date("2026-10-01T00:00:00+02:00").getTime();
+    const servidor=s=>+statsDelMes(n.tabla,s,octubre).spent.toFixed(2);
+    assert.equal(servidor(r.state),+gastado(r.state).toFixed(2),"antes de borrar ya cuadran");
+    let s=r.state;
+    (lista==="fixed"?app.removeFixedById:app.removeOneoffById)(f=>{ s=f(s); },id);
+    await new Promise(setImmediate);
+    const importe=lista==="fixed"?50:45;
+    assert.equal(+(gastado(s)-gastado(r.state)).toFixed(2),importe,"la app pasa a contar el cargo");
+    assert.equal(servidor(s),+gastado(s).toFixed(2),"y el widget también");
+    assert.equal(n.tabla.find(f=>Number(f.importe)===importe).source,"ob:sabadell");
+    assert.equal(n.tabla.filter(f=>/~recibo\./.test(f.source)).length,2,"las marcas de los otros dos no se tocan");
+  });
+}
+
+test("el aviso del móvil gana al cargo de recibo de su mismo día, importe y comercio, baje antes o después", ()=>{
+  const s0=()=>todo({accounts:[{id:"tr",ent:"trade_republic",role:"ambos",spendFrom:true,value:500}],fixed:[F("spo","Spotify",10.99,5,"trade_republic")]});
+  const txs=[T("x1","trade_republic","2026-10-05",10.99,"Spotify",{card:true})];
+  const aviso=c.expenseFromRow({id:"11111111-1111-4111-8111-111111111111",fecha:"2026-10-05T10:00:00.000Z",importe:10.99,comercio:"Spotify",cat:"ocio",source:"macrodroid",ingest_event_id:"ev1"});
+  const marcadaNube=c.expenseFromRow({id:"22222222-2222-4222-8222-222222222222",fecha:"2026-10-05T10:00:00.000Z",importe:10.99,comercio:"Spotify",cat:"ocio",source:"ob:trade_republic~recibo.spo",ob_name:"Spotify"});
+  const foto=s=>j([+gastado(s).toFixed(2),s.expenses.map(e=>e.source+(e.reciboId?"+recibo":""))]);
+  // El orden de siempre: el aviso ya está cuando llega el banco. Así era también en la 4.26.119.
+  const habitual=sincroniza(Object.assign(s0(),{expenses:[aviso]}),txs,{trade_republic:489.01}).state;
+  assert.equal(foto(habitual),j([10.99,["macrodroid"]]));
+  // El otro: el banco primero, y el aviso baja de la nube después.
+  const banco=sincroniza(s0(),txs,{trade_republic:489.01}).state;
+  assert.equal(foto(banco),j([0,["ob+recibo"]]));
+  const baja=lista=>Object.assign({},banco,{expenses:c.mergeExpensesFromCloud(banco.expenses,lista,ahora).list});
+  assert.equal(foto(baja([aviso])),foto(habitual));
+  // Y si la nube trae las dos filas, da igual cuál venga delante; el siguiente pull no lo deshace.
+  assert.equal(foto(baja([aviso,marcadaNube])),foto(habitual));
+  assert.equal(foto(baja([marcadaNube,aviso])),foto(habitual));
+  const otra=Object.assign({},banco,{expenses:c.mergeExpensesFromCloud(baja([aviso]).expenses,[marcadaNube,aviso],ahora).list});
+  assert.equal(foto(otra),foto(habitual));
+  // Ni un pull que solo trae la fila marcada del banco le pega la marca al aviso.
+  assert.equal(foto(Object.assign({},otra,{expenses:c.mergeExpensesFromCloud(otra.expenses,[marcadaNube],ahora).list})),foto(habitual));
+  assert.equal(sincroniza(otra,txs,{trade_republic:489.01}).add.length,0,"y el banco no la vuelve a meter");
+});
+
+test("un «No es este recibo» sobre un PUNTUAL tiene vuelta atrás", ()=>{
+  const o={id:"o1",name:"ITV coche",amount:45,account:"sabadell",month:10,year:2026,day:9};
+  const r=sincroniza(todo({fixed:[],oneoffs:[o]}),[T("a1","sabadell","2026-10-09",45,"ITV COCHE MADRID")],{sabadell:1955});
+  const fila=r.state.expenses[0], q=c.quitarCargoDeRecibo(r.state,fila.id);
+  assert.equal(gastado(q.state),45);
+  assert.equal(c.reciboNoDe(q.state,"o1",c.fixedPaymentIdentity("sabadell",q.e),q.e.id).length,2,"es lo que la ficha mira para ofrecerlo");
+  ahora=OCT12+60000;
+  try{
+    const rp=c.reponerCargoDeRecibo(q.state,fila.id,"o1",2026,10,12,{identity:c.fixedPaymentIdentity("sabadell",q.e)});
+    assert.equal(j([rp.e.reciboId,rp.state.reciboNo.length,gastado(rp.state)]),j(["o1",0,0]));
+    assert.equal(j(mostrado(rp.state)),j(mostrado(q.state)),"sin mover el saldo");
+    assert.equal(c.reciboEtiqueta(rp.state,rp.e),"Recibo: ITV coche");
+    // Con el puntual movido a otro banco no hay marca que devolver: no se toca nada.
+    const mudado=Object.assign({},q.state,{oneoffs:[Object.assign({},o,{account:"caixabank"})]});
+    assert.equal(c.reponerCargoDeRecibo(mudado,fila.id,"o1",2026,10,12),null);
+  } finally { ahora=OCT12; }
+});
+
+// ───── Bloques REALES de la pantalla, sacados del bundle servido (`public/index.html`), que es lo
+// que ejecuta el móvil: una mutación sobre el bundle también los alcanza.
+const bundle=source("public/index.html");
+test("al bajar el estado de la nube, App une los vetos con `reciboNoUnion` (el bloque REAL de syncFromCloud)", ()=>{
+  const m=/const baseObj = localNewer[\s\S]*?if\(freshLogin && \(cloudState\.accounts/.exec(bundle)||/const baseObj\s*=\s*localNewer[\s\S]*?if\(freshLogin\s*&&\s*\(cloudState\.accounts/.exec(bundle);
+  assert.ok(m,"no se encuentra el bloque de último-que-escribe en syncFromCloud");
+  const adopta=new Function("prev","cloudState","freshLogin","localNewer","merged","opts","reciboNoUnion","fusionarGemelos",m[0].replace(/if\(freshLogin\s*&&\s*\(cloudState\.accounts$/,"")+"\nreturn baseObj;");
+  const prev={_savedAt:1,expenses:[],reciboNo:["com|x"],reciboNoAt:{"com|x":10}}, nube={_savedAt:2,reciboNo:[],reciboNoAt:{"com|x":20}};
+  const fus=(a,b)=>a||b;
+  // La nube lo levantó después: aquí deja de estar. Y un veto local más reciente sobrevive a una nube que no lo trae.
+  assert.equal(j(adopta(prev,nube,false,false,{list:[]},null,c.reciboNoUnion,fus).reciboNo),j([]));
+  const local={_savedAt:1,expenses:[],reciboNo:["com|x"],reciboNoAt:{"com|x":30}};
+  assert.equal(j(adopta(local,nube,false,false,{list:[]},null,c.reciboNoUnion,fus).reciboNo),j(["com|x"]),"sin la unión, la lista de la nube lo borraría");
+});
+
+test("el aviso de presupuesto al apuntar no cuenta el cargo de un recibo (el bloque REAL de Gastos)", ()=>{
+  const m=/const before=\(state\.expenses\|\|\[\]\)\.filter\([^;]*;/.exec(bundle);
+  assert.ok(m,"no se encuentra la suma del mes en el aviso de presupuesto");
+  const r=sincroniza(todo(),[TX_COM,TX_MOV,T("p1","sabadell","2026-10-07",3.4,"Panadería Sol",{card:true})],{sabadell:1844.6});
+  const antes=new Function("state","monthStartMs","dateMs","cargoDeRecibo",m[0]+"\nreturn before;");
+  assert.equal(antes(r.state,new Date("2026-10-01T00:00:00+02:00").getTime(),c.dateMs,c.cargoDeRecibo),3.4,"152 € de recibos no adelantan el aviso del 80 %");
 });

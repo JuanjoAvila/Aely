@@ -276,20 +276,31 @@ el que `fixedPaymentState` da por pagado el recibo y lleva su nombre por palabra
 «¿Recibo: X?» si solo se parece. La marca viaja en `source` como `ob:<ent>~recibo.<id>` u
 `ob-hist:<ent>~recibo.<id>`: una app anterior o el servidor del widget leen un banco
 inexistente y la excluyen sin conocerla, igual que con `~deuda.`. El orden de los sufijos es
-`ob:<ent>[~deuda.<id> | ~recibo.<id>][#dup][#n<k>]`. Si al subirla la fila ya estaba en la nube
-(el alta ignora duplicados), `cloud.setExpenseRecibo` le pone la marca por fecha, importe y
-comercio, pero solo si su `source` es `ob:<ent>` u `ob-hist:<ent>` a secas: un posible repetido,
-una cuota, un aviso del móvil o un gasto a mano que coincidan no se tocan. «No es este recibo»
-(`quitarCargoDeRecibo`) quita la marca, guarda el veto en `state.reciboNo` (por identidad del
-cargo y por id de fila) con su hora en `state.reciboNoAt`, y retira la prueba de pago. Al bajar
+`ob:<ent>[~deuda.<id> | ~recibo.<id>][#dup][#n<k>]`. Toda escritura de la marca sobre una fila
+que ya está en la nube pasa por `cloud.setExpenseRecibo`, que la pone si la fila local la lleva
+y la quita si no: busca por fecha, importe y comercio (el id local puede no ser el de la nube, y
+un UPDATE por id que no casa no toca nada ni da error), lee antes de escribir y solo toca filas
+`ob:<ent>` u `ob-hist:<ent>`, conservando prefijo, `#dup` y `#n<k>`; una cuota, un aviso del
+móvil o un gasto a mano que coincidan no se tocan, y a un posible repetido no se le pone marca.
+La usan el alta cuando la fila ya existía, «No es este recibo», su vuelta atrás y el borrado de
+un recibo. Al bajar gastos de la nube, el aviso del móvil gana al cargo de recibo de su mismo
+día, importe y comercio llegue en el orden que llegue (`mergeExpensesFromCloud`), que es lo que
+pasa cuando el aviso estaba antes. «No es este recibo»
+(`quitarCargoDeRecibo`) quita la marca, guarda el veto en `state.reciboNo` (recibo + identidad
+del cargo, y recibo + id de fila + identidad, para que otro móvil con otro id local pueda
+levantarlo) con su hora en `state.reciboNoAt`, y retira la prueba de pago. Al bajar
 el estado de la nube, `reciboNoUnion` resuelve clave a clave: gana lo último que se dijo, sea
-vetar o levantar; sin hora, o con la misma, se suman. «Confirmar pago de X» con un cargo
+vetar o levantar; sin hora, o con la misma, se suman; quien cambia una clave apunta siempre una
+hora posterior a la que ya constaba, aunque su reloj vaya atrasado. «Confirmar pago de X» con un cargo
 cualquiera NO lo marca: el gastado se queda como estaba, igual que en la 4.26.119 y como dice
 su diálogo. La excepción es confirmar con el mismo cargo del que se dijo «no es este recibo»
 (`reponerCargoDeRecibo`): eso lo deshace, levanta el veto y devuelve la marca, y el diálogo lo
-avisa con el texto de la marca. Borrar un recibo o un puntual que tenía un cargo marcado este
-mes pasa por `sinCargoDelPlan`. Las tres re-anclan la base (`conSaldoMostrado`) para que el
-saldo pintado no se mueva fuera de un sync.
+avisa con el texto de la marca, solo si la marca puede volver (`admiteMarcaDe`: fila del banco
+y del banco del recibo). Vale también para un puntual, que la ficha ofrece únicamente cuando se
+vetó para ese cargo. Borrar un recibo o un puntual pasa por `quitarDelPlan` → `sinCargoDelPlan`:
+sus filas pierden la marca en el móvil y en la nube, porque el servidor del widget deja fuera
+todo `~recibo.` sin saber si el recibo existe. Las tres re-anclan la base (`conSaldoMostrado`)
+para que el saldo pintado no se mueva fuera de un sync.
 
 La misma frontera rige el sync diario: `app_events` puede guardar el banco, una clase estable y
 recuentos agregados, pero nunca transacciones ni campos del proveedor. El volcado temporal usado

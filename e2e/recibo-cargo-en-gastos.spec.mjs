@@ -35,8 +35,8 @@ async function cierraInforme(page) {
   await expect(page.locator(".sync-report")).toHaveCount(0);
 }
 
-async function abre(page, lang) {
-  await seedLoggedInDashboard(page, {
+async function abre(page, lang, otro) {
+  await seedLoggedInDashboard(page, Object.assign({
     __seedOnce: true, hasBankLink: true, budget: 1000,
     accounts: [{ id: "sb", ent: "sabadell", name: "Sabadell", role: "ambos", value: 2000 }],
     settings: { autoPrices: false, theme: "green", lang, expenseBanks: ["sabadell"] },
@@ -44,7 +44,7 @@ async function abre(page, lang) {
     expenses: [{ id: "ctl", date: "2026-09-10T12:00:00.000Z", amount: 20, merchant: "Compra de control", category: "otros", source: "ob", ent: "sabadell", extId: "sb-ctl" }],
     __cloudRows: { bank_links: [{ aspsp_name: "Banco de Sabadell", status: "active", last_sync: "2026-09-20T00:00:00Z" }] },
     __cloudFns: { "bank-sync": { data: { ok: true, links }, error: null } },
-  });
+  }, otro));
   await page.goto("/");
   await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
   await page.waitForFunction(() => !document.getElementById("mc-load"));
@@ -174,6 +174,24 @@ for (const lang of ["es", "en", "ca"]) {
     await expect(page.locator('[data-testid="exp-recibo-marca"]')).toContainText("Comunidad");
   });
 }
+
+test("un «No es este recibo» sobre un puntual tiene vuelta atrás desde la misma ficha", async ({ page }) => {
+  // Sin ningún recibo fijo: la fila «Paga un recibo» sale por la marca y, después, por el veto.
+  await abre(page, "es", { fixed: [], oneoffs: [{ id: "itv", name: "ITV coche", amount: 45, account: "sabadell", month: 9, year: 2026, day: 14 }],
+    expenses: [{ id: "c-itv", date: "2026-09-14T12:00:00.000Z", amount: 45, merchant: "ITV COCHE MADRID", obName: "ITV COCHE MADRID", category: "otros", source: "ob", ent: "sabadell", extId: "sb-itv", reciboId: "itv" }] });
+  const foto = () => page.evaluate(() => { const s = mcLoadRaw(mcStateKey()); return { spent: monthBudgetStats(s).spent, marca: s.expenses[0].reciboId || null, vetos: (s.reciboNo || []).length }; });
+  await page.locator('.botnav-tab[data-tour="gastos"]').click();
+  await expect(fila(page, "ITV COCHE MADRID")).toContainText("Recibo: ITV coche");
+  await fila(page, "ITV COCHE MADRID").click();
+  await page.locator('[data-testid="exp-recibo-no"]').click();
+  await expect.poll(foto).toEqual({ spent: 45, marca: null, vetos: 2 });
+  await page.locator('[data-testid="exp-receipt"]').click();
+  await page.locator('[data-testid="exp-receipt-itv"]').click();
+  await expect(page.locator(".askback")).toContainText("ITV coche");
+  await page.locator(".askback .btn-primary").click();
+  await expect.poll(foto).toEqual({ spent: 0, marca: "itv", vetos: 0 });
+  await expect(page.locator('[data-testid="exp-recibo-marca"]')).toContainText("ITV coche");
+});
 
 test("Importar histórico: el cargo de un recibo sale marcado y con su nombre, no tachado como repetido", async ({ page }) => {
   await seedLoggedInDashboard(page, {

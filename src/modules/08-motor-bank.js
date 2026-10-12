@@ -197,12 +197,24 @@ const RECIBO_NO_MAX=400;
 function reciboVetado(s,id,identity,filaId){
   var no=s&&s.reciboNo;
   if(!no||!no.length) return false;
-  return no.indexOf(id+"|"+identity)>=0||(filaId!=null&&no.indexOf(id+"|#"+filaId)>=0);
+  return no.indexOf(id+"|"+identity)>=0||(filaId!=null&&no.some(function(k){ return k.indexOf(id+"|#"+filaId+"|")===0; }));
+}
+/* Las claves de un veto: recibo + identidad, y recibo + fila + identidad. La de fila lleva
+   también la identidad para que quien lo levante desde OTRO móvil, donde la misma fila tiene
+   otro id local, pueda encontrarla (`reciboNoDe`): sin eso el veto seguía vivo en el primero. */
+function reciboNoClaves(id,identity,filaId){ return [id+"|"+identity,id+"|#"+filaId+"|"+identity]; }
+function reciboNoDe(s,id,identity,filaId){
+  var cola="|"+identity;
+  return (s.reciboNo||[]).filter(function(k){
+    return k===id+cola||k.indexOf(id+"|#"+filaId+"|")===0||(k.indexOf(id+"|#")===0&&k.slice(-cola.length)===cola);
+  });
 }
 // Pone (`vetar`) o levanta esas claves y apunta cuándo. → {reciboNo, reciboNoAt} para el estado.
 function reciboNoPon(s,claves,vetar,ahora){
   var at=Object.assign({},s.reciboNoAt),no=(s.reciboNo||[]).filter(function(k){ return claves.indexOf(k)<0; });
-  claves.forEach(function(k){ at[k]=ahora; });
+  // Siempre posterior a lo que ya constaba: con el reloj de este móvil atrasado, lo que se
+  // acaba de decir aquí perdería contra lo que el otro dijo antes.
+  claves.forEach(function(k){ at[k]=Math.max(ahora,(at[k]||0)+1); });
   return reciboNoTope(vetar?no.concat(claves):no,at);
 }
 function reciboNoTope(no,at){
@@ -1291,8 +1303,13 @@ function quitarCargoDeRecibo(s, expenseId, ahora){
     return Object.assign({}, f, { paymentProofs:proofs });
   });
   const sin=Object.assign({}, s, { expenses:s.expenses.map(function(x){ return x===orig ? e : x; }), fixed:fixed },
-    reciboNoPon(s, [id+"|"+identity, id+"|#"+orig.id], true, ahora||Date.now()));
+    reciboNoPon(s, reciboNoClaves(id, identity, orig.id), true, ahora||Date.now()));
   return { state:conSaldoMostrado(s, sin), e:e };
+}
+// La marca viaja en `source` y solo `ob`/`ob-hist` saben llevarla; y solo del banco del recibo.
+// La usan quien la repone y el diálogo que lo anuncia, para que digan lo mismo.
+function admiteMarcaDe(x, f){
+  return !!x && !!f && !x.debtId && (x.source==="ob" || x.source==="ob-hist") && expenseBankOf(x)===accOf(f);
 }
 /* CONFIRMAR A MANO EL PAGO CON UN CARGO DEL QUE SE DIJO «NO ES ESTE RECIBO» DESHACE AQUELLO: lo
    último que dijo la persona manda. Se levanta el veto (sin esto el vínculo se guardaba y el
@@ -1300,20 +1317,23 @@ function quitarCargoDeRecibo(s, expenseId, ahora){
    lo sigue teniendo el otro móvil: con el veto fuera y sin la marca, aquí contaría como compra
    y allí no. Es el ÚNICO vínculo a mano que marca; el de un cargo cualquiera deja el gastado
    como estaba (`linkFixedPayment`), que es lo que promete su diálogo. Si el vínculo no llega a
-   guardarse y el recibo sigue sin pagar, el veto se queda. → {state, e} (la fila marcada, para
-   subirla; null si no admite marca) o null si no había veto que deshacer. */
+   guardarse y el recibo sigue sin pagar, el veto se queda. Un PUNTUAL no tiene motor de pago
+   ni vínculo: deshacer su veto es solo devolverle la marca, y si no la admite no hay nada que
+   deshacer. → {state, e} (la fila marcada, para subirla; null si no admite marca) o null si no
+   había veto que deshacer. */
 function reponerCargoDeRecibo(s, expenseId, fixedId, y, m, today, expected, ahora){
   const x=((s&&s.expenses)||[]).find(function(r){ return r && r.id===expenseId; });
-  const f=x && (s.fixed||[]).find(function(r){ return r && r.id===fixedId; });
+  const fijo=x && (s.fixed||[]).find(function(r){ return r && r.id===fixedId; });
+  const f=fijo || (x && (s.oneoffs||[]).find(function(r){ return r && r.id===fixedId; }));
   if(!f) return null;
-  const identidad=fixedPaymentIdentity(expenseBankOf(x), x), claves=[fixedId+"|"+identidad, fixedId+"|#"+x.id];
-  if(!(s.reciboNo||[]).some(function(k){ return claves.indexOf(k)>=0; })) return null;
+  const identidad=fixedPaymentIdentity(expenseBankOf(x), x), claves=reciboNoDe(s, fixedId, identidad, x.id);
+  if(!claves.length) return null;
+  const marcar=admiteMarcaDe(x, f);
+  if(!fijo && (!marcar || (expected && expected.identity!==identidad))) return null;
   const libre=Object.assign({}, s, reciboNoPon(s, claves, false, ahora||Date.now()));
-  const link=linkFixedPayment(libre, expenseId, fixedId, y, m, today, expected);
+  const link=fijo ? linkFixedPayment(libre, expenseId, fixedId, y, m, today, expected) : libre;
   // Sin el veto el motor puede darlo por pagado él solo con ese cargo: también vale.
-  if(link===libre && reciboPagadoCon(fixedPaymentState(libre, f, y, m, today))!==identidad) return null;
-  // La marca viaja en `source` y solo `ob`/`ob-hist` saben llevarla; y solo del banco del recibo.
-  const marcar=!x.debtId && (x.source==="ob" || x.source==="ob-hist") && expenseBankOf(x)===accOf(f);
+  if(fijo && link===libre && reciboPagadoCon(fixedPaymentState(libre, f, y, m, today))!==identidad) return null;
   const e=marcar ? Object.assign({}, x, { reciboId:fixedId }) : null;
   const con=e ? Object.assign({}, link, { expenses:link.expenses.map(function(r){ return r===x ? e : r; }) }) : link;
   return { state:conSaldoMostrado(s, con), e:e };
@@ -1321,11 +1341,28 @@ function reponerCargoDeRecibo(s, expenseId, fixedId, y, m, today, expected, ahor
 /* BORRAR UN RECIBO O UN PUNTUAL DEVUELVE SUS CARGOS A GASTO NORMAL (`cargoDeRecibo` ya no lo
    encuentra) y, fuera de un sync, eso movía el saldo con el banco quieto (medido en cuenta de
    gasto diario: 397,60 → 335,20, el importe del cargo). Solo se sujeta el saldo si había un
-   cargo suyo marcado este mes; sin ninguno, borrar hace lo de siempre. */
+   cargo suyo marcado este mes; sin ninguno, borrar hace lo de siempre.
+   Las filas pierden además la marca, aquí y en la nube (cuarta revisión, 13/10/2026): el
+   servidor del widget deja fuera todo `~recibo.` sin saber si el recibo existe, y con la marca
+   puesta la app contaba el cargo y el widget no (medido: hasta 1.200,50 € de diferencia).
+   → {state, subir} con las filas ya sin marca, para reescribir su `source`. */
 function sinCargoDelPlan(s, lista, id){
-  const out=Object.assign({}, s, { [lista]:(s[lista]||[]).filter(function(x){ return x.id!==id; }) });
+  const subir=[];
+  const expenses=(s.expenses||[]).map(function(e){
+    if(!e || e.reciboId!==id) return e;
+    const x=Object.assign({}, e); delete x.reciboId;
+    subir.push(x);
+    return x;
+  });
+  const out=Object.assign({}, s, { [lista]:(s[lista]||[]).filter(function(x){ return x.id!==id; }) }, subir.length ? { expenses:expenses } : null);
   const mes=startOfMonth().getTime();
-  return (s.expenses||[]).some(function(e){ return e.reciboId===id && dateMs(e.date)>=mes && cargoDeRecibo(e, s); }) ? conSaldoMostrado(s, out) : out;
+  return { subir:subir, state:(s.expenses||[]).some(function(e){ return e.reciboId===id && dateMs(e.date)>=mes && cargoDeRecibo(e, s); }) ? conSaldoMostrado(s, out) : out };
+}
+// Las cuatro puertas de borrado de Plan pasan por aquí: el estado y, después, la nube.
+function quitarDelPlan(set, lista, id){
+  let subir=[];
+  set(function(s){ const r=sinCargoDelPlan(s, lista, id); subir=r.subir; return r.state; });
+  if(cloud.enabled()) subir.forEach(function(e){ cloud.setExpenseRecibo(e).catch(function(){}); });
 }
 /* LAS CUOTAS DE TUS DEUDAS, EN «DEUDAS» (4.21.0).
    Idea suya del 12/9. Medido con sus datos antes de picar: NINGUNA cuota casa por nombre. El
@@ -3093,7 +3130,7 @@ function patchFixedById(set, id, p){
   });
 }
 function removeFixedById(set, id){
-  set(function(s){ return sinCargoDelPlan(s,"fixed",id); });
+  quitarDelPlan(set,"fixed",id);
 }
 function addFixedItem(set, item){
   set(function(s){ return Object.assign({},s,{fixed:(s.fixed||[]).concat([item])}); });
@@ -3130,7 +3167,7 @@ function patchOneoffById(set, id, patch){
   });
 }
 function removeOneoffById(set, id){
-  set(function(s){ return sinCargoDelPlan(s,"oneoffs",id); });
+  quitarDelPlan(set,"oneoffs",id);
 }
 function addOneoffItem(set, item){
   set(function(s){ return Object.assign({},s,{oneoffs:(s.oneoffs||[]).concat([item])}); });

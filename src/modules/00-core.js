@@ -1132,19 +1132,27 @@ const cloud = (function(){
       );
       return !!(r && r.data && r.data.length);
     },
-    /* La marca de recibo sobre una fila que YA estaba en la nube sin ella (la subió otro móvil o
-       una app anterior). Por fecha, importe y comercio, que es la clave del duplicado: el id local
-       no es el de esa fila. Y SOLO si su `source` es el del banco a secas: con la terna sola se
-       pisaba un «posible repetido», la cuota de una deuda, un aviso del móvil o un gasto a mano
-       que coincidieran (revisión del 12/10/2026). Cada prefijo conserva el suyo. */
+    /* LA MARCA DE RECIBO DE UNA FILA QUE YA ESTÁ EN LA NUBE: la pone si `e` la lleva y la quita
+       si no. Se busca por fecha, importe y comercio, que es la clave del duplicado: el id local
+       puede no ser el de esa fila (la subió otro móvil), y un UPDATE por id que no casa no toca
+       nada ni da error (cuarta revisión: el veto levantado en un móvil no llegaba al otro).
+       Se lee antes de escribir para tocar SOLO una fila del banco, `ob:<ent>` u `ob-hist:<ent>`:
+       la cuota de una deuda, un aviso del móvil o un gasto a mano que coincidan se quedan como
+       están, y a un «posible repetido» no se le pone marca. Prefijo, `#dup` y `#n<k>` se conservan. */
     async setExpenseRecibo(e){
       if(!sb || !e.ent) return;
       const {data:{session}}=await sb.auth.getSession();
       if(!session) return;
-      for(const pre of ["ob:","ob-hist:"]){
-        const {error}=await sb.from('expenses').update({ source:pre+e.ent+reciboSufijo(e.reciboId) })
-          .eq('user_id',session.user.id).eq('fecha',e.date).eq('importe',e.amount).eq('comercio',e.merchant).eq('source',pre+e.ent);
-        if(error) throw error;
+      const {data,error}=await sb.from('expenses').select('id,source')
+        .eq('user_id',session.user.id).eq('fecha',e.date).eq('importe',e.amount).eq('comercio',e.merchant);
+      if(error) throw error;
+      for(const r of data||[]){
+        const m=/^(ob|ob-hist):([^~#]+)(~recibo\.[^~#]*)?((?:#.*)?)$/.exec(String(r.source||""));
+        if(!m || m[2]!==e.ent || (e.reciboId && m[4].indexOf("#dup")>=0)) continue;
+        const src=m[1]+":"+m[2]+reciboSufijo(e.reciboId)+m[4];
+        if(src===r.source) continue;
+        const w=await sb.from('expenses').update({ source:src }).eq('user_id',session.user.id).eq('id',r.id);
+        if(w.error) throw w.error;
       }
     },
     /* IMPORT HISTÓRICO — batch con RETURNING id (tanda 3, agujero A).
@@ -2430,7 +2438,7 @@ function refreshExpenseFromCloud(local, incoming, readStartedAt){
   /* Cargo de recibo (12/10/2026): la marca que baja se adopta, como la de la cuota. Una fila de
      la nube sin marca tampoco borra la local; la RETIRADA viaja por `reciboNo` en el estado, y
      `cargoDeRecibo` la respeta aunque esta fila siga marcada aquí. */
-  if(incoming.reciboId && !incoming.debtId && !local.debtId) put("reciboId", incoming.reciboId);
+  if(incoming.reciboId && !incoming.debtId && !local.debtId && esFilaDeBanco(local)) put("reciboId", incoming.reciboId);
   if(!local.noteEdited && Object.prototype.hasOwnProperty.call(incoming,"note")) put("note", incoming.note);
   /* NO realinear `id` aquí: settings.expenseOrder indexa por id local, y en OB el uuid de la
      nube suele diferir (ignoreDuplicates). Cambiarlo huérfana el orden a mano (4.19.74). Tanda
@@ -2439,6 +2447,7 @@ function refreshExpenseFromCloud(local, incoming, readStartedAt){
 }
 /* Mezcla el pull con lo local: refresca campos de claves ya vistas y solo AÑADE las nuevas.
    Nunca elimina una clave que solo exista en local (contención 4.18.6 / FIN-07). */
+function esFilaDeBanco(e){ return e.source==="ob" || e.source==="ob-hist"; }
 function mergeExpensesFromCloud(prevList, incoming, readStartedAt){
   const byKey={}; const order=[];
   (prevList||[]).forEach(function(e){
@@ -2446,12 +2455,22 @@ function mergeExpensesFromCloud(prevList, incoming, readStartedAt){
     if(!byKey[k]){ byKey[k]=e; order.push(k); }
   });
   let changed=false; let nuevos=0; const seen={};
+  /* EL AVISO DEL MÓVIL GANA AL CARGO DE RECIBO DE SU MISMO DÍA, IMPORTE Y COMERCIO, llegue cuando
+     llegue (cuarta revisión, 13/10/2026). Con el aviso ya en la lista el banco no añade su fila y
+     el aviso cuenta, como siempre; si el aviso bajaba después, se fundía con la fila marcada y
+     dejaba de contar (10,99 frente a 0 según el orden). Ahora los dos órdenes acaban igual. */
+  const ganaAviso=function(k,inc){
+    if(!byKey[k].reciboId || esFilaDeBanco(inc)) return false;
+    byKey[k]=inc; changed=true;
+    return true;
+  };
   (incoming||[]).forEach(function(inc){
     const k=keyOfExpense(inc);
-    if(seen[k]) return;
+    if(seen[k]){ ganaAviso(k,inc); return; }
     seen[k]=1;
     const loc=byKey[k];
     if(!loc){ byKey[k]=inc; order.push(k); changed=true; nuevos++; return; }
+    if(ganaAviso(k,inc)) return;
     const merged=refreshExpenseFromCloud(loc, inc, readStartedAt);
     if(merged!==loc){ byKey[k]=merged; changed=true; }
   });
