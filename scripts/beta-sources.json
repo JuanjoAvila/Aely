@@ -245,6 +245,14 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentUnique"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAutoOwner"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentProof"
       },
       {
@@ -262,6 +270,22 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "rekeyFixedPaymentExpense"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenses"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenseRows"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DUP_DIAS_MS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenseChoice"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -4793,6 +4817,22 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenses"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenseRows"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DUP_DIAS_MS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenseChoice"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentState"
       },
       {
@@ -4806,6 +4846,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContenders"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentUnique"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAutoOwner"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -5828,6 +5876,18 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenses"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenseRows"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenseChoice"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentState"
       },
       {
@@ -5941,6 +6001,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContenders"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentUnique"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAutoOwner"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -6630,6 +6698,22 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenses"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenseRows"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DUP_DIAS_MS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenseChoice"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentState"
       },
       {
@@ -6699,6 +6783,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContenders"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentUnique"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAutoOwner"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -7679,6 +7771,22 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenses"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenseRows"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DUP_DIAS_MS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenseChoice"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentState"
       },
       {
@@ -7740,6 +7848,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContenders"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentUnique"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAutoOwner"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -8107,6 +8223,22 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenses"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenseRows"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DUP_DIAS_MS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenseChoice"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentState"
       },
       {
@@ -8184,6 +8316,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContenders"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentUnique"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAutoOwner"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -10059,6 +10199,22 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenses"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenseRows"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DUP_DIAS_MS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenseChoice"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentState"
       },
       {
@@ -10148,6 +10304,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContenders"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentUnique"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAutoOwner"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -10804,6 +10968,22 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenses"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenseRows"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DUP_DIAS_MS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenseChoice"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentState"
       },
       {
@@ -10881,6 +11061,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContenders"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentUnique"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAutoOwner"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -11655,6 +11843,22 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenses"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenseRows"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DUP_DIAS_MS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenseChoice"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentState"
       },
       {
@@ -11732,6 +11936,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContenders"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentUnique"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAutoOwner"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -13855,6 +14067,18 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenses"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenseRows"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenseChoice"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentState"
       },
       {
@@ -13944,6 +14168,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContenders"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentUnique"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAutoOwner"
       },
       {
         "file": "src/modules/01-i18n.js",
@@ -14883,5 +15115,624 @@
         "to": "  useEffect(function(){ if(tab>tabIds.length-1)"
       }
     ]
+  },
+  "recibos-cargo-unico": {
+    "web": [
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentModel"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedExpenseKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentIdentity"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFeedClear"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContenders"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentUnique"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAutoOwner"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentProof"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedExpenseEligible"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "linkFixedPayment"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reconcileFixedPaymentProofs"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "rekeyFixedPaymentExpense"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenses"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenseRows"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DUP_DIAS_MS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenseChoice"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentState"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "planChargesMonth"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recNorm"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recTokens"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recNameMatch"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recAmtClose"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recSane"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recDay"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "REC_GRACE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reconcileBank"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "patchFixedById"
+      },
+      {
+        "file": "src/modules/03-tab-dash.js",
+        "from": "  const overdue=[];",
+        "to": "  const upcoming="
+      },
+      {
+        "file": "src/modules/03-tab-dash.js",
+        "from": "  const upcoming=",
+        "to": "  // 🎉 Deudas"
+      },
+      {
+        "file": "src/modules/03-tab-dash.js",
+        "from": "    !showSkel && upcoming.length===0",
+        "to": "    !showSkel && upcoming.length>0"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isManualExpenseSource"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "keyOfExpenseLegacy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "keyOfExpense"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseIsTombstoned"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseNote"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseBankOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "var _pdCache=new Map();",
+        "to": "function applyAccountRole("
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accFixed"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accInject"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "reconcileTR"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "FREQ_M"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "spareOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "isCardSpend"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "roundupOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "savebackOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "RU_MULTS"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "chargeMonths"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "occursIn"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "occAmountIn"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "occAmount"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "accOf"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "cleanDay"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "dayIn"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "dayOf"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtChargeDay"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "isDebtPaidThisMonth"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "isPaidIn"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "isPaidThisMonth"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "needsMonth"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "hasSchedule"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "firstWorkDom"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "lastWorkDom"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "flowDay"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "flowPaid"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "flowMonths"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "flowOccursIn"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "flowOncePast"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "oneoffOccurs"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "oneoffPast"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "ymAbs"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "ymNow"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtAmort"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtPaidCount"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtBalloonIn"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtBalance"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtActive"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtLeft"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "monthNetForAccount"
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "from": "  const setReceipt=function(",
+        "to": "  // Marca/desmarca un gasto"
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "from": "  const saveEdit=function(",
+        "to": "  const todayKey="
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "from": "  const receiptDate=",
+        "to": "    React.createElement(\"button\",{type:\"button\",className:\"v4-ficha-adjust-row\",onClick:function(){ setAdjustOpen(adjustOpen===\"note\""
+      },
+      {
+        "file": "src/modules/14-v4-screens.js",
+        "function": "PlanBills"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CAT_NEUTRAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowPaidIn"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "dayKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "entOf"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "cleanNote"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "partirEntDeuda"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "monthShort"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isEfectivoEnt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "gastoDelMesPorBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowConfirmedDay"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "eur"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "autoCategory"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "pushDeleted"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "borrarGastoNube"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "subirGasto"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "eur0"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "monthLong"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "planCoverState"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowBankPaid"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "_errCloudMsg"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowEarlyBankTx"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowEarlyBankMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NOTE_MAX"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CONFIG"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "cloud",
+        "members": [
+          "addExpense",
+          "deleteExpense",
+          "enabled",
+          "logEvent"
+        ]
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "ENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "DISP"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "USER_OVERRIDES"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MERCHANT_OVERRIDES"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "KW_PALABRA"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "KW_INICIO"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "KW"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "DELETED_MAX"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF0"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcNotaCols"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "USO_OK"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcDivisaCols"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcObNameCol"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseSourceForCloud"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isExpenseUuid"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "withNotaFallback"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseCloudEq"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "_isMissingNotaCol"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcLogEvent"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "deudaSufijo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "_isMissingDivisaCol"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "_isMissingObNameCol"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseCloudKeys"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "withdrawalReceiptLink"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "debtPaymentState"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cuotaCargoCercano"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "CUOTA_ALIAS_DIAS"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  // INC-0410 guardado: de aquí al límite está cuándo y qué estado se escribe en disco. Cambiarlo invalida las revisiones que prometen conservar algo al cerrar o recargar.",
+        "to": "  // INC-0410 guardado: límite."
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcPersistCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSaveRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSkipPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcStateKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSandbox"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSandboxFlag"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "EXP_SUFFIX"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "store"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcSkipPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "STATE_KEY_TEST"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "STATE_KEY_REAL"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcSandboxPinned"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mem"
+      }
+    ],
+    "unidades": true
   }
 }

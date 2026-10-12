@@ -1733,7 +1733,8 @@ for(const lang of ["es","en","ca"])test(`cola publicada: no vuelve a pedir las c
 
 for(const lang of ["es","en","ca"])test(`promoción117: entrega por superficies, Novedades canónicas y decisiones intactas (${lang})`,async({page})=>{
   await abrirRevisionBeta(page,lang);
-  const promoted=await page.evaluate(()=>RELEASE_NOTES);
+  // Novedades de la promoción tal como se fusionó (0a623768): cada beta posterior añade su nota encima.
+  const promoted=JSON.parse(execFileSync("git",["show","0a623768e014251ed6b37a6d75eaa95efde78bc0:src/data/release-notes.json"],{encoding:"utf8",maxBuffer:8e6}));
   const production=JSON.parse(execFileSync("git",["show","b2dfd2c01d7ec6a9a30b74ae71d473054932c42f:src/data/release-notes.json"],{encoding:"utf8",maxBuffer:8e6}));
   // El contrato de entrega se ejercita con los guiones publicados; la promoción muestra una sola nota.
   const before=JSON.parse(execFileSync("git",["show","c5f62d6603d016150afd9d0e20547b608b323045:src/data/release-notes.json"],{encoding:"utf8",maxBuffer:8e6}));

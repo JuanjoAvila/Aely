@@ -121,4 +121,4 @@ assert.notEqual(betaRevision('inc-0710-auth-disposal',mainRead).codigo,betaRevis
 console.log('✓ fit102: retornos/receiver/excepciones diferidas, boot real sin throw, trazas equivalentes;7funciones/9datos, notas históricas106 intactas y registro con cierres107/108/110 explícitos; identidad102 nueva');
 
 }
-assert.equal(createHash('sha256').update(JSON.stringify(JSON.parse(read('scripts/beta-sources.json')))).digest('hex'),'5b70b7fad46990744b5f01ef21fb0e399709dab4d6c905fefa292fad5e818191','registro117 aprobado íntegro en la reconciliación');
+assert.equal(createHash('sha256').update(JSON.stringify(JSON.parse(read('scripts/beta-sources.json')))).digest('hex'),'2d4f62d42df9a086a791670250fb632a7ec822152feff5bd5250798b90388563','registro118 íntegro: el aprobado117 (5b70b7fa) más los helpers de Recibos en diez alcances y la tanda recibos-cargo-unico; Catálogo118 de beta-sources lo fija unidad a unidad');

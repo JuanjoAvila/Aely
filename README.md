@@ -1,3 +1,5 @@
+Candidata de beta4.26.118 (12/10/2026): cada cargo del banco se atribuye a un único recibo. Un mismo cargo ya no marca pagados dos recibos, un homónimo de otro banco no paga el que no es, un recibo se reconoce pagado también cuando el pago salió de otro banco (nombre completo e importe exacto) y mover el día de un recibo ya cobrado por el banco no lo vuelve a descontar. Solo web, sobre la producción117; la APK sigue en la 55. Una tanda en revisión: `recibos-cargo-unico`. Publicación en beta y aceptación móvil pendientes.
+
 Promoción completa4.26.117: entrada renovada, recuperación de movimientos bancarios, widget que se actualiza al pagar con la app cerrada tras actualizar la app e Inicio sin el desglose de Gastos superpuesto. La reconciliación conserva los30 commits propios de main y el código aprobado de beta117. Una nota familiar más el historial de producción; las notas intermedias de beta quedan en Git y sus contratos, en los guardianes. Los cortes fechados de abajo son historia, no instrucciones vigentes. [Acta](docs/briefs/prod-completa-117.md).
 
 Selección web4.26.110: la rayita de la barra desaparece al ocultarla; Plan → Metas → Reservar dinero permite editar reglas conservando sus aportaciones; Perfil/Ajustes y Recibos → Gestionar conservan la pantalla al volver. Incluye únicamente las identidades aprobadas107/108/110 de beta; la gráfica109 rechazada conserva la implementación anterior. Historial, idiomas y APK52 conservados. [Alcance y cualificación local](docs/briefs/promocion-107-108-110-local26.md).
@@ -79,7 +81,7 @@ mi-cartera/
 │   ├── index.html          #     Generado por `npm run build` — no editar a mano
 │   ├── manifest.json · sw.js · vendor/ · fonts/
 │   └── privacy.html
-├── e2e/                    # Playwright (110 specs: pantallas, persistencia, copias, reglas mensuales y ayuda de Mi ciclo)
+├── e2e/                    # Playwright (111 specs: pantallas, persistencia, copias, reglas mensuales y ayuda de Mi ciclo)
 │   └── backclose-handover.spec.mjs # Dieciocho casos de historial/overlays; retorno cleanUrls2PASS/base1092RED
 ├── tests/backclose-history.test.mjs # Controlador y hook reales con cola de eventos History sintética
 ├── tests/widget-notificacion-render.test.mjs # Java real sobre preferencias APK52: notificación, registro, relectura y pintado
@@ -138,9 +140,11 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.117** — entrada renovada, recuperación bancaria, widget que se actualiza al pagar con la app cerrada tras actualizar la app instalada e Inicio sin solape de Gastos. Android4.26.117/code55; web compatible con la APK52.
+Estado actual: **v4.26.118** — candidata de beta, solo web: cada cargo del banco se atribuye a un único recibo (sin dobles pagados, sin homónimos de otro banco, con el pago reconocido aunque salga de otro banco y sin volver a descontar un recibo ya cobrado al cambiarle el día). Tanda `recibos-cargo-unico` en revisión; la APK sigue en la 4.26.117/code55. Publicación en beta y aceptación móvil pendientes.
 
-Corte anterior (11/10): **v4.26.116**, bancos sin huecos y widget arreglado (APK 54).
+Corte anterior (12/10): **v4.26.117**, producción — entrada renovada, recuperación bancaria, widget que se actualiza al pagar con la app cerrada tras actualizar la app instalada e Inicio sin solape de Gastos. Android4.26.117/code55; web compatible con la APK52.
+
+Antes (11/10): **v4.26.116**, bancos sin huecos y widget arreglado (APK 54).
 
 Antes (11/10): **v4.26.115**, el widget se actualiza al pagar con la app cerrada (APK 53); rechazada en el móvil. Antes (11/10): **v4.26.114**, Inicio sin el desglose de Gastos solapado con temática activa. Antes (10/10): **v4.26.113**, Bienes con alta, edición y borrado e Inicio con la gráfica recuperada sin «Ahora».
 

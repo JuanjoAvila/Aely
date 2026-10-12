@@ -1,5 +1,64 @@
 [
   {
+    "v": "4.26.118",
+    "d": "2026-10-12",
+    "t": {
+      "es": "Recibos: cada cobro, en su recibo",
+      "en": "Bills: each charge on its own bill",
+      "ca": "Rebuts: cada cobrament, al seu rebut"
+    },
+    "items": {
+      "es": [
+        "Un mismo cobro del banco ya no marca como pagados dos recibos a la vez, y un recibo con el mismo nombre en otro banco no da por pagado el que no es.",
+        "Un recibo se reconoce como pagado también cuando el pago salió de otro banco, si coinciden el nombre y el importe exacto.",
+        "Cambiar el día de un recibo que el banco ya cobró no vuelve a descontarlo del saldo previsto."
+      ],
+      "en": [
+        "A single bank charge no longer marks two bills as paid at once, and a bill with the same name at another bank no longer counts as payment for the wrong one.",
+        "A bill is also recognised as paid when the payment came out of another bank, as long as the name and the exact amount match.",
+        "Changing the day of a bill the bank has already charged no longer takes it off your expected balance again."
+      ],
+      "ca": [
+        "Un mateix cobrament del banc ja no marca com a pagats dos rebuts alhora, i un rebut amb el mateix nom en un altre banc no dona per pagat el que no és.",
+        "Un rebut també es reconeix com a pagat quan el pagament ha sortit d'un altre banc, si coincideixen el nom i l'import exacte.",
+        "Canviar el dia d'un rebut que el banc ja ha cobrat no el torna a descomptar del saldo previst."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "recibos-cargo-unico",
+        "t": {
+          "es": "Recibos: cada cargo paga un solo recibo",
+          "en": "Bills: each charge pays a single bill",
+          "ca": "Rebuts: cada càrrec paga un sol rebut"
+        },
+        "items": {
+          "es": [
+            "1. Abre Plan → Recibos y despliega «Ya has pagado»: no falta ninguno de los recibos que el banco ya cobró este mes, ninguno sale repetido y cada uno conserva el día en que se cobró.",
+            "2. En Gastos, busca un cargo de este mes que haya entrado solo (del banco o por el aviso del móvil, no apuntado a mano) y que todavía no tenga recibo; por ejemplo, una suscripción. En Plan → Recibos → «Gestionar» → «+ Añadir un recibo», crea uno con el nombre del comercio (basta su palabra principal, de cuatro letras o más: «Netflix»), el importe exacto y la cuenta de la que salió. Debe aparecer en «Ya has pagado» con el día real del cargo y no debe salir en «Próximos cargos» de Inicio.",
+            "3. Añade un segundo recibo idéntico (mismo nombre, importe y cuenta): los dos pasan a pendientes, porque un cargo no puede pagar dos recibos. Entra en el duplicado y pulsa «Quitar este recibo»: el primero vuelve a «Ya has pagado».",
+            "4. Elige uno de tus recibos de siempre que el banco ya haya cobrado este mes, ábrelo desde «Gestionar» y cambia el día a uno posterior a hoy. Debe seguir una sola vez en «Ya has pagado» con el día en que se cobró, y ni «Queda por pagar» ni el saldo más bajo previsto de arriba deben cambiar. Después devuélvele su día.",
+            "5. Quita el recibo de prueba con «Quitar este recibo»: Plan e Inicio quedan como antes de empezar."
+          ],
+          "en": [
+            "1. Open Plan → Bills and unfold “You already paid”: none of the bills the bank has already charged this month is missing, none appears twice and each one keeps the day it was charged.",
+            "2. In Spending, find a charge from this month that came in by itself (from the bank or from the phone notification, not entered by hand) and that has no bill yet; a subscription, for example. In Plan → Bills → “Manage” → “+ Add a bill”, create one with the merchant's name (its main word is enough, four letters or more: “Netflix”), the exact amount and the account it came out of. It should appear under “You already paid” with the real day of the charge, and it should not show in “Upcoming” on Home.",
+            "3. Add a second identical bill (same name, amount and account): both go back to pending, because one charge cannot pay two bills. Open the duplicate and tap “Remove this bill”: the first one returns to “You already paid”.",
+            "4. Pick one of your usual bills that the bank has already charged this month, open it from “Manage” and change the day to one later than today. It should stay only once under “You already paid” with the day it was charged, and neither “Still to pay” nor the lowest expected balance at the top should change. Then set its day back.",
+            "5. Remove the test bill with “Remove this bill”: Plan and Home are left as they were before you started."
+          ],
+          "ca": [
+            "1. Obre Pla → Rebuts i desplega «Ja has pagat»: no hi falta cap dels rebuts que el banc ja ha cobrat aquest mes, cap surt repetit i cadascun conserva el dia en què es va cobrar.",
+            "2. A Despeses, busca un càrrec d'aquest mes que hagi entrat sol (del banc o per l'avís del mòbil, no apuntat a mà) i que encara no tingui rebut; per exemple, una subscripció. A Pla → Rebuts → «Gestionar» → «+ Afegir un rebut», crea'n un amb el nom del comerç (n'hi ha prou amb la paraula principal, de quatre lletres o més: «Netflix»), l'import exacte i el compte d'on va sortir. Ha d'aparèixer a «Ja has pagat» amb el dia real del càrrec i no ha de sortir a «Pròxims càrrecs» d'Inici.",
+            "3. Afegeix un segon rebut idèntic (mateix nom, import i compte): tots dos passen a pendents, perquè un càrrec no pot pagar dos rebuts. Entra al duplicat i prem «Treu aquest rebut»: el primer torna a «Ja has pagat».",
+            "4. Tria un dels teus rebuts de sempre que el banc ja hagi cobrat aquest mes, obre'l des de «Gestionar» i canvia el dia a un de posterior a avui. Ha de continuar una sola vegada a «Ja has pagat» amb el dia en què es va cobrar, i ni «Queda per pagar» ni el saldo més baix previst de dalt han de canviar. Després torna-li el seu dia.",
+            "5. Treu el rebut de prova amb «Treu aquest rebut»: Pla i Inici queden com abans de començar."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.117",
     "d": "2026-10-12",
     "t": {

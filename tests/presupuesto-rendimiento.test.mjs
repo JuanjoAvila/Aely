@@ -210,7 +210,17 @@ const PRESUPUESTO = {
   // de la cortina y dos lecturas en el script del <head>; sin dependencias ni peticiones nuevas.
   // 1.000 B sobre 1297 KiB: +1 KiB mínimo al crudo, autorizado por el dueño. Quedan solo 24 B:
   // la tanda y la nota de esta entrega se miden aparte. El gzip cabe en 355 KiB (quedan 388 B).
-  minificado: 1298 * 1024,
+  // Recibos revisión3 (12/10), DSN95 B y sello117.99999:1.333.562/364.349 B frente
+  // a beta1171.329.128/363.130 B (+4.434/+1.219). Se DECLARA aumento desde1298/355
+  // a1303/356 KiB, mínimos medidos; margen710/195 B. Índice mensual y sin tokens,
+  // vínculo bancario al mover día y categoría ausente, sin recortar guardas ni idiomas.
+  // Integración 4.26.118 sobre producción117 (0a623768), medida de nuevo tras el build con
+  // el sello 118.99999 y la misma reserva de 95 B: 1.333.562 B crudo / 364.346 B gzip,
+  // 3 bloqueantes. La nota y la tanda viven en release-notes.json, no en el index, así que
+  // el crudo no se mueve. 1302 KiB (1.333.248) y 355 KiB (363.520) se quedan cortos por
+  // 314 y 826 B: 1303/356 son los mínimos y dejan 710/198 B. El tope avisa; no se recorta
+  // producto ni idiomas para caber (mandato del dueño, 11/10).
+  minificado: 1303 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -223,7 +233,8 @@ const PRESUPUESTO = {
   // +1 KiB es el incremento mínimo por KiB; crudo1295 y3 bloqueantes intactos.
   // Bancos sin huecos116: 362.744 B gzip, 248 B sobre 354 KiB; con el arreglo del widget 362.808 B.
   // +1 KiB mínimo (quedan 712 B).
-  gzip: 355 * 1024,
+  // Recibos118: 364.346 B gzip, 826 B sobre 355 KiB. +1 KiB mínimo (quedan 198 B).
+  gzip: 356 * 1024,
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 
