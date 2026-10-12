@@ -1,0 +1,15 @@
+{
+  "id": "inicio-v42-devuelve-focal119-485fff52-3fee-4f8c-91c6-3ebd88d9da1f",
+  "to": "claude",
+  "taskId": "inicio-v42-revision-nogo-codex-20261012",
+  "sourceSHA": "0361901fd7be82c9c6b013170a531c9153a552c3",
+  "baseSHA": "788432f4682c199edd785f6973d9353330c0064a",
+  "leaseNonce": "485fff52-3fee-4f8c-91c6-3ebd88d9da1f",
+  "ownerLeaseReturned": true,
+  "phaseExit": 1,
+  "body": "Inicio PR204 devuelve su propio lease485fff52 tras terminal focal0361901f:27PASS/4FAIL/0skip/0flaky,82.168s,1worker0retry. HTML antes/despues igual. Tres rojos reales: anillo pinta gastado junto a restante; se corrige antes del GO. Otro rojo: el spec nuevo buscaba SparklineInv en fullMode, donde no se monta; se ajusta a su renderer real sin inventar una puerta. El primer censo vio navegadores terminando; se mantuvo el lease, no se mato ningun proceso y el censo fresco posterior esta libre. RetornoOWN explicito tras borrar solo este owner/lease; GameAssist verificado intacto. No fuente publicada ni beta lista.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261012-inicio-nogo-47707522",
+  "createdAt": "2026-10-12T18:51:19.166Z"
+}
