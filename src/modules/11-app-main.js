@@ -2,7 +2,7 @@
 const SYNC_SIN_NUBE={motivo:"sync-sin-nube"};
 // El aviso usa el mismo saldo y calendario que Plan: sumar todos los bancos o mirar fin
 // de mes escondería que el cobro llega antes de la nómina. Sin datos, conserva el texto anterior.
-function receiptAlertBalance(state,totals,bank,day){
+function receiptAlertBalance(state,totals,bank,day,fixed){
   const y=totals.curYear,m=totals.curMonth,today=totals.today;
   const last=new Date(y,m,0).getDate();
   if(!bank||!Number.isInteger(y)||y<1||!Number.isInteger(m)||m<1||m>12||!Number.isInteger(last)
@@ -13,19 +13,26 @@ function receiptAlertBalance(state,totals,bank,day){
   if(!accounts.length||accounts.some(function(a){ return typeof a.value!=="number"||!Number.isFinite(a.value); })
     ||!Object.prototype.hasOwnProperty.call(balances,bank)||typeof balances[bank]!=="number"
     ||!Number.isFinite(balances[bank])) return null;
+  // Un cargo anticipado ya está en el saldo bancario. Si Plan y el calendario discrepan,
+  // la previsión podría descontarlo otra vez o esconder un atrasado (revisión 12/10).
+  if(fixed&&fixedPaymentState(state,fixed,y,m,today).paid) return null;
+  if((state.fixed||[]).some(function(e){
+    return occursIn(e,m)&&accOf(e)===bank
+      && fixedPaymentState(state,e,y,m,today).paid!==isPaidIn(e,m,today,y);
+  })) return null;
   const events=bankPendingEvents(state,bank,y,m,today);
   if(events.some(function(e){ return !Number.isInteger(e.day)||e.day<1||e.day>last
     ||typeof e.amt!=="number"||!Number.isFinite(e.amt); })) return null;
   // El motor recorre céntimos aquí para que diez cargos pequeños no inventen una falta de 0,01.
   const cents=function(n){ return Math.round(n*100); };
   const start=cents(balances[bank]);
-  const due=events.filter(function(e){ return e.day<=day; }).map(function(e){ return {day:e.day,amt:cents(e.amt)}; });
+  const due=events.filter(function(e){ return e.day<=day&&!(e.day===day&&e.amt>0); }).map(function(e){ return {day:e.day,amt:cents(e.amt)}; });
   if(!Number.isSafeInteger(start)||due.some(function(e){ return !Number.isSafeInteger(e.amt); })) return null;
-  const end=minWalk(start,due).end;
-  return Number.isSafeInteger(end)?{bank:bank,enough:end>=0,amount:Math.abs(end)/100}:null;
+  const minimum=minWalk(start,due).min;
+  return Number.isSafeInteger(minimum)?{bank:bank,enough:minimum>=0,amount:Math.abs(minimum)/100}:null;
 }
-function receiptAlertBody(body,state,totals,bank,day){
-  const balance=receiptAlertBalance(state,totals,bank,day);
+function receiptAlertBody(body,state,totals,bank,day,fixed){
+  const balance=receiptAlertBalance(state,totals,bank,day,fixed);
   if(!balance) return body;
   const values={bank:entOf(balance.bank).label,x:eur(balance.amount)};
   return body+" "+(balance.enough?tf("rc_balance_ok",values):tf("rc_balance_short",values));
@@ -2347,7 +2354,7 @@ function App(){
   // Incluye también las cuotas de deuda. Una noti por cargo y mes. Importes con eur() EXACTO:
   // redondear aquí hizo que «la luz» saliera como 90 € cuando el cargo real era 89,54 (2026-07-21).
   useEffect(function(){
-    if(state.onboarded===false||locked||showAuth) return;
+    if(mcSandbox()||state.onboarded===false||locked||showAuth) return;
     const nat=natPlugin();
     if(!nat||!nat.showNotification) return;
     const today=totals.today||new Date().getDate();
@@ -2357,7 +2364,8 @@ function App(){
     const ym=cal.ym;
     const notify=function(key,title,body){
       try{ if(localStorage.getItem(key)==="1") return; localStorage.setItem(key,"1"); }catch(err){}
-      try{ nat.showNotification({title:title,body:body}).catch(function(){}); }catch(err){}
+      // Con sellos ya vistos no recorrer el histórico para calcular una frase que no se enviará.
+      try{ nat.showNotification({title:title,body:body()}).catch(function(){}); }catch(err){}
     };
     const run=function(){
       (state.fixed||[]).forEach(function(e){
@@ -2368,9 +2376,9 @@ function App(){
         if(!(amt>0)) return;
         const daysLeft=d-today;
         if(daysLeft===1){
-          notify("_rc1_"+e.id+"_"+ym, t("rc_title_tmrw"), receiptAlertBody(tf("rc_body_tmrw",{name:e.name||"?",x:eur(amt)}),state,totals,e.account,d));
+          notify("_rc1_"+e.id+"_"+ym, t("rc_title_tmrw"), function(){ return receiptAlertBody(tf("rc_body_tmrw",{name:e.name||"?",x:eur(amt)}),state,totals,e.account,d,e); });
         } else if(amt>=minAmt && daysLeft>=2 && daysLeft<=3){
-          notify("_rc_"+e.id+"_"+ym+"_"+d, t("rc_title"), receiptAlertBody(tf("rc_body",{name:e.name||"?",x:eur(amt),d:String(d)}),state,totals,e.account,d));
+          notify("_rc_"+e.id+"_"+ym+"_"+d, t("rc_title"), function(){ return receiptAlertBody(tf("rc_body",{name:e.name||"?",x:eur(amt),d:String(d)}),state,totals,e.account,d,e); });
         }
       });
       // cuotas de deuda (hipoteca, financiaciones…): también avisan la víspera
@@ -2378,7 +2386,7 @@ function App(){
         if(!debtActive(d) || !(d.monthly>0)) return;
         if(isDebtPaidThisMonth(d,today,state,cy,cm)) return;
         if(debtChargeDay(d)-today!==1) return;
-        notify("_rc1_debt_"+d.id+"_"+ym, t("rc_title_tmrw"), receiptAlertBody(tf("rc_body_tmrw",{name:d.name||"?",x:eur(d.monthly)}),state,totals,d.account,dayOf(d)));
+        notify("_rc1_debt_"+d.id+"_"+ym, t("rc_title_tmrw"), function(){ return receiptAlertBody(tf("rc_body_tmrw",{name:d.name||"?",x:eur(d.monthly)}),state,totals,d.account,dayOf(d)); });
       });
     };
     // ANTES de avisar, sella lo que el NATIVO ya avisó. Este efecto corría en paralelo al
@@ -2400,6 +2408,7 @@ function App(){
   // aparte del efecto de arriba para que el calendario llegue al worker TAMBIÉN con la app
   // bloqueada o a medio onboarding (el de arriba sale temprano en esos casos).
   useEffect(function(){
+    if(mcSandbox()) return;
     const nat=natPlugin();
     if(!nat||!nat.setAlertData) return;
     const cal=alertCalendarOf();
