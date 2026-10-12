@@ -26,7 +26,7 @@ function receiptAlertBalance(state,totals,bank,day,fixed){
   // El motor recorre céntimos aquí para que diez cargos pequeños no inventen una falta de 0,01.
   const cents=function(n){ return Math.round(n*100); };
   const start=cents(balances[bank]);
-  const due=events.filter(function(e){ return e.day<=day&&!(e.day===day&&e.amt>0); }).map(function(e){ return {day:e.day,amt:cents(e.amt)}; });
+  const due=events.filter(function(e){ return e.day<=day&&!(e.day===day&&e.amt>0); }).map(function(e){ return {day:e.day,amt:cents(e.amt)}; }).sort(function(a,b){ return a.day-b.day||a.amt-b.amt; });
   if(!Number.isSafeInteger(start)||due.some(function(e){ return !Number.isSafeInteger(e.amt); })) return null;
   const minimum=minWalk(start,due).min;
   return Number.isSafeInteger(minimum)?{bank:bank,enough:minimum>=0,amount:Math.abs(minimum)/100}:null;

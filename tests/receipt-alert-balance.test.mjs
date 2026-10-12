@@ -11,6 +11,7 @@ let app=read("src/modules/11-app-main.js");
 const mutations=[
   ["floor","Math.round(n*100)","Math.floor(n*100)"],
   ["final","minWalk(start,due).min","minWalk(start,due).end"],
+  ["charges-first","a.day-b.day||a.amt-b.amt","a.day-b.day"],
   ["receipt-bank","totals,e.account,d,e","totals,e.account||\"sabadell\",d,e"],
   ["debt-bank","totals,d.account,dayOf(d)","totals,d.account||\"sabadell\",dayOf(d)"],
   ["tomorrow-body",'receiptAlertBody(tf("rc_body_tmrw",{name:e.name||"?",x:eur(amt)}),state,totals,e.account,d,e)','tf("rc_body_tmrw",{name:e.name||"?",x:eur(amt)})'],
@@ -114,6 +115,11 @@ test("el mínimo anterior a la nómina prevalece sobre el final recuperado",()=>
 test("centésima binaria se redondea, no se trunca",()=>{
   const b=balance(state({fixed:[{...bill,amount:0.1}]}),totals({bankBal:{sabadell:0.29}}));
   assert.equal(b.amount,0.19);
+});
+test("transferencia sale antes del ingreso aunque el array los traiga al revés",()=>{
+  const s=state({fixed:[{...bill,amount:10}],flows:[{id:"salary",kind:"income",amount:100,day:27,to:"sabadell"},{id:"transfer",kind:"transfer",amount:50,day:27,from:"sabadell",to:"revolut"}]});
+  const b=balance(s,totals({bankBal:{sabadell:20}}));
+  assert.equal(b.enough,false);assert.equal(b.amount,30);
 });
 test("datos ausentes o inválidos dejan intacto el aviso",()=>{
   for(const [s,t,bank,day] of [
@@ -227,6 +233,7 @@ test("efecto real mantiene víspera, aviso grande y dedupe, incluida cuota BOOK"
 console.log("receipt-alert-balance: "+count+" PASS");
 if(process.argv.includes("--mutations")){
   for(const [name] of mutations){
+    assert.ok(app.includes(mutations.find(x=>x[0]===name)[1]),name+" tiene un punto de mutación real");
     const result=spawnSync(process.execPath,[fileURLToPath(import.meta.url),"--mutant",name],{encoding:"utf8"});
     assert.equal(result.status,1,name+" debe fallar por una aserción");
     assert.match(result.stderr,/AssertionError/,name+": "+result.stderr);
