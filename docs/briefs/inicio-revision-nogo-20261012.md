@@ -41,6 +41,21 @@ Pendiente al cerrar este corte: Tests remoto sobre el HEAD final, revisión e
 integración de Claude, catálogo/versionado de integración, publicación y móvil.
 La funcional completa no se repite en local. La guardia VERSION no se elude.
 
+Tests remoto38297577603 sobreb61f cerróFAILURE/EXIT1: `docs-frescura` y
+`metas-pull-transport`. Los demás grupos Node y los siete ficheros Deno reales
+pasaron; Deno2.9.7. No entró Playwright funcional ni rendimiento por el fallo
+previo, y el paso de Privacidad quedóSKIPPED. Duración1880.0s; `beta-sources`
+ocupó1546.01s. El log completo se conserva en evidencia privada.
+
+El banco de Metas extrae el transporte vigente, pero no suministraba `sessionRef`:
+el estado válido llegaba al bloque de historial y caía antes de pedir gastos.
+Se proporciona la misma sesión sintética que inicia el pull y se usa el helper
+real `mergeAccountBalanceHistory`, sin cambiar el transporte ni los oráculos.
+Quitar esa única dependencia reproduce los cinco fallos de CI; incluirla da
+10/10 EXIT0. El probe temporal fue eliminado. El código, HTML y pruebas de
+pantalla/rendimiento no cambian. Nueva CI exacta necesaria tras este ajuste de
+prueba; no se presenta la CI anterior como validación del HEAD posterior.
+
 El saldo manual y hoy usan la cifra real mostrada por Cartera, incluidos cobros
 modelados. La deuda histórica usa la amortización existente: cuota entera como
 salida bancaria, principal como reducción de deuda, intereses como pérdida.
