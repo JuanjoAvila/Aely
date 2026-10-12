@@ -1,0 +1,487 @@
+{
+  "status": "blocked",
+  "summary": "PR204 corregida y empujada en f274ef04. CI final38302108721 termina EXIT1 únicamente por docs-frescura: VERSION119 no versiona código posterior. Resto Node y siete Deno reales PASS; funcional/perf CI no entran y Privacidad workflow SKIPPED. Requiere versionado e integración de Claude; no se elude guardia ni se publica beta/main.",
+  "productSHA": "f274ef0465dd33ec1f9ba0cccbe7dd9cf20d254f",
+  "PR": 204,
+  "repository": "JuanjoAvila/Aely",
+  "branch": "codex/inicio-flujos-47707522",
+  "executionBaseSHA": "788432f4682c199edd785f6973d9353330c0064a",
+  "runtimeTestedSHA": "16d921c56d5b244bd4b9dd68a82244a5c505c305",
+  "tests": [
+    {
+      "command": "npm run build; npm run test:syntax; node scripts/guard-privacy.mjs; node tests/presupuesto-rendimiento.test.mjs",
+      "exitCode": 0,
+      "sourceSHA": "16d921c56d5b244bd4b9dd68a82244a5c505c305",
+      "runtimeParityToFinal": true
+    },
+    {
+      "command": "node tests/inicio-v42.test.mjs en UTC y Europe/Madrid",
+      "exitCode": 0,
+      "behavioralMutantsKilled": 7,
+      "runtimeParityToFinal": true
+    },
+    {
+      "command": "node tests/beta-sources.test.mjs completo",
+      "exitCode": 0,
+      "actualAndHistoricalCatalog119": true,
+      "registryAndRuntimeParityToFinal": true
+    },
+    {
+      "command": "Playwright focal Inicio y componente spark, workers1 retries0",
+      "exitCode": 0,
+      "sourceSHA": "16d921c56d5b244bd4b9dd68a82244a5c505c305",
+      "passed": 31,
+      "failed": 0,
+      "skipped": 0,
+      "flaky": 0,
+      "durationSeconds": 60.141
+    },
+    {
+      "command": "Playwright cinco archivos originales de rendimiento, workers1 retries0",
+      "exitCode": 0,
+      "sourceSHA": "16d921c56d5b244bd4b9dd68a82244a5c505c305",
+      "passed": 14,
+      "failed": 0,
+      "skipped": 0,
+      "flaky": 0,
+      "durationSeconds": 515.317
+    },
+    {
+      "command": "AB CPU6 serial contra beta119, 20000 movimientos y400cierres, primera pasada",
+      "exitCode": 1,
+      "sourceSHA": "16d921c56d5b244bd4b9dd68a82244a5c505c305",
+      "candidateFPS": [
+        44.67,
+        45.333,
+        60.004
+      ],
+      "baselineFPS": [
+        36.708,
+        31.766,
+        35.296
+      ],
+      "preserved": true
+    },
+    {
+      "command": "Única repetición efectiva prescrita con GameAssist presente, mismo guion y fuente",
+      "exitCode": 0,
+      "sourceSHA": "16d921c56d5b244bd4b9dd68a82244a5c505c305",
+      "candidateFPS": [
+        60.003,
+        60.004,
+        59.999
+      ],
+      "baselineFPS": [
+        45.003,
+        45.714,
+        44.473
+      ],
+      "allThreeStableOver50": true,
+      "causeOfInitialRedNotProven": true
+    },
+    {
+      "command": "Banco real Metas con dependencia sesión correcta",
+      "exitCode": 0,
+      "sourceSHA": "f274ef0465dd33ec1f9ba0cccbe7dd9cf20d254f",
+      "passed": 10,
+      "financialAssertionsUnchanged": true,
+      "actualMergeHelper": true,
+      "negativeOnlySessionRemoved": {
+        "exitCode": 1,
+        "failures": 5
+      }
+    },
+    {
+      "command": "Tests test.yml workflow_dispatch38302108721, node scripts/run-tests.mjs",
+      "exitCode": 1,
+      "sourceSHA": "f274ef0465dd33ec1f9ba0cccbe7dd9cf20d254f",
+      "jobID": 114987264944,
+      "status": "completed",
+      "conclusion": "failure",
+      "failedStages": [
+        "docs-frescura"
+      ],
+      "denoFilesPassed": 7,
+      "denoVersion": "2.9.7",
+      "metasCasesPassed": 10,
+      "playwrightFunctionalEntered": false,
+      "playwrightPerformanceEntered": false,
+      "privacyWorkflowStep": "skipped",
+      "durationSeconds": 1538.7
+    }
+  ],
+  "reservations": [
+    {
+      "number": 1,
+      "change": "Saldo manual usa el importe real de Cartera; caso con ingreso modelado y cierres iguales permanece plano",
+      "proof": "tests/inicio-v42.test.mjs",
+      "status": "verified_local_synthetic"
+    },
+    {
+      "number": 2,
+      "change": "Deuda histórica con amortización e interés; ancla mensual sin día recorta; bienes con escalones y alta acreditada",
+      "proof": "tests/inicio-v42.test.mjs",
+      "status": "verified_local_synthetic"
+    },
+    {
+      "number": 3,
+      "change": "Aportaciones y retiradas propias entre fotos conservan patrimonio; sin atribución fiable recorta",
+      "proof": "tests/inicio-v42.test.mjs",
+      "status": "verified_local_synthetic"
+    },
+    {
+      "number": 4,
+      "change": "Dos patas propias únicas/opuestas/próximas; excluye banco ausente, ingreso coincidente y ambigüedad",
+      "proof": "tests/inicio-v42.test.mjs",
+      "status": "verified_local_synthetic"
+    },
+    {
+      "number": 5,
+      "change": "CSS spark restaurado; componente real legado medido con CSS servido, sin inventar puerta fullMode",
+      "proof": "e2e/cartera-inversiones.spec.mjs",
+      "status": "verified_local_synthetic"
+    },
+    {
+      "number": 6,
+      "change": "Cuenta sin movimientos plana; efectivo no elimina tramo; límite real nombra cuenta y fecha",
+      "proof": "tests/inicio-v42.test.mjs y e2e/inicio-v42.spec.mjs",
+      "status": "verified_local_synthetic"
+    },
+    {
+      "number": 7,
+      "change": "Información limitada a dos frases cortas en es/en/ca",
+      "proof": "src/modules/01-i18n.js y e2e/inicio-v42.spec.mjs",
+      "status": "verified_local_synthetic"
+    },
+    {
+      "number": 8,
+      "change": "Horizontal claro o pulsación mantenida; scroll vertical no cambia importe ni fecha",
+      "proof": "e2e/inicio-v42.spec.mjs",
+      "status": "verified_local_synthetic"
+    },
+    {
+      "number": 9,
+      "change": "Nube14/local400; unión por fecha preserva400 frente a cliente30 y separa propietarios",
+      "proof": "tests/inicio-v42.test.mjs",
+      "status": "verified_local_synthetic"
+    },
+    {
+      "number": 10,
+      "change": "Guardado estable sin releer claves grandes; halo retirado, etiquetas memoizadas, fotos Madrid y restos propios retirados",
+      "proof": "tests/inicio-v42.test.mjs y e2e/inicio-v42.spec.mjs",
+      "status": "verified_local_synthetic"
+    },
+    {
+      "number": 11,
+      "change": "Mes natural conserva diario, último día1, restante y porcentaje coherentes, inicio nuevo; racha de Inicio retirada",
+      "proof": "tests/inicio-v42.test.mjs y e2e/inicio-v42.spec.mjs",
+      "status": "verified_local_synthetic"
+    },
+    {
+      "number": 12,
+      "change": "Siete mutantes ejecutados y muertos: céntimos, lápidas, manual actual, sobrado, no finito, primer manual, foto futura",
+      "proof": "tests/inicio-v42.test.mjs",
+      "status": "verified_local_synthetic"
+    },
+    {
+      "number": 13,
+      "change": "Caché por porciones financieras/día; cinco archivos rendimiento14PASS; tres entradas estables en repetición prescrita del A/B",
+      "proof": "e2e/inicio-v42-rendimiento.spec.mjs y evidencia AB serial contra119",
+      "status": "verified_local_synthetic"
+    }
+  ],
+  "newTandaID": "inicio-patrimonio-flujos",
+  "catalogAndVersionUntouched": true,
+  "identityMoves": [
+    {
+      "id": "inc-3009-01-cargos",
+      "surfaces": [
+        "web"
+      ],
+      "reason": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas"
+    },
+    {
+      "id": "fin05-widget-reentrada",
+      "surfaces": [
+        "web"
+      ],
+      "reason": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas"
+    },
+    {
+      "id": "fin05-pago-cerrada",
+      "surfaces": [
+        "web"
+      ],
+      "reason": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas"
+    },
+    {
+      "id": "widget-banco",
+      "surfaces": [
+        "web"
+      ],
+      "reason": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas"
+    },
+    {
+      "id": "widget-app-cerrada",
+      "surfaces": [
+        "web"
+      ],
+      "reason": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas"
+    },
+    {
+      "id": "inc-2709-01-arranque-red",
+      "surfaces": [
+        "web"
+      ],
+      "reason": "Lectores compartidos de Inicio, valores históricos y copia acotada de nube"
+    },
+    {
+      "id": "inc-2809-02-ayuda-ciclo",
+      "surfaces": [
+        "web"
+      ],
+      "reason": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas"
+    },
+    {
+      "id": "inc-2909-02-inicio-natural",
+      "surfaces": [
+        "web"
+      ],
+      "reason": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas"
+    },
+    {
+      "id": "inc-2709-10-perfil",
+      "surfaces": [
+        "web"
+      ],
+      "reason": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas"
+    },
+    {
+      "id": "inc-3009-nomina-anticipada",
+      "surfaces": [
+        "web"
+      ],
+      "reason": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas"
+    },
+    {
+      "id": "inc-2909-03-retirada",
+      "surfaces": [
+        "web"
+      ],
+      "reason": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas"
+    },
+    {
+      "id": "inc-2909-01-widget-periodo",
+      "surfaces": [
+        "web"
+      ],
+      "reason": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas"
+    },
+    {
+      "id": "inc-0210-03-gastos-periodo",
+      "surfaces": [
+        "web"
+      ],
+      "reason": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas"
+    },
+    {
+      "id": "feature-0210-01-gasolina-taxi",
+      "surfaces": [
+        "web"
+      ],
+      "reason": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas"
+    },
+    {
+      "id": "inc-0210-02-categoria-elegida",
+      "surfaces": [
+        "web"
+      ],
+      "reason": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas"
+    },
+    {
+      "id": "inc-0310-01-meta-regla",
+      "surfaces": [
+        "web"
+      ],
+      "reason": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas"
+    },
+    {
+      "id": "feature-0310-01-movilidad",
+      "surfaces": [
+        "web"
+      ],
+      "reason": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas"
+    },
+    {
+      "id": "inc-0310-broker-resultados",
+      "surfaces": [
+        "web"
+      ],
+      "reason": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas"
+    },
+    {
+      "id": "inc-0310-gastos-sin-limite",
+      "surfaces": [
+        "web"
+      ],
+      "reason": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas"
+    },
+    {
+      "id": "inc-0710-gastos-mes-madrid",
+      "surfaces": [
+        "web"
+      ],
+      "reason": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas"
+    },
+    {
+      "id": "inc-0710-auth-disposal",
+      "surfaces": [
+        "web"
+      ],
+      "reason": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas"
+    },
+    {
+      "id": "inc-0810-metas-editar-regla",
+      "surfaces": [
+        "web"
+      ],
+      "reason": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas"
+    },
+    {
+      "id": "bienes-completo",
+      "surfaces": [
+        "web"
+      ],
+      "reason": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas"
+    },
+    {
+      "id": "inicio-grafica-vuelve",
+      "surfaces": [
+        "web"
+      ],
+      "reason": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas"
+    },
+    {
+      "id": "widget-pago-app-cerrada",
+      "surfaces": [
+        "web"
+      ],
+      "reason": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas"
+    },
+    {
+      "id": "bancos-sin-hueco",
+      "surfaces": [
+        "web"
+      ],
+      "reason": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas"
+    },
+    {
+      "id": "widget-ciclo-puente",
+      "surfaces": [
+        "web"
+      ],
+      "reason": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas"
+    },
+    {
+      "id": "recibos-cargo-unico",
+      "surfaces": [
+        "web"
+      ],
+      "reason": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas"
+    },
+    {
+      "id": "bancos-acuse-reconexion",
+      "surfaces": [
+        "web"
+      ],
+      "reason": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas"
+    }
+  ],
+  "nativeAndEdgeUnchanged": true,
+  "widgetAmountsAndNativeContractsUnchanged": true,
+  "noApprovalInherited": true,
+  "footprint": {
+    "minifiedBytes": 1360370,
+    "gzipBytes": 372460,
+    "reserveDSNBytes": 95,
+    "seal": "4.26.119.99999",
+    "minimumKiB": [
+      1329,
+      364
+    ],
+    "marginsBytes": [
+      526,
+      276
+    ],
+    "blockingFiles": 3,
+    "authority": "0e61402cd62ad9f29e627cbf4962d7dc87f39a2d"
+  },
+  "metrics": {
+    "entryFPS": 60.003,
+    "dragFPS": 60.004,
+    "framesOver32": 0,
+    "budgetOpenMilliseconds": 12.9,
+    "foregroundThreePassBytes": {
+      "candidate": 2571,
+      "baseline119": 5757
+    },
+    "cloudSyntheticBytes": {
+      "before": 121811,
+      "after": 4441
+    }
+  },
+  "sourceParity": {
+    "HTMLSHA256": "0cc7d621d4e10a0d97e51eea6fd53d09c80a5e8d0fd49386dee307ba7a1b2cb6",
+    "finalVsRuntimeChangedPaths": [
+      "docs/briefs/inicio-revision-nogo-20261012.md",
+      "tests/metas-pull-transport.test.mjs"
+    ],
+    "runtimeDOMPerformanceAndRegistryIdentical": true
+  },
+  "resource": {
+    "ownerLeaseReturned": true,
+    "lastNonce": "62ef8c36-6ef0-46f5-ad61-308fff31ad67",
+    "returnCommit": "8fb65911888da1160a3515d9c88d5b82619868c9",
+    "takingCommit": "227f08963bbc1333545ecefd7de873f6247c3580",
+    "censusClearAtReturn": true,
+    "physicalLeaseRemoved": true,
+    "gameAssistPreserved": true,
+    "noForeignLeaseAdopted": true,
+    "noClockReclaim": true
+  },
+  "priorCI": {
+    "id": 38297577603,
+    "sourceSHA": "b61f0c5e8dbdc7daeb7b891c048f5759412ef737",
+    "exitCode": 1,
+    "failedStages": [
+      "docs-frescura",
+      "metas-pull-transport"
+    ],
+    "metasFailures": 5,
+    "denoFilesPassed": 7,
+    "preservedFullLog": true
+  },
+  "humanSteps": [
+    "Comparar el total de Inicio con cuentas/inversiones/bienes menos deudas en Cartera, incluida una cuenta manual.",
+    "Consultar dos días conocidos: sumar sus movimientos y comprobar un punto; gasto resta, traspaso propio de dos patas no cambia. Sólo el tramo con datos.",
+    "Revisar una cuota: reflejar intereses y otros movimientos, descontando el principal amortizado.",
+    "Scroll vertical desde gráfica conserva cifra; mantener o arrastrar horizontalmente muestra fecha/importe y soltar restaura total actual.",
+    "Mes natural muestra Este mes/Te quedan y diario; último día tiene1día; agotado no ofrece gasto diario."
+  ],
+  "limitations": [
+    "CI no es verde: sólo VERSION bloquea el HEAD final; query7d349 existente sigue pendiente.",
+    "Funcional completa remota no ejecutada por fallo previo; no se repitió en local.",
+    "Privacidad workflow omitida; privacidad local EXIT0 no la sustituye.",
+    "Dos A/B conservados; causa del primer rojo no demostrada, no atribuida a GameAssist.",
+    "SparklineInv legado probado como componente con CSS real; no se afirma puerta visible en fullMode.",
+    "No fuente publicada ni aceptación móvil ni revisión/integración de Claude; no beta/main/deploy/merge/APK/backend."
+  ],
+  "documentation": "docs/briefs/inicio-revision-nogo-20261012.md",
+  "nextAction": "Claude revisa esta misma PR, prepara VERSION/catálogo de integración y valida funcional completa y publicación; no autorización adicional pedida al dueño.",
+  "schema": 1,
+  "taskId": "inicio-v42-revision-nogo-codex-20261012",
+  "actor": "codex",
+  "sessionId": "codex-local-20261012-inicio-nogo-47707522",
+  "createdAt": "2026-10-12T20:38:50.413Z",
+  "released": true
+}
