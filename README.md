@@ -95,7 +95,7 @@ mi-cartera/
 │   ├── inicio-v42.spec.mjs # Inicio v4.2 en pantalla real: gráfica, consulta con el dedo, cobertura y tarjeta del mes
 │   ├── recibo-cargo-en-gastos.spec.mjs # El cargo de un recibo en Gastos, Inicio, Plan e «Importar histórico»; «No es este recibo» y su vuelta atrás, es/en/ca
 │   └── backclose-handover.spec.mjs # Dieciocho casos de historial/overlays; retorno cleanUrls2PASS/base1092RED
-├── tests/lag-banco-instrumento.test.mjs # Sonda de retención, tasas y control discriminante sin navegador
+├── tests/lag-banco-instrumento.test.mjs # Sonda, calendario, bloqueo y control discriminante sin navegador
 ├── tests/recibo-invariante.test.mjs # Mismos extractos por el código de antes (dea5d883) y el de ahora: gastado, saldos y cierre iguales al céntimo
 ├── tests/recibo-domiciliado-sin-acreditar.test.mjs # Etiqueta, vetos entre móviles, recibo borrado, ordinal y escritura de la marca en la nube
 ├── tests/inicio-v42.test.mjs # Serie de patrimonio por flujos con los callbacks reales de Guardar y del pull, UTC y Madrid

@@ -4,6 +4,9 @@ import {recta,resumen,discrimina,atribuciones} from '../e2e/lag-banco-metricas.m
 import {instalaSonda,inyectaFuga,retiraFuga} from '../e2e/lag-banco-sonda.mjs';
 import {curvasSVG} from '../e2e/lag-banco-informe.mjs';
 import {preparaTransporte} from '../e2e/lag-banco-recorrido.mjs';
+import {instalaRetorno,instrumentaTotales,instrumentaArranque,bloqueoPorCausa} from '../e2e/lag-banco-retorno.mjs';
+import {readFileSync} from 'node:fs';
+import vm from 'node:vm';
 
 const sample=(i,extra={})=>({valid:true,elapsedMs:30000,measuredMinute:i/2,slowFrames:3,
   slowFramesPerMinute:6,storageBytes:100,domNodes:100,listeners:40,timeouts:0,intervals:1,
@@ -72,6 +75,11 @@ test('RAF32ms es delta real y el propio bucle de la sonda se cancela al restaura
   const out=h.p.end();assert.equal(out.frames,3);assert.equal(out.slowFrames,1);assert.equal(out.maxFrame,44);
   h.p.restore();assert.equal(h.raf.size,0);
 });
+test('el primer frame conserva el bloqueo justo después de retirar el splash',()=>{
+  const h=environment();h.now.value=10;h.p.begin();
+  const [id,fn]=h.raf.entries().next().value;h.raf.delete(id);h.now.value=90;fn(90);
+  const out=h.p.end();assert.equal(out.slowFrames,1);assert.equal(out.maxFrame,80);h.p.restore();
+});
 test('fuga conocida retiene callbacks en el destino real y retirarla deja el destino limpio',()=>{
   const h=environment();const inject=new Function('window','performance',`(${inyectaFuga.toString()})('e2e/lag-banco-sonda.mjs:1');`);
   inject(h.window,{now:()=>++h.now.value});inject(h.window,{now:()=>++h.now.value});
@@ -90,4 +98,40 @@ test('observación del pull espera la promesa verdadera, conserva argumentos y n
   resolve(rows);assert.equal(await pull,rows);assert.equal(await window.__lagBanco.lastPull,undefined);
   assert.equal(window.__lagBanco.transport.pullExpenses.succeeded,1);assert.equal(proof.valid,true);
   window.__lagBanco.restoreTransport();assert.equal(cloud.pullExpenses,original);
+});
+
+test('atribución de bloqueo intersecta ventanas y no duplica trabajo anidado ni tiempo de red',()=>{
+  const out=bloqueoPorCausa([{start:10,duration:100}],[{kind:'timer',start:0,duration:120,depth:0},
+    {kind:'totals',start:20,duration:50,depth:1},{kind:'serialize',start:40,duration:10,depth:2},
+    {kind:'pull-async',start:0,duration:1000,async:true}]);
+  assert.deepEqual(out,{timer:50,totals:40,serialize:10});assert.equal(Object.values(out).reduce((a,b)=>a+b,0),100);
+  assert.deepEqual(bloqueoPorCausa([{start:0,duration:80}],[]),{unattributed:80});
+});
+test('calendario desplazado conserva Date con argumentos, scheduler y RAF; wrapper conserva promesa y receptor',async()=>{
+  const h=environment();h.window.Date=Date;const nativeRAF=h.window.requestAnimationFrame,nativeTimeout=h.window.setTimeout;
+  const json={stringify:JSON.stringify};let resolve;const rows=[{id:'synthetic'}],argument={};
+  const cloud={pullExpenses(value){assert.equal(this,cloud);assert.equal(value,argument);return new Promise(r=>{resolve=r;});}};
+  class Observer{observe(){}disconnect(){this.disconnected=true;}takeRecords(){return [];}}
+  const install=new Function('window','document','PerformanceObserver','JSON','cloud','performance',`(${instalaRetorno.toString()})({epoch:100000});`);
+  install(h.window,h.document,Observer,json,cloud,{now:()=>h.now.value});
+  const Clock=h.window.Date;const before=Clock.now();h.p.advanceCalendar(4*3600000);
+  assert.ok(Math.abs(Clock.now()-before-4*3600000)<100);
+  assert.equal(new Clock('2026-09-26T12:00:00Z').getTime(),Date.parse('2026-09-26T12:00:00Z'));
+  assert.equal(Clock.parse('2026-01-01'),Date.parse('2026-01-01'));assert.equal(Clock.UTC(2026,0,1),Date.UTC(2026,0,1));
+  assert.ok(new Clock() instanceof Date);assert.equal(typeof Clock(),'string');
+  assert.equal(h.window.requestAnimationFrame,nativeRAF);assert.equal(h.window.setTimeout,nativeTimeout);
+  const original=cloud.pullExpenses;h.p.installCauses();h.p.begin();const work=cloud.pullExpenses(argument);
+  resolve(rows);assert.equal(await work,rows);assert.ok(h.p.events.some(e=>e.kind==='pullExpenses-async'));
+  h.p.armWindow(5000);assert.equal(h.p.snapshot().timeouts,0,'el deadline del instrumento no es timer de la app');
+  const scheduled=[...h.live.values()].at(-1);h.now.value=5000;scheduled.fn();
+  const metric=await h.p.windowDone;assert.equal(metric.elapsedMs,5000);assert.equal(metric.events.length,0);
+  h.p.restoreCauses();assert.equal(cloud.pullExpenses,original);h.p.restoreForeground();assert.equal(h.window.Date,Date);h.p.restore();
+});
+test('instrumentación usa anclas únicas de la fuente real y conserva sintaxis, líneas y mínimo del splash',()=>{
+  const html=readFileSync(new URL('../public/index.html',import.meta.url),'utf8'),main=readFileSync(new URL('../src/modules/11-app-main.js',import.meta.url),'utf8');
+  const changed=instrumentaArranque(instrumentaTotales(html,main));
+  assert.equal(changed.split('\n').length,html.split('\n').length);assert.ok(changed.includes('MINIMO=520'));
+  assert.ok(changed.includes("measureSync('totals'"));assert.ok(changed.includes('window.__lagBanco.installCauses();ReactDOM.createRoot'));
+  for(const match of changed.replace(/<!--[\s\S]*?-->/g,'').matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi))if(match[1].trim())new vm.Script(match[1]);
+  assert.throws(()=>instrumentaTotales(html+html,main),/ambigua/);assert.throws(()=>instrumentaArranque(''),/ausente/);
 });

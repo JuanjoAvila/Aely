@@ -265,7 +265,7 @@ export function planFromFiles(files) {
   const raw = (files || []).map(posixPath).filter(Boolean);
   // La sonda y el lector de curvas sólo alimentan este banco; tocar su recorrido histórico
   // también debe ejecutarlo, pues el nuevo guion reutiliza sus acciones sin duplicarlas.
-  const lagHelpers=["e2e/lag-banco-sonda.mjs","e2e/lag-banco-recorrido.mjs","e2e/lag-banco-metricas.mjs","e2e/lag-banco-informe.mjs"];
+  const lagHelpers=["e2e/lag-banco-sonda.mjs","e2e/lag-banco-recorrido.mjs","e2e/lag-banco-metricas.mjs","e2e/lag-banco-informe.mjs","e2e/lag-banco-retorno.mjs"];
   const list = [...new Set(raw.filter((f) => !isIgnored(f)).flatMap(f=>lagHelpers.includes(f)
     ? ["e2e/rendimiento-banco-prolongado.spec.mjs"]
     : f==="e2e/rendimiento-sostenido.spec.mjs"?[f,"e2e/rendimiento-banco-prolongado.spec.mjs"]:[f]))];

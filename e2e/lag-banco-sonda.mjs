@@ -10,7 +10,13 @@ export function instalaSonda(sourceMap=[]) {
   let seq=0;
   const p=window.__lagBanco={active:false,previous:null,elapsedStart:0,frames:0,slowFrames:0,maxFrame:0,
     storageBytes:0,writes:0,expensesWrites:0,visibility:'visible',onceNotAttributed:0,
-    timers,listeners,leaks:[],observers:new Set(),transport:{},bankSync:0,stopped:false,rafId:null};
+    timers,listeners,leaks:[],observers:new Set(),transport:{},bankSync:0,stopped:false,rafId:null,
+    events:[],depth:0,frameBins:{}};
+  p.measureSync=function(kind,fn,origin='unmapped'){
+    if(!p.active)return fn();
+    const start=performance.now(),depth=p.depth++;
+    try{return fn();}finally{p.depth--;p.events.push({kind,source:origin,start,duration:performance.now()-start,depth});}
+  };
   const source=function(fn){
     if(fn&&/^(?:e2e|src)\/[\w./-]+:\d+$/.test(fn.__lagSource||'')) return fn.__lagSource;
     const stack=String(new Error().stack||'').split('\n');
@@ -44,26 +50,32 @@ export function instalaSonda(sourceMap=[]) {
   window.setTimeout=function(fn,ms,...args){
     if(typeof fn!=='function') return native.timeout.call(this,fn,ms,...args);
     const origin=source(fn);let id;
-    id=native.timeout.call(this,function(...values){timers.delete(id);return fn.apply(this,values);},ms,...args);
-    timers.set(id,{kind:'timeout',source:origin});return id;
+    id=native.timeout.call(this,function(...values){timers.delete(id);return p.measureSync('timer',()=>fn.apply(this,values),origin);},ms,...args);
+    timers.set(id,{kind:'timeout',source:origin,calendarDue:Date.now()+Math.max(0,Number(ms)||0)});return id;
   };
   window.setInterval=function(fn,ms,...args){
-    const id=native.interval.call(this,fn,ms,...args);timers.set(id,{kind:'interval',source:source(fn)});return id;
+    const origin=source(fn);
+    const invoke=typeof fn==='function'?function(...values){return p.measureSync('timer',()=>fn.apply(this,values),origin);}:fn;
+    const id=native.interval.call(this,invoke,ms,...args);timers.set(id,{kind:'interval',source:origin,calendarDue:Date.now()+Math.max(0,Number(ms)||0)});return id;
   };
   window.clearTimeout=function(id){timers.delete(id);return native.clearTimeout.call(this,id);};
   window.clearInterval=function(id){timers.delete(id);return native.clearInterval.call(this,id);};
   Storage.prototype.setItem=function(k,v){
     p.writes++;p.storageBytes+=String(v).length*2;if(k==='micartera_v3_exp')p.expensesWrites++;
-    return native.put.call(this,k,v);
+    return p.measureSync('storage',()=>native.put.call(this,k,v),source(null));
   };
   function frame(t){
     if(p.stopped)return;
-    if(p.active&&p.previous!==null){const delta=t-p.previous;p.frames++;if(delta>32)p.slowFrames++;p.maxFrame=Math.max(p.maxFrame,delta);}
+    if(p.active&&p.previous!==null&&t>p.previous){const delta=t-p.previous;p.frames++;if(delta>32)p.slowFrames++;p.maxFrame=Math.max(p.maxFrame,delta);
+      const second=Math.floor((t-p.elapsedStart)/1000),bin=p.frameBins[second]||(p.frameBins[second]={frames:0,slow:0,max:0});
+      bin.frames++;if(delta>32)bin.slow++;bin.max=Math.max(bin.max,delta);}
     p.previous=p.active?t:null;p.rafId=native.raf.call(window,frame);
   }
   p.rafId=native.raf.call(window,frame);
-  p.begin=function(){p.previous=null;p.frames=0;p.slowFrames=0;p.maxFrame=0;p.elapsedStart=performance.now();p.active=true;};
-  p.end=function(){p.active=false;return {elapsedMs:performance.now()-p.elapsedStart,frames:p.frames,slowFrames:p.slowFrames,maxFrame:p.maxFrame};};
+  const deadlines=new Set();
+  p.defer=function(fn,ms){let id;id=native.timeout.call(window,function(){deadlines.delete(id);fn();},ms);deadlines.add(id);return id;};
+  p.begin=function(){p.frames=0;p.slowFrames=0;p.maxFrame=0;p.events=[];p.frameBins={};p.elapsedStart=performance.now();p.previous=p.elapsedStart;p.active=true;};
+  p.end=function(){p.active=false;return {elapsedMs:performance.now()-p.elapsedStart,frames:p.frames,slowFrames:p.slowFrames,maxFrame:p.maxFrame,events:p.events,frameBins:p.frameBins};};
   p.snapshot=function(){
     const counts=new Map();
     for(const [k,r]of listeners){if(!r.callback.deref()){listeners.delete(k);continue;}counts.set(r.source,(counts.get(r.source)||0)+1);}
@@ -76,6 +88,7 @@ export function instalaSonda(sourceMap=[]) {
   };
   p.restore=function(){
     p.active=false;p.stopped=true;native.cancelRaf.call(window,p.rafId);
+    for(const id of deadlines)native.clearTimeout.call(window,id);deadlines.clear();
     for(const observer of p.observers)observer.disconnect();p.observers.clear();
     EventTarget.prototype.addEventListener=native.add;EventTarget.prototype.removeEventListener=native.remove;
     window.setTimeout=native.timeout;window.setInterval=native.interval;window.clearTimeout=native.clearTimeout;

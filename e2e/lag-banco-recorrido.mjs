@@ -9,23 +9,29 @@ function existing(name){
 // Reutiliza las acciones publicadas, sin importar el spec y registrar sus tests otra vez.
 // Su lifecycle antiguo toma heap dentro de la ventana; éste observa sólo contadores pequeños.
 const cycleSource=existing('cycle').replace('const states=await lifecycle(page,cdp);','const states=await lifecycle(page);')
-  .replace('await delay(1200);','await bankReport(page);');
+  .replace('await delay(1200);','await bankReport(page);')
+  .replace('if(tab==="gastos"){','if(tab==="gastos"){\n      await filters(page);')
+  .replace('const states=await lifecycle(page);','await click(page,\'.botnav-fab\');await apunta(page);\n  const states=await lifecycle(page);');
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
-const make=new Function('delay','scroll','markAction','lifecycle','bankReport',existing('fixture')+'\n'+existing('click')+'\n'+cycleSource+'\nreturn {fixture,cycle};');
+const make=new Function('delay','scroll','markAction','lifecycle','bankReport','filters','apunta',existing('fixture')+'\n'+existing('click')+'\n'+cycleSource+'\nreturn {fixture,cycle};');
 async function markAction(page,name){await page.evaluate(name=>{window.__lagBanco.actionName=name;},name);}
 
-async function scroll(page,cdp,down){
-  const before=await page.evaluate(()=>document.querySelector('.page-scroll-host').scrollTop);
+export async function scroll(page,cdp,down){
+  const before=await page.evaluate(()=>{
+    const host=document.querySelector('.page-scroll-host');
+    document.addEventListener('touchend',()=>{window.__lagBanco.fingerEnd=host.scrollTop;},{once:true,capture:true});
+    return host.scrollTop;
+  });
   const y=down?600:230;
   await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:187,y}]});
   for(let i=1;i<=14;i++){
     await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:187,y:y+(down?-1:1)*i*22}]});
     await delay(16);
   }
-  const fingerEnd=await page.evaluate(()=>document.querySelector('.page-scroll-host').scrollTop);
   await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await delay(500);
   const after=await page.evaluate(()=>({top:document.querySelector('.page-scroll-host').scrollTop,
-    hidden:document.querySelector('.botnav').classList.contains('botnav-hidden')}));
+    fingerEnd:window.__lagBanco.fingerEnd,hidden:document.querySelector('.botnav').classList.contains('botnav-hidden')}));
+  const fingerEnd=after.fingerEnd;
   if(down&&after.top<before+20||!down&&after.top>before-20)throw new Error('scroll-no-land');
   const inertia=Math.abs(after.top-fingerEnd);
   await windowlessRecord(page,{action:down?'scroll-down':'scroll-up',before,fingerEnd,after:after.top,inertia,hidden:after.hidden});
@@ -61,7 +67,23 @@ async function bankReport(page){
     observer.observe(document.body,{childList:true,subtree:true});ready();
   }));
 }
-export const recorrido=make(delay,scroll,markAction,lifecycle,bankReport);
+async function filters(page){
+  await markAction(page,'expense-filter');
+  await page.evaluate(()=>{const button=[...document.querySelectorAll('button.v4-chip')].find(b=>b.textContent.includes('🎛️'));if(!button)throw new Error('filters-missing');button.click();});await delay(500);
+  for(const label of [/Todos los bancos|All banks|Tots els bancs/i,/Listo|Done|Fet/i]){
+    await page.evaluate(pattern=>{const button=[...document.querySelectorAll('button')].find(b=>new RegExp(pattern,'i').test(b.textContent));if(!button)throw new Error('filters-choice-missing');button.click();},label.source);await delay(500);
+  }
+}
+async function apunta(page){
+  await markAction(page,'apuntar-save');
+  for(const digit of ['2','3']){
+    await page.evaluate(digit=>{const key=[...document.querySelectorAll('.v4-keys button')].find(b=>b.textContent.trim()===digit);if(!key)throw new Error('apuntar-key-missing');key.click();},digit);await delay(100);
+  }
+  const amount=await page.evaluate(()=>{const button=document.querySelector('.v4-exp-sheet .v4-cta');if(!button)throw new Error('apuntar-cta-missing');const text=button.textContent;button.click();return text;});
+  if(!amount.includes('23'))throw new Error('apuntar-amount-mismatch');await delay(850);
+  if(await page.evaluate(()=>!!document.querySelector('.v4-exp-sheet')))throw new Error('apuntar-not-saved');
+}
+export const recorrido=make(delay,scroll,markAction,lifecycle,bankReport,filters,apunta);
 export async function preparaTransporte(page){
   await page.evaluate(()=>{
     const p=window.__lagBanco;
