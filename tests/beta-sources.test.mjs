@@ -48,7 +48,7 @@ const boot="inc-2709-01-arranque-red";
 const modern=[{v:"4.26.69",tandas:[{id:boot}]}];
 let failed=0;
 const inicioOnly=process.argv.includes("--inicio-v42-only");
-function test(name,fn){ if(inicioOnly&&!name.startsWith("Inicio v4.2 ")&&!name.startsWith("Catálogo114 "))return;try{fn();console.log("  ✓ "+name);}catch(e){failed++;console.error("  ✗ "+name+"\n    "+e.message);} }
+function test(name,fn){ if(inicioOnly&&!name.startsWith("Inicio v4.2 ")&&!name.startsWith("Catálogo114 ")&&!name.startsWith("Catálogo117 ")&&!name.startsWith("Retiro117 "))return;try{fn();console.log("  ✓ "+name);}catch(e){failed++;console.error("  ✗ "+name+"\n    "+e.message);} }
 console.log("beta-sources");
 
 // La rayita comparte controlador y geometría con la barra: una aprobación de CSS aislada no
@@ -134,6 +134,11 @@ test("Inicio109 histórico vigila ausencia de fechas, moneda, escala y dibujo en
 // Este guardián de identidad no acredita por sí solo DOM ni aceptación de la corrección.
 test("Inicio v4.2 cubre flujos, ciclo, renderer, llamada, animación, textos, CSS y moneda vigentes",()=>{
   const id="inicio-grafica-vuelve",source=f=>read(f).replace(/\r\n/g,"\n"),scopes=JSON.parse(source("scripts/beta-sources.json")),scope=scopes[id],before=betaRevision(id,source);
+  // El rebase hereda las altas117; sólo el descriptor delegado de Inicio puede variar.
+  // Contrastar con114 aquí rechazaba esas altas y no vigilaba la base integrada actual.
+  const integrated=JSON.parse(sourceAt("c5f62d6603d016150afd9d0e20547b608b323045")("scripts/beta-sources.json"));
+  assert.deepEqual(Object.keys(scopes),Object.keys(integrated),"Inicio no añade ni retira alcances117");
+  for(const [key,value] of Object.entries(integrated))if(key!==id)assert.deepEqual(scopes[key],value,key+": descriptor ajeno117 intacto");
   assert.equal(scope.unidades,true);
   for(const key of ["historial","auditoria","codigosCompatibles","compatibilidadGit","compatibilidadSha"])
     assert.equal(scope[key],undefined,"no hereda identidad anterior: "+key);
@@ -415,13 +420,7 @@ test("Catálogo114 histórico añade sólo la tanda del solape y conserva notas,
   const inherited=structuredClone(notes);inherited[0].tandas[0].desde="inicio-grafica-vuelve";assert.throws(()=>verify(inherited),"no heredar una aprobación");
   const missing=structuredClone(notes);missing.pop();assert.throws(()=>verify(missing));
   const text=structuredClone(notes);text[1].items.es[0]+="mutante";assert.throws(()=>verify(text));
-  // La comparación de la entrega114 usa su propio SHA; el descriptor de Inicio fue
-  // delegado después para v4.2, sin autorizar cambios en los demás alcances.
-  const source114=sourceAt("8adba5202a0444b386e3957a3c5ba499cf88e622");
-  const scopes=JSON.parse(source114("scripts/beta-sources.json")),oldScopes=JSON.parse(source113("scripts/beta-sources.json"));
-  const actualScopes=JSON.parse(read("scripts/beta-sources.json"));
-  assert.deepEqual(Object.keys(actualScopes),Object.keys(scopes),"la revisión de Inicio no añade ni retira alcances");
-  for(const [key,scope] of Object.entries(scopes))if(key!=="inicio-grafica-vuelve")assert.deepEqual(actualScopes[key],scope,key+": descriptor ajeno sigue intacto");
+  const scopes=JSON.parse(read("scripts/beta-sources.json")),oldScopes=JSON.parse(source113("scripts/beta-sources.json"));
   assert.deepEqual(Object.keys(scopes).filter(key=>!oldScopes[key]),[id]);
   assert.deepEqual(Object.keys(oldScopes).filter(key=>!scopes[key]),[],"ningún alcance se retira");
   for(const [key,scope] of Object.entries(oldScopes))assert.deepEqual(scopes[key],scope,key+": descriptor ajeno intacto");
@@ -662,8 +661,7 @@ test("Catálogo116 histórico añade sólo la tanda de los bancos y fija qué hu
 // huella ajena se mueve; si algún día se mueve una, este test la nombra en vez de reabrirla en silencio.
 const expected117={"v":"4.26.117","d":"2026-10-12","t":{"es":"Nueva pantalla de entrada","en":"New opening screen","ca":"Nova pantalla d'entrada"},"items":{"es":["Nueva pantalla de entrada: el logo aparece con una luz suave mientras la app se prepara, y al entrar todo responde desde el primer gesto. En tema claro el nombre ya se lee bien."],"en":["New opening screen: the logo appears with a soft glow while the app gets ready, and everything responds from the very first swipe. The name is now easy to read in the light theme."],"ca":["Nova pantalla d'entrada: el logotip apareix amb una llum suau mentre l'app es prepara, i en entrar tot respon des del primer gest. Amb el tema clar el nom ja es llegeix bé."]},"tandas":[{"id":"splash-animado","t":{"es":"Nueva pantalla de entrada","en":"New opening screen","ca":"Nova pantalla d'entrada"},"items":{"es":["1. Actualiza la app y ciérrala del todo (quítala de recientes); el cambio se ve en la segunda apertura tras actualizar. Ábrela: debe verse la tarjeta con el logo, una luz verde suave que respira detrás y el nombre debajo, sin barras ni cortes.","2. Fíjate en el momento de entrar: primero desaparece el logo y después el fondo. En ningún instante debe verse el logo encima de la pantalla de Inicio.","3. Nada más entrar, desliza a Gastos, Plan y Cartera. Deben ir fluidas desde el primer deslizamiento.","4. En Ajustes pon el tema claro, cierra la app del todo y ábrela. No debe haber fogonazo ni salto brusco de color, y «Aely» debe leerse bien."],"en":["1. Update the app and close it completely (remove it from recent apps); the change shows on the second opening after updating. Open it: you should see the card with the logo, a soft green glow breathing behind it and the name below, with no bars or cuts.","2. Watch the moment you enter: first the logo disappears and then the background. At no point should the logo be visible on top of the Home screen.","3. Right after entering, swipe to Spending, Plan and Portfolio. They should be smooth from the very first swipe.","4. In Settings choose the light theme, close the app completely and open it. There should be no flash or abrupt colour jump, and “Aely” should be easy to read."],"ca":["1. Actualitza l'app i tanca-la del tot (treu-la de recents); el canvi es veu a la segona obertura després d'actualitzar. Obre-la: s'ha de veure la targeta amb el logotip, una llum verda suau que respira al darrere i el nom a sota, sense barres ni talls.","2. Fixa't en el moment d'entrar: primer desapareix el logotip i després el fons. En cap instant s'ha de veure el logotip damunt de la pantalla d'Inici.","3. Just en entrar, llisca a Despeses, Pla i Cartera. Han d'anar fluides des del primer lliscament.","4. A Ajustos posa el tema clar, tanca l'app del tot i obre-la. No hi ha d'haver cap fogonada ni salt brusc de color, i «Aely» s'ha de llegir bé."]}}]};
 test("Catálogo117 añade sólo la tanda de la pantalla de entrada y no mueve ninguna huella ajena",()=>{
-  // Contrato del catálogo publicado117; la promoción tiene su propio guardián debajo.
-  const cache117=new Map(),read=f=>{if(!cache117.has(f))cache117.set(f,execFileSync("git",["show","c5f62d6603d016150afd9d0e20547b608b323045:"+f],{encoding:"utf8",maxBuffer:8e6}));return cache117.get(f);};
+  const read=source117;
   const id="splash-animado",before=JSON.parse(source116("src/data/release-notes.json"));
   // Retiro117: bancos-sin-hueco, APROBADA en el móvil (12/10, 4 ok / 0 fallos sobre 4.26.116.1), sale del panel; su nota, su descriptor y todo el historial se quedan.
   const retired="bancos-sin-hueco";
@@ -721,8 +719,7 @@ test("Catálogo117 añade sólo la tanda de la pantalla de entrada y no mueve ni
   for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica","native","edge"])assert.equal(group[key],undefined,"identidad nueva sin "+key);
 });
 test("Retiro117 elimina solo bancos-sin-hueco y conserva todo el historial",()=>{
-  // Contrato del catálogo publicado117; la promoción tiene su propio guardián debajo.
-  const cache117=new Map(),read=f=>{if(!cache117.has(f))cache117.set(f,execFileSync("git",["show","c5f62d6603d016150afd9d0e20547b608b323045:"+f],{encoding:"utf8",maxBuffer:8e6}));return cache117.get(f);};
+  const read=source117;
   const id="bancos-sin-hueco",before=JSON.parse(source116("src/data/release-notes.json")),notes=JSON.parse(read("src/data/release-notes.json"));
   assert.equal(before[0].tandas.some(g=>g.id===id),true,"la 116 publicada la llevaba");
   assert.equal(notes.flatMap(n=>n.tandas||[]).some(g=>g.id===id),false,"ya no está en ninguna nota");
@@ -762,6 +759,89 @@ test("Splash117 conserva descriptor vivo, mutantes y retirada del panel",()=>{
   assert.equal(receipt.web[id],before.web,"la tanda vigente usa la fuente actual");
 });
 
+test("Inicio v4.2 integra117 con catálogo intacto y lista cerrada de huellas web",()=>{
+  const integrated=JSON.parse(source117("scripts/beta-sources.json"));
+  const expectedNotes=JSON.parse(source117("src/data/release-notes.json"));
+  const expectedMoves={
+    "inc-3009-01-cargos":"mcSaveRaw separa el historial compartido con las cuentas",
+    "fin05-widget-reentrada":"mcSaveRaw conserva cierres al volver del widget",
+    "fin05-pago-cerrada":"mcSaveRaw cambia la persistencia compartida del pago",
+    "widget-banco":"mcSaveRaw cambia el escritor compartido, sin cambiar la cifra del widget",
+    "widget-app-cerrada":"mcSaveRaw cambia el escritor compartido, sin cambiar el contrato nativo",
+    "inc-2709-01-arranque-red":"El contador pasa de Dashboard a la tarjeta, conservando su puerta de splash",
+    "inc-2809-02-ayuda-ciclo":"mcSaveRaw conserva el historial junto al estado del ciclo",
+    "inc-2909-02-inicio-natural":"Memo del presupuesto, seis estados del ciclo y persistencia del historial",
+    "inc-2709-10-perfil":"mcSaveRaw cambia el escritor compartido con los ajustes",
+    "inc-3009-nomina-anticipada":"Wealth comparte cierres400; memo y ciclo nuevos; mcSaveRaw parte el historial",
+    "inc-2909-03-retirada":"mcSaveRaw cambia el escritor compartido con las retiradas",
+    "inc-2909-01-widget-periodo":"mcSaveRaw cambia la persistencia compartida del periodo",
+    "inc-0210-03-gastos-periodo":"mcSaveRaw cambia el escritor compartido con los gastos del periodo",
+    "feature-0210-01-gasolina-taxi":"mcSaveRaw cambia el escritor compartido con estos gastos",
+    "inc-0210-02-categoria-elegida":"mcSaveRaw cambia el escritor compartido con la categoría",
+    "inc-0310-01-meta-regla":"mcSaveRaw cambia el escritor compartido con las reglas de metas",
+    "feature-0310-01-movilidad":"mcSaveRaw cambia el escritor compartido con movilidad",
+    "inc-0310-broker-resultados":"mcSaveRaw cambia el escritor compartido con las inversiones",
+    "inc-0310-gastos-sin-limite":"mcSaveRaw cambia el escritor compartido con los gastos",
+    "inc-0710-gastos-mes-madrid":"mcSaveRaw cambia la persistencia compartida del mes",
+    "inc-0710-auth-disposal":"mcSaveRaw cambia el escritor compartido al guardar la sesión",
+    "inc-0810-metas-editar-regla":"mcSaveRaw cambia el escritor compartido con la edición de metas",
+    "bienes-completo":"mcSaveRaw cambia el escritor compartido con los bienes",
+    "inicio-grafica-vuelve":"Descriptor propio de la serie por flujos, los rangos y el ciclo v4.2",
+    "widget-pago-app-cerrada":"mcSaveRaw cambia el escritor compartido; APK y guion intactos",
+    "bancos-sin-hueco":"mcSaveRaw cambia el escritor compartido con la recuperación bancaria",
+    "widget-ciclo-puente":"mcSaveRaw cambia su web pendiente; APK y pasos de prueba no cambian"
+  };
+  const previous=new Map();
+  const measure=source=>{
+    const scopes=JSON.parse(source("scripts/beta-sources.json")),moved={};
+    assert.deepEqual(Object.keys(scopes),Object.keys(integrated),"sin altas ni retiros de alcances117");
+    for(const [id,scope] of Object.entries(integrated)){
+      if(id!=="inicio-grafica-vuelve")assert.deepEqual(scopes[id],scope,id+": descriptor ajeno117 intacto");
+      // El rechazo109 usa su pin histórico, nunca un bloque retirado del renderer actual.
+      if(id===archiveId){assert.deepEqual(auditedRevision(id,source),auditedRevision(id,source117));continue;}
+      if(!previous.has(id))previous.set(id,betaRevision(id,source117,undefined,scope));
+      const a=previous.get(id),b=betaRevision(id,source,undefined,scopes[id]);
+      const surfaces=["web","native","edge"].filter(s=>a[s]!==b[s]);
+      if(surfaces.length)moved[id]=surfaces;
+    }
+    return moved;
+  };
+  const verify=(source,expected=expectedMoves)=>{
+    assert.deepEqual(JSON.parse(source("src/data/release-notes.json")),expectedNotes,"catálogo117 literal, sin resucitar tandas");
+    assert.deepEqual(JSON.parse(source("scripts/beta-archives.json")),archiveRefs,"sin repinar el rechazo109");
+    for(const [id,why] of Object.entries(expected))assert.ok(typeof why==="string"&&why.trim(),id+": motivo explícito");
+    const wanted=Object.fromEntries(Object.keys(expected).map(id=>[id,["web"]]));
+    assert.deepEqual(measure(source),wanted,"lista cerrada: ni una huella extra ni una declarada que no cambie");
+  };
+  const source=f=>read(f).replace(/\r\n/g,"\n");
+  verify(source);
+  // Una dependencia ajena que cambia debe fallar aunque el catálogo conserve sus textos.
+  const shell="src/shell.html",from='animation:mclpop .5s cubic-bezier(.32,.72,0,1) backwards;}';
+  assert.equal(source(shell).split(from).length,2,"mutante sobre el splash actual real");
+  const changed=f=>f===shell?source(f).replace(from,from.replace(".5s",".6s")):source(f);
+  assert.throws(()=>verify(changed),/lista cerrada/,"el splash no está declarado: no puede moverse por arrastre");
+  const declaredButStill={...expectedMoves,"splash-animado":"mutante: declarada sin cambio real"};
+  assert.throws(()=>verify(source,declaredButStill),/lista cerrada/,"añadir una declaración vacía no permite heredar identidad");
+  // Deshacer el escritor demuestra la otra dirección con una mutación real de fuente:
+  // sus consumidores ya no se mueven, y la lista que aún los declara tiene que fallar.
+  const core="src/modules/00-core.js",writer=scopeText({file:core,function:"mcSaveRaw"},source);
+  const priorWriter=scopeText({file:core,function:"mcSaveRaw"},source117);
+  const reverted=f=>f===core?source(f).replace(writer,priorWriter):source(f);
+  assert.equal(measure(reverted)["widget-ciclo-puente"],undefined,"sin el escritor nuevo el puente deja de moverse");
+  assert.throws(()=>verify(reverted),/lista cerrada/,"una huella declarada que deja de moverse pone rojo");
+  const scopes=JSON.parse(source("scripts/beta-sources.json")),built=betaNotes(expectedNotes,source,scopes),receipt=betaDelivery(built,source,scopes);
+  for(const id of ["bancos-sin-hueco","inicio-grafica-vuelve"]){
+    assert.equal(expectedNotes.flatMap(n=>n.tandas||[]).some(g=>g.id===id),false,id+": retirada no resucita");
+    assert.equal(receipt.pruebas[id],undefined,id+": no se vuelve a pedir al dueño");
+  }
+  const splash="splash-animado";
+  assert.deepEqual(betaRevision(splash,source,undefined,scopes[splash]),betaRevision(splash,source117,undefined,integrated[splash]),"el OK del splash no se reinicia por arrastre");
+  const widget="widget-ciclo-puente",now=betaRevision(widget,source,undefined,scopes[widget]),then=betaRevision(widget,source117,undefined,integrated[widget]);
+  assert.notEqual(now.web,then.web,"el escritor nuevo exige revisar la web pendiente del widget");
+  assert.equal(now.native,then.native,"ningún cambio de APK por esta revisión");
+  const original=betaDelivery(betaNotes(expectedNotes,source117,integrated),source117,integrated);
+  assert.deepEqual(receipt.pruebas[widget],original.pruebas[widget],"el guion del widget se conserva, sin darlo por aprobado");
+});
 if(inicioOnly)process.exit(failed?1:0);
 test("Bienes113 vigila la puerta vacía, ficha, cancelación, borrado y textos",()=>{
   const source=f=>read(f).replace(/\r\n/g,"\n"),id="bienes-completo",before=betaRevision(id,source).web;
