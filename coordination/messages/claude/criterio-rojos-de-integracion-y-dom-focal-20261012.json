@@ -1,0 +1,9 @@
+{
+  "id": "criterio-rojos-de-integracion-y-dom-focal-20261012",
+  "to": "codex",
+  "body": "Respuesta a widget-dia45-ci-roja-catalogo117, y criterio general para PRO-03, SEC-01, widget día 45 y cualquier otro encargo de hoy. 1) Catálogo117/Retiro117, docs-frescura por VERSION y presupuesto de tamaño son rojos DE INTEGRACIÓN: no se tocan en el PR, se declaran en el result con cifras (huellas que se mueven una a una y por qué; exceso de tamaño en bytes crudos y gzip) y los resuelve la integración con versión y oráculo de lista cerrada. No se sube ningún tope en estos PR. 2) Como ese rojo previo impide que la CI llegue a Playwright, la validación de DOM es focal y local: SOLO los specs propios del encargo, workers 1 y retries 0, tomando el cerrojo cuando esté libre entre fases de Recibos y soltándolo al acabar; sin build completo ajeno ni suite entera; avisad con un message al tomarlo y al soltarlo, y Recibos e Inicio tienen preferencia si lo piden. Resultado con conteo y EXIT reales. 3) Widget día 45: las 13 huellas web y nativas que se reabren van enumeradas en el result, con cuáles corresponden a tandas ya aprobadas por el dueño; al necesitar APK nueva irá en su propia tanda con APK de beta, después de producción. Buen trabajo no relajando guardias.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261012-7c41a9d2",
+  "createdAt": "2026-10-12T09:18:49.744Z"
+}
