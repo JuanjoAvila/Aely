@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "id": "recibos-revision2-nogo-codex-20261012",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261011-e599d63b",
+  "createdAt": "2026-10-12T04:46:57.886Z",
+  "to": "codex",
+  "baseSHA": "f695a299ba2d9402e40b81dbf5e5bffccdf3949c",
+  "objective": "La revisión independiente de PR 202 en 9add3e3a da NO-GO: las tres reservas anteriores están corregidas, pero hay una regresión reproducida sobre recibos que hoy salen pagados y el PR llega sin public regenerado. Corregir en el mismo PR. Sondas del revisor en su worktree de revisión (wt-rev-recibos en la unidad E, carpeta p del scratchpad de la sesión): no dependáis de ellas, escribid tests propios.",
+  "scope": [
+    "src/modules/08-motor-bank.js",
+    "tests/fixed-payment-state.test.mjs y tests propios",
+    "e2e/inicio-cargos.spec.mjs",
+    "tests/beta-sources.test.mjs y scripts/beta-sources.json en lo imprescindible",
+    "public regenerado con npm run build"
+  ],
+  "acceptance": [
+    "H1 ALTA (08-motor-bank.js hacia la línea 134, rama !(full&&exact) que no mira el banco): dos recibos Netflix del mismo importe, uno en cada banco, cada uno con su cargo contabilizado en su banco: en beta salen los dos pagados y en 9add3e3a ninguno; Plan pasa de pendiente 0 a dos vencidos. Igual si el homónimo es un puntual o una deuda en otro banco, o exacto en otro banco frente a tolerancia en el correcto. Un homónimo de otro banco nunca puede anular el cargo contabilizado del banco del propio recibo. Test que falle en 9add3e3a, también con pruebas book ya guardadas por la versión actual y sin extracto local.",
+    "H2 MEDIA (hacia la línea 2808, usa solo status.bankTx): recibo con prueba book viajada desde otro móvil, sin extracto local, al que se le cambia el día a una fecha posterior: beta escribía paidYm y 9add3e3a no, y la proyección vuelve a descontar un recibo ya cobrado (lo que protege la tanda recibo-dia-sin-doble-descuento). Debe contar también proof.kind igual a book. Test.",
+    "H3 MEDIA rendimiento (líneas 275-295): coste lineal sobre todo el histórico por cada recibo sin pagar; con 30 recibos y 20000 gastos planChargesMonth pasa de 0,02 ms a 58 ms y en Inicio (03-tab-dash.js hacia 116, upcoming) corre en cada render. Indexar o memorizar por referencia del array de gastos para que no escale con el histórico; medir antes y después con 2000 y 20000 gastos y decir las cifras. Sin arrays nuevos cuando nada cambia.",
+    "H4 MEDIA: recibo en un banco, pago avisado por notificación en otro: pagado; al sincronizar entra el cargo contabilizado con fecha o texto distinto como segunda fila y el recibo vuelve a no pagado por haber dos candidatos. Más evidencia del mismo pago no puede quitar el pagado. Test con importObExpenses real.",
+    "H7: una fila nula en expenses no puede lanzar excepción en fixedExpenseEligible. Recibo sin id con cargo contabilizado: decir en el result qué pasa y por qué.",
+    "Tests para las mutaciones que sobreviven: admitir nombres de menos de 4 letras, admitir gasto manual como fuente, quitar matches.length menor que 2, quitar la guarda de prueba guardada inválida, quitar el veto de otro recibo que ya tiene prueba de ese cargo, AutoOwner en modo BOOK sin exigir banco.",
+    "Catálogo116 en tests/beta-sources.test.mjs: al fijarlo a f012fc05 dejó de vigilar el descriptor VIVO de bancos-sin-hueco, tanda activa (quitar BankPanel de su alcance en beta-sources.json da EXIT 0). Restaurar una aserción sobre el descriptor vivo de esa tanda y corregir el comentario que dice que los mutantes corren sobre la fuente viva.",
+    "H5 NO se arregla aquí (la ficha del cargo no muestra ni deja deshacer la acreditación automática): solo anotarlo en el result; lo decide el dueño.",
+    "public regenerado y commiteado; rebasar sobre la cabeza de beta en el momento de validar (el coordinador va a publicar la 4.26.117 con el splash, que toca shell y 11-app-main). Sin VERSION, notas ni catálogo de tandas. Result con SHA, test por punto y mutación con la que cae."
+  ],
+  "restrictions": [
+    "Datos sintéticos; repo público",
+    "Sin merge ni push a beta o main",
+    "Runner pesado RESERVADO al coordinador: pedir ventana con un message con consulta en el id antes de Playwright o npm test entero; Node y Deno sueltos, libres",
+    "No debilitar tests existentes ni subir timeouts; tope de tamaño al mínimo medido con comentario"
+  ],
+  "authorization": "Encargo del coordinador dentro del mandato del dueño del 11/10. Un chat, el mismo titular de PR 202."
+}
