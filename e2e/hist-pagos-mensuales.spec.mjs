@@ -146,7 +146,9 @@ for(const lang of ["es","en","ca"]) for(const ent of ["sabadell","revolut"]){
     expect(after.accounts).toEqual(before.accounts);expect(after.fixed).toEqual(before.fixed);
     const second=await finReopenHistory(page,lang);
     await second.getByRole("button",{name:finWords[lang].search,exact:true}).click();
-    await expect(second.locator(".hist-fila")).toHaveCount(3);
+    // El lector omite por extId los ya guardados antes de pintar la clasificación.
+    await expect(second).toContainText({es:"todos ya apuntados",en:"all already logged",ca:"tots ja apuntats"}[lang]);
+    await expect(second.locator(".hist-fila")).toHaveCount(0);
     await expect(second.getByRole("button",{name:finWords[lang].import,exact:true})).toHaveCount(0);
     expect(await finSnapshot(page)).toEqual(after);
     await second.getByRole("button",{name:finWords[lang].undo,exact:true}).click();
