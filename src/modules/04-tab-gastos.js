@@ -124,7 +124,9 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   const [expenseWrites,setExpenseWrites]=useState(function(){ return cloud.expenseWrites(); });
   const [expenseRetry,setExpenseRetry]=useState(null);
   useEffect(function(){
-    const update=function(){ setExpenseWrites(cloud.expenseWrites()); };
+    let signature=JSON.stringify(expenseWrites.map(function(op){ return [op.opId,op.id,op.label,op.status]; }));
+    const update=function(){ const ops=cloud.expenseWrites(),next=JSON.stringify(ops.map(function(op){ return [op.opId,op.id,op.label,op.status]; }));
+      if(next===signature) return; signature=next; setExpenseWrites(ops.slice()); };
     const off=mcOnExpenseWrites(update); window.addEventListener("storage",update); update();
     return function(){ off(); window.removeEventListener("storage",update); };
   },[]);
@@ -137,6 +139,11 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       if(op.kind==="category") set(function(s){ const list=ackCategoryWrite(s.expenses,{id:op.id},op.value,Date.now());
         return list===s.expenses?s:Object.assign({},s,{expenses:list}); });
     }).catch(function(){}).finally(function(){ setExpenseRetry(null); });
+  };
+  const discardExpense=async function(op){
+    if(expenseRetry || !await askConfirm({title:t("exp_discard_title"),sub:t("exp_discard_help"),ok:t("exp_pending_discard")})) return;
+    setExpenseRetry(op.opId);
+    cloud.discardExpenseWrite(op.opId).catch(function(){ showToast(t("exp_discard_error")); }).finally(function(){ setExpenseRetry(null); });
   };
   /* «Ver todo» desde una ficha puede llegar antes de que Gastos termine de montar. Conservamos
      ese destino solo durante la navegación: el estado inicial lo consume y el evento cubre el
@@ -421,7 +428,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   const setCuota=function(ex,debtId){
     const chosen=marcarCuotaAMano(state,ex.id,debtId);
     set(function(s){ const r=marcarCuotaAMano(s, ex.id, debtId); return r?r.state:s; });
-    if(chosen && cloud.enabled()) cloud.setExpenseDeuda(chosen.e).catch(function(){});
+    if(chosen && cloud.enabled()) cloud.setExpenseDeuda(chosen.e,ex).catch(function(){});
     if(showToast) showToast(tf("v4_moved_cat",{cat:DEUDA_CAT.icon+" "+catName("deudas")}));
   };
   /* «No es este recibo» (12/10/2026): el sync casa por nombre e importe parecidos y puede
@@ -523,7 +530,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     const locked=!!(orig.source && orig.source!=="manual");
     const amt=locked?Math.abs(orig.amount):(parseFloat(String(ed.amount).replace(',','.'))||0);
     if(amt<=0){ showToast(t("g_invalid")); return; }
-    const signed=locked?orig.amount:(ed.income? -amt : amt);
+    const signed=locked?orig.amount:mcExpenseCents(ed.income? -amt : amt);
     const merch=(ed.merchant||"").trim()||orig.merchant;
     /* NO se pone `editExp` a null: eso CONGELABA LA PANTALLA (bug suyo 2026-08-17, «al modificarlo
        y guardarlo se bloquea, solo si tiras para atrás puedes seguir»). El sheet decide si pintarse
@@ -896,14 +903,15 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   return React.createElement("div",{className:"v4-screen",ref:rootRef},
     React.createElement("h1",{className:"v4-title serif"}, t("v4_gastos_title")),
     expenseWrites.length>0 && React.createElement("details",{className:"hint","data-testid":"expense-pending"},
-      React.createElement("summary",{role:"status"},tf("exp_pending_n",{n:expenseWrites.length})),
+      React.createElement("summary",{role:"status"},expenseWrites.length===1?t("exp_pending_one"):tf("exp_pending_n",{n:expenseWrites.length})),
       React.createElement("p",null,t("exp_pending_help")),
       expenseWrites.map(function(op){
         return React.createElement("div",{className:"row",key:op.opId,"data-testid":"expense-pending-row"},
           React.createElement("div",null,
             React.createElement("strong",null,op.label||t("exp_pending_movement")),
             React.createElement("div",null,t(op.status==="conflict"?"exp_pending_conflict":op.status==="identity"?"exp_pending_identity":op.status==="session"?"exp_pending_session":op.status==="storage"?"exp_pending_storage":"exp_pending_wait"))),
-          React.createElement("button",{type:"button",className:"btn btn-ghost",disabled:!!expenseRetry,onClick:function(){ retryExpense(op); }},t("exp_pending_retry")));
+          React.createElement("button",{type:"button",className:"btn btn-ghost",disabled:!!expenseRetry,onClick:function(){ retryExpense(op); }},t("exp_pending_retry")),
+          React.createElement("button",{type:"button",className:"btn btn-ghost",disabled:!!expenseRetry,onClick:function(){ discardExpense(op); }},t("exp_pending_discard")));
       })),
     React.createElement("section",{className:"v4-gastos-summary"},
       React.createElement("div",{className:"v4-gastos-summary-top"},

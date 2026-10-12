@@ -95,8 +95,8 @@ await test('fuente desconocida no se reconstruye desde copia local',async()=>{
   assert.equal(d.row.source,'provider-future:opaque');
 });
 await test('manual sin banco admite quitar/poner banco sin cambiar de origen',async()=>{
-  const d=database('manual:revolut');await bank(d.sb,{...expense,source:'manual'},null);
-  assert.equal(d.row.source,'manual');await bank(d.sb,{...expense,source:'manual'},'sabadell');
+  const d=database('manual:revolut');await bank(d.sb,{...expense,source:'manual',ent:'revolut'},null);
+  assert.equal(d.row.source,'manual');await bank(d.sb,{...expense,source:'manual',ent:null},'sabadell');
   assert.equal(d.row.source,'manual:sabadell');
 });
 await test('otra edición concurrente del mismo banco no se pisa al reintentar',async()=>{
@@ -110,7 +110,7 @@ await test('otra petición ya aplicó el mismo banco: ACK idempotente',async()=>
   assert.equal(ack.source,'manual:revolut');assert.equal(d.calls.filter(x=>x.patch).length,1);
 });
 await test('source NULL del legado usa condición IS NULL, sin escribir por atributos',async()=>{
-  const d=database(null);await bank(d.sb,{...expense,source:'manual'},'revolut');
+  const d=database(null);await bank(d.sb,{...expense,source:'manual',ent:null},'revolut');
   assert.equal(d.row.source,'manual:revolut');
   assert(d.calls.find(x=>x.patch).filters.some(([k,v])=>k==='source'&&v===null));
 });

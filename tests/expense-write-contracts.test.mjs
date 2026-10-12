@@ -5,15 +5,18 @@ async function test(name,fn){await fn();count++;console.log('  OK '+name);}
 const operations=[['setExpenseBank','revolut'],['setExpenseDup',false],['setExpenseCat','super'],['setExpenseNote','A note'],['setExpenseNoCard',true],['setExpenseDeuda',null],['deleteExpense',null],['editExpense',{comercio:'Edited'}]];
 for(const [method,value] of operations){
  const e=method==='setExpenseDeuda'?{...expense,debtId:'debt-fixture'}:expense;
+ const arg=method==='setExpenseDeuda'?expense:value;
  await test(method+' confirma propietario, UUID y rechaza cero filas',async()=>{
-  const {cloud,db}=await client();await cloud[method](e,value);
+  const {cloud,db}=await client();await cloud[method](e,arg);
   for(const q of db.calls){assert(q.filters.some(([k,v])=>k==='id'&&v===id));assert(q.filters.some(([k,v])=>k==='user_id'&&v===owner));}
   assert.equal(cloud.expenseWrites().length,0);
-  const missing=await client(database({rows:[]}));await assert.rejects(()=>missing.cloud[method](e,value));assert.equal(missing.cloud.expenseWrites().length,1);
+  const missing=await client(database({rows:[]}));
+  if(method==='deleteExpense'){await missing.cloud[method](e,arg);assert.equal(missing.cloud.expenseWrites().length,0);}
+  else {await assert.rejects(()=>missing.cloud[method](e,arg));assert.equal(missing.cloud.expenseWrites().length,1);}
  });
  await test(method+' sesión perdida y ACK ajeno quedan pendientes',async()=>{
-  const a=await client();a.db.login(null);await assert.rejects(()=>a.cloud[method](e,value));assert.equal(a.cloud.expenseWrites()[0].status,'session');assert.equal(a.db.calls.length,0);
-  for(const badAck of [{id:other},{user_id:'other-owner'}]){const b=await client(database({badAck}));await assert.rejects(()=>b.cloud[method](e,value));assert.equal(b.cloud.expenseWrites().length,1);}
+  const a=await client();a.db.login(null);await assert.rejects(()=>a.cloud[method](e,arg));assert.equal(a.cloud.expenseWrites()[0].status,'session');assert.equal(a.db.calls.length,0);
+  for(const badAck of [{id:other},{user_id:'other-owner'}]){const b=await client(database({badAck}));await assert.rejects(()=>b.cloud[method](e,arg));assert.equal(b.cloud.expenseWrites().length,1);}
  });
 }
 await test('respuesta perdida después del UPDATE converge sin repetir escritura',async()=>{
@@ -39,10 +42,10 @@ await test('recarga conserva operación y otro usuario no la recibe',async()=>{
  db.login('other-owner');await b.cloud.session();assert.equal(b.cloud.expenseWrites().length,0);
  db.login(owner);await b.cloud.session();await b.cloud.retryExpenseWrite(b.cloud.expenseWrites()[0].opId);assert.equal(db.rows[0].nota,'Persistent');
 });
-await test('DELETE perdido nunca se convierte en ACK de ausencia',async()=>{
+await test('DELETE perdido converge al comprobar la ausencia del mismo titular',async()=>{
  const db=database({afterWrite(){throw Error('lost delete')}}),a=await client(db);
  await assert.rejects(()=>a.cloud.deleteExpense(expense));delete db.options.afterWrite;
- await assert.rejects(()=>a.cloud.retryExpenseWrite(a.cloud.expenseWrites()[0].opId));assert.equal(db.rows.length,0);assert.equal(a.cloud.expenseWrites().length,1);
+ await a.cloud.retryExpenseWrite(a.cloud.expenseWrites()[0].opId);assert.equal(db.rows.length,0);assert.equal(a.cloud.expenseWrites().length,0);
 });
 await test('sin almacenamiento durable no sale una escritura',async()=>{
  const a=await client();a.saved.setItem=()=>{throw Error('full')};await assert.rejects(()=>a.cloud.setExpenseDup(expense,false),/storage/);assert.equal(a.db.calls.length,0);
@@ -63,9 +66,9 @@ await test('sesión cambia durante UPDATE: su respuesta no acredita al nuevo usu
  await assert.rejects(()=>a.cloud.setExpenseNote(expense,'A'),/session/);
  assert.equal(a.cloud.expenseWrites().length,1);await a.cloud.session();assert.equal(a.cloud.expenseWrites().length,0);
 });
-await test('UUID divergente o legado nunca busca gemelo por atributos',async()=>{
+await test('UUID divergente o legado nunca acepta sólo parecido',async()=>{
  for(const missingId of ['legacy',other]){
-  const a=await client();await assert.rejects(()=>a.cloud.setExpenseCat({...expense,id:missingId},'super'));
+  const a=await client();await assert.rejects(()=>a.cloud.setExpenseCat({...expense,id:missingId,merchant:'Parecido'},'super'));
   assert.equal(a.db.rows[0].cat,'bares');assert.equal(a.db.calls.filter(x=>x.patch).length,0);
  }
 });
@@ -117,7 +120,7 @@ await test('nota y categoría conservan orígenes Wallet/TR y retirar deuda cons
  for(const source of ['wallet','tr','macrodroid']){
   const a=await client();a.db.rows[0].source=source;await a.cloud.setExpenseNote(expense,'Nota');await a.cloud.setExpenseCat(expense,'super');assert.equal(a.db.rows[0].source,source);
  }
- const a=await client();a.db.rows[0].source='ob:revolut~deuda.fixture#dup';await a.cloud.setExpenseCat(expense,'super');assert.equal(a.db.rows[0].source,'ob:revolut#dup');
+ const a=await client();a.db.rows[0].source='ob:revolut~deuda.fixture#dup';await a.cloud.setExpenseCat({...expense,ent:'revolut',debtId:'fixture'},'super');assert.equal(a.db.rows[0].source,'ob:revolut#dup');
 });
 await test('la cola observa el ACK de otra pestaña sin conservar un fantasma',async()=>{
  const db=database({error:true}),saved=storage(),a=await client(db,saved);await assert.rejects(()=>a.cloud.setExpenseNote(expense,'Otra pestaña'));
@@ -156,7 +159,7 @@ await test('caducar la sesión no oculta la intención y recuperarla permite rei
 });
 await test('pull de cuota TR/Wallet no borra el vínculo que source no transporta',async()=>{
  for(const source of ['macrodroid','wallet']){
-  const a=await client();a.db.rows[0].source=source;await a.cloud.setExpenseDeuda({...expense,debtId:'debt-fixture'});
+  const a=await client();a.db.rows[0].source=source;await a.cloud.setExpenseDeuda({...expense,source,debtId:'debt-fixture'},{...expense,source});
   const incoming=a.c.expenseFromRow(a.db.rows[0]),local={...incoming,debtId:'debt-fixture'};
   const r=a.c.mergeExpensesFromCloud([local],[incoming],Date.now()+1);assert.equal(r.list[0].debtId,'debt-fixture');assert.equal(r.list[0].category,'deudas');
  }

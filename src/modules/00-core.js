@@ -1082,8 +1082,22 @@ async function mcPullExpensesPaged(fetchPage){
 /* FIN-04: la intención se guarda antes de viajar. Cada operación tiene su clave propia para
    no sobrescribir la cola de otra pestaña; nunca se mezcla con app_state ni con otro titular. */
 var _mcExpenseOwner=null, _mcExpenseLastOwner=null, _mcExpenseEpoch=0, _mcExpenseOps={}, _mcExpenseBusy={}, _mcExpenseAcks={};
-var _mcExpenseListeners=[];
-function mcExpenseChanged(){ _mcExpenseListeners.slice().forEach(function(fn){ try{ fn(); }catch(e){} }); }
+var _mcExpenseListeners=[], _mcExpenseDrain=null, _mcExpenseReadFloor=0, _mcExpenseView="", _mcExpenseHoldTimers={};
+function mcExpenseChanged(event){
+  const view=JSON.stringify(mcExpensePending(mcExpenseContextOwner()).map(function(op){ return [op.opId,op.id,op.label,op.status]; }));
+  if(!event && view===_mcExpenseView) return;
+  _mcExpenseView=view;
+  _mcExpenseListeners.slice().forEach(function(fn){ try{ fn(event); }catch(e){} });
+}
+function mcExpensePurge(){
+  // Un cierre explícito retira también los conceptos y valores guardados sin conexión.
+  _mcExpenseEpoch++; _mcExpenseOwner=null; _mcExpenseLastOwner=null;
+  Object.keys(_mcExpenseHoldTimers).forEach(function(k){ clearTimeout(_mcExpenseHoldTimers[k]); }); _mcExpenseHoldTimers={};
+  Object.keys(_mcExpenseOps).forEach(function(k){ _mcExpenseOps[k].cancelled=true; });
+  const keys=[]; for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(k&&k.indexOf("mc-expense-op:")===0) keys.push(k); }
+  keys.forEach(function(k){ localStorage.removeItem(k); });
+  _mcExpenseOps={}; _mcExpenseAcks={}; _mcExpenseReadFloor=Date.now(); mcExpenseChanged();
+}
 function mcExpenseSession(s){
   const owner=s&&s.user&&s.user.id||null;
   if(owner) _mcExpenseLastOwner=owner;
@@ -1093,6 +1107,7 @@ function mcExpenseSession(s){
 function mcExpenseContextOwner(){ return _mcExpenseOwner||_mcExpenseLastOwner; }
 function mcOnExpenseWrites(fn){ _mcExpenseListeners.push(fn); return function(){ _mcExpenseListeners=_mcExpenseListeners.filter(function(x){ return x!==fn; }); }; }
 function mcExpenseOpKey(op){ return "mc-expense-op:"+encodeURIComponent(op.owner||"")+":"+op.opId; }
+function mcExpenseIds(op){ return op.kind==="deleteIds"?op.value:[op.id,op.originalId].filter(Boolean); }
 function mcExpensePending(owner){
   try{
     const prefix="mc-expense-op:"+encodeURIComponent(owner||"")+":", seen={};
@@ -1112,6 +1127,7 @@ function mcExpensePending(owner){
     .filter(function(op){ return op.owner===owner; }).sort(function(a,b){ return a.at-b.at || a.opId.localeCompare(b.opId); });
 }
 function mcExpensePersist(op){
+  if(op.cancelled) return;
   _mcExpenseOps[op.opId]=op;
   // Guardar sólo en memoria NO acredita una cola durable. Sin espacio no se envía nada.
   try{ localStorage.setItem(mcExpenseOpKey(op),JSON.stringify(op)); }
@@ -1143,6 +1159,7 @@ function mcExpensePatch(row,op){
   }
   if(k==="dup"){
     if(["ob","ob-hist"].indexOf(p.origin)<0 && v) throw mcExpenseFailure("identity");
+    if(!v && row.ingest_event_id && p.origin==="ob" && p.bank==="trade_republic") return {source:"macrodroid"};
     p.dup=!!v; return {source:mcExpenseSource(p)};
   }
   if(k==="category"){
@@ -1163,6 +1180,7 @@ function mcExpensePatch(row,op){
     if(!v || typeof v!=="object" || Object.keys(v).some(function(x){ return allowed.indexOf(x)<0; })) throw mcExpenseFailure("identity");
     Object.keys(v).forEach(function(x){ patch[x]=v[x]; });
     if("importe" in patch && !Number.isFinite(patch.importe) || "fecha" in patch && !Number.isFinite(Date.parse(patch.fecha))) throw mcExpenseFailure("identity");
+    if("importe" in patch) patch.importe=mcExpenseCents(patch.importe);
     return patch;
   }
   if(k==="delete" || k==="deleteIds") return null;
@@ -1173,7 +1191,45 @@ function mcExpenseBase(row,op,patch){
   if(op.kind==="bank") return p.bank;
   if(op.kind==="dup") return p.dup;
   if(op.kind==="debt"||op.kind==="category") return {cat:row.cat,debt:p.debt};
-  const out={}; Object.keys(patch||row).sort().forEach(function(k){ out[k]=row[k]==null?null:row[k]; }); return out;
+  const out={}; Object.keys(patch||op.snapshot||row).filter(function(k){ return k!=="id"&&k!=="user_id"; }).sort().forEach(function(k){ out[k]=row[k]==null?null:k==="fecha"?new Date(row[k]).toISOString():row[k]; }); return out;
+}
+function mcExpenseCents(n){ return Math.sign(n)*Math.round((Math.abs(n)+Number.EPSILON)*100)/100; }
+function mcExpenseSnapshot(e){
+  return {fecha:e.date,importe:mcExpenseCents(e.amount),comercio:e.merchant,source:expenseSourceForCloud(e),cat:e.category,
+    nota:e.note?String(e.note).slice(0,160):null,nota_edit:!!e.noteEdited,no_card:!!e.noCard,
+    ob_name:e.obName==null?null:e.obName,importe_orig:e.origAmount==null?null:e.origAmount,divisa:e.origCur||null};
+}
+async function mcExpenseFind(sb,op,id,epoch){
+  await mcExpenseAuth(sb,op.owner,epoch);
+  if(isExpenseUuid(id)){
+    const r=await mcExpenseRequest(expenseCloudEq(sb.from("expenses").select("*"),op.owner,{id:id}).maybeSingle());
+    if(r.error) throw r.error;
+    if(r.data){
+      if(r.data.user_id!==op.owner || String(r.data.id).toLowerCase()!==id.toLowerCase()) throw mcExpenseFailure("identity");
+      return [r.data];
+    }
+  }
+  const s=op.snapshot;
+  if(!s || !Number.isFinite(Date.parse(s.fecha)) || !Number.isFinite(s.importe) || typeof s.comercio!=="string") return [];
+  // La clave completa se prueba en el servidor y otra vez aquí; nunca día aproximado,
+  // nombre normalizado ni importe cercano. Dos candidatas no acreditan una identidad.
+  let q=sb.from("expenses").select("*").eq("user_id",op.owner);
+  ["fecha","importe","comercio","source"].forEach(function(k){ q=q.eq(k,s[k]); });
+  const r=await mcExpenseRequest(q.limit(2));
+  if(r.error) throw r.error;
+  if(!Array.isArray(r.data)) throw mcExpenseFailure("identity");
+  return r.data.filter(function(row){ return row.user_id===op.owner && isExpenseUuid(row.id)
+    && ["fecha","importe","comercio","source"].every(function(k){ return mcExpenseValueSame(k,row[k],s[k]); }); });
+}
+function mcExpenseAlign(op,oldId,id){
+  if(oldId===id) return;
+  mcExpensePending(op.owner).forEach(function(x){
+    if(x.id!==oldId || x.kind==="deleteIds") return;
+    x.originalId=x.originalId||oldId; x.id=id;
+    if(x.bases && Object.prototype.hasOwnProperty.call(x.bases,oldId)){ x.bases[id]=x.bases[oldId]; delete x.bases[oldId]; }
+    mcExpensePersist(x);
+  });
+  mcExpenseChanged({type:"identity",owner:op.owner,oldId:oldId,id:id});
 }
 async function mcExpenseAuth(sb,owner,epoch){
   if(!sb) throw mcExpenseFailure("session");
@@ -1187,18 +1243,24 @@ async function mcExpenseRequest(q){
   finally{ clearTimeout(timer); }
 }
 async function mcExpenseSendOne(sb,op,id,epoch){
-  if(!isExpenseUuid(id)) throw mcExpenseFailure("identity");
   for(let attempt=0;attempt<3;attempt++){
+    const rows=await mcExpenseFind(sb,op,id,epoch);
     await mcExpenseAuth(sb,op.owner,epoch);
-    const r=await mcExpenseRequest(expenseCloudEq(sb.from("expenses").select("*"),op.owner,{id:id}).maybeSingle());
-    if(r.error) throw r.error;
-    const row=r.data;
-    if(!row || String(row.id).toLowerCase()!==id.toLowerCase() || row.user_id!==op.owner
+    if(!rows.length && (op.kind==="delete" || op.kind==="deleteIds" || op.tombstoned)) return {id:id,user_id:op.owner,absent:true};
+    if(rows.length!==1) throw mcExpenseFailure("identity");
+    const row=rows[0];
+    if(!isExpenseUuid(row.id) || row.user_id!==op.owner
       || !Object.prototype.hasOwnProperty.call(row,"source")) throw mcExpenseFailure("identity");
+    mcExpenseAlign(op,id,row.id); id=row.id;
     const patch=mcExpensePatch(row,op), same=patch && Object.keys(patch).every(function(k){ return Object.prototype.hasOwnProperty.call(row,k)&&mcExpenseValueSame(k,row[k],patch[k]); });
     const base=mcExpenseBase(row,op,patch);
     op.bases=op.bases||{};
-    if(!Object.prototype.hasOwnProperty.call(op.bases,id)){ op.bases[id]=base; mcExpensePersist(op); }
+    if(!Object.prototype.hasOwnProperty.call(op.bases,id)){
+      // Sólo un lote de UUID acreditados o la decisión explícita de sobrescribir pueden
+      // tomar la foto al enviar. Una cola antigua sin base debe revisarse, no adivinarse.
+      if(op.kind!=="deleteIds" && !op.acceptConflict) throw mcExpenseFailure("conflict");
+      op.bases[id]=base; mcExpensePersist(op);
+    }
     else if(!same && !mcExpenseSame(op.bases[id],base)) throw mcExpenseFailure("conflict");
     await mcExpenseAuth(sb,op.owner,epoch);
     if(same) return row; // Respuesta perdida tras commit: el mismo valor exacto confirma, sin repetir el cambio.
@@ -1228,23 +1290,29 @@ async function mcExpenseRun(sb,op){
       // incierto, el segundo conserva su intención y espera a que se revise/reintente.
       const ids=op.kind==="deleteIds"?op.value:[op.id];
       const older=mcExpensePending(op.owner).slice().reverse().find(function(x){ return (x.at<op.at || x.at===op.at&&x.opId<op.opId)
-        && (x.kind==="deleteIds"?x.value:[x.id]).some(function(id){ return ids.indexOf(id)>=0; }); });
+        && mcExpenseIds(x).some(function(id){ return mcExpenseIds(op).indexOf(id)>=0; }); });
       if(older){
         if(_mcExpenseBusy[older.opId]) await _mcExpenseBusy[older.opId];
         else throw mcExpenseFailure("pending");
       }
+      if(op.cancelled) return {cancelled:true};
       op.status="pending"; mcExpensePersist(op);
       let ack;
       for(const id of ids){
         if(op.done && op.done.indexOf(id)>=0) continue;
-        ack=await mcExpenseSendOne(sb,op,id,epoch);
+        ack=await mcExpenseSendOne(sb,op,op.kind==="deleteIds"?id:op.id,epoch);
         if(op.kind==="deleteIds"){ op.done=(op.done||[]).concat([id]); mcExpensePersist(op); }
       }
-      ids.forEach(function(id){
+      const ackAt=Date.now();
+      ids.map(function(id){ return op.kind==="deleteIds"?id:op.id; }).forEach(function(id){
         const k=op.owner+"|"+id, receipts=_mcExpenseAcks[k]||{};
-        receipts[op.kind]={at:Date.now(),op:op}; _mcExpenseAcks[k]=receipts;
+        receipts[op.kind]={at:ackAt,op:{owner:op.owner,kind:op.kind,value:op.kind==="deleteIds"?null:op.value,originalId:op.originalId}}; _mcExpenseAcks[k]=receipts;
       });
-      mcExpenseForget(op); return ack||{id:op.id,user_id:op.owner};
+      const keys=Object.keys(_mcExpenseAcks);
+      while(keys.length>256){ const key=keys.shift(); Object.values(_mcExpenseAcks[key]).forEach(function(a){ _mcExpenseReadFloor=Math.max(_mcExpenseReadFloor,a.at); }); delete _mcExpenseAcks[key]; }
+      mcExpenseForget(op);
+      mcExpenseChanged({type:"ack",owner:op.owner,id:op.id,oldId:op.originalId||op.id,op:op,row:ack,at:ackAt});
+      return ack||{id:op.id,user_id:op.owner};
     }catch(err){
       op.status=err&&err.code==="23505"?"conflict":err.expenseCode||"pending";
       try{ mcExpensePersist(op); }catch(e){}
@@ -1257,27 +1325,55 @@ async function mcExpenseRun(sb,op){
 async function writeExpenseField(sb,e,kind,value,holdUntil){
   if(mcSandbox()) return null;
   const known=mcExpenseContextOwner(), epoch=_mcExpenseEpoch;
+  if(!known) throw mcExpenseFailure("session");
+  if(kind==="edit") value=mcExpensePatch({}, {kind:kind,value:value});
   const pending=mcExpensePending(known);
   // Repetir el valor inicial tras otra decisión es un gesto nuevo, incluso si cambió de
   // tipo (categoría → cuota → categoría). Sólo se reutiliza la última intención de esa fila.
   const ids=kind==="deleteIds"?value:[e&&e.id];
   let op=pending.slice().reverse().find(function(x){ return !x.cancelled &&
-    (x.kind==="deleteIds"?x.value:[x.id]).some(function(id){ return ids.indexOf(id)>=0; }); });
+    mcExpenseIds(x).some(function(id){ return ids.indexOf(id)>=0; }); });
   if(op && (op.kind!==kind || !mcExpenseSame(op.value,value))) op=null;
-  const created=!op;
   if(!op){ op={opId:mcExpenseId(),owner:known,id:e&&e.id,label:String(e&&e.merchant||"").slice(0,100),kind:kind,value:value,
-    at:Math.max(Date.now(),pending.length?pending[pending.length-1].at+1:0),holdUntil:holdUntil||0,status:"pending"}; mcExpensePersist(op); }
+    at:Math.max(Date.now(),pending.length?pending[pending.length-1].at+1:0),holdUntil:holdUntil||0,status:"pending"};
+    if(kind!=="deleteIds"){
+      op.snapshot=mcExpenseSnapshot(e);
+      // El segundo gesto parte de la intención anterior de ESTA fila, aunque React aún
+      // no haya repintado. Una decisión remota posterior nunca se convierte en esa base.
+      const previous=Object.assign({},op.snapshot);
+      pending.filter(function(x){ return mcExpenseIds(x).indexOf(op.id)>=0; }).forEach(function(x){ const p=mcExpensePatch(previous,x); if(p) Object.assign(previous,p); });
+      op.bases={}; op.bases[op.id]=mcExpenseBase(previous,op,mcExpensePatch(previous,op));
+    }
+    mcExpensePersist(op);
+  }
   let session=null;
   try{ const r=sb&&await mcExpenseRequest(sb.auth.getSession()); session=r&&r.data&&r.data.session; }catch(err){}
-  // Sólo la llamada recién creada puede acreditar su dueño; una cola huérfana recuperada
-  // tras recargar nunca se atribuye al siguiente usuario que inicie sesión.
-  if(created && !known && session && epoch===_mcExpenseEpoch){
-    const key=mcExpenseOpKey(op); op.owner=session.user.id; mcExpensePersist(op); localStorage.removeItem(key);
-  }
   if(!session || !session.user || session.user.id!==op.owner || epoch!==_mcExpenseEpoch){ op.status="session"; mcExpensePersist(op); throw mcExpenseFailure("session"); }
   return mcExpenseRun(sb,op);
 }
-function writeExpenseSourceField(sb,e,field,value){ return writeExpenseField(sb,e,field,value); }
+async function mcExpenseDrainQueue(sb){
+  const owner=mcExpenseContextOwner(),epoch=_mcExpenseEpoch;
+  if(!owner || mcSandbox()) return;
+  if(_mcExpenseDrain && _mcExpenseDrain.owner===owner && _mcExpenseDrain.epoch===epoch) return _mcExpenseDrain.promise;
+  const flight={owner:owner,epoch:epoch};
+  flight.promise=(async function(){
+    const ops=mcExpensePending(owner).slice();
+    for(const op of ops){
+      if(epoch!==_mcExpenseEpoch) break;
+      if(op.holdUntil>Date.now()){
+        if(!_mcExpenseHoldTimers[op.opId]) _mcExpenseHoldTimers[op.opId]=setTimeout(function(){
+          delete _mcExpenseHoldTimers[op.opId];
+          if(epoch===_mcExpenseEpoch) mcExpenseDrainQueue(sb).catch(function(){});
+        },op.holdUntil-Date.now());
+        continue;
+      }
+      if(op.cancelled || op.status==="conflict" || op.status==="identity"&&!op.tombstoned || op.status==="storage") continue;
+      try{ await mcExpenseRun(sb,op); }catch(e){}
+    }
+  })();
+  _mcExpenseDrain=flight;
+  try{ return await flight.promise; }finally{ if(_mcExpenseDrain===flight) _mcExpenseDrain=null; }
+}
 
 const cloud = (function(){
   let sb = null;
@@ -1291,10 +1387,40 @@ const cloud = (function(){
     async session(){ if(!sb) return null; const {data}=await sb.auth.getSession(); return data.session; },
     onAuth(cb){ const sub=sb&&sb.auth.onAuthStateChange((ev,s)=>{ cb(s,ev); }); return ()=>{ if(sub) sub.data.subscription.unsubscribe(); }; },
     expenseWrites(){ return mcSandbox()?[]:mcExpensePending(mcExpenseContextOwner()); },
+    async drainExpenseWrites(state){
+      if(state){ const deleted={}; (state.deleted||[]).forEach(function(k){ deleted[k]=1; });
+        mcExpensePending(mcExpenseContextOwner()).forEach(function(op){
+          if(!op.snapshot || (state.expenses||[]).some(function(e){ return e.id===op.id || e.id===op.originalId; })) return;
+          const s=op.snapshot,e={id:op.originalId||op.id,date:s.fecha,amount:s.importe,merchant:s.comercio,source:s.source};
+          if(expenseIsTombstoned(e,deleted) && !op.tombstoned){ op.tombstoned=true; mcExpensePersist(op); }
+        });
+      }
+      return mcExpenseDrainQueue(sb);
+    },
+    async discardExpenseWrite(opId){
+      let op=mcExpensePending(mcExpenseContextOwner()).find(function(x){ return x.opId===opId; });
+      if(!op) return null;
+      const epoch=_mcExpenseEpoch;
+      const targets=op.kind==="deleteIds"?op.value:[op.id];
+      const flights=mcExpensePending(op.owner).filter(function(x){ return (x.kind==="deleteIds"?x.value:[x.id]).some(function(id){ return targets.indexOf(id)>=0; }); })
+        .map(function(x){ return _mcExpenseBusy[x.opId]; }).filter(Boolean);
+      await Promise.allSettled(flights);
+      await mcExpenseAuth(sb,op.owner,epoch);
+      const ids=op.kind==="deleteIds"?op.value:[op.id], rows=[];
+      for(const id of ids){ rows.push.apply(rows,await mcExpenseFind(sb,op,id,epoch)); }
+      await mcExpenseAuth(sb,op.owner,epoch);
+      // Descartar adopta la foto acreditada y retira las intenciones posteriores de la
+      // misma fila: dejarlas vivas volvería a imponer el cambio que acaba de rechazarse.
+      mcExpensePending(op.owner).filter(function(x){ return (x.kind==="deleteIds"?x.value:[x.id]).some(function(id){ return ids.indexOf(id)>=0; }); })
+        .forEach(function(x){ x.cancelled=true; mcExpenseForget(x); });
+      const event={type:"discard",owner:op.owner,id:op.id,oldId:op.originalId||op.id,ids:ids,op:op,rows:rows,row:rows[0]||null,at:Date.now()};
+      ids.forEach(function(id){ delete _mcExpenseAcks[op.owner+"|"+id]; });
+      mcExpenseChanged(event); return event;
+    },
     async retryExpenseWrite(opId, acceptConflict){
       const op=mcExpensePending(mcExpenseContextOwner()).find(function(x){ return x.opId===opId; });
       if(!op || !op.owner) throw mcExpenseFailure("session");
-      if(op.status==="conflict" && acceptConflict===true){ delete op.bases; mcExpensePersist(op); }
+      if(op.status==="conflict" && acceptConflict===true){ delete op.bases; op.acceptConflict=true; mcExpensePersist(op); }
       return mcExpenseRun(sb,op);
     },
     cancelExpenseDelete(id){
@@ -1310,7 +1436,7 @@ const cloud = (function(){
       const {error}=await sb.auth.signInWithOtp({ email:email, options:{ emailRedirectTo: location.href.split('#')[0] } });
       if(error) throw error;
     },
-    async signOut(){ if(sb) await sb.auth.signOut(); },
+    async signOut(){ mcExpensePurge(); if(sb){ const r=await sb.auth.signOut(); if(r&&r.error) throw r.error; } },
     async signInPassword(email,password){ if(!sb) throw new Error("nube no disponible"); const {error}=await sb.auth.signInWithPassword({email:email,password:password}); if(error) throw error; },
     async signUpPassword(email,password){ if(!sb) throw new Error("nube no disponible"); const {data,error}=await sb.auth.signUp({email:email,password:password}); if(error) throw error; return data; },
     async resetPassword(email){ if(!sb) throw new Error("nube no disponible"); const {error}=await sb.auth.resetPasswordForEmail((email||"").trim(), { redirectTo: location.href.split('#')[0] }); if(error) throw error; },
@@ -1468,14 +1594,14 @@ const cloud = (function(){
     // Persiste el BANCO elegido de un gasto (va embebido en source: manual:caixabank…) para
     // que sobreviva a reinstalaciones — mismo truco que ob: (2026-07-18).
     async setExpenseBank(e, ent){
-      return writeExpenseSourceField(sb,e,"bank",ent||"");
+      return writeExpenseField(sb,e,"bank",ent||"");
     },
     // Persiste la DECISIÓN sobre un posible repetido (B09-D, 2026-09-08). Sin esto, «son
     // distintos» solo quitaba la marca en el móvil: la fila seguía siendo `ob:ent#dup` en la nube,
     // el servidor la seguía descontando del presupuesto y el siguiente pull volvía a apagarla.
     // Tocar solo el estado local no arregla nada; la fila vuelve de la nube.
     async setExpenseDup(e, isDup){
-      return writeExpenseSourceField(sb,e,"dup",!!isDup);
+      return writeExpenseField(sb,e,"dup",!!isDup);
     },
     // Persiste el flag 💳/🔄 en la tabla (si no, el siguiente pull lo pisaría en gastos de la nube).
     async setExpenseNoCard(e, noCard){
@@ -1523,8 +1649,8 @@ const cloud = (function(){
     // Cuota de deuda marcada por `marcarCuotasDeDeuda` (4.21.0): categoría y, si es de Open
     // Banking, la marca en `source`. La de la noti (`macrodroid`) conserva su source: un
     // `macrodroid~…` lo leería el servidor como «a mano» y lo SUMARÍA; ahí basta `cat:deudas`.
-    async setExpenseDeuda(e){
-      return writeExpenseField(sb,e,"debt",e&&e.debtId||"");
+    async setExpenseDeuda(e, previous){
+      return writeExpenseField(sb,previous||e,"debt",e&&e.debtId||"");
     },
     async deleteExpense(e, holdUntil){
       return writeExpenseField(sb,e,"delete",null,holdUntil);
@@ -1809,6 +1935,7 @@ const cloud = (function(){
       const {data,error}=await sb.functions.invoke('delete-account',{ body:{ password:password } });
       if(error) throw error;
       if(!data || !data.ok) throw new Error((data&&data.error)||"no se pudo borrar la cuenta");
+      mcExpensePurge();
       await sb.auth.signOut();
       return data;
     },
@@ -1968,7 +2095,7 @@ function borrarGastoNube(e, donde){
 
    Si añades un método a `cloud` que ESCRIBA algo, añádelo a esta lista. */
 const CLOUD_WRITES=[
-  "pushState","addExpense","addExpensesBatch","setExpenseBank","setExpenseDup","setExpenseNoCard","setExpenseNote","setExpenseCat","confirmExpenseWithdrawal","setExpenseDeuda","setExpenseRecibo","deleteExpense","deleteExpensesByIds","editExpense","retryExpenseWrite",
+  "pushState","addExpense","addExpensesBatch","setExpenseBank","setExpenseDup","setExpenseNoCard","setExpenseNote","setExpenseCat","confirmExpenseWithdrawal","setExpenseDeuda","setExpenseRecibo","deleteExpense","deleteExpensesByIds","editExpense","retryExpenseWrite","drainExpenseWrites","discardExpenseWrite",
   "backupState","bankConnect","bankDisconnect","myinvestorConnect","myinvestorStore",
   "myinvestorDisconnect","setIngestToken","clearIngestToken","logEvent","logUso","logPerf","feedback","betaReport",
   "deleteAccount","createHousehold","joinHousehold","publishHouseholdSnapshot","leaveHousehold",
@@ -2826,9 +2953,8 @@ function refreshExpenseFromCloud(local, incoming, readStartedAt){
   const remoteNote=exact && incoming.noteEdited && Number.isFinite(readStartedAt);
   if((!local.noteEdited || remoteNote) && Object.prototype.hasOwnProperty.call(incoming,"note")) put("note", incoming.note);
   if(exact && (!local.noteEdited || remoteNote) && Object.prototype.hasOwnProperty.call(incoming,"noteEdited")) put("noteEdited",incoming.noteEdited);
-  /* NO realinear `id` aquí: settings.expenseOrder indexa por id local, y en OB el uuid de la
-     nube suele diferir (ignoreDuplicates). Cambiarlo huérfana el orden a mano (4.19.74). Tanda
-     propia con remap de expenseOrder + possibleDupOf si hace falta para los PATCH. */
+  // La realineación va por mcExpenseApplyEvent con identidad acreditada y remap de referencias;
+  // hacerla implícita en un pull dejaría huérfanos el orden manual y las pruebas de recibos.
   return out;
 }
 // La cola sólo protege los campos decididos en ESTE titular. Una lectura anterior al ACK
@@ -2844,18 +2970,91 @@ function mcExpenseReadGuards(readStartedAt){
     (op.kind==="edit"?Object.keys(op.value).map(function(k){ return names[k]; }):fields[op.kind]||[])
       .forEach(function(k){ g[k]=true; });
   };
-  mcExpensePending(owner).forEach(function(op){ (op.kind==="deleteIds"?op.value:[op.id]).forEach(function(id){ add(op,id); }); });
+  mcExpensePending(owner).forEach(function(op){ mcExpenseIds(op).forEach(function(id){ add(op,id); }); });
   Object.keys(_mcExpenseAcks).forEach(function(k){ const receipts=_mcExpenseAcks[k];
     Object.keys(receipts).forEach(function(kind){ const a=receipts[kind];
-      if(a.op.owner===owner && (readStartedAt==null || readStartedAt<=a.at)) add(a.op,k.slice(owner.length+1));
+      if(a.op.owner===owner && (readStartedAt==null || readStartedAt<=a.at)){
+        add(a.op,k.slice(owner.length+1)); if(a.op.originalId) add(a.op,a.op.originalId);
+      }
     });
   });
   return out;
+}
+function backfillExpenseCandidates(local,incoming,readStartedAt){
+  if(_mcExpenseReadFloor && !(readStartedAt>_mcExpenseReadFloor)) return [];
+  const keys={},ids={},guards=mcExpenseReadGuards(readStartedAt);
+  (incoming||[]).forEach(function(e){ keys[keyOfExpense(e)]=1; ids[e.id]=1; });
+  return (local||[]).filter(function(e){ return e.amount!==0 && !keys[keyOfExpense(e)] && !ids[e.id] && !guards[e.id] && !e.catStale; });
+}
+function mcExpenseApplyEvent(state,event,guards){
+  const oldId=event.oldId,id=event.id,original=(state.expenses||[]).find(function(e){ return e.id===oldId; })||(state.expenses||[]).find(function(e){ return e.id===id; });
+  let expenses=state.expenses||[],settings=state.settings||{},deleted=state.deleted||[],changed=false;
+  const mapped=expenses.map(function(e){
+    let next=e;
+    if(oldId!==id && e.id===oldId) next=Object.assign({},next,{id:id});
+    if(oldId!==id && e.possibleDupOf===oldId) next=Object.assign({},next,{possibleDupOf:id});
+    if(event.type==="ack" && next.id===id && event.row && !event.row.absent && event.op.kind!=="delete" && event.op.kind!=="deleteIds"){
+      next=refreshExpenseFromCloud(next,expenseFromRow(event.row),event.at+1,guards[id]||{});
+      if(event.op.kind==="category" && !(guards[id]&&guards[id].category)) next=Object.assign({},next,{catAckAt:event.at});
+    }
+    if(next!==e) changed=true;
+    return next;
+  });
+  if(changed) expenses=mapped;
+  if(oldId!==id && original){
+    const aligned=expenses.find(function(e,i){ return (state.expenses||[])[i]===original; });
+    let kept=false;
+    expenses=expenses.filter(function(e){ if(e.id!==id) return true; if(kept) return false; kept=true; return true; })
+      .map(function(e){ return e.id===id&&aligned?aligned:e; });
+  }
+  if(oldId!==id && settings.expenseOrder){
+    let order=settings.expenseOrder;
+    Object.keys(order).forEach(function(day){ if(!Array.isArray(order[day]) || order[day].indexOf(oldId)<0) return;
+      if(order===settings.expenseOrder) order=Object.assign({},order);
+      order[day]=Array.from(new Set(order[day].map(function(x){ return x===oldId?id:x; })));
+    });
+    if(order!==settings.expenseOrder) settings=Object.assign({},settings,{expenseOrder:order});
+  }
+  if(event.type==="discard"){
+    const ids=event.ids.concat([oldId]),removeKeys={};
+    expenses.forEach(function(e){ if(ids.indexOf(e.id)>=0) removeKeys[keyOfExpense(e)]=1; });
+    if(event.op.snapshot){ const s=event.op.snapshot; removeKeys[keyOfExpense({id:oldId,date:s.fecha,amount:s.importe,merchant:s.comercio,source:s.source})]=1; }
+    expenses=expenses.filter(function(e){ return ids.indexOf(e.id)<0; });
+    event.rows.forEach(function(row){ const e=expenseFromRow(row); removeKeys[keyOfExpense(e)]=1;
+      if(!expenses.some(function(x){ return x.id===e.id; })) expenses.push(e);
+    });
+    deleted=deleted.filter(function(k){ return !removeKeys[k]; });
+  }
+  if(event.type==="ack" && (event.op.kind==="delete" || event.op.kind==="deleteIds" || event.row&&event.row.absent)){
+    const ids=event.op.kind==="deleteIds"?event.op.value:[id,oldId];
+    const next=expenses.filter(function(e){ return ids.indexOf(e.id)<0; });
+    if(next.length!==expenses.length) expenses=next;
+  }
+  if(expenses===state.expenses && settings===state.settings && deleted===state.deleted) return state;
+  let next=Object.assign({},state,{expenses:expenses,settings:settings,deleted:deleted});
+  const updated=expenses.find(function(e){ return e.id===id; });
+  if(original && updated && oldId!==id){
+    // La identidad se acaba de probar completa. Las pruebas de recibos viajan con el
+    // UUID, conservando su identidad financiera y sin atribuirles un pago nuevo.
+    let fixed=state.fixed;
+    (state.fixed||[]).forEach(function(f,i){ let proofs=f.paymentProofs;
+      Object.keys(proofs||{}).forEach(function(ym){ const p=proofs[ym];
+        if(!p || p.kind!=="expense" || p.expenseId!==oldId || p.identity!==fixedPaymentIdentity(expenseBankOf(original),original)) return;
+        if(proofs===f.paymentProofs) proofs=Object.assign({},proofs);
+        proofs[ym]=Object.assign({},p,{expenseId:id,key:fixedExpenseKey(updated),expenseKey:keyOfExpense(updated),expenseLegacyKey:keyOfExpenseLegacy(updated)});
+      });
+      if(proofs!==f.paymentProofs){ if(fixed===state.fixed) fixed=state.fixed.slice(); fixed[i]=Object.assign({},f,{paymentProofs:proofs}); }
+    });
+    if(fixed!==state.fixed) next=Object.assign({},next,{fixed:fixed});
+  }
+  if(original && updated && original!==updated) next=rekeyFixedPaymentExpense(next,original,updated);
+  return next;
 }
 /* Mezcla el pull con lo local: refresca campos de claves ya vistas y solo AÑADE las nuevas.
    Nunca elimina una clave que solo exista en local (contención 4.18.6 / FIN-07). */
 function esFilaDeBanco(e){ return e.source==="ob" || e.source==="ob-hist"; }
 function mergeExpensesFromCloud(prevList, incoming, readStartedAt){
+  if(_mcExpenseReadFloor && !(readStartedAt>_mcExpenseReadFloor)) return {list:prevList,nuevos:0,changed:false};
   const byKey={}, byId={}, guards=mcExpenseReadGuards(readStartedAt); const order=[];
   (prevList||[]).forEach(function(e){
     const k=keyOfExpense(e);
@@ -2934,6 +3133,7 @@ function ackCategoryWrite(list, row, cat, at){
 }
 function keepCategoryChoices(prevList, incoming, readStartedAt){
   const out={ prev:prevList, incoming:incoming, recat:[] };
+  if(_mcExpenseReadFloor && !(readStartedAt>_mcExpenseReadFloor)){ out.incoming=[]; return out; }
   const guards=mcExpenseReadGuards(readStartedAt);
   const stale={}; let hayStale=false;
   (prevList||[]).forEach(function(e,i){ if(e && e.catStale){ stale[keyOfExpense(e)]=i; hayStale=true; } });

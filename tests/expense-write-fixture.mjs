@@ -9,15 +9,18 @@ export function database(options={}){
  const rows=options.rows||[{id,user_id:owner,source:'ob:trade_republic#dup',cat:'bares',nota:null,nota_edit:false,no_card:false,fecha:expense.date,importe:12,comercio:'Fixture'}];
  const calls=[];let active=owner,updates=0,authCalls=0;
  const sb={auth:{async getSession(){authCalls++;if(options.auth)await options.auth(authCalls);return {data:{session:active?{user:{id:active}}:null}}},onAuthStateChange(){return {data:{subscription:{unsubscribe(){}}}}}},from(table){
-  const filters=[];let patch=null,deleted=false;
-  const q={select(){return this},update(v){patch=v;return this},delete(){deleted=true;return this},eq(k,v){filters.push([k,v]);return this},is(k,v){filters.push([k,v]);return this},maybeSingle(){return this},then(resolve,reject){return Promise.resolve().then(async()=>{
+  const filters=[];let patch=null,deleted=false,single=false,limit=Infinity;
+  const q={select(){return this},update(v){patch=v;return this},delete(){deleted=true;return this},eq(k,v){filters.push([k,v]);return this},is(k,v){filters.push([k,v]);return this},limit(n){limit=n;return this},maybeSingle(){single=true;return this},then(resolve,reject){return Promise.resolve().then(async()=>{
    calls.push({table,filters:[...filters],patch,deleted});
    if(options.before)await options.before({rows,patch,deleted,calls});
    if(patch||deleted){updates++;if(options.beforeWrite)await options.beforeWrite(rows,updates);}
    if(options.error)throw Error('transport failed');
-   const index=rows.findIndex(r=>filters.every(([k,v])=>(r[k]??null)===v));
+   const matches=r=>r.user_id===active&&filters.every(([k,v])=>k==='fecha'?Date.parse(r[k])===Date.parse(v):(r[k]??null)===v);
+   if(!single&&!patch&&!deleted)return {data:rows.filter(matches).slice(0,limit).map(r=>({...r})),error:null};
+   const index=rows.findIndex(matches);
    if(index<0||options.zeroAck&&(patch||deleted))return {data:null,error:null};
    let row={...rows[index]};
+   if(patch&&options.unique){const next={...row,...patch};if(rows.some((r,i)=>i!==index&&['user_id','fecha','importe','comercio'].every(k=>r[k]===next[k])))return {data:null,error:{code:'23505'}};}
    if(patch){Object.assign(rows[index],patch);row={...rows[index]};}
    if(deleted)rows.splice(index,1);
    if(options.afterWrite&&(patch||deleted))await options.afterWrite(row);

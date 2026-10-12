@@ -115,16 +115,16 @@ test("ackCategoryWrite solo confirma la fila, la categoría y la decisión que s
   assert.equal(cli.ackCategoryWrite(list, cli.expenseFromRow(fila(3, T2, "recibos")), "recibos", 77), list, "sin nada pendiente no se toca");
 });
 
-test("setExpenseCat exige ACK exacto y deja pendiente cero filas, fallo o UUID legado", async () => {
+test("setExpenseCat exige ACK y realinea un UUID distinto sólo por clave exacta única", async () => {
   const {client,database,expense,id,other}=await import('./expense-write-fixture.mjs');
   const ok=await client();assert.equal(await ok.cloud.setExpenseCat(expense,'super'),1);assert.equal(ok.db.rows[0].cat,'super');
   for(const options of [{zeroAck:true},{error:true},{rows:[]}]){
     const a=await client(database(options));await assert.rejects(()=>a.cloud.setExpenseCat(expense,'super'));
     assert.equal(a.cloud.expenseWrites().length,1);
   }
-  const a=await client();await assert.rejects(()=>a.cloud.setExpenseCat({...expense,id:other},'super'));
-  const b=await client();await assert.rejects(()=>b.cloud.setExpenseCat({...expense,id:'legacy'},'super'));
-  assert.equal(b.db.calls.length,0);
+  const a=await client();assert.equal(await a.cloud.setExpenseCat({...expense,id:other},'super'),1);assert.equal(a.db.rows[0].id,id);
+  const b=await client();await assert.rejects(()=>b.cloud.setExpenseCat({...expense,id:'legacy',merchant:'Otro'},'super'));
+  assert.equal(b.db.calls.filter(q=>q.patch).length,0);
 });
 test("el equivalente del día siguiente nace con lo aprendido y sobrevive a los pulls siguientes", () => {
   const cli = conRegla();

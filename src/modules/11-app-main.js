@@ -401,6 +401,23 @@ function App(){
   useLayoutEffect(function(){ mcExpenseSession(session); },[session]);
   const uid = session && session.user ? session.user.id : null;
   const stateRef=useRef(state); useEffect(function(){ stateRef.current=state; });
+  useEffect(function(){
+    const off=mcOnExpenseWrites(function(event){
+      if(!event || event.owner!==mcExpenseContextOwner()) return;
+      const guards=mcExpenseReadGuards(Infinity);
+      set(function(s){ return mcExpenseApplyEvent(s,event,guards); });
+    });
+    const drain=function(){ cloud.drainExpenseWrites(stateRef.current).catch(function(){}); };
+    const visible=function(){ if(document.visibilityState!=="hidden") drain(); };
+    window.addEventListener("online",drain); document.addEventListener("visibilitychange",visible);
+    const A=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.App;
+    let sub=null,disposed=false;
+    if(A&&A.addListener){ try{ sub=Promise.resolve(A.addListener("appStateChange",function(s){ if(!disposed&&s&&s.isActive) drain(); })); sub.catch(function(){}); }catch(e){} }
+    return function(){ off(); disposed=true; window.removeEventListener("online",drain); document.removeEventListener("visibilitychange",visible);
+      if(sub) sub.then(function(h){ if(h&&h.remove) return h.remove(); }).catch(function(){});
+    };
+  },[]);
+  useEffect(function(){ if(uid) cloud.drainExpenseWrites(stateRef.current).catch(function(){}); },[uid]);
   const sessionRef=useRef(null);
   const cloudUpdatedAtRef=useRef(null);   // sello del servidor para sync sin pisar otro dispositivo
   const bankSyncing=useRef(false);          // evita syncs de banco solapados
@@ -491,13 +508,7 @@ function App(){
       // Backfill: sube a la tabla TODO gasto local que aún no esté en ella (no solo los manuales).
       // Esto garantiza que la tabla sea la fuente de verdad COMPLETA antes de dejar de duplicar
       // los gastos en app_state (ver slimForCloud). Upsert idempotente (ignoreDuplicates).
-      const tableKeys={}, tableIds={}, writeGuards=mcExpenseReadGuards(readStartedAt);
-      incoming.forEach(function(e){ tableKeys[keyOfExpense(e)]=1; tableIds[e.id]=1; });
-      (stateRef.current.expenses||[]).forEach(function(e){
-        // Una edición pendiente o de UUID divergente no se convierte en un alta durante
-        // el pull. Renombrar también conserva el UUID, aunque cambie la clave por atributos.
-        if(e.amount!==0 && !tableKeys[keyOfExpense(e)] && !tableIds[e.id] && !writeGuards[e.id] && !e.catStale && !expenseIsTombstoned(e, delSet)) subirGasto(e, "backfill");
-      });
+      backfillExpenseCandidates(stateRef.current.expenses,incoming,readStartedAt).forEach(function(e){ if(!expenseIsTombstoned(e, delSet)) subirGasto(e,"backfill"); });
       /* AQUÍ NO VA UN REPASO QUE RE-MARQUE LOS POSIBLES REPETIDOS VIEJOS (B09-D, 2026-09-08).
          Lo escribí y lo retiré: `addExpense` va con ignoreDuplicates y nunca cambia el `source` de
          una fila ya presente, así que los pendientes anteriores a esta versión siguen contando en
@@ -550,6 +561,7 @@ function App(){
       const current=sessionRef.current;
       wRead.current=readProof.valid && current && current.user && readProof.userId===current.user.id
         && !mcSandbox() && mark && typeof mark.readGeneration==="string" && typeof mark.nativeCut==="string"?mark:null;
+      cloud.drainExpenseWrites(stateRef.current).catch(function(){});
       return { total:incoming.length, nuevos:count };
       });
     });
@@ -1317,7 +1329,7 @@ function App(){
     if(!r) return;
     set(function(prev){ const r2=marcarCuotasDeDeuda(prev); return r2 ? r2.state : prev; });
     if(cloud.enabled()) r.marcadas.forEach(function(e){
-      cloud.setExpenseDeuda(e).catch(function(err){ cloud.logEvent("error","setExpenseDeuda: "+keyOfExpense(e), _errCloudMsg(err)); });
+      cloud.setExpenseDeuda(e,(stateRef.current.expenses||[]).find(function(x){ return x.id===e.id; })).catch(function(err){ cloud.logEvent("error","setExpenseDeuda: "+keyOfExpense(e), _errCloudMsg(err)); });
     });
   },[state.expenses, state.debts, state.cuotaNo, state.cuotaAlias]);
 

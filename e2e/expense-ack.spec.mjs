@@ -29,7 +29,7 @@ async function retry(page,mode='ok'){
 for(const lang of ['es','en','ca'])test('nota local pendiente, recarga y reintento confirmado '+lang,async({page})=>{
   await setup(page,lang);await note(page,'Nota sintética');
   await expect(row(page).locator('.nm-note')).toHaveText('Nota sintética');
-  const text=await page.evaluate(()=>tf('exp_pending_n',{n:1}));
+  const text=await page.evaluate(()=>t('exp_pending_one'));
   await expect(page.getByTestId('expense-pending').locator('summary')).toHaveText(text);
   await page.reload();await dismissNews(page);await page.locator('.botnav-tab[data-tour="gastos"]').click();
   await expect(row(page).locator('.nm-note')).toHaveText('Nota sintética');await expect(page.getByTestId('expense-pending')).toBeVisible();
@@ -52,12 +52,11 @@ test('borrado local se puede deshacer sin DELETE ni INSERT',async({page})=>{
   await expect(row(page)).toHaveCount(1);await expect(page.getByTestId('expense-pending')).toHaveCount(0);
   expect(await page.evaluate(()=>window.__expenseTable.calls.filter(x=>x.deleted||x.insert))).toEqual([]);
 });
-test('respuesta perdida tras borrar conserva aviso, reintentar no inventa confirmación',async({page})=>{
+test('respuesta perdida tras borrar converge al comprobar ausencia con sesión',async({page})=>{
   await setup(page,'es','ob','lost');await row(page).click();
   await page.getByRole('button',{name:'Es el mismo',exact:true}).click();
   await expect(row(page)).toHaveCount(0);await expect.poll(()=>page.evaluate(()=>window.__e2eCloudRows.expenses.length)).toBe(0);
-  await retry(page);await expect(page.getByTestId('expense-pending')).toBeVisible();
-  await expect(page.getByTestId('expense-pending')).toContainText('No se ha podido confirmar');
+  await retry(page);await expect(page.getByTestId('expense-pending')).toHaveCount(0);
 });
 test('colisión al editar conserva la decisión local y muestra conflicto',async({page})=>{
   await setup(page,'es','manual','unique');await row(page).click();
@@ -84,6 +83,33 @@ test('cambiar banco manual se ve de inmediato y queda pendiente con sesión perd
   await expect(page.getByTestId('exp-bank')).toContainText('Revolut');await expect(page.locator('.v4-ficha-saved')).toHaveText('Pendiente de confirmación');await close(page);
   await page.getByTestId('expense-pending').locator('summary').click();await expect(page.getByTestId('expense-pending')).toContainText('Vuelve a iniciar sesión');
   await page.evaluate(()=>{window.__expenseTable.session=true;window.__expenseTable.mode='ok'});
-  await page.getByTestId('expense-pending').getByRole('button').click();await expect(page.getByTestId('expense-pending')).toHaveCount(0);
+  await page.getByTestId('expense-pending').getByRole('button',{name:'Reintentar',exact:true}).click();await expect(page.getByTestId('expense-pending')).toHaveCount(0);
   expect(await page.evaluate(()=>window.__e2eCloudRows.expenses[0].source)).toBe('manual:revolut');
+});
+for(const trigger of ['online','foreground','startup'])test('la nota pendiente se envía sola: '+trigger,async({page})=>{
+ await setup(page,'es','manual','error');await note(page,'Sin conexión');await expect(page.getByTestId('expense-pending')).toBeVisible();
+ await page.evaluate(()=>{window.__expenseTable.mode='ok';window.__expenseTable.save()});
+ if(trigger==='startup'){await page.reload();await dismissNews(page);await page.locator('.botnav-tab[data-tour="gastos"]').click()}
+ else await page.evaluate(trigger=>{if(trigger==='online')window.dispatchEvent(new Event('online'));else document.dispatchEvent(new Event('visibilitychange'))},trigger);
+ await expect(page.getByTestId('expense-pending')).toHaveCount(0);
+ await expect(row(page).locator('.nm-note')).toHaveText('Sin conexión');
+ expect(await page.evaluate(()=>window.__e2eCloudRows.expenses[0].nota)).toBe('Sin conexión');
+});
+for(const lang of ['es','en','ca'])test('descartar el conflicto recupera la fila remota '+lang,async({page})=>{
+ await setup(page,lang,'manual','unique');await row(page).click();await page.locator('.v4-exp-sheet .v4-ficha-concept').fill('Cambio en conflicto');
+ await page.locator('.v4-exp-sheet .v4-ficha-concept').blur();await close(page);
+ const pending=page.getByTestId('expense-pending');await pending.locator('summary').click();
+ const label=await page.evaluate(()=>t('exp_pending_discard'));await pending.getByRole('button',{name:label,exact:true}).click();
+ await page.locator('.askback').getByRole('button',{name:label,exact:true}).click();
+ await expect(pending).toHaveCount(0);await expect(row(page)).toHaveCount(1);
+ await expect(page.locator('.v4-gastos-list-body')).not.toContainText('Cambio en conflicto');
+ expect(await page.evaluate(()=>window.__expenseTable.calls.filter(x=>x.deleted||x.insert))).toEqual([]);
+});
+test('borrar y recargar antes del plazo retoma el borrado sin Reintentar',async({page})=>{
+ await setup(page,'es','manual','ok');await row(page).click();await page.locator('.v4-ficha-del').click();
+ await page.locator('.askback').getByRole('button',{name:await page.evaluate(()=>t('v4_exp_del')),exact:true}).click();
+ await expect(row(page)).toHaveCount(0);await page.reload();await dismissNews(page);await page.locator('.botnav-tab[data-tour="gastos"]').click();
+ await page.waitForTimeout(5100);
+ await expect(page.getByTestId('expense-pending')).toHaveCount(0);await expect(row(page)).toHaveCount(0);
+ expect(await page.evaluate(()=>window.__e2eCloudRows.expenses.length)).toBe(0);
 });

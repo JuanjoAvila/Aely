@@ -477,17 +477,22 @@ FIN-04 (candidata sin publicar): banco, duplicidad, categoría, nota, no-tarjeta
 edición y borrado usan `writeExpenseField`. El gesto se aplica localmente al momento, sin depender
 de la conexión. Antes de enviar se registra una intención en `localStorage`, una clave
 `mc-expense-op:<propietario>:<opId>` por operación, fuera de `app_state`. Contiene UUID, campo,
-valor, base observada y estado. Cada consulta restringe propietario y UUID; cada ACK comprueba
-ambos, el valor solicitado y la sesión vigente. No existe fallback de escritura por atributos.
-Un id legado, cero filas, sesión perdida o error siguen pendientes y visibles en Gastos, también
+valor, base local anterior al gesto y estado. Cada escritura restringe propietario y UUID; cada ACK comprueba
+ambos, el valor solicitado y la época de sesión vigente. Si el UUID no existe o es legado, una lectura
+por propietario, fecha/instante, importe en céntimos, comercio y origen exactos debe devolver UNA fila:
+sólo entonces se realinea su UUID, orden manual, `possibleDupOf` y referencias de pruebas de recibos.
+Cero o varias candidatas dejan conflicto de identidad; nunca se decide por parecido.
+Sesión perdida o error siguen pendientes y visibles en Gastos, también
 tras recargar. Sin espacio de almacenamiento no sale la petición y se avisa de que la cola aún
-no es durable. Las operaciones de otra cuenta quedan aisladas; una operación huérfana recuperada
-no se asigna a quien inicie sesión después.
+no es durable. Las operaciones de otra cuenta quedan aisladas; sin titular previamente aceptado no
+se encola. Caducar conserva el último titular; cerrar sesión o borrar la cuenta purga las claves
+privadas y anula los vuelos anteriores para impedir que las vuelvan a crear.
 
 La lectura remota precede al UPDATE con condiciones sobre los campos que se cambian. Para
 `source` se conserva el origen y las marcas ajenas de banco, deuda y duplicidad; sólo cambia
 el componente decidido. Hay como máximo tres intentos CAS y cada petición tiene corte de 10 s.
-El corte no acredita cancelación del servidor. Un cambio concurrente del mismo campo produce
+El corte no acredita cancelación del servidor. Un cambio del mismo campo posterior al gesto, incluso
+si el gesto se hizo sin red, produce
 conflicto; Reintentar exige confirmar que se desea mantener el cambio antes de tomar una nueva
 base. Una colisión del índice único también es conflicto, nunca fusión ni borrado de otra fila.
 El reintento de un UPDATE cuyo valor exacto ya está presente confirma sin repetir la escritura.
@@ -495,18 +500,36 @@ Los gestos sucesivos sobre la misma fila se ordenan y no adelantan una intenció
 
 Editar comercio, importe o fecha conserva el UUID y hace UPDATE, no DELETE seguido de INSERT.
 El borrado local conserva la lápida y una intención durable; el individual espera los cinco
-segundos de Deshacer antes de enviar, por lo que deshacer cancela la intención sin recrear una
-fila remota. Los lotes guardan los UUID ya confirmados para reintentar sólo los restantes.
-Si un DELETE hizo commit pero se perdió el retorno, la ausencia posterior no demuestra ACK:
-permanece pendiente para revisión. Tampoco se interpreta la ausencia en un pull como borrado.
-No hay SQL, recibo remoto de operación ni revisión global: esto no resuelve ABA ni arbitra
-clientes antiguos, y una colisión/identidad no recuperable requiere revisión antes de entrega.
+segundos de Deshacer antes de enviar. El plazo absoluto viaja con la operación: al reabrir se
+retoma el tiempo restante o se drena inmediatamente si venció. Deshacer sólo cancela antes de
+intentar DELETE, sin recrear una fila remota. Los lotes guardan UUID ya confirmados. Una consulta
+del mismo titular que acredita ausencia cierra un borrado (o una fila retirada con lápida), también
+tras perder la respuesta. Esto es convergencia por ausencia, no un recibo de commit remoto.
+La ausencia en un pull ordinario sigue sin autorizar borrados locales.
+
+La cola se drena ordenadamente al aceptar sesión, recuperar red, volver a primer plano y después
+de cada pull de gastos. Los disparadores y envíos viven fuera de los updaters React, con un vuelo
+compartido y una pasada por disparador; los conflictos exigen decisión explícita. Descartar consulta
+el servidor antes de retirar las intenciones de esa fila y adoptar su estado (o quitarla si no existe).
+Una colisión única tiene así salida sin fusionar ni borrar otro gasto. El importe se redondea antes
+de aplicarlo localmente, encolarlo y compararlo. En TR con `ingest_event_id`, «Son distintos» restaura
+el origen `macrodroid` en vez de convertir la notificación en movimiento bancario.
+
+No hay SQL, recibo remoto de operación ni revisión global: esto no resuelve ABA ni arbitra clientes
+antiguos. Un cliente viejo que mezcla por la clave anterior puede conservar dos filas tras ediciones
+cruzadas; actualizarlo y revisar ese estado sigue siendo necesario. La lápida de la clave antigua
+puede viajar antes del UPDATE y ocultar temporalmente el movimiento en el otro móvil: el drenado
+automático reduce esa ventana al siguiente disparador con red, pero no proporciona atomicidad entre
+`app_state` y `expenses`. No se afirma que esos dos recursos se confirmen juntos.
 
 El pull empareja primero por UUID, incluso si la edición cambió la clave por atributos, y
 actualiza también banco, fecha, nota y categoría manual. Conserva los campos de intenciones
 pendientes y de lecturas iniciadas antes del ACK; el resto puede refrescarse. No convierte una
 decisión pendiente ni una fila con UUID ya presente en un alta de backfill. La UI muestra
-pendiente/conflicto y Reintentar en es/en/ca; los envíos salen del gesto, fuera del updater React.
+pendiente/conflicto, Reintentar y Descartar en es/en/ca, con singular para una operación. Sólo los
+cambios de la vista de cola notifican a Gastos; no la metainformación de CAS ni una cola vacía.
+El registro de ACK mantiene como máximo 256 identidades; al retirar una conserva una frontera
+temporal que descarta las lecturas anteriores, para que acotar memoria no autorice una foto vieja.
 
 Las equivalencias futuras son `catRules` (en `app_state`): comercio exacto + banco + con o sin
 tarjeta → categoría e instante en que se enseñó; vale para fechas posteriores a ese instante. Solo las aplica el pull, y solo a filas que el
