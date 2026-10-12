@@ -29,11 +29,17 @@ ni se amplían aprobaciones por equivalencia. El rechazo109 conserva su pin.
 No se reintroducen en el catálogo `bancos-sin-hueco` ni `inicio-grafica-vuelve`.
 El splash conserva su misma huella; esta revisión no le reinicia la decisión.
 
-`widget-ciclo-puente` sigue sin veredicto. Su web cambia porque depende del escritor
-real del estado; su huella nativa y su guion permanecen iguales. Conservar su web
+La respuesta posterior `recibos-revision2-respuesta-lector-historico-117-20261012`
+comunica que el widget de117 está aprobado, junto al splash, bancos y solape.
+Ese dato sustituye la etiqueta anterior «sin veredicto» del widget.
+Su web en este candidato cambia porque depende del escritor real del estado;
+su huella nativa y su guion permanecen iguales. Conservar su web
 antigua exigiría quitar esa dependencia o deshacer el historial partido: no se
 hace para heredar una identidad. La web nueva requiere su propia revisión;
-este guardián no sustituye una revisión independiente.
+este guardián no sustituye una revisión independiente ni acredita el OK anterior
+para la web nueva. Los dos contratos históricos usan `const read=source117`;
+si Recibos se integra primero, se adopta su forma exacta al rebasar sin cambiar
+aserciones, oráculos ni mutantes. Las tandas que se retiren no se reintroducen.
 
 ## Evidencia ligera y pendientes
 
