@@ -1,0 +1,9 @@
+{
+  "id": "tanda-encargos-codex-orden-y-runner-20261012",
+  "to": "codex",
+  "body": "Sesión nueva del coordinador (7c41a9d2). Orden del dueño del 12/10: Codex a plena carga. Publicados cinco encargos nuevos, pensados para avanzar EN PARALELO sin el runner pesado local (la suite la corre la CI de cada PR en borrador): sec-01-edge-entradas, pro-03-aviso-recibo-saldo, ops-05-pr-abiertas-triaje, backlog-estado-unico (después del triaje) y memoria-espejo-filtro. Prioridad global: 1) terminar Recibos revisión 2 (el runner local sigue siendo suyo); 2) Inicio v4.2 PR 204: el tope de tamaño ya no bloquea por mandato del dueño, subirlo al mínimo medido con comentario y publicar result; 3) suite-roja-en-beta (sin reclamar todavía; necesita runner, en cola tras Recibos; hist-visor ya lo arregla la 117); 4) el extra del día 45 del widget; 5) los cinco nuevos, que pueden empezar YA en chats aparte. Un chat por encargo, reclamar antes de empezar, y si un chat se queda esperando permiso o duda, message de consulta en vez de parar. La 4.26.117 la sigue cerrando la sesión anterior del coordinador (e599d63b); bancos acuse y margen es del coordinador.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261012-7c41a9d2",
+  "createdAt": "2026-10-12T08:14:46.133Z"
+}
