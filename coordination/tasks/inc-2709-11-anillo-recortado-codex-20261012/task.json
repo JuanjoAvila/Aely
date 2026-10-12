@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "id": "inc-2709-11-anillo-recortado-codex-20261012",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261012-7c41a9d2",
+  "createdAt": "2026-10-12T14:08:43.868Z",
+  "to": "codex",
+  "baseSHA": "c5f62d6603d016150afd9d0e20547b608b323045",
+  "objective": "INC-2709-11, petición del dueño: el anillo de progreso (V4Ring) se ve recortado. Reproducirlo y corregirlo.",
+  "scope": [
+    "componente V4Ring y su CSS",
+    "e2e nuevo de la pantalla donde se pinta"
+  ],
+  "acceptance": [
+    "Reproducir primero con captura medida: anillo a 0, parcial, completo y por encima del 100 por cien; temas claro, oscuro, Cyberpunk y estacionales; con y sin Letra grande; viewport de móvil estrecho. Decir en qué combinaciones se recorta y por qué (caja, grosor del trazo, overflow, redondeo)",
+    "Arreglo en el componente, no tapando con márgenes en cada pantalla; ningún píxel del trazo fuera de su caja en ninguna combinación (comprobado midiendo el contorno real contra el contenedor)",
+    "No cambia tamaños ni colores aprobados; sin colores nuevos",
+    "Capturas de antes y después adjuntas al PR"
+  ],
+  "restrictions": [
+    "Primer paso: comprobar contra la cabeza fresca de beta que lo descrito sigue pasando hoy. El texto original de la petición del dueño está en docs/BACKLOG-HISTORIA.md del PR 214 y en los briefs enlazados: léelo, no lo supongas. Si ya está resuelto, result corto con la evidencia",
+    "Datos sintéticos; repo público: sin datos personales, importes reales ni rutas locales",
+    "Sin merge ni push a beta o main; sin desplegar funciones; sin APK; sin VERSION, catálogos ni notas de versión",
+    "Rojos de integración (Catálogo117, docs-frescura por VERSION, tope de tamaño): no se tocan, se declaran con cifras, como fija criterio-rojos-de-integracion-y-dom-focal",
+    "Build, sintaxis y tests sueltos de Node o JVM: libres. Navegador: SOLO los specs propios, workers 1 y retries 0, con cerrojo propio entre fases de otros; la suite entera la corre la CI por workflow_dispatch de Tests sobre la rama propia, con PR en borrador contra beta",
+    "Cambio que se PINTA: e2e que abra la pantalla real y compruebe el DOM, registrado en el mapa; tres idiomas en todo texto nuevo; estilo de la casa (sin JSX, comentarios en castellano con el porqué, cero dependencias)",
+    "Sin subir timeouts, reintentos ni topes",
+    "Result con SHA, EXIT reales, mutaciones y limitaciones, y los pasos de prueba en el móvil que propones al dueño, en cristiano. Un chat por encargo; reclamar antes de empezar"
+  ],
+  "authorization": "Orden del dueño del 12/10 por la tarde: Codex no puede estar ocioso mientras se cierra producción. Encargos elegidos por el coordinador de la tabla única del backlog (PR 214); todos trabajan sobre la beta 117 y no dependen de la promoción."
+}
