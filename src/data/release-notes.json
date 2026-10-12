@@ -1,5 +1,58 @@
 [
   {
+    "v": "4.26.119",
+    "d": "2026-10-12",
+    "t": {
+      "es": "Bancos: ningún movimiento por el camino",
+      "en": "Banks: no transaction left behind",
+      "ca": "Bancs: cap moviment pel camí"
+    },
+    "items": {
+      "es": [
+        "Si la conexión falla mientras se sincronizan los bancos, los movimientos de esos días ya no se pierden: entran la próxima vez que sincronices.",
+        "Volver a conectar un banco ya no deja días sin traer: la app sigue desde donde lo había dejado."
+      ],
+      "en": [
+        "If the connection fails while your banks are syncing, the transactions from those days are no longer lost: they come in the next time you sync.",
+        "Reconnecting a bank no longer leaves days missing: the app carries on from where it left off."
+      ],
+      "ca": [
+        "Si la connexió falla mentre se sincronitzen els bancs, els moviments d'aquells dies ja no es perden: entren la pròxima vegada que sincronitzis.",
+        "Tornar a connectar un banc ja no deixa dies sense portar: l'app continua des d'on ho havia deixat."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "bancos-acuse-reconexion",
+        "t": {
+          "es": "Bancos: nada se pierde si falla la conexión o al reconectar",
+          "en": "Banks: nothing is lost if the connection fails or on reconnecting",
+          "ca": "Bancs: no es perd res si falla la connexió o en reconnectar"
+        },
+        "items": {
+          "es": [
+            "1. En Cartera, dentro de «Tus cuentas», toca el icono «Sincronizar bancos» y espera a que termine. Abre Gastos: los movimientos nuevos de tus bancos aparecen, cada uno una sola vez, sin repetidos.",
+            "2. Vuelve a Cartera y toca «Sincronizar bancos» otra vez: en Gastos no aparece ningún movimiento repetido. Toca el icono «Conectar cuentas» para abrir «Mis bancos»: en cada banco, la línea «Saldo actualizado» marca la hora de ahora.",
+            "3. Toca «Sincronizar bancos» y, nada más tocarlo, pon el móvil en modo avión. Espera a que la app deje de sincronizar (puede salir un aviso de error: sin conexión es lo normal). Quita el modo avión y toca «Sincronizar bancos» de nuevo: en Gastos están todos los movimientos de estos días y ninguno repetido.",
+            "4. Para probar la reconexión (ahora, o cuando un banco te caduque): en «Mis bancos», toca un banco, pulsa «Reconectar» y autoriza la misma cuenta de siempre. Al volver a la app, toca «Sincronizar bancos»: en Gastos no falta ningún día entre la última vez y hoy, y no hay movimientos repetidos. Si no reconectas ningún banco, deja este paso sin probar."
+          ],
+          "en": [
+            "1. In Portfolio, inside “Your accounts”, tap the “Sync banks” icon and wait for it to finish. Open Spending: the new transactions from your banks appear, each one only once, with no repeats.",
+            "2. Go back to Portfolio and tap “Sync banks” again: no repeated transaction appears in Spending. Tap the “Connect accounts” icon to open “My banks”: on each bank, the “Balance updated” line shows the time right now.",
+            "3. Tap “Sync banks” and, right after tapping it, put your phone in airplane mode. Wait until the app stops syncing (an error notice may appear: that is normal with no connection). Turn airplane mode off and tap “Sync banks” again: Spending has every transaction from these days and none repeated.",
+            "4. To try reconnecting (now, or when a bank expires): in “My banks”, tap a bank, press “Reconnect” and authorise the same account as always. Back in the app, tap “Sync banks”: in Spending no day is missing between the last time and today, and there are no repeated transactions. If you do not reconnect any bank, leave this step untested."
+          ],
+          "ca": [
+            "1. A Cartera, dins de «Els teus comptes», toca la icona «Sincronitza els bancs» i espera que acabi. Obre Despeses: els moviments nous dels teus bancs apareixen, cadascun una sola vegada, sense repetits.",
+            "2. Torna a Cartera i toca «Sincronitza els bancs» una altra vegada: a Despeses no apareix cap moviment repetit. Toca la icona «Connectar comptes» per obrir «Els meus bancs»: a cada banc, la línia «Saldo actualitzat» marca l'hora d'ara.",
+            "3. Toca «Sincronitza els bancs» i, just després de tocar-lo, posa el mòbil en mode avió. Espera que l'app deixi de sincronitzar (pot sortir un avís d'error: sense connexió és normal). Treu el mode avió i toca «Sincronitza els bancs» de nou: a Despeses hi ha tots els moviments d'aquests dies i cap de repetit.",
+            "4. Per provar la reconnexió (ara, o quan un banc et caduqui): a «Els meus bancs», toca un banc, prem «Reconnecta» i autoritza el mateix compte de sempre. En tornar a l'app, toca «Sincronitza els bancs»: a Despeses no falta cap dia entre l'última vegada i avui, i no hi ha moviments repetits. Si no reconnectes cap banc, deixa aquest pas sense provar."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.118",
     "d": "2026-10-12",
     "t": {

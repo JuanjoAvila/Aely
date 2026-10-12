@@ -98,4 +98,4 @@ const memoNote=JSON.parse(execFileSync('git',['show','8dcc5ed39b6e212ba1e34a90b5
 for(const key of ['codigoDesde','revisionesDesde','codigosCompatibles','compatibilidadGit','verdict'])assert.equal(memoNote[key],undefined,'memo nueva sin heredar '+key);
 
 }
-assert.equal(createHash('sha256').update(JSON.stringify(JSON.parse(read('scripts/beta-sources.json')))).digest('hex'),'2d4f62d42df9a086a791670250fb632a7ec822152feff5bd5250798b90388563','registro118 íntegro: el aprobado117 (5b70b7fa) más los helpers de Recibos en diez alcances y la tanda recibos-cargo-unico; Catálogo118 de beta-sources lo fija unidad a unidad');
+assert.equal(createHash('sha256').update(JSON.stringify(JSON.parse(read('scripts/beta-sources.json')))).digest('hex'),'aa9cb034a46f2a3dd04b9e3585d7474fac8cbe8c7aa933e7bb57bcebe0cd296d','registro119 íntegro: el de la beta118 (2d4f62d4) más el acuse local de bancos en dos alcances y la tanda bancos-acuse-reconexion; Catálogo119 de beta-sources lo fija unidad a unidad');

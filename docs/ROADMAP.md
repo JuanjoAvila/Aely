@@ -1,4 +1,6 @@
-Candidata de beta4.26.118 (12/10/2026): cada cargo del banco se atribuye a un único recibo. Un mismo cargo ya no marca pagados dos recibos, un homónimo de otro banco no paga el que no es, un recibo se reconoce pagado también cuando el pago salió de otro banco (nombre completo e importe exacto) y mover el día de un recibo ya cobrado por el banco no lo vuelve a descontar. Solo web, sobre la producción117; la APK sigue en la 55. Una tanda en revisión: `recibos-cargo-unico`. Publicación en beta y aceptación móvil pendientes.
+Candidata de beta4.26.119 (12/10/2026): los bancos no pierden movimientos si la respuesta de una sincronización no llega al móvil, y reconectar un banco con las mismas cuentas no deja días sin leer. El cursor del servidor solo avanza cuando el móvil acusa haber guardado lo recibido (acuse local al dispositivo), el suelo de lectura baja tres días para cubrir la fecha valor y `bank-callback` conserva el cursor al reconectar. Web más dos funciones Edge (`bank-sync` y `bank-callback`, sin desplegar todavía); la APK sigue en la 55. Tandas en revisión: `bancos-acuse-reconexion` y `recibos-cargo-unico`. Despliegue de funciones, publicación en beta y aceptación móvil pendientes.
+
+Beta4.26.118 (12/10/2026), publicada y sin veredicto todavía: cada cargo del banco se atribuye a un único recibo. Un mismo cargo ya no marca pagados dos recibos, un homónimo de otro banco no paga el que no es, un recibo se reconoce pagado también cuando el pago salió de otro banco (nombre completo e importe exacto) y mover el día de un recibo ya cobrado por el banco no lo vuelve a descontar. Solo web, sobre la producción117; la APK sigue en la 55. Una tanda en revisión: `recibos-cargo-unico`. Aceptación móvil pendiente.
 
 Promoción completa4.26.117: entrada renovada, recuperación de movimientos bancarios, widget que se actualiza al pagar con la app cerrada tras actualizar la app e Inicio sin el desglose de Gastos superpuesto. La reconciliación conserva los30 commits propios de main y el código aprobado de beta117. Una nota familiar más el historial de producción; las notas intermedias de beta quedan en Git y sus contratos, en los guardianes. Los cortes fechados de abajo son historia, no instrucciones vigentes. [Acta](briefs/prod-completa-117.md).
 
@@ -16,7 +18,9 @@ MAIN4.26.110 incorpora PR196 (bdd75636), sólo pruebas, herramientas y documenta
 
 Promoción4/10: las once tandas de beta4.26.94.1 tienen aprobación vigente. Producción4.26.94/source8bb0398f servida y cotejada; APK52 estable y las tres funciones Edge entregadas. La limpieza conserva notas y decisiones; solo retira las once entregadas, sin producto nuevo. Prioridad permanente: producción de lo aprobado antes de otra implementación. [Acta](briefs/promocion-aprobadas-2026-10-04.md).
 
-> Estado a 2026-10-12 · **v4.26.118** — candidata de beta, solo web: cada cargo del banco se atribuye a un único recibo. Tanda `recibos-cargo-unico` en revisión, única del panel; la APK sigue en la 4.26.117/code55. Publicación en beta y aceptación móvil pendientes. Quedan documentados y sin arreglo: aviso y cargo del mismo pago a más de tres días en otro banco, cargo más devolución del mismo comercio, y mostrar o deshacer la acreditación automática desde la ficha del cargo (decisión del dueño).
+> Estado a 2026-10-12 · **v4.26.119** — candidata de beta: el cursor de bancos solo avanza con acuse del móvil, el suelo de lectura cubre la fecha valor y reconectar con las mismas cuentas conserva el cursor. Web más `bank-sync` y `bank-callback`, sin desplegar todavía; la APK sigue en la 4.26.117/code55. Tandas `bancos-acuse-reconexion` y `recibos-cargo-unico` en revisión. Despliegue, publicación en beta y aceptación móvil pendientes. Quedan documentados: un dispositivo sin actualizar del mismo usuario sigue moviendo el cursor al leer, y el banco de pruebas no acusa.
+
+> Anterior: 2026-10-12 · v4.26.118 — beta publicada y sin veredicto, solo web: cada cargo del banco se atribuye a un único recibo. Tanda `recibos-cargo-unico` en revisión; la APK sigue en la 4.26.117/code55. Quedan documentados y sin arreglo: aviso y cargo del mismo pago a más de tres días en otro banco, cargo más devolución del mismo comercio, y mostrar o deshacer la acreditación automática desde la ficha del cargo (decisión del dueño).
 
 > Anterior: 2026-10-12 · v4.26.117 — producción: promoción completa de la beta aprobada (entrada, recuperación bancaria, widget y corrección del solape de Gastos). Android4.26.117/code55, con compatibilidad web para la APK52.
 
@@ -297,7 +301,7 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.26.118**, candidata de beta con los recibos de cargo único (solo web) sobre la producción 4.26.117; publicación en beta y aceptación móvil pendientes. |
+| Web / OTA (`VERSION`) | **4.26.119**, candidata de beta con el acuse del cursor de bancos y la reconexión que lo conserva, sobre la beta 4.26.118; despliegue de `bank-sync` y `bank-callback`, publicación en beta y aceptación móvil pendientes. |
 | APK (`versionName` / `versionCode`) | **4.26.117 / 55**, widget con la app cerrada y lectura correcta del ciclo. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
 | `public/apk.json` | Asset estable de **4.26.117 / 55**, con hash binario, fuente e identidades nativas verificadas antes de la fusión. |

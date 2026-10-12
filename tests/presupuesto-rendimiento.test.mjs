@@ -220,7 +220,12 @@ const PRESUPUESTO = {
   // el crudo no se mueve. 1302 KiB (1.333.248) y 355 KiB (363.520) se quedan cortos por
   // 314 y 826 B: 1303/356 son los mínimos y dejan 710/198 B. El tope avisa; no se recorta
   // producto ni idiomas para caber (mandato del dueño, 11/10).
-  minificado: 1303 * 1024,
+  // Bancos119, acuse del cursor (12/10): medido tras el build de la integración sobre la
+  // beta118 (7e706174), sello 119.99999 y reserva de 95 B: 1.334.526 B crudo / 364.665 B gzip,
+  // +964 / +319 B. Es el acuse local (`obAckLoad`, `obAckSave`, `obAckDrop`), su envío y el
+  // efecto que lo guarda detrás de las filas. 1303 KiB (1.334.272) se queda corto por 254 B:
+  // +1 KiB mínimo, quedan 770 B.
+  minificado: 1304 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -234,7 +239,8 @@ const PRESUPUESTO = {
   // Bancos sin huecos116: 362.744 B gzip, 248 B sobre 354 KiB; con el arreglo del widget 362.808 B.
   // +1 KiB mínimo (quedan 712 B).
   // Recibos118: 364.346 B gzip, 826 B sobre 355 KiB. +1 KiB mínimo (quedan 198 B).
-  gzip: 356 * 1024,
+  // Bancos119: 364.665 B gzip, 121 B sobre 356 KiB. +1 KiB mínimo (quedan 903 B).
+  gzip: 357 * 1024,
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 
