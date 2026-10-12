@@ -77,6 +77,7 @@ mi-cartera/
 ├── scripts/beta-archives.json # Pins nominativos para referencias históricas de sólo lectura
 ├── tests/pure-logic-notes.test.mjs · beta-source-parse.test.mjs # Carga diferida y cortes exactos sin debilitar auditorías
 ├── tests/beta-veredictos.test.mjs # Contrato compartido del panel y listo; beta-sources protege el ensamblado
+├── tests/beta-prod-refresh.test.mjs # Transporte real: vuelo compartido, vuelta offline terminada y recibo sin reescritura
 ├── tests/listo-actor.test.mjs # CLI real sin red: actor Dev autorizado y fallo cerrado si no se acredita
 ├── tests/backclose-history.test.mjs # Propiedad del historial y transferencias de overlays (selección110)
 ├── e2e/backclose-handover.spec.mjs · botnav-indicador.spec.mjs · metas-editar-regla.spec.mjs # Pantallas reales de110/107/108
