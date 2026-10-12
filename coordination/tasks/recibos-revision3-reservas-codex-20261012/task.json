@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "id": "recibos-revision3-reservas-codex-20261012",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261012-7c41a9d2",
+  "createdAt": "2026-10-12T13:44:54.018Z",
+  "to": "codex",
+  "baseSHA": "c5f62d6603d016150afd9d0e20547b608b323045",
+  "objective": "Revisión independiente de PR 202 en dbc030dc: GO CON RESERVAS. H1, H2 con prueba book, H3, H4 y H7 confirmados corregidos con sondas propias; compatibilidad entre versiones correcta. Quedan cuatro cosas que cierran la entrega; hazlas en el mismo PR, mismo titular. Es la última ronda: después integro yo en beta como tanda nueva.",
+  "scope": [
+    "src/modules/08-motor-bank.js",
+    "tests/fixed-payment-state.test.mjs, e2e/inicio-cargos.spec.mjs",
+    "e2e/metas-mensual.spec.mjs solo para el punto 5",
+    "public regenerado con npm run build"
+  ],
+  "acceptance": [
+    "1 MEDIA, REGRESIÓN frente a beta (08-motor-bank.js hacia 2850): un recibo confirmado A MANO contra un cargo contabilizado (prueba de tipo expense cuyo gasto viene del banco, fuente ob u ob-hist) pierde la protección al moverle el día. Secuencia: vincular a mano un gasto del banco de 42 del día 25 al recibo; hoy 26; cambiar el día del recibo a 28. Beta deja paidYm y paidDay 25 y sigue pagado; la candidata deja paidYm vacío, isPaidIn falso y el motor vuelve a descontarlo hasta el 28 mientras Plan dice pagado. El arreglo de H2 solo admite bankTx o prueba book: admitir también la prueba expense cuando su gasto es del banco. Test que falle en dbc030dc y que mate la mutación de volver a excluirla",
+    "2 MEDIA, FUNCIONAL: la acreditación entre bancos (pago avisado en un banco, recibo en otro) NO funciona con datos reales. El filtro exige categoría igual entre gasto y recibo (hacia 176 y 322), pero ninguno de los cuatro creadores de recibos pone categoría, así que solo acredita comercios sin clasificar; Netflix, Spotify, gimnasio o una operadora no acreditan nunca. Tus tests pasan porque fabrican recibos con categoría y comercios que caen en otros. Decide y documenta la regla correcta para un recibo SIN categoría (propuesta: sin categoría en el recibo no se exige igualdad de categoría y mandan nombre, céntimo exacto, mes y unicidad; con categoría se mantiene), sin abrir falsos positivos: los vetos de deudas, traspasos, efectivo, nombre corto y candidato único siguen. Los tests de este punto crean el recibo con los creadores REALES de la app y clasifican el gasto con la función real de categoría, con al menos cuatro comercios de categorías distintas",
+    "3 COBERTURA: test que mate estas mutaciones que hoy sobreviven con cambio real de comportamiento: quitar el veto de cargo ya vinculado a otro recibo en la ruta de GASTOS (hacia 333 a 336; tu mutante solo cubre la ruta book); quitar mismo banco al fundir notificación y cargo contabilizado; quitar céntimos exactos en el dueño automático (dos homónimos de 50,00 y 50,30 con cargo de 50,00); quitar la guarda de no persistido (cambia banco e importe pagados); quitar el veto de identidad duplicada entre pruebas",
+    "4 TAMAÑO: has subido el tope dentro de tests/presupuesto-rendimiento (crudo de 1298 a 1303 KiB, gzip de 355 a 356) sin declararlo como tal en el result. El mandato del dueño permite subirlo al mínimo medido con comentario, pero se DECLARA: deja el comentario con los bytes exactos y dilo en el result; si puedes recuperar parte recortando el índice (hoy indexa todos los meses y solo se consulta el actual, y retiene 14 MB con 20000 gastos), mejor",
+    "5 El rojo de Metas mensual en inglés NO es de este cambio: es una carrera del spec. Al saltar el reloj de mes se cierra octubre bajo presupuesto, salta el logro first_underbudget y su aviso pisa el único toast donde el test espera el error sintético; el spec solo siembra save_100 (línea 52). Arreglo del test: sembrar también first_underbudget. Hazlo aquí y márcalo en el encargo suite-roja-en-beta como causa encontrada",
+    "Residuos que se documentan sin arreglar, en el result y en el CHANGELOG técnico: notificación y cargo contabilizado del mismo pago a más de 3 días en otro banco; cargo más abono del mismo comercio; notificación a las 00:30 del día 1 atribuida al mes anterior; H5 sigue pendiente de decisión del dueño",
+    "Result con SHA, EXIT reales, mutaciones y las diez huellas que se mueven, separando las seis vivas en el panel de las cuatro ya retiradas"
+  ],
+  "restrictions": [
+    "Datos sintéticos; repo público",
+    "Sin merge ni push a beta o main; sin VERSION, catálogos ni notas: los pone la integración",
+    "Node y build libres. Validación de navegador focal: solo inicio-cargos y metas-mensual, workers 1 y retries 0, con cerrojo propio; NO repetir la suite funcional entera, ya pasó",
+    "Sin subir timeouts ni reintentos",
+    "No tocar la rama de producción ni la PR 215"
+  ],
+  "authorization": "Encargo del coordinador dentro del mandato del dueño; continuación de recibos-revision2-nogo. El dueño espera esta tanda en beta hoy."
+}
