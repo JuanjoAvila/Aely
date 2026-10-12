@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "id": "widget-dia45-ciclo-codex-20261012",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261012-7c41a9d2",
+  "createdAt": "2026-10-12T08:30:43.953Z",
+  "to": "codex",
+  "baseSHA": "c5f62d6603d016150afd9d0e20547b608b323045",
+  "objective": "Sale de la revisión del widget de la 4.26.116. En un ciclo largo sin nómina nueva (día 45 y siguientes), la web mantiene el ciclo abierto con lastPaydayOf pero el nativo lo da por inválido en WidgetPeriod.cycleValid, y el widget cae al aviso durante horas en vez de enseñar la cifra. Web y nativo tienen que aplicar la MISMA regla de vigencia del ciclo. Además, cerrar tres huecos de test que dejó la revisión.",
+  "scope": [
+    "src/modules/04-tab-gastos.js (lastPaydayOf, hacia las líneas 11 a 31) y el punto de la web que envía el periodo al plugin",
+    "android: WidgetPeriod (cycleValid) y MiCarteraPlugin en lo imprescindible; tests JVM del módulo",
+    "tests de Node de la regla compartida y e2e/widget-banco",
+    "Registro en el runner y en el mapa de tests"
+  ],
+  "acceptance": [
+    "Decir primero cuál de las dos reglas es la correcta para el dinero del usuario y por qué: qué tope de duración tiene un ciclo sin nómina nueva en cada lado hoy, con fichero y línea. La regla resultante vive descrita en un solo sitio y los dos lados la cumplen",
+    "Tabla de casos compartida por el test web y el test nativo: días 1, 31, 44, 45, 46 y 60 de un ciclo sin nómina, cambio de mes, nómina nueva que llega, y periodo de mes natural. Mismo veredicto en los dos lados para cada fila",
+    "Cuando el ciclo de verdad no es válido el widget sigue enseñando el aviso y nunca una cifra de otro periodo: esa guarda no se afloja",
+    "Test que mate la mutación de quitar Math.round en MiCarteraPlugin.java hacia la línea 210 (inicio de ciclo que llega como entero largo o como decimal)",
+    "Test que mate la mutación de safeLiq nulo a través del plugin: sin dato, el widget no pinta cero ni un número inventado",
+    "e2e/widget-banco ejerce el camino del contrato 53 del widget, no solo el anterior",
+    "Si el arreglo necesita Java, decirlo claro en el result: exige APK nueva y no viaja por OTA; dejar la parte web compatible con la APK 54 ya instalada (que no empeore con la APK vieja)"
+  ],
+  "restrictions": [
+    "Datos sintéticos; repo público: sin datos personales, importes reales ni rutas locales",
+    "Sin merge ni push a beta o main; sin compilar ni publicar APK; sin desplegar funciones",
+    "Sin VERSION, versionCode, catálogos de beta ni notas de versión: los pone la integración",
+    "No tocar el contrato del puente más allá de lo que exija la regla; no reabrir lo que arregló la 116 (el inicio de ciclo como número en el puente)",
+    "RUNNER: Node y tests JVM sueltos sin Gradle completo, libres. Gradle completo y Playwright solo con ventana concedida por el coordinador, en cola tras Recibos e Inicio; la suite entera la corre la CI del PR en borrador contra beta",
+    "Sin subir timeouts, reintentos ni topes de tamaño; cero dependencias nuevas",
+    "Result con SHA, nombre y EXIT real de cada prueba, mutaciones hechas y limitaciones. Toca dinero: habrá revisión independiente antes de integrar"
+  ],
+  "authorization": "Encargo del coordinador dentro del mandato del dueño del 11/10 y de su orden del 12/10. Sustituye a la mención suelta del mensaje beta-116-publicada. Un chat propio."
+}
