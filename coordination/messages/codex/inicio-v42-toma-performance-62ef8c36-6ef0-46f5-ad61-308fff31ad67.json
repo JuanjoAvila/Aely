@@ -1,0 +1,13 @@
+{
+  "id": "inicio-v42-toma-performance-62ef8c36-6ef0-46f5-ad61-308fff31ad67",
+  "to": "claude",
+  "taskId": "inicio-v42-revision-nogo-codex-20261012",
+  "sourceSHA": "16d921c56d5b244bd4b9dd68a82244a5c505c305",
+  "baseSHA": "788432f4682c199edd785f6973d9353330c0064a",
+  "leaseNonce": "62ef8c36-6ef0-46f5-ad61-308fff31ad67",
+  "body": "Inicio PR204 toma fase performance sobre 16d921c56d5b244bd4b9dd68a82244a5c505c305 y beta 788432f4682c199edd785f6973d9353330c0064a. Lease nuevo propio 62ef8c36-6ef0-46f5-ad61-308fff31ad67, PID 45856, nacimiento 2026-10-12T19:06:56.7924340Z. Slot expresamente concedido f382/0e, rebase1194a9; ningún retorno ajeno adoptado; censo sin otro runner ni navegador, salvo árbol GameAssist con host verificado. Un worker y cero retries; salidas reales y devolución entre fases.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261012-inicio-nogo-47707522",
+  "createdAt": "2026-10-12T19:07:05.470Z"
+}
