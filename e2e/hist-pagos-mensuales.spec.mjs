@@ -85,3 +85,93 @@ test("★ marcar los tres meses como «Recibo» crea UN recibo fijo, no tres", a
     return (raw.fixed || []).filter((f) => /iberdrola/i.test(f.name)).map((f) => f.name + "|" + f.amount + "|" + f.account);
   }), { timeout: 15_000 }).toEqual(["Iberdrola|12|sabadell"]);
 });
+
+// Se recorre la puerta real: la agrupación pura no acredita lo que runImport guarda ni deshace.
+const finWords={
+  es:{imports:"Importaciones",history:"Importar histórico",search:"Buscar movimientos",import:"Importar 3",undo:"↶ Deshacer la última importación"},
+  en:{imports:"Imports",history:"Import history",search:"Find transactions",import:"Import 3",undo:"↶ Undo last import"},
+  ca:{imports:"Importacions",history:"Importar històric",search:"Cerca moviments",import:"Importar 3",undo:"↶ Desfer l'última importació"}
+};
+async function finOpenHistory(page,lang,ent){
+  const bank=ent==="sabadell"?"Sabadell":"Revolut";
+  await page.clock.install({time:new Date("2026-09-26T12:00:00Z")});
+  await seedLoggedInDashboard(page,{__seedOnce:true,hasBankLink:true,
+    accounts:[{id:"old-bank",ent,name:"Cuenta ficticia",value:600,role:"fijos"}],
+    expenses:[{id:"old-expense",ent,date:"2026-01-01",amount:7,merchant:"Previo ficticio",category:"otros",source:"manual"}],
+    fixed:[{id:"old-fixed",name:"Previo fijo",amount:9,account:ent,freq:"mes"}],deleted:["previous-tombstone"],
+    settings:{autoPrices:false,theme:"green",lang,expenseBanks:[ent]},
+    __cloudRows:{bank_links:[{aspsp_name:bank,status:"active",valid_until:"2026-12-01",accounts:[{uid:"synthetic"}]}]},
+    __cloudFns:{"bank-sync":{data:{ok:true,links:[{aspsp:bank,accounts:[{transactions:[6,7,8].map((m,i)=>({date:"2026-0"+m+"-12",amount:12,merchant:"Luz ficticia",card:false,ext_id:"fin-month-"+i}))}]}]},error:null}}
+  });
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible();
+  await page.waitForFunction(()=>!document.getElementById("mc-load"));
+  await dismissNews(page);
+  await page.evaluate(()=>{
+    window.__finAck=[];window.__finDelete=[];
+    cloud.addExpensesBatch=async rows=>{window.__finAck.push(rows.map(e=>e.id));return {cloudIds:rows.map(e=>e.id)};};
+    cloud.deleteExpensesByIds=async ids=>{window.__finDelete.push(ids);};
+  });
+  return finReopenHistory(page,lang);
+}
+async function finReopenHistory(page,lang){
+  await page.evaluate(()=>window.dispatchEvent(new CustomEvent("mc-open-settings")));
+  await expect(page.locator(".set-card").first()).toBeVisible();
+  const row=page.locator("button.set-row").filter({hasText:finWords[lang].history});
+  if(!await row.isVisible()) await page.getByRole("button",{name:new RegExp(finWords[lang].imports,"i")}).click();
+  await row.click();
+  const overlay=page.locator(".hist-import");
+  await expect(overlay).toBeVisible();
+  return overlay;
+}
+async function finSnapshot(page){
+  return page.evaluate(()=>{
+    const s=JSON.parse(localStorage.getItem(mcStateKey())||"{}");
+    const e=JSON.parse(localStorage.getItem(mcStateKey()+"_exp")||"[]");
+    return {accounts:s.accounts,fixed:s.fixed,expenses:e,deleted:s.deleted};
+  });
+}
+for(const lang of ["es","en","ca"]) for(const ent of ["sabadell","revolut"]){
+  test("FIN02 "+lang+" "+ent+": tres gastos, reimportación y deshacer exacto",async({page})=>{
+    const overlay=await finOpenHistory(page,lang,ent),before=await finSnapshot(page);
+    await overlay.getByRole("button",{name:finWords[lang].search,exact:true}).click();
+    await expect(overlay.locator(".hist-fila")).toHaveCount(3);
+    for(const month of ["2026-06-12","2026-07-12","2026-08-12"]) await expect(overlay.locator(".hist-fila").filter({hasText:month})).toContainText("✓");
+    await overlay.getByRole("button",{name:finWords[lang].import,exact:true}).click();
+    await expect(overlay).toHaveCount(0);
+    await expect.poll(async()=>{const s=await finSnapshot(page);return s.expenses.filter(e=>e.merchant==="Luz ficticia").length;}).toBe(3);
+    const after=await finSnapshot(page),added=after.expenses.filter(e=>e.merchant==="Luz ficticia");
+    expect(added.map(e=>e.date.slice(0,7)).sort()).toEqual(["2026-06","2026-07","2026-08"]);
+    expect(added.reduce((a,e)=>a+Math.round(e.amount*100),0)).toBe(3600);
+    expect(after.accounts).toEqual(before.accounts);expect(after.fixed).toEqual(before.fixed);
+    const second=await finReopenHistory(page,lang);
+    await second.getByRole("button",{name:finWords[lang].search,exact:true}).click();
+    await expect(second.locator(".hist-fila")).toHaveCount(3);
+    await expect(second.getByRole("button",{name:finWords[lang].import,exact:true})).toHaveCount(0);
+    expect(await finSnapshot(page)).toEqual(after);
+    await second.getByRole("button",{name:finWords[lang].undo,exact:true}).click();
+    await page.locator(".askback button.btn-primary").click();
+    await expect.poll(()=>finSnapshot(page)).toEqual(before);
+    const deletes=await page.evaluate(()=>window.__finDelete.flat());
+    expect(deletes.sort()).toEqual(added.map(e=>e.id).sort());
+  });
+  test("FIN02 "+lang+" "+ent+": tres Recibo crean uno y deshacer conserva los anteriores",async({page})=>{
+    const overlay=await finOpenHistory(page,lang,ent),before=await finSnapshot(page);
+    await overlay.getByRole("button",{name:finWords[lang].search,exact:true}).click();
+    await expect(overlay.locator('[data-dest="recibo"]')).toHaveCount(3);
+    for(const i of [0,1,2]) await overlay.locator('[data-cand="fin-month-'+i+'"][data-dest="recibo"]').click();
+    await overlay.getByRole("button",{name:finWords[lang].import,exact:true}).click();
+    await expect(page.locator(".askback")).toContainText(/1/);
+    await page.locator(".askback button.btn-primary").click();
+    await expect(overlay).toHaveCount(0);
+    await expect.poll(async()=>{const s=await finSnapshot(page);return s.fixed.filter(f=>f.name==="Luz ficticia").length;}).toBe(1);
+    const after=await finSnapshot(page),bill=after.fixed.find(f=>f.name==="Luz ficticia");
+    expect([bill.amount,bill.account]).toEqual([12,ent]);
+    expect(after.expenses).toEqual(before.expenses);expect(after.accounts).toEqual(before.accounts);
+    const undo=await finReopenHistory(page,lang);
+    await undo.getByRole("button",{name:finWords[lang].undo,exact:true}).click();
+    await page.locator(".askback button.btn-primary").click();
+    await expect.poll(()=>finSnapshot(page)).toEqual(before);
+    expect(await page.evaluate(()=>window.__finDelete)).toEqual([]);
+  });
+}

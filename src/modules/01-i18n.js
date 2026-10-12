@@ -2691,7 +2691,7 @@ Object.assign(LANG.es,{
   bp_hist_offline:"Sin nube: solo en este móvil (al sincronizar pueden chocar)",
   bp_hist_undo_btn:"↶ Deshacer la última importación",
   bp_hist_undo_title:"¿Deshacer la última importación?",
-  bp_hist_undo_sub:"Se quitan los movimientos de ese lote. Los que ya tenías antes no se tocan.",
+  bp_hist_undo_sub:"Se quitan los movimientos y recibos creados en ese lote. Los que ya tenías antes no se tocan.",
   bp_hist_undo_ok:"Deshacer",
   bp_hist_undo_done:"✓ Importación deshecha",
   bp_hist_undo_empty:"No hay una importación reciente que deshacer.",
@@ -2759,7 +2759,7 @@ Object.assign(LANG.en,{
   bp_hist_offline:"Offline: only on this phone (they may clash when you sync)",
   bp_hist_undo_btn:"↶ Undo last import",
   bp_hist_undo_title:"Undo the last import?",
-  bp_hist_undo_sub:"Removes that batch’s transactions. Ones you already had stay put.",
+  bp_hist_undo_sub:"Removes the transactions and recurring bills created in that batch. Ones you already had stay put.",
   bp_hist_undo_ok:"Undo",
   bp_hist_undo_done:"✓ Import undone",
   bp_hist_undo_empty:"There’s no recent import to undo.",
@@ -2827,7 +2827,7 @@ Object.assign(LANG.ca,{
   bp_hist_offline:"Sense núvol: només en aquest mòbil (en sincronitzar poden xocar)",
   bp_hist_undo_btn:"↶ Desfer la darrera importació",
   bp_hist_undo_title:"Desfer la darrera importació?",
-  bp_hist_undo_sub:"Es treuen els moviments d'aquest lot. Els que ja tenies abans no es toquen.",
+  bp_hist_undo_sub:"Es treuen els moviments i rebuts creats en aquest lot. Els que ja tenies abans no es toquen.",
   bp_hist_undo_ok:"Desfer",
   bp_hist_undo_done:"✓ Importació desfeta",
   bp_hist_undo_empty:"No hi ha una importació recent per desfer.",
@@ -3291,7 +3291,7 @@ function accInject(a){ if(!a) return 0; return a.inject!=null ? a.inject : (a.id
 function reconcileTR(s){
   if(!s.accounts || !s.expenses) return s;
   const acc=s.accounts.find(a=>a.spendFrom);
-  if(!acc) return s;
+  // El sobre y los recibos también arrastran meses cuando no hay cuenta diaria (FIN-01).
   const now=new Date();
   const cmKey=mkOf(now);
   let anchor=s.trAnchor || cmKey;
@@ -3307,7 +3307,8 @@ function reconcileTR(s){
        se veía; los dos saldos por separado mentían. Mismo reparto que usa el saldo que se PINTA
        durante el mes (`gastoDelMesPorBanco` + `saldoCuentaMostrada`, 00-core): si el cierre usa
        otro criterio, el saldo pega un salto el día 1. */
-    const gastoPorBanco=gastoDelMesPorBanco(monthExp, acc.ent);
+    const gastoPorBanco=gastoDelMesPorBanco(monthExp, acc&&acc.ent);
+    if(acc){
     const spent=gastoPorBanco[acc.ent]||0;
     acc.value = acc.value + accInject(acc) - spent;                 // mes cerrado: + inyección de nómina − gasto
     // rol "ambos" (una cuenta para todo): además arrastra su neto de fijos/nómina/puntuales del mes
@@ -3361,9 +3362,11 @@ function reconcileTR(s){
     // los importes manuales de round-up/saveback eran de ESTE mes que se cierra → ya aplicados, se limpian
     if(acc.roundupManual!=null) delete acc.roundupManual;
     if(acc.savebackManual!=null) delete acc.savebackManual;
+    }
     // Demás bancos (Sabadell, etc.): arrastran su neto del mes cerrado (ingresos − fijos − cuotas − puntuales − transfers)
     s.accounts.forEach(function(a2){
       if(a2.spendFrom) return;
+      if(isEfectivoEnt(a2)&&a2.cashAnchor&&key<a2.cashAnchor) return;
       let v=(a2.value||0) + monthNetForAccount(s, a2.ent, ay, am+1, null);
       // El sobre de efectivo SÍ arrastra sus propias compras al cerrar: durante el mes
       // `saldoCuentaMostrada` ya se las resta, y sin esto el saldo del sobre rebotaba hacia

@@ -483,7 +483,7 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks,
       const nt=cleanNote(x.note, e.merchant); if(nt) e.note=nt;
       expAdds.push(e);
     });
-    const fixAdds=histFijosFromSelection(cands, reciboIdx, { mkId:uid, name:t("bp_hist_recibo"), dayOf:recDay });
+    const fixAdds=histFijosFromSelection(cands, reciboIdx, { mkId:uid, name:t("bp_hist_recibo"), dayOf:recDay, batchId:batchId });
     // Tanda 3: batch + RETURNING id. Solo lo ACK queda en local; sin ids → aviso claro.
     Promise.resolve(cloud.addExpensesBatch ? cloud.addExpensesBatch(expAdds) : { cloudIds:[], offline:true })
       .catch(function(){ return { cloudIds:[], offline:false, failed:true }; })
@@ -497,8 +497,8 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks,
           const next=Object.assign({},s);
           if(keepLocal.length) next.expenses=keepLocal.concat(s.expenses||[]);
           if(fixAdds.length) next.fixed=(s.fixed||[]).concat(fixAdds);
-          if(keepLocal.length){
-            next.lastHistImport={ batchId:batchId, localIds:keepLocal.map(function(e){ return e.id; }), cloudIds:offline?[]:ack.cloudIds, at:Date.now() };
+          if(keepLocal.length||fixAdds.length){
+            next.lastHistImport={ batchId:batchId, localIds:keepLocal.map(function(e){ return e.id; }), cloudIds:offline?[]:ack.cloudIds, fixedIds:fixAdds.map(function(f){ return f.id; }), at:Date.now() };
           }
           return next;
         });

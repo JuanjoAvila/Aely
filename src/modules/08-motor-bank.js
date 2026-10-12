@@ -2384,6 +2384,7 @@ function histFijosFromSelection(cands, idxs, opts){
     if(vistos[k]) return;                       // ese recibo ya tiene su Fijo
     vistos[k]=1;
     const it={ id:mkId(), name:x.merchant||opts.name||"Recibo", amount:+Number(x.amount||0).toFixed(2), freq:"mes", account:x.ent };
+    if(opts.batchId) it.importBatchId=opts.batchId;
     const dd=dayOf(x.date); if(dd) it.day=dd;
     out.push(it);
   });
@@ -2460,9 +2461,13 @@ function histUndoBatch(state, lastHistImport){
     if(localIds.has(e.id)) return false;
     return true;
   });
+  // Deshacer incluye los recibos que NACIERON en ese lote; id y lote juntos evitan
+  // borrar un fijo anterior aunque un id coincida. Nunca viajan al DELETE de gastos (FIN-02).
+  const fixedIds=new Set(lastHistImport.fixedIds||[]);
+  const nextFixed=(state.fixed||[]).filter(function(f){ return !(f&&f.importBatchId===batchId&&fixedIds.has(f.id)); });
   // Idempotente: segunda pasada no toca deleted ni vuelve a listar.
   return {
-    nextState:Object.assign({},state,{expenses:nextEx}),
+    nextState:Object.assign({},state,{expenses:nextEx,fixed:nextFixed}),
     cloudDeleteById:cloudIds,
     ok:true,
     reason:null
@@ -2476,7 +2481,8 @@ function histCanUndo(state){
   if(!last||!last.batchId) return false;
   if(last.cloudPending && (last.cloudIds||[]).length) return true;
   const bid=last.batchId;
-  return (state.expenses||[]).some(function(e){ return e&&e.importBatchId===bid; });
+  return (state.expenses||[]).some(function(e){ return e&&e.importBatchId===bid; })
+    ||(state.fixed||[]).some(function(f){ return f&&f.importBatchId===bid&&(last.fixedIds||[]).indexOf(f.id)>=0; });
 }
 
 /* Bancos que NO están sirviendo datos, con el motivo, para el banner «Reconectar» y la noti.
