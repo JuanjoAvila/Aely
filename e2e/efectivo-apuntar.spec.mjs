@@ -7,6 +7,102 @@ import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
  */
 test.use({ viewport: { width: 375, height: 812 } });
 
+const finCashWords={es:{atm:"Saqué del cajero",create:"+ Efectivo"},en:{atm:"ATM withdrawal",create:"+ Cash"},ca:{atm:"He tret del caixer",create:"+ Efectiu"}};
+async function finCashOpen(page,lang,overrides={}){
+  // La fecha controla el cierre; los temporizadores de persistencia deben seguir siendo reales.
+  await page.clock.setFixedTime(new Date("2026-09-20T12:00:00Z"));
+  await seedLoggedInDashboard(page,Object.assign({__seedOnce:true,trAnchor:"2026-09",
+    accounts:[{id:"daily",ent:"trade_republic",name:"Diaria ficticia",value:1000,role:"diario",spendFrom:true,inject:0},{id:"cash",ent:"efectivo",name:"Sobre ficticio",value:100,role:"fijos"}],
+    settings:{autoPrices:false,theme:"green",lang,expenseBanks:["trade_republic","efectivo"],dailyOnlyBanks:["efectivo"]}
+  },overrides));
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible();
+  await page.waitForFunction(()=>!document.getElementById("mc-load"));
+  await dismissNews(page);
+  await page.locator('.botnav-tab[data-tour="cartera"]').click();
+  await expect(page.locator('.v4-card-list button[data-account-id]').first()).toBeVisible();
+}
+async function finCashBalances(page,expected){
+  for(const [id,amount] of Object.entries(expected)){
+    const formatted=await page.evaluate(value=>eur(value),amount);
+    await expect(page.locator('.v4-card-list button[data-account-id="'+id+'"] .am')).toHaveText(formatted);
+  }
+}
+for(const lang of ["es","en","ca"]){
+  test("FIN01 "+lang+": cajero de diaria conserva patrimonio en DOM y al cerrar",async({page},testInfo)=>{
+    await finCashOpen(page,lang);
+    await page.evaluate(()=>{
+      window.__finAtmPersist={submitAt:null,writes:[]};
+      const write=localStorage.setItem.bind(localStorage);
+      localStorage.setItem=function(key,value){
+        write(key,value);
+        if(key===mcStateKey()+"_exp") window.__finAtmPersist.writes.push({at:performance.now(),transfers:JSON.parse(value).filter(e=>e.category==="traspaso").map(e=>e.amount)});
+      };
+    });
+    await page.getByRole("button",{name:finCashWords[lang].atm,exact:true}).click();
+    await page.locator(".askback").getByRole("button",{name:"Trade Republic",exact:true}).click();
+    await page.locator(".askback button.btn-primary").click();
+    await page.locator(".askback input").fill("50");
+    await page.evaluate(()=>{window.__finAtmPersist.submitAt=performance.now();});
+    await page.locator(".askback button.btn-primary").click();
+    await finCashBalances(page,{daily:950,cash:150});
+    // El DOM se compromete antes del debounce: exigimos el mismo apunte en disco, sin forzar el guardado.
+    await expect.poll(()=>page.evaluate(()=>JSON.parse(localStorage.getItem(mcStateKey()+"_exp")||"[]").filter(e=>e.category==="traspaso").map(e=>e.amount))).toEqual([50]);
+    const before=await page.evaluate(()=>JSON.parse(localStorage.getItem(mcStateKey()+"_exp")||"[]"));
+    expect(before.filter(e=>e.category==="traspaso").map(e=>e.amount)).toEqual([50]);
+    const timing=await page.evaluate(()=>({writes:window.__finAtmPersist.writes.map(w=>({afterSubmitMs:w.at-window.__finAtmPersist.submitAt,transfers:w.transfers}))}));
+    expect(timing.writes.some(w=>w.afterSubmitMs>=0&&w.transfers.length===1&&w.transfers[0]===50)).toBe(true);
+    await testInfo.attach("cajero-guardado-real",{body:JSON.stringify(timing),contentType:"application/json"});
+    await page.clock.setFixedTime(new Date("2026-10-15T12:00:00Z"));
+    await page.reload();
+    await page.waitForFunction(()=>!document.getElementById("mc-load"));
+    await page.locator('.botnav-tab[data-tour="cartera"]').click();
+    await finCashBalances(page,{daily:950,cash:150});
+    await expect.poll(()=>page.evaluate(()=>{
+      const s=JSON.parse(localStorage.getItem(mcStateKey())||"{}");
+      return {anchor:s.trAnchor,balances:(s.accounts||[]).map(a=>[a.id,a.value])};
+    })).toEqual({anchor:"2026-10",balances:[["daily",950],["cash",150]]});
+    const closed=await page.evaluate(()=>JSON.parse(localStorage.getItem(mcStateKey())||"{}"));
+    expect(closed.accounts.reduce((a,x)=>a+Math.round(x.value*100),0)).toBe(110000);
+    expect(await page.evaluate(()=>JSON.parse(localStorage.getItem(mcStateKey()+"_exp")||"[]"))).toEqual(before);
+  });
+  test("FIN01 "+lang+": efectivo sin diaria arrastra el gasto al siguiente mes",async({page})=>{
+    await finCashOpen(page,lang,{accounts:[{id:"cash",ent:"efectivo",name:"Sobre ficticio",value:100,role:"fijos"}],
+      expenses:[{id:"cash-exp",ent:"efectivo",date:"2026-09-12",amount:20,merchant:"Compra ficticia",source:"manual",category:"super",noCard:true}]});
+    await finCashBalances(page,{cash:80});
+    await page.locator('.v4-card-list button[data-account-id="cash"]').click();
+    const sheet=page.locator(".v4-sheet");
+    await sheet.getByRole("button",{name:/Corregir saldo|Fix balance/i}).click();
+    const erase=sheet.locator('.v4-keys button[aria-label="Borrar"]');
+    for(const i of [0,1]){await erase.dispatchEvent("pointerdown",{button:0});await erase.dispatchEvent("pointerup");}
+    for(const digit of ["1","2","0"]) await sheet.locator(".v4-keys").getByRole("button",{name:digit,exact:true}).click();
+    await page.locator(".v4-sheet-back").click({position:{x:10,y:10}});
+    await expect(sheet).toHaveCount(0);
+    await finCashBalances(page,{cash:120});
+    await page.clock.setFixedTime(new Date("2026-10-15T12:00:00Z"));
+    await page.reload();
+    await page.waitForFunction(()=>!document.getElementById("mc-load"));
+    await page.locator('.botnav-tab[data-tour="cartera"]').click();
+    await finCashBalances(page,{cash:120});
+  });
+  test("FIN01 "+lang+": alta a mitad de mes respeta saldo contado e historia anterior",async({page})=>{
+    await finCashOpen(page,lang,{trAnchor:"2026-07",accounts:[{id:"daily",ent:"trade_republic",name:"Diaria ficticia",value:1000,role:"diario",spendFrom:true,inject:0}],
+      expenses:[{id:"old-cash",ent:"efectivo",date:"2026-07-12",amount:40,merchant:"Anterior ficticio",source:"manual",category:"super",noCard:true},
+        {id:"month-cash",ent:"efectivo",date:"2026-09-12",amount:20,merchant:"Compra ficticia",source:"manual",category:"super",noCard:true}]});
+    await page.getByRole("button",{name:finCashWords[lang].create,exact:true}).click();
+    await page.locator(".askback input").fill("100");
+    await page.locator(".askback button.btn-primary").click();
+    const row=page.locator('.v4-card-list button[data-account-key]').filter({hasText:/Efectivo|Cash|Efectiu/}).first();
+    const cashId=await row.getAttribute("data-account-id");
+    await finCashBalances(page,{[cashId]:100,daily:1000});
+    await page.clock.setFixedTime(new Date("2026-10-15T12:00:00Z"));
+    await page.reload();
+    await page.waitForFunction(()=>!document.getElementById("mc-load"));
+    await page.locator('.botnav-tab[data-tour="cartera"]').click();
+    await finCashBalances(page,{[cashId]:100,daily:1000});
+  });
+}
+
 test("Apuntar deja elegir Efectivo y el gasto lleva ent efectivo", async ({ page }) => {
   await seedLoggedInDashboard(page, {
     accounts: [

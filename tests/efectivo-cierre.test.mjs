@@ -17,12 +17,15 @@
  * mismo» por otra puerta.
  */
 import assert from "node:assert/strict";
-import { loadPureLogicFromFile } from "../scripts/load-pure-logic.mjs";
+import fs from "node:fs";
+import { loadPureLogicFromFile, loadPureLogic } from "../scripts/load-pure-logic.mjs";
 
-const ctx = loadPureLogicFromFile();
+let ctx = loadPureLogicFromFile();
+const guards=[];
 
 let failed = 0;
 function t(name, fn) {
+  if(name.startsWith("FIN01")) guards.push({name,fn});
   try { fn(); console.log("  ✓ " + name); }
   catch (e) { failed++; console.error("  ✗ " + name + "\n      " + e.message); }
 }
@@ -203,6 +206,93 @@ t("y sí cuenta la calderilla de las compras que la pantalla sí suma", () => {
   const ns = ctx.reconcileTR(s);
   // 1000 − 10,50 de la compra − 0,50 de round-up
   assert.equal(cuenta(ns, "trade_republic").value, 989, "la compra de TR sí redondea");
+});
+
+// El cierre se contrasta con un libro en céntimos, sin reutilizar su reparto ni su fórmula.
+// Un total correcto ocultaba saldos torcidos; también se comparan cierres mensuales y de golpe.
+const realDate = Date;
+function conReloj(iso, fn) {
+  const previous = ctx.Date;
+  ctx.Date = class extends realDate {
+    constructor(...args) { super(...(args.length ? args : [iso])); }
+    static now() { return realDate.parse(iso); }
+  };
+  try { return fn(); } finally { ctx.Date = previous; }
+}
+function fotoCuentas(s) {
+  return Object.fromEntries(s.accounts.map(a => [a.ent, Math.round(a.value * 100)]));
+}
+function matrizCierre(diaria) {
+  const s = {
+    accounts: [{ id:"sb", ent:"sabadell", value:600, role:"fijos" }, { id:"cash", ent:"efectivo", value:100, role:"fijos" }],
+    expenses: [], fixed:[{id:"luz",name:"Luz ficticia",amount:40,account:"sabadell",freq:"mes",day:8}],
+    flows:[{id:"in",kind:"income",amount:200,to:"sabadell",freq:"mes",day:2}],
+    debts:[],oneoffs:[],investments:[],settings:{expenseBanks:["efectivo","trade_republic"]},trAnchor:"2026-07"
+  };
+  if(diaria) s.accounts.unshift({id:"daily",ent:"trade_republic",value:1000,role:"diario",spendFrom:true,inject:100});
+  [7,8,9].forEach((m,i) => {
+    const date="2026-"+String(m).padStart(2,"0")+"-12T12:00:00.000Z";
+    s.expenses.push({id:"cash"+m,ent:"efectivo",amount:20+i*10,date,source:"manual",category:"super",noCard:true});
+    s.expenses.push({id:"receipt"+m,ent:"sabadell",amount:40,date,source:"ob",category:"recibos",noCard:true});
+    if(diaria) s.expenses.push({id:"daily"+m,ent:"trade_republic",amount:10+i*10,date,source:"manual",category:"super",noCard:true});
+  });
+  s.expenses.push({id:"refund",ent:"efectivo",amount:-5,date:"2026-08-14",source:"manual",category:"super",noCard:true});
+  s.expenses.push({id:"income",ent:"efectivo",amount:-25,date:"2026-09-14",source:"manual",category:"ingreso",noCard:true});
+  return s;
+}
+for(const diaria of [false,true]) t("FIN01 libro independiente y tres cierres, "+(diaria?"con":"sin")+" diaria", () => {
+  const initial=matrizCierre(diaria), batch=JSON.parse(JSON.stringify(initial)), steps=JSON.parse(JSON.stringify(initial));
+  const ledger={sabadell:[60000,20000,-4000,20000,-4000,20000,-4000],efectivo:[10000,-2000,-3000,500,-4000,2500]};
+  if(diaria) ledger.trade_republic=[100000,10000,-1000,10000,-2000,10000,-3000];
+  const expected=Object.fromEntries(Object.entries(ledger).map(([bank,moves])=>[bank,moves.reduce((a,b)=>a+b,0)]));
+  conReloj("2026-10-15T12:00:00Z",()=>ctx.reconcileTR(batch));
+  for(const month of [8,9,10]) conReloj("2026-"+String(month).padStart(2,"0")+"-01T12:00:00Z",()=>ctx.reconcileTR(steps));
+  assert.deepEqual(fotoCuentas(batch),expected,"saldo por cuenta frente al libro de movimientos");
+  assert.deepEqual(fotoCuentas(steps),expected,"el acumulado mensual debe coincidir con el libro");
+  assert.equal(Object.values(fotoCuentas(batch)).reduce((a,b)=>a+b,0),Object.values(expected).reduce((a,b)=>a+b,0),"patrimonio");
+  const closed=JSON.stringify(batch);
+  conReloj("2026-10-15T12:00:00Z",()=>ctx.reconcileTR(batch));
+  assert.equal(JSON.stringify(batch),closed,"segunda apertura idempotente");
+  assert.deepEqual(batch.expenses,initial.expenses,"el cierre nunca reescribe el histórico");
+});
+t("FIN01 cajero real desde diaria: patrimonio y saldo antes y después del cierre",()=> {
+  const initial=estado({anchor:"2026-09"});
+  const s=conReloj("2026-09-12T12:00:00Z",()=>ctx.applySaqueCajero(initial,"trade_republic",50));
+  const spent=ctx.gastoDelMesPorBanco(s.expenses,"trade_republic");
+  const shown=Object.fromEntries(s.accounts.map(a=>[a.ent,ctx.saldoCuentaMostrada(a,{spentByBank:spent})]));
+  assert.deepEqual(shown,{trade_republic:950,efectivo:150},"retirada de 50, no de 100");
+  assert.equal(Object.values(shown).reduce((a,b)=>a+b,0),1100,"traspaso neutro");
+  conReloj("2026-10-15T12:00:00Z",()=>ctx.reconcileTR(s));
+  assert.deepEqual(fotoCuentas(s),{trade_republic:95000,efectivo:15000},"libro: banco -50, sobre +50");
+  assert.equal(s.expenses.filter(e=>ctx.expenseCountsBudget(e,s)).length,0,"no es gasto presupuestario");
+});
+t("FIN01 crear el sobre a mitad de mes no vuelve a cobrar gastos anteriores al saldo contado",()=> {
+  const initial=estado({anchor:"2026-07"});
+  initial.accounts=initial.accounts.filter(a=>a.ent!=="efectivo");
+  initial.expenses=[
+    {id:"older-cash",amount:40,ent:"efectivo",date:"2026-07-12",category:"super",source:"manual",noCard:true},
+    {id:"current-cash",amount:20,ent:"efectivo",date:"2026-09-12",category:"super",source:"manual",noCard:true}
+  ];
+  const s=conReloj("2026-09-20T12:00:00Z",()=>ctx.ensureEfectivoAccount(initial,100));
+  const cash=s.accounts.find(a=>a.ent==="efectivo");
+  assert.equal(ctx.saldoCuentaMostrada(cash,{spentByBank:{efectivo:20}}),100,"se han contado 100 billetes hoy, no al inicio del mes");
+  conReloj("2026-10-15T12:00:00Z",()=>ctx.reconcileTR(s));
+  assert.deepEqual(fotoCuentas(s),{trade_republic:100000,efectivo:10000},"el saldo contado no incluye meses previos a crear el sobre");
+});
+const built=fs.readFileSync(new URL("../public/index.html",import.meta.url),"utf8");
+for(const [name,from,to,guard] of [
+  ["sin diaria no cierra", "// El sobre y los recibos también arrastran meses", "if(!acc) return s;\n  // El sobre y los recibos también arrastran meses", "FIN01 libro independiente y tres cierres, sin diaria"],
+  ["cajero descuenta base diaria", "&& !accDaily(a)", "", "FIN01 cajero real desde diaria: patrimonio y saldo antes y después del cierre"],
+  ["efectivo no arrastra compras", 'if(isEfectivoEnt(a2)) v -= (gastoPorBanco["efectivo"]||0);', "", "FIN01 libro independiente y tres cierres, con diaria"],
+  ["recibo del otro banco no arrastra", '(a2.value||0) + monthNetForAccount(s, a2.ent, ay, am+1, null)', '(a2.value||0)', "FIN01 libro independiente y tres cierres, con diaria"],
+  ["alta de efectivo sin reanclar", 'accounts[accounts.length-1].value=+(v+(ins.spentByBank.efectivo||0)-(ins.paidNetByBank.efectivo||0)).toFixed(2);', "", "FIN01 crear el sobre a mitad de mes no vuelve a cobrar gastos anteriores al saldo contado"],
+  ["alta de efectivo arrastra meses anteriores", 'if(isEfectivoEnt(a2)&&a2.cashAnchor&&key<a2.cashAnchor) return;', "", "FIN01 crear el sobre a mitad de mes no vuelve a cobrar gastos anteriores al saldo contado"],
+]) t("mutación causal: "+name,()=> {
+  assert.equal(built.split(from).length,2,"mutación única y anclada al código real");
+  const original=ctx;
+  ctx=loadPureLogic(built.replace(from,to));
+  try { assert.throws(()=>guards.find(g=>g.name===guard).fn(),assert.AssertionError,"el guardián debe tumbar este defecto"); }
+  finally { ctx=original; }
 });
 
 if (failed) { console.error("\nefectivo-cierre: " + failed + " fallo(s)"); process.exit(1); }

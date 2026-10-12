@@ -2007,7 +2007,7 @@ function ensureEfectivoAccount(state, initialValue){
   const accounts=(state.accounts||[]).slice();
   if(accounts.some(isEfectivoEnt)) return state;
   const v=(initialValue!=null && isFinite(Number(initialValue))) ? +Number(initialValue).toFixed(2) : 0;
-  accounts.push({ id:(typeof uid==="function"?uid():("ef-"+Date.now())), ent:"efectivo", name:"Efectivo", value:v, role:"fijos" });
+  accounts.push({ id:(typeof uid==="function"?uid():("ef-"+Date.now())), ent:"efectivo", name:"Efectivo", value:v, role:"fijos", cashAnchor:mkOf(new Date()) });
   const settings=Object.assign({}, state.settings||{});
   const eb=(settings.expenseBanks||[]).slice();
   if(eb.indexOf("efectivo")<0) eb.push("efectivo");
@@ -2019,7 +2019,12 @@ function ensureEfectivoAccount(state, initialValue){
   const d0=(settings.dailyOnlyBanks||[]).slice();
   if(d0.indexOf("efectivo")<0) d0.push("efectivo");
   settings.dailyOnlyBanks=d0;
-  return Object.assign({}, state, { accounts:accounts, settings:settings });
+  // Lo contado es el saldo de HOY. Re-anclar igual que al editar evita volver a restar
+  // gastos ya apuntados este mes; cashAnchor impide arrastrar meses anteriores al alta (FIN-01).
+  const next=Object.assign({}, state, { accounts:accounts, settings:settings });
+  const ins=insumosSaldoGasto(next);
+  accounts[accounts.length-1].value=+(v+(ins.spentByBank.efectivo||0)-(ins.paidNetByBank.efectivo||0)).toFixed(2);
+  return next;
 }
 /* Borrar el sobre: no toca los gastos (siguen con ent efectivo); saca efectivo de expenseBanks. */
 function removeEfectivoAccount(state, id){
@@ -2043,7 +2048,9 @@ function applySaqueCajero(state, fromEnt, amount){
   let st=ensureEfectivoAccount(state, 0);
   const accounts=(st.accounts||[]).map(function(a){
     if(isEfectivoEnt(a)) return Object.assign({}, a, { value:+((a.value||0)+amt).toFixed(2) });
-    if(a.ent===fromEnt && !a.bankIban) return Object.assign({}, a, { value:+((a.value||0)-amt).toFixed(2) });
+    // La diaria ya resta el apunte del cajero al pintar y cerrar: bajar también la base
+    // descontaba dos veces la misma retirada. Las manuales de fijos sí bajan su base (FIN-01).
+    if(a.ent===fromEnt && !a.bankIban && !accDaily(a)) return Object.assign({}, a, { value:+((a.value||0)-amt).toFixed(2) });
     return a;
   });
   const e={
