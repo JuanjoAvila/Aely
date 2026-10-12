@@ -1,6 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { withCors } from "../_shared/cors.ts";
 import { rateLimit } from "../_shared/ratelimit.ts";
+import { readInput } from "../_shared/request_body.ts";
 
 const TOPICS = ["cash", "goals", "debts", "banks", "history", "categories", "receipts"];
 const CUES = [
@@ -36,21 +37,9 @@ Deno.serve(withCors(async (req: Request) => {
   });
   const { data: { user }, error } = await client.auth.getUser();
   if (error || !user) return json({ ok: false, error: "auth" }, 401);
-  let body;
-  try {
-    const reader = req.body?.getReader();
-    const decoder = new TextDecoder();
-    let raw = "", bytes = 0;
-    if (reader) for (;;) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      bytes += value.length;
-      if (bytes > 4096) { await reader.cancel(); return json({ ok: false, error: "size" }, 413); }
-      raw += decoder.decode(value, { stream: true });
-    }
-    raw += decoder.decode();
-    body = JSON.parse(raw);
-  } catch (_) { return json({ ok: false, error: "question" }, 400); }
+  const input = await readInput(req, "help-assistant");
+  if (!input.ok) return json({ ok: false, error: input.status === 413 ? "size" : "question" }, input.status);
+  const body = input.body;
   if (typeof body?.question !== "string" || !body.question.trim() || body.question.length > 600)
     return json({ ok: false, error: "question" }, 400);
   if (looksSecret(body.question)) return json({ ok: false, error: "secret" }, 400);

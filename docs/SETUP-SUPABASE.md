@@ -1,5 +1,79 @@
 # Setup Supabase — Fase 1 (Aely)
 
+## SEC-01 · entradas · candidata de fuente del 12/10/2026, sin despliegue
+
+Inventario contra beta `c5f62d6603d016150afd9d0e20547b608b323045`: **14 funciones**.
+La foto «0 de 13 con límite» del 9/9 ya no era cierta: prices y help-assistant tenían
+lectura limitada a 4096 bytes, e ingest comprobaba 16384 caracteres tras leerlo entero.
+`_shared/request_body.ts` cuenta bytes durante la lectura, cancela al superar el límite,
+rechaza UTF-8/JSON/tipos/rangos inválidos con 400 y exceso con 413, sin registrar contenido.
+Las respuestas conservan CORS donde lo tenía el handler. No se añaden dependencias.
+
+**Compatibilidad:** no existe un máximo finito acreditado para contraseñas, tokens o nombres
+de banco que arma el cliente. Los límites nuevos son **envolventes preventivas autorizadas**,
+no medidas de producción; dejan al menos diez veces la mayor muestra sintética de la tabla,
+redondeados a potencia de dos. Las muestras reproducen claves/serialización de
+`src/modules/00-core.js`, `06-sync-brokers.js`, `TrExpenseListener.java` y el cron de 0011.
+Los tres topes previos conservan su contrato. Medida: bytes UTF-8 de `JSON.stringify`.
+
+| Función | Autenticación conservada | Forma de entrada | Muestra mayor (B) | Tope (B) |
+|---|---|---|---:|---:|
+| bank-aspsps | JWT del gateway | country opcional, 2 letras; también GET | 16 | 16384 |
+| bank-connect | JWT + getUser | aspsp_name/country/platform opcionales, defaults anteriores | 66 | 16384 |
+| bank-disconnect | JWT + getUser | aspsp_name no vacío | 34 | 16384 |
+| bank-sync | JWT + getUser | objeto opcional; dateFrom real, recoverGaps booleano, aspsps cadenas | 396 | 16384 |
+| bank-callback | state de bank_links, caducidad/consumo existentes | sin cuerpo o objeto vacío | 2 | 1024 |
+| categorize | JWT + getUser | merchant cadena no vacía; recorte existente a 120 | 735 | 8192 |
+| delete-account | JWT + getUser + reautenticación | password cadena no vacía | 527 | 65536 |
+| ingest | token propio + cuota IP previa | JSON o formulario MacroDroid; texto/aliases, título, fuente, fecha, evento | 198 | 49152 de transporte; ver debajo |
+| myinvestor-connect | JWT + getUser | login/OTP completo o storeTokens; tipos y caducidad representable | 2669 | 65536 |
+| myinvestor-sync | JWT + getUser | sin cuerpo o objeto vacío | 2 | 1024 |
+| myinvestor-disconnect | JWT + getUser | sin cuerpo o objeto vacío | 2 | 1024 |
+| myinvestor-keepalive | x-cron-key, comparación constante | sin cuerpo o objeto vacío del cron | 2 | 1024 |
+| prices | JWT + getUser | symbols opcional, array de cadenas; normalización/25 símbolos existentes | 353 | 4096 |
+| help-assistant | JWT + getUser | question hasta 600 caracteres, language es/en/ca opcional | 1831 | 4096 |
+
+`delete-account` declara `verify_jwt=true`, el mismo valor que ya aplica por defecto.
+Referencias oficiales contrastadas el 12/10: [changelog](https://supabase.com/changelog),
+[autenticación](https://supabase.com/docs/guides/functions/auth) y
+[cabeceras/gateway](https://supabase.com/docs/guides/functions/auth-headers).
+No se migra la autenticación ni se instala el wrapper nuevo que muestran los ejemplos oficiales.
+La verificación del gateway es un contrato de configuración; los dobles locales no prueban
+el gateway desplegado ni la autenticación de un proyecto vivo.
+
+Orden: autenticación existente, cuerpo, cuota de proveedor/pago, efectos.
+**Excepción expresa: ingest conserva la cuota preauth por IP**, antes de buscar el token, para
+no regalar consultas ilimitadas a quien pruebe credenciales. Con token válido y cuerpo inválido
+solo puede escribir ese contador; no gastos, eventos ni otros contadores. Con token inválido
+conserva sus respuestas y diagnóstico cerrado anteriores. MyInvestor limita intentos al proveedor
+después de validar el cuerpo y antes de enviar credenciales al banco.
+Ingest mantiene Content-Length anunciado de 16384 y 16384 unidades UTF-16; sin cabecera esos
+caracteres podían ocupar hasta 49152 bytes. El corte durante la lectura usa ese techo para no
+rechazar Unicode antes admitido. No se cambian recortes, clasificador, importes ni deduplicación.
+Las fechas mal formadas o fuera de rango se rechazan antes de entrar en el parser financiero.
+Callback mantiene los **302 de cancelación/error OAuth** que consumen web/APK: no se convierten
+en 4xx. La validación del cuerpo ocurre tras resolver state y antes de consumirlo; no modifica
+su identidad, caducidad, canje, reconexión ni los parámetros OAuth de la URL.
+
+Pruebas registradas: `entrada.test.ts` junto a cada función y lector compartido (Deno),
+`edge-input-handlers` (Node: respuestas/efectos de blobs base y candidato, dobles de red/BD),
+`edge-input-mutations` (reglas mutadas en memoria). Se mantienen los tests reales de dinero
+`ingest-handler`, `bank-sync-paging` y `bank-sync-progreso`. Los fixtures son representativos;
+no acreditan todos los tamaños futuros que pueda emitir un proveedor externo.
+`deno check ingest/index.ts` falla también en el blob base con tres errores previos (eur nullable
+y tipos del select dinámico). No se silencian ni se corrige dinero dentro de SEC-01.
+El callback también conserva un error previo de tipos (`getDiag` inexistente en el catch del
+fallback bancario), reproducido en el mismo blob base. Los otros doce handlers pasan `deno check`.
+
+**Despliegue/rollback, decisión posterior del coordinador por función:** revisión independiente
+y CI exacta primero; después bank-aspsps, categorize, prices, help-assistant; luego MyInvestor
+por función, delete-account y callback; bank-sync e ingest los últimos. Cada paquete debe incluir
+la versión correspondiente del helper compartido y preservar verify_jwt/secrets existentes.
+No hay SQL, migración, flags, APK ni cambio de cliente. Ante rechazo legítimo, detener la siguiente
+función y restaurar el paquete completo de esa función (fuente y helper) al SHA previamente
+desplegado y verificado, sin tocar datos ni subir el límite a ciegas. El SHA base del test no
+demuestra qué versión estaba activa en Supabase. Esta tanda no consulta ni despliega producción.
+
 `ingest/widget.ts` calcula la respuesta widget v2 de la ventana guardada
 por la app, validando ancla y scope; month conserva su payload mensual legacy para APK antiguas.
 El total v2 requiere conteo exacto, páginas completas con identidades únicas y el pago visible.

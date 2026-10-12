@@ -34,6 +34,8 @@ if (plan.build !== false) {
 }
 
 const steps = [
+  ["edge-input-handlers", ["node", "tests/edge-input-handlers.test.mjs"]],
+  ["edge-input-mutations", ["node", "tests/edge-input-mutations.test.mjs"]],
   ["backclose-history", ["node", "tests/backclose-history.test.mjs"]],
   ["dashboard-memo-instrument", ["node", "tests/dashboard-memo-instrument.test.mjs"]],
   ["auth-disposal-fit", ["node", "tests/auth-disposal-fit.test.mjs"]],
@@ -214,6 +216,21 @@ if (huerfanos.length) {
 }
 
 const denoEnLista = [
+  "supabase/functions/_shared/request_body.test.ts",
+  "supabase/functions/bank-aspsps/entrada.test.ts",
+  "supabase/functions/bank-connect/entrada.test.ts",
+  "supabase/functions/bank-disconnect/entrada.test.ts",
+  "supabase/functions/bank-sync/entrada.test.ts",
+  "supabase/functions/bank-callback/entrada.test.ts",
+  "supabase/functions/categorize/entrada.test.ts",
+  "supabase/functions/delete-account/entrada.test.ts",
+  "supabase/functions/ingest/entrada.test.ts",
+  "supabase/functions/myinvestor-connect/entrada.test.ts",
+  "supabase/functions/myinvestor-sync/entrada.test.ts",
+  "supabase/functions/myinvestor-disconnect/entrada.test.ts",
+  "supabase/functions/myinvestor-keepalive/entrada.test.ts",
+  "supabase/functions/prices/entrada.test.ts",
+  "supabase/functions/help-assistant/entrada.test.ts",
   "supabase/functions/ingest/ingest.test.ts",
   "supabase/functions/ingest/widget.test.ts",
   "supabase/functions/_shared/crypto.test.ts",

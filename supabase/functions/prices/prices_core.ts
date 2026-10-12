@@ -13,13 +13,14 @@
 // ============================================================
 
 import { type RateVerdict } from "../_shared/ratelimit.ts";
+import { readInput, PRICES_BODY_BYTES } from "../_shared/request_body.ts";
 
 export const DEFAULT_SYMS = ["NVDA", "GOOG", "TSM", "AVGO", "MU", "AMD", "VWCE", "GOLD"];
 export const YAHOO: Record<string, string> = {
   VWCE: "VWCE.DE", GOLD: "GC=F", XAU: "GC=F", XAG: "SI=F", XPT: "PL=F", XPD: "PA=F",
 };
 
-export const PRICES_MAX_BODY = 4 * 1024;
+export const PRICES_MAX_BODY = PRICES_BODY_BYTES;
 export const PRICES_MAX_SYMS = 25;
 export const PRICES_FINNHUB_PACE_MS = 120;
 export const SYM_RE = /^[A-Z0-9.=\-]{1,12}$/;
@@ -78,34 +79,6 @@ function json(obj: unknown, status = 200) {
   });
 }
 
-async function readBodyLimited(req: Request, max: number): Promise<
-  { ok: true; text: string } | { ok: false; status: number; error: string }
-> {
-  const announced = Number(req.headers.get("content-length") || 0);
-  if (announced > max) return { ok: false, status: 413, error: "cuerpo demasiado grande" };
-  if (!req.body) return { ok: true, text: "" };
-  const reader = req.body.getReader();
-  const chunks: Uint8Array[] = [];
-  let bytes = 0;
-  for (;;) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    bytes += value.length;
-    if (bytes > max) {
-      await reader.cancel();
-      return { ok: false, status: 413, error: "cuerpo demasiado grande" };
-    }
-    chunks.push(value);
-  }
-  const all = new Uint8Array(bytes);
-  let off = 0;
-  for (const c of chunks) {
-    all.set(c, off);
-    off += c.length;
-  }
-  return { ok: true, text: new TextDecoder().decode(all) };
-}
-
 async function fromFinnhub(
   fetchImpl: typeof fetch,
   sym: string,
@@ -157,14 +130,9 @@ export async function handlePrices(req: Request, deps: PricesDeps): Promise<Resp
 
   let syms: string[] = [];
   if (req.method === "POST") {
-    const body = await readBodyLimited(req, PRICES_MAX_BODY);
-    if (!body.ok) return json({ ok: false, error: body.error }, body.status);
-    if (body.text) {
-      try {
-        const b = JSON.parse(body.text);
-        if (b && Array.isArray(b.symbols)) syms = normalizeSymbols(b.symbols);
-      } catch (_e) { /* sin body o no-JSON → defaults */ }
-    }
+    const input = await readInput(req, "prices");
+    if (!input.ok) return json({ ok: false, error: input.error }, input.status);
+    if (Array.isArray(input.body.symbols)) syms = normalizeSymbols(input.body.symbols);
   }
   if (!syms.length) {
     const q = new URL(req.url).searchParams.get("symbols");

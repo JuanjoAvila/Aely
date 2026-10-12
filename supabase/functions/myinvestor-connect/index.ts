@@ -20,6 +20,7 @@ import { jsonResp, MI_BASE, miHeaders } from "../_shared/myinvestor.ts";
 import { miTokensToRow } from "../_shared/token_store.ts";
 import { withCors } from "../_shared/cors.ts";
 import { rateLimit } from "../_shared/ratelimit.ts";
+import { readInput } from "../_shared/request_body.ts";
 
 Deno.serve(withCors(async (req: Request) => {
   try {
@@ -30,6 +31,10 @@ Deno.serve(withCors(async (req: Request) => {
     const { data: { user } } = await supa.auth.getUser();
     if (!user) return jsonResp({ ok: false, error: "sin sesión" }, 401);
 
+    const input = await readInput(req, "myinvestor-connect");
+    if (!input.ok) return jsonResp({ ok: false, error: input.error }, input.status);
+    const body = input.body;
+
     /* FRENO POR USUARIO (2026-07-25). Aquí van usuario y CONTRASEÑA reales hacia MyInvestor:
        si algo entra en bucle —un reintento del cliente, un dedo nervioso con el OTP— el banco
        puede BLOQUEAR la cuenta del usuario por intentos fallidos. Así que el límite no está
@@ -39,8 +44,6 @@ Deno.serve(withCors(async (req: Request) => {
     const admin0 = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
     const gate = await rateLimit(admin0, "mi-login:" + user.id, 10, 600);
     if (!gate.ok) return jsonResp({ ok: false, error: "Demasiados intentos seguidos. Espera unos minutos antes de volver a probar (tu banco bloquea la cuenta si insistes)." }, 429);
-
-    const body = await req.json().catch(() => ({}));
 
     // Modo «guardar tokens» (v4.0.12): el login se hizo EN EL MÓVIL (CapacitorHttp, IP
     // residencial — el reCAPTCHA condicional salta casi siempre desde la IP de datacenter de

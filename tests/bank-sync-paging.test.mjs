@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { input } from "./helpers/edge-input.mjs";
 import fs from "node:fs";
 import { transformSync } from "esbuild";
 import { loadPureLogicFromFile } from "../scripts/load-pure-logic.mjs";
@@ -30,7 +31,7 @@ async function sync(links, reply, body={}, clock=null) {
     update:x=>{const q={eq:()=>q,lt:()=>q,then:(ok,ko)=>{writes.push(x);return Promise.resolve({}).then(ok,ko);}};return q;},insert:async x=>{events.push(x);return {};}
   })};
   const names=["Deno","createClient","ebApi","ebConfig","jsonResp","makeJWT","mapTransaction","withCors","fetchBankTransactions","Date"];
-  new Function(...names,src)(
+  new Function("readInput",...names,src)(input.readInput,
     {serve:f=>{handler=f;},env:{get:()=>"synthetic"}},()=>db,api,()=>({}),
     (x,status=200)=>new Response(JSON.stringify(x),{status}),async()=>"jwt",E.mapTransaction,f=>f,
     (jwt,uid,from,apiFn,timeout,preferLongest,maxPages,dateTo)=>{

@@ -13,6 +13,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { ebApi, ebConfig, jsonResp, makeJWT } from "../_shared/enablebanking.ts";
 import { withCors } from "../_shared/cors.ts";
+import { readInput } from "../_shared/request_body.ts";
 
 Deno.serve(withCors(async (req: Request) => {
   try {
@@ -23,7 +24,9 @@ Deno.serve(withCors(async (req: Request) => {
     const { data: { user } } = await supa.auth.getUser();
     if (!user) return jsonResp({ ok: false, error: "sin sesión" }, 401);
 
-    const body = await req.json().catch(() => ({}));
+    const input = await readInput(req, "bank-disconnect");
+    if (!input.ok) return jsonResp({ ok: false, error: input.error }, input.status);
+    const body = input.body;
     const aspsp_name = body.aspsp_name;
     if (!aspsp_name) return jsonResp({ ok: false, error: "falta aspsp_name" }, 400);
 

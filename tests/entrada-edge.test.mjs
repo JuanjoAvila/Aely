@@ -69,7 +69,8 @@ t("★ bank-callback: ninguna redirección lleva el texto crudo (ni rawQuery ni 
 
 t("★ ingest: tope de cuerpo y recortes antes de guardar", () => {
   const src = lee("supabase/functions/ingest/index.ts");
-  assert.match(src, /INGEST_MAX_BODY\) return json\(\{ ok: false, error: "cuerpo demasiado grande" \}, 413\)/);
+  assert.match(src, /await readInput\(req, "ingest"\)/);
+  assert.match(src, /if \(!input.ok\) return json\(\{ ok: false, error: input.error \}, input.status\)/);
   assert.match(src, /recortar\(data\.texto \|\| data\.notiText \|\| "", INGEST_MAX_TEXTO\)/);
   assert.match(src, /comercio = recortar\(comercio, INGEST_MAX_COMERCIO\)/);
   assert.match(src, /recortar\(extraerConcepto\(texto, titulo\), INGEST_MAX_NOTA\)/);

@@ -7,12 +7,17 @@
 
 import { ebApi, ebConfig, jsonResp, makeJWT } from "../_shared/enablebanking.ts";
 import { withCors } from "../_shared/cors.ts";
+import { readInput, validInput } from "../_shared/request_body.ts";
 
 Deno.serve(withCors(async (req: Request) => {
   try {
     // país desde el body (POST, como invoca supabase-js) o desde la query (?country=)
-    const body = await req.json().catch(() => ({}));
+    const input = await readInput(req, "bank-aspsps");
+    if (!input.ok) return jsonResp({ ok: false, error: input.error }, input.status);
+    const body = input.body;
     const url = new URL(req.url);
+    if (!body.country && url.searchParams.has("country") && !validInput("bank-aspsps", { country: url.searchParams.get("country") }))
+      return jsonResp({ ok: false, error: "cuerpo inválido" }, 400);
     const country = String(body.country || url.searchParams.get("country") || "ES").toUpperCase();
 
     const { appId, pem } = ebConfig();

@@ -15,6 +15,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { jsonResp, MI_BASE, miHeaders, miPositionsFrom } from "../_shared/myinvestor.ts";
 import { miTokensFromRow, miTokensToRow, ensureMiLinkEncrypted } from "../_shared/token_store.ts";
 import { withCors } from "../_shared/cors.ts";
+import { readInput } from "../_shared/request_body.ts";
 
 Deno.serve(withCors(async (req: Request) => {
   try {
@@ -24,6 +25,9 @@ Deno.serve(withCors(async (req: Request) => {
     });
     const { data: { user } } = await supa.auth.getUser();
     if (!user) return jsonResp({ ok: false, error: "sin sesión" }, 401);
+
+    const input = await readInput(req, "myinvestor-sync");
+    if (!input.ok) return jsonResp({ ok: false, error: input.error }, input.status);
 
     const admin = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
     const { data: link } = await admin.from("myinvestor_links").select("*").eq("user_id", user.id).maybeSingle();

@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { input } from "./helpers/edge-input.mjs";
 import fs from "node:fs";
 import vm from "node:vm";
 import { transformSync } from "esbuild";
@@ -121,7 +122,7 @@ function environment(options={}){
       return new Response(JSON.stringify(payload),{status:options.httpError?503:200});
     },
   };
-  new Function(...Object.keys(deps),code)(...Object.values(deps));
+  new Function("readInput",...Object.keys(deps),code)(input.readInput,...Object.values(deps));
   return {handler,calls,gates};
 }
 const request=(body={question:"Ayúdame con mis billetes",language:"es"},auth="Bearer synthetic")=>new Request("https://synthetic.invalid",{method:"POST",headers:{Authorization:auth},body:JSON.stringify(body)});

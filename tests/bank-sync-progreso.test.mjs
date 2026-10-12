@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { input } from "./helpers/edge-input.mjs";
 import fs from "node:fs";
 import { transformSync } from "esbuild";
 
@@ -127,7 +128,7 @@ async function pulsa(db, bank, { body = { recoverGaps: true }, fail = null, afte
     return page;
   };
   const names = ["Deno", "createClient", "ebApi", "ebConfig", "jsonResp", "makeJWT", "mapTransaction", "withCors", "fetchBankTransactions", "Date"];
-  new Function(...names, src)(
+  new Function("readInput", ...names, src)(input.readInput,
     { serve: (f) => { handler = f; }, env: { get: () => "synthetic" } }, () => db.client, api, () => ({}),
     (x, status = 200) => new Response(JSON.stringify(x), { status }), async () => "jwt", E.mapTransaction, (f) => f,
     E.fetchBankTransactions, clock.FakeDate

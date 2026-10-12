@@ -10,6 +10,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { ebApi, ebConfig, makeJWT } from "../_shared/enablebanking.ts";
 import { encryptSessionId } from "../_shared/token_store.ts";
 import { CallbackFallo, codigoCallback, codigoNolink } from "../_shared/entrada.ts";
+import { readInput } from "../_shared/request_body.ts";
 
 const APP_URL = Deno.env.get("APP_URL") || "https://juanjoavila.github.io/Aely/";
 
@@ -47,6 +48,11 @@ Deno.serve(async (req) => {
     const { data: link } = await admin.from("bank_links").select("*").eq("state", state).maybeSingle();
     if (!link) throw new CallbackFallo("state", "state desconocido");
     userId = link.user_id || null;
+
+    const input = await readInput(req, "bank-callback");
+    if (!input.ok) return new Response(JSON.stringify({ ok: false, error: input.error }), {
+      status: input.status, headers: { "Content-Type": "application/json" },
+    });
 
     /* EL `state` CADUCA Y SE GASTA (2026-07-25).
        Este `state` es lo ÚNICO que ata la vuelta del banco con un usuario, y viaja en la URL:
