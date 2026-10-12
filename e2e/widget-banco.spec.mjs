@@ -347,7 +347,8 @@ for (const versionCode of [53,54]) for (const caso of [{ lang: "es" }, { lang: "
     })).toBe("ciclo|2026-09-05|-2000|NOMINA EMPRESA|nomina");
     await page.waitForFunction(() => !document.getElementById("mc-load"));
     await dismissNews(page);
-    await expect(page.locator(".v4-budget .ph")).toContainText("500");
+    await expect(page.locator(".v42-cycle-amount>.serif")).toHaveText("500 €");
+    await expect(page.locator(".v4-budget .v4-ring")).toContainText("50%");
   });
 }
 
@@ -368,7 +369,8 @@ for(const day of [45,46]) test(`Mi ciclo día ${day}: Inicio y payload acuerdan 
   expect(snap.spent).toBe(spent);expect(snap.budgetLeft).toBe(1000-spent);
   expect(snap.periodStart).toBe(await page.evaluate(day=>day===45?new Date(2026,7,20).getTime():inicioDeMesMs(Date.now()),day));
   await page.waitForFunction(()=>!document.getElementById("mc-load"));await dismissNews(page);
-  await expect(page.locator(".v4-budget .ph")).toContainText("Has gastado "+spent);
+  await expect(page.locator(".v42-cycle-amount>.serif")).toHaveText((1000-spent)+" €");
+  await expect(page.locator(".v4-budget .v4-ring")).toContainText((day===45?14:0)+"%");
 });
 });
 
