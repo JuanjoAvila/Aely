@@ -396,6 +396,9 @@ function App(){
 
   /* ---------- Sincronización en la nube (Supabase) ---------- */
   const [session,setSession]=useState(null);
+  // Sólo la sesión aceptada por App vincula la cola. Una promesa o callback tardío de una
+  // suscripción desmontada no puede cambiar su titular por debajo de las guardas de auth.
+  useLayoutEffect(function(){ mcExpenseSession(session); },[session]);
   const uid = session && session.user ? session.user.id : null;
   const stateRef=useRef(state); useEffect(function(){ stateRef.current=state; });
   const sessionRef=useRef(null);

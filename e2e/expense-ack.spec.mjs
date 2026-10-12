@@ -47,7 +47,7 @@ test('son distintos se aplica sin red y el pull no repone la duda',async({page})
 test('borrado local se puede deshacer sin DELETE ni INSERT',async({page})=>{
   await setup(page,'es','manual','ok');await row(page).click();
   await page.locator('.v4-ficha-del').click();
-  await page.getByRole('button',{name:await page.evaluate(()=>t('v4_exp_del')),exact:true}).click();
+  await page.locator('.askback').getByRole('button',{name:await page.evaluate(()=>t('v4_exp_del')),exact:true}).click();
   await expect(row(page)).toHaveCount(0);await page.getByRole('button',{name:'Deshacer',exact:true}).click();
   await expect(row(page)).toHaveCount(1);await expect(page.getByTestId('expense-pending')).toHaveCount(0);
   expect(await page.evaluate(()=>window.__expenseTable.calls.filter(x=>x.deleted||x.insert))).toEqual([]);

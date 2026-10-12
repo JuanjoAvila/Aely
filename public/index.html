@@ -3726,8 +3726,8 @@ const cloud = (function(){
   } catch(e){ sb = null; }
   return {
     enabled(){ return !!sb; },
-    async session(){ if(!sb) return null; const {data}=await sb.auth.getSession(); return mcExpenseSession(data.session); },
-    onAuth(cb){ const sub=sb&&sb.auth.onAuthStateChange((ev,s)=>{ mcExpenseSession(s); cb(s,ev); }); return ()=>{ if(sub) sub.data.subscription.unsubscribe(); }; },
+    async session(){ if(!sb) return null; const {data}=await sb.auth.getSession(); return data.session; },
+    onAuth(cb){ const sub=sb&&sb.auth.onAuthStateChange((ev,s)=>{ cb(s,ev); }); return ()=>{ if(sub) sub.data.subscription.unsubscribe(); }; },
     expenseWrites(){ return mcSandbox()?[]:mcExpensePending(mcExpenseContextOwner()); },
     async retryExpenseWrite(opId, acceptConflict){
       const op=mcExpensePending(mcExpenseContextOwner()).find(function(x){ return x.opId===opId; });
@@ -5259,8 +5259,11 @@ function refreshExpenseFromCloud(local, incoming, readStartedAt){
      la nube sin marca tampoco borra la local; la RETIRADA viaja por `reciboNo` en el estado, y
      `cargoDeRecibo` la respeta aunque esta fila siga marcada aquí. */
   if(incoming.reciboId && !incoming.debtId && !local.debtId && esFilaDeBanco(local)) put("reciboId", incoming.reciboId);
-  if((exact || !local.noteEdited) && Object.prototype.hasOwnProperty.call(incoming,"note")) put("note", incoming.note);
-  if(exact && Object.prototype.hasOwnProperty.call(incoming,"noteEdited")) put("noteEdited",incoming.noteEdited);
+  // Sin comienzo de lectura no sabemos si esta foto precede a la decisión local. Una
+  // lectura fechada puede adoptar otra edición explícita; una nota automática nunca la borra.
+  const remoteNote=exact && incoming.noteEdited && Number.isFinite(readStartedAt);
+  if((!local.noteEdited || remoteNote) && Object.prototype.hasOwnProperty.call(incoming,"note")) put("note", incoming.note);
+  if(exact && (!local.noteEdited || remoteNote) && Object.prototype.hasOwnProperty.call(incoming,"noteEdited")) put("noteEdited",incoming.noteEdited);
   /* NO realinear `id` aquí: settings.expenseOrder indexa por id local, y en OB el uuid de la
      nube suele diferir (ignoreDuplicates). Cambiarlo huérfana el orden a mano (4.19.74). Tanda
      propia con remap de expenseOrder + possibleDupOf si hace falta para los PATCH. */
@@ -22035,7 +22038,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="980539dd19866e6d10f862649d43a866955a579e1a10388a5fdd379a06cb706a";
+var _rnSha="3099edd25ba02feb403ec07e5b203bd6349dc3d7019d428322df605021bb8c3e";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -26104,6 +26107,9 @@ function App(){
 
   /* ---------- Sincronización en la nube (Supabase) ---------- */
   const [session,setSession]=useState(null);
+  // Sólo la sesión aceptada por App vincula la cola. Una promesa o callback tardío de una
+  // suscripción desmontada no puede cambiar su titular por debajo de las guardas de auth.
+  useLayoutEffect(function(){ mcExpenseSession(session); },[session]);
   const uid = session && session.user ? session.user.id : null;
   const stateRef=useRef(state); useEffect(function(){ stateRef.current=state; });
   const sessionRef=useRef(null);

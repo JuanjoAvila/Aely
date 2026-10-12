@@ -31,6 +31,9 @@ export async function client(db=database(),saved=storage(),transform=s=>s){
  const c=createLogicSandbox();c.localStorage=saved;c.window.localStorage=saved;c.window.crypto=webcrypto;c.window.supabase={createClient:()=>db.sb};
  const html=fs.readFileSync(new URL('../public/index.html',import.meta.url),'utf8');
  vm.runInNewContext(transform(extractPureLogicSource(html))+'\nglobalThis.testCloud=cloud;',c);
+ // En la app lo vincula el layout effect tras aceptar la sesión, nunca el transporte tardío.
+ const session=c.testCloud.session.bind(c.testCloud);
+ c.testCloud.session=async()=>c.mcExpenseSession(await session());
  await c.testCloud.session();
  return {c,cloud:c.testCloud,db,saved};
 }

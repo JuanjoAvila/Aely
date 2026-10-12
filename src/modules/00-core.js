@@ -1284,8 +1284,8 @@ const cloud = (function(){
   } catch(e){ sb = null; }
   return {
     enabled(){ return !!sb; },
-    async session(){ if(!sb) return null; const {data}=await sb.auth.getSession(); return mcExpenseSession(data.session); },
-    onAuth(cb){ const sub=sb&&sb.auth.onAuthStateChange((ev,s)=>{ mcExpenseSession(s); cb(s,ev); }); return ()=>{ if(sub) sub.data.subscription.unsubscribe(); }; },
+    async session(){ if(!sb) return null; const {data}=await sb.auth.getSession(); return data.session; },
+    onAuth(cb){ const sub=sb&&sb.auth.onAuthStateChange((ev,s)=>{ cb(s,ev); }); return ()=>{ if(sub) sub.data.subscription.unsubscribe(); }; },
     expenseWrites(){ return mcSandbox()?[]:mcExpensePending(mcExpenseContextOwner()); },
     async retryExpenseWrite(opId, acceptConflict){
       const op=mcExpensePending(mcExpenseContextOwner()).find(function(x){ return x.opId===opId; });
@@ -2817,8 +2817,11 @@ function refreshExpenseFromCloud(local, incoming, readStartedAt){
      la nube sin marca tampoco borra la local; la RETIRADA viaja por `reciboNo` en el estado, y
      `cargoDeRecibo` la respeta aunque esta fila siga marcada aquí. */
   if(incoming.reciboId && !incoming.debtId && !local.debtId && esFilaDeBanco(local)) put("reciboId", incoming.reciboId);
-  if((exact || !local.noteEdited) && Object.prototype.hasOwnProperty.call(incoming,"note")) put("note", incoming.note);
-  if(exact && Object.prototype.hasOwnProperty.call(incoming,"noteEdited")) put("noteEdited",incoming.noteEdited);
+  // Sin comienzo de lectura no sabemos si esta foto precede a la decisión local. Una
+  // lectura fechada puede adoptar otra edición explícita; una nota automática nunca la borra.
+  const remoteNote=exact && incoming.noteEdited && Number.isFinite(readStartedAt);
+  if((!local.noteEdited || remoteNote) && Object.prototype.hasOwnProperty.call(incoming,"note")) put("note", incoming.note);
+  if(exact && (!local.noteEdited || remoteNote) && Object.prototype.hasOwnProperty.call(incoming,"noteEdited")) put("noteEdited",incoming.noteEdited);
   /* NO realinear `id` aquí: settings.expenseOrder indexa por id local, y en OB el uuid de la
      nube suele diferir (ignoreDuplicates). Cambiarlo huérfana el orden a mano (4.19.74). Tanda
      propia con remap de expenseOrder + possibleDupOf si hace falta para los PATCH. */
