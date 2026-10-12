@@ -155,7 +155,6 @@ async function receiptOnB(browser,lang,snapshot,paid,bill){
 for(const lang of ["es","en","ca"])test(`vínculo de recibo bloquea ambas puertas; deshacer habilita retirada sin pago residual en B (${lang})`,async({page,browser})=>{
   const bill={id:"agua-prueba",name:"Agua doméstica sintética",amount:40,bankAmount:80,freq:"mes",day:25,account:"caixabank",wait:2026*12+9};
   const sheet=await open(page,lang,"ok","otros",{fixed:[bill],bankTx:[],flows:[],oneoffs:[],debts:[]});
-  const sinVinculo=(await stored(page)).state.accounts;
   await sheet.getByTestId("exp-receipt").click();await sheet.getByTestId("exp-receipt-"+bill.id).click();
   await page.locator('.askback .btn-primary').click();
   const action=sheet.getByTestId("exp-withdrawal");await expect(action).toBeDisabled();
@@ -176,10 +175,7 @@ for(const lang of ["es","en","ca"])test(`vínculo de recibo bloquea ambas puerta
   await expect.poll(async()=>(await stored(page)).expenses[0]?.category).toBe("traspaso");
   const after=await stored(page);expect(after.writes).toBe(1);expect(after.expenses).toHaveLength(1);
   expect(after.expenses[0]).toMatchObject({...expense,category:"traspaso"});
-  // Desde el 12/10/2026 confirmar el pago marca el cargo como el de ese recibo y desplaza la
-  // base para que el saldo pintado no se mueva; al deshacerlo vuelve a su sitio. Por eso la
-  // referencia es la cartera de antes del vínculo, no la de mientras estuvo vinculado.
-  expect(after.state.accounts).toEqual(sinVinculo);expect(after.state.fixed[0].amount).toBe(40);expect(after.state.fixed[0].bankAmount).toBe(80);
+  expect(after.state.accounts).toEqual(linked.accounts);expect(after.state.fixed[0].amount).toBe(40);expect(after.state.fixed[0].bankAmount).toBe(80);
   await receiptOnB(browser,lang,await page.evaluate(()=>slimForCloud(mcLoadRaw(mcStateKey()))),false,bill);
 });
 for(const lang of ["es","en","ca"])test(`vínculo bajado tras enviar UPDATE se concilia solo con ACK real y deja recibo pendiente en B (${lang})`,async({page,browser})=>{

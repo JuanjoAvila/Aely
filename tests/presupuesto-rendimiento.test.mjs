@@ -225,7 +225,15 @@ const PRESUPUESTO = {
   // +964 / +318 B. Es el acuse local (`obAckLoad`, `obAckSave`, `obAckDrop`), su envío y el
   // efecto que lo guarda detrás de las filas. 1303 KiB (1.334.272) se queda corto por 254 B:
   // +1 KiB mínimo, quedan 770 B.
-  minificado: 1304 * 1024,
+  // Todo cargo del banco sale en Gastos (12/10), rama sobre la beta119 (788432f4), mismo
+  // minificador, sello 119.99999 y reserva de 95 B: 1.334.526/364.664 → 1.346.171/368.275 B
+  // (+11.645/+3.611). Es la fila marcada en el sync y en el histórico, su etiqueta firme o
+  // con pregunta, «No es este recibo» con su veto entre móviles, la escritura acotada en la
+  // nube y siete textos en tres idiomas. Antes de subir se recortó lo repetido: la regla del
+  // nombre entero vive una sola vez (`recFrase`) y se fueron dos funciones que se solapaban.
+  // 1304 KiB se queda corto por 10.875 B: 1315 es el mínimo y deja 389 B. No se recortan
+  // guardas ni idiomas para caber. La integración tiene que volver a medir con su sello.
+  minificado: 1315 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -240,7 +248,8 @@ const PRESUPUESTO = {
   // +1 KiB mínimo (quedan 712 B).
   // Recibos118: 364.346 B gzip, 826 B sobre 355 KiB. +1 KiB mínimo (quedan 198 B).
   // Bancos119: 364.664 B gzip, 120 B sobre 356 KiB. +1 KiB mínimo (quedan 904 B).
-  gzip: 357 * 1024,
+  // Cargo de recibo en Gastos: 368.275 B gzip, 2.707 B sobre 357 KiB. 360 es el mínimo (quedan 365 B).
+  gzip: 360 * 1024,
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 
