@@ -499,6 +499,9 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks,
           if(fixAdds.length) next.fixed=(s.fixed||[]).concat(fixAdds);
           if(keepLocal.length){
             next.lastHistImport={ batchId:batchId, localIds:keepLocal.map(function(e){ return e.id; }), cloudIds:offline?[]:ack.cloudIds, at:Date.now() };
+            // Los «puede que ya lo tengas» reclaman su aviso igual que el sync diario (12/10/2026).
+            const vinculos=gemelosDeImportacion(keepLocal, s.expenses);
+            if(vinculos.length) next.gemelos=pushGemelos(s.gemelos, vinculos);
           }
           return next;
         });

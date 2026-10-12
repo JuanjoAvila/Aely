@@ -4039,10 +4039,38 @@ function isManualExpenseSource(source){
 function keyOfExpenseLegacy(e){
   return String(e&&e.date).slice(0,10)+"|"+(e&&e.amount)+"|"+((e&&e.merchant)||"");
 }
+/* EL SEGUNDO APUNTE IGUAL DEL DÍA ES OTRO APUNTE (12/10/2026: «5 bizums iguales se apuntaban
+   como uno»). Trade Republic por Open Banking no manda id ni comercio, así que cinco bizums de
+   12 € del mismo día eran una sola clave día|importe|«Movimiento» y entraba UNO: faltaban 48 €.
+   Un apunte de banco sin id lleva `obOrd` (2, 3…) cuando ya hay otro igual el mismo día; el
+   primero no lleva nada, para que su clave sea EXACTAMENTE la de siempre y sigan casando las
+   lápidas y las filas guardadas por las versiones anteriores. El ordinal no se saca de la
+   posición en la respuesta del banco (cambia entre sincronizaciones) sino de cuántos iguales hay.
+   La regla vive aquí y la leen: `keyOfExpense` (mezcla con la nube, lápidas), `importObExpenses`
+   (clave del importador), `expenseSourceForCloud`/`expenseFromRow` (viaje) y el espejo del
+   servidor en `_shared/presupuesto.ts` (`ordinalDeSource`). */
+function obOrdinalOf(e){
+  const n=e&&e.obOrd;
+  return (typeof n==="number" && n>1 && Math.floor(n)===n) ? n : 1;
+}
+function obOrdinalSufijo(e){
+  const n=obOrdinalOf(e);
+  return n>1 ? "|#"+n : "";
+}
+/* Fecha con la que viaja un apunte con ordinal: el mediodía de siempre + (ordinal−1) ms. El
+   índice único de la tabla es usuario+fecha+importe+comercio, así que sin esto la segunda fila
+   igual chocaría y nunca llegaría a la nube. Un milisegundo no se enseña en ningún sitio y es
+   DETERMINISTA: dos móviles que suban el mismo ordinal escriben la misma fila, no dos. */
+function fechaConOrdinal(iso, ord){
+  const n=(typeof ord==="number" && ord>1) ? ord : 1;
+  if(n===1) return iso;
+  const ms=Date.parse(iso);
+  return isFinite(ms) ? new Date(ms+(n-1)).toISOString() : iso;
+}
 function keyOfExpense(e){
   const base=keyOfExpenseLegacy(e);
   if(isManualExpenseSource(e&&e.source)) return base+"|"+String((e&&e.id)||"");
-  return base;
+  return base+obOrdinalSufijo(e);
 }
 /* Lápidas anteriores al Paso 0 guardaban la clave sin id: siguen ocultando ese manual. */
 function expenseIsTombstoned(e, delSet){
@@ -4124,11 +4152,32 @@ function deudaSufijo(debtId){
   const id=String(debtId||"").replace(/[^A-Za-z0-9_-]/g,"");
   return id ? "~deuda."+id : "";
 }
-/* Parte el tramo de banco de un `source` OB: «sabadell~deuda.x» → {ent:"sabadell", debtId:"x"}. */
+/* Parte el tramo de banco de un `source` OB: «sabadell~deuda.x» → {ent:"sabadell", debtId:"x"};
+   «sabadell~recibo.y» → {ent:"sabadell", reciboId:"y"}. El tramo `~recibo.<id>` lo escribe otra
+   entrega (el cargo de un recibo que entra en Gastos sin mover cifras); aquí solo se LEE, para que
+   el banco salga limpio y el ordinal `#n` no se pierda cuando ese tramo exista. Las marcas van en
+   cualquier orden; si vienen las dos GANA LA DEUDA (lo que la persona dijo a mano). */
 function partirEntDeuda(tramo){
-  const s=String(tramo||""), i=s.indexOf("~deuda.");
-  if(i<0) return { ent:s||null, debtId:null };
-  return { ent:s.slice(0,i)||null, debtId:s.slice(i+7)||null };
+  const partes=String(tramo||"").split("~");
+  let debtId=null, reciboId=null;
+  partes.slice(1).forEach(function(p){
+    if(p.indexOf("deuda.")===0) debtId=p.slice(6)||null;
+    else if(p.indexOf("recibo.")===0) reciboId=p.slice(7)||null;
+  });
+  return { ent:partes[0]||null, debtId:debtId, reciboId:debtId?null:reciboId };
+}
+/* Tramos de un `source` OB tras el banco: «ob:tr#dup#n3» → ["dup","n3"]. El ordinal es el tramo
+   `n<k>`; `dup` sigue siendo la marca de posible repetido. Espejo en `presupuesto.ts`. */
+function ordinalSufijoCloud(e){
+  const n=obOrdinalOf(e);
+  return n>1 ? "#n"+n : "";
+}
+function ordinalDeTramos(tramos){
+  for(let i=0;i<(tramos||[]).length;i++){
+    const m=/^n(\d{1,6})$/.exec(String(tramos[i]||""));
+    if(m){ const n=parseInt(m[1],10); if(n>1) return n; }
+  }
+  return 1;
 }
 /* Codifica el banco en `source` de la tabla (sin migración SQL): ob:caixa, ob-hist:sabadell,
    macrodroid (= Trade Republic). Así el filtro por banco sobrevive a reinstalaciones. */
@@ -4150,8 +4199,14 @@ function expenseSourceForCloud(e){
   //
   // Lo que NO viaja es `possibleDupOf` (el gemelo): tras reinstalar, «es el mismo» sigue
   // borrando la fila OB pero ya no puede traspasarle el extId al gemelo.
-  if(ent&&(s==="ob"||String(s).indexOf("ob:")===0)) return "ob:"+ent+deudaSufijo(e&&e.debtId)+((e&&e.possibleDup)?"#dup":"");
-  if(ent&&(s==="ob-hist"||String(s).indexOf("ob-hist:")===0)) return "ob-hist:"+ent+((e&&e.possibleDup)?"#dup":"");
+  //
+  // EL ORDINAL VIAJA COMO `#n2`, SIEMPRE EL ÚLTIMO TRAMO (12/10/2026). Un lector antiguo —móvil o
+  // servidor— hace `split("#")`: lee el banco en [0] y mira si [1] es «dup». Un tramo más al
+  // final no le cambia nada: ve el banco limpio y la marca de repetido donde siempre. Con `~`
+  // dentro del banco (como la cuota) ese móvil leería un banco raro y sacaría la fila del
+  // presupuesto; con `#` detrás la lee como hoy. Ver `obOrdinalOf`.
+  if(ent&&(s==="ob"||String(s).indexOf("ob:")===0)) return "ob:"+ent+deudaSufijo(e&&e.debtId)+((e&&e.possibleDup)?"#dup":"")+ordinalSufijoCloud(e);
+  if(ent&&(s==="ob-hist"||String(s).indexOf("ob-hist:")===0)) return "ob-hist:"+ent+((e&&e.possibleDup)?"#dup":"")+ordinalSufijoCloud(e);
   // Un alias TR/Wallet pendiente usa temporalmente el encoding OB que entienden también las OTA
   // anteriores; al resolver «son distintos» vuelve a su origen real `macrodroid`.
   if(s==="macrodroid"||s==="tr") return (e&&e.possibleDup)?"ob:trade_republic#dup":"macrodroid";
@@ -4234,6 +4289,89 @@ function pushDeleted(list, key){
   return out.length>DELETED_MAX ? out.slice(out.length-DELETED_MAX) : out;
 }
 
+/* ---------- UN AVISO EMPAREJA UNA SOLA VEZ (12/10/2026) ----------
+   `state.gemelos` guarda qué fila de la puerta del aviso (noti del móvil, Wallet…) ya quedó
+   reclamada por qué apunte del banco: {avisoId:<id de la noti>, aviso:<su keyOfExpense>,
+   banco:<keyOfExpense del apunte OB>}. Manda el id: dos avisos idénticos (dos cafés de 1,50 € en
+   el mismo sitio) comparten clave y, reclamando por clave, el segundo apunte del banco se quedaba
+   sin su aviso. La clave queda para entradas sin id y para «separar» desde la ficha.
+   Hasta hoy el vínculo solo vivía en `possibleDupOf`, que no viaja a la nube y muere
+   con la fila OB al contestar «es el mismo». Consecuencia medida en un mes sintético de 122
+   cargos: el mismo aviso era reclamado por DOS apuntes del banco en sincronizaciones distintas y,
+   contestando siempre «es el mismo», se perdían 29,90 €. Viaja en `app_state` como `deleted`,
+   con el mismo tope. Se da de alta al emparejar (pendiente) y se conserva al resolver «es el
+   mismo»; «son distintos» lo suelta. La entrega siguiente (emparejado automático) decide sobre
+   este MISMO vínculo: solo cambia quién contesta, no dónde se guarda. */
+const GEMELOS_MAX=500;
+function gemeloAvisoKey(e){ return keyOfExpense(e); }
+function gemeloDe(aviso, filaBanco){ return { avisoId:(aviso&&aviso.id)?String(aviso.id):undefined, aviso:gemeloAvisoKey(aviso), banco:keyOfExpense(filaBanco) }; }
+function pushGemelos(list, nuevos){
+  const base=(list||[]).filter(function(g){ return g && typeof g.aviso==="string"; });
+  const firma=function(g){ return (g.avisoId||g.aviso)+"\u0000"+g.banco; };
+  const ya={}; base.forEach(function(g){ ya[firma(g)]=1; });
+  let out=base;
+  (nuevos||[]).forEach(function(g){
+    if(!g || typeof g.aviso!=="string" || typeof g.banco!=="string") return;
+    const k=firma(g);
+    if(ya[k]) return;
+    ya[k]=1;
+    if(out===base) out=base.slice();
+    const it={aviso:g.aviso, banco:g.banco};
+    if(g.avisoId) it.avisoId=String(g.avisoId);
+    out.push(it);
+  });
+  if(out===base) return list||base;
+  return out.length>GEMELOS_MAX ? out.slice(out.length-GEMELOS_MAX) : out;
+}
+/* Quita el vínculo de un apunte OB (por su clave) — «son distintos». */
+function quitarGemeloDe(list, bancoKey){
+  if(!Array.isArray(list) || !list.length) return list;
+  const out=list.filter(function(g){ return !(g && g.banco===bancoKey); });
+  return out.length===list.length ? list : out;
+}
+/* ENTRE MÓVILES, LOS VÍNCULOS SE UNEN, NO SE PISAN (12/10/2026, revisión de la entrega 1). El
+   estado viaja entero por «último que escribe»: si A reclamaba un aviso y B subía su estado un
+   segundo después sin ese vínculo, el de A desaparecía y el mismo aviso volvía a ofrecerse como
+   gemelo de otro apunte — justo la doble reclamación que `gemelos` existe para impedir. Un vínculo
+   es un hecho («este aviso ya tiene su apunte del banco»), igual que una lápida: lo sabe quien lo
+   vio, y el que no lo vio no puede desmentirlo por no tenerlo. Por eso, gane quien gane el estado,
+   `gemelos` es la UNIÓN de los dos. El precio es pequeño y asumido: un «son distintos» dado en A
+   puede volver desde un B que aún no lo sabía, y ese aviso queda reclamado de más (no se pierde
+   dinero: la fila ya cuenta). Devuelve la lista local tal cual si la nube no aporta nada. */
+function fusionarGemelos(local, nube){
+  if(!Array.isArray(nube) || !nube.length) return Array.isArray(local) ? local : (nube||[]);
+  return pushGemelos(Array.isArray(local) ? local : [], nube);
+}
+/* Avisos ya reclamados: los del registro MÁS los que un apunte OB pendiente de este móvil
+   señala con `possibleDupOf` (ese enlace es local y puede ir por delante del registro).
+   → { keys:{aviso→1}, ids:{idAviso→1} }. Una pasada sobre los gastos, no una por apunte. */
+function avisosEmparejados(state){
+  const keys={}, ids={};
+  ((state&&state.gemelos)||[]).forEach(function(g){ if(!g) return; if(g.avisoId) ids[g.avisoId]=1; else if(g.aviso) keys[g.aviso]=1; });
+  ((state&&state.expenses)||[]).forEach(function(e){ if(e && e.possibleDup && e.possibleDupOf) ids[e.possibleDupOf]=1; });
+  return { keys:keys, ids:ids };
+}
+function avisoYaEmparejado(emp, e){
+  if(!emp || !e) return false;
+  if(e.id && emp.ids[e.id]) return true;
+  return !!emp.keys[gemeloAvisoKey(e)];
+}
+/* Los vínculos que deja una importación (sync diario o histórico): cada fila nueva marcada
+   «posible repetido» reclama el aviso al que apunta. Se derivan de las filas y no los devuelve el
+   importador, para no tocar el contrato `importObExpenses → add` que vigilan varios tests. */
+function gemelosDeImportacion(add, expenses){
+  const out=[];
+  if(!add || !add.length) return out;
+  let porId=null;
+  add.forEach(function(e){
+    if(!e || !e.possibleDup || !e.possibleDupOf) return;
+    if(!porId){ porId={}; (expenses||[]).forEach(function(x){ if(x&&x.id) porId[x.id]=x; }); }
+    const tw=porId[e.possibleDupOf];
+    if(tw) out.push(gemeloDe(tw, e));
+  });
+  return out;
+}
+
 /* ---------- CONCEPTO de un movimiento (mensaje del bizum, descripción del banco) ----------
    Petición del padre (2026-07-24): «solo salía el título y tenía que ir al banco todo el rato
    para saber lo que era». El dato SÍ venía — Enable Banking manda `remittance_information` y la
@@ -4269,7 +4407,8 @@ function expenseBankOf(e){
   const s=String(e.source||"");
   if(s==="macrodroid"||s==="tr") return "trade_republic";
   if(s.indexOf("ob:")===0) return partirEntDeuda(s.slice(3).split("#")[0]).ent;   // «#dup» = posible repetido (B09-D); «~deuda.» = cuota
-  if(s.indexOf("ob-hist:")===0) return s.slice(8)||null;
+  // El histórico lleva las mismas marcas («#dup», «#n2») y el banco tiene que salir igual de limpio.
+  if(s.indexOf("ob-hist:")===0) return partirEntDeuda(s.slice(8).split("#")[0]).ent;
   if(s.indexOf("manual:")===0) return s.slice(7)||null;
   return null;
 }
@@ -4672,6 +4811,7 @@ function resolvePossibleDup(state, expenseId, same){
   if(!state || !expenseId) return state;
   const ex=(state.expenses||[]).find(function(e){ return e && e.id===expenseId; });
   if(!ex || !ex.possibleDup) return state;
+  const bancoKey=keyOfExpense(ex);
   if(same){
     const twinId=ex.possibleDupOf;
     const twin=twinId && (state.expenses||[]).find(function(e){ return e && e.id===twinId; });
@@ -4682,25 +4822,38 @@ function resolvePossibleDup(state, expenseId, same){
         return e.id===twin.id ? Object.assign({},e,{extId:ex.extId}) : e;
       });
     }
-    return Object.assign({},state,{expenses:expenses});
+    // El aviso queda reclamado para siempre (12/10/2026): la fila OB se va, pero el vínculo
+    // sobrevive en `gemelos` para que el siguiente apunte igual del banco no lo vuelva a pedir.
+    // Sin gemelo localizable (fila bajada de otro móvil) el rastro queda «sin aviso» para que el
+    // importador no lo tome por un «es el mismo» de una versión anterior.
+    const gemelos=pushGemelos(state.gemelos, [twin ? gemeloDe(twin, ex) : {aviso:"", banco:bancoKey}]);
+    const out=Object.assign({},state,{expenses:expenses});
+    if(gemelos!==state.gemelos) out.gemelos=gemelos;
+    return out;
   }
-  return Object.assign({},state,{expenses:(state.expenses||[]).map(function(e){
+  // «Son distintos»: la fila cuenta y el aviso vuelve a estar libre.
+  const out=Object.assign({},state,{expenses:(state.expenses||[]).map(function(e){
     if(e.id!==expenseId) return e;
     const u=Object.assign({},e);
     delete u.possibleDup; delete u.possibleDupOf;
     return u;
   })});
+  const sueltos=quitarGemeloDe(state.gemelos, bancoKey);
+  if(sueltos!==state.gemelos) out.gemelos=sueltos;
+  return out;
 }
 /* Convierte una fila de la tabla `expenses` al formato interno de la app. */
 function expenseFromRow(r){
   const raw=String(r.source||"manual");
-  let ent=null, source=raw, dup=false, debtId=null;
+  let ent=null, source=raw, dup=false, debtId=null, ord=1;
   if(raw==="macrodroid"||raw==="tr"){ ent="trade_republic"; source="macrodroid"; }
   // «ob:ent#dup» = posible repetido que sigue pendiente de su decisión (B09-D): vuelve marcado,
   // así que la app lo sigue dejando fuera del total tras un pull, un reinicio o un segundo móvil.
   // «ob:ent~deuda.id» = cuota de esa deuda (4.21.0): vuelve con su `debtId` para el filtro.
-  else if(raw.indexOf("ob:")===0){ const p=raw.slice(3).split("#"); const pe=partirEntDeuda(p[0]); ent=pe.ent; debtId=pe.debtId; source=(r.ingest_event_id&&p[1]==="dup")?"macrodroid":"ob"; dup=p[1]==="dup"; }
-  else if(raw.indexOf("ob-hist:")===0){ const p=raw.slice(8).split("#"); ent=p[0]||null; source="ob-hist"; dup=p[1]==="dup"; }
+  // «…#n2» = segundo apunte igual del mismo día (12/10/2026): vuelve con su `obOrd`, que es lo que
+  // hace que la clave de mezcla no lo funda con el primero. Siempre es el último tramo.
+  else if(raw.indexOf("ob:")===0){ const p=raw.slice(3).split("#"); const pe=partirEntDeuda(p[0]); ent=pe.ent; debtId=pe.debtId; source=(r.ingest_event_id&&p[1]==="dup")?"macrodroid":"ob"; dup=p[1]==="dup"; ord=ordinalDeTramos(p.slice(1)); }
+  else if(raw.indexOf("ob-hist:")===0){ const p=raw.slice(8).split("#"); ent=partirEntDeuda(p[0]).ent; source="ob-hist"; dup=p[1]==="dup"; ord=ordinalDeTramos(p.slice(1)); }
   else if(raw.indexOf("manual:")===0){ ent=raw.slice(7)||null; source="manual"; }   // manual con banco elegido
   else if(raw==="supabase"){ source="manual"; }   // legado: antes el pull marcaba todo como supabase
   return {
@@ -4725,6 +4878,7 @@ function expenseFromRow(r){
     obName: r.ob_name!=null ? String(r.ob_name) : undefined,
     possibleDup: dup ? true : undefined,
     debtId: debtId || undefined,
+    obOrd: ord>1 ? ord : undefined,
   };
 }
 
@@ -9460,10 +9614,16 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     // La lápida entra junto con la retirada local: si la nube refresca durante los cinco segundos,
     // no puede resucitar la fila por detrás del toast. La escritura remota sí se encadena para que
     // Deshacer vuelva a subir el MISMO id después de que termine cualquier delete aún en vuelo.
-    set(function(s){ return Object.assign({},s,{
-      expenses:(s.expenses||[]).filter(function(x){ return x.id!==e.id; }),
-      deleted:pushDeleted(s.deleted,key)
-    }); });
+    set(function(s){
+      const next=Object.assign({},s,{
+        expenses:(s.expenses||[]).filter(function(x){ return x.id!==e.id; }),
+        deleted:pushDeleted(s.deleted,key)
+      });
+      // Un apunte del banco borrado A MANO deja rastro «sin aviso» (12/10/2026): así el importador
+      // no confunde su lápida con un «es el mismo» antiguo y no da por reclamado ningún aviso.
+      if(e.source==="ob"||e.source==="ob-hist") next.gemelos=pushGemelos(s.gemelos,[{aviso:"",banco:key}]);
+      return next;
+    });
     const pending={expense:e,key:key,index:index<0?list.length:index,wasCloud:wasCloud,
       cloudDelete:wasCloud?borrarGastoNube(e,"gastos-borrar"):Promise.resolve()};
     undoDeleteRef.current=pending; setUndoDelete(pending);
@@ -14523,7 +14683,9 @@ function flattenBankTx(links){
    puntual de ese mes (`matchesModeled`) — si no, recibos se contarían dos veces.
    En bancos fuera de gasto diario: también cualquier cargo (misma exclusión de modelados).
 
-   INGRESOS: de cualquier banco (para «Mi ciclo»). Idempotente por ext_id + dedup. */
+   INGRESOS: de cualquier banco (para «Mi ciclo»). Idempotente por ext_id + dedup.
+   Los vínculos aviso↔apunte que deja (`possibleDupOf`) los recoge el llamador con
+   `gemelosDeImportacion` y los guarda en `state.gemelos` (12/10/2026). */
 function importObExpenses(s, txs, links){
   if(!txs || !txs.length) return null;
   const ents=expenseBankEnts(s);
@@ -14570,7 +14732,12 @@ function importObExpenses(s, txs, links){
      Las filas de antes de este cambio no tienen `obName`: caen a `merchant`, que en ellas todavía
      es lo que puso el banco porque nadie las había podido renombrar sin romperlo. */
   const nameForKey=function(e){ return e.obName!=null ? e.obName : (e.merchant||""); };
-  const kOf=function(e){ return String(e.date).slice(0,10)+"|"+e.amount+"|"+nameForKey(e); };
+  /* La clave lleva el ORDINAL (12/10/2026: «5 bizums iguales se apuntaban como uno»). `baseKOf`
+     es la clave de siempre; `kOf` le añade `|#n` al segundo igual del día y siguientes, con la
+     misma regla que `keyOfExpense` (`obOrdinalSufijo`). El primero no cambia: sus lápidas y filas
+     guardadas por versiones anteriores siguen casando tal cual. */
+  const baseKOf=function(e){ return String(e.date).slice(0,10)+"|"+e.amount+"|"+nameForKey(e); };
+  const kOf=function(e){ return baseKOf(e)+obOrdinalSufijo(e); };
   const scopedKOf=function(e){ return (expenseBankOf(e)||e.ent||"")+"|"+kOf(e); };
   const keys={}; (s.expenses||[]).forEach(function(e){ keys[scopedKOf(e)]=1; });
   /* Lápidas: «es el mismo» borra la fila OB y deja clave en `deleted`. Sin esto el siguiente
@@ -14586,16 +14753,30 @@ function importObExpenses(s, txs, links){
   const otrasVias=(s.expenses||[]).filter(function(e){
     return e && e.source!=="ob" && e.source!=="ob-hist";
   });
+  /* UN AVISO EMPAREJA UNA SOLA VEZ (12/10/2026). `usadoDup` ya lo garantizaba DENTRO de una
+     sincronización; entre sincronizaciones —y desde otro móvil— el mismo aviso volvía a ser el
+     gemelo de otro apunte igual del banco, y «es el mismo» borraba un cargo real (−29,90 € en un
+     mes sintético de 122 cargos). Los reclamados viven en `state.gemelos` (`avisosEmparejados`).
+     La comprobación va la última: solo se calcula la clave de los que ya casan por banco, importe
+     y fecha, no de todo el histórico por cada apunte.
+     `saltar`: avisos que ya se llevó una respuesta «es el mismo» dada por una versión anterior
+     (lápida sin vínculo en `gemelos`). Aquella versión no apuntó QUÉ aviso era; se da por reclamado
+     el primero que casa —el que habría elegido entonces— y se busca a partir del siguiente. */
+  const emparejados=avisosEmparejados(s);
   const usadoDup={};
-  const gemeloOtraVia=function(tx){
+  const gemeloOtraVia=function(tx, saltar){
     if(!sinComercioReal(tx.merchant)) return null;
     if(!tx.ent) return null;
     const ms=parseDate(tx.date).getTime();
+    let quedan=saltar||0;
     const hit=otrasVias.findIndex(function(e,i){
       if(usadoDup[i]) return false;
       if(expenseBankOf(e)!==tx.ent) return false;
       if(Math.abs((e.amount||0)-tx.amount)>0.005) return false;
-      return Math.abs(dateMs(e.date)-ms)<=DUP_MS;
+      if(Math.abs(dateMs(e.date)-ms)>DUP_MS) return false;
+      if(avisoYaEmparejado(emparejados, e)) return false;
+      if(quedan>0){ quedan--; return false; }
+      return true;
     });
     if(hit<0) return null;
     usadoDup[hit]=1;
@@ -14621,21 +14802,22 @@ function importObExpenses(s, txs, links){
     if(!hits.length) return null;
     return hits.find(function(mm){ return !mm.debtId; }) || hits[0];
   };
-  const add=[];
-  txs.forEach(function(tx){
+  /* PRIMERA PASADA: la fila que ENTRARÍA por cada apunte, con todos los filtros de siempre
+     (estado, ventana, modelados, id ya visto) pero SIN decidir todavía si ya la tenemos. */
+  const prepara=function(tx){
     const esIngreso = tx.amount<0;
     if(esIngreso){
       // Un abono pendiente o futuro no acredita dinero disponible (feedback 30/9).
       // Admitir estados desconocidos como cobrados también inventaría un ingreso.
       // Sin estado (bancos que no lo informan) se sigue apuntando, como siempre.
       const status=String(tx.status||"").trim().toUpperCase();
-      if(status && status!=="BOOK") return;
+      if(status && status!=="BOOK") return null;
       const date=String(tx.date||""), parts=date.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-      if(!parts) return;
+      if(!parts) return null;
       const day=new Date(Number(parts[1]),Number(parts[2])-1,Number(parts[3]),12);
-      if(dayKey(day)!==date || date>todayKey) return;
-      if(fuera(tx)) return;
-      if(tx.id && (seen[(tx.ent||"")+"|"+tx.id]||seenLegacy[tx.id])) return;
+      if(dayKey(day)!==date || date>todayKey) return null;
+      if(fuera(tx)) return null;
+      if(tx.id && (seen[(tx.ent||"")+"|"+tx.id]||seenLegacy[tx.id])) return null;
       const e={ id:mcExpenseId(), date:new Date(tx.date+"T12:00:00").toISOString(),
         merchant:tx.merchant||"Ingreso", amount:tx.amount,
         category: esTraspasoPropio(s, tx) ? TRASPASO_CAT.id : INGRESO_CAT.id, source:"ob", ent:tx.ent };
@@ -14644,20 +14826,14 @@ function importObExpenses(s, txs, links){
       if(tx.ent && !allow[tx.ent]) e.budgetSkip=true;
       if(tx.id) e.extId=tx.id;
       const nt=cleanNote(tx.note, e.merchant); if(nt) e.note=nt;
-      if(keys[scopedKOf(e)] || delSet[scopedKOf(e)] || delSet[kOf(e)]) return;
-      const gemIn=gemeloOtraVia(tx);
-      if(gemIn && gemIn.id){ e.possibleDup=true; e.possibleDupOf=gemIn.id; }
-      keys[scopedKOf(e)]=1;
-      if(tx.id) seen[(tx.ent||"")+"|"+tx.id]=1;
-      add.push(e);
-      return;
+      return e;
     }
     // GASTO: entra de cualquier banco. Fijos y puntuales modelados no se duplican; las deudas se marcan.
-    if(!tx.date || fuera(tx)) return;
+    if(!tx.date || fuera(tx)) return null;
     const antiguo=parseDate(tx.date)<som;
     const mod=modeledHit(tx.ent, tx.merchant, tx.amount, antiguo);
-    if(mod && !mod.debtId) return;
-    if(tx.id && (seen[(tx.ent||"")+"|"+tx.id]||seenLegacy[tx.id])) return;
+    if(mod && !mod.debtId) return null;
+    if(tx.id && (seen[(tx.ent||"")+"|"+tx.id]||seenLegacy[tx.id])) return null;
     const esDiario=tx.ent===dailyEnt;
     // El aporte de hace dos meses ya se compró en su día o ya no toca: se apunta, pero no compra.
     const esAporteInv = !antiguo && esDiario && daily && daily.monthlyInvest>0 && Math.abs(tx.amount-daily.monthlyInvest)<0.01;
@@ -14668,8 +14844,82 @@ function importObExpenses(s, txs, links){
     if(tx.ent && !allow[tx.ent]) e.budgetSkip=true;
     if(tx.id) e.extId=tx.id;
     const nt=cleanNote(tx.note, e.merchant); if(nt) e.note=nt;
-    if(keys[scopedKOf(e)] || delSet[scopedKOf(e)] || delSet[kOf(e)]) return;
-    const gem=gemeloOtraVia(tx);
+    return e;
+  };
+  /* ORDINAL POR GRUPO (12/10/2026). Los apuntes SIN id del banco que coinciden en banco, día,
+     importe con signo y nombre son un grupo de k iguales: le tocan las ranuras 1..k. Una ranura ya
+     guardada (clave en `keys`) o ya resuelta por él (lápida) está cubierta; las libres entran con
+     su ordinal, ni una más. Así, si el banco trae k y tengo j, entran k−j; si trae menos de los
+     que tengo, no se toca nada. Cuál de los k apuntes idénticos se lleva qué ranura da igual —son
+     indistinguibles—, pero se ordenan por su contenido para que la asignación no dependa del
+     orden en que los devuelva el banco. Los apuntes CON id siguen el camino de siempre: su
+     identidad es banco+id y para ellos nada cambia. */
+  const cands=[], grupos={}, ordenGrupos=[];
+  txs.forEach(function(tx){
+    const e=prepara(tx);
+    if(!e) return;
+    const c={tx:tx, e:e, ord:null, saltar:0};
+    cands.push(c);
+    if(tx.id) return;
+    const g=(expenseBankOf(e)||e.ent||"")+"|"+baseKOf(e);
+    if(!grupos[g]){ grupos[g]={scoped:g, base:baseKOf(e), miembros:[]}; ordenGrupos.push(g); }
+    grupos[g].miembros.push(c);
+  });
+  const huella=function(tx){ return [tx.note||"", tx.concept||"", tx.mcc||"", tx.card?1:0, tx.status||""].join("\u0001"); };
+  const vinculado={}; ((s.gemelos)||[]).forEach(function(g){ if(g && g.banco) vinculado[g.banco]=1; });
+  /* Una ranura está cubierta si ya la tengo (`keys`), si él la contestó (lápida) O si existe su
+     vínculo en `gemelos` (13/10/2026, revisión de confirmación): las lápidas viajan por
+     último-que-escribe y los vínculos por unión, así que un móvil puede quedarse con el vínculo
+     y sin la lápida; sin esto el cargo contestado «es el mismo» volvía y CONTABA sin preguntar
+     (29,90 → 59,80). Mismo criterio que `histCandLapidas`. */
+  const cubierta=function(g, n){
+    const suf=n>1 ? "|#"+n : "";
+    return !!(keys[g.scoped+suf] || delSet[g.scoped+suf] || delSet[g.base+suf] || vinculado[g.scoped+suf] || vinculado[g.base+suf]);
+  };
+  /* Lápida de «es el mismo» dejada por una versión SIN `gemelos`: su aviso sigue sin marcar. Solo
+     puede ser la ranura 1 (aquella versión no conocía ordinales) y solo si ningún vínculo la
+     explica — desde esta versión, borrar a mano o resolver sin gemelo también deja rastro
+     (`aviso:""`), así que lo que queda sin vínculo es, de verdad, lo de antes. */
+  const lapidaVieja=function(g, n){
+    return n===1 && !!((delSet[g.scoped] || delSet[g.base]) && !keys[g.scoped] && !vinculado[g.base]);
+  };
+  /* PENDIENTE + CONTABILIZADO EN LA MISMA RESPUESTA SON UN SOLO CARGO (12/10/2026, revisión de
+     la entrega 1). Un banco puede entregar el mismo cargo dos veces mientras se asienta: una
+     entrada «pendiente» y otra ya contabilizada, idénticas en todo lo demás. Con ordinal por cuenta
+     de iguales entraban DOS filas donde el histórico mete una (`skippedUniq`). La señal es el
+     ESTADO: en un grupo de iguales, cada pendiente se da por cubierta por una contabilizada; solo
+     las pendientes que sobran (más pendientes que firmes) son cargos aparte. Sin señal —todas con
+     el mismo estado— no hay nada que distinga «repetida al paginar» de «dos bizums iguales», y
+     ahí mandan los k del banco: es la función de esta entrega. */
+  const firme=function(tx){ const st=String(tx.status||"").trim(); return !st || /book|post/i.test(st); };
+  ordenGrupos.forEach(function(k){
+    const g=grupos[k];
+    g.miembros.sort(function(a,b){ const ha=huella(a.tx), hb=huella(b.tx); return ha<hb?-1:(ha>hb?1:0); });
+    const firmes=g.miembros.filter(function(c){ return firme(c.tx); });
+    if(firmes.length && firmes.length<g.miembros.length){
+      const pendientes=g.miembros.filter(function(c){ return !firme(c.tx); });
+      g.miembros=firmes.concat(pendientes.slice(firmes.length));   // los descartados se quedan sin ranura
+    }
+    let n=0, viejas=0;
+    g.miembros.forEach(function(c){
+      // Siguiente ranura libre entre 1..k; las cubiertas se saltan sin gastar miembro… pero el
+      // total de ranuras es k: pasado k, el miembro sobra (ya lo teníamos).
+      while(n<g.miembros.length){ n++; if(lapidaVieja(g,n)) viejas++; if(!cubierta(g,n)){ c.ord=n; break; } }
+      c.saltar=viejas;
+    });
+  });
+  /* SEGUNDA PASADA, en el orden del banco (fecha descendente): emparejar con la otra vía y
+     emitir. Los con id conservan su comprobación de clave de siempre. */
+  const add=[];
+  cands.forEach(function(c){
+    const tx=c.tx, e=c.e;
+    if(tx.id){
+      if(keys[scopedKOf(e)] || delSet[scopedKOf(e)] || delSet[kOf(e)]) return;
+    }else{
+      if(c.ord==null) return;   // sin ranura libre: ese apunte ya está guardado o resuelto
+      if(c.ord>1){ e.obOrd=c.ord; e.date=fechaConOrdinal(e.date, c.ord); }
+    }
+    const gem=gemeloOtraVia(tx, c.saltar);
     if(gem && gem.id){ e.possibleDup=true; e.possibleDupOf=gem.id; }
     keys[scopedKOf(e)]=1;
     if(tx.id) seen[(tx.ent||"")+"|"+tx.id]=1;
@@ -14843,7 +15093,9 @@ function marcarCuotaAMano(s, expenseId, debtId){
    resta el total reservado desde el inicio del período del presupuesto antes de calcular "lo que
    te queda" — sin eso, la sensación de "esto está apartado de verdad" no existía por mucho que
    sumara a una meta. */
-function reservaKeyOf(income){ return String(income&&income.date).slice(0,10)+"|"+((income&&income.amount)||0)+"|"+((income&&income.merchant)||""); }
+// Con el ordinal (12/10/2026): dos ingresos iguales del mismo día son dos cobros y cada uno
+// tiene su reparto; sin el sufijo el segundo salía como «ya repartido» y no tocaba las metas.
+function reservaKeyOf(income){ return String(income&&income.date).slice(0,10)+"|"+((income&&income.amount)||0)+"|"+((income&&income.merchant)||"")+obOrdinalSufijo(income); }
 // Reparto de un ingreso según las reglas configuradas: el importe fijo o porcentual de cada regla,
 // sin pasarse nunca del propio ingreso ni dejar ninguna meta en negativo. Ignora reglas huérfanas
 // (meta borrada) o metas ya cumplidas (no tiene sentido seguir metiéndoles dinero).
@@ -15535,8 +15787,10 @@ function histCandExisting(cands, expenses){
    dice con todas las letras: «lo que NO puede pasar es que te marque como repetido algo que no
    tienes». Sale desmarcado y con su etiqueta, y decide el.
 
-   Se le pasan los YA casados exactos para no contarlos dos veces. */
-function histCandCercanos(cands, expenses, yaExactos){
+   Se le pasan los YA casados exactos para no contarlos dos veces, y los avisos ya reclamados por
+   otro apunte del banco (`avisosEmparejados`, 12/10/2026): un aviso empareja UNA vez, también
+   desde el histórico. */
+function histCandCercanos(cands, expenses, yaExactos, emparejados){
   const usados={};
   (yaExactos ? Object.keys(yaExactos) : []).forEach(function(i){
     const e=yaExactos[i]; const j=(expenses||[]).indexOf(e); if(j>=0) usados[j]=1;
@@ -15553,7 +15807,8 @@ function histCandCercanos(cands, expenses, yaExactos){
       if(usados[j] || !e) return false;
       if(expenseBankOf(e)!==x.ent) return false;
       if(Math.abs((e.amount||0)-signed)>0.005) return false;
-      return Math.abs(dateMs(e.date)-ms)<=DUP_DIAS_MS;
+      if(Math.abs(dateMs(e.date)-ms)>DUP_DIAS_MS) return false;
+      return !(emparejados && avisoYaEmparejado(emparejados, e));
     });
     if(hit<0) return;
     usados[hit]=1;
@@ -15881,17 +16136,41 @@ function histCuotasDeDeuda(cands, state, saltar){
   });
   return out;
 }
+/* YA CONTESTADO «ES EL MISMO»: NO ES NUEVO (12/10/2026, revisión de la entrega 1). Al contestar
+   «es el mismo» la fila del banco se va y queda su lápida (y, desde esta versión, el vínculo con su
+   aviso en `gemelos`). El histórico no miraba ninguna de las dos: con el aviso ya reclamado, el
+   «puede que ya lo tengas» tampoco saltaba y el cargo salía NUEVO y premarcado. Medido sobre tres
+   meses de uso: 187 de 195 candidatos; entraban con lápida, invisibles en la lista pero restando
+   del saldo de la cuenta diaria (2.244 €) y resubidos en cada pull. La clave es la que tendría la
+   fila que crearía `histBuildCommit`; el histórico funde los k iguales de una cuenta en un
+   candidato, así que es la ranura 1 (sin sufijo), igual que la lápida que dejó aquel «es el mismo». */
+function histCandLapidas(cands, state){
+  const claves={};
+  ((state&&state.deleted)||[]).forEach(function(k){ claves[k]=1; });
+  ((state&&state.gemelos)||[]).forEach(function(g){ if(g&&g.banco) claves[g.banco]=1; });
+  const out={};
+  if(!Object.keys(claves).length) return out;
+  (cands||[]).forEach(function(x,i){
+    if(!x) return;
+    const signed = x.kind==="in" ? -Math.abs(x.amount||0) : Math.abs(x.amount||0);
+    const k=keyOfExpenseLegacy({ date:x.stamp||histDate(x.date), amount:signed, merchant:x.merchant||(x.kind==="in"?"Ingreso":"Compra") });
+    if(claves[k]) out[i]=true;
+  });
+  return out;
+}
 function histClassifyCandidates(cands, state){
   state=state||{};
   const existing=histCandExisting(cands, state.expenses);
-  const cercanos=histCandCercanos(cands, state.expenses, existing);
+  const lapidas=histCandLapidas(cands, state);
+  // Un candidato con lápida tampoco puede llevarse un aviso como «cercano»: ya se contestó.
+  const cercanos=histCandCercanos(cands, state.expenses, Object.assign({},existing,lapidas), avisosEmparejados(state));
   const daily=(state.accounts||[]).find(function(a){ return accDaily(a); });
   const pares=histParesCashback(cands, state.expenses);
-  const cuotas=histCuotasDeDeuda(cands, state, function(i){ return !!(existing[i] || cercanos[i] || pares.entrada[i] || pares.salida[i]); });
+  const cuotas=histCuotasDeDeuda(cands, state, function(i){ return !!(existing[i] || lapidas[i] || cercanos[i] || pares.entrada[i] || pares.salida[i]); });
   const rows=(cands||[]).map(function(x,i){
     if(!x) return null;
     // `cashback-par`: el abono del Saveback con su compra gemela (ver `histParesCashback`).
-    if(existing[i] || (!cercanos[i] && pares.entrada[i])) return { status:"dup", reason:existing[i]?"existing":"cashback-par", match:existing[i]||null, defDest:null, suggestRecibo:false, category:null };
+    if(existing[i] || lapidas[i] || (!cercanos[i] && pares.entrada[i])) return { status:"dup", reason:(existing[i]||lapidas[i])?"existing":"cashback-par", match:existing[i]||null, defDest:null, suggestRecibo:false, category:null };
     if(cercanos[i]) return { status:"maybe", reason:"cercano", match:cercanos[i], defDest:null, suggestRecibo:false, category:null };
     /* Aquí iba `recibDup[i] → dup, motivo "recibo-lote"` (FIN-02, retirado el 2026-09-09).
        `dedupeHistRecibos` compara comercio+importe+banco SIN FECHA, así que tres recibos de
@@ -16127,7 +16406,11 @@ function enrichNotesFromBankTx(expenses, txs){
     const n=String(tx&&tx.note||"").trim();
     if(!n) return;
     if(tx.id) byExt[tx.id]=n;
-    byKey[kOf(tx.date,tx.amount,tx.merchant)]=n;
+    // Varios apuntes iguales del día con conceptos DISTINTOS (12/10/2026): la clave no dice cuál es
+    // de cuál, y el último en pasar le colgaba su concepto a cualquier igual sin nota. Si no son
+    // unánimes, por clave no se rellena nada; el que entra nuevo ya trae el suyo del importador.
+    const k=kOf(tx.date,tx.amount,tx.merchant);
+    byKey[k]=(k in byKey && byKey[k]!==n) ? "" : n;
   });
   let touched=false;
   const out=expenses.map(function(e){
@@ -19010,6 +19293,9 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks,
           if(fixAdds.length) next.fixed=(s.fixed||[]).concat(fixAdds);
           if(keepLocal.length){
             next.lastHistImport={ batchId:batchId, localIds:keepLocal.map(function(e){ return e.id; }), cloudIds:offline?[]:ack.cloudIds, at:Date.now() };
+            // Los «puede que ya lo tengas» reclaman su aviso igual que el sync diario (12/10/2026).
+            const vinculos=gemelosDeImportacion(keepLocal, s.expenses);
+            if(vinculos.length) next.gemelos=pushGemelos(s.gemelos, vinculos);
           }
           return next;
         });
@@ -20660,7 +20946,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="0cd2a64b4cce53a673fdb93943b860d6b568bb95a6b5dcb65cbeaf300ea8d515";
+var _rnSha="b776697b37dee28f046dc085578b81ce1135bcbdadfa5cf825d768b27d04b29e";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -24820,7 +25106,10 @@ function App(){
       // Esto garantiza que la tabla sea la fuente de verdad COMPLETA antes de dejar de duplicar
       // los gastos en app_state (ver slimForCloud). Upsert idempotente (ignoreDuplicates).
       const tableKeys={}; incoming.forEach(function(e){ tableKeys[keyOfExpense(e)]=1; });
-      (stateRef.current.expenses||[]).forEach(function(e){ if(e.amount!==0 && !tableKeys[keyOfExpense(e)]) subirGasto(e, "backfill"); });
+      // Una fila local con lápida nunca vuelve en `incoming` (se filtra arriba), así que sin esta
+      // comprobación se resubía en CADA pull como «huérfana» (revisión 12/10/2026): él ya dijo que
+      // ese apunte no cuenta, y la tabla no tiene que volver a verlo.
+      (stateRef.current.expenses||[]).forEach(function(e){ if(e.amount!==0 && !tableKeys[keyOfExpense(e)] && !expenseIsTombstoned(e, delSet)) subirGasto(e, "backfill"); });
       /* AQUÍ NO VA UN REPASO QUE RE-MARQUE LOS POSIBLES REPETIDOS VIEJOS (B09-D, 2026-09-08).
          Lo escribí y lo retiré: `addExpense` va con ignoreDuplicates y nunca cambia el `source` de
          una fila ya presente, así que los pendientes anteriores a esta versión siguen contando en
@@ -24900,6 +25189,10 @@ function App(){
           const localNewer=!freshLogin && (prev._savedAt||0) > (cloudState._savedAt||0);
           const baseObj = localNewer ? Object.assign({},prev,{expenses:merged.list})
                                      : Object.assign({},prev,cloudState,{expenses:merged.list});
+          // Los vínculos aviso↔apunte se UNEN gane quien gane (12/10/2026): un vínculo es un hecho
+          // que vio un móvil y el otro no puede desmentir por no tenerlo. Ver `fusionarGemelos`.
+          const gem=fusionarGemelos(prev.gemelos, cloudState.gemelos);
+          if(gem!==baseObj.gemelos) baseObj.gemelos=gem;
           // El extracto local no pertenece a la nube: al cambiar de usuario podría confirmar
           // una nómina ajena. Los eventos de arranque/refresco compiten con getSession y no
           // prueban por sí solos que haya otro titular (feedback 27/9).
@@ -25022,6 +25315,13 @@ function App(){
           });
         }
         obAdded=add||[];
+        // Los avisos que acaban de quedar reclamados viajan con el estado (12/10/2026): así otro
+        // móvil, o la siguiente sincronización, no vuelven a ofrecer el mismo aviso como gemelo.
+        const vinculos=gemelosDeImportacion(add, invState.expenses);
+        if(vinculos.length){
+          const gem=pushGemelos(invState.gemelos, vinculos);
+          if(gem!==invState.gemelos) invState=Object.assign({},invState,{gemelos:gem});
+        }
         const baseExp=add? add.concat(invState.expenses||[]) : (invState.expenses||[]);
         // Rellena el CONCEPTO de lo que ya estaba apuntado con lo que acaba de traer el banco
         // (2026-07-24): si no, el histórico viejo —el que se consulta— seguiría sin explicar nada.
