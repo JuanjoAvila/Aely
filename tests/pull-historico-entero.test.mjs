@@ -122,11 +122,12 @@ function syncHarness(pull,native=null,options={}){
   const main=fs.readFileSync(new URL("../src/modules/11-app-main.js",import.meta.url),"utf8");
   const ini=main.indexOf("const syncCloudExpenses=function(){"),end=main.indexOf("\n  };",ini)+5;
   const cli=loadPureLogicFromFile(),local={id:uuid(9999),date:"2019-01-01T12:00:00.000Z",amount:5,merchant:"Solo local",source:"manual"};
-  const h={wS:{current:0},wR:{current:true},wP:{current:null},wC:{current:"|anterior|"},wRead:{current:null},sessionRef:{current:{user:{id:"synthetic-user"}}},stateRef:{current:{expenses:[local],deleted:["lapida"]}},sets:0,uploads:0};
-  const env={...cli,...h,cloud:{pullExpenses:async proof=>{const r=await pull(proof);if(options.prove!==false){proof.valid=true;proof.userId="synthetic-user";}return r;},setExpenseCat:()=>Promise.resolve()},inicioDeMesMs:()=>0,
+  const h={wS:{current:0},wR:{current:true},wP:{current:null},wC:{current:"|anterior|"},wRead:{current:null},sessionRef:{current:{user:{id:"synthetic-user"}}},stateRef:{current:{expenses:[local],deleted:["lapida"]}},sets:0,uploads:0,drains:0,inUpdater:false};
+  const env={...cli,...h,cloud:{pullExpenses:async proof=>{const r=await pull(proof);if(options.prove!==false){proof.valid=true;proof.userId="synthetic-user";}return r;},setExpenseCat:()=>Promise.resolve(),
+    drainExpenseWrites:async state=>{assert.equal(h.inUpdater,false,"el drenado no pertenece al updater React");assert.equal(state,h.stateRef.current);h.drains++;}},inicioDeMesMs:()=>0,
     mcSandbox:()=>!!options.sandbox,setTimeout:options.setTimeout||setTimeout,clearTimeout:options.clearTimeout||clearTimeout,
     natPlugin:()=>native,subirGasto:()=>h.uploads++,fixMovInvasion:s=>s,reconcileObDupes:s=>({state:s,recat:[]}),
-    set:fn=>{h.sets++;h.stateRef.current=fn(h.stateRef.current);}};
+    set:fn=>{h.sets++;h.inUpdater=true;try{h.stateRef.current=fn(h.stateRef.current);}finally{h.inUpdater=false;}}};
   const sync=new Function(...Object.keys(env),main.slice(ini,end)+";return syncCloudExpenses;")(...Object.values(env));
   return Object.assign(h,{sync});
 }
@@ -135,6 +136,7 @@ test("FIN07: fallo intermedio no mezcla, no backfill, no ACK de FIN05 ni lápida
   const h=syncHarness(()=>c.pull()),before=h.stateRef.current;
   await assert.rejects(h.sync(),/offline/);
   assert.equal(h.stateRef.current,before);assert.equal(h.sets,0);assert.equal(h.uploads,0);
+  assert.equal(h.drains,0,"un pull fallido no dispara el drenado");
   assert.equal(h.wC.current,"|anterior|");assert.equal(h.wR.current,false);
 });
 
@@ -143,7 +145,7 @@ test("widget: corte nativo colgado vence en cuatro segundos y marca tardía no a
   const h=syncHarness(()=>{pulls++;return Promise.resolve(rows(1));},{beginWidgetRead:()=>new Promise(resolve=>{late=resolve;})},
     {setTimeout:(fn,ms)=>{assert.equal(ms,4000);timeout=fn;return 7;},clearTimeout:id=>{assert.equal(id,7);cleared++;}});
   const p=h.sync();await new Promise(resolve=>setImmediate(resolve));assert.equal(pulls,0);
-  timeout();await p;assert.equal(pulls,1);assert.equal(h.wRead.current,null);assert.equal(h.wR.current,true);
+  timeout();await p;assert.equal(pulls,1);assert.equal(h.wRead.current,null);assert.equal(h.wR.current,true);assert.equal(h.drains,1);
   late({readGeneration:"late",nativeCut:"9"});await new Promise(resolve=>setImmediate(resolve));
   assert.equal(h.wRead.current,null);assert.equal(cleared,1);
 });
@@ -185,6 +187,7 @@ test("FIN07: sync nuevo termina antes, el viejo no pisa ni ACK ni histórico",as
   const covered=loadPureLogicFromFile().widgetCoveredEvents(ack,0,Date.now(),true);
   assert.ok(covered.includes("nuevo"));assert.ok(!covered.includes("viejo"));
   assert.equal(h.wR.current,true);assert.equal(h.sets,1);
+  assert.equal(h.drains,1,"la lectura superada no vuelve a drenar");
 });
 
 test("widget: la marca no existe hasta terminar el pull completo; fallo no la acredita",async()=>{
