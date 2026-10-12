@@ -3381,6 +3381,33 @@ function App(){
     }, 3200);
     return function(){ cancelled=true; };
   },[state.onboarded, locked, tabIds.join("|")]);
+  // CALENTAR DETRÁS DEL SPLASH (2026-10-11, petición suya: que lo que tenga que cargar ocurra
+  // detrás de la pantalla de entrada y al entrar nada vaya a tirones). El efecto de arriba elige
+  // CUÁNDO se paga el montaje de las otras pestañas, pero sin garantía de acabar antes de que se
+  // levante la cortina: va por huecos libres, una pestaña por hueco. Medido con la CPU x6, en la
+  // mitad de los arranques se entraba con 3 de 4 montadas y la que faltaba caía en el primer
+  // segundo a la vista (frames de 50 ms). Mientras la cortina está puesta nadie mira, así que
+  // se pagan ahí, todas.
+  // TODAS EN UNA SOLA TANDA, A PROPÓSITO, y no una por hueco como arriba: el vigilante que
+  // retira la cortina (final de shell.html) corre en este mismo hilo, así que mientras dura este
+  // render NO puede levantarla, y cuando por fin puede todavía deja pasar dos frames antes de
+  // empezar el fundido. La cortina no se levanta con las pestañas a medio montar sin que haga
+  // falta ninguna señal nueva entre la app y el vigilante. Repartido en huecos, el vigilante se
+  // colaría entre dos pestañas y se entraría con el trabajo a medias.
+  // Va en un efecto y no en el estado inicial: así el primer commit sigue siendo solo Inicio y
+  // los efectos de arranque (la primera lectura de la nube) salen ANTES de este trabajo, que
+  // corre mientras la red contesta en vez de retrasarla.
+  // Solo con la cortina puesta. Si ya no está (se desbloqueó el candado, se terminó el alta) hay
+  // alguien mirando: una tarea así de larga sería justo el tirón que se quiere evitar, y de eso
+  // se sigue encargando el reparto en huecos libres de arriba.
+  useEffect(function(){
+    if(state.onboarded===false||locked||window.__mcSplashGone||!document.getElementById("mc-load")) return;
+    setMountedTabs(function(m){
+      var n=Object.assign({},m);
+      tabIds.forEach(function(id){ n[id]=true; });
+      return n;
+    });
+  },[]);
   useEffect(function(){ if(tab>tabIds.length-1) setTab(0); },[tabIds.length]);   // modo simple reduce pestañas → no dejar un índice fuera de rango
   // Ocultar bloques por pestaña: publica el estado para CollapsibleCard (que no recibe props
   // de App) y escucha el toggle. settings.cardHidden se sincroniza con la nube como todo.

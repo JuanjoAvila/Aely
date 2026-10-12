@@ -197,7 +197,13 @@ const PRESUPUESTO = {
   // 1.327.458 B crudo, 354 B sobre 1296 KiB. Con el arreglo del widget (puente y +0.5 de la 53, y
   // su tanda en tres idiomas) son 1.327.610 B. +1 KiB mínimo al crudo (quedan 518 B). No se
   // recortan textos ni guardas.
-  minificado: 1297 * 1024,
+  // Entrada animada (11/10) sobre beta f695a299, mismo host y minificador, sin sello:
+  // 1.327.610/362.808 → 1.329.128/363.132 B (+1.518/+324). Es CSS del splash (halo, tarjeta en
+  // capas, velo del color nativo en la APK, salida del logo), el montaje de las pestañas detrás
+  // de la cortina y dos lecturas en el script del <head>; sin dependencias ni peticiones nuevas.
+  // 1.000 B sobre 1297 KiB: +1 KiB mínimo al crudo, autorizado por el dueño. Quedan solo 24 B:
+  // la tanda y la nota de esta entrega se miden aparte. El gzip cabe en 355 KiB (quedan 388 B).
+  minificado: 1298 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
