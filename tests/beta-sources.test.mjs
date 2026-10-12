@@ -1365,7 +1365,6 @@ test("Recientes106 reanclada conserva expresión, identidad y recibo completos",
   assert.equal(receipt.web[id],current.web,"106 no desaparece silenciosamente del recibo");
   const old=f=>at("23a7808f65ef6d28e8a906f7100ffdf229917abb",f);
   assert.equal(logicFunctions(read,["src/modules/01-i18n.js"]).get("seedFlows").text,logicFunctions(old,["src/modules/01-i18n.js"]).get("seedFlows").text,"seedFlows entero conserva los bytes111, incluido el incidente fechado");
-  const scopes=JSON.parse(read("scripts/beta-sources.json"));
   // Wealth pertenece al alcance de Nómina: el editor de Bienes113 cambia esa dependencia
   // real. Recortarla para conservar el OK111 ocultaría producto modificado (10/10).
   // Wealth113 se compara con su alcance de entonces: los helpers de Recibos añadidos
