@@ -39,7 +39,10 @@
      dólar «funcionaba» (tipo legacy `state.fx`). La URL canónica es ya `.dev`; `.app` se deja
      por si queda algún redirect residual. --><meta http-equiv="Content-Security-Policy" content="default-src 'self';base-uri 'none';object-src 'none';form-action 'self';manifest-src 'self';worker-src 'self';script-src 'self' 'unsafe-inline' https://www.google.com https://www.gstatic.com;style-src 'self' 'unsafe-inline';font-src 'self' data:;img-src 'self' data: blob: https://www.gstatic.com;frame-src https://www.google.com;connect-src 'self' blob: https://sfyfjagbnhbplrljpbvh.supabase.co https://api.frankfurter.dev https://api.frankfurter.app https://juanjoavila.github.io https://github.com https://objects.githubusercontent.com https://release-assets.githubusercontent.com https://www.google.com https://www.gstatic.com;"><!-- Que no se filtre la URL de la app (ni sus parámetros) al salir hacia el banco. --><meta name="referrer" content="strict-origin-when-cross-origin"><!-- Adelanta el TLS de la única conexión externa que queda (la nube) --><link rel="preconnect" href="https://sfyfjagbnhbplrljpbvh.supabase.co" crossorigin><!-- Fuentes AUTO-HOSPEDADAS (public/fonts/, variables, latin+latin-ext): sin CDN de Google,
      sin CSS bloqueante de terceros, y funcionan offline (las cachea el Service Worker). --><link rel="preload" href="fonts/manrope-latin.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="fonts/fraunces-latin.woff2" as="font" type="font/woff2" crossorigin><!-- Tema ANTES del primer pintado: evita el fogonazo oscuro del splash en temas claros --><!-- Tema ANTES del primer pintado (si no, destello blanco). Lee la cartera de pruebas cuando el
-     modo pruebas está activo, para que el tema no baile al entrar y salir de él. --><script>try{var _k=localStorage.getItem("_mcSandbox")==="1"?"micartera_sandbox":"micartera_v3";var _s=JSON.parse(localStorage.getItem(_k));var _th=_s&&_s.settings&&_s.settings.theme;if(_th)document.documentElement.setAttribute("data-theme",_th);}catch(e){}</script><!-- Supabase (sincronización en la nube) AUTO-HOSPEDADO y con versión fijada (v2.110.0, public/vendor/).
+     modo pruebas está activo, para que el tema no baile al entrar y salir de él.
+     De paso deja puestas las dos cosas que el splash necesita saber ANTES de pintarse y que solo
+     sabe JS (2026-10-11): si el usuario pidió reducir animaciones en Ajustes, y si esto corre
+     dentro de la APK (ver `data-mc-nativo` junto a `#mc-load`). --><script>try{var _k=localStorage.getItem("_mcSandbox")==="1"?"micartera_sandbox":"micartera_v3";var _s=JSON.parse(localStorage.getItem(_k));var _th=_s&&_s.settings&&_s.settings.theme;if(_th)document.documentElement.setAttribute("data-theme",_th);if(_s.settings.reduceMotion)document.documentElement.classList.add("reduce-motion");}catch(e){}try{if(Capacitor.isNativePlatform())document.documentElement.setAttribute("data-mc-nativo","1");}catch(e){}</script><!-- Supabase (sincronización en la nube) AUTO-HOSPEDADO y con versión fijada (v2.110.0, public/vendor/).
      Antes venía de cdn.jsdelivr.net con la etiqueta @2 flotante: una versión nueva con breaking change
      podía romper la app sin tocar nosotros nada. Si falla (offline), la app sigue con localStorage. --><!-- Sentry: NO bloquea el arranque (~340 KB). Se inyecta tras el primer pintado si hay DSN (12-boot). -->
 
@@ -1957,31 +1960,74 @@
      tipografía y sus colores, y respeta el tema (el script del <head> pone data-theme antes del
      primer pintado, así que en tema claro no hay fogonazo). */
   #mc-load{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:var(--bg,#0B140F);}
-  #mc-load .mcl-mark{width:94px;height:94px;border-radius:26px;background:var(--sur,#132119);border:1px solid var(--line-soft,#1C2A22);
-    display:grid;place-items:center;color:var(--mint,#6CC688);box-shadow:0 26px 60px -30px var(--mint,#6CC688);
-    animation:mclpop .5s cubic-bezier(.32,.72,0,1) both;}
-  #mc-load .mcl-mark svg{width:56px;height:56px;display:block;}
+  /* LA TARJETA Y SU HALO SON DOS CAPAS DE `.mcl-mark`, NO SU FONDO (2026-10-11). El halo tiene que
+     quedar DETRÁS de la tarjeta, y un pseudo-elemento con z-index negativo se pinta por encima
+     del fondo de su propio elemento: con el fondo puesto en `.mcl-mark`, la luz teñía la tarjeta
+     en vez de asomar por detrás. Así `::before` es el halo, `::after` la tarjeta y el dibujo va
+     encima de los dos. Y como siguen siendo parte de `.mcl-mark`, se van con ella cuando el
+     vigilante la desvanece al salir: nunca queda un resplandor suelto encima de la app.
+     ⚠ Las entradas usan `backwards`, NO `both`. Con `both` la animación, ya terminada, seguía
+     mandando sobre `opacity`/`transform`, y una animación CSS gana a un estilo en línea: el
+     fundido de salida que el vigilante le pone a la marca no llegaba a aplicarse, y el logo se
+     iba con la cortina en vez de antes que ella. El estado final de estas entradas es el natural
+     del elemento, así que no hace falta sostenerlo. */
+  #mc-load .mcl-mark{position:relative;isolation:isolate;width:94px;height:94px;display:grid;place-items:center;color:var(--mint,#6CC688);
+    animation:mclpop .5s cubic-bezier(.32,.72,0,1) backwards;}
+  #mc-load .mcl-mark::after{content:"";position:absolute;inset:0;z-index:-1;border-radius:26px;background:var(--sur,#132119);
+    border:1px solid var(--line-soft,#1C2A22);box-shadow:0 26px 60px -30px var(--mint,#6CC688);}
+  /* EL HALO QUE RESPIRA (2026-10-11, petición suya: aprovechar la pantalla de carga con una
+     animación cuidada). Es lo único que se mueve mientras se espera, y a propósito NO mide nada:
+     la barra de carga se quitó el 26/7 porque «una barra que no mide nada solo dice que esto va
+     lento». Una luz que respira dice que la app está viva, no cuánto falta.
+     ⚠ SOLO `transform` Y `opacity`. Detrás de esta pantalla el hilo principal está ocupado de
+     verdad (evaluar el bundle, montar React y las cuatro pestañas): cualquier propiedad que no
+     anime el compositor —un `stroke-dashoffset`, un `box-shadow`, un `background`— se queda
+     clavada justo mientras se mira. Por eso el halo es un degradado FIJO que solo cambia de
+     escala, y su entrada va por opacidad en otra animación. */
+  #mc-load .mcl-mark::before{content:"";position:absolute;inset:-39px;z-index:-2;border-radius:50%;
+    background:radial-gradient(closest-side,color-mix(in srgb,var(--mint,#6CC688) 24%,transparent),transparent);
+    animation:mclentra .7s ease-out .12s backwards, mclhalo 3.4s ease-in-out .12s infinite;}
+  /* El dibujo se asienta un instante después que su tarjeta: primero el sitio, luego la marca. */
+  #mc-load .mcl-mark svg{width:56px;height:56px;display:block;animation:mclmarca .62s cubic-bezier(.32,.72,0,1) .07s backwards;}
+  /* SIN SALTO DE COLOR AL PASAR DEL SPLASH NATIVO AL WEB (APK). El de Android es siempre
+     `colorPrimary` (#0A1310, android/app/src/main/res/values/colors.xml) porque se pinta antes
+     de saber el tema; con el tema claro —o el azul— el primer frame web cambiaba de color de
+     golpe. Dentro de la APK el primer frame web arranca con ESE mismo color y se funde al del
+     tema. Fuera de la APK no se pone: en un navegador no hay splash nativo y sería un fogonazo
+     oscuro inventado. La marca del <html> la deja el script del <head>. */
+  html[data-mc-nativo] #mc-load::before{content:"";position:absolute;inset:0;background:#0A1310;opacity:0;pointer-events:none;
+    animation:mclnativo .34s ease-out backwards;}
   /* EL NOMBRE NO SE ENSEÑA HASTA QUE ESTÁ SU TIPOGRAFÍA (2026-07-28). Con `font-display:swap`
      el navegador pinta «Aely» en Georgia al momento y la CAMBIA a Fraunces cuando la
      fuente carga: en un arranque en frío ese cambio de forma se ve, y es lo primero que enseña
      la app. Feedback suyo: «antes aparece algo raro en vez de aparecer el icono». Ahora el icono
      entra solo y el nombre se suma cuando puede hacerlo bien (tope de 500 ms en `mcl-fuente`,
      abajo: si la fuente se atasca, mejor Georgia que un hueco). */
-  #mc-load .mcl-name{font-family:'Fraunces',Georgia,serif;font-size:27px;font-weight:560;letter-spacing:-.3px;color:var(--brand-word,#E8EEEC);
+  #mc-load .mcl-name{position:relative;font-family:'Fraunces',Georgia,serif;font-size:27px;font-weight:560;letter-spacing:-.3px;color:var(--brand-word,#E8EEEC);
     opacity:0;}
-  #mc-load .mcl-name.lista{animation:mclpop .42s cubic-bezier(.32,.72,0,1) both;}
+  #mc-load .mcl-name.lista{opacity:1;animation:mclpop .42s cubic-bezier(.32,.72,0,1) backwards;}
+  /* `--brand-word` es casi blanco y el tema claro no lo redefine: sobre su fondo el nombre no se
+     leía (cazado en la captura del 11/10). Ahí va con el color de texto del propio tema. */
+  html[data-theme="light"] #mc-load .mcl-name{color:var(--text);}
   /* SIN BARRA DE CARGA (2026-07-26). Había una barra indeterminada debajo del nombre; fuera, por
      petición desde el móvil: «quitar lo de la barra de carga al abrir la app, el resto de apps no
      lo tienen; el tiempo ese que se queda el logo está bien». Una barra que no mide nada solo
      dice «esto va lento». El botón de reintentar SÍ se queda: ese aparece únicamente si algo se
      ha atascado de verdad, y es la única salida cuando pasa. */
-  #mc-load .mcl-retry{display:none;margin-top:2px;background:none;border:none;font-family:'Manrope',sans-serif;font-size:13px;font-weight:700;
+  #mc-load .mcl-retry{position:relative;display:none;margin-top:2px;background:none;border:none;font-family:'Manrope',sans-serif;font-size:13px;font-weight:700;
     color:var(--mint,#6CC688);text-decoration:underline;padding:8px 12px;cursor:pointer;}
   @keyframes mclpop{from{opacity:0;transform:translateY(9px) scale(.94);}to{opacity:1;transform:none;}}
+  @keyframes mclmarca{from{opacity:0;transform:scale(.8);}to{opacity:1;transform:none;}}
+  @keyframes mclentra{from{opacity:0;}to{opacity:1;}}
+  @keyframes mclhalo{0%,100%{transform:none;}50%{transform:scale(1.2);}}
+  @keyframes mclnativo{from{opacity:1;}to{opacity:0;}}
+  /* Con «reducir movimiento» la marca está puesta desde el primer frame y nada entra, respira ni
+     se encoge al salir: solo queda el fundido. El `!important` del `transform` es para ganarle
+     al estilo en línea que pone el vigilante en la salida. (El ajuste propio de la app lo cubre
+     `html.reduce-motion *`, que el script del <head> deja puesto antes del primer pintado.) */
   @media (prefers-reduced-motion:reduce){
-    #mc-load .mcl-mark{animation:none !important;}
-    #mc-load .mcl-name{animation:none !important;}
-    #mc-load .mcl-name.lista{opacity:1;}
+    #mc-load .mcl-mark,#mc-load .mcl-mark::before,#mc-load .mcl-mark svg,#mc-load .mcl-name,html[data-mc-nativo] #mc-load::before{animation:none !important;}
+    #mc-load,#mc-load .mcl-mark,#mc-load .mcl-name{transform:none !important;}
   }
 
 /* Ayuda: composer fijo abajo; el teclado (visualViewport) sube la hoja, no la tapa.
@@ -27517,6 +27563,33 @@ function App(){
     }, 3200);
     return function(){ cancelled=true; };
   },[state.onboarded, locked, tabIds.join("|")]);
+  // CALENTAR DETRÁS DEL SPLASH (2026-10-11, petición suya: que lo que tenga que cargar ocurra
+  // detrás de la pantalla de entrada y al entrar nada vaya a tirones). El efecto de arriba elige
+  // CUÁNDO se paga el montaje de las otras pestañas, pero sin garantía de acabar antes de que se
+  // levante la cortina: va por huecos libres, una pestaña por hueco. Medido con la CPU x6, en la
+  // mitad de los arranques se entraba con 3 de 4 montadas y la que faltaba caía en el primer
+  // segundo a la vista (frames de 50 ms). Mientras la cortina está puesta nadie mira, así que
+  // se pagan ahí, todas.
+  // TODAS EN UNA SOLA TANDA, A PROPÓSITO, y no una por hueco como arriba: el vigilante que
+  // retira la cortina (final de shell.html) corre en este mismo hilo, así que mientras dura este
+  // render NO puede levantarla, y cuando por fin puede todavía deja pasar dos frames antes de
+  // empezar el fundido. La cortina no se levanta con las pestañas a medio montar sin que haga
+  // falta ninguna señal nueva entre la app y el vigilante. Repartido en huecos, el vigilante se
+  // colaría entre dos pestañas y se entraría con el trabajo a medias.
+  // Va en un efecto y no en el estado inicial: así el primer commit sigue siendo solo Inicio y
+  // los efectos de arranque (la primera lectura de la nube) salen ANTES de este trabajo, que
+  // corre mientras la red contesta en vez de retrasarla.
+  // Solo con la cortina puesta. Si ya no está (se desbloqueó el candado, se terminó el alta) hay
+  // alguien mirando: una tarea así de larga sería justo el tirón que se quiere evitar, y de eso
+  // se sigue encargando el reparto en huecos libres de arriba.
+  useEffect(function(){
+    if(state.onboarded===false||locked||window.__mcSplashGone||!document.getElementById("mc-load")) return;
+    setMountedTabs(function(m){
+      var n=Object.assign({},m);
+      tabIds.forEach(function(id){ n[id]=true; });
+      return n;
+    });
+  },[]);
   useEffect(function(){ if(tab>tabIds.length-1) setTab(0); },[tabIds.length]);   // modo simple reduce pestañas → no dejar un índice fuera de rango
   // Ocultar bloques por pestaña: publica el estado para CollapsibleCard (que no recibe props
   // de App) y escucha el toggle. settings.cardHidden se sincroniza con la nube como todo.

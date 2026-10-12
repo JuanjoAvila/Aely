@@ -273,6 +273,21 @@ un segundo después el bueno (vídeo del usuario: 125.899 € → 189.371 €). 
 1,8 s de espera y, si React ni siquiera ha pintado a los 8 s, un botón de reintentar — antes el
 `clearInterval` de emergencia dejaba el splash puesto para siempre y sin salida.
 
+**Lo que se carga detrás del splash (11/10/2026).** Con la cortina puesta, App monta las otras tres
+pestañas en UNA sola tanda, en un efecto justo después del primer commit (`11-app-main.js`, junto
+al reparto en huecos libres). No hay señal nueva entre la app y el vigilante: los dos corren en el
+mismo hilo, así que mientras dura ese render la cortina no puede levantarse, y al levantarse
+(`mc-splash-gone`) las cuatro pestañas ya están montadas — lo comprueba `e2e/splash.spec.mjs`.
+Antes dependía de los huecos libres: medido con la CPU ×6, en la mitad de los arranques se entraba
+con 3 de 4 montadas y la que faltaba caía a la vista. Si la cortina ya no está
+(candado, alta), ese efecto no hace nada y sigue mandando el reparto en huecos libres.
+La animación del splash (tarjeta, dibujo y un halo que respira) es CSS puro y solo anima
+`transform` y `opacity`: es lo único que el compositor mueve con el hilo principal ocupado. Las
+entradas van con `animation-fill-mode:backwards`; con `both`, la animación terminada seguía
+mandando sobre el estilo en línea con que el vigilante desvanece la marca al salir. Dentro de la
+APK el script del `<head>` marca `html[data-mc-nativo]` y el primer frame web arranca con el
+color del splash nativo (`colorPrimary`), fundiéndose al del tema.
+
 Desde 4.25.1, si `navigator.onLine===false`, App y Dashboard abren `mcBootReady` inmediatamente:
 `loadState` ya terminó de forma síncrona y esperar a la nube solo creaba un frame vacío. Con red se
 mantiene el margen para evitar el salto de cifras. Ajustes guarda `_mcAdminProfile` únicamente con
