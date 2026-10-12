@@ -61,7 +61,9 @@ caracteres podían ocupar hasta 49152 bytes. El corte durante la lectura usa ese
 rechazar Unicode antes admitido. No se cambian recortes, clasificador, importes ni deduplicación.
 Ingest conserva texto vacío como omitido, fuente desconocida como TR, fecha numérica, evento
 nulo y fecha de disparo no interpretable como ahora. No se endurecen sus campos: el límite
-y el objeto siguen siendo obligatorios. Un fallo de lectura/UTF-8 sigue siendo transporte inválido.
+y el objeto siguen siendo obligatorios. Los fallos de lectura/UTF-8 se omiten con 200 y diagnóstico
+cerrado; no se interpretan bytes ilegibles ni se guarda un gasto. El lector compartido sigue
+devolviendo 400 en las otras funciones. La paridad de UTF-8 ilegible se comprobó contra beta.
 Bank-sync valida el día de dateFrom y recorta un ISO completo al día antes de pedir histórico;
 en el blob beta usado como oráculo ese ISO se ignoraba, por eso se contrasta además contra el día.
 Callback mantiene los **302 de cancelación/error OAuth** que consumen web/APK: no se convierten

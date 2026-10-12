@@ -106,7 +106,9 @@ export function validInput(name: InputName, b: unknown): b is ObjectBody {
 
 export async function readInput(req: Request, name: InputName): Promise<InputRead> {
   const read = await readBodyLimited(req, BODY_LIMITS[name]);
-  if (!read.ok) return read;
+  // Un transporte ilegible tampoco debe convertirse en un 4xx nuevo que la APK descarte
+  // sin aviso. Ingest lo omite con diagnóstico, sin interpretar bytes ni guardar dinero.
+  if (!read.ok) return name === "ingest" && read.status === 400 ? { ...read, unrecognized: true } : read;
   const raw = read.text;
   if (name === "ingest" && (raw.length > 16384 || Number(req.headers.get("content-length") || 0) > 16384))
     return { ok: false, status: 413, error: "cuerpo demasiado grande" };
