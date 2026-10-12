@@ -18,15 +18,15 @@ for(const commonEnd of [false,true]){
 assert.deepEqual(values({...base,expenses:coverage.concat(entry("expense","2026-09-02",100))}),[700,600,600,600],"el gasto baja ese día");
 assert.deepEqual(values({...base,expenses:coverage.concat(entry("income","2026-09-03",-200))}),[400,400,600,600],"el ingreso sube ese día");
 assert.deepEqual(values({...base,expenses:coverage.concat(entry("investment","2026-09-02",50,"sabadell","inversion"))}),[650,600,600,600],"invertir resta efectivo");
-assert.deepEqual(values({...base,expenses:coverage.concat({...entry("payment","2026-09-02",50,"sabadell","deudas"),debtId:"debt"})}),[600,600,600,600],"la cuota vinculada es neutra");
+assert.deepEqual(values({...base,expenses:coverage.concat({...entry("payment","2026-09-02",50,"sabadell","deudas"),debtId:"debt"})}),[650,600,600,600],"un vínculo solo no borra la salida: la amortización se calcula desde su deuda");
 assert.deepEqual(values({...base,expenses:coverage.concat(entry("payment","2026-09-02",50,"sabadell","deudas"))}),[650,600,600,600],"una cuota sin vínculo no se presume neutra");
 assert.deepEqual(values({...base,expenses:coverage.concat({...entry("pending","2026-09-02",999),status:"PDNG"},{...entry("dup","2026-09-02",999),possibleDup:true},entry("future","2026-09-05",999),{id:"broken",date:"fecha rota",amount:999})}),[600,600,600,600]);
-assert.deepEqual(plain(c.netWorthSeries({...base,expenses:[coverage[0]]},opts)),[],"falta cobertura de un banco que suma");
+assert.deepEqual(values({...base,expenses:[coverage[0]]}),[600,600,600,600],"una cuenta conocida sin movimientos no oculta las demás");
 assert.equal(c.netWorthSeries({...base,expenses:[coverage[0],entry("late","2026-09-03",0,"revolut")]},opts)[0].day,"2026-09-03","empieza con cobertura de TODOS los bancos");
 const manual={...base,accounts:base.accounts.concat({id:"cash",ent:"efectivo",value:100,role:"fijos"}),accountBalanceHistory:{...base.accountBalanceHistory,"acc:cash":[{day:"2026-09-01",value:50},{day:"2026-09-03",value:100}]}};
 assert.deepEqual(plain(c.netWorthSeries(manual,{...opts,liquid:700})).map(p=>p.value),[650,650,700,700],"manual sin movimientos cambia en escalón");
 assert.deepEqual(plain(c.netWorthSeries({...manual,accountBalanceHistory:{}},{...opts,liquid:700})).map(p=>p.value),[700,700,700,700],"manual sin historial permanece constante");
-const invested={...base,assets:[{value:200}],investments:[{value:100}],invHistory:[{d:"2026-09-02",v:50},{d:today,v:100}]};
+const invested={...base,assets:[{id:"known",value:200,history:[{day:"2026-09-01",value:200,born:true}]}],debts:[{id:"loan",value:20,asOf:2026*12+7}],investments:[{value:100}],invHistory:[{d:"2026-09-02",v:50},{d:today,v:100}]};
 assert.deepEqual(plain(c.netWorthSeries(invested,{...opts,invested:100,debtTotal:20})),[{day:"2026-09-02",value:830},{day:"2026-09-03",value:830},{day:today,value:880}],"inversiones desde su historial, bienes y deuda constantes");
 assert.deepEqual(plain(c.netWorthSeries({...invested,invHistory:[]},{...opts,invested:100})),[],"sin historial no inventa inversiones");
 const cent=c.netWorthSeries(invested,{...opts,liquid:600.23,invested:100.17,debtTotal:20.01}).at(-1);
@@ -155,3 +155,64 @@ for(const values of [[0,0,0,100],[-100,0,0,0],[1000,1001,1000,1002]]){
 }
 assert.equal(c.netWorthDeltaMoney(-1234.4),"1.234 €","variación sin signo ni decimales y con miles separados");
 console.log("inicio-v42: motor, cobertura, seis estados, límites y rangos OK");
+
+// Los totales salen del mismo camino de saldo pintado que App, nunca de un líquido
+// escrito a mano: así una nómina modelada no puede camuflar el precipicio manual.
+const realSeries=function(state,day){
+  const time=Date.parse(day+"T12:00:00Z"),Original=c.Date;
+  c.Date=class extends Date{constructor(...args){super(...(args.length?args:[time]));}static now(){return time;}};
+  try{
+    const ins=c.insumosSaldoGasto(state);
+    const liquid=(state.accounts||[]).reduce((n,a)=>n+c.saldoCuentaMostrada(a,ins),0);
+    const invested=(state.investments||[]).reduce((n,i)=>n+(c.invValueEur(i,state)||0),0);
+    const debtTotal=(state.debts||[]).reduce((n,d)=>n+c.debtBalance(d),0);
+    const result=c.netWorthSeries(state,{today:day,liquid,invested,debtTotal,balanceInputs:{...ins,roundupThisMonth:ins.roundup,monthlyInvestThisMonth:ins.monthlyInvest}});
+    return {result,liquid,invested,debtTotal};
+  }finally{c.Date=Original;}
+};
+const modelled={accounts:[{id:"bank",ent:"sabadell",value:1000,role:"fijos",bankIban:"synthetic"},
+  {id:"manual",ent:"revolut",value:3000,role:"fijos"}],flows:[{id:"salary-model",kind:"income",to:"revolut",amount:1500,day:1,freq:"M"}],
+  expenses:[entry("cover","2026-09-01",0)],accountBalanceHistory:{"acc:manual":[{day:"2026-09-01",value:4500},{day:"2026-09-03",value:4500},{day:"2026-09-04",value:4500}]}};
+const actualManual=realSeries(modelled,today);
+assert.equal(actualManual.liquid,5500,"la fórmula real suma el cobro modelado a la cuenta manual");
+assert.deepEqual(plain(actualManual.result).map(p=>p.value),[5500,5500,5500,5500],"el cierre pintado4500 y el saldo actual pintado4500 no crean un precipicio de1500");
+const separate=current=>values({...base,expenses:coverage.concat(current)});
+assert.deepEqual(separate(entry("cent-flow","2026-09-02",1.37)),[601.37,600,600,600],"cé ntimos del flujo no se truncan");
+const deleted=entry("deleted","2026-09-02",1.37);
+assert.deepEqual(values({...base,expenses:coverage.concat(deleted),deleted:[c.keyOfExpense(deleted)]}),[600,600,600,600],"una lápida real no entra en la serie");
+assert.deepEqual(values({...base,expenses:coverage.concat(entry("removed-bank","2026-09-02",200,"ing"))}),[600,600,600,600],"un banco que no forma parte del patrimonio no suma dinero ficticio");
+for(const categories of [["traspaso","otros"],["otros","traspaso"]])assert.deepEqual(values({...base,expenses:coverage.concat(
+  entry("pair-out","2026-09-02",300,"sabadell",categories[0]),entry("pair-in","2026-09-03",-300,"revolut",categories[1]))}),[600,600,600,600],"dos patas propias se emparejan aunque una categoría falte");
+assert.deepEqual(separate(entry("external","2026-09-02",300,"sabadell","traspaso")),[900,600,600,600],"una sola pata a una cuenta ajena reduce el patrimonio");
+const partial=c.netWorthSeries({...manual,accountBalanceHistory:{"acc:cash":[{day:"2026-09-03",value:100}]}},{...opts,liquid:700});
+assert.equal(partial[0].day,"2026-09-03","antes del primer cierre manual no hay valor acreditado");
+assert.equal(c.netWorthSeries({...base,accounts:[{...base.accounts[0],value:Infinity}]},opts).length,0,"saldo no finito nunca acredita un tramo");
+const cashToday={...base,accounts:base.accounts.concat({id:"cash-today",ent:"efectivo",value:100,role:"fijos"}),expenses:coverage.concat(entry("cash-use",today,10,"efectivo"))};
+assert.equal(c.netWorthSeries(cashToday,{...opts,liquid:690})[0].day,"2026-09-01","el primer gasto del sobre no elimina la cobertura bancaria anterior");
+const loan={accounts:[{id:"a",ent:"sabadell",value:1000,role:"diario"}],expenses:[entry("cover","2026-09-01",0),entry("loan-income",today,-10000,"sabadell","ingreso")],
+  debts:[{id:"loan",value:10000,asOf:2026*12+8,monthly:500,amort:400}]};
+const loanResult=realSeries(loan,today).result;
+assert.deepEqual(plain(loanResult),[{day:today,value:1000}],"sin día exacto del ancla se recorta, nunca deuda antes del préstamo");
+for(const linked of [false,true]){
+  const debtState={accounts:[{id:"a",ent:"sabadell",value:6500,role:"diario"}],expenses:[entry("cover","2026-09-01",0),
+    {...entry("pay","2026-09-04",500,"sabadell","deudas"),...(linked?{debtId:"loan"}:{})}],
+    debts:[{id:"loan",value:10000,monthly:500,amort:400,months:24,day:4,asOf:2026*12+8,asOfDate:"2026-09-01"}]};
+  assert.deepEqual(plain(realSeries(debtState,"2026-09-05").result).map(p=>p.value),[-3500,-3500,-3500,-3600,-3600],"cuota500 amortiza400: solo100 de interés, con y sin vínculo");
+}
+const bought={accounts:[{id:"a",ent:"sabadell",value:16000,role:"diario"}],expenses:[entry("cover","2026-09-01",0),entry("car-pay",today,15000)],
+  assets:[{id:"car",value:15000,history:[{day:today,value:15000,born:true}]}]};
+assert.deepEqual(plain(realSeries(bought,today).result).map(p=>p.value),[16000,16000,16000,16000],"el coche no existe antes de su alta acreditada y su compra no duplica patrimonio");
+const revalued={...bought,assets:[{...bought.assets[0],value:12000,history:bought.assets[0].history.concat({day:"2026-09-05",value:12000})}]};
+assert.deepEqual(plain(realSeries(revalued,"2026-09-05").result).map(p=>p.value),[16000,16000,16000,16000,13000],"revalorar hoy no reescribe todos los días anteriores");
+assert.deepEqual(plain(realSeries({...bought,assets:[{id:"car",value:15000}]},today).result),[{day:today,value:16000}],"un bien antiguo sin valores no se inventa antes de hoy");
+for(const category of ["inversion","traspaso"]){
+  const investmentState={accounts:[{id:"a",ent:"sabadell",value:3000,role:"diario"}],expenses:[entry("cover","2026-09-01",0),
+    {...entry("contribute",today,500,"sabadell",category),merchant:"Aportación Trade Republic"}],investments:[{id:"fund",ent:"trade_republic",value:500}],
+    invHistory:[{d:"2026-09-01",v:0},{d:"2026-09-07",v:500}]};
+  assert.deepEqual(plain(realSeries(investmentState,"2026-09-07").result).map(p=>p.value),[3000,3000,3000,3000,3000,3000,3000],"una aportación propia entre fotos no crea un valle de500");
+}
+assert.equal(c.netWorthSeries({...base,investments:[{value:100}],invHistory:[{d:"2026-09-05",v:100}]},{...opts,invested:100}).length,0,"una foto futura no acredita inversión pasada");
+const cached=c.netWorthSeries(base,opts);
+assert.equal(c.netWorthSeries({...base,_savedAt:12345},opts),cached,"volver sin cambiar dinero conserva la serie completa por referencia");
+assert.notEqual(c.netWorthSeries({...base,accountBalanceHistory:{}},opts),cached,"cambiar cierres invalida la caché, aunque no cambien los movimientos");
+console.log("inicio-v42: NO-GO cifras causales, dos patas, anclas, principal/intereses, bienes y aportaciones OK");

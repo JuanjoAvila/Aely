@@ -628,97 +628,188 @@ function recordAccountBalances(hist, day, rows){
 }
 // Las fotos de bancos desacompasados inventaban pérdidas de traspasos. El total de hoy
 // se recorre hacia atrás con flujos; sólo las cuentas manuales sin movimientos usan escalones.
+function recordAssetValues(history, day, assets, previous){
+  let out=history||{},changed=false;
+  const by={};(assets||[]).forEach(function(a){if(a.id&&Number.isFinite(a.value))by[a.id]=a;});
+  const ids=new Set(Object.keys(out));Object.keys(by).forEach(function(id){ids.add(id);});
+  (previous||[]).forEach(function(a){if(a.id)ids.add(String(a.id));});
+  ids.forEach(function(id){
+    const list=out[id]||[],last=list[list.length-1],a=by[id],value=a?a.value:0;
+    if(last&&last.value===value)return;
+    const born=!!a&&Array.isArray(previous)&&!previous.some(function(p){return String(p.id)===id;});
+    const point={day:day,value:value};if(born||(last&&last.day===day&&last.born))point.born=true;
+    const next=list.filter(function(p){return p&&p.day<day&&Number.isFinite(p.value);}).slice(-399).concat(point);
+    if(!changed){out=Object.assign({},out);changed=true;}out[id]=next;
+  });
+  return changed?out:history;
+}
 function netWorthDay(nowMs){
   // La serie etiqueta movimientos en Madrid; «hoy» no puede cerrarla un día antes en UTC.
   const p=madridYmdParts(nowMs==null?Date.now():nowMs);
   return p.ym+"-"+String(p.d).padStart(2,"0");
 }
-function netWorthDebtPolicy(state, total){
-  // Decisión provisional del dueño: deuda de hoy constante y cuotas vinculadas neutras.
-  // Ambos criterios se cambian aquí juntos, sin alterar los lectores de Plan ni Gastos.
-  return {total:total!=null?total:(state.debts||[]).reduce(function(sum,d){ return sum+debtBalance(d); },0),linkedPaymentsNeutral:true};
+function netWorthDebtPolicy(state, today, current){
+  const parts=today.split("-").map(Number), month=parts[0]*12+parts[1]-1;
+  let first="";
+  const debts=state.debts||[];
+  const at=function(d,day){
+    const p=day.split("-").map(Number), ym=p[0]*12+p[1]-1;
+    const anchor=typeof d.asOf==="number"?d.asOf:month;
+    let n=Math.max(0,ym-anchor);
+    if(d.months!=null&&debtChargeDay(d)<=p[2]) n++;
+    let value=Number(d.value)-debtAmort(d)*n;
+    if(d.balloon>0&&d.months!=null&&n>=d.months) value-=d.balloon;
+    return Math.max(0,value);
+  };
+  debts.forEach(function(d){
+    // Un ancla mensual no acredita el día de alta: ese primer mes se recorta,
+    // salvo que exista una fecha explícita; así un préstamo no nace antes que el ingreso.
+    const anchor=typeof d.asOf==="number"?d.asOf:month;
+    const known=d.asOfDate||d.startDate;
+    const day=/^\d{4}-\d{2}-\d{2}$/.test(known||"")?known:
+      anchor===month?today:new Date(Date.UTC(Math.floor((anchor+1)/12),(anchor+1)%12,1,12)).toISOString().slice(0,10);
+    if(day>first) first=day;
+  });
+  const sum=function(day){ return debts.reduce(function(n,d){ return n+at(d,day); },0); };
+  const value=current!=null?current:sum(today);
+  return {first:first,current:value,at:function(day){ return day===today?value:sum(day); }};
 }
 function netWorthSeries(state, options){
   options=options||{};
-  const today=options.today||netWorthDay(), rows=accountRowsInOrder(state), hist=state.accountBalanceHistory||{};
-  const utcFmt=new Intl.DateTimeFormat("en-CA",{timeZone:"UTC",year:"numeric",month:"2-digit",day:"2-digit"});
-  const fmt=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Madrid",year:"numeric",month:"2-digit",day:"2-digit"});
+  const today=options.today||netWorthDay();
+  const deps=[today,options.liquid,options.invested,options.debtTotal,state.accounts,state.obAccounts,state.expenses,
+    state.deleted,state.accountBalanceHistory,state.invHistory,state.investments,state.assets,state.assetValueHistory,state.debts,state.flows,
+    state.fixed,state.oneoffs,state.bankTx,state.settings,state.fxRates,state.fx,state.aportaciones,
+    options.balanceInputs&&options.balanceInputs.paidNetByBank,options.balanceInputs&&options.balanceInputs.spentByBank];
+  const cache=netWorthSeries.cache||(netWorthSeries.cache=[]);
+  const hit=cache.find(function(c){ return c.deps.every(function(v,i){ return v===deps[i]; }); });
+  if(hit) return hit.series;
+  const gaps=[], out=[];
+  const done=function(){ out.coverage=gaps;out.fresh=!(state.expenses||[]).length&&!Object.values(state.accountBalanceHistory||{}).some(function(a){return a.length>1;})&&(state.invHistory||[]).length<2;cache.unshift({deps:deps,series:out});cache.length=Math.min(cache.length,4);return out; };
+  const utcFmt=netWorthSeries.utcFmt||(netWorthSeries.utcFmt=new Intl.DateTimeFormat("en-CA",{timeZone:"UTC",year:"numeric",month:"2-digit",day:"2-digit"}));
+  const fmt=netWorthSeries.fmt||(netWorthSeries.fmt=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Madrid",year:"numeric",month:"2-digit",day:"2-digit"}));
   const clean=function(list,day,value){
     const by={};
     (list||[]).forEach(function(p){
-      const d=p&&p[day], v=p&&p[value];
+      const d=p&&p[day],v=p&&p[value];
       if(!/^\d{4}-\d{2}-\d{2}$/.test(d||"")||typeof v!=="number"||!Number.isFinite(v)||d>today) return;
       const ms=Date.parse(d+"T12:00:00Z");
-      if(Number.isFinite(ms)&&utcFmt.format(ms)===d) by[d]={day:d,value:v};
+      if(Number.isFinite(ms)&&utcFmt.format(ms)===d) by[d]=Object.assign({},p,{day:d,value:v});
     });
     return Object.keys(by).sort().map(function(d){ return by[d]; });
   };
-  const del=expenseDeletedSet(state), firstByBank={}, daily={}, hours={}, debtPolicy=netWorthDebtPolicy(state,options.debtTotal);
-  let first="";
+  const rows=accountRowsInOrder(state), owned={}, hist=state.accountBalanceHistory||{};
+  const ins=options.balanceInputs?Object.assign({},options.balanceInputs,{roundup:options.balanceInputs.roundupThisMonth,monthlyInvest:options.balanceInputs.monthlyInvestThisMonth}):insumosSaldoGasto(state);
+  rows.forEach(function(r){ if(r.item.ent) owned[r.item.ent]=true; });
+  const values=rows.map(function(r){
+    if(typeof r.item.value!=="number"||!Number.isFinite(r.item.value)) return null;
+    return r.kind==="ob"?toEurAmt(r.item.value,r.item.cur||"EUR",state):saldoCuentaMostrada(r.item,ins);
+  });
+  if(values.some(function(v){ return typeof v!=="number"||!Number.isFinite(v); })){
+    gaps.push({kind:"balance",unknown:true,name:rows.filter(function(r,i){ return values[i]==null; }).map(function(r){ return r.item.name||r.item.ent; }).join(", ")});return done();
+  }
+  const del=expenseDeletedSet(state), entries=[], byAmount={}, firstByBank={}, hours={};
   (state.expenses||[]).forEach(function(e){
     if(!e||e.possibleDup||expenseIsTombstoned(e,del)||typeof e.amount!=="number"||!Number.isFinite(e.amount)||
       (e.status&&String(e.status).toUpperCase()!=="BOOK")) return;
-    const raw=String(e.date||"").trim(), ms=/^\d{4}-\d{2}-\d{2}/.test(raw)?Date.parse(raw):_pdMs(raw);
+    const bank=expenseBankOf(e);if(!owned[bank]) return;
+    const raw=String(e.date||"").trim(),ms=/^\d{4}-\d{2}-\d{2}/.test(raw)?Date.parse(raw):_pdMs(raw);
     if(!Number.isFinite(ms)) return;
-    // Cientos de cargos comparten hora. Se formatean sus extremos una sola vez;
-    // la hora que cruza medianoche conserva la fecha exacta de cada movimiento.
-    const hour=Math.floor(ms/3600000), bounds=hours[hour]||(hours[hour]=[fmt.format(hour*3600000),fmt.format(hour*3600000+3599999)]);
-    const day=bounds[0]===bounds[1]?bounds[0]:fmt.format(ms); if(day>today) return;
-    const bank=expenseBankOf(e);
-    if(bank&&(!firstByBank[bank]||day<firstByBank[bank])) firstByBank[bank]=day;
-    if(!first||day<first) first=day;
-    // Excluir las DOS patas completas evita picos aun cuando se contabilicen en días distintos.
-    if(e.category!=="traspaso"&&!(debtPolicy.linkedPaymentsNeutral&&e.category==="deudas"&&e.debtId))
-      daily[day]=(daily[day]||0)-Math.round(e.amount*100);
+    const hour=Math.floor(ms/3600000),bounds=hours[hour]||(hours[hour]=[fmt.format(hour*3600000),fmt.format(hour*3600000+3599999)]);
+    const day=bounds[0]===bounds[1]?bounds[0]:fmt.format(ms);if(day>today) return;
+    const row={expense:e,bank:bank,day:day,ms:ms,cents:Math.round(e.amount*100)};entries.push(row);
+    if(!firstByBank[bank]||day<firstByBank[bank]) firstByBank[bank]=day;
+    if(row.cents){const key=Math.abs(row.cents);(byAmount[key]||(byAmount[key]=[])).push(row);}
   });
-  // Inicio ya trae estos saldos calculados: no recorrer el histórico otra vez con parseDate.
-  const ins=options.liquid!=null&&options.invested!=null?{}:insumosSaldoGasto(state);
-  const values=rows.map(function(r){ return r.kind==="ob"?toEurAmt(r.item.value,r.item.cur||"EUR",state):saldoCuentaMostrada(r.item,ins); });
-  if(values.some(function(v){ return typeof v!=="number"||!Number.isFinite(v); })) return [];
-  const manual=[], banks={};
+  // La categoría sola no acredita un traspaso propio: dos patas únicas, opuestas,
+  // en bancos presentes y cercanas. Ambiguos o a cuentas ajenas siguen siendo dinero real.
+  Object.keys(byAmount).forEach(function(key){
+    const group=byAmount[key];if(group.length!==2) return;
+    const a=group[0],b=group[1];
+    if(a.bank!==b.bank&&a.cents===-b.cents&&Math.abs(a.ms-b.ms)<=7*864e5&&
+      (a.expense.category==="traspaso"||b.expense.category==="traspaso")) a.ownTransfer=b.ownTransfer=true;
+  });
+  const manual=[], flowBanks={}, limits=[];
+  let first="";
   rows.forEach(function(r,i){
-    const bank=r.item.ent;
-    if(r.kind==="ob"||r.item.bankIban||firstByBank[bank]) banks[bank]=true;
-    else manual.push({value:values[i],points:clean(hist[r.key],"day","value")});
+    const bank=r.item.ent,points=clean(hist[r.key],"day","value"),cash=isEfectivoEnt(r.item);
+    const tracked=r.kind==="ob"||r.item.bankIban||(!points.length&&firstByBank[bank])||accDaily(r.item);
+    if(tracked){
+      flowBanks[bank]=true;
+      if(firstByBank[bank]&&!cash) limits.push({day:firstByBank[bank],kind:"bank",name:r.item.name||(ENT[bank]&&ENT[bank].label)||bank});
+    }else{
+      manual.push({value:values[i],points:points});
+      if(points.length) limits.push({day:points[0].day,kind:"manual",name:r.item.name||bank});
+    }
+    if(points.length&&(!first||points[0].day<first)) first=points[0].day;
   });
-  const bankNames=Object.keys(banks);
-  if(bankNames.some(function(b){ return !firstByBank[b]; })) return [];
-  let start=bankNames.reduce(function(d,b){ return firstByBank[b]>d?firstByBank[b]:d; },"");
-  // Un movimiento manual también puede acreditar el comienzo cuando no hay bancos conectados.
-  if(!start) start=first;
-  if(!start) manual.forEach(function(s){ if(s.points.length&&(!start||s.points[0].day<start)) start=s.points[0].day; });
-  const investments=clean(state.invHistory,"d","v");
-  if((state.investments||[]).some(function(i){ return invValueEur(i,state)==null; })) return [];
-  const invested=options.invested!=null?options.invested:(state.investments||[]).reduce(function(sum,i){ return sum+(invValueEur(i,state)||0); },0)+(ins.roundup||0)+(ins.monthlyInvest||0);
-  if(((state.investments||[]).length||invested!==0)&&!investments.length) return [];
-  if(investments.length&&(!start||investments[0].day>start)) start=investments[0].day;
-  start=start||today;
-  const liquid=options.liquid!=null?options.liquid:values.reduce(function(sum,v){ return sum+v; },0);
-  const assets=(state.assets||[]).reduce(function(sum,a){ return sum+(typeof a.value==="number"&&Number.isFinite(a.value)?a.value:0); },0);
-  const debt=debtPolicy.total;
-  const manualNow=manual.reduce(function(sum,s){ return sum+Math.round(s.value*100); },0);
-  const constant=Math.round((assets-debt)*100), out=[];
-  // Inicio redondea el total, no cada divisa por separado: conservar ese mismo céntimo
-  // en el ancla impide una diferencia final por conversión o por coma flotante.
-  let cash=Math.round((liquid+invested+assets-debt)*100)-Math.round(invested*100)-constant-manualNow;
-  const from=Date.parse(start+"T12:00:00Z"), to=Date.parse(today+"T12:00:00Z");
-  if(!Number.isFinite(from)||!Number.isFinite(to)||from>to) return [];
-  let invIndex=investments.length-1;
-  const indices=manual.map(function(s){ return s.points.length-1; });
-  for(let ms=to;ms>=from;ms-=864e5){
-    const day=utcFmt.format(ms);
-    let value=cash+constant;
-    manual.forEach(function(s,i){
-      while(indices[i]>0&&s.points[indices[i]].day>day) indices[i]--;
-      value+=Math.round((day===today||!s.points.length?s.value:s.points[indices[i]].value)*100);
+  entries.forEach(function(e){if(!first||e.day<first)first=e.day;});
+  const investments=clean(state.invHistory,"d","v"),hasInv=(state.investments||[]).length>0;
+  if((state.investments||[]).some(function(i){ return invValueEur(i,state)==null; })){gaps.push({kind:"investment",unknown:true});return done();}
+  const invested=options.invested!=null?options.invested:(state.investments||[]).reduce(function(n,i){ return n+(invValueEur(i,state)||0); },0)+(ins.roundup||0)+(ins.monthlyInvest||0);
+  if((hasInv||invested!==0)&&!investments.length){gaps.push({kind:"investment"});return done();}
+  if(investments.length) limits.push({day:investments[0].day,kind:"investment"});
+  const contributions={},daily={};
+  entries.forEach(function(row){
+    const e=row.expense,day=row.day;
+    if(!flowBanks[row.bank]||row.ownTransfer) return;
+    daily[day]=(daily[day]||0)-Math.round(e.amount*100);
+    if(!investments.length||e.amount===0) return;
+    const text=String(e.merchant||"").toLowerCase(),target=e.toBank||e.to||e.counterpartyBank;
+    const linked=(state.investments||[]).some(function(i){
+      const name=String(i.ent||"").replace(/_/g," ").toLowerCase();
+      return (e.investmentId&&e.investmentId===i.id)||(target&&target===i.ent)||(name.length>=4&&text.includes(name));
     });
-    while(invIndex>0&&investments[invIndex].day>day) invIndex--;
-    value+=Math.round((day===today?invested:invIndex>=0?investments[invIndex].value:0)*100);
-    out.push({day:day,value:value/100});
-    cash-=daily[day]||0;
+    if(e.category==="inversion"||(e.category==="traspaso"&&linked)) contributions[day]=(contributions[day]||0)+row.cents;
+    else if(e.category==="traspaso"){
+      const next=investments.find(function(p){return p.day>=day;});
+      limits.push({day:next?next.day:today,kind:"investment"});
+    }
+  });
+  const assetRows=[], assetHist=state.assetValueHistory||{};
+  const assetIds=new Set(Object.keys(assetHist));(state.assets||[]).forEach(function(a){assetIds.add(String(a.id));});
+  assetIds.forEach(function(id){
+    const a=(state.assets||[]).find(function(x){return String(x.id)===id;}),points=clean(assetHist[id]||(a&&(a.valueHistory||a.history)),"day","value");
+    if(a&&(!Number.isFinite(a.value))){gaps.push({kind:"asset",name:a.name,unknown:true});return;}
+    const value=a?a.value:0;assetRows.push({value:value,points:points});
+    if(points.length){if(!points[0].born)limits.push({day:points[0].day,kind:"asset",name:a&&a.name});}
+    else if(a)limits.push({day:today,kind:"asset",name:a.name});
+  });
+  if(gaps.length)return done();
+  const debt=netWorthDebtPolicy(state,today,options.debtTotal);
+  if(!Number.isFinite(debt.current)){gaps.push({kind:"debt",unknown:true});return done();}
+  if(debt.first)limits.push({day:debt.first,kind:"debt"});
+  let start=first||today;
+  limits.forEach(function(l){if(l.day>start){start=l.day;gaps.push(l);}});
+  if(start>today){gaps.push({kind:"debt",unknown:true});return done();}
+  const liquid=options.liquid!=null?options.liquid:values.reduce(function(n,v){return n+v;},0);
+  const assets=(state.assets||[]).reduce(function(n,a){return n+a.value;},0),manualNow=manual.reduce(function(n,m){return n+Math.round(m.value*100);},0);
+  if(!Number.isFinite(liquid)||!Number.isFinite(invested)){gaps.push({kind:"balance"});return done();}
+  let cash=Math.round((liquid+invested+assets-debt.current)*100)-Math.round(invested*100)-Math.round(assets*100)+Math.round(debt.current*100)-manualNow;
+  const steps=manual.concat(assetRows),indices=steps.map(function(s){return s.points.length-1;});
+  const contributionDays=Object.keys(contributions).sort(),prefix={},days=Object.keys(daily).concat(investments.map(function(p){return p.day;})).concat(contributionDays).sort();
+  let contributed=0,ci=0;days.forEach(function(day){while(ci<contributionDays.length&&contributionDays[ci]<=day){contributed+=contributions[contributionDays[ci++]];}prefix[day]=contributed;});
+  let invIndex=investments.length-1;
+  for(let ms=Date.parse(today+"T12:00:00Z"),from=Date.parse(start+"T12:00:00Z");ms>=from;ms-=864e5){
+    const day=utcFmt.format(ms);
+    while(invIndex>=0&&investments[invIndex].day>day)invIndex--;
+    const photo=invIndex>=0?investments[invIndex]:null;
+    let inv=day===today?invested:photo?photo.value:0;
+    if(day!==today&&photo){
+      let n=prefix[day];if(n==null){let i=contributionDays.length-1;while(i>=0&&contributionDays[i]>day)i--;n=i>=0?prefix[contributionDays[i]]:0;}
+      inv+=(n-(prefix[photo.day]||0))/100;
+    }
+    let value=cash+Math.round(inv*100)-Math.round(debt.at(day)*100);
+    steps.forEach(function(s,i){
+      while(indices[i]>=0&&s.points[indices[i]].day>day)indices[i]--;
+      const v=day===today||!s.points.length?s.value:indices[i]>=0?s.points[indices[i]].value:0;
+      value+=Math.round(v*100);
+    });
+    out.push({day:day,value:value/100});cash-=daily[day]||0;
   }
-  return out.reverse();
+  out.reverse();return done();
 }
+
 function netWorthRanges(series, today){
   if(!series||series.length<2) return [];
   const first=series[0].day, last=series[series.length-1].day;

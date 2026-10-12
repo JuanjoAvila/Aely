@@ -14,6 +14,11 @@ function cycleMoney(value){
   // Los euros enteros caben como en la maqueta; un céntimo real no desaparece al redondear.
   return Number.isInteger(Math.round(value*DISP.k*100)/100)?eur0(value):eur(value);
 }
+function cycleDailyMoney(remaining,days){
+  if(!(remaining>0)||!(days>0)||!Number.isFinite(remaining)||!Number.isFinite(days)||!(DISP.k>0)||!Number.isFinite(DISP.k))return null;
+  // El límite se redondea hacia abajo en la moneda visible, también si un euro vale menos de una unidad.
+  return eur0(Math.floor(remaining*DISP.k/days)/DISP.k);
+}
 function cycleTiming(bud,nowMs){
   // El calendario financiero es el de Madrid: su medianoche en UTC caía el día
   // anterior y septiembre duraba un día. Fechas civiles evitan también contar la hora del cambio horario.
@@ -34,7 +39,7 @@ function NetWorthNow({tt, simple, series, splashGone}){
   // dispara las lecturas de layout de navegación con el histórico grande.
   const value=tt.netWorth, shown=useCountUp(tt.netWorth||0, splashGone);
   series=series||[];
-  const today=netWorthDay(), current=series.length&&series[series.length-1].day===today;
+  const today=netWorthDay();
   const ranges=useMemo(function(){ return netWorthRanges(series,today); },[series,today]);
   const [picked,setPicked]=useState("1m"), [touch,setTouch]=useState(null), [info,setInfo]=useState(false);
   const svgRef=useRef(null), frameRef=useRef(0), fingerRef=useRef(null);
@@ -43,40 +48,65 @@ function NetWorthNow({tt, simple, series, splashGone}){
   const delta=points.length>1?points[points.length-1].value-points[0].value:null;
   const color=delta!=null&&delta<0?"var(--coral)":"var(--mint)";
   const chart=useMemo(function(){ return netWorthChartGeometry(points); },[points]);
+  const language=loc();
+  const dateFmt=useMemo(function(){return new Intl.DateTimeFormat(language,{timeZone:"Europe/Madrid",day:"numeric",month:"short",year:"numeric"});},[language]);
+  const dateLabels=useMemo(function(){
+    return points.map(function(p){return dateFmt.format(Date.parse(p.day+"T12:00:00Z"));});
+  },[points,dateFmt]);
+  const coverageLabels=useMemo(function(){return (series.coverage||[]).map(function(g){
+    const name=g.name||t("v42_net_source_"+g.kind);
+    return g.day?tf("v42_net_coverage",{name:name,day:dateFmt.format(Date.parse(g.day+"T12:00:00Z"))}):name;
+  });},[series.coverage,dateFmt,language]);
   useEffect(function(){ setTouch(null); },[range&&range.id]);
   useEffect(function(){ return function(){ cancelAnimationFrame(frameRef.current); }; },[]);
   useBackClose(info,function(){ setInfo(false); });
-  const valid=typeof value==="number" && Number.isFinite(value);
+  const valid=typeof value==="number" && Number.isFinite(value)&&!(series.coverage||[]).some(function(g){return g.unknown;});
   const p=valid?eurParts(active?active.value:typeof shown==="number" && Number.isFinite(shown)?shown:value):null;
-  const move=function(e){
-    e.stopPropagation();
-    if(!chart||!svgRef.current||!e.touches.length) return;
-    const rect=svgRef.current.getBoundingClientRect(), x=e.touches[0].clientX;
+  const gestureRef=useRef(null),holdRef=useRef(0);
+  useEffect(function(){return function(){clearTimeout(holdRef.current);cancelAnimationFrame(frameRef.current);};},[]);
+  const pointAt=function(x,rect){
     const local=(x-rect.left)/rect.width*320;
     fingerRef.current=Math.max(0,Math.min(points.length-1,Math.round((local-4)/312*(points.length-1))));
-    if(!frameRef.current) frameRef.current=requestAnimationFrame(function(){ frameRef.current=0; setTouch(fingerRef.current); });
+    if(!frameRef.current) frameRef.current=requestAnimationFrame(function(){frameRef.current=0;setTouch(fingerRef.current);});
   };
-  const release=function(e){ e.stopPropagation(); cancelAnimationFrame(frameRef.current); frameRef.current=0; setTouch(null); };
+  const begin=function(e){
+    e.stopPropagation();
+    if(!chart||!svgRef.current||!e.touches.length) return;
+    const g={x:e.touches[0].clientX,y:e.touches[0].clientY,rect:svgRef.current.getBoundingClientRect(),active:false};
+    gestureRef.current=g;clearTimeout(holdRef.current);
+    holdRef.current=setTimeout(function(){if(gestureRef.current===g){g.active=true;pointAt(g.x,g.rect);}},250);
+  };
+  const move=function(e){
+    e.stopPropagation();const g=gestureRef.current;if(!g||!e.touches.length)return;
+    const x=e.touches[0].clientX,dx=Math.abs(x-g.x),dy=Math.abs(e.touches[0].clientY-g.y);
+    if(!g.active){
+      if(dy>=8&&dy>dx){clearTimeout(holdRef.current);gestureRef.current=null;return;}
+      if(dx<8||dx<=dy*1.25)return;
+      clearTimeout(holdRef.current);g.active=true;
+    }
+    pointAt(x,g.rect);
+  };
+  const release=function(e){e.stopPropagation();clearTimeout(holdRef.current);gestureRef.current=null;cancelAnimationFrame(frameRef.current);frameRef.current=0;setTouch(null);};
   const id=React.useId();
   return React.createElement("div",{className:"v4-hero v42-net","data-tour":"hero","data-testid":"inicio-net-current",style:{"--v42-play":splashGone===false?"paused":"running"}},
     React.createElement("div",{className:"v4-net-current-head"},
       React.createElement("div",{className:"v4-micro"}, t(simple?"v4_money_total":"d_networth")),
       React.createElement("button",{type:"button",className:"v42-net-info","aria-label":t("v42_net_info_title"),onClick:function(){ setInfo(!info); }},"i")
     ),
-    active&&React.createElement("span",{className:"v42-net-date","data-testid":"inicio-net-date"},new Date(active.day+"T12:00:00").toLocaleDateString(loc(),{day:"numeric",month:"short",year:"numeric"})),
+    active&&React.createElement("span",{className:"v42-net-date","data-testid":"inicio-net-date"},dateLabels[touch]),
     React.createElement("div",{className:"v4-hero-amt num","data-tour":"hero-amt"},
       p?p.sign+p.ent:"—", p&&React.createElement("span",null,","+(p.dec||"00")+" "+p.sym)),
     !valid&&React.createElement("div",{className:"hint",role:"status"}, t("v4_net_unknown")),
-    valid&&series.length<2&&React.createElement("div",{className:"hint"},t("v42_net_missing")),
-    valid&&current&&delta!=null&&React.createElement("div",{className:"v42-net-delta","data-testid":"inicio-net-delta",style:{color:color}},
+    valid&&series.length<2&&React.createElement("div",{className:"hint"},t(series.fresh?"v4_hist_empty":"v42_net_missing")),
+    valid&&coverageLabels.length>0&&React.createElement("div",{className:"hint","data-testid":"inicio-net-coverage"},coverageLabels.map(function(label,i){return React.createElement("div",{key:i},label);})),
+    valid&&delta!=null&&React.createElement("div",{className:"v42-net-delta","data-testid":"inicio-net-delta",style:{color:color}},
       tf("v42_net_"+(delta<0?"less_":"more_")+range.id,{x:netWorthDeltaMoney(delta)})),
-    valid&&chart&&React.createElement("div",{className:"v42-net-chart","data-noswipe":"1",onTouchStart:move,onTouchMove:move,onTouchEnd:release,onTouchCancel:release},
+    valid&&chart&&React.createElement("div",{className:"v42-net-chart","data-noswipe":"1",onTouchStart:begin,onTouchMove:move,onTouchEnd:release,onTouchCancel:release},
       React.createElement("svg",{ref:svgRef,key:range.id,viewBox:"0 0 320 80",preserveAspectRatio:"none",role:"img","aria-label":t("v42_net_chart"),style:{color:color}},
         React.createElement("defs",null,React.createElement("linearGradient",{id:id,x1:"0",x2:"0",y1:"0",y2:"1"},
           React.createElement("stop",{offset:"0%",stopColor:"currentColor",stopOpacity:.2}),React.createElement("stop",{offset:"100%",stopColor:"currentColor",stopOpacity:0}))),
         React.createElement("path",{className:"v42-net-fill",d:chart.fill,fill:"url(#"+id+")"}),
         React.createElement("path",{className:"v42-net-line",d:chart.path,fill:"none",stroke:"currentColor",strokeWidth:2,strokeLinecap:"round",strokeLinejoin:"round",vectorEffect:"non-scaling-stroke",pathLength:1}),
-        React.createElement("circle",{className:"v42-net-halo",cx:chart.xy[points.length-1].x,cy:chart.xy[points.length-1].y,r:4,fill:"currentColor"}),
         React.createElement("circle",{className:"v42-net-dot",cx:chart.xy[points.length-1].x,cy:chart.xy[points.length-1].y,r:4,fill:"currentColor"}),
         active&&React.createElement("g",{"data-testid":"inicio-net-guide"},
           React.createElement("line",{x1:chart.xy[touch].x,x2:chart.xy[touch].x,y1:0,y2:80,stroke:"var(--muted)",strokeDasharray:"2 3"}),
@@ -166,8 +196,9 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
   const budAmt=bud.budget!=null?bud.budget:(state.budget||0);
   const spentAgainst=Math.max(0,bud.against), rem=bud.remaining!=null?bud.remaining:budAmt-spentAgainst;
   const timing=cycleTiming(bud), paceState=cyclePaceState(spentAgainst,budAmt,timing.elapsed,timing.days);
-  const series=useMemo(function(){ return netWorthSeries(state,{today:seriesToday,liquid:tt.liquid,invested:tt.invested,debtTotal:tt.debtTotal}); },
-    [state.accounts,state.obAccounts,state.accountBalanceHistory,state.invHistory,state.investments,state.assets,state.expenses,state.deleted,state.fx,state.fxRates,tt.liquid,tt.invested,tt.debtTotal,seriesToday]);
+  const dailyMoney=budAmt>0?cycleDailyMoney(rem,timing.left):null;
+  const series=useMemo(function(){ return netWorthSeries(state,{today:seriesToday,liquid:tt.liquid,invested:tt.invested,debtTotal:tt.debtTotal,balanceInputs:tt}); },
+    [state.accounts,state.obAccounts,state.accountBalanceHistory,state.invHistory,state.investments,state.assets,state.assetValueHistory,state.debts,state.expenses,state.deleted,state.flows,state.fixed,state.oneoffs,state.bankTx,state.aportaciones,state.settings,state.fx,state.fxRates,tt,seriesToday]);
 
   const overdue=[];
   // La fecha prevista no es un pago: la misma lectura de evidencia que Plan conserva los
@@ -292,7 +323,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
 
     !showSkel && state.budget>0 && React.createElement("div",{className:"v42-cycle-section"},
       React.createElement("div",{className:"v42-cycle-head"},
-        React.createElement("span",null,t("v42_this_cycle")),
+        React.createElement("span",null,t(bud.cycle?"v42_this_cycle":"v42_this_month")),
         React.createElement("button",{type:"button",className:"link",onClick:function(){ if(onGoGastos) onGoGastos(); }},t("v4_see_gastos"))),
       React.createElement("div",{className:"v4-card v4-budget v42-cycle",role:"button",tabIndex:0,"data-state":paceState.id,
         style:{color:"var(--"+paceState.tone+")","--cycle-color":"var(--"+paceState.tone+")","--v42-play":splashGone?"running":"paused"},onClick:function(){ setBudgetOpen(true); },
@@ -307,10 +338,11 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
         React.createElement("div",{className:"v4-budget-txt"},
           React.createElement("div",{className:"st",style:{color:"inherit"}},tf("v42_cycle_"+paceState.id,{x:cycleMoney(paceState.excess)})),
           React.createElement("div",{className:"ph v42-cycle-amount"},
+            React.createElement("span",{className:"v42-cycle-remaining"},t("v42_remaining")),
             React.createElement("span",{className:"serif num",style:{color:paceState.id==="over"?"var(--coral)":"var(--text)"}},cycleMoney(rem)),
             React.createElement("span",{className:"v42-cycle-of"},tf("v42_cycle_of",{x:cycleMoney(budAmt)}))),
-          paceState.id!=="over"&&timing.reliable&&timing.left>0&&React.createElement("div",{className:"v42-cycle-pace","data-testid":"inicio-cycle-pace"},
-            React.createElement("b",null,tf("v42_cycle_daily",{x:eur0(Math.floor(Math.max(0,rem)/timing.left))})),
+          dailyMoney!=null&&React.createElement("div",{className:"v42-cycle-pace","data-testid":"inicio-cycle-pace"},
+            React.createElement("b",null,tf("v42_cycle_daily",{x:dailyMoney})),
             " ",tf(timing.left===1?"v42_cycle_day":"v42_cycle_days",{n:timing.left}))
         )
       )
