@@ -14859,5 +14859,29 @@
       "android/app/src/main/java/com/micartera/app/WidgetPeriod.java"
     ],
     "unidades": true
+  },
+  "splash-animado": {
+    "web": [
+      {
+        "file": "src/shell.html",
+        "from": "<script>try{var _k=localStorage.getItem(\"_mcSandbox\")",
+        "to": "</script>"
+      },
+      {
+        "file": "src/shell.html",
+        "from": "  #mc-load{position:fixed;inset:0;z-index:9999",
+        "to": "/* Ayuda: composer fijo abajo"
+      },
+      {
+        "file": "src/shell.html",
+        "from": "<div id=\"mc-load\">",
+        "to": "})();</script>"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  // CALENTAR DETRÁS DEL SPLASH",
+        "to": "  useEffect(function(){ if(tab>tabIds.length-1)"
+      }
+    ]
   }
 }

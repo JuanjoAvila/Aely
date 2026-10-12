@@ -1,5 +1,55 @@
 [
   {
+    "v": "4.26.117",
+    "d": "2026-10-12",
+    "t": {
+      "es": "Nueva pantalla de entrada",
+      "en": "New opening screen",
+      "ca": "Nova pantalla d'entrada"
+    },
+    "items": {
+      "es": [
+        "Nueva pantalla de entrada: el logo aparece con una luz suave mientras la app se prepara, y al entrar todo responde desde el primer gesto. En tema claro el nombre ya se lee bien."
+      ],
+      "en": [
+        "New opening screen: the logo appears with a soft glow while the app gets ready, and everything responds from the very first swipe. The name is now easy to read in the light theme."
+      ],
+      "ca": [
+        "Nova pantalla d'entrada: el logotip apareix amb una llum suau mentre l'app es prepara, i en entrar tot respon des del primer gest. Amb el tema clar el nom ja es llegeix bé."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "splash-animado",
+        "t": {
+          "es": "Nueva pantalla de entrada",
+          "en": "New opening screen",
+          "ca": "Nova pantalla d'entrada"
+        },
+        "items": {
+          "es": [
+            "1. Actualiza la app y ciérrala del todo (quítala de recientes); el cambio se ve en la segunda apertura tras actualizar. Ábrela: debe verse la tarjeta con el logo, una luz verde suave que respira detrás y el nombre debajo, sin barras ni cortes.",
+            "2. Fíjate en el momento de entrar: primero desaparece el logo y después el fondo. En ningún instante debe verse el logo encima de la pantalla de Inicio.",
+            "3. Nada más entrar, desliza a Gastos, Plan y Cartera. Deben ir fluidas desde el primer deslizamiento.",
+            "4. En Ajustes pon el tema claro, cierra la app del todo y ábrela. No debe haber fogonazo ni salto brusco de color, y «Aely» debe leerse bien."
+          ],
+          "en": [
+            "1. Update the app and close it completely (remove it from recent apps); the change shows on the second opening after updating. Open it: you should see the card with the logo, a soft green glow breathing behind it and the name below, with no bars or cuts.",
+            "2. Watch the moment you enter: first the logo disappears and then the background. At no point should the logo be visible on top of the Home screen.",
+            "3. Right after entering, swipe to Spending, Plan and Portfolio. They should be smooth from the very first swipe.",
+            "4. In Settings choose the light theme, close the app completely and open it. There should be no flash or abrupt colour jump, and “Aely” should be easy to read."
+          ],
+          "ca": [
+            "1. Actualitza l'app i tanca-la del tot (treu-la de recents); el canvi es veu a la segona obertura després d'actualitzar. Obre-la: s'ha de veure la targeta amb el logotip, una llum verda suau que respira al darrere i el nom a sota, sense barres ni talls.",
+            "2. Fixa't en el moment d'entrar: primer desapareix el logotip i després el fons. En cap instant s'ha de veure el logotip damunt de la pantalla d'Inici.",
+            "3. Just en entrar, llisca a Despeses, Pla i Cartera. Han d'anar fluides des del primer lliscament.",
+            "4. A Ajustos posa el tema clar, tanca l'app del tot i obre-la. No hi ha d'haver cap fogonada ni salt brusc de color, i «Aely» s'ha de llegir bé."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.116",
     "d": "2026-10-11",
     "t": {
@@ -28,34 +78,6 @@
       ]
     },
     "tandas": [
-      {
-        "id": "bancos-sin-hueco",
-        "t": {
-          "es": "Bancos sin huecos",
-          "en": "Banks without gaps",
-          "ca": "Bancs sense forats"
-        },
-        "items": {
-          "es": [
-            "1. En Cartera, dentro de «Tus cuentas», toca el icono «Sincronizar bancos» y espera a que termine.",
-            "2. Abre Gastos: los movimientos nuevos de tus bancos aparecen, cada uno una sola vez, sin repetidos.",
-            "3. Vuelve a Cartera y toca el icono «Conectar cuentas» para abrir «Mis bancos»: en cada banco, la línea «Saldo actualizado» marca la hora de ahora.",
-            "4. Toca «Sincronizar bancos» otra vez: no aparece ningún movimiento repetido en Gastos y «Saldo actualizado» pasa a la hora nueva."
-          ],
-          "en": [
-            "1. In Portfolio, inside “Your accounts”, tap the “Sync banks” icon and wait for it to finish.",
-            "2. Open Spending: the new transactions from your banks appear, each one only once, with no repeats.",
-            "3. Go back to Portfolio and tap the “Connect accounts” icon to open “My banks”: on each bank, the “Balance updated” line shows the time right now.",
-            "4. Tap “Sync banks” again: no repeated transaction appears in Spending and “Balance updated” moves to the new time."
-          ],
-          "ca": [
-            "1. A Cartera, dins de «Els teus comptes», toca la icona «Sincronitza els bancs» i espera que acabi.",
-            "2. Obre Despeses: els moviments nous dels teus bancs apareixen, cadascun una sola vegada, sense repetits.",
-            "3. Torna a Cartera i toca la icona «Connectar comptes» per obrir «Els meus bancs»: a cada banc, la línia «Saldo actualitzat» marca l'hora d'ara.",
-            "4. Toca «Sincronitza els bancs» una altra vegada: no apareix cap moviment repetit a Despeses i «Saldo actualitzat» passa a l'hora nova."
-          ]
-        }
-      },
       {
         "id": "widget-ciclo-puente",
         "t": {

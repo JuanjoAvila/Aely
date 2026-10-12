@@ -21,6 +21,8 @@ const source113=sourceAt("103f3bf101b14585e9cb2b87287f14591d23c624");
 const source114=sourceAt("8adba5202a0444b386e3957a3c5ba499cf88e622");
 // Integración116: beta115 servida (dfc02866), con el catálogo y el widget tal como se revisaron.
 const source115=sourceAt("dfc028661935130acc66d416f26d95a09b758497");
+// Integración117: la 116 integrada tal como se publicó en beta (f012fc05).
+const source116=sourceAt("f012fc05b16fc5b24b13227ac168a3f7f24c246c");
 const empty=[{v:"4.26.67",tandas:[]}];
 const archiveRefs=JSON.parse(read("scripts/beta-archives.json"));
 const archiveId="inc-0810-inicio-grafica-significado";
@@ -508,7 +510,9 @@ test("Catálogo115 histórico añade sólo la tanda del widget y fija qué huell
 // del panel sin alias) y DOS alcances. El cliente cambia el sync de bancos, que otras tandas ya entregadas vigilan: aquí se
 // fija, como oráculo literal, QUÉ huellas ajenas mueve (la del widget115, aún sin aprobar, incluida).
 const expected116={"v":"4.26.116","d":"2026-10-11","t":{"es":"Bancos sin huecos y widget arreglado","en":"Banks without gaps and widget fixed","ca":"Bancs sense forats i widget arreglat"},"items":{"es":["Si pasas días sin sincronizar, ya no se queda nada por el camino: lo que faltaba entra poco a poco cada vez que pulsas sincronizar bancos.","La fecha de «Saldo actualizado» es la de la última lectura real del banco.","Si llevas más de 90 días sin sincronizar un banco, la app te avisa de que el banco solo entrega los últimos 90 días.","El widget vuelve a mostrar tu cifra de «Mi ciclo» y se actualiza al pagar con el móvil aunque la app esté cerrada. Para el pago con la app cerrada hace falta instalar la versión nueva de la app."],"en":["If you go days without syncing, nothing is left behind anymore: what was missing comes in little by little each time you tap sync banks.","The “Balance updated” date is the time of the last real reading from the bank.","If you have gone more than 90 days without syncing a bank, the app tells you that the bank only provides the last 90 days.","The widget shows your “My cycle” figure again and updates when you pay with your phone even if the app is closed. Paying with the app closed needs the new version of the app to be installed."],"ca":["Si passes dies sense sincronitzar, ja no es queda res pel camí: el que faltava entra a poc a poc cada vegada que prems sincronitza bancs.","La data de «Saldo actualitzat» és la de l'última lectura real del banc.","Si portes més de 90 dies sense sincronitzar un banc, l'app t'avisa que el banc només lliura els últims 90 dies.","El widget torna a mostrar la xifra de «El meu cicle» i s'actualitza en pagar amb el mòbil encara que l'app estigui tancada. Per al pagament amb l'app tancada cal instal·lar la versió nova de l'app."]},"tandas":[{"id":"bancos-sin-hueco","t":{"es":"Bancos sin huecos","en":"Banks without gaps","ca":"Bancs sense forats"},"items":{"es":["1. En Cartera, dentro de «Tus cuentas», toca el icono «Sincronizar bancos» y espera a que termine.","2. Abre Gastos: los movimientos nuevos de tus bancos aparecen, cada uno una sola vez, sin repetidos.","3. Vuelve a Cartera y toca el icono «Conectar cuentas» para abrir «Mis bancos»: en cada banco, la línea «Saldo actualizado» marca la hora de ahora.","4. Toca «Sincronizar bancos» otra vez: no aparece ningún movimiento repetido en Gastos y «Saldo actualizado» pasa a la hora nueva."],"en":["1. In Portfolio, inside “Your accounts”, tap the “Sync banks” icon and wait for it to finish.","2. Open Spending: the new transactions from your banks appear, each one only once, with no repeats.","3. Go back to Portfolio and tap the “Connect accounts” icon to open “My banks”: on each bank, the “Balance updated” line shows the time right now.","4. Tap “Sync banks” again: no repeated transaction appears in Spending and “Balance updated” moves to the new time."],"ca":["1. A Cartera, dins de «Els teus comptes», toca la icona «Sincronitza els bancs» i espera que acabi.","2. Obre Despeses: els moviments nous dels teus bancs apareixen, cadascun una sola vegada, sense repetits.","3. Torna a Cartera i toca la icona «Connectar comptes» per obrir «Els meus bancs»: a cada banc, la línia «Saldo actualitzat» marca l'hora d'ara.","4. Toca «Sincronitza els bancs» una altra vegada: no apareix cap moviment repetit a Despeses i «Saldo actualitzat» passa a l'hora nova."]}},{"id":"widget-ciclo-puente","t":{"es":"Widget: cifra de Mi ciclo y pago con la app cerrada","en":"Widget: My cycle figure and payment with the app closed","ca":"Widget: xifra de El meu cicle i pagament amb l'app tancada"},"items":{"es":["1. Actualiza la app web (sin instalar nada todavía) y ábrela: el widget vuelve a mostrar la cifra de «Mi ciclo», sin el aviso «Abre la app para actualizar».","2. Instala la app nueva (54) y ábrela: la cifra del widget sigue igual.","3. Cierra la app del todo y paga algo pequeño con el móvil: cuando llegue la notificación del gasto, la cifra del widget sube ese importe y no sale el aviso.","4. Abre la app: la cifra coincide con la de «Mi ciclo» en Inicio y el pago no está sumado dos veces."],"en":["1. Update the web app (without installing anything yet) and open it: the widget shows the “My cycle” figure again, without the “Open the app to update” notice.","2. Install the new app (54) and open it: the widget figure stays the same.","3. Close the app completely and pay for something small with your phone: when the expense notification arrives, the widget figure goes up by that amount and the notice does not appear.","4. Open the app: the figure matches “My cycle” on Home and the payment is not counted twice."],"ca":["1. Actualitza l'app web (sense instal·lar res encara) i obre-la: el widget torna a mostrar la xifra de «El meu cicle», sense l'avís «Obre l'app per actualitzar».","2. Instal·la l'app nova (54) i obre-la: la xifra del widget continua igual.","3. Tanca l'app del tot i paga alguna cosa petita amb el mòbil: quan arribi la notificació de la despesa, la xifra del widget puja aquest import i no surt l'avís.","4. Obre l'app: la xifra coincideix amb la d'«El meu cicle» a Inici i el pagament no està sumat dues vegades."]},"apk":54}]};
-test("Catálogo116 añade sólo la tanda de los bancos y fija qué huellas ajenas mueve su lectura",()=>{
+// Catálogo cerrado: desde la117 se lee de su commit inmutable (la117 añade nota y versión nuevas).
+test("Catálogo116 histórico añade sólo la tanda de los bancos y fija qué huellas ajenas mueve su lectura",()=>{
+  const read=source116;
   const id="bancos-sin-hueco",before=JSON.parse(source115("src/data/release-notes.json"));
   const expected=[expected116,{...before[0],tandas:[]},...before.slice(1)];
   const verify=notes=>assert.deepEqual(notes,expected);
@@ -601,6 +605,88 @@ test("Catálogo116 añade sólo la tanda de los bancos y fija qué huellas ajena
   assert.deepEqual(receipt.pruebas[wid],{v:"4.26.116",contenido:JSON.stringify([wid,expected116.tandas[1].t.es,expected116.tandas[1].items.es,1])});
   assert.equal(JSON.stringify(receipt).includes(widget.native),false,"el recibo web no fabrica entrega nativa");
   for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica","native","edge"])assert.equal(group[key],undefined,"identidad nueva sin "+key);
+});
+// La117 añade UNA nota con UNA tanda (sólo web: el nativo no cambia, la APK sigue en la 54) y UN
+// alcance: la pantalla de entrada nueva. Toca el CSS del splash, el script del <head> y un efecto de
+// App, que ninguna otra tanda vigila (el bloque del mínimo de 520 ms de inc-2709-01-arranque-red
+// queda intacto a propósito: ese alcance está auditado). Se fija como oráculo literal que NINGUNA
+// huella ajena se mueve; si algún día se mueve una, este test la nombra en vez de reabrirla en silencio.
+const expected117={"v":"4.26.117","d":"2026-10-12","t":{"es":"Nueva pantalla de entrada","en":"New opening screen","ca":"Nova pantalla d'entrada"},"items":{"es":["Nueva pantalla de entrada: el logo aparece con una luz suave mientras la app se prepara, y al entrar todo responde desde el primer gesto. En tema claro el nombre ya se lee bien."],"en":["New opening screen: the logo appears with a soft glow while the app gets ready, and everything responds from the very first swipe. The name is now easy to read in the light theme."],"ca":["Nova pantalla d'entrada: el logotip apareix amb una llum suau mentre l'app es prepara, i en entrar tot respon des del primer gest. Amb el tema clar el nom ja es llegeix bé."]},"tandas":[{"id":"splash-animado","t":{"es":"Nueva pantalla de entrada","en":"New opening screen","ca":"Nova pantalla d'entrada"},"items":{"es":["1. Actualiza la app y ciérrala del todo (quítala de recientes); el cambio se ve en la segunda apertura tras actualizar. Ábrela: debe verse la tarjeta con el logo, una luz verde suave que respira detrás y el nombre debajo, sin barras ni cortes.","2. Fíjate en el momento de entrar: primero desaparece el logo y después el fondo. En ningún instante debe verse el logo encima de la pantalla de Inicio.","3. Nada más entrar, desliza a Gastos, Plan y Cartera. Deben ir fluidas desde el primer deslizamiento.","4. En Ajustes pon el tema claro, cierra la app del todo y ábrela. No debe haber fogonazo ni salto brusco de color, y «Aely» debe leerse bien."],"en":["1. Update the app and close it completely (remove it from recent apps); the change shows on the second opening after updating. Open it: you should see the card with the logo, a soft green glow breathing behind it and the name below, with no bars or cuts.","2. Watch the moment you enter: first the logo disappears and then the background. At no point should the logo be visible on top of the Home screen.","3. Right after entering, swipe to Spending, Plan and Portfolio. They should be smooth from the very first swipe.","4. In Settings choose the light theme, close the app completely and open it. There should be no flash or abrupt colour jump, and “Aely” should be easy to read."],"ca":["1. Actualitza l'app i tanca-la del tot (treu-la de recents); el canvi es veu a la segona obertura després d'actualitzar. Obre-la: s'ha de veure la targeta amb el logotip, una llum verda suau que respira al darrere i el nom a sota, sense barres ni talls.","2. Fixa't en el moment d'entrar: primer desapareix el logotip i després el fons. En cap instant s'ha de veure el logotip damunt de la pantalla d'Inici.","3. Just en entrar, llisca a Despeses, Pla i Cartera. Han d'anar fluides des del primer lliscament.","4. A Ajustos posa el tema clar, tanca l'app del tot i obre-la. No hi ha d'haver cap fogonada ni salt brusc de color, i «Aely» s'ha de llegir bé."]}}]};
+test("Catálogo117 añade sólo la tanda de la pantalla de entrada y no mueve ninguna huella ajena",()=>{
+  const id="splash-animado",before=JSON.parse(source116("src/data/release-notes.json"));
+  // Retiro117: bancos-sin-hueco, APROBADA en el móvil (12/10, 4 ok / 0 fallos sobre 4.26.116.1), sale del panel; su nota, su descriptor y todo el historial se quedan.
+  const retired="bancos-sin-hueco";
+  const expected=[expected117,{...before[0],tandas:before[0].tandas.filter(g=>g.id!==retired)},...before.slice(1)];
+  const verify=notes=>assert.deepEqual(notes,expected);
+  const notes=JSON.parse(read("src/data/release-notes.json"));verify(notes);
+  assert.equal(notes.length,234);assert.equal(JSON.parse(read("package.json")).version,"4.26.117");
+  assert.equal(notes.flatMap(n=>n.tandas||[]).filter(g=>g.id===id).length,1,"una sola vez en todo el catálogo");
+  assert.deepEqual(notes[0].tandas.map(g=>[g.id,g.apk||0]),[[id,0]],"sin APK: el nativo no cambia");
+  assert.deepEqual(notes[1].tandas.map(g=>[g.id,g.apk||0]),[["widget-ciclo-puente",54]],"el widget116 sigue pendiente de veredicto");
+  assert.deepEqual(notes[3].tandas.map(g=>g.id),["inicio-solape-gastos"],"la tanda114 sigue pendiente");
+  const twice=structuredClone(notes);twice[0].tandas.push(structuredClone(twice[0].tandas[0]));assert.throws(()=>verify(twice),"no duplicar la tanda");
+  const inherited=structuredClone(notes);inherited[0].tandas[0].desde="inc-2709-01-arranque-red";assert.throws(()=>verify(inherited),"no heredar una aprobación");
+  const withApk=structuredClone(notes);withApk[0].tandas[0].apk=54;assert.throws(()=>verify(withApk),"no hay APK que probar");
+  const missing=structuredClone(notes);missing.pop();assert.throws(()=>verify(missing));
+  const text=structuredClone(notes);text[1].items.es[0]+="mutante";assert.throws(()=>verify(text));
+  const scopes=JSON.parse(read("scripts/beta-sources.json")),oldScopes=JSON.parse(source116("scripts/beta-sources.json"));
+  assert.deepEqual(Object.keys(scopes).filter(key=>!oldScopes[key]),[id]);
+  assert.deepEqual(Object.keys(oldScopes).filter(key=>!scopes[key]),[],"ningún alcance se retira");
+  for(const [key,scope] of Object.entries(oldScopes))assert.deepEqual(scopes[key],scope,key+": descriptor ajeno intacto");
+  assert.deepEqual(Object.keys(scopes[id]),["web"],"sin APK, Edge ni unidades: son trozos de shell.html y un efecto de App");
+  assert.deepEqual(JSON.parse(read("scripts/beta-archives.json")),JSON.parse(source116("scripts/beta-archives.json")),"pin y juicio109 intactos");
+  // Beta116 publicada frente a la fuente integrada: ninguna huella ajena se mueve, ni la de arranque-red.
+  const moved={};
+  for(const [key,scope] of Object.entries(oldScopes)){
+    if(key===archiveId)continue; // 109 es referencia fija, nunca código vigente.
+    const a=betaRevision(key,source116,undefined,scope),b=betaRevision(key,read,undefined,scopes[key]);
+    const surfaces=["web","native","edge"].filter(surface=>a[surface]!==b[surface]);
+    if(surfaces.length)moved[key]=surfaces;
+  }
+  assert.deepEqual(moved,{},"la pantalla de entrada no reabre ninguna tanda ajena");
+  const shell="src/shell.html",main="src/modules/11-app-main.js";
+  const source=f=>read(f).replace(/\r\n/g,"\n"),current=betaRevision(id,source,undefined,scopes[id]);
+  assert.equal(current.native,undefined);assert.equal(current.edge,undefined);
+  assert.throws(()=>betaRevision(id,source116,undefined,scopes[id]),/no inequívoco/,"la beta anterior ni siquiera contiene la pantalla nueva: no la acredita");
+  // Cada pieza vigilada reabre la tanda.
+  for(const [file,from,to] of [
+    [shell,"var _s=JSON.parse(localStorage.getItem(_k));","var _s=JSON.parse(localStorage.getItem(_k+\"x\"));"],
+    [shell,"animation:mclpop .5s cubic-bezier(.32,.72,0,1) backwards;}","animation:mclpop .5s cubic-bezier(.32,.72,0,1) both;}"],
+    [shell,"html[data-mc-nativo] #mc-load::before{content:\"\";position:absolute;inset:0;background:#0A1310;","html[data-mc-nativo] #mc-load::before{content:\"\";position:absolute;inset:0;background:#0A1311;"],
+    [shell,"html[data-theme=\"light\"] #mc-load .mcl-name{color:var(--text);}","html[data-theme=\"light\"] #mc-load .mcl-name{color:var(--brand-word);}"],
+    [shell,"<div class=\"mcl-mark\" aria-hidden=\"true\">","<div class=\"mcl-mark\">"],
+    [main,"if(state.onboarded===false||locked||window.__mcSplashGone||!document.getElementById(\"mc-load\")) return;","if(state.onboarded===false||locked||window.__mcSplashGone) return;"]]){
+    assert.equal(source(file).split(from).length,2,"mutante sobre fuente real: "+from);
+    const changed=betaRevision(id,f=>f===file?source(f).replace(from,to):source(f),undefined,scopes[id]);
+    assert.notEqual(changed.web,current.web,"reabre la tanda: "+from);
+  }
+  // El mínimo de 520 ms del vigilante (alcance auditado de inc-2709-01-arranque-red) no se toca: lo cubre moved={} de arriba.
+  const built=betaNotes(notes,read,scopes),receipt=betaDelivery(built,read,scopes),group=built[0].tandas[0];
+  assert.equal(group.web,current.web);assert.equal(group.native,undefined);assert.equal(group.edge,undefined);assert.equal(group.apk,undefined);
+  assert.equal(receipt.web[id],current.web);
+  assert.deepEqual(receipt.pruebas[id],{v:"4.26.117",contenido:JSON.stringify([id,expected117.tandas[0].t.es,expected117.tandas[0].items.es,1])});
+  assert.deepEqual(receipt.pruebas["widget-ciclo-puente"].v,"4.26.116","la prueba116 sigue en el recibo");
+  assert.equal(receipt.web[retired],betaRevision(retired,read,undefined,scopes[retired]).web,"el producto sigue íntegro");assert.equal(receipt.pruebas[retired],undefined,"el guion aprobado no permanece marcado");
+  for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica","native","edge"])assert.equal(group[key],undefined,"identidad nueva sin "+key);
+});
+test("Retiro117 elimina solo bancos-sin-hueco y conserva todo el historial",()=>{
+  const id="bancos-sin-hueco",before=JSON.parse(source116("src/data/release-notes.json")),notes=JSON.parse(read("src/data/release-notes.json"));
+  assert.equal(before[0].tandas.some(g=>g.id===id),true,"la 116 publicada la llevaba");
+  assert.equal(notes.flatMap(n=>n.tandas||[]).some(g=>g.id===id),false,"ya no está en ninguna nota");
+  assert.deepEqual(notes.length,before.length+1,"ninguna nota se borra");
+  // La nota116 conserva versión, fecha, título y textos; solo pierde esa tanda y conserva la del widget, sin veredicto, con su APK.
+  assert.deepEqual(notes[1],{...before[0],tandas:before[0].tandas.filter(g=>g.id!==id)});
+  assert.deepEqual(notes.slice(2),before.slice(1),"el resto del catálogo, intacto");
+  const resurrected=structuredClone(notes);resurrected[1].tandas.unshift(before[0].tandas.find(g=>g.id===id));
+  assert.notDeepEqual(resurrected,notes,"no resucitar la tanda aprobada");
+  const scopes=JSON.parse(read("scripts/beta-sources.json")),old=JSON.parse(source116("scripts/beta-sources.json"));
+  assert.deepEqual(scopes[id],old[id],"el descriptor queda como historia");
+  const widget="widget-ciclo-puente";
+  assert.deepEqual(scopes[widget],old[widget]);
+  assert.deepEqual(betaRevision(widget,read,undefined,scopes[widget]),betaRevision(widget,source116,undefined,old[widget]),"la huella del widget sigue idéntica tras el retiro y el splash");
+  const receipt=betaDelivery(betaNotes(notes,read,scopes),read,scopes);
+  assert.equal(receipt.web[id],betaRevision(id,read,undefined,scopes[id]).web,"el producto sigue íntegro");assert.equal(receipt.pruebas[id],undefined,"el guion aprobado no permanece marcado");
+  assert.equal(receipt.web[widget],betaRevision(widget,read,undefined,scopes[widget]).web);
 });
 test("Bienes113 vigila la puerta vacía, ficha, cancelación, borrado y textos",()=>{
   const source=f=>read(f).replace(/\r\n/g,"\n"),id="bienes-completo",before=betaRevision(id,source).web;
@@ -782,7 +868,7 @@ test("PERSIST91: el guardado en el commit invalida toda tanda que escribe estado
   assert.ok(dependientes.includes("widget-pago-app-cerrada"),"la lectura que acredita el widget mezcla gastos con el set real");
   assert.ok(dependientes.includes("inc-0810-metas-editar-regla"),"editar una regla escribe con el set real y conserva el cierre de persistencia");
   assert.ok(dependientes.includes("inc-0710-gastos-mes-madrid"),"Gastos99 conserva la dependencia real de guardado de Expenses");
-  assert.deepEqual(ajenas.slice().sort(),["beta-panel-veredictos","inc-0210-01-plan-cuota","inc-0410-inicio-tres-metas","inc-0710-appstate-listener-cleanup","inc-0710-banknotif-cleanup","inc-0810-backclose-handover","inc-0810-dashboard-recents-memo","inc-0810-inicio-grafica-significado","inc-0810-nav-indicator","inc-2709-01-arranque-red","inc-2709-09-fechas-cache","inc-2709-12-cyber-fab","inc-2709-13-fab-contorno","inc-2709-14-preguntar","inicio-grafica-vuelve","inicio-solape-gastos","ops-0410-panel-cola","tr-descripcion-clasificacion"]);
+  assert.deepEqual(ajenas.slice().sort(),["beta-panel-veredictos","inc-0210-01-plan-cuota","inc-0410-inicio-tres-metas","inc-0710-appstate-listener-cleanup","inc-0710-banknotif-cleanup","inc-0810-backclose-handover","inc-0810-dashboard-recents-memo","inc-0810-inicio-grafica-significado","inc-0810-nav-indicator","inc-2709-01-arranque-red","inc-2709-09-fechas-cache","inc-2709-12-cyber-fab","inc-2709-13-fab-contorno","inc-2709-14-preguntar","inicio-grafica-vuelve","inicio-solape-gastos","ops-0410-panel-cola","splash-animado","tr-descripcion-clasificacion"]);
   /* Quién depende del guardado lo decide el CÓDIGO, no la marca del registro (auditoría del
      coordinador, 4/10): se quita de cada alcance el bloque del guardado y se mira si lo que queda
      llama a `set` de App —las dependencias transitivas ya son unidades del alcance—. Tiene que

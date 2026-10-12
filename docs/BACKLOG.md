@@ -4,7 +4,11 @@ Unidad concreta: Cartera → Bienes → fila abre el editor existente sin escrib
 
 # Backlog operativo — Aely
 
-## INC-0810 · historial de Perfil a Ajustes · OPEN · 8/10/2026
+## INC-0810 · historial de Perfil a Ajustes · CLOSED · 8/10/2026 (cerrado 12/10/2026)
+
+Cierre: ya estaba corregido en la base beta `f695a299`. `e2e/backclose-handover.spec.mjs` pasó 180 de 180
+(10 repeticiones) sobre esa base el 12/10/2026: Perfil → «Ir a Ajustes» → cerrar ya no saca de la app.
+No hay cambio de código ni nota de versión por este cierre. Texto original del hallazgo:
 
 Hallazgo sintético al verificar Indicador107: abrir Perfil → «Ir a Ajustes» → cerrar con «‹»
 sale de la app hacia `about:blank`. Reproducido también en la base beta `8dcc5ed3`; no lo

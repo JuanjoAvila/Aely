@@ -55,12 +55,14 @@ test("★ pasado el tope de animación, las filas del medio NO se quedan transpa
   const overlay = await abrirConLote(page, 95);
   // 24×~34 ms + margen: la animación tiene que haber llegado al tope.
   await expect.poll(async () => overlay.locator(".hist-fila.dentro").count(), { timeout: 8_000 }).toBeGreaterThanOrEqual(60);
-  const mid = await overlay.locator(".hist-fila").nth(30).evaluate((el) => {
-    const cs = getComputedStyle(el);
-    return { op: cs.opacity, dentro: el.classList.contains("dentro"), text: el.textContent.slice(0, 40) };
-  });
+  const fila = overlay.locator(".hist-fila").nth(30);
+  const mid = await fila.evaluate((el) => ({ dentro: el.classList.contains("dentro"), text: el.textContent.slice(0, 40) }));
   expect(mid.dentro, "la fila 30 tiene que llevar dentro o es el negro de mitad de scroll").toBe(true);
-  expect(Number(mid.op)).toBeGreaterThan(0.9);
+  // La clase `dentro` arranca la transición de opacidad (hojaentra), no la termina: leer la
+  // opacidad en el mismo instante en que aparece la clase la pilla a medias (CI de beta del
+  // 11/10/2026: dio 0 y luego 0,77 bajo carga, con el umbral en 0,9). Lo que se vigila es que
+  // ACABE visible, así que se espera a que lo esté en vez de fotografiar la mitad del fundido.
+  await expect.poll(async () => Number(await fila.evaluate((el) => getComputedStyle(el).opacity)), { timeout: 5_000 }).toBeGreaterThan(0.9);
 });
 
 test("★ «Ver N más» enseña filas NUEVAS visibles, no más huecos negros", async ({ page }) => {

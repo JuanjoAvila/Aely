@@ -7,7 +7,7 @@ La base80/source955765a9 incluye Retirada y Nómina junto con Widget y las tres 
 
 # Aely
 
-Candidata4.26.116: los bancos se sincronizan sin dejar huecos tras días sin abrir la app (cliente de «bancos sin hueco», ronda 3; la función del servidor ya está desplegada) y el widget vuelve a mostrar la cifra de «Mi ciclo» (arreglo del puente web→Java; necesita APK 54, y la 53 se recupera por OTA). Tres tandas en revisión: `bancos-sin-hueco` (web), `widget-ciclo-puente` (web + APK 54; sustituye a `widget-pago-app-cerrada`, rechazada) e `inicio-solape-gastos` (4.26.114, sigue pendiente). Publicación beta, compilación y subida de la APK y aceptación móvil pendientes.
+Candidata4.26.117: pantalla de entrada nueva (tarjeta con el logo, una luz suave que respira detrás y salida limpia: primero se va el logo y después el fondo), con las cuatro pestañas montadas detrás de la cortina para que el primer gesto vaya fluido y el nombre legible en tema claro. Solo web: no hay APK nueva (sigue la 54). `bancos-sin-hueco` (4.26.116) quedó aprobada en el móvil el 12/10 (4 ok / 0 fallos) y sale del panel. Tres tandas en revisión: `splash-animado` (nueva, solo web), `widget-ciclo-puente` (web + APK 54) e `inicio-solape-gastos` (4.26.114, sigue pendiente). Publicación beta, compilación y subida de la APK 54 y aceptación móvil pendientes.
 
 MAIN4.26.110 incorpora PR196 (bdd75636), sólo pruebas, herramientas y documentación. Tests38005461796 y DeployPages38005461732 terminaron SUCCESS y sus artefactos se comprobaron; ese cierre no publica Inicio112 ni acredita APK nuevo o aceptación móvil. Las aprobadas99/100/101/102/106 ya entregadas conservan su cierre;109 sigue rechazada.
 
@@ -65,7 +65,7 @@ mi-cartera/
 │   ├── index.html          #     Generado por `npm run build` — no editar a mano
 │   ├── manifest.json · sw.js · vendor/ · fonts/
 │   └── privacy.html
-├── e2e/                    # Playwright (106 specs: pantallas, persistencia, copias, reglas mensuales y ayuda de Mi ciclo)
+├── e2e/                    # Playwright (110 specs: pantallas, persistencia, copias, reglas mensuales y ayuda de Mi ciclo)
 │   └── backclose-handover.spec.mjs # Dieciocho casos de historial/overlays; retorno cleanUrls2PASS/base1092RED
 ├── tests/backclose-history.test.mjs # Controlador y hook reales con cola de eventos History sintética
 ├── tests/widget-notificacion-render.test.mjs # Java real sobre preferencias APK52: notificación, registro, relectura y pintado
@@ -124,9 +124,11 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.116** — candidata de beta: bancos sin huecos tras días sin sincronizar (cliente de la ronda 3) y widget arreglado (la cifra de «Mi ciclo» y el pago con la app cerrada), con APK 54. Tandas nuevas `bancos-sin-hueco` y `widget-ciclo-puente` (la `widget-pago-app-cerrada` de la 4.26.115 fue rechazada); `inicio-solape-gastos` (4.26.114) sigue en revisión. Publicación beta, APK y aceptación móvil pendientes.
+Estado actual: **v4.26.117** — candidata de beta: pantalla de entrada nueva con halo que respira, salida limpia y pestañas ya montadas al entrar (solo web, sin APK nueva). Tanda nueva `splash-animado`; `bancos-sin-hueco` (4.26.116) aprobada el 12/10 y retirada del panel; siguen en revisión `widget-ciclo-puente` (4.26.116, APK 54) e `inicio-solape-gastos` (4.26.114). Publicación beta, APK 54 y aceptación móvil pendientes.
 
-Corte anterior (11/10): **v4.26.115**, el widget se actualiza al pagar con la app cerrada (APK 53); rechazada en el móvil. Antes (11/10): **v4.26.114**, Inicio sin el desglose de Gastos solapado con temática activa. Antes (10/10): **v4.26.113**, Bienes con alta, edición y borrado e Inicio con la gráfica recuperada sin «Ahora».
+Corte anterior (11/10): **v4.26.116**, bancos sin huecos y widget arreglado (APK 54).
+
+Antes (11/10): **v4.26.115**, el widget se actualiza al pagar con la app cerrada (APK 53); rechazada en el móvil. Antes (11/10): **v4.26.114**, Inicio sin el desglose de Gastos solapado con temática activa. Antes (10/10): **v4.26.113**, Bienes con alta, edición y borrado e Inicio con la gráfica recuperada sin «Ahora».
 
 Corte anterior (4/10, 12:30 UTC, panel de revisión): **v4.26.93** publicada en beta. Primera entrega4.26.93.1 (fuente1d5dd782), CI37200314653SUCCESS y HTTP/ZIP/HTML/SW/catálogo/huella cotejados el4/10 a12:30UTC:11 tandas/24 puntos, frente a40 antes del cambio. Producción4.26.86 (d366215a), APK beta4.26.80/code52 y estable4.26.32/code48 conservadas. Prueba y aprobación móvil pendientes. [Acta](docs/briefs/ops-0410-panel-cola.md).
 
