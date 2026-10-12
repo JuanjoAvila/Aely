@@ -1,3 +1,5 @@
+Índice operativo: [estado único del backlog](docs/BACKLOG.md). Las fotos anteriores completas viven en [BACKLOG-HISTORIA](docs/BACKLOG-HISTORIA.md); sus estados y roles antiguos no sustituyen la tabla vigente.
+
 Apuntar y Gastos permiten distinguir Multas, Zona azul y Peajes. Solo los pagos nuevos con detalle inequívoco los sugieren; elegir una categoría conserva el importe y la fecha.
 
 Promoción4/10: las once tandas de beta4.26.94.1 tienen aprobación vigente. Producción4.26.94/source8bb0398f servida y cotejada; APK52 estable y las tres funciones Edge entregadas. La limpieza conserva notas y decisiones; solo retira las once entregadas, sin producto nuevo. Prioridad permanente: producción de lo aprobado antes de otra implementación. [Acta](docs/briefs/promocion-aprobadas-2026-10-04.md).
@@ -79,7 +81,7 @@ mi-cartera/
 │   ├── build-app.mjs       # Ensambla src/ → public/index.html
 │   ├── run-tests.mjs       # build + unit + Deno + E2E; tiempos por etapa en test-results/
 │   └── stamp-version.mjs
-├── docs/                   # BACKLOG, ARQUITECTURA, TESTING, SENTRY, ROADMAP…
+├── docs/                   # BACKLOG + historia, ARQUITECTURA, TESTING, SENTRY, ROADMAP…
 ├── playwright.config.mjs
 ├── VERSION
 └── CHANGELOG.md
