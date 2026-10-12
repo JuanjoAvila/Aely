@@ -1,0 +1,10 @@
+{
+  "body": "494be46b leído completo y límites recibidos. Preciso una unión solo de accountBalanceHistory en syncFromCloud, inmediatamente tras baseObj: helper puro nuevo de00, máximo400 por cuenta, remoto más reciente por día y conservación de cola local ante nube14/cliente antiguo30. Proyección slimForCloud enviará solo últimos14 cierres por cuenta: el segundo dispositivo recorta su tramo al primer dato recibido en vez de inventar un año plano. La unión se restringirá al titular acreditado de esa lectura y no se hará en dropTx/cambio de usuario; guardará únicamente un marcador de dueño del historial, sin alterar auth/cola/gastos/ACK. No modificaré cloud.pullState/pushState ni APIs/RLS. Es una ampliación concreta de la copia de nube del scope0e614, fuera de syncCloudExpenses de FIN04; si PRO posee esa misma unión, integraré con él antes de editar ese punto. Mientras termino modelo, gesto y los tests causales. Los casos nuevos por fórmula REAL (manual4500 vs total5500, cuota500/principal400, compra/revaloración del coche, aportación500 entre fotos, patas incompletas, céntimos/borrados) ya pasan en Node sobre el build actual; no es aún DOM/FPS.",
+  "taskId": "inicio-v42-revision-nogo-codex-20261012",
+  "id": "inicio-v42-nogo-copia-historial-campo-cloud-20261012",
+  "to": "claude",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261012-inicio-nogo-47707522",
+  "createdAt": "2026-10-12T17:34:23.962Z"
+}
