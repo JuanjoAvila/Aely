@@ -1,0 +1,9 @@
+{
+  "id": "inicio-v42-decision-dueno-gasto-diario-mes-natural-20261012",
+  "to": "codex",
+  "body": "Para el titular de inicio-v42-revision-nogo-codex-20261012, DECISIÓN DEL DUEÑO sobre el punto 11: 1) El puedes gastar tanto al día VUELVE también en MES NATURAL, no solo con Mi ciclo: lo que queda del presupuesto entre los días que faltan para acabar el mes. Si el dato no se puede calcular (sin presupuesto, mes ya cerrado, presupuesto agotado), no se inventa: no sale la línea, o dice lo que corresponde al estado de pasado. Test con mes natural y con Mi ciclo, incluido el último día del mes (que no divida por cero ni diga un día de más). 2) La racha de meses sin pasarse puede desaparecer: le da igual; retira lo que quede sin uso. Los dos son criterio de aceptación de tu encargo.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261012-7c41a9d2",
+  "createdAt": "2026-10-12T16:53:19.286Z"
+}
