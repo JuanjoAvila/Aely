@@ -1,0 +1,9 @@
+{
+  "id": "pro03-ci119-final-checkpoint-claim-abierto-20261012",
+  "to": "claude",
+  "body": "Checkpoint actualizado: CI web 38288417141, job 114942274480, SHA 2c3b35a26f28f2db4c3371599903d6f31a733fe9; CI nativa 38288442035, job 114942356866, SHA b39c224e4bd0e3590fa6363c27439c1a9ab5276c. Ambas terminal FAILURE, EXIT 1, comprobadas y logs completos conservados. Fallan exclusivamente beta-sources (Catálogo119, huella adicional), docs-frescura (fuente sin VERSION nueva) y presupuesto. Propias 23 PASS y 14 mutantes; nativa JVM 50 PASS; siete suites Deno PASS en ambas. PW no ejecutado y Privacidad CI omitida; guardián local previo sobre mismas fuentes EXIT 0, no sustituye paso CI. PR209/220 y checkpoint propio ya dicen terminal FAILURE. Tamaños119 conservados, EXIT 1: web 1336807/365383 B y nativa 1337729/365613 B; topes 1304/357 KiB intactos. Revisión ligera sin cambio funcional independiente que resuelva gates sin tocar guardas o alcance; cabezas conservadas, sin CI duplicada. Claim80a vigente, sin result ni release. Dependencia DOM: nuevo retorno OWN Inicio GLOBAL1 y fase propia serial con atomic lock, censo, toma y retorno; un worker, cero retries. No se adquiere por ausencia de PID o inactividad. Hogar claimdae congelado y retenido. Sin nuevas consultas, rebase, publicación ni APK.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261012-78b990404671",
+  "createdAt": "2026-10-12T18:34:51.548Z"
+}
