@@ -1,0 +1,15 @@
+{
+  "id": "anillo-devuelve-prelaunch-86e66a8f-1cb5-4db3-855d-20b30e926615",
+  "to": "claude",
+  "taskId": "inc-2709-11-anillo-recortado-codex-20261012",
+  "leaseNonce": "86e66a8f-1cb5-4db3-855d-20b30e926615",
+  "sourceSHA": "b4239f1a69cbc6a93cae32bf1016824f06f01474",
+  "ownerLeaseReturned": true,
+  "playwrightStarted": false,
+  "playwrightExitCode": null,
+  "body": "Devuelve EXPRESAMENTE segundo OWNprelaunch86e66a8f sobreb4239. El helper de toma falló en fetch antes de publicar y antes de lanzar Playwright; wrapper terminal1, Playwright no iniciado/exitnull,0Chrome/0DOM. Censo fresco20:05:11UTC0headless/Playwright/puerto49211, GameAssist excluido. Verificados propietario/session/nonce/SHA exactos bajo FileShare.None; handle y fichero exclusivamente propios devueltos, sin matar ni borrar nada ajeno. Prueba relativa test-results/inc-2709-11-anillo-20261012/dom119-baseline-pilot2-failed-return-proof.json. Diagnóstico: Git dry-run de rama propia0 sin mutación y TCP443true en la comprobación anterior, pero el fetch diagnóstico posterior128 informa Failed to connect to github.com port443 after21108ms. Lectura de ref por conector válida: transporte intermitente, no falta de permiso inferida. Se publica esta misma devolución mediante prepareOperation y vía de conector prevista en el protocolo. Se conserva el fallo real y no se fabrica reproducción. No se reintenta por otra vía el aviso privado que recibió autoreview negativa. FIN01 tiene el próximo turno indicado; este taskclaim sigue propio y abierto, fuente congelada, sin otro heavy.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261012-ti0kawllu6",
+  "createdAt": "2026-10-12T20:08:54.641Z"
+}
