@@ -31,7 +31,7 @@ const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
  *  acotar a una pantalla sin mentir. */
 export const CORE = [
   "scripts/verify-selective106.mjs",
-  "scripts/beta-source-code.mjs", "scripts/beta-revisions.mjs", "scripts/beta-sources.json", "scripts/build-app.mjs", "scripts/load-pure-logic.mjs",
+  "scripts/beta-source-code.mjs", "scripts/beta-revisions.mjs", "scripts/beta-archives.json", "scripts/beta-sources.json", "scripts/build-app.mjs", "scripts/load-pure-logic.mjs",
   "src/modules/00-core.js",
   "src/modules/01-i18n.js",
   "src/modules/02-ui-shared.js",
@@ -40,6 +40,9 @@ export const CORE = [
   "src/shell.html",
   "playwright.config.mjs",
   "scripts/run-tests.mjs",
+  // Reparar el guardián de revisión tras un CI fallido no puede publicar la unión
+  // pendiente sólo con Node y saltarse sus pantallas (publicador109, 8/10/2026).
+  "tests/beta-veredictos.test.mjs",
 ];
 
 /**
@@ -50,9 +53,9 @@ export const CORE = [
  * (mejor un minuto de más que un verde ciego).
  */
 export const E2E_MAP = [
+  { file: "src/modules/11-app-main.js", specs: ["e2e/widget-banco.spec.mjs"] },
   {file:"src/modules/16-help-assistant.js",specs:["e2e/help-assistant.spec.mjs","e2e/help-preguntar-borde.spec.mjs"]},
-  { file: "src/modules/03-tab-dash.js", specs: ["e2e/help-assistant.spec.mjs",
-    "e2e/dashboard-memo-profile.spec.mjs",
+  { file: "src/modules/03-tab-dash.js", specs: ["e2e/dashboard-memo-profile.spec.mjs", "e2e/help-assistant.spec.mjs",
     "e2e/listas-render.spec.mjs",
     "e2e/plan-cuota-contabilizada.spec.mjs",
 
@@ -92,7 +95,7 @@ export const E2E_MAP = [
     "e2e/help-assistant.spec.mjs",
     "e2e/hist-pagos-mensuales.spec.mjs", "e2e/bancos-historico-filtro.spec.mjs",
     "e2e/bancos-quitar-pending.spec.mjs", "e2e/gastos-deudas.spec.mjs",
-    "e2e/bank-callback-msg.spec.mjs", "e2e/plan-gestionar.spec.mjs",
+    "e2e/bank-callback-msg.spec.mjs", "e2e/bancos-hueco-sync.spec.mjs", "e2e/plan-gestionar.spec.mjs",
     "e2e/plan-cover.spec.mjs",
   ] },
   { file: "src/modules/07-tab-patri-fijos.js", specs: [
@@ -124,7 +127,7 @@ export const E2E_MAP = [
     "e2e/revisar-beta.spec.mjs", "e2e/beta-panel-reopen.spec.mjs", "e2e/ajustes-versiones.spec.mjs", "e2e/widget-banco.spec.mjs", "e2e/ajustes-importaciones.spec.mjs",
     "e2e/tour-tutorial.spec.mjs", "e2e/modo-pruebas.spec.mjs", "e2e/tr-aviso.spec.mjs",
     "e2e/presupuesto-bancos.spec.mjs", "e2e/quitar-banco.spec.mjs",
-    "e2e/bancos-quitar-pending.spec.mjs",
+    "e2e/bancos-quitar-pending.spec.mjs", "e2e/bancos-hueco-sync.spec.mjs",
     "e2e/hist-pagos-mensuales.spec.mjs",
     "e2e/bancos-historico-filtro.spec.mjs",
     "e2e/hist-visor.spec.mjs", "e2e/plan-gestionar.spec.mjs",
@@ -174,6 +177,10 @@ export const CROSSCUTTING = [
      JS, que es el camino que nunca se rompió: se quedó verde mientras ella no se escondía con el
      dedo (11/9). Éste baja con `Input.dispatchTouchEvent` y es el que caza eso. */
   "e2e/botnav-esconder.spec.mjs",
+  // INC-2709-13: el FAB no se recorta en recto al esconderse la barra (contorno en el primer frame oculto).
+  "e2e/botnav-fab-recorte.spec.mjs",
+  // INC-2709-13: la rayita de la pestaña activa se va con la barra escondida y la corriente Cyberpunk se queda.
+  "e2e/botnav-indicador.spec.mjs",
   "e2e/rendimiento.spec.mjs",
   "e2e/rendimiento-tabs.spec.mjs",
   "e2e/rendimiento-sostenido.spec.mjs",
@@ -183,6 +190,9 @@ export const CROSSCUTTING = [
   "e2e/pulsacion-larga.spec.mjs",
   /* UX-01: geometría de `.page-scroll-host` en `shell.html` (layout-shift al cambiar tab). */
   "e2e/ux01-layout-shift.spec.mjs",
+  /* 2026-10-10: una página que no es el host no puede tener cajas visibles en el viewport
+     (el desglose de Gastos atravesaba `visibility:hidden` y, con temática, tapaba Inicio). */
+  "e2e/inicio-solape-gastos.spec.mjs",
   /* A/B idiomas: en/ca fuera del bundle; arranque debe esperar el JSON. */
   "e2e/i18n-pack.spec.mjs",
   /* Regresión 4.19.100: hojas sin body tienen que scrollear; Apuntar mantiene CTA fijo. */
@@ -192,11 +202,12 @@ export const CROSSCUTTING = [
 ];
 
 const STEPS_DOCS = ["guard-privacy", "docs-frescura", "memoria-espejo"];
-const STEPS_ANDROID = ["guard-privacy", "webdebug-guard", "widget-coherente", "widget-arbitraje", "ingest-identity", "ingest-handler"];
+const STEPS_ANDROID = ["guard-privacy", "webdebug-guard", "widget-coherente", "widget-arbitraje", "widget-offline", "widget-unknown-loss", "widget-unknown-journal", "widget-notificacion-render", "widget-inicio-paridad", "widget-puente-ciclo", "ingest-identity", "ingest-handler"];
 const STEPS_SUPABASE = [
-  "help-assistant", "guard-privacy", "edge-sintaxis", "presupuesto-servidor", "cuotas-deudas", "widget-coherente", "widget-arbitraje",
+  "prod117-edge-compat",
+  "help-assistant", "guard-privacy", "edge-sintaxis", "presupuesto-servidor", "cuotas-deudas", "widget-coherente", "widget-arbitraje", "widget-offline", "widget-unknown-loss", "widget-unknown-journal", "widget-notificacion-render", "widget-inicio-paridad", "widget-puente-ciclo",
   "month-window", "wallet-notis", "ingest-classify", "ingest-identity", "ingest-handler", "divisa-original", "presupuesto-rendimiento",
-  "grants-migraciones", "entrada-edge", "bank-sync-paging", "tr-open-banking",
+  "grants-migraciones", "entrada-edge", "bank-sync-paging", "bank-sync-progreso", "tr-open-banking",
   "categorize-limitador", "categorize-handler",
 ];
 

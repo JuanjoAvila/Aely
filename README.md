@@ -1,3 +1,5 @@
+Promoción completa4.26.117: entrada renovada, recuperación de movimientos bancarios, widget que se actualiza al pagar con la app cerrada tras actualizar la app e Inicio sin el desglose de Gastos superpuesto. La reconciliación conserva los30 commits propios de main y el código aprobado de beta117. Una nota familiar más el historial de producción; las notas intermedias de beta quedan en Git y sus contratos, en los guardianes. Los cortes fechados de abajo son historia, no instrucciones vigentes. [Acta](docs/briefs/prod-completa-117.md).
+
 Selección web4.26.110: la rayita de la barra desaparece al ocultarla; Plan → Metas → Reservar dinero permite editar reglas conservando sus aportaciones; Perfil/Ajustes y Recibos → Gestionar conservan la pantalla al volver. Incluye únicamente las identidades aprobadas107/108/110 de beta; la gráfica109 rechazada conserva la implementación anterior. Historial, idiomas y APK52 conservados. [Alcance y cualificación local](docs/briefs/promocion-107-108-110-local26.md).
 
 Snapshot8/10 previo a la entrega106: candidata selectiva4.26.106 desde main56c7e328 para las aprobadas99/100/101/102/106. Producción comprobada4.26.98, beta4.26.106.1/source8dcc5ed3. Revisión independiente, CI exacta y entrega pendientes. Panel beta solo se retira después de entrega real; lag global abierto. [Acta](docs/briefs/promocion-aprobadas-local26.md).
@@ -8,13 +10,22 @@ Promoción selectiva6/10: candidata4.26.96 local para mostrar hasta tres metas a
 
 Apuntar y Gastos permiten distinguir Multas, Zona azul y Peajes. Solo los pagos nuevos con detalle inequívoco los sugieren; elegir una categoría conserva el importe y la fecha.
 
+Promoción4/10: las once tandas de beta4.26.94.1 tienen aprobación vigente. Producción4.26.94/source8bb0398f servida y cotejada; APK52 estable y las tres funciones Edge entregadas. La limpieza conserva notas y decisiones; solo retira las once entregadas, sin producto nuevo. Prioridad permanente: producción de lo aprobado antes de otra implementación. [Acta](docs/briefs/promocion-aprobadas-2026-10-04.md).
 Promoción selectiva5/10: candidata4.26.95 para volver con mucho historial, autorizada directamente por el dueño. Base main8bb0398; solo caché de fechas aprobada en PR133, sin beta completa. Revisión independiente, CI y entrega servida pendientes. INC-2709-09 global sigue abierto. [Acta](docs/briefs/promocion-cache95-2026-10-05.md).
 
-La base80/source955765a9 incluye Retirada y Nómina junto con Widget y las tres correcciones de pantalla.78/79 son snapshots de integración, no versiones publicadas por separado. Esta candidata conserva sus cambios; prueba móvil pendiente. [Actas](docs/briefs/ops-0110-validaciones-persistentes.md).
+La base80/source955765a9 incluye Retirada y Nómina junto con Widget y las tres correcciones de pantalla.78/79 son snapshots de integración, no versiones publicadas por separado. Snapshot anterior de integración: la promoción actual conserva sus cambios y cuenta con los once OK de beta94.1. [Actas](docs/briefs/ops-0110-validaciones-persistentes.md).
 
 # Aely
 
-Candidata Gasolina/Taxi: Apuntar → todas las categorías permite elegirlas por separado; Gastos comparte esos IDs en filtros y límites. Los apuntes antiguos y el límite de Transporte se conservan. [Estado sin publicar](docs/briefs/feature-0210-01-gasolina-taxi.md).
+La4.26.117 reúne la beta aprobada en una entrega de producción. Android4.26.117/code55 incorpora la parte nativa del widget; la web conserva compatibilidad con la APK52. Bienes y la gráfica ya pertenecen al historial de producción111.
+
+MAIN4.26.110 incorpora PR196 (bdd75636), sólo pruebas, herramientas y documentación. Tests38005461796 y DeployPages38005461732 terminaron SUCCESS y sus artefactos se comprobaron; ese cierre no publica Inicio112 ni acredita APK nuevo o aceptación móvil. Las aprobadas99/100/101/102/106 ya entregadas conservan su cierre;109 sigue rechazada.
+
+Cartera → Bienes incluye alta con la lista vacía y una ficha de edición con Guardar/Cancelar y borrado confirmado. [Bienes](docs/briefs/bienes-completo-20261010.md) · [Inicio](docs/briefs/inicio-grafica-vuelve-20261010.md).
+
+Inicio resume hasta tres metas activas; Ver plan permite consultar todas con sus importes intactos.
+
+Gasolina/Taxi: Apuntar → todas las categorías permite elegirlas por separado; Gastos comparte esos IDs en filtros y límites. Los apuntes antiguos y el límite de Transporte se conservan. [Acta histórica de preparación](docs/briefs/feature-0210-01-gasolina-taxi.md).
 
 
 
@@ -51,12 +62,14 @@ En Plan → Deudas, un saldo estimado a cero pide confirmar la liquidación. Des
 mi-cartera/
 ├── scripts/beta-source-code.mjs # Guardia de funciones/datos transitivos y delimitación por sintaxis, sin dependencias
 ├── scripts/beta-sources.json # Alcances explícitos de revisión; beta-revisions.mjs genera digests/recibo
+├── scripts/beta-archives.json # Pins nominativos para referencias históricas de sólo lectura
 ├── tests/pure-logic-notes.test.mjs · beta-source-parse.test.mjs # Carga diferida y cortes exactos sin debilitar auditorías
 ├── tests/beta-veredictos.test.mjs # Contrato compartido del panel y listo; beta-sources protege el ensamblado
 ├── tests/listo-actor.test.mjs # CLI real sin red: actor Dev autorizado y fallo cerrado si no se acredita
 ├── tests/backclose-history.test.mjs # Propiedad del historial y transferencias de overlays (selección110)
 ├── e2e/backclose-handover.spec.mjs · botnav-indicador.spec.mjs · metas-editar-regla.spec.mjs # Pantallas reales de110/107/108
 ├── tests/sync-memoria.test.mjs # Exportación sintética: cantidades, aviso Cloud e idempotencia; rechazo sin escrituras/borrados
+├── tests/prod117-edge-compat.test.mjs # Fuentes desplegadas ingest50/prices13 y cliente actual, sin red
 ├── tests/categorize-handler.test.mjs # Handler y helpers actuales, movilidad/SQLSTATE con SDK/DB/LLM simulados; sin red
 ├── src/                    # 👈 Fuente editable (v3.108+)
 │   ├── shell.html          #     HTML shell (React, CSS, vendors)
@@ -66,10 +79,16 @@ mi-cartera/
 │   ├── index.html          #     Generado por `npm run build` — no editar a mano
 │   ├── manifest.json · sw.js · vendor/ · fonts/
 │   └── privacy.html
-├── e2e/                    # Playwright (96 specs: pantallas, persistencia, copias, reglas mensuales y ayuda de Mi ciclo)
+├── e2e/                    # Playwright (110 specs: pantallas, persistencia, copias, reglas mensuales y ayuda de Mi ciclo)
+│   └── backclose-handover.spec.mjs # Dieciocho casos de historial/overlays; retorno cleanUrls2PASS/base1092RED
+├── tests/backclose-history.test.mjs # Controlador y hook reales con cola de eventos History sintética
+├── tests/widget-notificacion-render.test.mjs # Java real sobre preferencias APK52: notificación, registro, relectura y pintado
+├── tests/widget-inicio-paridad.test.mjs # 1584 casos contra los lectores reales de Inicio: alcance, céntimos y presupuesto
+├── tests/widget-puente-ciclo.test.mjs # JSON real del puente → plugin → widget con el Java de las APK 52, 53 y 54 a la vez
 ├── tests/                  # Unitarios en Node (lógica, parsers, i18n, seguridad, frescura de doc,
 │                           #  sintaxis de las Edge Functions, despliegue manual de Supabase y presupuesto de rendimiento)
 ├── supabase/               # Postgres, Auth, Edge Functions
+│   └── functions/ingest/widget.ts · widget.test.ts # Contrato widget v2 separado del mes legado y guardián Deno
 ├── scripts/
 │   ├── build-app.mjs       # Ensambla src/ → public/index.html
 │   ├── run-tests.mjs       # build + unit + Deno + E2E; tiempos por etapa en test-results/
@@ -119,7 +138,11 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.111** candidata selectiva para PR: Bienes permite añadir, editar y borrar también con la lista vacía. Inicio conserva la gráfica de producción y admite total desconocido. Fuente aprobada de beta113; pruebas completas, CI, revisión e integración pendientes. APK y backend conservan sus versiones.
+Estado actual: **v4.26.117** — entrada renovada, recuperación bancaria, widget que se actualiza al pagar con la app cerrada tras actualizar la app instalada e Inicio sin solape de Gastos. Android4.26.117/code55; web compatible con la APK52.
+
+Corte anterior (11/10): **v4.26.116**, bancos sin huecos y widget arreglado (APK 54).
+
+Antes (11/10): **v4.26.115**, el widget se actualiza al pagar con la app cerrada (APK 53); rechazada en el móvil. Antes (11/10): **v4.26.114**, Inicio sin el desglose de Gastos solapado con temática activa. Antes (10/10): **v4.26.113**, Bienes con alta, edición y borrado e Inicio con la gráfica recuperada sin «Ahora».
 
 Corte anterior (4/10, 12:30 UTC, panel de revisión): **v4.26.93** publicada en beta. Primera entrega4.26.93.1 (fuente1d5dd782), CI37200314653SUCCESS y HTTP/ZIP/HTML/SW/catálogo/huella cotejados el4/10 a12:30UTC:11 tandas/24 puntos, frente a40 antes del cambio. Producción4.26.86 (d366215a), APK beta4.26.80/code52 y estable4.26.32/code48 conservadas. Prueba y aprobación móvil pendientes. [Acta](docs/briefs/ops-0410-panel-cola.md).
 
@@ -147,6 +170,8 @@ En Ajustes → Revisar esta beta, toca la cabecera de una tanda para encogerla o
 > Esta línea la vigila `tests/docs-frescura.test.mjs`: si no coincide con `VERSION`, `npm test` falla. Se puso porque el README se quedó siete versiones atrás (v4.1.0 con la app en la 4.8.0) sin que saltara nada.
 
 Notas rápidas del rediseño v4 (para no perderse):
+
+- **Gráfica de Inicio:** conserva la línea aprobada y muestra «—» si el total es desconocido. La explicación rechazada109 está retirada; su registro histórico se conserva.
 - **Rol de cuenta** (Recibos / Gasto diario / Todo): Cartera → Editar.
 - **Hogar y gastos compartidos:** toca tu avatar en Inicio → Perfil → **«Tu gente»** (movido ahí en 4.10.0; antes al final de Cartera, donde no lo veía nadie) — [docs/HOGAR.md](docs/HOGAR.md).
 - **Bienes:** Cartera → Bienes → Añadir bien, incluso con la lista vacía. Tocar una fila abre su ficha; Guardar confirma el borrador y Borrar bien pide confirmación.
@@ -157,11 +182,12 @@ Notas rápidas del rediseño v4 (para no perderse):
 - **Confirmar un cargo (integración beta):** Gastos → ficha → Paga un recibo muestra pendientes del mes, también si la factura o divisa varió. El diálogo enseña cargo real e importe/banco previstos: confirma solo el pago completo o cancela si es parcial. Puedes deshacer. Ya pagado muestra el banco real y separa Cargo y Previsto si difieren; la parte propia de un compartido conserva su previsión. No cambian clasificación ni saldo del cargo.
 - **Tus recibos v4.1:** Plan → Recibos → Gestionar —o Ajustes → Dinero— abre una pantalla propia con buscador, grupos, iconos por tipo, fichas y alta por pasos; el gesto Atrás acompaña también cada paso del alta, la ficha confirma antes de cerrar y las altas muestran tipo y nombre al guardar. La comparación con el banco vive en Ajustes → Mis bancos.
 - **Updates:** transporte en `12-boot.js`, estado de UI en `useUpdates()` (`10-app-components.js`).
+- **Editar regla de Metas (candidata local, sin publicar):** Plan → Metas → Reservar dinero → Editar regla conserva la identidad y las aportaciones anteriores. Una mensual ya asentada usa los cambios el mes siguiente; las anteriores siguen por ingreso. [Contrato y pruebas](docs/briefs/inc-0810-metas-editar-regla.md).
 - **Canal beta y banco de pruebas** (solo `is_admin`): Ajustes → Dev → Pruebas; cada tanda distingue revisión y entrega, incluso plegada — [docs/TESTING.md](docs/TESTING.md).
 
 El guardián tests/logs-privacidad.test.mjs verifica las fronteras de diagnóstico con marcadores sintéticos. Cobertura y límites, incluyendo servidor sin desplegar, en [SEC-03](docs/briefs/sec03-privacidad-logs.md).
 
-Plan → Metas: borrar una regla de nómina pide confirmación y libera su reserva del presupuesto, conservando las aportaciones e historial. Candidata INC-0310-01 aún sin publicación; pruebas DOM en `e2e/metas-borrar-regla.spec.mjs`, mapeadas a Metas, Gastos, Inicio y motor. [Contrato y estado](docs/briefs/inc-0310-01-meta-regla.md).
+Plan → Metas: borrar una regla de nómina pide confirmación y libera su reserva del presupuesto, conservando las aportaciones e historial. Unidad INC-0310-01 ya entregada; pruebas DOM en `e2e/metas-borrar-regla.spec.mjs`, mapeadas a Metas, Gastos, Inicio y motor. [Contrato y estado](docs/briefs/inc-0310-01-meta-regla.md).
 
 Gastos → Mes pasado, Rango, Últimos3meses yTodo muestran su resumen sin columna de presupuesto ajeno. Este mes y Mi ciclo conservan límite, restante y progreso; candidata local pendiente de DOM/revisión/CI.
 

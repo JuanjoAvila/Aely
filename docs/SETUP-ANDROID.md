@@ -1,3 +1,5 @@
+Preparación117/code55: por encima de beta54; apk.json estable52 conservado hasta que el coordinador publique asset firmado desde cabeza reconciliada exacta. La igualdad de metadata permanece vigilada y roja durante ese intervalo. Sin compilación local de este encargo; [circuito y evidencia](briefs/prod-completa-117.md).
+
 Promoción3/10: fuente web aprobada86/49a preparada sobre main12884; APK estable32/code48 y workflow Supabase manual conservados. Java/TS son fuente, no entrega APK/Edge. CI/publicación pendiente; no inventar recibos nativos. [Acta](briefs/promocion-web-aprobadas-2026-10-03.md). Extras humanos pendientes en [inventario](briefs/inc-0310-extras-sincronizacion-asistente-gastos.md).
 
 # App nativa Android (Capacitor) — reemplazo de MacroDroid
@@ -272,6 +274,42 @@ Ajustes → Banco del widget elige `settings.widgetBank` (entidad bancaria), sin
 ### Recuperación del registro del widget (4.26.55, APK51)
 
 El registro nativo se escribe sin salto final y tolera indentación XML al releerse. La foto de la app reevalúa un bloqueo previo, conserva eventos aún no confirmados y sus deltas; las entradas dañadas o contribuciones desconocidas no se descartan. Actualizar el APK es obligatorio: la OTA4.26.54.1 corrige presupuesto pero no este parser Java. APK51 instalada en el móvil de pruebas; widget recuperado y Gastado/Disponible estables al reabrir; saldo entre fotos y pago real pendientes. No borrar preferencias para forzar una cifra.
+
+Un registro heredado lleno o ilegible puede haber perdido una identidad. Ni su tamaño ni confirmar sólo los IDs retenidos acredita su integridad; mientras no haya una lectura nueva completa, se conserva «—».
+
+La web nueva pide `beginWidgetRead` antes de leer gastos. El nativo espera a que terminen sus POST previos y devuelve `readGeneration` y `nativeCut`. La espera de la web tiene un límite de cuatro segundos: si vence, lee igualmente los gastos sin marca y conserva el aviso hasta otra lectura válida. Tras completar la lectura con la misma sesión comprobada antes y después, y mezclar el estado, la web añade ambos campos a `updateWidget`. Sin sesión válida o en cualquier modo de pruebas no se emite la marca. Una foto válida con esa marca sustituye el legado y limpia `identityLost`; no necesita reconstruir un ID antiguo perdido ni borrar datos de la app. La marca es de un solo uso: reenvíos, errores de lectura, alcances o periodos inválidos y cifras no finitas no limpian incertidumbre.
+
+Los pagos que llegan después del corte se conservan durante la lectura y se reaplican con los métodos habituales. Si la foto ya contiene su ID o lápida, no se suman de nuevo. Un ingreso de 200 € o más que podría abrir otro ciclo mantiene el aviso de abrir la app, también si la foto cambia de Mes a Ciclo; Bizum y categorías neutras conservan su regla. Si llegan después de guardar la foto, la barrera nativa conserva su contribución exacta. El fin de cada POST, también con error, libera su ticket en `finally`; no se infiere un envío terminado a partir del reloj.
+Un intento terminado con error no acredita el pago ni retira su cola: al reintentar recibe otro ticket posterior al corte. La foto no borra esa cola. Si el servidor ya guardó el pago pese al timeout, su ID en la foto evita sumarlo de nuevo.
+
+Sin marca nueva, se conserva el contrato previo: conciliación por cobertura exacta y reserva de identidades cuando se llena el registro principal, sin inventar eventos perdidos. Antes de migrar un alcance se concilian ACK y lápidas, conservando los originales si la migración no cabe. Una foto de un periodo posterior retira las contribuciones conocidas del periodo cerrado con su saldo actual; los eventos incompatibles sin ventana siguen pidiendo cobertura.
+
+Compatibilidad: la APK anterior ignora los dos campos nuevos. Con APK nueva y web anterior, abrir la app aún no recupera una identidad perdida: debe llegar también la web nueva. Con ambas actualizadas, abrir y terminar la lectura recupera la cifra; sin conexión o con lectura fallida permanece el aviso. No borrar preferencias para forzar dinero confirmado.
+
+Mes bruto y Mi ciclo neto ya forman parte del contrato v2 de la base. La preferencia
+`settings.budgetCycle` llega a `dashboardBudgetStats`, compartido por Inicio y el payload
+de `11-app-main.js`; no hay selector en el widget. La cifra con signo del ciclo es `against`
+y la del mes es `shown`, redondeadas a céntimos al enviarse y a euros al pintarse en nativo.
+
+**Pago con la app cerrada:** un servidor antiguo devuelve un total mensual que no acredita Mi ciclo. El listener conserva el importe en céntimos y su identidad cuando la fecha
+pertenece a la ventana guardada de la app y ésta sigue vigente. La selección de bancos de
+su scope decide qué cuenta: gasto bruto en Mes, contribución con signo en Mi ciclo; no se
+copia el total mensual legacy. La reentrega no duplica y una respuesta v2 anterior no deshace
+el pago incremental, incluso si había recibido un ticket posterior antes de esa confirmación.
+La barrera cubre todas las peticiones ya en vuelo, como la foto completa de la app.
+Fecha/categoría ausentes, céntimos inválidos, scope ilegible, periodo
+caducado o un ingreso grande que podría abrir un ciclo nuevo siguen pidiendo una foto real.
+El ACK de la app recupera esos pendientes. No se rebaja el contrato v2 ni se añade selector.
+Si el servidor nuevo devuelve `widget:null`, no se interpreta como una respuesta legacy:
+declara que faltan ancla o scope compatibles y mantiene la cobertura pendiente.
+
+`ingest/widget.ts` prepara una respuesta `widget` v2 separada; `month` conserva su cálculo
+legacy para APK antiguas. El servidor valida ancla, periodo, presupuesto, reservas y bancos
+contra el scope de la app; devuelve null si no puede acreditarlo. La lectura v2 pagina con
+conteo exacto e identidades únicas; una página corta, conteo ausente
+o cambiante, fallo de consulta o pago no visible mantiene `widget:null`, sin confirmar cero.
+El listener nuevo prefiere `widget` y admite también `month` del servidor antiguo.
+El cálculo opcional del widget está aislado de los avisos de presupuesto: su fallo no retira `alert` ni `month`. Las pruebas Java y una compilación local no acreditan instalación, servidor activo ni aceptación móvil.
 
 ### Widget80 / APK52: preasset real, entrega final pendiente
 

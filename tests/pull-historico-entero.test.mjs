@@ -11,9 +11,9 @@ function rows(n){ return Array.from({length:n},(_,i)=>({id:uuid(i+1),fecha:"2020
   nota:"Concepto "+i,nota_edit:i%2===0,no_card:true,importe_orig:i+1,divisa:"USD",ob_name:"Banco "+i})); }
 
 // Ejecuta cloud.pullExpenses real; el doble interpreta la consulta, sin copiar el paginador.
-function client(table,{cap=1000,before=()=>{},response}={}){
+function client(table,{cap=1000,before=()=>{},response,session=()=>({user:{id:"synthetic-user"}})}={}){
   const queries=[];
-  const sb={from(name){
+  const sb={auth:{async getSession(){ return {data:{session:session()},error:null}; }},from(name){
     assert.equal(name,"expenses");
     const q={orders:[],limit:Infinity,lt:null,or:null};
     const chain={select(){return chain;},order(k,o){q.orders.push([k,o]);return chain;},
@@ -35,7 +35,7 @@ function client(table,{cap=1000,before=()=>{},response}={}){
   const end=core.indexOf("\n})();",ini)+7;
   const ctx=vm.createContext({window:{supabase:{createClient:()=>sb}},CONFIG:{SUPABASE_URL:"test",SUPABASE_ANON_KEY:"test"},t:key=>key});
   vm.runInContext(core.slice(ini,end)+"\nglobalThis.client=cloud;",ctx);
-  return {pull:()=>ctx.client.pullExpenses(),queries};
+  return {pull:proof=>ctx.client.pullExpenses(proof),queries};
 }
 const plain=x=>JSON.parse(JSON.stringify(x));
 
@@ -118,13 +118,14 @@ test("FIN07: mezcla conserva adicionales, lápidas, notas editadas y possibleDup
 });
 
 // Ejecuta el call site de App: no basta con que el paginador rechace si el sync confirma un parcial.
-function syncHarness(pull){
+function syncHarness(pull,native=null,options={}){
   const main=fs.readFileSync(new URL("../src/modules/11-app-main.js",import.meta.url),"utf8");
   const ini=main.indexOf("const syncCloudExpenses=function(){"),end=main.indexOf("\n  };",ini)+5;
   const cli=loadPureLogicFromFile(),local={id:uuid(9999),date:"2019-01-01T12:00:00.000Z",amount:5,merchant:"Solo local",source:"manual"};
-  const h={wS:{current:0},wR:{current:true},wP:{current:null},wC:{current:"|anterior|"},stateRef:{current:{expenses:[local],deleted:["lapida"]}},sets:0,uploads:0};
-  const env={...cli,...h,cloud:{pullExpenses:pull,setExpenseCat:()=>Promise.resolve()},inicioDeMesMs:()=>0,
-    subirGasto:()=>h.uploads++,fixMovInvasion:s=>s,reconcileObDupes:s=>({state:s,recat:[]}),
+  const h={wS:{current:0},wR:{current:true},wP:{current:null},wC:{current:"|anterior|"},wRead:{current:null},sessionRef:{current:{user:{id:"synthetic-user"}}},stateRef:{current:{expenses:[local],deleted:["lapida"]}},sets:0,uploads:0};
+  const env={...cli,...h,cloud:{pullExpenses:async proof=>{const r=await pull(proof);if(options.prove!==false){proof.valid=true;proof.userId="synthetic-user";}return r;},setExpenseCat:()=>Promise.resolve()},inicioDeMesMs:()=>0,
+    mcSandbox:()=>!!options.sandbox,setTimeout:options.setTimeout||setTimeout,clearTimeout:options.clearTimeout||clearTimeout,
+    natPlugin:()=>native,subirGasto:()=>h.uploads++,fixMovInvasion:s=>s,reconcileObDupes:s=>({state:s,recat:[]}),
     set:fn=>{h.sets++;h.stateRef.current=fn(h.stateRef.current);}};
   const sync=new Function(...Object.keys(env),main.slice(ini,end)+";return syncCloudExpenses;")(...Object.values(env));
   return Object.assign(h,{sync});
@@ -136,9 +137,46 @@ test("FIN07: fallo intermedio no mezcla, no backfill, no ACK de FIN05 ni lápida
   assert.equal(h.stateRef.current,before);assert.equal(h.sets,0);assert.equal(h.uploads,0);
   assert.equal(h.wC.current,"|anterior|");assert.equal(h.wR.current,false);
 });
+
+test("widget: corte nativo colgado vence en cuatro segundos y marca tardía no acredita el pull",async()=>{
+  let timeout,late,pulls=0,cleared=0;
+  const h=syncHarness(()=>{pulls++;return Promise.resolve(rows(1));},{beginWidgetRead:()=>new Promise(resolve=>{late=resolve;})},
+    {setTimeout:(fn,ms)=>{assert.equal(ms,4000);timeout=fn;return 7;},clearTimeout:id=>{assert.equal(id,7);cleared++;}});
+  const p=h.sync();await new Promise(resolve=>setImmediate(resolve));assert.equal(pulls,0);
+  timeout();await p;assert.equal(pulls,1);assert.equal(h.wRead.current,null);assert.equal(h.wR.current,true);
+  late({readGeneration:"late",nativeCut:"9"});await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(h.wRead.current,null);assert.equal(cleared,1);
+});
+
+test("widget: lectura vacía auténtica acredita sesión; sesión ausente, caída o cambiada no acredita",async()=>{
+  const mark={readGeneration:"valid",nativeCut:"1"},native={beginWidgetRead:()=>Promise.resolve(mark)};
+  const valid=client([]),good=syncHarness(proof=>valid.pull(proof),native,{prove:false});
+  await good.sync();assert.deepEqual(good.wRead.current,mark);
+  for(const mode of ["absent","lost","changed","expired"]){
+    let calls=0;const c=client(rows(1),{session:()=>{calls++;return mode==="absent"||mode==="lost"&&calls===2?null:
+      {user:{id:mode==="changed"&&calls===2?"another-user":"synthetic-user"},...(mode==="expired"?{expires_at:1}:{})};}});
+    const h=syncHarness(proof=>c.pull(proof),native,{prove:false});
+    await assert.rejects(h.sync(),/exp_pull_session/);assert.equal(h.wRead.current,null);assert.equal(h.wR.current,false);
+    assert.equal(h.sets,0,"sesión inválida no confirma ni mezcla una foto");
+  }
+});
+
+test("widget: lectura sin prueba explícita, otro usuario y ambos modos de pruebas no mandan marca",async()=>{
+  const mark={readGeneration:"not-authorized",nativeCut:"1"};let begun=0;
+  const native={beginWidgetRead:()=>{begun++;return Promise.resolve(mark);}};
+  for(const sandbox of [false,true]){
+    const h=syncHarness(()=>Promise.resolve([]),native,{prove:false,sandbox});await h.sync();assert.equal(h.wRead.current,null);
+  }
+  const normalTest=syncHarness(()=>Promise.resolve(rows(1)),native,{sandbox:true});await normalTest.sync();assert.equal(normalTest.wRead.current,null);
+  assert.equal(begun,1,"ni el banco de pruebas normal ni el inicial solicitan corte nativo");
+  const changed=syncHarness(proof=>{proof.valid=true;proof.userId="another-user";return Promise.resolve([]);},native,{prove:false});
+  await changed.sync();assert.equal(changed.wRead.current,null);
+});
 test("FIN07: sync nuevo termina antes, el viejo no pisa ni ACK ni histórico",async()=>{
   const pending=[];const h=syncHarness(()=>new Promise(resolve=>pending.push(resolve)));
-  const old=h.sync(),latest=h.sync();pending[1]([{...rows(1)[0],source:"macrodroid",ingest_event_id:"nuevo"}]);
+  const old=h.sync();await new Promise(resolve=>setImmediate(resolve));
+  const latest=h.sync();await new Promise(resolve=>setImmediate(resolve));
+  pending[1]([{...rows(1)[0],source:"macrodroid",ingest_event_id:"nuevo"}]);
   await latest;const before=h.stateRef.current,ack=h.wC.current;
   pending[0]([{...rows(2)[1],source:"macrodroid",ingest_event_id:"viejo"}]);await old;
   assert.equal(h.stateRef.current,before);assert.equal(h.wC.current,ack);
@@ -147,4 +185,26 @@ test("FIN07: sync nuevo termina antes, el viejo no pisa ni ACK ni histórico",as
   const covered=loadPureLogicFromFile().widgetCoveredEvents(ack,0,Date.now(),true);
   assert.ok(covered.includes("nuevo"));assert.ok(!covered.includes("viejo"));
   assert.equal(h.wR.current,true);assert.equal(h.sets,1);
+});
+
+test("widget: la marca no existe hasta terminar el pull completo; fallo no la acredita",async()=>{
+  const mark={readGeneration:"synthetic-read",nativeCut:"4"};let finish;
+  const h=syncHarness(()=>new Promise(resolve=>{finish=resolve;}),{beginWidgetRead:()=>Promise.resolve(mark)});
+  const pull=h.sync();await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(h.wRead.current,null);assert.equal(h.wR.current,false);
+  finish(rows(1));await pull;assert.deepEqual(h.wRead.current,mark);assert.equal(h.wR.current,true);
+  const failed=syncHarness(()=>Promise.reject(new Error("offline")),{beginWidgetRead:()=>Promise.resolve(mark)});
+  await assert.rejects(failed.sync(),/offline/);assert.equal(failed.wRead.current,null);assert.equal(failed.wR.current,false);
+});
+test("widget: lectura superada no publica su marca; APK anterior conserva lectura sin marca",async()=>{
+  const marks=[],pending=[],h=syncHarness(()=>new Promise(resolve=>pending.push(resolve)),{
+    beginWidgetRead:()=>new Promise(resolve=>marks.push(resolve))});
+  const old=h.sync();await new Promise(resolve=>setImmediate(resolve));
+  marks[0]({readGeneration:"old",nativeCut:"1"});await new Promise(resolve=>setImmediate(resolve));
+  const latest=h.sync();await new Promise(resolve=>setImmediate(resolve));
+  marks[1]({readGeneration:"new",nativeCut:"2"});await new Promise(resolve=>setImmediate(resolve));
+  pending[1](rows(1));await latest;pending[0](rows(2));await old;
+  assert.equal(h.wRead.current.readGeneration,"new");assert.equal(h.sets,1);
+  const legacy=syncHarness(()=>Promise.resolve(rows(1)),{beginWidgetRead:()=>Promise.reject(new Error("no disponible"))});
+  await legacy.sync();assert.equal(legacy.wRead.current,null);assert.equal(legacy.wR.current,true);
 });

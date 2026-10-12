@@ -38,6 +38,7 @@ import { aEuros, parseWallet } from "../_shared/wallet.ts";
 import { claveEvento, esGemeloIngest, tieneGemeloAnterior } from "../_shared/ingest_identity.ts";
 import { bucketKey, callerIp, rateLimit } from "../_shared/ratelimit.ts";
 import { bancosDeGastoDiario, cuentaParaPresupuesto, filasComoLaApp, inicioDeMesMs, statsDelMes } from "../_shared/presupuesto.ts";
+import { readWidgetRows, widgetSnapshot, widgetStart } from "./widget.ts";
 // Comparación del token en tiempo constante (2026-07-24) y topes de entrada (SEC-01, 14/9): en _shared.
 import {
   INGEST_MAX_BODY, INGEST_MAX_COMERCIO, INGEST_MAX_NOTA, INGEST_MAX_TEXTO, recortar, timingSafeEqual,
@@ -333,6 +334,7 @@ Deno.serve(async (req) => {
   //    app esté cerrada. Mismas reglas que la app (al_over > al_80 > al_big).
   let alert: Record<string, unknown> | null = null;
   let month: Record<string, number | string> | null = null;
+  let widget: Record<string, number | string> | null = null;
   try {
     const { data: st } = await supabase.from("app_state").select("data").eq("user_id", userId).maybeSingle();
     const now = new Date(fecha);
@@ -407,10 +409,21 @@ Deno.serve(async (req) => {
       else if (importe >= budget * 0.15 && importe >= 50)
                                                     alert = { kind: "big", monthSpent: after, budget };
     }
+    // El widget es opcional: un fallo de su lectura no puede retirar los avisos de
+    // presupuesto que las APK anteriores ya reciben con el contrato mensual.
+    try {
+      const start = widgetStart(st?.data, readAt);
+      if (start != null) {
+        const widgetRows = await readWidgetRows(supabase, userId, start);
+        if (widgetRows != null) widget = widgetSnapshot(st?.data, widgetRows, readAt, {
+            id: String(ackId), event: eventKey || "", key: String(month.expenseKey),
+          });
+      }
+    } catch (_) { /* month y alert siguen disponibles */ }
   } catch (_) { /* opcional; el movimiento ya está guardado */ }
 
   return json({ ok: true, tipo, fecha, importe, comercio, cat, nota: nota || null,
-    ack: ackId, alert, month });
+    ack: ackId, alert, month, widget });
 });
 
 function json(obj: unknown, status = 200) {

@@ -4,6 +4,7 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import { execFileSync, spawnSync } from "node:child_process";
+import {betaNotes} from "../scripts/beta-revisions.mjs";
 import { loadPureLogicFromFile } from "../scripts/load-pure-logic.mjs";
 
 const owner = "00000000-0000-4000-8000-000000000001";
@@ -12,6 +13,8 @@ const root = new URL("..", import.meta.url);
 const cliUrl = new URL("../scripts/listo-para-produccion.mjs", import.meta.url).href;
 const version = fs.readFileSync(new URL("../VERSION", import.meta.url), "utf8").trim()+".1";
 const cli = loadPureLogicFromFile();
+// Una promoción deja el catálogo vivo vacío de tandas, pero no retira las pruebas de identidad del actor.
+cli.RELEASE_NOTES=betaNotes(JSON.parse(execFileSync("git",["show","4403b252933410741a877eea59b85d812b2fe543:src/data/release-notes.json"],{cwd:root,encoding:"utf8",maxBuffer:5e6})));
 const g = cli.betaChecklist(version,"4.26.67",48).tandas.find(x=>x.id.endsWith("/inc-3009-01-cargos"));
 assert.ok(g,"la fixture necesita una tanda real con huella");
 const sourceArg = process.argv.indexOf("--source-ref");
@@ -42,6 +45,12 @@ function run(rows, options={}) {
       'function loadPureLogicFromFile(){const c=fixtureLogic();c.betaChecklist=()=>({tandas:'+JSON.stringify(options.tandas)+'});return c;}');
   }
   const script = `
+
+    import fixtureFs from 'node:fs';
+    import {execFileSync as fixtureGit} from 'node:child_process';
+    const fixtureRead=fixtureFs.readFileSync;
+    const fixtureNotes=fixtureGit('git',['show','4403b252933410741a877eea59b85d812b2fe543:src/data/release-notes.json'],{encoding:'utf8',maxBuffer:5e6});
+    fixtureFs.readFileSync=function(file,...args){return String(file).replaceAll(String.fromCharCode(92),'/').endsWith('/src/data/release-notes.json')?fixtureNotes:fixtureRead.call(this,file,...args);};
     import assert from 'node:assert/strict';
     process.argv=[process.execPath,...${JSON.stringify(options.text?["fixture"]:["fixture","--json"])}];
     globalThis.fetch=async (url,init)=>{

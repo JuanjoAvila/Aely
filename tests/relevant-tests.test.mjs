@@ -20,6 +20,15 @@ function t(name, fn) {
 
 console.log("relevant-tests");
 
+t("reparar el guardián del panel exige la suite completa antes de publicar", () => {
+  const p = planFromFiles(["tests/beta-veredictos.test.mjs", "docs/briefs/integracion-local26-109.md"]);
+  assert.equal(p.build, true);
+  assert.equal(p.deno, true);
+  assert.equal(p.playwright, true);
+  assert.equal(p.steps, "all");
+  assert.equal(p.e2e, "all");
+});
+
 t("solo un .md no instala Chromium", () => {
   const p = planFromFiles(["docs/TESTING.md", "CHANGELOG.md"]);
   assert.equal(p.playwright, false);
@@ -52,6 +61,7 @@ t("solo bank-sync conserva los guardianes de paginado sin arrancar Chromium", ()
   const p = planFromFiles(["supabase/functions/bank-sync/index.ts"]);
   assert.equal(p.playwright, false);
   assert.ok(p.steps.includes("bank-sync-paging"));
+  assert.ok(p.steps.includes("bank-sync-progreso"), "la convergencia del tramo antiguo es de servidor");
   assert.ok(p.steps.includes("tr-open-banking"));
 });
 
@@ -59,6 +69,8 @@ t("solo Android: widget, sin e2e", () => {
   const p = planFromFiles(["android/app/src/main/java/com/micartera/app/MiCarteraWidget.java"]);
   assert.equal(p.playwright, false);
   assert.ok(p.steps.includes("widget-coherente"));
+  for (const name of ["widget-arbitraje", "widget-offline", "widget-unknown-loss", "widget-unknown-journal"])
+    assert.ok(p.steps.includes(name), "Android conserva el guardián " + name);
   assert.ok(p.steps.includes("webdebug-guard"));
 });
 

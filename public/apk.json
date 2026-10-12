@@ -1,16 +1,17 @@
 {
-  "versionCode": 52,
-  "versionName": "4.26.80",
-  "url": "https://github.com/JuanjoAvila/Aely/releases/download/v4.26.80/Aely-4.26.80.apk",
-  "notes": "El widget sigue el mes o Mi ciclo de Inicio y pide abrir la app cuando falta confirmar un pago.",
+  "versionCode": 55,
+  "versionName": "4.26.117",
+  "url": "https://github.com/JuanjoAvila/Aely/releases/download/v4.26.117/Aely-4.26.117.apk",
+  "notes": "El widget se pone al día al pagar con el móvil aunque la app esté cerrada.",
   "revisiones": {
-    "inc-2909-01-widget-periodo": "1004af0f2570052e7477cd305ffb7374438909c934b19d38b93c13f4ca742cfe",
-    "fin05-widget-reentrada": "c09df9a93a8b2eadca3460fd2159b928c5388254f097fc8d04caeb9ab87deb2e",
-    "fin05-pago-cerrada": "1004af0f2570052e7477cd305ffb7374438909c934b19d38b93c13f4ca742cfe",
-    "tr-descripcion-clasificacion": "75398ed0822b137f0f18e1a064b330f1d1d1f46a8cf2798757f6078f55825e8a",
-    "widget-banco": "712127ade82a2eafc8c1f08a074ef0131495ee64b616b100d049553616787198",
-    "widget-app-cerrada": "1004af0f2570052e7477cd305ffb7374438909c934b19d38b93c13f4ca742cfe"
+    "fin05-widget-reentrada": "78ff9b2c46f59b55936bb1390580044fdb1715a4c5583189259eeece4db230e4",
+    "fin05-pago-cerrada": "8a6f5aefbe66677ca3685ba430208766d5adc791e2fb50d1013a3d54d8397e50",
+    "tr-descripcion-clasificacion": "b5da02242a9aa595d33eb8033747dfa71846d2a1c40eaadd085a272f6b87888d",
+    "widget-banco": "379318fc0f01a04f5ed33716cf343d68ecc375548c09890702a88aa439fe9956",
+    "widget-app-cerrada": "8a6f5aefbe66677ca3685ba430208766d5adc791e2fb50d1013a3d54d8397e50",
+    "inc-2909-01-widget-periodo": "8a6f5aefbe66677ca3685ba430208766d5adc791e2fb50d1013a3d54d8397e50",
+    "widget-ciclo-puente": "8a6f5aefbe66677ca3685ba430208766d5adc791e2fb50d1013a3d54d8397e50"
   },
-  "sha256": "4abfa5b19d8d46bc10239162c20f8a5aa74020d343607fff421ccf61d9ade4d3",
-  "sourceSha": "64b4e5f3543ae440812ecf76a7e3259dfc938d1b"
+  "sha256": "bc24468bc8eef7a973c3072a88760bf68dc3c1dbd9e1b7eb4b63f59e50979003",
+  "sourceSha": "4eb0641036c1b6b1b4c51fe657fcdd9933da18f2"
 }

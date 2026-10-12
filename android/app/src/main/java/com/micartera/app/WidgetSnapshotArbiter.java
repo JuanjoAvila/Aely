@@ -7,8 +7,8 @@ final class WidgetSnapshotArbiter {
         double spent, budget, budgetLeft, baseSafeLiq, baseCash, spendDelta, cashDelta;
         boolean hasBudgetLeft, hasSafeLiq, hasCash;
         String cashEnt = "", cashLabel = "", events = "", journal = "";
-        String coveredEvents = "", deletedKeys = "", unknownJournal = "";
-        boolean journalFull, unknownPending;
+        String coveredEvents = "", deletedKeys = "", unknownJournal = "", recoveryJournal = "";
+        boolean journalFull, unknownPending, unknownLoss, identityLost;
 
         double safeLiq() { return Math.max(0, hasCash
                 ? Math.min(baseSafeLiq - spendDelta, baseCash - cashDelta)
@@ -22,6 +22,16 @@ final class WidgetSnapshotArbiter {
 
     static long begin(State s) { return ++s.issued; }
 
+    /** Un servidor antiguo acredita este pago, pero no un total de Inicio v2. */
+    static boolean knownPayment(State s, long ticket, String event, String key,
+                                double delta, double amount, boolean counts, boolean cashCounts) {
+        // Reutilizar la rama de contribución exacta evita introducir otro escritor absoluto.
+        // Sellar también este pago evita que un absoluto v2 iniciado antes lo deshaga.
+        s.appFence = Math.max(s.appFence, Math.max(ticket, s.issued));
+        return ingest(s, ticket, s.periodStart, s.periodStart, 0, event, key,
+                0, s.budget, -1, delta, delta, amount, counts, cashCounts);
+    }
+
     /** ¿Este pago falta en la foto de la app? Si ya lo cubre o se borró, no hay nada pendiente. */
     static boolean pendingUnknown(State s, String event, String expenseKey) {
         if (event == null || event.isEmpty() || has(s.coveredEvents, event)
@@ -29,9 +39,22 @@ final class WidgetSnapshotArbiter {
         // No conocemos ningún delta de una respuesta incompatible. Solo conservamos identidad;
         // una foto de la app sin ACK no es prueba de que ya incluya ese pago (revisión 30/9).
         String line = event + "\t" + (expenseKey != null ? expenseKey : "");
-        if (!s.unknownJournal.contains(line + "\n")) {
-            if (s.unknownJournal.length() + line.length() + 1 > JOURNAL_MAX) s.journalFull = true;
-            else s.unknownJournal += line + "\n";
+        if (!("\n" + s.unknownJournal + "\n").contains("\n" + line + "\n")) {
+            int separator = s.unknownJournal.isEmpty() ? 0 : 1;
+            if (s.unknownJournal.length() + separator + line.length() > JOURNAL_MAX) {
+                // Una reserva pequeña conserva el pago que no cabe en el registro principal;
+                // así abrir la app sí puede conciliarlo. Sin sitio en ambos queda pérdida real.
+                if (!("\n" + s.recoveryJournal + "\n").contains("\n" + line + "\n")) {
+                    int recoverySeparator = s.recoveryJournal.isEmpty() ? 0 : 1;
+                    if (s.recoveryJournal.length() + recoverySeparator + line.length() <= RECOVERY_MAX)
+                        s.recoveryJournal += (s.recoveryJournal.isEmpty() ? "" : "\n") + line;
+                    else s.identityLost = true;
+                }
+                s.journalFull = true;
+                s.unknownLoss = true;
+            }
+            // El salto final puede reaparecer como indentación al releer preferencias Android.
+            else s.unknownJournal += (separator == 0 ? "" : "\n") + line;
         }
         s.unknownPending = true;
         return true;
@@ -42,18 +65,65 @@ final class WidgetSnapshotArbiter {
     }
 
     private static final int JOURNAL_MAX = 262144;
+    private static final int RECOVERY_MAX = 4096;
     private static String[] entry(String line) { return line.split("\\t", -1); }
+
+    private static boolean lost(State s) {
+        s.journalFull = true;
+        s.identityLost = true;
+        s.unknownLoss = true;
+        s.unknownPending = true;
+        return false;
+    }
 
     /** Los deltas de otra selección no se trasladan; su identidad sigue esperando cobertura. */
     static boolean invalidateScope(State s) {
+        return invalidateScope(s, "", "", 0);
+    }
+
+    static boolean invalidateScope(State s, String covered, String deleted, long nextPeriod) {
+        // Conciliar ANTES de reservar espacio: la foto puede cubrir justo las entradas que
+        // impedían migrar el otro registro. Un fallo mantiene ambos originales, sin truncar.
+        StringBuilder unknownKeep = new StringBuilder();
+        for (String line : s.unknownJournal.split("\\n")) {
+            if (line.trim().isEmpty() && line.indexOf('\t') < 0) continue;
+            String[] p = entry(line);
+            if ((p.length != 2 && p.length != 3) || p[0].trim().isEmpty()) return lost(s);
+            p[0] = p[0].trim();
+            long previous = 0;
+            if (p.length == 3) {
+                try { previous = Long.parseLong(p[2]); }
+                catch (NumberFormatException bad) { return lost(s); }
+            }
+            if (has(covered, p[0]) || has(deleted, p[1]) || (previous > 0 && previous < nextPeriod)) continue;
+            if (unknownKeep.length() > 0) unknownKeep.append('\n');
+            unknownKeep.append(p[0]).append('\t').append(p[1]);
+            if (p.length == 3) unknownKeep.append('\t').append(p[2]);
+        }
+        if (unknownKeep.length() > JOURNAL_MAX) { s.journalFull = true; return false; }
         for (String line : s.journal.split("\\n")) {
             if (line.trim().isEmpty()) continue;
             String[] p = entry(line);
-            if (p.length != 7) { s.journalFull = true; return false; }
-            String unknown = p[0].trim() + "\t" + p[6] + "\n";
-            if (!s.unknownJournal.contains(unknown)) s.unknownJournal += unknown;
+            if (p.length != 7) return lost(s);
+            p[0] = p[0].trim();
+            if (p[0].isEmpty()) return lost(s);
+            if (has(covered, p[0]) || has(deleted, p[6]) || (s.periodStart > 0 && s.periodStart < nextPeriod)) continue;
+            // Sólo los pagos de una ventana conocida pueden retirarse con la foto de una
+            // posterior. Los incompatibles sin ventana siguen necesitando ACK o lápida.
+            String unknown = p[0] + "\t" + p[6] + "\t" + s.periodStart;
+            if (!("\n" + unknownKeep + "\n").contains("\n" + unknown + "\n")) {
+                int separator = unknownKeep.length() == 0 ? 0 : 1;
+                if (unknownKeep.length() + separator + unknown.length() > JOURNAL_MAX) {
+                    s.journalFull = true; return false;
+                }
+                if (separator != 0) unknownKeep.append('\n');
+                unknownKeep.append(unknown);
+            }
         }
-        if (s.unknownJournal.length() > JOURNAL_MAX) { s.journalFull = true; return false; }
+        s.unknownJournal = unknownKeep.toString();
+        s.journal = "";
+        s.events = "";
+        s.unknownPending = s.unknownLoss || !s.unknownJournal.isEmpty();
         s.periodStart = 0;
         return true;
     }
@@ -63,24 +133,56 @@ final class WidgetSnapshotArbiter {
                     String coveredEvents, String deletedKeys) {
         // El XML de preferencias puede añadir indentación al salto final del journal. Una foto
         // de la app permite releerlo y recuperar ese bloqueo sin perder eventos no confirmados.
+        // La foto de otra ventana retira pagos conocidos anteriores con su saldo actual;
+        // los incompatibles sin ventana siguen conservando identidad hasta ACK exacto.
+        if (s.periodStart != periodStart && !s.journal.isEmpty()
+                && !invalidateScope(s, coveredEvents, deletedKeys, periodStart)) return false;
         StringBuilder keep = new StringBuilder(), ids = new StringBuilder();
         double shown = 0, against = 0, cashPart = 0, spendPart = 0;
         StringBuilder unknownKeep = new StringBuilder();
         for (String line : s.unknownJournal.split("\\n")) {
-            if (line.isEmpty()) continue;
+            // Una línea blanca sin TAB es indentación; con TAB sigue siendo una entrada que
+            // necesita identidad. No marcar pérdida irreversible por formato recuperable.
+            if (line.trim().isEmpty() && line.indexOf('\t') < 0) continue;
             String[] p = entry(line);
-            if (p.length != 2) { s.journalFull = true; return false; }
-            if (!has(coveredEvents, p[0]) && !has(deletedKeys, p[1])) unknownKeep.append(line).append('\n');
+            if (p.length != 2 && p.length != 3) return lost(s);
+            p[0] = p[0].trim();
+            if (p[0].isEmpty()) return lost(s);
+            long previous = 0;
+            if (p.length == 3) {
+                try { previous = Long.parseLong(p[2]); }
+                catch (NumberFormatException bad) { return lost(s); }
+            }
+            // La foto válida aporta el saldo actual; no necesita una fila antigua que el pull
+            // ya no devuelve para retirar cifras de un periodo cerrado (revisión 10/10).
+            if (!(previous > 0 && previous < periodStart)
+                    && !has(coveredEvents, p[0]) && !has(deletedKeys, p[1])) {
+                if (unknownKeep.length() > 0) unknownKeep.append('\n');
+                unknownKeep.append(p[0]).append('\t').append(p[1]);
+                if (p.length == 3) unknownKeep.append('\t').append(p[2]);
+            }
         }
         if (unknownKeep.length() > JOURNAL_MAX) { s.journalFull = true; return false; }
-        boolean unknown = unknownKeep.length() > 0;
+        StringBuilder recoveryKeep = new StringBuilder();
+        for (String line : s.recoveryJournal.split("\\n")) {
+            if (line.isEmpty()) continue;
+            String[] p = entry(line);
+            if (p.length != 2 || p[0].isEmpty()) return lost(s);
+            if (!has(coveredEvents, p[0]) && !has(deletedKeys, p[1])) {
+                if (recoveryKeep.length() > 0) recoveryKeep.append('\n');
+                recoveryKeep.append(line);
+            }
+        }
+        if (recoveryKeep.length() > RECOVERY_MAX) return lost(s);
+        boolean loss = s.identityLost || recoveryKeep.length() > 0;
+        boolean unknown = loss || unknownKeep.length() > 0;
         if (s.periodStart == periodStart) {
             for (String line : s.journal.split("\\n")) {
                 if (line.trim().isEmpty()) continue;
                 String[] p = entry(line);
-                if (p.length != 7) { s.journalFull = true; return false; }
+                if (p.length != 7) return lost(s);
                 p[0] = p[0].trim();
-                if (p[0].isEmpty()) { s.journalFull = true; return false; }
+                if (p[0].isEmpty()) return lost(s);
                 if (has(coveredEvents, p[0]) || has(deletedKeys, p[6])) continue;
                 if (keep.length() > 0) keep.append('\n');
                 for (int i = 0; i < p.length; i++) {
@@ -119,6 +221,8 @@ final class WidgetSnapshotArbiter {
         s.events = ids.toString();
         s.journal = keep.toString();
         s.unknownJournal = unknownKeep.toString();
+        s.recoveryJournal = recoveryKeep.toString();
+        s.unknownLoss = loss;
         s.journalFull = false;
         s.unknownPending = unknown;
         s.coveredEvents = coveredEvents != null ? coveredEvents : "";
@@ -135,6 +239,10 @@ final class WidgetSnapshotArbiter {
         if (responsePeriod != currentPeriod || ticket <= 0 || has(s.coveredEvents, event)
                 || has(s.deletedKeys, expenseKey)) return false;
         if (s.periodStart != responsePeriod) {
+            // Un bloqueo de cifras no autoriza a perder identidades al entrar en otro periodo.
+            // Si aún se leen, pasan a cobertura pendiente; si no, se conserva la pérdida.
+            if (!s.journal.isEmpty() && !invalidateScope(s))
+                lost(s); // Este reset sí retirará identidades que no se pudieron migrar.
             s.periodStart = responsePeriod;
             s.spent = 0;
             s.hasBudgetLeft = false;
@@ -145,13 +253,16 @@ final class WidgetSnapshotArbiter {
             s.events = "";
             s.journal = "";
             s.journalFull = false;
-            s.unknownPending = false;
+            s.unknownPending = s.unknownLoss || !s.unknownJournal.isEmpty();
             s.coveredEvents = "";
             s.deletedKeys = "";
             s.serverReadAt = 0;
             s.serverTicket = 0;
         }
-        if (s.journalFull) return false;
+        if (s.journalFull) {
+            // El bloqueo de otra entrada tampoco autoriza a olvidar un pago nuevo.
+            return pendingUnknown(s, event, expenseKey);
+        }
         boolean newEvent = event != null && !event.isEmpty() && !has(s.events, event);
         if (newEvent) {
             String line = event + "\t" + shownDelta + "\t" + againstDelta + "\t" + amount
@@ -160,6 +271,7 @@ final class WidgetSnapshotArbiter {
             int separator = s.journal.isEmpty() ? 0 : 1;
             if (s.journal.length() + separator + line.length() > JOURNAL_MAX) {
                 s.journalFull = true;
+                pendingUnknown(s, event, expenseKey);
                 return true;
             }
             s.events += "|" + event + "|";

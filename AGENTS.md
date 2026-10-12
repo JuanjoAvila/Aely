@@ -155,6 +155,15 @@ Va directo a `main` **solo** lo que no puede afectar a lo que él ve: documentac
 
 **Solo se pushea trabajo TERMINADO y verificado.** Nunca a medias. OTA web ≠ APK: si el fix es Java/Kotlin, sin APK nuevo el móvil no lo tiene.
 
+### Prioridad de las aprobadas (feedback 2026-10-04)
+
+Publicar en producción las tandas con aprobación vigente tiene prioridad sobre implementar
+trabajo nuevo. Primero se comprueba su revisión y cada superficie necesaria (web, APK y Edge);
+después se verifica la entrega efectiva y se retiran del catálogo beta las tandas entregadas.
+Se conserva `tandas:[]` al vaciar una versión, junto con las notas y el historial de decisiones.
+La cola debe enseñar solo lo que falta por aprobar o entregar; no se deja una tanda entregada
+pidiendo al dueño que la revise otra vez. Una aprobación antigua no acredita una revisión nueva.
+
 ### ⚠ El promote mezcla con `-X theirs`: revisa el diff, no te fíes del verde
 
 `promote-beta.yml` hace `git merge --no-ff -X theirs origin/beta`. Ese `-X theirs` significa
@@ -232,7 +241,7 @@ otra IA, eso **no existe**.
 
 ## 7. Verificar de verdad (no «debería funcionar»)
 
-- **Tests automáticos:** `npm test` (sintaxis del monolito con `vm.Script` + lógica financiera, parsers Revolut e ingest). Corre **entero** en CI de `main` y al promocionar. En la rama `beta`, `relevant-tests` recorta por carpetas (docs sin Chromium, ingest sin e2e, Gastos solo sus specs + transversales). Si se toca el núcleo o un workflow, corre todo igual. El mapa vive en `scripts/relevant-tests.mjs`: **un e2e nuevo sin línea ahí no corre al tocar la pantalla**, y el test `relevant-tests` aborta si el spec está huérfano. **No caza un spec mal colgado** (gastos-cajones bajo Hogar → `beta` verde sin abrir Gastos). Un verde en `beta` no pesa lo mismo que en `main`. Módulo nuevo de `src/` igual: o `CORE` o `E2E_MAP`, si no, suite entera + el test falla.
+- **Tests automáticos:** `npm test` (sintaxis del monolito con `vm.Script` + lógica financiera, parsers Revolut e ingest). Corre **entero** en CI de `main` y al promocionar. ⚠ Desde el 11/10/2026 el publicador de `beta` **no espera a la suite** (orden suya: de 55 min a ~5): publica tras `test:syntax` y la suite corre en paralelo en el job `tests`; un rojo ahí ya está en su móvil, así que se mira siempre. En la rama `beta`, `relevant-tests` recorta por carpetas (docs sin Chromium, ingest sin e2e, Gastos solo sus specs + transversales). Si se toca el núcleo o un workflow, corre todo igual. El mapa vive en `scripts/relevant-tests.mjs`: **un e2e nuevo sin línea ahí no corre al tocar la pantalla**, y el test `relevant-tests` aborta si el spec está huérfano. **No caza un spec mal colgado** (gastos-cajones bajo Hogar → `beta` verde sin abrir Gastos). Un verde en `beta` no pesa lo mismo que en `main`. Módulo nuevo de `src/` igual: o `CORE` o `E2E_MAP`, si no, suite entera + el test falla.
 - Sintaxis del monolito: extrae los `<script>` y pásalos por `new vm.Script(...)`. Un `node --check`
   del HTML no vale.
 - Pruébalo **en el navegador** con datos reales antes de cantar victoria. En la v3.100.0, el parser

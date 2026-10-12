@@ -39,7 +39,10 @@
      dólar «funcionaba» (tipo legacy `state.fx`). La URL canónica es ya `.dev`; `.app` se deja
      por si queda algún redirect residual. --><meta http-equiv="Content-Security-Policy" content="default-src 'self';base-uri 'none';object-src 'none';form-action 'self';manifest-src 'self';worker-src 'self';script-src 'self' 'unsafe-inline' https://www.google.com https://www.gstatic.com;style-src 'self' 'unsafe-inline';font-src 'self' data:;img-src 'self' data: blob: https://www.gstatic.com;frame-src https://www.google.com;connect-src 'self' blob: https://sfyfjagbnhbplrljpbvh.supabase.co https://api.frankfurter.dev https://api.frankfurter.app https://juanjoavila.github.io https://github.com https://objects.githubusercontent.com https://release-assets.githubusercontent.com https://www.google.com https://www.gstatic.com;"><!-- Que no se filtre la URL de la app (ni sus parámetros) al salir hacia el banco. --><meta name="referrer" content="strict-origin-when-cross-origin"><!-- Adelanta el TLS de la única conexión externa que queda (la nube) --><link rel="preconnect" href="https://sfyfjagbnhbplrljpbvh.supabase.co" crossorigin><!-- Fuentes AUTO-HOSPEDADAS (public/fonts/, variables, latin+latin-ext): sin CDN de Google,
      sin CSS bloqueante de terceros, y funcionan offline (las cachea el Service Worker). --><link rel="preload" href="fonts/manrope-latin.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="fonts/fraunces-latin.woff2" as="font" type="font/woff2" crossorigin><!-- Tema ANTES del primer pintado: evita el fogonazo oscuro del splash en temas claros --><!-- Tema ANTES del primer pintado (si no, destello blanco). Lee la cartera de pruebas cuando el
-     modo pruebas está activo, para que el tema no baile al entrar y salir de él. --><script>try{var _k=localStorage.getItem("_mcSandbox")==="1"?"micartera_sandbox":"micartera_v3";var _s=JSON.parse(localStorage.getItem(_k));var _th=_s&&_s.settings&&_s.settings.theme;if(_th)document.documentElement.setAttribute("data-theme",_th);}catch(e){}</script><!-- Supabase (sincronización en la nube) AUTO-HOSPEDADO y con versión fijada (v2.110.0, public/vendor/).
+     modo pruebas está activo, para que el tema no baile al entrar y salir de él.
+     De paso deja puestas las dos cosas que el splash necesita saber ANTES de pintarse y que solo
+     sabe JS (2026-10-11): si el usuario pidió reducir animaciones en Ajustes, y si esto corre
+     dentro de la APK (ver `data-mc-nativo` junto a `#mc-load`). --><script>try{var _k=localStorage.getItem("_mcSandbox")==="1"?"micartera_sandbox":"micartera_v3";var _s=JSON.parse(localStorage.getItem(_k));var _th=_s&&_s.settings&&_s.settings.theme;if(_th)document.documentElement.setAttribute("data-theme",_th);if(_s.settings.reduceMotion)document.documentElement.classList.add("reduce-motion");}catch(e){}try{if(Capacitor.isNativePlatform())document.documentElement.setAttribute("data-mc-nativo","1");}catch(e){}</script><!-- Supabase (sincronización en la nube) AUTO-HOSPEDADO y con versión fijada (v2.110.0, public/vendor/).
      Antes venía de cdn.jsdelivr.net con la etiqueta @2 flotante: una versión nueva con breaking change
      podía romper la app sin tocar nosotros nada. Si falla (offline), la app sigue con localStorage. --><!-- Sentry: NO bloquea el arranque (~340 KB). Se inyecta tras el primer pintado si hay DSN (12-boot). -->
 
@@ -613,7 +616,10 @@
   html[data-season] .page.page-scroll-host{background:transparent!important;}
   /* Host transparente deja ver el lavado fijo (portal z-1) al scrollear; las hermanas montadas
      por mountNeighbors se filtraban por debajo (Inicio sobre Gastos). Fuera del pintado.
-     e2e acota a `.page-scroll-host` (listas-render) — los nodos siguen en DOM pero hidden. */
+     e2e acota a `.page-scroll-host` (listas-render) — los nodos siguen en DOM pero hidden.
+     2026-10-10: esto solo no alcanza si un hijo fuerza `visibility:visible` (el desglose
+     abierto). Ese caso se cierra donde se abre, con `inherit`, no con un `*` sobre toda
+     la página: el asterisco invalidaba cada nodo de Gastos al soltar la pestaña. */
   .track.scroll-host-park .page:not(.page-scroll-host){visibility:hidden;pointer-events:none;}
   /* Con el host fixed, no recortar el estirón nativo (Ajustes NO vive dentro de overflow:hidden). */
   .viewport.scroll-host-open{overflow:visible;}
@@ -891,7 +897,15 @@
      adivinar un max-height y la opacidad evita que la última fila parpadee. */
   .v4-gastos-cats-body{display:grid;grid-template-rows:0fr;opacity:0;visibility:hidden;pointer-events:none;
     transition:grid-template-rows .34s var(--ease),opacity .24s ease,visibility 0s linear .34s;}
-  .v4-gastos-cats-body.abierto{grid-template-rows:1fr;opacity:1;visibility:visible;pointer-events:auto;transition-delay:0s;}
+  /* `inherit` y no `visible` (2026-10-10): un hijo con `visibility:visible` se pinta aunque
+     la página lleve `hidden`. Gastos premontada ocupa el mismo recto que Inicio (el host es
+     `position:fixed` y sale del flujo). Con temática el host es transparente y la tarjeta
+     vacía de recibos no tiene fondo, así que el desglose se leía encima de Inicio con la
+     pestaña activa todavía ahí. Sin temática el fondo opaco lo tapa: por eso no salía en
+     todos los móviles. Heredar sigue el `hidden` de la página inactiva y, en la activa,
+     sigue siendo visible. Un `*` con !important sobre toda la página también lo cerraba,
+     pero a CPU x6 la primera vuelta a Inicio pagaba ~65 ms de estilo; esto no añade regla. */
+  .v4-gastos-cats-body.abierto{grid-template-rows:1fr;opacity:1;visibility:inherit;pointer-events:inherit;transition-delay:0s;}
   .v4-gastos-cats-inner{min-height:0;overflow:hidden;}
   .v4-gastos-cat{display:block;width:100%;text-align:left;background:transparent;border:0;padding:6px 0 2px;cursor:pointer;color:inherit;font:inherit;}
   .v4-gastos-cat-row{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:13px;}
@@ -910,7 +924,8 @@
   .v4-filter-cats-state{color:var(--muted);font-size:11.5px;font-weight:700;letter-spacing:0;text-transform:none;white-space:nowrap;}
   .v4-filter-cats-body{display:grid;grid-template-rows:0fr;opacity:0;visibility:hidden;pointer-events:none;
     transition:grid-template-rows .34s var(--ease),opacity .24s ease,visibility 0s linear .34s;}
-  .v4-filter-cats.abierto .v4-filter-cats-body{grid-template-rows:1fr;opacity:1;visibility:visible;pointer-events:auto;transition-delay:0s;}
+  /* Mismo agujero que el desglose de categorías: `visible` atravesaba la página hidden. */
+  .v4-filter-cats.abierto .v4-filter-cats-body{grid-template-rows:1fr;opacity:1;visibility:inherit;pointer-events:inherit;transition-delay:0s;}
   .v4-filter-cats-inner{min-height:0;overflow:hidden;padding:0 12px;}
   .v4-filter-cats.abierto .v4-filter-cats-inner{padding-bottom:2px;}
   .v4-card-hero{border-radius:24px;}
@@ -1491,14 +1506,6 @@
   .metric-big{font-size:30px;font-weight:600;line-height:1.05;margin-top:10px;}
   .metric-sub{font-size:12px;color:var(--muted-2);margin-top:5px;}
 
-  .ring-wrap{display:flex;flex-direction:column;align-items:center;}
-  .ring{position:relative;width:124px;height:124px;margin:6px 0 2px;}
-  .ring svg{transform:rotate(-90deg);}
-  .ring-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
-  .ring-center .big{font-size:23px;font-weight:700;line-height:1;}
-  .ring-center .small{font-size:11px;color:var(--muted-2);margin-top:3px;font-weight:600;}
-  .ring-foot{display:flex;justify-content:space-between;width:100%;margin-top:10px;font-size:12px;}
-  .ring-foot .muted{color:var(--muted-2);}
 
   .culprit-row{display:flex;align-items:center;gap:16px;margin-top:8px;}
   .legend{flex:1;display:flex;flex-direction:column;gap:7px;}
@@ -1586,10 +1593,6 @@
   .liqrow{display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:2px 0;}
   .liqrow.strong{font-weight:800;font-size:15px;border-top:1px solid var(--line-soft);margin-top:5px;padding-top:7px;}
   .alarmbox{background:rgba(226,112,95,.12);border:1px solid rgba(226,112,95,.45);color:var(--coral);border-radius:12px;padding:11px 13px;font-size:13px;font-weight:600;margin-bottom:8px;line-height:1.45;}
-
-  /* Mini-tutorial por pestaña */
-  .coach-card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px;}
-  .coach-pill{display:block;margin:0 0 8px auto;background:none;border:none;color:var(--muted-2);font-size:12px;cursor:pointer;padding:2px 4px;}
 
   .ex-row{display:flex;align-items:center;gap:13px;padding:13px 4px;border-bottom:1px solid var(--line-soft);}
   .ex-row:last-child{border-bottom:none;}
@@ -1957,31 +1960,74 @@
      tipografía y sus colores, y respeta el tema (el script del <head> pone data-theme antes del
      primer pintado, así que en tema claro no hay fogonazo). */
   #mc-load{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:var(--bg,#0B140F);}
-  #mc-load .mcl-mark{width:94px;height:94px;border-radius:26px;background:var(--sur,#132119);border:1px solid var(--line-soft,#1C2A22);
-    display:grid;place-items:center;color:var(--mint,#6CC688);box-shadow:0 26px 60px -30px var(--mint,#6CC688);
-    animation:mclpop .5s cubic-bezier(.32,.72,0,1) both;}
-  #mc-load .mcl-mark svg{width:56px;height:56px;display:block;}
+  /* LA TARJETA Y SU HALO SON DOS CAPAS DE `.mcl-mark`, NO SU FONDO (2026-10-11). El halo tiene que
+     quedar DETRÁS de la tarjeta, y un pseudo-elemento con z-index negativo se pinta por encima
+     del fondo de su propio elemento: con el fondo puesto en `.mcl-mark`, la luz teñía la tarjeta
+     en vez de asomar por detrás. Así `::before` es el halo, `::after` la tarjeta y el dibujo va
+     encima de los dos. Y como siguen siendo parte de `.mcl-mark`, se van con ella cuando el
+     vigilante la desvanece al salir: nunca queda un resplandor suelto encima de la app.
+     ⚠ Las entradas usan `backwards`, NO `both`. Con `both` la animación, ya terminada, seguía
+     mandando sobre `opacity`/`transform`, y una animación CSS gana a un estilo en línea: el
+     fundido de salida que el vigilante le pone a la marca no llegaba a aplicarse, y el logo se
+     iba con la cortina en vez de antes que ella. El estado final de estas entradas es el natural
+     del elemento, así que no hace falta sostenerlo. */
+  #mc-load .mcl-mark{position:relative;isolation:isolate;width:94px;height:94px;display:grid;place-items:center;color:var(--mint,#6CC688);
+    animation:mclpop .5s cubic-bezier(.32,.72,0,1) backwards;}
+  #mc-load .mcl-mark::after{content:"";position:absolute;inset:0;z-index:-1;border-radius:26px;background:var(--sur,#132119);
+    border:1px solid var(--line-soft,#1C2A22);box-shadow:0 26px 60px -30px var(--mint,#6CC688);}
+  /* EL HALO QUE RESPIRA (2026-10-11, petición suya: aprovechar la pantalla de carga con una
+     animación cuidada). Es lo único que se mueve mientras se espera, y a propósito NO mide nada:
+     la barra de carga se quitó el 26/7 porque «una barra que no mide nada solo dice que esto va
+     lento». Una luz que respira dice que la app está viva, no cuánto falta.
+     ⚠ SOLO `transform` Y `opacity`. Detrás de esta pantalla el hilo principal está ocupado de
+     verdad (evaluar el bundle, montar React y las cuatro pestañas): cualquier propiedad que no
+     anime el compositor —un `stroke-dashoffset`, un `box-shadow`, un `background`— se queda
+     clavada justo mientras se mira. Por eso el halo es un degradado FIJO que solo cambia de
+     escala, y su entrada va por opacidad en otra animación. */
+  #mc-load .mcl-mark::before{content:"";position:absolute;inset:-39px;z-index:-2;border-radius:50%;
+    background:radial-gradient(closest-side,color-mix(in srgb,var(--mint,#6CC688) 24%,transparent),transparent);
+    animation:mclentra .7s ease-out .12s backwards, mclhalo 3.4s ease-in-out .12s infinite;}
+  /* El dibujo se asienta un instante después que su tarjeta: primero el sitio, luego la marca. */
+  #mc-load .mcl-mark svg{width:56px;height:56px;display:block;animation:mclmarca .62s cubic-bezier(.32,.72,0,1) .07s backwards;}
+  /* SIN SALTO DE COLOR AL PASAR DEL SPLASH NATIVO AL WEB (APK). El de Android es siempre
+     `colorPrimary` (#0A1310, android/app/src/main/res/values/colors.xml) porque se pinta antes
+     de saber el tema; con el tema claro —o el azul— el primer frame web cambiaba de color de
+     golpe. Dentro de la APK el primer frame web arranca con ESE mismo color y se funde al del
+     tema. Fuera de la APK no se pone: en un navegador no hay splash nativo y sería un fogonazo
+     oscuro inventado. La marca del <html> la deja el script del <head>. */
+  html[data-mc-nativo] #mc-load::before{content:"";position:absolute;inset:0;background:#0A1310;opacity:0;pointer-events:none;
+    animation:mclnativo .34s ease-out backwards;}
   /* EL NOMBRE NO SE ENSEÑA HASTA QUE ESTÁ SU TIPOGRAFÍA (2026-07-28). Con `font-display:swap`
      el navegador pinta «Aely» en Georgia al momento y la CAMBIA a Fraunces cuando la
      fuente carga: en un arranque en frío ese cambio de forma se ve, y es lo primero que enseña
      la app. Feedback suyo: «antes aparece algo raro en vez de aparecer el icono». Ahora el icono
      entra solo y el nombre se suma cuando puede hacerlo bien (tope de 500 ms en `mcl-fuente`,
      abajo: si la fuente se atasca, mejor Georgia que un hueco). */
-  #mc-load .mcl-name{font-family:'Fraunces',Georgia,serif;font-size:27px;font-weight:560;letter-spacing:-.3px;color:var(--brand-word,#E8EEEC);
+  #mc-load .mcl-name{position:relative;font-family:'Fraunces',Georgia,serif;font-size:27px;font-weight:560;letter-spacing:-.3px;color:var(--brand-word,#E8EEEC);
     opacity:0;}
-  #mc-load .mcl-name.lista{animation:mclpop .42s cubic-bezier(.32,.72,0,1) both;}
+  #mc-load .mcl-name.lista{opacity:1;animation:mclpop .42s cubic-bezier(.32,.72,0,1) backwards;}
+  /* `--brand-word` es casi blanco y el tema claro no lo redefine: sobre su fondo el nombre no se
+     leía (cazado en la captura del 11/10). Ahí va con el color de texto del propio tema. */
+  html[data-theme="light"] #mc-load .mcl-name{color:var(--text);}
   /* SIN BARRA DE CARGA (2026-07-26). Había una barra indeterminada debajo del nombre; fuera, por
      petición desde el móvil: «quitar lo de la barra de carga al abrir la app, el resto de apps no
      lo tienen; el tiempo ese que se queda el logo está bien». Una barra que no mide nada solo
      dice «esto va lento». El botón de reintentar SÍ se queda: ese aparece únicamente si algo se
      ha atascado de verdad, y es la única salida cuando pasa. */
-  #mc-load .mcl-retry{display:none;margin-top:2px;background:none;border:none;font-family:'Manrope',sans-serif;font-size:13px;font-weight:700;
+  #mc-load .mcl-retry{position:relative;display:none;margin-top:2px;background:none;border:none;font-family:'Manrope',sans-serif;font-size:13px;font-weight:700;
     color:var(--mint,#6CC688);text-decoration:underline;padding:8px 12px;cursor:pointer;}
   @keyframes mclpop{from{opacity:0;transform:translateY(9px) scale(.94);}to{opacity:1;transform:none;}}
+  @keyframes mclmarca{from{opacity:0;transform:scale(.8);}to{opacity:1;transform:none;}}
+  @keyframes mclentra{from{opacity:0;}to{opacity:1;}}
+  @keyframes mclhalo{0%,100%{transform:none;}50%{transform:scale(1.2);}}
+  @keyframes mclnativo{from{opacity:1;}to{opacity:0;}}
+  /* Con «reducir movimiento» la marca está puesta desde el primer frame y nada entra, respira ni
+     se encoge al salir: solo queda el fundido. El `!important` del `transform` es para ganarle
+     al estilo en línea que pone el vigilante en la salida. (El ajuste propio de la app lo cubre
+     `html.reduce-motion *`, que el script del <head> deja puesto antes del primer pintado.) */
   @media (prefers-reduced-motion:reduce){
-    #mc-load .mcl-mark{animation:none !important;}
-    #mc-load .mcl-name{animation:none !important;}
-    #mc-load .mcl-name.lista{opacity:1;}
+    #mc-load .mcl-mark,#mc-load .mcl-mark::before,#mc-load .mcl-mark svg,#mc-load .mcl-name,html[data-mc-nativo] #mc-load::before{animation:none !important;}
+    #mc-load,#mc-load .mcl-mark,#mc-load .mcl-name{transform:none !important;}
   }
 
 /* Ayuda: composer fijo abajo; el teclado (visualViewport) sube la hoja, no la tapa.

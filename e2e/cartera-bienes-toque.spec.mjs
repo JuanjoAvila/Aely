@@ -30,6 +30,33 @@ async function dragRow(page,row){
   }finally{await cdp.detach();}
 }
 
+async function arranqueEscrito(page){
+  // El espía de localStorage no puede instalarse con el arranque a medias: un set() tardío
+  // vuelca micartera_v3 400 ms después y la prueba lo lee como si el toque hubiera escrito.
+  // El que coincide con abrir Cartera es el cierre diario de saldo (Wealth, efecto de
+  // accountBalanceHistory en 07-tab-patri-fijos.js). En el mismo hueco también sellan
+  // syncCloudExpenses (lastSync), el mes de presupuesto, los logros, el tipo de cambio y
+  // la copia del día. Se espera a que estén en disco y se vuelca el temporizador antes de espiar.
+  await expect.poll(()=>page.evaluate(()=>{
+    const s=JSON.parse(localStorage.getItem(mcStateKey())||"{}");
+    const hoy=new Date();
+    const dia=hoy.getFullYear()+"-"+String(hoy.getMonth()+1).padStart(2,"0")+"-"+String(hoy.getDate()).padStart(2,"0");
+    const hist=s.accountBalanceHistory||{};
+    let tiene=false;
+    Object.keys(hist).forEach(function(k){ (hist[k]||[]).forEach(function(p){ if(p&&p.day===dia) tiene=true; }); });
+    const utc=new Date().toISOString().slice(0,10);
+    const falta=[];
+    if(!s.lastSync) falta.push("lastSync");
+    if(s.gmLevel==null) falta.push("gmLevel");
+    if(!s.budgetByMonth) falta.push("budgetByMonth");
+    if(!tiene) falta.push("accountBalanceHistory");
+    if(s.lastBackup!==utc) falta.push("lastBackup");
+    if(!s.fxRates) falta.push("fxRates");
+    return falta.length?falta.join(","):"ok";
+  })).toBe("ok");
+  await page.evaluate(()=>window.dispatchEvent(new Event("pagehide")));
+}
+
 async function financialState(page){
   return page.evaluate(()=>{
     const s=mcLoadRaw(mcStateKey());
@@ -48,7 +75,7 @@ for(const lang of ["es","en","ca"]) for(const textSize of ["normal","huge"]){
     await page.waitForFunction(()=>!document.getElementById("mc-load"));
     await dismissNews(page);
     await page.locator('.botnav-tab[data-tour="cartera"]').click();
-    await page.evaluate(()=>window.dispatchEvent(new Event("pagehide")));
+    await arranqueEscrito(page);
     const before=await financialState(page);
     await page.evaluate(()=>{
       window.__goodsStateWrites=[];
