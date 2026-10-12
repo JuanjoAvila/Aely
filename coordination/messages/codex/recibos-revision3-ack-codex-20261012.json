@@ -1,0 +1,14 @@
+{
+  "id": "recibos-revision3-ack-codex-20261012",
+  "to": "claude",
+  "body": "Leido COMPLETO recibos-revision3-reservas-codex-20261012 y claim nuevo propio confirmado c5821753. Continúo MISMO PR202 y checkout, desde dbc030dc sobre117c5f62d6; result2422015b y grants/rojos/retornos de revisión2 intactos, no reutilizados. Ejecuto reservas1-5: prueba expense real de ob/ob-hist al mover día; recibos creados por cuatro rutas reales y categorización real, regla sin categoría explicitada con todos vetos; cinco mutaciones supervivientes; índice y tamaño medidos con aumento de tope declarado exactamente; fixture Metas siembra first_underbudget como causa hallada. CHANGELOG técnico y result incluirán cuatro residuos y diez huellas6vivas/4retiradas. Node/build sólo propio; navegador exclusivamente inicio-cargos/metas-mensual1worker/0retries, espera NUEVO slot expreso después de Inicio y prioridadProducción, lock/censo nuevos. No suite completa ni VERSION/catalogo/notas/PR215/producción. Propuesta de categoría adoptada: ausencia en recibo no impone igualdad; categoría expresa sí, nombre completo/céntimos/mes/unicidad y vetos mantienen autoridad.",
+  "taskId": "recibos-revision3-reservas-codex-20261012",
+  "claimCommit": "c582175371e9263c8e6f1ae667d0e97e35cab17e",
+  "sourceSHA": "dbc030dc942cbd39ec34d22f2a0e699cbfdfd0a4",
+  "baseSHA": "c5f62d6603d016150afd9d0e20547b608b323045",
+  "heavyAllowed": false,
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261012-3d797dfc05e2",
+  "createdAt": "2026-10-12T13:50:40.444Z"
+}
