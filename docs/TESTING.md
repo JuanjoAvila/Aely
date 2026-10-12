@@ -369,8 +369,17 @@ no llegan (la 1 y la 2 con 89 días de hueco, alternas, la que cierra el tramo),
 (otro enlace, futuro, atrasado, deformado), banco que filtra por fecha valor con la contable 1 y 2
 días antes, y la matriz de versiones (función nueva con clientes sin acuse; cliente nuevo con la
 función desplegada, leída de su commit). Usa el reloj real: el banco sintético es relativo a hoy.
+También fija que el acuse es de UN enlace (tabla con tres filas y cliente admin sin RLS: el otro
+banco del usuario y los de otras personas quedan byte a byte), que una escritura de acuse con
+error no se da por aplicada, que el acuse se guarda detrás de sus filas, que el banco de pruebas
+ni lo envía ni lo guarda, que no viaja entre dispositivos por la nube (dos móviles alternando) y
+la frontera exacta de `ackCursor`. `tests/bank-reconnect.test.mjs` (también en `STEPS_SUPABASE`)
+encadena `bank-connect`, `bank-callback` y `bank-sync` reales: reconectar con las mismas cuentas
+conserva el cursor y recupera el hueco, con cuentas cambiadas arranca de cero, y un acuse emitido
+antes de reconectar no mueve el cursor en ninguno de los dos casos. El banco, la BD con filtros
+de verdad y los móviles sintéticos de ambos viven en `tests/helpers/banco-sintetico.mjs`.
 `supabase/functions/bank-sync/demand-window.test.ts` (Deno)
-cubre el plan de fechas, el suelo y la validación del acuse. En cliente, `tests/ob-hueco-sync.test.mjs` y `tests/ob-hueco-recuperado.test.mjs`
+cubre el plan de fechas, el suelo, la validación del acuse y la clave del enlace. En cliente, `tests/ob-hueco-sync.test.mjs` y `tests/ob-hueco-recuperado.test.mjs`
 fijan el suelo por banco y las reglas de dinero del tramo (no compra, no duplica fijos, repetido con
 la fecha real), y `e2e/bancos-hueco-sync.spec.mjs` los avisos y la fecha de «Saldo actualizado».
 `e2e/bancos-historico-filtro.spec.mjs` comprueba la selección previa, avisos visibles y que un banco

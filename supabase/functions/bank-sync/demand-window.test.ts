@@ -1,5 +1,5 @@
 import { assertEquals } from "jsr:@std/assert@1";
-import { ackCursor, ackToken, chunkCursor, currentDemandWindowStart, demandFloor, demandPlan, demandReadComplete, nextChunkDays, ymdAddDays, ymdSpan } from "./demand-window.ts";
+import { ackCursor, ackLinkKey, ackToken, chunkCursor, currentDemandWindowStart, demandFloor, demandPlan, demandReadComplete, nextChunkDays, ymdAddDays, ymdSpan } from "./demand-window.ts";
 
 const now = new Date("2026-10-10T12:00:00Z");
 const windowStart = currentDemandWindowStart(now);
@@ -100,6 +100,24 @@ Deno.test("el acuse solo mueve el cursor si es de este enlace, no es futuro y va
   for (const raw of [null, 7, {}, "", "2026-08-20|L1", "2026-08-20T23:59:59.999Z", "2026-08-20T23:59:59Z|L1", "2026-13-45T00:00:00.000Z|L1"]) {
     assertEquals(ackCursor(raw, "L1", null, now), null);
   }
+  // `Date.parse` corre un 30 de febrero al 2 de marzo en vez de rechazarlo: solo vale lo que
+  // se reescribe idéntico, que es lo único que pudo emitir el servidor.
+  assertEquals(ackCursor("2026-02-30T00:00:00.000Z|L1", "L1", null, now), null);
+  assertEquals(ackCursor("2026-03-02T00:00:00.000Z|L1", "L1", null, now), "2026-03-02T00:00:00.000Z");
+});
+
+Deno.test("la clave del enlace cambia con cada autorización: un acuse de antes de reconectar no vale", () => {
+  const antes = ackLinkKey("L1", "2026-09-01T10:00:00.123+00:00");
+  // La misma emisión escrita como la devuelve Postgres o como la escribió bank-connect.
+  assertEquals(antes, ackLinkKey("L1", "2026-09-01T10:00:00.123Z"));
+  const despues = ackLinkKey("L1", "2026-10-09T08:00:00.000Z");
+  assertEquals(antes === despues, false);
+  assertEquals(ackLinkKey("L1", null), "L1.0");
+  const viejo = ackToken(chunkCursor("2026-08-20"), antes);
+  assertEquals(ackCursor(viejo, antes, null, now), "2026-08-20T23:59:59.999Z");
+  assertEquals(ackCursor(viejo, despues, null, now), null);
+  assertEquals(ackCursor(viejo, "L1", null, now), null);
+  assertEquals(ackCursor(viejo, ackLinkKey("L2", "2026-09-01T10:00:00.123Z"), null, now), null);
 });
 
 Deno.test("una lectura parcial o con una cuenta caída no cuenta como entera", () => {

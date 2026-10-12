@@ -207,7 +207,7 @@ const STEPS_SUPABASE = [
   "prod117-edge-compat",
   "help-assistant", "guard-privacy", "edge-sintaxis", "presupuesto-servidor", "cuotas-deudas", "widget-coherente", "widget-arbitraje", "widget-offline", "widget-unknown-loss", "widget-unknown-journal", "widget-notificacion-render", "widget-inicio-paridad", "widget-puente-ciclo",
   "month-window", "wallet-notis", "ingest-classify", "ingest-identity", "ingest-handler", "divisa-original", "presupuesto-rendimiento",
-  "grants-migraciones", "entrada-edge", "bank-sync-paging", "bank-sync-progreso", "bank-sync-acuse", "tr-open-banking",
+  "grants-migraciones", "entrada-edge", "bank-sync-paging", "bank-sync-progreso", "bank-sync-acuse", "bank-reconnect", "tr-open-banking",
   "categorize-limitador", "categorize-handler",
 ];
 

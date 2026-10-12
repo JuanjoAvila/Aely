@@ -871,6 +871,44 @@ function mcRecargarSinVolcar(){
    copia nueva de la cartera real. */
 function mcResetSandbox(){ store.del(STATE_KEY_TEST); store.del(STATE_KEY_TEST+EXP_SUFFIX); try{ localStorage.removeItem("_mcSandboxVacio"); }catch(e){} }
 
+/* ---------- ACUSE del cursor de bancos: LOCAL a este dispositivo (12/10/2026) ----------
+   `bank-sync` no mueve su cursor al leer del banco: entrega en cada respuesta el que le tocaría
+   (`ack`) y espera a que este móvil se lo devuelva en la pulsación siguiente, con las filas ya
+   guardadas aquí. Nació dentro del estado (`state.obAck`) y la revisión encontró dos agujeros:
+     · el estado sube a la nube y otro dispositivo lo adopta entero, así que un móvil B acababa
+       devolviendo el acuse de filas que solo había importado el móvil A;
+     · el banco de pruebas guarda su estado aparte: un acuse nacido allí movía el cursor REAL
+       sin que la cartera real hubiera recibido esas filas.
+   Por eso vive en SU clave, que ni sube ni se adopta, y en modo pruebas ni se guarda ni se
+   envía: se manda vacío, que es lo que le dice al servidor que no avance por su cuenta. El
+   precio es pequeño: en pruebas el tramo antiguo se queda en su primer trozo, y el cursor lo
+   mueve la cartera real cuando sincroniza ella.
+   Viaja en el cuerpo de `cloud.bankSync` como `acks`, junto a `recoverGaps`; una función que
+   no lo conoce lo ignora y no devuelve `ack`, así que aquí no se guarda nada. */
+const OB_ACK_KEY="micartera_v3_oback";
+function obAckLoad(){
+  if(mcSandbox()) return {};
+  const a=store.get(OB_ACK_KEY);
+  return a&&typeof a==="object"&&!Array.isArray(a) ? a : {};
+}
+/* Se escribe DESPUÉS de las filas y solo si están en disco. `at` es el `lastBankSync` que el
+   mismo `set` dejó en el estado junto a ellas: si el volcado no ha llegado (la app se cerró
+   antes, o se descartó a propósito) no hay acuse, y la pulsación siguiente repite el trozo. */
+function obAckSave(at, ack){
+  if(mcSandbox()) return false;
+  const disk=store.get(STATE_KEY_REAL);
+  if(!disk || disk.lastBankSync!==at) return false;
+  store.set(OB_ACK_KEY, Object.assign(obAckLoad(), ack));
+  return true;
+}
+// Al quitar un banco su enlace se borra en el servidor: ese acuse ya no es de nadie.
+function obAckDrop(aspsp){
+  const a=obAckLoad();
+  if(!(aspsp in a)) return;
+  delete a[aspsp];
+  store.set(OB_ACK_KEY, a);
+}
+
 /* ---------- Supabase: sincronización en la nube (Fase 1) ----------
    Offline-first: si no hay librería/red o no hay sesión, la app funciona igual con localStorage.
    Al iniciar sesión (magic link) se sincroniza el estado entre dispositivos.
@@ -1295,10 +1333,9 @@ const cloud = (function(){
       return data.aspsps||[];
     },
     // Trae saldo (+ movimientos, que en Capa 2 ignoramos) de los bancos enlazados.
-    // `body` es `{recoverGaps:true,acks}`: `recoverGaps` avisa al servidor de que este cliente
-    // guarda también lo anterior a la ventana de siempre (INC-2709-06) y `acks` le devuelve el
-    // cursor de la respuesta anterior (ver `runBankSync`); una función vieja ignora los dos. No
-    // es `dateFrom`: eso abriría el histórico de solo lectura, que no toca saldos.
+    // `body` es `{recoverGaps:true}`: avisa al servidor de que este cliente guarda también lo
+    // anterior a la ventana de siempre (INC-2709-06); una función vieja ignora el campo. No es
+    // `dateFrom`: eso abriría el histórico de solo lectura, que no toca saldos.
     async bankSync(body){
       if(!sb) throw new Error("nube no disponible");
       const {data,error}=await sb.functions.invoke('bank-sync',{ body });

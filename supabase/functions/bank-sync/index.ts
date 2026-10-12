@@ -9,7 +9,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { ebApi, ebConfig, jsonResp, makeJWT, mapTransaction, fetchBankTransactions } from "../_shared/enablebanking.ts";
 import { withCors } from "../_shared/cors.ts";
-import { OB_DEMAND_MAX_PAGES, ackCursor, ackToken, chunkCursor, demandFloor, demandPlan, demandReadComplete, nextChunkDays, ymdAddDays, ymdSpan } from "./demand-window.ts";
+import { OB_DEMAND_MAX_PAGES, ackCursor, ackLinkKey, ackToken, chunkCursor, demandFloor, demandPlan, demandReadComplete, nextChunkDays, ymdAddDays, ymdSpan } from "./demand-window.ts";
 
 /* Los movimientos crudos no salen a `app_events`. El diagnóstico temporal del signo de TR
    guardaba hasta ocho payloads completos y seguía activo el 23/9, cuando apareció en telemetría
@@ -218,17 +218,25 @@ Deno.serve(withCors(async (req: Request) => {
       // suya, y nada de lo que le pase puede cambiar este resultado.
       /* El acuse va ANTES del plan: lo que el cliente confirma tener es desde donde se sigue.
          La clave es el nombre del banco, único por usuario (`bank_links_user_aspsp_idx`),
-         y dentro va el id del enlace: un acuse de otro enlace no vale (`ackCursor`).
-         Si la escritura falla, el plan usa igualmente el acuse y el cliente lo repite en la
-         siguiente pulsación: como es un instante absoluto, repetirlo no hace daño. */
-      const acked = acks ? ackCursor(acks[link.aspsp_name], link.id, link.last_sync, new Date()) : null;
+         y dentro va la clave del enlace: un acuse de otro enlace o de antes de reconectar
+         no vale (`ackLinkKey`).
+         El filtro por `id` es lo único que separa esta escritura de los enlaces de los
+         demás: `admin` salta RLS.
+         Solo se da por aplicado si la escritura no devolvió error (supabase-js no lanza: lo
+         entrega en `error`). Si falla, el plan sigue desde el cursor que hay de verdad en
+         la BD y el cliente repite el acuse en la siguiente pulsación: es un instante
+         absoluto y repetirlo no hace daño. */
+      const linkKey = ackLinkKey(link.id, link.state_issued_at);
+      const acked = acks ? ackCursor(acks[link.aspsp_name], linkKey, link.last_sync, new Date()) : null;
       if (acked) {
+        let written = false;
         try {
           const q = admin.from("bank_links").update({ last_sync: acked, updated_at: new Date().toISOString() }).eq("id", link.id);
           // `lt` no casa con null: un enlace recién conectado necesita su propio filtro.
-          await (link.last_sync ? q.lt("last_sync", acked) : q.is("last_sync", null));
-        } catch (_) { /* se repetirá con la siguiente pulsación */ }
-        link.last_sync = acked;
+          const { error } = await (link.last_sync ? q.lt("last_sync", acked) : q.is("last_sync", null));
+          written = !error;
+        } catch (_) { /* corte de red: igual que un error devuelto */ }
+        if (written) link.last_sync = acked;
       }
       const plan = demandPlan(new Date(), link.last_sync, recoverGaps);
       /* Llamadas a /transactions por cuenta, contadas al PEDIR: una que falla también le
@@ -325,11 +333,11 @@ Deno.serve(withCors(async (req: Request) => {
            el tramo va a medias. `ack` es el cursor que el cliente devolverá. */
         syncFrom: demandFloor(plan.windowStart), gapBeyondCap: plan.gapBeyondCap, gapPending: wantOld,
         balanceAt: anyAcctOk ? nowIso : undefined,
-        ack: acks && toNow ? ackToken(nowIso, link.id) : undefined,
+        ack: acks && toNow ? ackToken(nowIso, linkKey) : undefined,
         accounts: acctOut,
       };
       out.push(entry);
-      reads.push({ link, plan, used, counted, entry, primary, accounts: acctOut, asked: plan.windowStart,
+      reads.push({ link, linkKey, plan, used, counted, entry, primary, accounts: acctOut, asked: plan.windowStart,
         // El tramo solo se empieza con lo reciente ENTERO en todas las cuentas: gastar
         // llamadas en una mientras otra no avanza no movería el cursor.
         ready: wantOld && demandReadComplete(acctOut) });
@@ -401,11 +409,11 @@ Deno.serve(withCors(async (req: Request) => {
       try {
         const stamp = new Date().toISOString();
         if (day > p.to) {
-          if (acks) r.entry.ack = ackToken(stamp, r.link.id);
+          if (acks) r.entry.ack = ackToken(stamp, r.linkKey);
           else await admin.from("bank_links").update({ last_sync: stamp, updated_at: stamp }).eq("id", r.link.id);
           r.entry.gapPending = false;
         } else if (sealed) {
-          if (acks) r.entry.ack = ackToken(chunkCursor(sealed), r.link.id);
+          if (acks) r.entry.ack = ackToken(chunkCursor(sealed), r.linkKey);
           // `lt`: otro móvil pudo terminar mientras tanto. El cursor nunca retrocede.
           else await admin.from("bank_links").update({ last_sync: chunkCursor(sealed), updated_at: stamp })
             .eq("id", r.link.id).lt("last_sync", chunkCursor(sealed));

@@ -33,6 +33,20 @@ la función vieja manda un campo que esta ignora y no recibe `syncFrom`, así qu
 anterior a su margen. Rollback: desplegar el `bank-sync` anterior; un cursor sellado que quede en
 `last_sync` es una fecha válida para él.
 
+## Acuse del cursor y reconexión que lo conserva (12/10): solo en fuente, SIN desplegar
+
+Cambian `bank-sync` (acuse, `ackLinkKey`), `bank-callback` (no pone `last_sync` a null si vuelven
+las mismas cuentas; guarda `hash` en `accounts`) y `bank-connect` (solo un comentario). Sin
+migración ni secreto: la clave del acuse usa `state_issued_at` (0019) y `accounts` es jsonb.
+Los cruces están probados en `bank-sync-acuse` y `bank-reconnect`: función nueva con cliente sin
+`acks` escribe el cursor como antes; cliente nuevo con el `bank-sync` desplegado no recibe `ack`
+y no guarda nada; `bank-callback` nuevo con el `bank-sync` desplegado recupera el hueco. Orden
+recomendado: `bank-sync`, después `bank-callback`, y por último el cliente. Ojo con
+`bank-callback` antes de que producción tenga el cliente con `recoverGaps`: ese cliente no
+recupera el tramo y, con el cursor conservado por detrás de la ventana, su `last_sync` no sube
+hasta que actualice. Rollback: desplegar las funciones anteriores; los acuses guardados en los
+móviles se ignoran y un `hash` de más en `accounts` no molesta.
+
 ## bank-sync desplegado para beta 4.26.53.1: concepto y MCC opcionales
 
 El cambio en `_shared/enablebanking.ts` añade concept separado de la descripción bancaria y MCC opcional normalizado; mantiene signo, identidad, merchant, note y contrato anterior. Lo consume bank-sync en diario e histórico. No exige migraciones, secretos, nuevas llamadas al proveedor ni cambios en ingest. Desplegado con autorización explícita el 26/9/2026: únicamente bank-sync, migraciones=no, [Action 36271682736](https://github.com/JuanjoAvila/Aely/actions/runs/36271682736), SHA 7839acb769fb9175434a1b652be3917faab02261. La etapa de migraciones fue omitida; el log confirma solo bank-sync. Servicio compartido con producción, cliente publicado solo en beta. El despliegue previo comprobado fue Action 35978144828, SHA f53e865277f676998d76844fd047357f4adc1569. Comparados bank-sync, enablebanking y cors (sus imports locales) contra ese SHA, solo cambia la adición de estos campos. Rollback por ese SHA. No usar despliegue general. Cliente antiguo ignora los campos; cliente nuevo conserva la clasificación previa sin ellos. No se promete que TR real entregue datos útiles.
