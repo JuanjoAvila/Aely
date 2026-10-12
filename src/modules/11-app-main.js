@@ -1,5 +1,34 @@
 // Motivo con identidad: `runBankSync` no llamó al banco porque no había pull de la nube (15/9).
 const SYNC_SIN_NUBE={motivo:"sync-sin-nube"};
+// El aviso usa el mismo saldo y calendario que Plan: sumar todos los bancos o mirar fin
+// de mes escondería que el cobro llega antes de la nómina. Sin datos, conserva el texto anterior.
+function receiptAlertBalance(state,totals,bank,day){
+  const y=totals.curYear,m=totals.curMonth,today=totals.today;
+  if(!bank||!Number.isInteger(y)||!Number.isInteger(m)||m<1||m>12
+    ||!Number.isInteger(today)||today<1||!Number.isInteger(day)||day<=today
+    ||day>new Date(y,m,0).getDate()) return null;
+  const accounts=(state.accounts||[]).filter(function(a){ return a.ent===bank; });
+  const balances=totals.bankBal||{};
+  if(!accounts.length||accounts.some(function(a){ return typeof a.value!=="number"||!Number.isFinite(a.value); })
+    ||!Object.prototype.hasOwnProperty.call(balances,bank)||typeof balances[bank]!=="number"
+    ||!Number.isFinite(balances[bank])) return null;
+  const events=bankPendingEvents(state,bank,y,m,today);
+  if(events.some(function(e){ return !Number.isInteger(e.day)||e.day<1||e.day>new Date(y,m,0).getDate()
+    ||typeof e.amt!=="number"||!Number.isFinite(e.amt); })) return null;
+  // El motor recorre céntimos aquí para que diez cargos pequeños no inventen una falta de 0,01.
+  const cents=function(n){ return Math.round(n*100); };
+  const start=cents(balances[bank]);
+  const due=events.filter(function(e){ return e.day<=day; }).map(function(e){ return {day:e.day,amt:cents(e.amt)}; });
+  if(!Number.isSafeInteger(start)||due.some(function(e){ return !Number.isSafeInteger(e.amt); })) return null;
+  const end=minWalk(start,due).end;
+  return Number.isSafeInteger(end)?{bank:bank,enough:end>=0,amount:Math.abs(end)/100}:null;
+}
+function receiptAlertBody(body,state,totals,bank,day){
+  const balance=receiptAlertBalance(state,totals,bank,day);
+  if(!balance) return body;
+  const values={bank:entOf(balance.bank).label,x:eur(balance.amount)};
+  return body+" "+(balance.enough?tf("rc_balance_ok",values):tf("rc_balance_short",values));
+}
 function App(){
   const [state,setStateRaw]=useState(loadState);
   const [tab,setTab]=useState(0);
@@ -2338,9 +2367,9 @@ function App(){
         if(!(amt>0)) return;
         const daysLeft=d-today;
         if(daysLeft===1){
-          notify("_rc1_"+e.id+"_"+ym, t("rc_title_tmrw"), tf("rc_body_tmrw",{name:e.name||"?",x:eur(amt)}));
+          notify("_rc1_"+e.id+"_"+ym, t("rc_title_tmrw"), receiptAlertBody(tf("rc_body_tmrw",{name:e.name||"?",x:eur(amt)}),state,totals,e.account,d));
         } else if(amt>=minAmt && daysLeft>=2 && daysLeft<=3){
-          notify("_rc_"+e.id+"_"+ym+"_"+d, t("rc_title"), tf("rc_body",{name:e.name||"?",x:eur(amt),d:String(d)}));
+          notify("_rc_"+e.id+"_"+ym+"_"+d, t("rc_title"), receiptAlertBody(tf("rc_body",{name:e.name||"?",x:eur(amt),d:String(d)}),state,totals,e.account,d));
         }
       });
       // cuotas de deuda (hipoteca, financiaciones…): también avisan la víspera
@@ -2348,7 +2377,7 @@ function App(){
         if(!debtActive(d) || !(d.monthly>0)) return;
         if(isDebtPaidThisMonth(d,today,state,cy,cm)) return;
         if(debtChargeDay(d)-today!==1) return;
-        notify("_rc1_debt_"+d.id+"_"+ym, t("rc_title_tmrw"), tf("rc_body_tmrw",{name:d.name||"?",x:eur(d.monthly)}));
+        notify("_rc1_debt_"+d.id+"_"+ym, t("rc_title_tmrw"), receiptAlertBody(tf("rc_body_tmrw",{name:d.name||"?",x:eur(d.monthly)}),state,totals,d.account,dayOf(d)));
       });
     };
     // ANTES de avisar, sella lo que el NATIVO ya avisó. Este efecto corría en paralelo al
@@ -2362,7 +2391,7 @@ function App(){
         }).catch(run);
       }catch(e){ run(); }
     } else run();
-  },[state.onboarded,locked,showAuth,state.fixed,state.debts,state.expenses,state.bankTx,state.deleted,totals.today,totals.curMonth,totals.curYear]);
+  },[state.onboarded,locked,showAuth,state.fixed,state.debts,state.expenses,state.bankTx,state.deleted,state.flows,state.oneoffs,totals.bankBal,totals.today,totals.curMonth,totals.curYear]);
 
   // Empuja el calendario de recibos del mes al NATIVO (APK ≥29): AlertCheckWorker avisa la
   // víspera aunque la app esté CERRADA. Intercambio de sellos para no avisar dos veces:
