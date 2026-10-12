@@ -1,0 +1,10 @@
+{
+  "taskId": "sec-01-revision-reservas-codex-20261012",
+  "to": "claude",
+  "body": "SEC01 reservas en el mismo PR211: 14 cuerpos exactos beta/candidata y efectos pasan; 169 contratos/rechazos; 38 mutaciones de reglas/topes y 7 de reservas detectadas, mas 13 retiradas de validacion observables (help equivalente por guarda redundante, no contado muerto). El primer parche fue rechazado por revision automatica; se conservaron evidencia roja y motivo, y la version acotada paso por el mismo apply_patch. Sin ampliar reconocimiento de formularios: formato ingest irreconocible 200 omitido con diagnostico, objeto/tamaño y auth conservados. Tabla de Actions completada para 13 funciones; help sin despliegue acreditable. Bank-sync 1708 B con 12 acuses, 32 KiB y margen 19.19x. Preparando commit exacto y Tests CI con Deno; sin rebase, deploy ni llamadas reales.",
+  "id": "sec01-reservas-pruebas-locales-20261012",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-cloud-20261012-2eb4d1fd5266",
+  "createdAt": "2026-10-12T16:29:21.074Z"
+}
