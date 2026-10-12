@@ -4,16 +4,17 @@ const SYNC_SIN_NUBE={motivo:"sync-sin-nube"};
 // de mes escondería que el cobro llega antes de la nómina. Sin datos, conserva el texto anterior.
 function receiptAlertBalance(state,totals,bank,day){
   const y=totals.curYear,m=totals.curMonth,today=totals.today;
-  if(!bank||!Number.isInteger(y)||!Number.isInteger(m)||m<1||m>12
+  const last=new Date(y,m,0).getDate();
+  if(!bank||!Number.isInteger(y)||y<1||!Number.isInteger(m)||m<1||m>12||!Number.isInteger(last)
     ||!Number.isInteger(today)||today<1||!Number.isInteger(day)||day<=today
-    ||day>new Date(y,m,0).getDate()) return null;
+    ||day>last) return null;
   const accounts=(state.accounts||[]).filter(function(a){ return a.ent===bank; });
   const balances=totals.bankBal||{};
   if(!accounts.length||accounts.some(function(a){ return typeof a.value!=="number"||!Number.isFinite(a.value); })
     ||!Object.prototype.hasOwnProperty.call(balances,bank)||typeof balances[bank]!=="number"
     ||!Number.isFinite(balances[bank])) return null;
   const events=bankPendingEvents(state,bank,y,m,today);
-  if(events.some(function(e){ return !Number.isInteger(e.day)||e.day<1||e.day>new Date(y,m,0).getDate()
+  if(events.some(function(e){ return !Number.isInteger(e.day)||e.day<1||e.day>last
     ||typeof e.amt!=="number"||!Number.isFinite(e.amt); })) return null;
   // El motor recorre céntimos aquí para que diez cargos pequeños no inventen una falta de 0,01.
   const cents=function(n){ return Math.round(n*100); };

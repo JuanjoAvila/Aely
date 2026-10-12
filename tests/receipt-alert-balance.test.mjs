@@ -61,6 +61,10 @@ test("datos ausentes o inválidos dejan intacto el aviso",()=>{
     [state({accounts:[{ent:"sabadell"}]}),totals(),"sabadell",28],
     [state({fixed:[bill,{...bill,id:"unknown-day",day:null}]}),totals(),"sabadell",28],
     [state(),totals({curMonth:null}),"sabadell",28],
+    [state(),totals({curYear:999999}),"sabadell",28],
+    [state(),totals({curYear:-1}),"sabadell",28],
+    [state(),totals({bankBal:{sabadell:Infinity}}),"sabadell",28],
+    [state(),totals({bankBal:{sabadell:Number.MAX_VALUE}}),"sabadell",28],
   ]){assert.equal(balance(s,t,bank,day),null);assert.equal(c.receiptAlertBody("Original",s,t,bank,day),"Original");}
 });
 test("sin mutaciones y salida en los tres idiomas y moneda elegida",()=>{
