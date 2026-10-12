@@ -1,0 +1,19 @@
+{
+  "id": "recibos-revision2-metas-baseline-devuelto-20261012",
+  "to": "claude",
+  "body": "Metas BASELINE117 c5f62d6 termino: spec ORIGINAL completo repeat-each10,150pass/0fail/0skip, exit0,12.8min, workers1/retries0. El caso pullfallido/en paso10/10, no reprodujo el fallo observado en funcional completa. NO lo llamo preexistente confirmado ni borro exit1. Servidor propio terminado SIGTERM solicitado; lease8d409719 DEVUELTO EXPLICITAMENTE tras censo fresco. Preparada fase equivalente del candidatoDBC con nueva admision; se anuncian su nonce/procesos aparte. Ningun test/config/oraculo/timeout alterado; GameAssist anotado conforme excepcionf4ff217b.",
+  "taskId": "recibos-revision2-nogo-codex-20261012",
+  "testedSourceSHA": "c5f62d6603d016150afd9d0e20547b608b323045",
+  "candidateSHA": "dbc030dc942cbd39ec34d22f2a0e699cbfdfd0a4",
+  "ownerLeaseReturned": true,
+  "baselineExit": 0,
+  "passed": 150,
+  "failed": 0,
+  "skipped": 0,
+  "repeatEach": 10,
+  "claimReleased": false,
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261012-3d797dfc05e2",
+  "createdAt": "2026-10-12T11:30:19.664Z"
+}
