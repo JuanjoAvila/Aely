@@ -4,7 +4,7 @@ import {createHash} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
 import {seedLoggedInDashboard,installFixtureClock,dismissNews} from './fixtures.mjs';
 import {instalaSonda,inyectaFuga,retiraFuga} from './lag-banco-sonda.mjs';
-import {recorrido,preparaTransporte,scroll} from './lag-banco-recorrido.mjs';
+import {recorrido,preparaTransporte,scroll,syntheticAck} from './lag-banco-recorrido.mjs';
 import {instalaRetorno,instrumentaTotales,instrumentaArranque,bloqueoPorCausa} from './lag-banco-retorno.mjs';
 import {resumen,discrimina,atribuciones} from './lag-banco-metricas.mjs';
 import {curvasSVG} from './lag-banco-informe.mjs';
@@ -52,7 +52,7 @@ async function prioritySetup(page,testInfo,size,epoch,startup){
   const response=await page.goto('/',{waitUntil:'commit'});
   const servedHTMLSHA256=hash(await response.body());expect(servedHTMLSHA256).toBe(hash(instrumented));
   return {cdp,blocked:()=>blocked,report:{schema:2,sourceSHA:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),
-    executionBase:'7e706174255f1868d15099e11a503dd23d9aa774',htmlSHA256:hash(html),instrumentedSHA256:hash(instrumented),servedHTMLSHA256,
+    executionBase:'788432f4682c199edd785f6973d9353330c0064a',htmlSHA256:hash(html),instrumentedSHA256:hash(instrumented),servedHTMLSHA256,
     guionSHA256:hash(readFileSync(new URL(import.meta.url))),helperHashes:Object.fromEntries(helperNames.map(n=>[n,hash(readFileSync(new URL('./lag-banco-'+n+'.mjs',import.meta.url)))])),
     cpuRate:6,size,epoch,browser:page.context().browser().version(),phase:'prepared',valid:false,
     model:'App real; synthetic cloud; web path; Date offset only; real RAF/performance/scheduler',
@@ -151,7 +151,8 @@ for(const size of [2000,20000])test('banco de pendiente con fuga de lifecycle: '
   await dismissNews(page);await new Promise(resolve=>setTimeout(resolve,6000));
   await preparaTransporte(page);
   const out=testInfo.outputPath('banco-pendientes.json');mkdirSync(testInfo.outputDir,{recursive:true});
-  const report={schema:1,variant:'beta118-retained-lifecycle',sourceSHA:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),
+  const report={schema:1,variant:'beta119-retained-lifecycle',sourceSHA:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),
+    executionBase:'788432f4682c199edd785f6973d9353330c0064a',
     htmlSHA256:hash(readFileSync('public/index.html')),servedHTMLSHA256,guionSHA256:hash(readFileSync(new URL(import.meta.url))),
     helperHashes:Object.fromEntries(helperNames.map(n=>[n,hash(readFileSync(new URL('./lag-banco-'+n+'.mjs',import.meta.url)))])),
     appVersion:await page.evaluate(()=>CONFIG.APP_VERSION),browser:page.context().browser().version(),
@@ -162,7 +163,8 @@ for(const size of [2000,20000])test('banco de pendiente con fuga de lifecycle: '
   async function checkpoint(){
     const natural=await cdp.send('Runtime.getHeapUsage');await cdp.send('HeapProfiler.collectGarbage');
     const heap=await cdp.send('Runtime.getHeapUsage'),dom=await cdp.send('Memory.getDOMCounters');
-    const local=await page.evaluate(()=>window.__lagBanco.snapshot());
+    const local=await page.evaluate(()=>({...window.__lagBanco.snapshot(),bankRequest:window.__lagBanco.lastBankRequest,
+      bankAckOnDisk:JSON.parse(localStorage.getItem('micartera_v3_oback')||'{}')}));
     const expenseCount=await page.evaluate(()=>JSON.parse(localStorage.getItem('micartera_v3_exp')||'[]').length);
     return {...local,domNodes:dom.nodes,listeners:dom.jsEventListeners,documents:dom.documents,
       heapNatural:natural.usedSize,heapAfterGC:heap.usedSize,expenseCount};
@@ -192,6 +194,8 @@ for(const size of [2000,20000])test('banco de pendiente con fuga de lifecycle: '
     const start=Date.now();report.warmup=await measured('warmup',0,start);save();
     expect(report.warmup.valid,'calentamiento debe aterrizar').toBe(true);
     expect(report.warmup.expenseCount).toBe(size+1);
+    expect(report.warmup.bankRequest).toEqual({recoverGaps:true,acks:{}});
+    expect(report.warmup.bankAckOnDisk).toEqual({Sabadell:syntheticAck});
     for(const [phase,total]of [['normal',normalCycles],['leak',4],['recovered',3]]){
       report.phase=phase;const phaseStart=Date.now();
       if(phase==='recovered')await page.evaluate(retiraFuga);
@@ -200,6 +204,8 @@ for(const size of [2000,20000])test('banco de pendiente con fuga de lifecycle: '
         const metric=await measured(phase,i+1,phaseStart);report[phase].push(metric);save();
         expect(metric.valid,'muestra sin aterrizaje no produce curva').toBe(true);
         expect(metric.explicitBankSyncs).toBe(1);
+        expect(metric.bankRequest).toEqual({recoverGaps:true,acks:{Sabadell:syntheticAck}});
+        expect(metric.bankAckOnDisk).toEqual({Sabadell:syntheticAck});
         const previous=i?report[phase][i-1].expenseCount:phase==='normal'?report.warmup.expenseCount:phase==='leak'?report.normal.at(-1).expenseCount:report.leak.at(-1).expenseCount;
         expect(metric.expenseCount).toBe(previous+1);
       }

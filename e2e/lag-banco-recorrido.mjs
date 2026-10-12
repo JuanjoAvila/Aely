@@ -83,7 +83,14 @@ async function apunta(page){
   if(!amount.includes('23'))throw new Error('apuntar-amount-mismatch');await delay(850);
   if(await page.evaluate(()=>!!document.querySelector('.v4-exp-sheet')))throw new Error('apuntar-not-saved');
 }
-export const recorrido=make(delay,scroll,markAction,lifecycle,bankReport,filters,apunta);
+const base=make(delay,scroll,markAction,lifecycle,bankReport,filters,apunta);
+export const syntheticAck='2026-09-25T23:59:59.999Z|enlace-sintetico';
+export const recorrido={cycle:base.cycle,fixture:function(n){
+  const f=base.fixture(n);
+  // La119 guarda el acuse después de sus filas; omitirlo mediría el contrato anterior.
+  f.__cloudFns['bank-sync'].data.links[0].ack=syntheticAck;
+  return f;
+}};
 export async function preparaTransporte(page){
   await page.evaluate(()=>{
     const p=window.__lagBanco;
@@ -93,7 +100,7 @@ export async function preparaTransporte(page){
       const real=cloud[name];originals[name]=real;cloud[name]=function(...args){
         const work=(async()=>{
           const t=p.transport[name]||(p.transport[name]={started:0,succeeded:0,failed:0});
-          t.started++;if(name==='bankSync')p.bankSync++;
+          t.started++;if(name==='bankSync'){p.bankSync++;p.lastBankRequest={recoverGaps:args[0]?.recoverGaps,acks:args[0]?.acks};}
           try{const result=await real.apply(this,args);t.succeeded++;return result;}
           catch(error){t.failed++;throw error;}
         })();

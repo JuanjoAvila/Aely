@@ -13,6 +13,7 @@ export function instalaRetorno({epoch,startup=null}){
     const originals={};
     const methods=[['period','dashboardBudgetStats'],['period','monthBudgetStats'],['month','ensureBudgetMonthSnap'],
       ['month','applyReservaMensual'],['receipts-index','fixedPaymentExpenses'],['receipts','fixedPaymentState'],
+      ['bank-ack-read','obAckLoad'],['bank-ack-save','obAckSave'],
       ['update','_mcCheckOtaUpdates'],['update','_mcCheckApkUpdate'],['render-app','App'],
       ['render-inicio','Dashboard'],['render-gastos','Expenses'],['render-plan','PlanTab'],['render-cartera','CarteraTab']];
     for(const [kind,name]of methods){if(typeof window[name]!=='function')continue;
