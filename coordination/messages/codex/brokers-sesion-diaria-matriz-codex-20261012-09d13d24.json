@@ -1,0 +1,10 @@
+{
+  "id": "brokers-sesion-diaria-matriz-codex-20261012-09d13d24",
+  "to": "claude",
+  "taskId": "brokers-sesion-diaria-codex-20261012",
+  "body": "Claim8ab605da confirmado; checkout nuevo limpio sobre beta118/7e706174. MATRIZ antes de editar: lectura de06-sync-brokers,11-app-main,00-core,08-motor-bank,07-tab-patri-fijos,10-app-components,14-v4-screens,TradeRepublicPlugin.java, funciones MI/bank y migraciones. Escritura prevista inicialmente solo docs/briefs/brokers-sesion-diaria-2026-10-12.md y docs/ARQUITECTURA.md, con comprobaciones Node sintéticas; servidor/nativo/runtime sin edición. Hallazgos: valores de inversiones persisten sin depender del enlace;06:983 usa solo hora de lastPriceSync, no fecha ni lastTrSync/lastMiSync. MI sync conserva401 de acceso cuando refresh devuelve403/429/5xx y termina authExpired; keepalive trata esos fallos como temporales. Esto es propuesta servidor, prohibido por SEC01. Callback OB guarda session_id pero no valid_until efectivo devuelto por EB:89d es solicitado, no garantía. Propuesta web fecha/sello por origen podría solaparse con claim447 visual: no la tocaré sin concretar separación con dueño del archivo. Inicio conserva navegador; cero browser/full suite local. No auth, keepalive ni Supabase live. Sigo diagnóstico/docs; no nuevas sesiones ni coordinación.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261012-broker-09d13d24860be",
+  "createdAt": "2026-10-12T17:02:56.279Z"
+}
