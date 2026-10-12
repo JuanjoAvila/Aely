@@ -11,6 +11,10 @@
 export const OB_DEMAND_CAP_DAYS = 90;
 export const OB_DEMAND_OVERLAP_DAYS = 3;
 export const OB_DEMAND_MARGIN_DAYS = 8;
+// Hay bancos que filtran `date_from` por fecha VALOR y la app pinta la fecha CONTABLE, que va
+// uno o dos días antes: el movimiento llega en la respuesta con una fecha anterior al primer
+// día pedido. El suelo que viaja al cliente baja estos días para que no lo tire (N5, 12/10).
+export const OB_DEMAND_SKEW_DAYS = 3;
 // Tope fijo de llamadas a /transactions por cuenta y pulsación. Lo comparten
 // la ventana de siempre y el tramo antiguo: nunca 12 + 12. Es el mismo techo
 // que ya tenía el bucle de páginas (2026-10-10).
@@ -43,6 +47,34 @@ export function currentDemandWindowStart(now: Date): string {
     por el siguiente», que es justo lo que diría un sync real hecho en ese instante. */
 export function chunkCursor(ymd: string): string {
   return ymd + "T23:59:59.999Z";
+}
+
+/** Suelo que acepta el cliente cuando al banco se le pidió desde `asked`. No se pide nada
+    más al banco (no gasta llamadas): solo deja entrar lo que ya viene en la respuesta. */
+export function demandFloor(asked: string): string {
+  return ymdAddDays(asked, -OB_DEMAND_SKEW_DAYS);
+}
+
+/** ACUSE (N2, 12/10). El cursor se escribía antes de que el móvil tuviera las filas: si la
+    respuesta se perdía, ese trozo no se volvía a pedir. Ahora la respuesta lleva el cursor
+    que le correspondería (`ack`) y el cliente lo devuelve en la pulsación siguiente, cuando
+    ya lo tiene guardado junto a las filas. El acuse lleva pegado el id del enlace: el
+    estado local sobrevive a cerrar sesión y a quitar el banco, y el acuse de otra persona
+    o de un enlace anterior adelantaría un cursor cuyas filas este móvil no tiene. */
+export function ackToken(cursor: string, linkId: unknown): string {
+  return cursor + "|" + String(linkId);
+}
+
+/** Decide si un acuse mueve el cursor: tiene que ser de ESTE enlace, con la forma exacta
+    que emite el servidor, no estar en el futuro y quedar por delante del cursor actual
+    (nunca retrocede). Devuelve el cursor nuevo o null. */
+export function ackCursor(raw: unknown, linkId: unknown, lastSync: unknown, now: Date): string | null {
+  const m = typeof raw === "string" ? raw.match(/^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z)\|(.+)$/) : null;
+  if (!m || m[2] !== String(linkId)) return null;
+  const ms = Date.parse(m[1]);
+  if (!Number.isFinite(ms) || ms > now.getTime()) return null;
+  const cur = typeof lastSync === "string" ? Date.parse(lastSync) : NaN;
+  return Number.isFinite(cur) && cur >= ms ? null : m[1];
 }
 
 export type DemandPlan = {

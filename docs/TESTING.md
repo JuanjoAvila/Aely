@@ -363,8 +363,14 @@ Tramo antiguo del sync a demanda (INC-2709-06): `tests/bank-sync-progreso.test.m
 real contra un banco simulado con `last_sync` persistente entre pulsaciones (orden ascendente y
 descendente, páginas de 20, huecos de 15 a 120 días, una y dos cuentas, 429 intermitente) y exige
 que no se pierda ni se repita nada, que el cursor no retroceda y que ninguna cuenta pase de 12
-llamadas; también va en `STEPS_SUPABASE`. `supabase/functions/bank-sync/demand-window.test.ts` (Deno)
-cubre el plan de fechas. En cliente, `tests/ob-hueco-sync.test.mjs` y `tests/ob-hueco-recuperado.test.mjs`
+llamadas; también va en `STEPS_SUPABASE`. `tests/bank-sync-acuse.test.mjs` (mismo sitio) une ese
+handler con el importador real del cliente y mira lo que queda GUARDADO en el móvil: respuestas que
+no llegan (la 1 y la 2 con 89 días de hueco, alternas, la que cierra el tramo), acuses que no valen
+(otro enlace, futuro, atrasado, deformado), banco que filtra por fecha valor con la contable 1 y 2
+días antes, y la matriz de versiones (función nueva con clientes sin acuse; cliente nuevo con la
+función desplegada, leída de su commit). Usa el reloj real: el banco sintético es relativo a hoy.
+`supabase/functions/bank-sync/demand-window.test.ts` (Deno)
+cubre el plan de fechas, el suelo y la validación del acuse. En cliente, `tests/ob-hueco-sync.test.mjs` y `tests/ob-hueco-recuperado.test.mjs`
 fijan el suelo por banco y las reglas de dinero del tramo (no compra, no duplica fijos, repetido con
 la fecha real), y `e2e/bancos-hueco-sync.spec.mjs` los avisos y la fecha de «Saldo actualizado».
 `e2e/bancos-historico-filtro.spec.mjs` comprueba la selección previa, avisos visibles y que un banco

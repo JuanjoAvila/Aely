@@ -1295,9 +1295,10 @@ const cloud = (function(){
       return data.aspsps||[];
     },
     // Trae saldo (+ movimientos, que en Capa 2 ignoramos) de los bancos enlazados.
-    // `body` es `{recoverGaps:true}`: avisa al servidor de que este cliente guarda también lo
-    // anterior a la ventana de siempre (INC-2709-06); una función vieja ignora el campo. No es
-    // `dateFrom`: eso abriría el histórico de solo lectura, que no toca saldos.
+    // `body` es `{recoverGaps:true,acks}`: `recoverGaps` avisa al servidor de que este cliente
+    // guarda también lo anterior a la ventana de siempre (INC-2709-06) y `acks` le devuelve el
+    // cursor de la respuesta anterior (ver `runBankSync`); una función vieja ignora los dos. No
+    // es `dateFrom`: eso abriría el histórico de solo lectura, que no toca saldos.
     async bankSync(body){
       if(!sb) throw new Error("nube no disponible");
       const {data,error}=await sb.functions.invoke('bank-sync',{ body });

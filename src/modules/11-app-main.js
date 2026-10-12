@@ -633,7 +633,12 @@ function App(){
     });
     return nubeLista.then(function(ok){
       if(!ok) throw SYNC_SIN_NUBE;
-      return Promise.all([cloud.bankSync({recoverGaps:true}), pDb]);
+      /* ACUSE (12/10). El servidor movía su cursor al LEER del banco: si la respuesta no llegaba
+         al móvil, ese trozo no se volvía a pedir nunca. Ahora cada respuesta trae el cursor que
+         le toca (`ack`) y aquí se devuelve el de la pulsación anterior, que está guardado en el
+         mismo `set` que metió sus filas. `acks` va siempre, aunque esté vacío: es lo que le
+         dice al servidor que espere al acuse en vez de avanzar por su cuenta. */
+      return Promise.all([cloud.bankSync({recoverGaps:true,acks:Object.assign({},stateRef.current.obAck)}), pDb]);
     }).then(function(par){
       const res=par[0], dbLinks=par[1]||[];
       const links=(res&&res.links)||[];
@@ -693,7 +698,11 @@ function App(){
            que hoy no dio saldo conserva la hora del que sigue en pantalla. */
         const balAt=Object.assign({},prev.obBalAt);
         links.forEach(function(l){ if(l&&l.balanceAt) balAt[l.aspsp]=l.balanceAt; });
-        return Object.assign({}, r.state, { lastBankSync:Date.now(), hasBankLink: links.length?true:prev.hasBankLink, bankTx: txs, bankIssues: bankIssuesOf(links, dbLinks), obBalAt:balAt });
+        // El acuse se guarda aquí, con las filas que acredita: o entran las dos cosas o ninguna.
+        // El banco que hoy no trae `ack` conserva el anterior; repetirlo no mueve nada.
+        const ack=Object.assign({},prev.obAck);
+        links.forEach(function(l){ if(l&&l.ack) ack[l.aspsp]=l.ack; });
+        return Object.assign({}, r.state, { lastBankSync:Date.now(), hasBankLink: links.length?true:prev.hasBankLink, bankTx: txs, bankIssues: bankIssuesOf(links, dbLinks), obBalAt:balAt, obAck:ack });
       });
       // sube las importadas a la tabla expenses (best-effort; el estado local ya las tiene)
       setTimeout(function(){ obAdded.forEach(function(e){ subirGasto(e, "ob-import"); }); }, 0);
