@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "id": "inicio-v42-ronda3-bienes-codex-20261012",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261012-b5569c89",
+  "createdAt": "2026-10-12T20:54:05.940Z",
+  "to": "codex",
+  "baseSHA": "788432f4682c199edd785f6973d9353330c0064a",
+  "objective": "Segunda revisión independiente de PR 204 en f274ef04: NO-GO corto, a UN arreglo del GO. Lo demás está cerrado y medido con sondas propias: libro mayor independiente con 0 descuadres en 1200 estados y 84811 puntos (Madrid y UTC), último punto igual al patrimonio siempre; el restante diario idéntico a Gastos y al widget en 200 de 200 estados; migración desde un estado de la 119 sin pérdida; volver a primer plano no reescribe gastos ni historial; 15 de 21 mutaciones mueren. El cambio de tests/metas-pull-transport es legítimo. Mismo titular, mismo PR, prioridad máxima del dueño: en cuanto esté, lo integro como siguiente tanda de beta.",
+  "scope": [
+    "src/modules/02-ui-shared.js (netWorthSeries y registro de valores de bienes), 11-app-main.js (assetSnapRef y unión del historial), 01-i18n.js si cambia algún texto",
+    "tests/inicio-v42.test.mjs"
+  ],
+  "acceptance": [
+    "1 ALTA, bien que llega de la nube marcado como nacido hoy (11-app-main hacia 2410, assetSnapRef arranca en lista vacía en un móvil nuevo, tras borrar datos o reinstalar; 02-ui-shared hacia 639, born se deduce de un diff de listas). Caso: banco 5000 con un gasto de 100 el 20 de agosto, piso de 200000 que llega de la nube, hoy 4 de septiembre: pinta 5100 hasta el día 3 y 205000 el 4, con la frase 199900 más que hace un mes. Correcto: 205100 a 205000. born solo puede nacer del alta hecha en el formulario de Bienes, nunca de comparar listas tras el montaje o tras un pull",
+    "2 MEDIA, DECISIÓN del coordinador: un bien que ya existía antes de esta versión (sin escalones guardados) se trata como CONSTANTE a su valor actual hacia atrás, igual que ya haces con la cuenta manual sin historial; hoy deja la gráfica entera en un punto durante un mes (banco con gastos desde el 1 de agosto más piso de 200000 sin historial: serie de un solo punto y el mensaje de que faltan saldos fiables). Motivo: ese valor es el que la app ha estado enseñando como patrimonio todo ese tiempo, y el dueño tiene bienes: sin esto estrena Inicio sin gráfica. Se mantiene la nota de cobertura diciendo desde qué día hay valores propios del bien. Desde el primer escalón real en adelante, escalones como ahora. El bien dado de alta en el formulario a partir de esta versión sigue sin existir antes de su alta",
+    "3 MEDIA, traspaso de banco conectado a cuenta manual CON escalones (hacia 766, ownTransfer descarta la pata aunque la contraparte vaya por escalones): banco 300 a hucha manual con cierres 300 y 600 el día 2, las dos patas apuntadas como traspaso: pinta 600, 900, 900, 900; verdad 900 plano. Neutralizar la pata solo si las DOS cuentas son de flujo; si la contraparte va por escalones, la pata del banco cuenta",
+    "4 MEDIA, tests: matar las dos mutaciones que sobreviven: misma cuenta empareja como traspaso; traspaso al bróker sin pista no recorta",
+    "5 BAJA, préstamo SIN plazo (months nulo): amortiza el día 1 y la cuota sale el día de cargo, sierra mensual de más 400 y menos 500; primer punto 0 y último menos 1600 con 12 cuotas de 500 y amortización 400. Amortizar el mismo día en que sale la cuota cuando el día de cargo se conoce; si no se conoce, déjalo como está y decláralo",
+    "6 BAJA, 11-app-main hacia 574: si sessionRef es nulo cuando corre el callback (carrera con el cierre de sesión), la ventana de 14 cierres de la nube sustituye en mudo a los 400 locales. Sin sesión no se sustituye nada",
+    "7 Se ACEPTAN sin cambio: dos patas sin categoría entre bancos propios (valle de un día, es la verdad de los saldos); el identificador del dueño del historial en la copia de nube; el texto al llegar a 0 restantes",
+    "8 Rendimiento: e2e/inicio-v42-rendimiento dio 34,9 y 44,5 fps de entrada (umbral 50) en la máquina cargada del revisor y 60 en tu repetición. No lo repitas tú ni toques el umbral: lo paso yo en un slot limpio durante la integración",
+    "9 Entrega: commits pequeños sobre f274ef04 en la misma rama, mensaje de canal con el SHA y, por cada punto, test que lo cubre y EXIT. VERSION, notas, catálogo y tope siguen siendo de la integración; el rojo de docs-frescura por VERSION está aceptado y no hace falta CI nueva: Node y focal de Inicio en local bastan"
+  ],
+  "restrictions": [
+    "Datos sintéticos; repo público",
+    "Sin merge ni push a beta o main; sin VERSION, catálogos ni notas",
+    "No reintroducir el solape de Gastos sobre Inicio de la 114 ni tocar su e2e",
+    "Build y Node libres; navegador focal con cerrojo propio y menos de 10 minutos; sin suite entera ni CI nueva",
+    "Sin subir timeouts ni reintentos; tope de tamaño al mínimo medido y declarado"
+  ],
+  "authorization": "Encargo del coordinador; continuación de inicio-v42-revision-nogo. Mismo titular. Prioridad máxima del dueño."
+}
