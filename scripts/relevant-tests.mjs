@@ -192,6 +192,7 @@ export const CROSSCUTTING = [
   "e2e/rendimiento.spec.mjs",
   "e2e/rendimiento-tabs.spec.mjs",
   "e2e/rendimiento-sostenido.spec.mjs",
+  "e2e/rendimiento-banco-prolongado.spec.mjs",
   /* Va aquí y no colgando de `04-tab-gastos.js` a propósito: lo que vigila es una regla de CSS
      global (`button{user-select:none}`), y quien la puede romper sin querer es cualquiera que
      toque `src/shell.html` o meta una pantalla nueva, no solo quien toque Gastos. */
@@ -262,7 +263,12 @@ function full(reason) {
  */
 export function planFromFiles(files) {
   const raw = (files || []).map(posixPath).filter(Boolean);
-  const list = raw.filter((f) => !isIgnored(f));
+  // La sonda y el lector de curvas sólo alimentan este banco; tocar su recorrido histórico
+  // también debe ejecutarlo, pues el nuevo guion reutiliza sus acciones sin duplicarlas.
+  const lagHelpers=["e2e/lag-banco-sonda.mjs","e2e/lag-banco-recorrido.mjs","e2e/lag-banco-metricas.mjs","e2e/lag-banco-informe.mjs"];
+  const list = [...new Set(raw.filter((f) => !isIgnored(f)).flatMap(f=>lagHelpers.includes(f)
+    ? ["e2e/rendimiento-banco-prolongado.spec.mjs"]
+    : f==="e2e/rendimiento-sostenido.spec.mjs"?[f,"e2e/rendimiento-banco-prolongado.spec.mjs"]:[f]))];
   if (!list.length) return full("sin lista de ficheros (no adivinar: suite entera)");
 
   if (list.some(isWorkflow) || list.some(isCore)) {
