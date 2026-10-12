@@ -37,7 +37,16 @@ function stableId(a: unknown): StableId | null {
 }
 
 /* El hash manda cuando lo traen los dos lados. Si no, el IBAN; y como hay bancos con varias
-   cuentas de divisa bajo un mismo IBAN, una divisa conocida y distinta es otra cuenta. */
+   cuentas de divisa bajo un mismo IBAN, una divisa conocida y distinta es otra cuenta.
+   UN DATO QUE FALTA EN UN LADO NO DESMIENTE (decidido el 12/10, a propósito): guardado
+   `ES11` sin hash ni divisa frente a `ES11` con hash y divisa es la misma cuenta. Es el caso
+   de TODOS los enlaces conectados antes de guardarse el hash, y de los anteriores a la
+   columna `accounts`, que solo tienen IBAN: exigirles el dato les quitaría el cursor en su
+   primera reconexión, que es justo la pérdida que esto arregla.
+   Y equivocarse hacia «es la misma» no pierde movimientos: la ventana de siempre se lee
+   entera con cursor o sin él, así que conservarlo solo AÑADE el tramo anterior; soltarlo es
+   lo único que deja días sin pedir. Por eso la duda se resuelve conservando aquí, y negando
+   solo cuando hay un dato conocido en los dos lados que no coincide. */
 function sameAccount(p: StableId, n: StableId): boolean {
   if (p.hash && n.hash) return p.hash === n.hash;
   if (!p.iban || p.iban !== n.iban) return false;

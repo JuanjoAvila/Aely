@@ -205,7 +205,11 @@ ventana, `bank-sync` lee además lo que falta, con estas reglas (`bank-sync/dema
   el `uid` no vale, cambia en cada sesión) `bank-callback` no toca `last_sync` y la lectura
   siguiente recupera el hueco como cualquier otro. Si cambian las cuentas, no hay identidad
   estable o es la primera vez, `last_sync` queda a null y el enlace arranca con la ventana de
-  siempre: el cursor es del enlace y una cuenta nueva no puede heredarlo.
+  siempre: el cursor es del enlace y una cuenta nueva no puede heredarlo. Un hash o una divisa
+  que falta en UN lado no desmiente (los enlaces anteriores a guardar el hash solo tienen IBAN);
+  solo un dato conocido en los dos y distinto. Y «sin cuentas» solo borra cuentas y cursor si el
+  banco lo confirma: si el GET de la sesión falla, `bank-callback` sale con `msg=error` sin
+  tocar la fila.
 - Un cliente que no manda `recoverGaps` recibe solo la ventana; con hueco, su `last_sync` no sube
   para no quemar el tramo que un cliente nuevo sí puede guardar.
 - **Acuse (12/10).** El cursor se escribía al leer del banco, antes de que el móvil tuviera las
@@ -218,11 +222,19 @@ ventana, `bank-sync` lee además lo que falta, con estas reglas (`bank-sync/dema
   `last_sync` va así una pulsación por detrás. Sin `acks` (clientes anteriores) el cursor se sigue
   escribiendo en la misma llamada. El cliente nuevo contra una función sin acuse no recibe `ack`
   y no guarda nada.
+  - **Un enlace sin cursor recibe su punto de partida en el servidor.** Con `last_sync` nulo y
+    cliente de acuse, la primera lectura que responde escribe la víspera de la ventana, sellada
+    (`chunkCursor`), con filtro `is null`. No dice que nadie tenga filas, solo desde qué día se
+    sigue: si el punto de partida viviera solo en el acuse del móvil que pulsó, otro dispositivo
+    encontraría el enlace en null y leería «la ventana de hoy». «Ahora» sigue viajando en `ack`.
   - **El acuse es local al dispositivo.** Vive en su clave de `localStorage`
     (`micartera_v3_oback`, `obAckLoad`/`obAckSave`/`obAckDrop` en 00-core), fuera del estado:
     el estado sube a la nube y otro móvil lo adopta entero, y un móvil no puede acusar filas
     que recibió otro. Se escribe detrás de sus filas: `runBankSync` deja el acuse pendiente,
     el efecto de `lastBankSync` vuelca el estado y `obAckSave` comprueba en disco que entró.
+    La marca vive en la clave ligera y las filas en la de gastos: si alguna escritura de gastos
+    falló en esta sesión (sin cuota), `obAckSave` compara además el histórico en disco con el
+    del estado y sin él no acusa; si nunca falló no lo toca.
   - **El banco de pruebas no acusa.** Allí `obAckLoad` devuelve vacío y `obAckSave` no escribe:
     `acks` viaja vacío, el servidor espera y el cursor real no se mueve (lo vigila `security`).
   - **Reconectar invalida los acuses anteriores.** La clave del enlace (`ackLinkKey`) es su id

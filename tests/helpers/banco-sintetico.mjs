@@ -20,7 +20,11 @@ export const Reconnect = await modulo("supabase/functions/bank-callback/reconnec
 
 // El handler tal como está escrito: sin sus imports (se inyectan) y con los módulos vecinos
 // pegados delante. Lo que se ejecuta es el fichero de la función, no una copia.
-export const handlerSrc = (index, ...vecinos) => vecinos.map((v) => ts(v).replace(/^export /gm, "")).join("\n")
+// En MODO ESTRICTO, que es como lo ejecuta Deno (un módulo ES siempre lo es). Sin esto, una
+// asignación a una variable sin declarar pasaba aquí en silencio y en producción lanzaba: así
+// vivió `bank-callback` con un `getDiag = …` que convertía un fallo del GET en `msg=error`
+// sin que ningún test viera ni lo uno ni lo otro (revisión del 12/10).
+export const handlerSrc = (index, ...vecinos) => '"use strict";\n' + vecinos.map((v) => ts(v).replace(/^export /gm, "")).join("\n")
   + "\n" + transformSync(index.replace(/^import .*?;\r?\n/gm, ""), { loader: "ts" }).code;
 export const SYNC = handlerSrc(read("supabase/functions/bank-sync/index.ts"), read("supabase/functions/bank-sync/demand-window.ts"));
 export const CALLBACK = handlerSrc(read("supabase/functions/bank-callback/index.ts"), read("supabase/functions/bank-callback/reconnect.ts"));
@@ -77,7 +81,9 @@ export function banco({ skew = 0, filter = "booking_date", uids = ["cx"], page =
     if (cont) ({ list, start } = cursors.get(cont));
     else {
       const f = q.get("date_from"), t = q.get("date_to");
-      list = (rows[uid] || []).filter((r) => (!f || r[filter] >= f) && (!t || r[filter] <= t));
+      // El banco no entrega el futuro: con el reloj atrasado solo existe lo apuntado hasta ese día.
+      const hasta = new Date(reloj.ms).toISOString().slice(0, 10);
+      list = (rows[uid] || []).filter((r) => (!f || r[filter] >= f) && (!t || r[filter] <= t) && r.booking_date <= hasta);
     }
     const out = { transactions: list.slice(start, start + page) };
     if (start + page < list.length) {
@@ -98,8 +104,11 @@ export function banco({ skew = 0, filter = "booking_date", uids = ["cx"], page =
 // escritura sin su `eq("id")` toca todo lo que case, como haría el cliente admin (sin RLS).
 // `lt` no casa con null, como en Postgres. `failUpdate(patch, filas)` hace que una
 // escritura devuelva `{error}` sin tocar nada, que es como falla supabase-js: no lanza.
+// `trasLeer(filas)` se ejecuta una vez, justo después de que la función lea sus enlaces: es
+// el otro móvil que escribe mientras esta petición sigue trabajando con su foto de la fila.
 let filas = 0;   // ids de las filas que nacen por upsert: nunca se repiten, como un uuid
-export function baseDatos(rows, { user = "synthetic", failUpdate = null } = {}) {
+export function baseDatos(rows, { user = "synthetic", failUpdate = null, trasLeer = null } = {}) {
+  let leido = false;
   const consulta = (apply) => {
     const filters = [];
     const q = {
@@ -115,7 +124,11 @@ export function baseDatos(rows, { user = "synthetic", failUpdate = null } = {}) 
     return q;
   };
   const links = {
-    select: () => consulta((hit) => ({ data: hit.map((r) => Object.assign({}, r)), error: null })),
+    select: () => consulta((hit) => {
+      const data = hit.map((r) => Object.assign({}, r));
+      if (trasLeer && !leido) { leido = true; trasLeer(rows); }
+      return { data, error: null };
+    }),
     update: (patch) => consulta((hit) => {
       if (failUpdate && failUpdate(patch, hit)) return { error: { message: "synthetic" } };
       hit.forEach((r) => Object.assign(r, patch));
@@ -189,17 +202,20 @@ export async function conecta(rows, aspsp, opts) {
 
 // bank-callback REAL: canjea el code por la sesión que entrega `sesion` (lo que devolvería
 // Enable Banking en POST /sessions). Devuelve la URL a la que manda al navegador.
-export async function vuelve(rows, state, sesion) {
-  let handler;
+// `get(intento)` es lo que responde GET /sessions/{id}, que el handler solo pide si el POST
+// no trajo cuentas: por defecto confirma lo mismo que el POST; si lanza, es el banco o la red
+// fallando. Las esperas entre reintentos no se esperan de verdad.
+export async function vuelve(rows, state, sesion, get = () => sesion, src = CALLBACK) {
+  let handler, gets = 0;
   const api = async (jwt, p, init) => {
     if (p === "/sessions" && init && init.method === "POST") return sesion;
-    throw new Error("EB 404");
+    return get(gets++);
   };
-  const names = ["Deno", "createClient", "ebApi", "ebConfig", "makeJWT", "encryptSessionId", "CallbackFallo", "codigoCallback", "codigoNolink", "Date", "console"];
-  new Function(...names, CALLBACK)(
+  const names = ["Deno", "createClient", "ebApi", "ebConfig", "makeJWT", "encryptSessionId", "CallbackFallo", "codigoCallback", "codigoNolink", "Date", "console", "setTimeout"];
+  new Function(...names, src)(
     deno((f) => { handler = f; }), () => baseDatos(rows), api, () => ({}), async () => "jwt",
     async (id) => (id ? "enc:v1:" + id : null), Entrada.CallbackFallo, Entrada.codigoCallback, Entrada.codigoNolink, FakeDate,
-    { error() {} }
+    { error() {} }, (f) => setTimeout(f, 0)
   );
   const res = await handler(new Request("https://sb.invalid/functions/v1/bank-callback?code=synthetic&state=" + encodeURIComponent(state)));
   assert.equal(res.status, 302);
@@ -208,11 +224,17 @@ export async function vuelve(rows, state, sesion) {
 
 // EL CLIENTE. Un contexto con la lógica real del bundle y un `localStorage` de mentira cuyo
 // contenido se cambia por móvil: cada `almacen()` es un dispositivo distinto.
+// `disco.lleno(clave)` hace que esa escritura lance, como un `localStorage` sin cuota, y
+// `disco.alEscribir(clave)` avisa antes de cada escritura que sí entra.
 export function contexto(extra) {
-  const disco = { actual: new Map() };
+  const disco = { actual: new Map(), lleno: null, alEscribir: null };
   const localStorage = {
     getItem: (k) => (disco.actual.has(k) ? disco.actual.get(k) : null),
-    setItem: (k, v) => { disco.actual.set(k, String(v)); },
+    setItem: (k, v) => {
+      if (disco.lleno && disco.lleno(k)) throw new Error("QuotaExceededError");
+      if (disco.alEscribir) disco.alEscribir(k);
+      disco.actual.set(k, String(v));
+    },
     removeItem: (k) => { disco.actual.delete(k); },
   };
   (extra || []).forEach(([k, v]) => disco.actual.set(k, v));
@@ -235,7 +257,9 @@ export const K1 = "L1.0";
 const mBody = main.match(/cloud\.bankSync\((\{recoverGaps:true[^;]*?\})\), pDb\]/);
 const mImport = main.match(/const txs=flattenBankTx\(links\);[\s\S]*?const add=importObExpenses\([^;]*\);/);
 const mAck = main.match(/const at=Date\.now\(\), ack=\{\};\s*links\.forEach\(function\(l\)\{[^}]*\}\);/);
-assert.ok(mBody && mImport && mAck, "no se encuentran las piezas del cliente en runBankSync");
+// El efecto que guarda el acuse cuando el estado con sus filas ya está comprometido.
+const mEfecto = main.match(/useEffect\(function\(\)\{\s*(const p=obAckPend\.current;[\s\S]*?)\},\[state\.lastBankSync\]\);/);
+assert.ok(mBody && mImport && mAck && mEfecto, "no se encuentran las piezas del cliente en runBankSync");
 // Pasado por JSON, que es como viaja: el objeto nace en el contexto de la lógica.
 const cuerpo = new Function("obAckLoad", "return " + mBody[1] + ";");
 export const cuerpoNuevo = (obAckLoad) => JSON.parse(JSON.stringify(cuerpo(obAckLoad)));
@@ -245,6 +269,14 @@ export const importa = new Function("flattenBankTx", "importObExpenses", "prev",
 let marca = MS;
 export const relojMovil = { now: () => ++marca };
 export const recogeAcuse = new Function("links", "Date", mAck[0] + " return {at:at,ack:ack};");
+// El efecto REAL, con sus dos pasos en el orden en que están escritos: volcar y acusar.
+// Devuelve lo que contestó `obAckSave` (false si el efecto no llegó a llamarlo).
+const efecto = new Function("obAckPend", "state", "flushPersist", "obAckSave", mEfecto[1]);
+export function efectoAcuse(c, pend, state, flushPersist) {
+  let guardado = false;
+  efecto({ current: pend }, state, flushPersist, (...args) => (guardado = c.obAckSave(...args)));
+  return guardado;
+}
 
 // Cada móvil es un `localStorage` distinto sobre la misma lógica. `usa` lo pone delante.
 export const discos = new WeakMap();
@@ -268,18 +300,20 @@ export const CLIENTES = {
 };
 // Lo que hace `runBankSync` con una respuesta. `volcado:false` es la app que se cierra antes
 // de escribir el estado en disco: las filas de esa respuesta no sobreviven al reinicio.
-export function recibe(state, links, tipo, { volcado = true } = {}) {
-  usa(state);
+// El histórico de gastos solo se reescribe si cambió, como en la app (`p.exp`, AGENTS §7 bis).
+// `c` es el contexto de la lógica: por defecto el compartido, con el disco de ese móvil delante.
+export function recibe(state, links, tipo, { volcado = true, c = ctx } = {}) {
+  if (c === ctx) usa(state);
   // El cliente de producción no pasa la respuesta al importador: no conoce el suelo.
-  const add = (tipo === "prod" ? ctx.importObExpenses(state, ctx.flattenBankTx(links)) : importa(ctx.flattenBankTx, ctx.importObExpenses, state, links)) || [];
+  const add = (tipo === "prod" ? c.importObExpenses(state, c.flattenBankTx(links)) : importa(c.flattenBankTx, c.importObExpenses, state, links)) || [];
   if (tipo !== "nuevo") { state.expenses = add.concat(state.expenses); return; }
   const p = recogeAcuse(links, relojMovil);
-  if (volcado) {
-    state.expenses = add.concat(state.expenses);
-    state.lastBankSync = p.at;
-    ctx.mcSaveRaw(STATE_KEY, state);
-  }
-  return ctx.obAckSave(p.at, p.ack);
+  const expenses = add.length ? add.concat(state.expenses) : state.expenses;
+  // Sin volcado el estado nuevo solo existió en memoria: el de este móvil se queda como estaba.
+  if (!volcado) return efectoAcuse(c, p, Object.assign({}, state, { expenses, lastBankSync: p.at }), () => {});
+  state.expenses = expenses;
+  state.lastBankSync = p.at;
+  return efectoAcuse(c, p, state, () => c.mcSaveRaw(STATE_KEY, state, { expenses: add.length > 0 }));
 }
 
 export function cuenta(state, bank, desde) {

@@ -822,15 +822,16 @@ function App(){
   /* EL ACUSE SE GUARDA DETRÁS DE SUS FILAS, NUNCA DELANTE. Aquí el estado que las lleva ya está
      comprometido (su `lastBankSync` es la marca de esa respuesta) y el guardado lo tiene
      apuntado desde el commit: se vuelca ahora y `obAckSave` comprueba en disco que entró antes
-     de escribir el acuse. Si la app se cierra antes de llegar aquí no queda ni lo uno ni lo
-     otro, y la pulsación siguiente vuelve a pedir el mismo trozo. */
+     de escribir el acuse (el estado y, si alguna escritura de gastos falló, también el
+     histórico: por eso se le pasa). Si la app se cierra antes de llegar aquí no queda ni lo
+     uno ni lo otro, y la pulsación siguiente vuelve a pedir el mismo trozo. */
   const obAckPend=useRef(null);
   useEffect(function(){
     const p=obAckPend.current;
     if(!p || state.lastBankSync!==p.at) return;
     obAckPend.current=null;
     flushPersist();
-    obAckSave(p.at, p.ack);
+    obAckSave(p.at, p.ack, state.expenses);
   },[state.lastBankSync]);
 
   /* ── Auto-refresh de brókers al abrir (petición 2026-07-15: «que se actualicen solos») ──

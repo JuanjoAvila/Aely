@@ -31,7 +31,8 @@ async function conectado(gap, cuentas = [cuentaEB("cx", IBAN_A)], aspsp = "Caixa
   return { tabla, link };
 }
 // El permiso caduca y el usuario vuelve a autorizar el MISMO banco, un minuto antes de «ahora».
-async function reconecta(tabla, cuentas, aspsp = "CaixaBank", cuando = MS - 60000) {
+// `get` es lo que responde GET /sessions/{id} cuando el POST vuelve sin cuentas (ver `vuelve`).
+async function reconecta(tabla, cuentas, aspsp = "CaixaBank", cuando = MS - 60000, get = undefined) {
   reloj.ms = cuando;
   const antes = tabla.find((r) => r.aspsp_name === aspsp);
   const id = antes && antes.id;
@@ -39,7 +40,7 @@ async function reconecta(tabla, cuentas, aspsp = "CaixaBank", cuando = MS - 6000
   const link = tabla.find((r) => r.aspsp_name === aspsp);
   if (id) assert.equal(link.id, id, "reconectar no crea otra fila: es el mismo enlace");
   assert.equal(link.status, "pending");
-  const url = await vuelve(tabla, state, sesion("s2", cuentas));
+  const url = await vuelve(tabla, state, sesion("s2", cuentas), get);
   reloj.ms = MS;
   return { link, url };
 }
@@ -139,6 +140,7 @@ const CAMBIOS = [
   ["alta de una cuenta", [cuentaEB("cx", IBAN_A)], [cuentaEB("cx-b", IBAN_A), cuentaEB("nv", IBAN_B)]],
   ["baja de una cuenta", [cuentaEB("cx", IBAN_A), cuentaEB("ah", IBAN_B)], [cuentaEB("cx-b", IBAN_A)]],
   ["otra cuenta en su lugar", [cuentaEB("cx", IBAN_A)], [cuentaEB("cx-b", IBAN_C)]],
+  ["la misma cuenta dos veces donde había dos distintas", [cuentaEB("cx", IBAN_A), cuentaEB("ah", IBAN_B)], [cuentaEB("cx-b", IBAN_A), cuentaEB("cx-c", IBAN_A)]],
   ["mismo IBAN y otra divisa", [cuentaEB("cx", IBAN_A)], [cuentaEB("cx-b", IBAN_A, { currency: "USD" })]],
   ["mismo IBAN y otro hash", [cuentaEB("cx", IBAN_A, { identification_hash: "h1" })], [cuentaEB("cx-b", IBAN_A, { identification_hash: "h2" })]],
   ["una cuenta sin identidad estable antes", [{ uid: "cx" }], [{ uid: "cx" }]],
@@ -207,12 +209,90 @@ await t("el mismo banco de OTRA persona no comparte nada: cada uno reconecta su 
 });
 
 // ── Una reconexión que no sale bien ──────────────────────────────────────────────────
-await t("si la autorización vuelve sin cuentas, el enlace queda en error y sin cursor (como hasta ahora)", async () => {
+await t("si la autorización vuelve sin cuentas y el banco lo CONFIRMA, el enlace queda en error y sin cursor (como hasta ahora)", async () => {
   const { tabla, link } = await conectado(60);
-  const r = await reconecta(tabla, []);
+  let gets = 0;
+  const r = await reconecta(tabla, [], "CaixaBank", MS - 60000, () => { gets++; return sesion("s2", []); });
+  assert.equal(gets, 3, "se pregunta tres veces antes de darlo por cierto");
   assert.match(r.url, /^https:\/\/app\.invalid\/\?bank=error&msg=nolink/);
   assert.equal(link.status, "error");
   assert.equal(link.last_sync, null);
+});
+
+// Un fallo PASAJERO al preguntar por las cuentas no es «sin cuentas». Destruir el enlace por
+// él dejaba la reconexión siguiente sin cuentas con las que comparar y sin cursor que conservar.
+const FALLOS_GET = [
+  ["un 503 del proveedor", () => { throw new Error("EB 503"); }],
+  ["un corte de red", () => { throw new TypeError("fetch failed"); }],
+  ["un 404 momentáneo", () => { throw new Error("EB 404"); }],
+  ["una respuesta vacía y, al reintentar, un 502", (n) => { if (n === 0) return sesion("s2", []); throw new Error("EB 502"); }],
+];
+for (const [nombre, get] of FALLOS_GET) {
+  await t("el POST vuelve sin cuentas y el GET falla con " + nombre + ": ni cuentas ni cursor se tocan, y el reintento conserva", async () => {
+    const bank = banco();
+    const { tabla, link } = await conectado(60);
+    const cursor = link.last_sync;
+    const r = await reconecta(tabla, [], "CaixaBank", MS - 120000, get);
+    assert.equal(r.url, "https://app.invalid/?bank=error&msg=error", "código genérico, el mismo de siempre: la app dice que lo intente otra vez");
+    assert.equal(link.status, "pending", "como lo dejó bank-connect");
+    assert.equal(link.last_sync, cursor, "el cursor sigue ahí");
+    assert.deepEqual(link.accounts.map((a) => [a.uid, a.iban]), [["cx", IBAN_A]], "y las cuentas también");
+    assert.equal(link.session_id, "enc:v1:s1");
+    assert.equal(link.state, null, "el state se gastó igual: no se puede repetir la vuelta");
+    // El usuario lo intenta otra vez y ahora el banco responde.
+    bank.alias("cx-b", "cx");
+    const r2 = await reconecta(tabla, [cuentaEB("cx-b", IBAN_A)]);
+    assert.equal(r2.url, "https://app.invalid/?bank=ok");
+    assert.equal(link.last_sync, cursor, "mismas cuentas: se conserva");
+    const state = movil();
+    const presses = await pulsa(tabla, link, bank, state, "nuevo");
+    return limpio(Object.assign({ presses }, cuenta(state, bank, day(-60))));
+  });
+}
+
+await t("los handlers se ejecutan en modo estricto, como en Deno: el bank-callback anterior lanzaba en ese mismo fallo del GET", async () => {
+  assert.ok(SYNC.startsWith('"use strict";'));
+  // La versión de la que parte la rama asignaba a `getDiag` sin declararla. En modo no
+  // estricto eso no hace nada y el handler seguía hasta borrar cuentas y cursor; en estricto
+  // lanza y sale por el `catch` general. Si este arnés dejara de ser estricto, la vieja
+  // acabaría en `nolink` aquí y no en `error`.
+  const BASE = "f695a299";
+  const vieja = handlerSrc(execFileSync("git", ["show", BASE + ":supabase/functions/bank-callback/index.ts"], { encoding: "utf8", maxBuffer: 5e6 }));
+  const { tabla, link } = await conectado(60);
+  const cursor = link.last_sync;
+  reloj.ms = MS - 60000;
+  const state = await conecta(tabla, "CaixaBank");
+  const url = await vuelve(tabla, state, sesion("s2", []), () => { throw new Error("EB 503"); }, vieja);
+  assert.equal(url, "https://app.invalid/?bank=error&msg=error");
+  assert.equal(link.status, "pending");
+  assert.equal(link.last_sync, cursor);
+});
+
+// ── Dos autorizaciones el mismo día ──────────────────────────────────────────────────
+await t("acuse tras reconectar · dos reconexiones el MISMO día: el acuse de entre medias tampoco vale después de la segunda", async () => {
+  const bank = banco();
+  const { tabla, link } = await conectado(60);
+  const cursor = link.last_sync;
+  // Ayer (UTC), a la 01:00 y a las 05:00: las dos autorizaciones caen en el mismo día.
+  const ayer = Math.floor(MS / DAY) * DAY - DAY;
+  bank.alias("cx-b", "cx");
+  bank.alias("cx-c", "cx");
+  await reconecta(tabla, [cuentaEB("cx-b", IBAN_A)], "CaixaBank", ayer + 3600000);
+  const k1 = Demand.ackLinkKey(link.id, link.state_issued_at);
+  const state = movil();
+  reloj.ms = ayer + 2 * 3600000;
+  const r = await llama(SYNC, tabla, bank, CLIENTES.nuevo(state));
+  recibe(state, r.data.links, "nuevo");
+  const pendiente = acuseDe(state).CaixaBank;
+  assert.equal(pendiente.split("|")[1], k1);
+  await reconecta(tabla, [cuentaEB("cx-c", IBAN_A)], "CaixaBank", ayer + 5 * 3600000);
+  assert.equal(link.state_issued_at.slice(0, 10), new Date(ayer).toISOString().slice(0, 10), "misma fecha que la autorización anterior");
+  assert.equal(link.last_sync, cursor, "mismas cuentas: el servidor conserva su cursor");
+  await llama(SYNC, tabla, bank, CLIENTES.nuevo(state));
+  assert.equal(link.last_sync, cursor, "el acuse de la autorización de la 01:00 no mueve el cursor de la de las 05:00");
+  recibe(state, (await llama(SYNC, tabla, bank, CLIENTES.nuevo(state))).data.links, "nuevo");
+  const presses = 3 + await pulsa(tabla, link, bank, state, "nuevo");
+  return limpio(Object.assign({ presses }, cuenta(state, bank, day(-60))));
 });
 
 // ── El acuse tras reconectar ─────────────────────────────────────────────────────────
@@ -253,7 +333,9 @@ await t("acuse tras reconectar · cuentas cambiadas: un acuse anterior no resuci
   const e = await conAcusePendiente([cuentaEB("cx-b", IBAN_A), cuentaEB("nv", IBAN_B)], ["cx", "nv"]);
   assert.equal(e.link.last_sync, null);
   const r = await llama(SYNC, e.tabla, e.bank, CLIENTES.nuevo(e.state));
-  assert.equal(e.link.last_sync, null, "el acuse de antes no vale: la cuenta nueva no tiene esas filas");
+  // El enlace arranca como nuevo: su punto de partida es la víspera de la ventana, no el acuse.
+  assert.equal(e.link.last_sync, Demand.chunkCursor(Demand.ymdAddDays(WINDOW, -1)), "el acuse de antes no vale: la cuenta nueva no tiene esas filas");
+  assert.notEqual(e.link.last_sync, e.pendiente.split("|")[0]);
   assert.equal(r.calls.some((c) => c.to), false, "enlace nuevo: solo la ventana");
   recibe(e.state, r.data.links, "nuevo");
   await pulsa(e.tabla, e.link, e.bank, e.state, "nuevo");
@@ -319,6 +401,7 @@ await t("sameAccounts / keepsCursor: mismas cuentas una a una, y ante la duda no
   assert.equal(sameAccounts([a], [a, b]), false);
   assert.equal(sameAccounts([a, b], [a]), false);
   assert.equal(sameAccounts([a, a], [a, b]), false, "una a una: dos iguales no tapan una distinta");
+  assert.equal(sameAccounts([a, b], [{ uid: "8", iban: IBAN_A }, { uid: "9", iban: IBAN_A }]), false, "ni una cuenta guardada casa con dos de las nuevas: cada una se gasta al emparejarla");
   assert.equal(sameAccounts([{ uid: "1", iban: IBAN_A, currency: "EUR" }, { uid: "2", iban: IBAN_A, currency: "USD" }],
     [{ uid: "3", iban: IBAN_A, currency: "USD" }, { uid: "4", iban: IBAN_A, currency: "EUR" }]), true);
   assert.equal(sameAccounts([{ uid: "1", iban: IBAN_A, currency: "EUR" }, { uid: "2", iban: IBAN_A, currency: "USD" }],
@@ -336,6 +419,42 @@ await t("sameAccounts / keepsCursor: mismas cuentas una a una, y ante la duda no
   assert.equal(keepsCursor({ last_sync: null, accounts: [a] }, [a]), false, "sin cursor no hay nada que conservar");
   assert.equal(keepsCursor({ last_sync: "", accounts: [a] }, [a]), false);
   assert.equal(keepsCursor(null, [a]), false);
+});
+
+// Regla decidida el 12/10: un dato que FALTA en un lado no desmiente. Es intencionado, no un
+// descuido: conservar el cursor nunca lee menos que soltarlo (la ventana se lee entera igual).
+await t("sameAccounts: mismo IBAN con hash o divisa ausentes en un lado es la misma cuenta; conocidos y distintos, no", () => {
+  const { sameAccounts } = Reconnect;
+  const viejo = { uid: "1", iban: IBAN_A, hash: null, currency: null };
+  assert.equal(sameAccounts([viejo], [{ uid: "2", iban: IBAN_A, hash: "h2", currency: "GBP" }]), true, "guardado antes de existir el hash");
+  assert.equal(sameAccounts([{ uid: "1", iban: IBAN_A, hash: "h1", currency: "EUR" }], [{ uid: "2", iban: IBAN_A }]), true, "y al revés: el banco deja de entregarlo");
+  assert.equal(sameAccounts([{ uid: "1", iban: IBAN_A, currency: "EUR" }], [{ uid: "2", iban: IBAN_A, hash: "h2", currency: "EUR" }]), true);
+  assert.equal(sameAccounts([{ uid: "1", iban: IBAN_A, hash: "h1" }], [{ uid: "2", iban: IBAN_A, currency: "EUR" }]), true, "hash en un lado y divisa en el otro: nada que comparar");
+  // En cuanto los dos lados conocen el mismo dato y no coincide, es otra cuenta.
+  assert.equal(sameAccounts([{ uid: "1", iban: IBAN_A, currency: "EUR" }], [{ uid: "2", iban: IBAN_A, hash: "h2", currency: "GBP" }]), false);
+  assert.equal(sameAccounts([{ uid: "1", iban: IBAN_A, hash: "h1" }], [{ uid: "2", iban: IBAN_A, hash: "h2", currency: "EUR" }]), false);
+  // Un hash que falta en un lado no convierte dos IBAN distintos en la misma cuenta.
+  assert.equal(sameAccounts([{ uid: "1", iban: IBAN_A }], [{ uid: "2", iban: IBAN_B, hash: "h2" }]), false);
+});
+
+await t("enlace anterior a guardar el hash (solo IBAN) que reconecta con hash y divisa: conserva el cursor y recupera el hueco", async () => {
+  const bank = banco();
+  const { tabla, link } = await conectado(60);
+  // Como quedó guardado un enlace antiguo: una sola cuenta, sin `accounts`, sin hash ni divisa.
+  Object.assign(link, { accounts: [], account_uid: "cx", iban: IBAN_A });
+  const cursor = link.last_sync;
+  bank.alias("cx-b", "cx");
+  await reconecta(tabla, [cuentaEB("cx-b", IBAN_A, { identification_hash: "h2", currency: "GBP" })]);
+  assert.equal(link.last_sync, cursor);
+  assert.deepEqual(link.accounts.map((a) => [a.hash, a.currency]), [["h2", "GBP"]], "y desde ahora sí queda guardado");
+  const state = movil();
+  const r = await llama(SYNC, tabla, bank, CLIENTES.nuevo(state));
+  // Lo que hace segura la regla: con el cursor conservado la ventana se pide igual de entera.
+  assert.ok(r.calls.some((c) => !c.to && c.from === WINDOW), "la ventana de siempre, desde su primer día");
+  assert.ok(r.calls.some((c) => c.to), "más el tramo anterior");
+  recibe(state, r.data.links, "nuevo");
+  const presses = 1 + await pulsa(tabla, link, bank, state, "nuevo");
+  return limpio(Object.assign({ presses }, cuenta(state, bank, day(-60))));
 });
 
 await t("bank-callback no escribe last_sync cuando conserva y lo pone a null cuando no", () => {
