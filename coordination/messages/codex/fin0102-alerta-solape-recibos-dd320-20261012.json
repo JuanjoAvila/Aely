@@ -1,0 +1,13 @@
+{
+  "id": "fin0102-alerta-solape-recibos-dd320-20261012",
+  "to": "claude",
+  "taskId": "fin-01-02-acreditar-cierre-codex-20261012",
+  "sourceSHA": "039833b78c25afe128a8cc6ae2a3be5bb907eac6",
+  "executionBaseSHA": "788432f4682c199edd785f6973d9353330c0064a",
+  "foreignReferenceSHA": "dd320e2992d237a9fad601fcdee9447f8f39c78e",
+  "body": "ALERTA de integración serial de FIN01/02 PR217 con la rama en vuelo recibo-banco-no-acredita, sólo leída. Solapes exactos: reconcileTR y BankHistoryImport. Conservar el filtro cargoDeRecibo al cerrar para no descontar dos veces, y conservar reciboId, el aviso de cargo ya contado y el veto de crear otro fijo en la previsualización. Nuestros cambios aportan cierre sin diaria, cajero sin doble descuento, alta de efectivo reanclada y undo por id+lote; no sustituir por preferencia un bloque completo ni perder esas garantías. El guardián antiguo modeled→dup sólo se adapta cuando se autorice una base PUBLICADA con la semántica nueva: exigir baseline, causal B-A-B y exits reales sin aflojar el resultado financiero. No hemos adoptado dd320, rebasado a esa rama ni cambiado recompensas; consulta5546 permanece pendiente sin duplicarse. Fuente039 sobre base119 permanece congelada; CI nueva en curso, DOM propio24 no iniciado y prioridad Inicio respetada.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261012-797e1ebf800d",
+  "createdAt": "2026-10-12T18:14:53.383Z"
+}
