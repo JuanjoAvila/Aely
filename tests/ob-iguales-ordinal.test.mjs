@@ -483,7 +483,7 @@ t("un vínculo en `gemelos` sin su lápida (la lápida va por último-que-escrib
   assert.equal(h.rows[0].status, "dup"); assert.equal(h.rows[0].reason, "existing");
 });
 t("la pantalla del histórico (el bloque REAL de BankHistoryImport) guarda los vínculos de los «puede que ya lo tengas» marcados", () => {
-  const compSrc = H.read("src/modules/10-app-components.js");
+  const compSrc = H.read("public/index.html");
   const m = compSrc.match(/const vinculos=gemelosDeImportacion\(keepLocal, s\.expenses\);\s*if\(vinculos\.length\) next\.gemelos=pushGemelos\(s\.gemelos, vinculos\);/);
   assert.ok(m, "no se encuentra el bloque de vínculos en BankHistoryImport");
   const guarda = new Function("keepLocal", "s", "next", "gemelosDeImportacion", "pushGemelos", m[0] + "\nreturn next;");
@@ -508,8 +508,34 @@ t("«saltar» (lápida de una versión anterior) se salta el primer aviso LIBRE 
   assert.equal(preguntas[0].possibleDupOf, C.id);
 });
 
+t("un ingreso contestado «es el mismo» tampoco vuelve como nuevo en el histórico (el signo va en la clave)", () => {
+  const s = estado();
+  s.expenses.unshift(aviso(-2, 21, -12, "Bizum de Ana"));
+  resuelve(s, sync(s, [ob(-2, -12)])[0], true);
+  const h = histTR(s, [ob(-2, -12)]);
+  assert.equal(h.cands[0].kind, "in");
+  assert.equal(h.rows[0].status, "dup"); assert.equal(h.rows[0].reason, "existing");
+  assert.equal(h.commit.expAdds.length, 0);
+});
+t("vínculo sin lápida (A contestó, B pisó el estado, A baja la unión): el banco no lo vuelve a meter ni lo cuenta", () => {
+  // A contesta «es el mismo» y sube; B sube sin haber bajado (gana B: lápidas 0); A baja el
+  // estado: sus lápidas se van, pero el vínculo sobrevive por la unión.
+  const A = estado();
+  A.expenses.unshift(aviso(-3, 10, 29.9, "Decathlon"));
+  resuelve(A, sync(A, [ob(-2, 29.9)])[0], true);
+  esperado(A, { gasto: 29.9 }, "A tras contestar");
+  const B = estado(); B.expenses = A.expenses.map((e) => Object.assign({}, e));
+  A.deleted = B.deleted.slice(); A.gemelos = c.fusionarGemelos(A.gemelos, B.gemelos);
+  assert.equal(A.deleted.length, 0); assert.equal(A.gemelos.length, 1);
+  const add = sync(A, [ob(-2, 29.9)]);
+  assert.equal(add.length, 0, "la ranura está cubierta por el vínculo (antes: entraba y contaba sin preguntar)");
+  esperado(A, { gasto: 29.9 }, "sigue 29,90, no 59,80");
+});
+
 /* ── 13. Un pull no resube las filas con lápida (el bloque REAL de `syncCloudExpenses`) ───── */
-const mainSrc = H.read("src/modules/11-app-main.js");
+// Los bloques de App, Gastos y la pantalla del histórico se sacan del BUNDLE servido, que es lo
+// que ejecuta el móvil: una mutación sobre `public/index.html` también los alcanza.
+const mainSrc = H.read("public/index.html");
 t("backfill: una fila local con lápida no se resube en cada pull", () => {
   const m = mainSrc.match(/const delSet=\{\}; \(stateRef\.current\.deleted\|\|\[\]\)[\s\S]*?subirGasto\(e, "backfill"\); \}\);/);
   assert.ok(m, "no se encuentra el bloque del backfill en syncCloudExpenses");
@@ -621,7 +647,7 @@ t("«es el mismo» sobre una fila bajada de otro móvil (sin gemelo localizable)
   assert.equal(b[0].possibleDupOf, av.id, "sin rastro, la lápida pasaría por un «es el mismo» antiguo y se saltaría el aviso");
 });
 t("borrar a mano un apunte del banco (el bloque REAL de Gastos) deja rastro «sin aviso»", () => {
-  const gastosSrc = H.read("src/modules/04-tab-gastos.js");
+  const gastosSrc = H.read("public/index.html");
   const m = gastosSrc.match(/const next=Object\.assign\(\{\},s,\{\s*expenses:\(s\.expenses\|\|\[\]\)\.filter\(function\(x\)\{ return x\.id!==e\.id; \}\),\s*deleted:pushDeleted\(s\.deleted,key\)\s*\}\);[\s\S]*?return next;/);
   assert.ok(m, "no se encuentra el bloque de borrar en 04-tab-gastos");
   const borra = new Function("s", "e", "key", "pushDeleted", "pushGemelos", m[0]);

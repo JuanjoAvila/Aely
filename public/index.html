@@ -14866,15 +14866,20 @@ function importObExpenses(s, txs, links){
     grupos[g].miembros.push(c);
   });
   const huella=function(tx){ return [tx.note||"", tx.concept||"", tx.mcc||"", tx.card?1:0, tx.status||""].join("\u0001"); };
+  const vinculado={}; ((s.gemelos)||[]).forEach(function(g){ if(g && g.banco) vinculado[g.banco]=1; });
+  /* Una ranura está cubierta si ya la tengo (`keys`), si él la contestó (lápida) O si existe su
+     vínculo en `gemelos` (13/10/2026, revisión de confirmación): las lápidas viajan por
+     último-que-escribe y los vínculos por unión, así que un móvil puede quedarse con el vínculo
+     y sin la lápida; sin esto el cargo contestado «es el mismo» volvía y CONTABA sin preguntar
+     (29,90 → 59,80). Mismo criterio que `histCandLapidas`. */
   const cubierta=function(g, n){
     const suf=n>1 ? "|#"+n : "";
-    return !!(keys[g.scoped+suf] || delSet[g.scoped+suf] || delSet[g.base+suf]);
+    return !!(keys[g.scoped+suf] || delSet[g.scoped+suf] || delSet[g.base+suf] || vinculado[g.scoped+suf] || vinculado[g.base+suf]);
   };
   /* Lápida de «es el mismo» dejada por una versión SIN `gemelos`: su aviso sigue sin marcar. Solo
      puede ser la ranura 1 (aquella versión no conocía ordinales) y solo si ningún vínculo la
      explica — desde esta versión, borrar a mano o resolver sin gemelo también deja rastro
      (`aviso:""`), así que lo que queda sin vínculo es, de verdad, lo de antes. */
-  const vinculado={}; ((s.gemelos)||[]).forEach(function(g){ if(g && g.banco) vinculado[g.banco]=1; });
   const lapidaVieja=function(g, n){
     return n===1 && !!((delSet[g.scoped] || delSet[g.base]) && !keys[g.scoped] && !vinculado[g.base]);
   };
@@ -20941,7 +20946,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="38b688211dc70a2e4c190faa26275e58f9ce1b4b4086a4473d1255456c79ea27";
+var _rnSha="b776697b37dee28f046dc085578b81ce1135bcbdadfa5cf825d768b27d04b29e";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
