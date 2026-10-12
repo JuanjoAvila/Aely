@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "id": "plan-scroll-se-mueve-solo-codex-20261012",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261012-7c41a9d2",
+  "createdAt": "2026-10-12T16:33:33.555Z",
+  "to": "codex",
+  "baseSHA": "7e706174255f1868d15099e11a503dd23d9aa774",
+  "objective": "Queja del dueño, de las que más le importan: en la pestaña Plan, al bajar DESPACIO con el dedo, la pantalla se mueve sola (salta o se recoloca sin que él lo pida). Reproducirlo, encontrar la causa y arreglarlo.",
+  "scope": [
+    "módulos de Plan (07, 09, 14 y el contenedor de scroll del shell)",
+    "e2e nuevo del gesto"
+  ],
+  "acceptance": [
+    "Reproducir ANTES de tocar nada, con el gesto LENTO de verdad (arrastre de 1 a 3 píxeles por frame durante varios segundos y soltar con y sin inercia), en las tres secciones de Plan (Recibos, Deudas, Metas), con la barra inferior visible y oculta, con listas cortas y largas, en viewport de móvil. Antecedentes que pueden ser la misma familia y que hay que leer: el salto de 44 píxeles al entrar y salir de page-scroll-host y el carrusel que avanzaba un frame sí y otro no al arrastrar despacio (brief ux01-tironcillo-medido), la barra que se esconde y cambia la altura del contenido, y el diagnóstico de Plan de la PR 182",
+    "Medir el síntoma, no suponerlo: registrar scrollTop y la posición en pantalla de un elemento ancla frame a frame; el fallo es cualquier desplazamiento del ancla que no corresponda al movimiento del dedo. Trampas de AGENTS 7 bis: esperar a que se vaya el splash, comprobar que el gesto aterriza, la app ignora eventos de scroll con un dedo puesto así que el toque sintético puede no reproducir lo que hace la inercia real; si el banco no reproduce el fallo, el problema es el banco",
+    "Causa con fichero y línea, y arreglo en la causa (no un parche que fije la posición a la fuerza)",
+    "El e2e nuevo falla en la base y pasa con el arreglo; CPU frenada 6 veces; sin frames de más de 32 ms nuevos",
+    "No romper: cerrar hojas tirando hacia abajo, cambio de pestaña deslizando, ocultación de la barra, volver arriba al tocar la pestaña activa"
+  ],
+  "restrictions": [
+    "Base: la beta fresca (hoy 4.26.118, 7e706174). Datos sintéticos; repo público",
+    "Sin merge ni push a beta o main; sin VERSION, catálogos ni notas; sin APK ni despliegues",
+    "Rojos de integración (catálogo, docs-frescura por VERSION, tope de tamaño): se declaran con cifras, no se tocan",
+    "Build, sintaxis y tests sueltos de Node o JVM, libres. Slots focales de navegador (specs propios, menos de 10 minutos) sin consulta, con cerrojo propio. Suite entera por la CI con workflow_dispatch de Tests sobre la rama, PR en borrador contra beta",
+    "Cambio que se pinta: e2e que abra la pantalla real, registrado en el mapa; tres idiomas; estilo de la casa",
+    "Sin subir timeouts, reintentos ni topes",
+    "Result con SHA, EXIT reales, mutaciones, limitaciones y pasos de prueba para el dueño en cristiano. Un chat por encargo"
+  ],
+  "authorization": "Petición directa del dueño al coordinador el 12/10 por la tarde: son las cosas que más ganas tiene de ver arregladas."
+}
