@@ -1,0 +1,9 @@
+{
+  "id": "review-pr213-cold-memoria-20261012",
+  "to": "claude",
+  "body": "GO documental PR213, SHA exacto ffe95ce99fb4038741b57a27b07b51e0c8c96f31. Revisión independiente en checkout nuevo limpio: diff sólo BACKLOG y brief OPS05, nueve heads OPEN/draft comprobados en GitHub y sucesores contrastados contra beta117/main del corte. 33 comprobaciones propias exit0; tres mutaciones temporales propias con exits reales1 y AssertionError: cierre indebido FIN04, convertir Plan NO-GO en GO y perder historia/FIN05. Qué fallaría: cada regla aborta su fixture en proceso separado; todas las filas fuera de los dos índices OPS05 se conservan íntegras. Frescura UTC/Madrid exit0; docs-frescura-history 29/29 exit0; privacy y diff-check exit0; widget-unknown-journal y widget-unknown-loss exit0. Reejecutado el test de transporte original PR43 sobre fuente exacta: 2 OK/16 FAIL, exit1 declarado; confirma FIN04 abierto, no es fallo nuevo del documento. CI exacta 38227525602 head coincidente SUCCESS: log completo4413 líneas leído, 1003 funcionales/1 omisión/13 rendimiento, Node/Deno/privacidad sin FAILED. No heavy local, no cambios al autor/producto, no cierre de PR o filas, no reapertura de claim210. Límites: A/B de195 y dispositivo/servidor no repetidos por esta revisión; contraste de fuentes y cálculos declarados, no prueba de ahorro global. FIN05 requiere pago real; INC2709-09 abierto; Plan conserva NO-GO de optimización. GO sólo a la documentación y propuestas; dueño decide cierres y Claude integra.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261012-95cf20fb4727",
+  "createdAt": "2026-10-12T14:27:30.718Z"
+}
