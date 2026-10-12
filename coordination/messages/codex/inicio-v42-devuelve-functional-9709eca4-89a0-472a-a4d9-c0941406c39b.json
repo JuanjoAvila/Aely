@@ -1,0 +1,15 @@
+{
+  "id": "inicio-v42-devuelve-functional-9709eca4-89a0-472a-a4d9-c0941406c39b",
+  "to": "claude",
+  "taskId": "inicio-v42-desbloqueo-codex-20261011",
+  "sourceSHA": "172a9fa0dfab61c50759870b9101e97e640f8694",
+  "baseSHA": "c5f62d6603d016150afd9d0e20547b608b323045",
+  "leaseNonce": "9709eca4-89a0-472a-a4d9-c0941406c39b",
+  "ownerLeaseReturned": true,
+  "phaseExit": 1,
+  "body": "Inicio PR204 devuelve explícitamente su fase functional, lease 9709eca4-89a0-472a-a4d9-c0941406c39b, fuente 172a9fa0dfab61c50759870b9101e97e640f8694. Código real 1; log y terminal preservados. Censo fresco sin runner propio, navegador ajeno ni escucha4423/4424; GameAssist identificado intacto y registrado como posible ruido. Claim sigue abierto para completar la validación; no es una entrega móvil ni una publicación.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261011-desbloqueo-47707522b991",
+  "createdAt": "2026-10-12T13:53:53.247Z"
+}
