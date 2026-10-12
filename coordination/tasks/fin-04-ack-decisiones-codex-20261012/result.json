@@ -1,0 +1,181 @@
+{
+  "status": "blocked",
+  "focal": {
+    "ownedPortReleased": true,
+    "finalCensusHeavy": 0,
+    "leaseNonce": "08ab0bac-57de-4771-a8b1-66d0ce4c6fec",
+    "sourceSHA": "18275e027d5a93d5217762bae215ea8311eb6761",
+    "passed": 12,
+    "httpEqualsGenerated": true,
+    "exitCode": 0,
+    "takeCommit": "b3dc25269bae71c1aac1300ebd62f917413031fa",
+    "retries": 0,
+    "explicitReturnCommit": "4c25de37757cbac902e89eb6a263a9da38de6daa",
+    "htmlSHA256": "cbd825a45e22478baa1c67fcafd934d0cd9c7128da47c8b7adc9bf2cfbd1fb37",
+    "workers": 1
+  },
+  "size": {
+    "measurement": "Minificado sin sello; test oficial con reserva tambien EXIT1",
+    "gzipLimit": 363520,
+    "baselineGzip9": 363076,
+    "blockingResources": 3,
+    "candidateGzip9": 367339,
+    "rawLimit": 1329152,
+    "candidateRaw": 1342898,
+    "deltaRaw": 13876,
+    "deltaGzip9": 4263,
+    "baselineRaw": 1329022
+  },
+  "ci": {
+    "fullDomExecuted": false,
+    "conclusion": "failure",
+    "exitCode": 1,
+    "correctedPreviousFailures": [
+      "auth-disposal-fit",
+      "auth-disposal",
+      "movilidad-categorias",
+      "pull-historico-entero"
+    ],
+    "previousFailedRun": 38267908058,
+    "status": "completed",
+    "nodePassed": 140,
+    "nodeStages": 143,
+    "runId": 38271173767,
+    "performanceExecuted": false,
+    "headSHA": "18275e027d5a93d5217762bae215ea8311eb6761",
+    "nodeFailed": [
+      "beta-sources",
+      "docs-frescura",
+      "presupuesto-rendimiento"
+    ],
+    "cancelledIntermediateRun": 38270542059,
+    "denoFilesPassed": 7,
+    "jobId": 114885518221,
+    "privacyStep": "skipped; local EXIT0"
+  },
+  "preserved": [
+    "reconcileTR",
+    "applySaqueCajero",
+    "histFijosFromSelection",
+    "histUndoBatch",
+    "histCanUndo",
+    "runImport y modulo10 completo",
+    "Sin backend SQL APK VERSION catalogo fuente notas fuente ni promocion; artefactos build regenerados"
+  ],
+  "mobileSteps": [
+    "En la futura beta preparada por integracion, editar una nota sin red. Ver el cambio local y el aviso pendiente; cerrar y abrir conserva ambos.",
+    "Recuperar conexion y pulsar Reintentar. El aviso desaparece al confirmar; abrir otro dispositivo y comprobar la misma nota.",
+    "Cambiar categoria, marcar como cuota y volver a la categoria inicial. Tras sincronizar, queda la ultima eleccion.",
+    "Renombrar un movimiento: conserva una sola fila, origen y cifras.",
+    "Borrar y pulsar Deshacer: reaparece sin duplicarse. Ante conflicto, revisar antes de mantener el cambio."
+  ],
+  "productSHA": "18275e027d5a93d5217762bae215ea8311eb6761",
+  "pullRequest": {
+    "base": "beta",
+    "draft": true,
+    "number": 218,
+    "repository": "JuanjoAvila/Aely"
+  },
+  "covered": [
+    "Banco, duplicidad, categoria, nota, no-tarjeta, deuda, edicion, borrado y lote por UUID",
+    "Accion local inmediata offline; cola durable por titular fuera de app_state; pendiente/conflicto y Reintentar en es/en/ca",
+    "ACK exacto propietario UUID campos y sesion; sin gemelos por parecido ni falso ACK de cero filas",
+    "CAS conserva otros componentes source y detecta conflicto del mismo campo; editar conserva UUID con UPDATE",
+    "Reintento idempotente tras respuesta perdida; cola persiste recarga; cambios de cuenta no comparten operaciones",
+    "Pull protege campos pendientes y lecturas previas al ACK; otra lectura puede adoptar decision de otro cliente; no backfill de decisiones",
+    "Orden entre categoria-cuota-categoria y tres vuelos simultaneos; lote respeta operaciones previas de todos sus UUID"
+  ],
+  "limitations": [
+    "Dobles sinteticos: sin prueba de RLS/SQL real, aceptacion movil ni suite DOM completa",
+    "DELETE con respuesta perdida permanece pendiente/revisable; ausencia nunca acredita borrado ni provoca reinsercion",
+    "UUID legado o divergente permanece pendiente; no migracion de identidad por parecido",
+    "Sin revision global ni proteccion ABA, y sin arbitraje de clientes antiguos",
+    "Colision del indice unico exige revision; nunca fusiona ni borra el gemelo",
+    "Si localStorage falla no sale peticion; se avisa de cola no durable"
+  ],
+  "integrationBlocks": [
+    "beta-sources: Retiro109/inc-0710-gastos-mes-madrid; Catalogo117 mueve huellas ajenas; Retiro117/widget-ciclo-puente",
+    "beta-sources: inc-3009-01-cargos no vigila writeExpenseField, _mcExpenseEpoch ni editExpense; integrador debe ampliar descriptor real y preservar historia/partes, sin repinar a ciegas",
+    "docs-frescura: cuatro modulos cambiados sin VERSION nueva, por restriccion expresa del encargo",
+    "presupuesto-rendimiento: 1312/1298KiB raw y359/355KiB gzip; limites sin tocar"
+  ],
+  "baseSHA": "c5f62d6603d016150afd9d0e20547b608b323045",
+  "cleanup": "Scripts temporales de diagnostico retirados; informes y evidencia conservados. Worktree y rama preservados.",
+  "branch": "codex/fin-04-ack-decisiones",
+  "designApproval": "eb6d312ba604138ce9863b29e59faecc5546c2c0",
+  "tests": [
+    {
+      "exitCode": 0,
+      "command": "npm run build"
+    },
+    {
+      "exitCode": 0,
+      "command": "node scripts/check-syntax.mjs"
+    },
+    {
+      "baselinePassed": 2,
+      "baselineFailed": 16,
+      "command": "node tests/expense-source-ack.test.mjs",
+      "exitCode": 0,
+      "passed": 18
+    },
+    {
+      "command": "node tests/expense-write-contracts.test.mjs",
+      "exitCode": 0,
+      "passed": 44
+    },
+    {
+      "total": 14,
+      "killed": 14,
+      "command": "node tests/expense-write-mutations.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/categoria-manual-persistente.test.mjs",
+      "exitCode": 0,
+      "passed": 14
+    },
+    {
+      "exitCode": 0,
+      "command": "node tests/expense-id-cloud.test.mjs"
+    },
+    {
+      "exitCode": 0,
+      "command": "node tests/security.test.mjs"
+    },
+    {
+      "exitCode": 0,
+      "command": "node tests/i18n-keys.test.mjs"
+    },
+    {
+      "exitCode": 0,
+      "command": "node tests/relevant-tests.test.mjs"
+    },
+    {
+      "exitCode": 0,
+      "command": "node scripts/guard-privacy.mjs"
+    },
+    {
+      "failed": 0,
+      "durationSeconds": 51.5,
+      "command": "playwright test e2e/expense-ack.spec.mjs e2e/categoria-elegida.spec.mjs --workers=1 --retries=0 --max-failures=1",
+      "exitCode": 0,
+      "passed": 12
+    },
+    {
+      "exitCode": 1,
+      "command": "node tests/presupuesto-rendimiento.test.mjs"
+    },
+    {
+      "exitCode": 1,
+      "command": "CI Tests 38271173767: node scripts/run-tests.mjs"
+    }
+  ],
+  "summary": "Candidata FIN04 implementada y verificada en fuente, PR218 borrador. Retenida para integracion: CI final EXIT1 solo por catalogo/huellas, VERSION y presupuesto. No integrada ni publicada; DOM propio12 de12, contratos44 de44 y mutaciones14 de14. Se libera el claim con evidencia y limites completos.",
+  "schema": 1,
+  "taskId": "fin-04-ack-decisiones-codex-20261012",
+  "actor": "codex",
+  "sessionId": "codex-cloud-20261012-758760660f",
+  "createdAt": "2026-10-12T15:46:16.393Z",
+  "released": true
+}
