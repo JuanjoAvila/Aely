@@ -351,11 +351,13 @@ for (const versionCode of [53,54]) for (const caso of [{ lang: "es" }, { lang: "
   });
 }
 
+test.describe("vigencia local del ciclo",()=>{
+test.use({timezoneId:"Europe/Madrid"});
 for(const day of [45,46]) test(`Mi ciclo día ${day}: Inicio y payload acuerdan el periodo`,async({page})=>{
-  await page.clock.install({time:new Date(day===45?"2026-10-04T23:30:00":"2026-10-05T00:30:00")});
+  await page.clock.install({time:new Date(day===45?"2026-10-04T23:30:00+02:00":"2026-10-05T00:30:00+02:00")});
   await seedLoggedInDashboard(page,{__seedOnce:true,budget:1000,
     accounts:[{id:"tr",ent:"trade_republic",role:"diario",spendFrom:true,value:2000}],
-    settings:{autoPrices:false,budgetCycle:true,expenseBanks:["trade_republic"]},
+    settings:{autoPrices:false,lang:"es",budgetCycle:true,expenseBanks:["trade_republic"]},
     expenses:[
       {id:"salary",date:"2026-08-20T00:30:00",amount:-1800,merchant:"NOMINA SINTETICA",category:"ingreso",ent:"trade_republic"},
       {id:"purchase",date:"2026-09-02T12:00:00",amount:140,merchant:"Compra sintética",category:"super",ent:"trade_republic"}
@@ -366,7 +368,8 @@ for(const day of [45,46]) test(`Mi ciclo día ${day}: Inicio y payload acuerdan 
   expect(snap.spent).toBe(spent);expect(snap.budgetLeft).toBe(1000-spent);
   expect(snap.periodStart).toBe(await page.evaluate(day=>day===45?new Date(2026,7,20).getTime():inicioDeMesMs(Date.now()),day));
   await page.waitForFunction(()=>!document.getElementById("mc-load"));await dismissNews(page);
-  await expect(page.locator(".v4-budget .ph")).toContainText(String(spent));
+  await expect(page.locator(".v4-budget .ph")).toContainText("Has gastado "+spent);
+});
 });
 
 test("v2 sin Mi ciclo recibe el mes en bruto", async ({ page }) => {
