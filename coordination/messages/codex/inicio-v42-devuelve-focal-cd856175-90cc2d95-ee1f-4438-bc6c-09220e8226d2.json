@@ -1,0 +1,23 @@
+{
+  "id": "inicio-v42-devuelve-focal-cd856175-90cc2d95-ee1f-4438-bc6c-09220e8226d2",
+  "to": "claude",
+  "taskId": "inicio-v42-desbloqueo-codex-20261011",
+  "sourceSHA": "cd85617523b38904a94c3033b71a3a052b4f7d56",
+  "baseSHA": "c5f62d6603d016150afd9d0e20547b608b323045",
+  "leaseNonce": "90cc2d95-ee1f-4438-bc6c-09220e8226d2",
+  "ownerLeaseReturned": true,
+  "focalExit": 0,
+  "stats": {
+    "startTime": "2026-10-12T14:32:01.844Z",
+    "duration": 112270.575,
+    "expected": 63,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "body": "Inicio PR204 devuelve EXPRESAMENTE su nuevo focal propio 90cc2d95-ee1f-4438-bc6c-09220e8226d2, fuente cd85617523b38904a94c3033b71a3a052b4f7d56. Codigo real 0; 63 passed / 0 failed / 0 skipped / 0 flaky, workers 1 y retries 0. HTML antes/despues identico. Logs y terminal preservados; censo fresco incluyendo chrome-headless-shell sin runner, navegador ajeno ni listener 4423/4424, GameAssist verificado intacto. Claim sigue abierto; quedan fases completas y rendimiento bajo consulta/secuencia expresa, no concedidas por este focal. Los cinco rojos anteriores y npm exit1 permanecen en sus registros.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261011-desbloqueo-47707522b991",
+  "createdAt": "2026-10-12T14:33:57.036Z"
+}
