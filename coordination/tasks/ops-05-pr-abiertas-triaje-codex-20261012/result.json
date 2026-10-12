@@ -1,0 +1,196 @@
+{
+  "status": "done",
+  "summary": "OPS-05 revisable en PR213: seis cierres propuestos, conservar43/182/195; FIN-04 reproducido y cachés actuales medidas. CI exacta SUCCESS; ninguna PR cerrada.",
+  "productSHA": "ffe95ce99fb4038741b57a27b07b51e0c8c96f31",
+  "baseCheckedSHA": "c5f62d6603d016150afd9d0e20547b608b323045",
+  "pullRequest": "JuanjoAvila/Aely#213",
+  "artifacts": [
+    "docs/briefs/ops05-pr-abiertas-triaje-2026-10-12.md",
+    "docs/BACKLOG.md"
+  ],
+  "dependencyFor": "backlog-estado-unico-codex-20261012",
+  "tests": [
+    {
+      "command": "node tests/docs-frescura.test.mjs",
+      "timezone": "UTC",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/docs-frescura.test.mjs",
+      "timezone": "Europe/Madrid",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/guard-privacy.mjs",
+      "timezone": "UTC",
+      "exitCode": 0
+    },
+    {
+      "command": "git diff --check / ancestry / clean final rebase",
+      "exitCode": 0
+    },
+    {
+      "command": "UTF8, public delta privacy and nine-PR matrix",
+      "exitCode": 0
+    },
+    {
+      "command": "expense-source-ack original transport vs beta117",
+      "exitCode": 1,
+      "passed": 2,
+      "failed": 16,
+      "meaning": "Defecto financiero existente reproducido; no corregido en este encargo"
+    },
+    {
+      "command": "node tests/beta-sources.test.mjs complete frozen beta117 A1",
+      "exitCode": 0,
+      "passed": 64,
+      "failed": 0,
+      "ms": 456460.1662,
+      "environment": "Windows Node24.16.0 UTC; processes seriales nuevos"
+    },
+    {
+      "command": "node tests/beta-sources.test.mjs complete frozen beta117 B1",
+      "exitCode": 0,
+      "passed": 64,
+      "failed": 0,
+      "ms": 203036.5382,
+      "environment": "Windows Node24.16.0 UTC; processes seriales nuevos"
+    },
+    {
+      "command": "node tests/beta-sources.test.mjs complete frozen beta117 B2",
+      "exitCode": 0,
+      "passed": 64,
+      "failed": 0,
+      "ms": 204196.0850999999,
+      "environment": "Windows Node24.16.0 UTC; processes seriales nuevos"
+    },
+    {
+      "command": "node tests/beta-sources.test.mjs complete frozen beta117 A2",
+      "exitCode": 0,
+      "passed": 64,
+      "failed": 0,
+      "ms": 435365.8321,
+      "environment": "Windows Node24.16.0 UTC; processes seriales nuevos"
+    },
+    {
+      "command": "original beta-source-context.test.mjs on current inputs",
+      "exitCode": 1,
+      "passedGroups": 0,
+      "ms": 4229.1616,
+      "meaning": "Primer grupo requiere fuente archivada; BETA_SCOPE_ABSENT también con parser beta117"
+    },
+    {
+      "command": "node scripts/run-tests.mjs CI38227525602 exact ffe95ce9",
+      "exitCode": 0,
+      "functionalPass": 1003,
+      "skipped": 1,
+      "performancePass": 13,
+      "denoFiles": 7,
+      "runnerSeconds": 3520.7,
+      "environment": "Ubuntu CI Node20.20.2"
+    },
+    {
+      "command": "CI38227525602 standalone privacy",
+      "exitCode": 0
+    },
+    {
+      "command": "gh run watch 38227525602 --exit-status",
+      "exitCode": 0
+    }
+  ],
+  "preparationExits": [
+    {
+      "command": "channel pending initial sandbox",
+      "exitCode": 1,
+      "limitation": "update-ref; authorized read retry passed"
+    },
+    {
+      "command": "measurement setup initial",
+      "exitCode": 1,
+      "limitation": "file URL decoding corrected before cases"
+    },
+    {
+      "command": "primary incomplete snapshot initial",
+      "exitCode": 1,
+      "passed": 63,
+      "failed": 1,
+      "limitation": "package.json absent; excluded and repeated full ABBA on complete frozen inputs"
+    },
+    {
+      "command": "transport harness initial auxiliary import",
+      "exitCode": 1,
+      "limitation": "import location corrected; assertions unchanged"
+    },
+    {
+      "command": "first precommit rebase command chain",
+      "exitCode": 0,
+      "limitation": "rebase rejected unstaged docs; later clean rebase passed and exact SHA stayed unchanged"
+    },
+    {
+      "command": "channel result attempt with HTTPS references",
+      "exitCode": 1,
+      "limitation": "URL strings matched local path rule; public PR/run references preserved; filter unchanged; two rejected attempts before publication"
+    }
+  ],
+  "measurement": {
+    "primaryMeanSecondsBefore": 445.913,
+    "primaryMeanSecondsAfter": 203.616,
+    "savingSeconds": 242.297,
+    "savingPercent": 54.3372,
+    "equalCompleteOutputSHA256": "a9dda0241ccc958ddaa100219b428223885dcb5fba6c6c19d84bcc7d1edea860",
+    "baselineCI": {
+      "run": 38222778497,
+      "job": 114722823351,
+      "conclusion": "success",
+      "primarySeconds": 1096.65,
+      "runnerSeconds": 3527.8
+    },
+    "limit": "Ahorro sólo primario Node local actual; guardián portado/CI optimizada completa/RAM/móvil sin medir"
+  },
+  "ci": {
+    "run": 38227525602,
+    "job": 114738595570,
+    "headSHA": "ffe95ce99fb4038741b57a27b07b51e0c8c96f31",
+    "conclusion": "success",
+    "fullJobRead": true,
+    "logSHA256": "1300ed56347e20c16dd1243004cdc2fd4a74c00689d639d5279ddb38c8b470a2",
+    "reference": "JuanjoAvila/Aely/actions/runs/38227525602"
+  },
+  "mutations": {
+    "product": [],
+    "documentation": [
+      "brief nuevo",
+      "dos filas OPS-05"
+    ],
+    "synthetic": "Matrices existentes completas y transporte original; asserts sin cambios; adapters sólo readers/imports; copias/sondas retiradas"
+  },
+  "proposedClose": [
+    48,
+    87,
+    105,
+    170,
+    180,
+    181
+  ],
+  "retain": [
+    43,
+    182,
+    195
+  ],
+  "limitations": [
+    "PR213 permanece draft; revisión independiente e integración corresponden a Claude",
+    "Cierres/ramas/worktrees requieren decisión del dueño: nada cerrado ni borrado",
+    "FIN-04 sigue abierto; contrato actual de source exige preservar deuda y origen TR/Wallet",
+    "FIN-05 y aceptación real del widget no se cierran por supersesión de fuente",
+    "INC-2709-09 y NO-GO de optimización Plan permanecen abiertos",
+    "Guardián original195 requiere port al archivo actual; cero grupos completados en su ejecución actual",
+    "202/204 excluidas; sin VERSION/catalogue/public/main/beta/APK/Edge/SQL/migraciones ni datos reales"
+  ],
+  "changeLogReason": "Reconciliar nueve PR con beta117 mediante commits sucesores y diferencias vigentes; conservar ACK financiero pendiente, diagnóstico de Plan y cachés medibles con sus gates independientes.",
+  "schema": 1,
+  "taskId": "ops-05-pr-abiertas-triaje-codex-20261012",
+  "actor": "codex",
+  "sessionId": "codex-local-20261012-ops05-7f0d7c41",
+  "createdAt": "2026-10-12T10:08:43.838Z",
+  "released": true
+}
