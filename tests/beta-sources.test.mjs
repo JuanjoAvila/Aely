@@ -1368,7 +1368,10 @@ test("Recientes106 reanclada conserva expresión, identidad y recibo completos",
   const scopes=JSON.parse(read("scripts/beta-sources.json"));
   // Wealth pertenece al alcance de Nómina: el editor de Bienes113 cambia esa dependencia
   // real. Recortarla para conservar el OK111 ocultaría producto modificado (10/10).
-  assert.notEqual(betaRevision("inc-3009-nomina-anticipada",read).web,betaRevision("inc-3009-nomina-anticipada",old,undefined,scopes["inc-3009-nomina-anticipada"]).web,"Bienes113 cambia Wealth compartida con Nómina; no conservar la identidad111");
+  // Wealth113 se compara con su alcance de entonces: los helpers de Recibos añadidos
+  // después no existen en111. Los mutantes de Recientes de arriba siguen sobre read vivo.
+  const scope113=JSON.parse(source113("scripts/beta-sources.json"))["inc-3009-nomina-anticipada"];
+  assert.notEqual(betaRevision("inc-3009-nomina-anticipada",source113,undefined,scope113).web,betaRevision("inc-3009-nomina-anticipada",old,undefined,scope113).web,"Bienes113 cambia Wealth compartida con Nómina; no conservar la identidad111");
 });
 
 process.exitCode=failed?1:0;
