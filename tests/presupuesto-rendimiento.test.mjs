@@ -225,7 +225,12 @@ const PRESUPUESTO = {
   // +964 / +318 B. Es el acuse local (`obAckLoad`, `obAckSave`, `obAckDrop`), su envío y el
   // efecto que lo guarda detrás de las filas. 1303 KiB (1.334.272) se queda corto por 254 B:
   // +1 KiB mínimo, quedan 770 B.
-  minificado: 1304 * 1024,
+  // Inicio v4.2 sobre beta117 c5f62d66, medido12/10 con el minificador oficial:
+  // 1.342.988 B crudo /367.289 B gzip, reservando DSN sintético95 B y117.99999.
+  // Tras retirar Sparkline, V4Ring, estilos/textos sustituidos y alias, la serie
+  // por flujos y el historial400 conservan sus guardas. Mandato del dueño:
+  // mínimo por KiB, sin recortar funciones ni dinero:1312 KiB dejan500 B crudos.
+  minificado: 1312 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -240,7 +245,8 @@ const PRESUPUESTO = {
   // +1 KiB mínimo (quedan 712 B).
   // Recibos118: 364.346 B gzip, 826 B sobre 355 KiB. +1 KiB mínimo (quedan 198 B).
   // Bancos119: 364.664 B gzip, 120 B sobre 356 KiB. +1 KiB mínimo (quedan 904 B).
-  gzip: 357 * 1024,
+  // Misma medida de Inicio:359 KiB es el mínimo; margen327 B, sin aire arbitrario.
+  gzip: 359 * 1024,
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 

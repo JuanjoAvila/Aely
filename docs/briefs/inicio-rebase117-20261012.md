@@ -3,8 +3,9 @@
 Encargo `inicio-v42-desbloqueo-codex-20261011`, mismo titular y claim, rama y PR204.
 Base anunciada y verificada: `c5f62d6603d016150afd9d0e20547b608b323045`.
 La revisión anterior `b183f3fc` queda preservada en el historial y en una referencia
-local previa al rebase. Todavía no se empuja este rebase: los archivos públicos
-generados conservan el artefacto de117 y necesitan build antes de entregar.
+local previa al rebase. Los cinco archivos públicos derivados se han ensamblado
+desde la fuente nueva y se congelan para validar el SHA exacto. Esta acta distingue
+la entrega de fuente de la validación completa, todavía pendiente.
 
 ## Fuente y contratos conservados
 
@@ -37,9 +38,11 @@ su huella nativa y su guion permanecen iguales. Conservar su web
 antigua exigiría quitar esa dependencia o deshacer el historial partido: no se
 hace para heredar una identidad. La web nueva requiere su propia revisión;
 este guardián no sustituye una revisión independiente ni acredita el OK anterior
-para la web nueva. Los dos contratos históricos usan `const read=source117`;
-si Recibos se integra primero, se adopta su forma exacta al rebasar sin cambiar
-aserciones, oráculos ni mutantes. Las tandas que se retiren no se reintroducen.
+para la web nueva. Los dos contratos históricos comparten el bloque léxico
+`const read=sourceAt("c5f62d6603d016150afd9d0e20547b608b323045")`, con sus cuerpos
+intactos: es la misma forma que la entrega final de Recibos DBC. Al rebasar sobre
+su integración se conserva ese patrón, sin cambiar aserciones, oráculos ni mutantes.
+Las tandas que se retiren no se reintroducen.
 
 ## Evidencia ligera y pendientes
 
@@ -70,3 +73,33 @@ completo, Deno, Playwright, Gradle o A/B local en esta fase. La ventana posterio
 está confirmada, con workers1/retries0 y devolución explícita entre fases. Falta
 build/medida, validación completa, A/B causal y el result del encargo actual;
 el resultado bloqueado anterior pertenece a otra tarea y no cierra este claim.
+
+## Ensamblado y admisión tras los retornos del12/10
+
+Recibos cerró su result2422015b y devolvió su último lease da0f62dc a11:44:43 UTC.
+El retorno definitivo de la APK55 está en71c90feb; el ensayo anterior no autoriza
+esta admisión. El grant propio permite fases nuevas con lock y censo propios,
+sin adoptar recursos ajenos ni interpretar la ausencia de lock como cesión.
+El ensamblador y los Node sueltos son libres según2a8e037.
+
+Build genera la fuente v4.2 sobre117 y sus cinco derivados públicos. Con el
+minificador oficial, reserva sintética95 B y117.99999 mide **1.342.988 B crudos /
+367.289 B gzip**. El tope anterior mantiene salida1 en el registro; el mínimo
+autorizado es **1312/359 KiB**, con márgenes **500/327 B**. El guardián pasa tras
+el ajuste comentado; siguen tres recursos bloqueantes.
+
+Sintaxis del bundle, lógica ordinaria de Inicio en UTC/Madrid, auth, i18n, mapa
+y cinco contratos de alcance pasan sobre el HTML generado. Veredictos tuvo
+salida1: su fixture fijado en684 esperaba el cambio Edge bancario posterior
+de116. El mismo callback y fixture fallan igual en el HTML117 y el candidato,
+sin diferencia de las superficies calculadas. Se restaura la expectativa de la
+fuente histórica y se añade un contraste explícito de la fuente Edge viva y un
+mutante real de aquella dependencia: ambos controles permanecen estrictos.
+Veredictos pasa después de esa corrección; las salidas anteriores se conservan.
+
+Deno2.9.0 está disponible por su ejecutable real. La primera comprobación lo
+invocó erróneamente a través de Node y no ejecutó tests; ese intento no acredita
+Deno. npm completo usará PATH explícito y memoria fuente inexistente, y guardará
+sus salidas reales. Las fases de DOM y CPU×6 siguen pendientes; los Node no
+acreditan FPS ni aceptación móvil. GameAssist solo se excluye si se verifica
+su host y árbol, según f4ff217b, y se registra como posible ruido.
