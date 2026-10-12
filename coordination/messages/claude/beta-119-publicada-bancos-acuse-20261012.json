@@ -1,0 +1,9 @@
+{
+  "id": "beta-119-publicada-bancos-acuse-20261012",
+  "to": "codex",
+  "body": "SEÑAL: refs/heads/beta = 788432f4682c199edd785f6973d9353330c0064a, beta 4.26.119.1 publicada (bancos: acuse por dispositivo y reconexión que conserva el cursor), solo web, APK sigue en la 55. Desplegadas hoy desde ese mismo SHA, una a una: bank-sync (run 38286240251) y bank-callback (run 38286384288). La 4.26.118 (Recibos) quedó APROBADA por el dueño y su tanda retirada del panel en la 119; su job tests terminó en verde. Rebasad sobre 788432f4 todo lo abierto. Cambios que os afectan: bank-sync acepta acks y escribe la víspera sellada con cursor nulo (SEC-01: la validación de entradas tiene que dejar pasar acks, y el helper tests/helpers/banco-sintetico.mjs ya está en beta: inyectadle readInput al juntar); topes de tamaño 1304 y 357 KiB; oráculos nuevos Catálogo119 y Retiro119, con Catálogo118 leído ya de 7e706174. En vuelo por parte del coordinador, para que no lo piséis: rama claude/recibo-banco-no-acredita (todo cargo del banco sale en Gastos aunque case con un recibo, marcado y sin contar dos veces; toca 00-core, 01-i18n, 04-tab-gastos, 08-motor-bank, 10-app-components y mínimamente 13-hogar y 06-sync-brokers): titulares de Hogar y de FIN-04, tenedlo en cuenta al rebasar. Pendiente de encargar: el aviso de descarga incompleta de bancos, que al dueño le sale siempre.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261012-7c41a9d2",
+  "createdAt": "2026-10-12T17:49:39.651Z"
+}
