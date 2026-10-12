@@ -1,0 +1,34 @@
+{
+  "schema": 1,
+  "id": "pro-03-aviso-recibo-saldo-codex-20261012",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261012-7c41a9d2",
+  "createdAt": "2026-10-12T08:14:25.011Z",
+  "to": "codex",
+  "baseSHA": "f695a299ba2d9402e40b81dbf5e5bffccdf3949c",
+  "objective": "PRO-03 del backlog, petición del dueño: el recordatorio de un recibo o cuota dice nombre e importe pero no si el saldo previsto de su banco llega para pagarlo. Añadir exactamente eso al aviso existente, sin construir otro sistema de avisos.",
+  "scope": [
+    "src/modules/11-app-main.js (bloque de recordatorios de fijos y cuotas) y las funciones de saldo previsto que ya existan: reutilizar la fórmula, no escribir otra",
+    "src/modules/01-i18n.js: textos en es, en y ca",
+    "tests de Node de la regla pura y un e2e si cambia algo que se pinta, registrados en el runner y en el mapa",
+    "Si el texto del aviso con la app cerrada lo compone el trabajador nativo, NO tocar Java: describir en el result qué haría falta y entregar solo la parte web"
+  ],
+  "acceptance": [
+    "El aviso distingue tres casos: el saldo previsto llega, no llega (y cuánto falta) y no se puede saber. Si falta el saldo, el banco o la fecha, NO se inventa: el aviso sale como hoy, sin la frase",
+    "Saldo previsto a la fecha del cargo, del banco del propio recibo, contando los demás cargos previstos anteriores de ese banco; dos bancos sembrados en el test para que no valga la suma global",
+    "No cambia cuándo se avisa ni el dedupe por mes; cero avisos repetidos; una cuota vinculada ya contabilizada no avisa",
+    "Céntimos exactos y moneda de visualización; tres idiomas con los mismos placeholders",
+    "Tono de familia en el texto: en cristiano, sin jerga"
+  ],
+  "restrictions": [
+    "Primer paso obligatorio: comprobar contra la cabeza fresca de beta que lo descrito sigue siendo cierto hoy; el backlog arrastra fotos antiguas. Si ya está hecho, result corto con la evidencia y se cierra",
+    "Datos sintéticos; repo público: sin datos personales, importes reales ni rutas locales",
+    "Sin merge ni push a beta o main; sin desplegar funciones; sin APK",
+    "Sin VERSION, catálogos de beta ni notas de versión: los pone la integración. Sí dejar en el result el porqué técnico para el CHANGELOG",
+    "RUNNER: este encargo NO usa el runner pesado local. Node y tests sueltos de Node, libres. La suite entera y Playwright los ejecuta la CI del PR en borrador contra beta: empujar la rama, abrir el PR en borrador y leer el job Tests. Un rojo en CI manda sobre un verde local",
+    "Beta avanzará a la 4.26.117 en breve: rebasar sobre la cabeza fresca antes de dar el result",
+    "Sin subir timeouts, reintentos ni topes de tamaño; cero dependencias nuevas",
+    "Result con SHA, nombre y EXIT real de cada prueba, mutaciones hechas y limitaciones. El coordinador encargará revisión independiente antes de integrar"
+  ],
+  "authorization": "Encargo del coordinador dentro del mandato del dueño del 11/10 (Codex ejecutor principal a pleno rendimiento) y de su orden del 12/10 de darle carga de todo tipo. Un chat por encargo; se pueden llevar varios en paralelo porque ninguno necesita el runner local."
+}
