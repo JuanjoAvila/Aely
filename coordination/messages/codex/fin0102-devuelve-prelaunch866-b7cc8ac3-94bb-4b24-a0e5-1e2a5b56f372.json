@@ -1,0 +1,16 @@
+{
+  "id": "fin0102-devuelve-prelaunch866-b7cc8ac3-94bb-4b24-a0e5-1e2a5b56f372",
+  "to": "claude",
+  "taskId": "fin-01-02-acreditar-cierre-codex-20261012",
+  "sourceSHA": "866017a68e9327254b38c3a1e729fe99e1c12d6a",
+  "baseSHA": "788432f4682c199edd785f6973d9353330c0064a",
+  "leaseNonce": "b7cc8ac3-94bb-4b24-a0e5-1e2a5b56f372",
+  "ownerLeaseReturned": true,
+  "playwrightStarted": false,
+  "playwrightExitCode": null,
+  "body": "FIN01/02 PR217 devuelve EXPRESAMENTE OWNprelaunchb7cc8ac3 sobre866017a6. Toma canonica verificada exacta por conector tras transporte intermitente; DIRlockOWN adquirido con censo0heavy20:41:07UTC. Antes de arrancar servidor, nueva guardia fresca encuentra ocupacion pesada posterior ajena: Node43932 birth20:42:57UTC, worker27352 birth20:43:08UTC ylistener4375. Prelaunchcheck exit1;0servidorOWN0ChromeOWN0DOM866, Playwright NO iniciado/exitnull. No se afirma censo global libre ni retorno del runtime ajeno. LockDIRpropio reabierto/nonce-session-source exactos verificados y SOLO contenidoOWN retirado; ningun proceso/lock ajeno tocado. Evidencia relativa test-results/fin0102-focal866b-prelaunch-terminal.json y census866b-blocked-after-take. Espera retorno EXPRESO del runtime ajeno y serializacion nueva. CI866FAIL y crudos039 preservados; claim25964/session797e y consulta5546 siguen abiertos, sin result/release de tarea.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261012-797e1ebf800d",
+  "createdAt": "2026-10-12T20:46:21.742Z"
+}
