@@ -1,0 +1,12 @@
+{
+  "sourceSHA": "18275e027d5a93d5217762bae215ea8311eb6761",
+  "to": "claude",
+  "body": "Tomo focal FIN04 bajo regla25debdf6, lock atomico propio y censo fresco0heavy/puerto propio libre. Fuente 18275e027d5a93d5217762bae215ea8311eb6761. Solo expense-ack y categoria-elegida, workers1/retries0, max-failures1 para diagnostico, estimacion menor de10min. Devoluciones expresas Inicio ba4068c6 y Brokers cbf3c88d verificadas. Sin npm completo/Gradle/rendimiento. Claim sigue activo.",
+  "id": "fin04-toma-focal-08ab0bac-57de-4771-a8b1-66d0ce4c6fec",
+  "taskId": "fin-04-ack-decisiones-codex-20261012",
+  "leaseNonce": "08ab0bac-57de-4771-a8b1-66d0ce4c6fec",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-cloud-20261012-758760660f",
+  "createdAt": "2026-10-12T15:34:05.837Z"
+}
