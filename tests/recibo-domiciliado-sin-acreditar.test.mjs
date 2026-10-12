@@ -3,12 +3,14 @@
 // histórico» los enseñaba como repetidos sin marcar. Su decisión: «yo solo quiero que salga todo
 // en gastos… si sale en recibos pero no en gastos la gente se rallará».
 //
-// Lo que se fija aquí (segunda vuelta, tras el NO-GO de la revisión del mismo día):
-//   · todo cargo entra en Gastos; SOLO el que el motor da por pago del recibo lleva `reciboId`;
-//   · esa fila no mueve ninguna cifra en ningún rol de banco, tampoco al anclar el saldo tras
-//     sincronizar (`applyBankBalances`) ni al cerrar el mes (`reconcileTR`);
-//   · lo que solo se parece a un recibo cuenta como un gasto normal;
-//   · «No es este recibo» deja el cargo contando y el recibo pendiente, y viaja;
+// La regla, tras dos revisiones el mismo día:
+//   · lleva `reciboId` EXACTAMENTE lo que antes se tiraba (mismo predicado), y esa fila no mueve
+//     ninguna cifra: las cuentas quedan como estaban. Eso lo fija `tests/recibo-invariante`
+//     contra el código de la 4.26.119; aquí se prueba lo demás;
+//   · lo dudoso se distingue en la ETIQUETA: firme si es el cargo con el que el motor da por
+//     pagado el recibo, tentativa («¿Recibo: X?») si solo se parece;
+//   · «No es este recibo» y «Confirmar pago» ponen y quitan la marca sin mover el saldo, y el
+//     veto no se pierde al renombrar ni al llegar el estado de otro móvil;
 //   · un recibo borrado no deja filas fuera de las cuentas.
 // Datos sintéticos; el reloj es fijo y se mueve a mano para cruzar de mes.
 import assert from "node:assert/strict";
@@ -56,6 +58,12 @@ const gastadoLista=s=>+s.expenses.filter(e=>c.expenseBucket(e,s)==="cuenta"&&Str
 const mostrado=s=>{ const i=c.insumosSaldoGasto(s);
   return s.accounts.map(a=>+c.saldoCuentaMostrada(a,{injTR:i.injTR,spentByBank:i.spentByBank,paidNetByBank:i.paidNetByBank,roundup:i.roundup,monthlyInvest:i.monthlyInvest}).toFixed(2)); };
 const marcas=filas=>j(filas.map(e=>[e.merchant,e.reciboId||null]));
+// [comercio, recibo, etiqueta]: lo que la lista escribe junto a cada fila.
+const etiquetas=(filas,s)=>j(filas.map(e=>[e.merchant,e.reciboId||null,c.reciboEtiqueta(s,e)]));
+const candidatos=txs=>txs.map(t=>({kind:"out",ent:t.ent,date:t.date,amount:t.amount,merchant:t.merchant,card:!!t.card,id:t.ext_id}));
+// Lo que hace la pantalla de Importar histórico con las filas marcadas y destino Gasto.
+const importaHistorico=(cands,s)=>{ const rows=[...c.histClassifyCandidates(cands,s).rows];
+  return {rows,filas:cands.map((x,i)=>rows[i].status==="new"?c.histFilaGasto(x,rows[i],rows[i].category||"otros","hist-x"):null).filter(Boolean)}; };
 
 test("sync diario: el adeudo entra en Gastos enlazado a su recibo y el recibo queda pagado", ()=>{
   const r=sincroniza(estado(),[TX_COM,TX_MOV]);
@@ -64,9 +72,8 @@ test("sync diario: el adeudo entra en Gastos enlazado a su recibo y el recibo qu
   assert.equal(pagados(r.state),"com,mov");
   assert.equal(pagados(Object.assign({},r.state,{bankTx:[]})),"com,mov","sigue pagado en un móvil sin extracto");
   assert.equal(j(r.add.map(e=>c.expenseBucket(e,r.state))),j(["recibo","recibo"]));
-  assert.equal(c.reciboNombre(r.state,r.add[0]),"Comunidad");
+  assert.equal(etiquetas(r.add,r.state),j([["COMUNIDAD DE PROPIETARIOS","com","Recibo: Comunidad"],["Pepe Mobile, S.L.U.","mov","Recibo: Pepe Mobile, S.L.U."]]));
   assert.equal(sincroniza(r.state,[TX_COM,TX_MOV]).add.length,0,"volver a sincronizar no repite la fila");
-  assert.equal(c.marcarCargosDeRecibo(r.state),null,"y la pasada de marcar no tiene nada que hacer");
 });
 
 test("con dos cuentas de recibos en el banco el cargo ya no se pierde: entra y acredita por la fila", ()=>{
@@ -88,7 +95,7 @@ const ROLES=[
 const BANCO={sabadell:1848,caixabank:838.6};
 for(const [rol,accounts,settings] of ROLES){
   const inicio=()=>estado({accounts:clon(accounts),settings:clon(settings),fixed:clon(fijos.concat([LUZ])),expenses:[control("sabadell"),control("caixabank")],trAnchor:"2026-10"});
-  // `antes`: lo que había hasta hoy, el banco no manda los adeudos (se tiraban). `despues`: con ellos.
+  // `antes`: el banco no manda los adeudos (equivale a tirarlos). `despues`: con ellos.
   const antes=()=>sincroniza(inicio(),TX_CTL,BANCO).state;
   const despues=()=>sincroniza(inicio(),[TX_COM,TX_MOV,TX_LUZ].concat(TX_CTL),BANCO);
 
@@ -106,8 +113,8 @@ for(const [rol,accounts,settings] of ROLES){
     assert.equal(j(d.accounts.map(x=>x.value)),j(a.accounts.map(x=>x.value)),"el anclaje deja la misma base");
     assert.equal(j(["sabadell","caixabank"].map(ent=>c.monthNetForAccount(d,ent,2026,10,12))),j([-152,-61.4]),"el recibo resta una vez");
     assert.equal(c.planChargesMonth(d,10,2026,12).pendingBillsTotal,0,"los tres salen pagados en Plan");
-    // La medida no está ciega: si la fila contara, el anclaje del mismo sync daría otra base.
-    const contando=Object.assign({},d,{reciboNo:d.expenses.filter(e=>e.reciboId).map(e=>e.reciboId+"|"+c.fixedPaymentIdentity(c.expenseBankOf(e),e))});
+    // La medida no está ciega: si la fila contara, el gastado subiría donde el banco cuenta.
+    const contando=Object.assign({},d,{reciboNo:d.expenses.filter(e=>e.reciboId).map(e=>e.reciboId+"|#"+e.id)});
     const cuentaSb=rol!=="solo recibos",cuentaCx=rol==="para todo";
     assert.equal(+(gastado(contando)-gastado(d)).toFixed(2),(cuentaSb?152:0)+(cuentaCx?61.4:0));
   });
@@ -115,10 +122,10 @@ for(const [rol,accounts,settings] of ROLES){
   test("al cruzar de mes el cierre no vuelve a restar el recibo · Sabadell "+rol, ()=>{
     const a=antes(),d=despues().state;
     // Y el camino sin sync: las filas entraron por Importar histórico y nadie ancló después.
-    const cands=[TX_COM,TX_MOV,TX_LUZ].map(t=>({kind:"out",ent:t.ent,date:t.date,amount:t.amount,merchant:t.merchant,card:false,id:t.ext_id}));
-    const h=c.histBuildCommit(cands,c.histClassifyCandidates(cands,a).rows,a,{batchId:"hist-x"}).expAdds;
-    assert.equal(marcas([...h]),j([["COMUNIDAD DE PROPIETARIOS","com"],["Pepe Mobile, S.L.U.","mov"],["LUZ HOGAR SL","luz"]]));
-    const soloHist=Object.assign({},a,{expenses:[...h].concat(a.expenses)});
+    const h=importaHistorico(candidatos([TX_COM,TX_MOV,TX_LUZ]),a).filas;
+    assert.equal(marcas(h),j([["COMUNIDAD DE PROPIETARIOS","com"],["Pepe Mobile, S.L.U.","mov"],["LUZ HOGAR SL","luz"]]));
+    const soloHist=Object.assign({},a,{expenses:h.concat(a.expenses)});
+    assert.equal(j(mostrado(soloHist)),j(mostrado(a)),"importar del histórico tampoco mueve el saldo pintado");
     ahora=new Date("2026-11-02T10:00:00+01:00").getTime();
     try{
       const cierra=s=>j(c.reconcileTR(clon(s)).accounts.map(x=>[x.ent,x.value]));
@@ -132,64 +139,74 @@ for(const [rol,accounts,settings] of ROLES){
   });
 }
 
-// ───── Qué NO es el cargo de un recibo ─────
+// ───── Qué se marca y con qué etiqueta: lo mismo que se tiraba; lo dudoso, con pregunta ─────
 const todo=o=>estado(Object.assign({accounts:[{id:"sb",ent:"sabadell",role:"ambos",spendFrom:true,value:2000}],settings:{}},o));
-for(const [nombre,recibo,txs,esperado,sube,sinHistorico] of [
-  ["«Agua» no es AGUACATES",F("ag","Agua",30,10),[T("a1","sabadell","2026-10-08",30.2,"AGUACATES DEL SUR",{card:true})],[["AGUACATES DEL SUR",null]],30.2],
-  ["«Seguro coche» no es SEGURO DENTAL",F("sc","Seguro coche",40,5),[T("a1","sabadell","2026-10-06",40.3,"SEGURO DENTAL SANITAS")],[["SEGURO DENTAL SANITAS",null]],40.3],
-  ["nombre igual pero importe que no es el del recibo (una derrama)",F("com","Comunidad",50,12),[T("a1","sabadell","2026-10-09",180,"COMUNIDAD DE PROPIETARIOS")],[["COMUNIDAD DE PROPIETARIOS",null]],180],
-  ["dos cargos del mismo comercio: el motor no sabe cuál es y no se marca ninguno",F("nf","Netflix",12.99,5),
-    [T("a1","sabadell","2026-10-05",12.99,"NETFLIX.COM"),T("a2","sabadell","2026-10-09",13,"NETFLIX SHOP MERCH",{card:true})],[["NETFLIX SHOP MERCH",null],["NETFLIX.COM",null]],25.99,"sin extracto, el histórico sí distingue el de céntimos exactos"],
-  ["cobro doble idéntico en dos días: tampoco",F("com","Comunidad",50,5),
-    [T("a1","sabadell","2026-10-05",50,"COMUNIDAD DE PROPIETARIOS"),T("a2","sabadell","2026-10-11",50,"COMUNIDAD DE PROPIETARIOS")],[["COMUNIDAD DE PROPIETARIOS",null],["COMUNIDAD DE PROPIETARIOS",null]],100],
-  ["el cargo en otro banco que el del recibo",F("com","Comunidad",50,5,"caixabank"),[T("a1","sabadell","2026-10-05",50,"COMUNIDAD DE PROPIETARIOS")],[["COMUNIDAD DE PROPIETARIOS",null]],50],
-  ["un recibo anual fuera de su mes",{id:"sg",name:"Seguro hogar",amount:312.4,freq:"año",months:[3],account:"sabadell",day:10},[T("a1","sabadell","2026-10-08",312.4,"SEGURO HOGAR")],[["SEGURO HOGAR",null]],312.4],
-  ["un cargo todavía pendiente",F("com","Comunidad",50,5),[T("a1","sabadell","2026-10-05",50,"COMUNIDAD DE PROPIETARIOS",{status:"PDNG"})],[["COMUNIDAD DE PROPIETARIOS",null]],50,"el histórico no trae el estado del cargo"],
+for(const [nombre,recibo,txs,esperado,cuenta] of [
+  ["«Agua» y una compra en AGUACATES de importe parecido: se tiraba, ahora se ve con la pregunta",F("ag","Agua",30,10),
+    [T("a1","sabadell","2026-10-08",30.2,"AGUACATES DEL SUR",{card:true})],[["AGUACATES DEL SUR","ag","¿Recibo: Agua?"]],0],
+  ["«Seguro coche» y SEGURO DENTAL",F("sc","Seguro coche",40,5),[T("a1","sabadell","2026-10-06",40.3,"SEGURO DENTAL SANITAS")],[["SEGURO DENTAL SANITAS","sc","¿Recibo: Seguro coche?"]],0],
+  ["nombre igual pero importe que no es el del recibo (una derrama): cuenta, como contaba",F("com","Comunidad",50,12),
+    [T("a1","sabadell","2026-10-09",180,"COMUNIDAD DE PROPIETARIOS")],[["COMUNIDAD DE PROPIETARIOS",null,""]],180],
+  ["dos cargos del mismo comercio: se tiraban los dos; el motor no sabe cuál es y los dos preguntan",F("nf","Netflix",12.99,5),
+    [T("a1","sabadell","2026-10-05",12.99,"NETFLIX.COM"),T("a2","sabadell","2026-10-09",13,"NETFLIX SHOP MERCH",{card:true})],
+    [["NETFLIX SHOP MERCH","nf","¿Recibo: Netflix?"],["NETFLIX.COM","nf","¿Recibo: Netflix?"]],0],
+  ["cobro doble idéntico en dos días",F("com","Comunidad",50,5),
+    [T("a1","sabadell","2026-10-05",50,"COMUNIDAD DE PROPIETARIOS"),T("a2","sabadell","2026-10-11",50,"COMUNIDAD DE PROPIETARIOS")],
+    [["COMUNIDAD DE PROPIETARIOS","com","¿Recibo: Comunidad?"],["COMUNIDAD DE PROPIETARIOS","com","¿Recibo: Comunidad?"]],0],
+  ["el cargo en otro banco que el del recibo: no se tiraba",F("com","Comunidad",50,5,"caixabank"),[T("a1","sabadell","2026-10-05",50,"COMUNIDAD DE PROPIETARIOS")],[["COMUNIDAD DE PROPIETARIOS",null,""]],50],
+  ["un recibo anual fuera de su mes: no se tiraba",{id:"sg",name:"Seguro hogar",amount:312.4,freq:"año",months:[3],account:"sabadell",day:10},
+    [T("a1","sabadell","2026-10-08",312.4,"SEGURO HOGAR")],[["SEGURO HOGAR",null,""]],312.4],
+  ["un cargo todavía pendiente: se tiraba; pregunta hasta que se contabilice",F("com","Comunidad",50,5),
+    [T("a1","sabadell","2026-10-05",50,"COMUNIDAD DE PROPIETARIOS",{status:"PDNG"})],[["COMUNIDAD DE PROPIETARIOS","com","¿Recibo: Comunidad?"]],0],
+  ["un banco que no informa del estado",F("com","Comunidad",50,5),
+    [T("a1","sabadell","2026-10-05",50,"COMUNIDAD DE PROPIETARIOS",{status:""})],[["COMUNIDAD DE PROPIETARIOS","com","¿Recibo: Comunidad?"]],0],
 ]){
-  test("no se marca: "+nombre, ()=>{
+  test("marca y etiqueta: "+nombre, ()=>{
     const r=sincroniza(todo({fixed:[recibo]}),txs,{sabadell:1500});
-    assert.equal(marcas(r.add),j(esperado));
-    assert.equal(+gastado(r.state).toFixed(2),sube,"y cuenta como cualquier gasto");
-    if(sinHistorico) return;
-    // En el histórico, lo mismo: nada de esto sale como cargo de recibo.
-    const cands=txs.map(t=>({kind:"out",ent:t.ent,date:t.date,amount:t.amount,merchant:t.merchant,card:!!t.card,id:t.ext_id}));
-    assert.ok([...c.histClassifyCandidates(cands,todo({fixed:[recibo]})).rows].every(x=>x.status==="new"&&!x.reciboId));
+    assert.equal(etiquetas(r.add,r.state),j(esperado));
+    assert.equal(+gastado(r.state).toFixed(2),cuenta);
+    assert.equal(mostrado(r.state)[0],1500,"el saldo pintado es el del banco");
   });
 }
 
-test("un recibo ya pagado y un segundo cobro igual: el primero sigue siendo el del recibo y el segundo cuenta", ()=>{
-  const s=todo({fixed:[F("com","Comunidad",50,5)]});
-  const uno=sincroniza(s,[T("a1","sabadell","2026-10-05",50,"COMUNIDAD DE PROPIETARIOS")],{sabadell:1950});
-  assert.equal(marcas(uno.add),j([["COMUNIDAD DE PROPIETARIOS","com"]]));
-  const dos=sincroniza(uno.state,[T("a1","sabadell","2026-10-05",50,"COMUNIDAD DE PROPIETARIOS"),T("a2","sabadell","2026-10-11",50,"COMUNIDAD DE PROPIETARIOS")],{sabadell:1900});
-  assert.equal(marcas(dos.add),j([["COMUNIDAD DE PROPIETARIOS",null]]));
-  assert.equal(gastado(dos.state),50,"un gasto de más de verdad");
-  assert.equal(mostrado(dos.state)[0],1900);
-  assert.equal(c.marcarCargosDeRecibo(dos.state),null,"un recibo no marca un segundo cargo en el mismo mes");
-  // Ni aunque el extracto de hoy solo traiga el segundo y el motor lo diera por bueno.
-  const soloSegundo=Object.assign({},dos.state,{bankTx:dos.state.bankTx.filter(t=>t.id==="a2"),fixed:dos.state.fixed.map(f=>Object.assign({},f,{paymentProofs:{}}))});
-  assert.equal(c.fixedPaymentState(soloSegundo,soloSegundo.fixed[0],2026,10,12).paid,true,"el motor acredita con el segundo");
-  assert.equal(c.marcarCargosDeRecibo(soloSegundo),null);
+test("un cargo que casa con dos recibos se asigna al que el motor da por pagado; si no, al de nombre completo", ()=>{
+  const dos=[F("sc","Seguro coche",40,5),F("sh","Seguro hogar",40.3,6)];
+  const r=sincroniza(todo({fixed:dos}),[T("a1","sabadell","2026-10-06",40.3,"SEGURO HOGAR MAPFRE")],{sabadell:1900});
+  assert.equal(etiquetas(r.add,r.state),j([["SEGURO HOGAR MAPFRE","sh","Recibo: Seguro hogar"]]),"dos recibos casan por «seguro»: se queda el que el motor da por pagado");
+  // Con el primero ya pagado por otro cargo, el motor acredita el segundo con este.
+  const pagado=todo({fixed:[Object.assign({},dos[0],{paidYm:2026*12+10,paidDay:5}),dos[1]]});
+  const r2=sincroniza(pagado,[T("a1","sabadell","2026-10-06",40.3,"SEGURO HOGAR MAPFRE")],{sabadell:1900});
+  assert.equal(r2.add[0].reciboId,"sh");
+  // El motor manda sobre el orden: los dos llevan su nombre entero en el comercio y gana el más específico.
+  const largos=[F("sg","Seguro",40,5),F("hm","Hogar Mapfre",40.3,6)];
+  assert.equal(etiquetas(sincroniza(todo({fixed:largos}),[T("a1","sabadell","2026-10-06",40.3,"SEGURO HOGAR MAPFRE")],{sabadell:1900}).add,todo({fixed:largos})),j([["SEGURO HOGAR MAPFRE","hm","¿Recibo: Hogar Mapfre?"]]));
+  // Sin nombre completo en ninguno, el primero que casa: el que habría ganado el descarte.
+  const genericos=[F("s1","Seguro Mapfre coche",40,5),F("s2","Seguro Mapfre hogar",40.2,6)];
+  assert.equal(sincroniza(todo({fixed:genericos}),[T("a1","sabadell","2026-10-06",40.1,"MAPFRE SEGUROS")],{sabadell:1900}).add[0].reciboId,"s1");
 });
 
-test("el cargo entra pendiente y sin marca; al contabilizarse lo marca la pasada, sin repetir la fila", ()=>{
-  const s=todo({fixed:[F("com","Comunidad",50,5)]});
-  const pend=sincroniza(s,[T("a1","sabadell","2026-10-05",50,"COMUNIDAD DE PROPIETARIOS",{status:"PDNG"})],{sabadell:1950});
-  const book=sincroniza(pend.state,[T("a1","sabadell","2026-10-05",50,"COMUNIDAD DE PROPIETARIOS")],{sabadell:1950});
-  assert.equal(book.add.length,0);
-  const m=c.marcarCargosDeRecibo(book.state);
-  assert.equal(marcas([...m.marcadas]),j([["COMUNIDAD DE PROPIETARIOS","com"]]));
-  assert.equal(gastado(m.state),0);
-  assert.equal(c.marcarCargosDeRecibo(m.state),null,"y no entra en bucle");
+test("pendiente → contabilizado: la etiqueta pasa a firme y el saldo es el del banco en todo momento", ()=>{
+  for(const rol of ["ambos","diario"]){
+    const s=todo({accounts:[{id:"sb",ent:"sabadell",role:rol,spendFrom:true,value:2000}],fixed:[F("nf","Netflix",12.99,5)]});
+    const pend=sincroniza(s,[T("n1","sabadell","2026-10-05",12.99,"NETFLIX.COM",{status:"PDNG",card:true})],{sabadell:1987.01});
+    assert.equal(etiquetas(pend.add,pend.state),j([["NETFLIX.COM","nf","¿Recibo: Netflix?"]]));
+    assert.equal(mostrado(pend.state)[0],1987.01,rol);
+    const book=sincroniza(pend.state,[T("n1","sabadell","2026-10-05",12.99,"NETFLIX.COM",{card:true})],{sabadell:1987.01});
+    assert.equal(book.add.length,0,"no se repite la fila");
+    assert.equal(etiquetas(book.state.expenses,book.state),j([["NETFLIX.COM","nf","Recibo: Netflix"]]));
+    assert.equal(mostrado(book.state)[0],1987.01,rol);
+    assert.equal(gastado(book.state),0);
+    assert.equal(pagados(book.state),"nf");
+  }
 });
 
-test("un puntual del Plan marca su cargo por nombre completo, no por una palabra suelta", ()=>{
+test("un puntual del Plan marca su cargo, y la etiqueta es firme solo con nombre completo y céntimos exactos", ()=>{
   const o={id:"o1",name:"ITV coche",amount:45,account:"sabadell",month:10,year:2026,day:9};
-  const r=sincroniza(todo({fixed:[],oneoffs:[o]}),[T("a1","sabadell","2026-10-09",45,"ITV COCHE MADRID"),T("a2","sabadell","2026-10-10",45.2,"ESTACION ITV",{card:true})],{sabadell:1900});
-  assert.equal(marcas(r.add),j([["ESTACION ITV",null],["ITV COCHE MADRID","o1"]]));
+  const r=sincroniza(todo({fixed:[],oneoffs:[o]}),[T("a1","sabadell","2026-10-09",45,"ITV COCHE MADRID"),T("a2","sabadell","2026-10-10",45.2,"ESTACION ITV",{card:true}),T("a3","sabadell","2026-10-11",45.3,"TALLER COCHE SL")],{sabadell:1900});
+  assert.equal(etiquetas(r.add,r.state),j([["TALLER COCHE SL","o1","¿Recibo: ITV coche?"],["ESTACION ITV",null,""],["ITV COCHE MADRID","o1","Recibo: ITV coche"]]));
   assert.equal(gastado(r.state),45.2);
   // El nombre solo no basta: con otro importe es otro gasto.
-  const caro=sincroniza(todo({fixed:[],oneoffs:[o]}),[T("a3","sabadell","2026-10-09",120,"ITV COCHE MADRID")],{sabadell:1880});
+  const caro=sincroniza(todo({fixed:[],oneoffs:[o]}),[T("a4","sabadell","2026-10-09",120,"ITV COCHE MADRID")],{sabadell:1880});
   assert.equal(marcas(caro.add),j([["ITV COCHE MADRID",null]]));
 });
 
@@ -200,32 +217,50 @@ test("un recibo que cuesta lo mismo que el aporte mensual no compra participacio
   assert.equal(j(r.add.map(e=>[e.merchant,e.reciboId||null,e.category==="inversion"])),j([["COMUNIDAD DE PROPIETARIOS","com",false],["Aporte plan",null,true]]));
 });
 
-test("Importar histórico: fila nueva y marcada, con su recibo; ya no «repetido» sin marcar", ()=>{
-  const s=estado(),cands=[TX_COM,TX_MOV].map(t=>({kind:"out",ent:t.ent,date:t.date,amount:t.amount,merchant:t.merchant,card:false,id:t.ext_id}));
-  const rows=[...c.histClassifyCandidates(cands,s).rows];
-  assert.equal(j(rows.map(r=>[r.status,r.reason,r.defDest,r.reciboId,r.match.name,r.suggestRecibo])),
-    j([["new","recibo","gasto","com","Comunidad",false],["new","recibo","gasto","mov","Pepe Mobile, S.L.U.",false]]));
-  const adds=[...c.histBuildCommit(cands,rows,s,{batchId:"hist-x"}).expAdds];
-  assert.equal(j(adds.map(e=>[e.source,e.reciboId,e.extId])),j([["ob-hist","com","t1"],["ob-hist","mov","t2"]]));
-  const tras=estado({expenses:adds});
+test("Importar histórico: fila nueva y marcada, con su recibo; firme o con pregunta", ()=>{
+  const s=estado(),cands=candidatos([TX_COM,TX_MOV]);
+  const {rows,filas}=importaHistorico(cands,s);
+  assert.equal(j(rows.map(r=>[r.status,r.reason,r.defDest,r.reciboId,r.match.name,r.suggestRecibo,r.firme])),
+    j([["new","recibo","gasto","com","Comunidad",false,true],["new","recibo","gasto","mov","Pepe Mobile, S.L.U.",false,true]]));
+  assert.equal(j(filas.map(e=>[e.source,e.reciboId,e.extId,e.importBatchId])),j([["ob-hist","com","t1","hist-x"],["ob-hist","mov","t2","hist-x"]]));
+  const tras=estado({expenses:filas});
   assert.equal(pagados(tras),"com,mov","sin extracto local, la fila importada acredita el recibo");
   assert.ok([...c.histClassifyCandidates(cands,tras).rows].every(r=>r.status==="dup"&&r.reason==="existing"),"y la segunda vez ya consta como apuntada");
-  // Dos cargos del mismo comercio: sin extracto delante solo vale el de céntimos exactos.
-  const dos=[{kind:"out",ent:"sabadell",date:"2026-10-09",amount:13,merchant:"NETFLIX SHOP MERCH",card:true,id:"n2"},{kind:"out",ent:"sabadell",date:"2026-10-05",amount:12.99,merchant:"NETFLIX.COM",card:false,id:"n1"}];
-  assert.equal(j([...c.histClassifyCandidates(dos,estado({fixed:[F("nf","Netflix",12.99,5)]})).rows].map(r=>r.reciboId||null)),j([null,"nf"]));
-  // Un cargo del mismo comercio en un mes en que el recibo no toca no es su cargo.
+  // Lo que solo se parece entra igual de marcado, pero la pantalla lo dice con «parece».
+  const dudosos=candidatos([T("n2","sabadell","2026-10-09",13,"NETFLIX SHOP MERCH"),T("n1","sabadell","2026-10-05",12.99,"NETFLIX.COM")]);
+  assert.equal(j([...c.histClassifyCandidates(dudosos,estado({fixed:[F("nf","Netflix",12.99,5)]})).rows].map(r=>[r.reciboId,r.firme])),j([["nf",false],["nf",true]]));
+  // Un recibo que no toca ese mes no casa, y una compra con tarjeta tampoco: así era.
   const anual={id:"sg",name:"Seguro hogar",amount:312.4,freq:"año",months:[3],account:"sabadell",day:10};
-  const fuera=[{kind:"out",ent:"sabadell",date:"2026-09-08",amount:312.4,merchant:"SEGURO HOGAR",card:false,id:"s9"},{kind:"out",ent:"sabadell",date:"2026-03-10",amount:312.4,merchant:"SEGURO HOGAR",card:false,id:"s3"}];
-  assert.equal(j([...c.histClassifyCandidates(fuera,estado({fixed:[anual]})).rows].map(r=>r.reciboId||null)),j([null,"sg"]));
+  const fuera=candidatos([T("s9","sabadell","2026-09-08",312.4,"SEGURO HOGAR"),T("s3","sabadell","2026-03-10",312.4,"SEGURO HOGAR"),T("s4","sabadell","2026-03-11",312.4,"SEGURO HOGAR",{card:true})]);
+  assert.equal(j([...c.histClassifyCandidates(fuera,estado({fixed:[anual]})).rows].map(r=>r.reciboId||null)),j([null,"sg",null]));
 });
 
-test("lo que él importó a mano el 12/10 (sin marca) no se duplica, y la pasada lo enlaza a su recibo", ()=>{
+test("lo que él importó a mano el 12/10 no se duplica ni se toca; al confirmar el pago a mano queda marcado sin mover el saldo", ()=>{
   const suyas=[TX_COM,TX_MOV].map((t,i)=>({id:"h"+i,date:new Date(t.date+"T12:00:00").toISOString(),merchant:t.merchant,amount:t.amount,category:"otros",source:"ob-hist",ent:t.ent,extId:t.ext_id}));
-  const r=sincroniza(estado({expenses:suyas}),[TX_COM,TX_MOV]);
-  assert.equal(r.add.length,0,"mismo id del banco");
   const sinId=suyas.map(e=>{ const x=Object.assign({},e); delete x.extId; return x; });
   assert.equal(sincroniza(estado({expenses:sinId}),[TX_COM,TX_MOV].map(t=>Object.assign({},t,{ext_id:null}))).add.length,0,"sin id: día, importe y nombre");
-  assert.equal(marcas([...c.marcarCargosDeRecibo(r.state).marcadas]),j([["COMUNIDAD DE PROPIETARIOS","com"],["Pepe Mobile, S.L.U.","mov"]]));
+  for(const rol of ["fijos","ambos","diario"]){
+    const acc=rol==="fijos"?clon(unaCuenta):[{id:"sb",ent:"sabadell",role:rol,spendFrom:true,value:2000}];
+    // Recibo con otro nombre que el del banco: nada lo acredita solo y hace falta el vínculo a mano.
+    const r=sincroniza(estado({accounts:acc,expenses:clon(suyas),fixed:[F("com","Cuota vecinos",50,12),F("mov","Pepe Mobile, S.L.U.",102,5)]}),[TX_COM,TX_MOV]);
+    assert.equal(r.add.length,0,"mismo id del banco");
+    assert.equal(marcas(r.state.expenses),j([["COMUNIDAD DE PROPIETARIOS",null],["Pepe Mobile, S.L.U.",null]]),"siguen como estaban");
+    const vinculado=c.linkFixedPayment(r.state,"h0","com",2026,10,12);
+    assert.equal(c.fixedPaymentState(vinculado,vinculado.fixed[0],2026,10,12).paid,true);
+    const m=c.marcarCargoDeReciboVinculado(vinculado,"h0","com");
+    assert.equal(m.e.reciboId,"com");
+    assert.equal(c.expenseSourceForCloud(m.e),"ob-hist:sabadell~recibo.com");
+    assert.equal(j(mostrado(m.state)),j(mostrado(vinculado)),"el saldo pintado no se mueve · "+rol);
+    assert.equal(+(gastado(vinculado)-gastado(m.state)).toFixed(2),rol==="fijos"?0:50,"y deja de contar como compra · "+rol);
+    assert.equal(c.marcarCargoDeReciboVinculado(r.state,"h0","com"),null,"sin vínculo guardado no hay marca");
+    assert.equal(c.marcarCargoDeReciboVinculado(vinculado,"h1","com"),null,"ni para otro cargo");
+  }
+  // Un aviso del móvil no sabe llevar la marca a la nube: se queda como está.
+  const aviso={id:"w1",date:"2026-10-12T09:00:00.000Z",merchant:"COMUNIDAD DE PROPIETARIOS",amount:50,category:"otros",source:"wallet",ent:"sabadell"};
+  const conAviso=estado({expenses:[aviso],fixed:[F("com","Cuota vecinos",50,12)]});
+  const v=c.linkFixedPayment(conAviso,"w1","com",2026,10,12);
+  assert.equal(c.fixedPaymentState(v,v.fixed[0],2026,10,12).paid,true,"el vínculo sí se guarda");
+  assert.equal(c.marcarCargoDeReciboVinculado(v,"w1","com"),null);
 });
 
 test("una fila de recibo borrada no vuelve con el siguiente sync", ()=>{
@@ -236,21 +271,33 @@ test("una fila de recibo borrada no vuelve con el siguiente sync", ()=>{
 });
 
 for(const [rol,accounts,settings] of ROLES){
-  test("«No es este recibo»: el cargo pasa a contar y el recibo vuelve a pendiente · Sabadell "+rol, ()=>{
+  test("«No es este recibo»: el cargo pasa a contar, el recibo vuelve a pendiente y el saldo no se mueve · Sabadell "+rol, ()=>{
     const r=sincroniza(estado({accounts:clon(accounts),settings:clon(settings)}),[TX_COM,TX_MOV],{sabadell:1848});
     const fila=r.state.expenses.find(e=>e.reciboId==="com");
     const q=c.quitarCargoDeRecibo(r.state,fila.id);
     assert.equal(q.e.reciboId,undefined);
     assert.equal(c.expenseSourceForCloud(q.e),"ob:sabadell","la fila sube sin la marca");
-    assert.equal(q.state.reciboNo.length,1,"y el veto viaja en el estado");
+    assert.equal(q.state.reciboNo.length,2,"el veto viaja en el estado, por identidad del cargo y por fila");
     assert.equal(pagados(q.state),"mov","el recibo deja de estar pagado con ese cargo, también con el extracto delante");
     assert.equal(pagados(Object.assign({},q.state,{bankTx:[]})),"mov","y sin extracto");
     assert.equal(+(gastado(q.state)-gastado(r.state)).toFixed(2),rol==="solo recibos"?0:50);
-    assert.equal(c.marcarCargosDeRecibo(q.state),null,"la pasada no lo vuelve a marcar");
+    assert.equal(j(mostrado(q.state)),j(mostrado(r.state)),"el saldo pintado sigue siendo el del banco");
+    assert.equal(mostrado(q.state)[0],1848);
     const otra=sincroniza(q.state,[TX_COM,TX_MOV],{sabadell:1848});
     assert.equal(otra.add.length,0);
-    assert.equal(pagados(otra.state),"mov","ni el siguiente sync");
+    assert.equal(marcas(otra.state.expenses.filter(e=>e.id===fila.id)),j([["COMUNIDAD DE PROPIETARIOS",null]]),"el siguiente sync no la vuelve a marcar");
+    assert.equal(pagados(otra.state),"mov","ni paga el recibo con ella");
     assert.equal(c.quitarCargoDeRecibo(q.state,fila.id),null,"no hay nada que quitar dos veces");
+    // Si se arrepiente y vuelve a confirmar el pago con ese mismo cargo, lo último que dijo manda.
+    const sinExtracto=Object.assign({},q.state,{bankTx:[]});
+    assert.equal(pagados(c.linkFixedPayment(sinExtracto,fila.id,"com",2026,10,12)),"mov","con el veto puesto, un vínculo guardado no paga");
+    const sinVeto=c.levantarVetoDeRecibo(sinExtracto,fila.id,"com");
+    assert.equal(sinVeto.reciboNo.length,0);
+    assert.equal(c.levantarVetoDeRecibo(sinVeto,fila.id,"com"),sinVeto,"sin veto no reescribe el estado");
+    assert.equal(pagados(sinVeto),"com,mov");
+    // Renombrar el comercio de la fila no devuelve el pago: el veto también va por su id.
+    const renombrada=Object.assign({},q.state,{bankTx:[],expenses:q.state.expenses.map(e=>e.id===fila.id?Object.assign({},e,{merchant:"Comunidad",obName:"Comunidad"}):e)});
+    assert.equal(pagados(renombrada),"mov");
     // Otro móvil: su fila sigue marcada, pero ya le llegó el estado con el veto.
     const otroMovil=Object.assign({},r.state,{reciboNo:q.state.reciboNo,fixed:q.state.fixed});
     assert.equal(c.cargoDeRecibo(otroMovil.expenses.find(e=>e.id===fila.id),otroMovil),null);
@@ -259,10 +306,24 @@ for(const [rol,accounts,settings] of ROLES){
     const t9={id:"h9",date:"2026-10-10T10:00:00.000Z",merchant:"COMUNIDAD DE PROPIETARIOS",obName:"COMUNIDAD DE PROPIETARIOS",amount:50,category:"recibos",source:"ob-hist",ent:"sabadell",extId:"t9"};
     assert.equal(pagados(Object.assign({},q.state,{bankTx:[],expenses:[t9].concat(q.state.expenses)})),"com,mov");
     const nuevo=sincroniza(q.state,[TX_COM,TX_MOV,T("t9","sabadell","2026-10-10",50,"COMUNIDAD DE PROPIETARIOS")],{sabadell:1798});
-    assert.equal(marcas(nuevo.add),j([["COMUNIDAD DE PROPIETARIOS","com"]]));
+    assert.equal(etiquetas(nuevo.add,nuevo.state),j([["COMUNIDAD DE PROPIETARIOS","com","Recibo: Comunidad"]]));
     assert.equal(pagados(nuevo.state),"com,mov");
   });
 }
+
+test("los vetos se suman al bajar el estado de otro móvil y la lista tiene tope", ()=>{
+  assert.equal(j(c.reciboNoUnion(["a|1"],["b|2","a|1"])),j(["a|1","b|2"]));
+  const local=["a|1"];
+  assert.equal(c.reciboNoUnion(local,[]),local,"una lista vacía de la nube no borra lo local");
+  assert.equal(c.reciboNoUnion(local,["a|1"]),local,"sin novedades devuelve la misma lista: no reescribe el estado");
+  const muchos=Array.from({length:500},(_,i)=>"r|"+i);
+  const unidos=c.reciboNoUnion(["x|0"],muchos);
+  assert.equal(unidos.length,400);
+  assert.equal(unidos[unidos.length-1],"r|499","se conservan los más recientes");
+  // Y `quitarCargoDeRecibo` pasa por ahí: tampoco crece sin fin.
+  const r=sincroniza(estado({reciboNo:muchos.slice(0,400)}),[TX_COM,TX_MOV]);
+  assert.equal(c.quitarCargoDeRecibo(r.state,r.state.expenses.find(e=>e.reciboId==="com").id).state.reciboNo.length,400);
+});
 
 test("recibo borrado después: la fila cuenta como un gasto normal y no enseña etiqueta", ()=>{
   const r=sincroniza(todo(),[TX_COM,TX_MOV],{sabadell:1848});
@@ -270,6 +331,7 @@ test("recibo borrado después: la fila cuenta como un gasto normal y no enseña 
   const fila=sin.expenses.find(e=>e.reciboId==="com");
   assert.equal(c.cargoDeRecibo(fila,sin),null);
   assert.equal(c.reciboNombre(sin,fila),"");
+  assert.equal(c.reciboEtiqueta(sin,fila),"");
   assert.equal(c.expenseBucket(fila,sin),"cuenta");
   assert.equal(gastado(sin)-gastado(r.state),50);
 });
@@ -281,8 +343,8 @@ test("la marca viaja en `source`, en cualquier orden con la de cuota, y quien no
     assert.equal(c.expenseSourceForCloud(e),fuente);
     const vuelta=c.expenseFromRow(fila(fuente));
     assert.equal(j([vuelta.source,vuelta.ent,vuelta.reciboId,c.expenseBankOf({source:fuente})]),j([origen,"sabadell","mov","sabadell"]));
-    // Así lee el banco la beta 4.26.118 ya instalada y el servidor del widget
-    // (`bancoDeSource`): un banco que no existe, que ninguna lista de gasto diario contiene.
+    // Así lee el banco la beta ya instalada y el servidor del widget (`bancoDeSource`): un
+    // banco que no existe, que ninguna lista de gasto diario contiene.
     assert.equal(fuente.slice(fuente.indexOf(":")+1).split("#")[0].split("~deuda.")[0],"sabadell~recibo.mov");
   }
   const dup=c.expenseSourceForCloud({source:"ob",ent:"sabadell",reciboId:"mov",possibleDup:true});
@@ -298,24 +360,58 @@ test("la marca viaja en `source`, en cualquier orden con la de cuota, y quien no
   assert.equal(c.expenseSourceForCloud({source:"ob",ent:"sabadell",reciboId:"mov",debtId:"d1"}),"ob:sabadell~deuda.d1","al subir también gana la deuda");
 });
 
-test("la marca que baja de la nube se adopta, y marcar a mano como cuota la sustituye en local y en la nube", ()=>{
+test("la marca que baja de la nube se adopta; la cuota de deuda manda sobre la de recibo, en local y en la nube", ()=>{
   const local={id:"x",date:"2026-10-05T10:00:00.000Z",merchant:"Pepe Mobile, S.L.U.",amount:102,category:"otros",source:"ob",ent:"sabadell"};
   assert.equal(c.refreshExpenseFromCloud(local,Object.assign({},local,{reciboId:"mov"})).reciboId,"mov");
   assert.equal(c.refreshExpenseFromCloud(Object.assign({},local,{reciboId:"mov"}),local).reciboId,"mov","una fila de la nube sin marca no borra la local");
   const deuda={id:"d1",name:"Financiación móvil",monthly:102,day:5,account:"sabadell",value:1000};
   const r=sincroniza(estado({debts:[deuda]}),[TX_COM,TX_MOV]);
-  assert.equal(c.cuotasDeDeudaPorMarcar(r.state).length,0,"si casa con recibo y con deuda, gana el recibo");
+  assert.equal(c.cuotasDeDeudaPorMarcar(r.state).length,0,"si casa con recibo y con deuda, gana el recibo, como ganaba el descarte");
   const fila=r.state.expenses.find(e=>e.reciboId==="mov");
   const m=c.marcarCuotaAMano(r.state,fila.id,"d1");
   assert.equal(j([m.e.debtId,m.e.reciboId]),j(["d1",undefined]));
   assert.equal(c.expenseSourceForCloud(m.e),"ob:sabadell~deuda.d1");
+  // Una fila que llega con las dos marcas (de un estado viejo) es cuota: no es cargo de recibo.
+  const dosMarcas=Object.assign({},fila,{debtId:"d1",category:"deudas"});
+  assert.equal(c.cargoDeRecibo(dosMarcas,r.state),null);
+  assert.equal(c.expenseBucket(dosMarcas,r.state),"deuda");
 });
 
 test("los lectores que suman gastos por su cuenta tampoco cuentan el cargo de un recibo", ()=>{
-  const r=sincroniza(todo(),[TX_COM,TX_MOV].concat([T("p1","sabadell","2026-10-07",3.4,"Panadería Sol",{card:true})]),{sabadell:1844.6});
+  const r=sincroniza(todo({accounts:[{id:"sb",ent:"sabadell",role:"ambos",spendFrom:true,value:2000,roundup:1}]}),[TX_COM,TX_MOV].concat([T("p1","sabadell","2026-10-07",3.4,"Panadería Sol",{card:true})]),{sabadell:1844.6});
   const foto=c.buildHouseholdSnapshot(r.state,{},"a@b.c");
   assert.equal(+[...foto.expensesByCat].reduce((n,x)=>n+x.spent,0).toFixed(2),3.4,"la foto del hogar ya lleva los recibos en sus fijos");
+  // La tarjeta de redondeo de Cartera: solo redondea la compra, no los recibos.
+  const tr=r.state.accounts[0], desde=new Date("2026-10-01T00:00:00+02:00").getTime();
+  const soloCompra=Object.assign({},r.state,{expenses:r.state.expenses.filter(e=>!e.reciboId)});
+  assert.equal(j(c.recompensasDelMes(r.state,tr,desde)),j(c.recompensasDelMes(soloCompra,tr,desde)));
+  const sinMarca=Object.assign({},r.state,{expenses:r.state.expenses.map(e=>{ const x=Object.assign({},e); delete x.reciboId; return x; })});
+  assert.notEqual(j(c.recompensasDelMes(sinMarca,tr,desde)),j(c.recompensasDelMes(r.state,tr,desde)),"control: sin la marca el redondeo sí cambia");
+  assert.equal(j(c.recompensasDelMes(r.state,null,desde)),j({ru:0,sb:0}));
   const tresMeses=["08","09","10"].map((m,i)=>({id:"s"+i,date:"2026-"+m+"-05T10:00:00.000Z",merchant:"Pepe Mobile, S.L.U.",amount:102,category:"otros",source:"ob",ent:"sabadell",reciboId:"mov"}));
   assert.equal(c.detectSubscriptions(tresMeses).length,0);
   assert.equal(c.detectSubscriptions(tresMeses.map(e=>Object.assign({},e,{reciboId:undefined}))).length,1,"sin marca sí se detecta: el control");
+});
+
+test("al subir una fila de recibo se reescribe su `source` en la nube aunque la fila ya existiera sin marca", async ()=>{
+  // Nube falsa: el alta ignora duplicados (como el upsert real) y la otra escritura va por clave.
+  c.__nube={filas:[{fecha:"2026-10-05T10:00:00.000Z",importe:102,comercio:"Pepe Mobile, S.L.U.",source:"ob-hist:sabadell"}],llamadas:[]};
+  vm.runInNewContext(`
+    cloud.enabled=function(){ return true; };
+    cloud.addExpense=function(e){ __nube.llamadas.push("alta");
+      if(!__nube.filas.some(function(f){ return f.fecha===e.date&&f.importe===e.amount&&f.comercio===e.merchant; }))
+        __nube.filas.push({fecha:e.date,importe:e.amount,comercio:e.merchant,source:expenseSourceForCloud(e)});
+      return Promise.resolve(); };
+    cloud.setExpenseBank=function(e,ent){ const k=expenseCloudKeys(e); __nube.llamadas.push("source por "+k.by);
+      __nube.filas.forEach(function(f){ if(k.by==="attrs"&&f.fecha===k.fecha&&f.importe===k.importe&&f.comercio===k.comercio) f.source=expenseSourceForCloud(Object.assign({},e,{ent:ent})); });
+      return Promise.resolve(); };
+  `,c);
+  const marcada={id:"11111111-1111-4111-8111-111111111111",date:"2026-10-05T10:00:00.000Z",merchant:"Pepe Mobile, S.L.U.",amount:102,category:"otros",source:"ob",ent:"sabadell",reciboId:"mov"};
+  await c.subirGasto(marcada,"test");
+  assert.equal(j(c.__nube.llamadas),j(["alta","source por attrs"]));
+  assert.equal(c.__nube.filas[0].source,"ob:sabadell~recibo.mov","la fila que ya estaba en la nube deja de contar en el widget");
+  // Una fila normal no hace la segunda escritura.
+  c.__nube.llamadas=[];
+  await c.subirGasto(Object.assign({},marcada,{reciboId:undefined,merchant:"Compra"}),"test");
+  assert.equal(j(c.__nube.llamadas),j(["alta"]));
 });

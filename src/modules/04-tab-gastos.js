@@ -413,6 +413,11 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     // La marca viaja en `source`: se reescribe con el mismo método que guarda el banco.
     if(subir && cloud.enabled()) cloud.setExpenseBank(subir, subir.ent).catch(function(){});
   };
+  const marcarReciboVinculado=function(ex,fixedId){
+    let subir=null;
+    set(function(s){ const r=marcarCargoDeReciboVinculado(s, ex.id, fixedId); if(!r) return s; subir=r.e; return r.state; });
+    if(subir && cloud.enabled()) cloud.setExpenseBank(subir, subir.ent).catch(function(){});
+  };
   const setReceipt=function(ex,fixedId){
     if(withdrawalPending.current[ex.id]){ showToast(t("f_withdraw_receipt_pending")); return; }
     const ds=String(ex.date||"").slice(0,10),y=Number(ds.slice(0,4)),m=Number(ds.slice(5,7)),now=new Date();
@@ -422,8 +427,11 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     const save=function(){
       if(withdrawalPending.current[ex.id]){ showToast(t("f_withdraw_receipt_pending")); return; }
       // El diálogo es asíncrono: otra sincronización puede sustituir el cargo o editar el recibo.
-      set(function(s){ return linkFixedPayment(s,ex.id,fixedId,y,m,today,expected); });
+      set(function(s){ return linkFixedPayment(fixedId!=null?levantarVetoDeRecibo(s,ex.id,fixedId):s,ex.id,fixedId,y,m,today,expected); });
+      if(fixedId!=null) marcarReciboVinculado(ex,fixedId);
     };
+    // Deshacer el vínculo de un cargo marcado es decir «no es este recibo»: una sola salida.
+    if(fixedId==null && cargoDeRecibo(ex,state)){ quitarRecibo(ex); return; }
     if(fixedId==null){ save(); return; }
     if(!f) return;
     askConfirm({title:tf("f_receipt_confirm",{name:f.name}),
@@ -844,7 +852,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     if(!form.income && (state.budget||0)>0){
       const bud=state.budget;
       const monthStartMs=startOfMonth().getTime();
-      const before=(state.expenses||[]).filter(e=>dateMs(e.date)>=monthStartMs).reduce((a,e)=>a+e.amount,0);
+      const before=(state.expenses||[]).filter(e=>dateMs(e.date)>=monthStartMs&&!cargoDeRecibo(e,state)).reduce((a,e)=>a+e.amount,0);
       const after=before+amt;
       if(before<=bud && after>bud){ msg=tf("al_over",{x:eur0(after),b:eur0(bud)}); isAlert=true; }
       else if(before<bud*0.8 && after>=bud*0.8 && after<=bud){ msg=tf("al_80",{p:Math.round(after/bud*100)}); isAlert=true; }
@@ -1052,7 +1060,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
           : groups.map(function(g,i){ return g.sep
               ? React.createElement("div",{className:"day-sep",key:"s"+i},g.sep)
               : React.createElement(MovRow,{key:g.e.id||i, e:g.e, ms:g.ms, l:g.l, onOpen:openDetail, l10n:l10nKey,
-                  bucket:expenseBucket(g.e, state),recibo:reciboNombre(state,g.e),dragging:!!(dragExpense&&dragExpense.from===g.e.id),
+                  bucket:expenseBucket(g.e, state),recibo:reciboEtiqueta(state,g.e),dragging:!!(dragExpense&&dragExpense.from===g.e.id),
                   dragOver:!!(dragExpense&&dragExpense.to===g.e.id&&dragExpense.from!==g.e.id),
                   onDragStart:startExpenseDrag,onDragMove:moveExpenseDrag,onDragEnd:endExpenseDrag}); }),
         visible<filtered.length && React.createElement("div",{className:"sentinel",ref:sentinelRefCb},t("g_loadmore"))
@@ -1109,8 +1117,8 @@ const MovRow=React.memo(function MovRow({e, ms, l, onOpen, bucket, recibo, dragg
   // dos cajones que no mueven el presupuesto, y cada uno dice el suyo en vez de un «no afecta»
   // genérico que hacía que una inversión y un recibo de Sabadell parecieran lo mismo.
   const skip=bucket==="neutra"||bucket==="otrobanco"||bucket==="posible"||bucket==="deuda"||bucket==="recibo";
-  // El recibo dice CUÁL es: «no cuenta» a secas haría dudar de si el cargo se ha perdido.
-  const skipTxt=!skip?"":(bucket==="recibo"?tf("g_recibo_de",{name:recibo}):t("g_skip_"+bucket));
+  // El recibo dice CUÁL es, y si solo lo parece lo pregunta: «no cuenta» a secas haría dudar.
+  const skipTxt=!skip?"":(bucket==="recibo"?recibo:t("g_skip_"+bucket));
   return React.createElement("button",{type:"button","data-expense-id":e.id,"data-expense-day":String(e.date||"").slice(0,10),
       className:"v4-mov"+(skip?" v4-mov-skip":"")+(dragging?" dragging":"")+(dragOver?" drag-over":""),
       onClick:function(ev){ if(ev.target&&ev.target.closest&&ev.target.closest(".v4-mov-drag")) return; onOpen(e); },style:skip?{opacity:.72}:null},
@@ -1368,13 +1376,18 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
     React.createElement("div",{className:"row",style:{gap:8}},
       React.createElement("button",{type:"button",className:"btn btn-primary",style:{flex:1},onClick:function(){ resolveDup&&resolveDup(exp,true); onClose(true); }},t("g_dup_same")),
       React.createElement("button",{type:"button",className:"btn btn-ghost",style:{flex:1},onClick:function(){ resolveDup&&resolveDup(exp,false); onClose(true); }},t("g_dup_diff"))));
+  const reciboMarca=reciboNombre(state,exp), reciboFirme=!!reciboMarca&&cargoDeReciboFirme(exp,state);
+  // A la vista al abrir la ficha, sin desplegar nada: un parecido dudoso se corrige de un toque.
+  const reciboAviso=reciboMarca&&React.createElement("div",{className:"hint","data-testid":"exp-recibo-marca",style:{margin:"0 0 12px",padding:"10px 12px",borderRadius:12,background:"var(--surface-2)"}},
+    React.createElement("div",{style:{marginBottom:8}},tf(reciboFirme?"f_recibo_marca":"f_recibo_quiza",{name:reciboMarca})),
+    React.createElement("button",{type:"button",className:"v4-chip","data-testid":"exp-recibo-no",onClick:function(){ quitarRecibo(exp); }},t("f_recibo_no")));
   const afterMeta=React.createElement(React.Fragment,null,
     calOpen && React.createElement(McCal,{value:dateIso,onPick:function(iso){ setCalOpen(false); saveEdit(exp,{date:iso}); }}),
     bankOpen && !auto && bankOpts.length>0 && React.createElement("div",{className:"v4-chips wrap","data-testid":"exp-bank-list"},
       React.createElement("button",{type:"button",className:"v4-chip"+(!bk?" on":""),onClick:function(){ setBank(exp,null); setBankOpen(false); }},t("ap_bank_none")),
       bankOpts.map(function(b){ return React.createElement("button",{key:b,type:"button",className:"v4-chip"+(bk===b?" on":""),
         onClick:function(){ setBank(exp,b); setBankOpen(false); }},"🏦 "+entOf(b).label); })),
-    trace,duplicate,
+    trace,duplicate,reciboAviso,
     canRecognizeWithdrawal(exp) && React.createElement("div",{className:"hint","data-testid":"exp-withdrawal-info"},
       React.createElement("div",null,t("f_withdraw_fields")),
       exp.category!=="traspaso" && React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-withdrawal",
@@ -1390,7 +1403,6 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
   const receiptDate=String(exp.date||"").slice(0,10),receiptYear=Number(receiptDate.slice(0,4)),receiptMonth=Number(receiptDate.slice(5,7)),receiptNow=new Date();
   const receiptToday=receiptYear===receiptNow.getFullYear()&&receiptMonth===receiptNow.getMonth()+1?receiptNow.getDate():new Date(receiptYear,receiptMonth,0).getDate();
   const receiptLinked=withdrawalReceiptLink(state,exp);
-  const reciboMarca=reciboNombre(state,exp);
   const receiptOptions=(state.fixed||[]).filter(function(f){
     return fixedExpenseEligible(state,exp,f,receiptYear,receiptMonth,receiptToday)&&
       (!fixedPaymentState(state,f,receiptYear,receiptMonth,receiptToday).paid||(receiptLinked&&receiptLinked.id===f.id));
@@ -1402,9 +1414,6 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
       React.createElement("button",{type:"button",className:"v4-ficha-adjust-row","data-testid":"exp-receipt",onClick:function(){ setAdjustOpen(adjustOpen==="receipt"?null:"receipt"); }},
         React.createElement("span",null,t("f_receipt_row")),React.createElement("span",{className:"value","data-testid":"exp-receipt-value"},receiptLinked?receiptLinked.name:(reciboMarca||t("f_no"))),React.createElement("span",{className:"chev"},"›")),
       adjustOpen==="receipt"&&React.createElement("div",{className:"v4-ficha-adjust-open","data-testid":"exp-receipt-options"},
-        reciboMarca&&React.createElement("div",{className:"hint","data-testid":"exp-recibo-marca"},tf("f_recibo_marca",{name:reciboMarca})),
-        reciboMarca&&React.createElement("div",{className:"v4-chips wrap"},
-          React.createElement("button",{type:"button",className:"v4-chip","data-testid":"exp-recibo-no",onClick:function(){ quitarRecibo(exp); }},t("f_recibo_no"))),
         React.createElement("div",{className:"hint"},t("f_receipt_hint")),
         React.createElement("div",{className:"v4-chips wrap"},
           receiptLinked&&React.createElement("button",{type:"button",className:"v4-chip","data-testid":"exp-receipt-unlink",onClick:function(){ setReceipt(exp,null); }},t("f_receipt_unlink")),

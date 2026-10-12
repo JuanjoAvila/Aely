@@ -477,10 +477,7 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks,
       // `categoryOfNewMerchant` y no `autoCategory`: el cajero solo se detecta en ALTAS
       // NUEVAS, nunca desde la migracion que recategoriza el historico (tanda 6).
       const cat=(c&&c.category)||categoryOfNewMerchant(x.merchant||"");
-      const e={ id:mcExpenseId(), date:x.stamp||histDate(x.date), merchant:x.merchant, amount:Math.abs(x.amount), category:cat, source:"ob-hist", ent:x.ent, importBatchId:batchId };
-      // Es el cargo de un recibo del Plan: entra a la lista sin mover cifras (ver `expenseCountsCash`).
-      if(c&&c.reciboId) e.reciboId=c.reciboId;
-      if(x.id) e.extId=x.id;
+      const e=histFilaGasto(x, c, cat, batchId);
       histKeepAmbiguity(e,c);
       const nt=cleanNote(x.note, e.merchant); if(nt) e.note=nt;
       expAdds.push(e);
@@ -595,7 +592,7 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks,
   };
   const dupHint=function(c){
     if(c&&c.status==="maybe") return "🗐 "+t("bp_hist_dupmaybe");
-    if(c&&c.reciboId) return "🧾 "+tf("bp_hist_esrecibo",{name:(c.match&&c.match.name)||t("bp_hist_recibo")});
+    if(c&&c.reciboId) return "🧾 "+tf(c.firme?"bp_hist_esrecibo":"bp_hist_quizarecibo",{name:(c.match&&c.match.name)||t("bp_hist_recibo")});
     if(!c||c.status!=="dup") return null;
     return "🗐 "+t("bp_hist_dupexist");
   };

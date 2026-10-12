@@ -252,22 +252,28 @@ es lo que pinta «Saldo actualizado»: `last_sync` puede ir por detrás). En `im
 anterior al margen se apunta con su fecha real pero no compra participaciones, y casa contra todo
 lo modelado, toque o no este mes.
 
-**El cargo de un recibo entra en Gastos, sin contar (12/10/2026).** Ningún cargo del banco se
-descarta ya por parecerse a un recibo: todos entran, en el sync diario (`importObExpenses`) y en
-«Importar histórico». Lleva `reciboId` solo el cargo con el que `fixedPaymentState` da por pagado
-ese recibo (`cargosDeReciboPorMarcar`): mismo banco, nombre del recibo dentro del comercio por
-palabras completas, uno por recibo y mes, y ninguno si el motor ve empate. Los puntuales, que no
-tienen motor de pago, usan banco, mes, nombre por palabras, importe parecido y candidato único.
-Lo que entró sin marca (un cargo pendiente, una fila de otro móvil) lo marca después la pasada
-`marcarCargosDeRecibo`. `cargoDeRecibo(e, s)` es la puerta única: devuelve el recibo vivo o null
-(si la fila es además cuota gana la deuda; un recibo borrado o un veto anulan la marca), y la
-usan `expenseCountsCash`, el cajón, el anclaje de `applyBankBalances`, el cierre de
-`reconcileTR`, el redondeo de Cartera, la foto del hogar e Inicio. La marca viaja en `source`
-como `ob:<ent>~recibo.<id>` u `ob-hist:<ent>~recibo.<id>`: una app anterior o el servidor del
-widget leen un banco inexistente y la excluyen sin conocerla, igual que con `~deuda.`. «No es
-este recibo» (`quitarCargoDeRecibo`) quita la marca, guarda el veto en `state.reciboNo` (viaja
-con el estado) y retira la prueba de pago: el cargo cuenta como gasto y el recibo vuelve a
-pendiente salvo que otro cargo lo pague.
+**El cargo de un recibo entra en Gastos, sin contar (12/10/2026).** El cargo del banco que
+casa con un recibo o un puntual del Plan ya no se descarta: entra con `reciboId`, en el sync
+diario (`importObExpenses`) y en «Importar histórico». **Invariante:** lleva la marca exactamente
+lo que antes se tiraba (mismo predicado: banco, `recAmtClose` y `recNameMatch`), y esa fila no
+mueve ninguna cifra, así que el gastado, el presupuesto, el saldo pintado, el previsto y el
+cierre de mes son los de antes. `tests/recibo-invariante` lo comprueba contra el código de la
+4.26.119; afinar el predicado es mover cifras. La marca se pone al importar y se guarda; no hay
+pasada que la recalcule. `cargoDeRecibo(e, s)` es la puerta única: devuelve el recibo vivo o
+null (si la fila es además cuota gana la deuda; un recibo borrado o un veto anulan la marca), y
+la usan `expenseCountsCash`, el cajón, el anclaje de `applyBankBalances`, el cierre de
+`reconcileTR`, el redondeo de Cartera (`recompensasDelMes`), la foto del hogar e Inicio. Lo
+dudoso se distingue solo en la etiqueta (`cargoDeReciboFirme`): «Recibo: X» si es el cargo con
+el que `fixedPaymentState` da por pagado el recibo y lleva su nombre por palabras completas;
+«¿Recibo: X?» si solo se parece. La marca viaja en `source` como `ob:<ent>~recibo.<id>` u
+`ob-hist:<ent>~recibo.<id>`: una app anterior o el servidor del widget leen un banco
+inexistente y la excluyen sin conocerla, igual que con `~deuda.`; `subirGasto` reescribe además
+el `source` por fecha, importe y comercio por si la fila ya estaba en la nube sin marca. «No es
+este recibo» (`quitarCargoDeRecibo`) quita la marca, guarda el veto en `state.reciboNo` (por
+identidad del cargo y por id de fila; se une con el de la nube, `reciboNoUnion`) y retira la
+prueba de pago; «Confirmar pago de X» sobre un cargo del banco pone la marca
+(`marcarCargoDeReciboVinculado`). Las dos re-anclan la base (`conSaldoMostrado`) para que el
+saldo pintado no se mueva fuera de un sync.
 
 La misma frontera rige el sync diario: `app_events` puede guardar el banco, una clase estable y
 recuentos agregados, pero nunca transacciones ni campos del proveedor. El volcado temporal usado

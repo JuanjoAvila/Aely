@@ -12,11 +12,14 @@ import { seedLoggedInDashboard, dismissNews, installFixtureClock } from "./fixtu
    gastado sin moverse. Reloj del fixture: 26/9/2026. */
 
 const recibo = { id: "com", name: "Comunidad", amount: 50, freq: "mes", day: 12, account: "sabadell" };
+// Un recibo de nombre corto y una compra que solo se le parece: hasta ahora se tiraba; se ve con pregunta.
+const agua = { id: "ag", name: "Agua", amount: 30, freq: "mes", day: 8, account: "sabadell" };
 const links = [{
   aspsp: "Banco de Sabadell", ok: true, syncFrom: "2026-08-24", gapBeyondCap: false, gapPending: false, balanceAt: "2026-09-26T11:59:30.000Z",
   accounts: [{ uid: "sb", ok: true, balances: [{ type: "ITAV", amount: 1900, currency: "EUR" }], transactions: [
     { ext_id: "sb-com", date: "2026-09-12", amount: 50, merchant: "COMUNIDAD DE PROPIETARIOS", status: "BOOK", card: false },
     { ext_id: "sb-pan", date: "2026-09-13", amount: 3.4, merchant: "Panadería Sol", status: "BOOK", card: true },
+    { ext_id: "sb-agu", date: "2026-09-08", amount: 30.2, merchant: "AGUACATES DEL SUR", status: "BOOK", card: true },
   ] }],
 }];
 
@@ -37,7 +40,7 @@ async function abre(page, lang) {
     __seedOnce: true, hasBankLink: true, budget: 1000,
     accounts: [{ id: "sb", ent: "sabadell", name: "Sabadell", role: "ambos", value: 2000 }],
     settings: { autoPrices: false, theme: "green", lang, expenseBanks: ["sabadell"] },
-    fixed: [recibo], debts: [], oneoffs: [], flows: [], bankTx: [],
+    fixed: [recibo, agua], debts: [], oneoffs: [], flows: [], bankTx: [],
     expenses: [{ id: "ctl", date: "2026-09-10T12:00:00.000Z", amount: 20, merchant: "Compra de control", category: "otros", source: "ob", ent: "sabadell", extId: "sb-ctl" }],
     __cloudRows: { bank_links: [{ aspsp_name: "Banco de Sabadell", status: "active", last_sync: "2026-09-20T00:00:00Z" }] },
     __cloudFns: { "bank-sync": { data: { ok: true, links }, error: null } },
@@ -53,7 +56,7 @@ test.beforeEach(async ({ page }) => { await installFixtureClock(page); });
 for (const lang of ["es", "en", "ca"]) {
   test(lang + ": al actualizar, el adeudo sale en Gastos con su recibo, el recibo queda pagado y el gastado no lo cuenta", async ({ page }) => {
     await abre(page, lang);
-    const textos = await page.evaluate(() => ({ sync: t("v4_sync_banks"), de: tf("g_recibo_de", { name: "Comunidad" }), no: t("f_recibo_no") }));
+    const textos = await page.evaluate(() => ({ sync: t("v4_sync_banks"), de: tf("g_recibo_de", { name: "Comunidad" }), quiza: tf("g_recibo_quiza", { name: "Agua" }), no: t("f_recibo_no") }));
 
     await page.locator('.botnav-tab[data-tour="gastos"]').click();
     await expect(fila(page, "Compra de control")).toHaveCount(1);
@@ -62,7 +65,7 @@ for (const lang of ["es", "en", "ca"]) {
 
     await page.locator('.botnav-tab[data-tour="cartera"]').click();
     await page.getByRole("button", { name: textos.sync }).click();
-    await expect.poll(() => page.evaluate(() => (mcLoadRaw(mcStateKey()).bankTx || []).length)).toBe(2);
+    await expect.poll(() => page.evaluate(() => (mcLoadRaw(mcStateKey()).bankTx || []).length)).toBe(3);
     await cierraInforme(page);
 
     // Inicio lo enseña igual que Gastos: atenuado y diciendo de qué recibo es.
@@ -84,12 +87,26 @@ for (const lang of ["es", "en", "ca"]) {
       return { spent: monthBudgetStats(s).spent, neto: monthNetForAccount(s, "sabadell", 2026, 9, 26),
         saldo: saldoCuentaMostrada(s.accounts[0], { injTR: i.injTR, spentByBank: i.spentByBank, paidNetByBank: i.paidNetByBank, roundup: i.roundup, monthlyInvest: i.monthlyInvest }) }; });
     expect(cifras.spent).toBeCloseTo(23.4, 2);
-    expect(cifras.neto).toBe(-50);
+    expect(cifras.neto).toBe(-80);
     // El saldo que queda tras sincronizar es el que dice el banco, no el banco más el recibo.
     expect(cifras.saldo).toBeCloseTo(1900, 2);
     expect(await gastado(page)).toContain("23,40");
 
     // La ficha dice a qué recibo corresponde y deja corregirlo.
+    // Lo que solo se parece a un recibo sigue sin contar, como cuando se tiraba, pero pregunta…
+    const dudoso = fila(page, "AGUACATES DEL SUR");
+    await expect(dudoso).toHaveClass(/v4-mov-skip/);
+    await expect(dudoso).toContainText(textos.quiza);
+    // …y se corrige de un toque al abrirlo, sin desplegar nada. El saldo no se mueve; el gastado sí.
+    await dudoso.click();
+    await expect(page.locator('[data-testid="exp-recibo-marca"]')).toContainText("Agua");
+    await page.locator('[data-testid="exp-recibo-no"]').click();
+    await expect.poll(() => page.evaluate(() => monthBudgetStats(mcLoadRaw(mcStateKey())).spent)).toBeCloseTo(53.6, 2);
+    expect(await page.evaluate(() => { const s = mcLoadRaw(mcStateKey()), i = insumosSaldoGasto(s);
+      return saldoCuentaMostrada(s.accounts[0], { injTR: i.injTR, spentByBank: i.spentByBank, paidNetByBank: i.paidNetByBank, roundup: i.roundup, monthlyInvest: i.monthlyInvest }); })).toBeCloseTo(1900, 2);
+    await page.locator(".v4-sheet-back").last().click({ position: { x: 5, y: 5 } });
+    await expect(fila(page, "AGUACATES DEL SUR")).not.toHaveClass(/v4-mov-skip/);
+
     await cargo.click();
     await page.locator('[data-testid="exp-receipt"]').click();
     await expect(page.locator('[data-testid="exp-receipt-value"]')).toHaveText("Comunidad");
@@ -97,13 +114,16 @@ for (const lang of ["es", "en", "ca"]) {
     await expect(page.locator('[data-testid="exp-recibo-no"]')).toHaveText(textos.no);
     await page.locator('[data-testid="exp-recibo-no"]').click();
     // El cargo pasa a contar como un gasto más y deja de pagar el recibo: no cuenta en los dos sitios.
-    await expect.poll(() => page.evaluate(() => monthBudgetStats(mcLoadRaw(mcStateKey())).spent)).toBeCloseTo(73.4, 2);
+    await expect.poll(() => page.evaluate(() => monthBudgetStats(mcLoadRaw(mcStateKey())).spent)).toBeCloseTo(103.6, 2);
     const tras = await page.evaluate(() => { const s = mcLoadRaw(mcStateKey()); return { marcadas: s.expenses.filter((e) => e.reciboId).length, veto: (s.reciboNo || []).length, pagado: fixedPaymentState(s, s.fixed[0], 2026, 9, 26).paid }; });
-    expect(tras).toEqual({ marcadas: 0, veto: 1, pagado: false });
+    expect(tras).toEqual({ marcadas: 0, veto: 4, pagado: false });
     await expect(page.locator('[data-testid="exp-recibo-marca"]')).toHaveCount(0);
     await page.locator(".v4-sheet-back").last().click({ position: { x: 5, y: 5 } });
     await expect(fila(page, "COMUNIDAD DE PROPIETARIOS")).not.toHaveClass(/v4-mov-skip/);
-    await page.locator('.botnav-tab[data-tour="plan"]').click();
+    await expect(page.locator(".v4-sheet-back")).toHaveCount(0);
+    // Tras dos fichas la lista ha quedado desplazada y la barra inferior puede estar recogida:
+    // el cambio de pestaña no es lo que se prueba aquí, así que se pulsa sin esperar a verla.
+    await page.evaluate(() => document.querySelector('.botnav-tab[data-tour="plan"]').click());
     await expect(page.locator('div[data-seg="recibos"]')).toContainText("Comunidad");
     await expect(page.locator('div[data-seg="recibos"] .v4-paid').filter({ hasText: "Comunidad" })).toHaveCount(0);
   });
@@ -113,7 +133,7 @@ test("Plan: el recibo cobrado sale en «Ya pagado» tras actualizar", async ({ p
   await abre(page, "es");
   await page.locator('.botnav-tab[data-tour="cartera"]').click();
   await page.getByRole("button", { name: /Sincronizar bancos/i }).click();
-  await expect.poll(() => page.evaluate(() => (mcLoadRaw(mcStateKey()).bankTx || []).length)).toBe(2);
+  await expect.poll(() => page.evaluate(() => (mcLoadRaw(mcStateKey()).bankTx || []).length)).toBe(3);
   await cierraInforme(page);
   await page.locator('.botnav-tab[data-tour="plan"]').click();
   await expect(page.locator('div[data-seg="recibos"] .v4-paid').filter({ hasText: "Comunidad" })).toHaveCount(1);

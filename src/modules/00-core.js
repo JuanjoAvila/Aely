@@ -1652,7 +1652,13 @@ function _errCloudMsg(err){
 }
 function subirGasto(e, donde){
   if(!cloud.enabled()) return Promise.resolve();
-  return cloud.addExpense(e).catch(function(err){
+  return cloud.addExpense(e).then(function(){
+    /* El alta ignora duplicados: si la fila ya estaba en la nube sin la marca de recibo (otro
+       móvil la importó antes), allí seguiría como una compra y el widget contaría lo que la app
+       no cuenta. Se reescribe su `source` por fecha, importe y comercio, que es la clave del
+       duplicado; con el id local no se encontraría la fila del otro móvil. */
+    if(e && e.reciboId) return cloud.setExpenseBank(Object.assign({},e,{id:null}), e.ent);
+  }).catch(function(err){
     cloud.logEvent("error","addExpense "+(donde||"?")+": "+keyOfExpense(e), _errCloudMsg(err));
   });
 }

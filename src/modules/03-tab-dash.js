@@ -400,12 +400,12 @@ function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProf
           : recent.map(function(e){
               const c=catOf(e.category); const pos=e.amount<0;
               // El cargo de un recibo se ve igual que en Gastos: atenuado y diciendo de cuál es.
-              const recibo=reciboNombre(state,e);
+              const recibo=reciboEtiqueta(state,e);
               return React.createElement("div",{key:e.id||(e.date+e.amount+e.merchant),className:"v4-mov"+(recibo?" v4-mov-skip":""),style:recibo?{opacity:.72}:null},
                 React.createElement("div",{className:"tile",style:{background:(c.color||"#5FD08A")+"22"}}, c.icon||"📦"),
                 React.createElement("div",{style:{flex:1,minWidth:0}},
                   React.createElement("div",{className:"nm"}, e.merchant||catName(e.category)),
-                  React.createElement("div",{className:"meta"}, catName(e.category)+(e.source&&String(e.source).indexOf("ob:")===0?" · "+t("g_bank_ob"):"")+(recibo?" · "+tf("g_recibo_de",{name:recibo}):""))
+                  React.createElement("div",{className:"meta"}, catName(e.category)+(e.source&&String(e.source).indexOf("ob:")===0?" · "+t("g_bank_ob"):"")+(recibo?" · "+recibo:""))
                 ),
                 React.createElement("div",{className:"am num"+(pos?" pos":"")}, (pos?"+":"")+eur(Math.abs(e.amount)))
               );

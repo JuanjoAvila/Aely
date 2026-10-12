@@ -71,9 +71,9 @@ t("B3 un fijo ya modelado del tramo antiguo entra marcado como recibo y no cuent
   assert.equal(viejo.concat(hoy).some((e) => ctx.expenseCountsCash(e, s)), false);
 });
 
-// Un cargo fuera del mes de su recibo no es «el» cargo de ese recibo: entra y cuenta. Antes el
-// tramo antiguo lo tiraba por parecerse a algo modelado en CUALQUIER mes.
-t("un fijo que no toca ese mes (anual, con importes a medida, o un puntual de otro mes) entra en el tramo como un gasto más", () => {
+// Lo que el tramo antiguo tiraba por casar con algo modelado en otro mes entra ahora marcado:
+// se ve, y sigue sin contar, que es lo que hacía el descarte.
+t("un fijo que no toca este mes (anual, con importes a medida, o un puntual de otro mes) entra en el tramo marcado y sin contar", () => {
   const s = base(Object.assign({}, sinAporte, {
     fixed: [
       { id: "seg", name: "Seguro hogar", amount: 312.4, account: "caixabank", freq: "año", months: [otroMes] },
@@ -89,8 +89,8 @@ t("un fijo que no toca ese mes (anual, con importes a medida, o un puntual de ot
   ];
   const add = ctx.importObExpenses(s, lote, links) || [];
   assert.equal(JSON.stringify(add.map((e) => [e.extId, e.reciboId || null])),
-    JSON.stringify([["cx-seg", null], ["cx-ibi", null], ["cx-cal", null], ["cx-otro-importe", null]]), "ninguno es el cargo de un recibo de ese mes");
-  assert.equal(add.filter((e) => ctx.expenseCountsCash(e, s)).length, 4, "y los cuatro cuentan");
+    JSON.stringify([["cx-seg", "seg"], ["cx-ibi", "ibi"], ["cx-cal", "o1"], ["cx-otro-importe", null]]), "solo queda sin marca el que no casa en importe");
+  assert.equal(JSON.stringify(add.filter((e) => ctx.expenseCountsCash(e, s)).map((e) => e.extId)), JSON.stringify(["cx-otro-importe"]), "y solo ese cuenta");
   // Dentro de la ventana manda el mes en curso, como siempre: ese anual hoy no es un recibo esperado.
   const hoy = ctx.importObExpenses(s, [tx(day(-2), 312.4, "Seguro hogar", "cx-seg-hoy")], links) || [];
   assert.equal(hoy.length, 1);
