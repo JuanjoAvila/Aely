@@ -1,0 +1,1026 @@
+{
+  "status": "blocked",
+  "summary": "Candidata SEC-01 terminada en fuente; PR211 en borrador RETENIDA por Claude hasta integracion posterior a prod-completa-117. CI exacta termino failure exclusivamente por beta-sources/Catalogo117 y docs-frescura/VERSION; no se integra ni despliega.",
+  "productSHA": "db884002160dd09c5cd1b6e36afad6ec996718e7",
+  "baseSHA": "c5f62d6603d016150afd9d0e20547b608b323045",
+  "branch": "codex/sec-01-edge-entradas",
+  "pullRequest": {
+    "repository": "JuanjoAvila/Aely",
+    "number": 211
+  },
+  "tests": [
+    {
+      "command": "node tests/edge-input-handlers.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/edge-input-mutations.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/ingest-handler.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/bank-sync-progreso.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/bank-sync-paging.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/help-assistant.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/entrada-edge.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/logs-privacidad.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/security.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "deno test --no-lock supabase/functions/myinvestor-disconnect/entrada.test.ts supabase/functions/myinvestor-keepalive/entrada.test.ts supabase/functions/myinvestor-connect/entrada.test.ts supabase/functions/bank-disconnect/entrada.test.ts supabase/functions/myinvestor-sync/entrada.test.ts supabase/functions/delete-account/entrada.test.ts supabase/functions/help-assistant/entrada.test.ts supabase/functions/bank-callback/entrada.test.ts supabase/functions/bank-connect/entrada.test.ts supabase/functions/bank-aspsps/entrada.test.ts supabase/functions/categorize/entrada.test.ts supabase/functions/bank-sync/entrada.test.ts supabase/functions/bank-sync/demand-window.test.ts supabase/functions/_shared/request_body.test.ts supabase/functions/ingest/entrada.test.ts supabase/functions/prices/entrada.test.ts supabase/functions/prices/prices.test.ts",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/docs-frescura.test.mjs",
+      "exitCode": 1
+    },
+    {
+      "command": "node tests/beta-sources.test.mjs",
+      "exitCode": 1
+    },
+    {
+      "command": "node scripts/guard-privacy.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "deno check --no-lock (12 handlers salvo ingest/bank-callback)",
+      "exitCode": 0
+    },
+    {
+      "command": "deno check --no-lock supabase/functions/ingest/index.ts",
+      "exitCode": 1
+    },
+    {
+      "command": "deno check --no-lock supabase/functions/bank-callback/index.ts",
+      "exitCode": 1
+    },
+    {
+      "command": "node --input-type=module (betaNotes + betaChecklist,9 escenarios sinteticos)",
+      "exitCode": 0
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0
+    },
+    {
+      "command": "CI Tests: node scripts/run-tests.mjs (run38225925276)",
+      "exitCode": 1
+    }
+  ],
+  "inventory": [
+    {
+      "function": "bank-aspsps",
+      "auth": "JWT gateway",
+      "input": "country opcional, dos letras; tambien GET",
+      "fixtureBytes": 16,
+      "maxBytes": 16384
+    },
+    {
+      "function": "bank-connect",
+      "auth": "JWT y getUser",
+      "input": "aspsp_name, country y platform opcionales con defaults existentes",
+      "fixtureBytes": 66,
+      "maxBytes": 16384
+    },
+    {
+      "function": "bank-disconnect",
+      "auth": "JWT y getUser",
+      "input": "aspsp_name cadena no vacia",
+      "fixtureBytes": 34,
+      "maxBytes": 16384
+    },
+    {
+      "function": "bank-sync",
+      "auth": "JWT y getUser",
+      "input": "dateFrom fecha real; recoverGaps booleano; aspsps array de cadenas; opcionales",
+      "fixtureBytes": 396,
+      "maxBytes": 16384
+    },
+    {
+      "function": "bank-callback",
+      "auth": "state guardado, caducidad y consumo existentes",
+      "input": "sin cuerpo u objeto vacio; parametros OAuth en URL conservados",
+      "fixtureBytes": 2,
+      "maxBytes": 1024
+    },
+    {
+      "function": "categorize",
+      "auth": "JWT y getUser",
+      "input": "merchant cadena no vacia; recorte existente a 120",
+      "fixtureBytes": 735,
+      "maxBytes": 8192
+    },
+    {
+      "function": "delete-account",
+      "auth": "JWT y getUser mas reautenticacion",
+      "input": "password cadena no vacia",
+      "fixtureBytes": 527,
+      "maxBytes": 65536
+    },
+    {
+      "function": "ingest",
+      "auth": "token propio y cuota IP preauth conservada",
+      "input": "JSON o formulario MacroDroid; texto/aliases, titulo, fuente, fecha, evento",
+      "fixtureBytes": 198,
+      "maxBytes": 49152,
+      "existingLimits": "Content-Length anunciado <=16384 y longitud UTF16 <=16384; streaming hasta49152 preserva Unicode antes admitido sin cabecera"
+    },
+    {
+      "function": "myinvestor-connect",
+      "auth": "JWT y getUser",
+      "input": "login/OTP completo o storeTokens; tipos y caducidad representable",
+      "fixtureBytes": 2669,
+      "maxBytes": 65536
+    },
+    {
+      "function": "myinvestor-sync",
+      "auth": "JWT y getUser",
+      "input": "sin cuerpo u objeto vacio",
+      "fixtureBytes": 2,
+      "maxBytes": 1024
+    },
+    {
+      "function": "myinvestor-disconnect",
+      "auth": "JWT y getUser",
+      "input": "sin cuerpo u objeto vacio",
+      "fixtureBytes": 2,
+      "maxBytes": 1024
+    },
+    {
+      "function": "myinvestor-keepalive",
+      "auth": "x-cron-key comparacion constante",
+      "input": "sin cuerpo u objeto vacio del cron",
+      "fixtureBytes": 2,
+      "maxBytes": 1024
+    },
+    {
+      "function": "prices",
+      "auth": "JWT y getUser",
+      "input": "symbols opcional array de cadenas; normalizacion y 25 simbolos existentes",
+      "fixtureBytes": 353,
+      "maxBytes": 4096
+    },
+    {
+      "function": "help-assistant",
+      "auth": "JWT y getUser",
+      "input": "question hasta600 caracteres; language es/en/ca opcional",
+      "fixtureBytes": 1831,
+      "maxBytes": 4096
+    }
+  ],
+  "errors": "Tras autenticacion existente, UTF8/JSON/tipos/campos/rangos invalidos:400; exceso:413; errores cerrados sin contenido. Sin efectos de negocio. Ingest puede consumir solo su cuota IP preauth; token invalido conserva diagnostico cerrado. Callback conserva302 en error/cancelacion OAuth antes del cuerpo.",
+  "limitsBasis": "Envolventes preventivas autorizadas por Claude, no maximos de produccion. Nuevos limites en potencias de dos con margen >=10x sobre fixtures representativos. Los emisores actuales no acreditan maximo finito de credenciales/tokens/nombres. Sin aumentar los tres contratos con limite previo.",
+  "compatibility": "169 contratos/rechazos ejecutan handlers reales con dobles sinteticos de red/BD y comparan respuestas legitimas contra beta c5f62d66; 15 emisores reales de00-core ejecutados, incluidos cuerpos vacios SDK. Fixtures adicionales APK/cron/MacroDroid y OAuth. Ingest y bank-sync conservan tests reales de dinero/deduplicacion/paginado. No se modifica cliente ni APK.",
+  "mutations": {
+    "rules": 35,
+    "rulesDetected": 35,
+    "handlers": 14,
+    "handlerMutationsDetected": 14,
+    "method": "mutaciones independientes en memoria sobre la misma referencia verde; ninguna debilitacion de guardianes"
+  },
+  "catalogue": {
+    "changedIds": [
+      "feature-0310-01-movilidad",
+      "fin05-pago-cerrada",
+      "tr-descripcion-clasificacion",
+      "widget-app-cerrada"
+    ],
+    "reason": "Las cuatro identidades incluyen el archivo ingest/index.ts. Incorporar el lector/validacion cambia su huella Edge aunque no cambie clasificacion, importes, deduplicacion ni widget.",
+    "gate": "beta-sources exit1: Catalogo117 esperaba moved={}; Retiro117 pasa. No se editaron catalogos, descriptores ni notas ni se repinaron recibos.",
+    "panel": "Con betaNotes calculadas de este SHA y betaChecklist real, las cuatro IDs tienen cero apariciones en las tandas vigentes. Nueve escenarios prod=null/4.26.113/4.26.117 x APK=0/54/9999 y sin recibos: cero tandas reabiertas. Evidencia sintetica de fuente, sin build ni navegador. La integracion debe conservar ese retiro.",
+    "decision": "Claude retiene PR211 hasta despues de prod-completa-117; integracion pone version nueva y oraculo de lista cerrada para estas cuatro identidades. Respuesta sec01-respuesta-catalogo117-huellas-edge-20261012."
+  },
+  "technicalChangelog": "El backlog tenia foto antigua de13 funciones sin topes; hoy hay14 y prices/help ya limitaban4096. Se centraliza lectura incremental por bytes y validacion de objeto/tipos/rangos antes de cuotas proveedor y efectos. Evita reservar cuerpos ilimitados y que entradas invalidas lleguen a proveedores/escrituras. Ingest preserva cuota IP preauth y limites Unicode historicos; callback conserva302; delete-account declara verify_jwt=true, default existente.",
+  "deployment": "No desplegado. Tras revision independiente y CI aceptada por integracion: bank-aspsps, categorize, prices, help-assistant; despues MyInvestor por funcion, delete-account y callback; bank-sync e ingest al final. Claude decide cada funcion; cada paquete incluye su helper correspondiente y preserva verify_jwt/secrets.",
+  "rollback": "Ante rechazo legitimo detener siguiente funcion y restaurar paquete completo funcion+helper al SHA previamente desplegado y verificado; sin tocar datos ni elevar limite a ciegas. El SHA base de tests no demuestra que estuviera desplegado.",
+  "limitations": [
+    "VERSION/notas/catalogos prohibidos por encargo. docs-frescura exit1 por32 archivos de codigo posteriores al ancla; campos de version alineados. Gate lo resuelve integracion, sin debilitar test.",
+    "deno check ingest conserva3 errores previos de tipos y callback getDiag no definido, reproducidos tambien en base c5f62d66; otros12 handlers pasan. Sin supresiones ni cambios de dinero para arreglarlos.",
+    "Sin runner pesado local, build local, npm test local, Playwright local, deploy, SQL, APK, cambios de main/beta o acceso Supabase produccion.",
+    "Pruebas sinteticas de fuente no acreditan gateway desplegado, estado servido, autenticacion real, APK firmado ni aceptacion movil."
+  ],
+  "preliminaryExits": [
+    {
+      "command": "pending codex sandbox",
+      "exitCode": 1,
+      "reason": "update-ref; lectura elevada posterior exit0"
+    },
+    {
+      "command": "Deno request_body primer intento",
+      "exitCode": 1,
+      "reason": "dependencia types node; cambiado a jsr existente"
+    },
+    {
+      "command": "Deno request_body segundo intento",
+      "exitCode": 1,
+      "reason": "red sandbox JSR; elevado posterior recuperado"
+    },
+    {
+      "command": "Deno request_body con tipos",
+      "exitCode": 1,
+      "reason": "union HeadersInit; corregido"
+    },
+    {
+      "command": "edge-input-handlers primera mutacion",
+      "exitCode": 1,
+      "reason": "fixture no aislaba regla; corregido"
+    },
+    {
+      "command": "edge-input-mutations stream infinito",
+      "exitCode": 1,
+      "reason": "interrumpido; fixture finito corregido"
+    },
+    {
+      "command": "edge-input-mutations tokens-modo",
+      "exitCode": 1,
+      "reason": "mutante superviviente; fixture preciso añadido,35/35 luego"
+    },
+    {
+      "command": "deno check candidate inicial",
+      "exitCode": 1,
+      "reason": "aspsps unknown corregido;3 errores ingest baseline conservados"
+    },
+    {
+      "command": "deno check baseline ingest",
+      "exitCode": 1,
+      "reason": "3 errores baseline"
+    },
+    {
+      "command": "deno check baseline callback",
+      "exitCode": 1,
+      "reason": "getDiag inexistente"
+    },
+    {
+      "command": "coordination-channel publish result primer intento",
+      "exitCode": 1,
+      "reason": "filtro de rutas del canal rechaza tambien URLs https publicas; se sustituyen por repositorio y numeros de PR/run"
+    }
+  ],
+  "ci": {
+    "run": 38225925276,
+    "headSha": "db884002160dd09c5cd1b6e36afad6ec996718e7",
+    "status": "completed",
+    "conclusion": "failure",
+    "jobs": [
+      {
+        "name": "test",
+        "id": 114733298039,
+        "conclusion": "failure",
+        "steps": [
+          {
+            "name": "Set up job",
+            "conclusion": "success"
+          },
+          {
+            "name": "Run actions/checkout@v4",
+            "conclusion": "success"
+          },
+          {
+            "name": "Run actions/setup-node@v4",
+            "conclusion": "success"
+          },
+          {
+            "name": "Instalar dependencias",
+            "conclusion": "success"
+          },
+          {
+            "name": "Instalar Chromium (Playwright)",
+            "conclusion": "success"
+          },
+          {
+            "name": "Run denoland/setup-deno@v2",
+            "conclusion": "success"
+          },
+          {
+            "name": "Tests (build + unit + Deno + E2E)",
+            "conclusion": "failure"
+          },
+          {
+            "name": "Privacidad",
+            "conclusion": "skipped"
+          },
+          {
+            "name": "Post Run denoland/setup-deno@v2",
+            "conclusion": "success"
+          },
+          {
+            "name": "Post Run actions/setup-node@v4",
+            "conclusion": "skipped"
+          },
+          {
+            "name": "Post Run actions/checkout@v4",
+            "conclusion": "success"
+          },
+          {
+            "name": "Complete job",
+            "conclusion": "success"
+          }
+        ]
+      }
+    ],
+    "runnerExitCode": 1,
+    "buildExitCode": 0,
+    "nodeSteps": 143,
+    "nodeFailed": [
+      "beta-sources",
+      "docs-frescura"
+    ],
+    "denoFilesPassed": 22,
+    "e2e": "omitidos por failed=true antes de Playwright; no corridos",
+    "privacy": "paso separado omitido; guard-privacy dentro del runner paso",
+    "fullLogLines": 3417
+  },
+  "ciNodeTests": [
+    {
+      "name": "edge-input-handlers",
+      "exitCode": 0
+    },
+    {
+      "name": "edge-input-mutations",
+      "exitCode": 0
+    },
+    {
+      "name": "backclose-history",
+      "exitCode": 0
+    },
+    {
+      "name": "dashboard-memo-instrument",
+      "exitCode": 0
+    },
+    {
+      "name": "auth-disposal-fit",
+      "exitCode": 0
+    },
+    {
+      "name": "auth-disposal",
+      "exitCode": 0
+    },
+    {
+      "name": "banknotif-listener-cleanup",
+      "exitCode": 0
+    },
+    {
+      "name": "appstate-listener-cleanup",
+      "exitCode": 0
+    },
+    {
+      "name": "supabase-workflow",
+      "exitCode": 0
+    },
+    {
+      "name": "debt-payment-state",
+      "exitCode": 0
+    },
+    {
+      "name": "gastos-periodo",
+      "exitCode": 0
+    },
+    {
+      "name": "gastos-mes-madrid",
+      "exitCode": 0
+    },
+    {
+      "name": "retirada-bancaria",
+      "exitCode": 0
+    },
+    {
+      "name": "backup-snapshot",
+      "exitCode": 0
+    },
+    {
+      "name": "bank-merchant-category",
+      "exitCode": 0
+    },
+    {
+      "name": "logs-privacidad",
+      "exitCode": 0
+    },
+    {
+      "name": "help-assistant",
+      "exitCode": 0
+    },
+    {
+      "name": "guard-privacy",
+      "exitCode": 0
+    },
+    {
+      "name": "check-syntax",
+      "exitCode": 0
+    },
+    {
+      "name": "pure-logic-notes",
+      "exitCode": 0
+    },
+    {
+      "name": "beta-source-parse",
+      "exitCode": 0
+    },
+    {
+      "name": "i18n-keys",
+      "exitCode": 0
+    },
+    {
+      "name": "i18n-categorias",
+      "exitCode": 0
+    },
+    {
+      "name": "i18n-bundle",
+      "exitCode": 0
+    },
+    {
+      "name": "novedades-vinnetas",
+      "exitCode": 0
+    },
+    {
+      "name": "aely-logo-unico",
+      "exitCode": 0
+    },
+    {
+      "name": "release-notes-max",
+      "exitCode": 0
+    },
+    {
+      "name": "beta-tandas-vacias",
+      "exitCode": 0
+    },
+    {
+      "name": "beta-veredictos",
+      "exitCode": 0
+    },
+    {
+      "name": "listo-actor",
+      "exitCode": 0
+    },
+    {
+      "name": "beta-sources",
+      "exitCode": 1
+    },
+    {
+      "name": "novedades-idiomas",
+      "exitCode": 0
+    },
+    {
+      "name": "categorias-dual",
+      "exitCode": 0
+    },
+    {
+      "name": "suministros-legacy",
+      "exitCode": 0
+    },
+    {
+      "name": "docs-frescura",
+      "exitCode": 1
+    },
+    {
+      "name": "docs-frescura-history",
+      "exitCode": 0
+    },
+    {
+      "name": "relevant-tests",
+      "exitCode": 0
+    },
+    {
+      "name": "wait-promote-deploy",
+      "exitCode": 0
+    },
+    {
+      "name": "memoria-espejo",
+      "exitCode": 0
+    },
+    {
+      "name": "sync-memoria",
+      "exitCode": 0
+    },
+    {
+      "name": "logos-bancos",
+      "exitCode": 0
+    },
+    {
+      "name": "logos-inversiones",
+      "exitCode": 0
+    },
+    {
+      "name": "logo-banco-o-empresa",
+      "exitCode": 0
+    },
+    {
+      "name": "quitar-banco-y-pendiente",
+      "exitCode": 0
+    },
+    {
+      "name": "dia-local-no-utc",
+      "exitCode": 0
+    },
+    {
+      "name": "move-account",
+      "exitCode": 0
+    },
+    {
+      "name": "merge-expenses-cloud",
+      "exitCode": 0
+    },
+    {
+      "name": "categoria-manual-persistente",
+      "exitCode": 0
+    },
+    {
+      "name": "security",
+      "exitCode": 0
+    },
+    {
+      "name": "no-lock-icons",
+      "exitCode": 0
+    },
+    {
+      "name": "webdebug-guard",
+      "exitCode": 0
+    },
+    {
+      "name": "gastos-active-bus",
+      "exitCode": 0
+    },
+    {
+      "name": "budget-notis-deps",
+      "exitCode": 0
+    },
+    {
+      "name": "track-asentar-raf",
+      "exitCode": 0
+    },
+    {
+      "name": "season-detalle",
+      "exitCode": 0
+    },
+    {
+      "name": "edge-sintaxis",
+      "exitCode": 0
+    },
+    {
+      "name": "presupuesto-rendimiento",
+      "exitCode": 0
+    },
+    {
+      "name": "finance-core",
+      "exitCode": 0
+    },
+    {
+      "name": "ob-ingresos",
+      "exitCode": 0
+    },
+    {
+      "name": "bank-sync-paging",
+      "exitCode": 0
+    },
+    {
+      "name": "bank-sync-progreso",
+      "exitCode": 0
+    },
+    {
+      "name": "ob-hueco-sync",
+      "exitCode": 0
+    },
+    {
+      "name": "ob-hueco-recuperado",
+      "exitCode": 0
+    },
+    {
+      "name": "reserva-dinero",
+      "exitCode": 0
+    },
+    {
+      "name": "metas-pull-transport",
+      "exitCode": 0
+    },
+    {
+      "name": "persist-commit",
+      "exitCode": 0
+    },
+    {
+      "name": "month-budget-stats",
+      "exitCode": 0
+    },
+    {
+      "name": "dash-metricas",
+      "exitCode": 0
+    },
+    {
+      "name": "informe-mes",
+      "exitCode": 0
+    },
+    {
+      "name": "presupuesto-categoria",
+      "exitCode": 0
+    },
+    {
+      "name": "month-window",
+      "exitCode": 0
+    },
+    {
+      "name": "presupuesto-servidor",
+      "exitCode": 0
+    },
+    {
+      "name": "cuotas-deudas",
+      "exitCode": 0
+    },
+    {
+      "name": "widget-coherente",
+      "exitCode": 0
+    },
+    {
+      "name": "widget-arbitraje",
+      "exitCode": 0
+    },
+    {
+      "name": "widget-offline",
+      "exitCode": 0
+    },
+    {
+      "name": "widget-unknown-loss",
+      "exitCode": 0
+    },
+    {
+      "name": "widget-unknown-journal",
+      "exitCode": 0
+    },
+    {
+      "name": "widget-notificacion-render",
+      "exitCode": 0
+    },
+    {
+      "name": "widget-inicio-paridad",
+      "exitCode": 0
+    },
+    {
+      "name": "widget-puente-ciclo",
+      "exitCode": 0
+    },
+    {
+      "name": "ob-renombrar",
+      "exitCode": 0
+    },
+    {
+      "name": "divisa-original",
+      "exitCode": 0
+    },
+    {
+      "name": "wallet-notis",
+      "exitCode": 0
+    },
+    {
+      "name": "invest-category",
+      "exitCode": 0
+    },
+    {
+      "name": "fx-multi",
+      "exitCode": 0
+    },
+    {
+      "name": "categories",
+      "exitCode": 0
+    },
+    {
+      "name": "gasolina-taxi",
+      "exitCode": 0
+    },
+    {
+      "name": "movilidad-categorias",
+      "exitCode": 0
+    },
+    {
+      "name": "revo-parse",
+      "exitCode": 0
+    },
+    {
+      "name": "revo-num",
+      "exitCode": 0
+    },
+    {
+      "name": "debts",
+      "exitCode": 0
+    },
+    {
+      "name": "ingest-classify",
+      "exitCode": 0
+    },
+    {
+      "name": "ingest-identity",
+      "exitCode": 0
+    },
+    {
+      "name": "ingest-handler",
+      "exitCode": 0
+    },
+    {
+      "name": "revo-golden",
+      "exitCode": 0
+    },
+    {
+      "name": "import-hoja",
+      "exitCode": 0
+    },
+    {
+      "name": "import-docx-pdf",
+      "exitCode": 0
+    },
+    {
+      "name": "hist-import-dup",
+      "exitCode": 0
+    },
+    {
+      "name": "plan-charges",
+      "exitCode": 0
+    },
+    {
+      "name": "fixed-day-reconcile",
+      "exitCode": 0
+    },
+    {
+      "name": "fixed-payment-state",
+      "exitCode": 0
+    },
+    {
+      "name": "hist-pagos-mensuales",
+      "exitCode": 0
+    },
+    {
+      "name": "revo-metales-coste",
+      "exitCode": 0
+    },
+    {
+      "name": "parsers-revolut",
+      "exitCode": 0
+    },
+    {
+      "name": "motor-debt",
+      "exitCode": 0
+    },
+    {
+      "name": "reconcile-bank",
+      "exitCode": 0
+    },
+    {
+      "name": "onboarding",
+      "exitCode": 0
+    },
+    {
+      "name": "expense-bank",
+      "exitCode": 0
+    },
+    {
+      "name": "saldo-por-banco",
+      "exitCode": 0
+    },
+    {
+      "name": "rol-cuenta-sin-salto",
+      "exitCode": 0
+    },
+    {
+      "name": "ota-bases-espejo",
+      "exitCode": 0
+    },
+    {
+      "name": "hist-dia-local",
+      "exitCode": 0
+    },
+    {
+      "name": "hist-fecha-que-baila",
+      "exitCode": 0
+    },
+    {
+      "name": "fechas-cache",
+      "exitCode": 0
+    },
+    {
+      "name": "hist-uniq-por-banco",
+      "exitCode": 0
+    },
+    {
+      "name": "sync-manual-un-aviso",
+      "exitCode": 0
+    },
+    {
+      "name": "broker-sync-outcomes",
+      "exitCode": 0
+    },
+    {
+      "name": "cartel-reconectar",
+      "exitCode": 0
+    },
+    {
+      "name": "bank-callback-msg",
+      "exitCode": 0
+    },
+    {
+      "name": "categorize-limitador",
+      "exitCode": 0
+    },
+    {
+      "name": "seguridad-hogar-eventos",
+      "exitCode": 0
+    },
+    {
+      "name": "grants-migraciones",
+      "exitCode": 0
+    },
+    {
+      "name": "entrada-edge",
+      "exitCode": 0
+    },
+    {
+      "name": "bucket-igual-que-balance",
+      "exitCode": 0
+    },
+    {
+      "name": "apk-sin-token-ingest",
+      "exitCode": 0
+    },
+    {
+      "name": "sugerencia-apuntar",
+      "exitCode": 0
+    },
+    {
+      "name": "hist-cashback-par",
+      "exitCode": 0
+    },
+    {
+      "name": "notas-sin-duplicados",
+      "exitCode": 0
+    },
+    {
+      "name": "v4-cta-halo",
+      "exitCode": 0
+    },
+    {
+      "name": "efectivo",
+      "exitCode": 0
+    },
+    {
+      "name": "efectivo-cierre",
+      "exitCode": 0
+    },
+    {
+      "name": "atm-dual",
+      "exitCode": 0
+    },
+    {
+      "name": "tr-open-banking",
+      "exitCode": 0
+    },
+    {
+      "name": "huella-bundle",
+      "exitCode": 0
+    },
+    {
+      "name": "expense-note",
+      "exitCode": 0
+    },
+    {
+      "name": "expense-id-cloud",
+      "exitCode": 0
+    },
+    {
+      "name": "pull-historico-entero",
+      "exitCode": 0
+    },
+    {
+      "name": "bank-connect-once",
+      "exitCode": 0
+    },
+    {
+      "name": "inv-dashboard",
+      "exitCode": 0
+    },
+    {
+      "name": "financing",
+      "exitCode": 0
+    },
+    {
+      "name": "updates",
+      "exitCode": 0
+    },
+    {
+      "name": "Duración total: 1158.4 s · etapas más lentas",
+      "exitCode": 0
+    }
+  ],
+  "ciDenoTests": [
+    {
+      "command": "deno test supabase/functions/_shared/request_body.test.ts",
+      "exitCode": 0
+    },
+    {
+      "command": "deno test supabase/functions/bank-aspsps/entrada.test.ts",
+      "exitCode": 0
+    },
+    {
+      "command": "deno test supabase/functions/bank-connect/entrada.test.ts",
+      "exitCode": 0
+    },
+    {
+      "command": "deno test supabase/functions/bank-disconnect/entrada.test.ts",
+      "exitCode": 0
+    },
+    {
+      "command": "deno test supabase/functions/bank-sync/entrada.test.ts",
+      "exitCode": 0
+    },
+    {
+      "command": "deno test supabase/functions/bank-callback/entrada.test.ts",
+      "exitCode": 0
+    },
+    {
+      "command": "deno test supabase/functions/categorize/entrada.test.ts",
+      "exitCode": 0
+    },
+    {
+      "command": "deno test supabase/functions/delete-account/entrada.test.ts",
+      "exitCode": 0
+    },
+    {
+      "command": "deno test supabase/functions/ingest/entrada.test.ts",
+      "exitCode": 0
+    },
+    {
+      "command": "deno test supabase/functions/myinvestor-connect/entrada.test.ts",
+      "exitCode": 0
+    },
+    {
+      "command": "deno test supabase/functions/myinvestor-sync/entrada.test.ts",
+      "exitCode": 0
+    },
+    {
+      "command": "deno test supabase/functions/myinvestor-disconnect/entrada.test.ts",
+      "exitCode": 0
+    },
+    {
+      "command": "deno test supabase/functions/myinvestor-keepalive/entrada.test.ts",
+      "exitCode": 0
+    },
+    {
+      "command": "deno test supabase/functions/prices/entrada.test.ts",
+      "exitCode": 0
+    },
+    {
+      "command": "deno test supabase/functions/help-assistant/entrada.test.ts",
+      "exitCode": 0
+    },
+    {
+      "command": "deno test supabase/functions/ingest/ingest.test.ts",
+      "exitCode": 0
+    },
+    {
+      "command": "deno test supabase/functions/ingest/widget.test.ts",
+      "exitCode": 0
+    },
+    {
+      "command": "deno test --allow-env supabase/functions/_shared/crypto.test.ts",
+      "exitCode": 0
+    },
+    {
+      "command": "deno test supabase/functions/_shared/enablebanking.test.ts",
+      "exitCode": 0
+    },
+    {
+      "command": "deno test supabase/functions/delete-account/delete-account.test.ts",
+      "exitCode": 0
+    },
+    {
+      "command": "deno test supabase/functions/prices/prices.test.ts",
+      "exitCode": 0
+    },
+    {
+      "command": "deno test supabase/functions/bank-sync/demand-window.test.ts",
+      "exitCode": 0
+    }
+  ],
+  "schema": 1,
+  "taskId": "sec-01-edge-entradas-codex-20261012",
+  "actor": "codex",
+  "sessionId": "codex-cloud-20261012-5149842a6f",
+  "createdAt": "2026-10-12T09:14:19.546Z",
+  "released": true
+}
