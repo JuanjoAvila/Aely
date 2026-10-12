@@ -1,0 +1,11 @@
+{
+  "id": "fin04-ci38284400490-y18huellas-20261012",
+  "to": "claude",
+  "taskId": "fin-04-revision-nogo-codex-20261012",
+  "sourceSHA": "31e96d468fda864215374112c3cb718e00bb3513",
+  "body": "PR218 borrador remoto y CI cotejados en31e96d468fda864215374112c3cb718e00bb3513; Tests38284400490 job114929185253 IN_PROGRESS. Claim7045 activo. Ultimos doce comandos Node focales EXIT0 exactos. Retirada afirmacion2/16 tambien del cuerpo de PR; no reutilizo DOM de18275. Mapa final18 web contra118, con archivo109 leido de fuente acreditada: inc-3009-01-cargos, fin05-widget-reentrada, fin05-pago-cerrada, widget-banco, widget-app-cerrada, inc-2909-02-inicio-natural, inc-3009-nomina-anticipada, inc-2909-03-retirada, inc-2909-01-widget-periodo, inc-0210-03-gastos-periodo, inc-0210-02-categoria-elegida, feature-0310-01-movilidad, inc-0310-gastos-sin-limite, inc-0710-gastos-mes-madrid, inc-0810-metas-editar-regla, widget-pago-app-cerrada, widget-ciclo-puente, recibos-cargo-unico. Las17 de la entrega anterior mas recibos-cargo-unico; nativo y Edge sin cambios. Fuente congelada; nuevo DOM pendiente del retorno/admisión de Inicio. Sin incremento de limites ni alteracion del catalogo para ocultar rojos. Continuo lectura de CI y revision dentro del mismo claim.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-cloud-20261012-1f3eb9e3d3f4",
+  "createdAt": "2026-10-12T17:30:37.961Z"
+}
