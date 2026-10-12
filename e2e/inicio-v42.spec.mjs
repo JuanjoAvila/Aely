@@ -132,10 +132,10 @@ for(const reduced of [false,true]) test("dedo consulta y suelta "+reduced,async(
     const response=await route.fetch(),html=await response.text();
     const marker="function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGastos, onGoPlan, showToast}){";
     expect(html.split(marker)).toHaveLength(2);
-    await route.fulfill({response,body:html.replace(marker,marker+"window.__v42DashboardRenders=(window.__v42DashboardRenders||0)+1;")});
+    await route.fulfill({response,body:html.replace(marker,marker+"window.__v42DashboardRenders=(window.__v42DashboardRenders||0)+1;window.__v42DashboardChanges=(window.__v42DashboardChanges||[]).concat([window.__v42PreviousState?Object.keys(state).filter(function(k){return state[k]!==window.__v42PreviousState[k];}):['mount']]);window.__v42PreviousState=state;")});
   });
   await page.emulateMedia({reducedMotion:reduced?"reduce":"no-preference"});await open(page);
-  await page.waitForTimeout(2200);
+  await page.waitForFunction(()=>window.__mcBootReady===true);await page.waitForTimeout(2200);
   const hero=page.getByTestId("inicio-net-current"), amount=hero.locator(".v4-hero-amt"), before=await amount.innerText(),delta=await hero.getByTestId("inicio-net-delta").innerText();
   const chart=page.locator(".v42-net-chart"),box=await chart.boundingBox();
   expect(await chart.evaluate(el=>getComputedStyle(el).touchAction)).toBe("pan-y");
@@ -146,7 +146,7 @@ for(const reduced of [false,true]) test("dedo consulta y suelta "+reduced,async(
   await touch("touchMove",.8);await expect(amount).not.toHaveText(first);await expect(hero.getByTestId("inicio-net-date")).not.toHaveText(date);
   await expect(hero.getByTestId("inicio-net-delta")).toHaveText(delta);await expect(page.locator('.botnav-tab[data-tour="inicio"].active')).toBeVisible();
   await touch("touchEnd",.8);await expect(hero.getByTestId("inicio-net-date")).toHaveCount(0);await expect(hero.getByTestId("inicio-net-guide")).toHaveCount(0);await expect(amount).toHaveText(before);
-  expect(await page.evaluate(()=>window.__v42DashboardRenders)).toBe(renders);
+  expect(await page.evaluate(()=>window.__v42DashboardRenders),JSON.stringify(await page.evaluate(()=>window.__v42DashboardChanges))).toBe(renders);
   await hero.locator(".v42-net-ranges button").last().click();
   await touch("touchStart",316/320);await expect(hero.getByTestId("inicio-net-date")).toContainText(/^13\b/);
   await touch("touchEnd",316/320);await expect(hero.getByTestId("inicio-net-date")).toHaveCount(0);await expect(amount).toHaveText(before);
