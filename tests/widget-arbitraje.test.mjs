@@ -194,6 +194,9 @@ public class WidgetSnapshotArbiterTest {
     ok(!oversized.journalFull); ok(oversized.journal.isEmpty()); eq(oversized.cash(),190);
     // INC-2909-01 E2: la ventana del widget (mes natural o ciclo desde el cobro).
     long day=86400000L, cobro=sep+25*day, oct3=oct+2*day;
+    // El plazo es local: 46 bloques de 24h aún caen en el día 45 al atrasar el reloj.
+    java.util.Calendar expired=java.util.Calendar.getInstance(); expired.setTimeInMillis(cobro);
+    expired.add(java.util.Calendar.DAY_OF_MONTH,46); long day46=expired.getTimeInMillis();
     ok(!WidgetPeriod.clientV2(0)); ok(!WidgetPeriod.clientV2(1)); ok(WidgetPeriod.clientV2(2));
     WidgetSnapshotArbiter.State crossing=base(cobro,"trade_republic");
     ok(WidgetSnapshotArbiter.app(crossing,cobro,100,1000,900.0,900.0,1000.0,"trade_republic","Cuenta","",""));
@@ -216,12 +219,12 @@ public class WidgetSnapshotArbiterTest {
     ok(!WidgetPeriod.acceptApp(0,"ciclo",cobro,oct3));     // APK/web antigua: nunca un ciclo
     ok(WidgetPeriod.acceptApp(2,"ciclo",cobro,oct3));      // el ciclo cruza el día 1
     ok(!WidgetPeriod.acceptApp(2,"ciclo",oct3+day,oct3));  // un cobro futuro no vale
-    ok(!WidgetPeriod.acceptApp(2,"ciclo",cobro,cobro+46*day));
+    ok(!WidgetPeriod.acceptApp(2,"ciclo",cobro,day46));
     ok(WidgetPeriod.current(2,"ciclo",cobro,oct3)==cobro);
-    ok(WidgetPeriod.current(2,"ciclo",cobro,cobro+46*day)==WidgetPeriod.monthStart(cobro+46*day));
+    ok(WidgetPeriod.current(2,"ciclo",cobro,day46)==WidgetPeriod.monthStart(day46));
     ok(!WidgetPeriod.stale(2,"ciclo",cobro,oct3));         // cambiar de mes no caduca el ciclo
     ok(WidgetPeriod.stale(0,"",sep,oct3));                 // el mes natural sí
-    ok(WidgetPeriod.stale(2,"ciclo",cobro,cobro+46*day));
+    ok(WidgetPeriod.stale(2,"ciclo",cobro,day46));
     // Un servidor de otra regla o ventana no pisa un widget v2.
     ok(WidgetPeriod.acceptServer(0,"",sep,0,"",sep,sep+10*day));
     ok(!WidgetPeriod.acceptServer(2,"ciclo",cobro,0,"",oct,oct3));
