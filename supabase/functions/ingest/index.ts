@@ -37,11 +37,12 @@ import {
 import { aEuros, parseWallet } from "../_shared/wallet.ts";
 import { claveEvento, esGemeloIngest, tieneGemeloAnterior } from "../_shared/ingest_identity.ts";
 import { bucketKey, callerIp, rateLimit } from "../_shared/ratelimit.ts";
+import { readInput } from "../_shared/request_body.ts";
 import { bancosDeGastoDiario, cuentaParaPresupuesto, filasComoLaApp, inicioDeMesMs, statsDelMes } from "../_shared/presupuesto.ts";
 import { readWidgetRows, widgetSnapshot, widgetStart } from "./widget.ts";
 // Comparación del token en tiempo constante (2026-07-24) y topes de entrada (SEC-01, 14/9): en _shared.
 import {
-  INGEST_MAX_BODY, INGEST_MAX_COMERCIO, INGEST_MAX_NOTA, INGEST_MAX_TEXTO, recortar, timingSafeEqual,
+  INGEST_MAX_COMERCIO, INGEST_MAX_NOTA, INGEST_MAX_TEXTO, recortar, timingSafeEqual,
 } from "../_shared/entrada.ts";
 
 function parseFecha(t: string): string {
@@ -95,17 +96,11 @@ Deno.serve(async (req) => {
     return json({ ok: false, error: "token inválido" }, 403);
   }
 
-  // 2) Parseo del cuerpo (JSON o form-urlencoded, compat MacroDroid)
-  //    TOPE (SEC-01, 14/9): una notificación son unos cientos de caracteres. Sin tope, quien tenga un
-  //    token podía mandar megas; se corta ANTES de leer el cuerpo si lo anuncia, y después si no.
-  const anunciado = Number(req.headers.get("content-length") || 0);
-  if (anunciado > INGEST_MAX_BODY) return json({ ok: false, error: "cuerpo demasiado grande" }, 413);
-  const raw = await req.text();
-  if (raw.length > INGEST_MAX_BODY) return json({ ok: false, error: "cuerpo demasiado grande" }, 413);
-  let data: Record<string, string> = {};
-  try { data = JSON.parse(raw); }
-  catch { data = Object.fromEntries(new URLSearchParams(raw)); }
-  if (!data || typeof data !== "object") data = {};
+  // La cuota preauth de IP es la única escritura permitida ante un cuerpo inválido:
+  // moverla después de buscar el token quitaría la defensa de fuerza bruta (SEC-01, 12/10).
+  const input = await readInput(req, "ingest");
+  if (!input.ok) return json({ ok: false, error: input.error }, input.status);
+  const data = input.body;
 
   const texto = recortar(data.texto || data.notiText || "", INGEST_MAX_TEXTO);
   const titulo = recortar(data.titulo || data.notiTitle || "", INGEST_MAX_TEXTO);

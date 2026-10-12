@@ -1,3 +1,13 @@
+## Entradas Edge · SEC-01 candidata de fuente
+
+Los catorce `supabase/functions/*/entrada.test.ts` y `_shared/request_body.test.ts` están en
+`denoEnLista` del runner. `tests/edge-input-handlers.test.mjs` carga los handlers reales con
+red y BD sintéticas y contrasta las respuestas legítimas con el blob beta `c5f62d66`; incluye
+invocaciones sin cuerpo, MacroDroid y redirecciones OAuth. `edge-input-mutations.test.mjs`
+retira reglas una a una en memoria y exige que la misma suite detecte el fallo; nunca modifica
+el checkout durante una mutación. Ambos están en `steps`. Inventario, límites preventivos,
+excepción de cuota preauth y limitaciones en [Setup Supabase](SETUP-SUPABASE.md#sec-01--entradas--candidata-de-fuente-del-12102026-sin-despliegue).
+
 ## Pantalla de entrada nueva · candidata4.26.117
 
 `beta-sources` fija como oráculo literal la nota 117 (es/en/ca, una tanda `splash-animado`, solo web y sin APK), su descriptor (script del `<head>`, CSS del splash, `#mc-load` con su vigilante y el efecto de `App` que monta las pestañas detrás de la cortina) y que NINGUNA huella ajena se mueve respecto a la beta 116 (`moved={}`), en particular la de `inc-2709-01-arranque-red`. Seis mutantes sobre la fuente real reabren la tanda. El Catálogo116 se lee de su commit inmutable (`f012fc05`). `e2e/splash.spec.mjs` comprueba que al levantarse la cortina las cuatro pestañas ya están montadas; `e2e/hist-visor.spec.mjs` espera con `expect.poll` a que la fila 30 acabe visible en vez de leer la opacidad a mitad de la transición. `Retiro117` fija que `bancos-sin-hueco` (aprobada el 12/10) sale del panel conservando nota, descriptor e historial, y que la huella de `widget-ciclo-puente` no cambia. `e2e/revisar-beta.spec.mjs` fija la cola con la nota 117 delante y sin esa tanda. No se ha probado en el móvil ni con la APK 54 compilada.

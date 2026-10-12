@@ -9,6 +9,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { ebApi, ebConfig, jsonResp, makeJWT, mapTransaction, fetchBankTransactions } from "../_shared/enablebanking.ts";
 import { withCors } from "../_shared/cors.ts";
+import { readInput } from "../_shared/request_body.ts";
 import { OB_DEMAND_MAX_PAGES, chunkCursor, demandPlan, demandReadComplete, nextChunkDays, ymdAddDays, ymdSpan } from "./demand-window.ts";
 
 /* Los movimientos crudos no salen a `app_events`. El diagnóstico temporal del signo de TR
@@ -96,7 +97,9 @@ Deno.serve(withCors(async (req: Request) => {
     // movimientos desde esa fecha (tope PSD2 ~90 días). Modo LECTURA PURA: NO toca saldos ni el
     // estado de los enlaces (a diferencia del sync normal). Solo devuelve las transacciones para
     // que la app enseñe un selector "elige qué gastos importar".
-    const body = await req.json().catch(() => ({}));
+    const input = await readInput(req, "bank-sync");
+    if (!input.ok) return jsonResp({ ok: false, error: input.error }, input.status);
+    const body = input.body;
     const dateFrom = (typeof body?.dateFrom === "string" && /^\d{4}-\d{2}-\d{2}$/.test(body.dateFrom))
       ? body.dateFrom : null;
     // Campo distinto de dateFrom a propósito: dateFrom abre el histórico de solo lectura
@@ -105,7 +108,7 @@ Deno.serve(withCors(async (req: Request) => {
     const recoverGaps = body?.recoverGaps === true;
     const hasAspspFilter = Array.isArray(body?.aspsps);
     const wantedAspsps = hasAspspFilter
-      ? body.aspsps.map((x: unknown) => String(x || "").trim().toLowerCase()).filter(Boolean).slice(0, 12)
+      ? (body.aspsps as string[]).map((x: unknown) => String(x || "").trim().toLowerCase()).filter(Boolean).slice(0, 12)
       : [];
 
     // OJO (bug CaixaBank 2026-07-11): también se devuelven los enlaces caducados/rotos, marcados

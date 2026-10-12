@@ -11,6 +11,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { categorizar } from "../_shared/ingest_logic.ts";
 import { withCors } from "../_shared/cors.ts";
 import { rateLimit } from "../_shared/ratelimit.ts";
+import { readInput } from "../_shared/request_body.ts";
 
 // Misma lista que CATEGORIES en src/modules/00-core.js (más "otros").
 // Si añades una categoría y no está aquí, la IA no puede devolverla — el test
@@ -74,11 +75,9 @@ Deno.serve(withCors(async (req: Request) => {
   const { data: { user }, error: uerr } = await supabase.auth.getUser();
   if (uerr || !user) return json({ ok: false, error: "auth" }, 401);
 
-  let merchant = "";
-  try {
-    const b = await req.json();
-    merchant = String((b && b.merchant) || "").trim().slice(0, 120);
-  } catch (_) { /* */ }
+  const input = await readInput(req, "categorize");
+  if (!input.ok) return json({ ok: false, error: input.error }, input.status);
+  const merchant = String(input.body.merchant).trim().slice(0, 120);
   if (!merchant) return json({ ok: false, error: "merchant" }, 400);
 
   const kw = categorizar(merchant);

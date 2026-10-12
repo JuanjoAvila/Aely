@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /** Ejecuta el handler REAL de ingest contra una BD en memoria: identidad, ACK y deduplicación. */
 import assert from "node:assert/strict";
+import { input } from "./helpers/edge-input.mjs";
 import fs from "node:fs";
 import { execFileSync } from "node:child_process";
 import { transformSync } from "esbuild";
@@ -137,7 +138,7 @@ function makeHandler(db, classifier=logic) {
     "widgetSnapshot", "widgetStart", "readWidgetRows",
     "INGEST_MAX_BODY", "INGEST_MAX_COMERCIO", "INGEST_MAX_NOTA", "INGEST_MAX_TEXTO", "recortar", "timingSafeEqual",
   ];
-  new Function(...names, handlerJs)(
+  new Function("readInput", ...names, handlerJs)(input.readInput,
     Deno, () => db, classifier.categorizar, classifier.clasificarConMotivo, logic.extraerComercio,
     logic.extraerConcepto, logic.extraerImporte, logic.extraerPersona, logic.limpiarTexto,
     wallet.aEuros, wallet.parseWallet, identity.claveEvento, identity.esGemeloIngest,

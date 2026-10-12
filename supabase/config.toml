@@ -10,6 +10,10 @@ verify_jwt = true
 [functions.categorize]
 verify_jwt = true
 
+# RGPD: explicita el valor por defecto; el handler conserva sesión y reautenticación.
+[functions.delete-account]
+verify_jwt = true
+
 # ingest: la llama MacroDroid (sin sesión) → sin JWT; se protege con INGEST_TOKEN propio.
 [functions.ingest]
 verify_jwt = false
