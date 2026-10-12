@@ -130,7 +130,7 @@ for(const reduced of [false,true]) test("dedo consulta y suelta "+reduced,async(
   // el bloque local, no toda la pantalla. El HTML servido sigue siendo el candidato real.
   await page.route("http://127.0.0.1:*/",async route=>{
     const response=await route.fetch(),html=await response.text();
-    const marker="function Dashboard({state, totals, budgetStreak, set, onOpenSettings, onOpenProfile, onGoGastos, onGoPlan, showToast}){";
+    const marker="function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGastos, onGoPlan, showToast}){";
     expect(html.split(marker)).toHaveLength(2);
     await route.fulfill({response,body:html.replace(marker,marker+"window.__v42DashboardRenders=(window.__v42DashboardRenders||0)+1;")});
   });

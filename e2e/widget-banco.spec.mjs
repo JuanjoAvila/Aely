@@ -263,7 +263,10 @@ for (const mode of ["new", "old-apk", "failed-read"]) {
     expect(snapshot.nativeCut).toBe(mode === "new" ? "4" : undefined);
     await page.waitForFunction(() => !document.getElementById("mc-load"));
     await dismissNews(page);
-    await expect(page.locator(".v4-budget .ph")).toContainText("Has gastado 5");
+    // Inicio 3b muestra lo disponible: el mismo gasto de5,45 debe dejar94,55 de100;
+    // conservar ambos importes evita que adaptar el texto oculte un descuadre del puente.
+    await expect(page.locator(".v42-cycle-amount > .num")).toHaveText("94,55 €");
+    await expect(page.locator(".v42-cycle-of")).toHaveText("de 100 €");
     if (mode === "new") {
       await expect.poll(() => page.evaluate(() => !!JSON.parse(localStorage.getItem("micartera_v3") || "{}").lastSync)).toBe(true);
       const lastSync = await page.evaluate(() => JSON.parse(localStorage.getItem("micartera_v3")).lastSync);
