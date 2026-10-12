@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "id": "backlog-estado-unico-codex-20261012",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261012-7c41a9d2",
+  "createdAt": "2026-10-12T08:14:35.759Z",
+  "to": "codex",
+  "baseSHA": "f695a299ba2d9402e40b81dbf5e5bffccdf3949c",
+  "objective": "docs/BACKLOG.md pesa 92 KB y mezcla fotos de un mes con estados contradictorios (filas que dicen pendiente de revisión de Cursor para cosas publicadas hace semanas). Cada chat que arranca en frío pierde tiempo y se equivoca. Dejar arriba del todo UNA tabla de estado vigente, verificada, y mover la historia a un archivo.",
+  "scope": [
+    "docs/BACKLOG.md y un docs/BACKLOG-HISTORIA.md nuevo; enlaces desde EMPIEZA-AQUI.md y README si citan secciones que se mueven",
+    "Solo documentación: nada de src, tests ni funciones, salvo que un guardián de docs exija registrar el fichero nuevo"
+  ],
+  "acceptance": [
+    "Tabla vigente con una fila por ID (FIN, OPS, SEC, UX, PRO, TEC, INC, DEC): estado real hoy entre abierto, en beta sin veredicto, en producción, cerrado o decisión del dueño; evidencia verificable (versión, PR o commit en beta o main) y siguiente paso en una frase",
+    "Cada estado comprobado contra el repo y GitHub, no copiado de la foto anterior. Lo que no se pueda verificar se marca como sin verificar, no se supone",
+    "No se pierde nada: todo el texto antiguo pasa íntegro al archivo de historia; rechazos del dueño y limitaciones abiertas siguen visibles en la tabla",
+    "docs-frescura y los demás guardianes de docs en verde en el SHA commiteado, en UTC y en hora local",
+    "Hacerlo después de ops-05-pr-abiertas-triaje o incorporando su resultado si ya está publicado"
+  ],
+  "restrictions": [
+    "Primer paso obligatorio: comprobar contra la cabeza fresca de beta que lo descrito sigue siendo cierto hoy; el backlog arrastra fotos antiguas. Si ya está hecho, result corto con la evidencia y se cierra",
+    "Datos sintéticos; repo público: sin datos personales, importes reales ni rutas locales",
+    "Sin merge ni push a beta o main; sin desplegar funciones; sin APK",
+    "Sin VERSION, catálogos de beta ni notas de versión: los pone la integración. Sí dejar en el result el porqué técnico para el CHANGELOG",
+    "RUNNER: este encargo NO usa el runner pesado local. Node y tests sueltos de Node, libres. La suite entera y Playwright los ejecuta la CI del PR en borrador contra beta: empujar la rama, abrir el PR en borrador y leer el job Tests. Un rojo en CI manda sobre un verde local",
+    "Beta avanzará a la 4.26.117 en breve: rebasar sobre la cabeza fresca antes de dar el result",
+    "Sin subir timeouts, reintentos ni topes de tamaño; cero dependencias nuevas",
+    "Result con SHA, nombre y EXIT real de cada prueba, mutaciones hechas y limitaciones. El coordinador encargará revisión independiente antes de integrar"
+  ],
+  "authorization": "Encargo del coordinador dentro del mandato del dueño del 11/10 (Codex ejecutor principal a pleno rendimiento) y de su orden del 12/10 de darle carga de todo tipo. Un chat por encargo; se pueden llevar varios en paralelo porque ninguno necesita el runner local."
+}
