@@ -1,0 +1,34 @@
+{
+  "schema": 1,
+  "id": "sec-01-revision-reservas-codex-20261012",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261012-7c41a9d2",
+  "createdAt": "2026-10-12T14:30:53.150Z",
+  "to": "codex",
+  "baseSHA": "c5f62d6603d016150afd9d0e20547b608b323045",
+  "objective": "Revisión independiente de PR 211 en db884002: GO CON RESERVAS. Confirmado con 97 cuerpos de compatibilidad y matrices propias: ninguna petición que hoy arman la web de beta, la de producción 111 o la APK 52 pasa a 4xx; bytes reales y corte de lectura correctos en las 14 funciones; cuerpo inválido sin efectos ni trazas; autenticación idéntica a beta; limitador de ingest en su sitio. Quedan estas reservas; mismo PR, mismo titular. Principio que las une: la validación corta lo ABSURDO (tamaño, tipo imposible), pero NO convierte en rechazo lo que beta aceptaba y procesaba con sentido.",
+  "scope": [
+    "supabase/functions/_shared/request_body.ts y los handlers afectados",
+    "tests Node y Deno de entradas",
+    "docs/SETUP-SUPABASE.md"
+  ],
+  "acceptance": [
+    "1 ALTA condicional, myinvestor-connect con OTP (request_body.ts hacia 90 a 92): exige que otpId, signatureRequestId y code sean cadenas no vacías o falten los tres. El cliente reenvía tal cual lo que devuelve el proveedor y beta los convertía con String: con otpId y signatureRequestId NUMÉRICOS beta responde 200 y la candidata 400; con signatureRequestId nulo beta reintenta el login sin OTP y la candidata da 400. No sabemos el tipo real que manda el proveedor: aceptar cadena o número, tratar nulo como ausente, y lo mismo con refreshExpiresIn nulo. Test con los cuerpos exactos",
+    "2 help-assistant: quitar la validación de language, que el servidor no usa; un idioma futuro o nulo no puede dar 400",
+    "3 ingest, la crítica: la APK descarta cualquier 4xx sin reintento y sin aviso, así que un 400 nuevo es un pago perdido en silencio. Los 400 nuevos frente a beta se eliminan volviendo al comportamiento tolerante de beta: texto vacío responde 200 omitido; fuente desconocida se trata como antes; fecha como número y evento nulo se toleran como antes; fecha de disparo no interpretable usa ahora, como antes. Regla: en ingest solo dan 4xx el tamaño excedido y el cuerpo que no es un objeto. Y todo descarte de ingest vuelve a dejar rastro en app_events con motivo y longitudes, sin contenido, como hacía beta. Test de paridad beta frente a candidata con esos cinco cuerpos",
+    "4 Rechazos nuevos sin beneficio, volver a la tolerancia de beta: bank-sync con dateFrom en formato ISO completo (recortar al día) y aspsps con elementos nulos (ignorarlos); prices con cuerpo no JSON (símbolos por defecto, como beta) y con un símbolo nulo o numérico (ignorarlo o convertirlo como antes); bank-connect con nombre vacío. Se mantienen los rechazos de tamaño y de tipo imposible",
+    "5 bank-callback: un POST con state caducado y cuerpo inválido debe seguir dando el 302 de caducado; la validación va después de comprobar la caducidad",
+    "6 Tests que maten las siete mutaciones supervivientes: valor de cada tope fijado por test (hoy todos leen la constante, subir bank-sync a 64 MiB no rompe nada); myinvestor-keepalive valida antes de comprobar la clave del cron; bank-callback valida antes de comprobar el state; bank-aspsps sin validar el país de la query; verify_jwt de delete-account en config.toml (test que lea el fichero); dateFrom; y bank-sync rechazando claves desconocidas: fija por test que acks, recoverGaps y cualquier clave extra siguen pasando, porque la rama de bancos añade acks",
+    "7 Compatibilidad con la rama de bancos (origin/claude/bancos-acuse-margen, 82042925): su helper tests/helpers/banco-sintetico.mjs quita los imports del handler e inyecta nombres y no inyecta readInput; deja anotado en el result el cambio exacto que habrá que hacer al juntarlas, y actualiza la tabla de márgenes de SETUP-SUPABASE con el cuerpo de bank-sync con acks de 12 bancos (unos 1,7 KiB, margen 9,6 veces: sube el tope de bank-sync a 32 KiB para mantener las diez veces)",
+    "8 Despliegue: antes de proponer rollback hay que saber qué hay desplegado. Añade al result una tabla por función con el SHA del último despliegue acreditable (runs de Deploy Supabase y sus imports), sin llamar a producción. Orden recomendado por el revisor, que adopto: aspsps, categorize, prices; help-assistant; myinvestor sync, disconnect y keepalive (vigilando el cron de 10 minutos tras desplegar); delete-account, bank-disconnect, bank-connect; bank-callback y bank-sync; myinvestor-connect; ingest la última, con un pago real de cada fuente después",
+    "Result con SHA, EXIT reales de Node y de la CI (Deno incluido), mutaciones, y los textos de error que cambian con el mismo status"
+  ],
+  "restrictions": [
+    "Sin desplegar nada; sin llamar a Supabase real",
+    "Sin merge ni push a beta o main; sin VERSION, catálogos ni notas",
+    "Datos sintéticos; nada de credenciales ni tokens en tests ni logs",
+    "Node libre; Deno por la CI con workflow_dispatch de Tests sobre la rama",
+    "No mover ningún limitador que proteja la autenticación"
+  ],
+  "authorization": "Encargo del coordinador; continuación de sec-01-edge-entradas. Mismo titular."
+}
