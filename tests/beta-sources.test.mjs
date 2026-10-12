@@ -48,7 +48,7 @@ const boot="inc-2709-01-arranque-red";
 const modern=[{v:"4.26.69",tandas:[{id:boot}]}];
 let failed=0;
 const inicioOnly=process.argv.includes("--inicio-v42-only");
-function test(name,fn){ if(inicioOnly&&!name.startsWith("Inicio v4.2 ")&&!name.startsWith("Catálogo114 ")&&!name.startsWith("Catálogo117 ")&&!name.startsWith("Retiro117 "))return;try{fn();console.log("  ✓ "+name);}catch(e){failed++;console.error("  ✗ "+name+"\n    "+e.message);} }
+function test(name,fn){ if(inicioOnly&&!name.startsWith("Inicio v4.2 ")&&!name.startsWith("Catálogo114 ")&&!name.startsWith("Catálogo117 ")&&!name.startsWith("Retiro117 ")&&!name.startsWith("Catálogo118 ")&&!name.startsWith("Splash117 "))return;try{fn();console.log("  ✓ "+name);}catch(e){failed++;console.error("  ✗ "+name+"\n    "+e.message);} }
 console.log("beta-sources");
 
 // La rayita comparte controlador y geometría con la barra: una aprobación de CSS aislada no
@@ -134,11 +134,10 @@ test("Inicio109 histórico vigila ausencia de fechas, moneda, escala y dibujo en
 // Este guardián de identidad no acredita por sí solo DOM ni aceptación de la corrección.
 test("Inicio v4.2 cubre flujos, ciclo, renderer, llamada, animación, textos, CSS y moneda vigentes",()=>{
   const id="inicio-grafica-vuelve",source=f=>read(f).replace(/\r\n/g,"\n"),scopes=JSON.parse(source("scripts/beta-sources.json")),scope=scopes[id],before=betaRevision(id,source);
-  // El rebase hereda las altas117; sólo el descriptor delegado de Inicio puede variar.
-  // Contrastar con114 aquí rechazaba esas altas y no vigilaba la base integrada actual.
-  const integrated=JSON.parse(sourceAt("c5f62d6603d016150afd9d0e20547b608b323045")("scripts/beta-sources.json"));
-  assert.deepEqual(Object.keys(scopes),Object.keys(integrated),"Inicio no añade ni retira alcances117");
-  for(const [key,value] of Object.entries(integrated))if(key!==id)assert.deepEqual(scopes[key],value,key+": descriptor ajeno117 intacto");
+  // La base118 incorpora el cargo único; el rebase no puede retirarlo ni heredar su revisión.
+  const integrated=JSON.parse(source118("scripts/beta-sources.json"));
+  assert.deepEqual(Object.keys(scopes),Object.keys(integrated),"Inicio no añade ni retira alcances118");
+  for(const [key,value] of Object.entries(integrated))if(key!==id)assert.deepEqual(scopes[key],value,key+": descriptor ajeno118 intacto");
   assert.equal(scope.unidades,true);
   for(const key of ["historial","auditoria","codigosCompatibles","compatibilidadGit","compatibilidadSha"])
     assert.equal(scope[key],undefined,"no hereda identidad anterior: "+key);
@@ -760,9 +759,9 @@ test("Splash117 conserva descriptor vivo, mutantes y retirada del panel",()=>{
   assert.equal(receipt.web[id],before.web,"la tanda vigente usa la fuente actual");
 });
 
-test("Inicio v4.2 integra117 con catálogo intacto y lista cerrada de huellas web",()=>{
-  const integrated=JSON.parse(source117("scripts/beta-sources.json"));
-  const expectedNotes=JSON.parse(source117("src/data/release-notes.json"));
+test("Inicio v4.2 integra118 con catálogo intacto y lista cerrada de huellas web",()=>{
+  const integrated=JSON.parse(source118("scripts/beta-sources.json"));
+  const expectedNotes=JSON.parse(source118("src/data/release-notes.json"));
   const expectedMoves={
     "inc-3009-01-cargos":"mcSaveRaw separa el historial compartido con las cuentas",
     "fin05-widget-reentrada":"mcSaveRaw conserva cierres al volver del widget",
@@ -790,17 +789,18 @@ test("Inicio v4.2 integra117 con catálogo intacto y lista cerrada de huellas we
     "inicio-grafica-vuelve":"Descriptor propio de la serie por flujos, los rangos y el ciclo v4.2",
     "widget-pago-app-cerrada":"mcSaveRaw cambia el escritor compartido; APK y guion intactos",
     "bancos-sin-hueco":"mcSaveRaw cambia el escritor compartido con la recuperación bancaria",
-    "widget-ciclo-puente":"mcSaveRaw cambia su web pendiente; APK y pasos de prueba no cambian"
+    "widget-ciclo-puente":"mcSaveRaw cambia su web; APK y pasos de prueba no cambian",
+    "recibos-cargo-unico":"mcSaveRaw cambia el escritor compartido del cargo único integrado en118"
   };
   const previous=new Map();
   const measure=source=>{
     const scopes=JSON.parse(source("scripts/beta-sources.json")),moved={};
-    assert.deepEqual(Object.keys(scopes),Object.keys(integrated),"sin altas ni retiros de alcances117");
+    assert.deepEqual(Object.keys(scopes),Object.keys(integrated),"sin altas ni retiros de alcances118");
     for(const [id,scope] of Object.entries(integrated)){
-      if(id!=="inicio-grafica-vuelve")assert.deepEqual(scopes[id],scope,id+": descriptor ajeno117 intacto");
+      if(id!=="inicio-grafica-vuelve")assert.deepEqual(scopes[id],scope,id+": descriptor ajeno118 intacto");
       // El rechazo109 usa su pin histórico, nunca un bloque retirado del renderer actual.
-      if(id===archiveId){assert.deepEqual(auditedRevision(id,source),auditedRevision(id,source117));continue;}
-      if(!previous.has(id))previous.set(id,betaRevision(id,source117,undefined,scope));
+      if(id===archiveId){assert.deepEqual(auditedRevision(id,source),auditedRevision(id,source118));continue;}
+      if(!previous.has(id))previous.set(id,betaRevision(id,source118,undefined,scope));
       const a=previous.get(id),b=betaRevision(id,source,undefined,scopes[id]);
       const surfaces=["web","native","edge"].filter(s=>a[s]!==b[s]);
       if(surfaces.length)moved[id]=surfaces;
@@ -808,7 +808,7 @@ test("Inicio v4.2 integra117 con catálogo intacto y lista cerrada de huellas we
     return moved;
   };
   const verify=(source,expected=expectedMoves)=>{
-    assert.deepEqual(JSON.parse(source("src/data/release-notes.json")),expectedNotes,"catálogo117 literal, sin resucitar tandas");
+    assert.deepEqual(JSON.parse(source("src/data/release-notes.json")),expectedNotes,"catálogo118 literal, sin resucitar tandas");
     assert.deepEqual(JSON.parse(source("scripts/beta-archives.json")),archiveRefs,"sin repinar el rechazo109");
     for(const [id,why] of Object.entries(expected))assert.ok(typeof why==="string"&&why.trim(),id+": motivo explícito");
     const wanted=Object.fromEntries(Object.keys(expected).map(id=>[id,["web"]]));
@@ -826,7 +826,7 @@ test("Inicio v4.2 integra117 con catálogo intacto y lista cerrada de huellas we
   // Deshacer el escritor demuestra la otra dirección con una mutación real de fuente:
   // sus consumidores ya no se mueven, y la lista que aún los declara tiene que fallar.
   const core="src/modules/00-core.js",writer=scopeText({file:core,function:"mcSaveRaw"},source);
-  const priorWriter=scopeText({file:core,function:"mcSaveRaw"},source117);
+  const priorWriter=scopeText({file:core,function:"mcSaveRaw"},source118);
   const reverted=f=>f===core?source(f).replace(writer,priorWriter):source(f);
   assert.equal(measure(reverted)["widget-ciclo-puente"],undefined,"sin el escritor nuevo el puente deja de moverse");
   assert.throws(()=>verify(reverted),/lista cerrada/,"una huella declarada que deja de moverse pone rojo");
@@ -836,14 +836,14 @@ test("Inicio v4.2 integra117 con catálogo intacto y lista cerrada de huellas we
     assert.equal(receipt.pruebas[id],undefined,id+": no se vuelve a pedir al dueño");
   }
   const splash="splash-animado";
-  assert.deepEqual(betaRevision(splash,source,undefined,scopes[splash]),betaRevision(splash,source117,undefined,integrated[splash]),"el OK del splash no se reinicia por arrastre");
-  const widget="widget-ciclo-puente",now=betaRevision(widget,source,undefined,scopes[widget]),then=betaRevision(widget,source117,undefined,integrated[widget]);
+  assert.deepEqual(betaRevision(splash,source,undefined,scopes[splash]),betaRevision(splash,source118,undefined,integrated[splash]),"el OK del splash no se reinicia por arrastre");
+  const widget="widget-ciclo-puente",now=betaRevision(widget,source,undefined,scopes[widget]),then=betaRevision(widget,source118,undefined,integrated[widget]);
   assert.notEqual(now.web,then.web,"el escritor nuevo exige revisar la web pendiente del widget");
   assert.equal(now.native,then.native,"ningún cambio de APK por esta revisión");
-  const original=betaDelivery(betaNotes(expectedNotes,source117,integrated),source117,integrated);
+  const original=betaDelivery(betaNotes(expectedNotes,source118,integrated),source118,integrated);
   assert.deepEqual(receipt.pruebas[widget],original.pruebas[widget],"el guion del widget se conserva, sin darlo por aprobado");
 });
-if(inicioOnly)process.exit(failed?1:0);
+
 test("Bienes113 vigila la puerta vacía, ficha, cancelación, borrado y textos",()=>{
   const source=f=>read(f).replace(/\r\n/g,"\n"),id="bienes-completo",before=betaRevision(id,source).web;
   for(const [file,from,to] of [
@@ -1150,6 +1150,7 @@ test("Retiro119 elimina solo recibos-cargo-unico y conserva todo el historial",(
   assert.equal(receipt.web[id],betaRevision(id,read,undefined,scopes[id]).web,"el producto sigue íntegro");assert.equal(receipt.pruebas[id],undefined,"el guion aprobado no permanece marcado");
 });
 
+if(inicioOnly)process.exit(failed?1:0);
 if(process.argv.includes("--integration-only")) process.exit(failed?1:0);
 
 // La revisión debe invalidarse si vuelve la columna ajena o cambia el periodo o la cifra.
