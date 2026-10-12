@@ -1285,6 +1285,19 @@ function App(){
     });
   },[state.expenses, state.debts, state.cuotaNo, state.cuotaAlias]);
 
+  /* Cargos de recibo (12/10/2026). El sync ya marca lo que trae; esta pasada cubre lo demás: un
+     cargo que entró pendiente y ya está contabilizado, lo que llega de otro móvil o lo importado
+     antes de existir la marca. Mismo patrón que las cuotas: null cuando no hay nada nuevo. La
+     marca viaja en `source`, así que se sube con el método que ya reescribe ese campo. */
+  useEffect(function(){
+    const r=marcarCargosDeRecibo(stateRef.current);
+    if(!r) return;
+    set(function(prev){ const r2=marcarCargosDeRecibo(prev); return r2 ? r2.state : prev; });
+    if(cloud.enabled()) r.marcadas.forEach(function(e){
+      cloud.setExpenseBank(e, e.ent).catch(function(err){ cloud.logEvent("error","setExpenseBank: "+keyOfExpense(e), _errCloudMsg(err)); });
+    });
+  },[state.expenses, state.fixed, state.oneoffs, state.bankTx, state.reciboNo]);
+
   const [showAuth,setShowAuth]=useState(false);
   const [recovery,setRecovery]=useState(false);
   const [drawerOpen,setDrawerOpen]=useState(false);
@@ -1995,7 +2008,7 @@ function App(){
   // dinero de verdad (parte gorda del «se ralentiza cuanto más la uso» — 2026-07-24).
   },[state.accounts,state.expenses,state.bankTx,state.investments,state.assets,state.debts,state.fixed,
      state.flows,state.oneoffs,state.deleted,state.aportaciones,state.obAccounts,
-     state.trRewardsTotal,state.fx,state.fxRates,calendarDay]);
+     state.trRewardsTotal,state.fx,state.fxRates,state.reciboNo,calendarDay]);
 
   const budgetMonth=budgetYmKey();
   useEffect(function(){

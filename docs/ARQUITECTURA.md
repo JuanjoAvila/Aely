@@ -252,16 +252,22 @@ es lo que pinta «Saldo actualizado»: `last_sync` puede ir por detrás). En `im
 anterior al margen se apunta con su fecha real pero no compra participaciones, y casa contra todo
 lo modelado, toque o no este mes.
 
-**El cargo de un recibo entra en Gastos, sin contar (12/10/2026).** El adeudo que casa con un
-recibo o un puntual del Plan (mismo banco, nombre e importe parecidos) ya no se descarta: entra
-con `reciboId`, tanto en el sync diario (`importObExpenses`) como en «Importar histórico»
-(`histClassifyCandidates` lo da como fila nueva y marcada). `expenseCountsCash` deja esa fila
-fuera de todas las cifras (gastado, presupuesto, saldo, redondeo) con cualquier rol de banco,
-porque el recibo ya resta por calendario en `monthNetForAccount`. La marca viaja en `source`
+**El cargo de un recibo entra en Gastos, sin contar (12/10/2026).** Ningún cargo del banco se
+descarta ya por parecerse a un recibo: todos entran, en el sync diario (`importObExpenses`) y en
+«Importar histórico». Lleva `reciboId` solo el cargo con el que `fixedPaymentState` da por pagado
+ese recibo (`cargosDeReciboPorMarcar`): mismo banco, nombre del recibo dentro del comercio por
+palabras completas, uno por recibo y mes, y ninguno si el motor ve empate. Los puntuales, que no
+tienen motor de pago, usan banco, mes, nombre por palabras, importe parecido y candidato único.
+Lo que entró sin marca (un cargo pendiente, una fila de otro móvil) lo marca después la pasada
+`marcarCargosDeRecibo`. `cargoDeRecibo(e, s)` es la puerta única: devuelve el recibo vivo o null
+(si la fila es además cuota gana la deuda; un recibo borrado o un veto anulan la marca), y la
+usan `expenseCountsCash`, el cajón, el anclaje de `applyBankBalances`, el cierre de
+`reconcileTR`, el redondeo de Cartera, la foto del hogar e Inicio. La marca viaja en `source`
 como `ob:<ent>~recibo.<id>` u `ob-hist:<ent>~recibo.<id>`: una app anterior o el servidor del
-widget leen un banco inexistente y la excluyen sin conocerla, igual que con `~deuda.`. La ficha
-del gasto dice a qué recibo corresponde y «No es este recibo» quita la marca. El pago del
-recibo se acredita por los caminos de siempre (`fixedPaymentState`).
+widget leen un banco inexistente y la excluyen sin conocerla, igual que con `~deuda.`. «No es
+este recibo» (`quitarCargoDeRecibo`) quita la marca, guarda el veto en `state.reciboNo` (viaja
+con el estado) y retira la prueba de pago: el cargo cuenta como gasto y el recibo vuelve a
+pendiente salvo que otro cargo lo pague.
 
 La misma frontera rige el sync diario: `app_events` puede guardar el banco, una clase estable y
 recuentos agregados, pero nunca transacciones ni campos del proveedor. El volcado temporal usado

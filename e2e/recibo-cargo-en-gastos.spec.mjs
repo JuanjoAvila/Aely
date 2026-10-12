@@ -65,6 +65,14 @@ for (const lang of ["es", "en", "ca"]) {
     await expect.poll(() => page.evaluate(() => (mcLoadRaw(mcStateKey()).bankTx || []).length)).toBe(2);
     await cierraInforme(page);
 
+    // Inicio lo enseña igual que Gastos: atenuado y diciendo de qué recibo es.
+    await page.locator('.botnav-tab[data-tour="inicio"]').click();
+    const enInicio = page.locator("div.v4-mov").filter({ hasText: "COMUNIDAD DE PROPIETARIOS" });
+    await expect(enInicio).toHaveCount(1);
+    await expect(enInicio).toHaveClass(/v4-mov-skip/);
+    await expect(enInicio).toContainText(textos.de);
+    await expect(page.locator("div.v4-mov").filter({ hasText: "Panadería Sol" })).not.toHaveClass(/v4-mov-skip/);
+
     await page.locator('.botnav-tab[data-tour="gastos"]').click();
     const cargo = fila(page, "COMUNIDAD DE PROPIETARIOS");
     await expect(cargo).toHaveCount(1);
@@ -72,9 +80,13 @@ for (const lang of ["es", "en", "ca"]) {
     await expect(cargo).toContainText(textos.de);
     // La compra normal del mismo sync sí suma: la cifra se mueve 3,40 y ni un céntimo más.
     await expect(fila(page, "Panadería Sol")).not.toHaveClass(/v4-mov-skip/);
-    const cifras = await page.evaluate(() => { const s = mcLoadRaw(mcStateKey()); return { spent: monthBudgetStats(s).spent, neto: monthNetForAccount(s, "sabadell", 2026, 9, 26) }; });
+    const cifras = await page.evaluate(() => { const s = mcLoadRaw(mcStateKey()); const i = insumosSaldoGasto(s);
+      return { spent: monthBudgetStats(s).spent, neto: monthNetForAccount(s, "sabadell", 2026, 9, 26),
+        saldo: saldoCuentaMostrada(s.accounts[0], { injTR: i.injTR, spentByBank: i.spentByBank, paidNetByBank: i.paidNetByBank, roundup: i.roundup, monthlyInvest: i.monthlyInvest }) }; });
     expect(cifras.spent).toBeCloseTo(23.4, 2);
     expect(cifras.neto).toBe(-50);
+    // El saldo que queda tras sincronizar es el que dice el banco, no el banco más el recibo.
+    expect(cifras.saldo).toBeCloseTo(1900, 2);
     expect(await gastado(page)).toContain("23,40");
 
     // La ficha dice a qué recibo corresponde y deja corregirlo.
@@ -84,7 +96,16 @@ for (const lang of ["es", "en", "ca"]) {
     await expect(page.locator('[data-testid="exp-recibo-marca"]')).toContainText("Comunidad");
     await expect(page.locator('[data-testid="exp-recibo-no"]')).toHaveText(textos.no);
     await page.locator('[data-testid="exp-recibo-no"]').click();
+    // El cargo pasa a contar como un gasto más y deja de pagar el recibo: no cuenta en los dos sitios.
     await expect.poll(() => page.evaluate(() => monthBudgetStats(mcLoadRaw(mcStateKey())).spent)).toBeCloseTo(73.4, 2);
+    const tras = await page.evaluate(() => { const s = mcLoadRaw(mcStateKey()); return { marcadas: s.expenses.filter((e) => e.reciboId).length, veto: (s.reciboNo || []).length, pagado: fixedPaymentState(s, s.fixed[0], 2026, 9, 26).paid }; });
+    expect(tras).toEqual({ marcadas: 0, veto: 1, pagado: false });
+    await expect(page.locator('[data-testid="exp-recibo-marca"]')).toHaveCount(0);
+    await page.locator(".v4-sheet-back").last().click({ position: { x: 5, y: 5 } });
+    await expect(fila(page, "COMUNIDAD DE PROPIETARIOS")).not.toHaveClass(/v4-mov-skip/);
+    await page.locator('.botnav-tab[data-tour="plan"]').click();
+    await expect(page.locator('div[data-seg="recibos"]')).toContainText("Comunidad");
+    await expect(page.locator('div[data-seg="recibos"] .v4-paid').filter({ hasText: "Comunidad" })).toHaveCount(0);
   });
 }
 
@@ -129,4 +150,16 @@ test("Importar histórico: el cargo de un recibo sale marcado y con su nombre, n
   await expect(overlay.locator('[data-cand="sb-com"][data-dest="gasto"]')).toHaveCount(1);
   await expect(overlay.locator('[data-cand="sb-com"][data-dest="recibo"]')).toHaveCount(0);
   await expect(overlay.locator('[data-cand="nf1"][data-dest="recibo"]')).toHaveCount(1);
+
+  // Y se importa de verdad. La nube de pruebas no confirma lotes, así que aquí confirma todos:
+  // lo que se comprueba es la fila que la pantalla manda y la que se queda en el móvil.
+  await page.evaluate(() => { cloud.addExpensesBatch = async (lista) => { window.__lote = lista.map((e) => expenseSourceForCloud(e)); return { cloudIds: lista.map((e) => e.id), offline: false }; }; });
+  await overlay.getByRole("button", { name: /Importar 2/ }).click();
+  await expect(page.locator(".hist-import")).toHaveCount(0, { timeout: 10_000 });
+  await expect.poll(() => page.evaluate(() => mcLoadRaw(mcStateKey()).expenses
+    .filter((e) => e.source === "ob-hist").map((e) => e.merchant + "|" + (e.reciboId || "-")).sort()), { timeout: 15_000 })
+    .toEqual(["COMUNIDAD DE PROPIETARIOS|com", "Netflix|-"]);
+  expect((await page.evaluate(() => window.__lote)).sort()).toEqual(["ob-hist:sabadell", "ob-hist:sabadell~recibo.com"]);
+  // Solo recibos: el gastado es el de Netflix si ese banco cuenta, y nunca los 50 € del recibo.
+  expect(await page.evaluate(() => monthBudgetStats(mcLoadRaw(mcStateKey())).spent)).toBeCloseTo(13, 2);
 });

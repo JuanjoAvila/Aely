@@ -1730,12 +1730,18 @@ function reciboSufijo(reciboId){
   return id ? "~recibo."+id : "";
 }
 /* Parte el tramo de banco de un `source` OB: «sabadell~deuda.x» → {ent:"sabadell", debtId:"x"};
-   «sabadell~recibo.y» → {ent:"sabadell", reciboId:"y"}. Una fila lleva una marca o la otra. */
+   «sabadell~recibo.y» → {ent:"sabadell", reciboId:"y"}. Las marcas se leen en cualquier orden:
+   una app anterior que marca como cuota una fila de recibo sube «sabadell~recibo.y~deuda.x» (para
+   ella el banco ES «sabadell~recibo.y»). Si vienen las dos GANA LA DEUDA, igual que al subir
+   (`expenseSourceForCloud`) y en local (`marcarCuotaAMano`): es lo que la persona dijo a mano. */
 function partirEntDeuda(tramo){
-  const s=String(tramo||""), i=s.indexOf("~deuda."), j=s.indexOf("~recibo.");
-  if(i>=0) return { ent:s.slice(0,i)||null, debtId:s.slice(i+7)||null, reciboId:null };
-  if(j>=0) return { ent:s.slice(0,j)||null, debtId:null, reciboId:s.slice(j+8)||null };
-  return { ent:s||null, debtId:null, reciboId:null };
+  const partes=String(tramo||"").split("~");
+  let debtId=null, reciboId=null;
+  partes.slice(1).forEach(function(p){
+    if(p.indexOf("deuda.")===0) debtId=p.slice(6)||null;
+    else if(p.indexOf("recibo.")===0) reciboId=p.slice(7)||null;
+  });
+  return { ent:partes[0]||null, debtId:debtId, reciboId:debtId?null:reciboId };
 }
 /* Codifica el banco en `source` de la tabla (sin migración SQL): ob:caixa, ob-hist:sabadell,
    macrodroid (= Trade Republic). Así el filtro por banco sobrevive a reinstalaciones. */
@@ -2395,6 +2401,10 @@ function refreshExpenseFromCloud(local, incoming, readStartedAt){
   /* Cuota de deuda (4.21.0): la marca que baja se adopta; una fila de la nube SIN marca no borra
      la local — el upsert con ignoreDuplicates puede dejar la fila vieja de la nube sin el sufijo. */
   if(incoming.debtId) put("debtId", incoming.debtId);
+  /* Cargo de recibo (12/10/2026): la marca que baja se adopta, como la de la cuota. Una fila de
+     la nube sin marca tampoco borra la local; la RETIRADA viaja por `reciboNo` en el estado, y
+     `cargoDeRecibo` la respeta aunque esta fila siga marcada aquí. */
+  if(incoming.reciboId && !incoming.debtId && !local.debtId) put("reciboId", incoming.reciboId);
   if(!local.noteEdited && Object.prototype.hasOwnProperty.call(incoming,"note")) put("note", incoming.note);
   /* NO realinear `id` aquí: settings.expenseOrder indexa por id local, y en OB el uuid de la
      nube suele diferir (ignoreDuplicates). Cambiarlo huérfana el orden a mano (4.19.74). Tanda

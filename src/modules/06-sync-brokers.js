@@ -678,9 +678,10 @@ function InvestmentRewards({state,set}){
   // render. La referencia de expenses solo cambia cuando de verdad cambia el historial.
   const rewardsAuto=useMemo(function(){
     if(!trAcc) return {ru:0,sb:0};
-    const monthExp=(state.expenses||[]).filter(function(e){ return dateMs(e.date)>=monthStartMs; });
+    // El cargo de un recibo no es una compra: sin esto el redondeo estimado subía con cada recibo.
+    const monthExp=(state.expenses||[]).filter(function(e){ return dateMs(e.date)>=monthStartMs && !cargoDeRecibo(e, state); });
     return {ru:roundupOf(monthExp,trAcc.roundup||0),sb:trAcc.saveback?savebackOf(monthExp):0};
-  },[state.expenses,monthStartMs,trAcc&&trAcc.roundup,trAcc&&trAcc.saveback]);
+  },[state.expenses,state.fixed,state.oneoffs,state.reciboNo,monthStartMs,trAcc&&trAcc.roundup,trAcc&&trAcc.saveback]);
   if(!trAcc) return null;
   const setTr=function(patch){ set(function(s){ return Object.assign({},s,{accounts:s.accounts.map(function(a){ return a.spendFrom?Object.assign({},a,patch):a; })}); }); };
   const setTot=function(v){ set(function(s){ return Object.assign({},s,{trRewardsTotal:v}); }); };

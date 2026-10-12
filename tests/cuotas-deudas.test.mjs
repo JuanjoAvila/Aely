@@ -145,7 +145,8 @@ t("★ sale del GASTADO, pero el saldo de gasto NO se mueve", () => {
 });
 
 t("importObExpenses no tira la deuda casada por nombre ni el Fijo: cada uno entra con su marca", () => {
-  const tx = (merchant, amount) => ({ ent: "sabadell", id: null, date: iso(Y, M, 1).slice(0, 10), amount, merchant, note: "", card: false, status: "" });
+  // Contabilizado: el recibo solo se marca con el cargo que el motor da por pagado.
+  const tx = (merchant, amount) => ({ ent: "sabadell", id: null, date: iso(Y, M, 1).slice(0, 10), amount, merchant, note: "", card: false, status: "BOOK" });
   const s = estado([], { fixed: [{ id: "f1", name: "Endesa", amount: 60, account: "sabadell", freq: "mes", day: 1 }] });
   const add = cli.importObExpenses(s, [tx("RECIBO HIPOTECA", 660.85), tx("ENDESA ENERGIA", 60)]);
   assert.equal(JSON.stringify(add.map((e) => [e.merchant, e.reciboId || null])), JSON.stringify([["RECIBO HIPOTECA", null], ["ENDESA ENERGIA", "f1"]]));

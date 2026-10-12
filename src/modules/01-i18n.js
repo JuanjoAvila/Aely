@@ -203,7 +203,7 @@ const LANG = {
     f_receipt_none:"No hay recibos pendientes de ese mes que puedan vincularse a este cargo.",
     f_receipt_confirm:"Confirmar pago de {name}", f_receipt_confirm_sub:"Cargo: {merchant} · {amount} · {bank} · {date}. Previsto: {expected} · {planned}. Confirma solo si este cargo paga el recibo completo, aunque el importe haya variado. Si es parcial, cancela. El importe previsto, el saldo y el presupuesto se conservan.",
     f_receipt_yes:"Confirmar pago completo", f_receipt_unlink:"Deshacer vínculo",
-    f_recibo_marca:"Es el cargo de tu recibo «{name}». Sale aquí para que lo veas, pero no suma al gastado ni vuelve a restar del saldo: ya está contado en tu Plan.", f_recibo_no:"No es este recibo",
+    f_recibo_marca:"Es el cargo de tu recibo «{name}»: ya está contado en tu Plan y aquí no suma otra vez.", f_recibo_no:"No es este recibo",
     f_from_bank:"Lo trajo una notificación de {bank}", f_from_bank_sub:"{date} · «{raw}» · el banco fija el importe y la cuenta",
     f_trace_missing:"— texto original no disponible",
     f_locked_toast:"El banco fija el importe, la cuenta y si entra o sale dinero. La categoría sí se puede corregir aquí.",
@@ -517,7 +517,7 @@ const LANG = {
     f_receipt_none:"No unpaid bills for that month can be linked to this charge.",
     f_receipt_confirm:"Confirm payment of {name}", f_receipt_confirm_sub:"Charge: {merchant} · {amount} · {bank} · {date}. Expected: {expected} · {planned}. Confirm only if this charge pays the full bill, even if the amount has changed. Cancel for a partial payment. The expected amount, balance and budget stay unchanged.",
     f_receipt_yes:"Confirm full payment", f_receipt_unlink:"Undo link",
-    f_recibo_marca:"This is the charge for your bill “{name}”. It shows here so you can see it, but it doesn’t add to your spending or come off your balance again: it’s already counted in your Plan.", f_recibo_no:"Not this bill",
+    f_recibo_marca:"This is the charge for your bill “{name}”: it’s already counted in your Plan and isn’t added again here.", f_recibo_no:"Not this bill",
     f_from_bank:"This came from a {bank} notification", f_from_bank_sub:"{date} · “{raw}” · the bank sets the amount and account",
     f_trace_missing:"— original text unavailable",
     f_locked_toast:"The bank sets the amount, account and money direction. You can correct the category here.",
@@ -820,7 +820,7 @@ const LANG = {
     f_receipt_none:"No hi ha rebuts pendents d'aquell mes que es puguin vincular a aquest càrrec.",
     f_receipt_confirm:"Confirmar pagament de {name}", f_receipt_confirm_sub:"Càrrec: {merchant} · {amount} · {bank} · {date}. Previst: {expected} · {planned}. Confirma només si aquest càrrec paga el rebut complet, encara que l'import hagi variat. Si és parcial, cancel·la. Es conserven l'import previst, el saldo i el pressupost.",
     f_receipt_yes:"Confirmar pagament complet", f_receipt_unlink:"Desfer vincle",
-    f_recibo_marca:"És el càrrec del teu rebut «{name}». Surt aquí perquè el vegis, però no suma al que has gastat ni torna a restar del saldo: ja està comptat al teu Pla.", f_recibo_no:"No és aquest rebut",
+    f_recibo_marca:"És el càrrec del teu rebut «{name}»: ja està comptat al teu Pla i aquí no torna a sumar.", f_recibo_no:"No és aquest rebut",
     f_from_bank:"Ho va portar una notificació de {bank}", f_from_bank_sub:"{date} · «{raw}» · el banc fixa l'import i el compte",
     f_trace_missing:"— text original no disponible",
     f_locked_toast:"El banc fixa l'import, el compte i si entren o surten diners. La categoria sí que es pot corregir aquí.",
@@ -1835,7 +1835,7 @@ Object.assign(LANG.es,{
   // Por qué un movimiento no se come el presupuesto (2026-08-17). Van en la línea pequeña de la
   // fila, así que cortos; el filtro usa los mismos cajones con nombre largo (g_bk_*).
   g_skip_neutra:"no es un gasto", g_skip_otrobanco:"no es del día a día",
-  g_skip_posible:"tócalo: ¿mismo o distinto?", g_skip_deuda:"ya cuenta en el Plan", g_skip_recibo:"es un recibo de tu Plan", g_recibo_de:"Recibo: {name}", g_filters_debts:"Cuotas", g_cuota_de:"Es la cuota de…",
+  g_skip_posible:"tócalo: ¿mismo o distinto?", g_skip_deuda:"ya cuenta en el Plan", g_recibo_de:"Recibo: {name}", g_filters_debts:"Cuotas", g_cuota_de:"Es la cuota de…",
   g_dup_title:"¿Es el mismo movimiento?",
   g_dup_sub:"El banco lo trajo otra vez sin nombre. Si es el mismo que ya tenías, se queda el que tiene el comercio bien puesto. Si son dos cargos distintos, los dos cuentan.",
   g_dup_same:"Es el mismo",
@@ -1940,7 +1940,7 @@ Object.assign(LANG.en,{
   g_month:"This month", g_last:"Last month", g_cycle:"My cycle", g_3m:"Last 3 months", g_all:"All", g_custom:"Range…", g_allcats:"All",
   g_no_budget:"doesn't count",
   g_skip_neutra:"not spending", g_skip_otrobanco:"not day-to-day",
-  g_skip_posible:"tap: same or different?", g_skip_deuda:"already in your Plan", g_skip_recibo:"a bill in your Plan", g_recibo_de:"Bill: {name}", g_filters_debts:"Your debt payments", g_cuota_de:"It’s the payment for…",
+  g_skip_posible:"tap: same or different?", g_skip_deuda:"already in your Plan", g_recibo_de:"Bill: {name}", g_filters_debts:"Your debt payments", g_cuota_de:"It’s the payment for…",
   g_dup_title:"Is this the same movement?",
   g_dup_sub:"The bank brought it again with no name. If it's the same one you already have, the one with the real merchant stays. If they are two different charges, both count.",
   g_dup_same:"Same one",
@@ -2044,7 +2044,7 @@ Object.assign(LANG.ca,{
   g_month:"Aquest mes", g_last:"Mes passat", g_cycle:"El meu cicle", g_3m:"Últims 3 mesos", g_all:"Tot", g_custom:"Rang…", g_allcats:"Totes",
   g_no_budget:"no afecta",
   g_skip_neutra:"no és una despesa", g_skip_otrobanco:"no és del dia a dia",
-  g_skip_posible:"toca'l: mateix o diferent?", g_skip_deuda:"ja compta al Pla", g_skip_recibo:"és un rebut del teu Pla", g_recibo_de:"Rebut: {name}", g_filters_debts:"Quotes dels teus deutes", g_cuota_de:"És la quota de…",
+  g_skip_posible:"toca'l: mateix o diferent?", g_skip_deuda:"ja compta al Pla", g_recibo_de:"Rebut: {name}", g_filters_debts:"Quotes dels teus deutes", g_cuota_de:"És la quota de…",
   g_dup_title:"És el mateix moviment?",
   g_dup_sub:"El banc l'ha tornat a portar sense nom. Si és el mateix que ja tenies, es queda el que té el comerç ben posat. Si són dos càrrecs diferents, els dos compten.",
   g_dup_same:"És el mateix",
@@ -3153,11 +3153,11 @@ function expenseCountsCash(e, s){
   if(!e) return false;
   // Posible repetido: no mueve saldo ni presupuesto hasta que él diga «son distintos».
   if(e.possibleDup) return false;
-  /* El cargo de un recibo del Plan (`reciboId`, 12/10/2026) se ve en la lista pero no mueve
+  /* El cargo de un recibo del Plan (`cargoDeRecibo`, 12/10/2026) se ve en la lista pero no mueve
      NINGUNA cifra, sea cual sea el rol del banco: el recibo ya resta por calendario
      (`monthNetForAccount`) y esta fila antes ni existía. Dejarla contar lo restaría dos veces
      en un banco «para todo» (medido: +importe al gastado y −importe al saldo). */
-  if(e.reciboId) return false;
+  if(cargoDeRecibo(e, s)) return false;
   /* La cuota de una deuda (`debtId`, 4.21.0) NO sale de aquí a propósito: en la cuenta de gasto
      diario ya resta hoy como cualquier cargo (`paidNet` vale 0 ahí) y `applyBankBalances` ancla el
      saldo contando con ella. Sacarla haría saltar el saldo hasta el siguiente anclaje — el
@@ -3204,15 +3204,29 @@ function expenseBucket(e, s){
     return "ingreso";
   }
   if(e.debtId) return "deuda";        // cuota de una deuda: ya cuenta en el Plan (4.21.0)
-  if(e.reciboId) return "recibo";
+  if(cargoDeRecibo(e, s)) return "recibo";
   if(CAT_NEUTRAS[e.category]) return "neutra";
   if(!expenseCountsCash(e, s)) return "otrobanco";
   return "cuenta";
 }
-// Nombre del recibo (o puntual) del Plan al que corresponde un cargo; "" si ya no existe.
+/* ¿ESTE CARGO ES EL DE UN RECIBO DEL PLAN? → el recibo (o puntual), o null (12/10/2026).
+   LA puerta única: la usan las cifras (`expenseCountsCash`), el cajón, el anclaje del saldo, el
+   cierre de mes, el redondeo, la foto del hogar y lo que se pinta. La marca sola no basta:
+   · si la fila es además cuota de una deuda, gana la deuda;
+   · si el recibo ya no existe, la fila es un gasto normal (antes seguía fuera del gastado y la
+     ficha enseñaba un texto roto);
+   · si él dijo «no es este recibo» (`reciboNo`, que viaja en el estado), deja de serlo también
+     en el móvil que todavía tiene la fila marcada. */
+function cargoDeRecibo(e, s){
+  if(!e || !e.reciboId || e.debtId || !s) return null;
+  const id=e.reciboId;
+  const f=(s.fixed||[]).find(function(x){ return x && x.id===id; }) || (s.oneoffs||[]).find(function(x){ return x && x.id===id; });
+  if(!f || reciboVetado(s, id, fixedPaymentIdentity(expenseBankOf(e), e))) return null;
+  return f;
+}
+// Nombre del recibo al que corresponde un cargo; "" si no es de ninguno.
 function reciboNombre(s, e){
-  if(!e || !e.reciboId) return "";
-  const f=((s&&s.fixed)||[]).concat((s&&s.oneoffs)||[]).find(function(x){ return x && x.id===e.reciboId; });
+  const f=cargoDeRecibo(e, s);
   return (f && f.name) || "";
 }
 // Cambia el ROL de una cuenta re-anclando `value` para que el saldo mostrado no cambie (se
@@ -3315,7 +3329,9 @@ function reconcileTR(s){
   let guard=0;
   while(mk(ay,am) < cmKey && guard<120){
     const key=mk(ay,am);
-    const monthExp=s.expenses.filter(e=> mkOf(parseDate(e.date))===key);
+    // Sin el cargo de un recibo: `monthNetForAccount` ya lo arrastra más abajo, y con la fila
+    // dentro una cuenta «para todo» lo restaba dos veces al cruzar de mes (revisión del 12/10/2026).
+    const monthExp=s.expenses.filter(e=> mkOf(parseDate(e.date))===key && !cargoDeRecibo(e, s));
     /* Cada cuenta se come SUS compras (FIN-01, 2026-09-09). Antes `spent` sumaba el mes ENTERO
        y se lo restaba a la cuenta de gasto diario sin mirar `e.ent`: una compra pagada del sobre
        de efectivo —o un recibo de Sabadell— bajaba Trade Republic, y el sobre no arrastraba nada
@@ -3496,7 +3512,8 @@ function detectSubscriptions(expenses){
   const groups={};
   (expenses||[]).forEach(function(e){
     if(!(e.amount>0)) return; const k=catKey(e.merchant); if(!k) return;
-    // Lo que ya es un recibo del Plan no se vuelve a proponer como suscripción nueva.
+    // Lo que ya es un recibo del Plan no se vuelve a proponer como suscripción nueva. Aquí no
+    // hay estado a mano: vale la marca a secas, que es solo una sugerencia que deja de salir.
     if(e.reciboId) return;
     const mkey=mkOf(parseDate(e.date));
     const g=(groups[k]=groups[k]||{name:e.merchant||k,cat:e.category,byMonth:{}});
