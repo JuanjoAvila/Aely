@@ -14,6 +14,9 @@ import org.json.JSONObject;
 import java.text.NumberFormat;
 import java.util.Calendar;
 import java.util.Locale;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 /**
  * Avisos de recibos LA VÍSPERA con la app CERRADA (petición 2026-07-18: «como los updates»).
@@ -55,7 +58,10 @@ public class AlertCheckWorker extends Worker {
             JSONArray charges = cal.optJSONArray("charges");
             if (ym.isEmpty() || charges == null) return;
 
-            Calendar tomorrow = Calendar.getInstance();
+            Calendar today = Calendar.getInstance();
+            String todayDate = String.format(Locale.ROOT, "%04d-%02d-%02d", today.get(Calendar.YEAR),
+                    today.get(Calendar.MONTH) + 1, today.get(Calendar.DAY_OF_MONTH));
+            Calendar tomorrow = (Calendar) today.clone();
             tomorrow.add(Calendar.DAY_OF_MONTH, 1);
             String tomYm = String.format(Locale.ROOT, "%04d-%02d",
                     tomorrow.get(Calendar.YEAR), tomorrow.get(Calendar.MONTH) + 1);
@@ -75,9 +81,20 @@ public class AlertCheckWorker extends Worker {
                 sp.edit().putBoolean(key, true).apply();
                 String name = c.optString("name", "Recibo");
                 double amt = c.optDouble("amount", 0);
-                Notif.show(ctx, "Mañana toca recibo",
-                        name + ": mañana se cobran " + eur(amt) + ". Si algo no cuadra, aún estás a tiempo.",
-                        NOTIF_BASE + (Math.abs(id.hashCode()) % 900));
+                String title = "Mañana toca recibo";
+                String body = name + ": mañana se cobran " + eur(amt) + ". Si algo no cuadra, aún estás a tiempo.";
+                JSONObject optional = c.optJSONObject("balanceNotice");
+                if (optional != null) {
+                    Map<String, Object> notice = new HashMap<>();
+                    for (Iterator<String> keys = optional.keys(); keys.hasNext();) {
+                        String field = keys.next();
+                        notice.put(field, optional.opt(field));
+                    }
+                    String[] rendered = ReceiptBalanceNotice.render(notice, todayDate,
+                            tomYm + "-" + String.format(Locale.ROOT, "%02d", tomDom), ym, tomDom, name, amt);
+                    if (rendered != null) { title = rendered[0]; body = rendered[1]; }
+                }
+                Notif.show(ctx, title, body, NOTIF_BASE + (Math.abs(id.hashCode()) % 900));
             }
         } catch (Exception e) {
             Log.w("MiCartera", "AlertCheck.check: " + e.getMessage());

@@ -122,6 +122,8 @@ miles y decimales del idioma sin rebajar silenciosamente una aportación.
 
 ## Plan y recibos v4.1 (4.26.8)
 
+La candidata PRO-03 transmite el resultado conservador de `receiptAlertBalance` mediante el campo opcional `balanceNotice` del calendario nativo. El cálculo se ejecuta en web con el mínimo de Plan y consenso de pagos; el worker valida fecha, banco y céntimos y sólo presenta el resultado. El contrato y sus límites de frescura/compatibilidad están en [SETUP-ANDROID](SETUP-ANDROID.md#candidata-pro-03-previsión-en-el-aviso-de-recibos). El modo pruebas corta los dos efectos de envío y el productor.
+
 `planChargesMonth` en `08-motor-bank.js` es la fuente única para separar cargos pagados,
 pendientes, deudas, traspasos e ingresos del mes. Es un helper puro: Plan (`14-v4-screens.js`) y
 Pregúntame (`16-help-assistant.js`) consumen el mismo resultado, de modo que el anillo, la cuenta
