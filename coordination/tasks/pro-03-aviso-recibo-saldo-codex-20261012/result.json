@@ -1,0 +1,103 @@
+{
+  "status": "blocked",
+  "summary": "Candidato web revisable en PR209. CI exacta roja por catálogo/identidad, VERSION y tamaño; navegador sin ejecutar. Integración bloqueada.",
+  "tests": [
+    {
+      "command": "node tests/receipt-alert-balance.test.mjs",
+      "exitCode": 0,
+      "passed": 12
+    },
+    {
+      "command": "node tests/i18n-keys.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "vm.Script de todos los módulos fuente (sin build)",
+      "exitCode": 0
+    },
+    {
+      "command": "node --check e2e/receipt-alert-balance.spec.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/guard-privacy.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/docs-frescura.test.mjs",
+      "exitCode": 1
+    },
+    {
+      "command": "CI Tests: node scripts/run-tests.mjs",
+      "exitCode": 1
+    },
+    {
+      "command": "CI receipt-alert-balance",
+      "exitCode": 0,
+      "passed": 12
+    },
+    {
+      "command": "CI beta-sources",
+      "exitCode": 1
+    },
+    {
+      "command": "CI docs-frescura",
+      "exitCode": 1
+    },
+    {
+      "command": "CI presupuesto-rendimiento",
+      "exitCode": 1
+    },
+    {
+      "command": "CI ingest-deno (siete suites)",
+      "exitCode": 0
+    }
+  ],
+  "productSHA": "ab6ffa04f85606c6e0e0f2e9a9830140830bc97d",
+  "baseSHA": "f695a299ba2d9402e40b81dbf5e5bffccdf3949c",
+  "testedBetaSHA": "c5f62d6603d016150afd9d0e20547b608b323045",
+  "branch": "codex/pro03-recibo-saldo",
+  "pullRequest": 209,
+  "ci": {
+    "runId": 38224813138,
+    "jobId": 114729604902,
+    "headSHA": "ab6ffa04f85606c6e0e0f2e9a9830140830bc97d",
+    "conclusion": "failure",
+    "job": "test",
+    "exitCode": 1,
+    "logRead": "completo: 3387 líneas, 291771 bytes",
+    "playwright": "not executed: prior failed gates",
+    "privacyStep": "skipped"
+  },
+  "mutations": [
+    "src/modules/11-app-main.js",
+    "src/modules/01-i18n.js",
+    "tests/receipt-alert-balance.test.mjs",
+    "e2e/receipt-alert-balance.spec.mjs",
+    "scripts/run-tests.mjs",
+    "scripts/relevant-tests.mjs",
+    "docs/TESTING.md"
+  ],
+  "technicalRationale": "El aviso web usa totals.bankBal y llama a bankPendingEvents/minWalk vigentes, sin editar08/00: saldo del banco propio a fecha del cargo, incluidos anteriores y del mismo día. Recorre céntimos; eur conserva moneda de visualización. Datos ausentes o inválidos mantienen texto original. No cambia funciones de pago, timing, dedupe ni intercambio de sellos. es/en/ca con mismos placeholders.",
+  "limitations": [
+    "Catálogo117 detecta cambio real de huella web en inc-0210-01-plan-cuota; no se repina ni modifica el catálogo para ocultarlo. Retiro117 pasa.",
+    "docs-frescura exige VERSION nuevo fuera de beta; el encargo prohíbe bump y notas.",
+    "Presupuesto-rendimiento supera dos límites: minificado1300/1298KB y gzip355/355KB redondeados en log. Topes intactos. No se atribuye a baseline sin comparación.",
+    "Cuatro casos de navegador registrados pero sin ejecución; no hay GO DOM ni móvil.",
+    "AlertCheckWorker Java redacta el texto original y setAlertData puede emitir antes de web. Parte nativa fuera del encargo: requeriría contrato/calendario, Java y APK verificada. No cambio Java.",
+    "Rebase final sobre beta117 c5f62d66 sin cambios; 12 pruebas Node repetidas. Recibos revisión2 aún no integrado en esa cabeza: rebasar y validar al entrar.",
+    "No build, suite entera, Playwright, Gradle ni lock pesado local. CI generó bundle en remoto; public local intacto.",
+    "Sin VERSION, notas, catálogo, descriptores, topes, merge beta/main, deploy, backend, APK, cierre PR ni borrado de ramas/worktrees. Revisión independiente, integración y publicación pendientes."
+  ],
+  "released": true,
+  "repository": "JuanjoAvila/Aely",
+  "schema": 1,
+  "taskId": "pro-03-aviso-recibo-saldo-codex-20261012",
+  "actor": "codex",
+  "sessionId": "codex-local-20261012-2c5d4fc77414",
+  "createdAt": "2026-10-12T09:07:28.586Z"
+}
