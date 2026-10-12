@@ -1,3 +1,5 @@
+Candidato sin publicar: la vigencia web/nativa de Mi ciclo se rige por [WIDGET-CICLO](WIDGET-CICLO.md). Sin cambio de contrato del puente; el cambio Java requiere APK nueva.
+
 # Arquitectura — Aely
 
 ## InicioAhora y archivo109 · versión4.26.112 del canal beta

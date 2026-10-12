@@ -202,15 +202,16 @@ test("con Mi ciclo activo el widget sigue en su mes natural, que es lo que dicen
 /* INC-2909-01: un widget que declara el contrato v2 recibe la ventana y la cifra de Inicio:
    el ciclo desde el cobro en neto (sin la nómina que lo abre) o el mes en bruto, y su idioma.
    La ventana en app_state prepara un contrato futuro; ingest activo sigue siendo legado. */
-async function bridgeV2(page) {
-  await page.addInitScript(() => {
+async function bridgeV2(page, versionCode = 54) {
+  await page.addInitScript(versionCode => {
     window.Capacitor = { isNativePlatform: () => false, Plugins: {
       MiCartera: new Proxy({ updateWidget: async data => { window.__widgetSnapshot = data; (window.__widgetCalls||(window.__widgetCalls=[])).push(data); },
         widgetContract: async () => ({ v: 2 }),
+        appInfo: async () => ({ versionCode }),
         addListener: async () => ({ remove() {} }) },
       { get: (target, key) => target[key] || (() => Promise.resolve({})) }),
     } };
-  });
+  }, versionCode);
 }
 
 for (const mode of ["new", "old-apk", "failed-read"]) {
@@ -318,13 +319,13 @@ for(const lang of ["es","en","ca"]) test(`Widget80: pull antiguo no suma una ret
   await expect(page.locator(".v4-budget .v4-ring")).toHaveText("90%");
   expect(await page.evaluate(()=>window.__widgetCalls.every(x=>x.spent===100))).toBe(true);
 });
-for (const caso of [{ lang: "es" }, { lang: "en" }, { lang: "ca" }]) {
-  test(`E2: widget v2 con Mi ciclo recibe la ventana y el neto de Inicio (${caso.lang})`, async ({ page }) => {
+for (const versionCode of [53,54]) for (const caso of [{ lang: "es" }, { lang: "en" }, { lang: "ca" }]) {
+  test(`E2: widget APK ${versionCode} con Mi ciclo recibe la ventana y el neto de Inicio (${caso.lang})`, async ({ page }) => {
     await page.clock.install({ time: new Date("2026-09-27T10:00:00Z") });
     await seedLoggedInDashboard(page, { __seedOnce: true, budget: 1000, expenses: CICLO,
       accounts: [{ id: "tr", ent: "trade_republic", role: "diario", spendFrom: true, value: 2000 }],
       settings: { autoPrices: false, lang: caso.lang, gTotalMode: "net", budgetCycle: true, expenseBanks: ["trade_republic"] } });
-    await bridgeV2(page);
+    await bridgeV2(page, versionCode);
     await page.goto("/");
     await expect.poll(() => page.evaluate(() => window.__widgetSnapshot?.periodKind)).toBe("ciclo");
     const snap = await page.evaluate(() => window.__widgetSnapshot);
@@ -335,7 +336,9 @@ for (const caso of [{ lang: "es" }, { lang: "en" }, { lang: "ca" }]) {
     expect(snap.spent).toBe(500);            // 600 − 100; la nómina abre el ciclo y la compra del día 2 es del anterior
     expect(snap.budgetLeft).toBe(500);
     expect(snap.scope).toBeTruthy();
-    expect(snap.periodStart).toBe(await page.evaluate(() => new Date(2026, 8, 5).getTime()));
+    const start=await page.evaluate(() => new Date(2026, 8, 5).getTime());
+    expect(snap.periodStart).toBe(start+(versionCode===53?0.5:0));
+    expect(JSON.parse(snap.scope)[1]).toBe(start);
     // `ingest` seguirá esta ventana con la app cerrada, sin sumar la nómina.
     await expect.poll(() => page.evaluate(() => {
       const s = JSON.parse(localStorage.getItem("micartera_v3") || "{}");
@@ -347,6 +350,24 @@ for (const caso of [{ lang: "es" }, { lang: "en" }, { lang: "ca" }]) {
     await expect(page.locator(".v4-budget .ph")).toContainText("500");
   });
 }
+
+for(const day of [45,46]) test(`Mi ciclo día ${day}: Inicio y payload acuerdan el periodo`,async({page})=>{
+  await page.clock.install({time:new Date(day===45?"2026-10-04T23:30:00":"2026-10-05T00:30:00")});
+  await seedLoggedInDashboard(page,{__seedOnce:true,budget:1000,
+    accounts:[{id:"tr",ent:"trade_republic",role:"diario",spendFrom:true,value:2000}],
+    settings:{autoPrices:false,budgetCycle:true,expenseBanks:["trade_republic"]},
+    expenses:[
+      {id:"salary",date:"2026-08-20T00:30:00",amount:-1800,merchant:"NOMINA SINTETICA",category:"ingreso",ent:"trade_republic"},
+      {id:"purchase",date:"2026-09-02T12:00:00",amount:140,merchant:"Compra sintética",category:"super",ent:"trade_republic"}
+    ]});
+  await bridgeV2(page);await page.goto("/");
+  await expect.poll(()=>page.evaluate(()=>window.__widgetSnapshot?.periodKind)).toBe(day===45?"ciclo":"mes");
+  const snap=await page.evaluate(()=>window.__widgetSnapshot),spent=day===45?140:0;
+  expect(snap.spent).toBe(spent);expect(snap.budgetLeft).toBe(1000-spent);
+  expect(snap.periodStart).toBe(await page.evaluate(day=>day===45?new Date(2026,7,20).getTime():inicioDeMesMs(Date.now()),day));
+  await page.waitForFunction(()=>!document.getElementById("mc-load"));await dismissNews(page);
+  await expect(page.locator(".v4-budget .ph")).toContainText(String(spent));
+});
 
 test("v2 sin Mi ciclo recibe el mes en bruto", async ({ page }) => {
   await page.clock.install({ time: new Date("2026-09-27T10:00:00Z") });
