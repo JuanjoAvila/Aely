@@ -1,0 +1,8 @@
+{
+  "schema": 1,
+  "taskId": "inc-2709-08-brokers-orden-y-despliegue-codex-20261012",
+  "actor": "codex",
+  "sessionId": "codex-local-20261012-brokers-0f562b6a9960",
+  "createdAt": "2026-10-12T14:21:35.474Z",
+  "baseSHA": "c5f62d6603d016150afd9d0e20547b608b323045"
+}
