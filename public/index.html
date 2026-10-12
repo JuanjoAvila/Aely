@@ -10479,7 +10479,14 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   const [expenseRetry,setExpenseRetry]=useState(null);
   useEffect(function(){
     let signature=JSON.stringify(expenseWrites.map(function(op){ return [op.opId,op.id,op.label,op.status]; }));
-    const update=function(){ const ops=cloud.expenseWrites(),next=JSON.stringify(ops.map(function(op){ return [op.opId,op.id,op.label,op.status]; }));
+    const update=function(event){
+      // La ficha abierta debe seguir al UUID acreditado: conservar el id anterior
+      // dejaría el editor sin movimiento y podría mantener su bloqueo del scroll.
+      if(event && event.oldId!==event.id && (event.type==="identity" || event.type==="ack")){
+        setDetailId(function(id){ return id===event.oldId?event.id:id; });
+        setEditExp(function(e){ return e&&e.id===event.oldId?Object.assign({},e,{id:event.id}):e; });
+      }
+      const ops=cloud.expenseWrites(),next=JSON.stringify(ops.map(function(op){ return [op.opId,op.id,op.label,op.status]; }));
       if(next===signature) return; signature=next; setExpenseWrites(ops.slice()); };
     const off=mcOnExpenseWrites(update); window.addEventListener("storage",update); update();
     return function(){ off(); window.removeEventListener("storage",update); };
@@ -22256,7 +22263,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="3f89b3c8577ff8d7f3a11e93f1a0c8bc5057ba9bf13ac75617d2106b7c6178bf";
+var _rnSha="2e3006f16b96a26c2a9e18acf24ecc8fcad33844cf88643ed721b3d40c7f61b3";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){

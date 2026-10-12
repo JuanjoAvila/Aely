@@ -6,9 +6,9 @@ async function enter(page){
   await page.goto('/');await expect(page.locator('.botnav')).toBeVisible();await dismissNews(page);
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
 }
-async function setup(page,lang='es',source='manual',mode='zero'){
+async function setup(page,lang='es',source='manual',mode='zero',localId=id){
   await seedLoggedInDashboard(page,{__seedOnce:true,
-    expenses:[{id,date,merchant:'Fixture café',amount:12,category:'bares',source,ent:'trade_republic',possibleDup:source==='ob'?true:undefined}],
+    expenses:[{id:localId,date,merchant:'Fixture café',amount:12,category:'bares',source,ent:'trade_republic',possibleDup:source==='ob'?true:undefined}],
     __cloudRows:{expenses:[{id,user_id:'e2e-user',fecha:date,comercio:'Fixture café',importe:12,cat:'bares',source:source+':trade_republic'+(source==='ob'?'#dup':''),nota:null,nota_edit:false,no_card:false}]},
     accounts:[{id:'fixture-tr',ent:'trade_republic',name:'Cuenta de prueba',role:'diario',value:100},{id:'fixture-rev',ent:'revolut',name:'Otra cuenta de prueba',role:'diario',value:100}],
     settings:{lang,autoPrices:false,budgetCycle:false,expenseBanks:['trade_republic','revolut']}});
@@ -112,4 +112,13 @@ test('borrar y recargar antes del plazo retoma el borrado sin Reintentar',async(
  await page.waitForTimeout(5100);
  await expect(page.getByTestId('expense-pending')).toHaveCount(0);await expect(row(page)).toHaveCount(0);
  expect(await page.evaluate(()=>window.__e2eCloudRows.expenses.length)).toBe(0);
+});
+test('la ficha abierta sigue al UUID realineado y permite cerrarla',async({page})=>{
+ await setup(page,'es','ob','ok','legacy-fixture');await row(page).click();
+ await page.locator('.v4-ficha-adjust-row').filter({hasText:await page.evaluate(()=>t('f_note_row'))}).click();
+ await page.locator('.v4-exp-note-in').fill('Nota con identidad exacta');await page.locator('.v4-exp-note-in').blur();
+ await expect.poll(()=>page.evaluate(()=>window.__e2eCloudRows.expenses[0].nota)).toBe('Nota con identidad exacta');
+ await expect(page.locator('.v4-exp-sheet')).toBeVisible();await close(page);await expect(page.locator('.v4-exp-sheet')).toHaveCount(0);
+ await expect(page.locator('.v4-gastos-list-body [data-expense-id="'+id+'"]').first()).toContainText('Fixture café');
+ await expect(row(page)).toHaveCount(1);await expect(page.getByTestId('expense-pending')).toHaveCount(0);
 });

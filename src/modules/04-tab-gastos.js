@@ -125,7 +125,14 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   const [expenseRetry,setExpenseRetry]=useState(null);
   useEffect(function(){
     let signature=JSON.stringify(expenseWrites.map(function(op){ return [op.opId,op.id,op.label,op.status]; }));
-    const update=function(){ const ops=cloud.expenseWrites(),next=JSON.stringify(ops.map(function(op){ return [op.opId,op.id,op.label,op.status]; }));
+    const update=function(event){
+      // La ficha abierta debe seguir al UUID acreditado: conservar el id anterior
+      // dejaría el editor sin movimiento y podría mantener su bloqueo del scroll.
+      if(event && event.oldId!==event.id && (event.type==="identity" || event.type==="ack")){
+        setDetailId(function(id){ return id===event.oldId?event.id:id; });
+        setEditExp(function(e){ return e&&e.id===event.oldId?Object.assign({},e,{id:event.id}):e; });
+      }
+      const ops=cloud.expenseWrites(),next=JSON.stringify(ops.map(function(op){ return [op.opId,op.id,op.label,op.status]; }));
       if(next===signature) return; signature=next; setExpenseWrites(ops.slice()); };
     const off=mcOnExpenseWrites(update); window.addEventListener("storage",update); update();
     return function(){ off(); window.removeEventListener("storage",update); };
