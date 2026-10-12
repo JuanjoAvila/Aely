@@ -10,6 +10,10 @@ const c=createLogicSandbox();
 const files=fs.readdirSync(new URL("../src/modules/",import.meta.url)).filter(f=>/^0\d-/.test(f)).sort();
 vm.runInNewContext(files.map(f=>read("src/modules/"+f)).join("\n"),c);
 vm.runInContext(app.slice(0,app.indexOf("function App(){")),c);
+c.Date=class extends Date {
+  constructor(...args){super(...(args.length?args:[Date.parse("2026-09-26T12:00:00Z")]));}
+  static now(){return Date.parse("2026-09-26T12:00:00Z");}
+};
 const bill={id:"target",name:"Recibo sintético",amount:89.54,account:"sabadell",day:28,freq:"mes"};
 const state=(patch={})=>Object.assign({accounts:[{id:"sb",ent:"sabadell",value:100,role:"fijos"},{id:"rv",ent:"revolut",value:9000,role:"fijos"}],fixed:[bill],debts:[],oneoffs:[],flows:[],expenses:[],bankTx:[],deleted:[],settings:{}},patch);
 const totals=(patch={})=>Object.assign({curYear:2026,curMonth:9,today:26,bankBal:{sabadell:100,revolut:9000}},patch);
@@ -21,6 +25,14 @@ test("banco propio, céntimos y cero como saldo conocido",()=>{
   assert.equal(balance().amount,10.46);assert.equal(balance().enough,true);
   const b=balance(state(),totals({bankBal:{sabadell:0,revolut:9000}}));
   assert.equal(b.enough,false);assert.equal(b.amount,89.54);
+});
+test("parte del saldo mostrado por la fórmula actual de cuentas",()=>{
+  const s=state({expenses:[{id:"spend",date:"2026-09-26",amount:20,ent:"revolut",category:"super"}],settings:{expenseBanks:["revolut"]}});
+  const ins=c.insumosSaldoGasto(s),bankBal={};
+  s.accounts.forEach(a=>{bankBal[a.ent]=(bankBal[a.ent]||0)+c.saldoCuentaMostrada(a,{
+    injTR:ins.injTR,spentByBank:ins.spentByBank,paidNetByBank:ins.paidNetByBank,
+    roundup:ins.roundup,monthlyInvest:ins.monthlyInvest});});
+  assert.equal(balance(s,totals({bankBal})).amount,10.46);
 });
 test("otro banco no paga el déficit ni sus cargos se descuentan",()=>{
   const s=state({fixed:[bill,{...bill,id:"other-bank",account:"revolut",amount:7000,day:27},{...bill,id:"prior",amount:20.47,day:27}]});
