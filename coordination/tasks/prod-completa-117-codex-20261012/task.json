@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "id": "prod-completa-117-codex-20261012",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261012-7c41a9d2",
+  "createdAt": "2026-10-12T08:42:09.405Z",
+  "to": "codex",
+  "baseSHA": "c5f62d6603d016150afd9d0e20547b608b323045",
+  "objective": "PRIORIDAD 1, por delante de todo lo demás. El dueño ha dicho el 12/10 que ha aprobado todo lo que hay en beta, que el widget le funciona, y que se suba a producción. En el panel constan aprobadas splash-animado (117), widget-ciclo-puente y bancos-sin-hueco (116), inicio-solape-gastos (114) y las de la 113. Preparar la promoción COMPLETA de la beta 4.26.117 (c5f62d66) a main, que hoy está en 4.26.111 (b2dfd2c0) con 30 commits propios de promociones selectivas, sin perder nada de main y sin subir nada que no esté aprobado.",
+  "scope": [
+    "Rama nueva desde la cabeza de beta y PR contra main (ese PR sí dispara Tests solo)",
+    "Lo que haga falta para reconciliar main: guardianes, catálogos y descriptores de beta-sources, beta-delivery, release-notes, docs de versión (CHANGELOG, README, ROADMAP, BACKLOG)",
+    "public/apk.json y build.gradle solo como se indica abajo",
+    "Sin tocar producto: ni src/modules ni funciones ni Java, salvo conflicto de reconciliación demostrado y mínimo"
+  ],
+  "acceptance": [
+    "INVENTARIO PRIMERO, en un message antes de tocar nada: (a) cada cambio de producto que beta tiene y main no, con su tanda y el veredicto del dueño que lo cubre (scripts/errores.mjs con kind beta); (b) cualquier cosa de beta SIN aprobación vigente o con rechazo vigente; (c) de los 30 commits que main tiene y beta no, cuáles ya están en beta por contenido y cuáles hay que portar. Si (b) no está vacío, consulta antes de seguir",
+    "Caso conocido de (b): la tanda inc-0810-inicio-grafica-significado de la 109 fue RECHAZADA y el dueño pide retirarla del panel porque Inicio se ha rehecho. Comprobar si su texto explicativo sigue vivo en el código de beta o lo sustituyó la 113/114: decirlo con fichero y línea. Retirarla del panel conservando nota, descriptor e historial y el rechazo en el registro; no borrar producto por iniciativa propia",
+    "Integración sin pérdida: nada de fusionar con preferencia automática por un lado. Portar a la rama lo que solo exista en main y cerrar con una fusión que deje a main en avance rápido; diff final contra main y contra beta revisado a mano en CHANGELOG, release-notes y guardianes, que es donde se pierden cosas",
+    "Panel: todas las tandas aprobadas y entregadas salen del panel; al terminar no queda ninguna prueba pendiente que ya esté aprobada, y ninguna aprobada reaparece",
+    "Nota de versión para la familia: UNA entrada que cuente en cristiano lo que se nota de la 112 a la 117, en es, en y ca, sin cocina ni jerga. Versión de producción que proponga el circuito habitual, justificada",
+    "ANDROID: la parte nativa del widget exige la APK con versionCode 54 o superior y la familia tiene la 52. main no puede apuntar apk.json a un fichero que no exista como asset estable. Proponer el orden exacto (web compatible con la APK 52 mientras llega la nueva; compilar la APK estable firmada; publicar el asset; apk.json al asset real) y demostrar con test que la web nueva no empeora el widget de quien siga con la APK 52. La compilación y publicación de la APK NO es de este encargo: la autoriza y lanza el coordinador",
+    "SERVIDOR: decir qué funciones Edge necesita esta web y si lo desplegado hoy las cubre (bank-sync de la ronda 3 se desplegó el 11/10 desde la rama de bancos); orden funciones antes que cliente si aplica. No desplegar",
+    "CI completa del PR contra main en verde sobre el SHA exacto, incluido docs-frescura en el SHA commiteado y test:syntax tras la fusión. El job tests de la beta 117 (run 38222778497) seguía en curso al publicar esto: si acaba en rojo, se lee y se cuenta antes de seguir",
+    "Result con SHA, id del run, lista de lo que sube y pasos posteriores para el coordinador: fusión, espera de Pages, puente del repositorio antiguo, APK, y renumeración de beta"
+  ],
+  "restrictions": [
+    "NO fusionar el PR, no empujar a main ni a beta, no lanzar Promote, Deploy ni Publicar BETA, no compilar ni publicar APK, no tocar el repositorio puente: todo eso lo hace el coordinador tras revisión independiente",
+    "Datos sintéticos; repo público: sin datos personales, importes reales ni rutas locales",
+    "No tocar applicationId ni la firma",
+    "Runner pesado local: este encargo tiene prioridad en la cola por delante de Inicio; pedir ventana por message si de verdad hace falta además de la CI",
+    "Sin subir timeouts, reintentos ni topes de tamaño salvo el mínimo medido que exija la reconciliación, con su comentario",
+    "Un chat propio; reclamar antes de empezar"
+  ],
+  "authorization": "Orden directa del dueño del 12/10 al coordinador: todo lo de beta está aprobado y puede gestionarse su subida a producción. La fusión a main y los pasos externos se los reserva el coordinador."
+}
