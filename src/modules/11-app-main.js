@@ -565,6 +565,9 @@ function App(){
         // EXCEPCIÓN CLAVE (fresh login): al INICIAR SESIÓN (móvil nuevo / reinstalado) la nube es la
         // verdad SIEMPRE. Sin esto, una cartera vacía recién creada podía "ganar" y machacar la nube.
         set(function(prev){
+          // Cerrar sesión mientras llega el pull no autoriza aplicar una cartera vieja
+          // ni sustituir los 400 cierres locales por la ventana corta de nube.
+          if(!sessionRef.current||!sessionRef.current.user||sessionRef.current.user.id!==u)return prev;
           const merged=mergeExpenses(prev.expenses, cloudState.expenses||[]);
           const localNewer=!freshLogin && (prev._savedAt||0) > (cloudState._savedAt||0);
           const baseObj = localNewer ? Object.assign({},prev,{expenses:merged.list})

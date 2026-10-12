@@ -237,7 +237,8 @@ function AssetSheet({asset,set,onClose}){
       const old=(s.assets||[]).find(function(a){ return a.id===asset.id; });
       if(asset.id&&!old) return s;
       if(old&&old.name===next.name&&old.kind===next.kind&&old.value===next.value) return s;
-      return Object.assign({},s,{assets:asset.id?s.assets.map(function(a){ return a.id===asset.id?Object.assign({},a,{name:next.name,kind:next.kind,value:next.value}):a; }):(s.assets||[]).concat(next)});
+      const assets=asset.id?s.assets.map(function(a){ return a.id===asset.id?Object.assign({},a,{name:next.name,kind:next.kind,value:next.value}):a; }):(s.assets||[]).concat(next);
+      return Object.assign({},s,{assets:assets,assetValueHistory:recordAssetValues(s.assetValueHistory,netWorthDay(),assets,s.assets,asset.id?null:next.id)});
     });
     onClose();
   };

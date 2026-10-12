@@ -102,7 +102,7 @@ const LANG = {
     // INC-0810 es: patrimonio de ahora.
     v4_hist_empty:"Tu histórico empieza hoy", v4_net_unknown:"El total actual no está disponible.",
     v42_net_info_title:"Sobre el patrimonio", v42_net_info:"El histórico usa tus movimientos y valores guardados. Solo mostramos el tramo con datos.", v42_net_chart:"Evolución del patrimonio",
-    v42_this_month:"Este mes", v42_remaining:"Te quedan", v42_net_coverage:"{name}: datos desde {day}.", v42_net_source_bank:"Cuenta", v42_net_source_manual:"Cuenta manual", v42_net_source_asset:"Bienes", v42_net_source_debt:"Deudas", v42_net_source_investment:"Inversiones", v42_net_source_balance:"Saldo",
+    v42_this_month:"Este mes", v42_remaining:"Te quedan", v42_net_coverage:"{name}: datos desde {day}.", v42_net_asset_constant:"{name}: valor propio desde {day}; antes se mantiene el valor actual.", v42_net_debt_timing:"{name}: sin día de cargo; la amortización se sitúa al empezar el mes.", v42_net_source_bank:"Cuenta", v42_net_source_manual:"Cuenta manual", v42_net_source_asset:"Bienes", v42_net_source_debt:"Deudas", v42_net_source_investment:"Inversiones", v42_net_source_balance:"Saldo",
     v42_net_missing:"Faltan saldos fiables para mostrar la gráfica.",
     v42_range_1m:"1M", v42_range_6m:"6M", v42_range_1y:"1A", v42_range_all:"Todo",
     v42_net_more_1m:"{x} más que hace un mes", v42_net_less_1m:"{x} menos que hace un mes", v42_net_more_6m:"{x} más que hace 6 meses", v42_net_less_6m:"{x} menos que hace 6 meses", v42_net_more_1y:"{x} más que hace un año", v42_net_less_1y:"{x} menos que hace un año", v42_net_more_all:"{x} más desde que empezaste", v42_net_less_all:"{x} menos desde que empezaste",
@@ -421,7 +421,7 @@ const LANG = {
     // INC-0810 en: patrimonio de ahora.
     v4_hist_empty:"Your history starts today", v4_net_unknown:"The current total is unavailable.",
     v42_net_info_title:"About net worth", v42_net_info:"Your history uses your transactions and saved values. We only show the period with data.", v42_net_chart:"Net worth history",
-    v42_this_month:"This month", v42_remaining:"Left to spend", v42_net_coverage:"{name}: data from {day}.", v42_net_source_bank:"Account", v42_net_source_manual:"Manual account", v42_net_source_asset:"Property", v42_net_source_debt:"Debts", v42_net_source_investment:"Investments", v42_net_source_balance:"Balance",
+    v42_this_month:"This month", v42_remaining:"Left to spend", v42_net_coverage:"{name}: data from {day}.", v42_net_asset_constant:"{name}: own value from {day}; earlier dates keep the current value.", v42_net_debt_timing:"{name}: charge date unknown; principal is reduced at the start of the month.", v42_net_source_bank:"Account", v42_net_source_manual:"Manual account", v42_net_source_asset:"Property", v42_net_source_debt:"Debts", v42_net_source_investment:"Investments", v42_net_source_balance:"Balance",
     v42_net_missing:"Reliable balances are missing to display the chart.",
     v42_range_1m:"1M", v42_range_6m:"6M", v42_range_1y:"1Y", v42_range_all:"All",
     v42_net_more_1m:"{x} more than a month ago", v42_net_less_1m:"{x} less than a month ago", v42_net_more_6m:"{x} more than 6 months ago", v42_net_less_6m:"{x} less than 6 months ago", v42_net_more_1y:"{x} more than a year ago", v42_net_less_1y:"{x} less than a year ago", v42_net_more_all:"{x} more since you started", v42_net_less_all:"{x} less since you started",
@@ -727,7 +727,7 @@ const LANG = {
     // INC-0810 ca: patrimonio de ahora.
     v4_hist_empty:"El teu històric comença avui", v4_net_unknown:"El total actual no està disponible.",
     v42_net_info_title:"Sobre el patrimoni", v42_net_info:"L'històric fa servir els moviments i valors desats. Només mostrem el tram amb dades.", v42_net_chart:"Evolució del patrimoni",
-    v42_this_month:"Aquest mes", v42_remaining:"Et queden", v42_net_coverage:"{name}: dades des de {day}.", v42_net_source_bank:"Compte", v42_net_source_manual:"Compte manual", v42_net_source_asset:"Béns", v42_net_source_debt:"Deutes", v42_net_source_investment:"Inversions", v42_net_source_balance:"Saldo",
+    v42_this_month:"Aquest mes", v42_remaining:"Et queden", v42_net_coverage:"{name}: dades des de {day}.", v42_net_asset_constant:"{name}: valor propi des de {day}; abans es manté el valor actual.", v42_net_debt_timing:"{name}: sense dia de càrrec; l'amortització se situa a l'inici del mes.", v42_net_source_bank:"Compte", v42_net_source_manual:"Compte manual", v42_net_source_asset:"Béns", v42_net_source_debt:"Deutes", v42_net_source_investment:"Inversions", v42_net_source_balance:"Saldo",
     v42_net_missing:"Falten saldos fiables per mostrar la gràfica.",
     v42_range_1m:"1M", v42_range_6m:"6M", v42_range_1y:"1A", v42_range_all:"Tot",
     v42_net_more_1m:"{x} més que fa un mes", v42_net_less_1m:"{x} menys que fa un mes", v42_net_more_6m:"{x} més que fa 6 mesos", v42_net_less_6m:"{x} menys que fa 6 mesos", v42_net_more_1y:"{x} més que fa un any", v42_net_less_1y:"{x} menys que fa un any", v42_net_more_all:"{x} més des que vas començar", v42_net_less_all:"{x} menys des que vas començar",

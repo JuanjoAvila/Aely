@@ -1,5 +1,9 @@
 # Inicio: revisión sobre beta119
 
+Este corte conserva la evidencia de la ronda anterior. La segunda revisión
+independiente pidió correcciones sobre f274ef04: [continuación concreta](inicio-ronda3-bienes-20261012.md).
+VERSION aceptada como rojo de candidata por el coordinador; no repetir CI por ese motivo.
+
 PR204 en borrador; unidad nueva `inicio-patrimonio-flujos`, base de ejecución
 `788432f4682c199edd785f6973d9353330c0064a`. El encargo/claim conserva su base118.
 Las actas previas son históricas. Esta revisión no está publicada ni aprobada.

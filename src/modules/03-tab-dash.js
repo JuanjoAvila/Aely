@@ -55,7 +55,8 @@ function NetWorthNow({tt, simple, series, splashGone}){
   },[points,dateFmt]);
   const coverageLabels=useMemo(function(){return (series.coverage||[]).map(function(g){
     const name=g.name||t("v42_net_source_"+g.kind);
-    return g.day?tf("v42_net_coverage",{name:name,day:dateFmt.format(Date.parse(g.day+"T12:00:00Z"))}):name;
+    if(g.timingUnknown)return tf("v42_net_debt_timing",{name:name});
+    return g.day?tf(g.constant?"v42_net_asset_constant":"v42_net_coverage",{name:name,day:dateFmt.format(Date.parse(g.day+"T12:00:00Z"))}):name;
   });},[series.coverage,dateFmt,language]);
   useEffect(function(){ setTouch(null); },[range&&range.id]);
   useEffect(function(){ return function(){ cancelAnimationFrame(frameRef.current); }; },[]);

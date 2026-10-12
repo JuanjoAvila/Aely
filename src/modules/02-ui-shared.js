@@ -628,7 +628,7 @@ function recordAccountBalances(hist, day, rows){
 }
 // Las fotos de bancos desacompasados inventaban pérdidas de traspasos. El total de hoy
 // se recorre hacia atrás con flujos; sólo las cuentas manuales sin movimientos usan escalones.
-function recordAssetValues(history, day, assets, previous){
+function recordAssetValues(history, day, assets, previous, bornId){
   let out=history||{},changed=false;
   const by={};(assets||[]).forEach(function(a){if(a.id&&Number.isFinite(a.value))by[a.id]=a;});
   const ids=new Set(Object.keys(out));Object.keys(by).forEach(function(id){ids.add(id);});
@@ -636,7 +636,10 @@ function recordAssetValues(history, day, assets, previous){
   ids.forEach(function(id){
     const list=out[id]||[],last=list[list.length-1],a=by[id],value=a?a.value:0;
     if(last&&last.value===value)return;
-    const born=!!a&&Array.isArray(previous)&&!previous.some(function(p){return String(p.id)===id;});
+    // La llegada de una lista tras reinstalar no acredita una compra: sólo Guardar
+    // en Bienes puede marcar el alta. El montaje tampoco inventa una revaloración.
+    const born=!!a&&bornId!=null&&String(bornId)===id,prior=(previous||[]).find(function(p){return String(p.id)===id;});
+    if(!last&&!born&&(!prior||prior.value===value))return;
     const point={day:day,value:value};if(born||(last&&last.day===day&&last.born))point.born=true;
     const next=list.filter(function(p){return p&&p.day<day&&Number.isFinite(p.value);}).slice(-399).concat(point);
     if(!changed){out=Object.assign({},out);changed=true;}out[id]=next;
@@ -657,6 +660,9 @@ function netWorthDebtPolicy(state, today, current){
     const anchor=typeof d.asOf==="number"?d.asOf:month;
     let n=Math.max(0,ym-anchor);
     if(d.months!=null&&debtChargeDay(d)<=p[2]) n++;
+    // Sin plazo, el saldo actual conserva su convención mensual. En el histórico
+    // la reducción espera al día conocido de cuota, evitando una ganancia el día1.
+    if(d.months==null&&dayOf(d)>0&&debtChargeDay(d)>p[2])n=Math.max(0,n-1);
     let value=Number(d.value)-debtAmort(d)*n;
     if(d.balloon>0&&d.months!=null&&n>=d.months) value-=d.balloon;
     return Math.max(0,value);
@@ -672,7 +678,7 @@ function netWorthDebtPolicy(state, today, current){
   });
   const sum=function(day){ return debts.reduce(function(n,d){ return n+at(d,day); },0); };
   const value=current!=null?current:sum(today);
-  return {first:first,current:value,at:function(day){ return day===today?value:sum(day); }};
+  return {first:first,current:value,timingUnknown:debts.some(function(d){return d.months==null&&!(dayOf(d)>0);}),at:function(day){ return day===today?value:sum(day); }};
 }
 function netWorthSeries(state, options){
   options=options||{};
@@ -738,7 +744,7 @@ function netWorthSeries(state, options){
         mates.get(a).add(b);mates.get(b).add(a);
       }
     });
-    mates.forEach(function(list,a){if(list.size!==1)return;const b=Array.from(list)[0];if(mates.get(b).size===1)a.ownTransfer=b.ownTransfer=true;});
+    mates.forEach(function(list,a){if(list.size!==1)return;const b=Array.from(list)[0];if(mates.get(b).size===1){a.ownTransfer=b.bank;b.ownTransfer=a.bank;}});
   });
   const manual=[], flowBanks={}, limits=[];
   let first="";
@@ -763,7 +769,9 @@ function netWorthSeries(state, options){
   const contributions={},daily={};
   entries.forEach(function(row){
     const e=row.expense,day=row.day;
-    if(!flowBanks[row.bank]||row.ownTransfer) return;
+    // Un cierre manual ya recoge su pata: sólo dos cuentas reconstruidas por flujos
+    // permiten neutralizar ambas sin perder el traspaso (revisión12/10).
+    if(!flowBanks[row.bank]||(row.ownTransfer&&flowBanks[row.ownTransfer])) return;
     daily[day]=(daily[day]||0)-Math.round(e.amount*100);
     if(!investments.length||e.amount===0) return;
     const text=String(e.merchant||"").toLowerCase(),target=e.toBank||e.to||e.counterpartyBank;
@@ -784,11 +792,12 @@ function netWorthSeries(state, options){
     if(a&&(!Number.isFinite(a.value))){gaps.push({kind:"asset",name:a.name,unknown:true});return;}
     const value=a?a.value:0;assetRows.push({value:value,points:points});
     if(points.length){if(!points[0].born)limits.push({day:points[0].day,kind:"asset",name:a&&a.name});}
-    else if(a)limits.push({day:today,kind:"asset",name:a.name});
+    else if(a)gaps.push({day:today,kind:"asset",name:a.name,constant:true});
   });
-  if(gaps.length)return done();
+  if(gaps.some(function(g){return g.unknown;}))return done();
   const debt=netWorthDebtPolicy(state,today,options.debtTotal);
   if(!Number.isFinite(debt.current)){gaps.push({kind:"debt",unknown:true});return done();}
+  if(debt.timingUnknown)gaps.push({kind:"debt",timingUnknown:true});
   if(debt.first)limits.push({day:debt.first,kind:"debt"});
   let start=first||today;
   limits.forEach(function(l){if(l.day>start){start=l.day;gaps.push(l);}});
