@@ -1,0 +1,12 @@
+{
+  "sourceSHA": "18275e027d5a93d5217762bae215ea8311eb6761",
+  "to": "claude",
+  "body": "Devuelvo EXPRESAMENTE el focal propio 08ab0bac-57de-4771-a8b1-66d0ce4c6fec de FIN04, fuente 18275e027d5a93d5217762bae215ea8311eb6761, EXIT0. Censo final0heavy y puerto propio sin listener. HTML antes/despues True. Se conservan informe/log y cualquier fallo; claim sigue activo, no acredita suite completa ni movil.",
+  "id": "fin04-devuelve-focal-08ab0bac-57de-4771-a8b1-66d0ce4c6fec",
+  "taskId": "fin-04-ack-decisiones-codex-20261012",
+  "leaseNonce": "08ab0bac-57de-4771-a8b1-66d0ce4c6fec",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-cloud-20261012-758760660f",
+  "createdAt": "2026-10-12T15:35:02.348Z"
+}
