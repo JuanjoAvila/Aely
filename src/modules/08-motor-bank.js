@@ -1162,9 +1162,23 @@ function importObExpenses(s, txs, links){
   const lapidaVieja=function(g, n){
     return n===1 && !!((delSet[g.scoped] || delSet[g.base]) && !keys[g.scoped] && !vinculado[g.base]);
   };
+  /* PENDIENTE + CONTABILIZADO EN LA MISMA RESPUESTA SON UN SOLO CARGO (12/10/2026, revisión de
+     la entrega 1). Un banco puede entregar el mismo cargo dos veces mientras se asienta: una
+     entrada «pendiente» y otra ya contabilizada, idénticas en todo lo demás. Con ordinal por cuenta
+     de iguales entraban DOS filas donde el histórico mete una (`skippedUniq`). La señal es el
+     ESTADO: en un grupo de iguales, cada pendiente se da por cubierta por una contabilizada; solo
+     las pendientes que sobran (más pendientes que firmes) son cargos aparte. Sin señal —todas con
+     el mismo estado— no hay nada que distinga «repetida al paginar» de «dos bizums iguales», y
+     ahí mandan los k del banco: es la función de esta entrega. */
+  const firme=function(tx){ const st=String(tx.status||"").trim(); return !st || /book|post/i.test(st); };
   ordenGrupos.forEach(function(k){
     const g=grupos[k];
     g.miembros.sort(function(a,b){ const ha=huella(a.tx), hb=huella(b.tx); return ha<hb?-1:(ha>hb?1:0); });
+    const firmes=g.miembros.filter(function(c){ return firme(c.tx); });
+    if(firmes.length && firmes.length<g.miembros.length){
+      const pendientes=g.miembros.filter(function(c){ return !firme(c.tx); });
+      g.miembros=firmes.concat(pendientes.slice(firmes.length));   // los descartados se quedan sin ranura
+    }
     let n=0, viejas=0;
     g.miembros.forEach(function(c){
       // Siguiente ranura libre entre 1..k; las cubiertas se saltan sin gastar miembro… pero el
@@ -1358,7 +1372,9 @@ function marcarCuotaAMano(s, expenseId, debtId){
    resta el total reservado desde el inicio del período del presupuesto antes de calcular "lo que
    te queda" — sin eso, la sensación de "esto está apartado de verdad" no existía por mucho que
    sumara a una meta. */
-function reservaKeyOf(income){ return String(income&&income.date).slice(0,10)+"|"+((income&&income.amount)||0)+"|"+((income&&income.merchant)||""); }
+// Con el ordinal (12/10/2026): dos ingresos iguales del mismo día son dos cobros y cada uno
+// tiene su reparto; sin el sufijo el segundo salía como «ya repartido» y no tocaba las metas.
+function reservaKeyOf(income){ return String(income&&income.date).slice(0,10)+"|"+((income&&income.amount)||0)+"|"+((income&&income.merchant)||"")+obOrdinalSufijo(income); }
 // Reparto de un ingreso según las reglas configuradas: el importe fijo o porcentual de cada regla,
 // sin pasarse nunca del propio ingreso ni dejar ninguna meta en negativo. Ignora reglas huérfanas
 // (meta borrada) o metas ya cumplidas (no tiene sentido seguir metiéndoles dinero).
@@ -2399,17 +2415,41 @@ function histCuotasDeDeuda(cands, state, saltar){
   });
   return out;
 }
+/* YA CONTESTADO «ES EL MISMO»: NO ES NUEVO (12/10/2026, revisión de la entrega 1). Al contestar
+   «es el mismo» la fila del banco se va y queda su lápida (y, desde esta versión, el vínculo con su
+   aviso en `gemelos`). El histórico no miraba ninguna de las dos: con el aviso ya reclamado, el
+   «puede que ya lo tengas» tampoco saltaba y el cargo salía NUEVO y premarcado. Medido sobre tres
+   meses de uso: 187 de 195 candidatos; entraban con lápida, invisibles en la lista pero restando
+   del saldo de la cuenta diaria (2.244 €) y resubidos en cada pull. La clave es la que tendría la
+   fila que crearía `histBuildCommit`; el histórico funde los k iguales de una cuenta en un
+   candidato, así que es la ranura 1 (sin sufijo), igual que la lápida que dejó aquel «es el mismo». */
+function histCandLapidas(cands, state){
+  const claves={};
+  ((state&&state.deleted)||[]).forEach(function(k){ claves[k]=1; });
+  ((state&&state.gemelos)||[]).forEach(function(g){ if(g&&g.banco) claves[g.banco]=1; });
+  const out={};
+  if(!Object.keys(claves).length) return out;
+  (cands||[]).forEach(function(x,i){
+    if(!x) return;
+    const signed = x.kind==="in" ? -Math.abs(x.amount||0) : Math.abs(x.amount||0);
+    const k=keyOfExpenseLegacy({ date:x.stamp||histDate(x.date), amount:signed, merchant:x.merchant||(x.kind==="in"?"Ingreso":"Compra") });
+    if(claves[k]) out[i]=true;
+  });
+  return out;
+}
 function histClassifyCandidates(cands, state){
   state=state||{};
   const existing=histCandExisting(cands, state.expenses);
-  const cercanos=histCandCercanos(cands, state.expenses, existing, avisosEmparejados(state));
+  const lapidas=histCandLapidas(cands, state);
+  // Un candidato con lápida tampoco puede llevarse un aviso como «cercano»: ya se contestó.
+  const cercanos=histCandCercanos(cands, state.expenses, Object.assign({},existing,lapidas), avisosEmparejados(state));
   const daily=(state.accounts||[]).find(function(a){ return accDaily(a); });
   const pares=histParesCashback(cands, state.expenses);
-  const cuotas=histCuotasDeDeuda(cands, state, function(i){ return !!(existing[i] || cercanos[i] || pares.entrada[i] || pares.salida[i]); });
+  const cuotas=histCuotasDeDeuda(cands, state, function(i){ return !!(existing[i] || lapidas[i] || cercanos[i] || pares.entrada[i] || pares.salida[i]); });
   const rows=(cands||[]).map(function(x,i){
     if(!x) return null;
     // `cashback-par`: el abono del Saveback con su compra gemela (ver `histParesCashback`).
-    if(existing[i] || (!cercanos[i] && pares.entrada[i])) return { status:"dup", reason:existing[i]?"existing":"cashback-par", match:existing[i]||null, defDest:null, suggestRecibo:false, category:null };
+    if(existing[i] || lapidas[i] || (!cercanos[i] && pares.entrada[i])) return { status:"dup", reason:(existing[i]||lapidas[i])?"existing":"cashback-par", match:existing[i]||null, defDest:null, suggestRecibo:false, category:null };
     if(cercanos[i]) return { status:"maybe", reason:"cercano", match:cercanos[i], defDest:null, suggestRecibo:false, category:null };
     /* Aquí iba `recibDup[i] → dup, motivo "recibo-lote"` (FIN-02, retirado el 2026-09-09).
        `dedupeHistRecibos` compara comercio+importe+banco SIN FECHA, así que tres recibos de
@@ -2645,7 +2685,11 @@ function enrichNotesFromBankTx(expenses, txs){
     const n=String(tx&&tx.note||"").trim();
     if(!n) return;
     if(tx.id) byExt[tx.id]=n;
-    byKey[kOf(tx.date,tx.amount,tx.merchant)]=n;
+    // Varios apuntes iguales del día con conceptos DISTINTOS (12/10/2026): la clave no dice cuál es
+    // de cuál, y el último en pasar le colgaba su concepto a cualquier igual sin nota. Si no son
+    // unánimes, por clave no se rellena nada; el que entra nuevo ya trae el suyo del importador.
+    const k=kOf(tx.date,tx.amount,tx.merchant);
+    byKey[k]=(k in byKey && byKey[k]!==n) ? "" : n;
   });
   let touched=false;
   const out=expenses.map(function(e){

@@ -1747,11 +1747,19 @@ function deudaSufijo(debtId){
   const id=String(debtId||"").replace(/[^A-Za-z0-9_-]/g,"");
   return id ? "~deuda."+id : "";
 }
-/* Parte el tramo de banco de un `source` OB: «sabadell~deuda.x» → {ent:"sabadell", debtId:"x"}. */
+/* Parte el tramo de banco de un `source` OB: «sabadell~deuda.x» → {ent:"sabadell", debtId:"x"};
+   «sabadell~recibo.y» → {ent:"sabadell", reciboId:"y"}. El tramo `~recibo.<id>` lo escribe otra
+   entrega (el cargo de un recibo que entra en Gastos sin mover cifras); aquí solo se LEE, para que
+   el banco salga limpio y el ordinal `#n` no se pierda cuando ese tramo exista. Las marcas van en
+   cualquier orden; si vienen las dos GANA LA DEUDA (lo que la persona dijo a mano). */
 function partirEntDeuda(tramo){
-  const s=String(tramo||""), i=s.indexOf("~deuda.");
-  if(i<0) return { ent:s||null, debtId:null };
-  return { ent:s.slice(0,i)||null, debtId:s.slice(i+7)||null };
+  const partes=String(tramo||"").split("~");
+  let debtId=null, reciboId=null;
+  partes.slice(1).forEach(function(p){
+    if(p.indexOf("deuda.")===0) debtId=p.slice(6)||null;
+    else if(p.indexOf("recibo.")===0) reciboId=p.slice(7)||null;
+  });
+  return { ent:partes[0]||null, debtId:debtId, reciboId:debtId?null:reciboId };
 }
 /* Tramos de un `source` OB tras el banco: «ob:tr#dup#n3» → ["dup","n3"]. El ordinal es el tramo
    `n<k>`; `dup` sigue siendo la marca de posible repetido. Espejo en `presupuesto.ts`. */
@@ -1916,6 +1924,19 @@ function quitarGemeloDe(list, bancoKey){
   const out=list.filter(function(g){ return !(g && g.banco===bancoKey); });
   return out.length===list.length ? list : out;
 }
+/* ENTRE MÓVILES, LOS VÍNCULOS SE UNEN, NO SE PISAN (12/10/2026, revisión de la entrega 1). El
+   estado viaja entero por «último que escribe»: si A reclamaba un aviso y B subía su estado un
+   segundo después sin ese vínculo, el de A desaparecía y el mismo aviso volvía a ofrecerse como
+   gemelo de otro apunte — justo la doble reclamación que `gemelos` existe para impedir. Un vínculo
+   es un hecho («este aviso ya tiene su apunte del banco»), igual que una lápida: lo sabe quien lo
+   vio, y el que no lo vio no puede desmentirlo por no tenerlo. Por eso, gane quien gane el estado,
+   `gemelos` es la UNIÓN de los dos. El precio es pequeño y asumido: un «son distintos» dado en A
+   puede volver desde un B que aún no lo sabía, y ese aviso queda reclamado de más (no se pierde
+   dinero: la fila ya cuenta). Devuelve la lista local tal cual si la nube no aporta nada. */
+function fusionarGemelos(local, nube){
+  if(!Array.isArray(nube) || !nube.length) return Array.isArray(local) ? local : (nube||[]);
+  return pushGemelos(Array.isArray(local) ? local : [], nube);
+}
 /* Avisos ya reclamados: los del registro MÁS los que un apunte OB pendiente de este móvil
    señala con `possibleDupOf` (ese enlace es local y puede ir por delante del registro).
    → { keys:{aviso→1}, ids:{idAviso→1} }. Una pasada sobre los gastos, no una por apunte. */
@@ -1981,7 +2002,8 @@ function expenseBankOf(e){
   const s=String(e.source||"");
   if(s==="macrodroid"||s==="tr") return "trade_republic";
   if(s.indexOf("ob:")===0) return partirEntDeuda(s.slice(3).split("#")[0]).ent;   // «#dup» = posible repetido (B09-D); «~deuda.» = cuota
-  if(s.indexOf("ob-hist:")===0) return s.slice(8)||null;
+  // El histórico lleva las mismas marcas («#dup», «#n2») y el banco tiene que salir igual de limpio.
+  if(s.indexOf("ob-hist:")===0) return partirEntDeuda(s.slice(8).split("#")[0]).ent;
   if(s.indexOf("manual:")===0) return s.slice(7)||null;
   return null;
 }
@@ -2426,7 +2448,7 @@ function expenseFromRow(r){
   // «…#n2» = segundo apunte igual del mismo día (12/10/2026): vuelve con su `obOrd`, que es lo que
   // hace que la clave de mezcla no lo funda con el primero. Siempre es el último tramo.
   else if(raw.indexOf("ob:")===0){ const p=raw.slice(3).split("#"); const pe=partirEntDeuda(p[0]); ent=pe.ent; debtId=pe.debtId; source=(r.ingest_event_id&&p[1]==="dup")?"macrodroid":"ob"; dup=p[1]==="dup"; ord=ordinalDeTramos(p.slice(1)); }
-  else if(raw.indexOf("ob-hist:")===0){ const p=raw.slice(8).split("#"); ent=p[0]||null; source="ob-hist"; dup=p[1]==="dup"; ord=ordinalDeTramos(p.slice(1)); }
+  else if(raw.indexOf("ob-hist:")===0){ const p=raw.slice(8).split("#"); ent=partirEntDeuda(p[0]).ent; source="ob-hist"; dup=p[1]==="dup"; ord=ordinalDeTramos(p.slice(1)); }
   else if(raw.indexOf("manual:")===0){ ent=raw.slice(7)||null; source="manual"; }   // manual con banco elegido
   else if(raw==="supabase"){ source="manual"; }   // legado: antes el pull marcaba todo como supabase
   return {

@@ -135,11 +135,17 @@ t("5 bizums de 12 € el mismo día sin avisos: entran los 5 (antes 1) y la segu
 });
 
 t("el ordinal no depende del orden en que el banco devuelva los iguales", () => {
+  // Mismo nombre («Movimiento») y conceptos distintos: la descripción bancaria va a la nota, no al
+  // título. Con `remittance_information` el título cambiaba y los dos NO formaban grupo (revisión
+  // 12/10): el test pasaba sin probar nada.
   const a = estado(), b = estado();
-  const x = ob(-3, 7.5, { remittance_information: "uno" }), y = ob(-3, 7.5, { remittance_information: "dos" });
-  sync(a, [x, y]); sync(b, [y, x]);
+  const x = ob(-3, 7.5, { bank_transaction_code: { description: "uno" } }), y = ob(-3, 7.5, { bank_transaction_code: { description: "dos" } });
+  const ra = sync(a, [x, y]), rb = sync(b, [y, x]);
+  same(ra.map((e) => c.obOrdinalOf(e)).sort(), [1, 2], "forman grupo: ranuras 1 y 2");
   const firma = (s) => s.expenses.map((e) => c.keyOfExpense(e) + "→" + (e.note || "")).sort().join(";");
   assert.equal(firma(a), firma(b));
+  assert.ok(/→uno/.test(firma(a)) && /→dos/.test(firma(a)), "cada fila conserva su propio concepto");
+  assert.equal(c.obOrdinalOf(ra.find((e) => e.note === "uno")), c.obOrdinalOf(rb.find((e) => e.note === "uno")), "la ranura se asigna por contenido, no por posición");
 });
 
 /* ── 2. Cinco bizums con sus cinco avisos ──────────────────────────────────────────────── */
@@ -391,6 +397,9 @@ t("el servidor del widget separa las k filas iguales igual que la app (misma cla
   assert.equal(SRV.filasComoLaApp(filas, []).length, 3, "antes fundía las tres en una");
   add.forEach((e, i) => assert.equal(SRV.claveComoLaApp(filas[i]), c.keyOfExpense(e), "misma clave que keyOfExpense"));
   esperado(s, { gasto: 12.6 }, "3 × 4,20");
+  // Un apunte a mano sigue con su clave de siempre (id, sin sufijo): sus lápidas tienen que casar.
+  const manual = { id: c.mcExpenseId(), date: ymd(-1) + "T10:00:00.000Z", merchant: "Bizum", amount: 14.9, category: "otros", source: "manual" };
+  assert.equal(SRV.claveComoLaApp(filaNube(manual)), c.keyOfExpense(manual));
 });
 
 /* ── 11. Rendimiento: no se recorre el histórico por cada apunte ───────────────────────── */
@@ -414,4 +423,261 @@ t("importObExpenses con 20.000 gastos guardados: el coste no se dispara frente a
   assert.equal(tn.n, tv.n, "mismas filas importadas");
   console.log(`    importObExpenses con 20.000 gastos y 150 apuntes (${tn.n} entran): antes ${tv.ms.toFixed(1)} ms · ahora ${tn.ms.toFixed(1)} ms`);
   assert.ok(tn.ms < Math.max(tv.ms * 1.5, tv.ms + 15), "se dispara: algo recorre el histórico por apunte");
+});
+
+/* ── 12. «Importar histórico» tras tres meses de uso (revisión de la entrega 1, punto 1) ──────
+   Lo contestado «es el mismo» —antes de actualizar (lápida sin vínculo) y después (lápida +
+   vínculo en `gemelos`)— NO puede volver como nuevo: entraba con lápida, invisible en la lista
+   pero restando del saldo de la cuenta diaria y resubido en cada pull. */
+const histTR = (s, txs, cc = ctx) => {
+  const flat = cc.histFlattenHistoryLinks({ links: [{ aspsp: "Trade Republic", accounts: [{ uid: "tr", transactions: txs }] }] }, s.expenses, { trade_republic: 1 });
+  const cl = cc.histClassifyCandidates(flat.out, s);
+  return { cands: flat.out, rows: cl.rows, commit: cc.histBuildCommit(flat.out, cl.rows, s) };
+};
+const cashTR = (s, cc = ctx) => c2(s.expenses.filter((e) => cc.expenseBankOf(e) === "trade_republic" && cc.expenseCountsCash(e, s)).reduce((a, e) => a + e.amount, 0));
+t("histórico tras 3 meses: lo contestado «es el mismo» con la versión anterior Y con esta sale como «ya lo tienes», no como nuevo", () => {
+  // Verdad del banco: dos cargos distintos al día con su aviso, más un día con 3 iguales y 3 avisos.
+  const pagos = []; let n = 0;
+  for (let d = -90; d <= 0; d++) for (let i = 0; i < 2; i++) { n++; pagos.push({ dia: d, hora: 9 + i * 5, amount: c2(30 + n * 0.37), m: "Tienda " + n }); }
+  for (let i = 0; i < 3; i++) pagos.push({ dia: -5, hora: 8 + i * 2, amount: 7, m: "Bar " + i });
+  const banco = (hasta, desde) => pagos.filter((p) => p.dia <= hasta && p.dia >= desde).map((p) => ob(p.dia, p.amount));
+  // Tres meses con la versión anterior, contestando siempre «es el mismo».
+  const sv = estado(viejo); let viejas = 0;
+  for (let d = -90; d <= -2; d++) {
+    pagos.filter((p) => p.dia === d).forEach((p) => sv.expenses.unshift(aviso(p.dia, p.hora, p.amount, p.m, viejo)));
+    sync(sv, banco(d, d - 9), viejo).filter((e) => e.possibleDup).forEach((e) => { viejas++; resuelve(sv, e, true, viejo); });
+  }
+  assert.ok(viejas > 170, "la versión anterior contestó " + viejas);
+  // Actualiza: mismo estado, motor nuevo; llegan los dos últimos días y los 2 bizums que aquélla fundía.
+  const s = Object.assign(estado(), { expenses: sv.expenses.map((e) => Object.assign({}, e)), deleted: sv.deleted.slice(), gemelos: [] });
+  pagos.filter((p) => p.dia > -2).forEach((p) => s.expenses.unshift(aviso(p.dia, p.hora, p.amount, p.m)));
+  const add = sync(s, banco(0, -19));
+  assert.equal(add.length, 6, "2 cargos × 2 días + las ranuras 2 y 3 del día de los 3 iguales");
+  add.forEach((e) => { assert.ok(e.possibleDup, "cada uno con su aviso"); resuelve(s, e, true); });
+  assert.equal(s.gemelos.length, 6);
+  const antes = cashTR(s);
+  const h = histTR(s, banco(0, -90));
+  const cnt = {}; h.rows.forEach((r) => { const k = r.status + (r.reason ? ":" + r.reason : ""); cnt[k] = (cnt[k] || 0) + 1; });
+  assert.equal(h.cands.length, pagos.length - 2, "el histórico funde los 3 iguales de una cuenta en un candidato");
+  assert.equal(cnt["new"] || 0, 0, "ninguno nuevo: " + JSON.stringify(cnt));
+  assert.equal(cnt["dup:existing"], h.cands.length, "todos «ya lo tienes apuntado»");
+  assert.equal(h.commit.expAdds.length, 0, "no entra ninguna fila con lápida");
+  assert.equal(cashTR(s), antes, "el saldo de la cuenta diaria no se mueve");
+});
+t("el candidato con lápida no se lleva un aviso libre como «cercano»: ese aviso queda para el candidato que sí está sin apuntar", () => {
+  const s = estado();
+  s.expenses.unshift(aviso(-1, 10, 29.9, "Decathlon"), aviso(-2, 18, 29.9, "Decathlon bis"));
+  const a = sync(s, [ob(-1, 29.9)]);
+  resuelve(s, a[0], true);                                   // lápida del día −1 + vínculo con el primer aviso
+  const h = histTR(s, [ob(-1, 29.9), ob(-2, 29.9)]);       // el histórico ordena por fecha descendente: el de la lápida va primero
+  assert.equal(h.rows[0].status, "dup"); assert.equal(h.rows[0].reason, "existing"); assert.equal(h.rows[0].match, null);
+  assert.equal(h.rows[1].status, "maybe", "el aviso libre es del candidato sin apuntar, no del que ya tiene lápida");
+  assert.equal(h.rows[1].match.merchant, "Decathlon bis");
+});
+t("un vínculo en `gemelos` sin su lápida (la lápida va por último-que-escribe; el vínculo, por unión) también es «ya lo tienes»", () => {
+  const s = estado();
+  const x = sync(s, [ob(-2, 29.9)])[0];
+  s.expenses = []; s.deleted = [];                           // la fila y su lápida se quedaron en el otro móvil…
+  s.gemelos = c.pushGemelos([], [{ avisoId: "a1", aviso: "k", banco: c.keyOfExpense(x) }]);   // …el vínculo llegó por la unión
+  const h = histTR(s, [ob(-2, 29.9)]);
+  assert.equal(h.rows[0].status, "dup"); assert.equal(h.rows[0].reason, "existing");
+});
+t("la pantalla del histórico (el bloque REAL de BankHistoryImport) guarda los vínculos de los «puede que ya lo tengas» marcados", () => {
+  const compSrc = H.read("src/modules/10-app-components.js");
+  const m = compSrc.match(/const vinculos=gemelosDeImportacion\(keepLocal, s\.expenses\);\s*if\(vinculos\.length\) next\.gemelos=pushGemelos\(s\.gemelos, vinculos\);/);
+  assert.ok(m, "no se encuentra el bloque de vínculos en BankHistoryImport");
+  const guarda = new Function("keepLocal", "s", "next", "gemelosDeImportacion", "pushGemelos", m[0] + "\nreturn next;");
+  const s = estado();
+  const av = aviso(-2, 10, 29.9, "Decathlon"); s.expenses.unshift(av);
+  const keep = [{ id: c.mcExpenseId(), date: ymd(-1) + "T10:00:00.000Z", merchant: "Movimiento", amount: 29.9, category: "otros", source: "ob-hist", ent: "trade_republic", possibleDup: true, possibleDupOf: av.id }];
+  const next = guarda(keep, s, {}, c.gemelosDeImportacion, c.pushGemelos);
+  assert.equal(next.gemelos.length, 1); assert.equal(next.gemelos[0].avisoId, av.id);
+});
+t("«saltar» (lápida de una versión anterior) se salta el primer aviso LIBRE que casa, no uno ya reclamado", () => {
+  const s = estado();
+  const A = aviso(-2, 9, 7, "Bar A"), B = aviso(-2, 10, 7, "Bar B"), C = aviso(-2, 11, 7, "Bar C");
+  s.expenses.unshift(A, B, C);                               // A es el primero que casa, y está reclamado
+  const base = sync(s, [ob(-2, 7)])[0];
+  s.deleted = c.pushDeleted([], c.keyOfExpense(base)); s.expenses = s.expenses.filter((e) => e.id !== base.id);
+  // A quedó reclamado por otro apunte (vínculo); la lápida de la ranura 1 es de una versión sin vínculos.
+  s.gemelos = c.pushGemelos([], [{ avisoId: A.id, aviso: c.keyOfExpense(A), banco: "otro-apunte" }]);
+  const add = sync(s, [ob(-2, 7), ob(-2, 7), ob(-2, 7)]);
+  same(add.map((e) => e.obOrd).sort(), [2, 3]);
+  const preguntas = add.filter((e) => e.possibleDup);
+  assert.equal(preguntas.length, 1, "B fue el «es el mismo» de entonces; A ya tiene dueño: solo queda C");
+  assert.equal(preguntas[0].possibleDupOf, C.id);
+});
+
+/* ── 13. Un pull no resube las filas con lápida (el bloque REAL de `syncCloudExpenses`) ───── */
+const mainSrc = H.read("src/modules/11-app-main.js");
+t("backfill: una fila local con lápida no se resube en cada pull", () => {
+  const m = mainSrc.match(/const delSet=\{\}; \(stateRef\.current\.deleted\|\|\[\]\)[\s\S]*?subirGasto\(e, "backfill"\); \}\);/);
+  assert.ok(m, "no se encuentra el bloque del backfill en syncCloudExpenses");
+  const pull = new Function("stateRef", "rows", "expenseFromRow", "expenseIsTombstoned", "keyOfExpense", "subirGasto", m[0]);
+  const s = estado();
+  const viva = { id: c.mcExpenseId(), date: ymd(-2) + "T10:00:00.000Z", merchant: "Movimiento", amount: 12, category: "otros", source: "ob", ent: "trade_republic" };
+  const muerta = Object.assign({}, viva, { id: c.mcExpenseId(), amount: 29.9 });
+  s.expenses = [viva, muerta]; s.deleted = [c.keyOfExpense(muerta)];
+  const subidas = [];
+  pull({ current: s }, [], c.expenseFromRow, c.expenseIsTombstoned, c.keyOfExpense, (e, why) => subidas.push(why + ":" + e.amount));
+  same(subidas, ["backfill:12"], "solo la viva");
+});
+
+/* ── 14. `gemelos` entre dos móviles: unión, gane quien gane el estado ──────────────────── */
+t("dos móviles: el vínculo de A sobrevive al estado de B (y al revés) con el bloque REAL de syncFromCloud", () => {
+  const m = mainSrc.match(/const merged=mergeExpenses\(prev\.expenses[\s\S]*?if\(gem!==baseObj\.gemelos\) baseObj\.gemelos=gem;/);
+  assert.ok(m, "no se encuentra el bloque de último-que-escribe en syncFromCloud");
+  const adopta = new Function("prev", "cloudState", "freshLogin", "mergeExpenses", "fusionarGemelos", m[0] + "\nreturn baseObj;");
+  const mezcla = (p) => ({ list: p });
+  const A = estado(), B = estado();
+  const av = aviso(-3, 10, 29.9, "Decathlon"); A.expenses.unshift(av); B.expenses.unshift(Object.assign({}, av));
+  const a = sync(A, [ob(-2, 29.9)]);              // A reclama el aviso
+  assert.equal(A.gemelos.length, 1);
+  B.gemelos = c.pushGemelos([], [{ avisoId: "otro", aviso: "k", banco: "b" }]);   // B tiene otro vínculo suyo
+  // B sube su estado más reciente: para A la nube es más nueva → adopta la nube… y conserva lo suyo.
+  const enA = adopta(Object.assign({}, A, { _savedAt: 1 }), Object.assign({}, B, { _savedAt: 2 }), false, mezcla, c.fusionarGemelos);
+  assert.equal(enA.gemelos.length, 2, "unión en A");
+  assert.ok(enA.gemelos.some((g) => g.avisoId === av.id), "el vínculo de A sigue");
+  // Y al revés: A es más reciente que la nube de B → gana local, pero el de B también entra.
+  const enA2 = adopta(Object.assign({}, A, { _savedAt: 3 }), Object.assign({}, B, { _savedAt: 2 }), false, mezcla, c.fusionarGemelos);
+  assert.equal(enA2.gemelos.length, 2, "unión también cuando gana lo local");
+  // Con la unión, el siguiente apunte igual del banco en A no vuelve a pedir ese aviso.
+  const A2 = Object.assign(estado(), { expenses: A.expenses, deleted: A.deleted, gemelos: enA.gemelos });
+  const b = sync(A2, [ob(-2, 29.9), ob(-1, 29.9)]);
+  assert.equal(b.length, 1); assert.equal(!!b[0].possibleDup, false, "el aviso sigue reclamado");
+  // Nada que unir: misma referencia, para no reescribir el estado por nada.
+  assert.equal(c.fusionarGemelos(enA.gemelos, []), enA.gemelos);
+  assert.equal(c.fusionarGemelos(enA.gemelos, enA.gemelos.slice()), enA.gemelos);
+  assert.equal(a.length, 1);
+});
+
+/* ── 15. Pendiente + contabilizado en la misma respuesta: UN cargo ─────────────────────── */
+t("el mismo cargo entregado como PDNG y BOOK a la vez entra una sola vez; dos BOOK iguales son dos", () => {
+  const s = estado();
+  const a = sync(s, [ob(-1, 5, { status: "PDNG" }), ob(-1, 5, { status: "BOOK" })]);
+  assert.equal(a.length, 1, "pendiente + contabilizado = un cargo");
+  assert.equal(a[0].obOrd, undefined);
+  assert.equal(sync(s, [ob(-1, 5, { status: "BOOK" })]).length, 0, "cuando el banco solo trae el contabilizado, nada nuevo");
+  const s2 = estado();
+  assert.equal(sync(s2, [ob(-1, 5), ob(-1, 5)]).length, 2, "sin señal de estado mandan los k del banco");
+  const s3 = estado();
+  const b = sync(s3, [ob(-1, 5, { status: "PDNG" }), ob(-1, 5, { status: "PDNG" }), ob(-1, 5, { status: "BOOK" })]);
+  assert.equal(b.length, 2, "dos pendientes y un firme: la pendiente que sobra es otro cargo");
+  esperado(s3, { gasto: 10 }, "2 cargos");
+});
+
+/* ── 16. Conceptos entre iguales ───────────────────────────────────────────────────────── */
+t("dos iguales con conceptos distintos: a la fila guardada sin nota no se le cuelga el concepto de otra", () => {
+  const s = estado();
+  sync(s, [ob(-2, 6)]);                                      // la de siempre, sin concepto
+  assert.equal(s.expenses[0].note, undefined);
+  const txs = flat([ob(-2, 6, { bank_transaction_code: { description: "cena" } }), ob(-2, 6, { bank_transaction_code: { description: "taxi" } })]);
+  const out = c.enrichNotesFromBankTx(s.expenses, txs);
+  assert.equal(out, s.expenses, "ambiguo: no se toca");
+  const uno = c.enrichNotesFromBankTx(s.expenses, flat([ob(-2, 6, { bank_transaction_code: { description: "cena" } }), ob(-2, 6, { bank_transaction_code: { description: "cena" } })]));
+  assert.equal(uno[0].note, "cena", "unánime: se rellena");
+});
+
+/* ── 17. El banco de un `source` con marcas, en cliente y servidor ─────────────────────── */
+t("«ob-hist:…#n2» y los tramos «~deuda.» / «~recibo.» se leen con el banco limpio (cliente y servidor)", () => {
+  assert.equal(SRV.bancoDeSource("ob-hist:trade_republic#n2"), "trade_republic", "servidor (antes: «trade_republic#n2»)");
+  assert.equal(SRV.bancoDeSource("ob-hist:trade_republic#dup#n3"), "trade_republic");
+  assert.equal(SRV.bancoDeSource("ob:sabadell~recibo.r1#n2"), "sabadell");
+  assert.equal(SRV.bancoDeSource("ob:sabadell~deuda.d1#dup"), "sabadell");
+  assert.equal(SRV.ordinalDeSource("ob:sabadell~recibo.r1#dup#n4"), 4);
+  assert.equal(c.expenseBankOf({ source: "ob-hist:trade_republic#n2" }), "trade_republic", "cliente");
+  assert.equal(c.expenseBankOf({ source: "ob:sabadell~recibo.r1#n2" }), "sabadell");
+  const r = c.expenseFromRow({ id: "q", fecha: ymd(-1) + "T10:00:00.001Z", importe: 40, comercio: "Luz", cat: "luz", source: "ob:sabadell~recibo.r1#dup#n2" });
+  assert.equal(r.ent, "sabadell"); assert.equal(r.obOrd, 2); assert.equal(r.possibleDup, true);
+  const h = c.expenseFromRow({ id: "w", fecha: ymd(-1) + "T10:00:00.000Z", importe: 40, comercio: "Luz", cat: "luz", source: "ob-hist:sabadell~recibo.r1#n2" });
+  assert.equal(h.ent, "sabadell"); assert.equal(h.obOrd, 2);
+  same(Object.keys(c.partirEntDeuda("sabadell~recibo.r1")).sort(), ["debtId", "ent", "reciboId"]);
+  assert.equal(c.partirEntDeuda("sabadell~recibo.r1").reciboId, "r1");
+  assert.equal(c.partirEntDeuda("sabadell~recibo.r1~deuda.d1").debtId, "d1");
+});
+
+/* ── 19. Lo que las mutaciones de la revisión dejaron sin vigilar ──────────────────────── */
+t("histórico: un aviso ya reclamado por el sync diario no vuelve como «puede que ya lo tengas» de otro cargo", () => {
+  const s = estado();
+  s.expenses.unshift(aviso(-3, 10, 29.9, "Decathlon"));
+  resuelve(s, sync(s, [ob(-2, 29.9)])[0], true);             // el aviso queda reclamado (vínculo en gemelos)
+  const h = histTR(s, [ob(0, 29.9)]);                        // otro cargo igual, a ±3 días del aviso, sin lápida
+  assert.equal(h.rows[0].status, "new", "el aviso ya tiene dueño: no es «cercano» de nadie más");
+});
+t("«es el mismo» sobre una fila bajada de otro móvil (sin gemelo localizable) deja rastro «sin aviso», y el importador no se lo come como lápida vieja", () => {
+  const s = estado();
+  const av = aviso(-2, 19, 7, "Bar");
+  s.expenses.unshift(av);
+  const x = sync(s, [ob(-2, 7)])[0];
+  assert.equal(x.possibleDupOf, av.id);
+  // La fila viene de la nube: su gemelo apunta a un id que este móvil no tiene.
+  s.expenses = s.expenses.map((e) => e.id === x.id ? Object.assign({}, e, { possibleDupOf: "de-otro-movil" }) : e);
+  s.gemelos = [];
+  resuelve(s, s.expenses.find((e) => e.id === x.id), true);
+  assert.deepEqual(s.gemelos.map((g) => g.aviso + "/" + (g.banco === c.keyOfExpense(x))), ["/true"], "rastro {aviso:'', banco}");
+  // Llegan dos iguales: la ranura 1 tiene lápida CON rastro, así que el aviso sigue libre para la 2.
+  const b = sync(s, [ob(-2, 7), ob(-2, 7)]);
+  assert.equal(b.length, 1); assert.equal(b[0].obOrd, 2);
+  assert.equal(b[0].possibleDupOf, av.id, "sin rastro, la lápida pasaría por un «es el mismo» antiguo y se saltaría el aviso");
+});
+t("borrar a mano un apunte del banco (el bloque REAL de Gastos) deja rastro «sin aviso»", () => {
+  const gastosSrc = H.read("src/modules/04-tab-gastos.js");
+  const m = gastosSrc.match(/const next=Object\.assign\(\{\},s,\{\s*expenses:\(s\.expenses\|\|\[\]\)\.filter\(function\(x\)\{ return x\.id!==e\.id; \}\),\s*deleted:pushDeleted\(s\.deleted,key\)\s*\}\);[\s\S]*?return next;/);
+  assert.ok(m, "no se encuentra el bloque de borrar en 04-tab-gastos");
+  const borra = new Function("s", "e", "key", "pushDeleted", "pushGemelos", m[0]);
+  const s = estado();
+  const x = sync(s, [ob(-2, 7)])[0];
+  const next = borra(s, x, c.keyOfExpense(x), c.pushDeleted, c.pushGemelos);
+  assert.equal(next.expenses.length, 0);
+  same(next.deleted, [c.keyOfExpense(x)]);
+  assert.equal(JSON.stringify(next.gemelos), JSON.stringify([{ aviso: "", banco: c.keyOfExpense(x) }]));
+  const manual = Object.assign({}, x, { source: "manual", ent: undefined });
+  assert.equal(borra(s, manual, c.keyOfExpense(manual), c.pushDeleted, c.pushGemelos).gemelos, s.gemelos, "un apunte a mano no deja rastro");
+});
+t("runBankSync (el bloque REAL de App) guarda los vínculos de la importación en el estado", () => {
+  const m = mainSrc.match(/const vinculos=gemelosDeImportacion\(add, invState\.expenses\);\s*if\(vinculos\.length\)\{[\s\S]*?\n\s*\}/);
+  assert.ok(m, "no se encuentra el bloque de vínculos en runBankSync");
+  const guarda = new Function("add", "invState", "gemelosDeImportacion", "pushGemelos", m[0] + "\nreturn invState;");
+  const s = estado();
+  const av = aviso(-2, 10, 29.9, "Decathlon"); s.expenses.unshift(av);
+  const add = c.importObExpenses(s, flat([ob(-2, 29.9)]), LINKS) || [];
+  assert.equal(add[0].possibleDupOf, av.id);
+  const out = guarda(add, s, c.gemelosDeImportacion, c.pushGemelos);
+  assert.equal(out.gemelos.length, 1); assert.equal(out.gemelos[0].avisoId, av.id);
+  assert.equal(guarda([], s, c.gemelosDeImportacion, c.pushGemelos), s, "sin vínculos, el mismo estado");
+});
+t("el tope de `gemelos` suelta los más antiguos, no los recientes; un ordinal de dos cifras se lee", () => {
+  let g = [];
+  for (let i = 0; i < 501; i++) g = c.pushGemelos(g, [{ avisoId: "a" + i, aviso: "k" + i, banco: "b" + i }]);
+  assert.equal(g.length, 500);
+  assert.equal(g[0].avisoId, "a1", "el más antiguo se fue"); assert.equal(g[499].avisoId, "a500", "el último se queda");
+  const e = c.expenseFromRow({ id: "x", fecha: ymd(-1) + "T10:00:00.011Z", importe: 1, comercio: "Movimiento", cat: "otros", source: "ob:trade_republic#n12" });
+  assert.equal(e.obOrd, 12); assert.equal(c.expenseSourceForCloud(e), "ob:trade_republic#n12");
+  assert.equal(SRV.ordinalDeSource("ob-hist:trade_republic#n12"), 12, "servidor: también en el histórico");
+  assert.equal(SRV.filasComoLaApp([{ fecha: ymd(-1) + "T10:00:00Z", importe: 5, comercio: "M", source: "ob-hist:trade_republic" }, { fecha: ymd(-1) + "T10:00:00.001Z", importe: 5, comercio: "M", source: "ob-hist:trade_republic#n2" }], []).length, 2);
+});
+t("un pendiente local con `possibleDupOf` (sin vínculo en gemelos todavía) ya tiene reclamado su aviso", () => {
+  const s = estado();
+  const av = aviso(-2, 10, 29.9, "Decathlon"); s.expenses.unshift(av);
+  const x = sync(s, [ob(-2, 29.9)])[0];
+  s.gemelos = [];                                            // el registro se perdió (estado viejo de otro móvil)
+  assert.equal(x.possibleDupOf, av.id);
+  const b = sync(s, [ob(-2, 29.9), ob(-1, 29.9)]);
+  assert.equal(b.length, 1); assert.equal(!!b[0].possibleDup, false, "el enlace local manda aunque el registro no esté");
+});
+
+/* ── 18. Reparto a metas del segundo ingreso igual del día ─────────────────────────────── */
+t("dos ingresos iguales el mismo día: el segundo (ordinal 2) también dispara su reparto a metas", () => {
+  const s = estado();
+  s.goals = [{ id: "g1", name: "Viaje", target: 1000, saved: 0 }];
+  s.settings.reservaRules = [{ id: "r1", name: "Viaje", kind: "fixed", value: 50, goalId: "g1" }];
+  const add = sync(s, [ob(-1, -300), ob(-1, -300)]);
+  assert.equal(add.length, 2);
+  const primero = add.find((e) => !e.obOrd), segundo = add.find((e) => e.obOrd === 2);
+  let st = c.applyReserva(s, primero, c.reservaPlanFor(s, primero.amount).plan, "trade_republic");
+  assert.equal(st.goals[0].saved, 50);
+  assert.equal(c.reservaAlreadyApplied(st, segundo), false, "el segundo cobro no está repartido (antes: misma clave)");
+  st = c.applyReserva(st, segundo, c.reservaPlanFor(st, segundo.amount).plan, "trade_republic");
+  assert.equal(st.goals[0].saved, 100);
+  assert.equal(c.reservaAlreadyApplied(st, segundo), true);
 });

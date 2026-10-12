@@ -225,7 +225,13 @@ const PRESUPUESTO = {
   // +964 / +318 B. Es el acuse local (`obAckLoad`, `obAckSave`, `obAckDrop`), su envío y el
   // efecto que lo guarda detrás de las filas. 1303 KiB (1.334.272) se queda corto por 254 B:
   // +1 KiB mínimo, quedan 770 B.
-  minificado: 1304 * 1024,
+  // Trade Republic, entrega 1 (12/10, `claude/tr-iguales-ordinal`): la base de la rama ya medía
+  // 1308/358 KB (fuera del tope en los dos). Con la revisión (histórico que respeta lápidas y
+  // vínculos, unión de `gemelos` entre móviles, pendiente+contabilizado como un cargo, conceptos
+  // no ambiguos, banco limpio en `ob-hist`), sellado 119.99999 y reserva de 95 B: 1.340.528 B
+  // crudo / 366.830 B gzip. Es la regla del ordinal y sus comentarios del porqué en el motor; sin
+  // texto nuevo de idiomas. Mínimos medidos: 1310 KiB (quedan 912 B) y 359 KiB (quedan 786 B).
+  minificado: 1310 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -240,7 +246,9 @@ const PRESUPUESTO = {
   // +1 KiB mínimo (quedan 712 B).
   // Recibos118: 364.346 B gzip, 826 B sobre 355 KiB. +1 KiB mínimo (quedan 198 B).
   // Bancos119: 364.664 B gzip, 120 B sobre 356 KiB. +1 KiB mínimo (quedan 904 B).
-  gzip: 357 * 1024,
+  // Trade Republic, entrega 1 revisada (12/10): 366.830 B gzip, 1.398 B sobre 357 KiB (la base
+  // de la rama ya se pasaba). Mínimo medido: 359 KiB (quedan 786 B).
+  gzip: 359 * 1024,
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 

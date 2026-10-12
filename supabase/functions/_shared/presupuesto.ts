@@ -155,8 +155,11 @@ export function filasComoLaApp<T extends FilaGasto>(filas: T[] | null | undefine
 export function bancoDeSource(source?: string | null): string | null {
   const s = String(source || "");
   if (s === "macrodroid" || s === "tr") return "trade_republic";
-  if (s.indexOf("ob:") === 0) return s.slice(3).split("#")[0].split("~deuda.")[0] || null;   // «#dup» → B09-D; «~deuda.» → cuota
-  if (s.indexOf("ob-hist:") === 0) return s.slice(8) || null;
+  // «#dup» → B09-D; «#n2» → ordinal; «~deuda.» → cuota; «~recibo.» → cargo de un recibo (otra
+  // entrega lo escribe; aquí ya se lee). El histórico (`ob-hist:`) lleva las mismas marcas: hasta
+  // el 12/10/2026 devolvía «trade_republic#n2» y esa fila se caía del presupuesto del widget.
+  if (s.indexOf("ob:") === 0) return s.slice(3).split("#")[0].split("~")[0] || null;
+  if (s.indexOf("ob-hist:") === 0) return s.slice(8).split("#")[0].split("~")[0] || null;
   if (s.indexOf("manual:") === 0) return s.slice(7) || null;
   return null;
 }

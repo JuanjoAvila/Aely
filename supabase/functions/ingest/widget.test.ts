@@ -1,6 +1,6 @@
 import { assertEquals } from "jsr:@std/assert";
 import { readWidgetRows, widgetSnapshot, widgetStart } from "./widget.ts";
-import { claveComoLaApp, inicioDeMesMs } from "../_shared/presupuesto.ts";
+import { bancoDeSource, claveComoLaApp, filasComoLaApp, inicioDeMesMs, ordinalDeSource } from "../_shared/presupuesto.ts";
 
 const now = Date.parse("2026-10-10T12:00:00Z"), start = inicioDeMesMs(now);
 const rows = [
@@ -87,4 +87,19 @@ Deno.test("widget v2 distingue presupuesto ausente de todo reservado, como el sc
   const reserved = { ...c, reservaLog: [{ date: "2026-10-07", amount: 100 }],
     widgetPeriod: { ...c.widgetPeriod, scope: JSON.stringify(reservedScope) } };
   assertEquals(widgetSnapshot(reserved, rows, now, payment)?.budgetLeft, 14.55);
+});
+
+Deno.test("apuntes iguales con ordinal: filas separadas, mismo banco limpio también en el histórico", () => {
+  // Cinco bizums iguales del día viajan como «#n2…#n5»: el servidor los separa como la app.
+  const iguales = [1, 2, 3, 4, 5].map((n) => ({ id: "b" + n, fecha: "2026-10-03T10:00:00.00" + (n - 1) + "Z", importe: -12, cat: "ingreso",
+    source: "ob:trade_republic" + (n > 1 ? "#n" + n : ""), comercio: "Movimiento" }));
+  assertEquals(filasComoLaApp(iguales, []).length, 5);
+  assertEquals(filasComoLaApp(iguales, [claveComoLaApp(iguales[2])]).length, 4);
+  // El histórico lleva las mismas marcas: hasta el 12/10/2026 devolvía «trade_republic#n2».
+  assertEquals(bancoDeSource("ob-hist:trade_republic#n2"), "trade_republic");
+  assertEquals(bancoDeSource("ob-hist:trade_republic#dup#n3"), "trade_republic");
+  assertEquals(bancoDeSource("ob:sabadell~recibo.r1#n2"), "sabadell");
+  assertEquals(bancoDeSource("ob:sabadell~deuda.d1#dup"), "sabadell");
+  assertEquals(ordinalDeSource("ob-hist:sabadell~recibo.r1#dup#n4"), 4);
+  assertEquals(ordinalDeSource("manual"), 1);
 });
