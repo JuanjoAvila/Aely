@@ -1,11 +1,13 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
-import {execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
+import {execFileSync} from 'node:child_process';
 import {authFragments,authWorld} from './helpers/auth-disposal-fixture.mjs';
 import {scopeDependencies,scopeDataDependencies,mutateLogic,mutateData} from '../scripts/beta-source-code.mjs';
 import {betaRevision} from '../scripts/beta-revisions.mjs';
-const read=f=>fs.readFileSync(new URL('../'+f,import.meta.url),'utf8');
+const read=f=>fs.readFileSync(new URL('../'+f,import.meta.url),'utf8').replace(/\r\n/g,'\n');
+// La conservación de106 se prueba en su fuente exacta; las unidades posteriores tienen guardas propias.
+const historyCache=new Map(),history106=f=>{if(!historyCache.has(f))historyCache.set(f,execFileSync('git',['show','8dcc5ed39b6e212ba1e34a90b550685794ce0bd5:'+f],{encoding:'utf8',maxBuffer:8e6}));return historyCache.get(f);};
 const old=f=>execFileSync('git',['show','9881214ebe93864e2d7570f62094ec785be81163:'+f],{encoding:'utf8',maxBuffer:8e6});
 const core=read('src/modules/00-core.js'),app=read('src/modules/11-app-main.js');
 const parts=authFragments(core,app),before=authFragments(old('src/modules/00-core.js'),old('src/modules/11-app-main.js'));
@@ -43,11 +45,29 @@ const reader=f=>read(f),scope=JSON.parse(read('scripts/beta-sources.json'))['inc
 let fns=0,data=0;for(const f of scopeDependencies(scope,reader)){assert.notEqual(betaRevision('inc-0710-auth-disposal',x=>x===f.file?mutateLogic(read(x),f):read(x)).web,revision,f.name);fns++;}
 for(const d of scopeDataDependencies(scope,reader)){assert.notEqual(betaRevision('inc-0710-auth-disposal',x=>x===d.file?mutateData(read(x),d):read(x)).web,revision,d.name);data++;}
 assert.equal(fns,7);assert.equal(data,9);
+const notes=JSON.parse(history106('src/data/release-notes.json')),oldNotes=JSON.parse(old('src/data/release-notes.json'));
+// La unidad106 añade una sola nota y alcance; el histórico102 conserva todos sus datos.
+assert.equal(notes[0].v,'4.26.106');assert.deepEqual(notes[0].tandas.map(g=>g.id),['inc-0810-dashboard-recents-memo']);
+assert.deepEqual(notes.slice(1),oldNotes);
+const reg=JSON.parse(history106('scripts/beta-sources.json')),oldReg=JSON.parse(old('scripts/beta-sources.json'));
+const expectedReg=structuredClone(oldReg);
+expectedReg['inc-0810-dashboard-recents-memo']=reg['inc-0810-dashboard-recents-memo'];
+assert.deepEqual(reg,expectedReg,'solo alcance nuevo de106; todos los alcances y auditorías anteriores intactos');
+assert.equal(reg['inc-0810-dashboard-recents-memo'].web.length,19);
+assert.equal(reg['inc-0810-dashboard-recents-memo'].unidades,true);
+for(const key of ['historial','auditoria','codigosCompatibles','compatibilidadGit'])assert.equal(reg['inc-0810-dashboard-recents-memo'][key],undefined,'sin heredar '+key);
+assert.notEqual(betaRevision('inc-0710-auth-disposal',reader).codigo,betaRevision('inc-0710-auth-disposal',old).codigo);
+console.log('✓ fit102: retornos/receiver/excepciones diferidas, boot real sin throw, trazas equivalentes;7funciones/9datos e histórico de notas/registro intacto salvo unidad106 declarada; identidad102 nueva');
+
+// La promoción conserva también los controles107/108/110/113 de main en su fuente exacta,
+// y fija el registro actual aprobado117 completo: ningún alcance nuevo entra por copia de HEAD.
+{
+const mainCache=new Map(),mainRead=f=>{if(!mainCache.has(f))mainCache.set(f,execFileSync('git',['show','b2dfd2c01d7ec6a9a30b74ae71d473054932c42f:'+f],{encoding:'utf8',maxBuffer:8e6}));return mainCache.get(f);};
 const notes=JSON.parse(execFileSync('git',['show','8dcc5ed39b6e212ba1e34a90b550685794ce0bd5:src/data/release-notes.json'],{encoding:'utf8',maxBuffer:8e6})),oldNotes=JSON.parse(old('src/data/release-notes.json'));
 // La unidad106 añade una sola nota y alcance; el histórico102 conserva todos sus datos.
 assert.equal(notes[0].v,'4.26.106');assert.deepEqual(notes[0].tandas.map(g=>g.id),['inc-0810-dashboard-recents-memo']);
 assert.deepEqual(notes.slice(1),oldNotes);
-const reg=JSON.parse(read('scripts/beta-sources.json')),oldReg=JSON.parse(execFileSync('git',['show','56c7e328ce801f0e2e2fe5ec1ebd36169f0ac89b:scripts/beta-sources.json'],{encoding:'utf8',maxBuffer:8e6}));
+const reg=JSON.parse(mainRead('scripts/beta-sources.json')),oldReg=JSON.parse(execFileSync('git',['show','56c7e328ce801f0e2e2fe5ec1ebd36169f0ac89b:scripts/beta-sources.json'],{encoding:'utf8',maxBuffer:8e6}));
 const expectedReg=structuredClone(oldReg);
 for(const id of ['inc-0210-03-gastos-periodo','feature-0310-01-movilidad','inc-0310-gastos-sin-limite'])expectedReg[id].web.push({file:'src/modules/08-motor-bank.js',function:'madridYmdParts'},{file:'src/modules/08-motor-bank.js',data:'_mcMadridYmdFmt'});
 // El registro anterior y los tres alcances nuevos se anclan a commits fijos; nunca copiamos expectativas del registro bajo prueba.
@@ -63,6 +83,7 @@ for(const key of ['inc-0310-01-meta-regla','inc-0310-broker-resultados']){
    ...['_mcBackHistory','_mcBackPending','_mcBackAt','_mcBackScheduled','_mcBackTurn','_mcBackNext','_mcBackOwner'].map(name=>({file:'src/modules/02-ui-shared.js',data:name})));
  }
 }
+const liveReg=JSON.parse(read('scripts/beta-sources.json'));
 const selected=f=>execFileSync('git',['show','c7593e86f6665d69fa20bd3f5f8f20c4710a5d9c:'+f],{encoding:'utf8',maxBuffer:8e6}),selectedReg=JSON.parse(selected('scripts/beta-sources.json'));
 for(const [id,codigo,web]of [
  ['inc-0810-nav-indicator','8b644a448f776abfcc21e55bd8acf8847aad84a9f75a5bdb83b4a25d4cd933d5','dedbc947435fa355ba649412debdd8db9088a0a3ecaa2882fb4b99c6b39b373d'],
@@ -70,7 +91,8 @@ for(const [id,codigo,web]of [
  ['inc-0810-backclose-handover','a14e101c0e2ce2e8a778e26df1e342bff2e417e5037c6def254a41696e441aed','05048c3b8ea28237cefc7a17baa5d5c33e2d033e04b2b87efbb429e9d347c089'],
 ]){
  expectedReg[id]=selectedReg[id];
- assert.deepEqual(betaRevision(id,reader),{web,codigo},id+': identidad web aprobada exacta, sin native/edge');
+ // Sólo la edición de regla cambió en beta: su contrato selectivo sigue fijado; las otras identidades vigilan HEAD.
+ assert.deepEqual(betaRevision(id,id==='inc-0810-metas-editar-regla'?mainRead:read,undefined,id==='inc-0810-metas-editar-regla'?reg[id]:liveReg[id]),{web,codigo},id+': identidad aprobada, histórica sólo para edición de regla');
  assert.deepEqual(betaRevision(id,selected,undefined,selectedReg[id]),{web,codigo},id+': ancla beta fija aprobada');
  for(const key of ['historial','auditoria','codigosCompatibles','compatibilidadGit'])assert.equal(reg[id][key],undefined,id+': sin aprobación heredada '+key);
 }
@@ -89,11 +111,14 @@ for(const [id,codigo,web]of [
  ['inc-0310-broker-resultados','027baca86c47ba94e97a63ef8efe6a28eb7245f5f23dacad8423821cece278a8','8149f3d99d8be6aad6de5811f3aa0f737cd847cd5cc1b5353ecad394ee5c48ce'],
  ['inc-2709-13-fab-contorno','7d83273ce4d3cedc0980a5b89452594bba8d91c0e48211f853ede13e80c0f45b','78fbc4dc2e857c7a7a513ecb9f302feeaaf6f56ed47fb3030f26f3fdfbcd128c'],
 ]){
- const current=betaRevision(id,reader),previous=betaRevision(id,f=>execFileSync('git',['show','798226ce2ddcc506c3f0768a5daf9619eff97e15:'+f],{encoding:'utf8',maxBuffer:8e6}),undefined,mainReg[id]);
+ const current=betaRevision(id,read,undefined,liveReg[id]),previous=betaRevision(id,f=>execFileSync('git',['show','798226ce2ddcc506c3f0768a5daf9619eff97e15:'+f],{encoding:'utf8',maxBuffer:8e6}),undefined,mainReg[id]);
  assert.deepEqual(current,{web,codigo},id+': cierre compartido revisado exacto');assert.notEqual(current.codigo,previous.codigo,id+': no heredar identidad anterior');
 }
 assert.equal(reg['inc-0810-dashboard-recents-memo'].web.length,19);
 assert.equal(reg['inc-0810-dashboard-recents-memo'].unidades,true);
 for(const key of ['historial','auditoria','codigosCompatibles','compatibilidadGit'])assert.equal(reg['inc-0810-dashboard-recents-memo'][key],undefined,'sin heredar '+key);
-assert.notEqual(betaRevision('inc-0710-auth-disposal',reader).codigo,betaRevision('inc-0710-auth-disposal',old).codigo);
+assert.notEqual(betaRevision('inc-0710-auth-disposal',mainRead).codigo,betaRevision('inc-0710-auth-disposal',old).codigo);
 console.log('✓ fit102: retornos/receiver/excepciones diferidas, boot real sin throw, trazas equivalentes;7funciones/9datos, notas históricas106 intactas y registro con cierres107/108/110 explícitos; identidad102 nueva');
+
+}
+assert.equal(createHash('sha256').update(JSON.stringify(JSON.parse(read('scripts/beta-sources.json')))).digest('hex'),'5b70b7fad46990744b5f01ef21fb0e399709dab4d6c905fefa292fad5e818191','registro117 aprobado íntegro en la reconciliación');

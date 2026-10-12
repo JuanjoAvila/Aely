@@ -162,27 +162,58 @@ public class MiCarteraPlugin extends Plugin {
     }
 
     @PluginMethod
+    public void beginWidgetRead(PluginCall call) {
+        MiCarteraWidget.beginAppRead(getContext(), (generation, cut) -> {
+            JSObject r = new JSObject();
+            r.put("readGeneration", generation);
+            r.put("nativeCut", cut);
+            call.resolve(r);
+        });
+    }
+
+    /* UN NÚMERO DEL PUENTE NO LLEGA CON UN TIPO FIJO (rechazo de la beta 115 + APK 53, feedback
+       2026-10-11). El mensaje es texto JSON y org.json decide el tipo por el tamaño: un entero
+       que cabe en int es Integer, uno mayor es Long y con decimales es Double. Los getters de
+       Capacitor no cubren los tres: `getDouble` no admite Long y `getInt` solo Integer. El
+       inicio del ciclo, en milisegundos, llegaba como Long → null → se guardaba el día 1 del
+       mes. Con la APK 52 no se notaba; la 53 compara esa ventana con la del alcance y descartaba
+       la foto en mudo: el widget se quedó en «Abre la app para actualizar».
+       Todo número que venga de la web se lee por aquí, sea cual sea su tipo. */
+    static Number bridgeNumber(PluginCall call, String name) {
+        Object value = call.getData() != null ? call.getData().opt(name) : null;
+        return value instanceof Number ? (Number) value : null;
+    }
+
+    static Double bridgeDouble(PluginCall call, String name) {
+        Number value = bridgeNumber(call, name);
+        return value != null ? value.doubleValue() : null;
+    }
+
+    @PluginMethod
     public void updateWidget(PluginCall call) {
         Context ctx = getContext();
-        Double spent = call.getDouble("spent");
-        Double budget = call.getDouble("budget");
-        Double cash = call.getDouble("cash");
+        Double spent = bridgeDouble(call, "spent");
+        Double budget = bridgeDouble(call, "budget");
+        Double cash = bridgeDouble(call, "cash");
         // Las DOS piezas de «lo que te puedes permitir», por separado: lo que deja el presupuesto
         // y la liquidez segura de la cuenta de gasto. Antes se mandaba ya combinado (`afford`) y
         // el lector de notis no sabía rehacerlo con la app cerrada → el widget se contradecía
         // (2026-08-17). Ahora las combina `MiCarteraWidget.build()`, que es el único sitio donde
         // vive la fórmula. `safeLiq` sale de simular el mes día a día: eso solo lo sabe la app.
-        Double budgetLeft = call.getDouble("budgetLeft");
-        Double safeLiq = call.getDouble("safeLiq");
+        Double budgetLeft = bridgeDouble(call, "budgetLeft");
+        Double safeLiq = bridgeDouble(call, "safeLiq");
         String label = call.getString("cashLabel");
-        Double period = call.getDouble("periodStart");
-        Integer contract = call.getInt("contract");
+        // `longValue()` trunca: la web manda a la APK 53 el inicio con medio milisegundo para
+        // que le llegue como Double, y aquí vale lo mismo que el entero exacto.
+        Number period = bridgeNumber(call, "periodStart");
+        Number contract = bridgeNumber(call, "contract");
         MiCarteraWidget.saveApp(ctx, period != null ? period.longValue() : MiCarteraWidget.monthStart(System.currentTimeMillis()),
                 spent != null ? spent : 0, budget != null ? budget : 0,
                 budgetLeft, safeLiq, cash, call.getString("cashEnt"), label,
                 call.getString("coveredEvents"), call.getString("deletedKeys"),
-                contract != null ? contract : 0, call.getString("periodKind"),
-                call.getString("magnitude"), call.getString("lang"), call.getString("scope"));
+                contract != null ? contract.intValue() : 0, call.getString("periodKind"),
+                call.getString("magnitude"), call.getString("lang"), call.getString("scope"),
+                call.getString("readGeneration"), call.getString("nativeCut"));
         call.resolve();
     }
 

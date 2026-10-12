@@ -746,7 +746,12 @@ function reconcileBank(state, y, m, today){
   // como "aún no aparece" — se buscan también ahí y cuentan como confirmados.
   const prevY=(m===1)?y-1:y, prevM=(m===1)?12:m-1;
   const pym=prevY+"-"+(prevM<10?"0":"")+prevM;
-  const prevTail=tx.filter(function(t){ return String(t.date||"").slice(0,7)===pym && obEnts[t.ent] && (t.amount||0)>0 && (recDay(t.date)||0)>=15; })
+  /* Para el mes EN CURSO la cola empieza donde la ventana de siempre (día 1 menos 8). Hasta el
+     tramo recuperado (INC-2709-06) `bankTx` nunca traía nada anterior, así que «día ≥15» eran en
+     la práctica esos 8 días; con el tramo dentro, el alquiler del 18 pasado daba por pagado el
+     de este mes. Un mes ya cerrado conserva su cola desde el 15. */
+  const tailDay=new Date(y,m)>Date.now() ? new Date(y,m-1,-7).getDate() : 15;   // (y,m) aún no ha terminado
+  const prevTail=tx.filter(function(t){ return String(t.date||"").slice(0,7)===pym && obEnts[t.ent] && (t.amount||0)>0 && (recDay(t.date)||0)>=tailDay; })
     .map(function(t){ return Object.assign({},t); });
   // avisos que el usuario ha ocultado ("Ocultar aviso") y movimientos ignorados
   const dismissed={}; (state.bankDismissed||[]).forEach(function(k){ dismissed[k]=1; });
@@ -869,7 +874,7 @@ function flattenBankTx(links){
    En bancos fuera de gasto diario: también cualquier cargo (misma exclusión de modelados).
 
    INGRESOS: de cualquier banco (para «Mi ciclo»). Idempotente por ext_id + dedup. */
-function importObExpenses(s, txs){
+function importObExpenses(s, txs, links){
   if(!txs || !txs.length) return null;
   const ents=expenseBankEnts(s);
   const allow={}; ents.forEach(function(e){ allow[e]=1; });
@@ -887,6 +892,14 @@ function importObExpenses(s, txs){
      histórico en cada sync. Los duplicados que esto pueda rozar ya los para la red de arriba
      (mismo importe ±3 días contra lo que entró por otra vía) más el dedup por ext_id y clave. */
   const som=new Date(startOfMonth().getTime() - 8*86400000);
+  /* TRAMO RECUPERADO (INC-2709-06). Quien pasaba semanas sin sincronizar perdía para siempre lo
+     anterior a `som`. Ahora el servidor lo lee y dice desde qué día (`syncFrom`, por banco): ese
+     suelo llega aquí en `links`, la propia respuesta del sync, sin nada guardado por el camino,
+     porque el updater que llama puede ejecutarse dos veces. Sin suelo —función vieja, o un
+     llamador que no lo pasa— lo anterior a `som` se sigue tirando como siempre. */
+  const fuera=function(tx){
+    return parseDate(tx.date)<som && !(links||[]).some(function(l){ return l && entFromAspsp(l.aspsp)===tx.ent && l.syncFrom<=tx.date; });
+  };
   /* `entry_reference` solo es única DENTRO de su banco. Sin entidad, un id de Sabadell podía
      hacer desaparecer un movimiento distinto de Caixa. La identidad local mínima es banco+id. */
   const seen={}, seenLegacy={}; (s.expenses||[]).forEach(function(e){
@@ -942,16 +955,19 @@ function importObExpenses(s, txs){
   const now=new Date(), ym=now.getMonth()+1, yy=now.getFullYear();
   const today=madridYmdParts(now.getTime());
   const todayKey=today.ym+"-"+String(today.d).padStart(2,"0");
+  /* `otro` marca lo modelado que NO toca este mes. Dentro de la ventana no cuenta, como siempre.
+     El tramo recuperado sí casa contra ello: el seguro anual de agosto o el recibo bimestral del
+     mes pasado ya se cuentan por su lado, y con la lista del mes en curso entraban otra vez. */
   const modeledByEnt={};
-  const pushModeled=function(ent,name,amount,debtId){ if(!ent||!(amount>0)) return; (modeledByEnt[ent]=modeledByEnt[ent]||[]).push({name:name,amount:amount,debtId:debtId||null}); };
-  (s.fixed||[]).forEach(function(f){ if(occursIn(f,ym)) pushModeled(accOf(f), f.name, occAmountIn(f,ym)); });
+  const pushModeled=function(ent,name,amount,debtId,otro){ if(!ent||!(amount>0)) return; (modeledByEnt[ent]=modeledByEnt[ent]||[]).push({name:name,amount:amount,debtId:debtId||null,otro:otro}); };
+  (s.fixed||[]).forEach(function(f){ chargeMonths(f).concat(ym).forEach(function(mm){ pushModeled(accOf(f), f.name, occAmountIn(f,mm), 0, mm!==ym||!occursIn(f,ym)); }); });
   (s.debts||[]).forEach(function(d){ if(debtActive(d)) pushModeled(d.account||"sabadell", d.name||"Cuota", (d.monthly||0)+debtBalloonIn(d,yy,ym), d.id); });
-  (s.oneoffs||[]).forEach(function(o){ if(oneoffOccurs(o,yy,ym)) pushModeled(o.account||"sabadell", o.name||"Cargo", o.amount||0); });
+  (s.oneoffs||[]).forEach(function(o){ pushModeled(o.account||"sabadell", o.name||"Cargo", o.amount||0, 0, !oneoffOccurs(o,yy,ym)); });
   /* QUÉ casó, no solo SI casó (4.21.0). Un Fijo o un puntual casado se sigue tirando como siempre;
      una DEUDA casada ya NO se tira: entra y `marcarCuotasDeDeuda` la pone en «Deudas», fuera del
      gastado. Si casan las dos cosas, gana el descarte de siempre. */
-  const modeledHit=function(ent,merchant,amount){
-    const hits=(modeledByEnt[ent]||[]).filter(function(mm){ return recAmtClose(mm.amount,amount) && recNameMatch(mm.name,merchant); });
+  const modeledHit=function(ent,merchant,amount,antiguo){
+    const hits=(modeledByEnt[ent]||[]).filter(function(mm){ return (antiguo||!mm.otro) && recAmtClose(mm.amount,amount) && recNameMatch(mm.name,merchant); });
     if(!hits.length) return null;
     return hits.find(function(mm){ return !mm.debtId; }) || hits[0];
   };
@@ -968,7 +984,7 @@ function importObExpenses(s, txs){
       if(!parts) return;
       const day=new Date(Number(parts[1]),Number(parts[2])-1,Number(parts[3]),12);
       if(dayKey(day)!==date || date>todayKey) return;
-      if(!tx.date || parseDate(tx.date)<som) return;
+      if(fuera(tx)) return;
       if(tx.id && (seen[(tx.ent||"")+"|"+tx.id]||seenLegacy[tx.id])) return;
       const e={ id:mcExpenseId(), date:new Date(tx.date+"T12:00:00").toISOString(),
         merchant:tx.merchant||"Ingreso", amount:tx.amount,
@@ -987,12 +1003,14 @@ function importObExpenses(s, txs){
       return;
     }
     // GASTO: entra de cualquier banco. Fijos y puntuales modelados no se duplican; las deudas se marcan.
-    const mod=modeledHit(tx.ent, tx.merchant, tx.amount);
+    if(!tx.date || fuera(tx)) return;
+    const antiguo=parseDate(tx.date)<som;
+    const mod=modeledHit(tx.ent, tx.merchant, tx.amount, antiguo);
     if(mod && !mod.debtId) return;
-    if(!tx.date || parseDate(tx.date)<som) return;
     if(tx.id && (seen[(tx.ent||"")+"|"+tx.id]||seenLegacy[tx.id])) return;
     const esDiario=tx.ent===dailyEnt;
-    const esAporteInv = esDiario && daily && daily.monthlyInvest>0 && Math.abs(tx.amount-daily.monthlyInvest)<0.01;
+    // El aporte de hace dos meses ya se compró en su día o ya no toca: se apunta, pero no compra.
+    const esAporteInv = !antiguo && esDiario && daily && daily.monthlyInvest>0 && Math.abs(tx.amount-daily.monthlyInvest)<0.01;
     const e={ id:mcExpenseId(), date:new Date(tx.date+"T12:00:00").toISOString(),
       merchant:tx.merchant||"Compra", amount:tx.amount,
       category: esAporteInv ? "inversion" : categoryOfBankTx(tx), source:"ob", ent:tx.ent };

@@ -9,6 +9,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { ebApi, ebConfig, jsonResp, makeJWT, mapTransaction, fetchBankTransactions } from "../_shared/enablebanking.ts";
 import { withCors } from "../_shared/cors.ts";
+import { OB_DEMAND_MAX_PAGES, chunkCursor, demandPlan, demandReadComplete, nextChunkDays, ymdAddDays, ymdSpan } from "./demand-window.ts";
 
 /* Los movimientos crudos no salen a `app_events`. El diagnóstico temporal del signo de TR
    guardaba hasta ocho payloads completos y seguía activo el 23/9, cuando apareció en telemetría
@@ -64,6 +65,21 @@ async function logObHistoryResult(admin: any, userId: string, aspsp: string, dat
   } catch (_) { /* diagnóstico best-effort: nunca cambia el resultado bancario */ }
 }
 
+// Sync a demanda: mismos conteos que el histórico, sin uid, IBAN, importes ni comercios.
+// La fecha mínima es la pedida al banco, no la de un movimiento. `pending` dice si quedó
+// tramo antiguo por leer: sin él no se distingue «al día» de «a medias» desde soporte.
+// deno-lint-ignore no-explicit-any
+async function logObDemandResult(admin: any, userId: string, aspsp: string, dateFrom: string, status: string, accounts: number, count: number, pages: number, truncated: boolean, capped: boolean, pending: boolean) {
+  try {
+    await admin.from("app_events").insert({
+      user_id: userId, email: null, kind: "performance",
+      message: `OB sync (${obLogBank(aspsp)}): ${status}`,
+      detail: JSON.stringify({ status, accounts, count, pages, truncated, dateFrom, capped, pending }),
+      app_version: "edge", platform: "server",
+    });
+  } catch (_) { /* diagnóstico best-effort: nunca cambia el resultado bancario */ }
+}
+
 Deno.serve(withCors(async (req: Request) => {
   // El límite por cuenta no basta: muchas cuentas lentas podrían agotar la Edge y perder
   // también las respuestas buenas. Se reserva margen para devolverlas y cerrar la petición.
@@ -83,6 +99,10 @@ Deno.serve(withCors(async (req: Request) => {
     const body = await req.json().catch(() => ({}));
     const dateFrom = (typeof body?.dateFrom === "string" && /^\d{4}-\d{2}-\d{2}$/.test(body.dateFrom))
       ? body.dateFrom : null;
+    // Campo distinto de dateFrom a propósito: dateFrom abre el histórico de solo lectura
+    // (no toca saldos). Un cliente nuevo contra una función vieja manda esto y la vieja lo
+    // ignora; una función nueva contra un cliente viejo no lo ve y no ensancha.
+    const recoverGaps = body?.recoverGaps === true;
     const hasAspspFilter = Array.isArray(body?.aspsps);
     const wantedAspsps = hasAspspFilter
       ? body.aspsps.map((x: unknown) => String(x || "").trim().toLowerCase()).filter(Boolean).slice(0, 12)
@@ -170,6 +190,8 @@ Deno.serve(withCors(async (req: Request) => {
     // sigue recibiendo los que sí funcionaron y un aviso del que falló. Antes, un solo fallo
     // lanzaba 500 y obligaba a "resincronizar" todo.
     const out: unknown[] = [];
+    // deno-lint-ignore no-explicit-any
+    const reads: any[] = [];
     for (const link of links || []) {
       // MULTI-CUENTA: recorre TODAS las cuentas del banco (columna `accounts`); si no la hay
       // (enlaces antiguos), cae a la única `account_uid`. Cada cuenta va en su try/catch para
@@ -185,6 +207,19 @@ Deno.serve(withCors(async (req: Request) => {
         out.push({ aspsp: link.aspsp_name, iban: link.iban, ok: false, expired: true, error: "cuenta sin uid · reconecta", balances: [], count: 0, transactions: [], accounts: [] });
         continue;
       }
+      // Aquí solo se hace la lectura de siempre: saldo y ventana reciente, igual que antes de
+      // existir el tramo antiguo. El tramo va más abajo, cuando TODOS los bancos tienen ya la
+      // suya, y nada de lo que le pase puede cambiar este resultado.
+      const plan = demandPlan(new Date(), link.last_sync, recoverGaps);
+      /* Llamadas a /transactions por cuenta, contadas al PEDIR: una que falla también le
+         cuesta cupo al banco. El tramo antiguo (`hard`) no puede pasar del tope; la ventana
+         se deja como estaba. */
+      const used: Record<string, number> = {};
+      const counted = (uid: string, hard: boolean) => async (jwtArg: string, path: string, init: { method?: string; body?: unknown; signal?: AbortSignal } = {}) => {
+        if (hard && (used[uid] || 0) >= OB_DEMAND_MAX_PAGES) throw new Error("transactions_budget");
+        used[uid] = (used[uid] || 0) + 1;
+        return await ebApi(jwtArg, path, init);
+      };
       // deno-lint-ignore no-explicit-any
       const acctOut: any[] = [];
       let anyAcctOk = false, anyExpired = false, lastErr = "";
@@ -201,11 +236,9 @@ Deno.serve(withCors(async (req: Request) => {
         const balTimer = setTimeout(() => balController.abort(), accountDeadline - Date.now());
         try {
           const bal = await ebApi(jwt, `/accounts/${uid}/balances`, {signal:balController.signal});
-          const now = new Date();
           // Debe cubrir al menos `som` de importObExpenses (mes de Madrid menos 8 días).
           // En el borde de mes UTC puede pedir un mes adicional, pero nunca uno de menos.
-          const recentFrom = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1) - 8 * 86400000).toISOString().slice(0, 10);
-          const tx = await fetchBankTransactions(jwt, uid, recentFrom, ebApi, accountDeadline - Date.now());
+          const tx = await fetchBankTransactions(jwt, uid, plan.windowStart, counted(uid, false), accountDeadline - Date.now());
           // deno-lint-ignore no-explicit-any
           const balances = (bal.balances || []).map((b: any) => ({
             type: b.balance_type || b.name || "",
@@ -237,23 +270,130 @@ Deno.serve(withCors(async (req: Request) => {
         }
       }
       // Solo EB 401 firme caduca el permiso; 403/404/429/5xx conservan el enlace activo.
-      if (anyAcctOk) {
-        await admin.from("bank_links")
-          .update({ last_sync: new Date().toISOString(), status: "active", updated_at: new Date().toISOString() })
-          .eq("id", link.id);
-      } else {
-        await admin.from("bank_links")
-          .update({ status: anyExpired ? "expired" : link.status, updated_at: new Date().toISOString() })
-          .eq("id", link.id);
-      }
+      /* last_sync es del ENLACE y dice hasta dónde está leído en TODAS sus cuentas. Sin tramo
+         pendiente sube a «ahora» en cuanto todas respondieron. Con una cuenta caída o un
+         error a media paginación no sube (ese trozo quedaría fuera de la próxima petición),
+         y con tramo pendiente lo mueve solo el propio tramo, más abajo: ni el cliente que
+         no lo pide ni una lectura reciente a medias pueden quemarlo.
+         La excepción es la ventana que NO CABE en los topes del lector (12 llamadas o
+         2000 filas): ahí no hay sitio para el tramo ni lo habrá en la pulsación
+         siguiente, así que esperar dejaría el cursor quieto para siempre. Sube a
+         «ahora», haya hueco o no, que es lo que hacía antes de existir el tramo. Un
+         corte por otra causa (el banco repite el cursor de página) no es desbordar. */
+      const allRead = acctOut.length > 0 && acctOut.every((a) => a.ok && !a.transactionError);
+      const overflow = allRead && acctOut.some((a) => a.truncated && ((used[a.uid] || 0) >= OB_DEMAND_MAX_PAGES || a.count >= 2000));
+      const wantOld = recoverGaps && plan.gap && !overflow;
+      const nowIso = new Date().toISOString();
+      await admin.from("bank_links")
+        .update(anyAcctOk
+          ? { ...(allRead && (!plan.gap || overflow) ? { last_sync: nowIso } : {}), status: "active", updated_at: nowIso }
+          : { status: anyExpired ? "expired" : link.status, updated_at: nowIso })
+        .eq("id", link.id);
       // top-level (balances/transactions/count) = primera cuenta OK: retrocompat con la Capa 2/3 antigua.
       const primary = acctOut.find((a) => a.ok) || acctOut[0] || { balances: [], transactions: [], count: 0 };
-      out.push({
+      // deno-lint-ignore no-explicit-any
+      const entry: any = {
         aspsp: link.aspsp_name, iban: link.iban, ok: anyAcctOk, expired: !anyAcctOk && anyExpired,
         error: anyAcctOk ? undefined : lastErr,
         balances: primary.balances, count: primary.count, transactions: primary.transactions,
+        /* `syncFrom` es el día más antiguo que esta respuesta puede traer: el cliente nuevo
+           acepta desde ahí. `balanceAt` es cuándo se leyó el saldo, que ya no coincide con
+           last_sync mientras el tramo va a medias. */
+        syncFrom: plan.windowStart, gapBeyondCap: plan.gapBeyondCap, gapPending: wantOld,
+        balanceAt: anyAcctOk ? nowIso : undefined,
         accounts: acctOut,
+      };
+      out.push(entry);
+      reads.push({ link, plan, used, counted, entry, primary, accounts: acctOut,
+        // El tramo solo se empieza con lo reciente ENTERO en todas las cuentas: gastar
+        // llamadas en una mientras otra no avanza no movería el cursor.
+        ready: wantOld && demandReadComplete(acctOut) });
+    }
+
+    /* TRAMO ANTIGUO (INC-2709-06). Va aparte y al final, en su propio try: un 429, un 400 o
+       un 401 aquí solo significan que el cursor no avanza. Se recorre por TROZOS DE FECHAS
+       (date_from y date_to), del más antiguo al más nuevo, y un trozo solo cuenta si TODAS
+       las cuentas lo paginaron hasta el final: así da igual en qué orden pagine el banco y
+       un día nunca queda partido. El primer trozo es un solo día, con todas las llamadas
+       libres: si ese día cabe, la pulsación avanza seguro. */
+    const gapDeadline = deadline - 5000;
+    // deno-lint-ignore no-explicit-any
+    const readChunk = async (r: any, from: string, to: string): Promise<any[][] | null> => {
+      // deno-lint-ignore no-explicit-any
+      const rows: any[][] = [];
+      for (const a of r.accounts) {
+        const free = OB_DEMAND_MAX_PAGES - (r.used[a.uid] || 0);
+        const ms = Math.min(15000, gapDeadline - Date.now());
+        if (free < 1 || ms <= 0) return null;
+        const tx = await fetchBankTransactions(jwt, a.uid, from, r.counted(a.uid, true), ms, false, free, to);
+        if (tx.truncated || tx.transactionError) return null;
+        rows.push(tx.transactions || []);
+      }
+      return rows;
+    };
+    for (const r of reads) {
+      if (!r.ready) continue;
+      const p = r.plan;
+      // deno-lint-ignore no-explicit-any
+      const old: any[][] = r.accounts.map(() => []);
+      // deno-lint-ignore no-explicit-any
+      const keep = (rows: any[][]) => rows.forEach((x, i) => old[i].push(...x));
+      const spent = () => Math.max(...r.accounts.map((a: { uid: string }) => r.used[a.uid] || 0));
+      let sealed: string | null = null, day = p.from;
+      try {
+        let size = 1, pages = 0, days = 0;
+        while (day <= p.to) {
+          const end = ymdAddDays(day, size - 1);
+          const to = end < p.to ? end : p.to;
+          const before = spent();
+          const rows = await readChunk(r, day, to);
+          if (!rows) break;
+          keep(rows);
+          sealed = to;
+          pages += Math.max(1, spent() - before);
+          days += ymdSpan(day, to);
+          // Cortesía tras el primer día: lo que el banco contabilizó tarde justo antes del
+          // último sync real. Si no cabe se pierde solo eso, nunca el avance.
+          if (day === p.from && p.overlapFrom) {
+            r.entry.syncFrom = p.overlapFrom;
+            const late = await readChunk(r, p.overlapFrom, ymdAddDays(p.from, -1));
+            if (late) keep(late);
+          }
+          day = ymdAddDays(to, 1);
+          size = nextChunkDays(size, pages, days, OB_DEMAND_MAX_PAGES - spent());
+        }
+      } catch (_) { /* el banco se negó: se queda lo sellado hasta aquí */ }
+      // deno-lint-ignore no-explicit-any
+      r.accounts.forEach((a: any, i: number) => {
+        if (!old[i].length) return;
+        a.transactions = old[i].map(mapTransaction).concat(a.transactions);
+        a.count = a.transactions.length;
       });
+      r.entry.transactions = r.primary.transactions;
+      r.entry.count = r.primary.count;
+      if (sealed && r.entry.syncFrom > p.from) r.entry.syncFrom = p.from;
+      try {
+        const stamp = new Date().toISOString();
+        if (day > p.to) {
+          await admin.from("bank_links").update({ last_sync: stamp, updated_at: stamp }).eq("id", r.link.id);
+          r.entry.gapPending = false;
+        } else if (sealed) {
+          // `lt`: otro móvil pudo terminar mientras tanto. El cursor nunca retrocede.
+          await admin.from("bank_links").update({ last_sync: chunkCursor(sealed), updated_at: stamp })
+            .eq("id", r.link.id).lt("last_sync", chunkCursor(sealed));
+        }
+      } catch (_) { /* sin cursor nuevo la próxima pulsación repite el trozo: no se pierde nada */ }
+    }
+    for (const r of reads) {
+      // deno-lint-ignore no-explicit-any
+      const accts: any[] = r.accounts;
+      const readCount = accts.reduce((n, a) => n + (typeof a?.count === "number" ? a.count : (a?.transactions || []).length), 0);
+      const readTruncated = accts.some((a) => !!(a && (a.truncated || a.transactionError)));
+      const readFailed = accts.filter((a) => a && a.ok === false).length;
+      const readPartial = !accts.length || readFailed > 0 || readTruncated;
+      const readStatus = readPartial ? (readCount ? "partial" : "error") : (readCount ? "ok" : "empty");
+      const pages = Object.values(r.used as Record<string, number>).reduce((n, x) => n + x, 0);
+      await logObDemandResult(admin, user.id, r.link.aspsp_name, r.entry.syncFrom, readStatus, accts.length, readCount, pages, readTruncated, r.plan.gapBeyondCap, !!r.entry.gapPending);
     }
 
     // Enlaces caducados/rotos: van en la respuesta SIN llamar a Enable Banking (fallaría igual).

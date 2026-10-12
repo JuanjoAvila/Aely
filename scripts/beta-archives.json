@@ -1,0 +1,61 @@
+{
+  "schema": 1,
+  "refs": {
+    "inc-0810-inicio-grafica-significado": {
+      "sha": "f4ffb9340adfd0a13b631271e8158d2c630613c0",
+      "version": "4.26.109",
+      "codigo": "b90e6223cd45ef64e8689d4c772560c31c7db47939694211a892316030a283f0",
+      "revisiones": {
+        "web": "d05bb0d4d86dce14c5ba4794a0be2a265e52f3a167cf8eadce87aa198e5cd38d"
+      },
+      "descriptor": {
+        "web": [
+          {
+            "file": "src/modules/03-tab-dash.js",
+            "from": "      // INC-0810 gráfica: significado de las cifras sin fecha.",
+            "to": "\n    // Sin presupuesto, Inicio escondia"
+          },
+          {
+            "file": "src/modules/02-ui-shared.js",
+            "function": "Sparkline"
+          },
+          {
+            "file": "src/modules/01-i18n.js",
+            "from": "    // INC-0810 es: límite del significado de la gráfica.",
+            "to": "    // INC-0810 es: fin del significado de la gráfica."
+          },
+          {
+            "file": "src/modules/01-i18n.js",
+            "from": "    // INC-0810 en: límite del significado de la gráfica.",
+            "to": "    // INC-0810 en: fin del significado de la gráfica."
+          },
+          {
+            "file": "src/modules/01-i18n.js",
+            "from": "    // INC-0810 ca: límite del significado de la gráfica.",
+            "to": "    // INC-0810 ca: fin del significado de la gráfica."
+          }
+        ],
+        "unidades": true
+      },
+      "guion": {
+        "id": "inc-0810-inicio-grafica-significado",
+        "t": {
+          "es": "Significado de la gráfica de Inicio",
+          "en": "Meaning of the Home chart",
+          "ca": "Significat de la gràfica d’Inici"
+        },
+        "items": {
+          "es": [
+            "1. En Inicio, comprueba la explicación bajo el total: sin cifras anteriores indica que solo hay un total actual. Con línea indica cifras sin fecha en EUR y escala relativa del mínimo al máximo, no desde cero; no es una ganancia. Al cambiar la moneda, la línea sigue en EUR y los saldos conservan su valor."
+          ],
+          "en": [
+            "1. On Home, check the explanation below the total: without earlier figures it states that only the current total is available. With a line it states undated figures in EUR and a relative scale from minimum to maximum, not from zero; it is not a gain. When changing currency, the line stays in EUR and balances retain their value."
+          ],
+          "ca": [
+            "1. A Inici, comprova l’explicació sota el total: sense xifres anteriors indica que només hi ha el total actual. Amb línia indica xifres sense data en EUR i escala relativa del mínim al màxim, no des de zero; no és un guany. En canviar la moneda, la línia segueix en EUR i els saldos conserven el valor."
+          ]
+        }
+      }
+    }
+  }
+}

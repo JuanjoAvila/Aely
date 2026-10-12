@@ -237,6 +237,7 @@ function cuerpoDe(src, firma) {
 
 const build = cuerpoDe(widget, "private static RemoteViews build(");
 const saveMonth = cuerpoDe(widget, "static synchronized void saveMonth(");
+const applyMonth = cuerpoDe(widget, "private static boolean applyMonth(");
 const saveApp = cuerpoDe(widget, "static synchronized void saveApp(");
 const readPrefs = cuerpoDe(widget, "private static WidgetSnapshotArbiter.State read(");
 const write = cuerpoDe(widget, "private static void write(");
@@ -261,7 +262,8 @@ t("la app empuja TODAS las cifras vivas", () => {
 });
 
 t("y la noti, con la app cerrada, mantiene TODAS las cifras vivas (el bug de agosto)", () => {
-  assert.match(saveMonth, /WidgetSnapshotArbiter\.ingest\(/);
+  assert.match(saveMonth, /applyMonth\(/);
+  assert.match(applyMonth, /WidgetSnapshotArbiter\.ingest\(/);
   assert.match(saveMonth, /write\(ed, s\)/);
   assert.match(listener, /MiCarteraWidget\.saveMonth\(/);
 });
@@ -269,7 +271,8 @@ t("y la noti, con la app cerrada, mantiene TODAS las cifras vivas (el bug de ago
 t("el evento rechazado persiste entre procesos y requiere evidencia del mismo alcance",()=>{
   assert.match(readPrefs,/s\.unknownJournal = p\.getString\("unknownJournal", ""\)/);
   assert.match(write,/putString\("unknownJournal", s\.unknownJournal\)/);
-  assert.match(saveMonth,/WidgetPeriod\.sameScope\(p\.getString\("scope", ""\), respScope\)/);
+  assert.match(saveMonth,/p\.getString\("scope", ""\)/);
+  assert.match(applyMonth,/WidgetPeriod\.sameScope\(savedScope, respScope\)/);
   assert.match(saveMonth,/write\(ed, s\)/);
 });
 
@@ -351,4 +354,13 @@ assert.match(saveApp,/if \(!WidgetPeriod.clientV2\(contract\)\) \{ waiting\(ctx\
 assert.match(build,/p.getBoolean\("negotiating", false\)/);
 assert.match(saveApp,/putBoolean\("negotiating", false\)/);
 console.log("  ✓ puente colgado: aviso, retry y contrato v2 sin fallback que degrade la foto");
+// INC-0210-04: el texto observado acota el diagnóstico a un bloqueo de seguridad,
+// no a la caducidad de la ventana ni a la pérdida de la última foto numérica.
+assert.match(build,/p\.getBoolean\("journalFull", false\) \|\| p\.getBoolean\("unknownPending", false\)/);
+assert.match(build,/boolean sinDato = p\.getBoolean\("journalFull", false\)/);
+assert.match(build,/\|\| p\.getBoolean\("negotiating", false\)/);
+assert.match(build,/mesDistinto \? t\[WidgetPeriod\.SIN_DATOS\] : t\[WidgetPeriod\.ABRE_APP\]/);
+assert.match(build,/mesDistinto \|\| sinDato \? "—" : eur0\(spent\)/);
+assert.match(applyMonth,/WidgetSnapshotArbiter\.pendingUnknown\(s, event, expenseKey\)/);
+console.log("  ✓ guion y aviso: solo bloqueo explícito; la ventana caducada usa otro texto");
 console.log("  ok");

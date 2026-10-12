@@ -84,8 +84,14 @@ public class MiCarteraWidget extends AppWidgetProvider {
         s.events = p.getString("events", "");
         s.journal = p.getString("journal", "");
         s.journalFull = p.getBoolean("journalFull", false);
-        s.unknownPending = p.getBoolean("unknownPending", false);
         s.unknownJournal = p.getString("unknownJournal", "");
+        s.recoveryJournal = p.getString("recoveryJournal", "");
+        // APK52 podía omitir el evento que desbordaba sin guardar su identidad ni la causa.
+        // La misma preferencia también nace de indentación: legibilidad y ACK retenidos no
+        // prueban ausencia de pérdida. Sin marca moderna conservar incertidumbre (10/10).
+        s.unknownLoss = p.getBoolean("unknownLoss", s.journalFull);
+        s.identityLost = p.getBoolean("identityLost", s.unknownLoss && s.recoveryJournal.isEmpty());
+        s.unknownPending = p.getBoolean("unknownPending", false) || s.unknownLoss;
         s.coveredEvents = p.getString("coveredEvents", "");
         s.deletedKeys = p.getString("deletedKeys", "");
         return s;
@@ -104,11 +110,20 @@ public class MiCarteraWidget extends AppWidgetProvider {
           .remove("delta").putString("cashEnt", s.cashEnt)
           .putString("cashLabel", s.cashLabel).putString("events", s.events)
           .putString("journal", s.journal).putBoolean("journalFull", s.journalFull)
-          .putBoolean("unknownPending", s.unknownPending)
+          .putBoolean("unknownPending", s.unknownPending).putBoolean("unknownLoss", s.unknownLoss)
+          .putBoolean("identityLost", s.identityLost).putString("recoveryJournal", s.recoveryJournal)
           .putString("unknownJournal", s.unknownJournal)
           .putString("coveredEvents", s.coveredEvents).putString("deletedKeys", s.deletedKeys);
         ed.remove("afford");
         ed.putLong("updated", System.currentTimeMillis());
+    }
+
+    // Una foto fallida no se guarda a medias; la incertidumbre detectada sí debe sobrevivir.
+    private static void writeBlocked(SharedPreferences.Editor ed, WidgetSnapshotArbiter.State s) {
+        ed.putBoolean("journalFull", s.journalFull)
+          .putBoolean("unknownLoss", s.unknownLoss)
+          .putBoolean("identityLost", s.identityLost)
+          .putBoolean("unknownPending", s.unknownPending || s.unknownLoss);
     }
 
     static synchronized long beginIngest(Context ctx) {
@@ -116,35 +131,113 @@ public class MiCarteraWidget extends AppWidgetProvider {
         WidgetSnapshotArbiter.State s = read(p);
         long ticket = WidgetSnapshotArbiter.begin(s);
         p.edit().putLong("issued", s.issued).commit();
+        gate(p).active.add(ticket);
         return ticket;
+    }
+
+    interface ReadReady { void accept(String generation, String cut); }
+    private interface PendingPayment {
+        void apply(WidgetSnapshotArbiter.State s, int contract, String kind, String scope);
+    }
+    private static final class AppRead {
+        final String generation = java.util.UUID.randomUUID().toString();
+        final long cut;
+        final java.util.ArrayList<PendingPayment> later = new java.util.ArrayList<>();
+        AppRead(long cut) { this.cut = cut; }
+    }
+    private static final class ReadGate {
+        final java.util.HashSet<Long> active = new java.util.HashSet<>();
+        final java.util.ArrayList<Runnable> waiting = new java.util.ArrayList<>();
+        AppRead read;
+    }
+    private static final java.util.IdentityHashMap<SharedPreferences, ReadGate> reads = new java.util.IdentityHashMap<>();
+    private static ReadGate gate(SharedPreferences p) {
+        ReadGate g = reads.get(p);
+        if (g == null) { g = new ReadGate(); reads.put(p, g); }
+        return g;
+    }
+
+    // La lectura empieza después de terminar los envíos previos: un ticket emitido aún no
+    // prueba que su movimiento esté guardado en la nube. No se deduce ese corte del reloj.
+    static synchronized void beginAppRead(Context ctx, ReadReady ready) {
+        SharedPreferences p = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+        ReadGate g = gate(p);
+        if (!g.active.isEmpty()) { g.waiting.add(() -> beginAppRead(ctx, ready)); return; }
+        g.read = new AppRead(p.getLong("issued", 0));
+        ready.accept(g.read.generation, Long.toString(g.read.cut));
+    }
+
+    static synchronized void finishIngest(Context ctx, long ticket) {
+        ReadGate g = gate(ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE));
+        g.active.remove(ticket);
+        if (g.active.isEmpty()) {
+            java.util.ArrayList<Runnable> waiting = new java.util.ArrayList<>(g.waiting);
+            g.waiting.clear();
+            for (Runnable ready : waiting) ready.run();
+        }
+    }
+
+    // Durante una lectura pueden llegar pagos que su foto no incluya. Se reaplican con los
+    // lectores habituales y sus ACK tras sustituir el legado, también si éste estaba lleno.
+    private static void duringRead(SharedPreferences p, long ticket, PendingPayment payment) {
+        AppRead r = gate(p).read;
+        if (r != null && ticket > r.cut) r.later.add(payment);
     }
 
     static synchronized void saveApp(Context ctx, long periodStart, double spent, double budget,
                                       Double budgetLeft, Double safeLiq, Double cash,
-                                      String cashEnt, String cashLabel,
-                                      String coveredEvents, String deletedKeys,
-                                      int contract, String kind, String magnitude, String lang, String scope) {
+                                      String cashEnt, String cashLabel, String coveredEvents, String deletedKeys,
+                                      int contract, String kind, String magnitude, String lang, String scope,
+                                      String readGeneration, String nativeCut) {
         if (!WidgetPeriod.clientV2(contract)) { waiting(ctx); return; }
         // El callback de reentrada puede ejecutar el push viejo antes de que React recalcule
         // el mes nuevo. No sellarlo con la hora de hoy como si sus cifras fueran de hoy.
         if (!WidgetPeriod.acceptApp(contract, kind, periodStart, System.currentTimeMillis())) return;
         SharedPreferences p = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         WidgetSnapshotArbiter.State s = read(p);
+        AppRead r = gate(p).read;
+        boolean fresh = r != null && r.generation.equals(readGeneration) && Long.toString(r.cut).equals(nativeCut);
+        if (fresh) {
+            if (!Double.isFinite(spent) || !Double.isFinite(budget)
+                    || (budgetLeft != null && !Double.isFinite(budgetLeft))
+                    || (safeLiq != null && !Double.isFinite(safeLiq))
+                    || (cash != null && !Double.isFinite(cash))) return;
+            try {
+                org.json.JSONArray a = new org.json.JSONArray(scope);
+                if (a.length() != 8 || a.optInt(0, 0) != 2 || a.optLong(1, 0) != periodStart
+                        || !kind.equals(a.optString(2, ""))
+                        || !(WidgetPeriod.CICLO.equals(kind) ? "neto" : "gasto").equals(magnitude)) return;
+            } catch (Exception invalid) { return; }
+            // Sólo esta lectura completa nueva sustituye lo que ya no puede reconstruirse.
+            // Un reenvío o una web anterior siguen conciliando IDs sin borrar incertidumbre.
+            long issued = s.issued;
+            s = new WidgetSnapshotArbiter.State();
+            s.issued = issued;
+        }
         // Cambiar de mes a ciclo (o al revés) es otra ventana: el journal de la anterior no vale.
-        if ((!sameWindow(p, contract, kind) || (contract >= WidgetPeriod.CONTRACT
+        if (!fresh && (!sameWindow(p, contract, kind) || (contract >= WidgetPeriod.CONTRACT
                 && !WidgetPeriod.sameScope(p.getString("scope", ""), scope)))
-                && !WidgetSnapshotArbiter.invalidateScope(s)) {
-            p.edit().putBoolean("journalFull", true).commit();
+                && !WidgetSnapshotArbiter.invalidateScope(s, coveredEvents, deletedKeys, periodStart)) {
+            SharedPreferences.Editor blocked = p.edit();
+            writeBlocked(blocked, s);
+            blocked.commit();
             refreshAll(ctx);
             return;
         }
         if (!WidgetSnapshotArbiter.app(s, periodStart, spent, budget, budgetLeft, safeLiq, cash,
                 cashEnt, cashLabel, coveredEvents, deletedKeys)) {
             if (s.journalFull) {
-                p.edit().putBoolean("journalFull", true).commit();
+                SharedPreferences.Editor blocked = p.edit();
+                writeBlocked(blocked, s);
+                blocked.commit();
                 refreshAll(ctx);
             }
             return;
+        }
+        if (fresh) {
+            // Reconstruir también los posteriores ANTES del commit evita guardar una cifra
+            // intermedia o perder sus deltas si el proceso muere entre dos escrituras.
+            for (PendingPayment payment : r.later) payment.apply(s, contract, kind, scope);
         }
         SharedPreferences.Editor ed = p.edit();
         write(ed, s);
@@ -155,6 +248,9 @@ public class MiCarteraWidget extends AppWidgetProvider {
           .putString("lang", lang != null ? lang : "")
           .putString("scope", scope != null ? scope : "");
         ed.commit();
+        if (fresh) {
+            gate(p).read = null;
+        }
         refreshAll(ctx);
     }
 
@@ -169,35 +265,83 @@ public class MiCarteraWidget extends AppWidgetProvider {
         return k.equals(stored);
     }
 
+    static synchronized boolean saveLegacyPayment(Context ctx, long ticket, long eventAt,
+                          String event, String key, double amount, String category, boolean cashCounts) {
+        SharedPreferences p = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+        duringRead(p, ticket, (s, contract, kind, scope) -> {
+            // La foto puede pasar de Mes a Ciclo: un cobro grande posterior al corte
+            // requiere releer su ancla, aunque en la ventana anterior no abriera nómina.
+            if (applyLegacyPayment(s, contract, kind, scope, ticket, eventAt, event, key, amount, category, cashCounts) == -1)
+                WidgetSnapshotArbiter.pendingUnknown(s, event, key);
+        });
+        WidgetSnapshotArbiter.State s = read(p);
+        int accepted = applyLegacyPayment(s, p.getInt("contract", 0), p.getString("periodKind", WidgetPeriod.MES),
+                p.getString("scope", ""), ticket, eventAt, event, key, amount, category, cashCounts);
+        if (accepted == 2) {
+            SharedPreferences.Editor ed = p.edit(); write(ed, s); ed.commit(); refreshAll(ctx);
+        }
+        return accepted > 0;
+    }
+
+    private static int applyLegacyPayment(WidgetSnapshotArbiter.State s, int contract, String kind, String savedScope,
+                          long ticket, long eventAt, String event, String key, double amount, String category, boolean cashCounts) {
+        long start = s.periodStart, now = System.currentTimeMillis();
+        if (contract < WidgetPeriod.CONTRACT || event == null || event.isEmpty()
+                || !WidgetPeriod.acceptApp(contract, kind, start, now)
+                || eventAt < start || eventAt > now || !Double.isFinite(amount)
+                || Math.abs(amount - Math.round(amount * 100) / 100.0) > .000001
+                || category == null || category.isEmpty()) return 0;
+        // Un ingreso grande podría abrir otro ciclo: sin el cobro/ancla actuales no se
+        // puede afirmar que siga en esta ventana. Bizums y neutras no abren nómina en la app.
+        boolean cycle = WidgetPeriod.CICLO.equals(kind);
+        boolean neutral = "inversion".equals(category) || "traspaso".equals(category) || "deudas".equals(category);
+        if (cycle && amount <= -200 && !neutral && !"bizum".equals(category)) return -1;
+        if (!cycle && WidgetPeriod.monthStart(eventAt) != start) return 0;
+        try {
+            org.json.JSONArray scope = new org.json.JSONArray(savedScope);
+            if (scope.length() != 8 || scope.optInt(0, 0) != 2 || scope.optLong(1, 0) != start
+                    || !kind.equals(scope.optString(2, ""))) return 0;
+            org.json.JSONArray banks = scope.optJSONArray(6);
+            if (banks == null) return 0;
+            boolean daily = false;
+            for (int i = 0; i < banks.length(); i++)
+                if ("trade_republic".equals(banks.optString(i, ""))) daily = true;
+            boolean counts = !neutral && (daily || (cycle && amount < 0));
+            double cents = Math.round(amount * 100) / 100.0;
+            double delta = counts && (cycle || cents > 0) ? cents : 0;
+            return WidgetSnapshotArbiter.knownPayment(s, ticket, event, key, delta, cents, counts, cashCounts) ? 2 : 1;
+        } catch (Exception invalid) { return 0; }
+    }
+
     static synchronized void saveMonth(Context ctx, long ticket, long periodStart, long readAt,
                           String event, String expenseKey, double spent, double budget, double budgetLeft,
                           double shownDelta, double againstDelta, double importe,
                           boolean counts, boolean cashCounts, int respContract, String respKind, String respScope) {
         SharedPreferences p = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+        duringRead(p, ticket, (s, contract, kind, scope) -> applyMonth(s, contract, kind, scope, ticket, periodStart, readAt, event, expenseKey,
+                spent, budget, budgetLeft, shownDelta, againstDelta, importe, counts, cashCounts,
+                respContract, respKind, respScope));
         WidgetSnapshotArbiter.State s = read(p);
+        if (!applyMonth(s, p.getInt("contract", 0), p.getString("periodKind", WidgetPeriod.MES), p.getString("scope", ""),
+                ticket, periodStart, readAt, event, expenseKey, spent, budget, budgetLeft, shownDelta, againstDelta,
+                importe, counts, cashCounts, respContract, respKind, respScope)) return;
+        SharedPreferences.Editor ed = p.edit(); write(ed, s); ed.commit(); refreshAll(ctx);
+    }
+
+    private static boolean applyMonth(WidgetSnapshotArbiter.State s, int contract, String kind, String savedScope,
+                          long ticket, long periodStart, long readAt, String event, String expenseKey,
+                          double spent, double budget, double budgetLeft, double shownDelta, double againstDelta, double importe,
+                          boolean counts, boolean cashCounts, int respContract, String respKind, String respScope) {
         long now = System.currentTimeMillis();
-        int contract = p.getInt("contract", 0);
-        String kind = p.getString("periodKind", WidgetPeriod.MES);
         if (!WidgetPeriod.acceptServer(contract, kind, s.periodStart, respContract, respKind, periodStart, now)
-                || (contract >= WidgetPeriod.CONTRACT && !WidgetPeriod.sameScope(p.getString("scope", ""), respScope))) {
+                || (contract >= WidgetPeriod.CONTRACT && !WidgetPeriod.sameScope(savedScope, respScope))) {
             // Un servidor de otra ventana o de la regla vieja no puede pisar la foto de la app.
             // Pero hubo un pago que la foto no incluye: se dice «abre la app», no se finge al día.
-            if (contract >= WidgetPeriod.CONTRACT
-                    && WidgetSnapshotArbiter.pendingUnknown(s, event, expenseKey)) {
-                SharedPreferences.Editor ed = p.edit();
-                write(ed, s);
-                ed.commit();
-                refreshAll(ctx);
-            }
-            return;
+            return contract >= WidgetPeriod.CONTRACT && WidgetSnapshotArbiter.pendingUnknown(s, event, expenseKey);
         }
-        if (!WidgetSnapshotArbiter.ingest(s, ticket, WidgetPeriod.current(contract, kind, s.periodStart, now),
+        return WidgetSnapshotArbiter.ingest(s, ticket, WidgetPeriod.current(contract, kind, s.periodStart, now),
                 periodStart, readAt, event, expenseKey, spent, budget, budgetLeft, shownDelta, againstDelta,
-                importe, counts, cashCounts)) return;
-        SharedPreferences.Editor ed = p.edit();
-        write(ed, s);
-        ed.commit();
-        refreshAll(ctx);
+                importe, counts, cashCounts);
     }
 
     private static String eur0(double n) {

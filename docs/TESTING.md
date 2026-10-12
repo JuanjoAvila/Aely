@@ -1,3 +1,149 @@
+Promoción117: conserva los contratos históricos de catálogo117/Retiro117 en c5f62d66 y añade un guardián de runtime y nota única más historial de main (227 entradas, todas con tandas vacías). revisar-beta cubre es/en/ca: entrega web y nativa con guiones publicados, Novedades reales sin109/112 incluso al desplegar todo el historial y decisiones intactas. Cinco identidades auth se asertan en vivo; sólo metas-editar-regla conserva el contrato selectivo histórico. prod117-edge-compat ejecuta fuentes cotejadas con ingestv50/pricesv13 y consumidores actuales sin red. [Acta y límites](briefs/prod-completa-117.md).
+
+## Pantalla de entrada nueva · candidata4.26.117
+
+`beta-sources` fija como oráculo literal la nota 117 (es/en/ca, una tanda `splash-animado`, solo web y sin APK), su descriptor (script del `<head>`, CSS del splash, `#mc-load` con su vigilante y el efecto de `App` que monta las pestañas detrás de la cortina) y que NINGUNA huella ajena se mueve respecto a la beta 116 (`moved={}`), en particular la de `inc-2709-01-arranque-red`. Seis mutantes sobre la fuente real reabren la tanda. El Catálogo116 se lee de su commit inmutable (`f012fc05`). `e2e/splash.spec.mjs` comprueba que al levantarse la cortina las cuatro pestañas ya están montadas; `e2e/hist-visor.spec.mjs` espera con `expect.poll` a que la fila 30 acabe visible en vez de leer la opacidad a mitad de la transición. `Retiro117` fija que `bancos-sin-hueco` (aprobada el 12/10) sale del panel conservando nota, descriptor e historial, y que la huella de `widget-ciclo-puente` no cambia. `e2e/revisar-beta.spec.mjs` fija la cola con la nota 117 delante y sin esa tanda. No se ha probado en el móvil ni con la APK 54 compilada.
+
+## Bancos sin huecos y widget arreglado · candidata4.26.116
+
+`beta-sources` fija como oráculo literal la nota 116 (es/en/ca, dos tandas: `bancos-sin-hueco`, solo web, y `widget-ciclo-puente`, web + `apk:54`), la nota 115 con su tanda rechazada retirada del panel y sin alias, y los descriptores: el de los bancos (`cloud.bankSync`, `flattenBankTx`, `importObExpenses`, `reconcileBank`, `BankPanel`, el sync de `11-app-main.js`, el límite de guardado y sus dependencias transitivas) y el del widget, idéntico al de la rechazada. Fija también la lista exacta de once identidades antiguas que mueven su huella entre la beta 115 servida y esta fuente (seis con el Java del puente) y doce mutantes sobre la fuente real: ocho del cliente de bancos, dos del `+0.5` y de la lectura de `versionCode`, y dos del `bridgeNumber` de `MiCarteraPlugin.java`. El Catálogo115 se lee de su commit inmutable. `tests/widget-puente-ciclo` es el único que pasa el JSON real del puente por el plugin. `tests/ob-hueco-sync`, `ob-hueco-recuperado`, `bank-sync-progreso`, `bank-sync-paging`, `supabase/functions/bank-sync/demand-window.test.ts` y `e2e/bancos-hueco-sync.spec.mjs` cubren el tramo recuperado, el cursor y la fecha de «Saldo actualizado». No se ha probado contra los bancos reales ni con la APK 54 compilada.
+
+## Widget con la app cerrada · candidata4.26.115
+
+`beta-sources` fija como oráculo literal la nota 115 (es/en/ca, una tanda con `apk:53`, sin Edge), su descriptor de 162 unidades web y cinco ficheros Java, el reanclaje de `pullExpenses(readProof)` en los cuatro descriptores del widget ya entregado y la lista exacta de diez identidades antiguas que mueven su huella entre la beta 114 servida y el commit revisado del PR201. Hay seis mutantes sobre la fuente real (tope de 4 s, `mcSandbox`, prueba de lectura, sesión tras paginar, cobro grande en ciclo, `finishIngest`) y cada uno invalida solo la superficie que le toca. La cola DOM de `revisar-beta` compara las 232 notas con la 115, la 114 y la 113 literales. `tests/pull-historico-entero` y `tests/widget-notificacion-render` cubren la prueba de lectura y el render del aviso. La compilación Android y su firma no las ejecuta `npm test`.
+
+## Inicio sin solapes · candidata4.26.114
+
+`e2e/inicio-solape-gastos.spec.mjs` abre Inicio con temática y diez categorías de gasto sintéticas, y exige que ningún nodo de la página de Gastos premontada tenga caja visible en el viewport: antes de apuntar, tras apuntar tres gastos con el botón + y al volver desde Gastos. Comprueba además que el desglose sigue visible cuando Gastos es la pestaña activa, para que la guarda no lo esconda donde sí toca. Es transversal (`CROSSCUTTING`): el fallo nace en `src/shell.html` y no en un módulo de pantalla. Volver a `visibility:visible` en `.v4-gastos-cats-body.abierto` lo deja rojo.
+
+`beta-sources` lee el catálogo113 de su commit inmutable y prueba el actual: nota, pasos y descriptor de `inicio-solape-gastos` como oráculo literal en es/en/ca, 231 notas, un único alcance nuevo, descriptores ajenos intactos y las otras identidades web sin cambio de huella entre la beta anterior y el commit del arreglo (ambos fijados en Git). Volver cualquiera de las dos reglas a `visible` invalida la tanda; una regla vecina no la reabre. La cola DOM de `revisar-beta` compara las 231 notas con la 114 y la 113 literales. Topes de tamaño sin cambios.
+
+## Catálogo de la candidata4.26.113 · snapshot anterior
+
+`beta-veredictos` y los controles de catálogo de `revisar-beta` usan las identidades113. La cola DOM compara las230 notas con113 literal y229 históricas fijadas en Git, conserva archivo/rechazo109 y prueba por separado la ausencia del recibo de cada una de las dos tandas nuevas. No elimina negativos ni modifica otros recorridos.
+
+`beta-sources` mantiene los contratos históricos112 en su fuente inmutable y prueba el catálogo actual: textos es/en/ca autorizados, retiros exclusivos111/112, notas y otras pendientes intactas, identidades nuevas sin herencia, puerta de Bienes vacíos, ficha, cancelación y borrado. El inventario general de funciones y datos sigue mutando la fuente actual de113. Ambos tests nuevos viven en el fichero ya registrado en el runner. El presupuesto conserva1295 KiB minificados y3 cargas bloqueantes; gzip pasa de353 a354 KiB tras medir el sello113.99999 con configuración sintética95 B. La suite y sus límites se entregan con comandos y exitcodes del SHA final; no acreditan móvil ni publicación.
+
+## Bienes completo · candidata por encargo de Claude
+
+`cartera-bienes-toque` y `cartera-bienes-completo` comprueban el DOM real de Cartera con datos sintéticos. Cubren los tres idiomas, toque/arrastre, apertura sin escritura, cancelación, alta desde lista vacía, importes inválidos, cero, edición, borrado confirmado/cancelado, recarga y patrimonio exacto. Ambos están mapeados a07/14; la validación y límites finales se entregan por el canal. No acreditan aceptación móvil ni publicación.
+
+## Restauración de la gráfica · encargo10/10
+
+`e2e/inicio-grafica-significado.spec.mjs` abre Inicio y exige el área degradada, trazo y punto final de producción110. Comprueba históricos vacíos/semilla/cero, importes positivos/negativos, moneda, es/en/ca, recarga, vuelta desde Plan, letra grande y la protección de total desconocido de112. Los25 casos comunes pasan contra main110/bdd75636; los tres de total desconocido sólo pertenecen al candidato. `pulido-vacios` vuelve a exigir el vacío original o la gráfica según el histórico. El spec ya pertenece al mapa de03 y02 es CORE; no se crea un test huérfano.
+
+El catálogo113 retira las unidades111/112 sustituidas y registra dos identidades nuevas: `bienes-completo` e `inicio-grafica-vuelve`. El pin, guion y rechazo109 permanecen intactos; las notas anteriores se conservan con `tandas:[]` en111/112.
+
+## InicioAhora · snapshot anterior4.26.112
+
+Presupuesto oficial del paquete integrado PASS:1.321.606 bytes minificados/360.945 gzip/3 cargas frente a topes1.326.080/361.472/3 intactos. El A/B conserva el fallo previo y mide1.328.880/362.544→1.321.606/360.945: ahorro7.274/1.599 bytes y527 de margen gzip.
+
+`inicio-grafica-significado`, ya mapeado, conserva importe/histórico/moneda/desconocido/cero/modo simple y añade DOM es/en/ca con cuentas+bienes2500, comprobación financiera y recarga sin reescritura. `revisar-beta` conserva la cola111 y archivo109 separado. Validación del candidato integrado: guardián completo57 casos/1.792 mutaciones de funciones/713 de datos PASS;131 DOM de Inicio/panel/reapertura/Tour/vacíos PASS. La continuación funcional aporta728 PASS y1 captura opcional omitida, además de92 casos previos y12 del FAB;963 PASS y1 omisión en total, con12 casos del indicador abiertos por salida inesperada del documento en Chromium local. Rendimiento13 PASS serial, sin reintentos.130 de131 etapas Node pasan; el espejo local de memoria aborta por privacidad y Deno no está instalado. No se atribuye suite local completa verde. CI de la fuente exacta y cotejo de artefactos se acreditan antes de la entrega; aceptación móvil, producción y APK nuevo requieren sus gates propios.
+
+## Bienes: acceso al editor por toque · candidata4.26.111
+
+El caso de cola publicada compara la nota111 literal independiente y las227 notas históricas completas. Conserva las catorce entregadas, retiradas y rechazo histórico. Su control negativo elimina sólo el recibo111 y exige esa tanda pendiente, sin aprobación; el positivo restaura el recibo exacto y verifica el ledger completo. Usa raíces DOM propias y las desmonta entre controles. Los recibos son sintéticos y no acreditan publicación ni aceptación móvil. Inicio112 conserva el control con229 notas y una fila histórica109 que sigue visible y de sólo lectura.
+
+`e2e/cartera-bienes-toque.spec.mjs`, registrado en E2E_MAP07 y14, recorre Cartera con dos bienes sintéticos: es/en/ca × letra normal/enorme. Seis RED reales sobre fila DIV y seis GREEN en el aislamiento local del coordinador (leases228/229), sin retries/skips/flaky. Controla arrastre táctil que no abre, tap/Enter, apertura sin escrituras, input fuera de botón, guardado intacto, puerta Editar bienes, pagehide y recarga __seedOnce. Compara assets/accounts/investments/expenses/debts/fixed/flows/oneoffs/goals/history. La integración sobre beta d6b3ddef pasó57/57 DOM (Bienes y cuatro suites vecinas), sin fallos/skips/flaky/retries, y16guardianes localesPASS. No equivale a aceptación móvil ni cierre de alta/borrado/rediseño.
+
+Bienes111 conserva PERSIST91 con22 escritores. Inicio112 sólo lee el patrimonio. El guard conserva la nota111 y su histórico, anteponiendo112; sólo109 consulta f4ff. Su guion permanece en el catálogo como referencia histórica y sale del recibo vigente; el recibo conserva46 guiones previos y añade112,47 en total. auth-disposal-fit y guardianes históricos siguen intactos.
+
+## Indicador al esconder la barra · candidata107 (8/10)
+
+`botnav-indicador`, transversal, reúne doce combinaciones green/cyber × safe0/34 × movimiento
+normal/reducido app/reducido sistema. Usa gestos reales CDP, `touchcancel`, re-render, perfil,
+Ajustes y teclado de Apuntar. Compara píxeles de la rayita contra su span suprimido, esperando
+la inercia sin forzar el scroll; los pseudos Cyberpunk siguen intactos. Exige `transitionDuration`
+calculada `0s` de la barra oculta y visible con reducción del sistema. La corrida de39 casos
+añade esconder8, contornoFAB12, arco3 y perfil4. Pasan12 nuevos y27 regresiones; base12 FAIL
+por opacidad1 con barra oculta. Perfil y Ajustes se abren y cierran por entradas independientes:
+la transferencia Perfil→Ajustes→‹ sale a about:blank también en8dcc y queda OPEN aparte. CI
+exacta es gate del PR, sin acreditar publicación o móvil.
+
+El nuevo alcance `inc-0810-nav-indicator` registra CSS, preferencias, geometría y controladores
+de la navegación, sin cambiar las33 referencias existentes. Incluye gestureAxis, GEST_LEAD,
+GEST_MAX y tabOrderOf explícitos: unidades:true canonicaliza, no añade dependencias. Los15
+mutantes específicos de `beta-sources`
+vigilan esos bloques; contorno tiene un código nuevo por el ahorro de CSS real. La tanda no
+hereda97/98 ni aprobación anterior. Mediciones minificadas usan LF canónico ANTES de minificar,
+DSN sintético95bytes y reserva de versión; el HTML real de DOM se identifica por hash aparte.
+Las auditorías Auth de metadatos106 leen8dcc; los controles funcionales y mutantes Auth leen
+la fuente actual. No acredita móvil, WebView nativa, rendimiento sostenido ni entrega de107.
+
+## Historial Perfil → Ajustes (8/10, validación local sobre8dcc)
+
+`backclose-handover.spec.mjs`, registrado en CROSSCUTTING, pasa18 casos: ocho del
+flujo real es/en/ca y retorno a ruta previa, backButton de App con doble Capacitor,
+Ask encadenado y wizard UI/browser/nativo, más cinco contratos de ciclo de vida
+con React real/History del navegador y controles visibles aislados. Esos cinco no
+son pantallas del producto ni sustituyen los ocho del flujo original. Comprueba
+navegación, visibilidad, overlays, pila, cancelaciones y porciones financieras.
+`backclose-history.test.mjs`, registrado en run-tests, carga el controlador/hook
+reales y verifica21 contratos con History/eventqueue sintéticos:20 mutantes UI invalidan
+Brókers y27 invalidan el controlador completo/entradas App, Ask y Recibos de110. La versión
+aislada de20 contratos pasó; DOM18 termina0 sin retries/skips en ventana101.
+Baseline histórico reproduce ocho fallos causales: seis salidas a about:blank y dos
+retornos prematuros a privacy.html. Primer candidato16PASS/2fallos de preparación:
+Novedades catalán («Entesos!») tapaba el avatar; se cierra mediante UI traducida real,
+sin cambiar runtime ni esperar el historial después de Perfil/Ajustes. Build/map/syntax/i18n/
+privacy/security/docs pasan, pero presupuesto rebasa los caps en3362B crudos/741B gzip.
+Ese fallo previo permanece en el acta. Root asignó1291/352 KiB al candidato aislado;
+artefacto sellado real1321274/360181 B pasa con710/267 B de margen, sin sumar caps.
+La suite financiera beta-sources termina exit0:1731 funciones/684 datos mutados sobre8dcc.
+Port actual110 sobre109f4ff: conserva36 unidades y añade una independiente; sólo Brókers
+cambia por el cierre transitorio real, sin repin/alias. Metadata histórica109 se lee de
+f4ff; invariantes y mutantes actuales conservan read actual. El alta110 usa el catálogo
+pre-retiro c759 para conservar las226 notas109 y sus guiones anteriores como historia.
+El guard actual compara227 notas completas contra c759 retirando exclusivamente107/108/110,
+conserva109 y todas las demás tandas y rechaza ocho mutantes de retiro en memoria.
+Presupuesto conjunto oficial con
+DSN95/sello110.99999/gzip9 pasa1295/353/3:1.325.236/361.308 B, delta3.413/1.134 B
+tras acotar performance en el fallback de token para la VM financiera, sin cambiar UUID.
+La primera medida default6 se conserva corregida en el acta. Guardianes104:30 etapas exit0,
+1782 funciones/701 datos mutados,21 contratos/47 mutantes UI y18 DOM exit0 sin retries,
+skips ni flakies, con servidor congelado sin redirección de rutas. Deno y suite completa no
+ejecutados localmente. PR192 draft y CI37849872932 corresponden al spec anterior en6b3e0c92;
+su resultado no se acredita como verde aquí. Sin publicación110 ni Android físico.
+
+La revisión externa comunicada por root el9/10 sobre6b3e0c92 informó16PASS/2FAIL DOM:
+el servidor oficial `npx --yes serve` devuelve `/privacy` tras pedir `/privacy.html`, mientras
+el spec exigía el nombre de fichero al volver. Su subconjunto de21 contratos/27 mutantes
+no equivale a los47 mutantes locales; revisión manual no realizada y logs efímeros.
+La corrección test-only registra la URL real antes de entrar en la app y comprueba origen,
+ruta de privacidad sin query/hash, título y cabecera del documento. Tras cerrar Ajustes sigue
+exigiendo la URL de la app y pila vacía; sólo después de UN atrás exige exactamente la URL
+previa registrada. No acepta cualquier ruta ni elimina el control causal sobre8dcc.
+Turno107 concedido: serve oficial sobre snapshots congelados exactos,1worker/0retries,
+candidato2PASS en8.720s, base109f4ff2FAIL causales en19.122s. En ambos casos de la base,
+cerrar Ajustes lleva prematuramente a `/privacy` cuando aún se exige la URL de la app,
+antes del atrás adicional. HTTP200/Content-Type/hash y redirección al documento correcto
+verificados antes del DOM. HTML candidato5a11a355 y baseline41a755fc conservados; cuatro
+blobs de runtime exactos6b3 antes/después. No se repiten18 casos ni30 guardianes; el causal
+8dcc y los límites de revisión externa permanecen aparte. CI nueva requerida para este spec.
+[Diseño y revisión](briefs/inc-0810-backclose-handover.md).
+
+## Apuntar: fila visible e importe persistido (5/10)
+
+Edición de reglas de Metas (candidata 8/10): `reserva-dinero` conserva su registro en el runner y añade edición mensual asentada/pendiente y por ingreso, identidad, campos desconocidos, igualdad semántica tras JSONB, estado fresco y no-op. `metas-editar-regla.spec.mjs`, mapeado a motor y Metas, abre la pantalla real en es/en/ca: cancelar, guardar, céntimos, recargar, doble toque, rebase sobre regla/meta borrada o modificada, actualización posterior, mes nuevo de Madrid y replay del updater de App. Datos sintéticos; requiere lease local y no acredita móvil real. Resultados exactos y límites en [el acta](briefs/inc-0810-metas-editar-regla.md).
+
+`pulido-numpad` y `efectivo-apuntar` navegan a Gastos después de guardar y comprueban una única
+fila `button[data-expense-id]` con su importe. Inicio y Gastos pueden conservar el mismo texto
+montado: un `getByText(...).first()` global podía elegir una copia oculta y hacer fallar la CI
+aunque el apunte existiera. P10 inglés comprueba además que el único gasto guardado vale 12.5,
+por lo que un parseo erróneo a 1250 sigue fallando. Efectivo conserva las aserciones de banco e
+importe persistidos. Se corrige el alcance de esos guardianes, sin cambiar el cliente ni su
+contrato financiero. Ambos specs ya pertenecen al mapa de pruebas.
+
+## SEC-02 · `prices` (Deno, sin cuota de terceros)
+
+`supabase/functions/prices/prices.test.ts` está en `denoEnLista` de `scripts/run-tests.mjs`. Cubre
+auth 401, cuerpo 413, sleep en `finally` si Finnhub lanza, fail-open de `_shared/ratelimit.ts`, y el
+gate de la **propuesta** 30/600 con `rateLimit` real + RPC `check_rate_limit` simulada (bucket /
+limit / window, aislamiento por usuario, concurrencia, caducidad). Mutantes `limit=1` vs
+`999999` y `window=1` fallan si el mock ignora args. Rojo/verde: fixture `prices_base_fixture.ts`
+(lógica `8bb0398f`) vs candidato. La propuesta **no** está activa en live (`applyRateProposal`
+false salvo `PRICES_RATE_LIMIT=1`). [Brief](briefs/sec02-prices-limites.md).
+
 Selección107/108/110, cualificación local9/10: `e2e/botnav-indicador.spec.mjs` y `e2e/backclose-handover.spec.mjs` en CROSSCUTTING; `e2e/metas-editar-regla.spec.mjs` en motor/Metas; `tests/backclose-history.test.mjs` en el runner y casos108 en `reserva-dinero`. Fixtures, tiempos y oráculos originales conservados. Descubrimiento real196casos/10specs;196casos distintos PASS por tramos18BackClose162con DSN real,161de brókers/Inversiones/Metas/Plan167con configuración sin DSN y17nav/Plan/Perfil169con headless shell. No es una suite única196ni CI remota del SHA final. Los controles Node finales y29oráculos históricos pasaron; presupuesto1295/353KiB/3 pasó con margen1.215/263 B y RED original1287/351conservado. Las paradas por carpeta y Git vacío se corrigieron solo en preparación privada;168observó Ajustes abierto antes de navegar a about:blank con Chrome completo, y169cambió solo su ejecutable para los12casos de navegación. Se conserva aparte el bloqueo CSP previo del DSN real. Node24local/entornos mixtos/datos sintéticos no acreditan producción ni móvil. [Alcance, controles y límites](briefs/promocion-107-108-110-local26.md).
 
 Promoción98 candidata: guardianes botnav-fab-recorte/fab-pixels exactos de beta98; doce configuraciones contorno, movimiento rAF natural, final, reveal/cancel y reduced-motion. Prueba nueva incluida en CROSSCUTTING; CI exacta y DOM local pendientes.
@@ -35,6 +181,9 @@ controles sin evidencia de navegador.
 `tests/fechas-cache.test.mjs`, registrado en `run-tests`, ejecuta las funciones reales del bundle y cuenta parseos: barridos de5.200 fechas, orden inverso/barajado, límite de memoria, formatos, aciertos0/NaN y objetos Date independientes. Protege únicamente el cambio aprobado al volver con historial; no prueba el lag global de INC-2709-09 ni conexiones bancarias reales.
 
 ## Carga de tests y lector de alcances (4/10)
+
+Limpieza aprobadas4/10: revisar-beta añade tres DOM es/en/ca contra el catálogo servido actual, recibo generado y APK52: cero filas entregadas y ninguna petición de aprobarlas, sin borrar un rechazo histórico sintético. Las regresiones de las siete antiguas, Metas87→94 y ronda mixta25 cargan explícitamente el catálogo publicado4403b252; el código que ejecutan sigue siendo el actual. beta-sources, beta-veredictos y beta-tandas-vacias conservan igualmente sus escenarios históricos con esa fuente fija. No se salta ni reduce cobertura al retirar las once entregadas. Mapa y runner conservan los ficheros ya registrados. Estos escenarios históricos requieren Git y el commit4403b252 disponible: los workflows de tests/publicación usan checkout con fetch-depth0. Un clon superficial debe traer esa historia; un ensayo con git archive sin .git no sirve para ejecutar estos guardianes históricos. Para ellos usa un worktree con historia completa, conservando el archivo sin .git para los perfiles A/B que no los ejecutan.
+Retirada selectiva107/108/110 e Inicio112: c759 fija sólo los inputs históricos de alta110 y edición108; read, registro, identidades y controles financieros permanecen actuales. El catálogo exige la nota112 propia es/en/ca, nota111 literal independiente y las227 notas históricas completas:229 en total, sin duplicar111, alterar otros47 guiones ni reabrir retiradas. Conserva los negativos111, incluyendo texto histórico110, y añade los de112. BackClose110/Bienes111 conservan el descriptor literal22 de Bienes y sus diferencias históricas Brókers/Nómina;112 cambia sólo los dos consumidores del archivo. El guard contra23a7808f exige38 scopes previos salvo adiciones explícitas a esos dos consumidores y una unidad nueva39. PERSIST91 permanece22 y conserva mutantes bidireccionales. revisar-beta mantiene las catorce retiradas y coteja RELEASE_NOTES completo229 contra112 más111 literal más227 previas; añade DOM de archivo109, ledger exacto y no herencia es/en/ca. Git/f4ff sigue siendo requisito; SHA ausente aborta. El guardián completo259 pasó57 casos y1792/713 mutantes; panel24785/85 y reapertura2584/4 también pasaron. Son pruebas locales de la candidata aplicada, sin commit/push/CI112 ni entrega. El presupuesto244 sigue fallando; las pruebas no sustituyen ese gate ni acreditan aprobación móvil.
 
 `botnav-esconder`, ya transversal, reproduce un scroll real emitido por la página oculta de Gastos después de volver a Inicio: comprueba que el evento llegó, que la pantalla activa sigue en el tope y que la barra no se oculta pasado su plazo de 550 ms. El caso era rojo sin la comprobación de página activa en `onPageScroll`; conserva los gestos táctiles de ocultar, revelar y cambiar pestañas.
 
@@ -78,7 +227,21 @@ SQL/RLS. La caracterización anterior vive en SHA `bc2fa093`. Registrado para m�
 
 Widget banco (4.26.50): `e2e/widget-banco.spec.mjs` abre Ajustes y cambia el banco con saldo idéntico, verifica el payload nativo y persistencia tras recarga, suma de cuentas sin opciones repetidas y retirada del banco elegido. Registrado para el módulo 10; el módulo 11 obliga a suite completa.
 
+Pruebas del widget: `widget-notificacion-render` ejecuta el listener, preferencias, recuperación y pintado Java reales con dobles sólo de Android/JSON. Genera con el escritor histórico estados de formato y pérdida que producen exactamente las mismas preferencias: sin marca nueva se conserva la duda; con lectura nueva completa se recuperan ambos. Cubre Mi ciclo persistido, pago legacy con app cerrada, foto nueva/reenvío, pagos durante y después de la lectura, cobertura que evita duplicar, espera de POST previos y rechazo de cifras no finitas. `--probe=fresh` aísla la recuperación; `--probe=guards` ejecuta seis reglas de dinero: ingreso grande que abre ciclo, banco ajeno a gasto diario, fecha futura, inversión neutra, fracción de céntimo y abono sin restar gasto bruto mensual. Los mismos controles corren sin flags en el runner.
+
+`widget-unknown-journal` y `widget-unknown-loss` ejecutan lectura/escritura reales: formato XML, clave vacía, reinicio, pérdida durable, desbordamiento, corrupción, cambio de periodo y cobertura parcial/ajena. La recuperación por ACK sin marca conserva el criterio de identidad; la sustitución del legado se prueba por separado con marca de lectura. `widget-offline` ejecuta transporte y cola reales con HTTP en memoria: red caída, retry, recreación, entrega única y terminación de tickets incluso con error. No usa operaciones bancarias.
+
+`widget-inicio-paridad` compara 1584 casos al céntimo con los lectores reales de Inicio: Mes/Mi ciclo, presupuesto ausente/cero/positivo/reservado, banco diario/fijos, anclas, compras, ingresos, neutras, cuotas, duplicados, lápidas y fechas anteriores/futuras. Vigila ventana, alcance, cifra, margen y deltas. `ingest-handler` ejecuta el handler real contra BD sintética y los cuerpos de `ingest/widget.test.ts`: respuesta mensual intacta, contrato v2 separado, paginación de más de mil filas, conteo ausente/cambiante, IDs repetidos, lectura fallida y pago ausente. Una guarda en el doble corta las páginas sin progreso: retirar el rechazo de página parcial debe dar rojo, nunca colgar el runner. Un error del cálculo opcional conserva el aviso de presupuesto y la respuesta mensual. El pase Node no equivale al runtime ni al chequeo de tipos Deno; el Deno real está registrado en el runner.
+
+`widget-puente-ciclo` es el único que pasa el TEXTO JSON del puente por `MiCarteraPlugin.updateWidget` (los demás llaman a `saveApp` con un `long` ya hecho, y por eso no vieron que el inicio de Mi ciclo llegaba como `Long` y Capacitor lo devolvía null). Compila el Java de producción de tres APK en paquetes separados —52 (`22396f9a`), 53 (`dfc02866`) y el árbol de trabajo— con los getters reales de Capacitor de `node_modules` y el payload que construye la web de hoy y la 115. Recorre la secuencia del rechazo del 11/10: aviso puesto, abrir, pagar con la app cerrada (servidor legacy y v2), volver a abrir sin doble suma, y el estado heredado con registro lleno. El doble de org.json copia la regla de tipos de `JSONTokener.readLiteral` de Android; no ejecuta el org.json del dispositivo.
+
+`e2e/widget-banco.spec.mjs`, registrado también para el envío de `11-app-main.js`, comprueba el payload frente al DOM de Inicio, Mes/Mi ciclo e idiomas. Incluye preparación del corte sin envío prematuro, marca sólo tras lectura terminada, error de lectura sin foto y APK anterior que no conoce el método nuevo. Estos e2e requieren navegador. Los dobles Java no ejecutan el serializador XML de Android, el launcher ni un pago real; la aceptación móvil necesita APK instalada y uso real.
+
 # Testing — Aely
+
+Caché de fechas (4.26.95, INC-2709-09): `tests/fechas-cache.test.mjs`, en `run-tests`, ejecuta `dateMs`/`parseDate` del bundle con un `Date` que cuenta parseos. Con 5.200 cadenas distintas y techo de 5.000, el segundo y tercer barrido —en orden, al revés y barajados— solo pueden repetir las 200 que no cupieron; la memoria no pasa del techo y el resultado con la caché llena es el mismo que vacía. Mueren los mutantes `clear`, FIFO, sin techo y sin caché. No mide tiempos: el A/B de primer plano se hace con Chromium y turno. [Medida y límites](briefs/inc-2709-09-lag-sostenido.md).
+
+Guardado en el commit (4.26.94): `tests/persist-commit.test.mjs`, en `run-tests`, fija el contrato de `mcPersistCommit` —nada al montar, un solo temporizador, histórico solo si cambia la referencia de gastos, y que un estado calculado y abandonado no llega al volcado— y que `set()` ya no toca persistencia. El orden real de React y el disco los prueba `e2e/metas-alta-regla.spec.mjs`: en la carrera registra cada escritura real de `micartera_v3`, exige que ninguna lleve la regla rechazada, que la última coincida con lo que se ve y que una recarga sin resiembra enseñe lo mismo. `beta-sources` añade PERSIST91: nueve mutantes del bloque de guardado mueven las 18 revisiones cuyo código escribe estado y no mueven las 8 que no lo escriben (la octava es la caché de fechas de la 4.26.95), y comprueba contra el código, en los dos sentidos, que llevar el bloque coincide con llamar a `set` de App (la declaración del método `store.set` no cuenta; un mutante de `store.set` sí mueve el panel de revisión). `beta-veredictos` deja escrito que ninguna aprobación se hereda con código distinto: ayuda de Mi ciclo, que la conservaba por equivalencia exacta, mantiene su historial y pide veredicto nuevo; arranque con poca conexión sigue idéntica y la conserva.
 
 ## Contrato offline de categorize
 
@@ -192,6 +355,14 @@ Lectura bancaria 4.25.4: `tests/bank-sync-paging.test.mjs` ejecuta el handler re
 simulados (sin consultar bancos): páginas vacías, fallback de periodo, fallo parcial, cursor cíclico,
 cuentas inactivas, aislamiento, timeout y topes. Registrado en `run-tests.mjs` y `STEPS_SUPABASE`;
 el recorte de un cambio solo de servidor conserva paginado y `tr-open-banking` sin Chromium.
+Tramo antiguo del sync a demanda (INC-2709-06): `tests/bank-sync-progreso.test.mjs` pulsa el handler
+real contra un banco simulado con `last_sync` persistente entre pulsaciones (orden ascendente y
+descendente, páginas de 20, huecos de 15 a 120 días, una y dos cuentas, 429 intermitente) y exige
+que no se pierda ni se repita nada, que el cursor no retroceda y que ninguna cuenta pase de 12
+llamadas; también va en `STEPS_SUPABASE`. `supabase/functions/bank-sync/demand-window.test.ts` (Deno)
+cubre el plan de fechas. En cliente, `tests/ob-hueco-sync.test.mjs` y `tests/ob-hueco-recuperado.test.mjs`
+fijan el suelo por banco y las reglas de dinero del tramo (no compra, no duplica fijos, repetido con
+la fecha real), y `e2e/bancos-hueco-sync.spec.mjs` los avisos y la fecha de «Saldo actualizado».
 `e2e/bancos-historico-filtro.spec.mjs` comprueba la selección previa, avisos visibles y que un banco
 no esconda las filas recibidas de otro. `e2e/sync-resumen.spec.mjs` impide que los resultados mixtos
 vuelvan a concatenarse en un toast gigante. Los e2e de barra fuerzan además un repintado React con
@@ -394,9 +565,15 @@ Tras v3.108.0 la lógica vive en **`src/modules/*.js`**. No edites `public/index
 - `.github/workflows/promote-beta.yml` — al subir a producción: suite **entera**
 - `tests/wait-promote-deploy.test.mjs` — reproduce un deploy cuya suite supera diez minutos,
   un fallo real y la comprobación del sello de Pages; se ejecuta desde `scripts/run-tests.mjs`.
-- `.github/workflows/beta.yml` — push a **beta**: recorte por carpetas (`scripts/relevant-tests.mjs`).
+- `.github/workflows/beta.yml` — push a **beta**: desde el 11/10/2026 **publicar no espera a la
+  suite** (orden del dueño: 55 min por beta era inasumible). El job `beta` solo pasa
+  `test:syntax` y publica (~5 min); la suite corre en paralelo en el job `tests`, que avisa en
+  rojo sin frenar. Un rojo ahí hay que mirarlo igual: la beta ya está en su móvil.
+  El job `tests` usa el recorte por carpetas (`scripts/relevant-tests.mjs`).
   Docs → sin Chromium. Ingest → Deno, sin e2e. Gastos → sus specs + transversales (persistencia,
   swipe, frames). Núcleo (motor, i18n, shell, runner) o un workflow → todo.
+  El guardián `beta-veredictos` también exige la suite completa: corregir su fixture tras
+  un publicador fallido no permite servir una unión pendiente sin abrir sus pantallas.
   **Si añades un e2e o un módulo de `src/`**, una línea en `E2E_MAP` / `CROSSCUTTING` / `CORE`
   en el mismo commit: el test `relevant-tests` recorre el disco y aborta si falta. Un unitario
   nuevo va a `steps` en `run-tests.mjs` (igual: aborta). Un `*.test.ts` de Deno, a `denoTests`.
@@ -772,11 +949,36 @@ forma autónoma **solo** las tandas aprobadas, después de preparar y verificar 
 El proceso está en [PROMPT-FLUJO-CONTINUO.md](PROMPT-FLUJO-CONTINUO.md). Una tanda sin veredicto
 identificable o con validación por pago real pendiente continúa en beta.
 
+
+FAB INC-2709-13: `botnav-fab-recorte` (transversal) cubre seis combinaciones Green0/Cyber34 y movimiento normal/app/sistema. Primera captura pausada solo mide contorno; segunda ocultación sin pausa/finish acredita final natural; reveal se registra en primer rAF y cancelación CSS exige intervalo <550ms. `botnav-esconder` conserva gestos y touchcancel del controlador. PNG helpers permanentes en e2e/helpers, sin guiones de captura desechables. Chromium sintético no acredita ola Android ni fluidez.
 Uso prolongado (INC-2709-09): `e2e/rendimiento-sostenido.spec.mjs` está en CROSSCUTTING y se ejecuta en serie como rendimiento. La candidata `lifecycle-network-v3` añade offline real del contexto Chromium, visibilidad controlada del fixture y observaciones por acción. Es investigación, sin arreglo acreditado: [guion v3 y bloqueo de ejecución](briefs/inc-2709-09-lifecycle-network-v3.md). Las series históricas v1/v2 conservan sus guiones exactos y no se atribuyen a v3.
 
-### Diagnóstico App/Dashboard y control positivo
+Gastos mensual: `gastos-mes-madrid.test.mjs` verifica límites Madrid en cuatro zonas; `gastos-mes-madrid.spec.mjs` verifica DOM es/en/ca en UTC/Madrid, cambio de mes/año/CET/CEST y cifras2300/500/2900 en resumen, categorías y lista;12casos de memo con la pantalla abierta cruzan el mes/año de Madrid sin editar gastos. Registrados en runner y mapa de Gastos.
 
-`e2e/dashboard-react-profile.spec.mjs` compara renders y cálculo de los tres recientes con una caché virtual en App real, CPU6 y datos sintéticos de 3000/5200 filas. Se ejecuta en el grupo serial de rendimiento; el mapa de Dashboard y el runner incluyen su guardián `tests/dashboard-profile-instrument.test.mjs`. Conserva medición natural, bloqueo deliberado y recuperación separados, y exige cero llamadas bancarias. Los informes completos salen por logs de CI. Véase `docs/briefs/inc-0710-dashboard-react-profile.md` para SHA, alcance y límites: no constituye arreglo del lag acumulativo ni prueba de memo106.
+Reentrada por sesión: `tests/appstate-listener-cleanup.test.mjs` ejecuta el efecto real con transporte sintético (Promise inmediata/tardía, handle síncrono, errores y callback retirado); `e2e/lifecycle-listeners.spec.mjs` está en CROSSCUTTING y cuenta listeners tras cambios sintéticos de uid. No hay operaciones bancarias ni usuarios reales; no acredita resolución global del lag.
+
+Aviso nativo por sesión: `tests/banknotif-listener-cleanup.test.mjs`, registrado en `scripts/run-tests.mjs`, ejecuta el efecto real y su contraprueba con altas diferidas, errores y callbacks retirados. `e2e/lifecycle-listeners.spec.mjs` (CROSSCUTTING) añade seis cambios de uid antes de resolver los handles y un control positivo del callback activo; sustituye la programación por un contador, sin operaciones bancarias. INC-2709-09 sigue abierto.
+
+`tests/auth-disposal.test.mjs` ejecuta el método y efecto exactos con transporte sintético: disposición, callbacks/promesas/timer/idle tardíos, controles activos y contraprueba77b7. `e2e/auth-disposal.spec.mjs`, transversal, monta y desmonta ese efecto con React/ReactDOM reales del shell en DOM aislado; incluye el rojo anterior. Sin red ni cuentas reales.
+
+`tests/auth-disposal-fit.test.mjs` compara la representación compacta102 con9881214e: retornos, receiver de unsubscribe, excepciones diferidas, mcBootReady real con fallos internos, trazas y dependencias mutadas7/9. Es prueba focal; no sustituye CI completa ni DOM.
+
+## Recientes de Inicio · candidata106
+
+`e2e/dashboard-memo-profile.spec.mjs` compara el callback de React real con el baseline original en HTML local:3000/5200 filas, CPU×6, invalidaciones y guard bancario. Cuatro casos seriales de rendimiento; informes completos en logs sintéticos. `tests/dashboard-memo-instrument.test.mjs` verifica anclas/parsing sin navegador. DOM/CI pendientes.
+## Gráfica de Inicio109 · contrato histórico rechazado, sustituido por113
+
+`inicio-grafica-significado.spec.mjs`, mapeado a Inicio, abre la pantalla real con datos sintéticos: ausencia de cifras, un número guardado, cero del alta, semilla, patrimonio negativo, cifras iguales y moneda USD. La matriz es/en/ca de vacío y serie a360px comprueba texto visible, exposición accesible, ausencia de recorte y saldo guardado. La serie principal también comprueba conservación de cuentas, inversiones, bienes, deudas e histórico tras ir a Plan y volver. `pulido-vacios` conserva ausencia de SVG y pastilla de cero y ahora exige una explicación sin promesa de histórico fechado.
+
+La nota exige moneda EUR, escala relativa mínimo/máximo sin base cero y ausencia de ganancia acreditada. `beta-sources` completo salió0, con mutantes de las tres traducciones y el dibujo y los33 descriptores anteriores íntegros. Ocho guards Node salieron0; `docs-frescura` postcommit109 salió0 y cerró su fallo histórico inicial. El presupuesto oficial vuelve a salir0 tras adoptar1291/352KiB expresamente autorizados; solo se repite ese guard y no se atribuye su resultado a la integración conjunta. DOM conjunto25/25 y seis casos idénticos rojos esperados en el public8dcc exacto, sin omisiones/retries/flaky; CI y aceptación móvil pendientes. [Plan y límites](briefs/pro-02-0810-chart-meaning.md).
+
+Integración local26 de Navegación107, Metas108 e Inicio109: auditoría de identidades y comprobación de descarga conjunta en [el acta](briefs/integracion-local26-109.md). La CI y los resultados locales de las fuentes se distinguen de las pruebas del bundle unido y su entrega.
+
+Uso prolongado (INC-2709-09): `e2e/rendimiento-sostenido.spec.mjs` está en CROSSCUTTING y se ejecuta en serie como rendimiento. La candidata `lifecycle-network-v3` añade offline real del contexto Chromium, visibilidad controlada del fixture y observaciones por acción. Es investigación, sin arreglo acreditado: [guion v3 y bloqueo de ejecución](briefs/inc-2709-09-lifecycle-network-v3.md). Las series históricas v1/v2 conservan sus guiones exactos y no se atribuyen a v3.
+
+### Diagnóstico App/Dashboard y control positivo (histórico sustituido por memo106)
+
+El antiguo `e2e/dashboard-react-profile.spec.mjs` (retirado) comparaba renders y cálculo de los tres recientes con una caché virtual en App real, CPU6 y datos sintéticos de 3000/5200 filas. Se ejecuta en el grupo serial de rendimiento; el mapa de Dashboard y el runner incluyen su guardián `tests/dashboard-profile-instrument.test.mjs`. Conserva medición natural, bloqueo deliberado y recuperación separados, y exige cero llamadas bancarias. Los informes completos salen por logs de CI. Véase `docs/briefs/inc-0710-dashboard-react-profile.md` para SHA, alcance y límites: no constituye arreglo del lag acumulativo ni prueba de memo106.
 
 
 ## Candidata selectiva99/100/101/102/106

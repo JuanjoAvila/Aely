@@ -63,9 +63,11 @@ function conStore(values, fn) {
 console.log("beta-veredictos");
 t("ronda mixta conserva una vez la checklist implícita actual con o sin producción",()=>{
   const catalog=cli.RELEASE_NOTES,points=["1. Comprobar A","2. Comprobar B","3. Comprobar C"];
-  const implicit={v:"4.26.99",t:{es:"Actual implícita",en:"Current implicit",ca:"Actual implícita"},items:{es:points,en:points,ca:points}};
+  // El fixture representa la versión corriente, no una beta antigua filtrada por fecha.
+  const parts=catalog[0].v.split(".").map(Number),base=[parts[0],parts[1],parts[2]+1].join("."),beta=base+".1";
+  const implicit={v:base,t:{es:"Actual implícita",en:"Current implicit",ca:"Actual implícita"},items:{es:points,en:points,ca:points}};
   conNotas([implicit,...catalog],()=>{
-    const offline=cli.betaChecklist("4.26.99.1",null,48),online=cli.betaChecklist("4.26.99.1","4.26.67",48);
+    const offline=cli.betaChecklist(beta,null,48),online=cli.betaChecklist(beta,"4.26.67",48);
     for(const pack of [offline,online]){
       const own=pack.tandas.filter(g=>g.id.split("/").pop()==="todo");
       assert.equal(own.length,1,"la versión que corre sigue pendiente una sola vez");
@@ -78,9 +80,13 @@ t("ronda mixta conserva una vez la checklist implícita actual con o sin producc
 });
 
 t("ronda mixta no resucita una nota actual con tandas vacías",()=>{
-  const catalog=cli.RELEASE_NOTES,empty={v:"4.26.99",t:{es:"Sin puntos"},items:{es:["Nota familiar"]},tandas:[]};
-  const expected=Array.from(cli.betaChecklist("4.26.99.1",null,48).tandas,g=>g.id.split("/").pop()).sort();
-  conNotas([empty,...catalog],()=>{
+  // El catálogo real ya puede contener versiones posteriores a99: comparar su fallback
+  // offline con una ronda online acotada a99 mezclaba dos entradas distintas (CI8/10).
+  // Esta carrera usa un catálogo cerrado y un oráculo literal, independiente de la versión.
+  const empty={v:"4.26.99",t:{es:"Sin puntos"},items:{es:["Nota familiar"]},tandas:[]};
+  const previous={v:"4.26.98",t:{es:"Pendiente anterior"},items:{es:["Nota familiar anterior"]},tandas:[tanda("pendiente-anterior",{codigo:"a".repeat(64)})]};
+  const expected=["pendiente-anterior"];
+  conNotas([empty,previous],()=>{
     for(const production of [null,"4.26.67"]){
       const actual=cli.betaChecklist("4.26.99.1",production,48);
       assert.deepEqual(Array.from(actual.tandas,g=>g.id.split("/").pop()).sort(),expected);
@@ -102,6 +108,8 @@ const changedIds=["tr-descripcion-clasificacion","fin05-widget-reentrada","fin05
    «Arranque» no escribe estado (auditoría del 4/10): su código es el aprobado y conserva el OK. */
 const soloWebIds=["inc-2809-02-ayuda-ciclo"];
 const readSource=f => fs.readFileSync(new URL("../"+f,import.meta.url),"utf8");
+// Cerrar una entrega no debe borrar la regresión de su identidad y sus rechazos históricos.
+const historicalNotes=JSON.parse(execFileSync("git",["show","4403b252933410741a877eea59b85d812b2fe543:src/data/release-notes.json"],{encoding:"utf8",maxBuffer:5e6}));
 const registered=JSON.parse(readSource("scripts/beta-sources.json"));
 const approvedIds=["fin05-widget-reentrada", "fin05-pago-cerrada", "tr-descripcion-clasificacion", "widget-banco", "widget-app-cerrada", "inc-2709-01-arranque-red", "inc-2809-02-ayuda-ciclo"];
 
@@ -161,7 +169,7 @@ t("retirada remota más reciente impide que listo reutilice el OK", () => {
 });
 
 t("CLI real: revocación remota, rechazo histórico exacto y entrega desconocida", () => {
-  const pack=cli.betaChecklist("4.26.75.1","4.26.67",48);
+  const pack=conNotas(betaNotes(historicalNotes),()=>cli.betaChecklist("4.26.75.1","4.26.67",48));
   const g=pack.tandas.find(x => x.id.endsWith("/inc-3009-01-cargos"));
   const rows=[
     {created_at:"2026-09-30T22:00:00Z",detail:{tanda:g.id,huella:g.huella,verdict:"revoked"}},
@@ -169,7 +177,14 @@ t("CLI real: revocación remota, rechazo histórico exacto y entrega desconocida
     {created_at:"2026-09-29T20:00:00Z",detail:{tanda:"4.26.71/inc-3009-01-cargos",verdict:"rejected"}},
     ...pack.tandas.filter(x=>approvedIds.includes(x.id.split("/").pop())).map(x=>({created_at:"2026-09-29T19:00:00Z",detail:{tanda:x.historial[0],verdict:"approved"}})),
   ];
+  // La ronda retirada se fija por Git sin sustituir las reglas del CLI actual.
   const script=`
+
+    import fixtureFs from 'node:fs';
+    import {execFileSync as fixtureGit} from 'node:child_process';
+    const fixtureRead=fixtureFs.readFileSync;
+    const fixtureNotes=fixtureGit('git',['show','4403b252933410741a877eea59b85d812b2fe543:src/data/release-notes.json'],{encoding:'utf8',maxBuffer:5e6});
+    fixtureFs.readFileSync=function(file,...args){return String(file).replaceAll(String.fromCharCode(92),'/').endsWith('/src/data/release-notes.json')?fixtureNotes:fixtureRead.call(this,file,...args);};
     process.argv=[process.execPath,'fixture','--json'];
     globalThis.fetch=async url => {
       const u=String(url);
@@ -307,7 +322,7 @@ t("★ el veredicto no saca nada del panel: aprobar no es publicar", () => {
   assert.deepEqual(ids(pack).sort(), ["9.9.3/nativa", "9.9.3/web-vieja", "9.9.4/web-nueva"]);
 });
 
-t("★ la fuente idéntica conserva OK; cinco cambios web/nativos y uno solo web conservan historia sin aprobar la revisión nueva", () => {
+t("★ la fuente idéntica conserva OK; cinco cambios web/nativos y uno solo web conservan historia sin aprobar la revisión nueva", () => conNotas(betaNotes(historicalNotes), () => {
   const pack=cli.betaChecklist("4.26.75.1","4.26.67",48);
   for(const id of approvedIds) {
     const g=pack.tandas.find(x=>String(x.id).split("/").pop()===id);
@@ -316,10 +331,13 @@ t("★ la fuente idéntica conserva OK; cinco cambios web/nativos y uno solo web
     const part=cli.betaVerdictFor(g,[{tanda:g.historial[0],verdict:"approved"}]);
     if(changedIds.includes(id)) {
       assert.equal(part,null,id+" no reutiliza la aprobación anterior");
-      const edgeChanged=["fin05-pago-cerrada","widget-app-cerrada"].includes(id);
+      // tr-descripcion-clasificacion declara como edge el fichero entero de bank-sync.
+      // El progreso del hueco (ventana primero, tramo antiguo con cursor) vive ahí: el
+      // origen edge es el cambio, no una huella web de otra tanda.
+      const edgeChanged=["fin05-pago-cerrada","widget-app-cerrada","tr-descripcion-clasificacion"].includes(id);
       assert.deepEqual(Array.from(g.cambio),edgeChanged?["web","native","edge"]:["web","native"]);
       assert.equal(g.desde.length,0);
-      assert.notEqual(g.codigo,JSON.parse(readSource("src/data/release-notes.json")).flatMap(n=>n.tandas||[]).find(x=>x.id===id&&x.codigoDesde).codigoDesde);
+      assert.notEqual(g.codigo,structuredClone(historicalNotes).flatMap(n=>n.tandas||[]).find(x=>x.id===id&&x.codigoDesde).codigoDesde);
       assert.notEqual(g.native,registered[id].auditoria.revisiones.native);
       if(g.edge){
         if(edgeChanged) assert.notEqual(g.edge,registered[id].auditoria.revisiones.edge);
@@ -338,14 +356,14 @@ t("★ la fuente idéntica conserva OK; cinco cambios web/nativos y uno solo web
       assert.deepEqual(Array.from(g.cambio),["web"]);
       assert.equal(g.desde.length,0);
       assert.notEqual(g.codigo,registered[id].auditoria.ampliada.codigo);
-      const fuente=JSON.parse(readSource("src/data/release-notes.json")).flatMap(n=>n.tandas||[]).find(x=>x.id===id);
+      const fuente=structuredClone(historicalNotes).flatMap(n=>n.tandas||[]).find(x=>x.id===id);
       assert.equal(fuente.desde,undefined,id+": la equivalencia se retiró del repo");
       assert.ok(fuente.huella&&fuente.codigoDesde&&fuente.historial.length,id+": la referencia histórica se conserva");
       if(g.native) assert.equal(g.native,registered[id].auditoria.revisiones.native);
     }
     assert.ok(registered[id].auditoria.sha,"la auditoría histórica sigue fijada");
   }
-});
+}));
 
 t("★ cada alias `desde` del repo lleva la huella del contenido y apunta a la MISMA tanda", () => {
   const notas = betaNotes(JSON.parse(fs.readFileSync(new URL("../src/data/release-notes.json", import.meta.url), "utf8")));
@@ -360,7 +378,7 @@ t("★ cada alias `desde` del repo lleva la huella del contenido y apunta a la M
 });
 
 t("cambiar web, Android o Edge invalida el alias y señala solo la superficie afectada",()=>{
-  const historical=JSON.parse(readSource("src/data/release-notes.json")).flatMap(n=>n.tandas||[]).find(g=>g.id==="widget-app-cerrada");
+  const historical=structuredClone(historicalNotes).flatMap(n=>n.tandas||[]).find(g=>g.id==="widget-app-cerrada");
   // Referencia sintética vigente para aislar cada mutación; el repo conserva la aprobación antigua.
   const current=betaRevision(historical.id,readSource);
   const source=Object.assign({},historical,{desde:["9.9.1/"+historical.id],codigoDesde:current.codigo,revisionesDesde:Object.fromEntries(Object.entries(current).filter(([key])=>["web","native","edge"].includes(key)))});
@@ -438,6 +456,77 @@ t("recibos antiguos solo aceptan el guion de la versión servida",()=>{
   const proof=cli.betaPruebasEntrega(receipt,notes,"9.9.2");
   assert.equal(proof.pruebas.entregada.contenido,JSON.stringify(["entregada","Tanda entregada",["1. Probar entregada"],1]));
   assert.equal(receipt.pruebas,undefined,"no modifica el artefacto original");
+});
+
+t("109 histórica sigue rechazada con B90 y no hereda decisión a la unidad actual",()=>{
+  const archives=JSON.parse(fs.readFileSync(new URL("../scripts/beta-archives.json",import.meta.url),"utf8"));
+  const id="inc-0810-inicio-grafica-significado",ref=archives.refs[id];
+  const old=betaNotes([{v:ref.version,tandas:[ref.guion]}])[0],g=cli.betaTandas(old)[0];
+  const expected=cli.betaHuella(id,ref.guion.t.es,ref.guion.items.es,1,ref.codigo);
+  assert.equal(g.huella,expected);assert.equal(g.codigo,ref.codigo);
+  const rows=[{tanda:"4.26.109/"+id,huella:g.huella,verdict:"rejected"},{tanda:id,huella:g.huella,verdict:"approved"}];
+  assert.equal(cli.betaVerdictFor(g,rows).verdict,"rejected");
+  const current={id:"inicio-grafica-vuelve",t:{es:"Caso actual sintético"},items:{es:["1. Total actual"]},...betaRevision("inicio-grafica-vuelve")};
+  assert.equal(cli.betaVerdictFor(cli.betaTandas({tandas:[current]})[0],rows),null);
+  const previous=cli.window._mcProdEntregas;
+  try{
+    // Incluso un recibo antiguo auténtico no convierte una referencia retirada en entrega actual.
+    cli.window._mcProdEntregas={web:{[id]:ref.revisiones.web},pruebas:{[id]:{v:ref.version,contenido:JSON.stringify([id,g.t,g.items,1])}}};
+    assert.equal(JSON.stringify(cli.betaEstadoEntrega(g,52)),JSON.stringify({web:"historical-absent"}));
+    assert.equal(JSON.stringify(cli.betaEstadoPrueba(g,52,ref.version,ref.version)),JSON.stringify({web:"historical-absent"}));
+  }finally{cli.window._mcProdEntregas=previous;}
+});
+
+t("detalle histórico es de sólo lectura y exige identidad/huella exactas",()=>{
+  const ref=JSON.parse(fs.readFileSync(new URL("../scripts/beta-archives.json",import.meta.url),"utf8")).refs["inc-0810-inicio-grafica-significado"];
+  const g=cli.betaTandas(betaNotes([{v:ref.version,tandas:[ref.guion]}])[0])[0];
+  const detail={marks:{0:"ko"},notes:{0:"Fallo histórico sintético\nSegunda línea"}};
+  const foreignHuella=cli.betaHuella("otra-tanda","Tanda ajena",g.items,1,"f".repeat(64));
+  const values={_betaReviewMarks:{[g.huella]:detail,[foreignHuella]:{marks:{0:"ko"},notes:{0:"Comentario ajeno"}}}};
+  conStore(values,()=>{
+    assert.equal(JSON.stringify(cli.betaHistoricalDetails(g)),JSON.stringify([{mark:"ko",note:detail.notes[0]}]));
+    assert.equal(JSON.stringify(cli.betaHistoricalDetails({...g,id:"inicio-grafica-vuelve"})),"[]");
+    assert.ok(Object.hasOwn(values._betaReviewMarks,foreignHuella),"el negativo debe apuntar a una nota ajena existente");
+    for(const wrong of [foreignHuella,"huella-ausente"])
+      assert.equal(JSON.stringify(cli.betaHistoricalDetails({...g,huella:wrong})),"[]",wrong+": se deniega antes de leer el ledger");
+    assert.equal(JSON.stringify(cli.betaHistoricalDetails({...g,id:ref.version+"/"+g.id,t:"v"+ref.version+" · "+g.t})),JSON.stringify([{mark:"ko",note:detail.notes[0]}]),"la checklist conserva la identidad aunque prefije el título visible");
+    for(const bad of [
+      {...g,id:"9.9.9/"+g.id,t:"v9.9.9 · "+g.t},
+      {...g,codigo:"0".repeat(64)},
+      {...g,web:"0".repeat(64)},
+      {...g,t:g.t+" cambiado"},
+      {...g,items:g.items.concat("punto ajeno")},
+      {...g,rev:g.rev+1},
+      {...g,referenciaHistorica:{...g.referenciaHistorica,sha:"0".repeat(40)}},
+      {...g,referenciaHistorica:{...g.referenciaHistorica,version:"9.9.9"}},
+      {...g,referenciaHistorica:{...g.referenciaHistorica,estado:"presente"}},
+      {...g,referenciaHistorica:{...g.referenciaHistorica,codigo:"0".repeat(64)}},
+      {...g,referenciaHistorica:{...g.referenciaHistorica,web:"0".repeat(64)}}
+    ]) assert.equal(JSON.stringify(cli.betaHistoricalDetails(bad)),"[]","una identidad adulterada no lee otra nota");
+    const forgedCode="0".repeat(64),forged={...g,codigo:forgedCode,referenciaHistorica:{...g.referenciaHistorica,codigo:forgedCode}};
+    forged.huella=cli.betaHuella(g.id,g.t,g.items,g.rev,forgedCode);
+    values._betaReviewMarks[forged.huella]={marks:{0:"ko"},notes:{0:"Nota de un código forjado"}};
+    assert.equal(JSON.stringify(cli.betaHistoricalDetails(forged)),"[]","ref y código forjados juntos tampoco bastan");
+    assert.equal(JSON.stringify(values._betaReviewMarks[g.huella]),JSON.stringify(detail));
+  });
+});
+
+t("el contador activo excluye109 histórica sin perder índices ni ledger",()=>{
+  const ref=JSON.parse(fs.readFileSync(new URL("../scripts/beta-archives.json",import.meta.url),"utf8")).refs["inc-0810-inicio-grafica-significado"];
+  const old=cli.betaTandas(betaNotes([{v:ref.version,tandas:[ref.guion]}])[0])[0];
+  const current=cli.betaTandas({tandas:[{id:"inicio-grafica-vuelve",t:{es:"Tres puntos sintéticos"},items:{es:["1. A","2. B","3. C"]},...betaRevision("inicio-grafica-vuelve")} ]})[0];
+  const history={marks:{0:"ko"},notes:{0:"Rechazo histórico que no cuenta como fallo actual"}};
+  const values={_betaReviewMarks:{[old.huella]:history}};
+  const pack={v:"9.9.9",tandas:[old,current],items:old.items.concat(current.items)};
+  const preserved=JSON.stringify(history);
+  conStore(values,()=>{
+    assert.equal(JSON.stringify(cli.betaMarksCount(pack)),JSON.stringify({n:0,tot:3}));
+    values._betaReviewMarks[current.huella]={marks:{0:"ok",1:"ko",2:"na"},notes:{1:"Fallo actual sintético"}};
+    assert.equal(JSON.stringify(cli.betaMarksCount(pack)),JSON.stringify({n:3,tot:3}),"las tres categorías son activas, sin sumar la antigua");
+    assert.equal(JSON.stringify(values._betaReviewMarks[old.huella]),preserved);
+    assert.equal(JSON.stringify(cli.betaMarksCount({v:"9.9.9",tandas:[old],items:old.items})),JSON.stringify({n:0,tot:0}));
+    assert.equal(JSON.stringify(cli.betaHistoricalDetails(old)),JSON.stringify([{mark:"ko",note:history.notes[0]}]));
+  });
 });
 if (failed) { console.error(`\nbeta-veredictos: ${failed} fallo(s)`); process.exit(1); }
 console.log("\nbeta-veredictos: OK");

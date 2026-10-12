@@ -10,6 +10,11 @@ const LANG = {
     beta_review_intro:"Revisa lo nuevo. Aprobar una tanda no la publica; su entrega se comprueba aparte.",
     notes_unavailable:"No se han podido comprobar las novedades. Conecta y vuelve a intentarlo.",
     beta_notes_unavailable:"Comprobaciones sin confirmar. Conecta y vuelve a abrir para cargar las de esta versión.", beta_android_app:"app Android", beta_approved_pending:"Aprobada. No necesitas aprobarla otra vez; falta confirmar su entrega.", beta_delivery_pending:"Pendiente de publicar: {x}.", beta_delivery_unknown:"Entrega sin confirmar: {x}.",
+    // Archivo109 es: una función retirada no acredita entrega vigente.
+    beta_historical_absent:"Referencia histórica: esta función ya no está en la app. Se conserva la decisión anterior; no acredita una entrega ni necesita probarse otra vez.", beta_historical_no_verdict:"Decisión anterior sin confirmar.", beta_historical_failed:"✗ Fallo guardado", beta_historical_ok:"✓ Resultado guardado: va bien", beta_historical_na:"— Resultado guardado: no se pudo probar", beta_historical_note:"Comentario guardado", beta_historical_note_missing:"El comentario anterior no está disponible aquí.",
+    beta_historical_rejected:"⛔ Rechazada", beta_historical_approved:"✅ Aprobada",
+    beta_historical_no_active:"No hay comprobaciones activas pendientes. Las referencias históricas conservan las decisiones guardadas.", beta_historical_reset_locked:"El reinicio conserva las decisiones históricas y no puede borrarlas.",
+    // Archivo109 es: fin de la referencia.
     beta_revoked:"↺ Veredicto retirado", beta_server:"servidor", beta_revision_changed:"El código cambió ({x}). El resultado anterior sigue guardado; prueba esta revisión.", beta_reset_verdicts:"Para empezar de cero, retira antes cada veredicto con «Cambiar de opinión».",
     log_private:"[dato privado omitido]",
     help_ai_matched:"La IA ha encontrado estas guías de Aely.",
@@ -319,6 +324,11 @@ const LANG = {
     beta_review_intro:"Review new changes. Approving a batch does not publish it; delivery is checked separately.",
     notes_unavailable:"The updates could not be verified. Connect and try again.",
     beta_notes_unavailable:"Checks are unconfirmed. Connect and reopen to load the checks for this version.", beta_android_app:"Android app", beta_approved_pending:"Approved. You do not need to approve it again; delivery still needs confirmation.", beta_delivery_pending:"Awaiting publication: {x}.", beta_delivery_unknown:"Delivery unconfirmed: {x}.",
+    // Archivo109 en: una función retirada no acredita entrega vigente.
+    beta_historical_absent:"Historical reference: this feature is no longer in the app. The previous decision is retained; it does not confirm a delivery or require another test.", beta_historical_no_verdict:"Previous decision unconfirmed.", beta_historical_failed:"✗ Saved failure", beta_historical_ok:"✓ Saved result: works", beta_historical_na:"— Saved result: could not test", beta_historical_note:"Saved comment", beta_historical_note_missing:"The previous comment is not available here.",
+    beta_historical_rejected:"⛔ Rejected", beta_historical_approved:"✅ Approved",
+    beta_historical_no_active:"There are no active checks pending. Historical references retain saved decisions.", beta_historical_reset_locked:"Starting over preserves historical decisions and cannot erase them.",
+    // Archivo109 en: fin de la referencia.
     beta_revoked:"↺ Verdict withdrawn", beta_server:"server", beta_revision_changed:"The code changed ({x}). The previous result stays in history; this revision needs new checks.", beta_reset_verdicts:"To start over, first withdraw each verdict with “Change my mind”.",
     log_private:"[private data omitted]",
     help_ai_matched:"AI found these Aely guides.",
@@ -616,6 +626,11 @@ const LANG = {
     beta_review_intro:"Revisa els canvis nous. Aprovar una tanda no la publica; l’entrega es comprova a part.",
     notes_unavailable:"No s’han pogut comprovar les novetats. Connecta i torna-ho a provar.",
     beta_notes_unavailable:"Comprovacions sense confirmar. Connecta i torna a obrir per carregar les d’aquesta versió.", beta_android_app:"app Android", beta_approved_pending:"Aprovada. No cal que l’aprovis de nou; falta confirmar-ne l’entrega.", beta_delivery_pending:"Pendent de publicar: {x}.", beta_delivery_unknown:"Entrega sense confirmar: {x}.",
+    // Archivo109 ca: una función retirada no acredita entrega vigente.
+    beta_historical_absent:"Referència històrica: aquesta funció ja no és a l’app. Es conserva la decisió anterior; no acredita cap entrega ni cal tornar-la a provar.", beta_historical_no_verdict:"Decisió anterior sense confirmar.", beta_historical_failed:"✗ Fallada desada", beta_historical_ok:"✓ Resultat desat: va bé", beta_historical_na:"— Resultat desat: no es va poder provar", beta_historical_note:"Comentari desat", beta_historical_note_missing:"El comentari anterior no està disponible aquí.",
+    beta_historical_rejected:"⛔ Rebutjada", beta_historical_approved:"✅ Aprovada",
+    beta_historical_no_active:"No hi ha comprovacions actives pendents. Les referències històriques conserven les decisions desades.", beta_historical_reset_locked:"Reiniciar conserva les decisions històriques i no les pot esborrar.",
+    // Archivo109 ca: fin de la referencia.
     beta_revoked:"↺ Veredicte retirat", beta_server:"servidor", beta_revision_changed:"El codi ha canviat ({x}). El resultat anterior queda a l’historial; aquesta revisió necessita proves noves.", beta_reset_verdicts:"Per començar de zero, retira abans cada veredicte amb «Canviar d’opinió».",
     log_private:"[dada privada omesa]",
     help_ai_matched:"La IA ha trobat aquestes guies d’Aely.",
@@ -2665,6 +2680,7 @@ Object.assign(LANG.es,{
   bank_read_partial:"{bank}: la descarga está incompleta. Lo recibido se conserva, pero pueden faltar movimientos.",
   bank_read_empty:"{bank}: el banco ha devuelto 0 movimientos para ese periodo.",
   bank_read_retry:"No se han podido consultar los movimientos. Comprueba la conexión y vuelve a buscar.",
+  bank_gap_cap:"{bank}: más de 90 días sin sincronizar. La conexión con el banco solo entrega los últimos 90 días; lo anterior no está disponible por esta vía.",
   bp_hist_sign:"En {banks} casi todo llega como ingreso: revisa el signo antes de importar.",
   bp_hist_more:"Ver {n} más…",
   bp_hist_confirm_fijos:"¿Crear {n} recibo(s) fijo(s)?",
@@ -2732,6 +2748,7 @@ Object.assign(LANG.en,{
   bank_read_partial:"{bank}: the download is incomplete. Received transactions are kept, but some may be missing.",
   bank_read_empty:"{bank}: the bank returned 0 transactions for that period.",
   bank_read_retry:"Transactions could not be retrieved. Check your connection and search again.",
+  bank_gap_cap:"{bank}: more than 90 days without syncing. The bank connection only provides the last 90 days; anything older is not available this way.",
   bp_hist_sign:"On {banks} almost everything arrives as income: check the sign before importing.",
   bp_hist_more:"Show {n} more…",
   bp_hist_confirm_fijos:"Create {n} fixed bill(s)?",
@@ -2799,6 +2816,7 @@ Object.assign(LANG.ca,{
   bank_read_partial:"{bank}: la descàrrega és incompleta. Es conserva el que s'ha rebut, però poden faltar moviments.",
   bank_read_empty:"{bank}: el banc ha tornat 0 moviments per a aquest període.",
   bank_read_retry:"No s'han pogut consultar els moviments. Comprova la connexió i torna a cercar.",
+  bank_gap_cap:"{bank}: més de 90 dies sense sincronitzar. La connexió amb el banc només lliura els últims 90 dies; l'anterior no està disponible per aquesta via.",
   bp_hist_sign:"A {banks} gairebé tot arriba com a ingrés: revisa el signe abans d'importar.",
   bp_hist_more:"Veure'n {n} més…",
   bp_hist_confirm_fijos:"Crear {n} rebut(s) fix(os)?",
@@ -3808,6 +3826,8 @@ function fixMovInvasion(state){
 }
 // Motor de cash-flow: si el estado no tiene movimientos recurrentes, siembra los del usuario
 // (nómina + transferencias). Idempotente: no pisa ediciones una vez que ya hay flows.
+// history conserva el formato legado al cargar estados. Inicio muestra sólo el total
+// actual; ya no conecta esos números sin fecha como evolución (4.26.112).
 function seedFlows(s){
   if(!s) return s;
   /* EL EFECTIVO QUE YA EXISTE, A «SOLO GASTO DIARIO» — sin flag, en cada carga (13/9, hotfix).

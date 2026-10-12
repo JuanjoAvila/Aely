@@ -1,5 +1,32 @@
 # Arquitectura — Aely
 
+## InicioAhora y archivo109 · versión4.26.112 del canal beta
+
+Se retiran Ring, MiniPie y TabCoach sin consumidores, su CSS asociado y doce iconos sin uso. V4Ring, Tour, SparklineInv y .spark siguen activos; el flujo financiero, idiomas, notas e histórico se conservan. El presupuesto del paquete integrado y131 comprobaciones DOM propias pasan; el guardián conserva identidades111/106 y archivo109.
+
+Dashboard pasa `tt.netWorth` y el `shownNet` existente a `NetWorthNow`. La animación, idioma/divisa, total financiero e histórico persistido conservan su comportamiento; una entrada no numérica/finita se presenta como «—» y se explica. Sparkline se retira y los snapshots no se tratan como observaciones fechadas. El cuerpo de seedFlows es exactamente el de111, preservando Nómina. Recientes106 se reancla a la misma expresión sin cambiar su identidad ni recibo.
+
+`beta-archives.json` fija exclusivamente109 con descriptor/guion originales, f4ff/B90/d05. El motor coteja pin, fuente Git y digest antes de leer HEAD; no recalcula109 contra NetWorthNow. El catálogo conserva el guion y añade `referenciaHistorica.estado="ausente"`; el recibo omite109 de web/pruebas y separa referenciasHistoricas. Panel y listo bloquean nuevas decisiones/promoción, conservan rechazo y detalle por su huella exacta, sin alias ni aprobación heredada. Los dos consumidores del motor cambian identidad por sus nuevos lectores; ops-0410 retirado no vuelve al catálogo.
+
+Al enviar el último veredicto activo, `gestoReal.current=false` impide que el scroll posterior renueve la marca de reapertura. Restaurar scroll no cuenta como gesto; pointerdown sí la renueva. La integración sobre c9181f14 conserva Bienes111, Nómina111 e identidad106. Presupuesto oficial del paquete integrado PASS:1.321.606 bytes minificados/360.945 gzip/3 cargas frente a topes1.326.080/361.472/3 intactos. El A/B conserva el fallo previo y mide1.328.880/362.544→1.321.606/360.945: ahorro7.274/1.599 bytes y527 de margen gzip. Validación del candidato integrado: guardián completo57 casos/1.792 mutaciones de funciones/713 de datos PASS;131 DOM de Inicio/panel/reapertura/Tour/vacíos PASS. La continuación funcional aporta728 PASS y1 captura opcional omitida, además de92 casos previos y12 del FAB;963 PASS y1 omisión en total, con12 casos del indicador abiertos por salida inesperada del documento en Chromium local. Rendimiento13 PASS serial, sin reintentos.130 de131 etapas Node pasan; el espejo local de memoria aborta por privacidad y Deno no está instalado. No se atribuye suite local completa verde. CI de la fuente exacta y cotejo de artefactos se acreditan antes de la entrega; aceptación móvil, producción y APK nuevo requieren sus gates propios.
+
+## Historial de overlays · candidata110 sobre109
+
+El controlador de02 mantiene propietarios vivos, slots de History y un consumo pendiente
+identificado. Altas/bajas se reconcilian al final del lote de efectos; sólo una entrada propia
+retirada en ese lote puede transferirse por replaceState. Los padres cubiertos se retiran sin
+consumir al hijo y se compactan al alcanzarlos. Se preserva el estado de la ruta anterior y no
+se hace back si la entrada actual es ajena. El botón Capacitor delega en el controlador porque
+no produjo una navegación web. El hook conserva la closure de apertura; sólo Wizard/Ask
+solicitan rearme por identidad de paso/diálogo, leyendo sus refs existentes. Sin cambios de
+sincronización, guardado ni importes. Node/build y18 DOM comprobados en ventana101; los ocho
+flujos principales reproducen rojo en la base histórica. El artefacto
+aislado pasa los caps1291/352 asignados por root. La unión oficial sobre109 se midió
+con gzipSync({level:9}): delta final3.413 B crudos/1.134 B gzip; topes1295/353/3 autorizados.
+VERSION/package son110, con nota y unidad propias es/en/ca;30 guardianes/18 DOM del port pasan,
+sin publicación110 ni aceptación móvil. Las tres unidades109 y las cinco retiradas siguen
+intactas. [Acta](briefs/inc-0810-backclose-handover.md).
+
 ## Cola de revisión beta (4.26.92)
 
 El recibo web acredita código y añade el guion estrenado en `pruebas`. La cola elimina una función antigua cuando ese guion está en producción y existe su recibo web; las diferencias en dependencias siguen en la auditoría, sin resucitar automáticamente la petición antigua. Una corrección nueva tiene nota y tanda en una versión posterior a producción. APK y Edge requieren sus recibos propios. Para recibos anteriores, solo se usa el histórico servido cuando su cabecera coincide con producción; sin evidencia se mantiene pendiente. Reabrir y volver a primer plano refrescan esta consulta de artefactos públicos, sin sincronizar bancos.
@@ -153,6 +180,35 @@ petición `bank-sync(dateFrom,[banco])` por cada uno. Así conserva la cola estr
 pero cada banco estrena el deadline de 60 segundos; uno lento no puede dejar al siguiente sin
 turno. La Edge deja un diagnóstico cerrado por lectura (`ok`/`empty`/`partial`/`error`, cuentas,
 filas, duración y `dateFrom`) sin uid, IBAN, comercio, importe ni payload bancario.
+
+**Tramo antiguo del sync a demanda (INC-2709-06).** El sync pide el día 1 del mes menos 8 días y
+el cliente tiraba lo anterior: quien pasaba semanas sin sincronizar perdía ese tramo. Ahora, si
+el cliente manda `recoverGaps:true` y el último éxito (`bank_links.last_sync`) cae antes de esa
+ventana, `bank-sync` lee además lo que falta, con estas reglas (`bank-sync/demand-window.ts`):
+
+- La lectura de siempre (saldos y ventana) va primero, para todos los bancos, y nada del tramo
+  puede cambiarla: el tramo va después, en su propio `try`, y su fallo solo deja el cursor quieto.
+- El tramo se pide por trozos de fechas cerrados (`date_from` y `date_to`), de antiguo a nuevo. Un
+  trozo solo cuenta si todas las cuentas del enlace lo paginaron entero; el primero es un solo día.
+- `last_sync` hace de cursor, sin columna nueva: un trozo sellado deja el último milisegundo de
+  su último día, y el final del tramo deja «ahora». No sale de la fecha de las filas, así que el
+  orden en que pagine el banco da igual, y solo sube (`lt`).
+- Doce llamadas a `/transactions` por cuenta y pulsación, compartidas entre ventana y tramo. Un
+  hueco largo se rellena en varias pulsaciones; la respuesta lo dice con `gapPending`.
+- Si la ventana no cabe en esas doce llamadas (o en las 2000 filas del lector) no hay tramo posible y `last_sync` sube a «ahora»,
+  como antes de existir el tramo. Con un error a media lectura o una cuenta caída no se mueve.
+- El banco no entrega más de 90 días: un hueco mayor se pide desde ese tope y se señala con
+  `gapBeyondCap`. Reconectar un banco deja `last_sync` a null (`bank-callback`) y ese hueco no se
+  recupera por esta vía.
+- Un cliente que no manda `recoverGaps` recibe solo la ventana; con hueco, su `last_sync` no sube
+  para no quemar el tramo que un cliente nuevo sí puede guardar.
+
+Cada enlace de la respuesta lleva `syncFrom` (día más antiguo que puede traer; el cliente solo
+acepta lo anterior a su margen desde ahí, por banco) y `balanceAt` (hora de lectura del saldo, que
+es lo que pinta «Saldo actualizado»: `last_sync` puede ir por detrás). En `importObExpenses` lo
+anterior al margen se apunta con su fecha real pero no compra participaciones, y casa contra todo
+lo modelado, toque o no este mes.
+
 La misma frontera rige el sync diario: `app_events` puede guardar el banco, una clase estable y
 recuentos agregados, pero nunca transacciones ni campos del proveedor. El volcado temporal usado
 para diagnosticar el signo de Trade Republic se retiró al encontrarlo todavía activo en una
@@ -217,6 +273,21 @@ un segundo después el bueno (vídeo del usuario: 125.899 € → 189.371 €). 
 1,8 s de espera y, si React ni siquiera ha pintado a los 8 s, un botón de reintentar — antes el
 `clearInterval` de emergencia dejaba el splash puesto para siempre y sin salida.
 
+**Lo que se carga detrás del splash (11/10/2026).** Con la cortina puesta, App monta las otras tres
+pestañas en UNA sola tanda, en un efecto justo después del primer commit (`11-app-main.js`, junto
+al reparto en huecos libres). No hay señal nueva entre la app y el vigilante: los dos corren en el
+mismo hilo, así que mientras dura ese render la cortina no puede levantarse, y al levantarse
+(`mc-splash-gone`) las cuatro pestañas ya están montadas — lo comprueba `e2e/splash.spec.mjs`.
+Antes dependía de los huecos libres: medido con la CPU ×6, en la mitad de los arranques se entraba
+con 3 de 4 montadas y la que faltaba caía a la vista. Si la cortina ya no está
+(candado, alta), ese efecto no hace nada y sigue mandando el reparto en huecos libres.
+La animación del splash (tarjeta, dibujo y un halo que respira) es CSS puro y solo anima
+`transform` y `opacity`: es lo único que el compositor mueve con el hilo principal ocupado. Las
+entradas van con `animation-fill-mode:backwards`; con `both`, la animación terminada seguía
+mandando sobre el estilo en línea con que el vigilante desvanece la marca al salir. Dentro de la
+APK el script del `<head>` marca `html[data-mc-nativo]` y el primer frame web arranca con el
+color del splash nativo (`colorPrimary`), fundiéndose al del tema.
+
 Desde 4.25.1, si `navigator.onLine===false`, App y Dashboard abren `mcBootReady` inmediatamente:
 `loadState` ya terminó de forma síncrona y esperar a la nube solo creaba un frame vacío. Con red se
 mantiene el margen para evitar el salto de cifras. Ajustes guarda `_mcAdminProfile` únicamente con
@@ -244,7 +315,7 @@ en la base `f7b66aef`, modificaba `app_state` y podía resucitar borrados por ba
 de una aplicación financiera requiere identidad/revisión/ACK y autorización propios.
 [Ensayo histórico, aceptación del visor y límites](briefs/ops02-restauracion-probada.md).
 
-El widget recibe `monthBudgetStats` desde la app al cambiar sus cifras. Al volver a primer plano,
+El widget recibe la cifra de `dashboardBudgetStats` desde la app al cambiar sus cifras. Al volver a primer plano,
 `visibilitychange` o `App.appStateChange` disparan primero la lectura de gastos de Supabase y
 solo tras completarla se envía el snapshot local: el estado anterior a la notificación no puede
 deshacer su cifra. No se sincroniza Open Banking. En Android, `WidgetSnapshotArbiter` asigna un
@@ -254,6 +325,10 @@ los eventos todavía ausentes del pull y descarta los cubiertos o borrados. Los 
 vuelo se aplican por su contribución a gasto y presupuesto; una inversión
 planificada baja el efectivo sin volver a reservarse en la liquidez segura. El período
 es Europe/Madrid; si cambia sin una lectura nueva, el widget muestra «—» hasta recibir datos.
+Antes del pull, `beginWidgetRead` espera a que terminen los intentos POST nativos previos y entrega una generación de lectura y su corte de tickets. Terminar un intento no acredita un pago: la cola de retry se conserva y su siguiente intento recibe un ticket posterior. `syncCloudExpenses` conserva la marca sólo después de recibir todas las páginas y mezclar sus filas; un error o una lectura superada no la envía. La foto con marca nueva sustituye el registro heredado, incluidos los flags de identidad perdida. Los pagos posteriores al corte se reaplican con las mismas reglas e identidades: los cubiertos por la foto no se suman otra vez y los ausentes conservan su contribución pendiente. La marca se consume una vez; reenviar la foto no retira una incertidumbre nueva.
+
+Los campos `readGeneration` y `nativeCut` son aditivos. Una APK anterior los ignora. Una APK nueva con web anterior mantiene la conciliación por ACK y el aviso de identidad perdida hasta recibir la web que acredita la lectura; con ambas partes actualizadas, abrir y completar la lectura recupera el widget sin borrar datos. Una lectura fallida conserva la duda.
+
 Al convertir `expenses` con `expenseFromRow`, las categorías especiales `ingreso`, `inversion`
 y `traspaso` se conservan aunque no pertenezcan al catálogo ordinario de categorías.
 
@@ -437,6 +512,16 @@ escribir `Access-Control-Allow-Origin: "*"`.
 - Play Store (Data safety + NotificationListener).
 - Feedback de uso real.
 
+### Compatibilidad y recuperación del widget
+
+El listener prefiere la respuesta `widget` v2 de ingest y conserva compatibilidad con
+`month` legacy. Con fecha/identidad/céntimos fiables aplica únicamente la contribución del pago
+a la foto guardada de Inicio, usando sus bancos y magnitud; nunca sustituye un neto de ciclo por
+un total mensual. Una barrera de ticket protege el pago incremental frente a absolutos previos.
+El servidor mantiene month intacto para APK antiguas y calcula widget desde el periodo,
+ancla y scope de app_state; si no los acredita, devuelve null. Sin sync bancaria nueva ni SQL.
+El cálculo opcional del widget tiene su propio bloque de errores: si falla, los avisos de presupuesto y la respuesta mensual siguen disponibles.
+
 ### Elección del banco del widget (4.26.50)
 
 `settings.widgetBank` guarda una entidad bancaria del estado principal. `widgetBankOf` resuelve la elección y vuelve a la cuenta `spendFrom` si falta. App envía `cashEnt`, `cashLabel`, `cash` y `safeLiq` de ese banco con el presupuesto global existente. El efecto depende también de `cashEnt`: bancos con cifras iguales deben actualizar el widget. No cambia los roles, filtros de gasto, servidor ni contrato nativo; las cuentas del mismo banco se agregan. Efectivo y Familia se excluyen de la elección explícita y sus opciones. El automático conserva el spendFrom original, incluido Efectivo si era diario.
@@ -513,6 +598,8 @@ INC-0210-01: el estado visual de una cuota y sus eventos futuros consumen debtPa
 
 ## Liberación de reservas de Metas (INC-0310-01)
 
+La candidata de edición 8/10 usa `editReservaRule` en el mismo ID y conserva `mensual` y campos desconocidos. Compara semánticamente la copia que abrió el formulario con la única regla de ese ID al escribir: cambio o borrado rechazan, incluso si solo cambió un campo desconocido; el orden de claves JSONB no es una edición. Valida meta activa, tipo e importe con céntimos representables; un no-op sin mensual pendiente devuelve el mismo estado. Solo asienta la regla mensual editada si falta su identidad de este mes; los asientos previos y sus metas permanecen intactos. El resultado del updater se observa sin persistirlo y el cierre exige la configuración objetivo en el estado: un rechazo al rebasar una escritura provisional recupera el borrador, una edición posterior legítima no lo reabre. La referencia de operación impide atribuirle el resultado de otra edición. No añade sincronizaciones ni cambia el last-write-wins entre dispositivos. [Contrato y pruebas](briefs/inc-0810-metas-editar-regla.md).
+
 Borrar una regla confirmada elimina su configuración y añade asientos de reserva inversos con la misma fecha/identidad, `releaseOf` y fecha de liberación, solo para asignaciones comprobables con identidad única y sin liberación previa. Una configuración reaparecida no permite compensar dos veces. Liberaciones parciales o registros ambiguos conservan el pendiente para revisión separada. No borra asientos originales, ahorro aportado ni movimientos bancarios. El total del registro libera únicamente el descuento atribuido a esa regla; cliente y servidor actuales lo leen igual. La identidad de nómina permanece aplicada. Configuración y log viajan juntos por `slimForCloud` y el sync last-write-wins existente; no se promete reconciliación de escrituras simultáneas ni reparación de reglas huérfanas antiguas. [Contrato y pruebas](briefs/inc-0310-01-meta-regla.md).
 
 
@@ -531,6 +618,14 @@ Antes el volcado se apuntaba dentro del updater de `set()`. React puede ejecutar
 Como es código común, el bloque de guardado forma parte del alcance de revisión de toda tanda cuyo código llama a `set` de App (18 de 25, decidido contra el código por `beta-sources`): cambiarlo vuelve a pedir su prueba. Una aprobación heredada por equivalencia de código deja de aplicarse cuando el código cambia; su registro histórico no se toca.
 
 Se conserva lo demás: una escritura como mucho cada 400 ms, volcado inmediato en `pagehide` y al pasar a oculto, guardado partido (`micartera_v3` y `micartera_v3_exp`), ninguna escritura al montar ni cuando un updater devuelve el mismo estado, y las salvaguardas del modo pruebas (`mcSkipPersist`, `mcRecargarSinVolcar`). Límite: una escritura pedida y aún no pintada cuando llega `pagehide` no se vuelca; antes tampoco estaba garantizado, salvo cuando React la calculaba por adelantado.
+
+### Ciclo de sesión y desmontaje (candidata102)
+
+El efecto inicial conserva el disposer devuelto por `cloud.onAuth`. Al desmontar, desactiva sus continuaciones, cancela el timer de arranque y libera la suscripción. Una Promise o un idle tardío no inicia otra lectura ni actualiza estado. No cancela trabajos ya iniciados ni modifica el orden de decisiones de identidad.
+
+### Recientes de Dashboard · candidata106
+
+La derivación de tres recientes conserva el filtro de lápidas y el orden estable por fecha. `useMemo` depende de `state.expenses` y `state.deleted`; abrir presupuesto o modificar settings no vuelve a recorrer el histórico. Los setters deben seguir conservando referencias cuando no cambian y generar referencias nuevas al editar/eliminar/sincronizar. No depende de todo state ni de fecha civil: la lista ordena fechas originales sin ventana temporal. No cambia dinero ni sincronización.
 
 
 ## Ciclo de vida y recientes · candidata selectiva106

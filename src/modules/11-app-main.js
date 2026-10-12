@@ -450,7 +450,7 @@ function App(){
     };
   },[]);
   // INC-0410 mensual: límite del asiento del mes en App.
-  const wR=useRef(false),wS=useRef(0),wP=useRef(null),wC=useRef([]);
+  const wR=useRef(false),wS=useRef(0),wP=useRef(null),wC=useRef([]),wRead=useRef(null);
   const bankJustConnected=useRef(false);    // marca la vuelta de ?bank=ok para sincronizar en cuanto haya sesión
 
   // Trae los gastos de la tabla y los mezcla en el estado (dedup).
@@ -458,7 +458,24 @@ function App(){
     const readStartedAt=Date.now();
     const ps=++wS.current;
     wR.current=false;
-    const pull=cloud.pullExpenses().then(function(rows){
+    wRead.current=null;
+    // Sólo la lectura terminada puede retirar el aviso heredado. La APK anterior ignora
+    // estos campos; si no conoce el inicio de lectura, seguimos enviando sin acreditarlo.
+    const native=natPlugin();
+    // Un POST nativo sin cobertura no debe retener el histórico de la app. Si el corte
+    // tarda, esta lectura continúa sin prueba y conserva la incertidumbre del widget.
+    const readMark=new Promise(function(resolve){
+      let finished=false;
+      const done=function(mark){ if(finished) return; finished=true; clearTimeout(tm); resolve(mark); };
+      const tm=setTimeout(function(){ done(null); },4000);
+      Promise.resolve().then(function(){
+        return !mcSandbox()&&native&&native.beginWidgetRead?native.beginWidgetRead():null;
+      }).then(done,function(){ done(null); });
+    });
+    const readProof={valid:false,userId:null};
+    const pull=readMark.then(function(mark){
+      if(ps!==wS.current){ return wP.current; }
+      return cloud.pullExpenses(readProof).then(function(rows){
       // Si otra lectura empezó después, este resultado puede ser una foto anterior aunque
       // haya llegado el último. No mezclarlo con el estado ni reenviarlo al widget (FIN-05).
       if(ps!==wS.current) return wP.current;
@@ -518,7 +535,12 @@ function App(){
         return rec.state;
       });
       wR.current=true;
+      // Una lista vacía sin sesión o del modo pruebas no acredita el histórico remoto.
+      const current=sessionRef.current;
+      wRead.current=readProof.valid && current && current.user && readProof.userId===current.user.id
+        && !mcSandbox() && mark && typeof mark.readGeneration==="string" && typeof mark.nativeCut==="string"?mark:null;
       return { total:incoming.length, nuevos:count };
+      });
     });
     wP.current=pull;
     return pull;
@@ -611,7 +633,7 @@ function App(){
     });
     return nubeLista.then(function(ok){
       if(!ok) throw SYNC_SIN_NUBE;
-      return Promise.all([cloud.bankSync(), pDb]);
+      return Promise.all([cloud.bankSync({recoverGaps:true}), pDb]);
     }).then(function(par){
       const res=par[0], dbLinks=par[1]||[];
       const links=(res&&res.links)||[];
@@ -635,7 +657,8 @@ function App(){
         const txs=flattenBankTx(links);
         // ORDEN anti-doble-conteo: primero entran las compras de tarjeta como gastos, y DESPUÉS
         // se re-ancla con el saldo real del banco (que ya incluye esas compras).
-        const add=importObExpenses(prev, txs);
+        // `links` lleva el suelo del tramo recuperado (`syncFrom`): sin él, lo anterior al margen se tira.
+        const add=importObExpenses(prev, txs, links);
         // Aporte automático reconocido (categoría "inversion", ver importObExpenses): compra ya
         // mismo participaciones en el fondo enlazado, con el importe REAL del banco — mismo cálculo
         // que `reconcileTR` usaba a ciegas, ahora disparado por el dato de verdad (2026-08-03).
@@ -665,7 +688,12 @@ function App(){
         const withProofs=reconcileFixedPaymentProofs(withTx,now.getFullYear(),now.getMonth()+1,now.getDate());
         const anchored=reconcileEarlyIncomeAnchors(withProofs,now.getFullYear(),now.getMonth()+1,now.getDate());
         const r=applyBankBalances(anchored, links);
-        return Object.assign({}, r.state, { lastBankSync:Date.now(), hasBankLink: links.length?true:prev.hasBankLink, bankTx: txs, bankIssues: bankIssuesOf(links, dbLinks) });
+        /* Cuándo se leyó el saldo de cada banco, dicho por el servidor. `last_sync` ya no vale
+           para pintarlo: con el tramo antiguo a medias es un cursor que va por detrás. El banco
+           que hoy no dio saldo conserva la hora del que sigue en pantalla. */
+        const balAt=Object.assign({},prev.obBalAt);
+        links.forEach(function(l){ if(l&&l.balanceAt) balAt[l.aspsp]=l.balanceAt; });
+        return Object.assign({}, r.state, { lastBankSync:Date.now(), hasBankLink: links.length?true:prev.hasBankLink, bankTx: txs, bankIssues: bankIssuesOf(links, dbLinks), obBalAt:balAt });
       });
       // sube las importadas a la tabla expenses (best-effort; el estado local ya las tiene)
       setTimeout(function(){ obAdded.forEach(function(e){ subirGasto(e, "ob-import"); }); }, 0);
@@ -703,6 +731,13 @@ function App(){
       if(opts.manual && readWarnings.length){
         readWarnings.forEach(function(w){ avisaSync(opts,"⚠ "+tf(w.key,{bank:w.bank})); });
       }
+      // Tramo antiguo (INC-2709-06), solo si lo has pedido tú: lo que el banco ya no entrega y,
+      // si queda tramo por traer, el mismo «descarga incompleta» de una lectura cortada (otra
+      // pulsación sigue). Son filas del aviso de siempre, no un diálogo que espere respuesta.
+      if(opts.manual) links.forEach(function(l){
+        if(l&&l.gapBeyondCap) avisaSync(opts,"⚠ "+tf("bank_gap_cap",{bank:bankLabelOf(l)}));
+        if(l&&l.gapPending) avisaSync(opts,"⚠ "+tf("bank_read_partial",{bank:bankLabelOf(l)}));
+      });
       if(opts.manual && preview.synced.length && !issues.length && !readWarnings.length){
         const ents={}; preview.synced.forEach(function(x){ if(x&&x.ent) ents[x.ent]=1; });
         const bancos=Object.keys(ents);
@@ -2052,8 +2087,11 @@ function App(){
         try{ Promise.resolve(nat.widgetWaiting()).catch(function(){}); }catch(e){}
         tm=setTimeout(query,3000);
       },3000);
+      // `wV2` guarda además QUÉ APK es (su versionCode): la 53 necesita el inicio del ciclo
+      // de otra forma (ver el payload). Sin ese dato vale `true`: contrato completo.
       Promise.resolve().then(function(){ return nat.widgetContract(); })
-        .then(function(r){ if(vivo&&!expired){ clearTimeout(tm); setWV2(!!(r&&r.v>=2)); } })
+        .then(function(r){ return r&&r.v>=2?(nat.appInfo?nat.appInfo().then(function(i){ return i&&i.versionCode||true; },function(){ return true; }):true):false; })
+        .then(function(v){ if(vivo&&!expired){ clearTimeout(tm); setWV2(v); } })
         .catch(function(){ if(vivo&&!expired){ clearTimeout(tm); setWV2(false); } });
     };
     query();
@@ -2093,7 +2131,14 @@ function App(){
     if(wV2==null) return;
     if(cloud.enabled() && (!uid || !wR.current)) return;
     const data={
-      periodStart:budW.periodStart,
+      /* LA APK 53 NO SABE LEER UN INICIO DE CICLO ENTERO (rechazo de la beta 115, feedback
+         2026-10-11): los milisegundos le llegan como Long, su lector solo admite Double y se
+         queda con el día 1 del mes. Al compararlo con el alcance descarta la foto en mudo y el
+         widget no sale de «Abre la app para actualizar». Con medio milisegundo viaja como
+         Double y ella misma lo trunca al valor exacto: la 53 se cura sin instalar nada, también
+         el pago con la app cerrada. Solo la 53 y solo en ciclo: en el mes natural el día 1 ya
+         era lo correcto, la 52 sigue como estaba y desde la 54 el nativo lee cualquier número. */
+      periodStart:budW.periodStart+(wV2===53&&budW.cycle?.5:0),
       // V2 acredita también filas anteriores recibidas: pueden afectar al saldo aunque ya no
       // consuman esta ventana. No se confirma por fecha, ni por una foto sin identidad.
       coveredEvents:widgetCoveredEvents(wC.current,budW.periodStart,Date.now(),!!wV2),
@@ -2103,6 +2148,7 @@ function App(){
       budget:budW.budget!=null?budW.budget:(state.budget||0)
     };
     if(wV2){ data.contract=2; data.periodKind=budW.cycle?"ciclo":"mes"; data.magnitude=budW.cycle?"neto":"gasto"; data.lang=CURLANG; data.scope=wScope; }
+    if(wRead.current){ data.readGeneration=wRead.current.readGeneration; data.nativeCut=wRead.current.nativeCut; }
     if(widgetCash!=null){ data.cash=widgetCash; data.cashEnt=trAccW.ent; data.cashLabel=entOf(trAccW.ent).label; }
     if(widgetBudgetLeft!=null) data.budgetLeft=widgetBudgetLeft;
     if(widgetSafeLiq!=null) data.safeLiq=widgetSafeLiq;
@@ -2135,7 +2181,9 @@ function App(){
       // addListener puede resolver después del cleanup: liberar también ese handle tardío.
       if(sub) sub.then(function(h){ if(h&&h.remove) return h.remove(); }).catch(function(){});
     };
-  },[budW.shown,budW.against,budW.cycle,budW.periodStart,budW.budget,wV2,wScope,CURLANG,state.budget,state.deleted,state.lastSync,widgetCash,trAccW&&trAccW.ent,widgetBudgetLeft,widgetSafeLiq,calendarDay,uid]);
+  // Otra lectura con filas idénticas también recupera el legado: no depender sólo de
+  // cifras o del reloj, que puede coincidir con el último lastSync.
+  },[budW.shown,budW.against,budW.cycle,budW.periodStart,budW.budget,wV2,wScope,CURLANG,state.budget,state.deleted,state.lastSync,widgetCash,trAccW&&trAccW.ent,widgetBudgetLeft,widgetSafeLiq,calendarDay,uid,wRead.current]);
   // Tour de bienvenida: 1ª vez tras el onboarding (tourSeen=false), con la app ya pintada
   useEffect(function(){
     // No arrancar el tour encima del login (showAuth) ni con el cajón abierto: causaba el caos
@@ -3333,6 +3381,33 @@ function App(){
     }, 3200);
     return function(){ cancelled=true; };
   },[state.onboarded, locked, tabIds.join("|")]);
+  // CALENTAR DETRÁS DEL SPLASH (2026-10-11, petición suya: que lo que tenga que cargar ocurra
+  // detrás de la pantalla de entrada y al entrar nada vaya a tirones). El efecto de arriba elige
+  // CUÁNDO se paga el montaje de las otras pestañas, pero sin garantía de acabar antes de que se
+  // levante la cortina: va por huecos libres, una pestaña por hueco. Medido con la CPU x6, en la
+  // mitad de los arranques se entraba con 3 de 4 montadas y la que faltaba caía en el primer
+  // segundo a la vista (frames de 50 ms). Mientras la cortina está puesta nadie mira, así que
+  // se pagan ahí, todas.
+  // TODAS EN UNA SOLA TANDA, A PROPÓSITO, y no una por hueco como arriba: el vigilante que
+  // retira la cortina (final de shell.html) corre en este mismo hilo, así que mientras dura este
+  // render NO puede levantarla, y cuando por fin puede todavía deja pasar dos frames antes de
+  // empezar el fundido. La cortina no se levanta con las pestañas a medio montar sin que haga
+  // falta ninguna señal nueva entre la app y el vigilante. Repartido en huecos, el vigilante se
+  // colaría entre dos pestañas y se entraría con el trabajo a medias.
+  // Va en un efecto y no en el estado inicial: así el primer commit sigue siendo solo Inicio y
+  // los efectos de arranque (la primera lectura de la nube) salen ANTES de este trabajo, que
+  // corre mientras la red contesta en vez de retrasarla.
+  // Solo con la cortina puesta. Si ya no está (se desbloqueó el candado, se terminó el alta) hay
+  // alguien mirando: una tarea así de larga sería justo el tirón que se quiere evitar, y de eso
+  // se sigue encargando el reparto en huecos libres de arriba.
+  useEffect(function(){
+    if(state.onboarded===false||locked||window.__mcSplashGone||!document.getElementById("mc-load")) return;
+    setMountedTabs(function(m){
+      var n=Object.assign({},m);
+      tabIds.forEach(function(id){ n[id]=true; });
+      return n;
+    });
+  },[]);
   useEffect(function(){ if(tab>tabIds.length-1) setTab(0); },[tabIds.length]);   // modo simple reduce pestañas → no dejar un índice fuera de rango
   // Ocultar bloques por pestaña: publica el estado para CollapsibleCard (que no recibe props
   // de App) y escucha el toggle. settings.cardHidden se sincroniza con la nube como todo.

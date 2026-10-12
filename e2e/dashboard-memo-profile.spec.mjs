@@ -60,7 +60,8 @@ for(const size of [3000,5200])for(const variant of ["baseline","memo"])test("Das
   await installFixtureClock(page);await seedLoggedInDashboard(page,fixture(size));
   await page.addInitScript(installDashboardProfile);
   const cdp=await page.context().newCDPSession(page);await cdp.send("Emulation.setCPUThrottlingRate",{rate:6});
-  const report={schema:1,sourceSHA:execFileSync("git",["rev-parse","HEAD"],{encoding:"utf8"}).trim(),declaredSourceSHA:process.env.MC_DASH_SOURCE_SHA||null,size,variant,cpuRate:6,guionSHA256,
+  // Git sólo aporta identidad: si se bloquea, no debe dejar el perfil sin un límite propio.
+  const report={schema:1,sourceSHA:execFileSync("git",["rev-parse","HEAD"],{encoding:"utf8",timeout:5000}).trim(),declaredSourceSHA:process.env.MC_DASH_SOURCE_SHA||null,size,variant,cpuRate:6,guionSHA256,
     htmlSHA256:instrumented.sourceSHA256,instrumentedSHA256:instrumented.instrumentedSHA256,scenarioSHA256:instrumented.scenarioSHA256,
     model:"App real; fixture Supabase; hook React real expenses/deleted; no red bancaria",phases:[],controls:[],status:"running"};
   const output=testInfo.outputPath("dashboard-memo-profile.json");mkdirSync(testInfo.outputDir,{recursive:true});

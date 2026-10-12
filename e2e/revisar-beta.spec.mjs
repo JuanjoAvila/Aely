@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import crypto from "node:crypto";
-import { betaRevision } from "../scripts/beta-revisions.mjs";
+import { execFileSync } from "node:child_process";
+import { betaRevision, betaNotes, betaDelivery } from "../scripts/beta-revisions.mjs";
 import { test, expect } from "@playwright/test";
 import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
 
@@ -172,7 +173,10 @@ for(const lang of ["es","en","ca"])test(`cola beta: solo novedades y entregas pe
  * Supabase de los tests devuelve null → la sección Dev no se pinta. Por eso aquí se monta el panel
  * directamente: lo que hay que probar es la REGLA de aprobación, no el menú que lleva a ella. */
 
-async function abrirRevisionBeta(page, lang) {
+// Las regresiones de tandas ya entregadas usan el catálogo publicado; las pruebas de cola actual
+// cargan el JSON servido de verdad, sin este fixture. El código del panel siempre es el actual.
+const historicalNotes=JSON.parse(execFileSync("git",["show","4403b252933410741a877eea59b85d812b2fe543:public/release-notes.json"],{encoding:"utf8",maxBuffer:5e6}));
+async function abrirRevisionBeta(page, lang, historical = false) {
   // La producción real no puede pisar los recibos sintéticos de una prueba histórica.
   await page.route("https://juanjoavila.github.io/Aely/**",route=>route.abort());
   await seedLoggedInDashboard(page, lang?{settings:{autoPrices:false,theme:"green",lang:lang}}:{});
@@ -191,6 +195,7 @@ async function abrirRevisionBeta(page, lang) {
     window._mcProdVersion=()=>Promise.resolve(null);
     delete window._mcProdDeliveryChecked;
   });
+  if(historical)await page.evaluate(notes=>{RELEASE_NOTES=notes;},historicalNotes);
 }
 
 /* Tras promote a prod con nota única, TODAS las entradas llevan `tandas:[]` → panel a 0
@@ -1057,7 +1062,7 @@ test("la marca caduca: si vuelve al día siguiente entra en su app, no en el pan
 
 /* Tras promocionar solo Deudas, las otras pruebas deben seguir visibles en la beta. */
 test("producción 4.26.67 conserva las siete tandas pendientes", async ({ page }) => {
-  await abrirRevisionBeta(page);
+  await abrirRevisionBeta(page,undefined,true);
   await page.evaluate(() => { CONFIG.APP_VERSION = "4.26.70.2"; });
   const panel = await conProduccionEn(page, "4.26.67");
   await expect(panel.locator(".beta-tanda")).toHaveCount(7);
@@ -1076,7 +1081,7 @@ test("producción 4.26.67 conserva las siete tandas pendientes", async ({ page }
 });
 
 test("guion de recibos71 retirado en favor de74 conserva las siete pendientes", async ({ page }) => {
-  await abrirRevisionBeta(page);
+  await abrirRevisionBeta(page,undefined,true);
   await page.evaluate(() => { CONFIG.APP_VERSION = "4.26.71.1"; });
   const panel = await conProduccionEn(page, "4.26.67");
   await expect(panel.locator(".beta-tanda")).toHaveCount(7);
@@ -1088,7 +1093,7 @@ test("guion de recibos71 retirado en favor de74 conserva las siete pendientes", 
 });
 
 test("Inicio73 conserva sus pruebas tras trasladar el guion de recibos a74", async ({ page }) => {
-  await abrirRevisionBeta(page);
+  await abrirRevisionBeta(page,undefined,true);
   await page.evaluate(() => { CONFIG.APP_VERSION = "4.26.73.1"; });
   const panel = await conProduccionEn(page, "4.26.67");
   await expect(panel.locator(".beta-tanda")).toHaveCount(8);
@@ -1099,7 +1104,7 @@ test("Inicio73 conserva sus pruebas tras trasladar el guion de recibos a74", asy
   await expect(panel).not.toContainText("Inicio y Mi ciclo");
 });
 test("corrección74 conserva todas las tandas y muestra una sola prueba de recibos", async ({ page }) => {
-  await abrirRevisionBeta(page);
+  await abrirRevisionBeta(page,undefined,true);
   await page.evaluate(() => { CONFIG.APP_VERSION = "4.26.74.1"; });
   const panel=await conProduccionEn(page,"4.26.67");
   await expect(panel.locator(".beta-tanda")).toHaveCount(9);
@@ -1146,7 +1151,7 @@ for(const lang of ["es","en","ca"]) for(const verdict of ["approved","rejected"]
     const previous=JSON.parse(execFileSync("git",["-c","safe.directory="+process.cwd(),"show","4e65fa114c4f647c95b9e97ad926faad5115e94b:public/release-notes.json"],{encoding:"utf8"}));
     const note=previous.find(n=>n.v==="4.26.87");
     const old=note.tandas.find(g=>g.id==="inc-0310-01-meta-regla");
-    await abrirRevisionBeta(page,lang);
+    await abrirRevisionBeta(page,lang,true);
     const record=await page.evaluate(({note,old,verdict})=>{
       CONFIG.APP_VERSION="4.26.94.1";
       const current=RELEASE_NOTES.find(n=>n.v==="4.26.94").tandas.find(g=>g.id===old.id);
@@ -1181,7 +1186,7 @@ for(const lang of ["es","en","ca"]) {
      decisión anterior sigue en el historial; el store de 4.26.68 no se toca). «Arranque con poca
      conexión» no escribe estado: su código sigue siendo el aprobado y conserva el OK. */
   test(`revisión exacta: la fuente idéntica conserva OK; un cambio solo web y cinco web/nativos piden nueva revisión (${lang})`, async ({page}) => {
-    await abrirRevisionBeta(page,lang);
+    await abrirRevisionBeta(page,lang,true);
     await sembrarAprobadasEn4267(page);
     await page.evaluate(async lang => { await ensureLangPack(lang); CURLANG=lang; CONFIG.APP_VERSION="4.26.76.1"; window._mcProdApk=48; window._mcProdEntregas=null; window._mcProdApkRevisiones=null; },lang);
     const panel=await conProduccionEn(page,"4.26.67");
@@ -1224,7 +1229,7 @@ for(const lang of ["es","en","ca"]) {
   test(`entrega exacta: producción menor retira las siete tandas reales al llegar sus recibos (${lang})`, async ({page}) => {
     // El recibo sintético no puede competir con una consulta real que arrancó al abrir la app.
     await page.route("https://juanjoavila.github.io/Aely/**",route=>route.abort());
-    await abrirRevisionBeta(page,lang);
+    await abrirRevisionBeta(page,lang,true);
     await page.evaluate(async()=>{ if(_mcProdVerCache) await _mcProdVerCache; });
     await sembrarAprobadasEn4267(page);
     await page.evaluate(async lang => {
@@ -1307,7 +1312,7 @@ async function sembrarAprobadasEn4267(page) {
 }
 
 test("las nativas conservan el historial y sus cinco cambios web exigen revisión nueva", async ({ page }) => {
-  await abrirRevisionBeta(page);
+  await abrirRevisionBeta(page,undefined,true);
   await sembrarAprobadasEn4267(page);
   const historial=await page.evaluate(() => store.get("_betaReview_4.26.68.1_v"));
   await page.evaluate(() => { CONFIG.APP_VERSION="4.26.75.1"; window._mcProdApk = 48; window._mcProdEntregas=null; });
@@ -1324,7 +1329,7 @@ test("las nativas conservan el historial y sus cinco cambios web exigen revisió
 });
 
 test("producción web por delante no retira las nativas mientras la APK estable no las lleve", async ({ page }) => {
-  await abrirRevisionBeta(page);
+  await abrirRevisionBeta(page,undefined,true);
   await page.evaluate(() => { CONFIG.APP_VERSION = "4.26.71.1"; window._mcProdApk = 48; window._mcProdEntregas=null; });
   const panel = await conProduccionEn(page, "4.26.69");
   for (const title of NATIVAS) await expect(panel.locator(".beta-tanda-t").filter({ hasText: title })).toHaveCount(1);
@@ -1458,7 +1463,7 @@ for(const lang of ["es","en","ca"])for(const mode of ["texto repetido","sin marc
 
 for(const lang of ["es","en","ca"]) {
   test(`ronda mixta: conserva la checklist actual, modernas y comentarios con producción desconocida (${lang})`,async({page})=>{
-    await abrirRevisionBeta(page,lang);
+    await abrirRevisionBeta(page,lang,true);
     const expected=await page.evaluate(async lang=>{
       await ensureLangPack(lang);CURLANG=lang;
       const ids=betaChecklist(RELEASE_NOTES[0].v+".1",null,48).tandas.map(g=>g.id.split("/").pop()).sort();
@@ -1490,3 +1495,294 @@ for(const lang of ["es","en","ca"]) {
     expect(await page.evaluate(()=>betaChecklist(CONFIG.APP_VERSION,null,48).tandas.map(g=>g.id.split("/").pop()).sort())).toEqual(expected);
   });
 }
+
+
+
+for(const lang of ["es","en","ca"])test(`contador activo: archivo109 no añade puntos ni fallos (${lang})`,async({page})=>{
+  await abrirRevisionBeta(page,lang);
+  const ref=JSON.parse(fs.readFileSync(new URL("../scripts/beta-archives.json",import.meta.url),"utf8")).refs["inc-0810-inicio-grafica-significado"];
+  const historical=betaNotes([{v:ref.version,tandas:[ref.guion]}])[0];
+  const current={id:"inicio-grafica-vuelve",t:{es:"Contador sintético"},items:{es:["1. Punto A","2. Punto B","3. Punto C"]},...betaRevision("inicio-grafica-vuelve")};
+  const snapshot=await page.evaluate(({historical,current})=>{
+    CONFIG.APP_VERSION="9.9.9.1";RELEASE_NOTES=[{v:"9.9.9",t:{es:"Caso de contador"},tandas:[current]},historical];
+    const old=betaTandas(historical)[0],history={marks:{0:"ko"},notes:{0:"Fallo histórico conservado, sin sumar al contador"}};
+    const decision={verdict:"rejected",at:200};
+    store.set("_betaReview_9.9.9.1_v",{_h:1,["h:"+old.huella]:decision});
+    store.set("_betaReviewMarks",{[old.huella]:history});
+    window._mcProdEntregas={web:{},pruebas:{}};window._mcProdApk=52;window.__counterReports=[];
+    cloud.betaReport=function(payload){window.__counterReports.push(payload);return Promise.resolve();};
+    return {huella:old.huella,history,decision};
+  },{historical,current});
+  // Cada escenario consulta su propio panel; cambiar una global no desmonta el anterior.
+  async function mountCounterPanel(){
+    await page.evaluate(()=>{
+      window._mcProdDeliveryChecked=true;window._mcProdVersion=()=>Promise.resolve(null);
+      if(window.__counterRoot)window.__counterRoot.unmount();
+      let host=document.getElementById("e2e-counter-own");
+      if(!host){host=document.createElement("div");host.id="e2e-counter-own";document.body.appendChild(host);}
+      window.__counterRoot=ReactDOM.createRoot(host);
+      window.__counterRoot.render(React.createElement(BetaReviewPanel,{onClose:function(){},showToast:function(){}}));
+    });
+    return page.locator("#e2e-counter-own .beta-review");
+  }
+  const panel=await mountCounterPanel(),fresh=panel.locator('.beta-tanda:not([data-beta-historical="true"])'),old=panel.locator('.beta-tanda[data-beta-historical="true"]');
+  const progress=panel.getByTestId("beta-active-progress");
+  await expect(progress).toHaveText("0/3");
+  await expect(fresh.locator(".beta-tanda-n")).toHaveText("0/3");
+  expect(await page.evaluate(()=>betaMarksCount(betaChecklist(CONFIG.APP_VERSION,null,52)))).toEqual({n:0,tot:3});
+  await expect(panel.getByRole("button",{name:"↺ Empezar la revisión de cero",exact:true})).toBeDisabled();
+  await old.locator(".beta-tanda-toggle").click();
+  await expect(old.locator(".beta-historical-note")).toHaveText(snapshot.history.notes[0]);
+  await expect(old.locator(".beta-veredicto")).toHaveText({es:"⛔ Rechazada",en:"⛔ Rejected",ca:"⛔ Rebutjada"}[lang]);
+  await expect(fresh.getByRole("button",{name:"✅ Aprobar esta tanda",exact:true})).toBeDisabled();
+  await fresh.getByRole("button",{name:"✓ Va bien",exact:true}).nth(0).click();
+  await expect(progress).toHaveText("1/3");
+  await fresh.getByRole("button",{name:"✗ Falla",exact:true}).nth(0).click();
+  await expect(progress).toHaveText("2/3");
+  await fresh.getByRole("button",{name:"— No lo puedo probar",exact:true}).nth(1).click();
+  await expect(progress).toHaveText("3/3");
+  await expect(fresh.getByRole("button",{name:"✅ Aprobar esta tanda",exact:true})).toBeDisabled();
+  await fresh.getByRole("button",{name:"✓ Va bien",exact:true}).nth(0).click();
+  await expect(progress).toHaveText("3/3");
+  await expect(fresh.getByRole("button",{name:"✅ Aprobar esta tanda",exact:true})).toBeEnabled();
+  expect(await page.evaluate(()=>betaMarksCount(betaChecklist(CONFIG.APP_VERSION,null,52)))).toEqual({n:3,tot:3});
+  await expect(panel).not.toContainText(/fallo que marcaste antes sigue aquí|punto viene ya marcado/);
+  await expect(old.locator(".beta-historical-note")).toHaveText(snapshot.history.notes[0]);
+  expect(await page.evaluate(h=>(store.get("_betaReviewMarks")||{})[h],snapshot.huella)).toEqual(snapshot.history);
+  expect(await page.evaluate(()=>window.__counterReports.length)).toBe(0);
+  await fresh.getByRole("button",{name:"✅ Aprobar esta tanda",exact:true}).click();
+  await expect(fresh.locator(".beta-veredicto")).toContainText("Aprobada");
+  const reports=await page.evaluate(()=>window.__counterReports);
+  expect(reports).toHaveLength(1);
+  expect(reports[0]).toMatchObject({tanda:"inicio-grafica-vuelve",probados:2,fallos:0,sinProbar:0,noProbable:1,heredados:0});
+  expect(await page.evaluate(h=>(store.get("_betaReview_9.9.9.1_v")||{})["h:"+h],snapshot.huella)).toEqual(snapshot.decision);
+  expect(await page.evaluate(h=>(store.get("_betaReviewMarks")||{})[h],snapshot.huella)).toEqual(snapshot.history);
+  expect(await page.evaluate(()=>localStorage.getItem(BETA_ABIERTO_KEY))).toBeNull();
+  // Un scroll ya pendiente no es un gesto nuevo; tocar después sí permite volver a revisar.
+  const lifecycle=await page.evaluate(()=>{
+    const wrap=document.querySelector("#e2e-counter-own .beta-review");
+    if(!wrap)throw new Error("Falta el panel propio del contador");
+    wrap.dispatchEvent(new Event("scroll",{bubbles:true}));
+    const afterScroll=localStorage.getItem(BETA_ABIERTO_KEY)===null;
+    wrap.dispatchEvent(new PointerEvent("pointerdown",{bubbles:true,pointerType:"touch"}));
+    const afterPointer=localStorage.getItem(BETA_ABIERTO_KEY)!==null;
+    const close=Array.from(wrap.querySelectorAll("button")).find(el=>el.textContent==="‹ Ajustes");
+    if(!close)throw new Error("Falta el cierre del panel");
+    close.click();
+    wrap.dispatchEvent(new Event("scroll",{bubbles:true}));
+    return {afterScroll,afterPointer,afterCloseScroll:localStorage.getItem(BETA_ABIERTO_KEY)===null};
+  });
+  expect(lifecycle).toEqual({afterScroll:true,afterPointer:true,afterCloseScroll:true});
+  await page.evaluate(h=>{RELEASE_NOTES=[h];},historical);
+  const only=await mountCounterPanel();
+  await expect(only).toHaveCount(1);
+  await expect(only.locator('.beta-tanda[data-beta-historical="true"]')).toHaveCount(1);
+  await expect(only.locator('.beta-tanda:not([data-beta-historical="true"])')).toHaveCount(0);
+  expect(await page.evaluate(()=>betaMarksCount(betaChecklist(CONFIG.APP_VERSION,null,52)))).toEqual({n:0,tot:0});
+  expect(await page.evaluate(h=>(store.get("_betaReviewMarks")||{})[h],snapshot.huella)).toEqual(snapshot.history);
+  expect(await page.evaluate(h=>(store.get("_betaReview_9.9.9.1_v")||{})["h:"+h],snapshot.huella)).toEqual(snapshot.decision);
+  expect(await page.evaluate(()=>window.__counterReports.length)).toBe(1);
+  await expect(only.getByTestId("beta-active-progress")).toHaveCount(0);
+  await expect(only.getByTestId("beta-active-empty")).toHaveText({
+    es:"No hay comprobaciones activas pendientes. Las referencias históricas conservan las decisiones guardadas.",
+    en:"There are no active checks pending. Historical references retain saved decisions.",
+    ca:"No hi ha comprovacions actives pendents. Les referències històriques conserven les decisions desades."
+  }[lang]);
+  await expect(only.getByRole("button",{name:"↺ Empezar la revisión de cero",exact:true})).toBeDisabled();
+  await expect(only.getByRole("button",{name:/Aprobar esta tanda|Reportar/})).toHaveCount(0);
+});
+
+for(const lang of ["es","en","ca"])test(`109 histórica: conserva rechazo y guion, sin aprobación ni entrega actual (${lang})`,async({page})=>{
+  await abrirRevisionBeta(page,lang);
+  const archives=JSON.parse(fs.readFileSync(new URL("../scripts/beta-archives.json",import.meta.url),"utf8"));
+  const oldId="inc-0810-inicio-grafica-significado",newId="inicio-grafica-vuelve",ref=archives.refs[oldId];
+  const historical=betaNotes([{v:ref.version,tandas:[ref.guion]}])[0];
+  const current={id:newId,t:{es:"Total actual sintético"},items:{es:ref.guion.items.es.slice()},...betaRevision(newId)};
+  const snapshot=await page.evaluate(({historical,current})=>{
+    CONFIG.APP_VERSION="9.9.9.1";RELEASE_NOTES=[{v:"9.9.9",t:{es:"Caso sintético"},tandas:[current]},historical];
+    const old=betaTandas(historical)[0];
+    const state={_h:1,["h:"+old.huella]:{verdict:"rejected",at:200}};
+    store.set("_betaReview_9.9.9.1_v",state);
+    const ledger={marks:{0:"ko"},notes:{0:"Fallo histórico sintético109\nSegunda línea conservada"}};
+    store.set("_betaReviewMarks",{[old.huella]:ledger,["otra-huella"]:{marks:{0:"ko"},notes:{0:"Nota ajena que no debe aparecer"}}});
+    const legacy={marks:{[old.items[0]]:"ko"},notes:{[old.items[0]]:"Comentario legado conservado"},owners:{[old.items[0]]:old.huella}};
+    store.set("_betaReviewOk",legacy.marks);store.set("_betaReviewNotas",legacy.notes);store.set("_betaMarksHuella",legacy.owners);
+    window._mcProdEntregas={web:{[historical.tandas[0].id]:historical.tandas[0].web},pruebas:{[historical.tandas[0].id]:{v:historical.v,contenido:JSON.stringify([old.id,old.t,old.items,1])}}};window._mcProdApk=52;window.__historicalReportCalls=0;
+    cloud.betaReport=function(){window.__historicalReportCalls++;return Promise.resolve();};
+    return {state,huella:old.huella,ledger,legacy};
+  },{historical,current});
+  const panel=await conProduccionEn(page,null),old=panel.locator('.beta-tanda[data-beta-historical="true"]'),fresh=panel.locator('.beta-tanda:not([data-beta-historical="true"])');
+  await expect(old).toHaveCount(1);await expect(fresh).toHaveCount(1);
+  await expect(old.locator(".beta-tanda-n")).toContainText("rechazada");
+  await expect(old.locator(".beta-tanda-entrega")).toContainText({
+    es:"Referencia histórica",en:"Historical reference",ca:"Referència històrica"
+  }[lang]);
+  await old.locator(".beta-tanda-toggle").click();
+  await expect(old.locator(".beta-item")).toContainText(ref.guion.items.es[0]);
+  await expect(old.locator(".beta-historical-mark")).toContainText({es:"Fallo guardado",en:"Saved failure",ca:"Fallada desada"}[lang]);
+  await expect(old.locator(".beta-veredicto")).toHaveText({es:"⛔ Rechazada",en:"⛔ Rejected",ca:"⛔ Rebutjada"}[lang]);
+  await expect(old.locator(".beta-historical-note")).toHaveText(snapshot.ledger.notes[0]);
+  await expect(old).not.toContainText("Nota ajena que no debe aparecer");
+  await expect(old.getByRole("button",{name:/Aprobar|Cambiar de opinión|Va bien|Falla|No lo puedo probar|Reportar/})).toHaveCount(0);
+  await expect(old.locator("input")).toHaveCount(0);
+  await expect(fresh.locator(".beta-tanda-n")).not.toContainText(/aprobada|rechazada/);
+  await expect(fresh.getByRole("button",{name:"✅ Aprobar esta tanda",exact:true})).toBeVisible();
+  expect(await page.evaluate(()=>window.__historicalReportCalls)).toBe(0);
+  expect(await page.evaluate(()=>store.get("_betaReview_9.9.9.1_v"))).toEqual(snapshot.state);
+  expect(snapshot.huella.endsWith(":"+ref.codigo)).toBe(true);
+  await fresh.getByRole("button",{name:"✓ Va bien",exact:true}).click();
+  await expect(old.locator(".beta-historical-note")).toHaveText(snapshot.ledger.notes[0]);
+  await expect(fresh).not.toContainText(snapshot.ledger.notes[0]);
+  expect(await page.evaluate(h=>(store.get("_betaReviewMarks")||{})[h],snapshot.huella)).toEqual(snapshot.ledger);
+  expect(await page.evaluate(()=>store.get("_betaReviewOk"))).toEqual(snapshot.legacy.marks);
+  expect(await page.evaluate(()=>store.get("_betaReviewNotas"))).toEqual(snapshot.legacy.notes);
+  expect(await page.evaluate(()=>store.get("_betaMarksHuella"))).toEqual(snapshot.legacy.owners);
+  expect(await page.evaluate(()=>window.__historicalReportCalls)).toBe(0);
+});
+
+for(const lang of ["es","en","ca"])test(`cola publicada: no vuelve a pedir las catorce entregadas (${lang})`,async({page})=>{
+  await abrirRevisionBeta(page,lang);
+  // El retiro113 modifica sólo los dos guiones sustituidos: el histórico112 queda fijado
+  // por Git, y la copia autorizada113 es un oráculo literal independiente del build.
+  const before=JSON.parse(execFileSync("git",["show","74c5f075bf08e38e289992195ad97e3a71a8b031:src/data/release-notes.json"],{encoding:"utf8",maxBuffer:5e6}));
+  const retired=["inc-0810-nav-indicator","inc-0810-metas-editar-regla","inc-0810-backclose-handover"];
+  const replaced=["inc-2709-07-bienes-toque","inc-0910-inicio-solo-actual"];
+  const note113={v:'4.26.113',d:'2026-10-10',t:{es:'Bienes completos y vuelve la gráfica de Inicio',en:'Complete assets and the Home chart returns',ca:'Béns complets i torna la gràfica d’Inici'},items:{es:['En Cartera → Bienes ya puedes añadir un bien, editarlo y borrarlo, también cuando la lista está vacía.','Inicio recupera la gráfica del patrimonio.'],en:['In Wallet → Property, you can now add, edit and delete an asset, even when the list is empty.','Home brings back the net worth chart.'],ca:['A Cartera → Béns ja pots afegir un bé, editar-lo i esborrar-lo, també quan la llista és buida.','Inici recupera la gràfica del patrimoni.']},tandas:[{id:'bienes-completo',t:{es:'Bienes completos',en:'Complete assets',ca:'Béns complets'},items:{es:['1. En Cartera → Bienes, añade un bien con nombre y valor: aparece en la lista y sube el patrimonio.','2. Tócalo, cambia el valor y guarda. Ábrelo otra vez y pulsa Cancelar: no cambia nada.','3. Bórralo: pide confirmación. Al cancelar sigue ahí; al confirmar desaparece.'],en:['1. In Wallet → Property, add an asset with a name and value: it appears in the list and increases net worth.','2. Tap it, change the value and save. Open it again and press Cancel: nothing changes.','3. Delete it: confirmation is requested. Cancelling keeps it there; confirming removes it.'],ca:['1. A Cartera → Béns, afegeix un bé amb nom i valor: apareix a la llista i puja el patrimoni.','2. Toca’l, canvia el valor i desa. Obre’l una altra vegada i prem Cancel·la: no canvia res.','3. Esborra’l: demana confirmació. En cancel·lar continua allà; en confirmar desapareix.']}},{id:'inicio-grafica-vuelve',t:{es:'Vuelve la gráfica de Inicio',en:'The Home chart returns',ca:'Torna la gràfica d’Inici'},items:{es:['1. Abre Inicio: vuelve a verse la gráfica bajo el patrimonio y ya no aparece «Ahora».'],en:['1. Open Home: the chart is visible below net worth again and “Now” no longer appears.'],ca:['1. Obre Inici: torna a veure’s la gràfica sota el patrimoni i ja no apareix «Ara».']}}]};
+  // La nota114 y su única tanda son otro oráculo literal: el catálogo vivo no se valida contra sí mismo.
+  const note114={"v":"4.26.114","d":"2026-10-11","t":{"es":"Inicio sin solapes","en":"Home without overlaps","ca":"Inici sense solapaments"},"items":{"es":["Inicio ya no muestra por error la lista de categorías de Gastos encima de sus tarjetas."],"en":["Home no longer shows the Expenses category list on top of its cards by mistake."],"ca":["Inici ja no mostra per error la llista de categories de Despeses a sobre de les seves targetes."]},"tandas":[{"id":"inicio-solape-gastos","t":{"es":"Inicio sin solapes","en":"Home without overlaps","ca":"Inici sense solapaments"},"items":{"es":["1. Activa una temática en Ajustes → Apariencia → Temática (cualquiera que no sea «Ninguna»).","2. Entra en Gastos y abre el desglose «Por categoría».","3. Vuelve a Inicio: no debe verse ninguna lista de categorías encima de las tarjetas.","4. Desde Inicio, apunta dos gastos seguidos con el botón + y cierra: Inicio debe seguir limpio.","5. Vuelve a Gastos: el desglose sigue ahí y se puede abrir y cerrar."],"en":["1. Turn on a theme in Settings → Look & feel → Theme (any except “None”).","2. Go to Spending and open the “By category” breakdown.","3. Go back to Home: no category list should appear on top of the cards.","4. From Home, log two expenses in a row with the + button and close: Home should stay clean.","5. Go back to Spending: the breakdown is still there and can be opened and closed."],"ca":["1. Activa una temàtica a Ajustos → Aparença → Temàtica (qualsevol que no sigui «Cap»).","2. Entra a Despeses i obre el desglossament «Per categoria».","3. Torna a Inici: no s’ha de veure cap llista de categories a sobre de les targetes.","4. Des d’Inici, apunta dues despeses seguides amb el botó + i tanca: Inici ha de seguir net.","5. Torna a Despeses: el desglossament continua allà i es pot obrir i tancar."]}}]};
+  // La nota115 lleva la tanda del widget con su APK: tercer oráculo literal, tampoco sale del build.
+  const note115={"v":"4.26.115","d":"2026-10-11","t":{"es":"Widget al día","en":"Widget up to date","ca":"Widget al dia"},"items":{"es":["El widget se actualiza al pagar con el móvil aunque la app esté cerrada, sin pedir que la abras. Hace falta instalar la versión nueva de la app."],"en":["The widget updates when you pay with your phone even if the app is closed, without asking you to open it. The new version of the app needs to be installed."],"ca":["El widget s'actualitza en pagar amb el mòbil encara que l'app estigui tancada, sense demanar que l'obris. Cal instal·lar la versió nova de l'app."]},"tandas":[{"id":"widget-pago-app-cerrada","t":{"es":"Widget: pago con la app cerrada","en":"Widget: payment with the app closed","ca":"Widget: pagament amb l'app tancada"},"items":{"es":["1. Instala la versión nueva de la app cuando la beta te la ofrezca y ábrela una vez con conexión, hasta que cargue Inicio.","2. Mira el widget: debe enseñar la misma cifra que «Mi ciclo» en Inicio, sin el aviso «Abre la app para actualizar».","3. Cierra la app del todo y paga algo pequeño con el móvil.","4. Cuando llegue la notificación del gasto, mira el widget: la cifra sube ese importe y no aparece el aviso.","5. Abre la app: Inicio y el widget coinciden, y el pago no está sumado dos veces."],"en":["1. Install the new version of the app when the beta offers it and open it once while online, until Home loads.","2. Look at the widget: it must show the same figure as “My cycle” on Home, without the “Open the app to update” notice.","3. Close the app completely and pay for something small with your phone.","4. When the expense notification arrives, look at the widget: the figure goes up by that amount and the notice does not appear.","5. Open the app: Home and the widget match, and the payment is not counted twice."],"ca":["1. Instal·la la versió nova de l'app quan la beta te l'ofereixi i obre-la una vegada amb connexió, fins que carregui Inici.","2. Mira el widget: ha de mostrar la mateixa xifra que «El meu cicle» a Inici, sense l'avís «Obre l'app per actualitzar».","3. Tanca l'app del tot i paga alguna cosa petita amb el mòbil.","4. Quan arribi la notificació de la despesa, mira el widget: la xifra puja aquest import i no apareix l'avís.","5. Obre l'app: Inici i el widget coincideixen, i el pagament no està sumat dues vegades."]},"apk":53}]};
+  // La nota116 lleva la tanda de los bancos (solo web): cuarto oráculo literal.
+  const note116={"v":"4.26.116","d":"2026-10-11","t":{"es":"Bancos sin huecos y widget arreglado","en":"Banks without gaps and widget fixed","ca":"Bancs sense forats i widget arreglat"},"items":{"es":["Si pasas días sin sincronizar, ya no se queda nada por el camino: lo que faltaba entra poco a poco cada vez que pulsas sincronizar bancos.","La fecha de «Saldo actualizado» es la de la última lectura real del banco.","Si llevas más de 90 días sin sincronizar un banco, la app te avisa de que el banco solo entrega los últimos 90 días.","El widget vuelve a mostrar tu cifra de «Mi ciclo» y se actualiza al pagar con el móvil aunque la app esté cerrada. Para el pago con la app cerrada hace falta instalar la versión nueva de la app."],"en":["If you go days without syncing, nothing is left behind anymore: what was missing comes in little by little each time you tap sync banks.","The “Balance updated” date is the time of the last real reading from the bank.","If you have gone more than 90 days without syncing a bank, the app tells you that the bank only provides the last 90 days.","The widget shows your “My cycle” figure again and updates when you pay with your phone even if the app is closed. Paying with the app closed needs the new version of the app to be installed."],"ca":["Si passes dies sense sincronitzar, ja no es queda res pel camí: el que faltava entra a poc a poc cada vegada que prems sincronitza bancs.","La data de «Saldo actualitzat» és la de l'última lectura real del banc.","Si portes més de 90 dies sense sincronitzar un banc, l'app t'avisa que el banc només lliura els últims 90 dies.","El widget torna a mostrar la xifra de «El meu cicle» i s'actualitza en pagar amb el mòbil encara que l'app estigui tancada. Per al pagament amb l'app tancada cal instal·lar la versió nova de l'app."]},"tandas":[{"id":"bancos-sin-hueco","t":{"es":"Bancos sin huecos","en":"Banks without gaps","ca":"Bancs sense forats"},"items":{"es":["1. En Cartera, dentro de «Tus cuentas», toca el icono «Sincronizar bancos» y espera a que termine.","2. Abre Gastos: los movimientos nuevos de tus bancos aparecen, cada uno una sola vez, sin repetidos.","3. Vuelve a Cartera y toca el icono «Conectar cuentas» para abrir «Mis bancos»: en cada banco, la línea «Saldo actualizado» marca la hora de ahora.","4. Toca «Sincronizar bancos» otra vez: no aparece ningún movimiento repetido en Gastos y «Saldo actualizado» pasa a la hora nueva."],"en":["1. In Portfolio, inside “Your accounts”, tap the “Sync banks” icon and wait for it to finish.","2. Open Spending: the new transactions from your banks appear, each one only once, with no repeats.","3. Go back to Portfolio and tap the “Connect accounts” icon to open “My banks”: on each bank, the “Balance updated” line shows the time right now.","4. Tap “Sync banks” again: no repeated transaction appears in Spending and “Balance updated” moves to the new time."],"ca":["1. A Cartera, dins de «Els teus comptes», toca la icona «Sincronitza els bancs» i espera que acabi.","2. Obre Despeses: els moviments nous dels teus bancs apareixen, cadascun una sola vegada, sense repetits.","3. Torna a Cartera i toca la icona «Connectar comptes» per obrir «Els meus bancs»: a cada banc, la línia «Saldo actualitzat» marca l'hora d'ara.","4. Toca «Sincronitza els bancs» una altra vegada: no apareix cap moviment repetit a Despeses i «Saldo actualitzat» passa a l'hora nova."]}},{"id":"widget-ciclo-puente","t":{"es":"Widget: cifra de Mi ciclo y pago con la app cerrada","en":"Widget: My cycle figure and payment with the app closed","ca":"Widget: xifra de El meu cicle i pagament amb l'app tancada"},"items":{"es":["1. Actualiza la app web (sin instalar nada todavía) y ábrela: el widget vuelve a mostrar la cifra de «Mi ciclo», sin el aviso «Abre la app para actualizar».","2. Instala la app nueva (54) y ábrela: la cifra del widget sigue igual.","3. Cierra la app del todo y paga algo pequeño con el móvil: cuando llegue la notificación del gasto, la cifra del widget sube ese importe y no sale el aviso.","4. Abre la app: la cifra coincide con la de «Mi ciclo» en Inicio y el pago no está sumado dos veces."],"en":["1. Update the web app (without installing anything yet) and open it: the widget shows the “My cycle” figure again, without the “Open the app to update” notice.","2. Install the new app (54) and open it: the widget figure stays the same.","3. Close the app completely and pay for something small with your phone: when the expense notification arrives, the widget figure goes up by that amount and the notice does not appear.","4. Open the app: the figure matches “My cycle” on Home and the payment is not counted twice."],"ca":["1. Actualitza l'app web (sense instal·lar res encara) i obre-la: el widget torna a mostrar la xifra de «El meu cicle», sense l'avís «Obre l'app per actualitzar».","2. Instal·la l'app nova (54) i obre-la: la xifra del widget continua igual.","3. Tanca l'app del tot i paga alguna cosa petita amb el mòbil: quan arribi la notificació de la despesa, la xifra del widget puja aquest import i no surt l'avís.","4. Obre l'app: la xifra coincideix amb la d'«El meu cicle» a Inici i el pagament no està sumat dues vegades."]},"apk":54}]};
+  // La nota117 lleva la tanda de la pantalla de entrada (solo web): quinto oráculo literal.
+  const note117={"v":"4.26.117","d":"2026-10-12","t":{"es":"Nueva pantalla de entrada","en":"New opening screen","ca":"Nova pantalla d'entrada"},"items":{"es":["Nueva pantalla de entrada: el logo aparece con una luz suave mientras la app se prepara, y al entrar todo responde desde el primer gesto. En tema claro el nombre ya se lee bien."],"en":["New opening screen: the logo appears with a soft glow while the app gets ready, and everything responds from the very first swipe. The name is now easy to read in the light theme."],"ca":["Nova pantalla d'entrada: el logotip apareix amb una llum suau mentre l'app es prepara, i en entrar tot respon des del primer gest. Amb el tema clar el nom ja es llegeix bé."]},"tandas":[{"id":"splash-animado","t":{"es":"Nueva pantalla de entrada","en":"New opening screen","ca":"Nova pantalla d'entrada"},"items":{"es":["1. Actualiza la app y ciérrala del todo (quítala de recientes); el cambio se ve en la segunda apertura tras actualizar. Ábrela: debe verse la tarjeta con el logo, una luz verde suave que respira detrás y el nombre debajo, sin barras ni cortes.","2. Fíjate en el momento de entrar: primero desaparece el logo y después el fondo. En ningún instante debe verse el logo encima de la pantalla de Inicio.","3. Nada más entrar, desliza a Gastos, Plan y Cartera. Deben ir fluidas desde el primer deslizamiento.","4. En Ajustes pon el tema claro, cierra la app del todo y ábrela. No debe haber fogonazo ni salto brusco de color, y «Aely» debe leerse bien."],"en":["1. Update the app and close it completely (remove it from recent apps); the change shows on the second opening after updating. Open it: you should see the card with the logo, a soft green glow breathing behind it and the name below, with no bars or cuts.","2. Watch the moment you enter: first the logo disappears and then the background. At no point should the logo be visible on top of the Home screen.","3. Right after entering, swipe to Spending, Plan and Portfolio. They should be smooth from the very first swipe.","4. In Settings choose the light theme, close the app completely and open it. There should be no flash or abrupt colour jump, and “Aely” should be easy to read."],"ca":["1. Actualitza l'app i tanca-la del tot (treu-la de recents); el canvi es veu a la segona obertura després d'actualitzar. Obre-la: s'ha de veure la targeta amb el logotip, una llum verda suau que respira al darrere i el nom a sota, sense barres ni talls.","2. Fixa't en el moment d'entrar: primer desapareix el logotip i després el fons. En cap instant s'ha de veure el logotip damunt de la pantalla d'Inici.","3. Just en entrar, llisca a Despeses, Pla i Cartera. Han d'anar fluides des del primer lliscament.","4. A Ajustos posa el tema clar, tanca l'app del tot i obre-la. No hi ha d'haver cap fogonada ni salt brusc de color, i «Aely» s'ha de llegir bé."]}}]};
+  const prior=before.map(n=>n.tandas?{...n,tandas:n.tandas.filter(g=>!replaced.includes(g.id))}:n);
+  expect(prior.length).toBe(229);
+  const live=JSON.parse(fs.readFileSync(new URL("../src/data/release-notes.json",import.meta.url),"utf8"));
+  expect(live).toEqual([note117,{...note116,tandas:note116.tandas.filter(g=>g.id!=="bancos-sin-hueco")},{...note115,tandas:[]},note114,{...note113,tandas:[]},...prior]);
+  const expected=betaNotes([note117,{...note116,tandas:note116.tandas.filter(g=>g.id!=="bancos-sin-hueco")},{...note115,tandas:[]},note114,{...note113,tandas:[]},...prior]);
+  expect(expected.length).toBe(234);
+  expect(expected.slice(0,5).map(n=>[n.v,n.tandas.map(g=>[g.id,g.apk||0])])).toEqual([["4.26.117",[["splash-animado",0]]],["4.26.116",[["widget-ciclo-puente",54]]],["4.26.115",[]],["4.26.114",[["inicio-solape-gastos",0]]],["4.26.113",[]]]);
+  expect(await page.evaluate(()=>RELEASE_NOTES)).toEqual(expected);
+  const closed=["bancos-sin-hueco","inc-0310-01-meta-regla","ops-0410-panel-cola","inc-0310-gastos-sin-limite","inc-0310-broker-resultados","feature-0310-01-movilidad","inc-2909-01-widget-periodo","fin05-widget-reentrada","fin05-pago-cerrada","tr-descripcion-clasificacion","widget-banco","widget-app-cerrada",...retired];
+  expect(await page.evaluate(ids=>RELEASE_NOTES.flatMap(n=>n.tandas||[]).filter(g=>ids.includes(g.id)).map(g=>g.id),closed)).toEqual([]);
+  const deliveries=JSON.parse(fs.readFileSync(new URL("../public/beta-delivery.json",import.meta.url),"utf8"));
+  expect(deliveries.web["inc-2709-07-bienes-toque"]).toBeUndefined();
+  expect(deliveries.web["inc-0910-inicio-solo-actual"]).toBeUndefined();
+  // El catálogo actual retira las dos pruebas; el guion publicado sigue como fixture sintético.
+  for(const g of note113.tandas){
+    expect(deliveries.pruebas[g.id]).toBeUndefined();
+    await expect(page.locator(".beta-tanda-t").filter({hasText:"v4.26.113 · "+g.t.es})).toHaveCount(0);
+  }
+  const published=betaNotes([note113,...prior]),publishedDeliveries=betaDelivery(published);
+  for(const group113 of note113.tandas){
+  const deliveries=publishedDeliveries;
+  const id113=group113.id,without113=structuredClone(deliveries);
+  delete without113.web[id113];delete without113.pruebas[id113];
+  expect(deliveries.web[id113]).toBe(published[0].tandas.find(g=>g.id===id113).web);
+  expect(deliveries.pruebas[id113]).toEqual({v:"4.26.113",contenido:JSON.stringify([id113,group113.t.es,group113.items.es,1])});
+  const host="e2e-retirement113-"+lang+"-"+id113;
+  // Un recibo sintético completo no debe esconder una tanda113 cuando falta sólo el suyo.
+  await page.evaluate(({deliveries,host,notes})=>{
+    RELEASE_NOTES=notes;
+    window._mcProdEntregas=deliveries;window._mcProdApkRevisiones={};
+    CONFIG.APP_VERSION=RELEASE_NOTES[0].v+".1";window._mcProdApk=52;
+    window._mcProdDeliveryChecked=true;window._mcProdVersion=()=>Promise.resolve("4.26.94");
+    store.set("_betaReview_4.26.87.1_v",{_h:1,"h:historia-sintetica":{verdict:"rejected",at:100}});
+    const h=document.createElement("div");h.id=host;document.body.appendChild(h);
+    window.__retirement113Root=ReactDOM.createRoot(h);
+    window.__retirement113Root.render(React.createElement(BetaReviewPanel,{onClose:()=>{},showToast:()=>{}}));
+  },{deliveries:without113,host,notes:published});
+  const panel=page.locator("#"+host+" .beta-review"),active=panel.locator('.beta-tanda:not([data-beta-historical="true"])');
+  try{
+    await expect(panel).toBeVisible();
+    await expect(panel.locator('.beta-tanda[data-beta-historical="true"]')).toHaveCount(1);
+    await expect(active).toHaveCount(1);
+    await expect(active.locator(".beta-tanda-t")).toHaveText("v4.26.113 · "+group113.t.es);
+    await expect(active.locator(".beta-tanda-n.ok")).toHaveCount(0);
+    await expect(active.getByRole("button",{name:/Aprobar esta tanda/})).toBeDisabled();
+    expect(await page.evaluate(id=>{
+      const pack=betaChecklist(CONFIG.APP_VERSION,"4.26.94",52),current=pack.tandas.filter(g=>!g.referenciaHistorica),g=current.find(g=>g.id.split("/").pop()===id);
+      return {ids:current.map(g=>g.id.split("/").pop()),pending:betaPruebaPendiente(g,52,CONFIG.APP_VERSION,"4.26.94"),
+        verdict:betaSavedVerdicts(pack)[g.id]||null};
+    },id113)).toEqual({ids:[id113],pending:true,verdict:null});
+    expect(await page.evaluate(()=>window._mcProdEntregas)).toEqual(without113);
+    // Desmontar evita que el primer panel conserve estado o callbacks al comprobar el recibo exacto.
+    await page.evaluate(({deliveries,host})=>{
+      window.__retirement113Root.unmount();window._mcProdEntregas=deliveries;
+      window.__retirement113Root=ReactDOM.createRoot(document.getElementById(host));
+      window.__retirement113Root.render(React.createElement(BetaReviewPanel,{onClose:()=>{},showToast:()=>{}}));
+    },{deliveries,host});
+    await expect(panel).toBeVisible();
+    await expect(panel.locator('.beta-tanda[data-beta-historical="true"]')).toHaveCount(1);
+    await expect(active).toHaveCount(0);
+    await expect(panel.getByRole("button",{name:/Aprobar esta tanda/})).toHaveCount(0);
+    expect(await page.evaluate(()=>window._mcProdEntregas)).toEqual(deliveries);
+    expect(await page.evaluate(()=>store.get("_betaReview_4.26.87.1_v"))).toEqual({_h:1,"h:historia-sintetica":{verdict:"rejected",at:100}});
+  }finally{
+    await page.evaluate(({host,notes})=>{
+      RELEASE_NOTES=notes;
+      if(window.__retirement113Root)window.__retirement113Root.unmount();
+      const h=document.getElementById(host);if(h)h.remove();delete window.__retirement113Root;
+    },{host,notes:expected});
+  }
+  }
+});
+
+for(const lang of ["es","en","ca"])test(`promoción117: entrega por superficies, Novedades canónicas y decisiones intactas (${lang})`,async({page})=>{
+  await abrirRevisionBeta(page,lang);
+  const promoted=await page.evaluate(()=>RELEASE_NOTES);
+  const production=JSON.parse(execFileSync("git",["show","b2dfd2c01d7ec6a9a30b74ae71d473054932c42f:src/data/release-notes.json"],{encoding:"utf8",maxBuffer:8e6}));
+  // El contrato de entrega se ejercita con los guiones publicados; la promoción muestra una sola nota.
+  const before=JSON.parse(execFileSync("git",["show","c5f62d6603d016150afd9d0e20547b608b323045:src/data/release-notes.json"],{encoding:"utf8",maxBuffer:8e6}));
+  for(const n of before)if(n.tandas)n.tandas=n.tandas.filter(g=>g.id!=="inc-0810-inicio-grafica-significado");
+  await page.evaluate(notes=>{RELEASE_NOTES=notes;},betaNotes(before));
+  const ref=JSON.parse(fs.readFileSync(new URL("../scripts/beta-archives.json",import.meta.url),"utf8")).refs["inc-0810-inicio-grafica-significado"];
+  const old=betaNotes([{v:ref.version,tandas:[ref.guion]}])[0].tandas[0];
+  const receipt=JSON.parse(execFileSync("git",["show","b2dfd2c01d7ec6a9a30b74ae71d473054932c42f:public/beta-delivery.json"],{encoding:"utf8",maxBuffer:8e6}));
+  const apk=JSON.parse(execFileSync("git",["show","b2dfd2c01d7ec6a9a30b74ae71d473054932c42f:public/apk.json"],{encoding:"utf8",maxBuffer:8e6}));
+  const saved=await page.evaluate(({old,receipt,apk})=>{
+    CONFIG.APP_VERSION="4.26.117.1";
+    const g=betaTandas({tandas:[old]})[0],ledger={marks:{0:"ko"},notes:{0:"Rechazo histórico sintético conservado"}};
+    store.set("_betaReviewMarks",{[g.huella]:ledger});
+    const decisions={_h:1,["h:"+g.huella]:{verdict:"rejected",at:1}};
+    for(const n of RELEASE_NOTES)for(const raw of n.tandas||[]){if(!["splash-animado","widget-ciclo-puente","inicio-solape-gastos"].includes(raw.id))continue;const unit=betaTandas({tandas:[raw]})[0];decisions["h:"+unit.huella]={verdict:"approved",at:2};}
+    store.set("_betaReview_4.26.117.1_v",decisions);
+    window._mcProdEntregas=receipt;window._mcProdApk=52;window._mcProdApkRevisiones=apk.revisiones||{};
+    return {huella:g.huella,ledger,decisions};
+  },{old,receipt,apk});
+  const panel=await conProduccionEn(page,"4.26.111");
+  await expect(panel.locator('.beta-tanda[data-beta-historical="true"]')).toHaveCount(0);
+  await expect(panel.locator('.beta-tanda')).toHaveCount(3);
+  expect(await page.evaluate(()=>betaChecklist(CONFIG.APP_VERSION,"4.26.111",52).tandas.map(g=>g.id.split('/').pop()).sort())).toEqual(["inicio-solape-gastos","splash-animado","widget-ciclo-puente"]);
+  // Entrega sintética exacta: la web sola mantiene pendiente el nativo; después también se acredita la APK.
+  await page.evaluate(()=>{
+    window._mcProdEntregas={web:{},edge:{},pruebas:{}};
+    for(const n of RELEASE_NOTES)for(const g of n.tandas||[]){window._mcProdEntregas.web[g.id]=g.web;if(g.edge)window._mcProdEntregas.edge[g.id]=g.edge;window._mcProdEntregas.pruebas[g.id]={v:n.v,contenido:JSON.stringify([g.id,rnT(g.t,"es"),rnItems(g,"es"),g.rev||1])};}
+    window._mcProdVersion=()=>Promise.resolve("4.26.117");document.dispatchEvent(new Event("visibilitychange"));
+  });
+  await expect(panel.locator('.beta-tanda')).toHaveCount(1);
+  await expect(panel.locator('.beta-tanda')).toContainText("Mi ciclo");
+  await page.evaluate(()=>{window._mcProdApk=55;window._mcProdApkRevisiones={};for(const n of RELEASE_NOTES)for(const g of n.tandas||[])if(g.native)window._mcProdApkRevisiones[g.id]=g.native;document.dispatchEvent(new Event("visibilitychange"));});
+  await expect(panel.locator('.beta-tanda')).toHaveCount(0);
+  expect(await page.evaluate(h=>(store.get("_betaReviewMarks")||{})[h],saved.huella)).toEqual(saved.ledger);
+  expect(await page.evaluate(()=>store.get("_betaReview_4.26.117.1_v"))).toEqual(saved.decisions);
+  await page.evaluate(notes=>{
+    RELEASE_NOTES=notes;document.dispatchEvent(new Event("visibilitychange"));
+    const host=document.createElement("div");document.body.appendChild(host);
+    ReactDOM.createRoot(host).render(React.createElement(WhatsNew,{onClose:()=>{}}));
+  },promoted);
+  await expect(panel.locator('.beta-tanda')).toHaveCount(0);
+  const news=page.locator('.wn-panel');
+  await expect(news).toBeVisible();
+  const versions=news.locator('button').filter({hasText:/^v\d+\./});
+  await expect(versions).toHaveCount(20);
+  await news.locator('.btn-ghost.btn-block').click();
+  await expect(versions).toHaveCount(227);
+  expect((await versions.allTextContents()).map(x=>x.match(/^v(\d+\.\d+\.\d+)/)[1])).toEqual(["4.26.117",...production.map(n=>n.v)]);
+  await expect(news).not.toContainText("v4.26.109");await expect(news).not.toContainText("v4.26.112");
+  await expect(news).toContainText(production.find(n=>n.v==="4.26.111").t[lang]);
+  expect(await page.evaluate(h=>(store.get("_betaReviewMarks")||{})[h],saved.huella)).toEqual(saved.ledger);
+  expect(await page.evaluate(()=>store.get("_betaReview_4.26.117.1_v"))).toEqual(saved.decisions);
+
+});

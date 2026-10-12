@@ -1,3 +1,5 @@
+Promoción completa4.26.117: entrada renovada, recuperación de movimientos bancarios, widget que se actualiza al pagar con la app cerrada tras actualizar la app e Inicio sin el desglose de Gastos superpuesto. La reconciliación conserva los30 commits propios de main y el código aprobado de beta117. Una nota familiar más el historial de producción; las notas intermedias de beta quedan en Git y sus contratos, en los guardianes. Los cortes fechados de abajo son historia, no instrucciones vigentes. [Acta](briefs/prod-completa-117.md).
+
 Candidata selectiva web4.26.111: Cartera → Bienes permite alta vacía, edición y borrado con confirmación. Inicio conserva la gráfica aprobada de beta113, sin Inicio V42. Dos PR separados, sin fusionar ni publicar; pruebas completas, CI y revisión pendientes.
 
 Selección web4.26.110: indicador de barra, Plan → Metas → Reservar dinero y vuelta desde Perfil/Ajustes y Recibos/Gestionar, con las identidades aprobadas107/108/110. Gráfica109 excluida e historial conservado. [Alcance y cualificación local](briefs/promocion-107-108-110-local26.md).
@@ -8,9 +10,25 @@ Promoción selectiva98 preparada7/10: el dueño aprobó ocultar juntos barra y b
 
 # Roadmap — Aely
 
+MAIN4.26.110 incorpora PR196 (bdd75636), sólo pruebas, herramientas y documentación. Tests38005461796 y DeployPages38005461732 terminaron SUCCESS y sus artefactos se comprobaron; ese cierre no publica Inicio112 ni acredita APK nuevo o aceptación móvil. Las aprobadas99/100/101/102/106 ya entregadas conservan su cierre;109 sigue rechazada.
+
+Promoción4/10: las once tandas de beta4.26.94.1 tienen aprobación vigente. Producción4.26.94/source8bb0398f servida y cotejada; APK52 estable y las tres funciones Edge entregadas. La limpieza conserva notas y decisiones; solo retira las once entregadas, sin producto nuevo. Prioridad permanente: producción de lo aprobado antes de otra implementación. [Acta](briefs/promocion-aprobadas-2026-10-04.md).
+
+> Estado a 2026-10-12 · **v4.26.117** — promoción completa de la beta aprobada: entrada, recuperación bancaria, widget y corrección del solape de Gastos. Android4.26.117/code55, con compatibilidad web para la APK52.
+
+> Anterior: 2026-10-11 · v4.26.116 — bancos sin huecos y widget arreglado (APK 54).
+
+> Anterior: 2026-10-11 · v4.26.115 — el widget se actualiza al pagar con la app cerrada (PR201), con APK 53; rechazada por el dueño en su móvil.
+
+> Promoción96 fusionada en main `85b8b540`; fuente separada de beta98/99. El merge acredita integración, no artefactos servidos: CI/publicador/HTTP exactos deben confirmarse antes de retirar Inicio96 del catálogo beta. [Acta de origen](briefs/promocion-inicio96-2026-10-06.md).
+
+> Snapshot verificado a 2026-10-07 · **v4.26.98** integrada en beta por PR153/b7abebb6: Apuntar acompaña la barra al retirarse y volver. Revisión independiente GO y CI37564577536 SUCCESS (12 FAB, control CSS97, 844 E2E y9 rendimiento). Publicador y artefactos servidos pendientes al escribir este corte; aprobación móvil propia pendiente. APK52/Edge/SQL intactos; INC-2709-09 abierto. [Acta](briefs/inc-0610-fab-sync-hide-2026-10-06.md).
+
+> Snapshot anterior a 2026-10-06 · **v4.26.97** candidata para beta: contorno y ocultación completa del botón Apuntar. Conserva Inicio96.1. Revisión, CI y entrega exactas pendientes; móvil desconocido. Producción95 confirmada por HTTP. APK52 intacta; INC-2709-09 acumulativo abierto. [Acta](briefs/inc-2709-13-fab-motion-audit-2026-10-06.md).
+
 Promoción selectiva6/10: candidata4.26.96 local para mostrar hasta tres metas activas en Inicio, aprobada directamente por el dueño para la fuente ca6f5e85. Base main537edc1; únicamente el límite visual aprobado, conservando todas las metas en Plan y el resto de main. Revisión independiente, CI y entrega servida pendientes; INC-2709-09 sigue abierto. [Acta](briefs/promocion-inicio96-2026-10-06.md).
 
-> Estado a 2026-10-10 · **v4.26.111** candidata selectiva de Bienes completo y gráfica de Inicio. Fuente beta `684a839d`, pruebas completas, CI e integración pendientes; historial y APK conservados.
+> Snapshot de selección a 2026-10-10 · **v4.26.111** candidata selectiva de Bienes completo y gráfica de Inicio. Fuente beta `684a839d`, pruebas completas, CI e integración pendientes; historial y APK conservados.
 
 > Snapshot previo a la entrega106, 2026-10-08 · **v4.26.106** candidata selectiva local; revisión, CI y entrega pendientes.
 
@@ -275,10 +293,10 @@ Multi-cuenta, ingest TR, OTA/APK, gamificación, onboarding, inversiones, deudas
 
 | Qué | Valor |
 |-----|--------|
-| Web / OTA (`VERSION`) | **4.26.111** candidata selectiva: Bienes completo y gráfica de Inicio; pruebas completas, CI e integración pendientes. |
-| APK (`versionName` / `versionCode`) | **4.26.80 / 52** conservada de la base; Metas87 no genera APK. Cotejo servido en gate de entrega. |
+| Web / OTA (`VERSION`) | **4.26.117**, promoción completa de la beta aprobada. |
+| APK (`versionName` / `versionCode`) | **4.26.117 / 55**, widget con la app cerrada y lectura correcta del ciclo. |
 | Anterior | **4.16.1 / 39** (sin franja bajo la cámara), **4.16.0 / 36–38** (Wallet). Antes: **4.12.0 / 35**. |
-| `public/apk.json` | **52 / 4.26.80** conservado byte a byte respecto a3467; Metas87 no reemplaza binario ni manifiesto. |
+| `public/apk.json` | Asset estable de **4.26.117 / 55**, con hash binario, fuente e identidades nativas verificadas antes de la fusión. |
 
 ## Pendiente / limitaciones conocidas
 
