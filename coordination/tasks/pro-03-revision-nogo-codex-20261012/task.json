@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "id": "pro-03-revision-nogo-codex-20261012",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261012-7c41a9d2",
+  "createdAt": "2026-10-12T14:17:21.589Z",
+  "to": "codex",
+  "baseSHA": "c5f62d6603d016150afd9d0e20547b608b323045",
+  "objective": "Revisión independiente de PR 209 en ab6ffa04: NO-GO. La aritmética es correcta (278 frases cuadran al céntimo con una reconstrucción independiente en 3000 estados) y no se mueve cuándo se avisa ni el dedupe (575 avisos idénticos a beta salvo el texto añadido). Pero en dos casos realistas la frase dice lo contrario de lo que enseña Plan, y en el móvil casi no se verá. Corregir en el mismo PR.",
+  "scope": [
+    "src/modules/11-app-main.js (receiptAlertBalance y los tres sitios de llamada)",
+    "src/modules/01-i18n.js",
+    "tests/receipt-alert-balance.test.mjs, e2e/receipt-alert-balance.spec.mjs",
+    "Android SOLO como se indica en el punto 3, en rama aparte"
+  ],
+  "acceptance": [
+    "1 ALTA: dice faltarían por un recibo que el banco YA cobró antes de su día. Secuencia: hoy 26; recibo de 89,54 previsto el 28; el banco lo cobró el 25 (movimiento contabilizado), saldo real ya descontado, sin paidYm. Plan lo lista como pagado el 25 y el aviso dice que en ese banco faltarían 79,08. Causa: el efecto y bankPendingEvents deciden pagado con isPaidIn y Plan con fixedPaymentState, así que el cargo adelantado se descuenta dos veces. Regla nueva: la frase solo sale cuando las dos fuentes coinciden para TODOS los fijos de ese banco que entran en el cálculo; si el propio recibo ya consta pagado por fixedPaymentState, o cualquier fijo de ese banco discrepa entre ambas, NO hay frase (el aviso sale como hoy). Cubre también el sentido contrario (recibo atrasado que Plan lista pendiente y el motor da por pagado: 59 de 278 frases diferían por esto). Ten en cuenta que Recibos revisión 3 está cambiando fixedPaymentState: llama a la función, no copies su lógica, y repite tus tests al rebasar",
+    "2 MEDIA: con la nómina el MISMO día que el cargo dice alcanza mientras Plan marca ese banco en rojo, porque usas el saldo al final del día y el motor de Plan ordena cargos antes que ingresos y enseña el mínimo. Los ingresos del mismo día no cuentan para decir que llega: usa el mismo criterio que pinta Plan (el mínimo hasta ese cargo), de modo que nunca diga alcanza un día que Plan enseña en negativo",
+    "3 MEDIA, y es el fondo de la petición del dueño: en la APK el aviso de la VÍSPERA lo emite siempre el trabajador nativo con su texto fijo y sin frase, y las cuotas de deuda solo avisan la víspera, así que la frase solo se vería en el aviso de recibo grande con días de antelación. Entrega en DOS partes: a) esta PR, solo web, corregida; b) en rama y PR aparte, que la web pase al nativo el veredicto ya calculado por recibo (llega, falta con su cifra, o desconocido) dentro de los datos que ya le envía, y que el trabajador lo añada a su texto, en los tres idiomas y con la misma regla de no inventar; compatible con la APK anterior y con la web anterior (campo opcional). La parte b exige APK: irá en la misma tanda nativa que el widget del día 45; coordínalo con ese titular para no pisar los mismos ficheros Java",
+    "4 TESTS: sobreviven 10 de 19 mutaciones y los sitios de llamada de víspera y de cuota no tienen cobertura. Tests que maten: redondeo hacia abajo en vez de al céntimo, mínimo frente a final, recibo o cuota sin banco que cae a un banco por defecto, víspera sin frase, cuota sin frase, víspera con el día corrido en uno, y quitar las dependencias nuevas del efecto",
+    "5 TEXTO: rc_body debe acabar en punto (hoy sale el día 28 En Sabadell alcanza, sin punto, en los tres idiomas). En castellano usa condicional como en inglés y catalán: alcanzaría, no alcanza; es una previsión",
+    "6 Regenera public con npm run build y commitéalo: la cabeza actual no lleva la función en el bundle",
+    "7 RENDIMIENTO: calcula la frase DESPUÉS de mirar el sello, no antes; con 30 recibos y 20000 gastos el efecto pasó de 0,5 a 4,5 ms por pasada",
+    "8 Heredado, arréglalo de paso: en modo pruebas el efecto de recordatorios no debe notificar recibos ficticios; test",
+    "Result con SHA, EXIT reales, mutaciones, y los pasos de prueba para el dueño (recibo de prueba de importe alto a 2 o 3 días para provocar el aviso)"
+  ],
+  "restrictions": [
+    "Datos sintéticos; repo público",
+    "Sin merge ni push a beta o main; sin VERSION, catálogos ni notas; sin compilar APK",
+    "No editar 08-motor-bank.js ni 00-core.js",
+    "Build y Node libres; navegador solo el spec propio con cerrojo; JVM suelto sin Gradle completo",
+    "Sin subir timeouts, reintentos ni topes"
+  ],
+  "authorization": "Encargo del coordinador; continuación de pro-03-aviso-recibo-saldo. Mismo titular."
+}
