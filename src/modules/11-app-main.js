@@ -691,6 +691,13 @@ function App(){
           });
         }
         obAdded=add||[];
+        // Los avisos que acaban de quedar reclamados viajan con el estado (12/10/2026): así otro
+        // móvil, o la siguiente sincronización, no vuelven a ofrecer el mismo aviso como gemelo.
+        const vinculos=gemelosDeImportacion(add, invState.expenses);
+        if(vinculos.length){
+          const gem=pushGemelos(invState.gemelos, vinculos);
+          if(gem!==invState.gemelos) invState=Object.assign({},invState,{gemelos:gem});
+        }
         const baseExp=add? add.concat(invState.expenses||[]) : (invState.expenses||[]);
         // Rellena el CONCEPTO de lo que ya estaba apuntado con lo que acaba de traer el banco
         // (2026-07-24): si no, el histórico viejo —el que se consulta— seguiría sin explicar nada.

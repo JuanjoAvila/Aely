@@ -100,7 +100,26 @@ export function claveComoLaApp(f: {
 }): string {
   const base = String(f.fecha || "").slice(0, 10) + "|" + (Number(f.importe) || 0) + "|" + (f.comercio || "");
   if (esSourceManual(f.source)) return base + "|" + String(f.id || "");
-  return base;
+  const ord = ordinalDeSource(f.source);
+  return ord > 1 ? base + "|#" + ord : base;
+}
+
+/**
+ * El SEGUNDO apunte igual del mismo día es otro apunte (12/10/2026: «5 bizums iguales se apuntaban
+ * como uno»). El cliente lo marca con `obOrd` y viaja como último tramo del `source`: «ob:tr#n2».
+ * Sin esto, `filasComoLaApp` fundía las k filas iguales en una y el widget restaba de menos.
+ * Espejo de `obOrdinalOf()` + `ordinalDeTramos()` del cliente. Un servidor sin esta función lee el
+ * banco igual (`split("#")[0]`) y solo pierde la separación: degrada a lo de siempre, no inventa.
+ */
+export function ordinalDeSource(source?: string | null): number {
+  const s = String(source || "");
+  if (s.indexOf("ob:") !== 0 && s.indexOf("ob-hist:") !== 0) return 1;
+  const tramos = s.split("#").slice(1);
+  for (const t of tramos) {
+    const m = /^n(\d{1,6})$/.exec(t);
+    if (m) { const n = parseInt(m[1], 10); if (n > 1) return n; }
+  }
+  return 1;
 }
 
 function claveLegacySinId(f: { fecha?: string | null; importe?: number | string; comercio?: string | null }): string {
