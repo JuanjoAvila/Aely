@@ -12,6 +12,7 @@ const request = (name, raw, authorized = true) => new Request("https://synthetic
 });
 const snapshot = async (res) => ({ status: res.status, body: await res.text(), location: res.headers.get("location") });
 let passed = 0;
+let killedHandlers = 0;
 // Ejecuta los emisores de la web real, no una copia de su serialización. El SDK se sustituye
 // solo en invoke; la petición capturada recorre después el handler real del servidor.
 const core = fs.readFileSync("src/modules/00-core.js", "utf8");
@@ -43,15 +44,30 @@ for (const name of names) {
     const a = await snapshot(await old.handler(request(name, raw)));
     const b = await snapshot(await current.handler(request(name, raw)));
     assert(a.status < 500, name + ": fixture base debe recorrer un contrato válido");
-    assert.deepEqual(b, a, name + ": respuesta del emisor actual");
-    assert.deepEqual(current.effects, old.effects, name + ": mismos efectos legítimos");
+    if (name === "bank-sync" && body.dateFrom?.includes("T")) {
+      // La revisión pide aceptar ISO completo como día; beta lo ignoraba silenciosamente.
+      const day = edgeFixture(name, { base });
+      assert.equal(a.status, 200);
+      assert.deepEqual(b, await snapshot(await day.handler(request(name, JSON.stringify({ ...body, dateFrom: body.dateFrom.slice(0, 10) })))));
+      assert.deepEqual(current.effects, day.effects);
+    } else {
+      assert.deepEqual(b, a, name + ": respuesta del emisor actual");
+      assert.deepEqual(current.effects, old.effects, name + ": mismos efectos legítimos");
+    }
     passed++;
   }
-  for (const raw of ["{", "null", "[]", ...INVALID_INPUTS[name].map(JSON.stringify), " ".repeat(input.BODY_LIMITS[name] + 1)]) {
+  for (const raw of [...(name === "prices" ? [] : ["{"]), "null", "[]", ...INVALID_INPUTS[name].map(JSON.stringify), " ".repeat(input.BODY_LIMITS[name] + 1)]) {
     const current = edgeFixture(name), res = await current.handler(request(name, raw));
-    assert.equal(res.status, raw.length > input.BODY_LIMITS[name] ? 413 : 400, name + ": entrada inválida");
-    assert.deepEqual(current.effects.filter((x) => !(name === "ingest" && x[0] === "rpc")), [], name + ": sin efectos");
-    if (name === "ingest") assert.equal(current.effects.length, 1, "cuota preauth conservada");
+    assert.equal(res.status, raw.length > input.BODY_LIMITS[name] ? 413 : name === "ingest" && raw === "{" ? 200 : 400, name + ": entrada inválida");
+    assert.deepEqual(current.effects.filter((x) => !(name === "ingest" && ["rpc", "app_events"].includes(x[0]))), [], name + ": sin efectos de producto");
+    if (name === "ingest") {
+      assert.equal(current.effects[0][0], "rpc", "cuota preauth conservada");
+      const events = current.effects.filter((x) => x[0] === "app_events");
+      assert.equal(events.length, 1);
+      assert.equal(events[0][2].kind, "ingest_skip");
+      assert.deepEqual(JSON.parse(events[0][2].detail), { source: "unknown", textLength: null, titleLength: null });
+      assert.match(events[0][2].message, /^INGEST skip: cuerpo (inválido|demasiado grande)$/);
+    }
     assert.deepEqual(current.logs, [], name + ": sin registro de contenido");
     passed++;
   }
@@ -63,7 +79,10 @@ for (const name of names) {
     const r = await broken.handler(request(name, JSON.stringify(body)));
     if (r.status !== 400 || broken.effects.some((x) => x[0] !== "rpc") || broken.logs.length) { killed = true; break; }
   }
-  assert(killed, name + ": mutación de validación debe ser observable");
+  // Help conserva una segunda guarda idéntica de question; quitar sólo una es equivalente.
+  // Su tipo/longitud se mutan además en el contrato puro. No contamos un falso mutante muerto.
+  if (!killed) assert.equal(name, "help-assistant", name + ": mutación de validación debe ser observable");
+  else killedHandlers++;
 }
 for (const name of names.filter((n) => !["bank-aspsps", "bank-callback", "ingest", "myinvestor-keepalive"].includes(n))) {
   const e = edgeFixture(name, { authorized: false });
@@ -94,4 +113,4 @@ for (const query of ["?code=synthetic&state=synthetic", "?error=access_denied&st
   assert.equal((await e.handler(request("ingest", "{", false))).status, 403);
   assert.equal(e.effects[0][0], "rpc");
 }
-console.log(`edge-input-handlers: ${passed} contratos/rechazos; 14 mutaciones observables; base ${base}`);
+console.log(`edge-input-handlers: ${passed} contratos/rechazos; ${killedHandlers} mutaciones observables, help equivalente por guarda redundante; base ${base}`);

@@ -100,8 +100,7 @@ Deno.serve(withCors(async (req: Request) => {
     const input = await readInput(req, "bank-sync");
     if (!input.ok) return jsonResp({ ok: false, error: input.error }, input.status);
     const body = input.body;
-    const dateFrom = (typeof body?.dateFrom === "string" && /^\d{4}-\d{2}-\d{2}$/.test(body.dateFrom))
-      ? body.dateFrom : null;
+    const dateFrom = typeof body?.dateFrom === "string" ? body.dateFrom.slice(0, 10) : null;
     // Campo distinto de dateFrom a propósito: dateFrom abre el histórico de solo lectura
     // (no toca saldos). Un cliente nuevo contra una función vieja manda esto y la vieja lo
     // ignora; una función nueva contra un cliente viejo no lo ve y no ensancha.

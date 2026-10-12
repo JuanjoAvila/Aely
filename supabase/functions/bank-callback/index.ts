@@ -49,11 +49,6 @@ Deno.serve(async (req) => {
     if (!link) throw new CallbackFallo("state", "state desconocido");
     userId = link.user_id || null;
 
-    const input = await readInput(req, "bank-callback");
-    if (!input.ok) return new Response(JSON.stringify({ ok: false, error: input.error }), {
-      status: input.status, headers: { "Content-Type": "application/json" },
-    });
-
     /* EL `state` CADUCA Y SE GASTA (2026-07-25).
        Este `state` es lo ÚNICO que ata la vuelta del banco con un usuario, y viaja en la URL:
        queda en el historial del navegador, en el Referer y en los logs de quien haya por el
@@ -67,6 +62,10 @@ Deno.serve(async (req) => {
     if (!isNaN(issued) && Date.now() - issued > 30 * 60 * 1000) {
       throw new CallbackFallo("caducado", "state emitido hace más de 30 min");
     }
+    const input = await readInput(req, "bank-callback");
+    if (!input.ok) return new Response(JSON.stringify({ ok: false, error: input.error }), {
+      status: input.status, headers: { "Content-Type": "application/json" },
+    });
     // Se gasta ANTES de canjear el code: si el canje falla a mitad, el state ya no vale igual.
     await admin.from("bank_links").update({ state: null }).eq("id", link.id);
 

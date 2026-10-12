@@ -12,7 +12,7 @@ class FixedDate extends Date {
 }
 // Ejecuta los módulos reales, con red/BD/tiempo sustituidos en la frontera. Una llamada no
 // prevista no sale a internet: falla aquí. También permite ejecutar el blob base sin editarlo.
-export function edgeFixture(name, { base = null, authorized = true, mutate = null } = {}) {
+export function edgeFixture(name, { base = null, authorized = true, mutate = null, callbackIssuedAt = "2026-10-12T12:00:00Z" } = {}) {
   const effects = [], reads = [], logs = [], cache = new Map();
   let handler;
   const json = (b) => new Response(JSON.stringify(b), { status: 200 });
@@ -44,7 +44,7 @@ export function edgeFixture(name, { base = null, authorized = true, mutate = nul
         if (operation !== "select") { effects.push([table, operation, payload]); return { data: operation === "upsert" ? [{ id: "ack" }] : null, error: null }; }
         reads.push(table);
         if (table === "cron_secrets") return { data: { secret: "synthetic" } };
-        if (table === "bank_links" && name === "bank-callback") return { data: authorized ? { id: "link", user_id: "synthetic", state_issued_at: FixedDate.now(), aspsp_name: "Synthetic" } : null };
+        if (table === "bank_links" && name === "bank-callback") return { data: authorized ? { id: "link", user_id: "synthetic", state_issued_at: callbackIssuedAt, aspsp_name: "Synthetic" } : null };
         if (table === "ingest_tokens") return { data: null };
         if (table === "app_state") return { data: { data: { accounts: [], settings: {} } } };
         return { data: single ? null : [], count: columns === "*" ? 0 : undefined, error: null };

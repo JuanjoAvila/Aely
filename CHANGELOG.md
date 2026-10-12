@@ -1,3 +1,9 @@
+### SEC-01 · revisión de reservas · 2026-10-12 · candidata sin desplegar
+
+- El lector de las catorce funciones conserva límites de transporte y autenticación, pero admite los cuerpos que beta procesaba con sentido: OTP numérico/parcial/nulo, caducidad nula, idioma futuro, normalización de precios y campos legacy de ingest. El listener descarta 4xx sin avisar: los formatos ingest irreconocibles se omiten con diagnóstico cerrado, sin convertir texto arbitrario en formularios ni tocar dinero. Los cuerpos no objeto y los excesos siguen rechazándose.
+- Callback comprueba la caducidad antes del cuerpo para conservar su 302. Bank-sync recorta ISO al día, tolera bancos nulos y deja pasar acuses/claves futuras; 32 KiB dejan 19,19 veces el fixture de doce bancos. Oráculos literales de topes y pruebas de orden/configuración detectan las reservas de la revisión. La documentación identifica los últimos despliegues acreditables por función, las limitaciones del rollback y la inyección pendiente del lector en el helper de la rama de bancos.
+- Sin despliegue, SQL, APK ni versión nueva. Validación de fuente separada de integración y servicio vivo; resultados exactos de CI en PR 211 y el resultado canónico del encargo.
+
 ## [4.26.117] — 2026-10-12 · Pantalla de entrada nueva (solo web, sin APK nueva)
 
 - **Qué entra.** Integra `claude/splash-animado` (cabeza `532a6066`, merge `--no-ff` sin squash porque los guardianes fijan SHA) sobre la beta 4.26.116 `f695a299`. Es solo web: el nativo no cambia, `versionCode` sigue en 54 y `public/apk.json` no se toca (sigue provisional al asset beta-54 de la 4.26.116).

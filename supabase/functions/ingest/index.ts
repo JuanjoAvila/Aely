@@ -96,10 +96,16 @@ Deno.serve(async (req) => {
     return json({ ok: false, error: "token inválido" }, 403);
   }
 
-  // La cuota preauth de IP es la única escritura permitida ante un cuerpo inválido:
-  // moverla después de buscar el token quitaría la defensa de fuerza bruta (SEC-01, 12/10).
+  // La cuota preauth sigue antes del token. El descarte autenticado deja sólo diagnóstico:
+  // la APK no reintenta 4xx y sin rastro no se podría explicar una notificación omitida.
   const input = await readInput(req, "ingest");
-  if (!input.ok) return json({ ok: false, error: input.error }, input.status);
+  if (!input.ok) {
+    await logIngestSkip(supabase, userId, input.status === 413 ? "cuerpo demasiado grande" : "cuerpo inválido", "unknown", null, null);
+    // No se interpreta un formato nuevo ni se toca dinero: sólo se omite lo irreconocible,
+    // como beta, dejando rastro. JSON no objeto y tamaño siguen rechazándose.
+    if (input.unrecognized) return json({ ok: true, skipped: true, tipo: "ignorado", error: input.error });
+    return json({ ok: false, error: input.error }, input.status);
+  }
   const data = input.body;
 
   const texto = recortar(data.texto || data.notiText || "", INGEST_MAX_TEXTO);
@@ -458,7 +464,7 @@ async function logIngestError(supabase: any, userId: string | null, message: str
    motivo, fuente y longitudes bastan para distinguir vacío/formato/duplicado sin retener dinero. */
 // deno-lint-ignore no-explicit-any
 async function logIngestSkip(supabase: any, userId: string | null, motivo: string, fuente: string,
-  textLength: number, titleLength: number) {
+  textLength: number | null, titleLength: number | null) {
   try {
     if (!userId) return;
     await supabase.from("app_events").insert({

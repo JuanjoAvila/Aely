@@ -5,7 +5,11 @@ Los catorce `supabase/functions/*/entrada.test.ts` y `_shared/request_body.test.
 red y BD sintéticas y contrasta las respuestas legítimas con el blob beta `c5f62d66`; incluye
 invocaciones sin cuerpo, MacroDroid y redirecciones OAuth. `edge-input-mutations.test.mjs`
 retira reglas una a una en memoria y exige que la misma suite detecte el fallo; nunca modifica
-el checkout durante una mutación. Ambos están en `steps`. Inventario, límites preventivos,
+el checkout durante una mutación. `edge-input-reservas.test.mjs` compara los catorce cuerpos
+concretos de la revisión y efectos contra beta; `edge-input-reservas-mutations.test.mjs`
+protege orden de autenticación/caducidad, país de query, dateFrom, verify_jwt y claves futuras.
+Los cuatro están en `steps`; los topes se contrastan con números independientes de las constantes.
+Inventario, límites preventivos,
 excepción de cuota preauth y limitaciones en [Setup Supabase](SETUP-SUPABASE.md#sec-01--entradas--candidata-de-fuente-del-12102026-sin-despliegue).
 
 ## Pantalla de entrada nueva · candidata4.26.117

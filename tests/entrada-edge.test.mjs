@@ -70,7 +70,7 @@ t("★ bank-callback: ninguna redirección lleva el texto crudo (ni rawQuery ni 
 t("★ ingest: tope de cuerpo y recortes antes de guardar", () => {
   const src = lee("supabase/functions/ingest/index.ts");
   assert.match(src, /await readInput\(req, "ingest"\)/);
-  assert.match(src, /if \(!input.ok\) return json\(\{ ok: false, error: input.error \}, input.status\)/);
+  assert.match(src, /if \(!input.ok\) \{[\s\S]*?await logIngestSkip\([\s\S]*?return json\(\{ ok: false, error: input.error \}, input.status\)/);
   assert.match(src, /recortar\(data\.texto \|\| data\.notiText \|\| "", INGEST_MAX_TEXTO\)/);
   assert.match(src, /comercio = recortar\(comercio, INGEST_MAX_COMERCIO\)/);
   assert.match(src, /recortar\(extraerConcepto\(texto, titulo\), INGEST_MAX_NOTA\)/);
@@ -81,8 +81,10 @@ t("★ ingest: tope de cuerpo y recortes antes de guardar", () => {
 
 t("★ ingest: ningún descarte sale MUDO (todos pasan por skip → app_events ingest_skip)", () => {
   const src = lee("supabase/functions/ingest/index.ts");
-  // «sin tipo para <divisa>» ya deja su propio logIngestError justo antes: no es mudo.
-  const mudos = (src.match(/return json\(\{[^}]*skipped: true[^}]*\}\)/g) || []).filter((s) => !/sin tipo para/.test(s));
+  // Las dos salidas tempranas tienen diagnóstico propio, anterior al helper skip.
+  // El handler sintético comprueba además el evento real y la ausencia de contenido.
+  assert.match(src, /await logIngestSkip\(supabase, userId,[^;]+;[\s\S]*?if \(input.unrecognized\) return json/);
+  const mudos = (src.match(/return json\(\{[^}]*skipped: true[^}]*\}\)/g) || []).filter((s) => !/sin tipo para|error: input.error/.test(s));
   assert.deepEqual(mudos, [], "descartes sin rastro: " + mudos.join(" | "));
   assert.ok((src.match(/return skip\(/g) || []).length >= 5, "esperaba ≥5 descartes con skip()");
   assert.match(src, /kind: "ingest_skip"/);

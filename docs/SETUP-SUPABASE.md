@@ -6,7 +6,9 @@ Inventario contra beta `c5f62d6603d016150afd9d0e20547b608b323045`: **14 funcione
 La foto «0 de 13 con límite» del 9/9 ya no era cierta: prices y help-assistant tenían
 lectura limitada a 4096 bytes, e ingest comprobaba 16384 caracteres tras leerlo entero.
 `_shared/request_body.ts` cuenta bytes durante la lectura, cancela al superar el límite,
-rechaza UTF-8/JSON/tipos/rangos inválidos con 400 y exceso con 413, sin registrar contenido.
+rechaza transporte/tipos imposibles con 400 y exceso con 413, sin registrar contenido.
+Prices conserva sus símbolos por defecto ante JSON roto. Ingest omite con 200 los formatos
+irreconocibles, sin convertirlos en formularios nuevos ni guardar un gasto.
 Las respuestas conservan CORS donde lo tenía el handler. No se añaden dependencias.
 
 **Compatibilidad:** no existe un máximo finito acreditado para contraseñas, tokens o nombres
@@ -21,17 +23,22 @@ Los tres topes previos conservan su contrato. Medida: bytes UTF-8 de `JSON.strin
 | bank-aspsps | JWT del gateway | country opcional, 2 letras; también GET | 16 | 16384 |
 | bank-connect | JWT + getUser | aspsp_name/country/platform opcionales, defaults anteriores | 66 | 16384 |
 | bank-disconnect | JWT + getUser | aspsp_name no vacío | 34 | 16384 |
-| bank-sync | JWT + getUser | objeto opcional; dateFrom real, recoverGaps booleano, aspsps cadenas | 396 | 16384 |
+| bank-sync | JWT + getUser | dateFrom día/ISO, recoverGaps booleano, aspsps cadenas/null, acks y claves futuras | 1708 | 32768 |
 | bank-callback | state de bank_links, caducidad/consumo existentes | sin cuerpo o objeto vacío | 2 | 1024 |
 | categorize | JWT + getUser | merchant cadena no vacía; recorte existente a 120 | 735 | 8192 |
 | delete-account | JWT + getUser + reautenticación | password cadena no vacía | 527 | 65536 |
 | ingest | token propio + cuota IP previa | JSON o formulario MacroDroid; texto/aliases, título, fuente, fecha, evento | 198 | 49152 de transporte; ver debajo |
-| myinvestor-connect | JWT + getUser | login/OTP completo o storeTokens; tipos y caducidad representable | 2669 | 65536 |
+| myinvestor-connect | JWT + getUser | login/OTP cadena o número; null/OTP parcial vuelve al login; caducidad null admitida | 2669 | 65536 |
 | myinvestor-sync | JWT + getUser | sin cuerpo o objeto vacío | 2 | 1024 |
 | myinvestor-disconnect | JWT + getUser | sin cuerpo o objeto vacío | 2 | 1024 |
 | myinvestor-keepalive | x-cron-key, comparación constante | sin cuerpo o objeto vacío del cron | 2 | 1024 |
-| prices | JWT + getUser | symbols opcional, array de cadenas; normalización/25 símbolos existentes | 353 | 4096 |
-| help-assistant | JWT + getUser | question hasta 600 caracteres, language es/en/ca opcional | 1831 | 4096 |
+| prices | JWT + getUser | symbols opcional, cadenas/null/números; normalización/25 símbolos existentes | 353 | 4096 |
+| help-assistant | JWT + getUser | question hasta 600 caracteres; language no se consume ni valida | 1831 | 4096 |
+
+El fixture de bank-sync incluye `acks` de doce bancos con cursor `fecha|id.emisión`, como la
+rama de bancos `82042925c5d01bb6c74fffaee5a353d6873ab924`: 1708 B, margen 19,19 veces.
+Los otros límites nuevos dejan entre 11,15 y 1024 veces; los tres límites previos conservan
+su contrato, incluido help (2,24 veces). Los topes se fijan con oráculos numéricos independientes.
 
 `delete-account` declara `verify_jwt=true`, el mismo valor que ya aplica por defecto.
 Referencias oficiales contrastadas el 12/10: [changelog](https://supabase.com/changelog),
@@ -44,35 +51,95 @@ el gateway desplegado ni la autenticación de un proyecto vivo.
 Orden: autenticación existente, cuerpo, cuota de proveedor/pago, efectos.
 **Excepción expresa: ingest conserva la cuota preauth por IP**, antes de buscar el token, para
 no regalar consultas ilimitadas a quien pruebe credenciales. Con token válido y cuerpo inválido
-solo puede escribir ese contador; no gastos, eventos ni otros contadores. Con token inválido
+solo puede escribir ese contador y un `app_events` de descarte; no gastos ni otros contadores.
+El evento contiene motivo cerrado y longitudes; si el cuerpo no se pudo interpretar, las
+longitudes son null (desconocidas), nunca contenido ni ceros inventados. Con token inválido
 conserva sus respuestas y diagnóstico cerrado anteriores. MyInvestor limita intentos al proveedor
 después de validar el cuerpo y antes de enviar credenciales al banco.
 Ingest mantiene Content-Length anunciado de 16384 y 16384 unidades UTF-16; sin cabecera esos
 caracteres podían ocupar hasta 49152 bytes. El corte durante la lectura usa ese techo para no
 rechazar Unicode antes admitido. No se cambian recortes, clasificador, importes ni deduplicación.
-Las fechas mal formadas o fuera de rango se rechazan antes de entrar en el parser financiero.
+Ingest conserva texto vacío como omitido, fuente desconocida como TR, fecha numérica, evento
+nulo y fecha de disparo no interpretable como ahora. No se endurecen sus campos: el límite
+y el objeto siguen siendo obligatorios. Un fallo de lectura/UTF-8 sigue siendo transporte inválido.
+Bank-sync valida el día de dateFrom y recorta un ISO completo al día antes de pedir histórico;
+en el blob beta usado como oráculo ese ISO se ignoraba, por eso se contrasta además contra el día.
 Callback mantiene los **302 de cancelación/error OAuth** que consumen web/APK: no se convierten
-en 4xx. La validación del cuerpo ocurre tras resolver state y antes de consumirlo; no modifica
+en 4xx. La validación del cuerpo ocurre tras resolver state y comprobar su caducidad, antes de consumirlo; no modifica
 su identidad, caducidad, canje, reconexión ni los parámetros OAuth de la URL.
 
 Pruebas registradas: `entrada.test.ts` junto a cada función y lector compartido (Deno),
 `edge-input-handlers` (Node: respuestas/efectos de blobs base y candidato, dobles de red/BD),
-`edge-input-mutations` (reglas mutadas en memoria). Se mantienen los tests reales de dinero
+`edge-input-mutations` (38 mutaciones de reglas/topes), `edge-input-reservas` (14 cuerpos exactos
+beta/candidata, caducidad OAuth, formato omitido y guardas) y `edge-input-reservas-mutations`
+(7 mutaciones de orden, query, fecha, configuración y claves futuras). El handler cubre 169
+contratos/rechazos y detecta 13 retiradas de validación: la de help es equivalente porque queda
+su guarda redundante de question; no se cuenta como detectada. Se mantienen los tests reales de dinero
 `ingest-handler`, `bank-sync-paging` y `bank-sync-progreso`. Los fixtures son representativos;
 no acreditan todos los tamaños futuros que pueda emitir un proveedor externo.
-`deno check ingest/index.ts` falla también en el blob base con tres errores previos (eur nullable
+Con cuerpo `{}`, el status sigue siendo 400 pero el error pasa a `cuerpo inválido` en
+bank-disconnect (antes `falta aspsp_name`), delete-account (`confirma con tu contraseña`),
+categorize (`merchant`) y myinvestor-connect (`faltan datos`). El test de reservas fija las
+cuatro respuestas. Help conserva `question`/`size`; prices e ingest conservan el texto de 413
+`cuerpo demasiado grande`. La omisión 200 de un formato ingest irreconocible añade el error
+cerrado `cuerpo inválido`; no promete la misma respuesta completa que el fallback de beta.
+La comprobación de tipos de la primera entrega (no repetida localmente en esta continuación)
+en `deno check ingest/index.ts` falló también en el blob base con tres errores previos (eur nullable
 y tipos del select dinámico). No se silencian ni se corrige dinero dentro de SEC-01.
 El callback también conserva un error previo de tipos (`getDiag` inexistente en el catch del
 fallback bancario), reproducido en el mismo blob base. Los otros doce handlers pasan `deno check`.
 
 **Despliegue/rollback, decisión posterior del coordinador por función:** revisión independiente
-y CI exacta primero; después bank-aspsps, categorize, prices, help-assistant; luego MyInvestor
-por función, delete-account y callback; bank-sync e ingest los últimos. Cada paquete debe incluir
+y CI exacta primero; después bank-aspsps, categorize, prices; help-assistant; myinvestor-sync,
+myinvestor-disconnect y myinvestor-keepalive (vigilar el cron de diez minutos después); delete-account,
+bank-disconnect, bank-connect; bank-callback y bank-sync; myinvestor-connect; ingest la última,
+con un pago real de cada fuente después. Es una propuesta para un despliegue autorizado futuro.
+Cada paquete debe incluir
 la versión correspondiente del helper compartido y preservar verify_jwt/secrets existentes.
 No hay SQL, migración, flags, APK ni cambio de cliente. Ante rechazo legítimo, detener la siguiente
 función y restaurar el paquete completo de esa función (fuente y helper) al SHA previamente
 desplegado y verificado, sin tocar datos ni subir el límite a ciegas. El SHA base del test no
 demuestra qué versión estaba activa en Supabase. Esta tanda no consulta ni despliega producción.
+
+### Integración pendiente con la rama de bancos
+
+En `82042925`, `tests/helpers/banco-sintetico.mjs` elimina imports de los handlers. Al integrar,
+añadir `export const RequestBody = await modulo("supabase/functions/_shared/request_body.ts");`
+junto a `Entrada`; añadir `"readInput"` al final de los tres arrays `names` de `llama`, `conecta`
+y `vuelve`, y `RequestBody.readInput` al final de sus tres invocaciones `new Function(...names, ...)`.
+Así se ejecuta el lector real al probar SYNC, CONNECT y CALLBACK. Sin las seis inyecciones, los
+tests fallarán con `readInput is not defined`. No se ha editado esa rama ni se ha integrado aquí.
+
+### Últimos despliegues acreditables por Actions (consulta 12/10/2026)
+
+Cada run enlazado tiene confirmación `Deployed Functions` para esa función, además de conclusión
+success. Se revisaron todos los runs posteriores hasta el del 11/10. Esto acredita el historial
+de Actions, **no el estado vivo**: no descarta despliegues externos. Se recorrieron los imports
+locales transitivos del `index.ts` en cada SHA. En la columna de imports, los nombres sin carpeta
+pertenecen a `_shared/` y todos terminan en `.ts`; hay que restaurar también el propio `index.ts`.
+Imports remotos con rangos (por ejemplo supabase-js@2) no identifican los bytes del runtime antiguo.
+
+| Función | Run | SHA de fuente | Imports locales transitivos |
+|---|---|---|---|
+| bank-aspsps | [34593145333](https://github.com/JuanjoAvila/Aely/actions/runs/34593145333) | `29505fa053d64087efef56a22faeb3126822b97b` | enablebanking, cors |
+| bank-connect | [34756970838](https://github.com/JuanjoAvila/Aely/actions/runs/34756970838) | `a5c885abc1f019c566b5217f991485f03f665949` | enablebanking, cors |
+| bank-disconnect | [34757005550](https://github.com/JuanjoAvila/Aely/actions/runs/34757005550) | `a5c885abc1f019c566b5217f991485f03f665949` | enablebanking, cors |
+| bank-sync | [38147682294](https://github.com/JuanjoAvila/Aely/actions/runs/38147682294) | `9a7288125ca7984f4d01577cd9c9271e04c23ef4` | enablebanking, cors, bank-sync/demand-window |
+| bank-callback | [35978233778](https://github.com/JuanjoAvila/Aely/actions/runs/35978233778) | `f53e865277f676998d76844fd047357f4adc1569` | enablebanking, token_store, crypto, entrada |
+| categorize | [37227378103](https://github.com/JuanjoAvila/Aely/actions/runs/37227378103) | `64b4e5f3543ae440812ecf76a7e3259dfc938d1b` | ingest_logic, cors, ratelimit |
+| delete-account | [34757030177](https://github.com/JuanjoAvila/Aely/actions/runs/34757030177) | `a5c885abc1f019c566b5217f991485f03f665949` | myinvestor, cors |
+| ingest | [37227204066](https://github.com/JuanjoAvila/Aely/actions/runs/37227204066) | `64b4e5f3543ae440812ecf76a7e3259dfc938d1b` | ingest_logic, wallet, ingest_identity, ratelimit, presupuesto, entrada |
+| myinvestor-connect | [34757065098](https://github.com/JuanjoAvila/Aely/actions/runs/34757065098) | `a5c885abc1f019c566b5217f991485f03f665949` | myinvestor, token_store, crypto, cors, ratelimit |
+| myinvestor-sync | [34757126754](https://github.com/JuanjoAvila/Aely/actions/runs/34757126754) | `a5c885abc1f019c566b5217f991485f03f665949` | myinvestor, token_store, crypto, cors |
+| myinvestor-disconnect | [34757101226](https://github.com/JuanjoAvila/Aely/actions/runs/34757101226) | `a5c885abc1f019c566b5217f991485f03f665949` | myinvestor, cors |
+| myinvestor-keepalive | [34889131066](https://github.com/JuanjoAvila/Aely/actions/runs/34889131066) | `c34fe81c1dc06cb8bc65b6b8a0d7a19e8ea011bc` | myinvestor, token_store, crypto, entrada |
+| prices | [34593145333](https://github.com/JuanjoAvila/Aely/actions/runs/34593145333) | `29505fa053d64087efef56a22faeb3126822b97b` | cors |
+| help-assistant | No acreditado | — | Sin paquete de rollback acreditado |
+
+Help aparece en fuente desde el 15/9; ninguno de los runs posteriores revisados confirma su
+despliegue. No se sustituye el dato ausente por el SHA de beta. El despliegue general del 11/9
+enumera trece funciones y no la incluye. Un rollback requiere confirmar de nuevo el paquete
+por función antes de ejecutarlo y no puede inventarse para help.
 
 `ingest/widget.ts` calcula la respuesta widget v2 de la ventana guardada
 por la app, validando ancla y scope; month conserva su payload mensual legacy para APK antiguas.

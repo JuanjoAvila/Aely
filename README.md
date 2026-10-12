@@ -72,6 +72,7 @@ mi-cartera/
 ├── tests/widget-inicio-paridad.test.mjs # 1584 casos contra los lectores reales de Inicio: alcance, céntimos y presupuesto
 ├── tests/widget-puente-ciclo.test.mjs # JSON real del puente → plugin → widget con el Java de las APK 52, 53 y 54 a la vez
 ├── tests/edge-input-handlers.test.mjs · edge-input-mutations.test.mjs # Entradas Edge reales y mutaciones sintéticas
+├── tests/edge-input-reservas.test.mjs · edge-input-reservas-mutations.test.mjs # Compatibilidad beta, autenticación y topes
 ├── supabase/functions/*/entrada.test.ts # Contratos de entrada Deno por función; lector común en _shared
 ├── tests/                  # Unitarios en Node (lógica, parsers, i18n, seguridad, frescura de doc,
 │                           #  sintaxis de las Edge Functions, despliegue manual de Supabase y presupuesto de rendimiento)

@@ -6,14 +6,17 @@ const read = (p) => fs.readFileSync("supabase/functions/_shared/" + p, "utf8");
 const moduleOf = async (source) => import("data:text/javascript;base64," + Buffer.from(transformSync(source, { loader: "ts", format: "esm" }).code).toString("base64"));
 const source = read("request_body.ts");
 const original = await moduleOf(source);
-const { INPUT_FIXTURES, INVALID_INPUTS } = await moduleOf(read("request_fixtures.ts"));
+const { INPUT_FIXTURES, INVALID_INPUTS, EXPECTED_BODY_LIMITS } = await moduleOf(read("request_fixtures.ts"));
 const post = (body, headers) => new Request("https://synthetic.invalid", { method: "POST", body, headers, duplex: "half" });
 
 async function suite(m) {
+  assert.deepEqual(m.BODY_LIMITS, EXPECTED_BODY_LIMITS);
   for (const name of Object.keys(INPUT_FIXTURES)) {
     for (const body of INPUT_FIXTURES[name]) assert.deepEqual(await m.readInput(post(JSON.stringify(body)), name), { ok: true, body });
     for (const body of [null, [], 3, ...INVALID_INPUTS[name]]) assert.equal((await m.readInput(post(JSON.stringify(body)), name)).ok, false);
-    assert.equal((await m.readInput(post("{broken"), name)).status, 400);
+    const broken = await m.readInput(post("{broken"), name);
+    if (name === "prices") assert.deepEqual(broken, { ok: true, body: {} });
+    else assert.equal(broken.status, 400);
     assert.equal((await m.readInput(post(" ".repeat(original.BODY_LIMITS[name] + 1)), name)).status, 413);
   }
   assert.deepEqual(await m.readBodyLimited(post("€"), 3), { ok: true, text: "€" });
@@ -56,26 +59,25 @@ const mutations = [
   ["pais", "/^[a-z]{2}$/i.test(v)", "true"],
   ["fecha-calendario", 'new Date(v).toISOString().slice(0, 10) === v', "true"],
   ["recuperar-booleano", 'typeof v === "boolean"', "true"],
-  ["aspsps-array", "Array.isArray(v) && v.every(text)", "true"],
+  ["aspsps-array", 'Array.isArray(v) && v.every((s) => s === null || typeof s === "string")', "true"],
   ["plataforma", 'v === "app" || v === "web"', "true"],
-  ["idioma", 'v === "es" || v === "en" || v === "ca"', "true"],
   ["pregunta-longitud", "b.question.length <= 600", "true"],
-  ["symbols-array", 'Array.isArray(v) && v.every((s) => typeof s === "string")', "true"],
+  ["symbols-array", 'Array.isArray(v)\n      && v.every((s) => s === null || typeof s === "string" || typeof s === "number")', "true"],
   ["tokens-modo", '!optional(b, "storeTokens", (v) => typeof v === "boolean")', "false"],
   ["tokens-device", "!text(b.deviceId)", "false"],
   ["tokens-access", "return text(b.accessToken)", "return true"],
   ["tokens-refresh", 'v === null || typeof v === "string"', "true"],
   ["tokens-segundos", "v >= 0", "true"],
   ["tokens-fecha-maxima", "Number.isFinite(new Date(Date.now() + v * 1000).getTime())", "true"],
-  ["otp-completo", 'otp.every((k) => text(b[k]))', "true"],
-  ["ingest-campos-tipo", '.every((k) => optional(b, k, (v) => typeof v === "string"))', ".every(() => true)"],
-  ["ingest-fuente", 'v === "tr" || v === "wallet"', "true"],
-  ["ingest-fecha", 'optional(b, "fecha", timestamp)', "true"],
-  ["ingest-trigger", 'optional(b, "triggertime", timestamp)', "true"],
+  ["otp-tipo", 'v == null || typeof v === "string" || typeof v === "number" && Number.isFinite(v)', "true"],
   ["sin-parametros", "Object.keys(b).length === 0", "true"],
   ["ingest-longitud-legacy", "raw.length > 16384", "false"],
   ["ingest-cabecera-legacy", 'Number(req.headers.get("content-length") || 0) > 16384', "false"],
   ["ingest-formulario", 'name !== "ingest" || !raw.includes("=")', "true"],
+  ...["BANK_BODY_BYTES", "BANK_SYNC_BODY_BYTES", "CREDENTIAL_BODY_BYTES", "EMPTY_BODY_BYTES", "CATEGORY_BODY_BYTES", "PRICES_BODY_BYTES", "HELP_BODY_BYTES", "INGEST_BODY_BYTES"].map((key) => {
+    const init = source.match(new RegExp("export const " + key + " = [^;]+;"))[0];
+    return ["tope-fijado-" + key, init, "export const " + key + " = 64 * 1024 * 1024;"];
+  }),
 ];
 let killed = 0;
 for (const [name, from, to] of mutations) {

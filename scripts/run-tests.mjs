@@ -35,6 +35,8 @@ if (plan.build !== false) {
 
 const steps = [
   ["edge-input-handlers", ["node", "tests/edge-input-handlers.test.mjs"]],
+  ["edge-input-reservas", ["node", "tests/edge-input-reservas.test.mjs"]],
+  ["edge-input-reservas-mutations", ["node", "tests/edge-input-reservas-mutations.test.mjs"]],
   ["edge-input-mutations", ["node", "tests/edge-input-mutations.test.mjs"]],
   ["backclose-history", ["node", "tests/backclose-history.test.mjs"]],
   ["dashboard-memo-instrument", ["node", "tests/dashboard-memo-instrument.test.mjs"]],
