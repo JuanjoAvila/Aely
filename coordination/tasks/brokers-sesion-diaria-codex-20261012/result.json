@@ -1,0 +1,133 @@
+{
+  "status": "done",
+  "summary": "Diagnóstico y propuestas completados sobre beta119 en PR221; solo documentación. Las sesiones no están corregidas y la integración sigue pendiente de CI exacta y revisión de Claude.",
+  "productSHA": "e1bc9810b9c0a7afdb7114937b479e914df9eaec",
+  "pullRequest": "JuanjoAvila/Aely#221",
+  "executionBaseSHA": "788432f4682c199edd785f6973d9353330c0064a",
+  "historicalTaskClaimBaseSHA": "7e706174255f1868d15099e11a503dd23d9aa774",
+  "rebaseAuthorityCommit": "4a9e38ddab36cea4c2655aef956ce27c5cf7a61d",
+  "tests": [
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/guard-privacy.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/docs-frescura.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/presupuesto-rendimiento.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/broker-sync-outcomes.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/tr-open-banking.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/bank-connect-once.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "Arnés sintético de diagnóstico sobre beta119: handlers MI y helper/catch EB reales",
+      "exitCode": 0,
+      "criteriaPass": 8,
+      "criteriaRed": 7,
+      "interpretation": "Confirma fallos, no aceptación funcional verde"
+    },
+    {
+      "command": "git rebase 788432f4682c199edd785f6973d9353330c0064a",
+      "exitCode": 0
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0
+    },
+    {
+      "command": "gh workflow run test.yml sobre codex/brokers-sesion-diaria, fuente e1bc9810",
+      "exitCode": 0,
+      "interpretation": "Despacho confirmado; suite remota todavía en curso"
+    }
+  ],
+  "ci": {
+    "run": 38288657553,
+    "job": 114943072114,
+    "sourceSHA": "e1bc9810b9c0a7afdb7114937b479e914df9eaec",
+    "status": "in_progress",
+    "conclusion": null,
+    "terminalVerified": false
+  },
+  "historicalCI": {
+    "run": 38284839611,
+    "sourceSHA": "8b61931a7c0db027247e88a15b57cb5fd34353b3",
+    "lastObservedStatus": "in_progress",
+    "logAttemptExit": 1,
+    "logUnavailable": true,
+    "notValidationOf119": true
+  },
+  "mutations": {
+    "committedPaths": [
+      "docs/ARQUITECTURA.md",
+      "docs/briefs/brokers-sesion-diaria-2026-10-12.md"
+    ],
+    "runtimeEdits": 0,
+    "backendEdits": 0,
+    "uiEdits": 0,
+    "versionsCatalogCapsChanged": false,
+    "localHeavyRuns": 0,
+    "networkProviderCalls": 0,
+    "databaseWrites": 0,
+    "productMutants": 0,
+    "scaffoldsRemoved": true
+  },
+  "budget": {
+    "minifiedBytes": 1334526,
+    "gzip9Bytes": 364664,
+    "blocking": 3,
+    "minifiedCap": 1335296,
+    "gzipCap": 365568,
+    "blockingCap": 3,
+    "minifiedMargin": 770,
+    "gzipMargin": 904,
+    "exitCode": 0
+  },
+  "findings": [
+    "MI: acceso401 seguido de refresh403/429/500/503 o respuesta200 sin token marca expired; cinco casos RED confirmados en119",
+    "OB: EB401 con EXPIRED_SESSION y dos códigos ajenos a caducidad recorren la misma rama; dos casos RED confirmados en119",
+    "Valores persistidos sobreviven sin renovar sesión; vista usa solo hora global de cotizaciones, sin fecha por origen",
+    "Reconexión119 conserva cursor de las mismas cuentas y añade acuses por dispositivo; estas garantías no cambian clasificación ni vigencia del permiso"
+  ],
+  "limitations": [
+    "CI119 sigue en curso: no se acredita suite completa ni GO de integración",
+    "CI118 histórica no acredita119; su log aún no se pudo descargar",
+    "Sin causa diaria real acreditada, cron en vivo, credenciales, navegación, APK ni servidor real consultados",
+    "Servidor y UI reservados: propuestas sin implementación funcional ni entrega al móvil",
+    "Catálogo y retiro119 conservados desde la base; su guardián completo se ejecuta en CI, no se afirma verde local"
+  ],
+  "humanTestSteps": [
+    "Al día siguiente, abrir Cartera e Inversiones sin Actualizar y comprobar que siguen las posiciones y qué fecha muestra",
+    "Actualizar una sola vez y distinguir si pide reconectar TR, MyInvestor, Revolut o iniciar sesión de Aely",
+    "Conservar solo hora, versión APK y código saneado para el titular; no enviar credenciales ni tokens",
+    "No desconectar ni activar sincronización automática para probar mirar"
+  ],
+  "reviewOwner": "claude",
+  "integrationGate": "pending CI exacta y revisión de Claude",
+  "publication": "Sin merge, beta/main, despliegue, APK ni corrección de sesiones",
+  "schema": 1,
+  "taskId": "brokers-sesion-diaria-codex-20261012",
+  "actor": "codex",
+  "sessionId": "codex-local-20261012-broker-09d13d24860be",
+  "createdAt": "2026-10-12T18:08:42.452Z",
+  "released": true
+}
