@@ -5,7 +5,7 @@ import { test } from "node:test";
 import { loadPureLogic } from "../scripts/load-pure-logic.mjs";
 // Las reproducciones de revisión se leen de src: public puede ser todavía el último
 // bundle entregado y el turno para regenerarlo pertenece al coordinador (12/10).
-const refIndex=process.argv.indexOf("--source-ref"),sourceRef=refIndex<0?null:process.argv[refIndex+1];
+const refIndex=process.argv.indexOf("--source-ref"),sourceRef=refIndex<0?process.env.AELY_FIXED_TEST_SOURCE_REF||null:process.argv[refIndex+1];
 const source=file=>sourceRef?execFileSync("git",["show",sourceRef+":"+file],{encoding:"utf8",maxBuffer:8e6}):fs.readFileSync(new URL("../"+file,import.meta.url),"utf8");
 const order=JSON.parse(source("src/build-order.json"));
 function paymentLogic(change){
@@ -371,9 +371,23 @@ test("H2: cambiar el día conserva una prueba BOOK sin extracto y no duplica des
   }finally{c.Date=oldDate;}
 });
 
+for(const kind of ["recibo","puntual","deuda"]){
+  test("H1 prueba BOOK viajada: homónimo ajeno "+kind,()=>{
+    const bill=Object.assign({},fixed,{name:"Netflix ficticio"}),book=Object.assign({},tx,{merchant:bill.name});
+    const own=Object.assign({},base,{fixed:[bill],bankTx:[book]});
+    const traveled=c.slimForCloud(c.reconcileFixedPaymentProofs(own,2026,9,30));
+    assert.equal(traveled.fixed[0].paymentProofs[2026*12+9].kind,"book");
+    if(kind==="recibo")traveled.fixed.push(Object.assign({},bill,{id:"otro",account:"revolut"}));
+    if(kind==="puntual")traveled.oneoffs=[{id:"otro",name:bill.name,amount:42,account:"revolut",month:9,year:2026,day:25}];
+    if(kind==="deuda")traveled.debts=[{id:"otro",name:bill.name,monthly:42,value:500,account:"revolut",day:25}];
+    assert.equal(traveled.bankTx,undefined);
+    assert.equal(c.fixedPaymentState(traveled,traveled.fixed[0],2026,9,30).paid,true,"sin feed tampoco disputa el homónimo de otro banco");
+  });
+}
+
 test("H3: el histórico se indexa una vez por referencia de expenses",()=>{
   for(const length of [2000,20000]){
-    const history=Array.from({length},(_,i)=>Object.assign({},recorded,{id:"hist-"+i,merchant:"Compra ficticia "+i,obName:"Compra ficticia "+i}));
+    const history=Array.from({length},(_,i)=>Object.assign({},recorded,{id:"hist-"+i,merchant:"Servicio ficticio compra "+i,obName:"Servicio ficticio compra "+i}));
     let reads=0;
     const expenses=new Proxy(history,{get(target,key,receiver){if(/^\d+$/.test(String(key)))reads++;return Reflect.get(target,key,receiver);}});
     const bills=Array.from({length:30},(_,i)=>Object.assign({},fixed,{id:"recibo-"+i,name:"Servicio ficticio "+i}));

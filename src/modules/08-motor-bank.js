@@ -110,10 +110,10 @@ function fixedPaymentExpenses(s){
   // Inicio consulta los pendientes en cada render: treinta recibos no deben volver
   // a recorrer veinte mil gastos. El guardado partido ya cambia su referencia al editar.
   var expenses=s.expenses;
-  if(!Array.isArray(expenses)) return {identity:new Map(),key:new Map(),id:new Map(),names:new Map()};
+  if(!Array.isArray(expenses)) return {identity:new Map(),key:new Map(),id:new Map(),names:new Map(),queries:new Map()};
   var cache=fixedPaymentExpenses.cache||(fixedPaymentExpenses.cache=new WeakMap()),index=cache.get(expenses);
   if(index) return index;
-  index={identity:new Map(),key:new Map(),id:new Map(),names:new Map()};
+  index={identity:new Map(),key:new Map(),id:new Map(),names:new Map(),queries:new Map()};
   var add=function(map,key,x){ var rows=map.get(key);if(rows) rows.push(x);else map.set(key,[x]); };
   expenses.forEach(function(x){
     if(!x) return;
@@ -122,11 +122,19 @@ function fixedPaymentExpenses(s){
     if(x.id) add(index.id,x.id,x);
     if(["ob","ob-hist","wallet","macrodroid","tr"].indexOf(x.source)<0||!bank||bank==="efectivo"||
       (x.cur||x.currency)&&String(x.cur||x.currency).toUpperCase()!=="EUR") return;
-    var name=recNorm(x.obName!=null?x.obName:x.merchant),prefix=String(x.date||"").slice(0,7)+"|"+Math.round(Number(x.amount)*100)+"|";
+    var name=recNorm(x.obName!=null?x.obName:x.merchant),prefix=String(x.date||"").slice(0,7)+"|"+Math.round(Number(x.amount)*100)+"|",named={row:x,name:" "+name+" "};
     // Basta el primer token del recibo para acotar; la frase completa se exige después.
-    new Set(name.split(" ")).forEach(function(word){ if(word) add(index.names,prefix+word,x); });
+    new Set(name.split(" ")).forEach(function(word){ if(word) add(index.names,prefix+word,named); });
   });
   cache.set(expenses,index);return index;
+}
+function fixedPaymentExpenseRows(s,name,ym,target){
+  var index=fixedPaymentExpenses(s),prefix=ym+"|"+Math.round(Number(target)*100)+"|",key=prefix+name;
+  if(index.queries.has(key)) return index.queries.get(key);
+  // Un primer token compartido puede tener miles de compras. La frase completa se
+  // filtra una sola vez; banco, categoría, borrados y pruebas se revisan con el estado actual.
+  var rows=(index.names.get(prefix+name.split(" ")[0])||[]).filter(function(x){ return x.name.indexOf(" "+name+" ")>=0; }).map(function(x){ return x.row; });
+  index.queries.set(key,rows);return rows;
 }
 function fixedPaymentExpenseChoice(rows){
   if(rows.length===1) return rows[0];
@@ -305,7 +313,7 @@ function fixedPaymentState(s,e,y,m,today){
   // entidad; un token genérico o importe parecido requiere confirmación expresa (10/10).
   var name=recNorm(e.name);
   if(!proof&&!persisted&&!tx&&matches.length<2&&name.length>=4&&!(e.paymentProofs&&e.paymentProofs[y*12+m])){
-    var rows=(fixedPaymentExpenses(s).names.get(ym+"|"+Math.round(Number(target)*100)+"|"+name.split(" ")[0])||[]).filter(function(x){
+    var rows=fixedPaymentExpenseRows(s,name,ym,target).filter(function(x){
       if(!x||["ob","ob-hist","wallet","macrodroid","tr"].indexOf(x.source)<0||String(x.date||"").slice(0,7)!==ym) return false;
       if((x.cur||x.currency)&&String(x.cur||x.currency).toUpperCase()!=="EUR"||expenseBankOf(x)==="efectivo") return false;
       if(Math.round(Number(x.amount)*100)!==Math.round(Number(target)*100)) return false;

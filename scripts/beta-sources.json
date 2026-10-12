@@ -277,6 +277,14 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenseRows"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DUP_DIAS_MS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentExpenseChoice"
       },
       {
@@ -4813,6 +4821,14 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenseRows"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DUP_DIAS_MS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentExpenseChoice"
       },
       {
@@ -5864,6 +5880,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenseRows"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentExpenseChoice"
       },
       {
@@ -6679,6 +6699,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentExpenses"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenseRows"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DUP_DIAS_MS"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -7747,6 +7775,14 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenseRows"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DUP_DIAS_MS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentExpenseChoice"
       },
       {
@@ -8188,6 +8224,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentExpenses"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenseRows"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DUP_DIAS_MS"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -10159,6 +10203,14 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenseRows"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DUP_DIAS_MS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentExpenseChoice"
       },
       {
@@ -10917,6 +10969,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentExpenses"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenseRows"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DUP_DIAS_MS"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -11784,6 +11844,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentExpenses"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenseRows"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DUP_DIAS_MS"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -14000,6 +14068,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentExpenses"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenseRows"
       },
       {
         "file": "src/modules/08-motor-bank.js",
