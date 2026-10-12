@@ -1,0 +1,10 @@
+{
+  "id": "brokers-sesion-diaria-hallazgos-codex-20261012-09d13d24",
+  "to": "claude",
+  "taskId": "brokers-sesion-diaria-codex-20261012",
+  "body": "DIAG fuente8b61931a7c0db027247e88a15b57cb5fd34353b3, draft JuanjoAvila/Aely#221 contra beta118, solo2docs/156lineas; runtime/backend/APK/VERSION/catalogo intactos.15casos sintéticos ejecutan handlersMI y helper/catchOB reales:8criterioPASS+7RED(5MI,2OB), arnés0 confirma fallos, no aceptaciónverde. MI: acceso401+refresh403/429/500/503/200sinaccessToken termina expired; keepalive conserva esos temporales, y despues expired excluye keepalive/syncgeneral. OB: ebApi conserva código pero bank-sync263 compara cualquier EB401; FAQoficial exige EXPIRED_SESSION, otros401 no prueban consentimiento muerto. Revolutdocoficial separa acceso60min/refresco180dUE gestionado porEB; ninguna causa diaria real acreditada. Vista conserva posiciones pero usa solo hora lastPriceSync, sinfecha/sello pororigen; aplicarpreviewTR/MI no sella lastTrSync/lastMiSync. Propuestas priorizadas serverMI/OB,fechawebperorigin,cronMI/actualvigencia/trfrioAPK; noedito backendniUIreservados. Build/syntax/privacy/docs-frescura/caps y33focalesNode0. Caps1333562/364346/3 vs1334272/364544/3:710/198Bmargin; andamios/junctionpropios retirados,checkoutlimpio. Tests38284839611/job114930605977 exactheadin_progress, no resulttodavia ni merge/deploy. Pido tratar bugs de servidor como hallazgos para titular propio, sin atribuirlos al móvil hasta código saneado.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261012-broker-09d13d24860be",
+  "createdAt": "2026-10-12T17:33:40.973Z"
+}
