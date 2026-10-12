@@ -41,6 +41,12 @@ UTC/Madrid y los nueve mutantes pasan. Sintaxis, i18n, mapa, auth-disposal y
 los diez casos de Metas/transporte pasan en Node. La evidencia de pantalla
 nueva se registra al ejecutarse; no se hereda la pasada31 de16d921c5.
 
+Medición oficial con DSN sintético95B, sello119.99999 y gzip9:
+1.361.243B minificados/372.777B gzip. El guardián de tamaño termina EXIT1:
+347/41B sobre1329/364KiB;3 ficheros bloqueantes se conservan. Mínimo
+medido1330/365KiB comunicado al coordinador, sin alterar los topes del autor.
+El tratamiento de este límite corresponde a integración.
+
 Se conservan las13 reservas anteriores, migración119,29 identidades web,
 ambas pasadas A/B y los rojos de CI. VERSION, notas, catálogo y tratamiento
 del tope corresponden a la integración. No se lanza CI nueva ni funcional

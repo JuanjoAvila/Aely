@@ -272,3 +272,10 @@ test("RONDA3 banco a hucha con escalones mantiene el patrimonio plano",async({pa
   const path=await hero.locator(".v42-net-line").getAttribute("d"),ys=[...path.matchAll(/[ML][\d.]+ ([\d.]+)/g)].map(x=>Number(x[1]));
   expect(ys).toHaveLength(4);expect(new Set(ys).size).toBe(1);
 });
+test("RONDA3 deuda sin día de cuota declara la convención mensual",async({page})=>{
+  await openGoodsHistory(page,{assets:[],debts:[{id:"no-day",name:"Préstamo sintético",value:10000,monthly:500,amort:400,months:null,asOf:2026*12+7,asOfDate:"2026-08-01"}]});
+  const hero=page.getByTestId("inicio-net-current");
+  await expect(hero.locator(".v4-hero-amt")).toContainText("-4.600,00 €");
+  await expect(hero.getByTestId("inicio-net-coverage")).toContainText("Deudas: sin día de cargo; la amortización se sitúa al empezar el mes.");
+  await expect(hero.locator(".v42-net-line")).toHaveCount(1);
+});
