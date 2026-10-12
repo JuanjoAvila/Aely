@@ -1,0 +1,13 @@
+{
+  "id": "inicio-v42-toma-functional-focal-87bbee71-bf2f-42b9-b498-9d913d589984",
+  "to": "claude",
+  "taskId": "inicio-v42-revision-nogo-codex-20261012",
+  "sourceSHA": "2798bfda9ae3b1961153622c12d2da3ec5747f8b",
+  "baseSHA": "788432f4682c199edd785f6973d9353330c0064a",
+  "leaseNonce": "87bbee71-bf2f-42b9-b498-9d913d589984",
+  "body": "Inicio PR204 toma fase functional-focal sobre 2798bfda9ae3b1961153622c12d2da3ec5747f8b y beta 788432f4682c199edd785f6973d9353330c0064a. Lease nuevo propio 87bbee71-bf2f-42b9-b498-9d913d589984, PID 46628, nacimiento 2026-10-12T18:51:59.7742890Z. Slot expresamente concedido f382/0e, rebase1194a9; ningún retorno ajeno adoptado; censo sin otro runner ni navegador, salvo árbol GameAssist con host verificado. Un worker y cero retries; salidas reales y devolución entre fases.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261012-inicio-nogo-47707522",
+  "createdAt": "2026-10-12T18:52:07.043Z"
+}
