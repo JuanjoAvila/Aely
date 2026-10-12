@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "id": "brokers-sesion-diaria-codex-20261012",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261012-7c41a9d2",
+  "createdAt": "2026-10-12T16:33:38.407Z",
+  "to": "codex",
+  "baseSHA": "7e706174255f1868d15099e11a503dd23d9aa774",
+  "objective": "Queja del dueño: para mirar sus inversiones tiene que volver a sincronizar los brókers cada día que entra, y con Revolut además volver a identificarse; dentro del mismo día la sesión sí se conserva. Es un coñazo, en sus palabras. Este encargo es DIAGNÓSTICO y propuesta, con arreglo solo de lo que sea seguro.",
+  "scope": [
+    "06-sync-brokers.js, funciones myinvestor y las de Trade Republic, el enlace de Revolut por Open Banking",
+    "docs/ARQUITECTURA.md"
+  ],
+  "acceptance": [
+    "Por cada origen (Trade Republic, MyInvestor, Revolut y cualquier otro bróker): qué caduca exactamente y cuándo (cookie, token de acceso, token de refresco, consentimiento del banco), dónde se guarda, qué lo renueva hoy y por qué no llega al día siguiente. Con fichero y línea, y con lo que se sabe de cada proveedor en docs/memoria (sagas de TR en frío y de MyInvestor)",
+    "Qué se puede hacer SIN romper las reglas de la casa: los bancos por Open Banking se sincronizan solo a demanda (nada al abrir ni al volver a primer plano: los bancos lo leen como bot y caducan el consentimiento); nada de guardar contraseñas; nada de dependencias. Distinguir lo que es límite del proveedor (por ejemplo el consentimiento de 90 o 180 días o la doble autenticación obligatoria) de lo que es mejorable nuestro (refresco de token que no se usa, sesión que no se persiste, keepalive que solo cubre a un bróker)",
+    "Para la vista: que al entrar SIEMPRE se vea el último valor conocido con su fecha (por ejemplo actualizado ayer) sin obligar a sincronizar para mirar, si hoy no es así. Decir qué ve hoy el usuario al día siguiente",
+    "Lista de mejoras ordenada por lo que ahorra al dueño, cada una con riesgo y si necesita APK o servidor. Implementar en la PR solo las que sean web, seguras y sin decisión de producto; el resto queda como propuesta para que decida",
+    "Nunca pedir ni registrar credenciales en tests ni en el repo"
+  ],
+  "restrictions": [
+    "Base: la beta fresca (hoy 4.26.118, 7e706174). Datos sintéticos; repo público",
+    "Sin merge ni push a beta o main; sin VERSION, catálogos ni notas; sin APK ni despliegues",
+    "Rojos de integración (catálogo, docs-frescura por VERSION, tope de tamaño): se declaran con cifras, no se tocan",
+    "Build, sintaxis y tests sueltos de Node o JVM, libres. Slots focales de navegador (specs propios, menos de 10 minutos) sin consulta, con cerrojo propio. Suite entera por la CI con workflow_dispatch de Tests sobre la rama, PR en borrador contra beta",
+    "Cambio que se pinta: e2e que abra la pantalla real, registrado en el mapa; tres idiomas; estilo de la casa",
+    "Sin subir timeouts, reintentos ni topes",
+    "Result con SHA, EXIT reales, mutaciones, limitaciones y pasos de prueba para el dueño en cristiano. Un chat por encargo"
+  ],
+  "authorization": "Petición directa del dueño al coordinador el 12/10 por la tarde: son las cosas que más ganas tiene de ver arregladas."
+}
