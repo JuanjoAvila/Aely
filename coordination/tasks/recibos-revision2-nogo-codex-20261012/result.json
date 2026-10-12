@@ -1,0 +1,239 @@
+{
+  "status": "done",
+  "summary": "PR202 revision2 corrected H1 H2 H3 H4 H7 with generated public committed on beta117; candidate delivery retains full functional and npm reds explicitly.",
+  "productSHA": "dbc030dc942cbd39ec34d22f2a0e699cbfdfd0a4",
+  "baseSHA": "c5f62d6603d016150afd9d0e20547b608b323045",
+  "pullRequest": "JuanjoAvila/Aely#202",
+  "tests": [
+    {
+      "command": "npm test",
+      "exitCode": 1,
+      "sourceSHA": "dbc030dc942cbd39ec34d22f2a0e699cbfdfd0a4",
+      "failedSteps": [
+        "docs-frescura"
+      ],
+      "reason": "One own publishing source file after117 version anchor; VERSION forbidden in this task. build-app and fixed-payment-state25 passed inside actual full run. Stock Deno skip retained."
+    },
+    {
+      "command": "node --test tests/fixed-payment-state.test.mjs (actual stock npm stage)",
+      "exitCode": 0,
+      "sourceSHA": "dbc030dc942cbd39ec34d22f2a0e699cbfdfd0a4",
+      "passed": 25,
+      "mutantsKilled": 6
+    },
+    {
+      "command": "causal H1 H2 H3 H4 H7 guards with verified AELY_FIXED_TEST_SOURCE_REF=9add3e3a",
+      "exitCode": 1,
+      "sourceSHA": "9add3e3a2c22bdd008bc229523ef9be0162aee4d",
+      "expectedNegative": true
+    },
+    {
+      "command": "H1 traveled BOOK proof guards fixed/puntual/debt on9add3e3a",
+      "exitCode": 1,
+      "expectedNegative": true
+    },
+    {
+      "command": "node tests/presupuesto-rendimiento.test.mjs",
+      "exitCode": 0,
+      "sourceSHA": "dbc030dc942cbd39ec34d22f2a0e699cbfdfd0a4",
+      "rawBytes": 1333345,
+      "gzipBytes": 364266,
+      "blockingScripts": 3,
+      "minimumKiB": {
+        "raw": 1303,
+        "gzip": 356
+      }
+    },
+    {
+      "command": "npm run test:syntax",
+      "exitCode": 0,
+      "sourceSHA": "dbc030dc942cbd39ec34d22f2a0e699cbfdfd0a4"
+    },
+    {
+      "command": "actual full beta-sources stock npm stage",
+      "exitCode": 0,
+      "sourceSHA": "dbc030dc942cbd39ec34d22f2a0e699cbfdfd0a4"
+    },
+    {
+      "command": "actual changed scope and mutation guards",
+      "exitCode": 0,
+      "scopes": 10,
+      "helperMutantsKilled": 30,
+      "windowMutantsKilled": 10
+    },
+    {
+      "command": "actual preserved Catalogue117 Retirement117 and separate live Splash117 callbacks",
+      "exitCode": 0,
+      "historicalCallbackBodiesUnchanged": true,
+      "approvedReaderAuthority": "e9777285",
+      "historicalAndLiveMutationNegativesRetained": true
+    },
+    {
+      "command": "Playwright all106 functional specs --workers=1 --retries=0",
+      "exitCode": 1,
+      "sourceSHA": "dbc030dc942cbd39ec34d22f2a0e699cbfdfd0a4",
+      "passed": 1050,
+      "failed": 1,
+      "skipped": 1,
+      "recibosPassed": 72,
+      "recibosNewDOMCases": 9
+    },
+    {
+      "command": "Playwright all4 performance specs --workers=1 --retries=0",
+      "exitCode": 0,
+      "sourceSHA": "dbc030dc942cbd39ec34d22f2a0e699cbfdfd0a4",
+      "passed": 13,
+      "failed": 0,
+      "skipped": 0,
+      "gameAssistPossibleNoise": true
+    },
+    {
+      "command": "Playwright original e2e/metas-mensual.spec.mjs --repeat-each=10 --workers=1 --retries=0 baseline117",
+      "exitCode": 0,
+      "sourceSHA": "c5f62d6603d016150afd9d0e20547b608b323045",
+      "passed": 150,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "command": "Playwright original e2e/metas-mensual.spec.mjs --repeat-each=10 --workers=1 --retries=0 candidate",
+      "exitCode": 0,
+      "sourceSHA": "dbc030dc942cbd39ec34d22f2a0e699cbfdfd0a4",
+      "passed": 150,
+      "failed": 0,
+      "skipped": 0
+    },
+    {
+      "command": "actual existing Deno supabase/functions/ingest/ingest.test.ts",
+      "exitCode": 0,
+      "sourceSHA": "dbc030dc942cbd39ec34d22f2a0e699cbfdfd0a4",
+      "separateFromNpm": true
+    },
+    {
+      "command": "actual existing Deno supabase/functions/ingest/widget.test.ts",
+      "exitCode": 0,
+      "sourceSHA": "dbc030dc942cbd39ec34d22f2a0e699cbfdfd0a4",
+      "separateFromNpm": true
+    },
+    {
+      "command": "actual existing Deno supabase/functions/_shared/crypto.test.ts",
+      "exitCode": 0,
+      "sourceSHA": "dbc030dc942cbd39ec34d22f2a0e699cbfdfd0a4",
+      "separateFromNpm": true
+    },
+    {
+      "command": "actual existing Deno supabase/functions/_shared/enablebanking.test.ts",
+      "exitCode": 0,
+      "sourceSHA": "dbc030dc942cbd39ec34d22f2a0e699cbfdfd0a4",
+      "separateFromNpm": true
+    },
+    {
+      "command": "actual existing Deno supabase/functions/delete-account/delete-account.test.ts",
+      "exitCode": 0,
+      "sourceSHA": "dbc030dc942cbd39ec34d22f2a0e699cbfdfd0a4",
+      "separateFromNpm": true
+    },
+    {
+      "command": "actual existing Deno supabase/functions/prices/prices.test.ts",
+      "exitCode": 0,
+      "sourceSHA": "dbc030dc942cbd39ec34d22f2a0e699cbfdfd0a4",
+      "separateFromNpm": true
+    },
+    {
+      "command": "actual existing Deno supabase/functions/bank-sync/demand-window.test.ts",
+      "exitCode": 0,
+      "sourceSHA": "dbc030dc942cbd39ec34d22f2a0e699cbfdfd0a4",
+      "separateFromNpm": true
+    }
+  ],
+  "limitations": [
+    "npm test remains exit1: docs-frescura detects one own source file after117 anchor. VERSION and release notes belong to integration and were forbidden here.",
+    "Full functional remains exit1 from Metas mensual138/en. Original spec repeated10 times on each version:150/150 each, including failing case10/10 each. Failure not reproduced, no runtime difference observed, origin still unconfirmed; do not relabel original run green or confirmed preexisting.",
+    "H5 deferred: charge detail still does not display or undo automatic attribution; owner decides.",
+    "Receipt without id and BOOK, without prior confirmation, stays unpaid/overdue with no bankTx or new proof: unique identity cannot be proven; no id invented.",
+    "Automatic expense matching remains conservative for names shorter than4 letters and a receipt without category facing a classified expense from another bank; no category is inferred.",
+    "H3 Node synthetic A/B is not mobile acceptance: initial indexing still costs11.919ms at2000 and93.294ms at20000 expenses; repeated reads avoid history scans.",
+    "GameAssist9 processes present during performance and diagnosis, explicitly excluded by verified host under f4ff217b; possible measurement noise recorded, performance all13 passed so no repeat authorized/needed.",
+    "Active fingerprints changed for six live tandas; withdrawn bancos-sin-hueco stays out of panel. Earlier mobile approval not inferred for changed fingerprint.",
+    "Candidate PR delivery only: integration, version/release documentation, CI, served beta, APK and real-device acceptance are separate and not claimed."
+  ],
+  "scope": [
+    "src/modules/08-motor-bank.js",
+    "tests/fixed-payment-state.test.mjs",
+    "e2e/inicio-cargos.spec.mjs",
+    "scripts/beta-sources.json",
+    "tests/beta-sources.test.mjs",
+    "tests/presupuesto-rendimiento.test.mjs",
+    "public/index.html",
+    "public/beta-delivery.json",
+    "public/release-notes.json"
+  ],
+  "perPoint": {
+    "H1": "Own-bank BOOK and traveled proof survive foreign fixed/puntual/debt homonyms; same-bank ambiguity retained. Three-language DOM.",
+    "H2": "Day edit reads bankTx or valid proof.kind book; paid date and projection conserved across reload. Three-language DOM.",
+    "H3": "WeakMap by expenses reference plus cached full-name queries; same-array warm median2000 52.827ms to0.0698ms,20000 528.033ms to0.05875ms. Exact motor SHA matches final freeze.",
+    "H4": "Real importObExpenses of notification then BOOK selects concordant evidence without merging rows or persisting a notice as financial confirmation. Three-language DOM; twoBOOK and distant negatives.",
+    "H7": "Null expenses safely skipped; missing/repeated receipt identity cannot be auto credited."
+  },
+  "activeFingerprintChanges": [
+    {
+      "id": "inc-0210-03-gastos-periodo",
+      "before": "81f03ee94f3db9d82c8e94f83db1927be8e9e00725d89c72dffd362a8081b17a",
+      "after": "c6904d7804641ed8f94c8b8cef92c4b8ee2bb21220413bf46bc2ab84137e0129"
+    },
+    {
+      "id": "inc-0210-01-plan-cuota",
+      "before": "ad724bc2d62837dbf3b005289bd87dd991cde32df15efd2ddde15e0dc3d34345",
+      "after": "7f8ff93f1d86ea9345422972129f91e499e632dfe324154948e4dffff6706fa9"
+    },
+    {
+      "id": "inc-2909-03-retirada",
+      "before": "5d3e9a322d8024e3e704a9cc6678c829958594ce2900cd641a29afbf11f5a090",
+      "after": "852f60173abd0fc0443bd6cc9a05037d2a3e9171726fc23294f3e9740ed8bbd4"
+    },
+    {
+      "id": "inc-3009-nomina-anticipada",
+      "before": "b1d0408c709dcf7e397ca1ae11119e1f7fed625da58f00834dac3accb2085606",
+      "after": "521c2323441195b9f904b417067b308a0ec90fa1a964013c614a0f71ea291a19"
+    },
+    {
+      "id": "inc-3009-01-cargos",
+      "before": "f5bed7851151720ae0f4fda2cd2b3f7ca8b29e52b058656df73ca7dfa128e33c",
+      "after": "a52ed6f2a4dbebb6059f8bd032a3e84d4ec860de9a67cd538125558fc5b4cc82"
+    },
+    {
+      "id": "inc-2909-02-inicio-natural",
+      "before": "2274a0fac94c162338b8d0352ee8f9cc6dfabdaff821b713a661446db2c682a8",
+      "after": "e9bfbee36d463fe7e81c635b9295aee025f182cbd40c0e3a2a4bcdd9cf53d2cc"
+    }
+  ],
+  "retiredBanks": {
+    "inPanel": false,
+    "before": "9806b3013e6aae885ab455fbc3d092400bdde3301af5312a96d3231366db9bc4",
+    "after": "a84e759f18229011852d2831b5c5bec6122edf9206a14d6b16e4749f75491100",
+    "approvalNotInferred": true
+  },
+  "servedLocalHTMLSHA256": "89a088637d1a260c161211b3640dbc2aac407d8770468bdeee4b957d7423b1fe",
+  "resourcesReturned": true,
+  "claimTransferred": false,
+  "priorTaskResultIntact": true,
+  "privateEvidenceRetained": true,
+  "ciVerified": false,
+  "mobileAcceptance": false,
+  "infrastructureNegatives": {
+    "retained": true,
+    "prelaunchPerformanceDriverExit": 1,
+    "prelaunchPerformanceNoBrowser": true,
+    "previousIncompleteBetaSourcesExit": -1,
+    "initialSizeExits": 1,
+    "correctedInvalidBeforeSourceProbesRetained": true,
+    "source117InitialHistoricalContractsExit": 1,
+    "approvedHistoricalReaderResponse": "e9777285"
+  },
+  "schema": 1,
+  "taskId": "recibos-revision2-nogo-codex-20261012",
+  "actor": "codex",
+  "sessionId": "codex-local-20261012-3d797dfc05e2",
+  "createdAt": "2026-10-12T11:47:53.391Z",
+  "released": true
+}
