@@ -334,11 +334,11 @@ t("★ la fuente idéntica conserva OK; cinco cambios web/nativos y uno solo web
     const part=cli.betaVerdictFor(g,[{tanda:g.historial[0],verdict:"approved"}]);
     if(changedIds.includes(id)) {
       assert.equal(part,null,id+" no reutiliza la aprobación anterior");
-      // tr-descripcion-clasificacion declara como edge el fichero entero de bank-sync.
-      // El progreso del hueco (ventana primero, tramo antiguo con cursor) vive ahí: el
-      // origen edge es el cambio, no una huella web de otra tanda.
-      const edgeChanged=["fin05-pago-cerrada","widget-app-cerrada","tr-descripcion-clasificacion"].includes(id);
-      assert.deepEqual(Array.from(g.cambio),edgeChanged?["web","native","edge"]:["web","native"]);
+      // El fixture está fijado en684, antes del progreso de bank-sync de116. Mezclar
+      // aquella fuente con su cambio posterior inventaba un Edge cambiado en el histórico.
+      // La fuente viva y el mutante del avance se contrastan por separado debajo.
+      const edgeChanged=["fin05-pago-cerrada","widget-app-cerrada"].includes(id);
+      assert.deepEqual(Array.from(g.cambio),edgeChanged?["web","native","edge"]:["web","native"],id+": superficies de la fuente histórica684");
       assert.equal(g.desde.length,0);
       assert.notEqual(g.codigo,structuredClone(historicalNotes).flatMap(n=>n.tandas||[]).find(x=>x.id===id&&x.codigoDesde).codigoDesde);
       assert.notEqual(g.native,registered[id].auditoria.revisiones.native);
@@ -367,6 +367,23 @@ t("★ la fuente idéntica conserva OK; cinco cambios web/nativos y uno solo web
     assert.ok(registered[id].auditoria.sha,"la auditoría histórica sigue fijada");
   }
 }));
+
+t("la clasificación bancaria conserva su Edge histórico y exige revisión al cambiar la fuente viva",()=>{
+  const id="tr-descripcion-clasificacion",notes=betaNotes(historicalNotes,baselineSource,baselineScopes);
+  const group=list=>cli.betaTandas({tandas:list.flatMap(n=>n.tandas||[]).filter(g=>g.id===id)})[0];
+  const old=group(notes),now=group(betaNotes(historicalNotes,readSource));
+  assert.deepEqual(Array.from(old.cambio),["web","native"],"684 no llevaba el avance bancario posterior");
+  assert.equal(old.edge,registered[id].auditoria.revisiones.edge,"el Edge de aquella fuente sigue auditado");
+  assert.notEqual(now.edge,old.edge,"el fichero vivo de bank-sync sí cambió después");
+  assert.deepEqual(Array.from(now.cambio),["web","native","edge"],"la fuente viva declara todas las superficies que cambian");
+  assert.equal(cli.betaVerdictFor(now,[{tanda:now.historial[0],verdict:"approved"}]),null,"el histórico no aprueba el avance nuevo");
+  const file="supabase/functions/bank-sync/index.ts";
+  const changed=f=>baselineSource(f)+(f===file?"\n// mutante: cambia el Edge histórico declarado":"");
+  const mutant=group(betaNotes(historicalNotes,changed,baselineScopes));
+  assert.notEqual(mutant.edge,old.edge,"el mutante toca la dependencia Edge real");
+  assert.throws(()=>assert.deepEqual(Array.from(mutant.cambio),["web","native"]),"declarar Edge cambiado como intacto debe fallar");
+  assert.deepEqual(Array.from(mutant.cambio),["web","native","edge"],"no se debilita la guarda Edge del histórico");
+});
 
 t("★ cada alias `desde` del repo lleva la huella del contenido y apunta a la MISMA tanda", () => {
   // Los alias describen la fuente acreditada anterior, no una persistencia posterior.
