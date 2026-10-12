@@ -230,10 +230,10 @@ const PRESUPUESTO = {
   // Tras retirar Sparkline, V4Ring, estilos/textos sustituidos y alias, la serie
   // por flujos y el historial400 conservan sus guardas. Mandato del dueño:
   // mínimo por KiB, sin recortar funciones ni dinero:1312 KiB dejaban500 B crudos.
-  // NO-GO Inicio sobre119 (12/10): 1.360.396/372.468 B con minificador oficial,
+  // NO-GO Inicio sobre119 (12/10): 1.360.370/372.460 B con minificador oficial,
   // DSN sintético95 B y119.99999. Deuda histórica, escalones de bienes, aportaciones,
   // unión local400/nube14 y caché corrigen cifras falsas. 1328/363 KiB no caben:
-  // 1329/364 son los mínimos medidos, margen500/268 B. Slot0e autoriza este mínimo;
+  // 1329/364 son los mínimos medidos, margen526/276 B. Slot0e autoriza este mínimo;
   // +25/+7 KiB frente a1191304/357, sin recortar guardas, idiomas ni producto.
   minificado: 1329 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y

@@ -17814,6 +17814,12 @@
       {
         "file": "src/modules/00-core.js",
         "data": "STATE_KEY_REAL"
+      },
+      {
+        "file": "src/modules/03-tab-dash.js",
+        "from": "  const ringPct=",
+        "to": "\n",
+        "includeTo": true
       }
     ],
     "unidades": true

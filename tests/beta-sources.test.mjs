@@ -157,6 +157,7 @@ test("Inicio v4.2 cubre flujos, ciclo, renderer, llamada, animación, textos, CS
     ["src/modules/03-tab-dash.js",'!!(window.__mcSplashGone)','false'],
     ["src/modules/03-tab-dash.js",'Math.floor(remaining*DISP.k/days)','Math.ceil(remaining*DISP.k/days)'],
     ["src/modules/03-tab-dash.js",'const dailyMoney=budAmt>0?cycleDailyMoney(rem,timing.left):null;','const dailyMoney=cycleDailyMoney(1000,1);'],
+    ["src/modules/03-tab-dash.js",'Math.min(1,rem/budAmt)','Math.min(1,spentAgainst/budAmt)'],
     ["src/modules/03-tab-dash.js",'Math.round((local-4)/312*(points.length-1))','0'],
     ["src/modules/02-ui-shared.js",'const t0=performance.now(), dur=950;','const t0=performance.now(), dur=1;'],
     ["src/modules/02-ui-shared.js",'if(mcReduced()){','if(false){'],
@@ -844,6 +845,25 @@ test("Inicio v4.2 integra119 con catálogo intacto y lista cerrada de huellas we
   assert.equal(now.native,then.native,"ningún cambio de APK por esta revisión");
   const original=betaDelivery(betaNotes(expectedNotes,source119,integrated),source119,integrated);
   assert.deepEqual(receipt.pruebas[widget],original.pruebas[widget],"el guion del widget se conserva, sin darlo por aprobado");
+});
+
+test("Inicio v4.2 conserva Catálogo119 y Retiro119 en la fuente actual",()=>{
+  const source=f=>read(f).replace(/\r\n/g,"\n"),expected=JSON.parse(source119("src/data/release-notes.json"));
+  const verify=notes=>assert.deepEqual(notes,expected,"catálogo119 vigente exacto, sin resucitar lo aprobado ni heredar identidad");
+  const notes=JSON.parse(source("src/data/release-notes.json"));verify(notes);
+  const resurrected=structuredClone(notes);resurrected[1].tandas.push(JSON.parse(source118("src/data/release-notes.json"))[0].tandas[0]);
+  assert.throws(()=>verify(resurrected),assert.AssertionError);
+  for(const lang of ["es","en","ca"]){const changed=structuredClone(notes);changed[0].tandas[0].items[lang][0]+=" mutante";assert.throws(()=>verify(changed),assert.AssertionError);}
+  const scopes=JSON.parse(source("scripts/beta-sources.json")),prior=JSON.parse(source119("scripts/beta-sources.json"));
+  for(const id of ["bancos-acuse-reconexion","recibos-cargo-unico"]){
+    for(const part of prior[id].web)assert.ok(scopes[id].web.some(p=>JSON.stringify(p)===JSON.stringify(part)),id+": ninguna unidad119 retirada");
+    assert.deepEqual(scopes[id].native,prior[id].native);assert.deepEqual(scopes[id].edge,prior[id].edge);
+  }
+  const receipt=betaDelivery(betaNotes(notes,source,scopes),source,scopes);
+  assert.equal(receipt.pruebas["recibos-cargo-unico"],undefined,"el cargo único aprobado sigue fuera del panel");
+  assert.equal(receipt.pruebas["inicio-grafica-vuelve"],undefined,"Inicio nuevo no resucita la unidad aprobada");
+  assert.equal(receipt.pruebas["inicio-patrimonio-flujos"],undefined,"la unidad nueva es propuesta; el catálogo lo prepara integración");
+  assert.equal(receipt.web["bancos-acuse-reconexion"],betaRevision("bancos-acuse-reconexion",source,undefined,scopes["bancos-acuse-reconexion"]).web);
 });
 
 test("Bienes113 vigila la puerta vacía, ficha, cancelación, borrado y textos",()=>{

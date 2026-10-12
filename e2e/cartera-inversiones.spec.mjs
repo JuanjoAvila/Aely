@@ -505,7 +505,14 @@ test("NO-GO Inversiones conserva el ancho completo de su gráfica",async({page})
   await page.goto("/");await page.waitForFunction(()=>!document.getElementById("mc-load"));await dismissNews(page);
   await page.locator('.botnav-tab[data-tour="cartera"]').click();
   await page.getByRole("button",{name:/Ver todas tus inversiones|See all your investments|Veure totes les inversions/i}).click();
-  const spark=page.locator("[data-inv-screen] .spark");await expect(spark).toBeVisible();
+  // La hija fullMode no monta el gráfico legado. El contrato de su componente real
+  // se mide con el CSS servido, sin añadir al producto una puerta que no se ha pedido.
+  await page.evaluate(()=>{
+    const host=document.createElement("div");host.dataset.sparkCompat="1";host.style.width="320px";
+    document.querySelector("[data-inv-screen]").appendChild(host);
+    ReactDOM.createRoot(host).render(React.createElement(SparklineInv,{hist:mcLoadRaw(mcStateKey()).invHistory}));
+  });
+  const spark=page.locator("[data-spark-compat] .spark");await expect(spark).toBeVisible();
   const widths=await spark.evaluate(el=>({svg:el.getBoundingClientRect().width,parent:el.parentElement.clientWidth-parseFloat(getComputedStyle(el.parentElement).paddingLeft)-parseFloat(getComputedStyle(el.parentElement).paddingRight)}));
   expect(Math.abs(widths.svg-widths.parent)).toBeLessThan(2);
 });

@@ -42,6 +42,15 @@ rendimiento completo, tres entradas CPU6 contra119 y CI final pendientes.
 Funcional completa sólo en Tests remoto. Consulta VERSION pendiente: no se
 elude cambiando la rama ni rebajando guardas. Se conservan rojos y omisiones previos.
 
+La primera focal0361901f dejó27PASS/4FAIL, sin omisiones ni reintentos. Sus tres
+rojos del anillo demostraron que pintaba gastado junto al restante: corregido
+para representar el porcentaje restante. El cuarto buscaba `.spark` en la hija
+fullMode, donde no se monta. Se conserva el CSS del renderer legado y se prueba
+su componente real con el CSS servido, mediante un contenedor sintético; eso no
+acredita que exista una puerta actual hacia la gráfica legada.
+El mínimo medido tras esta corrección es1.360.370/372.460B, DSN sintético95B y
+sello119.99999, gzip9:1329/364KiB, margen526/276B. Sin topes adicionales.
+
 Cinco pasos propuestos para el móvil cuando esté publicado:
 
 1. Contrastar el total de Inicio con cuentas, inversiones y bienes menos deudas
