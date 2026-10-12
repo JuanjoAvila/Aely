@@ -3517,7 +3517,7 @@ const cloud = (function(){
       // Cómo lo llamaba el banco (migración 0021). Sin esto, renombrar el «Movimiento» de Trade
       // Republic hacía que el siguiente sync no reconociera la fila y metiera el gasto otra vez.
       const obn={ ob_name:(e.obName!=null?String(e.obName).slice(0,160):null) };
-      await withNotaFallback(
+      const r=await withNotaFallback(
         function(conNota, conDivisa, conObName){
           let fila=base;
           if(conNota) fila=Object.assign({},fila,nota);
@@ -3526,12 +3526,31 @@ const cloud = (function(){
           // ignoreDuplicates + onConflict user_id,fecha,importe,comercio: si ya hay fila, NO
           // inserta (el id mandado se ignora). Local puede quedar con uuid distinto al de la
           // nube hasta el pull — igual que antes de mandar id. El pull adopta r.id.
-          return sb.from('expenses').upsert(
+          const q=sb.from('expenses').upsert(
             fila,
             { onConflict:'user_id,fecha,importe,comercio', ignoreDuplicates:true }
           );
+          // Solo el cargo de un recibo pregunta si la fila entró: es el único que tiene que
+          // hacer algo cuando ya estaba (`subirGasto`). El resto sube como siempre.
+          return e.reciboId ? q.select('id') : q;
         }
       );
+      return !!(r && r.data && r.data.length);
+    },
+    /* La marca de recibo sobre una fila que YA estaba en la nube sin ella (la subió otro móvil o
+       una app anterior). Por fecha, importe y comercio, que es la clave del duplicado: el id local
+       no es el de esa fila. Y SOLO si su `source` es el del banco a secas: con la terna sola se
+       pisaba un «posible repetido», la cuota de una deuda, un aviso del móvil o un gasto a mano
+       que coincidieran (revisión del 12/10/2026). Cada prefijo conserva el suyo. */
+    async setExpenseRecibo(e){
+      if(!sb || !e.ent) return;
+      const {data:{session}}=await sb.auth.getSession();
+      if(!session) return;
+      for(const pre of ["ob:","ob-hist:"]){
+        const {error}=await sb.from('expenses').update({ source:pre+e.ent+reciboSufijo(e.reciboId) })
+          .eq('user_id',session.user.id).eq('fecha',e.date).eq('importe',e.amount).eq('comercio',e.merchant).eq('source',pre+e.ent);
+        if(error) throw error;
+      }
     },
     /* IMPORT HISTÓRICO — batch con RETURNING id (tanda 3, agujero A).
        ignoreDuplicates + onConflict terna: Postgres NO devuelve las filas que chocaron.
@@ -4057,12 +4076,12 @@ function _errCloudMsg(err){
 }
 function subirGasto(e, donde){
   if(!cloud.enabled()) return Promise.resolve();
-  return cloud.addExpense(e).then(function(){
+  return cloud.addExpense(e).then(function(nueva){
     /* El alta ignora duplicados: si la fila ya estaba en la nube sin la marca de recibo (otro
        móvil la importó antes), allí seguiría como una compra y el widget contaría lo que la app
-       no cuenta. Se reescribe su `source` por fecha, importe y comercio, que es la clave del
-       duplicado; con el id local no se encontraría la fila del otro móvil. */
-    if(e && e.reciboId) return cloud.setExpenseBank(Object.assign({},e,{id:null}), e.ent);
+       no cuenta. Solo entonces se le pone; la que acaba de entrar ya la lleva (la primera
+       sincronización hacía una escritura de más por cada cargo). */
+    if(e && e.reciboId && !nueva) return cloud.setExpenseRecibo(e);
   }).catch(function(err){
     cloud.logEvent("error","addExpense "+(donde||"?")+": "+keyOfExpense(e), _errCloudMsg(err));
   });
@@ -4086,7 +4105,7 @@ function borrarGastoNube(e, donde){
 
    Si añades un método a `cloud` que ESCRIBA algo, añádelo a esta lista. */
 const CLOUD_WRITES=[
-  "pushState","addExpense","addExpensesBatch","setExpenseBank","setExpenseDup","setExpenseNoCard","setExpenseNote","setExpenseCat","confirmExpenseWithdrawal","setExpenseDeuda","deleteExpense","deleteExpensesByIds",
+  "pushState","addExpense","addExpensesBatch","setExpenseBank","setExpenseDup","setExpenseNoCard","setExpenseNote","setExpenseCat","confirmExpenseWithdrawal","setExpenseDeuda","setExpenseRecibo","deleteExpense","deleteExpensesByIds",
   "backupState","bankConnect","bankDisconnect","myinvestorConnect","myinvestorStore",
   "myinvestorDisconnect","setIngestToken","clearIngestToken","logEvent","logUso","logPerf","feedback","betaReport",
   "deleteAccount","createHousehold","joinHousehold","publishHouseholdSnapshot","leaveHousehold",
@@ -4519,7 +4538,8 @@ function canRecognizeWithdrawal(e,state){
   const matches=(state.expenses||[]).filter(function(x){ return x.id===e.id; });
   if(matches.length!==1) return false;
   const current=matches[0];
-  return canRecognizeWithdrawal(current)&&!withdrawalReceiptLink(state,current)
+  // El cargo de un recibo tampoco: como retirada sumaría al efectivo lo que el recibo ya restó.
+  return canRecognizeWithdrawal(current)&&!withdrawalReceiptLink(state,current)&&!cargoDeRecibo(current,state)
     &&(current.category===e.category||current.category==="traspaso")
     &&withdrawalRowMatches(e,{id:current.id,source:expenseSourceForCloud(current),fecha:current.date,importe:current.amount,comercio:current.merchant});
 }
@@ -6169,7 +6189,7 @@ Object.assign(LANG.es,{
   bp_expbanks:"También apuntar gastos de tarjeta de…", bp_expbanks_hint:"Marca bancos EXTRA cuyas compras cuentan en el presupuesto del día a día. La cuenta principal de gasto diario (rol en Patrimonio) siempre cuenta y no se puede desmarcar aquí. Quitar un banco no borra su historial.", bp_expbanks_none:"Conecta un banco Open Banking para poder importar sus compras con tarjeta a Gastos.",
   bp_expbanks_main:"principal (obligatoria)", bp_expbanks_locked:"Esa es tu cuenta de gasto diario: no se desmarca aquí. Cámbiala en Cartera → editar cuenta. Prueba a añadir o quitar un banco EXTRA.",
   bp_hist_pickbank:"Elige qué banco consultar. De entrada están marcados solo los bancos de gasto diario.",
-  bp_hist_btn:"Importar histórico", bp_hist_title:"Importar histórico", bp_hist_sub:"Trae movimientos de los últimos meses de: {banks}. Por defecto van a Gastos (o Ingresos). Un recibo fijo solo se crea si lo marcas tú, y te pedirá confirmación.", bp_hist_nodaily:"Conecta un banco Open Banking (o márcalo como gasto diario en Cartera) para traer el histórico. Trade Republic también vale si lo tienes conectado.", bp_hist_m:"{n} mes(es)", bp_hist_search:"Buscar movimientos", bp_hist_searching:"Buscando…", bp_hist_none:"No hay movimientos nuevos en ese periodo (o ya están todos apuntados). Recuerda: el banco solo deja ver ~90 días.", bp_hist_all_logged:"Cuentas compartidas por {bank}: {accounts}. Movimientos entregados: {n}, todos ya apuntados. Si falta otra cuenta, vuelve a conectar el banco y selecciónala; si aun así no aparece, el banco no la está compartiendo con Aely.", bp_hist_view_logged:"Verlos en Gastos", bp_hist_found:"{n} movimientos · marca y elige destino", bp_hist_notcard:"no es tarjeta", bp_hist_import:"Importar {n}", bp_hist_done:"✓ {n} importados", bp_hist_as_gasto:"🛒 Gasto", bp_hist_as_recibo:"🧾 Recibo", bp_hist_as_ingreso:"💰 Ingreso", bp_hist_recibo:"Recibo", bp_hist_done_g:"✓ {n} en Gastos", bp_hist_done_i:"✓ {n} ingresos", bp_hist_done_r:"✓ {n} recibos", bp_hist_dup:"ya detectado como recibo mensual · se cuenta una sola vez",
+  bp_hist_btn:"Importar histórico", bp_hist_title:"Importar histórico", bp_hist_sub:"Trae movimientos de los últimos meses de: {banks}. Por defecto van a Gastos (o Ingresos). Un recibo fijo solo se crea si lo marcas tú, y te pedirá confirmación.", bp_hist_nodaily:"Conecta un banco Open Banking (o márcalo como gasto diario en Cartera) para traer el histórico. Trade Republic también vale si lo tienes conectado.", bp_hist_m:"{n} mes(es)", bp_hist_search:"Buscar movimientos", bp_hist_searching:"Buscando…", bp_hist_none:"No hay movimientos nuevos en ese periodo (o ya están todos apuntados). Recuerda: el banco solo deja ver ~90 días.", bp_hist_all_logged:"Cuentas compartidas por {bank}: {accounts}. Movimientos entregados: {n}, todos ya apuntados. Si falta otra cuenta, vuelve a conectar el banco y selecciónala; si aun así no aparece, el banco no la está compartiendo con Aely.", bp_hist_view_logged:"Verlos en Gastos", bp_hist_found:"{n} movimientos · marca y elige destino", bp_hist_notcard:"no es tarjeta", bp_hist_import:"Importar {n}", bp_hist_done:"✓ {n} importados", bp_hist_as_gasto:"🛒 Gasto", bp_hist_as_recibo:"🧾 Recibo", bp_hist_as_ingreso:"💰 Ingreso", bp_hist_recibo:"Recibo", bp_hist_done_g:"✓ {n} en Gastos", bp_hist_done_i:"✓ {n} ingresos", bp_hist_done_r:"✓ {n} recibos", bp_hist_dup:"ya está en tu Plan · se cuenta una sola vez",
   bp_hist_nuevos:"nuevos", bp_hist_repes:"repetidos", bp_hist_probe:"Sonda: banco {bank} · llegan {llegan} · nuevos {nuevos} · coinciden día+€ {ya}", bp_hist_dupexist:"ya lo tienes apuntado (mismo día e importe)", bp_hist_dupmaybe:"puede que ya lo tengas (mismo importe, fecha cercana)",
   bp_hist_esrecibo:"es tu recibo «{name}»: se verá en Gastos sin contarse dos veces",
   bp_hist_quizarecibo:"parece tu recibo «{name}»: se verá en Gastos sin contarse dos veces",
@@ -6512,11 +6532,6 @@ function cargoDeRecibo(e, s){
   if(!f || reciboVetado(s, id, fixedPaymentIdentity(expenseBankOf(e), e), e.id)) return null;
   return f;
 }
-// Nombre del recibo al que corresponde un cargo; "" si no es de ninguno.
-function reciboNombre(s, e){
-  const f=cargoDeRecibo(e, s);
-  return (f && f.name) || "";
-}
 /* Lo que la lista escribe junto a un cargo de recibo: «Recibo: X» si es seguro, «¿Recibo: X?» si
    solo lo parece (`cargoDeReciboFirme`); "" si no es de ninguno. Texto y no objeto: va de prop
    a filas con `React.memo`. */
@@ -6653,7 +6668,10 @@ function reconcileTR(s){
     // sincroniza de verdad, el round-up/saveback/aporte YA entran como gastos reales categoría
     // "inversion" (ver `applyInvestBuy` en 08-motor-bank.js, disparado desde `importObExpenses` y
     // `setCat`) — sumarlos aquí TAMBIÉN los contaba dos veces (una simulada, otra real).
-    const obFed = (s.expenses||[]).some(function(e){ return e.source==="ob" && e.ent===acc.ent; });
+    // El cargo de un recibo no cuenta como «el banco ya trae sus movimientos»: esa fila antes ni
+    // existía, y con ella sola el cierre dejaba de restar el redondeo y el aporte (revisión del
+    // 12/10/2026, medido: 1771,72 pasaba a 1772,52).
+    const obFed = (s.expenses||[]).some(function(e){ return e.source==="ob" && e.ent===acc.ent && !cargoDeRecibo(e, s); });
     if(!obFed){
       /* El round-up y el saveback se estiman de los MISMOS gastos que en vivo. Durante el mes,
          `11-app-main.js:1483` los calcula sobre una lista ya filtrada por `expenseCountsCash`;
@@ -9595,7 +9613,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   const recognizeWithdrawal=function(ex){
     if(!canRecognizeWithdrawal(ex) || ex.category==="traspaso" || withdrawalPending.current[ex.id]) return;
     if(!canRecognizeWithdrawal(ex,withdrawalState.current)){
-      showToast(t(withdrawalReceiptLink(withdrawalState.current,ex)?"f_withdraw_receipt_blocked":"f_withdraw_error")); return;
+      showToast(t(withdrawalReceiptLink(withdrawalState.current,ex)||cargoDeRecibo(ex,withdrawalState.current)?"f_withdraw_receipt_blocked":"f_withdraw_error")); return;
     }
     withdrawalPending.current[ex.id]=true;
     askConfirm({title:t("f_withdraw_title"),sub:tf("f_withdraw_sub",{x:eur(ex.amount)}),ok:t("f_withdraw_ok")})
@@ -9727,11 +9745,6 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     // La marca viaja en `source`: se reescribe con el mismo método que guarda el banco.
     if(subir && cloud.enabled()) cloud.setExpenseBank(subir, subir.ent).catch(function(){});
   };
-  const marcarReciboVinculado=function(ex,fixedId){
-    let subir=null;
-    set(function(s){ const r=marcarCargoDeReciboVinculado(s, ex.id, fixedId); if(!r) return s; subir=r.e; return r.state; });
-    if(subir && cloud.enabled()) cloud.setExpenseBank(subir, subir.ent).catch(function(){});
-  };
   const setReceipt=function(ex,fixedId){
     if(withdrawalPending.current[ex.id]){ showToast(t("f_withdraw_receipt_pending")); return; }
     const ds=String(ex.date||"").slice(0,10),y=Number(ds.slice(0,4)),m=Number(ds.slice(5,7)),now=new Date();
@@ -9740,16 +9753,26 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     const expected={identity:fixedPaymentIdentity(expenseBankOf(ex),ex),model:f&&fixedPaymentModel(f,m)};
     const save=function(){
       if(withdrawalPending.current[ex.id]){ showToast(t("f_withdraw_receipt_pending")); return; }
+      let subir=null;
       // El diálogo es asíncrono: otra sincronización puede sustituir el cargo o editar el recibo.
-      set(function(s){ return linkFixedPayment(fixedId!=null?levantarVetoDeRecibo(s,ex.id,fixedId):s,ex.id,fixedId,y,m,today,expected); });
-      if(fixedId!=null) marcarReciboVinculado(ex,fixedId);
+      set(function(s){
+        // Solo si de ESTE cargo se dijo «no es este recibo»: confirmar lo deshace y repone la marca.
+        const r=fixedId!=null&&reponerCargoDeRecibo(s,ex.id,fixedId,y,m,today,expected);
+        if(r){ subir=r.e; return r.state; }
+        return linkFixedPayment(s,ex.id,fixedId,y,m,today,expected);
+      });
+      if(subir && cloud.enabled()) cloud.setExpenseBank(subir, subir.ent).catch(function(){});
     };
     // Deshacer el vínculo de un cargo marcado es decir «no es este recibo»: una sola salida.
     if(fixedId==null && cargoDeRecibo(ex,state)){ quitarRecibo(ex); return; }
     if(fixedId==null){ save(); return; }
     if(!f) return;
+    /* El diálogo de siempre promete que el presupuesto se conserva, y es verdad salvo al deshacer
+       un «no es este recibo»: ahí el cargo vuelve a ser el de su recibo y deja de sumar en
+       Gastos, que es lo que dice el texto de la marca. */
+    const repone=reciboVetado(state,fixedId,expected.identity,ex.id)&&(ex.source==="ob"||ex.source==="ob-hist");
     askConfirm({title:tf("f_receipt_confirm",{name:f.name}),
-      sub:tf("f_receipt_confirm_sub",{merchant:ex.merchant,amount:eur(ex.amount),bank:entOf(expenseBankOf(ex)).label,date:fmtIsoCorto(ds),planned:entOf(accOf(f)).label,expected:eur(f.bankAmount>0?f.bankAmount:occAmountIn(f,m))}),
+      sub:repone?tf("f_recibo_marca",{name:f.name}):tf("f_receipt_confirm_sub",{merchant:ex.merchant,amount:eur(ex.amount),bank:entOf(expenseBankOf(ex)).label,date:fmtIsoCorto(ds),planned:entOf(accOf(f)).label,expected:eur(f.bankAmount>0?f.bankAmount:occAmountIn(f,m))}),
       ok:t("f_receipt_yes")}).then(function(yes){ if(yes) save(); });
   };
   // Marca/desmarca un gasto como "no tarjeta" (bizum/transferencia) para que no cuente el round-up TR.
@@ -10690,10 +10713,10 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
     React.createElement("div",{className:"row",style:{gap:8}},
       React.createElement("button",{type:"button",className:"btn btn-primary",style:{flex:1},onClick:function(){ resolveDup&&resolveDup(exp,true); onClose(true); }},t("g_dup_same")),
       React.createElement("button",{type:"button",className:"btn btn-ghost",style:{flex:1},onClick:function(){ resolveDup&&resolveDup(exp,false); onClose(true); }},t("g_dup_diff"))));
-  const reciboMarca=reciboNombre(state,exp), reciboFirme=!!reciboMarca&&cargoDeReciboFirme(exp,state);
+  const reciboDe=cargoDeRecibo(exp,state), reciboMarca=reciboDe?reciboDe.name||t("bp_hist_recibo"):"";
   // A la vista al abrir la ficha, sin desplegar nada: un parecido dudoso se corrige de un toque.
-  const reciboAviso=reciboMarca&&React.createElement("div",{className:"hint","data-testid":"exp-recibo-marca",style:{margin:"0 0 12px",padding:"10px 12px",borderRadius:12,background:"var(--surface-2)"}},
-    React.createElement("div",{style:{marginBottom:8}},tf(reciboFirme?"f_recibo_marca":"f_recibo_quiza",{name:reciboMarca})),
+  const reciboAviso=reciboDe&&React.createElement("div",{className:"hint","data-testid":"exp-recibo-marca",style:{margin:"0 0 12px",padding:"10px 12px",borderRadius:12,background:"var(--surface-2)"}},
+    React.createElement("div",{style:{marginBottom:8}},tf(cargoDeReciboFirme(exp,state)?"f_recibo_marca":"f_recibo_quiza",{name:reciboMarca})),
     React.createElement("button",{type:"button",className:"v4-chip","data-testid":"exp-recibo-no",onClick:function(){ quitarRecibo(exp); }},t("f_recibo_no")));
   const afterMeta=React.createElement(React.Fragment,null,
     calOpen && React.createElement(McCal,{value:dateIso,onPick:function(iso){ setCalOpen(false); saveEdit(exp,{date:iso}); }}),
@@ -10708,7 +10731,7 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
         disabled:!canRecognizeWithdrawal(exp,state)||withdrawalStatus && withdrawalStatus.id===exp.id && withdrawalStatus.status==="pending",
         onClick:function(){ recognizeWithdrawal(exp); }},t("f_withdraw_action")),
       exp.category==="traspaso" && React.createElement("div",{"data-testid":"exp-withdrawal-neutral"},t("f_withdraw_done")),
-      withdrawalReceiptLink(state,exp)&&React.createElement("div",{"data-testid":"exp-withdrawal-receipt-blocked"},t("f_withdraw_receipt_blocked")),
+      (withdrawalReceiptLink(state,exp)||reciboDe)&&React.createElement("div",{"data-testid":"exp-withdrawal-receipt-blocked"},t("f_withdraw_receipt_blocked")),
       withdrawalStatus && withdrawalStatus.id===exp.id && withdrawalStatus.status==="done" && withdrawalStatus.receiptUndone && React.createElement("div",{role:"status"},t("f_withdraw_receipt_undone")),
       React.createElement("div",null,t("f_withdraw_cash_limit")),
       withdrawalStatus && withdrawalStatus.id===exp.id && withdrawalStatus.status!=="done" && React.createElement("div",{role:"status"},
@@ -10724,16 +10747,18 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
   const adjustments=React.createElement("div",{className:"v4-ficha-adjust"},
     // Con marca de recibo la fila sale siempre: si no, «No es este recibo» quedaba inalcanzable
     // cuando la marca venía de un puntual o la categoría era neutra.
-    !isIncome&&!exp.possibleDup&&(reciboMarca||(!CAT_NEUTRAS[exp.category]&&(state.fixed||[]).length>0))&&React.createElement(React.Fragment,null,
+    !isIncome&&!exp.possibleDup&&(reciboDe||(!CAT_NEUTRAS[exp.category]&&(state.fixed||[]).length>0))&&React.createElement(React.Fragment,null,
       React.createElement("button",{type:"button",className:"v4-ficha-adjust-row","data-testid":"exp-receipt",onClick:function(){ setAdjustOpen(adjustOpen==="receipt"?null:"receipt"); }},
         React.createElement("span",null,t("f_receipt_row")),React.createElement("span",{className:"value","data-testid":"exp-receipt-value"},receiptLinked?receiptLinked.name:(reciboMarca||t("f_no"))),React.createElement("span",{className:"chev"},"›")),
       adjustOpen==="receipt"&&React.createElement("div",{className:"v4-ficha-adjust-open","data-testid":"exp-receipt-options"},
         React.createElement("div",{className:"hint"},t("f_receipt_hint")),
         React.createElement("div",{className:"v4-chips wrap"},
-          receiptLinked&&React.createElement("button",{type:"button",className:"v4-chip","data-testid":"exp-receipt-unlink",onClick:function(){ setReceipt(exp,null); }},t("f_receipt_unlink")),
-          !receiptLinked&&receiptOptions.map(function(f){ return React.createElement("button",{key:f.id,type:"button",className:"v4-chip","data-testid":"exp-receipt-"+f.id,
+          // Un cargo marcado ya es de un recibo aunque no tenga vínculo a mano: primero se deshace
+          // (es lo que pide el aviso de la retirada), y solo entonces se ofrece confirmar otro.
+          (receiptLinked||reciboDe)&&React.createElement("button",{type:"button",className:"v4-chip","data-testid":"exp-receipt-unlink",onClick:function(){ setReceipt(exp,null); }},t("f_receipt_unlink")),
+          !receiptLinked&&!reciboDe&&receiptOptions.map(function(f){ return React.createElement("button",{key:f.id,type:"button",className:"v4-chip","data-testid":"exp-receipt-"+f.id,
             onClick:function(){ setReceipt(exp,f.id); }},f.name+" · "+eur(occAmountIn(f,receiptMonth))); })),
-        !receiptLinked&&!receiptOptions.length&&React.createElement("div",{className:"hint"},t("f_receipt_none")))),
+        !receiptLinked&&!reciboDe&&!receiptOptions.length&&React.createElement("div",{className:"hint"},t("f_receipt_none")))),
     React.createElement("button",{type:"button",className:"v4-ficha-adjust-row",onClick:function(){ setAdjustOpen(adjustOpen==="note"?null:"note"); }},
       React.createElement("span",null,t("f_note_row")),React.createElement("span",{className:"value"},editExp.note||t("f_note_none")),React.createElement("span",{className:"chev"},"›")),
     adjustOpen==="note" && React.createElement("div",{className:"v4-ficha-adjust-open"},
@@ -13828,7 +13853,7 @@ function fixedPaymentAutoOwner(s,e,y,m,bank,merchant,amount,category,book){
   if(!fixedPaymentUnique(s,e)) return false;
   var name=recNorm(merchant),best=-1,winners=[];
   fixedPaymentContenders(s,y,m).forEach(function(f){
-    var n=recNorm(f.name),full=n.length>=4&&(" "+name+" ").indexOf(" "+n+" ")>=0;
+    var n=recNorm(f.name),full=recFrase(n,name);
     var exact=Math.round(Number(f.amount)*100)===Math.round(Number(amount)*100);
     if(book){
       // El BOOK identifica el banco: un homónimo ajeno no puede negar su cargo propio.
@@ -13846,20 +13871,42 @@ function fixedPaymentAutoOwner(s,e,y,m,bank,merchant,amount,category,book){
    de poder pagar ESE recibo por cualquier camino (extracto, fila de Gastos o prueba guardada).
    Se guardan dos claves por veto: recibo + identidad del cargo, que es lo único que tiene el
    extracto del banco, y recibo + id de la fila, que sobrevive a que él renombre el comercio.
-   `reciboNo` viaja en el estado y al bajar la nube se une con lo local (`reciboNoUnion`): otro
-   móvil que aún no lo sabía no puede borrarlo subiendo su lista. */
+   `reciboNo` viaja en el estado con la hora de cada decisión en `reciboNoAt`, y al bajar la nube
+   gana, clave a clave, lo último que se dijo (`reciboNoUnion`). Solo sumar listas no bastaba
+   (revisión del 12/10/2026): el veto levantado en un móvil seguía en el otro, que lo volvía a
+   subir. Sin hora, o con la misma, se suman: otro móvil que aún no sabía del veto no puede
+   borrarlo subiendo su lista. */
 const RECIBO_NO_MAX=400;
 function reciboVetado(s,id,identity,filaId){
   var no=s&&s.reciboNo;
   if(!no||!no.length) return false;
   return no.indexOf(id+"|"+identity)>=0||(filaId!=null&&no.indexOf(id+"|#"+filaId)>=0);
 }
-function reciboNoUnion(a,b){
-  if(!(b&&b.length)) return a;
-  if(!(a&&a.length)) return b.slice(-RECIBO_NO_MAX);
-  var out=a.slice();
-  b.forEach(function(k){ if(out.indexOf(k)<0) out.push(k); });
-  return out.length===a.length?a:out.slice(-RECIBO_NO_MAX);
+// Pone (`vetar`) o levanta esas claves y apunta cuándo. → {reciboNo, reciboNoAt} para el estado.
+function reciboNoPon(s,claves,vetar,ahora){
+  var at=Object.assign({},s.reciboNoAt),no=(s.reciboNo||[]).filter(function(k){ return claves.indexOf(k)<0; });
+  claves.forEach(function(k){ at[k]=ahora; });
+  return reciboNoTope(vetar?no.concat(claves):no,at);
+}
+function reciboNoTope(no,at){
+  var claves=Object.keys(at);
+  if(claves.length>RECIBO_NO_MAX) claves.sort(function(a,b){ return at[b]-at[a]; }).slice(RECIBO_NO_MAX).forEach(function(k){ delete at[k]; });
+  return {reciboNo:no.slice(-RECIBO_NO_MAX),reciboNoAt:at};
+}
+function reciboNoUnion(local,nube){
+  var na=local.reciboNo||[],nb=nube.reciboNo||[],ta=local.reciboNoAt||{},tb=nube.reciboNoAt||{};
+  var at={},no=[],vistas={};
+  na.concat(nb,Object.keys(ta),Object.keys(tb)).forEach(function(k){
+    if(vistas[k]) return;
+    vistas[k]=1;
+    var a=ta[k]||0,b=tb[k]||0;
+    if(a||b) at[k]=Math.max(a,b);
+    if(a===b?na.indexOf(k)>=0||nb.indexOf(k)>=0:(a>b?na:nb).indexOf(k)>=0) no.push(k);
+  });
+  var out=reciboNoTope(no,at);
+  // Misma lista, misma referencia: la leen los `useMemo` de Gastos y de los totales en cada pull.
+  if(out.reciboNo.length===na.length&&out.reciboNo.every(function(k,i){ return k===na[i]; })) out.reciboNo=na;
+  return out;
 }
 function fixedPaymentProof(s,e,y,m,today){
   var p=e.paymentProofs&&e.paymentProofs[y*12+m];
@@ -14475,6 +14522,9 @@ function minWalk(startBal, evs){
 // normaliza un nombre para casar ("Mamá"→"mama", "COMUNIDAD PROPIETARIOS"→tokens)
 function recNorm(s){ return String(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9 ]/g," ").replace(/\s+/g," ").trim(); }
 function recTokens(s){ return recNorm(s).split(" ").filter(function(w){ return w.length>=4; }); }
+// Un nombre ya normalizado, entero y por palabras completas dentro de otro. Con menos de cuatro
+// letras no identifica a nadie. Una sola regla para el motor de pagos y la etiqueta del cargo.
+function recFrase(n,texto){ return n.length>=4&&(" "+texto+" ").indexOf(" "+n+" ")>=0; }
 // ¿comparten nombre? (uno contiene al otro, o un token ≥4 en común)
 function recNameMatch(a,b){
   const na=recNorm(a), nb=recNorm(b);
@@ -14652,6 +14702,14 @@ function flattenBankTx(links){
    Ahora entra, y lleva `reciboId` EXACTAMENTE lo que antes se tiraba: así ninguna cifra cambia
    respecto a descartarlo (lo fija `tests/recibo-invariante`). Este cambio es de lo que se ve.
 
+   LA MARCA SE QUEDA, y ahí sí cambia una cifra, a propósito (decisión del 12/10/2026 tras medir
+   1.500 extractos). Antes cada sync volvía a juzgar el cargo desde cero: el seguro anual o el
+   puntual cobrado a fin de mes se tiraba en su mes y al siguiente, cuando el recibo ya no tocaba,
+   el mismo cargo entraba como una compra; y al subir el importe de un recibo, el cargo viejo
+   dejaba de casar y entraba al resincronizar. Ahora la fila ya está en la lista con su marca y
+   no se vuelve a juzgar: en esos casos el gastado es MENOR que antes (26 de 1.500, nunca mayor),
+   porque el cargo sigue siendo el de su recibo. Dentro del mes no cambia nada.
+
    INGRESOS: de cualquier banco (para «Mi ciclo»). Idempotente por ext_id + dedup. */
 function importObExpenses(s, txs, links){
   if(!txs || !txs.length) return null;
@@ -14818,8 +14876,7 @@ function importObExpenses(s, txs, links){
    Con uno solo no se pregunta al motor. → id del recibo, o null si ninguno tiene id. */
 function reciboNombreCasa(recibo, comercio){
   const a=recNorm(recibo), b=recNorm(comercio);
-  if(!a || !b) return false;
-  return (a.length>=4 && (" "+b+" ").indexOf(" "+a+" ")>=0) || (b.length>=4 && (" "+a+" ").indexOf(" "+b+" ")>=0);
+  return recFrase(a,b) || recFrase(b,a);
 }
 function reciboParaCargo(s, hits, e, txs){
   // El mismo recibo sale una vez por cada mes en que se cobra: se queda uno por id.
@@ -14845,10 +14902,26 @@ function cargoDeReciboFirme(e, s){
      histórico por render. Se recuerda la respuesta mientras no cambie nada de lo que el motor lee. */
   const cache=cargoDeReciboFirme.cache||(cargoDeReciboFirme.cache=new WeakMap());
   const dia=new Date().getDate();
+  const otro=function(x){ return !x || x.fixed!==s.fixed || x.bankTx!==s.bankTx || x.oneoffs!==s.oneoffs || x.reciboNo!==s.reciboNo || x.accounts!==s.accounts || x.deleted!==s.deleted || x.debts!==s.debts || x.dia!==dia; };
   let c=s.expenses&&cache.get(s.expenses);
-  if(!c || c.fixed!==s.fixed || c.bankTx!==s.bankTx || c.oneoffs!==s.oneoffs || c.reciboNo!==s.reciboNo || c.accounts!==s.accounts || c.deleted!==s.deleted || c.debts!==s.debts || c.dia!==dia){
-    c={fixed:s.fixed,bankTx:s.bankTx,oneoffs:s.oneoffs,reciboNo:s.reciboNo,accounts:s.accounts,deleted:s.deleted,debts:s.debts,dia:dia,filas:new Map()};
-    if(s.expenses) cache.set(s.expenses,c);
+  if(otro(c)){
+    const antes=cargoDeReciboFirme.ultima;
+    c={expenses:s.expenses,fixed:s.fixed,bankTx:s.bankTx,oneoffs:s.oneoffs,reciboNo:s.reciboNo,accounts:s.accounts,deleted:s.deleted,debts:s.debts,dia:dia,filas:new Map()};
+    /* Apuntar un gasto cambia la lista entera de referencia, pero el motor solo mira los gastos
+       del MES del cargo: si lo único distinto son unas pocas filas, las respuestas de los demás
+       meses siguen valiendo (medido con 20.000 gastos: 8 ms por alta en recalcular 12 filas). */
+    if(s.expenses && antes && antes.expenses && !otro(antes)){
+      const a=antes.expenses, b=s.expenses;
+      let i=0, fa=a.length, fb=b.length;
+      while(i<fa && i<fb && a[i]===b[i]) i++;
+      while(fa>i && fb>i && a[fa-1]===b[fb-1]){ fa--; fb--; }
+      if(fa-i+fb-i<=20){
+        const mes=function(x){ return String((x&&x.date)||"").slice(0,7); }, tocados={};
+        a.slice(i,fa).concat(b.slice(i,fb)).forEach(function(x){ tocados[mes(x)]=1; });
+        antes.filas.forEach(function(firme,fila){ if(!tocados[mes(fila)]) c.filas.set(fila,firme); });
+      }
+    }
+    if(s.expenses){ cache.set(s.expenses,c); cargoDeReciboFirme.ultima=c; }
   }
   if(c.filas.has(e)) return c.filas.get(e);
   const firme=cargoDeReciboFirmeCalc(e, s, f);
@@ -14861,9 +14934,11 @@ function cargoDeReciboFirmeCalc(e, s, f){
   const ds=String(e.date||"").slice(0,10), y=Number(ds.slice(0,4)), m=Number(ds.slice(5,7)), now=new Date();
   if(!(y>0) || !(m>=1 && m<=12) || y*12+m>now.getFullYear()*12+now.getMonth()+1) return false;
   const hoy=y===now.getFullYear()&&m===now.getMonth()+1 ? now.getDate() : new Date(y,m,0).getDate();
-  const st=fixedPaymentState(s,f,y,m,hoy);
-  const pago=st.bankTx ? fixedPaymentIdentity(st.bankTx.ent, st.bankTx) : st.proof ? st.proof.identity : st.expense ? fixedPaymentIdentity(expenseBankOf(st.expense), st.expense) : null;
-  return !!pago && pago===fixedPaymentIdentity(expenseBankOf(e), e);
+  return reciboPagadoCon(fixedPaymentState(s,f,y,m,hoy))===fixedPaymentIdentity(expenseBankOf(e), e);
+}
+// Identidad del cargo con el que el motor da por pagado un recibo; null si no es con ninguno.
+function reciboPagadoCon(st){
+  return st.bankTx ? fixedPaymentIdentity(st.bankTx.ent, st.bankTx) : st.proof ? st.proof.identity : st.expense ? fixedPaymentIdentity(expenseBankOf(st.expense), st.expense) : null;
 }
 /* MARCAR O DESMARCAR FUERA DE UN SYNC NO PUEDE MOVER EL SALDO (revisión del 12/10/2026).
    El saldo guardado se ancló contando (o sin contar) esa fila; al cambiarle la marca la cuenta
@@ -14886,45 +14961,54 @@ function conSaldoMostrado(antes, despues){
    retira la prueba de pago que dependiera de él, para que el recibo vuelva a pendiente salvo que
    otro cargo lo pague. Sin esto la fila pasaba a contar como gasto y el recibo seguía pagado con
    ella: contaba en los dos sitios. → {state, e} (la fila sin marca, para subirla) o null. */
-function quitarCargoDeRecibo(s, expenseId){
+function quitarCargoDeRecibo(s, expenseId, ahora){
   const orig=((s&&s.expenses)||[]).find(function(x){ return x && x.id===expenseId; });
   if(!orig || !orig.reciboId) return null;
   const id=orig.reciboId, identity=fixedPaymentIdentity(expenseBankOf(orig), orig);
   const e=Object.assign({}, orig); delete e.reciboId;
   const ds=String(orig.date||"").slice(0,10), ym=Number(ds.slice(0,4))*12+Number(ds.slice(5,7));
-  const no=reciboNoUnion(s.reciboNo||[], [id+"|"+identity, id+"|#"+orig.id]);
   const fixed=(s.fixed||[]).map(function(f){
     const p=f && f.id===id && f.paymentProofs && f.paymentProofs[ym];
     if(!p || p.identity!==identity) return f;
     const proofs=Object.assign({}, f.paymentProofs); delete proofs[ym];
     return Object.assign({}, f, { paymentProofs:proofs });
   });
-  const sin=Object.assign({}, s, { expenses:s.expenses.map(function(x){ return x===orig ? e : x; }), reciboNo:no, fixed:fixed });
+  const sin=Object.assign({}, s, { expenses:s.expenses.map(function(x){ return x===orig ? e : x; }), fixed:fixed },
+    reciboNoPon(s, [id+"|"+identity, id+"|#"+orig.id], true, ahora||Date.now()));
   return { state:conSaldoMostrado(s, sin), e:e };
 }
-/* Volver a confirmar a mano el pago con un cargo que antes se desvinculó levanta su veto: lo
-   último que dijo la persona manda. Sin esto el vínculo se guardaba y el motor lo ignoraba. */
-function levantarVetoDeRecibo(s, expenseId, fixedId){
+/* CONFIRMAR A MANO EL PAGO CON UN CARGO DEL QUE SE DIJO «NO ES ESTE RECIBO» DESHACE AQUELLO: lo
+   último que dijo la persona manda. Se levanta el veto (sin esto el vínculo se guardaba y el
+   motor lo ignoraba) y el cargo recupera su marca, que es como estaba antes de vetarlo y como
+   lo sigue teniendo el otro móvil: con el veto fuera y sin la marca, aquí contaría como compra
+   y allí no. Es el ÚNICO vínculo a mano que marca; el de un cargo cualquiera deja el gastado
+   como estaba (`linkFixedPayment`), que es lo que promete su diálogo. Si el vínculo no llega a
+   guardarse y el recibo sigue sin pagar, el veto se queda. → {state, e} (la fila marcada, para
+   subirla; null si no admite marca) o null si no había veto que deshacer. */
+function reponerCargoDeRecibo(s, expenseId, fixedId, y, m, today, expected, ahora){
   const x=((s&&s.expenses)||[]).find(function(r){ return r && r.id===expenseId; });
-  if(!x || !(s.reciboNo&&s.reciboNo.length)) return s;
-  const claves=[fixedId+"|"+fixedPaymentIdentity(expenseBankOf(x), x), fixedId+"|#"+x.id];
-  const no=s.reciboNo.filter(function(k){ return claves.indexOf(k)<0; });
-  return no.length===s.reciboNo.length ? s : Object.assign({}, s, { reciboNo:no });
-}
-/* «Confirmar pago de X» desde la ficha deja además la marca en el cargo (revisión del
-   12/10/2026: el recibo quedaba pagado con él y la fila seguía contando como compra). Solo si
-   el vínculo llegó a guardarse, el cargo es del banco del recibo y viene del banco: la marca
-   viaja en `source` y solo `ob`/`ob-hist` saben llevarla. → {state, e} o null. */
-function marcarCargoDeReciboVinculado(s, expenseId, fixedId){
-  const orig=((s&&s.expenses)||[]).find(function(x){ return x && x.id===expenseId; });
-  const f=((s&&s.fixed)||[]).find(function(x){ return x && x.id===fixedId; });
-  if(!orig || !f || orig.reciboId || orig.debtId || (orig.source!=="ob" && orig.source!=="ob-hist")) return null;
-  if(expenseBankOf(orig)!==accOf(f)) return null;
-  const ds=String(orig.date||"").slice(0,10), p=f.paymentProofs && f.paymentProofs[Number(ds.slice(0,4))*12+Number(ds.slice(5,7))];
-  if(!p || p.kind!=="expense" || p.identity!==fixedPaymentIdentity(expenseBankOf(orig), orig)) return null;
-  const e=Object.assign({}, orig, { reciboId:f.id });
-  const con=Object.assign({}, s, { expenses:s.expenses.map(function(x){ return x===orig ? e : x; }) });
+  const f=x && (s.fixed||[]).find(function(r){ return r && r.id===fixedId; });
+  if(!f) return null;
+  const identidad=fixedPaymentIdentity(expenseBankOf(x), x), claves=[fixedId+"|"+identidad, fixedId+"|#"+x.id];
+  if(!(s.reciboNo||[]).some(function(k){ return claves.indexOf(k)>=0; })) return null;
+  const libre=Object.assign({}, s, reciboNoPon(s, claves, false, ahora||Date.now()));
+  const link=linkFixedPayment(libre, expenseId, fixedId, y, m, today, expected);
+  // Sin el veto el motor puede darlo por pagado él solo con ese cargo: también vale.
+  if(link===libre && reciboPagadoCon(fixedPaymentState(libre, f, y, m, today))!==identidad) return null;
+  // La marca viaja en `source` y solo `ob`/`ob-hist` saben llevarla; y solo del banco del recibo.
+  const marcar=!x.debtId && (x.source==="ob" || x.source==="ob-hist") && expenseBankOf(x)===accOf(f);
+  const e=marcar ? Object.assign({}, x, { reciboId:fixedId }) : null;
+  const con=e ? Object.assign({}, link, { expenses:link.expenses.map(function(r){ return r===x ? e : r; }) }) : link;
   return { state:conSaldoMostrado(s, con), e:e };
+}
+/* BORRAR UN RECIBO O UN PUNTUAL DEVUELVE SUS CARGOS A GASTO NORMAL (`cargoDeRecibo` ya no lo
+   encuentra) y, fuera de un sync, eso movía el saldo con el banco quieto (medido en cuenta de
+   gasto diario: 397,60 → 335,20, el importe del cargo). Solo se sujeta el saldo si había un
+   cargo suyo marcado este mes; sin ninguno, borrar hace lo de siempre. */
+function sinCargoDelPlan(s, lista, id){
+  const out=Object.assign({}, s, { [lista]:(s[lista]||[]).filter(function(x){ return x.id!==id; }) });
+  const mes=startOfMonth().getTime();
+  return (s.expenses||[]).some(function(e){ return e.reciboId===id && dateMs(e.date)>=mes && cargoDeRecibo(e, s); }) ? conSaldoMostrado(s, out) : out;
 }
 /* LAS CUOTAS DE TUS DEUDAS, EN «DEUDAS» (4.21.0).
    Idea suya del 12/9. Medido con sus datos antes de picar: NINGUNA cuota casa por nombre. El
@@ -16692,7 +16776,7 @@ function patchFixedById(set, id, p){
   });
 }
 function removeFixedById(set, id){
-  set(function(s){ return Object.assign({},s,{fixed:(s.fixed||[]).filter(function(e){ return e.id!==id; })}); });
+  set(function(s){ return sinCargoDelPlan(s,"fixed",id); });
 }
 function addFixedItem(set, item){
   set(function(s){ return Object.assign({},s,{fixed:(s.fixed||[]).concat([item])}); });
@@ -16729,7 +16813,7 @@ function patchOneoffById(set, id, patch){
   });
 }
 function removeOneoffById(set, id){
-  set(function(s){ return Object.assign({},s,{oneoffs:(s.oneoffs||[]).filter(function(o){ return o.id!==id; })}); });
+  set(function(s){ return sinCargoDelPlan(s,"oneoffs",id); });
 }
 function addOneoffItem(set, item){
   set(function(s){ return Object.assign({},s,{oneoffs:(s.oneoffs||[]).concat([item])}); });
@@ -16789,7 +16873,7 @@ function Fijos({state, set, totals}){
       return base;
     })})); setEditing(false); };
   const toggleDraftM=(id,m)=> setDraftM(dm=>{ const base=dm[id]!=null?dm[id]:(((state.fixed.find(x=>x.id===id)||{}).months)||[]); const cur=base.slice(); const i=cur.indexOf(m); if(i>=0)cur.splice(i,1); else cur.push(m); return Object.assign({},dm,{[id]:cur}); });
-  const del=(id)=> set(s=>Object.assign({},s,{fixed:s.fixed.filter(e=>e.id!==id)}));
+  const del=(id)=> removeFixedById(set,id);
   const toggleFormM=(m)=> setForm(f=>{ const cur=(f.months||[]).slice(); const i=cur.indexOf(m); if(i>=0)cur.splice(i,1); else cur.push(m); return Object.assign({},f,{months:cur}); });
   const addFixed=()=>{ const amt=parseFloat(String(form.amount).replace(',','.'))||0; if(amt===0){ return; } const it={id:uid(),name:form.name||"Gasto fijo",amount:amt,freq:form.freq,account:bankOr(form.account||"sabadell")}; const dd=cleanDay(form.day); if(dd) it.day=dd; if(form.freq!=="mes"&&form.months&&form.months.length) it.months=form.months.slice().sort((a,b)=>a-b); set(s=>Object.assign({},s,{fixed:s.fixed.concat([it])})); setForm({name:"",amount:"",freq:"mes",months:[],day:"",account:(form.account||"sabadell")}); setAdding(false); };
 
@@ -16824,7 +16908,7 @@ function Fijos({state, set, totals}){
   const [addingO,setAddingO]=useState(false);
   const [formO,setFormO]=useState({name:"",amount:"",month:new Date().getMonth()+1,year:new Date().getFullYear(),day:"",account:"sabadell"});
   const addOneoff=()=>{ const amt=parseFloat(String(formO.amount).replace(',','.'))||0; if(amt===0) return; const it={id:uid(),name:formO.name||"Cargo puntual",amount:amt,month:parseInt(formO.month,10)||(new Date().getMonth()+1),year:parseInt(formO.year,10)||new Date().getFullYear(),account:bankOr(formO.account||"sabadell")}; const dd=cleanDay(formO.day); if(dd) it.day=dd; set(s=>Object.assign({},s,{oneoffs:(s.oneoffs||[]).concat([it])})); setFormO({name:"",amount:"",month:new Date().getMonth()+1,year:new Date().getFullYear(),day:"",account:"sabadell"}); setAddingO(false); };
-  const delOneoff=(id)=> set(s=>Object.assign({},s,{oneoffs:(s.oneoffs||[]).filter(o=>o.id!==id)}));
+  const delOneoff=(id)=> removeOneoffById(set,id);
   const [editingO,setEditingO]=useState(false);   // modo edición GLOBAL de la tarjeta (como Servicios)
   const [draftsO,setDraftsO]=useState({});
   const startEditAllO=(list)=>{ const d={}; list.forEach(function(o){ d[o.id]={name:o.name,amount:String(o.amount),day:o.day?String(o.day):"",month:o.month,year:o.year,account:o.account||"sabadell"}; }); setDraftsO(d); setEditingO(true); };
@@ -19370,7 +19454,8 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks,
     if(c&&c.status==="maybe") return "🗐 "+t("bp_hist_dupmaybe");
     if(c&&c.reciboId) return "🧾 "+tf(c.firme?"bp_hist_esrecibo":"bp_hist_quizarecibo",{name:(c.match&&c.match.name)||t("bp_hist_recibo")});
     if(!c||c.status!=="dup") return null;
-    return "🗐 "+t("bp_hist_dupexist");
+    // Recibo sin id al que enlazar la fila: no es que ya esté apuntado, es que ya cuenta en el Plan.
+    return "🗐 "+t(c.reason==="modeled"?"bp_hist_dup":"bp_hist_dupexist");
   };
   return React.createElement("div",{style:wrap,className:"hist-import"}, React.createElement("div",{style:inner},
     React.createElement("button",{style:back,onClick:onClose}, "‹ "+t("bp_close")),
@@ -20925,7 +21010,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="70e73355fbfb674c3a45d1798797566b4b31cc488298749f2504b52f028bbc37";
+var _rnSha="404e9d28d017056b7d35b9115e2a035e3c71f8d7b0b7b43678d8f869071eff76";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -25171,10 +25256,9 @@ function App(){
           // una nómina ajena. Los eventos de arranque/refresco compiten con getSession y no
           // prueban por sí solos que haya otro titular (feedback 27/9).
           if(opts&&opts.dropTx) baseObj.bankTx=[];
-          // Los «no es este recibo» se suman, no se pisan: otro móvil que aún no los conocía
-          // subía su lista y aquí se re-marcaba el cargo.
-          const vetos=reciboNoUnion(prev.reciboNo||[], cloudState.reciboNo||[]);
-          if(vetos.length) baseObj.reciboNo=vetos;
+          // Los «no es este recibo» no se pisan con la lista de quien llegó el último: clave a
+          // clave gana lo más reciente que se dijo, sea ponerlo o levantarlo (`reciboNoUnion`).
+          if(prev.reciboNo||cloudState.reciboNo) Object.assign(baseObj, reciboNoUnion(prev, cloudState));
           // Usuario que ya tenía cartera en la nube: no repetir onboarding en otro dispositivo.
           if(freshLogin && (cloudState.accounts||[]).length) baseObj.onboarded=true;
           if(freshLogin && ((cloudState.accounts||[]).length || (cloudState.monthStartNet||0)>0)) baseObj.setupHint=false;

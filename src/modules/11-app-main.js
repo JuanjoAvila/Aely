@@ -573,10 +573,9 @@ function App(){
           // una nómina ajena. Los eventos de arranque/refresco compiten con getSession y no
           // prueban por sí solos que haya otro titular (feedback 27/9).
           if(opts&&opts.dropTx) baseObj.bankTx=[];
-          // Los «no es este recibo» se suman, no se pisan: otro móvil que aún no los conocía
-          // subía su lista y aquí se re-marcaba el cargo.
-          const vetos=reciboNoUnion(prev.reciboNo||[], cloudState.reciboNo||[]);
-          if(vetos.length) baseObj.reciboNo=vetos;
+          // Los «no es este recibo» no se pisan con la lista de quien llegó el último: clave a
+          // clave gana lo más reciente que se dijo, sea ponerlo o levantarlo (`reciboNoUnion`).
+          if(prev.reciboNo||cloudState.reciboNo) Object.assign(baseObj, reciboNoUnion(prev, cloudState));
           // Usuario que ya tenía cartera en la nube: no repetir onboarding en otro dispositivo.
           if(freshLogin && (cloudState.accounts||[]).length) baseObj.onboarded=true;
           if(freshLogin && ((cloudState.accounts||[]).length || (cloudState.monthStartNet||0)>0)) baseObj.setupHint=false;

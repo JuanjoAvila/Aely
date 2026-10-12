@@ -183,6 +183,9 @@ function handlerEnv(initial){
     reconcileConfirmedWithdrawal:ctx.reconcileConfirmedWithdrawal,
     expenseSourceForCloud:ctx.expenseSourceForCloud,fixedPaymentIdentity:ctx.fixedPaymentIdentity,
     expenseBankOf:ctx.expenseBankOf,fixedPaymentModel:ctx.fixedPaymentModel,linkFixedPayment:ctx.linkFixedPayment,
+    // Lo que el handler real consulta desde que el cargo de un recibo entra en Gastos (12/10/2026).
+    cargoDeRecibo:ctx.cargoDeRecibo,reciboVetado:ctx.reciboVetado,reponerCargoDeRecibo:ctx.reponerCargoDeRecibo,
+    quitarRecibo:ex=>env.set(s=>{const r=ctx.quitarCargoDeRecibo(s,ex.id);return r?r.state:s;}),
     accOf:vm.runInContext("accOf",ctx),occAmountIn:ctx.occAmountIn,entOf:vm.runInContext("entOf",ctx),fmtIsoCorto:x=>x,
     state:initial,withdrawalState:ref,withdrawalPending:pending,setWithdrawalStatus:x=>statuses.push(x),
     askConfirm:()=>new Promise(resolve=>{resolveDialog=resolve;}),showToast:x=>toasts.push(x),t:x=>x,tf:x=>x,eur:x=>String(x),

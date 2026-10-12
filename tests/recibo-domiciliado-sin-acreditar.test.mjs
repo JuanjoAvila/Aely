@@ -9,15 +9,18 @@
 //     contra el código de la 4.26.119; aquí se prueba lo demás;
 //   · lo dudoso se distingue en la ETIQUETA: firme si es el cargo con el que el motor da por
 //     pagado el recibo, tentativa («¿Recibo: X?») si solo se parece;
-//   · «No es este recibo» y «Confirmar pago» ponen y quitan la marca sin mover el saldo, y el
-//     veto no se pierde al renombrar ni al llegar el estado de otro móvil;
-//   · un recibo borrado no deja filas fuera de las cuentas.
+//   · «No es este recibo» quita la marca sin mover el saldo; el veto no se pierde al renombrar ni
+//     al llegar el estado de otro móvil, y volver a confirmar el pago con ese cargo lo deshace
+//     en los dos móviles. Confirmar el pago con un cargo cualquiera NO marca: el gastado se
+//     queda como en la 4.26.119, que es lo que promete su diálogo;
+//   · un recibo borrado no deja filas fuera de las cuentas ni mueve el saldo;
+//   · el cargo de un recibo no se puede reconocer como retirada de efectivo.
 // Datos sintéticos; el reloj es fijo y se mueve a mano para cruzar de mes.
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import vm from "node:vm";
 import { test } from "node:test";
-import { loadPureLogic } from "../scripts/load-pure-logic.mjs";
+import { loadPureLogic, extractPureLogicSource, createLogicSandbox } from "../scripts/load-pure-logic.mjs";
 
 const source=file=>fs.readFileSync(new URL("../"+file,import.meta.url),"utf8");
 const order=JSON.parse(source("src/build-order.json"));
@@ -200,6 +203,34 @@ test("pendiente → contabilizado: la etiqueta pasa a firme y el saldo es el del
   }
 });
 
+test("la etiqueta recordada sobrevive a un alta de otro mes y se vuelve a calcular con una del suyo", ()=>{
+  const r=sincroniza(todo(),[TX_COM,TX_MOV],{sabadell:1848});
+  // Sin extracto ni prueba guardada: el recibo se acredita por la propia fila, que es lo que un alta puede cambiar.
+  const s=Object.assign({},r.state,{bankTx:[],fixed:r.state.fixed.map(f=>{ const x=Object.assign({},f); delete x.paymentProofs; return x; })});
+  const fila=s.expenses.find(e=>e.reciboId==="com");
+  const motor=c.fixedPaymentState; let consultas=0;
+  c.fixedPaymentState=function(){ consultas++; return motor.apply(this,arguments); };
+  try{
+    assert.equal(c.reciboEtiqueta(s,fila),"Recibo: Comunidad");
+    assert.ok(consultas>0);
+    consultas=0;
+    assert.equal(c.reciboEtiqueta(s,fila),"Recibo: Comunidad");
+    const cafe={id:"cafe",date:"2026-09-30T08:00:00.000Z",merchant:"Café",amount:1.5,category:"bares",source:"manual"};
+    const otroMes=Object.assign({},s,{expenses:[cafe].concat(s.expenses)});
+    assert.equal(c.reciboEtiqueta(otroMes,fila),"Recibo: Comunidad");
+    assert.equal(consultas,0,"un apunte de septiembre no obliga a preguntar otra vez al motor por octubre");
+    // Un segundo cargo idéntico en su mes sí cambia la respuesta: el motor ya no sabe cuál es.
+    const gemelo=Object.assign({},fila,{id:"gemelo",extId:"t9"});
+    const mismoMes=Object.assign({},otroMes,{expenses:[gemelo].concat(otroMes.expenses)});
+    assert.equal(c.reciboEtiqueta(mismoMes,fila),"¿Recibo: Comunidad?");
+    assert.ok(consultas>0);
+    // Y cambiar el Plan lo invalida todo, también lo de otros meses.
+    consultas=0;
+    assert.equal(c.reciboEtiqueta(Object.assign({},otroMes,{fixed:otroMes.fixed.slice()}),fila),"Recibo: Comunidad");
+    assert.ok(consultas>0);
+  } finally { c.fixedPaymentState=motor; }
+});
+
 test("un puntual del Plan marca su cargo, y la etiqueta es firme solo con nombre completo y céntimos exactos", ()=>{
   const o={id:"o1",name:"ITV coche",amount:45,account:"sabadell",month:10,year:2026,day:9};
   const r=sincroniza(todo({fixed:[],oneoffs:[o]}),[T("a1","sabadell","2026-10-09",45,"ITV COCHE MADRID"),T("a2","sabadell","2026-10-10",45.2,"ESTACION ITV",{card:true}),T("a3","sabadell","2026-10-11",45.3,"TALLER COCHE SL")],{sabadell:1900});
@@ -229,13 +260,17 @@ test("Importar histórico: fila nueva y marcada, con su recibo; firme o con preg
   // Lo que solo se parece entra igual de marcado, pero la pantalla lo dice con «parece».
   const dudosos=candidatos([T("n2","sabadell","2026-10-09",13,"NETFLIX SHOP MERCH"),T("n1","sabadell","2026-10-05",12.99,"NETFLIX.COM")]);
   assert.equal(j([...c.histClassifyCandidates(dudosos,estado({fixed:[F("nf","Netflix",12.99,5)]})).rows].map(r=>[r.reciboId,r.firme])),j([["nf",false],["nf",true]]));
+  // Un recibo sin id (sembrado antes de tenerlos) no tiene a qué enlazar la fila: sigue sin
+  // entrar, y con su motivo propio, que la pantalla rotula «ya está en tu Plan».
+  const sinId=estado({fixed:[{name:"Comunidad",amount:50,freq:"mes",day:12,account:"sabadell"}]});
+  assert.equal(j([...c.histClassifyCandidates(candidatos([TX_COM]),sinId).rows].map(r=>[r.status,r.reason,r.reciboId||null])),j([["dup","modeled",null]]));
   // Un recibo que no toca ese mes no casa, y una compra con tarjeta tampoco: así era.
   const anual={id:"sg",name:"Seguro hogar",amount:312.4,freq:"año",months:[3],account:"sabadell",day:10};
   const fuera=candidatos([T("s9","sabadell","2026-09-08",312.4,"SEGURO HOGAR"),T("s3","sabadell","2026-03-10",312.4,"SEGURO HOGAR"),T("s4","sabadell","2026-03-11",312.4,"SEGURO HOGAR",{card:true})]);
   assert.equal(j([...c.histClassifyCandidates(fuera,estado({fixed:[anual]})).rows].map(r=>r.reciboId||null)),j([null,"sg",null]));
 });
 
-test("lo que él importó a mano el 12/10 no se duplica ni se toca; al confirmar el pago a mano queda marcado sin mover el saldo", ()=>{
+test("lo que él importó a mano el 12/10 no se duplica ni se toca; confirmar el pago a mano no cambia el gastado ni el saldo", ()=>{
   const suyas=[TX_COM,TX_MOV].map((t,i)=>({id:"h"+i,date:new Date(t.date+"T12:00:00").toISOString(),merchant:t.merchant,amount:t.amount,category:"otros",source:"ob-hist",ent:t.ent,extId:t.ext_id}));
   const sinId=suyas.map(e=>{ const x=Object.assign({},e); delete x.extId; return x; });
   assert.equal(sincroniza(estado({expenses:sinId}),[TX_COM,TX_MOV].map(t=>Object.assign({},t,{ext_id:null}))).add.length,0,"sin id: día, importe y nombre");
@@ -247,20 +282,14 @@ test("lo que él importó a mano el 12/10 no se duplica ni se toca; al confirmar
     assert.equal(marcas(r.state.expenses),j([["COMUNIDAD DE PROPIETARIOS",null],["Pepe Mobile, S.L.U.",null]]),"siguen como estaban");
     const vinculado=c.linkFixedPayment(r.state,"h0","com",2026,10,12);
     assert.equal(c.fixedPaymentState(vinculado,vinculado.fixed[0],2026,10,12).paid,true);
-    const m=c.marcarCargoDeReciboVinculado(vinculado,"h0","com");
-    assert.equal(m.e.reciboId,"com");
-    assert.equal(c.expenseSourceForCloud(m.e),"ob-hist:sabadell~recibo.com");
-    assert.equal(j(mostrado(m.state)),j(mostrado(vinculado)),"el saldo pintado no se mueve · "+rol);
-    assert.equal(+(gastado(vinculado)-gastado(m.state)).toFixed(2),rol==="fijos"?0:50,"y deja de contar como compra · "+rol);
-    assert.equal(c.marcarCargoDeReciboVinculado(r.state,"h0","com"),null,"sin vínculo guardado no hay marca");
-    assert.equal(c.marcarCargoDeReciboVinculado(vinculado,"h1","com"),null,"ni para otro cargo");
+    // Lo que hace la ficha al confirmar: sin un «no es este recibo» previo no hay nada que
+    // reponer y el vínculo es el de siempre. La 4.26.119 dejaba el gastado donde estaba.
+    assert.equal(c.reponerCargoDeRecibo(r.state,"h0","com",2026,10,12),null,"sin veto no hay marca · "+rol);
+    assert.equal(marcas(vinculado.expenses),marcas(r.state.expenses),"el cargo sigue sin marca · "+rol);
+    assert.equal(gastado(vinculado),gastado(r.state),"el gastado se conserva · "+rol);
+    assert.equal(j(mostrado(vinculado)),j(mostrado(r.state)),"y el saldo pintado · "+rol);
+    assert.equal(j(vinculado.accounts),j(r.state.accounts),"y la base · "+rol);
   }
-  // Un aviso del móvil no sabe llevar la marca a la nube: se queda como está.
-  const aviso={id:"w1",date:"2026-10-12T09:00:00.000Z",merchant:"COMUNIDAD DE PROPIETARIOS",amount:50,category:"otros",source:"wallet",ent:"sabadell"};
-  const conAviso=estado({expenses:[aviso],fixed:[F("com","Cuota vecinos",50,12)]});
-  const v=c.linkFixedPayment(conAviso,"w1","com",2026,10,12);
-  assert.equal(c.fixedPaymentState(v,v.fixed[0],2026,10,12).paid,true,"el vínculo sí se guarda");
-  assert.equal(c.marcarCargoDeReciboVinculado(v,"w1","com"),null);
 });
 
 test("una fila de recibo borrada no vuelve con el siguiente sync", ()=>{
@@ -291,10 +320,39 @@ for(const [rol,accounts,settings] of ROLES){
     // Si se arrepiente y vuelve a confirmar el pago con ese mismo cargo, lo último que dijo manda.
     const sinExtracto=Object.assign({},q.state,{bankTx:[]});
     assert.equal(pagados(c.linkFixedPayment(sinExtracto,fila.id,"com",2026,10,12)),"mov","con el veto puesto, un vínculo guardado no paga");
-    const sinVeto=c.levantarVetoDeRecibo(sinExtracto,fila.id,"com");
-    assert.equal(sinVeto.reciboNo.length,0);
-    assert.equal(c.levantarVetoDeRecibo(sinVeto,fila.id,"com"),sinVeto,"sin veto no reescribe el estado");
-    assert.equal(pagados(sinVeto),"com,mov");
+    assert.equal(c.canRecognizeWithdrawal(q.e,q.state),true,"ya sin marca, es un cargo del banco como cualquier otro");
+    assert.equal(c.canRecognizeWithdrawal(fila,r.state),false,"con la marca no se puede dar por retirada de efectivo");
+    ahora=OCT12+60000;
+    try{
+      for(const [caso,s] of [["sin extracto",sinExtracto],["con el extracto delante",q.state]]){
+        const rp=c.reponerCargoDeRecibo(s,fila.id,"com",2026,10,12);
+        assert.equal(rp.state.reciboNo.length,0,caso);
+        assert.equal(pagados(rp.state),"com,mov",caso);
+        assert.equal(j([rp.e.reciboId,c.expenseSourceForCloud(rp.e)]),j(["com","ob:sabadell~recibo.com"]),"el cargo recupera su marca y así sube · "+caso);
+        assert.equal(gastado(rp.state),gastado(r.state),"y todo vuelve a como estaba antes de vetarlo · "+caso);
+        assert.equal(j(mostrado(rp.state)),j(mostrado(q.state)),"sin mover el saldo · "+caso);
+        assert.equal(c.reponerCargoDeRecibo(rp.state,fila.id,"com",2026,10,12),null,"sin veto no hay nada que reponer");
+      }
+      // El veto es de ESE cargo con ESE recibo: con otro recibo no hay nada que deshacer, y si
+      // el cargo cambió mientras el diálogo estaba abierto el veto se queda.
+      assert.equal(c.reponerCargoDeRecibo(sinExtracto,fila.id,"mov",2026,10,12),null);
+      const otroNombre=Object.assign({},sinExtracto,{fixed:sinExtracto.fixed.map(f=>f.id==="com"?Object.assign({},f,{name:"Cuota vecinos"}):f)});
+      assert.equal(c.reponerCargoDeRecibo(otroNombre,fila.id,"com",2026,10,12,{identity:"la de antes de editarlo"}),null,"si no llega a pagar el recibo, no se levanta");
+      assert.equal(pagados(c.reponerCargoDeRecibo(otroNombre,fila.id,"com",2026,10,12).state),"com,mov","y con el cargo intacto sí, aunque el nombre no case");
+      // LOS DOS MÓVILES. B aún tiene la fila marcada y el veto que le llegó; A lo levanta después.
+      const A=c.reponerCargoDeRecibo(sinExtracto,fila.id,"com",2026,10,12).state;
+      const B=Object.assign({},r.state,{bankTx:[],reciboNo:q.state.reciboNo,reciboNoAt:q.state.reciboNoAt,fixed:q.state.fixed});
+      const Bbaja=Object.assign({},B,{fixed:A.fixed},c.reciboNoUnion(B,A));
+      assert.equal(Bbaja.reciboNo.length,0,"levantar el veto en A llega a B");
+      assert.equal(gastado(Bbaja),gastado(A),"y los dos móviles cuentan lo mismo");
+      // B sube su estado viejo (con el veto) antes de enterarse: A no lo recupera.
+      assert.equal(c.reciboNoUnion(A,B).reciboNo.length,0,"el veto viejo de B no vuelve a A");
+      // Y al revés: un veto puesto después de levantarlo sí gana.
+      ahora=OCT12+120000;
+      const otraVez=c.quitarCargoDeRecibo(A,fila.id).state;
+      assert.equal(c.reciboNoUnion(Bbaja,otraVez).reciboNo.length,2);
+      assert.equal(c.reciboNoUnion(otraVez,Bbaja).reciboNo.length,2);
+    } finally { ahora=OCT12; }
     // Renombrar el comercio de la fila no devuelve el pago: el veto también va por su id.
     const renombrada=Object.assign({},q.state,{bankTx:[],expenses:q.state.expenses.map(e=>e.id===fila.id?Object.assign({},e,{merchant:"Comunidad",obName:"Comunidad"}):e)});
     assert.equal(pagados(renombrada),"mov");
@@ -311,18 +369,32 @@ for(const [rol,accounts,settings] of ROLES){
   });
 }
 
-test("los vetos se suman al bajar el estado de otro móvil y la lista tiene tope", ()=>{
-  assert.equal(j(c.reciboNoUnion(["a|1"],["b|2","a|1"])),j(["a|1","b|2"]));
+test("vetos entre móviles: sin hora se suman, con hora gana lo último que se dijo, y la lista tiene tope", ()=>{
+  const u=(a,b)=>c.reciboNoUnion(a,b);
+  // Listas de la versión anterior, sin hora: se suman como antes.
+  assert.equal(j(u({reciboNo:["a|1"]},{reciboNo:["b|2","a|1"]}).reciboNo),j(["a|1","b|2"]));
   const local=["a|1"];
-  assert.equal(c.reciboNoUnion(local,[]),local,"una lista vacía de la nube no borra lo local");
-  assert.equal(c.reciboNoUnion(local,["a|1"]),local,"sin novedades devuelve la misma lista: no reescribe el estado");
+  assert.equal(u({reciboNo:local},{reciboNo:[]}).reciboNo,local,"una lista vacía de la nube, sin hora, no borra lo local");
+  assert.equal(u({reciboNo:local},{reciboNo:["a|1"]}).reciboNo,local,"sin novedades devuelve la misma lista: no reescribe el estado");
+  // Con hora: quien lo levantó después gana a quien aún lo tiene, y al revés.
+  assert.equal(j(u({reciboNo:["a|1"],reciboNoAt:{"a|1":10}},{reciboNo:[],reciboNoAt:{"a|1":20}})),j({reciboNo:[],reciboNoAt:{"a|1":20}}));
+  assert.equal(j(u({reciboNo:[],reciboNoAt:{"a|1":20}},{reciboNo:["a|1"],reciboNoAt:{"a|1":10}})),j({reciboNo:[],reciboNoAt:{"a|1":20}}));
+  assert.equal(j(u({reciboNo:[],reciboNoAt:{"a|1":20}},{reciboNo:["a|1"],reciboNoAt:{"a|1":30}}).reciboNo),j(["a|1"]));
+  assert.equal(j(u({reciboNo:[],reciboNoAt:{"a|1":20}},{reciboNo:["a|1"]}).reciboNo),j([]),"una lista vieja sin hora no resucita un veto levantado");
   const muchos=Array.from({length:500},(_,i)=>"r|"+i);
-  const unidos=c.reciboNoUnion(["x|0"],muchos);
+  const unidos=u({reciboNo:["x|0"]},{reciboNo:muchos}).reciboNo;
   assert.equal(unidos.length,400);
   assert.equal(unidos[unidos.length-1],"r|499","se conservan los más recientes");
-  // Y `quitarCargoDeRecibo` pasa por ahí: tampoco crece sin fin.
+  const horas={}; muchos.forEach((k,i)=>{ horas[k]=1000+i; });
+  const conHora=u({reciboNo:[]},{reciboNo:muchos,reciboNoAt:horas});
+  assert.equal(Object.keys(conHora.reciboNoAt).length,400);
+  assert.equal(conHora.reciboNoAt["r|99"],undefined,"las horas más viejas se sueltan");
+  assert.equal(conHora.reciboNoAt["r|499"],1499);
+  // Y `quitarCargoDeRecibo` pasa por el mismo tope: tampoco crece sin fin.
   const r=sincroniza(estado({reciboNo:muchos.slice(0,400)}),[TX_COM,TX_MOV]);
-  assert.equal(c.quitarCargoDeRecibo(r.state,r.state.expenses.find(e=>e.reciboId==="com").id).state.reciboNo.length,400);
+  const q=c.quitarCargoDeRecibo(r.state,r.state.expenses.find(e=>e.reciboId==="com").id).state;
+  assert.equal(q.reciboNo.length,400);
+  assert.equal(j(Object.values(q.reciboNoAt)),j([OCT12,OCT12]),"cada veto apunta cuándo se puso");
 });
 
 test("recibo borrado después: la fila cuenta como un gasto normal y no enseña etiqueta", ()=>{
@@ -330,11 +402,35 @@ test("recibo borrado después: la fila cuenta como un gasto normal y no enseña 
   const sin=Object.assign({},r.state,{fixed:r.state.fixed.filter(f=>f.id!=="com")});
   const fila=sin.expenses.find(e=>e.reciboId==="com");
   assert.equal(c.cargoDeRecibo(fila,sin),null);
-  assert.equal(c.reciboNombre(sin,fila),"");
   assert.equal(c.reciboEtiqueta(sin,fila),"");
   assert.equal(c.expenseBucket(fila,sin),"cuenta");
   assert.equal(gastado(sin)-gastado(r.state),50);
 });
+
+for(const [rol,accounts,settings] of ROLES){
+  test("borrar un recibo o un puntual con su cargo en Gastos no mueve el saldo con el banco quieto · Sabadell "+rol, ()=>{
+    const puntual={id:"o1",name:"ITV coche",amount:45,account:"sabadell",month:10,year:2026,day:9};
+    const r=sincroniza(estado({accounts:clon(accounts),settings:clon(settings),oneoffs:[puntual]}),[TX_COM,TX_MOV,T("t3","sabadell","2026-10-09",45,"ITV COCHE MADRID")],{sabadell:1803});
+    assert.equal(mostrado(r.state)[0],1803);
+    for(const [lista,id,importe] of [["fixed","com",50],["oneoffs","o1",45]]){
+      const sin=c.sinCargoDelPlan(r.state,lista,id);
+      assert.equal(sin[lista].some(x=>x.id===id),false);
+      assert.equal(j(mostrado(sin)),j(mostrado(r.state)),lista+": el saldo pintado sigue siendo el del banco");
+      assert.equal(+(gastado(sin)-gastado(r.state)).toFixed(2),rol==="solo recibos"?0:importe,lista+": el cargo pasa a contar como un gasto");
+      // Lo que entra por la puerta de la pantalla es esto mismo.
+      let porPantalla=r.state; (lista==="fixed"?c.removeFixedById:c.removeOneoffById)(f=>{ porPantalla=f(porPantalla); },id);
+      assert.equal(j(porPantalla),j(sin));
+    }
+    // Sin ningún cargo suyo en Gastos, borrar hace exactamente lo de siempre.
+    const sinFilas=Object.assign({},r.state,{expenses:r.state.expenses.filter(e=>e.reciboId!=="com")});
+    assert.equal(j(c.sinCargoDelPlan(sinFilas,"fixed","com")),j(Object.assign({},sinFilas,{fixed:sinFilas.fixed.filter(f=>f.id!=="com")})));
+    if(rol==="gasto diario"){
+      // El control: sin sujetar, la cuenta de gasto diario bajaba el importe del cargo.
+      const crudo=Object.assign({},r.state,{fixed:r.state.fixed.filter(f=>f.id!=="com")});
+      assert.equal(+(mostrado(r.state)[0]-mostrado(crudo)[0]).toFixed(2),50);
+    }
+  });
+}
 
 test("la marca viaja en `source`, en cualquier orden con la de cuota, y quien no la conoce deja la fila fuera", ()=>{
   const fila=fuente=>({id:"11111111-1111-4111-8111-111111111111",fecha:"2026-10-05T10:00:00.000Z",comercio:"Pepe Mobile, S.L.U.",importe:102,cat:"otros",source:fuente});
@@ -393,25 +489,69 @@ test("los lectores que suman gastos por su cuenta tampoco cuentan el cargo de un
   assert.equal(c.detectSubscriptions(tresMeses.map(e=>Object.assign({},e,{reciboId:undefined}))).length,1,"sin marca sí se detecta: el control");
 });
 
-test("al subir una fila de recibo se reescribe su `source` en la nube aunque la fila ya existiera sin marca", async ()=>{
-  // Nube falsa: el alta ignora duplicados (como el upsert real) y la otra escritura va por clave.
-  c.__nube={filas:[{fecha:"2026-10-05T10:00:00.000Z",importe:102,comercio:"Pepe Mobile, S.L.U.",source:"ob-hist:sabadell"}],llamadas:[]};
-  vm.runInNewContext(`
-    cloud.enabled=function(){ return true; };
-    cloud.addExpense=function(e){ __nube.llamadas.push("alta");
-      if(!__nube.filas.some(function(f){ return f.fecha===e.date&&f.importe===e.amount&&f.comercio===e.merchant; }))
-        __nube.filas.push({fecha:e.date,importe:e.amount,comercio:e.merchant,source:expenseSourceForCloud(e)});
-      return Promise.resolve(); };
-    cloud.setExpenseBank=function(e,ent){ const k=expenseCloudKeys(e); __nube.llamadas.push("source por "+k.by);
-      __nube.filas.forEach(function(f){ if(k.by==="attrs"&&f.fecha===k.fecha&&f.importe===k.importe&&f.comercio===k.comercio) f.source=expenseSourceForCloud(Object.assign({},e,{ent:ent})); });
-      return Promise.resolve(); };
-  `,c);
-  const marcada={id:"11111111-1111-4111-8111-111111111111",date:"2026-10-05T10:00:00.000Z",merchant:"Pepe Mobile, S.L.U.",amount:102,category:"otros",source:"ob",ent:"sabadell",reciboId:"mov"};
-  await c.subirGasto(marcada,"test");
-  assert.equal(j(c.__nube.llamadas),j(["alta","source por attrs"]));
-  assert.equal(c.__nube.filas[0].source,"ob:sabadell~recibo.mov","la fila que ya estaba en la nube deja de contar en el widget");
-  // Una fila normal no hace la segunda escritura.
-  c.__nube.llamadas=[];
-  await c.subirGasto(Object.assign({},marcada,{reciboId:undefined,merchant:"Compra"}),"test");
-  assert.equal(j(c.__nube.llamadas),j(["alta"]));
+test("el lector de `source` no se rompe con un sufijo `#n<k>` detrás de la marca", ()=>{
+  // Orden acordado con la rama de apuntes iguales: ob:<ent>[~deuda.<id> | ~recibo.<id>][#dup][#n<k>].
+  const fila=fuente=>({id:"11111111-1111-4111-8111-111111111111",fecha:"2026-10-05T10:00:00.000Z",comercio:"Pepe Mobile, S.L.U.",importe:102,cat:"otros",source:fuente});
+  for(const [fuente,origen,dup] of [["ob:sabadell~recibo.mov#n2","ob",undefined],["ob:sabadell~recibo.mov#dup#n2","ob",true],["ob-hist:sabadell~recibo.mov#n3","ob-hist",undefined]]){
+    const v=c.expenseFromRow(fila(fuente));
+    assert.equal(j([v.source,v.ent,v.reciboId,v.possibleDup,c.expenseBankOf({source:fuente})]),j([origen,"sabadell","mov",dup,"sabadell"]),fuente);
+  }
+});
+
+// ───── La nube: el cliente REAL de la app (`cloud.addExpense`, `cloud.setExpenseRecibo`) contra una
+// tabla falsa en memoria con el índice único (user_id, fecha, importe, comercio) y el alta que
+// ignora duplicados, como la de verdad. Sin red.
+function nubeFalsa(previas){
+  const tabla=previas.map((p,i)=>Object.assign({id:"old"+i,user_id:"u1"},p)), log=[];
+  const clave=r=>[r.user_id,Date.parse(r.fecha),Number(r.importe),r.comercio].join("|");
+  const from=()=>({
+    upsert(fila){
+      const nuevas=[]; if(!tabla.some(r=>clave(r)===clave(fila))){ const f=Object.assign({},fila); tabla.push(f); nuevas.push({id:f.id}); }
+      log.push("alta");
+      const res={data:null,error:null};
+      return {then:(ok,ko)=>Promise.resolve(res).then(ok,ko),select:()=>Promise.resolve({data:nuevas,error:null})};
+    },
+    update(patch){ const conds=[]; const q={ eq(col,val){ conds.push([col,val]); return q; },
+      then(ok,ko){ const hit=tabla.filter(r=>conds.every(([col,v])=>col==="fecha"?Date.parse(r[col])===Date.parse(v):col==="importe"?Number(r[col])===Number(v):r[col]===v));
+        log.push("cambia "+hit.length); hit.forEach(r=>Object.assign(r,patch)); return Promise.resolve({data:null,error:null}).then(ok,ko); } }; return q; },
+  });
+  return {tabla,log,client:{auth:{getSession:async()=>({data:{session:{user:{id:"u1"},expires_at:9e9}},error:null}),onAuthStateChange(){ return {data:{subscription:{unsubscribe(){}}}}; }},from}};
+}
+function appConNube(n){
+  const sb=createLogicSandbox(); sb.window.supabase={createClient:()=>n.client};
+  vm.runInNewContext(extractPureLogicSource(source("src/shell.html").replace("<!--MC_APP_SCRIPT-->",()=>js)),sb);
+  assert.equal(vm.runInContext("cloud.enabled()",sb),true,"la nube falsa está enganchada");
+  return sb;
+}
+const MARCADA={id:"11111111-1111-4111-8111-111111111111",date:"2026-10-05T10:00:00.000Z",merchant:"Pepe Mobile, S.L.U.",amount:102,category:"otros",source:"ob",ent:"sabadell",obName:"Pepe Mobile, S.L.U.",reciboId:"mov",extId:"t2"};
+const YA={fecha:MARCADA.date,importe:102,comercio:MARCADA.merchant,cat:"otros"};
+for(const [caso,previa,queda,peticiones] of [
+  ["nube vacía: entra ya marcada y no hace falta nada más",null,"ob:sabadell~recibo.mov",["alta"]],
+  ["la fila ya estaba sin marca, del sync diario de otro móvil","ob:sabadell","ob:sabadell~recibo.mov",["alta","cambia 1","cambia 0"]],
+  ["la fila ya estaba sin marca, de Importar histórico: conserva su origen","ob-hist:sabadell","ob-hist:sabadell~recibo.mov",["alta","cambia 0","cambia 1"]],
+  ["era un posible repetido pendiente de su decisión: no se toca","ob:sabadell#dup","ob:sabadell#dup",["alta","cambia 0","cambia 0"]],
+  ["estaba marcada a mano como cuota de una deuda: no se toca","ob:sabadell~deuda.hipoteca","ob:sabadell~deuda.hipoteca",["alta","cambia 0","cambia 0"]],
+  ["es un aviso del móvil con la misma fecha, importe y comercio: no se toca","macrodroid","macrodroid",["alta","cambia 0","cambia 0"]],
+  ["es un gasto a mano: no se toca","manual:sabadell","manual:sabadell",["alta","cambia 0","cambia 0"]],
+  ["es de Trade Republic pendiente de decisión: no se toca","ob:trade_republic#dup","ob:trade_republic#dup",["alta","cambia 0","cambia 0"]],
+  ["es de otro banco: no se toca","ob:caixabank","ob:caixabank",["alta","cambia 0","cambia 0"]],
+]){
+  test("subir el cargo de un recibo · "+caso, async ()=>{
+    const n=nubeFalsa(previa?[Object.assign({},YA,{source:previa})]:[]), app=appConNube(n);
+    await app.subirGasto(MARCADA,"test");
+    assert.equal(j(n.log),j(peticiones));
+    assert.equal(n.tabla.length,1);
+    assert.equal(n.tabla[0].source,queda);
+  });
+}
+test("subir una fila normal sigue siendo una sola escritura, y el modo pruebas no escribe nada", async ()=>{
+  const n=nubeFalsa([]), app=appConNube(n);
+  await app.subirGasto(Object.assign({},MARCADA,{reciboId:undefined}),"test");
+  assert.equal(j(n.log),j(["alta"]));
+  assert.equal(n.tabla[0].source,"ob:sabadell");
+  const m=nubeFalsa([Object.assign({},YA,{source:"ob:sabadell"})]), pruebas=appConNube(m);
+  pruebas.mcSandbox=()=>true;
+  vm.runInContext("mcSandbox=function(){ return true; }",pruebas);
+  await pruebas.subirGasto(MARCADA,"test");
+  assert.equal(j([m.log,m.tabla[0].source]),j([[],"ob:sabadell"]));
 });

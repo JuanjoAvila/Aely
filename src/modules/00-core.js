@@ -1112,7 +1112,7 @@ const cloud = (function(){
       // Cómo lo llamaba el banco (migración 0021). Sin esto, renombrar el «Movimiento» de Trade
       // Republic hacía que el siguiente sync no reconociera la fila y metiera el gasto otra vez.
       const obn={ ob_name:(e.obName!=null?String(e.obName).slice(0,160):null) };
-      await withNotaFallback(
+      const r=await withNotaFallback(
         function(conNota, conDivisa, conObName){
           let fila=base;
           if(conNota) fila=Object.assign({},fila,nota);
@@ -1121,12 +1121,31 @@ const cloud = (function(){
           // ignoreDuplicates + onConflict user_id,fecha,importe,comercio: si ya hay fila, NO
           // inserta (el id mandado se ignora). Local puede quedar con uuid distinto al de la
           // nube hasta el pull — igual que antes de mandar id. El pull adopta r.id.
-          return sb.from('expenses').upsert(
+          const q=sb.from('expenses').upsert(
             fila,
             { onConflict:'user_id,fecha,importe,comercio', ignoreDuplicates:true }
           );
+          // Solo el cargo de un recibo pregunta si la fila entró: es el único que tiene que
+          // hacer algo cuando ya estaba (`subirGasto`). El resto sube como siempre.
+          return e.reciboId ? q.select('id') : q;
         }
       );
+      return !!(r && r.data && r.data.length);
+    },
+    /* La marca de recibo sobre una fila que YA estaba en la nube sin ella (la subió otro móvil o
+       una app anterior). Por fecha, importe y comercio, que es la clave del duplicado: el id local
+       no es el de esa fila. Y SOLO si su `source` es el del banco a secas: con la terna sola se
+       pisaba un «posible repetido», la cuota de una deuda, un aviso del móvil o un gasto a mano
+       que coincidieran (revisión del 12/10/2026). Cada prefijo conserva el suyo. */
+    async setExpenseRecibo(e){
+      if(!sb || !e.ent) return;
+      const {data:{session}}=await sb.auth.getSession();
+      if(!session) return;
+      for(const pre of ["ob:","ob-hist:"]){
+        const {error}=await sb.from('expenses').update({ source:pre+e.ent+reciboSufijo(e.reciboId) })
+          .eq('user_id',session.user.id).eq('fecha',e.date).eq('importe',e.amount).eq('comercio',e.merchant).eq('source',pre+e.ent);
+        if(error) throw error;
+      }
     },
     /* IMPORT HISTÓRICO — batch con RETURNING id (tanda 3, agujero A).
        ignoreDuplicates + onConflict terna: Postgres NO devuelve las filas que chocaron.
@@ -1652,12 +1671,12 @@ function _errCloudMsg(err){
 }
 function subirGasto(e, donde){
   if(!cloud.enabled()) return Promise.resolve();
-  return cloud.addExpense(e).then(function(){
+  return cloud.addExpense(e).then(function(nueva){
     /* El alta ignora duplicados: si la fila ya estaba en la nube sin la marca de recibo (otro
        móvil la importó antes), allí seguiría como una compra y el widget contaría lo que la app
-       no cuenta. Se reescribe su `source` por fecha, importe y comercio, que es la clave del
-       duplicado; con el id local no se encontraría la fila del otro móvil. */
-    if(e && e.reciboId) return cloud.setExpenseBank(Object.assign({},e,{id:null}), e.ent);
+       no cuenta. Solo entonces se le pone; la que acaba de entrar ya la lleva (la primera
+       sincronización hacía una escritura de más por cada cargo). */
+    if(e && e.reciboId && !nueva) return cloud.setExpenseRecibo(e);
   }).catch(function(err){
     cloud.logEvent("error","addExpense "+(donde||"?")+": "+keyOfExpense(e), _errCloudMsg(err));
   });
@@ -1681,7 +1700,7 @@ function borrarGastoNube(e, donde){
 
    Si añades un método a `cloud` que ESCRIBA algo, añádelo a esta lista. */
 const CLOUD_WRITES=[
-  "pushState","addExpense","addExpensesBatch","setExpenseBank","setExpenseDup","setExpenseNoCard","setExpenseNote","setExpenseCat","confirmExpenseWithdrawal","setExpenseDeuda","deleteExpense","deleteExpensesByIds",
+  "pushState","addExpense","addExpensesBatch","setExpenseBank","setExpenseDup","setExpenseNoCard","setExpenseNote","setExpenseCat","confirmExpenseWithdrawal","setExpenseDeuda","setExpenseRecibo","deleteExpense","deleteExpensesByIds",
   "backupState","bankConnect","bankDisconnect","myinvestorConnect","myinvestorStore",
   "myinvestorDisconnect","setIngestToken","clearIngestToken","logEvent","logUso","logPerf","feedback","betaReport",
   "deleteAccount","createHousehold","joinHousehold","publishHouseholdSnapshot","leaveHousehold",
@@ -2114,7 +2133,8 @@ function canRecognizeWithdrawal(e,state){
   const matches=(state.expenses||[]).filter(function(x){ return x.id===e.id; });
   if(matches.length!==1) return false;
   const current=matches[0];
-  return canRecognizeWithdrawal(current)&&!withdrawalReceiptLink(state,current)
+  // El cargo de un recibo tampoco: como retirada sumaría al efectivo lo que el recibo ya restó.
+  return canRecognizeWithdrawal(current)&&!withdrawalReceiptLink(state,current)&&!cargoDeRecibo(current,state)
     &&(current.category===e.category||current.category==="traspaso")
     &&withdrawalRowMatches(e,{id:current.id,source:expenseSourceForCloud(current),fecha:current.date,importe:current.amount,comercio:current.merchant});
 }

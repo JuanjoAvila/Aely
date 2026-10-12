@@ -594,7 +594,8 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks,
     if(c&&c.status==="maybe") return "🗐 "+t("bp_hist_dupmaybe");
     if(c&&c.reciboId) return "🧾 "+tf(c.firme?"bp_hist_esrecibo":"bp_hist_quizarecibo",{name:(c.match&&c.match.name)||t("bp_hist_recibo")});
     if(!c||c.status!=="dup") return null;
-    return "🗐 "+t("bp_hist_dupexist");
+    // Recibo sin id al que enlazar la fila: no es que ya esté apuntado, es que ya cuenta en el Plan.
+    return "🗐 "+t(c.reason==="modeled"?"bp_hist_dup":"bp_hist_dupexist");
   };
   return React.createElement("div",{style:wrap,className:"hist-import"}, React.createElement("div",{style:inner},
     React.createElement("button",{style:back,onClick:onClose}, "‹ "+t("bp_close")),

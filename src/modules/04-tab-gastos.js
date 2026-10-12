@@ -281,7 +281,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   const recognizeWithdrawal=function(ex){
     if(!canRecognizeWithdrawal(ex) || ex.category==="traspaso" || withdrawalPending.current[ex.id]) return;
     if(!canRecognizeWithdrawal(ex,withdrawalState.current)){
-      showToast(t(withdrawalReceiptLink(withdrawalState.current,ex)?"f_withdraw_receipt_blocked":"f_withdraw_error")); return;
+      showToast(t(withdrawalReceiptLink(withdrawalState.current,ex)||cargoDeRecibo(ex,withdrawalState.current)?"f_withdraw_receipt_blocked":"f_withdraw_error")); return;
     }
     withdrawalPending.current[ex.id]=true;
     askConfirm({title:t("f_withdraw_title"),sub:tf("f_withdraw_sub",{x:eur(ex.amount)}),ok:t("f_withdraw_ok")})
@@ -413,11 +413,6 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     // La marca viaja en `source`: se reescribe con el mismo método que guarda el banco.
     if(subir && cloud.enabled()) cloud.setExpenseBank(subir, subir.ent).catch(function(){});
   };
-  const marcarReciboVinculado=function(ex,fixedId){
-    let subir=null;
-    set(function(s){ const r=marcarCargoDeReciboVinculado(s, ex.id, fixedId); if(!r) return s; subir=r.e; return r.state; });
-    if(subir && cloud.enabled()) cloud.setExpenseBank(subir, subir.ent).catch(function(){});
-  };
   const setReceipt=function(ex,fixedId){
     if(withdrawalPending.current[ex.id]){ showToast(t("f_withdraw_receipt_pending")); return; }
     const ds=String(ex.date||"").slice(0,10),y=Number(ds.slice(0,4)),m=Number(ds.slice(5,7)),now=new Date();
@@ -426,16 +421,26 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     const expected={identity:fixedPaymentIdentity(expenseBankOf(ex),ex),model:f&&fixedPaymentModel(f,m)};
     const save=function(){
       if(withdrawalPending.current[ex.id]){ showToast(t("f_withdraw_receipt_pending")); return; }
+      let subir=null;
       // El diálogo es asíncrono: otra sincronización puede sustituir el cargo o editar el recibo.
-      set(function(s){ return linkFixedPayment(fixedId!=null?levantarVetoDeRecibo(s,ex.id,fixedId):s,ex.id,fixedId,y,m,today,expected); });
-      if(fixedId!=null) marcarReciboVinculado(ex,fixedId);
+      set(function(s){
+        // Solo si de ESTE cargo se dijo «no es este recibo»: confirmar lo deshace y repone la marca.
+        const r=fixedId!=null&&reponerCargoDeRecibo(s,ex.id,fixedId,y,m,today,expected);
+        if(r){ subir=r.e; return r.state; }
+        return linkFixedPayment(s,ex.id,fixedId,y,m,today,expected);
+      });
+      if(subir && cloud.enabled()) cloud.setExpenseBank(subir, subir.ent).catch(function(){});
     };
     // Deshacer el vínculo de un cargo marcado es decir «no es este recibo»: una sola salida.
     if(fixedId==null && cargoDeRecibo(ex,state)){ quitarRecibo(ex); return; }
     if(fixedId==null){ save(); return; }
     if(!f) return;
+    /* El diálogo de siempre promete que el presupuesto se conserva, y es verdad salvo al deshacer
+       un «no es este recibo»: ahí el cargo vuelve a ser el de su recibo y deja de sumar en
+       Gastos, que es lo que dice el texto de la marca. */
+    const repone=reciboVetado(state,fixedId,expected.identity,ex.id)&&(ex.source==="ob"||ex.source==="ob-hist");
     askConfirm({title:tf("f_receipt_confirm",{name:f.name}),
-      sub:tf("f_receipt_confirm_sub",{merchant:ex.merchant,amount:eur(ex.amount),bank:entOf(expenseBankOf(ex)).label,date:fmtIsoCorto(ds),planned:entOf(accOf(f)).label,expected:eur(f.bankAmount>0?f.bankAmount:occAmountIn(f,m))}),
+      sub:repone?tf("f_recibo_marca",{name:f.name}):tf("f_receipt_confirm_sub",{merchant:ex.merchant,amount:eur(ex.amount),bank:entOf(expenseBankOf(ex)).label,date:fmtIsoCorto(ds),planned:entOf(accOf(f)).label,expected:eur(f.bankAmount>0?f.bankAmount:occAmountIn(f,m))}),
       ok:t("f_receipt_yes")}).then(function(yes){ if(yes) save(); });
   };
   // Marca/desmarca un gasto como "no tarjeta" (bizum/transferencia) para que no cuente el round-up TR.
@@ -1376,10 +1381,10 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
     React.createElement("div",{className:"row",style:{gap:8}},
       React.createElement("button",{type:"button",className:"btn btn-primary",style:{flex:1},onClick:function(){ resolveDup&&resolveDup(exp,true); onClose(true); }},t("g_dup_same")),
       React.createElement("button",{type:"button",className:"btn btn-ghost",style:{flex:1},onClick:function(){ resolveDup&&resolveDup(exp,false); onClose(true); }},t("g_dup_diff"))));
-  const reciboMarca=reciboNombre(state,exp), reciboFirme=!!reciboMarca&&cargoDeReciboFirme(exp,state);
+  const reciboDe=cargoDeRecibo(exp,state), reciboMarca=reciboDe?reciboDe.name||t("bp_hist_recibo"):"";
   // A la vista al abrir la ficha, sin desplegar nada: un parecido dudoso se corrige de un toque.
-  const reciboAviso=reciboMarca&&React.createElement("div",{className:"hint","data-testid":"exp-recibo-marca",style:{margin:"0 0 12px",padding:"10px 12px",borderRadius:12,background:"var(--surface-2)"}},
-    React.createElement("div",{style:{marginBottom:8}},tf(reciboFirme?"f_recibo_marca":"f_recibo_quiza",{name:reciboMarca})),
+  const reciboAviso=reciboDe&&React.createElement("div",{className:"hint","data-testid":"exp-recibo-marca",style:{margin:"0 0 12px",padding:"10px 12px",borderRadius:12,background:"var(--surface-2)"}},
+    React.createElement("div",{style:{marginBottom:8}},tf(cargoDeReciboFirme(exp,state)?"f_recibo_marca":"f_recibo_quiza",{name:reciboMarca})),
     React.createElement("button",{type:"button",className:"v4-chip","data-testid":"exp-recibo-no",onClick:function(){ quitarRecibo(exp); }},t("f_recibo_no")));
   const afterMeta=React.createElement(React.Fragment,null,
     calOpen && React.createElement(McCal,{value:dateIso,onPick:function(iso){ setCalOpen(false); saveEdit(exp,{date:iso}); }}),
@@ -1394,7 +1399,7 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
         disabled:!canRecognizeWithdrawal(exp,state)||withdrawalStatus && withdrawalStatus.id===exp.id && withdrawalStatus.status==="pending",
         onClick:function(){ recognizeWithdrawal(exp); }},t("f_withdraw_action")),
       exp.category==="traspaso" && React.createElement("div",{"data-testid":"exp-withdrawal-neutral"},t("f_withdraw_done")),
-      withdrawalReceiptLink(state,exp)&&React.createElement("div",{"data-testid":"exp-withdrawal-receipt-blocked"},t("f_withdraw_receipt_blocked")),
+      (withdrawalReceiptLink(state,exp)||reciboDe)&&React.createElement("div",{"data-testid":"exp-withdrawal-receipt-blocked"},t("f_withdraw_receipt_blocked")),
       withdrawalStatus && withdrawalStatus.id===exp.id && withdrawalStatus.status==="done" && withdrawalStatus.receiptUndone && React.createElement("div",{role:"status"},t("f_withdraw_receipt_undone")),
       React.createElement("div",null,t("f_withdraw_cash_limit")),
       withdrawalStatus && withdrawalStatus.id===exp.id && withdrawalStatus.status!=="done" && React.createElement("div",{role:"status"},
@@ -1410,16 +1415,18 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
   const adjustments=React.createElement("div",{className:"v4-ficha-adjust"},
     // Con marca de recibo la fila sale siempre: si no, «No es este recibo» quedaba inalcanzable
     // cuando la marca venía de un puntual o la categoría era neutra.
-    !isIncome&&!exp.possibleDup&&(reciboMarca||(!CAT_NEUTRAS[exp.category]&&(state.fixed||[]).length>0))&&React.createElement(React.Fragment,null,
+    !isIncome&&!exp.possibleDup&&(reciboDe||(!CAT_NEUTRAS[exp.category]&&(state.fixed||[]).length>0))&&React.createElement(React.Fragment,null,
       React.createElement("button",{type:"button",className:"v4-ficha-adjust-row","data-testid":"exp-receipt",onClick:function(){ setAdjustOpen(adjustOpen==="receipt"?null:"receipt"); }},
         React.createElement("span",null,t("f_receipt_row")),React.createElement("span",{className:"value","data-testid":"exp-receipt-value"},receiptLinked?receiptLinked.name:(reciboMarca||t("f_no"))),React.createElement("span",{className:"chev"},"›")),
       adjustOpen==="receipt"&&React.createElement("div",{className:"v4-ficha-adjust-open","data-testid":"exp-receipt-options"},
         React.createElement("div",{className:"hint"},t("f_receipt_hint")),
         React.createElement("div",{className:"v4-chips wrap"},
-          receiptLinked&&React.createElement("button",{type:"button",className:"v4-chip","data-testid":"exp-receipt-unlink",onClick:function(){ setReceipt(exp,null); }},t("f_receipt_unlink")),
-          !receiptLinked&&receiptOptions.map(function(f){ return React.createElement("button",{key:f.id,type:"button",className:"v4-chip","data-testid":"exp-receipt-"+f.id,
+          // Un cargo marcado ya es de un recibo aunque no tenga vínculo a mano: primero se deshace
+          // (es lo que pide el aviso de la retirada), y solo entonces se ofrece confirmar otro.
+          (receiptLinked||reciboDe)&&React.createElement("button",{type:"button",className:"v4-chip","data-testid":"exp-receipt-unlink",onClick:function(){ setReceipt(exp,null); }},t("f_receipt_unlink")),
+          !receiptLinked&&!reciboDe&&receiptOptions.map(function(f){ return React.createElement("button",{key:f.id,type:"button",className:"v4-chip","data-testid":"exp-receipt-"+f.id,
             onClick:function(){ setReceipt(exp,f.id); }},f.name+" · "+eur(occAmountIn(f,receiptMonth))); })),
-        !receiptLinked&&!receiptOptions.length&&React.createElement("div",{className:"hint"},t("f_receipt_none")))),
+        !receiptLinked&&!reciboDe&&!receiptOptions.length&&React.createElement("div",{className:"hint"},t("f_receipt_none")))),
     React.createElement("button",{type:"button",className:"v4-ficha-adjust-row",onClick:function(){ setAdjustOpen(adjustOpen==="note"?null:"note"); }},
       React.createElement("span",null,t("f_note_row")),React.createElement("span",{className:"value"},editExp.note||t("f_note_none")),React.createElement("span",{className:"chev"},"›")),
     adjustOpen==="note" && React.createElement("div",{className:"v4-ficha-adjust-open"},

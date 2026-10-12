@@ -139,6 +139,42 @@ test("Plan: el recibo cobrado sale en «Ya pagado» tras actualizar", async ({ p
   await expect(page.locator('div[data-seg="recibos"] .v4-paid').filter({ hasText: "Comunidad" })).toHaveCount(1);
 });
 
+for (const lang of ["es", "en", "ca"]) {
+  test(lang + ": el cargo de un recibo no se puede dar por retirada, y confirmar su pago deshace un «No es este recibo»", async ({ page }) => {
+    await abre(page, lang);
+    const textos = await page.evaluate(() => ({ sync: t("v4_sync_banks"), marca: tf("f_recibo_marca", { name: "Comunidad" }), bloqueo: t("f_withdraw_receipt_blocked") }));
+    const foto = () => page.evaluate(() => { const s = mcLoadRaw(mcStateKey()), i = insumosSaldoGasto(s);
+      return { spent: +monthBudgetStats(s).spent.toFixed(2), marcadas: s.expenses.filter((e) => e.reciboId).map((e) => e.reciboId).sort().join(), vetos: (s.reciboNo || []).length,
+        pagado: fixedPaymentState(s, s.fixed[0], 2026, 9, 26).paid,
+        saldo: +saldoCuentaMostrada(s.accounts[0], { injTR: i.injTR, spentByBank: i.spentByBank, paidNetByBank: i.paidNetByBank, roundup: i.roundup, monthlyInvest: i.monthlyInvest }).toFixed(2) }; });
+    await page.locator('.botnav-tab[data-tour="cartera"]').click();
+    await page.getByRole("button", { name: textos.sync }).click();
+    await expect.poll(() => page.evaluate(() => (mcLoadRaw(mcStateKey()).bankTx || []).length)).toBe(3);
+    await cierraInforme(page);
+    expect(await foto()).toEqual({ spent: 23.4, marcadas: "ag,com", vetos: 0, pagado: true, saldo: 1900 });
+
+    await page.locator('.botnav-tab[data-tour="gastos"]').click();
+    await fila(page, "COMUNIDAD DE PROPIETARIOS").click();
+    // Marcado: como retirada sumaría al efectivo lo que el recibo ya restó. Se dice por qué.
+    await expect(page.locator('[data-testid="exp-withdrawal"]')).toBeDisabled();
+    await expect(page.locator('[data-testid="exp-withdrawal-receipt-blocked"]')).toHaveText(textos.bloqueo);
+    // «Paga un recibo» ofrece deshacerlo, no confirmar otro encima.
+    await page.locator('[data-testid="exp-receipt"]').click();
+    await expect(page.locator('[data-testid="exp-receipt-com"]')).toHaveCount(0);
+    await page.locator('[data-testid="exp-receipt-unlink"]').click();
+    await expect.poll(foto).toEqual({ spent: 73.4, marcadas: "ag", vetos: 2, pagado: false, saldo: 1900 });
+    await expect(page.locator('[data-testid="exp-withdrawal"]')).toBeEnabled();
+
+    // Se arrepiente: confirma el pago con ese mismo cargo. El diálogo dice lo que va a pasar
+    // (deja de sumar en Gastos), no el «el presupuesto se conserva» de un vínculo cualquiera.
+    await page.locator('[data-testid="exp-receipt-com"]').click();
+    await expect(page.locator(".askback")).toContainText(textos.marca);
+    await page.locator(".askback .btn-primary").click();
+    await expect.poll(foto).toEqual({ spent: 23.4, marcadas: "ag,com", vetos: 0, pagado: true, saldo: 1900 });
+    await expect(page.locator('[data-testid="exp-recibo-marca"]')).toContainText("Comunidad");
+  });
+}
+
 test("Importar histórico: el cargo de un recibo sale marcado y con su nombre, no tachado como repetido", async ({ page }) => {
   await seedLoggedInDashboard(page, {
     hasBankLink: true, fixed: [recibo],

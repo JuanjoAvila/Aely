@@ -170,7 +170,7 @@ function fixedPaymentAutoOwner(s,e,y,m,bank,merchant,amount,category,book){
   if(!fixedPaymentUnique(s,e)) return false;
   var name=recNorm(merchant),best=-1,winners=[];
   fixedPaymentContenders(s,y,m).forEach(function(f){
-    var n=recNorm(f.name),full=n.length>=4&&(" "+name+" ").indexOf(" "+n+" ")>=0;
+    var n=recNorm(f.name),full=recFrase(n,name);
     var exact=Math.round(Number(f.amount)*100)===Math.round(Number(amount)*100);
     if(book){
       // El BOOK identifica el banco: un homónimo ajeno no puede negar su cargo propio.
@@ -188,20 +188,42 @@ function fixedPaymentAutoOwner(s,e,y,m,bank,merchant,amount,category,book){
    de poder pagar ESE recibo por cualquier camino (extracto, fila de Gastos o prueba guardada).
    Se guardan dos claves por veto: recibo + identidad del cargo, que es lo único que tiene el
    extracto del banco, y recibo + id de la fila, que sobrevive a que él renombre el comercio.
-   `reciboNo` viaja en el estado y al bajar la nube se une con lo local (`reciboNoUnion`): otro
-   móvil que aún no lo sabía no puede borrarlo subiendo su lista. */
+   `reciboNo` viaja en el estado con la hora de cada decisión en `reciboNoAt`, y al bajar la nube
+   gana, clave a clave, lo último que se dijo (`reciboNoUnion`). Solo sumar listas no bastaba
+   (revisión del 12/10/2026): el veto levantado en un móvil seguía en el otro, que lo volvía a
+   subir. Sin hora, o con la misma, se suman: otro móvil que aún no sabía del veto no puede
+   borrarlo subiendo su lista. */
 const RECIBO_NO_MAX=400;
 function reciboVetado(s,id,identity,filaId){
   var no=s&&s.reciboNo;
   if(!no||!no.length) return false;
   return no.indexOf(id+"|"+identity)>=0||(filaId!=null&&no.indexOf(id+"|#"+filaId)>=0);
 }
-function reciboNoUnion(a,b){
-  if(!(b&&b.length)) return a;
-  if(!(a&&a.length)) return b.slice(-RECIBO_NO_MAX);
-  var out=a.slice();
-  b.forEach(function(k){ if(out.indexOf(k)<0) out.push(k); });
-  return out.length===a.length?a:out.slice(-RECIBO_NO_MAX);
+// Pone (`vetar`) o levanta esas claves y apunta cuándo. → {reciboNo, reciboNoAt} para el estado.
+function reciboNoPon(s,claves,vetar,ahora){
+  var at=Object.assign({},s.reciboNoAt),no=(s.reciboNo||[]).filter(function(k){ return claves.indexOf(k)<0; });
+  claves.forEach(function(k){ at[k]=ahora; });
+  return reciboNoTope(vetar?no.concat(claves):no,at);
+}
+function reciboNoTope(no,at){
+  var claves=Object.keys(at);
+  if(claves.length>RECIBO_NO_MAX) claves.sort(function(a,b){ return at[b]-at[a]; }).slice(RECIBO_NO_MAX).forEach(function(k){ delete at[k]; });
+  return {reciboNo:no.slice(-RECIBO_NO_MAX),reciboNoAt:at};
+}
+function reciboNoUnion(local,nube){
+  var na=local.reciboNo||[],nb=nube.reciboNo||[],ta=local.reciboNoAt||{},tb=nube.reciboNoAt||{};
+  var at={},no=[],vistas={};
+  na.concat(nb,Object.keys(ta),Object.keys(tb)).forEach(function(k){
+    if(vistas[k]) return;
+    vistas[k]=1;
+    var a=ta[k]||0,b=tb[k]||0;
+    if(a||b) at[k]=Math.max(a,b);
+    if(a===b?na.indexOf(k)>=0||nb.indexOf(k)>=0:(a>b?na:nb).indexOf(k)>=0) no.push(k);
+  });
+  var out=reciboNoTope(no,at);
+  // Misma lista, misma referencia: la leen los `useMemo` de Gastos y de los totales en cada pull.
+  if(out.reciboNo.length===na.length&&out.reciboNo.every(function(k,i){ return k===na[i]; })) out.reciboNo=na;
+  return out;
 }
 function fixedPaymentProof(s,e,y,m,today){
   var p=e.paymentProofs&&e.paymentProofs[y*12+m];
@@ -817,6 +839,9 @@ function minWalk(startBal, evs){
 // normaliza un nombre para casar ("Mamá"→"mama", "COMUNIDAD PROPIETARIOS"→tokens)
 function recNorm(s){ return String(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9 ]/g," ").replace(/\s+/g," ").trim(); }
 function recTokens(s){ return recNorm(s).split(" ").filter(function(w){ return w.length>=4; }); }
+// Un nombre ya normalizado, entero y por palabras completas dentro de otro. Con menos de cuatro
+// letras no identifica a nadie. Una sola regla para el motor de pagos y la etiqueta del cargo.
+function recFrase(n,texto){ return n.length>=4&&(" "+texto+" ").indexOf(" "+n+" ")>=0; }
 // ¿comparten nombre? (uno contiene al otro, o un token ≥4 en común)
 function recNameMatch(a,b){
   const na=recNorm(a), nb=recNorm(b);
@@ -994,6 +1019,14 @@ function flattenBankTx(links){
    Ahora entra, y lleva `reciboId` EXACTAMENTE lo que antes se tiraba: así ninguna cifra cambia
    respecto a descartarlo (lo fija `tests/recibo-invariante`). Este cambio es de lo que se ve.
 
+   LA MARCA SE QUEDA, y ahí sí cambia una cifra, a propósito (decisión del 12/10/2026 tras medir
+   1.500 extractos). Antes cada sync volvía a juzgar el cargo desde cero: el seguro anual o el
+   puntual cobrado a fin de mes se tiraba en su mes y al siguiente, cuando el recibo ya no tocaba,
+   el mismo cargo entraba como una compra; y al subir el importe de un recibo, el cargo viejo
+   dejaba de casar y entraba al resincronizar. Ahora la fila ya está en la lista con su marca y
+   no se vuelve a juzgar: en esos casos el gastado es MENOR que antes (26 de 1.500, nunca mayor),
+   porque el cargo sigue siendo el de su recibo. Dentro del mes no cambia nada.
+
    INGRESOS: de cualquier banco (para «Mi ciclo»). Idempotente por ext_id + dedup. */
 function importObExpenses(s, txs, links){
   if(!txs || !txs.length) return null;
@@ -1160,8 +1193,7 @@ function importObExpenses(s, txs, links){
    Con uno solo no se pregunta al motor. → id del recibo, o null si ninguno tiene id. */
 function reciboNombreCasa(recibo, comercio){
   const a=recNorm(recibo), b=recNorm(comercio);
-  if(!a || !b) return false;
-  return (a.length>=4 && (" "+b+" ").indexOf(" "+a+" ")>=0) || (b.length>=4 && (" "+a+" ").indexOf(" "+b+" ")>=0);
+  return recFrase(a,b) || recFrase(b,a);
 }
 function reciboParaCargo(s, hits, e, txs){
   // El mismo recibo sale una vez por cada mes en que se cobra: se queda uno por id.
@@ -1187,10 +1219,26 @@ function cargoDeReciboFirme(e, s){
      histórico por render. Se recuerda la respuesta mientras no cambie nada de lo que el motor lee. */
   const cache=cargoDeReciboFirme.cache||(cargoDeReciboFirme.cache=new WeakMap());
   const dia=new Date().getDate();
+  const otro=function(x){ return !x || x.fixed!==s.fixed || x.bankTx!==s.bankTx || x.oneoffs!==s.oneoffs || x.reciboNo!==s.reciboNo || x.accounts!==s.accounts || x.deleted!==s.deleted || x.debts!==s.debts || x.dia!==dia; };
   let c=s.expenses&&cache.get(s.expenses);
-  if(!c || c.fixed!==s.fixed || c.bankTx!==s.bankTx || c.oneoffs!==s.oneoffs || c.reciboNo!==s.reciboNo || c.accounts!==s.accounts || c.deleted!==s.deleted || c.debts!==s.debts || c.dia!==dia){
-    c={fixed:s.fixed,bankTx:s.bankTx,oneoffs:s.oneoffs,reciboNo:s.reciboNo,accounts:s.accounts,deleted:s.deleted,debts:s.debts,dia:dia,filas:new Map()};
-    if(s.expenses) cache.set(s.expenses,c);
+  if(otro(c)){
+    const antes=cargoDeReciboFirme.ultima;
+    c={expenses:s.expenses,fixed:s.fixed,bankTx:s.bankTx,oneoffs:s.oneoffs,reciboNo:s.reciboNo,accounts:s.accounts,deleted:s.deleted,debts:s.debts,dia:dia,filas:new Map()};
+    /* Apuntar un gasto cambia la lista entera de referencia, pero el motor solo mira los gastos
+       del MES del cargo: si lo único distinto son unas pocas filas, las respuestas de los demás
+       meses siguen valiendo (medido con 20.000 gastos: 8 ms por alta en recalcular 12 filas). */
+    if(s.expenses && antes && antes.expenses && !otro(antes)){
+      const a=antes.expenses, b=s.expenses;
+      let i=0, fa=a.length, fb=b.length;
+      while(i<fa && i<fb && a[i]===b[i]) i++;
+      while(fa>i && fb>i && a[fa-1]===b[fb-1]){ fa--; fb--; }
+      if(fa-i+fb-i<=20){
+        const mes=function(x){ return String((x&&x.date)||"").slice(0,7); }, tocados={};
+        a.slice(i,fa).concat(b.slice(i,fb)).forEach(function(x){ tocados[mes(x)]=1; });
+        antes.filas.forEach(function(firme,fila){ if(!tocados[mes(fila)]) c.filas.set(fila,firme); });
+      }
+    }
+    if(s.expenses){ cache.set(s.expenses,c); cargoDeReciboFirme.ultima=c; }
   }
   if(c.filas.has(e)) return c.filas.get(e);
   const firme=cargoDeReciboFirmeCalc(e, s, f);
@@ -1203,9 +1251,11 @@ function cargoDeReciboFirmeCalc(e, s, f){
   const ds=String(e.date||"").slice(0,10), y=Number(ds.slice(0,4)), m=Number(ds.slice(5,7)), now=new Date();
   if(!(y>0) || !(m>=1 && m<=12) || y*12+m>now.getFullYear()*12+now.getMonth()+1) return false;
   const hoy=y===now.getFullYear()&&m===now.getMonth()+1 ? now.getDate() : new Date(y,m,0).getDate();
-  const st=fixedPaymentState(s,f,y,m,hoy);
-  const pago=st.bankTx ? fixedPaymentIdentity(st.bankTx.ent, st.bankTx) : st.proof ? st.proof.identity : st.expense ? fixedPaymentIdentity(expenseBankOf(st.expense), st.expense) : null;
-  return !!pago && pago===fixedPaymentIdentity(expenseBankOf(e), e);
+  return reciboPagadoCon(fixedPaymentState(s,f,y,m,hoy))===fixedPaymentIdentity(expenseBankOf(e), e);
+}
+// Identidad del cargo con el que el motor da por pagado un recibo; null si no es con ninguno.
+function reciboPagadoCon(st){
+  return st.bankTx ? fixedPaymentIdentity(st.bankTx.ent, st.bankTx) : st.proof ? st.proof.identity : st.expense ? fixedPaymentIdentity(expenseBankOf(st.expense), st.expense) : null;
 }
 /* MARCAR O DESMARCAR FUERA DE UN SYNC NO PUEDE MOVER EL SALDO (revisión del 12/10/2026).
    El saldo guardado se ancló contando (o sin contar) esa fila; al cambiarle la marca la cuenta
@@ -1228,45 +1278,54 @@ function conSaldoMostrado(antes, despues){
    retira la prueba de pago que dependiera de él, para que el recibo vuelva a pendiente salvo que
    otro cargo lo pague. Sin esto la fila pasaba a contar como gasto y el recibo seguía pagado con
    ella: contaba en los dos sitios. → {state, e} (la fila sin marca, para subirla) o null. */
-function quitarCargoDeRecibo(s, expenseId){
+function quitarCargoDeRecibo(s, expenseId, ahora){
   const orig=((s&&s.expenses)||[]).find(function(x){ return x && x.id===expenseId; });
   if(!orig || !orig.reciboId) return null;
   const id=orig.reciboId, identity=fixedPaymentIdentity(expenseBankOf(orig), orig);
   const e=Object.assign({}, orig); delete e.reciboId;
   const ds=String(orig.date||"").slice(0,10), ym=Number(ds.slice(0,4))*12+Number(ds.slice(5,7));
-  const no=reciboNoUnion(s.reciboNo||[], [id+"|"+identity, id+"|#"+orig.id]);
   const fixed=(s.fixed||[]).map(function(f){
     const p=f && f.id===id && f.paymentProofs && f.paymentProofs[ym];
     if(!p || p.identity!==identity) return f;
     const proofs=Object.assign({}, f.paymentProofs); delete proofs[ym];
     return Object.assign({}, f, { paymentProofs:proofs });
   });
-  const sin=Object.assign({}, s, { expenses:s.expenses.map(function(x){ return x===orig ? e : x; }), reciboNo:no, fixed:fixed });
+  const sin=Object.assign({}, s, { expenses:s.expenses.map(function(x){ return x===orig ? e : x; }), fixed:fixed },
+    reciboNoPon(s, [id+"|"+identity, id+"|#"+orig.id], true, ahora||Date.now()));
   return { state:conSaldoMostrado(s, sin), e:e };
 }
-/* Volver a confirmar a mano el pago con un cargo que antes se desvinculó levanta su veto: lo
-   último que dijo la persona manda. Sin esto el vínculo se guardaba y el motor lo ignoraba. */
-function levantarVetoDeRecibo(s, expenseId, fixedId){
+/* CONFIRMAR A MANO EL PAGO CON UN CARGO DEL QUE SE DIJO «NO ES ESTE RECIBO» DESHACE AQUELLO: lo
+   último que dijo la persona manda. Se levanta el veto (sin esto el vínculo se guardaba y el
+   motor lo ignoraba) y el cargo recupera su marca, que es como estaba antes de vetarlo y como
+   lo sigue teniendo el otro móvil: con el veto fuera y sin la marca, aquí contaría como compra
+   y allí no. Es el ÚNICO vínculo a mano que marca; el de un cargo cualquiera deja el gastado
+   como estaba (`linkFixedPayment`), que es lo que promete su diálogo. Si el vínculo no llega a
+   guardarse y el recibo sigue sin pagar, el veto se queda. → {state, e} (la fila marcada, para
+   subirla; null si no admite marca) o null si no había veto que deshacer. */
+function reponerCargoDeRecibo(s, expenseId, fixedId, y, m, today, expected, ahora){
   const x=((s&&s.expenses)||[]).find(function(r){ return r && r.id===expenseId; });
-  if(!x || !(s.reciboNo&&s.reciboNo.length)) return s;
-  const claves=[fixedId+"|"+fixedPaymentIdentity(expenseBankOf(x), x), fixedId+"|#"+x.id];
-  const no=s.reciboNo.filter(function(k){ return claves.indexOf(k)<0; });
-  return no.length===s.reciboNo.length ? s : Object.assign({}, s, { reciboNo:no });
-}
-/* «Confirmar pago de X» desde la ficha deja además la marca en el cargo (revisión del
-   12/10/2026: el recibo quedaba pagado con él y la fila seguía contando como compra). Solo si
-   el vínculo llegó a guardarse, el cargo es del banco del recibo y viene del banco: la marca
-   viaja en `source` y solo `ob`/`ob-hist` saben llevarla. → {state, e} o null. */
-function marcarCargoDeReciboVinculado(s, expenseId, fixedId){
-  const orig=((s&&s.expenses)||[]).find(function(x){ return x && x.id===expenseId; });
-  const f=((s&&s.fixed)||[]).find(function(x){ return x && x.id===fixedId; });
-  if(!orig || !f || orig.reciboId || orig.debtId || (orig.source!=="ob" && orig.source!=="ob-hist")) return null;
-  if(expenseBankOf(orig)!==accOf(f)) return null;
-  const ds=String(orig.date||"").slice(0,10), p=f.paymentProofs && f.paymentProofs[Number(ds.slice(0,4))*12+Number(ds.slice(5,7))];
-  if(!p || p.kind!=="expense" || p.identity!==fixedPaymentIdentity(expenseBankOf(orig), orig)) return null;
-  const e=Object.assign({}, orig, { reciboId:f.id });
-  const con=Object.assign({}, s, { expenses:s.expenses.map(function(x){ return x===orig ? e : x; }) });
+  const f=x && (s.fixed||[]).find(function(r){ return r && r.id===fixedId; });
+  if(!f) return null;
+  const identidad=fixedPaymentIdentity(expenseBankOf(x), x), claves=[fixedId+"|"+identidad, fixedId+"|#"+x.id];
+  if(!(s.reciboNo||[]).some(function(k){ return claves.indexOf(k)>=0; })) return null;
+  const libre=Object.assign({}, s, reciboNoPon(s, claves, false, ahora||Date.now()));
+  const link=linkFixedPayment(libre, expenseId, fixedId, y, m, today, expected);
+  // Sin el veto el motor puede darlo por pagado él solo con ese cargo: también vale.
+  if(link===libre && reciboPagadoCon(fixedPaymentState(libre, f, y, m, today))!==identidad) return null;
+  // La marca viaja en `source` y solo `ob`/`ob-hist` saben llevarla; y solo del banco del recibo.
+  const marcar=!x.debtId && (x.source==="ob" || x.source==="ob-hist") && expenseBankOf(x)===accOf(f);
+  const e=marcar ? Object.assign({}, x, { reciboId:fixedId }) : null;
+  const con=e ? Object.assign({}, link, { expenses:link.expenses.map(function(r){ return r===x ? e : r; }) }) : link;
   return { state:conSaldoMostrado(s, con), e:e };
+}
+/* BORRAR UN RECIBO O UN PUNTUAL DEVUELVE SUS CARGOS A GASTO NORMAL (`cargoDeRecibo` ya no lo
+   encuentra) y, fuera de un sync, eso movía el saldo con el banco quieto (medido en cuenta de
+   gasto diario: 397,60 → 335,20, el importe del cargo). Solo se sujeta el saldo si había un
+   cargo suyo marcado este mes; sin ninguno, borrar hace lo de siempre. */
+function sinCargoDelPlan(s, lista, id){
+  const out=Object.assign({}, s, { [lista]:(s[lista]||[]).filter(function(x){ return x.id!==id; }) });
+  const mes=startOfMonth().getTime();
+  return (s.expenses||[]).some(function(e){ return e.reciboId===id && dateMs(e.date)>=mes && cargoDeRecibo(e, s); }) ? conSaldoMostrado(s, out) : out;
 }
 /* LAS CUOTAS DE TUS DEUDAS, EN «DEUDAS» (4.21.0).
    Idea suya del 12/9. Medido con sus datos antes de picar: NINGUNA cuota casa por nombre. El
@@ -3034,7 +3093,7 @@ function patchFixedById(set, id, p){
   });
 }
 function removeFixedById(set, id){
-  set(function(s){ return Object.assign({},s,{fixed:(s.fixed||[]).filter(function(e){ return e.id!==id; })}); });
+  set(function(s){ return sinCargoDelPlan(s,"fixed",id); });
 }
 function addFixedItem(set, item){
   set(function(s){ return Object.assign({},s,{fixed:(s.fixed||[]).concat([item])}); });
@@ -3071,7 +3130,7 @@ function patchOneoffById(set, id, patch){
   });
 }
 function removeOneoffById(set, id){
-  set(function(s){ return Object.assign({},s,{oneoffs:(s.oneoffs||[]).filter(function(o){ return o.id!==id; })}); });
+  set(function(s){ return sinCargoDelPlan(s,"oneoffs",id); });
 }
 function addOneoffItem(set, item){
   set(function(s){ return Object.assign({},s,{oneoffs:(s.oneoffs||[]).concat([item])}); });
@@ -3131,7 +3190,7 @@ function Fijos({state, set, totals}){
       return base;
     })})); setEditing(false); };
   const toggleDraftM=(id,m)=> setDraftM(dm=>{ const base=dm[id]!=null?dm[id]:(((state.fixed.find(x=>x.id===id)||{}).months)||[]); const cur=base.slice(); const i=cur.indexOf(m); if(i>=0)cur.splice(i,1); else cur.push(m); return Object.assign({},dm,{[id]:cur}); });
-  const del=(id)=> set(s=>Object.assign({},s,{fixed:s.fixed.filter(e=>e.id!==id)}));
+  const del=(id)=> removeFixedById(set,id);
   const toggleFormM=(m)=> setForm(f=>{ const cur=(f.months||[]).slice(); const i=cur.indexOf(m); if(i>=0)cur.splice(i,1); else cur.push(m); return Object.assign({},f,{months:cur}); });
   const addFixed=()=>{ const amt=parseFloat(String(form.amount).replace(',','.'))||0; if(amt===0){ return; } const it={id:uid(),name:form.name||"Gasto fijo",amount:amt,freq:form.freq,account:bankOr(form.account||"sabadell")}; const dd=cleanDay(form.day); if(dd) it.day=dd; if(form.freq!=="mes"&&form.months&&form.months.length) it.months=form.months.slice().sort((a,b)=>a-b); set(s=>Object.assign({},s,{fixed:s.fixed.concat([it])})); setForm({name:"",amount:"",freq:"mes",months:[],day:"",account:(form.account||"sabadell")}); setAdding(false); };
 
@@ -3166,7 +3225,7 @@ function Fijos({state, set, totals}){
   const [addingO,setAddingO]=useState(false);
   const [formO,setFormO]=useState({name:"",amount:"",month:new Date().getMonth()+1,year:new Date().getFullYear(),day:"",account:"sabadell"});
   const addOneoff=()=>{ const amt=parseFloat(String(formO.amount).replace(',','.'))||0; if(amt===0) return; const it={id:uid(),name:formO.name||"Cargo puntual",amount:amt,month:parseInt(formO.month,10)||(new Date().getMonth()+1),year:parseInt(formO.year,10)||new Date().getFullYear(),account:bankOr(formO.account||"sabadell")}; const dd=cleanDay(formO.day); if(dd) it.day=dd; set(s=>Object.assign({},s,{oneoffs:(s.oneoffs||[]).concat([it])})); setFormO({name:"",amount:"",month:new Date().getMonth()+1,year:new Date().getFullYear(),day:"",account:"sabadell"}); setAddingO(false); };
-  const delOneoff=(id)=> set(s=>Object.assign({},s,{oneoffs:(s.oneoffs||[]).filter(o=>o.id!==id)}));
+  const delOneoff=(id)=> removeOneoffById(set,id);
   const [editingO,setEditingO]=useState(false);   // modo edición GLOBAL de la tarjeta (como Servicios)
   const [draftsO,setDraftsO]=useState({});
   const startEditAllO=(list)=>{ const d={}; list.forEach(function(o){ d[o.id]={name:o.name,amount:String(o.amount),day:o.day?String(o.day):"",month:o.month,year:o.year,account:o.account||"sabadell"}; }); setDraftsO(d); setEditingO(true); };
