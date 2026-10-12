@@ -489,7 +489,7 @@ se encola. Caducar conserva el último titular; cerrar sesión o borrar la cuent
 privadas y anula los vuelos anteriores para impedir que las vuelvan a crear.
 
 La lectura remota precede al UPDATE con condiciones sobre los campos que se cambian. Para
-`source` se conserva el origen y las marcas ajenas de banco, deuda y duplicidad; sólo cambia
+`source` se conserva el origen y las marcas ajenas de banco, deuda, recibo, duplicidad y ordinal; sólo cambia
 el componente decidido. Hay como máximo tres intentos CAS y cada petición tiene corte de 10 s.
 El corte no acredita cancelación del servidor. Un cambio del mismo campo posterior al gesto, incluso
 si el gesto se hizo sin red, produce

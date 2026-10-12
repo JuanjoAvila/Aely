@@ -152,5 +152,50 @@ await test('logout de otra pestaña no permite recrear la cola desde una respues
  const p=a.cloud.setExpenseNote(expense,'Privado entre pestañas');while(!release)await new Promise(r=>setTimeout(r,1));
  await b.cloud.signOut();assert.equal(saved.length,0);delete db.options.before;release();await assert.rejects(()=>p);assert.equal(saved.length,0);
 });
+await test('source conserva recibo, deuda, duplicado y ordinal final sin normalizar identidad',async()=>{
+ const a=await client();
+ for(const origin of ['ob','ob-hist'])for(const mark of ['','~deuda.d-1','~recibo.r_2'])for(const dup of ['','#dup'])for(const ord of ['','#n2','#n999999']){
+  const source=origin+':trade_republic'+mark+dup+ord;
+  assert.equal(a.c.mcExpenseSource(a.c.mcExpenseSourceParts(source)),source);
+ }
+});
+await test('source rechaza ordinal fuera de límites, orden ambiguo y marcas incompatibles',async()=>{
+ const a=await client();
+ for(const tail of ['#n0','#n1','#n02','#n1000000','#n-2','#n2.5','#n2e2','#n','#n2x','#n2#dup','#dup#dup','#n2#n3','~recibo.r~deuda.d','~deuda.d~recibo.r','~recibo.','#dup~recibo.r']){
+  assert.throws(()=>a.c.mcExpenseSourceParts('ob:trade_republic'+tail),/identity/,tail);
+ }
+ for(const source of ['manual:cash#n2','manual:cash~recibo.r','macrodroid#n2'])assert.throws(()=>a.c.mcExpenseSourceParts(source),/identity/,source);
+});
+await test('escrituras con ordinal mantienen UUID y sólo cambian el tramo decidido',async()=>{
+ const initial='ob:trade_republic~recibo.r#dup#n2';
+ for(const [kind,value,expected] of [['bank','revolut','ob:revolut~recibo.r#dup#n2'],['dup',false,'ob:trade_republic~recibo.r#n2'],['category','super',initial],['debt','d','ob:trade_republic~deuda.d#dup#n2']]){
+  const db=database();db.rows[0].source=initial;db.rows.push({...db.rows[0],id:other,source:'ob:trade_republic~recibo.r#dup#n3'});
+  const a=await client(db),e={...expense,source:initial,ent:null};
+  await a.c.writeExpenseField(db.sb,e,kind,value);
+  assert.equal(db.rows[0].source,expected);assert.equal(db.rows[0].id,id);assert.equal(db.rows[1].source,'ob:trade_republic~recibo.r#dup#n3');assert.equal(a.cloud.expenseWrites().length,0);
+  const writes=db.calls.filter(x=>x.patch);assert.equal(writes.length,1);assert(writes[0].filters.some(([k,v])=>k==='id'&&v===id));assert(writes[0].filters.some(([k,v])=>k==='user_id'&&v===owner));
+ }
+});
+await test('realinear ordinal exige source completo exacto y rechaza otro ordinal',async()=>{
+ for(const same of [true,false]){const db=database();db.rows[0].source='ob:trade_republic#dup#n2';const a=await client(db);
+  const p=a.cloud.setExpenseBank({...expense,id:'legacy-ordinal',source:'ob:trade_republic#dup#n'+(same?2:3),ent:null},'revolut');
+  if(same){await p;assert.equal(db.rows[0].source,'ob:revolut#dup#n2')}else{await assert.rejects(()=>p,/identity/);assert.equal(db.calls.filter(x=>x.patch).length,0)}
+ }
+});
+await test('recibo cambiado tras gesto sin red provoca conflicto de categoría',async()=>{
+ const db=database({error:true});db.rows[0].source='ob:trade_republic~recibo.r#dup#n2';const a=await client(db);
+ await assert.rejects(()=>a.cloud.setExpenseCat({...expense,source:db.rows[0].source,ent:null},'super'));
+ db.rows[0].source='ob:trade_republic~recibo.otro#dup#n2';delete db.options.error;
+ await assert.rejects(()=>a.cloud.retryExpenseWrite(a.cloud.expenseWrites()[0].opId),/conflict/);assert.equal(db.rows[0].cat,'bares');
+});
+await test('un ordinal de banco no se convierte a notificación perdiendo identidad',async()=>{
+ const a=await client();assert.throws(()=>a.c.mcExpensePatch({source:'ob:trade_republic#dup#n2',ingest_event_id:'event'},{kind:'dup',value:false}),/identity/);
+});
+await test('el escritor no fabrica un source sin banco ni acepta ACK con otro ordinal',async()=>{
+ const a=await client();assert.throws(()=>a.c.mcExpensePatch({source:'ob:trade_republic#n2'},{kind:'bank',value:''}),/identity/);
+ const db=database({badAck:{source:'ob:revolut#n3'}});db.rows[0].source='ob:trade_republic#n2';const b=await client(db);
+ await assert.rejects(()=>b.cloud.setExpenseBank({...expense,source:db.rows[0].source,ent:null,possibleDup:false},'revolut'),/identity/);
+ assert.equal(b.cloud.expenseWrites().length,1);
+});
 console.log('expense-write-revision: '+passed+' PASS / '+failed+' FAIL');
 if(failed) process.exitCode=1;

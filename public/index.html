@@ -3586,12 +3586,21 @@ function mcExpenseValueSame(k,a,b){
   return (a==null?null:a)===b;
 }
 function mcExpenseSourceParts(source){
-  const s=source==null?"manual":String(source), m=s.match(/^(ob|ob-hist|manual)(?::([^~#]+))?(~deuda\.[A-Za-z0-9_-]+)?(#dup)?$/);
-  if(m) return {origin:m[1],bank:m[2]||"",debt:m[3]||"",dup:!!m[4]};
-  if(s==="macrodroid" || s==="wallet" || s==="tr" || s==="supabase") return {origin:s,bank:"",debt:"",dup:false};
+  // El ordinal distingue cargos iguales: no se puede perder al cambiar otro tramo ni
+  // aceptar fuera del último lugar. El lector bancario admite como máximo seis dígitos.
+  const s=source==null?"manual":String(source), m=s.match(/^(ob|ob-hist|manual)(?::([^~#]+))?(~deuda\.[A-Za-z0-9_-]+|~recibo\.[A-Za-z0-9_-]+)?(#dup)?(#n([0-9]{1,6}))?$/);
+  if(m){
+    const mark=m[3]||"",receipt=mark.indexOf("~recibo.")===0?mark:"",ordinal=m[5]||"";
+    if(ordinal && (Number(m[6])<2 || String(Number(m[6]))!==m[6] || m[1]==="manual" || !m[2]) || receipt && (m[1]==="manual" || !m[2])) throw mcExpenseFailure("identity");
+    return {origin:m[1],bank:m[2]||"",debt:receipt?"":mark,receipt:receipt,dup:!!m[4],ordinal:ordinal};
+  }
+  if(s==="macrodroid" || s==="wallet" || s==="tr" || s==="supabase") return {origin:s,bank:"",debt:"",receipt:"",dup:false,ordinal:""};
   throw mcExpenseFailure("identity");
 }
-function mcExpenseSource(p){ return p.origin+(p.bank?":"+p.bank:"")+p.debt+(p.dup?"#dup":""); }
+function mcExpenseSource(p){
+  const source=p.origin+(p.bank?":"+p.bank:"")+p.debt+(p.receipt||"")+(p.dup?"#dup":"")+(p.ordinal||"");
+  mcExpenseSourceParts(source); return source;
+}
 function mcExpensePatch(row,op){
   const k=op.kind,v=op.value,p=(k==="bank"||k==="dup"||k==="category"||k==="debt")?mcExpenseSourceParts(row.source):null;
   if(k==="bank"){
@@ -3601,7 +3610,10 @@ function mcExpensePatch(row,op){
   }
   if(k==="dup"){
     if(["ob","ob-hist"].indexOf(p.origin)<0 && v) throw mcExpenseFailure("identity");
-    if(!v && row.ingest_event_id && p.origin==="ob" && p.bank==="trade_republic") return {source:"macrodroid"};
+    if(!v && row.ingest_event_id && p.origin==="ob" && p.bank==="trade_republic"){
+      if(p.ordinal || p.receipt || p.debt) throw mcExpenseFailure("identity");
+      return {source:"macrodroid"};
+    }
     p.dup=!!v; return {source:mcExpenseSource(p)};
   }
   if(k==="category"){
@@ -3612,7 +3624,7 @@ function mcExpensePatch(row,op){
   if(k==="debt"){
     if(!v || !/^[A-Za-z0-9_-]+$/.test(v)) throw mcExpenseFailure("identity");
     const patch={cat:"deudas"};
-    if(p.origin==="ob"){ p.debt="~deuda."+v; patch.source=mcExpenseSource(p); }
+    if(p.origin==="ob"){ p.debt="~deuda."+v; p.receipt=""; patch.source=mcExpenseSource(p); }
     return patch;
   }
   if(k==="note") return {nota:String(v||"").slice(0,160)||null,nota_edit:true};
@@ -3632,7 +3644,7 @@ function mcExpenseBase(row,op,patch){
   const p=(op.kind==="bank"||op.kind==="dup"||op.kind==="debt"||op.kind==="category")?mcExpenseSourceParts(row.source):null;
   if(op.kind==="bank") return p.bank;
   if(op.kind==="dup") return p.dup;
-  if(op.kind==="debt"||op.kind==="category") return {cat:row.cat,debt:p.debt};
+  if(op.kind==="debt"||op.kind==="category") return {cat:row.cat,debt:p.debt,receipt:p.receipt};
   const out={}; Object.keys(patch||op.snapshot||row).filter(function(k){ return k!=="id"&&k!=="user_id"; }).sort().forEach(function(k){ out[k]=row[k]==null?null:k==="fecha"?new Date(row[k]).toISOString():row[k]; }); return out;
 }
 function mcExpenseCents(n){ return Math.sign(n)*Math.round((Math.abs(n)+Number.EPSILON)*100)/100; }

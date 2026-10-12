@@ -2,6 +2,21 @@
 import assert from 'node:assert/strict';
 import {client,database,storage,expense,id,owner,other} from './expense-write-fixture.mjs';
 const cases=[
+ ['ordinal conservado al escribir','+(p.ordinal||"")','',async make=>{
+   const a=await make(),source='ob:trade_republic~recibo.r#dup#n2';assert.equal(a.c.mcExpenseSource(a.c.mcExpenseSourceParts(source)),source);
+ }],
+ ['recibo conservado al escribir','+(p.receipt||"")','',async make=>{
+   const a=await make(),source='ob:trade_republic~recibo.r#dup#n2';assert.equal(a.c.mcExpenseSource(a.c.mcExpenseSourceParts(source)),source);
+ }],
+ ['ordinal mínimo y canónico','Number(m[6])<2 || String(Number(m[6]))!==m[6]','false',async make=>{
+   const a=await make();assert.throws(()=>a.c.mcExpenseSourceParts('ob:trade_republic#n1'),/identity/);
+ }],
+ ['ordinal máximo de seis dígitos','(#n([0-9]{1,6}))','(#n([0-9]{1,7}))',async make=>{
+   const a=await make();assert.throws(()=>a.c.mcExpenseSourceParts('ob:trade_republic#n1000000'),/identity/);
+ }],
+ ['escritor valida el source resultante','mcExpenseSourceParts(source); return source;','return source;',async make=>{
+   const a=await make();assert.throws(()=>a.c.mcExpensePatch({source:'ob:trade_republic#n2'},{kind:'bank',value:''}),/identity/);
+ }],
  ['ACK dueño','w.data.user_id!==op.owner || ','',async make=>{
    const a=await make(database({badAck:{user_id:'other-owner'}}));await assert.rejects(()=>a.cloud.setExpenseNote(expense,'New'));
  }],

@@ -8,7 +8,13 @@ La base de comparación se guarda al hacer el gesto sin red. La cola se drena en
 
 La realineación exige UNA fila con propietario, instante, céntimos, comercio y origen exactos. Remapea UUID, orden manual, `possibleDupOf` y referencias de pruebas de recibos sin atribuir un pago nuevo. La muestra sintética de siete filas tiene dos resolubles (id corto/UUID divergente) y cinco rechazadas por dueño, instante, céntimos, comercio u origen distinto; otra prueba veta dos candidatas exactas. No es una estimación de la cartera real.
 
-Los 23 mutantes incluyen los siete supervivientes de la revisión y dos guardas contra la repersistencia de secretos tras logout en otra pestaña. La cifra anterior «2 pasan / 16 fallan en la base» se retira expresamente: el contrato llamaba una función inexistente en esa base. No se usa esa cifra para acreditar mejora.
+Los 28 mutantes incluyen los siete supervivientes de la revisión y dos guardas contra la repersistencia de secretos tras logout en otra pestaña. La cifra anterior «2 pasan / 16 fallan en la base» se retira expresamente: el contrato llamaba una función inexistente en esa base. No se usa esa cifra para acreditar mejora.
+
+## Compatibilidad de source preparada para integración
+
+La orden canónica ea747c75 exige conservar el tramo final #n<k> y la marca alternativa ~recibo.<id>. El lector/escritor FIN-04 admite ordinales canónicos de 2 a 999999 en OB e histórico; conserva el texto exacto, rechaza ceros iniciales, orden inválido, marcas dobles y ordinales en fuentes manuales. Cambiar la deuda reemplaza la marca de recibo por decisión expresa; cambiar banco, categoría o duplicidad conserva los demás tramos. Un cambio remoto de recibo provoca conflicto de categoría/deuda. Un ACK con otro ordinal no confirma la escritura. No se convierte a notificación una fila con ordinal o marca financiera: perdería su identidad.
+
+Los siete casos añadidos incluyen 36 combinaciones de ida y vuelta, 19 negativos, escrituras por UUID sin tocar el otro ordinal y realineación por source completo. Cinco mutantes nuevos vigilan conservación, límites y validación del escritor. Es preparación del transporte: esta rama no adopta los importadores ni los conversores locales de las ramas de Claude. La integración debe probar también su viaje completo. Una cola anterior con base sin recibo puede pedir resolver conflicto explícitamente; nunca se inventa esa base.
 
 ## Convivencia y límites
 
