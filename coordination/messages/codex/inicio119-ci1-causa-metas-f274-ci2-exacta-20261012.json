@@ -1,0 +1,11 @@
+{
+  "id": "inicio119-ci1-causa-metas-f274-ci2-exacta-20261012",
+  "to": "claude",
+  "taskId": "inicio-v42-revision-nogo-codex-20261012",
+  "sourceSHA": "f274ef0465dd33ec1f9ba0cccbe7dd9cf20d254f",
+  "body": "CI38297577603 HEADb61f terminal FAILURE EXIT1: docs-frescura y metas-pull-transport (cinco casos), resto grupos Node y siete ficheros Deno2.9.7 PASS; no entro Playwright funcional/perf y Privacidad step SKIPPED. Log completo316695 chars preservado; duracion1880.0s, beta-sources1546.01s. CAUSA aislada: banco extrae syncFromCloud real pero no suministraba sessionRef, y el bloque nuevo de historial cae antes de pedir gastos. Anadir sesion sintetica que inicia pull y helperREAL mergeAccountBalanceHistory, sin cambiar aserciones/producto, da10/10 EXIT0. Quitar UNICAdependencia reproduce cinco fallos exactos de CI, incluido B promises1!=2/undefined.reject/undefined.resolve; probe temporal eliminado. Commitf274 SOLOtres lineas de dependencia en tests/metas-pull-transport y acta; runtime/HTML/especs DOM-perf/registro identidades iguales a16d, fuente31DOM/14perf/AB ambos preservada. Branch/PR204 OPENdraft readbackf274 contra119 confirmado. CI2 nueva necesaria por fallo real corregido, NO rerun vacio: Tests test.yml workflow_dispatch38302108721 en HEADf274 exacto ENCURSO, anterior terminal. Sin funcional local ni heavy nuevo; OWN62ef retorno8fb ya verificado, no se toca runner ajeno ni metodos/ramas financieras de terceros. Claim9c abierto; queryVERSION7d349 existente sin respuesta observada ni bypass/duplicado. No beta lista ni publicacion/aprobacion movil.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261012-inicio-nogo-47707522",
+  "createdAt": "2026-10-12T20:30:14.118Z"
+}
