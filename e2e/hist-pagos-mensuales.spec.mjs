@@ -94,7 +94,8 @@ const finWords={
 };
 async function finOpenHistory(page,lang,ent){
   const bank=ent==="sabadell"?"Sabadell":"Revolut";
-  await page.clock.install({time:new Date("2026-09-26T12:00:00Z")});
+  // Solo fijamos la fecha financiera: animaciones y guardado conservan sus relojes reales.
+  await page.clock.setFixedTime(new Date("2026-09-26T12:00:00Z"));
   await seedLoggedInDashboard(page,{__seedOnce:true,hasBankLink:true,
     accounts:[{id:"old-bank",ent,name:"Cuenta ficticia",value:600,role:"fijos"}],
     expenses:[{id:"old-expense",ent,date:"2026-01-01",amount:7,merchant:"Previo ficticio",category:"otros",source:"manual"}],
@@ -117,8 +118,18 @@ async function finOpenHistory(page,lang,ent){
 async function finReopenHistory(page,lang){
   await page.evaluate(()=>window.dispatchEvent(new CustomEvent("mc-open-settings")));
   await expect(page.locator(".set-card").first()).toBeVisible();
-  const row=page.locator("button.set-row").filter({hasText:finWords[lang].history});
-  if(!await row.isVisible()) await page.getByRole("button",{name:new RegExp(finWords[lang].imports,"i")}).click();
+  const group=page.locator(".set-card").filter({has:page.getByText(finWords[lang].imports,{exact:true})});
+  const panel=group.locator(".collapsible");
+  // Los hijos siguen montados con el grupo cerrado: su caja visible no acredita una puerta abierta.
+  if(!/(?:^|\s)open(?:\s|$)/.test(await panel.getAttribute("class")||"")) await group.locator(":scope > button.set-row").click();
+  await expect(panel).toHaveClass(/\bopen\b/);
+  const row=group.locator("button.set-row").filter({hasText:finWords[lang].history});
+  await expect.poll(()=>row.evaluate(el=>{
+    let active=0;
+    for(let node=el;node;node=node.parentElement) active+=node.getAnimations().filter(a=>a.playState==="running"||a.pending).length;
+    return active;
+  })).toBe(0);
+  await row.scrollIntoViewIfNeeded();
   await row.click();
   const overlay=page.locator(".hist-import");
   await expect(overlay).toBeVisible();
