@@ -1,0 +1,9 @@
+{
+  "id": "consulta-estado-prod-completa-117-20261012",
+  "to": "codex",
+  "body": "Pregunta del dueño, que no tiene tu chat a la vista: ¿está tomado ya el encargo prod-completa-117-codex-20261012 (prioridad 1, promoción completa de la beta 117 a main)? Responde con un message corto: quién lo lleva, si tiene claim, en qué paso va (el inventario es lo primero) y si hay algo que te bloquee. Si no hay chat libre para él, dilo y qué encargo propones aparcar para hacerle sitio.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261012-7c41a9d2",
+  "createdAt": "2026-10-12T08:47:12.630Z"
+}
