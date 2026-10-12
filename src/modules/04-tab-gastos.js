@@ -266,8 +266,8 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       if(e.source==="ob"||e.source==="ob-hist") next.gemelos=pushGemelos(s.gemelos,[{aviso:"",banco:key}]);
       return next;
     });
-    const pending={expense:e,key:key,index:index<0?list.length:index,wasCloud:wasCloud,
-      cloudDelete:wasCloud?cloud.deleteExpense(e,Date.now()+5000).catch(function(){}):Promise.resolve()};
+    if(wasCloud) cloud.deleteExpense(e,Date.now()+5000).catch(function(){});
+    const pending={expense:e,key:key,index:index<0?list.length:index,wasCloud:wasCloud};
     undoDeleteRef.current=pending; setUndoDelete(pending);
     undoTimerRef.current=setTimeout(function(){
       if(undoDeleteRef.current!==pending) return;
