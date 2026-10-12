@@ -70,6 +70,34 @@ console.log("security");
   }
 }
 
+/* ---- 1 bis. `bankSync` es una LECTURA que puede mover el cursor del servidor ----
+   No está en CLOUD_WRITES a propósito (en pruebas se sigue leyendo del banco), pero desde el
+   acuse (12/10/2026) su cuerpo lleva `acks`, y un acuse aceptado ESCRIBE `bank_links.last_sync`.
+   Lo que impide que el banco de pruebas mueva el cursor real es que el acuse ni se lee ni se
+   guarda allí, y que no hay otra fuente de `acks` que esa. El comportamiento, con el handler
+   real, lo prueba `bank-sync-acuse` (H2); aquí se fija que la puerta no se abra por otro lado. */
+{
+  const core = read("src/modules/00-core.js").replace(/\r\n/g, "\n");
+  const src = fs.readdirSync(path.join(root, "src/modules")).filter((f) => f.endsWith(".js")).map((f) => [f, read("src/modules/" + f)]);
+  const cuerpo = (name) => (core.match(new RegExp("\\nfunction " + name + "\\([^)]*\\)\\{\\n([\\s\\S]*?)\\n\\}")) || [])[1] || "";
+  const sinPuerta = ["obAckLoad", "obAckSave"].filter((n) => !/^\s*if\(mcSandbox\(\)\) return /.test(cuerpo(n)));
+  if (sinPuerta.length) bad("el acuse de bancos no se lee ni se guarda en modo pruebas", `sin \`if(mcSandbox()) return\` al entrar: ${sinPuerta.join(", ")}`);
+  else ok("el acuse de bancos no se lee ni se guarda en modo pruebas");
+
+  const envios = src.flatMap(([f, text]) => [...text.matchAll(/acks\s*:\s*([^,}]+)/g)].map((m) => f + ": acks:" + m[1].trim()));
+  const ajenos = envios.filter((e) => !/acks:obAckLoad\(\)$/.test(e));
+  if (envios.length !== 1 || ajenos.length) bad("`acks` solo sale de obAckLoad()", envios.join(" · ") || "no se encontró el envío");
+  else ok("`acks` solo sale de obAckLoad()");
+
+  // La clave del acuse es local: si alguien la lee o la escribe fuera de sus tres funciones
+  // (para subirla, copiarla al banco de pruebas o meterla en el estado) deja de serlo.
+  const usos = src.flatMap(([f, text]) => [...text.matchAll(/OB_ACK_KEY/g)].map(() => f));
+  const enEstado = src.filter(([, text]) => /\bobAck\s*:/.test(text)).map(([f]) => f);
+  if (usos.length !== 4 || usos.some((f) => f !== "00-core.js") || enEstado.length) {
+    bad("el acuse de bancos vive en su clave local, fuera del estado que sube a la nube", `usos de OB_ACK_KEY: ${usos.join(", ")}; obAck en el estado: ${enEstado.join(", ") || "no"}`);
+  } else ok("el acuse de bancos vive en su clave local, fuera del estado que sube a la nube");
+}
+
 /* ---- 2. Nada de Math.random() para generar credenciales ---- */
 {
   let hits = [];

@@ -529,12 +529,20 @@ test("Catálogo116 añade sólo la tanda de los bancos y fija qué huellas ajena
   const scopes=JSON.parse(read("scripts/beta-sources.json")),oldScopes=JSON.parse(source115("scripts/beta-sources.json"));
   assert.deepEqual(Object.keys(scopes).filter(key=>!oldScopes[key]),[id,"widget-ciclo-puente"]);
   assert.deepEqual(Object.keys(oldScopes).filter(key=>!scopes[key]),[],"ningún alcance se retira: el de la rechazada queda como historia");
-  for(const [key,scope] of Object.entries(oldScopes))assert.deepEqual(scopes[key],scope,key+": descriptor ajeno intacto");
+  // El acuse del cursor vive en su clave local (`obAckLoad`/`obAckSave`): la nómina anticipada ya vigilaba
+  // el sync de bancos entero, así que esas tres unidades entran también en su alcance, al final y sin tocar las demás.
+  const ackUnits=["obAckLoad","obAckSave","OB_ACK_KEY"],withAck="inc-3009-nomina-anticipada";
+  for(const [key,scope] of Object.entries(oldScopes)){
+    if(key!==withAck){assert.deepEqual(scopes[key],scope,key+": descriptor ajeno intacto");continue;}
+    assert.deepEqual({...scopes[key],web:scopes[key].web.slice(0,scope.web.length)},scope,key+": lo que ya vigilaba queda intacto");
+    assert.deepEqual(scopes[key].web.slice(scope.web.length).map(u=>[u.file,u.function||u.data]),ackUnits.map(u=>["src/modules/00-core.js",u]),key+": sólo se añade el acuse");
+  }
   assert.deepEqual(scopes["widget-ciclo-puente"],scopes["widget-pago-app-cerrada"],"la corregida vigila exactamente las mismas unidades web y los mismos cinco Java");
   assert.deepEqual(Object.keys(scopes[id]),["web","unidades"],"sin APK ni Edge: bank-sync ya está desplegada y el APK se queda en 53");
   assert.equal(scopes[id].unidades,true);
   // Las seis piezas (y el límite de guardado, porque el sync escribe estado) del cliente van primero; el resto son sus dependencias transitivas, que exigen las auditorías de lógica, datos y métodos de cloud.
-  assert.equal(scopes[id].web.length,148);
+  assert.equal(scopes[id].web.length,152);
+  assert.deepEqual(scopes[id].web.slice(-4).map(u=>u.function||u.data),["obAckLoad","obAckSave","obAckDrop","OB_ACK_KEY"],"el acuse local y su limpieza al quitar el banco");
   assert.deepEqual(scopes[id].web.slice(0,7).map(u=>[u.file,u.function||u.data||u.from]),[
     ["src/modules/00-core.js","cloud"],["src/modules/08-motor-bank.js","flattenBankTx"],["src/modules/08-motor-bank.js","importObExpenses"],
     ["src/modules/08-motor-bank.js","reconcileBank"],["src/modules/10-app-components.js","BankPanel"],["src/modules/11-app-main.js","  const avisaSync=function(opts,m){"],["src/modules/11-app-main.js","  // INC-0410 guardado: de aquí al límite está cuándo y qué estado se escribe en disco. Cambiarlo invalida las revisiones que prometen conservar algo al cerrar o recargar."]]);
@@ -572,12 +580,12 @@ test("Catálogo116 añade sólo la tanda de los bancos y fija qué huellas ajena
   }
   assert.equal(current.native,undefined);assert.equal(current.edge,undefined);
   assert.notEqual(current.web,betaRevision("widget-pago-app-cerrada",source,undefined,scopes["widget-pago-app-cerrada"]).web);
-  assert.notEqual(betaRevision(id,source115,undefined,scopes[id]).web,current.web,"la beta anterior no acredita el cliente");
+  assert.throws(()=>betaRevision(id,source115,undefined,scopes[id]),error=>error.code==="BETA_SCOPE_ABSENT","la beta anterior no acredita el cliente: no tiene el acuse local");
   // Cada unidad vigilada reabre la tanda; la vecina no.
     for(const [file,from,to] of [
     ["src/modules/00-core.js","sb.functions.invoke('bank-sync',{ body })","sb.functions.invoke('bank-sync')"],
-    [main,"cloud.bankSync({recoverGaps:true,acks:Object.assign({},stateRef.current.obAck)})","cloud.bankSync()"],
-    [main,"cloud.bankSync({recoverGaps:true,acks:Object.assign({},stateRef.current.obAck)})","cloud.bankSync({recoverGaps:true})"],
+    [main,"cloud.bankSync({recoverGaps:true,acks:obAckLoad()})","cloud.bankSync()"],
+    [main,"cloud.bankSync({recoverGaps:true,acks:obAckLoad()})","cloud.bankSync({recoverGaps:true})"],
     [main,"if(l&&l.ack) ack[l.aspsp]=l.ack;","if(l&&l.ack) ack[l.aspsp]=null;"],
     [main,"if(l&&l.gapBeyondCap) avisaSync","if(l&&l.gapBeyondCapX) avisaSync"],
     [main,"importObExpenses(prev, txs, links)","importObExpenses(prev, txs)"],
@@ -1281,7 +1289,10 @@ test("Recientes106 reanclada conserva expresión, identidad y recibo completos",
   const scopes=JSON.parse(read("scripts/beta-sources.json"));
   // Wealth pertenece al alcance de Nómina: el editor de Bienes113 cambia esa dependencia
   // real. Recortarla para conservar el OK111 ocultaría producto modificado (10/10).
-  assert.notEqual(betaRevision("inc-3009-nomina-anticipada",read).web,betaRevision("inc-3009-nomina-anticipada",old,undefined,scopes["inc-3009-nomina-anticipada"]).web,"Bienes113 cambia Wealth compartida con Nómina; no conservar la identidad111");
+  // El acuse local del cursor (12/10) no existía en la fuente111: contra ella se compara lo que ya había.
+  const nomina=scopes["inc-3009-nomina-anticipada"],nomina111={...nomina,web:nomina.web.filter(u=>!["obAckLoad","obAckSave","OB_ACK_KEY"].includes(u.function||u.data))};
+  assert.equal(nomina111.web.length,nomina.web.length-3);
+  assert.notEqual(betaRevision("inc-3009-nomina-anticipada",read).web,betaRevision("inc-3009-nomina-anticipada",old,undefined,nomina111).web,"Bienes113 cambia Wealth compartida con Nómina; no conservar la identidad111");
 });
 
 process.exitCode=failed?1:0;

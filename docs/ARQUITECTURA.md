@@ -198,19 +198,38 @@ ventana, `bank-sync` lee además lo que falta, con estas reglas (`bank-sync/dema
 - Si la ventana no cabe en esas doce llamadas (o en las 2000 filas del lector) no hay tramo posible y `last_sync` sube a «ahora»,
   como antes de existir el tramo. Con un error a media lectura o una cuenta caída no se mueve.
 - El banco no entrega más de 90 días: un hueco mayor se pide desde ese tope y se señala con
-  `gapBeyondCap`. Reconectar un banco deja `last_sync` a null (`bank-callback`) y ese hueco no se
-  recupera por esta vía.
+  `gapBeyondCap`.
+- **Reconectar conserva el cursor (11/10).** Reconectar el mismo banco es la misma fila de
+  `bank_links` con otra autorización (`bank-connect` hace upsert). Si vuelven exactamente las
+  mismas cuentas (`bank-callback/reconnect.ts`: por IBAN y divisa, o por `identification_hash`;
+  el `uid` no vale, cambia en cada sesión) `bank-callback` no toca `last_sync` y la lectura
+  siguiente recupera el hueco como cualquier otro. Si cambian las cuentas, no hay identidad
+  estable o es la primera vez, `last_sync` queda a null y el enlace arranca con la ventana de
+  siempre: el cursor es del enlace y una cuenta nueva no puede heredarlo.
 - Un cliente que no manda `recoverGaps` recibe solo la ventana; con hueco, su `last_sync` no sube
   para no quemar el tramo que un cliente nuevo sí puede guardar.
 - **Acuse (12/10).** El cursor se escribía al leer del banco, antes de que el móvil tuviera las
   filas: una respuesta perdida dejaba ese trozo sin pedir nunca más. El cliente que acusa manda
   `acks` (un objeto por nombre de banco, vacío la primera vez) y con él `bank-sync` no escribe
-  `last_sync` por lo que acaba de leer: lo entrega en `ack` (`cursor|id del enlace`), el cliente lo
-  guarda en `state.obAck` en el mismo `set` que mete las filas y lo devuelve en la pulsación
-  siguiente, que es cuando se escribe (`ackCursor`: de ese enlace, no futuro, nunca hacia atrás).
+  `last_sync` por lo que acaba de leer: lo entrega en `ack` (`cursor|clave del enlace`) y el
+  cliente lo devuelve en la pulsación siguiente, que es cuando se escribe (`ackCursor`: de ese
+  enlace y esa autorización, con la forma exacta que emite el servidor, no futuro, nunca hacia
+  atrás; la escritura va filtrada por `id` y solo se da por hecha si no devolvió error).
   `last_sync` va así una pulsación por detrás. Sin `acks` (clientes anteriores) el cursor se sigue
   escribiendo en la misma llamada. El cliente nuevo contra una función sin acuse no recibe `ack`
   y no guarda nada.
+  - **El acuse es local al dispositivo.** Vive en su clave de `localStorage`
+    (`micartera_v3_oback`, `obAckLoad`/`obAckSave`/`obAckDrop` en 00-core), fuera del estado:
+    el estado sube a la nube y otro móvil lo adopta entero, y un móvil no puede acusar filas
+    que recibió otro. Se escribe detrás de sus filas: `runBankSync` deja el acuse pendiente,
+    el efecto de `lastBankSync` vuelca el estado y `obAckSave` comprueba en disco que entró.
+  - **El banco de pruebas no acusa.** Allí `obAckLoad` devuelve vacío y `obAckSave` no escribe:
+    `acks` viaja vacío, el servidor espera y el cursor real no se mueve (lo vigila `security`).
+  - **Reconectar invalida los acuses anteriores.** La clave del enlace (`ackLinkKey`) es su id
+    y su `state_issued_at`, que `bank-connect` renueva en cada autorización. Tras reconectar,
+    el cursor lo decide solo `bank-callback` (conservado o null) y un acuse emitido antes no
+    lo mueve: lo que ese móvil tuviera de más se lee otra vez y se deduplica por `ext_id`.
+  - Quitar un banco borra su acuse (`obAckDrop`).
 - **Banco que filtra por fecha valor.** La app pinta la fecha contable, que puede ir uno o dos
   días antes de la que el banco usa para `date_from`. `syncFrom` va 3 días por debajo del primer
   día pedido (`demandFloor`) para que el cliente no tire esas filas; al banco no se le pide más.

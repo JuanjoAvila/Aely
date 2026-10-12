@@ -3230,6 +3230,44 @@ function mcRecargarSinVolcar(){
    copia nueva de la cartera real. */
 function mcResetSandbox(){ store.del(STATE_KEY_TEST); store.del(STATE_KEY_TEST+EXP_SUFFIX); try{ localStorage.removeItem("_mcSandboxVacio"); }catch(e){} }
 
+/* ---------- ACUSE del cursor de bancos: LOCAL a este dispositivo (12/10/2026) ----------
+   `bank-sync` no mueve su cursor al leer del banco: entrega en cada respuesta el que le tocaría
+   (`ack`) y espera a que este móvil se lo devuelva en la pulsación siguiente, con las filas ya
+   guardadas aquí. Nació dentro del estado (`state.obAck`) y la revisión encontró dos agujeros:
+     · el estado sube a la nube y otro dispositivo lo adopta entero, así que un móvil B acababa
+       devolviendo el acuse de filas que solo había importado el móvil A;
+     · el banco de pruebas guarda su estado aparte: un acuse nacido allí movía el cursor REAL
+       sin que la cartera real hubiera recibido esas filas.
+   Por eso vive en SU clave, que ni sube ni se adopta, y en modo pruebas ni se guarda ni se
+   envía: se manda vacío, que es lo que le dice al servidor que no avance por su cuenta. El
+   precio es pequeño: en pruebas el tramo antiguo se queda en su primer trozo, y el cursor lo
+   mueve la cartera real cuando sincroniza ella.
+   Viaja en el cuerpo de `cloud.bankSync` como `acks`, junto a `recoverGaps`; una función que
+   no lo conoce lo ignora y no devuelve `ack`, así que aquí no se guarda nada. */
+const OB_ACK_KEY="micartera_v3_oback";
+function obAckLoad(){
+  if(mcSandbox()) return {};
+  const a=store.get(OB_ACK_KEY);
+  return a&&typeof a==="object"&&!Array.isArray(a) ? a : {};
+}
+/* Se escribe DESPUÉS de las filas y solo si están en disco. `at` es el `lastBankSync` que el
+   mismo `set` dejó en el estado junto a ellas: si el volcado no ha llegado (la app se cerró
+   antes, o se descartó a propósito) no hay acuse, y la pulsación siguiente repite el trozo. */
+function obAckSave(at, ack){
+  if(mcSandbox()) return false;
+  const disk=store.get(STATE_KEY_REAL);
+  if(!disk || disk.lastBankSync!==at) return false;
+  store.set(OB_ACK_KEY, Object.assign(obAckLoad(), ack));
+  return true;
+}
+// Al quitar un banco su enlace se borra en el servidor: ese acuse ya no es de nadie.
+function obAckDrop(aspsp){
+  const a=obAckLoad();
+  if(!(aspsp in a)) return;
+  delete a[aspsp];
+  store.set(OB_ACK_KEY, a);
+}
+
 /* ---------- Supabase: sincronización en la nube (Fase 1) ----------
    Offline-first: si no hay librería/red o no hay sesión, la app funciona igual con localStorage.
    Al iniciar sesión (magic link) se sincroniza el estado entre dispositivos.
@@ -3654,10 +3692,9 @@ const cloud = (function(){
       return data.aspsps||[];
     },
     // Trae saldo (+ movimientos, que en Capa 2 ignoramos) de los bancos enlazados.
-    // `body` es `{recoverGaps:true,acks}`: `recoverGaps` avisa al servidor de que este cliente
-    // guarda también lo anterior a la ventana de siempre (INC-2709-06) y `acks` le devuelve el
-    // cursor de la respuesta anterior (ver `runBankSync`); una función vieja ignora los dos. No
-    // es `dateFrom`: eso abriría el histórico de solo lectura, que no toca saldos.
+    // `body` es `{recoverGaps:true}`: avisa al servidor de que este cliente guarda también lo
+    // anterior a la ventana de siempre (INC-2709-06); una función vieja ignora el campo. No es
+    // `dateFrom`: eso abriría el histórico de solo lectura, que no toca saldos.
     async bankSync(body){
       if(!sb) throw new Error("nube no disponible");
       const {data,error}=await sb.functions.invoke('bank-sync',{ body });
@@ -19165,6 +19202,7 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onL
       setBusy(name);
       cloud.bankDisconnect(name).then(function(){
         setConfirming("");
+        obAckDrop(name);
         // Si el banco tenía una cuenta con rol en Cartera, se le dice qué pasa con ella: SALE de
         // Cartera, y sus movimientos se quedan enteros en Gastos (ver el `set` de abajo).
         const teniaCuenta=!!(state.accounts||[]).find(function(a){ return a && a.ent===ent && a.bankIban; });
@@ -20466,7 +20504,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="19150ceea85b6daca5e739b849fc4c86ce84d1b9966fbcac0958edc7c05443ef";
+var _rnSha="7643c4e289cfdafa2f9e9fc7d7fb273957d84a580f9ab90ad886a677f8636963";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -24772,10 +24810,11 @@ function App(){
       if(!ok) throw SYNC_SIN_NUBE;
       /* ACUSE (12/10). El servidor movía su cursor al LEER del banco: si la respuesta no llegaba
          al móvil, ese trozo no se volvía a pedir nunca. Ahora cada respuesta trae el cursor que
-         le toca (`ack`) y aquí se devuelve el de la pulsación anterior, que está guardado en el
-         mismo `set` que metió sus filas. `acks` va siempre, aunque esté vacío: es lo que le
-         dice al servidor que espere al acuse en vez de avanzar por su cuenta. */
-      return Promise.all([cloud.bankSync({recoverGaps:true,acks:Object.assign({},stateRef.current.obAck)}), pDb]);
+         le toca (`ack`) y aquí se devuelve el de la pulsación anterior, que se guardó en este
+         dispositivo cuando sus filas ya estaban en disco (`obAckLoad`, 00-core). `acks` va
+         siempre, aunque esté vacío: es lo que le dice al servidor que espere al acuse en vez
+         de avanzar por su cuenta. */
+      return Promise.all([cloud.bankSync({recoverGaps:true,acks:obAckLoad()}), pDb]);
     }).then(function(par){
       const res=par[0], dbLinks=par[1]||[];
       const links=(res&&res.links)||[];
@@ -24795,6 +24834,12 @@ function App(){
       }catch(e){}
       const preview=applyBankBalances(stateRef.current, links);   // función pura: solo para decidir el aviso
       let obAdded=[];                                             // compras de tarjeta importadas (roles de cuenta)
+      /* El acuse de esta respuesta NO se guarda todavía: espera a que el estado que lleva sus
+         filas esté escrito (efecto de `obAckPend`, abajo). `at` es la marca que une las dos
+         cosas, y se fija aquí fuera porque el updater puede ejecutarse más de una vez. */
+      const at=Date.now(), ack={};
+      links.forEach(function(l){ if(l&&l.ack) ack[l.aspsp]=l.ack; });
+      obAckPend.current={at:at,ack:ack};
       set(function(prev){
         const txs=flattenBankTx(links);
         // ORDEN anti-doble-conteo: primero entran las compras de tarjeta como gastos, y DESPUÉS
@@ -24835,11 +24880,7 @@ function App(){
            que hoy no dio saldo conserva la hora del que sigue en pantalla. */
         const balAt=Object.assign({},prev.obBalAt);
         links.forEach(function(l){ if(l&&l.balanceAt) balAt[l.aspsp]=l.balanceAt; });
-        // El acuse se guarda aquí, con las filas que acredita: o entran las dos cosas o ninguna.
-        // El banco que hoy no trae `ack` conserva el anterior; repetirlo no mueve nada.
-        const ack=Object.assign({},prev.obAck);
-        links.forEach(function(l){ if(l&&l.ack) ack[l.aspsp]=l.ack; });
-        return Object.assign({}, r.state, { lastBankSync:Date.now(), hasBankLink: links.length?true:prev.hasBankLink, bankTx: txs, bankIssues: bankIssuesOf(links, dbLinks), obBalAt:balAt, obAck:ack });
+        return Object.assign({}, r.state, { lastBankSync:at, hasBankLink: links.length?true:prev.hasBankLink, bankTx: txs, bankIssues: bankIssuesOf(links, dbLinks), obBalAt:balAt });
       });
       // sube las importadas a la tabla expenses (best-effort; el estado local ya las tiene)
       setTimeout(function(){ obAdded.forEach(function(e){ subirGasto(e, "ob-import"); }); }, 0);
@@ -24953,6 +24994,19 @@ function App(){
       try{ window.dispatchEvent(new CustomEvent("mc-bank-links-changed")); }catch(e){}
     });
   };
+  /* EL ACUSE SE GUARDA DETRÁS DE SUS FILAS, NUNCA DELANTE. Aquí el estado que las lleva ya está
+     comprometido (su `lastBankSync` es la marca de esa respuesta) y el guardado lo tiene
+     apuntado desde el commit: se vuelca ahora y `obAckSave` comprueba en disco que entró antes
+     de escribir el acuse. Si la app se cierra antes de llegar aquí no queda ni lo uno ni lo
+     otro, y la pulsación siguiente vuelve a pedir el mismo trozo. */
+  const obAckPend=useRef(null);
+  useEffect(function(){
+    const p=obAckPend.current;
+    if(!p || state.lastBankSync!==p.at) return;
+    obAckPend.current=null;
+    flushPersist();
+    obAckSave(p.at, p.ack);
+  },[state.lastBankSync]);
 
   /* ── Auto-refresh de brókers al abrir (petición 2026-07-15: «que se actualicen solos») ──
      SILENCIOSO a propósito y CONSERVADOR: solo re-ancla las posiciones que YA están mapeadas

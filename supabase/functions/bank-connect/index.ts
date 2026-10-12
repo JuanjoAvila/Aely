@@ -53,6 +53,8 @@ Deno.serve(withCors(async (req: Request) => {
       // Marca de emisión: bank-callback rechaza los `state` viejos. El `state` viaja en la URL
       // de vuelta del banco, así que acaba en el historial del navegador y en logs por el
       // camino; sin caducidad seguiría valiendo meses después (migración 0019).
+      // Es también lo que distingue una autorización de la anterior en el acuse de bank-sync
+      // (`ackLinkKey`): al renovarse aquí, los acuses de antes de reconectar dejan de valer.
       state_issued_at: new Date().toISOString(),
       status: "pending",
       valid_until: validUntil,

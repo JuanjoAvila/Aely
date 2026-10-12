@@ -635,10 +635,11 @@ function App(){
       if(!ok) throw SYNC_SIN_NUBE;
       /* ACUSE (12/10). El servidor movía su cursor al LEER del banco: si la respuesta no llegaba
          al móvil, ese trozo no se volvía a pedir nunca. Ahora cada respuesta trae el cursor que
-         le toca (`ack`) y aquí se devuelve el de la pulsación anterior, que está guardado en el
-         mismo `set` que metió sus filas. `acks` va siempre, aunque esté vacío: es lo que le
-         dice al servidor que espere al acuse en vez de avanzar por su cuenta. */
-      return Promise.all([cloud.bankSync({recoverGaps:true,acks:Object.assign({},stateRef.current.obAck)}), pDb]);
+         le toca (`ack`) y aquí se devuelve el de la pulsación anterior, que se guardó en este
+         dispositivo cuando sus filas ya estaban en disco (`obAckLoad`, 00-core). `acks` va
+         siempre, aunque esté vacío: es lo que le dice al servidor que espere al acuse en vez
+         de avanzar por su cuenta. */
+      return Promise.all([cloud.bankSync({recoverGaps:true,acks:obAckLoad()}), pDb]);
     }).then(function(par){
       const res=par[0], dbLinks=par[1]||[];
       const links=(res&&res.links)||[];
@@ -658,6 +659,12 @@ function App(){
       }catch(e){}
       const preview=applyBankBalances(stateRef.current, links);   // función pura: solo para decidir el aviso
       let obAdded=[];                                             // compras de tarjeta importadas (roles de cuenta)
+      /* El acuse de esta respuesta NO se guarda todavía: espera a que el estado que lleva sus
+         filas esté escrito (efecto de `obAckPend`, abajo). `at` es la marca que une las dos
+         cosas, y se fija aquí fuera porque el updater puede ejecutarse más de una vez. */
+      const at=Date.now(), ack={};
+      links.forEach(function(l){ if(l&&l.ack) ack[l.aspsp]=l.ack; });
+      obAckPend.current={at:at,ack:ack};
       set(function(prev){
         const txs=flattenBankTx(links);
         // ORDEN anti-doble-conteo: primero entran las compras de tarjeta como gastos, y DESPUÉS
@@ -698,11 +705,7 @@ function App(){
            que hoy no dio saldo conserva la hora del que sigue en pantalla. */
         const balAt=Object.assign({},prev.obBalAt);
         links.forEach(function(l){ if(l&&l.balanceAt) balAt[l.aspsp]=l.balanceAt; });
-        // El acuse se guarda aquí, con las filas que acredita: o entran las dos cosas o ninguna.
-        // El banco que hoy no trae `ack` conserva el anterior; repetirlo no mueve nada.
-        const ack=Object.assign({},prev.obAck);
-        links.forEach(function(l){ if(l&&l.ack) ack[l.aspsp]=l.ack; });
-        return Object.assign({}, r.state, { lastBankSync:Date.now(), hasBankLink: links.length?true:prev.hasBankLink, bankTx: txs, bankIssues: bankIssuesOf(links, dbLinks), obBalAt:balAt, obAck:ack });
+        return Object.assign({}, r.state, { lastBankSync:at, hasBankLink: links.length?true:prev.hasBankLink, bankTx: txs, bankIssues: bankIssuesOf(links, dbLinks), obBalAt:balAt });
       });
       // sube las importadas a la tabla expenses (best-effort; el estado local ya las tiene)
       setTimeout(function(){ obAdded.forEach(function(e){ subirGasto(e, "ob-import"); }); }, 0);
@@ -816,6 +819,19 @@ function App(){
       try{ window.dispatchEvent(new CustomEvent("mc-bank-links-changed")); }catch(e){}
     });
   };
+  /* EL ACUSE SE GUARDA DETRÁS DE SUS FILAS, NUNCA DELANTE. Aquí el estado que las lleva ya está
+     comprometido (su `lastBankSync` es la marca de esa respuesta) y el guardado lo tiene
+     apuntado desde el commit: se vuelca ahora y `obAckSave` comprueba en disco que entró antes
+     de escribir el acuse. Si la app se cierra antes de llegar aquí no queda ni lo uno ni lo
+     otro, y la pulsación siguiente vuelve a pedir el mismo trozo. */
+  const obAckPend=useRef(null);
+  useEffect(function(){
+    const p=obAckPend.current;
+    if(!p || state.lastBankSync!==p.at) return;
+    obAckPend.current=null;
+    flushPersist();
+    obAckSave(p.at, p.ack);
+  },[state.lastBankSync]);
 
   /* ── Auto-refresh de brókers al abrir (petición 2026-07-15: «que se actualicen solos») ──
      SILENCIOSO a propósito y CONSERVADOR: solo re-ancla las posiciones que YA están mapeadas

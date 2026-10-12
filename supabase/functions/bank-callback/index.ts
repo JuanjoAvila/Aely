@@ -10,6 +10,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { ebApi, ebConfig, makeJWT } from "../_shared/enablebanking.ts";
 import { encryptSessionId } from "../_shared/token_store.ts";
 import { CallbackFallo, codigoCallback, codigoNolink } from "../_shared/entrada.ts";
+import { keepsCursor, type LinkedAccount } from "./reconnect.ts";
 
 const APP_URL = Deno.env.get("APP_URL") || "https://juanjoavila.github.io/Aely/";
 
@@ -94,12 +95,29 @@ Deno.serve(async (req) => {
       const d = Array.isArray(o?.accounts_data) ? o.accounts_data : [];
       return a.concat(d);
     };
-    // MULTI-CUENTA: junta TODAS las cuentas con uid (no solo la primera), deduplicadas por uid.
+    // El hash identifica la cuenta entre autorizaciones (el `uid` cambia en cada sesión): es
+    // con lo que `keepsCursor` reconoce, al reconectar, un banco que no entrega IBAN.
     // deno-lint-ignore no-explicit-any
-    const buildAccts = (list: any[]): { uid: string; iban: string | null; name: string | null; currency: string | null }[] => {
-      const seen: Record<string, boolean> = {};
-      const out: { uid: string; iban: string | null; name: string | null; currency: string | null }[] = [];
-      for (const a of list) { const u = uidOf(a); if (!u || seen[u]) continue; seen[u] = true; out.push({ uid: u, iban: ibanOf(a), name: nameOf(a), currency: currOf(a) }); }
+    const hashOf = (a: any): string | null =>
+      (typeof a === "string" ? null : (typeof a?.identification_hash === "string" ? a.identification_hash : null)) || null;
+    // MULTI-CUENTA: junta TODAS las cuentas con uid (no solo la primera), deduplicadas por uid.
+    // La misma cuenta puede venir dos veces, en `accounts` con el IBAN y en `accounts_data`
+    // con el hash: la segunda aparición solo rellena lo que a la primera le faltaba.
+    // deno-lint-ignore no-explicit-any
+    const buildAccts = (list: any[]): LinkedAccount[] => {
+      const seen: Record<string, LinkedAccount> = {};
+      const out: LinkedAccount[] = [];
+      for (const a of list) {
+        const u = uidOf(a);
+        if (!u) continue;
+        const got = { uid: u, iban: ibanOf(a), name: nameOf(a), currency: currOf(a), hash: hashOf(a) };
+        const first = seen[u];
+        if (!first) { seen[u] = got; out.push(got); continue; }
+        first.iban = first.iban || got.iban;
+        first.name = first.name || got.name;
+        first.currency = first.currency || got.currency;
+        first.hash = first.hash || got.hash;
+      }
       return out;
     };
 
@@ -114,8 +132,7 @@ Deno.serve(async (req) => {
         try {
           const full = await ebApi(jwt, `/sessions/${sessionId}`);
           accts = buildAccts(collect(full));
-        } catch (ge) {
-          getDiag = "err:" + String((ge as Error)?.message || ge).slice(0, 50);
+        } catch (_) {
           break;   // un error (404/permiso) no se va a arreglar reintentando
         }
       }
@@ -123,13 +140,22 @@ Deno.serve(async (req) => {
     const uid = accts.length ? accts[0].uid : null;   // primera cuenta = "primaria" (retrocompat)
     const iban = accts.length ? accts[0].iban : null;
 
+    /* RECONECTAR CONSERVA EL CURSOR (11/10). Antes `last_sync` volvía siempre a null y el
+       enlace arrancaba como nuevo: lo que el banco apuntó entre la última sincronización y la
+       reconexión, si caía antes de la ventana de siempre, no se pedía nunca. Con las MISMAS
+       cuentas no se toca: la lectura siguiente ve el hueco y lo recupera por trozos como
+       cualquier otro. Si las cuentas cambian, o es la primera vez, null como siempre (el
+       cursor es del enlace y una cuenta nueva no puede heredarlo: ver `reconnect.ts`).
+       Los acuses que tuviera un móvil de antes de reconectar dejan de valer solos: van
+       ligados a `state_issued_at`, que `bank-connect` renovó al empezar (`ackLinkKey`). */
+    const keep = !!uid && keepsCursor(link, accts);
     await admin.from("bank_links").update({
       session_id: await encryptSessionId(sessionId),
       account_uid: uid,
       iban,
       accounts: accts,
       status: uid ? "active" : "error",
-      last_sync: null,
+      ...(keep ? {} : { last_sync: null }),
       updated_at: new Date().toISOString(),
     }).eq("id", link.id);
 

@@ -58,21 +58,37 @@ export function demandFloor(asked: string): string {
 /** ACUSE (N2, 12/10). El cursor se escribía antes de que el móvil tuviera las filas: si la
     respuesta se perdía, ese trozo no se volvía a pedir. Ahora la respuesta lleva el cursor
     que le correspondería (`ack`) y el cliente lo devuelve en la pulsación siguiente, cuando
-    ya lo tiene guardado junto a las filas. El acuse lleva pegado el id del enlace: el
-    estado local sobrevive a cerrar sesión y a quitar el banco, y el acuse de otra persona
-    o de un enlace anterior adelantaría un cursor cuyas filas este móvil no tiene. */
-export function ackToken(cursor: string, linkId: unknown): string {
-  return cursor + "|" + String(linkId);
+    ya lo tiene guardado junto a las filas. El acuse lleva pegada la clave del enlace
+    (`ackLinkKey`): el acuse de otra persona, de otro banco o de una autorización anterior
+    adelantaría un cursor cuyas filas este móvil no tiene. */
+export function ackToken(cursor: string, linkKey: string): string {
+  return cursor + "|" + linkKey;
 }
 
-/** Decide si un acuse mueve el cursor: tiene que ser de ESTE enlace, con la forma exacta
-    que emite el servidor, no estar en el futuro y quedar por delante del cursor actual
-    (nunca retrocede). Devuelve el cursor nuevo o null. */
-export function ackCursor(raw: unknown, linkId: unknown, lastSync: unknown, now: Date): string | null {
+/** Clave del enlace dentro del acuse: su id y la AUTORIZACIÓN vigente.
+    Reconectar un banco NO cambia el id (`bank-connect` hace upsert sobre la misma fila), así
+    que el id solo no distingue «antes de reconectar» de «después». Lo que sí cambia en cada
+    autorización es `state_issued_at`, que escribe `bank-connect` y nadie más toca.
+    REGLA: al reconectar, el cursor lo decide `bank-callback` (lo conserva si vuelven las
+    mismas cuentas; si no, el enlace arranca como nuevo) y todo acuse emitido antes deja de
+    valer. Así un móvil con un acuse viejo no puede llevar el cursor a otro punto: ni
+    resucitar el de un enlace que arrancó de cero, ni adelantar el conservado. Lo que ese
+    móvil tuviera de más se vuelve a leer una vez y lo deduplica por `ext_id`. */
+export function ackLinkKey(linkId: unknown, issuedAt: unknown): string {
+  const ms = typeof issuedAt === "string" ? Date.parse(issuedAt) : NaN;
+  return String(linkId) + "." + (Number.isFinite(ms) ? ms.toString(36) : "0");
+}
+
+/** Decide si un acuse mueve el cursor: tiene que ser de ESTE enlace y de ESTA autorización
+    (`linkKey`), con la forma exacta que emite el servidor, no estar en el futuro y quedar
+    por delante del cursor actual (nunca retrocede). Devuelve el cursor nuevo o null. */
+export function ackCursor(raw: unknown, linkKey: string, lastSync: unknown, now: Date): string | null {
   const m = typeof raw === "string" ? raw.match(/^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z)\|(.+)$/) : null;
-  if (!m || m[2] !== String(linkId)) return null;
+  if (!m || m[2] !== linkKey) return null;
   const ms = Date.parse(m[1]);
-  if (!Number.isFinite(ms) || ms > now.getTime()) return null;
+  // Ida y vuelta: `Date.parse` normaliza un «30 de febrero» al 2 de marzo en vez de
+  // rechazarlo, y esa fecha no la emitió nadie. Solo vale lo que se reescribe idéntico.
+  if (!Number.isFinite(ms) || new Date(ms).toISOString() !== m[1] || ms > now.getTime()) return null;
   const cur = typeof lastSync === "string" ? Date.parse(lastSync) : NaN;
   return Number.isFinite(cur) && cur >= ms ? null : m[1];
 }

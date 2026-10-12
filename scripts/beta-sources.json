@@ -6315,6 +6315,18 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "reservaMensualPuerta"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAckLoad"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAckSave"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "OB_ACK_KEY"
       }
     ],
     "unidades": true
@@ -14180,6 +14192,22 @@
       {
         "file": "src/modules/00-core.js",
         "data": "_mem"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAckLoad"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAckSave"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAckDrop"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "OB_ACK_KEY"
       }
     ],
     "unidades": true
