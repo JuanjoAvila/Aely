@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "id": "ops-05-pr-abiertas-triaje-codex-20261012",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261012-7c41a9d2",
+  "createdAt": "2026-10-12T08:14:30.298Z",
+  "to": "codex",
+  "baseSHA": "f695a299ba2d9402e40b81dbf5e5bffccdf3949c",
+  "objective": "OPS-05 del backlog: hay once PR abiertas antiguas (43, 48, 87, 105, 170, 180, 181, 182, 195, además de 202 y 204 que siguen vivas y NO entran aquí). Decidir con evidencia qué hacer con cada una de las nueve antiguas para dejar de arrastrarlas.",
+  "scope": [
+    "Solo lectura del repo y de GitHub, más un brief nuevo en docs/briefs y la fila OPS-05 de docs/BACKLOG.md",
+    "Sin cerrar PR, sin borrar ramas ni worktrees: eso lo aprueba el dueño"
+  ],
+  "acceptance": [
+    "Por cada PR: qué pretendía, diff efectivo contra la cabeza de beta hoy (no contra su base), y veredicto entre tres: ya está en beta o main (con el commit equivalente), superada por otra solución (cuál), o sigue aportando algo vivo (qué exactamente, con fichero y línea)",
+    "Para lo vivo: valorar si es defecto de dinero abierto (la 43 de FIN-04 y la 105 y 170 del widget sobre todo) y proponer encargo concreto con criterio de aceptación; no rescatar código a ciegas",
+    "La 195 (tiempo de CI): medir si su ahorro sigue siendo real sobre el runner actual y decir cuánto",
+    "Tabla final lista para que el dueño diga sí o no a cerrar cada una, en una línea por PR y en cristiano",
+    "PR en borrador solo con el brief y la fila del backlog"
+  ],
+  "restrictions": [
+    "Primer paso obligatorio: comprobar contra la cabeza fresca de beta que lo descrito sigue siendo cierto hoy; el backlog arrastra fotos antiguas. Si ya está hecho, result corto con la evidencia y se cierra",
+    "Datos sintéticos; repo público: sin datos personales, importes reales ni rutas locales",
+    "Sin merge ni push a beta o main; sin desplegar funciones; sin APK",
+    "Sin VERSION, catálogos de beta ni notas de versión: los pone la integración. Sí dejar en el result el porqué técnico para el CHANGELOG",
+    "RUNNER: este encargo NO usa el runner pesado local. Node y tests sueltos de Node, libres. La suite entera y Playwright los ejecuta la CI del PR en borrador contra beta: empujar la rama, abrir el PR en borrador y leer el job Tests. Un rojo en CI manda sobre un verde local",
+    "Beta avanzará a la 4.26.117 en breve: rebasar sobre la cabeza fresca antes de dar el result",
+    "Sin subir timeouts, reintentos ni topes de tamaño; cero dependencias nuevas",
+    "Result con SHA, nombre y EXIT real de cada prueba, mutaciones hechas y limitaciones. El coordinador encargará revisión independiente antes de integrar"
+  ],
+  "authorization": "Encargo del coordinador dentro del mandato del dueño del 11/10 (Codex ejecutor principal a pleno rendimiento) y de su orden del 12/10 de darle carga de todo tipo. Un chat por encargo; se pueden llevar varios en paralelo porque ninguno necesita el runner local."
+}
