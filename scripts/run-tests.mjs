@@ -107,6 +107,7 @@ const steps = [
   ["ob-ingresos", ["node", "tests/ob-ingresos.test.mjs"]],
   ["bank-sync-paging", ["node", "tests/bank-sync-paging.test.mjs"]],
   ["bank-sync-progreso", ["node", "tests/bank-sync-progreso.test.mjs"]],
+  ["bank-sync-acuse", ["node", "tests/bank-sync-acuse.test.mjs"]],
   ["ob-hueco-sync", ["node", "tests/ob-hueco-sync.test.mjs"]],
   ["ob-hueco-recuperado", ["node", "tests/ob-hueco-recuperado.test.mjs"]],
   ["reserva-dinero", ["node", "tests/reserva-dinero.test.mjs"]],

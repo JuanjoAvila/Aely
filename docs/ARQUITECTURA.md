@@ -202,9 +202,21 @@ ventana, `bank-sync` lee además lo que falta, con estas reglas (`bank-sync/dema
   recupera por esta vía.
 - Un cliente que no manda `recoverGaps` recibe solo la ventana; con hueco, su `last_sync` no sube
   para no quemar el tramo que un cliente nuevo sí puede guardar.
+- **Acuse (12/10).** El cursor se escribía al leer del banco, antes de que el móvil tuviera las
+  filas: una respuesta perdida dejaba ese trozo sin pedir nunca más. El cliente que acusa manda
+  `acks` (un objeto por nombre de banco, vacío la primera vez) y con él `bank-sync` no escribe
+  `last_sync` por lo que acaba de leer: lo entrega en `ack` (`cursor|id del enlace`), el cliente lo
+  guarda en `state.obAck` en el mismo `set` que mete las filas y lo devuelve en la pulsación
+  siguiente, que es cuando se escribe (`ackCursor`: de ese enlace, no futuro, nunca hacia atrás).
+  `last_sync` va así una pulsación por detrás. Sin `acks` (clientes anteriores) el cursor se sigue
+  escribiendo en la misma llamada. El cliente nuevo contra una función sin acuse no recibe `ack`
+  y no guarda nada.
+- **Banco que filtra por fecha valor.** La app pinta la fecha contable, que puede ir uno o dos
+  días antes de la que el banco usa para `date_from`. `syncFrom` va 3 días por debajo del primer
+  día pedido (`demandFloor`) para que el cliente no tire esas filas; al banco no se le pide más.
 
 Cada enlace de la respuesta lleva `syncFrom` (día más antiguo que puede traer; el cliente solo
-acepta lo anterior a su margen desde ahí, por banco) y `balanceAt` (hora de lectura del saldo, que
+acepta lo anterior a su margen desde ahí, por banco, con el día del suelo incluido) y `balanceAt` (hora de lectura del saldo, que
 es lo que pinta «Saldo actualizado»: `last_sync` puede ir por detrás). En `importObExpenses` lo
 anterior al margen se apunta con su fecha real pero no compra participaciones, y casa contra todo
 lo modelado, toque o no este mes.

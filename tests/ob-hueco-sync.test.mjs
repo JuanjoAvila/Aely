@@ -73,6 +73,17 @@ t("el suelo es por banco: el de uno no abre el tramo de otro y con dos enlaces g
   assert.equal(dos.length, 1);
 });
 
+// Y14: cambiar el `<=` del suelo por `<` no tumbaba nada. El día del suelo es el primero que
+// el servidor dice haber leído: si se tira, se pierde un día entero en cada pulsación.
+t("el suelo es inclusivo: el movimiento fechado justo en syncFrom entra y el de la víspera no", () => {
+  const suelo = day(-60);
+  const lote = [tx("caixabank", suelo, 7.35, "Ferretería", "cx-suelo"), tx("caixabank", day(-61), 7.4, "Mercería", "cx-vispera")];
+  const add = ctx.importObExpenses(cartera([]), lote, [{ aspsp: "CaixaBank", syncFrom: suelo }]) || [];
+  assert.equal(JSON.stringify(add.map((e) => e.extId)), JSON.stringify(["cx-suelo"]));
+  assert.equal(add[0].date.slice(0, 10), suelo);
+  assert.equal(add[0].amount, 7.35);
+});
+
 t("el suelo colgado en el estado no entra: hace falta pasarlo", () => {
   const s = cartera([]);
   s._obSyncFrom = { caixabank: day(-60) };
@@ -122,7 +133,7 @@ t("runBankSync pasa el suelo de la respuesta al importador", () => {
 
 t("el cliente pide recoverGaps por el cliente de siempre, sin dateFrom y sin adivinar quién pulsó", () => {
   assert.match(core, /async bankSync\(body\)\{[\s\S]{0,120}invoke\('bank-sync',\{ body \}\)/);
-  assert.match(main, /cloud\.bankSync\(\{recoverGaps:true\}\)/);
+  assert.match(main, /cloud\.bankSync\(\{recoverGaps:true,acks:Object\.assign\(\{\},stateRef\.current\.obAck\)\}\)/);
   assert.doesNotMatch(main, /bankSync\(\{[^)]*dateFrom/);
   assert.equal((core.match(/createClient\(/g) || []).length, 1, "un solo cliente de Supabase");
   assert.doesNotMatch(core, /addEventListener\("click"[\s\S]{0,400}sincronizar bancos/);

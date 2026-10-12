@@ -576,7 +576,9 @@ test("Catálogo116 añade sólo la tanda de los bancos y fija qué huellas ajena
   // Cada unidad vigilada reabre la tanda; la vecina no.
     for(const [file,from,to] of [
     ["src/modules/00-core.js","sb.functions.invoke('bank-sync',{ body })","sb.functions.invoke('bank-sync')"],
-    [main,"cloud.bankSync({recoverGaps:true})","cloud.bankSync()"],
+    [main,"cloud.bankSync({recoverGaps:true,acks:Object.assign({},stateRef.current.obAck)})","cloud.bankSync()"],
+    [main,"cloud.bankSync({recoverGaps:true,acks:Object.assign({},stateRef.current.obAck)})","cloud.bankSync({recoverGaps:true})"],
+    [main,"if(l&&l.ack) ack[l.aspsp]=l.ack;","if(l&&l.ack) ack[l.aspsp]=null;"],
     [main,"if(l&&l.gapBeyondCap) avisaSync","if(l&&l.gapBeyondCapX) avisaSync"],
     [main,"importObExpenses(prev, txs, links)","importObExpenses(prev, txs)"],
     [main,"if(l&&l.balanceAt) balAt[l.aspsp]=l.balanceAt;","if(l&&l.balanceAt) balAt[l.aspsp]=null;"],

@@ -412,7 +412,8 @@ await t("más de 90 días: se pide desde el tope y se señala; con 89 no", async
   const lejos = enlace(haceDias(120));
   const r = await pulsa(baseDatos([lejos]), bank);
   assert.equal(r.data.links[0].gapBeyondCap, true);
-  assert.equal(r.data.links[0].syncFrom, FLOOR);
+  // El suelo del cliente va 3 días por debajo de lo pedido (N5); al banco se le pide desde el tope.
+  assert.equal(r.data.links[0].syncFrom, addDays(FLOOR, -3));
   assert.equal(r.calls.filter((c) => c.to).every((c) => c.from >= FLOOR), true);
   const justo = enlace(haceDias(89));
   const r89 = await pulsa(baseDatos([justo]), bank);
@@ -437,7 +438,7 @@ await t("el tramo se pide por trozos de fechas cerrados, del más antiguo al má
   assert.ok(chunks.every((c) => c[1] < WINDOW), "ningún trozo entra en la ventana de siempre");
   // Cortesía: los tres días anteriores, por si el banco contabilizó tarde. No mueven el cursor.
   assert.deepEqual(chunks.find((c) => c[0] < "2026-08-11"), ["2026-08-08", "2026-08-10"]);
-  assert.equal(r.data.links[0].syncFrom, "2026-08-08");
+  assert.equal(r.data.links[0].syncFrom, "2026-08-05", "3 días por debajo del primer día pedido");
 });
 
 await t("la hora del saldo viaja en la respuesta aunque el cursor vaya por detrás", async () => {
@@ -475,7 +476,7 @@ await t("cliente viejo con hueco: no se lee el tramo y no se quema el cursor", a
   const r = await pulsa(baseDatos([link]), bank, { body: {} });
   assert.equal(r.calls.every((c) => c.from === WINDOW && !c.to), true);
   assert.equal(link.last_sync, haceDias(60));
-  assert.equal(r.data.links[0].syncFrom, WINDOW);
+  assert.equal(r.data.links[0].syncFrom, addDays(WINDOW, -3));
   assert.equal(!!r.data.links[0].gapPending, false, "al cliente viejo no se le anuncia nada que no vaya a pedir");
 });
 

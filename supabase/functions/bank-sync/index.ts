@@ -9,7 +9,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { ebApi, ebConfig, jsonResp, makeJWT, mapTransaction, fetchBankTransactions } from "../_shared/enablebanking.ts";
 import { withCors } from "../_shared/cors.ts";
-import { OB_DEMAND_MAX_PAGES, chunkCursor, demandPlan, demandReadComplete, nextChunkDays, ymdAddDays, ymdSpan } from "./demand-window.ts";
+import { OB_DEMAND_MAX_PAGES, ackCursor, ackToken, chunkCursor, demandFloor, demandPlan, demandReadComplete, nextChunkDays, ymdAddDays, ymdSpan } from "./demand-window.ts";
 
 /* Los movimientos crudos no salen a `app_events`. El diagnóstico temporal del signo de TR
    guardaba hasta ocho payloads completos y seguía activo el 23/9, cuando apareció en telemetría
@@ -103,6 +103,12 @@ Deno.serve(withCors(async (req: Request) => {
     // (no toca saldos). Un cliente nuevo contra una función vieja manda esto y la vieja lo
     // ignora; una función nueva contra un cliente viejo no lo ve y no ensancha.
     const recoverGaps = body?.recoverGaps === true;
+    /* `acks` (aunque venga vacío) lo manda solo el cliente que devuelve acuse. Con él esta
+       función NO mueve last_sync por lo que acaba de leer: se lo entrega en `ack` y lo
+       escribe cuando vuelva, en la pulsación siguiente. El cliente que no lo manda no puede
+       acusar nada, así que con él el cursor se sigue escribiendo aquí, como hasta ahora. */
+    const acks: Record<string, unknown> | null = recoverGaps && body?.acks && typeof body.acks === "object" && !Array.isArray(body.acks)
+      ? body.acks : null;
     const hasAspspFilter = Array.isArray(body?.aspsps);
     const wantedAspsps = hasAspspFilter
       ? body.aspsps.map((x: unknown) => String(x || "").trim().toLowerCase()).filter(Boolean).slice(0, 12)
@@ -210,6 +216,20 @@ Deno.serve(withCors(async (req: Request) => {
       // Aquí solo se hace la lectura de siempre: saldo y ventana reciente, igual que antes de
       // existir el tramo antiguo. El tramo va más abajo, cuando TODOS los bancos tienen ya la
       // suya, y nada de lo que le pase puede cambiar este resultado.
+      /* El acuse va ANTES del plan: lo que el cliente confirma tener es desde donde se sigue.
+         La clave es el nombre del banco, único por usuario (`bank_links_user_aspsp_idx`),
+         y dentro va el id del enlace: un acuse de otro enlace no vale (`ackCursor`).
+         Si la escritura falla, el plan usa igualmente el acuse y el cliente lo repite en la
+         siguiente pulsación: como es un instante absoluto, repetirlo no hace daño. */
+      const acked = acks ? ackCursor(acks[link.aspsp_name], link.id, link.last_sync, new Date()) : null;
+      if (acked) {
+        try {
+          const q = admin.from("bank_links").update({ last_sync: acked, updated_at: new Date().toISOString() }).eq("id", link.id);
+          // `lt` no casa con null: un enlace recién conectado necesita su propio filtro.
+          await (link.last_sync ? q.lt("last_sync", acked) : q.is("last_sync", null));
+        } catch (_) { /* se repetirá con la siguiente pulsación */ }
+        link.last_sync = acked;
+      }
       const plan = demandPlan(new Date(), link.last_sync, recoverGaps);
       /* Llamadas a /transactions por cuenta, contadas al PEDIR: una que falla también le
          cuesta cupo al banco. El tramo antiguo (`hard`) no puede pasar del tope; la ventana
@@ -279,14 +299,17 @@ Deno.serve(withCors(async (req: Request) => {
          2000 filas): ahí no hay sitio para el tramo ni lo habrá en la pulsación
          siguiente, así que esperar dejaría el cursor quieto para siempre. Sube a
          «ahora», haya hueco o no, que es lo que hacía antes de existir el tramo. Un
-         corte por otra causa (el banco repite el cursor de página) no es desbordar. */
+         corte por otra causa (el banco repite el cursor de página) no es desbordar.
+         Con cliente de acuse ese «ahora» no se escribe: viaja en `ack`. Si esta respuesta no
+         llega, la siguiente pulsación parte del cursor de antes y vuelve a pedirlo todo. */
       const allRead = acctOut.length > 0 && acctOut.every((a) => a.ok && !a.transactionError);
       const overflow = allRead && acctOut.some((a) => a.truncated && ((used[a.uid] || 0) >= OB_DEMAND_MAX_PAGES || a.count >= 2000));
       const wantOld = recoverGaps && plan.gap && !overflow;
       const nowIso = new Date().toISOString();
+      const toNow = allRead && (!plan.gap || overflow);
       await admin.from("bank_links")
         .update(anyAcctOk
-          ? { ...(allRead && (!plan.gap || overflow) ? { last_sync: nowIso } : {}), status: "active", updated_at: nowIso }
+          ? { ...(toNow && !acks ? { last_sync: nowIso } : {}), status: "active", updated_at: nowIso }
           : { status: anyExpired ? "expired" : link.status, updated_at: nowIso })
         .eq("id", link.id);
       // top-level (balances/transactions/count) = primera cuenta OK: retrocompat con la Capa 2/3 antigua.
@@ -297,14 +320,16 @@ Deno.serve(withCors(async (req: Request) => {
         error: anyAcctOk ? undefined : lastErr,
         balances: primary.balances, count: primary.count, transactions: primary.transactions,
         /* `syncFrom` es el día más antiguo que esta respuesta puede traer: el cliente nuevo
-           acepta desde ahí. `balanceAt` es cuándo se leyó el saldo, que ya no coincide con
-           last_sync mientras el tramo va a medias. */
-        syncFrom: plan.windowStart, gapBeyondCap: plan.gapBeyondCap, gapPending: wantOld,
+           acepta desde ahí. Va unos días por debajo del primer día pedido (`demandFloor`).
+           `balanceAt` es cuándo se leyó el saldo, que ya no coincide con last_sync mientras
+           el tramo va a medias. `ack` es el cursor que el cliente devolverá. */
+        syncFrom: demandFloor(plan.windowStart), gapBeyondCap: plan.gapBeyondCap, gapPending: wantOld,
         balanceAt: anyAcctOk ? nowIso : undefined,
+        ack: acks && toNow ? ackToken(nowIso, link.id) : undefined,
         accounts: acctOut,
       };
       out.push(entry);
-      reads.push({ link, plan, used, counted, entry, primary, accounts: acctOut,
+      reads.push({ link, plan, used, counted, entry, primary, accounts: acctOut, asked: plan.windowStart,
         // El tramo solo se empieza con lo reciente ENTERO en todas las cuentas: gastar
         // llamadas en una mientras otra no avanza no movería el cursor.
         ready: wantOld && demandReadComplete(acctOut) });
@@ -355,7 +380,7 @@ Deno.serve(withCors(async (req: Request) => {
           // Cortesía tras el primer día: lo que el banco contabilizó tarde justo antes del
           // último sync real. Si no cabe se pierde solo eso, nunca el avance.
           if (day === p.from && p.overlapFrom) {
-            r.entry.syncFrom = p.overlapFrom;
+            r.asked = p.overlapFrom;
             const late = await readChunk(r, p.overlapFrom, ymdAddDays(p.from, -1));
             if (late) keep(late);
           }
@@ -371,15 +396,18 @@ Deno.serve(withCors(async (req: Request) => {
       });
       r.entry.transactions = r.primary.transactions;
       r.entry.count = r.primary.count;
-      if (sealed && r.entry.syncFrom > p.from) r.entry.syncFrom = p.from;
+      if (sealed && r.asked > p.from) r.asked = p.from;
+      r.entry.syncFrom = demandFloor(r.asked);
       try {
         const stamp = new Date().toISOString();
         if (day > p.to) {
-          await admin.from("bank_links").update({ last_sync: stamp, updated_at: stamp }).eq("id", r.link.id);
+          if (acks) r.entry.ack = ackToken(stamp, r.link.id);
+          else await admin.from("bank_links").update({ last_sync: stamp, updated_at: stamp }).eq("id", r.link.id);
           r.entry.gapPending = false;
         } else if (sealed) {
+          if (acks) r.entry.ack = ackToken(chunkCursor(sealed), r.link.id);
           // `lt`: otro móvil pudo terminar mientras tanto. El cursor nunca retrocede.
-          await admin.from("bank_links").update({ last_sync: chunkCursor(sealed), updated_at: stamp })
+          else await admin.from("bank_links").update({ last_sync: chunkCursor(sealed), updated_at: stamp })
             .eq("id", r.link.id).lt("last_sync", chunkCursor(sealed));
         }
       } catch (_) { /* sin cursor nuevo la próxima pulsación repite el trozo: no se pierde nada */ }
@@ -393,7 +421,7 @@ Deno.serve(withCors(async (req: Request) => {
       const readPartial = !accts.length || readFailed > 0 || readTruncated;
       const readStatus = readPartial ? (readCount ? "partial" : "error") : (readCount ? "ok" : "empty");
       const pages = Object.values(r.used as Record<string, number>).reduce((n, x) => n + x, 0);
-      await logObDemandResult(admin, user.id, r.link.aspsp_name, r.entry.syncFrom, readStatus, accts.length, readCount, pages, readTruncated, r.plan.gapBeyondCap, !!r.entry.gapPending);
+      await logObDemandResult(admin, user.id, r.link.aspsp_name, r.asked, readStatus, accts.length, readCount, pages, readTruncated, r.plan.gapBeyondCap, !!r.entry.gapPending);
     }
 
     // Enlaces caducados/rotos: van en la respuesta SIN llamar a Enable Banking (fallaría igual).

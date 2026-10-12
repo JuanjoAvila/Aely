@@ -3654,9 +3654,10 @@ const cloud = (function(){
       return data.aspsps||[];
     },
     // Trae saldo (+ movimientos, que en Capa 2 ignoramos) de los bancos enlazados.
-    // `body` es `{recoverGaps:true}`: avisa al servidor de que este cliente guarda también lo
-    // anterior a la ventana de siempre (INC-2709-06); una función vieja ignora el campo. No es
-    // `dateFrom`: eso abriría el histórico de solo lectura, que no toca saldos.
+    // `body` es `{recoverGaps:true,acks}`: `recoverGaps` avisa al servidor de que este cliente
+    // guarda también lo anterior a la ventana de siempre (INC-2709-06) y `acks` le devuelve el
+    // cursor de la respuesta anterior (ver `runBankSync`); una función vieja ignora los dos. No
+    // es `dateFrom`: eso abriría el histórico de solo lectura, que no toca saldos.
     async bankSync(body){
       if(!sb) throw new Error("nube no disponible");
       const {data,error}=await sb.functions.invoke('bank-sync',{ body });
@@ -20465,7 +20466,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="816088abc08834a82c8d5d6554ddf966d1f0c167929b6ea83a45a46064f18437";
+var _rnSha="19150ceea85b6daca5e739b849fc4c86ce84d1b9966fbcac0958edc7c05443ef";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -24769,7 +24770,12 @@ function App(){
     });
     return nubeLista.then(function(ok){
       if(!ok) throw SYNC_SIN_NUBE;
-      return Promise.all([cloud.bankSync({recoverGaps:true}), pDb]);
+      /* ACUSE (12/10). El servidor movía su cursor al LEER del banco: si la respuesta no llegaba
+         al móvil, ese trozo no se volvía a pedir nunca. Ahora cada respuesta trae el cursor que
+         le toca (`ack`) y aquí se devuelve el de la pulsación anterior, que está guardado en el
+         mismo `set` que metió sus filas. `acks` va siempre, aunque esté vacío: es lo que le
+         dice al servidor que espere al acuse en vez de avanzar por su cuenta. */
+      return Promise.all([cloud.bankSync({recoverGaps:true,acks:Object.assign({},stateRef.current.obAck)}), pDb]);
     }).then(function(par){
       const res=par[0], dbLinks=par[1]||[];
       const links=(res&&res.links)||[];
@@ -24829,7 +24835,11 @@ function App(){
            que hoy no dio saldo conserva la hora del que sigue en pantalla. */
         const balAt=Object.assign({},prev.obBalAt);
         links.forEach(function(l){ if(l&&l.balanceAt) balAt[l.aspsp]=l.balanceAt; });
-        return Object.assign({}, r.state, { lastBankSync:Date.now(), hasBankLink: links.length?true:prev.hasBankLink, bankTx: txs, bankIssues: bankIssuesOf(links, dbLinks), obBalAt:balAt });
+        // El acuse se guarda aquí, con las filas que acredita: o entran las dos cosas o ninguna.
+        // El banco que hoy no trae `ack` conserva el anterior; repetirlo no mueve nada.
+        const ack=Object.assign({},prev.obAck);
+        links.forEach(function(l){ if(l&&l.ack) ack[l.aspsp]=l.ack; });
+        return Object.assign({}, r.state, { lastBankSync:Date.now(), hasBankLink: links.length?true:prev.hasBankLink, bankTx: txs, bankIssues: bankIssuesOf(links, dbLinks), obBalAt:balAt, obAck:ack });
       });
       // sube las importadas a la tabla expenses (best-effort; el estado local ya las tiene)
       setTimeout(function(){ obAdded.forEach(function(e){ subirGasto(e, "ob-import"); }); }, 0);
