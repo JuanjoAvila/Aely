@@ -126,13 +126,45 @@ los importes y las aserciones de movimiento reducido. Dos fallos de `widget-banc
 esperaban el texto anterior «Has gastado5»; la pantalla nueva muestra el disponible.
 Se exige ahora exactamente94,55 € de100 €, conservando gasto5,45, saldo restante,
 identidad de evento, generación/corte nativo y todos los asserts del segundo pull.
-El quinto fallo es `ERR_CONNECTION_REFUSED` del servidor en la última variante
-v2 (catalán, ciclo activo, nómina repartida); permanece rojo hasta ejecutarlo de
-nuevo y comprobar su causa. No se añaden reintentos ni plazos para ocultarlo.
+El quinto fallo fue `ERR_CONNECTION_REFUSED` del servidor en la última variante
+v2 (catalán, ciclo activo, nómina repartida). El registro conserva ese rojo; no se
+añaden reintentos ni plazos para ocultarlo.
 
 Esta corrección toca tests y acta; las fuentes y los derivados públicos permanecen
-iguales a172a9fa0. No acredita todavía una suite corregida verde ni rendimiento.
-Coordinador28 exige esperar coordinación expresa tras la devolución por prioridad
-de Producción. Siguen pendientes el contraste causal original684, la validación
-corregida y CPU×6 con tres entradas estables de50 FPS o más. La web nueva del
-widget necesita revisión independiente; no hereda el OK de117.
+iguales a172a9fa0. La suite completa corregida y el rendimiento todavía no están
+acreditados. En ese checkpoint coordinador28 exigía esperar la devolución y la
+secuencia expresa por prioridad de Producción.
+
+## Focal de los dos specs corregidos, fuente cd856175
+
+Tras el retorno expreso de Claude25debdf6 y el de Recibos revisión3 en44c78c6b,
+coordinador28 concedió un grant nuevo, exclusivamente para los dos specs completos
+de Inicio y widget. La fuente congelada fue `cd85617523b38904a94c3033b71a3a052b4f7d56`;
+no se adoptó el grant ni el nonce anterior. La fase tomó su lock atómico propio
+y un censo nuevo que incluye el nombre real `chrome-headless-shell.exe`, omitido
+por el filtro anterior. El árbol propio anterior permanece registrado; el campo
+clear antiguo no se amplía retroactivamente. GameAssist se conservó intacto.
+
+Los 63 casos terminaron con salida0 en112,27 segundos, un worker, cero reintentos,
+cero fallos, cero omisiones y cero inestables. Pasaron las dos consultas táctiles
+(normal y movimiento reducido), las dos lecturas del widget (nueva y APK antigua)
+y la última variante v2 que había recibido conexión rechazada. La instrumentación
+ya llega a sus asserts reales de renders, guía, fecha, liberación e importe. Las
+lecturas comprueban exactamente94,55 € disponibles de100 €, mantienen gasto5,45,
+eventos, generación/corte y segundo pull. El último caso se ejecutó sobre un nuevo
+servidor disponible sin cambios de producto ni reintentos; esa pasada acredita el
+caso, pero no identifica qué dejó indisponible el servidor en la suite anterior.
+
+El HTML servido conserva SHA-256
+`c0dfd08cdd909df23845bebb7aede1a9337bdb88039a167e68dbdf6b64565ed0`
+antes y después. La devolución expresa propia está en
+`ba4068c66b5b450fa62e44fee7a7d9daba2daba2`, nonce
+`90cc2d95-ee1f-4438-bc6c-09220e8226d2`, con censo final limpio. La corrección
+cd856175 se empujó a la misma rama de PR204 tras ese resultado focal.
+
+Los cinco fallos y el npm1 de172a9fa0 permanecen en sus registros. No se suman
+1021 aprobadas de aquella suite y63 de esta fase como una suite completa verde.
+El claim continúa abierto: faltan el contraste causal original684, la funcional
+completa corregida y CPU×6 con tres entradas estables de50 FPS o más. Esas fases
+requieren su propia consulta/secuencia expresa; el focal no las autoriza. La web
+nueva del widget necesita revisión independiente y no hereda el OK de117.
