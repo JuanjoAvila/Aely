@@ -24,17 +24,32 @@ const NUMERO = "[+−±-]?\\s*\\d+(?:[.,'’]\\d+|[ \\u00a0]\\d{3})*(?!\\d|[.,]\
 const MONEDA = "(?:€|\\$|£|EUR\\b|USD\\b|GBP\\b|CHF\\b|JPY\\b|CAD\\b|AUD\\b|euros?\\b|dólares?\\b|libras?\\b)";
 const DINERO = new RegExp("(?:" + MONEDA + "\\s*" + NUMERO + "|" + NUMERO + "\\s*" + MONEDA + ")", "gi");
 const ETIQUETA = "(?:gastado|gastos?|saldo|presupuesto|importe|comisi[oó]n|ingresos?|ahorro|cuota|deuda|patrimonio|capital[ \\t]+(?:invertido|aportado|social)|beneficio|p[eé]rdidas?|inversi[oó]n|pagado|cobrado|coste|precio|restante|disponible|n[oó]minas?|movimientos?|cargos?|retiradas?)";
-const TECNICO = "(?:[KMGT]?i?B|bytes?|px|ms|segundos?|tests?|ficheros?)\\b";
+const TECNICO = "(?:[KMGT]?i?B|bytes?|px|ms|segundos?|minutos?|horas?|h|tests?|ficheros?)\\b";
 const CIFRA = NUMERO + "(?!\\s*" + TECNICO + ")";
 const VALOR = "(?:`" + CIFRA + "`|" + CIFRA + ")";
 const CONTEXTO = new RegExp("(\\b" + ETIQUETA + "\\b[ \\t:*_=]*)" + VALOR + "(?:\\s*(?:→|->|⇒|a|–)\\s*" + VALOR + ")*", "gi");
+function referenciasTecnicas(txt, reemplazar) {
+  // Solo el token rotulado deja de ser una cifra ambigua; su párrafo sigue bajo vigilancia.
+  // No aceptar prefijos de cantidades, horas inválidas ni moneda pegada al supuesto metadato.
+  const referencias = /(?<![\p{L}\p{N}_.,:+−±-])(?:(?:versi[oó]n[ \t]+v?|v)\d+(?:\.\d+){2,3}|PR[ \t]*#?[ \t]*\d+|SHA[ \t]+[a-f\d]{7,64}|(?:[01]?\d|2[0-3]):[0-5]\d(?::[0-5]\d)?|\d+(?:\/\d+)?[ \t]+(?:tests?|pruebas?|comprobaciones?|ficheros?))(?![\p{L}\p{N}_]|[.,:]\p{N})/giu;
+  return txt.replace(referencias, function(token, offset, original) {
+    if (new RegExp(MONEDA + "[ \\t]*$", "i").test(original.slice(0, offset)) ||
+        new RegExp("^[ \\t]*" + MONEDA, "i").test(original.slice(offset + token.length))) return token;
+    return reemplazar(token);
+  });
+}
 function importes(txt) {
   return txt.split("\n").map(function(linea) {
     const financiero = new RegExp("\\b" + ETIQUETA + "\\b", "i").test(linea) || new RegExp(MONEDA, "i").test(linea);
+    // Proteger metadatos antes de tachar: «saldo: v4.26.117» no debe perder la versión.
+    const tokens = [];
+    let marca = "\u0000";
+    while (linea.includes(marca)) marca += "\u0000";
+    linea = referenciasTecnicas(linea, function(token) { tokens.push(token); return marca + "x".repeat(tokens.length) + marca; });
     linea = linea.replace(DINERO, "<importe>").replace(CONTEXTO, "$1<importe>");
     // Un delta con signo en la misma frase permite reconstruir el importe tachado.
     if (financiero) linea = linea.replace(new RegExp("(?<![\\w.,])(?:[+−±-]\\s*)" + CIFRA, "g"), "<importe>");
-    return linea;
+    return linea.replace(new RegExp(marca + "(x+)" + marca, "g"), function(token, indice) { return tokens[indice.length - 1] || token; });
   }).join("\n");
 }
 function cifraFinancieraResidual(txt) {
@@ -43,9 +58,9 @@ function cifraFinancieraResidual(txt) {
   // <importe> conserva el contexto de moneda. Las excepciones técnicas exigen unidad o rótulo.
   // Capital aislado también activa el rechazo: su ambigüedad no debe permitir una fuga.
   // Es deliberadamente conservador; no hace falta reconstruir etiquetas compuestas de enlaces.
-  const financiero = new RegExp("\\b" + ETIQUETA + "\\b|\\bcapital\\b|" + MONEDA + "|<importe>", "i");
+  // Un importe junto a banco/persona sigue siendo privado aunque no diga «saldo».
+  const financiero = new RegExp("\\b" + ETIQUETA + "\\b|\\b(?:capital|bancos?|personas?|titulares?)\\b|" + MONEDA + "|<importe>", "i");
   const tecnico = new RegExp("(?<![\\w.,])\\d+(?:[.,]\\d+)?[ \\t]*" + TECNICO, "gi");
-  const referencias = /\b(?:versi[oó]n[ \t]+v?\d+(?:\.\d+)+|SHA[ \t]+[a-f\d]{7,64})\b/gi;
   const parrafos = txt.split(/\r?\n(?:[ \t]*(?:>[ \t]*)?\r?\n)+/);
   let pendiente = false;
   return parrafos.some(function(parrafo) {
@@ -57,7 +72,7 @@ function cifraFinancieraResidual(txt) {
       .replace(/[`*_~]/g, "").replace(/[\[\]()]/g, " ")
       .replace(/[\p{White_Space}\uFEFF]+/gu, " ");
     // El prefijo del teléfono ya tachado es constante, no una cifra que pueda reconstruirse.
-    const residual = parrafo.replace(tecnico, "").replace(referencias, "").replace(/\+34 ··· ··· ···/g, "");
+    const residual = referenciasTecnicas(parrafo, function() { return ""; }).replace(tecnico, "").replace(/\+34 ··· ··· ···/g, "");
     // Una etiqueta sin valor puede continuar tras una línea vacía (revisión 6/10).
     // Solo el párrafo inmediatamente siguiente hereda esa deuda, y solo si empieza con
     // una cifra: títulos, prosa nueva y rótulos técnicos no arrastran contexto financiero.
@@ -94,6 +109,7 @@ const PROHIBIDO = [
   [/\bES\d{22}\b/, "un IBAN"],
   [/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/, "un correo"],
   [/\bES(?:[ -]*\d){22}\b/, "un IBAN separado"],
+  [/\+34(?:[ \t-]*\d){9}\b/, "un teléfono"],
   [/\b[a-z]:[\\/]|\\\\[^\s\\]+\\/i, "una ruta absoluta de Windows"],
   [new RegExp("(?:" + MONEDA + "\\s*" + NUMERO + "|" + NUMERO + "\\s*" + MONEDA + ")", "i"), "un importe con moneda"],
   [new RegExp("\\b" + ETIQUETA + "\\b[ \\t:*_=]*" + CIFRA, "i"), "un importe con contexto financiero", true],
@@ -134,7 +150,7 @@ for (const f of ficheros) {
   for (const [detector, que, soloCuerpo] of PROHIBIDO) {
     // El nombre y el aviso generados no dan contexto financiero al cuerpo, pero también se
     // comprueban para los patrones de identidad/ruta/moneda: no ocultar una fuga en la cabecera.
-    const contenido = soloCuerpo ? txt : nuevo;
+    const contenido = soloCuerpo ? referenciasTecnicas(txt, function() { return "<metadato>"; }) : nuevo;
     if (typeof detector === "function" ? detector(contenido) : detector.test(contenido)) {
       console.error(`\n✕ sync-memoria ABORTA: en ${f} sigue habiendo ${que} después del filtro.`);
       console.error("  Arréglalo en el filtro o en la memoria antes de sincronizar. NO se ha escrito nada.");

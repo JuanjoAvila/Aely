@@ -77,6 +77,7 @@ const steps = [
   // el script sale en verde sin hacer nada, así que esto solo pincha aquí, que es donde se arregla.
   ["memoria-espejo", ["node", "scripts/sync-memoria.mjs", "--check"]],
   ["sync-memoria", ["node", "tests/sync-memoria.test.mjs"]],
+  ["memoria-metadatos", ["node", "tests/memoria-metadatos.test.mjs"]],
   // Los logos de banco salen del PNG oficial: si alguien los edita a mano, esto lo caza.
   ["logos-bancos", ["node", "scripts/logos-bancos.mjs", "--check"]],
   // Los de las empresas salen de simple-icons y la regla de «qué marca es» vive en la app.
