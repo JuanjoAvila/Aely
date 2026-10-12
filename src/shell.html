@@ -1125,19 +1125,20 @@
   html.reduce-motion .v4-mov.dragging{transform:none;}
   /* Cartera → Tus cuentas: long-press eleva la fila (12/9: «efecto chulo… smooth»). No reutilizar
      el `.dragging` de Gastos (ese baja opacidad): aquí se LEVANTA. */
-  .v4-card-list.reordering{touch-action:none;}
-  .v4-card-list button.v4-mov.dragging{
+  .v4-card-list.reordering,.v4-broker-list.reordering{touch-action:none;}
+  .v4-broker-list.reordering [data-inv-broker]{overflow:visible !important;}
+  .v4-card-list button.v4-mov.dragging,.v4-broker-list button.v4-mov.dragging{
     opacity:1;z-index:2;position:relative;
     transform:translateY(-6px) scale(1.035);
     border-color:var(--mint);
     box-shadow:0 16px 32px -12px rgba(0,0,0,.55),0 0 0 1.5px rgba(95,208,138,.55);
     transition:transform .22s cubic-bezier(.32,.72,0,1),box-shadow .22s ease;
   }
-  .v4-card-list button.v4-mov.drag-over{
+  .v4-card-list button.v4-mov.drag-over,.v4-broker-list button.v4-mov.drag-over{
     border-color:var(--mint-dim);
     background:rgba(95,208,138,.08);
   }
-  html.reduce-motion .v4-card-list button.v4-mov.dragging{
+  html.reduce-motion .v4-card-list button.v4-mov.dragging,html.reduce-motion .v4-broker-list button.v4-mov.dragging{
     transform:none;box-shadow:0 0 0 1.5px var(--mint);
   }
   .v4-gastos-list{background:transparent;}
@@ -1501,7 +1502,7 @@
   @keyframes v4growup{from{transform:scaleY(0);}to{transform:scaleY(1);}}
   .rise{animation:rise .32s var(--ease) both;}
   @media (prefers-reduced-motion:reduce){
-    .rise,.v4-sheet,.v4-sheet-back,.botnav,.botnav-ind,.botnav-ind span,.botnav-tab svg,.v4-stackbar i,.v4-goal .bar i,.v4-account-spark i,.settings-push,.settings-slide,.app-shell.settings-dim,.profile-pull,.app-shell.profile-dim,.v4-avatar.pulling,.set-exp,.v4-inv-drop,.v4-seg-enter-down,.v4-seg-enter-up,.v4-ficha-focus,.v4-undo-toast{animation:none !important;transition:none !important;}
+    .rise,.v4-sheet,.v4-sheet-back,.botnav,.botnav-ind,.botnav-ind span,.botnav-tab svg,.v4-stackbar i,.v4-goal .bar i,.v4-account-spark i,.settings-push,.settings-slide,.app-shell.settings-dim,.profile-pull,.app-shell.profile-dim,.v4-avatar.pulling,.set-exp,.v4-seg-enter-down,.v4-seg-enter-up,.v4-ficha-focus,.v4-undo-toast{animation:none !important;transition:none !important;}
   }
 
   .card{background:linear-gradient(180deg,var(--surface),var(--bg-2));border:1px solid var(--line-soft);border-radius:var(--radius);margin-bottom:14px;box-shadow:var(--shadow);overflow:hidden;}
@@ -1686,8 +1687,14 @@
   /* (Las animaciones escalonadas de .set-card/.v4-set-sec al abrir se retiraron el 2026-07-18:
      el contenido «saltaba» en cada apertura y sumaba al efecto raro del panel.) */
   .set-exp{animation:rise .26s var(--ease) both;}
-  /* Posiciones al desplegar un bróker en Cartera: mismo rise suave (feedback 2026-07-21). */
-  .v4-inv-drop{animation:rise .26s var(--ease) both;}
+  /* Se escalonan las posiciones, no el alto del bloque: transform/opacity evitan recalcular
+     el layout en cada frame. El retraso se corta en ocho filas para no alargar listas grandes. */
+  .v4-inv-enter{animation:rise .2s var(--ease) both;}
+  html.reduce-motion .v4-inv-enter{animation:none !important;}
+  @media (prefers-reduced-motion:reduce){
+    .v4-inv-enter{animation:none !important;}
+    .v4-broker-list button.v4-mov.dragging{transform:none;}
+  }
   .chip.active,.v4-period-btn.on{background:var(--mint);border-color:var(--mint);color:var(--on-mint);}
   .v4-period{display:flex;gap:8px;margin:12px 0 10px;}
   .v4-period-btn{flex:1;min-height:48px;border-radius:14px;background:var(--sur);border:1px solid var(--line-soft);font-weight:700;font-size:14px;color:var(--text);}

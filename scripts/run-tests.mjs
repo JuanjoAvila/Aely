@@ -92,6 +92,7 @@ const steps = [
   // Se relanza solo con TZ=Europe/Madrid — en una máquina en UTC el fallo es invisible.
   ["dia-local-no-utc", ["node", "tests/dia-local-no-utc.test.mjs"]],
   ["move-account", ["node", "tests/move-account.test.mjs"]],
+  ["brokers-orden", ["node", "tests/brokers-orden.test.mjs"]],
   ["merge-expenses-cloud", ["node", "tests/merge-expenses-cloud.test.mjs"]],
   // La categoría que él elige no la deshace un pull ni la palabra clave del servidor (INC-0210-02).
   ["categoria-manual-persistente", ["node", "tests/categoria-manual-persistente.test.mjs"]],
@@ -305,7 +306,7 @@ if (!failed && plan.playwright !== false && plan.e2e !== "none") {
   // Las mediciones con CPU frenada competían con otros tres navegadores: scroll→swipe
   // daba 108/109 ms en dos completas y pasaba aislado (15/9). Medir después conserva
   // el umbral real; los funcionales siguen en paralelo y ningún caso del plan se pierde.
-  const isPerf = p => p.replaceAll("\\", "/").endsWith("/dashboard-memo-profile.spec.mjs") || p.replaceAll("\\", "/").endsWith("/inicio-v42-rendimiento.spec.mjs") || /(?:^|\/)rendimiento(?:-(?:tabs|sostenido))?\.spec\.mjs$/.test(p.replaceAll("\\", "/"));
+  const isPerf = p => p.replaceAll("\\", "/").endsWith("/dashboard-memo-profile.spec.mjs") || p.replaceAll("\\", "/").endsWith("/inicio-v42-rendimiento.spec.mjs") || /(?:^|\/)rendimiento(?:-(?:tabs|sostenido|brokers))?\.spec\.mjs$/.test(p.replaceAll("\\", "/"));
   const groups = [["playwright-e2e", specs.filter(p => !isPerf(p)), []],
     ["playwright-perf", specs.filter(isPerf), ["--workers=1"]]];
   const reports = [];

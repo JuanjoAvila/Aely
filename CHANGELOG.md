@@ -1,3 +1,10 @@
+## Candidata sin publicar — INC-2709-08 · Orden de brókers
+
+- La portada conservaba edición manual y un orden fijo, pese al encargo de llevar la edición a «Ver todas tus inversiones». Ahora las cabeceras se ordenan con pulsación mantenida o Alt + ↑/↓ en ambas pantallas; la edición sigue en la hija junto con alta, venta y borrado.
+- `settings.invBrokerOrder` guarda ids opcionales; el render conserva las ternas completas para evitar la regresión v4.7.1. No reordena posiciones ni cambia dinero o referencias de gastos. Un lector anterior conserva su orden visual por defecto y el contrato de estado sigue siendo válido.
+- La expansión anima transform/opacity por posición con retrasos de 24 ms, acotados en ocho filas. Reducir movimiento apaga animación y retrasos. Touchcancel y scroll iniciado antes de mantener no guardan ni abren el bloque.
+- Guardianes nuevos registrados: `brokers-orden.test.mjs`, `brokers-orden.spec.mjs` y `rendimiento-brokers.spec.mjs` (serie CPU6). Build, sintaxis y cuatro casos Node comprobados; DOM, A/B y CI pendientes. No hay bump, catálogo nuevo, nota de versión, publicación, APK ni backend; el cierre y los pasos móviles viven en [el acta](docs/briefs/inc-2709-08-brokers-orden.md).
+
 ## [4.26.126] — 2026-10-13 · Inicio: la tarjeta del mes se queda en el importe y el ritmo diario; el estado va en el color y en el aria-label (solo web, sin APK nueva)
 
 - **Qué entra.** `claude/inicio-tarjeta-ciclo-limpia` (`de96913d`) encima de la beta 4.26.125 (`6342459b`). Solo web: `versionCode` sigue en 55, `public/apk.json` no se toca, ninguna función Edge cambia y no hay migración. No toca ningún cálculo (`cyclePaceState`, `cycleMoney`, `cycleDailyMoney` y `cycleTiming` quedan igual).

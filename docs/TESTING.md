@@ -1,3 +1,7 @@
+## Orden de brókers · candidata INC-2709-08
+
+`brokers-orden.test.mjs` está en el runner: conserva ternas, referencias financieras, estado antiguo, bróker importado, JSON de nube y guardado partido. `brokers-orden.spec.mjs` está en el mapa de `06-sync-brokers`: abre las dos pantallas con dos/tres brókers y comprueba pulsación mantenida, posiciones, recarga, editor hijo, cancelación, scroll y teclado; reducción de movimiento por sistema/ajuste y retrasos por fila. `rendimiento-brokers.spec.mjs` está en el mismo mapa y en el grupo serial CPU6; el guion común a base/candidata recoge cinco aperturas y cinco ventanas de reposo por pantalla, con clic crudo y sin sondeos durante rAF. Exige cero frames >32 ms en la apertura; un rojo conserva también el reposo para atribuirlo, sin descartar muestras ni ampliar límites. DOM, A/B y CI pendientes; [acta](briefs/inc-2709-08-brokers-orden.md).
+
 Promoción117: conserva los contratos históricos de catálogo117/Retiro117 en c5f62d66 y añade un guardián de runtime y nota única más historial de main (227 entradas, todas con tandas vacías). revisar-beta cubre es/en/ca: entrega web y nativa con guiones publicados, Novedades reales sin109/112 incluso al desplegar todo el historial y decisiones intactas. Cinco identidades auth se asertan en vivo; sólo metas-editar-regla conserva el contrato selectivo histórico. prod117-edge-compat ejecuta fuentes cotejadas con ingestv50/pricesv13 y consumidores actuales sin red. [Acta y límites](briefs/prod-completa-117.md).
 
 ## Inicio: la tarjeta del mes, más limpia · candidata4.26.126

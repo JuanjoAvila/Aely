@@ -87,6 +87,7 @@ export const E2E_MAP = [
     "e2e/cartera-inversiones.spec.mjs", "e2e/brokers-selector.spec.mjs",
   ] },
   { file: "src/modules/06-sync-brokers.js", specs: [
+    "e2e/brokers-orden.spec.mjs", "e2e/rendimiento-brokers.spec.mjs",
     "e2e/cartera-inversiones.spec.mjs", "e2e/brokers-selector.spec.mjs", "e2e/revolut-csv-import.spec.mjs",
     "e2e/tr-aviso.spec.mjs",
   ] },

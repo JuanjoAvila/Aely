@@ -597,6 +597,12 @@ escribir `Access-Control-Allow-Origin: "*"`.
 - Inversiones abre como pantalla hija propia desde Cartera y solo actualiza precios cuando se pulsa
   su acción: no hay sincronización al montar. Auto precios y Proyección viven en Ajustes → Dinero;
   Redondeo y Saveback siguen en Cartera porque afectan al flujo diario, no a la valoración.
+- Candidata INC-2709-08: `settings.invBrokerOrder` contiene solo ids de bróker. Ordena las ternas
+  visuales y comparte preferencia entre portada e hija; no cambia el array de inversiones ni
+  referencias de gastos. Viaja en el JSON de estado y en el guardado partido existentes, sin
+  tabla ni migración. Un cliente anterior ignora la preferencia visual y conserva settings.
+  Gesto cancelado/desplazamiento previo no guarda; Alt + ↑/↓ ofrece la alternativa de teclado.
+  Edición, alta, venta y borrado siguen dentro de «Ver todas tus inversiones». Sin entrega todavía.
 
 > **Apps Script / `GAS_URL`: archivado.** No reabrir.
 
