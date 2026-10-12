@@ -3757,7 +3757,9 @@ async function mcExpenseRun(sb,op){
       return ack||{id:op.id,user_id:op.owner};
     }catch(err){
       op.status=err&&err.code==="23505"?"conflict":err.expenseCode||"pending";
-      try{ mcExpensePersist(op); }catch(e){}
+      // Otra pestaña puede haber purgado la cola al salir. Una respuesta de la sesión
+      // anterior no debe volver a guardar su nota; al caducar la intención ya sigue en disco.
+      if(epoch===_mcExpenseEpoch){ try{ mcExpensePersist(op); }catch(e){} }
       throw err;
     }
   })();
@@ -3790,7 +3792,10 @@ async function writeExpenseField(sb,e,kind,value,holdUntil){
   }
   let session=null;
   try{ const r=sb&&await mcExpenseRequest(sb.auth.getSession()); session=r&&r.data&&r.data.session; }catch(err){}
-  if(!session || !session.user || session.user.id!==op.owner || epoch!==_mcExpenseEpoch){ op.status="session"; mcExpensePersist(op); throw mcExpenseFailure("session"); }
+  if(!session || !session.user || session.user.id!==op.owner || epoch!==_mcExpenseEpoch){
+    if(epoch===_mcExpenseEpoch){ op.status="session"; mcExpensePersist(op); }
+    throw mcExpenseFailure("session");
+  }
   return mcExpenseRun(sb,op);
 }
 async function mcExpenseDrainQueue(sb){

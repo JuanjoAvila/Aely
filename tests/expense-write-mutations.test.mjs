@@ -79,6 +79,18 @@ const cases=[
  ['edición restringida a columnas permitidas','Object.keys(v).some(function(x){ return allowed.indexOf(x)<0; })','false',async make=>{
    const a=await make();await assert.rejects(()=>a.cloud.editExpense(expense,{ingest_event_id:'injected'}));assert.equal(a.db.rows[0].ingest_event_id,undefined);
  }],
+ ['respuesta tardía tras logout no repersiste','if(epoch===_mcExpenseEpoch){ try{ mcExpensePersist(op); }catch(e){} }','try{ mcExpensePersist(op); }catch(e){}',async make=>{
+   const db=database(),saved=storage(),a=await make(db,saved),b=await make(db,saved);let release;
+   db.options.before=()=>new Promise(r=>{release=r});db.sb.auth.signOut=async()=>{db.login(null);a.c.mcExpenseSession(null);return {}};
+   const p=a.cloud.setExpenseNote(expense,'Private');while(!release)await new Promise(r=>setTimeout(r,1));
+   await b.cloud.signOut();delete db.options.before;release();await assert.rejects(()=>p);assert.equal(saved.length,0);
+ }],
+ ['autenticación tardía tras logout no repersiste','if(epoch===_mcExpenseEpoch){ op.status="session"; mcExpensePersist(op); }','op.status="session"; mcExpensePersist(op);',async make=>{
+   const db=database(),saved=storage(),a=await make(db,saved),b=await make(db,saved);let release;
+   db.options.auth=()=>new Promise(r=>{release=r});db.sb.auth.signOut=async()=>{db.login(null);a.c.mcExpenseSession(null);return {}};
+   const p=a.cloud.setExpenseNote(expense,'Private');while(!release)await new Promise(r=>setTimeout(r,1));
+   await b.cloud.signOut();delete db.options.auth;release();await assert.rejects(()=>p);assert.equal(saved.length,0);
+ }],
 ];
 for(const [name,from,to,check] of cases){
  await check(client);

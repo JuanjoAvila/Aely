@@ -146,5 +146,11 @@ await test('el límite de ACK también se cumple para un lote grande',async()=>{
  const a=await client(database({rows:[]})),ids=Array.from({length:270},(_,n)=>'550e8400-e29b-41d4-a716-'+String(n).padStart(12,'0'));
  await a.cloud.deleteExpensesByIds(ids);assert.equal(Object.keys(a.c._mcExpenseAcks).length,256);
 });
+await test('logout de otra pestaña no permite recrear la cola desde una respuesta tardía',async()=>{
+ const saved=storage(),db=database(),a=await client(db,saved),b=await client(db,saved);let release;
+ db.options.before=()=>new Promise(r=>{release=r});db.sb.auth.signOut=async()=>{db.login(null);a.c.mcExpenseSession(null);return {error:null}};
+ const p=a.cloud.setExpenseNote(expense,'Privado entre pestañas');while(!release)await new Promise(r=>setTimeout(r,1));
+ await b.cloud.signOut();assert.equal(saved.length,0);delete db.options.before;release();await assert.rejects(()=>p);assert.equal(saved.length,0);
+});
 console.log('expense-write-revision: '+passed+' PASS / '+failed+' FAIL');
 if(failed) process.exitCode=1;
