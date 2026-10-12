@@ -77,6 +77,8 @@ export const E2E_MAP = [
     "e2e/gastos-categorias-presupuesto.spec.mjs", "e2e/gastos-periodo-categorias.spec.mjs", "e2e/gastos-suelta-filas.spec.mjs",
     "e2e/gastos-deudas.spec.mjs", "e2e/cartera-ficha-cuenta.spec.mjs", "e2e/presupuesto-fluido.spec.mjs",
     "e2e/gastos-ayuda-ciclo.spec.mjs", "e2e/gastos-mes-madrid.spec.mjs",
+    // Apuntes iguales de TR por el cableado real: filas en Gastos, «Es el mismo» desde la ficha.
+    "e2e/tr-iguales-ordinal.spec.mjs",
   ] },
   { file: "src/modules/05-dialogs-inv.js", specs: [
     "e2e/help-assistant.spec.mjs",
@@ -131,6 +133,8 @@ export const E2E_MAP = [
     "e2e/hist-pagos-mensuales.spec.mjs",
     "e2e/bancos-historico-filtro.spec.mjs",
     "e2e/hist-visor.spec.mjs", "e2e/plan-gestionar.spec.mjs",
+    // El histórico da por apuntado lo contestado «es el mismo» (lápida o vínculo).
+    "e2e/tr-iguales-ordinal.spec.mjs",
   ] },
   { file: "src/modules/12-boot.js", specs: ["e2e/splash.spec.mjs", "e2e/smoke.spec.mjs", "e2e/csp.spec.mjs"] },
   { file: "src/modules/13-hogar.js", specs: ["e2e/cartera-orden-hogar.spec.mjs"] },

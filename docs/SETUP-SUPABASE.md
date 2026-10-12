@@ -22,6 +22,18 @@ activo con pagos de prueba. Contrato/limitaciones nativas en [Setup Android](SET
 
 FEATURE-0210-01: ingest_logic y ALLOWED/HINTS de categorize incorporan Gasolina/Taxi solo en fuente de la candidata85. No se ha desplegado ninguna función ni se ha consultado el hash/BD de Supabase vivo; el clasificador anterior puede seguir dando Transporte hasta un gate de despliegue específico. El catálogo/selector/filtros/límites y altas manuales/MCC web funcionan sin despliegue; las notificaciones clasificadas por el servidor anterior aún pueden entrar como Transporte. La migración0001 define expenses.cat como text sin whitelist y las migraciones registradas no la restringen; no requiere SQL nueva. Tests sintéticos ejecutan alta cloud/pull con ambos IDs, presupuesto.ts del SHA3467 y retry/ACK/conflicto de ingest con clasificador de ese baseline: preservan elección manual y cuentan categorías diarias. Esto prueba fuente/contratos, no estado vivo ni captura Wallet nueva.
 
+## Apuntes iguales con ordinal (12/10, rama `claude/tr-iguales-ordinal`): `ingest` ANTES que la web, nunca después
+
+Cambia solo `_shared/presupuesto.ts` (`ordinalDeSource`, `claveComoLaApp` con el sufijo `|#n`, y
+`bancoDeSource` leyendo `ob-hist:…#n2` con el banco limpio). La única función que lo importa es
+`ingest`, así que es la única que hay que desplegar: sin migración ni secreto. Orden obligatorio:
+**`ingest` primero, o a la vez que el cliente; nunca después**. El servidor nuevo sobre filas de
+clientes viejos (sin `#n`) devuelve EXACTAMENTE lo mismo que el servidor anterior (probado en
+`ob-iguales-ordinal` y `widget.test.ts`), así que desplegarlo antes es inocuo. Al revés no: con el
+cliente nuevo y el `ingest` de hoy, el servidor funde las k filas iguales en una y el widget deja
+de cuadrar con la app (36 o 48 frente a 60 en la sonda de la revisión). Rollback: desplegar el
+`ingest` anterior; las filas con `#n` se leen con el banco de siempre y solo pierden la separación.
+
 ## bank-sync con tramo antiguo (INC-2709-06): solo en fuente, SIN desplegar
 
 `bank-sync` y `_shared/enablebanking.ts` (parámetros `maxPages` y `dateTo` de `fetchBankTransactions`)
