@@ -1,0 +1,530 @@
+{
+  "status": "blocked",
+  "summary": "Reservas SEC01 implementadas y verificadas en fuente: PR211 head0a5619fb. CI final run38278580915 EXIT1 solo por gates de integracion beta-sources y docs-frescura: 142/144 etapas Node pasan y los22 ficheros Deno EXIT0. Sin E2E por aborto del runner. Claim liberado para revision e integracion por Claude; no desplegado.",
+  "productSHA": "0a5619fb6033d0890f4df450c6f0079a20040c45",
+  "pullRequest": 211,
+  "baseSHA": "c5f62d6603d016150afd9d0e20547b608b323045",
+  "tests": [
+    {
+      "command": "node tests/edge-input-handlers.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/edge-input-mutations.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/edge-input-reservas.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/edge-input-reservas-mutations.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/entrada-edge.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/ingest-handler.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/bank-sync-progreso.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/bank-sync-paging.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/help-assistant.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/logs-privacidad.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/security.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/guard-privacy.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "Tests workflow_dispatch run38278580915: node scripts/run-tests.mjs",
+      "exitCode": 1,
+      "environment": "GitHub Actions",
+      "failed": [
+        "beta-sources",
+        "docs-frescura"
+      ]
+    },
+    {
+      "command": "deno test supabase/functions/_shared/request_body.test.ts",
+      "exitCode": 0,
+      "environment": "GitHub Actions run38278580915"
+    },
+    {
+      "command": "deno test supabase/functions/bank-aspsps/entrada.test.ts",
+      "exitCode": 0,
+      "environment": "GitHub Actions run38278580915"
+    },
+    {
+      "command": "deno test supabase/functions/bank-connect/entrada.test.ts",
+      "exitCode": 0,
+      "environment": "GitHub Actions run38278580915"
+    },
+    {
+      "command": "deno test supabase/functions/bank-disconnect/entrada.test.ts",
+      "exitCode": 0,
+      "environment": "GitHub Actions run38278580915"
+    },
+    {
+      "command": "deno test supabase/functions/bank-sync/entrada.test.ts",
+      "exitCode": 0,
+      "environment": "GitHub Actions run38278580915"
+    },
+    {
+      "command": "deno test supabase/functions/bank-callback/entrada.test.ts",
+      "exitCode": 0,
+      "environment": "GitHub Actions run38278580915"
+    },
+    {
+      "command": "deno test supabase/functions/categorize/entrada.test.ts",
+      "exitCode": 0,
+      "environment": "GitHub Actions run38278580915"
+    },
+    {
+      "command": "deno test supabase/functions/delete-account/entrada.test.ts",
+      "exitCode": 0,
+      "environment": "GitHub Actions run38278580915"
+    },
+    {
+      "command": "deno test supabase/functions/ingest/entrada.test.ts",
+      "exitCode": 0,
+      "environment": "GitHub Actions run38278580915"
+    },
+    {
+      "command": "deno test supabase/functions/myinvestor-connect/entrada.test.ts",
+      "exitCode": 0,
+      "environment": "GitHub Actions run38278580915"
+    },
+    {
+      "command": "deno test supabase/functions/myinvestor-sync/entrada.test.ts",
+      "exitCode": 0,
+      "environment": "GitHub Actions run38278580915"
+    },
+    {
+      "command": "deno test supabase/functions/myinvestor-disconnect/entrada.test.ts",
+      "exitCode": 0,
+      "environment": "GitHub Actions run38278580915"
+    },
+    {
+      "command": "deno test supabase/functions/myinvestor-keepalive/entrada.test.ts",
+      "exitCode": 0,
+      "environment": "GitHub Actions run38278580915"
+    },
+    {
+      "command": "deno test supabase/functions/prices/entrada.test.ts",
+      "exitCode": 0,
+      "environment": "GitHub Actions run38278580915"
+    },
+    {
+      "command": "deno test supabase/functions/help-assistant/entrada.test.ts",
+      "exitCode": 0,
+      "environment": "GitHub Actions run38278580915"
+    },
+    {
+      "command": "deno test supabase/functions/ingest/ingest.test.ts",
+      "exitCode": 0,
+      "environment": "GitHub Actions run38278580915"
+    },
+    {
+      "command": "deno test supabase/functions/ingest/widget.test.ts",
+      "exitCode": 0,
+      "environment": "GitHub Actions run38278580915"
+    },
+    {
+      "command": "deno test --allow-env supabase/functions/_shared/crypto.test.ts",
+      "exitCode": 0,
+      "environment": "GitHub Actions run38278580915"
+    },
+    {
+      "command": "deno test supabase/functions/_shared/enablebanking.test.ts",
+      "exitCode": 0,
+      "environment": "GitHub Actions run38278580915"
+    },
+    {
+      "command": "deno test supabase/functions/delete-account/delete-account.test.ts",
+      "exitCode": 0,
+      "environment": "GitHub Actions run38278580915"
+    },
+    {
+      "command": "deno test supabase/functions/prices/prices.test.ts",
+      "exitCode": 0,
+      "environment": "GitHub Actions run38278580915"
+    },
+    {
+      "command": "deno test supabase/functions/bank-sync/demand-window.test.ts",
+      "exitCode": 0,
+      "environment": "GitHub Actions run38278580915"
+    }
+  ],
+  "compatibility": {
+    "exactBodies": 14,
+    "handlerContracts": 169,
+    "ruleMutationsKilled": 38,
+    "reservationMutationsKilled": 7,
+    "handlerMutationsKilled": 13,
+    "equivalent": "help-assistant: guarda redundante question; no contado muerto",
+    "ingest": "Cinco cuerpos legacy y UTF8 ilegible contrastados con beta; JSON no objeto400, tamaño413, formatos/transporte irreconocibles200 omitido con diagnostico y sin gastos. Auth y cuota IP preauth conservadas.",
+    "bankSync": {
+      "fixtureBytes": 1708,
+      "limitBytes": 32768,
+      "margin": 19.19,
+      "iso": "recortado al dia; base ignoraba ISO completo y se compara ademas con el dia"
+    }
+  },
+  "errorTextChanges": [
+    {
+      "name": "bank-disconnect",
+      "status": 400,
+      "body": {},
+      "before": "falta aspsp_name",
+      "after": "cuerpo inválido"
+    },
+    {
+      "name": "delete-account",
+      "status": 400,
+      "body": {},
+      "before": "confirma con tu contraseña",
+      "after": "cuerpo inválido"
+    },
+    {
+      "name": "categorize",
+      "status": 400,
+      "body": {},
+      "before": "merchant",
+      "after": "cuerpo inválido"
+    },
+    {
+      "name": "myinvestor-connect",
+      "status": 400,
+      "body": {},
+      "before": "faltan datos",
+      "after": "cuerpo inválido"
+    }
+  ],
+  "integration": {
+    "branch": "claude/bancos-acuse-margen",
+    "sha": "82042925c5d01bb6c74fffaee5a353d6873ab924",
+    "file": "tests/helpers/banco-sintetico.mjs",
+    "change": "Añadir export const RequestBody = await modulo(\"supabase/functions/_shared/request_body.ts\"); junto a Entrada. Añadir readInput al final de cada array names de llama, conecta y vuelve; añadir RequestBody.readInput al final de sus tres invocaciones new Function. Carga mas seis inyecciones. Sin ese cambio: readInput is not defined. No editada la rama ajena."
+  },
+  "deploymentInventory": {
+    "bank-aspsps": {
+      "run": 34593145333,
+      "sha": "29505fa053d64087efef56a22faeb3126822b97b",
+      "imports": {
+        "supabase/functions/bank-aspsps/index.ts": "43cde1882388ed94746b672d396cac8d754dafc0",
+        "supabase/functions/_shared/enablebanking.ts": "ad93c17a4a9837d1d59a5386b3e05bdb234d195b",
+        "supabase/functions/_shared/cors.ts": "42176d79bf4e347004fddc1e483d1ba4905206eb"
+      },
+      "reason": null,
+      "proof": [
+        "2026-09-11T11:16:10.7662128Z Deployed Functions: bank-aspsps, bank-callback, bank-connect, bank-disconnect, bank-sync, categorize, delete-account, ingest, myinvestor-connect, myinvestor-disconnect, myinvestor-keepalive, myinvestor-sync, prices"
+      ]
+    },
+    "bank-connect": {
+      "run": 34756970838,
+      "sha": "a5c885abc1f019c566b5217f991485f03f665949",
+      "imports": {
+        "supabase/functions/bank-connect/index.ts": "4f46471dbc1df407420929e724e89ff215afd185",
+        "supabase/functions/_shared/enablebanking.ts": "ad93c17a4a9837d1d59a5386b3e05bdb234d195b",
+        "supabase/functions/_shared/cors.ts": "441eb0705d58e11b4d041591dbd79e2b04f54d53"
+      },
+      "reason": null,
+      "proof": [
+        "2026-09-13T12:24:13.9868450Z Deployed Functions: bank-connect"
+      ]
+    },
+    "bank-disconnect": {
+      "run": 34757005550,
+      "sha": "a5c885abc1f019c566b5217f991485f03f665949",
+      "imports": {
+        "supabase/functions/bank-disconnect/index.ts": "02d6e957c608b07423a8462f491b26af784981fd",
+        "supabase/functions/_shared/enablebanking.ts": "ad93c17a4a9837d1d59a5386b3e05bdb234d195b",
+        "supabase/functions/_shared/cors.ts": "441eb0705d58e11b4d041591dbd79e2b04f54d53"
+      },
+      "reason": null,
+      "proof": [
+        "2026-09-13T12:24:52.5044035Z Deployed Functions: bank-disconnect"
+      ]
+    },
+    "bank-sync": {
+      "run": 38147682294,
+      "sha": "9a7288125ca7984f4d01577cd9c9271e04c23ef4",
+      "imports": {
+        "supabase/functions/bank-sync/index.ts": "409117134f658ce0e6360dc1b4014f9c80713f9a",
+        "supabase/functions/_shared/enablebanking.ts": "97f6440341bd125ab6d0dfe15bc16ec586263aaa",
+        "supabase/functions/_shared/cors.ts": "441eb0705d58e11b4d041591dbd79e2b04f54d53",
+        "supabase/functions/bank-sync/demand-window.ts": "6519e440b0ba1a7701494c3234e8bd45d3f37f59"
+      },
+      "reason": null,
+      "proof": [
+        "2026-10-11T14:34:14.3691248Z Deployed Functions: bank-sync"
+      ]
+    },
+    "bank-callback": {
+      "run": 35978233778,
+      "sha": "f53e865277f676998d76844fd047357f4adc1569",
+      "imports": {
+        "supabase/functions/bank-callback/index.ts": "acf0047d2ddf6aa63898296b7d69224f34f2a196",
+        "supabase/functions/_shared/enablebanking.ts": "902bd46eb3b5b4e59f9708492939473b72946e6b",
+        "supabase/functions/_shared/token_store.ts": "6729255828575519ca1235d5d77f36acc4a649ef",
+        "supabase/functions/_shared/crypto.ts": "c3894bc2f9abbe237d8bf836231d8078b4a344f5",
+        "supabase/functions/_shared/entrada.ts": "a0f18515cb01229d58ee64fa31bc28e27010ed28"
+      },
+      "reason": null,
+      "proof": [
+        "2026-09-24T08:57:07.1943608Z Deployed Functions: bank-callback"
+      ]
+    },
+    "categorize": {
+      "run": 37227378103,
+      "sha": "64b4e5f3543ae440812ecf76a7e3259dfc938d1b",
+      "imports": {
+        "supabase/functions/categorize/index.ts": "659aab0e746dcba81cb10bdc65ce608941f2ff82",
+        "supabase/functions/_shared/ingest_logic.ts": "0d86b5a47a4cb1566de76cdf95ee61d44e1c1f76",
+        "supabase/functions/_shared/cors.ts": "441eb0705d58e11b4d041591dbd79e2b04f54d53",
+        "supabase/functions/_shared/ratelimit.ts": "1a271736469001ee8b611e453180601e8fedf397"
+      },
+      "reason": null,
+      "proof": [
+        "2026-10-04T19:12:47.2575716Z Deployed Functions: categorize"
+      ]
+    },
+    "delete-account": {
+      "run": 34757030177,
+      "sha": "a5c885abc1f019c566b5217f991485f03f665949",
+      "imports": {
+        "supabase/functions/delete-account/index.ts": "7c97620ab07de45a51cb2ba8b4a9de597126ea44",
+        "supabase/functions/_shared/myinvestor.ts": "3e2243796062ab322b76590221e8fee6434ada2a",
+        "supabase/functions/_shared/cors.ts": "441eb0705d58e11b4d041591dbd79e2b04f54d53"
+      },
+      "reason": null,
+      "proof": [
+        "2026-09-13T12:25:39.2388897Z Deployed Functions: delete-account"
+      ]
+    },
+    "ingest": {
+      "run": 37227204066,
+      "sha": "64b4e5f3543ae440812ecf76a7e3259dfc938d1b",
+      "imports": {
+        "supabase/functions/ingest/index.ts": "52d1eb019725e011ce711903b82e6ce93b8a2805",
+        "supabase/functions/_shared/ingest_logic.ts": "0d86b5a47a4cb1566de76cdf95ee61d44e1c1f76",
+        "supabase/functions/_shared/wallet.ts": "e09c04e02cf698a954b4ba2da6e9ad8a79f37248",
+        "supabase/functions/_shared/ingest_identity.ts": "bb637dd816a036b39955b49dd24dc9a4c2499301",
+        "supabase/functions/_shared/ratelimit.ts": "1a271736469001ee8b611e453180601e8fedf397",
+        "supabase/functions/_shared/presupuesto.ts": "59576cb1cf5ae9e70f7b2cd3824e9e4d380d5e5f",
+        "supabase/functions/_shared/entrada.ts": "a0f18515cb01229d58ee64fa31bc28e27010ed28"
+      },
+      "reason": null,
+      "proof": [
+        "2026-10-04T19:10:10.0525099Z Deployed Functions: ingest"
+      ]
+    },
+    "myinvestor-connect": {
+      "run": 34757065098,
+      "sha": "a5c885abc1f019c566b5217f991485f03f665949",
+      "imports": {
+        "supabase/functions/myinvestor-connect/index.ts": "d680de9ff195876be8751460f9abf9acf10542a2",
+        "supabase/functions/_shared/myinvestor.ts": "3e2243796062ab322b76590221e8fee6434ada2a",
+        "supabase/functions/_shared/token_store.ts": "6729255828575519ca1235d5d77f36acc4a649ef",
+        "supabase/functions/_shared/crypto.ts": "c3894bc2f9abbe237d8bf836231d8078b4a344f5",
+        "supabase/functions/_shared/cors.ts": "441eb0705d58e11b4d041591dbd79e2b04f54d53",
+        "supabase/functions/_shared/ratelimit.ts": "acfeffeeb5ee4af6aeaf3a5465304ae7eea74b99"
+      },
+      "reason": null,
+      "proof": [
+        "2026-09-13T12:26:20.6422351Z Deployed Functions: myinvestor-connect"
+      ]
+    },
+    "myinvestor-sync": {
+      "run": 34757126754,
+      "sha": "a5c885abc1f019c566b5217f991485f03f665949",
+      "imports": {
+        "supabase/functions/myinvestor-sync/index.ts": "dbba00ccf5a68d4b4c098238c39c66539aa58d1c",
+        "supabase/functions/_shared/myinvestor.ts": "3e2243796062ab322b76590221e8fee6434ada2a",
+        "supabase/functions/_shared/token_store.ts": "6729255828575519ca1235d5d77f36acc4a649ef",
+        "supabase/functions/_shared/crypto.ts": "c3894bc2f9abbe237d8bf836231d8078b4a344f5",
+        "supabase/functions/_shared/cors.ts": "441eb0705d58e11b4d041591dbd79e2b04f54d53"
+      },
+      "reason": null,
+      "proof": [
+        "2026-09-13T12:27:34.4235143Z Deployed Functions: myinvestor-sync"
+      ]
+    },
+    "myinvestor-disconnect": {
+      "run": 34757101226,
+      "sha": "a5c885abc1f019c566b5217f991485f03f665949",
+      "imports": {
+        "supabase/functions/myinvestor-disconnect/index.ts": "c9414f61ead5c03924c1866b9bd0a3f605f177c5",
+        "supabase/functions/_shared/myinvestor.ts": "3e2243796062ab322b76590221e8fee6434ada2a",
+        "supabase/functions/_shared/cors.ts": "441eb0705d58e11b4d041591dbd79e2b04f54d53"
+      },
+      "reason": null,
+      "proof": [
+        "2026-09-13T12:27:02.0116356Z Deployed Functions: myinvestor-disconnect"
+      ]
+    },
+    "myinvestor-keepalive": {
+      "run": 34889131066,
+      "sha": "c34fe81c1dc06cb8bc65b6b8a0d7a19e8ea011bc",
+      "imports": {
+        "supabase/functions/myinvestor-keepalive/index.ts": "391eae451fd194faa7b399414a3c9d77a5118fcc",
+        "supabase/functions/_shared/myinvestor.ts": "3e2243796062ab322b76590221e8fee6434ada2a",
+        "supabase/functions/_shared/token_store.ts": "6729255828575519ca1235d5d77f36acc4a649ef",
+        "supabase/functions/_shared/crypto.ts": "c3894bc2f9abbe237d8bf836231d8078b4a344f5",
+        "supabase/functions/_shared/entrada.ts": "a0f18515cb01229d58ee64fa31bc28e27010ed28"
+      },
+      "reason": null,
+      "proof": [
+        "2026-09-14T19:48:50.5338322Z Deployed Functions: myinvestor-keepalive"
+      ]
+    },
+    "prices": {
+      "run": 34593145333,
+      "sha": "29505fa053d64087efef56a22faeb3126822b97b",
+      "imports": {
+        "supabase/functions/prices/index.ts": "cab270d83f3eff00693e206fb26ce2e621187e62",
+        "supabase/functions/_shared/cors.ts": "42176d79bf4e347004fddc1e483d1ba4905206eb"
+      },
+      "reason": null,
+      "proof": [
+        "2026-09-11T11:16:10.7662128Z Deployed Functions: bank-aspsps, bank-callback, bank-connect, bank-disconnect, bank-sync, categorize, delete-account, ingest, myinvestor-connect, myinvestor-disconnect, myinvestor-keepalive, myinvestor-sync, prices"
+      ]
+    },
+    "help-assistant": {
+      "run": null,
+      "sha": null,
+      "imports": null,
+      "reason": "No deployment found since first source on 2026-09-15; all later Deploy Supabase logs inspected.",
+      "proof": null
+    }
+  },
+  "deploymentOrder": [
+    "bank-aspsps",
+    "categorize",
+    "prices",
+    "help-assistant",
+    "myinvestor-sync",
+    "myinvestor-disconnect",
+    "myinvestor-keepalive",
+    "delete-account",
+    "bank-disconnect",
+    "bank-connect",
+    "bank-callback",
+    "bank-sync",
+    "myinvestor-connect",
+    "ingest"
+  ],
+  "deploymentLimits": [
+    "Solo historial Actions; no acredita estado vivo ni despliegues externos.",
+    "Help sin SHA desplegado acreditable; no inventar rollback.",
+    "Restaurar index e imports transitivos del mismo SHA; rangos remotos no fijan bytes historicos.",
+    "Orden futuro: vigilar cron10min tras keepalive y pago real por fuente tras ingest; nada desplegado por esta tarea."
+  ],
+  "approvalReview": "Primer parche rechazado por ampliar validacion y formularios. Evidencia roja y motivo preservados. Implementacion acotada y transporte omitido pasaron el mismo apply_patch, sin editor alternativo ni bypass; no queda bloqueo de aprobacion.",
+  "restrictionsObserved": [
+    "Sin llamadas Supabase real ni deploy",
+    "Sin SQL ni APK",
+    "Sin merge ni push main/beta",
+    "Sin VERSION, catalogos ni notas de version",
+    "Sin rebase automatico",
+    "Deno solo CI; sin Deno local",
+    "Claims y resultados anteriores SEC01/FIN04 intactos"
+  ],
+  "ci": {
+    "run": 38278580915,
+    "sha": "0a5619fb6033d0890f4df450c6f0079a20040c45",
+    "status": "completed",
+    "superseded": {
+      "run": 38277804620,
+      "conclusion": "cancelled",
+      "isPass": false
+    },
+    "conclusion": "failure",
+    "exitCode": 1,
+    "node": {
+      "total": 144,
+      "passed": 142,
+      "failed": [
+        "beta-sources",
+        "docs-frescura"
+      ]
+    },
+    "deno": {
+      "files": 22,
+      "exitCode": 0,
+      "executedInCI": true
+    },
+    "playwright": "not run: previous failures",
+    "privacy": {
+      "runnerExitCode": 0,
+      "separateStep": "skipped"
+    },
+    "durationSeconds": 978
+  },
+  "integrationBlockers": [
+    {
+      "test": "beta-sources",
+      "reason": "Catalogo117 espera moved={} y cambian cuatro identidades Edge por ingest; Retiro117 pasa.",
+      "identities": [
+        "feature-0310-01-movilidad",
+        "fin05-pago-cerrada",
+        "tr-descripcion-clasificacion",
+        "widget-app-cerrada"
+      ]
+    },
+    {
+      "test": "docs-frescura",
+      "reason": "32 ficheros de producto tras ancla c5f62d6 sin VERSION nueva. Encargo prohibe VERSION/notas; se resuelve al integrar, sin debilitar el guardian."
+    }
+  ],
+  "limitations": [
+    "CI global failure, no promesa de verde ni autorizacion de despliegue.",
+    "E2E no ejecutado por fallos anteriores del runner.",
+    "Deno check de handlers completos no repetido; no silenciados errores previos de ingest/callback de la primera entrega.",
+    "Help sin SHA de despliegue acreditable.",
+    "Base c5f62d66 conservada; pendiente integracion de Claude."
+  ],
+  "queuedNextTask": {
+    "id": "fin-04-revision-nogo-codex-20261012",
+    "readFull": true,
+    "planPrepared": true,
+    "claimed": false,
+    "implemented": false
+  },
+  "schema": 1,
+  "taskId": "sec-01-revision-reservas-codex-20261012",
+  "actor": "codex",
+  "sessionId": "codex-cloud-20261012-2eb4d1fd5266",
+  "createdAt": "2026-10-12T16:56:28.114Z",
+  "released": true
+}
