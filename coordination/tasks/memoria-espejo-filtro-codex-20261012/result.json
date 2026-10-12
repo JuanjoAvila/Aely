@@ -1,0 +1,111 @@
+{
+  "status": "done",
+  "summary": "Candidato revisable PR210: metadatos técnicos conservados y filtro cerrado; CI exacta exit0 con flaky y omisión declarados. Integración pendiente.",
+  "productSHA": "3da8a094e6dceddd447a1c50cbf95d4cec597e9a",
+  "baseSHA": "f695a299ba2d9402e40b81dbf5e5bffccdf3949c",
+  "betaSHA": "c5f62d6603d016150afd9d0e20547b608b323045",
+  "branch": "codex/memoria-filtro-20261012",
+  "pullRequest": {
+    "repository": "JuanjoAvila/Aely",
+    "number": 210
+  },
+  "tests": [
+    {
+      "command": "node tests/memoria-metadatos.test.mjs",
+      "exitCode": 0,
+      "executions": 180,
+      "mutantsKilled": 15
+    },
+    {
+      "command": "node tests/sync-memoria.test.mjs",
+      "exitCode": 0,
+      "matrix": 414
+    },
+    {
+      "command": "regression on beta117 c5f62d66",
+      "exitCode": 1,
+      "expected": true
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/guard-privacy.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node --check scripts/sync-memoria.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node --check tests/memoria-metadatos.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "TZ=UTC node tests/docs-frescura.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "TZ=Europe/Madrid node tests/docs-frescura.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "CI node scripts/run-tests.mjs",
+      "exitCode": 0,
+      "headSHA": "3da8a094e6dceddd447a1c50cbf95d4cec597e9a"
+    },
+    {
+      "command": "CI node scripts/guard-privacy.mjs",
+      "exitCode": 0
+    }
+  ],
+  "mutations": {
+    "killed": 15,
+    "survived": 0,
+    "rules": [
+      "version",
+      "PR",
+      "hora",
+      "SHA",
+      "conteo",
+      "unidades",
+      "banco-persona",
+      "moneda",
+      "residual",
+      "telefono-residual",
+      "saneado-ruta",
+      "saneado-importe",
+      "saneado-IBAN",
+      "saneado-correo",
+      "saneado-telefono"
+    ],
+    "syntheticExecutions": 180,
+    "syntaxValidated": true
+  },
+  "ci": {
+    "jobId": "114729468805",
+    "headSHA": "3da8a094e6dceddd447a1c50cbf95d4cec597e9a",
+    "exitCode": 0,
+    "functionalPassed": 1002,
+    "functionalFlaky": 1,
+    "functionalSkipped": 1,
+    "performancePassed": 13,
+    "denoFiles": 7,
+    "completeLogRead": true,
+    "runId": "38224772099"
+  },
+  "technicalWhy": "El rechazo residual confundía cifras técnicas con importes y el saneado podía tachar la referencia antes de validarla. Se protegen tokens rotulados de versión, PR, hora válida, SHA y conteos antes de sanear; sólo esos tokens se excluyen de la vista de detección. El resto del párrafo mantiene el rechazo, incluido importe junto a banco/persona sin saldo. Teléfonos separados quedan cubiertos por la segunda barrera. La validación de todos los documentos sigue precediendo a cualquier escritura o borrado. Tests registrados en steps y documentados en TESTING y README.",
+  "limitations": [
+    "CI verde con 1 flaky: e2e/cartera-inversiones.spec.mjs:247, Guardar deshabilitado; ajeno al diff; 1 skipped en captura opcional e2e/gastos-categorias-presupuesto.spec.mjs:190",
+    "CI sin memoria personal; espejo real no regenerado ni revisado; revisión e integración de Claude pendientes",
+    "Referencias técnicas sólo de formatos explícitos; cifras ambiguas abortan y sigue siendo necesaria revisión manual del espejo"
+  ],
+  "nextAction": "Claude: revisión independiente de PR210; después decidir integración y regenerar/revisar el espejo personal. No interpretar la CI verde como estabilidad sin reintentos del spec ajeno ni como espejo real validado.",
+  "schema": 1,
+  "taskId": "memoria-espejo-filtro-codex-20261012",
+  "actor": "codex",
+  "sessionId": "codex-local-20261012-95cf20fb4727",
+  "createdAt": "2026-10-12T09:43:19.428Z",
+  "released": true
+}
