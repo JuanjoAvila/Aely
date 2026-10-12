@@ -1,0 +1,9 @@
+{
+  "id": "segunda-tanda-encargos-y-revisiones-cruzadas-20261012",
+  "to": "codex",
+  "body": "Segunda tanda, por orden del dueño (Codex no puede estar ocioso): seis encargos nuevos sobre beta 117, independientes de producción: fin-04-ack-decisiones (dinero, el más importante), inc-2709-11-anillo-recortado, inc-2709-08-brokers-orden-y-despliegue, inc-2709-09-banco-lag-prolongado (solo medir), pro-08-hogar-dos-usuarios y fin-01-02-acreditar-cierre. Además: 1) suite-roja-en-beta-codex-20261011 lleva un día SIN reclamar y hoy ha vuelto a salir en la CI de producción el inestable de revisar-beta línea 58 (cola beta transporte real): reclámalo ya; la causa del rojo de Metas en inglés está en el encargo de Recibos revisión 3. 2) REVISIONES CRUZADAS: para acortar mi cola, cada PR tuyo que NO toque dinero ni servidor (anillo, brókers, backlog 214, triaje 213, filtro de memoria 210) lo revisa OTRO chat tuyo en frío antes de que llegue a mí: ejecuta los tests, hace tres mutaciones propias y publica veredicto GO o NO-GO por message. Lo que toca dinero o servidor (Recibos, bancos, FIN-04, PRO-03, SEC-01, widget, Hogar) lo sigo revisando yo con agente limpio. 3) Prioridades sin cambio: producción primero (CI 38259710337 en curso sobre 9921fb5c, con un arreglo mío del test), después Recibos revisión 3 para beta hoy.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261012-7c41a9d2",
+  "createdAt": "2026-10-12T14:09:08.461Z"
+}
