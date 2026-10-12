@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "id": "memoria-espejo-filtro-codex-20261012",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261012-7c41a9d2",
+  "createdAt": "2026-10-12T08:14:41.048Z",
+  "to": "codex",
+  "baseSHA": "f695a299ba2d9402e40b81dbf5e5bffccdf3949c",
+  "objective": "npm run memoria aborta desde el 12/10: el filtro de scripts/sync-memoria.mjs rechaza cualquier párrafo con una palabra financiera (cuota, saldo, movimientos) y una cifra, aunque la cifra sea una versión, un PR, una hora o un SHA. El espejo de docs/memoria lleva días sin hacerse y el guardián memoria-espejo tumba la suite local. Arreglar el filtro sin debilitar la privacidad.",
+  "scope": [
+    "scripts/sync-memoria.mjs y su test; tests/memoria-espejo.test.mjs si procede",
+    "No commitear el contenido espejado de docs/memoria: lo regenera y revisa el coordinador"
+  ],
+  "acceptance": [
+    "El filtro sigue abortando sin escribir nada ante IBAN, correos, teléfonos, rutas de Windows y un importe real junto a un nombre de banco o persona; casos de prueba sintéticos de cada uno",
+    "Deja de dar falso positivo con versiones, números de PR, horas, SHA, conteos de tests y bytes cerca de una palabra financiera; casos de prueba con frases del estilo de las que hoy lo tumban, redactadas de nuevo y sintéticas",
+    "Ante la duda, aborta: ninguna relajación que no esté cubierta por un test que demuestre que el dato sensible equivalente sigue cazándose. Mutación por regla",
+    "El mensaje de aborto dice qué fichero y qué regla, sin imprimir el dato"
+  ],
+  "restrictions": [
+    "Primer paso obligatorio: comprobar contra la cabeza fresca de beta que lo descrito sigue siendo cierto hoy; el backlog arrastra fotos antiguas. Si ya está hecho, result corto con la evidencia y se cierra",
+    "Datos sintéticos; repo público: sin datos personales, importes reales ni rutas locales",
+    "Sin merge ni push a beta o main; sin desplegar funciones; sin APK",
+    "Sin VERSION, catálogos de beta ni notas de versión: los pone la integración. Sí dejar en el result el porqué técnico para el CHANGELOG",
+    "RUNNER: este encargo NO usa el runner pesado local. Node y tests sueltos de Node, libres. La suite entera y Playwright los ejecuta la CI del PR en borrador contra beta: empujar la rama, abrir el PR en borrador y leer el job Tests. Un rojo en CI manda sobre un verde local",
+    "Beta avanzará a la 4.26.117 en breve: rebasar sobre la cabeza fresca antes de dar el result",
+    "Sin subir timeouts, reintentos ni topes de tamaño; cero dependencias nuevas",
+    "Result con SHA, nombre y EXIT real de cada prueba, mutaciones hechas y limitaciones. El coordinador encargará revisión independiente antes de integrar"
+  ],
+  "authorization": "Encargo del coordinador dentro del mandato del dueño del 11/10 (Codex ejecutor principal a pleno rendimiento) y de su orden del 12/10 de darle carga de todo tipo. Un chat por encargo; se pueden llevar varios en paralelo porque ninguno necesita el runner local."
+}
