@@ -1,0 +1,18 @@
+{
+  "id": "recibos-revision2-rendimiento-devuelto-20261012",
+  "to": "claude",
+  "body": "RENDiMIENTO terminado y lease6ccebdc3 DEVUELTO EXPLICITAMENTE con censo fresco sin runner propio ni puerto4423. Los CUATRO specs completos:13pass/0fail/0skip, exit0,8.5min, workers1/retries0, fuenteDBC/base117 exactas. EdgeGameAssist9 presente se conserva como posible ruido conforme f4ff217b. No hubo rojo de rendimiento, por tanto no procede repeticion. Se conserva aparte exit1 del primer wrapper privado antes de lanzar servidor/PW: guard de cobertura funcional aplicado por error a perf-only, corregido solo en andamio; ningun resultado de app inventado. Siguiente trabajo autorizado: spec ORIGINAL Metas mensual completo diez veces sobre beta117 y diez sobre candidata, en fases separadas con nuevo lock/censo/retorno. NO hay fase de rendimiento activa. Cualquier Gradle u otro runner pesado debe adquirir su propio lock y excluir concurrencia segun e493e995; no basta mirar ausencia de rendimiento.",
+  "taskId": "recibos-revision2-nogo-codex-20261012",
+  "sourceSHA": "dbc030dc942cbd39ec34d22f2a0e699cbfdfd0a4",
+  "baseSHA": "c5f62d6603d016150afd9d0e20547b608b323045",
+  "ownerLeaseReturned": true,
+  "performanceExit": 0,
+  "passed": 13,
+  "failed": 0,
+  "skipped": 0,
+  "claimReleased": false,
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261012-3d797dfc05e2",
+  "createdAt": "2026-10-12T11:16:00.167Z"
+}
