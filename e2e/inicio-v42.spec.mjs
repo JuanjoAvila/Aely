@@ -213,3 +213,62 @@ for(const sandbox of [false,true]) test("historial partido migra 400 puntos y re
   await expect(page.locator(".v42-cycle-of")).toContainText("1050");
   expect(await page.evaluate(key=>JSON.parse(localStorage.getItem(key+"_balhist")).history["acc:a"],key)).toEqual(history);
 });
+
+const goodsBank={id:"goods-bank",ent:"sabadell",value:5000,role:"fijos",bankIban:"ES-SYNTHETIC-GOODS"};
+const goodsExpenses=[{id:"goods-cover",date:"2026-08-01T12:00:00Z",amount:0,category:"super",ent:"sabadell"},
+  {id:"goods-use",date:"2026-08-20T12:00:00Z",amount:100,category:"super",ent:"sabadell"}];
+async function openGoodsHistory(page,overrides){
+  await page.clock.install({time:new Date("2026-09-04T12:00:00Z")});
+  await seedLoggedInDashboard(page,{__seedOnce:true,budget:1000,accounts:[goodsBank],expenses:goodsExpenses,
+    settings:{autoPrices:false,budgetCycle:false},...overrides});
+  await page.goto("/");await page.waitForFunction(()=>!document.getElementById("mc-load"));await dismissNews(page);
+}
+async function ownGoodsState(page){
+  return page.evaluate(()=>{window.dispatchEvent(new Event("pagehide"));const s=mcLoadRaw(mcStateKey());return {assets:s.assets,history:s.assetValueHistory};});
+}
+for(const lang of ["es","en","ca"])test("RONDA3 bien legado conserva gráfica y declara su valor constante "+lang,async({page})=>{
+  await openGoodsHistory(page,{assets:[{id:"legacy-home",name:"Piso sintético",value:200000}],settings:{lang,autoPrices:false,budgetCycle:false}});
+  const hero=page.getByTestId("inicio-net-current");
+  await expect(hero.locator(".v4-hero-amt")).toContainText("205.000,00 €");
+  await expect(hero.locator(".v42-net-line")).toHaveCount(1);
+  const path=await hero.locator(".v42-net-line").getAttribute("d");expect([...path.matchAll(/[ML]/g)]).toHaveLength(35);
+  await expect(hero.getByTestId("inicio-net-coverage")).toContainText("Piso sintético:");
+  await expect(hero.getByTestId("inicio-net-coverage")).toContainText(lang==="es"?"antes se mantiene el valor actual":lang==="en"?"earlier dates keep the current value":"abans es manté el valor actual");
+  const stored=await ownGoodsState(page);expect(stored.history?.["legacy-home"]).toBeUndefined();
+});
+test("RONDA3 piso que llega de la nube no nace al montar el móvil",async({page})=>{
+  const incoming={budget:1000,accounts:[goodsBank],assets:[{id:"cloud-home",name:"Piso nube sintético",value:200000}],
+    investments:[],debts:[],fixed:[],flows:[],oneoffs:[],expenses:goodsExpenses,goals:[],shared:[],settings:{autoPrices:false,budgetCycle:false},onboarded:true};
+  await openGoodsHistory(page,{assets:[],__cloudRows:{app_state:[{data:incoming,updated_at:"2026-09-04T12:00:00Z"}]}});
+  const hero=page.getByTestId("inicio-net-current");
+  await expect(hero.locator(".v4-hero-amt")).toContainText("205.000,00 €");
+  await expect(hero.getByTestId("inicio-net-delta")).toContainText("100");
+  expect([...((await hero.locator(".v42-net-line").getAttribute("d"))).matchAll(/[ML]/g)]).toHaveLength(35);
+  expect((await ownGoodsState(page)).history?.["cloud-home"]).toBeUndefined();
+});
+test("RONDA3 guardar el alta en Bienes acredita la fecha sin cambiar días anteriores",async({page})=>{
+  await openGoodsHistory(page,{assets:[]});
+  await page.locator('.botnav-tab[data-tour="cartera"]').click();
+  await page.getByRole("button",{name:"Añadir bien",exact:true}).click();
+  const sheet=page.getByRole("dialog",{name:"Añadir bien",exact:true});
+  await sheet.getByLabel("Nombre del bien").fill("Bien nuevo sintético");
+  await sheet.getByLabel("Valor en euros").fill("15000");
+  await sheet.getByRole("button",{name:"Guardar",exact:true}).click();
+  const saved=await ownGoodsState(page);expect(saved.assets).toHaveLength(1);
+  expect(saved.history[saved.assets[0].id]).toEqual([{day:"2026-09-04",value:15000,born:true}]);
+  await page.locator('.botnav-tab[data-tour="inicio"]').click();
+  const hero=page.getByTestId("inicio-net-current");await expect(hero.locator(".v4-hero-amt")).toContainText("20.000,00 €");
+  await expect(hero.getByTestId("inicio-net-delta")).toContainText("14.900");
+  await page.reload();await page.waitForFunction(()=>!document.getElementById("mc-load"));await dismissNews(page);
+  expect((await ownGoodsState(page)).history[saved.assets[0].id]).toEqual(saved.history[saved.assets[0].id]);
+});
+test("RONDA3 banco a hucha con escalones mantiene el patrimonio plano",async({page})=>{
+  await openGoodsHistory(page,{accounts:[{...goodsBank,value:300},{id:"manual-hucha",ent:"revolut",value:600,role:"fijos"}],
+    assets:[],expenses:[{...goodsExpenses[0],date:"2026-09-01T12:00:00Z"},
+      {id:"step-out",date:"2026-09-02T12:00:00Z",amount:300,category:"traspaso",ent:"sabadell"},
+      {id:"step-in",date:"2026-09-02T12:00:00Z",amount:-300,category:"traspaso",ent:"revolut"}],
+    accountBalanceHistory:{"acc:manual-hucha":[{day:"2026-09-01",value:300},{day:"2026-09-02",value:600}]}});
+  const hero=page.getByTestId("inicio-net-current");await expect(hero.locator(".v4-hero-amt")).toContainText("900,00 €");
+  const path=await hero.locator(".v42-net-line").getAttribute("d"),ys=[...path.matchAll(/[ML][\d.]+ ([\d.]+)/g)].map(x=>Number(x[1]));
+  expect(ys).toHaveLength(4);expect(new Set(ys).size).toBe(1);
+});
