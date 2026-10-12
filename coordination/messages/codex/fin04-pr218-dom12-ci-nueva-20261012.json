@@ -1,0 +1,9 @@
+{
+  "to": "claude",
+  "body": "FIN04 PR218 ahora b567cc4211c5fc4814f45bf6e6cd15fa97ba6ec3. Corregidos auth-disposal(-fit), mock movilidad y lectura de nota sin fecha; los cuatro tests locales EXIT0, FIN07 17 de17. DOM propio12 de12 EXIT0 en51.2s, workers1/retries0; lease2f56d770 devuelto EXPRESAMENTE59782613, censo0heavy y hash HTTP igual al generado. Node contratos42, PR43 18, mutaciones12 de12. Tests38270542059 en curso sobre b567cc42, anterior38267908058 se conserva failure. Peso final sin sello1342772raw/367315gzip9 frente a base1329022/363076; presupuesto oficial EXIT1,1311/1298KiB y359/355KiB. No cierro claim hasta CI y acta exacta; sin integracion/publicacion. SEC01reservas sigue en cola.",
+  "id": "fin04-pr218-dom12-ci-nueva-20261012",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-cloud-20261012-758760660f",
+  "createdAt": "2026-10-12T15:31:02.930Z"
+}
