@@ -42,7 +42,7 @@ for(const zone of ["UTC","Europe/Madrid"]) test.describe("calendario de Madrid e
     await expect(page.locator(".v42-cycle")).toHaveAttribute("data-state","tight");
     await expect(page.locator(".v42-cycle .st")).toHaveText("Vas justito");
     await expect(page.locator(".v42-cycle-amount>.serif")).toHaveText("50 €");
-    await expect(page.getByTestId("inicio-cycle-pace")).toHaveCount(0);
+    await expect(page.getByTestId("inicio-cycle-pace")).toHaveText("10 € al día durante 5 días");
   });
   test("el cambio horario no inventa un día más de margen diario",async({page})=>{
     await page.clock.install({time:new Date("2026-10-25T23:30:00Z")});
@@ -98,9 +98,9 @@ for(const lang of ["es","en","ca"]) test("rangos, colores y puertas "+lang,async
   await page.locator(".v42-cycle-head .link").click();await expect(page.locator('.botnav-tab[data-tour="gastos"].active')).toBeVisible();
   await page.locator('.botnav-tab[data-tour="inicio"]').click();await page.locator(".v42-cycle").click();await expect(page.locator(".v4-budget-sheet")).toBeVisible();
 });
-test("historial corto no ofrece rangos inventados y sin ciclo oculta ritmo",async({page})=>{
+test("historial corto no ofrece rangos inventados y mes natural conserva ritmo",async({page})=>{
   await open(page,{historyDays:10,cycle:false});await expect(page.locator(".v42-net-ranges button")).toHaveText(["Todo"]);
-  await expect(page.getByTestId("inicio-cycle-pace")).toHaveCount(0);
+  await expect(page.getByTestId("inicio-cycle-pace")).toHaveText("27 € al día durante 18 días");
 });
 test("fotos atrasadas no recortan los flujos hasta hoy",async({page})=>{
   await open(page,{lag:20});const hero=page.getByTestId("inicio-net-current");
@@ -152,6 +152,43 @@ for(const reduced of [false,true]) test("dedo consulta y suelta "+reduced,async(
   await touch("touchEnd",316/320);await expect(hero.getByTestId("inicio-net-date")).toHaveCount(0);await expect(amount).toHaveText(before);
   if(reduced){expect(await chart.locator(".v42-net-line").evaluate(el=>getComputedStyle(el).animationName)).toBe("none");await expect(chart.locator(".v42-net-halo")).toBeHidden();}
   await client.detach();
+});
+
+test("NO-GO scroll vertical sobre la gráfica conserva cifra y no consulta fecha",async({page})=>{
+  await open(page);await page.waitForTimeout(2200);
+  const hero=page.getByTestId("inicio-net-current"),before=await hero.locator(".v4-hero-amt").innerText();
+  const box=await hero.locator(".v42-net-chart").boundingBox(),cdp=await page.context().newCDPSession(page);
+  await cdp.send("Input.dispatchTouchEvent",{type:"touchStart",touchPoints:[{x:box.x+box.width/2,y:box.y+35}]});
+  await cdp.send("Input.dispatchTouchEvent",{type:"touchMove",touchPoints:[{x:box.x+box.width/2+2,y:box.y-35}]});
+  await page.waitForTimeout(350);
+  await expect(hero.locator(".v4-hero-amt")).toHaveText(before);
+  await expect(hero.getByTestId("inicio-net-date")).toHaveCount(0);
+  await expect(hero.getByTestId("inicio-net-guide")).toHaveCount(0);
+  await cdp.send("Input.dispatchTouchEvent",{type:"touchEnd",touchPoints:[]});await cdp.detach();
+});
+
+for(const lang of ["es","en","ca"]) test("NO-GO último día natural y etiqueta de lo que queda "+lang,async({page})=>{
+  await open(page,{cycle:false,day:30,spent:900,lang});
+  const labels={es:["Este mes","Te quedan","100 € al día durante 1 día"],en:["This month","Left to spend","100 € a day for 1 day"],ca:["Aquest mes","Et queden","100 € al dia durant 1 dia"]}[lang];
+  await expect(page.locator(".v42-cycle-head>span")).toHaveText(labels[0]);
+  await expect(page.locator(".v42-cycle-remaining")).toHaveText(labels[1]);
+  await expect(page.getByTestId("inicio-cycle-pace")).toHaveText(labels[2]);
+  await expect(page.locator(".v42-cycle-percent")).toHaveText("10%");
+});
+test("NO-GO presupuesto agotado no ofrece gasto diario",async({page})=>{
+  await open(page,{cycle:false,spent:1000});await expect(page.getByTestId("inicio-cycle-pace")).toHaveCount(0);
+});
+test("NO-GO cuenta nueva nombra el límite y un usuario nuevo empieza hoy",async({page})=>{
+  await installFixtureClock(page);
+  await seedLoggedInDashboard(page,{accounts:[{id:"a",ent:"sabadell",name:"Cuenta antigua",value:1000,role:"fijos",bankIban:"SYN-A"},{id:"b",ent:"revolut",name:"Cuenta reciente",value:300,role:"fijos",bankIban:"SYN-B"}],expenses:[{id:"a1",ent:"sabadell",date:"2026-09-01T12:00:00Z",amount:10,category:"super"},{id:"b1",ent:"revolut",date:"2026-09-25T12:00:00Z",amount:10,category:"super"}]});
+  await page.goto("/");await page.waitForFunction(()=>!document.getElementById("mc-load"));await dismissNews(page);
+  await expect(page.getByTestId("inicio-net-coverage")).toContainText(/Cuenta reciente: datos desde 25/);
+});
+test("NO-GO usuario nuevo sin presupuesto tiene mensaje propio y ningún ritmo",async({page})=>{
+  await installFixtureClock(page);await seedLoggedInDashboard(page,{accounts:[],investments:[],expenses:[],budget:0,history:[],invHistory:[],accountBalanceHistory:{}});
+  await page.goto("/");await page.waitForFunction(()=>!document.getElementById("mc-load"));await dismissNews(page);
+  await expect(page.getByTestId("inicio-net-current")).toContainText("Tu histórico empieza hoy");
+  await expect(page.getByTestId("inicio-cycle-pace")).toHaveCount(0);
 });
 
 for(const sandbox of [false,true]) test("historial partido migra 400 puntos y recarga "+sandbox,async({page})=>{

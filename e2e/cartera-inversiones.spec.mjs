@@ -500,6 +500,16 @@ test("Ajustes › Dinero conserva actualización automática y proyección", asy
   await expect(settings.locator("[data-inv-settings-projection] input[type=range]")).toBeVisible();
 });
 
+test("NO-GO Inversiones conserva el ancho completo de su gráfica",async({page})=>{
+  await seedLoggedInDashboard(page,{investments,invHistory:[{d:"2026-09-01",v:1000},{d:"2026-09-26",v:1500}]});
+  await page.goto("/");await page.waitForFunction(()=>!document.getElementById("mc-load"));await dismissNews(page);
+  await page.locator('.botnav-tab[data-tour="cartera"]').click();
+  await page.getByRole("button",{name:/Ver todas tus inversiones|See all your investments|Veure totes les inversions/i}).click();
+  const spark=page.locator("[data-inv-screen] .spark");await expect(spark).toBeVisible();
+  const widths=await spark.evaluate(el=>({svg:el.getBoundingClientRect().width,parent:el.parentElement.clientWidth-parseFloat(getComputedStyle(el.parentElement).paddingLeft)-parseFloat(getComputedStyle(el.parentElement).paddingRight)}));
+  expect(Math.abs(widths.svg-widths.parent)).toBeLessThan(2);
+});
+
 test("Inversiones v4: apertura medida con CPU x6", async ({ page, browserName }) => {
   test.skip(browserName !== "chromium", "El freno de CPU usa CDP");
   const largeExpenses=Array.from({length:5000},(_,i)=>({

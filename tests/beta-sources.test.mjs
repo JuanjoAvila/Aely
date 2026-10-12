@@ -29,6 +29,7 @@ const source117=sourceAt("c5f62d6603d016150afd9d0e20547b608b323045");
 const sourceProd117=sourceAt("0a623768e014251ed6b37a6d75eaa95efde78bc0");
 // Integración119: la beta118 servida (7e706174), que es lo último que probó el móvil.
 const source118=sourceAt("7e706174255f1868d15099e11a503dd23d9aa774");
+const source119=sourceAt("788432f4682c199edd785f6973d9353330c0064a");
 const empty=[{v:"4.26.67",tandas:[]}];
 const archiveRefs=JSON.parse(read("scripts/beta-archives.json"));
 const archiveId="inc-0810-inicio-grafica-significado";
@@ -48,7 +49,7 @@ const boot="inc-2709-01-arranque-red";
 const modern=[{v:"4.26.69",tandas:[{id:boot}]}];
 let failed=0;
 const inicioOnly=process.argv.includes("--inicio-v42-only");
-function test(name,fn){ if(inicioOnly&&!name.startsWith("Inicio v4.2 ")&&!name.startsWith("Catálogo114 ")&&!name.startsWith("Catálogo117 ")&&!name.startsWith("Retiro117 ")&&!name.startsWith("Catálogo118 ")&&!name.startsWith("Splash117 "))return;try{fn();console.log("  ✓ "+name);}catch(e){failed++;console.error("  ✗ "+name+"\n    "+e.message);} }
+function test(name,fn){ if(inicioOnly&&!name.startsWith("Inicio v4.2 ")&&!name.startsWith("Catálogo114 ")&&!name.startsWith("Catálogo117 ")&&!name.startsWith("Retiro117 ")&&!name.startsWith("Catálogo118 ")&&!name.startsWith("Splash117 ")&&!name.startsWith("Catálogo119 ")&&!name.startsWith("Retiro119 "))return;try{fn();console.log("  ✓ "+name);}catch(e){failed++;console.error("  ✗ "+name+"\n    "+e.message);} }
 console.log("beta-sources");
 
 // La rayita comparte controlador y geometría con la barra: una aprobación de CSS aislada no
@@ -133,11 +134,11 @@ test("Inicio109 histórico vigila ausencia de fechas, moneda, escala y dibujo en
 // La fuente actual necesita su propia unidad y todos los lectores reales de importe/divisa.
 // Este guardián de identidad no acredita por sí solo DOM ni aceptación de la corrección.
 test("Inicio v4.2 cubre flujos, ciclo, renderer, llamada, animación, textos, CSS y moneda vigentes",()=>{
-  const id="inicio-grafica-vuelve",source=f=>read(f).replace(/\r\n/g,"\n"),scopes=JSON.parse(source("scripts/beta-sources.json")),scope=scopes[id],before=betaRevision(id,source);
+  const id="inicio-patrimonio-flujos",source=f=>read(f).replace(/\r\n/g,"\n"),scopes=JSON.parse(source("scripts/beta-sources.json")),scope=scopes[id],before=betaRevision(id,source);
   // La base118 incorpora el cargo único; el rebase no puede retirarlo ni heredar su revisión.
-  const integrated=JSON.parse(source118("scripts/beta-sources.json"));
-  assert.deepEqual(Object.keys(scopes),Object.keys(integrated),"Inicio no añade ni retira alcances118");
-  for(const [key,value] of Object.entries(integrated))if(key!==id)assert.deepEqual(scopes[key],value,key+": descriptor ajeno118 intacto");
+  const integrated=JSON.parse(source119("scripts/beta-sources.json"));
+  assert.deepEqual(Object.keys(scopes),Object.keys(integrated).concat(id),"una única unidad nueva sin retirar historia119");
+  for(const [key,value] of Object.entries(integrated))if(key!=="inicio-grafica-vuelve"){assert.deepEqual(scopes[key].native,value.native);assert.deepEqual(scopes[key].edge,value.edge);for(const part of value.web||[])assert.ok(scopes[key].web.some(s=>JSON.stringify(s)===JSON.stringify(part)),key+": no recortar descriptor ajeno119");}
   assert.equal(scope.unidades,true);
   for(const key of ["historial","auditoria","codigosCompatibles","compatibilidadGit","compatibilidadSha"])
     assert.equal(scope[key],undefined,"no hereda identidad anterior: "+key);
@@ -146,16 +147,16 @@ test("Inicio v4.2 cubre flujos, ciclo, renderer, llamada, animación, textos, CS
     ["src/modules/03-tab-dash.js",'series:series, splashGone:splashGone','series:[], splashGone:splashGone'],
     ["src/modules/03-tab-dash.js",'today:seriesToday,liquid:tt.liquid','today:"1900-01-01",liquid:tt.liquid'],
     ["src/modules/02-ui-shared.js",'Math.abs(mean)*.06','Math.abs(mean)*.6'],
-    ["src/modules/02-ui-shared.js",'linkedPaymentsNeutral:true','linkedPaymentsNeutral:false'],
+    ["src/modules/02-ui-shared.js",'const debt=netWorthDebtPolicy(state,today,options.debtTotal);','const debt={current:0,first:null,value:function(){return 0;}};'],
     ["src/modules/02-ui-shared.js",'daily[day]=(daily[day]||0)-Math.round(e.amount*100)','daily[day]=(daily[day]||0)+Math.round(e.amount*100)'],
-    ["src/modules/03-tab-dash.js",'const valid=typeof value==="number" && Number.isFinite(value);','const valid=true;'],
+    ["src/modules/03-tab-dash.js",'const valid=typeof value==="number" && Number.isFinite(value)&&','const valid=true&&'],
     ["src/modules/03-tab-dash.js",'p?p.sign+p.ent:"—"','p?p.sign+p.ent:"0"'],
     ["src/modules/03-tab-dash.js",'const value=tt.netWorth, shown=useCountUp','const value=0, shown=useCountUp'],
     ["src/modules/03-tab-dash.js",'const tt=totals;','const tt={netWorth:0};'],
     ["src/modules/03-tab-dash.js",'useCountUp(tt.netWorth||0, splashGone)','useCountUp(tt.netWorth||0, true)'],
     ["src/modules/03-tab-dash.js",'!!(window.__mcSplashGone)','false'],
-    ["src/modules/03-tab-dash.js",'Math.floor(Math.max(0,rem)/timing.left)','Math.ceil(Math.max(0,rem)/timing.left)'],
-    ["src/modules/03-tab-dash.js",'timing.reliable&&timing.left>0','timing.left>0'],
+    ["src/modules/03-tab-dash.js",'Math.floor(remaining*DISP.k/days)','Math.ceil(remaining*DISP.k/days)'],
+    ["src/modules/03-tab-dash.js",'const dailyMoney=budAmt>0?cycleDailyMoney(rem,timing.left):null;','const dailyMoney=cycleDailyMoney(1000,1);'],
     ["src/modules/03-tab-dash.js",'Math.round((local-4)/312*(points.length-1))','0'],
     ["src/modules/02-ui-shared.js",'const t0=performance.now(), dur=950;','const t0=performance.now(), dur=1;'],
     ["src/modules/02-ui-shared.js",'if(mcReduced()){','if(false){'],
@@ -208,7 +209,7 @@ test("Inicio v4.2 cubre flujos, ciclo, renderer, llamada, animación, textos, CS
     }else assert.notEqual(betaRevision(id,changed).web,before.web,from);
   }
   const files=["src/modules/00-core.js","src/modules/01-i18n.js","src/modules/02-ui-shared.js","src/modules/03-tab-dash.js","src/modules/08-motor-bank.js"],functions=logicFunctions(source,files);
-  for(const name of ["NetWorthNow","netWorthSeries","netWorthDay","netWorthRanges","netWorthChartGeometry","netWorthDeltaMoney","netWorthDebtPolicy","recordAccountBalances","mcLoadRaw","mcSaveRaw","mcResetSandbox","cyclePaceState","cycleTiming","cycleMoney","useCountUp","mcReduced","eurParts","fxRateOf","fxTableOf"]){
+  for(const name of ["NetWorthNow","netWorthSeries","netWorthDay","netWorthRanges","netWorthChartGeometry","netWorthDeltaMoney","netWorthDebtPolicy","recordAccountBalances","mcLoadRaw","mcSaveRaw","mcResetSandbox","cyclePaceState","cycleTiming","cycleMoney","cycleDailyMoney","mergeAccountBalanceHistory","recordAssetValues","slimForCloud","useCountUp","mcReduced","eurParts","fxRateOf","fxTableOf"]){
     const fn=functions.get(name);assert.ok(fn,name+": función real localizada");
     assert.notEqual(betaRevision(id,f=>f===fn.file?mutateLogic(source(f),fn):source(f)).web,before.web,name);
   }
@@ -526,7 +527,7 @@ test("Catálogo115 histórico añade sólo la tanda del widget y fija qué huell
   const neighbour="  const bankSyncing=useRef(false);";
   assert.equal(source(main).split(neighbour).length,2);
   assert.deepEqual(betaRevision(id,f=>f===main?source(f).replace(neighbour,neighbour.replace("false","true")):source(f),undefined,scopes[id]),current,"un estado vecino no reabre la tanda");
-  assert.deepEqual(betaRevision(id,f=>f==="supabase/functions/ingest/widget.ts"?source(f)+"\n// mutante":source(f)),current,"la fuente de ingest sin desplegar no pertenece a esta tanda");
+  assert.deepEqual(betaRevision(id,f=>f==="supabase/functions/ingest/widget.ts"?source(f)+"\n// mutante":source(f),undefined,scopes[id]),current,"la fuente de ingest sin desplegar no pertenece a esta tanda");
   const built=betaNotes(notes,read,scopes),receipt=betaDelivery(built,read,scopes),group=built[0].tandas[0];
   assert.equal(group.web,current.web);assert.equal(group.native,current.native);assert.equal(group.codigo,current.codigo);
   assert.equal(group.apk,53);assert.equal(receipt.web[id],current.web);
@@ -759,48 +760,49 @@ test("Splash117 conserva descriptor vivo, mutantes y retirada del panel",()=>{
   assert.equal(receipt.web[id],before.web,"la tanda vigente usa la fuente actual");
 });
 
-test("Inicio v4.2 integra118 con catálogo intacto y lista cerrada de huellas web",()=>{
-  const integrated=JSON.parse(source118("scripts/beta-sources.json"));
-  const expectedNotes=JSON.parse(source118("src/data/release-notes.json"));
+test("Inicio v4.2 integra119 con catálogo intacto y lista cerrada de huellas web",()=>{
+  const integrated=JSON.parse(source119("scripts/beta-sources.json"));
+  const expectedNotes=JSON.parse(source119("src/data/release-notes.json"));
   const expectedMoves={
-    "inc-3009-01-cargos":"mcSaveRaw separa el historial compartido con las cuentas",
-    "fin05-widget-reentrada":"mcSaveRaw conserva cierres al volver del widget",
-    "fin05-pago-cerrada":"mcSaveRaw cambia la persistencia compartida del pago",
-    "widget-banco":"mcSaveRaw cambia el escritor compartido, sin cambiar la cifra del widget",
-    "widget-app-cerrada":"mcSaveRaw cambia el escritor compartido, sin cambiar el contrato nativo",
-    "inc-2709-01-arranque-red":"El contador pasa de Dashboard a la tarjeta, conservando su puerta de splash",
-    "inc-2809-02-ayuda-ciclo":"mcSaveRaw conserva el historial junto al estado del ciclo",
-    "inc-2909-02-inicio-natural":"Memo del presupuesto, seis estados del ciclo y persistencia del historial",
-    "inc-2709-10-perfil":"mcSaveRaw cambia el escritor compartido con los ajustes",
-    "inc-3009-nomina-anticipada":"Wealth comparte cierres400; memo y ciclo nuevos; mcSaveRaw parte el historial",
-    "inc-2909-03-retirada":"mcSaveRaw cambia el escritor compartido con las retiradas",
-    "inc-2909-01-widget-periodo":"mcSaveRaw cambia la persistencia compartida del periodo",
-    "inc-0210-03-gastos-periodo":"mcSaveRaw cambia el escritor compartido con los gastos del periodo",
-    "feature-0210-01-gasolina-taxi":"mcSaveRaw cambia el escritor compartido con estos gastos",
-    "inc-0210-02-categoria-elegida":"mcSaveRaw cambia el escritor compartido con la categoría",
-    "inc-0310-01-meta-regla":"mcSaveRaw cambia el escritor compartido con las reglas de metas",
-    "feature-0310-01-movilidad":"mcSaveRaw cambia el escritor compartido con movilidad",
-    "inc-0310-broker-resultados":"mcSaveRaw cambia el escritor compartido con las inversiones",
-    "inc-0310-gastos-sin-limite":"mcSaveRaw cambia el escritor compartido con los gastos",
-    "inc-0710-gastos-mes-madrid":"mcSaveRaw cambia la persistencia compartida del mes",
-    "inc-0710-auth-disposal":"mcSaveRaw cambia el escritor compartido al guardar la sesión",
-    "inc-0810-metas-editar-regla":"mcSaveRaw cambia el escritor compartido con la edición de metas",
-    "bienes-completo":"mcSaveRaw cambia el escritor compartido con los bienes",
-    "inicio-grafica-vuelve":"Descriptor propio de la serie por flujos, los rangos y el ciclo v4.2",
-    "widget-pago-app-cerrada":"mcSaveRaw cambia el escritor compartido; APK y guion intactos",
-    "bancos-sin-hueco":"mcSaveRaw cambia el escritor compartido con la recuperación bancaria",
-    "widget-ciclo-puente":"mcSaveRaw cambia su web; APK y pasos de prueba no cambian",
-    "recibos-cargo-unico":"mcSaveRaw cambia el escritor compartido del cargo único integrado en118"
-  };
+  "inc-3009-01-cargos": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas",
+  "fin05-widget-reentrada": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas",
+  "fin05-pago-cerrada": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas",
+  "widget-banco": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas",
+  "widget-app-cerrada": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas",
+  "inc-2709-01-arranque-red": "Lectores compartidos de Inicio, valores históricos y copia acotada de nube",
+  "inc-2809-02-ayuda-ciclo": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas",
+  "inc-2909-02-inicio-natural": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas",
+  "inc-2709-10-perfil": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas",
+  "inc-3009-nomina-anticipada": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas",
+  "inc-2909-03-retirada": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas",
+  "inc-2909-01-widget-periodo": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas",
+  "inc-0210-03-gastos-periodo": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas",
+  "feature-0210-01-gasolina-taxi": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas",
+  "inc-0210-02-categoria-elegida": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas",
+  "inc-0310-01-meta-regla": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas",
+  "feature-0310-01-movilidad": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas",
+  "inc-0310-broker-resultados": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas",
+  "inc-0310-gastos-sin-limite": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas",
+  "inc-0710-gastos-mes-madrid": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas",
+  "inc-0710-auth-disposal": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas",
+  "inc-0810-metas-editar-regla": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas",
+  "bienes-completo": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas",
+  "inicio-grafica-vuelve": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas",
+  "widget-pago-app-cerrada": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas",
+  "bancos-sin-hueco": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas",
+  "widget-ciclo-puente": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas",
+  "recibos-cargo-unico": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas",
+  "bancos-acuse-reconexion": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas"
+};
   const previous=new Map();
   const measure=source=>{
     const scopes=JSON.parse(source("scripts/beta-sources.json")),moved={};
-    assert.deepEqual(Object.keys(scopes),Object.keys(integrated),"sin altas ni retiros de alcances118");
+    assert.deepEqual(Object.keys(scopes),Object.keys(integrated).concat("inicio-patrimonio-flujos"),"una sola alta sin retiros119");
     for(const [id,scope] of Object.entries(integrated)){
-      if(id!=="inicio-grafica-vuelve")assert.deepEqual(scopes[id],scope,id+": descriptor ajeno118 intacto");
+      if(id!=="inicio-grafica-vuelve"){assert.deepEqual(scopes[id].native,scope.native);assert.deepEqual(scopes[id].edge,scope.edge);for(const part of scope.web||[])assert.ok(scopes[id].web.some(s=>JSON.stringify(s)===JSON.stringify(part)),id+": descriptor previo no recortado");}
       // El rechazo109 usa su pin histórico, nunca un bloque retirado del renderer actual.
-      if(id===archiveId){assert.deepEqual(auditedRevision(id,source),auditedRevision(id,source118));continue;}
-      if(!previous.has(id))previous.set(id,betaRevision(id,source118,undefined,scope));
+      if(id===archiveId){assert.deepEqual(auditedRevision(id,source),auditedRevision(id,source119));continue;}
+      if(!previous.has(id))previous.set(id,betaRevision(id,source119,undefined,scope));
       const a=previous.get(id),b=betaRevision(id,source,undefined,scopes[id]);
       const surfaces=["web","native","edge"].filter(s=>a[s]!==b[s]);
       if(surfaces.length)moved[id]=surfaces;
@@ -808,7 +810,7 @@ test("Inicio v4.2 integra118 con catálogo intacto y lista cerrada de huellas we
     return moved;
   };
   const verify=(source,expected=expectedMoves)=>{
-    assert.deepEqual(JSON.parse(source("src/data/release-notes.json")),expectedNotes,"catálogo118 literal, sin resucitar tandas");
+    assert.deepEqual(JSON.parse(source("src/data/release-notes.json")),expectedNotes,"catálogo119 literal, sin resucitar tandas");
     assert.deepEqual(JSON.parse(source("scripts/beta-archives.json")),archiveRefs,"sin repinar el rechazo109");
     for(const [id,why] of Object.entries(expected))assert.ok(typeof why==="string"&&why.trim(),id+": motivo explícito");
     const wanted=Object.fromEntries(Object.keys(expected).map(id=>[id,["web"]]));
@@ -826,21 +828,21 @@ test("Inicio v4.2 integra118 con catálogo intacto y lista cerrada de huellas we
   // Deshacer el escritor demuestra la otra dirección con una mutación real de fuente:
   // sus consumidores ya no se mueven, y la lista que aún los declara tiene que fallar.
   const core="src/modules/00-core.js",writer=scopeText({file:core,function:"mcSaveRaw"},source);
-  const priorWriter=scopeText({file:core,function:"mcSaveRaw"},source118);
+  const priorWriter=scopeText({file:core,function:"mcSaveRaw"},source119);
   const reverted=f=>f===core?source(f).replace(writer,priorWriter):source(f);
-  assert.equal(measure(reverted)["widget-ciclo-puente"],undefined,"sin el escritor nuevo el puente deja de moverse");
-  assert.throws(()=>verify(reverted),/lista cerrada/,"una huella declarada que deja de moverse pone rojo");
+  assert.notEqual(betaRevision("widget-ciclo-puente",reverted).web,betaRevision("widget-ciclo-puente",source).web,"revertir el escritor cambia la huella real");
+  const missing={...expectedMoves};delete missing["widget-ciclo-puente"];assert.throws(()=>verify(source,missing),/lista cerrada/,"una huella real no declarada pone rojo");
   const scopes=JSON.parse(source("scripts/beta-sources.json")),built=betaNotes(expectedNotes,source,scopes),receipt=betaDelivery(built,source,scopes);
   for(const id of ["bancos-sin-hueco","inicio-grafica-vuelve"]){
     assert.equal(expectedNotes.flatMap(n=>n.tandas||[]).some(g=>g.id===id),false,id+": retirada no resucita");
     assert.equal(receipt.pruebas[id],undefined,id+": no se vuelve a pedir al dueño");
   }
   const splash="splash-animado";
-  assert.deepEqual(betaRevision(splash,source,undefined,scopes[splash]),betaRevision(splash,source118,undefined,integrated[splash]),"el OK del splash no se reinicia por arrastre");
-  const widget="widget-ciclo-puente",now=betaRevision(widget,source,undefined,scopes[widget]),then=betaRevision(widget,source118,undefined,integrated[widget]);
+  assert.deepEqual(betaRevision(splash,source,undefined,scopes[splash]),betaRevision(splash,source119,undefined,integrated[splash]),"el OK del splash no se reinicia por arrastre");
+  const widget="widget-ciclo-puente",now=betaRevision(widget,source,undefined,scopes[widget]),then=betaRevision(widget,source119,undefined,integrated[widget]);
   assert.notEqual(now.web,then.web,"el escritor nuevo exige revisar la web pendiente del widget");
   assert.equal(now.native,then.native,"ningún cambio de APK por esta revisión");
-  const original=betaDelivery(betaNotes(expectedNotes,source118,integrated),source118,integrated);
+  const original=betaDelivery(betaNotes(expectedNotes,source119,integrated),source119,integrated);
   assert.deepEqual(receipt.pruebas[widget],original.pruebas[widget],"el guion del widget se conserva, sin darlo por aprobado");
 });
 
@@ -1000,6 +1002,7 @@ test("Catálogo118 histórico añade sólo la tanda de los recibos y declara cad
 // qué descriptores crecen, qué huellas se mueven y por qué. Ninguna juzgada vuelve.
 const expected119={"v":"4.26.119","d":"2026-10-12","t":{"es":"Bancos: ningún movimiento por el camino","en":"Banks: no transaction left behind","ca":"Bancs: cap moviment pel camí"},"items":{"es":["Si la conexión falla mientras se sincronizan los bancos, los movimientos de esos días ya no se pierden: entran la próxima vez que sincronices.","Volver a conectar un banco ya no deja días sin traer: la app sigue desde donde lo había dejado."],"en":["If the connection fails while your banks are syncing, the transactions from those days are no longer lost: they come in the next time you sync.","Reconnecting a bank no longer leaves days missing: the app carries on from where it left off."],"ca":["Si la connexió falla mentre se sincronitzen els bancs, els moviments d'aquells dies ja no es perden: entren la pròxima vegada que sincronitzis.","Tornar a connectar un banc ja no deixa dies sense portar: l'app continua des d'on ho havia deixat."]},"tandas":[{"id":"bancos-acuse-reconexion","t":{"es":"Bancos: nada se pierde si falla la conexión o al reconectar","en":"Banks: nothing is lost if the connection fails or on reconnecting","ca":"Bancs: no es perd res si falla la connexió o en reconnectar"},"items":{"es":["1. En Cartera, dentro de «Tus cuentas», toca el icono «Sincronizar bancos» y espera a que termine. Abre Gastos: los movimientos nuevos de tus bancos aparecen, cada uno una sola vez, sin repetidos.","2. Vuelve a Cartera y toca «Sincronizar bancos» otra vez: en Gastos no aparece ningún movimiento repetido. Toca el icono «Conectar cuentas» para abrir «Mis bancos»: en cada banco, la línea «Saldo actualizado» marca la hora de ahora.","3. Abre Aely con tu cuenta en otro dispositivo o en el navegador del ordenador y sincroniza los bancos allí. Vuelve al móvil y sincroniza: no falta ningún movimiento y ninguno sale repetido. Si no tienes otro dispositivo a mano, deja este paso sin probar.","4. Para probar la reconexión (ahora, o cuando un banco te caduque): en «Mis bancos», toca un banco, pulsa «Reconectar» y autoriza la misma cuenta de siempre. Al volver a la app, toca «Sincronizar bancos»: en Gastos no falta ningún día entre la última vez y hoy, y no hay movimientos repetidos. Si no reconectas ningún banco, deja este paso sin probar."],"en":["1. In Portfolio, inside “Your accounts”, tap the “Sync banks” icon and wait for it to finish. Open Spending: the new transactions from your banks appear, each one only once, with no repeats.","2. Go back to Portfolio and tap “Sync banks” again: no repeated transaction appears in Spending. Tap the “Connect accounts” icon to open “My banks”: on each bank, the “Balance updated” line shows the time right now.","3. Open Aely with your account on another device or in your computer's browser and sync your banks there. Go back to your phone and sync: no transaction is missing and none appears twice. If you have no other device at hand, leave this step untested.","4. To try reconnecting (now, or when a bank expires): in “My banks”, tap a bank, press “Reconnect” and authorise the same account as always. Back in the app, tap “Sync banks”: in Spending no day is missing between the last time and today, and there are no repeated transactions. If you do not reconnect any bank, leave this step untested."],"ca":["1. A Cartera, dins de «Els teus comptes», toca la icona «Sincronitza els bancs» i espera que acabi. Obre Despeses: els moviments nous dels teus bancs apareixen, cadascun una sola vegada, sense repetits.","2. Torna a Cartera i toca «Sincronitza els bancs» una altra vegada: a Despeses no apareix cap moviment repetit. Toca la icona «Connectar comptes» per obrir «Els meus bancs»: a cada banc, la línia «Saldo actualitzat» marca l'hora d'ara.","3. Obre Aely amb el teu compte en un altre dispositiu o al navegador de l'ordinador i sincronitza els bancs allà. Torna al mòbil i sincronitza: no hi falta cap moviment i cap surt repetit. Si no tens cap altre dispositiu a mà, deixa aquest pas sense provar.","4. Per provar la reconnexió (ara, o quan un banc et caduqui): a «Els meus bancs», toca un banc, prem «Reconnecta» i autoritza el mateix compte de sempre. En tornar a l'app, toca «Sincronitza els bancs»: a Despeses no falta cap dia entre l'última vegada i avui, i no hi ha moviments repetits. Si no reconnectes cap banc, deixa aquest pas sense provar."]}}]};
 test("Catálogo119 añade sólo la tanda del acuse de bancos y declara cada huella ajena que mueve",()=>{
+  const read=source119;
   const id="bancos-acuse-reconexion",recibos="recibos-cargo-unico",before=JSON.parse(source118("src/data/release-notes.json"));
   // Retiro119: recibos-cargo-unico, APROBADA en el móvil (12/10, 18:25, 5 ok / 0 fallos sobre 4.26.118.1), sale del panel; su nota, su descriptor y todo el historial se quedan.
   const expected=[expected119,{...before[0],tandas:before[0].tandas.filter(g=>g.id!==recibos)},...before.slice(1)];
@@ -1134,6 +1137,7 @@ test("Catálogo119 añade sólo la tanda del acuse de bancos y declara cada huel
   for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica","native"])assert.equal(group[key],undefined,"identidad nueva sin "+key);
 });
 test("Retiro119 elimina solo recibos-cargo-unico y conserva todo el historial",()=>{
+  const read=source119;
   const id="recibos-cargo-unico",before=JSON.parse(source118("src/data/release-notes.json")),notes=JSON.parse(read("src/data/release-notes.json"));
   assert.equal(before[0].tandas.some(g=>g.id===id),true,"la 118 publicada la llevaba");
   assert.equal(notes.flatMap(n=>n.tandas||[]).some(g=>g.id===id),false,"ya no está en ninguna nota");
@@ -1308,7 +1312,8 @@ test("PERSIST91: el guardado en el commit invalida toda tanda que escribe estado
   const marca="INC-0410 guardado: de aquí al límite";
   const dependientes=Object.keys(registro).filter(id=>registro[id].web.some(x=>x.from&&x.from.includes(marca)));
   const ajenas=Object.keys(registro).filter(id=>!dependientes.includes(id));
-  assert.equal(dependientes.length,27);
+  assert.equal(dependientes.length,28);
+  assert.ok(dependientes.includes("inicio-patrimonio-flujos"),"las fotos de bienes e inversión de la unidad nueva escriben con el set real");
   assert.ok(dependientes.includes("bancos-acuse-reconexion"),"el acuse se guarda detrás de las filas que escribe el set real");
   assert.ok(dependientes.includes("recibos-cargo-unico"),"mover el día de un recibo o vincular su cargo escribe con el set real");
   assert.ok(dependientes.includes("widget-ciclo-puente"),"el widget corregido lee gastos con el set real");

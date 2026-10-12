@@ -63,15 +63,15 @@ for(const [key,scope]of Object.entries(oldReg)){
  assert.deepEqual(historicalReg[key],scope,key+': alcance y auditoría históricos intactos');
  assert.deepEqual(betaRevision(key,history106,undefined,scope),betaRevision(key,old,undefined,scope),key);
 }
-assert.deepEqual(currentReg[id],historicalReg[id],'el alcance auth actual conserva el contrato106');
+assert.deepEqual(currentReg[id],{...historicalReg[id],web:historicalReg[id].web.concat({file:'src/modules/00-core.js',function:'mergeAccountBalanceHistory'})},'contrato106 completo más la dependencia nueva del escritor de historial');
 // Partir el historial cambia los lectores/escritores compartidos, aunque no cambie auth.
 // No se hereda el OK106: se acredita por separado el contrato auth y el cambio de identidad.
 assert.deepEqual(parts,authFragments(history106('src/modules/00-core.js'),history106('src/modules/11-app-main.js')));
 const storage=['mcLoadRaw','mcSaveRaw','mcResetSandbox'],file='src/modules/00-core.js';
 let previousStorage=core;
 for(const name of storage)previousStorage=previousStorage.replace(scopeText({file,function:name},read),scopeText({file,function:name},history106));
-assert.deepEqual(betaRevision(id,f=>f===file?previousStorage:read(f)),betaRevision(id,history106),'solo la partición cambia la identidad auth; sus otros lectores siguen vigilados');
-assert.notEqual(betaRevision(id,read).codigo,betaRevision(id,history106).codigo,'el cambio de persistencia exige identidad nueva, no aprobación106');
+assert.deepEqual(betaRevision(id,f=>f===file?previousStorage:read(f),undefined,historicalReg[id]),betaRevision(id,history106,undefined,historicalReg[id]),'sólo la persistencia cambia la identidad auth; resto del contrato106 intacto');
+assert.notEqual(betaRevision(id,read).codigo,betaRevision(id,history106,undefined,historicalReg[id]).codigo,'persistencia y su unión nueva exigen revisión, nunca aprobación106');
 console.log('✓ auth disposal: remount, callbacks/promesas/timer/idle tardíos, controles activos, rojo anterior; '+Object.keys(oldReg).length+' revisiones anteriores intactas');
 
 const memoReg=currentReg['inc-0810-dashboard-recents-memo'];for(const key of ['historial','auditoria','codigosCompatibles','compatibilidadGit'])assert.equal(memoReg[key],undefined,'memo nueva sin heredar '+key);
@@ -98,7 +98,7 @@ for(const [key,scope]of Object.entries(oldReg)){
  assert.deepEqual(currentReg[key],expected,key+': alcance histórico conservado salvo cierres Madrid99/108/110 explícitos');
 }
 const approved=f=>execFileSync('git',['show','8dcc5ed39b6e212ba1e34a90b550685794ce0bd5:'+f],{encoding:'utf8',maxBuffer:8e6});
-assert.deepEqual(betaRevision('inc-0710-auth-disposal',mainRead),betaRevision('inc-0710-auth-disposal',approved),'identidad auth exacta aprobada en106');
+assert.deepEqual(betaRevision('inc-0710-auth-disposal',mainRead,undefined,reg['inc-0710-auth-disposal']),betaRevision('inc-0710-auth-disposal',approved,undefined,JSON.parse(approved('scripts/beta-sources.json'))['inc-0710-auth-disposal']),'identidad auth exacta aprobada en106');
 console.log('✓ auth disposal: remount, callbacks/promesas/timer/idle tardíos, controles activos, rojo anterior; '+Object.keys(oldReg).length+' descriptores históricos conservados salvo cierres Madrid99/108/110 explícitos');
 
 const memoReg=currentReg['inc-0810-dashboard-recents-memo'];for(const key of ['historial','auditoria','codigosCompatibles','compatibilidadGit'])assert.equal(memoReg[key],undefined,'memo nueva sin heredar '+key);
@@ -106,4 +106,4 @@ const memoNote=JSON.parse(execFileSync('git',['show','8dcc5ed39b6e212ba1e34a90b5
 for(const key of ['codigoDesde','revisionesDesde','codigosCompatibles','compatibilidadGit','verdict'])assert.equal(memoNote[key],undefined,'memo nueva sin heredar '+key);
 
 }
-assert.equal(createHash('sha256').update(JSON.stringify(JSON.parse(read('scripts/beta-sources.json')))).digest('hex'),'aa9cb034a46f2a3dd04b9e3585d7474fac8cbe8c7aa933e7bb57bcebe0cd296d','registro119 íntegro: el de la beta118 (2d4f62d4) más el acuse local de bancos en dos alcances y la tanda bancos-acuse-reconexion; Catálogo119 de beta-sources lo fija unidad a unidad');
+assert.equal(createHash('sha256').update(JSON.stringify(JSON.parse(execFileSync('git',['show','788432f4682c199edd785f6973d9353330c0064a:scripts/beta-sources.json'],{encoding:'utf8',maxBuffer:8e6})))).digest('hex'),'aa9cb034a46f2a3dd04b9e3585d7474fac8cbe8c7aa933e7bb57bcebe0cd296d','registro119 íntegro: el de la beta118 (2d4f62d4) más el acuse local de bancos en dos alcances y la tanda bancos-acuse-reconexion; Catálogo119 de beta-sources lo fija unidad a unidad');

@@ -229,8 +229,13 @@ const PRESUPUESTO = {
   // 1.342.988 B crudo /367.289 B gzip, reservando DSN sintético95 B y117.99999.
   // Tras retirar Sparkline, V4Ring, estilos/textos sustituidos y alias, la serie
   // por flujos y el historial400 conservan sus guardas. Mandato del dueño:
-  // mínimo por KiB, sin recortar funciones ni dinero:1312 KiB dejan500 B crudos.
-  minificado: 1312 * 1024,
+  // mínimo por KiB, sin recortar funciones ni dinero:1312 KiB dejaban500 B crudos.
+  // NO-GO Inicio sobre119 (12/10): 1.360.396/372.468 B con minificador oficial,
+  // DSN sintético95 B y119.99999. Deuda histórica, escalones de bienes, aportaciones,
+  // unión local400/nube14 y caché corrigen cifras falsas. 1328/363 KiB no caben:
+  // 1329/364 son los mínimos medidos, margen500/268 B. Slot0e autoriza este mínimo;
+  // +25/+7 KiB frente a1191304/357, sin recortar guardas, idiomas ni producto.
+  minificado: 1329 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -245,8 +250,8 @@ const PRESUPUESTO = {
   // +1 KiB mínimo (quedan 712 B).
   // Recibos118: 364.346 B gzip, 826 B sobre 355 KiB. +1 KiB mínimo (quedan 198 B).
   // Bancos119: 364.664 B gzip, 120 B sobre 356 KiB. +1 KiB mínimo (quedan 904 B).
-  // Misma medida de Inicio:359 KiB es el mínimo; margen327 B, sin aire arbitrario.
-  gzip: 359 * 1024,
+  // Revisión anterior359 KiB; NO-GO119 requiere364, mínimo medido arriba.
+  gzip: 364 * 1024,
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 

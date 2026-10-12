@@ -1,5 +1,8 @@
 # Inicio v4.2: cierre ligero del desbloqueo
 
+Revisión posterior: [cifras e interacción sobre119](inicio-revision-nogo-20261012.md).
+La política provisional de deuda de esta acta se sustituyó tras el NO-GO.
+
 **Histórico:** el rebase sobre beta117 y el estado actual están en
 [`inicio-rebase117-20261012.md`](inicio-rebase117-20261012.md).
 Las cifras y pasadas de este acta pertenecen a sus revisiones anteriores.

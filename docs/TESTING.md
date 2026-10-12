@@ -1032,3 +1032,5 @@ reproducción del lag ni mejora de rendimiento. La fuente183 tiene CI37810907496
 ## Selección web111: Bienes y gráfica de Inicio
 
 `e2e/cartera-bienes-completo.spec.mjs` protege alta vacía, validación, edición, borrado confirmado/cancelado, cero, recarga y conservación de los demás datos. `e2e/cartera-bienes-toque.spec.mjs` comprueba abrir y cancelar por toque/teclado en es/en/ca y letra normal/grande. Ambos están en E2E_MAP para07 y14. `e2e/inicio-grafica-significado.spec.mjs`, registrado para03, protege el dibujo original, moneda, histórico y total desconocido. Son datos sintéticos; no sustituyen la aceptación móvil. Suite completa y CI pendientes de ejecución sobre el SHA del PR.
+
+Inicio PR204, revisión119: inicio-v42 prueba manual real, deuda/intereses, bienes y aportaciones, unión400/30, nube acotada y siete mutantes monetarios. Los e2e ya registrados añaden scroll vertical, cobertura por cuenta, mes natural/último día y ancho de Inversiones. Pantalla y FPS requieren ejecución propia nueva; la funcional completa corre sólo en Tests remoto. [Acta](briefs/inicio-revision-nogo-20261012.md).

@@ -698,7 +698,7 @@ function netWorthSeries(state, options){
     });
     return Object.keys(by).sort().map(function(d){ return by[d]; });
   };
-  const rows=accountRowsInOrder(state), owned={}, hist=state.accountBalanceHistory||{};
+  const rows=accountRowsInOrder(state), owned=Object.create(null), hist=state.accountBalanceHistory||{};
   const ins=options.balanceInputs?Object.assign({},options.balanceInputs,{roundup:options.balanceInputs.roundupThisMonth,monthlyInvest:options.balanceInputs.monthlyInvestThisMonth}):insumosSaldoGasto(state);
   rows.forEach(function(r){ if(r.item.ent) owned[r.item.ent]=true; });
   const values=rows.map(function(r){
@@ -722,12 +722,23 @@ function netWorthSeries(state, options){
     if(row.cents){const key=Math.abs(row.cents);(byAmount[key]||(byAmount[key]=[])).push(row);}
   });
   // La categoría sola no acredita un traspaso propio: dos patas únicas, opuestas,
-  // en bancos presentes y cercanas. Ambiguos o a cuentas ajenas siguen siendo dinero real.
+  // en bancos presentes y cercanas. Repetir el importe meses después no vuelve ambiguo ese par.
   Object.keys(byAmount).forEach(function(key){
-    const group=byAmount[key];if(group.length!==2) return;
-    const a=group[0],b=group[1];
-    if(a.bank!==b.bank&&a.cents===-b.cents&&Math.abs(a.ms-b.ms)<=7*864e5&&
-      (a.expense.category==="traspaso"||b.expense.category==="traspaso")) a.ownTransfer=b.ownTransfer=true;
+    const group=byAmount[key];if(!group.some(function(p){return p.cents<0;}))return;
+    const hinted=group.filter(function(p){return p.expense.category==="traspaso";});if(!hinted.length)return;
+    group.sort(function(a,b){return a.ms-b.ms;});const mates=new Map();
+    hinted.forEach(function(a){
+      let low=0,high=group.length;const from=a.ms-7*864e5,to=a.ms+7*864e5;
+      while(low<high){const mid=(low+high)>>1;if(group[mid].ms<from)low=mid+1;else high=mid;}
+      for(let i=low;i<group.length&&group[i].ms<=to;i++){
+        const b=group[i],cat=b.expense.category;
+        if(a.bank===b.bank||a.cents!==-b.cents||(cat&&cat!=="traspaso"&&cat!=="otros"))continue;
+        const ar=a.expense.transferId,br=b.expense.transferId;if(ar&&br&&ar!==br)continue;
+        if(!mates.has(a))mates.set(a,new Set());if(!mates.has(b))mates.set(b,new Set());
+        mates.get(a).add(b);mates.get(b).add(a);
+      }
+    });
+    mates.forEach(function(list,a){if(list.size!==1)return;const b=Array.from(list)[0];if(mates.get(b).size===1)a.ownTransfer=b.ownTransfer=true;});
   });
   const manual=[], flowBanks={}, limits=[];
   let first="";

@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
-import { loadPureLogicFromFile } from "../scripts/load-pure-logic.mjs";
+import fs from "node:fs";
+import vm from "node:vm";
+import { loadPureLogicFromFile,loadPureLogic } from "../scripts/load-pure-logic.mjs";
 const c=loadPureLogicFromFile(), plain=x=>JSON.parse(JSON.stringify(x));
 const today="2026-09-04", opts={today,liquid:600,invested:0,debtTotal:0};
 const account=(id,ent)=>({id,ent,value:300,role:"fijos",bankIban:"synthetic-"+id});
@@ -163,7 +165,7 @@ const realSeries=function(state,day){
   c.Date=class extends Date{constructor(...args){super(...(args.length?args:[time]));}static now(){return time;}};
   try{
     const ins=c.insumosSaldoGasto(state);
-    const liquid=(state.accounts||[]).reduce((n,a)=>n+c.saldoCuentaMostrada(a,ins),0);
+    const liquid=(state.accounts||[]).reduce((n,a)=>n+c.saldoCuentaMostrada(a,ins),0)+(state.obAccounts||[]).reduce((n,a)=>n+c.toEurAmt(a.value,a.cur||"EUR",state),0);
     const invested=(state.investments||[]).reduce((n,i)=>n+(c.invValueEur(i,state)||0),0);
     const debtTotal=(state.debts||[]).reduce((n,d)=>n+c.debtBalance(d),0);
     const result=c.netWorthSeries(state,{today:day,liquid,invested,debtTotal,balanceInputs:{...ins,roundupThisMonth:ins.roundup,monthlyInvestThisMonth:ins.monthlyInvest}});
@@ -177,13 +179,19 @@ const actualManual=realSeries(modelled,today);
 assert.equal(actualManual.liquid,5500,"la fórmula real suma el cobro modelado a la cuenta manual");
 assert.deepEqual(plain(actualManual.result).map(p=>p.value),[5500,5500,5500,5500],"el cierre pintado4500 y el saldo actual pintado4500 no crean un precipicio de1500");
 const separate=current=>values({...base,expenses:coverage.concat(current)});
-assert.deepEqual(separate(entry("cent-flow","2026-09-02",1.37)),[601.37,600,600,600],"cé ntimos del flujo no se truncan");
+assert.deepEqual(separate(entry("cent-flow","2026-09-02",1.37)),[601.37,600,600,600],"céntimos del flujo no se truncan");
 const deleted=entry("deleted","2026-09-02",1.37);
 assert.deepEqual(values({...base,expenses:coverage.concat(deleted),deleted:[c.keyOfExpense(deleted)]}),[600,600,600,600],"una lápida real no entra en la serie");
 assert.deepEqual(values({...base,expenses:coverage.concat(entry("removed-bank","2026-09-02",200,"ing"))}),[600,600,600,600],"un banco que no forma parte del patrimonio no suma dinero ficticio");
 for(const categories of [["traspaso","otros"],["otros","traspaso"]])assert.deepEqual(values({...base,expenses:coverage.concat(
   entry("pair-out","2026-09-02",300,"sabadell",categories[0]),entry("pair-in","2026-09-03",-300,"revolut",categories[1]))}),[600,600,600,600],"dos patas propias se emparejan aunque una categoría falte");
 assert.deepEqual(separate(entry("external","2026-09-02",300,"sabadell","traspaso")),[900,600,600,600],"una sola pata a una cuenta ajena reduce el patrimonio");
+assert.deepEqual(values({...base,expenses:coverage.concat(entry("out-not-salary","2026-09-02",300,"sabadell","traspaso"),entry("salary-coincides","2026-09-03",-300,"revolut","ingreso"))}),[600,300,600,600],"un ingreso conocido del mismo importe no se disfraza de la otra pata");
+const recurring={...base,expenses:[entry("cover-a","2026-08-01",0),entry("cover-b","2026-08-01",0,"revolut"),
+  entry("aug-out","2026-08-02",300,"sabadell","traspaso"),entry("aug-in","2026-08-03",-300,"revolut","otros"),
+  entry("sep-out","2026-09-02",300,"sabadell","otros"),entry("sep-in","2026-09-03",-300,"revolut","traspaso")]};
+assert.ok(c.netWorthSeries(recurring,opts).every(p=>p.value===600),"los traspasos mensuales repetidos se emparejan en su propia ventana");
+assert.deepEqual(values({...base,expenses:coverage.concat(entry("prototype-bank","2026-09-02",200,"constructor"))}),[600,600,600,600],"un nombre heredado de Object tampoco es un banco propio");
 const partial=c.netWorthSeries({...manual,accountBalanceHistory:{"acc:cash":[{day:"2026-09-03",value:100}]}},{...opts,liquid:700});
 assert.equal(partial[0].day,"2026-09-03","antes del primer cierre manual no hay valor acreditado");
 assert.equal(c.netWorthSeries({...base,accounts:[{...base.accounts[0],value:Infinity}]},opts).length,0,"saldo no finito nunca acredita un tramo");
@@ -212,7 +220,77 @@ for(const category of ["inversion","traspaso"]){
   assert.deepEqual(plain(realSeries(investmentState,"2026-09-07").result).map(p=>p.value),[3000,3000,3000,3000,3000,3000,3000],"una aportación propia entre fotos no crea un valle de500");
 }
 assert.equal(c.netWorthSeries({...base,investments:[{value:100}],invHistory:[{d:"2026-09-05",v:100}]},{...opts,invested:100}).length,0,"una foto futura no acredita inversión pasada");
+const yearPayments=Array.from({length:12},(_,i)=>{const d=new Date(Date.UTC(2025,9+i,4,12)).toISOString().slice(0,10);return entry("year-payment-"+i,d,500,"sabadell","deudas");});
+const yearMortgage={accounts:[],obAccounts:[{id:"a",ent:"sabadell",value:4000,cur:"EUR"}],expenses:[entry("year-cover","2025-10-01",0)].concat(yearPayments),
+  debts:[{id:"year-loan",value:10000,monthly:500,amort:400,months:24,day:4,asOf:2025*12+9,asOfDate:"2025-10-01"}]};
+const mortgageSeries=realSeries(yearMortgage,"2026-09-05").result;
+assert.equal(mortgageSeries[0].value,0,"antes de doce cuotas quedan10000 en banco y10000 de deuda");
+assert.equal(mortgageSeries.at(-1).value,-1200,"doce cuotas500 menos doce amortizaciones400 pierden1200 de intereses");
+const withdrawal={accounts:[],obAccounts:[{id:"a",ent:"sabadell",value:1500,cur:"EUR"}],expenses:[entry("withdraw-cover","2026-09-01",0),
+  {...entry("withdraw-own","2026-09-04",-500,"sabadell","inversion"),investmentId:"fund"}],investments:[{id:"fund",value:1500}],invHistory:[{d:"2026-09-01",v:2000},{d:"2026-09-07",v:1500}]};
+assert.ok(realSeries(withdrawal,"2026-09-07").result.every(p=>p.value===3000),"recuperar500 de la inversión propia no inventa ganancia entre fotos");
 const cached=c.netWorthSeries(base,opts);
 assert.equal(c.netWorthSeries({...base,_savedAt:12345},opts),cached,"volver sin cambiar dinero conserva la serie completa por referencia");
 assert.notEqual(c.netWorthSeries({...base,accountBalanceHistory:{}},opts),cached,"cambiar cierres invalida la caché, aunque no cambien los movimientos");
 console.log("inicio-v42: NO-GO cifras causales, dos patas, anclas, principal/intereses, bienes y aportaciones OK");
+
+for(const cycle of [false,true]){
+  const lastDay=c.cycleTiming({periodStart:Date.parse("2026-08-31T22:00:00Z"),cycle},Date.parse("2026-09-30T12:00:00Z"));
+  assert.equal(lastDay.left,1,"el último día sigue siendo un día, en mes natural y ciclo");
+  assert.equal(c.cycleDailyMoney(100,lastDay.left),"100 €");
+}
+for(const [remaining,days] of [[0,1],[-1,1],[100,0],[100,-1],[NaN,1],[100,NaN]])assert.equal(c.cycleDailyMoney(remaining,days),null,"sin restante/plazo fiable no se inventa línea diaria");
+assert.equal(c.cycleDailyMoney(200,3),"66 €");
+vm.runInContext("DISP.k=0.9;DISP.sym='USD';",c);
+assert.equal(c.cycleDailyMoney(1.01,1),"0 USD","el límite se trunca en la moneda visible y nunca permite gastar más que el restante");
+vm.runInContext("DISP.k=1;DISP.sym='€';",c);
+assert.equal(c.cyclePaceState(251,1000,12,30).id,"good","justo por encima de -15 puntos ya no es sobrado");
+
+const largeHistory=Object.fromEntries(Array.from({length:8},(_,i)=>["acc:history-"+i,points.map((p,j)=>({day:p.day,value:50000.37+i*100+j}))]));
+const cloudState={accounts:[],expenses:[],bankTx:[],accountBalanceHistory:largeHistory};
+const projected=c.slimForCloud(cloudState);
+const beforeCloud=Buffer.byteLength(JSON.stringify(cloudState)),afterCloud=Buffer.byteLength(JSON.stringify(projected));
+assert.ok(afterCloud<beforeCloud*.2,"otro dispositivo recibe una ventana acotada, no115 KB por cada push");
+assert.ok(Object.values(projected.accountBalanceHistory).every(a=>a.length<=14));
+assert.equal(cloudState.accountBalanceHistory,largeHistory,"proyectar nube no recorta el local");
+const union=c.mergeAccountBalanceHistory(largeHistory,{"acc:history-0":largeHistory["acc:history-0"].slice(-30)});
+assert.equal(union,largeHistory,"un cliente antiguo que conserva30 no elimina los400 del nuevo ni crea otra referencia");
+const storeMap=new Map(),reads=[];
+c.localStorage={getItem:k=>{reads.push(k);return storeMap.get(k)??null;},setItem:(k,v)=>storeMap.set(k,v),removeItem:k=>storeMap.delete(k)};
+c.mcSaveRaw("steady-history",{...cloudState,_historyOwner:"same-owner"});reads.length=0;
+for(let i=0;i<5;i++)c.mcSaveRaw("steady-history",{...cloudState,_historyOwner:"same-owner",_savedAt:i+1},{expenses:false});
+assert.equal(reads.filter(k=>k==="steady-history_balhist"||k==="steady-history").length,0,"un guardado estable no relee ni reinterpreta claves grandes");
+c.mcSaveRaw("steady-history",{...cloudState,_historyOwner:"same-owner",accountBalanceHistory:{"acc:history-0":largeHistory["acc:history-0"].slice(-30)}},{expenses:false});
+assert.equal(c.mcLoadRaw("steady-history").accountBalanceHistory["acc:history-0"].length,400);
+c.mcSaveRaw("empty-history",{accounts:[],expenses:[]});reads.length=0;
+for(let i=0;i<5;i++)c.mcSaveRaw("empty-history",{accounts:[],expenses:[],_savedAt:i+1},{expenses:false});
+assert.equal(reads.filter(k=>k==="empty-history"||k==="empty-history_balhist").length,0,"sin historial tampoco se relee el principal en cada guardado");
+c.mcSaveRaw("owner-history",{accounts:[],expenses:[],_historyOwner:"owner-a",accountBalanceHistory:{"acc:same-id":[{day:today,value:111}]}});
+c.mcSaveRaw("owner-history",{accounts:[],expenses:[],_historyOwner:"owner-b",accountBalanceHistory:{"acc:same-id":[{day:"2026-09-03",value:222}]}});
+assert.deepEqual(plain(c.mcLoadRaw("owner-history").accountBalanceHistory),{"acc:same-id":[{day:"2026-09-03",value:222}]},"ni siquiera con IDs iguales se mezcla historial entre dueños");
+const legacyAssets=[{id:"old-car",value:15000}];
+const oldAssetsHistory=c.recordAssetValues(undefined,today,legacyAssets,legacyAssets);
+assert.equal(oldAssetsHistory["old-car"][0].born,undefined,"un bien ya cargado no recibe un alta antigua inventada");
+const newAssetsHistory=c.recordAssetValues(undefined,today,legacyAssets,[]);
+assert.equal(newAssetsHistory["old-car"][0].born,true,"un alta real en la app sí acredita que no existía antes");
+assert.equal(c.recordAssetValues(newAssetsHistory,"2026-09-05",legacyAssets,legacyAssets),newAssetsHistory,"un precio sin cambio no fabrica otra escritura diaria");
+assert.equal(c.recordAssetValues(newAssetsHistory,"2026-09-05",[],legacyAssets)["old-car"].at(-1).value,0,"borrar el bien conserva su escalón a cero");
+console.log("inicio-v42: nube bytes "+beforeCloud+" -> "+afterCloud+", local400/cliente30 y lecturas estables0 OK");
+
+// Cada mutante ejecuta un oráculo monetario/temporal, no una búsqueda de texto en fuente.
+const html=fs.readFileSync(new URL("../public/index.html",import.meta.url),"utf8");
+const mutantCases=[
+  ["céntimos","daily[day]=(daily[day]||0)-Math.round(e.amount*100)","daily[day]=(daily[day]||0)-Math.trunc(e.amount)*100",m=>assert.equal(m.netWorthSeries({...base,expenses:coverage.concat(entry("mut-cent","2026-09-02",1.37))},opts)[0].value,601.37)],
+  ["borrados","expenseIsTombstoned(e,del)","false",m=>assert.equal(m.netWorthSeries({...base,expenses:coverage.concat(deleted),deleted:[m.keyOfExpense(deleted)]},opts)[0].value,600)],
+  ["manual actual","day===today||!s.points.length?s.value","!s.points.length?s.value",m=>assert.equal(m.netWorthSeries({...manual,accounts:manual.accounts.map(a=>a.id==="cash"?{...a,value:101.37}:a)},{...opts,liquid:701.37}).at(-1).value,701.37)],
+  ["sobrado","CYCLE_COMFORT_DIFF=-15","CYCLE_COMFORT_DIFF=-5",m=>assert.equal(m.cyclePaceState(251,1000,12,30).id,"good")],
+  ["no finito","if(values.some(function(v){ return typeof v!==\"number\"||!Number.isFinite(v); }))","if(false)",m=>assert.equal(m.netWorthSeries({...base,accounts:[{...base.accounts[0],value:Infinity}]},opts).length,0)],
+  ["primer manual","if(points.length) limits.push({day:points[0].day,kind:\"manual\"","if(false) limits.push({day:points[0].day,kind:\"manual\"",m=>assert.equal(m.netWorthSeries({...manual,accountBalanceHistory:{"acc:cash":[{day:"2026-09-03",value:100}]}},{...opts,liquid:700})[0].day,"2026-09-03")],
+  ["foto futura","!Number.isFinite(v)||d>today","!Number.isFinite(v)||false",m=>{const s=m.netWorthSeries({...base,investments:[{value:100}],invHistory:[{d:"2026-09-05",v:100}]},{...opts,invested:100});assert.ok(s.coverage.every(g=>!g.unknown),"el valor actual conocido sigue visible aunque falte foto histórica");}],
+];
+for(const [name,from,to,check] of mutantCases){
+  assert.equal(html.split(from).length,2,"mutante único real: "+name);
+  const mutated=loadPureLogic(html.replace(from,to));
+  assert.throws(()=>check(mutated),assert.AssertionError,"se mata el mutante: "+name);
+}
+console.log("inicio-v42: siete mutaciones NO-GO muertas con oráculos reales");
