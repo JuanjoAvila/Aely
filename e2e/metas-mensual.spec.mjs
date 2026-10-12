@@ -42,11 +42,11 @@ async function presupuesto(page,amount){
 }
 async function alta(page,lang,cycle=false){
   await page.clock.install({time:new Date(octubre)});
-  // El alta de 100 € desbloquea «100 € ahorrado» y lo anuncia en el único `.toast`.
-  // Si ese aviso sigue —o su temporizador borra el siguiente—, la prueba lee el logro
-  // donde esperaba el error de la nube. Concedido de antemano, no se vuelve a anunciar.
+  // El alta desbloquea «100 € ahorrado» y el salto a noviembre cierra octubre bajo
+  // presupuesto, que concede a la vez first_underbudget y first_reto. Esos avisos
+  // comparten el toast con el error que se quiere comprobar; no se modifica su oráculo.
   await seedLoggedInDashboard(page,{__seedOnce:true,budget:1000,goals:[goal],expenses:[salary],
-    badges:["save_100"],gmLevel:0,
+    badges:["save_100","first_underbudget","first_reto"],gmLevel:0,
     accounts:[{id:"bank",ent:"sabadell",name:"Diaria",value:3000,role:"diario",spendFrom:true}],
     settings:{autoPrices:false,theme:"green",lang,gTotalMode:"split",budgetCycle:cycle,expenseBanks:["sabadell"],reservaRules:[]}});
   await boot(page);

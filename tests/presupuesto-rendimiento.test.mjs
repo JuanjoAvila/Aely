@@ -203,9 +203,10 @@ const PRESUPUESTO = {
   // de la cortina y dos lecturas en el script del <head>; sin dependencias ni peticiones nuevas.
   // 1.000 B sobre 1297 KiB: +1 KiB mínimo al crudo, autorizado por el dueño. Quedan solo 24 B:
   // la tanda y la nota de esta entrega se miden aparte. El gzip cabe en 355 KiB (quedan 388 B).
-  // Recibos revisión12/10 sobre beta117: BOOK por banco, prueba viajada e índice de Gastos
-  // miden 1.333.345/364.266 B frente a1.329.128/363.130 B (+4.217/+1.136), con DSN95 B
-  // y sello117.99999. Mínimos1303/356 KiB dejan927/278 B: no se recortan guardas ni idiomas.
+  // Recibos revisión3 (12/10), DSN95 B y sello117.99999:1.333.562/364.349 B frente
+  // a beta1171.329.128/363.130 B (+4.434/+1.219). Se DECLARA aumento desde1298/355
+  // a1303/356 KiB, mínimos medidos; margen710/195 B. Índice mensual y sin tokens,
+  // vínculo bancario al mover día y categoría ausente, sin recortar guardas ni idiomas.
   minificado: 1303 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;

@@ -106,34 +106,36 @@ function fixedPaymentDate(date,y,m,today){
 }
 function fixedExpenseKey(e){ return expenseBankOf(e)+"|"+keyOfExpense(e); }
 function fixedPaymentIdentity(bank,x){ return JSON.stringify([bank,String(x.date).slice(0,10),Number(x.amount),x.obName!=null?x.obName:x.merchant||""]); }
-function fixedPaymentExpenses(s){
+function fixedPaymentExpenses(s,ym){
   // Inicio consulta los pendientes en cada render: treinta recibos no deben volver
   // a recorrer veinte mil gastos. El guardado partido ya cambia su referencia al editar.
   var expenses=s.expenses;
   if(!Array.isArray(expenses)) return {identity:new Map(),key:new Map(),id:new Map(),names:new Map(),queries:new Map()};
   var cache=fixedPaymentExpenses.cache||(fixedPaymentExpenses.cache=new WeakMap()),index=cache.get(expenses);
-  if(index) return index;
-  index={identity:new Map(),key:new Map(),id:new Map(),names:new Map(),queries:new Map()};
+  if(index&&index.ym===ym) return index;
+  var ids=index&&index.id;
+  // Sólo el mes consultado necesita nombres y claves; los ids globales conservan
+  // el veto de un id reutilizado en otro mes sin indexar todos sus textos (12/10).
+  index={ym:ym,identity:new Map(),key:new Map(),id:ids||new Map(),names:new Map(),queries:new Map()};
   var add=function(map,key,x){ var rows=map.get(key);if(rows) rows.push(x);else map.set(key,[x]); };
   expenses.forEach(function(x){
     if(!x) return;
+    if(x.id&&!ids) add(index.id,x.id,x);
+    if(String(x.date||"").slice(0,7)!==ym) return;
     var bank=expenseBankOf(x);
     add(index.identity,fixedPaymentIdentity(bank,x),x);add(index.key,fixedExpenseKey(x),x);
-    if(x.id) add(index.id,x.id,x);
     if(["ob","ob-hist","wallet","macrodroid","tr"].indexOf(x.source)<0||!bank||bank==="efectivo"||
       (x.cur||x.currency)&&String(x.cur||x.currency).toUpperCase()!=="EUR") return;
-    var name=recNorm(x.obName!=null?x.obName:x.merchant),prefix=String(x.date||"").slice(0,7)+"|"+Math.round(Number(x.amount)*100)+"|",named={row:x,name:" "+name+" "};
-    // Basta el primer token del recibo para acotar; la frase completa se exige después.
-    new Set(name.split(" ")).forEach(function(word){ if(word) add(index.names,prefix+word,named); });
+    add(index.names,Math.round(Number(x.amount)*100),{row:x,name:" "+recNorm(x.obName!=null?x.obName:x.merchant)+" "});
   });
   cache.set(expenses,index);return index;
 }
 function fixedPaymentExpenseRows(s,name,ym,target){
-  var index=fixedPaymentExpenses(s),prefix=ym+"|"+Math.round(Number(target)*100)+"|",key=prefix+name;
+  var index=fixedPaymentExpenses(s,ym),amount=Math.round(Number(target)*100),key=amount+"|"+name;
   if(index.queries.has(key)) return index.queries.get(key);
-  // Un primer token compartido puede tener miles de compras. La frase completa se
-  // filtra una sola vez; banco, categoría, borrados y pruebas se revisan con el estado actual.
-  var rows=(index.names.get(prefix+name.split(" ")[0])||[]).filter(function(x){ return x.name.indexOf(" "+name+" ")>=0; }).map(function(x){ return x.row; });
+  // La frase completa se filtra una sola vez por importe, sin retener cada token
+  // del histórico; banco, categoría, borrados y pruebas usan siempre el estado actual.
+  var rows=(index.names.get(amount)||[]).filter(function(x){ return x.name.indexOf(" "+name+" ")>=0; }).map(function(x){ return x.row; });
   index.queries.set(key,rows);return rows;
 }
 function fixedPaymentExpenseChoice(rows){
@@ -173,7 +175,7 @@ function fixedPaymentAutoOwner(s,e,y,m,bank,merchant,amount,category,book){
     if(book){
       // El BOOK identifica el banco: un homónimo ajeno no puede negar su cargo propio.
       if(f.bank!==bank||!recNameMatch(f.name,merchant)||!recAmtClose(f.amount,amount)) return;
-    } else if(!full||!exact||f.bank!==bank&&category&&category!=="otros"&&category!==f.category) return;
+    } else if(!full||!exact||f.bank!==bank&&f.category&&category&&category!=="otros"&&category!==f.category) return;
     // Resolver antes de leer o guardar evita que el feed de un banco adelante al nombre
     // genérico y el cargo guardado acredite después otro recibo (revisión10/10).
     var score=full?n.length:0;
@@ -191,7 +193,7 @@ function fixedPaymentProof(s,e,y,m,today){
     if((s.deleted||[]).indexOf(p.expenseKey)>=0||(p.expenseLegacyKey&&(s.deleted||[]).indexOf(p.expenseLegacyKey)>=0)) return null;
     // Sin fila local la prueba viaja entre móviles; si sí está, una edición o nueva
     // atribución de deuda no debe conservar la confirmación del cargo anterior.
-    var index=fixedPaymentExpenses(s),rows=Array.from(new Set((index.key.get(p.key)||[]).concat(p.expenseId?index.id.get(p.expenseId)||[]:[],index.identity.get(p.identity)||[])));
+    var index=fixedPaymentExpenses(s,String(p.date).slice(0,7)),rows=Array.from(new Set((index.key.get(p.key)||[]).concat(p.expenseId?index.id.get(p.expenseId)||[]:[],index.identity.get(p.identity)||[])));
     if(rows.length>1||rows.some(function(x){ return !fixedExpenseEligible(s,x,e,y,m,today)||fixedPaymentIdentity(expenseBankOf(x),x)!==p.identity; })) return null;
   } else {
     var target=e.bankAmount>0?e.bankAmount:occAmountIn(e,m);
@@ -217,7 +219,7 @@ function fixedExpenseEligible(s,x,e,y,m,today){
   return !!x&&fixedPaymentUnique(s,e)&&!x.possibleDup&&!x.debtId&&(!x.status||String(x.status).toUpperCase()==="BOOK")&&!!expenseBankOf(x)&&!CAT_NEUTRAS[x.category]&&x.category!=="ingreso"&&
     Number.isFinite(Number(x.amount))&&Number.isFinite(Number(target))&&Number(x.amount)>0&&target>0&&occursIn(e,m)&&
     fixedPaymentDate(x.date,y,m,today)&&!expenseIsTombstoned(x,expenseDeletedSet(s))&&fixedPaymentFeedClear(s,fixedPaymentIdentity(expenseBankOf(x),x))&&
-    (fixedPaymentExpenses(s).identity.get(fixedPaymentIdentity(expenseBankOf(x),x))||[]).length===1;
+    (fixedPaymentExpenses(s,String(x.date||"").slice(0,7)).identity.get(fixedPaymentIdentity(expenseBankOf(x),x))||[]).length===1;
 }
 function linkFixedPayment(s,expenseId,fixedId,y,m,today,expected){
   var x=(s.expenses||[]).find(function(r){ return r.id===expenseId; });
@@ -319,7 +321,9 @@ function fixedPaymentState(s,e,y,m,today){
       if(Math.round(Number(x.amount)*100)!==Math.round(Number(target)*100)) return false;
       var merchant=recNorm(x.obName!=null?x.obName:x.merchant);
       if(merchant.length<4||(" "+merchant+" ").indexOf(" "+name+" ")<0) return false;
-      if(expenseBankOf(x)!==bank&&x.category&&x.category!=="otros"&&x.category!==e.category) return false;
+      // Los cuatro creadores no ponen categoría en el recibo: su ausencia no es
+      // una categoría distinta. Si existe, sigue vetando comercios incompatibles.
+      if(expenseBankOf(x)!==bank&&e.category&&x.category&&x.category!=="otros"&&x.category!==e.category) return false;
       if(!fixedExpenseEligible(s,x,e,y,m,today)) return false;
       // El BOOK admite tolerancia de importe; su copia en Gastos no puede eliminar
       // a ese ganador y adjudicar el mismo cargo a otro recibo con céntimos exactos.
@@ -2845,9 +2849,11 @@ function patchFixedById(set, id, p){
     if(it&&(("day" in p)||("amount" in p)||("account" in p))){
       const d=new Date(),y=d.getFullYear(),m=d.getMonth()+1,t=d.getDate();
       if(("amount" in p)||("account" in p)){ delete it.paidYm; delete it.paidDay; }
-      // El BOOK único también viaja como prueba entre móviles sin extracto local.
-      // Editar el calendario no convierte una notificación visual en dinero confirmado.
-      const ym=y*12+m,rec=reconcileBank(n,y,m,t),status=fixedPaymentState(n,it,y,m,t),pd=status.bankTx?recDay(status.bankTx.date):status.proof&&status.proof.kind==="book"&&recDay(status.proof.date);
+      // Una prueba BOOK o un vínculo manual a un gasto del banco protegen la fecha.
+      // La prueba expense sin fila local no demuestra su fuente; una notificación tampoco.
+      const ym=y*12+m,rec=reconcileBank(n,y,m,t),status=fixedPaymentState(n,it,y,m,t),proof=status.proof;
+      const bankExpense=proof&&proof.kind==="expense"&&(fixedPaymentExpenses(n,String(proof.date).slice(0,7)).identity.get(proof.identity)||[]).some(function(x){ return x.source==="ob"||x.source==="ob-hist"; });
+      const pd=status.bankTx?recDay(status.bankTx.date):proof&&(proof.kind==="book"||bankExpense)&&recDay(proof.date);
       if(pd){
         it.paidYm=ym;
         it.paidDay=pd;

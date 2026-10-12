@@ -19,6 +19,36 @@ async function open(page,lang,overrides={},time="2026-09-30T12:00:00Z"){
 }
 
 for(const lang of ["es","en","ca"]){
+  test(lang+": R3 vínculo manual bancario conserva pago y proyección al editar el día",async({page})=>{
+    const bill=Object.assign({},fixed,{wait:undefined}),charge={id:"vinculo-banco",date:"2026-09-25",merchant:"Cargo bancario distinto",amount:42,ent:"sabadell",category:"recibos",source:"ob-hist"};
+    await open(page,lang,{fixed:[bill],expenses:[charge]},"2026-09-26T12:00:00Z");
+    const linked=await page.evaluate(({id,expense})=>{const s=mcLoadRaw(mcStateKey()),n=linkFixedPayment(s,expense,id,2026,9,26);mcSaveRaw(mcStateKey(),n);return {kind:n.fixed[0].paymentProofs[2026*12+9].kind,net:monthNetForAccount(n,"sabadell",2026,9,26)};},{id:bill.id,expense:charge.id});
+    expect(linked.kind).toBe("expense");await page.reload();await dismissNews(page);
+    await page.locator('.botnav-tab[data-tour="plan"]').click();
+    const manage=await page.evaluate(()=>t("v4_gestionar"));
+    await page.locator('.v4-screen > [data-seg="recibos"]').getByRole("button",{name:manage,exact:true}).click();
+    const hub=page.locator('[data-bills-manage]');await hub.locator('.v4-bills-group').first().click();
+    await hub.locator('.v4-bills-row').filter({hasText:bill.name}).click();
+    await page.locator('.v4-sheet[data-sheet="bill"] input[inputmode="numeric"]').fill("28");
+    await expect.poll(()=>page.evaluate(()=>mcLoadRaw(mcStateKey()).fixed[0].paidDay)).toBe(25);
+    const saved=await page.evaluate(()=>{const s=mcLoadRaw(mcStateKey());return {bill:s.fixed[0],paid:isPaidIn(s.fixed[0],9,26,2026),net:monthNetForAccount(s,"sabadell",2026,9,26)};});
+    expect(saved.bill.paidYm).toBe(2026*12+9);expect(saved.paid).toBe(true);expect(saved.net).toBe(linked.net);
+    await page.reload();await dismissNews(page);
+    await expect(page.locator('div[data-seg="recibos"] .v4-paid').filter({hasText:bill.name})).toHaveCount(1);
+  });
+  test(lang+": R3 recibo creado sin categoría acredita comercio clasificado de otro banco",async({page})=>{
+    await open(page,lang,{fixed:[]});
+    const seeded=await page.evaluate(()=>{
+      let s=mcLoadRaw(mcStateKey());
+      const bills=histFijosFromSelection([{merchant:"Netflix",amount:42,ent:"sabadell",date:"2026-09-25"}],[0]);
+      const row={id:"netflix-wallet",merchant:"Netflix",amount:42,ent:"trade_republic",date:"2026-09-25",source:"wallet",category:categoryOfBankTx({merchant:"Netflix",card:true})};
+      s=Object.assign({},s,{fixed:bills,expenses:[row]});mcSaveRaw(mcStateKey(),s);return {category:row.category,billCategory:bills[0].category};
+    });
+    expect(seeded.category).toBe("ocio");expect(seeded.billCategory).toBeUndefined();await page.reload();await dismissNews(page);
+    await expect(page.locator('.page-scroll-host .v4-charge').filter({hasText:"Netflix"})).toHaveCount(0);
+    await page.locator('.botnav-tab[data-tour="plan"]').click();
+    await expect(page.locator('div[data-seg="recibos"] .v4-paid').filter({hasText:"Netflix"})).toHaveCount(1);
+  });
   test(lang+": H1 homónimos en dos bancos mantienen ambos pagados también sin extracto",async({page,browser})=>{
     const bills=[Object.assign({},fixed,{id:"netflix-sb",name:"Netflix ficticio"}),Object.assign({},fixed,{id:"netflix-tr",name:"Netflix ficticio",account:"trade_republic"})];
     const accounts=[{id:"sb",ent:"sabadell",value:800,role:"fijos"},{id:"tr",ent:"trade_republic",value:300,role:"fijos"}];
