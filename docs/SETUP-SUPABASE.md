@@ -36,7 +36,7 @@ anterior a su margen. Rollback: desplegar el `bank-sync` anterior; un cursor sel
 ## Acuse del cursor y reconexión que lo conserva (12/10): solo en fuente, SIN desplegar
 
 Cambian `bank-sync` (acuse, `ackLinkKey`; con cliente de acuse y `last_sync` nulo escribe la
-víspera de la ventana como punto de partida), `bank-callback` (no pone `last_sync` a null si
+víspera de la ventana como punto de partida, mirando el error de esa escritura y reintentándola una vez), `bank-callback` (no pone `last_sync` a null si
 vuelven las mismas cuentas; guarda `hash` en `accounts`; si el GET de la sesión falla sale con
 `msg=error` sin tocar la fila) y `bank-connect` (solo un comentario). Sin
 migración ni secreto: la clave del acuse usa `state_issued_at` (0019) y `accounts` es jsonb.

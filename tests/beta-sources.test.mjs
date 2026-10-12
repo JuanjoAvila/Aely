@@ -27,6 +27,8 @@ const source116=sourceAt("f012fc05b16fc5b24b13227ac168a3f7f24c246c");
 // producción117 (0a623768), que consolidó el catálogo con todas las tandas vacías.
 const source117=sourceAt("c5f62d6603d016150afd9d0e20547b608b323045");
 const sourceProd117=sourceAt("0a623768e014251ed6b37a6d75eaa95efde78bc0");
+// Integración119: la beta118 servida (7e706174), que es lo último que probó el móvil.
+const source118=sourceAt("7e706174255f1868d15099e11a503dd23d9aa774");
 const empty=[{v:"4.26.67",tandas:[]}];
 const archiveRefs=JSON.parse(read("scripts/beta-archives.json"));
 const archiveId="inc-0810-inicio-grafica-significado";
@@ -781,7 +783,9 @@ test("Promoción117 muestra una nota y el historial de producción sin perder co
 // un recibo está pagado, que diez tandas ya entregadas o retiradas vigilaban: aquí se fija, como
 // lista cerrada, qué descriptores crecen, qué huellas se mueven y por qué. Ninguna vuelve al panel.
 const expected118={"v":"4.26.118","d":"2026-10-12","t":{"es":"Recibos: cada cobro, en su recibo","en":"Bills: each charge on its own bill","ca":"Rebuts: cada cobrament, al seu rebut"},"items":{"es":["Un mismo cobro del banco ya no marca como pagados dos recibos a la vez, y un recibo con el mismo nombre en otro banco no da por pagado el que no es.","Un recibo se reconoce como pagado también cuando el pago salió de otro banco, si coinciden el nombre y el importe exacto.","Cambiar el día de un recibo que el banco ya cobró no vuelve a descontarlo del saldo previsto."],"en":["A single bank charge no longer marks two bills as paid at once, and a bill with the same name at another bank no longer counts as payment for the wrong one.","A bill is also recognised as paid when the payment came out of another bank, as long as the name and the exact amount match.","Changing the day of a bill the bank has already charged no longer takes it off your expected balance again."],"ca":["Un mateix cobrament del banc ja no marca com a pagats dos rebuts alhora, i un rebut amb el mateix nom en un altre banc no dona per pagat el que no és.","Un rebut també es reconeix com a pagat quan el pagament ha sortit d'un altre banc, si coincideixen el nom i l'import exacte.","Canviar el dia d'un rebut que el banc ja ha cobrat no el torna a descomptar del saldo previst."]},"tandas":[{"id":"recibos-cargo-unico","t":{"es":"Recibos: cada cargo paga un solo recibo","en":"Bills: each charge pays a single bill","ca":"Rebuts: cada càrrec paga un sol rebut"},"items":{"es":["1. Abre Plan → Recibos y despliega «Ya has pagado»: no falta ninguno de los recibos que el banco ya cobró este mes, ninguno sale repetido y cada uno conserva el día en que se cobró.","2. En Gastos, busca un cargo de este mes que haya entrado solo (del banco o por el aviso del móvil, no apuntado a mano) y que todavía no tenga recibo; por ejemplo, una suscripción. En Plan → Recibos → «Gestionar» → «+ Añadir un recibo», crea uno con el nombre del comercio (basta su palabra principal, de cuatro letras o más: «Netflix»), el importe exacto y la cuenta de la que salió. Debe aparecer en «Ya has pagado» con el día real del cargo y no debe salir en «Próximos cargos» de Inicio.","3. Añade un segundo recibo idéntico (mismo nombre, importe y cuenta): los dos pasan a pendientes, porque un cargo no puede pagar dos recibos. Entra en el duplicado y pulsa «Quitar este recibo»: el primero vuelve a «Ya has pagado».","4. Elige uno de tus recibos de siempre que el banco ya haya cobrado este mes, ábrelo desde «Gestionar» y cambia el día a uno posterior a hoy. Debe seguir una sola vez en «Ya has pagado» con el día en que se cobró, y ni «Queda por pagar» ni el saldo más bajo previsto de arriba deben cambiar. Después devuélvele su día.","5. Quita el recibo de prueba con «Quitar este recibo»: Plan e Inicio quedan como antes de empezar."],"en":["1. Open Plan → Bills and unfold “You already paid”: none of the bills the bank has already charged this month is missing, none appears twice and each one keeps the day it was charged.","2. In Spending, find a charge from this month that came in by itself (from the bank or from the phone notification, not entered by hand) and that has no bill yet; a subscription, for example. In Plan → Bills → “Manage” → “+ Add a bill”, create one with the merchant's name (its main word is enough, four letters or more: “Netflix”), the exact amount and the account it came out of. It should appear under “You already paid” with the real day of the charge, and it should not show in “Upcoming” on Home.","3. Add a second identical bill (same name, amount and account): both go back to pending, because one charge cannot pay two bills. Open the duplicate and tap “Remove this bill”: the first one returns to “You already paid”.","4. Pick one of your usual bills that the bank has already charged this month, open it from “Manage” and change the day to one later than today. It should stay only once under “You already paid” with the day it was charged, and neither “Still to pay” nor the lowest expected balance at the top should change. Then set its day back.","5. Remove the test bill with “Remove this bill”: Plan and Home are left as they were before you started."],"ca":["1. Obre Pla → Rebuts i desplega «Ja has pagat»: no hi falta cap dels rebuts que el banc ja ha cobrat aquest mes, cap surt repetit i cadascun conserva el dia en què es va cobrar.","2. A Despeses, busca un càrrec d'aquest mes que hagi entrat sol (del banc o per l'avís del mòbil, no apuntat a mà) i que encara no tingui rebut; per exemple, una subscripció. A Pla → Rebuts → «Gestionar» → «+ Afegir un rebut», crea'n un amb el nom del comerç (n'hi ha prou amb la paraula principal, de quatre lletres o més: «Netflix»), l'import exacte i el compte d'on va sortir. Ha d'aparèixer a «Ja has pagat» amb el dia real del càrrec i no ha de sortir a «Pròxims càrrecs» d'Inici.","3. Afegeix un segon rebut idèntic (mateix nom, import i compte): tots dos passen a pendents, perquè un càrrec no pot pagar dos rebuts. Entra al duplicat i prem «Treu aquest rebut»: el primer torna a «Ja has pagat».","4. Tria un dels teus rebuts de sempre que el banc ja hagi cobrat aquest mes, obre'l des de «Gestionar» i canvia el dia a un de posterior a avui. Ha de continuar una sola vegada a «Ja has pagat» amb el dia en què es va cobrar, i ni «Queda per pagar» ni el saldo més baix previst de dalt han de canviar. Després torna-li el seu dia.","5. Treu el rebut de prova amb «Treu aquest rebut»: Pla i Inici queden com abans de començar."]}}]};
-test("Catálogo118 añade sólo la tanda de los recibos y declara cada huella ajena que mueve",()=>{
+// Catálogo cerrado: desde la119 se lee de su commit inmutable (la119 añade nota, tanda y alcance nuevos).
+test("Catálogo118 histórico añade sólo la tanda de los recibos y declara cada huella ajena que mueve",()=>{
+  const read=source118;
   const id="recibos-cargo-unico",production=JSON.parse(sourceProd117("src/data/release-notes.json"));
   const expected=[expected118,...production];
   const verify=notes=>assert.deepEqual(notes,expected);
@@ -882,6 +886,163 @@ test("Catálogo118 añade sólo la tanda de los recibos y declara cada huella aj
   assert.deepEqual(receipt.pruebas,{[id]:{v:notes[0].v,contenido:JSON.stringify([id,expected118.tandas[0].t.es,expected118.tandas[0].items.es,1])}},"un único guion por probar");
   for(const key of Object.keys(consumers))assert.equal(receipt.pruebas[key],undefined,key+": su huella cambia, pero no vuelve a pedirse");
   for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica","native","edge"])assert.equal(group[key],undefined,"identidad nueva sin "+key);
+});
+
+// 4.26.119 (12/10/2026): bancos, acuse del cursor y reconexión. Es la primera tanda de esta ronda
+// con superficie de servidor (`bank-sync` y `bank-callback` cambian), y va como identidad NUEVA:
+// `bancos-sin-hueco` fue aprobada el 12/10 y retirada del panel, así que no se le cuelga producto.
+// La de los recibos118 fue APROBADA en el móvil (12/10, 18:25) y sale del panel: queda esta sola. Lista cerrada frente a la beta118:
+// qué descriptores crecen, qué huellas se mueven y por qué. Ninguna juzgada vuelve.
+const expected119={"v":"4.26.119","d":"2026-10-12","t":{"es":"Bancos: ningún movimiento por el camino","en":"Banks: no transaction left behind","ca":"Bancs: cap moviment pel camí"},"items":{"es":["Si la conexión falla mientras se sincronizan los bancos, los movimientos de esos días ya no se pierden: entran la próxima vez que sincronices.","Volver a conectar un banco ya no deja días sin traer: la app sigue desde donde lo había dejado."],"en":["If the connection fails while your banks are syncing, the transactions from those days are no longer lost: they come in the next time you sync.","Reconnecting a bank no longer leaves days missing: the app carries on from where it left off."],"ca":["Si la connexió falla mentre se sincronitzen els bancs, els moviments d'aquells dies ja no es perden: entren la pròxima vegada que sincronitzis.","Tornar a connectar un banc ja no deixa dies sense portar: l'app continua des d'on ho havia deixat."]},"tandas":[{"id":"bancos-acuse-reconexion","t":{"es":"Bancos: nada se pierde si falla la conexión o al reconectar","en":"Banks: nothing is lost if the connection fails or on reconnecting","ca":"Bancs: no es perd res si falla la connexió o en reconnectar"},"items":{"es":["1. En Cartera, dentro de «Tus cuentas», toca el icono «Sincronizar bancos» y espera a que termine. Abre Gastos: los movimientos nuevos de tus bancos aparecen, cada uno una sola vez, sin repetidos.","2. Vuelve a Cartera y toca «Sincronizar bancos» otra vez: en Gastos no aparece ningún movimiento repetido. Toca el icono «Conectar cuentas» para abrir «Mis bancos»: en cada banco, la línea «Saldo actualizado» marca la hora de ahora.","3. Abre Aely con tu cuenta en otro dispositivo o en el navegador del ordenador y sincroniza los bancos allí. Vuelve al móvil y sincroniza: no falta ningún movimiento y ninguno sale repetido. Si no tienes otro dispositivo a mano, deja este paso sin probar.","4. Para probar la reconexión (ahora, o cuando un banco te caduque): en «Mis bancos», toca un banco, pulsa «Reconectar» y autoriza la misma cuenta de siempre. Al volver a la app, toca «Sincronizar bancos»: en Gastos no falta ningún día entre la última vez y hoy, y no hay movimientos repetidos. Si no reconectas ningún banco, deja este paso sin probar."],"en":["1. In Portfolio, inside “Your accounts”, tap the “Sync banks” icon and wait for it to finish. Open Spending: the new transactions from your banks appear, each one only once, with no repeats.","2. Go back to Portfolio and tap “Sync banks” again: no repeated transaction appears in Spending. Tap the “Connect accounts” icon to open “My banks”: on each bank, the “Balance updated” line shows the time right now.","3. Open Aely with your account on another device or in your computer's browser and sync your banks there. Go back to your phone and sync: no transaction is missing and none appears twice. If you have no other device at hand, leave this step untested.","4. To try reconnecting (now, or when a bank expires): in “My banks”, tap a bank, press “Reconnect” and authorise the same account as always. Back in the app, tap “Sync banks”: in Spending no day is missing between the last time and today, and there are no repeated transactions. If you do not reconnect any bank, leave this step untested."],"ca":["1. A Cartera, dins de «Els teus comptes», toca la icona «Sincronitza els bancs» i espera que acabi. Obre Despeses: els moviments nous dels teus bancs apareixen, cadascun una sola vegada, sense repetits.","2. Torna a Cartera i toca «Sincronitza els bancs» una altra vegada: a Despeses no apareix cap moviment repetit. Toca la icona «Connectar comptes» per obrir «Els meus bancs»: a cada banc, la línia «Saldo actualitzat» marca l'hora d'ara.","3. Obre Aely amb el teu compte en un altre dispositiu o al navegador de l'ordinador i sincronitza els bancs allà. Torna al mòbil i sincronitza: no hi falta cap moviment i cap surt repetit. Si no tens cap altre dispositiu a mà, deixa aquest pas sense provar.","4. Per provar la reconnexió (ara, o quan un banc et caduqui): a «Els meus bancs», toca un banc, prem «Reconnecta» i autoritza el mateix compte de sempre. En tornar a l'app, toca «Sincronitza els bancs»: a Despeses no falta cap dia entre l'última vegada i avui, i no hi ha moviments repetits. Si no reconnectes cap banc, deixa aquest pas sense provar."]}}]};
+test("Catálogo119 añade sólo la tanda del acuse de bancos y declara cada huella ajena que mueve",()=>{
+  const id="bancos-acuse-reconexion",recibos="recibos-cargo-unico",before=JSON.parse(source118("src/data/release-notes.json"));
+  // Retiro119: recibos-cargo-unico, APROBADA en el móvil (12/10, 18:25, 5 ok / 0 fallos sobre 4.26.118.1), sale del panel; su nota, su descriptor y todo el historial se quedan.
+  const expected=[expected119,{...before[0],tandas:before[0].tandas.filter(g=>g.id!==recibos)},...before.slice(1)];
+  const verify=notes=>assert.deepEqual(notes,expected);
+  const notes=JSON.parse(read("src/data/release-notes.json"));verify(notes);
+  assert.equal(notes.flatMap(n=>n.tandas||[]).filter(g=>g.id===id).length,1,"una sola vez en todo el catálogo");
+  assert.deepEqual(notes.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id,g.apk||0])),[["4.26.119",id,0]],"el panel sólo puede enseñar la tanda nueva, sin APK");
+  for(const n of notes.slice(1))assert.deepEqual(n.tandas,[],n.v+": ni resucita /todo ni vuelve una tanda juzgada o entregada");
+  for(const lang of ["es","en","ca"]){
+    assert.equal(notes[0].items[lang].length,2,lang+": dos puntos familiares");
+    assert.equal(notes[0].tandas[0].items[lang].length,4,lang+": cuatro pasos");
+    notes[0].tandas[0].items[lang].forEach((step,i)=>assert.ok(step.startsWith((i+1)+". "),lang+": paso numerado "+(i+1)));
+  }
+  const twice=structuredClone(notes);twice[0].tandas.push(structuredClone(twice[0].tandas[0]));assert.throws(()=>verify(twice),"no duplicar la tanda");
+  const inherited=structuredClone(notes);inherited[0].tandas[0].desde="bancos-sin-hueco";assert.throws(()=>verify(inherited),"no heredar la aprobación de bancos-sin-hueco");
+  const withApk=structuredClone(notes);withApk[0].tandas[0].apk=55;assert.throws(()=>verify(withApk),"no hay APK que probar");
+  const approved=JSON.parse(source116("src/data/release-notes.json"))[0].tandas.find(g=>g.id==="bancos-sin-hueco");
+  assert.ok(approved,"la tanda aprobada tal como se publicó en la 116");
+  const resurrected=structuredClone(notes);resurrected[0].tandas.push(approved);assert.throws(()=>verify(resurrected),"no resucitar la tanda aprobada de los bancos");
+  const back=structuredClone(notes);back[1].tandas=before[0].tandas;assert.throws(()=>verify(back),"no resucitar la tanda aprobada de los recibos");
+  const missing=structuredClone(notes);missing.pop();assert.throws(()=>verify(missing));
+  const text=structuredClone(notes);text[1].items.es[0]+="mutante";assert.throws(()=>verify(text));
+  const scopes=JSON.parse(read("scripts/beta-sources.json")),oldScopes=JSON.parse(source118("scripts/beta-sources.json"));
+  assert.deepEqual(Object.keys(scopes).filter(key=>!oldScopes[key]),[id]);
+  assert.deepEqual(Object.keys(oldScopes).filter(key=>!scopes[key]),[],"ningún alcance se retira");
+  const core="src/modules/00-core.js",main="src/modules/11-app-main.js",panel="src/modules/10-app-components.js";
+  // Descriptores que crecen, lista cerrada. Las dos tandas ya vigilaban el sync de bancos de App
+  // (y la de los bancos, además, BankPanel), que ahora llama al acuse local: las auditorías de
+  // dependencias exigen esas unidades. Se añaden al final, sin tocar ni reordenar las demás.
+  const grownExpected={
+    "inc-3009-nomina-anticipada":["obAckLoad","obAckSave","OB_ACK_KEY"],
+    "bancos-sin-hueco":["obAckLoad","obAckSave","obAckDrop","OB_ACK_KEY"]};
+  const functions=logicFunctions(read),data=logicData(read),grown={};
+  const web=(key,reader,scope)=>{
+    try{return betaRevision(key,reader,undefined,scope).web;}
+    catch(error){assert.ok(["BETA_SCOPE_ABSENT","BETA_SCOPE_AMBIGUOUS"].includes(error.code),error.message);return "build abortado por ancla mutada";}
+  };
+  for(const [key,scope] of Object.entries(oldScopes)){
+    if(JSON.stringify(scopes[key])===JSON.stringify(scope))continue;
+    const {web:nowWeb,...rest}=scopes[key],{web:oldWeb,...oldRest}=scope;
+    assert.deepEqual(rest,oldRest,key+": sólo cambia la lista web");
+    assert.deepEqual(nowWeb.slice(0,oldWeb.length),oldWeb,key+": ninguna unidad anterior se pierde ni cambia de orden");
+    const added=nowWeb.slice(oldWeb.length);
+    assert.ok(added.length>0&&added.every(u=>u.file===core&&Object.keys(u).length===2&&(u.function||u.data)),key+": sólo unidades sueltas de 00-core");
+    grown[key]=added.map(u=>u.function||u.data);
+    // El motivo se comprueba: con el descriptor de la118 cada unidad añadida ya era una dependencia
+    // real de lo vigilado y cambiarla no movía la huella; con el de ahora, sí.
+    const deps=scopeDependencies(scope,read,functions),values=scopeDataDependencies(scope,read,functions,data);
+    for(const unit of added){
+      const name=unit.function||unit.data,dep=(unit.function?deps:values).find(d=>d.name===name&&d.file===core);
+      assert.ok(dep,key+": "+name+" es dependencia real de lo que ya vigilaba");
+      const mutant=f=>f===core?(unit.function?mutateLogic(read(f),dep):mutateData(read(f),dep)):read(f);
+      assert.equal(web(key,mutant,scope),web(key,read,scope),key+": el descriptor118 no vigilaba "+name);
+      assert.notEqual(web(key,mutant,scopes[key]),web(key,read,scopes[key]),key+": el descriptor119 vigila "+name);
+    }
+  }
+  assert.deepEqual(grown,grownExpected,"descriptores que crecen: lista cerrada");
+  assert.deepEqual(Object.keys(scopes[id]),["web","edge","unidades"],"web y servidor, sin APK: el nativo no cambia");
+  assert.equal(scopes[id].unidades,true);
+  assert.deepEqual(scopes[id].web,scopes["bancos-sin-hueco"].web,"las unidades del sync de bancos, con el acuse local y su limpieza al quitar el banco");
+  assert.deepEqual(scopes[id].web.slice(-4).map(u=>[u.file,u.function||u.data]),[[core,"obAckLoad"],[core,"obAckSave"],[core,"obAckDrop"],[core,"OB_ACK_KEY"]]);
+  const edgeFiles=["supabase/functions/bank-sync/index.ts","supabase/functions/bank-sync/demand-window.ts","supabase/functions/bank-callback/index.ts","supabase/functions/bank-callback/reconnect.ts","supabase/functions/bank-connect/index.ts","supabase/functions/_shared/enablebanking.ts"];
+  assert.deepEqual(scopes[id].edge,edgeFiles,"las dos funciones que hay que desplegar, la que renueva la autorización y su cliente del banco");
+  for(const key of ["historial","auditoria","native"])assert.equal(scopes[id][key],undefined,"identidad nueva sin "+key);
+  assert.deepEqual(JSON.parse(read("scripts/beta-archives.json")),JSON.parse(source118("scripts/beta-archives.json")),"pin y juicio109 intactos");
+  // Lista cerrada de huellas frente a la beta118 servida: una que se mueva sin declarar, o una
+  // declarada que no se mueva, es rojo. Cada una lleva la unidad exacta que la mueve.
+  const source=f=>read(f).replace(/\r\n/g,"\n"),old=f=>source118(f).replace(/\r\n/g,"\n");
+  const moved={},why={};
+  for(const [key,scope] of Object.entries(oldScopes)){
+    if(key===archiveId)continue; // 109 es referencia fija, nunca código vigente.
+    const a=betaRevision(key,source118,undefined,scope),b=betaRevision(key,read,undefined,scopes[key]);
+    const surfaces=["web","native","edge"].filter(surface=>a[surface]!==b[surface]);
+    if(!surfaces.length)continue;
+    moved[key]=surfaces;
+    why[key]=["web","edge"].flatMap(surface=>(scope[surface]||[]).filter(u=>scopeText(u,old)!==scopeText(u,source)).map(u=>typeof u==="string"?u:(u.function||u.data||u.from)));
+  }
+  assert.deepEqual(moved,{"tr-descripcion-clasificacion":["edge"],"inc-3009-nomina-anticipada":["web"],"bancos-sin-hueco":["web"]},"frente a la beta118, esta entrega mueve sólo a quien ya vigilaba el sync de bancos");
+  assert.deepEqual(why,{
+    // Vigila bank-sync entera por la descripción de Trade Republic: la función cambia (acuse y suelo).
+    "tr-descripcion-clasificacion":["supabase/functions/bank-sync/index.ts"],
+    // Su bloque de App contiene la pulsación de sincronizar, que ahora manda y guarda el acuse.
+    "inc-3009-nomina-anticipada":["  const runBankSync=function("],
+    // Quitar un banco borra su acuse (BankPanel) y el bloque del sync de App lo manda y lo guarda.
+    "bancos-sin-hueco":["BankPanel","  const avisaSync=function(opts,m){"]});
+  for(const key of Object.keys(moved))assert.equal(notes.flatMap(n=>n.tandas||[]).some(g=>g.id===key),false,key+": su huella cambia, pero no vuelve al panel");
+  assert.deepEqual(scopes[recibos],oldScopes[recibos],"el descriptor de los recibos no cambia");
+  assert.deepEqual(betaRevision(recibos,read,undefined,scopes[recibos]),betaRevision(recibos,source118,undefined,oldScopes[recibos]),"la tanda de los recibos conserva su huella: lo que se aprobó es lo que sigue en el producto");
+  const current=betaRevision(id,source,undefined,scopes[id]);
+  assert.ok(current.web&&current.edge);assert.equal(current.native,undefined);
+  assert.throws(()=>betaRevision(id,source118,undefined,scopes[id]),error=>error.code==="BETA_SCOPE_ABSENT","la beta anterior no acredita el cliente: no tiene el acuse local");
+  // Cada regla nueva del cliente reabre la tanda por la web y sólo por la web.
+  for(const [file,from,to] of [
+    [main,"cloud.bankSync({recoverGaps:true,acks:obAckLoad()})","cloud.bankSync({recoverGaps:true})"],
+    [main,"if(l&&l.ack) ack[l.aspsp]=l.ack;","if(l&&l.ack) ack[l.aspsp]=null;"],
+    [main,"lastBankSync:at,","lastBankSync:Date.now(),"],
+    [main,"if(!p || state.lastBankSync!==p.at) return;","if(!p) return;"],
+    [main,"    flushPersist();\n    obAckSave(","    obAckSave("],
+    [core,"if(mcSandbox()) return {};","if(false) return {};"],
+    [core,"if(!disk || disk.lastBankSync!==at) return false;","if(!disk) return false;"],
+    [core,"const OB_ACK_KEY=\"micartera_v3_oback\";","const OB_ACK_KEY=\"micartera_v3\";"],
+    [panel,"obAckDrop(name);",""]]){
+    assert.equal(source(file).split(from).length,2,"mutante sobre fuente real: "+from);
+    const changed=betaRevision(id,f=>f===file?source(f).replace(from,to):source(f),undefined,scopes[id]);
+    assert.notEqual(changed.web,current.web,"reabre la tanda: "+from);
+    assert.equal(changed.edge,current.edge,"sin mover el servidor: "+from);
+  }
+  // Y cada regla del servidor, por la superficie Edge y sólo por ella.
+  for(const [file,from,to] of [
+    ["supabase/functions/bank-sync/index.ts","...(toNow && !acks ? { last_sync: nowIso } : {})","...(toNow ? { last_sync: nowIso } : {})"],
+    ["supabase/functions/bank-sync/demand-window.ts","export const OB_DEMAND_SKEW_DAYS = 3;","export const OB_DEMAND_SKEW_DAYS = 0;"],
+    ["supabase/functions/bank-callback/index.ts","...(keep ? {} : { last_sync: null }),","last_sync: null,"],
+    ["supabase/functions/bank-callback/reconnect.ts","if (p.hash && n.hash) return p.hash === n.hash;","if (p.hash && n.hash) return true;"]]){
+    assert.equal(source(file).split(from).length,2,"mutante sobre fuente real: "+from);
+    const changed=betaRevision(id,f=>f===file?source(f).replace(from,to):source(f),undefined,scopes[id]);
+    assert.notEqual(changed.edge,current.edge,"reabre la tanda: "+from);
+    assert.equal(changed.web,current.web,"sin mover la web: "+from);
+  }
+  for(const file of edgeFiles)assert.notEqual(betaRevision(id,f=>f===file?source(f)+"\n// mutante":source(f),undefined,scopes[id]).edge,current.edge,file+" pertenece a la tanda");
+  const neighbour="  const bankSyncing=useRef(false);";
+  assert.equal(source(main).split(neighbour).length,2);
+  assert.deepEqual(betaRevision(id,f=>f===main?source(f).replace(neighbour,neighbour.replace("false","true")):source(f),undefined,scopes[id]),current,"un estado vecino no reabre la tanda");
+  assert.deepEqual(betaRevision(id,f=>f==="supabase/functions/ingest/index.ts"?source(f)+"\n// mutante":source(f),undefined,scopes[id]),current,"una función ajena no pertenece a esta tanda");
+  const built=betaNotes(notes,read,scopes),receipt=betaDelivery(built,read,scopes),group=built[0].tandas[0];
+  assert.deepEqual(built.flatMap(n=>(n.tandas||[]).map(g=>g.id)),[id],"lo que el build entrega al panel");
+  assert.equal(group.web,current.web);assert.equal(group.edge,current.edge,"el panel la marca con servidor por confirmar");assert.equal(group.native,undefined);assert.equal(group.apk,undefined);
+  assert.equal(receipt.web[id],current.web);
+  // Edge en Git no acredita la función activa: el recibo web no fabrica entrega de servidor.
+  assert.equal(receipt.edge,undefined);assert.equal(JSON.stringify(receipt).includes(current.edge),false,"el recibo web no fabrica entrega de servidor");
+  assert.deepEqual(receipt.pruebas,{[id]:{v:"4.26.119",contenido:JSON.stringify([id,expected119.tandas[0].t.es,expected119.tandas[0].items.es,1])}},"un único guion por probar");
+  assert.equal(receipt.web[recibos],betaRevision(recibos,read,undefined,scopes[recibos]).web,"el producto de los recibos sigue íntegro en el recibo");
+  for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica","native"])assert.equal(group[key],undefined,"identidad nueva sin "+key);
+});
+test("Retiro119 elimina solo recibos-cargo-unico y conserva todo el historial",()=>{
+  const id="recibos-cargo-unico",before=JSON.parse(source118("src/data/release-notes.json")),notes=JSON.parse(read("src/data/release-notes.json"));
+  assert.equal(before[0].tandas.some(g=>g.id===id),true,"la 118 publicada la llevaba");
+  assert.equal(notes.flatMap(n=>n.tandas||[]).some(g=>g.id===id),false,"ya no está en ninguna nota");
+  assert.deepEqual(notes.length,before.length+1,"ninguna nota se borra");
+  // La nota118 conserva versión, fecha, título y textos; solo pierde su tanda, con `tandas:[]` (sin la propiedad resucitaría como /todo).
+  assert.deepEqual(notes[1],{...before[0],tandas:[]});
+  assert.deepEqual(notes.slice(2),before.slice(1),"el resto del catálogo, intacto");
+  const resurrected=structuredClone(notes);resurrected[1].tandas.unshift(before[0].tandas.find(g=>g.id===id));
+  assert.notDeepEqual(resurrected,notes,"no resucitar la tanda aprobada");
+  const scopes=JSON.parse(read("scripts/beta-sources.json")),old=JSON.parse(source118("scripts/beta-sources.json"));
+  assert.deepEqual(scopes[id],old[id],"el descriptor queda como historia");
+  assert.deepEqual(betaRevision(id,read,undefined,scopes[id]),betaRevision(id,source118,undefined,old[id]),"la huella aprobada es la del producto que sigue en la 119");
+  const receipt=betaDelivery(betaNotes(notes,read,scopes),read,scopes);
+  assert.equal(receipt.web[id],betaRevision(id,read,undefined,scopes[id]).web,"el producto sigue íntegro");assert.equal(receipt.pruebas[id],undefined,"el guion aprobado no permanece marcado");
 });
 
 if(process.argv.includes("--integration-only")) process.exit(failed?1:0);
@@ -1041,7 +1202,8 @@ test("PERSIST91: el guardado en el commit invalida toda tanda que escribe estado
   const marca="INC-0410 guardado: de aquí al límite";
   const dependientes=Object.keys(registro).filter(id=>registro[id].web.some(x=>x.from&&x.from.includes(marca)));
   const ajenas=Object.keys(registro).filter(id=>!dependientes.includes(id));
-  assert.equal(dependientes.length,26);
+  assert.equal(dependientes.length,27);
+  assert.ok(dependientes.includes("bancos-acuse-reconexion"),"el acuse se guarda detrás de las filas que escribe el set real");
   assert.ok(dependientes.includes("recibos-cargo-unico"),"mover el día de un recibo o vincular su cargo escribe con el set real");
   assert.ok(dependientes.includes("widget-ciclo-puente"),"el widget corregido lee gastos con el set real");
   assert.ok(dependientes.includes("bancos-sin-hueco"),"el sync de bancos escribe estado con el set real");

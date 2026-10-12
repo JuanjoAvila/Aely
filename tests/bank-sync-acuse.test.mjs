@@ -149,6 +149,68 @@ await t("N1 primera pulsación hace 60 días en el móvil A, la siguiente hoy en
   return limpio(Object.assign({ presses }, cuenta(B, bank, Demand.currentDemandWindowStart(new Date(MS - 60 * DAY)))));
 });
 
+// La misma secuencia con la escritura del punto de partida FALLANDO (revisión final del 12/10).
+// supabase-js no lanza: entrega `{error}`. La víspera es la única escritura que lleva `last_sync`
+// y nada más. Quien pulsa hoy primero decide si el punto de partida hacía falta: B no tiene el
+// acuse de A, así que sin la víspera escrita lo de en medio no se pide (206 de 370).
+const soloVispera = (patch) => "last_sync" in patch && !("status" in patch) && !("updated_at" in patch);
+async function visperaFalla(veces, primero) {
+  const bank = banco();
+  const link = enlace(null);
+  const A = movil();
+  let intentos = 0;
+  reloj.ms = MS - 60 * DAY;
+  const r = await llama(NUEVA, link, bank, CLIENTES.nuevo(A), null, { failUpdate: (patch) => soloVispera(patch) && ++intentos <= veces });
+  recibe(A, r.data.links, "nuevo");
+  const tras = link.last_sync;
+  reloj.ms = MS;
+  const B = movil();
+  B.expenses = JSON.parse(JSON.stringify(A.expenses));
+  const orden = primero === "A" ? [A, B] : [B, A];
+  let presses = 0;
+  while (presses < 80 && link.last_sync !== NOW) {
+    presses++;
+    for (const m of orden) recibe(m, (await llama(NUEVA, link, bank, CLIENTES.nuevo(m))).data.links, "nuevo");
+  }
+  assert.equal(link.last_sync, NOW, "sin converger tras " + presses + " pulsaciones");
+  // Entre los dos móviles (la nube los junta) tiene que estar todo desde la ventana de entonces.
+  const junto = movil();
+  junto.expenses = A.expenses.concat(B.expenses.filter((e) => !A.expenses.some((x) => x.extId === e.extId)));
+  return { r, intentos, tras, cuenta: Object.assign({ presses }, cuenta(junto, bank, Demand.currentDemandWindowStart(new Date(MS - 60 * DAY)))) };
+}
+await t("N1 la escritura del punto de partida falla una vez: se reintenta y, aunque hoy pulse antes el otro móvil, cero perdidos", async () => {
+  const x = await visperaFalla(1, "B");
+  assert.equal(x.intentos, 2, "el error devuelto se mira y se reintenta una vez");
+  assert.equal(x.tras, Demand.chunkCursor(addDays(Demand.currentDemandWindowStart(new Date(MS - 60 * DAY)), -1)), "la víspera de aquella ventana quedó escrita");
+  return limpio(x.cuenta);
+});
+await t("N1 si el punto de partida no entra ni al reintentar, el acuse se entrega igual y el móvil que lo guarda recupera el tramo", async () => {
+  const x = await visperaFalla(2, "A");
+  assert.equal(x.intentos, 2, "un reintento, no más");
+  assert.equal(x.tras, null, "el enlace sigue sin cursor");
+  assert.equal(x.r.data.links[0].ok, true, "el fallo no tumba la sincronización");
+  assert.ok(x.r.data.links[0].ack, "ese acuse es lo único que queda del punto de partida: callarlo perdía el tramo también aquí");
+  return limpio(x.cuenta);
+});
+
+// S11: la víspera es SOLO para el cliente que acusa. El que no acusa no puede adelantarla después,
+// así que con él el enlace sin cursor se escribe una vez y a «ahora», exactamente como la función
+// desplegada. El cursor final no lo distingue (el «ahora» pisa la víspera): se miran las escrituras.
+for (const body of [{ recoverGaps: true }, {}]) {
+  await t("S11 cliente sin acuse " + JSON.stringify(body) + " y enlace sin cursor: una sola escritura del cursor, a «ahora», como la función desplegada", async () => {
+    const escrituras = async (src) => {
+      const vistas = [];
+      const link = enlace(null);
+      await llama(src, link, banco(), body, null, { failUpdate: (patch) => { if ("last_sync" in patch) vistas.push(patch.last_sync); return false; } });
+      assert.equal(link.last_sync, NOW);
+      return vistas;
+    };
+    const nueva = await escrituras(NUEVA);
+    assert.deepEqual(nueva, [NOW], "ni víspera ni ninguna otra escritura intermedia");
+    assert.deepEqual(nueva, await escrituras(VIEJA), "idéntico a la función desplegada");
+  });
+}
+
 // Lo que el acuse protege, también en la PRIMERA lectura. La versión sin acuse escribía «ahora»
 // al leer: si esa respuesta se perdía y la ventana se movía antes de volver, lo de la primera
 // ventana no se pedía más. 45 días y no 60: el tope del banco son 90 y la ventana de entonces

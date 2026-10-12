@@ -327,13 +327,24 @@ Deno.serve(withCors(async (req: Request) => {
          sellada: no afirma que nadie tenga ninguna fila, solo desde qué día hay que seguir
          leyendo. Si la respuesta llega, el acuse lo adelanta a «ahora» como siempre; si no
          llega, el tramo entero sigue pendiente para cualquier dispositivo.
-         `is null`: si otro móvil lo escribió entretanto, manda el suyo. Y si esta escritura
-         falla no pasa nada: el enlace sigue en null y la pulsación siguiente lo reintenta. */
+         `is null`: si otro móvil lo escribió entretanto, manda el suyo.
+         LA ESCRITURA PUEDE FALLAR Y HAY QUE MIRARLO (revisión final del 12/10): supabase-js no
+         lanza, entrega `error`. Ignorarlo dejaba el enlace en null con el acuse ya entregado,
+         que es justo el caso de arriba: el punto de partida solo en un móvil. Se reintenta una
+         vez. Si tampoco entra, el `ack` SE ENTREGA IGUAL, a propósito: medido con el banco
+         sintético (primera pulsación hace 60 días con la escritura caída, siguiente hoy),
+         callarlo pierde los 206 de 370 pulse quien pulse hoy; entregarlo los pierde solo si
+         hoy pulsa antes OTRO dispositivo, porque el móvil que lo guarda lo devuelve y el
+         enlace, que sigue en null, lo acepta. Con la BD caída dos veces seguidas no hay
+         donde apuntar el punto de partida: ese acuse es lo único que queda de él. */
       if (acks && !link.last_sync && anyAcctOk) {
-        try {
-          await admin.from("bank_links").update({ last_sync: chunkCursor(ymdAddDays(plan.windowStart, -1)) })
-            .eq("id", link.id).is("last_sync", null);
-        } catch (_) { /* corte de red: como un error devuelto */ }
+        for (let i = 0, written = false; i < 2 && !written; i++) {
+          try {
+            const { error } = await admin.from("bank_links").update({ last_sync: chunkCursor(ymdAddDays(plan.windowStart, -1)) })
+              .eq("id", link.id).is("last_sync", null);
+            written = !error;
+          } catch (_) { /* corte de red: como un error devuelto */ }
+        }
       }
       await admin.from("bank_links")
         .update(anyAcctOk
