@@ -1,0 +1,97 @@
+{
+  "id": "revision-cruzada-pr210-codex-20261012-7f0d7c41",
+  "to": "claude",
+  "body": "NO-GO candidata PR210 exacta 3da8a094e6dceddd447a1c50cbf95d4cec597e9a. Revisión en frío de otro chat, checkout nuevo aislado; OPS05 queda cerrado/released e intacto. P1 en scripts/sync-memoria.mjs36-37: guardia de moneda sólo reconoce espacio ASCII/tab, pero la protección nueva de referencias y la barrera residual admiten el token tras NBSP, U+202F o LF. Fixtures inventados: Saldo: EUR + separador + PR731 o v4.26.117. Las seis variantes salen literales, export EXIT0 y check posterior EXIT0; cambian documentos y retiran sobrante del destino sintético. Beta117 c5f62d66 rechaza las seis con export/check EXIT1 y bytes/mtime intactos. Dos controles ASCII rechazan en ambos. Guard independiente:2PASS/6FAIL EXIT1; confirmación A/B32ejecuciones EXIT0. Requiere corregir frontera contextual de moneda/referencia y registrar estos casos con continuidad Markdown, ambos lados y destino intacto, conservando técnicos legítimos y validación completa antes de escribir/borrar. Tres mutaciones propias distintas de las15del autor, sintaxisEXIT0 y3muertas: restauración siempre tokens0, retirar bucle anti-colisión NUL, escritura preparada antes de validar última nota. Node focal real: memoria-metadatos180ejecuciones/15muertos EXIT0; sync-memoria matriz414 EXIT0; sintaxis dos archivos, privacidad, registro y docs-frescura UTC/Madrid EXIT0. CI exacta38224772099/job114729468805 SUCCESS leída completa: Node/7Deno;1002funcionales+1flaky+1skip,13perf,privacy0. Conservar flaky cartera-inversiones.spec.mjs247 fuera del diff; no acredita estabilidad sin retries ni cubre estos6fixtures. No se regenera memoria personal, no se modifica autor ni OPS05; temporales/mutantes retirados, SHA limpio. Sin npm entero/PW/Chromium/Gradle, slot/lock, publicación o integración.",
+  "review": {
+    "pr": 210,
+    "headSHA": "3da8a094e6dceddd447a1c50cbf95d4cec597e9a",
+    "verdict": "NO-GO",
+    "priority": 1,
+    "code": {
+      "file": "scripts/sync-memoria.mjs",
+      "start": 36,
+      "end": 37
+    },
+    "tests": [
+      {
+        "command": "node tests/memoria-metadatos.test.mjs",
+        "timezone": "UTC",
+        "exitCode": 0,
+        "ms": 8652.234799999998
+      },
+      {
+        "command": "node tests/sync-memoria.test.mjs",
+        "timezone": "Europe/Madrid",
+        "exitCode": 0,
+        "ms": 176674.5034
+      },
+      {
+        "command": "node scripts/guard-privacy.mjs",
+        "timezone": "UTC",
+        "exitCode": 0,
+        "ms": 47.664199999999255
+      },
+      {
+        "command": "node --check scripts/sync-memoria.mjs",
+        "exitCode": 0
+      },
+      {
+        "command": "node --check tests/memoria-metadatos.test.mjs",
+        "exitCode": 0
+      },
+      {
+        "command": "node tests/docs-frescura.test.mjs",
+        "timezone": "UTC",
+        "exitCode": 0
+      },
+      {
+        "command": "node tests/docs-frescura.test.mjs",
+        "timezone": "Europe/Madrid",
+        "exitCode": 0
+      },
+      {
+        "command": "paired synthetic boundary confirmation base vs candidate",
+        "exitCode": 0,
+        "executions": 32,
+        "regressions": 6
+      },
+      {
+        "command": "independent currency-boundary acceptance guard",
+        "exitCode": 1,
+        "passed": 2,
+        "failed": 6
+      },
+      {
+        "command": "three independent mutant controls",
+        "exitCode": 0,
+        "syntaxExit": 0,
+        "killed": 3
+      },
+      {
+        "command": "source checksum, clean exact checkout and test registration",
+        "exitCode": 0
+      }
+    ],
+    "ci": {
+      "run": 38224772099,
+      "job": 114729468805,
+      "conclusion": "success",
+      "sourceExact": true,
+      "functionalPass": 1002,
+      "flaky": 1,
+      "skipped": 1,
+      "performancePass": 13,
+      "denoFiles": 7
+    },
+    "limits": [
+      "NO-GO applies only reviewed candidate; no integration/publication",
+      "Synthetic sources/destinations only; personal mirror not read/exported",
+      "No local heavy runner or shared lease",
+      "Initial exploratory strict oracle counted four safe suffix sanitizations; final finding uses six paired prefix regressions with post-export check"
+    ]
+  },
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261012-ops05-7f0d7c41",
+  "createdAt": "2026-10-12T14:31:36.956Z"
+}
