@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {recta,resumen,discrimina,atribuciones} from '../e2e/lag-banco-metricas.mjs';
 import {instalaSonda,inyectaFuga,retiraFuga} from '../e2e/lag-banco-sonda.mjs';
 import {curvasSVG} from '../e2e/lag-banco-informe.mjs';
+import {preparaTransporte} from '../e2e/lag-banco-recorrido.mjs';
 
 const sample=(i,extra={})=>({valid:true,elapsedMs:30000,measuredMinute:i/2,slowFrames:3,
   slowFramesPerMinute:6,storageBytes:100,domNodes:100,listeners:40,timeouts:0,intervals:1,
@@ -61,7 +62,9 @@ test('sonda conserva identidad, capture y argumentos; timeout vencido y cancelad
   assert.equal(h.p.listeners.size,2);h.window.removeEventListener('focus',fn,false);assert.equal(h.p.listeners.size,1);
   h.window.removeEventListener('focus',fn,true);assert.equal(h.p.listeners.size,0);
   new h.Storage().setItem('micartera_v3_exp','😀');assert.equal(h.p.snapshot().storageBytes,4);
+  let disconnected=0;h.p.observers.add({disconnect(){disconnected++;}});
   h.p.restore();assert.equal(h.raf.size,0);assert.equal(h.document.visibilityState,'visible');
+  assert.equal(disconnected,1);assert.equal(h.p.observers.size,0);
 });
 test('RAF32ms es delta real y el propio bucle de la sonda se cancela al restaurar',()=>{
   const h=environment();h.p.begin();
@@ -75,4 +78,16 @@ test('fuga conocida retiene callbacks en el destino real y retirarla deja el des
   assert.equal(h.window.handlers.length,8);assert.equal(h.p.listeners.size,8);
   new Function('window',`(${retiraFuga.toString()})();`)(h.window);
   assert.equal(h.window.handlers.length,0);assert.equal(h.p.listeners.size,0);assert.equal(h.p.leaks.length,0);h.p.restore();
+});
+test('observación del pull espera la promesa verdadera, conserva argumentos y no retiene sus filas',async()=>{
+  let resolve;const rows=[{id:'synthetic-row'}],proof={};
+  const window={__lagBanco:{transport:{},bankSync:0}};
+  const cloud={pullExpenses(arg){assert.equal(this,cloud);assert.equal(arg,proof);arg.valid=true;return new Promise(r=>{resolve=r;});},bankSync:async()=>({ok:true})};
+  const original=cloud.pullExpenses;
+  const page={evaluate:fn=>new Function('window','cloud',`return (${fn.toString()})();`)(window,cloud)};
+  await preparaTransporte(page);const pull=cloud.pullExpenses(proof);let ended=false;
+  window.__lagBanco.lastPull.then(()=>{ended=true;});await Promise.resolve();assert.equal(ended,false);
+  resolve(rows);assert.equal(await pull,rows);assert.equal(await window.__lagBanco.lastPull,undefined);
+  assert.equal(window.__lagBanco.transport.pullExpenses.succeeded,1);assert.equal(proof.valid,true);
+  window.__lagBanco.restoreTransport();assert.equal(cloud.pullExpenses,original);
 });

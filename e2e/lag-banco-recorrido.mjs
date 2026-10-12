@@ -8,9 +8,10 @@ function existing(name){
 }
 // Reutiliza las acciones publicadas, sin importar el spec y registrar sus tests otra vez.
 // Su lifecycle antiguo toma heap dentro de la ventana; éste observa sólo contadores pequeños.
-const cycleSource=existing('cycle').replace('const states=await lifecycle(page,cdp);','const states=await lifecycle(page);');
+const cycleSource=existing('cycle').replace('const states=await lifecycle(page,cdp);','const states=await lifecycle(page);')
+  .replace('await delay(1200);','await bankReport(page);');
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
-const make=new Function('delay','scroll','markAction','lifecycle',existing('fixture')+'\n'+existing('click')+'\n'+cycleSource+'\nreturn {fixture,cycle};');
+const make=new Function('delay','scroll','markAction','lifecycle','bankReport',existing('fixture')+'\n'+existing('click')+'\n'+cycleSource+'\nreturn {fixture,cycle};');
 async function markAction(page,name){await page.evaluate(name=>{window.__lagBanco.actionName=name;},name);}
 
 async function scroll(page,cdp,down){
@@ -40,6 +41,9 @@ async function lifecycle(page){
   const before=await page.evaluate(()=>({pull:window.__lagBanco.transport.pullExpenses?.succeeded||0,
     bank:window.__lagBanco.bankSync,writes:window.__lagBanco.expensesWrites}));
   await change('hidden');await change('visible');
+  // Veinte páginas con retardo real del doble tardan más que una pausa fija. Esperar su
+  // promesa acredita el final sin polling DOM ni cambiar el timeout/oráculo del test.
+  await page.evaluate(async()=>{if(window.__lagBanco.lastPull)await window.__lagBanco.lastPull;});
   const after=await page.evaluate(()=>({pull:window.__lagBanco.transport.pullExpenses?.succeeded||0,
     bank:window.__lagBanco.bankSync,writes:window.__lagBanco.expensesWrites,
     visible:document.visibilityState==='visible'&&!document.hidden}));
@@ -49,18 +53,30 @@ async function lifecycle(page){
   return {visible:after.visible,pullDelta:after.pull-before.pull,automaticBankDelta:after.bank-before.bank,
     historyWritesDelta:after.writes-before.writes};
 }
-export const recorrido=make(delay,scroll,markAction,lifecycle);
+async function bankReport(page){
+  await page.evaluate(()=>new Promise(resolve=>{
+    const p=window.__lagBanco;
+    const ready=()=>{if(document.querySelector('.sync-report')){observer.disconnect();p.observers.delete(observer);resolve();}};
+    const observer=new MutationObserver(ready);p.observers.add(observer);
+    observer.observe(document.body,{childList:true,subtree:true});ready();
+  }));
+}
+export const recorrido=make(delay,scroll,markAction,lifecycle,bankReport);
 export async function preparaTransporte(page){
   await page.evaluate(()=>{
     const p=window.__lagBanco;
     const originals={};
     // No modifica consultas ni copia datos: observa la closure real con el cliente doble.
     for(const name of ['pullExpenses','bankSync']){
-      const real=cloud[name];originals[name]=real;cloud[name]=async function(...args){
-        const t=p.transport[name]||(p.transport[name]={started:0,succeeded:0,failed:0});
-        t.started++;if(name==='bankSync')p.bankSync++;
-        try{const result=await real.apply(this,args);t.succeeded++;return result;}
-        catch(error){t.failed++;throw error;}
+      const real=cloud[name];originals[name]=real;cloud[name]=function(...args){
+        const work=(async()=>{
+          const t=p.transport[name]||(p.transport[name]={started:0,succeeded:0,failed:0});
+          t.started++;if(name==='bankSync')p.bankSync++;
+          try{const result=await real.apply(this,args);t.succeeded++;return result;}
+          catch(error){t.failed++;throw error;}
+        })();
+        if(name==='pullExpenses')p.lastPull=work.then(()=>{},()=>{});
+        return work;
       };
     }
     p.restoreTransport=function(){for(const [name,fn]of Object.entries(originals))cloud[name]=fn;};

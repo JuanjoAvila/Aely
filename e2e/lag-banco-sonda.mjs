@@ -10,7 +10,7 @@ export function instalaSonda(sourceMap=[]) {
   let seq=0;
   const p=window.__lagBanco={active:false,previous:null,elapsedStart:0,frames:0,slowFrames:0,maxFrame:0,
     storageBytes:0,writes:0,expensesWrites:0,visibility:'visible',onceNotAttributed:0,
-    timers,listeners,leaks:[],transport:{},bankSync:0,stopped:false,rafId:null};
+    timers,listeners,leaks:[],observers:new Set(),transport:{},bankSync:0,stopped:false,rafId:null};
   const source=function(fn){
     if(fn&&/^(?:e2e|src)\/[\w./-]+:\d+$/.test(fn.__lagSource||'')) return fn.__lagSource;
     const stack=String(new Error().stack||'').split('\n');
@@ -76,6 +76,7 @@ export function instalaSonda(sourceMap=[]) {
   };
   p.restore=function(){
     p.active=false;p.stopped=true;native.cancelRaf.call(window,p.rafId);
+    for(const observer of p.observers)observer.disconnect();p.observers.clear();
     EventTarget.prototype.addEventListener=native.add;EventTarget.prototype.removeEventListener=native.remove;
     window.setTimeout=native.timeout;window.setInterval=native.interval;window.clearTimeout=native.clearTimeout;
     window.clearInterval=native.clearInterval;Storage.prototype.setItem=native.put;
