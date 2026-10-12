@@ -4,6 +4,43 @@ PR204 en borrador; unidad nueva `inicio-patrimonio-flujos`, base de ejecución
 `788432f4682c199edd785f6973d9353330c0064a`. El encargo/claim conserva su base118.
 Las actas previas son históricas. Esta revisión no está publicada ni aprobada.
 
+## Corte de validación del12/10,19:20UTC
+
+Runtime y pruebas de pantalla congelados en
+`16d921c56d5b244bd4b9dd68a82244a5c505c305`. El cierre documental posterior
+conserva esos bytes; no atribuye a otra fuente una pasada nueva.
+
+| Gate ejecutado | Resultado real |
+|---|---|
+| Build, sintaxis, i18n, mapa, seguridad, auth y veredictos | EXIT0 |
+| Inicio causal en UTC y Madrid | EXIT0; siete mutantes monetarios muertos |
+| `beta-sources` completo, incluyendo Catálogo119/Retiro119 actuales e históricos | EXIT0 |
+| Focal DOM propia |31PASS/0FAIL/0skip/0flaky;60.141s;1worker/0retry |
+| Cinco archivos originales de rendimiento |14PASS/0FAIL/0skip/0flaky;515.317s;1worker/0retry |
+| Inicio CPU6,20000movimientos/400cierres |entrada60.003FPS y arrastre60.004FPS;0frames>32ms;presupuesto12.9ms |
+| A/B119, primera pasada |EXIT1: candidato44.670/45.333/60.004; base36.708/31.766/35.296FPS |
+| Única repetición efectiva del A/B |EXIT0: candidato60.003/60.004/59.999; base45.003/45.714/44.473FPS |
+| Tres reentradas, bytes escritos |candidato2571; base5757, en ambas pasadas |
+| `docs-frescura` local |EXIT1: código después del ancla119 sin VERSION nueva; consulta7d349 pendiente |
+
+La repetición del A/B estaba prescrita con GameAssist presente. Se conservan
+ambas pasadas, todos sus puntos y el rojo inicial. No se ha probado la causa de
+esa diferencia y no se atribuye a GameAssist ni se selecciona sólo el punto60.
+Dos intentos de publicación fallaron antes de lanzar la repetición: son errores
+de transporte, no pasadas ni reintentos de Playwright.
+
+Las tomas y devoluciones fueron propias y nuevas por fase. La última devolución
+`8fb65911888da1160a3515d9c88d5b82619868c9` conserva el nonce62ef y el payload
+preparado por el helper canónico. Tras fallar GitTCP443 se publicó por el conector
+GitHub con el padre remoto227f, sin force, y se leyó el fichero exacto.
+Censo final libre, HTML antes/después
+`0cc7d621d4e10a0d97e51eea6fd53d09c80a5e8d0fd49386dee307ba7a1b2cb6`.
+No se adoptaron leases ni retornos ajenos, ni se cerró GameAssist.
+
+Pendiente al cerrar este corte: Tests remoto sobre el HEAD final, revisión e
+integración de Claude, catálogo/versionado de integración, publicación y móvil.
+La funcional completa no se repite en local. La guardia VERSION no se elude.
+
 El saldo manual y hoy usan la cifra real mostrada por Cartera, incluidos cobros
 modelados. La deuda histórica usa la amortización existente: cuota entera como
 salida bancaria, principal como reducción de deuda, intereses como pérdida.
