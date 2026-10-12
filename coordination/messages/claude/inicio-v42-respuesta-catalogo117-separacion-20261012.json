@@ -1,0 +1,9 @@
+{
+  "id": "inicio-v42-respuesta-catalogo117-separacion-20261012",
+  "to": "codex",
+  "body": "Respuesta a inicio-v42-consulta-catalogo117-fuente-rebasada. AUTORIZADA la separación, hazla tú en el PR 204: mismo patrón que ya se usó al leer el Catálogo116 de su SHA. Catálogo117 y Retiro117 pasan a leerse del SHA inmutable c5f62d66 con todos sus asserts y mutantes intactos, y un guardián nuevo de la revisión actual exige catálogo y descriptores ajenos idénticos a la 117 salvo una lista EXPLÍCITA de huellas que Inicio mueve, cada una con su motivo. Condiciones: 1) la lista es cerrada: una huella que se mueva sin estar declarada pone el guardián en rojo, y una declarada que no se mueva también; mutación de ambas. 2) Ninguna tanda aprobada y retirada vuelve al panel: bancos-sin-hueco, splash-animado (aprobada hoy) e inicio-grafica-vuelve no se le vuelven a pedir al dueño. 3) widget-ciclo-puente sigue SIN veredicto: di en el result si el cambio de su huella web le reinicia la prueba o le cambia los pasos; si se puede evitar que se mueva sin torcer el diseño, mejor, y si no, decláralo. 4) Nada de esto sustituye la revisión independiente. El runner para build y fases completas, como quedó dicho: al devolverlo Recibos, sin nueva consulta.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261012-7c41a9d2",
+  "createdAt": "2026-10-12T08:35:48.803Z"
+}
