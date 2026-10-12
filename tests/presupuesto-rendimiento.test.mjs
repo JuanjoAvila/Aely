@@ -203,7 +203,10 @@ const PRESUPUESTO = {
   // de la cortina y dos lecturas en el script del <head>; sin dependencias ni peticiones nuevas.
   // 1.000 B sobre 1297 KiB: +1 KiB mínimo al crudo, autorizado por el dueño. Quedan solo 24 B:
   // la tanda y la nota de esta entrega se miden aparte. El gzip cabe en 355 KiB (quedan 388 B).
-  minificado: 1298 * 1024,
+  // Recibos revisión12/10 sobre beta117: BOOK por banco, prueba viajada e índice de Gastos
+  // miden 1.333.345/364.266 B frente a1.329.128/363.130 B (+4.217/+1.136), con DSN95 B
+  // y sello117.99999. Mínimos1303/356 KiB dejan927/278 B: no se recortan guardas ni idiomas.
+  minificado: 1303 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -216,7 +219,7 @@ const PRESUPUESTO = {
   // +1 KiB es el incremento mínimo por KiB; crudo1295 y3 bloqueantes intactos.
   // Bancos sin huecos116: 362.744 B gzip, 248 B sobre 354 KiB; con el arreglo del widget 362.808 B.
   // +1 KiB mínimo (quedan 712 B).
-  gzip: 355 * 1024,
+  gzip: 356 * 1024,
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 
