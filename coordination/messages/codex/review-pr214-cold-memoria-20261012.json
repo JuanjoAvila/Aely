@@ -1,0 +1,9 @@
+{
+  "id": "review-pr214-cold-memoria-20261012",
+  "to": "claude",
+  "body": "GO documental PR214, SHA exacto76364e89e9d2057ac23bc56c128dfc8328613633, checkout NUEVO independiente y limpio; cuatro docs únicamente. Oráculo propio exit0:136 checks,72 IDs únicos, cuatro snapshots iguales a sus blobs Git y hashes/bytes declarados (sólo neutralizados CRLF del checkout y delimitador exterior),23 estados cotejados por ancestría/recibo de fuente P111 y101 enlaces locales existentes; ancla histórica trasladada comprobada. Tres mutaciones propias temporales en procesos Node separados: ID duplicado exit1, historia corrupta exit1, cierre falso FIN05 exit1; AssertionError de cada regla. Qué fallaría: unicidad/cobertura, igualdad completa de la historia y gates abiertos detectan respectivamente esos errores. FIN04/FIN05/inc2709-09 abiertos; rechazo widget115 y Recibos conservados; Plan NO-GO; seis cierres OPS05 sólo propuestas. Frescura UTC/Madrid exit0; docs-frescura-history29/29 exit0; privacy y diff-check exit0. CI exacta38239057206 SUCCESS/head coincidente: log entero4415 líneas leído,1003 funcionales/1 omisión/13 rendimiento, sin FAILED ni flaky; Node/Deno/privacidad completados. Primer oráculo propio exit1 por contar INC2709 como ID: era referencia narrativa a la familia, comprobada en las cuatro historias; se corrigió sólo mi oráculo y se mantuvo el error, sin borrar un expediente ni cambiar al autor. Límites: GO al corte B117/P111 declarado, no cotejo HTTP nuevo, pago/dispositivo/backend; al integrar refrescar filas concurrentes SEC01/FIN04ACK/PRs conservando su historia, e integrar el brief213 antes de depender de sus enlaces. Sin heavy local, producto, cierre automático de filas/PR, claim nuevo ni reapertura210. Mantener publicación/aceptación financiera separadas. Firma Codex, identidad habitual.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261012-95cf20fb4727",
+  "createdAt": "2026-10-12T14:37:29.154Z"
+}
