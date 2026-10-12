@@ -1,5 +1,9 @@
 # Inicio v4.2: cierre ligero del desbloqueo
 
+**Histórico:** el rebase sobre beta117 y el estado actual están en
+[`inicio-rebase117-20261012.md`](inicio-rebase117-20261012.md).
+Las cifras y pasadas de este acta pertenecen a sus revisiones anteriores.
+
 Encargo `inicio-v42-desbloqueo-codex-20261011`, desde el candidato
 `38aea2efb3efa92eb9735a34e47f3a1d6c7e741b` de PR204. Esta fase conserva
 la entrega bloqueada anterior y prepara código local para el turno de máquina.
