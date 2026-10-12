@@ -142,4 +142,30 @@ await test('el conflicto sólo toma una base nueva tras decisión explícita',as
  const op=a.cloud.expenseWrites()[0];await assert.rejects(()=>a.cloud.retryExpenseWrite(op.opId),/conflict/);
  await a.cloud.retryExpenseWrite(op.opId,true);assert.equal(db.rows[0].source,'ob:revolut#dup');
 });
+await test('un lote no adelanta una edición pendiente de su segundo UUID',async()=>{
+ const db=database({error:true});db.rows.push({...db.rows[0],id:other});const a=await client(db);
+ await assert.rejects(()=>a.cloud.setExpenseNote({...expense,id:other},'Antes del lote'));
+ delete db.options.error;await assert.rejects(()=>a.cloud.deleteExpensesByIds([id,other]));
+ assert.equal(db.calls.filter(q=>q.deleted).length,0);assert.equal(db.rows.length,2);
+});
+await test('caducar la sesión no oculta la intención y recuperarla permite reintentar',async()=>{
+ const a=await client();a.db.login(null);await a.cloud.session();
+ await assert.rejects(()=>a.cloud.setExpenseNote(expense,'Conservar sin sesión'));
+ const op=a.cloud.expenseWrites()[0];assert.equal(op.owner,owner);assert.equal(op.status,'session');
+ a.db.login(owner);await a.cloud.session();await a.cloud.retryExpenseWrite(op.opId);assert.equal(a.db.rows[0].nota,'Conservar sin sesión');
+});
+await test('pull de cuota TR/Wallet no borra el vínculo que source no transporta',async()=>{
+ for(const source of ['macrodroid','wallet']){
+  const a=await client();a.db.rows[0].source=source;await a.cloud.setExpenseDeuda({...expense,debtId:'debt-fixture'});
+  const incoming=a.c.expenseFromRow(a.db.rows[0]),local={...incoming,debtId:'debt-fixture'};
+  const r=a.c.mergeExpensesFromCloud([local],[incoming],Date.now()+1);assert.equal(r.list[0].debtId,'debt-fixture');assert.equal(r.list[0].category,'deudas');
+ }
+});
+await test('volver al primer valor después de otro gesto crea la última intención',async()=>{
+ const db=database({error:true}),a=await client(db);
+ for(const value of ['Primero','Segundo','Primero'])await assert.rejects(()=>a.cloud.setExpenseNote(expense,value));
+ const ops=a.cloud.expenseWrites();assert.equal(ops.length,3);delete db.options.error;
+ for(const op of ops)await a.cloud.retryExpenseWrite(op.opId);
+ assert.equal(db.rows[0].nota,'Primero');assert.equal(db.calls.filter(q=>q.patch).length,3);
+});
 console.log('expense-write-contracts: '+count+' PASS');

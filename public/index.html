@@ -3523,14 +3523,16 @@ async function mcPullExpensesPaged(fetchPage){
 
 /* FIN-04: la intención se guarda antes de viajar. Cada operación tiene su clave propia para
    no sobrescribir la cola de otra pestaña; nunca se mezcla con app_state ni con otro titular. */
-var _mcExpenseOwner=null, _mcExpenseEpoch=0, _mcExpenseOps={}, _mcExpenseBusy={}, _mcExpenseAcks={};
+var _mcExpenseOwner=null, _mcExpenseLastOwner=null, _mcExpenseEpoch=0, _mcExpenseOps={}, _mcExpenseBusy={}, _mcExpenseAcks={};
 var _mcExpenseListeners=[];
 function mcExpenseChanged(){ _mcExpenseListeners.slice().forEach(function(fn){ try{ fn(); }catch(e){} }); }
 function mcExpenseSession(s){
   const owner=s&&s.user&&s.user.id||null;
+  if(owner) _mcExpenseLastOwner=owner;
   if(owner!==_mcExpenseOwner){ _mcExpenseOwner=owner; _mcExpenseEpoch++; mcExpenseChanged(); }
   return s;
 }
+function mcExpenseContextOwner(){ return _mcExpenseOwner||_mcExpenseLastOwner; }
 function mcOnExpenseWrites(fn){ _mcExpenseListeners.push(fn); return function(){ _mcExpenseListeners=_mcExpenseListeners.filter(function(x){ return x!==fn; }); }; }
 function mcExpenseOpKey(op){ return "mc-expense-op:"+encodeURIComponent(op.owner||"")+":"+op.opId; }
 function mcExpensePending(owner){
@@ -3666,14 +3668,15 @@ async function mcExpenseRun(sb,op){
       if(op.cancelled) return {cancelled:true};
       // Dos gestos seguidos no pueden llegar al servidor al revés. Si el primero sigue
       // incierto, el segundo conserva su intención y espera a que se revise/reintente.
-      const older=mcExpensePending(op.owner).find(function(x){ return x.opId!==op.opId && x.at<op.at
-        && (x.id===op.id || x.kind==="deleteIds"&&x.value.indexOf(op.id)>=0); });
+      const ids=op.kind==="deleteIds"?op.value:[op.id];
+      const older=mcExpensePending(op.owner).find(function(x){ return (x.at<op.at || x.at===op.at&&x.opId<op.opId)
+        && (x.kind==="deleteIds"?x.value:[x.id]).some(function(id){ return ids.indexOf(id)>=0; }); });
       if(older){
         if(_mcExpenseBusy[older.opId]) await _mcExpenseBusy[older.opId];
         else throw mcExpenseFailure("pending");
       }
       op.status="pending"; mcExpensePersist(op);
-      const ids=op.kind==="deleteIds"?op.value:[op.id]; let ack;
+      let ack;
       for(const id of ids){
         if(op.done && op.done.indexOf(id)>=0) continue;
         ack=await mcExpenseSendOne(sb,op,id,epoch);
@@ -3695,9 +3698,10 @@ async function mcExpenseRun(sb,op){
 }
 async function writeExpenseField(sb,e,kind,value,holdUntil){
   if(mcSandbox()) return null;
-  const known=_mcExpenseOwner, epoch=_mcExpenseEpoch;
+  const known=mcExpenseContextOwner(), epoch=_mcExpenseEpoch;
   const pending=mcExpensePending(known);
-  let op=pending.slice().reverse().find(function(x){ return x.id===(e&&e.id) && x.kind===kind && mcExpenseSame(x.value,value) && !x.cancelled; });
+  let op=pending.slice().reverse().find(function(x){ return x.id===(e&&e.id) && x.kind===kind && !x.cancelled; });
+  if(op && !mcExpenseSame(op.value,value)) op=null;
   const created=!op;
   if(!op){ op={opId:mcExpenseId(),owner:known,id:e&&e.id,label:String(e&&e.merchant||"").slice(0,100),kind:kind,value:value,
     at:Math.max(Date.now(),pending.length?pending[pending.length-1].at+1:0),holdUntil:holdUntil||0,status:"pending"}; mcExpensePersist(op); }
@@ -3724,16 +3728,16 @@ const cloud = (function(){
     enabled(){ return !!sb; },
     async session(){ if(!sb) return null; const {data}=await sb.auth.getSession(); return mcExpenseSession(data.session); },
     onAuth(cb){ const sub=sb&&sb.auth.onAuthStateChange((ev,s)=>{ mcExpenseSession(s); cb(s,ev); }); return ()=>{ if(sub) sub.data.subscription.unsubscribe(); }; },
-    expenseWrites(){ return mcSandbox()?[]:mcExpensePending(_mcExpenseOwner); },
+    expenseWrites(){ return mcSandbox()?[]:mcExpensePending(mcExpenseContextOwner()); },
     async retryExpenseWrite(opId, acceptConflict){
-      const op=mcExpensePending(_mcExpenseOwner).find(function(x){ return x.opId===opId; });
+      const op=mcExpensePending(mcExpenseContextOwner()).find(function(x){ return x.opId===opId; });
       if(!op || !op.owner) throw mcExpenseFailure("session");
       if(op.status==="conflict" && acceptConflict===true){ delete op.bases; mcExpensePersist(op); }
       return mcExpenseRun(sb,op);
     },
     cancelExpenseDelete(id){
       if(mcSandbox()) return true;
-      const ops=mcExpensePending(_mcExpenseOwner).filter(function(x){ return x.id===id && x.kind==="delete"; });
+      const ops=mcExpensePending(mcExpenseContextOwner()).filter(function(x){ return x.id===id && x.kind==="delete"; });
       if(!ops.length || ops.some(function(x){ return x.attempted; })) return false;
       ops.forEach(function(op){ op.cancelled=true; mcExpenseForget(op); });
       return true;
@@ -5220,7 +5224,9 @@ function refreshExpenseFromCloud(local, incoming, readStartedAt){
   if(exact){
     put("date",incoming.date);
     if(Object.prototype.hasOwnProperty.call(incoming,"ent")) put("ent",incoming.ent);
-    if(Object.prototype.hasOwnProperty.call(incoming,"debtId")) put("debtId",incoming.debtId);
+    // TR/Wallet guardan la categoría, pero no codifican la deuda en source. Su ausencia
+    // no puede deshacer un vínculo local mientras la fila siga siendo cuota.
+    if(Object.prototype.hasOwnProperty.call(incoming,"debtId") && (incoming.debtId || incoming.category!=="deudas")) put("debtId",incoming.debtId);
   }
   if(incoming.amount!=null && isFinite(incoming.amount)) put("amount", incoming.amount);
   if(incoming.merchant!=null && incoming.merchant!=="") put("merchant", incoming.merchant);
@@ -5263,7 +5269,7 @@ function refreshExpenseFromCloud(local, incoming, readStartedAt){
 // La cola sólo protege los campos decididos en ESTE titular. Una lectura anterior al ACK
 // también los conserva; las posteriores pueden adoptar una decisión hecha en otro móvil.
 function mcExpenseReadGuards(readStartedAt){
-  const out={}, owner=_mcExpenseOwner;
+  const out={}, owner=mcExpenseContextOwner();
   const add=function(op,id){
     const g=out[id]||(out[id]={});
     const fields={bank:["ent"],dup:["possibleDup","possibleDupOf","source"],category:["category","debtId"],
@@ -22029,7 +22035,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="d3573c06bf9cf9868cb4e53ebe2d9669f8e4b3c4f5e63c45dcc22875c9ba3d02";
+var _rnSha="980539dd19866e6d10f862649d43a866955a579e1a10388a5fdd379a06cb706a";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
