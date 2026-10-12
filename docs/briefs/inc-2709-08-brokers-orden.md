@@ -1,6 +1,18 @@
 # INC-2709-08 · Orden y despliegue de brókers
 
-Candidata desde beta `c5f62d6603d016150afd9d0e20547b608b323045`, sin publicar. No acredita aceptación móvil ni integración. No modifica VERSION, notas de versión, catálogos fuente, backend o APK.
+Base histórica inmutable del task/claim: beta `c5f62d6603d016150afd9d0e20547b608b323045`. La candidata sigue sin publicar y no acredita aceptación móvil ni integración. No modifica VERSION, notas de versión, catálogos fuente, backend o APK respecto a su base de ejecución.
+
+## Rebase autorizado a beta119 · preparación actual
+
+Orden expresa de Claude `4a9e38ddab36cea4c2655aef956ce27c5cf7a61d`: base de ejecución `788432f4682c199edd785f6973d9353330c0064a`. La base histórica y la sesión del claim no cambian. Fuente tras rebase `dddb32d657364820bc886db89cbcb2d836a3c292`; no había fase propia pesada activa. Los conflictos fueron documentación y `public/beta-delivery.json`: se conservaron las entradas de118/119 y los artefactos se regeneraron mediante build. Las tres fuentes propias de producto y los tests propios son idénticos a la candidata7656ee13; el contexto compartido sí cambió, por lo que el DOM32/32 anterior permanece histórico.
+
+Quince funciones de proveedores/finanzas ajenas al render, incluida `InvestmentRewards`, coinciden exactamente con beta119. También coincide el bloque de edición/venta/borrado de Inversiones. La rama en vuelo de Claude, observada en `dd320e29`, modifica `InvestmentRewards` para excluir cargos de recibos del redondeo y ampliar dependencias: se leyó solo su diff, sin checkout, edición ni mezcla. Esa función se conserva desde la base para facilitar la integración por funciones.
+
+Build y sintaxis actuales exit0; cuatro Node propios PASS0fallos/skip; i18n, mapa, seguridad —incluidas las garantías nuevas del acuse— y privacidad exit0. Presupuesto oficial exit0 con topes heredados1304/357KiB intactos: base1.334.526/364.664 B; candidata1.329.889/364.450 B (min/gzip9, sello119.99999 y DSN sintético95B), delta−4.637/−214 B. VERSION, notas, catálogos/oráculos, nativo y APK coinciden con beta119 sin modificaciones propias; la retirada de Recibos118 y los contratos Catálogo119/Retiro119 y Catálogo118 desde7e706174 se conservan.
+
+Focal Node de los tres oráculos literales —sin alterar aserciones ni ejecutar el guard completo—: Catálogo118 histórico PASS, Retiro119 PASS, Catálogo119 FAIL/exit1 por la huella adicional `inc-0810-nav-indicator` web. Se conserva el rojo causal del selector retirado en la media global; no se elimina del oráculo ni se restaura CSS sin uso para fingir identidad. La fuente de `tests/beta-sources.test.mjs` es idéntica a la base119. El helper temporal del focal se retiró tras registrar el resultado.
+
+DOM y rendimiento de esta fuente no ejecutados. Inicio conserva prioridad global para rendimiento completo y A/B: antes del siguiente heavy de Brókers se requiere su retorno nuevo expreso, concesión propia, censo y cerrojo nuevos y toma/devolución en serie. El plan CPU6 mantiene seis casos —dos propios y la apertura stock por cada fuente—, solo specs propios, workers1/retries0 y cotejo HTTP/archivo previo. La consulta sigue siendo `b2ef2b68`; el cambio de SHA/base se comunica como enmienda, sin una consulta nueva. CI completa remota de Tests y PR borrador final pendientes. Los apartados siguientes conservan la auditoría y pruebas anteriores, no son resultados sobre beta119.
 
 ## Petición y auditoría
 
@@ -14,7 +26,7 @@ La candidata solo completa esos huecos. Ambos modos usan `settings.invBrokerOrde
 
 Las únicas llamadas reales a `Investments` están en `14-v4-screens.js`, portada con `v4Embed` e hija con `fullMode`. El renderer v3 posterior a esas dos salidas no tenía puerta ni llamada: se retira junto con su ranking, automático y explicación antigua. Alta/edición/venta/borrado de la hija, Redondeo/Saveback de portada y Auto precios/Proyección de Ajustes conservan sus puertas y sus pruebas stock; su DOM está pendiente.
 
-## Verificación y límites
+## Verificación y límites históricos · base117
 
 - Build y sintaxis: exit0. Cuatro pruebas Node propias: 4 PASS, 0 FAIL/skip. Claves es/en/ca, mapa de e2e, seguridad y privacidad: exit0.
 - Guardado/carga, `slimForCloud` y validación de nube ejecutados también con el cliente antiguo exacto de la base: PASS; conserva la preferencia opcional y los datos, sin atribuirle el nuevo orden visual.
