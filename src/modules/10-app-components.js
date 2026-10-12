@@ -478,6 +478,8 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks,
       // NUEVAS, nunca desde la migracion que recategoriza el historico (tanda 6).
       const cat=(c&&c.category)||categoryOfNewMerchant(x.merchant||"");
       const e={ id:mcExpenseId(), date:x.stamp||histDate(x.date), merchant:x.merchant, amount:Math.abs(x.amount), category:cat, source:"ob-hist", ent:x.ent, importBatchId:batchId };
+      // Es el cargo de un recibo del Plan: entra a la lista sin mover cifras (ver `expenseCountsCash`).
+      if(c&&c.reciboId) e.reciboId=c.reciboId;
       if(x.id) e.extId=x.id;
       histKeepAmbiguity(e,c);
       const nt=cleanNote(x.note, e.merchant); if(nt) e.note=nt;
@@ -593,8 +595,8 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks,
   };
   const dupHint=function(c){
     if(c&&c.status==="maybe") return "🗐 "+t("bp_hist_dupmaybe");
+    if(c&&c.reciboId) return "🧾 "+tf("bp_hist_esrecibo",{name:(c.match&&c.match.name)||t("bp_hist_recibo")});
     if(!c||c.status!=="dup") return null;
-    if(c.reason==="modeled") return "🗐 "+t("bp_hist_dupmodel");
     return "🗐 "+t("bp_hist_dupexist");
   };
   return React.createElement("div",{style:wrap,className:"hist-import"}, React.createElement("div",{style:inner},
@@ -678,7 +680,8 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks,
             ),
             on && React.createElement("div",{style:{display:"flex",gap:6,marginTop:8,flexWrap:"wrap",paddingLeft:31}},
               !isIn && destChip(i,"gasto",t("bp_hist_as_gasto")),
-              !isIn && destChip(i,"recibo",t("bp_hist_as_recibo"),t("bp_hist_confirm_fijos_sub")),
+              // Ya es un recibo del Plan: ofrecer «Recibo» crearía otro igual que restaría cada mes.
+              !isIn && !(c&&c.reciboId) && destChip(i,"recibo",t("bp_hist_as_recibo"),t("bp_hist_confirm_fijos_sub")),
               destChip(i,"ingreso",t("bp_hist_as_ingreso"))
             )
           );

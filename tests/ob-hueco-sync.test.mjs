@@ -51,9 +51,12 @@ t("dos bancos: el hueco entra con su fecha y no duplica noti, mano ni histórico
   ];
   const add = ctx.importObExpenses(cartera(seeded), lote, links) || [];
   const names = add.map((e) => e.ent + "|" + e.merchant).sort();
-  // Farmacia Norte ya está modelada como fijo: el tramo antiguo no la duplica como gasto.
-  assert.equal(JSON.stringify(names), JSON.stringify(["sabadell|Mercadona", "sabadell|Panadería Sol"]));
-  assert.equal(add.find((e) => e.merchant === "Farmacia Norte"), undefined);
+  // Farmacia Norte ya está modelada como fijo: desde el 12/10/2026 entra en la lista, enlazada a
+  // su recibo y sin contar, en vez de tirarse.
+  assert.equal(JSON.stringify(names), JSON.stringify(["caixabank|Farmacia Norte", "sabadell|Mercadona", "sabadell|Panadería Sol"]));
+  const farmacia = add.find((e) => e.merchant === "Farmacia Norte");
+  assert.ok(farmacia.reciboId, "lleva el recibo al que corresponde");
+  assert.equal(ctx.expenseCountsCash(farmacia, cartera(seeded)), false);
   const pan = add.find((e) => e.merchant === "Panadería Sol");
   assert.equal(pan.date.slice(0, 10), viejo);
   assert.equal(pan.source, "ob");

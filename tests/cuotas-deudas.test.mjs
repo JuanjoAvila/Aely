@@ -144,12 +144,11 @@ t("★ sale del GASTADO, pero el saldo de gasto NO se mueve", () => {
   assert.equal(cli.expenseBucket(deuda(despues, cuota.id), despues), "deuda");
 });
 
-t("importObExpenses ya no TIRA la deuda casada por nombre (los Fijos sí)", () => {
+t("importObExpenses no tira la deuda casada por nombre ni el Fijo: cada uno entra con su marca", () => {
   const tx = (merchant, amount) => ({ ent: "sabadell", id: null, date: iso(Y, M, 1).slice(0, 10), amount, merchant, note: "", card: false, status: "" });
   const s = estado([], { fixed: [{ id: "f1", name: "Endesa", amount: 60, account: "sabadell", freq: "mes", day: 1 }] });
   const add = cli.importObExpenses(s, [tx("RECIBO HIPOTECA", 660.85), tx("ENDESA ENERGIA", 60)]);
-  assert.equal(add.length, 1);
-  assert.equal(add[0].merchant, "RECIBO HIPOTECA");
+  assert.equal(JSON.stringify(add.map((e) => [e.merchant, e.reciboId || null])), JSON.stringify([["RECIBO HIPOTECA", null], ["ENDESA ENERGIA", "f1"]]));
 });
 
 t("★ viaja a la nube: OB con `~deuda.`, la noti sin tocar su source", () => {
@@ -261,10 +260,12 @@ t("IMPORTADOR: si él la pasa a otra categoría en la vista previa, entra sin ma
   assert.equal(cli.histBuildCommit(cands, rows, s).expAdds[0].debtId, undefined);
 });
 
-t("IMPORTADOR: un Fijo casado sigue siendo dup «modeled»", () => {
+t("IMPORTADOR: un Fijo casado entra enlazado a su recibo, no como cuota", () => {
   const s = estado([], { fixed: [{ id: "f1", name: "Iberdrola", amount: 12, account: "sabadell", freq: "mes" }] });
   const { rows } = cli.histClassifyCandidates([hc({ id: "c1", merchant: "IBERDROLA", amount: 12, date: ymdDe(Y, M - 1, 12) })], s);
-  assert.equal(rows[0].reason, "modeled");
+  assert.equal(rows[0].reason, "recibo");
+  assert.equal(rows[0].reciboId, "f1");
+  assert.equal(rows[0].debtId, undefined);
 });
 
 /* ─── 4.22.2: su rechazo — «Cofidis 24,99 es la cuota, no la puedo cambiar manualmente?» ─── */

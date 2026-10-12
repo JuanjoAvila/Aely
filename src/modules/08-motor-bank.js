@@ -963,9 +963,11 @@ function flattenBankTx(links){
    gasto diario es solo lo de `expenseBankEnts` (cuenta diaria + extras marcados). El resto se
    apunta igual pero con `budgetSkip:true` → se ve en Gastos con marca «no afecta».
 
-   En la cuenta diaria / extras de gasto: cualquier cargo, salvo si YA casa con un Fijo/deuda/
-   puntual de ese mes (`matchesModeled`) — si no, recibos se contarían dos veces.
-   En bancos fuera de gasto diario: también cualquier cargo (misma exclusión de modelados).
+   TAMBIÉN el cargo que casa con un recibo o un puntual del Plan (12/10/2026, decisión suya: «yo
+   solo quiero que salga todo en gastos… si sale en recibos pero no en gastos la gente se
+   rallará»). Antes se tiraba para no contarlo dos veces, y un adeudo real no constaba en ningún
+   sitio si además el recibo no llegaba a acreditarse. Ahora entra con `reciboId`, que lo deja
+   fuera de TODAS las cifras (`expenseCountsCash`): el recibo ya resta por su lado.
 
    INGRESOS: de cualquier banco (para «Mi ciclo»). Idempotente por ext_id + dedup. */
 function importObExpenses(s, txs, links){
@@ -1045,7 +1047,7 @@ function importObExpenses(s, txs, links){
     usadoDup[hit]=1;
     return otrasVias[hit];
   };
-  // Cargos ya modelados ESTE mes por entidad (Fijos/deudas/puntuales), para no duplicar un recibo.
+  // Cargos ya modelados ESTE mes por entidad (Fijos/deudas/puntuales), para no contar dos veces un recibo.
   const now=new Date(), ym=now.getMonth()+1, yy=now.getFullYear();
   const today=madridYmdParts(now.getTime());
   const todayKey=today.ym+"-"+String(today.d).padStart(2,"0");
@@ -1053,13 +1055,13 @@ function importObExpenses(s, txs, links){
      El tramo recuperado sí casa contra ello: el seguro anual de agosto o el recibo bimestral del
      mes pasado ya se cuentan por su lado, y con la lista del mes en curso entraban otra vez. */
   const modeledByEnt={};
-  const pushModeled=function(ent,name,amount,debtId,otro){ if(!ent||!(amount>0)) return; (modeledByEnt[ent]=modeledByEnt[ent]||[]).push({name:name,amount:amount,debtId:debtId||null,otro:otro}); };
-  (s.fixed||[]).forEach(function(f){ chargeMonths(f).concat(ym).forEach(function(mm){ pushModeled(accOf(f), f.name, occAmountIn(f,mm), 0, mm!==ym||!occursIn(f,ym)); }); });
+  const pushModeled=function(ent,name,amount,debtId,otro,id){ if(!ent||!(amount>0)) return; (modeledByEnt[ent]=modeledByEnt[ent]||[]).push({name:name,amount:amount,debtId:debtId||null,otro:otro,id:id||null}); };
+  (s.fixed||[]).forEach(function(f){ chargeMonths(f).concat(ym).forEach(function(mm){ pushModeled(accOf(f), f.name, occAmountIn(f,mm), 0, mm!==ym||!occursIn(f,ym), f.id); }); });
   (s.debts||[]).forEach(function(d){ if(debtActive(d)) pushModeled(d.account||"sabadell", d.name||"Cuota", (d.monthly||0)+debtBalloonIn(d,yy,ym), d.id); });
-  (s.oneoffs||[]).forEach(function(o){ pushModeled(o.account||"sabadell", o.name||"Cargo", o.amount||0, 0, !oneoffOccurs(o,yy,ym)); });
-  /* QUÉ casó, no solo SI casó (4.21.0). Un Fijo o un puntual casado se sigue tirando como siempre;
-     una DEUDA casada ya NO se tira: entra y `marcarCuotasDeDeuda` la pone en «Deudas», fuera del
-     gastado. Si casan las dos cosas, gana el descarte de siempre. */
+  (s.oneoffs||[]).forEach(function(o){ pushModeled(o.account||"sabadell", o.name||"Cargo", o.amount||0, 0, !oneoffOccurs(o,yy,ym), o.id); });
+  /* QUÉ casó, no solo SI casó (4.21.0). Una DEUDA casada entra y `marcarCuotasDeDeuda` la pone
+     en «Deudas», fuera del gastado. Un Fijo o un puntual casado entra con `reciboId`. Si casan
+     las dos cosas, gana el recibo, como ganaba el descarte. */
   const modeledHit=function(ent,merchant,amount,antiguo){
     const hits=(modeledByEnt[ent]||[]).filter(function(mm){ return (antiguo||!mm.otro) && recAmtClose(mm.amount,amount) && recNameMatch(mm.name,merchant); });
     if(!hits.length) return null;
@@ -1096,20 +1098,23 @@ function importObExpenses(s, txs, links){
       add.push(e);
       return;
     }
-    // GASTO: entra de cualquier banco. Fijos y puntuales modelados no se duplican; las deudas se marcan.
+    // GASTO: entra de cualquier banco. Fijos, puntuales y deudas modelados entran marcados.
     if(!tx.date || fuera(tx)) return;
     const antiguo=parseDate(tx.date)<som;
     const mod=modeledHit(tx.ent, tx.merchant, tx.amount, antiguo);
-    if(mod && !mod.debtId) return;
+    const recibo=mod && !mod.debtId ? mod : null;
     if(tx.id && (seen[(tx.ent||"")+"|"+tx.id]||seenLegacy[tx.id])) return;
     const esDiario=tx.ent===dailyEnt;
     // El aporte de hace dos meses ya se compró en su día o ya no toca: se apunta, pero no compra.
-    const esAporteInv = !antiguo && esDiario && daily && daily.monthlyInvest>0 && Math.abs(tx.amount-daily.monthlyInvest)<0.01;
+    const esAporteInv = !recibo && !antiguo && esDiario && daily && daily.monthlyInvest>0 && Math.abs(tx.amount-daily.monthlyInvest)<0.01;
     const e={ id:mcExpenseId(), date:new Date(tx.date+"T12:00:00").toISOString(),
       merchant:tx.merchant||"Compra", amount:tx.amount,
       category: esAporteInv ? "inversion" : categoryOfBankTx(tx), source:"ob", ent:tx.ent };
     e.obName=e.merchant;   // lo que dijo el banco: el dedup se queda con esto aunque él lo renombre
     if(tx.ent && !allow[tx.ent]) e.budgetSkip=true;
+    // Sin id (recibos sembrados antes de tenerlo) no hay a qué enlazar y la fila contaría dos
+    // veces: ese caso se sigue tirando, que es lo que se hacía.
+    if(recibo){ if(!recibo.id) return; e.reciboId=recibo.id; }
     if(tx.id) e.extId=tx.id;
     const nt=cleanNote(tx.note, e.merchant); if(nt) e.note=nt;
     if(keys[scopedKOf(e)] || delSet[scopedKOf(e)] || delSet[kOf(e)]) return;
@@ -1204,7 +1209,7 @@ function cuotasDeDeudaPorMarcar(s){
   const usada=cuotasUsadas(todas, exps);
   const cands=[];
   exps.forEach(function(e){
-    if(!e || e.debtId || !(e.amount>0) || e.possibleDup) return;
+    if(!e || e.debtId || e.reciboId || !(e.amount>0) || e.possibleDup) return;
     // A mano, solo si ya está en «Deudas» (se re-deduce la deuda tras reinstalar).
     if(isManualExpenseSource(e.source) && e.category!=="deudas") return;
     // Un traspaso o una inversión no casa SOLO con una cuota… salvo que él ya enseñó ese comercio
@@ -2270,10 +2275,10 @@ function histMatchesModeled(state, cand){
   const merchant=cand.merchant||"";
   const ent=cand.ent;
   const modeled=[];
-  const push=function(e,name,amt){ if(e&&amt>0) modeled.push({ent:e,name:name,amount:amt}); };
-  (state.fixed||[]).forEach(function(f){ if(occursIn(f,ym)) push(accOf(f), f.name, occAmountIn(f,ym)); });
+  const push=function(e,name,amt,id){ if(e&&amt>0) modeled.push({ent:e,name:name,amount:amt,id:id||null}); };
+  (state.fixed||[]).forEach(function(f){ if(occursIn(f,ym)) push(accOf(f), f.name, occAmountIn(f,ym), f.id); });
   // Las DEUDAS ya no se descartan aquí (4.22.0): entran en «Deudas» por `histCuotasDeDeuda`.
-  (state.oneoffs||[]).forEach(function(o){ if(oneoffOccurs(o,yy,ym)) push(o.account||"sabadell", o.name||"Cargo", o.amount||0); });
+  (state.oneoffs||[]).forEach(function(o){ if(oneoffOccurs(o,yy,ym)) push(o.account||"sabadell", o.name||"Cargo", o.amount||0, o.id); });
   for(let i=0;i<modeled.length;i++){
     const mm=modeled[i];
     if(mm.ent!==ent) continue;
@@ -2346,8 +2351,13 @@ function histClassifyCandidates(cands, state){
        cobra TODOS los meses para siempre en `monthNetForAccount`— nunca vivió aquí de
        verdad: la pantalla crea un Fijo por fila marcada y el usuario podía marcar también
        las descartadas. Ahora esa garantía existe y está en `histFijosFromSelection`. */
+    /* El cargo de un recibo del Plan ya no es un «repetido» sin marcar (12/10/2026): es una fila
+       nueva, marcada, que entra en Gastos con `reciboId` y no mueve ninguna cifra. Misma regla
+       que el sync diario (`importObExpenses`). Sin id de recibo no hay enlace posible y se
+       queda como estaba, para no contarlo dos veces. */
     const modeled=histMatchesModeled(state, x);
-    if(modeled) return { status:"dup", reason:"modeled", match:modeled, defDest:null, suggestRecibo:false, category:null };
+    if(modeled && !modeled.id) return { status:"dup", reason:"modeled", match:modeled, defDest:null, suggestRecibo:false, category:null };
+    if(modeled) return { status:"new", reason:"recibo", match:modeled, defDest:"gasto", suggestRecibo:false, category:categoryOfBankTx(x), reciboId:modeled.id };
     // Cuota de una deuda: entra como gasto en «Deudas», nunca como Fijo (ya está en el Plan).
     if(cuotas[i]) return { status:"new", reason:null, match:null, defDest:"gasto", suggestRecibo:false, category:"deudas", debtId:cuotas[i] };
     if(x.kind==="in"){
@@ -2421,6 +2431,7 @@ function histBuildCommit(cands, classifications, state, opts){
     if(x.id) e.extId=x.id;
     // Cuota de deuda (4.22.0), salvo que él la haya pasado a otra categoría en la vista previa.
     if(c.debtId && e.category==="deudas") e.debtId=c.debtId;
+    if(c.reciboId && x.kind!=="in") e.reciboId=c.reciboId;
     expAdds.push(e);
   });
   return { expAdds:expAdds, fixAdds:[], batchId:batchId, investmentsSnapshot:investmentsBefore };

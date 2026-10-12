@@ -59,17 +59,19 @@ t("B2 el aporte de la ventana de siempre sigue comprando", () => {
   assert.equal(bought(s, add), 1150);
 });
 
-t("B3 un fijo ya modelado del tramo antiguo no entra como gasto", () => {
+// Desde el 12/10/2026 el cargo de un recibo entra en la lista, pero con `reciboId`: no cuenta.
+t("B3 un fijo ya modelado del tramo antiguo entra marcado como recibo y no cuenta como gasto", () => {
   const s = base(Object.assign({}, sinAporte, {
     fixed: [{ id: "alq", name: "Alquiler piso", amount: 800, account: "caixabank", freq: "mes", day: 18 }],
   }));
   const viejo = ctx.importObExpenses(s, [tx(day(-40), 800, "Alquiler piso", "cx-alq-viejo")], links) || [];
-  assert.equal(viejo.find((e) => e.extId === "cx-alq-viejo"), undefined);
+  assert.equal(viejo.find((e) => e.extId === "cx-alq-viejo").reciboId, "alq");
   const hoy = ctx.importObExpenses(s, [tx(day(-2), 800, "Alquiler piso", "cx-alq-hoy")], links) || [];
-  assert.equal(hoy.find((e) => e.extId === "cx-alq-hoy"), undefined);
+  assert.equal(hoy.find((e) => e.extId === "cx-alq-hoy").reciboId, "alq");
+  assert.equal(viejo.concat(hoy).some((e) => ctx.expenseCountsCash(e, s)), false);
 });
 
-t("un fijo que no toca este mes (anual, con importes a medida, o un puntual de otro mes) tampoco entra en el tramo", () => {
+t("un fijo que no toca este mes (anual, con importes a medida, o un puntual de otro mes) entra en el tramo marcado y sin contar", () => {
   const s = base(Object.assign({}, sinAporte, {
     fixed: [
       { id: "seg", name: "Seguro hogar", amount: 312.4, account: "caixabank", freq: "año", months: [otroMes] },
@@ -84,7 +86,9 @@ t("un fijo que no toca este mes (anual, con importes a medida, o un puntual de o
     tx(day(-43), 31, "Seguro hogar", "cx-otro-importe"),
   ];
   const add = ctx.importObExpenses(s, lote, links) || [];
-  assert.equal(JSON.stringify(add.map((e) => e.extId)), JSON.stringify(["cx-otro-importe"]), "solo entra el que no casa en importe");
+  assert.equal(JSON.stringify(add.map((e) => [e.extId, e.reciboId || null])),
+    JSON.stringify([["cx-seg", "seg"], ["cx-ibi", "ibi"], ["cx-cal", "o1"], ["cx-otro-importe", null]]), "solo queda sin marca el que no casa en importe");
+  assert.equal(JSON.stringify(add.filter((e) => ctx.expenseCountsCash(e, s)).map((e) => e.extId)), JSON.stringify(["cx-otro-importe"]), "y solo ese cuenta");
   // Dentro de la ventana manda el mes en curso, como siempre: ese anual hoy no es un recibo esperado.
   const hoy = ctx.importObExpenses(s, [tx(day(-2), 312.4, "Seguro hogar", "cx-seg-hoy")], links) || [];
   assert.equal(hoy.length, 1);

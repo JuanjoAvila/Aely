@@ -203,6 +203,7 @@ const LANG = {
     f_receipt_none:"No hay recibos pendientes de ese mes que puedan vincularse a este cargo.",
     f_receipt_confirm:"Confirmar pago de {name}", f_receipt_confirm_sub:"Cargo: {merchant} · {amount} · {bank} · {date}. Previsto: {expected} · {planned}. Confirma solo si este cargo paga el recibo completo, aunque el importe haya variado. Si es parcial, cancela. El importe previsto, el saldo y el presupuesto se conservan.",
     f_receipt_yes:"Confirmar pago completo", f_receipt_unlink:"Deshacer vínculo",
+    f_recibo_marca:"Es el cargo de tu recibo «{name}». Sale aquí para que lo veas, pero no suma al gastado ni vuelve a restar del saldo: ya está contado en tu Plan.", f_recibo_no:"No es este recibo",
     f_from_bank:"Lo trajo una notificación de {bank}", f_from_bank_sub:"{date} · «{raw}» · el banco fija el importe y la cuenta",
     f_trace_missing:"— texto original no disponible",
     f_locked_toast:"El banco fija el importe, la cuenta y si entra o sale dinero. La categoría sí se puede corregir aquí.",
@@ -516,6 +517,7 @@ const LANG = {
     f_receipt_none:"No unpaid bills for that month can be linked to this charge.",
     f_receipt_confirm:"Confirm payment of {name}", f_receipt_confirm_sub:"Charge: {merchant} · {amount} · {bank} · {date}. Expected: {expected} · {planned}. Confirm only if this charge pays the full bill, even if the amount has changed. Cancel for a partial payment. The expected amount, balance and budget stay unchanged.",
     f_receipt_yes:"Confirm full payment", f_receipt_unlink:"Undo link",
+    f_recibo_marca:"This is the charge for your bill “{name}”. It shows here so you can see it, but it doesn’t add to your spending or come off your balance again: it’s already counted in your Plan.", f_recibo_no:"Not this bill",
     f_from_bank:"This came from a {bank} notification", f_from_bank_sub:"{date} · “{raw}” · the bank sets the amount and account",
     f_trace_missing:"— original text unavailable",
     f_locked_toast:"The bank sets the amount, account and money direction. You can correct the category here.",
@@ -818,6 +820,7 @@ const LANG = {
     f_receipt_none:"No hi ha rebuts pendents d'aquell mes que es puguin vincular a aquest càrrec.",
     f_receipt_confirm:"Confirmar pagament de {name}", f_receipt_confirm_sub:"Càrrec: {merchant} · {amount} · {bank} · {date}. Previst: {expected} · {planned}. Confirma només si aquest càrrec paga el rebut complet, encara que l'import hagi variat. Si és parcial, cancel·la. Es conserven l'import previst, el saldo i el pressupost.",
     f_receipt_yes:"Confirmar pagament complet", f_receipt_unlink:"Desfer vincle",
+    f_recibo_marca:"És el càrrec del teu rebut «{name}». Surt aquí perquè el vegis, però no suma al que has gastat ni torna a restar del saldo: ja està comptat al teu Pla.", f_recibo_no:"No és aquest rebut",
     f_from_bank:"Ho va portar una notificació de {bank}", f_from_bank_sub:"{date} · «{raw}» · el banc fixa l'import i el compte",
     f_trace_missing:"— text original no disponible",
     f_locked_toast:"El banc fixa l'import, el compte i si entren o surten diners. La categoria sí que es pot corregir aquí.",
@@ -1832,7 +1835,7 @@ Object.assign(LANG.es,{
   // Por qué un movimiento no se come el presupuesto (2026-08-17). Van en la línea pequeña de la
   // fila, así que cortos; el filtro usa los mismos cajones con nombre largo (g_bk_*).
   g_skip_neutra:"no es un gasto", g_skip_otrobanco:"no es del día a día",
-  g_skip_posible:"tócalo: ¿mismo o distinto?", g_skip_deuda:"ya cuenta en el Plan", g_filters_debts:"Cuotas", g_cuota_de:"Es la cuota de…",
+  g_skip_posible:"tócalo: ¿mismo o distinto?", g_skip_deuda:"ya cuenta en el Plan", g_skip_recibo:"es un recibo de tu Plan", g_recibo_de:"Recibo: {name}", g_filters_debts:"Cuotas", g_cuota_de:"Es la cuota de…",
   g_dup_title:"¿Es el mismo movimiento?",
   g_dup_sub:"El banco lo trajo otra vez sin nombre. Si es el mismo que ya tenías, se queda el que tiene el comercio bien puesto. Si son dos cargos distintos, los dos cuentan.",
   g_dup_same:"Es el mismo",
@@ -1937,7 +1940,7 @@ Object.assign(LANG.en,{
   g_month:"This month", g_last:"Last month", g_cycle:"My cycle", g_3m:"Last 3 months", g_all:"All", g_custom:"Range…", g_allcats:"All",
   g_no_budget:"doesn't count",
   g_skip_neutra:"not spending", g_skip_otrobanco:"not day-to-day",
-  g_skip_posible:"tap: same or different?", g_skip_deuda:"already in your Plan", g_filters_debts:"Your debt payments", g_cuota_de:"It’s the payment for…",
+  g_skip_posible:"tap: same or different?", g_skip_deuda:"already in your Plan", g_skip_recibo:"a bill in your Plan", g_recibo_de:"Bill: {name}", g_filters_debts:"Your debt payments", g_cuota_de:"It’s the payment for…",
   g_dup_title:"Is this the same movement?",
   g_dup_sub:"The bank brought it again with no name. If it's the same one you already have, the one with the real merchant stays. If they are two different charges, both count.",
   g_dup_same:"Same one",
@@ -2041,7 +2044,7 @@ Object.assign(LANG.ca,{
   g_month:"Aquest mes", g_last:"Mes passat", g_cycle:"El meu cicle", g_3m:"Últims 3 mesos", g_all:"Tot", g_custom:"Rang…", g_allcats:"Totes",
   g_no_budget:"no afecta",
   g_skip_neutra:"no és una despesa", g_skip_otrobanco:"no és del dia a dia",
-  g_skip_posible:"toca'l: mateix o diferent?", g_skip_deuda:"ja compta al Pla", g_filters_debts:"Quotes dels teus deutes", g_cuota_de:"És la quota de…",
+  g_skip_posible:"toca'l: mateix o diferent?", g_skip_deuda:"ja compta al Pla", g_skip_recibo:"és un rebut del teu Pla", g_recibo_de:"Rebut: {name}", g_filters_debts:"Quotes dels teus deutes", g_cuota_de:"És la quota de…",
   g_dup_title:"És el mateix moviment?",
   g_dup_sub:"El banc l'ha tornat a portar sense nom. Si és el mateix que ja tenies, es queda el que té el comerç ben posat. Si són dos càrrecs diferents, els dos compten.",
   g_dup_same:"És el mateix",
@@ -2669,7 +2672,7 @@ Object.assign(LANG.es,{
   bp_hist_pickbank:"Elige qué banco consultar. De entrada están marcados solo los bancos de gasto diario.",
   bp_hist_btn:"Importar histórico", bp_hist_title:"Importar histórico", bp_hist_sub:"Trae movimientos de los últimos meses de: {banks}. Por defecto van a Gastos (o Ingresos). Un recibo fijo solo se crea si lo marcas tú, y te pedirá confirmación.", bp_hist_nodaily:"Conecta un banco Open Banking (o márcalo como gasto diario en Cartera) para traer el histórico. Trade Republic también vale si lo tienes conectado.", bp_hist_m:"{n} mes(es)", bp_hist_search:"Buscar movimientos", bp_hist_searching:"Buscando…", bp_hist_none:"No hay movimientos nuevos en ese periodo (o ya están todos apuntados). Recuerda: el banco solo deja ver ~90 días.", bp_hist_all_logged:"Cuentas compartidas por {bank}: {accounts}. Movimientos entregados: {n}, todos ya apuntados. Si falta otra cuenta, vuelve a conectar el banco y selecciónala; si aun así no aparece, el banco no la está compartiendo con Aely.", bp_hist_view_logged:"Verlos en Gastos", bp_hist_found:"{n} movimientos · marca y elige destino", bp_hist_notcard:"no es tarjeta", bp_hist_import:"Importar {n}", bp_hist_done:"✓ {n} importados", bp_hist_as_gasto:"🛒 Gasto", bp_hist_as_recibo:"🧾 Recibo", bp_hist_as_ingreso:"💰 Ingreso", bp_hist_recibo:"Recibo", bp_hist_done_g:"✓ {n} en Gastos", bp_hist_done_i:"✓ {n} ingresos", bp_hist_done_r:"✓ {n} recibos", bp_hist_dup:"ya detectado como recibo mensual · se cuenta una sola vez",
   bp_hist_nuevos:"nuevos", bp_hist_repes:"repetidos", bp_hist_probe:"Sonda: banco {bank} · llegan {llegan} · nuevos {nuevos} · coinciden día+€ {ya}", bp_hist_dupexist:"ya lo tienes apuntado (mismo día e importe)", bp_hist_dupmaybe:"puede que ya lo tengas (mismo importe, fecha cercana)",
-  bp_hist_dupmodel:"ya modelado como fijo/deuda/meta",
+  bp_hist_esrecibo:"es tu recibo «{name}»: se verá en Gastos sin contarse dos veces",
   bp_hist_suggest_recibo:"¿Es un recibo mensual? Márcalo como Recibo si quieres crear el fijo.",
   bp_hist_bank_unknown:"Banco",
   bp_hist_trunc:"El banco no ha devuelto todo el periodo pedido (tope ~90 días o truncado). Revisa las fechas más antiguas.",
@@ -2737,7 +2740,7 @@ Object.assign(LANG.en,{
   bp_hist_pickbank:"Choose which bank to query. Initially, only daily-spending banks are selected.",
   bp_hist_btn:"Import history", bp_hist_title:"Import history", bp_hist_sub:"Pull the last months from: {banks}. By default they go to Spending (or Income). A recurring bill is only created if you mark it, and you'll be asked to confirm.", bp_hist_nodaily:"Connect an Open Banking bank (or set it as daily spending in Wallet) to pull history. Trade Republic works here too if it's connected.", bp_hist_m:"{n} month(s)", bp_hist_search:"Find transactions", bp_hist_searching:"Searching…", bp_hist_none:"No new transactions in that period (or they're all logged already). Remember: the bank only shows ~90 days.", bp_hist_all_logged:"Accounts shared by {bank}: {accounts}. Transactions supplied: {n}, all already logged. If another account is missing, reconnect the bank and select it; if it still does not appear, the bank is not sharing it with Aely.", bp_hist_view_logged:"View them in Spending", bp_hist_found:"{n} transactions · check and pick destination", bp_hist_notcard:"not a card purchase", bp_hist_import:"Import {n}", bp_hist_done:"✓ {n} imported", bp_hist_as_gasto:"🛒 Spend", bp_hist_as_recibo:"🧾 Bill", bp_hist_as_ingreso:"💰 Income", bp_hist_recibo:"Bill", bp_hist_done_g:"✓ {n} in Spending", bp_hist_done_i:"✓ {n} income", bp_hist_done_r:"✓ {n} bills", bp_hist_dup:"already detected as a monthly bill · counted once",
   bp_hist_nuevos:"new", bp_hist_repes:"repeated", bp_hist_probe:"Probe: bank {bank} · arrive {llegan} · new {nuevos} · same day+€ {ya}", bp_hist_dupexist:"already logged (same day & amount)", bp_hist_dupmaybe:"you may already have it (same amount, nearby date)",
-  bp_hist_dupmodel:"already modeled as a bill/debt/goal",
+  bp_hist_esrecibo:"this is your bill “{name}”: it will show in Spending without counting twice",
   bp_hist_suggest_recibo:"Is this a monthly bill? Mark it as Bill if you want to create the fixed charge.",
   bp_hist_bank_unknown:"Bank",
   bp_hist_trunc:"The bank didn't return the full period you asked for (~90-day cap or truncated). Check the oldest dates.",
@@ -2805,7 +2808,7 @@ Object.assign(LANG.ca,{
   bp_hist_pickbank:"Tria quin banc vols consultar. D'entrada, només estan marcats els bancs de despesa diària.",
   bp_hist_btn:"Importar històric", bp_hist_title:"Importar històric", bp_hist_sub:"Porta moviments dels últims mesos de: {banks}. Per defecte van a Despeses (o Ingressos). Un rebut fix només es crea si el marques tu, i et demanarà confirmació.", bp_hist_nodaily:"Connecta un banc Open Banking (o marca'l com a despesa diària a Cartera) per portar l'històric. Trade Republic també val si el tens connectat.", bp_hist_m:"{n} mes(os)", bp_hist_search:"Cerca moviments", bp_hist_searching:"Cercant…", bp_hist_none:"No hi ha moviments nous en aquest període (o ja estan tots apuntats). Recorda: el banc només deixa veure ~90 dies.", bp_hist_all_logged:"Comptes compartits per {bank}: {accounts}. Moviments lliurats: {n}, tots ja apuntats. Si falta un altre compte, torna a connectar el banc i selecciona'l; si encara no apareix, el banc no l'està compartint amb Aely.", bp_hist_view_logged:"Veure'ls a Despeses", bp_hist_found:"{n} moviments · marca i tria destinació", bp_hist_notcard:"no és targeta", bp_hist_import:"Importar {n}", bp_hist_done:"✓ {n} importats", bp_hist_as_gasto:"🛒 Despesa", bp_hist_as_recibo:"🧾 Rebut", bp_hist_as_ingreso:"💰 Ingrés", bp_hist_recibo:"Rebut", bp_hist_done_g:"✓ {n} a Despeses", bp_hist_done_i:"✓ {n} ingressos", bp_hist_done_r:"✓ {n} rebuts", bp_hist_dup:"ja detectat com a rebut mensual · es compta una sola vegada",
   bp_hist_nuevos:"nous", bp_hist_repes:"repetits", bp_hist_probe:"Sonda: banc {bank} · arriben {llegan} · nous {nuevos} · coincideixen dia+€ {ya}", bp_hist_dupexist:"ja ho tens apuntat (mateix dia i import)", bp_hist_dupmaybe:"potser ja ho tens (mateix import, data propera)",
-  bp_hist_dupmodel:"ja modelat com a rebut/deute/meta",
+  bp_hist_esrecibo:"és el teu rebut «{name}»: es veurà a Despeses sense comptar dues vegades",
   bp_hist_suggest_recibo:"És un rebut mensual? Marca'l com a Rebut si vols crear el càrrec fix.",
   bp_hist_bank_unknown:"Banc",
   bp_hist_trunc:"El banc no ha tornat tot el període demanat (límit ~90 dies o truncat). Revisa les dates més antigues.",
@@ -3150,6 +3153,11 @@ function expenseCountsCash(e, s){
   if(!e) return false;
   // Posible repetido: no mueve saldo ni presupuesto hasta que él diga «son distintos».
   if(e.possibleDup) return false;
+  /* El cargo de un recibo del Plan (`reciboId`, 12/10/2026) se ve en la lista pero no mueve
+     NINGUNA cifra, sea cual sea el rol del banco: el recibo ya resta por calendario
+     (`monthNetForAccount`) y esta fila antes ni existía. Dejarla contar lo restaría dos veces
+     en un banco «para todo» (medido: +importe al gastado y −importe al saldo). */
+  if(e.reciboId) return false;
   /* La cuota de una deuda (`debtId`, 4.21.0) NO sale de aquí a propósito: en la cuenta de gasto
      diario ya resta hoy como cualquier cargo (`paidNet` vale 0 ahí) y `applyBankBalances` ancla el
      saldo contando con ella. Sacarla haría saltar el saldo hasta el siguiente anclaje — el
@@ -3178,6 +3186,7 @@ function expenseCountsBudget(e, s){
      "neutra"    → inversión o traspaso: se mueve, no se gasta.
      "posible"   → Open Banking sin nombre que casa con otra vía del MISMO banco (2026-09-07).
      "otrobanco" → gasto real, pero de un banco que no es de gasto diario (los recibos).
+     "recibo"    → el cargo de un recibo o puntual del Plan: se ve, y ya cuenta allí (12/10/2026).
      "cuenta"    → lo que de verdad se come el presupuesto del mes.
    Devuelve una etiqueta, no un booleano: la fila necesita decir POR QUÉ, y el filtro necesita
    agrupar por lo mismo. Una sola función para las dos cosas, para que no se separen. */
@@ -3195,9 +3204,16 @@ function expenseBucket(e, s){
     return "ingreso";
   }
   if(e.debtId) return "deuda";        // cuota de una deuda: ya cuenta en el Plan (4.21.0)
+  if(e.reciboId) return "recibo";
   if(CAT_NEUTRAS[e.category]) return "neutra";
   if(!expenseCountsCash(e, s)) return "otrobanco";
   return "cuenta";
+}
+// Nombre del recibo (o puntual) del Plan al que corresponde un cargo; "" si ya no existe.
+function reciboNombre(s, e){
+  if(!e || !e.reciboId) return "";
+  const f=((s&&s.fixed)||[]).concat((s&&s.oneoffs)||[]).find(function(x){ return x && x.id===e.reciboId; });
+  return (f && f.name) || "";
 }
 // Cambia el ROL de una cuenta re-anclando `value` para que el saldo mostrado no cambie (se
 // despeja value de la fórmula del rol nuevo). Solo puede haber UNA cuenta de gasto diario: si
@@ -3480,6 +3496,8 @@ function detectSubscriptions(expenses){
   const groups={};
   (expenses||[]).forEach(function(e){
     if(!(e.amount>0)) return; const k=catKey(e.merchant); if(!k) return;
+    // Lo que ya es un recibo del Plan no se vuelve a proponer como suscripción nueva.
+    if(e.reciboId) return;
     const mkey=mkOf(parseDate(e.date));
     const g=(groups[k]=groups[k]||{name:e.merchant||k,cat:e.category,byMonth:{}});
     g.byMonth[mkey]=(g.byMonth[mkey]||0)+e.amount; g.name=e.merchant||g.name; g.cat=e.category;

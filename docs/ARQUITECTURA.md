@@ -252,6 +252,17 @@ es lo que pinta «Saldo actualizado»: `last_sync` puede ir por detrás). En `im
 anterior al margen se apunta con su fecha real pero no compra participaciones, y casa contra todo
 lo modelado, toque o no este mes.
 
+**El cargo de un recibo entra en Gastos, sin contar (12/10/2026).** El adeudo que casa con un
+recibo o un puntual del Plan (mismo banco, nombre e importe parecidos) ya no se descarta: entra
+con `reciboId`, tanto en el sync diario (`importObExpenses`) como en «Importar histórico»
+(`histClassifyCandidates` lo da como fila nueva y marcada). `expenseCountsCash` deja esa fila
+fuera de todas las cifras (gastado, presupuesto, saldo, redondeo) con cualquier rol de banco,
+porque el recibo ya resta por calendario en `monthNetForAccount`. La marca viaja en `source`
+como `ob:<ent>~recibo.<id>` u `ob-hist:<ent>~recibo.<id>`: una app anterior o el servidor del
+widget leen un banco inexistente y la excluyen sin conocerla, igual que con `~deuda.`. La ficha
+del gasto dice a qué recibo corresponde y «No es este recibo» quita la marca. El pago del
+recibo se acredita por los caminos de siempre (`fixedPaymentState`).
+
 La misma frontera rige el sync diario: `app_events` puede guardar el banco, una clase estable y
 recuentos agregados, pero nunca transacciones ni campos del proveedor. El volcado temporal usado
 para diagnosticar el signo de Trade Republic se retiró al encontrarlo todavía activo en una
