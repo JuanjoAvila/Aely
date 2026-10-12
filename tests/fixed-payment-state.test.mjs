@@ -1,7 +1,20 @@
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import {execFileSync} from "node:child_process";
 import { test } from "node:test";
-import { loadPureLogicFromFile } from "../scripts/load-pure-logic.mjs";
-const c=loadPureLogicFromFile();
+import { loadPureLogic } from "../scripts/load-pure-logic.mjs";
+// Las reproducciones de revisión se leen de src: public puede ser todavía el último
+// bundle entregado y el turno para regenerarlo pertenece al coordinador (12/10).
+const refIndex=process.argv.indexOf("--source-ref"),sourceRef=refIndex<0?null:process.argv[refIndex+1];
+const source=file=>sourceRef?execFileSync("git",["show",sourceRef+":"+file],{encoding:"utf8",maxBuffer:8e6}):fs.readFileSync(new URL("../"+file,import.meta.url),"utf8");
+const order=JSON.parse(source("src/build-order.json"));
+function paymentLogic(change){
+  const js=order.map(file=>{const code=source("src/modules/"+file);return change&&file==="08-motor-bank.js"?change(code):code;}).join("\n");
+  const ctx=loadPureLogic(source("src/shell.html").replace("<!--MC_APP_SCRIPT-->",()=>js));
+  ctx.Date=class extends Date { constructor(...args){ super(...(args.length?args:[new Date("2026-09-30T12:00:00+02:00").getTime()])); } };
+  return ctx;
+}
+const c=paymentLogic();
 c.Date=class extends Date { constructor(...args){ super(...(args.length?args:[new Date("2026-09-30T12:00:00+02:00").getTime()])); } };
 const fixed={id:"gas",name:"Gas ficticio",amount:42,freq:"mes",day:25,account:"sabadell",wait:2026*12+9};
 const tx={id:"gas-bank",ent:"sabadell",date:"2026-09-25",amount:42,merchant:"Gas ficticio",status:"BOOK"};
@@ -234,9 +247,11 @@ test("Agua no acredita una compra de otra categoría en otro banco",()=>{
 
 test("un cargo tiene un único recibo más específico desde la primera lectura",()=>{
   const specific=Object.assign({},fixed,{id:"seguro",name:"Seguro Mapfre"});
-  const generic=Object.assign({},fixed,{id:"mapfre",name:"Mapfre",account:"revolut"});
-  const row=Object.assign({},recorded,{obName:"SEGURO MAPFRE SA",merchant:"SEGURO MAPFRE SA",ent:"revolut"});
-  const book=Object.assign({},tx,{ent:"revolut",merchant:row.obName});
+  // La especificidad resuelve competidores del mismo banco; los homónimos de otro
+  // banco no disputan un BOOK propio (H1, revisión independiente12/10).
+  const generic=Object.assign({},fixed,{id:"mapfre",name:"Mapfre"});
+  const row=Object.assign({},recorded,{obName:"SEGURO MAPFRE SA",merchant:"SEGURO MAPFRE SA"});
+  const book=Object.assign({},tx,{merchant:row.obName});
   for(const bills of [[specific,generic],[generic,specific]]){
     for(const bankTx of [[],[book]]){
       const state=Object.assign({},recordedState,{accounts:base.accounts.concat([{id:"rv",ent:"revolut",role:"fijos"}]),fixed:bills,expenses:[row],bankTx});
@@ -248,7 +263,7 @@ test("un cargo tiene un único recibo más específico desde la primera lectura"
       assert.equal(reconciled.fixed.filter(f=>c.fixedPaymentState(reconciled,f,2026,9,30).paid).length,1);
     }
   }
-  const tie=Object.assign({},specific,{id:"empate",name:"SEGURO MAPFRE",account:"revolut"});
+  const tie=Object.assign({},specific,{id:"empate",name:"SEGURO MAPFRE"});
   for(const bankTx of [[],[book]]){
     const state=Object.assign({},recordedState,{accounts:base.accounts.concat([{id:"rv",ent:"revolut",role:"fijos"}]),fixed:[specific,tie],expenses:[row],bankTx});
     assert.equal(state.fixed.some(f=>c.fixedPaymentState(state,f,2026,9,30).paid),false,"empate real no acredita ninguno, tampoco primero el BOOK local");
@@ -307,3 +322,147 @@ test("una identidad de recibo ausente o repetida no comparte el ganador por nomb
     }
   }
 });
+
+test("H1: un homónimo de otro banco no anula el BOOK propio ni su prueba viajada",()=>{
+  const a=Object.assign({},fixed,{id:"netflix-sb",name:"Netflix ficticio"});
+  const b=Object.assign({},a,{id:"netflix-rv",account:"revolut"});
+  const charge=Object.assign({},tx,{merchant:a.name});
+  const remoteCharge=Object.assign({},charge,{id:"rv-book",ent:"revolut"});
+  const accounts=base.accounts.concat([{id:"rv",ent:"revolut",role:"fijos",value:500}]);
+  const own=Object.assign({},base,{accounts,fixed:[a],bankTx:[charge]});
+  const saved=c.reconcileFixedPaymentProofs(own,2026,9,30).fixed[0];
+  for(const competitor of [
+    {fixed:[b]},
+    {oneoffs:[{id:"puntual",name:a.name,amount:42,account:"revolut",month:9,year:2026,day:25}]},
+    {debts:[{id:"deuda",name:a.name,monthly:42,value:500,account:"revolut",day:25}]}
+  ]){
+    const state=Object.assign({},own,competitor,{fixed:[a].concat(competitor.fixed||[])});
+    assert.equal(c.fixedPaymentState(state,a,2026,9,30).paid,true,"BOOK acotado a su banco: "+JSON.stringify(competitor));
+    const traveled=c.slimForCloud(Object.assign({},state,{fixed:[saved].concat(competitor.fixed||[])}));
+    assert.equal(c.fixedPaymentState(traveled,traveled.fixed[0],2026,9,30).paid,true,"la prueba BOOK no depende del extracto local");
+  }
+  const both=Object.assign({},own,{fixed:[a,b],bankTx:[charge,remoteCharge]});
+  assert.equal(c.planChargesMonth(both,9,2026,30).pendingBills.length,0);
+  assert.equal(c.planChargesMonth(both,9,2026,30).paidBills.length,2);
+  const snapshot=c.slimForCloud(c.reconcileFixedPaymentProofs(both,2026,9,30));
+  assert.equal(c.planChargesMonth(snapshot,9,2026,30).paidBills.length,2);
+  const tolerant=Object.assign({},a,{amount:42.4});
+  const toleranceState=Object.assign({},both,{fixed:[tolerant,b],bankTx:[charge]});
+  assert.equal(c.fixedPaymentState(toleranceState,tolerant,2026,9,30).paid,true,"exacto ajeno no vence a tolerancia propia");
+  assert.equal(c.fixedPaymentState(toleranceState,b,2026,9,30).paid,false,"BOOK no acredita el banco ajeno sin gasto guardado");
+  assert.equal(c.fixedPaymentAutoOwner(toleranceState,b,2026,9,"sabadell",charge.merchant,42,null,true),false,"el modo BOOK exige banco incluso al llamarlo directamente");
+});
+
+test("H2: cambiar el día conserva una prueba BOOK sin extracto y no duplica descuento",()=>{
+  const oldDate=c.Date;
+  c.Date=class extends Date { constructor(...args){ super(...(args.length?args:[new Date("2026-09-15T12:00:00+02:00").getTime()])); } };
+  try{
+    const bill=Object.assign({},fixed,{day:12,wait:undefined});
+    const state=Object.assign({},base,{fixed:[bill],bankTx:[Object.assign({},tx,{date:"2026-09-12"})]});
+    let traveled=c.slimForCloud(c.reconcileFixedPaymentProofs(state,2026,9,15));
+    const before=c.monthNetForAccount(traveled,"sabadell",2026,9,15),proof=traveled.fixed[0].paymentProofs[2026*12+9];
+    assert.equal(proof.kind,"book");assert.equal(traveled.bankTx,undefined);
+    c.patchFixedById(update=>{traveled=update(traveled);},bill.id,{day:25});
+    assert.equal(traveled.fixed[0].paidYm,2026*12+9,"el saldo reconoce el BOOK viajado");
+    assert.equal(traveled.fixed[0].paidDay,12);
+    assert.equal(traveled.fixed[0].paymentProofs[2026*12+9],proof,"editar el día no cambia prueba ni importe");
+    assert.equal(c.monthNetForAccount(traveled,"sabadell",2026,9,15),before,"mover el calendario no vuelve a descontar");
+    assert.equal(c.bankPendingEvents(traveled,"sabadell",2026,9,15).filter(x=>x.id===bill.id||x.id==="fixed_"+bill.id).length,0);
+  }finally{c.Date=oldDate;}
+});
+
+test("H3: el histórico se indexa una vez por referencia de expenses",()=>{
+  for(const length of [2000,20000]){
+    const history=Array.from({length},(_,i)=>Object.assign({},recorded,{id:"hist-"+i,merchant:"Compra ficticia "+i,obName:"Compra ficticia "+i}));
+    let reads=0;
+    const expenses=new Proxy(history,{get(target,key,receiver){if(/^\d+$/.test(String(key)))reads++;return Reflect.get(target,key,receiver);}});
+    const bills=Array.from({length:30},(_,i)=>Object.assign({},fixed,{id:"recibo-"+i,name:"Servicio ficticio "+i}));
+    const state=Object.assign({},base,{bankTx:[],fixed:bills,expenses});
+    assert.equal(c.planChargesMonth(state,9,2026,30).pendingBills.length,30);
+    reads=0;
+    for(let i=0;i<3;i++)assert.equal(c.planChargesMonth(Object.assign({},state),9,2026,30).pendingBills.length,30);
+    assert.ok(reads<100,"misma referencia no recorre otra vez "+length+" filas: "+reads);
+    assert.equal(state.expenses,expenses,"la lectura no sustituye el array");
+    const hit=Object.assign({},recorded,{obName:bills[0].name,merchant:bills[0].name});
+    const next=Object.assign({},state,{expenses:history.concat([hit])});
+    assert.equal(c.fixedPaymentState(next,bills[0],2026,9,30).paid,true,"referencia nueva invalida el índice");
+  }
+});
+
+test("H4: importObExpenses no quita pagado al añadir el BOOK de una notificación",()=>{
+  for(const sourceName of ["wallet","macrodroid","tr"]){
+    const notification=Object.assign({},recorded,{id:"noti",ent:"revolut",source:sourceName,merchant:"Gas ficticio",obName:undefined});
+    const state=Object.assign({},base,{bankTx:[],expenses:[notification]});
+    assert.equal(c.fixedPaymentState(state,fixed,2026,9,30).paid,true);
+    const book=Object.assign({},tx,{id:"nuevo-book",ent:"revolut",date:"2026-09-26",merchant:"GAS FICTICIO SA"});
+    const incoming=c.importObExpenses(state,[book]);
+    assert.equal(incoming.length,1,"se prueba la ruta real del importador, no una fila fabricada");
+    const synced=Object.assign({},state,{bankTx:[book],expenses:state.expenses.concat(incoming)});
+    const before=JSON.stringify(synced);
+    assert.equal(c.fixedPaymentState(synced,fixed,2026,9,30).paid,true,"segunda fuente concordante del mismo pago: "+sourceName);
+    assert.equal(c.planChargesMonth(synced,9,2026,30).pendingBills.length,0);
+    assert.equal(JSON.stringify(synced),before,"no fusiona ni borra movimientos por inferencia");
+    assert.equal(c.fixedPaymentState(Object.assign({},synced,{bankTx:[]}),fixed,2026,9,30).paid,true,"Gastos conserva ambas fuentes sin feed");
+    const repeated=Object.assign({},synced,{expenses:synced.expenses.concat([Object.assign({},incoming[0],{id:"otro-book",date:"2026-09-27T12:00:00.000Z"})])});
+    assert.equal(c.fixedPaymentState(repeated,fixed,2026,9,30).paid,false,"dos BOOK no se agrupan como un solo pago");
+    const distant=Object.assign({},synced,{bankTx:[],expenses:[notification,Object.assign({},incoming[0],{date:"2026-09-29T12:00:00.000Z"})]});
+    assert.equal(c.fixedPaymentState(distant,fixed,2026,9,30).paid,false,"fuera de la ventana no se supone la misma compra");
+  }
+});
+
+test("H7: expenses con fila nula no lanza y un recibo sin id no inventa identidad",()=>{
+  const state=Object.assign({},recordedState,{expenses:[null,recorded]});
+  assert.equal(c.fixedExpenseEligible(state,recorded,fixed,2026,9,30),true);
+  assert.equal(c.fixedPaymentState(state,fixed,2026,9,30).paid,true);
+  const missing=Object.assign({},fixed,{id:undefined}),withoutId=Object.assign({},base,{fixed:[missing]});
+  const before=JSON.stringify(withoutId),result=c.fixedPaymentState(withoutId,missing,2026,9,30);
+  assert.equal(result.paid,false);assert.equal(result.overdue,true);assert.equal(result.bankTx,null);
+  assert.equal(c.reconcileFixedPaymentProofs(withoutId,2026,9,30),withoutId);
+  assert.equal(JSON.stringify(withoutId),before,"sin id no se repara ni se guarda una prueba al leer");
+});
+
+const paymentGuards=[
+  {id:"nombre-corto",from:'n.length>=4&&(" "+name+" ")',to:'true&&(" "+name+" ")',check(ctx){
+    const bill=Object.assign({},fixed,{name:"Gas"}),state=Object.assign({},recordedState,{fixed:[bill]});
+    assert.equal(ctx.fixedPaymentAutoOwner(state,bill,2026,9,"sabadell","GAS SA",42,"otros",false),false,"nombre corto no identifica automáticamente");
+  }},
+  {id:"fuente-manual",from:'["ob","ob-hist","wallet","macrodroid","tr"].indexOf(x.source)<0',to:'["ob","ob-hist","wallet","macrodroid","tr","manual:sabadell"].indexOf(x.source)<0',all:true,check(ctx){
+    const state=Object.assign({},recordedState,{expenses:[Object.assign({},recorded,{source:"manual:sabadell"})]});
+    assert.equal(ctx.fixedPaymentState(state,fixed,2026,9,30).paid,false,"apunte manual necesita confirmación expresa");
+  }},
+  {id:"dos-book",from:'&&matches.length<2&&',to:'&&true&&',check(ctx){
+    const row=Object.assign({},recorded,{date:tx.date,obName:tx.merchant,merchant:tx.merchant});
+    const state=Object.assign({},base,{bankTx:[tx,Object.assign({},tx,{id:"segundo",date:"2026-09-26"})],expenses:[row]});
+    assert.equal(ctx.fixedPaymentState(state,fixed,2026,9,30).paid,false,"un gasto guardado no rescata dos BOOK ambiguos");
+  }},
+  {id:"prueba-invalida",from:'&&!(e.paymentProofs&&e.paymentProofs[y*12+m])',to:'&&true',check(ctx){
+    const stale=Object.assign({},fixed,{paymentProofs:{[2026*12+9]:{kind:"expense",model:"modelo sustituido",identity:ctx.fixedPaymentIdentity("sabadell",recorded),date:"2026-09-25",amount:42,bank:"sabadell"}}});
+    const state=Object.assign({},recordedState,{fixed:[stale]});
+    assert.equal(ctx.fixedPaymentState(state,stale,2026,9,30).paid,false,"una prueba invalidada no se sustituye por inferencia");
+  }},
+  {id:"cargo-ya-vinculado",from:'return f.id!==e.id&&p&&p.identity===fixedPaymentIdentity(tx.ent,tx);',to:'return false;',check(ctx){
+    const other=Object.assign({},fixed,{id:"explicito",name:"Otro recibo ficticio"});
+    const charge=Object.assign({},recorded,{date:tx.date,obName:tx.merchant,merchant:tx.merchant});
+    const state=Object.assign({},base,{fixed:[fixed,other],bankTx:[],expenses:[charge]});
+    const linked=ctx.linkFixedPayment(state,charge.id,other.id,2026,9,30);
+    const traveled=Object.assign({},ctx.slimForCloud(linked),{bankTx:[tx]});
+    assert.equal(ctx.fixedPaymentState(traveled,traveled.fixed[1],2026,9,30).paid,true,"prueba explícita vigente");
+    assert.equal(ctx.fixedPaymentState(traveled,traveled.fixed[0],2026,9,30).paid,false,"BOOK no puede reutilizar el cargo ya vinculado");
+  }},
+  {id:"book-sin-banco",from:'f.bank!==bank||!recNameMatch(f.name,merchant)',to:'!recNameMatch(f.name,merchant)',check(ctx){
+    const other=Object.assign({},fixed,{account:"revolut"}),state=Object.assign({},base,{fixed:[other]});
+    assert.equal(ctx.fixedPaymentAutoOwner(state,other,2026,9,"sabadell",tx.merchant,42,null,true),false,"modo BOOK exige banco propio");
+  }}
+];
+for(const guard of paymentGuards){
+  test("guarda causal: "+guard.id,()=>guard.check(c));
+  test("mutación rechazada: "+guard.id,()=>{
+    let changes=0;
+    const mutant=paymentLogic(code=>{
+      const apply=()=>{assert.ok(code.includes(guard.from),"la mutación tiene una guarda real");code=code.replace(guard.from,guard.to);changes++;};
+      apply();if(guard.all)while(code.includes(guard.from))apply();
+      return code;
+    });
+    assert.ok(changes>0);assert.throws(()=>guard.check(mutant),assert.AssertionError,"la aserción causal cae sin su guarda");
+  });
+}

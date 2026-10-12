@@ -273,6 +273,14 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenses"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenseChoice"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentState"
       },
       {
@@ -4801,6 +4809,14 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenses"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenseChoice"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentState"
       },
       {
@@ -5844,6 +5860,14 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenses"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenseChoice"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentState"
       },
       {
@@ -6651,6 +6675,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedExpenseEligible"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenses"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenseChoice"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -7711,6 +7743,14 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenses"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenseChoice"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentState"
       },
       {
@@ -8144,6 +8184,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedExpenseEligible"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenses"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenseChoice"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -10107,6 +10155,14 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenses"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenseChoice"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentState"
       },
       {
@@ -10857,6 +10913,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedExpenseEligible"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenses"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenseChoice"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -11716,6 +11780,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedExpenseEligible"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenses"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenseChoice"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -13924,6 +13996,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentProof"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenses"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenseChoice"
       },
       {
         "file": "src/modules/08-motor-bank.js",

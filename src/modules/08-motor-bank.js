@@ -106,6 +106,38 @@ function fixedPaymentDate(date,y,m,today){
 }
 function fixedExpenseKey(e){ return expenseBankOf(e)+"|"+keyOfExpense(e); }
 function fixedPaymentIdentity(bank,x){ return JSON.stringify([bank,String(x.date).slice(0,10),Number(x.amount),x.obName!=null?x.obName:x.merchant||""]); }
+function fixedPaymentExpenses(s){
+  // Inicio consulta los pendientes en cada render: treinta recibos no deben volver
+  // a recorrer veinte mil gastos. El guardado partido ya cambia su referencia al editar.
+  var expenses=s.expenses;
+  if(!Array.isArray(expenses)) return {identity:new Map(),key:new Map(),id:new Map(),names:new Map()};
+  var cache=fixedPaymentExpenses.cache||(fixedPaymentExpenses.cache=new WeakMap()),index=cache.get(expenses);
+  if(index) return index;
+  index={identity:new Map(),key:new Map(),id:new Map(),names:new Map()};
+  var add=function(map,key,x){ var rows=map.get(key);if(rows) rows.push(x);else map.set(key,[x]); };
+  expenses.forEach(function(x){
+    if(!x) return;
+    var bank=expenseBankOf(x);
+    add(index.identity,fixedPaymentIdentity(bank,x),x);add(index.key,fixedExpenseKey(x),x);
+    if(x.id) add(index.id,x.id,x);
+    if(["ob","ob-hist","wallet","macrodroid","tr"].indexOf(x.source)<0||!bank||bank==="efectivo"||
+      (x.cur||x.currency)&&String(x.cur||x.currency).toUpperCase()!=="EUR") return;
+    var name=recNorm(x.obName!=null?x.obName:x.merchant),prefix=String(x.date||"").slice(0,7)+"|"+Math.round(Number(x.amount)*100)+"|";
+    // Basta el primer token del recibo para acotar; la frase completa se exige después.
+    new Set(name.split(" ")).forEach(function(word){ if(word) add(index.names,prefix+word,x); });
+  });
+  cache.set(expenses,index);return index;
+}
+function fixedPaymentExpenseChoice(rows){
+  if(rows.length===1) return rows[0];
+  if(rows.length!==2) return null;
+  var book=rows.find(function(x){ return x.source==="ob"||x.source==="ob-hist"; });
+  var notice=rows.find(function(x){ return ["wallet","macrodroid","tr"].indexOf(x.source)>=0; });
+  // Dos fuentes concordantes no retiran «pagado» al sincronizar. Sólo una de cada,
+  // mismo banco y céntimos y la ventana del importador; no fusionamos filas ni saldos.
+  return book&&notice&&expenseBankOf(book)===expenseBankOf(notice)&&
+    Number(book.amount)===Number(notice.amount)&&Math.abs(dateMs(book.date)-dateMs(notice.date))<=DUP_DIAS_MS?book:null;
+}
 function fixedPaymentFeedClear(s,identity){
   var rows=(s.bankTx||[]).filter(function(tx){ return fixedPaymentIdentity(tx.ent,tx)===identity; });
   return rows.length<=1&&!rows.some(function(tx){ return tx.possibleDup||String(tx.status||"").toUpperCase()!=="BOOK"; });
@@ -131,7 +163,8 @@ function fixedPaymentAutoOwner(s,e,y,m,bank,merchant,amount,category,book){
     var n=recNorm(f.name),full=n.length>=4&&(" "+name+" ").indexOf(" "+n+" ")>=0;
     var exact=Math.round(Number(f.amount)*100)===Math.round(Number(amount)*100);
     if(book){
-      if(!(f.bank===bank&&recNameMatch(f.name,merchant)&&recAmtClose(f.amount,amount))&&!(full&&exact)) return;
+      // El BOOK identifica el banco: un homónimo ajeno no puede negar su cargo propio.
+      if(f.bank!==bank||!recNameMatch(f.name,merchant)||!recAmtClose(f.amount,amount)) return;
     } else if(!full||!exact||f.bank!==bank&&category&&category!=="otros"&&category!==f.category) return;
     // Resolver antes de leer o guardar evita que el feed de un banco adelante al nombre
     // genérico y el cargo guardado acredite después otro recibo (revisión10/10).
@@ -150,7 +183,7 @@ function fixedPaymentProof(s,e,y,m,today){
     if((s.deleted||[]).indexOf(p.expenseKey)>=0||(p.expenseLegacyKey&&(s.deleted||[]).indexOf(p.expenseLegacyKey)>=0)) return null;
     // Sin fila local la prueba viaja entre móviles; si sí está, una edición o nueva
     // atribución de deuda no debe conservar la confirmación del cargo anterior.
-    var rows=(s.expenses||[]).filter(function(x){ return fixedExpenseKey(x)===p.key||p.expenseId&&x.id===p.expenseId||fixedPaymentIdentity(expenseBankOf(x),x)===p.identity; });
+    var index=fixedPaymentExpenses(s),rows=Array.from(new Set((index.key.get(p.key)||[]).concat(p.expenseId?index.id.get(p.expenseId)||[]:[],index.identity.get(p.identity)||[])));
     if(rows.length>1||rows.some(function(x){ return !fixedExpenseEligible(s,x,e,y,m,today)||fixedPaymentIdentity(expenseBankOf(x),x)!==p.identity; })) return null;
   } else {
     var target=e.bankAmount>0?e.bankAmount:occAmountIn(e,m);
@@ -176,7 +209,7 @@ function fixedExpenseEligible(s,x,e,y,m,today){
   return !!x&&fixedPaymentUnique(s,e)&&!x.possibleDup&&!x.debtId&&(!x.status||String(x.status).toUpperCase()==="BOOK")&&!!expenseBankOf(x)&&!CAT_NEUTRAS[x.category]&&x.category!=="ingreso"&&
     Number.isFinite(Number(x.amount))&&Number.isFinite(Number(target))&&Number(x.amount)>0&&target>0&&occursIn(e,m)&&
     fixedPaymentDate(x.date,y,m,today)&&!expenseIsTombstoned(x,expenseDeletedSet(s))&&fixedPaymentFeedClear(s,fixedPaymentIdentity(expenseBankOf(x),x))&&
-    (s.expenses||[]).filter(function(r){ return fixedPaymentIdentity(expenseBankOf(r),r)===fixedPaymentIdentity(expenseBankOf(x),x); }).length===1;
+    (fixedPaymentExpenses(s).identity.get(fixedPaymentIdentity(expenseBankOf(x),x))||[]).length===1;
 }
 function linkFixedPayment(s,expenseId,fixedId,y,m,today,expected){
   var x=(s.expenses||[]).find(function(r){ return r.id===expenseId; });
@@ -272,20 +305,21 @@ function fixedPaymentState(s,e,y,m,today){
   // entidad; un token genérico o importe parecido requiere confirmación expresa (10/10).
   var name=recNorm(e.name);
   if(!proof&&!persisted&&!tx&&matches.length<2&&name.length>=4&&!(e.paymentProofs&&e.paymentProofs[y*12+m])){
-    var rows=(s.expenses||[]).filter(function(x){
+    var rows=(fixedPaymentExpenses(s).names.get(ym+"|"+Math.round(Number(target)*100)+"|"+name.split(" ")[0])||[]).filter(function(x){
       if(!x||["ob","ob-hist","wallet","macrodroid","tr"].indexOf(x.source)<0||String(x.date||"").slice(0,7)!==ym) return false;
       if((x.cur||x.currency)&&String(x.cur||x.currency).toUpperCase()!=="EUR"||expenseBankOf(x)==="efectivo") return false;
       if(Math.round(Number(x.amount)*100)!==Math.round(Number(target)*100)) return false;
       var merchant=recNorm(x.obName!=null?x.obName:x.merchant);
       if(merchant.length<4||(" "+merchant+" ").indexOf(" "+name+" ")<0) return false;
       if(expenseBankOf(x)!==bank&&x.category&&x.category!=="otros"&&x.category!==e.category) return false;
-      // La unicidad recorre Gastos: sólo después de descartar nombre/importe/mes para
-      // que el histórico no cueste un barrido entero por cada compra no coincidente.
       if(!fixedExpenseEligible(s,x,e,y,m,today)) return false;
       // El BOOK admite tolerancia de importe; su copia en Gastos no puede eliminar
       // a ese ganador y adjudicar el mismo cargo a otro recibo con céntimos exactos.
       var identity=fixedPaymentIdentity(expenseBankOf(x),x),book=(s.bankTx||[]).some(function(tx){
         return String(tx.status||"").toUpperCase()==="BOOK"&&fixedPaymentIdentity(tx.ent,tx)===identity;
+      });
+      book=book&&fixedPaymentContenders(s,y,m).some(function(f){
+        return f.bank===expenseBankOf(x)&&recNameMatch(f.name,merchant)&&recAmtClose(f.amount,Number(x.amount));
       });
       if(!fixedPaymentAutoOwner(s,e,y,m,expenseBankOf(x),merchant,Number(x.amount),x.category,book)) return false;
       return !(s.fixed||[]).some(function(f){
@@ -293,12 +327,12 @@ function fixedPaymentState(s,e,y,m,today){
         return f.id!==e.id&&p&&p.identity===fixedPaymentIdentity(expenseBankOf(x),x);
       });
     });
-    expense=rows.length===1?rows[0]:null;
+    expense=fixedPaymentExpenseChoice(rows);
   }
   var paid=!!proof||!!persisted||!!tx||!!expense;
   return {paid:paid,day:paid?(proof?recDay(proof.date):persisted?paidDay:recDay((tx||expense).date)):day,
     overdue:!paid&&day!=null&&day<today,bankTx:tx,paidBank:paid?(proof?proof.bank:tx?tx.ent:expense?expenseBankOf(expense):bank):null,
-    paidAmount:proof?Number(proof.amount):tx?Number(tx.amount):expense?Number(expense.amount):null};
+    paidAmount:proof?Number(proof.amount):tx?Number(tx.amount):expense?Number(expense.amount):null,proof:proof};
 }
 /* Una cuota vinculada ya contabilizada puede adelantarse al vencimiento. El vínculo identifica
    la deuda; el cargo cercano identifica SU mes, también al cruzar el día 1. No reanclamos el
@@ -2803,9 +2837,9 @@ function patchFixedById(set, id, p){
     if(it&&(("day" in p)||("amount" in p)||("account" in p))){
       const d=new Date(),y=d.getFullYear(),m=d.getMonth()+1,t=d.getDate();
       if(("amount" in p)||("account" in p)){ delete it.paidYm; delete it.paidDay; }
-      // El estado visual admite notificaciones; los saldos solo admiten el cargo BOOK
-      // único del extracto. Editar el calendario no convierte un aviso en dinero confirmado.
-      const ym=y*12+m,rec=reconcileBank(n,y,m,t),status=fixedPaymentState(n,it,y,m,t),pd=status.bankTx&&recDay(status.bankTx.date);
+      // El BOOK único también viaja como prueba entre móviles sin extracto local.
+      // Editar el calendario no convierte una notificación visual en dinero confirmado.
+      const ym=y*12+m,rec=reconcileBank(n,y,m,t),status=fixedPaymentState(n,it,y,m,t),pd=status.bankTx?recDay(status.bankTx.date):status.proof&&status.proof.kind==="book"&&recDay(status.proof.date);
       if(pd){
         it.paidYm=ym;
         it.paidDay=pd;
