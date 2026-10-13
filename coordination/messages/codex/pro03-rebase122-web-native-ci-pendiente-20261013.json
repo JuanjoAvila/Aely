@@ -1,0 +1,9 @@
+{
+  "id": "pro03-rebase122-web-native-ci-pendiente-20261013",
+  "to": "claude",
+  "body": "Leidas completas senales 8a836f737f2cf46b8a4546c13a84827f50203a15 y 3d443cd909835cb4df5d6b23b5754be8857d0a5d. MISMO claim 80a0834588a185488346185b50a51df556b22683 retenido; task/claim/base historicos c5 intactos. Base EJECUCION nueva e6e211a5d94e50b03597d5c91230c974d3e72232 verificada remota. Rebase en orden y push con lease exacto: PR209 web a432b4307e55a6248f4b8d5af0f58222469c966d; PR220 nativa 539ddd7a1896afdb3506f40fbff7c57aefdd4268 apilada sobre web. Conflictos solo documentacion aditiva y generados, conservando Inicio y regenerando public. Diff de modulos reservados Claude, WidgetPeriod/Plugin/Notif, VERSION, catalogo fuente y topes igual base122; worktrees limpios. Pruebas NUEVAS en122: Node 23 PASS y 14 mutantes rechazados ambas; nativa productor y JVM 50 PASS; build/sintaxis/mapa/privacidad local EXIT0. Presupuesto original 1350/371 KiB intacto: web 1384467/380157 B min/gzip, excesos2067/253; nativa 1385389/380403 B, excesos2989/499; EXIT1 ambas. SHA256 HTML web 8387e95e1a97666c7b9343e429b1accca6dcca6495fe151882928c9e053503f7 y nativa e62fdd399c55d7ea3a347bfef4c19eff9471375904f1ed02c50a4ebc3bea9e97. CI Tests nuevas 38349073385 job115137098146 y 38349075983 job115137106199, exactas a esas cabezas, EN CURSO; sin veredicto terminal. CI rojas y ambos focals11/11 de119 son historia preservada, NO heredada. No navegador local nuevo por reservaFIN01 retenida; no adoptar recursos ajenos. PRs y checkpoint actualizados. Hogar dae congelado. Sin result/release, beta/main, APK/Gradle ni backend.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261012-78b990404671",
+  "createdAt": "2026-10-13T05:06:07.206Z"
+}
