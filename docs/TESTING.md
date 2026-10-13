@@ -64,6 +64,9 @@ y etiqueta de mes cuando rechazaría el ciclo. `widget-banco` prepara aserciones
 exactas del porcentaje restante y negocia APK55/56 en el día45; sigue sin ejecutarse
 localmente mientras no haya reserva propia de navegador.
 No sustituye la CI del SHA ni la prueba en móvil con APK nueva.
+Los dos oráculos de ancla en `month-budget-stats` exigen el instante de medianoche
+de Madrid, no `getDate()` del proceso. Ese test y los lectores `gastos-periodo`,
+`ob-ingresos`, `invest-category` y `reserva-dinero` se verifican en UTC/Madrid/Canarias.
 
 ## Pantalla de entrada nueva · contrato histórico4.26.117
 
