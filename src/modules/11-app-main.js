@@ -1,5 +1,46 @@
 // Motivo con identidad: `runBankSync` no llamó al banco porque no había pull de la nube (15/9).
 const SYNC_SIN_NUBE={motivo:"sync-sin-nube"};
+// El aviso usa el mismo saldo y calendario que Plan: sumar todos los bancos o mirar fin
+// de mes escondería que el cobro llega antes de la nómina. Sin datos, conserva el texto anterior.
+function receiptAlertBalance(state,totals,bank,day,fixed){
+  const y=totals.curYear,m=totals.curMonth,today=totals.today;
+  const last=new Date(y,m,0).getDate();
+  if(!bank||!Number.isInteger(y)||y<1||!Number.isInteger(m)||m<1||m>12||!Number.isInteger(last)
+    ||!Number.isInteger(today)||today<1||!Number.isInteger(day)||day<=today
+    ||day>last) return null;
+  const accounts=(state.accounts||[]).filter(function(a){ return a.ent===bank; });
+  const balances=totals.bankBal||{};
+  if(!accounts.length||accounts.some(function(a){ return !Number.isFinite(a.value); })
+    ||!Object.prototype.hasOwnProperty.call(balances,bank)
+    ||!Number.isFinite(balances[bank])) return null;
+  // Un cargo anticipado ya está en el saldo bancario. Si Plan y el calendario discrepan,
+  // la previsión podría descontarlo otra vez o esconder un atrasado (revisión 12/10).
+  if(fixed&&fixedPaymentState(state,fixed,y,m,today).paid) return null;
+  if((state.fixed||[]).some(function(e){
+    return occursIn(e,m)&&accOf(e)===bank
+      && fixedPaymentState(state,e,y,m,today).paid!==isPaidIn(e,m,today,y);
+  })) return null;
+  // El motor recorre céntimos aquí para que diez cargos pequeños no inventen una falta de 0,01.
+  const cents=function(n){ return Math.round(n*100); };
+  const start=cents(balances[bank]), due=[];
+  if(!Number.isSafeInteger(start)) return null;
+  for(const e of bankPendingEvents(state,bank,y,m,today)){
+    if(!Number.isInteger(e.day)||e.day<1||e.day>last||!Number.isFinite(e.amt)) return null;
+    if(e.day<=day&&!(e.day===day&&e.amt>0)){
+      const amt=cents(e.amt);
+      if(!Number.isSafeInteger(amt)) return null;
+      due.push({day:e.day,amt:amt});
+    }
+  }
+  due.sort(function(a,b){ return a.day-b.day||a.amt-b.amt; });
+  const minimum=minWalk(start,due).min;
+  return Number.isSafeInteger(minimum)?{bank:bank,enough:minimum>=0,amount:Math.abs(minimum)/100}:null;
+}
+function receiptAlertBody(body,state,totals,bank,day,fixed){
+  const balance=receiptAlertBalance(state,totals,bank,day,fixed);
+  if(!balance) return body;
+  return body+" "+tf(balance.enough?"rc_balance_ok":"rc_balance_short",{bank:entOf(balance.bank).label,x:eur(balance.amount)});
+}
 function App(){
   const [state,setStateRaw]=useState(loadState);
   const [tab,setTab]=useState(0);
@@ -2317,7 +2358,7 @@ function App(){
   // Incluye también las cuotas de deuda. Una noti por cargo y mes. Importes con eur() EXACTO:
   // redondear aquí hizo que «la luz» saliera como 90 € cuando el cargo real era 89,54 (2026-07-21).
   useEffect(function(){
-    if(state.onboarded===false||locked||showAuth) return;
+    if(mcSandbox()||state.onboarded===false||locked||showAuth) return;
     const nat=natPlugin();
     if(!nat||!nat.showNotification) return;
     const today=totals.today||new Date().getDate();
@@ -2327,7 +2368,8 @@ function App(){
     const ym=cal.ym;
     const notify=function(key,title,body){
       try{ if(localStorage.getItem(key)==="1") return; localStorage.setItem(key,"1"); }catch(err){}
-      try{ nat.showNotification({title:title,body:body}).catch(function(){}); }catch(err){}
+      // Con sellos ya vistos no recorrer el histórico para calcular una frase que no se enviará.
+      try{ nat.showNotification({title:title,body:body()}).catch(function(){}); }catch(err){}
     };
     const run=function(){
       (state.fixed||[]).forEach(function(e){
@@ -2338,9 +2380,9 @@ function App(){
         if(!(amt>0)) return;
         const daysLeft=d-today;
         if(daysLeft===1){
-          notify("_rc1_"+e.id+"_"+ym, t("rc_title_tmrw"), tf("rc_body_tmrw",{name:e.name||"?",x:eur(amt)}));
+          notify("_rc1_"+e.id+"_"+ym, t("rc_title_tmrw"), function(){ return receiptAlertBody(tf("rc_body_tmrw",{name:e.name||"?",x:eur(amt)}),state,totals,e.account,d,e); });
         } else if(amt>=minAmt && daysLeft>=2 && daysLeft<=3){
-          notify("_rc_"+e.id+"_"+ym+"_"+d, t("rc_title"), tf("rc_body",{name:e.name||"?",x:eur(amt),d:String(d)}));
+          notify("_rc_"+e.id+"_"+ym+"_"+d, t("rc_title"), function(){ return receiptAlertBody(tf("rc_body",{name:e.name||"?",x:eur(amt),d:String(d)}),state,totals,e.account,d,e); });
         }
       });
       // cuotas de deuda (hipoteca, financiaciones…): también avisan la víspera
@@ -2348,7 +2390,7 @@ function App(){
         if(!debtActive(d) || !(d.monthly>0)) return;
         if(isDebtPaidThisMonth(d,today,state,cy,cm)) return;
         if(debtChargeDay(d)-today!==1) return;
-        notify("_rc1_debt_"+d.id+"_"+ym, t("rc_title_tmrw"), tf("rc_body_tmrw",{name:d.name||"?",x:eur(d.monthly)}));
+        notify("_rc1_debt_"+d.id+"_"+ym, t("rc_title_tmrw"), function(){ return receiptAlertBody(tf("rc_body_tmrw",{name:d.name||"?",x:eur(d.monthly)}),state,totals,d.account,dayOf(d)); });
       });
     };
     // ANTES de avisar, sella lo que el NATIVO ya avisó. Este efecto corría en paralelo al
@@ -2362,7 +2404,7 @@ function App(){
         }).catch(run);
       }catch(e){ run(); }
     } else run();
-  },[state.onboarded,locked,showAuth,state.fixed,state.debts,state.expenses,state.bankTx,state.deleted,totals.today,totals.curMonth,totals.curYear]);
+  },[state.onboarded,locked,showAuth,state.fixed,state.debts,state.expenses,state.bankTx,state.deleted,state.flows,state.oneoffs,totals.bankBal,totals.today,totals.curMonth,totals.curYear]);
 
   // Empuja el calendario de recibos del mes al NATIVO (APK ≥29): AlertCheckWorker avisa la
   // víspera aunque la app esté CERRADA. Intercambio de sellos para no avisar dos veces:
@@ -2370,6 +2412,7 @@ function App(){
   // aparte del efecto de arriba para que el calendario llegue al worker TAMBIÉN con la app
   // bloqueada o a medio onboarding (el de arriba sale temprano en esos casos).
   useEffect(function(){
+    if(mcSandbox()) return;
     const nat=natPlugin();
     if(!nat||!nat.setAlertData) return;
     const cal=alertCalendarOf();
