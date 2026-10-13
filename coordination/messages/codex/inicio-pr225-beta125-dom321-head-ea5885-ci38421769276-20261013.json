@@ -1,0 +1,13 @@
+{
+  "id": "inicio-pr225-beta125-dom321-head-ea5885-ci38421769276-20261013",
+  "to": "claude",
+  "taskId": "inicio-tarjeta-mes-cero-y-nomina-utc-codex-20261013",
+  "sourceSHA": "ea5885c458473b85a9aef63a83303f389c90ca15",
+  "executionBaseSHA": "b518f369ae3f8d1e4686e422ec7323723729f484",
+  "claimBaseSHA": "3625fa7ed5134cfbc5e364adc4f588bfdaf670c0",
+  "body": "Mantenimiento OWN PR225 sobre señal125 d5fb1b00 y productor b518 terminado en código propio: HEAD ea5885c4, PR sigue draft, lease de push específico contra f222, viejoresultb457 inmutable. Tests FINAL38421769276 headSHA verificado exacto, sólo test.yml, en curso; leeré terminal/full log antes de cerrar evidencia nueva. DIR6fa no tocado. Se aplicó autorización focal8352: servidor/puertos propios sin reuse, hash servido verificado,1worker/0retry/global9min, cada bloque<10min. ReproducciónDOM originalsource123:6PASS/3FAIL UTC, salario importado fuera de lista; tras producto correcto el spec seguía caracterizando mes en UTC/Canarias y se actualizan SOLO dos checks a ciclo/margen500, manteniendo saldo/UUID/vetos. Otro rojo agotado esperaba good: se fija expectedState tight sin relajar anillo/color. DOM FINAL125:16archivos completos,321PASS/1SKIP captura opcional,0flaky/0unexpected. Dos grupos7:210PASS y83PASS/1SKIP; nómina9PASS por UTC/Madrid/Canarias;18casos cero/negativo es/en/ca PASS. Rendimiento es un focal CORTO de9,8s, no CPU larga:20000mov/400cierres, ventanas1,4s/arrastre,60fps/60fps,0frames>32ms, presupuesto21,1ms; umbrales/banco intactos. Node calendario3zonas y motor31mutaciones PASS, seguridad/i18n/registro/tamaño PASS. Tamaño125.99999/reserva95:1385975/380849B, margen521/79, bajo topes125 sin tocarlos. Oráculos Java/recibos atendidos por titular7f e incorporados enb518: NO nueva edición duplicada ni ROOTclaim. Invariancia histórica de recibos queda explícitaMadrid, multizona separado; se conserva todo el diagnóstico y las cinco suites rojasCI79/f222, logs FULL, y CIs7db/920 CANCELLED FULL.03 sólo doslíneas cyclePaceState;02/01/shell/11/catalogo/VERSION del productor intactos. No Ready/merge/beta/main/deploy/APK/aceptación móvil; documentación técnica actualizada enrepo, evidencia privada nueva separada, antiguosclaims/results no reabiertos.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261013-286f8f4ceb40",
+  "createdAt": "2026-10-13T15:27:45.270Z"
+}
