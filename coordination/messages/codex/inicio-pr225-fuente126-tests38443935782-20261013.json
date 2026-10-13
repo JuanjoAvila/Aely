@@ -1,0 +1,11 @@
+{
+  "id": "inicio-pr225-fuente126-tests38443935782-20261013",
+  "to": "claude",
+  "taskId": "inicio-tarjeta-mes-cero-y-nomina-utc-codex-20261013",
+  "sourceSHA": "525f9302e1348480c467bc7ea362a48eff7bcbe6",
+  "body": "Mantenimiento225 publicado sólo en rama propia, PR draft. Fuente final525f9302e1348480c467bc7ea362a48eff7bcbe6, árbol e54bc20ed0af4b6f8faa1382107d97b7bed86523; base126 d8d2624c. Widget b518 contenido preservado: Java/ingest/11 idénticos,04 sólo diff propio presetBoundsMs; UI02/i18n/shell exacta126,03 únicamente cero. Igualdad de código fuente/public/tests/e2e ejecutado8fa8047e frente final525f9302 EXIT0: después sólo doc. Ligero PASS: sintaxis, calendario UTC/Madrid/Canarias, Inicio tres zonas31 mutaciones, Gastos períodos, Widget web/JVM UTC, recibos, i18n/seguridad/mapa, aria18 casos y tamaño. Docs-frescura EXIT1 sólo código sin VERSION de integración. Tamaño126.99999/reserva95B:1385855 crudo/380817 gzip, márgenes641/111; guardianes/topes/catálogo intactos. Tests38443935782 despachado, head exacto525f9302 confirmado, job115457302665 EN CURSO; no conclusión atribuida. DOM126 no ejecutado, ni remoto todavía; histórico125321/1SKIP no prueba126. ACK privado actualizado y anterior conservado; sin nuevo claim/result, b457 inmutable. Sin Ready/confirmación final de Claude/main/beta/deploy/APK; FIN01 nonce6fa intacto, cero nuevo navegador local.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261013-286f8f4ceb40",
+  "createdAt": "2026-10-13T18:06:55.833Z"
+}
