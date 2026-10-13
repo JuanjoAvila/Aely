@@ -2,6 +2,16 @@
 
 Base histórica inmutable del task/claim: beta `c5f62d6603d016150afd9d0e20547b608b323045`. La candidata sigue sin publicar y no acredita aceptación móvil ni integración. No modifica VERSION, notas de versión, catálogos fuente, backend o APK respecto a su base de ejecución.
 
+## Corte bloqueado sobre beta126 · orden9e10203
+
+La orden9e10203b6f662f76771cd545cce0f8813d6ff0b8 requiere resultado o bloqueo exacto y rebase126. Task/claim447/sesión se comprobaron frescos y propios, sin result previo. Base remota verificada d8d2624c6666599a09b99e111c3360af6eec6f91. Antes del rebase se conservaron source367, ZIP, hashes, CI38406038805/FULLlog y revisión33 readonly. Aquella CI terminó FAILURE/exit1 únicamente docs-frescura; siete archivos Deno pasaron, Playwright no se ejecutó y Privacidad quedó SKIPPED. La revisión33 es NO-GO de aceptación completa: lectura scoped, sin revisión CODE/mutantes nuevos, DOM ni CPU6; no se hereda como revisión de126.
+
+Rebase compatible: brókers y sus tests propios permanecen idénticos a367; versiones, catálogos, topes, Inicio/calendario y restantes productores conservan la base126. Conflictos documentales resueltos conservando toda la descripción126 más el apartado candidato; public reconstruido desde src. Inventario de51 descriptores mediante codec/lector de archivo oficiales: ninguna huella web/código/edge/nativa adicional respecto a base126. Quince funciones financieras/proveedor y venta/borrado iguales.
+
+Build/sintaxis, cinco Node propios, siete comprobaciones de logos, auth-disposal-fit, idiomas, mapa, seguridad, privacidad local y presupuesto exit0. Seis focales literales Catálogo/Retiro124/125/126 exit0 con aserciones intactas; no es beta-sources completo. Tres mutantes propios actuales detectados, sin atribuirlos al revisor. Tamaño oficial126.99999/reserva95B:1.380.737 B min/380.367 B gzip9; topes heredados1354/372KiB intactos. Docs-frescura mantiene exit1 por tres fuentes posteriores al ancla126 sin bump autorizado.
+
+Bloqueo preciso: no hay retorno observado del recurso independiente FIN01 ni admisión propia para DOM/CPU6, por lo que los criterios de render/recarga/movimiento reducido y frames32ms no están acreditados en esta fuente. También faltan la revisión independiente CODE de la fuente final con sus tres mutantes y el cierre de VERSION en integración. Una CI remota nueva puede quedar en curso al registrar el corte: se declara sin exit terminal y nunca como pase. El cierre blocked, cuando se confirme en el canal, libera únicamente esta tarea; no devuelve ni retira el recurso ajeno. Fuentes/PR se conservan, sin done, aprobación móvil, publicación, APK ni backend. No se abre otra consulta por el bloqueo conocido.
+
 ## Mantenimiento autorizado a beta124 · fuente actual
 
 Señal cf8d3cefd824f40a580333712813216771f77211 leída íntegra; refs/heads/beta verificada en f5904735b514751ee926d25c22c92195b6ce3653. Task/claim447/sesión y base histórica intactos, sin result cerrado ni reclamación repetida. Antes del rebase se archivaron ec786260, todos sus ficheros y CI38378962443 completa: FAILURE/Tests exit1 únicamente docs-frescura; beta-sources y presupuesto pasan, siete archivos Deno pasan, privacidad posterior SKIPPED y ningún Playwright. Las fuentes45bd/889/78 y sus pruebas/revisión se conservan como historia.
