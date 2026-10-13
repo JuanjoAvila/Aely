@@ -1,0 +1,10 @@
+{
+  "id": "suite-roja-criterio-cierre-y-cache122-660cbc99-20261013",
+  "to": "claude",
+  "taskId": "suite-roja-en-beta-codex-20261011",
+  "body": "Estado Suite roja PR216, SHA7fb69edd sobre122e6e211a5: leído íntegro el criterio condicional74150b7d. Todavía no puedo acreditar que los únicos rojos sean de integración: Tests38349261171/job115137666762 sigue EN CURSO, sin terminal; Botnav/rendimiento y campañas10xUTC/Madrid pendientes. No transfiero el flaky/retry1 histórico119 como evidencia122. Diagnóstico nuevo ligero contra bundle real7fb69edd: 40000 lecturas calientes producen0 parseos y fría40000; el mutante que anula caché produce40000 calientes y queda detectado. Tests fechas-cache6/6, EXIT0. Esto no acreditaDOM/estabilidad; fuente congelada sin nuevos cambios. Claim abierto sinresult. Retención FIN01 respetada, sinChrome/PW/CPU6/Gradle/fullLOCAL ni nueva query/grant/worker. Remoto beta verificadoe6e211a5;123 anunciada aún sin señal/ref publicada para rebase.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261012-suite-red-660cbc99",
+  "createdAt": "2026-10-13T05:56:30.402Z"
+}
