@@ -106,10 +106,11 @@ for(const [id,sha]of [
 ]){assert.equal(createHash('sha256').update(JSON.stringify(reg[id])).digest('hex'),sha,id+': descriptor exacto de beta113');expectedReg[id]=reg[id];}
 assert.deepEqual(reg,expectedReg,'sólo los alcances nuevos 107/108/110 y los dos de la 113; cierres históricos explícitos y resto del registro intacto');
 // Los tres cambios históricos son dependencias de lo aprobado, no tandas adicionales ni reutilización del OK antiguo.
-// La120 mueve la de meta-regla: su reparto lee `reservaKeyOf` y `keyOfExpense`, que ahora llevan el ordinal de los
-// apuntes iguales (Catálogo120 de beta-sources lo declara con sus unidades). Las otras dos no se mueven.
+// Desde la121 este cierre se lee de su fuente histórica (`mainRead`, con su registro), no de la viva: la de
+// meta-regla vuelve a su identidad de entonces. Lo que la120 (ordinal en `keyOfExpense`) y la121 (guardado partido)
+// le mueven a la fuente viva lo declaran Catálogo120 y Catálogo121 de beta-sources, con sus unidades.
 for(const [id,codigo,web]of [
- ['inc-0310-01-meta-regla','6e026593445c6550f4a8f74dcfde84460ff2263dceb0a358c8c333a941c9670f','0b3ad03740d9db72e90f3aeb58ac1c28f3534b17cc291556354bc96f58f2d09a'],
+ ['inc-0310-01-meta-regla','9d7b6a271c9bd35c5db3639f5b679f6eb7f904c94429aa279a2793e0d89a8981','74a3f1fadd6c79f870bc3fbe27008065f6950e1dab0644be8dfa14475f8300aa'],
  ['inc-0310-broker-resultados','027baca86c47ba94e97a63ef8efe6a28eb7245f5f23dacad8423821cece278a8','8149f3d99d8be6aad6de5811f3aa0f737cd847cd5cc1b5353ecad394ee5c48ce'],
  ['inc-2709-13-fab-contorno','7d83273ce4d3cedc0980a5b89452594bba8d91c0e48211f853ede13e80c0f45b','78fbc4dc2e857c7a7a513ecb9f302feeaaf6f56ed47fb3030f26f3fdfbcd128c'],
 ]){
@@ -123,4 +124,4 @@ assert.notEqual(betaRevision('inc-0710-auth-disposal',mainRead,undefined,reg['in
 console.log('✓ fit102: retornos/receiver/excepciones diferidas, boot real sin throw, trazas equivalentes;7funciones/9datos, notas históricas106 intactas y registro con cierres107/108/110 explícitos; identidad102 nueva');
 
 }
-assert.equal(createHash('sha256').update(JSON.stringify(JSON.parse(read('scripts/beta-sources.json')))).digest('hex'),'8a0ad2c5f8c7fe914be85bc0b8423a1fbe0ecda5691211b6f39d1ef72358c4a2','registro120 íntegro: el de la beta119 (aa9cb034) más el ordinal y los vínculos en veinticinco alcances y la tanda tr-iguales-ordinal; Catálogo120 de beta-sources lo fija unidad a unidad');
+assert.equal(createHash('sha256').update(JSON.stringify(JSON.parse(read('scripts/beta-sources.json')))).digest('hex'),'870594f5f031b7bb8008f44b9900685bf1f35d6c321348481abc291589f439b9','registro121 íntegro: el de la integración120 (8a0ad2c5) más la unión del historial en veintisiete alcances, el Guardar de Bienes, el renderer nuevo en la gráfica113 y la tanda inicio-patrimonio-flujos; Catálogo121 de beta-sources lo fija unidad a unidad');

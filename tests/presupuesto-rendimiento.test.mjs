@@ -234,7 +234,14 @@ const PRESUPUESTO = {
   // Integración 4.26.120 (13/10): remedido tras el build sobre la beta119 (788432f4), sello
   // 120.99999 y reserva de 95 B: 1.340.552 B crudo / 366.827 B gzip, +6.026 / +2.163 B sobre la
   // 119. 1309 KiB (1.340.416) se queda corto por 136 B: 1310 sigue siendo el mínimo, quedan 888 B.
-  minificado: 1310 * 1024,
+  // Integración 4.26.121 (13/10), Inicio v4.2 encima de la 120 (4e927e33): medida la UNIÓN tras
+  // el build, sello 121.99999 y reserva de 95 B: 1.367.867 B crudo / 375.111 B gzip, +27.315 /
+  // +8.284 B sobre la 120. Es la serie de patrimonio por flujos, los escalones de bienes, la
+  // deuda por cuadro de amortización, el historial partido con su unión local/nube, la tarjeta
+  // del mes y sus textos en tres idiomas (la rama sola medía 1.361.243 / 372.777 B sobre la 119,
+  // con 1330 / 365 KiB). 1335 KiB (1.367.040) se queda corto por 827 B: 1336 es el mínimo,
+  // quedan 197 B. No se recorta producto ni idiomas para caber (mandato del dueño, 11/10).
+  minificado: 1336 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -252,7 +259,8 @@ const PRESUPUESTO = {
   // Trade Republic, entrega 1 revisada (12/10): 366.830 B gzip, 1.398 B sobre 357 KiB (la base
   // de la rama ya se pasaba). Mínimo medido: 359 KiB (quedan 786 B).
   // Integración 4.26.120: 366.827 B gzip, 235 B sobre 358 KiB. 359 sigue siendo el mínimo (quedan 789 B).
-  gzip: 359 * 1024,
+  // Integración 4.26.121, Inicio v4.2: 375.111 B gzip, 295 B sobre 366 KiB. Mínimo medido: 367 KiB (quedan 697 B).
+  gzip: 367 * 1024,
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 

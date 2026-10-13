@@ -13390,6 +13390,22 @@
       {
         "file": "src/modules/00-core.js",
         "function": "mergeAccountBalanceHistory"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "recordAssetValues"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "netWorthDay"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "madridYmdParts"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "_mcMadridYmdFmt"
       }
     ]
   },
@@ -14099,6 +14115,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "REC_GRACE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obOrdinalSufijo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obOrdinalOf"
       }
     ],
     "unidades": true
@@ -18507,6 +18531,10 @@
       {
         "file": "src/modules/00-core.js",
         "function": "withdrawalReceiptLink"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mergeAccountBalanceHistory"
       }
     ],
     "edge": [
@@ -19291,6 +19319,14 @@
         "from": "  const ringPct=",
         "to": "\n",
         "includeTo": true
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obOrdinalSufijo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obOrdinalOf"
       }
     ],
     "unidades": true

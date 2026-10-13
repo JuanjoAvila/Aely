@@ -1,5 +1,67 @@
 [
   {
+    "v": "4.26.121",
+    "d": "2026-10-13",
+    "t": {
+      "es": "Inicio: cómo ha ido tu patrimonio",
+      "en": "Home: how your net worth has moved",
+      "ca": "Inici: com ha anat el teu patrimoni"
+    },
+    "items": {
+      "es": [
+        "Inicio estrena una gráfica de cómo ha ido tu patrimonio: cuentas, inversiones, bienes y deudas, todo junto. Pasa el dedo por encima para ver la cifra de cada día.",
+        "Una frase te dice cuánto ha subido o bajado en el periodo que elijas: un mes, seis meses, un año o todo.",
+        "La tarjeta del mes vuelve a decir cuánto puedes gastar al día con lo que te queda.",
+        "Si de algún día falta un dato, la gráfica no se lo inventa: te dice desde cuándo hay datos."
+      ],
+      "en": [
+        "Home has a new chart of how your net worth has moved: accounts, investments, property and debts, all together. Slide your finger over it to see the figure for each day.",
+        "A sentence tells you how much it has gone up or down over the period you pick: one month, six months, one year or everything.",
+        "The month card once again tells you how much you can spend per day with what you have left.",
+        "If a figure is missing for some day, the chart does not make it up: it tells you since when there is data."
+      ],
+      "ca": [
+        "Inici estrena una gràfica de com ha anat el teu patrimoni: comptes, inversions, béns i deutes, tot junt. Passa-hi el dit per sobre per veure la xifra de cada dia.",
+        "Una frase et diu quant ha pujat o baixat en el període que triïs: un mes, sis mesos, un any o tot.",
+        "La targeta del mes torna a dir quant pots gastar al dia amb el que et queda.",
+        "Si d'algun dia falta una dada, la gràfica no se la inventa: et diu des de quan hi ha dades."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inicio-patrimonio-flujos",
+        "t": {
+          "es": "Inicio: la gráfica de tu patrimonio y cuánto puedes gastar al día",
+          "en": "Home: your net worth chart and how much you can spend per day",
+          "ca": "Inici: la gràfica del teu patrimoni i quant pots gastar al dia"
+        },
+        "items": {
+          "es": [
+            "1. Abre Inicio y apunta la cifra grande de arriba, con sus céntimos. Ve a Cartera: su cifra grande, con todos los bloques activados (cuentas, inversiones y bienes, menos deudas), es la misma al céntimo. Está mal si difieren, aunque sea en un céntimo.",
+            "2. Vuelve a Inicio y mira la gráfica que hay bajo la cifra: la línea viene de días o meses atrás, no empieza hoy. Entre la cifra y la gráfica hay una línea de texto por cada bien que tienes dado de alta, del estilo «Coche: valor propio desde…» con la fecha de hoy, seguida de «antes se mantiene el valor actual». Si una cuenta tiene datos solo desde cierto día, otra línea lo dice con su nombre y esa fecha. Está mal si no sale la gráfica, si empieza hoy o si falta la línea de alguno de tus bienes.",
+            "3. Mantén el dedo sobre la gráfica y muévelo a los lados: encima de la cifra aparece una fecha y la cifra pasa a ser la de ese día. Al soltar, vuelve la de hoy. Ahora desliza hacia abajo empezando con el dedo sobre la gráfica: la pantalla se mueve y la cifra no cambia.",
+            "4. Mira la tarjeta «Este mes» (o «Este ciclo»): «Te quedan X de Y» coincide con lo que marca Gastos. Debajo dice cuánto puedes gastar al día y durante cuántos días, contando hoy. Si ya te has pasado del presupuesto, esa línea no sale y no cuenta como fallo.",
+            "5. Bajo la gráfica, toca uno a uno los periodos (1M, 6M, 1A, Todo): la frase de color cambia con cada uno («… más que hace un mes», «… menos que hace 6 meses») y la gráfica se vuelve a dibujar. Solo salen los periodos para los que hay datos: si falta alguno, es lo esperado."
+          ],
+          "en": [
+            "1. Open Home and note down the big figure at the top, cents included. Go to Portfolio: its big figure, with every block switched on (accounts, investments and property, minus debts), is the same to the cent. It is wrong if they differ, even by one cent.",
+            "2. Go back to Home and look at the chart under the figure: the line comes from days or months back, it does not start today. Between the figure and the chart there is one line of text for each property item you have, along the lines of “Car: own value from…” with today's date, followed by “earlier dates keep the current value”. If an account only has data from a certain day, another line says so with its name and that date. It is wrong if the chart does not show, if it starts today or if the line for one of your property items is missing.",
+            "3. Keep your finger on the chart and move it sideways: a date appears above the figure and the figure becomes the one for that day. When you let go, today's figure comes back. Now swipe down starting with your finger on the chart: the screen scrolls and the figure does not change.",
+            "4. Look at the “This month” (or “This cycle”) card: “Left to spend X of Y” matches what Spending shows. Below, it says how much you can spend per day and for how many days, counting today. If you are already over budget, that line does not show and it does not count as a failure.",
+            "5. Under the chart, tap the periods one by one (1M, 6M, 1Y, All): the coloured sentence changes with each one (“… more than a month ago”, “… less than 6 months ago”) and the chart is drawn again. Only the periods that have data are offered: if one is missing, that is expected."
+          ],
+          "ca": [
+            "1. Obre Inici i apunta la xifra gran de dalt, amb els cèntims. Ves a Cartera: la seva xifra gran, amb tots els blocs activats (comptes, inversions i béns, menys deutes), és la mateixa al cèntim. Està malament si són diferents, encara que sigui d'un cèntim.",
+            "2. Torna a Inici i mira la gràfica que hi ha sota la xifra: la línia ve de dies o mesos enrere, no comença avui. Entre la xifra i la gràfica hi ha una línia de text per cada bé que tens donat d'alta, de l'estil «Cotxe: valor propi des de…» amb la data d'avui, seguida de «abans es manté el valor actual». Si un compte només té dades des d'un dia concret, una altra línia ho diu amb el seu nom i aquesta data. Està malament si no surt la gràfica, si comença avui o si falta la línia d'algun dels teus béns.",
+            "3. Mantén el dit sobre la gràfica i mou-lo cap als costats: damunt de la xifra apareix una data i la xifra passa a ser la d'aquell dia. En deixar anar, torna la d'avui. Ara llisca cap avall començant amb el dit sobre la gràfica: la pantalla es mou i la xifra no canvia.",
+            "4. Mira la targeta «Aquest mes» (o «Aquest cicle»): «Et queden X de Y» coincideix amb el que marca Despeses. A sota diu quant pots gastar al dia i durant quants dies, comptant avui. Si ja t'has passat del pressupost, aquesta línia no surt i no compta com a error.",
+            "5. Sota la gràfica, toca un a un els períodes (1M, 6M, 1A, Tot): la frase de color canvia amb cadascun («… més que fa un mes», «… menys que fa 6 mesos») i la gràfica es torna a dibuixar. Només surten els períodes per als quals hi ha dades: si en falta algun, és el que s'espera."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.120",
     "d": "2026-10-13",
     "t": {
