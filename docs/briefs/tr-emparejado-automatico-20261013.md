@@ -1,4 +1,44 @@
-# Trade Republic: emparejado automático reversible
+# Revisión NO-GO de PR228 · candidata sin publicar
+
+Encargo actual: tr-emparejado-revision-nogo-codex-20261013. Base del encargo beta124 f5904735; ejecución sobre beta125 6342459b. La entrega anterior 2ff4c59e fue rechazada y su resultado se conserva como histórico, no como aceptación. La dependencia Recibos queda rebasada en 603071c2. No se modifica VERSION, notas de publicación, catálogo ni topes.
+
+## Qué cambia tras el NO-GO
+
+- Un reparto global por banco e importe firmado prioriza el día exacto y después los adyacentes. Los caminos alternos evitan dejar un aviso libre mientras otro apunte cuenta de nuevo; dos o tres días conservan una pregunta. Un aviso solo puede ocupar una fila.
+- Se reservan las lápidas antiguas sin vínculo y los acuerdos manuales antes de asignar altas. Un histórico sin marca de duplicado se conserva como una posible respuesta antigua «son distintos»: abrirlo no reduce el gastado. Solo un aviso recién llegado permite reconciliar un apunte previo sin pregunta.
+- Las parejas automáticas quedan en las filas locales y viajan con la marca #dup existente. No saturan el registro acotado de decisiones. Se cachean índices por referencia y metadatos de fecha; los cambios de categoría, nota o tarjeta no vuelven a emparejar. Los cambios financieros recalculan los grupos de banco e importe afectados y su ventana de días.
+- Una fila que baja sin #dup prevalece sobre el emparejado previo, aunque otra versión haya quitado los campos nuevos del estado. Separar y volver a unir conservan la decisión local; el segundo móvil adopta una unión humana más reciente. Un estado viejo por sí solo no vuelve a descontar una fila que en expenses figura sin #dup.
+- Editar fecha, importe o banco separa la pareja; la edición visible de fecha lo anuncia. Importe y banco de los avisos automáticos ya estaban bloqueados en la interfaz. «Volver a unir» permite deshacer una separación compatible. Deshacer al borrar dice expresamente que se han borrado aviso y apunte bancario.
+
+## Evidencia local actual
+
+Siete regresiones nuevas fallaron en la fuente previa: tres importes incorrectos, migración de «son distintos», más de 500 parejas, aviso no elegible y retirada de #dup desde otra versión. Después del arreglo: 14/14 casos de revisión, 22/22 del contrato original adaptado al desfase permitido, 21/21 en UTC/Madrid/Canarias y 8/8 mutantes causales. Los mutantes solo se consideran muertos si provocan AssertionError; se ejecuta antes el mismo verificador sin mutar.
+
+La migración ampliada ejecuta beta125 durante 90 días con 12 semillas, avisos de medianoche, respuestas antiguas sin vínculo y respuestas «son distintos». Los importes de cada mes son idénticos en beta/candidata al abrir, tras sync y tras segundo sync; cero preguntas pendientes en los tres puntos. Cada celda siguiente es beta = candidata, en euros sintéticos:
+
+| Semilla | Julio | Agosto | Septiembre | Octubre |
+|---|---:|---:|---:|---:|
+| 0 | 345.78 | 671.74 | 662.26 | 274.84 |
+| 1 | 345.68 | 672.06 | 652.26 | 284.18 |
+| 2 | 346.32 | 681.84 | 641.05 | 285.64 |
+| 3 | 356.48 | 661.70 | 651.72 | 284.88 |
+| 4 | 346.12 | 672.28 | 661.25 | 274.69 |
+| 5 | 346.02 | 672.23 | 651.18 | 284.84 |
+| 6 | 356.89 | 681.71 | 641.01 | 275.34 |
+| 7 | 356.83 | 671.76 | 651.38 | 274.54 |
+| 8 | 346.40 | 671.22 | 661.60 | 275.22 |
+| 9 | 345.93 | 671.54 | 651.46 | 285.44 |
+| 10 | 346.20 | 681.46 | 641.96 | 285.42 |
+| 11 | 366.17 | 662.15 | 651.66 | 275.00 |
+
+El diagnóstico Node con 20.000 filas y 5.708 parejas no recalcula fechas al cambiar categoría y conserva referencias al repetir. No se confunde con CPU6. Los e2e de sincronización y pull reales, la subida de #dup, separar/unir, borrado/Deshacer y el A/B a CPU6 están preparados y registrados; pendientes de ejecución remota al escribir este corte. El workflow TR pair review ejecuta Node, DOM y rendimiento por separado y falla si falla cualquiera, conservando artefactos incluso si otro bloque falla. La suite Tests general conserva sus guardianes de integración.
+
+## Límites vigentes
+
+No se ha ejecutado navegador, CPU6, suite completa, Gradle o APK local. No se han escrito datos reales ni desplegado backend. No acredita banco real, dos dispositivos físicos ni aceptación humana. El transporte heredado setExpenseDup sigue siendo best-effort, sin acuse de fila: un fallo de escritura no se declara entrega remota. La colisión heredada de dos avisos idénticos por fecha/importe/comercio sigue fuera del alcance. CI exacta y revisión independiente siguen pendientes.
+
+## Histórico de la candidata rechazada (conservado, no describe el arreglo actual)
+
 
 Candidata del 13/10/2026, sin publicación. Encargo tr-emparejado-automatico-codex-20261013, base histórica beta123 3625fa7e; ejecución rebasada sobre beta124 f5904735. Conserva la dependencia autorizada Recibos 24bfb4e5 (cuatro commits), rebasada en 07383d4a. Sus topes no se incorporan: siguen los de beta124.
 

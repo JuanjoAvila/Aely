@@ -82,6 +82,7 @@ export const E2E_MAP = [
     // Apuntes iguales de TR por el cableado real: filas en Gastos, «Es el mismo» desde la ficha.
     "e2e/tr-iguales-ordinal.spec.mjs",
     "e2e/tr-emparejado-automatico.spec.mjs",
+    "e2e/tr-emparejado-rendimiento.spec.mjs",
   ] },
   { file: "src/modules/05-dialogs-inv.js", specs: [
     "e2e/help-assistant.spec.mjs",

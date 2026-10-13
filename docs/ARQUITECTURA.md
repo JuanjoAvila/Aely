@@ -1,5 +1,9 @@
 # Arquitectura — Aely
 
+## Emparejado candidato PR228
+
+La asignación de avisos y bancos vive en reconcileGemelosAutomaticos y se invoca desde importObExpenses, el updater, el arranque y el pull. Las marcas se devuelven antes de subir los apuntes. Los pares automáticos se derivan de filas; gemelos conserva decisiones y reservas históricas. La caché no se persiste: índices por referencia y grupos banco/importe, con fechas de Madrid cacheadas. Un cambio no financiero conserva las parejas. Una retirada de #dup recibida de otra versión se respeta como decisión humana. [Contrato actual, migración y límites](briefs/tr-emparejado-automatico-20261013.md).
+
 ## InicioAhora y archivo109 · versión4.26.112 del canal beta
 
 Se retiran Ring, MiniPie y TabCoach sin consumidores, su CSS asociado y doce iconos sin uso. V4Ring, Tour, SparklineInv y .spark siguen activos; el flujo financiero, idiomas, notas e histórico se conservan. El presupuesto del paquete integrado y131 comprobaciones DOM propias pasan; el guardián conserva identidades111/106 y archivo109.

@@ -156,7 +156,7 @@ t("5 bizums + 5 avisos: 5 preguntas; «es el mismo» deja 60 € exactos y la se
   assert.equal(add.length, 5);
   assert.equal(add.filter((e) => e.possibleDup).length, 5, "antes era 1 pregunta (los otros 4 se fundían)");
   assert.equal(new Set(add.map((e) => e.possibleDupOf)).size, 5, "cinco avisos distintos reclamados");
-  assert.equal(s.gemelos.length, 5, "el vínculo queda en el estado");
+  assert.equal(add.filter(e=>e.autoGemelo).length, 5, "las parejas se conservan en las filas sin ocupar el registro de decisiones");
   esperado(s, { gasto: 0, ingreso: 60 }, "pendientes no cuentan");
   add.forEach((e) => resuelve(s, e, true));
   esperado(s, { gasto: 0, ingreso: 60 }, "es el mismo ×5");
@@ -236,7 +236,7 @@ t("desde OTRO móvil: con el vínculo en el estado (sin possibleDupOf local), el
   const b = sync(otro, [ob(-2, 29.9), ob(-1, 29.9)]);
   assert.equal(b.length, 1); assert.equal(!!b[0].possibleDup, false, "el aviso ya está reclamado por el pendiente del otro móvil");
 });
-t("«son distintos» suelta el aviso: un apunte posterior puede volver a reclamarlo", () => {
+t("«son distintos» histórico se conserva sin reciclar el aviso para otro cargo", () => {
   const s = estado();
   s.expenses.unshift(aviso(-3, 10, 29.9, "Decathlon"));
   const a = sync(s, [ob(-2, 29.9)]);
@@ -244,7 +244,8 @@ t("«son distintos» suelta el aviso: un apunte posterior puede volver a reclama
   assert.equal(s.gemelos.length, 0);
   esperado(s, { gasto: 59.8 }, "son distintos");
   const b = sync(s, [ob(-2, 29.9), ob(-1, 29.9)]);
-  assert.equal(b.length, 1); assert.ok(b[0].possibleDup, "el aviso vuelve a estar libre");
+  assert.equal(b.length, 1); assert.ok(!b[0].possibleDup, "la decisión antigua conserva los dos cargos y el nuevo cuenta");
+  esperado(s, { gasto: 89.7 }, "decisión histórica conservada");
 });
 
 /* ── 6. El mes sintético de 122 cargos (el de la sonda), contestando siempre «es el mismo» ── */
@@ -557,7 +558,7 @@ t("dos móviles: el vínculo de A sobrevive al estado de B (y al revés) con el 
   const mezcla = (p) => ({ list: p });
   const A = estado(), B = estado();
   const av = aviso(-3, 10, 29.9, "Decathlon"); A.expenses.unshift(av); B.expenses.unshift(Object.assign({}, av));
-  const a = sync(A, [ob(-2, 29.9)]);              // A reclama el aviso
+  const a = sync(A, [ob(-2, 29.9)]); resuelve(A,a[0],true); // La decisión humana viaja en gemelos.
   assert.equal(A.gemelos.length, 1);
   B.gemelos = c.pushGemelos([], [{ avisoId: "otro", aviso: "k", banco: "b" }]);   // B tiene otro vínculo suyo
   // B sube su estado más reciente: para A la nube es más nueva → adopta la nube… y conserva lo suyo.
@@ -661,12 +662,12 @@ t("borrar a mano un apunte del banco (el bloque REAL de Gastos) deja rastro «si
   const manual = Object.assign({}, x, { source: "manual", ent: undefined });
   assert.equal(borra(s, manual, c.keyOfExpense(manual), c.lapidaPon, c.pushGemelos).gemelos, s.gemelos, "un apunte a mano no deja rastro");
 });
-t("runBankSync (el bloque REAL de App) guarda los vínculos de la importación en el estado", () => {
+t("runBankSync (el bloque REAL de App) guarda los vínculos de las preguntas manuales", () => {
   const m = mainSrc.match(/const vinculos=gemelosDeImportacion\(add, invState\.expenses\);\s*if\(vinculos\.length\)\{[\s\S]*?\n\s*\}/);
   assert.ok(m, "no se encuentra el bloque de vínculos en runBankSync");
   const guarda = new Function("add", "invState", "gemelosDeImportacion", "pushGemelos", m[0] + "\nreturn invState;");
   const s = estado();
-  const av = aviso(-2, 10, 29.9, "Decathlon"); s.expenses.unshift(av);
+  const av = aviso(-2, 10, 29.9, "Decathlon"); av.source="manual"; s.expenses.unshift(av);
   const add = c.importObExpenses(s, flat([ob(-2, 29.9)]), LINKS) || [];
   assert.equal(add[0].possibleDupOf, av.id);
   const out = guarda(add, s, c.gemelosDeImportacion, c.pushGemelos);

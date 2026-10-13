@@ -39,14 +39,14 @@ function manual(ctx){
 }
 test("los manuales siguen preguntando",()=>manual(c));
 function boundaries(ctx){
-  for(const patch of [{ent:"bbva"},{date:"2026-10-09T08:00:00Z"},{amount:12.01},{amount:-12}]){
+  for(const patch of [{ent:"bbva"},{date:"2026-10-06T08:00:00Z"},{amount:12.01},{amount:-12}]){
     const s=sync(ctx,state([aviso("a",undefined,12,patch)]),[tx()]);
     assert.equal(s.expenses.filter(e=>e.autoGemelo).length,0,JSON.stringify(patch));
   }
   const s=sync(ctx,state([aviso()]),[tx(undefined,12,{id:"bank-id"})]);
   assert.equal(s.expenses.filter(e=>e.autoGemelo).length,0,"con id no aplica cuenta");
 }
-test("banco, día de Madrid, céntimo, signo e id delimitan el par",()=>boundaries(c));
+test("banco, ventana de Madrid, céntimo, signo e id delimitan el par",()=>boundaries(c));
 test("pendiente y contabilizado ocupan una ranura; dos bizums reales dos",()=>{
   const s=sync(c,state([aviso()]),[tx(undefined,12,{status:"PDNG"}),tx()]);
   assert.equal(visible(s).length,1);assert.equal(cents(c,s),1200);
@@ -61,7 +61,7 @@ test("repetir respuesta no añade filas; el crecimiento añade el exceso",()=>{
 });
 test("aviso tardío conserva dos cargos y su gastado",()=>{
   const s=sync(c,state(),[tx(),tx()]);
-  const late=c.reconcileGemelosAutomaticos({...s,expenses:s.expenses.concat([aviso()])});
+  const late=c.reconcileGemelosAutomaticos({...s,expenses:s.expenses.concat([aviso()])},s);
   assert.equal(visible(late).length,2);assert.equal(cents(c,late),cents(c,s));
   const repairs=c.gemelosCambiosNube(late,s.expenses);assert.equal(repairs.length,1);assert.equal(repairs[0].dup,true);
 });
@@ -77,7 +77,7 @@ function separated(ctx){
 }
 test("separar viaja, gana a nube vieja y repara solo #dup",()=>separated(c));
 test("reloj atrasado y empate favorecen separar",()=>{
-  const old=sync(c,state([aviso()]),[tx()]), future={...old,gemelos:old.gemelos.map(g=>({...g,at:9000}))};
+  const old=sync(c,state([aviso()]),[tx()]), future={...old,gemelos:[{...c.gemeloAutomaticoDe(old,old.expenses.find(e=>e.id==="a")),at:9000}]};
   const split=c.separarGemeloAutomatico(future,"a",1000);assert.equal(split.gemelos[0].at,9001);
   const stale=split.gemelos.map(g=>({...g,separado:false}));
   assert.equal(c.fusionarGemelos(split.gemelos,stale)[0].separado,true);assert.equal(c.fusionarGemelos(stale,split.gemelos)[0].separado,true);
@@ -90,13 +90,15 @@ test("borrados, recibos y cuotas no consumen avisos",()=>{
     s=c.reconcileGemelosAutomaticos(state([a,b]));assert.equal(s.expenses.filter(e=>e.autoGemelo).length,0);
   }
 });
-test("dos reservas concurrentes no ocultan dos bancos con un aviso",()=>{
-  const plain=sync(c,state(),[tx(),tx()]),a=aviso(),gs=plain.expenses.map(b=>({...c.gemeloDe(a,b),auto:true,at:1}));
+function concurrentReservation(ctx){
+  const plain=sync(ctx,state(),[tx(),tx()]),a=aviso(),gs=plain.expenses.map(b=>({...ctx.gemeloDe(a,b),auto:true,at:1}));
   for(const gemelos of [gs,gs.slice().reverse()]){
-    const s=c.reconcileGemelosAutomaticos({...plain,expenses:plain.expenses.concat([a]),gemelos});
-    assert.equal(s.expenses.filter(e=>e.autoGemelo).length,1);assert.equal(cents(c,s),2400);
+    const s=ctx.reconcileGemelosAutomaticos({...plain,expenses:plain.expenses.map(e=>({...e,possibleDup:true})).concat([a]),gemelos});
+    assert.equal(s.expenses.filter(e=>e.autoGemelo).length,1);assert.equal(cents(ctx,s),2400);
   }
-});
+}
+test("dos reservas concurrentes no ocultan dos bancos con un aviso",()=>concurrentReservation(c));
+
 test("nube sin possibleDupOf ni autoGemelo reconstruye el par",()=>{
   const s=sync(c,state([aviso()]),[tx()]),b=fresh(c,s);
   assert.equal(visible(b).length,1);assert.equal(cents(c,b),1200);assert.ok(c.gemeloAutomaticoDe(b,b.expenses.find(e=>e.id==="a")));
@@ -122,28 +124,28 @@ test("90 días generados por beta123: 180 preguntas menos y gastado mensual idé
 });
 test("mutaciones causales de cuenta, límites y decisión persistida",()=>{
   const mutants=[
-    ["prioridad de separar","(b.at||0)-(a.at||0)||Number(!!b.separado)-Number(!!a.separado)||",""],
-    ["reutilizar aviso","return !usados[e.id];","return true;"],
+    ["reutilizar aviso","occupied.has(b.id)||used.has(a.id)","occupied.has(b.id)"],
     ["perder manual","!isManualExpenseSource(e.source)&&",""],
-    ["cruzar banco",'return ent+"|"','return ""+"|"'],
-    ["cruzar día",'d.ym+"-"+d.d','"mismo-dia"'],
-    ["cruzar importe",'+"|"+Math.round(amount*100);','+"|"+1200;'],
-    ["perder separación","destinos[banco.id]=decision.separado?null:aviso.id;","destinos[banco.id]=aviso.id;"],
+    ["cruzar banco",'grupo:ent+"|"','grupo:""+"|"'],
+    ["cruzar ventana","Math.abs(x.dia-y.dia)<=ventana","true"],
+    ["cruzar importe","Math.round(amount*100),dia:","1200,dia:"],
+    ["perder separación","if(g.separado||b.gemeloSeparado&&!(g.auto&&g.at>1&&b.possibleDup))","if(false)"],
     ["perder hora","at<(old.at||0)","false"],
     ["perder metadato nube","if(g.auto){ it.auto=true; it.at=at; if(g.ent) it.ent=g.ent; if(g.separado) it.separado=true; }",""]
   ];
+  const verify=ctx=>{assert.equal(ctx.gemeloAvisoAutomatico(aviso("manual",undefined,12,{source:"manual"})),false);const g={aviso:"a",banco:"b",auto:true,at:9000};assert.equal(ctx.pushGemelos([g],[{...g,at:1000,separado:true}])[0].at,9000);cardinal(ctx);manual(ctx);boundaries(ctx);separated(ctx);concurrentSeparation(ctx);concurrentReservation(ctx);assert.equal(ctx.gemeloCompatible(aviso(),aviso("far","2026-10-02"),3),false);};
+  verify(c);
   let killed=0;
   for(const [name,from,to] of mutants){
     assert.ok(html.includes(from),"preimagen "+name);const ctx=clock(loadPureLogic(html.replace(from,to)));
-    let failed=false;try{cardinal(ctx);manual(ctx);boundaries(ctx);separated(ctx);concurrentSeparation(ctx);const late=ctx.reconcileGemelosAutomaticos({...sync(ctx,state(),[tx()]),expenses:sync(ctx,state(),[tx()]).expenses.concat([aviso()])});assert.equal(visible(fresh(ctx,late)).length,1);}catch(_){failed=true;}
-    assert.ok(failed,"sobrevive "+name);killed++;
+    assert.throws(()=>verify(ctx),assert.AssertionError,"sobrevive "+name);killed++;
   }
   console.log("tr-emparejado-automatico: "+killed+"/"+mutants.length+" mutantes muertos");
 });
 
 test("calendario de Madrid: UTC nocturno y cambios de hora conservan el día del banco",()=>{
   for(const [stamp,day] of [["2026-10-10T22:30:00Z","2026-10-11"],["2026-03-28T23:30:00Z","2026-03-29"],["2026-10-24T22:30:00Z","2026-10-25"]]){
-    const a=aviso("m",day,12,{date:stamp}),b={id:"b",...tx(day),source:"ob"};
+    const a=aviso("m",day,12,{date:stamp}),b={id:"b",...tx(day),source:"ob",possibleDup:true};
     const s=c.reconcileGemelosAutomaticos(state([a,b]));
     assert.equal(s.expenses.filter(e=>e.autoGemelo).length,1,stamp);
   }
@@ -182,6 +184,7 @@ test("borrar el movimiento emparejado y Deshacer operan ambas filas por el códi
   const original=clone(live),api=factory(live,fn=>{live=c.reconcileGemelosAutomaticos(fn(live));});
   api.del(live.expenses.find(e=>e.id==="a"));
   assert.equal(live.expenses.length,0);assert.equal(cents(c,live),0);
+  for(const e of original.expenses)assert.ok(live.deleted.includes(c.keyOfExpense(e)),"lapida de cada fila, también la oculta");
   api.undo();
   assert.equal(live.expenses.length,2);assert.equal(visible(live).length,1);
   assert.equal(cents(c,live),cents(c,original));
@@ -190,7 +193,7 @@ test("borrar el movimiento emparejado y Deshacer operan ambas filas por el códi
 test("dos bancos con misma clave local reservan cada uno su propio aviso",()=>{
   const a=aviso("tr"),z=aviso("bb",undefined,12,{ent:"bbva"});
   const b={id:"bt",...tx(),date:"2026-10-10T12:00:00Z",source:"ob"},b2={...b,id:"bank-bb",ent:"bbva"};
-  const s=c.reconcileGemelosAutomaticos(state([a,z,b,b2]));
+  const s=c.reconcileGemelosAutomaticos(state([a,z,b,b2]),state([b,b2]));
   assert.equal(visible(s).length,2);
   assert.equal(s.expenses.find(e=>e.id==="bt").autoGemelo,"tr");assert.equal(s.expenses.find(e=>e.id==="bank-bb").autoGemelo,"bb");
   assert.equal(c.gemelosCambiosNube(s,[b,b2]).length,2);
@@ -198,6 +201,7 @@ test("dos bancos con misma clave local reservan cada uno su propio aviso",()=>{
 
 test("el arranque REAL migra y guarda sin tocar la semilla original",()=>{
   const seed=sync(c,state([aviso()]),[tx()],false),saved=[];
+  seed.expenses=seed.expenses.map(e=>{const n={...e};delete n.autoGemelo;return n;});
   const ctx=clock(loadPureLogic(html));
   ctx.mcLoadRaw=()=>seed;ctx.mcStateKey=()=>"synthetic";ctx.mcSaveRaw=(key,s)=>saved.push(s);
   for(const fn of ["seedFlows","fixMovInvasion","fixRevoDupes","fixInvAuto","fixInvSold","reconcileTR","migrate","reconcileEarlyIncomeAnchors"])ctx[fn]=s=>s;
@@ -219,7 +223,7 @@ test("separar gana a una reserva concurrente para otro aviso",()=>concurrentSepa
 
 if(!process.env.TR_PAIR_TZ_CHILD)test("misma cuenta en UTC, Madrid y Canarias (incluye ambos cambios de hora)",()=>{
   for(const TZ of ["UTC","Europe/Madrid","Atlantic/Canary"]){
-    const out=execFileSync(process.execPath,[fileURLToPath(import.meta.url)],{encoding:"utf8",env:{...process.env,TZ,TR_PAIR_TZ_CHILD:"1"},maxBuffer:4*1024*1024});
-    assert.match(out,/tests 21/);assert.match(out,/fail 0/);console.log(TZ+": 21 PASS, 9/9 mutantes");
+    const out=execFileSync(process.execPath,[fileURLToPath(import.meta.url)],{encoding:"utf8",env:Object.fromEntries(Object.entries({...process.env,TZ,TR_PAIR_TZ_CHILD:"1"}).filter(([k])=>k!=="NODE_TEST_CONTEXT")),maxBuffer:4*1024*1024});
+    assert.match(out,/tests 21/);assert.match(out,/fail 0/);console.log(TZ+": 21 PASS, 8/8 mutantes");
   }
 });

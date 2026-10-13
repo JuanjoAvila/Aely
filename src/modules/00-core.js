@@ -2183,7 +2183,7 @@ function gemelosDeImportacion(add, expenses){
   if(!add || !add.length) return out;
   let porId=null;
   add.forEach(function(e){
-    if(!e || !e.possibleDup || !e.possibleDupOf) return;
+    if(!e || !e.possibleDup || !e.possibleDupOf || e.autoGemelo) return;
     if(!porId){ porId={}; (expenses||[]).forEach(function(x){ if(x&&x.id) porId[x.id]=x; }); }
     const tw=porId[e.possibleDupOf];
     if(tw) out.push(gemeloDe(tw, e));
@@ -2747,9 +2747,11 @@ function refreshExpenseFromCloud(local, incoming, readStartedAt){
   if(incoming.possibleDup) put("possibleDup", true);
   else if(incoming.possibleDup===false || incoming.possibleDup==null){
     /* Solo apagar la marca si la nube dice que ya no es dup (source sin #dup → possibleDup falsy
-       y la propiedad existe en el literal de expenseFromRow). No tocar possibleDupOf. */
+       y la propiedad existe en expenseFromRow). Una pareja automática sí se separa: la
+       respuesta de otro móvil tiene prioridad aunque no conozca el metadato nuevo. */
     if(Object.prototype.hasOwnProperty.call(incoming,"possibleDup") && !incoming.possibleDup){
       put("possibleDup", undefined);
+      if(local.autoGemelo){put("gemeloSeparado",local.autoGemelo);put("autoGemelo",undefined);put("possibleDupOf",undefined);}
       /* Ventana mínima del anti-race de ingest: la fila nace #dup y después se libera. Si un pull
          cae justo entre ambos pasos, el siguiente debe adoptar también el origen confirmado;
          apagar solo la marca dejaba una notificación TR localmente disfrazada de Open Banking. */

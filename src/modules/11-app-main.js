@@ -349,7 +349,7 @@ function App(){
   const set=useCallback((updater)=>{ setStateRaw(prev=>{
     let next=typeof updater==="function"?updater(prev):updater;
     if(next===prev) return prev;
-    if(next.expenses!==prev.expenses||next.gemelos!==prev.gemelos||next.deleted!==prev.deleted) next=reconcileGemelosAutomaticos(next);
+    if(next.expenses!==prev.expenses||next.gemelos!==prev.gemelos||next.deleted!==prev.deleted) next=reconcileGemelosAutomaticos(next,prev);
     return Object.assign({},next,{_savedAt:Date.now()});
   }); },[]);
   // En el propio commit (layout, no pasivo): así un `pagehide` inmediato ya vuelca este estado.
@@ -540,7 +540,7 @@ function App(){
             });
           },0);
         }
-        rec.state=reconcileGemelosAutomaticos(rec.state);
+        rec.state=reconcileGemelosAutomaticos(rec.state,prev);
         const repairs=gemelosCambiosNube(rec.state,incoming);
         if(repairs.length) setTimeout(function(){
           if(!readProof.valid||!sessionRef.current||!sessionRef.current.user||sessionRef.current.user.id!==readProof.userId) return;

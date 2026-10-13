@@ -1,6 +1,6 @@
-### Candidata sin publicar · emparejado automático Trade Republic (13/10/2026)
+### Candidata sin publicar · revisión NO-GO de PR228 (13/10/2026)
 
-La reconciliación reserva una sola fila por aviso y conserva el apunte bancario excluido con la marca de duplicado existente. Se aplica al arrancar, al recibir gastos y al sincronizar el banco; evita volver a preguntar cada mes y permite separar sin reconstruir importes. La unión de decisiones automáticas usa hora y conserva la separación en empate; borrar y Deshacer operan ambas filas. La base incluye Recibos 24bfb4e5 rebasado sobre beta124, sin adoptar sus topes. No se cambia versión, notas de publicación ni catálogo: corresponde a integración. [Acta](docs/briefs/tr-emparejado-automatico-20261013.md).
+Se sustituye el emparejado independiente del importador y del render por una asignación global por banco/importe, con prioridad de día exacto y adyacente. Las lápidas sin vínculo reservan el aviso del cargo ya contestado; los históricos sin #dup conservan «son distintos». Las parejas no llenan gemelos y los cambios de categoría no recalculan fechas ni relaciones. Se añade volver a unir, separación explícita al editar y texto de borrado de ambas filas. Pruebas ampliadas: 12 historiales de 90 días, las tres regresiones financieras y versiones mezcladas; DOM y CPU6 preparados para CI remota, aún pendientes. Versión/notas/catálogo/topes reservados a integración. [Acta](docs/briefs/tr-emparejado-automatico-20261013.md).
 
 ## [4.26.126] — 2026-10-13 · Promoción completa
 

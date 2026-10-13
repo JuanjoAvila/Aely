@@ -4304,3 +4304,7 @@ Object.assign(LANG.ca,{
 Object.assign(LANG.es,{g_auto_paired:"Aviso y apunte del banco unidos",g_auto_separate:"No es el mismo: separar",g_auto_separated:"Se han separado los dos movimientos"});
 Object.assign(LANG.en,{g_auto_paired:"Notification and bank entry matched",g_auto_separate:"Not the same: separate",g_auto_separated:"The two transactions have been separated"});
 Object.assign(LANG.ca,{g_auto_paired:"Avís i apunt del banc units",g_auto_separate:"No és el mateix: separar",g_auto_separated:"S'han separat els dos moviments"});
+
+Object.assign(LANG.es,{g_auto_rejoin:"Volver a unir",g_auto_deleted:"Aviso y apunte del banco borrados",g_auto_edit_separated:"Cambio guardado. El aviso y el apunte del banco se han separado"});
+Object.assign(LANG.en,{g_auto_rejoin:"Match again",g_auto_deleted:"Notification and bank entry deleted",g_auto_edit_separated:"Change saved. The notification and bank entry have been separated"});
+Object.assign(LANG.ca,{g_auto_rejoin:"Tornar a unir",g_auto_deleted:"Avís i apunt del banc esborrats",g_auto_edit_separated:"Canvi desat. L’avís i l’apunt del banc s’han separat"});

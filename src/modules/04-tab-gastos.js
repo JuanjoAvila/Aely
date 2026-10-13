@@ -289,15 +289,15 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     if(same) showToast(t("g_dup_same"));
     else showToast(t("g_dup_diff"));
   };
-  const separarGemelo=function(e){
+  const separarGemelo=function(e,unir){
     set(function(s){
-      const next=separarGemeloAutomatico(s,e.id);
+      const next=unir?unirGemeloAutomatico(s,e.id):separarGemeloAutomatico(s,e.id);
       if(next===s) return s;
       const repairs=gemelosCambiosNube(next,s.expenses);
       if(cloud.enabled()) setTimeout(function(){ repairs.forEach(function(r){ cloud.setExpenseDup(r.expense,r.dup).catch(function(){}); }); },0);
       return next;
     });
-    showToast(t("g_auto_separated"));
+    showToast(t(unir?"g_auto_paired":"g_auto_separated"));
   };
   const withdrawalPending=useRef({});
   const withdrawalState=useRef(state); withdrawalState.current=state;
@@ -557,6 +557,8 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     const newDay=String(ed.date||origDay).slice(0,10);
     if(signed===orig.amount && merch===(orig.merchant||"") && newDay===origDay){ sincroniza(orig); return; }   // sin cambios
     const cat = ed.income ? "ingreso" : (orig.category==="ingreso" ? autoCategory(merch) : orig.category);
+    const splitByEdit=(signed!==orig.amount||newDay!==origDay)&&!!gemeloAutomaticoDe(state,orig);
+    if(splitByEdit) separarGemelo(orig);
     const upd=Object.assign({},orig,{merchant:merch, amount:signed, category:cat});
     if(newDay!==origDay) upd.date=newDay;
     /* Al renombrar un movimiento del banco, guardar CÓMO LO LLAMABA ÉL (2026-08-17). El dedup de
@@ -576,7 +578,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     },lapidasAlEditar(s, keyOfE(orig), keyOfE(upd))),orig,upd); });
     // Borrado y alta en la nube, en orden y detrás de la edición anterior (`subeEdicionesDeGasto`).
     if(cloud.enabled()){ editCola.current.pend.push({orig:orig, upd:upd}); subeEdicionesDeGasto(editCola.current); }
-    sincroniza(upd); showToast(t("g_edited"));
+    sincroniza(upd); showToast(t(splitByEdit?"g_auto_edit_separated":"g_edited"));
   };
 
   const todayKey=new Date().toDateString();
@@ -1128,7 +1130,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     }),
     undoDelete && ReactDOM.createPortal(
       React.createElement("div",{className:"v4-undo-toast",role:"status","data-testid":"expense-undo"},
-        React.createElement("span",null,t("f_undo_deleted")),
+        React.createElement("span",null,t(undoDelete.paired?"g_auto_deleted":"f_undo_deleted")),
         React.createElement("button",{type:"button",onClick:undoLastDelete},t("f_undo"))),document.body)
   );
 }
@@ -1409,8 +1411,9 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
     {id:"date",testId:"exp-date",label:fmtIsoCorto(dateIso),lead:React.createElement("span",null,"📅"),on:calOpen,
       onClick:function(){ setCalOpen(function(v){ return !v; }); setBankOpen(false); }}
   ];
+  const splitPair=gemeloSeparadoDe(state,exp);
   const autoPair=gemeloAutomaticoDe(state,exp);
-  const paired=autoPair&&React.createElement("div",{className:"hint","data-testid":"exp-auto-paired"},
+  const paired=splitPair?React.createElement("div",{className:"hint"},React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-auto-rejoin",onClick:function(){separarGemelo(exp,true);onClose(true);}},t("g_auto_rejoin"))):autoPair&&React.createElement("div",{className:"hint","data-testid":"exp-auto-paired"},
     React.createElement("div",null,t("g_auto_paired")),
     React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-auto-separate",onClick:function(){ separarGemelo(exp); onClose(true); }},t("g_auto_separate")));
   const duplicate=exp.possibleDup && !exp.autoGemelo && React.createElement("div",{className:"hint",style:{margin:"0 0 12px",padding:"10px 12px",borderRadius:12,background:"var(--surface-2)"}},

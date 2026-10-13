@@ -189,6 +189,7 @@ const steps = [
   ["atm-dual", ["node", "tests/atm-dual.test.mjs"]],
   ["tr-open-banking", ["node", "tests/tr-open-banking.test.mjs"]],
   ["tr-emparejado-automatico", ["node", "tests/tr-emparejado-automatico.test.mjs"]],
+  ["tr-emparejado-revision", ["node", "tests/tr-emparejado-revision.test.mjs"]],
   ["ob-iguales-ordinal", ["node", "tests/ob-iguales-ordinal.test.mjs"]],
   ["huella-bundle", ["node", "tests/huella-bundle.test.mjs"]],
   ["expense-note", ["node", "tests/expense-note.test.mjs"]],
@@ -307,7 +308,7 @@ if (!failed && plan.playwright !== false && plan.e2e !== "none") {
   // Las mediciones con CPU frenada competían con otros tres navegadores: scroll→swipe
   // daba 108/109 ms en dos completas y pasaba aislado (15/9). Medir después conserva
   // el umbral real; los funcionales siguen en paralelo y ningún caso del plan se pierde.
-  const isPerf = p => p.replaceAll("\\", "/").endsWith("/dashboard-memo-profile.spec.mjs") || p.replaceAll("\\", "/").endsWith("/inicio-v42-rendimiento.spec.mjs") || /(?:^|\/)rendimiento(?:-(?:tabs|sostenido))?\.spec\.mjs$/.test(p.replaceAll("\\", "/"));
+  const isPerf = p => p.replaceAll("\\", "/").endsWith("/tr-emparejado-rendimiento.spec.mjs") || p.replaceAll("\\", "/").endsWith("/dashboard-memo-profile.spec.mjs") || p.replaceAll("\\", "/").endsWith("/inicio-v42-rendimiento.spec.mjs") || /(?:^|\/)rendimiento(?:-(?:tabs|sostenido))?\.spec\.mjs$/.test(p.replaceAll("\\", "/"));
   const groups = [["playwright-e2e", specs.filter(p => !isPerf(p)), []],
     ["playwright-perf", specs.filter(isPerf), ["--workers=1"]]];
   const reports = [];
