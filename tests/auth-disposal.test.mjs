@@ -19,7 +19,7 @@ const activeOff=repeated.mount();assert.equal(repeated.live.size,1);assert.equal
 repeated.event('SIGNED_IN',s('active'),true);assert.equal(count(repeated,'session'),1);assert.equal(count(repeated,'sync'),1);
 activeOff();const n=repeated.trace.length;repeated.event('PASSWORD_RECOVERY',s('late'),true);repeated.event('SIGNED_OUT',null,true);assert.equal(repeated.trace.length,n);assert.equal(repeated.timers.size,0);
 for(const outcome of ['resolve','reject']){const w=authWorld(parts),off=w.mount(),timer=[...w.timers.values()][0];off();w.sessions[0][outcome](outcome==='resolve'?s('late'):Error('synthetic'));await flush();timer();w.idle();assert.equal(w.trace.length,0);}
-{const w=authWorld(parts),off=w.mount();w.sessions[0].resolve(s('A'));await flush();assert.equal(count(w,'session'),1);assert.equal(w.idles.length,1);off();w.idle();assert.equal(count(w,'sync'),0);}
+{const w=authWorld(parts),off=w.mount();w.sessions[0].resolve(s('A'));await flush();assert.equal(count(w,'session'),1);assert.equal(w.idles.length,0);assert.equal(count(w,'sync'),1,'la lectura inicial empieza detrás del splash, sin esperar idle');off();w.idle();assert.equal(count(w,'sync'),1,'cleanup no inicia una segunda lectura');}
 // Controles activos: preservan identidad y las opciones de cambio de titular.
 {const w=authWorld(parts),off=w.mount();w.sessions[0].resolve(s('A'));await flush();w.idle();assert.equal(count(w,'sync'),1);
 w.event('TOKEN_REFRESHED',s('A'));w.event('INITIAL_SESSION',s('A'));assert.equal(count(w,'sync'),1);
@@ -42,7 +42,6 @@ for(const [file,a,b]of [
 ['src/modules/11-app-main.js','tmr=setTimeout(boot, 2500)','tmr=setTimeout(mcBootReady, 2500)'],
 ['src/modules/11-app-main.js','clearTimeout(tmr);\n      if(!alive) return;','clearTimeout(tmr);'],
 ['src/modules/11-app-main.js','()=>{ clearTimeout(tmr); boot(); });','()=>{ clearTimeout(tmr); mcBootReady(); });'],
-['src/modules/11-app-main.js','if(alive) syncFromCloud(s);','syncFromCloud(s);'],
 ['src/modules/11-app-main.js','const off=cloud.onAuth((s,ev)=>{\n      if(!alive) return;','const off=cloud.onAuth((s,ev)=>{']]){
  assert.ok(read(file).includes(a),'mutante toca fragmento exacto '+a);
  assert.notEqual(betaRevision(id,f=>f===file?read(f).replace(a,b):read(f)).codigo,rev,a);
@@ -50,7 +49,6 @@ for(const [file,a,b]of [
  const w=authWorld(mutant),off=w.mount(),timer=[...w.timers.values()][0];
  if(a.includes('alive=false; clearTimeout')){off();assert.equal(w.timers.size,1,'mutante cleanup conserva timer');}
  else if(a==='sub.data.subscription.unsubscribe();'){off();assert.equal(w.live.size,1,'mutante transporte no se libera');}
- else if(a.includes('if(alive) syncFromCloud')){w.sessions[0].resolve(s('late'));await flush();off();const n=w.trace.length;w.idle();assert.ok(w.trace.length>n,'mutante idle actúa tras cleanup');}
  else if(a.includes('2500')){off();timer();assert.equal(count(w,'boot'),1,'mutante timer actúa tras cleanup');}
  else if(a.includes('const off')){off();w.event('PASSWORD_RECOVERY',s('late'),true);assert.ok(count(w,'session')>0,'mutante callback actúa tras cleanup');}
  else if(a.includes('clearTimeout(tmr); boot(); });')){off();w.sessions[0].reject(Error('synthetic'));await flush();assert.equal(count(w,'boot'),1,'mutante rechazo actúa tras cleanup');}
@@ -66,11 +64,16 @@ for(const [key,scope]of Object.entries(oldReg)){
 assert.deepEqual(currentReg[id],{...historicalReg[id],web:historicalReg[id].web.concat({file:'src/modules/00-core.js',function:'mergeAccountBalanceHistory'})},'contrato106 completo más la dependencia nueva del escritor de historial');
 // Partir el historial cambia los lectores/escritores compartidos, aunque no cambie auth.
 // No se hereda el OK106: se acredita por separado el contrato auth y el cambio de identidad.
-assert.deepEqual(parts,authFragments(history106('src/modules/00-core.js'),history106('src/modules/11-app-main.js')));
+const historicalAuth=authFragments(history106('src/modules/00-core.js'),history106('src/modules/11-app-main.js'));
+assert.deepEqual(parts.method,historicalAuth.method,'el disposer del SDK no cambia');
+const historicalStart='      if(s) mcScheduleIdle(()=>{ if(alive) syncFromCloud(s); }); else boot();';
+const currentStart='      // Esta lectura decide qué se ve al entrar; aplazarla a idle consumía el tope\n      // del splash y dejaba el estado nuevo llegar con la pantalla ya descubierta.\n      if(s) syncFromCloud(s); else boot();';
+assert.equal(parts.effect,historicalAuth.effect.replace(historicalStart,currentStart),'la única diferencia de auth es cuándo empieza la lectura inicial');
 const storage=['mcLoadRaw','mcSaveRaw','mcResetSandbox'],file='src/modules/00-core.js';
 let previousStorage=core;
 for(const name of storage)previousStorage=previousStorage.replace(scopeText({file,function:name},read),scopeText({file,function:name},history106));
-assert.deepEqual(betaRevision(id,f=>f===file?previousStorage:read(f),undefined,historicalReg[id]),betaRevision(id,history106,undefined,historicalReg[id]),'sólo la persistencia cambia la identidad auth; resto del contrato106 intacto');
+const previousAuth=f=>f==='src/modules/11-app-main.js'?read(f).replace(currentStart,historicalStart):f===file?previousStorage:read(f);
+assert.deepEqual(betaRevision(id,previousAuth,undefined,historicalReg[id]),betaRevision(id,history106,undefined,historicalReg[id]),'persistencia y el arranque inmediato explican las diferencias; el resto del contrato106 se conserva');
 assert.notEqual(betaRevision(id,read).codigo,betaRevision(id,history106,undefined,historicalReg[id]).codigo,'persistencia y su unión nueva exigen revisión, nunca aprobación106');
 console.log('✓ auth disposal: remount, callbacks/promesas/timer/idle tardíos, controles activos, rojo anterior; '+Object.keys(oldReg).length+' revisiones anteriores intactas');
 
