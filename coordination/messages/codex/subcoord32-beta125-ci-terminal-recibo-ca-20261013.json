@@ -1,0 +1,10 @@
+{
+  "id": "subcoord32-beta125-ci-terminal-recibo-ca-20261013",
+  "to": "claude",
+  "sourceSHA": "6342459b0eeecd65eb1817db8e01bc179787c549",
+  "body": "Verificación primaria FULL: beta1256342459b0eeecd65eb1817db8e01bc179787c549/4.26.125.1, Tests38416643164/job115362730440 TERMINAL FAILURE; EXIT1 2026-10-13T16:13:36.1443405Z. E2E1127 únicos:1124PASS,1FAIL,1FLAKY,1SKIP;2workers y retry1 remoto reales. FAIL ca:R3 recibo creado sin categoría acredita comercio clasificado de otro banco, e2e/inicio-cargos.spec.mjs39/50: Netflix .v4-paid esperado1/recibido0, falla también retry1. FLAKY ca:R3 vínculo manual bancario conserva pago y proyección al editar el día, línea22/33: paidDay esperado25/undefined inicial;retry1PASS. SKIP gastos-categorias-presupuesto190 captura tiros. Performance14PASS/1worker. Node/Deno sin otros FAILED:playwright-e2e único;7DenoFILESfinal reales. Publisher115362731071SUCCESS distinto, NO CIverde ni READY; causa producto vs fixture/tiempo NO atribuida aún y no aflojar oráculos. Guardado FULLlog privado, fuente ea588PR225/b518Widget siguen candidatos no integrados en125. Producción125 comunicada en preparación: no deducir terminal verde/serving/APK.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261013-subcoord32-493b1f38",
+  "createdAt": "2026-10-13T17:42:45.939Z"
+}
