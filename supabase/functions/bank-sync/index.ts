@@ -380,11 +380,17 @@ Deno.serve(withCors(async (req: Request) => {
           } catch (_) { /* corte de red: como un error devuelto */ }
         }
       }
-      await admin.from("bank_links")
+      // El callback puede haber autorizado otro enlace mientras esperábamos al banco. El
+      // UPDATE compara la versión leída en la propia escritura, no en otro SELECT tardío.
+      // Se compara el valor EN REPOSO; null legacy requiere IS NULL, nunca EQ NULL.
+      let statusUpdate = admin.from("bank_links")
         .update(anyAcctOk
           ? { ...(toNow && !acks ? { last_sync: nowIso } : {}), status: "active", updated_at: nowIso }
           : { status: anyExpired ? "expired" : link.status, updated_at: nowIso })
         .eq("id", link.id);
+      statusUpdate = link.session_id == null ? statusUpdate.is("session_id", null) : statusUpdate.eq("session_id", link.session_id);
+      statusUpdate = link.state_issued_at == null ? statusUpdate.is("state_issued_at", null) : statusUpdate.eq("state_issued_at", link.state_issued_at);
+      await statusUpdate;
       // top-level (balances/transactions/count) = primera cuenta OK: retrocompat con la Capa 2/3 antigua.
       const primary = acctOut.find((a) => a.ok) || acctOut[0] || { balances: [], transactions: [], count: 0 };
       // deno-lint-ignore no-explicit-any

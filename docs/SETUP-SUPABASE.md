@@ -56,6 +56,22 @@ Integración (13/10): la rama entra en la candidata 4.26.122, encima de la 4.26.
 dentro la 120. El `ingest` que se despliega es el de la 122 (`_shared/presupuesto.ts` con
 `esCargoDeRecibo`), antes que su web, y ni la 120 ni la 121 van a producción sin la 122.
 
+## Desconexión y carrera con callback (13/10): candidato, SIN desplegar
+
+`bank-disconnect` reutiliza `decryptSessionId` de `_shared/token_store.ts`, también empleado
+por la rama de falsa caducidad de Claude, y codifica el id antes del DELETE. Si falla, el
+diagnóstico conserva sólo `step`, estado HTTP y código cerrado (`ebFailure`, `DESCIFRADO` o
+`SIN_CODIGO`); el borrado local permanece aislado por usuario/banco y no depende de ese registro.
+`bank-sync` condiciona exclusivamente su UPDATE final a sesión y `state_issued_at` originales,
+con `IS NULL` para filas antiguas. No cambia cifrado, clave, schema, RLS, callback, acuses ni
+el resto de escrituras de cursor. No requiere migración ni secreto nuevo.
+
+Base de ejecución autorizada: `claude/brokers-falsa-caducidad`,
+`2d53ab24dc32a83faf17ce08c3b2d50b304d8e55`. No acredita despliegue de esa dependencia.
+Las superficies candidatas son `bank-disconnect` y `bank-sync`; cualquier despliegue lo decide
+el coordinador tras revisión. Rollback de estas dos modificaciones: su fuente en2d53ab24,
+sin borrar o restaurar datos. [Pruebas y solapes](briefs/bancos-revoca-callback-20261013.md).
+
 ## bank-sync con tramo antiguo (INC-2709-06): solo en fuente, SIN desplegar
 
 `bank-sync` y `_shared/enablebanking.ts` (parámetros `maxPages` y `dateTo` de `fetchBankTransactions`)

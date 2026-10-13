@@ -110,6 +110,7 @@ const steps = [
   ["bank-sync-progreso", ["node", "tests/bank-sync-progreso.test.mjs"]],
   ["bank-sync-acuse", ["node", "tests/bank-sync-acuse.test.mjs"]],
   ["bank-reconnect", ["node", "tests/bank-reconnect.test.mjs"]],
+  ["bank-revoke-callback-race", ["node", "tests/bank-revoke-callback-race.test.mjs"]],
   ["ob-hueco-sync", ["node", "tests/ob-hueco-sync.test.mjs"]],
   ["ob-hueco-recuperado", ["node", "tests/ob-hueco-recuperado.test.mjs"]],
   ["reserva-dinero", ["node", "tests/reserva-dinero.test.mjs"]],
@@ -232,6 +233,7 @@ const denoEnLista = [
   "supabase/functions/delete-account/delete-account.test.ts",
   "supabase/functions/prices/prices.test.ts",
   "supabase/functions/bank-sync/demand-window.test.ts",
+  "supabase/functions/bank-disconnect/lifecycle.test.ts",
 ];
 const buscaDeno = (dir) => fs.readdirSync(path.join(root, dir), { withFileTypes: true })
   .flatMap((d) => d.isDirectory() ? buscaDeno(dir + "/" + d.name)

@@ -11,7 +11,8 @@
 // ============================================================
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { ebApi, ebConfig, jsonResp, makeJWT } from "../_shared/enablebanking.ts";
+import { ebApi, ebConfig, ebFailure, jsonResp, makeJWT } from "../_shared/enablebanking.ts";
+import { decryptSessionId } from "../_shared/token_store.ts";
 import { withCors } from "../_shared/cors.ts";
 
 Deno.serve(withCors(async (req: Request) => {
@@ -35,11 +36,28 @@ Deno.serve(withCors(async (req: Request) => {
     // Best-effort: revoca la sesión en Enable Banking. Si ya caducó / falla, da igual:
     // borramos la fila igualmente para que el usuario deje de verlo en "Mis bancos".
     if (link && link.session_id) {
+      let step = "decrypt";
       try {
+        // En reposo está cifrado; mandarlo tal cual dejaba vivo el consentimiento aunque
+        // la fila local desapareciese. El helper conserva también los ids legacy.
+        const sessionId = await decryptSessionId(link.session_id);
+        if (!sessionId) throw new Error("session_id vacío");
+        step = "revoke";
         const { appId, pem } = ebConfig();
         const jwt = await makeJWT(appId, pem);
-        await ebApi(jwt, `/sessions/${link.session_id}`, { method: "DELETE" });
-      } catch (_e) { /* consentimiento ya caducado o no revocable: se ignora */ }
+        await ebApi(jwt, `/sessions/${encodeURIComponent(sessionId)}`, { method: "DELETE" });
+      } catch (err) {
+        // Desconectar localmente sigue siendo posible, pero soporte necesita saber si no
+        // se revocó. Solo clases cerradas: nunca id, ciphertext, JWT ni texto del proveedor.
+        const failure = step === "decrypt" ? { status: 0, code: "DESCIFRADO" } : ebFailure(err);
+        try {
+          await admin.from("app_events").insert({
+            user_id: user.id, email: null, kind: "error", message: "OB desconexión: revocación no completada",
+            detail: JSON.stringify({ step, status: failure.status, code: failure.code || "SIN_CODIGO" }),
+            app_version: "edge", platform: "server",
+          });
+        } catch (_) { /* el diagnóstico no debe impedir el borrado local */ }
+      }
     }
 
     const { error } = await admin.from("bank_links").delete()

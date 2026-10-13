@@ -575,8 +575,20 @@ Límites conocidos de esta regla, sin arreglar (13/10):
   reconectar») y es el mismo para todo `softFail` de MyInvestor, también las dos primeras
   veces del caso anterior. El texto distinto del servidor solo se ve en la tarjeta de
   MyInvestor.
-- `bank-disconnect` pasa `session_id` tal cual está guardado (cifrado) al `DELETE /sessions`,
-  así que la revocación en el proveedor no llega a hacerse; la fila sí se borra.
+**Desconexión y carrera con callback, candidato13/10 sin desplegar.** `bank-disconnect`
+descifra con `decryptSessionId` antes de codificar el id en el DELETE. Antes enviaba el valor
+cifrado y callaba el fallo, aunque borrase la fila. Ahora el fallo deja `app_events` con paso
+y código cerrado; nunca id, ciphertext, JWT o mensaje del proveedor. La fila local se borra
+igualmente, incluso si falla el registro. Los ids legacy siguen funcionando.
+
+La escritura final de estado de `bank-sync` compara dentro del UPDATE los `session_id` y
+`state_issued_at` que leyó: una sesión o generación distintas no reciben el resultado antiguo.
+Se usa el valor guardado, no el descifrado; las columnas null legacy se comparan con `IS NULL`.
+No hay SELECT adicional entre comparación y escritura. Un callback completado mientras el
+sync espera gana tanto al resultado caducado como al correcto que antes adelantaba `last_sync`.
+El payload y los demás bloques de cursor/acuse, `bank-callback` y `keepsCursor` se conservan.
+[Alcance, dependencia de Claude y evidencia](briefs/bancos-revoca-callback-20261013.md).
+
 Trade Republic guarda aparte `_trAuthExpired`: que el puente arranque todavía sin sesión visible
 no enciende el aviso de reconexión. Al sincronizar a mano se intenta primero reutilizar y validar
 la sesión guardada, y solo una respuesta explícita `authExpired` pide volver a iniciar sesión.

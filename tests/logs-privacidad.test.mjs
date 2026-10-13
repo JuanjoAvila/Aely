@@ -108,8 +108,22 @@ await t("SDK Sentry instalado: sobre final capturado con transporte en memoria",
  S.init({...x.options(),dsn:"https://synthetic@telemetry.invalid/1",transport:()=>({send:async envelope=>{envelopes.push(envelope);return {};},flush:async()=>true})});
  S.setUser({email:markers[1],id:sensitive,segment:sensitive});S.getCurrentScope().setTransactionName(sensitive);S.setContext("bank",{note:sensitive});S.setExtra("note",sensitive);S.setTag("token",sensitive);S.addBreadcrumb({message:sensitive});S.captureException(error());await S.flush(2000);assert.equal(envelopes.length,1);clean(envelopes);const ev=envelopes[0][1].find(([header])=>header.type==="event")[1];assert.ok(ev.exception.values.length);assert.equal(ev.user,undefined);await S.close(2000);
 });
+await t("desconexión Edge: descifrado y proveedor hostiles no salen al registro ni respuesta",async()=>{
+ const E=await import("data:text/javascript;base64,"+Buffer.from(transformSync(read("supabase/functions/_shared/enablebanking.ts"),{loader:"ts",format:"esm"}).code).toString("base64"));
+ for(const phase of ["decrypt","revoke"]){
+  const rows=[];let handler;
+  const db={auth:{getUser:async()=>({data:{user:{id:"synthetic-user"}}})},from:name=>name==="app_events"?{insert:async x=>{rows.push(x);return {};}}:{select:()=>({eq(){return this;},maybeSingle:async()=>({data:{session_id:sensitive}})}),delete:()=>({eq(){return this;},then:ok=>Promise.resolve({error:null}).then(ok)})}};
+  new Function("Deno","createClient","ebApi","ebConfig","jsonResp","makeJWT","withCors","decryptSessionId","ebFailure",ts(read("supabase/functions/bank-disconnect/index.ts")))(
+   {env:{get:()=>"synthetic"},serve:f=>handler=f},()=>db,async()=>{throw error();},()=>({}),
+   (x,status=200)=>new Response(JSON.stringify(x),{status}),async()=>sensitive,f=>f,
+   async()=>{if(phase==="decrypt")throw error();return sensitive;},E.ebFailure);
+  const res=await handler(new Request("https://edge.invalid",{method:"POST",body:JSON.stringify({aspsp_name:sensitive})}));
+  assert.equal(res.status,200);clean([rows,await res.json()]);assert.equal(rows.length,1);
+  assert.deepEqual(Object.keys(JSON.parse(rows[0].detail)).sort(),["code","status","step"]);
+ }
+});
 await t("inventario de destinos completo: toda nueva ruta obliga a actualizar la matriz",()=>{
- const inventory={"src/modules/00-core.js":[4,2,0],"src/modules/01-i18n.js":[0,0,1],"src/modules/10-app-components.js":[0,0,2],"supabase/functions/bank-sync/index.ts":[4,0,0],"supabase/functions/bank-callback/index.ts":[1,0,1],"supabase/functions/ingest/index.ts":[2,0,0],"supabase/functions/_shared/ratelimit.ts":[0,0,2]};
+ const inventory={"src/modules/00-core.js":[4,2,0],"src/modules/01-i18n.js":[0,0,1],"src/modules/10-app-components.js":[0,0,2],"supabase/functions/bank-sync/index.ts":[4,0,0],"supabase/functions/bank-disconnect/index.ts":[1,0,0],"supabase/functions/bank-callback/index.ts":[1,0,1],"supabase/functions/ingest/index.ts":[2,0,0],"supabase/functions/_shared/ratelimit.ts":[0,0,2]};
  const found={};for(const dir of ["src/modules","supabase/functions"]){for(const file of fs.readdirSync(new URL("../"+dir,import.meta.url),{recursive:true})){if(!/\.(?:js|ts)$/.test(file)||file.endsWith(".test.ts"))continue;const path=dir+"/"+file.replaceAll("\\","/");const src=read(path);const counts=[(src.match(/\.from\(["']app_events["']\)/g)||[]).length,(src.match(/Sentry\.captureException\(/g)||[]).length,(src.match(/console\.(?:log|warn|error|info)\(/g)||[]).length];if(counts.some(Boolean))found[path]=counts;}}
  assert.deepEqual(found,inventory);
 });
