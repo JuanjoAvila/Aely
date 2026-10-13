@@ -1,0 +1,271 @@
+{
+  "status": "done",
+  "summary": "Candidato Widget45 terminado y entregado para revisión independiente por orden explícita74150b7d: día45 local vigente completo y día46 caducado, web y Java alineados. CI roja sólo por Catálogo122 y VERSION; DOM y APK pendientes, sin integración ni aceptación móvil.",
+  "productSHA": "ce028840a9a223f9b4ebf05838fca2de0747f6b4",
+  "branch": "codex/widget-dia45-ciclo",
+  "pr": "JuanjoAvila/Aely#212",
+  "historicalTaskBaseSHA": "c5f62d6603d016150afd9d0e20547b608b323045",
+  "executionBaseSHA": "e6e211a5d94e50b03597d5c91230c974d3e72232",
+  "deliveryAuthorization": "74150b7dceaa761eb8b57c335ec56e76ed891916",
+  "tests": [
+    {
+      "command": "node tests/widget-ciclo.test.mjs",
+      "timezone": "UTC",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/widget-puente-ciclo.test.mjs",
+      "timezone": "UTC",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/widget-arbitraje.test.mjs",
+      "timezone": "UTC",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/widget-notificacion-render.test.mjs",
+      "timezone": "UTC",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/widget-ciclo.test.mjs",
+      "timezone": "Europe/Madrid",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/widget-puente-ciclo.test.mjs",
+      "timezone": "Europe/Madrid",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/widget-arbitraje.test.mjs",
+      "timezone": "Europe/Madrid",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/widget-notificacion-render.test.mjs",
+      "timezone": "Europe/Madrid",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/widget-coherente.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/guard-privacy.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/auth-disposal-fit.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run build",
+      "exitCode": 0
+    },
+    {
+      "command": "node --check e2e/widget-banco.spec.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "presupuesto-rendimiento official algorithm plus in-memory exact-byte report",
+      "exitCode": 0
+    },
+    {
+      "command": "mutation web-horas",
+      "exitCode": 1,
+      "expectedExitCode": 1,
+      "assertionFailure": true,
+      "injected": true
+    },
+    {
+      "command": "mutation java-horas",
+      "exitCode": 1,
+      "expectedExitCode": 1,
+      "assertionFailure": true,
+      "injected": true
+    },
+    {
+      "command": "mutation plugin-round",
+      "exitCode": 1,
+      "expectedExitCode": 1,
+      "assertionFailure": true,
+      "injected": true
+    },
+    {
+      "command": "mutation plugin-null-cero",
+      "exitCode": 1,
+      "expectedExitCode": 1,
+      "assertionFailure": true,
+      "injected": true
+    },
+    {
+      "command": "GitHub Tests run38349082540 job115137127293",
+      "exitCode": 1
+    }
+  ],
+  "rule": "docs/WIDGET-CICLO.md: cobro=día0; todo día45 local válido, día46 inválido; DST y nómina nueva conservados. Sin ancla válida, web mes natural; nativo oculta cifras caducadas hasta foto válida. No ciclo ilimitado ni ampliación a60.",
+  "evidence": "Tabla compartida web y WidgetPeriod real, puente Capacitor/Java real con entero y decimal .5, null/omisión safeLiq después de conocido, render al caducar; legacy APK52/53 y Java inmutable APK54 conservados. longValue se mantiene; mutación a Math.round detectada. Ocho focales UTC/Madrid exit0, cuatro mutaciones causales exit1, sintaxis/registro/privacidad/auth-disposal-fit exit0.",
+  "ci": {
+    "run": 38349082540,
+    "job": 115137127293,
+    "head": "ce028840a9a223f9b4ebf05838fca2de0747f6b4",
+    "conclusion": "failure",
+    "exitCode": 1,
+    "failedStages": [
+      "beta-sources: Catálogo122 lista de huellas extra declaradas",
+      "docs-frescura: dos fuentes posteriores al ancla sin bump reservado a integración"
+    ],
+    "budget": "pass",
+    "widget": "pass",
+    "authDisposalFit": "pass",
+    "deno": "seven real suites pass",
+    "e2e": "not executed after previous failures",
+    "privacySeparateStep": "skipped",
+    "guardPrivacyWithinNode": "pass",
+    "fullLogReviewed": true,
+    "logLines": 4316,
+    "suiteDurationSeconds": 2678.5
+  },
+  "bytes": {
+    "raw": 1382278,
+    "gzip": 379506,
+    "rawLimit": 1382400,
+    "gzipLimit": 379904,
+    "rawMargin": 122,
+    "gzipMargin": 398,
+    "blockingResources": 3,
+    "method": "official minifier, synthetic DSN/revision reserve, gzip9; no caps changed"
+  },
+  "movedSurfaces": [
+    {
+      "id": "fin05-widget-reentrada",
+      "surfaces": [
+        "web",
+        "native"
+      ]
+    },
+    {
+      "id": "fin05-pago-cerrada",
+      "surfaces": [
+        "web",
+        "native"
+      ]
+    },
+    {
+      "id": "widget-banco",
+      "surfaces": [
+        "web",
+        "native"
+      ]
+    },
+    {
+      "id": "widget-app-cerrada",
+      "surfaces": [
+        "web",
+        "native"
+      ]
+    },
+    {
+      "id": "inc-2909-02-inicio-natural",
+      "surfaces": [
+        "web"
+      ]
+    },
+    {
+      "id": "inc-3009-nomina-anticipada",
+      "surfaces": [
+        "web"
+      ]
+    },
+    {
+      "id": "inc-2909-01-widget-periodo",
+      "surfaces": [
+        "web",
+        "native"
+      ]
+    },
+    {
+      "id": "inc-0210-03-gastos-periodo",
+      "surfaces": [
+        "web"
+      ]
+    },
+    {
+      "id": "inc-0310-01-meta-regla",
+      "surfaces": [
+        "web"
+      ]
+    },
+    {
+      "id": "inc-0310-gastos-sin-limite",
+      "surfaces": [
+        "web"
+      ]
+    },
+    {
+      "id": "inc-0710-gastos-mes-madrid",
+      "surfaces": [
+        "web"
+      ]
+    },
+    {
+      "id": "inicio-grafica-vuelve",
+      "surfaces": [
+        "web"
+      ]
+    },
+    {
+      "id": "widget-pago-app-cerrada",
+      "surfaces": [
+        "web",
+        "native"
+      ]
+    },
+    {
+      "id": "widget-ciclo-puente",
+      "surfaces": [
+        "web",
+        "native"
+      ]
+    },
+    {
+      "id": "inicio-patrimonio-flujos",
+      "surfaces": [
+        "web"
+      ]
+    }
+  ],
+  "absentHistoricalSurfaces": [
+    {
+      "id": "inc-0810-inicio-grafica-significado",
+      "reason": "Bloque beta no inequívoco: src/modules/03-tab-dash.js"
+    }
+  ],
+  "ownership": "PR212 modifica lastPaydayOf y WidgetPeriod. PRO03 PR220 conserva AlertCheckWorker y productorweb con contrato acordado63f4eca6; no se incluye ni modifica aquí. Revisión conjunta y tanda nativa/APK a cargo de Claude.",
+  "limitations": [
+    "DOM local e2e/widget-banco no ejecutado; no heredar DOM de fuente anterior. CI tampoco ejecutó E2E.",
+    "CI general FAILURE real. No cambiar VERSION, catálogo ni hashes esperados para ocultarlo: integración tratará nueva identidad explícita.",
+    "Exige APK nueva para WidgetPeriod; OTA no corrige la guarda anterior. No compilación Gradle, APK, firma ni dispositivo probado.",
+    "Quince identidades cambian sobre122, incluidas dos de Inicio; no se heredan aprobaciones. Recibos-cargo-unico conserva huella de122.",
+    "Reserva FIN01 ajena retenida intacta. No se tomó runner ni se borró/retornó lease ajeno.",
+    "Sin push beta/main, despliegue backend, integración ni aceptación móvil. Revisión independiente de Claude pendiente.",
+    "Fuente122 entregada por orden expresa sin esperar123. Sólo rebase posterior con señal exacta autorizada; no nueva tarea/chat por iniciativa."
+  ],
+  "history": "CI119 run38288717486/a4369609 FAILURE(auth-fit, Cat119, VERSION); CI117 run38226804839/801e FAILURE(catálogo, VERSION, tamaño), históricas. Fuentes/guardas/topes actuales no se aflojan. Resultado done acredita entrega del candidato para revisión, no release publicado.",
+  "schema": 1,
+  "taskId": "widget-dia45-ciclo-codex-20261012",
+  "actor": "codex",
+  "sessionId": "codex-cloud-20261012-b13ba6dd80b3",
+  "createdAt": "2026-10-13T05:56:25.387Z",
+  "released": true
+}
