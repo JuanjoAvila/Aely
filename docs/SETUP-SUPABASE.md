@@ -320,3 +320,8 @@ No Edge/SQL desplegada ni modificada por el injerto. Ingest activo sigue legado;
 
 
 Movilidad88: espejo y ALLOWED/HINTS preparados como fuente. No despliega Edge ni SQL. Sin detalle inequívoco conserva tasas/parking/transporte; servidor anterior y requisitos Edge siguen pendientes.
+
+Revisión PR226 (13/10), SIN desplegar: guard de snapshot en todos los UPDATE por enlace y
+DELETE de desconexión; proveedor acotado8s con abort+race. Fila cambiada no se borra (409).
+No schema/secreto nuevo. La [consulta posdespliegue preparada](briefs/bancos-revoca-callback-20261013.md)
+verifica updated_at en sync normal y NO se ha ejecutado contra Postgres real.

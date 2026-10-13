@@ -16,22 +16,22 @@ const runtime=serve=>({serve,env:{get:k=>env[k]||"synthetic"}});
 const oldId="synthetic-consent /?%#",freshId="synthetic-new-consent";
 const account={uid:"old-account",iban:"ES0000000000000000000000",currency:"EUR",hash:"synthetic-stable"};
 async function row(extra={}){return enlace(haceDias(1),[account.uid],Object.assign({session_id:await token.encryptSessionId(oldId),state_issued_at:new FakeDate(FakeDate.now()-2000).toISOString(),accounts:[account]},extra));}
-function dbFor(rows,failLog=false){
-  const db=baseDatos(rows),from=db.from,events=[];
+function dbFor(rows,failLog=false,opts={}){
+  const db=baseDatos(rows,opts),from=db.from,events=[];
   db.from=name=>name==="app_events"?{insert:async x=>{if(failLog)throw Error("synthetic-log-unavailable");events.push(x);return {};}}:from(name);
   return {db,events};
 }
-async function disconnect(rows,{failure=null,failLog=false}={}){
+async function disconnect(rows,{failure=null,failLog=false,onRevoke=null}={}){
   const {db,events}=dbFor(rows,failLog),calls=[];let handler;
   new Function("Deno","createClient","ebApi","ebConfig","jsonResp","makeJWT","withCors","decryptSessionId","ebFailure",DISCONNECT)(
-    runtime(fn=>handler=fn),()=>db,async(jwt,path,init)=>{calls.push({path,method:init.method});if(failure)throw Error(failure);return {};},
+    runtime(fn=>handler=fn),()=>db,async(jwt,path,init)=>{calls.push({path,method:init.method});if(onRevoke)await onRevoke();if(failure)throw Error(failure);return {};},
     ()=>({}),jsonResp,async()=>"synthetic-jwt",fn=>fn,token.decryptSessionId,E.ebFailure
   );
   const response=await handler(new Request("https://app.invalid",{method:"POST",body:JSON.stringify({aspsp_name:rows.find(x=>x.user_id==="synthetic")?.aspsp_name||"CaixaBank"})}));
   return {status:response.status,data:await response.json(),events,calls};
 }
-function startSync(rows,{success=false,acks=true}={}){
-  const {db,events}=dbFor(rows);let handler,release,entered;
+function startSync(rows,{success=false,acks=true,dbOpts={}}={}){
+  const {db,events}=dbFor(rows,false,dbOpts);let handler,release,entered;
   const gate=new Promise(r=>release=r),started=new Promise(r=>entered=r);
   const api=async(jwt,path)=>{
     if(path.endsWith("/balances")){entered();await gate;if(!success)throw Error("EB 401 EXPIRED_SESSION");return {balances:[{balance_type:"ITAV",balance_amount:{amount:"100",currency:"EUR"}}]};}
@@ -41,7 +41,7 @@ function startSync(rows,{success=false,acks=true}={}){
   new Function("Deno","createClient","ebApi","ebConfig","jsonResp","makeJWT","mapTransaction","withCors","fetchBankTransactions","Date","ebFailure","ebSessionVerdict","decryptSessionId",SYNC)(
     runtime(fn=>handler=fn),()=>db,api,()=>({}),jsonResp,async()=>"synthetic-jwt",E.mapTransaction,fn=>fn,E.fetchBankTransactions,FakeDate,E.ebFailure,E.ebSessionVerdict,token.decryptSessionId
   );
-  const pending=handler(new Request("https://app.invalid",{method:"POST",body:JSON.stringify(acks?{acks:{}}:{})}));
+  const pending=handler(new Request("https://app.invalid",{method:"POST",body:JSON.stringify(acks?{recoverGaps:true,acks:{}}:{})}));
   return {started,release,pending,events};
 }
 async function callback(rows){
@@ -96,5 +96,35 @@ for(const change of ["session_id","state_issued_at"])await test("cambio independ
 for(const legacy of [false,true])await test("fila sin carrera "+(legacy?"NULL legacy":"cifrada")+" sigue recibiendo su estado",async()=>{
   const rows=[await row(legacy?{session_id:null,state_issued_at:null}:{})],run=startSync(rows);await run.started;run.release();assert.equal((await run.pending).status,200);assert.equal(rows[0].status,"expired");
 });
+
+await test("selección de usuario real: fila ajena delante no puede ser la revocada",async()=>{
+  const foreign=await row({id:"foreign",user_id:"other",session_id:await token.encryptSessionId("synthetic-foreign")}),mine=await row(),rows=[foreign,mine];
+  const r=await disconnect(rows);assert.equal(r.status,200);assert.equal(rows.length,1);assert.equal(rows[0].id,"foreign");
+  assert.deepEqual(r.calls,[{path:"/sessions/"+encodeURIComponent(oldId),method:"DELETE"}]);
+});
+await test("fallo registra exactamente el usuario, el tipo y el mensaje cerrado",async()=>{
+  const r=await disconnect([await row()],{failure:"EB 503 dato-privado"});
+  assert.equal(r.events[0].user_id,"synthetic");assert.equal(r.events[0].kind,"error");assert.equal(r.events[0].message,"OB desconexión: revocación no completada");
+  assert.deepEqual(Object.keys(JSON.parse(r.events[0].detail)).sort(),["code","status","step"]);
+});
+await test("callback real durante DELETE conserva la nueva fila y devuelve409",async()=>{
+  const rows=[await row()];let fresh;
+  const r=await disconnect(rows,{onRevoke:async()=>{await callback(rows);fresh=JSON.stringify(rows);}});
+  assert.equal(r.status,409);assert.equal(JSON.stringify(rows),fresh);assert.deepEqual(r.calls,[{path:"/sessions/"+encodeURIComponent(oldId),method:"DELETE"}]);
+  assert.ok(!JSON.stringify(r.data).includes(freshId));
+});
+await test("foto sin cuentas solo caduca su propia versión",async()=>{
+  const mine=await row({accounts:[]}),rows=[mine],fresh={...mine,status:"active",session_id:await token.encryptSessionId(freshId),state_issued_at:new FakeDate().toISOString(),accounts:[account]};
+  const run=startSync(rows,{dbOpts:{trasLeer:()=>Object.assign(mine,fresh)}});assert.equal((await run.pending).status,200);
+  assert.equal(JSON.stringify(mine),JSON.stringify(fresh));
+});
+
+
+for(const field of ["session_id","state_issued_at"])await test("DELETE respeta cambio independiente de "+field,async()=>{
+  const rows=[await row()];let fresh;
+  const r=await disconnect(rows,{onRevoke:async()=>{rows[0][field]=field==="session_id"?await token.encryptSessionId(freshId):new FakeDate().toISOString();fresh=JSON.stringify(rows);}});
+  assert.equal(r.status,409);assert.equal(JSON.stringify(rows),fresh);
+});
+
 if(originalDeno===undefined)delete globalThis.Deno;else globalThis.Deno=originalDeno;
 console.log("bank-revoke-callback-race: "+(count-failed)+" PASS / "+failed+" FAIL");if(failed)process.exitCode=1;

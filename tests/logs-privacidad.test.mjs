@@ -112,7 +112,7 @@ await t("desconexión Edge: descifrado y proveedor hostiles no salen al registro
  const E=await import("data:text/javascript;base64,"+Buffer.from(transformSync(read("supabase/functions/_shared/enablebanking.ts"),{loader:"ts",format:"esm"}).code).toString("base64"));
  for(const phase of ["decrypt","revoke"]){
   const rows=[];let handler;
-  const db={auth:{getUser:async()=>({data:{user:{id:"synthetic-user"}}})},from:name=>name==="app_events"?{insert:async x=>{rows.push(x);return {};}}:{select:()=>({eq(){return this;},maybeSingle:async()=>({data:{session_id:sensitive}})}),delete:()=>({eq(){return this;},then:ok=>Promise.resolve({error:null}).then(ok)})}};
+  const db={auth:{getUser:async()=>({data:{user:{id:"synthetic-user"}}})},from:name=>name==="app_events"?{insert:async x=>{rows.push(x);return {};}}:{select:()=>({eq(){return this;},maybeSingle:async()=>({data:{session_id:sensitive}})}),delete:()=>({eq(){return this;},is(){return this;},select(){return this;},then:ok=>Promise.resolve({data:[{id:"synthetic"}],error:null}).then(ok)})}};
   new Function("Deno","createClient","ebApi","ebConfig","jsonResp","makeJWT","withCors","decryptSessionId","ebFailure",ts(read("supabase/functions/bank-disconnect/index.ts")))(
    {env:{get:()=>"synthetic"},serve:f=>handler=f},()=>db,async()=>{throw error();},()=>({}),
    (x,status=200)=>new Response(JSON.stringify(x),{status}),async()=>sensitive,f=>f,

@@ -116,6 +116,7 @@ export function baseDatos(rows, { user = "synthetic", failUpdate = null, trasLee
       in(col, vs) { filters.push((r) => vs.includes(r[col])); return q; },
       lt(col, v) { filters.push((r) => r[col] != null && Date.parse(r[col]) < Date.parse(v)); return q; },
       is(col, v) { filters.push((r) => (r[col] == null ? null : r[col]) === v); return q; },
+      select() { return q; },
       maybeSingle() { return q.then((res) => ({ data: (res.data || [])[0] || null, error: null })); },
       then(ok, ko) {
         return Promise.resolve().then(() => apply(rows.filter((r) => filters.every((f) => f(r))))).then(ok, ko);
@@ -134,7 +135,7 @@ export function baseDatos(rows, { user = "synthetic", failUpdate = null, trasLee
       hit.forEach((r) => Object.assign(r, patch));
       return { error: null };
     }),
-    delete: () => consulta((hit) => { hit.forEach((r) => rows.splice(rows.indexOf(r), 1)); return { error: null }; }),
+    delete: () => consulta((hit) => { const data=hit.map(r=>({id:r.id}));hit.forEach((r) => rows.splice(rows.indexOf(r), 1)); return { data, error: null }; }),
     upsert: async (row, { onConflict }) => {
       const cols = onConflict.split(",");
       const cur = rows.find((r) => cols.every((c) => r[c] === row[c]));

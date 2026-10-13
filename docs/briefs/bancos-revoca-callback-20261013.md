@@ -1,4 +1,74 @@
-# Revocar al desconectar y respetar un callback nuevo — candidato13/10/2026
+# Revocación y carreras: revisión de reservas13/10/2026
+
+Task vigente: `bancos-revoca-callback-revision-reservas-codex-20261013`.
+Claim/base124 `f5904735b514751ee926d25c22c92195b6ce3653` inmutable.
+Rebase expresamente ordenado de los DOS commits propios sobre la dependencia REMOTA
+`2d53ab24dc32a83faf17ce08c3b2d50b304d8e55`, VERSION4.26.122. Los commits propios
+2c2084d6/0a1cef0c quedan reaplicados como4e77f31c/37d457f3; la rama de Claude no cambia.
+No es un rollback publicado de beta124. El result históricoffeaf se conserva sin reapertura.
+A terminó y se liberó en58f158f7 antes del claim nuevo de B: no hay dos CODE propios activos.
+
+## Cambios y decisión de carrera
+
+sameLinkVersion protege las SEIS escrituras por enlace: sin cuentas, consumir acuse, ancla null,
+estado final, tramo terminado y tramo sellado legacy. Conserva payloads, lt/is de cursor y orden119.
+Compara ciphertext original y state_issued_at en el UPDATE atómico; null requiere IS NULL.
+No toca el catch/consulta de sesión de Claude, demand-window, callback, keepsCursor o paginación.
+
+DELETE del proveedor está limitado a8000ms con AbortController y Promise.race; ni un transporte
+que ignore abort puede retener el borrado local indefinidamente. El timeout registra TIEMPO,
+sin id/ciphertext/JWT/error libre. La eliminación local sigue siendo posible al fallar proveedor,
+clave o registro, si la fila continúa siendo la misma.
+
+Se elige NO borrar una autorización que cambió durante la desconexión. El DELETE local filtra
+usuario, banco, id y ambas marcas originales, y pide sólo el id de la fila eliminada.
+Si no casa devuelve409 con mensaje fijo, sin ids: el usuario puede repetir sobre la conexión
+vigente. Revocar la nueva tras otra lectura permitiría otra carrera y sería revocar una conexión
+que el usuario acaba de completar. Sin fila en la foto inicial no se hace un borrado tardío.
+
+## Evidencia sintética y límites
+
+Deno nativo con handlers/SDK reales y HTTP interceptado:8 PASS/8 FAIL antes,16 PASS/0 FAIL después,
+incluidos connect/callback reales entre snapshot y SQL, ambos cursores legacy, acuse, ancla null,
+usuario ajeno primero, fallo503, conexión insertada tarde y timeout REAL de8segundos.
+El primer arnés daba9/7 porque el acuse sin recoverGaps no se activaba; se corrigió el fixture
+antes de medir el rojo causal8/8. Tipos y sanitizadores permanecen activos.
+Node20 PASS/0 FAIL también prueba cifrado/legacy, usuario/tipo/mensaje de registro y cambios independientes de
+sesión/emisión. Diez mutantes son rechazados, incluidos EQ NULL con SDK/semántica SQL reales.
+El grupo nativo lifecycle/crypto/demand-window termina29 PASS/0 FAIL.
+Los bytes de fuente se restauran exactos; log y EXIT se conservan en evidencia privada.
+
+Estos resultados no prueban Postgres desplegado, consentimiento real ni móvil.
+La siguiente comprobación es sólo una plantilla para el coordinador DESPUÉS de desplegar.
+
+## Consulta de comprobación posdespliegue — preparada, NO ejecutada
+
+Sustituir privadamente los dos placeholders; no copiar valores de usuario a este repo/log.
+Ejecutar la misma lectura antes y después de UN sync manual normal de un enlace activo con
+cuentas, sesión cifrada y autorización sin cambios (sin reconectar mientras se prueba).
+
+```sql
+select status, updated_at, last_sync,
+       coalesce(session_id like 'enc:v1:%', false) as session_encrypted
+from public.bank_links
+where user_id = '<USER_UUID>'::uuid
+  and aspsp_name = '<BANK_NAME>';
+```
+
+Esperar exactamente una fila, session_encrypted=true y status=active. Guardar el updated_at
+previo, esperar al menos un segundo y pedir el sync normal; el updated_at posterior debe ser
+mayor. Esto comprueba que el guard eq con ciphertext casa en el PostgREST/Postgres real.
+last_sync NO tiene que avanzar aún si el cliente usa acuse119. Si no mueve updated_at, conservar
+el fallo y revisar estado/resultado de la función; nunca retirar el filtro ni forzar el cursor.
+La consulta no devuelve ciphertext, session_id, referencias de cuenta, movimientos o saldos.
+
+Sin SQL/RLS/migraciones/DB/proveedor reales, despliegue, APK, beta/main, VERSION/notas/catálogo
+o topes. FIN01 ajeno retenido y sin RETURN permanece intacto. Revisión e integración a Claude;
+se declaran solapes bank-sync con su catch/consulta y A PR223 (paginación/diagnóstico).
+
+## Primera entrega, evidencia histórica (no es el estado de esta revisión)
+
+### Revocar al desconectar y respetar un callback nuevo — candidato13/10/2026
 
 Task `bancos-desconectar-revoca-y-carrera-callback-codex-20261013`.
 Base inmutable de task/claim:123, `3625fa7ed5134cfbc5e364adc4f588bfdaf670c0`.
