@@ -25,9 +25,9 @@ test("★ app recién instalada: sin gráfico plano ni pastilla de cero", async 
   await inicio(page, { history: [], budget: 0, expenses: [], accounts: [] });
 
   // Sin histórico se mantiene el vacío de producción110, sin inventar una serie de ceros.
-  await expect(page.locator("svg.spark")).toHaveCount(0);
+  await expect(page.locator(".v42-net-chart")).toHaveCount(0);
   await expect(page.getByTestId("inicio-net-now")).toHaveCount(0);
-  await expect(page.locator(".v4-hero")).toContainText("Tu histórico empieza hoy");
+  await expect(page.locator(".v4-hero")).toContainText("Faltan saldos fiables para mostrar la gráfica");
   await expect(page.locator(".v4-hero-amt")).toContainText("0,00 €");
   await expect(page.getByTestId("inicio-chart-note")).toHaveCount(0);
 
@@ -77,13 +77,14 @@ test("con recibos y metas de verdad, las tarjetas fantasma desaparecen", { annot
   await expect(page.locator(".v4-empty")).toHaveCount(0);
 });
 
-test("★ P5: la racha a cero se dice en positivo, no «0 meses sin pasarte»", async ({ page }) => {
+test("★ P5: sin racha histórica, el estado actual se dice en positivo", async ({ page }) => {
   await inicio(page, { history: [], budget: 500, streak: 0 });
   await expect(page.getByText(/0 meses sin pasarte/i)).toHaveCount(0);
-  await expect(page.getByText(/Mes en curso/i)).toBeVisible();
+  await expect(page.locator(".v42-cycle .st")).toHaveText("Vas sobrado");
+  await expect(page.getByTestId("inicio-cycle-pace")).toHaveCount(0);
 });
 
-test("tres presupuestos mensuales cerrados crean racha sin llama", async ({ page }) => {
+test("la tarjeta del ciclo reemplaza la racha de meses cerrados", async ({ page }) => {
   const now=new Date(FIXTURE_NOW), budgetByMonth={}, expenses=[];
   for(let back=1;back<=3;back++){
     const d=new Date(now.getFullYear(),now.getMonth()-back,1);
@@ -101,22 +102,21 @@ test("tres presupuestos mensuales cerrados crean racha sin llama", async ({ page
     ],
   });
   const streak=page.getByTestId("dash-budget-streak");
-  await expect(streak).toHaveText(/3 meses sin pasarte/i);
-  await expect(streak).not.toContainText("🔥");
+  await expect(streak).toHaveCount(0);
+  await expect(page.locator(".v42-cycle")).toHaveAttribute("data-state","comfort");
+  await expect(page.locator(".v42-cycle-amount>.serif")).toHaveText("500 €");
 });
 
-test("con presupuesto e histórico, Inicio recupera su gráfica de producción", async ({ page }) => {
-  await inicio(page, { history: [100, 200], budget: 500 });
+test("con presupuesto y movimientos cubiertos, Inicio muestra la gráfica por flujos", async ({ page }) => {
+  await inicio(page, { history: [100, 200], budget: 500, expenses:[{id:"first",date:"2026-09-25T12:00:00Z",amount:10,category:"super",ent:"sabadell"}] });
 
   await expect(page.getByTestId("inicio-net-now")).toHaveCount(0);
-  await expect(page.locator(".v4-hero svg.spark")).toBeVisible();
+  await expect(page.locator(".v42-net-chart svg")).toBeVisible();
   await expect(page.locator(".v4-empty").filter({ hasText: /presupuesto|budget|pressupost/i })).toHaveCount(0);
 });
 
-/* P6 — el anillo del presupuesto se DIBUJA. La transición no animaba el primer pintado, así que
- * salía ya lleno y la animación de 1 s del spec §10 no se veía nunca. Se monta vacío y pasa al
- * valor real en el frame siguiente, enganchado al mismo `mc-splash-gone` que el count-up del hero
- * (si no, se gasta detrás de la cortina de entrada — ya pasó una vez con el número). */
+/* P6 — el anillo se dibuja al montar tras el splash. La animación CSS conserva el valor
+ * real en el DOM; el movimiento reducido debe mostrarlo directamente. */
 test("★ P6: el anillo arranca vacío y se llena, no aparece relleno", async ({ page }) => {
   await inicio(page, { history: [100, 200], budget: 500, expenses: [{ id: "e1", date: "2026-09-09T12:00:00.000Z", amount: 100, merchant: "Super", category: "super" }] });
   // ⚠ ACOTADO a la pantalla de Inicio: las pestañas se premontan y un selector global puede
@@ -124,13 +124,10 @@ test("★ P6: el anillo arranca vacío y se llena, no aparece relleno", async ({
   // La cabecera de Inicio identifica la tarjeta que la prueba quiere vigilar sin depender del
   // orden de pestañas ni de cuántos SVG haya en las demás pantallas (regresión 2026-09-17).
   const anillo = page.locator(".v4-screen:has(.v4-inicio-head) .v4-budget svg circle").last();
-  await expect(anillo).toHaveAttribute("stroke-dasharray", /\d/);
-  // Ya con el splash fuera, el trazo tiene que haber llegado a su valor final (offset < circunferencia).
-  await expect.poll(async () => {
-    const d = await anillo.getAttribute("stroke-dasharray");
-    const o = await anillo.getAttribute("stroke-dashoffset");
-    return Number(o) < Number(d) - 0.01;
-  }, { timeout: 10_000 }).toBe(true);
+  await expect(anillo).toHaveAttribute("pathLength","100");
+  await expect(anillo).toHaveAttribute("stroke-dasharray","20 100");
+  expect(await anillo.evaluate(el=>el.getAnimations()[0].effect.getKeyframes()[0].strokeDasharray.replace(/px/g,"").split(/[,\s]+/).filter(Boolean).map(Number))).toEqual([0,100]);
+  await expect.poll(()=>anillo.evaluate(el=>parseFloat(getComputedStyle(el).strokeDasharray)),{timeout:10000}).toBe(20);
 });
 
 test("P6 con reduced-motion: el valor final, directo y sin animar", async ({ page }) => {
@@ -138,9 +135,9 @@ test("P6 con reduced-motion: el valor final, directo y sin animar", async ({ pag
   await inicio(page, { history: [100, 200], budget: 500, expenses: [{ id: "e1", date: "2026-09-09T12:00:00.000Z", amount: 100, merchant: "Super", category: "super" }] });
   // Mismo alcance que el caso animado: el selector debe seguir perteneciendo a Inicio.
   const anillo = page.locator(".v4-screen:has(.v4-inicio-head) .v4-budget svg circle").last();
-  const d = Number(await anillo.getAttribute("stroke-dasharray"));
-  const o = Number(await anillo.getAttribute("stroke-dashoffset"));
-  expect(o).toBeLessThan(d - 0.01);
+  await expect(anillo).toHaveAttribute("stroke-dasharray","20 100");
+  expect(await anillo.evaluate(el=>getComputedStyle(el).animationName)).toBe("none");
+  expect(await anillo.evaluate(el=>parseFloat(getComputedStyle(el).strokeDasharray))).toBe(20);
 });
 
 /* P14 — NO SE APLICA, y aquí queda por qué, medido (9/9).

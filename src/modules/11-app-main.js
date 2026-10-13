@@ -568,6 +568,9 @@ function App(){
         // EXCEPCIÓN CLAVE (fresh login): al INICIAR SESIÓN (móvil nuevo / reinstalado) la nube es la
         // verdad SIEMPRE. Sin esto, una cartera vacía recién creada podía "ganar" y machacar la nube.
         set(function(prev){
+          // Cerrar sesión mientras llega el pull no autoriza aplicar una cartera vieja
+          // ni sustituir los 400 cierres locales por la ventana corta de nube.
+          if(!sessionRef.current||!sessionRef.current.user||sessionRef.current.user.id!==u)return prev;
           const merged=mergeExpenses(prev.expenses, cloudState.expenses||[]);
           const localNewer=!freshLogin && (prev._savedAt||0) > (cloudState._savedAt||0);
           const baseObj = localNewer ? Object.assign({},prev,{expenses:merged.list})
@@ -576,6 +579,14 @@ function App(){
           // que vio un móvil y el otro no puede desmentir por no tenerlo. Ver `fusionarGemelos`.
           const gem=fusionarGemelos(prev.gemelos, cloudState.gemelos);
           if(gem!==baseObj.gemelos) baseObj.gemelos=gem;
+          // La nube lleva una ventana corta: un cliente antiguo no debe borrar los cierres
+          // locales. El marcador sólo delimita este historial, nunca concede una sesión.
+          if(sessionRef.current&&sessionRef.current.user&&sessionRef.current.user.id===u){
+            const sameOwner=!(opts&&opts.dropTx)&&(!freshLogin||prev._historyOwner===u)&&(!prev._historyOwner||prev._historyOwner===u);
+            baseObj.accountBalanceHistory=sameOwner?mergeAccountBalanceHistory(prev.accountBalanceHistory,baseObj.accountBalanceHistory):cloudState.accountBalanceHistory||{};
+            baseObj.assetValueHistory=sameOwner?mergeAccountBalanceHistory(prev.assetValueHistory,baseObj.assetValueHistory):cloudState.assetValueHistory||{};
+            baseObj._historyOwner=u;
+          }
           // El extracto local no pertenece a la nube: al cambiar de usuario podría confirmar
           // una nómina ajena. Los eventos de arranque/refresco compiten con getSession y no
           // prueban por sí solos que haya otro titular (feedback 27/9).
@@ -2400,7 +2411,7 @@ function App(){
   const invSnapRef=useRef("");
   useEffect(function(){
     if(!(totals.invested>0)||totals.fxMissing>0) return;
-    const today=new Date().toISOString().slice(0,10);
+    const today=netWorthDay();
     const v=+totals.invested.toFixed(2);
     const c=+(totals.investedCost||0).toFixed(2);
     const key=today+"|"+v+"|"+c;
@@ -2410,7 +2421,19 @@ function App(){
       const h=recordInvSnapshot(s.invHistory, today, v, c);
       return Object.assign({},s,{invHistory:h});
     });
-  },[totals.invested, totals.investedCost, totals.fxMissing]);
+  },[totals.invested, totals.investedCost, totals.fxMissing,calendarDay]);
+
+  // Una edición manual sólo acredita su fecha: no se proyecta el precio nuevo hacia atrás.
+  const assetSnapRef=useRef(state.assets);
+  useEffect(function(){
+    const previous=assetSnapRef.current;assetSnapRef.current=state.assets;
+    const today=netWorthDay();
+    if(recordAssetValues(state.assetValueHistory,today,state.assets,previous)===state.assetValueHistory)return;
+    set(function(s){
+      const h=recordAssetValues(s.assetValueHistory,today,s.assets,previous);
+      return h!==s.assetValueHistory?Object.assign({},s,{assetValueHistory:h}):s;
+    });
+  },[state.assets,calendarDay]);
 
   // GAMIFICACIÓN: detecta logros nuevos y subidas de nivel → toast/confeti (1ª vez siembra sin avisar).
   useEffect(function(){
@@ -3469,7 +3492,7 @@ function App(){
   const hiddenTabIds = TABS.map(function(tt){return tt.id;}).filter(function(id){ return tabIds.indexOf(id)<0; });
   const pageFor=function(id){
     const simple=!!(state.settings&&state.settings.simpleMode);
-    if(id==="dash") return React.createElement(Dashboard,{state:state,totals:totals,budgetStreak:budgetStreak,set:set,showToast:showToast,
+    if(id==="dash") return React.createElement(Dashboard,{state:state,totals:totals,set:set,showToast:showToast,
       onOpenSettings:function(){ setDrawerOpen(true); },
       onOpenProfile:function(){
         // Montar cerrado un frame y luego abrir: si montas ya con .open no hay animación de entrada.

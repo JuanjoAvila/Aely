@@ -509,7 +509,8 @@ escribir `Access-Control-Allow-Origin: "*"`.
   Su posición se guarda en `settings.accountListOrder`, mezclada visualmente con `accounts` sin
   moverla de modelo ni alterar saldo, rol o presupuesto.
 - La ficha guarda un cierre diario real por cuenta en `accountBalanceHistory`, indexado por la
-  misma clave estable del orden (`acc:<id>` / `ob:<key>`) y limitado a 31 puntos. El gráfico de
+  misma clave estable del orden (`acc:<id>` / `ob:<key>`) y limitado a400 puntos mediante
+  `recordAccountBalances`, compartido con Inicio. El día civil es el de Madrid. El gráfico de
   14 días y la variación desde el día 1 solo aparecen cuando existen esos cierres: no se reconstruye
   saldo histórico a partir de gastos ni se atribuye la previsión agregada si hay dos cuentas del
   mismo banco. El primer cierre espera `mc-boot-ready`, que ya representa dato local definitivo sin
@@ -674,7 +675,9 @@ Antes el volcado se apuntaba dentro del updater de `set()`. React puede ejecutar
 
 Como es código común, el bloque de guardado forma parte del alcance de revisión de toda tanda cuyo código llama a `set` de App (18 de 25, decidido contra el código por `beta-sources`): cambiarlo vuelve a pedir su prueba. Una aprobación heredada por equivalencia de código deja de aplicarse cuando el código cambia; su registro histórico no se toca.
 
-Se conserva lo demás: una escritura como mucho cada 400 ms, volcado inmediato en `pagehide` y al pasar a oculto, guardado partido (`micartera_v3` y `micartera_v3_exp`), ninguna escritura al montar ni cuando un updater devuelve el mismo estado, y las salvaguardas del modo pruebas (`mcSkipPersist`, `mcRecargarSinVolcar`). Límite: una escritura pedida y aún no pintada cuando llega `pagehide` no se vuelca; antes tampoco estaba garantizado, salvo cuando React la calculaba por adelantado.
+Se conserva lo demás: una escritura como mucho cada 400 ms, volcado inmediato en `pagehide` y al pasar a oculto, guardado partido (`micartera_v3`, `micartera_v3_exp` y `micartera_v3_balhist`), ninguna escritura al montar ni cuando un updater devuelve el mismo estado, y las salvaguardas del modo pruebas (`mcSkipPersist`, `mcRecargarSinVolcar`). Límite: una escritura pedida y aún no pintada cuando llega `pagehide` no se vuelca; antes tampoco estaba garantizado, salvo cuando React la calculaba por adelantado.
+
+El historial por cuenta se guarda separado porque sus400 cierres no deben reescribirse al cambiar otro dato. `mcSaveRaw` conserva la referencia y el contenido de la última foto; una referencia nueva con el mismo contenido no escribe `_balhist` otra vez. La partición lleva `{schema:1,revision,history}`. Mientras falla esa escritura, la clave principal conserva la foto y `_balHistoryRevision`; si falla limpiar la principal después de guardar la partición, `mcLoadRaw` elige la revisión durable más reciente. No se borra la única copia cuando una escritura falla. El mismo contrato usa `micartera_sandbox_balhist` en modo pruebas y su reset no toca la partición real. Esta arquitectura corresponde al candidato de Inicio PR204; requiere build y validación de integración antes de publicarse.
 
 ### Ciclo de sesión y desmontaje (candidata102)
 
@@ -694,3 +697,5 @@ cloud.onAuth devuelve la retirada de su suscripción. App cancela timer y callba
 `useBackClose(open,onClose,identity)` transfiere la entrada propia de historial entre overlays dentro del mismo lote de efectos. Tokens y propietario distinguen pops propios/ajenos; el callback Capacitor usa el mismo controlador y BillsAddWizard registra la identidad del paso. AskHost re-registra el diálogo actual. Corresponde a la revisión110 aprobada; la cualificación de esta selección todavía está pendiente.
 
 `editReservaRule` compara la copia de apertura con el estado fresco, conserva id/contrato/campos desconocidos y no reescribe un asiento mensual ya aplicado. `applyReservaMensual` admite limitar el asiento pendiente a la regla editada. La línea mensual conserva la meta original del asiento si la regla cambia de destino. Corresponde a108; no se introducen sincronizaciones bancarias nuevas. [Alcance y gates](briefs/promocion-107-108-110-local26.md).
+
+Revisión de Inicio PR204 sobre119: historial local400/nube14 unido por fecha sólo para el propietario vigente; callback tardío sin sesión conserva el estado previo. El alta de Bienes se acredita sólo en Guardar; un bien legado sin escalones mantiene su valor actual hacia atrás con cobertura explícita. Con escalones reales se limita al tramo conocido. Traspasos sólo se neutralizan entre dos cuentas de flujo; deudas sin plazo sitúan la amortización histórica en el día conocido de cuota, conservando el saldo actual. La caché depende de referencias financieras y día de Madrid. Contrato y gates: [ronda anterior](briefs/inicio-revision-nogo-20261012.md) y [segunda revisión](briefs/inicio-ronda3-bienes-20261012.md).

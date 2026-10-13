@@ -40,9 +40,9 @@ for(const caso of idiomas) for(const limite of [
     await expect(page.locator(".v4-empty").filter({hasText:/Ponle un presupuesto|Set a monthly budget|Posa-li un pressupost/})).toBeVisible();
   }else{
     await expect(dash.locator(".v4-ring .num")).toHaveText(limite.pct);
-    await expect(dash.locator(".ph")).toContainText(caso.spent+" "+limite.spent);
-    if(limite.over) await expect(dash.locator(".ph")).toContainText(caso.over);
-    else await expect(dash.locator(".ph")).not.toContainText(caso.over);
+    await expect(dash.locator(".v42-cycle-amount>.serif")).toHaveText(String(1000-(limite.reserved||0)-limite.spent)+" €");
+    await expect(dash).toHaveAttribute("data-state",limite.over?"over":limite.spent===0?"comfort":"good");
+    await expect(dash.getByTestId("inicio-cycle-pace")).toHaveCount(0);
   }
 });
 
@@ -71,9 +71,9 @@ for(const caso of idiomas) for(const perfil of ["split","net"]){
     await expect(ring).toHaveText("2%");
     await ciclo(page,caso);
     await expect(ring).toHaveText("67%");
-    await expect(dash.locator(".ph")).toContainText(caso.spent+" 600");
-    await expect(dash.locator(".ph")).toContainText("900");
-    await expect(dash.locator(".ph")).toContainText(caso.daily);
+    await expect(dash.locator(".v42-cycle-amount>.serif")).toHaveText("300 €");
+    await expect(dash.locator(".v42-cycle-of")).toContainText("900");
+    await expect(dash.getByTestId("inicio-cycle-pace")).toHaveCount(0);
     await page.locator('.botnav-tab[data-tour="gastos"]').click();
     // El balance mensual positivo es legítimo; no se transforma en gasto para arreglar Inicio.
     const summary=page.locator(".v4-gastos-summary");

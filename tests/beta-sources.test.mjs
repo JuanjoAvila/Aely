@@ -49,7 +49,8 @@ function auditedRevision(id,source){
 const boot="inc-2709-01-arranque-red";
 const modern=[{v:"4.26.69",tandas:[{id:boot}]}];
 let failed=0;
-function test(name,fn){ try{fn();console.log("  ✓ "+name);}catch(e){failed++;console.error("  ✗ "+name+"\n    "+e.message);} }
+const inicioOnly=process.argv.includes("--inicio-v42-only");
+function test(name,fn){ if(inicioOnly&&!name.startsWith("Inicio v4.2 ")&&!name.startsWith("Catálogo114 ")&&!name.startsWith("Catálogo117 ")&&!name.startsWith("Retiro117 ")&&!name.startsWith("Catálogo118 ")&&!name.startsWith("Splash117 ")&&!name.startsWith("Catálogo119 ")&&!name.startsWith("Retiro119 "))return;try{fn();console.log("  ✓ "+name);}catch(e){failed++;console.error("  ✗ "+name+"\n    "+e.message);} }
 console.log("beta-sources");
 
 // La rayita comparte controlador y geometría con la barra: una aprobación de CSS aislada no
@@ -133,22 +134,32 @@ test("Inicio109 histórico vigila ausencia de fechas, moneda, escala y dibujo en
 
 // La fuente actual necesita su propia unidad y todos los lectores reales de importe/divisa.
 // Este guardián de identidad no acredita por sí solo DOM ni aceptación de la corrección.
-test("Inicio113 cubre renderer, llamada, animación, textos, CSS y moneda vigentes",()=>{
-  const id="inicio-grafica-vuelve",source=f=>read(f).replace(/\r\n/g,"\n"),scopes=JSON.parse(source("scripts/beta-sources.json")),scope=scopes[id],before=betaRevision(id,source);
+test("Inicio v4.2 cubre flujos, ciclo, renderer, llamada, animación, textos, CSS y moneda vigentes",()=>{
+  const id="inicio-patrimonio-flujos",source=f=>read(f).replace(/\r\n/g,"\n"),scopes=JSON.parse(source("scripts/beta-sources.json")),scope=scopes[id],before=betaRevision(id,source);
+  // La base118 incorpora el cargo único; el rebase no puede retirarlo ni heredar su revisión.
+  const integrated=JSON.parse(source119("scripts/beta-sources.json"));
+  assert.deepEqual(Object.keys(scopes),Object.keys(integrated).concat(id),"una única unidad nueva sin retirar historia119");
+  for(const [key,value] of Object.entries(integrated))if(key!=="inicio-grafica-vuelve"){assert.deepEqual(scopes[key].native,value.native);assert.deepEqual(scopes[key].edge,value.edge);for(const part of value.web||[])assert.ok(scopes[key].web.some(s=>JSON.stringify(s)===JSON.stringify(part)),key+": no recortar descriptor ajeno119");}
   assert.equal(scope.unidades,true);
   for(const key of ["historial","auditoria","codigosCompatibles","compatibilidadGit","compatibilidadSha"])
     assert.equal(scope[key],undefined,"no hereda identidad anterior: "+key);
   assert.notEqual(before.codigo,"b90e6223cd45ef64e8689d4c772560c31c7db47939694211a892316030a283f0");
   for(const [file,from,to] of [
-    ["src/modules/03-tab-dash.js",'history:state.history','history:[]'],
-    ["src/modules/03-tab-dash.js",'data:history,current:value','data:history,current:0'],
-    ["src/modules/02-ui-shared.js",'const rng=(max-min)||1;','const rng=max||1;'],
-    ["src/modules/03-tab-dash.js",'const valid=typeof value==="number" && Number.isFinite(value);','const valid=true;'],
+    ["src/modules/03-tab-dash.js",'series:series, splashGone:splashGone','series:[], splashGone:splashGone'],
+    ["src/modules/03-tab-dash.js",'today:seriesToday,liquid:tt.liquid','today:"1900-01-01",liquid:tt.liquid'],
+    ["src/modules/02-ui-shared.js",'Math.abs(mean)*.06','Math.abs(mean)*.6'],
+    ["src/modules/02-ui-shared.js",'const debt=netWorthDebtPolicy(state,today,options.debtTotal);','const debt={current:0,first:null,value:function(){return 0;}};'],
+    ["src/modules/02-ui-shared.js",'daily[day]=(daily[day]||0)-Math.round(e.amount*100)','daily[day]=(daily[day]||0)+Math.round(e.amount*100)'],
+    ["src/modules/03-tab-dash.js",'const valid=typeof value==="number" && Number.isFinite(value)&&','const valid=true&&'],
     ["src/modules/03-tab-dash.js",'p?p.sign+p.ent:"—"','p?p.sign+p.ent:"0"'],
-    ["src/modules/03-tab-dash.js",'value:tt.netWorth, shown:shownNet','value:0, shown:shownNet'],
+    ["src/modules/03-tab-dash.js",'const value=tt.netWorth, shown=useCountUp','const value=0, shown=useCountUp'],
     ["src/modules/03-tab-dash.js",'const tt=totals;','const tt={netWorth:0};'],
     ["src/modules/03-tab-dash.js",'useCountUp(tt.netWorth||0, splashGone)','useCountUp(tt.netWorth||0, true)'],
     ["src/modules/03-tab-dash.js",'!!(window.__mcSplashGone)','false'],
+    ["src/modules/03-tab-dash.js",'Math.floor(remaining*DISP.k/days)','Math.ceil(remaining*DISP.k/days)'],
+    ["src/modules/03-tab-dash.js",'const dailyMoney=budAmt>0?cycleDailyMoney(rem,timing.left):null;','const dailyMoney=cycleDailyMoney(1000,1);'],
+    ["src/modules/03-tab-dash.js",'Math.min(1,rem/budAmt)','Math.min(1,spentAgainst/budAmt)'],
+    ["src/modules/03-tab-dash.js",'Math.round((local-4)/312*(points.length-1))','0'],
     ["src/modules/02-ui-shared.js",'const t0=performance.now(), dur=950;','const t0=performance.now(), dur=1;'],
     ["src/modules/02-ui-shared.js",'if(mcReduced()){','if(false){'],
     ["src/modules/02-ui-shared.js",'document.documentElement.classList.contains("reduce-motion")','false'],
@@ -157,6 +168,9 @@ test("Inicio113 cubre renderer, llamada, animación, textos, CSS y moneda vigent
     ["src/modules/01-i18n.js",'v4_net_unknown:"El total actual no está disponible."','v4_net_unknown:"0"'],
     ["src/modules/01-i18n.js",'v4_net_unknown:"The current total is unavailable."','v4_net_unknown:"0"'],
     ["src/modules/01-i18n.js",'v4_net_unknown:"El total actual no està disponible."','v4_net_unknown:"0"'],
+    ["src/modules/01-i18n.js",'v42_this_cycle:"Este ciclo"','v42_this_cycle:"Otro ciclo"'],
+    ["src/modules/01-i18n.js",'v42_this_cycle:"This cycle"','v42_this_cycle:"Other cycle"'],
+    ["src/modules/01-i18n.js",'v42_this_cycle:"Aquest cicle"','v42_this_cycle:"Altre cicle"'],
     ["src/modules/01-i18n.js",'v4_money_total:"Tu dinero en total"','v4_money_total:"Otro total"'],
     ["src/modules/01-i18n.js",'v4_money_total:"All your money"','v4_money_total:"Other total"'],
     ["src/modules/01-i18n.js",'v4_money_total:"Els teus diners en total"','v4_money_total:"Altre total"'],
@@ -175,12 +189,18 @@ test("Inicio113 cubre renderer, llamada, animación, textos, CSS y moneda vigent
     ["src/shell.html",'.v4-hero{text-align:center;padding:22px 0 8px;}','.v4-hero{display:none;}'],
     ["src/shell.html",'.v4-hero-amt{display:inline-block;','.v4-hero-amt{display:none;'],
     ["src/shell.html",'.v4-micro{font-size:12.5px;','.v4-micro{font-size:1px;'],
+    ["src/shell.html",'.v4-budget{display:flex;gap:16px;align-items:center;}','.v4-budget{display:block;gap:16px;align-items:center;}'],
+    ["src/shell.html",'.v4-budget-txt{flex:1;min-width:0;}','.v4-budget-txt{flex:0;min-width:0;}'],
+    ["src/shell.html",'.v4-budget-txt .ph{font-size:14.5px;','.v4-budget-txt .ph{font-size:1px;'],
+    ["src/shell.html",'.v42-net .v4-hero-amt{font-size:46px;','.v42-net .v4-hero-amt{font-size:1px;'],
+    ["src/shell.html",'animation:v42-net-line 1.1s','animation:v42-net-line .1s'],
+    ["src/shell.html",'.v42-net-line,.v42-net-fill,.v42-net-dot,.v42-cycle-draw{animation:none;}','.v42-net-line{animation:none;}'],
   ]){
     assert.ok(source(file).includes(from),"mutante sobre la fuente actual real: "+from);
     const changed=f=>f===file?source(f).replace(from,to):source(f);
     // Cambiar el propio literal delimitador debe abortar; el resto sí exige otro digest.
     const anchorMutants=[
-      'const tt=totals;','useCountUp(tt.netWorth||0, splashGone)',
+      'const tt=totals;',
       'v4_money_total:"Tu dinero en total"','v4_money_total:"All your money"','v4_money_total:"Els teus diners en total"',
       'd_networth:"Patrimonio neto"','d_networth:"Net worth"','d_networth:"Patrimoni net"',
       'CURLANG = (state.settings&&state.settings.lang) || "es"'
@@ -190,13 +210,15 @@ test("Inicio113 cubre renderer, llamada, animación, textos, CSS y moneda vigent
       assert.throws(()=>betaRevision(id,changed),{code:"BETA_SCOPE_ABSENT"},from+": delimitador cambiado falla cerrado");
     }else assert.notEqual(betaRevision(id,changed).web,before.web,from);
   }
-  const functions=logicFunctions(source,["src/modules/00-core.js","src/modules/01-i18n.js","src/modules/02-ui-shared.js","src/modules/03-tab-dash.js"]);
-  for(const name of ["NetWorthNow","Sparkline","useCountUp","mcReduced","eurParts","fxRateOf","fxTableOf"]){
+  const files=["src/modules/00-core.js","src/modules/01-i18n.js","src/modules/02-ui-shared.js","src/modules/03-tab-dash.js","src/modules/08-motor-bank.js"],functions=logicFunctions(source,files);
+  for(const name of ["NetWorthNow","netWorthSeries","netWorthDay","netWorthRanges","netWorthChartGeometry","netWorthDeltaMoney","netWorthDebtPolicy","recordAccountBalances","mcLoadRaw","mcSaveRaw","mcResetSandbox","cyclePaceState","cycleTiming","cycleMoney","cycleDailyMoney","mergeAccountBalanceHistory","recordAssetValues","slimForCloud","useCountUp","mcReduced","eurParts","fxRateOf","fxTableOf"]){
     const fn=functions.get(name);assert.ok(fn,name+": función real localizada");
     assert.notEqual(betaRevision(id,f=>f===fn.file?mutateLogic(source(f),fn):source(f)).web,before.web,name);
   }
-  const data=logicData(source);
-  for(const name of ["NF","DISP","CUR_SYM","CURLANG","SIMPLEMODE"]){
+  // La lista explícita de lectores monetarios no se sustituye por un hash del renderer.
+  for(const fn of scopeDependencies(scope,source,functions))assert.ok(scope.web.some(s=>s.file===fn.file&&s.function===fn.name),"dependencia v4.2 vigilada: "+fn.name);
+  const data=logicData(source,files);
+  for(const name of ["NF","DISP","CUR_SYM","CURLANG","SIMPLEMODE","CYCLE_COMFORT_DIFF","CYCLE_GOOD_DIFF","CYCLE_TIGHT_DIFF"]){
     const value=data.get(name);assert.ok(value,name+": dato real localizado");
     assert.notEqual(betaRevision(id,f=>f===value.file?mutateData(source(f),value):source(f)).web,before.web,name);
   }
@@ -640,9 +662,9 @@ test("Catálogo116 histórico añade sólo la tanda de los bancos y fija qué hu
 // queda intacto a propósito: ese alcance está auditado). Se fija como oráculo literal que NINGUNA
 // huella ajena se mueve; si algún día se mueve una, este test la nombra en vez de reabrirla en silencio.
 const expected117={"v":"4.26.117","d":"2026-10-12","t":{"es":"Nueva pantalla de entrada","en":"New opening screen","ca":"Nova pantalla d'entrada"},"items":{"es":["Nueva pantalla de entrada: el logo aparece con una luz suave mientras la app se prepara, y al entrar todo responde desde el primer gesto. En tema claro el nombre ya se lee bien."],"en":["New opening screen: the logo appears with a soft glow while the app gets ready, and everything responds from the very first swipe. The name is now easy to read in the light theme."],"ca":["Nova pantalla d'entrada: el logotip apareix amb una llum suau mentre l'app es prepara, i en entrar tot respon des del primer gest. Amb el tema clar el nom ja es llegeix bé."]},"tandas":[{"id":"splash-animado","t":{"es":"Nueva pantalla de entrada","en":"New opening screen","ca":"Nova pantalla d'entrada"},"items":{"es":["1. Actualiza la app y ciérrala del todo (quítala de recientes); el cambio se ve en la segunda apertura tras actualizar. Ábrela: debe verse la tarjeta con el logo, una luz verde suave que respira detrás y el nombre debajo, sin barras ni cortes.","2. Fíjate en el momento de entrar: primero desaparece el logo y después el fondo. En ningún instante debe verse el logo encima de la pantalla de Inicio.","3. Nada más entrar, desliza a Gastos, Plan y Cartera. Deben ir fluidas desde el primer deslizamiento.","4. En Ajustes pon el tema claro, cierra la app del todo y ábrela. No debe haber fogonazo ni salto brusco de color, y «Aely» debe leerse bien."],"en":["1. Update the app and close it completely (remove it from recent apps); the change shows on the second opening after updating. Open it: you should see the card with the logo, a soft green glow breathing behind it and the name below, with no bars or cuts.","2. Watch the moment you enter: first the logo disappears and then the background. At no point should the logo be visible on top of the Home screen.","3. Right after entering, swipe to Spending, Plan and Portfolio. They should be smooth from the very first swipe.","4. In Settings choose the light theme, close the app completely and open it. There should be no flash or abrupt colour jump, and “Aely” should be easy to read."],"ca":["1. Actualitza l'app i tanca-la del tot (treu-la de recents); el canvi es veu a la segona obertura després d'actualitzar. Obre-la: s'ha de veure la targeta amb el logotip, una llum verda suau que respira al darrere i el nom a sota, sense barres ni talls.","2. Fixa't en el moment d'entrar: primer desapareix el logotip i després el fons. En cap instant s'ha de veure el logotip damunt de la pantalla d'Inici.","3. Just en entrar, llisca a Despeses, Pla i Cartera. Han d'anar fluides des del primer lliscament.","4. A Ajustos posa el tema clar, tanca l'app del tot i obre-la. No hi ha d'haver cap fogonada ni salt brusc de color, i «Aely» s'ha de llegir bé."]}}]};
+{
+const read=sourceAt("c5f62d6603d016150afd9d0e20547b608b323045");
 test("Catálogo117 añade sólo la tanda de la pantalla de entrada y no mueve ninguna huella ajena",()=>{
-  // Contrato del catálogo publicado117; la promoción tiene su propio guardián debajo.
-  const cache117=new Map(),read=f=>{if(!cache117.has(f))cache117.set(f,execFileSync("git",["show","c5f62d6603d016150afd9d0e20547b608b323045:"+f],{encoding:"utf8",maxBuffer:8e6}));return cache117.get(f);};
   const id="splash-animado",before=JSON.parse(source116("src/data/release-notes.json"));
   // Retiro117: bancos-sin-hueco, APROBADA en el móvil (12/10, 4 ok / 0 fallos sobre 4.26.116.1), sale del panel; su nota, su descriptor y todo el historial se quedan.
   const retired="bancos-sin-hueco";
@@ -700,8 +722,6 @@ test("Catálogo117 añade sólo la tanda de la pantalla de entrada y no mueve ni
   for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica","native","edge"])assert.equal(group[key],undefined,"identidad nueva sin "+key);
 });
 test("Retiro117 elimina solo bancos-sin-hueco y conserva todo el historial",()=>{
-  // Contrato del catálogo publicado117; la promoción tiene su propio guardián debajo.
-  const cache117=new Map(),read=f=>{if(!cache117.has(f))cache117.set(f,execFileSync("git",["show","c5f62d6603d016150afd9d0e20547b608b323045:"+f],{encoding:"utf8",maxBuffer:8e6}));return cache117.get(f);};
   const id="bancos-sin-hueco",before=JSON.parse(source116("src/data/release-notes.json")),notes=JSON.parse(read("src/data/release-notes.json"));
   assert.equal(before[0].tandas.some(g=>g.id===id),true,"la 116 publicada la llevaba");
   assert.equal(notes.flatMap(n=>n.tandas||[]).some(g=>g.id===id),false,"ya no está en ninguna nota");
@@ -720,6 +740,7 @@ test("Retiro117 elimina solo bancos-sin-hueco y conserva todo el historial",()=>
   assert.equal(receipt.web[id],betaRevision(id,read,undefined,scopes[id]).web,"el producto sigue íntegro");assert.equal(receipt.pruebas[id],undefined,"el guion aprobado no permanece marcado");
   assert.equal(receipt.web[widget],betaRevision(widget,read,undefined,scopes[widget]).web);
 });
+}
 test("Splash117 conserva descriptor vivo, mutantes y retirada del panel",()=>{
   const id="splash-animado",snapshot=source117,scopes=JSON.parse(read("scripts/beta-sources.json"));
   assert.deepEqual(scopes[id],JSON.parse(snapshot("scripts/beta-sources.json"))[id],"no recortar el descriptor vigente del splash");
@@ -739,6 +760,111 @@ test("Splash117 conserva descriptor vivo, mutantes y retirada del panel",()=>{
   assert.equal(notes.flatMap(n=>n.tandas||[]).some(g=>g.id==="bancos-sin-hueco"),false,"no resucitar la tanda retirada en117");
   assert.equal(receipt.pruebas["bancos-sin-hueco"],undefined);
   assert.equal(receipt.web[id],before.web,"la tanda vigente usa la fuente actual");
+});
+
+test("Inicio v4.2 integra119 con catálogo intacto y lista cerrada de huellas web",()=>{
+  const integrated=JSON.parse(source119("scripts/beta-sources.json"));
+  const expectedNotes=JSON.parse(source119("src/data/release-notes.json"));
+  const expectedMoves={
+  "inc-3009-01-cargos": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas",
+  "fin05-widget-reentrada": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas",
+  "fin05-pago-cerrada": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas",
+  "widget-banco": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas",
+  "widget-app-cerrada": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas",
+  "inc-2709-01-arranque-red": "Lectores compartidos de Inicio, valores históricos y copia acotada de nube",
+  "inc-2809-02-ayuda-ciclo": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas",
+  "inc-2909-02-inicio-natural": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas",
+  "inc-2709-10-perfil": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas",
+  "inc-3009-nomina-anticipada": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas",
+  "inc-2909-03-retirada": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas",
+  "inc-2909-01-widget-periodo": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas",
+  "inc-0210-03-gastos-periodo": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas",
+  "feature-0210-01-gasolina-taxi": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas",
+  "inc-0210-02-categoria-elegida": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas",
+  "inc-0310-01-meta-regla": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas",
+  "feature-0310-01-movilidad": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas",
+  "inc-0310-broker-resultados": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas",
+  "inc-0310-gastos-sin-limite": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas",
+  "inc-0710-gastos-mes-madrid": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas",
+  "inc-0710-auth-disposal": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas",
+  "inc-0810-metas-editar-regla": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas",
+  "bienes-completo": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas",
+  "inicio-grafica-vuelve": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas",
+  "widget-pago-app-cerrada": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas",
+  "bancos-sin-hueco": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas",
+  "widget-ciclo-puente": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas",
+  "recibos-cargo-unico": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas",
+  "bancos-acuse-reconexion": "Guardado partido: conserva cierres y evita lecturas repetidas; cifra y APK del widget intactas"
+};
+  const previous=new Map();
+  const measure=source=>{
+    const scopes=JSON.parse(source("scripts/beta-sources.json")),moved={};
+    assert.deepEqual(Object.keys(scopes),Object.keys(integrated).concat("inicio-patrimonio-flujos"),"una sola alta sin retiros119");
+    for(const [id,scope] of Object.entries(integrated)){
+      if(id!=="inicio-grafica-vuelve"){assert.deepEqual(scopes[id].native,scope.native);assert.deepEqual(scopes[id].edge,scope.edge);for(const part of scope.web||[])assert.ok(scopes[id].web.some(s=>JSON.stringify(s)===JSON.stringify(part)),id+": descriptor previo no recortado");}
+      // El rechazo109 usa su pin histórico, nunca un bloque retirado del renderer actual.
+      if(id===archiveId){assert.deepEqual(auditedRevision(id,source),auditedRevision(id,source119));continue;}
+      if(!previous.has(id))previous.set(id,betaRevision(id,source119,undefined,scope));
+      const a=previous.get(id),b=betaRevision(id,source,undefined,scopes[id]);
+      const surfaces=["web","native","edge"].filter(s=>a[s]!==b[s]);
+      if(surfaces.length)moved[id]=surfaces;
+    }
+    return moved;
+  };
+  const verify=(source,expected=expectedMoves)=>{
+    assert.deepEqual(JSON.parse(source("src/data/release-notes.json")),expectedNotes,"catálogo119 literal, sin resucitar tandas");
+    assert.deepEqual(JSON.parse(source("scripts/beta-archives.json")),archiveRefs,"sin repinar el rechazo109");
+    for(const [id,why] of Object.entries(expected))assert.ok(typeof why==="string"&&why.trim(),id+": motivo explícito");
+    const wanted=Object.fromEntries(Object.keys(expected).map(id=>[id,["web"]]));
+    assert.deepEqual(measure(source),wanted,"lista cerrada: ni una huella extra ni una declarada que no cambie");
+  };
+  const source=f=>read(f).replace(/\r\n/g,"\n");
+  verify(source);
+  // Una dependencia ajena que cambia debe fallar aunque el catálogo conserve sus textos.
+  const shell="src/shell.html",from='animation:mclpop .5s cubic-bezier(.32,.72,0,1) backwards;}';
+  assert.equal(source(shell).split(from).length,2,"mutante sobre el splash actual real");
+  const changed=f=>f===shell?source(f).replace(from,from.replace(".5s",".6s")):source(f);
+  assert.throws(()=>verify(changed),/lista cerrada/,"el splash no está declarado: no puede moverse por arrastre");
+  const declaredButStill={...expectedMoves,"splash-animado":"mutante: declarada sin cambio real"};
+  assert.throws(()=>verify(source,declaredButStill),/lista cerrada/,"añadir una declaración vacía no permite heredar identidad");
+  // Deshacer el escritor demuestra la otra dirección con una mutación real de fuente:
+  // sus consumidores ya no se mueven, y la lista que aún los declara tiene que fallar.
+  const core="src/modules/00-core.js",writer=scopeText({file:core,function:"mcSaveRaw"},source);
+  const priorWriter=scopeText({file:core,function:"mcSaveRaw"},source119);
+  const reverted=f=>f===core?source(f).replace(writer,priorWriter):source(f);
+  assert.notEqual(betaRevision("widget-ciclo-puente",reverted).web,betaRevision("widget-ciclo-puente",source).web,"revertir el escritor cambia la huella real");
+  const missing={...expectedMoves};delete missing["widget-ciclo-puente"];assert.throws(()=>verify(source,missing),/lista cerrada/,"una huella real no declarada pone rojo");
+  const scopes=JSON.parse(source("scripts/beta-sources.json")),built=betaNotes(expectedNotes,source,scopes),receipt=betaDelivery(built,source,scopes);
+  for(const id of ["bancos-sin-hueco","inicio-grafica-vuelve"]){
+    assert.equal(expectedNotes.flatMap(n=>n.tandas||[]).some(g=>g.id===id),false,id+": retirada no resucita");
+    assert.equal(receipt.pruebas[id],undefined,id+": no se vuelve a pedir al dueño");
+  }
+  const splash="splash-animado";
+  assert.deepEqual(betaRevision(splash,source,undefined,scopes[splash]),betaRevision(splash,source119,undefined,integrated[splash]),"el OK del splash no se reinicia por arrastre");
+  const widget="widget-ciclo-puente",now=betaRevision(widget,source,undefined,scopes[widget]),then=betaRevision(widget,source119,undefined,integrated[widget]);
+  assert.notEqual(now.web,then.web,"el escritor nuevo exige revisar la web pendiente del widget");
+  assert.equal(now.native,then.native,"ningún cambio de APK por esta revisión");
+  const original=betaDelivery(betaNotes(expectedNotes,source119,integrated),source119,integrated);
+  assert.deepEqual(receipt.pruebas[widget],original.pruebas[widget],"el guion del widget se conserva, sin darlo por aprobado");
+});
+
+test("Inicio v4.2 conserva Catálogo119 y Retiro119 en la fuente actual",()=>{
+  const source=f=>read(f).replace(/\r\n/g,"\n"),expected=JSON.parse(source119("src/data/release-notes.json"));
+  const verify=notes=>assert.deepEqual(notes,expected,"catálogo119 vigente exacto, sin resucitar lo aprobado ni heredar identidad");
+  const notes=JSON.parse(source("src/data/release-notes.json"));verify(notes);
+  const resurrected=structuredClone(notes);resurrected[1].tandas.push(JSON.parse(source118("src/data/release-notes.json"))[0].tandas[0]);
+  assert.throws(()=>verify(resurrected),assert.AssertionError);
+  for(const lang of ["es","en","ca"]){const changed=structuredClone(notes);changed[0].tandas[0].items[lang][0]+=" mutante";assert.throws(()=>verify(changed),assert.AssertionError);}
+  const scopes=JSON.parse(source("scripts/beta-sources.json")),prior=JSON.parse(source119("scripts/beta-sources.json"));
+  for(const id of ["bancos-acuse-reconexion","recibos-cargo-unico"]){
+    for(const part of prior[id].web)assert.ok(scopes[id].web.some(p=>JSON.stringify(p)===JSON.stringify(part)),id+": ninguna unidad119 retirada");
+    assert.deepEqual(scopes[id].native,prior[id].native);assert.deepEqual(scopes[id].edge,prior[id].edge);
+  }
+  const receipt=betaDelivery(betaNotes(notes,source,scopes),source,scopes);
+  assert.equal(receipt.pruebas["recibos-cargo-unico"],undefined,"el cargo único aprobado sigue fuera del panel");
+  assert.equal(receipt.pruebas["inicio-grafica-vuelve"],undefined,"Inicio nuevo no resucita la unidad aprobada");
+  assert.equal(receipt.pruebas["inicio-patrimonio-flujos"],undefined,"la unidad nueva es propuesta; el catálogo lo prepara integración");
+  assert.equal(receipt.web["bancos-acuse-reconexion"],betaRevision("bancos-acuse-reconexion",source,undefined,scopes["bancos-acuse-reconexion"]).web);
 });
 
 test("Bienes113 vigila la puerta vacía, ficha, cancelación, borrado y textos",()=>{
@@ -1280,6 +1406,7 @@ test("Catálogo120 añade la tanda de los iguales de Trade Republic, devuelve la
   for(const g of [group,again])for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica","native"])assert.equal(g[key],undefined,g.id+" sin "+key);
 });
 
+if(inicioOnly)process.exit(failed?1:0);
 if(process.argv.includes("--integration-only")) process.exit(failed?1:0);
 
 // La revisión debe invalidarse si vuelve la columna ajena o cambia el periodo o la cifra.
@@ -1439,6 +1566,7 @@ test("PERSIST91: el guardado en el commit invalida toda tanda que escribe estado
   const ajenas=Object.keys(registro).filter(id=>!dependientes.includes(id));
   assert.equal(dependientes.length,28);
   assert.ok(dependientes.includes("tr-iguales-ordinal"),"el sync, el borrado a mano y el histórico guardan vínculos y filas con el set real");
+  assert.ok(dependientes.includes("inicio-patrimonio-flujos"),"las fotos de bienes e inversión de la unidad nueva escriben con el set real");
   assert.ok(dependientes.includes("bancos-acuse-reconexion"),"el acuse se guarda detrás de las filas que escribe el set real");
   assert.ok(dependientes.includes("recibos-cargo-unico"),"mover el día de un recibo o vincular su cargo escribe con el set real");
   assert.ok(dependientes.includes("widget-ciclo-puente"),"el widget corregido lee gastos con el set real");

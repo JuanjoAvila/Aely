@@ -699,12 +699,47 @@ const store = {
    en local — pero los recupera del primer sync, porque la tabla `expenses` de la nube es la fuente
    de verdad. */
 const EXP_SUFFIX="_exp";
+function mergeAccountBalanceHistory(local, incoming){
+  local=local||{};incoming=incoming||{};if(local===incoming)return local;
+  let out=local,changed=false;
+  Object.keys(incoming).forEach(function(key){
+    const before=Array.isArray(local[key])?local[key]:[],by={};
+    before.concat(Array.isArray(incoming[key])?incoming[key]:[]).forEach(function(p){
+      if(p&&/^\d{4}-\d{2}-\d{2}$/.test(p.day||"")&&typeof p.value==="number"&&Number.isFinite(p.value))by[p.day]=p;
+    });
+    const list=Object.keys(by).sort().slice(-400).map(function(day){return by[day];});
+    if(list.length===before.length&&list.every(function(p,i){return p.day===before[i].day&&p.value===before[i].value&&p.born===before[i].born&&p.legacy===before[i].legacy;}))return;
+    if(!changed){out=Object.assign({},local);changed=true;}out[key]=list;
+  });
+  return out;
+}
 function mcLoadRaw(key){
   const base=store.get(key);
   if(!base) return null;
   const exp=store.get(key+EXP_SUFFIX);
   if(Array.isArray(exp)) base.expenses=exp;      // formato nuevo (partido)
   else if(!Array.isArray(base.expenses)) base.expenses=[];
+  let hist=null,durable=false;
+  try{const raw=localStorage.getItem(key+"_balhist");hist=raw==null?null:JSON.parse(raw);durable=raw!=null;}catch(e){hist=_mem[key+"_balhist"]||null;}
+  if(hist&&typeof hist==="object"&&!Array.isArray(hist)){
+    // Las dos escrituras pueden fallar por separado: gana la revisión durable más
+    // reciente, tanto si quedó en la clave ligera como si quedó en la partida.
+    const partition=hist.schema===1&&hist.history&&typeof hist.history==="object";
+    if(partition){
+      const newer=base._balHistoryRevision>hist.revision || (base._balHistoryRevision==null&&(base._savedAt||0)>(hist.savedAt||0));
+      if(!hist.owner||!base._historyOwner||hist.owner===base._historyOwner){
+        base.accountBalanceHistory=newer?mergeAccountBalanceHistory(hist.history,base.accountBalanceHistory):mergeAccountBalanceHistory(base.accountBalanceHistory,hist.history);
+      }
+    }else if(!(base._balHistoryRevision>0)){
+      // Compatibilidad con el primer formato partido, aún sin revisión.
+      base.accountBalanceHistory=Object.assign({},base.accountBalanceHistory||{},hist);
+    }
+  }
+  const history=base.accountBalanceHistory||{},revision=Math.max(base._balHistoryRevision||0,hist&&hist.revision||0);
+  const body=JSON.stringify(history),partition={schema:1,revision:revision,savedAt:hist&&hist.savedAt||0,owner:base._historyOwner,history:history};
+  const saved=mcSaveRaw.balanceHistory||(mcSaveRaw.balanceHistory={});
+  saved[key]={ref:history,history:history,body:body,revision:revision,owner:base._historyOwner,partition:JSON.stringify(partition),durable:durable&&hist&&hist.schema===1&&(!hist.owner||hist.owner===base._historyOwner)&&JSON.stringify(hist.history)===body};
+  delete base._balHistoryRevision;
   return base;
 }
 /* SE GUARDA LO QUE SE HA PINTADO, NO LO QUE SE CALCULÓ (INC-0410, 4/10/2026).
@@ -735,6 +770,32 @@ function mcSaveRaw(key, s, opts){
   if(!s) return;
   const rest=Object.assign({},s);
   delete rest.expenses;
+  // La caché pertenece a este escritor; su inicialización queda dentro de la función
+  // que vigilan las revisiones, sin otro dato global compartido fuera de su alcance.
+  const saved=mcSaveRaw.balanceHistory||(mcSaveRaw.balanceHistory={});
+  const empty=mcSaveRaw.emptyHistory||(mcSaveRaw.emptyHistory={});
+  const history=s.accountBalanceHistory||empty,cached=saved[key],sameOwner=cached&&cached.owner===s._historyOwner;
+  if(!cached||cached.ref!==history||!sameOwner){
+    const partition=cached?null:store.get(key+"_balhist"),main=cached?null:store.get(key);
+    const versioned=partition&&partition.schema===1&&partition.history;
+    const prior=sameOwner?cached.history:versioned&&(!partition.owner||partition.owner===s._historyOwner)?partition.history:{};
+    const merged=mergeAccountBalanceHistory(prior,history);
+    const body=sameOwner&&merged===cached.history?cached.body:JSON.stringify(merged);
+    const previous=cached?cached.body:partition?JSON.stringify(versioned?partition.history:partition):null;
+    const revision=Math.max(cached&&cached.revision||0,versioned&&partition.revision||0,main&&main._balHistoryRevision||0);
+    // Referencia nueva con el mismo contenido no vuelve a escribir 400 cierres por cuenta.
+    const unchanged=sameOwner&&body===previous;
+    const next=unchanged||body===previous&&versioned?revision:revision+1;
+    saved[key]={ref:history,history:merged,body:body,revision:next,owner:s._historyOwner,
+      partition:unchanged?cached.partition:JSON.stringify({schema:1,revision:next,savedAt:s._savedAt||Date.now(),owner:s._historyOwner,history:merged}),durable:unchanged&&cached.durable};
+  }
+  const entry=saved[key];
+  rest.accountBalanceHistory=entry.history;
+  rest._balHistoryRevision=entry.revision;
+  // Un fallo no marca el contenido como guardado: el mismo objeto reintenta cuando
+  // vuelve a haber espacio. Sin fallo, primer plano sólo escribe la parte ligera.
+  if(!entry.durable){try{localStorage.setItem(key+"_balhist",entry.partition);entry.durable=true;delete _mem[key+"_balhist"];}catch(e){}}
+  if(entry.durable)delete rest.accountBalanceHistory;
   const yaPartido=(function(){ try{ return localStorage.getItem(key+EXP_SUFFIX)!=null; }catch(e){ return false; } })();
   const skipExp = yaPartido && opts && opts.expenses===false;
   if(!skipExp) store.set(key+EXP_SUFFIX, s.expenses||[]);   // primero los gastos: si algo peta a
@@ -869,7 +930,7 @@ function mcRecargarSinVolcar(){
    Las DOS mitades: borrar solo la ligera dejaba `micartera_sandbox_exp` huérfana, y la siguiente
    entrada al banco de pruebas se encontraba los gastos de la sesión anterior mezclados con la
    copia nueva de la cartera real. */
-function mcResetSandbox(){ store.del(STATE_KEY_TEST); store.del(STATE_KEY_TEST+EXP_SUFFIX); try{ localStorage.removeItem("_mcSandboxVacio"); }catch(e){} }
+function mcResetSandbox(){ store.del(STATE_KEY_TEST); store.del(STATE_KEY_TEST+EXP_SUFFIX); store.del(STATE_KEY_TEST+"_balhist"); if(mcSaveRaw.balanceHistory) delete mcSaveRaw.balanceHistory[STATE_KEY_TEST]; try{ localStorage.removeItem("_mcSandboxVacio"); }catch(e){} }
 
 /* ---------- ACUSE del cursor de bancos: LOCAL a este dispositivo (12/10/2026) ----------
    `bank-sync` no mueve su cursor al leer del banco: entrega en cada respuesta el que le tocaría
@@ -2775,7 +2836,18 @@ function compareBackupExpenses(copy,current){
 /* Para el push FRECUENTE a la nube (cada ~1,2s): los gastos viven en su tabla `expenses`
    (fuente de verdad), así que NO los duplicamos en el JSONB de app_state → se mantiene ligero
    aunque haya miles de gastos. El backup diario sí guarda el estado completo. */
-function slimForCloud(s){ const c=Object.assign({},s); delete c.expenses; delete c.bankTx; return c; }
+function slimForCloud(s){
+  const c=Object.assign({},s);delete c.expenses;delete c.bankTx;
+  if(s.accountBalanceHistory){
+    const hist={};Object.keys(s.accountBalanceHistory).forEach(function(key){hist[key]=s.accountBalanceHistory[key].slice(-14);});
+    c.accountBalanceHistory=hist;
+  }
+  if(s.assetValueHistory){
+    const hist={};Object.keys(s.assetValueHistory).forEach(function(key){hist[key]=s.assetValueHistory[key].slice(-14);});
+    c.assetValueHistory=hist;
+  }
+  return c;
+}
 
 /* ---------- Desbloqueo biométrico (huella / Face ID vía WebAuthn) ----------
    Candado LOCAL por dispositivo: tras iniciar sesión una vez, la app pide huella al abrir.
