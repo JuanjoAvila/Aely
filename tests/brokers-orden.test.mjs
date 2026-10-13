@@ -49,3 +49,32 @@ test("preferencia viaja en el contrato actual de nube y el guardado partido sin 
   assert.deepEqual(restored.settings.invBrokerOrder,cloud.settings.invBrokerOrder);
   assert.deepEqual(Array.from(cli.brokerGroupsInOrder(restored,tuples),g=>g[0]),cloud.settings.invBrokerOrder);
 });
+
+test("las filas de ambas pantallas usan la clase viva del contrato de movimiento reducido",()=>{
+  const src=fs.readFileSync("src/modules/06-sync-brokers.js","utf8").replace(/\r\n/g,"\n");
+  const css=fs.readFileSync("src/shell.html","utf8").replace(/\r\n/g,"\n");
+  // Ejecutar el cuerpo real de la hija evita que el pase de InvRows tape una clase rota allí.
+  // Es un adaptador Node de elementos/props; el estilo computado y los frames siguen en e2e.
+  const start=src.indexOf("                  const v=invValueEur(it,state)",src.indexOf("  if(fullMode){"));
+  const end=src.indexOf("\n                }),",start);
+  assert.ok(start>=0&&end>start,"ancla de las posiciones de la hija");
+  vm.runInNewContext("function brokerChildRow(it,idx){"+src.slice(start,end)+"}",cli);
+  const oldCreate=cli.React.createElement;
+  cli.React.createElement=(type,props,...children)=>({type,props,children});
+  const items=Array.from({length:12},(_,idx)=>({id:"p"+idx,name:"Activo "+idx,ticker:"X",ent:"revolut",cur:"EUR",value:10,cost:null}));
+  Object.assign(cli,{state,f2:String,manualLabel:()=>"manual"});
+  try{
+    for(const rows of [cli.InvRows({items,st:state,stagger:true}),items.map(cli.brokerChildRow)]){
+      assert.equal(rows.length,12);
+      rows.forEach((row,idx)=>{
+        assert.ok(row.props.className.split(" ").includes("v4-inv-drop"),"la clase compartida está en la fila viva");
+        assert.equal(row.props["data-inv-position"],items[idx].id);
+        assert.equal(row.props.style.animationDelay,Math.min(idx,8)*24+"ms");
+      });
+    }
+    const reduced=css.match(/\.rise,\.v4-sheet[^{}]+\{([^}]+)\}/);
+    assert.ok(reduced&&reduced[0].includes(".v4-inv-drop,")&&reduced[0].includes(".botnav-ind,"),"misma regla compartida de movimiento reducido");
+    assert.match(reduced[1],/animation:none !important;transition:none !important;/);
+    assert.match(css,/html\.reduce-motion \.v4-inv-drop\{animation:none !important;\}/);
+  }finally{ cli.React.createElement=oldCreate; }
+});

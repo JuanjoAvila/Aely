@@ -2,6 +2,16 @@
 
 Base histórica inmutable del task/claim: beta `c5f62d6603d016150afd9d0e20547b608b323045`. La candidata sigue sin publicar y no acredita aceptación móvil ni integración. No modifica VERSION, notas de versión, catálogos fuente, backend o APK respecto a su base de ejecución.
 
+## Corrección causal posterior a45bd · orden48d97e12
+
+La fuente45bd, su CI38359279565 terminal y la revisión independiente se archivaron antes de corregir. Esa CI tuvo Tests exit1 en auth-disposal-fit, beta-sources y docs-frescura; logos/presupuesto y siete archivos Deno pasaron, privacidad posterior SKIPPED y ningún DOM/CPU6. La revisión limitada Node UTC/Madrid y sus seis mutantes no se heredan a la fuente nueva. El caso value:null→0 de fxAmountText es heredado, idéntico a beta123 y ajeno al diff; no se abre ni corrige aquí.
+
+La causa propia de los dos rojos de identidad era renombrar la clase de apertura y retirar `.v4-inv-drop` de la regla compartida de movimiento reducido. El codec incluye esa regla en inc-0810-nav-indicator. Se reutiliza `.v4-inv-drop` en las filas reales de portada e hija, con la misma animación por posición de0,2s y retraso24ms acotado a ocho filas; el padre no se anima. Así se conserva íntegra la regla aprobada de navegación con un selector vivo, sin añadir CSS muerto ni modificar catálogo, guardas, oráculos o topes.
+
+Build/sintaxis, cinco Node propios, siete checks de logos, auth-disposal-fit, idiomas, mapa, seguridad, privacidad local y presupuesto exit0. Focal exacto de Catálogo122 histórico y Catálogo123 exit0, con aserciones intactas; no es el guard completo. Tamaño oficial corregido1.379.041/379.723 B min/gzip9, mismo sello123.99999/reserva95B; topes1352/372KiB intactos. Tres mutantes nuevos aislados fallan: clase rota en InvRows, clase rota en la hija y selector retirado de la regla del sistema. El quinto test ejecuta los cuerpos reales de filas mediante adaptadores Node; no atribuye estilo computado, DOM ni frames. El spec DOM conserva sus aserciones de movimiento reducido/retrasos, adaptadas a la clase viva.
+
+Docs-frescura conserva exit1 por las tres fuentes publicables posteriores al ancla123: requiere el bump y catálogo de integración que están fuera de este encargo. No se permite convertirlo en verde quitando la aserción. Ejecución sigue en3625fa7ed5134cfbc5e364adc4f588bfdaf670c0, sin asumir beta124 aún no señalada. Claim447/sesión intactos; DOM actual y seis casos CPU6 pendientes de retorno independiente FIN01 y admisión propia. Nueva CI solo en Tests sobre la fuente final remota; sin publicación ni result done por Node/rojos de integración.
+
 ## Mantenimiento autorizado a beta123 · preparación actual
 
 Orden expresa `09b516fc449106737fd88c5fc79b1f310461d815`: ejecución desde `3625fa7ed5134cfbc5e364adc4f588bfdaf670c0`. Antes del rebase se archivaron el head78a27559, todos sus ficheros, estado de PR222, CI38353998108 y controles locales; una referencia local conserva ese commit. La revisión activa y la referencia al informe12+3 Node del otro autor siguen asociadas a78a: no se transfieren a la nueva fuente. La CI antigua continúa, sin cancelación. Fuente tras rebase `28f4849419dd783ba87fca345b0efe89c1f1f26e`; task, claim y base histórica intactos.

@@ -138,7 +138,7 @@ for(const reduced of ["system","setting"]) test(`despliegue sin escalonado con r
     // La portada sigue montada bajo la hija: se comprueba su DOM sin forzar un clic tapado.
     await list.locator('[data-inv-broker-toggle="trade_republic"]').evaluate(el=>el.click());
     await expect(list.locator('[data-inv-position="t3"]')).toHaveCount(1);
-    expect(await list.locator(".v4-inv-enter").evaluateAll(rows=>rows.map(el=>{
+    expect(await list.locator(".v4-inv-drop").evaluateAll(rows=>rows.map(el=>{
       const s=getComputedStyle(el); return {name:s.animationName,delay:s.animationDelay,opacity:s.opacity};
     }))).toEqual(Array(3).fill({name:"none",delay:"0s",opacity:"1"}));
   }
@@ -148,7 +148,7 @@ test("las posiciones tienen retrasos sucesivos acotados en ambas pantallas",asyn
   await open(page);
   for(const list of [overview(page),await child(page)]){
     await list.locator('[data-inv-broker-toggle="trade_republic"]').evaluate(el=>el.click());
-    await expect(list.locator(".v4-inv-enter")).toHaveCount(3);
-    expect(await list.locator(".v4-inv-enter").evaluateAll(rows=>rows.map(el=>getComputedStyle(el).animationDelay))).toEqual(["0s","0.024s","0.048s"]);
+    await expect(list.locator(".v4-inv-drop")).toHaveCount(3);
+    expect(await list.locator(".v4-inv-drop").evaluateAll(rows=>rows.map(el=>getComputedStyle(el).animationDelay))).toEqual(["0s","0.024s","0.048s"]);
   }
 });

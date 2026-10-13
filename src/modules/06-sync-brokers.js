@@ -565,7 +565,7 @@ function InvRows({items, st, fmt, editing, showCost, draft, setF, onSell, onDele
   const eurVal=(it)=> invValueEur(it, st);
   const show=fmt||eur;   // moneda local de la tab (fallback a €)
   return items.map(function(it,idx){
-    return React.createElement("div",{className:"row"+(stagger&&!editing?" v4-inv-enter":""),style:stagger&&!editing?{animationDelay:Math.min(idx,8)*24+"ms"}:undefined,key:it.id,"data-inv-position":it.id},
+    return React.createElement("div",{className:"row"+(stagger&&!editing?" v4-inv-drop":""),style:stagger&&!editing?{animationDelay:Math.min(idx,8)*24+"ms"}:undefined,key:it.id,"data-inv-position":it.id},
       React.createElement("div",{className:"rl"},
         React.createElement(LogoInv,{nombre:it.name,ent:it.ent,kind:it.kind,size:38}),
         React.createElement("div",null,
@@ -1140,7 +1140,7 @@ function Investments({state, set, fetchPrices, pricing, syncInv, v4Embed, fullMo
               ? React.createElement(InvRows,{items:items,st:state,fmt:f2,editing:true,showCost:true,draft:draft,setF:setF,onSell:onSell,onDelete:onDelete})
               : items.map(function(it,idx){
                   const v=invValueEur(it,state), c=invCostEur(it,state), d=v-c;
-                  return React.createElement("div",{className:"row v4-inv-enter",style:{animationDelay:Math.min(idx,8)*24+"ms"},key:it.id,"data-inv-position":it.id},
+                  return React.createElement("div",{className:"row v4-inv-drop",style:{animationDelay:Math.min(idx,8)*24+"ms"},key:it.id,"data-inv-position":it.id},
                     React.createElement("div",{className:"rl"},
                       React.createElement(LogoInv,{nombre:it.name,ent:it.ent,kind:it.kind,size:38}),
                       React.createElement("div",null,

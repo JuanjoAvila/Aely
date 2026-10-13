@@ -1502,7 +1502,7 @@
   @keyframes v4growup{from{transform:scaleY(0);}to{transform:scaleY(1);}}
   .rise{animation:rise .32s var(--ease) both;}
   @media (prefers-reduced-motion:reduce){
-    .rise,.v4-sheet,.v4-sheet-back,.botnav,.botnav-ind,.botnav-ind span,.botnav-tab svg,.v4-stackbar i,.v4-goal .bar i,.v4-account-spark i,.settings-push,.settings-slide,.app-shell.settings-dim,.profile-pull,.app-shell.profile-dim,.v4-avatar.pulling,.set-exp,.v4-seg-enter-down,.v4-seg-enter-up,.v4-ficha-focus,.v4-undo-toast{animation:none !important;transition:none !important;}
+    .rise,.v4-sheet,.v4-sheet-back,.botnav,.botnav-ind,.botnav-ind span,.botnav-tab svg,.v4-stackbar i,.v4-goal .bar i,.v4-account-spark i,.settings-push,.settings-slide,.app-shell.settings-dim,.profile-pull,.app-shell.profile-dim,.v4-avatar.pulling,.set-exp,.v4-inv-drop,.v4-seg-enter-down,.v4-seg-enter-up,.v4-ficha-focus,.v4-undo-toast{animation:none !important;transition:none !important;}
   }
 
   .card{background:linear-gradient(180deg,var(--surface),var(--bg-2));border:1px solid var(--line-soft);border-radius:var(--radius);margin-bottom:14px;box-shadow:var(--shadow);overflow:hidden;}
@@ -1688,11 +1688,11 @@
      el contenido «saltaba» en cada apertura y sumaba al efecto raro del panel.) */
   .set-exp{animation:rise .26s var(--ease) both;}
   /* Se escalonan las posiciones, no el alto del bloque: transform/opacity evitan recalcular
-     el layout en cada frame. El retraso se corta en ocho filas para no alargar listas grandes. */
-  .v4-inv-enter{animation:rise .2s var(--ease) both;}
-  html.reduce-motion .v4-inv-enter{animation:none !important;}
+     el layout en cada frame. Conservamos la clase de apertura en las filas vivas para compartir
+     la regla aprobada de movimiento reducido sin mover la identidad de navegación (INC-2709-08). */
+  .v4-inv-drop{animation:rise .2s var(--ease) both;}
+  html.reduce-motion .v4-inv-drop{animation:none !important;}
   @media (prefers-reduced-motion:reduce){
-    .v4-inv-enter{animation:none !important;}
     .v4-broker-list button.v4-mov.dragging{transform:none;}
   }
   .chip.active,.v4-period-btn.on{background:var(--mint);border-color:var(--mint);color:var(--on-mint);}
