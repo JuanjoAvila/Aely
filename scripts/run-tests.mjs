@@ -35,6 +35,7 @@ if (plan.build !== false) {
 
 const steps = [
   ["prod117-edge-compat", ["node", "tests/prod117-edge-compat.test.mjs"]],
+  ["beta-prod-refresh", ["node", "tests/beta-prod-refresh.test.mjs"]],
   ["backclose-history", ["node", "tests/backclose-history.test.mjs"]],
   ["gastos-mes-madrid", ["node", "tests/gastos-mes-madrid.test.mjs"]],
   ["appstate-listener-cleanup", ["node", "tests/appstate-listener-cleanup.test.mjs"]],
