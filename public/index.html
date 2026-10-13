@@ -976,12 +976,15 @@
   .v42-net-delta{font-size:13.5px;font-weight:600;margin-top:5px;}
   .v42-net-chart{height:80px;margin-top:10px;touch-action:pan-y;}
   .v42-net-chart svg{width:100%;height:80px;overflow:visible;}
-  .v42-net-line{stroke-dasharray:1;animation:v42-net-line 1.1s cubic-bezier(.65,0,.35,1) both;}
+  /* La línea se revela de izquierda a derecha con un recorte (clipPath), no con stroke-dasharray:
+     con pathLength y trazo sin escalar, Chrome medía el guion en unidades sin estirar y en un móvil
+     la línea se quedaba corta antes del punto de hoy (13/10). */
+  .v42-net-reveal{transform-box:view-box;transform-origin:0 0;animation:v42-net-line 1.1s cubic-bezier(.65,0,.35,1) both;}
   .v42-net-fill{animation:v42-net-fill .7s .55s var(--ease) both;}
   .v42-net-dot{transform-box:fill-box;transform-origin:center;animation:v42-net-dot .45s 1.05s var(--spring) both;}
 
-  .v42-net-chart svg>*{animation-play-state:var(--v42-play);}
-  @keyframes v42-net-line{from{stroke-dashoffset:1;}to{stroke-dashoffset:0;}}
+  .v42-net-chart svg>*,.v42-net-chart .v42-net-reveal{animation-play-state:var(--v42-play);}
+  @keyframes v42-net-line{from{transform:scaleX(0);}to{transform:scaleX(1);}}
   @keyframes v42-net-fill{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
   @keyframes v42-net-dot{0%{transform:scale(0);}65%{transform:scale(1.5);}100%{transform:scale(1);}}
 
@@ -1005,7 +1008,7 @@
   .v42-cycle-draw{animation:v42-cycle-draw 1.1s .15s cubic-bezier(.65,0,.35,1) both;animation-play-state:var(--v42-play,running);}
   @keyframes v42-cycle-draw{from{stroke-dasharray:0 100;}to{stroke-dasharray:var(--cycle-pct) 100;}}
   @media(prefers-reduced-motion:reduce){
-    .v42-net-line,.v42-net-fill,.v42-net-dot,.v42-cycle-draw{animation:none;}
+    .v42-net-reveal,.v42-net-fill,.v42-net-dot,.v42-cycle-draw{animation:none;}
 
     .v42-net-ranges button{transition:none;}
   }
@@ -5570,12 +5573,15 @@ const LANG = {
     v4_money_total:"Tu dinero en total", v4_of_month:"del mes",
     // INC-0810 es: patrimonio de ahora.
     v4_hist_empty:"Tu histórico empieza hoy", v4_net_unknown:"El total actual no está disponible.",
-    v42_net_info_title:"Sobre el patrimonio", v42_net_info:"El histórico usa tus movimientos y valores guardados. Solo mostramos el tramo con datos.", v42_net_chart:"Evolución del patrimonio",
-    v42_this_month:"Este mes", v42_remaining:"Te quedan", v42_net_coverage:"{name}: datos desde {day}.", v42_net_asset_constant:"{name}: valor propio desde {day}; antes se mantiene el valor actual.", v42_net_asset_prior:"{name}: valor propio desde {day}; antes se mantiene el valor que tenía.",v42_net_debt_timing:"{name}: sin día de cargo; la amortización se sitúa al empezar el mes.", v42_net_source_bank:"Cuenta", v42_net_source_manual:"Cuenta manual", v42_net_source_asset:"Bienes", v42_net_source_debt:"Deudas", v42_net_source_investment:"Inversiones", v42_net_source_balance:"Saldo",
-    v42_net_missing:"Todavía no hay gráfica: alguna cuenta o inversión solo tiene datos de hoy. Mañana ya aparecerá; en la «i» ves cuál es.",
-    v42_net_since:"Gráfica desde {day}", v42_net_kept:"algunos valores anteriores se mantienen", v42_net_manual_prior:"{name}: saldos desde {day}; antes se mantiene el primero.", v42_net_asset_kept:"{name}: se mantiene el valor actual en todo el tramo.", v42_net_debt_estimated:"{name}: el tramo anterior se estima con su cuadro de cuotas.", v42_net_debt_constant:"{name}: se mantiene el saldo actual en todo el tramo.",
-    v42_range_1m:"1M", v42_range_6m:"6M", v42_range_1y:"1A", v42_range_all:"Todo",
-    v42_net_more_1m:"{x} más que hace un mes", v42_net_less_1m:"{x} menos que hace un mes", v42_net_more_6m:"{x} más que hace 6 meses", v42_net_less_6m:"{x} menos que hace 6 meses", v42_net_more_1y:"{x} más que hace un año", v42_net_less_1y:"{x} menos que hace un año", v42_net_more_all:"{x} más desde que empezaste", v42_net_less_all:"{x} menos desde que empezaste",
+    v42_net_info_title:"Cómo se calcula", v42_net_chart:"Evolución del patrimonio",
+    v42_this_month:"Este mes", v42_remaining:"Te quedan",
+    v42_net_missing:"Todavía no hay gráfica: los datos empiezan hoy. Mañana ya aparecerá.",
+    v42_net_i_accounts:"Cuentas", v42_net_i_accounts_v:"movimientos reales desde {day}", v42_net_i_accounts_later:" (alguna desde más tarde)",
+    v42_net_i_kept_inv:"Inversiones", v42_net_i_kept_assets:"Bienes", v42_net_i_kept_manual:"Cuentas manuales", v42_net_i_and:" y ", v42_net_i_kept_v:"valor conocido mantenido",
+    v42_net_i_debts:"Deudas", v42_net_i_debts_est:"según sus cuotas", v42_net_i_debts_kept:"saldo actual mantenido", v42_net_i_debts_mixed:"según sus cuotas; alguna, saldo actual", v42_net_i_ok:"Entendido",
+    v42_range_1m:"1M", v42_range_3m:"3M", v42_range_6m:"6M", v42_range_1y:"1A", v42_range_all:"Todo",
+    v42_net_cmp_up:"{x} más que {when}", v42_net_cmp_down:"{x} menos que {when}", v42_net_cmp_flat:"Prácticamente igual que {when}", v42_net_cmp_none:"Aún sin un ciclo anterior con el que comparar",
+    v42_net_when_1:"en este punto del mes pasado", v42_net_when_n:"en este punto hace {n} meses",
     v42_this_cycle:"Este ciclo", v42_cycle_over:"Te has pasado {x}", v42_cycle_start:"Ciclo recién empezado", v42_cycle_comfort:"Vas sobrado", v42_cycle_good:"Vas bien", v42_cycle_tight:"Vas justito", v42_cycle_slow:"Toca frenar un poco", v42_cycle_of:"de {x}", v42_cycle_daily:"{x} al día", v42_cycle_day:"durante 1 día", v42_cycle_days:"durante {n} días",
     // INC-0810 es: fin del patrimonio de ahora.
     v4_nobud_t:"Ponle un presupuesto", v4_nobud_p:"Es la mitad de la app: sin un tope al mes no se puede saber cuánto te queda. Puedes cambiarlo cuando quieras.", v4_nobud_cta:"Ponle un presupuesto", v4_noup_t:"Aún no hay recibos", v4_noup_p:"Conecta tu banco y los recibos del mes aparecen solos, con su día y su importe.", v4_noup_cta:"Conecta tu banco", v4_nogoal_t:"Ponte tu primera meta", v4_nogoal_p:"Un viaje, un colchón, lo que sea: la app te dice cuánto falta y cuándo llegas.", v4_nogoal_cta:"Crear una meta", v4_see_gastos:"Ver gastos ›", v4_see_plan:"Ver plan ›",
@@ -8412,7 +8418,6 @@ function netWorthDay(nowMs){
 }
 function netWorthDebtPolicy(state, today, current){
   const parts=today.split("-").map(Number), month=parts[0]*12+parts[1]-1;
-  let first="";
   const debts=state.debts||[], notes=[];
   // Hacia atrás se deshace el cuadro de cuotas que debtBalance aplica hacia delante: saldo de
   // entonces = saldo de hoy + la amortización de cada cargo entre esa fecha y hoy, contado por
@@ -8420,6 +8425,9 @@ function netWorthDebtPolicy(state, today, current){
   // es el saldo que pinta la app, también si el cargo de este mes aún no ha pasado.
   const rebuilt=function(d){ return d.months==null&&debtAmort(d)>0&&Number(d.value)>0.005&&!d.settledAt; };
   const at=function(d,day){
+    // Con fecha explícita de alta, antes de ese día la deuda no existía: el préstamo entró en la
+    // cuenta ese mismo día y el patrimonio no cambió. Antes esa fecha recortaba la serie (13/10).
+    if(/^\d{4}-\d{2}-\d{2}$/.test(d.asOfDate||d.startDate||"")&&day<(d.asOfDate||d.startDate)) return 0;
     const p=day.split("-").map(Number), charge=debtChargeDay(d);
     const anchor=typeof d.asOf==="number"?d.asOf:month;
     const paidToday=(month-anchor)+(d.months!=null&&charge<=parts[2]?1:0);
@@ -8434,17 +8442,15 @@ function netWorthDebtPolicy(state, today, current){
     return Math.max(0,value);
   };
   debts.forEach(function(d){
-    // Sólo una fecha explícita acredita desde cuándo existe la deuda y recorta. El ancla mensual
-    // de una hipoteca o un préstamo dados de alta (o con el saldo corregido) antes de esta versión
-    // no dice cuándo nació: antes recortaba la serie a hoy y dejaba Inicio sin gráfica (13/10).
-    const known=d.asOfDate||d.startDate;
-    if(/^\d{4}-\d{2}-\d{2}$/.test(known||"")){ if(known>first) first=known; return; }
+    // El ancla mensual de una hipoteca o un préstamo dados de alta (o con el saldo corregido)
+    // antes de esta versión no dice cuándo nació: antes recortaba la serie a hoy y dejaba Inicio
+    // sin gráfica (13/10). Se reconstruye por cuotas y se declara en la «i».
     const estimated=debtAmort(d)>0&&Number(d.value)>0.005&&!d.settledAt;
     notes.push({kind:"debt",name:d.name,estimated:estimated,constant:!estimated});
   });
   const sum=function(day){ return debts.reduce(function(n,d){ return n+at(d,day); },0); };
   const value=current!=null?current:sum(today);
-  return {first:first,current:value,notes:notes,timingUnknown:debts.some(function(d){return d.months==null&&!(dayOf(d)>0);}),at:function(day){ return day===today?value:sum(day); }};
+  return {current:value,notes:notes,timingUnknown:debts.some(function(d){return d.months==null&&!(dayOf(d)>0);}),at:function(day){ return day===today?value:sum(day); }};
 }
 function netWorthSeries(state, options){
   options=options||{};
@@ -8512,14 +8518,18 @@ function netWorthSeries(state, options){
     });
     mates.forEach(function(list,a){if(list.size!==1)return;const b=Array.from(list)[0];if(mates.get(b).size===1){a.ownTransfer=b.bank;b.ownTransfer=a.bank;}});
   });
-  const manual=[], flowBanks={}, limits=[];
+  const manual=[], flowBanks={}, later=[];
   let first="";
   rows.forEach(function(r,i){
     const bank=r.item.ent,points=clean(hist[r.key],"day","value"),cash=isEfectivoEnt(r.item);
     const tracked=r.kind==="ob"||r.item.bankIban||(!points.length&&firstByBank[bank])||accDaily(r.item);
     if(tracked){
       flowBanks[bank]=true;
-      if(firstByBank[bank]&&!cash) limits.push({day:firstByBank[bank],kind:"bank",name:r.item.name||(ENT[bank]&&ENT[bank].label)||bank});
+      // Antes el banco con el histórico más corto recortaba la serie entera («cobertura de TODOS
+      // los bancos»): con gastos desde junio, la gráfica empezaba en septiembre (13/10). Ahora
+      // arranca en el primer movimiento y, antes del suyo, cada cuenta se queda con su saldo de
+      // entonces (sin flujos no hay nada que deshacer); la «i» lo declara.
+      if(firstByBank[bank]&&!cash) later.push({day:firstByBank[bank],kind:"bank",name:r.item.name||(ENT[bank]&&ENT[bank].label)||bank});
     }else{
       // Antes del primer cierre, la cuenta manual conserva ese primer saldo: es la misma
       // aproximación que ya se hace sin historial y que un bien heredado, y un sobre de
@@ -8533,8 +8543,10 @@ function netWorthSeries(state, options){
   const investments=clean(state.invHistory,"d","v"),hasInv=(state.investments||[]).length>0;
   if((state.investments||[]).some(function(i){ return invValueEur(i,state)==null; })){gaps.push({kind:"investment",unknown:true});return done();}
   const invested=options.invested!=null?options.invested:(state.investments||[]).reduce(function(n,i){ return n+(invValueEur(i,state)||0); },0)+(ins.roundup||0)+(ins.monthlyInvest||0);
-  if((hasInv||invested!==0)&&!investments.length){gaps.push({kind:"investment"});return done();}
-  if(investments.length) limits.push({day:investments[0].day,kind:"investment"});
+  // Sin foto anterior, la inversión no recorta: se mantiene su primer valor conocido (la primera
+  // foto, o el de hoy si no hay ninguna) menos las aportaciones propias entre medias, como un
+  // bien heredado. Antes bastaba un bróker recién dado de alta para dejar Inicio sin gráfica.
+  const invKnown=investments.length?investments[0]:(hasInv||invested!==0)?{day:today,value:invested}:null;
   const contributions={},daily={};
   entries.forEach(function(row){
     const e=row.expense,day=row.day;
@@ -8542,17 +8554,16 @@ function netWorthSeries(state, options){
     // permiten neutralizar ambas sin perder el traspaso (revisión12/10).
     if(!flowBanks[row.bank]||(row.ownTransfer&&flowBanks[row.ownTransfer])) return;
     daily[day]=(daily[day]||0)-Math.round(e.amount*100);
-    if(!investments.length||e.amount===0) return;
+    if(!invKnown||e.amount===0) return;
     const text=String(e.merchant||"").toLowerCase(),target=e.toBank||e.to||e.counterpartyBank;
     const linked=(state.investments||[]).some(function(i){
       const name=String(i.ent||"").replace(/_/g," ").toLowerCase();
       return (e.investmentId&&e.investmentId===i.id)||(target&&target===i.ent)||(name.length>=4&&text.includes(name));
     });
+    // Un traspaso de una sola pata sin pista de bróker ya no recorta la serie hasta la foto
+    // siguiente: en la cartera real del 13/10 uno del 29/9 dejaba la gráfica en dos semanas.
+    // Sale como lo que dice la cuenta (dinero que se fue); si era al bróker, la foto lo recoge.
     if(e.category==="inversion"||(e.category==="traspaso"&&linked)) contributions[day]=(contributions[day]||0)+row.cents;
-    else if(e.category==="traspaso"){
-      const next=investments.find(function(p){return p.day>=day;});
-      limits.push({day:next?next.day:today,kind:"investment"});
-    }
   });
   const assetRows=[], assetHist=state.assetValueHistory||{};
   const assetIds=new Set(Object.keys(assetHist));(state.assets||[]).forEach(function(a){assetIds.add(String(a.id));});
@@ -8562,23 +8573,23 @@ function netWorthSeries(state, options){
     const a=(state.assets||[]).find(function(x){return String(x.id)===id;}),points=clean(assetHist[id]||(a&&(a.valueHistory||a.history)),"day","value").filter(function(p,i){return !i||!p.legacy;});
     if(a&&(!Number.isFinite(a.value))){gaps.push({kind:"asset",name:a.name,unknown:true});return;}
     const value=a?a.value:0,legacy=points.length>0&&!!points[0].legacy;
-    assetRows.push({value:value,points:points,before:legacy?points[0].value:0});
-    if(legacy)gaps.push({day:points.length>1?points[1].day:today,kind:"asset",name:a&&a.name,constant:true,prior:true});
-    else if(points.length){if(!points[0].born)limits.push({day:points[0].day,kind:"asset",name:a&&a.name});}
-    else if(a)gaps.push({kind:"asset",name:a.name,constant:true});
+    // Un bien con escalones propios tampoco recorta: antes del primero conserva ese primer valor.
+    const stepped=!legacy&&points.length>0&&!points[0].born;
+    assetRows.push({value:value,points:points,before:legacy||stepped?points[0].value:0});
+    if(legacy||stepped)gaps.push({day:legacy&&points.length>1?points[1].day:legacy?today:points[0].day,kind:"asset",name:a&&a.name,constant:true,prior:true});
+    else if(!points.length&&a)gaps.push({kind:"asset",name:a.name,constant:true});
   });
   if(gaps.some(function(g){return g.unknown;}))return done();
   const debt=netWorthDebtPolicy(state,today,options.debtTotal);
   if(!Number.isFinite(debt.current)){gaps.push({kind:"debt",unknown:true});return done();}
   if(debt.timingUnknown)gaps.push({kind:"debt",timingUnknown:true});
   debt.notes.forEach(function(n){gaps.push(n);});
-  if(debt.first)limits.push({day:debt.first,kind:"debt"});
-  let start=first||today;
-  limits.forEach(function(l){if(l.day>start){start=l.day;gaps.push(l);}});
-  // Sólo el límite que fija el arranque explica algo: «Inversiones desde el 10 de agosto» con la
-  // gráfica empezando el 30 de septiembre era una línea más del muro de texto (13/10).
-  for(let i=gaps.length-1;i>=0;i--)if(gaps[i].day&&!gaps[i].constant&&gaps[i].day!==start)gaps.splice(i,1);
-  if(start>today){gaps.push({kind:"debt",unknown:true});return done();}
+  const start=first||today;
+  // Lo que se mantiene constante antes de su primer dato se declara, en corto, en la «i»; un
+  // «antes del» que cae fuera de la gráfica no cuenta nada y se calla.
+  for(let i=gaps.length-1;i>=0;i--)if(gaps[i].prior&&gaps[i].day<=start)gaps.splice(i,1);
+  if(invKnown&&invKnown.day>start)gaps.push({day:invKnown.day,kind:"investment",constant:true});
+  later.forEach(function(l){if(l.day>start)gaps.push(Object.assign({later:true},l));});
   const liquid=options.liquid!=null?options.liquid:values.reduce(function(n,v){return n+v;},0);
   const assets=(state.assets||[]).reduce(function(n,a){return n+a.value;},0),manualNow=manual.reduce(function(n,m){return n+Math.round(m.value*100);},0);
   if(!Number.isFinite(liquid)||!Number.isFinite(invested)){gaps.push({kind:"balance"});return done();}
@@ -8586,16 +8597,15 @@ function netWorthSeries(state, options){
   const steps=manual.concat(assetRows),indices=steps.map(function(s){return s.points.length-1;});
   const contributionDays=Object.keys(contributions).sort(),prefix={},days=Object.keys(daily).concat(investments.map(function(p){return p.day;})).concat(contributionDays).sort();
   let contributed=0,ci=0;days.forEach(function(day){while(ci<contributionDays.length&&contributionDays[ci]<=day){contributed+=contributions[contributionDays[ci++]];}prefix[day]=contributed;});
+  const contributedBy=function(day){let n=prefix[day];if(n==null){let i=contributionDays.length-1;while(i>=0&&contributionDays[i]>day)i--;n=i>=0?prefix[contributionDays[i]]:0;}return n;};
   let invIndex=investments.length-1;
   for(let ms=Date.parse(today+"T12:00:00Z"),from=Date.parse(start+"T12:00:00Z");ms>=from;ms-=864e5){
     const day=utcFmt.format(ms);
     while(invIndex>=0&&investments[invIndex].day>day)invIndex--;
-    const photo=invIndex>=0?investments[invIndex]:null;
-    let inv=day===today?invested:photo?photo.value:0;
-    if(day!==today&&photo){
-      let n=prefix[day];if(n==null){let i=contributionDays.length-1;while(i>=0&&contributionDays[i]>day)i--;n=i>=0?prefix[contributionDays[i]]:0;}
-      inv+=(n-(prefix[photo.day]||0))/100;
-    }
+    // Antes de la primera foto vale la primera foto menos lo aportado entre medias: así una
+    // aportación al bróker de agosto no sale como pérdida, aunque la foto más antigua sea de septiembre.
+    const photo=invIndex>=0?investments[invIndex]:invKnown;
+    let inv=day===today?invested:photo?Math.max(0,photo.value+(contributedBy(day)-contributedBy(photo.day))/100):0;
     let value=cash+Math.round(inv*100)-Math.round(debt.at(day)*100);
     steps.forEach(function(s,i){
       while(indices[i]>=0&&s.points[indices[i]].day>day)indices[i]--;
@@ -8612,7 +8622,7 @@ function netWorthRanges(series, today){
   const first=series[0].day, last=series[series.length-1].day;
   const end=new Date(last+"T12:00:00Z");
   const out=[];
-  [["1m",1],["6m",6],["1y",12]].forEach(function(r){
+  [["1m",1],["3m",3],["6m",6],["1y",12]].forEach(function(r){
     // Los meses del selector se comparan con hoy, no con una foto bancaria atrasada.
     if(today&&last!==today) return;
     const d=new Date(Date.UTC(end.getUTCFullYear(),end.getUTCMonth()-r[1],1,12));
@@ -8622,6 +8632,48 @@ function netWorthRanges(series, today){
     if(first<=start) out.push({id:r[0],points:series.filter(function(p){ return p.day>=start; })});
   });
   out.push({id:"all",points:series}); return out;
+}
+// Anclas del ciclo de hoy hacia atrás: el cobro de cada ciclo («Mi ciclo») o el día 1 de cada mes.
+// Reutiliza el lector de nómina del presupuesto; sin cobro en los 45 días anteriores la cadena se
+// corta y no se compara más atrás: un ciclo que no consta no se inventa (AGENTS §1).
+function netWorthCycleAnchors(state, bud, limit){
+  const out=[];
+  if(!bud||!Number.isFinite(bud.periodStart)) return out;
+  // El calendario es el de Madrid, como en cycleTiming: en un dispositivo en UTC el día 1 nace el 30.
+  const dayOfMs=function(ms){ const p=madridYmdParts(ms); return p.ym+"-"+String(p.d).padStart(2,"0"); };
+  let ms=bud.periodStart; out.push(dayOfMs(ms));
+  for(let i=0;i<(limit||13);i++){
+    if(bud.cycle){ const p=budgetPaydayOf(state, ms-1); if(!p) break; ms=p.start.getTime(); out.push(dayOfMs(ms)); }
+    else { const ym=out[out.length-1].slice(0,7).split("-").map(Number); out.push(new Date(Date.UTC(ym[0],ym[1]-2,1)).toISOString().slice(0,7)+"-01"); }
+  }
+  return out;
+}
+// Comparación de igual a igual: hoy frente al mismo día del ciclo N ciclos atrás (misma distancia
+// desde el cobro; con mes natural, el mismo día del mes). Comparar con el primer punto decía
+// «963 € menos» a quien había cobrado la víspera y gastaba lo normal del mes (feedback 13/10).
+// Si el ciclo anterior fue más corto se toma su víspera de cobro. Sin ciclo anterior con dato → null.
+function netWorthCompare(series, anchors, rangeId, today, invested){
+  if(!series||series.length<2||!anchors||anchors.length<2) return null;
+  const civil=function(day){ const p=day.split("-").map(Number); return Date.UTC(p[0],p[1]-1,p[2]); };
+  const elapsed=Math.max(0,Math.round((civil(today)-civil(anchors[0]))/864e5));
+  const byDay={}; series.forEach(function(p){ byDay[p.day]=p.value; });
+  const first=series[0].day, last=series[series.length-1].value;
+  const at=function(n){
+    if(n>=anchors.length) return null;
+    const cap=civil(anchors[n-1])-864e5, ms=Math.min(civil(anchors[n])+elapsed*864e5,cap);
+    const day=new Date(ms).toISOString().slice(0,10);
+    return day>=first&&byDay[day]!=null?{day:day,value:byDay[day],cycles:n}:null;
+  };
+  const wanted={"1m":1,"3m":3,"6m":6,"1y":12}[rangeId];
+  let ref=null;
+  if(wanted) ref=at(wanted);
+  else for(let n=anchors.length-1;n>=1&&!ref;n--) ref=at(n);
+  if(!ref) return null;
+  const delta=Math.round((last-ref.value)*100)/100;
+  // Margen sin veredicto: el 2 % de lo invertido (el vaivén normal de un día de bolsa) con suelo
+  // de 10 € (céntimos y redondeos). Dentro de él, ni verde ni rojo.
+  const margin=Math.max(10,Math.abs(invested||0)*.02);
+  return {delta:delta,day:ref.day,cycles:ref.cycles,verdict:delta>margin?"up":delta<-margin?"down":"flat",margin:margin};
 }
 function netWorthChartGeometry(points){
   if(!points||points.length<2) return null;
@@ -9472,7 +9524,56 @@ function cycleTiming(bud,nowMs){
   const days=Math.max(1,(end-civil(start))/864e5), elapsed=Math.max(0,(civil(now)-civil(start))/864e5);
   return {days:days,elapsed:elapsed,left:Math.max(0,(end-civil(now))/864e5),reliable:!!bud.cycle};
 }
-function NetWorthNow({tt, simple, series, splashGone}){
+// Las filas de la hoja «Cómo se calcula», como mucho tres y solo las que aplican: etiqueta por
+// tipo (nunca cuenta por cuenta ni bien por bien) y un dato corto. Antes era un párrafo más una
+// línea por cuenta, bien y deuda metido en la página («el textaco», feedback 13/10).
+function netWorthInfoRows(series, dateFmt){
+  const coverage=series.coverage||[], rows=[];
+  if(series.length<2) return rows;
+  const start=series[0].day, startMs=Date.parse(start+"T12:00:00Z");
+  // Una cuenta que entra bastante después (un mes o más) se apunta sin nombrarla.
+  const later=coverage.some(function(g){ return g.kind==="bank"&&g.later&&Date.parse(g.day+"T12:00:00Z")-startMs>=30*864e5; });
+  rows.push({k:t("v42_net_i_accounts"),v:tf("v42_net_i_accounts_v",{day:dateFmt.format(startMs)})+(later?t("v42_net_i_accounts_later"):"")});
+  const kinds=[];
+  [["investment","v42_net_i_kept_inv"],["asset","v42_net_i_kept_assets"],["manual","v42_net_i_kept_manual"]].forEach(function(pair){
+    if(coverage.some(function(g){ return g.kind===pair[0]&&g.constant&&!g.unknown; })) kinds.push(t(pair[1]));
+  });
+  if(kinds.length){
+    const label=kinds.map(function(k,i){ return i?k.toLowerCase():k; });
+    rows.push({k:label.length>1?label.slice(0,-1).join(", ")+t("v42_net_i_and")+label[label.length-1]:label[0],v:t("v42_net_i_kept_v")});
+  }
+  const debts=coverage.filter(function(g){ return g.kind==="debt"&&!g.timingUnknown; });
+  if(debts.length){
+    const constant=debts.filter(function(g){ return g.constant; }).length;
+    rows.push({k:t("v42_net_i_debts"),v:t(constant===debts.length?"v42_net_i_debts_kept":constant?"v42_net_i_debts_mixed":"v42_net_i_debts_est")});
+  }
+  return rows;
+}
+// Hoja inferior de la «i», con el mismo patrón que la del presupuesto: nada se inserta en la
+// página, así la tarjeta del ciclo no baja; cierra con toque fuera, gesto, atrás y botón.
+function NetWorthInfoSheet({open, rows, onClose}){
+  const swipe=useSheetSwipe(!!open, onClose,{closeMs:320,snapMs:300,closeEase:"cubic-bezier(.22,1,.36,1)",snapEase:"cubic-bezier(.22,1,.36,1)"});
+  useBackClose(!!open, swipe.close);
+  const titleRef=useRef(null), titleId=React.useId();
+  useEffect(function(){ if(open&&titleRef.current) titleRef.current.focus({preventScroll:true}); },[open]);
+  if(!open) return null;
+  return ReactDOM.createPortal(
+    React.createElement("div",{className:"v4-sheet-back",onClick:swipe.close},
+      React.createElement("div",Object.assign({className:"v4-sheet","data-sheet":"net-info",role:"dialog","aria-modal":"true","aria-labelledby":titleId,ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); }}, swipe.sheetTouch),
+        React.createElement("div",{className:"v4-sheet-handle"}),
+        React.createElement("h1",{id:titleId,ref:titleRef,tabIndex:-1,className:"serif",style:{fontSize:22,fontWeight:550,margin:"0 0 6px",outline:"none"}}, t("v42_net_info_title")),
+        rows.map(function(r,i){
+          return React.createElement("div",{key:i,className:"row","data-testid":"inicio-net-detail"},
+            React.createElement("div",{className:"rl"},React.createElement("div",{className:"rname"},r.k)),
+            // El dato va en gris y un punto más pequeño que la etiqueta: la jerarquía es
+            // etiqueta → dato, no al revés (en la primera captura el dato ganaba a la etiqueta).
+            React.createElement("div",{className:"rval",style:{fontWeight:600,fontSize:13,color:"var(--muted)",maxWidth:"60%",lineHeight:1.3}},r.v));
+        }),
+        React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",style:{marginTop:16},onClick:swipe.close}, t("v42_net_i_ok"))
+      )
+    ), document.body);
+}
+function NetWorthNow({tt, simple, series, splashGone, anchors}){
   // La animación pertenece a esta tarjeta; repintar todo Inicio en cada frame
   // dispara las lecturas de layout de navegación con el histórico grande.
   const value=tt.netWorth, shown=useCountUp(tt.netWorth||0, splashGone);
@@ -9483,28 +9584,22 @@ function NetWorthNow({tt, simple, series, splashGone}){
   const svgRef=useRef(null), frameRef=useRef(0), fingerRef=useRef(null);
   const range=ranges.find(function(r){ return r.id===picked; })||ranges[0];
   const points=range?range.points:[], active=touch!=null?points[touch]:null;
-  const delta=points.length>1?points[points.length-1].value-points[0].value:null;
-  const color=delta!=null&&delta<0?"var(--coral)":"var(--mint)";
+  // El veredicto compara con el mismo punto del ciclo anterior, nunca con el primer punto de la
+  // gráfica; y el rojo se queda solo para ir peor de verdad (feedback 13/10: «yo no voy mal»).
+  const compare=useMemo(function(){ return range?netWorthCompare(series,anchors,range.id,today,tt.invested):null; },[series,anchors,range&&range.id,today,tt.invested]);
+  const verdict=compare?compare.verdict:"none";
+  const color=verdict==="up"?"var(--mint)":verdict==="down"?"var(--coral)":"var(--blue)";
   const chart=useMemo(function(){ return netWorthChartGeometry(points); },[points]);
   const language=loc();
   const dateFmt=useMemo(function(){return new Intl.DateTimeFormat(language,{timeZone:"Europe/Madrid",day:"numeric",month:"short",year:"numeric"});},[language]);
   const dateLabels=useMemo(function(){
     return points.map(function(p){return dateFmt.format(Date.parse(p.day+"T12:00:00Z"));});
   },[points,dateFmt]);
-  // El detalle por cuenta, bien y deuda vive en la «i»: entre la cifra y la gráfica era un muro
-  // de seis líneas (13/10). Dos cuentas con el mismo nombre y la misma nota salen una vez.
-  const coverageLabels=useMemo(function(){const seen={};return (series.coverage||[]).map(function(g){
-    const name=g.name||t("v42_net_source_"+g.kind);
-    if(g.timingUnknown)return tf("v42_net_debt_timing",{name:name});
-    if(g.kind==="debt")return tf(g.estimated?"v42_net_debt_estimated":"v42_net_debt_constant",{name:name});
-    if(!g.day)return g.constant?tf("v42_net_asset_kept",{name:name}):name;
-    const day=dateFmt.format(Date.parse(g.day+"T12:00:00Z"));
-    return tf(g.kind==="manual"&&g.prior?"v42_net_manual_prior":g.prior?"v42_net_asset_prior":g.constant?"v42_net_asset_constant":"v42_net_coverage",{name:name,day:day});
-  }).filter(function(label){ if(seen[label]) return false; seen[label]=true; return true; });},[series.coverage,dateFmt,language]);
-  const kept=(series.coverage||[]).some(function(g){ return g.constant||g.estimated; });
+  // Fecha corta («18 jun») para la hoja; con el año se iba a dos renglones en el móvil.
+  const shortFmt=useMemo(function(){return new Intl.DateTimeFormat(language,{timeZone:"Europe/Madrid",day:"numeric",month:"short"});},[language]);
+  const infoRows=useMemo(function(){ return netWorthInfoRows(series,shortFmt); },[series,shortFmt,language]);
   useEffect(function(){ setTouch(null); },[range&&range.id]);
   useEffect(function(){ return function(){ cancelAnimationFrame(frameRef.current); }; },[]);
-  useBackClose(info,function(){ setInfo(false); });
   const valid=typeof value==="number" && Number.isFinite(value)&&!(series.coverage||[]).some(function(g){return g.unknown;});
   const p=valid?eurParts(active?active.value:typeof shown==="number" && Number.isFinite(shown)?shown:value):null;
   const gestureRef=useRef(null),holdRef=useRef(0);
@@ -9536,21 +9631,26 @@ function NetWorthNow({tt, simple, series, splashGone}){
   return React.createElement("div",{className:"v4-hero v42-net","data-tour":"hero","data-testid":"inicio-net-current",style:{"--v42-play":splashGone===false?"paused":"running"}},
     React.createElement("div",{className:"v4-net-current-head"},
       React.createElement("div",{className:"v4-micro"}, t(simple?"v4_money_total":"d_networth")),
-      React.createElement("button",{type:"button",className:"v42-net-info","aria-label":t("v42_net_info_title"),onClick:function(){ setInfo(!info); }},"i")
+      // Sin nada que explicar (usuario nuevo, un solo punto) la «i» no se enseña.
+      infoRows.length>0&&React.createElement("button",{type:"button",className:"v42-net-info","aria-label":t("v42_net_info_title"),"aria-haspopup":"dialog",onClick:function(){ setInfo(true); }},"i")
     ),
     active&&React.createElement("span",{className:"v42-net-date","data-testid":"inicio-net-date"},dateLabels[touch]),
     React.createElement("div",{className:"v4-hero-amt num","data-tour":"hero-amt"},
       p?p.sign+p.ent:"—", p&&React.createElement("span",null,","+(p.dec||"00")+" "+p.sym)),
     !valid&&React.createElement("div",{className:"hint",role:"status"}, t("v4_net_unknown")),
     valid&&series.length<2&&React.createElement("div",{className:"hint"},t(series.fresh?"v4_hist_empty":"v42_net_missing")),
-    valid&&delta!=null&&React.createElement("div",{className:"v42-net-delta","data-testid":"inicio-net-delta",style:{color:color}},
-      tf("v42_net_"+(delta<0?"less_":"more_")+range.id,{x:netWorthDeltaMoney(delta)})),
+    valid&&points.length>1&&React.createElement("div",{className:"v42-net-delta","data-testid":"inicio-net-delta","data-verdict":verdict,style:{color:verdict==="up"?"var(--mint)":verdict==="down"?"var(--coral)":"var(--muted)"}},
+      compare?tf("v42_net_cmp_"+verdict,{x:netWorthDeltaMoney(compare.delta),when:compare.cycles===1?t("v42_net_when_1"):tf("v42_net_when_n",{n:compare.cycles})}):t("v42_net_cmp_none")),
     valid&&chart&&React.createElement("div",{className:"v42-net-chart","data-noswipe":"1",onTouchStart:begin,onTouchMove:move,onTouchEnd:release,onTouchCancel:release},
       React.createElement("svg",{ref:svgRef,key:range.id,viewBox:"0 0 320 80",preserveAspectRatio:"none",role:"img","aria-label":t("v42_net_chart"),style:{color:color}},
         React.createElement("defs",null,React.createElement("linearGradient",{id:id,x1:"0",x2:"0",y1:"0",y2:"1"},
-          React.createElement("stop",{offset:"0%",stopColor:"currentColor",stopOpacity:.2}),React.createElement("stop",{offset:"100%",stopColor:"currentColor",stopOpacity:0}))),
+          React.createElement("stop",{offset:"0%",stopColor:"currentColor",stopOpacity:.2}),React.createElement("stop",{offset:"100%",stopColor:"currentColor",stopOpacity:0})),
+          // El trazo se revela con un recorte en vez de con stroke-dasharray: con `pathLength` y
+          // trazo sin escalar, el SVG estirado a lo ancho dejaba un hueco entre la línea y el
+          // punto de hoy en el móvil (feedback 13/10: «hay un hueco en la gráfica al final»).
+          React.createElement("clipPath",{id:id+"c"},React.createElement("rect",{className:"v42-net-reveal",x:0,y:-20,width:320,height:120}))),
         React.createElement("path",{className:"v42-net-fill",d:chart.fill,fill:"url(#"+id+")"}),
-        React.createElement("path",{className:"v42-net-line",d:chart.path,fill:"none",stroke:"currentColor",strokeWidth:2,strokeLinecap:"round",strokeLinejoin:"round",vectorEffect:"non-scaling-stroke",pathLength:1}),
+        React.createElement("path",{className:"v42-net-line",d:chart.path,fill:"none",stroke:"currentColor",strokeWidth:2,strokeLinecap:"round",strokeLinejoin:"round",vectorEffect:"non-scaling-stroke",clipPath:"url(#"+id+"c)"}),
         React.createElement("circle",{className:"v42-net-dot",cx:chart.xy[points.length-1].x,cy:chart.xy[points.length-1].y,r:4,fill:"currentColor"}),
         active&&React.createElement("g",{"data-testid":"inicio-net-guide"},
           React.createElement("line",{x1:chart.xy[touch].x,x2:chart.xy[touch].x,y1:0,y2:80,stroke:"var(--muted)",strokeDasharray:"2 3"}),
@@ -9559,11 +9659,9 @@ function NetWorthNow({tt, simple, series, splashGone}){
     valid&&ranges.length>0&&React.createElement("div",{className:"v42-net-ranges"},ranges.map(function(r){
       return React.createElement("button",{key:r.id,type:"button","aria-pressed":range.id===r.id,onClick:function(){ setPicked(r.id); setTouch(null); }},t("v42_range_"+r.id));
     })),
-    valid&&series.length>1&&coverageLabels.length>0&&React.createElement("div",{className:"hint","data-testid":"inicio-net-coverage"},
-      tf("v42_net_since",{day:dateFmt.format(Date.parse(series[0].day+"T12:00:00Z"))})+(kept?" · "+t("v42_net_kept"):"")),
-    info&&React.createElement("div",{className:"hint",role:"note"},
-      React.createElement("div",null,t("v42_net_info")),
-      coverageLabels.map(function(label,i){return React.createElement("div",{key:i,"data-testid":"inicio-net-detail"},label);}))
+    // Bajo los periodos no va texto fijo («el mensaje de abajo me sobra», 13/10): lo que se
+    // mantiene constante se cuenta solo en la hoja de la «i».
+    React.createElement(NetWorthInfoSheet,{open:info,rows:infoRows,onClose:function(){ setInfo(false); }})
   );
 }
 function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGastos, onGoPlan, showToast}){
@@ -9647,6 +9745,9 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
   const dailyMoney=budAmt>0?cycleDailyMoney(rem,timing.left):null;
   const series=useMemo(function(){ return netWorthSeries(state,{today:seriesToday,liquid:tt.liquid,invested:tt.invested,debtTotal:tt.debtTotal,balanceInputs:tt}); },
     [state.accounts,state.obAccounts,state.accountBalanceHistory,state.invHistory,state.investments,state.assets,state.assetValueHistory,state.debts,state.expenses,state.deleted,state.flows,state.fixed,state.oneoffs,state.bankTx,state.aportaciones,state.settings,state.fx,state.fxRates,tt,seriesToday]);
+  // Los cobros anteriores salen del mismo lector que el presupuesto; sólo se recorren de nuevo
+  // cuando cambia lo que ese lector mira, no en cada render.
+  const anchors=useMemo(function(){ return netWorthCycleAnchors(state,bud); },[bud,state.expenses,state.deleted,state.flows,state.settings]);
 
   const overdue=[];
   // La fecha prevista no es un pago: la misma lectura de evidencia que Plan conserva los
@@ -9755,7 +9856,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
       }}, t("mr_share"))
     ),
 
-    !showSkel && React.createElement(NetWorthNow,{tt:tt, simple:simple, series:series, splashGone:splashGone}),
+    !showSkel && React.createElement(NetWorthNow,{tt:tt, simple:simple, series:series, splashGone:splashGone, anchors:anchors}),
 
     // Sin presupuesto, Inicio escondia su tarjeta estrella y te quedabas sin la mitad de la app
     // sin saber por que (P3). En vez de esconderla, la misma tarjeta en vacio y con salida: abre
@@ -21798,7 +21899,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="adb15290002c929bf6368b37e0d6d2de0f4294fca0f8f170c9df46873fc3520b";
+var _rnSha="813f242f81594dc5177e2feb9642b93e0d2d9c248e42fdb1405484303b9eca2b";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){

@@ -659,7 +659,6 @@ function netWorthDay(nowMs){
 }
 function netWorthDebtPolicy(state, today, current){
   const parts=today.split("-").map(Number), month=parts[0]*12+parts[1]-1;
-  let first="";
   const debts=state.debts||[], notes=[];
   // Hacia atrás se deshace el cuadro de cuotas que debtBalance aplica hacia delante: saldo de
   // entonces = saldo de hoy + la amortización de cada cargo entre esa fecha y hoy, contado por
@@ -667,6 +666,9 @@ function netWorthDebtPolicy(state, today, current){
   // es el saldo que pinta la app, también si el cargo de este mes aún no ha pasado.
   const rebuilt=function(d){ return d.months==null&&debtAmort(d)>0&&Number(d.value)>0.005&&!d.settledAt; };
   const at=function(d,day){
+    // Con fecha explícita de alta, antes de ese día la deuda no existía: el préstamo entró en la
+    // cuenta ese mismo día y el patrimonio no cambió. Antes esa fecha recortaba la serie (13/10).
+    if(/^\d{4}-\d{2}-\d{2}$/.test(d.asOfDate||d.startDate||"")&&day<(d.asOfDate||d.startDate)) return 0;
     const p=day.split("-").map(Number), charge=debtChargeDay(d);
     const anchor=typeof d.asOf==="number"?d.asOf:month;
     const paidToday=(month-anchor)+(d.months!=null&&charge<=parts[2]?1:0);
@@ -681,17 +683,15 @@ function netWorthDebtPolicy(state, today, current){
     return Math.max(0,value);
   };
   debts.forEach(function(d){
-    // Sólo una fecha explícita acredita desde cuándo existe la deuda y recorta. El ancla mensual
-    // de una hipoteca o un préstamo dados de alta (o con el saldo corregido) antes de esta versión
-    // no dice cuándo nació: antes recortaba la serie a hoy y dejaba Inicio sin gráfica (13/10).
-    const known=d.asOfDate||d.startDate;
-    if(/^\d{4}-\d{2}-\d{2}$/.test(known||"")){ if(known>first) first=known; return; }
+    // El ancla mensual de una hipoteca o un préstamo dados de alta (o con el saldo corregido)
+    // antes de esta versión no dice cuándo nació: antes recortaba la serie a hoy y dejaba Inicio
+    // sin gráfica (13/10). Se reconstruye por cuotas y se declara en la «i».
     const estimated=debtAmort(d)>0&&Number(d.value)>0.005&&!d.settledAt;
     notes.push({kind:"debt",name:d.name,estimated:estimated,constant:!estimated});
   });
   const sum=function(day){ return debts.reduce(function(n,d){ return n+at(d,day); },0); };
   const value=current!=null?current:sum(today);
-  return {first:first,current:value,notes:notes,timingUnknown:debts.some(function(d){return d.months==null&&!(dayOf(d)>0);}),at:function(day){ return day===today?value:sum(day); }};
+  return {current:value,notes:notes,timingUnknown:debts.some(function(d){return d.months==null&&!(dayOf(d)>0);}),at:function(day){ return day===today?value:sum(day); }};
 }
 function netWorthSeries(state, options){
   options=options||{};
@@ -759,14 +759,18 @@ function netWorthSeries(state, options){
     });
     mates.forEach(function(list,a){if(list.size!==1)return;const b=Array.from(list)[0];if(mates.get(b).size===1){a.ownTransfer=b.bank;b.ownTransfer=a.bank;}});
   });
-  const manual=[], flowBanks={}, limits=[];
+  const manual=[], flowBanks={}, later=[];
   let first="";
   rows.forEach(function(r,i){
     const bank=r.item.ent,points=clean(hist[r.key],"day","value"),cash=isEfectivoEnt(r.item);
     const tracked=r.kind==="ob"||r.item.bankIban||(!points.length&&firstByBank[bank])||accDaily(r.item);
     if(tracked){
       flowBanks[bank]=true;
-      if(firstByBank[bank]&&!cash) limits.push({day:firstByBank[bank],kind:"bank",name:r.item.name||(ENT[bank]&&ENT[bank].label)||bank});
+      // Antes el banco con el histórico más corto recortaba la serie entera («cobertura de TODOS
+      // los bancos»): con gastos desde junio, la gráfica empezaba en septiembre (13/10). Ahora
+      // arranca en el primer movimiento y, antes del suyo, cada cuenta se queda con su saldo de
+      // entonces (sin flujos no hay nada que deshacer); la «i» lo declara.
+      if(firstByBank[bank]&&!cash) later.push({day:firstByBank[bank],kind:"bank",name:r.item.name||(ENT[bank]&&ENT[bank].label)||bank});
     }else{
       // Antes del primer cierre, la cuenta manual conserva ese primer saldo: es la misma
       // aproximación que ya se hace sin historial y que un bien heredado, y un sobre de
@@ -780,8 +784,10 @@ function netWorthSeries(state, options){
   const investments=clean(state.invHistory,"d","v"),hasInv=(state.investments||[]).length>0;
   if((state.investments||[]).some(function(i){ return invValueEur(i,state)==null; })){gaps.push({kind:"investment",unknown:true});return done();}
   const invested=options.invested!=null?options.invested:(state.investments||[]).reduce(function(n,i){ return n+(invValueEur(i,state)||0); },0)+(ins.roundup||0)+(ins.monthlyInvest||0);
-  if((hasInv||invested!==0)&&!investments.length){gaps.push({kind:"investment"});return done();}
-  if(investments.length) limits.push({day:investments[0].day,kind:"investment"});
+  // Sin foto anterior, la inversión no recorta: se mantiene su primer valor conocido (la primera
+  // foto, o el de hoy si no hay ninguna) menos las aportaciones propias entre medias, como un
+  // bien heredado. Antes bastaba un bróker recién dado de alta para dejar Inicio sin gráfica.
+  const invKnown=investments.length?investments[0]:(hasInv||invested!==0)?{day:today,value:invested}:null;
   const contributions={},daily={};
   entries.forEach(function(row){
     const e=row.expense,day=row.day;
@@ -789,17 +795,16 @@ function netWorthSeries(state, options){
     // permiten neutralizar ambas sin perder el traspaso (revisión12/10).
     if(!flowBanks[row.bank]||(row.ownTransfer&&flowBanks[row.ownTransfer])) return;
     daily[day]=(daily[day]||0)-Math.round(e.amount*100);
-    if(!investments.length||e.amount===0) return;
+    if(!invKnown||e.amount===0) return;
     const text=String(e.merchant||"").toLowerCase(),target=e.toBank||e.to||e.counterpartyBank;
     const linked=(state.investments||[]).some(function(i){
       const name=String(i.ent||"").replace(/_/g," ").toLowerCase();
       return (e.investmentId&&e.investmentId===i.id)||(target&&target===i.ent)||(name.length>=4&&text.includes(name));
     });
+    // Un traspaso de una sola pata sin pista de bróker ya no recorta la serie hasta la foto
+    // siguiente: en la cartera real del 13/10 uno del 29/9 dejaba la gráfica en dos semanas.
+    // Sale como lo que dice la cuenta (dinero que se fue); si era al bróker, la foto lo recoge.
     if(e.category==="inversion"||(e.category==="traspaso"&&linked)) contributions[day]=(contributions[day]||0)+row.cents;
-    else if(e.category==="traspaso"){
-      const next=investments.find(function(p){return p.day>=day;});
-      limits.push({day:next?next.day:today,kind:"investment"});
-    }
   });
   const assetRows=[], assetHist=state.assetValueHistory||{};
   const assetIds=new Set(Object.keys(assetHist));(state.assets||[]).forEach(function(a){assetIds.add(String(a.id));});
@@ -809,23 +814,23 @@ function netWorthSeries(state, options){
     const a=(state.assets||[]).find(function(x){return String(x.id)===id;}),points=clean(assetHist[id]||(a&&(a.valueHistory||a.history)),"day","value").filter(function(p,i){return !i||!p.legacy;});
     if(a&&(!Number.isFinite(a.value))){gaps.push({kind:"asset",name:a.name,unknown:true});return;}
     const value=a?a.value:0,legacy=points.length>0&&!!points[0].legacy;
-    assetRows.push({value:value,points:points,before:legacy?points[0].value:0});
-    if(legacy)gaps.push({day:points.length>1?points[1].day:today,kind:"asset",name:a&&a.name,constant:true,prior:true});
-    else if(points.length){if(!points[0].born)limits.push({day:points[0].day,kind:"asset",name:a&&a.name});}
-    else if(a)gaps.push({kind:"asset",name:a.name,constant:true});
+    // Un bien con escalones propios tampoco recorta: antes del primero conserva ese primer valor.
+    const stepped=!legacy&&points.length>0&&!points[0].born;
+    assetRows.push({value:value,points:points,before:legacy||stepped?points[0].value:0});
+    if(legacy||stepped)gaps.push({day:legacy&&points.length>1?points[1].day:legacy?today:points[0].day,kind:"asset",name:a&&a.name,constant:true,prior:true});
+    else if(!points.length&&a)gaps.push({kind:"asset",name:a.name,constant:true});
   });
   if(gaps.some(function(g){return g.unknown;}))return done();
   const debt=netWorthDebtPolicy(state,today,options.debtTotal);
   if(!Number.isFinite(debt.current)){gaps.push({kind:"debt",unknown:true});return done();}
   if(debt.timingUnknown)gaps.push({kind:"debt",timingUnknown:true});
   debt.notes.forEach(function(n){gaps.push(n);});
-  if(debt.first)limits.push({day:debt.first,kind:"debt"});
-  let start=first||today;
-  limits.forEach(function(l){if(l.day>start){start=l.day;gaps.push(l);}});
-  // Sólo el límite que fija el arranque explica algo: «Inversiones desde el 10 de agosto» con la
-  // gráfica empezando el 30 de septiembre era una línea más del muro de texto (13/10).
-  for(let i=gaps.length-1;i>=0;i--)if(gaps[i].day&&!gaps[i].constant&&gaps[i].day!==start)gaps.splice(i,1);
-  if(start>today){gaps.push({kind:"debt",unknown:true});return done();}
+  const start=first||today;
+  // Lo que se mantiene constante antes de su primer dato se declara, en corto, en la «i»; un
+  // «antes del» que cae fuera de la gráfica no cuenta nada y se calla.
+  for(let i=gaps.length-1;i>=0;i--)if(gaps[i].prior&&gaps[i].day<=start)gaps.splice(i,1);
+  if(invKnown&&invKnown.day>start)gaps.push({day:invKnown.day,kind:"investment",constant:true});
+  later.forEach(function(l){if(l.day>start)gaps.push(Object.assign({later:true},l));});
   const liquid=options.liquid!=null?options.liquid:values.reduce(function(n,v){return n+v;},0);
   const assets=(state.assets||[]).reduce(function(n,a){return n+a.value;},0),manualNow=manual.reduce(function(n,m){return n+Math.round(m.value*100);},0);
   if(!Number.isFinite(liquid)||!Number.isFinite(invested)){gaps.push({kind:"balance"});return done();}
@@ -833,16 +838,15 @@ function netWorthSeries(state, options){
   const steps=manual.concat(assetRows),indices=steps.map(function(s){return s.points.length-1;});
   const contributionDays=Object.keys(contributions).sort(),prefix={},days=Object.keys(daily).concat(investments.map(function(p){return p.day;})).concat(contributionDays).sort();
   let contributed=0,ci=0;days.forEach(function(day){while(ci<contributionDays.length&&contributionDays[ci]<=day){contributed+=contributions[contributionDays[ci++]];}prefix[day]=contributed;});
+  const contributedBy=function(day){let n=prefix[day];if(n==null){let i=contributionDays.length-1;while(i>=0&&contributionDays[i]>day)i--;n=i>=0?prefix[contributionDays[i]]:0;}return n;};
   let invIndex=investments.length-1;
   for(let ms=Date.parse(today+"T12:00:00Z"),from=Date.parse(start+"T12:00:00Z");ms>=from;ms-=864e5){
     const day=utcFmt.format(ms);
     while(invIndex>=0&&investments[invIndex].day>day)invIndex--;
-    const photo=invIndex>=0?investments[invIndex]:null;
-    let inv=day===today?invested:photo?photo.value:0;
-    if(day!==today&&photo){
-      let n=prefix[day];if(n==null){let i=contributionDays.length-1;while(i>=0&&contributionDays[i]>day)i--;n=i>=0?prefix[contributionDays[i]]:0;}
-      inv+=(n-(prefix[photo.day]||0))/100;
-    }
+    // Antes de la primera foto vale la primera foto menos lo aportado entre medias: así una
+    // aportación al bróker de agosto no sale como pérdida, aunque la foto más antigua sea de septiembre.
+    const photo=invIndex>=0?investments[invIndex]:invKnown;
+    let inv=day===today?invested:photo?Math.max(0,photo.value+(contributedBy(day)-contributedBy(photo.day))/100):0;
     let value=cash+Math.round(inv*100)-Math.round(debt.at(day)*100);
     steps.forEach(function(s,i){
       while(indices[i]>=0&&s.points[indices[i]].day>day)indices[i]--;
@@ -859,7 +863,7 @@ function netWorthRanges(series, today){
   const first=series[0].day, last=series[series.length-1].day;
   const end=new Date(last+"T12:00:00Z");
   const out=[];
-  [["1m",1],["6m",6],["1y",12]].forEach(function(r){
+  [["1m",1],["3m",3],["6m",6],["1y",12]].forEach(function(r){
     // Los meses del selector se comparan con hoy, no con una foto bancaria atrasada.
     if(today&&last!==today) return;
     const d=new Date(Date.UTC(end.getUTCFullYear(),end.getUTCMonth()-r[1],1,12));
@@ -869,6 +873,48 @@ function netWorthRanges(series, today){
     if(first<=start) out.push({id:r[0],points:series.filter(function(p){ return p.day>=start; })});
   });
   out.push({id:"all",points:series}); return out;
+}
+// Anclas del ciclo de hoy hacia atrás: el cobro de cada ciclo («Mi ciclo») o el día 1 de cada mes.
+// Reutiliza el lector de nómina del presupuesto; sin cobro en los 45 días anteriores la cadena se
+// corta y no se compara más atrás: un ciclo que no consta no se inventa (AGENTS §1).
+function netWorthCycleAnchors(state, bud, limit){
+  const out=[];
+  if(!bud||!Number.isFinite(bud.periodStart)) return out;
+  // El calendario es el de Madrid, como en cycleTiming: en un dispositivo en UTC el día 1 nace el 30.
+  const dayOfMs=function(ms){ const p=madridYmdParts(ms); return p.ym+"-"+String(p.d).padStart(2,"0"); };
+  let ms=bud.periodStart; out.push(dayOfMs(ms));
+  for(let i=0;i<(limit||13);i++){
+    if(bud.cycle){ const p=budgetPaydayOf(state, ms-1); if(!p) break; ms=p.start.getTime(); out.push(dayOfMs(ms)); }
+    else { const ym=out[out.length-1].slice(0,7).split("-").map(Number); out.push(new Date(Date.UTC(ym[0],ym[1]-2,1)).toISOString().slice(0,7)+"-01"); }
+  }
+  return out;
+}
+// Comparación de igual a igual: hoy frente al mismo día del ciclo N ciclos atrás (misma distancia
+// desde el cobro; con mes natural, el mismo día del mes). Comparar con el primer punto decía
+// «963 € menos» a quien había cobrado la víspera y gastaba lo normal del mes (feedback 13/10).
+// Si el ciclo anterior fue más corto se toma su víspera de cobro. Sin ciclo anterior con dato → null.
+function netWorthCompare(series, anchors, rangeId, today, invested){
+  if(!series||series.length<2||!anchors||anchors.length<2) return null;
+  const civil=function(day){ const p=day.split("-").map(Number); return Date.UTC(p[0],p[1]-1,p[2]); };
+  const elapsed=Math.max(0,Math.round((civil(today)-civil(anchors[0]))/864e5));
+  const byDay={}; series.forEach(function(p){ byDay[p.day]=p.value; });
+  const first=series[0].day, last=series[series.length-1].value;
+  const at=function(n){
+    if(n>=anchors.length) return null;
+    const cap=civil(anchors[n-1])-864e5, ms=Math.min(civil(anchors[n])+elapsed*864e5,cap);
+    const day=new Date(ms).toISOString().slice(0,10);
+    return day>=first&&byDay[day]!=null?{day:day,value:byDay[day],cycles:n}:null;
+  };
+  const wanted={"1m":1,"3m":3,"6m":6,"1y":12}[rangeId];
+  let ref=null;
+  if(wanted) ref=at(wanted);
+  else for(let n=anchors.length-1;n>=1&&!ref;n--) ref=at(n);
+  if(!ref) return null;
+  const delta=Math.round((last-ref.value)*100)/100;
+  // Margen sin veredicto: el 2 % de lo invertido (el vaivén normal de un día de bolsa) con suelo
+  // de 10 € (céntimos y redondeos). Dentro de él, ni verde ni rojo.
+  const margin=Math.max(10,Math.abs(invested||0)*.02);
+  return {delta:delta,day:ref.day,cycles:ref.cycles,verdict:delta>margin?"up":delta<-margin?"down":"flat",margin:margin};
 }
 function netWorthChartGeometry(points){
   if(!points||points.length<2) return null;

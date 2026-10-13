@@ -8,6 +8,10 @@ export const states=[
   {id:"tight",spent:800,text:"Vas justito",tone:"tan"},
   {id:"slow",spent:801,text:"Toca frenar un poco",tone:"tan"},
 ];
+// La «i» pinta fechas con el mismo Intl que la app (día, mes corto, año, calendario de Madrid).
+const fecha=(day,lang)=>new Intl.DateTimeFormat({es:"es",en:"en-GB",ca:"ca"}[lang],{timeZone:"Europe/Madrid",day:"numeric",month:"short"}).format(Date.parse(day+"T12:00:00Z"));
+// Filas de la hoja «Cómo se calcula» que abre la «i»: [etiqueta, dato].
+const filas=page=>page.locator('[data-sheet="net-info"] .row').evaluateAll(els=>els.map(e=>[e.querySelector(".rname").textContent,e.querySelector(".rval").textContent]));
 async function open(page,{spent=500,day=13,lang="es",historyDays=370,falling=false,cycle=true,lag=0}={}){
   await page.clock.install({time:new Date(`2026-09-${String(day).padStart(2,"0")}T12:00:00Z`)});
   const end=Date.parse(`2026-09-${String(day).padStart(2,"0")}T12:00:00Z`)-lag*864e5;
@@ -66,7 +70,9 @@ for(const zone of ["UTC","Europe/Madrid"]) test.describe("calendario de Madrid e
     const hero=page.getByTestId("inicio-net-current"),amount=hero.locator(".v4-hero-amt");
     await expect(amount).toContainText("800,00 €");
     await expect(hero.locator(".v42-net-ranges button")).toHaveText(["Todo"]);
-    await expect(hero.getByTestId("inicio-net-delta")).toContainText("200");
+    // Un día de datos no tiene ciclo anterior: frase neutra, sin «menos» ni «más» (13/10).
+    await expect(hero.getByTestId("inicio-net-delta")).toHaveText("Aún sin un ciclo anterior con el que comparar");
+    await expect(hero.getByTestId("inicio-net-delta")).toHaveAttribute("data-verdict","none");
     const path=await hero.locator(".v42-net-line").getAttribute("d");expect([...path.matchAll(/[ML]/g)]).toHaveLength(2);
     const box=await hero.locator(".v42-net-chart").boundingBox(),client=await page.context().newCDPSession(page);
     await client.send("Input.dispatchTouchEvent",{type:"touchStart",touchPoints:[{x:box.x+4,y:box.y+35}]});
@@ -80,17 +86,23 @@ for(const zone of ["UTC","Europe/Madrid"]) test.describe("calendario de Madrid e
 for(const lang of ["es","en","ca"]) test("rangos, colores y puertas "+lang,async({page})=>{
   await open(page,{lang,falling:true});
   const hero=page.getByTestId("inicio-net-current"), ranges=hero.locator(".v42-net-ranges button");
-  await expect(ranges).toHaveCount(4);expect(await ranges.allTextContents()).not.toContain("3M");
-  const same=()=>page.evaluate(()=>getComputedStyle(document.querySelector(".v42-net-delta")).color===getComputedStyle(document.querySelector(".v42-net-chart svg")).color);
+  await expect(ranges).toHaveText({es:["1M","3M","6M","1A","Todo"],en:["1M","3M","6M","1Y","All"],ca:["1M","3M","6M","1A","Tot"]}[lang]);
+  // Una sola nómina: no hay ciclo anterior, así que ni verde ni rojo. La línea va en el color
+  // neutro y la frase en gris, aunque la serie baje (13/10: el rojo solo si va peor de verdad).
+  const same=()=>page.evaluate(()=>{const probe=document.createElement("span");probe.style.color="var(--blue)";document.body.appendChild(probe);
+    const blue=getComputedStyle(probe).color;probe.style.color="var(--muted)";const muted=getComputedStyle(probe).color;probe.remove();
+    return getComputedStyle(document.querySelector(".v42-net-chart svg")).color===blue&&getComputedStyle(document.querySelector(".v42-net-delta")).color===muted;});
   expect(await same()).toBe(true);
+  await expect(hero.getByTestId("inicio-net-delta")).toHaveText({es:"Aún sin un ciclo anterior con el que comparar",en:"No earlier cycle to compare with yet",ca:"Encara sense un cicle anterior amb què comparar"}[lang]);
   const original=await hero.locator("svg").evaluate(el=>{window.__v42Original=el;return true;});expect(original).toBe(true);
-  await hero.locator(".v42-net-info").click(); await expect(hero.getByRole("note")).toBeVisible();
+  await hero.locator(".v42-net-info").click(); await expect(page.getByRole("dialog",{name:{es:"Cómo se calcula",en:"How it's worked out",ca:"Com es calcula"}[lang]})).toBeVisible();
   expect(await hero.locator("svg").evaluate(el=>el===window.__v42Original)).toBe(true);
+  await page.mouse.click(10,60);await expect(page.locator('[data-sheet="net-info"]')).toHaveCount(0);
   await hero.locator(".v42-net-chart").evaluate(el=>{window.__v42Mounts=0;window.__v42Observer=new MutationObserver(rows=>{
     for(const row of rows)for(const node of row.addedNodes)if(node.nodeName.toLowerCase()==="svg")window.__v42Mounts++;
   });window.__v42Observer.observe(el,{childList:true});});
   for(let i=0;i<10;i++){
-    const index=(i+1)%4;await ranges.nth(index).click();await expect(ranges.nth(index)).toHaveAttribute("aria-pressed","true");
+    const index=(i+1)%5;await ranges.nth(index).click();await expect(ranges.nth(index)).toHaveAttribute("aria-pressed","true");
     expect(await same()).toBe(true);expect(await page.evaluate(()=>window.__v42Mounts)).toBe(i+1);
   }
   await page.evaluate(()=>window.__v42Observer.disconnect());
@@ -105,7 +117,7 @@ test("historial corto no ofrece rangos inventados y mes natural conserva ritmo",
 test("fotos atrasadas no recortan los flujos hasta hoy",async({page})=>{
   await open(page,{lag:20});const hero=page.getByTestId("inicio-net-current");
   await expect(hero.locator(".v42-net-chart svg")).toBeVisible();
-  await expect(hero.locator(".v42-net-ranges button")).toHaveCount(4);
+  await expect(hero.locator(".v42-net-ranges button")).toHaveCount(5);
   await expect(hero.getByTestId("inicio-net-delta")).toBeVisible();
 });
 for(const commonEnd of [false,true]) test("fotos escalonadas no pintan pérdida de un traspaso "+commonEnd,async({page})=>{
@@ -183,9 +195,12 @@ test("NO-GO cuenta nueva nombra el límite y un usuario nuevo empieza hoy",async
   await seedLoggedInDashboard(page,{accounts:[{id:"a",ent:"sabadell",name:"Cuenta antigua",value:1000,role:"fijos",bankIban:"SYN-A"},{id:"b",ent:"revolut",name:"Cuenta reciente",value:300,role:"fijos",bankIban:"SYN-B"}],expenses:[{id:"a1",ent:"sabadell",date:"2026-09-01T12:00:00Z",amount:10,category:"super"},{id:"b1",ent:"revolut",date:"2026-09-25T12:00:00Z",amount:10,category:"super"}]});
   await page.goto("/");await page.waitForFunction(()=>!document.getElementById("mc-load"));await dismissNews(page);
   const hero=page.getByTestId("inicio-net-current");
-  await expect(hero.getByTestId("inicio-net-coverage")).toHaveText("Gráfica desde 25 sept 2026");
+  // Bajo la gráfica no va texto fijo; la cuenta que empieza después se declara en la «i» y ya
+  // no recorta la serie: arranca el 1/9 con el banco antiguo (13/10).
+  await expect(hero.getByTestId("inicio-net-coverage")).toHaveCount(0);
   await hero.locator(".v42-net-info").click();
-  await expect(hero.getByTestId("inicio-net-detail")).toHaveText(["Cuenta reciente: datos desde 25 sept 2026."]);
+  // La cuenta que entra 24 días después no se nombra: solo cuenta la fecha más antigua.
+  expect(await filas(page)).toEqual([["Cuentas","movimientos reales desde 1 sept"]]);
 });
 test("NO-GO usuario nuevo sin presupuesto tiene mensaje propio y ningún ritmo",async({page})=>{
   await installFixtureClock(page);await seedLoggedInDashboard(page,{accounts:[],investments:[],expenses:[],budget:0,history:[],invHistory:[],accountBalanceHistory:{}});
@@ -243,12 +258,13 @@ for(const lang of ["es","en","ca"])test("RONDA3 bien legado conserva gráfica y 
   await expect(hero.locator(".v4-hero-amt")).toContainText("205.000,00 €");
   await expect(hero.locator(".v42-net-line")).toHaveCount(1);
   expect(await wholeGoodsLine(hero)).toHaveLength(35);
-  // Una sola línea bajo la gráfica; el detalle por bien vive en la «i» (13/10).
-  await expect(hero.getByTestId("inicio-net-coverage")).toHaveCount(1);
-  await expect(hero.getByTestId("inicio-net-coverage")).toContainText(lang==="es"?"algunos valores anteriores se mantienen":lang==="en"?"some earlier values are kept":"alguns valors anteriors es mantenen");
-  await expect(hero.getByTestId("inicio-net-coverage")).not.toContainText("Piso sintético");
+  // Nada de texto fijo bajo la gráfica; el detalle vive en la «i», en dos líneas (13/10).
+  await expect(hero.getByTestId("inicio-net-coverage")).toHaveCount(0);
   await hero.locator(".v42-net-info").click();
-  await expect(hero.getByTestId("inicio-net-detail")).toHaveText([lang==="es"?"Piso sintético: se mantiene el valor actual en todo el tramo.":lang==="en"?"Piso sintético: the current value is kept for the whole period.":"Piso sintético: es manté el valor actual en tot el tram."]);
+  expect(await filas(page)).toEqual({
+    es:[["Cuentas","movimientos reales desde "+fecha("2026-08-01","es")],["Bienes","valor conocido mantenido"]],
+    en:[["Accounts","real transactions from "+fecha("2026-08-01","en")],["Property","known value kept"]],
+    ca:[["Comptes","moviments reals des de "+fecha("2026-08-01","ca")],["Béns","valor conegut mantingut"]]}[lang]);
   const stored=await ownGoodsState(page);expect(stored.history?.["legacy-home"]).toBeUndefined();
 });
 test("RONDA3 piso que llega de la nube no nace al montar el móvil",async({page})=>{
@@ -263,7 +279,8 @@ test("RONDA3 piso que llega de la nube no nace al montar el móvil",async({page}
   const ys=await wholeGoodsLine(hero);expect(ys).toHaveLength(35);
   // Plana salvo el gasto de 100 del 20/8: dos alturas y ninguna subida de 200.000.
   expect(new Set(ys).size).toBe(2);expect(ys.every((y,i)=>!i||y>=ys[i-1])).toBe(true);
-  await expect(hero.getByTestId("inicio-net-delta")).toHaveText(/(^|\D)100 €/);
+  // Mes natural: hoy (4/9) frente al 4/8; el gasto de 100 del 20/8 está entre medias y es de verdad.
+  await expect(hero.getByTestId("inicio-net-delta")).toHaveText("100 € menos que en este punto del mes pasado");
   const stored=await ownGoodsState(page);
   expect(stored.assets).toEqual([{id:"cloud-home",name:"Piso nube sintético",value:200000}]);
   expect(stored.history?.["cloud-home"]).toBeUndefined();
@@ -297,10 +314,10 @@ test("revalorar un bien heredado conserva la gráfica y su valor anterior",async
   // Antes la serie se quedaba en un punto: sin línea, sin rangos y sin frase de comparación.
   const ys=await wholeGoodsLine(hero);expect(ys).toHaveLength(35);
   expect(new Set(ys).size).toBe(3);expect(ys.every((y,i)=>!i||y>=ys[i-1])).toBe(true);
-  await expect(hero.getByTestId("inicio-net-delta")).toHaveText("3.100 € menos desde que empezaste");
-  await expect(hero.getByTestId("inicio-net-coverage")).toHaveText("Gráfica desde 1 ago 2026 · algunos valores anteriores se mantienen");
+  await expect(hero.getByTestId("inicio-net-delta")).toHaveText("3.100 € menos que en este punto del mes pasado");
+  await expect(hero.getByTestId("inicio-net-coverage")).toHaveCount(0);
   await hero.locator(".v42-net-info").click();
-  await expect(hero.getByTestId("inicio-net-detail")).toHaveText(["Coche sintético: valor propio desde 4 sept 2026; antes se mantiene el valor que tenía."]);
+  expect(await filas(page)).toEqual([["Cuentas","movimientos reales desde 1 ago"],["Bienes","valor conocido mantenido"]]);
 });
 test("RONDA3 banco a hucha con escalones mantiene el patrimonio plano",async({page})=>{
   await openGoodsHistory(page,{accounts:[{...goodsBank,value:300},{id:"manual-hucha",ent:"revolut",value:600,role:"fijos"}],
@@ -317,9 +334,9 @@ test("RONDA3 deuda sin día de cuota declara la convención mensual",async({page
   const hero=page.getByTestId("inicio-net-current");
   await expect(hero.locator(".v4-hero-amt")).toContainText("-4600,00 €");
   await expect(hero.locator(".v42-net-line")).toHaveCount(1);
-  await expect(hero.getByTestId("inicio-net-coverage")).toHaveText("Gráfica desde 1 ago 2026");
+  await expect(hero.getByTestId("inicio-net-coverage")).toHaveCount(0);
   await hero.locator(".v42-net-info").click();
-  await expect(hero.getByTestId("inicio-net-detail")).toHaveText(["Deudas: sin día de cargo; la amortización se sitúa al empezar el mes."]);
+  expect(await filas(page)).toEqual([["Cuentas","movimientos reales desde 1 ago"],["Deudas","según sus cuotas"]]);
 });
 
 // Incidente 13/10 (beta 4.26.121): con hipoteca y préstamo dados de alta antes, Inicio salía sin
@@ -332,21 +349,23 @@ for(const lang of ["es","en","ca"])test("cartera heredada ve la gráfica el prim
   const hero=page.getByTestId("inicio-net-current");
   await expect(hero.locator(".v4-hero-amt")).toContainText(",");
   await expect(hero.locator(".v42-net-line")).toHaveCount(1);
-  const path=await hero.locator(".v42-net-line").getAttribute("d");expect([...path.matchAll(/[ML]/g)]).toHaveLength(14);
-  await expect(hero.locator(".v42-net-ranges button")).toHaveText([{es:"Todo",en:"All",ca:"Tot"}[lang]]);
+  // El rango por defecto es 1M (32 puntos); con «Todo» la serie entera desde el 15/6 (121 días).
+  const all=hero.locator(".v42-net-ranges button").last();await all.click();
+  const path=await hero.locator(".v42-net-line").getAttribute("d");expect([...path.matchAll(/[ML]/g)]).toHaveLength(121);
+  await expect(hero.locator(".v42-net-ranges button")).toHaveText({es:["1M","3M","Todo"],en:["1M","3M","All"],ca:["1M","3M","Tot"]}[lang]);
   await expect(hero).not.toContainText({es:"Todavía no hay gráfica",en:"No chart yet",ca:"Encara no hi ha gràfica"}[lang]);
   await expect(hero).not.toContainText("Faltan saldos");
-  await expect(hero.getByTestId("inicio-net-coverage")).toHaveCount(1);
-  await expect(hero.getByTestId("inicio-net-coverage")).toHaveText({es:"Gráfica desde 30 sept 2026 · algunos valores anteriores se mantienen",en:"Chart from 30 Sept 2026 · some earlier values are kept",ca:"Gràfica des de 30 de set. del 2026 · alguns valors anteriors es mantenen"}[lang]);
-  // Entre la cifra y la gráfica no hay ninguna nota: la línea va después de los periodos.
+  // Nada de texto fijo bajo los periodos (13/10: «el mensaje de abajo me sobra»).
+  await expect(hero.getByTestId("inicio-net-coverage")).toHaveCount(0);
+  await expect(hero.locator(".hint")).toHaveCount(0);
+  // Entre la cifra y la gráfica no hay ninguna nota.
   expect(await hero.evaluate(el=>{const amt=el.querySelector(".v4-hero-amt"),chart=el.querySelector(".v42-net-chart");let n=amt.nextElementSibling,hints=0;while(n&&n!==chart){if(n.classList.contains("hint"))hints++;n=n.nextElementSibling;}return hints;})).toBe(0);
-  await expect(hero.getByTestId("inicio-net-detail")).toHaveCount(0);
+  await expect(page.locator('[data-sheet="net-info"]')).toHaveCount(0);
   await hero.locator(".v42-net-info").click();
-  const detail=hero.getByTestId("inicio-net-detail");
-  await expect(detail).toHaveCount(8);
-  await expect(detail.filter({hasText:"Hipoteca sintética"})).toHaveText({es:"Hipoteca sintética: el tramo anterior se estima con su cuadro de cuotas.",en:"Hipoteca sintética: earlier dates are estimated from its payment schedule.",ca:"Hipoteca sintética: el tram anterior s'estima amb el seu quadre de quotes."}[lang]);
-  await expect(detail.filter({hasText:"Piso sintético"})).toHaveText({es:"Piso sintético: se mantiene el valor actual en todo el tramo.",en:"Piso sintético: the current value is kept for the whole period.",ca:"Piso sintético: es manté el valor actual en tot el tram."}[lang]);
-  await expect(detail.filter({hasText:"Efectivo"})).toHaveText({es:"Efectivo: saldos desde 17 sept 2026; antes se mantiene el primero.",en:"Efectivo: balances from 17 Sept 2026; earlier dates keep the first one.",ca:"Efectivo: saldos des de 17 de set. del 2026; abans es manté el primer."}[lang]);
-  await expect(detail.filter({hasText:{es:"Inversiones",en:"Investments",ca:"Inversions"}[lang]})).toHaveCount(1);
-  await hero.locator(".v42-net-info").click();await expect(detail).toHaveCount(0);
+  // Tres filas y ya, por tipo, sin nombrar cuenta a cuenta (13/10: «el textaco… enorme»).
+  expect(await filas(page)).toEqual({
+    es:[["Cuentas","movimientos reales desde "+fecha("2026-06-15","es")],["Inversiones, bienes y cuentas manuales","valor conocido mantenido"],["Deudas","según sus cuotas"]],
+    en:[["Accounts","real transactions from "+fecha("2026-06-15","en")],["Investments, property and manual accounts","known value kept"],["Debts","by their payment schedule"]],
+    ca:[["Comptes","moviments reals des de "+fecha("2026-06-15","ca")],["Inversions, béns i comptes manuals","valor conegut mantingut"],["Deutes","segons les seves quotes"]]}[lang]);
+  await page.mouse.click(10,60);await expect(page.locator('[data-sheet="net-info"]')).toHaveCount(0);
 });
