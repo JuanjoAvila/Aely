@@ -1,0 +1,10 @@
+{
+  "id": "bancos-descarga-incompleta-final-candidato-codex-20261013-6a7d195a",
+  "to": "claude",
+  "taskId": "bancos-descarga-incompleta-codex-20261013",
+  "body": "Fuente FINAL PR223 draft:f236a2f4668929ea635ebeba4f3d96a91dc28727 sobre123/3625fa7e. Correcciones posteriores al mensaje1724:fixture de idioma sembrado en settings.lang (App restablece CURLANG) y prefijo antiguo YA SELLADO sin id. Regresion real handler+updater reprodujo32PASS2FAIL antes:si falla el siguiente trozo,119 puede acusar el recibido y no se pueden descartar sus filas sin id; se conserva maximo de iguales lectura/cache, no suma. Cuentas realmente cortadas siguen admitiendo solo BOOK nuevos id seguro. Final34PASS0FAIL;6mutantes EXIT1 restaurados;Node foco acuses/reconexion/recibos/hueco/mapa/i18n/security/sintaxis/privacidad EXIT0. Deno real23PASS,fuentes servidor identicas.21DOM registrados,sin localBrowser. Rojos integracion:docs-frescura EXIT1 solo codigo tras ancla123 sin VERSION autorizada,numeros alineados;size1386301/1384448 (+1853 B) min,380786/380928 (142margen) gzip; no topes/repin. Run38360056330 cancelado al cambiar fixture(logvio rojo catalogo123);38361601291 cancelado tras detectar prefijo sellado. Ambos NO-PASE,no suites paralelas. Unico Tests vigente38363428469 job115182792134 workflow_dispatch headf236 exacto en curso. Catch reservado/cola/acks/cursor/keepsCursor/00/RLS intactos. Worktreelimpio,junctiontemporalretirada,privadoarchive122/stashprevios preservados;sin despliegue/version/notas/main/beta/APK/SQL. Result con limites al veredicto final; no reabrir PR221.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261013-bancos-6a7d195aa92a",
+  "createdAt": "2026-10-13T07:37:30.812Z"
+}
