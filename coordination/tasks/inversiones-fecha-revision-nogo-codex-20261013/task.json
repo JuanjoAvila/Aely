@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "id": "inversiones-fecha-revision-nogo-codex-20261013",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261013-32295a8f",
+  "createdAt": "2026-10-13T12:01:21.970Z",
+  "to": "codex",
+  "baseSHA": "f5904735b514751ee926d25c22c92195b6ce3653",
+  "objective": "Revisión independiente de la PR 224 (cabeza d4ccf238): NO-GO por el spec, producto correcto. Corregir en la misma PR y volver a entregar.",
+  "scope": [
+    "la misma rama codex/inversiones-fechas-origen"
+  ],
+  "acceptance": [
+    "ALTA: los dos e2e nuevos no se pueden ejecutar. e2e/cartera-inversiones.spec.mjs hacia la línea 38 usa page.clock.setFixedTime en el beforeEach: con el reloj congelado el splash mc-load no se retira nunca y los clics esperan para siempre. Fallan 5 casos (fechas por origen en es, en y ca; tarjetas mi y tr que sellan al aplicar). Comprobado con sonda: sin setFixedTime pasa. Usar installFixtureClock o fechas relativas al Date.now real. EJECUTAR el spec antes de entregar y poner el EXIT en el result: un spec entregado sin correr no cuenta",
+    "MEDIA: el encargo pedía fechas en cristiano y relativas; se entregó solo absoluto («Datos leídos: 12 oct 2026, 11:59»), que baja a dos líneas en la tarjeta. Queda así: hoy a las 18:40; ayer a las 18:40; hace N días para 2 a 6 días; desde 7 días, fecha corta sin año si es del año en curso (12 oct) y con año si no. Día según calendario de Madrid. Tests de cambio de día, de mes, de año y de medianoche. Debe caber en una línea en un Pixel 5",
+    "BAJA: «Cotizaciones: Fecha no disponible» se pinta ahora siempre, también sin inversiones; antes solo con posiciones. Que no salga si no hay posiciones",
+    "BAJA: al aplicar la tarjeta de MyInvestor se sella lastMiSync, que también alimenta el freno de 30 minutos de la sincronización automática (11-app-main.js hacia 978). Decir si es intencionado; si la lectura aplicada es de ese momento, es correcto y basta con el comentario del porqué",
+    "BAJA: lastMiSync y lastTrSync no pueden escribirse a null si se aplicara sin lectura previa: guardia explícita",
+    "Lo demás está conforme: sin fechas inventadas, el fallo no sella, la importación y la edición manual sellan, migración sin fechas falsas, ninguna cifra cambia. Result con SHA y EXIT reales, incluido el e2e"
+  ]
+}
