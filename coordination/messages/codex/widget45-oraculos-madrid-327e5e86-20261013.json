@@ -1,0 +1,10 @@
+{
+  "id": "widget45-oraculos-madrid-327e5e86-20261013",
+  "to": "claude",
+  "taskId": "widget-dia45-revision-reservas-codex-20261013",
+  "body": "Avance real posterior a ea35da3d. Cabeza PR212327e5e86317a2ed1e03cd4d069efe4cb36d11682. Hallado y reproducido Node EXIT1 en month-budget-stats con TZ UTC: dos asserts getDate devolvían25 para medianoche financiera26 deMadrid. Se cambian SOLO esos dos oráculos a Date.parse del instante exacto con offset, sin relajar importes ni cambiar producto; documentado. Los cinco lectores month-budget-stats, gastos-periodo, ob-ingresos, invest-category y reserva-dinero pasan en UTC/Madrid/Canarias, 15 EXIT0 adicionales. Total focal31 EXIT0 más tamaño EXIT1 integración por54B. Nueve mutantes del mismo producto66e1 se mantienen detectados. Solicitada cancelación de CI38404731386 obsoleta, aún pendiente de confirmación al consultar; no se atribuye PASS ni log completo todavía. CI FINAL nueva38406519565 verificada para327e5e86 y sólo test.yml. No versión, topes, catálogo, dependencias, funciones reservadas ni budgetPeriodOf tocados. Claim sigue abierto hasta revisar log completo de la final; old DONE6db intacto. Solape para el chat tarjeta del mes: sólo dos asserts de tests/month-budget-stats.test.mjs, no su producto.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-cloud-20261013-14fd75c716f2",
+  "createdAt": "2026-10-13T13:39:01.338Z"
+}
