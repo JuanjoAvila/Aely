@@ -1,0 +1,278 @@
+{
+  "status": "done",
+  "summary": "Revision A entregada en PR223 draft: A1 sin id con acuse corregido,60de84 y2000 filas persistentes sin duplicar; avisos reales en3idiomas, timestamp futuro/previous/expired/budget/reporte cerrados. Node51/0,Deno34/0,11mutantes rechazados y DOM24/24 EXIT0 real. CI global terminal FAILURE solo catalogo122/version/size; gates intactos, sin pase global ni despliegue.",
+  "tests": [
+    {
+      "command": "node tests/bank-download-incomplete.test.mjs",
+      "exitCode": 0,
+      "where": "local synthetic on rebased dependency; final Node causal expanded to51"
+    },
+    {
+      "command": "node tests/bank-sync-paging.test.mjs",
+      "exitCode": 0,
+      "where": "local synthetic on rebased dependency; final Node causal expanded to51"
+    },
+    {
+      "command": "node tests/bank-sync-progreso.test.mjs",
+      "exitCode": 0,
+      "where": "local synthetic on rebased dependency; final Node causal expanded to51"
+    },
+    {
+      "command": "node tests/bank-sync-acuse.test.mjs",
+      "exitCode": 0,
+      "where": "local synthetic on rebased dependency; final Node causal expanded to51"
+    },
+    {
+      "command": "node tests/bank-reconnect.test.mjs",
+      "exitCode": 0,
+      "where": "local synthetic on rebased dependency; final Node causal expanded to51"
+    },
+    {
+      "command": "node tests/tr-open-banking.test.mjs",
+      "exitCode": 0,
+      "where": "local synthetic on rebased dependency; final Node causal expanded to51"
+    },
+    {
+      "command": "node tests/hist-import-dup.test.mjs",
+      "exitCode": 0,
+      "where": "local synthetic on rebased dependency; final Node causal expanded to51"
+    },
+    {
+      "command": "node tests/ob-hueco-recuperado.test.mjs",
+      "exitCode": 0,
+      "where": "local synthetic on rebased dependency; final Node causal expanded to51"
+    },
+    {
+      "command": "node tests/ob-hueco-sync.test.mjs",
+      "exitCode": 0,
+      "where": "local synthetic on rebased dependency; final Node causal expanded to51"
+    },
+    {
+      "command": "node tests/recibo-invariante.test.mjs",
+      "exitCode": 0,
+      "where": "local synthetic on rebased dependency; final Node causal expanded to51"
+    },
+    {
+      "command": "node tests/logs-privacidad.test.mjs",
+      "exitCode": 0,
+      "where": "local synthetic on rebased dependency; final Node causal expanded to51"
+    },
+    {
+      "command": "node tests/security.test.mjs",
+      "exitCode": 0,
+      "where": "local synthetic on rebased dependency; final Node causal expanded to51"
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0,
+      "where": "local synthetic on rebased dependency; final Node causal expanded to51"
+    },
+    {
+      "command": "node tests/i18n-keys.test.mjs",
+      "exitCode": 0,
+      "where": "local synthetic on rebased dependency; final Node causal expanded to51"
+    },
+    {
+      "command": "node tests/edge-sintaxis.test.mjs",
+      "exitCode": 0,
+      "where": "local synthetic on rebased dependency; final Node causal expanded to51"
+    },
+    {
+      "command": "node tests/docs-frescura.test.mjs",
+      "exitCode": 1,
+      "where": "local synthetic on rebased dependency; final Node causal expanded to51"
+    },
+    {
+      "command": "node tests/presupuesto-rendimiento.test.mjs",
+      "exitCode": 1,
+      "where": "local synthetic on rebased dependency; final Node causal expanded to51"
+    },
+    {
+      "command": "deno test --no-lock --cached-only --allow-env supabase/functions/_shared/enablebanking.test.ts supabase/functions/bank-sync/demand-window.test.ts supabase/functions/_shared/crypto.test.ts",
+      "exitCode": 0,
+      "where": "local synthetic on rebased dependency; final Node causal expanded to51"
+    },
+    {
+      "command": "node tests/bank-download-incomplete.test.mjs final",
+      "exitCode": 0,
+      "passed": 51,
+      "failed": 0
+    },
+    {
+      "command": "deno check --no-lock supabase/functions/bank-sync/index.ts",
+      "exitCode": 0
+    },
+    {
+      "command": "Eleven actual temporary mutations",
+      "exitCode": 1,
+      "killed": 11,
+      "restoredByteExact": true
+    },
+    {
+      "command": "Initial causal40 on previous logic",
+      "exitCode": 1,
+      "passed": 35,
+      "failed": 5,
+      "expectedRegression": true
+    },
+    {
+      "command": "Exact remote focal e2e bancos-descarga-incompleta job115350250980",
+      "exitCode": 0,
+      "passed": 24,
+      "failed": 0,
+      "skipped": 0,
+      "flaky": 0,
+      "workers": 1,
+      "retries": 0
+    },
+    {
+      "command": "Exact final Tests38413086858 fulljob115350250356",
+      "exitCode": 1,
+      "failedSteps": [
+        "beta-sources",
+        "docs-frescura",
+        "presupuesto-rendimiento"
+      ],
+      "headSHA": "c71129e17ecf60d820b8950af1f5965afb72355e"
+    }
+  ],
+  "productSHA": "c71129e17ecf60d820b8950af1f5965afb72355e",
+  "pullRequest": "JuanjoAvila/Aely#223",
+  "claimBaseSHA": "f5904735b514751ee926d25c22c92195b6ce3653",
+  "executionBaseSHA": "2d53ab24dc32a83faf17ce08c3b2d50b304d8e55",
+  "executionVersion": "4.26.122 dependency, not published rollback",
+  "scope": {
+    "base": "2d53ab24dc32a83faf17ce08c3b2d50b304d8e55",
+    "checks": [
+      {
+        "name": "authCatch",
+        "unchanged": true,
+        "sha256": "1afcbd58b1ddc0fae9f5fe659560431e4e3ecb5115ea2dfa49212c468708bafc"
+      },
+      {
+        "name": "sessionVerdict",
+        "unchanged": true,
+        "sha256": "d42d949b31c44477eac3901c5182b00bf4d17fae2be623dde7be3a7ca77990d8"
+      },
+      {
+        "name": "finalStatus",
+        "unchanged": true,
+        "sha256": "89fff628cdddff4122f2645fa5ca90aec32e1f55ac032334a6554bbfa7205389"
+      },
+      {
+        "name": "ackAndAnchor",
+        "unchanged": true,
+        "sha256": "f43ef191facde708578f56ab45b1f591493ae13d424b4b78a3b15e252e85ecbb"
+      }
+    ],
+    "oneDemandLog": 1,
+    "callbackKeepsCursorAnd119Unchanged": true,
+    "versionNotesCatalogueDescriptorsCapsUntouched": true,
+    "BClaimAbsent": true
+  },
+  "conflicts": [
+    "bank-sync shared with claude/brokers-falsa-caducidad: catch/session query preserved exactly; one demand log",
+    "PR226 forthcoming revision shared bank-sync: A does not alter final state write, ACK/anchor119 or callback",
+    "tests runners,shared synthetic helper and privacy inventory shared: integrate without dropping entries"
+  ],
+  "ci": {
+    "workflow": "test.yml",
+    "event": "workflow_dispatch",
+    "runId": 38413086858,
+    "attempt": 1,
+    "headSHA": "c71129e17ecf60d820b8950af1f5965afb72355e",
+    "conclusion": "failure",
+    "fullJobId": 115350250356,
+    "fullExitCode": 1,
+    "processExitAtUTC": "2026-10-13T15:07:21.4174832Z",
+    "completedAtUTC": "2026-10-13T15:07:24Z",
+    "fullLogBytes": 378881,
+    "fullLogSHA256": "4aabf7bd02a485c34a232f74d01dd54fd28d4531f4bf8649939d21ccc74f093d",
+    "triage": {
+      "failedSteps": [
+        "beta-sources",
+        "docs-frescura",
+        "presupuesto-rendimiento"
+      ],
+      "unknownSubstantiveFailures": false,
+      "NodeOwnPassed": 51,
+      "DenoRegisteredFilesPassed": 8,
+      "fullSuiteE2EAndPerf": "not executed because unit gates failed",
+      "workflowPrivacy": "skipped",
+      "focalE2E": {
+        "exitCode": 0,
+        "headSHA": "c71129e17ecf60d820b8950af1f5965afb72355e",
+        "runId": 38413086858,
+        "jobId": 115350250980,
+        "stats": {
+          "startTime": "2026-10-13T14:25:28.144Z",
+          "duration": 65485.019,
+          "expected": 24,
+          "skipped": 0,
+          "unexpected": 0,
+          "flaky": 0
+        },
+        "workers": 1,
+        "retries": 0,
+        "actualTests": 24,
+        "externalRequestsAborted": 96,
+        "reportBytes": 37193,
+        "reportSHA256": "ac7d2c0d5b2c8cfbd82e1adaf0570276de4d071426d4c357376d0b45db2ca335"
+      },
+      "releaseReady": false
+    },
+    "focal": {
+      "exitCode": 0,
+      "headSHA": "c71129e17ecf60d820b8950af1f5965afb72355e",
+      "runId": 38413086858,
+      "jobId": 115350250980,
+      "stats": {
+        "startTime": "2026-10-13T14:25:28.144Z",
+        "duration": 65485.019,
+        "expected": 24,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "workers": 1,
+      "retries": 0,
+      "actualTests": 24,
+      "externalRequestsAborted": 96,
+      "reportBytes": 37193,
+      "reportSHA256": "ac7d2c0d5b2c8cfbd82e1adaf0570276de4d071426d4c357376d0b45db2ca335"
+    }
+  },
+  "budget": {
+    "minifiedBytes": 1385472,
+    "gzipBytes": 380463,
+    "caps": {
+      "minificado": 1382400,
+      "gzip": 379904,
+      "bloqueantes": 3
+    }
+  },
+  "superseded": {
+    "runId": 38410341236,
+    "headSHA": "a1245f19ac6a0bc3fe74d82fb5ff0d5e5220eb13",
+    "conclusion": "cancelled",
+    "focalExit": 1,
+    "focalPassed": 15,
+    "focalFailed": 9,
+    "reason": "second clicks behind open report and checkmark DOM split; fixture corrected, terminal logs/report preserved"
+  },
+  "limitations": [
+    "Candidate review only: Claude owns integration/catalogue/version/size decisions and publication",
+    "No main/beta,deploy,SQL/RLS,APK,real provider/DB call or local browser/full heavy runner",
+    "External browser requests blocked;96 attempts aborted; bank/DB mocks throughout",
+    "Global suite E2E/perf not executed; workflow final Privacy SKIPPED; focal24 cases executed separately",
+    "No VERSION,notes,catalogue,Retiro,descriptors or caps edited; generated assets assembled from source",
+    "Old results9798/ffeaf and historical claims/session/base remain immutable; B unclaimed until exact A release",
+    "Own checkout clean and node_modules junction removed; foreign FIN01 directory retained untouched"
+  ],
+  "schema": 1,
+  "taskId": "bancos-descarga-incompleta-revision-reservas-codex-20261013",
+  "actor": "codex",
+  "sessionId": "codex-local-20261013-download-rev-0ef9ba1da2a9",
+  "createdAt": "2026-10-13T15:11:10.252Z",
+  "released": true
+}
