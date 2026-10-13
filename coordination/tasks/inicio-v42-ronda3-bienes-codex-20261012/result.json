@@ -1,0 +1,434 @@
+{
+  "status": "done",
+  "summary": "Entrega del autor de Inicio ronda3 completada en PR204/fuente35808063. Node UTC/Madrid y nueve mutantes pasan;35b3307e acepta la evidencia del autor y asume expresamente los siete DOM, revisión independiente y validación de integración. Tamaño y cierre transitivo de Bienes declarados para integración; no GO ni publicación ni beta lista.",
+  "productSHA": "35808063938ae068b60160045c63cc754f33bc1f",
+  "PR": 204,
+  "repository": "JuanjoAvila/Aely",
+  "branch": "codex/inicio-flujos-47707522",
+  "executionBaseSHA": "788432f4682c199edd785f6973d9353330c0064a",
+  "runtimeSHA": "91e74813706366f62bf258812d21f85a55ce28a5",
+  "tests": [
+    {
+      "command": "npm run build",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run test:syntax",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/inicio-v42.test.mjs",
+      "environment": {
+        "TZ": "UTC"
+      },
+      "exitCode": 0,
+      "monetaryMutantsKilled": 9,
+      "evidence": "test-results/inicio-ronda3-node-UTC.log"
+    },
+    {
+      "command": "node tests/inicio-v42.test.mjs",
+      "environment": {
+        "TZ": "Europe/Madrid"
+      },
+      "exitCode": 0,
+      "monetaryMutantsKilled": 9,
+      "evidence": "test-results/inicio-ronda3-node-Madrid.log"
+    },
+    {
+      "command": "node tests/metas-pull-transport.test.mjs",
+      "exitCode": 0,
+      "casesPassed": 10
+    },
+    {
+      "command": "node tests/i18n-keys.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/security.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run test:privacy",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/auth-disposal.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/auth-disposal-fit.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/beta-sources.test.mjs --inicio-v42-only",
+      "exitCode": 0,
+      "coverage": "Catálogo119/Retiro119 actual e histórico;29 huellas web",
+      "evidence": "test-results/inicio-ronda3-beta-sources-focal.log"
+    },
+    {
+      "command": "node tests/presupuesto-rendimiento.test.mjs",
+      "exitCode": 1,
+      "reason": "347B minificados y41B gzip sobre los topes intactos; mínimo1330/365KiB aceptado expresamente para integración por35b3307e",
+      "evidence": "test-results/inicio-ronda3-size.log"
+    },
+    {
+      "command": "node --check e2e/inicio-v42.spec.mjs",
+      "exitCode": 0,
+      "syntaxOnly": true,
+      "notDOMEvidence": true
+    }
+  ],
+  "acceptance": [
+    {
+      "number": 1,
+      "change": "born sólo nace al guardar el alta en AssetSheet; montaje/pull/reinstalación no fabrican alta ni primer escalón",
+      "test": "tests/inicio-v42.test.mjs",
+      "cases": [
+        "callback real de Guardar",
+        "recordAssetValues con lista anterior vacía",
+        "cloudHome205100→205000"
+      ],
+      "exitCodeUTC": 0,
+      "exitCodeMadrid": 0
+    },
+    {
+      "number": 2,
+      "change": "Bien legado sin escalones constante a su valor actual hacia atrás y cobertura explícita es/en/ca; escalones reales limitan tramo conocido y alta explícita vale cero antes de su fecha",
+      "test": "tests/inicio-v42.test.mjs",
+      "cases": [
+        "legacyGood31000/31000/31000/16000",
+        "cloudHome205100→205000",
+        "steppedGood desde2026-08-15/195100",
+        "bought/revalued"
+      ],
+      "exitCodeUTC": 0,
+      "exitCodeMadrid": 0
+    },
+    {
+      "number": 3,
+      "change": "Sólo dos cuentas de flujo neutralizan patas propias; banco→manual con escalones cuenta la salida del banco",
+      "test": "tests/inicio-v42.test.mjs",
+      "cases": [
+        "bankToManual900/900/900/900"
+      ],
+      "exitCodeUTC": 0,
+      "exitCodeMadrid": 0
+    },
+    {
+      "number": 4,
+      "change": "Mueren las dos mutaciones supervivientes, manteniendo las siete anteriores",
+      "test": "tests/inicio-v42.test.mjs",
+      "cases": [
+        "misma cuenta empareja:600/300/600/600",
+        "bróker sin pista no recorta:inicio en próxima foto"
+      ],
+      "monetaryMutantsKilled": 9,
+      "exitCodeUTC": 0,
+      "exitCodeMadrid": 0
+    },
+    {
+      "number": 5,
+      "change": "Préstamo sin plazo amortiza históricamente el día de cuota conocido; sin día conserva y declara convención mensual. Fórmula de saldo actual de Deudas intacta",
+      "test": "tests/inicio-v42.test.mjs",
+      "cases": [
+        "noTermSeries sin salto de400 el día1; cuota500/amort400 da−100 el día4",
+        "sin día:convención anterior+timingUnknown",
+        "ancla0/último−1600 sin plazo; préstamo con plazo conserva−1200"
+      ],
+      "exitCodeUTC": 0,
+      "exitCodeMadrid": 0
+    },
+    {
+      "number": 6,
+      "change": "Callback real del pull con sesión nula u otro titular conserva el estado previo entero, local400 frente a nube14",
+      "test": "tests/inicio-v42.test.mjs",
+      "cases": [
+        "cloudCallback sessionRef.current=null",
+        "otro titular",
+        "mismo titular une y conserva referencias"
+      ],
+      "exitCodeUTC": 0,
+      "exitCodeMadrid": 0
+    },
+    {
+      "number": 7,
+      "change": "Conservados sin modificación: dos patas sin categoría entre propios, marcador de dueño en copia nube y texto0restante",
+      "validation": "Aceptación expresa del encargo667e; no se atribuye DOM nuevo del autor",
+      "changed": false
+    },
+    {
+      "number": 8,
+      "change": "Sin repetición FPS/A/B ni cambios de umbral; DOM7/revisión y funcional/rendimiento de integración transferidos expresamente a Claude35",
+      "authorDOMExecuted": false,
+      "authorPerformanceExecuted": false,
+      "authoritySHA": "35b3307e4cc1d86fa32188be952a644a9934bde3"
+    },
+    {
+      "number": 9,
+      "change": "Misma rama/PR204; entrega final remota35808063 y árbol exacto7df; código financiero91e74813. Sin VERSION/notas/catalogos/topes ni CI nueva",
+      "sourceSHA": "35808063938ae068b60160045c63cc754f33bc1f"
+    }
+  ],
+  "authority": {
+    "commit": "35b3307e4cc1d86fa32188be952a644a9934bde3",
+    "message": "coordination/messages/claude/incidente-runner-f5-resuelto-e-inicio-ronda3-la-revisa-claude-20261013.json",
+    "fullyRead": true,
+    "authorEvidenceAccepted": true,
+    "authorMayCloseDelivered": true,
+    "DOM7OwnedBy": "claude-local-20261012-b5569c89",
+    "shortIndependentReviewOwnedBy": "claude",
+    "fullFunctionalAndPerformanceOwnedBy": "claude integration",
+    "noAuthorDOMRequired": true
+  },
+  "sourceParity": {
+    "remoteSHA": "35808063938ae068b60160045c63cc754f33bc1f",
+    "historicalLocalCandidateSHA": "7dfc354447569a0672a08a4a4b9f43fceef15ce7",
+    "treeSHA": "220ce09fe5dc7a958594fb6282aeea4374cd2750",
+    "exactWholeTreeParity": true,
+    "parentSHA": "174c2c87b6991725ac00c072c14979dec44b2047",
+    "officialGitHubPublication": true,
+    "force": false,
+    "commitAndRefAndPRReadbackExact": true,
+    "sourceDirty": false,
+    "originalCandidateRetained": true
+  },
+  "scope": {
+    "minimalExtensions": [
+      "src/modules/07-tab-patri-fijos.js: únicamente callback Guardar de AssetSheet para acreditar alta del criterio1",
+      "src/modules/03-tab-dash.js: leyenda de cobertura de criterios2/5"
+    ],
+    "documentation": "docs/briefs/inicio-ronda3-bienes-20261012.md",
+    "noFinancialDebtCurrentFormulaChange": true,
+    "noBackendOrNativeChange": true,
+    "noVersionOrNotesOrCatalogOrCapsChange": true
+  },
+  "footprint": {
+    "measurement": {
+      "minifiedBytes": 1361243,
+      "gzipBytes": 372777,
+      "syntheticDSNBytes": 95,
+      "stamp": "4.26.119.99999",
+      "gzipLevel": 9,
+      "blockingFiles": 3
+    },
+    "currentCapsKiB": {
+      "minified": 1329,
+      "gzip": 364
+    },
+    "gateExitCode": 1,
+    "excessBytes": {
+      "minified": 347,
+      "gzip": 41
+    },
+    "minimumMeasuredKiB": {
+      "minified": 1330,
+      "gzip": 365
+    },
+    "authorCapsUnchanged": true,
+    "treatmentOwnedBy": "Claude integration",
+    "acceptedTransferAuthority": "35b3307e4cc1d86fa32188be952a644a9934bde3"
+  },
+  "integrationDependencies": {
+    "descriptor": "bienes-completo",
+    "addWithoutRemovingExisting": [
+      "recordAssetValues",
+      "netWorthDay",
+      "madridYmdParts"
+    ],
+    "owner": "Claude integration",
+    "acceptedAuthority": "35b3307e4cc1d86fa32188be952a644a9934bde3",
+    "authorRegistryUnchanged": true
+  },
+  "resource": {
+    "authorLeaseAcquired": false,
+    "authorChromeLaunched": false,
+    "authorResourceReleasePerformed": false,
+    "foreignIncidentF5ResolvedExpresslyBy": "35b3307e4cc1d86fa32188be952a644a9934bde3",
+    "foreignIncidentOwner": "claude-local-20261012-b5569c89",
+    "currentHeavyReservation": "08019762c057bd892cdfface3b71ee2be3388c1d",
+    "currentHeavyReservationRemainsInForce": true,
+    "coordinatorRunnerReleaseStillPending": true,
+    "thisResultReleasesOnlyOwnTask": true,
+    "noForeignLeaseAdopted": true,
+    "noCensusOrReturnForClosedIncidentRequired": true
+  },
+  "preservedPriorEvidence": {
+    "immutableResultCommit": "e90b7861f703e8a0e483334126becd9cdc6ee9d2",
+    "immutableResultPath": "coordination/tasks/inicio-v42-revision-nogo-codex-20261012/result.json",
+    "oldClaimNotRevived": true,
+    "prior13Reservations": [
+      {
+        "number": 1,
+        "change": "Saldo manual usa el importe real de Cartera; caso con ingreso modelado y cierres iguales permanece plano",
+        "proof": "tests/inicio-v42.test.mjs",
+        "historicalOnly": true
+      },
+      {
+        "number": 2,
+        "change": "Deuda histórica con amortización e interés; ancla mensual sin día recorta; bienes con escalones y alta acreditada",
+        "proof": "tests/inicio-v42.test.mjs",
+        "historicalOnly": true
+      },
+      {
+        "number": 3,
+        "change": "Aportaciones y retiradas propias entre fotos conservan patrimonio; sin atribución fiable recorta",
+        "proof": "tests/inicio-v42.test.mjs",
+        "historicalOnly": true
+      },
+      {
+        "number": 4,
+        "change": "Dos patas propias únicas/opuestas/próximas; excluye banco ausente, ingreso coincidente y ambigüedad",
+        "proof": "tests/inicio-v42.test.mjs",
+        "historicalOnly": true
+      },
+      {
+        "number": 5,
+        "change": "CSS spark restaurado; componente real legado medido con CSS servido, sin inventar puerta fullMode",
+        "proof": "e2e/cartera-inversiones.spec.mjs",
+        "historicalOnly": true
+      },
+      {
+        "number": 6,
+        "change": "Cuenta sin movimientos plana; efectivo no elimina tramo; límite real nombra cuenta y fecha",
+        "proof": "tests/inicio-v42.test.mjs y e2e/inicio-v42.spec.mjs",
+        "historicalOnly": true
+      },
+      {
+        "number": 7,
+        "change": "Información limitada a dos frases cortas en es/en/ca",
+        "proof": "src/modules/01-i18n.js y e2e/inicio-v42.spec.mjs",
+        "historicalOnly": true
+      },
+      {
+        "number": 8,
+        "change": "Horizontal claro o pulsación mantenida; scroll vertical no cambia importe ni fecha",
+        "proof": "e2e/inicio-v42.spec.mjs",
+        "historicalOnly": true
+      },
+      {
+        "number": 9,
+        "change": "Nube14/local400; unión por fecha preserva400 frente a cliente30 y separa propietarios",
+        "proof": "tests/inicio-v42.test.mjs",
+        "historicalOnly": true
+      },
+      {
+        "number": 10,
+        "change": "Guardado estable sin releer claves grandes; halo retirado, etiquetas memoizadas, fotos Madrid y restos propios retirados",
+        "proof": "tests/inicio-v42.test.mjs y e2e/inicio-v42.spec.mjs",
+        "historicalOnly": true
+      },
+      {
+        "number": 11,
+        "change": "Mes natural conserva diario, último día1, restante y porcentaje coherentes, inicio nuevo; racha de Inicio retirada",
+        "proof": "tests/inicio-v42.test.mjs y e2e/inicio-v42.spec.mjs",
+        "historicalOnly": true
+      },
+      {
+        "number": 12,
+        "change": "Siete mutantes ejecutados y muertos: céntimos, lápidas, manual actual, sobrado, no finito, primer manual, foto futura",
+        "proof": "tests/inicio-v42.test.mjs",
+        "historicalOnly": true
+      },
+      {
+        "number": 13,
+        "change": "Caché por porciones financieras/día; cinco archivos rendimiento14PASS; tres entradas estables en repetición prescrita del A/B",
+        "proof": "e2e/inicio-v42-rendimiento.spec.mjs y evidencia AB serial contra119",
+        "historicalOnly": true
+      }
+    ],
+    "oldReservationCount": 13,
+    "beta119MigrationRetained": true,
+    "prior29WebIdentitiesRetained": true,
+    "noApprovalInherited": true,
+    "nativeAndEdgeIdentityUnchanged": true,
+    "runtimeSource": "16d921c56d5b244bd4b9dd68a82244a5c505c305",
+    "DOMPass31HistoricalOnly": true,
+    "performancePass14HistoricalOnly": true,
+    "notEvidenceFor358": true,
+    "CI": [
+      {
+        "run": 38297577603,
+        "sourceSHA": "b61f0c5e8dbdc7daeb7b891c048f5759412ef737",
+        "exitCode": 1,
+        "failedStages": [
+          "docs-frescura",
+          "metas-pull-transport"
+        ],
+        "DenoFilesPassed": 7,
+        "functionalAndPerformancePWNotEntered": true,
+        "privacyWorkflowSkipped": true
+      },
+      {
+        "run": 38302108721,
+        "sourceSHA": "f274ef0465dd33ec1f9ba0cccbe7dd9cf20d254f",
+        "exitCode": 1,
+        "failedStages": [
+          "docs-frescura"
+        ],
+        "metasCasesPassed": 10,
+        "otherNodeAndDeno7Passed": true,
+        "functionalAndPerformancePWNotEntered": true,
+        "privacyWorkflowSkipped": true
+      }
+    ],
+    "noNewCI": true,
+    "AB": {
+      "sourceSHA": "16d921c56d5b244bd4b9dd68a82244a5c505c305",
+      "baselineSHA": "788432f4682c199edd785f6973d9353330c0064a",
+      "bothPassesAndAllSamplesRetained": true,
+      "first": {
+        "exitCode": 1,
+        "candidateFPS": [
+          44.66964,
+          45.33333,
+          60.00429
+        ],
+        "baselineFPS": [
+          36.70761,
+          31.7662,
+          35.29578
+        ]
+      },
+      "prescribedRepeat": {
+        "exitCode": 0,
+        "candidateFPS": [
+          60.00282,
+          60.00429,
+          59.99859
+        ],
+        "baselineFPS": [
+          45.00321,
+          45.71429,
+          44.47268
+        ]
+      },
+      "firstFailureCauseNotProven": true,
+      "noNewABFor358": true
+    }
+  },
+  "limitations": [
+    "DONE acredita sólo entrega del autor aceptada por35; no acredita revisión independiente GO, integración ni publicación",
+    "Siete DOM preparados en e2e/inicio-v42.spec.mjs pero NO ejecutados por el autor: Claude los asume expresamente",
+    "Node y los nueve mutantes son evidencia sintética; no prueban uso real ni aprobación móvil",
+    "El guardián de tamaño permanece EXIT1; mínimo1330/365 y tres dependencias de Bienes pertenecen a integración",
+    "Sin CI nueva, funcional completa, FPS/A/B ni Gradle del autor en esta ronda",
+    "La reserva pesada de Claude080 sigue vigente; released:true de esta tarea no libera ese runner",
+    "Sin push/merge a beta/main, assets servidos nuevos ni versión publicada; betaReady:false"
+  ],
+  "authorDeliveryComplete": true,
+  "reviewGO": false,
+  "integrated": false,
+  "published": false,
+  "betaReady": false,
+  "nextAction": "Claude realiza revisión independiente sobre358 y DOM7; integra, versiona/catalogo/tope/dependencias y valida/publica en su propio circuito. Aviso para móvil sólo tras nueva beta final publicada y servida con GO verificado.",
+  "schema": 1,
+  "taskId": "inicio-v42-ronda3-bienes-codex-20261012",
+  "actor": "codex",
+  "sessionId": "codex-local-20261012-inicio-ronda3-47707522",
+  "createdAt": "2026-10-13T00:02:57.289Z",
+  "released": true
+}
