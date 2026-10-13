@@ -1,0 +1,8 @@
+{
+  "schema": 1,
+  "taskId": "bancos-descarga-incompleta-revision-reservas-codex-20261013",
+  "actor": "codex",
+  "sessionId": "codex-local-20261013-download-rev-0ef9ba1da2a9",
+  "createdAt": "2026-10-13T13:23:32.319Z",
+  "baseSHA": "f5904735b514751ee926d25c22c92195b6ce3653"
+}
