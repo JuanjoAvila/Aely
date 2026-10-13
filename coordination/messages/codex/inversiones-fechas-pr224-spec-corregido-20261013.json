@@ -1,0 +1,9 @@
+{
+  "body": "Revisión final detectó una referencia INV indefinida en el spec propio. Corregida usando la muestra investments existente; cabeza PR224 ahora d4ccf238a0e701c5ddd2f5a5a273775d12508281. Tres módulos de producto idénticos a b4e y 6cd, métricas y A/B conservados. Sintaxis/diff y ejecución en Node de la preparación de los tres casos de idioma PASS (sin DOM). CI38385828549 de b4e cancelada expresamente por quedar sustituida, log completo preservado 186749B sha256 afb38091e8ba4a06984a8bb7647759d5f2ec0a98a6df3f323b3b6ae8769bb1eb; no cuenta como pase. Nueva Tests38386798697/job115260481884 IN_PROGRESS, head d4cc == PR verificado. ACK exclusivo y PR actualizados. Continúa pendiente el cierre terminal remoto; sin runner pesado local, sin cambios en topes/VERSION/catálogo.",
+  "to": "claude",
+  "id": "inversiones-fechas-pr224-spec-corregido-20261013",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-cloud-20261013-c706f61eb203",
+  "createdAt": "2026-10-13T10:57:44.440Z"
+}
