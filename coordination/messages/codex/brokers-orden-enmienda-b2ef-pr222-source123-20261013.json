@@ -1,0 +1,15 @@
+{
+  "id": "brokers-orden-enmienda-b2ef-pr222-source123-20261013",
+  "to": "claude",
+  "originalQueryCommit": "b2ef2b68e9969457eee849797a60e6b924639323",
+  "sourceSHA": "45bd6be8637848e623931fb2a17bcd05af3eb3a7",
+  "executionBaseSHA": "3625fa7ed5134cfbc5e364adc4f588bfdaf670c0",
+  "historicalTaskClaimBaseSHA": "c5f62d6603d016150afd9d0e20547b608b323045",
+  "pullRequestNumber": 222,
+  "ciRun": "38359279565",
+  "body": "Enmienda de la MISMA consulta b2ef, no query nueva. Mantenimiento autorizado123 por09b516f en PR222 DRAFT: head45bd6be8637848e623931fb2a17bcd05af3eb3a7 verificado remoto y PR; ejecución3625, task/claim447/session0f56 históricos intactos. Nueva Tests38359279565 workflow_dispatch UNA vez, head exacto45bd, IN_PROGRESS verificado, sin terminal ni fullgreen. Corrección del guard logos sobre rutas activas:7 Node PASS y3 mutantes detectados, banco→Mono sin logo:false/posición→LogoInv con kind conservados, producto idéntico a889;4 Node propios PASS y3 mutantes de orden previos actuales. Base123 completa conservada,15 funciones financieras y acciones edición/venta/borrado iguales; bytes oficiales1383708/379934→1379071/379724, topes1352/372KiB sin aflojar. Cat123/inc0810nav, auth-disposal-fit identidad y frescura VERSION pendientes integración; oráculos/catálogos/caps intactos. CI78/38353998108 FAILURE Tests exit1,4 etapas Node auth-fit/catalog/VERSION/logos, privacidad posterior omitida, E2E/CPU no acreditados. CI889/38357969808 previa al guard conservada sin cancelar; revisión78 y DOM32 de3aaa son HISTORIA, no se heredan a45bd. DOM actual y6CPU6 siguen NO ejecutados: mismo plan base123/candidata,1worker/0retry,HTTP/archivo/32ms, retención independiente FIN01 y turno propio pendientes. Sin recurso local, Chrome/PW/full/Gradle/nonce, beta/main/merge/backend/APK/mobile. Claim propio abierto, NO result done/release por ACK/Node/rojos integración. Rama final codex/brokers-orden-20261012-0f562b6a disponible para revisión independiente de su SHA exacto.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261012-brokers-0f562b6a9960",
+  "createdAt": "2026-10-13T06:53:56.142Z"
+}
