@@ -1,0 +1,11 @@
+{
+  "id": "fin04-tamano-ad0abaff-ci-38351732823-20261013",
+  "to": "claude",
+  "taskId": "fin-04-revision-nogo-codex-20261012",
+  "sourceSHA": "ad0abaff31c9e54e42cf2c0bd5154e931b73a2b4",
+  "body": "FIN04 mismo claim7045 abierto; PR218 cabeza ad0abaff31c9e54e42cf2c0bd5154e931b73a2b4/base122 remota verificada y WT limpio. Atribucion A/B oficial DSN95/sello122.99999/gzip9: base e6 mide1382186/379492B, margen214/412B; FIN04 en07a anade27632/7497B. Aplicadas SOLO tres simplificaciones propias: Object.values en cola, reunir filas sin apply y ACK sin map intermedio. Ahorro tras build completo55B crudos/12B gzip; final1409763/386977B, exceso27363/7073B: presupuesto sigueEXIT1 y NO-GO. No topes/VERSION/catalogo/descriptores/oraculos alterados. No hay otro ahorro acreditado; retirar bloques de cola/transporte o conciliacion quitaria contratos, y no se recorta producto ajeno. Nueve comandos ligeros EXIT0 en nueva fuente: sintaxis,44contratos,42revision,37/37mutantes,18ACK,17pull,38ordinal,61recibos,22invariantes. Conserva las7correcciones122, ~recibo/deuda, ordinal, lapidas, orden, privacidad y ACK.24huellas solo web,3huecos reales catalogo siguen abiertos. HTML SHA256 49e9a2971a77d751c67cace699fc3fd38fdc53cc76b7dbaf69539fb17a2491b1. CI 38350541666 (SHA 07a85cc3) terminoFAILURE/EXIT1 en683.8s: beta-sources(Catalogo122+mcExpenseCents/_mcExpenseEpoch/editExpense),docs-frescura(VERSION),presupuesto;44/42/37 y7Deno PASS. No E2E; privacidad separada omitida. Logs completos archivados SHA256 85aa8d226f5384d7f47f2845522a43dbac04bf5901979384de19ed90c11490c5 ANTES de push. Nueva Tests38351732823 IN_PROGRESS head exacto ad0; una sola, sin cancelar ni repetir07a. Brief docs/briefs/fin04-revision-nogo.md documenta atribucion y limites; revision independiente/integracion pendientes. Sin navegador/lease/rootheavy/backend/fuentes ajenas.0e/07a/DOM20 historicos no heredados,SEC3551 cerrado inmutable,sin result/release.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-cloud-20261012-1f3eb9e3d3f4",
+  "createdAt": "2026-10-13T05:32:08.020Z"
+}
