@@ -1,0 +1,167 @@
+{
+  "status": "blocked",
+  "summary": "PR227 draft preparada y verificada en remoto sobre124: pull inmediato, marcador React y dos frames tras commit, serie aplazada hasta ready o timeout. CI final FAILURE por catalogo/identidades, VERSION y tamano; META91 corregido PASS y siete suites Deno PASS. Sin DOM ni RAF CPU6/A-B ejecutados: mejora, calibracion y latencia offline/lenta pendientes. Entrega bloqueada, no GO ni publicacion.",
+  "productSHA": "e3b588b5bdbb805e045d53eb3cd8684c09135545",
+  "runtimeSHA": "f071851a143afc302c24f2783e74c571830a0a03",
+  "baseSHA": "3625fa7ed5134cfbc5e364adc4f588bfdaf670c0",
+  "claimBaseSHA": "3625fa7ed5134cfbc5e364adc4f588bfdaf670c0",
+  "executionBaseSHA": "f5904735b514751ee926d25c22c92195b6ce3653",
+  "branch": "codex/arranque-nube-47707522",
+  "pullRequest": 227,
+  "draft": true,
+  "tests": [
+    {
+      "command": "npm run build",
+      "exitCode": 0,
+      "phase": "local final product"
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0,
+      "blocks": 7,
+      "phase": "local final product"
+    },
+    {
+      "command": "node tests/arranque-nube-commit.test.mjs",
+      "exitCode": 0,
+      "detail": "actual callbacks and hook registration, staged commit, cleanup, pull and monthly settlement, baseline124 RED, marker-bypass mutant killed; no DOM or physical RAF"
+    },
+    {
+      "command": "node tests/metas-pull-transport.test.mjs",
+      "exitCode": 0,
+      "passed": 10,
+      "phase": "local final product"
+    },
+    {
+      "command": "node scripts/guard-privacy.mjs",
+      "exitCode": 0,
+      "phase": "local final product"
+    },
+    {
+      "command": "node tests/presupuesto-rendimiento.test.mjs",
+      "exitCode": 1,
+      "raw": 1384043,
+      "gzip": 379971,
+      "rawExcess": 619,
+      "gzipExcess": 67,
+      "blockingResources": 3,
+      "capsUntouched": true
+    },
+    {
+      "command": "Tests workflow_dispatch: node scripts/run-tests.mjs",
+      "exitCode": 1,
+      "runId": 38412232325,
+      "jobId": 115347258026,
+      "headSHA": "e3b588b5bdbb805e045d53eb3cd8684c09135545",
+      "durationSeconds": 1874.1,
+      "failed": [
+        "beta-sources",
+        "docs-frescura",
+        "presupuesto-rendimiento"
+      ],
+      "betaSourceFailures": [
+        "Catalogo124 closed fingerprint list",
+        "Retiro124 retired receipt web fingerprint changed"
+      ],
+      "META91": "PASS",
+      "startupUnit": "PASS",
+      "DenoSuitesPassed": 7,
+      "functionalPWExecuted": false,
+      "performancePWExecuted": false,
+      "workflowPrivacy": "SKIPPED"
+    }
+  ],
+  "localPreparation": {
+    "auth": 0,
+    "authFit": 0,
+    "i18n": 0,
+    "map": 0,
+    "security": 0,
+    "bankAck": 0,
+    "docsFreshness": 1,
+    "priorFocal123": 1,
+    "detail": "docs freshness: only candidate code after VERSION anchor; focal123: new transitive web fingerprints against closed catalog list"
+  },
+  "remoteCI": {
+    "runId": 38412232325,
+    "jobId": 115347258026,
+    "event": "workflow_dispatch",
+    "workflow": "test.yml",
+    "headSHA": "e3b588b5bdbb805e045d53eb3cd8684c09135545",
+    "status": "completed",
+    "conclusion": "failure",
+    "fullLogBytes": 370561,
+    "fullLogSHA256": "a785b6aa58c1c55bfc41a17c4b05e78aa9a7752cb4c1106fb7b4eeb1b6f18d07"
+  },
+  "previousCI": {
+    "runId": 38405882533,
+    "jobId": 115325244817,
+    "headSHA": "f071851a143afc302c24f2783e74c571830a0a03",
+    "status": "completed",
+    "conclusion": "failure",
+    "durationSeconds": 2502.2,
+    "META91ObsoleteLiteralFailed": true,
+    "fullLogBytes": 370612,
+    "fullLogSHA256": "4f8829059804ffc54d8dd0dc6c7d750d93648285b70b2203f652cc9785e919e5",
+    "detail": "test-only correction of META91 and semantic monthly-omission oracle; no product changes in final source"
+  },
+  "newE2E": {
+    "path": "e2e/rendimiento-arranque-nube.spec.mjs",
+    "registered": "CROSSCUTTING and serial performance group",
+    "cases": 6,
+    "sizes": [
+      2000,
+      20000
+    ],
+    "cpuRate": 6,
+    "windowMs": 3000,
+    "thresholdMs": 32,
+    "retries": 0,
+    "localExecuted": false,
+    "calibrationAccredited": false,
+    "ABPhysicalAccredited": false
+  },
+  "lagReuse": {
+    "pullRequest": 219,
+    "sourceSHA": "05704393b6e776659417bfffbd2df9f28ed7ffd0",
+    "detail": "RAF deltas and real node-removal window; render anchor. Prior fixture does not establish calibration for newer app_state"
+  },
+  "unchanged": [
+    "netWorthSeries implementation02",
+    "Patrimonio renderer03",
+    "lastPaydayOf04",
+    "budgetPeriodOf08",
+    "boot12",
+    "shell wait520/1800/8000",
+    "VERSION",
+    "source release notes and catalog",
+    "caps",
+    "bank sync on demand",
+    "backend"
+  ],
+  "resources": {
+    "localHeavyStarted": false,
+    "localDOMStarted": false,
+    "localPerformanceStarted": false,
+    "foreignFIN01ReturnObserved": false,
+    "ownHeavyAdmission": false,
+    "foreignResourcesModified": false,
+    "ownCIMonitorsTerminal": true,
+    "claim": "only this result releases this author claim; no foreign lease release"
+  },
+  "ready": false,
+  "limitations": [
+    "Physical before/after CPU6 RAF and offline/slow cloud latency unmeasured; local heavy unavailable because FIN01 resource retained",
+    "Actual new startup e2e has not run locally; calibration good/bad and RED baseline remain pending",
+    "Size exceeds124 by619/67B; no cap changes",
+    "Code identities change transitively; integration owns catalog, VERSION, notes, review and release",
+    "No real banking, backend, APK, beta/main push, deploy or device acceptance",
+    "Historical Inicio and PR204 do not close or validate this task"
+  ],
+  "schema": 1,
+  "taskId": "arranque-pinta-nube-antes-del-splash-codex-20261013",
+  "actor": "codex",
+  "sessionId": "codex-local-20261013-arranque-1aa78677",
+  "createdAt": "2026-10-13T14:52:32.467Z",
+  "released": true
+}
