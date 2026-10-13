@@ -324,9 +324,9 @@ test("5 · las lápidas se unen entre móviles, y «Deshacer» sigue teniendo vu
   assert.equal(j([u300.deleted.length,u300.deleted.indexOf("recien")>=0,u300.deleted.filter(k=>/^499-/.test(k)).length,u300.deleted.filter(k=>/^nube/.test(k)).length]),j([500,true,499,0]));
   const u500=c.lapidasUnion(mias,{deleted:Array.from({length:500},(_,i)=>"nube"+i)});
   assert.equal(j([u500.deleted.length,u500.deleted.indexOf("recien")>=0,u500.deleted.filter(k=>/^499-/.test(k)).length]),j([500,true,499]));
-  // Una decisión con hora no se cae aunque esté la primera de la lista.
-  const delante=c.lapidasUnion({deleted:["con-hora"].concat(viejas(499)),deletedAt:{"con-hora":5}},{deleted:Array.from({length:300},(_,i)=>"nube"+i)});
-  assert.equal(j([delante.deleted.length,delante.deleted.indexOf("con-hora")>=0]),j([500,true]));
+  // Una decisión con hora no se cae aunque venga de la nube, que es por donde corta el tope.
+  const delante=c.lapidasUnion({deleted:viejas(500)},{deleted:["con-hora"].concat(Array.from({length:299},(_,i)=>"nube"+i)),deletedAt:{"con-hora":5}});
+  assert.equal(j([delante.deleted.length,delante.deleted.indexOf("con-hora")>=0,delante.deleted.filter(k=>/^500-/.test(k)).length]),j([500,true,499]));
   // «Deshacer» levanta todas las copias de la clave: la lista nunca miró si ya estaba.
   assert.equal(j(c.lapidaLevanta({deleted:[key,"otra",key]},key,9).deleted),j(["otra"]));
   const llena=c.lapidaPon({deleted:viejas(500)},"recien",1000);
