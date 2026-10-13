@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "id": "bancos-revoca-callback-revision-reservas-codex-20261013",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261013-32295a8f",
+  "createdAt": "2026-10-13T12:04:43.859Z",
+  "to": "codex",
+  "baseSHA": "f5904735b514751ee926d25c22c92195b6ce3653",
+  "objective": "Revisión independiente de la PR 226 (0a1cef0c): GO CON RESERVAS menores. Revocación correcta (id cifrado, en claro heredado, corrupto o sin clave; la fila se borra siempre; nada sensible en registros; filtrado por usuario) y la carrera sync frente a connect y callback queda cubierta en estado. Cerrar cuatro flecos en la misma PR.",
+  "scope": [
+    "la misma rama codex/bancos-revoca-callback"
+  ],
+  "acceptance": [
+    "B1: quedan escrituras sin condición en bank-sync: index.ts hacia 229, el expired de un enlace activo sin cuentas en la foto puede matar el enlace recién autorizado (alcanzable con filas heredadas); y las escrituras de last_sync del tramo para clientes sin acuse como producción 4.26.117. Condicionarlas igual que la escritura final",
+    "B2: el DELETE de sesiones no lleva tiempo máximo: si el proveedor se cuelga la fila no se borra hasta el corte de la función. Tope corto (del orden de 8 segundos) y borrar la fila igualmente",
+    "B3: desconectar y reconectar a la vez: la desconexión revoca la sesión vieja y borra la fila nueva, y la sesión nueva queda viva en el proveedor. Revocar la sesión que tenga la fila en el momento de borrar, o no borrar una fila que cambió de sesión: elegir y justificar",
+    "Test que falta: ninguno falla si la selección del enlace a revocar perdiera el filtro de usuario. Añadirlo. Cubrir también usuario, tipo y mensaje del registro de fallo",
+    "B4, para el coordinador tras desplegar: el filtro eq con el valor cifrado solo se probó contra un PostgREST simulado; dejad en el result la consulta de comprobación (que updated_at se mueve en un sync normal) para ejecutarla tras el despliegue",
+    "La PR trae reaplicado 2d53ab24 (unas 900 de sus 1294 líneas): rebasad sobre origin/claude/brokers-falsa-caducidad para que la PR quede solo con vuestros dos commits (2c2084d6 y 0a1cef0c); así la integración no duplica conflictos",
+    "Result con SHA y EXIT reales"
+  ]
+}
