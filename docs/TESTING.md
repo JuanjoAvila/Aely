@@ -52,15 +52,21 @@ Lo que sigue describe la rama del autor antes de integrarse. El guardián vigent
 
 Las pruebas ligeras sobre fuentes no sustituyen el HTML generado: mientras falta el turno de build, el artefacto público sigue siendo el de117. Hay que ejecutar los tests ordinarios, el DOM completo y la comparación CPU×6 en el bundle nuevo, con20.000 movimientos,400 cierres y tres entradas de al menos50 FPS; sin rebajar umbral, subir retries ni heredar resultados de otro SHA. [Acta](briefs/inicio-rebase117-20261012.md).
 
-## Vigencia local de Mi ciclo · candidato sin publicar
+## Vigencia de Mi ciclo en Madrid · candidato sin publicar
 
 `node tests/widget-ciclo.test.mjs` ejecuta la [tabla compartida](../tests/fixtures/widget-ciclo.tsv)
-contra el módulo fuente web y `WidgetPeriod` Java real en UTC y Europe/Madrid, sin
-Gradle. Incluye días 1/31/44/45/46/60, cambio de mes, nómina nueva, mes natural,
-ambos cambios de hora y cobros alrededor de medianoche. [Regla](WIDGET-CICLO.md).
+contra el módulo fuente web y `WidgetPeriod` Java real con dispositivo en UTC,
+Madrid, Canarias, Santiago y Cairo, sin Gradle. La tabla completa se ejecuta también
+en `ingest/widget.test.ts` con Deno y permiso sólo de lectura de ese TSV, registrado
+en el runner. Incluye días 1/31/44/45/46/60, milisegundos, cobro de hoy y fronteras
+de Madrid en marzo/octubre; un barrido de 864 casos conserva cifras frente a b1d3c8e8
+cuando el dispositivo ya estaba en Madrid. [Regla](WIDGET-CICLO.md).
 `widget-puente-ciclo` añade decimal `.5` contra entero, liquidez nula/omitida tras
-un valor conocido y render nativo al caducar. `widget-banco` negocia explícitamente
-APK 53 y 54 en el DOM y comprueba el decimal solo para la 53, con alcance entero.
+un valor conocido y render nativo al caducar. Además pasa 36 fotos de días44/45/46
+por el Java inmutable de APK53/55 y el candidato56: la versión antigua recibe cifras
+y etiqueta de mes cuando rechazaría el ciclo. `widget-banco` prepara aserciones DOM
+exactas del porcentaje restante y negocia APK55/56 en el día45; sigue sin ejecutarse
+localmente mientras no haya reserva propia de navegador.
 No sustituye la CI del SHA ni la prueba en móvil con APK nueva.
 
 ## Pantalla de entrada nueva · contrato histórico4.26.117

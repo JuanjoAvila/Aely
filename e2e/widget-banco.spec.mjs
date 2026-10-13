@@ -354,7 +354,7 @@ for (const versionCode of [53,54]) for (const caso of [{ lang: "es" }, { lang: "
 
 test.describe("vigencia local del ciclo",()=>{
 test.use({timezoneId:"Europe/Madrid"});
-for(const day of [45,46]) test(`Mi ciclo día ${day}: Inicio y payload acuerdan el periodo`,async({page})=>{
+for(const versionCode of [55,56]) for(const day of [45,46]) test(`Mi ciclo día ${day}, APK ${versionCode}: Inicio y payload identifican su periodo`,async({page})=>{
   await page.clock.install({time:new Date(day===45?"2026-10-04T23:30:00+02:00":"2026-10-05T00:30:00+02:00")});
   await seedLoggedInDashboard(page,{__seedOnce:true,budget:1000,
     accounts:[{id:"tr",ent:"trade_republic",role:"diario",spendFrom:true,value:2000}],
@@ -363,14 +363,16 @@ for(const day of [45,46]) test(`Mi ciclo día ${day}: Inicio y payload acuerdan 
       {id:"salary",date:"2026-08-20T00:30:00",amount:-1800,merchant:"NOMINA SINTETICA",category:"ingreso",ent:"trade_republic"},
       {id:"purchase",date:"2026-09-02T12:00:00",amount:140,merchant:"Compra sintética",category:"super",ent:"trade_republic"}
     ]});
-  await bridgeV2(page);await page.goto("/");
-  await expect.poll(()=>page.evaluate(()=>window.__widgetSnapshot?.periodKind)).toBe(day===45?"ciclo":"mes");
-  const snap=await page.evaluate(()=>window.__widgetSnapshot),spent=day===45?140:0;
+  await bridgeV2(page,versionCode);await page.goto("/");
+  const cycle=day===45&&versionCode>=56;
+  await expect.poll(()=>page.evaluate(()=>window.__widgetSnapshot?.periodKind)).toBe(cycle?"ciclo":"mes");
+  const snap=await page.evaluate(()=>window.__widgetSnapshot),spent=cycle?140:0;
   expect(snap.spent).toBe(spent);expect(snap.budgetLeft).toBe(1000-spent);
-  expect(snap.periodStart).toBe(await page.evaluate(day=>day===45?new Date(2026,7,20).getTime():inicioDeMesMs(Date.now()),day));
+  expect(snap.periodStart).toBe(await page.evaluate(cycle=>cycle?new Date(2026,7,20).getTime():inicioDeMesMs(Date.now()),cycle));
+  expect(JSON.parse(snap.scope).slice(1,5)).toEqual([snap.periodStart,cycle?"ciclo":"mes",cycle?"neto":"gasto",cycle?"2026-08-20|-1800|NOMINA SINTETICA|salary":""]);
   await page.waitForFunction(()=>!document.getElementById("mc-load"));await dismissNews(page);
-  await expect(page.locator(".v42-cycle-amount>.serif")).toHaveText((1000-spent)+" €");
-  await expect(page.locator(".v4-budget .v4-ring")).toContainText((day===45?14:0)+"%");
+  await expect(page.locator(".v42-cycle-amount>.serif")).toHaveText((day===45?860:1000)+" €");
+  await expect(page.locator(".v4-budget .v4-ring")).toHaveText((day===45?86:100)+"%");
 });
 });
 

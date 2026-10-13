@@ -2155,7 +2155,10 @@ function App(){
     query();
     return function(){ vivo=false; clearTimeout(tm); };
   },[]);
-  const budW=wV2?dashboardBudgetStats(state):monthBudgetStats(state,Date.now());
+  let budW=wV2?dashboardBudgetStats(state):monthBudgetStats(state,Date.now());
+  // Hasta APK 55 la guarda cuenta horas: enviar un mes real, con sus cifras y alcance,
+  // cuando rechazaría el ciclo. Sin versionCode conocido se conserva esa compatibilidad.
+  if(budW.cycle && !(wV2>=56) && Date.now()-budW.periodStart>45*86400000) budW=monthBudgetStats(state,Date.now());
   const trAccW=widgetBankOf(state);
   const wPay=wV2&&budW.cycle?budgetPaydayOf(state,Date.now()):null;
   const wAnchor=wPay?keyOfExpense(wPay.inc):"";

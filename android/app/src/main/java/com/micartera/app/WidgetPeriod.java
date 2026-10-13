@@ -35,14 +35,15 @@ final class WidgetPeriod {
 
     static boolean cycleValid(long start, long now) {
         // Regla única: docs/WIDGET-CICLO.md. Restar horas caducaba antes que la web el día 45
-        // y tampoco representa días locales cuando el ciclo cruza un cambio de hora.
-        Calendar cut = Calendar.getInstance();
+        // y tampoco representa días de Madrid cuando el ciclo cruza un cambio de hora.
+        Calendar cut = Calendar.getInstance(TimeZone.getTimeZone("Europe/Madrid"));
         cut.setTimeInMillis(now);
+        // Primero la fecha, después su medianoche: no arrastrar una hora normalizada.
+        cut.add(Calendar.DAY_OF_MONTH, -45);
         cut.set(Calendar.HOUR_OF_DAY, 0);
         cut.set(Calendar.MINUTE, 0);
         cut.set(Calendar.SECOND, 0);
         cut.set(Calendar.MILLISECOND, 0);
-        cut.add(Calendar.DAY_OF_MONTH, -45);
         return start > 0 && start <= now && start >= cut.getTimeInMillis();
     }
 

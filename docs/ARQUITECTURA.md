@@ -40,6 +40,13 @@ V2 sigue dashboardBudgetStats de Inicio, declara ventana/ancla/magnitud/reservas
 
 ## Ingresos bancarios pendientes y futuros (INC-3009-02)
 
+Revisión candidata PR212 (13/10): `lastPaydayOf`, `WidgetPeriod.cycleValid` e ingest
+usan Madrid para ancla y vigencia, aunque el dispositivo esté en otra zona. El fin
+de ventana de `budgetPeriodOf` pertenece al encargo separado de tarjeta del mes;
+esta PR no lo modifica. Para APK anterior a56, el productor web recalcula mes natural
+si la guarda antigua rechazaría el ciclo y persiste ese mismo alcance para ingest.
+[Regla y orden de despliegue, todavía pendientes](WIDGET-CICLO.md).
+
 `importObExpenses` admite abonos con estado normalizado BOOK o ausente y fecha bancaria
 YYYY-MM-DD válida no posterior a hoy Madrid (`madridYmdParts`). Rechaza antes de seen/keys,
 permitiendo que el mismo abono futuro entre al llegar su día. PDNG y estados desconocidos no
