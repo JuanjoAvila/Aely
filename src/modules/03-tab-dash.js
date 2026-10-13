@@ -53,11 +53,17 @@ function NetWorthNow({tt, simple, series, splashGone}){
   const dateLabels=useMemo(function(){
     return points.map(function(p){return dateFmt.format(Date.parse(p.day+"T12:00:00Z"));});
   },[points,dateFmt]);
-  const coverageLabels=useMemo(function(){return (series.coverage||[]).map(function(g){
+  // El detalle por cuenta, bien y deuda vive en la «i»: entre la cifra y la gráfica era un muro
+  // de seis líneas (13/10). Dos cuentas con el mismo nombre y la misma nota salen una vez.
+  const coverageLabels=useMemo(function(){const seen={};return (series.coverage||[]).map(function(g){
     const name=g.name||t("v42_net_source_"+g.kind);
     if(g.timingUnknown)return tf("v42_net_debt_timing",{name:name});
-    return g.day?tf(g.prior?"v42_net_asset_prior":g.constant?"v42_net_asset_constant":"v42_net_coverage",{name:name,day:dateFmt.format(Date.parse(g.day+"T12:00:00Z"))}):name;
-  });},[series.coverage,dateFmt,language]);
+    if(g.kind==="debt")return tf(g.estimated?"v42_net_debt_estimated":"v42_net_debt_constant",{name:name});
+    if(!g.day)return g.constant?tf("v42_net_asset_kept",{name:name}):name;
+    const day=dateFmt.format(Date.parse(g.day+"T12:00:00Z"));
+    return tf(g.kind==="manual"&&g.prior?"v42_net_manual_prior":g.prior?"v42_net_asset_prior":g.constant?"v42_net_asset_constant":"v42_net_coverage",{name:name,day:day});
+  }).filter(function(label){ if(seen[label]) return false; seen[label]=true; return true; });},[series.coverage,dateFmt,language]);
+  const kept=(series.coverage||[]).some(function(g){ return g.constant||g.estimated; });
   useEffect(function(){ setTouch(null); },[range&&range.id]);
   useEffect(function(){ return function(){ cancelAnimationFrame(frameRef.current); }; },[]);
   useBackClose(info,function(){ setInfo(false); });
@@ -99,7 +105,6 @@ function NetWorthNow({tt, simple, series, splashGone}){
       p?p.sign+p.ent:"—", p&&React.createElement("span",null,","+(p.dec||"00")+" "+p.sym)),
     !valid&&React.createElement("div",{className:"hint",role:"status"}, t("v4_net_unknown")),
     valid&&series.length<2&&React.createElement("div",{className:"hint"},t(series.fresh?"v4_hist_empty":"v42_net_missing")),
-    valid&&coverageLabels.length>0&&React.createElement("div",{className:"hint","data-testid":"inicio-net-coverage"},coverageLabels.map(function(label,i){return React.createElement("div",{key:i},label);})),
     valid&&delta!=null&&React.createElement("div",{className:"v42-net-delta","data-testid":"inicio-net-delta",style:{color:color}},
       tf("v42_net_"+(delta<0?"less_":"more_")+range.id,{x:netWorthDeltaMoney(delta)})),
     valid&&chart&&React.createElement("div",{className:"v42-net-chart","data-noswipe":"1",onTouchStart:begin,onTouchMove:move,onTouchEnd:release,onTouchCancel:release},
@@ -116,7 +121,11 @@ function NetWorthNow({tt, simple, series, splashGone}){
     valid&&ranges.length>0&&React.createElement("div",{className:"v42-net-ranges"},ranges.map(function(r){
       return React.createElement("button",{key:r.id,type:"button","aria-pressed":range.id===r.id,onClick:function(){ setPicked(r.id); setTouch(null); }},t("v42_range_"+r.id));
     })),
-    info&&React.createElement("div",{className:"hint",role:"note"},t("v42_net_info"))
+    valid&&series.length>1&&coverageLabels.length>0&&React.createElement("div",{className:"hint","data-testid":"inicio-net-coverage"},
+      tf("v42_net_since",{day:dateFmt.format(Date.parse(series[0].day+"T12:00:00Z"))})+(kept?" · "+t("v42_net_kept"):"")),
+    info&&React.createElement("div",{className:"hint",role:"note"},
+      React.createElement("div",null,t("v42_net_info")),
+      coverageLabels.map(function(label,i){return React.createElement("div",{key:i,"data-testid":"inicio-net-detail"},label);}))
   );
 }
 function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGastos, onGoPlan, showToast}){

@@ -660,31 +660,38 @@ function netWorthDay(nowMs){
 function netWorthDebtPolicy(state, today, current){
   const parts=today.split("-").map(Number), month=parts[0]*12+parts[1]-1;
   let first="";
-  const debts=state.debts||[];
+  const debts=state.debts||[], notes=[];
+  // Hacia atrás se deshace el cuadro de cuotas que debtBalance aplica hacia delante: saldo de
+  // entonces = saldo de hoy + la amortización de cada cargo entre esa fecha y hoy, contado por
+  // el día de cuota. Así el día de la cuota la gráfica solo baja los intereses y el último punto
+  // es el saldo que pinta la app, también si el cargo de este mes aún no ha pasado.
+  const rebuilt=function(d){ return d.months==null&&debtAmort(d)>0&&Number(d.value)>0.005&&!d.settledAt; };
   const at=function(d,day){
-    const p=day.split("-").map(Number), ym=p[0]*12+p[1]-1;
+    const p=day.split("-").map(Number), charge=debtChargeDay(d);
     const anchor=typeof d.asOf==="number"?d.asOf:month;
-    let n=Math.max(0,ym-anchor);
-    if(d.months!=null&&debtChargeDay(d)<=p[2]) n++;
-    // Sin plazo, el saldo actual conserva su convención mensual. En el histórico
-    // la reducción espera al día conocido de cuota, evitando una ganancia el día1.
-    if(d.months==null&&dayOf(d)>0&&debtChargeDay(d)>p[2])n=Math.max(0,n-1);
+    const paidToday=(month-anchor)+(d.months!=null&&charge<=parts[2]?1:0);
+    const between=(month+(charge<=parts[2]?1:0))-((p[0]*12+p[1]-1)+(charge<=p[2]?1:0));
+    let n=paidToday-between;
+    // Con plazo, el ancla es el inicio del préstamo: antes no debía más que el saldo ancla.
+    // Sin plazo, la hipoteca o el préstamo existían ya; sin cuota o liquidada, se mantiene.
+    if(d.months!=null||!rebuilt(d)) n=Math.max(0,n);
     let value=Number(d.value)-debtAmort(d)*n;
     if(d.balloon>0&&d.months!=null&&n>=d.months) value-=d.balloon;
+    if(n<0&&d.original>0) value=Math.min(value,Math.max(Number(d.original),Number(d.value)));
     return Math.max(0,value);
   };
   debts.forEach(function(d){
-    // Un ancla mensual no acredita el día de alta: ese primer mes se recorta,
-    // salvo que exista una fecha explícita; así un préstamo no nace antes que el ingreso.
-    const anchor=typeof d.asOf==="number"?d.asOf:month;
+    // Sólo una fecha explícita acredita desde cuándo existe la deuda y recorta. El ancla mensual
+    // de una hipoteca o un préstamo dados de alta (o con el saldo corregido) antes de esta versión
+    // no dice cuándo nació: antes recortaba la serie a hoy y dejaba Inicio sin gráfica (13/10).
     const known=d.asOfDate||d.startDate;
-    const day=/^\d{4}-\d{2}-\d{2}$/.test(known||"")?known:
-      anchor===month?today:new Date(Date.UTC(Math.floor((anchor+1)/12),(anchor+1)%12,1,12)).toISOString().slice(0,10);
-    if(day>first) first=day;
+    if(/^\d{4}-\d{2}-\d{2}$/.test(known||"")){ if(known>first) first=known; return; }
+    const estimated=debtAmort(d)>0&&Number(d.value)>0.005&&!d.settledAt;
+    notes.push({kind:"debt",name:d.name,estimated:estimated,constant:!estimated});
   });
   const sum=function(day){ return debts.reduce(function(n,d){ return n+at(d,day); },0); };
   const value=current!=null?current:sum(today);
-  return {first:first,current:value,timingUnknown:debts.some(function(d){return d.months==null&&!(dayOf(d)>0);}),at:function(day){ return day===today?value:sum(day); }};
+  return {first:first,current:value,notes:notes,timingUnknown:debts.some(function(d){return d.months==null&&!(dayOf(d)>0);}),at:function(day){ return day===today?value:sum(day); }};
 }
 function netWorthSeries(state, options){
   options=options||{};
@@ -761,8 +768,11 @@ function netWorthSeries(state, options){
       flowBanks[bank]=true;
       if(firstByBank[bank]&&!cash) limits.push({day:firstByBank[bank],kind:"bank",name:r.item.name||(ENT[bank]&&ENT[bank].label)||bank});
     }else{
-      manual.push({value:values[i],points:points});
-      if(points.length) limits.push({day:points[0].day,kind:"manual",name:r.item.name||bank});
+      // Antes del primer cierre, la cuenta manual conserva ese primer saldo: es la misma
+      // aproximación que ya se hace sin historial y que un bien heredado, y un sobre de
+      // efectivo con un cierre de hace dos semanas recortaba toda la serie a esa fecha (13/10).
+      manual.push({value:values[i],points:points,before:points.length?points[0].value:0});
+      if(points.length) gaps.push({day:points[0].day,kind:"manual",name:r.item.name||bank,constant:true,prior:true});
     }
     if(points.length&&(!first||points[0].day<first)) first=points[0].day;
   });
@@ -802,15 +812,19 @@ function netWorthSeries(state, options){
     assetRows.push({value:value,points:points,before:legacy?points[0].value:0});
     if(legacy)gaps.push({day:points.length>1?points[1].day:today,kind:"asset",name:a&&a.name,constant:true,prior:true});
     else if(points.length){if(!points[0].born)limits.push({day:points[0].day,kind:"asset",name:a&&a.name});}
-    else if(a)gaps.push({day:today,kind:"asset",name:a.name,constant:true});
+    else if(a)gaps.push({kind:"asset",name:a.name,constant:true});
   });
   if(gaps.some(function(g){return g.unknown;}))return done();
   const debt=netWorthDebtPolicy(state,today,options.debtTotal);
   if(!Number.isFinite(debt.current)){gaps.push({kind:"debt",unknown:true});return done();}
   if(debt.timingUnknown)gaps.push({kind:"debt",timingUnknown:true});
+  debt.notes.forEach(function(n){gaps.push(n);});
   if(debt.first)limits.push({day:debt.first,kind:"debt"});
   let start=first||today;
   limits.forEach(function(l){if(l.day>start){start=l.day;gaps.push(l);}});
+  // Sólo el límite que fija el arranque explica algo: «Inversiones desde el 10 de agosto» con la
+  // gráfica empezando el 30 de septiembre era una línea más del muro de texto (13/10).
+  for(let i=gaps.length-1;i>=0;i--)if(gaps[i].day&&!gaps[i].constant&&gaps[i].day!==start)gaps.splice(i,1);
   if(start>today){gaps.push({kind:"debt",unknown:true});return done();}
   const liquid=options.liquid!=null?options.liquid:values.reduce(function(n,v){return n+v;},0);
   const assets=(state.assets||[]).reduce(function(n,a){return n+a.value;},0),manualNow=manual.reduce(function(n,m){return n+Math.round(m.value*100);},0);
