@@ -20,7 +20,7 @@ async function ciclo(page,caso){
 }
 
 for(const caso of idiomas) for(const limite of [
-  {name:"agotado",spent:1000,pct:"0%",over:false},
+  {name:"agotado",spent:1000,pct:"0%",over:false,state:"tight"},
   {name:"excedido",spent:1200,pct:"0%",over:true},
   {name:"reservado entero",spent:100,reserved:1000,pct:"0%",over:true},
   {name:"sin actividad",spent:0,pct:"100%",over:false,daily:333},
@@ -44,7 +44,7 @@ for(const caso of idiomas) for(const limite of [
   }else{
     await expect(dash.locator(".v4-ring .num")).toHaveText(limite.pct);
     await expect(dash.locator(".v42-cycle-amount>.serif")).toHaveText(String(1000-(limite.reserved||0)-limite.spent)+" €");
-    await expect(dash).toHaveAttribute("data-state",limite.over?"over":limite.spent===0?"comfort":"good");
+    await expect(dash).toHaveAttribute("data-state",limite.over?"over":limite.spent===0?"comfort":limite.state||"good");
     if(limite.daily) await expect(dash.getByTestId("inicio-cycle-pace")).toHaveText(caso.pace(limite.daily));
     else await expect(dash.getByTestId("inicio-cycle-pace")).toHaveCount(0);
   }
