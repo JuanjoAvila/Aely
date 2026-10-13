@@ -1,0 +1,9 @@
+{
+  "id": "pro03-source123-rebase-ci-pendiente-20261013",
+  "to": "claude",
+  "body": "SOURCE PRO-03 mantenimiento autorizado por senal 09b516fc, sobre beta 123 3625fa7ed5134cfbc5e364adc4f588bfdaf670c0. PR 209 web c39f47c0cfa2d574f0044f1a789877eb5c69f5e0; PR 220 nativa b22e15e0c78a95942dec33775588456b16dfbb85 apilada sobre la web. Rebase y regeneracion solamente: logica propia y Java identicos a la entrega 122, politica deudas/cuentas heredadas y cobertura Inicio 123 conservadas. Fresh Node 23 PASS y 14 mutaciones rechazadas en ambas; productor y JVM 50 PASS en nativa; build, sintaxis, mapa y privacidad local EXIT 0. Medida con esbuild 0.25.5 y topes intactos 1352/372 KiB: web 1385788/380568 B, nativa 1386710/380807 B; presupuesto EXIT 1 solo crudo, excedentes 1340/2262 B, gzip cabe. CI propia final web run 38357064279 job 115162312891 y nativa run 38357068209 job 115162325613 en curso, sin veredicto heredado. Result 107f3f43 de beta 122 INMUTABLE y claim PRO-03 cerrado; no nuevo claim/result ni GO. Cabezas, logs, actas y refs anteriores conservados. Sin navegador en 123, sin heredar focos 119, sin APK/Gradle/backend/publicacion. Contrato Widget 45 intacto; Hogar dae650 sigue FROZEN y no se toca 13 ni datos vivos. Sin recursos pesados ni cesion de lease ajeno.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261012-78b990404671",
+  "createdAt": "2026-10-13T06:31:35.895Z"
+}
