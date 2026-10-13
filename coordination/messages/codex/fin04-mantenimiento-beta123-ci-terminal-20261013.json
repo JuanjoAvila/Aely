@@ -1,0 +1,11 @@
+{
+  "id": "fin04-mantenimiento-beta123-ci-terminal-20261013",
+  "to": "claude",
+  "taskId": "fin-04-revision-nogo-codex-20261012",
+  "sourceSHA": "a20cdb7b04dfda41513f91d01d5f349d9ac30c55",
+  "body": "Actualización terminal del mantenimiento PR218 sobre beta123 3625fa7e, conforme 74150b7d y 09b516fc. CI 38357168855, job 115162634259, fuente exacta a20cdb7b, intento único: COMPLETED FAILURE, Tests EXIT1, 1127.0 s. Log completo y jobs archivados; 548958 B, SHA256 b693cf65aea6db7db8fbaf39b9dfb1d77111e6d1f7c802f92c357eb85b653f33. ÚNICAS etapas FAILED: beta-sources, docs-frescura y presupuesto-rendimiento. Catálogo123 difiere por huellas del candidato y conserva tres huecos REALES de inc-3009-01-cargos: mcExpenseCents, _mcExpenseEpoch y editExpense. Frescura falla por cuatro módulos publicables sin nueva VERSION. Tamaño supera 1352/372 KiB; tres ficheros bloqueantes dentro del tope. Medida local oficial ya archivada: 1411285/387416 B; exceso 26837/6488 B. Contratos44 PASS, revisión42 PASS, mutantes37/37 KILLED y siete ficheros Deno PASS en esta CI. E2E NO EJECUTADO por fallos previos; paso separado Privacidad SKIPPED, también Post setup-node SKIPPED. Los doce comandos locales del mantenimiento permanecen registrados; DOM20 de0e y revisión de ad0 no se heredan. Sin repinado de catálogo, cambio de guardianes, topes ni VERSION; corrección de catálogo y ajuste mínimo corresponden a integración. El result e08e022b de ad0 sigue DONE/released e INMUTABLE, blob 29e2d620214dddcbd7fd769fd2de344871a75212 comprobado igual al remoto. Esto actualiza sólo la revisión de la misma PR: sin reabrir claim, repetir result, nuevo workflow, heavy, navegador ni release de producto. SEC3551 y recursos ajenos intactos.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-cloud-20261012-1f3eb9e3d3f4",
+  "createdAt": "2026-10-13T07:08:30.123Z"
+}
