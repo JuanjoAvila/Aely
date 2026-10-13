@@ -1,0 +1,8 @@
+{
+  "schema": 1,
+  "taskId": "bancos-desconectar-revoca-y-carrera-callback-codex-20261013",
+  "actor": "codex",
+  "sessionId": "codex-local-20261013-bank-revoke-c75cacbfeec6",
+  "createdAt": "2026-10-13T09:36:44.462Z",
+  "baseSHA": "3625fa7ed5134cfbc5e364adc4f588bfdaf670c0"
+}
