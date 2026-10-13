@@ -35,6 +35,8 @@ const source119=sourceAt("788432f4682c199edd785f6973d9353330c0064a");
 const source120=sourceAt("4e927e3346bb9f91aaeb048d8d55cbf2d02c57f2");
 // Integración122: la 4.26.121 preparada (2de328d6), sobre la que se integra el cargo de recibo en Gastos.
 const source121=sourceAt("2de328d63418f19f7d15a2cb86abfc263aa7bf6f");
+// Integración123: la 4.26.122 preparada (e6e211a5), sobre la que se corrige la gráfica de Inicio con deudas heredadas.
+const source122=sourceAt("e6e211a5d94e50b03597d5c91230c974d3e72232");
 // La122 añade un método a `cloud` (`setExpenseRecibo`) y los alcances que listan los métodos que
 // leen lo ganan al final de su lista. Las comparaciones con descriptores anteriores lo descuentan;
 // Catálogo122 fija en lista cerrada cuáles son.
@@ -58,7 +60,7 @@ const boot="inc-2709-01-arranque-red";
 const modern=[{v:"4.26.69",tandas:[{id:boot}]}];
 let failed=0;
 const inicioOnly=process.argv.includes("--inicio-v42-only");
-function test(name,fn){ if(inicioOnly&&!name.startsWith("Inicio v4.2 ")&&!name.startsWith("Catálogo122 ")&&!name.startsWith("Catálogo121 ")&&!name.startsWith("Catálogo120 ")&&!name.startsWith("Catálogo114 ")&&!name.startsWith("Catálogo117 ")&&!name.startsWith("Retiro117 ")&&!name.startsWith("Catálogo118 ")&&!name.startsWith("Splash117 ")&&!name.startsWith("Catálogo119 ")&&!name.startsWith("Retiro119 "))return;try{fn();console.log("  ✓ "+name);}catch(e){failed++;console.error("  ✗ "+name+"\n    "+e.message);} }
+function test(name,fn){ if(inicioOnly&&!name.startsWith("Inicio v4.2 ")&&!name.startsWith("Catálogo123 ")&&!name.startsWith("Catálogo122 ")&&!name.startsWith("Catálogo121 ")&&!name.startsWith("Catálogo120 ")&&!name.startsWith("Catálogo114 ")&&!name.startsWith("Catálogo117 ")&&!name.startsWith("Retiro117 ")&&!name.startsWith("Catálogo118 ")&&!name.startsWith("Splash117 ")&&!name.startsWith("Catálogo119 ")&&!name.startsWith("Retiro119 "))return;try{fn();console.log("  ✓ "+name);}catch(e){failed++;console.error("  ✗ "+name+"\n    "+e.message);} }
 console.log("beta-sources");
 
 // La rayita comparte controlador y geometría con la barra: una aprobación de CSS aislada no
@@ -1503,7 +1505,9 @@ test("Catálogo121 histórico añade la tanda de Inicio v4.2 sobre la120 y decla
 // tocar, y el panel enseña las cuatro. Lista cerrada frente a la121: qué descriptores crecen, qué
 // huellas se mueven y por qué. Ninguna juzgada y retirada vuelve.
 const expected122={"v":"4.26.122","d":"2026-10-13","t":{"es":"Los recibos del banco, también en Gastos","en":"Bank bill charges, now in Spending too","ca":"Els rebuts del banc, també a Despeses"},"items":{"es":["Los cargos del banco que pagan un recibo de tu Plan ahora también se ven en Gastos, marcados con el nombre del recibo. No se cuentan dos veces: lo gastado y los saldos siguen igual.","Si la app se equivoca de recibo, abre el movimiento y pulsa «No es este recibo»: pasará a contar como un gasto más. Y si te arrepientes, se puede deshacer desde el mismo movimiento."],"en":["Bank charges that pay a bill in your Plan now also show in Spending, labelled with the bill's name. They are not counted twice: your spending and balances stay the same.","If the app picks the wrong bill, open the transaction and tap “Not this bill”: it will count as regular spending. And if you change your mind, you can undo it from the same transaction."],"ca":["Els càrrecs del banc que paguen un rebut del teu Pla ara també es veuen a Despeses, marcats amb el nom del rebut. No es compten dues vegades: el que has gastat i els saldos continuen igual.","Si l'app s'equivoca de rebut, obre el moviment i prem «No és aquest rebut»: passarà a comptar com una despesa més. I si te'n penedeixes, es pot desfer des del mateix moviment."]},"tandas":[{"id":"recibo-cargo-en-gastos","t":{"es":"Recibos: el cargo del banco se ve en Gastos sin contar dos veces","en":"Bills: the bank charge shows in Spending without counting twice","ca":"Rebuts: el càrrec del banc es veu a Despeses sense comptar dues vegades"},"items":{"es":["1. Antes de sincronizar, apunta tres cifras: lo gastado del mes (cabecera de Gastos), el saldo de cada cuenta en Cartera y la cifra del widget de Aely. Después, en Cartera, dentro de «Tus cuentas», toca el icono «Sincronizar bancos» y espera a que termine. Las tres cifras son las mismas de antes, salvo por lo que sumen los movimientos nuevos que entren como un gasto normal (de Trade Republic pueden entrar varios que faltaban: es la tanda de más abajo). Está mal si lo gastado sube, o un saldo baja, justo por el importe de un recibo que ya tenías en Plan.","2. Abre Gastos: los adeudos de este mes que pagan un recibo de tu Plan salen atenuados y con el rótulo «Recibo: » y su nombre, o con interrogación («¿Recibo: Agua?») si solo se parece. Si tus recibos se cobran en una cuenta que no es de gasto diario, toca el botón de filtros (🎛️), elige «Todos los bancos» y pulsa «Listo» para verlos. Lo que ya salía en Gastos como un gasto normal sigue igual. Está mal si no sale ninguno aunque el banco ya haya cobrado recibos este mes.","3. Abre uno de esos movimientos (mejor uno que diga «Recibo: …», sin interrogación, y que tenga ya varios días) y pulsa «No es este recibo». El saldo de la cuenta no se mueve y, en Plan → Recibos, ese recibo vuelve a estar pendiente. Si la cuenta es de gasto diario, lo gastado del mes y el widget suben justo ese importe; si no lo es, no cambian y el movimiento pasa a decir «no es del día a día».","4. En esa misma ficha, toca «Paga un recibo», elige el mismo recibo y pulsa «Confirmar pago completo»: el movimiento vuelve a decir «Recibo: …», lo gastado y el widget vuelven a la cifra que tenían antes de pulsar «No es este recibo» y el recibo vuelve a salir pagado en Plan.","5. Abre Plan → Recibos y despliega «Ya has pagado»: están los recibos que el banco ha cobrado este mes, cada uno una sola vez."],"en":["1. Before syncing, note down three figures: the amount spent this month (Spending header), the balance of each account in Portfolio and the figure on the Aely widget. Then, in Portfolio, inside “Your accounts”, tap the “Sync banks” icon and wait for it to finish. The three figures are the same as before, except for whatever new transactions add when they come in as regular spending (several missing ones may come in from Trade Republic: that is the round further down). It is wrong if the amount spent goes up, or a balance goes down, by exactly the amount of a bill you already had in Plan.","2. Open Spending: this month's bank charges that pay a bill in your Plan show dimmed and labelled “Bill: ” plus its name, or with a question mark (“Bill: Water?”) if it only looks like it. If your bills are charged to an account that is not for daily spending, tap the filters button (🎛️), choose “All banks” and press “Done” to see them. Anything that already showed in Spending as regular spending stays the same. It is wrong if none shows although the bank has already charged bills this month.","3. Open one of those transactions (best one that says “Bill: …”, with no question mark, and that is already a few days old) and tap “Not this bill”. The account balance does not move and, in Plan → Bills, that bill goes back to pending. If the account is for daily spending, the amount spent this month and the widget go up by exactly that amount; if it is not, they do not change and the transaction now says “not day-to-day”.","4. On that same transaction, tap “Pays a bill”, choose the same bill and press “Confirm full payment”: the transaction says “Bill: …” again, the amount spent and the widget go back to the figure they had before you tapped “Not this bill”, and the bill shows as paid again in Plan.","5. Open Plan → Bills and unfold “You already paid”: the bills the bank has charged this month are there, each one only once."],"ca":["1. Abans de sincronitzar, apunta tres xifres: el que has gastat aquest mes (capçalera de Despeses), el saldo de cada compte a Cartera i la xifra del widget d'Aely. Després, a Cartera, dins de «Els teus comptes», toca la icona «Sincronitza els bancs» i espera que acabi. Les tres xifres són les mateixes d'abans, tret del que sumin els moviments nous que entrin com una despesa normal (de Trade Republic en poden entrar uns quants que faltaven: és la tanda de més avall). Està malament si el que has gastat puja, o un saldo baixa, just per l'import d'un rebut que ja tenies al Pla.","2. Obre Despeses: els càrrecs d'aquest mes que paguen un rebut del teu Pla surten atenuats i amb el rètol «Rebut: » i el seu nom, o amb interrogant («Rebut: Aigua?») si només s'hi assembla. Si els teus rebuts es cobren en un compte que no és de despesa diària, toca el botó de filtres (🎛️), tria «Tots els bancs» i prem «Fet» per veure'ls. El que ja sortia a Despeses com una despesa normal continua igual. Està malament si no en surt cap tot i que el banc ja ha cobrat rebuts aquest mes.","3. Obre un d'aquests moviments (millor un que digui «Rebut: …», sense interrogant, i que ja tingui uns quants dies) i prem «No és aquest rebut». El saldo del compte no es mou i, a Pla → Rebuts, aquest rebut torna a estar pendent. Si el compte és de despesa diària, el que has gastat aquest mes i el widget pugen just aquest import; si no ho és, no canvien i el moviment passa a dir «no és del dia a dia».","4. En aquesta mateixa fitxa, toca «Paga un rebut», tria el mateix rebut i prem «Confirmar pagament complet»: el moviment torna a dir «Rebut: …», el que has gastat i el widget tornen a la xifra que tenien abans de prémer «No és aquest rebut» i el rebut torna a sortir pagat al Pla.","5. Obre Pla → Rebuts i desplega «Ja has pagat»: hi ha els rebuts que el banc ha cobrat aquest mes, cadascun una sola vegada."]}}]};
-test("Catálogo122 añade la tanda del cargo de recibo en Gastos sobre la121 y declara cada descriptor que crece y cada huella que mueve",()=>{
+// Catálogo cerrado: desde la123 se lee de su commit inmutable (la123 añade nota y vuelve a presentar la tanda de Inicio).
+test("Catálogo122 histórico añade la tanda del cargo de recibo en Gastos sobre la121 y declara cada descriptor que crece y cada huella que mueve",()=>{
+  const read=source122;
   const id="recibo-cargo-en-gastos",inicio="inicio-patrimonio-flujos",tr="tr-iguales-ordinal",bancos="bancos-acuse-reconexion";
   const integrated=JSON.parse(source121("scripts/beta-sources.json")),before=JSON.parse(source121("src/data/release-notes.json"));
   const expectedNotes=[expected122,...before];
@@ -1822,14 +1826,121 @@ test("Catálogo122 añade la tanda del cargo de recibo en Gastos sobre la121 y d
   for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica","native"])assert.equal(group[key],undefined,"identidad nueva sin "+key);
 });
 
+// 4.26.123 (13/10/2026): la gráfica de Inicio aparece desde el primer día, también con hipoteca o
+// préstamos dados de alta de antes. La 121 se vio en un móvil real SIN gráfica: nadie la había
+// probado con deudas heredadas. Sin alcance nuevo: el registro no cambia y sólo se mueven dos
+// huellas (Inicio y la gráfica113), por el cuadro de deudas hacia atrás, la cuenta manual mantenida
+// y la «i». La tanda de Inicio sale de la nota 121 y se vuelve a presentar aquí con el paso 2
+// corregido. Lista cerrada frente a la122.
+const expected123={"v":"4.26.123","d":"2026-10-13","t":{"es":"Inicio: la gráfica, desde el primer día","en":"Home: the chart, from day one","ca":"Inici: la gràfica, des del primer dia"},"items":{"es":["La gráfica de Inicio ya aparece desde el primer día, también con hipoteca o préstamos dados de alta de antes, y los avisos van recogidos en la «i».","Bajo la gráfica, una sola línea dice desde qué fecha se dibuja. El detalle de cada cuenta, bien y deuda (desde cuándo hay datos y qué valores se mantienen) está en la «i» junto a «Patrimonio neto»."],"en":["The Home chart now shows from day one, also with a mortgage or loans added before, and the notices are gathered in the “i”.","Under the chart, a single line says from which date it is drawn. The detail for each account, property item and debt (from when there is data and which values are kept) is in the “i” next to “Net worth”."],"ca":["La gràfica d'Inici ja apareix des del primer dia, també amb hipoteca o préstecs donats d'alta d'abans, i els avisos van recollits a la «i».","Sota la gràfica, una sola línia diu des de quina data es dibuixa. El detall de cada compte, bé i deute (des de quan hi ha dades i quins valors es mantenen) és a la «i» al costat de «Patrimoni net»."]},"tandas":[{"id":"inicio-patrimonio-flujos","t":{"es":"Inicio: la gráfica de tu patrimonio y cuánto puedes gastar al día","en":"Home: your net worth chart and how much you can spend per day","ca":"Inici: la gràfica del teu patrimoni i quant pots gastar al dia"},"items":{"es":["1. Abre Inicio y apunta la cifra grande de arriba, con sus céntimos. Ve a Cartera: su cifra grande, con todos los bloques activados (cuentas, inversiones y bienes, menos deudas), es la misma al céntimo. Está mal si difieren, aunque sea en un céntimo.","2. Vuelve a Inicio: la gráfica aparece bajo la cifra y arranca hace unos días o semanas, no hoy. Entre la cifra y la gráfica no hay ningún texto; bajo los periodos hay, como mucho, una línea del estilo «Gráfica desde…». Toca la «i» que hay junto a «Patrimonio neto»: sale desde cuándo hay datos de cada cosa (tus cuentas, tus bienes, tus deudas, tus inversiones) y qué valores se mantienen. Está mal si no sale la gráfica, si empieza hoy, si dice «Todavía no hay gráfica» o si hay texto entre la cifra y la gráfica.","3. Mantén el dedo sobre la gráfica y muévelo a los lados: encima de la cifra aparece una fecha y la cifra pasa a ser la de ese día. Al soltar, vuelve la de hoy. Ahora desliza hacia abajo empezando con el dedo sobre la gráfica: la pantalla se mueve y la cifra no cambia.","4. Mira la tarjeta «Este mes» (o «Este ciclo»): «Te quedan X de Y» coincide con lo que marca Gastos. Debajo dice cuánto puedes gastar al día y durante cuántos días, contando hoy. Si ya te has pasado del presupuesto, esa línea no sale y no cuenta como fallo.","5. Bajo la gráfica, toca uno a uno los periodos (1M, 6M, 1A, Todo): la frase de color cambia con cada uno («… más que hace un mes», «… menos que hace 6 meses») y la gráfica se vuelve a dibujar. Solo salen los periodos para los que hay datos: si falta alguno, es lo esperado."],"en":["1. Open Home and note down the big figure at the top, cents included. Go to Portfolio: its big figure, with every block switched on (accounts, investments and property, minus debts), is the same to the cent. It is wrong if they differ, even by one cent.","2. Go back to Home: the chart appears under the figure and starts a few days or weeks back, not today. There is no text between the figure and the chart; under the periods there is, at most, one line along the lines of “Chart from…”. Tap the “i” next to “Net worth”: it says from when there is data for each thing (your accounts, property, debts, investments) and which values are kept. It is wrong if the chart does not show, if it starts today, if it says “No chart yet” or if there is text between the figure and the chart.","3. Keep your finger on the chart and move it sideways: a date appears above the figure and the figure becomes the one for that day. When you let go, today's figure comes back. Now swipe down starting with your finger on the chart: the screen scrolls and the figure does not change.","4. Look at the “This month” (or “This cycle”) card: “Left to spend X of Y” matches what Spending shows. Below, it says how much you can spend per day and for how many days, counting today. If you are already over budget, that line does not show and it does not count as a failure.","5. Under the chart, tap the periods one by one (1M, 6M, 1Y, All): the coloured sentence changes with each one (“… more than a month ago”, “… less than 6 months ago”) and the chart is drawn again. Only the periods that have data are offered: if one is missing, that is expected."],"ca":["1. Obre Inici i apunta la xifra gran de dalt, amb els cèntims. Ves a Cartera: la seva xifra gran, amb tots els blocs activats (comptes, inversions i béns, menys deutes), és la mateixa al cèntim. Està malament si són diferents, encara que sigui d'un cèntim.","2. Torna a Inici: la gràfica apareix sota la xifra i comença fa uns dies o setmanes, no avui. Entre la xifra i la gràfica no hi ha cap text; sota els períodes hi ha, com a molt, una línia de l'estil «Gràfica des de…». Toca la «i» que hi ha al costat de «Patrimoni net»: surt des de quan hi ha dades de cada cosa (els teus comptes, béns, deutes, inversions) i quins valors es mantenen. Està malament si no surt la gràfica, si comença avui, si diu «Encara no hi ha gràfica» o si hi ha text entre la xifra i la gràfica.","3. Mantén el dit sobre la gràfica i mou-lo cap als costats: damunt de la xifra apareix una data i la xifra passa a ser la d'aquell dia. En deixar anar, torna la d'avui. Ara llisca cap avall començant amb el dit sobre la gràfica: la pantalla es mou i la xifra no canvia.","4. Mira la targeta «Aquest mes» (o «Aquest cicle»): «Et queden X de Y» coincideix amb el que marca Despeses. A sota diu quant pots gastar al dia i durant quants dies, comptant avui. Si ja t'has passat del pressupost, aquesta línia no surt i no compta com a error.","5. Sota la gràfica, toca un a un els períodes (1M, 6M, 1A, Tot): la frase de color canvia amb cadascun («… més que fa un mes», «… menys que fa 6 mesos») i la gràfica es torna a dibuixar. Només surten els períodes per als quals hi ha dades: si en falta algun, és el que s'espera."]}}]};
+test("Catálogo123 vuelve a presentar la tanda de Inicio sobre la122 sin alcance nuevo y declara las dos huellas que mueve",()=>{
+  const inicio="inicio-patrimonio-flujos",recibo="recibo-cargo-en-gastos",tr="tr-iguales-ordinal",bancos="bancos-acuse-reconexion",grafica="inicio-grafica-vuelve";
+  const integrated=JSON.parse(source122("scripts/beta-sources.json")),before=JSON.parse(source122("src/data/release-notes.json"));
+  assert.equal(before[1].v,"4.26.121");assert.deepEqual(before[1].tandas.map(g=>g.id),[inicio]);
+  const expectedNotes=[expected123,before[0],{...before[1],tandas:[]},...before.slice(2)];
+  const source=f=>read(f).replace(/\r\n/g,"\n"),old=f=>source122(f).replace(/\r\n/g,"\n");
+  const notes=JSON.parse(source("src/data/release-notes.json"));
+  assert.deepEqual(notes,expectedNotes,"la nota 123 literal delante, la 121 sin su tanda y el resto del catálogo122 intacto");
+  assert.deepEqual(notes.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id,g.apk||0])),[["4.26.123",inicio,0],["4.26.122",recibo,0],["4.26.120",tr,0],["4.26.120",bancos,0]],"el panel enseña la tanda de Inicio con la 123, la del cargo de recibo y las dos de la 120, sin APK");
+  for(const n of notes.slice(4))assert.deepEqual(n.tandas,[],n.v+": ni resucita /todo ni vuelve una tanda juzgada o entregada");
+  for(const key of [inicio,recibo,tr,bancos])assert.equal(notes.flatMap(n=>n.tandas||[]).filter(g=>g.id===key).length,1,key+": una sola vez en todo el catálogo");
+  assert.deepEqual(Object.keys(notes[0].tandas[0]),["id","t","items"],"la misma identidad, sin alias ni revisión heredada");
+  // La tanda es la de la 121 con el paso 2 corregido, en los tres idiomas: ya no pide una línea
+  // por bien entre la cifra y la gráfica, sino la gráfica bajo la cifra y el detalle en la «i».
+  const prior=before[1].tandas[0];
+  assert.deepEqual(notes[0].tandas[0].t,prior.t,"mismo título");
+  for(const lang of ["es","en","ca"]){
+    assert.equal(notes[0].items[lang].length,2,lang+": dos puntos familiares");
+    const steps=notes[0].tandas[0].items[lang];assert.equal(steps.length,5,lang+": cinco pasos");
+    steps.forEach((step,i)=>assert.ok(step.startsWith((i+1)+". "),lang+": paso numerado "+(i+1)));
+    assert.deepEqual(steps.filter((_,i)=>i!==1),prior.items[lang].filter((_,i)=>i!==1),lang+": sólo cambia el paso 2");
+    assert.notEqual(steps[1],prior.items[lang][1],lang+": el paso 2 cambia");
+    assert.equal(/valor propio desde|own value from|valor propi des de/.test(steps[1]),false,lang+": el paso 2 ya no pide una línea por bien entre la cifra y la gráfica");
+    for(const text of steps)assert.equal(/borra|quita este|delete|remove|esborra|treu aquest|mañana|tomorrow|demà/i.test(text),false,lang+": ningún paso borra nada ni espera a otro día");
+  }
+  // Cada rótulo que cita el paso 2 es el texto real de la app, en su idioma.
+  const literal={es:["«Gráfica desde…»","«Patrimonio neto»","«Todavía no hay gráfica»"],en:["“Chart from…”","“Net worth”","“No chart yet”"],ca:["«Gràfica des de…»","«Patrimoni net»","«Encara no hi ha gràfica»"]};
+  const enFuente={es:['v42_net_since:"Gráfica desde {day}"','d_networth:"Patrimonio neto"','v42_net_missing:"Todavía no hay gráfica:'],en:['v42_net_since:"Chart from {day}"','d_networth:"Net worth"','v42_net_missing:"No chart yet:'],ca:['v42_net_since:"Gràfica des de {day}"','d_networth:"Patrimoni net"','v42_net_missing:"Encara no hi ha gràfica:']};
+  const textos=source("src/modules/01-i18n.js");
+  for(const lang of ["es","en","ca"])literal[lang].forEach((rotulo,i)=>{
+    assert.ok(notes[0].tandas[0].items[lang][1].includes(rotulo),lang+": el paso 2 cita "+rotulo);
+    assert.ok(textos.includes(enFuente[lang][i]),lang+": "+rotulo+" es el texto de la app ("+enFuente[lang][i]+")");
+  });
+  const verifyNotes=list=>assert.deepEqual(list,expectedNotes);
+  const twice=structuredClone(notes);twice[0].tandas.push(structuredClone(twice[0].tandas[0]));assert.throws(()=>verifyNotes(twice),"no duplicar la tanda");
+  const inherited=structuredClone(notes);inherited[0].tandas[0].desde=["4.26.121/"+inicio];assert.throws(()=>verifyNotes(inherited),"no heredar el veredicto de la 121");
+  const withApk=structuredClone(notes);withApk[0].tandas[0].apk=55;assert.throws(()=>verifyNotes(withApk),"no hay APK que probar");
+  const both=structuredClone(notes);both[2].tandas=structuredClone(before[1].tandas);assert.throws(()=>verifyNotes(both),"la tanda no se queda también en la 121");
+  const text=structuredClone(notes);text[1].tandas[0].items.es[1]+="mutante";assert.throws(()=>verifyNotes(text),"el guion de la 122 no se toca");
+  // Sin alcance nuevo: el registro es el de la 122, unidad a unidad.
+  const scopes=JSON.parse(source("scripts/beta-sources.json"));
+  assert.deepEqual(scopes,integrated,"ningún alcance nuevo, ninguno retirado y ningún descriptor que crezca");
+  assert.deepEqual(JSON.parse(source("scripts/beta-archives.json")),archiveRefs,"sin repinar el rechazo109");
+  // Huellas que se mueven, lista cerrada: Inicio y la gráfica113, las dos por la web y por las mismas
+  // seis unidades (la tarjeta, la serie, la política de deudas y las tres líneas de textos).
+  const expectedMoves={[inicio]:["web"],[grafica]:["web"]};
+  const previous=new Map();
+  const measure=reader=>{
+    const now=JSON.parse(reader("scripts/beta-sources.json")),moved={};
+    for(const [key,scope] of Object.entries(integrated)){
+      if(key===archiveId){assert.deepEqual(auditedRevision(key,reader),auditedRevision(key,source122));continue;}
+      if(!previous.has(key))previous.set(key,betaRevision(key,source122,undefined,scope));
+      const a=previous.get(key),b=betaRevision(key,reader,undefined,now[key]);
+      const surfaces=["web","native","edge"].filter(s=>a[s]!==b[s]);
+      if(surfaces.length)moved[key]=surfaces;
+    }
+    return moved;
+  };
+  const verify=(reader,expected=expectedMoves)=>assert.deepEqual(measure(reader),expected,"lista cerrada: ni una huella extra ni una declarada que no cambie");
+  verify(source);
+  const units=["NetWorthNow","    // INC-0810 es: patrimonio de ahora.","    // INC-0810 en: patrimonio de ahora.","    // INC-0810 ca: patrimonio de ahora.","netWorthSeries","netWorthDebtPolicy"];
+  const why={};
+  for(const key of Object.keys(expectedMoves))why[key]=["web","edge"].flatMap(surface=>(integrated[key][surface]||[]).filter(u=>scopeText(u,old)!==scopeText(u,source)).map(u=>typeof u==="string"?u:(u.function||u.data||u.from)));
+  assert.deepEqual(why,{[inicio]:units,[grafica]:units},"qué unidad mueve cada huella");
+  assert.equal(notes.flatMap(n=>n.tandas||[]).some(g=>g.id===grafica),false,grafica+": su huella cambia, pero no vuelve al panel");
+  const shell="src/shell.html",from='animation:mclpop .5s cubic-bezier(.32,.72,0,1) backwards;}';
+  assert.equal(source(shell).split(from).length,2,"mutante sobre el splash actual real");
+  assert.throws(()=>verify(f=>f===shell?source(f).replace(from,from.replace(".5s",".6s")):source(f)),/lista cerrada/,"el splash no está declarado: no puede moverse por arrastre");
+  const missing={...expectedMoves};delete missing[grafica];assert.throws(()=>verify(source,missing),/lista cerrada/,"una huella real no declarada pone rojo");
+  // Cada regla de dinero nueva reabre la tanda de Inicio, y sólo por la web.
+  const current=betaRevision(inicio,source,undefined,scopes[inicio]);
+  assert.ok(current.web);assert.equal(current.native,undefined);assert.equal(current.edge,undefined);
+  const shared="src/modules/02-ui-shared.js",dash="src/modules/03-tab-dash.js";
+  for(const [file,a,b] of [
+    [shared,"if(d.months!=null||!rebuilt(d)) n=Math.max(0,n);","n=Math.max(0,n);"],
+    [shared,"const between=(month+(charge<=parts[2]?1:0))-((p[0]*12+p[1]-1)+(charge<=p[2]?1:0));","const between=0;"],
+    [shared,"before:points.length?points[0].value:0","before:0"],
+    [shared,"if(gaps[i].day&&!gaps[i].constant&&gaps[i].day!==start)gaps.splice(i,1);","if(false)gaps.splice(i,1);"],
+    [dash,'tf("v42_net_since",{day:','tf("v42_net_kept",{day:'],
+    [dash,'coverageLabels.map(function(label,i){return React.createElement("div",{key:i,"data-testid":"inicio-net-detail"},label);})','null']]){
+    assert.equal(source(file).split(a).length,2,"mutante sobre fuente real: "+a);
+    assert.notEqual(betaRevision(inicio,f=>f===file?source(f).replace(a,b):source(f),undefined,scopes[inicio]).web,current.web,"reabre la tanda: "+a);
+  }
+  // Lo que el build entrega al panel.
+  const built=betaNotes(notes,source,scopes),receipt=betaDelivery(built,source,scopes),group=built[0].tandas[0];
+  assert.deepEqual(built.flatMap(n=>(n.tandas||[]).map(g=>g.id)),[inicio,recibo,tr,bancos],"lo que el build entrega al panel");
+  assert.equal(group.web,current.web);assert.equal(group.native,undefined);assert.equal(group.edge,undefined);assert.equal(group.apk,undefined);
+  assert.equal(receipt.web[inicio],current.web);
+  const original=betaDelivery(betaNotes(before,source122,integrated),source122,integrated);
+  assert.notEqual(receipt.web[inicio],original.web[inicio],"la huella de Inicio es la de esta entrega, no la rechazada de la 121");
+  assert.deepEqual(receipt.pruebas,{
+    [inicio]:{v:"4.26.123",contenido:JSON.stringify([inicio,expected123.tandas[0].t.es,expected123.tandas[0].items.es,1])},
+    [recibo]:original.pruebas[recibo],[tr]:original.pruebas[tr],[bancos]:original.pruebas[bancos]},"cuatro guiones por probar: el de Inicio con la 123 y los otros tres tal cual");
+  for(const key of ["inicio-grafica-vuelve","bancos-sin-hueco","recibos-cargo-unico"]){
+    assert.equal(notes.flatMap(n=>n.tandas||[]).some(g=>g.id===key),false,key+": retirada no resucita");
+    assert.equal(receipt.pruebas[key],undefined,key+": no se vuelve a pedir al dueño");
+  }
+  for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica","native","edge"])assert.equal(group[key],undefined,"identidad sin "+key);
+});
+
 test("Inicio v4.2 conserva el catálogo120 y los retiros anteriores en la fuente actual",()=>{
-  // Desde la122 la nota del cargo de recibo va delante; las de la 121 y la 120 siguen literales.
-  const source=f=>read(f).replace(/\r\n/g,"\n"),expected=[expected122,expected121,...JSON.parse(source120("src/data/release-notes.json"))];
+  // Desde la123 la nota de la gráfica heredada va delante, con la tanda de Inicio; la 122 sigue literal y la 121 se queda sin tanda.
+  const source=f=>read(f).replace(/\r\n/g,"\n"),expected=[expected123,expected122,{...expected121,tandas:[]},...JSON.parse(source120("src/data/release-notes.json"))];
   const verify=notes=>assert.deepEqual(notes,expected,"catálogo vigente exacto, sin resucitar lo aprobado ni heredar identidad");
   const notes=JSON.parse(source("src/data/release-notes.json"));verify(notes);
-  const resurrected=structuredClone(notes);resurrected[3].tandas.push(JSON.parse(source118("src/data/release-notes.json"))[0].tandas[0]);
+  const resurrected=structuredClone(notes);resurrected[4].tandas.push(JSON.parse(source118("src/data/release-notes.json"))[0].tandas[0]);
   assert.throws(()=>verify(resurrected),assert.AssertionError);
-  for(const lang of ["es","en","ca"])for(const n of [0,1,2]){const changed=structuredClone(notes);changed[n].tandas[0].items[lang][0]+=" mutante";assert.throws(()=>verify(changed),assert.AssertionError);}
+  for(const lang of ["es","en","ca"])for(const n of [0,1,3]){const changed=structuredClone(notes);changed[n].tandas[0].items[lang][0]+=" mutante";assert.throws(()=>verify(changed),assert.AssertionError);}
   const scopes=JSON.parse(source("scripts/beta-sources.json")),prior=JSON.parse(source120("scripts/beta-sources.json"));
   for(const id of ["tr-iguales-ordinal","bancos-acuse-reconexion","recibos-cargo-unico"]){
     for(const part of prior[id].web)assert.ok(scopes[id].web.some(p=>JSON.stringify(sinMetodo122(p))===JSON.stringify(part)),id+": ninguna unidad120 retirada");
@@ -1838,7 +1949,7 @@ test("Inicio v4.2 conserva el catálogo120 y los retiros anteriores en la fuente
   const receipt=betaDelivery(betaNotes(notes,source,scopes),source,scopes);
   assert.equal(receipt.pruebas["recibos-cargo-unico"],undefined,"el cargo único aprobado sigue fuera del panel");
   assert.equal(receipt.pruebas["inicio-grafica-vuelve"],undefined,"Inicio nuevo no resucita la unidad aprobada");
-  assert.equal(receipt.pruebas["inicio-patrimonio-flujos"].v,"4.26.121","la unidad nueva entra en el panel con la nota 121");
+  assert.equal(receipt.pruebas["inicio-patrimonio-flujos"].v,"4.26.123","la tanda de Inicio vuelve al panel con la nota 123");
   for(const id of ["tr-iguales-ordinal","bancos-acuse-reconexion"])assert.equal(receipt.web[id],betaRevision(id,source,undefined,scopes[id]).web);
 });
 
