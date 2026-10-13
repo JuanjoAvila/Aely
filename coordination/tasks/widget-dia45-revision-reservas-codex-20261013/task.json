@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "id": "widget-dia45-revision-reservas-codex-20261013",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261013-32295a8f",
+  "createdAt": "2026-10-13T09:32:28.620Z",
+  "to": "codex",
+  "baseSHA": "3625fa7ed5134cfbc5e364adc4f588bfdaf670c0",
+  "objective": "Revisión independiente de la PR 212 (cabeza b1d3c8e8): GO CON RESERVAS. La regla nueva es correcta y web y Java coinciden en España (0 discrepancias en el barrido). Corregir cinco cosas en la misma PR antes de integrarla como tanda con APK 56.",
+  "scope": [
+    "la misma rama codex/widget-dia45-ciclo",
+    "supabase/functions/ingest/widget.ts y sus tests",
+    "docs/WIDGET-CICLO.md"
+  ],
+  "acceptance": [
+    "A, ALTA: hay una TERCERA copia de la regla y sigue por horas: supabase/functions/ingest/widget.ts hacia la línea 44 conserva now menos start mayor que 45 por 86400000. Con nómina el 20/8/2026 a las 12:00 de Madrid, el 4/10 (día 45) a las 00:01, 09:30, 12:01 y 23:59 la web dice ciclo y widgetStart devuelve null: el primer pago con tarjeta del día 45 con la app cerrada deja el widget en «Abre la app para actualizar», que es justo el síntoma del encargo. En ciclos que cruzan el cambio de hora de octubre caduca ya a las 23:00 del día 44. Aplicar la misma regla por día de calendario de Madrid (o un tope holgado, ya que el nativo revalida con cycleValid: justificar cuál), con la tabla de casos compartida también en el test de Deno, y mencionarlo en el documento único. Exige desplegar ingest: decir orden respecto a web y APK y compatibilidad con la APK 55",
+    "B, MEDIA: el e2e nuevo de la propia PR está rojo en su cabeza: e2e/widget-banco.spec.mjs hacia 373, «Mi ciclo día 45», espera 14% en el anillo y recibe 86% (el anillo enseña lo que QUEDA desde Inicio v4.2). Y su gemelo del día 46 pasa por la razón equivocada: espera 0% y el texto 100% lo contiene. Rebasar sobre la beta 124 cuando se publique (trae los specs de Inicio al día) y fijar aserciones exactas",
+    "C, MEDIA: la web nueva sola con la APK 55 EMPEORA el día 45: hoy el widget queda sin cifra desde las 00:00 hasta la hora del cobro; con web nueva queda sin cifra todo el día (405 puntos discordantes hoy, 792 con web nueva en el barrido de Madrid). El encargo pedía no empeorar con la APK vieja. Proponer salida: que la web envíe a una APK anterior a la 56 el periodo que esa APK acepta, o equivalente; si no hay salida limpia, decirlo con números para decidir",
+    "D, BAJA: en zonas con cambio de hora a medianoche (America/Santiago, inicio 23/7/2026 y ahora 6/9/2026 12:00; Africa/Cairo 24/4/2026) web dice ciclo y Java inválido: WidgetPeriod.java 39 a 46 fija la medianoche antes de restar 45 días. Restar los días primero y fijar la medianoche después, en los dos lados",
+    "E, tests: mutaciones que sobreviven. Quitar cut.set(Calendar.MILLISECOND, 0) en Java (falta una fila con milisegundos, 23:59:59.999); ms mayor o igual que cut cambiado a mayor estricto en web (falta el cobro a las 00:00:00 exactas, que es lo que produce una fecha dd/mm/aaaa); medianoche menos 45 por 24 horas en web (la tabla pone primavera a las 00:30 y otoño a las 23:30, al revés de lo que lo mataría); y «cobrar hoy abre el ciclo» sin test",
+    "F, BAJA: CHANGELOG.md hacia 104: la nota del candidato quedó dentro del histórico de la 117 con una segunda cabecera de esa versión; quitarla, la escribe la integración",
+    "Result con SHA, EXIT reales de Node, Deno y JVM, y lo no verificado. Las sondas del revisor (barrido web contra Java real, fuzz A/B, regla del servidor) se pueden pedir por el canal"
+  ]
+}
