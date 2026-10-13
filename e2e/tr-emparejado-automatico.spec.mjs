@@ -43,7 +43,7 @@ async function bankApp(page,expenses,n){
  await page.goto("/");await expect(page.locator(".botnav")).toBeVisible();await dismissNews(page);
  await page.evaluate(()=>{
    window.__pairWrites=[];
-   const add=cloud.addExpense;cloud.addExpense=function(e){window.__pairWrites.push({kind:"add",id:e.id,source:expenseSourceForCloud(e)});return add.call(cloud,e);};
+   const add=cloud.addExpense;cloud.addExpense=function(e){window.__pairWrites.push({kind:"add",id:e.id,key:keyOfExpense(e),source:expenseSourceForCloud(e)});return add.call(cloud,e);};
    const dup=cloud.setExpenseDup;cloud.setExpenseDup=function(e,value){window.__pairWrites.push({kind:"dup",id:e.id,value});return dup.call(cloud,e,value);};
  });
 }
@@ -53,7 +53,7 @@ test("sync real une el aviso, sube #dup y separar/volver a unir escribe la decis
  await bankApp(page,[notice],2);await syncBank(page);
  await expect.poll(async()=>(await saved(page)).length).toBe(3);
  await page.locator('.botnav-tab[data-tour="gastos"]').click();await expect(rows(page)).toHaveCount(2);
- await expect.poll(()=>page.evaluate(()=>window.__pairWrites.filter(x=>x.kind==="add"&&x.source.includes("#dup")).length)).toBe(1);
+ await expect.poll(()=>page.evaluate(()=>new Set(window.__pairWrites.filter(x=>x.kind==="add"&&x.source.includes("#dup")).map(x=>x.key)).size)).toBe(1);
  await rows(page).filter({hasText:"Compra sintética"}).click();await expect(page.getByTestId("exp-auto-paired")).toBeVisible();
  await expect(page.getByRole("button",{name:/^Es el mismo$/})).toHaveCount(0);
  await page.getByTestId("exp-auto-separate").click();await expect(rows(page)).toHaveCount(3);
@@ -77,6 +77,7 @@ test("pull real empareja aviso tardio y repara la marca bancaria en nube",async(
 test("borrar la pareja explica ambas filas y Deshacer restaura ambas",async({page})=>{
  await open(page);await rows(page).first().click();
  await page.getByRole("button",{name:/borrar/i}).last().click();
+ await page.locator('[aria-labelledby="ask-dialog-title"]').getByRole("button",{name:"Borrar",exact:true}).click();
  await expect(page.getByText("Aviso y apunte del banco borrados")).toBeVisible();
  await expect.poll(async()=>(await saved(page)).length).toBe(0);
  await page.getByRole("button",{name:/^Deshacer$/}).click();await expect(rows(page)).toHaveCount(1);
