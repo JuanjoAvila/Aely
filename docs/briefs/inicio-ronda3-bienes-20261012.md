@@ -33,6 +33,16 @@ El aviso de cobertura sólo añade la explicación correspondiente en el rendere
 las claves nuevas nacen en los tres idiomas. No cambian Gastos, widget, saldo
 actual de deudas, categorías ni la vista de presupuesto aceptada.
 
+## Ajuste posterior (13/10, rama `claude/inicio-r3-ajustes`)
+
+El punto 2 cambia para el bien legado que se revalora: ya no se recorta al
+día del cambio. `recordAssetValues` anota la víspera el valor anterior
+(`{day,value,legacy:true}`) y la serie lo mantiene hacia atrás; el valor
+nuevo cuenta desde su día. La marca sólo vale como primer dato del bien y
+sale de la ventana de nube como cualquier otro escalón. Inicio lo declara
+con `v42_net_asset_prior` en es/en/ca. Alta por formulario, bien recibido de
+nube y bien con escalones propios no cambian.
+
 ## Evidencia y límites
 
 Los casos de `tests/inicio-v42.test.mjs` reproducen los fallos anteriores y
