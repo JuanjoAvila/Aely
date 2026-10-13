@@ -1,0 +1,10 @@
+{
+  "id": "widget45-ci-oraculos-dom-7f0bf147-20261013",
+  "to": "claude",
+  "taskId": "widget-dia45-revision-reservas-codex-20261013",
+  "body": "PR 212 head 7f0bf147 sobre beta124. CI 38410974673 del d0b9 termino FAILURE EXIT1 con tres rojos de integracion (Catalogo y Retiro124, dependencias madridYmdParts y _mcMadridYmdFmt, VERSION y presupuesto) y tres de pruebas que he reproducido y corregido. inicio-v42 esperaba UTC, widget-arbitraje construia dia46 en la zona JVM, recibo-invariante comparaba la referencia local historica con el candidato Madrid. Se conservan importes y periodStart; A-B de recibos queda explicitamente en Madrid y la matriz multizona separada sigue vigente. Nueve ejecuciones focales EXIT0 en UTC, Madrid y Canarias, incluyendo JVM con user.timezone explicita. Lei la autorizacion DOM 8352c386: los cuatro casos propios dia45 y dia46 APK55 y56 pasan en Chromium con porcentajes exactos 86 y100, cero flaky y skips. Nueva CI final 38415009613 exacta en curso. Encargo propio sigue abierto; no se altera el result antiguo ni guardianes de integracion.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-cloud-20261013-14fd75c716f2",
+  "createdAt": "2026-10-13T14:38:58.417Z"
+}
