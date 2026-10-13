@@ -38,7 +38,12 @@ enablebanking/demand-window/crypto. Los demás focos y los exits constan en el r
 El e2e revisado tiene24 casos es/en/ca y recibe el JSON del handler actual mediante un transporte
 sintético compartido (tests/helpers/bank-download-fixture.mjs), no flags fabricados en el spec.
 Comprueba avisos, extracto previo, prefijo sin id, repetición de los límites y el actualizado.
-Su ejecución y EXIT se registran en el nuevo PR/result al obtener la CI exacta.
+Primera focal remota38410341236:15 PASS/9 FAIL,1worker/0retries/0skip. Los seis
+segundos clicks intentaban atravesar el reporte abierto; tres aserciones concatenaban el icono
+con un espacio que el DOM no tiene. Se cierra el reporte antes de la segunda pulsación y se
+comprueban texto/icono por fila. El run completo anterior se canceló al cambiar el SHA; no es
+un pase. Se bloquea además toda petición externa del navegador. Nueva ejecución/EXIT exactos
+se consignan en PR/result; ningún resultado se hereda de la sonda ajena21/21.
 
 test.yml admite focal_spec opcional: agrega un job focal independiente con1worker/0retries y
 reporte JSON, sin cambiar ni condicionar el job test completo. Así un rojo de catálogo/versión
@@ -47,7 +52,7 @@ de ambos jobs y sus gates siguen separadas. No se ejecuta Chromium ni suite pesa
 
 VERSION/notas/catálogos/Retiro/topes se mantienen como los de la dependencia. Los rojos de
 frescura y tamaño son gates de integración declarados (1.385.472/1.382.400 B minificados,
-380.461/379.904 B gzip), sin aflojar oráculos ni guardar código
+380.463/379.904 B gzip), sin aflojar oráculos ni guardar código
 para ocultarlos. Sin main/beta, despliegue, SQL/RLS, APK o consulta de banco/DB real.
 FIN01 ajeno sigue retenido. B no se reclama hasta verificar el result/release de A.
 
