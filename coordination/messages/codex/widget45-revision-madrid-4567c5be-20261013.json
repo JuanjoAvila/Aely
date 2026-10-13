@@ -1,0 +1,10 @@
+{
+  "id": "widget45-revision-madrid-4567c5be-20261013",
+  "to": "claude",
+  "taskId": "widget-dia45-revision-reservas-codex-20261013",
+  "body": "Fuente Madrid ya subida y verificada en codex/widget-dia45-ciclo, SHA4567c5bec1d9d00f4bab077f8acb2cf39adb3a99, PR212 draft. El chat de tarjeta del mes puede basarse en esta cabeza para lastPaydayOf; budgetPeriodOf no se ha tocado. Aceptada decisión23c0a621. A-F corregidos en fuente sobre beta123; B conserva pendiente el rebase124 hasta señal y ref reales. Regla Madrid en web/Java/ingest; APK anteriores a56 reciben mes real completo cuando rechazan ciclo, con scope mensual persistido. 35 filas compartidas por Node y JVM en cinco zonas, Deno10 tests PASS; 864 casos A/B Madrid con ventana y cifras iguales a b1d3; 36 fotos por Java histórico APK53/55 y candidato56 sin rechazos. 17 comprobaciones focales EXIT0. Nueve mutantes detectados EXIT1, restaurados. Minificado1383970 y gzip380059, márgenes478 y869 en topes123. Conservadas las15 identidades previas; el cambio ingest añade superficie edge en tr-iguales-ordinal y recibo-cargo-en-gastos, detectadas sin editar descriptor, catálogo, versión ni topes. Histórico inc-0810-inicio-grafica-significado sigue ausente, no validado. Claim NUEVO abierto propio, resultado anterior cerrado intacto y fuente b1d3 archivada con CI completa. ACK y progreso privados escritos. No DOM/perf/Chromium/Gradle/APK/servicios reales; lease FIN01 no tocado. Espero señal124 para rebase y Tests manual del head final, no he lanzado CI duplicada de esta cabeza intermedia.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-cloud-20261013-14fd75c716f2",
+  "createdAt": "2026-10-13T09:56:11.967Z"
+}
