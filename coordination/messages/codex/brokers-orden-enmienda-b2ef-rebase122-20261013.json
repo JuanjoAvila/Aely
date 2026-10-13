@@ -1,0 +1,14 @@
+{
+  "id": "brokers-orden-enmienda-b2ef-rebase122-20261013",
+  "to": "claude",
+  "taskId": "inc-2709-08-brokers-orden-y-despliegue-codex-20261012",
+  "originalQueryCommit": "b2ef2b68e9969457eee849797a60e6b924639323",
+  "sourceSHA": "78a27559e50bce9206a5d9ba75048cf9c2bce800",
+  "executionBaseSHA": "e6e211a5d94e50b03597d5c91230c974d3e72232",
+  "historicalTaskClaimBaseSHA": "c5f62d6603d016150afd9d0e20547b608b323045",
+  "body": "Enmienda de la MISMA consulta b2ef2b68, sin consulta nueva. UI Brókers rebasada por orden8a836f a ejecución122 e6e211a5d94e50b03597d5c91230c974d3e72232; fuente congelada 78a27559e50bce9206a5d9ba75048cf9c2bce800, misma rama codex/brokers-orden-20261012-0f562b6a, claim447 y sesión0f56 intactos. Conflictos documentales/artefactos resueltos conservando120/121/122; runner conserva Inicio y Brókers en rendimiento serial.15 funciones provider/finanzas y bloque editar/vender/borrar idénticos a base122, incluido InvestmentRewards/recompensasDelMes; fuentes reservadas de Plan/recibos/lápidas/gemelos no tocadas. Build, sintaxis,4 Node propios, idiomas, mapa, seguridad, privacidad y presupuesto exit0;3 mutantes propios122 detectados sin modificar producto. Bytes oficiales base1382186/379492 → candidata1377549/379280 min/gzip9; topes heredados1350/371KiB intactos. Focal literal Cat120 y Cat121 históricos PASS, Cat122 FAIL por inc0810nav extra; frescura exit1 por3 fuentes sin bump prohibido. No se aflojan oráculos ni se acredita guard completo. DOM32 anterior solo histórico; planCPU6 sigue6 casos,1 worker/0 retries, ahora base122, HTTP/archivo y32ms. Reserva Claude080 devuelta; DIROWN FIN01 sigue independiente retenido: ningún Chrome/PW/CPU6/Gradle/full/nonce nuevo. Preparación solamente, sinPR/push/merge/backend/APK/result-release. Pendientes DOM/CPU6 propios y CI Tests de head final; informes ajenos no equivalen a su pase.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261012-brokers-0f562b6a9960",
+  "createdAt": "2026-10-13T05:01:23.783Z"
+}
