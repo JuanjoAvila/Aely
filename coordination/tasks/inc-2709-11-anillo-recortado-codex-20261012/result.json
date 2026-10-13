@@ -1,0 +1,110 @@
+{
+  "status": "blocked",
+  "summary": "Bloqueo técnico real de registro de fuente tras tres plazos de revisión automática agotados; único piloto falló en la precondición antes de medir contorno. Preparación conservada, sin entrega visual.",
+  "productSHA": "b4239f1a69cbc6a93cae32bf1016824f06f01474",
+  "pullRequest": null,
+  "claimCommit": "677657dd55ef9336835e5282742dba539170abb8",
+  "historicalTaskBaseSHA": "c5f62d6603d016150afd9d0e20547b608b323045",
+  "executionBaseSHA": "788432f4682c199edd785f6973d9353330c0064a",
+  "targetExecutionBaseSHA": "3625fa7ed5134cfbc5e364adc4f588bfdaf670c0",
+  "source": {
+    "registeredHEAD": "b4239f1a69cbc6a93cae32bf1016824f06f01474",
+    "htmlSHA256": "99a932d37e75cc4cd9ef7973a53c728316675cc494ab334bde503366981e8cca",
+    "productSourceEdited": false,
+    "uncommittedFiles": [
+      "e2e/inicio-anillo-contorno.spec.mjs"
+    ],
+    "uncommittedSpecSHA256": "49e51025c8fc5006e18875f094ca77a29f269c6288116d3b3819b9c6aa3326cf",
+    "guardSHA256": "ac93bf85e5a9001a8866624d08b4b11ef8c5cd3bc1e1d16fe28e0fd59e051d03",
+    "componentSHA256": "6cdd9fbeefc9d3a7285ad485e58a6c23e15f6af994e1c69e7b41788a6d07fbc8",
+    "shellSHA256": "e161522a45d8487eaded3be76d35a9eeb7532dc1e883bc768efae2be4308adb3",
+    "rebase122Or123Executed": false,
+    "branchPushed": false,
+    "finalOwnCandidate": false
+  },
+  "tests": [
+    {
+      "command": "node node_modules/playwright/cli.js test --config=playwright.config.mjs e2e/inicio-anillo-contorno.spec.mjs --grep 'contorno completo 37% \\(es\\)' --workers=1 --retries=0 --global-timeout=480000",
+      "commandPathNormalizedForPublicRepo": true,
+      "exitCode": 1,
+      "sourceSHA": "b4239f1a69cbc6a93cae32bf1016824f06f01474",
+      "workingTreeDirtyAtExecution": false,
+      "startedUTC": "2026-10-13T01:44:22.452Z",
+      "endedUTC": "2026-10-13T01:44:33.520Z",
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "flaky": 0,
+      "contourMeasurements": 0,
+      "failure": "Precondición en Inicio: se esperaba 37 % y se recibió 0 %; el caso no llegó a medir el contorno.",
+      "servedHTMLHashVerified": false
+    },
+    {
+      "command": "node --check e2e/inicio-anillo-contorno.spec.mjs",
+      "exitCode": 0,
+      "scope": "Fixture local corregido y sin registrar, hash 49e51025; no es validación DOM."
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0,
+      "scope": "Mapa y registro de pruebas, sin navegador."
+    }
+  ],
+  "blocker": {
+    "kind": "automatic-review-deadlines",
+    "attempts": 3,
+    "action": "git add -- e2e/inicio-anillo-contorno.spec.mjs",
+    "error": "The automatic permission approval review did not finish before its deadline. Do not assume the action is unsafe based on the timeout alone. You may retry once, or ask the user for guidance or explicit approval.",
+    "humanAuthorizationMissing": false,
+    "safetyRejection": false,
+    "addExecuted": false,
+    "commitExecuted": false,
+    "fourthAttempt": false,
+    "alternateRouteForSourceRegistration": false,
+    "newQuestionAsked": false
+  },
+  "preparation": {
+    "applied": false,
+    "ringOn122And123": "Anillo inline de Inicio de 76 px, trazo de 6 px; porcentaje disponible rem/budAmt.",
+    "fixtureOracleOn123": {
+      "budget": 1000,
+      "spent": 370,
+      "remaining": 630,
+      "expectedLabel": "63%"
+    },
+    "infoOn123": "El detalle de Patrimonio vive en la i; se conserva el alcance propio de la tarjeta de ciclo.",
+    "privateProposalPreserved": true,
+    "oldNodeGuardTargetsRemovedV4Ring": true,
+    "nodeGuardAdaptationApplied": false,
+    "productFixImplemented": false,
+    "visualCauseEstablished": false,
+    "visualResolutionEstablished": false
+  },
+  "resources": {
+    "historicalOwnNonce": "d84c70b9-7471-4848-a71d-20523d90007a",
+    "historicalOwnReturn": "OWN_RETURNED_EXPRESS",
+    "ownReturnUTC": "2026-10-13T01:44:35.4597007Z",
+    "historicalOwnPort": 49211,
+    "ownPortClosedAtReturn": true,
+    "terminalStreamsClosed": true,
+    "newOwnNonceCreated": false,
+    "newChromePWCPU6GradleFull": false,
+    "foreignLeaseAdoptedOrReturned": false,
+    "releaseScope": "Cierre de esta tarea OWN bloqueada; no publicación de producto ni liberación de recursos ajenos."
+  },
+  "limitations": [
+    "Cero medidas de contorno y cero capturas de contorno válidas; la única apertura DOM histórica terminó antes de medir.",
+    "La matriz de 936 mediciones quedó planificada, no ejecutada; cero DOM nuevo tras el piloto D84.",
+    "Propuestas privadas para 122/123 preparadas, no aplicadas ni validadas en navegador.",
+    "Fuente real sigue en ejecución 119; rebase, adaptación del guardián inline, build final, PR y CI final no realizados.",
+    "No aceptación móvil, cierre visual, promoción a main/beta, APK ni backend acreditados.",
+    "No se debilitaron porcentajes, guardas, topes, timeouts ni retries.",
+    "Se conservan worktree, candidatos, historia, errores previos y la pregunta específica antigua; no se abre otra consulta ni se sortea el bloqueo."
+  ],
+  "schema": 1,
+  "taskId": "inc-2709-11-anillo-recortado-codex-20261012",
+  "actor": "codex",
+  "sessionId": "codex-local-20261012-ti0kawllu6",
+  "createdAt": "2026-10-13T09:41:21.623Z",
+  "released": true
+}
