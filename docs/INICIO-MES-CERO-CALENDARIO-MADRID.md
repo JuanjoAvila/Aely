@@ -1,6 +1,6 @@
 # Inicio: margen agotado y calendario de Madrid
 
-Estado: PR225 en borrador, mantenimiento sobre Widget `b518f369` y beta125 `6342459b`, por señal `d5fb1b00`. Claim/base123 y result anterior `b457f1db` permanecen inmutables. DOM propio verificado; CI final se registra aparte. Sin Ready, merge, publicación propia ni aceptación móvil.
+Estado: PR225 en borrador, mantenimiento sobre beta126 `d8d2624c` por señal `9e10203b`, conservando el contenido Widget `b518f369`. Claim/base123 y result anterior `b457f1db` permanecen inmutables. La evidencia DOM321/1SKIP pertenece a la fuente125 y no acredita126. Sin Ready, merge, publicación propia ni aceptación móvil. Las secciones anteriores a «Mantenimiento sobre beta126» conservan el historial de cada fuente.
 
 ## Tarjeta del mes
 
@@ -71,3 +71,15 @@ Inventario final16archivos: dos bloques de7 más nómina y rendimiento, todos EX
 Rendimiento sin modificar el banco ni los umbrales: CPU6,20000movimientos/400cierres, entrada60.00fps y arrastre60.00fps,0frames>32ms; presupuesto21.1ms, abierto. Es validación del spec, no prueba de velocidad mayor ni dispositivo real.
 
 Sintaxis, nuevo calendario, Inicio-v42 con31mutaciones, seguridad, i18n, registro y tamaño125 pasan. Tamaño sellado125.99999 y reserva95B: 1385975B/380849B, bajo1386496/380928B, sin topes propios. CI primaria79 y la posteriorf222 permanecen FAILURE con logs completos; las dos intermedias7db/920 CANCELLED con logs completos. El SHA final y la CI posterior se informan en evidencia nueva y por message, sin reescribir ningún result cerrado.
+
+## Mantenimiento sobre beta126
+
+La UI126 de Claude se hereda íntegra: no hay rótulos `.st` ni `.v42-cycle-remaining`; el estado se comunica por color y por el `aria-label` completo. Frente a beta126,03 sólo añade la igualdad `used===limit` antes de los primeros días.02, i18n y shell son idénticos a126. El contenido productor de11, Java e ingest permanece idéntico a b518;04 conserva `lastPaydayOf` y sólo difiere en la rama propia de `presetBoundsMs`. Los commits del productor se reescriben al rebasar, no su contenido. Catálogo, VERSION, guardianes y topes permanecen ajenos.
+
+El e2e propio de18 casos conserva importe, estado, tono, anillo y ausencia de ritmo diario; cambia la búsqueda del rótulo retirado por ausencia de ambos rótulos y aviso accesible en es/en/ca. Este e2e no se ha ejecutado sobre126. Una comprobación Node de la expresión aria real sí ejecuta esos18 casos (cero/negativo; días1/15/30; tres idiomas), sin atribuirle evidencia DOM.
+
+La CI histórica Tests38421769276 del head ea5885c4 terminó FAILURE/EXIT1 a las15:46:50Z. Fallaron sólo beta-sources (cuatro aserciones de dependencias/huellas) y docs-frescura (VERSION de integración). Deno pasó7 archivos únicos; sus rutas aparecen dos veces en el log. E2E/rendimiento remoto no se ejecutaron y privacidad del workflow quedó skipped. Se conservan sus logs completos y la corrección del recuento. La CI remota de la nueva fuente se registra aparte.
+
+La restricción humana vigente impide iniciar nuevos PW/Chromium/CPU6 locales hasta devolución explícita y admisión propia. La orden8352 fue aplicada antes de recibir aquí esa aclaración; sus resultados son históricos y no constituyen una admisión OWN. FIN01 conserva el DIR nonce6fa y no se modifica. Sólo se realizan controles ligeros Node/JVM y Tests remoto sobre la fuente final. La señal9e10203b anuncia confirmación de225 por Claude después de producción; no equivale a esa confirmación ni autoriza promover esta rama.
+
+Controles ligeros126: sintaxis, calendario multizona, Inicio-v42 en UTC/Madrid/Canarias (31 mutaciones), Gastos período/mes Madrid, month-budget-stats, puente/ciclo Widget, árbitro JVM UTC, recibos, i18n, seguridad, mapa de tests, expresión aria y tamaño dan EXIT0. docs-frescura da EXIT1 únicamente por código candidato sin VERSION nueva; sus13 comprobaciones restantes pasan. Tamaño con sello126.99999 y reserva95B:1385855B crudo/380817B gzip, márgenes641B/111B bajo los topes vigentes1386496B/380928B. No se ejecuta la suite local completa ni se declara DOM126 validado.

@@ -1,6 +1,6 @@
 ## Pendiente de integración — Inicio: margen agotado y calendario de Madrid
 
-La tarjeta con margen cero deja de indicar un buen ritmo en verde. La ventana del ciclo de Inicio y Gastos comparte el fin del día civil de Madrid: el reloj UTC/Canarias ya no oculta movimientos del día. Candidato sin publicar; [causa, alcance, pruebas y límites](docs/INICIO-MES-CERO-CALENDARIO-MADRID.md).
+La tarjeta con margen cero deja de indicar un buen ritmo en verde: usa color de aviso y texto accesible completo, conservando la UI sin rótulos de la126. La ventana del ciclo de Inicio y Gastos comparte el fin del día civil de Madrid: el reloj UTC/Canarias ya no oculta movimientos del día. Candidato sin publicar; [causa, alcance, pruebas y límites](docs/INICIO-MES-CERO-CALENDARIO-MADRID.md).
 
 ## [4.26.126] — 2026-10-13 · Promoción completa
 
