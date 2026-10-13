@@ -3,243 +3,34 @@
     "v": "4.26.126",
     "d": "2026-10-13",
     "t": {
-      "es": "Inicio: la tarjeta del mes, más limpia",
-      "en": "Home: the month card, cleaner",
-      "ca": "Inici: la targeta del mes, més neta"
+      "es": "Inicio nuevo, y recibos y bancos más fiables",
+      "en": "A new Home, and more reliable bills and banks",
+      "ca": "Inici nou, i rebuts i bancs més fiables"
     },
     "items": {
       "es": [
-        "La tarjeta del mes en Inicio enseña solo lo que te queda y cuánto puedes gastar al día; el color te dice cómo vas."
+        "Inicio estrena una gráfica de cómo ha ido tu patrimonio desde el primer día del que hay datos, te dice cuánto tienes de más o de menos que el mes pasado y cuánto puedes gastar al día con lo que te queda.",
+        "La tarjeta del mes en Inicio enseña solo lo que te queda y cuánto puedes gastar al día; el color te dice cómo vas.",
+        "Cada cobro del banco paga un solo recibo, y ahora también se ve en Gastos con el nombre del recibo, sin contarse dos veces.",
+        "Si la conexión falla mientras se sincronizan los bancos, o al volver a conectar uno, ya no se pierde ningún movimiento: entran la próxima vez que sincronices.",
+        "Dos movimientos iguales del mismo día en Trade Republic ya no se funden en uno: salen los dos en Gastos.",
+        "En Plan, al bajar despacio la pantalla ya no da saltos."
       ],
       "en": [
-        "The month card on Home shows only what you have left and how much you can spend per day; the colour tells you how you are doing."
+        "Home has a new chart of how your net worth has moved since the first day there is data, tells you how much more or less you have than last month, and how much you can spend per day with what is left.",
+        "The month card on Home shows only what you have left and how much you can spend per day; the colour tells you how you are doing.",
+        "Each bank charge pays a single bill, and it now also shows in Spending with the bill's name, without being counted twice.",
+        "If the connection fails while your banks are syncing, or when you reconnect one, no transaction is lost any more: they come in the next time you sync.",
+        "Two identical transactions on the same day in Trade Republic are no longer merged into one: both show in Spending.",
+        "In Plan, scrolling down slowly no longer makes the screen jump."
       ],
       "ca": [
-        "La targeta del mes a Inici ensenya només el que et queda i quant pots gastar al dia; el color et diu com vas."
-      ]
-    },
-    "tandas": [
-      {
-        "id": "inicio-tarjeta-ciclo-limpia",
-        "t": {
-          "es": "Inicio: la tarjeta del mes, más limpia",
-          "en": "Home: the month card, cleaner",
-          "ca": "Inici: la targeta del mes, més neta"
-        },
-        "items": {
-          "es": [
-            "1. Abre Inicio y mira la tarjeta «Este ciclo» (o «Este mes»): a la derecha del anillo solo hay dos líneas, lo que te queda («X € de Y €») y «N € al día durante M días». Ya no aparecen «Vas justito» ni «Te quedan». Está mal si sigue saliendo alguno de esos textos o si el bloque no queda centrado con el anillo.",
-            "2. El color del anillo y de la línea «al día» te dice cómo vas (verde, amarillo o rojo). La cifra coincide con lo que marca Gastos. Está mal si la cifra no coincide con la de Gastos."
-          ],
-          "en": [
-            "1. Open Home and look at the “This cycle” (or “This month”) card: to the right of the ring there are only two lines, what you have left (“X € of Y €”) and “N € a day for M days”. “Getting tight” and “Left to spend” no longer show. It is wrong if either of those texts still shows or if the block is not centred with the ring.",
-            "2. The colour of the ring and of the “a day” line tells you how you are doing (green, yellow or red). The figure matches what Spending shows. It is wrong if the figure does not match Spending."
-          ],
-          "ca": [
-            "1. Obre Inici i mira la targeta «Aquest cicle» (o «Aquest mes»): a la dreta de l'anell només hi ha dues línies, el que et queda («X € de Y €») i «N € al dia durant M dies». Ja no apareixen «Vas justet» ni «Et queden». Està malament si encara surt algun d'aquests textos o si el bloc no queda centrat amb l'anell.",
-            "2. El color de l'anell i de la línia «al dia» et diu com vas (verd, groc o vermell). La xifra coincideix amb el que marca Despeses. Està malament si la xifra no coincideix amb la de Despeses."
-          ]
-        }
-      }
-    ]
-  },
-  {
-    "v": "4.26.125",
-    "d": "2026-10-13",
-    "t": {
-      "es": "Inicio: tu patrimonio, bien contado",
-      "en": "Home: your net worth, told right",
-      "ca": "Inici: el teu patrimoni, ben explicat"
-    },
-    "items": {
-      "es": [
-        "La gráfica de Inicio ahora empieza en el primer día del que hay movimientos en tus cuentas y la línea llega hasta hoy, sin cortes. Hay un periodo nuevo, 3M.",
-        "La frase bajo la cifra compara con el mismo momento del mes anterior («150 € más que el mes pasado») y solo se pone en rojo si de verdad vas peor.",
-        "La «i» junto a «Patrimonio neto» abre «Cómo se calcula», con lo justo en pocas líneas, y desaparece el texto que había bajo la gráfica."
-      ],
-      "en": [
-        "The Home chart now starts on the first day your accounts have transactions and the line reaches today, with no gaps. There is a new period, 3M.",
-        "The sentence under the figure compares with the same moment of the previous month (“150 € more than last month”) and only turns red if you are really doing worse.",
-        "The “i” next to “Net worth” opens “How it's worked out”, with just a few short lines, and the text under the chart is gone."
-      ],
-      "ca": [
-        "La gràfica d'Inici ara comença el primer dia del qual hi ha moviments als teus comptes i la línia arriba fins avui, sense talls. Hi ha un període nou, 3M.",
-        "La frase sota la xifra compara amb el mateix moment del mes anterior («150 € més que el mes passat») i només es posa en vermell si de debò vas pitjor.",
-        "La «i» al costat de «Patrimoni net» obre «Com es calcula», amb el just en poques línies, i desapareix el text que hi havia sota la gràfica."
-      ]
-    },
-    "tandas": []
-  },
-  {
-    "v": "4.26.124",
-    "d": "2026-10-13",
-    "t": {
-      "es": "Plan: bajar despacio sin saltos",
-      "en": "Plan: scroll down slowly, no jumps",
-      "ca": "Pla: baixar a poc a poc sense salts"
-    },
-    "items": {
-      "es": [
-        "En Plan, al bajar despacio desde arriba del todo la pantalla ya no da un salto: sigue al dedo desde el principio."
-      ],
-      "en": [
-        "In Plan, scrolling down slowly from the very top no longer makes the screen jump: it follows your finger from the start."
-      ],
-      "ca": [
-        "A Pla, en baixar a poc a poc des de dalt de tot la pantalla ja no fa un salt: segueix el dit des del principi."
-      ]
-    },
-    "tandas": []
-  },
-  {
-    "v": "4.26.123",
-    "d": "2026-10-13",
-    "t": {
-      "es": "Inicio: la gráfica, desde el primer día",
-      "en": "Home: the chart, from day one",
-      "ca": "Inici: la gràfica, des del primer dia"
-    },
-    "items": {
-      "es": [
-        "La gráfica de Inicio ya aparece desde el primer día, también con hipoteca o préstamos dados de alta de antes, y los avisos van recogidos en la «i».",
-        "Bajo la gráfica, una sola línea dice desde qué fecha se dibuja. El detalle de cada cuenta, bien y deuda (desde cuándo hay datos y qué valores se mantienen) está en la «i» junto a «Patrimonio neto»."
-      ],
-      "en": [
-        "The Home chart now shows from day one, also with a mortgage or loans added before, and the notices are gathered in the “i”.",
-        "Under the chart, a single line says from which date it is drawn. The detail for each account, property item and debt (from when there is data and which values are kept) is in the “i” next to “Net worth”."
-      ],
-      "ca": [
-        "La gràfica d'Inici ja apareix des del primer dia, també amb hipoteca o préstecs donats d'alta d'abans, i els avisos van recollits a la «i».",
-        "Sota la gràfica, una sola línia diu des de quina data es dibuixa. El detall de cada compte, bé i deute (des de quan hi ha dades i quins valors es mantenen) és a la «i» al costat de «Patrimoni net»."
-      ]
-    },
-    "tandas": []
-  },
-  {
-    "v": "4.26.122",
-    "d": "2026-10-13",
-    "t": {
-      "es": "Los recibos del banco, también en Gastos",
-      "en": "Bank bill charges, now in Spending too",
-      "ca": "Els rebuts del banc, també a Despeses"
-    },
-    "items": {
-      "es": [
-        "Los cargos del banco que pagan un recibo de tu Plan ahora también se ven en Gastos, marcados con el nombre del recibo. No se cuentan dos veces: lo gastado y los saldos siguen igual.",
-        "Si la app se equivoca de recibo, abre el movimiento y pulsa «No es este recibo»: pasará a contar como un gasto más. Y si te arrepientes, se puede deshacer desde el mismo movimiento."
-      ],
-      "en": [
-        "Bank charges that pay a bill in your Plan now also show in Spending, labelled with the bill's name. They are not counted twice: your spending and balances stay the same.",
-        "If the app picks the wrong bill, open the transaction and tap “Not this bill”: it will count as regular spending. And if you change your mind, you can undo it from the same transaction."
-      ],
-      "ca": [
-        "Els càrrecs del banc que paguen un rebut del teu Pla ara també es veuen a Despeses, marcats amb el nom del rebut. No es compten dues vegades: el que has gastat i els saldos continuen igual.",
-        "Si l'app s'equivoca de rebut, obre el moviment i prem «No és aquest rebut»: passarà a comptar com una despesa més. I si te'n penedeixes, es pot desfer des del mateix moviment."
-      ]
-    },
-    "tandas": []
-  },
-  {
-    "v": "4.26.121",
-    "d": "2026-10-13",
-    "t": {
-      "es": "Inicio: cómo ha ido tu patrimonio",
-      "en": "Home: how your net worth has moved",
-      "ca": "Inici: com ha anat el teu patrimoni"
-    },
-    "items": {
-      "es": [
-        "Inicio estrena una gráfica de cómo ha ido tu patrimonio: cuentas, inversiones, bienes y deudas, todo junto. Pasa el dedo por encima para ver la cifra de cada día.",
-        "Una frase te dice cuánto ha subido o bajado en el periodo que elijas: un mes, seis meses, un año o todo.",
-        "La tarjeta del mes vuelve a decir cuánto puedes gastar al día con lo que te queda.",
-        "Si de algún día falta un dato, la gráfica no se lo inventa: te dice desde cuándo hay datos."
-      ],
-      "en": [
-        "Home has a new chart of how your net worth has moved: accounts, investments, property and debts, all together. Slide your finger over it to see the figure for each day.",
-        "A sentence tells you how much it has gone up or down over the period you pick: one month, six months, one year or everything.",
-        "The month card once again tells you how much you can spend per day with what you have left.",
-        "If a figure is missing for some day, the chart does not make it up: it tells you since when there is data."
-      ],
-      "ca": [
-        "Inici estrena una gràfica de com ha anat el teu patrimoni: comptes, inversions, béns i deutes, tot junt. Passa-hi el dit per sobre per veure la xifra de cada dia.",
-        "Una frase et diu quant ha pujat o baixat en el període que triïs: un mes, sis mesos, un any o tot.",
-        "La targeta del mes torna a dir quant pots gastar al dia amb el que et queda.",
-        "Si d'algun dia falta una dada, la gràfica no se la inventa: et diu des de quan hi ha dades."
-      ]
-    },
-    "tandas": []
-  },
-  {
-    "v": "4.26.120",
-    "d": "2026-10-13",
-    "t": {
-      "es": "Movimientos iguales, todos a la vista",
-      "en": "Identical transactions, all in view",
-      "ca": "Moviments iguals, tots a la vista"
-    },
-    "items": {
-      "es": [
-        "Si tu banco no distingue dos movimientos iguales del mismo día (dos bizums idénticos, dos cafés), ahora salen los dos en Gastos en vez de uno solo.",
-        "Lo que ya marcaste como repetido no vuelve a aparecer al importar el histórico."
-      ],
-      "en": [
-        "If your bank does not tell apart two identical transactions on the same day (two identical transfers, two coffees), both now show in Spending instead of just one.",
-        "What you already marked as a repeat no longer comes back when you import your history."
-      ],
-      "ca": [
-        "Si el teu banc no distingeix dos moviments iguals del mateix dia (dos bizums idèntics, dos cafès), ara surten tots dos a Despeses en comptes d'un de sol.",
-        "El que ja vas marcar com a repetit no torna a aparèixer en importar l'històric."
-      ]
-    },
-    "tandas": []
-  },
-  {
-    "v": "4.26.119",
-    "d": "2026-10-12",
-    "t": {
-      "es": "Bancos: ningún movimiento por el camino",
-      "en": "Banks: no transaction left behind",
-      "ca": "Bancs: cap moviment pel camí"
-    },
-    "items": {
-      "es": [
-        "Si la conexión falla mientras se sincronizan los bancos, los movimientos de esos días ya no se pierden: entran la próxima vez que sincronices.",
-        "Volver a conectar un banco ya no deja días sin traer: la app sigue desde donde lo había dejado."
-      ],
-      "en": [
-        "If the connection fails while your banks are syncing, the transactions from those days are no longer lost: they come in the next time you sync.",
-        "Reconnecting a bank no longer leaves days missing: the app carries on from where it left off."
-      ],
-      "ca": [
-        "Si la connexió falla mentre se sincronitzen els bancs, els moviments d'aquells dies ja no es perden: entren la pròxima vegada que sincronitzis.",
-        "Tornar a connectar un banc ja no deixa dies sense portar: l'app continua des d'on ho havia deixat."
-      ]
-    },
-    "tandas": []
-  },
-  {
-    "v": "4.26.118",
-    "d": "2026-10-12",
-    "t": {
-      "es": "Recibos: cada cobro, en su recibo",
-      "en": "Bills: each charge on its own bill",
-      "ca": "Rebuts: cada cobrament, al seu rebut"
-    },
-    "items": {
-      "es": [
-        "Un mismo cobro del banco ya no marca como pagados dos recibos a la vez, y un recibo con el mismo nombre en otro banco no da por pagado el que no es.",
-        "Un recibo se reconoce como pagado también cuando el pago salió de otro banco, si coinciden el nombre y el importe exacto.",
-        "Cambiar el día de un recibo que el banco ya cobró no vuelve a descontarlo del saldo previsto."
-      ],
-      "en": [
-        "A single bank charge no longer marks two bills as paid at once, and a bill with the same name at another bank no longer counts as payment for the wrong one.",
-        "A bill is also recognised as paid when the payment came out of another bank, as long as the name and the exact amount match.",
-        "Changing the day of a bill the bank has already charged no longer takes it off your expected balance again."
-      ],
-      "ca": [
-        "Un mateix cobrament del banc ja no marca com a pagats dos rebuts alhora, i un rebut amb el mateix nom en un altre banc no dona per pagat el que no és.",
-        "Un rebut també es reconeix com a pagat quan el pagament ha sortit d'un altre banc, si coincideixen el nom i l'import exacte.",
-        "Canviar el dia d'un rebut que el banc ja ha cobrat no el torna a descomptar del saldo previst."
+        "Inici estrena una gràfica de com ha anat el teu patrimoni des del primer dia del qual hi ha dades, et diu quant tens de més o de menys que el mes passat i quant pots gastar al dia amb el que et queda.",
+        "La targeta del mes a Inici ensenya només el que et queda i quant pots gastar al dia; el color et diu com vas.",
+        "Cada cobrament del banc paga un sol rebut, i ara també es veu a Despeses amb el nom del rebut, sense comptar-se dues vegades.",
+        "Si la connexió falla mentre se sincronitzen els bancs, o en tornar a connectar-ne un, ja no es perd cap moviment: entren la propera vegada que sincronitzis.",
+        "Dos moviments iguals del mateix dia a Trade Republic ja no es fonen en un: surten tots dos a Despeses.",
+        "A Pla, en baixar a poc a poc la pantalla ja no fa salts."
       ]
     },
     "tandas": []

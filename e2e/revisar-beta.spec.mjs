@@ -1792,3 +1792,36 @@ for(const lang of ["es","en","ca"])test(`promoción117: entrega por superficies,
   expect(await page.evaluate(()=>store.get("_betaReview_4.26.117.1_v"))).toEqual(saved.decisions);
 
 });
+
+/* Promoción126 (13/10/2026): la ronda de beta 118–126 sube entera. Aquí no se inyecta nada: se
+ * mira el catálogo que lleva el bundle. La familia ve UNA nota más las 227 que ya tenía
+ * producción; las ocho notas intermedias no salen ni desplegando todo el historial, y el panel
+ * de revisión queda sin nada que pedir. Las versiones se leen fila a fila (ver la nota del 12/10
+ * sobre «v4.26.11» + «22 sep»). */
+for(const lang of ["es","en","ca"])test(`promoción126: una nota, el historial de producción y el panel vacío (${lang})`,async({page})=>{
+  await abrirRevisionBeta(page,lang);
+  const production=JSON.parse(execFileSync("git",["show","0a623768e014251ed6b37a6d75eaa95efde78bc0:src/data/release-notes.json"],{encoding:"utf8",maxBuffer:8e6}));
+  expect(production.length).toBe(227);
+  const catalog=await page.evaluate(()=>RELEASE_NOTES.map(n=>[n.v,Array.isArray(n.tandas)?n.tandas.length:-1]));
+  expect(catalog).toEqual([["4.26.126",0],...production.map(n=>[n.v,0])]);
+  const pack=await page.evaluate(()=>{CONFIG.APP_VERSION="4.26.126.1";const p=betaChecklist(CONFIG.APP_VERSION,"4.26.117",55);return {tandas:p.tandas.length,items:p.items.length};});
+  expect(pack).toEqual({tandas:0,items:0});
+  const title=await page.evaluate(lang=>rnT(RELEASE_NOTES[0].t,lang),lang);
+  const items=await page.evaluate(lang=>rnItems(RELEASE_NOTES[0],lang),lang);
+  expect(items.length).toBe(6);
+  await page.evaluate(()=>{
+    const host=document.createElement("div");document.body.appendChild(host);
+    ReactDOM.createRoot(host).render(React.createElement(WhatsNew,{onClose:()=>{}}));
+  });
+  const news=page.locator('.wn-panel');
+  await expect(news).toBeVisible();
+  await expect(news).toContainText(title);
+  for(const item of items)await expect(news).toContainText(item);
+  const versions=news.locator('button').filter({hasText:/^v\d+\./});
+  await expect(versions).toHaveCount(20);
+  await news.locator('.btn-ghost.btn-block').click();
+  await expect(versions).toHaveCount(228);
+  const shown=(await versions.locator("span:first-child").allTextContents()).map(x=>x.match(/^v(\d+\.\d+\.\d+)/)[1]);
+  expect(shown).toEqual(["4.26.126",...production.map(n=>n.v)]);
+  for(const v of ["4.26.118","4.26.119","4.26.120","4.26.121","4.26.122","4.26.123","4.26.124","4.26.125"])expect(shown).not.toContain(v);
+});

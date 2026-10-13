@@ -43,6 +43,9 @@ const source123=sourceAt("3625fa7ed5134cfbc5e364adc4f588bfdaf670c0");
 const source124=sourceAt("f5904735b514751ee926d25c22c92195b6ce3653");
 // Integración126: la beta125 servida (6342459b), sobre la que se limpia la tarjeta del mes de Inicio y se retira la tanda aprobada de Inicio.
 const source125=sourceAt("6342459b0eeecd65eb1817db8e01bc179787c549");
+// Promoción126: la beta126 servida (d8d2624c), que es lo último que probó el móvil y lo que sube
+// entero a producción con el catálogo consolidado.
+const source126=sourceAt("d8d2624c6666599a09b99e111c3360af6eec6f91");
 // La122 añade un método a `cloud` (`setExpenseRecibo`) y los alcances que listan los métodos que
 // leen lo ganan al final de su lista. Las comparaciones con descriptores anteriores lo descuentan;
 // Catálogo122 fija en lista cerrada cuáles son.
@@ -2226,7 +2229,9 @@ test("Retiro125 histórico elimina solo la tanda de Plan aprobada en la 4.26.124
 // superficie de servidor ni nativa cambia.
 const expected126={"v":"4.26.126","d":"2026-10-13","t":{"es":"Inicio: la tarjeta del mes, más limpia","en":"Home: the month card, cleaner","ca":"Inici: la targeta del mes, més neta"},"items":{"es":["La tarjeta del mes en Inicio enseña solo lo que te queda y cuánto puedes gastar al día; el color te dice cómo vas."],"en":["The month card on Home shows only what you have left and how much you can spend per day; the colour tells you how you are doing."],"ca":["La targeta del mes a Inici ensenya només el que et queda i quant pots gastar al dia; el color et diu com vas."]},"tandas":[{"id":"inicio-tarjeta-ciclo-limpia","t":{"es":"Inicio: la tarjeta del mes, más limpia","en":"Home: the month card, cleaner","ca":"Inici: la targeta del mes, més neta"},"items":{"es":["1. Abre Inicio y mira la tarjeta «Este ciclo» (o «Este mes»): a la derecha del anillo solo hay dos líneas, lo que te queda («X € de Y €») y «N € al día durante M días». Ya no aparecen «Vas justito» ni «Te quedan». Está mal si sigue saliendo alguno de esos textos o si el bloque no queda centrado con el anillo.","2. El color del anillo y de la línea «al día» te dice cómo vas (verde, amarillo o rojo). La cifra coincide con lo que marca Gastos. Está mal si la cifra no coincide con la de Gastos."],"en":["1. Open Home and look at the “This cycle” (or “This month”) card: to the right of the ring there are only two lines, what you have left (“X € of Y €”) and “N € a day for M days”. “Getting tight” and “Left to spend” no longer show. It is wrong if either of those texts still shows or if the block is not centred with the ring.","2. The colour of the ring and of the “a day” line tells you how you are doing (green, yellow or red). The figure matches what Spending shows. It is wrong if the figure does not match Spending."],"ca":["1. Obre Inici i mira la targeta «Aquest cicle» (o «Aquest mes»): a la dreta de l'anell només hi ha dues línies, el que et queda («X € de Y €») i «N € al dia durant M dies». Ja no apareixen «Vas justet» ni «Et queden». Està malament si encara surt algun d'aquests textos o si el bloc no queda centrat amb l'anell.","2. El color de l'anell i de la línia «al dia» et diu com vas (verd, groc o vermell). La xifra coincideix amb el que marca Despeses. Està malament si la xifra no coincideix amb la de Despeses."]}}]};
 const scope126={"web":[{"file":"src/modules/03-tab-dash.js","from":"    !showSkel && state.budget>0 && React.createElement(\"div\",{className:\"v42-cycle-section\"}","to":"\n    React.createElement(BudgetSheet,"},{"file":"src/shell.html","from":"  .v42-cycle-section{","to":"  @keyframes v42-cycle-draw"},{"file":"src/modules/03-tab-dash.js","function":"cyclePaceState"},{"file":"src/modules/03-tab-dash.js","function":"cycleMoney"},{"file":"src/modules/03-tab-dash.js","function":"cycleDailyMoney"},{"file":"src/modules/03-tab-dash.js","function":"cycleTiming"},{"file":"src/modules/00-core.js","function":"eur0"},{"file":"src/modules/00-core.js","function":"eur"},{"file":"src/modules/08-motor-bank.js","function":"madridYmdParts"},{"file":"src/modules/00-core.js","data":"DISP"},{"file":"src/modules/00-core.js","data":"NF0"},{"file":"src/modules/00-core.js","data":"NF"},{"file":"src/modules/08-motor-bank.js","data":"_mcMadridYmdFmt"}],"unidades":true};
-test("Catálogo126 añade la tanda de la tarjeta del mes sobre la125, solo web, y declara cada huella que mueve",()=>{
+// Catálogo cerrado: desde la promoción126 se lee de su commit inmutable (la promoción deja una sola nota y ninguna tanda).
+test("Catálogo126 histórico añade la tanda de la tarjeta del mes sobre la125, solo web, y declara cada huella que mueve",()=>{
+  const read=source126;
   const tarjeta="inicio-tarjeta-ciclo-limpia",flujos="inicio-patrimonio-flujos",plan="plan-scroll-lento";
   const integrated=JSON.parse(source125("scripts/beta-sources.json")),before=JSON.parse(source125("src/data/release-notes.json"));
   assert.deepEqual(before.slice(0,3).map(n=>[n.v,(n.tandas||[]).map(g=>g.id)]),[["4.26.125",[flujos]],["4.26.124",[]],["4.26.123",[]]],"el panel de la 125 publicada");
@@ -2320,7 +2325,8 @@ test("Catálogo126 añade la tanda de la tarjeta del mes sobre la125, solo web, 
   assert.deepEqual(receipt.pruebas,{[tarjeta]:{v:"4.26.126",contenido:JSON.stringify([tarjeta,expected126.tandas[0].t.es,expected126.tandas[0].items.es,1])}},"un solo guion por probar: el de la tarjeta con la 126");
   for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica","native","edge"])assert.equal(group[key],undefined,"identidad nueva sin "+key);
 });
-test("Retiro126 elimina solo la tanda de Inicio aprobada en la 4.26.125.1 y conserva nota, descriptor e historial",()=>{
+test("Retiro126 histórico elimina solo la tanda de Inicio aprobada en la 4.26.125.1 y conserva nota, descriptor e historial",()=>{
+  const read=source126;
   const flujos="inicio-patrimonio-flujos";
   const before=JSON.parse(source125("src/data/release-notes.json")),notes=JSON.parse(read("src/data/release-notes.json"));
   assert.equal(before.flatMap(n=>n.tandas||[]).filter(g=>g.id===flujos).length,1,flujos+": la 125 publicada la llevaba");
@@ -2345,7 +2351,60 @@ test("Retiro126 elimina solo la tanda de Inicio aprobada en la 4.26.125.1 y cons
   assert.deepEqual(Object.keys(receipt.pruebas),["inicio-tarjeta-ciclo-limpia"],"en el panel queda solo la tanda de la tarjeta");
 });
 
-test("Inicio v4.2 conserva el catálogo120 y los retiros anteriores en la fuente actual",()=>{
+// Producción 4.26.126 (13/10/2026): la ronda de beta 118–126 sube entera. `main` era ancestro de
+// beta, así que no hay nada que reconciliar: el producto es el de la beta126 byte a byte y lo
+// único que cambia es el catálogo, que la familia ve como UNA nota más el historial que ya tenía
+// producción (las nueve notas intermedias quedan en Git y en los `expected118`…`expected126`).
+// Con la promoción sale del panel la última tanda, inicio-tarjeta-ciclo-limpia; descriptores,
+// archivo y APK no se tocan.
+const expectedProd126={"v":"4.26.126","d":"2026-10-13","t":{"es":"Inicio nuevo, y recibos y bancos más fiables","en":"A new Home, and more reliable bills and banks","ca":"Inici nou, i rebuts i bancs més fiables"},"items":{"es":["Inicio estrena una gráfica de cómo ha ido tu patrimonio desde el primer día del que hay datos, te dice cuánto tienes de más o de menos que el mes pasado y cuánto puedes gastar al día con lo que te queda.","La tarjeta del mes en Inicio enseña solo lo que te queda y cuánto puedes gastar al día; el color te dice cómo vas.","Cada cobro del banco paga un solo recibo, y ahora también se ve en Gastos con el nombre del recibo, sin contarse dos veces.","Si la conexión falla mientras se sincronizan los bancos, o al volver a conectar uno, ya no se pierde ningún movimiento: entran la próxima vez que sincronices.","Dos movimientos iguales del mismo día en Trade Republic ya no se funden en uno: salen los dos en Gastos.","En Plan, al bajar despacio la pantalla ya no da saltos."],"en":["Home has a new chart of how your net worth has moved since the first day there is data, tells you how much more or less you have than last month, and how much you can spend per day with what is left.","The month card on Home shows only what you have left and how much you can spend per day; the colour tells you how you are doing.","Each bank charge pays a single bill, and it now also shows in Spending with the bill's name, without being counted twice.","If the connection fails while your banks are syncing, or when you reconnect one, no transaction is lost any more: they come in the next time you sync.","Two identical transactions on the same day in Trade Republic are no longer merged into one: both show in Spending.","In Plan, scrolling down slowly no longer makes the screen jump."],"ca":["Inici estrena una gràfica de com ha anat el teu patrimoni des del primer dia del qual hi ha dades, et diu quant tens de més o de menys que el mes passat i quant pots gastar al dia amb el que et queda.","La targeta del mes a Inici ensenya només el que et queda i quant pots gastar al dia; el color et diu com vas.","Cada cobrament del banc paga un sol rebut, i ara també es veu a Despeses amb el nom del rebut, sense comptar-se dues vegades.","Si la connexió falla mentre se sincronitzen els bancs, o en tornar a connectar-ne un, ja no es perd cap moviment: entren la propera vegada que sincronitzis.","Dos moviments iguals del mateix dia a Trade Republic ja no es fonen en un: surten tots dos a Despeses.","A Pla, en baixar a poc a poc la pantalla ja no fa salts."]},"tandas":[]};
+test("Promoción126 muestra una nota y el historial de producción, retira la tanda de la tarjeta del mes y no toca producto, descriptores ni APK",()=>{
+  const tarjeta="inicio-tarjeta-ciclo-limpia",flujos="inicio-patrimonio-flujos",beta=f=>source126(f).replace(/\r\n/g,"\n"),source=f=>read(f).replace(/\r\n/g,"\n");
+  const production=JSON.parse(sourceProd117("src/data/release-notes.json")),before=JSON.parse(beta("src/data/release-notes.json"));
+  assert.equal(production.length,227);assert.equal(production[0].v,"4.26.117");
+  assert.deepEqual(before.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id])),[["4.26.126",tarjeta]],"la beta126 publicada llevaba solo la tanda de la tarjeta");
+  assert.deepEqual(before.slice(0,9).map(n=>n.v),["4.26.126","4.26.125","4.26.124","4.26.123","4.26.122","4.26.121","4.26.120","4.26.119","4.26.118"],"las nueve notas de la ronda");
+  assert.deepEqual(before.slice(9),production,"debajo de la ronda, beta ya llevaba el historial de producción tal cual");
+  const expected=[expectedProd126,...production];
+  const verify=list=>assert.deepEqual(list,expected,"una nota literal y el historial de producción117 íntegro");
+  const notes=JSON.parse(source("src/data/release-notes.json"));verify(notes);
+  assert.equal(notes.length,228);assert.equal(new Set(notes.map(n=>n.v)).size,notes.length);
+  for(const n of notes)assert.deepEqual(n.tandas,[],n.v+": nunca resucitar /todo");
+  for(const v of ["4.26.118","4.26.119","4.26.120","4.26.121","4.26.122","4.26.123","4.26.124","4.26.125"])assert.equal(notes.some(n=>n.v===v),false,v+": nota intermedia ausente de Novedades");
+  for(const lang of ["es","en","ca"]){
+    assert.ok(notes[0].t[lang]);assert.equal(notes[0].items[lang].length,6,lang+": seis puntos familiares");
+    assert.equal(notes[0].items[lang][1],before[0].items[lang][0],lang+": el punto de la tarjeta del mes es el de la nota 126 de beta");
+  }
+  // Nada de cocina en la nota que lee la familia (AGENTS §4).
+  for(const lang of ["es","en","ca"])for(const text of [notes[0].t[lang],...notes[0].items[lang]])assert.equal(/beta|tanda|panel|APK|ordinal|acuse|cursor|v4\.2|\d+\.\d+\.\d+/i.test(text),false,lang+": sin jerga: "+text);
+  const resurrected=structuredClone(notes);resurrected[0].tandas=structuredClone(before[0].tandas);assert.throws(()=>verify(resurrected),assert.AssertionError,"la tanda de la tarjeta, entregada, no vuelve");
+  const intermediate=structuredClone(notes);intermediate.splice(1,0,{...before[1],tandas:[]});assert.throws(()=>verify(intermediate),assert.AssertionError,"una nota intermedia no se enseña aparte");
+  const implicit=structuredClone(notes);delete implicit[0].tandas;assert.throws(()=>verify(implicit),assert.AssertionError,"sin la propiedad el panel la resucitaría como /todo");
+  const lost=structuredClone(notes);lost.splice(5,1);assert.throws(()=>verify(lost),assert.AssertionError,"no se pierde ninguna nota de producción");
+  // Lo que sube es lo que se probó: producto, servidor, nativo, descriptores y archivo, idénticos a la beta126.
+  const scopes=JSON.parse(source("scripts/beta-sources.json")),old=JSON.parse(beta("scripts/beta-sources.json"));
+  assert.deepEqual(scopes,old,"ningún descriptor se recorta ni se repina");
+  assert.deepEqual(JSON.parse(source("scripts/beta-archives.json")),JSON.parse(beta("scripts/beta-archives.json")),"archivo y rechazo109 no se repinan");
+  for(const file of JSON.parse(source("src/build-order.json")).map(f=>"src/modules/"+f).concat("src/shell.html","src/build-order.json","public/apk.json","android/app/build.gradle","supabase/functions/_shared/presupuesto.ts","supabase/functions/ingest/index.ts","supabase/functions/bank-sync/index.ts","supabase/functions/bank-sync/demand-window.ts","supabase/functions/bank-callback/index.ts","supabase/functions/bank-callback/reconnect.ts","supabase/functions/bank-connect/index.ts"))assert.equal(source(file),beta(file),file+": idéntico a la beta126");
+  // El panel queda vacío y el recibo web sigue entregando las siete unidades de la ronda con su huella de la beta126.
+  const receipt=betaDelivery(betaNotes(notes,source,scopes),source,scopes);
+  assert.deepEqual(receipt.pruebas,{},"ningún guion por probar");
+  assert.equal(betaNotes(notes,source,scopes).flatMap(n=>n.tandas||[]).length,0);
+  for(const id of [tarjeta,flujos,"plan-scroll-lento","recibo-cargo-en-gastos","tr-iguales-ordinal","bancos-acuse-reconexion","recibos-cargo-unico"]){
+    const delivered=betaRevision(id,beta,undefined,old[id]);
+    assert.deepEqual(betaRevision(id,source,undefined,scopes[id]),delivered,id+": la huella es la de la beta126, sin revisión nueva que juzgar");
+    assert.equal(receipt.web[id],delivered.web,id+": entrega web independiente del catálogo visible");
+    if(delivered.edge)assert.equal(receipt.edge[id],delivered.edge,id+": entrega de servidor declarada");
+  }
+  // Los veredictos del móvil (errores.mjs --kind=beta, 13/10) llevan el principio de estos códigos.
+  // inicio-patrimonio-flujos no está en la lista: se aprobó con el código de la 125 (774b8cb6…,
+  // fijado en Retiro126) y la 126 lo mueve por la tarjeta del mes, que juzga su propia tanda.
+  for(const [id,code] of [["plan-scroll-lento","8d30d20bc32b0e98009311c7065186b5517772ba"],["recibo-cargo-en-gastos","42f1ba7102ea5baa87dff3d4021906debb492525"],["tr-iguales-ordinal","2cb5c0024194efbd9e79e1176856d34f7be82f61"],["bancos-acuse-reconexion","945389491c2e03a86304971ef1caae45ac3b5bce"]])assert.ok(betaRevision(id,source,undefined,scopes[id]).codigo.startsWith(code),id+": el código aprobado en el móvil es el vigente");
+});
+
+// Catálogo cerrado: desde la promoción126 se lee de la beta126 publicada (d8d2624c), que es la última con tandas en el panel.
+test("Inicio v4.2 conserva el catálogo120 y los retiros anteriores en la beta126 publicada (histórico)",()=>{
+  const read=source126;
   // Desde la126 la nota de la tarjeta del mes va delante con su tanda; la 125 (Inicio, aprobada), la 124 (Plan, aprobada), la 123 (Inicio, superada), la 122, la 121 y la 120 se quedan sin tanda.
   const n120=JSON.parse(source120("src/data/release-notes.json"));
   const source=f=>read(f).replace(/\r\n/g,"\n"),expected=[expected126,{...expected125,tandas:[]},{...expected124,tandas:[]},{...expected123,tandas:[]},{...expected122,tandas:[]},{...expected121,tandas:[]},{...n120[0],tandas:[]},...n120.slice(1)];
