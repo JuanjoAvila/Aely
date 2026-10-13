@@ -4,6 +4,14 @@ Promoción3/10: fuente web aprobada86/49a preparada sobre main12884; APK estable
 
 # App nativa Android (Capacitor) — reemplazo de MacroDroid
 
+## Candidata PRO-03: previsión en el aviso de recibos
+
+El productor `alertCalendarOf` añade `charges[i].balanceNotice` opcional para la víspera, después de comprobar su sello. `v:1` admite `state:enough|short|unknown`, `lang:es|en|ca`, `calculatedOn` y `dueOn` en formato `YYYY-MM-DD`. Un resultado conocido exige `bankLabel`; `short` exige `shortfallCents` entero seguro positivo y `enough` admite `remainingCents` entero seguro no negativo. El importe es EUR y Java no calcula saldos. Un recibo pagado o una discrepancia entre Plan y el calendario deja el resultado desconocido.
+
+`AlertCheckWorker` y `ReceiptBalanceNotice` sólo incorporan una previsión calculada en su fecha local de ejecución y vencida mañana, coincidente con el mes/día del cargo. Ausencia, caducidad, tipos inválidos, banco ausente o resultado desconocido conservan el aviso legado. Una APK anterior ignora el campo adicional; una web anterior sigue funcionando con el worker nuevo. El modo pruebas no envía calendario ni notificaciones. Identificadores, momento y sellos no cambian. La actualización del calendario depende también del idioma, la fecha y los datos financieros.
+
+Es código candidato para la misma tanda nativa que Widget45: requiere integración, APK e instalación posteriores. La prueba JVM aislada ejecuta el worker real con preferencias y transporte JSON sintéticos; no acredita una notificación Android visible ni una APK instalada.
+
 Objetivo: empaquetar la PWA como app Android y añadir un **servicio nativo** que lee la
 notificación de gasto de Trade Republic y la manda a la Edge Function `ingest` — lo mismo que
 hacía MacroDroid, pero dentro de nuestro proyecto.

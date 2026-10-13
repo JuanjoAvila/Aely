@@ -41,6 +41,16 @@ function receiptAlertBody(body,state,totals,bank,day,fixed){
   if(!balance) return body;
   return body+" "+tf(balance.enough?"rc_balance_ok":"rc_balance_short",{bank:entOf(balance.bank).label,x:eur(balance.amount)});
 }
+function receiptNativeNotice(state,totals,bank,day,fixed){
+  const ym=totals.curYear+"-"+String(totals.curMonth).padStart(2,"0");
+  const notice={v:1,state:"unknown",lang:CURLANG,calculatedOn:ym+"-"+String(totals.today).padStart(2,"0"),dueOn:ym+"-"+String(day).padStart(2,"0")};
+  const balance=receiptAlertBalance(state,totals,bank,day,fixed);
+  if(!balance) return notice;
+  notice.state=balance.enough?"enough":"short";
+  notice.bankLabel=entOf(balance.bank).label;
+  notice[balance.enough?"remainingCents":"shortfallCents"]=Math.round(balance.amount*100);
+  return notice;
+}
 function App(){
   const [state,setStateRaw]=useState(loadState);
   const [tab,setTab]=useState(0);
@@ -2339,18 +2349,27 @@ function App(){
     const cm=totals.curMonth, cy=totals.curYear;
     const ym=cy+"-"+String(cm).padStart(2,"0");
     const charges=[];
+    const fired=[];
+    if(mcSandbox()) return {ym:ym,charges:charges,fired:fired};
+    // El worker solo consume la víspera y exige una previsión calculada hoy. Comprobar
+    // el sello antes evita recorrer gastos por cargos que el móvil ya ha notificado.
+    const add=function(charge,bank,fixed){
+      let seen=false;
+      try{ seen=localStorage.getItem("_rc1_"+charge.id+"_"+ym)==="1"; }catch(e){}
+      if(seen) fired.push(charge.id);
+      else if(charge.day===totals.today+1) charge.balanceNotice=receiptNativeNotice(state,totals,bank,charge.day,fixed);
+      charges.push(charge);
+    };
     (state.fixed||[]).forEach(function(e){
       if(!occursIn(e,cm)) return;
       const d=dayIn(e,cm); const amt=occAmountIn(e,cm)||0;
       if(d==null||!(amt>0)) return;
-      charges.push({id:String(e.id),name:e.name||"Recibo",amount:+amt.toFixed(2),day:d});
+      add({id:String(e.id),name:e.name||"Recibo",amount:+amt.toFixed(2),day:d},e.account,e);
     });
     (state.debts||[]).forEach(function(d){
       if(!debtActive(d)||!(d.monthly>0)) return;
-      charges.push({id:"debt_"+d.id,name:d.name||"Cuota",amount:+d.monthly.toFixed(2),day:debtChargeDay(d)});
+      add({id:"debt_"+d.id,name:d.name||"Cuota",amount:+d.monthly.toFixed(2),day:debtChargeDay(d)},isDebtPaidThisMonth(d,totals.today,state,cy,cm)?null:d.account);
     });
-    const fired=[];
-    charges.forEach(function(c){ try{ if(localStorage.getItem("_rc1_"+c.id+"_"+ym)==="1") fired.push(c.id); }catch(e){} });
     return {ym:ym,charges:charges,fired:fired};
   };
   // Recordatorio de recibos: TODOS avisan LA VÍSPERA (petición 2026-07-18: «el banco no te
@@ -2421,7 +2440,7 @@ function App(){
         ((r&&r.fired)||[]).forEach(function(id){ try{ localStorage.setItem("_rc1_"+id+"_"+cal.ym,"1"); }catch(e){} });
       }).catch(function(){});
     }catch(e){}
-  },[state.fixed,state.debts,totals.curMonth]);
+  },[state.fixed,state.debts,state.accounts,state.expenses,state.bankTx,state.deleted,state.flows,state.oneoffs,totals.bankBal,totals.today,totals.curMonth,totals.curYear,CURLANG]);
 
   // Avisos de presupuesto al cruzar 50/80/95/100% (petición 2026-07-18). Una noti por umbral
   // y mes; si al abrir ya vas por el 97%, solo suena el umbral MÁS ALTO (los demás se sellan

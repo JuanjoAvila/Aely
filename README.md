@@ -100,6 +100,7 @@ mi-cartera/
 ├── tests/inicio-v42.test.mjs # Serie de patrimonio por flujos con los callbacks reales de Guardar y del pull, UTC y Madrid
 ├── tests/backclose-history.test.mjs # Controlador y hook reales con cola de eventos History sintética
 ├── tests/widget-notificacion-render.test.mjs # Java real sobre preferencias APK52: notificación, registro, relectura y pintado
+├── tests/receipt-native-notice.test.mjs # Productor web y worker Java: previsión opcional vigente, compatibilidad y sellos
 ├── tests/widget-inicio-paridad.test.mjs # 1584 casos contra los lectores reales de Inicio: alcance, céntimos y presupuesto
 ├── tests/widget-puente-ciclo.test.mjs # JSON real del puente → plugin → widget con el Java de las APK 52, 53 y 54 a la vez
 ├── tests/                  # Unitarios en Node (lógica, parsers, i18n, seguridad, frescura de doc,
