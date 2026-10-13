@@ -648,17 +648,18 @@ t("«es el mismo» sobre una fila bajada de otro móvil (sin gemelo localizable)
 });
 t("borrar a mano un apunte del banco (el bloque REAL de Gastos) deja rastro «sin aviso»", () => {
   const gastosSrc = H.read("public/index.html");
-  const m = gastosSrc.match(/const next=Object\.assign\(\{\},s,\{\s*expenses:\(s\.expenses\|\|\[\]\)\.filter\(function\(x\)\{ return x\.id!==e\.id; \}\),\s*deleted:pushDeleted\(s\.deleted,key\)\s*\}\);[\s\S]*?return next;/);
+  // Desde el 13/10/2026 la lápida la pone `lapidaPon` (con su hora si esa clave se levantó antes).
+  const m = gastosSrc.match(/const next=Object\.assign\(\{\},s,\{\s*expenses:\(s\.expenses\|\|\[\]\)\.filter\(function\(x\)\{ return x\.id!==e\.id; \}\)\s*\},lapidaPon\(s,key\)\);[\s\S]*?return next;/);
   assert.ok(m, "no se encuentra el bloque de borrar en 04-tab-gastos");
-  const borra = new Function("s", "e", "key", "pushDeleted", "pushGemelos", m[0]);
+  const borra = new Function("s", "e", "key", "lapidaPon", "pushGemelos", m[0]);
   const s = estado();
   const x = sync(s, [ob(-2, 7)])[0];
-  const next = borra(s, x, c.keyOfExpense(x), c.pushDeleted, c.pushGemelos);
+  const next = borra(s, x, c.keyOfExpense(x), c.lapidaPon, c.pushGemelos);
   assert.equal(next.expenses.length, 0);
   same(next.deleted, [c.keyOfExpense(x)]);
   assert.equal(JSON.stringify(next.gemelos), JSON.stringify([{ aviso: "", banco: c.keyOfExpense(x) }]));
   const manual = Object.assign({}, x, { source: "manual", ent: undefined });
-  assert.equal(borra(s, manual, c.keyOfExpense(manual), c.pushDeleted, c.pushGemelos).gemelos, s.gemelos, "un apunte a mano no deja rastro");
+  assert.equal(borra(s, manual, c.keyOfExpense(manual), c.lapidaPon, c.pushGemelos).gemelos, s.gemelos, "un apunte a mano no deja rastro");
 });
 t("runBankSync (el bloque REAL de App) guarda los vínculos de la importación en el estado", () => {
   const m = mainSrc.match(/const vinculos=gemelosDeImportacion\(add, invState\.expenses\);\s*if\(vinculos\.length\)\{[\s\S]*?\n\s*\}/);

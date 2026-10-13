@@ -228,9 +228,8 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     // Deshacer vuelva a subir el MISMO id después de que termine cualquier delete aún en vuelo.
     set(function(s){
       const next=Object.assign({},s,{
-        expenses:(s.expenses||[]).filter(function(x){ return x.id!==e.id; }),
-        deleted:pushDeleted(s.deleted,key)
-      });
+        expenses:(s.expenses||[]).filter(function(x){ return x.id!==e.id; })
+      },lapidaPon(s,key));
       // Un apunte del banco borrado A MANO deja rastro «sin aviso» (12/10/2026): así el importador
       // no confunde su lápida con un «es el mismo» antiguo y no da por reclamado ningún aviso.
       if(e.source==="ob"||e.source==="ob-hist") next.gemelos=pushGemelos(s.gemelos,[{aviso:"",banco:key}]);
@@ -250,13 +249,12 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     if(undoTimerRef.current) clearTimeout(undoTimerRef.current);
     undoTimerRef.current=null; undoDeleteRef.current=null; setUndoDelete(null);
     set(function(s){
-      const deleted=(s.deleted||[]).slice();
-      const di=deleted.lastIndexOf(pending.key); if(di>=0) deleted.splice(di,1);
       const expenses=(s.expenses||[]).slice();
       if(!expenses.some(function(x){ return x.id===pending.expense.id; })){
         expenses.splice(Math.min(pending.index,expenses.length),0,pending.expense);
       }
-      return Object.assign({},s,{expenses:expenses,deleted:deleted});
+      // Con su hora: la lápida ya pudo subir a la nube, y sin ella volvería del otro móvil.
+      return Object.assign({},s,{expenses:expenses},lapidaLevanta(s,pending.key));
     });
     if(pending.wasCloud){
       Promise.resolve(pending.cloudDelete).then(function(){ return subirGasto(pending.expense,"gastos-deshacer"); });
@@ -269,7 +267,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     set(function(s){
       let next=resolvePossibleDup(s, e.id, same);
       if(same){
-        next=Object.assign({},next,{deleted:pushDeleted(next.deleted, keyOfE(e))});
+        next=Object.assign({},next,lapidaPon(next, keyOfE(e)));
         if(cloud.enabled()) borrarGastoNube(e, "gastos-dup");
       }
       // «Son distintos»: hay que QUITAR la marca también en la nube (B09-D). Si no, la fila sigue
@@ -480,6 +478,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   // que entraron como gasto…). En la nube la clave es fecha|importe|comercio → se hace tombstone
   // de la fila vieja (deleted + deleteExpense) y se inserta la corregida, o el pull la resucitaría.
   const [editExp,setEditExp]=useState(null);   // {id, merchant, amount, income} — usado por el sheet de detalle
+  const editCloudRef=useRef(Promise.resolve());   // cola de las escrituras de `saveEdit` en la nube
   const [detailId,setDetailId]=useState(null);     // id del gasto abierto en sheet (SPEC §14)
   // PUNTO 5: al tocar la noti de un gasto, App pasa focusExp ({amount,merchant}) → abrimos la ficha
   // del gasto que casa (mismo importe y comercio parecido, el más reciente; si no, el último gasto).
@@ -547,10 +546,18 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
        mentira — y en el detalle se leerían juntos como si fueran el mismo pago. */
     if(signed!==orig.amount){ delete upd.origAmount; delete upd.origCur; }
     set(function(s){ return rekeyFixedPaymentExpense(Object.assign({},s,{
-      expenses:s.expenses.map(function(x){ return x.id===orig.id?upd:x; }),
-      deleted:pushDeleted(s.deleted, keyOfE(orig))
-    }),orig,upd); });
-    if(cloud.enabled()){ borrarGastoNube(orig, "gastos-editar"); subirGasto(upd, "gastos-editar"); }
+      expenses:s.expenses.map(function(x){ return x.id===orig.id?upd:x; })
+    },lapidaPon(s, keyOfE(orig))),orig,upd); });
+    /* EL ALTA ESPERA AL BORRADO, Y CADA EDICIÓN A LA ANTERIOR (13/10/2026). La fila corregida
+       conserva su id: lanzadas a la vez, si el alta llegaba antes que el borrado chocaba con la
+       fila vieja por la clave primaria (el `23505` de `addExpense` en Actividad), el borrado se
+       llevaba después la vieja y la nube se quedaba sin el gasto hasta el siguiente repaso. Dos
+       guardados seguidos (cada blur guarda) se pisaban igual entre sí: van en una sola cola. */
+    if(cloud.enabled()){
+      editCloudRef.current=editCloudRef.current
+        .then(function(){ return borrarGastoNube(orig, "gastos-editar"); })
+        .then(function(){ return subirGasto(upd, "gastos-editar"); });
+    }
     sincroniza(upd); showToast(t("g_edited"));
   };
 
@@ -1417,15 +1424,18 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
   const receiptDate=String(exp.date||"").slice(0,10),receiptYear=Number(receiptDate.slice(0,4)),receiptMonth=Number(receiptDate.slice(5,7)),receiptNow=new Date();
   const receiptToday=receiptYear===receiptNow.getFullYear()&&receiptMonth===receiptNow.getMonth()+1?receiptNow.getDate():new Date(receiptYear,receiptMonth,0).getDate();
   const receiptLinked=withdrawalReceiptLink(state,exp);
+  // El recibo o puntual que se vetó para ESTE cargo: ofrecerlo es la vuelta atrás de aquel «No es
+  // este recibo».
+  const vetadoAqui=function(r){ return r.id&&admiteMarcaDe(exp,r)&&reciboNoDe(state,r.id,reciboNoIdentidad(exp),exp.id).length>0; };
+  /* Un recibo FIJO vetado para este cargo se ofrece aunque no sea «elegible» (13/10/2026): con
+     dos cargos iguales el motor no admite vínculo a mano con ninguno, la opción no salía y el
+     veto de uno de ellos no tenía vuelta atrás desde la ficha. */
   const receiptOptions=(state.fixed||[]).filter(function(f){
-    return fixedExpenseEligible(state,exp,f,receiptYear,receiptMonth,receiptToday)&&
+    return vetadoAqui(f)||fixedExpenseEligible(state,exp,f,receiptYear,receiptMonth,receiptToday)&&
       (!fixedPaymentState(state,f,receiptYear,receiptMonth,receiptToday).paid||(receiptLinked&&receiptLinked.id===f.id));
   });
-  // Los puntuales no se vinculan a mano; solo se ofrece el que se vetó para ESTE cargo, que es
-  // la única vuelta atrás de un «No es este recibo» sobre un puntual (cuarta revisión).
-  const receiptPuntuales=(state.oneoffs||[]).filter(function(o){
-    return o.id&&admiteMarcaDe(exp,o)&&reciboNoDe(state,o.id,reciboNoIdentidad(exp),exp.id).length>0;
-  });
+  // Los puntuales no se vinculan a mano; solo se ofrece el que se vetó para ESTE cargo (cuarta revisión).
+  const receiptPuntuales=(state.oneoffs||[]).filter(vetadoAqui);
   const adjustments=React.createElement("div",{className:"v4-ficha-adjust"},
     // Con marca de recibo la fila sale siempre: si no, «No es este recibo» quedaba inalcanzable
     // cuando la marca venía de un puntual o la categoría era neutra.

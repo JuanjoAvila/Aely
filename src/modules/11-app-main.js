@@ -583,10 +583,18 @@ function App(){
           // que vio un móvil y el otro no puede desmentir por no tenerlo. Ver `fusionarGemelos`.
           const gem=fusionarGemelos(prev.gemelos, cloudState.gemelos);
           if(gem!==baseObj.gemelos) baseObj.gemelos=gem;
+          // Igual las lápidas y los recibos borrados (13/10/2026): un borrado que vio un móvil no
+          // lo deshace el estado más antiguo del otro. Ver `lapidasUnion` y `recibosBorradosUnion`.
+          // Solo con lo local del MISMO titular: la lápida de otra cuenta que hubo en este móvil
+          // escondería un gasto de esta que coincidiera en día, importe y comercio.
+          const sameOwner=!(opts&&opts.dropTx)&&(!freshLogin||prev._historyOwner===u)&&(!prev._historyOwner||prev._historyOwner===u);
+          if(sameOwner){
+            if(prev.deleted||cloudState.deleted) Object.assign(baseObj, lapidasUnion(prev, cloudState));
+            if(prev.reciboBorrado||cloudState.reciboBorrado) Object.assign(baseObj, recibosBorradosUnion(baseObj, prev, cloudState));
+          }
           // La nube lleva una ventana corta: un cliente antiguo no debe borrar los cierres
           // locales. El marcador sólo delimita este historial, nunca concede una sesión.
           if(sessionRef.current&&sessionRef.current.user&&sessionRef.current.user.id===u){
-            const sameOwner=!(opts&&opts.dropTx)&&(!freshLogin||prev._historyOwner===u)&&(!prev._historyOwner||prev._historyOwner===u);
             baseObj.accountBalanceHistory=sameOwner?mergeAccountBalanceHistory(prev.accountBalanceHistory,baseObj.accountBalanceHistory):cloudState.accountBalanceHistory||{};
             baseObj.assetValueHistory=sameOwner?mergeAccountBalanceHistory(prev.assetValueHistory,baseObj.assetValueHistory):cloudState.assetValueHistory||{};
             baseObj._historyOwner=u;
