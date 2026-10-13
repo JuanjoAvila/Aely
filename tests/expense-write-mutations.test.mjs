@@ -2,6 +2,43 @@
 import assert from 'node:assert/strict';
 import {client,database,storage,expense,id,owner,other} from './expense-write-fixture.mjs';
 const cases=[
+ ['lector de deuda histórica', 'ent=pe.ent; debtId=pe.debtId; reciboId=pe.reciboId; source="ob-hist";', 'ent=pe.ent; reciboId=pe.reciboId; source="ob-hist";', async make=>{
+  const a=await make(),row={...a.db.rows[0],source:'ob-hist:trade_republic~deuda.d#dup#n2'};assert.equal(a.c.expenseFromRow(row).debtId,'d');
+ }],
+ ['escritor de deuda histórica','return "ob-hist:"+ent+(deudaSufijo(e&&e.debtId)||reciboSufijo(e&&e.reciboId))','return "ob-hist:"+ent+reciboSufijo(e&&e.reciboId)',async make=>{
+  const a=await make();assert.equal(a.c.expenseSourceForCloud({...expense,source:'ob-hist',debtId:'d',obOrd:2}),'ob-hist:trade_republic~deuda.d#dup#n2');
+ }],
+ ['decidir deuda en histórico','if(p.origin==="ob" || p.origin==="ob-hist"){ p.debt=', 'if(p.origin==="ob"){ p.debt=',async make=>{
+  const a=await make();assert.equal(a.c.mcExpensePatch({source:'ob-hist:trade_republic~recibo.r#dup#n2'},{kind:'debt',value:'d'}).source,'ob-hist:trade_republic~deuda.d#dup#n2');
+ }],
+ ['ACK adopta ordinal','if(Object.prototype.hasOwnProperty.call(incoming,"obOrd")) put("obOrd",incoming.obOrd);','',async make=>{
+  const a=await make(),row={...a.db.rows[0],source:'ob:trade_republic#dup#n2'};
+  const next=a.c.mcExpenseApplyEvent({expenses:[expense],settings:{},deleted:[]},{type:'ack',oldId:id,id,at:Date.now(),op:{kind:'note'},row},{});
+  assert.equal(next.expenses[0].obOrd,2);
+ }],
+ ['deuda sustituye recibo local','if(exact) put("reciboId",undefined);','',async make=>{
+  const a=await make(),local={...expense,reciboId:'r'},incoming={...expense,debtId:'d',category:'deudas'};
+  assert.equal(a.c.refreshExpenseFromCloud(local,incoming,Date.now(),{}).reciboId,undefined);
+ }],
+ ['pull protege recibo decidido sin red','category:["category","debtId","reciboId"],\n      debt:["category","debtId","reciboId"]','category:["category","debtId"],\n      debt:["category","debtId"]',async make=>{
+  const db=database({error:true});db.rows[0].source='ob:trade_republic~recibo.r#dup';const a=await make(db),local={...expense,reciboId:'r'};
+  await assert.rejects(()=>a.cloud.setExpenseCat(local,'super'));
+  const out=a.c.mergeExpensesFromCloud([{...local,category:'super'}],[{...expense,category:'deudas',debtId:'d'}],Date.now());assert.equal(out.list[0].reciboId,'r');assert.equal(out.list[0].category,'super');
+ }],
+ ['ausencia respeta ordinal de lápida','const e=expenseFromRow(Object.assign({},op.snapshot,{id:op.originalId||op.id}));','const s=op.snapshot,e={id:op.originalId||op.id,date:s.fecha,amount:s.importe,merchant:s.comercio,source:s.source};',async make=>{
+  const a=await make(database({error:true,rows:[]}));await assert.rejects(()=>a.cloud.setExpenseNote({...expense,obOrd:2},'Nota'));delete a.db.options.error;
+  await a.cloud.drainExpenseWrites({expenses:[],deleted:[a.c.keyOfExpense(expense)]});assert.equal(a.cloud.expenseWrites().length,1);
+ }],
+ ['descarte respeta ordinal de lápida','removeKeys[keyOfExpense(expenseFromRow(Object.assign({},event.op.snapshot,{id:oldId})))]=1;','const s=event.op.snapshot; removeKeys[keyOfExpense({id:oldId,date:s.fecha,amount:s.importe,merchant:s.comercio,source:s.source})]=1;',async make=>{
+  const a=await make(database({error:true,rows:[]})),local={...expense,obOrd:2};await assert.rejects(()=>a.cloud.setExpenseNote(local,'Nota'));delete a.db.options.error;
+  const ev=await a.cloud.discardExpenseWrite(a.cloud.expenseWrites()[0].opId),first=a.c.keyOfExpense(expense),second=a.c.keyOfExpense(local);
+  assert.deepEqual(Array.from(a.c.mcExpenseApplyEvent({expenses:[],settings:{},deleted:[first,second]},ev,{}).deleted),[first]);
+ }],
+ ['unión espera banco pendiente','if(guard.ent || guard.source || guard.reciboId || guard.debtId || guard.deleted) return false;','',async make=>{
+  const db=database({error:true});db.rows[0].source='ob:trade_republic~recibo.r#dup';const a=await make(db),local={...expense,reciboId:'r'};await assert.rejects(()=>a.cloud.setExpenseBank(local,'revolut'));
+  const out=a.c.mergeExpensesFromCloud([{...local,ent:'revolut'}],[{...expense,id:other,source:'macrodroid'}],Date.now());assert.equal(out.list[0].ent,'revolut');assert.equal(out.sinMarca.length,0);
+ }],
+
  ['ordinal conservado al escribir','+(p.ordinal||"")','',async make=>{
    const a=await make(),source='ob:trade_republic~recibo.r#dup#n2';assert.equal(a.c.mcExpenseSource(a.c.mcExpenseSourceParts(source)),source);
  }],

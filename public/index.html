@@ -3624,7 +3624,7 @@ function mcExpensePatch(row,op){
   if(k==="debt"){
     if(!v || !/^[A-Za-z0-9_-]+$/.test(v)) throw mcExpenseFailure("identity");
     const patch={cat:"deudas"};
-    if(p.origin==="ob"){ p.debt="~deuda."+v; p.receipt=""; patch.source=mcExpenseSource(p); }
+    if(p.origin==="ob" || p.origin==="ob-hist"){ p.debt="~deuda."+v; p.receipt=""; patch.source=mcExpenseSource(p); }
     return patch;
   }
   if(k==="note") return {nota:String(v||"").slice(0,160)||null,nota_edit:true};
@@ -3850,7 +3850,7 @@ const cloud = (function(){
       if(state){ const deleted={}; (state.deleted||[]).forEach(function(k){ deleted[k]=1; });
         mcExpensePending(mcExpenseContextOwner()).forEach(function(op){
           if(!op.snapshot || (state.expenses||[]).some(function(e){ return e.id===op.id || e.id===op.originalId; })) return;
-          const s=op.snapshot,e={id:op.originalId||op.id,date:s.fecha,amount:s.importe,merchant:s.comercio,source:s.source};
+          const e=expenseFromRow(Object.assign({},op.snapshot,{id:op.originalId||op.id}));
           if(expenseIsTombstoned(e,deleted) && !op.tombstoned){ op.tombstoned=true; mcExpensePersist(op); }
         });
       }
@@ -4663,7 +4663,7 @@ function expenseSourceForCloud(e){
   // presupuesto; con `#` detrás la lee como hoy. Ver `obOrdinalOf`.
   // Orden final: ob:<ent>[~deuda.<id> | ~recibo.<id>][#dup][#n<k>].
   if(ent&&(s==="ob"||String(s).indexOf("ob:")===0)) return "ob:"+ent+(deudaSufijo(e&&e.debtId)||reciboSufijo(e&&e.reciboId))+((e&&e.possibleDup)?"#dup":"")+ordinalSufijoCloud(e);
-  if(ent&&(s==="ob-hist"||String(s).indexOf("ob-hist:")===0)) return "ob-hist:"+ent+reciboSufijo(e&&e.reciboId)+((e&&e.possibleDup)?"#dup":"")+ordinalSufijoCloud(e);
+  if(ent&&(s==="ob-hist"||String(s).indexOf("ob-hist:")===0)) return "ob-hist:"+ent+(deudaSufijo(e&&e.debtId)||reciboSufijo(e&&e.reciboId))+((e&&e.possibleDup)?"#dup":"")+ordinalSufijoCloud(e);
   // Un alias TR/Wallet pendiente usa temporalmente el encoding OB que entienden también las OTA
   // anteriores; al resolver «son distintos» vuelve a su origen real `macrodroid`.
   if(s==="macrodroid"||s==="tr") return (e&&e.possibleDup)?"ob:trade_republic#dup":"macrodroid";
@@ -5304,7 +5304,7 @@ function expenseFromRow(r){
   // hace que la clave de mezcla no lo funda con el primero. Siempre es el último tramo.
   // «ob:ent~recibo.id» = cargo de ese recibo del Plan: vuelve con su `reciboId` y no mueve cifras.
   else if(raw.indexOf("ob:")===0){ const p=raw.slice(3).split("#"); const pe=partirEntDeuda(p[0]); ent=pe.ent; debtId=pe.debtId; reciboId=pe.reciboId; source=(r.ingest_event_id&&p[1]==="dup")?"macrodroid":"ob"; dup=p[1]==="dup"; ord=ordinalDeTramos(p.slice(1)); }
-  else if(raw.indexOf("ob-hist:")===0){ const p=raw.slice(8).split("#"); const pe=partirEntDeuda(p[0]); ent=pe.ent; reciboId=pe.reciboId; source="ob-hist"; dup=p[1]==="dup"; ord=ordinalDeTramos(p.slice(1)); }
+  else if(raw.indexOf("ob-hist:")===0){ const p=raw.slice(8).split("#"); const pe=partirEntDeuda(p[0]); ent=pe.ent; debtId=pe.debtId; reciboId=pe.reciboId; source="ob-hist"; dup=p[1]==="dup"; ord=ordinalDeTramos(p.slice(1)); }
   else if(raw.indexOf("manual:")===0){ ent=raw.slice(7)||null; source="manual"; }   // manual con banco elegido
   else if(raw==="supabase"){ source="manual"; }   // legado: antes el pull marcaba todo como supabase
   return {
@@ -5371,6 +5371,8 @@ function refreshExpenseFromCloud(local, incoming, readStartedAt){
   if((exact || !manual && !cuotaLocal) && !withdrawalRecent && incoming.category!=null && incoming.category!=="") put("category", incoming.category);
   if(exact){
     put("date",incoming.date);
+    // El UUID acredita también la ranura que vuelve del servidor; la fecha ya viene desplazada.
+    if(Object.prototype.hasOwnProperty.call(incoming,"obOrd")) put("obOrd",incoming.obOrd);
     if(Object.prototype.hasOwnProperty.call(incoming,"ent")) put("ent",incoming.ent);
     // TR/Wallet guardan la categoría, pero no codifican la deuda en source. Su ausencia
     // no puede deshacer un vínculo local mientras la fila siga siendo cuota.
@@ -5402,11 +5404,11 @@ function refreshExpenseFromCloud(local, incoming, readStartedAt){
   if(incoming.possibleDupOf!=null) put("possibleDupOf", incoming.possibleDupOf);
   /* Cuota de deuda (4.21.0): la marca que baja se adopta; una fila de la nube SIN marca no borra
      la local — el upsert con ignoreDuplicates puede dejar la fila vieja de la nube sin el sufijo. */
-  if(incoming.debtId) put("debtId", incoming.debtId);
+  if(incoming.debtId){ put("debtId", incoming.debtId); if(exact) put("reciboId",undefined); }
   /* Cargo de recibo (12/10/2026): la marca que baja se adopta, como la de la cuota. Una fila de
      la nube sin marca tampoco borra la local; la RETIRADA viaja por `reciboNo` en el estado, y
      `cargoDeRecibo` la respeta aunque esta fila siga marcada aquí. */
-  if(incoming.reciboId && !incoming.debtId && !local.debtId && esFilaDeBanco(local)) put("reciboId", incoming.reciboId);
+  if(incoming.reciboId && !incoming.debtId && !out.debtId && esFilaDeBanco(local)) put("reciboId", incoming.reciboId);
   // Sin comienzo de lectura no sabemos si esta foto precede a la decisión local. Una
   // lectura fechada puede adoptar otra edición explícita; una nota automática nunca la borra.
   const remoteNote=exact && incoming.noteEdited && Number.isFinite(readStartedAt);
@@ -5422,8 +5424,8 @@ function mcExpenseReadGuards(readStartedAt){
   const out={}, owner=mcExpenseContextOwner();
   const add=function(op,id){
     const g=out[id]||(out[id]={});
-    const fields={bank:["ent"],dup:["possibleDup","possibleDupOf","source"],category:["category","debtId"],
-      debt:["category","debtId"],note:["note","noteEdited"],card:["noCard"]};
+    const fields={bank:["ent"],dup:["possibleDup","possibleDupOf","source"],category:["category","debtId","reciboId"],
+      debt:["category","debtId","reciboId"],note:["note","noteEdited"],card:["noCard"]};
     if(op.kind==="delete"||op.kind==="deleteIds"){ g.deleted=true; return; }
     const names={comercio:"merchant",importe:"amount",fecha:"date",cat:"category",no_card:"noCard",ob_name:"obName",importe_orig:"origAmount",divisa:"origCur"};
     (op.kind==="edit"?Object.keys(op.value).map(function(k){ return names[k]; }):fields[op.kind]||[])
@@ -5477,7 +5479,7 @@ function mcExpenseApplyEvent(state,event,guards){
   if(event.type==="discard"){
     const ids=event.ids.concat([oldId]),removeKeys={};
     expenses.forEach(function(e){ if(ids.indexOf(e.id)>=0) removeKeys[keyOfExpense(e)]=1; });
-    if(event.op.snapshot){ const s=event.op.snapshot; removeKeys[keyOfExpense({id:oldId,date:s.fecha,amount:s.importe,merchant:s.comercio,source:s.source})]=1; }
+    if(event.op.snapshot){ removeKeys[keyOfExpense(expenseFromRow(Object.assign({},event.op.snapshot,{id:oldId})))]=1; }
     expenses=expenses.filter(function(e){ return ids.indexOf(e.id)<0; });
     event.rows.forEach(function(row){ const e=expenseFromRow(row); removeKeys[keyOfExpense(e)]=1;
       if(!expenses.some(function(x){ return x.id===e.id; })) expenses.push(e);
@@ -5533,7 +5535,9 @@ function mergeExpensesFromCloud(prevList, incoming, readStartedAt){
   const sinMarca=[];
   const suelta=function(fila){ const x=Object.assign({},fila); delete x.reciboId; sinMarca.push(x); return x; };
   const ganaAviso=function(k,inc){
-    const loc=byKey[k];
+    const loc=byKey[k],guard=guards[loc.id]||{};
+    // La unión espera a que se confirme la decisión de origen/banco; no puede pisar el gesto sin red.
+    if(guard.ent || guard.source || guard.reciboId || guard.debtId || guard.deleted) return false;
     if(esFilaDeBanco(inc)){ if(inc.reciboId && !esFilaDeBanco(loc)) suelta(inc); return false; }
     if(!loc.reciboId) return false;
     byKey[k]=Object.assign({},suelta(loc),{source:inc.source,ent:inc.ent});
@@ -22275,7 +22279,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="8d21e3612ce4f0b392799b12534fc787d1e16402b4351ccaa117a8c3804b7e0d";
+var _rnSha="439f902d989403ad663712bef7acc2b9611c802a6e9281ddc718941fc042a39a";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){

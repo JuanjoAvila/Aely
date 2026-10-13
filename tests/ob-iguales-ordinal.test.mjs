@@ -537,15 +537,15 @@ t("vínculo sin lápida (A contestó, B pisó el estado, A baja la unión): el b
 // que ejecuta el móvil: una mutación sobre `public/index.html` también los alcanza.
 const mainSrc = H.read("public/index.html");
 t("backfill: una fila local con lápida no se resube en cada pull", () => {
-  const m = mainSrc.match(/const delSet=\{\}; \(stateRef\.current\.deleted\|\|\[\]\)[\s\S]*?subirGasto\(e, "backfill"\); \}\);/);
+  const m = mainSrc.match(/const delSet=\{\}; \(stateRef\.current\.deleted\|\|\[\]\)[\s\S]*?subirGasto\(e,\s*"backfill"\); \}\);/);
   assert.ok(m, "no se encuentra el bloque del backfill en syncCloudExpenses");
-  const pull = new Function("stateRef", "rows", "expenseFromRow", "expenseIsTombstoned", "keyOfExpense", "subirGasto", m[0]);
+  const pull = new Function("stateRef", "rows", "expenseFromRow", "expenseIsTombstoned", "keyOfExpense", "subirGasto", "backfillExpenseCandidates", "readStartedAt", m[0]);
   const s = estado();
   const viva = { id: c.mcExpenseId(), date: ymd(-2) + "T10:00:00.000Z", merchant: "Movimiento", amount: 12, category: "otros", source: "ob", ent: "trade_republic" };
   const muerta = Object.assign({}, viva, { id: c.mcExpenseId(), amount: 29.9 });
   s.expenses = [viva, muerta]; s.deleted = [c.keyOfExpense(muerta)];
   const subidas = [];
-  pull({ current: s }, [], c.expenseFromRow, c.expenseIsTombstoned, c.keyOfExpense, (e, why) => subidas.push(why + ":" + e.amount));
+  pull({ current: s }, [], c.expenseFromRow, c.expenseIsTombstoned, c.keyOfExpense, (e, why) => subidas.push(why + ":" + e.amount), c.backfillExpenseCandidates, Date.now());
   same(subidas, ["backfill:12"], "solo la viva");
 });
 

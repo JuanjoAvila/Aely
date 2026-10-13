@@ -197,5 +197,65 @@ await test('el escritor no fabrica un source sin banco ni acepta ACK con otro or
  await assert.rejects(()=>b.cloud.setExpenseBank({...expense,source:db.rows[0].source,ent:null,possibleDup:false},'revolut'),/identity/);
  assert.equal(b.cloud.expenseWrites().length,1);
 });
+await test('beta122: el conversor local conserva las 36 fuentes bancarias completas',async()=>{
+ const a=await client();
+ for(const origin of ['ob','ob-hist'])for(const mark of ['','~deuda.d-1','~recibo.r_2'])for(const dup of ['','#dup'])for(const ord of ['','#n2','#n999999']){
+  const source=origin+':trade_republic'+mark+dup+ord,row={...a.db.rows[0],source};
+  assert.equal(a.c.expenseSourceForCloud(a.c.expenseFromRow(row)),source);
+ }
+});
+await test('beta122: banco, duplicidad, categoría y deuda viajan por estado real y ACK',async()=>{
+ for(const origin of ['ob','ob-hist'])for(const [kind,value,tail] of [['bank','revolut','~recibo.r#dup#n2'],['dup',false,'~recibo.r#n2'],['category','super','~recibo.r#dup#n2'],['debt','d','~deuda.d#dup#n2']]){
+  const db=database();db.rows[0].source=origin+':trade_republic~recibo.r#dup#n2';db.rows[0].fecha='2026-10-12T10:00:00.001Z';
+  const a=await client(db),local=a.c.expenseFromRow(db.rows[0]);let state={expenses:[local],settings:{},deleted:[]};
+  a.c.mcOnExpenseWrites(ev=>{if(ev)state=a.c.mcExpenseApplyEvent(state,ev,a.c.mcExpenseReadGuards(Infinity))});
+  await a.c.writeExpenseField(db.sb,local,kind,value);
+  const expected=origin+':'+(kind==='bank'?'revolut':'trade_republic')+tail;
+  assert.equal(db.rows[0].source,expected);assert.equal(a.c.expenseSourceForCloud(state.expenses[0]),expected);
+  assert.equal(state.expenses[0].date,'2026-10-12T10:00:00.001Z');assert.equal(state.expenses[0].id,id);
+ }
+});
+await test('beta122: ACK adopta el ordinal remoto sin sumar otra vez los milisegundos',async()=>{
+ const db=database();db.rows[0].source='ob:trade_republic~recibo.r#dup#n2';db.rows[0].fecha='2026-10-12T10:00:00.001Z';
+ const a=await client(db),local={...expense,reciboId:'r'};let state={expenses:[local],settings:{},deleted:[]};
+ a.c.mcOnExpenseWrites(ev=>{if(ev)state=a.c.mcExpenseApplyEvent(state,ev,a.c.mcExpenseReadGuards(Infinity))});
+ await a.cloud.setExpenseNote(local,'Nota');assert.equal(state.expenses[0].obOrd,2);assert.equal(state.expenses[0].date,db.rows[0].fecha);
+ assert.equal(a.c.mcExpenseSnapshot(state.expenses[0]).source,db.rows[0].source);
+});
+await test('beta122: deuda y después categoría no resucitan el recibo sustituido',async()=>{
+ const db=database();db.rows[0].source='ob:trade_republic~recibo.r#dup#n2';const a=await client(db);let state={expenses:[a.c.expenseFromRow(db.rows[0])],settings:{},deleted:[]};
+ a.c.mcOnExpenseWrites(ev=>{if(ev)state=a.c.mcExpenseApplyEvent(state,ev,a.c.mcExpenseReadGuards(Infinity))});
+ await a.c.writeExpenseField(db.sb,state.expenses[0],'debt','d');assert.equal(state.expenses[0].reciboId,undefined);
+ await a.cloud.setExpenseCat(state.expenses[0],'super');assert.equal(a.c.expenseSourceForCloud(state.expenses[0]),'ob:trade_republic#dup#n2');
+});
+await test('beta122: descartar ausencia retira sólo la lápida del ordinal decidido',async()=>{
+ const a=await client(database({error:true,rows:[]})),local={...expense,obOrd:2,reciboId:'r'};
+ await assert.rejects(()=>a.cloud.setExpenseNote(local,'Nota'));delete a.db.options.error;
+ const ev=await a.cloud.discardExpenseWrite(a.cloud.expenseWrites()[0].opId),first=a.c.keyOfExpense(expense),second=a.c.keyOfExpense(local);
+ const state=a.c.mcExpenseApplyEvent({expenses:[],settings:{},deleted:[first,second]},ev,{});
+ assert.deepEqual(Array.from(state.deleted),[first]);
+});
+await test('beta122: la lápida del primer cargo no confirma la ausencia del segundo',async()=>{
+ for(const own of [false,true]){const a=await client(database({error:true,rows:[]})),local={...expense,obOrd:2,reciboId:'r'};
+  await assert.rejects(()=>a.cloud.setExpenseNote(local,'Nota'));delete a.db.options.error;
+  await a.cloud.drainExpenseWrites({expenses:[],deleted:[a.c.keyOfExpense(own?local:expense)]});
+  assert.equal(a.cloud.expenseWrites().length,own?0:1);
+ }
+});
+await test('beta122: la unión del aviso respeta banco pendiente y se retoma tras acuse',async()=>{
+ const db=database({error:true});db.rows[0].source='ob:trade_republic~recibo.r#dup';const a=await client(db),local=a.c.expenseFromRow(db.rows[0]);
+ await assert.rejects(()=>a.cloud.setExpenseBank(local,'revolut'));
+ const chosen={...local,ent:'revolut'},notice={...local,id:other,source:'macrodroid',ent:'trade_republic',reciboId:undefined};
+ const before=a.c.mergeExpensesFromCloud([chosen],[notice],Date.now());assert.equal(before.list[0].ent,'revolut');assert.equal(before.sinMarca.length,0);
+ delete db.options.error;await a.cloud.drainExpenseWrites();const after=a.c.mergeExpensesFromCloud([chosen],[notice],Date.now()+1);
+ assert.equal(after.list[0].source,'macrodroid');assert.equal(after.list[0].reciboId,undefined);assert.equal(after.sinMarca.length,1);
+});
+await test('beta122: realinear exige la fecha ya desplazada y conserva otro cargo igual',async()=>{
+ for(const origin of ['ob','ob-hist']){const db=database();db.rows[0].source=origin+':trade_republic~recibo.r#dup#n2';db.rows[0].fecha='2026-10-12T10:00:00.001Z';db.rows.push({...db.rows[0],id:other,source:origin+':trade_republic~recibo.r#dup',fecha:expense.date});
+  const a=await client(db),local={...a.c.expenseFromRow(db.rows[0]),id:'legacy'};
+  await a.cloud.setExpenseBank(local,'revolut');assert.equal(db.rows[0].source,origin+':revolut~recibo.r#dup#n2');assert.equal(db.rows[1].source,origin+':trade_republic~recibo.r#dup');
+  assert.equal(db.rows[0].fecha,'2026-10-12T10:00:00.001Z');assert.equal(db.calls.filter(x=>x.patch).length,1);
+ }
+});
 console.log('expense-write-revision: '+passed+' PASS / '+failed+' FAIL');
 if(failed) process.exitCode=1;
