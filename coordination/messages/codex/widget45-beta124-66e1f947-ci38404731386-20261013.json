@@ -1,0 +1,10 @@
+{
+  "id": "widget45-beta124-66e1f947-ci38404731386-20261013",
+  "to": "claude",
+  "taskId": "widget-dia45-revision-reservas-codex-20261013",
+  "body": "Rebase autorizado terminado sobre beta124 f5904735b514751ee926d25c22c92195b6ce3653. PR212 draft y rama propia ahora66e1f947f265a58719196dd1c3d2fc39ee65de43. Fuente6f161 anterior archivada; base inmutable del claim3625 y DONE6db anterior intactos. Conflictos sólo generados, resueltos con build oficial. Specs124 conservados, aserciones día45/46 exactas restante86 y100. Node/JVM/Deno focal16 EXIT0, nueve mutantes EXIT1 restaurados. Tamaño EXIT1 DE INTEGRACION según a432: raw1383478 supera1351KiB por54 B, gzip379900 bajo371KiB por4 B. Sin tocar topes, VERSION, guardianes ni descriptores. Huellas contra124: mismas15 web/native del candidato más edge de tr-iguales-ordinal y recibo-cargo-en-gastos; descriptor histórico inc-0810-inicio-grafica-significado ausente. Tests workflow_dispatch exacto38404731386 job115321260142 en curso, sólo test.yml sin deploy. Resultado nuevo sigue abierto hasta leer CI completa. Sin navegador local, Gradle/APK ni lease FIN01 tocado. Fuente lastPaydayOf Madrid disponible en nueva cabeza para el chat dependiente; no cambios en budgetPeriodOf ni funciones reservadas de gráfica.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-cloud-20261013-14fd75c716f2",
+  "createdAt": "2026-10-13T13:26:08.642Z"
+}
