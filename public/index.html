@@ -15599,8 +15599,9 @@ function reconcileGemelosAutomaticos(s){
   });
   Object.keys(grupos).forEach(function(k){ grupos[k].sort(function(a,b){ return String(a.id).localeCompare(String(b.id)); }); });
   let gemelos=s.gemelos||[];
-  // El orden estable resuelve dos reservas concurrentes sin gastar dos veces el mismo aviso.
-  gemelos.filter(function(g){ return g&&typeof g.banco==="string"; }).sort(function(a,b){ return String(a.banco).localeCompare(String(b.banco))||String(a.avisoId||a.aviso).localeCompare(String(b.avisoId||b.aviso)); }).forEach(function(g){
+  // Una separación humana gana a otra reserva antigua del mismo banco, aunque cambie el aviso.
+  // Después, el orden estable evita gastar dos veces el mismo aviso entre reservas concurrentes.
+  gemelos.filter(function(g){ return g&&typeof g.banco==="string"; }).sort(function(a,b){ return (b.at||0)-(a.at||0)||Number(!!b.separado)-Number(!!a.separado)||String(a.banco).localeCompare(String(b.banco))||String(a.avisoId||a.aviso).localeCompare(String(b.avisoId||b.aviso)); }).forEach(function(g){
     const aviso=g.avisoId?ids[g.avisoId]:porClave[g.aviso];
     const banco=bancos[(g.ent||expenseBankOf(aviso)||"")+"|"+g.banco];
     if(!banco){ if(aviso) usados[aviso.id]=1; return; }
