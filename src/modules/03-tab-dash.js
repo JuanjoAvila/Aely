@@ -34,7 +34,30 @@ function cycleTiming(bud,nowMs){
   const days=Math.max(1,(end-civil(start))/864e5), elapsed=Math.max(0,(civil(now)-civil(start))/864e5);
   return {days:days,elapsed:elapsed,left:Math.max(0,(end-civil(now))/864e5),reliable:!!bud.cycle};
 }
-function NetWorthNow({tt, simple, series, splashGone}){
+// Las tres líneas de la «i», solo las que aplican: antes era un párrafo más una línea por cuenta,
+// bien y deuda («una mierda pinchada en un palo», feedback 13/10). Sin fechas ni jerga de más.
+function netWorthInfoLines(series, dateFmt){
+  const coverage=series.coverage||[], fmt=function(day){ return dateFmt.format(Date.parse(day+"T12:00:00Z")); }, lines=[];
+  if(series.length>1){
+    const later=coverage.filter(function(g){ return g.kind==="bank"&&g.later; }).map(function(g){ return tf("v42_net_i_from",{name:g.name,day:fmt(g.day)}); });
+    lines.push(tf("v42_net_i_accounts",{day:fmt(series[0].day),more:later.length?" · "+later.join(", "):""}));
+  }
+  const kept=[], seen={};
+  coverage.forEach(function(g){
+    if(g.unknown||g.kind==="debt"||g.kind==="bank"||!g.constant) return;
+    const name=g.kind==="investment"?t("v42_net_source_investment"):g.name;
+    const label=g.day?tf("v42_net_i_before",{name:name,day:fmt(g.day)}):name;
+    if(!seen[label]){ seen[label]=true; kept.push(label); }
+  });
+  if(kept.length) lines.push(tf("v42_net_i_kept",{names:kept.join(", ")}));
+  const debts=coverage.filter(function(g){ return g.kind==="debt"&&!g.timingUnknown; });
+  if(debts.length){
+    const constant=debts.filter(function(g){ return g.constant; }).map(function(g){ return g.name; });
+    lines.push(constant.length===debts.length?t("v42_net_i_debts_kept"):constant.length?tf("v42_net_i_debts_mixed",{names:constant.join(", ")}):t("v42_net_i_debts_est"));
+  }
+  return lines;
+}
+function NetWorthNow({tt, simple, series, splashGone, anchors}){
   // La animación pertenece a esta tarjeta; repintar todo Inicio en cada frame
   // dispara las lecturas de layout de navegación con el histórico grande.
   const value=tt.netWorth, shown=useCountUp(tt.netWorth||0, splashGone);
@@ -45,25 +68,18 @@ function NetWorthNow({tt, simple, series, splashGone}){
   const svgRef=useRef(null), frameRef=useRef(0), fingerRef=useRef(null);
   const range=ranges.find(function(r){ return r.id===picked; })||ranges[0];
   const points=range?range.points:[], active=touch!=null?points[touch]:null;
-  const delta=points.length>1?points[points.length-1].value-points[0].value:null;
-  const color=delta!=null&&delta<0?"var(--coral)":"var(--mint)";
+  // El veredicto compara con el mismo punto del ciclo anterior, nunca con el primer punto de la
+  // gráfica; y el rojo se queda solo para ir peor de verdad (feedback 13/10: «yo no voy mal»).
+  const compare=useMemo(function(){ return range?netWorthCompare(series,anchors,range.id,today,tt.invested):null; },[series,anchors,range&&range.id,today,tt.invested]);
+  const verdict=compare?compare.verdict:"none";
+  const color=verdict==="up"?"var(--mint)":verdict==="down"?"var(--coral)":"var(--blue)";
   const chart=useMemo(function(){ return netWorthChartGeometry(points); },[points]);
   const language=loc();
   const dateFmt=useMemo(function(){return new Intl.DateTimeFormat(language,{timeZone:"Europe/Madrid",day:"numeric",month:"short",year:"numeric"});},[language]);
   const dateLabels=useMemo(function(){
     return points.map(function(p){return dateFmt.format(Date.parse(p.day+"T12:00:00Z"));});
   },[points,dateFmt]);
-  // El detalle por cuenta, bien y deuda vive en la «i»: entre la cifra y la gráfica era un muro
-  // de seis líneas (13/10). Dos cuentas con el mismo nombre y la misma nota salen una vez.
-  const coverageLabels=useMemo(function(){const seen={};return (series.coverage||[]).map(function(g){
-    const name=g.name||t("v42_net_source_"+g.kind);
-    if(g.timingUnknown)return tf("v42_net_debt_timing",{name:name});
-    if(g.kind==="debt")return tf(g.estimated?"v42_net_debt_estimated":"v42_net_debt_constant",{name:name});
-    if(!g.day)return g.constant?tf("v42_net_asset_kept",{name:name}):name;
-    const day=dateFmt.format(Date.parse(g.day+"T12:00:00Z"));
-    return tf(g.kind==="manual"&&g.prior?"v42_net_manual_prior":g.prior?"v42_net_asset_prior":g.constant?"v42_net_asset_constant":"v42_net_coverage",{name:name,day:day});
-  }).filter(function(label){ if(seen[label]) return false; seen[label]=true; return true; });},[series.coverage,dateFmt,language]);
-  const kept=(series.coverage||[]).some(function(g){ return g.constant||g.estimated; });
+  const infoLines=useMemo(function(){ return netWorthInfoLines(series,dateFmt); },[series,dateFmt,language]);
   useEffect(function(){ setTouch(null); },[range&&range.id]);
   useEffect(function(){ return function(){ cancelAnimationFrame(frameRef.current); }; },[]);
   useBackClose(info,function(){ setInfo(false); });
@@ -105,14 +121,18 @@ function NetWorthNow({tt, simple, series, splashGone}){
       p?p.sign+p.ent:"—", p&&React.createElement("span",null,","+(p.dec||"00")+" "+p.sym)),
     !valid&&React.createElement("div",{className:"hint",role:"status"}, t("v4_net_unknown")),
     valid&&series.length<2&&React.createElement("div",{className:"hint"},t(series.fresh?"v4_hist_empty":"v42_net_missing")),
-    valid&&delta!=null&&React.createElement("div",{className:"v42-net-delta","data-testid":"inicio-net-delta",style:{color:color}},
-      tf("v42_net_"+(delta<0?"less_":"more_")+range.id,{x:netWorthDeltaMoney(delta)})),
+    valid&&points.length>1&&React.createElement("div",{className:"v42-net-delta","data-testid":"inicio-net-delta","data-verdict":verdict,style:{color:verdict==="up"?"var(--mint)":verdict==="down"?"var(--coral)":"var(--muted)"}},
+      compare?tf("v42_net_cmp_"+verdict,{x:netWorthDeltaMoney(compare.delta),when:compare.cycles===1?t("v42_net_when_1"):tf("v42_net_when_n",{n:compare.cycles})}):t("v42_net_cmp_none")),
     valid&&chart&&React.createElement("div",{className:"v42-net-chart","data-noswipe":"1",onTouchStart:begin,onTouchMove:move,onTouchEnd:release,onTouchCancel:release},
       React.createElement("svg",{ref:svgRef,key:range.id,viewBox:"0 0 320 80",preserveAspectRatio:"none",role:"img","aria-label":t("v42_net_chart"),style:{color:color}},
         React.createElement("defs",null,React.createElement("linearGradient",{id:id,x1:"0",x2:"0",y1:"0",y2:"1"},
-          React.createElement("stop",{offset:"0%",stopColor:"currentColor",stopOpacity:.2}),React.createElement("stop",{offset:"100%",stopColor:"currentColor",stopOpacity:0}))),
+          React.createElement("stop",{offset:"0%",stopColor:"currentColor",stopOpacity:.2}),React.createElement("stop",{offset:"100%",stopColor:"currentColor",stopOpacity:0})),
+          // El trazo se revela con un recorte en vez de con stroke-dasharray: con `pathLength` y
+          // trazo sin escalar, el SVG estirado a lo ancho dejaba un hueco entre la línea y el
+          // punto de hoy en el móvil (feedback 13/10: «hay un hueco en la gráfica al final»).
+          React.createElement("clipPath",{id:id+"c"},React.createElement("rect",{className:"v42-net-reveal",x:0,y:-20,width:320,height:120}))),
         React.createElement("path",{className:"v42-net-fill",d:chart.fill,fill:"url(#"+id+")"}),
-        React.createElement("path",{className:"v42-net-line",d:chart.path,fill:"none",stroke:"currentColor",strokeWidth:2,strokeLinecap:"round",strokeLinejoin:"round",vectorEffect:"non-scaling-stroke",pathLength:1}),
+        React.createElement("path",{className:"v42-net-line",d:chart.path,fill:"none",stroke:"currentColor",strokeWidth:2,strokeLinecap:"round",strokeLinejoin:"round",vectorEffect:"non-scaling-stroke",clipPath:"url(#"+id+"c)"}),
         React.createElement("circle",{className:"v42-net-dot",cx:chart.xy[points.length-1].x,cy:chart.xy[points.length-1].y,r:4,fill:"currentColor"}),
         active&&React.createElement("g",{"data-testid":"inicio-net-guide"},
           React.createElement("line",{x1:chart.xy[touch].x,x2:chart.xy[touch].x,y1:0,y2:80,stroke:"var(--muted)",strokeDasharray:"2 3"}),
@@ -121,11 +141,10 @@ function NetWorthNow({tt, simple, series, splashGone}){
     valid&&ranges.length>0&&React.createElement("div",{className:"v42-net-ranges"},ranges.map(function(r){
       return React.createElement("button",{key:r.id,type:"button","aria-pressed":range.id===r.id,onClick:function(){ setPicked(r.id); setTouch(null); }},t("v42_range_"+r.id));
     })),
-    valid&&series.length>1&&coverageLabels.length>0&&React.createElement("div",{className:"hint","data-testid":"inicio-net-coverage"},
-      tf("v42_net_since",{day:dateFmt.format(Date.parse(series[0].day+"T12:00:00Z"))})+(kept?" · "+t("v42_net_kept"):"")),
+    // Bajo los periodos no va texto fijo («el mensaje de abajo me sobra», 13/10): lo que se
+    // mantiene constante se cuenta solo en la «i», en tres líneas como mucho.
     info&&React.createElement("div",{className:"hint",role:"note"},
-      React.createElement("div",null,t("v42_net_info")),
-      coverageLabels.map(function(label,i){return React.createElement("div",{key:i,"data-testid":"inicio-net-detail"},label);}))
+      infoLines.map(function(label,i){return React.createElement("div",{key:i,"data-testid":"inicio-net-detail"},label);}))
   );
 }
 function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGastos, onGoPlan, showToast}){
@@ -209,6 +228,9 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
   const dailyMoney=budAmt>0?cycleDailyMoney(rem,timing.left):null;
   const series=useMemo(function(){ return netWorthSeries(state,{today:seriesToday,liquid:tt.liquid,invested:tt.invested,debtTotal:tt.debtTotal,balanceInputs:tt}); },
     [state.accounts,state.obAccounts,state.accountBalanceHistory,state.invHistory,state.investments,state.assets,state.assetValueHistory,state.debts,state.expenses,state.deleted,state.flows,state.fixed,state.oneoffs,state.bankTx,state.aportaciones,state.settings,state.fx,state.fxRates,tt,seriesToday]);
+  // Los cobros anteriores salen del mismo lector que el presupuesto; sólo se recorren de nuevo
+  // cuando cambia lo que ese lector mira, no en cada render.
+  const anchors=useMemo(function(){ return netWorthCycleAnchors(state,bud); },[bud,state.expenses,state.deleted,state.flows,state.settings]);
 
   const overdue=[];
   // La fecha prevista no es un pago: la misma lectura de evidencia que Plan conserva los
@@ -317,7 +339,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
       }}, t("mr_share"))
     ),
 
-    !showSkel && React.createElement(NetWorthNow,{tt:tt, simple:simple, series:series, splashGone:splashGone}),
+    !showSkel && React.createElement(NetWorthNow,{tt:tt, simple:simple, series:series, splashGone:splashGone, anchors:anchors}),
 
     // Sin presupuesto, Inicio escondia su tarjeta estrella y te quedabas sin la mitad de la app
     // sin saber por que (P3). En vez de esconderla, la misma tarjeta en vacio y con salida: abre
