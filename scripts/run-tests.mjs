@@ -264,6 +264,8 @@ if (plan.deno !== false) {
     const started = performance.now();
     const denoArgs = testFile.includes("crypto.test")
       ? ["test", "--allow-env", testFile]
+      : testFile === "supabase/functions/ingest/widget.test.ts"
+      ? ["test", "--allow-read=tests/fixtures/widget-ciclo.tsv", testFile]
       : ["test", testFile];
     const deno = spawnSync("deno", denoArgs, {
       cwd: root, stdio: "pipe", shell: process.platform === "win32",

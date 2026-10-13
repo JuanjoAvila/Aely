@@ -27,7 +27,8 @@ Promoción selectiva98 preparada7/10: el dueño aprobó ocultar juntos barra y b
 # Roadmap — Aely
 
 Candidato separado, sin publicación: [regla compartida de vigencia de Mi ciclo](WIDGET-CICLO.md).
-Conserva 45 días locales completos y necesita APK nueva para corregir el widget;
+Conserva 45 días completos de Madrid en web/Java/ingest y necesita APK nueva para el ciclo nativo;
+la web compatible envía cifras reales del mes a APK55 cuando ésta rechazaría el ciclo.
 CI, integración y aceptación móvil son gates pendientes propios.
 
 MAIN4.26.110 incorpora PR196 (bdd75636), sólo pruebas, herramientas y documentación. Tests38005461796 y DeployPages38005461732 terminaron SUCCESS y sus artefactos se comprobaron; ese cierre no publica Inicio112 ni acredita APK nuevo o aceptación móvil. Las aprobadas99/100/101/102/106 ya entregadas conservan su cierre;109 sigue rechazada.

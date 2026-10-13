@@ -19,6 +19,48 @@ function state(cycle = false) {
 }
 const payment = { id: "payment", event: "tr:synthetic", key: "synthetic-key" };
 
+Deno.test("widgetStart comparte la tabla de vigencia de web y Java en Madrid", () => {
+  // La tabla expresa horas locales; se convierten a instantes sin depender de la TZ del runner.
+  function madrid(s: string): number {
+    if (s === "-") return 0;
+    if (s.endsWith("Z")) return Date.parse(s);
+    const utc = Date.parse(s + "Z");
+    let ms = utc;
+    for (let i = 0; i < 2; i++) {
+      const offset = new Intl.DateTimeFormat("en", { timeZone: "Europe/Madrid", timeZoneName: "longOffset" })
+        .formatToParts(ms).find(p => p.type === "timeZoneName")!.value;
+      const [, sign, h, m] = offset.match(/GMT([+-])(\d+):(\d+)/)!;
+      ms = utc - (sign === "+" ? 1 : -1) * (+h * 60 + +m) * 60000;
+    }
+    return ms;
+  }
+  const table = Deno.readTextFileSync(new URL("../../../tests/fixtures/widget-ciclo.tsv", import.meta.url));
+  for (const line of table.trim().split(/\r?\n/).slice(1)) {
+    const [id, , , , at, , from, valid] = line.split("\t");
+    const start = madrid(from), s = { settings: { budgetCycle: true }, widgetPeriod: { v: 2, kind: "ciclo", start, anchor: "synthetic" } };
+    assertEquals(widgetStart(s, madrid(at)), valid === "true" ? start : null, id);
+  }
+});
+
+Deno.test("pago cerrado en día 45: cifra del ciclo nueva y mes compatible con APK55", () => {
+  const start = Date.parse("2026-08-20T00:00:00+02:00"), s = state(true);
+  const cycleRows = [
+    { ...rows[1], fecha: "2026-08-20T12:00:00+02:00" },
+    { ...rows[0], fecha: "2026-09-02T12:00:00+02:00", importe: 140 },
+    { ...rows[2], fecha: "2026-10-04T00:00:00+02:00" },
+  ];
+  s.budget = 1000;
+  s.widgetPeriod = { v: 2, kind: "ciclo", start, anchor: claveComoLaApp(cycleRows[0]), scope: "" };
+  const scope = (kind: string, start: number, anchor: string) => JSON.stringify([2, start, kind, kind === "ciclo" ? "neto" : "gasto", anchor, 1000, ["trade_republic"], "trade_republic"]);
+  s.widgetPeriod.scope = scope("ciclo", start, s.widgetPeriod.anchor);
+  for (const time of ["00:01:00", "09:30:00", "12:01:00", "23:59:59.999"]) {
+    const at = Date.parse("2026-10-04T" + time + "+02:00");
+    assertEquals(widgetSnapshot(s, cycleRows, at, payment)?.spent, 145.45, time);
+    const from = inicioDeMesMs(at), monthly = { ...s, widgetPeriod: { v: 2, kind: "mes", start: from, anchor: "", scope: scope("mes", from, "") } };
+    assertEquals(widgetSnapshot(monthly, cycleRows, at, payment)?.spent, 5.45, "APK55 " + time);
+  }
+});
+
 Deno.test("widget v2 mes bruto y delta exacto; el contrato no copia Balance legacy", () => {
   const w = widgetSnapshot(state(), rows, now, payment)!;
   assertEquals(w.contract, 2); assertEquals(w.periodKind, "mes");

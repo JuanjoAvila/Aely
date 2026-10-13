@@ -126,10 +126,6 @@
 
 ### Corte de beta117 anterior a la promoción (histórico, solo web)
 
-Candidato sin publicar (12/10/2026): corregida la discrepancia horaria del día 45 entre lastPaydayOf y WidgetPeriod contando días locales completos, incluidos cambios de hora. Conserva el truncado del puente y añade pruebas de liquidez desconocida y APK 53. Regla y límites en [WIDGET-CICLO](docs/WIDGET-CICLO.md); integración pondrá versión y notas.
-
-## [4.26.117] — 2026-10-12 · Pantalla de entrada nueva (solo web, sin APK nueva)
-
 - **Qué entra.** Integra `claude/splash-animado` (cabeza `532a6066`, merge `--no-ff` sin squash porque los guardianes fijan SHA) sobre la beta 4.26.116 `f695a299`. Es solo web: el nativo no cambia, `versionCode` sigue en 54 y `public/apk.json` no se toca (sigue provisional al asset beta-54 de la 4.26.116).
 - **Qué se ve.** El splash de `shell.html` pasa a tarjeta con el logo, un halo verde que respira detrás y el nombre debajo. Todo es CSS puro y solo anima `transform` y `opacity`, que es lo único que el compositor mueve con el hilo principal ocupado (evaluando el bundle y montando React).
 - **Las otras tres pestañas se montan detrás de la cortina.** Un efecto de `App` (`11-app-main.js`) las monta en UNA sola tanda justo tras el primer commit, solo si la cortina sigue puesta. El vigilante que la retira corre en el mismo hilo, así que no puede levantarla a mitad de ese render y no hace falta señal nueva entre app y vigilante. Antes dependía de huecos libres: con la CPU a ×6, en la mitad de los arranques se entraba con 3 de 4 pestañas montadas y la que faltaba caía a la vista.

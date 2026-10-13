@@ -27,10 +27,10 @@ export async function readWidgetRows(db: any, userId: string, start: number): Pr
 }
 
 // El ciclo termina mañana en Madrid, como Inicio; no sumar apuntes de otro día futuro.
-function tomorrow(now: number): number {
+function madridDayStart(now: number, days: number): number {
   const fmt = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Madrid", year: "numeric", month: "2-digit", day: "2-digit" });
   const [y, m, d] = fmt.format(now).split("-").map(Number);
-  const utc = Date.UTC(y, m - 1, d + 1), target = new Date(utc).toISOString().slice(0, 10);
+  const utc = Date.UTC(y, m - 1, d + days), target = new Date(utc).toISOString().slice(0, 10);
   let lo = utc - 14 * 3600000, hi = utc + 14 * 3600000;
   while (lo < hi) { const mid = Math.floor((lo + hi) / 2); if (fmt.format(mid) < target) lo = mid + 1; else hi = mid; }
   return lo;
@@ -41,7 +41,9 @@ export function widgetStart(data: any, now: number): number | null {
   const w = data?.widgetPeriod;
   if (w?.v !== 2 || !Number.isSafeInteger(w.start) || w.start <= 0 || w.start > now) return null;
   if (w.kind === "mes") return w.start === inicioDeMesMs(now) ? w.start : null;
-  if (w.kind !== "ciclo" || !data?.settings?.budgetCycle || !w.anchor || now - w.start > 45 * 86400000) return null;
+  // Ingest ya calcula sus ventanas en Madrid: el día 45 completo también debe admitir
+  // pagos con la app cerrada. El nativo revalida también Madrid antes de mostrarlos.
+  if (w.kind !== "ciclo" || !data?.settings?.budgetCycle || !w.anchor || w.start < madridDayStart(now, -45)) return null;
   return w.start;
 }
 
@@ -53,7 +55,7 @@ export function widgetSnapshot(data: any, rows: FilaGasto[], now: number, paymen
   const candidateStart = widgetStart(data, now);
   if (candidateStart == null) return null;
   const start: number = candidateStart;
-  const w = data.widgetPeriod, cycle = w.kind === "ciclo", end = cycle ? tomorrow(now) : Infinity;
+  const w = data.widgetPeriod, cycle = w.kind === "ciclo", end = cycle ? madridDayStart(now, 1) : Infinity;
   const visible = filasComoLaApp(rows, data.deleted).filter(f => {
     const ms = Date.parse(String(f.fecha)); return ms >= start && ms < end;
   });
