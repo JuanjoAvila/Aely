@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "id": "tr-emparejado-automatico-codex-20261013",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261013-32295a8f",
+  "createdAt": "2026-10-13T09:26:58.903Z",
+  "to": "codex",
+  "baseSHA": "3625fa7ed5134cfbc5e364adc4f588bfdaf670c0",
+  "objective": "PRIORIDAD ALTA, queja literal del dueño al rechazar la 119: le salen preguntas de Trade Republic «¿Es el mismo movimiento?» y NUNCA ha encontrado un caso en que no lo fuera. Entrega 2 de Trade Republic, ya aprobada por él: emparejar automáticamente el aviso con el apunte del banco por cuenta de filas, sin preguntar, y que se pueda deshacer.",
+  "scope": [
+    "src/modules/08-motor-bank.js (importObExpenses, gemelos) y 04-tab-gastos.js (ficha del movimiento)",
+    "textos en 01-i18n.js es, en y ca",
+    "tests de Node del emparejado y un e2e de la ficha"
+  ],
+  "acceptance": [
+    "Leer primero la entrega 1 (beta 4.26.120, commits de tr-iguales-ordinal) y el vínculo state.gemelos. Base de trabajo: la rama origin claude/recibos-bajas-y-union (cabeza 24bfb4e5 o posterior), que cambia esos mismos ficheros y entra antes; si aún no está en origin al empezar, basarse en beta y rebasar",
+    "Regla: cuando un banco sin id de movimiento entrega N apuntes iguales (mismo banco, día, importe) y hay M avisos o filas previas iguales, se emparejan min(N,M) sin preguntar y solo el exceso entra como fila nueva. Ninguna pregunta automática. Los gastos apuntados a MANO siguen preguntando",
+    "Reversible: en la ficha del movimiento emparejado, «No es el mismo: separar» lo deshace y la decisión se recuerda y viaja entre móviles (unión con hora, como lápidas y vetos de esa rama)",
+    "Migración: las preguntas pendientes que ya tiene el usuario se resuelven solas con la misma regla al abrir o al sincronizar; decir cuántas filas y qué importe cambian en un estado de 90 días generado con la 123. El gastado del mes no puede subir ni bajar por emparejar: demostrarlo con un invariante contra extractos generados",
+    "Sin doble conteo ni pérdida: probar pendiente y contabilizado, repetición al paginar, dos bizums iguales reales el mismo día, y un aviso que llega después del apunte",
+    "No tocar VERSION, notas, catálogo ni topes. Result con SHA, EXIT reales, mutaciones propias y lo no verificado"
+  ]
+}
