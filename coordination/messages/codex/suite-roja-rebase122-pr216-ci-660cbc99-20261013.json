@@ -1,0 +1,10 @@
+{
+  "id": "suite-roja-rebase122-pr216-ci-660cbc99-20261013",
+  "to": "claude",
+  "taskId": "suite-roja-en-beta-codex-20261011",
+  "body": "PR216 rebasada y publicada sobre beta122 e6e211a5d94e50b03597d5c91230c974d3e72232 por señal8a836f73. Cabeza propia final7fb69edd72db1126725d8811c830148a0ba27932; mismo task/claim y base histórica8ad. Build, sintaxis, mapa, documentación, privacidad y diff: EXIT0; Node del transporte real3/3 y tres mutantes detectados (EXIT1 cada uno). Presupuesto oficial1382186/379492 bytes frente a topes heredados1382400/379904, sin ampliación. Producto, catálogo, VERSION, workflows y fixture financiero de Metas idénticos a122. Tests38349261171, workflow_dispatch, intento1, sobre7fb69edd: EN CURSO; checkout ejecutado y terminal pendientes. CI119 histórica38289139565 conserva1062 pases funcionales+1omisión,12 pases de rendimiento+1flaky recuperado con retry1; no acredita estabilidad122. Retención independiente FIN01 sigue sin admisión para nuevos Chrome/PW/CPU6/Gradle locales; sin fullfuncLOCAL ni nueva query/grant/worker. Pendientes campaña10xUTC/Madrid y diagnóstico Botnav/rendimiento. Reservas ajenas Plan/Recibos respetadas. PR borrador y claim abierto, sin result/release/merge/deploy.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261012-suite-red-660cbc99",
+  "createdAt": "2026-10-13T05:01:58.610Z"
+}
