@@ -122,6 +122,7 @@ test("90 días generados por beta123: 180 preguntas menos y gastado mensual idé
 });
 test("mutaciones causales de cuenta, límites y decisión persistida",()=>{
   const mutants=[
+    ["prioridad de separar","(b.at||0)-(a.at||0)||Number(!!b.separado)-Number(!!a.separado)||",""],
     ["reutilizar aviso","return !usados[e.id];","return true;"],
     ["perder manual","!isManualExpenseSource(e.source)&&",""],
     ["cruzar banco",'return ent+"|"','return ""+"|"'],
@@ -134,7 +135,7 @@ test("mutaciones causales de cuenta, límites y decisión persistida",()=>{
   let killed=0;
   for(const [name,from,to] of mutants){
     assert.ok(html.includes(from),"preimagen "+name);const ctx=clock(loadPureLogic(html.replace(from,to)));
-    let failed=false;try{cardinal(ctx);manual(ctx);boundaries(ctx);separated(ctx);const late=ctx.reconcileGemelosAutomaticos({...sync(ctx,state(),[tx()]),expenses:sync(ctx,state(),[tx()]).expenses.concat([aviso()])});assert.equal(visible(fresh(ctx,late)).length,1);}catch(_){failed=true;}
+    let failed=false;try{cardinal(ctx);manual(ctx);boundaries(ctx);separated(ctx);concurrentSeparation(ctx);const late=ctx.reconcileGemelosAutomaticos({...sync(ctx,state(),[tx()]),expenses:sync(ctx,state(),[tx()]).expenses.concat([aviso()])});assert.equal(visible(fresh(ctx,late)).length,1);}catch(_){failed=true;}
     assert.ok(failed,"sobrevive "+name);killed++;
   }
   console.log("tr-emparejado-automatico: "+killed+"/"+mutants.length+" mutantes muertos");
@@ -204,9 +205,21 @@ test("el arranque REAL migra y guarda sin tocar la semilla original",()=>{
   const next=ctx.loadState();assert.equal(visible(next).length,1);assert.equal(saved.at(-1),next);
   assert.equal(visible(seed).length,2);assert.equal(next.expenses.length,2);
 });
+
+function concurrentSeparation(ctx){
+  const a=aviso("a"),z=aviso("z"),plain=sync(ctx,state(),[tx()]),b=plain.expenses[0];
+  const records=[{...ctx.gemeloDe(a,b),auto:true,at:1,ent:"trade_republic"},{...ctx.gemeloDe(z,b),auto:true,at:10,ent:"trade_republic",separado:true}];
+  for(const gemelos of [records,records.slice().reverse()]){
+    const s=ctx.reconcileGemelosAutomaticos({...plain,expenses:[a,z,b],gemelos});
+    assert.equal(visible(s).length,3,"la separación domina otra reserva del mismo banco");
+    assert.equal(cents(ctx,s),3600);assert.equal(visible(fresh(ctx,s)).length,3);
+  }
+}
+test("separar gana a una reserva concurrente para otro aviso",()=>concurrentSeparation(c));
+
 if(!process.env.TR_PAIR_TZ_CHILD)test("misma cuenta en UTC, Madrid y Canarias (incluye ambos cambios de hora)",()=>{
   for(const TZ of ["UTC","Europe/Madrid","Atlantic/Canary"]){
     const out=execFileSync(process.execPath,[fileURLToPath(import.meta.url)],{encoding:"utf8",env:{...process.env,TZ,TR_PAIR_TZ_CHILD:"1"},maxBuffer:4*1024*1024});
-    assert.match(out,/tests 20/);assert.match(out,/fail 0/);console.log(TZ+": 20 PASS, 8/8 mutantes");
+    assert.match(out,/tests 21/);assert.match(out,/fail 0/);console.log(TZ+": 21 PASS, 9/9 mutantes");
   }
 });
