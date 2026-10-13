@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "id": "bancos-descarga-incompleta-codex-20261013",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261013-32295a8f",
+  "createdAt": "2026-10-13T05:51:03.257Z",
+  "to": "codex",
+  "baseSHA": "e6e211a5d94e50b03597d5c91230c974d3e72232",
+  "objective": "El aviso «la descarga está incompleta» (bank_read_partial) sale con el mismo texto por dos motivos distintos y a veces sin motivo: el usuario no sabe si le faltan movimientos. Hacer que diga la verdad y que una lectura cortada no estropee lo que ya había.",
+  "scope": [
+    "supabase/functions/bank-sync y _shared/enablebanking.ts en lo que toca a paginación y motivo del fallo",
+    "src/modules/08-motor-bank.js y los textos de 01-i18n.js del aviso",
+    "tests de Node y Deno del sincronizador; un e2e focal del aviso"
+  ],
+  "acceptance": [
+    "Decir primero, con fichero y línea, por qué caminos se llega hoy a bank_read_partial y qué texto ve el usuario en cada uno",
+    "Separar los textos por motivo en es, en y ca: lectura cortada por el banco o la red (faltan movimientos, se reintenta al sincronizar) frente a tope de páginas o de tiempo propio. En cristiano, sin jerga",
+    "Una lectura cortada NO sustituye el extracto local ni mueve el cursor: se conserva lo que había y lo leído hasta el corte solo se usa si es seguro. No tocar las garantías de la 4.26.119 (acuses, cursor, keepsCursor)",
+    "Una clave de continuación repetida se trata como fin de la lectura, no como bucle ni como lectura completa silenciosa",
+    "Guardar el motivo del fallo en el registro, saneado (el 11/10 un banco dio status error, 0 páginas y ninguna causa). Sin IBAN, tokens ni texto libre del proveedor",
+    "Caso Trade Republic: devuelve exactamente 100 filas en 1 página sin continuación. Determinar con el código y la documentación de Enable Banking si eso es un tope del banco tomado por lectura completa; si lo es, proponer cómo detectarlo sin inventar movimientos. No consultar el banco real",
+    "Tests que fallen sin el arreglo, registrados en el runner y en el mapa. Nada de desplegar: el despliegue lo hace el coordinador tras revisión con agente limpio",
+    "Aviso: la rama local del coordinador claude/brokers-falsa-caducidad (e901addc, en revisión) cambia el catch de bank-sync hacia la línea 292 y añade un registro eb_401 en app_events; se subirá a origin si recibe GO. Evitar ese bloque o rebasar sobre él cuando se publique",
+    "No tocar VERSION, notas, catálogo ni topes. Entregar result con SHA, tests con EXIT real y lo no verificado"
+  ]
+}
