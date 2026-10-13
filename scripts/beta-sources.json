@@ -22615,5 +22615,64 @@
       }
     ],
     "unidades": true
+  },
+  "inicio-tarjeta-ciclo-limpia": {
+    "web": [
+      {
+        "file": "src/modules/03-tab-dash.js",
+        "from": "    !showSkel && state.budget>0 && React.createElement(\"div\",{className:\"v42-cycle-section\"}",
+        "to": "\n    React.createElement(BudgetSheet,"
+      },
+      {
+        "file": "src/shell.html",
+        "from": "  .v42-cycle-section{",
+        "to": "  @keyframes v42-cycle-draw"
+      },
+      {
+        "file": "src/modules/03-tab-dash.js",
+        "function": "cyclePaceState"
+      },
+      {
+        "file": "src/modules/03-tab-dash.js",
+        "function": "cycleMoney"
+      },
+      {
+        "file": "src/modules/03-tab-dash.js",
+        "function": "cycleDailyMoney"
+      },
+      {
+        "file": "src/modules/03-tab-dash.js",
+        "function": "cycleTiming"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "eur0"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "eur"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "madridYmdParts"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "DISP"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF0"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "_mcMadridYmdFmt"
+      }
+    ],
+    "unidades": true
   }
 }

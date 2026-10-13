@@ -41,6 +41,8 @@ const source122=sourceAt("e6e211a5d94e50b03597d5c91230c974d3e72232");
 const source123=sourceAt("3625fa7ed5134cfbc5e364adc4f588bfdaf670c0");
 // Integración125: la beta124 servida (f5904735), sobre la que se corrige la gráfica de Inicio y se retira la tanda aprobada de Plan.
 const source124=sourceAt("f5904735b514751ee926d25c22c92195b6ce3653");
+// Integración126: la beta125 servida (6342459b), sobre la que se limpia la tarjeta del mes de Inicio y se retira la tanda aprobada de Inicio.
+const source125=sourceAt("6342459b0eeecd65eb1817db8e01bc179787c549");
 // La122 añade un método a `cloud` (`setExpenseRecibo`) y los alcances que listan los métodos que
 // leen lo ganan al final de su lista. Las comparaciones con descriptores anteriores lo descuentan;
 // Catálogo122 fija en lista cerrada cuáles son.
@@ -64,7 +66,7 @@ const boot="inc-2709-01-arranque-red";
 const modern=[{v:"4.26.69",tandas:[{id:boot}]}];
 let failed=0;
 const inicioOnly=process.argv.includes("--inicio-v42-only");
-function test(name,fn){ if(inicioOnly&&!name.startsWith("Inicio v4.2 ")&&!name.startsWith("Catálogo125 ")&&!name.startsWith("Retiro125 ")&&!name.startsWith("Catálogo124 ")&&!name.startsWith("Retiro124 ")&&!name.startsWith("Catálogo123 ")&&!name.startsWith("Catálogo122 ")&&!name.startsWith("Catálogo121 ")&&!name.startsWith("Catálogo120 ")&&!name.startsWith("Catálogo114 ")&&!name.startsWith("Catálogo117 ")&&!name.startsWith("Retiro117 ")&&!name.startsWith("Catálogo118 ")&&!name.startsWith("Splash117 ")&&!name.startsWith("Catálogo119 ")&&!name.startsWith("Retiro119 "))return;try{fn();console.log("  ✓ "+name);}catch(e){failed++;console.error("  ✗ "+name+"\n    "+e.message);} }
+function test(name,fn){ if(inicioOnly&&!name.startsWith("Inicio v4.2 ")&&!name.startsWith("Catálogo126 ")&&!name.startsWith("Retiro126 ")&&!name.startsWith("Catálogo125 ")&&!name.startsWith("Retiro125 ")&&!name.startsWith("Catálogo124 ")&&!name.startsWith("Retiro124 ")&&!name.startsWith("Catálogo123 ")&&!name.startsWith("Catálogo122 ")&&!name.startsWith("Catálogo121 ")&&!name.startsWith("Catálogo120 ")&&!name.startsWith("Catálogo114 ")&&!name.startsWith("Catálogo117 ")&&!name.startsWith("Retiro117 ")&&!name.startsWith("Catálogo118 ")&&!name.startsWith("Splash117 ")&&!name.startsWith("Catálogo119 ")&&!name.startsWith("Retiro119 "))return;try{fn();console.log("  ✓ "+name);}catch(e){failed++;console.error("  ✗ "+name+"\n    "+e.message);} }
 console.log("beta-sources");
 
 // La rayita comparte controlador y geometría con la barra: una aprobación de CSS aislada no
@@ -153,7 +155,7 @@ test("Inicio v4.2 cubre flujos, ciclo, renderer, llamada, animación, textos, CS
   // La base es la integración120 (apuntes iguales de Trade Republic): Inicio no puede retirar su alcance ni heredar su revisión.
   const integrated=JSON.parse(source120("scripts/beta-sources.json"));
   // Detrás de Inicio sólo ha entrado el alcance de la122 (el cargo de recibo en Gastos).
-  assert.deepEqual(Object.keys(scopes),Object.keys(integrated).concat(id,"recibo-cargo-en-gastos","plan-scroll-lento"),"Inicio y las altas de la122 y la124, sin retirar historia120");
+  assert.deepEqual(Object.keys(scopes),Object.keys(integrated).concat(id,"recibo-cargo-en-gastos","plan-scroll-lento","inicio-tarjeta-ciclo-limpia"),"Inicio y las altas de la122, la124 y la126, sin retirar historia120");
   for(const [key,value] of Object.entries(integrated))if(key!=="inicio-grafica-vuelve"){assert.deepEqual(scopes[key].native,value.native);assert.deepEqual(scopes[key].edge,value.edge);for(const part of value.web||[])assert.ok(scopes[key].web.some(s=>JSON.stringify(sinMetodo122(s))===JSON.stringify(part)),key+": no recortar descriptor ajeno120");}
   assert.equal(scope.unidades,true);
   for(const key of ["historial","auditoria","codigosCompatibles","compatibilidadGit","compatibilidadSha"])
@@ -2082,8 +2084,10 @@ test("Retiro124 histórico elimina solo las tres tandas aprobadas en la 4.26.122
 // Lista cerrada frente a la beta124: qué descriptor crece, qué huellas se mueven y por qué.
 // Ninguna superficie de servidor ni nativa cambia.
 const expected125={"v":"4.26.125","d":"2026-10-13","t":{"es":"Inicio: tu patrimonio, bien contado","en":"Home: your net worth, told right","ca":"Inici: el teu patrimoni, ben explicat"},"items":{"es":["La gráfica de Inicio ahora empieza en el primer día del que hay movimientos en tus cuentas y la línea llega hasta hoy, sin cortes. Hay un periodo nuevo, 3M.","La frase bajo la cifra compara con el mismo momento del mes anterior («150 € más que el mes pasado») y solo se pone en rojo si de verdad vas peor.","La «i» junto a «Patrimonio neto» abre «Cómo se calcula», con lo justo en pocas líneas, y desaparece el texto que había bajo la gráfica."],"en":["The Home chart now starts on the first day your accounts have transactions and the line reaches today, with no gaps. There is a new period, 3M.","The sentence under the figure compares with the same moment of the previous month (“150 € more than last month”) and only turns red if you are really doing worse.","The “i” next to “Net worth” opens “How it's worked out”, with just a few short lines, and the text under the chart is gone."],"ca":["La gràfica d'Inici ara comença el primer dia del qual hi ha moviments als teus comptes i la línia arriba fins avui, sense talls. Hi ha un període nou, 3M.","La frase sota la xifra compara amb el mateix moment del mes anterior («150 € més que el mes passat») i només es posa en vermell si de debò vas pitjor.","La «i» al costat de «Patrimoni net» obre «Com es calcula», amb el just en poques línies, i desapareix el text que hi havia sota la gràfica."]},"tandas":[{"id":"inicio-patrimonio-flujos","t":{"es":"Inicio: la gráfica de tu patrimonio y cuánto puedes gastar al día","en":"Home: your net worth chart and how much you can spend per day","ca":"Inici: la gràfica del teu patrimoni i quant pots gastar al dia"},"items":{"es":["1. Abre Inicio y apunta la cifra grande de arriba, con sus céntimos. Ve a Cartera: su cifra grande, con todos los bloques activados (cuentas, inversiones y bienes, menos deudas), es la misma al céntimo. Está mal si difieren, aunque sea en un céntimo.","2. Vuelve a Inicio y mira la gráfica: la línea llega hasta el punto de hoy, sin hueco al final. Debajo salen los periodos 1M, 3M y Todo (6M y 1A solo aparecen cuando hay tanta historia); toca «Todo»: la gráfica llega hasta el primer mes del que hay movimientos en tus cuentas. Bajo los periodos no hay ningún texto. Está mal si la línea se queda corta antes del punto, si solo sale «Todo» o si queda algún texto bajo los periodos.","3. Mira la frase bajo la cifra: dice cuánto más o menos tienes «que el mes pasado», siempre con el importe. Sale en verde si vas mejor, en gris si la diferencia es pequeña y en rojo solo si de verdad vas peor. Toca «3M» y «Todo»: la frase cambia y dice con qué compara («… que hace 2 meses», «… que hace 3 meses»), según la historia que tengas. Está mal si sale en rojo sin que vayas peor o si la frase no dice ningún importe.","4. Toca la «i» que hay junto a «Patrimonio neto»: se abre desde abajo una hoja, «Cómo se calcula», con tres o cuatro líneas cortas; la pantalla de detrás no se mueve. Ciérrala con «Entendido» o tocando fuera. Está mal si el texto aparece metido en la pantalla y empuja lo de abajo.","5. Mantén el dedo sobre la gráfica y muévelo a los lados: encima de la cifra aparece una fecha y la cifra pasa a ser la de ese día; al soltar, vuelve la de hoy. Después mira la tarjeta «Este mes» (o «Este ciclo»): «Te quedan X de Y» coincide con lo que marca Gastos."],"en":["1. Open Home and note down the big figure at the top, cents included. Go to Portfolio: its big figure, with every block switched on (accounts, investments and property, minus debts), is the same to the cent. It is wrong if they differ, even by one cent.","2. Go back to Home and look at the chart: the line reaches today's dot, with no gap at the end. Below it are the periods 1M, 3M and All (6M and 1Y only show once there is that much history); tap “All”: the chart goes back to the first month with transactions in your accounts. There is no text under the periods. It is wrong if the line stops short of the dot, if only “All” shows or if any text is left under the periods.","3. Look at the sentence under the figure: it says how much more or less you have “than last month”, always with the amount. It is green if you are doing better, grey if the difference is small and red only if you are really doing worse. Tap “3M” and “All”: the sentence changes and says what it compares with (“… than 2 months ago”, “… than 3 months ago”), depending on how much history you have. It is wrong if it shows red when you are not doing worse or if the sentence gives no amount.","4. Tap the “i” next to “Net worth”: a sheet slides up from the bottom, “How it's worked out”, with three or four short lines; the screen behind does not move. Close it with “Got it” or by tapping outside. It is wrong if the text appears inside the screen and pushes down what is below.","5. Keep your finger on the chart and move it sideways: a date appears above the figure and the figure becomes the one for that day; when you let go, today's figure comes back. Then look at the “This month” (or “This cycle”) card: “Left to spend X of Y” matches what Spending shows."],"ca":["1. Obre Inici i apunta la xifra gran de dalt, amb els cèntims. Ves a Cartera: la seva xifra gran, amb tots els blocs activats (comptes, inversions i béns, menys deutes), és la mateixa al cèntim. Està malament si són diferents, encara que sigui d'un cèntim.","2. Torna a Inici i mira la gràfica: la línia arriba fins al punt d'avui, sense cap buit al final. A sota surten els períodes 1M, 3M i Tot (6M i 1A només apareixen quan hi ha tanta història); toca «Tot»: la gràfica arriba fins al primer mes del qual hi ha moviments als teus comptes. Sota els períodes no hi ha cap text. Està malament si la línia es queda curta abans del punt, si només surt «Tot» o si queda algun text sota els períodes.","3. Mira la frase sota la xifra: diu quant més o menys tens «que el mes passat», sempre amb l'import. Surt en verd si vas millor, en gris si la diferència és petita i en vermell només si de debò vas pitjor. Toca «3M» i «Tot»: la frase canvia i diu amb què compara («… que fa 2 mesos», «… que fa 3 mesos»), segons la història que tinguis. Està malament si surt en vermell sense que vagis pitjor o si la frase no diu cap import.","4. Toca la «i» que hi ha al costat de «Patrimoni net»: s'obre des de baix un full, «Com es calcula», amb tres o quatre línies curtes; la pantalla de darrere no es mou. Tanca'l amb «Entesos» o tocant fora. Està malament si el text apareix ficat dins la pantalla i empeny el que hi ha a sota.","5. Mantén el dit sobre la gràfica i mou-lo cap als costats: damunt de la xifra apareix una data i la xifra passa a ser la d'aquell dia; en deixar anar, torna la d'avui. Després mira la targeta «Aquest mes» (o «Aquest cicle»): «Et queden X de Y» coincideix amb el que marca Despeses."]}}]};
+// Catálogo cerrado: desde la126 se lee de su commit inmutable (la126 añade la tanda de la tarjeta del mes y retira la de Inicio, ya aprobada).
 const grown125=[{"file":"src/modules/02-ui-shared.js","function":"netWorthCompare"},{"file":"src/modules/03-tab-dash.js","function":"netWorthInfoRows"},{"file":"src/modules/03-tab-dash.js","function":"NetWorthInfoSheet"},{"file":"src/shell.html","from":"  .v4-sheet-back{","to":"\n","includeTo":true},{"file":"src/shell.html","from":"  .v4-sheet{","to":"\n","includeTo":true},{"file":"src/shell.html","from":"  .v4-sheet-handle{","to":"\n","includeTo":true},{"file":"src/modules/00-core.js","function":"isAtmWithdrawal"},{"file":"src/modules/02-ui-shared.js","function":"useSheetSwipe"},{"file":"src/modules/02-ui-shared.js","function":"mcSheetLock"},{"file":"src/modules/02-ui-shared.js","function":"mcSheetUnlock"},{"file":"src/modules/02-ui-shared.js","data":"NW_WINDOW"},{"file":"src/modules/02-ui-shared.js","data":"_mcSheetLocks"},{"file":"src/modules/02-ui-shared.js","data":"_mcSheetPrevOverflow"}];
-test("Catálogo125 vuelve a presentar la tanda de Inicio sobre la124 con el guion nuevo, declara los dos descriptores que crecen y cada huella que mueve",()=>{
+test("Catálogo125 histórico vuelve a presentar la tanda de Inicio sobre la124 con el guion nuevo, declara los dos descriptores que crecen y cada huella que mueve",()=>{
+  const read=source125;
   const inicio="inicio-patrimonio-flujos",plan="plan-scroll-lento",grafica="inicio-grafica-vuelve",natural="inc-2909-02-inicio-natural";
   const integrated=JSON.parse(source124("scripts/beta-sources.json")),before=JSON.parse(source124("src/data/release-notes.json"));
   assert.deepEqual(before.slice(0,3).map(n=>[n.v,(n.tandas||[]).map(g=>g.id)]),[["4.26.124",[plan]],["4.26.123",[inicio]],["4.26.122",[]]],"el panel de la 124 publicada");
@@ -2191,7 +2195,8 @@ test("Catálogo125 vuelve a presentar la tanda de Inicio sobre la124 con el guio
   assert.deepEqual(receipt.pruebas,{[inicio]:{v:"4.26.125",contenido:JSON.stringify([inicio,expected125.tandas[0].t.es,expected125.tandas[0].items.es,1])}},"un solo guion por probar: el de Inicio con la 125");
   for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica","native","edge"])assert.equal(group[key],undefined,"identidad sin "+key);
 });
-test("Retiro125 elimina solo la tanda de Plan aprobada en la 4.26.124.1 y conserva nota, descriptor y huella",()=>{
+test("Retiro125 histórico elimina solo la tanda de Plan aprobada en la 4.26.124.1 y conserva nota, descriptor y huella",()=>{
+  const read=source125;
   const plan="plan-scroll-lento",inicio="inicio-patrimonio-flujos";
   const before=JSON.parse(source124("src/data/release-notes.json")),notes=JSON.parse(read("src/data/release-notes.json"));
   assert.equal(before.flatMap(n=>n.tandas||[]).filter(g=>g.id===plan).length,1,plan+": la 124 publicada la llevaba");
@@ -2214,13 +2219,139 @@ test("Retiro125 elimina solo la tanda de Plan aprobada en la 4.26.124.1 y conser
   assert.deepEqual(Object.keys(receipt.pruebas),[inicio],"en el panel queda solo la tanda de Inicio");
 });
 
+// 4.26.126 (13/10/2026): la tarjeta del mes de Inicio se queda en el importe y el ritmo diario (sin la
+// línea de estado ni el rótulo «Te quedan»). Tanda NUEVA, solo web. Con ella sale del panel
+// inicio-patrimonio-flujos, aprobada en el móvil sobre la 4.26.125.1 (13/10, 17:00, 5 ok / 0 fallos).
+// Lista cerrada frente a la beta125: un descriptor nuevo, qué huellas se mueven y por qué. Ninguna
+// superficie de servidor ni nativa cambia.
+const expected126={"v":"4.26.126","d":"2026-10-13","t":{"es":"Inicio: la tarjeta del mes, más limpia","en":"Home: the month card, cleaner","ca":"Inici: la targeta del mes, més neta"},"items":{"es":["La tarjeta del mes en Inicio enseña solo lo que te queda y cuánto puedes gastar al día; el color te dice cómo vas."],"en":["The month card on Home shows only what you have left and how much you can spend per day; the colour tells you how you are doing."],"ca":["La targeta del mes a Inici ensenya només el que et queda i quant pots gastar al dia; el color et diu com vas."]},"tandas":[{"id":"inicio-tarjeta-ciclo-limpia","t":{"es":"Inicio: la tarjeta del mes, más limpia","en":"Home: the month card, cleaner","ca":"Inici: la targeta del mes, més neta"},"items":{"es":["1. Abre Inicio y mira la tarjeta «Este ciclo» (o «Este mes»): a la derecha del anillo solo hay dos líneas, lo que te queda («X € de Y €») y «N € al día durante M días». Ya no aparecen «Vas justito» ni «Te quedan». Está mal si sigue saliendo alguno de esos textos o si el bloque no queda centrado con el anillo.","2. El color del anillo y de la línea «al día» te dice cómo vas (verde, amarillo o rojo). La cifra coincide con lo que marca Gastos. Está mal si la cifra no coincide con la de Gastos."],"en":["1. Open Home and look at the “This cycle” (or “This month”) card: to the right of the ring there are only two lines, what you have left (“X € of Y €”) and “N € a day for M days”. “Getting tight” and “Left to spend” no longer show. It is wrong if either of those texts still shows or if the block is not centred with the ring.","2. The colour of the ring and of the “a day” line tells you how you are doing (green, yellow or red). The figure matches what Spending shows. It is wrong if the figure does not match Spending."],"ca":["1. Obre Inici i mira la targeta «Aquest cicle» (o «Aquest mes»): a la dreta de l'anell només hi ha dues línies, el que et queda («X € de Y €») i «N € al dia durant M dies». Ja no apareixen «Vas justet» ni «Et queden». Està malament si encara surt algun d'aquests textos o si el bloc no queda centrat amb l'anell.","2. El color de l'anell i de la línia «al dia» et diu com vas (verd, groc o vermell). La xifra coincideix amb el que marca Despeses. Està malament si la xifra no coincideix amb la de Despeses."]}}]};
+const scope126={"web":[{"file":"src/modules/03-tab-dash.js","from":"    !showSkel && state.budget>0 && React.createElement(\"div\",{className:\"v42-cycle-section\"}","to":"\n    React.createElement(BudgetSheet,"},{"file":"src/shell.html","from":"  .v42-cycle-section{","to":"  @keyframes v42-cycle-draw"},{"file":"src/modules/03-tab-dash.js","function":"cyclePaceState"},{"file":"src/modules/03-tab-dash.js","function":"cycleMoney"},{"file":"src/modules/03-tab-dash.js","function":"cycleDailyMoney"},{"file":"src/modules/03-tab-dash.js","function":"cycleTiming"},{"file":"src/modules/00-core.js","function":"eur0"},{"file":"src/modules/00-core.js","function":"eur"},{"file":"src/modules/08-motor-bank.js","function":"madridYmdParts"},{"file":"src/modules/00-core.js","data":"DISP"},{"file":"src/modules/00-core.js","data":"NF0"},{"file":"src/modules/00-core.js","data":"NF"},{"file":"src/modules/08-motor-bank.js","data":"_mcMadridYmdFmt"}],"unidades":true};
+test("Catálogo126 añade la tanda de la tarjeta del mes sobre la125, solo web, y declara cada huella que mueve",()=>{
+  const tarjeta="inicio-tarjeta-ciclo-limpia",flujos="inicio-patrimonio-flujos",plan="plan-scroll-lento";
+  const integrated=JSON.parse(source125("scripts/beta-sources.json")),before=JSON.parse(source125("src/data/release-notes.json"));
+  assert.deepEqual(before.slice(0,3).map(n=>[n.v,(n.tandas||[]).map(g=>g.id)]),[["4.26.125",[flujos]],["4.26.124",[]],["4.26.123",[]]],"el panel de la 125 publicada");
+  const expectedNotes=[expected126,{...before[0],tandas:[]},...before.slice(1)];
+  const source=f=>read(f).replace(/\r\n/g,"\n"),old=f=>source125(f).replace(/\r\n/g,"\n");
+  const notes=JSON.parse(source("src/data/release-notes.json"));
+  assert.deepEqual(notes,expectedNotes,"la nota 126 literal delante, la 125 sin su tanda y el resto del catálogo125 intacto");
+  assert.deepEqual(notes.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id,g.apk||0])),[["4.26.126",tarjeta,0]],"el panel enseña solo la tanda de la tarjeta, con la 126 y sin APK");
+  for(const n of notes.slice(1))assert.deepEqual(n.tandas,[],n.v+": ni resucita /todo ni vuelve una tanda juzgada o entregada");
+  assert.equal(notes.flatMap(n=>n.tandas||[]).filter(g=>g.id===tarjeta).length,1,tarjeta+": una sola vez en todo el catálogo");
+  assert.deepEqual(Object.keys(notes[0].tandas[0]),["id","t","items"],"identidad nueva, sin alias ni revisión heredada");
+  for(const lang of ["es","en","ca"]){
+    assert.equal(notes[0].items[lang].length,1,lang+": un punto familiar");
+    const steps=notes[0].tandas[0].items[lang];assert.equal(steps.length,2,lang+": dos pasos");
+    steps.forEach((step,i)=>assert.ok(step.startsWith((i+1)+". "),lang+": paso numerado "+(i+1)));
+    for(const text of steps)assert.equal(/borra|quita este|delete|remove|esborra|treu aquest|mañana|tomorrow|demà/i.test(text),false,lang+": ningún paso borra nada ni espera a otro día");
+    // La tarjeta abre el presupuesto, no Gastos: ningún paso promete lo contrario.
+    assert.equal(/Toca la tarjeta|Tap the card|Toca la targeta/.test(steps.join(" ")),false,lang+": ningún paso manda tocar la tarjeta");
+  }
+  // Cada rótulo que cita el guion es el texto real de la app, en su idioma: [lo que dice el guion, la clave en 01-i18n].
+  const literal={es:[["«Este ciclo»",'v42_this_cycle:"Este ciclo"'],["«Este mes»",'v42_this_month:"Este mes"'],["«Vas justito»",'v42_cycle_tight:"Vas justito"'],["«Te quedan»",'v42_remaining:"Te quedan"'],["al día durante M días",'v42_cycle_daily:"{x} al día"'],["al día durante M días",'v42_cycle_days:"durante {n} días"']],
+    en:[["“This cycle”",'v42_this_cycle:"This cycle"'],["“This month”",'v42_this_month:"This month"'],["“Getting tight”",'v42_cycle_tight:"Getting tight"'],["“Left to spend”",'v42_remaining:"Left to spend"'],["a day for M days",'v42_cycle_daily:"{x} a day"'],["a day for M days",'v42_cycle_days:"for {n} days"']],
+    ca:[["«Aquest cicle»",'v42_this_cycle:"Aquest cicle"'],["«Aquest mes»",'v42_this_month:"Aquest mes"'],["«Vas justet»",'v42_cycle_tight:"Vas justet"'],["«Et queden»",'v42_remaining:"Et queden"'],["al dia durant M dies",'v42_cycle_daily:"{x} al dia"'],["al dia durant M dies",'v42_cycle_days:"durant {n} dies"']]};
+  const textos=source("src/modules/01-i18n.js");
+  for(const lang of ["es","en","ca"])for(const [rotulo,fuente] of literal[lang]){
+    assert.ok(notes[0].tandas[0].items[lang].join(" ").includes(rotulo),lang+": el guion cita "+rotulo);
+    assert.ok(textos.includes(fuente),lang+": "+rotulo+" es el texto de la app ("+fuente+")");
+  }
+  const verifyNotes=list=>assert.deepEqual(list,expectedNotes);
+  const twice=structuredClone(notes);twice[0].tandas.push(structuredClone(twice[0].tandas[0]));assert.throws(()=>verifyNotes(twice),"no duplicar la tanda");
+  const inherited=structuredClone(notes);inherited[0].tandas[0].desde=["4.26.125/"+flujos];assert.throws(()=>verifyNotes(inherited),"no heredar la revisión de la 125");
+  const withApk=structuredClone(notes);withApk[0].tandas[0].apk=55;assert.throws(()=>verifyNotes(withApk),"no hay APK que probar");
+  const both=structuredClone(notes);both[1].tandas=structuredClone(before[0].tandas);assert.throws(()=>verifyNotes(both),"la tanda aprobada de Inicio no vuelve");
+  // Un único descriptor nuevo, al final y solo web; los demás, unidad a unidad, son los de la 125.
+  const scopes=JSON.parse(source("scripts/beta-sources.json")),{[tarjeta]:added,...rest}=scopes;
+  assert.deepEqual(rest,integrated,"ningún descriptor retirado ni que crezca");
+  assert.equal(integrated[tarjeta],undefined,"identidad que no existía");assert.equal(Object.keys(scopes).at(-1),tarjeta);
+  assert.deepEqual(added,scope126,"el descriptor nuevo, literal");
+  assert.deepEqual(Object.keys(added),["web","unidades"],"solo web: sin superficie de servidor ni nativa");
+  for(const u of added.web)assert.ok(scopeText(u,source).length>0,"la unidad existe en la fuente: "+JSON.stringify(u));
+  assert.deepEqual(added.web.filter(u=>scopeText(u,old)!==scopeText(u,source)).map(u=>u.file+" "+(u.function||u.data||u.from.trim().slice(0,22))),["src/modules/03-tab-dash.js !showSkel && state.bud","src/shell.html .v42-cycle-section{"],"lo que la entrega cambia dentro de su alcance: la tarjeta y su CSS; ningún cálculo");
+  assert.deepEqual(JSON.parse(source("scripts/beta-archives.json")),archiveRefs,"sin repinar el rechazo109");
+  assert.equal(source("public/apk.json"),old("public/apk.json"),"sin APK nueva: apk.json no se toca");
+  // Huellas que se mueven, lista cerrada, todas solo por la web.
+  const expectedMoves={"inc-2909-02-inicio-natural":["web"],"inc-3009-nomina-anticipada":["web"],"inicio-grafica-vuelve":["web"],[flujos]:["web"]};
+  const previous=new Map();
+  const measure=reader=>{
+    const now=JSON.parse(reader("scripts/beta-sources.json")),moved={};
+    for(const [key,scope] of Object.entries(integrated)){
+      if(key===archiveId){assert.deepEqual(auditedRevision(key,reader),auditedRevision(key,source125));continue;}
+      if(!previous.has(key))previous.set(key,betaRevision(key,source125,undefined,scope));
+      const a=previous.get(key),b=betaRevision(key,reader,undefined,now[key]);
+      const surfaces=["web","native","edge"].filter(s=>a[s]!==b[s]);
+      if(surfaces.length)moved[key]=surfaces;
+    }
+    return moved;
+  };
+  const verify=(reader,expected=expectedMoves)=>assert.deepEqual(measure(reader),expected,"lista cerrada: ni una huella extra ni una declarada que no cambie");
+  verify(source);
+  for(const surfaces of Object.values(expectedMoves))assert.deepEqual(surfaces,["web"],"ninguna huella de servidor ni nativa se mueve");
+  const why={};
+  for(const key of Object.keys(expectedMoves))why[key]=["web","edge"].flatMap(surface=>(integrated[key][surface]||[]).filter(u=>scopeText(u,old)!==scopeText(u,source)).map(u=>typeof u==="string"?u:(u.function||u.data||u.from)));
+  // Inicio y la gráfica113 comparten la tarjeta del mes y su CSS; el mes natural y la nómina anticipada
+  // vigilan el tramo del Dashboard que arranca en el aviso de «sin presupuesto» y llega hasta la tarjeta.
+  const tarjetaUnit='    !showSkel && state.budget>0 && React.createElement("div",{className:"v42-cycle-section"}';
+  assert.deepEqual(why,{"inc-2909-02-inicio-natural":['    !showSkel && !(state.budget>0)'],"inc-3009-nomina-anticipada":['    !showSkel && !(state.budget>0)'],"inicio-grafica-vuelve":[tarjetaUnit,'  .v42-net{'],[flujos]:[tarjetaUnit,'  .v42-net{']},"qué unidad mueve cada huella");
+  for(const key of Object.keys(expectedMoves))assert.equal(notes.flatMap(n=>n.tandas||[]).some(g=>g.id===key),false,key+": su huella cambia, pero no vuelve al panel");
+  const shell="src/shell.html",from='animation:mclpop .5s cubic-bezier(.32,.72,0,1) backwards;}';
+  assert.equal(source(shell).split(from).length,2,"mutante sobre el splash actual real");
+  assert.throws(()=>verify(f=>f===shell?source(f).replace(from,from.replace(".5s",".6s")):source(f)),/lista cerrada/,"el splash no está declarado: no puede moverse por arrastre");
+  assert.throws(()=>verify(source,{...expectedMoves,[plan]:["web"]}),/lista cerrada/,"una huella declarada que no cambia pone rojo");
+  const missing={...expectedMoves};delete missing[flujos];assert.throws(()=>verify(source,missing),/lista cerrada/,"una huella real no declarada pone rojo");
+  // Cada pieza de la tarjeta reabre la tanda, y solo por la web.
+  const current=betaRevision(tarjeta,source,undefined,scopes[tarjeta]);
+  assert.ok(current.web);assert.equal(current.native,undefined);assert.equal(current.edge,undefined);
+  const dash="src/modules/03-tab-dash.js";
+  for(const [file,a,b] of [
+    [dash,'"aria-label":tf("v42_cycle_"+paceState.id,','"aria-label":tf("v42_cycle_tight",'],
+    [dash,'React.createElement("div",{className:"ph v42-cycle-amount"},','React.createElement("div",{className:"ph v42-cycle-amount x"},'],
+    [dash,'"data-testid":"inicio-cycle-pace"','"data-testid":"inicio-cycle-ritmo"'],
+    [shell,'.v42-cycle-amount>.serif{font-size:24px;','.v42-cycle-amount>.serif{font-size:28px;'],
+    [shell,'.v42-cycle-pace{font-size:12.5px;color:var(--muted);margin-top:4px;}','.v42-cycle-pace{font-size:12.5px;color:var(--muted);margin-top:2px;}']]){
+    assert.equal(source(file).split(a).length,2,"mutante sobre fuente real: "+a);
+    assert.notEqual(betaRevision(tarjeta,f=>f===file?source(f).replace(a,b):source(f),undefined,scopes[tarjeta]).web,current.web,"reabre la tanda: "+a);
+  }
+  // Lo que el build entrega al panel.
+  const built=betaNotes(notes,source,scopes),receipt=betaDelivery(built,source,scopes),group=built[0].tandas[0];
+  assert.deepEqual(built.flatMap(n=>(n.tandas||[]).map(g=>g.id)),[tarjeta],"lo que el build entrega al panel");
+  assert.equal(group.web,current.web);assert.equal(group.native,undefined);assert.equal(group.edge,undefined);assert.equal(group.apk,undefined);
+  assert.equal(receipt.web[tarjeta],current.web);
+  assert.deepEqual(receipt.pruebas,{[tarjeta]:{v:"4.26.126",contenido:JSON.stringify([tarjeta,expected126.tandas[0].t.es,expected126.tandas[0].items.es,1])}},"un solo guion por probar: el de la tarjeta con la 126");
+  for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica","native","edge"])assert.equal(group[key],undefined,"identidad nueva sin "+key);
+});
+test("Retiro126 elimina solo la tanda de Inicio aprobada en la 4.26.125.1 y conserva nota, descriptor e historial",()=>{
+  const flujos="inicio-patrimonio-flujos";
+  const before=JSON.parse(source125("src/data/release-notes.json")),notes=JSON.parse(read("src/data/release-notes.json"));
+  assert.equal(before.flatMap(n=>n.tandas||[]).filter(g=>g.id===flujos).length,1,flujos+": la 125 publicada la llevaba");
+  assert.equal(notes.flatMap(n=>n.tandas||[]).some(g=>g.id===flujos),false,flujos+": ya no está en ninguna nota");
+  assert.equal(notes.length,before.length+1,"ninguna nota se borra");
+  // La nota 125 conserva versión, fecha, título y texto; solo pierde su tanda, con `tandas:[]`
+  // (sin la propiedad resucitaría como /todo).
+  assert.deepEqual(notes[1],{...before[0],tandas:[]});
+  assert.deepEqual(notes.slice(2),before.slice(1),"el resto del catálogo, intacto");
+  const resurrected=structuredClone(notes);resurrected[1].tandas.unshift(before[0].tandas[0]);
+  assert.notDeepEqual(resurrected,notes,"no resucitar una tanda aprobada");
+  const scopes=JSON.parse(read("scripts/beta-sources.json")),old=JSON.parse(source125("scripts/beta-sources.json"));
+  const receipt=betaDelivery(betaNotes(notes,read,scopes),read,scopes);
+  assert.deepEqual(scopes[flujos],old[flujos],flujos+": el descriptor queda como historia");
+  // El veredicto del móvil (errores.mjs --kind=beta, 13/10 17:00, huella 0034db57:774b8cb6…) lleva el
+  // código del producto tal como estaba en la 125. La huella web de hoy ya no es esa (la tarjeta del
+  // mes cambió en la 126) y no hay revisión nueva que juzgar: la tanda no vuelve al panel.
+  const aprobado=betaRevision(flujos,source125,undefined,old[flujos]);
+  assert.ok(aprobado.codigo.startsWith("774b8cb6f22e63dcaea90ab011b560f4a825d9eb11fe6261b9fb7b015a98ea63"),flujos+": el código aprobado en el móvil es el de la 125");
+  const now=betaRevision(flujos,read,undefined,scopes[flujos]);
+  assert.equal(receipt.web[flujos],now.web,flujos+": el producto sigue íntegro");assert.equal(receipt.pruebas[flujos],undefined,flujos+": el guion aprobado no permanece en el panel");
+  assert.deepEqual(Object.keys(receipt.pruebas),["inicio-tarjeta-ciclo-limpia"],"en el panel queda solo la tanda de la tarjeta");
+});
+
 test("Inicio v4.2 conserva el catálogo120 y los retiros anteriores en la fuente actual",()=>{
-  // Desde la125 la nota de la gráfica de Inicio va delante con la tanda de Inicio; la 124 (Plan, aprobada), la 123 (Inicio, superada por la 125), la 122, la 121 y la 120 se quedan sin tanda.
+  // Desde la126 la nota de la tarjeta del mes va delante con su tanda; la 125 (Inicio, aprobada), la 124 (Plan, aprobada), la 123 (Inicio, superada), la 122, la 121 y la 120 se quedan sin tanda.
   const n120=JSON.parse(source120("src/data/release-notes.json"));
-  const source=f=>read(f).replace(/\r\n/g,"\n"),expected=[expected125,{...expected124,tandas:[]},{...expected123,tandas:[]},{...expected122,tandas:[]},{...expected121,tandas:[]},{...n120[0],tandas:[]},...n120.slice(1)];
+  const source=f=>read(f).replace(/\r\n/g,"\n"),expected=[expected126,{...expected125,tandas:[]},{...expected124,tandas:[]},{...expected123,tandas:[]},{...expected122,tandas:[]},{...expected121,tandas:[]},{...n120[0],tandas:[]},...n120.slice(1)];
   const verify=notes=>assert.deepEqual(notes,expected,"catálogo vigente exacto, sin resucitar lo aprobado ni heredar identidad");
   const notes=JSON.parse(source("src/data/release-notes.json"));verify(notes);
-  const resurrected=structuredClone(notes);resurrected[6].tandas.push(JSON.parse(source118("src/data/release-notes.json"))[0].tandas[0]);
+  const resurrected=structuredClone(notes);resurrected[7].tandas.push(JSON.parse(source118("src/data/release-notes.json"))[0].tandas[0]);
   assert.throws(()=>verify(resurrected),assert.AssertionError);
   for(const lang of ["es","en","ca"])for(const n of [0]){const changed=structuredClone(notes);changed[n].tandas[0].items[lang][0]+=" mutante";assert.throws(()=>verify(changed),assert.AssertionError);}
   const scopes=JSON.parse(source("scripts/beta-sources.json")),prior=JSON.parse(source120("scripts/beta-sources.json"));
@@ -2231,8 +2362,8 @@ test("Inicio v4.2 conserva el catálogo120 y los retiros anteriores en la fuente
   const receipt=betaDelivery(betaNotes(notes,source,scopes),source,scopes);
   assert.equal(receipt.pruebas["recibos-cargo-unico"],undefined,"el cargo único aprobado sigue fuera del panel");
   assert.equal(receipt.pruebas["inicio-grafica-vuelve"],undefined,"Inicio nuevo no resucita la unidad aprobada");
-  assert.equal(receipt.pruebas["inicio-patrimonio-flujos"].v,"4.26.125","la tanda de Inicio vuelve al panel con la nota 125");
-  for(const id of ["tr-iguales-ordinal","bancos-acuse-reconexion","recibo-cargo-en-gastos","plan-scroll-lento"]){
+  assert.equal(receipt.pruebas["inicio-tarjeta-ciclo-limpia"].v,"4.26.126","la tanda de la tarjeta entra en el panel con la nota 126");
+  for(const id of ["tr-iguales-ordinal","bancos-acuse-reconexion","recibo-cargo-en-gastos","plan-scroll-lento","inicio-patrimonio-flujos"]){
     assert.equal(receipt.web[id],betaRevision(id,source,undefined,scopes[id]).web);
     assert.equal(receipt.pruebas[id],undefined,id+": aprobada, fuera del panel");
   }
@@ -2407,7 +2538,7 @@ test("PERSIST91: el guardado en el commit invalida toda tanda que escribe estado
   assert.ok(dependientes.includes("widget-pago-app-cerrada"),"la lectura que acredita el widget mezcla gastos con el set real");
   assert.ok(dependientes.includes("inc-0810-metas-editar-regla"),"editar una regla escribe con el set real y conserva el cierre de persistencia");
   assert.ok(dependientes.includes("inc-0710-gastos-mes-madrid"),"Gastos99 conserva la dependencia real de guardado de Expenses");
-  assert.deepEqual(ajenas.slice().sort(),["beta-panel-veredictos","inc-0210-01-plan-cuota","inc-0410-inicio-tres-metas","inc-0710-appstate-listener-cleanup","inc-0710-banknotif-cleanup","inc-0810-backclose-handover","inc-0810-dashboard-recents-memo","inc-0810-inicio-grafica-significado","inc-0810-nav-indicator","inc-2709-01-arranque-red","inc-2709-09-fechas-cache","inc-2709-12-cyber-fab","inc-2709-13-fab-contorno","inc-2709-14-preguntar","inicio-grafica-vuelve","inicio-solape-gastos","ops-0410-panel-cola","plan-scroll-lento","splash-animado","tr-descripcion-clasificacion"]);
+  assert.deepEqual(ajenas.slice().sort(),["beta-panel-veredictos","inc-0210-01-plan-cuota","inc-0410-inicio-tres-metas","inc-0710-appstate-listener-cleanup","inc-0710-banknotif-cleanup","inc-0810-backclose-handover","inc-0810-dashboard-recents-memo","inc-0810-inicio-grafica-significado","inc-0810-nav-indicator","inc-2709-01-arranque-red","inc-2709-09-fechas-cache","inc-2709-12-cyber-fab","inc-2709-13-fab-contorno","inc-2709-14-preguntar","inicio-grafica-vuelve","inicio-solape-gastos","inicio-tarjeta-ciclo-limpia","ops-0410-panel-cola","plan-scroll-lento","splash-animado","tr-descripcion-clasificacion"]);
   /* Quién depende del guardado lo decide el CÓDIGO, no la marca del registro (auditoría del
      coordinador, 4/10): se quita de cada alcance el bloque del guardado y se mira si lo que queda
      llama a `set` de App —las dependencias transitivas ya son unidades del alcance—. Tiene que

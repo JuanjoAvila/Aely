@@ -1,5 +1,49 @@
 [
   {
+    "v": "4.26.126",
+    "d": "2026-10-13",
+    "t": {
+      "es": "Inicio: la tarjeta del mes, más limpia",
+      "en": "Home: the month card, cleaner",
+      "ca": "Inici: la targeta del mes, més neta"
+    },
+    "items": {
+      "es": [
+        "La tarjeta del mes en Inicio enseña solo lo que te queda y cuánto puedes gastar al día; el color te dice cómo vas."
+      ],
+      "en": [
+        "The month card on Home shows only what you have left and how much you can spend per day; the colour tells you how you are doing."
+      ],
+      "ca": [
+        "La targeta del mes a Inici ensenya només el que et queda i quant pots gastar al dia; el color et diu com vas."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inicio-tarjeta-ciclo-limpia",
+        "t": {
+          "es": "Inicio: la tarjeta del mes, más limpia",
+          "en": "Home: the month card, cleaner",
+          "ca": "Inici: la targeta del mes, més neta"
+        },
+        "items": {
+          "es": [
+            "1. Abre Inicio y mira la tarjeta «Este ciclo» (o «Este mes»): a la derecha del anillo solo hay dos líneas, lo que te queda («X € de Y €») y «N € al día durante M días». Ya no aparecen «Vas justito» ni «Te quedan». Está mal si sigue saliendo alguno de esos textos o si el bloque no queda centrado con el anillo.",
+            "2. El color del anillo y de la línea «al día» te dice cómo vas (verde, amarillo o rojo). La cifra coincide con lo que marca Gastos. Está mal si la cifra no coincide con la de Gastos."
+          ],
+          "en": [
+            "1. Open Home and look at the “This cycle” (or “This month”) card: to the right of the ring there are only two lines, what you have left (“X € of Y €”) and “N € a day for M days”. “Getting tight” and “Left to spend” no longer show. It is wrong if either of those texts still shows or if the block is not centred with the ring.",
+            "2. The colour of the ring and of the “a day” line tells you how you are doing (green, yellow or red). The figure matches what Spending shows. It is wrong if the figure does not match Spending."
+          ],
+          "ca": [
+            "1. Obre Inici i mira la targeta «Aquest cicle» (o «Aquest mes»): a la dreta de l'anell només hi ha dues línies, el que et queda («X € de Y €») i «N € al dia durant M dies». Ja no apareixen «Vas justet» ni «Et queden». Està malament si encara surt algun d'aquests textos o si el bloc no queda centrat amb l'anell.",
+            "2. El color de l'anell i de la línia «al dia» et diu com vas (verd, groc o vermell). La xifra coincideix amb el que marca Despeses. Està malament si la xifra no coincideix amb la de Despeses."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.125",
     "d": "2026-10-13",
     "t": {
@@ -24,39 +68,7 @@
         "La «i» al costat de «Patrimoni net» obre «Com es calcula», amb el just en poques línies, i desapareix el text que hi havia sota la gràfica."
       ]
     },
-    "tandas": [
-      {
-        "id": "inicio-patrimonio-flujos",
-        "t": {
-          "es": "Inicio: la gráfica de tu patrimonio y cuánto puedes gastar al día",
-          "en": "Home: your net worth chart and how much you can spend per day",
-          "ca": "Inici: la gràfica del teu patrimoni i quant pots gastar al dia"
-        },
-        "items": {
-          "es": [
-            "1. Abre Inicio y apunta la cifra grande de arriba, con sus céntimos. Ve a Cartera: su cifra grande, con todos los bloques activados (cuentas, inversiones y bienes, menos deudas), es la misma al céntimo. Está mal si difieren, aunque sea en un céntimo.",
-            "2. Vuelve a Inicio y mira la gráfica: la línea llega hasta el punto de hoy, sin hueco al final. Debajo salen los periodos 1M, 3M y Todo (6M y 1A solo aparecen cuando hay tanta historia); toca «Todo»: la gráfica llega hasta el primer mes del que hay movimientos en tus cuentas. Bajo los periodos no hay ningún texto. Está mal si la línea se queda corta antes del punto, si solo sale «Todo» o si queda algún texto bajo los periodos.",
-            "3. Mira la frase bajo la cifra: dice cuánto más o menos tienes «que el mes pasado», siempre con el importe. Sale en verde si vas mejor, en gris si la diferencia es pequeña y en rojo solo si de verdad vas peor. Toca «3M» y «Todo»: la frase cambia y dice con qué compara («… que hace 2 meses», «… que hace 3 meses»), según la historia que tengas. Está mal si sale en rojo sin que vayas peor o si la frase no dice ningún importe.",
-            "4. Toca la «i» que hay junto a «Patrimonio neto»: se abre desde abajo una hoja, «Cómo se calcula», con tres o cuatro líneas cortas; la pantalla de detrás no se mueve. Ciérrala con «Entendido» o tocando fuera. Está mal si el texto aparece metido en la pantalla y empuja lo de abajo.",
-            "5. Mantén el dedo sobre la gráfica y muévelo a los lados: encima de la cifra aparece una fecha y la cifra pasa a ser la de ese día; al soltar, vuelve la de hoy. Después mira la tarjeta «Este mes» (o «Este ciclo»): «Te quedan X de Y» coincide con lo que marca Gastos."
-          ],
-          "en": [
-            "1. Open Home and note down the big figure at the top, cents included. Go to Portfolio: its big figure, with every block switched on (accounts, investments and property, minus debts), is the same to the cent. It is wrong if they differ, even by one cent.",
-            "2. Go back to Home and look at the chart: the line reaches today's dot, with no gap at the end. Below it are the periods 1M, 3M and All (6M and 1Y only show once there is that much history); tap “All”: the chart goes back to the first month with transactions in your accounts. There is no text under the periods. It is wrong if the line stops short of the dot, if only “All” shows or if any text is left under the periods.",
-            "3. Look at the sentence under the figure: it says how much more or less you have “than last month”, always with the amount. It is green if you are doing better, grey if the difference is small and red only if you are really doing worse. Tap “3M” and “All”: the sentence changes and says what it compares with (“… than 2 months ago”, “… than 3 months ago”), depending on how much history you have. It is wrong if it shows red when you are not doing worse or if the sentence gives no amount.",
-            "4. Tap the “i” next to “Net worth”: a sheet slides up from the bottom, “How it's worked out”, with three or four short lines; the screen behind does not move. Close it with “Got it” or by tapping outside. It is wrong if the text appears inside the screen and pushes down what is below.",
-            "5. Keep your finger on the chart and move it sideways: a date appears above the figure and the figure becomes the one for that day; when you let go, today's figure comes back. Then look at the “This month” (or “This cycle”) card: “Left to spend X of Y” matches what Spending shows."
-          ],
-          "ca": [
-            "1. Obre Inici i apunta la xifra gran de dalt, amb els cèntims. Ves a Cartera: la seva xifra gran, amb tots els blocs activats (comptes, inversions i béns, menys deutes), és la mateixa al cèntim. Està malament si són diferents, encara que sigui d'un cèntim.",
-            "2. Torna a Inici i mira la gràfica: la línia arriba fins al punt d'avui, sense cap buit al final. A sota surten els períodes 1M, 3M i Tot (6M i 1A només apareixen quan hi ha tanta història); toca «Tot»: la gràfica arriba fins al primer mes del qual hi ha moviments als teus comptes. Sota els períodes no hi ha cap text. Està malament si la línia es queda curta abans del punt, si només surt «Tot» o si queda algun text sota els períodes.",
-            "3. Mira la frase sota la xifra: diu quant més o menys tens «que el mes passat», sempre amb l'import. Surt en verd si vas millor, en gris si la diferència és petita i en vermell només si de debò vas pitjor. Toca «3M» i «Tot»: la frase canvia i diu amb què compara («… que fa 2 mesos», «… que fa 3 mesos»), segons la història que tinguis. Està malament si surt en vermell sense que vagis pitjor o si la frase no diu cap import.",
-            "4. Toca la «i» que hi ha al costat de «Patrimoni net»: s'obre des de baix un full, «Com es calcula», amb tres o quatre línies curtes; la pantalla de darrere no es mou. Tanca'l amb «Entesos» o tocant fora. Està malament si el text apareix ficat dins la pantalla i empeny el que hi ha a sota.",
-            "5. Mantén el dit sobre la gràfica i mou-lo cap als costats: damunt de la xifra apareix una data i la xifra passa a ser la d'aquell dia; en deixar anar, torna la d'avui. Després mira la targeta «Aquest mes» (o «Aquest cicle»): «Et queden X de Y» coincideix amb el que marca Despeses."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.124",
