@@ -1,0 +1,196 @@
+{
+  "status": "done",
+  "summary": "Candidato PR226 draft terminado y verificado para revision de Claude: revocacion descifrada/codificada con registro cerrado y borrado local independiente; escritura final sync condicionada a sesion/emision originales, callback nuevo gana. CI terminal FAILURE clasificada solo en gates beta-sources y docs-frescura; sin pase global, sin despliegue.",
+  "tests": [
+    {
+      "command": "node tests/bank-revoke-callback-race.test.mjs",
+      "exitCode": 0,
+      "where": "local synthetic on rebased124; final product unchanged by docs-only commit"
+    },
+    {
+      "command": "node tests/bank-sync-acuse.test.mjs",
+      "exitCode": 0,
+      "where": "local synthetic on rebased124; final product unchanged by docs-only commit"
+    },
+    {
+      "command": "node tests/bank-reconnect.test.mjs",
+      "exitCode": 0,
+      "where": "local synthetic on rebased124; final product unchanged by docs-only commit"
+    },
+    {
+      "command": "node tests/bank-sync-progreso.test.mjs",
+      "exitCode": 0,
+      "where": "local synthetic on rebased124; final product unchanged by docs-only commit"
+    },
+    {
+      "command": "node tests/bank-sync-paging.test.mjs",
+      "exitCode": 0,
+      "where": "local synthetic on rebased124; final product unchanged by docs-only commit"
+    },
+    {
+      "command": "node tests/logs-privacidad.test.mjs",
+      "exitCode": 0,
+      "where": "local synthetic on rebased124; final product unchanged by docs-only commit"
+    },
+    {
+      "command": "node tests/security.test.mjs",
+      "exitCode": 0,
+      "where": "local synthetic on rebased124; final product unchanged by docs-only commit"
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0,
+      "where": "local synthetic on rebased124; final product unchanged by docs-only commit"
+    },
+    {
+      "command": "node tests/edge-sintaxis.test.mjs",
+      "exitCode": 0,
+      "where": "local synthetic on rebased124; final product unchanged by docs-only commit"
+    },
+    {
+      "command": "node tests/docs-frescura.test.mjs",
+      "exitCode": 1,
+      "where": "local synthetic on rebased124; final product unchanged by docs-only commit"
+    },
+    {
+      "command": "node scripts/guard-privacy.mjs",
+      "exitCode": 0,
+      "where": "local synthetic on rebased124; final product unchanged by docs-only commit"
+    },
+    {
+      "command": "deno test --no-lock --cached-only --allow-env supabase/functions/bank-disconnect/lifecycle.test.ts supabase/functions/_shared/crypto.test.ts supabase/functions/bank-sync/demand-window.test.ts",
+      "exitCode": 0,
+      "where": "local synthetic on rebased124; final product unchanged by docs-only commit"
+    },
+    {
+      "command": "Node causal on dependency2d53 before fix",
+      "exitCode": 1,
+      "passed": 4,
+      "failed": 10,
+      "expectedRegression": true
+    },
+    {
+      "command": "Deno native causal on dependency2d53 before fix",
+      "exitCode": 1,
+      "passed": 1,
+      "failed": 5,
+      "expectedRegression": true
+    },
+    {
+      "command": "Seven temporary mutations against real handlers",
+      "exitCode": 1,
+      "killed": 7,
+      "sourceRestoredByteExact": true
+    },
+    {
+      "command": "Tests38387964343 attempt1 job115264328076 final",
+      "exitCode": 1,
+      "conclusion": "failure",
+      "failedSteps": [
+        "beta-sources",
+        "docs-frescura"
+      ],
+      "headSHA": "0a1cef0c1860fbd92265d380799a8746199e7d28"
+    }
+  ],
+  "productSHA": "0a1cef0c1860fbd92265d380799a8746199e7d28",
+  "pullRequest": "JuanjoAvila/Aely#226",
+  "claimBaseSHA": "3625fa7ed5134cfbc5e364adc4f588bfdaf670c0",
+  "executionBaseSHA": "f5904735b514751ee926d25c22c92195b6ce3653",
+  "dependencyOriginalSHA": "2d53ab24dc32a83faf17ce08c3b2d50b304d8e55",
+  "dependencyReplayParentSHA": "dd195b2d8a1127eb4449b3b26ff9504eedd03969",
+  "scope": {
+    "ownFiles": 14,
+    "bankSyncOnlyFinalStateWrite": true,
+    "unchangedOutsideBlock": true,
+    "callbackKeepsCursor119Unchanged": true,
+    "claudeCatchAndSessionQueryUnchanged": true,
+    "pagingProductUnchanged": true,
+    "dependencyReplayPatchesUnchanged": true
+  },
+  "conflicts": [
+    {
+      "branch": "claude/brokers-falsa-caducidad",
+      "file": "supabase/functions/bank-sync/index.ts",
+      "reserved": "catch y consulta de sesion; dependencia incluida intacta"
+    },
+    {
+      "pullRequest": "JuanjoAvila/Aely#223",
+      "file": "supabase/functions/bank-sync/index.ts",
+      "reserved": "paginacion; cambio propio solo UPDATE final"
+    },
+    {
+      "files": [
+        "scripts/run-tests.mjs",
+        "scripts/relevant-tests.mjs",
+        "tests/logs-privacidad.test.mjs"
+      ],
+      "reserved": "registros e inventario compartidos: integrar sin perder entradas"
+    }
+  ],
+  "ci": {
+    "workflow": "test.yml",
+    "event": "workflow_dispatch",
+    "runId": 38387964343,
+    "attempt": 1,
+    "headSHA": "0a1cef0c1860fbd92265d380799a8746199e7d28",
+    "jobId": 115264328076,
+    "status": "completed",
+    "conclusion": "failure",
+    "processExitCode": 1,
+    "processExitAtUTC": "2026-10-13T11:42:58.2447038Z",
+    "jobCompletedAtUTC": "2026-10-13T11:43:00Z",
+    "triage": {
+      "failedSteps": [
+        "beta-sources",
+        "docs-frescura"
+      ],
+      "betaSourcesAssertions": [
+        "Catálogo124 lista cerrada detecta edge bancos-acuse-reconexion y tr-descripcion-clasificacion",
+        "Retiro124 bancos-acuse-reconexion tiene huella diferente de la aprobada"
+      ],
+      "docsFrescura": "Fuentes publicables tras ancla124 sin VERSION autorizada; todos los numeros alineados",
+      "nodeCausal": {
+        "passed": 14,
+        "failed": 0
+      },
+      "denoFilesPassed": [
+        "ingest/ingest.test.ts",
+        "ingest/widget.test.ts",
+        "_shared/crypto.test.ts",
+        "_shared/enablebanking.test.ts",
+        "_shared/myinvestor.test.ts",
+        "delete-account/delete-account.test.ts",
+        "prices/prices.test.ts",
+        "bank-sync/demand-window.test.ts",
+        "bank-disconnect/lifecycle.test.ts"
+      ],
+      "denoRemoteCount": "not printed by runner",
+      "budgetPass": true,
+      "logsPrivacyPass": true,
+      "securityPass": true,
+      "guardPrivacyInsideRunnerPass": true,
+      "workflowPrivacy": "skipped",
+      "e2eAndBrowserPerf": "not executed: failed unit steps",
+      "unknownSubstantiveFailures": false,
+      "releaseReady": false
+    },
+    "fullLogBytes": 375208,
+    "fullLogSHA256": "d5fbe19aaef38655c42ed788aa8e846a5ba89f6f80141a063ab0e09da95587c7"
+  },
+  "limitations": [
+    "No main/beta push,deploy,SQL/RLS,migrations,APK,provider/DB calls or real consents",
+    "No VERSION,notes,catalogue124/Retiro124,caps or UI changes; integration gates remain red for Claude",
+    "E2E and browser perf not executed by failed unit steps; workflow Privacy SKIPPED despite Node privacy guards passing",
+    "Only synthetic runtime evidence; no deployed/mobile acceptance",
+    "No heavy local runner/browser/Gradle; foreign FIN01 nonce6fa retained untouched",
+    "Claim/task123 immutable; old PR223/results/claims preserved; own junction removed, source checkout clean",
+    "Review,integration,catalogue/version decisions and publication belong to Claude"
+  ],
+  "schema": 1,
+  "taskId": "bancos-desconectar-revoca-y-carrera-callback-codex-20261013",
+  "actor": "codex",
+  "sessionId": "codex-local-20261013-bank-revoke-c75cacbfeec6",
+  "createdAt": "2026-10-13T11:47:54.528Z",
+  "released": true
+}
