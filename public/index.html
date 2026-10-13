@@ -25869,21 +25869,24 @@ function App(){
   const bankSyncing=useRef(false);          // evita syncs de banco solapados
   // Promesa → true si el pull de arranque (estado + gastos) terminó bien. La espera `runBankSync`.
   const pullOkRef=useRef(null);
-  // Resolver el pull no acredita un frame pintado: React puede tener aún los cambios
-  // en cola. Dos frames dejan aplicar estado, gastos y asiento antes de levantar la cortina.
+  // Resolver el pull no acredita un commit: el marcador comparte la cola de React
+  // con estado, gastos y asiento; sus frames empiezan después de aplicar esa cola.
+  const [bootPaint,setBootPaint]=useState(false);
   const bootPaintRef=useRef({live:true,frame:0});
   const bootAfterPaint=function(){
+    if(bootPaintRef.current.live&&!window.__mcBootReady)setBootPaint(true);
+  };
+  const bootPaintCommitted=function(){
     const b=bootPaintRef.current;
-    if(!b.live||window.__mcBootReady)return;
+    if(!bootPaint||!b.live||window.__mcBootReady)return undefined;
     if(b.frame)cancelAnimationFrame(b.frame);
     b.frame=requestAnimationFrame(function(){
       if(!b.live){b.frame=0;return;}
-      // Ya fuera de un efecto/render: vaciar aquí el batch evita dar por pintado
-      // un updater que React aún conserva en su cola concurrente.
-      ReactDOM.flushSync(function(){});
       b.frame=requestAnimationFrame(function(){b.frame=0;if(b.live)mcBootReady();});
     });
+    return function(){if(b.frame)cancelAnimationFrame(b.frame);b.frame=0;};
   };
+  useLayoutEffect(bootPaintCommitted,[bootPaint]);
   useEffect(function(){
     const b=bootPaintRef.current;
     return function(){b.live=false;if(b.frame)cancelAnimationFrame(b.frame);};

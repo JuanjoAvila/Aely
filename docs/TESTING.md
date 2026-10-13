@@ -3,8 +3,8 @@ Promoción117: conserva los contratos históricos de catálogo117/Retiro117 en c
 ## Arranque con estado de nube más nuevo · candidata sin publicación
 
 `tests/arranque-nube-commit.test.mjs`, registrado en el runner, ejecuta los callbacks reales
-del pull, asiento y barrera de frames con transporte sintético. Comprueba cleanup, mutante sin
-flush, fallo de red y el rojo de la base124 antes del commit; conserva las veinte referencias
+del pull, asiento y barrera de frames con transporte sintético. Comprueba cleanup, mutante que
+salta el marcador, fallo de red y el rojo de la base124 antes del commit; conserva las veinte referencias
 financieras del memo. No acredita DOM ni FPS.
 `e2e/rendimiento-arranque-nube.spec.mjs` está en CROSSCUTTING y en el grupo serial de rendimiento,
 sin retries propios: 2000/20000 gastos, nube más nueva, control sin nube, offline y nube lenta,

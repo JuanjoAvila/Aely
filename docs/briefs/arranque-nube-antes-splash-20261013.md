@@ -8,7 +8,8 @@ de Claude sobre124 `f5904735b514751ee926d25c22c92195b6ce3653`.
 La hipótesis es que esperar a idle para iniciar el pull consume el tope del splash y
 que resolver las promesas no demuestra que React haya aplicado sus updaters. App
 inicia la lectura al resolver la sesión y espera el asiento dependiente del pull;
-después programa dos frames, con `ReactDOM.flushSync` en el primero. Dashboard
+después encola un marcador de estado React cuyo layout effect programa dos frames
+tras el commit. La versión final no depende de un flushSync vacío. Dashboard
 escucha ready antes de la retirada y aplaza la serie hasta ready o splashGone.
 Los topes520/1800/8000ms, salidas offline/sin sesión y política bancaria a demanda
 no cambian. Una nube que exceda el tope permite ver el mejor estado local; esta
@@ -28,15 +29,17 @@ enumerada explícitamente; no se omiten los controles de sesión ni callbacks ta
 
 Node ejecuta callbacks reales contra transporte y renderer controlados: barrera,
 cleanup antes de cada frame, dos pulls, red fallida, asiento, rojo base y memo0→1.
-El mutante que elimina flush falla; todas las referencias financieras previas del
+El mutante que salta el marcador falla; todas las referencias financieras previas del
 memo se conservan. Eso no prueba frames físicos, DOM, aceptación móvil ni mejora.
 Sobre124: build oficial, sintaxis7 bloques, Node nuevo, Metas pull10/10, i18n,
 mapa, security, privacidad, bank-sync-acuse, auth-disposal y fit terminan EXIT0.
 docs-frescura termina EXIT1 exclusivamente por los dos módulos candidatos posteriores
 al ancla de VERSION; no se modifica esa guarda. El focal123 dio EXIT1 por huellas
 transitivas nuevas frente a su lista cerrada; no se retoca el catálogo para evitarlo.
-Medida Windows oficial, DSN sintético95B, sello124.99999 y gzip9: **1383847/379943B**,
-EXIT1 por **423/39B** sobre1351/371KiB; tres bloqueantes. Los topes siguen intactos.
+La revisión anterior con flush vacío midió1383847/379943B; sus bytes no se atribuyen
+a la barrera final por layout effect. La final mide **1384043/379971B** con idéntica
+reserva y minificador oficial: exceso **619/67B**, topes1351/371KiB y tres bloqueantes
+intactos. El guardián de tamaño sigue rojo; no se recortan controles para ocultarlo.
 Los JSON públicos regenerados por build sólo actualizan huellas de código; notas
 fuente, textos, unidades y catálogos fuente quedan iguales a124. Integración debe
 revisar esas identidades; ninguna aprobación se hereda de una huella anterior.

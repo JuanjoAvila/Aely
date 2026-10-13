@@ -17,40 +17,45 @@ function block(source,token,from=0){
   assert.equal(depth,0);return source.slice(start,end)+';';
 }
 const paintSource=block(app,'const bootAfterPaint=function(');
+const committedSource=block(app,'const bootPaintCommitted=function(');
+assert.ok(app.includes('useLayoutEffect(bootPaintCommitted,[bootPaint]);'),'los frames nacen del commit real de React');
 const cleanupSource=block(app,'function(){',app.indexOf('  useEffect(function(){',app.indexOf('const bootAfterPaint=function(')));
 function paintWorld(source=paintSource){
   const frames=new Map(),window={},ref={current:{live:true,frame:0}},events=[];let id=0;
-  let commit=()=>{},onReady=()=>{};
+  let commit=()=>{},onReady=()=>{},pending=false;
   const env={bootPaintRef:ref,window,requestAnimationFrame:fn=>{frames.set(++id,fn);return id;},
-    cancelAnimationFrame:n=>frames.delete(n),ReactDOM:{flushSync:fn=>{events.push('flush');fn();commit();}},
+    bootPaint:false,setBootPaint:()=>{pending=true;},cancelAnimationFrame:n=>frames.delete(n),
     mcBootReady:()=>{events.push('ready');window.__mcBootReady=true;onReady();}};
   const names=Object.keys(env),make=new Function(...names,source+'return bootAfterPaint;');
   const helper=make(...names.map(n=>env[n]));
+  const committed=new Function(...names,committedSource+'return bootPaintCommitted;');
   const cleanup=new Function('bootPaintRef','cancelAnimationFrame','return ('+cleanupSource.slice(0,-1)+')();')(ref,env.cancelAnimationFrame);
   return {env,frames,events,helper,cleanup,setCommit:fn=>{commit=fn;},setReady:fn=>{onReady=fn;},
+    commit(){if(!pending||env.bootPaint)return;pending=false;commit();events.push('commit');env.bootPaint=true;committed(...names.map(n=>env[n]))();},
     frame(){const callbacks=[...frames.values()];frames.clear();for(const fn of callbacks)fn();}};
 }
 {
   const w=paintWorld();let committed=false;
   w.setCommit(()=>{committed=true;});w.setReady(()=>assert.equal(committed,true));
-  w.helper();assert.deepEqual(w.events,[]);w.frame();assert.deepEqual(w.events,['flush']);
-  w.frame();assert.deepEqual(w.events,['flush','ready']);w.helper();assert.equal(w.frames.size,0);
+  w.helper();assert.deepEqual(w.events,[]);w.frame();assert.deepEqual(w.events,[],'sin commit no se programa un frame');
+  w.commit();w.frame();assert.deepEqual(w.events,['commit']);
+  w.frame();assert.deepEqual(w.events,['commit','ready']);w.helper();assert.equal(w.frames.size,0);
 }
 for(const completedFrames of [0,1]){
-  const w=paintWorld();w.helper();if(completedFrames)w.frame();
+  const w=paintWorld();w.helper();w.commit();if(completedFrames)w.frame();
   const late=[...w.frames.values()];w.cleanup();assert.equal(w.frames.size,0);
   for(const fn of late)fn();assert.equal(w.events.includes('ready'),false,'callback conservado tras cleanup no marca listo');
   assert.equal(w.frames.size,0,'tampoco deja un segundo frame vivo');
 }
 {
-  const w=paintWorld();w.helper();w.helper();assert.equal(w.frames.size,1);
-  w.frame();w.frame();assert.deepEqual(w.events,['flush','ready'],'una sola barrera aunque dos pulls terminen en el mismo tick');
+  const w=paintWorld();w.helper();w.helper();assert.equal(w.frames.size,0);w.commit();assert.equal(w.frames.size,1);
+  w.frame();w.frame();assert.deepEqual(w.events,['commit','ready'],'una sola barrera aunque dos pulls terminen en el mismo tick');
 }
 {
-  const mutant=paintSource.replace('ReactDOM.flushSync(function(){});','void 0;');
+  const mutant=paintSource.replace('setBootPaint(true);','mcBootReady();');
   assert.notEqual(mutant,paintSource);const w=paintWorld(mutant);let committed=false;
   w.setCommit(()=>{committed=true;});w.setReady(()=>assert.equal(committed,true));
-  w.helper();w.frame();assert.throws(()=>w.frame(),assert.AssertionError,'sin vaciar el batch vuelve ready antes del commit');
+  assert.throws(()=>w.helper(),assert.AssertionError,'marcar ready desde la Promise vuelve a saltarse el commit');
 }
 
 const ticks=async()=>{for(let i=0;i<30;i++)await Promise.resolve();};
@@ -82,6 +87,7 @@ for(const failure of [false,true]){
   assert.equal(t.ready(),undefined,'estado sin gastos todavía no está listo');
   if(failure)t.expensesRead.reject(Error('synthetic network'));else t.expensesRead.resolve();await ticks();
   assert.equal(t.ready(),undefined,'terminar promesas tampoco acredita commit');
+  t.w.frame();assert.equal(t.ready(),undefined,'no hay frames vivos antes del commit');t.w.commit();
   t.w.frame();assert.equal(t.ready(),undefined);t.w.frame();assert.ok(t.ready());
   if(!failure)definitive(t.ready());else assert.equal(t.ready().monthlySettled,undefined,'un pull fallido no acredita asiento');
 }
