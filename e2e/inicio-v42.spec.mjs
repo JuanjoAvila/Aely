@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { seedLoggedInDashboard, dismissNews, installFixtureClock, FIXTURE_NOW } from "./fixtures.mjs";
+import { seedLoggedInDashboard, dismissNews, installFixtureClock, FIXTURE_NOW, estadoHeredado } from "./fixtures.mjs";
 export const states=[
   {id:"over",spent:1001,text:"Te has pasado 1 €",tone:"coral"},
   {id:"start",spent:900,text:"Ciclo recién empezado",tone:"mint",day:3},
@@ -182,7 +182,10 @@ test("NO-GO cuenta nueva nombra el límite y un usuario nuevo empieza hoy",async
   await installFixtureClock(page);
   await seedLoggedInDashboard(page,{accounts:[{id:"a",ent:"sabadell",name:"Cuenta antigua",value:1000,role:"fijos",bankIban:"SYN-A"},{id:"b",ent:"revolut",name:"Cuenta reciente",value:300,role:"fijos",bankIban:"SYN-B"}],expenses:[{id:"a1",ent:"sabadell",date:"2026-09-01T12:00:00Z",amount:10,category:"super"},{id:"b1",ent:"revolut",date:"2026-09-25T12:00:00Z",amount:10,category:"super"}]});
   await page.goto("/");await page.waitForFunction(()=>!document.getElementById("mc-load"));await dismissNews(page);
-  await expect(page.getByTestId("inicio-net-coverage")).toContainText(/Cuenta reciente: datos desde 25/);
+  const hero=page.getByTestId("inicio-net-current");
+  await expect(hero.getByTestId("inicio-net-coverage")).toHaveText("Gráfica desde 25 sept 2026");
+  await hero.locator(".v42-net-info").click();
+  await expect(hero.getByTestId("inicio-net-detail")).toHaveText(["Cuenta reciente: datos desde 25 sept 2026."]);
 });
 test("NO-GO usuario nuevo sin presupuesto tiene mensaje propio y ningún ritmo",async({page})=>{
   await installFixtureClock(page);await seedLoggedInDashboard(page,{accounts:[],investments:[],expenses:[],budget:0,history:[],invHistory:[],accountBalanceHistory:{}});
@@ -240,8 +243,12 @@ for(const lang of ["es","en","ca"])test("RONDA3 bien legado conserva gráfica y 
   await expect(hero.locator(".v4-hero-amt")).toContainText("205.000,00 €");
   await expect(hero.locator(".v42-net-line")).toHaveCount(1);
   expect(await wholeGoodsLine(hero)).toHaveLength(35);
-  await expect(hero.getByTestId("inicio-net-coverage")).toContainText("Piso sintético:");
-  await expect(hero.getByTestId("inicio-net-coverage")).toContainText(lang==="es"?"antes se mantiene el valor actual":lang==="en"?"earlier dates keep the current value":"abans es manté el valor actual");
+  // Una sola línea bajo la gráfica; el detalle por bien vive en la «i» (13/10).
+  await expect(hero.getByTestId("inicio-net-coverage")).toHaveCount(1);
+  await expect(hero.getByTestId("inicio-net-coverage")).toContainText(lang==="es"?"algunos valores anteriores se mantienen":lang==="en"?"some earlier values are kept":"alguns valors anteriors es mantenen");
+  await expect(hero.getByTestId("inicio-net-coverage")).not.toContainText("Piso sintético");
+  await hero.locator(".v42-net-info").click();
+  await expect(hero.getByTestId("inicio-net-detail")).toHaveText([lang==="es"?"Piso sintético: se mantiene el valor actual en todo el tramo.":lang==="en"?"Piso sintético: the current value is kept for the whole period.":"Piso sintético: es manté el valor actual en tot el tram."]);
   const stored=await ownGoodsState(page);expect(stored.history?.["legacy-home"]).toBeUndefined();
 });
 test("RONDA3 piso que llega de la nube no nace al montar el móvil",async({page})=>{
@@ -291,7 +298,9 @@ test("revalorar un bien heredado conserva la gráfica y su valor anterior",async
   const ys=await wholeGoodsLine(hero);expect(ys).toHaveLength(35);
   expect(new Set(ys).size).toBe(3);expect(ys.every((y,i)=>!i||y>=ys[i-1])).toBe(true);
   await expect(hero.getByTestId("inicio-net-delta")).toHaveText("3.100 € menos desde que empezaste");
-  await expect(hero.getByTestId("inicio-net-coverage")).toContainText("Coche sintético: valor propio desde 4 sept 2026; antes se mantiene el valor que tenía.");
+  await expect(hero.getByTestId("inicio-net-coverage")).toHaveText("Gráfica desde 1 ago 2026 · algunos valores anteriores se mantienen");
+  await hero.locator(".v42-net-info").click();
+  await expect(hero.getByTestId("inicio-net-detail")).toHaveText(["Coche sintético: valor propio desde 4 sept 2026; antes se mantiene el valor que tenía."]);
 });
 test("RONDA3 banco a hucha con escalones mantiene el patrimonio plano",async({page})=>{
   await openGoodsHistory(page,{accounts:[{...goodsBank,value:300},{id:"manual-hucha",ent:"revolut",value:600,role:"fijos"}],
@@ -307,6 +316,37 @@ test("RONDA3 deuda sin día de cuota declara la convención mensual",async({page
   await openGoodsHistory(page,{assets:[],debts:[{id:"no-day",name:"Préstamo sintético",value:10000,monthly:500,amort:400,months:null,asOf:2026*12+7,asOfDate:"2026-08-01"}]});
   const hero=page.getByTestId("inicio-net-current");
   await expect(hero.locator(".v4-hero-amt")).toContainText("-4600,00 €");
-  await expect(hero.getByTestId("inicio-net-coverage")).toContainText("Deudas: sin día de cargo; la amortización se sitúa al empezar el mes.");
   await expect(hero.locator(".v42-net-line")).toHaveCount(1);
+  await expect(hero.getByTestId("inicio-net-coverage")).toHaveText("Gráfica desde 1 ago 2026");
+  await hero.locator(".v42-net-info").click();
+  await expect(hero.getByTestId("inicio-net-detail")).toHaveText(["Deudas: sin día de cargo; la amortización se sitúa al empezar el mes."]);
+});
+
+// Incidente 13/10 (beta 4.26.121): con hipoteca y préstamo dados de alta antes, Inicio salía sin
+// gráfica y con un muro de seis líneas. El mismo estado que el caso Node (fixtures.estadoHeredado).
+for(const lang of ["es","en","ca"])test("cartera heredada ve la gráfica el primer día y el detalle en la i "+lang,async({page})=>{
+  await page.clock.install({time:new Date("2026-10-13T12:00:00Z")});
+  const state=estadoHeredado("2026-10-13");
+  await seedLoggedInDashboard(page,{__seedOnce:true,...state,settings:{...state.settings,lang}});
+  await page.goto("/");await page.waitForFunction(()=>!document.getElementById("mc-load"));await dismissNews(page);
+  const hero=page.getByTestId("inicio-net-current");
+  await expect(hero.locator(".v4-hero-amt")).toContainText(",");
+  await expect(hero.locator(".v42-net-line")).toHaveCount(1);
+  const path=await hero.locator(".v42-net-line").getAttribute("d");expect([...path.matchAll(/[ML]/g)]).toHaveLength(14);
+  await expect(hero.locator(".v42-net-ranges button")).toHaveText([{es:"Todo",en:"All",ca:"Tot"}[lang]]);
+  await expect(hero).not.toContainText({es:"Todavía no hay gráfica",en:"No chart yet",ca:"Encara no hi ha gràfica"}[lang]);
+  await expect(hero).not.toContainText("Faltan saldos");
+  await expect(hero.getByTestId("inicio-net-coverage")).toHaveCount(1);
+  await expect(hero.getByTestId("inicio-net-coverage")).toHaveText({es:"Gráfica desde 30 sept 2026 · algunos valores anteriores se mantienen",en:"Chart from 30 Sept 2026 · some earlier values are kept",ca:"Gràfica des de 30 de set. del 2026 · alguns valors anteriors es mantenen"}[lang]);
+  // Entre la cifra y la gráfica no hay ninguna nota: la línea va después de los periodos.
+  expect(await hero.evaluate(el=>{const amt=el.querySelector(".v4-hero-amt"),chart=el.querySelector(".v42-net-chart");let n=amt.nextElementSibling,hints=0;while(n&&n!==chart){if(n.classList.contains("hint"))hints++;n=n.nextElementSibling;}return hints;})).toBe(0);
+  await expect(hero.getByTestId("inicio-net-detail")).toHaveCount(0);
+  await hero.locator(".v42-net-info").click();
+  const detail=hero.getByTestId("inicio-net-detail");
+  await expect(detail).toHaveCount(8);
+  await expect(detail.filter({hasText:"Hipoteca sintética"})).toHaveText({es:"Hipoteca sintética: el tramo anterior se estima con su cuadro de cuotas.",en:"Hipoteca sintética: earlier dates are estimated from its payment schedule.",ca:"Hipoteca sintética: el tram anterior s'estima amb el seu quadre de quotes."}[lang]);
+  await expect(detail.filter({hasText:"Piso sintético"})).toHaveText({es:"Piso sintético: se mantiene el valor actual en todo el tramo.",en:"Piso sintético: the current value is kept for the whole period.",ca:"Piso sintético: es manté el valor actual en tot el tram."}[lang]);
+  await expect(detail.filter({hasText:"Efectivo"})).toHaveText({es:"Efectivo: saldos desde 17 sept 2026; antes se mantiene el primero.",en:"Efectivo: balances from 17 Sept 2026; earlier dates keep the first one.",ca:"Efectivo: saldos des de 17 de set. del 2026; abans es manté el primer."}[lang]);
+  await expect(detail.filter({hasText:{es:"Inversiones",en:"Investments",ca:"Inversions"}[lang]})).toHaveCount(1);
+  await hero.locator(".v42-net-info").click();await expect(detail).toHaveCount(0);
 });
