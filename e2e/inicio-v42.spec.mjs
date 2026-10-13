@@ -26,25 +26,43 @@ async function open(page,{spent=500,day=13,lang="es",historyDays=370,falling=fal
 for(const state of states) test("estado real "+state.id,async({page},testInfo)=>{
   await open(page,state);
   const card=page.locator(".v42-cycle");
-  await expect(card).toHaveAttribute("data-state",state.id); await expect(card.locator(".st")).toHaveText(state.text);
+  await expect(card).toHaveAttribute("data-state",state.id); await expect(card).toHaveAttribute("aria-label",new RegExp("^"+state.text+"\\. Te quedan "));
+  // El estado ya no se pinta como texto: lo dicen el color del anillo y de la línea «al día».
+  await expect(card).not.toContainText(state.text); await expect(card).not.toContainText("Te quedan");
   await expect(card.locator(".v42-cycle-amount>.serif")).toHaveText((state.id==="over"?"-1":String(1000-state.spent))+" €");
   const color=await card.evaluate((el,tone)=>getComputedStyle(el).color===getComputedStyle(document.documentElement).getPropertyValue("--"+tone).trim() ||
     (()=>{const probe=document.createElement("span");probe.style.color="var(--"+tone+")";el.appendChild(probe);const result=getComputedStyle(probe).color===getComputedStyle(el).color;probe.remove();return result;})(),state.tone);
   expect(color).toBe(true);
-  const painted=await card.evaluate(el=>({card:getComputedStyle(el).color,state:getComputedStyle(el.querySelector(".st")).color,
-    ring:getComputedStyle(el.querySelector(".v42-cycle-draw")).stroke,font:getComputedStyle(el.querySelector(".st")).fontSize}));
-  expect(painted.state).toBe(painted.card);expect(painted.ring).toBe(painted.card);expect(painted.font).toBe("12.5px");
+  const painted=await card.evaluate(el=>{const pace=el.querySelector("[data-testid=inicio-cycle-pace] b");return {card:getComputedStyle(el).color,
+    pace:pace?getComputedStyle(pace).color:null,ring:getComputedStyle(el.querySelector(".v42-cycle-draw")).stroke,
+    font:getComputedStyle(el.querySelector(".v42-cycle-amount>.serif")).fontSize};});
+  expect(painted.ring).toBe(painted.card);expect(painted.font).toBe("24px");
+  if(painted.pace) expect(painted.pace).toBe(painted.card);
   await expect(card.getByTestId("inicio-cycle-pace")).toHaveCount(state.id==="over"?0:1);
   await expect(card.locator(".v4-budget-foot")).toHaveCount(0);
   await card.screenshot({animations:"disabled",path:testInfo.outputPath("cycle-"+state.id+"-synthetic.png")});
   await testInfo.attach("cycle-"+state.id+"-synthetic",{path:testInfo.outputPath("cycle-"+state.id+"-synthetic.png"),contentType:"image/png"});
+});
+// Feedback 2026-10-13: la tarjeta se quedó en importe + «al día», centrada contra el anillo (con
+// una o dos líneas) y sin los rótulos de estado, que siguen en el aria-label.
+for(const state of [{id:"tight",spent:800},{id:"over",spent:1001}]) test("tarjeta limpia y centrada con el anillo: "+state.id,async({page})=>{
+  await open(page,state);
+  const card=page.locator(".v42-cycle");
+  await expect(card).not.toContainText(/Te quedan|Vas |Toca frenar|Te has pasado/);
+  await expect(card.locator(".v42-cycle-amount>.serif")).toBeVisible(); await expect(card.locator(".v42-cycle-of")).toHaveText("de 1000 €");
+  await expect(card.getByTestId("inicio-cycle-pace")).toHaveCount(state.id==="over"?0:1);
+  await expect(card).toHaveAttribute("aria-label",state.id==="tight"?"Vas justito. Te quedan 200 € de 1000 €. 11 € al día durante 18 días":"Te has pasado 1 €. Te quedan -1 € de 1000 €");
+  await page.waitForTimeout(1300); // el anillo se dibuja al entrar; con él quieto se mide el reposo
+  const box=await card.evaluate(el=>{const c=n=>{const r=el.querySelector(n).getBoundingClientRect();return r.top+r.height/2;};
+    return {ring:c(".v42-cycle-ring"),txt:c(".v4-budget-txt")};});
+  expect(Math.abs(box.ring-box.txt)).toBeLessThanOrEqual(2);
 });
 for(const zone of ["UTC","Europe/Madrid"]) test.describe("calendario de Madrid en "+zone,()=>{
   test.use({timezoneId:zone});
   test("casi agotado dice justo y conserva el margen sin inventar ritmo",async({page})=>{
     await open(page,{cycle:false,day:26,spent:950});
     await expect(page.locator(".v42-cycle")).toHaveAttribute("data-state","tight");
-    await expect(page.locator(".v42-cycle .st")).toHaveText("Vas justito");
+    await expect(page.locator(".v42-cycle")).toHaveAttribute("aria-label",/^Vas justito\. Te quedan 50 € de 1000 €/);
     await expect(page.locator(".v42-cycle-amount>.serif")).toHaveText("50 €");
     await expect(page.getByTestId("inicio-cycle-pace")).toHaveText("10 € al día durante 5 días");
   });
@@ -186,7 +204,9 @@ for(const lang of ["es","en","ca"]) test("NO-GO último día natural y etiqueta 
   await open(page,{cycle:false,day:30,spent:900,lang});
   const labels={es:["Este mes","Te quedan","100 € al día durante 1 día"],en:["This month","Left to spend","100 € a day for 1 day"],ca:["Aquest mes","Et queden","100 € al dia durant 1 dia"]}[lang];
   await expect(page.locator(".v42-cycle-head>span")).toHaveText(labels[0]);
-  await expect(page.locator(".v42-cycle-remaining")).toHaveText(labels[1]);
+  // El rótulo «Te quedan» ya no se pinta, pero sigue en el idioma de la app para lectores de pantalla.
+  await expect(page.locator(".v42-cycle")).not.toContainText(labels[1]);
+  await expect(page.locator(".v42-cycle")).toHaveAttribute("aria-label",new RegExp(labels[1]+" 100 €"));
   await expect(page.getByTestId("inicio-cycle-pace")).toHaveText(labels[2]);
   await expect(page.locator(".v42-cycle-percent")).toHaveText("10%");
 });

@@ -386,7 +386,12 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
       React.createElement("div",{className:"v42-cycle-head"},
         React.createElement("span",null,t(bud.cycle?"v42_this_cycle":"v42_this_month")),
         React.createElement("button",{type:"button",className:"link",onClick:function(){ if(onGoGastos) onGoGastos(); }},t("v4_see_gastos"))),
+      /* El estado («Vas justito», «Te quedan…») dejó de pintarse en la tarjeta —molestaba al verlo un
+         rato, feedback 2026-10-13— y lo dicen el color del anillo y el de la línea «al día». Sigue
+         leyéndose entero para lectores de pantalla, con las mismas claves de texto de antes. */
       React.createElement("div",{className:"v4-card v4-budget v42-cycle",role:"button",tabIndex:0,"data-state":paceState.id,
+        "aria-label":tf("v42_cycle_"+paceState.id,{x:cycleMoney(paceState.excess)})+". "+t("v42_remaining")+" "+cycleMoney(rem)+" "+tf("v42_cycle_of",{x:cycleMoney(budAmt)})+
+          (dailyMoney!=null?". "+tf("v42_cycle_daily",{x:dailyMoney})+" "+tf(timing.left===1?"v42_cycle_day":"v42_cycle_days",{n:timing.left}):""),
         style:{color:"var(--"+paceState.tone+")","--cycle-color":"var(--"+paceState.tone+")","--v42-play":splashGone?"running":"paused"},onClick:function(){ setBudgetOpen(true); },
         onKeyDown:function(e){ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); setBudgetOpen(true); } }},
         React.createElement("div",{className:"v4-ring v42-cycle-ring","aria-hidden":true},
@@ -397,9 +402,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
               style:{"--cycle-pct":ringPct*100}})),
           React.createElement("div",{className:"v42-cycle-percent num"},Math.round(ringPct*100),React.createElement("span",null,"%"))),
         React.createElement("div",{className:"v4-budget-txt"},
-          React.createElement("div",{className:"st",style:{color:"inherit"}},tf("v42_cycle_"+paceState.id,{x:cycleMoney(paceState.excess)})),
           React.createElement("div",{className:"ph v42-cycle-amount"},
-            React.createElement("span",{className:"v42-cycle-remaining"},t("v42_remaining")),
             React.createElement("span",{className:"serif num",style:{color:paceState.id==="over"?"var(--coral)":"var(--text)"}},cycleMoney(rem)),
             React.createElement("span",{className:"v42-cycle-of"},tf("v42_cycle_of",{x:cycleMoney(budAmt)}))),
           dailyMoney!=null&&React.createElement("div",{className:"v42-cycle-pace","data-testid":"inicio-cycle-pace"},

@@ -31,6 +31,6 @@ test("Inicio no inventa una ganancia mensual ni hereda la racha antigua", async 
   // reaparecer como una racha ni como una variación sin serie diaria acreditada.
   await expect(page.getByTestId("dash-budget-streak")).toHaveCount(0);
   await expect(page.getByTestId("inicio-net-delta")).toHaveCount(0);
-  await expect(page.locator(".v42-cycle .st")).toBeVisible();
+  await expect(page.locator(".v42-cycle-amount>.serif")).toBeVisible();
   await expect(page.locator(".v42-cycle")).not.toContainText("🔥");
 });
