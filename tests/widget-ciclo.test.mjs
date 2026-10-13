@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import vm from 'node:vm';
+import crypto from 'node:crypto';
 import {spawnSync} from 'node:child_process';
 import {loadPureLogicFromFile} from '../scripts/load-pure-logic.mjs';
 const root=path.resolve(import.meta.dirname,'..');
@@ -82,11 +83,13 @@ public class WidgetCycleTest {
   }
   // La decisión Madrid no debe mover cifras de quien ya tenía el dispositivo en Madrid.
   process.env.TZ='Europe/Madrid';
-  const previous=spawnSync('git',['show','b1d3c8e88efb72488caf68c305ee737286360a62:src/modules/04-tab-gastos.js'],{cwd:root,encoding:'utf8'});
-  assert.equal(previous.status,0,previous.stderr);
+  // Un rebase retira ese commit de las refs remotas: CI no debe depender de objetos locales.
+  const previous=JSON.parse(fs.readFileSync(path.join(root,'tests/fixtures/widget-payday-b1d3.json'),'utf8'));
+  assert.equal(previous.sourceSHA,'b1d3c8e88efb72488caf68c305ee737286360a62');
+  assert.equal(crypto.createHash('sha256').update(previous.source).digest('hex'),previous.sha256);
   const before=loadPureLogicFromFile(),after=loadPureLogicFromFile();
-  for(const [cli,text] of [[before,previous.stdout],[after,source]])
-    vm.runInNewContext(text.slice(text.indexOf('function lastPaydayOf('),text.indexOf('/* Límites del período')),cli);
+  vm.runInNewContext(previous.source,before);
+  vm.runInNewContext(source.slice(source.indexOf('function lastPaydayOf('),source.indexOf('/* Límites del período')),after);
   let swept=0;
   for(const date of ['2026-03-01','2026-08-20','2026-10-01']) for(const payHour of [0,12,23])
     for(const day of [0,44,45,46]) for(let hour=0;hour<24;hour++){

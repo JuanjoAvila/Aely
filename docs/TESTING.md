@@ -57,6 +57,8 @@ en `ingest/widget.test.ts` con Deno y permiso sólo de lectura de ese TSV, regis
 en el runner. Incluye días 1/31/44/45/46/60, milisegundos, cobro de hoy y fronteras
 de Madrid en marzo/octubre; un barrido de 864 casos conserva cifras frente a b1d3c8e8
 cuando el dispositivo ya estaba en Madrid. [Regla](WIDGET-CICLO.md).
+El oráculo A/B está en `tests/fixtures/widget-payday-b1d3.json`, con función exacta,
+SHA de origen y checksum: un checkout limpio no depende del commit retirado por el rebase.
 `widget-puente-ciclo` añade decimal `.5` contra entero, liquidez nula/omitida tras
 un valor conocido y render nativo al caducar. Además pasa 36 fotos de días44/45/46
 por el Java inmutable de APK53/55 y el candidato56: la versión antigua recibe cifras
