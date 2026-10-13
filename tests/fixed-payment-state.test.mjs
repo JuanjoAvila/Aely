@@ -548,7 +548,8 @@ const paymentGuards=[
     linked.fixed[1]=Object.assign({},other,{paymentProofs:{[2026*12+9]:Object.assign({},p,{model:ctx.fixedPaymentModel(other,9)})}});
     assert.equal(linked.fixed.some(f=>ctx.fixedPaymentState(linked,f,2026,9,30).paid),false,"una identidad duplicada invalida ambas pruebas");
   }},
-  {id:"nombre-corto",from:'n.length>=4&&(" "+name+" ")',to:'true&&(" "+name+" ")',check(ctx){
+  // La regla vive en `recFrase` desde el 12/10/2026: la comparte la etiqueta del cargo de recibo.
+  {id:"nombre-corto",from:'n.length>=4&&(" "+texto+" ")',to:'true&&(" "+texto+" ")',check(ctx){
     const bill=Object.assign({},fixed,{name:"Gas"}),state=Object.assign({},recordedState,{fixed:[bill]});
     assert.equal(ctx.fixedPaymentAutoOwner(state,bill,2026,9,"sabadell","GAS SA",42,"otros",false),false,"nombre corto no identifica automáticamente");
   }},

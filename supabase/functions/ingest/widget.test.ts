@@ -1,6 +1,6 @@
 import { assertEquals } from "jsr:@std/assert";
 import { readWidgetRows, widgetSnapshot, widgetStart } from "./widget.ts";
-import { bancoDeSource, claveComoLaApp, filasComoLaApp, inicioDeMesMs, ordinalDeSource } from "../_shared/presupuesto.ts";
+import { bancoDeSource, claveComoLaApp, cuentaParaPresupuesto, esCargoDeRecibo, filasComoLaApp, inicioDeMesMs, ordinalDeSource } from "../_shared/presupuesto.ts";
 
 const now = Date.parse("2026-10-10T12:00:00Z"), start = inicioDeMesMs(now);
 const rows = [
@@ -102,4 +102,17 @@ Deno.test("apuntes iguales con ordinal: filas separadas, mismo banco limpio tamb
   assertEquals(bancoDeSource("ob:sabadell~deuda.d1#dup"), "sabadell");
   assertEquals(ordinalDeSource("ob-hist:sabadell~recibo.r1#dup#n4"), 4);
   assertEquals(ordinalDeSource("manual"), 1);
+});
+
+Deno.test("el cargo de un recibo del Plan no cuenta, con el banco ya leído limpio, y sin la marca sí", () => {
+  const ents = ["sabadell"], fila = (source: string) => ({ id: "r", fecha: "2026-10-05T10:00:00Z", importe: 50, cat: "recibos", source, comercio: "Comunidad" });
+  for (const s of ["ob:sabadell~recibo.com", "ob-hist:sabadell~recibo.com", "ob:sabadell~recibo.com#n2", "ob-hist:sabadell~recibo.com#dup#n3"]) {
+    assertEquals(esCargoDeRecibo(s), true, s);
+    assertEquals(cuentaParaPresupuesto(fila(s), ents), false, s);
+  }
+  for (const s of ["ob:sabadell", "ob-hist:sabadell#n2", "manual:sabadell"]) {
+    assertEquals(esCargoDeRecibo(s), false, s);
+    assertEquals(cuentaParaPresupuesto(fila(s), ents), true, s);
+  }
+  assertEquals(esCargoDeRecibo("macrodroid"), false);
 });

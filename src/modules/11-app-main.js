@@ -517,6 +517,9 @@ function App(){
         const kept=keepCategoryChoices(prev.expenses, incoming, readStartedAt);
         const merged=mergeExpensesFromCloud(kept.prev, kept.incoming, readStartedAt);
         const next=merged.list;
+        // El aviso ganó a un cargo de recibo: su fila del banco deja de llevar la marca en la nube,
+        // o el servidor contaría una u otra según el orden en que las lea.
+        if(merged.sinMarca.length) setTimeout(function(){ merged.sinMarca.forEach(function(e){ cloud.setExpenseRecibo(e).catch(function(){}); }); },0);
         const igual=!merged.changed && next.length===(prev.expenses||[]).length
           && next.every(function(e,i){ return e===(prev.expenses||[])[i]; });
         // Call site 3/3 de fixMovInvasion (tras pull expenses). Contención 4.18.6: sin bloque (b).
@@ -591,6 +594,9 @@ function App(){
           // una nómina ajena. Los eventos de arranque/refresco compiten con getSession y no
           // prueban por sí solos que haya otro titular (feedback 27/9).
           if(opts&&opts.dropTx) baseObj.bankTx=[];
+          // Los «no es este recibo» no se pisan con la lista de quien llegó el último: clave a
+          // clave gana lo más reciente que se dijo, sea ponerlo o levantarlo (`reciboNoUnion`).
+          if(prev.reciboNo||cloudState.reciboNo) Object.assign(baseObj, reciboNoUnion(prev, cloudState));
           // Usuario que ya tenía cartera en la nube: no repetir onboarding en otro dispositivo.
           if(freshLogin && (cloudState.accounts||[]).length) baseObj.onboarded=true;
           if(freshLogin && ((cloudState.accounts||[]).length || (cloudState.monthStartNet||0)>0)) baseObj.setupHint=false;
@@ -2020,7 +2026,7 @@ function App(){
   // dinero de verdad (parte gorda del «se ralentiza cuanto más la uso» — 2026-07-24).
   },[state.accounts,state.expenses,state.bankTx,state.investments,state.assets,state.debts,state.fixed,
      state.flows,state.oneoffs,state.deleted,state.aportaciones,state.obAccounts,
-     state.trRewardsTotal,state.fx,state.fxRates,calendarDay]);
+     state.trRewardsTotal,state.fx,state.fxRates,state.reciboNo,calendarDay]);
 
   const budgetMonth=budgetYmKey();
   useEffect(function(){

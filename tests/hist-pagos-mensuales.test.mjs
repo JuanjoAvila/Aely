@@ -66,13 +66,16 @@ t("lo YA GUARDADO sigue detectándose, y 1:1", () => {
   assert.equal(rows.filter((r) => r.status === "new").length, 1);
 });
 
-t("un cargo que ya está modelado como Fijo sigue saliendo como duplicado", () => {
+// Desde el 12/10/2026 ya no es un duplicado sin marcar: entra enlazado a su recibo y sin contar.
+t("un cargo que ya está modelado como Fijo entra como fila nueva enlazada a ese recibo", () => {
   const estado = Object.assign(estadoVacio(), {
     fixed: [{ id: "f1", name: "Iberdrola", amount: 12, account: "sabadell", freq: "mes" }],
   });
   const { rows } = ctx.histClassifyCandidates([cand({ id: "c1", merchant: "IBERDROLA", amount: 12, date: "2026-08-12" })], estado);
-  assert.equal(rows[0].status, "dup");
-  assert.equal(rows[0].reason, "modeled");
+  assert.equal(rows[0].status, "new");
+  assert.equal(rows[0].reason, "recibo");
+  assert.equal(rows[0].reciboId, "f1");
+  assert.equal(rows[0].suggestRecibo, false, "no se ofrece crear otro recibo igual");
 });
 
 t("reimportar el mismo extracto no crea nada nuevo la segunda vez", () => {

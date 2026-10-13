@@ -90,12 +90,18 @@ t("en la cuenta de GASTO DIARIO, un cargo SIN tarjeta también cuenta ahora (202
   assert.equal(add[0].amount, 230);
 });
 
-t("...salvo que YA sea un Fijo modelado este mes en esa cuenta: no se duplica", () => {
+// Desde el 12/10/2026 el cargo de un Fijo ya no se tira: entra marcado con su recibo, se ve en
+// Gastos y no cuenta, que es como no se duplica ahora (`tests/recibo-invariante` fija las cifras).
+t("...salvo que YA sea un Fijo modelado este mes en esa cuenta: entra marcado y no se duplica", () => {
   const conFijo = Object.assign({}, estado, {
     fixed: [{ id: "f1", name: "Seguro coche", amount: 230, freq: "mes", account: "caixa" }],
   });
   const add = ctx.importObExpenses(conFijo, [tx({ amount: 230, merchant: "SEGURO COCHE", card: false, id: "x3b" })]);
-  assert.equal(add, null, "ya está contado por el motor mensual — importarlo también sería doble conteo");
+  assert.ok(add && add.length === 1);
+  assert.equal(add[0].reciboId, "f1");
+  const con = Object.assign({}, conFijo, { expenses: add });
+  assert.equal(ctx.expenseCountsCash(add[0], con), false, "ya está contado por el motor mensual — contarlo también sería doble conteo");
+  assert.equal(ctx.expenseCountsBudget(add[0], con), false);
 });
 
 t("en un banco EXTRA de gasto diario, un cargo SIN tarjeta también entra (2026-08-05: todo el extracto)", () => {
@@ -105,12 +111,14 @@ t("en un banco EXTRA de gasto diario, un cargo SIN tarjeta también entra (2026-
   assert.equal(ctx.expenseCountsBudget(add[0], estado), true);
 });
 
-t("...pero si YA es un Fijo modelado en ese banco extra, no se duplica", () => {
+t("...pero si YA es un Fijo modelado en ese banco extra, entra marcado y no se duplica", () => {
   const conFijo = Object.assign({}, estado, {
     fixed: [{ id: "f2", name: "Seguro hogar", amount: 55, freq: "mes", account: "sabadell" }],
   });
   const add = ctx.importObExpenses(conFijo, [tx({ ent: "sabadell", amount: 55, merchant: "SEGURO HOGAR", card: false, id: "x3c2" })]);
-  assert.equal(add, null);
+  assert.ok(add && add.length === 1);
+  assert.equal(add[0].reciboId, "f2");
+  assert.equal(ctx.expenseCountsBudget(add[0], Object.assign({}, conFijo, { expenses: add })), false);
 });
 
 t("una compra CON tarjeta en banco extra de gasto diario sí cuenta", () => {

@@ -266,6 +266,80 @@ es lo que pinta «Saldo actualizado»: `last_sync` puede ir por detrás). En `im
 anterior al margen se apunta con su fecha real pero no compra participaciones, y casa contra todo
 lo modelado, toque o no este mes.
 
+**El cargo de un recibo entra en Gastos, sin contar (12/10/2026).** El cargo del banco que
+casa con un recibo o un puntual del Plan ya no se descarta: entra con `reciboId`, en el sync
+diario (`importObExpenses`) y en «Importar histórico». **Invariante:** lleva la marca exactamente
+lo que antes se tiraba (mismo predicado: banco, `recAmtClose` y `recNameMatch`), y esa fila no
+mueve ninguna cifra, así que el gastado, el presupuesto, el saldo pintado, el previsto y el
+cierre de mes son los de antes. `tests/recibo-invariante` lo comprueba contra el código de la
+4.26.119; afinar el predicado es mover cifras. La marca se pone al importar y se guarda; no hay
+pasada que la recalcule. **Esa es la única cifra que cambia, y a propósito:** la 4.26.119
+volvía a juzgar el cargo en cada sync, de modo que el seguro anual o el puntual cobrado a fin de
+mes se tiraba en su mes y entraba como una compra al sincronizar el mes siguiente, y lo mismo el
+cargo de un recibo al que después se le subía el importe. Ahora sigue marcado: el gastado es
+menor que antes en exactamente esas compras (26 de 1.500 extractos medidos, nunca mayor) y el
+saldo no cambia. `cargoDeRecibo(e, s)` es la puerta única: devuelve el recibo vivo o
+null (si la fila es además cuota gana la deuda; un recibo borrado o un veto anulan la marca), y
+la usan `expenseCountsCash`, el cajón, el anclaje de `applyBankBalances`, el cierre de
+`reconcileTR` (también su `obFed`: un cargo de recibo no cuenta como «el banco ya trae sus
+movimientos», o el cierre dejaría de restar el redondeo), el redondeo de Cartera
+(`recompensasDelMes`), la retirada de efectivo (no se puede reconocer como tal), la foto del
+hogar e Inicio. Lo
+dudoso se distingue solo en la etiqueta (`cargoDeReciboFirme`): «Recibo: X» si es el cargo con
+el que `fixedPaymentState` da por pagado el recibo y lleva su nombre por palabras completas;
+«¿Recibo: X?» si solo se parece. La marca viaja en `source` como `ob:<ent>~recibo.<id>` u
+`ob-hist:<ent>~recibo.<id>`: una app anterior o el servidor del widget leen un banco
+inexistente y la excluyen sin conocerla, igual que con `~deuda.`. El orden de los sufijos es
+`ob:<ent>[~deuda.<id> | ~recibo.<id>][#dup][#n<k>]`. Toda escritura de la marca sobre una fila
+que ya está en la nube pasa por `cloud.setExpenseRecibo`, que la pone si la fila local la lleva
+y la quita si no: busca por fecha, importe y comercio (el id local puede no ser el de la nube, y
+un UPDATE por id que no casa no toca nada ni da error), lee antes de escribir y solo toca filas
+`ob:<ent>` u `ob-hist:<ent>`, conservando prefijo, `#dup` y `#n<k>`; una cuota, un aviso del
+móvil o un gasto a mano que coincidan no se tocan, y a un posible repetido no se le pone marca.
+La usan el alta cuando la fila ya existía, «No es este recibo», su vuelta atrás y el borrado de
+un recibo. Al bajar gastos de la nube, el aviso del móvil gana al cargo de recibo de su mismo
+día, importe y comercio llegue en el orden que llegue (`mergeExpensesFromCloud`), que es lo que
+pasa cuando el aviso estaba antes. «No es este recibo»
+(`quitarCargoDeRecibo`) quita la marca, guarda el veto en `state.reciboNo` (recibo + identidad
+del cargo, y recibo + id de fila + identidad, para que otro móvil con otro id local pueda
+levantarlo) con su hora en `state.reciboNoAt`, y retira la prueba de pago. Al bajar
+el estado de la nube, `reciboNoUnion` resuelve clave a clave: gana lo último que se dijo, sea
+vetar o levantar; sin hora, o con la misma, se suman; quien cambia una clave apunta siempre una
+hora posterior a la que ya constaba, aunque su reloj vaya atrasado. «Confirmar pago de X» con un cargo
+cualquiera NO lo marca: el gastado se queda como estaba, igual que en la 4.26.119 y como dice
+su diálogo. La excepción es confirmar con el mismo cargo del que se dijo «no es este recibo»
+(`reponerCargoDeRecibo`): eso lo deshace, levanta el veto y devuelve la marca, y el diálogo lo
+avisa con el texto de la marca, solo si la marca puede volver (`admiteMarcaDe`: fila del banco
+y del banco del recibo). Vale también para un puntual, que la ficha ofrece únicamente cuando se
+vetó para ese cargo. Borrar un recibo o un puntual pasa por `quitarDelPlan` → `sinCargoDelPlan`:
+solo sus filas del periodo en curso (el del gastado: mes natural o «Mi ciclo», `budgetPeriodOf`)
+pierden la marca, en el móvil y en la nube, porque el servidor del widget deja fuera todo
+`~recibo.` sin saber si el recibo existe. Las de periodos ya cerrados la conservan y sus cifras
+no se mueven: `state.reciboBorrado[id]` (`{d: desde cuándo, n: nombre}`) viaja en el estado y
+`cargoDeRecibo` sigue dando por cargo de aquel recibo lo anterior a `d`, con su nombre, y por
+gasto normal lo posterior, también en el móvil que aún tiene esas filas marcadas. Las tres
+re-anclan la base (`conSaldoMostrado`) para que el saldo pintado no se mueva fuera de un sync.
+
+**Con los apuntes iguales del mismo día (ordinal).** El veto de «No es este recibo» lleva el
+ordinal de la fila (`reciboNoIdentidad`): suelta solo el cargo tocado, en la app y en la nube
+(la fila con ordinal viaja con su fecha un milisegundo después, así que la escritura por
+fecha, importe y comercio da con ella). Cuando el aviso del móvil gana al cargo marcado, la
+fila que queda es la misma de antes —su id y el orden a mano, la categoría, la nota y el «no
+tarjeta» que se le pusieron— con el origen del aviso, y App reescribe sin marca la fila del
+banco en la nube (`sinMarca`): con una marcada y otra no, el servidor contaba una u otra según
+el orden de lectura. **Límites conocidos:** (1) dos cargos iguales el mismo día que casan con
+un recibo entran LOS DOS marcados y ninguno cuenta, igual que antes se tiraban los dos; si uno
+era una compra aparte, hay que decirlo con «No es este recibo». (2) Tras ese «No es este
+recibo» sobre uno de varios iguales de un recibo FIJO no hay vuelta atrás desde la ficha: el
+vínculo a mano exige que el cargo sea único en su mes (`fixedExpenseEligible`); en un puntual sí
+la hay.
+
+**Condición de publicación (medida en la revisión del 13/10).** Un dispositivo con la 4.26.120
+—el ordinal SIN esta entrega— lee `ob:<ent>~recibo.<id>` con el banco limpio y CUENTA el cargo
+(102,40 frente a 40), y al reescribir esa fila le borra la marca. Lo mismo el `ingest` de la
+120. Por tanto: la 4.26.120 no se promociona a producción sin esta entrega, y el `ingest` de
+esta rama se despliega antes que su web (ver `docs/SETUP-SUPABASE.md`).
+
 La misma frontera rige el sync diario: `app_events` puede guardar el banco, una clase estable y
 recuentos agregados, pero nunca transacciones ni campos del proveedor. El volcado temporal usado
 para diagnosticar el signo de Trade Republic se retiró al encontrarlo todavía activo en una

@@ -215,10 +215,24 @@ export function esCuotaDeDeuda(source?: string | null): boolean {
   return s.indexOf("ob:") === 0 && s.slice(3).split("#")[0].indexOf("~deuda.") > 0;
 }
 
+/**
+ * ¿Es el cargo de un recibo o un puntual del Plan? (13/10/2026). Viaja como
+ * `ob:<ent>~recibo.<id>` u `ob-hist:<ent>~recibo.<id>`: se ve en Gastos y no cuenta, porque el
+ * recibo ya resta por su lado. Hasta que `bancoDeSource` empezó a devolver el banco limpio, estas
+ * filas se quedaban fuera por llevar un banco «raro»; ahora hay que decirlo. El servidor no sabe
+ * si el recibo sigue existiendo: por eso el cliente quita la marca de la fila al borrarlo o al
+ * decir «no es este recibo». Espejo de `cargoDeRecibo()`.
+ */
+export function esCargoDeRecibo(source?: string | null): boolean {
+  const s = String(source || "");
+  if (s.indexOf("ob:") !== 0 && s.indexOf("ob-hist:") !== 0) return false;
+  return s.slice(s.indexOf(":") + 1).split("#")[0].indexOf("~recibo.") > 0;
+}
+
 /** ¿Este movimiento mueve la cifra del presupuesto? Espejo de `expenseCountsBudget()`. */
 export function cuentaParaPresupuesto(fila: FilaGasto, ents: string[]): boolean {
   if (!fila) return false;
-  if (esCuotaDeDeuda(fila.source)) return false;
+  if (esCuotaDeDeuda(fila.source) || esCargoDeRecibo(fila.source)) return false;
   // Pendiente de que él diga «es el mismo» o «son distintos»: no mueve saldo ni presupuesto,
   // igual que en `expenseCountsCash()`. Sin esta línea el servidor sumaba lo que la app restaba
   // y el widget decía más que Inicio.
