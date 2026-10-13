@@ -1,0 +1,480 @@
+{
+  "status": "done",
+  "summary": "Candidato entregado para integración por orden expresa a4328161: margen cero tight/tan, exceso coral, anillo restante; presupuesto y Gastos comparten límite civil de Madrid. PR225 draft, sin merge ni publicación. La entrega del código no acredita DOM, CI verde ni móvil.",
+  "productSHA": "79dd0697a6a4ae54ee857174bdc7dace0e0cb2df",
+  "tree": "e0d3efb0d1c417e7034087a42fd684bdf6321435",
+  "pullRequest": "JuanjoAvila/Aely#225",
+  "branch": "codex/inicio-mes-cero-nomina-utc-286f8f4c",
+  "baseSHA": "3625fa7ed5134cfbc5e364adc4f588bfdaf670c0",
+  "claimCommit": "3b3da6bcd03aa3feab5ff9f7f63a8d6a65a5da43",
+  "executionBaseSHA": "6f161fc8f31adc4ab95f19311a21619801d036c1",
+  "deliveryAuthority": "a4328161713f384abe59ee08edc82acfca060fa7",
+  "ownFunctions": [
+    {
+      "file": "src/modules/03-tab-dash.js",
+      "line": 5,
+      "name": "cyclePaceState",
+      "zeroLine": 9,
+      "thresholds": [
+        -15,
+        10,
+        40
+      ],
+      "ringLine": 269
+    },
+    {
+      "file": "src/modules/08-motor-bank.js",
+      "line": 1918,
+      "name": "budgetPeriodOf"
+    },
+    {
+      "file": "src/modules/08-motor-bank.js",
+      "line": 2027,
+      "name": "madridDayStartMs"
+    },
+    {
+      "file": "src/modules/04-tab-gastos.js",
+      "line": 62,
+      "name": "presetBoundsMs",
+      "only": "cycle branch"
+    }
+  ],
+  "beforeAfter": [
+    {
+      "case": "900 restantes día15/30",
+      "before": "comfort/mint",
+      "after": "comfort/mint"
+    },
+    {
+      "case": "200 restantes día15/30",
+      "before": "tight/tan",
+      "after": "tight/tan"
+    },
+    {
+      "case": "0 restantes día30/30",
+      "before": "good/mint",
+      "after": "tight/tan"
+    },
+    {
+      "case": "0 restantes día1/30",
+      "before": "start/mint",
+      "after": "tight/tan"
+    },
+    {
+      "case": "-0.01 restante",
+      "before": "over/coral",
+      "after": "over/coral"
+    },
+    {
+      "case": "sin presupuesto",
+      "before": "empty CTA",
+      "after": "empty CTA"
+    }
+  ],
+  "financialEvidence": {
+    "zones": [
+      "UTC",
+      "Europe/Madrid",
+      "Atlantic/Canary"
+    ],
+    "boundaries": 8,
+    "beforeFailures": {
+      "UTC": 48,
+      "Madrid": 0,
+      "Canary": 48
+    },
+    "onlyBudgetFailures": {
+      "UTC": 16,
+      "Madrid": 0,
+      "Canary": 16
+    },
+    "afterFailures": {
+      "UTC": 0,
+      "Madrid": 0,
+      "Canary": 0
+    },
+    "madridBeforeAfterIdentical": true,
+    "invariant": "selected Gastos header spent = Inicio spent = actual web updateWidget payload spent; remaining also equal",
+    "synthetic": {
+      "spent": 12.34,
+      "remaining": 487.66
+    },
+    "vetoes": [
+      "future",
+      "PDNG",
+      "UNKNOWN",
+      "possibleDup"
+    ],
+    "writerVersionCode": 56
+  },
+  "tests": [
+    {
+      "command": "npm run build",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/nomina-calendario-madrid.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "TZ=UTC node tests/inicio-v42.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "TZ=Europe/Madrid node tests/inicio-v42.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "TZ=Atlantic/Canary node tests/inicio-v42.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/gastos-periodo.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/gastos-mes-madrid.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/i18n-keys.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/security.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/presupuesto-rendimiento.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/beta-sources.test.mjs --inicio-v42-only",
+      "exitCode": 1
+    },
+    {
+      "command": "node tests/docs-frescura.test.mjs",
+      "exitCode": 1,
+      "reason": "Candidate without new VERSION, explicitly reserved to integration; version documents consistent"
+    }
+  ],
+  "sourceHashes": {
+    "src/modules/03-tab-dash.js": "5a9f4c3b7684954a31a4431ef729b896a8555e51875a60e0f942c6db1404594c",
+    "src/modules/04-tab-gastos.js": "7de164b7a80a6cb526953273ac6a3e877820eeab8b7f1d97fc95abeec62a62ce",
+    "src/modules/08-motor-bank.js": "2480079c2e6c3924d81e7e7377ad55387785e8749bf83207e790ccee891128d3",
+    "e2e/inicio-mes-natural.spec.mjs": "3da22fb8d69bdd57c4bd1e54bbbf114ed0f7bd25c77364b22c8b65f59dd08993",
+    "tests/nomina-calendario-madrid.test.mjs": "73bddb6d4891a7a6875eea5945a5753bc153a3c879c4c323896002462ac391a1"
+  },
+  "htmlSHA256": "46c71beac834df86bdfecf4a8f8da8c5b2cf8ac8df791b30ca5ba027b0022e87",
+  "size": {
+    "raw": 1384146,
+    "gzip": 380158,
+    "rawCap": 1384448,
+    "gzipCap": 380928,
+    "reserveDSN": 95
+  },
+  "integration": {
+    "registryUnchanged": true,
+    "guardianUnchanged": true,
+    "requiredDependencies": [
+      {
+        "id": "fin05-widget-reentrada",
+        "file": "src/modules/08-motor-bank.js",
+        "function": "madridDayStartMs"
+      },
+      {
+        "id": "fin05-pago-cerrada",
+        "file": "src/modules/08-motor-bank.js",
+        "function": "madridDayStartMs"
+      },
+      {
+        "id": "widget-banco",
+        "file": "src/modules/08-motor-bank.js",
+        "function": "madridDayStartMs"
+      },
+      {
+        "id": "widget-app-cerrada",
+        "file": "src/modules/08-motor-bank.js",
+        "function": "madridDayStartMs"
+      },
+      {
+        "id": "inc-2909-02-inicio-natural",
+        "file": "src/modules/08-motor-bank.js",
+        "function": "madridDayStartMs"
+      },
+      {
+        "id": "inc-3009-nomina-anticipada",
+        "file": "src/modules/08-motor-bank.js",
+        "function": "madridDayStartMs"
+      },
+      {
+        "id": "inc-2909-03-retirada",
+        "file": "src/modules/08-motor-bank.js",
+        "function": "madridDayStartMs"
+      },
+      {
+        "id": "inc-2909-01-widget-periodo",
+        "file": "src/modules/08-motor-bank.js",
+        "function": "madridDayStartMs"
+      },
+      {
+        "id": "inc-0210-03-gastos-periodo",
+        "file": "src/modules/08-motor-bank.js",
+        "function": "madridDayStartMs"
+      },
+      {
+        "id": "feature-0210-01-gasolina-taxi",
+        "file": "src/modules/08-motor-bank.js",
+        "function": "madridDayStartMs"
+      },
+      {
+        "id": "inc-0310-01-meta-regla",
+        "file": "src/modules/08-motor-bank.js",
+        "function": "madridDayStartMs"
+      },
+      {
+        "id": "feature-0310-01-movilidad",
+        "file": "src/modules/08-motor-bank.js",
+        "function": "madridDayStartMs"
+      },
+      {
+        "id": "inc-0310-gastos-sin-limite",
+        "file": "src/modules/08-motor-bank.js",
+        "function": "madridDayStartMs"
+      },
+      {
+        "id": "inc-0710-gastos-mes-madrid",
+        "file": "src/modules/08-motor-bank.js",
+        "function": "madridDayStartMs"
+      },
+      {
+        "id": "inicio-grafica-vuelve",
+        "file": "src/modules/08-motor-bank.js",
+        "function": "madridDayStartMs"
+      },
+      {
+        "id": "widget-pago-app-cerrada",
+        "file": "src/modules/08-motor-bank.js",
+        "function": "madridDayStartMs"
+      },
+      {
+        "id": "widget-ciclo-puente",
+        "file": "src/modules/08-motor-bank.js",
+        "function": "madridDayStartMs"
+      },
+      {
+        "id": "inicio-patrimonio-flujos",
+        "file": "src/modules/08-motor-bank.js",
+        "function": "madridDayStartMs"
+      },
+      {
+        "id": "recibo-cargo-en-gastos",
+        "file": "src/modules/08-motor-bank.js",
+        "function": "madridDayStartMs"
+      },
+      {
+        "id": "fin05-widget-reentrada",
+        "file": "src/modules/08-motor-bank.js",
+        "function": "madridYmdParts"
+      },
+      {
+        "id": "fin05-widget-reentrada",
+        "file": "src/modules/08-motor-bank.js",
+        "data": "_mcMadridYmdFmt"
+      },
+      {
+        "id": "fin05-pago-cerrada",
+        "file": "src/modules/08-motor-bank.js",
+        "function": "madridYmdParts"
+      },
+      {
+        "id": "fin05-pago-cerrada",
+        "file": "src/modules/08-motor-bank.js",
+        "data": "_mcMadridYmdFmt"
+      },
+      {
+        "id": "widget-banco",
+        "file": "src/modules/08-motor-bank.js",
+        "function": "madridYmdParts"
+      },
+      {
+        "id": "widget-banco",
+        "file": "src/modules/08-motor-bank.js",
+        "data": "_mcMadridYmdFmt"
+      },
+      {
+        "id": "widget-app-cerrada",
+        "file": "src/modules/08-motor-bank.js",
+        "function": "madridYmdParts"
+      },
+      {
+        "id": "widget-app-cerrada",
+        "file": "src/modules/08-motor-bank.js",
+        "data": "_mcMadridYmdFmt"
+      },
+      {
+        "id": "inc-2909-03-retirada",
+        "file": "src/modules/08-motor-bank.js",
+        "function": "madridYmdParts"
+      },
+      {
+        "id": "inc-2909-03-retirada",
+        "file": "src/modules/08-motor-bank.js",
+        "data": "_mcMadridYmdFmt"
+      },
+      {
+        "id": "inc-2909-01-widget-periodo",
+        "file": "src/modules/08-motor-bank.js",
+        "function": "madridYmdParts"
+      },
+      {
+        "id": "inc-2909-01-widget-periodo",
+        "file": "src/modules/08-motor-bank.js",
+        "data": "_mcMadridYmdFmt"
+      },
+      {
+        "id": "feature-0210-01-gasolina-taxi",
+        "file": "src/modules/08-motor-bank.js",
+        "function": "madridYmdParts"
+      },
+      {
+        "id": "feature-0210-01-gasolina-taxi",
+        "file": "src/modules/08-motor-bank.js",
+        "data": "_mcMadridYmdFmt"
+      },
+      {
+        "id": "widget-pago-app-cerrada",
+        "file": "src/modules/08-motor-bank.js",
+        "function": "madridYmdParts"
+      },
+      {
+        "id": "widget-pago-app-cerrada",
+        "file": "src/modules/08-motor-bank.js",
+        "data": "_mcMadridYmdFmt"
+      },
+      {
+        "id": "widget-ciclo-puente",
+        "file": "src/modules/08-motor-bank.js",
+        "function": "madridYmdParts"
+      },
+      {
+        "id": "widget-ciclo-puente",
+        "file": "src/modules/08-motor-bank.js",
+        "data": "_mcMadridYmdFmt"
+      }
+    ],
+    "changedWebScopes": [
+      "feature-0210-01-gasolina-taxi",
+      "feature-0310-01-movilidad",
+      "fin05-pago-cerrada",
+      "fin05-widget-reentrada",
+      "inc-0210-03-gastos-periodo",
+      "inc-0310-01-meta-regla",
+      "inc-0310-gastos-sin-limite",
+      "inc-0710-gastos-mes-madrid",
+      "inc-2909-01-widget-periodo",
+      "inc-2909-02-inicio-natural",
+      "inc-2909-03-retirada",
+      "inc-3009-nomina-anticipada",
+      "inicio-grafica-vuelve",
+      "inicio-patrimonio-flujos",
+      "recibo-cargo-en-gastos",
+      "widget-app-cerrada",
+      "widget-banco",
+      "widget-ciclo-puente",
+      "widget-pago-app-cerrada"
+    ],
+    "finalReds": [
+      "Inicio v4.2: dependencia madridDayStartMs no vigilada",
+      "Catálogo123: lista cerrada de huellas nuevas",
+      "docs-frescura: código candidato sin VERSION nueva"
+    ],
+    "proposedScopeMutants": {
+      "detected": 57,
+      "proposalOnly": true,
+      "noDeclarationsInCandidate": true
+    }
+  },
+  "browser": {
+    "executedSpecs": [],
+    "exitCodes": {},
+    "newCasesPrepared": 18,
+    "pendingSpecs": [
+      "e2e/inicio-cargos.spec.mjs",
+      "e2e/inicio-grafica-significado.spec.mjs",
+      "e2e/inicio-mes-natural.spec.mjs",
+      "e2e/inicio-offline.spec.mjs",
+      "e2e/inicio-solape-gastos.spec.mjs",
+      "e2e/inicio-v42-rendimiento.spec.mjs",
+      "e2e/inicio-v42.spec.mjs",
+      "e2e/nomina-anticipada.spec.mjs",
+      "e2e/presupuesto-bancos.spec.mjs",
+      "e2e/presupuesto-fluido.spec.mjs",
+      "e2e/pulido-apuntar.spec.mjs",
+      "e2e/pulido-numpad.spec.mjs",
+      "e2e/pulido-vacios.spec.mjs",
+      "e2e/widget-banco.spec.mjs",
+      "e2e/gastos-categorias-presupuesto.spec.mjs"
+    ],
+    "groups": [
+      [
+        "e2e/inicio-cargos.spec.mjs",
+        "e2e/inicio-grafica-significado.spec.mjs",
+        "e2e/inicio-mes-natural.spec.mjs",
+        "e2e/inicio-offline.spec.mjs",
+        "e2e/inicio-solape-gastos.spec.mjs",
+        "e2e/inicio-v42-rendimiento.spec.mjs",
+        "e2e/inicio-v42.spec.mjs",
+        "e2e/nomina-anticipada.spec.mjs"
+      ],
+      [
+        "e2e/presupuesto-bancos.spec.mjs",
+        "e2e/presupuesto-fluido.spec.mjs",
+        "e2e/pulido-apuntar.spec.mjs",
+        "e2e/pulido-numpad.spec.mjs",
+        "e2e/pulido-vacios.spec.mjs",
+        "e2e/widget-banco.spec.mjs",
+        "e2e/gastos-categorias-presupuesto.spec.mjs"
+      ]
+    ],
+    "originalThreeUTCFailuresReproducedInDOM": false
+  },
+  "ci": {
+    "run": 38385035060,
+    "headSha": "79dd0697a6a4ae54ee857174bdc7dace0e0cb2df",
+    "event": "workflow_dispatch",
+    "status": "in_progress",
+    "conclusion": null,
+    "workflow": "Tests",
+    "url": "JuanjoAvila/Aely/actions/runs/38385035060"
+  },
+  "limitations": [
+    "No local Chromium/Playwright/Gradle or full npm suite: FIN01 physical lease remains foreign; no ownership or release inferred",
+    "No DOM acceptance, original three UTC DOM reds not reproduced; Node financial cause reproduced and corrected",
+    "No final green CI claimed; integration owns catalog/retirements/VERSION/size gates per a4328161",
+    "No beta/main push, production/backend/APK deployment; stacked inherited Widget changes owned by PR212",
+    "Claim123 immutable; beta124 signal/ref not present at delivery; coordinator explicitly ordered delivery now"
+  ],
+  "resources": {
+    "heavyStarted": false,
+    "ownRunnerLease": false,
+    "foreignLeaseUntouched": true,
+    "oneOffScriptsCleanup": "completed before publication",
+    "managedWorktreeRetained": true,
+    "ownDependencyJunctionRemoved": true
+  },
+  "schema": 1,
+  "taskId": "inicio-tarjeta-mes-cero-y-nomina-utc-codex-20261013",
+  "actor": "codex",
+  "sessionId": "codex-local-20261013-286f8f4ceb40",
+  "createdAt": "2026-10-13T10:48:28.492Z",
+  "released": true
+}
