@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "id": "bancos-desconectar-revoca-y-carrera-callback-codex-20261013",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261013-32295a8f",
+  "createdAt": "2026-10-13T09:27:13.178Z",
+  "to": "codex",
+  "baseSHA": "3625fa7ed5134cfbc5e364adc4f588bfdaf670c0",
+  "objective": "Dos defectos de servidor confirmados por revisión independiente. Uno: bank-disconnect manda el session_id tal cual está guardado (cifrado) al DELETE de sesiones de Enable Banking, el catch lo calla y el consentimiento sigue vivo en el proveedor aunque el usuario haya desconectado el banco. Dos: un bank-sync que leyó la fila antes de una reconexión escribe su estado final sin condición después del callback y puede dejar caducado el enlace recién autorizado.",
+  "scope": [
+    "supabase/functions/bank-disconnect, bank-sync (solo la escritura final de estado), bank-callback y _shared",
+    "tests de Node y Deno"
+  ],
+  "acceptance": [
+    "Desconectar: descifrar el id (como hace bank-sync en la rama claude/brokers-falsa-caducidad, que se sube a origin; mirar cómo lo descifra y reutilizarlo), codificarlo en la URL, y si la revocación falla dejar rastro saneado en el registro; la fila local se borra igual. Nunca el id en logs ni en la respuesta",
+    "Carrera: la escritura final de bank-sync solo se aplica si la fila sigue siendo la que leyó (misma sesión o mismo state_issued_at); una reconexión completada en medio gana siempre. No tocar las garantías de la 119: acuses, cursor, keepsCursor",
+    "Tests que fallen sin el arreglo, con el handler real y dobles de transporte; registrados en el runner. logs-privacidad y security siguen verdes",
+    "Coordinar ficheros: bank-sync lo tocan también claude/brokers-falsa-caducidad (catch y consulta de sesión) y la PR 223 (paginación); cambiar SOLO el bloque de escritura final y decir en el result con qué rama conflictúa",
+    "Nada de desplegar ni de consultar servicios reales. Sin tocar VERSION, notas, catálogo ni topes"
+  ]
+}
