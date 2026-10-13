@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "id": "arranque-pinta-nube-antes-del-splash-codex-20261013",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261013-32295a8f",
+  "createdAt": "2026-10-13T09:27:03.489Z",
+  "to": "codex",
+  "baseSHA": "3625fa7ed5134cfbc5e364adc4f588bfdaf670c0",
+  "objective": "Rendimiento, prioridad del dueño: al abrir la app hay un tirón justo después de quitarse la pantalla de entrada, mientras llega el estado de la nube. Medido por el coordinador anterior: dos recálculos de netWorthSeries y un render de Gastos tras levantarse el splash; ESPERA_NUBE vale 1800 ms. Arreglarlo: que lo que se pinta al quitar el splash sea ya el estado definitivo.",
+  "scope": [
+    "src/modules/12-boot.js, 11-app-main.js (syncFromCloud y arranque) y 03-tab-dash.js en lo que toca a netWorthSeries",
+    "e2e de rendimiento del arranque"
+  ],
+  "acceptance": [
+    "Medir ANTES con CPU frenada 6 veces y deltas de requestAnimationFrame (AGENTS 7 bis): frames de más de 32 ms en los 3 segundos posteriores a retirarse el splash, con estado local viejo y nube más nueva, con 2000 y 20000 gastos. Comprobar que la medida distingue el caso bueno (sin nube pendiente) del malo",
+    "Propuesta a evaluar: aplicar y pintar el estado del pull antes de marcar mc-boot-ready, con un tope de espera para no retrasar el arranque sin red; y calcular netWorthSeries una sola vez. Si hay una opción mejor, justificarla con números",
+    "El arranque sin red o con nube lenta no puede tardar más que hoy en enseñar la app: medirlo. No reintroducir sincronizaciones de bancos al abrir",
+    "Es el caso «arranque» del banco de lag (PR 219): reutilizar su utilería si ya sirve y decir si su calibración lo distingue",
+    "Antes/después con números, e2e que falle sin el arreglo, registrado en el mapa. Sin tocar VERSION, notas, catálogo ni topes"
+  ]
+}
