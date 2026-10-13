@@ -2,10 +2,13 @@ import { test, expect } from "@playwright/test";
 import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
 
 const idiomas=[
-  {lang:"es",money:"Dinero",cycle:"Presupuesto por ciclo de cobro",spent:"Has gastado",daily:"Puedes gastar 150",over:"Este mes te fuiste del presupuesto"},
-  {lang:"en",money:"Money",cycle:"Budget by pay cycle",spent:"You've spent",daily:"You can spend 150",over:"You went past your budget this month"},
-  {lang:"ca",money:"Diners",cycle:"Pressupost per cicle de cobrament",spent:"Has gastat",daily:"Pots gastar 150",over:"Aquest mes has sortit del pressupost"},
+  {lang:"es",money:"Dinero",cycle:"Presupuesto por ciclo de cobro",pace:x=>x+" € al día durante 3 días"},
+  {lang:"en",money:"Money",cycle:"Budget by pay cycle",pace:x=>x+" € a day for 3 days"},
+  {lang:"ca",money:"Diners",cycle:"Pressupost per cicle de cobrament",pace:x=>x+" € al dia durant 3 dies"},
 ];
+// El anillo enseña lo que QUEDA, igual que la cifra «Te quedan» de su derecha (Inicio v4.2):
+// agotado o pasado es 0 %, sin tocar es 100 %. Y el reparto diario sale siempre que quede
+// dinero y días, también en el mes natural: el 28/9 faltan 3 días para el 1/10.
 
 async function ciclo(page,caso){
   await page.evaluate(()=>window.dispatchEvent(new CustomEvent("mc-open-settings")));
@@ -17,10 +20,10 @@ async function ciclo(page,caso){
 }
 
 for(const caso of idiomas) for(const limite of [
-  {name:"agotado",spent:1000,pct:"100%",over:false},
-  {name:"excedido",spent:1200,pct:"100%",over:true},
-  {name:"reservado entero",spent:100,reserved:1000,pct:"100%",over:true},
-  {name:"sin actividad",spent:0,pct:"0%",over:false},
+  {name:"agotado",spent:1000,pct:"0%",over:false},
+  {name:"excedido",spent:1200,pct:"0%",over:true},
+  {name:"reservado entero",spent:100,reserved:1000,pct:"0%",over:true},
+  {name:"sin actividad",spent:0,pct:"100%",over:false,daily:333},
   {name:"sin presupuesto",spent:100,budget:0},
 ]) test(`Inicio distingue ${limite.name} (${caso.lang})`,async({page})=>{
   await page.clock.install({time:new Date("2026-09-28T12:00:00Z")});
@@ -42,7 +45,8 @@ for(const caso of idiomas) for(const limite of [
     await expect(dash.locator(".v4-ring .num")).toHaveText(limite.pct);
     await expect(dash.locator(".v42-cycle-amount>.serif")).toHaveText(String(1000-(limite.reserved||0)-limite.spent)+" €");
     await expect(dash).toHaveAttribute("data-state",limite.over?"over":limite.spent===0?"comfort":"good");
-    await expect(dash.getByTestId("inicio-cycle-pace")).toHaveCount(0);
+    if(limite.daily) await expect(dash.getByTestId("inicio-cycle-pace")).toHaveText(caso.pace(limite.daily));
+    else await expect(dash.getByTestId("inicio-cycle-pace")).toHaveCount(0);
   }
 });
 
@@ -68,25 +72,27 @@ for(const caso of idiomas) for(const perfil of ["split","net"]){
     await page.waitForFunction(()=>!document.getElementById("mc-load"));
     await dismissNews(page);
     const dash=page.locator(".v4-budget"), ring=dash.locator(".v4-ring .num");
-    await expect(ring).toHaveText("2%");
+    // En el ciclo quedan 980 de 1000; al salir, el mes natural deja 300 de 900.
+    await expect(ring).toHaveText("98%");
+    await expect(dash.locator(".v42-cycle-amount>.serif")).toHaveText("980 €");
     await ciclo(page,caso);
-    await expect(ring).toHaveText("67%");
+    await expect(ring).toHaveText("33%");
     await expect(dash.locator(".v42-cycle-amount>.serif")).toHaveText("300 €");
     await expect(dash.locator(".v42-cycle-of")).toContainText("900");
-    await expect(dash.getByTestId("inicio-cycle-pace")).toHaveCount(0);
+    await expect(dash.getByTestId("inicio-cycle-pace")).toHaveText(caso.pace(100));
     await page.locator('.botnav-tab[data-tour="gastos"]').click();
     // El balance mensual positivo es legítimo; no se transforma en gasto para arreglar Inicio.
     const summary=page.locator(".v4-gastos-summary");
     await expect(summary.locator(".v4-gastos-summary-amount")).toContainText(perfil==="net"?"1480":"600");
     await page.locator('.botnav-tab[data-tour="inicio"]').click();
     await ciclo(page,caso);
-    await expect(ring).toHaveText("2%");
+    await expect(ring).toHaveText("98%");
     await ciclo(page,caso);
     await page.reload();
     await expect(page.locator(".botnav")).toBeVisible();
     await page.waitForFunction(()=>!document.getElementById("mc-load"));
     await dismissNews(page);
-    await expect(ring).toHaveText("67%");
+    await expect(ring).toHaveText("33%");
     expect(await page.evaluate(()=>JSON.parse(localStorage.getItem("micartera_v3")).settings.gTotalMode)).toBe(perfil);
   });
 }

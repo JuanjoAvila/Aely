@@ -181,7 +181,7 @@ for (const caso of INICIO) {
     await page.waitForFunction(() => !document.getElementById("mc-load"));
     await dismissNews(page);
     await expect(page.locator(".v42-cycle-amount>.serif")).toHaveText("400 €");
-    await expect(page.locator(".v4-budget .v4-ring")).toContainText("60%");
+    await expect(page.locator(".v4-budget .v4-ring")).toHaveText("40%");
   });
 }
 
@@ -315,7 +315,7 @@ for(const lang of ["es","en","ca"]) test(`Widget80: pull antiguo no suma una ret
   await page.clock.setSystemTime(new Date(now+2000));
   await page.waitForFunction(()=>!document.getElementById("mc-load"));await dismissNews(page);
   await expect(page.locator(".v42-cycle-amount>.serif")).toHaveText("900 €");
-  await expect(page.locator(".v4-budget .v4-ring")).toContainText("10%");
+  await expect(page.locator(".v4-budget .v4-ring")).toHaveText("90%");
   expect(await page.evaluate(()=>window.__widgetCalls.every(x=>x.spent===100))).toBe(true);
 });
 for (const caso of [{ lang: "es" }, { lang: "en" }, { lang: "ca" }]) {
@@ -386,7 +386,9 @@ for (const lang of ["es", "en", "ca"]) {
     expect(snap.periodStart).toBe(Date.parse("2026-09-26T00:00:00+02:00"));
     await page.waitForFunction(()=>!document.getElementById("mc-load"));await dismissNews(page);
     await expect(page.locator(".v42-cycle-amount>.serif")).toHaveText("1080 €");
-    await expect(page.locator(".v4-budget .v4-ring")).toContainText("0%");
+    // Quedan 1080 de 900: el anillo se llena y no pasa de 100 %. Texto exacto, que
+    // «contiene 0%» lo cumplían igual el 100 %, el 10 % y el 0 %.
+    await expect(page.locator(".v4-budget .v4-ring")).toHaveText("100%");
   });
 }
 
@@ -439,7 +441,7 @@ for(const v2 of [false,true]) test(`cobertura tras el día1, contrato v2=${v2}`,
   if(v2)expect(ack).not.toContain("tr:future");else expect(ack).toContain("tr:future"); // legado exacto
   await page.waitForFunction(()=>!document.getElementById("mc-load"));await dismissNews(page);
   await expect(page.locator(".v42-cycle-amount>.serif")).toHaveText("870 €");
-  await expect(page.locator(".v4-budget .v4-ring")).toContainText("13%");
+  await expect(page.locator(".v4-budget .v4-ring")).toHaveText("87%");
 });
 
 for (const lang of ["es","en","ca"]) for (const mode of ["net","split"]) for (const cycle of [false,true]) {
