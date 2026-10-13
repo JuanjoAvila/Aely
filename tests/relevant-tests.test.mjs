@@ -57,6 +57,14 @@ t("categorize y sus helpers ejecutan el contrato real también en el recorte ser
   }
 });
 
+t("helpers del banco prolongado seleccionan su spec y el recorrido compartido selecciona ambos",()=>{
+  for(const file of ["e2e/lag-banco-sonda.mjs","e2e/lag-banco-recorrido.mjs","e2e/lag-banco-metricas.mjs","e2e/lag-banco-informe.mjs","e2e/lag-banco-retorno.mjs"]){
+    const p=planFromFiles([file]);assert.deepEqual(p.e2e,["e2e/rendimiento-banco-prolongado.spec.mjs"]);assert.equal(p.deno,false);
+  }
+  assert.deepEqual(planFromFiles(["e2e/rendimiento-sostenido.spec.mjs"]).e2e,
+    ["e2e/rendimiento-banco-prolongado.spec.mjs","e2e/rendimiento-sostenido.spec.mjs"]);
+});
+
 t("solo bank-sync conserva los guardianes de paginado sin arrancar Chromium", () => {
   const p = planFromFiles(["supabase/functions/bank-sync/index.ts"]);
   assert.equal(p.playwright, false);
