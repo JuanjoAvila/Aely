@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "id": "arranque-revision-nogo-codex-20261013",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261013-32295a8f",
+  "createdAt": "2026-10-13T15:37:31.331Z",
+  "to": "codex",
+  "baseSHA": "6342459b0eeecd65eb1817db8e01bc179787c549",
+  "objective": "Revisión y MEDIDA independiente de la PR 227 (e3b588b5), que se entregó sin medir: NO-GO tal como está. Arregla el tirón en el caso que más importa (2.000 gastos, nube a 1,2 s: de 4 frames de más de 32 ms a 0, y cifras ya definitivas al abrir; con nube a 300 ms abre unos 520 ms antes), pero mete un salto visible nuevo, no mejora con histórico grande y su e2e está rojo 6 de 6. Corregir en la misma PR, rebasada sobre beta 125 (src se mezcla limpio).",
+  "scope": [
+    "la misma rama codex/arranque-nube-47707522"
+  ],
+  "acceptance": [
+    "1, ALTO, salto de maquetación NUEVO cuando la cortina se va por tope: 03-tab-dash.js 210 a 214, seriesReady igual a bootReady o splashGone deja la serie vacía detrás de la cortina y la calcula justo al levantarla. La tarjeta del patrimonio aparece con 145 px y el aviso de sin histórico y crece a 252 px con la gráfica 40 a 57 ms después (2.000 gastos) o 240 a 315 ms después (20.000), con un frame de 267 a 300 ms en la apertura (base 17 a 33). Reproducción: sesión iniciada, con red, app_state que no responde antes de 1,8 s; 5 de 5 pasadas. Calcular la serie al montar como hace la base y ahorrarse solo los recálculos intermedios; la tarjeta no puede cambiar de altura ni enseñar «sin histórico» a quien lo tiene",
+    "2, ALTO, el e2e de aceptación e2e/rendimiento-arranque-nube.spec.mjs está rojo 6 de 6 y nunca se ejecutó: exige cero peticiones externas y la app lanza cuatro al arrancar (cambio de divisas y apk.json, beta-delivery.json y version.json de Pages): simularlas como hace inicio-v42-rendimiento de la beta 124. Y e2e/helpers/arranque-nube-instrument.mjs hacia 20 llama a tar con una ruta de Windows que GNU tar toma por host remoto: no carga desde Git Bash. Está en CROSSCUTTING: tumbaría la CI de beta. Ejecutarlo y poner el EXIT",
+    "3, MEDIO: con 20.000 gastos no baja el número de frames lentos y la app se ve 100 a 200 ms MÁS TARDE (el tope de 1.800 ms vence antes de que acabe el pull). La candidata no puede abrir más tarde que la base en ninguna celda: medirlo",
+    "4, MEDIO: la ganancia del pull inmediato es parcial: cuando INITIAL_SESSION llega antes que getSession la base ya lanza el pull sin esperar (11-app-main.js 1059 a 1070); forzando ese orden la candidata baja de 6 frames lentos a 4, no a 0. Medir en los dos órdenes",
+    "5, BAJO: mc-boot-ready depende ahora de dos requestAnimationFrame (11-app-main.js 414 a 422): con la app en segundo plano no se emite hasta volver; comprobar el arranque en segundo plano y que nada se queda esperando. 6, BAJO: un fallo en el asiento mensual saldría ahora como aviso visible de nube (644 a 646) donde antes era silencioso: decidir si debe verse",
+    "MEDIR antes de entregar con el banco del revisor (se puede pedir por el canal: CPU por 6, deltas de requestAnimationFrame sin sondeo de Playwright, base y candidata alternadas, 5 pasadas por celda, nube a 300, 1.200, 2.500 ms, nunca y sin red, 2.000 y 20.000 gastos, ventanas de 3 y 8 s, altura de la tarjeta del patrimonio). Result con la tabla"
+  ]
+}
