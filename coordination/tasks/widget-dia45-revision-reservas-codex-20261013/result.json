@@ -1,0 +1,761 @@
+{
+  "status": "done",
+  "summary": "Reservas A-F corregidas en PR 212 sobre beta125. Calendario Madrid unificado en web, Java e ingest; compatibilidad mensual bruta para APK anterior a56. Entrega candidata verificada con CI final roja solo por catalogo/dependencias y VERSION, conforme a la regla de integracion a4328161.",
+  "productSHA": "b518f369ae3f8d1e4686e422ec7323723729f484",
+  "pr": "JuanjoAvila/Aely#212",
+  "taskBaseSHA": "3625fa7ed5134cfbc5e364adc4f588bfdaf670c0",
+  "executionBaseSHA": "6342459b0eeecd65eb1817db8e01bc179787c549",
+  "claimCommit": "00a0c84bd4064aaaf964de54fb4b41933c9ab8f7",
+  "tests": [
+    {
+      "command": "node tests/widget-ciclo.test.mjs",
+      "environment": {
+        "TZ": "UTC",
+        "JAVA_TOOL_OPTIONS": "-Duser.timezone=UTC"
+      },
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/widget-puente-ciclo.test.mjs",
+      "environment": {
+        "TZ": "UTC",
+        "JAVA_TOOL_OPTIONS": "-Duser.timezone=UTC"
+      },
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/widget-arbitraje.test.mjs",
+      "environment": {
+        "TZ": "UTC",
+        "JAVA_TOOL_OPTIONS": "-Duser.timezone=UTC"
+      },
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/inicio-v42.test.mjs",
+      "environment": {
+        "TZ": "UTC",
+        "JAVA_TOOL_OPTIONS": "-Duser.timezone=UTC"
+      },
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/recibo-invariante.test.mjs",
+      "environment": {
+        "TZ": "UTC",
+        "JAVA_TOOL_OPTIONS": "-Duser.timezone=UTC"
+      },
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/month-budget-stats.test.mjs",
+      "environment": {
+        "TZ": "UTC",
+        "JAVA_TOOL_OPTIONS": "-Duser.timezone=UTC"
+      },
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/gastos-periodo.test.mjs",
+      "environment": {
+        "TZ": "UTC",
+        "JAVA_TOOL_OPTIONS": "-Duser.timezone=UTC"
+      },
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/ob-ingresos.test.mjs",
+      "environment": {
+        "TZ": "UTC",
+        "JAVA_TOOL_OPTIONS": "-Duser.timezone=UTC"
+      },
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/invest-category.test.mjs",
+      "environment": {
+        "TZ": "UTC",
+        "JAVA_TOOL_OPTIONS": "-Duser.timezone=UTC"
+      },
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/reserva-dinero.test.mjs",
+      "environment": {
+        "TZ": "UTC",
+        "JAVA_TOOL_OPTIONS": "-Duser.timezone=UTC"
+      },
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/widget-ciclo.test.mjs",
+      "environment": {
+        "TZ": "Europe/Madrid",
+        "JAVA_TOOL_OPTIONS": "-Duser.timezone=Europe/Madrid"
+      },
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/widget-puente-ciclo.test.mjs",
+      "environment": {
+        "TZ": "Europe/Madrid",
+        "JAVA_TOOL_OPTIONS": "-Duser.timezone=Europe/Madrid"
+      },
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/widget-arbitraje.test.mjs",
+      "environment": {
+        "TZ": "Europe/Madrid",
+        "JAVA_TOOL_OPTIONS": "-Duser.timezone=Europe/Madrid"
+      },
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/inicio-v42.test.mjs",
+      "environment": {
+        "TZ": "Europe/Madrid",
+        "JAVA_TOOL_OPTIONS": "-Duser.timezone=Europe/Madrid"
+      },
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/recibo-invariante.test.mjs",
+      "environment": {
+        "TZ": "Europe/Madrid",
+        "JAVA_TOOL_OPTIONS": "-Duser.timezone=Europe/Madrid"
+      },
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/month-budget-stats.test.mjs",
+      "environment": {
+        "TZ": "Europe/Madrid",
+        "JAVA_TOOL_OPTIONS": "-Duser.timezone=Europe/Madrid"
+      },
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/gastos-periodo.test.mjs",
+      "environment": {
+        "TZ": "Europe/Madrid",
+        "JAVA_TOOL_OPTIONS": "-Duser.timezone=Europe/Madrid"
+      },
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/ob-ingresos.test.mjs",
+      "environment": {
+        "TZ": "Europe/Madrid",
+        "JAVA_TOOL_OPTIONS": "-Duser.timezone=Europe/Madrid"
+      },
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/invest-category.test.mjs",
+      "environment": {
+        "TZ": "Europe/Madrid",
+        "JAVA_TOOL_OPTIONS": "-Duser.timezone=Europe/Madrid"
+      },
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/reserva-dinero.test.mjs",
+      "environment": {
+        "TZ": "Europe/Madrid",
+        "JAVA_TOOL_OPTIONS": "-Duser.timezone=Europe/Madrid"
+      },
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/widget-ciclo.test.mjs",
+      "environment": {
+        "TZ": "Atlantic/Canary",
+        "JAVA_TOOL_OPTIONS": "-Duser.timezone=Atlantic/Canary"
+      },
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/widget-puente-ciclo.test.mjs",
+      "environment": {
+        "TZ": "Atlantic/Canary",
+        "JAVA_TOOL_OPTIONS": "-Duser.timezone=Atlantic/Canary"
+      },
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/widget-arbitraje.test.mjs",
+      "environment": {
+        "TZ": "Atlantic/Canary",
+        "JAVA_TOOL_OPTIONS": "-Duser.timezone=Atlantic/Canary"
+      },
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/inicio-v42.test.mjs",
+      "environment": {
+        "TZ": "Atlantic/Canary",
+        "JAVA_TOOL_OPTIONS": "-Duser.timezone=Atlantic/Canary"
+      },
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/recibo-invariante.test.mjs",
+      "environment": {
+        "TZ": "Atlantic/Canary",
+        "JAVA_TOOL_OPTIONS": "-Duser.timezone=Atlantic/Canary"
+      },
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/month-budget-stats.test.mjs",
+      "environment": {
+        "TZ": "Atlantic/Canary",
+        "JAVA_TOOL_OPTIONS": "-Duser.timezone=Atlantic/Canary"
+      },
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/gastos-periodo.test.mjs",
+      "environment": {
+        "TZ": "Atlantic/Canary",
+        "JAVA_TOOL_OPTIONS": "-Duser.timezone=Atlantic/Canary"
+      },
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/ob-ingresos.test.mjs",
+      "environment": {
+        "TZ": "Atlantic/Canary",
+        "JAVA_TOOL_OPTIONS": "-Duser.timezone=Atlantic/Canary"
+      },
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/invest-category.test.mjs",
+      "environment": {
+        "TZ": "Atlantic/Canary",
+        "JAVA_TOOL_OPTIONS": "-Duser.timezone=Atlantic/Canary"
+      },
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/reserva-dinero.test.mjs",
+      "environment": {
+        "TZ": "Atlantic/Canary",
+        "JAVA_TOOL_OPTIONS": "-Duser.timezone=Atlantic/Canary"
+      },
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/guard-privacy.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/presupuesto-rendimiento.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/widget-coherente.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/ingest-handler.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/auth-disposal-fit.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "deno test --no-lock --allow-read=tests/fixtures/widget-ciclo.tsv supabase/functions/ingest/widget.test.ts",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run build",
+      "exitCode": 0
+    },
+    {
+      "command": "playwright test e2e/widget-banco.spec.mjs --workers=1",
+      "exitCode": 0,
+      "environment": "Windows Chromium local, datos sinteticos",
+      "passed": 47,
+      "flaky": 0,
+      "skipped": 0
+    },
+    {
+      "command": "workflow_dispatch test.yml, run 38418165345, head b518f369ae3f8d1e4686e422ec7323723729f484",
+      "exitCode": 1
+    }
+  ],
+  "acceptance": {
+    "A": "widgetStart usa dias Madrid. Deno10 tests con tabla35 filas y pago con app cerrada a00:01,09:30,12:01,23:59.999 del dia45.",
+    "B": "DOM real dia45 anillo exacto86%, dia46 exacto100%, APK55 y56. Spec completo47 PASS.",
+    "C": "36 fotos por puente real JSON-Capacitor-Java, APK53/55/candidato56; APK55 recibe mes real bruto cuando rechaza ciclo. Abono20 reproduce el error13 frente al gasto bruto7 y queda corregido; ciclo127. Conserva longValue para decimalAPK53.",
+    "D": "Web, Java e ingest usan Europe/Madrid; Java resta fecha antes de normalizar hora. Tabla35 en cinco zonas, DST y UTC-Canarias; A-B864 en Madrid conserva ventana e importes.",
+    "E": "Diez mutantes muertos en d0b9ac17. Fuentes afectadas y sus pruebas siguen identicas tras rebase125. Milisegundos, igualdad del limite, 45 dias frente a horas, cobro de hoy, zona JVM, servidor, fallback y bruto cubiertos.",
+    "F": "Retirada cabecera duplicada y nota candidata del historico117; CHANGELOG sin diff respecto de la base125."
+  },
+  "ci": {
+    "runId": 38418165345,
+    "jobId": 115368071767,
+    "head": "b518f369ae3f8d1e4686e422ec7323723729f484",
+    "status": "completed",
+    "conclusion": "failure",
+    "exitCode": 1,
+    "logLines": 4343,
+    "logSHA256": "61465e9b01d57fee0fa2fff52f440c852fb7ab66d08847f1af25283b7c99bc26",
+    "failedStages": [
+      "beta-sources",
+      "docs-frescura"
+    ],
+    "details": [
+      "Catalogo125 lista de huellas cambiadas",
+      "dependencia madridYmdParts no declarada",
+      "dato _mcMadridYmdFmt no declarado",
+      "codigo publicable posterior a VERSION125"
+    ],
+    "denoFilesPassed": 7,
+    "e2eExecuted": false,
+    "privacyStep": "skipped; guard-privacy local EXIT0",
+    "postSetupNode": "skipped",
+    "functionalFailedStages": [],
+    "durationSeconds": 1372.1
+  },
+  "integration": {
+    "bytes": {
+      "head": "b518f369ae3f8d1e4686e422ec7323723729f484",
+      "raw": 1385799,
+      "gzip": 380750,
+      "rawLimit": 1386496,
+      "gzipLimit": 380928,
+      "rawMargin": 697,
+      "gzipMargin": 178
+    },
+    "surfaceChanges": [
+      {
+        "id": "fin05-widget-reentrada",
+        "surfaces": [
+          "web",
+          "native"
+        ],
+        "before": {
+          "web": "40a9ef64d887d8730e7aec6f0e0674376488a542387e106f3000df5435ba81c0",
+          "native": "78ff9b2c46f59b55936bb1390580044fdb1715a4c5583189259eeece4db230e4",
+          "codigo": "bc5e73d0edb2f89d57fc0b78dffadada601418aa63202b558eb81d6aa1daf1a2"
+        },
+        "after": {
+          "web": "98dd18529ea1b17ffbeef555d074e1972a3d6c7785d50524d25a4de2de66753d",
+          "native": "227d9c089504d307f30d5c7c2456d41b8e54958cb0769adbb3d4da6cf0ce8170",
+          "codigo": "c871f23b3db71a9b419c29208d1d7ad913e8ed1663c523b9126846797783eee8"
+        }
+      },
+      {
+        "id": "fin05-pago-cerrada",
+        "surfaces": [
+          "web",
+          "native"
+        ],
+        "before": {
+          "web": "40a9ef64d887d8730e7aec6f0e0674376488a542387e106f3000df5435ba81c0",
+          "native": "8a6f5aefbe66677ca3685ba430208766d5adc791e2fb50d1013a3d54d8397e50",
+          "edge": "b0de47079acc17a75e25ed7408b595dc2e0c933f917f16f090b281e96ee10383",
+          "codigo": "d741ef8cae458e9d88ebe3ee1b2e1b67904b35c1ec1386ede77b032bfc2f9676"
+        },
+        "after": {
+          "web": "98dd18529ea1b17ffbeef555d074e1972a3d6c7785d50524d25a4de2de66753d",
+          "native": "8c31e8e3bff4fcef957359ac6ced4b658fd0e7da175f8905bc6b4b431bb3c353",
+          "edge": "b0de47079acc17a75e25ed7408b595dc2e0c933f917f16f090b281e96ee10383",
+          "codigo": "b53d12048886bf125472a3db53fd14debaa9be584fa560a9390f64c17678aa51"
+        }
+      },
+      {
+        "id": "widget-banco",
+        "surfaces": [
+          "web",
+          "native"
+        ],
+        "before": {
+          "web": "029c51aa8ed3793bcf28e9b90f0d37ccd3d7d88ddabaf5415e7690d365cd7ee3",
+          "native": "379318fc0f01a04f5ed33716cf343d68ecc375548c09890702a88aa439fe9956",
+          "codigo": "d9c0da3b0ed4c2808a0f3ea498dd79e398ecb2ede77cc37079c9eff7b90ec82f"
+        },
+        "after": {
+          "web": "888d51a0364bb7d9500288f0e717761922cf3948ee7898747837827e8014ddb7",
+          "native": "7d46a818bf27b54555cc7491c4a81587204cdcceb66add649b4882d5ac2bb953",
+          "codigo": "423dd1d815269ed55122e03a0eef9b89ad1766a914e2461235e4d9a1cd162bd1"
+        }
+      },
+      {
+        "id": "widget-app-cerrada",
+        "surfaces": [
+          "web",
+          "native"
+        ],
+        "before": {
+          "web": "40a9ef64d887d8730e7aec6f0e0674376488a542387e106f3000df5435ba81c0",
+          "native": "8a6f5aefbe66677ca3685ba430208766d5adc791e2fb50d1013a3d54d8397e50",
+          "edge": "b0de47079acc17a75e25ed7408b595dc2e0c933f917f16f090b281e96ee10383",
+          "codigo": "d741ef8cae458e9d88ebe3ee1b2e1b67904b35c1ec1386ede77b032bfc2f9676"
+        },
+        "after": {
+          "web": "98dd18529ea1b17ffbeef555d074e1972a3d6c7785d50524d25a4de2de66753d",
+          "native": "8c31e8e3bff4fcef957359ac6ced4b658fd0e7da175f8905bc6b4b431bb3c353",
+          "edge": "b0de47079acc17a75e25ed7408b595dc2e0c933f917f16f090b281e96ee10383",
+          "codigo": "b53d12048886bf125472a3db53fd14debaa9be584fa560a9390f64c17678aa51"
+        }
+      },
+      {
+        "id": "inc-2909-02-inicio-natural",
+        "surfaces": [
+          "web"
+        ],
+        "before": {
+          "web": "8aea2bc51efe6777e31fc884c76481773659140f4793aed3653f69522ac939fb",
+          "codigo": "81e76c0b7a6d6b60b583aa1ee43d9b8d17f966510e055a347899952b748d4708"
+        },
+        "after": {
+          "web": "943529fadefe77d8e385ce932450bf79ad926b9aa5078756c141b5d4e2c91f57",
+          "codigo": "7eb3f16ca30795ab388b10434b9a7151f564f4bd6059e93721f8398f0b0b9c7c"
+        }
+      },
+      {
+        "id": "inc-3009-nomina-anticipada",
+        "surfaces": [
+          "web"
+        ],
+        "before": {
+          "web": "c44ac1301cfc0ae08df7c772bac7b471522f6d6b5811d99686845322d1a87fed",
+          "codigo": "ba07e82f26c377466d576fe64c927f55ccf96b29ebc62071b1f19019f4f72314"
+        },
+        "after": {
+          "web": "591a897cb6d05a7847e8962e65bcced5145c8580e561f391ec316039fd2b777a",
+          "codigo": "f2e429f4a1ae4f14e1b772ec7199564131cb98963921a9f2ed646483c249558c"
+        }
+      },
+      {
+        "id": "inc-2909-01-widget-periodo",
+        "surfaces": [
+          "web",
+          "native"
+        ],
+        "before": {
+          "web": "40a9ef64d887d8730e7aec6f0e0674376488a542387e106f3000df5435ba81c0",
+          "native": "8a6f5aefbe66677ca3685ba430208766d5adc791e2fb50d1013a3d54d8397e50",
+          "codigo": "96a291adb316073c1314f11e3f2c5b79e1593e190cea33cc789e5ed5673546e5"
+        },
+        "after": {
+          "web": "98dd18529ea1b17ffbeef555d074e1972a3d6c7785d50524d25a4de2de66753d",
+          "native": "8c31e8e3bff4fcef957359ac6ced4b658fd0e7da175f8905bc6b4b431bb3c353",
+          "codigo": "5e100c9d7a41be5978dbd39988969e868cf3fd1320a342c01fd1946f75fd29e1"
+        }
+      },
+      {
+        "id": "inc-0210-03-gastos-periodo",
+        "surfaces": [
+          "web"
+        ],
+        "before": {
+          "web": "98d46239857514239507ff713f2251a6deaeab7e97898e18a7dbb5381e850fe7",
+          "codigo": "2c7daad180a8062e124afa8475498537b97287496604b396657046b62e9a963c"
+        },
+        "after": {
+          "web": "e8a2349a34e56d74149ea19e18ce10c8417d250b2dd7cc3c0cad628a71036168",
+          "codigo": "e723f728756fb45c379ae4a4b5953204cd9050726ca769932a2b168289458dfb"
+        }
+      },
+      {
+        "id": "inc-0310-01-meta-regla",
+        "surfaces": [
+          "web"
+        ],
+        "before": {
+          "web": "74e4228fc0a292f9ec6e2b8be0c4d06d2dda798d1adb754af02ec452dbd5b2b2",
+          "codigo": "0d140d9f0de3523361fa0fde27ae47db827310276d6e1d39ce0034b014a806a2"
+        },
+        "after": {
+          "web": "2278e79047b2e836a8e951e4fb0840bfcc3a127b8fac14da39500392534a2808",
+          "codigo": "9fddd92e981b8eb2dee8e8c044c5a31e1fb9a7d7950407f2c81981eadfa5b908"
+        }
+      },
+      {
+        "id": "inc-0310-gastos-sin-limite",
+        "surfaces": [
+          "web"
+        ],
+        "before": {
+          "web": "7649e141dce3133938ba1f1e0408b26ccd6d803b34c2469809fa8470439ab8f8",
+          "codigo": "3460d4e40bd5897aa515ad07020c7cf723436ff69ae4949c51231779446f5890"
+        },
+        "after": {
+          "web": "359cda39e82191276205a4082d48960142d44801de8938064dbc2efdc5b23917",
+          "codigo": "47941231fb40f87748ddb26ac0024e62c5af1886869f20f8d96e302a0b90738b"
+        }
+      },
+      {
+        "id": "inc-0710-gastos-mes-madrid",
+        "surfaces": [
+          "web"
+        ],
+        "before": {
+          "web": "7649e141dce3133938ba1f1e0408b26ccd6d803b34c2469809fa8470439ab8f8",
+          "codigo": "3460d4e40bd5897aa515ad07020c7cf723436ff69ae4949c51231779446f5890"
+        },
+        "after": {
+          "web": "359cda39e82191276205a4082d48960142d44801de8938064dbc2efdc5b23917",
+          "codigo": "47941231fb40f87748ddb26ac0024e62c5af1886869f20f8d96e302a0b90738b"
+        }
+      },
+      {
+        "id": "inicio-grafica-vuelve",
+        "surfaces": [
+          "web"
+        ],
+        "before": {
+          "web": "374c4d1a5230ff98cc2a9b757747b84727612ac1824b4f0c39907a1cc837acd6",
+          "codigo": "f012b39e180fd9e5d796593d87bfde330ff7f81e9b9b10b9868cd9cacdb78f4a"
+        },
+        "after": {
+          "web": "09943d23cdd9e29ffb8f909d9a48d091514b2dfa78075eb973a5258f7530583f",
+          "codigo": "5f71a0c66905df8cc9758d0aee31b7f24413b3c166347330f2ee59f0a8b81a77"
+        }
+      },
+      {
+        "id": "widget-pago-app-cerrada",
+        "surfaces": [
+          "web",
+          "native"
+        ],
+        "before": {
+          "web": "40a9ef64d887d8730e7aec6f0e0674376488a542387e106f3000df5435ba81c0",
+          "native": "8a6f5aefbe66677ca3685ba430208766d5adc791e2fb50d1013a3d54d8397e50",
+          "codigo": "96a291adb316073c1314f11e3f2c5b79e1593e190cea33cc789e5ed5673546e5"
+        },
+        "after": {
+          "web": "98dd18529ea1b17ffbeef555d074e1972a3d6c7785d50524d25a4de2de66753d",
+          "native": "8c31e8e3bff4fcef957359ac6ced4b658fd0e7da175f8905bc6b4b431bb3c353",
+          "codigo": "5e100c9d7a41be5978dbd39988969e868cf3fd1320a342c01fd1946f75fd29e1"
+        }
+      },
+      {
+        "id": "widget-ciclo-puente",
+        "surfaces": [
+          "web",
+          "native"
+        ],
+        "before": {
+          "web": "40a9ef64d887d8730e7aec6f0e0674376488a542387e106f3000df5435ba81c0",
+          "native": "8a6f5aefbe66677ca3685ba430208766d5adc791e2fb50d1013a3d54d8397e50",
+          "codigo": "96a291adb316073c1314f11e3f2c5b79e1593e190cea33cc789e5ed5673546e5"
+        },
+        "after": {
+          "web": "98dd18529ea1b17ffbeef555d074e1972a3d6c7785d50524d25a4de2de66753d",
+          "native": "8c31e8e3bff4fcef957359ac6ced4b658fd0e7da175f8905bc6b4b431bb3c353",
+          "codigo": "5e100c9d7a41be5978dbd39988969e868cf3fd1320a342c01fd1946f75fd29e1"
+        }
+      },
+      {
+        "id": "tr-iguales-ordinal",
+        "surfaces": [
+          "edge"
+        ],
+        "before": {
+          "web": "0d34e6b985c486f4bfcbf7486fa4df03bf8cd1454c1b4e4067a8b49cbd567a1f",
+          "edge": "7327496f1bd08e909e2e76043cfa41f95f19d7cebcc62eb00b7e5f725f96bc57",
+          "codigo": "2cb5c0024194efbd9e79e1176856d34f7be82f61499c8197a88f522e9c130200"
+        },
+        "after": {
+          "web": "0d34e6b985c486f4bfcbf7486fa4df03bf8cd1454c1b4e4067a8b49cbd567a1f",
+          "edge": "95d7cce6d01e48cfa74d17b4ac5336b43b761bf45cdb254dc8c259dd66d4edd6",
+          "codigo": "7ac678db36750b1b2096c264a2befb70cd68faa40d984bec8b3e962a42409190"
+        }
+      },
+      {
+        "id": "inicio-patrimonio-flujos",
+        "surfaces": [
+          "web"
+        ],
+        "before": {
+          "web": "95b1a52a8aec465767dfbf20c95fca155cb2af2bb356fb653a3f643a13c61e02",
+          "codigo": "774b8cb6f22e63dcaea90ab011b560f4a825d9eb11fe6261b9fb7b015a98ea63"
+        },
+        "after": {
+          "web": "f26e5b47a0cdaf7ecdb605406a5e371c86cb6d3fba725a71ac9df4ffe88a8073",
+          "codigo": "2cd163e275b860d435be8455e363fe00f607e40ccec0863d2b94e20436cfb550"
+        }
+      },
+      {
+        "id": "recibo-cargo-en-gastos",
+        "surfaces": [
+          "edge"
+        ],
+        "before": {
+          "web": "0276e1823cc839d75aa0b2e8cd4d1e391c9816607e4ba398045dcc9549559c5d",
+          "edge": "7327496f1bd08e909e2e76043cfa41f95f19d7cebcc62eb00b7e5f725f96bc57",
+          "codigo": "42f1ba7102ea5baa87dff3d4021906debb492525682efe525bec0a88cdabeea8"
+        },
+        "after": {
+          "web": "0276e1823cc839d75aa0b2e8cd4d1e391c9816607e4ba398045dcc9549559c5d",
+          "edge": "95d7cce6d01e48cfa74d17b4ac5336b43b761bf45cdb254dc8c259dd66d4edd6",
+          "codigo": "016926c95dfa4124bf330323b736e6a3ba2a1ad99cc0ed6790f7422edd3daf86"
+        }
+      }
+    ],
+    "newDependencies": [
+      {
+        "id": "fin05-widget-reentrada",
+        "functions": [
+          {
+            "name": "madridYmdParts",
+            "file": "src/modules/08-motor-bank.js"
+          }
+        ],
+        "data": [
+          {
+            "name": "_mcMadridYmdFmt",
+            "file": "src/modules/08-motor-bank.js"
+          }
+        ]
+      },
+      {
+        "id": "fin05-pago-cerrada",
+        "functions": [
+          {
+            "name": "madridYmdParts",
+            "file": "src/modules/08-motor-bank.js"
+          }
+        ],
+        "data": [
+          {
+            "name": "_mcMadridYmdFmt",
+            "file": "src/modules/08-motor-bank.js"
+          }
+        ]
+      },
+      {
+        "id": "widget-banco",
+        "functions": [
+          {
+            "name": "madridYmdParts",
+            "file": "src/modules/08-motor-bank.js"
+          }
+        ],
+        "data": [
+          {
+            "name": "_mcMadridYmdFmt",
+            "file": "src/modules/08-motor-bank.js"
+          }
+        ]
+      },
+      {
+        "id": "widget-app-cerrada",
+        "functions": [
+          {
+            "name": "madridYmdParts",
+            "file": "src/modules/08-motor-bank.js"
+          }
+        ],
+        "data": [
+          {
+            "name": "_mcMadridYmdFmt",
+            "file": "src/modules/08-motor-bank.js"
+          }
+        ]
+      },
+      {
+        "id": "inc-2909-01-widget-periodo",
+        "functions": [
+          {
+            "name": "madridYmdParts",
+            "file": "src/modules/08-motor-bank.js"
+          }
+        ],
+        "data": [
+          {
+            "name": "_mcMadridYmdFmt",
+            "file": "src/modules/08-motor-bank.js"
+          }
+        ]
+      },
+      {
+        "id": "widget-pago-app-cerrada",
+        "functions": [
+          {
+            "name": "madridYmdParts",
+            "file": "src/modules/08-motor-bank.js"
+          }
+        ],
+        "data": [
+          {
+            "name": "_mcMadridYmdFmt",
+            "file": "src/modules/08-motor-bank.js"
+          }
+        ]
+      },
+      {
+        "id": "widget-ciclo-puente",
+        "functions": [
+          {
+            "name": "madridYmdParts",
+            "file": "src/modules/08-motor-bank.js"
+          }
+        ],
+        "data": [
+          {
+            "name": "_mcMadridYmdFmt",
+            "file": "src/modules/08-motor-bank.js"
+          }
+        ]
+      }
+    ],
+    "absentHistoricalScopes": [
+      {
+        "id": "inc-0810-inicio-grafica-significado",
+        "reason": "Bloque beta no inequívoco: src/modules/03-tab-dash.js"
+      }
+    ],
+    "protectedFilesUnchanged": [
+      "VERSION",
+      "scripts/beta-sources.json",
+      "tests/beta-sources.test.mjs",
+      "tests/presupuesto-rendimiento.test.mjs",
+      "src/modules/02-ui-shared.js",
+      "src/modules/03-tab-dash.js"
+    ],
+    "externalOwner": "budgetPeriodOf y presetBoundsMs pertenecen a PR225; no se modifican aqui"
+  },
+  "history": {
+    "oldResultSHA256": "723edb2f97cf2a66146231777608e6321136d24171af452a922fdb0277dd1742",
+    "preservedRuns": [
+      38404731386,
+      38406519565,
+      38408342805,
+      38410974673,
+      38415009613
+    ],
+    "oldResultUnchanged": true,
+    "beta124Archive": "widget124-final-archive",
+    "beta125Archive": "widget125-final-archive"
+  },
+  "limitations": [
+    "La CI NO es verde. Catalogo y VERSION pendientes de integracion; no se cambiaron guardianes ni descriptores.",
+    "La suite E2E completa de CI no se ejecuto por esos rojos. DOM focal47 PASS local, sin afirmar aceptacion de movil.",
+    "Sin rendimiento medido, APK compilada o instalada, launcher real, bancos reales ni deploy ingest.",
+    "Integracion debe publicar web compatible, desplegar ingest y entregar APK56 con reapertura y comprobacion de pago con app cerrada.",
+    "El cierre de esta tarea no modifica ni libera un cerrojo de otro encargo."
+  ],
+  "schema": 1,
+  "taskId": "widget-dia45-revision-reservas-codex-20261013",
+  "actor": "codex",
+  "sessionId": "codex-cloud-20261013-14fd75c716f2",
+  "createdAt": "2026-10-13T15:25:39.019Z",
+  "released": true
+}
