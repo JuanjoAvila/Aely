@@ -255,7 +255,7 @@ export const K1 = "L1.0";
 // funciones reales de 00-core. Si alguna deja de mandar o de guardar, estos tests lo ven; no
 // hay una copia aquí que pueda quedarse atrás.
 const mBody = main.match(/cloud\.bankSync\((\{recoverGaps:true[^;]*?\})\), pDb\]/);
-const mImport = main.match(/const txs=flattenBankTx\(links\);[\s\S]*?const add=importObExpenses\([^;]*\);/);
+const mImport = main.match(/const txs=flattenBankTx\(links(?:, prev\.bankTx)?\);[\s\S]*?const add=importObExpenses\([^;]*\);/);
 const mAck = main.match(/const at=Date\.now\(\), ack=\{\};\s*links\.forEach\(function\(l\)\{[^}]*\}\);/);
 // El efecto que guarda el acuse cuando el estado con sus filas ya está comprometido.
 const mEfecto = main.match(/useEffect\(function\(\)\{\s*(const p=obAckPend\.current;[\s\S]*?)\},\[state\.lastBankSync\]\);/);

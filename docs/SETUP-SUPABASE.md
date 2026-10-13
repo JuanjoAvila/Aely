@@ -56,6 +56,17 @@ Integración (13/10): la rama entra en la candidata 4.26.122, encima de la 4.26.
 dentro la 120. El `ingest` que se despliega es el de la 122 (`_shared/presupuesto.ts` con
 `esCargoDeRecibo`), antes que su web, y ni la 120 ni la 121 van a producción sin la 122.
 
+## Avisos de descarga incompleta (13/10): candidato en fuente, SIN desplegar
+
+`bank-sync` y `_shared/enablebanking.ts` añaden el motivo cerrado de interrupción/topes y su
+diagnóstico en `app_events`. El cliente conserva el extracto incompleto y distingue los avisos
+en tres idiomas. No hay migración, secreto, cambio RLS ni nueva consulta al banco; no se amplían
+plazos o límites. El catch de autenticación reservado al candidato de falsa caducidad permanece
+idéntico. El despliegue corresponde al coordinador después de revisión y prueba beta.
+Cliente anterior ignora los campos nuevos; cliente nuevo con Edge anterior conserva el aviso
+genérico cuando no llega motivo. Rollback de fuente: volver al padre123; no elimina estado ni
+modifica la forma de acuse119. [Alcance y pruebas](briefs/bancos-descarga-incompleta-20261013.md).
+
 ## bank-sync con tramo antiguo (INC-2709-06): solo en fuente, SIN desplegar
 
 `bank-sync` y `_shared/enablebanking.ts` (parámetros `maxPages` y `dateTo` de `fetchBankTransactions`)

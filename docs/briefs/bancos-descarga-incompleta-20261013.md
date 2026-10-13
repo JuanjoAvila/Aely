@@ -1,0 +1,92 @@
+# Descarga bancaria incompleta — candidato13/10/2026
+
+Encargo `bancos-descarga-incompleta-codex-20261013`. Base histórica122
+`e6e211a5d94e50b03597d5c91230c974d3e72232`; ejecución rebasada sobre123
+`3625fa7ed5134cfbc5e364adc4f588bfdaf670c0`. Fuente para revisión; no despliegue ni publicación.
+
+## Por qué aparecía el mismo aviso
+
+Inventario de la base122, anterior al cambio:
+
+| Camino | Fuente | Qué veía la persona |
+|---|---|---|
+| Tope12 páginas/2000 filas, continuación repetida o error después de una página | `_shared/enablebanking.ts:91-138` devuelve `truncated` o `transactionError`; `08-motor-bank.js:2376-2393`, `bankReadWarnings` | El mismo `bank_read_partial` |
+| Tramo antiguo todavía pendiente, aunque la ventana actual terminase bien | `11-app-main.js:782`, `l.gapPending` | El mismo aviso; podía duplicarse con el anterior |
+| Causa perdida antes de la primera página | `bank-sync/index.ts:72`, `logObDemandResult` | Registro `error`,0 páginas sin causa; UI podía mostrar fallo genérico |
+
+Los textos de `01-i18n.js:2696/2765/2834` eran:
+
+- es: «{bank}: la descarga está incompleta. Lo recibido se conserva, pero pueden faltar movimientos.»
+- en: «{bank}: the download is incomplete. Received transactions are kept, but some may be missing.»
+- ca: «{bank}: la descàrrega és incompleta. Es conserva el que s'ha rebut, però poden faltar moviments.»
+
+Los avisos de reconexión,429,timeout o cuenta fallida tenían prioridad en el helper. La ruta
+directa `gapPending` de App no distinguía esa prioridad. Además, `11-app-main.js:693/739`
+sustituía el extracto guardado por el prefijo nuevo, tanto para las pruebas de pago como al
+devolver el estado. Un saldo leído correctamente no demostraba movimientos completos.
+
+## Cambio y fronteras
+
+El lector emite `readReason`: `page_limit`, `row_limit`, `time_limit`, `repeated_cursor`,
+`invalid_response`, `provider_error`. El log añade listas saneadas `reasons`/`failureCodes`;
+el mensaje libre del proveedor no se copia. La continuación repetida termina con error parcial
+y no ofrece un acuse de lectura completa. El cliente distingue interrupción externa, límite
+propio y tramo antiguo pendiente en es/en/ca; conserva el fallback de servidor anterior.
+
+El adaptador mínimo de App pasa `prev.bankTx` a `flattenBankTx`. Un banco incompleto conserva
+sus filas anteriores y admite solo filas nuevas BOOK con id no ambiguo, importe finito y fecha
+válida no futura. No corrige ids ya guardados ni importa filas nuevas sin id desde un prefijo:
+sin identidad no se puede distinguir una repetición de otro cargo igual. Los bancos completos
+siguen sustituyendo su extracto como antes. El importador y las decisiones financieras no se
+reescriben; los tests ejecutan las lápidas, ordinales, gemelos y marcas de recibo heredadas123.
+
+**Cursor119:** proveedor/timeout/repetición no adelantan el tramo no recibido. La recuperación
+antigua solo acusa trozos completos ya sellados. La excepción anterior de ventana que desborda
+12 páginas/2000 filas sigue avanzando/ofreciendo acuse para no atascar el hueco permanentemente;
+`bank-sync-progreso` exige esa política. No se presenta esa excepción como garantía de haber
+leído todo. No cambian `allRead`, escrituras de cursor, `ackCursor`, `keepsCursor`, cola ni auth.
+El catch diario reservado a Claude permanece idéntico al padre123.
+
+## Trade Republic:100 filas,1 página, sin continuación
+
+La [FAQ oficial de Enable Banking](https://enablebanking.com/docs/faq/) exige seguir con los
+mismos parámetros mientras haya `continuation_key`, incluso tras una página vacía.
+La [referencia API](https://enablebanking.com/docs/api/reference/) define su ausencia/null como
+fin del paginado. El código devuelve completo en ese caso antes de aplicar los topes propios;
+100 está por debajo de2000 y1 por debajo de12. No se encontró una garantía oficial específica
+que permita afirmar que100 significa truncamiento de TR. Es evidencia insuficiente para
+inventar un aviso o movimientos ausentes; el test mantiene completa esa respuesta.
+
+Si el proveedor confirma un límite por banco o una evidencia autorizada demuestra que falta
+un subtramo, se podría proponer una capacidad explícita del proveedor o una comparación de
+rangos cerrados. Eso requeriría otro alcance y sus consultas acotadas: no se introduce aquí
+una heurística por contar100, nuevas consultas ni acceso al banco real.
+
+## Verificación y lo no probado
+
+- Base122: el primer banco causal dio5 PASS/20 FAIL, EXIT1. Tras el arreglo y rebase123:
+ 32 PASS/0 FAIL, EXIT0. Dos casos comparan el updater real123 con el candidato y comprueban
+ los dos consumidores del extracto; otros tres prueban lápidas reales y ordinal/vínculo resuelto.
+- Cuatro mutaciones causales dieron EXIT1 y se restauraron byte por byte: retirar extracto
+ previo, declarar completo el cursor repetido, atribuir el tope al proveedor y filtrar causa libre.
+- Node focal: paginado, progreso, acuse, reconexión, hueco, recuperación, invariante de recibos,
+ mapa, i18n, seguridad, documentación, sintaxis y privacidad dieron EXIT0. Build EXIT0.
+- Deno2.9.0 real: `enablebanking.test.ts` y `demand-window.test.ts`,23 PASS/0 FAIL, EXIT0,
+ con `--no-lock --cached-only --allow-env`. Sin nuevo fichero de lock ni dependencia.
+- Presupuesto oficial de123: EXIT1. Medición con el mismo test y solo formato de bytes:
+ 1.385.712 B minificados frente a1.384.448 B (exceso1.264 B);
+ 380.626 B gzip frente a380.928 B (margen302 B);3 bloqueantes frente a3.
+ No se amplían topes, no se recortan contratos para caber. El sellado final se mide en integración.
+-18 casos DOM registrados; **sin ejecución local de Chromium**, por el turno ocupado ajeno.
+ CI remota sobre SHA final pendiente al escribir esta evidencia; un fallo anterior a Playwright
+ deja esos18 sin verificar. No hay prueba con cartera real, proveedor real, móvil ni servidor desplegado.
+- `beta-sources` local alcanzó18 casos sin fallo mostrado, pero el proceso recibió SIGTERM por
+ el límite de60 segundos del arnés: EXIT no disponible. No se declara verde ni se repite una
+ suite costosa local; el veredicto completo corresponde a la CI remota.
+
+La revisión limpia y la entrega beta corresponden al coordinador. VERSION, notas, catálogo,
+topes, workflows, APK, SQL y producción no forman parte de este candidato.
+`npm run build` regenera `public/index.html`, idiomas y los campos derivados de huella de
+`public/beta-delivery.json`/`public/release-notes.json`: no añade notas o tandas ni repina
+`scripts/beta-sources.json`. Las identidades históricas y la revisión de catálogo corresponden
+a integración; las huellas derivadas nuevas no acreditan aceptación.

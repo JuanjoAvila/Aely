@@ -36,6 +36,21 @@ function obReadFailureCode(err: unknown) {
   return "unavailable";
 }
 
+// El mismo vocabulario sirve al histórico y al diario: jamás copiar el texto del ASPSP al log.
+// deno-lint-ignore no-explicit-any
+function obReadLogDetails(accounts: any[]) {
+  const reasons: string[] = [], failureCodes: string[] = [];
+  for (const a of accounts || []) {
+    const code = a.failureCode || (a.error ? obReadFailureCode(a.error) : null);
+    const reason = ["page_limit", "row_limit", "time_limit", "repeated_cursor", "invalid_response", "provider_error"].includes(a.readReason)
+      ? a.readReason : code === "timeout" || a.transactionError === "timeout" ? "time_limit" : code === "invalid_response" ? "invalid_response" : a.transactionError || a.ok === false ? "provider_error" : a.truncated ? "incomplete" : null;
+    if (reason && !reasons.includes(reason)) reasons.push(reason);
+    if (["timeout", "invalid_response", "unavailable", "eb_400", "eb_401", "eb_403", "eb_404", "eb_408", "eb_422", "eb_429", "eb_500", "eb_502", "eb_503", "eb_504"].includes(code) && !failureCodes.includes(code)) failureCodes.push(code);
+  }
+  if (!accounts || !accounts.length) reasons.push("no_accounts");
+  return { reasons, failureCodes };
+}
+
 // deno-lint-ignore no-explicit-any
 async function logObReadFailure(admin: any, userId: string, aspsp: string, err: unknown) {
   try {
@@ -77,7 +92,7 @@ async function logObHistoryResult(admin: any, userId: string, aspsp: string, dat
     await admin.from("app_events").insert({
       user_id: userId, email: null, kind: "performance",
       message: `OB histórico (${obLogBank(aspsp)}): ${status}`,
-      detail: JSON.stringify({ status, accounts: (accounts || []).length, count, partial, elapsedMs: Math.max(0, Math.round(elapsedMs)), dateFrom }),
+      detail: JSON.stringify({ status, accounts: (accounts || []).length, count, partial, elapsedMs: Math.max(0, Math.round(elapsedMs)), dateFrom, ...obReadLogDetails(accounts) }),
       app_version: "edge", platform: "server",
     });
   } catch (_) { /* diagnóstico best-effort: nunca cambia el resultado bancario */ }
@@ -87,12 +102,12 @@ async function logObHistoryResult(admin: any, userId: string, aspsp: string, dat
 // La fecha mínima es la pedida al banco, no la de un movimiento. `pending` dice si quedó
 // tramo antiguo por leer: sin él no se distingue «al día» de «a medias» desde soporte.
 // deno-lint-ignore no-explicit-any
-async function logObDemandResult(admin: any, userId: string, aspsp: string, dateFrom: string, status: string, accounts: number, count: number, pages: number, truncated: boolean, capped: boolean, pending: boolean) {
+async function logObDemandResult(admin: any, userId: string, aspsp: string, dateFrom: string, status: string, accounts: number, count: number, pages: number, truncated: boolean, capped: boolean, pending: boolean, reasons: string[], failureCodes: string[]) {
   try {
     await admin.from("app_events").insert({
       user_id: userId, email: null, kind: "performance",
       message: `OB sync (${obLogBank(aspsp)}): ${status}`,
-      detail: JSON.stringify({ status, accounts, count, pages, truncated, dateFrom, capped, pending }),
+      detail: JSON.stringify({ status, accounts, count, pages, truncated, dateFrom, capped, pending, reasons, failureCodes }),
       app_version: "edge", platform: "server",
     });
   } catch (_) { /* diagnóstico best-effort: nunca cambia el resultado bancario */ }
@@ -178,7 +193,7 @@ Deno.serve(withCors(async (req: Request) => {
           const remainingAccounts = acctList.length - accountIndex;
           const remainingMs = linkDeadline - Date.now();
           if (remainingMs <= 0) {
-            accts.push({ uid, ok: false, truncated: true, transactionError: "timeout", transactions: [] });
+            accts.push({ uid, ok: false, truncated: true, transactionError: "timeout", readReason: "time_limit", transactions: [] });
             continue;
           }
           try {
@@ -187,12 +202,13 @@ Deno.serve(withCors(async (req: Request) => {
             const tx = await fetchBankTransactions(jwt, uid, dateFrom, ebApi, accountMs, true);
             const all = tx.transactions.map(mapTransaction);
             accts.push({ uid, iban: ac.iban || null, name: ac.name || null, ok: true, count: all.length,
-              transactions: all, truncated: tx.truncated, transactionError: tx.transactionError });
+              transactions: all, truncated: tx.truncated, transactionError: tx.transactionError, readReason: tx.readReason, failureCode: tx.failureCode });
           } catch (err) {
             logObReadFailure(admin, user.id, link.aspsp_name, err);
             /* Código cerrado y seguro: explica si fue espera, límite o permiso sin devolver el
                texto del proveedor, que puede contener referencias bancarias. */
-            accts.push({ uid, iban: ac.iban || null, ok: false, error: obReadFailureCode(err), transactions: [] });
+            const code = obReadFailureCode(err);
+            accts.push({ uid, iban: ac.iban || null, ok: false, error: code, failureCode: code, readReason: code === "timeout" ? "time_limit" : code === "invalid_response" ? "invalid_response" : "provider_error", transactions: [] });
           }
         }
         await logObHistoryResult(admin, user.id, link.aspsp_name, dateFrom, accts, Date.now() - startedAt);
@@ -277,7 +293,7 @@ Deno.serve(withCors(async (req: Request) => {
         const accountDeadline = Math.min(deadline, Date.now() + 15000);
         if (Date.now() >= accountDeadline) {
           lastErr = "timeout";
-          acctOut.push({ uid, iban: ac.iban || null, ok: false, truncated: true, transactionError: "timeout", balances: [], count: 0, transactions: [] });
+          acctOut.push({ uid, iban: ac.iban || null, ok: false, truncated: true, transactionError: "timeout", readReason: "time_limit", balances: [], count: 0, transactions: [] });
           continue;
         }
         const balController = new AbortController();
@@ -296,7 +312,7 @@ Deno.serve(withCors(async (req: Request) => {
           // deno-lint-ignore no-explicit-any
           const transactions = (tx.transactions || []).map((t: any) => mapTransaction(t));
           acctOut.push({ uid, iban: ac.iban || null, name: ac.name || null, currency: ac.currency || null, ok: true, balances,
-            count: transactions.length, transactions, truncated: tx.truncated, transactionError: tx.transactionError });
+            count: transactions.length, transactions, truncated: tx.truncated, transactionError: tx.transactionError, readReason: tx.readReason, failureCode: tx.failureCode });
           anyAcctOk = true;
         } catch (err) {
           const msg = String((err as Error)?.message || err);
@@ -333,6 +349,14 @@ Deno.serve(withCors(async (req: Request) => {
         if (verdict.ended) { anyExpired = true; auth401 = null; }
       }
       // Solo una sesión terminada caduca el permiso; el resto conserva el enlace activo.
+      // Fuera del catch de autenticación: un fallo antes de la primera página también tiene causa.
+      acctOut.forEach((a) => {
+        if (a.ok === false && !a.readReason) {
+          const code = obReadFailureCode(a.error || a.transactionError);
+          a.failureCode = code;
+          a.readReason = code === "timeout" ? "time_limit" : code === "invalid_response" ? "invalid_response" : "provider_error";
+        }
+      });
       /* last_sync es del ENLACE y dice hasta dónde está leído en TODAS sus cuentas. Sin tramo
          pendiente sube a «ahora» en cuanto todas respondieron. Con una cuenta caída o un
          error a media paginación no sube (ese trozo quedaría fuera de la próxima petición),
@@ -423,9 +447,9 @@ Deno.serve(withCors(async (req: Request) => {
       for (const a of r.accounts) {
         const free = OB_DEMAND_MAX_PAGES - (r.used[a.uid] || 0);
         const ms = Math.min(15000, gapDeadline - Date.now());
-        if (free < 1 || ms <= 0) return null;
+        if (free < 1 || ms <= 0) { r.entry.readReason = free < 1 ? "page_limit" : "time_limit"; return null; }
         const tx = await fetchBankTransactions(jwt, a.uid, from, r.counted(a.uid, true), ms, false, free, to);
-        if (tx.truncated || tx.transactionError) return null;
+        if (tx.truncated || tx.transactionError) { r.entry.readReason = tx.readReason || "provider_error"; r.entry.failureCode = tx.failureCode; return null; }
         rows.push(tx.transactions || []);
       }
       return rows;
@@ -461,7 +485,11 @@ Deno.serve(withCors(async (req: Request) => {
           day = ymdAddDays(to, 1);
           size = nextChunkDays(size, pages, days, OB_DEMAND_MAX_PAGES - spent());
         }
-      } catch (_) { /* el banco se negó: se queda lo sellado hasta aquí */ }
+      } catch (err) {
+        // Se conserva solo lo sellado; el motivo del corte no puede desaparecer del aviso/log.
+        r.entry.failureCode = obReadFailureCode(err);
+        r.entry.readReason = r.entry.failureCode === "timeout" ? "time_limit" : r.entry.failureCode === "invalid_response" ? "invalid_response" : "provider_error";
+      }
       // deno-lint-ignore no-explicit-any
       r.accounts.forEach((a: any, i: number) => {
         if (!old[i].length) return;
@@ -490,12 +518,13 @@ Deno.serve(withCors(async (req: Request) => {
       // deno-lint-ignore no-explicit-any
       const accts: any[] = r.accounts;
       const readCount = accts.reduce((n, a) => n + (typeof a?.count === "number" ? a.count : (a?.transactions || []).length), 0);
-      const readTruncated = accts.some((a) => !!(a && (a.truncated || a.transactionError)));
+      const readTruncated = !!r.entry.readReason || accts.some((a) => !!(a && (a.truncated || a.transactionError)));
       const readFailed = accts.filter((a) => a && a.ok === false).length;
       const readPartial = !accts.length || readFailed > 0 || readTruncated;
       const readStatus = readPartial ? (readCount ? "partial" : "error") : (readCount ? "ok" : "empty");
       const pages = Object.values(r.used as Record<string, number>).reduce((n, x) => n + x, 0);
-      await logObDemandResult(admin, user.id, r.link.aspsp_name, r.asked, readStatus, accts.length, readCount, pages, readTruncated, r.plan.gapBeyondCap, !!r.entry.gapPending);
+      const { reasons, failureCodes } = obReadLogDetails([r.entry, ...accts]);
+      await logObDemandResult(admin, user.id, r.link.aspsp_name, r.asked, readStatus, accts.length, readCount, pages, readTruncated, r.plan.gapBeyondCap, !!r.entry.gapPending, reasons, failureCodes);
       // Aquí, con todos los bancos ya leídos: apuntarlo en el bucle de cuentas retrasaba las siguientes.
       if (r.auth401) await logObAuthFailure(admin, user.id, r.link.aspsp_name, r.auth401, r.authSession);
     }

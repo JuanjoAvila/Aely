@@ -1,5 +1,5 @@
 import { assertEquals, assertRejects } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { ebApi, ebFailure, ebSessionVerdict, mapTransaction } from "./enablebanking.ts";
+import { ebApi, ebFailure, ebSessionVerdict, mapTransaction, fetchBankTransactions } from "./enablebanking.ts";
 
 /* Convención del cliente: amount POSITIVO = gasto, NEGATIVO = ingreso.
    Fija por escrito en tests/ob-ingresos.test.mjs — aquí se fija el otro extremo: cómo se
@@ -159,4 +159,47 @@ Deno.test("ebSessionVerdict: sin respuesta clara no se afirma nada", async () =>
   assertEquals(await ebSessionVerdict("jwt", "sid/1", sesion({})), { ended: null, state: "SIN_ESTADO" });
   // Un estado que no consta en la referencia no caduca ni sale tal cual al diagnóstico.
   assertEquals(await ebSessionVerdict("jwt", "sid/1", sesion({ status: "ES0000000000000000000000" })), { ended: null, state: "OTRO" });
+});
+
+const pagedTx = { entry_reference: "synthetic", transaction_amount: { amount: "12.50" }, status: "BOOK" };
+for (const [name, response, cap, reason] of [
+  ["páginas", { transactions: [pagedTx], continuation_key: "next" }, 1, "page_limit"],
+  ["filas", { transactions: Array.from({ length: 2001 }, () => pagedTx) }, 12, "row_limit"],
+  ["continuación repetida", { transactions: [pagedTx], continuation_key: "loop" }, 12, "repeated_cursor"],
+] as const) {
+  Deno.test("fetchBankTransactions: " + name + " conserva el motivo", async () => {
+    let calls = 0;
+    const result = await fetchBankTransactions("synthetic", "synthetic", null, async () => { calls++; return response; }, 1000, false, cap);
+    assertEquals(result.truncated, true);
+    assertEquals(result.readReason, reason);
+    if (reason === "repeated_cursor") { assertEquals(calls, 2); assertEquals(result.transactionError, "continuation_repeated"); }
+  });
+}
+Deno.test("fetchBankTransactions: 100 filas sin continuación no prueban un tope", async () => {
+  const result = await fetchBankTransactions("synthetic", "synthetic", null, async () => ({ transactions: Array.from({ length: 100 }, () => pagedTx) }));
+  assertEquals(result.transactions.length, 100);
+  assertEquals(result.truncated, false);
+  assertEquals(result.readReason, undefined);
+});
+Deno.test("fetchBankTransactions: error posterior conserva prefijo y código, nunca texto libre", async () => {
+  let calls = 0;
+  const result = await fetchBankTransactions("synthetic", "synthetic", null, async () => {
+    if (calls++) throw new Error("EB 503 token-y-cuenta-privados");
+    return { transactions: [pagedTx], continuation_key: "next" };
+  });
+  assertEquals(result.transactions.length, 1);
+  assertEquals(result.readReason, "provider_error");
+  assertEquals(result.failureCode, "eb_503");
+  assertEquals(JSON.stringify(result).includes("token-y-cuenta-privados"), false);
+});
+Deno.test("fetchBankTransactions: tiempo propio distingue el corte sin ampliar el plazo", async () => {
+  const result = await fetchBankTransactions("synthetic", "synthetic", null, async (_jwt, path, init) => {
+    if (!path.includes("continuation_key")) return { transactions: [pagedTx], continuation_key: "next" };
+    return await new Promise((_resolve, reject) => {
+      if (init?.signal?.aborted) reject(new Error("aborted"));
+      else init?.signal?.addEventListener("abort", () => reject(new Error("aborted")), { once: true });
+    });
+  }, 5);
+  assertEquals(result.truncated, true);
+  assertEquals(result.readReason, "time_limit");
 });
