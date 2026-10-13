@@ -11,7 +11,7 @@ const cuentas: Resp = { status: 200, json: { payload: { data: [] } } };
 const caducado: Resp = { status: 401, json: null };
 
 // Acceso caducado y, tras refrescar, lo que diga `despues`. Cuenta las llamadas a cada lado.
-function escenario(refresco: { outcome: MiRefreshOutcome; status: number }, despues = cuentas) {
+function escenario(refresco: { outcome: MiRefreshOutcome; status: number; code?: string }, despues = cuentas) {
   const n = { get: 0, refresh: 0 };
   const run = miReadWithRefresh(
     () => Promise.resolve(n.get++ === 0 ? caducado : despues),
@@ -73,6 +73,21 @@ Deno.test("401 que persiste tras un refresco aceptado: la sesión está viva, no
   const { n, run } = escenario({ outcome: "ok", status: 201 }, caducado);
   assertEquals(await run, { kind: "temporary", code: "access_401_after_refresh" });
   assertEquals(n, { get: 2, refresh: 1 }, "un solo refresco por sincronización");
+});
+
+Deno.test("la red caída en la segunda lectura, con el refresco ya aceptado, tampoco es una caducidad", async () => {
+  let n = 0, refrescos = 0;
+  const r = await miReadWithRefresh<Resp>(
+    () => (n++ === 0 ? Promise.resolve(caducado) : Promise.reject(new Error("red"))),
+    () => { refrescos++; return Promise.resolve({ outcome: "ok" as const, status: 201 }); },
+  );
+  assertEquals(r, { kind: "temporary", code: "access_network" });
+  assertEquals([n, refrescos], [2, 1]);
+});
+
+Deno.test("el refresco puede nombrar su propio fallo pasajero", async () => {
+  const { run } = escenario({ outcome: "temporary", status: 201, code: "refresh_not_saved" });
+  assertEquals(await run, { kind: "temporary", code: "refresh_not_saved" });
 });
 
 Deno.test("la red caída al leer no es una caducidad", async () => {

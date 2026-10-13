@@ -77,14 +77,14 @@ export type MiRead<T> =
 
 export async function miReadWithRefresh<T extends { status: number }>(
   get: () => Promise<T>,
-  refresh: () => Promise<{ outcome: MiRefreshOutcome; status: number }>,
+  refresh: () => Promise<{ outcome: MiRefreshOutcome; status: number; code?: string }>,
 ): Promise<MiRead<T>> {
   let res: T;
   try { res = await get(); } catch { return { kind: "temporary", code: "access_network" }; }
   if (res.status === 401) {
     const r = await refresh();
     if (r.outcome === "rejected") return { kind: "expired" };
-    if (r.outcome === "temporary") return { kind: "temporary", code: "refresh_" + (r.status || "network") };
+    if (r.outcome === "temporary") return { kind: "temporary", code: r.code || "refresh_" + (r.status || "network") };
     try { res = await get(); } catch { return { kind: "temporary", code: "access_network" }; }
     if (res.status === 401) return { kind: "temporary", code: "access_401_after_refresh" };
   }

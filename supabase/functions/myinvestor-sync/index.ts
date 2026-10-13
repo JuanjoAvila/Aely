@@ -16,6 +16,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { jsonResp, MI_BASE, miHeaders, miPositionsFrom, miReadWithRefresh, miRefreshOutcome, type MiRefreshOutcome } from "../_shared/myinvestor.ts";
 import { miTokensFromRow, miTokensToRow, ensureMiLinkEncrypted } from "../_shared/token_store.ts";
 import { withCors } from "../_shared/cors.ts";
+import { rateLimit } from "../_shared/ratelimit.ts";
 
 Deno.serve(withCors(async (req: Request) => {
   try {
@@ -43,7 +44,7 @@ Deno.serve(withCors(async (req: Request) => {
       let j: unknown = null; try { j = JSON.parse(t); } catch { /* deja null */ }
       return { status: r.status, json: j };
     };
-    const refresh = async (): Promise<{ outcome: MiRefreshOutcome; status: number }> => {
+    const refresh = async (): Promise<{ outcome: MiRefreshOutcome; status: number; code?: string }> => {
       // Sin token de refresco no hay con qué renovar: solo queda identificarse otra vez.
       if (!refreshPlain) return { outcome: "rejected", status: 0 };
       let r: Response, t: string;
@@ -63,12 +64,24 @@ Deno.serve(withCors(async (req: Request) => {
         refreshPlain = d.refreshToken || refreshPlain;
         const refreshSecs = Number(d.refreshExpiresIn || 0);
         const enc = await miTokensToRow(d.accessToken, refreshPlain);
-        await admin.from("myinvestor_links").update({
-          access_token: enc.access_token,
-          refresh_token: enc.refresh_token,
-          refresh_expires_at: refreshSecs > 0 ? new Date(Date.now() + refreshSecs * 1000).toISOString() : link.refresh_expires_at,
-          status: "active", updated_at: new Date().toISOString(),
-        }).eq("user_id", user.id);
+        /* LA ESCRITURA PUEDE FALLAR Y HAY QUE MIRARLO (revisión del 13/10): supabase-js no
+           lanza, entrega `error`. Si MyInvestor rota el refresco, el que queda en la fila ya
+           está gastado; responder `ok` dejaba el enlace muerto para la sincronización
+           siguiente sin que nadie lo supiera. Se reintenta una vez y, si tampoco entra, la
+           lectura no se da por buena: el usuario ve «prueba más tarde», no datos al día. */
+        let saved = false;
+        for (let i = 0; i < 2 && !saved; i++) {
+          try {
+            const { error } = await admin.from("myinvestor_links").update({
+              access_token: enc.access_token,
+              refresh_token: enc.refresh_token,
+              refresh_expires_at: refreshSecs > 0 ? new Date(Date.now() + refreshSecs * 1000).toISOString() : link.refresh_expires_at,
+              status: "active", updated_at: new Date().toISOString(),
+            }).eq("user_id", user.id);
+            saved = !error;
+          } catch (_) { /* corte de red: como un error devuelto */ }
+        }
+        if (!saved) return { outcome: "temporary", status: r.status, code: "refresh_not_saved" };
       }
       return { outcome, status: r.status };
     };
@@ -76,12 +89,36 @@ Deno.serve(withCors(async (req: Request) => {
     // 1) lista de cuentas de valores (con auto-refresh si 401). Solo el refresco RECHAZADO
     // marca `expired`; un fallo pasajero no toca el enlace (ver `miReadWithRefresh`).
     const read = await miReadWithRefresh(() => apiGet("/cperf-server/api/v2/securities-accounts/self-basic"), refresh);
+    /* REFRESCO ACEPTADO Y EL ACCESO SIGUE EN 401 (revisión del 13/10). Una vez es un hipo;
+       si se repite no tiene salida sola: cada pulsación gasta un refresco y la respuesta era
+       siempre «prueba más tarde». A la TERCERA vez en seis horas se da el enlace por caducado
+       para que la app ofrezca reconectar. El contador es el limitador que ya usa
+       `myinvestor-connect` (tabla `rate_limits`, migración 0019): `myinvestor_links` no tiene
+       columna donde llevarlo. Cuenta veces dentro de la ventana, no veces seguidas: una
+       lectura buena en medio no lo pone a cero. Si el limitador no responde deja pasar, o
+       sea que NO caduca. */
+    const stuck = read.kind === "temporary" && read.code === "access_401_after_refresh"
+      && !(await rateLimit(admin, "mi-401-tras-refresco:" + user.id, 2, 6 * 3600)).ok;
+    /* El refresco rechazado solo es caducidad si la fila sigue teniendo el token que se usó.
+       El keepalive corre cada 10 minutos con ese mismo token: si lo rotó mientras tanto, el
+       rechazo es del token viejo y el enlace está vivo. Se vuelve a leer la fila en vez de
+       comparar en el `update` porque `ensureMiLinkEncrypted` pudo recifrarla al entrar. */
     if (read.kind === "expired") {
+      const { data: now } = await admin.from("myinvestor_links").select("*").eq("user_id", user.id).maybeSingle();
+      const current = now ? await miTokensFromRow(now) : null;
+      if (current && current.refresh !== tokens.refresh) {
+        return jsonResp({ ok: false, softFail: true, code: "refresh_raced", error: "MyInvestor no responde bien ahora. Prueba más tarde — tu sesión sigue guardada." });
+      }
+    }
+    if (read.kind === "expired" || stuck) {
       await admin.from("myinvestor_links").update({ status: "expired", updated_at: new Date().toISOString() }).eq("user_id", user.id);
       return jsonResp({ ok: false, authExpired: true, error: "Tu sesión de MyInvestor caducó. Vuelve a conectar." });
     }
     // `softFail` es el contrato que el cliente ya entiende como «reintenta, no pidas contraseña».
     // `code` es una clase cerrada para soporte; nunca el cuerpo de MyInvestor.
+    if (read.kind === "temporary" && read.code === "access_401_after_refresh") {
+      return jsonResp({ ok: false, softFail: true, code: read.code, error: "MyInvestor ha renovado la sesión pero no deja leer tus posiciones. Prueba más tarde; si se repite, la app te pedirá volver a conectar." });
+    }
     if (read.kind === "temporary") {
       return jsonResp({ ok: false, softFail: true, code: read.code, error: "MyInvestor no responde bien ahora. Prueba más tarde — tu sesión sigue guardada." });
     }
@@ -99,6 +136,12 @@ Deno.serve(withCors(async (req: Request) => {
       const accountId = sa?.accountId;
       if (!accountId) continue;
       const det = await apiGet("/cperf-server/api/v2/securities-accounts/" + encodeURIComponent(String(accountId)));
+      // Un 401 aquí es el acceso caducando a media lectura, no una cuenta sin posiciones:
+      // devolver lo leído hasta ahora como si fuera todo sería una cartera incompleta dada
+      // por buena. La pulsación siguiente refresca en el primer paso.
+      if (det.status === 401) {
+        return jsonResp({ ok: false, softFail: true, code: "detail_401", error: "MyInvestor no responde bien ahora. Prueba más tarde — tu sesión sigue guardada." });
+      }
       if (det.status !== 200) continue;
       // deno-lint-ignore no-explicit-any
       const data = (det.json as any)?.payload?.data;

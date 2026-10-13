@@ -54,7 +54,12 @@ Deno.serve(async (req) => {
         } else if (outcome === "rejected") {
           // Solo 400/401 = refresh muerto de verdad. Un 403 (bot/rate-limit) NO caduca el enlace:
           // antes pedía captcha/OTP al abrir la app (feedback 2026-07-17).
-          await admin.from("myinvestor_links").update({ status: "expired", updated_at: new Date().toISOString() }).eq("user_id", link.user_id);
+          // Solo si la fila sigue teniendo el refresco que se acaba de usar: una sincronización
+          // puede haberlo rotado entretanto, y entonces el rechazo es del token viejo y el
+          // enlace está vivo. Sin la condición, este `expired` pisaba los tokens recién
+          // guardados y pedía la contraseña por una carrera (revisión del 13/10).
+          await admin.from("myinvestor_links").update({ status: "expired", updated_at: new Date().toISOString() })
+            .eq("user_id", link.user_id).eq("refresh_token", link.refresh_token);
           expired++;
         } else {
           skipped++;   // 403/5xx/raro: no tocamos nada y se reintenta al próximo tick

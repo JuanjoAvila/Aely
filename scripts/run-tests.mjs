@@ -171,6 +171,7 @@ const steps = [
   ["sync-manual-un-aviso", ["node", "tests/sync-manual-un-aviso.test.mjs"]],
   ["broker-sync-outcomes", ["node", "tests/broker-sync-outcomes.test.mjs"]],
   ["myinvestor-sync-outcomes", ["node", "tests/myinvestor-sync-outcomes.test.mjs"]],
+  ["myinvestor-keepalive", ["node", "tests/myinvestor-keepalive.test.mjs"]],
   ["cartel-reconectar", ["node", "tests/cartel-reconectar.test.mjs"]],
   ["bank-callback-msg", ["node", "tests/bank-callback-msg.test.mjs"]],
   ["categorize-limitador", ["node", "tests/categorize-limitador.test.mjs"]],

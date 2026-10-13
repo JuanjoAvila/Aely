@@ -1,5 +1,5 @@
 import { assertEquals, assertRejects } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { ebApi, ebFailure, mapTransaction } from "./enablebanking.ts";
+import { ebApi, ebFailure, ebSessionVerdict, mapTransaction } from "./enablebanking.ts";
 
 /* Convención del cliente: amount POSITIVO = gasto, NEGATIVO = ingreso.
    Fija por escrito en tests/ob-ingresos.test.mjs — aquí se fija el otro extremo: cómo se
@@ -108,10 +108,55 @@ Deno.test("ebFailure: bloqueos y caídas conservan su estado y nunca caducan", a
   assertEquals(ebFailure(new Error("transactions_timeout")), { status: 0, code: "", sessionEnded: false });
 });
 
-Deno.test("ebFailure: el código que sale al diagnóstico tiene forma de identificador del proveedor", () => {
-  // Texto libre pegado al estado (un fallo antiguo lo traía) no debe acabar en app_events.
-  assertEquals(ebFailure(new Error("EB 401 titular-privado")).code, "");
+Deno.test("ebFailure: el código que sale al diagnóstico es de la lista cerrada del proveedor", async () => {
+  // `error` es un campo libre de la respuesta: lo que no esté en su enum se apunta como OTRO.
+  for (const libre of ["titular-privado", "ES0000000000000000000000", "JUAN_PEREZ_GARCIA", "SESSION_ABCDEF", "A_".repeat(40) + "B"]) {
+    assertEquals(await fallo(401, { code: 401, error: libre }), { status: 401, code: "OTRO", sessionEnded: false }, libre);
+  }
   assertEquals(ebFailure(new Error("EB 401: unauthorized")).code, "");
-  // Un IBAN también es «mayúsculas y números»: el enum del proveedor no lleva cifras.
-  assertEquals(ebFailure(new Error("EB 401 ES0000000000000000000000")).code, "");
+});
+
+Deno.test("ebFailure: el código no distingue mayúsculas", async () => {
+  assertEquals(await fallo(401, { code: 401, error: "expired_session" }), { status: 401, code: "EXPIRED_SESSION", sessionEnded: true });
+  assertEquals(await fallo(401, { code: 401, error: "Unauthorized_Access" }), { status: 401, code: "UNAUTHORIZED_ACCESS", sessionEnded: false });
+});
+
+Deno.test("ebFailure: decide el código, no el HTTP que lo acompaña", async () => {
+  for (const status of [400, 403, 404, 422]) {
+    assertEquals(await fallo(status, { code: status, error: "EXPIRED_SESSION" }), { status, code: "EXPIRED_SESSION", sessionEnded: true });
+  }
+});
+
+/* Revisión del 13/10: un 401 sin código de cierre dejaba el banco activo para siempre. Se le
+   pregunta al proveedor por la sesión; aquí se fija qué respuesta caduca, cuál no y cuál no
+   es una respuesta. Los estados son los ocho de `SessionStatus` de su referencia. */
+const sesion = (r: unknown) => (_jwt: string, path: string) => {
+  assertEquals(path, "/sessions/sid%2F1", "el id va escapado en la ruta");
+  return r instanceof Error ? Promise.reject(r) : Promise.resolve(r);
+};
+
+Deno.test("ebSessionVerdict: solo AUTHORIZED es una sesión que sirve", async () => {
+  assertEquals(await ebSessionVerdict("jwt", "sid/1", sesion({ status: "AUTHORIZED" })), { ended: false, state: "AUTHORIZED" });
+  for (const status of ["CANCELLED", "CLOSED", "EXPIRED", "INVALID", "PENDING_AUTHORIZATION", "RETURNED_FROM_BANK", "REVOKED"]) {
+    assertEquals(await ebSessionVerdict("jwt", "sid/1", sesion({ status })), { ended: true, state: status });
+  }
+  assertEquals(await ebSessionVerdict("jwt", "sid/1", sesion({ status: "expired" })), { ended: true, state: "EXPIRED" });
+});
+
+Deno.test("ebSessionVerdict: la consulta rechazada por sesión terminada o inexistente caduca", async () => {
+  for (const [msg, code] of [["EB 404 SESSION_DOES_NOT_EXIST", "SESSION_DOES_NOT_EXIST"], ["EB 401 EXPIRED_SESSION", "EXPIRED_SESSION"], ["EB 401 REVOKED_SESSION", "REVOKED_SESSION"]]) {
+    assertEquals(await ebSessionVerdict("jwt", "sid/1", sesion(new Error(msg))), { ended: true, state: code });
+  }
+});
+
+Deno.test("ebSessionVerdict: sin respuesta clara no se afirma nada", async () => {
+  assertEquals(await ebSessionVerdict("jwt", null), { ended: null, state: "SIN_ID" });
+  assertEquals(await ebSessionVerdict("jwt", "", sesion({ status: "EXPIRED" })), { ended: null, state: "SIN_ID" });
+  assertEquals(await ebSessionVerdict("jwt", "sid/1", sesion({ status: "EXPIRED" }), 0), { ended: null, state: "SIN_RESPUESTA" });
+  assertEquals(await ebSessionVerdict("jwt", "sid/1", sesion(new Error("EB 503"))), { ended: null, state: "EB_503" });
+  assertEquals(await ebSessionVerdict("jwt", "sid/1", sesion(new Error("EB 401 UNAUTHORIZED_ACCESS"))), { ended: null, state: "EB_401" });
+  assertEquals(await ebSessionVerdict("jwt", "sid/1", sesion(new TypeError("sin red"))), { ended: null, state: "SIN_RESPUESTA" });
+  assertEquals(await ebSessionVerdict("jwt", "sid/1", sesion({})), { ended: null, state: "SIN_ESTADO" });
+  // Un estado que no consta en la referencia no caduca ni sale tal cual al diagnóstico.
+  assertEquals(await ebSessionVerdict("jwt", "sid/1", sesion({ status: "ES0000000000000000000000" })), { ended: null, state: "OTRO" });
 });

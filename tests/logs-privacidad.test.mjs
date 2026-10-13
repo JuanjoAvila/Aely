@@ -80,10 +80,12 @@ await t("bank-sync Edge: el 401 sin cierre de sesión solo apunta un código con
  // Cuarta inserción (13/10). El texto pegado al estado puede ser cualquier cosa, también un IBAN.
  const rows=[];const src=read("supabase/functions/bank-sync/index.ts");const E=await import("data:text/javascript;base64,"+Buffer.from(transformSync(read("supabase/functions/_shared/enablebanking.ts"),{loader:"ts",format:"esm"}).code).toString("base64"));
  const f=new Function("ebFailure",ts(src.slice(0,src.indexOf("Deno.serve")))+";return {logObAuthFailure};")(E.ebFailure);const db={from:()=>({insert:async x=>{rows.push(x);}})};
- for(const marker of markers)await f.logObAuthFailure(db,"synthetic-user",sensitive,new Error("EB 401 "+marker));
- await f.logObAuthFailure(db,"synthetic-user","Revolut",new Error("EB 401 UNAUTHORIZED_ACCESS"));clean(rows);assert.equal(rows.length,markers.length+1);
- assert.deepEqual(JSON.parse(rows[0].detail),{code:"eb_401",error:""});assert.equal(rows[0].message,"OB sync (banco): 401 sin cierre de sesión");
- assert.deepEqual(JSON.parse(rows.at(-1).detail),{code:"eb_401",error:"UNAUTHORIZED_ACCESS"});assert.equal(rows.at(-1).email,null);
+ // `error` y `session` salen de listas cerradas: ni un texto con forma de enum pasa tal cual.
+ for(const marker of markers.concat(["JUAN_PEREZ_GARCIA"])){const v=await E.ebSessionVerdict("jwt","sid",async()=>({status:marker}));await f.logObAuthFailure(db,"synthetic-user",sensitive,new Error("EB 401 "+marker),v.state);}
+ await f.logObAuthFailure(db,"synthetic-user","Revolut",new Error("EB 401 UNAUTHORIZED_ACCESS"),"AUTHORIZED");clean(rows);assert.equal(rows.length,markers.length+2);
+ assert.ok(!JSON.stringify(rows).includes("JUAN_PEREZ"),"un nombre con forma de enum no es un código del proveedor");
+ assert.deepEqual(JSON.parse(rows[0].detail),{code:"eb_401",error:"OTRO",session:"OTRO"});assert.equal(rows[0].message,"OB sync (banco): 401 sin cierre de sesión");
+ assert.deepEqual(JSON.parse(rows.at(-1).detail),{code:"eb_401",error:"UNAUTHORIZED_ACCESS",session:"AUTHORIZED"});assert.equal(rows.at(-1).email,null);
 });
 await t("ingest Edge: code DB arbitrario y currency/source no salen a app_events",async()=>{
  const rows=[];const src=read("supabase/functions/ingest/index.ts");const f=new Function("Deno",ts(src.slice(src.indexOf("async function logIngestError")))+";return {logIngestError,logIngestSkip};")({env:{get:()=>null}});const db={from:()=>({insert:async x=>{rows.push(x);}})};

@@ -17,30 +17,40 @@ const json = (status, body) => new Response(body === undefined ? "" : JSON.strin
 const tokens = (extra) => json(201, { payload: { data: Object.assign({ accessToken: "acceso-nuevo", refreshToken: "refresco-nuevo", refreshExpiresIn: 3600 }, extra) } });
 const cuentas = () => json(200, { payload: { data: [] } });
 
-// `acceso(n, token)` responde a la lista de cuentas; `refresco()` al endpoint de renovación.
-async function sync({ acceso, refresco, link = {} }) {
-  const fila = Object.assign({ user_id: "synthetic", status: "active", access_token: "acceso-viejo", refresh_token: "refresco-viejo", device_id: "dev", refresh_expires_at: null }, link);
-  const writes = [], calls = [];
-  let handler, lecturas = 0;
+// `acceso(n, token)` responde a la lista de cuentas; `refresco()` al endpoint de renovación;
+// `detalle()` al detalle de cada cuenta. `guardar(n)` devuelve el error de la escritura n-ésima
+// (supabase-js no lanza: lo entrega). `entretanto(fila)` es lo que otro proceso hace con la fila
+// antes de que el handler la vuelva a leer. `veces` es el contador del limitador, que vive en
+// la BD y por eso se comparte entre pulsaciones.
+async function sync({ acceso, refresco, detalle, link = {}, guardar = () => null, entretanto = null, veces = { hits: 0 } }) {
+  const fila = link.user_id ? link : Object.assign({ user_id: "synthetic", status: "active", access_token: "acceso-viejo", refresh_token: "refresco-viejo", device_id: "dev", refresh_expires_at: null }, link);
+  const writes = [], calls = [], rate = [];
+  let handler, lecturas = 0, selects = 0, intentos = 0;
   const db = { auth: { getUser: async () => ({ data: { user: { id: "synthetic" } } }) }, from: () => ({
-    select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: fila }) }) }),
-    update: (x) => ({ eq: async () => { writes.push(x); Object.assign(fila, x); return {}; } }),
+    select: () => ({ eq: () => ({ maybeSingle: async () => { if (selects++ > 0 && entretanto) entretanto(fila); return { data: fila }; } }) }),
+    update: (x) => ({ eq: async () => { const error = guardar(intentos++); if (error) return { error }; writes.push(x); Object.assign(fila, x); return {}; } }),
   }) };
   const fetchFn = async (url, init = {}) => {
     const path = String(url).replace("https://api.myinvestor.es", "");
     calls.push(path);
     if (path === REFRESH) return refresco();
     if (path === BASIC) return acceso(lecturas++, init.headers.Authorization);
+    if (detalle && path.startsWith("/cperf-server/api/v2/securities-accounts/")) return detalle(path);
     throw new Error("ruta sintética no prevista: " + path);
   };
-  const names = ["Deno", "createClient", "withCors", "miTokensFromRow", "miTokensToRow", "ensureMiLinkEncrypted", "fetch"];
+  const limitador = async (_db, bucket, limit, windowSecs) => {
+    rate.push({ bucket, limit, windowSecs });
+    if (veces.caido) return { ok: true, checked: false };
+    return { ok: ++veces.hits <= limit, checked: true };
+  };
+  const names = ["Deno", "createClient", "withCors", "miTokensFromRow", "miTokensToRow", "ensureMiLinkEncrypted", "rateLimit", "fetch"];
   new Function(...names, src)(
     { serve: (f) => { handler = f; }, env: { get: () => "synthetic" } }, () => db, (f) => f,
     async (l) => ({ access: l.access_token, refresh: l.refresh_token, deviceId: l.device_id }),
-    async (access, refresh) => ({ access_token: access, refresh_token: refresh }), async () => {}, fetchFn
+    async (access, refresh) => ({ access_token: access, refresh_token: refresh }), async () => {}, limitador, fetchFn
   );
   const res = await handler(new Request("https://app.invalid", { method: "POST" }));
-  return { status: res.status, data: await res.json(), writes, calls, fila };
+  return { status: res.status, data: await res.json(), writes, calls, fila, rate };
 }
 
 let failures = 0;
@@ -99,13 +109,83 @@ await t("un enlace ya caducado no se reactiva por un fallo pasajero", async () =
   assert.equal(r.fila.status, "expired");
 });
 
-await t("401 que persiste tras un refresco aceptado: tokens nuevos guardados y sin pedir contraseña", async () => {
-  const r = await sync({ acceso: caducado, refresco: () => tokens() });
+await t("401 que persiste tras un refresco aceptado: dos avisos suaves y a la tercera se ofrece reconectar", async () => {
+  // Revisión del 13/10: sin salida, cada pulsación gastaba un refresco y decía «prueba más tarde» para siempre.
+  const veces = { hits: 0 };
+  const fila = { user_id: "synthetic", status: "active", access_token: "acceso-viejo", refresh_token: "refresco-viejo", device_id: "dev", refresh_expires_at: null };
+  for (let pulsacion = 1; pulsacion <= 2; pulsacion++) {
+    const r = await sync({ acceso: caducado, refresco: () => tokens(), link: fila, veces });
+    assert.equal(r.data.softFail, true, "pulsación " + pulsacion);
+    assert.equal(r.data.authExpired, undefined);
+    assert.equal(r.data.code, "access_401_after_refresh");
+    assert.doesNotMatch(r.data.error, /sigue guardada|no hace falta/i, "este aviso no puede decir que todo está bien");
+    assert.match(r.data.error, /volver a conectar/);
+    assert.equal(fila.status, "active");
+    assert.equal(fila.access_token, "acceso-nuevo");
+    assert.deepEqual(r.rate, [{ bucket: "mi-401-tras-refresco:synthetic", limit: 2, windowSecs: 21600 }]);
+  }
+  const r3 = await sync({ acceso: caducado, refresco: () => tokens(), link: fila, veces });
+  assert.equal(r3.data.authExpired, true);
+  assert.equal(r3.data.softFail, undefined);
+  assert.equal(fila.status, "expired");
+});
+
+await t("solo ese desenlace cuenta para caducar; y con el limitador caído no se caduca", async () => {
+  const otros = await sync({ acceso: caducado, refresco: () => json(503, {}), veces: { hits: 99 } });
+  assert.deepEqual(otros.rate, [], "un fallo pasajero no suma");
+  assert.equal(otros.data.softFail, true);
+  const bien = await sync({ acceso: () => cuentas(), refresco: () => { throw new Error("no debe llamar"); }, veces: { hits: 99 } });
+  assert.deepEqual(bien.rate, []);
+  assert.equal(bien.data.ok, true);
+  const caido = await sync({ acceso: caducado, refresco: () => tokens(), veces: { hits: 99, caido: true } });
+  assert.equal(caido.data.softFail, true);
+  assert.equal(caido.fila.status, "active");
+});
+
+await t("red caída en la segunda lectura, con el refresco ya aceptado: aviso suave y tokens guardados", async () => {
+  const r = await sync({ acceso: (n) => { if (n === 0) return caducado(); throw new TypeError("sintético: sin red"); }, refresco: () => tokens() });
+  assert.equal(r.status, 200);
   assert.equal(r.data.softFail, true);
   assert.equal(r.data.authExpired, undefined);
-  assert.equal(r.data.code, "access_401_after_refresh");
+  assert.equal(r.data.code, "access_network");
   assert.equal(r.fila.status, "active");
-  assert.equal(r.fila.access_token, "acceso-nuevo");
+  assert.equal(r.fila.refresh_token, "refresco-nuevo");
+  assert.deepEqual(r.rate, []);
+});
+
+await t("si los tokens rotados no se guardan, se reintenta; y si tampoco, la lectura no se da por buena", async () => {
+  const fallo = { code: "sintetico" };
+  const reintento = await sync({ acceso: (n) => (n === 0 ? caducado() : cuentas()), refresco: () => tokens(), guardar: (n) => (n === 0 ? fallo : null) });
+  assert.deepEqual(reintento.data, { ok: true, positions: [] }, "un fallo suelto de escritura se arregla reintentando");
+  assert.equal(reintento.fila.refresh_token, "refresco-nuevo");
+  const r = await sync({ acceso: (n) => (n === 0 ? caducado() : cuentas()), refresco: () => tokens(), guardar: () => fallo });
+  assert.equal(r.data.ok, false, "con el refresco quemado sin guardar no hay datos al día que dar");
+  assert.equal(r.data.softFail, true);
+  assert.equal(r.data.code, "refresh_not_saved");
+  assert.deepEqual(r.writes, [], "tampoco se sella last_sync");
+  assert.equal(r.calls.filter((p) => p === BASIC).length, 1, "no se lee con un token que no quedó guardado");
+});
+
+await t("refresco rechazado porque otro proceso ya rotó el token: no es caducidad", async () => {
+  // El keepalive corre cada 10 min con el mismo refresco; el que llega segundo recibe el rechazo.
+  const r = await sync({ acceso: caducado, refresco: () => json(401, {}), entretanto: (fila) => { fila.refresh_token = "refresco-del-keepalive"; fila.access_token = "acceso-del-keepalive"; } });
+  assert.equal(r.data.softFail, true);
+  assert.equal(r.data.authExpired, undefined);
+  assert.equal(r.data.code, "refresh_raced");
+  assert.deepEqual(r.writes, []);
+  assert.equal(r.fila.status, "active");
+});
+
+await t("un 401 en el detalle de una cuenta no entrega una cartera incompleta como buena", async () => {
+  const lista = () => json(200, { payload: { data: [{ accountId: "c1" }, { accountId: "c2" }] } });
+  const r = await sync({ acceso: lista, refresco: () => { throw new Error("no debe llamar"); }, detalle: () => json(401, {}) });
+  assert.equal(r.data.ok, false);
+  assert.equal(r.data.softFail, true);
+  assert.equal(r.data.code, "detail_401");
+  assert.equal(r.data.positions, undefined);
+  assert.deepEqual(r.writes, [], "sin last_sync: no se leyó entera");
+  const ok = await sync({ acceso: lista, refresco: () => { throw new Error("no debe llamar"); }, detalle: () => json(200, { payload: { data: {} } }) });
+  assert.deepEqual(ok.data, { ok: true, positions: [] });
 });
 
 await t("el 403 del acceso sigue siendo un aviso suave, como antes", async () => {
