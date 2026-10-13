@@ -191,7 +191,11 @@ también ante un error con cero páginas; no registra cuentas ni texto del prove
 `flattenBankTx(links, prev.bankTx)` conserva el extracto anterior de un banco incompleto y de
 bancos omitidos en esa respuesta. Solo añade al banco incompleto filas nuevas BOOK con id único,
 importe finito y fecha válida no futura; no reemplaza ids conocidos ni toma decisiones con
-filas sin identidad. Los bancos completos conservan su comportamiento anterior. El mismo
+filas sin identidad de una cuenta cortada. Si solo falla el SIGUIENTE trozo antiguo y todas
+las cuentas entregadas están completas, las filas sin id del prefijo ya sellado sí se guardan:
+conservan la multiplicidad máxima por grupo y estado, sin sumar lectura y caché.119 puede
+acusar ese prefijo; descartarlo por el fallo posterior quemaría filas. Los bancos completos
+conservan su comportamiento anterior. El mismo
 extracto conservado alimenta las pruebas de pago y el guardado final de App. El importador
 mantiene sus lápidas, ordinales y vínculos de gemelos. Un fallo del proveedor/tiempo o una clave
 repetida no ofrece cursor ni acuse del tramo sin recibir; los trozos antiguos ya sellados sí

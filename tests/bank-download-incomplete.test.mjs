@@ -7,8 +7,8 @@ import { loadPureLogicFromFile } from "../scripts/load-pure-logic.mjs";
 // La respuesta y el cursor salen del handler real; un resumen de flags no vería un acuse falso.
 const ctx=loadPureLogicFromFile();
 const tx=(id="new")=>({entry_reference:id,booking_date:day(-1),transaction_amount:{amount:"12.50"},credit_debit_indicator:"DBIT",status:"BOOK"});
-async function sync(reply,{acks=true,balanceError=null}={}){
-  const row=enlace(haceDias(5)),before=row.last_sync,events=[];let handler,calls=0;
+async function sync(reply,{acks=true,balanceError=null,ageDays=5}={}){
+  const row=enlace(haceDias(ageDays)),before=row.last_sync,events=[];let handler,calls=0;
   const db=baseDatos([row]),from=db.from;
   db.from=name=>name==="app_events"?{insert:async event=>{events.push(event);return {};}}:from(name);
   const api=async(jwt,path,init)=>{
@@ -135,6 +135,24 @@ await test("updater real: conserva ordinales iguales y vínculo resuelto sin lá
   assert.equal(b.state.bankTx.length,3);assert.equal(b.state.expenses.length,2);
   assert.equal(JSON.stringify(b.state.gemelos),JSON.stringify(gemelos));
   assert.equal(b.state.expenses.find(x=>x.id==="tercero").obOrd,3);
+});
+await test("handler y updater reales: trozo antiguo sellado sin id entra antes de su acuse aunque falle el siguiente",async()=>{
+  const r=await sync((url,n)=>{
+    if(n===1)return {transactions:[tx()]};
+    if(n===2)return {transactions:[Object.assign({},tx(),{entry_reference:null,booking_date:url.searchParams.get("date_from")})]};
+    throw Error("EB 503 causa-sintetica");
+  },{ageDays:45});
+  const l=r.data.links[0];assert.equal(l.readReason,"provider_error");assert.ok(l.ack);assert.equal(r.row.last_sync,r.before);
+  assert.ok(l.accounts.every(a=>a.ok&&!a.truncated&&!a.transactionError));
+  const b=updater(main,[l],{bankTx:[],expenses:[],deleted:[],gemelos:[]});
+  assert.equal(b.state.bankTx.length,2);assert.equal(b.state.expenses.length,2);
+  assert.ok(b.state.expenses.some(e=>!e.extId&&e.source==="ob"));
+});
+await test("trozo sellado repetido no suma otra vez filas sin id del extracto anterior",()=>{
+  const cache=Array.from({length:2},()=>Object.assign({},old,{id:null,merchant:"Movimiento"}));
+  const l={aspsp:"CaixaBank",ok:true,readReason:"page_limit",accounts:[{ok:true,transactions:Array.from({length:3},()=>incoming(null,{date:old.date,amount:7,merchant:"Movimiento"}))}]};
+  const first=ctx.flattenBankTx([l],cache),second=ctx.flattenBankTx([l],first);
+  assert.equal(first.length,3);assert.equal(second.length,3);
 });
 console.log("bank-download-incomplete: "+(count-failed)+" PASS / "+failed+" FAIL");
 if(failed)process.exit(1);

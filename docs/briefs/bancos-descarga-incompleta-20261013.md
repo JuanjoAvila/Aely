@@ -39,6 +39,12 @@ válida no futura. No corrige ids ya guardados ni importa filas nuevas sin id de
 sin identidad no se puede distinguir una repetición de otro cargo igual. Los bancos completos
 siguen sustituyendo su extracto como antes. El importador y las decisiones financieras no se
 reescriben; los tests ejecutan las lápidas, ordinales, gemelos y marcas de recibo heredadas123.
+Un motivo en el enlace puede corresponder al SIGUIENTE trozo antiguo no recibido: si todas las
+cuentas devueltas están completas, el prefijo antiguo entregado ya está sellado y119 puede
+acusarlo. Sus filas sin id se conservan con la multiplicidad máxima entre lectura y caché,
+por banco/día/importe/comercio/estado, no sumándolas. Una cuenta realmente cortada continúa
+rechazando nuevas filas sin id. Esto no cambia el importador ni el cursor: evita quemar filas
+de un prefijo completo que el cliente recibió antes del fallo posterior.
 
 **Cursor119:** proveedor/timeout/repetición no adelantan el tramo no recibido. La recuperación
 antigua solo acusa trozos completos ya sellados. La excepción anterior de ventana que desborda
@@ -65,21 +71,26 @@ una heurística por contar100, nuevas consultas ni acceso al banco real.
 ## Verificación y lo no probado
 
 - Base122: el primer banco causal dio5 PASS/20 FAIL, EXIT1. Tras el arreglo y rebase123:
- 32 PASS/0 FAIL, EXIT0. Dos casos comparan el updater real123 con el candidato y comprueban
+ 34 PASS/0 FAIL, EXIT0. Dos casos comparan el updater real123 con el candidato y comprueban
  los dos consumidores del extracto; otros tres prueban lápidas reales y ordinal/vínculo resuelto.
-- Cuatro mutaciones causales dieron EXIT1 y se restauraron byte por byte: retirar extracto
- previo, declarar completo el cursor repetido, atribuir el tope al proveedor y filtrar causa libre.
+ La regresión adicional del handler+updater reprodujo32 PASS/2 FAIL antes del ajuste de prefijos
+ sellados: exige que la fila antigua sin id entre antes de su acuse y no sume otra vez el grupo.
+- Seis mutaciones causales dieron EXIT1 y se restauraron: retirar extracto previo, declarar
+ completo el cursor repetido, atribuir el tope al proveedor, filtrar causa libre, descartar el
+ prefijo sellado y sumar su multiplicidad a la caché. Los artefactos se regeneraron desde fuente.
 - Node focal: paginado, progreso, acuse, reconexión, hueco, recuperación, invariante de recibos,
- mapa, i18n, seguridad, documentación, sintaxis y privacidad dieron EXIT0. Build EXIT0.
+ mapa, i18n, seguridad, sintaxis y privacidad dieron EXIT0. Build EXIT0. `docs-frescura` pasó
+ antes del commit; después dio EXIT1 solo porque hay código candidato tras el ancla123 sin
+ bump autorizado. Todos los números de versión siguen alineados. No se fuerza esa puerta.
 - Deno2.9.0 real: `enablebanking.test.ts` y `demand-window.test.ts`,23 PASS/0 FAIL, EXIT0,
  con `--no-lock --cached-only --allow-env`. Sin nuevo fichero de lock ni dependencia.
 - Presupuesto oficial de123: EXIT1. Medición con el mismo test y solo formato de bytes:
- 1.385.712 B minificados frente a1.384.448 B (exceso1.264 B);
- 380.626 B gzip frente a380.928 B (margen302 B);3 bloqueantes frente a3.
+ 1.386.301 B minificados frente a1.384.448 B (exceso1.853 B);
+ 380.786 B gzip frente a380.928 B (margen142 B);3 bloqueantes frente a3.
  No se amplían topes, no se recortan contratos para caber. El sellado final se mide en integración.
--18 casos DOM registrados; **sin ejecución local de Chromium**, por el turno ocupado ajeno.
+-21 casos DOM registrados; **sin ejecución local de Chromium**, por el turno ocupado ajeno.
  CI remota sobre SHA final pendiente al escribir esta evidencia; un fallo anterior a Playwright
- deja esos18 sin verificar. No hay prueba con cartera real, proveedor real, móvil ni servidor desplegado.
+ deja esos21 sin verificar. No hay prueba con cartera real, proveedor real, móvil ni servidor desplegado.
 - `beta-sources` local alcanzó18 casos sin fallo mostrado, pero el proceso recibió SIGTERM por
  el límite de60 segundos del arnés: EXIT no disponible. No se declara verde ni se repite una
  suite costosa local; el veredicto completo corresponde a la CI remota.

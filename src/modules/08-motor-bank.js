@@ -1002,12 +1002,15 @@ function categoryOfBankTx(tx){
 // Aplana los movimientos enlazados conservando bancos; el diario aplica su ventana de fechas.
 function flattenBankTx(links, previous){
   const out=[];
-  const partial={}, reported={};
+  const partial={}, reported={}, sealed={};
   (links||[]).forEach(function(lk){
     const ent=entFromAspsp(lk && lk.aspsp);
     if(!ent) return;
     reported[ent]=true;
     if(lk.ok===false || lk.truncated || lk.readReason || (lk.accounts||[]).some(function(a){ return a&&(a.ok===false||a.truncated||a.transactionError||a.readReason); })) partial[ent]=true;
+    // El motivo del ENLACE puede ser el siguiente trozo antiguo que no entró. Si las cuentas
+    // entregadas están completas, ese prefijo sí se selló:119 puede acusarlo, incluso sin ids.
+    if(lk.ok!==false && lk.readReason && !lk.truncated && (lk.accounts||[]).length && lk.accounts.every(function(a){ return a&&a.ok===true&&!a.truncated&&!a.transactionError&&!a.readReason; })) sealed[ent]=true;
     // En multicuenta el top-level solo contiene la PRIMERA cuenta compatible. Los movimientos
     // nuevos de una segunda cuenta estaban en `accounts[].transactions` y el cliente ni los
     // miraba: el banco figuraba sincronizado pero Gastos decía que no había nada nuevo.
@@ -1023,14 +1026,18 @@ function flattenBankTx(links, previous){
     });
   });
   if(previous && Object.keys(partial).length){
-    // Un prefijo no sustituye un extracto: conserva filas previas y solo añade BOOK nuevos
-    // con identidad inequívoca. Una corrección/pendiente espera a la lectura completa.
-    const kept=previous.filter(function(x){ return x&&(partial[x.ent]||!reported[x.ent]); }), seen={}, counts={};
+    // Una cuenta cortada no sustituye un extracto: solo añade BOOK nuevos inequívocos.
+    // Un trozo antiguo ya sellado mantiene su lectura completa, aunque falle el siguiente.
+    const kept=previous.filter(function(x){ return x&&(partial[x.ent]||!reported[x.ent]); }), seen={}, counts={}, oldNoId={}, freshNoId={};
+    const noIdKey=function(x){ const st=String(x.status||"").trim().toUpperCase(); return JSON.stringify([x.ent,String(x.date||"").slice(0,10),x.amount,x.merchant||"",!st||/book|post/i.test(st)?"BOOK":st]); };
     const today=madridYmdParts(Date.now()), todayYmd=today.y+"-"+String(today.m).padStart(2,"0")+"-"+String(today.d).padStart(2,"0"), days=[31,28,31,30,31,30,31,31,30,31,30,31];
-    kept.forEach(function(x){ if(x.id) seen[x.ent+"|"+x.id]=1; });
+    kept.forEach(function(x){ if(x.id) seen[x.ent+"|"+x.id]=1; else { const k=noIdKey(x); oldNoId[k]=(oldNoId[k]||0)+1; } });
     out.forEach(function(x){ if(x.id){ const k=x.ent+"|"+x.id; counts[k]=(counts[k]||0)+1; } });
     const fresh=out.filter(function(x){
       if(!partial[x.ent]) return true;
+      // Solo un tramo COMPLETO acredita su multiplicidad sin id; concatenarlo con la caché
+      // duplicaría los ordinales. Conserva el máximo recibido, jamás la suma de dos lecturas.
+      if(sealed[x.ent]&&!x.id){ const k=noIdKey(x); freshNoId[k]=(freshNoId[k]||0)+1; return freshNoId[k]>(oldNoId[k]||0); }
       const k=x.ent+"|"+x.id;
       const p=x.date.match(/^(\d{4})-(\d{2})-(\d{2})$/), y=p&&+p[1], m=p&&+p[2], d=p&&+p[3];
       const valid=p&&y>0&&m>=1&&m<=12&&d>=1&&d<=days[m-1]+(m===2&&y%4===0&&(y%100!==0||y%400===0)?1:0);

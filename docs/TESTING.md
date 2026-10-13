@@ -387,7 +387,9 @@ Descarga incompleta (candidato13/10): `tests/bank-download-incomplete.test.mjs`,
 runner y `STEPS_SUPABASE`, ejecuta lector, handler y updater real de App. Compara el updater con
 el padre123: ambas lecturas de `bankTx` conservan el extracto; falla sin el adaptador mínimo.
 Comprueba motivos,100 filas sin continuación, cursor/acuse ante corte, registro saneado incluso
-con cero páginas y no resurrección de lápidas/ordinales/vínculos de gemelos. El Deno compartido
+con cero páginas y no resurrección de lápidas/ordinales/vínculos de gemelos. El handler+updater
+también exige guardar filas sin id del prefijo antiguo completo antes de su acuse aunque falle
+el siguiente trozo; repetirlo conserva el máximo de iguales, sin sumar la caché. El Deno compartido
 `enablebanking.test.ts` amplía límites, repetición,100 filas, fallo del proveedor y timeout.
 `e2e/bancos-descarga-incompleta.spec.mjs` está en `E2E_MAP` de08: abre el sync manual y comprueba
 el aviso DOM y la conservación local en es/en/ca. Su registro no acredita una ejecución:
