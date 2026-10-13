@@ -172,8 +172,9 @@ function App(){
      Mapa: Gastos/Cartera = ola arriba y abajo (pan-y siempre). Resumen = ola solo abajo
      (arriba = perfil → `.mc-touch-own`). Plan = pan-y SIEMPRE en reposo: si lo poníamos en
      `mc-touch-own` al estar arriba, `touch-action:none` bloqueaba TAMBIÉN bajar a ver el
-     contenido (feedback 5/8: «me has bloqueado incluso que pueda bajar»). El gesto de segmento
-     pone/quita `mc-touch-own` solo DURANTE el tirón hacia abajo (14-v4-screens.js). */
+     contenido (feedback 5/8: «me has bloqueado incluso que pueda bajar»). Plan no pone esa
+     clase nunca: ponerla dentro del touchstart no gobierna el gesto en curso (medido
+     2026-10-13), el segmento se reclama con preventDefault (14-v4-screens.js). */
   const syncPageTouchAction=function(pageEl, pageIdx){
     if(!pageEl||!pageEl.classList) return;
     const id=tabIds[pageIdx];
