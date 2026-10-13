@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "id": "bancos-descarga-incompleta-revision-reservas-codex-20261013",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261013-32295a8f",
+  "createdAt": "2026-10-13T12:04:39.303Z",
+  "to": "codex",
+  "baseSHA": "f5904735b514751ee926d25c22c92195b6ce3653",
+  "objective": "Revisión independiente de la PR 223 (f236a2f4): GO CON RESERVAS; A1 es regresión y hay que corregirla antes de integrar. Lo demás cumple: corte en página 2, dos cortes seguidos, corte en una cuenta de dos, cursor nulo y hueco de 60 días dan 0 perdidos y 0 duplicados; la clave repetida ya no avanza el cursor; registro saneado. El e2e bancos-descarga-incompleta da 21 de 21, pero se entregó sin haberlo corrido.",
+  "scope": [
+    "la misma rama codex/bancos-descarga-incompleta"
+  ],
+  "acceptance": [
+    "A1, ALTA, regresión: un banco sin entry_reference cuya ventana no cabe en 12 llamadas deja de importar TODO. Causa: src/modules/08-motor-bank.js hacia 1044, en parcial solo entran filas con id y status BOOK; el servidor trata el desborde como excepción y entrega acuse igualmente (bank-sync/index.ts 339 a 342). Reproducción con páginas de 5 y banco sin id: la base importa 60 de 84, la PR importa 0 de 84, con acuse, en cada pulsación. Trade Republic por Open Banking no trae id. No aplicar el filtro de identidad segura cuando el motivo es page_limit o row_limit con acuse; test con handler y cliente reales manteniendo bankTx entre pulsaciones",
+    "A2, MEDIA: bank_read_limited dice «Puedes volver a sincronizar» en el desborde de ventana, pero repetir da lo mismo y lo que queda más allá del tope no llega nunca por esa vía: el texto tiene que decir la verdad (qué falta y que para traerlo está Importar histórico, que existe y se queda). Y time_limit no es «la app ha alcanzado el límite»: es el banco que va lento; texto propio o el de reintentar",
+    "A3, MEDIA-BAJA: con el servidor nuevo bank_read_pending es inalcanzable (en la recuperación normal del tramo antiguo el servidor pone page_limit y gana bank_read_limited), y bank_read_failed y bank_read_timeout quedan muertos; el e2e prueba una respuesta que el servidor nuevo no emite. Que cada texto tenga un camino real con el servidor nuevo y el e2e use respuestas que el handler real produce; borrar las claves que queden sin uso",
+    "A4, BAJAS: un transactions_budget propio se etiqueta provider_error; con aviso de tramo pendiente ya no sale el visto de actualizado; un banco caducado conserva su bankTx indefinidamente; previous indefinido y lista vacía se comportan distinto en el filtro",
+    "Mutaciones que sobreviven: aceptar fecha futura en parcial; sellado aunque el enlace esté truncado; sellado aunque una cuenta esté cortada; readChunk sin motivo por tope; ningún test Node ata clave y texto de aviso",
+    "PARA LA INTEGRACIÓN (no lo hagáis vosotros, pero dejadlo fácil): al mezclar con claude/brokers-falsa-caducidad, tests/bank-download-incomplete.test.mjs instancia el handler sin ebFailure, ebSessionVerdict ni decryptSessionId y da dos rojos; ampliar el arnés para aceptarlos. Y en el log final de bank-sync la unión ingenua deja dos logObDemandResult: rebasad esta rama sobre origin/claude/brokers-falsa-caducidad (2d53ab24) y resolvedlo en origen",
+    "Result con SHA y EXIT reales, incluido el e2e ejecutado"
+  ]
+}
