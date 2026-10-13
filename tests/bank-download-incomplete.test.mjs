@@ -1,28 +1,13 @@
+import { loadPureLogic } from "../scripts/load-pure-logic.mjs";
+import fs from "node:fs";
+import vm from "node:vm";
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import vm from "node:vm";
-import { E, SYNC, main, baseDatos, enlace, haceDias, FakeDate, day } from "./helpers/banco-sintetico.mjs";
-import { loadPureLogicFromFile } from "../scripts/load-pure-logic.mjs";
+import { E, SYNC, main, day } from "./helpers/banco-sintetico.mjs";
+import { ctx, sync, updater, scenario } from "./helpers/bank-download-fixture.mjs";
 
 // La respuesta y el cursor salen del handler real; un resumen de flags no vería un acuse falso.
-const ctx=loadPureLogicFromFile();
 const tx=(id="new")=>({entry_reference:id,booking_date:day(-1),transaction_amount:{amount:"12.50"},credit_debit_indicator:"DBIT",status:"BOOK"});
-async function sync(reply,{acks=true,balanceError=null,ageDays=5}={}){
-  const row=enlace(haceDias(ageDays)),before=row.last_sync,events=[];let handler,calls=0;
-  const db=baseDatos([row]),from=db.from;
-  db.from=name=>name==="app_events"?{insert:async event=>{events.push(event);return {};}}:from(name);
-  const api=async(jwt,path,init)=>{
-    if(path.endsWith("/balances")){if(balanceError)throw Error(balanceError);return {balances:[{balance_type:"ITAV",balance_amount:{amount:"100",currency:"EUR"}}]};}
-    calls++;return reply(new URL(path,"https://bank.invalid"),calls,init);
-  };
-  new Function("Deno","createClient","ebApi","ebConfig","jsonResp","makeJWT","mapTransaction","withCors","fetchBankTransactions","Date",SYNC)(
-    {serve:fn=>handler=fn,env:{get:()=>"synthetic"}},()=>db,api,()=>({}),
-    (body,status=200)=>new Response(JSON.stringify(body),{status}),async()=>"synthetic",E.mapTransaction,fn=>fn,E.fetchBankTransactions,FakeDate
-  );
-  const response=await handler(new Request("https://app.invalid",{method:"POST",body:JSON.stringify(acks?{recoverGaps:true,acks:{}}:{})}));
-  assert.equal(response.status,200);
-  return {data:await response.json(),row,before,events,calls};
-}
 let count=0,failed=0;
 async function test(name,fn){count++;try{await fn();console.log("  ✓ "+name);}catch(e){failed++;console.error("  ✗ "+name+": "+e.message);}}
 for(const [name,api,maxPages,reason]of [
@@ -90,25 +75,12 @@ await test("un error antes de la primera página queda registrado sin datos libr
 });
 for(const reason of ["provider_error","invalid_response","repeated_cursor","page_limit","row_limit","time_limit"])await test("aviso distingue "+reason,()=>{
   const warnings=ctx.bankReadWarnings([link(reason,[])]);
-  assert.equal(warnings[0].key,["page_limit","row_limit","time_limit"].includes(reason)?"bank_read_limited":"bank_read_interrupted");
+  assert.equal(warnings[0].key,reason==="time_limit"?"bank_read_timeout":["page_limit","row_limit"].includes(reason)?"bank_read_limited":"bank_read_interrupted");
 });
 await test("tramo antiguo pendiente no es descarga cortada",()=>{
   const warnings=ctx.bankReadWarnings([{aspsp:"CaixaBank",ok:true,gapPending:true,accounts:[{ok:true,count:1,transactions:[incoming()]}]}]);
   assert.equal(warnings[0].key,"bank_read_pending");
 });
-function updater(source,links,overrides={}){
-  const start=source.indexOf("      set(function(prev){",source.indexOf("obAckPend.current=")),end=source.indexOf("      // sube las importadas",start);
-  assert.ok(start>=0&&end>start);
-  const names=["flattenBankTx","importObExpenses","applyInvestBuy","cuotasDeDeudaPorMarcar","gemelosDeImportacion","pushGemelos","enrichNotesFromBankTx","reconcileFixedPaymentProofs","reconcileEarlyIncomeAnchors","applyBankBalances","bankIssuesOf"];
-  const proof=[];
-  let state={accounts:[{id:"cx",ent:"caixabank",value:100,role:"diario"}],investments:[],fixed:[],oneoffs:[],flows:[],debts:[],goals:[],assets:[],obAccounts:[],settings:{expenseBanks:["caixabank"]},bankTx:[old],deleted:["lapida-sintetica"],gemelos:[{id:"gemelo-previo",status:"kept"}],expenses:[{id:"guardado",extId:"old",source:"ob",ent:"caixabank",date:day(-2),amount:7,merchant:"Antes",category:"otros",reciboId:"marca-previa"}]};
-  state=Object.assign(state,overrides);
-  const args=names.map(name=>name==="reconcileFixedPaymentProofs"?(s,...a)=>{proof.push(s.bankTx);return ctx[name](s,...a);}:ctx[name]);
-  new Function("set","links","dbLinks","DEUDA_CAT","Date","at",...names,"let obAdded=[];"+source.slice(start,end))(
-    fn=>state=fn(state),links,[{aspsp_name:"CaixaBank",status:"active"}],vm.runInContext("DEUDA_CAT",ctx),FakeDate,FakeDate.now(),...args
-  );
-  return {state,proof};
-}
 const before=execFileSync("git",["show","3625fa7ed5134cfbc5e364adc4f588bfdaf670c0:src/modules/11-app-main.js"],{encoding:"utf8",maxBuffer:6e6});
 for(const reason of ["provider_error","repeated_cursor"])await test("updater real: ambos consumidores preservan extracto, lápidas, gemelos y recibo ("+reason+")",()=>{
   const links=[link(reason,[incoming()])],a=updater(before,links),b=updater(main,links);
@@ -153,6 +125,99 @@ await test("trozo sellado repetido no suma otra vez filas sin id del extracto an
   const l={aspsp:"CaixaBank",ok:true,readReason:"page_limit",accounts:[{ok:true,transactions:Array.from({length:3},()=>incoming(null,{date:old.date,amount:7,merchant:"Movimiento"}))}]};
   const first=ctx.flattenBankTx([l],cache),second=ctx.flattenBankTx([l],first);
   assert.equal(first.length,3);assert.equal(second.length,3);
+});
+
+for(const mode of ["page_limit","row_limit"])await test("handler+cliente reales: "+mode+" con acuse importa sin id y conserva bankTx entre pulsaciones",async()=>{
+  const first=await scenario(mode);const expected=mode==="page_limit"?60:2000;
+  assert.ok(first.data.links[0].ack);assert.ok(first.data.links[0].accounts[0].truncated);
+  let state={bankTx:[],expenses:[],deleted:[],gemelos:[]};
+  for(let pulse=0;pulse<3;pulse++){
+    const r=pulse?await sync(first.reply,{rows:first.rows,acksValue:{CaixaBank:first.data.links[0].ack}}):first;
+    state=updater(main,r.data.links,state).state;
+    assert.equal(state.bankTx.length,expected);assert.equal(state.expenses.length,expected);
+    assert.equal(new Set(state.expenses.map(e=>e.id)).size,expected);
+  }
+});
+await test("fecha futura nunca entra en parcial, con id o sin id sellado",()=>{
+  for(const id of ["future",null]){
+    const l=link("provider_error",[incoming(id,{date:day(2)})]);
+    if(!id)Object.assign(l,{readReason:"provider_error",accounts:[{ok:true,transactions:l.accounts[0].transactions}]});
+    assert.equal(ctx.flattenBankTx([l],[]).length,0);
+  }
+});
+await test("enlace o cuenta truncados no acreditan multiplicidad sin id",()=>{
+  for(const surface of ["link","account"]){
+    const l={aspsp:"CaixaBank",ok:true,readReason:"provider_error",accounts:[{ok:true,transactions:[incoming(null)]}]};
+    if(surface==="link")l.truncated=true;else l.accounts[0].truncated=true;
+    assert.equal(ctx.flattenBankTx([l],[]).length,0);
+  }
+});
+await test("previous omitido y vacío tienen las mismas garantías en parcial",()=>{
+  const l=link("provider_error",[incoming(null),incoming("pending",{status:"PDNG"}),incoming("safe")]);
+  assert.equal(JSON.stringify(ctx.flattenBankTx([l])),JSON.stringify(ctx.flattenBankTx([l],[])));
+});
+await test("caducado retira solo snapshot bankTx y conserva su libro de Gastos",()=>{
+  const cached=Object.assign({},old),b=updater(main,[{aspsp:"CaixaBank",ok:false,expired:true,accounts:[]}],{bankTx:[cached]});
+  assert.equal(b.state.bankTx.length,0);assert.ok(b.state.expenses.some(e=>e.id==="guardado"));
+});
+
+
+await test("presupuesto propio no se atribuye al proveedor en el diagnóstico real",()=>{
+  const classify=new Function("Deno","withCors",SYNC+";return obReadLogDetails;")({serve(){}},fn=>fn);
+  const detail=classify([{ok:false,error:"transactions_budget"}]);
+  assert.deepEqual(detail.reasons,["page_limit"]);assert.deepEqual(detail.failureCodes,["page_limit"]);
+});
+for(const [mode,key]of [["page_limit","bank_read_limited"],["row_limit","bank_read_limited"],["time_limit","bank_read_timeout"],["pending","bank_read_pending"],["sealed_prefix","bank_read_interrupted"]])await test("respuesta handler real ata motivo, clave y texto en es/en/ca: "+mode,async()=>{
+  const r=await scenario(mode),l=r.data.links[0],w=ctx.bankReadWarnings(r.data.links)[0];
+  assert.equal(w.key,key);if(mode==="pending"){assert.equal(l.readReason,"page_limit");assert.equal(l.gapPending,true);assert.ok(l.ack);}
+  for(const lang of ["es","en","ca"]){
+    if(lang!=="es")vm.runInContext("LANG."+lang+"="+fs.readFileSync("public/i18n/"+lang+".json","utf8"),ctx);
+    vm.runInContext("CURLANG="+JSON.stringify(lang),ctx);
+    const text=ctx.tf(w.key,{bank:w.bank});
+    assert.ok(text.includes("CaixaBank"));assert.ok(!text.includes("{bank}"));
+    const tokens=key==="bank_read_limited"?["Importar histórico","Import history","Importar històric"]:key==="bank_read_timeout"?["tardado demasiado","took too long","trigat massa"]:key==="bank_read_pending"?["movimientos antiguos","older transactions","moviments antics"]:["el banco o la conexión","the bank or connection","el banc o la connexió"];
+    assert.ok(text.includes(tokens[["es","en","ca"].indexOf(lang)]),text);
+    if(key==="bank_read_limited")assert.doesNotMatch(text,/Puedes volver|You can sync|Pots tornar/);
+  }
+  vm.runInContext('CURLANG="es"',ctx);
+});
+
+await test("readChunk al agotar llamadas antes del siguiente trozo conserva page_limit",async()=>{
+  const r=await scenario("pending_saturated");
+  assert.equal(r.calls,12);assert.equal(r.data.links[0].readReason,"page_limit");assert.equal(r.data.links[0].gapPending,true);
+});
+
+await test("base2d53 importa60 de84 sin id; revisión conserva los mismos60 con acuse",async()=>{
+  const r=await scenario("page_limit");
+  const baseLogic=loadPureLogic(execFileSync("git",["show","2d53ab24dc32a83faf17ce08c3b2d50b304d8e55:public/index.html"],{encoding:"utf8",maxBuffer:6e6}));
+  const baseApp=execFileSync("git",["show","2d53ab24dc32a83faf17ce08c3b2d50b304d8e55:src/modules/11-app-main.js"],{encoding:"utf8",maxBuffer:6e6});
+  const state={bankTx:[],expenses:[],deleted:[],gemelos:[]};
+  assert.equal(updater(baseApp,r.data.links,state,baseLogic).state.expenses.length,60);
+  assert.equal(updater(main,r.data.links,state).state.expenses.length,60);
+});
+await test("aviso de tramo pendiente conserva el actualizado; corte del proveedor no lo inventa",async()=>{
+  const a=main.indexOf("      const bankLabelOf=function(l)"),b=main.indexOf("      // ── BANCO SIN CONECTAR",a);assert.ok(a>=0&&b>a);
+  for(const mode of ["pending","provider_error"]){
+    const r=await scenario(mode),messages=[];
+    new Function("links","dbLinks","opts","preview","obAdded","avisaSync","bankIssuesOf","bankReadWarnings","bankRateRemember","tf","t","eur","entOf","entFromAspsp",main.slice(a,b))(
+      r.data.links,[],{manual:true},{synced:[{ent:"caixabank",bal:100}]},[],(_opts,text)=>messages.push(text),...["bankIssuesOf","bankReadWarnings","bankRateRemember","tf","t","eur","entOf","entFromAspsp"].map(name=>vm.runInContext(name,ctx))
+    );
+    assert.equal(messages.some(text=>text.startsWith("✓ ")),mode==="pending");
+    assert.ok(messages.some(text=>text.includes(ctx.tf(mode==="pending"?"bank_read_pending":"bank_read_interrupted",{bank:"CaixaBank"}))));
+  }
+});
+
+await test("un desborde SIN acuse no acredita filas nuevas sin id",()=>{
+  for(const reason of ["page_limit","row_limit"]){
+    const l=link(reason,[incoming(null)]);
+    assert.equal(ctx.flattenBankTx([l],[]).length,0);
+  }
+});
+await test("transactions_budget antes de la primera página sale como page_limit del handler",async()=>{
+  const r=await sync(()=>{throw Error("transactions_budget");});
+  assert.equal(r.data.links[0].accounts[0].readReason,"page_limit");
+  const detail=JSON.parse(r.events.find(e=>e.message.startsWith("OB sync")).detail);
+  assert.ok(detail.reasons.includes("page_limit"));assert.ok(!detail.reasons.includes("provider_error"));
 });
 console.log("bank-download-incomplete: "+(count-failed)+" PASS / "+failed+" FAIL");
 if(failed)process.exit(1);

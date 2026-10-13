@@ -314,3 +314,8 @@ No Edge/SQL desplegada ni modificada por el injerto. Ingest activo sigue legado;
 
 
 Movilidad88: espejo y ALLOWED/HINTS preparados como fuente. No despliega Edge ni SQL. Sin detalle inequívoco conserva tasas/parking/transporte; servidor anterior y requisitos Edge siguen pendientes.
+
+Revisión de reservas PR223 (13/10), sin desplegar: el logger combina motivos de paginación y
+diagnóstico de autenticación de la dependencia2d53 sin duplicar logObDemandResult. El presupuesto
+propio se etiqueta page_limit. No se cambia el cursor/acuse119 ni el catch/consulta de sesión.
+La fuente es candidata sobre esa dependencia, no una función desplegada de beta124.

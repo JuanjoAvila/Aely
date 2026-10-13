@@ -780,7 +780,7 @@ function App(){
       if(opts.manual) links.forEach(function(l){
         if(l&&l.gapBeyondCap) avisaSync(opts,"⚠ "+tf("bank_gap_cap",{bank:bankLabelOf(l)}));
       });
-      if(opts.manual && preview.synced.length && !issues.length && !readWarnings.length){
+      if(opts.manual && preview.synced.length && !issues.length && !readWarnings.some(function(w){ return w.key!=="bank_read_pending"; })){
         const ents={}; preview.synced.forEach(function(x){ if(x&&x.ent) ents[x.ent]=1; });
         const bancos=Object.keys(ents);
         let msg = bancos.length===1

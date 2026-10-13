@@ -201,6 +201,14 @@ mantiene sus lápidas, ordinales y vínculos de gemelos. Un fallo del proveedor/
 repetida no ofrece cursor ni acuse del tramo sin recibir; los trozos antiguos ya sellados sí
 pueden entregar su cursor. Se conserva la excepción previa de desbordamiento de la ventana por
 páginas/filas descrita abajo; no se cambia el protocolo119.
+
+Revisión de reservas13/10, sólo fuente: el desborde de ventana con acuse119 admite el prefijo
+sin id por multiplicidad máxima, incluso con page_limit/row_limit en cuentas. Otros cortes siguen
+exigiendo identidad segura; el sellado no admite fechas futuras. previous omitido se trata como [].
+Un expired explícito retira sólo el snapshot crudo, conservando el libro de Gastos. Timeout y límite
+de ventana tienen avisos distintos; el pendiente antiguo con cuentas completas conserva el
+actualizado del saldo. [Revisión y gates](briefs/bancos-descarga-incompleta-20261013.md).
+
 Detalle, evidencia sintética y límites: [brief del candidato](briefs/bancos-descarga-incompleta-20261013.md).
 
 `bank-sync` usa `fetchBankTransactions` para sync e histórico: continúa aunque una página esté

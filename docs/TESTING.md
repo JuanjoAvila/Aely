@@ -1066,3 +1066,11 @@ reproducción del lag ni mejora de rendimiento. La fuente183 tiene CI37810907496
 `e2e/cartera-bienes-completo.spec.mjs` protege alta vacía, validación, edición, borrado confirmado/cancelado, cero, recarga y conservación de los demás datos. `e2e/cartera-bienes-toque.spec.mjs` comprueba abrir y cancelar por toque/teclado en es/en/ca y letra normal/grande. Ambos están en E2E_MAP para07 y14. `e2e/inicio-grafica-significado.spec.mjs`, registrado para03, protege el dibujo original, moneda, histórico y total desconocido. Son datos sintéticos; no sustituyen la aceptación móvil. Suite completa y CI pendientes de ejecución sobre el SHA del PR.
 
 Inicio PR204, revisión119: inicio-v42 prueba manual real, deuda/intereses, bienes y aportaciones, unión400/30, nube acotada y nueve mutantes monetarios. La segunda revisión añade alta del formulario frente a montaje/pull, bienes legados constantes, banco→manual con escalones, deuda sin plazo y callback tardío sin sesión. Los e2e ya registrados protegen scroll vertical, cobertura por cuenta, mes natural/último día y ancho de Inversiones. La focal nueva de Inicio es serial; Claude asume funcional completa y rendimiento limpio en integración. Se conservan los rojos y A/B anteriores. [Ronda anterior](briefs/inicio-revision-nogo-20261012.md) · [segunda revisión](briefs/inicio-ronda3-bienes-20261012.md).
+
+### Revisión PR223 y focal remota manual
+
+tests/helpers/bank-download-fixture.mjs comparte el handler, el updater y sus respuestas
+sintéticas con Node y e2e. El spec de descarga incompleta tiene24 casos, también límites con
+acuse sin id entre pulsaciones. test.yml conserva la suite completa y agrega focal_spec opcional
+(ruta e2e/*.spec.mjs validada): job focal independiente,1worker/0retries, JSON como artefacto.
+Su pase no convierte un rojo de la suite completa en verde ni acredita móvil/despliegue.

@@ -32,6 +32,7 @@ function obReadFailureCode(err: unknown) {
   const status = msg.match(/\bEB\s+(\d{3})\b/i);
   if (status) return `eb_${status[1]}`;
   if (/abort|timeout/i.test(msg)) return "timeout";
+  if (/transactions_budget/i.test(msg)) return "page_limit";
   if (/transactions_invalid/i.test(msg)) return "invalid_response";
   return "unavailable";
 }
@@ -43,9 +44,9 @@ function obReadLogDetails(accounts: any[]) {
   for (const a of accounts || []) {
     const code = a.failureCode || (a.error ? obReadFailureCode(a.error) : null);
     const reason = ["page_limit", "row_limit", "time_limit", "repeated_cursor", "invalid_response", "provider_error"].includes(a.readReason)
-      ? a.readReason : code === "timeout" || a.transactionError === "timeout" ? "time_limit" : code === "invalid_response" ? "invalid_response" : a.transactionError || a.ok === false ? "provider_error" : a.truncated ? "incomplete" : null;
+      ? a.readReason : code === "timeout" || a.transactionError === "timeout" ? "time_limit" : code === "invalid_response" ? "invalid_response" : code === "page_limit" ? "page_limit" : a.transactionError || a.ok === false ? "provider_error" : a.truncated ? "incomplete" : null;
     if (reason && !reasons.includes(reason)) reasons.push(reason);
-    if (["timeout", "invalid_response", "unavailable", "eb_400", "eb_401", "eb_403", "eb_404", "eb_408", "eb_422", "eb_429", "eb_500", "eb_502", "eb_503", "eb_504"].includes(code) && !failureCodes.includes(code)) failureCodes.push(code);
+    if (["timeout", "page_limit", "invalid_response", "unavailable", "eb_400", "eb_401", "eb_403", "eb_404", "eb_408", "eb_422", "eb_429", "eb_500", "eb_502", "eb_503", "eb_504"].includes(code) && !failureCodes.includes(code)) failureCodes.push(code);
   }
   if (!accounts || !accounts.length) reasons.push("no_accounts");
   return { reasons, failureCodes };
@@ -208,7 +209,7 @@ Deno.serve(withCors(async (req: Request) => {
             /* Código cerrado y seguro: explica si fue espera, límite o permiso sin devolver el
                texto del proveedor, que puede contener referencias bancarias. */
             const code = obReadFailureCode(err);
-            accts.push({ uid, iban: ac.iban || null, ok: false, error: code, failureCode: code, readReason: code === "timeout" ? "time_limit" : code === "invalid_response" ? "invalid_response" : "provider_error", transactions: [] });
+            accts.push({ uid, iban: ac.iban || null, ok: false, error: code, failureCode: code, readReason: code === "timeout" ? "time_limit" : code === "page_limit" ? "page_limit" : code === "invalid_response" ? "invalid_response" : "provider_error", transactions: [] });
           }
         }
         await logObHistoryResult(admin, user.id, link.aspsp_name, dateFrom, accts, Date.now() - startedAt);
@@ -354,7 +355,7 @@ Deno.serve(withCors(async (req: Request) => {
         if (a.ok === false && !a.readReason) {
           const code = obReadFailureCode(a.error || a.transactionError);
           a.failureCode = code;
-          a.readReason = code === "timeout" ? "time_limit" : code === "invalid_response" ? "invalid_response" : "provider_error";
+          a.readReason = code === "timeout" ? "time_limit" : code === "page_limit" ? "page_limit" : code === "invalid_response" ? "invalid_response" : "provider_error";
         }
       });
       /* last_sync es del ENLACE y dice hasta dónde está leído en TODAS sus cuentas. Sin tramo
@@ -488,7 +489,7 @@ Deno.serve(withCors(async (req: Request) => {
       } catch (err) {
         // Se conserva solo lo sellado; el motivo del corte no puede desaparecer del aviso/log.
         r.entry.failureCode = obReadFailureCode(err);
-        r.entry.readReason = r.entry.failureCode === "timeout" ? "time_limit" : r.entry.failureCode === "invalid_response" ? "invalid_response" : "provider_error";
+        r.entry.readReason = r.entry.failureCode === "timeout" ? "time_limit" : r.entry.failureCode === "page_limit" ? "page_limit" : r.entry.failureCode === "invalid_response" ? "invalid_response" : "provider_error";
       }
       // deno-lint-ignore no-explicit-any
       r.accounts.forEach((a: any, i: number) => {

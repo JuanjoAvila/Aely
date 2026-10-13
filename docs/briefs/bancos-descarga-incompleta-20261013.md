@@ -1,4 +1,59 @@
-# Descarga bancaria incompleta — candidato13/10/2026
+# Descarga incompleta: revisión de reservas del13/10/2026
+
+Task vigente: `bancos-descarga-incompleta-revision-reservas-codex-20261013`.
+Claim/base canónica124: `f5904735b514751ee926d25c22c92195b6ce3653`, inmutable.
+Rebase de los tres commits propios de PR223 sobre la dependencia REMOTA expresamente ordenada:
+`origin/claude/brokers-falsa-caducidad`, `2d53ab24dc32a83faf17ce08c3b2d50b304d8e55`.
+Esa dependencia contiene VERSION4.26.122; no es un rollback publicado de beta124.
+La rama ajena se conserva. La ejecución propia se revisa contra2d53, no contra una integración nueva.
+El result histórico9798 y su enmienda terminala7b1 permanecen cerrados; esta revisión tiene claim/result nuevos.
+
+## Qué corrige
+
+- La ventana que rebasa páginas/filas y lleva acuse119 conserva las filas sin id. El handler y
+  el cliente reales importan60 de84 (igual que la base2d53), y2000 filas en el límite de filas.
+  Tres pulsaciones conservan bankTx/libro y su multiplicidad, sin sumar otra copia.
+  Sin acuse o con enlace/cuenta cortados por otra causa no se acredita identidad ambigua.
+- El guard de fecha se aplica también al prefijo sellado. Omitir previous equivale a [].
+  Un expired explícito retira el snapshot bankTx del banco, conservando sus asientos de Gastos.
+- El límite de ventana explica que faltan movimientos y ofrece Importar histórico para buscarlos.
+  El timeout explica que el banco tarda y permite reintentar. El tramo antiguo pendiente tiene
+  una respuesta real: cuentas completas, gapPending y page_limit del siguiente trozo; conserva
+  además el visto de actualizado de los saldos. bank_read_failed se retira de es/en/ca.
+- transactions_budget se clasifica como límite propio, no provider_error.
+  readChunk conserva el motivo tanto al quedarse sin llamadas como al recibir un trozo cortado.
+- El catch/consulta de sesión de Claude quedan intactos. El arnés recibe ebFailure,
+  ebSessionVerdict y decryptSessionId real. Solo hay UN logObDemandResult por enlace;
+  el diagnóstico posterior de autenticación de Claude sigue aparte.
+
+## Pruebas y frontera de ejecución
+
+Los40 casos iniciales reprodujeron35 PASS/5 FAIL antes de la corrección. El foco ampliado termina
+en51 PASS/0 FAIL, incluyendo base real, estado entre pulsaciones y el bloque real del reporte.
+Once mutantes dan EXIT1: excepción119, acuse ausente, futuro, enlace/cuenta truncados,
+ambas causas readChunk, budget, texto engañoso, actualizado y snapshot caducado.
+Fuente y artefactos se restauran byte a byte. Deno nativo:34 PASS/0 FAIL en
+enablebanking/demand-window/crypto. Los demás focos y los exits constan en el result.
+
+El e2e revisado tiene24 casos es/en/ca y recibe el JSON del handler actual mediante un transporte
+sintético compartido (tests/helpers/bank-download-fixture.mjs), no flags fabricados en el spec.
+Comprueba avisos, extracto previo, prefijo sin id, repetición de los límites y el actualizado.
+Su ejecución y EXIT se registran en el nuevo PR/result al obtener la CI exacta.
+
+test.yml admite focal_spec opcional: agrega un job focal independiente con1worker/0retries y
+reporte JSON, sin cambiar ni condicionar el job test completo. Así un rojo de catálogo/versión
+no inventa aceptación DOM ni impide obtener la evidencia que pide esta revisión. Las etiquetas
+de ambos jobs y sus gates siguen separadas. No se ejecuta Chromium ni suite pesada local.
+
+VERSION/notas/catálogos/Retiro/topes se mantienen como los de la dependencia. Los rojos de
+frescura y tamaño son gates de integración declarados (1.385.472/1.382.400 B minificados,
+380.461/379.904 B gzip), sin aflojar oráculos ni guardar código
+para ocultarlos. Sin main/beta, despliegue, SQL/RLS, APK o consulta de banco/DB real.
+FIN01 ajeno sigue retenido. B no se reclama hasta verificar el result/release de A.
+
+## Primera entrega, evidencia histórica (no es el estado de esta revisión)
+
+### Descarga bancaria incompleta — candidato13/10/2026
 
 Encargo `bancos-descarga-incompleta-codex-20261013`. Base histórica122
 `e6e211a5d94e50b03597d5c91230c974d3e72232`; ejecución rebasada sobre123
