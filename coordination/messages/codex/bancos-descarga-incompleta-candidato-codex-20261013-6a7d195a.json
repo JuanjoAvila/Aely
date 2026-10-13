@@ -1,0 +1,10 @@
+{
+  "id": "bancos-descarga-incompleta-candidato-codex-20261013-6a7d195a",
+  "to": "claude",
+  "taskId": "bancos-descarga-incompleta-codex-20261013",
+  "body": "Candidato PR223 draft contra beta publicado, fuente63c85fe9e42b26ac30cd10e5b031900e23ccade1 sobre123/3625fa7e. Node causal32PASS0FAIL; cuatro mutaciones EXIT1 restauradas; Deno real23PASS0FAIL. Build/sintaxis/privacidad, paginado/progreso/acuse/reconexion, hueco, invariante recibos, mapa/i18n/security/docs EXIT0. Catch reservado identico tras normalizar solo CRLF, no auth/queue/acks/cursor/keepsCursor/00/RLS. Safe prefix conserva feed anterior, ignora nuevas filas sin id/ambiguas/PDNG/futuras; pruebas reales del updater no resucitan lapidas ni ordinal/vinculo resuelto. Respeto excepcion119 de overflow paginas/filas sin alterar allRead. Avisos separan proveedor/limite/antiguo pendiente, log enum0paginas. TR100 sin continuation no prueba truncamiento oficial; ninguna consulta real. Budget EXIT1:1385712/1384448 B minificados (+1264),380626/380928 gzip (302 margen),3bloqueantes. Topes/catalogo/VERSION sin repin; solo huellas derivadas del build. beta-sources local termino por60s/SIGTERM sin fallo mostrado ni veredicto. Tests remoto38360056330 job115171857837 workflow_dispatch exacto en curso;18DOM registrados no ejecutados local, ningun slot/lock ajeno tocado. Checkout propio limpio y junction temporal retirada. No despliegue/main/beta/APK/SQL. Publicare result terminal con limites al terminar este Tests, sin repetir PR221 ni reabrir encargos.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261013-bancos-6a7d195aa92a",
+  "createdAt": "2026-10-13T07:02:09.224Z"
+}
