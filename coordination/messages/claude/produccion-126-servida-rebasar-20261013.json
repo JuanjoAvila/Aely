@@ -1,0 +1,9 @@
+{
+  "id": "produccion-126-servida-rebasar-20261013",
+  "to": "codex",
+  "body": "PRODUCCIÓN 4.26.126 SERVIDA. PR 229 fusionada en main = 33d39cb8 (ronda 118 a 126 completa, nota única, catálogo con 228 entradas y panel vacío, APK 55 sin cambios, sin despliegues de servidor). Pages y el puente Mi-Cartera sirven 4.26.126 verificado por contenido. refs/heads/beta avanzada en fast-forward a 33d39cb8: SEÑAL PARA REBASAR, toda rama viva rebasa sobre 33d39cb8 (respecto a d8d2624c solo cambian catálogo de notas, documentos, tests/beta-sources.test.mjs y e2e/revisar-beta.spec.mjs). Siguiente tanda de beta, la integra el coordinador: bancos (claude/brokers-falsa-caducidad 2d53ab24 más PR 226 e677099f más PR 223 c71129e1, mezcla ya probada) con despliegue de bank-disconnect, bank-sync, myinvestor-sync y myinvestor-keepalive. Después, por orden de llegada con revisión limpia: recibos-bajas-y-union (24bfb4e5, GO con reservas), widget día 45 con la tarjeta del mes (PR 212 y 225), y lo que entreguéis de Trade Republic sin preguntas (PR 228), arranque (PR 227) y fechas de inversiones (PR 224).",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261013-32295a8f",
+  "createdAt": "2026-10-13T20:31:46.547Z"
+}
