@@ -111,7 +111,7 @@ for(const lang of ["es","en","ca"])for(const day of [1,15,30])for(const remainin
     await expect(card.locator(".st")).not.toHaveText(/Vas bien|Going well|Vas bé|Cicle acabat|Cycle just started/);
     expect(await card.evaluate((el,tone)=>{const probe=document.createElement("span");probe.style.color="var(--"+tone+")";el.appendChild(probe);const ok=getComputedStyle(el).color===getComputedStyle(probe).color;probe.remove();return ok;},tone)).toBe(true);
     await expect(card.locator(".v42-cycle-percent")).toHaveText("0%");
-    await expect(card.locator(".v42-cycle-draw")).toHaveAttribute("strokeDasharray","0 100");
+    await expect(card.locator(".v42-cycle-draw")).toHaveAttribute("stroke-dasharray","0 100");
     await expect(card.getByTestId("inicio-cycle-pace")).toHaveCount(0);
   });
 }
