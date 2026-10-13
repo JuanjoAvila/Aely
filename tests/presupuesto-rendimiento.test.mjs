@@ -269,7 +269,13 @@ const PRESUPUESTO = {
   // gzip, -492 / -161 B sobre la 123 (se va el empujón manual de `scrollTop` y `mc-touch-own` en
   // Plan). El tope BAJA con la medida para que el hueco no lo ocupe otra entrega sin declararlo:
   // 1351 KiB es el mínimo, quedan 208 B.
-  minificado: 1351 * 1024,
+  // Integración 4.26.125 (13/10), la gráfica del patrimonio de Inicio, encima de la beta 124
+  // (f5904735): medida tras el build, sello 4.26.125.99999 y reserva de 95 B: 1.385.524 B crudo /
+  // 380.616 B gzip, +2.308 / +843 B sobre la 124. Es la comparación por mínimos de 45 días, la
+  // serie que ya no recorta, la hoja «Cómo se calcula» y sus textos en tres idiomas. 1353 KiB
+  // (1.385.472) se queda corto por 52 B: 1354 es el mínimo, quedan 972 B. No se recorta producto
+  // ni idiomas para caber (mandato del dueño, 11/10).
+  minificado: 1354 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -292,7 +298,8 @@ const PRESUPUESTO = {
   // Integración 4.26.122: 379.492 B gzip, 612 B sobre 370 KiB. Mínimo medido: 371 KiB (quedan 412 B).
   // Integración 4.26.123: 379.934 B gzip, 30 B sobre 371 KiB. Mínimo medido: 372 KiB (quedan 994 B).
   // Integración 4.26.124: 379.773 B gzip, 161 B menos que la 123. El mínimo vuelve a 371 KiB (quedan 131 B).
-  gzip: 371 * 1024,
+  // Integración 4.26.125: 380.616 B gzip, 712 B sobre 371 KiB. Mínimo medido: 372 KiB (quedan 312 B).
+  gzip: 372 * 1024,
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 

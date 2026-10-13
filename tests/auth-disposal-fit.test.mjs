@@ -127,4 +127,4 @@ assert.notEqual(betaRevision('inc-0710-auth-disposal',mainRead,undefined,reg['in
 console.log('✓ fit102: retornos/receiver/excepciones diferidas, boot real sin throw, trazas equivalentes;7funciones/9datos, notas históricas106 intactas y registro con cierres107/108/110 explícitos; identidad102 nueva');
 
 }
-assert.equal(createHash('sha256').update(JSON.stringify(JSON.parse(read('scripts/beta-sources.json')))).digest('hex'),'ab36a2d9092889250731d08903cad7b8da8bdb7001e2be4418a393c1b499d61e','registro124 íntegro: el de la integración122 (187f8166, que la 123 no tocó) más la tanda plan-scroll-lento, solo web; Catálogo124 de beta-sources lo fija unidad a unidad');
+assert.equal(createHash('sha256').update(JSON.stringify(JSON.parse(read('scripts/beta-sources.json')))).digest('hex'),'01c70bfcbbfa17bb067aa69a85ebbd1b77c368e16940c8e01eb246d0de8cce26','registro125 íntegro: el de la integración124 (ab36a2d9) más trece unidades al final del alcance de Inicio (la comparación, su ventana de 45 días, la hoja de la «i» y sus dependencias), e isAtmWithdrawal al final del de la gráfica113, sin identidad nueva; Catálogo125 de beta-sources lo fija unidad a unidad');

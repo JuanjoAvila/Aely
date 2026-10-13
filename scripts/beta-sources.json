@@ -15624,6 +15624,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentIdentity"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isAtmWithdrawal"
       }
     ],
     "unidades": true
@@ -21233,6 +21237,64 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentIdentity"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "netWorthCompare"
+      },
+      {
+        "file": "src/modules/03-tab-dash.js",
+        "function": "netWorthInfoRows"
+      },
+      {
+        "file": "src/modules/03-tab-dash.js",
+        "function": "NetWorthInfoSheet"
+      },
+      {
+        "file": "src/shell.html",
+        "from": "  .v4-sheet-back{",
+        "to": "\n",
+        "includeTo": true
+      },
+      {
+        "file": "src/shell.html",
+        "from": "  .v4-sheet{",
+        "to": "\n",
+        "includeTo": true
+      },
+      {
+        "file": "src/shell.html",
+        "from": "  .v4-sheet-handle{",
+        "to": "\n",
+        "includeTo": true
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isAtmWithdrawal"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "useSheetSwipe"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "mcSheetLock"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "mcSheetUnlock"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "NW_WINDOW"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "_mcSheetLocks"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "_mcSheetPrevOverflow"
       }
     ],
     "unidades": true

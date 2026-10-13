@@ -106,4 +106,4 @@ const memoNote=JSON.parse(execFileSync('git',['show','8dcc5ed39b6e212ba1e34a90b5
 for(const key of ['codigoDesde','revisionesDesde','codigosCompatibles','compatibilidadGit','verdict'])assert.equal(memoNote[key],undefined,'memo nueva sin heredar '+key);
 
 }
-assert.equal(createHash('sha256').update(JSON.stringify(JSON.parse(read('scripts/beta-sources.json')))).digest('hex'),'ab36a2d9092889250731d08903cad7b8da8bdb7001e2be4418a393c1b499d61e','registro124 íntegro: el de la integración122 (187f8166, que la 123 no tocó) más la tanda plan-scroll-lento, solo web; Catálogo124 de beta-sources lo fija unidad a unidad');
+assert.equal(createHash('sha256').update(JSON.stringify(JSON.parse(read('scripts/beta-sources.json')))).digest('hex'),'01c70bfcbbfa17bb067aa69a85ebbd1b77c368e16940c8e01eb246d0de8cce26','registro125 íntegro: el de la integración124 (ab36a2d9) más trece unidades al final del alcance de Inicio (la comparación, su ventana de 45 días, la hoja de la «i» y sus dependencias), e isAtmWithdrawal al final del de la gráfica113, sin identidad nueva; Catálogo125 de beta-sources lo fija unidad a unidad');
