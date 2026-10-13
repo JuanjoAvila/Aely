@@ -1,5 +1,17 @@
 # FIN-04 · revisión del NO-GO de PR218
 
+## Mantenimiento de PR218 sobre beta123
+
+Rebase solicitado en la señal canónica `09b516fc449106737fd88c5fc79b1f310461d815`, sobre `3625fa7ed5134cfbc5e364adc4f588bfdaf670c0`. La entrega beta122 `ad0abaff31c9e54e42cf2c0bd5154e931b73a2b4` y su resultado `e08e022b647687b8a30ec36decb84787d3eafbe7` siguen cerrados e inmutables. Este mantenimiento no reabre su claim ni atribuye su CI o DOM a la nueva cabeza. La fuente anterior, el resultado y los logs completos se archivaron antes del rebase.
+
+Sólo hubo conflictos en los cinco archivos generados, resueltos mediante el ensamblador oficial. `00-core`, `04-tab-gastos`, `11-app-main` y los tres contratos FIN-04 son idénticos a ad0abaff. Inicio (`02-ui-shared`, `03-tab-dash`), su cobertura, la nota123, VERSION, catálogo y topes son idénticos a la base123. No se añade funcionalidad ni se modifica producto ajeno.
+
+Doce comandos ligeros pasan sobre el nuevo bundle: sintaxis; contratos44, revisión42, mutantes37, ACK18; pull17, ordinal38, recibos61 e invariantes22; Inicio con sus 24 mutantes, i18n y seguridad. No hay navegador local ni DOM nuevo. La CI completa corresponde al SHA final de mantenimiento y se registra en la PR y en un mensaje canónico, sin repetir claim ni result.
+
+Medida con minificador oficial, DSN95 y sello123.99999: **1.411.285 B crudos / 387.416 B gzip**, frente a los topes heredados de **1.384.448 / 380.928 B**; exceso **26.837 / 6.488 B**, tres ficheros bloqueantes. Se conservan 24 huellas afectadas sólo en web y los tres huecos reales del catálogo. Claude gestiona catálogo, VERSION y ajuste mínimo del presupuesto al integrar. Revisión independiente, CI completa, publicación y aceptación móvil no se heredan de la entrega122.
+
+## Entrega beta122 conservada como historia
+
 Candidata aislada sobre beta122 `e6e211a5d94e50b03597d5c91230c974d3e72232` (rebase solicitado por Claude en el mensaje canónico `8a836f737f2cf46b8a4546c13a84827f50203a15`; base original del encargo: beta118 `7e706174255f1868d15099e11a503dd23d9aa774`), sin integrar ni publicar. El resultado de la primera candidata queda como historia, no como aceptación de esta revisión. Fuente, pruebas Node, DOM, CI y móvil requieren evidencia propia. El coordinador integra VERSION, notas y catálogo sólo después de revisión independiente; esta rama no los modifica.
 
 ## Qué se comprueba
