@@ -34,28 +34,54 @@ function cycleTiming(bud,nowMs){
   const days=Math.max(1,(end-civil(start))/864e5), elapsed=Math.max(0,(civil(now)-civil(start))/864e5);
   return {days:days,elapsed:elapsed,left:Math.max(0,(end-civil(now))/864e5),reliable:!!bud.cycle};
 }
-// Las tres líneas de la «i», solo las que aplican: antes era un párrafo más una línea por cuenta,
-// bien y deuda («una mierda pinchada en un palo», feedback 13/10). Sin fechas ni jerga de más.
-function netWorthInfoLines(series, dateFmt){
-  const coverage=series.coverage||[], fmt=function(day){ return dateFmt.format(Date.parse(day+"T12:00:00Z")); }, lines=[];
-  if(series.length>1){
-    const later=coverage.filter(function(g){ return g.kind==="bank"&&g.later; }).map(function(g){ return tf("v42_net_i_from",{name:g.name,day:fmt(g.day)}); });
-    lines.push(tf("v42_net_i_accounts",{day:fmt(series[0].day),more:later.length?" · "+later.join(", "):""}));
-  }
-  const kept=[], seen={};
-  coverage.forEach(function(g){
-    if(g.unknown||g.kind==="debt"||g.kind==="bank"||!g.constant) return;
-    const name=g.kind==="investment"?t("v42_net_source_investment"):g.name;
-    const label=g.day?tf("v42_net_i_before",{name:name,day:fmt(g.day)}):name;
-    if(!seen[label]){ seen[label]=true; kept.push(label); }
+// Las filas de la hoja «Cómo se calcula», como mucho tres y solo las que aplican: etiqueta por
+// tipo (nunca cuenta por cuenta ni bien por bien) y un dato corto. Antes era un párrafo más una
+// línea por cuenta, bien y deuda metido en la página («el textaco», feedback 13/10).
+function netWorthInfoRows(series, dateFmt){
+  const coverage=series.coverage||[], rows=[];
+  if(series.length<2) return rows;
+  const start=series[0].day, startMs=Date.parse(start+"T12:00:00Z");
+  // Una cuenta que entra bastante después (un mes o más) se apunta sin nombrarla.
+  const later=coverage.some(function(g){ return g.kind==="bank"&&g.later&&Date.parse(g.day+"T12:00:00Z")-startMs>=30*864e5; });
+  rows.push({k:t("v42_net_i_accounts"),v:tf("v42_net_i_accounts_v",{day:dateFmt.format(startMs)})+(later?t("v42_net_i_accounts_later"):"")});
+  const kinds=[];
+  [["investment","v42_net_i_kept_inv"],["asset","v42_net_i_kept_assets"],["manual","v42_net_i_kept_manual"]].forEach(function(pair){
+    if(coverage.some(function(g){ return g.kind===pair[0]&&g.constant&&!g.unknown; })) kinds.push(t(pair[1]));
   });
-  if(kept.length) lines.push(tf("v42_net_i_kept",{names:kept.join(", ")}));
+  if(kinds.length){
+    const label=kinds.map(function(k,i){ return i?k.toLowerCase():k; });
+    rows.push({k:label.length>1?label.slice(0,-1).join(", ")+t("v42_net_i_and")+label[label.length-1]:label[0],v:t("v42_net_i_kept_v")});
+  }
   const debts=coverage.filter(function(g){ return g.kind==="debt"&&!g.timingUnknown; });
   if(debts.length){
-    const constant=debts.filter(function(g){ return g.constant; }).map(function(g){ return g.name; });
-    lines.push(constant.length===debts.length?t("v42_net_i_debts_kept"):constant.length?tf("v42_net_i_debts_mixed",{names:constant.join(", ")}):t("v42_net_i_debts_est"));
+    const constant=debts.filter(function(g){ return g.constant; }).length;
+    rows.push({k:t("v42_net_i_debts"),v:t(constant===debts.length?"v42_net_i_debts_kept":constant?"v42_net_i_debts_mixed":"v42_net_i_debts_est")});
   }
-  return lines;
+  return rows;
+}
+// Hoja inferior de la «i», con el mismo patrón que la del presupuesto: nada se inserta en la
+// página, así la tarjeta del ciclo no baja; cierra con toque fuera, gesto, atrás y botón.
+function NetWorthInfoSheet({open, rows, onClose}){
+  const swipe=useSheetSwipe(!!open, onClose,{closeMs:320,snapMs:300,closeEase:"cubic-bezier(.22,1,.36,1)",snapEase:"cubic-bezier(.22,1,.36,1)"});
+  useBackClose(!!open, swipe.close);
+  const titleRef=useRef(null), titleId=React.useId();
+  useEffect(function(){ if(open&&titleRef.current) titleRef.current.focus({preventScroll:true}); },[open]);
+  if(!open) return null;
+  return ReactDOM.createPortal(
+    React.createElement("div",{className:"v4-sheet-back",onClick:swipe.close},
+      React.createElement("div",Object.assign({className:"v4-sheet","data-sheet":"net-info",role:"dialog","aria-modal":"true","aria-labelledby":titleId,ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); }}, swipe.sheetTouch),
+        React.createElement("div",{className:"v4-sheet-handle"}),
+        React.createElement("h1",{id:titleId,ref:titleRef,tabIndex:-1,className:"serif",style:{fontSize:22,fontWeight:550,margin:"0 0 6px",outline:"none"}}, t("v42_net_info_title")),
+        rows.map(function(r,i){
+          return React.createElement("div",{key:i,className:"row","data-testid":"inicio-net-detail"},
+            React.createElement("div",{className:"rl"},React.createElement("div",{className:"rname"},r.k)),
+            // El dato va en gris y un punto más pequeño que la etiqueta: la jerarquía es
+            // etiqueta → dato, no al revés (en la primera captura el dato ganaba a la etiqueta).
+            React.createElement("div",{className:"rval",style:{fontWeight:600,fontSize:13,color:"var(--muted)",maxWidth:"60%",lineHeight:1.3}},r.v));
+        }),
+        React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",style:{marginTop:16},onClick:swipe.close}, t("v42_net_i_ok"))
+      )
+    ), document.body);
 }
 function NetWorthNow({tt, simple, series, splashGone, anchors}){
   // La animación pertenece a esta tarjeta; repintar todo Inicio en cada frame
@@ -79,10 +105,11 @@ function NetWorthNow({tt, simple, series, splashGone, anchors}){
   const dateLabels=useMemo(function(){
     return points.map(function(p){return dateFmt.format(Date.parse(p.day+"T12:00:00Z"));});
   },[points,dateFmt]);
-  const infoLines=useMemo(function(){ return netWorthInfoLines(series,dateFmt); },[series,dateFmt,language]);
+  // Fecha corta («18 jun») para la hoja; con el año se iba a dos renglones en el móvil.
+  const shortFmt=useMemo(function(){return new Intl.DateTimeFormat(language,{timeZone:"Europe/Madrid",day:"numeric",month:"short"});},[language]);
+  const infoRows=useMemo(function(){ return netWorthInfoRows(series,shortFmt); },[series,shortFmt,language]);
   useEffect(function(){ setTouch(null); },[range&&range.id]);
   useEffect(function(){ return function(){ cancelAnimationFrame(frameRef.current); }; },[]);
-  useBackClose(info,function(){ setInfo(false); });
   const valid=typeof value==="number" && Number.isFinite(value)&&!(series.coverage||[]).some(function(g){return g.unknown;});
   const p=valid?eurParts(active?active.value:typeof shown==="number" && Number.isFinite(shown)?shown:value):null;
   const gestureRef=useRef(null),holdRef=useRef(0);
@@ -114,7 +141,8 @@ function NetWorthNow({tt, simple, series, splashGone, anchors}){
   return React.createElement("div",{className:"v4-hero v42-net","data-tour":"hero","data-testid":"inicio-net-current",style:{"--v42-play":splashGone===false?"paused":"running"}},
     React.createElement("div",{className:"v4-net-current-head"},
       React.createElement("div",{className:"v4-micro"}, t(simple?"v4_money_total":"d_networth")),
-      React.createElement("button",{type:"button",className:"v42-net-info","aria-label":t("v42_net_info_title"),onClick:function(){ setInfo(!info); }},"i")
+      // Sin nada que explicar (usuario nuevo, un solo punto) la «i» no se enseña.
+      infoRows.length>0&&React.createElement("button",{type:"button",className:"v42-net-info","aria-label":t("v42_net_info_title"),"aria-haspopup":"dialog",onClick:function(){ setInfo(true); }},"i")
     ),
     active&&React.createElement("span",{className:"v42-net-date","data-testid":"inicio-net-date"},dateLabels[touch]),
     React.createElement("div",{className:"v4-hero-amt num","data-tour":"hero-amt"},
@@ -142,9 +170,8 @@ function NetWorthNow({tt, simple, series, splashGone, anchors}){
       return React.createElement("button",{key:r.id,type:"button","aria-pressed":range.id===r.id,onClick:function(){ setPicked(r.id); setTouch(null); }},t("v42_range_"+r.id));
     })),
     // Bajo los periodos no va texto fijo («el mensaje de abajo me sobra», 13/10): lo que se
-    // mantiene constante se cuenta solo en la «i», en tres líneas como mucho.
-    info&&React.createElement("div",{className:"hint",role:"note"},
-      infoLines.map(function(label,i){return React.createElement("div",{key:i,"data-testid":"inicio-net-detail"},label);}))
+    // mantiene constante se cuenta solo en la hoja de la «i».
+    React.createElement(NetWorthInfoSheet,{open:info,rows:infoRows,onClose:function(){ setInfo(false); }})
   );
 }
 function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGastos, onGoPlan, showToast}){

@@ -16,6 +16,9 @@ async function abrir(page, state, lang = "es") {
   await expect(hero.locator(".v42-net-line")).toHaveCount(1);
   return hero;
 }
+/* Filas de la hoja «Cómo se calcula»: [etiqueta, dato]. La fecha corta sale del mismo Intl que la app. */
+const filas = (page) => page.locator('[data-sheet="net-info"] .row').evaluateAll((els) => els.map((e) => [e.querySelector(".rname").textContent, e.querySelector(".rval").textContent]));
+const fechaCorta = (day, lang) => new Intl.DateTimeFormat({ es: "es", en: "en-GB", ca: "ca" }[lang], { timeZone: "Europe/Madrid", day: "numeric", month: "short" }).format(Date.parse(day + "T12:00:00Z"));
 /* Color real de una variable CSS, para comparar con lo pintado sin fijar un hexadecimal en el test. */
 const cssColor = (page, name) => page.evaluate((name) => { const probe = document.createElement("span"); probe.style.color = "var(--" + name + ")"; document.body.appendChild(probe); const c = getComputedStyle(probe).color; probe.remove(); return c; }, name);
 
@@ -73,16 +76,23 @@ for (const lang of ["es", "en", "ca"]) test("histórico desde junio: 1M y 3M, si
   await expect(delta).not.toContainText({ es: "menos", en: "less", ca: "menys" }[lang]);
   const verdict = await delta.getAttribute("data-verdict");
   expect(await hero.locator(".v42-net-chart svg").evaluate((el) => getComputedStyle(el).color)).toBe(await cssColor(page, verdict === "up" ? "mint" : "blue"));
+  // La «i» abre una hoja: la página no cambia de altura ni la tarjeta del ciclo se mueve.
+  const antes = await page.evaluate(() => [document.documentElement.scrollHeight, document.querySelector(".v42-cycle-section").getBoundingClientRect().top]);
   await hero.locator(".v42-net-info").click();
-  const note = hero.getByRole("note");
-  await expect(note).toBeVisible();
-  await expect(hero.getByTestId("inicio-net-detail")).toHaveCount(3);
-  // Cabe en la pantalla del móvil sin cortar y sin solapar la tarjeta del ciclo.
-  const cajas = await page.evaluate(() => { const r = (el) => el.getBoundingClientRect(); const n = r(document.querySelector('[role="note"]')), c = r(document.querySelector(".v42-cycle-section")); return { noteBottom: n.bottom, cycleTop: c.top, right: n.right, w: innerWidth }; });
-  expect(cajas.noteBottom).toBeLessThanOrEqual(cajas.cycleTop + 1);
-  expect(cajas.right).toBeLessThanOrEqual(cajas.w);
-  await hero.locator(".v42-net-info").click();
-  await expect(hero.getByTestId("inicio-net-detail")).toHaveCount(0);
+  const sheet = page.getByRole("dialog", { name: { es: "Cómo se calcula", en: "How it's worked out", ca: "Com es calcula" }[lang] });
+  await expect(sheet).toBeVisible();
+  expect(await page.evaluate(() => [document.documentElement.scrollHeight, document.querySelector(".v42-cycle-section").getBoundingClientRect().top])).toEqual(antes);
+  expect(await filas(page)).toEqual({
+    es: [["Cuentas", "movimientos reales desde " + fechaCorta("2026-06-15", "es")], ["Inversiones, bienes y cuentas manuales", "valor conocido mantenido"], ["Deudas", "según sus cuotas"]],
+    en: [["Accounts", "real transactions from " + fechaCorta("2026-06-15", "en")], ["Investments, property and manual accounts", "known value kept"], ["Debts", "by their payment schedule"]],
+    ca: [["Comptes", "moviments reals des de " + fechaCorta("2026-06-15", "ca")], ["Inversions, béns i comptes manuals", "valor conegut mantingut"], ["Deutes", "segons les seves quotes"]] }[lang]);
+  expect(await page.evaluate(() => document.activeElement && document.activeElement.closest('[data-sheet="net-info"]') != null)).toBe(true);
+  // Ninguna fila se sale de la hoja ni se corta.
+  expect(await sheet.evaluate((el) => [...el.querySelectorAll(".row")].every((r) => r.scrollWidth <= r.clientWidth + 1 && r.getBoundingClientRect().right <= el.getBoundingClientRect().right))).toBe(true);
+  await sheet.getByRole("button", { name: { es: "Entendido", en: "Got it", ca: "Entesos" }[lang] }).click();
+  await expect(sheet).toHaveCount(0);
+  await hero.locator(".v42-net-info").click(); await expect(sheet).toBeVisible();
+  await page.mouse.click(10, 60); await expect(sheet).toHaveCount(0);
 });
 
 // Una siembra por test: dos `seedLoggedInDashboard` en la misma página se pisan (el primero gana).
@@ -107,8 +117,8 @@ test("usuario nuevo: ni veredicto, ni periodos, ni líneas en la i", async ({ pa
   await expect(hero.getByTestId("inicio-net-delta")).toHaveCount(0);
   await expect(hero.locator(".v42-net-ranges button")).toHaveCount(0);
   await expect(hero.locator("svg")).toHaveCount(0);
-  await hero.locator(".v42-net-info").click();
-  await expect(hero.getByTestId("inicio-net-detail")).toHaveCount(0);
+  // Sin nada que explicar, la «i» no se enseña.
+  await expect(hero.locator(".v42-net-info")).toHaveCount(0);
 });
 
 test("sin bancos: una hucha con cierres y un piso tienen gráfica, sin veredicto inventado", async ({ page }) => {
@@ -122,6 +132,6 @@ test("sin bancos: una hucha con cierres y un piso tienen gráfica, sin veredicto
   await expect(hero.locator(".v42-net-ranges button")).toHaveText(["Todo"]);
   await expect(hero.getByTestId("inicio-net-delta")).toHaveAttribute("data-verdict", "none");
   await hero.locator(".v42-net-info").click();
-  // La hucha arranca la gráfica con su primer cierre: no hay «antes» que declarar; el piso sí.
-  await expect(hero.getByTestId("inicio-net-detail")).toHaveText(["Cuentas: movimientos reales desde 20 sept 2026.", "Piso sintético: se mantiene el valor conocido."]);
+  // La hucha arranca la gráfica con su primer cierre: no hay «antes» que declarar; los bienes sí.
+  expect(await filas(page)).toEqual([["Cuentas", "movimientos reales desde " + fechaCorta("2026-09-20", "es")], ["Bienes", "valor conocido mantenido"]]);
 });

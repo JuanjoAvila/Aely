@@ -27,7 +27,8 @@ async function actual(page, amount, sym = "€", points = false) {
   const hero = page.locator('.v4-screen:has(.v4-inicio-head) .v4-hero');
   await expect(hero).toBeVisible();
   await expect(hero.getByTestId("inicio-net-now")).toHaveCount(0);
-  await expect(hero.locator(".v42-net-info")).toBeVisible();
+  // La «i» solo existe cuando hay algo que explicar (una serie con más de un punto).
+  await expect(hero.locator(".v42-net-info")).toHaveCount(points ? 1 : 0);
   await expect(hero.getByTestId("inicio-net-date")).toHaveCount(0);
   await expect(hero.locator(".v4-hero-amt")).toContainText(heroRe(amount, sym));
   const svg = hero.locator(".v42-net-chart svg");

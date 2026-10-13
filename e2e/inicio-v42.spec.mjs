@@ -9,7 +9,9 @@ export const states=[
   {id:"slow",spent:801,text:"Toca frenar un poco",tone:"tan"},
 ];
 // La «i» pinta fechas con el mismo Intl que la app (día, mes corto, año, calendario de Madrid).
-const fecha=(day,lang)=>new Intl.DateTimeFormat({es:"es",en:"en-GB",ca:"ca"}[lang],{timeZone:"Europe/Madrid",day:"numeric",month:"short",year:"numeric"}).format(Date.parse(day+"T12:00:00Z"));
+const fecha=(day,lang)=>new Intl.DateTimeFormat({es:"es",en:"en-GB",ca:"ca"}[lang],{timeZone:"Europe/Madrid",day:"numeric",month:"short"}).format(Date.parse(day+"T12:00:00Z"));
+// Filas de la hoja «Cómo se calcula» que abre la «i»: [etiqueta, dato].
+const filas=page=>page.locator('[data-sheet="net-info"] .row').evaluateAll(els=>els.map(e=>[e.querySelector(".rname").textContent,e.querySelector(".rval").textContent]));
 async function open(page,{spent=500,day=13,lang="es",historyDays=370,falling=false,cycle=true,lag=0}={}){
   await page.clock.install({time:new Date(`2026-09-${String(day).padStart(2,"0")}T12:00:00Z`)});
   const end=Date.parse(`2026-09-${String(day).padStart(2,"0")}T12:00:00Z`)-lag*864e5;
@@ -93,8 +95,9 @@ for(const lang of ["es","en","ca"]) test("rangos, colores y puertas "+lang,async
   expect(await same()).toBe(true);
   await expect(hero.getByTestId("inicio-net-delta")).toHaveText({es:"Aún sin un ciclo anterior con el que comparar",en:"No earlier cycle to compare with yet",ca:"Encara sense un cicle anterior amb què comparar"}[lang]);
   const original=await hero.locator("svg").evaluate(el=>{window.__v42Original=el;return true;});expect(original).toBe(true);
-  await hero.locator(".v42-net-info").click(); await expect(hero.getByRole("note")).toBeVisible();
+  await hero.locator(".v42-net-info").click(); await expect(page.getByRole("dialog",{name:{es:"Cómo se calcula",en:"How it's worked out",ca:"Com es calcula"}[lang]})).toBeVisible();
   expect(await hero.locator("svg").evaluate(el=>el===window.__v42Original)).toBe(true);
+  await page.mouse.click(10,60);await expect(page.locator('[data-sheet="net-info"]')).toHaveCount(0);
   await hero.locator(".v42-net-chart").evaluate(el=>{window.__v42Mounts=0;window.__v42Observer=new MutationObserver(rows=>{
     for(const row of rows)for(const node of row.addedNodes)if(node.nodeName.toLowerCase()==="svg")window.__v42Mounts++;
   });window.__v42Observer.observe(el,{childList:true});});
@@ -196,7 +199,8 @@ test("NO-GO cuenta nueva nombra el límite y un usuario nuevo empieza hoy",async
   // no recorta la serie: arranca el 1/9 con el banco antiguo (13/10).
   await expect(hero.getByTestId("inicio-net-coverage")).toHaveCount(0);
   await hero.locator(".v42-net-info").click();
-  await expect(hero.getByTestId("inicio-net-detail")).toHaveText(["Cuentas: movimientos reales desde 1 sept 2026 · Cuenta reciente desde 25 sept 2026."]);
+  // La cuenta que entra 24 días después no se nombra: solo cuenta la fecha más antigua.
+  expect(await filas(page)).toEqual([["Cuentas","movimientos reales desde 1 sept"]]);
 });
 test("NO-GO usuario nuevo sin presupuesto tiene mensaje propio y ningún ritmo",async({page})=>{
   await installFixtureClock(page);await seedLoggedInDashboard(page,{accounts:[],investments:[],expenses:[],budget:0,history:[],invHistory:[],accountBalanceHistory:{}});
@@ -257,9 +261,10 @@ for(const lang of ["es","en","ca"])test("RONDA3 bien legado conserva gráfica y 
   // Nada de texto fijo bajo la gráfica; el detalle vive en la «i», en dos líneas (13/10).
   await expect(hero.getByTestId("inicio-net-coverage")).toHaveCount(0);
   await hero.locator(".v42-net-info").click();
-  await expect(hero.getByTestId("inicio-net-detail")).toHaveText([
-    {es:"Cuentas: movimientos reales desde "+fecha("2026-08-01","es")+".",en:"Accounts: real transactions from "+fecha("2026-08-01","en")+".",ca:"Comptes: moviments reals des de "+fecha("2026-08-01","ca")+"."}[lang],
-    {es:"Piso sintético: se mantiene el valor conocido.",en:"Piso sintético: known value kept.",ca:"Piso sintético: es manté el valor conegut."}[lang]]);
+  expect(await filas(page)).toEqual({
+    es:[["Cuentas","movimientos reales desde "+fecha("2026-08-01","es")],["Bienes","valor conocido mantenido"]],
+    en:[["Accounts","real transactions from "+fecha("2026-08-01","en")],["Property","known value kept"]],
+    ca:[["Comptes","moviments reals des de "+fecha("2026-08-01","ca")],["Béns","valor conegut mantingut"]]}[lang]);
   const stored=await ownGoodsState(page);expect(stored.history?.["legacy-home"]).toBeUndefined();
 });
 test("RONDA3 piso que llega de la nube no nace al montar el móvil",async({page})=>{
@@ -312,7 +317,7 @@ test("revalorar un bien heredado conserva la gráfica y su valor anterior",async
   await expect(hero.getByTestId("inicio-net-delta")).toHaveText("3.100 € menos que en este punto del mes pasado");
   await expect(hero.getByTestId("inicio-net-coverage")).toHaveCount(0);
   await hero.locator(".v42-net-info").click();
-  await expect(hero.getByTestId("inicio-net-detail")).toHaveText(["Cuentas: movimientos reales desde 1 ago 2026.","Coche sintético (antes del 4 sept 2026): se mantiene el valor conocido."]);
+  expect(await filas(page)).toEqual([["Cuentas","movimientos reales desde 1 ago"],["Bienes","valor conocido mantenido"]]);
 });
 test("RONDA3 banco a hucha con escalones mantiene el patrimonio plano",async({page})=>{
   await openGoodsHistory(page,{accounts:[{...goodsBank,value:300},{id:"manual-hucha",ent:"revolut",value:600,role:"fijos"}],
@@ -331,7 +336,7 @@ test("RONDA3 deuda sin día de cuota declara la convención mensual",async({page
   await expect(hero.locator(".v42-net-line")).toHaveCount(1);
   await expect(hero.getByTestId("inicio-net-coverage")).toHaveCount(0);
   await hero.locator(".v42-net-info").click();
-  await expect(hero.getByTestId("inicio-net-detail")).toHaveText(["Cuentas: movimientos reales desde 1 ago 2026.","Deudas: según sus cuotas."]);
+  expect(await filas(page)).toEqual([["Cuentas","movimientos reales desde 1 ago"],["Deudas","según sus cuotas"]]);
 });
 
 // Incidente 13/10 (beta 4.26.121): con hipoteca y préstamo dados de alta antes, Inicio salía sin
@@ -355,17 +360,12 @@ for(const lang of ["es","en","ca"])test("cartera heredada ve la gráfica el prim
   await expect(hero.locator(".hint")).toHaveCount(0);
   // Entre la cifra y la gráfica no hay ninguna nota.
   expect(await hero.evaluate(el=>{const amt=el.querySelector(".v4-hero-amt"),chart=el.querySelector(".v42-net-chart");let n=amt.nextElementSibling,hints=0;while(n&&n!==chart){if(n.classList.contains("hint"))hints++;n=n.nextElementSibling;}return hints;})).toBe(0);
-  await expect(hero.getByTestId("inicio-net-detail")).toHaveCount(0);
+  await expect(page.locator('[data-sheet="net-info"]')).toHaveCount(0);
   await hero.locator(".v42-net-info").click();
-  const detail=hero.getByTestId("inicio-net-detail");
-  // Tres líneas y ya: cuentas, lo que se mantiene y deudas (13/10: «el textaco… enorme»).
-  await expect(detail).toHaveText([
-    {es:"Cuentas: movimientos reales desde "+fecha("2026-06-15","es")+" · Cuenta sintética desde "+fecha("2026-07-05","es")+", Revolut sintética desde "+fecha("2026-07-10","es")+".",
-      en:"Accounts: real transactions from "+fecha("2026-06-15","en")+" · Cuenta sintética from "+fecha("2026-07-05","en")+", Revolut sintética from "+fecha("2026-07-10","en")+".",
-      ca:"Comptes: moviments reals des de "+fecha("2026-06-15","ca")+" · Cuenta sintética des de "+fecha("2026-07-05","ca")+", Revolut sintética des de "+fecha("2026-07-10","ca")+"."}[lang],
-    {es:"Efectivo (antes del "+fecha("2026-09-17","es")+"), Piso sintético, Coche sintético, Inversiones (antes del "+fecha("2026-09-30","es")+"): se mantiene el valor conocido.",
-      en:"Efectivo (before "+fecha("2026-09-17","en")+"), Piso sintético, Coche sintético, Investments (before "+fecha("2026-09-30","en")+"): known value kept.",
-      ca:"Efectivo (abans del "+fecha("2026-09-17","ca")+"), Piso sintético, Coche sintético, Inversions (abans del "+fecha("2026-09-30","ca")+"): es manté el valor conegut."}[lang],
-    {es:"Deudas: según sus cuotas.",en:"Debts: by their payment schedule.",ca:"Deutes: segons les seves quotes."}[lang]]);
-  await hero.locator(".v42-net-info").click();await expect(detail).toHaveCount(0);
+  // Tres filas y ya, por tipo, sin nombrar cuenta a cuenta (13/10: «el textaco… enorme»).
+  expect(await filas(page)).toEqual({
+    es:[["Cuentas","movimientos reales desde "+fecha("2026-06-15","es")],["Inversiones, bienes y cuentas manuales","valor conocido mantenido"],["Deudas","según sus cuotas"]],
+    en:[["Accounts","real transactions from "+fecha("2026-06-15","en")],["Investments, property and manual accounts","known value kept"],["Debts","by their payment schedule"]],
+    ca:[["Comptes","moviments reals des de "+fecha("2026-06-15","ca")],["Inversions, béns i comptes manuals","valor conegut mantingut"],["Deutes","segons les seves quotes"]]}[lang]);
+  await page.mouse.click(10,60);await expect(page.locator('[data-sheet="net-info"]')).toHaveCount(0);
 });
