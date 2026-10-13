@@ -1,0 +1,160 @@
+{
+  "summary": "CANDIDATA entregada para revisión e integración en PR224 DRAFT JuanjoAvila/Aely#224, cabeza d4ccf238a0e701c5ddd2f5a5a273775d12508281. Claim/base123 3625fa7ed5134cfbc5e364adc4f588bfdaf670c0 inmutable; ejecución sobre beta124 f5904735b514751ee926d25c22c92195b6ce3653 por señal cf8d3cef. Fecha por origen separada de cotizaciones, es/en/ca y Madrid, sin fecha inventada; tarjetas sellan la lectura al aplicar, CSV la importación, manual su edición. No se cambian cifras ni sincronizaciones. 12 A/B iguales y 7 mutantes eliminados. CI final FAILURE solo docs-frescura/VERSION y presupuesto raw+gzip; rojos DE INTEGRACIÓN según a4328161, sin tocar guardianes. Local Windows: 1384507/1383424 raw (+1083 B), 380197/379904 gzip (+293 B), 3 bloqueantes. beta-sources PASS. Nuevas unidades para registrar al integrar: investmentStampMs, investmentDataDate, investmentDateText; actualizar huellas afectadas de Investments, MyInvestorSync, TRSync, BrokerImport. Sin cambios propios en VERSION, notas, catálogo, topes, contrato119 ni 11-app-main. Specs DOM registrados en cartera-inversiones y revolut-csv-import, NO EJECUTADOS: fallos unitarios previos impiden E2E/perf y runner local sigue reservado. Privacidad independiente CI SKIPPED; privacidad local PASS. No se afirma suite verde, DOM, publicación, APK ni aceptación móvil. Historial de tres CIs/logs/exits conservado en evidencia privada test-results/dispatch29-20261013; se corrigió INV indefinida del spec antes de la última CI. Acta en docs/briefs/inversiones-fechas-origen.md. Libera solo este encargo, sin tocar el lease físico ajeno.",
+  "status": "done",
+  "tests": [
+    {
+      "exit": 0,
+      "phase": "local focal sobre beta124, producto sin cambios posteriores",
+      "command": "node scripts/build-app.mjs",
+      "tz": null
+    },
+    {
+      "exit": 0,
+      "phase": "local focal sobre beta124, producto sin cambios posteriores",
+      "command": "node scripts/check-syntax.mjs",
+      "tz": null
+    },
+    {
+      "exit": 0,
+      "phase": "local focal sobre beta124, producto sin cambios posteriores",
+      "command": "node tests/investment-data-date.test.mjs",
+      "tz": "UTC"
+    },
+    {
+      "exit": 0,
+      "phase": "local focal sobre beta124, producto sin cambios posteriores",
+      "command": "node tests/investment-data-date.test.mjs",
+      "tz": "Europe/Madrid"
+    },
+    {
+      "exit": 0,
+      "phase": "local focal sobre beta124, producto sin cambios posteriores",
+      "command": "node tests/investment-data-date.test.mjs",
+      "tz": "Atlantic/Canary"
+    },
+    {
+      "exit": 0,
+      "phase": "local focal sobre beta124, producto sin cambios posteriores",
+      "command": "node tests/i18n-keys.test.mjs",
+      "tz": null
+    },
+    {
+      "exit": 0,
+      "phase": "local focal sobre beta124, producto sin cambios posteriores",
+      "command": "node tests/broker-sync-outcomes.test.mjs",
+      "tz": null
+    },
+    {
+      "exit": 0,
+      "phase": "local focal sobre beta124, producto sin cambios posteriores",
+      "command": "node tests/revo-parse.test.mjs",
+      "tz": null
+    },
+    {
+      "exit": 0,
+      "phase": "local focal sobre beta124, producto sin cambios posteriores",
+      "command": "node tests/revo-golden.test.mjs",
+      "tz": null
+    },
+    {
+      "exit": 0,
+      "phase": "local focal sobre beta124, producto sin cambios posteriores",
+      "command": "node tests/relevant-tests.test.mjs",
+      "tz": null
+    },
+    {
+      "exit": 0,
+      "phase": "local focal sobre beta124, producto sin cambios posteriores",
+      "command": "node scripts/guard-privacy.mjs",
+      "tz": null
+    },
+    {
+      "exit": 0,
+      "phase": "local focal sobre beta124, producto sin cambios posteriores",
+      "command": "node tests/security.test.mjs",
+      "tz": null
+    },
+    {
+      "exit": 1,
+      "phase": "local focal sobre beta124, producto sin cambios posteriores",
+      "command": "node tests/docs-frescura.test.mjs",
+      "tz": null
+    },
+    {
+      "exit": 1,
+      "phase": "local focal sobre beta124, producto sin cambios posteriores",
+      "command": "node tests/presupuesto-rendimiento.test.mjs",
+      "tz": null
+    },
+    {
+      "name": "financial AB",
+      "baseline": "f5904735b514751ee926d25c22c92195b6ce3653",
+      "cases": 12,
+      "result": "iguales al retirar solo sellos",
+      "exit": 0
+    },
+    {
+      "name": "mutation",
+      "initialSurvivorPreserved": true,
+      "killed": 7,
+      "exit": 0
+    },
+    {
+      "head": "d4ccf238a0e701c5ddd2f5a5a273775d12508281",
+      "nodePreludeCases": 3,
+      "syntaxExit": 0,
+      "diffCheckExit": 0,
+      "DOM": "NOT_EXECUTED",
+      "name": "spec correction"
+    },
+    {
+      "logBytes": 527548,
+      "browserRetriesFlaky": "NOT_EVALUATED",
+      "runId": 38386798697,
+      "betaSources": "PASS",
+      "logSHA256": "71b22be67cd81136c67b54309106ff419d0ffa87782a6f0a7841e8c2c4de214b",
+      "newUnitCasesPassed": 7,
+      "head": "d4ccf238a0e701c5ddd2f5a5a273775d12508281",
+      "conclusion": "failure",
+      "name": "Tests CI final",
+      "privacyStep": "SKIPPED",
+      "jobId": 115260481884,
+      "E2E": "NOT_EXECUTED",
+      "performance": "NOT_EXECUTED",
+      "denoSuitesPassed": 7,
+      "exit": 1,
+      "failed": [
+        "docs-frescura",
+        "presupuesto-rendimiento"
+      ],
+      "event": "workflow_dispatch",
+      "repository": "JuanjoAvila/Aely"
+    },
+    {
+      "head": "6cd3b4af334a6a69e34b27b62384de9200622b36",
+      "failed": [
+        "docs-frescura",
+        "presupuesto-rendimiento"
+      ],
+      "exit": 1,
+      "runId": 38379719665,
+      "conclusion": "failure",
+      "logSHA256": "541fcc2b79482c0f4db486669f9b536b8ef2bdf949d647fead99ad2f65c66f51",
+      "name": "Tests CI historical123"
+    },
+    {
+      "head": "b4e008bdb2c393223318a6e49bc365b405b0c45f",
+      "runId": 38385828549,
+      "conclusion": "cancelled",
+      "logSHA256": "afb38091e8ba4a06984a8bb7647759d5f2ec0a98a6df3f323b3b6ae8769bb1eb",
+      "name": "Tests CI superseded124",
+      "reason": "corregida referencia indefinida propia del spec antes de entregar"
+    }
+  ],
+  "schema": 1,
+  "taskId": "inversiones-fecha-del-dato-por-origen-codex-20261013",
+  "actor": "codex",
+  "sessionId": "codex-cloud-20261013-c706f61eb203",
+  "createdAt": "2026-10-13T11:47:59.956Z",
+  "released": true
+}
