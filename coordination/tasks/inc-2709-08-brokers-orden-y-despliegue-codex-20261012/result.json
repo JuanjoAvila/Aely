@@ -1,0 +1,143 @@
+{
+  "status": "blocked",
+  "summary": "Orden9e10203 atendida: PR222 candidata final126 preparada y empujada, source026f8147aae4ef3e989448495395281b92cccd58 sobre d8d2624c6666599a09b99e111c3360af6eec6f91. Bloqueo exacto: DOM/CPU6 actuales sin ejecutar por FIN01 sin retorno observado ni admisión propia; revisión independiente CODE final y tres mutantes pendientes; frescura VERSION exit1 de integración. CI final38442914540 en curso, sin terminal. Se libera únicamente esta tarea bloqueada; no se devuelve ni retira recurso ajeno. No es done ni aceptación de producto.",
+  "productSHA": "026f8147aae4ef3e989448495395281b92cccd58",
+  "executionBaseSHA": "d8d2624c6666599a09b99e111c3360af6eec6f91",
+  "historicalTaskClaimBaseSHA": "c5f62d6603d016150afd9d0e20547b608b323045",
+  "pullRequestNumber": 222,
+  "branch": "codex/brokers-orden-20261012-0f562b6a",
+  "tests": [
+    {
+      "command": "npm run build",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/brokers-orden.test.mjs",
+      "exitCode": 0,
+      "pass": 5,
+      "fail": 0,
+      "skip": 0
+    },
+    {
+      "command": "node tests/logo-banco-o-empresa.test.mjs",
+      "exitCode": 0,
+      "checks": 7
+    },
+    {
+      "command": "node tests/auth-disposal-fit.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/i18n-keys.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/security.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/guard-privacy.mjs",
+      "exitCode": 0,
+      "environment": "local"
+    },
+    {
+      "command": "node tests/docs-frescura.test.mjs",
+      "exitCode": 1,
+      "reason": "Tres fuentes publicables posteriores al ancla126 sin bump"
+    },
+    {
+      "command": "node tests/presupuesto-rendimiento.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "Focal literal de tests/beta-sources.test.mjs: Catalogo y Retiro124/125/126",
+      "exitCode": 0,
+      "contracts": 6,
+      "fullSuite": false,
+      "assertionsChanged": false
+    },
+    {
+      "command": "Tres mutantes propios de clase portada, clase hija y regla de movimiento reducido",
+      "exitCode": 1,
+      "expectedExitCode": 1,
+      "detected": 3,
+      "productSourceModified": false,
+      "independentReview": false
+    },
+    {
+      "command": "Playwright DOM actual y A/B CPU6",
+      "executed": false,
+      "exitCode": null,
+      "reason": "Retencion independiente FIN01 sin retorno/admisión propia"
+    }
+  ],
+  "ci": {
+    "runId": "38442914540",
+    "headSHA": "026f8147aae4ef3e989448495395281b92cccd58",
+    "attempt": 1,
+    "dispatchCount": 1,
+    "status": "in_progress",
+    "conclusion": null,
+    "terminalExitCode": null
+  },
+  "fingerprints": {
+    "descriptors": 51,
+    "changedVsExecutionBase": [],
+    "officialArchivedReader": true,
+    "financialProviderFunctionsPreserved": 15
+  },
+  "size": {
+    "minBytes": 1380737,
+    "gzip9Bytes": 380367,
+    "minLimitBytes": 1386496,
+    "gzipLimitBytes": 380928,
+    "capsInheritedUnchanged": true
+  },
+  "historicalCI": {
+    "runId": "38406038805",
+    "headSHA": "367c49f78401e75686b865da2e84b06b15df2118",
+    "jobId": "115325786515",
+    "attempt": 1,
+    "status": "completed",
+    "conclusion": "failure",
+    "testsExitCode": 1,
+    "failedPhases": [
+      "docs-frescura"
+    ],
+    "denoFilesPassed": 7,
+    "PlaywrightExecuted": false,
+    "privacyStep": "skipped",
+    "sourceAndFullLogArchived": true,
+    "notInherited": true
+  },
+  "limitations": [
+    "DOM32 de3aaa y revisiones78/45bd no se heredan a026f8147",
+    "Revisión33 readonly367 es NO-GO completo; CODE final y tres mutantes independientes no ejecutados",
+    "CI actual en curso sin exit terminal ni privacidad posterior acreditados",
+    "No se modifican VERSION, catálogos, oráculos, topes ni productores financieros/calendario ajenos",
+    "FIN01 continúa independiente: cierre TASK no equivale a RETURN del recurso",
+    "Sin publicación, merge, beta/main, backend, APK ni aceptación móvil"
+  ],
+  "mobileSteps": [
+    "Mantener un bróker en Cartera y arrastrarlo sobre otro; reabrir y comprobar el mismo orden",
+    "Abrir cada bróker con dos y tres bloques y comprobar nombres, posiciones e importes",
+    "En Ver todas tus inversiones comprobar el mismo orden y acceso a editar, añadir, vender y borrar",
+    "Activar Reducir animaciones y comprobar apertura sin espera; cancelar un arrastre conserva el orden"
+  ],
+  "mobileStepsExecuted": false,
+  "brief": "docs/briefs/inc-2709-08-brokers-orden.md",
+  "schema": 1,
+  "taskId": "inc-2709-08-brokers-orden-y-despliegue-codex-20261012",
+  "actor": "codex",
+  "sessionId": "codex-local-20261012-brokers-0f562b6a9960",
+  "createdAt": "2026-10-13T17:59:30.296Z",
+  "released": true
+}
