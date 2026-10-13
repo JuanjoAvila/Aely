@@ -131,7 +131,7 @@ test("Inicio conserva la frase de gasto también con balance desfavorable",async
   await expect(dash.locator(".v4-budget-txt .ph")).not.toContainText(/[−-]\s*300/);
   await expect(dash.locator(".v4-budget-txt .ph")).not.toContainText("Balance en contra");
   await expect(dash.getByTestId("inicio-cycle-pace")).toHaveText("43 € al día durante 16 días");
-  await expect(dash.locator(".v4-budget-txt .st")).toHaveText("Vas sobrado");
+  await expect(dash).toHaveAttribute("aria-label",/^Vas sobrado\. Te quedan 700 € de 1000 €/);
 });
 
 test("el cobro del 26 reinicia el presupuesto opcional y Mi ciclo abre por defecto",async({page})=>{
@@ -170,7 +170,7 @@ test("el cobro del 26 reinicia el presupuesto opcional y Mi ciclo abre por defec
   await expect(page.locator(".v4-gastos-summary")).toContainText(/1\.?000/);
   await expect(page.locator(".v4-gastos-summary")).not.toContainText(/600/);
   await page.locator('.botnav-tab[data-tour="inicio"]').click();
-  await expect(page.locator(".v4-budget .st")).toHaveText("Ciclo recién empezado");
+  await expect(page.locator(".v4-budget")).toHaveAttribute("aria-label",/^Ciclo recién empezado\. /);
   await page.clock.pauseAt(new Date("2026-09-28T10:00:00Z"));
   await page.clock.resume();
   await page.reload();

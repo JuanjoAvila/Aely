@@ -964,8 +964,6 @@
   .v4-hero{text-align:center;padding:22px 0 8px;}
   .v4-net-current-head{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;}
   .spark{width:100%;height:70px;display:block;}
-  .v42-cycle-remaining{flex-basis:100%;font-size:12px;color:var(--muted);}
-  .v42-cycle-amount{flex-wrap:wrap;row-gap:0;}
   .v42-net{position:relative;}
   .v42-net .v4-micro{font-size:11px;letter-spacing:2.4px;}
   .v42-net .v4-hero-amt{font-size:46px;font-weight:560;margin-top:4px;}
@@ -999,11 +997,12 @@
   .v42-cycle-ring{position:relative;width:76px;height:76px;flex:0 0 auto;}
   .v42-cycle-percent{position:absolute;inset:0;display:flex;align-items:baseline;justify-content:center;padding-top:25px;font-family:'Fraunces',Georgia,serif;font-size:21px;font-weight:600;line-height:1;color:var(--text);}
   .v42-cycle-percent span{font-size:12px;color:var(--muted);margin-left:1px;}
-  .v42-cycle .v4-budget-txt .st{font-family:inherit;font-size:12.5px;font-weight:700;color:inherit;line-height:1.2;}
-  .v42-cycle .v4-budget-txt .v42-cycle-amount{display:flex;align-items:baseline;gap:6px;margin:0;flex-wrap:wrap;}
-  .v42-cycle-amount>.serif{font-size:28px;font-weight:600;white-space:nowrap;}
+  /* Dos líneas (importe y ritmo), centradas contra el anillo por el flex de .v4-budget. El importe
+     baja de 28 a 24 px: a 28 pesaba más que el propio anillo al mirarlo un rato (2026-10-13). */
+  .v42-cycle .v4-budget-txt .v42-cycle-amount{display:flex;align-items:baseline;gap:6px;margin:0;line-height:1.2;flex-wrap:wrap;}
+  .v42-cycle-amount>.serif{font-size:24px;font-weight:600;white-space:nowrap;}
   .v42-cycle-of{font-size:13px;color:var(--muted);white-space:nowrap;}
-  .v42-cycle-pace{font-size:12.5px;color:var(--muted);margin-top:2px;}
+  .v42-cycle-pace{font-size:12.5px;color:var(--muted);margin-top:4px;}
   .v42-cycle-pace b{font-weight:700;color:var(--cycle-color);}
   .v42-cycle-draw{animation:v42-cycle-draw 1.1s .15s cubic-bezier(.65,0,.35,1) both;animation-play-state:var(--v42-play,running);}
   @keyframes v42-cycle-draw{from{stroke-dasharray:0 100;}to{stroke-dasharray:var(--cycle-pct) 100;}}

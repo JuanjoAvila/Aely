@@ -80,7 +80,7 @@ test("con recibos y metas de verdad, las tarjetas fantasma desaparecen", { annot
 test("★ P5: sin racha histórica, el estado actual se dice en positivo", async ({ page }) => {
   await inicio(page, { history: [], budget: 500, streak: 0 });
   await expect(page.getByText(/0 meses sin pasarte/i)).toHaveCount(0);
-  await expect(page.locator(".v42-cycle .st")).toHaveText("Vas sobrado");
+  await expect(page.locator(".v42-cycle")).toHaveAttribute("aria-label",/^Vas sobrado\. /);
   // Con los 500 enteros y cinco días hasta el 1/10, el reparto diario se dice tal cual.
   await expect(page.getByTestId("inicio-cycle-pace")).toHaveText("100 € al día durante 5 días");
 });
