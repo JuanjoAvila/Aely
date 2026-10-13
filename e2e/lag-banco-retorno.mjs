@@ -60,7 +60,7 @@ export function instalaRetorno({epoch,startup=null}){
 }
 
 export function instrumentaTotales(html,main){
-  const start='const totals=useMemo(()=>{',end='state.trRewardsTotal,state.fx,state.fxRates,calendarDay]);';
+  const start='const totals=useMemo(()=>{',end='state.trRewardsTotal,state.fx,state.fxRates,state.reciboNo,calendarDay]);';
   if(html.split(start).length!==2||html.split(end).length!==2)throw new Error('Ancla de totales ausente/ambigua');
   const first=html.indexOf(start),last=html.indexOf(end,first),deps=html.lastIndexOf('},[',last);
   if(deps<first)throw new Error('Dependencias de totales ausentes');

@@ -91,7 +91,7 @@ mi-cartera/
 │   ├── index.html          #     Generado por `npm run build` — no editar a mano
 │   ├── manifest.json · sw.js · vendor/ · fonts/
 │   └── privacy.html
-├── e2e/                    # Playwright (116 specs: pantallas, persistencia, copias, reglas mensuales y ayuda de Mi ciclo y banco de lag)
+├── e2e/                    # Playwright (116 specs: pantallas, persistencia, copias, reglas mensuales, ayuda de Mi ciclo y banco de lag)
 │   ├── inicio-v42.spec.mjs # Inicio v4.2 en pantalla real: gráfica, consulta con el dedo, cobertura y tarjeta del mes
 │   ├── recibo-cargo-en-gastos.spec.mjs # El cargo de un recibo en Gastos, Inicio, Plan e «Importar histórico»; «No es este recibo» y su vuelta atrás, es/en/ca
 │   └── backclose-handover.spec.mjs # Dieciocho casos de historial/overlays; retorno cleanUrls2PASS/base1092RED

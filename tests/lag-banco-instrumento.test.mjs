@@ -136,7 +136,7 @@ test('instrumentación usa anclas únicas de la fuente real y conserva sintaxis,
   for(const match of changed.replace(/<!--[\s\S]*?-->/g,'').matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi))if(match[1].trim())new vm.Script(match[1]);
   assert.throws(()=>instrumentaTotales(html+html,main),/ambigua/);assert.throws(()=>instrumentaArranque(''),/ausente/);
 });
-test('fixture119 devuelve el acuse sin cambiar volumen ni las filas del pull',()=>{
+test('fixture122 devuelve el acuse sin cambiar volumen ni las filas del pull',()=>{
   for(const n of [2000,20000]){const f=recorrido.fixture(n);assert.equal(f.expenses.length,n);assert.equal(f.__cloudRows.expenses.length,n);
     assert.equal(f.__cloudFns['bank-sync'].data.links[0].ack,syntheticAck);assert.equal(f.fixed.length,6);
     assert.deepEqual(f.fixed.map(x=>x.day),[10,10,10,28,28,28]);}
@@ -146,14 +146,14 @@ test('hook de totales parseado y ejecutado conserva resultado financiero, depend
   const ctx=loadPureLogic(html),record=[];
   ctx.state={accounts:[{id:'e2e',ent:'sabadell',role:'diario',value:1000}],assets:[{value:400}],budget:500,fx:0.92,settings:{},trAnchor:'2026-09'};
   for(const k of ['expenses','bankTx','investments','debts','fixed','flows','oneoffs','deleted','aportaciones','obAccounts'])ctx.state[k]=[];
-  ctx.calendarDay='2026-09-26';ctx.window.__lagBanco={measureSync(kind,fn){record.push(kind);return fn();}};
-  const end='state.trRewardsTotal,state.fx,state.fxRates,calendarDay]);';
+  ctx.state.reciboNo={};ctx.calendarDay='2026-09-26';ctx.window.__lagBanco={measureSync(kind,fn){record.push(kind);return fn();}};
+  const end='state.trRewardsTotal,state.fx,state.fxRates,state.reciboNo,calendarDay]);';
   function execute(source){const start=source.indexOf('const totals=useMemo('),stop=source.indexOf(end,start)+end.length;
     return vm.runInContext('(()=>{const useMemo=(fn,deps)=>{globalThis._lagDeps=deps;return fn();};'+source.slice(start,stop)+';return totals;})()',ctx);}
   const before=execute(main),deps=Array.from(ctx._lagDeps);
   const after=execute(instrumentaTotales(html,main));
   assert.deepEqual(JSON.parse(JSON.stringify(after)),JSON.parse(JSON.stringify(before)));assert.equal(after.netWorth,1400);
-  assert.deepEqual(Array.from(ctx._lagDeps),deps);assert.equal(deps.length,16);assert.deepEqual(record,['totals']);
+  assert.deepEqual(Array.from(ctx._lagDeps),deps);assert.equal(deps.length,17);assert.equal(deps.at(-2),ctx.state.reciboNo);assert.deepEqual(record,['totals']);
 });
 
 test('emisor conserva warmup objeto, última fase y fallo original sin invocar at sobre objetos',()=>{
