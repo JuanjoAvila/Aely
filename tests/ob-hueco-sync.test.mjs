@@ -51,9 +51,12 @@ t("dos bancos: el hueco entra con su fecha y no duplica noti, mano ni histórico
   ];
   const add = ctx.importObExpenses(cartera(seeded), lote, links) || [];
   const names = add.map((e) => e.ent + "|" + e.merchant).sort();
-  // Farmacia Norte ya está modelada como fijo: el tramo antiguo no la duplica como gasto.
-  assert.equal(JSON.stringify(names), JSON.stringify(["sabadell|Mercadona", "sabadell|Panadería Sol"]));
-  assert.equal(add.find((e) => e.merchant === "Farmacia Norte"), undefined);
+  // Farmacia Norte ya está modelada como fijo: desde el 12/10/2026 entra en la lista, enlazada a
+  // su recibo y sin contar, en vez de tirarse.
+  assert.equal(JSON.stringify(names), JSON.stringify(["caixabank|Farmacia Norte", "sabadell|Mercadona", "sabadell|Panadería Sol"]));
+  const farmacia = add.find((e) => e.merchant === "Farmacia Norte");
+  assert.ok(farmacia.reciboId, "lleva el recibo al que corresponde");
+  assert.equal(ctx.expenseCountsCash(farmacia, cartera(seeded)), false);
   const pan = add.find((e) => e.merchant === "Panadería Sol");
   assert.equal(pan.date.slice(0, 10), viejo);
   assert.equal(pan.source, "ob");
@@ -71,6 +74,17 @@ t("el suelo es por banco: el de uno no abre el tramo de otro y con dos enlaces g
   assert.equal(corto, null, "lo anterior al suelo no entra");
   const dos = ctx.importObExpenses(cartera([]), lote, [{ aspsp: "CaixaBank", syncFrom: day(-20) }, { aspsp: "CaixaBank", syncFrom: day(-60) }]) || [];
   assert.equal(dos.length, 1);
+});
+
+// Y14: cambiar el `<=` del suelo por `<` no tumbaba nada. El día del suelo es el primero que
+// el servidor dice haber leído: si se tira, se pierde un día entero en cada pulsación.
+t("el suelo es inclusivo: el movimiento fechado justo en syncFrom entra y el de la víspera no", () => {
+  const suelo = day(-60);
+  const lote = [tx("caixabank", suelo, 7.35, "Ferretería", "cx-suelo"), tx("caixabank", day(-61), 7.4, "Mercería", "cx-vispera")];
+  const add = ctx.importObExpenses(cartera([]), lote, [{ aspsp: "CaixaBank", syncFrom: suelo }]) || [];
+  assert.equal(JSON.stringify(add.map((e) => e.extId)), JSON.stringify(["cx-suelo"]));
+  assert.equal(add[0].date.slice(0, 10), suelo);
+  assert.equal(add[0].amount, 7.35);
 });
 
 t("el suelo colgado en el estado no entra: hace falta pasarlo", () => {
@@ -122,7 +136,7 @@ t("runBankSync pasa el suelo de la respuesta al importador", () => {
 
 t("el cliente pide recoverGaps por el cliente de siempre, sin dateFrom y sin adivinar quién pulsó", () => {
   assert.match(core, /async bankSync\(body\)\{[\s\S]{0,120}invoke\('bank-sync',\{ body \}\)/);
-  assert.match(main, /cloud\.bankSync\(\{recoverGaps:true\}\)/);
+  assert.match(main, /cloud\.bankSync\(\{recoverGaps:true,acks:obAckLoad\(\)\}\)/);
   assert.doesNotMatch(main, /bankSync\(\{[^)]*dateFrom/);
   assert.equal((core.match(/createClient\(/g) || []).length, 1, "un solo cliente de Supabase");
   assert.doesNotMatch(core, /addEventListener\("click"[\s\S]{0,400}sincronizar bancos/);

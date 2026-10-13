@@ -31,9 +31,12 @@ async function sync(page,tx,balance){
 }
 async function check(page,count,balance,cycle,remaining=500){
   await page.locator('.botnav-tab[data-tour="inicio"]').click();
-  await expect(page.locator('.v4-budget .v4-ring')).toContainText(cycle?/del ciclo|of cycle|del cicle/:/del mes|of month/);
+  await expect(page.locator('.v4-budget .v4-ring')).toContainText('%');
+  // El reparto diario ya no delata el ciclo: también sale en el mes natural mientras quede
+  // dinero. Lo que distingue un cobro reconocido es el rótulo de la tarjeta.
+  await expect(page.locator('.v42-cycle-head>span')).toHaveText(cycle?/^(Este ciclo|This cycle|Aquest cicle)$/:/^(Este mes|This month|Aquest mes)$/);
   // Inicio73 conserva gasto bruto en el mes; Gastos mantiene el balance neto elegido.
-  await expect(page.locator('.v4-budget-txt .ph')).toContainText(cycle?remaining+",00":"500");
+  await expect(page.locator('.v4-budget-txt .ph')).toContainText(cycle?String(remaining):"500");
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
   await expect(page.locator('.v4-gastos-list-body button.v4-mov').filter({hasText:"NOMINA EMPRESA SL"})).toHaveCount(count);
   await expect(page.locator('.v4-gastos-summary-left')).toContainText(String(remaining));

@@ -253,15 +253,19 @@ t("C: aporte ≈ monthlyInvest → inversion; investments intacto al build", () 
   assert.deepEqual(built.investmentsSnapshot, invBefore);
 });
 
-t("I: matchesModeled usa el mes del candidato, no solo el mes actual", () => {
+// Desde el 12/10/2026 ya no hay casado propio del histórico: decide `cargosDeReciboPorMarcar`,
+// que pide el nombre del recibo entero dentro del comercio y el mes en que el recibo toca.
+t("I: el cargo de un recibo se reconoce por el mes del candidato, no por el mes actual", () => {
   const st = baseState();
   // Fijo que SOLO ocurre en mayo (day 5); candidato en mayo debe casar.
-  st.fixed = [{ id: "luz", name: "Luz Endesa", amount: 45, day: 5, months: [5], account: "sabadell", ent: "sabadell" }];
+  st.fixed = [{ id: "luz", name: "Endesa Luz", amount: 45, day: 5, months: [5], account: "sabadell", ent: "sabadell" }];
   // Helper occursIn — si months vacío/undefined ocurre todos los meses; con [5] solo mayo.
   const cMay = cand({ date: "2026-05-05", amount: 45, merchant: "RECIBO ENDESA LUZ", ent: "sabadell", kind: "out", card: false });
   const cSep = cand({ date: "2026-09-05", amount: 45, merchant: "RECIBO ENDESA LUZ", ent: "sabadell", kind: "out", card: false });
-  assert.ok(ctx.histMatchesModeled(st, cMay), "mayo casa con el fijo de mayo");
-  assert.equal(ctx.histMatchesModeled(st, cSep), null, "septiembre no debe casar con fijo solo-mayo");
+  const rows = ctx.histClassifyCandidates([cMay, cSep], st).rows;
+  assert.equal(rows[0].reciboId, "luz", "mayo es el cargo del recibo de mayo");
+  assert.equal(rows[1].reciboId, undefined, "septiembre no: ese recibo solo toca en mayo");
+  assert.equal(rows[1].status, "new");
 });
 
 t("J: signo sospechoso si >70% ingresos en un banco (≥3 movs)", () => {

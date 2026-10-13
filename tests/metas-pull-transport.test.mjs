@@ -43,6 +43,9 @@ function banco(){
   const deps={
     cloud:{pullState:function(){ const d=diferida(); pulls.push(d); return d.promise; },pushState:()=>Promise.resolve({updated_at:"2026-11-02"})},
     set:function(updater){ state=updater(state); },stateRef:{current:state},cloudUpdatedAtRef:{current:null},pullOkRef:{current:null},
+    // El transporte real consulta la sesión antes de unir el historial de Inicio;
+    // omitirla en el banco cortaba el pull antes de pedir gastos y ocultaba el motivo.
+    sessionRef:{current:{user:{id:"synthetic"}}},mergeAccountBalanceHistory:ctx.mergeAccountBalanceHistory,
     // Si se vuelve al ref compartido, la intercalación tiene que fallar; su existencia en el
     // banco no obliga al código correcto a usarlo ni presupone cómo guarda su resultado local.
     reservaMensualLeido:{current:false},

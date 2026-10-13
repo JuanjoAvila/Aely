@@ -612,34 +612,313 @@ function useCountUp(target, ready, replay){
   return shown;
 }
 
-function Sparkline({data, current}){
-  const pts = data.concat(current!=null?[current]:[]);
-  // Con 0 o 1 puntos esto pintaba una recta de lado a lado con su puntito final: parece un grafico
-  // de verdad que dice cero, y es lo primero que ve alguien que acaba de instalar la app. Sin
-  // datos no hay grafico (P1). Quien lo llama reserva el hueco para que no salte el layout.
-  if(pts.length<2) return null;
-  const w=320, h=70, pad=4;
-  const min=Math.min.apply(null,pts), max=Math.max.apply(null,pts);
-  const rng=(max-min)||1;
-  const xs=(i)=> pad + (pts.length>1 ? i*(w-2*pad)/(pts.length-1) : 0);
-  const ys=(v)=> pad + (1-(v-min)/rng)*(h-2*pad);
-  let d="M"+xs(0)+" "+ys(pts[0]);
-  for(let i=1;i<pts.length;i++) d+=" L"+xs(i)+" "+ys(pts[i]);
-  const area=d+" L"+xs(pts.length-1)+" "+h+" L"+xs(0)+" "+h+" Z";
-  const lastX=xs(pts.length-1), lastY=ys(pts[pts.length-1]);
-  return React.createElement("svg",{className:"spark",viewBox:"0 0 "+w+" "+h,preserveAspectRatio:"none"},
-    React.createElement("defs",null,
-      React.createElement("linearGradient",{id:"sparkfill",x1:"0",y1:"0",x2:"0",y2:"1"},
-        React.createElement("stop",{offset:"0",stopColor:"#5FD08A",stopOpacity:"0.28"}),
-        React.createElement("stop",{offset:"1",stopColor:"#5FD08A",stopOpacity:"0"})
-      )
-    ),
-    React.createElement("path",{d:area,fill:"url(#sparkfill)"}),
-    React.createElement("path",{d:d,fill:"none",stroke:"#5FD08A",strokeWidth:"2.4",strokeLinecap:"round",strokeLinejoin:"round",vectorEffect:"non-scaling-stroke"}),
-    React.createElement("circle",{cx:lastX,cy:lastY,r:"3.5",fill:"#7DE8A8"})
-  );
+function recordAccountBalances(hist, day, rows){
+  var out=hist||{}, changed=false;
+  (rows||[]).forEach(function(r){
+    if(!r.key||typeof r.value!=="number"||!Number.isFinite(r.value)) return;
+    const prev=out[r.key]||[], last=prev[prev.length-1];
+    if(last&&last.day===day&&last.value===r.value) return;
+    if(!changed){ out=Object.assign({},out); changed=true; }
+    const list=prev.filter(function(p){ return p&&p.day&&typeof p.value==="number"&&Number.isFinite(p.value); }).slice(last&&last.day===day?-400:-399);
+    if(list.length&&list[list.length-1].day===day) list[list.length-1]={day:day,value:r.value};
+    else list.push({day:day,value:r.value});
+    out[r.key]=list;
+  });
+  return out;
+}
+// Las fotos de bancos desacompasados inventaban pérdidas de traspasos. El total de hoy
+// se recorre hacia atrás con flujos; sólo las cuentas manuales sin movimientos usan escalones.
+function recordAssetValues(history, day, assets, previous, bornId){
+  let out=history||{},changed=false;
+  const by={};(assets||[]).forEach(function(a){if(a.id&&Number.isFinite(a.value))by[a.id]=a;});
+  const ids=new Set(Object.keys(out));Object.keys(by).forEach(function(id){ids.add(id);});
+  (previous||[]).forEach(function(a){if(a.id)ids.add(String(a.id));});
+  ids.forEach(function(id){
+    const list=out[id]||[],last=list[list.length-1],a=by[id],value=a?a.value:0;
+    if(last&&last.value===value)return;
+    // La llegada de una lista tras reinstalar no acredita una compra: sólo Guardar
+    // en Bienes puede marcar el alta. El montaje tampoco inventa una revaloración.
+    const born=!!a&&bornId!=null&&String(bornId)===id,prior=(previous||[]).find(function(p){return String(p.id)===id;});
+    if(!last&&!born&&(!prior||prior.value===value))return;
+    const point={day:day,value:value};if(born||(last&&last.day===day&&last.born))point.born=true;
+    const kept=list.filter(function(p){return p&&p.day<day&&Number.isFinite(p.value);});
+    // Revalorar un bien heredado sin escalones dejaba el valor nuevo como primer dato y la
+    // gráfica de Inicio se reiniciaba ese día. El valor anterior sí se conoce al guardar:
+    // queda anotado la víspera como `legacy` y se mantiene hacia atrás (revisión 13/10).
+    if(!last&&!born&&prior&&Number.isFinite(prior.value))
+      kept.push({day:new Date(Date.parse(day+"T12:00:00Z")-864e5).toISOString().slice(0,10),value:prior.value,legacy:true});
+    const next=kept.slice(-399).concat(point);
+    if(!changed){out=Object.assign({},out);changed=true;}out[id]=next;
+  });
+  return changed?out:history;
+}
+function netWorthDay(nowMs){
+  // La serie etiqueta movimientos en Madrid; «hoy» no puede cerrarla un día antes en UTC.
+  const p=madridYmdParts(nowMs==null?Date.now():nowMs);
+  return p.ym+"-"+String(p.d).padStart(2,"0");
+}
+function netWorthDebtPolicy(state, today, current){
+  const parts=today.split("-").map(Number), month=parts[0]*12+parts[1]-1;
+  const debts=state.debts||[], notes=[];
+  // Hacia atrás se deshace el cuadro de cuotas que debtBalance aplica hacia delante: saldo de
+  // entonces = saldo de hoy + la amortización de cada cargo entre esa fecha y hoy, contado por
+  // el día de cuota. Así el día de la cuota la gráfica solo baja los intereses y el último punto
+  // es el saldo que pinta la app, también si el cargo de este mes aún no ha pasado.
+  const rebuilt=function(d){ return d.months==null&&debtAmort(d)>0&&Number(d.value)>0.005&&!d.settledAt; };
+  const at=function(d,day){
+    // Una fecha de referencia explícita no pone la deuda a cero antes: con una hipoteca sellada
+    // al darla de alta inflaría el patrimonio anterior en todo su principal (revisión 13/10).
+    // Antes de la fecha se mantiene el saldo (o su cuadro, como las demás).
+    const p=day.split("-").map(Number), charge=debtChargeDay(d);
+    const anchor=typeof d.asOf==="number"?d.asOf:month;
+    const paidToday=(month-anchor)+(d.months!=null&&charge<=parts[2]?1:0);
+    const between=(month+(charge<=parts[2]?1:0))-((p[0]*12+p[1]-1)+(charge<=p[2]?1:0));
+    let n=paidToday-between;
+    // Con plazo, el ancla es el inicio del préstamo: antes no debía más que el saldo ancla.
+    // Sin plazo, la hipoteca o el préstamo existían ya; sin cuota o liquidada, se mantiene.
+    if(d.months!=null||!rebuilt(d)) n=Math.max(0,n);
+    let value=Number(d.value)-debtAmort(d)*n;
+    if(d.balloon>0&&d.months!=null&&n>=d.months) value-=d.balloon;
+    if(n<0&&d.original>0) value=Math.min(value,Math.max(Number(d.original),Number(d.value)));
+    return Math.max(0,value);
+  };
+  debts.forEach(function(d){
+    // El ancla mensual de una hipoteca o un préstamo dados de alta (o con el saldo corregido)
+    // antes de esta versión no dice cuándo nació: antes recortaba la serie a hoy y dejaba Inicio
+    // sin gráfica (13/10). Se reconstruye por cuotas y se declara en la «i».
+    const estimated=debtAmort(d)>0&&Number(d.value)>0.005&&!d.settledAt;
+    notes.push({kind:"debt",name:d.name,estimated:estimated,constant:!estimated});
+  });
+  const sum=function(day){ return debts.reduce(function(n,d){ return n+at(d,day); },0); };
+  const value=current!=null?current:sum(today);
+  return {current:value,notes:notes,timingUnknown:debts.some(function(d){return d.months==null&&!(dayOf(d)>0);}),at:function(day){ return day===today?value:sum(day); }};
+}
+function netWorthSeries(state, options){
+  options=options||{};
+  const today=options.today||netWorthDay();
+  const deps=[today,options.liquid,options.invested,options.debtTotal,state.accounts,state.obAccounts,state.expenses,
+    state.deleted,state.accountBalanceHistory,state.invHistory,state.investments,state.assets,state.assetValueHistory,state.debts,state.flows,
+    state.fixed,state.oneoffs,state.bankTx,state.settings,state.fxRates,state.fx,state.aportaciones,
+    options.balanceInputs&&options.balanceInputs.paidNetByBank,options.balanceInputs&&options.balanceInputs.spentByBank];
+  const cache=netWorthSeries.cache||(netWorthSeries.cache=[]);
+  const hit=cache.find(function(c){ return c.deps.every(function(v,i){ return v===deps[i]; }); });
+  if(hit) return hit.series;
+  const gaps=[], out=[];
+  const done=function(){ out.coverage=gaps;out.fresh=!(state.expenses||[]).length&&!Object.values(state.accountBalanceHistory||{}).some(function(a){return a.length>1;})&&(state.invHistory||[]).length<2;cache.unshift({deps:deps,series:out});cache.length=Math.min(cache.length,4);return out; };
+  const utcFmt=netWorthSeries.utcFmt||(netWorthSeries.utcFmt=new Intl.DateTimeFormat("en-CA",{timeZone:"UTC",year:"numeric",month:"2-digit",day:"2-digit"}));
+  const fmt=netWorthSeries.fmt||(netWorthSeries.fmt=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Madrid",year:"numeric",month:"2-digit",day:"2-digit"}));
+  const clean=function(list,day,value){
+    const by={};
+    (list||[]).forEach(function(p){
+      const d=p&&p[day],v=p&&p[value];
+      if(!/^\d{4}-\d{2}-\d{2}$/.test(d||"")||typeof v!=="number"||!Number.isFinite(v)||d>today) return;
+      const ms=Date.parse(d+"T12:00:00Z");
+      if(Number.isFinite(ms)&&utcFmt.format(ms)===d) by[d]=Object.assign({},p,{day:d,value:v});
+    });
+    return Object.keys(by).sort().map(function(d){ return by[d]; });
+  };
+  const rows=accountRowsInOrder(state), owned=Object.create(null), hist=state.accountBalanceHistory||{};
+  const ins=options.balanceInputs?Object.assign({},options.balanceInputs,{roundup:options.balanceInputs.roundupThisMonth,monthlyInvest:options.balanceInputs.monthlyInvestThisMonth}):insumosSaldoGasto(state);
+  rows.forEach(function(r){ if(r.item.ent) owned[r.item.ent]=true; });
+  const values=rows.map(function(r){
+    if(typeof r.item.value!=="number"||!Number.isFinite(r.item.value)) return null;
+    return r.kind==="ob"?toEurAmt(r.item.value,r.item.cur||"EUR",state):saldoCuentaMostrada(r.item,ins);
+  });
+  if(values.some(function(v){ return typeof v!=="number"||!Number.isFinite(v); })){
+    gaps.push({kind:"balance",unknown:true,name:rows.filter(function(r,i){ return values[i]==null; }).map(function(r){ return r.item.name||r.item.ent; }).join(", ")});return done();
+  }
+  const del=expenseDeletedSet(state), entries=[], byAmount={}, firstByBank={}, hours={};
+  (state.expenses||[]).forEach(function(e){
+    if(!e||e.possibleDup||expenseIsTombstoned(e,del)||typeof e.amount!=="number"||!Number.isFinite(e.amount)||
+      (e.status&&String(e.status).toUpperCase()!=="BOOK")) return;
+    const bank=expenseBankOf(e);if(!owned[bank]) return;
+    const raw=String(e.date||"").trim(),ms=/^\d{4}-\d{2}-\d{2}/.test(raw)?Date.parse(raw):_pdMs(raw);
+    if(!Number.isFinite(ms)) return;
+    const hour=Math.floor(ms/3600000),bounds=hours[hour]||(hours[hour]=[fmt.format(hour*3600000),fmt.format(hour*3600000+3599999)]);
+    const day=bounds[0]===bounds[1]?bounds[0]:fmt.format(ms);if(day>today) return;
+    const row={expense:e,bank:bank,day:day,ms:ms,cents:Math.round(e.amount*100)};entries.push(row);
+    if(!firstByBank[bank]||day<firstByBank[bank]) firstByBank[bank]=day;
+    if(row.cents){const key=Math.abs(row.cents);(byAmount[key]||(byAmount[key]=[])).push(row);}
+  });
+  // La categoría sola no acredita un traspaso propio: dos patas únicas, opuestas,
+  // en bancos presentes y cercanas. Repetir el importe meses después no vuelve ambiguo ese par.
+  Object.keys(byAmount).forEach(function(key){
+    const group=byAmount[key];if(!group.some(function(p){return p.cents<0;}))return;
+    const hinted=group.filter(function(p){return p.expense.category==="traspaso";});if(!hinted.length)return;
+    group.sort(function(a,b){return a.ms-b.ms;});const mates=new Map();
+    hinted.forEach(function(a){
+      let low=0,high=group.length;const from=a.ms-7*864e5,to=a.ms+7*864e5;
+      while(low<high){const mid=(low+high)>>1;if(group[mid].ms<from)low=mid+1;else high=mid;}
+      for(let i=low;i<group.length&&group[i].ms<=to;i++){
+        const b=group[i],cat=b.expense.category;
+        if(a.bank===b.bank||a.cents!==-b.cents||(cat&&cat!=="traspaso"&&cat!=="otros"))continue;
+        const ar=a.expense.transferId,br=b.expense.transferId;if(ar&&br&&ar!==br)continue;
+        if(!mates.has(a))mates.set(a,new Set());if(!mates.has(b))mates.set(b,new Set());
+        mates.get(a).add(b);mates.get(b).add(a);
+      }
+    });
+    mates.forEach(function(list,a){if(list.size!==1)return;const b=Array.from(list)[0];if(mates.get(b).size===1){a.ownTransfer=b.bank;b.ownTransfer=a.bank;}});
+  });
+  const manual=[], flowBanks={}, later=[];
+  let first="";
+  rows.forEach(function(r,i){
+    const bank=r.item.ent,points=clean(hist[r.key],"day","value"),cash=isEfectivoEnt(r.item);
+    const tracked=r.kind==="ob"||r.item.bankIban||(!points.length&&firstByBank[bank])||accDaily(r.item);
+    if(tracked){
+      flowBanks[bank]=true;
+      // Antes el banco con el histórico más corto recortaba la serie entera («cobertura de TODOS
+      // los bancos»): con gastos desde junio, la gráfica empezaba en septiembre (13/10). Ahora
+      // arranca en el primer movimiento y, antes del suyo, cada cuenta se queda con su saldo de
+      // entonces (sin flujos no hay nada que deshacer); la «i» lo declara.
+      if(firstByBank[bank]&&!cash) later.push({day:firstByBank[bank],kind:"bank",name:r.item.name||(ENT[bank]&&ENT[bank].label)||bank});
+    }else{
+      // Antes del primer cierre, la cuenta manual conserva ese primer saldo: es la misma
+      // aproximación que ya se hace sin historial y que un bien heredado, y un sobre de
+      // efectivo con un cierre de hace dos semanas recortaba toda la serie a esa fecha (13/10).
+      manual.push({value:values[i],points:points,before:points.length?points[0].value:0});
+      if(points.length) gaps.push({day:points[0].day,kind:"manual",name:r.item.name||bank,constant:true,prior:true});
+    }
+    if(points.length&&(!first||points[0].day<first)) first=points[0].day;
+  });
+  entries.forEach(function(e){if(!first||e.day<first)first=e.day;});
+  const investments=clean(state.invHistory,"d","v"),hasInv=(state.investments||[]).length>0;
+  if((state.investments||[]).some(function(i){ return invValueEur(i,state)==null; })){gaps.push({kind:"investment",unknown:true});return done();}
+  const invested=options.invested!=null?options.invested:(state.investments||[]).reduce(function(n,i){ return n+(invValueEur(i,state)||0); },0)+(ins.roundup||0)+(ins.monthlyInvest||0);
+  // Sin foto anterior, la inversión no recorta: se mantiene su primer valor conocido (la primera
+  // foto, o el de hoy si no hay ninguna) menos las aportaciones propias entre medias, como un
+  // bien heredado. Antes bastaba un bróker recién dado de alta para dejar Inicio sin gráfica.
+  const invKnown=investments.length?investments[0]:(hasInv||invested!==0)?{day:today,value:invested}:null;
+  const contributions={},daily={};
+  entries.forEach(function(row){
+    const e=row.expense,day=row.day;
+    // Un cierre manual ya recoge su pata: sólo dos cuentas reconstruidas por flujos
+    // permiten neutralizar ambas sin perder el traspaso (revisión12/10).
+    if(!flowBanks[row.bank]||(row.ownTransfer&&flowBanks[row.ownTransfer])) return;
+    const text=String(e.merchant||"").toLowerCase(),target=e.toBank||e.to||e.counterpartyBank;
+    const linked=!!invKnown&&e.amount!==0&&(state.investments||[]).some(function(i){
+      const name=String(i.ent||"").replace(/_/g," ").toLowerCase();
+      return (e.investmentId&&e.investmentId===i.id)||(target&&target===i.ent)||(name.length>=4&&text.includes(name));
+    });
+    // Un movimiento INTERNO nunca se pinta como pérdida (revisión 13/10): un traspaso de una sola
+    // pata sin pista de bróker (la otra cuenta aún no tenía histórico, o es ajena) y una retirada
+    // de cajero sin pata de efectivo quedan NEUTROS, plano antes que un salto inventado. Antes el
+    // traspaso recortaba la serie hasta la foto siguiente y después salía como dinero perdido.
+    if(!row.ownTransfer&&((e.category==="traspaso"&&!linked)||(e.amount>0&&isAtmWithdrawal(e.merchant)))) return;
+    daily[day]=(daily[day]||0)-Math.round(e.amount*100);
+    if(e.category==="inversion"||(e.category==="traspaso"&&linked)) contributions[day]=(contributions[day]||0)+row.cents;
+  });
+  const assetRows=[], assetHist=state.assetValueHistory||{};
+  const assetIds=new Set(Object.keys(assetHist));(state.assets||[]).forEach(function(a){assetIds.add(String(a.id));});
+  assetIds.forEach(function(id){
+    // El valor anterior sólo vale como primer dato: tras unir dos dispositivos que revaloraron
+    // el mismo bien, una segunda marca en medio pintaría una subida que nadie apuntó.
+    const a=(state.assets||[]).find(function(x){return String(x.id)===id;}),points=clean(assetHist[id]||(a&&(a.valueHistory||a.history)),"day","value").filter(function(p,i){return !i||!p.legacy;});
+    if(a&&(!Number.isFinite(a.value))){gaps.push({kind:"asset",name:a.name,unknown:true});return;}
+    const value=a?a.value:0,legacy=points.length>0&&!!points[0].legacy;
+    // Un bien con escalones propios tampoco recorta: antes del primero conserva ese primer valor.
+    const stepped=!legacy&&points.length>0&&!points[0].born;
+    assetRows.push({value:value,points:points,before:legacy||stepped?points[0].value:0});
+    if(legacy||stepped)gaps.push({day:legacy&&points.length>1?points[1].day:legacy?today:points[0].day,kind:"asset",name:a&&a.name,constant:true,prior:true});
+    else if(!points.length&&a)gaps.push({kind:"asset",name:a.name,constant:true});
+  });
+  if(gaps.some(function(g){return g.unknown;}))return done();
+  const debt=netWorthDebtPolicy(state,today,options.debtTotal);
+  if(!Number.isFinite(debt.current)){gaps.push({kind:"debt",unknown:true});return done();}
+  if(debt.timingUnknown)gaps.push({kind:"debt",timingUnknown:true});
+  debt.notes.forEach(function(n){gaps.push(n);});
+  const start=first||today;
+  // Lo que se mantiene constante antes de su primer dato se declara, en corto, en la «i»; un
+  // «antes del» que cae fuera de la gráfica no cuenta nada y se calla.
+  for(let i=gaps.length-1;i>=0;i--)if(gaps[i].prior&&gaps[i].day<=start)gaps.splice(i,1);
+  if(invKnown&&invKnown.day>start)gaps.push({day:invKnown.day,kind:"investment",constant:true});
+  later.forEach(function(l){if(l.day>start)gaps.push(Object.assign({later:true},l));});
+  const liquid=options.liquid!=null?options.liquid:values.reduce(function(n,v){return n+v;},0);
+  const assets=(state.assets||[]).reduce(function(n,a){return n+a.value;},0),manualNow=manual.reduce(function(n,m){return n+Math.round(m.value*100);},0);
+  if(!Number.isFinite(liquid)||!Number.isFinite(invested)){gaps.push({kind:"balance"});return done();}
+  let cash=Math.round((liquid+invested+assets-debt.current)*100)-Math.round(invested*100)-Math.round(assets*100)+Math.round(debt.current*100)-manualNow;
+  const steps=manual.concat(assetRows),indices=steps.map(function(s){return s.points.length-1;});
+  const contributionDays=Object.keys(contributions).sort(),prefix={},days=Object.keys(daily).concat(investments.map(function(p){return p.day;})).concat(contributionDays).sort();
+  let contributed=0,ci=0;days.forEach(function(day){while(ci<contributionDays.length&&contributionDays[ci]<=day){contributed+=contributions[contributionDays[ci++]];}prefix[day]=contributed;});
+  const contributedBy=function(day){let n=prefix[day];if(n==null){let i=contributionDays.length-1;while(i>=0&&contributionDays[i]>day)i--;n=i>=0?prefix[contributionDays[i]]:0;}return n;};
+  let invIndex=investments.length-1;
+  for(let ms=Date.parse(today+"T12:00:00Z"),from=Date.parse(start+"T12:00:00Z");ms>=from;ms-=864e5){
+    const day=utcFmt.format(ms);
+    while(invIndex>=0&&investments[invIndex].day>day)invIndex--;
+    // Antes de la primera foto vale la primera foto menos lo aportado entre medias: así una
+    // aportación al bróker de agosto no sale como pérdida, aunque la foto más antigua sea de
+    // septiembre. Sin suelo en cero: si se aportó más de lo que dice la foto, el total queda
+    // plano en vez de pintar la aportación como una caída (revisión 13/10).
+    const photo=invIndex>=0?investments[invIndex]:invKnown;
+    let inv=day===today?invested:photo?photo.value+(contributedBy(day)-contributedBy(photo.day))/100:0;
+    let value=cash+Math.round(inv*100)-Math.round(debt.at(day)*100);
+    steps.forEach(function(s,i){
+      while(indices[i]>=0&&s.points[indices[i]].day>day)indices[i]--;
+      const v=day===today||!s.points.length?s.value:indices[i]>=0?s.points[indices[i]].value:s.before||0;
+      value+=Math.round(v*100);
+    });
+    out.push({day:day,value:value/100});cash-=daily[day]||0;
+  }
+  out.reverse();return done();
 }
 
+function netWorthRanges(series, today){
+  if(!series||series.length<2) return [];
+  const first=series[0].day, last=series[series.length-1].day;
+  const end=new Date(last+"T12:00:00Z");
+  const out=[];
+  [["1m",1],["3m",3],["6m",6],["1y",12]].forEach(function(r){
+    // Los meses del selector se comparan con hoy, no con una foto bancaria atrasada.
+    if(today&&last!==today) return;
+    const d=new Date(Date.UTC(end.getUTCFullYear(),end.getUTCMonth()-r[1],1,12));
+    const max=new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth()+1,0)).getUTCDate();
+    d.setUTCDate(Math.min(max,end.getUTCDate()));
+    const start=d.toISOString().slice(0,10);
+    if(first<=start) out.push({id:r[0],points:series.filter(function(p){ return p.day>=start; })});
+  });
+  out.push({id:"all",points:series}); return out;
+}
+// Comparación robusta al calendario (revisión 13/10): el punto más bajo de los últimos 45 días
+// frente al punto más bajo de la ventana de 45 días que termina N días atrás (1M 30, 3M 91,
+// 6M 182, 1A 365, Todo la más antigua completa). El mínimo de una ventana que contiene un ciclo
+// entero es el saldo de la víspera del cobro: lo que de verdad quedó ahorrado ese ciclo, dé igual
+// que la nómina baile de día, que haya dos al mes o que el alquiler caiga nada más cobrar. Comparar
+// hoy con «el mismo día del ciclo anterior» o la media de 30 días daba «menos» a quien ahorra en
+// cuanto un ciclo era más largo que otro. Un gasto o una caída de bolsa que deje hoy por debajo de
+// la víspera del cobro entra en el mínimo el mismo día: no se esconde. Sin 45 días de serie a cada
+// lado → null (frase neutra, sin color: lo que no se sabe no se inventa, AGENTS §1).
+const NW_WINDOW=45;
+function netWorthCompare(series, rangeId, today, invested){
+  if(!series||series.length<NW_WINDOW+1) return null;
+  const n=series.length, back={"1m":30,"3m":91,"6m":182,"1y":365}[rangeId];
+  // Las dos ventanas no se solapan (1M compara con la que termina 45 días atrás, que sigue
+  // siendo «el mes pasado»). Si el periodo elegido no tiene su ventana completa pero sí hay
+  // alguna anterior, se usa la más antigua (como «Todo») y la frase dice los meses de verdad:
+  // con 118 días de serie, 3M decía «Aún sin datos para comparar» teniendo historia desde junio.
+  const oldest=n-NW_WINDOW;
+  if(oldest<NW_WINDOW) return null;
+  const gap=Math.min(oldest,Math.max(NW_WINDOW,back!=null?back:oldest));
+  const low=function(end){ let v=Infinity; for(let i=end-NW_WINDOW+1;i<=end;i++) if(series[i].value<v) v=series[i].value; return v; };
+  const delta=Math.round((low(n-1)-low(n-1-gap))*100)/100;
+  // El margen solo decide el color: 2 % de lo invertido (el vaivén de un día de bolsa) entre
+  // 10 € y 300 €; sin tope, 150.000 € invertidos escondían un gasto extra de 2.500 € dos meses.
+  const margin=Math.min(300,Math.max(10,Math.abs(invested||0)*.02));
+  return {delta:delta,days:gap,months:Math.max(1,Math.round(gap/30.44)),verdict:delta>margin?"up":delta<-margin?"down":"flat",margin:margin};
+}
+function netWorthChartGeometry(points){
+  if(!points||points.length<2) return null;
+  const values=points.map(function(p){ return p.value; }), min=Math.min.apply(null,values), max=Math.max.apply(null,values);
+  const mean=values.reduce(function(a,b){ return a+b; },0)/values.length;
+  const span=Math.max(max-min,Math.abs(mean)*.06,1);
+  // Una media sesgada puede dejar el extremo fuera del SVG. Se desplaza lo mínimo el
+  // centro para conservar el margen y mostrar todos los valores, nunca recortar un pico.
+  const mid=Math.max(max-span/2,Math.min(min+span/2,mean));
+  const xy=values.map(function(v,i){ return {x:4+i/(values.length-1)*312,y:40-(v-mid)/span*64}; });
+  const path=xy.map(function(p,i){ return (i?"L":"M")+p.x.toFixed(2)+" "+p.y.toFixed(2); }).join(" ");
+  return {xy:xy,path:path,fill:path+" L316 80 L4 80 Z",span:span};
+}
+function netWorthDeltaMoney(value){
+  return String(Math.round(Math.abs(value)*DISP.k)).replace(/\B(?=(\d{3})+(?!\d))/g,".")+" "+DISP.sym;
+}
 // Snapshot diario del total invertido (valor + coste opcional). Idempotente por día.
 function recordInvSnapshot(hist, today, value, cost){
   const h=(hist||[]).slice();
@@ -709,28 +988,6 @@ function StackedBar({segments}){
         React.createElement("span",{className:"nm"},s.label),
         React.createElement("span",{className:"vl num"},eur0(s.value))
       ))
-    )
-  );
-}
-
-/* Anillo v4.1 compartido (Inicio y portada de Plan). Geometría 104/r=48/stroke10 — la de 96/r=54
-   de la spec se sale del viewBox (audit Claude 17/9). Sin animación al montar en Plan. */
-function V4Ring({pct, tone, label, sub, animate}){
-  const ringC=2*Math.PI*48;
-  const p=Math.max(0,Math.min(1,Number(pct)||0));
-  const stroke=tone==="bad"?"var(--coral)":(tone==="warn"?"var(--tan)":"var(--mint)");
-  return React.createElement("div",{className:"v4-ring",style:{position:"relative",width:104,height:104,flex:"0 0 auto"},"aria-hidden":true},
-    React.createElement("svg",{width:104,height:104,viewBox:"0 0 104 104"},
-      React.createElement("circle",{cx:52,cy:52,r:48,fill:"none",stroke:"var(--sur2)",strokeWidth:10}),
-      React.createElement("circle",{cx:52,cy:52,r:48,fill:"none",stroke:stroke,strokeWidth:10,strokeLinecap:"round",
-        strokeDasharray:String(ringC),strokeDashoffset:String(ringC*(1-p)),
-        transform:"rotate(-90 52 52)",style:animate?{transition:"stroke-dashoffset 1s var(--ease)"}:null})
-    ),
-    React.createElement("div",{style:{position:"absolute",inset:0,display:"grid",placeItems:"center",textAlign:"center",pointerEvents:"none"}},
-      React.createElement("div",null,
-        React.createElement("div",{className:"num",style:{fontFamily:"'Fraunces',Georgia,serif",fontWeight:600,fontSize:22,lineHeight:1}}, label!=null?label:(Math.round(p*100)+"%")),
-        sub && React.createElement("div",{style:{fontSize:10.5,color:"var(--muted-2)",fontWeight:600,marginTop:1}}, sub)
-      )
     )
   );
 }

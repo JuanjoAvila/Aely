@@ -1,5 +1,41 @@
 [
   {
+    "v": "4.26.126",
+    "d": "2026-10-13",
+    "t": {
+      "es": "Inicio nuevo, y recibos y bancos más fiables",
+      "en": "A new Home, and more reliable bills and banks",
+      "ca": "Inici nou, i rebuts i bancs més fiables"
+    },
+    "items": {
+      "es": [
+        "Inicio estrena una gráfica de cómo ha ido tu patrimonio desde el primer día del que hay datos, te dice cuánto tienes de más o de menos que el mes pasado y cuánto puedes gastar al día con lo que te queda.",
+        "La tarjeta del mes en Inicio enseña solo lo que te queda y cuánto puedes gastar al día; el color te dice cómo vas.",
+        "Cada cobro del banco paga un solo recibo, y ahora también se ve en Gastos con el nombre del recibo, sin contarse dos veces.",
+        "Si la conexión falla mientras se sincronizan los bancos, o al volver a conectar uno, ya no se pierde ningún movimiento: entran la próxima vez que sincronices.",
+        "Dos movimientos iguales del mismo día en Trade Republic ya no se funden en uno: salen los dos en Gastos.",
+        "En Plan, al bajar despacio la pantalla ya no da saltos."
+      ],
+      "en": [
+        "Home has a new chart of how your net worth has moved since the first day there is data, tells you how much more or less you have than last month, and how much you can spend per day with what is left.",
+        "The month card on Home shows only what you have left and how much you can spend per day; the colour tells you how you are doing.",
+        "Each bank charge pays a single bill, and it now also shows in Spending with the bill's name, without being counted twice.",
+        "If the connection fails while your banks are syncing, or when you reconnect one, no transaction is lost any more: they come in the next time you sync.",
+        "Two identical transactions on the same day in Trade Republic are no longer merged into one: both show in Spending.",
+        "In Plan, scrolling down slowly no longer makes the screen jump."
+      ],
+      "ca": [
+        "Inici estrena una gràfica de com ha anat el teu patrimoni des del primer dia del qual hi ha dades, et diu quant tens de més o de menys que el mes passat i quant pots gastar al dia amb el que et queda.",
+        "La targeta del mes a Inici ensenya només el que et queda i quant pots gastar al dia; el color et diu com vas.",
+        "Cada cobrament del banc paga un sol rebut, i ara també es veu a Despeses amb el nom del rebut, sense comptar-se dues vegades.",
+        "Si la connexió falla mentre se sincronitzen els bancs, o en tornar a connectar-ne un, ja no es perd cap moviment: entren la propera vegada que sincronitzis.",
+        "Dos moviments iguals del mateix dia a Trade Republic ja no es fonen en un: surten tots dos a Despeses.",
+        "A Pla, en baixar a poc a poc la pantalla ja no fa salts."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.26.117",
     "d": "2026-10-12",
     "t": {

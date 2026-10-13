@@ -1,6 +1,46 @@
 // Las suites de listas relativas necesitan el mismo mes en Node y en la página.
 // Las pruebas con reloj explícito omiten este helper mediante la anotación own-clock.
 export const FIXTURE_NOW = Date.parse("2026-09-26T12:00:00Z");
+
+/** Cartera como la del incidente de la 4.26.121 (13/10): todo existía antes de esta versión.
+ *  Dos bienes heredados sin escalones, hipoteca y préstamo sin plazo con el ancla en el mes en
+ *  curso y sin fecha explícita (la app nunca la escribe), dos financiaciones con plazo (una ya
+ *  archivada), tres bancos con meses de movimientos, un sobre de efectivo con cierres desde el
+ *  17/9, fotos de inversión desde el 30/9 y «Mi ciclo» con nómina. Sin ningún dato personal.
+ *  Lo comparten el caso Node y el e2e para que las dos pruebas miren el mismo estado. */
+export function estadoHeredado(today = "2026-10-13") {
+  const [y, m] = today.split("-").map(Number), month = y * 12 + m - 1;
+  const days = (from, to) => { const out = []; for (let ms = Date.parse(from + "T12:00:00Z"); ms <= Date.parse(to + "T12:00:00Z"); ms += 864e5) out.push(new Date(ms).toISOString().slice(0, 10)); return out; };
+  const mov = (id, date, amount, ent, category = "super", extra = {}) => ({ id, date: date + "T12:00:00Z", amount, ent, category, merchant: "Movimiento sintético", ...extra });
+  const expenses = [];
+  days("2026-06-15", today).forEach((day, i) => {
+    if (i % 3 === 0) expenses.push(mov("sab-" + i, day, 12.5, "sabadell"));
+    if (day >= "2026-07-05" && i % 4 === 0) expenses.push(mov("cx-" + i, day, 20, "caixabank"));
+    if (day >= "2026-07-10" && i % 5 === 0) expenses.push(mov("rv-" + i, day, 8, "revolut"));
+    if (day.endsWith("-01")) {
+      expenses.push(mov("sal-" + day, day, -2400, "sabadell", "ingreso", { merchant: "Nómina sintética" }));
+      expenses.push(mov("hipo-" + day, day, 660.85, "sabadell", "deudas", { debtId: "hipo" }));
+    }
+    if (day.endsWith("-03")) expenses.push(mov("car-" + day, day, 197, "sabadell", "deudas", { debtId: "car-loan" }));
+  });
+  return {
+    budget: 1000, settings: { autoPrices: false, theme: "green", budgetCycle: true },
+    accounts: [
+      { id: "sab", ent: "sabadell", name: "Cuenta corriente", value: 2500, role: "diario", spendFrom: true, bankIban: "ES-SYNTHETIC-SAB" },
+      { id: "cash", ent: "efectivo", name: "Efectivo", value: 120, role: "fijos" }],
+    obAccounts: [{ id: "ob-cx", ent: "caixabank", name: "Cuenta sintética", value: 1800, cur: "EUR" }, { id: "ob-rv", ent: "revolut", name: "Revolut sintética", value: 900, cur: "EUR" }],
+    accountBalanceHistory: { "acc:cash": days("2026-09-17", today).map(day => ({ day, value: 120 })) },
+    investments: [{ id: "fund", ent: "trade_republic", name: "Fondo sintético", value: 5200 }],
+    invHistory: days("2026-09-30", today).map((d, i) => ({ d, v: 5000 + i * 15 })),
+    assets: [{ id: "home", name: "Piso sintético", kind: "piso", value: 180000 }, { id: "car", name: "Coche sintético", kind: "coche", value: 15000 }],
+    debts: [
+      { id: "hipo", ent: "familia", name: "Hipoteca sintética", value: 176714.8, original: 180000, monthly: 660.85, day: 1, asOf: month, account: "sabadell" },
+      { id: "car-loan", ent: "familia", name: "Préstamo coche sintético", value: 11212, original: 15000, monthly: 197, day: 3, asOf: month, account: "sabadell" },
+      { id: "gym", ent: "familia", name: "Financiación sintética", value: 875.95, original: 875.95, monthly: 175.19, amort: 175.19, months: 5, day: 29, asOf: month - 3, account: "sabadell" },
+      { id: "old", ent: "familia", name: "Financiación archivada sintética", value: 449.25, original: 449.25, monthly: 149.75, amort: 149.75, months: 3, day: 27, asOf: month - 3, account: "sabadell", archivedAt: "2026-10-02T10:00:00Z" }],
+    expenses, fixed: [], flows: [], oneoffs: [], goals: [], shared: [], onboarded: true,
+  };
+}
 export async function installFixtureClock(page) {
   await page.addInitScript((epoch) => {
     const NativeDate = Date, offset = epoch - NativeDate.now();

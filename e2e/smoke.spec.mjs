@@ -27,7 +27,10 @@ test("Inicio no inventa una ganancia mensual ni hereda la racha antigua", async 
   await page.goto("/");
   await expect(page.locator('[data-tour="hero"]')).toBeVisible({timeout:15_000});
   await expect(page.locator('[data-tour="hero"] .v4-pill')).toHaveCount(0);
-  const streak=page.getByTestId("dash-budget-streak");
-  await expect(streak).toHaveText("Mes en curso");
-  await expect(streak).not.toContainText("🔥");
+  // El diseño 3b sustituyó la racha por el ritmo del ciclo. Los datos viejos no deben
+  // reaparecer como una racha ni como una variación sin serie diaria acreditada.
+  await expect(page.getByTestId("dash-budget-streak")).toHaveCount(0);
+  await expect(page.getByTestId("inicio-net-delta")).toHaveCount(0);
+  await expect(page.locator(".v42-cycle-amount>.serif")).toBeVisible();
+  await expect(page.locator(".v42-cycle")).not.toContainText("🔥");
 });

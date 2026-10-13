@@ -3,8 +3,10 @@ import { seedLoggedInDashboard, dismissNews, installFixtureClock } from "./fixtu
 
 const day = "2026-07-20";
 const balanceAt = "2026-09-26T11:59:30.000Z";
+// El cursor que el servidor entrega con la respuesta y espera de vuelta en la pulsación siguiente.
+const ack = "2026-07-25T23:59:59.999Z|enlace-sintetico";
 const links = [{
-  aspsp: "CaixaBank", ok: true, syncFrom: "2026-07-10", gapBeyondCap: true, gapPending: true, balanceAt,
+  aspsp: "CaixaBank", ok: true, syncFrom: "2026-07-10", gapBeyondCap: true, gapPending: true, balanceAt, ack,
   accounts: [{ uid: "cx", ok: true, balances: [{ type: "ITAV", amount: 80, currency: "EUR" }], transactions: [
     { ext_id: "cx-nueva", date: day, amount: 14.2, merchant: "Farmacia Norte", status: "BOOK", card: true },
     { ext_id: "cx-noti", date: day, amount: 22.15, merchant: "Mercadona", status: "BOOK", card: true },
@@ -76,7 +78,8 @@ test("el sync a demanda recupera el hueco, no duplica y dice sin diálogo lo que
 
   const calls = await syncCalls(page);
   expect(calls).toHaveLength(1);
-  expect(calls[0].body).toEqual({ recoverGaps: true });
+  // Primera pulsación: todavía no hay nada que acusar, pero `acks` viaja para que el servidor espere.
+  expect(calls[0].body).toEqual({ recoverGaps: true, acks: {} });
 
   await expect.poll(() => page.evaluate(() => {
     const rows = JSON.parse(localStorage.getItem("micartera_v3_exp") || "[]");
@@ -112,6 +115,8 @@ test("el aviso no deja la sincronización atascada: se puede volver a pulsar", a
   await expect(page.locator(".sync-report")).toContainText("más de 90 días", { timeout: 15_000 });
   await pulsa();
   await expect.poll(async () => (await syncCalls(page)).length).toBe(2);
+  // La segunda devuelve el acuse de la primera, tal cual lo entregó el servidor y por banco.
+  expect((await syncCalls(page))[1].body).toEqual({ recoverGaps: true, acks: { CaixaBank: ack } });
 });
 
 test("un sync que no has pedido tú no enseña avisos del tramo", async ({ page }) => {

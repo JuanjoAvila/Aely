@@ -229,7 +229,8 @@ await t("sin recoverGaps la petición sigue siendo el margen y un hueco no adela
   const asked=txUrl(r.calls)[0].searchParams.get("date_from");
   assert.equal(asked,"2026-09-23");
   assert.equal(r.data.history,undefined);
-  assert.equal(r.data.links[0].syncFrom,"2026-09-23");
+  // El suelo va 3 días por debajo de lo pedido: el banco puede filtrar por fecha valor (N5).
+  assert.equal(r.data.links[0].syncFrom,"2026-09-20");
   assert.equal(r.data.links[0].gapBeyondCap,false);
   assert.equal(r.writes[0].last_sync,undefined,"un cliente viejo no puede quemar el hueco");
   assert.equal(r.writes[0].status,"active");
@@ -244,7 +245,7 @@ await t("recoverGaps lee primero la ventana y después el tramo por días cerrad
   const asked=txUrl(r.calls).map(u=>[u.searchParams.get("date_from"),u.searchParams.get("date_to")]);
   assert.deepEqual(asked,[["2026-09-23",null],["2026-08-15","2026-08-15"],["2026-08-12","2026-08-14"],
     ["2026-08-16","2026-08-17"],["2026-08-18","2026-08-21"],["2026-08-22","2026-08-29"],["2026-08-30","2026-09-14"],["2026-09-15","2026-09-22"]]);
-  assert.equal(r.data.links[0].syncFrom,"2026-08-12");
+  assert.equal(r.data.links[0].syncFrom,"2026-08-09","3 días por debajo del primer día pedido");
   assert.equal(r.data.links[0].gapBeyondCap,false);
   assert.equal(r.data.links[0].gapPending,false);
   assert.equal(r.writes[0].last_sync,undefined,"la lectura de siempre no sella con tramo pendiente");

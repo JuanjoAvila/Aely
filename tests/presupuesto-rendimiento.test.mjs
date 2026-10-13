@@ -210,7 +210,72 @@ const PRESUPUESTO = {
   // de la cortina y dos lecturas en el script del <head>; sin dependencias ni peticiones nuevas.
   // 1.000 B sobre 1297 KiB: +1 KiB mínimo al crudo, autorizado por el dueño. Quedan solo 24 B:
   // la tanda y la nota de esta entrega se miden aparte. El gzip cabe en 355 KiB (quedan 388 B).
-  minificado: 1298 * 1024,
+  // Recibos revisión3 (12/10), DSN95 B y sello117.99999:1.333.562/364.349 B frente
+  // a beta1171.329.128/363.130 B (+4.434/+1.219). Se DECLARA aumento desde1298/355
+  // a1303/356 KiB, mínimos medidos; margen710/195 B. Índice mensual y sin tokens,
+  // vínculo bancario al mover día y categoría ausente, sin recortar guardas ni idiomas.
+  // Integración 4.26.118 sobre producción117 (0a623768), medida de nuevo tras el build con
+  // el sello 118.99999 y la misma reserva de 95 B: 1.333.562 B crudo / 364.346 B gzip,
+  // 3 bloqueantes. La nota y la tanda viven en release-notes.json, no en el index, así que
+  // el crudo no se mueve. 1302 KiB (1.333.248) y 355 KiB (363.520) se quedan cortos por
+  // 314 y 826 B: 1303/356 son los mínimos y dejan 710/198 B. El tope avisa; no se recorta
+  // producto ni idiomas para caber (mandato del dueño, 11/10).
+  // Bancos119, acuse del cursor (12/10): medido tras el build de la integración sobre la
+  // beta118 (7e706174), sello 119.99999 y reserva de 95 B: 1.334.526 B crudo / 364.664 B gzip,
+  // +964 / +318 B. Es el acuse local (`obAckLoad`, `obAckSave`, `obAckDrop`), su envío y el
+  // efecto que lo guarda detrás de las filas. 1303 KiB (1.334.272) se queda corto por 254 B:
+  // +1 KiB mínimo, quedan 770 B.
+  // Trade Republic, entrega 1 (12/10, `claude/tr-iguales-ordinal`): la base de la rama ya medía
+  // 1308/358 KB (fuera del tope en los dos). Con la revisión (histórico que respeta lápidas y
+  // vínculos, unión de `gemelos` entre móviles, pendiente+contabilizado como un cargo, conceptos
+  // no ambiguos, banco limpio en `ob-hist`), sellado 119.99999 y reserva de 95 B: 1.340.528 B
+  // crudo / 366.830 B gzip. Es la regla del ordinal y sus comentarios del porqué en el motor; sin
+  // texto nuevo de idiomas. Mínimos medidos: 1310 KiB (quedan 912 B) y 359 KiB (quedan 786 B).
+  // Integración 4.26.120 (13/10): remedido tras el build sobre la beta119 (788432f4), sello
+  // 120.99999 y reserva de 95 B: 1.340.552 B crudo / 366.827 B gzip, +6.026 / +2.163 B sobre la
+  // 119. 1309 KiB (1.340.416) se queda corto por 136 B: 1310 sigue siendo el mínimo, quedan 888 B.
+  // Integración 4.26.121 (13/10), Inicio v4.2 encima de la 120 (4e927e33): medida la UNIÓN tras
+  // el build, sello 121.99999 y reserva de 95 B: 1.367.867 B crudo / 375.111 B gzip, +27.315 /
+  // +8.284 B sobre la 120. Es la serie de patrimonio por flujos, los escalones de bienes, la
+  // deuda por cuadro de amortización, el historial partido con su unión local/nube, la tarjeta
+  // del mes y sus textos en tres idiomas (la rama sola medía 1.361.243 / 372.777 B sobre la 119,
+  // con 1330 / 365 KiB). 1335 KiB (1.367.040) se queda corto por 827 B: 1336 es el mínimo,
+  // quedan 197 B. No se recorta producto ni idiomas para caber (mandato del dueño, 11/10).
+  // Todo cargo del banco sale en Gastos (12-13/10), sola sobre la beta119 (788432f4), mismo
+  // minificador, sello y reserva: 1.334.526/364.664 → 1.348.175/368.865 B (+13.649/+4.201). Es
+  // la fila marcada en el sync y en el histórico, su etiqueta firme o con pregunta, «No es este
+  // recibo» con su veto entre móviles y su vuelta atrás, la escritura acotada en la nube y siete
+  // textos en tres idiomas. Antes de subir se recortó lo repetido: la regla del nombre entero
+  // vive una sola vez (`recFrase`) y se fueron dos funciones que se solapaban.
+  // UNIÓN de las dos ramas (13/10), medida de nuevo tras fusionarlas, no sumada: 1.354.050 B
+  // crudo / 370.901 B gzip. Mínimos 1323/363 KiB (quedan 702/811 B). No se
+  // recortan guardas ni idiomas para caber; la integración vuelve a medir con su sello.
+  // Confirmación de la unión (13/10): el recibo borrado que conserva sus meses cerrados, el veto
+  // con ordinal y la fila que conserva lo puesto a mano cuando gana el aviso: 1.354.895 /
+  // 371.208 B (+845/+307). 1323 KiB se queda corto por 143 B: 1324, quedan 881 B. El gzip cabe
+  // en 363 KiB (quedan 504 B) y no se amplía. Esas tres medidas son de la rama sin Inicio v4.2.
+  // Integración 4.26.122 (13/10), el cargo de recibo encima de la 121 (2de328d6): medida la
+  // UNIÓN de las tres entregas tras el build, sello 4.26.122.99999 y reserva de 95 B:
+  // 1.382.186 B crudo / 379.492 B gzip, +14.319 / +4.381 B sobre la 121. 1349 KiB (1.381.376)
+  // se queda corto por 810 B: 1350 es el mínimo, quedan 214 B. No se recorta producto ni
+  // idiomas para caber (mandato del dueño, 11/10).
+  // Integración 4.26.123 (13/10), la gráfica de Inicio con deudas y cuentas heredadas, encima de
+  // la 122 (e6e211a5): medida tras el build, sello 4.26.123.99999 y reserva de 95 B: 1.383.708 B
+  // crudo / 379.934 B gzip, +1.522 / +442 B sobre la 122. Es el cuadro de cuotas hacia atrás, el
+  // primer cierre manual mantenido, la «i» con el detalle y seis textos en tres idiomas. 1351 KiB
+  // (1.383.424) se queda corto por 284 B: 1352 es el mínimo, quedan 740 B.
+  // Integración 4.26.124 (13/10), el scroll lento de Plan, encima de la beta 123 (3625fa7e):
+  // medida tras el build, sello 4.26.124.99999 y reserva de 95 B: 1.383.216 B crudo / 379.773 B
+  // gzip, -492 / -161 B sobre la 123 (se va el empujón manual de `scrollTop` y `mc-touch-own` en
+  // Plan). El tope BAJA con la medida para que el hueco no lo ocupe otra entrega sin declararlo:
+  // 1351 KiB es el mínimo, quedan 208 B.
+  // Integración 4.26.125 (13/10), la gráfica del patrimonio de Inicio, encima de la beta 124
+  // (f5904735): medida tras el build, sello 4.26.125.99999 y reserva de 95 B: 1.385.524 B crudo /
+  // 380.616 B gzip, +2.308 / +843 B sobre la 124. Es la comparación por mínimos de 45 días, la
+  // serie que ya no recorta, la hoja «Cómo se calcula» y sus textos en tres idiomas. 1353 KiB
+  // (1.385.472) se queda corto por 52 B: 1354 es el mínimo, quedan 972 B. No se recorta producto
+  // ni idiomas para caber (mandato del dueño, 11/10).
+  minificado: 1354 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -223,7 +288,18 @@ const PRESUPUESTO = {
   // +1 KiB es el incremento mínimo por KiB; crudo1295 y3 bloqueantes intactos.
   // Bancos sin huecos116: 362.744 B gzip, 248 B sobre 354 KiB; con el arreglo del widget 362.808 B.
   // +1 KiB mínimo (quedan 712 B).
-  gzip: 355 * 1024,
+  // Recibos118: 364.346 B gzip, 826 B sobre 355 KiB. +1 KiB mínimo (quedan 198 B).
+  // Bancos119: 364.664 B gzip, 120 B sobre 356 KiB. +1 KiB mínimo (quedan 904 B).
+  // Trade Republic, entrega 1 revisada (12/10): 366.830 B gzip, 1.398 B sobre 357 KiB (la base
+  // de la rama ya se pasaba). Mínimo medido: 359 KiB (quedan 786 B).
+  // Integración 4.26.120: 366.827 B gzip, 235 B sobre 358 KiB. 359 sigue siendo el mínimo (quedan 789 B).
+  // Integración 4.26.121, Inicio v4.2: 375.111 B gzip, 295 B sobre 366 KiB. Mínimo medido: 367 KiB (quedan 697 B).
+  // Cargo de recibo en Gastos, sola: 368.865 B gzip. Unión con el ordinal, sin Inicio, medida: 371.208 B.
+  // Integración 4.26.122: 379.492 B gzip, 612 B sobre 370 KiB. Mínimo medido: 371 KiB (quedan 412 B).
+  // Integración 4.26.123: 379.934 B gzip, 30 B sobre 371 KiB. Mínimo medido: 372 KiB (quedan 994 B).
+  // Integración 4.26.124: 379.773 B gzip, 161 B menos que la 123. El mínimo vuelve a 371 KiB (quedan 131 B).
+  // Integración 4.26.125: 380.616 B gzip, 712 B sobre 371 KiB. Mínimo medido: 372 KiB (quedan 312 B).
+  gzip: 372 * 1024,
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 

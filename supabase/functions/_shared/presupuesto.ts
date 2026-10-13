@@ -100,7 +100,26 @@ export function claveComoLaApp(f: {
 }): string {
   const base = String(f.fecha || "").slice(0, 10) + "|" + (Number(f.importe) || 0) + "|" + (f.comercio || "");
   if (esSourceManual(f.source)) return base + "|" + String(f.id || "");
-  return base;
+  const ord = ordinalDeSource(f.source);
+  return ord > 1 ? base + "|#" + ord : base;
+}
+
+/**
+ * El SEGUNDO apunte igual del mismo día es otro apunte (12/10/2026: «5 bizums iguales se apuntaban
+ * como uno»). El cliente lo marca con `obOrd` y viaja como último tramo del `source`: «ob:tr#n2».
+ * Sin esto, `filasComoLaApp` fundía las k filas iguales en una y el widget restaba de menos.
+ * Espejo de `obOrdinalOf()` + `ordinalDeTramos()` del cliente. Un servidor sin esta función lee el
+ * banco igual (`split("#")[0]`) y solo pierde la separación: degrada a lo de siempre, no inventa.
+ */
+export function ordinalDeSource(source?: string | null): number {
+  const s = String(source || "");
+  if (s.indexOf("ob:") !== 0 && s.indexOf("ob-hist:") !== 0) return 1;
+  const tramos = s.split("#").slice(1);
+  for (const t of tramos) {
+    const m = /^n(\d{1,6})$/.exec(t);
+    if (m) { const n = parseInt(m[1], 10); if (n > 1) return n; }
+  }
+  return 1;
 }
 
 function claveLegacySinId(f: { fecha?: string | null; importe?: number | string; comercio?: string | null }): string {
@@ -136,8 +155,11 @@ export function filasComoLaApp<T extends FilaGasto>(filas: T[] | null | undefine
 export function bancoDeSource(source?: string | null): string | null {
   const s = String(source || "");
   if (s === "macrodroid" || s === "tr") return "trade_republic";
-  if (s.indexOf("ob:") === 0) return s.slice(3).split("#")[0].split("~deuda.")[0] || null;   // «#dup» → B09-D; «~deuda.» → cuota
-  if (s.indexOf("ob-hist:") === 0) return s.slice(8) || null;
+  // «#dup» → B09-D; «#n2» → ordinal; «~deuda.» → cuota; «~recibo.» → cargo de un recibo (otra
+  // entrega lo escribe; aquí ya se lee). El histórico (`ob-hist:`) lleva las mismas marcas: hasta
+  // el 12/10/2026 devolvía «trade_republic#n2» y esa fila se caía del presupuesto del widget.
+  if (s.indexOf("ob:") === 0) return s.slice(3).split("#")[0].split("~")[0] || null;
+  if (s.indexOf("ob-hist:") === 0) return s.slice(8).split("#")[0].split("~")[0] || null;
   if (s.indexOf("manual:") === 0) return s.slice(7) || null;
   return null;
 }
@@ -193,10 +215,24 @@ export function esCuotaDeDeuda(source?: string | null): boolean {
   return s.indexOf("ob:") === 0 && s.slice(3).split("#")[0].indexOf("~deuda.") > 0;
 }
 
+/**
+ * ¿Es el cargo de un recibo o un puntual del Plan? (13/10/2026). Viaja como
+ * `ob:<ent>~recibo.<id>` u `ob-hist:<ent>~recibo.<id>`: se ve en Gastos y no cuenta, porque el
+ * recibo ya resta por su lado. Hasta que `bancoDeSource` empezó a devolver el banco limpio, estas
+ * filas se quedaban fuera por llevar un banco «raro»; ahora hay que decirlo. El servidor no sabe
+ * si el recibo sigue existiendo: por eso el cliente quita la marca de la fila al borrarlo o al
+ * decir «no es este recibo». Espejo de `cargoDeRecibo()`.
+ */
+export function esCargoDeRecibo(source?: string | null): boolean {
+  const s = String(source || "");
+  if (s.indexOf("ob:") !== 0 && s.indexOf("ob-hist:") !== 0) return false;
+  return s.slice(s.indexOf(":") + 1).split("#")[0].indexOf("~recibo.") > 0;
+}
+
 /** ¿Este movimiento mueve la cifra del presupuesto? Espejo de `expenseCountsBudget()`. */
 export function cuentaParaPresupuesto(fila: FilaGasto, ents: string[]): boolean {
   if (!fila) return false;
-  if (esCuotaDeDeuda(fila.source)) return false;
+  if (esCuotaDeDeuda(fila.source) || esCargoDeRecibo(fila.source)) return false;
   // Pendiente de que él diga «es el mismo» o «son distintos»: no mueve saldo ni presupuesto,
   // igual que en `expenseCountsCash()`. Sin esta línea el servidor sumaba lo que la app restaba
   // y el widget decía más que Inicio.

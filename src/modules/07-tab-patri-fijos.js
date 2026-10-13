@@ -237,7 +237,8 @@ function AssetSheet({asset,set,onClose}){
       const old=(s.assets||[]).find(function(a){ return a.id===asset.id; });
       if(asset.id&&!old) return s;
       if(old&&old.name===next.name&&old.kind===next.kind&&old.value===next.value) return s;
-      return Object.assign({},s,{assets:asset.id?s.assets.map(function(a){ return a.id===asset.id?Object.assign({},a,{name:next.name,kind:next.kind,value:next.value}):a; }):(s.assets||[]).concat(next)});
+      const assets=asset.id?s.assets.map(function(a){ return a.id===asset.id?Object.assign({},a,{name:next.name,kind:next.kind,value:next.value}):a; }):(s.assets||[]).concat(next);
+      return Object.assign({},s,{assets:assets,assetValueHistory:recordAssetValues(s.assetValueHistory,netWorthDay(),assets,s.assets,asset.id?null:next.id)});
     });
     onClose();
   };
@@ -368,12 +369,12 @@ function Wealth({state, set, totals, v4Embed, parte, showToast, onBankSync, onRe
     injTR:totals.injTR||0, spentByBank:totals.spentByBank||{}, paidNetByBank:totals.paidNetByBank||{},
     roundup:ruM, monthlyInvest:miM
   });
-  /* La app no tenía histórico por cuenta. Guardamos un cierre REAL por día (máximo 31), tanto de
+  /* La app no tenía histórico por cuenta. Guardamos un cierre REAL por día (máximo 400), tanto de
      cuentas propias como de las filas OB aún no promocionadas. No se reconstruye hacia atrás con
      movimientos potencialmente truncados: hasta el segundo día la ficha dice que empieza hoy. */
   React.useEffect(function(){
     if(!v4Embed||parte!=="cuentas"||!balanceReady) return;
-    const today=dayKey(new Date());
+    const today=netWorthDay();
     const rows=(state.accounts||[]).map(function(a){
       return {key:a.accountOrderKey||("acc:"+a.id),value:+Number(shownAcc(a)).toFixed(2)};
     }).concat((state.obAccounts||[]).map(function(o){
@@ -386,17 +387,8 @@ function Wealth({state, set, totals, v4Embed, parte, showToast, onBankSync, onRe
     });
     if(!needs) return;
     set(function(s){
-      const all=Object.assign({},s.accountBalanceHistory||{}); let changed=false;
-      rows.forEach(function(r){
-        const list=(all[r.key]||[]).filter(function(p){ return p&&p.day&&Number.isFinite(Number(p.value)); }).slice(-30);
-        const last=list[list.length-1];
-        if(last&&last.day===today){
-          if(Number(last.value)===r.value) return;
-          list[list.length-1]={day:today,value:r.value};
-        } else list.push({day:today,value:r.value});
-        all[r.key]=list; changed=true;
-      });
-      return changed?Object.assign({},s,{accountBalanceHistory:all}):s;
+      const all=recordAccountBalances(s.accountBalanceHistory,today,rows);
+      return all!==s.accountBalanceHistory?Object.assign({},s,{accountBalanceHistory:all}):s;
     });
   },[v4Embed,parte,balanceReady,state.accounts,state.obAccounts,state.accountBalanceHistory,totals]);
   const spendBal=(i)=> shownAcc(i);
