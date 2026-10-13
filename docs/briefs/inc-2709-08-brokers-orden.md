@@ -10,6 +10,10 @@ Se conservaron completas la política123 de deudas/cuentas heredadas, la cobertu
 
 PR222 se mantiene en borrador; nueva CI de Tests solo tras verificar el head remoto123. DOM y los seis casos CPU6 de esta fuente no ejecutados; DOM32 anterior, revisión de78a y CI antigua no acreditan este mantenimiento. Retención independiente de FIN01 y turno propio siguen pendientes. No se lanza navegador/full local ni se entrega como done por un ACK o por los rojos de integración. Se conserva la consulta b2ef, sin abrir otra.
 
+CI histórica78a/38353998108 finalizó FAILURE, job115152562440, paso de pruebas con exit1 y privacidad posterior omitida. Cuatro etapas Node fallaron: `auth-disposal-fit` por la misma identidad de navegación alterada, `beta-sources` por Catálogo122, `docs-frescura` por VERSION y `logo-banco-o-empresa` por dos anclas del renderer v3 retirado. Ese resultado pertenece solo a78a. La CI38357969808 corresponde al mantenimiento889c86f5 anterior a la corrección siguiente y se conserva sin cancelación.
+
+El guard de logos se adapta a las dos rutas vivas: cabecera de bróker en la hija y posiciones de la hija. Mantiene banco→Mono sin `logo:false` y posición→LogoInv con `kind`; la acotación a fullMode evita que InvRows oculte una rotura de la hija. Siete comprobaciones Node PASS. Tres mutantes aislados de la hija —banco con LogoInv, posición con Mono y posición sin kind— fallan como corresponde; fuente de producto intacta y preload retirado. No se cambian los oráculos de identidad/auth/VERSION ni se heredan esos pases como DOM.
+
 ## Rebase autorizado a beta122 · histórico de preparación
 
 Señal expresa de Claude `8a836f737f2cf46b8a4546c13a84827f50203a15`: ejecución desde `e6e211a5d94e50b03597d5c91230c974d3e72232`, sin cambiar la base histórica ni la sesión del claim. Fuente tras rebase `d4863a185473b5617a9e114ba5f6fb138d0d4117`. Se conservaron completas las entradas120/121/122; el conflicto del runner conserva tanto Inicio como Brókers en el grupo serial de rendimiento. Los artefactos se regeneraron desde las fuentes. No se modifican las ramas ni los scopes reservados de Plan, recibos, lápidas y gemelos del coordinador.

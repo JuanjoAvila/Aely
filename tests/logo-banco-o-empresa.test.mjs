@@ -26,6 +26,13 @@ import { fileURLToPath } from "node:url";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const lee = (p) => readFileSync(join(root, p), "utf8");
+const srcFila = (fila) => {
+  const src = lee(fila.f).replace(/\r\n/g, "\n");
+  if (!fila.desde) return src;
+  const desde = src.indexOf(fila.desde), hasta = src.indexOf(fila.hasta, desde + fila.desde.length);
+  assert.ok(desde >= 0 && hasta > desde, `no encuentro la pantalla de ${fila.donde}`);
+  return src.slice(desde, hasta);
+};
 
 let fallos = 0;
 const t = (nombre, fn) => {
@@ -40,15 +47,18 @@ console.log("logo de banco o de empresa");
 const FILAS_DE_BANCO = [
   { f: "src/modules/06-sync-brokers.js", ancla: 'React.createElement(Mono,{ent:g[0],size:44',
     donde: "Inversiones · tarjeta de cada bróker en «Tus inversiones»" },
-  { f: "src/modules/06-sync-brokers.js", ancla: 'React.createElement(Mono,{ent:g[0],size:34',
-    donde: "Inversiones · desglose por bróker (inv_cvg)" },
+  // El desglose v3 ya no tenía puerta: su guard pasa a la cabecera viva de la hija,
+  // conservando banco→Mono sin obligar a resucitar el renderer retirado (INC-2709-08).
+  { f: "src/modules/06-sync-brokers.js", ancla: 'React.createElement(Mono,{ent:gid,size:44',
+    desde: '  if(fullMode){', hasta: '\n  return React.createElement("div",null,',
+    donde: "Inversiones · cabecera de bróker en «Ver todas tus inversiones»" },
   { f: "src/modules/07-tab-patri-fijos.js", ancla: 'React.createElement(Mono,{ent:g,size:38',
     donde: "Cartera · Inversiones por bróker" },
 ];
 
 for (const fila of FILAS_DE_BANCO) {
   t(`${fila.donde}: fila de banco, logo de banco`, () => {
-    const src = lee(fila.f);
+    const src = srcFila(fila);
     const i = src.indexOf(fila.ancla);
     assert.notEqual(i, -1, `no encuentro la fila en ${fila.f} (ancla: ${fila.ancla})`);
     /* La llamada acaba en el primer `}` tras el ancla: ahí viven sus props. */
@@ -64,13 +74,16 @@ for (const fila of FILAS_DE_BANCO) {
 const FILAS_DE_EMPRESA = [
   { f: "src/modules/06-sync-brokers.js", ancla: "React.createElement(LogoInv,{nombre:it.name",
     donde: "Inversiones · cada posición dentro de un bróker (InvRows)" },
-  { f: "src/modules/06-sync-brokers.js", ancla: "React.createElement(LogoInv,{nombre:p.name",
-    donde: "Inversiones · rendimiento por posición" },
+  // Acotar a fullMode impide que InvRows haga pasar el test si la posición de la hija
+  // cambia por error al logo del custodio: ambos sitios deben conservar LogoInv y kind.
+  { f: "src/modules/06-sync-brokers.js", ancla: "React.createElement(LogoInv,{nombre:it.name",
+    desde: '  if(fullMode){', hasta: '\n  return React.createElement("div",null,',
+    donde: "Inversiones · posiciones en «Ver todas tus inversiones»" },
 ];
 
 for (const fila of FILAS_DE_EMPRESA) {
   t(`${fila.donde}: fila de empresa, logo de empresa`, () => {
-    const src = lee(fila.f);
+    const src = srcFila(fila);
     const i = src.indexOf(fila.ancla);
     assert.notEqual(i, -1, `no encuentro la fila en ${fila.f} (ancla: ${fila.ancla})`);
     const props = src.slice(i, src.indexOf("}", i + fila.ancla.length) + 1);
