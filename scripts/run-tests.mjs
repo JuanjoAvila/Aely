@@ -131,6 +131,7 @@ const steps = [
   ["widget-notificacion-render", ["node", "tests/widget-notificacion-render.test.mjs"]],
   ["widget-inicio-paridad", ["node", "tests/widget-inicio-paridad.test.mjs"]],
   ["widget-puente-ciclo", ["node", "tests/widget-puente-ciclo.test.mjs"]],
+  ["widget-ciclo", ["node", "tests/widget-ciclo.test.mjs"]],
   ["ob-renombrar", ["node", "tests/ob-renombrar.test.mjs"]],
   ["divisa-original", ["node", "tests/divisa-original.test.mjs"]],
   ["wallet-notis", ["node", "tests/wallet-notis.test.mjs"]],
@@ -263,6 +264,8 @@ if (plan.deno !== false) {
     const started = performance.now();
     const denoArgs = testFile.includes("crypto.test")
       ? ["test", "--allow-env", testFile]
+      : testFile === "supabase/functions/ingest/widget.test.ts"
+      ? ["test", "--allow-read=tests/fixtures/widget-ciclo.tsv", testFile]
       : ["test", testFile];
     const deno = spawnSync("deno", denoArgs, {
       cwd: root, stdio: "pipe", shell: process.platform === "win32",

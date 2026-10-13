@@ -71,7 +71,7 @@ assert.equal(c.cyclePaceState(1000.00000001,1000,29,30).id,"good","el ruido de c
 assert.equal(c.cyclePaceState(1000.01,1000,29,30).excess,.01);
 assert.equal(c.cycleMoney(-.01),"-0,01 €","el exceso de un céntimo no se oculta");
 const payState={settings:{budgetCycle:true},flows:[],expenses:[{id:"salary",date:"2026-08-31T12:00:00Z",amount:-2000,merchant:"Nómina",category:"ingreso",ent:"sabadell"}]};
-const start=new Date(2026,7,31).getTime(), now=new Date(2026,8,29,12).getTime();
+const start=Date.parse("2026-08-31T00:00:00+02:00"), now=Date.parse("2026-09-29T12:00:00+02:00");
 const nativeDate=c.Date;
 c.Date=class extends Date{ constructor(...args){ super(...(args.length?args:[now])); } static now(){ return now; } };
 const detected=c.dashboardBudgetStats(payState);

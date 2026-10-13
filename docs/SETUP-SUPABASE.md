@@ -1,5 +1,11 @@
 Promoción117: inventario12/10 confirma bank-syncv33 alineado; ingestv50 y pricesv13 se prueban con fuentes desplegadas exactas y transportes sintéticos en prod117-edge-compat. SEC02/ingest-widget viajan como fuente sin despliegue ni anuncio de funciones activas. [Pins y límites](briefs/prod-completa-117.md).
 
+Revisión de PR212 (13/10, fuente candidata): `widgetStart` conserva todo el día 45
+del calendario de Madrid; Node/JVM/Deno comparten la tabla de límites. La web
+prepara un mes real cuando APK 55 rechazaría el ciclo. El orden propuesto es web
+compatible, ingest y APK 56 con reapertura; no se ha desplegado esta revisión.
+[Regla, compatibilidad y límites de zona](WIDGET-CICLO.md).
+
 # Setup Supabase — Fase 1 (Aely)
 
 `ingest/widget.ts` calcula la respuesta widget v2 de la ventana guardada
