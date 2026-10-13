@@ -194,8 +194,8 @@ public class WidgetSnapshotArbiterTest {
     ok(!oversized.journalFull); ok(oversized.journal.isEmpty()); eq(oversized.cash(),190);
     // INC-2909-01 E2: la ventana del widget (mes natural o ciclo desde el cobro).
     long day=86400000L, cobro=sep+25*day, oct3=oct+2*day;
-    // El plazo es local: 46 bloques de 24h aún caen en el día 45 al atrasar el reloj.
-    java.util.Calendar expired=java.util.Calendar.getInstance(); expired.setTimeInMillis(cobro);
+    // El plazo usa Madrid: 46 bloques de 24h aún caen en el día 45 al atrasar el reloj.
+    java.util.Calendar expired=java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("Europe/Madrid")); expired.setTimeInMillis(cobro);
     expired.add(java.util.Calendar.DAY_OF_MONTH,46); long day46=expired.getTimeInMillis();
     ok(!WidgetPeriod.clientV2(0)); ok(!WidgetPeriod.clientV2(1)); ok(WidgetPeriod.clientV2(2));
     WidgetSnapshotArbiter.State crossing=base(cobro,"trade_republic");

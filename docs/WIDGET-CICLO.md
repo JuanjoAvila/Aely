@@ -38,6 +38,10 @@ cobro de hoy antes de su hora registrada y límites a ambos lados del cambio de 
 Node carga Gastos desde el módulo fuente y compara ventana y cifras con b1d3c8e8
 en 864 casos de Madrid, incluidos marzo y octubre. Deno sólo necesita permiso de lectura de
 esa tabla, registrado en el runner; no consulta una base de datos real.
+El A/B histórico de Recibos fija Madrid para comparar ambos códigos con el mismo
+calendario, manteniendo todas las aserciones de importes y del inicio de periodo.
+Los lectores de Inicio esperan el instante explícito de Madrid, y el día 46 del
+arbitraje Java se construye también en esa zona, independiente de la JVM anfitriona.
 
 La corrección de `WidgetPeriod.java` **requiere APK nueva, prevista como 56**; no
 llega por OTA. Para una APK anterior (o versión desconocida), la web comprueba su
@@ -62,7 +66,8 @@ Orden propuesto para integración, sujeto a sus controles de beta y publicación
 3. Instalar la APK 56 y abrir la app para negociar su versión y guardar el ciclo
    y alcance nuevos. Verificar el día 45 y un pago con la app cerrada en el móvil.
 
-Esta PR prepara fuentes y pruebas; no despliega ingest, no fabrica ni instala APK
-y no acredita DOM, rendimiento ni launcher real. La integración escribe la nota
+Esta PR prepara fuentes y pruebas; no despliega ingest, no fabrica ni instala APK.
+El DOM focal de los días 45 y 46 con APK 55 y 56 está comprobado con datos sintéticos
+en Chromium; no acredita rendimiento ni launcher real. La integración escribe la nota
 de versión. El e2e exige texto exacto del anillo: 86% restante en el día 45 del
 fixture y 100% en el día 46; buscar «0%» dentro de «100%» no prueba ese resultado.
