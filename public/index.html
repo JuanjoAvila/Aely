@@ -15656,20 +15656,13 @@ function importObExpenses(s, txs, links){
      sincronización, entraba una. Ahora entra UNA desde el principio, la del id: ocupa la ranura
      1 del grupo y a los de sin id les quedan de la 2 en adelante. Con dos ids iguales y uno sin
      id sigue siendo una (los de id ya se fundían por clave); con un id y dos sin id, dos. No hay
-     dato de que un banco mande así dos cargos distintos. Cuenta el de id que entra ahora y el
-     que ya está guardado por su id; el que no pasa los filtros (un abono pendiente) no. */
-  if(ordenGrupos.length){
-    const conId=function(g){ if(grupos[g]) grupos[g].conId=1; };
-    cands.forEach(function(c){ if(c.tx.id) conId((expenseBankOf(c.e)||c.e.ent||"")+"|"+baseKOf(c.e)); });
-    // Solo los que coinciden en banco e importe con algún grupo: el resto ni se mira.
-    const porImporte={};
-    ordenGrupos.forEach(function(g){ const c=grupos[g].miembros[0]; porImporte[(c.tx.ent||"")+"|"+c.tx.amount]=1; });
-    txs.forEach(function(tx){
-      if(!tx.id || !porImporte[(tx.ent||"")+"|"+tx.amount] || !(seen[(tx.ent||"")+"|"+tx.id]||seenLegacy[tx.id])) return;
-      // La clave que `prepara` le habría dado, sin volver a prepararlo.
-      conId((tx.ent||"")+"|"+String(new Date(tx.date+"T12:00:00").toISOString()).slice(0,10)+"|"+tx.amount+"|"+(tx.merchant||(tx.amount<0?"Ingreso":"Compra")));
-    });
-  }
+     dato de que un banco mande así dos cargos distintos. Solo hace falta mirar el de id que
+     entra AHORA: el que ya está guardado tiene su clave en `keys` y cubre la ranura 1 él solo;
+     el que no pasa los filtros (un abono pendiente) no cuenta. */
+  if(ordenGrupos.length) cands.forEach(function(c){
+    const g=c.tx.id && grupos[(expenseBankOf(c.e)||c.e.ent||"")+"|"+baseKOf(c.e)];
+    if(g) g.conId=1;
+  });
   ordenGrupos.forEach(function(k){
     const g=grupos[k];
     g.miembros.sort(function(a,b){ const ha=huella(a.tx), hb=huella(b.tx); return ha<hb?-1:(ha>hb?1:0); });
@@ -21995,7 +21988,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="c84e557c0cbd44c639f1e6d4fc045037b475b34dd71ffccf1ee3d127cd9fa8d0";
+var _rnSha="23e20016ef3723fc509c78513ec4b7a3058a805858e98ae7857efb01427b13fc";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
