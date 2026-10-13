@@ -1,6 +1,6 @@
 # Inicio: margen agotado y calendario de Madrid
 
-Estado: mantenimiento de PR225 en borrador sobre Widget `4672146d` (producto66, oráculos327 y A/B hermético) y beta124 `f5904735`, autorizado por `cf8d3cef`/`a4328161`. Claim/base123 y result anterior `b457f1db` permanecen inmutables. La evidencia de la entrega79 se conserva separada. Sin aceptación DOM, Ready ni publicación.
+Estado: PR225 en borrador, mantenimiento sobre Widget `b518f369` y beta125 `6342459b`, por señal `d5fb1b00`. Claim/base123 y result anterior `b457f1db` permanecen inmutables. DOM propio verificado; CI final se registra aparte. Sin Ready, merge, publicación propia ni aceptación móvil.
 
 ## Tarjeta del mes
 
@@ -57,3 +57,17 @@ Controles finales ligeros: sintaxis, nuevo barrido de calendario, Gastos-períod
 Revisión posterior del productor: `327e5e86` modifica exclusivamente los dos asserts locales de month-budget-stats a la medianoche exacta Madrid y su documentación. Se hereda mediante rebase, sin tocar los tests desde esta rama. Las tres ejecuciones post327 de month-budget-stats dan EXIT0. JavaUTC y recibosUTC/Canarias continúan pendientes de scope nuevo, con su causa y sus EXIT anteriores conservados. Tests38407073951 del head7db quedó obsoleto: cancelación solicitada, sin atribuir terminal cancelado mientras no se confirme. La CI del nuevo head se registra en evidencia independiente y en PR225.
 
 Se hereda después el fixture hermético A/B del productor4672146d: checksum y código histórico exactos, sin exigir un objetoGit perdido al rebasar. Producto idéntico. `tests/widget-ciclo.test.mjs` pasa35filas web+JVM en cinco zonas y864casos A/B Madrid. La CI38407712624 del source920 queda obsoleta por ese arreglo de preparación; cancelación solicitada y evidencia aparte, sin atribuirle PASS ni reescribir el result anterior. La CI del nuevo SHA se verificará y se conservará completa.
+
+## Candidato final sobre beta125
+
+La señal125 y el head del productor se verificaron con refs completas. El rebase conserva02/i18n/shell/11/catálogo/VERSION del productor;03 sólo añade dos líneas en cyclePaceState. La nota125 del CHANGELOG no se pierde. Todos los conflictos generados se resolvieron con build oficial. La petición de scope de los oráculos Java/recibos queda atendida por el titular7f, heredado enb518; no se duplicaron sus cambios. La invariancia histórica de recibos se compara explícitamente en Madrid y se mantiene separada de los controles multizona.
+
+Por orden8352c386, los focales propios inferiores a10min se ejecutan sin cerrojo. El DIR FIN01 no se modifica. Se usaron puertos propios, servidor sin reuse, verificación de raíz y hash servido, un worker/cero retries, deadline global9min, fuentes inmutables durante cada bloque. El rendimiento es un caso corto (9,8s totales), con ventanas1,4s/arrastre; no suite ni CPU frenada larga.
+
+Nómina causal DOM: fuente123 exacta con oráculos124,6PASS/3FAIL UTC, uno por idioma, salario importado oculto en la lista. Con producto corregido, los tres checks aún esperaban el comportamiento local antiguo; se actualizan sólo esas dos llamadas a exigir ciclo y margen500 en todas las zonas. UI125:9PASS UTC,9Madrid,9Canarias, saldo/UUID/duplicados/futuro intactos. Agotado: el bloque anterior207PASS/3FAIL sólo por data-state good frente a tight; se fija el expectedState del fixture, sin relajar importes, anillo ni tonos. Los18casos nuevos cero/negativo es/en/ca pasan.
+
+Inventario final16archivos: dos bloques de7 más nómina y rendimiento, todos EXIT0. Total321ejecuciones PASS y1SKIP intencional (captura tiros abierto/plegado),0flaky/0unexpected. Bloque1:210PASS; bloque2:83PASS/1SKIP; nómina:27PASS; rendimiento:1PASS. No es la suite local entera. Fuente servida125: SHA256555b1773425c95aba79a6245af21eaec2c4c29a1614c1e28ae4af59dba1d081f.
+
+Rendimiento sin modificar el banco ni los umbrales: CPU6,20000movimientos/400cierres, entrada60.00fps y arrastre60.00fps,0frames>32ms; presupuesto21.1ms, abierto. Es validación del spec, no prueba de velocidad mayor ni dispositivo real.
+
+Sintaxis, nuevo calendario, Inicio-v42 con31mutaciones, seguridad, i18n, registro y tamaño125 pasan. Tamaño sellado125.99999 y reserva95B: 1385975B/380849B, bajo1386496/380928B, sin topes propios. CI primaria79 y la posteriorf222 permanecen FAILURE con logs completos; las dos intermedias7db/920 CANCELLED con logs completos. El SHA final y la CI posterior se informan en evidencia nueva y por message, sin reescribir ningún result cerrado.
