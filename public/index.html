@@ -4228,10 +4228,12 @@ function subirGasto(e, donde){
     cloud.logEvent("error","addExpense "+(donde||"?")+": "+keyOfExpense(e), _errCloudMsg(err));
   });
 }
+// → true si la nube lo borró (o no hay nube); false si falló: quien encadena un alta lo mira.
 function borrarGastoNube(e, donde){
-  if(!cloud.enabled()) return Promise.resolve();
-  return cloud.deleteExpense(e).catch(function(err){
+  if(!cloud.enabled()) return Promise.resolve(true);
+  return cloud.deleteExpense(e).then(function(){ return true; }, function(err){
     cloud.logEvent("error","deleteExpense "+(donde||"?")+": "+keyOfExpense(e), _errCloudMsg(err));
+    return false;
   });
 }
 
@@ -4443,55 +4445,97 @@ function pushDeleted(list, key){
    lista sin esa lápida y el gasto volvía (o el banco lo metía otra vez). Una lápida es un hecho
    que vio un móvil; el otro no puede desmentirla por no tenerla.
    Pero unir a secas haría IRREVERSIBLE el «Deshacer» de un borrado: la lápida que A ya quitó
-   seguiría en B, y B se la devolvería a A. Por eso levantar una lápida deja apuntado CUÁNDO en
-   `deletedAt` (solo las levantadas: poner hora a las 500 engordaría el estado en cada guardado),
-   y al unir gana, clave a clave, lo último que se dijo — la regla de los vetos de recibo
-   (`reciboNoUnion`). Sin hora, o con la misma, se suman. Límite asumido: si B borra ese mismo
-   gasto sin saber que A lo borró y lo deshizo, gana el «Deshacer» de A y el gasto vuelve a
-   verse; se borra otra vez y esa ya lleva hora. Vuelve a verse, nunca se esconde solo. */
+   seguiría en B, y B se la devolvería a A. Por eso cada lápida que se pone o se levanta deja
+   apuntado CUÁNDO en `deletedAt` (las 200 decisiones más recientes; las anteriores quedan sin
+   hora), y al unir gana, clave a clave, lo último que se dijo — la regla de los vetos de recibo
+   (`reciboNoUnion`). Sin hora en ningún lado, o con la misma, se suman.
+   UNA HORA FRENTE A NINGUNA: una lápida sin hora la puso un móvil con una versión anterior (las
+   de esta versión nacen con ella, y la copia que otro móvil baja de la nube la arrastra). Gana
+   a un «Deshacer» de aquí solo si el estado que la trae se guardó DESPUÉS de ese «Deshacer»: es
+   un borrado posterior. Si no, gana el «Deshacer». Límite: un «Deshacer» hecho en un móvil con
+   versión anterior no apunta hora y lo pisa la lápida con hora de los demás. */
 const DELETED_AT_MAX=200;
-// Lo último que se dijo de cada clave, entre dos listas con sus horas. → {lista, at}
-function unionPorHora(na, ta, nb, tb){
+/* Lo último que se dijo de cada clave, entre dos listas con sus horas. → {lista, at}.
+   `sa`/`sb` (cuándo se guardó cada estado) solo los pasan las lápidas: ver arriba. */
+function unionPorHora(na, ta, nb, tb, sa, sb){
   na=na||[]; nb=nb||[]; ta=ta||{}; tb=tb||{};
-  const at={}, lista=[], vistas={};
-  na.concat(nb,Object.keys(ta),Object.keys(tb)).forEach(function(k){
+  const enA={}, enB={}, at={}, lista=[], vistas={};
+  na.forEach(function(k){ enA[k]=1; }); nb.forEach(function(k){ enB[k]=1; });
+  const mira=function(k){
     if(vistas[k]) return;
     vistas[k]=1;
-    const a=ta[k]||0, b=tb[k]||0;
+    let a=ta[k]||0, b=tb[k]||0;
     if(a||b) at[k]=Math.max(a,b);
-    if(a===b ? na.indexOf(k)>=0||nb.indexOf(k)>=0 : (a>b?na:nb).indexOf(k)>=0) lista.push(k);
-  });
+    if(a && !b && enB[k] && !enA[k]) b=sb||0;
+    else if(b && !a && enA[k] && !enB[k]) a=sa||0;
+    if(a===b ? enA[k]||enB[k] : (a>b?enA:enB)[k]) lista.push(k);
+  };
+  na.concat(nb,Object.keys(ta),Object.keys(tb)).forEach(mira);
   return { lista:lista, at:at };
 }
+/* Topes. De las horas se quedan las 200 más recientes. De las lápidas, 500: las que llevan hora
+   no se caen nunca (son las últimas decisiones, entre ellas la recién puesta) y de las demás se
+   cae lo de delante — lo que solo traía la nube y lo más antiguo de este móvil. */
 function lapidasTope(deleted, at){
   const claves=Object.keys(at);
   if(claves.length>DELETED_AT_MAX) claves.sort(function(a,b){ return at[b]-at[a]; }).slice(DELETED_AT_MAX).forEach(function(k){ delete at[k]; });
-  const out={ deleted:deleted.length>DELETED_MAX ? deleted.slice(deleted.length-DELETED_MAX) : deleted };
+  let sobran=deleted.length-DELETED_MAX;
+  const out={ deleted:sobran>0 ? deleted.filter(function(k){ return at[k] || sobran--<=0; }) : deleted };
   if(Object.keys(at).length) out.deletedAt=at;
   return out;
 }
-/* Pone la lápida de `key`. Si esa clave se levantó alguna vez, apunta la hora nueva: tiene que
-   ganar a aquel «Deshacer» en el otro móvil. → {deleted[, deletedAt]} para el estado. */
+/* Pone la lápida de `key` con su hora, siempre posterior a la que constara: con el reloj de este
+   móvil atrasado perdería contra un «Deshacer» del otro. → {deleted, deletedAt} para el estado. */
 function lapidaPon(s, key, ahora){
-  const out={ deleted:pushDeleted(s&&s.deleted, key) };
-  const at=s&&s.deletedAt;
-  if(at && at[key]!=null) out.deletedAt=Object.assign({}, at, { [key]:Math.max(ahora||Date.now(), at[key]+1) });
-  return out;
-}
-// Levanta la ÚLTIMA lápida de `key` («Deshacer») y apunta cuándo. → {deleted, deletedAt}
-function lapidaLevanta(s, key, ahora){
-  const deleted=((s&&s.deleted)||[]).slice(), i=deleted.lastIndexOf(key);
-  if(i>=0) deleted.splice(i,1);
   const at=Object.assign({}, s&&s.deletedAt);
-  // Siempre posterior a lo que constaba: con el reloj de este móvil atrasado perdería contra el otro.
   at[key]=Math.max(ahora||Date.now(), (at[key]||0)+1);
-  return lapidasTope(deleted, at);
+  return lapidasTope(pushDeleted(s&&s.deleted, key), at);
+}
+/* Levanta la lápida de `key` («Deshacer», o editar un gasto hasta dejarlo como uno que ya se
+   había retirado) y apunta cuándo. Todas las copias: `pushDeleted` nunca miró si ya estaba.
+   → {deleted, deletedAt} */
+function lapidaLevanta(s, key, ahora){
+  const at=Object.assign({}, s&&s.deletedAt);
+  at[key]=Math.max(ahora||Date.now(), (at[key]||0)+1);
+  return lapidasTope(((s&&s.deleted)||[]).filter(function(k){ return k!==key; }), at);
+}
+/* EDITAR UN GASTO retira su clave vieja (o el pull lo resucitaría con los datos de antes)… y
+   levanta la de la clave NUEVA si constaba (13/10/2026): corregir 10 → 12 y volver a 10 dejaba
+   la fila casando con la lápida de la primera edición, y el gasto desaparecía de las cuentas y
+   del widget (gastado 0). → {deleted, deletedAt} */
+function lapidasAlEditar(s, keyOrig, keyUpd, ahora){
+  const pon=lapidaPon(s, keyOrig, ahora);
+  return pon.deleted.indexOf(keyUpd)<0 ? pon : lapidaLevanta(Object.assign({}, s, pon), keyUpd, ahora);
+}
+/* LA NUBE AL EDITAR UN GASTO: EL ALTA ESPERA AL BORRADO, Y CADA EDICIÓN A LA ANTERIOR
+   (13/10/2026). La fila corregida conserva su id: lanzadas a la vez, si el alta llegaba antes
+   que el borrado chocaba con la fila vieja por la clave primaria (el `23505` de `addExpense`
+   en Actividad), el borrado se llevaba después la vieja y la nube se quedaba sin el gasto hasta
+   el siguiente repaso. Si el borrado FALLA (sin red) el alta no se lanza —sería ese mismo
+   `23505`, seguro—: la edición se queda en `cola.pend` y se reintenta con la siguiente edición
+   o al volver la conexión. Límite: la cola vive en memoria; si la app se cierra antes, la fila
+   vieja sigue en la nube y el repaso tras el pull dará `23505` con origen `backfill`.
+   `cola` = {pend:[{orig,upd}], fin:Promise}. */
+function subeEdicionesDeGasto(cola){
+  const paso=function(){
+    const p=cola.pend[0];
+    if(!p) return;
+    return borrarGastoNube(p.orig, "gastos-editar").then(function(ok){
+      if(!ok) return;
+      cola.pend.shift();
+      return subirGasto(p.upd, "gastos-editar").then(paso);
+    });
+  };
+  cola.fin=cola.fin.then(paso);
+  return cola.fin;
 }
 // → {deleted[, deletedAt]}. La lista local, tal cual, si la nube no aporta nada: la leen los `useMemo`.
 function lapidasUnion(local, nube){
   const na=(local&&local.deleted)||[];
-  const u=unionPorHora(na, local&&local.deletedAt, nube&&nube.deleted, nube&&nube.deletedAt);
-  const out=lapidasTope(u.lista, u.at);
+  const u=unionPorHora(na, local&&local.deletedAt, nube&&nube.deleted, nube&&nube.deletedAt, local&&local._savedAt, nube&&nube._savedAt);
+  // Lo que solo trae la nube, delante: el tope corta por ahí y no por lo último de este móvil.
+  const mias={}; na.forEach(function(k){ mias[k]=1; });
+  const out=lapidasTope(u.lista.length>DELETED_MAX ? u.lista.filter(function(k){ return !mias[k]; }).concat(u.lista.filter(function(k){ return mias[k]; })) : u.lista, u.at);
   if(out.deleted.length===na.length && out.deleted.every(function(k,i){ return k===na[i]; })) out.deleted=na;
   return out;
 }
@@ -5195,26 +5239,27 @@ function mergeExpensesFromCloud(prevList, incoming, readStartedAt){
      (13/10/2026). El aviso y el cargo del banco comparten clave y son dos filas en la nube; lo que
      él cambia aquí (categoría, «no tarjeta») se escribe por id en UNA de ellas. Refrescaba la
      primera que llegara: si era la otra, el segundo pull le devolvía la categoría y la tarjeta del
-     aviso. Sin ninguna con su id (lo subió otro móvil), la primera, como siempre. */
-  const suya={};
-  (incoming||[]).forEach(function(inc){
-    const k=keyOfExpense(inc), loc=byKey[k];
-    if(loc && inc.id!=null && inc.id===loc.id && !suya[k]) suya[k]=inc;
-  });
+     aviso. Sin ninguna con su id (lo subió otro móvil), la primera, como siempre: esa espera
+     en `espera` hasta ver si detrás viene la suya, sin otra pasada por la tabla. */
+  const espera={}, hecha={}; let hayEspera=false;
   const refresca=function(k,inc){
     const loc=byKey[k], merged=refreshExpenseFromCloud(loc, inc, readStartedAt);
     if(merged!==loc){ byKey[k]=merged; changed=true; }
   };
   (incoming||[]).forEach(function(inc){
     const k=keyOfExpense(inc);
-    if(seen[k]){ if(!ganaAviso(k,inc) && suya[k]===inc) refresca(k,inc); return; }
+    if(seen[k]){
+      if(!ganaAviso(k,inc) && !hecha[k] && inc.id===byKey[k].id){ hecha[k]=1; delete espera[k]; refresca(k,inc); }
+      return;
+    }
     seen[k]=1;
     const loc=byKey[k];
     if(!loc){ byKey[k]=inc; order.push(k); changed=true; nuevos++; return; }
     if(ganaAviso(k,inc)) return;
-    if(suya[k] && suya[k]!==inc) return;   // la suya viene detrás en este mismo pull
-    refresca(k,inc);
+    if(inc.id===loc.id){ hecha[k]=1; refresca(k,inc); }
+    else { espera[k]=inc; hayEspera=true; }
   });
+  if(hayEspera) for(const k in espera) refresca(k,espera[k]);
   const list=order.map(function(k){ return byKey[k]; });
   return { list:list, changed:changed, nuevos:nuevos, sinMarca:sinMarca };
 }
@@ -10464,7 +10509,13 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   // que entraron como gasto…). En la nube la clave es fecha|importe|comercio → se hace tombstone
   // de la fila vieja (deleted + deleteExpense) y se inserta la corregida, o el pull la resucitaría.
   const [editExp,setEditExp]=useState(null);   // {id, merchant, amount, income} — usado por el sheet de detalle
-  const editCloudRef=useRef(Promise.resolve());   // cola de las escrituras de `saveEdit` en la nube
+  const editCola=useRef({pend:[], fin:Promise.resolve()});   // escrituras de `saveEdit` en la nube
+  // Lo que se editó sin conexión se sube al volver: ver `subeEdicionesDeGasto`.
+  useEffect(function(){
+    const alVolver=function(){ if(editCola.current.pend.length) subeEdicionesDeGasto(editCola.current); };
+    window.addEventListener("online",alVolver);
+    return function(){ window.removeEventListener("online",alVolver); };
+  },[]);
   const [detailId,setDetailId]=useState(null);     // id del gasto abierto en sheet (SPEC §14)
   // PUNTO 5: al tocar la noti de un gasto, App pasa focusExp ({amount,merchant}) → abrimos la ficha
   // del gasto que casa (mismo importe y comercio parecido, el más reciente; si no, el último gasto).
@@ -10533,17 +10584,9 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     if(signed!==orig.amount){ delete upd.origAmount; delete upd.origCur; }
     set(function(s){ return rekeyFixedPaymentExpense(Object.assign({},s,{
       expenses:s.expenses.map(function(x){ return x.id===orig.id?upd:x; })
-    },lapidaPon(s, keyOfE(orig))),orig,upd); });
-    /* EL ALTA ESPERA AL BORRADO, Y CADA EDICIÓN A LA ANTERIOR (13/10/2026). La fila corregida
-       conserva su id: lanzadas a la vez, si el alta llegaba antes que el borrado chocaba con la
-       fila vieja por la clave primaria (el `23505` de `addExpense` en Actividad), el borrado se
-       llevaba después la vieja y la nube se quedaba sin el gasto hasta el siguiente repaso. Dos
-       guardados seguidos (cada blur guarda) se pisaban igual entre sí: van en una sola cola. */
-    if(cloud.enabled()){
-      editCloudRef.current=editCloudRef.current
-        .then(function(){ return borrarGastoNube(orig, "gastos-editar"); })
-        .then(function(){ return subirGasto(upd, "gastos-editar"); });
-    }
+    },lapidasAlEditar(s, keyOfE(orig), keyOfE(upd))),orig,upd); });
+    // Borrado y alta en la nube, en orden y detrás de la edición anterior (`subeEdicionesDeGasto`).
+    if(cloud.enabled()){ editCola.current.pend.push({orig:orig, upd:upd}); subeEdicionesDeGasto(editCola.current); }
     sincroniza(upd); showToast(t("g_edited"));
   };
 
@@ -15516,7 +15559,7 @@ function importObExpenses(s, txs, links){
   };
   /* PRIMERA PASADA: la fila que ENTRARÍA por cada apunte, con todos los filtros de siempre
      (estado, ventana, modelados, id ya visto) pero SIN decidir todavía si ya la tenemos. */
-  const prepara=function(tx, aunVisto){
+  const prepara=function(tx){
     const esIngreso = tx.amount<0;
     if(esIngreso){
       // Un abono pendiente o futuro no acredita dinero disponible (feedback 30/9).
@@ -15529,7 +15572,7 @@ function importObExpenses(s, txs, links){
       const day=new Date(Number(parts[1]),Number(parts[2])-1,Number(parts[3]),12);
       if(dayKey(day)!==date || date>todayKey) return null;
       if(fuera(tx)) return null;
-      if(!aunVisto && tx.id && (seen[(tx.ent||"")+"|"+tx.id]||seenLegacy[tx.id])) return null;
+      if(tx.id && (seen[(tx.ent||"")+"|"+tx.id]||seenLegacy[tx.id])) return null;
       const e={ id:mcExpenseId(), date:new Date(tx.date+"T12:00:00").toISOString(),
         merchant:tx.merchant||"Ingreso", amount:tx.amount,
         category: esTraspasoPropio(s, tx) ? TRASPASO_CAT.id : INGRESO_CAT.id, source:"ob", ent:tx.ent };
@@ -15544,7 +15587,7 @@ function importObExpenses(s, txs, links){
     if(!tx.date || fuera(tx)) return null;
     const antiguo=parseDate(tx.date)<som;
     const recibos=modeledHit(tx.ent, tx.merchant, tx.amount, antiguo);
-    if(!aunVisto && tx.id && (seen[(tx.ent||"")+"|"+tx.id]||seenLegacy[tx.id])) return null;
+    if(tx.id && (seen[(tx.ent||"")+"|"+tx.id]||seenLegacy[tx.id])) return null;
     const esDiario=tx.ent===dailyEnt;
     // El aporte de hace dos meses ya se compró en su día o ya no toca: se apunta, pero no compra.
     const esAporteInv = !recibos && !antiguo && esDiario && daily && daily.monthlyInvest>0 && Math.abs(tx.amount-daily.monthlyInvest)<0.01;
@@ -15605,40 +15648,41 @@ function importObExpenses(s, txs, links){
      el mismo estado— no hay nada que distinga «repetida al paginar» de «dos bizums iguales», y
      ahí mandan los k del banco: es la función de esta entrega. */
   const firme=function(tx){ const st=String(tx.status||"").trim(); return !st || /book|post/i.test(st); };
-  /* UN APUNTE CON ID IDÉNTICO A UN GRUPO SIN ID OCUPA LA RANURA 1 (13/10/2026). El banco puede
-     mandar el mismo día, importe y nombre una vez con id y otra sin él. El de id va por su camino
-     y no contaba para las ranuras: si llegaba delante, el de sin id entraba también como
-     «primero» y quedaban dos filas con LA MISMA clave. Una sola cabía en la nube, el siguiente
-     pull las fundía y un «no es este recibo» sobre una soltaba las dos (gastado 0 → 21,98); si
-     llegaba detrás, o en otra sincronización, entraba una sola. Ahora, llegue como llegue, el de
-     sin id es el segundo: su ordinal, su fecha y su clave propias. Se mira en la respuesta
-     entera, también lo que ya está guardado por su id (`aunVisto`); y un pendiente sin id se da
-     por cubierto por el contabilizado con id, igual que entre los de sin id. */
+  /* UN APUNTE CON ID Y OTRO IDÉNTICO SIN ID SON EL MISMO CARGO (13/10/2026, decisión del
+     coordinador). El de id va por su camino y no contaba para las ranuras: si llegaba delante,
+     el de sin id entraba también como «primero» y quedaban dos filas con LA MISMA clave. Una
+     sola cabía en la nube, el siguiente pull las fundía (7,50 contados como 15 hasta entonces)
+     y un «no es este recibo» sobre una soltaba las dos; si llegaba detrás, o en otra
+     sincronización, entraba una. Ahora entra UNA desde el principio, la del id: ocupa la ranura
+     1 del grupo y a los de sin id les quedan de la 2 en adelante. Con dos ids iguales y uno sin
+     id sigue siendo una (los de id ya se fundían por clave); con un id y dos sin id, dos. No hay
+     dato de que un banco mande así dos cargos distintos. Cuenta el de id que entra ahora y el
+     que ya está guardado por su id; el que no pasa los filtros (un abono pendiente) no. */
   if(ordenGrupos.length){
+    const conId=function(g){ if(grupos[g]) grupos[g].conId=1; };
+    cands.forEach(function(c){ if(c.tx.id) conId((expenseBankOf(c.e)||c.e.ent||"")+"|"+baseKOf(c.e)); });
+    // Solo los que coinciden en banco e importe con algún grupo: el resto ni se mira.
+    const porImporte={};
+    ordenGrupos.forEach(function(g){ const c=grupos[g].miembros[0]; porImporte[(c.tx.ent||"")+"|"+c.tx.amount]=1; });
     txs.forEach(function(tx){
-      if(!tx.id) return;
-      const e=prepara(tx, true);
-      const g=e && grupos[(expenseBankOf(e)||e.ent||"")+"|"+baseKOf(e)];
-      if(!g) return;
-      g.conId=1;
-      if(firme(tx)) g.conIdFirmes=(g.conIdFirmes||0)+1;
+      if(!tx.id || !porImporte[(tx.ent||"")+"|"+tx.amount] || !(seen[(tx.ent||"")+"|"+tx.id]||seenLegacy[tx.id])) return;
+      // La clave que `prepara` le habría dado, sin volver a prepararlo.
+      conId((tx.ent||"")+"|"+String(new Date(tx.date+"T12:00:00").toISOString()).slice(0,10)+"|"+tx.amount+"|"+(tx.merchant||(tx.amount<0?"Ingreso":"Compra")));
     });
   }
   ordenGrupos.forEach(function(k){
     const g=grupos[k];
     g.miembros.sort(function(a,b){ const ha=huella(a.tx), hb=huella(b.tx); return ha<hb?-1:(ha>hb?1:0); });
     const firmes=g.miembros.filter(function(c){ return firme(c.tx); });
-    const cubren=firmes.length+(g.conIdFirmes||0);
-    if(cubren && firmes.length<g.miembros.length){
+    if(firmes.length && firmes.length<g.miembros.length){
       const pendientes=g.miembros.filter(function(c){ return !firme(c.tx); });
-      g.miembros=firmes.concat(pendientes.slice(cubren));   // los descartados se quedan sin ranura
+      g.miembros=firmes.concat(pendientes.slice(firmes.length));   // los descartados se quedan sin ranura
     }
-    const desde=g.conId||0, total=g.miembros.length+desde;
-    let n=desde, viejas=0;
+    let n=g.conId||0, viejas=0;
     g.miembros.forEach(function(c){
       // Siguiente ranura libre entre 1..k; las cubiertas se saltan sin gastar miembro… pero el
       // total de ranuras es k: pasado k, el miembro sobra (ya lo teníamos).
-      while(n<total){ n++; if(lapidaVieja(g,n)) viejas++; if(!cubierta(g,n)){ c.ord=n; break; } }
+      while(n<g.miembros.length){ n++; if(lapidaVieja(g,n)) viejas++; if(!cubierta(g,n)){ c.ord=n; break; } }
       c.saltar=viejas;
     });
   });
@@ -15825,53 +15869,94 @@ function reponerCargoDeRecibo(s, expenseId, fixedId, y, m, today, expected, ahor
    Fuera de un sync eso movía el saldo con el banco quieto (cuenta de gasto diario: 397,60 →
    335,20): se sujeta si había un cargo suyo marcado. → {state, subir} con las filas ya sin
    marca, para reescribir su `source`. */
-function sinCargoDelPlan(s, lista, id){
+function sinCargoDelPlan(s, lista, id, ahora){
   const subir=[], desde=budgetPeriodOf(s).startMs, mes=startOfMonth().getTime();
   const era=(s[lista]||[]).find(function(x){ return x.id===id; });
-  let marcadas=false, delMes=false;
+  if(!era) return { subir:subir, state:s };
+  let delMes=false;
   const expenses=(s.expenses||[]).map(function(e){
     if(!e || e.reciboId!==id) return e;
-    marcadas=true;
     if(dateMs(e.date)>=mes && cargoDeRecibo(e, s)) delMes=true;
     if(dateMs(e.date)<desde) return e;
     const x=Object.assign({}, e); delete x.reciboId;
     subir.push(x);
     return x;
   });
+  // `x`: las filas que pierden la marca, para devolvérsela si se pulsa «Deshacer».
+  const b={ d:desde, n:era.name||"" };
+  if(subir.length) b.x=subir.map(function(e){ return e.id; });
+  const at=Object.assign({}, s.reciboBorradoAt);
+  at[id]=Math.max(ahora||Date.now(), (at[id]||0)+1);
   const out=Object.assign({}, s, { [lista]:(s[lista]||[]).filter(function(x){ return x.id!==id; }) }, subir.length ? { expenses:expenses } : null,
-    marcadas ? { reciboBorrado:Object.assign({}, s.reciboBorrado, { [id]:{ d:desde, n:(era&&era.name)||"" } }) } : null);
+    { reciboBorrado:Object.assign({}, s.reciboBorrado, { [id]:b }), reciboBorradoAt:at });
+  return { subir:subir, state:(delMes || subir.length) ? conSaldoMostrado(s, out) : out };
+}
+/* «DESHACER» EL BORRADO DE UN RECIBO LO DEJA COMO ESTABA (13/10/2026). Plan lo devuelve con su
+   MISMO id (`undoLastBill`). Sin esto `reciboBorrado` seguía diciendo «borrado» y el siguiente
+   arranque lo sacaba otra vez del Plan; y, ya antes de unir nada, sus cargos del periodo se
+   quedaban sin marca: el recibo de vuelta en el Plan y el gastado con su cargo dentro (102,40
+   donde eran 40). Se levanta el borrado con su hora —gana a un estado más antiguo que aún lo
+   traiga— y las filas que perdieron la marca al borrarlo la recuperan, aquí y en la nube. Un
+   alta cualquiera (id nuevo, sin borrado que conste) es solo añadirlo. → {state, subir} */
+function conReciboEnPlan(s, lista, item, ahora){
+  const con=Object.assign({}, s, { [lista]:(s[lista]||[]).concat([item]) });
+  const b=item && s.reciboBorrado && s.reciboBorrado[item.id];
+  if(!b) return { subir:[], state:con };
+  const rb=Object.assign({}, s.reciboBorrado); delete rb[item.id];
+  const at=Object.assign({}, s.reciboBorradoAt);
+  at[item.id]=Math.max(ahora||Date.now(), (at[item.id]||0)+1);
+  const subir=[], suyas=b.x||[], mes=startOfMonth().getTime();
+  let delMes=false;
+  const expenses=(s.expenses||[]).map(function(e){
+    if(!e) return e;
+    if(e.reciboId===item.id && dateMs(e.date)>=mes) delMes=true;
+    if(e.reciboId || suyas.indexOf(e.id)<0 || !admiteMarcaDe(e, item)) return e;
+    const x=Object.assign({}, e, { reciboId:item.id });
+    subir.push(x);
+    return x;
+  });
+  const out=Object.assign({}, con, { reciboBorrado:rb, reciboBorradoAt:at }, subir.length ? { expenses:expenses } : null);
   return { subir:subir, state:(delMes || subir.length) ? conSaldoMostrado(s, out) : out };
 }
 /* EL BORRADO DE UN RECIBO SOBREVIVE A UN ESTADO MÁS ANTIGUO (13/10/2026). El estado viaja entero
    por «último que escribe», y el del móvil B —días sin abrirse, pero sellado como «más nuevo» por
    el primer guardado al arrancar— ganaba: el recibo volvía al Plan sin `reciboBorrado`, mientras
    su cargo del periodo ya estaba sin marca en la nube. Medido: B decía 40 de gastado (su fila
-   seguía marcada y el recibo existía) y A y el widget 102,40. `reciboBorrado` se UNE, y un recibo
-   que consta borrado sale del Plan gane el estado que gane; con eso `cargoDeRecibo` da lo mismo
-   en los dos móviles. No hace irreversible nada: borrar un recibo no tiene «Deshacer», y
-   volver a crearlo le da otro id. El saldo pintado se sujeta igual que al borrarlo a mano.
+   seguía marcada y el recibo existía) y A y el widget 102,40. `reciboBorrado` se une con la
+   regla de las lápidas y los vetos (`unionPorHora`, con `reciboBorradoAt`: gana lo último que
+   se dijo, borrar o «Deshacer»; lo que no lleva hora se suma), y un recibo que consta borrado
+   sale del Plan gane el estado que gane; con eso `cargoDeRecibo` da lo mismo en los dos móviles.
+   Todo borrado deja constancia, tuviera o no cargos marcados: sin ella el recibo volvía igual
+   desde el móvil atrasado. No tiene tope: de cada entrada depende que los cargos de meses
+   cerrados sigan sin contar. El saldo pintado se sujeta igual que al borrarlo a mano.
    → el mismo estado si no hay nada que unir. */
 function recibosBorradosUnion(s, local, nube){
-  const a=local&&local.reciboBorrado, b=nube&&nube.reciboBorrado;
-  let rb=a;
-  Object.keys(b||{}).forEach(function(id){
-    if((a&&a[id]) || !b[id] || typeof b[id].d!=="number") return;
-    if(rb===a) rb=Object.assign({}, a);
-    rb[id]=b[id];
-  });
-  if(!rb) return s;
+  const a=(local&&local.reciboBorrado)||{}, b=(nube&&nube.reciboBorrado)||{};
+  const vale=function(o){ return Object.keys(o).filter(function(id){ return o[id] && typeof o[id].d==="number"; }); };
+  const u=unionPorHora(vale(a), local&&local.reciboBorradoAt, vale(b), nube&&nube.reciboBorradoAt);
+  const igual=function(x, y){ const kx=Object.keys(x||{}), ky=Object.keys(y||{}); return kx.length===ky.length && kx.every(function(k){ return x[k]===y[k]; }); };
+  let rb={}, at=u.at;
+  u.lista.forEach(function(id){ rb[id]=a[id]||b[id]; });
+  if(igual(rb, s.reciboBorrado)) rb=s.reciboBorrado;
+  if(igual(at, s.reciboBorradoAt)) at=s.reciboBorradoAt;
+  const con=(rb===s.reciboBorrado && at===s.reciboBorradoAt) ? s : Object.assign({}, s, { reciboBorrado:rb, reciboBorradoAt:at });
+  if(!rb) return con;
   const fuera=function(x){ return !!(x && rb[x.id]); };
-  const con=rb===s.reciboBorrado ? s : Object.assign({}, s, { reciboBorrado:rb });
   if(!(s.fixed||[]).some(fuera) && !(s.oneoffs||[]).some(fuera)) return con;
   const sin=Object.assign({}, con, { fixed:(s.fixed||[]).filter(function(x){ return !fuera(x); }), oneoffs:(s.oneoffs||[]).filter(function(x){ return !fuera(x); }) });
-  const mes=startOfMonth().getTime();
-  const suelta=(s.expenses||[]).some(function(e){ return e && rb[e.reciboId] && dateMs(e.date)>=Math.min(mes, rb[e.reciboId].d) && cargoDeRecibo(e, s); });
+  // Con algún cargo suyo marcado, el saldo pintado no puede moverse con el banco quieto.
+  const suelta=(s.expenses||[]).some(function(e){ return e && rb[e.reciboId] && cargoDeRecibo(e, s); });
   return suelta ? conSaldoMostrado(s, sin) : sin;
 }
-// Las cuatro puertas de borrado de Plan pasan por aquí: el estado y, después, la nube.
+// Las puertas de borrado y de alta de Plan pasan por aquí: el estado y, después, la nube.
 function quitarDelPlan(set, lista, id){
   let subir=[];
   set(function(s){ const r=sinCargoDelPlan(s, lista, id); subir=r.subir; return r.state; });
+  if(cloud.enabled()) subir.forEach(function(e){ cloud.setExpenseRecibo(e).catch(function(){}); });
+}
+function ponerEnPlan(set, lista, item){
+  let subir=[];
+  set(function(s){ const r=conReciboEnPlan(s, lista, item); subir=r.subir; return r.state; });
   if(cloud.enabled()) subir.forEach(function(e){ cloud.setExpenseRecibo(e).catch(function(){}); });
 }
 /* LAS CUOTAS DE TUS DEUDAS, EN «DEUDAS» (4.21.0).
@@ -17676,7 +17761,7 @@ function removeFixedById(set, id){
   quitarDelPlan(set,"fixed",id);
 }
 function addFixedItem(set, item){
-  set(function(s){ return Object.assign({},s,{fixed:(s.fixed||[]).concat([item])}); });
+  ponerEnPlan(set,"fixed",item);
 }
 function patchFlowById(set, id, patch){
   set(function(s){
@@ -17713,7 +17798,7 @@ function removeOneoffById(set, id){
   quitarDelPlan(set,"oneoffs",id);
 }
 function addOneoffItem(set, item){
-  set(function(s){ return Object.assign({},s,{oneoffs:(s.oneoffs||[]).concat([item])}); });
+  ponerEnPlan(set,"oneoffs",item);
 }
 /* En modo sencillo no hay pestaña Deudas: la ficha de cuota SÍ puede escribir día/cuenta/amort. */
 function patchDebtFields(set, id, patch){
@@ -21910,7 +21995,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="2d12980e07e9bae1b432bbfe99b1a0ad9a24a093f252f9b2b45a1995024d09e2";
+var _rnSha="c84e557c0cbd44c639f1e6d4fc045037b475b34dd71ffccf1ee3d127cd9fa8d0";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){

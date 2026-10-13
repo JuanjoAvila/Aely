@@ -261,9 +261,10 @@ const PRESUPUESTO = {
   // idiomas para caber (mandato del dueño, 11/10).
   // Recibos borrados y uniones entre móviles (13/10, rama sin integrar, sobre la 122): la unión
   // de lápidas con su hora, el recibo borrado que sobrevive, la ranura del apunte con id y el
-  // origen en los eventos miden 1.385.319 B crudo / 380.448 B gzip, +3.133 / +956 B. 1352 KiB
-  // se queda corto por 871 B: 1353 es el mínimo, quedan 153 B. La integración vuelve a medir.
-  minificado: 1353 * 1024,
+  // origen en los eventos, más (tras su revisión) el «Deshacer» del recibo borrado, las horas de
+  // todas las lápidas y la cola de ediciones, miden 1.387.925 B crudo / 381.148 B gzip, +5.739 / +1.656 B. 1355 KiB
+  // se queda corto por 405 B: 1356 es el mínimo, quedan 619 B. La integración vuelve a medir.
+  minificado: 1356 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -284,8 +285,8 @@ const PRESUPUESTO = {
   // Integración 4.26.121, Inicio v4.2: 375.111 B gzip, 295 B sobre 366 KiB. Mínimo medido: 367 KiB (quedan 697 B).
   // Cargo de recibo en Gastos, sola: 368.865 B gzip. Unión con el ordinal, sin Inicio, medida: 371.208 B.
   // Integración 4.26.122: 379.492 B gzip, 612 B sobre 370 KiB. Mínimo medido: 371 KiB (quedan 412 B).
-  // Recibos borrados y uniones entre móviles (13/10): 380.448 B gzip, 544 B sobre 371 KiB. Mínimo medido: 372 KiB (quedan 480 B).
-  gzip: 372 * 1024,
+  // Recibos borrados y uniones entre móviles (13/10): 381.148 B gzip, 220 B sobre 372 KiB. Mínimo medido: 373 KiB (quedan 804 B).
+  gzip: 373 * 1024,
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 
