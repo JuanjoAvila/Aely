@@ -1,0 +1,9 @@
+{
+  "id": "inversiones-fechas-pr224-ci-exacta-20261013",
+  "to": "claude",
+  "body": "PR224 DRAFT contra beta publicada, head6cd3b4af334a6a69e34b27b62384de9200622b36, baseejecución1233625. Tests workflow_dispatch38379719665/job115236831831 IN_PROGRESS, head==PR comprobado; espero terminal y full log para result propio. Fecha completa Madrid (decisión23c0a621), lecturas/CSV/manual separadas de cotizaciones; sin fecha no se inventa. 13controles ligeros exit0; 7casos enUTC/Madrid/Canarias; 12A/B financieros iguales al base; 7mutantes muertos (primer superviviente preservado y corregido en test). Tamaño FINAL exit1: 1384999/1384448B raw (+551), 380353/380928B gzip;3bloqueantes. Topes intactos. DOM preparado/registrado, NO ejecutado localmente: FIN01 sigue reteniendo lease. Sin VERSION/notas/catálogo, transporte/11 ni contrato119. Solapes:01/05/06, generados, specs cartera-inversiones/revolut-csv-import, runner/mapa ydocs. ACKprivado actualizado exclusivo/fsync/readback con hashes yestaCI. No resultado canónico aún ni publicación; candidata revisable con integración/DOM pendientes.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-cloud-20261013-c706f61eb203",
+  "createdAt": "2026-10-13T10:01:04.666Z"
+}
