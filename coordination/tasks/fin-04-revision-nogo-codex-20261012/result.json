@@ -1,0 +1,193 @@
+{
+  "status": "done",
+  "summary": "Entrega candidata FIN-04 de PR218 cerrada para revisión independiente de Claude conforme a su orden 74150b7d. No es integración, aceptación móvil ni CI completa verde. La CI final sólo falla en catálogo, VERSION y tamaño; no se recortaron contratos ni se relajaron topes.",
+  "productSHA": "ad0abaff31c9e54e42cf2c0bd5154e931b73a2b4",
+  "effectiveBaseSHA": "e6e211a5d94e50b03597d5c91230c974d3e72232",
+  "originalTaskBaseSHA": "7e706174255f1868d15099e11a503dd23d9aa774",
+  "closureAuthority": "74150b7dceaa761eb8b57c335ec56e76ed891916",
+  "tests": [
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0,
+      "scope": "Local sintético sobre el bundle de ad0abaff"
+    },
+    {
+      "command": "node tests/expense-write-contracts.test.mjs",
+      "exitCode": 0,
+      "scope": "Local sintético sobre el bundle de ad0abaff"
+    },
+    {
+      "command": "node tests/expense-write-revision.test.mjs",
+      "exitCode": 0,
+      "scope": "Local sintético sobre el bundle de ad0abaff"
+    },
+    {
+      "command": "node tests/expense-write-mutations.test.mjs",
+      "exitCode": 0,
+      "scope": "Local sintético sobre el bundle de ad0abaff"
+    },
+    {
+      "command": "node tests/expense-source-ack.test.mjs",
+      "exitCode": 0,
+      "scope": "Local sintético sobre el bundle de ad0abaff"
+    },
+    {
+      "command": "node tests/pull-historico-entero.test.mjs",
+      "exitCode": 0,
+      "scope": "Local sintético sobre el bundle de ad0abaff"
+    },
+    {
+      "command": "node tests/ob-iguales-ordinal.test.mjs",
+      "exitCode": 0,
+      "scope": "Local sintético sobre el bundle de ad0abaff"
+    },
+    {
+      "command": "node tests/recibo-domiciliado-sin-acreditar.test.mjs",
+      "exitCode": 0,
+      "scope": "Local sintético sobre el bundle de ad0abaff"
+    },
+    {
+      "command": "node tests/recibo-invariante.test.mjs",
+      "exitCode": 0,
+      "scope": "Local sintético sobre el bundle de ad0abaff"
+    },
+    {
+      "command": "GitHub Actions Tests, run 38351732823, job 115145432287",
+      "exitCode": 1,
+      "headSHA": "ad0abaff31c9e54e42cf2c0bd5154e931b73a2b4",
+      "conclusion": "failure",
+      "failedStages": [
+        "beta-sources",
+        "docs-frescura",
+        "presupuesto-rendimiento"
+      ],
+      "passed": [
+        "expense-write-contracts: 44 PASS",
+        "expense-write-revision: 42 PASS / 0 FAIL",
+        "expense-write-mutations: 37/37 KILLED",
+        "Siete ficheros Deno"
+      ],
+      "notExecuted": [
+        "E2E",
+        "Etapa separada Privacidad (skipped)"
+      ],
+      "logSHA256": "086ac08edefdbc1ddfd6e9ce1836312ed80b22d9cd158ee1fb46d9283516fd11"
+    },
+    {
+      "command": "Minificador oficial, DSN95, sello 4.26.122.99999, gzip9",
+      "exitCode": 1,
+      "minified": 1409763,
+      "gzip": 386977,
+      "capMinified": 1382400,
+      "capGzip": 379904,
+      "excessMinified": 27363,
+      "excessGzip": 7073,
+      "blockingFiles": 3
+    }
+  ],
+  "acceptance": [
+    "1. Drenado ordenado por sesión, online, foreground y tras pull, fuera de updaters; un intento por disparador. Contratos/revisión/pull Node pasan. DOM de esta cabeza pendiente.",
+    "2. Plazo durable de Deshacer; cerrar y reabrir conserva el plazo y drena el DELETE vencido. Casos Node pasan.",
+    "3. Descartar adopta remoto antes de retirar la cadena; ausencia cierra DELETE o lápida compatible; colisión conserva conflicto; céntimos antes de encolar; sin titular aceptado no nace cola huérfana. Node pasa.",
+    "4. Realineación por dueño, instante, céntimos, comercio y source exactos, sólo una candidata. Siete identidades sintéticas: dos resolubles y cinco rechazadas; ambigüedad rechazada; doce filas aprendidas. Remapea orden, possibleDupOf y referencias de pruebas sin atribuir pago nuevo.",
+    "5. Son distintos restaura origen de la notificación TR con ingest; no convierte a aviso una fuente con ordinal o marca financiera. Node pasa.",
+    "6. Base del gesto guardada sin red; cambio remoto del mismo campo provoca conflicto. Node y mutante causal pasan.",
+    "7. Documentada convivencia con cliente antiguo: puede conservar dos filas y ocultar temporalmente la clave vieja; drenado acorta la ventana, no garantiza atomicidad entre recursos.",
+    "8. Cola privada purgada al salir o borrar cuenta; respuestas/autenticaciones tardías de otra pestaña no la recrean. Node y mutantes pasan; no acredita RLS real.",
+    "9. Cola vacía conserva notificaciones de estado; registro de ACK limitado a 256 con piso de lecturas; singular es/en/ca; alias y promesa sin lectores retirados.",
+    "10. Los siete mutantes supervivientes del NO-GO se detectan; total final 37/37, incluyendo nueve del viaje completo sobre beta122.",
+    "11. Retirada expresamente la cifra histórica no reproducible de dos pasan y dieciséis fallan en la base; no se usa como evidencia.",
+    "Integración beta122: fuentes con marca alternativa deuda/recibo, dup y ordinal canónico 2..999999 también en ob-hist; ACK adopta ordinal sin desplazar fecha otra vez; lápidas separan cargos; la unión del aviso respeta decisiones pendientes. Siete nuevos fallos demostrados antes y corregidos."
+  ],
+  "fingerprints": {
+    "base": "e6e211a5d94e50b03597d5c91230c974d3e72232",
+    "count": 24,
+    "surfaces": [
+      "web"
+    ],
+    "ids": [
+      "inc-3009-01-cargos",
+      "fin05-widget-reentrada",
+      "fin05-pago-cerrada",
+      "tr-descripcion-clasificacion",
+      "widget-banco",
+      "widget-app-cerrada",
+      "inc-2909-02-inicio-natural",
+      "inc-3009-nomina-anticipada",
+      "inc-2909-03-retirada",
+      "inc-2909-01-widget-periodo",
+      "inc-0210-03-gastos-periodo",
+      "feature-0210-01-gasolina-taxi",
+      "inc-0210-02-categoria-elegida",
+      "feature-0310-01-movilidad",
+      "inc-0310-gastos-sin-limite",
+      "inc-0710-gastos-mes-madrid",
+      "inc-0810-metas-editar-regla",
+      "widget-pago-app-cerrada",
+      "bancos-sin-hueco",
+      "widget-ciclo-puente",
+      "recibos-cargo-unico",
+      "bancos-acuse-reconexion",
+      "tr-iguales-ordinal",
+      "recibo-cargo-en-gastos"
+    ],
+    "retiredReceiptScopePreserved": true
+  },
+  "hashes": {
+    "src/modules/00-core.js": "76ce198d34d81889754c857d28c741b870f969eccfdcbbc0d604ae4c17b45ed1",
+    "src/modules/04-tab-gastos.js": "38bf49160abf91a5d075ed0cd41306df0df806da087c3e80f87e2ac7ecefebb3",
+    "src/modules/11-app-main.js": "7c111b1f3b664352f8a70fe0d7fe04ddc614f90fd9c99eb05e7e26a01c7dcb66",
+    "public/index.html": "49e9a2971a77d751c67cace699fc3fd38fdc53cc76b7dbaf69539fb17a2491b1",
+    "public/beta-delivery.json": "c8f7c6d936b607a06cd94574984a784e0309889bc8887b6082002b90c1f9d784",
+    "public/release-notes.json": "e45c887669477026ca3a611e9c65358ee1430f27d76a6427878e365eaa12211b",
+    "tests/expense-write-revision.test.mjs": "14bd77b16e9adc3583181bd57b569e5b8d0df76057c05499139cc4ee428191d5",
+    "tests/expense-write-mutations.test.mjs": "3a81384ba940f3d3fb0d30c426e016285f61e8a4a3f6d2d35658efa196f03370",
+    "tests/ob-iguales-ordinal.test.mjs": "75b9ad540c94233a0d3e5451567b69ab24a3d1a15b91ff6500eeffa4e94acd25",
+    "docs/briefs/fin04-revision-nogo.md": "d96ee5328b2978b989e3be654f817a6ab7170a6203eb6c4cb7a0aa1140a3f22b"
+  },
+  "sizeAttribution": {
+    "base": {
+      "minified": 1382186,
+      "gzip": 379492
+    },
+    "candidate": {
+      "minified": 1409763,
+      "gzip": 386977
+    },
+    "delta": {
+      "minified": 27577,
+      "gzip": 7485
+    },
+    "savingFrom07a": {
+      "minified": 55,
+      "gzip": 12
+    }
+  },
+  "limitations": [
+    "CI global FAILURE / EXIT1, 1052.1 segundos. Únicos fallos: beta-sources (Catálogo122 y dependencias), docs-frescura (VERSION) y presupuesto-rendimiento. No se presenta como verde.",
+    "Huecos reales del catálogo de inc-3009-01-cargos: mcExpenseCents y _mcExpenseEpoch no mueven su huella; editExpense no está listado. Requieren corrección del integrador, no repinado ciego.",
+    "Exceso medido 27363 B crudos y 7073 B gzip. Claude ajustará el mínimo en integración según la orden nueva; esta rama no cambia topes, VERSION, catálogo ni descriptores protegidos.",
+    "E2E final no ejecutado; etapa separada de privacidad omitida. DOM 20/20 pertenece exclusivamente a 0e0480ba. CI de 07a y 0e se conserva como historia, no se hereda.",
+    "Revisión independiente limpia, integración, publicación beta, servido, móvil y RLS real no verificados. Sin despliegue Edge, SQL, APK ni push a main/beta.",
+    "No navegador local, cerrojo nuevo ni limpieza de la reserva ajena FIN01. SEC cerrado 3551 permanece inmutable.",
+    "Base efectiva beta122 e6e211a5; no se rebasa a beta123 sin señal y ref verificadas. No se espera a beta123 para esta entrega."
+  ],
+  "ownerTestGuide": "docs/briefs/fin04-revision-nogo.md",
+  "ownerTestSteps": [
+    "Modo avión: cambiar nota, categoría y tarjeta; cerrar y abrir; cambios y pendientes se conservan.",
+    "Recuperar red sin Reintentar y comprobar los cambios en otro móvil; repetir con foreground.",
+    "Editar la misma nota desde el segundo móvil durante el corte; el primero muestra conflicto. Descartar adopta remoto; Mantener mi cambio exige decisión expresa.",
+    "Usar importes sintéticos con tres decimales y una colisión de clave: redondeo y salida visible sin borrar otro gasto.",
+    "Borrar y cerrar antes de cinco segundos; reabrir respeta el plazo. Deshacer antes del envío no crea un alta.",
+    "Comprobar singular y Descartar en es/en/ca; Son distintos conserva el origen TR.",
+    "Verificar purga de cola al salir; borrado de cuenta sólo con cuenta sintética destinada a ello."
+  ],
+  "repository": "JuanjoAvila/Aely",
+  "pullRequestNumber": 218,
+  "schema": 1,
+  "taskId": "fin-04-revision-nogo-codex-20261012",
+  "actor": "codex",
+  "sessionId": "codex-cloud-20261012-1f3eb9e3d3f4",
+  "createdAt": "2026-10-13T05:56:50.399Z",
+  "released": true
+}
