@@ -1,0 +1,93 @@
+{
+  "status": "blocked",
+  "summary": "FIN01/02 no acreditado: DOM866 no ejecutado, DIROWN6fa retenido tras dos plazos de revision de devolucion y una unica respuesta humana pendiente; no tercer intento ni rebase mientras retencion.",
+  "productSHA": "866017a68e9327254b38c3a1e729fe99e1c12d6a",
+  "pullRequest": "JuanjoAvila/Aely#217",
+  "historicalTaskBaseSHA": "c5f62d6603d016150afd9d0e20547b608b323045",
+  "executionBaseSHA": "788432f4682c199edd785f6973d9353330c0064a",
+  "tests": [
+    {
+      "command": "Tests workflow_dispatch on own branch source866",
+      "exitCode": 1,
+      "run": 38300157927,
+      "job": 114980853226,
+      "sourceSHA": "866017a68e9327254b38c3a1e729fe99e1c12d6a",
+      "conclusion": "failure",
+      "failures": [
+        "beta-sources Catalogo119/Retiro119",
+        "docs-frescura VERSION"
+      ],
+      "financeChecksPassed": 40,
+      "causalMutantsDetected": 10,
+      "denoSuitesPassed": 7,
+      "budget": "pass",
+      "nodePrivacyGuard": "pass",
+      "independentPrivacyStep": "skipped",
+      "playwright": "not executed",
+      "performance": "not executed",
+      "playwrightSkippedCount": null,
+      "playwrightFlakyCount": null
+    },
+    {
+      "command": "own build and monolith syntax on source866",
+      "exitCode": 0,
+      "htmlSHA256": "becf94675478accf8ebd55bffebba8bfef2bb7330375d803dc2e3fd18b0fccee"
+    },
+    {
+      "command": "historical own focal24 on source039",
+      "exitCode": 1,
+      "sourceSHA": "039833b78c25afe128a8cc6ae2a3be5bb907eac6",
+      "terminalKind": "Ctrl-C exec session exit; Playwright final exit unavailable",
+      "completedCases": 14,
+      "passed": 9,
+      "failed": 5,
+      "incomplete": 10,
+      "notEvidenceFor866": true
+    }
+  ],
+  "limitations": [
+    "0 own DOM on866; no financial closure, full CI green, mobile approval or beta delivery attributed to this candidate",
+    "Own resource is NOT returned by this task result: DIR6fa remains physically retained with sole owner.json; no cleanup ran",
+    "Two automatic review deadlines before CreateProcess for own return, not a security veto; single specific human question still pending; no third cleanup attempt/tool route/actor/policy change",
+    "Canonical take absent only at exact channel head0f538626; future heads not inferred; reconcile exact ID before any later resource message",
+    "New published bases122/e6 and123/3625 read only; own execution stays119/788 until express verified own6fa return, no branch or frozen source change",
+    "Rewards criterion consultation fin0102-consulta-recompensas-efectivo-20261012 remains unresolved and no reward code changed"
+  ],
+  "taskReleaseIsNotRunnerReturn": true,
+  "resourceLease": {
+    "nonce": "6fae2d10-f0b2-488c-b73b-fb6ff60e12e2",
+    "sessionId": "codex-local-20261012-797e1ebf800d",
+    "sourceSHA": "866017a68e9327254b38c3a1e729fe99e1c12d6a",
+    "state": "retained",
+    "returnVerified": false,
+    "cleanupExecuted": 0,
+    "returnReviewTimeouts": 2,
+    "playwrightStarted": false,
+    "playwrightExitCode": null,
+    "oneSpecificHumanQuestionPending": true,
+    "holderStillResponsibleForCompensation": true
+  },
+  "pendingExecutionBase": "3625fa7ed5134cfbc5e364adc4f588bfdaf670c0",
+  "preparations": [
+    "read-only base122 and123 contracts/diff; no rebase or new execution",
+    "mobile proposal not executed; only postintegration published beta with isolated synthetic scenarios"
+  ],
+  "mobileProposal": [
+    "After coordinator integration and identifiable beta, open isolated fictional test profile with orange sandbox band; do not change phone clock",
+    "Daily1000/cash100 withdrawal50 must show950/150 and total1100 once, persisted after reopening; prepared prior-month cash100 minus20 must close80 and corrected120 remain120",
+    "Real history door with three fictional12 payments in three months must import3/36, reimport0, undo exact prior state; choosing Recibo must create1 fixed12 and undo only its batch",
+    "Repeat Sabadell/Revolut and es/en/ca; retain debt/saving/ambiguous warnings; proposal is not current device evidence"
+  ],
+  "evidence": {
+    "ciLogSHA256": "ff4779e5b1d8922d52636134235082bb4c50b2d577173a64ca27f4aa024e7e91",
+    "blockedPrelaunch": "test-results/fin0102-focal866c-20261013-prelaunch-terminal.json",
+    "readonlyPreparation": "test-results/fin0102-base123-readonly-preparation.json",
+    "mobileProposal": "test-results/fin0102-mobile-check-proposal.md"
+  },
+  "schema": 1,
+  "taskId": "fin-01-02-acreditar-cierre-codex-20261012",
+  "actor": "codex",
+  "sessionId": "codex-local-20261012-797e1ebf800d",
+  "createdAt": "2026-10-13T09:41:34.741Z",
+  "released": true
+}
