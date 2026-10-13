@@ -20,7 +20,15 @@ La evidencia DOM 20/20 y la CI `38306138436` roja pertenecen sólo a `0e0480ba` 
 
 ## Bloqueos de integración del corte beta122
 
-La medida con el minificador oficial, DSN sintético de 95 B y sello `4.26.122.99999` es **1.409.818 B crudos / 386.989 B gzip**: excede los topes heredados de 1.382.400 / 379.904 B en 27.418 / 7.085 B; siguen siendo tres ficheros bloqueantes. Los topes no se modifican. Hay **24 huellas web** distintas respecto a beta122, ninguna nativa ni Edge; se preserva la retirada de `recibos-cargo-unico`. El catálogo mantiene huecos reales: mutar `mcExpenseCents` o `_mcExpenseEpoch` no mueve la huella de `inc-3009-01-cargos`, y su descriptor no lista el método `editExpense`. Requieren revisión del integrador, no un repinado automático en esta rama. Las pruebas focales no convierten esos rojos ni una CI pendiente en entrega.
+La medida con el minificador oficial, DSN sintético de 95 B y sello `4.26.122.99999` es **1.409.763 B crudos / 386.977 B gzip**: excede los topes heredados de 1.382.400 / 379.904 B en 27.363 / 7.073 B; siguen siendo tres ficheros bloqueantes. Los topes no se modifican. Hay **24 huellas web** distintas respecto a beta122, ninguna nativa ni Edge; se preserva la retirada de `recibos-cargo-unico`. El catálogo mantiene huecos reales: mutar `mcExpenseCents` o `_mcExpenseEpoch` no mueve la huella de `inc-3009-01-cargos`, y su descriptor no lista el método `editExpense`. Requieren revisión del integrador, no un repinado automático en esta rama. Las pruebas focales no convierten esos rojos ni una CI pendiente en entrega.
+
+CI `38350541666` de `07a85cc3`: FAILURE / EXIT1 en 683,8 s. Fallan `beta-sources` (Catálogo122 y los tres huecos descritos), `docs-frescura` (código publicable sin VERSION nueva) y `presupuesto-rendimiento`. Contratos44, revisión42 y mutantes37 pasan, igual que los siete ficheros Deno. E2E no se ejecuta tras esos rojos; la etapa separada de privacidad queda omitida. Los logs completos se conservan antes de sustituir esta cabeza.
+
+### Atribución y simplificaciones propias
+
+A/B con el mismo cuerpo del minificador oficial, terminaciones de línea del build local, DSN95, sello122.99999 y gzip9: beta122 mide 1.382.186 / 379.492 B y deja sólo 214 / 412 B de margen. FIN-04 en `07a85cc3` añade 27.632 / 7.497 B. Tres simplificaciones propias —recorrer valores de la cola, reunir filas sin `apply` y registrar ACK sin un array intermedio— conservan 44 contratos, 42 casos, 37 mutantes y los escenarios heredados de pull/ordinal/recibos. Tras regenerar el artefacto completo ahorran **55 B crudos / 12 B gzip**; el delta frente a beta122 queda en 27.577 / 7.485 B. No resuelve el presupuesto. Se descarta otra variante que ahorra crudo pero aumenta gzip.
+
+El transporte y cola propios ocupan 14.724 B minificados y los helpers de conciliación 4.910 B; son medidas diagnósticas de bloques, no tamaños sumables de descarga ni candidatos ejecutables al retirarlos. Quitar estas piezas quitaría almacenamiento durable, orden de gestos, identidad exacta, acuse, privacidad o conciliación. No se atribuye a beta122 el exceso añadido por FIN-04 ni se recorta producto ajeno para compensarlo. Las tres brechas del catálogo siguen abiertas.
 
 ## Convivencia y límites
 

@@ -1123,7 +1123,7 @@ function mcExpensePending(owner){
       if(op.owner===owner && !seen[k] && !_mcExpenseBusy[k] && op.status!=="storage") delete _mcExpenseOps[k];
     });
   }catch(e){}
-  return Object.keys(_mcExpenseOps).map(function(k){ return _mcExpenseOps[k]; })
+  return Object.values(_mcExpenseOps)
     .filter(function(op){ return op.owner===owner; }).sort(function(a,b){ return a.at-b.at || a.opId.localeCompare(b.opId); });
 }
 function mcExpensePersist(op){
@@ -1316,8 +1316,8 @@ async function mcExpenseRun(sb,op){
         if(op.kind==="deleteIds"){ op.done=(op.done||[]).concat([id]); mcExpensePersist(op); }
       }
       const ackAt=Date.now();
-      ids.map(function(id){ return op.kind==="deleteIds"?id:op.id; }).forEach(function(id){
-        const k=op.owner+"|"+id, receipts=_mcExpenseAcks[k]||{};
+      ids.forEach(function(originalId){
+        const id=op.kind==="deleteIds"?originalId:op.id, k=op.owner+"|"+id, receipts=_mcExpenseAcks[k]||{};
         receipts[op.kind]={at:ackAt,op:{owner:op.owner,kind:op.kind,value:op.kind==="deleteIds"?null:op.value,originalId:op.originalId}}; _mcExpenseAcks[k]=receipts;
       });
       const keys=Object.keys(_mcExpenseAcks);
@@ -1424,7 +1424,7 @@ const cloud = (function(){
       await Promise.allSettled(flights);
       await mcExpenseAuth(sb,op.owner,epoch);
       const ids=op.kind==="deleteIds"?op.value:[op.id], rows=[];
-      for(const id of ids){ rows.push.apply(rows,await mcExpenseFind(sb,op,id,epoch)); }
+      for(const id of ids){ rows.push(...await mcExpenseFind(sb,op,id,epoch)); }
       await mcExpenseAuth(sb,op.owner,epoch);
       // Descartar adopta la foto acreditada y retira las intenciones posteriores de la
       // misma fila: dejarlas vivas volvería a imponer el cambio que acaba de rechazarse.
