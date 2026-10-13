@@ -641,7 +641,13 @@ function recordAssetValues(history, day, assets, previous, bornId){
     const born=!!a&&bornId!=null&&String(bornId)===id,prior=(previous||[]).find(function(p){return String(p.id)===id;});
     if(!last&&!born&&(!prior||prior.value===value))return;
     const point={day:day,value:value};if(born||(last&&last.day===day&&last.born))point.born=true;
-    const next=list.filter(function(p){return p&&p.day<day&&Number.isFinite(p.value);}).slice(-399).concat(point);
+    const kept=list.filter(function(p){return p&&p.day<day&&Number.isFinite(p.value);});
+    // Revalorar un bien heredado sin escalones dejaba el valor nuevo como primer dato y la
+    // gráfica de Inicio se reiniciaba ese día. El valor anterior sí se conoce al guardar:
+    // queda anotado la víspera como `legacy` y se mantiene hacia atrás (revisión 13/10).
+    if(!last&&!born&&prior&&Number.isFinite(prior.value))
+      kept.push({day:new Date(Date.parse(day+"T12:00:00Z")-864e5).toISOString().slice(0,10),value:prior.value,legacy:true});
+    const next=kept.slice(-399).concat(point);
     if(!changed){out=Object.assign({},out);changed=true;}out[id]=next;
   });
   return changed?out:history;
@@ -788,10 +794,14 @@ function netWorthSeries(state, options){
   const assetRows=[], assetHist=state.assetValueHistory||{};
   const assetIds=new Set(Object.keys(assetHist));(state.assets||[]).forEach(function(a){assetIds.add(String(a.id));});
   assetIds.forEach(function(id){
-    const a=(state.assets||[]).find(function(x){return String(x.id)===id;}),points=clean(assetHist[id]||(a&&(a.valueHistory||a.history)),"day","value");
+    // El valor anterior sólo vale como primer dato: tras unir dos dispositivos que revaloraron
+    // el mismo bien, una segunda marca en medio pintaría una subida que nadie apuntó.
+    const a=(state.assets||[]).find(function(x){return String(x.id)===id;}),points=clean(assetHist[id]||(a&&(a.valueHistory||a.history)),"day","value").filter(function(p,i){return !i||!p.legacy;});
     if(a&&(!Number.isFinite(a.value))){gaps.push({kind:"asset",name:a.name,unknown:true});return;}
-    const value=a?a.value:0;assetRows.push({value:value,points:points});
-    if(points.length){if(!points[0].born)limits.push({day:points[0].day,kind:"asset",name:a&&a.name});}
+    const value=a?a.value:0,legacy=points.length>0&&!!points[0].legacy;
+    assetRows.push({value:value,points:points,before:legacy?points[0].value:0});
+    if(legacy)gaps.push({day:points.length>1?points[1].day:today,kind:"asset",name:a&&a.name,constant:true,prior:true});
+    else if(points.length){if(!points[0].born)limits.push({day:points[0].day,kind:"asset",name:a&&a.name});}
     else if(a)gaps.push({day:today,kind:"asset",name:a.name,constant:true});
   });
   if(gaps.some(function(g){return g.unknown;}))return done();
@@ -822,7 +832,7 @@ function netWorthSeries(state, options){
     let value=cash+Math.round(inv*100)-Math.round(debt.at(day)*100);
     steps.forEach(function(s,i){
       while(indices[i]>=0&&s.points[indices[i]].day>day)indices[i]--;
-      const v=day===today||!s.points.length?s.value:indices[i]>=0?s.points[indices[i]].value:0;
+      const v=day===today||!s.points.length?s.value:indices[i]>=0?s.points[indices[i]].value:s.before||0;
       value+=Math.round(v*100);
     });
     out.push({day:day,value:value/100});cash-=daily[day]||0;

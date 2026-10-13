@@ -3150,7 +3150,7 @@ function mergeAccountBalanceHistory(local, incoming){
       if(p&&/^\d{4}-\d{2}-\d{2}$/.test(p.day||"")&&typeof p.value==="number"&&Number.isFinite(p.value))by[p.day]=p;
     });
     const list=Object.keys(by).sort().slice(-400).map(function(day){return by[day];});
-    if(list.length===before.length&&list.every(function(p,i){return p.day===before[i].day&&p.value===before[i].value&&p.born===before[i].born;}))return;
+    if(list.length===before.length&&list.every(function(p,i){return p.day===before[i].day&&p.value===before[i].value&&p.born===before[i].born&&p.legacy===before[i].legacy;}))return;
     if(!changed){out=Object.assign({},local);changed=true;}out[key]=list;
   });
   return out;
@@ -5344,7 +5344,7 @@ const LANG = {
     // INC-0810 es: patrimonio de ahora.
     v4_hist_empty:"Tu histórico empieza hoy", v4_net_unknown:"El total actual no está disponible.",
     v42_net_info_title:"Sobre el patrimonio", v42_net_info:"El histórico usa tus movimientos y valores guardados. Solo mostramos el tramo con datos.", v42_net_chart:"Evolución del patrimonio",
-    v42_this_month:"Este mes", v42_remaining:"Te quedan", v42_net_coverage:"{name}: datos desde {day}.", v42_net_asset_constant:"{name}: valor propio desde {day}; antes se mantiene el valor actual.", v42_net_debt_timing:"{name}: sin día de cargo; la amortización se sitúa al empezar el mes.", v42_net_source_bank:"Cuenta", v42_net_source_manual:"Cuenta manual", v42_net_source_asset:"Bienes", v42_net_source_debt:"Deudas", v42_net_source_investment:"Inversiones", v42_net_source_balance:"Saldo",
+    v42_this_month:"Este mes", v42_remaining:"Te quedan", v42_net_coverage:"{name}: datos desde {day}.", v42_net_asset_constant:"{name}: valor propio desde {day}; antes se mantiene el valor actual.", v42_net_asset_prior:"{name}: valor propio desde {day}; antes se mantiene el valor que tenía.",v42_net_debt_timing:"{name}: sin día de cargo; la amortización se sitúa al empezar el mes.", v42_net_source_bank:"Cuenta", v42_net_source_manual:"Cuenta manual", v42_net_source_asset:"Bienes", v42_net_source_debt:"Deudas", v42_net_source_investment:"Inversiones", v42_net_source_balance:"Saldo",
     v42_net_missing:"Faltan saldos fiables para mostrar la gráfica.",
     v42_range_1m:"1M", v42_range_6m:"6M", v42_range_1y:"1A", v42_range_all:"Todo",
     v42_net_more_1m:"{x} más que hace un mes", v42_net_less_1m:"{x} menos que hace un mes", v42_net_more_6m:"{x} más que hace 6 meses", v42_net_less_6m:"{x} menos que hace 6 meses", v42_net_more_1y:"{x} más que hace un año", v42_net_less_1y:"{x} menos que hace un año", v42_net_more_all:"{x} más desde que empezaste", v42_net_less_all:"{x} menos desde que empezaste",
@@ -8112,7 +8112,13 @@ function recordAssetValues(history, day, assets, previous, bornId){
     const born=!!a&&bornId!=null&&String(bornId)===id,prior=(previous||[]).find(function(p){return String(p.id)===id;});
     if(!last&&!born&&(!prior||prior.value===value))return;
     const point={day:day,value:value};if(born||(last&&last.day===day&&last.born))point.born=true;
-    const next=list.filter(function(p){return p&&p.day<day&&Number.isFinite(p.value);}).slice(-399).concat(point);
+    const kept=list.filter(function(p){return p&&p.day<day&&Number.isFinite(p.value);});
+    // Revalorar un bien heredado sin escalones dejaba el valor nuevo como primer dato y la
+    // gráfica de Inicio se reiniciaba ese día. El valor anterior sí se conoce al guardar:
+    // queda anotado la víspera como `legacy` y se mantiene hacia atrás (revisión 13/10).
+    if(!last&&!born&&prior&&Number.isFinite(prior.value))
+      kept.push({day:new Date(Date.parse(day+"T12:00:00Z")-864e5).toISOString().slice(0,10),value:prior.value,legacy:true});
+    const next=kept.slice(-399).concat(point);
     if(!changed){out=Object.assign({},out);changed=true;}out[id]=next;
   });
   return changed?out:history;
@@ -8259,10 +8265,14 @@ function netWorthSeries(state, options){
   const assetRows=[], assetHist=state.assetValueHistory||{};
   const assetIds=new Set(Object.keys(assetHist));(state.assets||[]).forEach(function(a){assetIds.add(String(a.id));});
   assetIds.forEach(function(id){
-    const a=(state.assets||[]).find(function(x){return String(x.id)===id;}),points=clean(assetHist[id]||(a&&(a.valueHistory||a.history)),"day","value");
+    // El valor anterior sólo vale como primer dato: tras unir dos dispositivos que revaloraron
+    // el mismo bien, una segunda marca en medio pintaría una subida que nadie apuntó.
+    const a=(state.assets||[]).find(function(x){return String(x.id)===id;}),points=clean(assetHist[id]||(a&&(a.valueHistory||a.history)),"day","value").filter(function(p,i){return !i||!p.legacy;});
     if(a&&(!Number.isFinite(a.value))){gaps.push({kind:"asset",name:a.name,unknown:true});return;}
-    const value=a?a.value:0;assetRows.push({value:value,points:points});
-    if(points.length){if(!points[0].born)limits.push({day:points[0].day,kind:"asset",name:a&&a.name});}
+    const value=a?a.value:0,legacy=points.length>0&&!!points[0].legacy;
+    assetRows.push({value:value,points:points,before:legacy?points[0].value:0});
+    if(legacy)gaps.push({day:points.length>1?points[1].day:today,kind:"asset",name:a&&a.name,constant:true,prior:true});
+    else if(points.length){if(!points[0].born)limits.push({day:points[0].day,kind:"asset",name:a&&a.name});}
     else if(a)gaps.push({day:today,kind:"asset",name:a.name,constant:true});
   });
   if(gaps.some(function(g){return g.unknown;}))return done();
@@ -8293,7 +8303,7 @@ function netWorthSeries(state, options){
     let value=cash+Math.round(inv*100)-Math.round(debt.at(day)*100);
     steps.forEach(function(s,i){
       while(indices[i]>=0&&s.points[indices[i]].day>day)indices[i]--;
-      const v=day===today||!s.points.length?s.value:indices[i]>=0?s.points[indices[i]].value:0;
+      const v=day===today||!s.points.length?s.value:indices[i]>=0?s.points[indices[i]].value:s.before||0;
       value+=Math.round(v*100);
     });
     out.push({day:day,value:value/100});cash-=daily[day]||0;
@@ -9188,7 +9198,7 @@ function NetWorthNow({tt, simple, series, splashGone}){
   const coverageLabels=useMemo(function(){return (series.coverage||[]).map(function(g){
     const name=g.name||t("v42_net_source_"+g.kind);
     if(g.timingUnknown)return tf("v42_net_debt_timing",{name:name});
-    return g.day?tf(g.constant?"v42_net_asset_constant":"v42_net_coverage",{name:name,day:dateFmt.format(Date.parse(g.day+"T12:00:00Z"))}):name;
+    return g.day?tf(g.prior?"v42_net_asset_prior":g.constant?"v42_net_asset_constant":"v42_net_coverage",{name:name,day:dateFmt.format(Date.parse(g.day+"T12:00:00Z"))}):name;
   });},[series.coverage,dateFmt,language]);
   useEffect(function(){ setTouch(null); },[range&&range.id]);
   useEffect(function(){ return function(){ cancelAnimationFrame(frameRef.current); }; },[]);
@@ -21032,7 +21042,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="394296bc1ae51a63b3b117b0d9f78c123f6339c06f841a429904ae4eb429edd7";
+var _rnSha="021ee24f18a8cdfe1178f8bbc1ddfa870654ff7e0d9adbbed037d522236c5af1";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){

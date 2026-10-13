@@ -708,7 +708,7 @@ function mergeAccountBalanceHistory(local, incoming){
       if(p&&/^\d{4}-\d{2}-\d{2}$/.test(p.day||"")&&typeof p.value==="number"&&Number.isFinite(p.value))by[p.day]=p;
     });
     const list=Object.keys(by).sort().slice(-400).map(function(day){return by[day];});
-    if(list.length===before.length&&list.every(function(p,i){return p.day===before[i].day&&p.value===before[i].value&&p.born===before[i].born;}))return;
+    if(list.length===before.length&&list.every(function(p,i){return p.day===before[i].day&&p.value===before[i].value&&p.born===before[i].born&&p.legacy===before[i].legacy;}))return;
     if(!changed){out=Object.assign({},local);changed=true;}out[key]=list;
   });
   return out;

@@ -327,7 +327,7 @@ assert.equal(actualGoods.assetValueHistory["old-car"][0].born,true,"el formulari
 const pullHistory=c.recordAssetValues(undefined,today,cloudHome.assets,[]);
 assert.equal(pullHistory,undefined);
 const editHistory=c.recordAssetValues(undefined,"2026-09-05",[{id:"old-car",value:14000}],legacyAssets);
-assert.deepEqual(plain(editHistory["old-car"]),[{day:"2026-09-05",value:14000}],"una edición real registra valor propio sin inventar el alta");
+assert.deepEqual(plain(editHistory["old-car"]),[{day:"2026-09-04",value:15000,legacy:true},{day:"2026-09-05",value:14000}],"una edición real registra valor propio y el anterior, sin inventar el alta");
 const appSource=fs.readFileSync(new URL("../src/modules/11-app-main.js",import.meta.url),"utf8");
 const cloudApply=callback(appSource,"function(prev){",appSource.indexOf("const syncFromCloud=function("));
 const identity=x=>x,sessionRef={current:null};
@@ -344,6 +344,49 @@ assert.equal(sameOwner.accountBalanceHistory,largeHistory,"la ventana nube14 se 
 assert.equal(sameOwner.assetValueHistory,localHistory.assetValueHistory);
 console.log("inicio-v42: ronda3 alta explícita, legado constante, escalones propios y carrera de sesión OK");
 
+// Revalorar un bien heredado reiniciaba la gráfica en el día del cambio (revisión 13/10):
+// banco 5.000 plano, coche de 15.000 que el día 5 pasa a 12.000 en el formulario real.
+const carDay="2026-09-07",carOpts={today:carDay,liquid:5000,invested:0,debtTotal:0};
+const carAsset={id:"old-car",name:"Coche sintético",kind:"coche",value:15000};
+const carState={accounts:[{...account("a","sabadell"),value:5000}],investments:[],debts:[],expenses:[entry("car-cover","2026-09-01",0)],assets:[carAsset]};
+const carValues=(m,s)=>plain(m.netWorthSeries(s,carOpts)).map(p=>p.value);
+const carEdit=(m,s,day,value)=>{
+  const assets=value==null?[]:s.assets.map(a=>({...a,value}));
+  return {...s,assets,assetValueHistory:m.recordAssetValues(s.assetValueHistory,day,assets,s.assets)};
+};
+assert.deepEqual(carValues(c,carState),Array(7).fill(20000),"antes de tocarlo, el coche heredado se mantiene constante");
+const realDay=c.netWorthDay;c.netWorthDay=()=>"2026-09-05";
+const carSaved=saveGood(carAsset,{...carAsset,value:12000})(carState);c.netWorthDay=realDay;
+assert.deepEqual(plain(carSaved.assetValueHistory["old-car"]),[{day:"2026-09-04",value:15000,legacy:true},{day:"2026-09-05",value:12000}],"Guardar anota el valor anterior la víspera y el nuevo en su día");
+const carSeries=c.netWorthSeries(carSaved,carOpts);
+assert.deepEqual(plain(carSeries),["01","02","03","04"].map(d=>({day:"2026-09-"+d,value:20000})).concat(["05","06","07"].map(d=>({day:"2026-09-"+d,value:17000}))),"20.000 hasta el día 4 y 17.000 desde el 5");
+assert.equal(carSeries.at(-1).value-carSeries[0].value,-3000,"la comparación dice 3.000 menos, que es verdad");
+assert.deepEqual(plain(carSeries.coverage),[{day:"2026-09-05",kind:"asset",name:"Coche sintético",constant:true,prior:true}],"la nota declara desde qué día hay valor propio y que antes se mantiene el que tenía");
+const carTwice=carEdit(c,carSaved,"2026-09-06",10000);
+assert.equal(carTwice.assetValueHistory["old-car"].filter(p=>p.legacy).length,1,"revalorar dos veces no repite el valor anterior");
+assert.deepEqual(carValues(c,carTwice),[20000,20000,20000,20000,17000,15000,15000],"dos revaloraciones son dos escalones en sus días");
+const carSameDay=carEdit(c,carSaved,"2026-09-05",11000);
+assert.deepEqual(plain(carSameDay.assetValueHistory["old-car"]),[{day:"2026-09-04",value:15000,legacy:true},{day:"2026-09-05",value:11000}],"corregir el mismo día conserva el valor anterior");
+const carGone=carEdit(c,carSaved,"2026-09-06",null);
+assert.deepEqual(carValues(c,carGone),[20000,20000,20000,20000,17000,5000,5000],"revalorar y borrar: el bien deja de contar desde el día del borrado");
+assert.deepEqual(carValues(c,carEdit(c,carState,"2026-09-06",null)),[20000,20000,20000,20000,20000,5000,5000],"borrar un bien heredado tampoco reinicia la gráfica");
+const carStepped={...carState,assetValueHistory:{"old-car":[{day:"2026-08-15",value:15000}]}};
+assert.ok(!carEdit(c,carStepped,"2026-09-05",12000).assetValueHistory["old-car"].some(p=>p.legacy),"un bien que ya tiene escalones no recibe otro valor anterior");
+assert.deepEqual(plain(saveGood({},{id:"new-car",value:9000})({assets:[]}).assetValueHistory["new-car"].map(p=>[p.value,p.born,p.legacy])),[[9000,true,null]],"el alta del formulario sigue sin existir antes de su fecha");
+// La copia de nube y la unión entre dispositivos: ni se pierde ni se duplica.
+const carCloud=c.slimForCloud(carTwice).assetValueHistory;
+assert.deepEqual(plain(carCloud),plain(carTwice.assetValueHistory),"la ventana de nube lleva el valor anterior mientras quepa");
+assert.deepEqual(carValues(c,{...carTwice,assetValueHistory:c.mergeAccountBalanceHistory(undefined,carCloud)}),carValues(c,carTwice),"un móvil nuevo pinta la misma serie");
+assert.equal(c.mergeAccountBalanceHistory(carTwice.assetValueHistory,carCloud),carTwice.assetValueHistory,"volver a recibirlo no duplica nada");
+const carOther=carEdit(c,carState,"2026-09-07",10000).assetValueHistory;
+const carUnion=c.mergeAccountBalanceHistory(carSaved.assetValueHistory,carOther);
+assert.deepEqual(plain(carUnion["old-car"]).map(p=>p.day+(p.legacy?"L":"")),["2026-09-04L","2026-09-05","2026-09-06L","2026-09-07"]);
+assert.deepEqual(carValues(c,{...carState,assets:[{...carAsset,value:10000}],assetValueHistory:carUnion}),[20000,20000,20000,20000,17000,17000,15000],"dos móviles que revaloran el mismo bien no pintan una subida a 20.000 el día 6");
+let carLong=carState;for(let i=0;i<15;i++)carLong=carEdit(c,carLong,"2026-08-"+String(10+i).padStart(2,"0"),13000+i);
+const carWindow=c.slimForCloud(carLong).assetValueHistory["old-car"];
+assert.ok(carWindow.length===14&&!carWindow.some(p=>p.legacy),"fuera de la ventana no viaja un valor anterior que ya no describe esos días");
+console.log("inicio-v42: bien heredado revalorado conserva su valor anterior (20.000 -> 17.000, -3.000), nube y unión OK");
+
 // Cada mutante ejecuta un oráculo monetario/temporal, no una búsqueda de texto en fuente.
 const html=fs.readFileSync(new URL("../public/index.html",import.meta.url),"utf8").replace(/\r\n/g,"\n");
 const mutantCases=[
@@ -356,10 +399,17 @@ const mutantCases=[
   ["foto futura","!Number.isFinite(v)||d>today","!Number.isFinite(v)||false",m=>{const s=m.netWorthSeries({...base,investments:[{value:100}],invHistory:[{d:"2026-09-05",v:100}]},{...opts,invested:100});assert.ok(s.coverage.every(g=>!g.unknown),"el valor actual conocido sigue visible aunque falte foto histórica");}],
   ["misma cuenta empareja","a.bank===b.bank||a.cents!==-b.cents","false||a.cents!==-b.cents",m=>assert.deepEqual(plain(m.netWorthSeries(sameBankPair,opts)).map(p=>p.value),[600,300,600,600])],
   ["bróker sin pista no recorta","else if(e.category===\"traspaso\"){\n      const next=investments.find","else if(false){\n      const next=investments.find",m=>assert.equal(m.netWorthSeries(brokerUnlinked,{...opts,invested:500})[0].day,today)],
+  ["valor anterior anotado","value:prior.value,legacy:true","value:value,legacy:true",m=>assert.equal(carValues(m,carEdit(m,carState,"2026-09-05",12000))[0],20000)],
+  ["valor anterior la víspera","Date.parse(day+\"T12:00:00Z\")-864e5).toISOString()","Date.parse(day+\"T12:00:00Z\")).toISOString()",m=>assert.deepEqual(carValues(m,carEdit(m,carState,"2026-09-05",12000)),[20000,20000,20000,20000,17000,17000,17000])],
+  ["sólo heredado sin escalones","if(!last&&!born&&prior&&Number.isFinite(prior.value))","if(!born&&prior&&Number.isFinite(prior.value))",m=>assert.ok(!carEdit(m,carStepped,"2026-09-05",12000).assetValueHistory["old-car"].some(p=>p.legacy))],
+  ["marca intermedia","filter(function(p,i){return !i||!p.legacy;})","filter(function(p,i){return true;})",m=>assert.equal(carValues(m,{...carState,assets:[{...carAsset,value:10000}],assetValueHistory:carUnion})[5],17000)],
+  ["anterior hacia atrás","before:legacy?points[0].value:0","before:0",m=>assert.equal(carValues(m,carSaved)[0],20000)],
+  ["lectura del anterior","s.points[indices[i]].value:s.before||0","s.points[indices[i]].value:0",m=>assert.equal(carValues(m,carSaved)[0],20000)],
+  ["heredado no recorta","if(legacy)gaps.push(","if(legacy)limits.push(",m=>assert.equal(m.netWorthSeries(carSaved,carOpts).length,7)],
 ];
 for(const [name,from,to,check] of mutantCases){
   assert.equal(html.split(from).length,2,"mutante único real: "+name);
   const mutated=loadPureLogic(html.replace(from,to));
   assert.throws(()=>check(mutated),assert.AssertionError,"se mata el mutante: "+name);
 }
-console.log("inicio-v42: nueve mutaciones NO-GO muertas con oráculos reales");
+console.log("inicio-v42: "+mutantCases.length+" mutaciones NO-GO muertas con oráculos reales");
