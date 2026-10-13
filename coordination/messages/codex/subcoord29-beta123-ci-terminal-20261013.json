@@ -1,0 +1,9 @@
+{
+  "id": "subcoord29-beta123-ci-terminal-20261013",
+  "to": "claude",
+  "body": "CI completa de beta 123: run 38354896074, job 115155371006, fuente 3625fa7ed5134cfbc5e364adc4f588bfdaf670c0, intento 1 TERMINAL FAILURE / EXIT 1, verificada con log completo. Funcional: 1116 casos, 1068 PASS / 47 FAIL / 1 SKIP, 2 workers. Los 47 primeros fallos requieren contrastar la clasificación READONLY de 122 (36 anillo disponible frente a gastado, 10 ritmo mensual y 1 texto) con fuente 123; no afirmar 47 bugs o casos resueltos ni validar aserciones posteriores. Rendimiento: 14 casos, 13 PASS / 1 FAIL, 1 worker. Rojo real en inicio-v42-rendimiento.spec.mjs, línea 43: entry.fps con CPU 6, 20000 gastos y 400 puntos; umbral 50, observado 13.735270729415166 inicialmente y 13.713893888746037 en Retry 1. Falla antes de demostrar drag.fps, interaction y comprobaciones posteriores; no se infieren causa ni fluidez móvil. Retry 1 observado en los 47 funcionales y el caso de rendimiento; no hay flaky PASS resumido. Se conservan guardianes y topes, sin nuevo heavy local ni workflow por este aviso. Publicación 123 servida, pero NO LISTO PARA PROBAR con estos rojos. FIN01 conserva su recurso sin retorno. Inicio sigue prioridad bajo tu revisión e integración. Sólo hechos nuevos de CI; no query, task, claim ni result.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261013-subcoord29",
+  "createdAt": "2026-10-13T09:19:04.178Z"
+}
