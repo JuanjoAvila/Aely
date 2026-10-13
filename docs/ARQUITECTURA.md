@@ -327,12 +327,36 @@ fecha, importe y comercio da con ella). Cuando el aviso del móvil gana al cargo
 fila que queda es la misma de antes —su id y el orden a mano, la categoría, la nota y el «no
 tarjeta» que se le pusieron— con el origen del aviso, y App reescribe sin marca la fila del
 banco en la nube (`sinMarca`): con una marcada y otra no, el servidor contaba una u otra según
-el orden de lectura. **Límites conocidos:** (1) dos cargos iguales el mismo día que casan con
+el orden de lectura. **Límite conocido:** dos cargos iguales el mismo día que casan con
 un recibo entran LOS DOS marcados y ninguno cuenta, igual que antes se tiraban los dos; si uno
-era una compra aparte, hay que decirlo con «No es este recibo». (2) Tras ese «No es este
-recibo» sobre uno de varios iguales de un recibo FIJO no hay vuelta atrás desde la ficha: el
-vínculo a mano exige que el cargo sea único en su mes (`fixedExpenseEligible`); en un puntual sí
-la hay.
+era una compra aparte, hay que decirlo con «No es este recibo». Ese «No es este recibo» tiene
+vuelta atrás desde la ficha también en un recibo FIJO (13/10/2026): la ficha ofrece el recibo
+vetado para ese cargo aunque el vínculo a mano no sea posible (`fixedExpenseEligible` exige un
+cargo único en su mes) y `reponerCargoDeRecibo` levanta el veto y devuelve la marca si la fila
+la admite; el recibo sigue pendiente, como antes del veto, porque el motor no elige entre dos
+iguales.
+
+**Entre móviles (13/10/2026).** El estado viaja entero por «último que escribe» (`_savedAt`), y
+un móvil con días sin abrirse queda sellado como «más nuevo» por su primer guardado al
+arrancar. Lo que no puede perderse así se une en `syncFromCloud`, gane el estado que gane:
+los vínculos aviso↔apunte (`fusionarGemelos`), los vetos (`reciboNoUnion`), las lápidas
+(`lapidasUnion`) y los recibos borrados (`recibosBorradosUnion`); las dos últimas solo con lo
+local del mismo titular. Las lápidas y los vetos comparten regla (`unionPorHora`): clave a
+clave gana lo último que se dijo, y sin hora se suman. Poner una lápida no apunta hora;
+levantarla («Deshacer» un borrado) sí, en `state.deletedAt` (tope 200), y volver a poner esa
+misma clave también: sin eso la lápida que A ya levantó volvería desde B y «Deshacer» sería
+irreversible. Un recibo que consta en `reciboBorrado` sale de `fixed`/`oneoffs` aunque el estado
+ganador lo traiga: sin eso el móvil atrasado seguía con el recibo y su cargo marcado (gastado
+40) mientras el otro y el widget contaban el cargo (102,40). Borrar un recibo no tiene
+«Deshacer» y recrearlo le da otro id. Al bajar gastos, si la nube trae varias filas con la
+misma clave (el aviso y el cargo del banco), refresca la local la de su mismo id, que es donde
+se escribió lo que se cambió en ella (categoría, «no tarjeta»); sin ninguna, la primera.
+Un apunte con id del banco idéntico a uno sin id ocupa la ranura 1 del grupo: el de sin id
+entra como segundo, con su ordinal, llegue en el orden que llegue (antes, dos filas con la
+misma clave o una, según el orden). Editar un gasto encadena en la nube el borrado de la fila
+vieja y el alta de la corregida (misma id: en paralelo el alta chocaba con la clave primaria,
+`23505`), y los eventos de error de `addExpense`/`deleteExpense` llevan la puerta de origen
+(`GASTO_ORIGENES`).
 
 **Condición de publicación (medida en la revisión del 13/10).** Un dispositivo con la 4.26.120
 —el ordinal SIN esta entrega— lee `ob:<ent>~recibo.<id>` con el banco limpio y CUENTA el cargo

@@ -228,16 +228,9 @@ function reciboNoTope(no,at){
   return {reciboNo:no.slice(-RECIBO_NO_MAX),reciboNoAt:at};
 }
 function reciboNoUnion(local,nube){
-  var na=local.reciboNo||[],nb=nube.reciboNo||[],ta=local.reciboNoAt||{},tb=nube.reciboNoAt||{};
-  var at={},no=[],vistas={};
-  na.concat(nb,Object.keys(ta),Object.keys(tb)).forEach(function(k){
-    if(vistas[k]) return;
-    vistas[k]=1;
-    var a=ta[k]||0,b=tb[k]||0;
-    if(a||b) at[k]=Math.max(a,b);
-    if(a===b?na.indexOf(k)>=0||nb.indexOf(k)>=0:(a>b?na:nb).indexOf(k)>=0) no.push(k);
-  });
-  var out=reciboNoTope(no,at);
+  // La regla, clave a clave, es la misma de las lápidas: vive en `unionPorHora` (00-core).
+  var na=local.reciboNo||[],u=unionPorHora(na,local.reciboNoAt,nube.reciboNo,nube.reciboNoAt);
+  var out=reciboNoTope(u.lista,u.at);
   // Misma lista, misma referencia: la leen los `useMemo` de Gastos y de los totales en cada pull.
   if(out.reciboNo.length===na.length&&out.reciboNo.every(function(k,i){ return k===na[i]; })) out.reciboNo=na;
   return out;
@@ -1168,7 +1161,7 @@ function importObExpenses(s, txs, links){
   };
   /* PRIMERA PASADA: la fila que ENTRARÍA por cada apunte, con todos los filtros de siempre
      (estado, ventana, modelados, id ya visto) pero SIN decidir todavía si ya la tenemos. */
-  const prepara=function(tx){
+  const prepara=function(tx, aunVisto){
     const esIngreso = tx.amount<0;
     if(esIngreso){
       // Un abono pendiente o futuro no acredita dinero disponible (feedback 30/9).
@@ -1181,7 +1174,7 @@ function importObExpenses(s, txs, links){
       const day=new Date(Number(parts[1]),Number(parts[2])-1,Number(parts[3]),12);
       if(dayKey(day)!==date || date>todayKey) return null;
       if(fuera(tx)) return null;
-      if(tx.id && (seen[(tx.ent||"")+"|"+tx.id]||seenLegacy[tx.id])) return null;
+      if(!aunVisto && tx.id && (seen[(tx.ent||"")+"|"+tx.id]||seenLegacy[tx.id])) return null;
       const e={ id:mcExpenseId(), date:new Date(tx.date+"T12:00:00").toISOString(),
         merchant:tx.merchant||"Ingreso", amount:tx.amount,
         category: esTraspasoPropio(s, tx) ? TRASPASO_CAT.id : INGRESO_CAT.id, source:"ob", ent:tx.ent };
@@ -1196,7 +1189,7 @@ function importObExpenses(s, txs, links){
     if(!tx.date || fuera(tx)) return null;
     const antiguo=parseDate(tx.date)<som;
     const recibos=modeledHit(tx.ent, tx.merchant, tx.amount, antiguo);
-    if(tx.id && (seen[(tx.ent||"")+"|"+tx.id]||seenLegacy[tx.id])) return null;
+    if(!aunVisto && tx.id && (seen[(tx.ent||"")+"|"+tx.id]||seenLegacy[tx.id])) return null;
     const esDiario=tx.ent===dailyEnt;
     // El aporte de hace dos meses ya se compró en su día o ya no toca: se apunta, pero no compra.
     const esAporteInv = !recibos && !antiguo && esDiario && daily && daily.monthlyInvest>0 && Math.abs(tx.amount-daily.monthlyInvest)<0.01;
@@ -1257,19 +1250,40 @@ function importObExpenses(s, txs, links){
      el mismo estado— no hay nada que distinga «repetida al paginar» de «dos bizums iguales», y
      ahí mandan los k del banco: es la función de esta entrega. */
   const firme=function(tx){ const st=String(tx.status||"").trim(); return !st || /book|post/i.test(st); };
+  /* UN APUNTE CON ID IDÉNTICO A UN GRUPO SIN ID OCUPA LA RANURA 1 (13/10/2026). El banco puede
+     mandar el mismo día, importe y nombre una vez con id y otra sin él. El de id va por su camino
+     y no contaba para las ranuras: si llegaba delante, el de sin id entraba también como
+     «primero» y quedaban dos filas con LA MISMA clave. Una sola cabía en la nube, el siguiente
+     pull las fundía y un «no es este recibo» sobre una soltaba las dos (gastado 0 → 21,98); si
+     llegaba detrás, o en otra sincronización, entraba una sola. Ahora, llegue como llegue, el de
+     sin id es el segundo: su ordinal, su fecha y su clave propias. Se mira en la respuesta
+     entera, también lo que ya está guardado por su id (`aunVisto`); y un pendiente sin id se da
+     por cubierto por el contabilizado con id, igual que entre los de sin id. */
+  if(ordenGrupos.length){
+    txs.forEach(function(tx){
+      if(!tx.id) return;
+      const e=prepara(tx, true);
+      const g=e && grupos[(expenseBankOf(e)||e.ent||"")+"|"+baseKOf(e)];
+      if(!g) return;
+      g.conId=1;
+      if(firme(tx)) g.conIdFirmes=(g.conIdFirmes||0)+1;
+    });
+  }
   ordenGrupos.forEach(function(k){
     const g=grupos[k];
     g.miembros.sort(function(a,b){ const ha=huella(a.tx), hb=huella(b.tx); return ha<hb?-1:(ha>hb?1:0); });
     const firmes=g.miembros.filter(function(c){ return firme(c.tx); });
-    if(firmes.length && firmes.length<g.miembros.length){
+    const cubren=firmes.length+(g.conIdFirmes||0);
+    if(cubren && firmes.length<g.miembros.length){
       const pendientes=g.miembros.filter(function(c){ return !firme(c.tx); });
-      g.miembros=firmes.concat(pendientes.slice(firmes.length));   // los descartados se quedan sin ranura
+      g.miembros=firmes.concat(pendientes.slice(cubren));   // los descartados se quedan sin ranura
     }
-    let n=0, viejas=0;
+    const desde=g.conId||0, total=g.miembros.length+desde;
+    let n=desde, viejas=0;
     g.miembros.forEach(function(c){
       // Siguiente ranura libre entre 1..k; las cubiertas se saltan sin gastar miembro… pero el
       // total de ranuras es k: pasado k, el miembro sobra (ya lo teníamos).
-      while(n<g.miembros.length){ n++; if(lapidaVieja(g,n)) viejas++; if(!cubierta(g,n)){ c.ord=n; break; } }
+      while(n<total){ n++; if(lapidaVieja(g,n)) viejas++; if(!cubierta(g,n)){ c.ord=n; break; } }
       c.saltar=viejas;
     });
   });
@@ -1415,7 +1429,7 @@ function admiteMarcaDe(x, f){
    lo sigue teniendo el otro móvil: con el veto fuera y sin la marca, aquí contaría como compra
    y allí no. Es el ÚNICO vínculo a mano que marca; el de un cargo cualquiera deja el gastado
    como estaba (`linkFixedPayment`), que es lo que promete su diálogo. Si el vínculo no llega a
-   guardarse y el recibo sigue sin pagar, el veto se queda. Un PUNTUAL no tiene motor de pago
+   guardarse, el recibo sigue sin pagar y la fila no admite la marca, el veto se queda. Un PUNTUAL no tiene motor de pago
    ni vínculo: deshacer su veto es solo devolverle la marca, y si no la admite no hay nada que
    deshacer. → {state, e} (la fila marcada, para subirla; null si no admite marca) o null si no
    había veto que deshacer. */
@@ -1427,11 +1441,18 @@ function reponerCargoDeRecibo(s, expenseId, fixedId, y, m, today, expected, ahor
   const identidad=fixedPaymentIdentity(expenseBankOf(x), x), claves=reciboNoDe(s, fixedId, reciboNoIdentidad(x), x.id);
   if(!claves.length) return null;
   const marcar=admiteMarcaDe(x, f);
-  if(!fijo && (!marcar || (expected && expected.identity!==identidad))) return null;
+  // El diálogo se contestó sobre OTRO cargo (la fila cambió mientras estaba abierto): no se toca.
+  if(expected && expected.identity!==identidad) return null;
+  if(!fijo && !marcar) return null;
   const libre=Object.assign({}, s, reciboNoPon(s, claves, false, ahora||Date.now()));
   const link=fijo ? linkFixedPayment(libre, expenseId, fixedId, y, m, today, expected) : libre;
-  // Sin el veto el motor puede darlo por pagado él solo con ese cargo: también vale.
-  if(fijo && link===libre && reciboPagadoCon(fixedPaymentState(libre, f, y, m, today))!==identidad) return null;
+  /* Sin el veto el motor puede darlo por pagado él solo con ese cargo: también vale. Y si ni
+     se guarda el vínculo ni el motor lo da por pagado, PERO la fila admite la marca, se deshace
+     igual (13/10/2026): con dos cargos iguales de un recibo fijo el motor no elige ninguno, el
+     vínculo no se guardaba y «Confirmar pago» no hacía nada mientras su diálogo prometía «aquí
+     no suma otra vez». Devolverle la marca es dejarlo como estaba antes del veto, que es lo que
+     se promete; el recibo sigue pendiente, como lo estaba entonces. */
+  if(fijo && link===libre && !marcar && reciboPagadoCon(fixedPaymentState(libre, f, y, m, today))!==identidad) return null;
   const e=marcar ? Object.assign({}, x, { reciboId:fixedId }) : null;
   const con=e ? Object.assign({}, link, { expenses:link.expenses.map(function(r){ return r===x ? e : r; }) }) : link;
   return { state:conSaldoMostrado(s, con), e:e };
@@ -1465,6 +1486,32 @@ function sinCargoDelPlan(s, lista, id){
   const out=Object.assign({}, s, { [lista]:(s[lista]||[]).filter(function(x){ return x.id!==id; }) }, subir.length ? { expenses:expenses } : null,
     marcadas ? { reciboBorrado:Object.assign({}, s.reciboBorrado, { [id]:{ d:desde, n:(era&&era.name)||"" } }) } : null);
   return { subir:subir, state:(delMes || subir.length) ? conSaldoMostrado(s, out) : out };
+}
+/* EL BORRADO DE UN RECIBO SOBREVIVE A UN ESTADO MÁS ANTIGUO (13/10/2026). El estado viaja entero
+   por «último que escribe», y el del móvil B —días sin abrirse, pero sellado como «más nuevo» por
+   el primer guardado al arrancar— ganaba: el recibo volvía al Plan sin `reciboBorrado`, mientras
+   su cargo del periodo ya estaba sin marca en la nube. Medido: B decía 40 de gastado (su fila
+   seguía marcada y el recibo existía) y A y el widget 102,40. `reciboBorrado` se UNE, y un recibo
+   que consta borrado sale del Plan gane el estado que gane; con eso `cargoDeRecibo` da lo mismo
+   en los dos móviles. No hace irreversible nada: borrar un recibo no tiene «Deshacer», y
+   volver a crearlo le da otro id. El saldo pintado se sujeta igual que al borrarlo a mano.
+   → el mismo estado si no hay nada que unir. */
+function recibosBorradosUnion(s, local, nube){
+  const a=local&&local.reciboBorrado, b=nube&&nube.reciboBorrado;
+  let rb=a;
+  Object.keys(b||{}).forEach(function(id){
+    if((a&&a[id]) || !b[id] || typeof b[id].d!=="number") return;
+    if(rb===a) rb=Object.assign({}, a);
+    rb[id]=b[id];
+  });
+  if(!rb) return s;
+  const fuera=function(x){ return !!(x && rb[x.id]); };
+  const con=rb===s.reciboBorrado ? s : Object.assign({}, s, { reciboBorrado:rb });
+  if(!(s.fixed||[]).some(fuera) && !(s.oneoffs||[]).some(fuera)) return con;
+  const sin=Object.assign({}, con, { fixed:(s.fixed||[]).filter(function(x){ return !fuera(x); }), oneoffs:(s.oneoffs||[]).filter(function(x){ return !fuera(x); }) });
+  const mes=startOfMonth().getTime();
+  const suelta=(s.expenses||[]).some(function(e){ return e && rb[e.reciboId] && dateMs(e.date)>=Math.min(mes, rb[e.reciboId].d) && cargoDeRecibo(e, s); });
+  return suelta ? conSaldoMostrado(s, sin) : sin;
 }
 // Las cuatro puertas de borrado de Plan pasan por aquí: el estado y, después, la nube.
 function quitarDelPlan(set, lista, id){
