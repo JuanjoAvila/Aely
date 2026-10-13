@@ -44,7 +44,9 @@ llega por OTA. Para una APK anterior (o versión desconocida), la web comprueba 
 guarda antigua antes de enviar un ciclo. Cuando no lo aceptaría, recalcula el **mes
 natural completo**: gasto bruto, presupuesto restante, etiqueta, inicio y alcance,
 sin ancla del ciclo. Guarda ese mismo `widgetPeriod` para que ingest calcule los
-pagos posteriores sobre la misma ventana. Inicio sigue mostrando el ciclo elegido;
+pagos en bruto aunque Gastos prefiera Balance: un abono mensual no puede convertirse
+en menor gasto bajo esa etiqueta. La matriz del puente incluye ese abono.
+Los pagos posteriores usan la misma ventana. Inicio sigue mostrando el ciclo elegido;
 el widget antiguo dice «Este mes». No se cambia la cifra de periodo sólo de nombre.
 Sin volver a abrir la app no puede reemplazarse una foto antigua ya caducada.
 Se mantiene el decimal de compatibilidad para APK 53 y el entero desde APK 54.
