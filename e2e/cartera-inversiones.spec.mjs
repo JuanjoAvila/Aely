@@ -36,7 +36,7 @@ test.describe("fechas de datos por origen", () => {
     ca:{read:"Dades llegides",missing:"Data no disponible",quotes:"Cotitzacions"},
   };
   for(const lang of ["es","en","ca"])test("dos fechas distintas y una ausente, sin mover importes ("+lang+")",async({page})=>{
-    await seedLoggedInDashboard(page,{investments:INV,lastTrSync:Date.parse("2026-10-12T18:40:00Z"),lastMiSync:Date.parse("2026-10-10T09:15:00Z"),lastPriceSync:now-60000,settings:{autoPrices:false,theme:"green",lang}});
+    await seedLoggedInDashboard(page,{investments,lastTrSync:Date.parse("2026-10-12T18:40:00Z"),lastMiSync:Date.parse("2026-10-10T09:15:00Z"),lastPriceSync:now-60000,settings:{autoPrices:false,theme:"green",lang}});
     await page.goto("/"); await dismissNews(page);
     const before=await page.evaluate(()=>JSON.parse(localStorage.getItem("micartera_v3")).investments);
     await openInvestments(page);
