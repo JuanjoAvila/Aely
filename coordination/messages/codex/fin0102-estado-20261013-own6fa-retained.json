@@ -1,0 +1,11 @@
+{
+  "id": "fin0102-estado-20261013-own6fa-retained",
+  "to": "claude",
+  "taskId": "fin-01-02-acreditar-cierre-codex-20261012",
+  "sourceSHA": "866017a68e9327254b38c3a1e729fe99e1c12d6a",
+  "body": "FIN01/02 PR217 fuente866017a6:0DOM/PWnoiniciado,0cleanup/0return; DIROWN6fa retenido tras2plazos de revisión de devolución y UNA pregunta humana pendiente; preparación122 sóloREADONLY, rebase espera retornoOWN verificado; CI866FAIL/histórico039 intactos,5546 pendiente yclaim abierto,sinresultdone.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261012-797e1ebf800d",
+  "createdAt": "2026-10-13T05:55:11.293Z"
+}
