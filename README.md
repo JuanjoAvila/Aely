@@ -111,6 +111,7 @@ mi-cartera/
 ├── tests/widget-inicio-paridad.test.mjs # 1584 casos contra los lectores reales de Inicio: alcance, céntimos y presupuesto
 ├── tests/widget-puente-ciclo.test.mjs # JSON real del puente → plugin → widget con el Java de las APK 52, 53 y 54 a la vez
 ├── tests/widget-ciclo.test.mjs · fixtures/widget-ciclo.tsv # tabla web/JVM/Deno de vigencia del ciclo en Madrid
+│   └── fixtures/widget-payday-b1d3.json # función histórica exacta del A/B, con procedencia y checksum
 ├── tests/                  # Unitarios en Node (lógica, parsers, i18n, seguridad, frescura de doc,
 │                           #  sintaxis de las Edge Functions, despliegue manual de Supabase y presupuesto de rendimiento)
 ├── supabase/               # Postgres, Auth, Edge Functions
