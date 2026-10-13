@@ -4,7 +4,7 @@ import os from 'node:os';
 import {execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
 
-export const startupBase='3625fa7ed5134cfbc5e364adc4f588bfdaf670c0';
+export const startupBase='f5904735b514751ee926d25c22c92195b6ce3653';
 export const lagReference='05704393b6e776659417bfffbd2df9f28ed7ffd0';
 export const hash=value=>createHash('sha256').update(value).digest('hex');
 

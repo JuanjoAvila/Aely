@@ -8,7 +8,7 @@ import {startupSummary,instrumentStartup} from '../e2e/helpers/arranque-nube-ins
 
 const app=fs.readFileSync(new URL('../src/modules/11-app-main.js',import.meta.url),'utf8');
 const dash=fs.readFileSync(new URL('../src/modules/03-tab-dash.js',import.meta.url),'utf8');
-const base='3625fa7ed5134cfbc5e364adc4f588bfdaf670c0';
+const base='f5904735b514751ee926d25c22c92195b6ce3653';
 function block(source,token,from=0){
   const mask=codeMask(source),start=mask.indexOf(token,from),open=mask.indexOf('{',start);
   assert.ok(start>=0&&open>=0,token+' existe en producto');

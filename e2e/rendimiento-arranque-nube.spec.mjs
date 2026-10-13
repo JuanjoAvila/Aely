@@ -47,6 +47,7 @@ async function sample(browser,testInfo,size,scenario,variant){
         firstAmount:p.firstAmount,firstNetWorth:p.firstNetWorth,firstExpenseCount:p.firstExpenseCount,liveTabs:p.liveTabs,bootReady:p.bootReady,timedOut:p.timedOut};});
     record.metrics=startupSummary(record.raw);record.phase='complete';
     expect(record.metrics.bankCalls).toBe(0);expect(record.metrics.liveTabs).toBe(4);
+    expect(blocked,'la muestra debe ser hermética, sin consultas externas').toBe(0);
     return record;
   }catch(error){record.phase='failed';record.failure={name:error.name};error.startupRecord=record;throw error;}
   finally{record.blockedExternalRequests=blocked;record.browser=context.browser().version();await context.close();}
@@ -78,5 +79,5 @@ for(const size of [2000,20000])for(const group of ['pending','offline','slow'])t
     }
     report.complete=true;
   }catch(error){if(error.startupRecord)report.samples.push(error.startupRecord);throw error;}
-  finally{writeFileSync(out,JSON.stringify(report,null,2));await testInfo.attach('arranque-nube-ab',{path:out,contentType:'application/json'});}
+  finally{writeFileSync(out,JSON.stringify(report,null,2));console.log('ARRANQUE_NUBE_RAW '+JSON.stringify(report));await testInfo.attach('arranque-nube-ab',{path:out,contentType:'application/json'});}
 });

@@ -1,5 +1,20 @@
 Promoción117: conserva los contratos históricos de catálogo117/Retiro117 en c5f62d66 y añade un guardián de runtime y nota única más historial de main (227 entradas, todas con tandas vacías). revisar-beta cubre es/en/ca: entrega web y nativa con guiones publicados, Novedades reales sin109/112 incluso al desplegar todo el historial y decisiones intactas. Cinco identidades auth se asertan en vivo; sólo metas-editar-regla conserva el contrato selectivo histórico. prod117-edge-compat ejecuta fuentes cotejadas con ingestv50/pricesv13 y consumidores actuales sin red. [Acta y límites](briefs/prod-completa-117.md).
 
+## Arranque con estado de nube más nuevo · candidata sin publicación
+
+`tests/arranque-nube-commit.test.mjs`, registrado en el runner, ejecuta los callbacks reales
+del pull, asiento y barrera de frames con transporte sintético. Comprueba cleanup, mutante sin
+flush, fallo de red y el rojo de la base124 antes del commit; conserva las veinte referencias
+financieras del memo. No acredita DOM ni FPS.
+`e2e/rendimiento-arranque-nube.spec.mjs` está en CROSSCUTTING y en el grupo serial de rendimiento,
+sin retries propios: 2000/20000 gastos, nube más nueva, control sin nube, offline y nube lenta,
+CPU×6 y RAF nativo durante los3s tras retirar el nodo. Exige calibración bueno/malo, menos frames
+>32ms, una serie, estado nuevo visible y cero llamadas bancarias. Compara latencia offline/lenta
+y conserva muestras completas o parciales. Baseline original124 por `git archive` y ensamblador
+oficial, sin invertir el parche. La sonda adapta PR219; su calibración para este escenario no está
+acreditada. **Navegador y métricas aún pendientes**, sin permiso pesado local mientras siga FIN01.
+[Acta y límites](briefs/arranque-nube-antes-splash-20261013.md).
+
 ## Plan: bajar despacio sin saltos · candidata4.26.124
 
 Integración (13/10), encima de la beta 4.26.123 (`3625fa7e`). `e2e/plan-scroll-lento.spec.mjs` (en `E2E_MAP`, bajo `14-v4-screens`) arrastra el dedo a 2 px por paso desde el tope de Deudas, Recibos y Metas con CPU x6 y toques por CDP, y exige que el contenido no se adelante al dedo ni salte en un frame; en la base anterior falla en los tres segmentos. `beta-sources` añade `Catálogo124` (nota 124 literal, tanda `plan-scroll-lento` de tres pasos con sus rótulos cotejados contra `01-i18n.js`, descriptor nuevo solo web, lista cerrada con una única huella ajena que se mueve, `inc-0810-nav-indicator`, por un comentario, y cinco mutantes del gesto que reabren la tanda) y `Retiro124` (las tres tandas aprobadas sobre la 4.26.122.1 salen del panel con `tandas:[]`; notas, descriptores y huellas se conservan). `Catálogo123` pasa a leerse de su commit.
