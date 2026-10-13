@@ -1919,9 +1919,8 @@ function budgetPeriodOf(state, nowMs){
   const now=nowMs!=null?nowMs:Date.now();
   const payday=nowMs==null && state.settings&&state.settings.budgetCycle
     ? budgetPaydayOf(state, now) : null;
-  const tomorrow=new Date(now); tomorrow.setHours(24,0,0,0);
-  return {startMs:payday?payday.start.getTime():inicioDeMesMs(now), cycle:payday,
-    todayEndMs:payday?tomorrow.getTime():Infinity};
+  return {startMs:payday?payday.start.getTime():inicioDeMesMs(now),cycle:payday,
+    todayEndMs:payday?madridDayStartMs(now,1):Infinity};
 }
 /* Misma cifra en Gastos e Inicio; el widget pide mes explícito (2026-09-28).
    `totals.thisMonthSpent` suma TODO
@@ -2024,6 +2023,16 @@ function categorySpentByMonth(state, nowMs, hastaMs, selectedPeriod){
    con cifras del mes ANTERIOR (monthBudgetStats + hastaMs). Descartar = settings.closedMonthDismissed. */
 var CLOSED_MONTH_CARD_DAYS=5;
 var _mcMadridYmdFmt=null;
+// Una frontera civil sirve a presupuesto y lista, también en días de 23/25 horas.
+function madridDayStartMs(ms,days){
+  const p=madridYmdParts(ms),target=Date.UTC(p.y,p.m-1,p.d+days);
+  let lo=target-14*3600000,hi=target+14*3600000;
+  while(lo<hi){
+    const mid=Math.floor((lo+hi)/2),d=madridYmdParts(mid);
+    if(Date.UTC(d.y,d.m-1,d.d)<target) lo=mid+1; else hi=mid;
+  }
+  return lo;
+}
 function madridYmdParts(ms){
   if(!_mcMadridYmdFmt) _mcMadridYmdFmt=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Madrid",year:"numeric",month:"2-digit",day:"2-digit"});
   const s=_mcMadridYmdFmt.format(new Date(ms));

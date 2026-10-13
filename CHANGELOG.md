@@ -1,3 +1,7 @@
+## Pendiente de integración — Inicio: margen agotado y calendario de Madrid
+
+La tarjeta con margen cero deja de indicar un buen ritmo en verde. La ventana del ciclo de Inicio y Gastos comparte el fin del día civil de Madrid: el reloj UTC/Canarias ya no oculta movimientos del día. Candidato sin publicar; [causa, alcance, pruebas y límites](docs/INICIO-MES-CERO-CALENDARIO-MADRID.md).
+
 ## [4.26.126] — 2026-10-13 · Promoción completa
 
 - **Qué sube.** La ronda entera de beta 118 a 126 (`d8d2624c`) sobre la producción 4.26.117 (`0a623768`): recibos con un único cargo (118), acuse y reconexión de bancos (119), apuntes iguales de Trade Republic por ordinal (120), Inicio v4.2 con el patrimonio por flujos (121, 123 y 125), cargo de recibo a la vista en Gastos (122), scroll lento de Plan (124) y la tarjeta del mes de Inicio sin línea de estado (126). `main` no tenía ningún commit que beta no tuviera (`git log origin/beta..origin/main` vacío), así que la rama de promoción nace de la cabeza de beta y `main` avanza sin reconciliar nada. El producto (`src/modules`, `src/shell.html`, `supabase/`, `android/`) es idéntico al de la beta 126: lo fija el guardián `Promoción126`.

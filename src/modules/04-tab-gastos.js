@@ -69,8 +69,8 @@ function presetBoundsMs(preset,range,cycleStart){
   const monthEnd=nextMonthStart-1;
   if(preset==="month") return {from:startOfMonth().getTime(), to:monthEnd};
   if(preset==="cycle"){
-    const tomorrow=new Date(now); tomorrow.setHours(24,0,0,0);
-    return {from:(cycleStart||startOfMonth()).getTime(), to:cycleStart?tomorrow.getTime()-1:new Date(now.getFullYear(),now.getMonth()+1,1).getTime()-1};
+    // La cabecera y la lista comparten el día del dinero con Inicio, no el del navegador.
+    return {from:(cycleStart||startOfMonth()).getTime(),to:cycleStart?madridDayStartMs(now.getTime(),1)-1:monthEnd};
   }
   if(preset==="last") return {from:inicioDeMesMs(monthStart-1), to:monthStart-1};
   // Tres meses naturales de Madrid (mes actual y los dos anteriores): inicio local + fin Madrid
