@@ -1,0 +1,112 @@
+{
+  "status": "blocked",
+  "tests": [
+    {
+      "command": "node scripts/build-app.mjs",
+      "tz": null,
+      "exit": 0
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "tz": null,
+      "exit": 0
+    },
+    {
+      "command": "node tests/investment-data-date.test.mjs",
+      "tz": "UTC",
+      "exit": 0
+    },
+    {
+      "command": "node tests/investment-data-date.test.mjs",
+      "tz": "Europe/Madrid",
+      "exit": 0
+    },
+    {
+      "command": "node tests/investment-data-date.test.mjs",
+      "tz": "Atlantic/Canary",
+      "exit": 0
+    },
+    {
+      "command": "node tests/i18n-keys.test.mjs",
+      "tz": null,
+      "exit": 0
+    },
+    {
+      "command": "node tests/broker-sync-outcomes.test.mjs",
+      "tz": null,
+      "exit": 0
+    },
+    {
+      "command": "node tests/revo-parse.test.mjs",
+      "tz": null,
+      "exit": 0
+    },
+    {
+      "command": "node tests/revo-golden.test.mjs",
+      "tz": null,
+      "exit": 0
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "tz": null,
+      "exit": 0
+    },
+    {
+      "command": "node scripts/guard-privacy.mjs",
+      "tz": null,
+      "exit": 0
+    },
+    {
+      "command": "node tests/security.test.mjs",
+      "tz": null,
+      "exit": 0
+    },
+    {
+      "command": "node tests/docs-frescura.test.mjs",
+      "tz": null,
+      "exit": 1
+    },
+    {
+      "command": "node tests/presupuesto-rendimiento.test.mjs",
+      "tz": null,
+      "exit": 1
+    },
+    {
+      "command": "node --check e2e/cartera-inversiones.spec.mjs",
+      "exit": 0
+    },
+    {
+      "command": "node --check e2e/revolut-csv-import.spec.mjs",
+      "exit": 0
+    },
+    {
+      "name": "mutation",
+      "exit": 0,
+      "mutantsKilled": 5
+    },
+    {
+      "name": "e2e/cartera-inversiones.spec.mjs",
+      "status": "NOT_EXECUTED",
+      "exit": null,
+      "reason": "FIN01 retiene runner; sin RETURN ni fase propia. test.yml omite E2E tras los rojos de integracion."
+    },
+    {
+      "name": "Tests remoto",
+      "repository": "JuanjoAvila/Aely",
+      "runId": 38405934380,
+      "jobId": 115325424804,
+      "headSHA": "f7cc14ddf2127c9fc7901e71bf91406ed7f4836d",
+      "status": "in_progress",
+      "exit": null,
+      "headEqualsPR": true,
+      "terminal": false
+    }
+  ],
+  "summary": "BLOQUEADO exclusivamente para cerrar el requisito de DOM propio: FIN01 conserva DIR6fa/ownerd46, sin RETURN ni fase propia. No se toma ni limpia ese lease. La revision esta preparada y subida a la MISMA PR224 DRAFT, cabeza f7cc14ddf2127c9fc7901e71bf91406ed7f4836d, base124 f5904735b514751ee926d25c22c92195b6ce3653. Claim nuevo586f285d; result anterior29438357 y claim5dc siguen inmutables. Corregidos reloj congelado del spec, splash esperado, formato hoy/ayer/2-6 dias/fecha corta segun Madrid, etiquetas cortas Datos/CSV/Manual, vacio sin cotizaciones, guardias MI/TR sin lectura y comentario del freno MI de 30 minutos desde la lectura. Node: 10 casos agrupados PASS en UTC/Madrid/Canarias, incluidas 14 fronteras calendario y traducciones reales, 5 mutantes eliminados; 12 controles focales y sintaxis de ambos specs exit0. Docs-frescura exit1 y presupuesto exit1 son DE INTEGRACION a432, intactos: raw1385181/1383424 (+1757), gzip380474/379904 (+570), 3 bloqueantes. Huellas modificadas: investmentDateText, MyInvestorSync, TRSync, Investments y textos; unidades anteriores investmentStampMs/investmentDataDate permanecen. Tests38405934380/job115325424804 IN_PROGRESS sobre SHA exacto, resultado terminal AUN PENDIENTE; no es pase ni EXIT1 inferido. El workflow estandar omite E2E tras esos guardianes. El spec incluye una linea sin desbordamiento en Pixel5 es/en/ca, pero DOM/E2E NO EJECUTADO y no se atribuye sonda de Claude. No se cierra NO-GO ni se afirma verde/publicacion/movil. Para completar: RETURN expreso mas fase focal propia1worker0retry, o via remota focal autorizada que conserve los rojos; ejecutar el spec y archivar EXIT/reporte real, y leer CI final de f7cc. Evidencia propia privada test-results/inversiones-revision-20261013 y acta docs/briefs/inversiones-fechas-origen.md. Sin VERSION/notas/catalogo/topes/contrato119/workflows/backend/deploy/beta/main/Gradle/APK; trabajo conservado, sin cambios pendientes en worktree. Released se refiere solo a este encargo bloqueado, no a runner ni aceptacion.",
+  "schema": 1,
+  "taskId": "inversiones-fecha-revision-nogo-codex-20261013",
+  "actor": "codex",
+  "sessionId": "codex-cloud-20261013-c706f61eb203",
+  "createdAt": "2026-10-13T13:37:53.957Z",
+  "released": true
+}
