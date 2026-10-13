@@ -2394,8 +2394,9 @@ test("Promoción126 muestra una nota y el historial de producción, retira la ta
     const delivered=betaRevision(id,beta,undefined,old[id]);
     assert.deepEqual(betaRevision(id,source,undefined,scopes[id]),delivered,id+": la huella es la de la beta126, sin revisión nueva que juzgar");
     assert.equal(receipt.web[id],delivered.web,id+": entrega web independiente del catálogo visible");
-    if(delivered.edge)assert.equal(receipt.edge[id],delivered.edge,id+": entrega de servidor declarada");
   }
+  // El recibo del build solo acredita web: la función desplegada se acredita con su propio despliegue.
+  assert.equal(receipt.edge,undefined,"el recibo web no declara entregas de servidor");
   // Los veredictos del móvil (errores.mjs --kind=beta, 13/10) llevan el principio de estos códigos.
   // inicio-patrimonio-flujos no está en la lista: se aprobó con el código de la 125 (774b8cb6…,
   // fijado en Retiro126) y la 126 lo mueve por la tarjeta del mes, que juzga su propia tanda.
