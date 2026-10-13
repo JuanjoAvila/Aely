@@ -84,6 +84,7 @@ export const E2E_MAP = [
   ] },
   { file: "src/modules/05-dialogs-inv.js", specs: [
     "e2e/help-assistant.spec.mjs",
+    "e2e/revolut-csv-import.spec.mjs",
     "e2e/cartera-inversiones.spec.mjs", "e2e/brokers-selector.spec.mjs",
   ] },
   { file: "src/modules/06-sync-brokers.js", specs: [

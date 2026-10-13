@@ -26,6 +26,61 @@ async function openInvestments(page) {
   return door;
 }
 
+test.describe("fechas de datos por origen", () => {
+  test.use({ timezoneId:"UTC" });
+  const now=Date.parse("2026-10-13T12:00:00Z");
+  test.beforeEach(async({page})=>{ await page.clock.setFixedTime(new Date(now)); });
+  const words={
+    es:{read:"Datos leídos",missing:"Fecha no disponible",quotes:"Cotizaciones"},
+    en:{read:"Data read",missing:"Date unavailable",quotes:"Quotes"},
+    ca:{read:"Dades llegides",missing:"Data no disponible",quotes:"Cotitzacions"},
+  };
+  for(const lang of ["es","en","ca"])test("dos fechas distintas y una ausente, sin mover importes ("+lang+")",async({page})=>{
+    await seedLoggedInDashboard(page,{investments:INV,lastTrSync:Date.parse("2026-10-12T18:40:00Z"),lastMiSync:Date.parse("2026-10-10T09:15:00Z"),lastPriceSync:now-60000,settings:{autoPrices:false,theme:"green",lang}});
+    await page.goto("/"); await dismissNews(page);
+    const before=await page.evaluate(()=>JSON.parse(localStorage.getItem("micartera_v3")).investments);
+    await openInvestments(page);
+    const w=words[lang];
+    await expect(page.locator('[data-inv-data-date="trade_republic"]')).toContainText(w.read+":");
+    await expect(page.locator('[data-inv-data-date="trade_republic"]')).toContainText(/12 .*2026.*20:40/);
+    await expect(page.locator('[data-inv-data-date="myinvestor"]')).toContainText(/10 .*2026.*11:15/);
+    await expect(page.locator('[data-inv-data-date="revolut"]')).toHaveText(w.missing);
+    await expect(page.locator("[data-inv-price-date]")).toContainText(w.quotes+":");
+    await expect(page.locator("[data-inv-price-date]")).toContainText(/13 .*2026.*13:59/);
+    await expect(page.locator('[data-inv-broker="trade_republic"] .am')).toContainText(/2[.,]300/);
+    expect(await page.evaluate(()=>JSON.parse(localStorage.getItem("micartera_v3")).investments)).toEqual(before);
+  });
+  for(const kind of ["mi","tr"])test("la tarjeta "+kind+" sella solo al aplicar y conserva la hora de lectura",async({page})=>{
+    const ent=kind==="mi"?"myinvestor":"trade_republic", key=kind==="mi"?"lastMiSync":"lastTrSync";
+    const positions=[{isin:"SYNTHETIC",name:"Posición sintética",shares:2,value:200,cost:160}];
+    await seedLoggedInDashboard(page,{__seedOnce:true,investments:[{id:"stamp",ent,isin:"SYNTHETIC",name:"Posición sintética",shares:2,value:200,cost:160,cur:"EUR"}],
+      [key]:now-60000,lastPriceSync:now-3*864e5,
+      __cloudRows:kind==="mi"?{myinvestor_links:[{status:"active"}]}:{},
+      __cloudFns:{"myinvestor-sync":{data:{ok:true,positions},error:null}}});
+    if(kind==="tr")await page.addInitScript(positions=>{window.MiCarteraTR={status:async()=>({connected:true}),sync:async()=>({ok:true,positions})};},positions);
+    await page.goto("/"); await dismissNews(page);
+    await page.evaluate(()=>window.dispatchEvent(new CustomEvent("mc-open-banks",{detail:{focus:null}})));
+    const card=page.locator(".bk-card.bk-"+kind);
+    await card.locator(".bk-brand").click();
+    await card.getByRole("button",{name:/^Sincronizar (posiciones|ahora)$/}).click();
+    await expect(card.getByRole("button",{name:/Aplicar a 1/})).toBeVisible();
+    const stamp=()=>page.evaluate(key=>JSON.parse(localStorage.getItem("micartera_v3"))[key],key);
+    expect(await stamp()).toBe(now-60000);
+    await card.getByRole("button",{name:"Cancelar",exact:true}).click();
+    expect(await stamp()).toBe(now-60000);
+    await card.getByRole("button",{name:/^Sincronizar (posiciones|ahora)$/}).click();
+    await expect(card.getByRole("button",{name:/Aplicar a 1/})).toBeVisible();
+    // Esperar en la previsualización no vuelve recientes los datos ya leídos.
+    await page.clock.setFixedTime(new Date(now+5*60000));
+    await card.getByRole("button",{name:/Aplicar a 1/}).click();
+    await expect.poll(stamp).toBe(now);
+    expect(await page.evaluate(()=>JSON.parse(localStorage.getItem("micartera_v3")).lastPriceSync)).toBe(now-3*864e5);
+    await page.reload(); await dismissNews(page); await openInvestments(page);
+    await expect(page.locator('[data-inv-data-date="'+ent+'"]')).toHaveText("Datos leídos: 13 oct 2026, 14:00");
+    await expect(page.locator('[data-inv-broker="'+ent+'"] .am')).toContainText("200");
+  });
+});
+
 test("Cartera › Inversiones: los tres brókers se pintan, en orden, con sus importes", async ({ page }) => {
   await seedLoggedInDashboard(page, { investments, accounts: [{ id: "daily", ent: "trade_republic", name: "Trade Republic", value: 1000, spendFrom: true }] });
   await page.goto("/");
@@ -158,6 +213,8 @@ test("Inversiones v4: coste cero no finge +0%, manual se identifica y solo edita
   await tr.locator("input").first().fill("501");
   await tr.getByRole("button", { name: /Guardar|Save|Desa/i }).click();
   await expect(tr.locator('[data-inv-position="manual"] .rsub')).toContainText(/a mano · \d|by hand · \d|a mà · \d/i);
+  await expect(tr.locator("[data-inv-data-date]")).toContainText(/Último cambio manual:|Last manual change:|Últim canvi manual:/);
+  await expect(revolut.locator("[data-inv-data-date]")).toContainText(/Fecha no disponible|Date unavailable|Data no disponible/);
 });
 
 test("Inversiones v4: Ask posee Escape y el Atrás predictivo sin cerrar la pantalla hija", async ({ page }) => {
@@ -207,7 +264,7 @@ test("Inversiones v4: un coste parcial nunca se convierte en ganancia inventada"
   const hero=page.locator("[data-inv-hero]");
   await expect(hero).toContainText(/Ganancia —|Gain —|Guany —/);
   await expect(hero).toContainText(/Falta lo que pusiste|one or more positions is missing|Falta el que vas posar/i);
-  await expect(hero).toContainText(/Actualizado \d{2}:\d{2}|Updated \d{2}:\d{2}|Actualitzat \d{2}:\d{2}/i);
+  await expect(hero.locator("[data-inv-price-date]")).toContainText(/Cotizaciones:.*\d{4}.*\d{2}:\d{2}|Quotes:.*\d{4}.*\d{2}:\d{2}|Cotitzacions:.*\d{4}.*\d{2}:\d{2}/i);
   await expect(hero).not.toContainText(/Han ganado 520|They gained 520|Han guanyat 520/i);
   await expect(hero).not.toContainText(/520\.00%/);
 });

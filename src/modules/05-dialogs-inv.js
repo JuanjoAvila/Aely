@@ -573,7 +573,8 @@ function BrokerImport({state, set, fetchPrices, open, onToggle}){
                  value:pcost!=null?pcost:0, cost:pcost!=null?pcost:null, cur:po.cur||"EUR" };
       });
       if(created.length) inv=inv.concat(created);
-      return Object.assign({},s,{investments:inv});
+      // La fecha acredita esta importación aplicada, no la antigüedad del extracto ni un precio.
+      return Object.assign({},s,{investments:inv,lastRevolutImport:Date.now()});
     });
     setDoneN(mappedN); setParsed(null); setText("");
     // y nada más re-anclar, precios en vivo en silencio: el valor pasa de «último conocido» a real
