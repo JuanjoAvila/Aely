@@ -338,7 +338,10 @@ la hay.
 —el ordinal SIN esta entrega— lee `ob:<ent>~recibo.<id>` con el banco limpio y CUENTA el cargo
 (102,40 frente a 40), y al reescribir esa fila le borra la marca. Lo mismo el `ingest` de la
 120. Por tanto: la 4.26.120 no se promociona a producción sin esta entrega, y el `ingest` de
-esta rama se despliega antes que su web (ver `docs/SETUP-SUPABASE.md`).
+esta rama se despliega antes que su web (ver `docs/SETUP-SUPABASE.md`). La entrega está
+integrada en la candidata 4.26.122, encima de la 4.26.121 (Inicio v4.2), que lleva dentro la 120:
+la condición vale igual para la 121. En esa unión `tests/recibo-invariante` sigue comparando
+contra `dea5d883` (la 4.26.119 más el ordinal, sin Inicio) y da las mismas cifras.
 
 La misma frontera rige el sync diario: `app_events` puede guardar el banco, una clase estable y
 recuentos agregados, pero nunca transacciones ni campos del proveedor. El volcado temporal usado

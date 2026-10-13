@@ -33,6 +33,12 @@ const source118=sourceAt("7e706174255f1868d15099e11a503dd23d9aa774");
 const source119=sourceAt("788432f4682c199edd785f6973d9353330c0064a");
 // Integración121: la 4.26.120 preparada (4e927e33), sobre la que se integra Inicio v4.2.
 const source120=sourceAt("4e927e3346bb9f91aaeb048d8d55cbf2d02c57f2");
+// Integración122: la 4.26.121 preparada (2de328d6), sobre la que se integra el cargo de recibo en Gastos.
+const source121=sourceAt("2de328d63418f19f7d15a2cb86abfc263aa7bf6f");
+// La122 añade un método a `cloud` (`setExpenseRecibo`) y los alcances que listan los métodos que
+// leen lo ganan al final de su lista. Las comparaciones con descriptores anteriores lo descuentan;
+// Catálogo122 fija en lista cerrada cuáles son.
+const sinMetodo122=u=>u&&u.members?{...u,members:u.members.filter(m=>m!=="setExpenseRecibo")}:u;
 const empty=[{v:"4.26.67",tandas:[]}];
 const archiveRefs=JSON.parse(read("scripts/beta-archives.json"));
 const archiveId="inc-0810-inicio-grafica-significado";
@@ -52,7 +58,7 @@ const boot="inc-2709-01-arranque-red";
 const modern=[{v:"4.26.69",tandas:[{id:boot}]}];
 let failed=0;
 const inicioOnly=process.argv.includes("--inicio-v42-only");
-function test(name,fn){ if(inicioOnly&&!name.startsWith("Inicio v4.2 ")&&!name.startsWith("Catálogo121 ")&&!name.startsWith("Catálogo120 ")&&!name.startsWith("Catálogo114 ")&&!name.startsWith("Catálogo117 ")&&!name.startsWith("Retiro117 ")&&!name.startsWith("Catálogo118 ")&&!name.startsWith("Splash117 ")&&!name.startsWith("Catálogo119 ")&&!name.startsWith("Retiro119 "))return;try{fn();console.log("  ✓ "+name);}catch(e){failed++;console.error("  ✗ "+name+"\n    "+e.message);} }
+function test(name,fn){ if(inicioOnly&&!name.startsWith("Inicio v4.2 ")&&!name.startsWith("Catálogo122 ")&&!name.startsWith("Catálogo121 ")&&!name.startsWith("Catálogo120 ")&&!name.startsWith("Catálogo114 ")&&!name.startsWith("Catálogo117 ")&&!name.startsWith("Retiro117 ")&&!name.startsWith("Catálogo118 ")&&!name.startsWith("Splash117 ")&&!name.startsWith("Catálogo119 ")&&!name.startsWith("Retiro119 "))return;try{fn();console.log("  ✓ "+name);}catch(e){failed++;console.error("  ✗ "+name+"\n    "+e.message);} }
 console.log("beta-sources");
 
 // La rayita comparte controlador y geometría con la barra: una aprobación de CSS aislada no
@@ -140,8 +146,9 @@ test("Inicio v4.2 cubre flujos, ciclo, renderer, llamada, animación, textos, CS
   const id="inicio-patrimonio-flujos",source=f=>read(f).replace(/\r\n/g,"\n"),scopes=JSON.parse(source("scripts/beta-sources.json")),scope=scopes[id],before=betaRevision(id,source);
   // La base es la integración120 (apuntes iguales de Trade Republic): Inicio no puede retirar su alcance ni heredar su revisión.
   const integrated=JSON.parse(source120("scripts/beta-sources.json"));
-  assert.deepEqual(Object.keys(scopes),Object.keys(integrated).concat(id),"una única unidad nueva sin retirar historia120");
-  for(const [key,value] of Object.entries(integrated))if(key!=="inicio-grafica-vuelve"){assert.deepEqual(scopes[key].native,value.native);assert.deepEqual(scopes[key].edge,value.edge);for(const part of value.web||[])assert.ok(scopes[key].web.some(s=>JSON.stringify(s)===JSON.stringify(part)),key+": no recortar descriptor ajeno120");}
+  // Detrás de Inicio sólo ha entrado el alcance de la122 (el cargo de recibo en Gastos).
+  assert.deepEqual(Object.keys(scopes),Object.keys(integrated).concat(id,"recibo-cargo-en-gastos"),"Inicio y la alta de la122, sin retirar historia120");
+  for(const [key,value] of Object.entries(integrated))if(key!=="inicio-grafica-vuelve"){assert.deepEqual(scopes[key].native,value.native);assert.deepEqual(scopes[key].edge,value.edge);for(const part of value.web||[])assert.ok(scopes[key].web.some(s=>JSON.stringify(sinMetodo122(s))===JSON.stringify(part)),key+": no recortar descriptor ajeno120");}
   assert.equal(scope.unidades,true);
   for(const key of ["historial","auditoria","codigosCompatibles","compatibilidadGit","compatibilidadSha"])
     assert.equal(scope[key],undefined,"no hereda identidad anterior: "+key);
@@ -1310,7 +1317,9 @@ test("Catálogo120 histórico añade la tanda de los iguales de Trade Republic, 
 // nota, sin tocar, y el panel enseña las tres. Lista cerrada frente a la120: qué descriptores
 // crecen, qué huellas se mueven y por qué. Ninguna juzgada y retirada vuelve.
 const expected121={"v":"4.26.121","d":"2026-10-13","t":{"es":"Inicio: cómo ha ido tu patrimonio","en":"Home: how your net worth has moved","ca":"Inici: com ha anat el teu patrimoni"},"items":{"es":["Inicio estrena una gráfica de cómo ha ido tu patrimonio: cuentas, inversiones, bienes y deudas, todo junto. Pasa el dedo por encima para ver la cifra de cada día.","Una frase te dice cuánto ha subido o bajado en el periodo que elijas: un mes, seis meses, un año o todo.","La tarjeta del mes vuelve a decir cuánto puedes gastar al día con lo que te queda.","Si de algún día falta un dato, la gráfica no se lo inventa: te dice desde cuándo hay datos."],"en":["Home has a new chart of how your net worth has moved: accounts, investments, property and debts, all together. Slide your finger over it to see the figure for each day.","A sentence tells you how much it has gone up or down over the period you pick: one month, six months, one year or everything.","The month card once again tells you how much you can spend per day with what you have left.","If a figure is missing for some day, the chart does not make it up: it tells you since when there is data."],"ca":["Inici estrena una gràfica de com ha anat el teu patrimoni: comptes, inversions, béns i deutes, tot junt. Passa-hi el dit per sobre per veure la xifra de cada dia.","Una frase et diu quant ha pujat o baixat en el període que triïs: un mes, sis mesos, un any o tot.","La targeta del mes torna a dir quant pots gastar al dia amb el que et queda.","Si d'algun dia falta una dada, la gràfica no se la inventa: et diu des de quan hi ha dades."]},"tandas":[{"id":"inicio-patrimonio-flujos","t":{"es":"Inicio: la gráfica de tu patrimonio y cuánto puedes gastar al día","en":"Home: your net worth chart and how much you can spend per day","ca":"Inici: la gràfica del teu patrimoni i quant pots gastar al dia"},"items":{"es":["1. Abre Inicio y apunta la cifra grande de arriba, con sus céntimos. Ve a Cartera: su cifra grande, con todos los bloques activados (cuentas, inversiones y bienes, menos deudas), es la misma al céntimo. Está mal si difieren, aunque sea en un céntimo.","2. Vuelve a Inicio y mira la gráfica que hay bajo la cifra: la línea viene de días o meses atrás, no empieza hoy. Entre la cifra y la gráfica hay una línea de texto por cada bien que tienes dado de alta, del estilo «Coche: valor propio desde…» con la fecha de hoy, seguida de «antes se mantiene el valor actual». Si una cuenta tiene datos solo desde cierto día, otra línea lo dice con su nombre y esa fecha. Está mal si no sale la gráfica, si empieza hoy o si falta la línea de alguno de tus bienes.","3. Mantén el dedo sobre la gráfica y muévelo a los lados: encima de la cifra aparece una fecha y la cifra pasa a ser la de ese día. Al soltar, vuelve la de hoy. Ahora desliza hacia abajo empezando con el dedo sobre la gráfica: la pantalla se mueve y la cifra no cambia.","4. Mira la tarjeta «Este mes» (o «Este ciclo»): «Te quedan X de Y» coincide con lo que marca Gastos. Debajo dice cuánto puedes gastar al día y durante cuántos días, contando hoy. Si ya te has pasado del presupuesto, esa línea no sale y no cuenta como fallo.","5. Bajo la gráfica, toca uno a uno los periodos (1M, 6M, 1A, Todo): la frase de color cambia con cada uno («… más que hace un mes», «… menos que hace 6 meses») y la gráfica se vuelve a dibujar. Solo salen los periodos para los que hay datos: si falta alguno, es lo esperado."],"en":["1. Open Home and note down the big figure at the top, cents included. Go to Portfolio: its big figure, with every block switched on (accounts, investments and property, minus debts), is the same to the cent. It is wrong if they differ, even by one cent.","2. Go back to Home and look at the chart under the figure: the line comes from days or months back, it does not start today. Between the figure and the chart there is one line of text for each property item you have, along the lines of “Car: own value from…” with today's date, followed by “earlier dates keep the current value”. If an account only has data from a certain day, another line says so with its name and that date. It is wrong if the chart does not show, if it starts today or if the line for one of your property items is missing.","3. Keep your finger on the chart and move it sideways: a date appears above the figure and the figure becomes the one for that day. When you let go, today's figure comes back. Now swipe down starting with your finger on the chart: the screen scrolls and the figure does not change.","4. Look at the “This month” (or “This cycle”) card: “Left to spend X of Y” matches what Spending shows. Below, it says how much you can spend per day and for how many days, counting today. If you are already over budget, that line does not show and it does not count as a failure.","5. Under the chart, tap the periods one by one (1M, 6M, 1Y, All): the coloured sentence changes with each one (“… more than a month ago”, “… less than 6 months ago”) and the chart is drawn again. Only the periods that have data are offered: if one is missing, that is expected."],"ca":["1. Obre Inici i apunta la xifra gran de dalt, amb els cèntims. Ves a Cartera: la seva xifra gran, amb tots els blocs activats (comptes, inversions i béns, menys deutes), és la mateixa al cèntim. Està malament si són diferents, encara que sigui d'un cèntim.","2. Torna a Inici i mira la gràfica que hi ha sota la xifra: la línia ve de dies o mesos enrere, no comença avui. Entre la xifra i la gràfica hi ha una línia de text per cada bé que tens donat d'alta, de l'estil «Cotxe: valor propi des de…» amb la data d'avui, seguida de «abans es manté el valor actual». Si un compte només té dades des d'un dia concret, una altra línia ho diu amb el seu nom i aquesta data. Està malament si no surt la gràfica, si comença avui o si falta la línia d'algun dels teus béns.","3. Mantén el dit sobre la gràfica i mou-lo cap als costats: damunt de la xifra apareix una data i la xifra passa a ser la d'aquell dia. En deixar anar, torna la d'avui. Ara llisca cap avall començant amb el dit sobre la gràfica: la pantalla es mou i la xifra no canvia.","4. Mira la targeta «Aquest mes» (o «Aquest cicle»): «Et queden X de Y» coincideix amb el que marca Despeses. A sota diu quant pots gastar al dia i durant quants dies, comptant avui. Si ja t'has passat del pressupost, aquesta línia no surt i no compta com a error.","5. Sota la gràfica, toca un a un els períodes (1M, 6M, 1A, Tot): la frase de color canvia amb cadascun («… més que fa un mes», «… menys que fa 6 mesos») i la gràfica es torna a dibuixar. Només surten els períodes per als quals hi ha dades: si en falta algun, és el que s'espera."]}}]};
-test("Catálogo121 añade la tanda de Inicio v4.2 sobre la120 y declara cada descriptor que crece y cada huella que mueve",()=>{
+// Catálogo cerrado: desde la122 se lee de su commit inmutable (la122 añade nota, tanda y alcance nuevos).
+test("Catálogo121 histórico añade la tanda de Inicio v4.2 sobre la120 y declara cada descriptor que crece y cada huella que mueve",()=>{
+  const read=source121;
   const id="inicio-patrimonio-flujos",tr="tr-iguales-ordinal",bancos="bancos-acuse-reconexion",bienes="bienes-completo",grafica="inicio-grafica-vuelve";
   const integrated=JSON.parse(source120("scripts/beta-sources.json")),before=JSON.parse(source120("src/data/release-notes.json"));
   const expectedNotes=[expected121,...before];
@@ -1488,16 +1497,342 @@ test("Catálogo121 añade la tanda de Inicio v4.2 sobre la120 y declara cada des
   for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica","native","edge"])assert.equal(group[key],undefined,"identidad nueva sin "+key);
 });
 
+// 4.26.122 (13/10/2026): todo cargo del banco sale en Gastos. Tanda NUEVA, web y servidor
+// (`_shared/presupuesto.ts`, que usa `ingest`), sobre la integración 4.26.121 (2de328d6), que
+// tampoco llegó a publicarse sola: la tanda de Inicio y las dos de la 120 siguen en sus notas, sin
+// tocar, y el panel enseña las cuatro. Lista cerrada frente a la121: qué descriptores crecen, qué
+// huellas se mueven y por qué. Ninguna juzgada y retirada vuelve.
+const expected122={"v":"4.26.122","d":"2026-10-13","t":{"es":"Los recibos del banco, también en Gastos","en":"Bank bill charges, now in Spending too","ca":"Els rebuts del banc, també a Despeses"},"items":{"es":["Los cargos del banco que pagan un recibo de tu Plan ahora también se ven en Gastos, marcados con el nombre del recibo. No se cuentan dos veces: lo gastado y los saldos siguen igual.","Si la app se equivoca de recibo, abre el movimiento y pulsa «No es este recibo»: pasará a contar como un gasto más. Y si te arrepientes, se puede deshacer desde el mismo movimiento."],"en":["Bank charges that pay a bill in your Plan now also show in Spending, labelled with the bill's name. They are not counted twice: your spending and balances stay the same.","If the app picks the wrong bill, open the transaction and tap “Not this bill”: it will count as regular spending. And if you change your mind, you can undo it from the same transaction."],"ca":["Els càrrecs del banc que paguen un rebut del teu Pla ara també es veuen a Despeses, marcats amb el nom del rebut. No es compten dues vegades: el que has gastat i els saldos continuen igual.","Si l'app s'equivoca de rebut, obre el moviment i prem «No és aquest rebut»: passarà a comptar com una despesa més. I si te'n penedeixes, es pot desfer des del mateix moviment."]},"tandas":[{"id":"recibo-cargo-en-gastos","t":{"es":"Recibos: el cargo del banco se ve en Gastos sin contar dos veces","en":"Bills: the bank charge shows in Spending without counting twice","ca":"Rebuts: el càrrec del banc es veu a Despeses sense comptar dues vegades"},"items":{"es":["1. Antes de sincronizar, apunta tres cifras: lo gastado del mes (cabecera de Gastos), el saldo de cada cuenta en Cartera y la cifra del widget de Aely. Después, en Cartera, dentro de «Tus cuentas», toca el icono «Sincronizar bancos» y espera a que termine. Las tres cifras son las mismas de antes, salvo por lo que sumen los movimientos nuevos que entren como un gasto normal (de Trade Republic pueden entrar varios que faltaban: es la tanda de más abajo). Está mal si lo gastado sube, o un saldo baja, justo por el importe de un recibo que ya tenías en Plan.","2. Abre Gastos: los adeudos de este mes que pagan un recibo de tu Plan salen atenuados y con el rótulo «Recibo: » y su nombre, o con interrogación («¿Recibo: Agua?») si solo se parece. Si tus recibos se cobran en una cuenta que no es de gasto diario, toca el botón de filtros (🎛️), elige «Todos los bancos» y pulsa «Listo» para verlos. Lo que ya salía en Gastos como un gasto normal sigue igual. Está mal si no sale ninguno aunque el banco ya haya cobrado recibos este mes.","3. Abre uno de esos movimientos (mejor uno que diga «Recibo: …», sin interrogación, y que tenga ya varios días) y pulsa «No es este recibo». El saldo de la cuenta no se mueve y, en Plan → Recibos, ese recibo vuelve a estar pendiente. Si la cuenta es de gasto diario, lo gastado del mes y el widget suben justo ese importe; si no lo es, no cambian y el movimiento pasa a decir «no es del día a día».","4. En esa misma ficha, toca «Paga un recibo», elige el mismo recibo y pulsa «Confirmar pago completo»: el movimiento vuelve a decir «Recibo: …», lo gastado y el widget vuelven a la cifra que tenían antes de pulsar «No es este recibo» y el recibo vuelve a salir pagado en Plan.","5. Abre Plan → Recibos y despliega «Ya has pagado»: están los recibos que el banco ha cobrado este mes, cada uno una sola vez."],"en":["1. Before syncing, note down three figures: the amount spent this month (Spending header), the balance of each account in Portfolio and the figure on the Aely widget. Then, in Portfolio, inside “Your accounts”, tap the “Sync banks” icon and wait for it to finish. The three figures are the same as before, except for whatever new transactions add when they come in as regular spending (several missing ones may come in from Trade Republic: that is the round further down). It is wrong if the amount spent goes up, or a balance goes down, by exactly the amount of a bill you already had in Plan.","2. Open Spending: this month's bank charges that pay a bill in your Plan show dimmed and labelled “Bill: ” plus its name, or with a question mark (“Bill: Water?”) if it only looks like it. If your bills are charged to an account that is not for daily spending, tap the filters button (🎛️), choose “All banks” and press “Done” to see them. Anything that already showed in Spending as regular spending stays the same. It is wrong if none shows although the bank has already charged bills this month.","3. Open one of those transactions (best one that says “Bill: …”, with no question mark, and that is already a few days old) and tap “Not this bill”. The account balance does not move and, in Plan → Bills, that bill goes back to pending. If the account is for daily spending, the amount spent this month and the widget go up by exactly that amount; if it is not, they do not change and the transaction now says “not day-to-day”.","4. On that same transaction, tap “Pays a bill”, choose the same bill and press “Confirm full payment”: the transaction says “Bill: …” again, the amount spent and the widget go back to the figure they had before you tapped “Not this bill”, and the bill shows as paid again in Plan.","5. Open Plan → Bills and unfold “You already paid”: the bills the bank has charged this month are there, each one only once."],"ca":["1. Abans de sincronitzar, apunta tres xifres: el que has gastat aquest mes (capçalera de Despeses), el saldo de cada compte a Cartera i la xifra del widget d'Aely. Després, a Cartera, dins de «Els teus comptes», toca la icona «Sincronitza els bancs» i espera que acabi. Les tres xifres són les mateixes d'abans, tret del que sumin els moviments nous que entrin com una despesa normal (de Trade Republic en poden entrar uns quants que faltaven: és la tanda de més avall). Està malament si el que has gastat puja, o un saldo baixa, just per l'import d'un rebut que ja tenies al Pla.","2. Obre Despeses: els càrrecs d'aquest mes que paguen un rebut del teu Pla surten atenuats i amb el rètol «Rebut: » i el seu nom, o amb interrogant («Rebut: Aigua?») si només s'hi assembla. Si els teus rebuts es cobren en un compte que no és de despesa diària, toca el botó de filtres (🎛️), tria «Tots els bancs» i prem «Fet» per veure'ls. El que ja sortia a Despeses com una despesa normal continua igual. Està malament si no en surt cap tot i que el banc ja ha cobrat rebuts aquest mes.","3. Obre un d'aquests moviments (millor un que digui «Rebut: …», sense interrogant, i que ja tingui uns quants dies) i prem «No és aquest rebut». El saldo del compte no es mou i, a Pla → Rebuts, aquest rebut torna a estar pendent. Si el compte és de despesa diària, el que has gastat aquest mes i el widget pugen just aquest import; si no ho és, no canvien i el moviment passa a dir «no és del dia a dia».","4. En aquesta mateixa fitxa, toca «Paga un rebut», tria el mateix rebut i prem «Confirmar pagament complet»: el moviment torna a dir «Rebut: …», el que has gastat i el widget tornen a la xifra que tenien abans de prémer «No és aquest rebut» i el rebut torna a sortir pagat al Pla.","5. Obre Pla → Rebuts i desplega «Ja has pagat»: hi ha els rebuts que el banc ha cobrat aquest mes, cadascun una sola vegada."]}}]};
+test("Catálogo122 añade la tanda del cargo de recibo en Gastos sobre la121 y declara cada descriptor que crece y cada huella que mueve",()=>{
+  const id="recibo-cargo-en-gastos",inicio="inicio-patrimonio-flujos",tr="tr-iguales-ordinal",bancos="bancos-acuse-reconexion";
+  const integrated=JSON.parse(source121("scripts/beta-sources.json")),before=JSON.parse(source121("src/data/release-notes.json"));
+  const expectedNotes=[expected122,...before];
+  const source=f=>read(f).replace(/\r\n/g,"\n"),old=f=>source121(f).replace(/\r\n/g,"\n");
+  const notes=JSON.parse(source("src/data/release-notes.json"));
+  assert.deepEqual(notes,expectedNotes,"la nota 122 literal delante del catálogo121 intacto");
+  assert.deepEqual(notes.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id,g.apk||0])),[["4.26.122",id,0],["4.26.121",inicio,0],["4.26.120",tr,0],["4.26.120",bancos,0]],"el panel enseña la tanda del cargo de recibo, la de Inicio y las dos de la 120, sin APK");
+  for(const n of notes.slice(3))assert.deepEqual(n.tandas,[],n.v+": ni resucita /todo ni vuelve una tanda juzgada o entregada");
+  for(const key of [id,inicio,tr,bancos])assert.equal(notes.flatMap(n=>n.tandas||[]).filter(g=>g.id===key).length,1,key+": una sola vez en todo el catálogo");
+  assert.deepEqual(Object.keys(notes[0].tandas[0]),["id","t","items"],"identidad nueva, sin alias ni revisión heredada");
+  for(const lang of ["es","en","ca"]){
+    assert.equal(notes[0].items[lang].length,2,lang+": dos puntos familiares");
+    assert.equal(notes[0].tandas[0].items[lang].length,5,lang+": cinco pasos");
+    notes[0].tandas[0].items[lang].forEach((step,i)=>assert.ok(step.startsWith((i+1)+". "),lang+": paso numerado "+(i+1)));
+    // Sólo lo comprobable hoy y sin perder datos: ningún paso pide borrar un recibo ni esperar a mañana.
+    for(const text of notes[0].tandas[0].items[lang])assert.equal(/borra|quita este|delete|remove|esborra|treu aquest|mañana|tomorrow|demà/i.test(text),false,lang+": ningún paso borra un recibo ni espera a otro día");
+  }
+  // Cada rótulo que cita el guion es el texto real del botón o de la fila, en su idioma.
+  const literal={
+    es:["«Recibo: »","«¿Recibo: Agua?»","«Todos los bancos»","«Listo»","«No es este recibo»","«no es del día a día»","«Paga un recibo»","«Confirmar pago completo»","«Sincronizar bancos»","«Ya has pagado»"],
+    en:["“Bill: ”","“Bill: Water?”","“All banks”","“Done”","“Not this bill”","“not day-to-day”","“Pays a bill”","“Confirm full payment”","“Sync banks”","“You already paid”"],
+    ca:["«Rebut: »","«Rebut: Aigua?»","«Tots els bancs»","«Fet»","«No és aquest rebut»","«no és del dia a dia»","«Paga un rebut»","«Confirmar pagament complet»","«Sincronitza els bancs»","«Ja has pagat»"]};
+  const textos=source("src/modules/01-i18n.js");
+  const enFuente={
+    es:['g_recibo_de:"Recibo: {name}"','g_recibo_quiza:"¿Recibo: {name}?"','g_allbanks:"Todos los bancos"','g_filters_done:"Listo"','f_recibo_no:"No es este recibo"','g_skip_otrobanco:"no es del día a día"','f_receipt_row:"Paga un recibo"','f_receipt_yes:"Confirmar pago completo"','v4_sync_banks:"Sincronizar bancos"','v4_paid_fold:"Ya has pagado {n} recibos'],
+    en:['g_recibo_de:"Bill: {name}"','g_recibo_quiza:"Bill: {name}?"','g_allbanks:"All banks"','g_filters_done:"Done"','f_recibo_no:"Not this bill"','g_skip_otrobanco:"not day-to-day"','f_receipt_row:"Pays a bill"','f_receipt_yes:"Confirm full payment"','v4_sync_banks:"Sync banks"','v4_paid_fold:"You already paid {n} bills'],
+    ca:['g_recibo_de:"Rebut: {name}"','g_recibo_quiza:"Rebut: {name}?"','g_allbanks:"Tots els bancs"','g_filters_done:"Fet"','f_recibo_no:"No és aquest rebut"','g_skip_otrobanco:"no és del dia a dia"','f_receipt_row:"Paga un rebut"','f_receipt_yes:"Confirmar pagament complet"','v4_sync_banks:"Sincronitza els bancs"','v4_paid_fold:"Ja has pagat {n} rebuts']};
+  for(const lang of ["es","en","ca"]){
+    const guion=notes[0].tandas[0].items[lang].join("\n");
+    literal[lang].forEach((rotulo,i)=>{
+      assert.ok(guion.includes(rotulo),lang+": el guion cita "+rotulo);
+      assert.ok(textos.includes(enFuente[lang][i]),lang+": "+rotulo+" es el texto de la app ("+enFuente[lang][i]+")");
+    });
+  }
+  const verifyNotes=list=>assert.deepEqual(list,expectedNotes);
+  const twice=structuredClone(notes);twice[0].tandas.push(structuredClone(twice[0].tandas[0]));assert.throws(()=>verifyNotes(twice),"no duplicar la tanda");
+  const inherited=structuredClone(notes);inherited[0].tandas[0].desde=["4.26.118/recibos-cargo-unico"];assert.throws(()=>verifyNotes(inherited),"no heredar el veredicto de los recibos de la 118");
+  const withApk=structuredClone(notes);withApk[0].tandas[0].apk=55;assert.throws(()=>verifyNotes(withApk),"no hay APK que probar");
+  const gone=structuredClone(notes);gone[1].tandas=[];assert.throws(()=>verifyNotes(gone),"la tanda de Inicio sigue en su nota");
+  const text=structuredClone(notes);text[2].tandas[1].items.es[1]+="mutante";assert.throws(()=>verifyNotes(text),"el guion de la 120 no se toca");
+  const scopes=JSON.parse(source("scripts/beta-sources.json"));
+  assert.deepEqual(Object.keys(scopes),Object.keys(integrated).concat(id),"una sola alta y ningún alcance retirado");
+  assert.deepEqual(JSON.parse(source("scripts/beta-archives.json")),archiveRefs,"sin repinar el rechazo109");
+  const core="src/modules/00-core.js",i18n="src/modules/01-i18n.js",motor="src/modules/08-motor-bank.js",main="src/modules/11-app-main.js",gastos="src/modules/04-tab-gastos.js";
+  // Descriptores que crecen, lista cerrada. Veintiocho alcances ya vigilaban qué cuenta un gasto
+  // (`expenseCountsCash`), el pago de un recibo (`fixedPaymentState`), el viaje a la nube o el
+  // importador, que ahora preguntan por la marca de recibo y por sus vetos: las auditorías de
+  // dependencias exigen esas unidades. Se añaden al final, sin tocar ni reordenar las anteriores.
+  const grownExpected={
+    "inc-3009-01-cargos":["recFrase","reciboVetado","reciboNoIdentidad","cargoDeReciboFirme","reponerCargoDeRecibo","reciboNoDe","admiteMarcaDe","reciboSufijo","cargoDeReciboFirmeCalc","reciboNoPon","reciboPagadoCon","conSaldoMostrado","reciboNombreCasa","reciboNoTope","saldoCuentaMostrada","saldoCuentaGasto","RECIBO_NO_MAX"],
+    "fin05-widget-reentrada":["esFilaDeBanco","reciboVetado","reciboNoIdentidad","cargoDeReciboFirme","reciboSufijo","cargoDeReciboFirmeCalc","reciboNombreCasa","reciboPagadoCon","fixedPaymentState","recFrase","fixedPaymentProof","fixedPaymentAutoOwner","fixedPaymentExpenseRows","fixedExpenseEligible","fixedPaymentContenders","fixedPaymentExpenseChoice","fixedPaymentUnique","fixedPaymentModel","fixedPaymentDate","fixedPaymentExpenses","fixedExpenseKey","DUP_DIAS_MS"],
+    "fin05-pago-cerrada":["esFilaDeBanco","reciboVetado","reciboNoIdentidad","cargoDeReciboFirme","reciboSufijo","cargoDeReciboFirmeCalc","reciboNombreCasa","reciboPagadoCon","fixedPaymentState","recFrase","fixedPaymentProof","fixedPaymentAutoOwner","fixedPaymentExpenseRows","fixedExpenseEligible","fixedPaymentContenders","fixedPaymentExpenseChoice","fixedPaymentUnique","fixedPaymentModel","fixedPaymentDate","fixedPaymentExpenses","fixedExpenseKey","DUP_DIAS_MS"],
+    "tr-descripcion-clasificacion":["reciboParaCargo","cargoDeReciboFirme","reciboNombreCasa","cargoDeRecibo","cargoDeReciboFirmeCalc","recFrase","reciboVetado","reciboNoIdentidad","reciboPagadoCon","fixedPaymentState","fixedPaymentIdentity","fixedPaymentProof","accFixed","fixedPaymentAutoOwner","fixedPaymentExpenseRows","fixedExpenseEligible","fixedPaymentContenders","fixedPaymentExpenseChoice","fixedPaymentUnique","fixedPaymentModel","fixedPaymentDate","fixedPaymentFeedClear","fixedPaymentExpenses","expenseDeletedSet","fixedExpenseKey","expenseDeletedSets"],
+    "widget-banco":["esFilaDeBanco","reciboVetado","reciboNoIdentidad","cargoDeReciboFirme","cargoDeReciboFirmeCalc","reciboNombreCasa","reciboPagadoCon","fixedPaymentState","recFrase","fixedPaymentProof","fixedPaymentAutoOwner","fixedPaymentExpenseRows","fixedExpenseEligible","fixedPaymentContenders","fixedPaymentExpenseChoice","fixedPaymentUnique","fixedPaymentModel","fixedPaymentDate","fixedPaymentExpenses","fixedExpenseKey","DUP_DIAS_MS"],
+    "widget-app-cerrada":["esFilaDeBanco","reciboVetado","reciboNoIdentidad","cargoDeReciboFirme","reciboSufijo","cargoDeReciboFirmeCalc","reciboNombreCasa","reciboPagadoCon","fixedPaymentState","recFrase","fixedPaymentProof","fixedPaymentAutoOwner","fixedPaymentExpenseRows","fixedExpenseEligible","fixedPaymentContenders","fixedPaymentExpenseChoice","fixedPaymentUnique","fixedPaymentModel","fixedPaymentDate","fixedPaymentExpenses","fixedExpenseKey","DUP_DIAS_MS"],
+    "inc-2909-02-inicio-natural":["esFilaDeBanco","reciboVetado","reciboNoIdentidad","cargoDeReciboFirme","recFrase","cargoDeReciboFirmeCalc","reciboNombreCasa","reciboPagadoCon"],
+    "inc-3009-nomina-anticipada":["reciboVetado","reciboNoIdentidad","cargoDeReciboFirme","reciboParaCargo","recFrase","reciboSufijo","reciboNoUnion","esFilaDeBanco","cargoDeReciboFirmeCalc","reciboNombreCasa","reciboNoTope","reciboPagadoCon","RECIBO_NO_MAX"],
+    "inc-2909-03-retirada":["reciboSufijo","cargoDeRecibo","esFilaDeBanco","reponerCargoDeRecibo","reciboNoDe","reciboNoIdentidad","admiteMarcaDe","reciboVetado","recFrase","reciboNoPon","reciboPagadoCon","conSaldoMostrado","reciboNoTope","RECIBO_NO_MAX"],
+    "inc-2909-01-widget-periodo":["esFilaDeBanco","reciboVetado","reciboNoIdentidad","cargoDeReciboFirme","reciboSufijo","cargoDeReciboFirmeCalc","reciboNombreCasa","reciboPagadoCon","fixedPaymentState","recFrase","fixedPaymentProof","fixedPaymentAutoOwner","fixedPaymentExpenseRows","fixedExpenseEligible","fixedPaymentContenders","fixedPaymentExpenseChoice","fixedPaymentUnique","fixedPaymentModel","fixedPaymentDate","fixedPaymentExpenses","fixedExpenseKey","DUP_DIAS_MS"],
+    "inc-0210-01-plan-cuota":["reciboVetado","reciboNoIdentidad","recFrase"],
+    "inc-0210-03-gastos-periodo":["cargoDeRecibo","quitarCargoDeRecibo","reponerCargoDeRecibo","reciboNoDe","reciboNoIdentidad","admiteMarcaDe","reciboEtiqueta","reciboSufijo","reciboVetado","recFrase","reciboNoPon","reciboNoClaves","conSaldoMostrado","reciboPagadoCon","cargoDeReciboFirme","reciboNoTope","insumosSaldoGasto","saldoCuentaMostrada","cargoDeReciboFirmeCalc","nominaYaEntro","accInject","roundupOf","gastoDelMesPorBanco","saldoCuentaGasto","isEfectivoEnt","reciboNombreCasa","lastWorkingDay","isCardSpend","spareOf","RECIBO_NO_MAX"],
+    "feature-0210-01-gasolina-taxi":["cargoDeRecibo","reciboSufijo","reciboVetado","reciboNoIdentidad","fixedPaymentIdentity"],
+    "inc-0210-02-categoria-elegida":["reciboSufijo","cargoDeRecibo","esFilaDeBanco","reciboVetado","reciboNoIdentidad"],
+    "inc-0310-01-meta-regla":["cargoDeRecibo","reciboVetado","reciboNoIdentidad","fixedPaymentIdentity"],
+    "feature-0310-01-movilidad":["cargoDeRecibo","reciboSufijo","quitarCargoDeRecibo","reponerCargoDeRecibo","reciboNoDe","reciboNoIdentidad","admiteMarcaDe","reciboEtiqueta","cargoDeReciboFirme","reciboVetado","esFilaDeBanco","recFrase","reciboNoPon","reciboNoClaves","conSaldoMostrado","reciboPagadoCon","cargoDeReciboFirmeCalc","reciboNoTope","insumosSaldoGasto","saldoCuentaMostrada","reciboNombreCasa","nominaYaEntro","accInject","roundupOf","gastoDelMesPorBanco","saldoCuentaGasto","lastWorkingDay","isCardSpend","spareOf","RECIBO_NO_MAX"],
+    "inc-0310-gastos-sin-limite":["cargoDeRecibo","quitarCargoDeRecibo","reponerCargoDeRecibo","reciboNoDe","reciboNoIdentidad","admiteMarcaDe","reciboEtiqueta","reciboSufijo","reciboVetado","recFrase","reciboNoPon","reciboNoClaves","conSaldoMostrado","reciboPagadoCon","cargoDeReciboFirme","reciboNoTope","insumosSaldoGasto","saldoCuentaMostrada","cargoDeReciboFirmeCalc","nominaYaEntro","accInject","roundupOf","gastoDelMesPorBanco","saldoCuentaGasto","isEfectivoEnt","reciboNombreCasa","lastWorkingDay","isCardSpend","spareOf","RECIBO_NO_MAX"],
+    "inc-0710-gastos-mes-madrid":["cargoDeRecibo","quitarCargoDeRecibo","reponerCargoDeRecibo","reciboNoDe","reciboNoIdentidad","admiteMarcaDe","reciboEtiqueta","reciboSufijo","reciboVetado","recFrase","reciboNoPon","reciboNoClaves","conSaldoMostrado","reciboPagadoCon","cargoDeReciboFirme","reciboNoTope","insumosSaldoGasto","saldoCuentaMostrada","cargoDeReciboFirmeCalc","nominaYaEntro","accInject","roundupOf","gastoDelMesPorBanco","saldoCuentaGasto","isEfectivoEnt","reciboNombreCasa","lastWorkingDay","isCardSpend","spareOf","RECIBO_NO_MAX"],
+    "inc-0810-dashboard-recents-memo":["reciboEtiqueta","cargoDeRecibo","cargoDeReciboFirme","dateMs","reciboVetado","reciboNoIdentidad","cargoDeReciboFirmeCalc","_pdMs","fixedPaymentIdentity","expenseBankOf","reciboNombreCasa","reciboPagadoCon","fixedPaymentState","partirEntDeuda","recNorm","recFrase","recDay","recNameMatch","recAmtClose","fixedPaymentProof","accFixed","fixedPaymentAutoOwner","fixedPaymentExpenseRows","fixedExpenseEligible","fixedPaymentContenders","fixedPaymentExpenseChoice","recTokens","fixedPaymentUnique","fixedPaymentModel","fixedPaymentDate","fixedPaymentFeedClear","fixedPaymentExpenses","accRole","fixedExpenseKey","_pdCache","CAT_NEUTRAS","DUP_DIAS_MS"],
+    "inc-0810-metas-editar-regla":["reciboSufijo","cargoDeRecibo","dateMs","reciboVetado","reciboNoIdentidad","_pdMs","_pdCache"],
+    "inicio-grafica-vuelve":["cargoDeRecibo","reciboVetado","reciboNoIdentidad","fixedPaymentIdentity"],
+    "widget-pago-app-cerrada":["esFilaDeBanco","reciboVetado","reciboNoIdentidad","cargoDeReciboFirme","reciboSufijo","cargoDeReciboFirmeCalc","reciboNombreCasa","reciboPagadoCon","fixedPaymentState","recFrase","fixedPaymentProof","fixedPaymentAutoOwner","fixedPaymentExpenseRows","fixedExpenseEligible","fixedPaymentContenders","fixedPaymentExpenseChoice","fixedPaymentUnique","fixedPaymentModel","fixedPaymentDate","fixedPaymentExpenses","fixedExpenseKey","DUP_DIAS_MS"],
+    "bancos-sin-hueco":["reciboParaCargo","cargoDeRecibo","reciboVetado","reciboNoIdentidad","recFrase","reciboSufijo","cargoDeReciboFirme","reciboNombreCasa","cargoDeReciboFirmeCalc","reciboPagadoCon"],
+    "widget-ciclo-puente":["esFilaDeBanco","reciboVetado","reciboNoIdentidad","cargoDeReciboFirme","reciboSufijo","cargoDeReciboFirmeCalc","reciboNombreCasa","reciboPagadoCon","fixedPaymentState","recFrase","fixedPaymentProof","fixedPaymentAutoOwner","fixedPaymentExpenseRows","fixedExpenseEligible","fixedPaymentContenders","fixedPaymentExpenseChoice","fixedPaymentUnique","fixedPaymentModel","fixedPaymentDate","fixedPaymentExpenses","fixedExpenseKey","DUP_DIAS_MS"],
+    "recibos-cargo-unico":["recFrase","reciboVetado","reciboNoIdentidad","cargoDeReciboFirme","reponerCargoDeRecibo","reciboNoDe","admiteMarcaDe","reciboSufijo","cargoDeReciboFirmeCalc","reciboNoPon","reciboPagadoCon","conSaldoMostrado","reciboNombreCasa","reciboNoTope","saldoCuentaMostrada","saldoCuentaGasto","RECIBO_NO_MAX"],
+    "bancos-acuse-reconexion":["reciboParaCargo","cargoDeRecibo","reciboVetado","reciboNoIdentidad","recFrase","reciboSufijo","cargoDeReciboFirme","reciboNombreCasa","cargoDeReciboFirmeCalc","reciboPagadoCon"],
+    "tr-iguales-ordinal":["reciboSufijo","reciboParaCargo","cargoDeReciboFirme","histFilaGasto","reciboNoUnion","esFilaDeBanco","cargoDeRecibo","reciboVetado","reciboNoIdentidad","recFrase","reciboNombreCasa","cargoDeReciboFirmeCalc","reciboNoTope","reciboPagadoCon","RECIBO_NO_MAX"],
+    "inicio-patrimonio-flujos":["cargoDeRecibo","reciboVetado","reciboNoIdentidad","fixedPaymentIdentity"]};
+  // Dieciocho de ellos llevan además la lista de métodos de `cloud` que leen: ganan el único
+  // método nuevo, `setExpenseRecibo`, al final de esa lista (lo llaman `subirGasto` o la ficha).
+  const membersExpected=["inc-3009-01-cargos","fin05-widget-reentrada","fin05-pago-cerrada","widget-app-cerrada","inc-3009-nomina-anticipada","inc-2909-03-retirada","inc-2909-01-widget-periodo","inc-0210-03-gastos-periodo","feature-0210-01-gasolina-taxi","inc-0210-02-categoria-elegida","feature-0310-01-movilidad","inc-0310-gastos-sin-limite","inc-0710-gastos-mes-madrid","widget-pago-app-cerrada","bancos-sin-hueco","widget-ciclo-puente","recibos-cargo-unico","bancos-acuse-reconexion"];
+  const functions=logicFunctions(source),data=logicData(source),grown={},members=[];
+  for(const [key,scope] of Object.entries(integrated)){
+    if(JSON.stringify(scopes[key])===JSON.stringify(scope))continue;
+    const {web:nowWeb,...rest}=scopes[key],{web:oldWeb,...oldRest}=scope;
+    assert.deepEqual(rest,oldRest,key+": sólo cambia la lista web");
+    const head=nowWeb.slice(0,oldWeb.length),at=oldWeb.findIndex(u=>u.data==="cloud"&&u.members);
+    if(at>=0&&JSON.stringify(head[at])!==JSON.stringify(oldWeb[at])){
+      assert.deepEqual(head[at],{...oldWeb[at],members:oldWeb[at].members.concat("setExpenseRecibo")},key+": la lista de métodos sólo gana setExpenseRecibo, al final");
+      members.push(key);head[at]=oldWeb[at];
+    }
+    assert.deepEqual(head,oldWeb,key+": ninguna unidad anterior se pierde ni cambia de orden");
+    const added=nowWeb.slice(oldWeb.length);
+    assert.ok(added.length>0&&added.every(u=>Object.keys(u).length===2&&(u.function||u.data)&&[core,i18n,motor].includes(u.file)),key+": sólo unidades sueltas de la lógica");
+    grown[key]=added.map(u=>u.function||u.data);
+    // El motivo se comprueba: cada unidad añadida es hoy una dependencia real de lo que el
+    // descriptor de la121 ya vigilaba, y ese descriptor no la nombraba. Que el de ahora la vigila
+    // lo acreditan, unidad a unidad, las dos auditorías generales de dependencias de más abajo.
+    const deps=scopeDependencies(scope,source,functions),values=scopeDataDependencies(scope,source,functions,data);
+    for(const unit of added){
+      const name=unit.function||unit.data;
+      assert.ok((unit.function?deps:values).find(d=>d.name===name&&d.file===unit.file),key+": "+name+" es dependencia real de lo que ya vigilaba");
+      assert.equal(oldWeb.some(u=>typeof u!=="string"&&u.file===unit.file&&(u.function||u.data)===name),false,key+": el descriptor121 no nombraba "+name);
+    }
+  }
+  assert.deepEqual(grown,grownExpected,"descriptores que crecen: lista cerrada");
+  assert.deepEqual(members,membersExpected,"listas de métodos de cloud que crecen: lista cerrada");
+  // El alcance nuevo. Semilla: todo lo que la entrega añade o cambia en la lógica (00-core, textos
+  // y cajones de 01-i18n, motor), sus textos en los tres idiomas, las pantallas que lo pintan o lo
+  // escriben y el guardado. Detrás van sus dependencias transitivas, que exigen las auditorías.
+  assert.deepEqual(Object.keys(scopes[id]),["web","edge","unidades"],"web y servidor, sin APK: el nativo no cambia");
+  assert.equal(scopes[id].unidades,true);
+  const persist=scopes[bancos].web.find(u=>u.from&&u.from.includes("INC-0410 guardado: de aquí al límite"));
+  assert.ok(persist,"el bloque del guardado, el mismo que vigila la tanda del acuse");
+  const seedLogic=[
+    {"file":"src/modules/00-core.js","function":"subirGasto"},
+    {"file":"src/modules/00-core.js","function":"reciboSufijo"},
+    {"file":"src/modules/00-core.js","function":"expenseSourceForCloud"},
+    {"file":"src/modules/00-core.js","function":"expenseBankOf"},
+    {"file":"src/modules/00-core.js","function":"canRecognizeWithdrawal"},
+    {"file":"src/modules/00-core.js","function":"expenseFromRow"},
+    {"file":"src/modules/00-core.js","function":"refreshExpenseFromCloud"},
+    {"file":"src/modules/00-core.js","function":"esFilaDeBanco"},
+    {"file":"src/modules/00-core.js","function":"mergeExpensesFromCloud"},
+    {"file":"src/modules/01-i18n.js","function":"expenseCountsCash"},
+    {"file":"src/modules/01-i18n.js","function":"expenseBucket"},
+    {"file":"src/modules/01-i18n.js","function":"cargoDeRecibo"},
+    {"file":"src/modules/01-i18n.js","function":"reciboEtiqueta"},
+    {"file":"src/modules/01-i18n.js","function":"recompensasDelMes"},
+    {"file":"src/modules/01-i18n.js","function":"reconcileTR"},
+    {"file":"src/modules/01-i18n.js","function":"detectSubscriptions"},
+    {"file":"src/modules/08-motor-bank.js","function":"fixedPaymentAutoOwner"},
+    {"file":"src/modules/08-motor-bank.js","function":"reciboVetado"},
+    {"file":"src/modules/08-motor-bank.js","function":"reciboNoClaves"},
+    {"file":"src/modules/08-motor-bank.js","function":"reciboNoIdentidad"},
+    {"file":"src/modules/08-motor-bank.js","function":"reciboNoDe"},
+    {"file":"src/modules/08-motor-bank.js","function":"reciboNoPon"},
+    {"file":"src/modules/08-motor-bank.js","function":"reciboNoTope"},
+    {"file":"src/modules/08-motor-bank.js","function":"reciboNoUnion"},
+    {"file":"src/modules/08-motor-bank.js","function":"fixedPaymentProof"},
+    {"file":"src/modules/08-motor-bank.js","function":"fixedPaymentState"},
+    {"file":"src/modules/08-motor-bank.js","function":"applyBankBalances"},
+    {"file":"src/modules/08-motor-bank.js","function":"recFrase"},
+    {"file":"src/modules/08-motor-bank.js","function":"importObExpenses"},
+    {"file":"src/modules/08-motor-bank.js","function":"reciboNombreCasa"},
+    {"file":"src/modules/08-motor-bank.js","function":"reciboParaCargo"},
+    {"file":"src/modules/08-motor-bank.js","function":"cargoDeReciboFirme"},
+    {"file":"src/modules/08-motor-bank.js","function":"cargoDeReciboFirmeCalc"},
+    {"file":"src/modules/08-motor-bank.js","function":"reciboPagadoCon"},
+    {"file":"src/modules/08-motor-bank.js","function":"conSaldoMostrado"},
+    {"file":"src/modules/08-motor-bank.js","function":"quitarCargoDeRecibo"},
+    {"file":"src/modules/08-motor-bank.js","function":"admiteMarcaDe"},
+    {"file":"src/modules/08-motor-bank.js","function":"reponerCargoDeRecibo"},
+    {"file":"src/modules/08-motor-bank.js","function":"sinCargoDelPlan"},
+    {"file":"src/modules/08-motor-bank.js","function":"quitarDelPlan"},
+    {"file":"src/modules/08-motor-bank.js","function":"cuotasDeDeudaPorMarcar"},
+    {"file":"src/modules/08-motor-bank.js","function":"marcarCuotaAMano"},
+    {"file":"src/modules/08-motor-bank.js","function":"histMatchesModeled"},
+    {"file":"src/modules/08-motor-bank.js","function":"histFilaGasto"},
+    {"file":"src/modules/08-motor-bank.js","function":"histClassifyCandidates"},
+    {"file":"src/modules/08-motor-bank.js","function":"removeFixedById"},
+    {"file":"src/modules/08-motor-bank.js","function":"removeOneoffById"},
+    {"file":"src/modules/08-motor-bank.js","function":"Fijos"},
+    {"file":"src/modules/00-core.js","data":"cloud"},
+    {"file":"src/modules/00-core.js","data":"CLOUD_WRITES"},
+    {"file":"src/modules/08-motor-bank.js","data":"RECIBO_NO_MAX"}];
+  const line=from=>({file:i18n,from,to:"\n",includeTo:true});
+  const seed=[
+    ...seedLogic,
+    line('    f_recibo_marca:"Es el cargo'),line('    f_recibo_marca:"This is the charge'),line('    f_recibo_marca:"És el càrrec'),
+    {file:i18n,from:' g_recibo_de:"Recibo: {name}"',to:', g_filters_debts:'},{file:i18n,from:' g_recibo_de:"Bill: {name}"',to:', g_filters_debts:'},{file:i18n,from:' g_recibo_de:"Rebut: {name}"',to:', g_filters_debts:'},
+    line('  bp_hist_esrecibo:"es tu recibo'),line('  bp_hist_quizarecibo:"parece tu recibo'),
+    line('  bp_hist_esrecibo:"this is your bill'),line('  bp_hist_quizarecibo:"this looks like your bill'),
+    line('  bp_hist_esrecibo:"és el teu rebut'),line('  bp_hist_quizarecibo:"sembla el teu rebut'),
+    {file:gastos,function:"Expenses"},
+    {file:gastos,from:"const MovRow=React.memo(function MovRow(",to:"/* Sheet de filtros (2026-08-05):"},
+    {file:gastos,function:"ExpenseDetailSheet"},
+    {file:"src/modules/03-tab-dash.js",from:"        recent.length===0",to:"\n  );\n}"},
+    {file:"src/modules/06-sync-brokers.js",function:"InvestmentRewards"},
+    {file:"src/modules/10-app-components.js",function:"BankHistoryImport"},
+    {file:"src/modules/13-hogar.js",function:"buildHouseholdSnapshot"},
+    {file:main,from:"  const syncCloudExpenses=function(){",to:"  const syncFromCloud=function(s, opts){"},
+    {file:main,from:"  const syncFromCloud=function(",to:"  // CAPA 2 — Open Banking:"},
+    {file:main,from:"  },[state.accounts,state.expenses,state.bankTx,state.investments",to:"  const budgetMonth="},
+    persist];
+  assert.deepEqual(scopes[id].web.slice(0,seed.length),seed);
+  assert.equal(scopes[id].web.length,311,"semilla más dependencias transitivas");
+  assert.ok(scopes[id].web.slice(seed.length).every(u=>Object.keys(u).length===2&&(u.function||u.data)),"detrás de la semilla, sólo dependencias sueltas");
+  // Toda función o dato que la entrega añade o cambia en la lógica está en la semilla. `LANG`, el
+  // diccionario entero, cambia por los textos nuevos: se vigilan sus líneas, no el objeto.
+  const oldFunctions=logicFunctions(old),oldData=logicData(old),touched=[];
+  for(const [key,fn] of functions)if(!oldFunctions.has(key)||oldFunctions.get(key).text!==fn.text)touched.push(fn.file+":"+fn.name);
+  for(const [key,value] of data)if(!oldData.has(key)||oldData.get(key).text!==value.text)touched.push(value.file+":"+value.name);
+  for(const [key,fn] of oldFunctions)assert.ok(functions.has(key),fn.name+": la entrega no retira ninguna función de la lógica");
+  assert.deepEqual(touched.slice().sort(),seedLogic.map(u=>u.file+":"+(u.function||u.data)).concat(i18n+":LANG").sort(),"lo que cambia en la lógica es exactamente la semilla, más los textos");
+  // Y cada texto y cada pantalla de la semilla cambia de verdad frente a la121 (el guardado no: va
+  // porque Gastos y el histórico escriben con el set real).
+  for(const unit of seed.slice(seedLogic.length)){
+    if(unit===persist)continue;
+    let prior=null;try{prior=scopeText(unit,old);}catch(error){assert.equal(error.code,"BETA_SCOPE_ABSENT");}
+    assert.notEqual(prior,scopeText(unit,source),(unit.function||unit.from)+": cambia en esta entrega");
+  }
+  const edgeFiles=["supabase/functions/_shared/presupuesto.ts","supabase/functions/ingest/index.ts","supabase/functions/ingest/widget.ts"];
+  assert.deepEqual(scopes[id].edge,edgeFiles,"la regla compartida que cambia y la única función que la importa, que hay que desplegar antes que la web");
+  for(const key of ["historial","auditoria","native","codigosCompatibles","compatibilidadGit","compatibilidadSha"])assert.equal(scopes[id][key],undefined,"identidad nueva sin "+key);
+  // Lista cerrada de huellas frente a la121: una que se mueva sin declarar, o una declarada que no
+  // se mueva, es rojo. Cada una lleva las unidades exactas de su descriptor121 que la mueven. Todas
+  // por la web; `tr-iguales-ordinal` además por el servidor, porque vigila `_shared/presupuesto.ts`,
+  // que ahora excluye el cargo de recibo (`esCargoDeRecibo`).
+  const whyExpected={
+    "inc-3009-01-cargos":["fixedPaymentAutoOwner","fixedPaymentProof","fixedPaymentState","expenseBankOf","var _pdCache=new Map();","reconcileTR","  const setReceipt=function(","  const receiptDate=","subirGasto","cloud","expenseSourceForCloud"],
+    "fin05-widget-reentrada":["expenseBankOf","expenseFromRow","refreshExpenseFromCloud","mergeExpensesFromCloud","var _pdCache=new Map();","reconcileTR","  },[state.accounts,state.expenses,state.bankTx,state.investments","  const wR=useRef(false)","subirGasto","cloud","expenseSourceForCloud"],
+    "fin05-pago-cerrada":["expenseBankOf","expenseFromRow","refreshExpenseFromCloud","mergeExpensesFromCloud","var _pdCache=new Map();","reconcileTR","  },[state.accounts,state.expenses,state.bankTx,state.investments","  const wR=useRef(false)","subirGasto","cloud","expenseSourceForCloud"],
+    "tr-descripcion-clasificacion":["expenseBankOf","expenseFromRow","importObExpenses","histMatchesModeled","histClassifyCandidates"],
+    "widget-banco":["expenseBankOf","expenseFromRow","refreshExpenseFromCloud","mergeExpensesFromCloud","var _pdCache=new Map();","reconcileTR","  },[state.accounts,state.expenses,state.bankTx,state.investments"],
+    "widget-app-cerrada":["expenseBankOf","expenseFromRow","refreshExpenseFromCloud","mergeExpensesFromCloud","var _pdCache=new Map();","reconcileTR","  },[state.accounts,state.expenses,state.bankTx,state.investments","  const wR=useRef(false)","subirGasto","cloud","expenseSourceForCloud"],
+    "inc-2909-02-inicio-natural":["expenseBankOf","expenseFromRow","refreshExpenseFromCloud","mergeExpensesFromCloud","var _pdCache=new Map();","reconcileTR","fixedPaymentState","fixedPaymentProof","fixedPaymentAutoOwner"],
+    "inc-3009-nomina-anticipada":["expenseBankOf","expenseFromRow","var _pdCache=new Map();","reconcileTR","MovRow","applyBankBalances","importObExpenses","  },[state.accounts,state.expenses,state.bankTx,state.investments","subirGasto","marcarCuotaAMano","detectSubscriptions","fixedPaymentProof","fixedPaymentState","cuotasDeDeudaPorMarcar","fixedPaymentAutoOwner","cloud","expenseSourceForCloud","  const filtered=useMemo(","  const monthSummary=useMemo(","  const syncFromCloud=function(","refreshExpenseFromCloud","mergeExpensesFromCloud","      // FIN-07: el paginador solo resuelve"],
+    "inc-2909-03-retirada":["expenseSourceForCloud","canRecognizeWithdrawal","refreshExpenseFromCloud","mergeExpensesFromCloud","expenseCountsCash","applyBankBalances","  const withdrawalPending=useRef({});","      setCat:setCat, setCuota:setCuota,","function ExpenseDetailSheet(","    canRecognizeWithdrawal(exp) &&","  const syncCloudExpenses=function(){","  const setReceipt=function(","expenseBankOf","subirGasto","fixedPaymentState","fixedPaymentProof","fixedPaymentAutoOwner","cloud"],
+    "inc-2909-01-widget-periodo":["expenseBankOf","expenseFromRow","refreshExpenseFromCloud","mergeExpensesFromCloud","var _pdCache=new Map();","reconcileTR","  },[state.accounts,state.expenses,state.bankTx,state.investments","  const wR=useRef(false)","subirGasto","cloud","expenseSourceForCloud"],
+    "inc-0210-01-plan-cuota":["  },[state.accounts,state.expenses,state.bankTx,state.investments","expenseBankOf","fixedPaymentState","fixedPaymentProof","fixedPaymentAutoOwner"],
+    "inc-0210-03-gastos-periodo":["Expenses","subirGasto","canRecognizeWithdrawal","expenseSourceForCloud","marcarCuotaAMano","expenseBankOf","expenseBucket","detectSubscriptions","fixedPaymentState","fixedPaymentProof","expenseCountsCash","fixedPaymentAutoOwner","cloud"],
+    "feature-0210-01-gasolina-taxi":["subirGasto","expenseCountsCash","expenseBankOf","cloud","expenseSourceForCloud"],
+    "inc-0210-02-categoria-elegida":["        const kept=keepCategoryChoices(prev.expenses, incoming, readStartedAt);","expenseSourceForCloud","canRecognizeWithdrawal","mergeExpensesFromCloud","expenseBankOf","refreshExpenseFromCloud"],
+    "inc-0310-01-meta-regla":["expenseCountsCash","expenseBankOf"],
+    "feature-0310-01-movilidad":["subirGasto","expenseCountsCash","expenseBankOf","cloud","expenseSourceForCloud","Expenses","ExpenseDetailSheet","  const syncCloudExpenses=function(){","canRecognizeWithdrawal","marcarCuotaAMano","expenseBucket","detectSubscriptions","fixedPaymentState","mergeExpensesFromCloud","fixedPaymentProof","fixedPaymentAutoOwner","refreshExpenseFromCloud"],
+    "inc-0310-gastos-sin-limite":["Expenses","subirGasto","canRecognizeWithdrawal","expenseSourceForCloud","marcarCuotaAMano","expenseBankOf","expenseBucket","detectSubscriptions","fixedPaymentState","fixedPaymentProof","expenseCountsCash","fixedPaymentAutoOwner","cloud"],
+    "inc-0710-gastos-mes-madrid":["Expenses","subirGasto","canRecognizeWithdrawal","expenseSourceForCloud","marcarCuotaAMano","expenseBankOf","expenseBucket","detectSubscriptions","fixedPaymentState","fixedPaymentProof","expenseCountsCash","fixedPaymentAutoOwner","cloud"],
+    "inc-0810-dashboard-recents-memo":["        recent.length===0"],
+    "inc-0810-metas-editar-regla":["cloud","expenseSourceForCloud","canRecognizeWithdrawal","expenseBankOf"],
+    "inicio-grafica-vuelve":["expenseBankOf","expenseCountsCash"],
+    "widget-pago-app-cerrada":["expenseBankOf","expenseFromRow","refreshExpenseFromCloud","mergeExpensesFromCloud","var _pdCache=new Map();","reconcileTR","  },[state.accounts,state.expenses,state.bankTx,state.investments","  const wR=useRef(false)","subirGasto","cloud","expenseSourceForCloud"],
+    "bancos-sin-hueco":["cloud","importObExpenses","expenseBankOf","applyBankBalances","cuotasDeDeudaPorMarcar","subirGasto","fixedPaymentProof","fixedPaymentState","fixedPaymentAutoOwner","expenseCountsCash","expenseSourceForCloud"],
+    "widget-ciclo-puente":["expenseBankOf","expenseFromRow","refreshExpenseFromCloud","mergeExpensesFromCloud","var _pdCache=new Map();","reconcileTR","  },[state.accounts,state.expenses,state.bankTx,state.investments","  const wR=useRef(false)","subirGasto","cloud","expenseSourceForCloud"],
+    "recibos-cargo-unico":["fixedPaymentAutoOwner","fixedPaymentProof","fixedPaymentState","expenseBankOf","var _pdCache=new Map();","reconcileTR","  const setReceipt=function(","  const receiptDate=","subirGasto","cloud","expenseSourceForCloud"],
+    "bancos-acuse-reconexion":["cloud","importObExpenses","expenseBankOf","applyBankBalances","cuotasDeDeudaPorMarcar","subirGasto","fixedPaymentProof","fixedPaymentState","fixedPaymentAutoOwner","expenseCountsCash","expenseSourceForCloud"],
+    "tr-iguales-ordinal":["expenseSourceForCloud","expenseFromRow","expenseBankOf","importObExpenses","histClassifyCandidates","BankHistoryImport","  const syncCloudExpenses=function(){","  const syncFromCloud=function(","histMatchesModeled","subirGasto","mergeExpensesFromCloud","reconcileTR","applyBankBalances","cuotasDeDeudaPorMarcar","refreshExpenseFromCloud","expenseCountsCash","fixedPaymentProof","fixedPaymentState","fixedPaymentAutoOwner","cloud","canRecognizeWithdrawal","supabase/functions/_shared/presupuesto.ts"],
+    "inicio-patrimonio-flujos":["expenseBankOf","expenseCountsCash"]};
+  const expectedMoves=Object.fromEntries(Object.keys(whyExpected).map(key=>[key,key===tr?["web","edge"]:["web"]]));
+  assert.deepEqual(Object.keys(whyExpected),Object.keys(grownExpected),"se mueven las mismas veintiocho que crecen");
+  const previous=new Map();
+  const measure=reader=>{
+    const now=JSON.parse(reader("scripts/beta-sources.json")),moved={};
+    for(const [key,scope] of Object.entries(integrated)){
+      // El rechazo109 usa su pin histórico, nunca un bloque retirado del renderer actual.
+      if(key===archiveId){assert.deepEqual(auditedRevision(key,reader),auditedRevision(key,source121));continue;}
+      if(!previous.has(key))previous.set(key,betaRevision(key,source121,undefined,scope));
+      const a=previous.get(key),b=betaRevision(key,reader,undefined,now[key]);
+      const surfaces=["web","native","edge"].filter(s=>a[s]!==b[s]);
+      if(surfaces.length)moved[key]=surfaces;
+    }
+    return moved;
+  };
+  const verify=(reader,expected=expectedMoves)=>assert.deepEqual(measure(reader),expected,"lista cerrada: ni una huella extra ni una declarada que no cambie");
+  verify(source);
+  const why={};
+  for(const key of Object.keys(expectedMoves))why[key]=["web","edge"].flatMap(surface=>(integrated[key][surface]||[]).filter(u=>scopeText(u,old)!==scopeText(u,source)).map(u=>typeof u==="string"?u:(u.function||u.data||u.from)));
+  assert.deepEqual(why,whyExpected,"qué unidad mueve cada huella");
+  // De las veintiocho sólo la de Inicio y las dos de la 120 están en el panel, y ya lo estaban.
+  const enPanel=[inicio,tr,bancos];
+  for(const key of Object.keys(expectedMoves))assert.equal(notes.flatMap(n=>n.tandas||[]).some(g=>g.id===key),enPanel.includes(key),key+(enPanel.includes(key)?": sigue en el panel con su huella nueva":": su huella cambia, pero no vuelve al panel"));
+  // Una dependencia ajena que cambia debe fallar aunque el catálogo conserve sus textos.
+  const shell="src/shell.html",from='animation:mclpop .5s cubic-bezier(.32,.72,0,1) backwards;}';
+  assert.equal(source(shell).split(from).length,2,"mutante sobre el splash actual real");
+  const changed=f=>f===shell?source(f).replace(from,from.replace(".5s",".6s")):source(f);
+  assert.throws(()=>verify(changed),/lista cerrada/,"el splash no está declarado: no puede moverse por arrastre");
+  assert.throws(()=>verify(source,{...expectedMoves,"splash-animado":["web"]}),/lista cerrada/,"añadir una declaración vacía no permite heredar identidad");
+  const missing={...expectedMoves};delete missing["widget-ciclo-puente"];assert.throws(()=>verify(source,missing),/lista cerrada/,"una huella real no declarada pone rojo");
+  const splash="splash-animado";
+  assert.deepEqual(betaRevision(splash,source,undefined,scopes[splash]),betaRevision(splash,source121,undefined,integrated[splash]),"el OK del splash no se reinicia por arrastre");
+  // El servidor: la tanda del acuse (bank-sync y bank-callback) no cambia; la de Trade Republic sí.
+  assert.deepEqual(scopes[bancos].edge,integrated[bancos].edge);assert.deepEqual(scopes[tr].edge,integrated[tr].edge);
+  assert.equal(betaRevision(bancos,source,undefined,scopes[bancos]).edge,betaRevision(bancos,source121,undefined,integrated[bancos]).edge,"el servidor de la tanda del acuse no cambia en esta entrega");
+  assert.notEqual(betaRevision(tr,source,undefined,scopes[tr]).edge,betaRevision(tr,source121,undefined,integrated[tr]).edge,"el ingest de la tanda de Trade Republic es el de esta entrega: se despliega una vez, antes que la web");
+  const current=betaRevision(id,source,undefined,scopes[id]);
+  assert.ok(current.web&&current.edge);assert.equal(current.native,undefined);
+  assert.equal(current.edge,betaRevision(tr,source,undefined,scopes[tr]).edge,"las dos tandas con servidor esperan el mismo despliegue de ingest");
+  assert.throws(()=>betaRevision(id,source121,undefined,scopes[id]),error=>error.code==="BETA_SCOPE_ABSENT","la 121 no acredita el cliente: no tiene la marca de recibo");
+  // Cada regla nueva del cliente reabre la tanda por la web y sólo por la web.
+  for(const [file,a,b] of [
+    [i18n,"if(cargoDeRecibo(e, s)) return false;",""],
+    [i18n,"return reciboVetado(s, id, reciboNoIdentidad(e), e.id) ? null : f;","return f;"],
+    [core,"return id ? \"~recibo.\"+id : \"\";","return \"\";"],
+    [motor,"if(a===b?na.indexOf(k)>=0||nb.indexOf(k)>=0:(a>b?na:nb).indexOf(k)>=0) no.push(k);","no.push(k);"],
+    [motor,"if(dateMs(e.date)<desde) return e;",""],
+    [gastos,"if(fixedId==null && cargoDeRecibo(ex,state)){ quitarRecibo(ex); return; }",""],
+    [main,"if(prev.reciboNo||cloudState.reciboNo) Object.assign(baseObj, reciboNoUnion(prev, cloudState));",""],
+    [main,"if(merged.sinMarca.length) setTimeout(function(){ merged.sinMarca.forEach(function(e){ cloud.setExpenseRecibo(e).catch(function(){}); }); },0);",""]]){
+    assert.equal(source(file).split(a).length,2,"mutante sobre fuente real: "+a);
+    const mutated=betaRevision(id,f=>f===file?source(f).replace(a,b):source(f),undefined,scopes[id]);
+    assert.notEqual(mutated.web,current.web,"reabre la tanda: "+a);
+    assert.equal(mutated.edge,current.edge,"sin mover el servidor: "+a);
+  }
+  // Y la regla del servidor, por la superficie Edge y sólo por ella.
+  const servidor="if (esCuotaDeDeuda(fila.source) || esCargoDeRecibo(fila.source)) return false;";
+  assert.equal(source(edgeFiles[0]).split(servidor).length,2,"mutante sobre fuente real: "+servidor);
+  const sinRegla=betaRevision(id,f=>f===edgeFiles[0]?source(f).replace(servidor,"if (esCuotaDeDeuda(fila.source)) return false;"):source(f),undefined,scopes[id]);
+  assert.notEqual(sinRegla.edge,current.edge,"reabre la tanda por el servidor");assert.equal(sinRegla.web,current.web,"sin mover la web");
+  assert.deepEqual(betaRevision(id,f=>f==="supabase/functions/bank-sync/index.ts"?source(f)+"\n// mutante":source(f),undefined,scopes[id]),current,"una función ajena no pertenece a esta tanda");
+  // Las tres uniones del pull de estado conviven: vínculos (120), historial (121) y vetos (122).
+  for(const union of ["const gem=fusionarGemelos(prev.gemelos, cloudState.gemelos);","baseObj.accountBalanceHistory=sameOwner?mergeAccountBalanceHistory(prev.accountBalanceHistory,baseObj.accountBalanceHistory):cloudState.accountBalanceHistory||{};","Object.assign(baseObj, reciboNoUnion(prev, cloudState));"])
+    assert.equal(source(main).split(union).length,2,"sigue en el pull: "+union);
+  const built=betaNotes(notes,source,scopes),receipt=betaDelivery(built,source,scopes),group=built[0].tandas[0];
+  assert.deepEqual(built.flatMap(n=>(n.tandas||[]).map(g=>g.id)),[id,inicio,tr,bancos],"lo que el build entrega al panel");
+  assert.equal(group.web,current.web);assert.equal(group.edge,current.edge,"el panel la marca con servidor por confirmar");assert.equal(group.native,undefined);assert.equal(group.apk,undefined);
+  assert.equal(receipt.web[id],current.web);
+  // Edge en Git no acredita la función activa: el recibo web no fabrica entrega de servidor.
+  assert.equal(receipt.edge,undefined);assert.equal(JSON.stringify(receipt).includes(current.edge),false,"el recibo web no fabrica entrega de servidor");
+  const original=betaDelivery(betaNotes(before,source121,integrated),source121,integrated);
+  assert.deepEqual(receipt.pruebas,{
+    [id]:{v:"4.26.122",contenido:JSON.stringify([id,expected122.tandas[0].t.es,expected122.tandas[0].items.es,1])},
+    [inicio]:original.pruebas[inicio],[tr]:original.pruebas[tr],[bancos]:original.pruebas[bancos]},"cuatro guiones por probar; los tres anteriores, tal cual");
+  for(const key of ["inicio-grafica-vuelve","bancos-sin-hueco","recibos-cargo-unico"]){
+    assert.equal(notes.flatMap(n=>n.tandas||[]).some(g=>g.id===key),false,key+": retirada no resucita");
+    assert.equal(receipt.pruebas[key],undefined,key+": no se vuelve a pedir al dueño");
+  }
+  for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica","native"])assert.equal(group[key],undefined,"identidad nueva sin "+key);
+});
+
 test("Inicio v4.2 conserva el catálogo120 y los retiros anteriores en la fuente actual",()=>{
-  const source=f=>read(f).replace(/\r\n/g,"\n"),expected=[expected121,...JSON.parse(source120("src/data/release-notes.json"))];
+  // Desde la122 la nota del cargo de recibo va delante; las de la 121 y la 120 siguen literales.
+  const source=f=>read(f).replace(/\r\n/g,"\n"),expected=[expected122,expected121,...JSON.parse(source120("src/data/release-notes.json"))];
   const verify=notes=>assert.deepEqual(notes,expected,"catálogo vigente exacto, sin resucitar lo aprobado ni heredar identidad");
   const notes=JSON.parse(source("src/data/release-notes.json"));verify(notes);
-  const resurrected=structuredClone(notes);resurrected[2].tandas.push(JSON.parse(source118("src/data/release-notes.json"))[0].tandas[0]);
+  const resurrected=structuredClone(notes);resurrected[3].tandas.push(JSON.parse(source118("src/data/release-notes.json"))[0].tandas[0]);
   assert.throws(()=>verify(resurrected),assert.AssertionError);
-  for(const lang of ["es","en","ca"])for(const n of [0,1]){const changed=structuredClone(notes);changed[n].tandas[0].items[lang][0]+=" mutante";assert.throws(()=>verify(changed),assert.AssertionError);}
+  for(const lang of ["es","en","ca"])for(const n of [0,1,2]){const changed=structuredClone(notes);changed[n].tandas[0].items[lang][0]+=" mutante";assert.throws(()=>verify(changed),assert.AssertionError);}
   const scopes=JSON.parse(source("scripts/beta-sources.json")),prior=JSON.parse(source120("scripts/beta-sources.json"));
   for(const id of ["tr-iguales-ordinal","bancos-acuse-reconexion","recibos-cargo-unico"]){
-    for(const part of prior[id].web)assert.ok(scopes[id].web.some(p=>JSON.stringify(p)===JSON.stringify(part)),id+": ninguna unidad120 retirada");
+    for(const part of prior[id].web)assert.ok(scopes[id].web.some(p=>JSON.stringify(sinMetodo122(p))===JSON.stringify(part)),id+": ninguna unidad120 retirada");
     assert.deepEqual(scopes[id].native,prior[id].native);assert.deepEqual(scopes[id].edge,prior[id].edge);
   }
   const receipt=betaDelivery(betaNotes(notes,source,scopes),source,scopes);
@@ -1665,7 +2000,8 @@ test("PERSIST91: el guardado en el commit invalida toda tanda que escribe estado
   const marca="INC-0410 guardado: de aquí al límite";
   const dependientes=Object.keys(registro).filter(id=>registro[id].web.some(x=>x.from&&x.from.includes(marca)));
   const ajenas=Object.keys(registro).filter(id=>!dependientes.includes(id));
-  assert.equal(dependientes.length,29);
+  assert.equal(dependientes.length,30);
+  assert.ok(dependientes.includes("recibo-cargo-en-gastos"),"«No es este recibo», su vuelta atrás y el histórico escriben la marca con el set real");
   assert.ok(dependientes.includes("tr-iguales-ordinal"),"el sync, el borrado a mano y el histórico guardan vínculos y filas con el set real");
   assert.ok(dependientes.includes("inicio-patrimonio-flujos"),"las fotos de bienes e inversión de la unidad nueva escriben con el set real");
   assert.ok(dependientes.includes("bancos-acuse-reconexion"),"el acuse se guarda detrás de las filas que escribe el set real");
@@ -2145,8 +2481,14 @@ test("Recientes106 reanclada conserva expresión, identidad y recibo completos",
   // comprobando, pero contra la beta119 (788432f4), la última con la clave de entonces.
   const actual119=JSON.parse(source119("scripts/beta-sources.json"))[id],current119=betaRevision(id,source119,undefined,actual119);
   assert.deepEqual(actual.web.slice(0,actual119.web.length),actual119.web,"el descriptor119 sigue entero y en su orden");
-  assert.deepEqual(actual.web.slice(actual119.web.length).map(u=>[u.file,u.function]),[["src/modules/00-core.js","obOrdinalSufijo"],["src/modules/00-core.js","obOrdinalOf"]],"sólo gana la regla del ordinal");
-  assert.equal(currentText,scopeText(anchor,source119),"la expresión de Recientes no cambia en la120");
+  assert.deepEqual(actual.web.slice(actual119.web.length,actual119.web.length+2).map(u=>[u.file,u.function]),[["src/modules/00-core.js","obOrdinalSufijo"],["src/modules/00-core.js","obOrdinalOf"]],"en la120 sólo gana la regla del ordinal");
+  // Desde la122 la fila de Recientes dice de qué recibo es el cargo (`reciboEtiqueta`): el descriptor
+  // gana detrás esa función y lo que lee, que Catálogo122 fija unidad a unidad. La expresión del
+  // memo, que es lo que esta prueba ancla, sigue igual.
+  const actual121=JSON.parse(source121("scripts/beta-sources.json"))[id];
+  assert.deepEqual(actual121.web,actual.web.slice(0,actual119.web.length+2),"el descriptor de la121 era el de la119 más el ordinal");
+  assert.ok(actual.web.slice(actual121.web.length).some(u=>u.function==="reciboEtiqueta"),"en la122 gana la etiqueta de recibo y sus dependencias");
+  assert.equal(currentText,scopeText(anchor,source119),"la expresión de Recientes no cambia en la120 ni en la122");
   assert.notEqual(current.web,current119.web,"la clave con ordinal mueve la identidad: no se conserva la de la119");
   const cache=new Map(),at=(sha,f)=>{const k=sha+":"+f;if(!cache.has(k))cache.set(k,execFileSync("git",["show",k],{encoding:"utf8",maxBuffer:10e6}));return cache.get(k);};
   for(const sha of ["23a7808f65ef6d28e8a906f7100ffdf229917abb","f4ffb9340adfd0a13b631271e8158d2c630613c0","b1ad23f34f2a94933e57246dfdf12c451f5360a1"]){

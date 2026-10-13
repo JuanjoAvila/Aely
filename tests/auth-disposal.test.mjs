@@ -106,4 +106,4 @@ const memoNote=JSON.parse(execFileSync('git',['show','8dcc5ed39b6e212ba1e34a90b5
 for(const key of ['codigoDesde','revisionesDesde','codigosCompatibles','compatibilidadGit','verdict'])assert.equal(memoNote[key],undefined,'memo nueva sin heredar '+key);
 
 }
-assert.equal(createHash('sha256').update(JSON.stringify(JSON.parse(read('scripts/beta-sources.json')))).digest('hex'),'870594f5f031b7bb8008f44b9900685bf1f35d6c321348481abc291589f439b9','registro121 íntegro: el de la integración120 (8a0ad2c5) más la unión del historial en veintisiete alcances, el Guardar de Bienes, el renderer nuevo en la gráfica113 y la tanda inicio-patrimonio-flujos; Catálogo121 de beta-sources lo fija unidad a unidad');
+assert.equal(createHash('sha256').update(JSON.stringify(JSON.parse(read('scripts/beta-sources.json')))).digest('hex'),'187f8166cdbe36fcc4926ab6e0ca0e6bb7c668a5417d8c1ea33ac66cf4f48772','registro122 íntegro: el de la integración121 (870594f5) más la marca de recibo y sus vetos en veintiocho alcances, setExpenseRecibo en dieciocho listas de métodos de cloud y la tanda recibo-cargo-en-gastos; Catálogo122 de beta-sources lo fija unidad a unidad');

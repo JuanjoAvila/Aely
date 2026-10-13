@@ -52,6 +52,10 @@ cargo (102,40 frente a 40 en la sonda), y al reescribir la fila le borra la marc
 la 120 y, en otro móvil de la misma cuenta, esta entrega. **La 4.26.120 no se promociona a
 producción sin esta entrega**, y el `ingest` de esta rama va antes que su web.
 
+Integración (13/10): la rama entra en la candidata 4.26.122, encima de la 4.26.121, que lleva
+dentro la 120. El `ingest` que se despliega es el de la 122 (`_shared/presupuesto.ts` con
+`esCargoDeRecibo`), antes que su web, y ni la 120 ni la 121 van a producción sin la 122.
+
 ## bank-sync con tramo antiguo (INC-2709-06): solo en fuente, SIN desplegar
 
 `bank-sync` y `_shared/enablebanking.ts` (parámetros `maxPages` y `dateTo` de `fetchBankTransactions`)

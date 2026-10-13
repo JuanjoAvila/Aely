@@ -254,7 +254,12 @@ const PRESUPUESTO = {
   // con ordinal y la fila que conserva lo puesto a mano cuando gana el aviso: 1.354.895 /
   // 371.208 B (+845/+307). 1323 KiB se queda corto por 143 B: 1324, quedan 881 B. El gzip cabe
   // en 363 KiB (quedan 504 B) y no se amplía. Esas tres medidas son de la rama sin Inicio v4.2.
-  minificado: 1336 * 1024,
+  // Integración 4.26.122 (13/10), el cargo de recibo encima de la 121 (2de328d6): medida la
+  // UNIÓN de las tres entregas tras el build, sello 4.26.122.99999 y reserva de 95 B:
+  // 1.382.186 B crudo / 379.492 B gzip, +14.319 / +4.381 B sobre la 121. 1349 KiB (1.381.376)
+  // se queda corto por 810 B: 1350 es el mínimo, quedan 214 B. No se recorta producto ni
+  // idiomas para caber (mandato del dueño, 11/10).
+  minificado: 1350 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -274,7 +279,8 @@ const PRESUPUESTO = {
   // Integración 4.26.120: 366.827 B gzip, 235 B sobre 358 KiB. 359 sigue siendo el mínimo (quedan 789 B).
   // Integración 4.26.121, Inicio v4.2: 375.111 B gzip, 295 B sobre 366 KiB. Mínimo medido: 367 KiB (quedan 697 B).
   // Cargo de recibo en Gastos, sola: 368.865 B gzip. Unión con el ordinal, sin Inicio, medida: 371.208 B.
-  gzip: 367 * 1024,
+  // Integración 4.26.122: 379.492 B gzip, 612 B sobre 370 KiB. Mínimo medido: 371 KiB (quedan 412 B).
+  gzip: 371 * 1024,
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 
