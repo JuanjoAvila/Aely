@@ -136,7 +136,7 @@ test('instrumentación usa anclas únicas de la fuente real y conserva sintaxis,
   for(const match of changed.replace(/<!--[\s\S]*?-->/g,'').matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi))if(match[1].trim())new vm.Script(match[1]);
   assert.throws(()=>instrumentaTotales(html+html,main),/ambigua/);assert.throws(()=>instrumentaArranque(''),/ausente/);
 });
-test('fixture122 devuelve el acuse sin cambiar volumen ni las filas del pull',()=>{
+test('fixture123 devuelve el acuse sin cambiar volumen ni las filas del pull',()=>{
   for(const n of [2000,20000]){const f=recorrido.fixture(n);assert.equal(f.expenses.length,n);assert.equal(f.__cloudRows.expenses.length,n);
     assert.equal(f.__cloudFns['bank-sync'].data.links[0].ack,syntheticAck);assert.equal(f.fixed.length,6);
     assert.deepEqual(f.fixed.map(x=>x.day),[10,10,10,28,28,28]);}

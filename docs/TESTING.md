@@ -1098,7 +1098,7 @@ reproducción del lag ni mejora de rendimiento. La fuente183 tiene CI37810907496
 Inicio PR204, revisión119: inicio-v42 prueba manual real, deuda/intereses, bienes y aportaciones, unión400/30, nube acotada y nueve mutantes monetarios. La segunda revisión añade alta del formulario frente a montaje/pull, bienes legados constantes, banco→manual con escalones, deuda sin plazo y callback tardío sin sesión. Los e2e ya registrados protegen scroll vertical, cobertura por cuenta, mes natural/último día y ancho de Inversiones. La focal nueva de Inicio es serial; Claude asume funcional completa y rendimiento limpio en integración. Se conservan los rojos y A/B anteriores. [Ronda anterior](briefs/inicio-revision-nogo-20261012.md) · [segunda revisión](briefs/inicio-ronda3-bienes-20261012.md).
 
 
-### Banco LAG: ejecución122 y calibración física pendiente
+### Corte histórico del banco LAG: ejecución122 y calibración física pendiente
 
 La señal canónica de Claude8a836f737f2cf46b8a4546c13a84827f50203a15 del13/10 autoriza rebasar la rama propia sobre beta122, e6e211a5d94e50b03597d5c91230c974d3e72232. TASK/CLAIM y su base histórica no cambian. El rebase conserva las entradas de Inicio/Recibos y sus guardianes, añade una sola entrada del banco al runner y mantiene Inicio-rendimiento y banco-prolongado en el grupo serial de rendimiento. Ninguna fuente de producto, VERSION, workflow, backend, catálogo ni presupuesto se edita desde LAG: los1350/371KiB son los de esta base, sin relajación propia.
 
@@ -1107,3 +1107,12 @@ El primer Node tras ensamblar122 quedó23PASS/2FAIL: el sufijo del memo de total
 El retorno expreso de la reserva del coordinador consta enee476ed1; no libera DIROWN FIN01 retenido por otra sesión. La calibraciónCPU6 del guion exacto sigue pendiente de su autoridad propia. Sin nueva campaña ni CI de rendimiento hasta distinguir controles físicos buenos y malos con los mismos datos y umbrales. La suite funcional completa local está prohibida; su evidencia debe venir de CI Tests sobre el SHA final propio. Los bloqueos por falta de inercia, transición fuera del viewport y120px insuficientes para la subida no se consideran resueltos por este rebase.
 
 Verificación ligera de la candidata122:25/25 Node PASS, mutante que elimina reciboNo de la instrumentación rechazado conEXIT1, sintaxis/privacidad estática/frescura PASS, presupuesto1350/371KiB PASS y catálogo actual e históricos del recorte Inicio-v4.2 PASS. Los34 casos se listaron sin iniciar navegador. Las copias temporales del mutante se retiraron en la misma ejecución; los logs rojos anteriores se conservan. No se solicitó otraCI ni se ejecutó la calibración física pendiente.
+
+
+### Banco LAG: ejecución123 sin calibración física
+
+La señal canónica09b516fc449106737fd88c5fc79b1f310461d815 autoriza mantenimiento propio sobre beta123,3625fa7ed5134cfbc5e364adc4f588bfdaf670c0. La fuente122, sus pruebas y las CI anteriores se archivan antes del rebase; TASK/CLAIM y sus bases históricas no se reescriben. El memo instrumentado de11-app-main.js no cambia entre122y123: siguen los17 insumos con reciboNo. Los25 controles Node pasan sobre el HTML123 ensamblado, conservando anclas únicas, sintaxis, valores y referencias de dependencias; la etiqueta del informe pasa a beta123. La instrumentación no modifica la política123 de deudas, cuentas heredadas ni cobertura informativa de Inicio. Los topes1352/372KiB pertenecen a la base publicada; no hay aumento desde LAG.
+
+La autorización74150b7d para un focalCPU6 menor de10min está registrada, pero el preflight de solo lectura encontró el cerrojo ya ocupado. No hubo toma, limpieza, nuevo nonce/puerto, servidor, navegador ni DOM. El guion bueno/malo permanece pendiente; tampoco hay nuevaCI de campaña ni result/release. El ACK anterior rechazado conserva sus bytes y su misma pregunta humana; esta señal de mantenimiento no se toma como aprobación ni se intenta publicar por otra vía.
+
+Verificación ligera123:25/25 Node PASS; sintaxis, privacidad estática, frescura documental, presupuesto1352/372KiB y Catálogo123 con sus históricos del recorteInicio-v4.2 PASS. Los34 casos se listaron sin navegador. No se atribuye a esta fuente ningún DOM, CI nueva ni medida física; los mutantes y rojos de122 siguen siendo evidencia histórica de sus fuentes exactas.

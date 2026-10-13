@@ -153,7 +153,7 @@ for(const size of [2000,20000])test('banco de pendiente con fuga de lifecycle: '
   await dismissNews(page);await new Promise(resolve=>setTimeout(resolve,6000));
   await preparaTransporte(page);
   const out=testInfo.outputPath('banco-pendientes.json');mkdirSync(testInfo.outputDir,{recursive:true});
-  const report={schema:1,variant:'beta122-retained-lifecycle',sourceSHA:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),
+  const report={schema:1,variant:'beta123-retained-lifecycle',sourceSHA:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),
     executionBase:'788432f4682c199edd785f6973d9353330c0064a',
     htmlSHA256:hash(readFileSync('public/index.html')),servedHTMLSHA256,guionSHA256:hash(readFileSync(new URL(import.meta.url))),
     helperHashes:Object.fromEntries(helperNames.map(n=>[n,hash(readFileSync(new URL('./lag-banco-'+n+'.mjs',import.meta.url)))])),
