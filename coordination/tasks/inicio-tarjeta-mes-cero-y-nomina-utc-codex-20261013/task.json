@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "id": "inicio-tarjeta-mes-cero-y-nomina-utc-codex-20261013",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261013-32295a8f",
+  "createdAt": "2026-10-13T09:27:08.131Z",
+  "to": "codex",
+  "baseSHA": "3625fa7ed5134cfbc5e364adc4f588bfdaf670c0",
+  "objective": "Dos flecos de la tarjeta del mes de Inicio v4.2. Uno: con 0 euros restantes la tarjeta dice «Vas bien» en verde; es falso. Dos: nomina-anticipada con el NAVEGADOR en UTC (MC_NOMINA_TZ=UTC) da 3 rojos en la frontera de mes, sin investigar.",
+  "scope": [
+    "src/modules/03-tab-dash.js y 02-ui-shared.js (tarjeta del mes)",
+    "textos es, en y ca",
+    "e2e inicio-mes-natural, presupuesto-fluido, nomina-anticipada"
+  ],
+  "acceptance": [
+    "Tarjeta: decir con fichero y línea qué estados tiene hoy y con qué umbral. Con restante igual a 0 o negativo no puede decir que va bien ni pintarse en verde: texto neutro o de aviso ya existente en LANG, sin colores nuevos. Tabla de estados antes y después (restante holgado, justo, 0, negativo, sin presupuesto). El anillo sigue enseñando lo que QUEDA",
+    "Nómina en UTC: reproducir los 3 rojos, decidir si es fallo del producto (el mes o ciclo se calcula con la zona del navegador en vez de Madrid) o del test, y arreglar la causa. Si es producto, es dinero: barrido de fechas en la frontera de mes con zonas UTC, Madrid y Canarias",
+    "Correr TODOS los specs que abren Inicio (inicio, presupuesto, nomina, pulido, widget-banco) por tandas de 8 ficheros como mucho; nunca la suite entera en local",
+    "Sin tocar VERSION, notas, catálogo ni topes. Result con SHA, EXIT reales y lo no verificado"
+  ]
+}
