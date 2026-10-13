@@ -93,6 +93,15 @@ for(const failure of [false,true]){
 }
 const original=execFileSync('git',['show',base+':src/modules/11-app-main.js'],{encoding:'utf8',maxBuffer:3e6});
 {
+  const site='const asentado=reservaMensualAlDia(pullOkRef.current.then(mensualPuerta.vale));';
+  assert.equal(app.split(site).length,2,'el mutante del asiento toca un sitio real y único');
+  const t=transport(app.replace(site,'const asentado=Promise.resolve();'));
+  t.stateRead.resolve({data:{accounts:[],investments:[],debts:[],fixed:[],expenses:[],budget:2500,_savedAt:99}});
+  await ticks();t.expensesRead.resolve();await ticks();t.w.commit();t.w.frame();t.w.frame();
+  assert.equal(t.ready().budget,2500);assert.equal(t.ready().expenses.length,1);
+  assert.throws(()=>definitive(t.ready()),assert.AssertionError,'sin asiento se mata el mutante por estado, no por identificador ausente');
+}
+{
   const t=transport(original);t.stateRead.resolve({data:{accounts:[],investments:[],debts:[],fixed:[],expenses:[],budget:2500}});
   await ticks();t.expensesRead.resolve();await ticks();
   assert.ok(t.ready(),'la base emite ready antes de entregar un frame');

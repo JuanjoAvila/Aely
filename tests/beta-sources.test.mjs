@@ -2207,7 +2207,9 @@ test("META91 vigila el lector de importes, los avisos, el estado y los céntimos
     ["src/modules/11-app-main.js",'if(trackRef.current && e.currentTarget!==trackRef.current.children[tab]) return;',''],
     ["src/modules/11-app-main.js",'    syncFromCloud(sessionRef.current);\n    (pullOkRef.current||Promise.resolve(false)).then(fin,fin);','    set(function(s){ return applyReservaMensual(s); }); fin();'],
     ["src/modules/11-app-main.js",'    document.addEventListener("visibilitychange",reservaMensualAlVolver);\n',''],
-    ["src/modules/11-app-main.js",'    reservaMensualAlDia(pullOkRef.current.then(mensualPuerta.vale));\n',''],
+    // Arranque conserva la Promise para esperar el commit; el mutante sigue quitando
+    // el asiento completo, sin dejar un identificador inexistente en el callback.
+    ["src/modules/11-app-main.js",'    const asentado=reservaMensualAlDia(pullOkRef.current.then(mensualPuerta.vale));\n','    const asentado=Promise.resolve();\n'],
     // Nube con estado inválido: el pull «termina bien» tras rescatar lo local, y no debe asentar.
     // Y la validez es de cada pull: ni saltarse la lectura ni compartirla entre invocaciones.
     ["src/modules/11-app-main.js",'reservaMensualAlDia(pullOkRef.current.then(mensualPuerta.vale));','reservaMensualAlDia(pullOkRef.current);'],

@@ -1,7 +1,7 @@
 # Arranque: preparar el estado de nube antes de retirar la cortina
 
 Candidata del encargo `arranque-pinta-nube-antes-del-splash-codex-20261013`, sesión
-`codex-local-20261013-arranque-1aa78677`, claim889ce8ff abierto. Base del claim123
+`codex-local-20261013-arranque-1aa78677`, claim889ce8ff abierto durante esta preparación. Base del claim123
 `3625fa7ed5134cfbc5e364adc4f588bfdaf670c0` inmutable; ejecución rebasada por la señal
 de Claude sobre124 `f5904735b514751ee926d25c22c92195b6ce3653`.
 
@@ -50,6 +50,18 @@ nube lenta. Cuenta RAF>32ms durante3s desde retirar el nodo, llamadas a serie/Ga
 estado visto al entrar y sincronizaciones bancarias. Guarda cada raw, incluso parcial.
 La sonda y ancla se adaptan de PR219/source05704393; su caso antiguo no siembra
 app_state más nuevo, así que **su calibración no acredita este escenario**.
+Tests38405882533 sobref071851a terminó FAILURE/EXIT1 en2502,2s. El Node nuevo y
+siete suites Deno pasaron; PW funcional/rendimiento no se ejecutaron y la privacidad
+independiente del workflow se omitió. beta-sources falló en Catálogo124/Retiro124 por
+huellas nuevas y en META91 porque su mutante buscaba el literal anterior del asiento.
+La revisión siguiente sólo adapta ese literal al nuevo `const asentado`, preservando
+su propósito y añadiendo un oráculo que mata la omisión del asiento por estado real.
+Los catálogos/identidades, VERSION y tamaño siguen pendientes de integración.
+Log íntegro370612B/SHA256
+`4f8829059804ffc54d8dd0dc6c7d750d93648285b70b2203f652cc9785e919e5`.
+Esta CI anterior no se atribuye al HEAD que incorpora la corrección del mutante;
+se despacha Tests final otra vez sobre ese HEAD. No es un verde ni un A/B físico.
+
 El HTML baseline124 oficial tiene2217108B/SHA256
 `b1451886953703315f73477aa5758310dd5cdbfcdfecccee1cbbdd05cbaf3fda` en esta máquina.
 
