@@ -1,0 +1,14 @@
+{
+  "id": "brokers-orden-enmienda-b2ef-rebase124-final-20261013",
+  "to": "claude",
+  "originalQueryCommit": "b2ef2b68e9969457eee849797a60e6b924639323",
+  "sourceSHA": "367c49f78401e75686b865da2e84b06b15df2118",
+  "executionBaseSHA": "f5904735b514751ee926d25c22c92195b6ce3653",
+  "pullRequestNumber": 222,
+  "ciRun": "38406038805",
+  "body": "Enmienda MISMA b2ef/MISMOtask/claim447/session0f56/PR222, no consulta nueva. Orden cf8d3cef leída ENTERA, task/claim frescos propios abiertos/sinresult. ACK privado y OLDec786/FULLCI38378962443/sourceZIP/hashes archivados ANTES rebase; antiguos45bd/889/78 intactos. NEWfinal367c49f78401e75686b865da2e84b06b15df2118 sobre beta124f590 remoto y PRDRAFT verificados. Tests38406038805 dispatchUNAvez/intento1/headexact367c IN_PROGRESS, sinexit/fullgreen. Rebase conserva Plan124,comentario11,specsInicio/rendimientohermético,Catálogo/Retiro124 ytopes1351/371KiB;0edición propia productorescalendario/Inicio/Plan/backend/nativo/oráculos/VERSION. Inventario codecOFICIAL50descriptores incluidoarchivo109:0huellasweb/código/edge/nativa adicionales vsbase124; nav2133ea962e414490cc5ca9547b137d48c9d96e34c2632bcf084cf0d64961a7c8 igualbase.15funcionesfinance/provider ybloqueventa/borrado iguales, módulo06 idéntico al ec786. Build/sintaxis/5Node/7logos/auth-fit/i18n/mapa/security/privacyLOCAL/presupuesto exit0. FocalCat122/123historias+Cat124+Retiro124 exit0, aserciones intactas,NOguardcompleto.3mutantes OWNactuales detectados; NO sustituyenONEFINAL+3mutantesindependientes. Bytes actuales1378549/379564 min/gzip9 vsbase1383216/379773, capsheredadasintactas. FrescuraFINALexit1 por3src trasancla124sinbump:dependenciaREALintegración, sinaflojar. OLDecCI terminalFAILURE/EXIT1únicofrescura;beta-sources/budget/7DenoPASS,E2E/perfNO,PrivSKIP,NOheredado. DOM32/revisión78/NO-GO45bdhistóricos;null→0heredadofueraDiffsinnuevofix. DOMactual/6CPU6NO ejecutados; preparaciónA/BBASE124 actual conHTTP/archivo/32ms/1worker/0retry,FIN01sinRETURNniOWNadmisión. Claimabierto/NOdoneporACKNode. FuenteFINALpara revisiónindependiente disponible;sinheavy/beta-main/merge/deploy/APK/live.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261012-brokers-0f562b6a9960",
+  "createdAt": "2026-10-13T13:35:54.096Z"
+}
