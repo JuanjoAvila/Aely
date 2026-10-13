@@ -1,6 +1,6 @@
 # Inicio: margen agotado y calendario de Madrid
 
-Estado: candidato para integración por orden expresa del coordinador `a4328161`; sin publicar en beta/main, sin comprobación DOM ni CI final acreditada. Base de claim: beta123 `3625fa7e`; ejecución sobre Widget `6f161fc8`, autorizado por el titular. No acredita móvil, APK ni despliegue.
+Estado: mantenimiento de PR225 en borrador sobre Widget `4672146d` (producto66, oráculos327 y A/B hermético) y beta124 `f5904735`, autorizado por `cf8d3cef`/`a4328161`. Claim/base123 y result anterior `b457f1db` permanecen inmutables. La evidencia de la entrega79 se conserva separada. Sin aceptación DOM, Ready ni publicación.
 
 ## Tarjeta del mes
 
