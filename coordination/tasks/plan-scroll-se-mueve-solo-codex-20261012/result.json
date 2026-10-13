@@ -1,0 +1,62 @@
+{
+  "status": "cancelled",
+  "summary": "Cancelado por reasignacion expresa a Claude en 3d443cd909835cb4df5d6b23b5754be8857d0a5d. Cesa todo trabajo nuevo de Plan. No hay reproduccion DOM, medidas ni parche de producto propios; solo guion privado preparado de 24 escenarios, nunca ejecutado en Chromium.",
+  "tests": [
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "sourceSHA": "788432f4682c199edd785f6973d9353330c0064a"
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0,
+      "sourceSHA": "788432f4682c199edd785f6973d9353330c0064a",
+      "scriptBlocks": 7
+    },
+    {
+      "command": "node tests/beta-sources.test.mjs",
+      "exitCode": 0,
+      "sourceSHA": "788432f4682c199edd785f6973d9353330c0064a",
+      "logicMutations": 2388,
+      "dataMutations": 919
+    },
+    {
+      "command": "node probe.mjs --prepare (guion privado, sin navegador)",
+      "exitCode": 0,
+      "scenariosPrepared": 24,
+      "browserStarted": false
+    },
+    {
+      "command": "git status --porcelain; git log -1",
+      "exitCode": 0,
+      "clean": true,
+      "head": "788432f4682c199edd785f6973d9353330c0064a"
+    },
+    {
+      "command": "Censo de procesos limitado a checkout, guion y sesion propios",
+      "exitCode": 0,
+      "matchedOwnProcesses": 0
+    }
+  ],
+  "historicalTaskBaseSHA": "7e706174255f1868d15099e11a503dd23d9aa774",
+  "lastExecutionBaseSHA": "788432f4682c199edd785f6973d9353330c0064a",
+  "cancellationAuthority": "3d443cd909835cb4df5d6b23b5754be8857d0a5d",
+  "localBranch": "codex/plan-scroll-20261012",
+  "branchPublished": false,
+  "productChanged": false,
+  "ownHeavyResourcesInFlight": false,
+  "preserved": "Checkout, rama local, guion y registros privados conservados; task y claim historicos intactos. Sin rebase a122 tras la retirada del encargo.",
+  "limitations": [
+    "Los verdes corresponden a preparacion y contratos heredados de beta119; no acreditan correccion del gesto ni evidencia sobre beta122.",
+    "No se ejecutaron los 24 escenarios; no existe e2e causal rojo en base y verde en candidata.",
+    "No se conoce la causa del salto. Las hipotesis estaticas no son medidas.",
+    "Los turnos de navegador quedaron pendientes de reservas expresas; nunca se tomo un lock pesado propio.",
+    "Sin PR de Plan, CI propia, publicacion de producto ni aceptacion movil. No se toca la nueva rama de Claude."
+  ],
+  "schema": 1,
+  "taskId": "plan-scroll-se-mueve-solo-codex-20261012",
+  "actor": "codex",
+  "sessionId": "codex-local-20261012-e7fb6268432b",
+  "createdAt": "2026-10-13T04:55:35.369Z",
+  "released": true
+}
