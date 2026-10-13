@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "id": "arranque-nube-mas-nueva-se-pierde-codex-20261013",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261013-32295a8f",
+  "createdAt": "2026-10-13T15:37:36.043Z",
+  "to": "codex",
+  "baseSHA": "6342459b0eeecd65eb1817db8e01bc179787c549",
+  "objective": "Hallazgo de DINERO salido de la medida del arranque, ya presente en la beta: una nube más nueva puede perderse al arrancar. Una escritura de arranque vuelve a sellar _savedAt (11-app-main.js hacia 352) ANTES de aplicar el pull, y entonces lo local «gana» por fecha aunque sea más viejo. Reproducido con un estado recién sembrado (migraciones de un solo uso y budgetByMonth del mes): una nube un minuto más nueva se descarta. Con el estado ya asentado no pasa.",
+  "scope": [
+    "src/modules/11-app-main.js (set, syncFromCloud, arranque) y 00-core.js en lo que toca al sello _savedAt",
+    "tests de Node y un e2e de persistencia"
+  ],
+  "acceptance": [
+    "Reproducir primero y decir qué escrituras de arranque sellan _savedAt sin que el usuario haya cambiado nada (migraciones, budgetByMonth del mes, normalizaciones) con fichero y línea",
+    "Una escritura que el usuario no ha hecho no puede hacer que lo local gane a la nube: o no sella, o el sello que se compara con la nube es el de la última edición real. Probar local más nuevo de verdad (gana lo local), nube más nueva (gana la nube aunque haya migraciones al arrancar) e iguales (no cambia nada)",
+    "Coordinar con la unión por hora de lápidas, vetos y recibos de la rama claude/recibos-bajas-y-union (en origin): no romper sus reglas",
+    "Sin tocar el guardado partido de expenses ni reintroducir escrituras del estado entero. Tests que fallen sin el arreglo. Result con SHA y EXIT reales"
+  ]
+}
