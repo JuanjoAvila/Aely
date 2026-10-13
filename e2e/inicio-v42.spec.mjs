@@ -223,6 +223,14 @@ async function openGoodsHistory(page,overrides){
     settings:{autoPrices:false,budgetCycle:false},...overrides});
   await page.goto("/");await page.waitForFunction(()=>!document.getElementById("mc-load"));await dismissNews(page);
 }
+// El rango por defecto es un mes (32 puntos): la cobertura entera, del 1/8 al 4/9, sólo se
+// mide con «Todo». Devuelve las alturas para poder acreditar también la forma de la serie.
+async function wholeGoodsLine(hero){
+  const all=hero.locator(".v42-net-ranges button").last();
+  await all.click();await expect(all).toHaveAttribute("aria-pressed","true");
+  const path=await hero.locator(".v42-net-line").getAttribute("d");
+  return [...path.matchAll(/[ML][\d.]+ ([\d.]+)/g)].map(x=>Number(x[1]));
+}
 async function ownGoodsState(page){
   return page.evaluate(()=>{window.dispatchEvent(new Event("pagehide"));const s=mcLoadRaw(mcStateKey());return {assets:s.assets,history:s.assetValueHistory};});
 }
@@ -231,20 +239,27 @@ for(const lang of ["es","en","ca"])test("RONDA3 bien legado conserva gráfica y 
   const hero=page.getByTestId("inicio-net-current");
   await expect(hero.locator(".v4-hero-amt")).toContainText("205.000,00 €");
   await expect(hero.locator(".v42-net-line")).toHaveCount(1);
-  const path=await hero.locator(".v42-net-line").getAttribute("d");expect([...path.matchAll(/[ML]/g)]).toHaveLength(35);
+  expect(await wholeGoodsLine(hero)).toHaveLength(35);
   await expect(hero.getByTestId("inicio-net-coverage")).toContainText("Piso sintético:");
   await expect(hero.getByTestId("inicio-net-coverage")).toContainText(lang==="es"?"antes se mantiene el valor actual":lang==="en"?"earlier dates keep the current value":"abans es manté el valor actual");
   const stored=await ownGoodsState(page);expect(stored.history?.["legacy-home"]).toBeUndefined();
 });
 test("RONDA3 piso que llega de la nube no nace al montar el móvil",async({page})=>{
   const incoming={budget:1000,accounts:[goodsBank],assets:[{id:"cloud-home",name:"Piso nube sintético",value:200000}],
-    investments:[],debts:[],fixed:[],flows:[],oneoffs:[],expenses:goodsExpenses,goals:[],shared:[],settings:{autoPrices:false,budgetCycle:false},onboarded:true};
-  await openGoodsHistory(page,{assets:[],__cloudRows:{app_state:[{data:incoming,updated_at:"2026-09-04T12:00:00Z"}]}});
+    investments:[],debts:[],fixed:[],flows:[],oneoffs:[],expenses:goodsExpenses,goals:[],shared:[],settings:{autoPrices:false,budgetCycle:false},onboarded:true,
+    // Sin sello gana el estado local (la app sella el suyo al arrancar) y la nube no se
+    // aplica: el caso pasaba o caía sin haber recibido nunca el piso.
+    _savedAt:Date.parse("2026-09-04T12:00:00Z")+600000};
+  await openGoodsHistory(page,{assets:[],__cloudRows:{app_state:[{data:incoming,updated_at:"2026-09-04T12:10:00Z"}]}});
   const hero=page.getByTestId("inicio-net-current");
   await expect(hero.locator(".v4-hero-amt")).toContainText("205.000,00 €");
-  await expect(hero.getByTestId("inicio-net-delta")).toContainText("100");
-  expect([...((await hero.locator(".v42-net-line").getAttribute("d"))).matchAll(/[ML]/g)]).toHaveLength(35);
-  expect((await ownGoodsState(page)).history?.["cloud-home"]).toBeUndefined();
+  const ys=await wholeGoodsLine(hero);expect(ys).toHaveLength(35);
+  // Plana salvo el gasto de 100 del 20/8: dos alturas y ninguna subida de 200.000.
+  expect(new Set(ys).size).toBe(2);expect(ys.every((y,i)=>!i||y>=ys[i-1])).toBe(true);
+  await expect(hero.getByTestId("inicio-net-delta")).toHaveText(/(^|\D)100 €/);
+  const stored=await ownGoodsState(page);
+  expect(stored.assets).toEqual([{id:"cloud-home",name:"Piso nube sintético",value:200000}]);
+  expect(stored.history?.["cloud-home"]).toBeUndefined();
 });
 test("RONDA3 guardar el alta en Bienes acredita la fecha sin cambiar días anteriores",async({page})=>{
   await openGoodsHistory(page,{assets:[]});
@@ -262,6 +277,22 @@ test("RONDA3 guardar el alta en Bienes acredita la fecha sin cambiar días anter
   await page.reload();await page.waitForFunction(()=>!document.getElementById("mc-load"));await dismissNews(page);
   expect((await ownGoodsState(page)).history[saved.assets[0].id]).toEqual(saved.history[saved.assets[0].id]);
 });
+test("revalorar un bien heredado conserva la gráfica y su valor anterior",async({page})=>{
+  await openGoodsHistory(page,{assets:[{id:"legacy-car",name:"Coche sintético",kind:"coche",value:15000}]});
+  await page.locator('.botnav-tab[data-tour="cartera"]').click();
+  await page.locator("button.v4-mov").filter({hasText:"Coche sintético"}).click();
+  const sheet=page.getByRole("dialog",{name:"Editar bienes",exact:true});
+  await sheet.getByLabel("Valor en euros").fill("12000");
+  await sheet.getByRole("button",{name:"Guardar",exact:true}).click();
+  expect((await ownGoodsState(page)).history["legacy-car"]).toEqual([{day:"2026-09-03",value:15000,legacy:true},{day:"2026-09-04",value:12000}]);
+  await page.locator('.botnav-tab[data-tour="inicio"]').click();
+  const hero=page.getByTestId("inicio-net-current");await expect(hero.locator(".v4-hero-amt")).toContainText("17.000,00 €");
+  // Antes la serie se quedaba en un punto: sin línea, sin rangos y sin frase de comparación.
+  const ys=await wholeGoodsLine(hero);expect(ys).toHaveLength(35);
+  expect(new Set(ys).size).toBe(3);expect(ys.every((y,i)=>!i||y>=ys[i-1])).toBe(true);
+  await expect(hero.getByTestId("inicio-net-delta")).toHaveText("3.100 € menos desde que empezaste");
+  await expect(hero.getByTestId("inicio-net-coverage")).toContainText("Coche sintético: valor propio desde 4 sept 2026; antes se mantiene el valor que tenía.");
+});
 test("RONDA3 banco a hucha con escalones mantiene el patrimonio plano",async({page})=>{
   await openGoodsHistory(page,{accounts:[{...goodsBank,value:300},{id:"manual-hucha",ent:"revolut",value:600,role:"fijos"}],
     assets:[],expenses:[{...goodsExpenses[0],date:"2026-09-01T12:00:00Z"},
@@ -275,7 +306,7 @@ test("RONDA3 banco a hucha con escalones mantiene el patrimonio plano",async({pa
 test("RONDA3 deuda sin día de cuota declara la convención mensual",async({page})=>{
   await openGoodsHistory(page,{assets:[],debts:[{id:"no-day",name:"Préstamo sintético",value:10000,monthly:500,amort:400,months:null,asOf:2026*12+7,asOfDate:"2026-08-01"}]});
   const hero=page.getByTestId("inicio-net-current");
-  await expect(hero.locator(".v4-hero-amt")).toContainText("-4.600,00 €");
+  await expect(hero.locator(".v4-hero-amt")).toContainText("-4600,00 €");
   await expect(hero.getByTestId("inicio-net-coverage")).toContainText("Deudas: sin día de cargo; la amortización se sitúa al empezar el mes.");
   await expect(hero.locator(".v42-net-line")).toHaveCount(1);
 });
