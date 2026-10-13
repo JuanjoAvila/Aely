@@ -517,6 +517,9 @@ function App(){
         const kept=keepCategoryChoices(prev.expenses, incoming, readStartedAt);
         const merged=mergeExpensesFromCloud(kept.prev, kept.incoming, readStartedAt);
         const next=merged.list;
+        // El aviso ganó a un cargo de recibo: su fila del banco deja de llevar la marca en la nube,
+        // o el servidor contaría una u otra según el orden en que las lea.
+        if(merged.sinMarca.length) setTimeout(function(){ merged.sinMarca.forEach(function(e){ cloud.setExpenseRecibo(e).catch(function(){}); }); },0);
         const igual=!merged.changed && next.length===(prev.expenses||[]).length
           && next.every(function(e,i){ return e===(prev.expenses||[])[i]; });
         // Call site 3/3 de fixMovInvasion (tras pull expenses). Contención 4.18.6: sin bloque (b).

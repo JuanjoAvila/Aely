@@ -5011,10 +5011,21 @@ function mergeExpensesFromCloud(prevList, incoming, readStartedAt){
   /* EL AVISO DEL MÓVIL GANA AL CARGO DE RECIBO DE SU MISMO DÍA, IMPORTE Y COMERCIO, llegue cuando
      llegue (cuarta revisión, 13/10/2026). Con el aviso ya en la lista el banco no añade su fila y
      el aviso cuenta, como siempre; si el aviso bajaba después, se fundía con la fila marcada y
-     dejaba de contar (10,99 frente a 0 según el orden). Ahora los dos órdenes acaban igual. */
+     dejaba de contar (10,99 frente a 0 según el orden). Ahora los dos órdenes acaban igual.
+     La fila que queda es LA MISMA de antes (su id, y con él el orden a mano; la categoría, la
+     nota y el «no tarjeta» que él puso) con el origen del aviso y sin la marca. Y la fila del
+     banco pierde la marca también en la nube (`sinMarca`, lo sube quien llama): con una
+     marcada y otra no, el servidor contaba 10,99 o 0 según cuál leyera primero; sin marca, las
+     dos son el mismo gasto y da igual cuál se quede. Se repite en cada pull mientras la nube
+     siga trayendo la marca, por si aquella escritura no llegó. */
+  const sinMarca=[];
+  const suelta=function(fila){ const x=Object.assign({},fila); delete x.reciboId; sinMarca.push(x); return x; };
   const ganaAviso=function(k,inc){
-    if(!byKey[k].reciboId || esFilaDeBanco(inc)) return false;
-    byKey[k]=inc; changed=true;
+    const loc=byKey[k];
+    if(esFilaDeBanco(inc)){ if(inc.reciboId && !esFilaDeBanco(loc)) suelta(inc); return false; }
+    if(!loc.reciboId) return false;
+    byKey[k]=Object.assign({},suelta(loc),{source:inc.source,ent:inc.ent});
+    changed=true;
     return true;
   };
   (incoming||[]).forEach(function(inc){
@@ -5028,7 +5039,7 @@ function mergeExpensesFromCloud(prevList, incoming, readStartedAt){
     if(merged!==loc){ byKey[k]=merged; changed=true; }
   });
   const list=order.map(function(k){ return byKey[k]; });
-  return { list:list, changed:changed, nuevos:nuevos };
+  return { list:list, changed:changed, nuevos:nuevos, sinMarca:sinMarca };
 }
 
 /* LA CATEGORÍA QUE ÉL ELIGIÓ NO LA DESHACE UN PULL (2026-10-02).
@@ -6689,15 +6700,21 @@ function expenseBucket(e, s){
    cierre de mes, el redondeo, la foto del hogar y lo que se pinta. La marca sola no basta:
    · si la fila es además cuota de una deuda, gana la deuda;
    · si el recibo ya no existe, la fila es un gasto normal (antes seguía fuera del gastado y la
-     ficha enseñaba un texto roto);
+     ficha enseñaba un texto roto)… salvo que se borrara DESPUÉS de ese cargo: lo de periodos
+     ya cerrados sigue siendo de aquel recibo, con su nombre, y no mueve sus cifras
+     (`reciboBorrado`, ver `sinCargoDelPlan`);
    · si él dijo «no es este recibo» (`reciboNo`, que viaja en el estado), deja de serlo también
      en el móvil que todavía tiene la fila marcada. */
 function cargoDeRecibo(e, s){
   if(!e || !e.reciboId || e.debtId || !s) return null;
   const id=e.reciboId;
-  const f=(s.fixed||[]).find(function(x){ return x && x.id===id; }) || (s.oneoffs||[]).find(function(x){ return x && x.id===id; });
-  if(!f || reciboVetado(s, id, fixedPaymentIdentity(expenseBankOf(e), e), e.id)) return null;
-  return f;
+  let f=(s.fixed||[]).find(function(x){ return x && x.id===id; }) || (s.oneoffs||[]).find(function(x){ return x && x.id===id; });
+  if(!f){
+    const b=s.reciboBorrado && s.reciboBorrado[id];
+    if(!b || dateMs(e.date)>=b.d) return null;
+    f={ id:id, name:b.n, borrado:true };
+  }
+  return reciboVetado(s, id, reciboNoIdentidad(e), e.id) ? null : f;
 }
 /* Lo que la lista escribe junto a un cargo de recibo: «Recibo: X» si es seguro, «¿Recibo: X?» si
    solo lo parece (`cargoDeReciboFirme`); "" si no es de ninguno. Texto y no objeto: va de prop
@@ -6705,7 +6722,8 @@ function cargoDeRecibo(e, s){
 function reciboEtiqueta(s, e){
   const f=cargoDeRecibo(e, s);
   if(!f) return "";
-  return tf(cargoDeReciboFirme(e, s) ? "g_recibo_de" : "g_recibo_quiza", { name:f.name||"" });
+  if(!f.name) return t("bp_hist_recibo");
+  return tf(cargoDeReciboFirme(e, s) ? "g_recibo_de" : "g_recibo_quiza", { name:f.name });
 }
 /* Redondeo y saveback estimados del mes para la tarjeta de Cartera. Sin el cargo de un recibo,
    que no es una compra: con él dentro el redondeo subía con cada recibo (4,30 → 9,50 medido). */
@@ -9945,7 +9963,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
        un «no es este recibo»: ahí el cargo vuelve a ser el de su recibo y deja de sumar en
        Gastos, que es lo que dice el texto de la marca. Solo se anuncia si la marca va a volver
        de verdad (`admiteMarcaDe`): con el recibo movido a otro banco no vuelve. */
-    const repone=!!de&&reciboNoDe(state,fixedId,expected.identity,ex.id).length>0&&admiteMarcaDe(ex,de);
+    const repone=!!de&&reciboNoDe(state,fixedId,reciboNoIdentidad(ex),ex.id).length>0&&admiteMarcaDe(ex,de);
     if(!f&&!repone) return;
     askConfirm({title:tf("f_receipt_confirm",{name:de.name}),
       sub:repone?tf("f_recibo_marca",{name:de.name}):tf("f_receipt_confirm_sub",{merchant:ex.merchant,amount:eur(ex.amount),bank:entOf(expenseBankOf(ex)).label,date:fmtIsoCorto(ds),planned:entOf(accOf(f)).label,expected:eur(f.bankAmount>0?f.bankAmount:occAmountIn(f,m))}),
@@ -10923,7 +10941,7 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
   // Los puntuales no se vinculan a mano; solo se ofrece el que se vetó para ESTE cargo, que es
   // la única vuelta atrás de un «No es este recibo» sobre un puntual (cuarta revisión).
   const receiptPuntuales=(state.oneoffs||[]).filter(function(o){
-    return o.id&&admiteMarcaDe(exp,o)&&reciboNoDe(state,o.id,fixedPaymentIdentity(expenseBankOf(exp),exp),exp.id).length>0;
+    return o.id&&admiteMarcaDe(exp,o)&&reciboNoDe(state,o.id,reciboNoIdentidad(exp),exp.id).length>0;
   });
   const adjustments=React.createElement("div",{className:"v4-ficha-adjust"},
     // Con marca de recibo la fila sale siempre: si no, «No es este recibo» quedaba inalcanzable
@@ -14069,6 +14087,11 @@ function reciboVetado(s,id,identity,filaId){
    también la identidad para que quien lo levante desde OTRO móvil, donde la misma fila tiene
    otro id local, pueda encontrarla (`reciboNoDe`): sin eso el veto seguía vivo en el primero. */
 function reciboNoClaves(id,identity,filaId){ return [id+"|"+identity,id+"|#"+filaId+"|"+identity]; }
+/* La identidad de una FILA para el veto lleva su ordinal (13/10/2026). Con los apuntes iguales
+   del mismo día, varios cargos comparten banco, día, importe y nombre: vetar uno por esa identidad
+   a secas los soltaba todos (gastado 0 → 21,98 cuando lo dicho era 10,99) mientras la nube
+   desmarcaba solo el tocado. El ordinal viaja con la fila, así que es el mismo en los dos móviles. */
+function reciboNoIdentidad(e){ return fixedPaymentIdentity(expenseBankOf(e),e)+obOrdinalSufijo(e); }
 function reciboNoDe(s,id,identity,filaId){
   var cola="|"+identity;
   return (s.reciboNo||[]).filter(function(k){
@@ -14244,7 +14267,7 @@ function fixedPaymentState(s,e,y,m,today){
       // Los cuatro creadores no ponen categoría en el recibo: su ausencia no es
       // una categoría distinta. Si existe, sigue vetando comercios incompatibles.
       if(expenseBankOf(x)!==bank&&e.category&&x.category&&x.category!=="otros"&&x.category!==e.category) return false;
-      if(!fixedExpenseEligible(s,x,e,y,m,today)||reciboVetado(s,e.id,fixedPaymentIdentity(expenseBankOf(x),x),x.id)) return false;
+      if(!fixedExpenseEligible(s,x,e,y,m,today)||reciboVetado(s,e.id,reciboNoIdentidad(x),x.id)) return false;
       // El BOOK admite tolerancia de importe; su copia en Gastos no puede eliminar
       // a ese ganador y adjudicar el mismo cargo a otro recibo con céntimos exactos.
       var identity=fixedPaymentIdentity(expenseBankOf(x),x),book=(s.bankTx||[]).some(function(tx){
@@ -15183,6 +15206,8 @@ function reciboParaCargo(s, hits, e, txs){
 function cargoDeReciboFirme(e, s){
   const f=cargoDeRecibo(e, s);
   if(!f) return false;
+  // De un recibo ya borrado no queda motor al que preguntar: fue su cargo y así se rotula.
+  if(f.borrado) return true;
   /* La lista lo pregunta por cada fila marcada en CADA render, y el motor reindexa los gastos
      del mes que se le pide: con filas de dos meses a la vista eran dos pasadas por todo el
      histórico por render. Se recuerda la respuesta mientras no cambie nada de lo que el motor lee. */
@@ -15260,7 +15285,7 @@ function quitarCargoDeRecibo(s, expenseId, ahora){
     return Object.assign({}, f, { paymentProofs:proofs });
   });
   const sin=Object.assign({}, s, { expenses:s.expenses.map(function(x){ return x===orig ? e : x; }), fixed:fixed },
-    reciboNoPon(s, reciboNoClaves(id, identity, orig.id), true, ahora||Date.now()));
+    reciboNoPon(s, reciboNoClaves(id, reciboNoIdentidad(orig), orig.id), true, ahora||Date.now()));
   return { state:conSaldoMostrado(s, sin), e:e };
 }
 // La marca viaja en `source` y solo `ob`/`ob-hist` saben llevarla; y solo del banco del recibo.
@@ -15283,7 +15308,7 @@ function reponerCargoDeRecibo(s, expenseId, fixedId, y, m, today, expected, ahor
   const fijo=x && (s.fixed||[]).find(function(r){ return r && r.id===fixedId; });
   const f=fijo || (x && (s.oneoffs||[]).find(function(r){ return r && r.id===fixedId; }));
   if(!f) return null;
-  const identidad=fixedPaymentIdentity(expenseBankOf(x), x), claves=reciboNoDe(s, fixedId, identidad, x.id);
+  const identidad=fixedPaymentIdentity(expenseBankOf(x), x), claves=reciboNoDe(s, fixedId, reciboNoIdentidad(x), x.id);
   if(!claves.length) return null;
   const marcar=admiteMarcaDe(x, f);
   if(!fijo && (!marcar || (expected && expected.identity!==identidad))) return null;
@@ -15295,25 +15320,35 @@ function reponerCargoDeRecibo(s, expenseId, fixedId, y, m, today, expected, ahor
   const con=e ? Object.assign({}, link, { expenses:link.expenses.map(function(r){ return r===x ? e : r; }) }) : link;
   return { state:conSaldoMostrado(s, con), e:e };
 }
-/* BORRAR UN RECIBO O UN PUNTUAL DEVUELVE SUS CARGOS A GASTO NORMAL (`cargoDeRecibo` ya no lo
-   encuentra) y, fuera de un sync, eso movía el saldo con el banco quieto (medido en cuenta de
-   gasto diario: 397,60 → 335,20, el importe del cargo). Solo se sujeta el saldo si había un
-   cargo suyo marcado este mes; sin ninguno, borrar hace lo de siempre.
-   Las filas pierden además la marca, aquí y en la nube (cuarta revisión, 13/10/2026): el
-   servidor del widget deja fuera todo `~recibo.` sin saber si el recibo existe, y con la marca
-   puesta la app contaba el cargo y el widget no (medido: hasta 1.200,50 € de diferencia).
-   → {state, subir} con las filas ya sin marca, para reescribir su `source`. */
+/* BORRAR UN RECIBO O UN PUNTUAL DEVUELVE A GASTO NORMAL SUS CARGOS DEL PERIODO EN CURSO, y solo
+   esos (13/10/2026). El periodo es el del gastado: mes natural o «Mi ciclo» (`budgetPeriodOf`).
+   · Los de periodos ya cerrados conservan la marca y sus cifras: desmarcarlos todos subía el
+     gastado de meses pasados (agosto 30 → 92,40) que antes de esta entrega no se movían.
+   · Los del periodo en curso pierden la marca aquí y en la nube: el servidor del widget deja
+     fuera todo `~recibo.` sin saber si el recibo existe, y la app contaba el cargo y el widget
+     no (medido: hasta 1.200,50 € de diferencia).
+   · `reciboBorrado[id]` guarda desde cuándo y cómo se llamaba. Viaja en el estado: el otro
+     móvil, que aún tiene esas filas marcadas, las cuenta igual (`cargoDeRecibo`), y las de
+     antes siguen diciendo de qué recibo eran.
+   Fuera de un sync eso movía el saldo con el banco quieto (cuenta de gasto diario: 397,60 →
+   335,20): se sujeta si había un cargo suyo marcado. → {state, subir} con las filas ya sin
+   marca, para reescribir su `source`. */
 function sinCargoDelPlan(s, lista, id){
-  const subir=[];
+  const subir=[], desde=budgetPeriodOf(s).startMs, mes=startOfMonth().getTime();
+  const era=(s[lista]||[]).find(function(x){ return x.id===id; });
+  let marcadas=false, delMes=false;
   const expenses=(s.expenses||[]).map(function(e){
     if(!e || e.reciboId!==id) return e;
+    marcadas=true;
+    if(dateMs(e.date)>=mes && cargoDeRecibo(e, s)) delMes=true;
+    if(dateMs(e.date)<desde) return e;
     const x=Object.assign({}, e); delete x.reciboId;
     subir.push(x);
     return x;
   });
-  const out=Object.assign({}, s, { [lista]:(s[lista]||[]).filter(function(x){ return x.id!==id; }) }, subir.length ? { expenses:expenses } : null);
-  const mes=startOfMonth().getTime();
-  return { subir:subir, state:(s.expenses||[]).some(function(e){ return e.reciboId===id && dateMs(e.date)>=mes && cargoDeRecibo(e, s); }) ? conSaldoMostrado(s, out) : out };
+  const out=Object.assign({}, s, { [lista]:(s[lista]||[]).filter(function(x){ return x.id!==id; }) }, subir.length ? { expenses:expenses } : null,
+    marcadas ? { reciboBorrado:Object.assign({}, s.reciboBorrado, { [id]:{ d:desde, n:(era&&era.name)||"" } }) } : null);
+  return { subir:subir, state:(delMes || subir.length) ? conSaldoMostrado(s, out) : out };
 }
 // Las cuatro puertas de borrado de Plan pasan por aquí: el estado y, después, la nube.
 function quitarDelPlan(set, lista, id){
@@ -21357,7 +21392,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="184dfe9c1ca33a8073a44ef4d52d4421979485e490e8f87715d74c47f119af60";
+var _rnSha="d8936c48fd469b0e1e8b787e7e5279d9cd6b5ab858c44a88c4c76015302e787a";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -25547,6 +25582,9 @@ function App(){
         const kept=keepCategoryChoices(prev.expenses, incoming, readStartedAt);
         const merged=mergeExpensesFromCloud(kept.prev, kept.incoming, readStartedAt);
         const next=merged.list;
+        // El aviso ganó a un cargo de recibo: su fila del banco deja de llevar la marca en la nube,
+        // o el servidor contaría una u otra según el orden en que las lea.
+        if(merged.sinMarca.length) setTimeout(function(){ merged.sinMarca.forEach(function(e){ cloud.setExpenseRecibo(e).catch(function(){}); }); },0);
         const igual=!merged.changed && next.length===(prev.expenses||[]).length
           && next.every(function(e,i){ return e===(prev.expenses||[])[i]; });
         // Call site 3/3 de fixMovInvasion (tras pull expenses). Contención 4.18.6: sin bloque (b).

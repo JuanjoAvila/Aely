@@ -45,6 +45,13 @@ vez, que su web**. Es inocuo adelantarlo: hasta que salga la web no existe ningu
 `~recibo.`. Al revés, el widget suma cada recibo cobrado (medido en test: 200,40 frente a 3,40).
 Sin migración ni secreto. No se ha desplegado nada.
 
+**Condición de publicación (revisión del 13/10).** No es solo el servidor: un MÓVIL con la
+4.26.120 (ordinal sin esta entrega) lee `ob:<ent>~recibo.<id>` con el banco limpio y cuenta el
+cargo (102,40 frente a 40 en la sonda), y al reescribir la fila le borra la marca. Mientras la
+120 esté solo en beta no hay filas `~recibo.` y no pasa nada; el riesgo es tener en producción
+la 120 y, en otro móvil de la misma cuenta, esta entrega. **La 4.26.120 no se promociona a
+producción sin esta entrega**, y el `ingest` de esta rama va antes que su web.
+
 ## bank-sync con tramo antiguo (INC-2709-06): solo en fuente, SIN desplegar
 
 `bank-sync` y `_shared/enablebanking.ts` (parámetros `maxPages` y `dateTo` de `fetchBankTransactions`)

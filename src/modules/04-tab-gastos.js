@@ -446,7 +446,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
        un «no es este recibo»: ahí el cargo vuelve a ser el de su recibo y deja de sumar en
        Gastos, que es lo que dice el texto de la marca. Solo se anuncia si la marca va a volver
        de verdad (`admiteMarcaDe`): con el recibo movido a otro banco no vuelve. */
-    const repone=!!de&&reciboNoDe(state,fixedId,expected.identity,ex.id).length>0&&admiteMarcaDe(ex,de);
+    const repone=!!de&&reciboNoDe(state,fixedId,reciboNoIdentidad(ex),ex.id).length>0&&admiteMarcaDe(ex,de);
     if(!f&&!repone) return;
     askConfirm({title:tf("f_receipt_confirm",{name:de.name}),
       sub:repone?tf("f_recibo_marca",{name:de.name}):tf("f_receipt_confirm_sub",{merchant:ex.merchant,amount:eur(ex.amount),bank:entOf(expenseBankOf(ex)).label,date:fmtIsoCorto(ds),planned:entOf(accOf(f)).label,expected:eur(f.bankAmount>0?f.bankAmount:occAmountIn(f,m))}),
@@ -1424,7 +1424,7 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
   // Los puntuales no se vinculan a mano; solo se ofrece el que se vetó para ESTE cargo, que es
   // la única vuelta atrás de un «No es este recibo» sobre un puntual (cuarta revisión).
   const receiptPuntuales=(state.oneoffs||[]).filter(function(o){
-    return o.id&&admiteMarcaDe(exp,o)&&reciboNoDe(state,o.id,fixedPaymentIdentity(expenseBankOf(exp),exp),exp.id).length>0;
+    return o.id&&admiteMarcaDe(exp,o)&&reciboNoDe(state,o.id,reciboNoIdentidad(exp),exp.id).length>0;
   });
   const adjustments=React.createElement("div",{className:"v4-ficha-adjust"},
     // Con marca de recibo la fila sale siempre: si no, «No es este recibo» quedaba inalcanzable

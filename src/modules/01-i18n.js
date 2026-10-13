@@ -3217,15 +3217,21 @@ function expenseBucket(e, s){
    cierre de mes, el redondeo, la foto del hogar y lo que se pinta. La marca sola no basta:
    · si la fila es además cuota de una deuda, gana la deuda;
    · si el recibo ya no existe, la fila es un gasto normal (antes seguía fuera del gastado y la
-     ficha enseñaba un texto roto);
+     ficha enseñaba un texto roto)… salvo que se borrara DESPUÉS de ese cargo: lo de periodos
+     ya cerrados sigue siendo de aquel recibo, con su nombre, y no mueve sus cifras
+     (`reciboBorrado`, ver `sinCargoDelPlan`);
    · si él dijo «no es este recibo» (`reciboNo`, que viaja en el estado), deja de serlo también
      en el móvil que todavía tiene la fila marcada. */
 function cargoDeRecibo(e, s){
   if(!e || !e.reciboId || e.debtId || !s) return null;
   const id=e.reciboId;
-  const f=(s.fixed||[]).find(function(x){ return x && x.id===id; }) || (s.oneoffs||[]).find(function(x){ return x && x.id===id; });
-  if(!f || reciboVetado(s, id, fixedPaymentIdentity(expenseBankOf(e), e), e.id)) return null;
-  return f;
+  let f=(s.fixed||[]).find(function(x){ return x && x.id===id; }) || (s.oneoffs||[]).find(function(x){ return x && x.id===id; });
+  if(!f){
+    const b=s.reciboBorrado && s.reciboBorrado[id];
+    if(!b || dateMs(e.date)>=b.d) return null;
+    f={ id:id, name:b.n, borrado:true };
+  }
+  return reciboVetado(s, id, reciboNoIdentidad(e), e.id) ? null : f;
 }
 /* Lo que la lista escribe junto a un cargo de recibo: «Recibo: X» si es seguro, «¿Recibo: X?» si
    solo lo parece (`cargoDeReciboFirme`); "" si no es de ninguno. Texto y no objeto: va de prop
@@ -3233,7 +3239,8 @@ function cargoDeRecibo(e, s){
 function reciboEtiqueta(s, e){
   const f=cargoDeRecibo(e, s);
   if(!f) return "";
-  return tf(cargoDeReciboFirme(e, s) ? "g_recibo_de" : "g_recibo_quiza", { name:f.name||"" });
+  if(!f.name) return t("bp_hist_recibo");
+  return tf(cargoDeReciboFirme(e, s) ? "g_recibo_de" : "g_recibo_quiza", { name:f.name });
 }
 /* Redondeo y saveback estimados del mes para la tarjeta de Cartera. Sin el cargo de un recibo,
    que no es una compra: con él dentro el redondeo subía con cada recibo (4,30 → 9,50 medido). */

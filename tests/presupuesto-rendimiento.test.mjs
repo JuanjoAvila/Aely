@@ -240,7 +240,11 @@ const PRESUPUESTO = {
   // UNIÓN de las dos ramas (13/10), medida de nuevo tras fusionarlas, no sumada: 1.354.050 B
   // crudo / 370.901 B gzip. Mínimos 1323/363 KiB (quedan 702/811 B). No se
   // recortan guardas ni idiomas para caber; la integración vuelve a medir con su sello.
-  minificado: 1323 * 1024,
+  // Confirmación de la unión (13/10): el recibo borrado que conserva sus meses cerrados, el veto
+  // con ordinal y la fila que conserva lo puesto a mano cuando gana el aviso: 1.354.895 /
+  // 371.208 B (+845/+307). 1323 KiB se queda corto por 143 B: 1324, quedan 881 B. El gzip cabe
+  // en 363 KiB (quedan 504 B) y no se amplía.
+  minificado: 1324 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.

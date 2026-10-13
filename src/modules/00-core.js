@@ -2606,10 +2606,21 @@ function mergeExpensesFromCloud(prevList, incoming, readStartedAt){
   /* EL AVISO DEL MÓVIL GANA AL CARGO DE RECIBO DE SU MISMO DÍA, IMPORTE Y COMERCIO, llegue cuando
      llegue (cuarta revisión, 13/10/2026). Con el aviso ya en la lista el banco no añade su fila y
      el aviso cuenta, como siempre; si el aviso bajaba después, se fundía con la fila marcada y
-     dejaba de contar (10,99 frente a 0 según el orden). Ahora los dos órdenes acaban igual. */
+     dejaba de contar (10,99 frente a 0 según el orden). Ahora los dos órdenes acaban igual.
+     La fila que queda es LA MISMA de antes (su id, y con él el orden a mano; la categoría, la
+     nota y el «no tarjeta» que él puso) con el origen del aviso y sin la marca. Y la fila del
+     banco pierde la marca también en la nube (`sinMarca`, lo sube quien llama): con una
+     marcada y otra no, el servidor contaba 10,99 o 0 según cuál leyera primero; sin marca, las
+     dos son el mismo gasto y da igual cuál se quede. Se repite en cada pull mientras la nube
+     siga trayendo la marca, por si aquella escritura no llegó. */
+  const sinMarca=[];
+  const suelta=function(fila){ const x=Object.assign({},fila); delete x.reciboId; sinMarca.push(x); return x; };
   const ganaAviso=function(k,inc){
-    if(!byKey[k].reciboId || esFilaDeBanco(inc)) return false;
-    byKey[k]=inc; changed=true;
+    const loc=byKey[k];
+    if(esFilaDeBanco(inc)){ if(inc.reciboId && !esFilaDeBanco(loc)) suelta(inc); return false; }
+    if(!loc.reciboId) return false;
+    byKey[k]=Object.assign({},suelta(loc),{source:inc.source,ent:inc.ent});
+    changed=true;
     return true;
   };
   (incoming||[]).forEach(function(inc){
@@ -2623,7 +2634,7 @@ function mergeExpensesFromCloud(prevList, incoming, readStartedAt){
     if(merged!==loc){ byKey[k]=merged; changed=true; }
   });
   const list=order.map(function(k){ return byKey[k]; });
-  return { list:list, changed:changed, nuevos:nuevos };
+  return { list:list, changed:changed, nuevos:nuevos, sinMarca:sinMarca };
 }
 
 /* LA CATEGORÍA QUE ÉL ELIGIÓ NO LA DESHACE UN PULL (2026-10-02).
