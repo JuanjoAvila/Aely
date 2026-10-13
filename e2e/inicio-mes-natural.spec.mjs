@@ -96,3 +96,22 @@ for(const caso of idiomas) for(const perfil of ["split","net"]){
     expect(await page.evaluate(()=>JSON.parse(localStorage.getItem("micartera_v3")).settings.gTotalMode)).toBe(perfil);
   });
 }
+
+// El aviso depende del margen real antes que del ritmo: el verde con cero engañaba.
+for(const lang of ["es","en","ca"])for(const day of [1,15,30])for(const remaining of [0,-0.01]){
+  test(`Inicio avisa sin verde con restante${remaining} día${day} (${lang})`,async({page})=>{
+    const date="2026-09-"+String(day).padStart(2,"0")+"T12:00:00Z";
+    await page.clock.install({time:new Date(date)});
+    await seedLoggedInDashboard(page,{budget:1000,settings:{autoPrices:false,theme:"green",lang,budgetCycle:false,gTotalMode:"split",expenseBanks:["sabadell"]},
+      accounts:[{id:"daily",ent:"sabadell",name:"Cuenta sintética",value:1000,role:"diario",spendFrom:true}],
+      expenses:[{id:"spent",date,amount:1000-remaining,merchant:"Compra sintética",category:"super",ent:"sabadell"}]});
+    await page.goto("/");await page.waitForFunction(()=>!document.getElementById("mc-load"));await dismissNews(page);
+    const card=page.locator(".v4-budget"),tone=remaining===0?"tan":"coral";
+    await expect(card).toHaveAttribute("data-state",remaining===0?"tight":"over");
+    await expect(card.locator(".st")).not.toHaveText(/Vas bien|Going well|Vas bé|Cicle acabat|Cycle just started/);
+    expect(await card.evaluate((el,tone)=>{const probe=document.createElement("span");probe.style.color="var(--"+tone+")";el.appendChild(probe);const ok=getComputedStyle(el).color===getComputedStyle(probe).color;probe.remove();return ok;},tone)).toBe(true);
+    await expect(card.locator(".v42-cycle-percent")).toHaveText("0%");
+    await expect(card.locator(".v42-cycle-draw")).toHaveAttribute("strokeDasharray","0 100");
+    await expect(card.getByTestId("inicio-cycle-pace")).toHaveCount(0);
+  });
+}

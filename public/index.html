@@ -9482,6 +9482,8 @@ const CYCLE_COMFORT_DIFF=-15, CYCLE_GOOD_DIFF=10, CYCLE_TIGHT_DIFF=40;
 function cyclePaceState(spent,budget,elapsed,days){
   const used=Math.round(spent*100), limit=Math.round(budget*100), excess=Math.max(0,used-limit)/100;
   if(used>limit) return {id:"over",tone:"coral",excess:excess};
+  // Agotar el margen no es ir bien, ni siquiera durante los primeros días del ciclo.
+  if(used===limit) return {id:"tight",tone:"tan",excess:0};
   if(elapsed<3) return {id:"start",tone:"mint",excess:0};
   const diff=limit>0&&days>0?used/limit*100-elapsed/days*100:0;
   return {id:diff<=CYCLE_COMFORT_DIFF?"comfort":diff<=CYCLE_GOOD_DIFF?"good":diff<=CYCLE_TIGHT_DIFF?"tight":"slow",
