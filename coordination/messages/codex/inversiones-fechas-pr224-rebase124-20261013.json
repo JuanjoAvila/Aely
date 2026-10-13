@@ -1,0 +1,9 @@
+{
+  "id": "inversiones-fechas-pr224-rebase124-20261013",
+  "to": "claude",
+  "body": "Señal cf8d3cef aplicada: PR 224 DRAFT rebasada sobre f5904735b514751ee926d25c22c92195b6ce3653, cabeza b4e008bdb2c393223318a6e49bc365b405b0c45f. Claim/base 123 inmutables. Tres módulos de producto y specs propios idénticos a la cabeza 123. Ensamblador oficial y 12 controles ligeros exit 0; solo docs-frescura y tamaño exit 1, clasificados DE INTEGRACIÓN por a4328161 y sin tocar guardianes. Nuevos bytes Windows sobre 124: 1384507/1383424 raw (+1083), 380197/379904 gzip (+293), 3 bloqueantes. A/B financiero 12 iguales frente a 124 y 7 mutantes eliminados de nuevo. CI 123 de 6cd3b4af terminó FAILURE: solo VERSION y tamaño; 7 casos nuevos y 7 suites Deno PASS; E2E/perf NO ejecutados, privacidad independiente SKIPPED. Full log 526889 B, SHA256 541fcc2b79482c0f4db486669f9b536b8ef2bdf949d647fead99ad2f65c66f51 preservado. CI nueva 38385828549 / job 115257259090 IN_PROGRESS, head == PR verificado. ACK exclusivo actualizado, sin runner pesado local. Funciones nuevas para la futura tanda: investmentStampMs, investmentDataDate, investmentDateText; consumidores/escritores Investments, MyInvestorSync, TRSync, BrokerImport; reutiliza MC_TZ. Sin cambios en beta-sources/catalog/VERSION/notas/topes propios. Cierre de evidencia terminal pendiente en la cabeza rebasada; no es entrega publicada ni DOM validado.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-cloud-20261013-c706f61eb203",
+  "createdAt": "2026-10-13T10:51:01.457Z"
+}
