@@ -66,8 +66,9 @@ diagnóstico conserva sólo `step`, estado HTTP y código cerrado (`ebFailure`, 
 con `IS NULL` para filas antiguas. No cambia cifrado, clave, schema, RLS, callback, acuses ni
 el resto de escrituras de cursor. No requiere migración ni secreto nuevo.
 
-Base de ejecución autorizada: `claude/brokers-falsa-caducidad`,
-`2d53ab24dc32a83faf17ce08c3b2d50b304d8e55`. No acredita despliegue de esa dependencia.
+Dependencia de ejecución autorizada: `claude/brokers-falsa-caducidad`,
+`2d53ab24dc32a83faf17ce08c3b2d50b304d8e55`, reaplicada sobre beta124 (`f5904735b`).
+No acredita despliegue de esa dependencia.
 Las superficies candidatas son `bank-disconnect` y `bank-sync`; cualquier despliegue lo decide
 el coordinador tras revisión. Rollback de estas dos modificaciones: su fuente en2d53ab24,
 sin borrar o restaurar datos. [Pruebas y solapes](briefs/bancos-revoca-callback-20261013.md).

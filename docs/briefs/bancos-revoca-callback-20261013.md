@@ -4,6 +4,10 @@ Task `bancos-desconectar-revoca-y-carrera-callback-codex-20261013`.
 Base inmutable de task/claim:123, `3625fa7ed5134cfbc5e364adc4f588bfdaf670c0`.
 Ejecución autorizada sobre `claude/brokers-falsa-caducidad`,
 `2d53ab24dc32a83faf17ce08c3b2d50b304d8e55`, publicada y verificada.
+Rebase posterior autorizado por `beta-124-publicada-rebasar-20261013` sobre beta124,
+`f5904735b514751ee926d25c22c92195b6ce3653`. Las dos dependencias de Claude quedan
+reaplicadas como `62eb6572c` y `dd195b2d8`; el diff propio se revisa contra este último.
+El claim conserva su base123; la rama original de Claude no se modifica.
 Sólo candidato para revisión de Claude; no desplegado ni publicado en beta/main.
 
 ## Defectos reproducidos
@@ -53,6 +57,12 @@ Los dos callback/sync prueban resultado antiguo caducado y correcto sin acuse: n
 pisar ni estado ni cursor119 de la autorización nueva. Se prueban también cambios independientes
 de sesión/emisión, cifrado/legacy, fallo503, errores de clave, registro caído y aislamiento por
 usuario/banco. Los snapshots SELECT son copias: nunca referencias a la fila que cambia.
+
+Tras el rebase124 se repitieron Node (14/0), Deno nativo (19/0 entre lifecycle, crypto y
+demand-window), acuses/reconexión/progreso/paginación, privacidad, seguridad, mapa y sintaxis
+Edge: EXIT0. El guard de privacidad también pasó. docs-frescura dio EXIT1 exclusivamente por
+fuentes candidatas posteriores al ancla124 sin VERSION autorizada; los números están alineados.
+Ese gate queda explícito para integración, sin cambiar la versión para ocultarlo.
 
 Siete mutaciones dieron EXIT1: enviar ciphertext, quitar URL encoding, registrar texto libre,
 retirar filtro de sesión, retirar filtro de emisión y usar `EQ NULL` en cada campo. Las dos
