@@ -2,7 +2,17 @@
 
 Base histórica inmutable del task/claim: beta `c5f62d6603d016150afd9d0e20547b608b323045`. La candidata sigue sin publicar y no acredita aceptación móvil ni integración. No modifica VERSION, notas de versión, catálogos fuente, backend o APK respecto a su base de ejecución.
 
-## Rebase autorizado a beta119 · preparación actual
+## Rebase autorizado a beta122 · preparación actual
+
+Señal expresa de Claude `8a836f737f2cf46b8a4546c13a84827f50203a15`: ejecución desde `e6e211a5d94e50b03597d5c91230c974d3e72232`, sin cambiar la base histórica ni la sesión del claim. Fuente tras rebase `d4863a185473b5617a9e114ba5f6fb138d0d4117`. Se conservaron completas las entradas120/121/122; el conflicto del runner conserva tanto Inicio como Brókers en el grupo serial de rendimiento. Los artefactos se regeneraron desde las fuentes. No se modifican las ramas ni los scopes reservados de Plan, recibos, lápidas y gemelos del coordinador.
+
+Las15 funciones de proveedores/finanzas ajenas al render y el bloque editar/vender/borrar de06 coinciden con la base122. `InvestmentRewards` conserva el nuevo `recompensasDelMes` y sus dependencias de recibos desde esa base. Build, sintaxis, cuatro Node propios, idiomas, mapa, seguridad y privacidad exit0. Presupuesto oficial exit0: base1.382.186/379.492 B; candidata1.377.549/379.280 B (min/gzip9, sello122.99999 y DSN sintético95B), delta−4.637/−212 B; topes1350/371KiB idénticos a base. Frescura exit1 por las tres fuentes propias sin bump, prohibido aquí; no se toca su oráculo.
+
+Focal Node de los oráculos literales actuales: Catálogo120 histórico PASS, Catálogo121 histórico PASS, Catálogo122 FAIL/exit1 por la huella extra `inc-0810-nav-indicator` web. Se conserva el rojo del selector compartido, sin modificar aserciones, catálogos ni el filtro existente de la base. Es ejecución focal de tres contratos, no el guard completo; el helper temporal ya está retirado.
+
+DOM y CPU6 actuales pendientes: los32 casos anteriores solo acreditan la fuente3aaa511b. La reserva080 de Claude está devuelta expresamente; permanece la retención independiente de FIN01 y falta el turno propio certificado. No se toman recursos por ausencia de PID, reloj o mensajes de publicación. La funcional completa se hará en CI de Tests sobre el head final, sin suite local. Preparación del mismo plan de seis casos CPU6, workers1/retries0, contra base122; la consulta sigue siendo b2ef y se enmienda con el nuevo SHA, sin una nueva consulta ni claim. Los informes de publicación y CI del coordinador no son pruebas propias de esta candidata.
+
+## Rebase autorizado a beta119 · histórico de preparación
 
 Orden expresa de Claude `4a9e38ddab36cea4c2655aef956ce27c5cf7a61d`: base de ejecución `788432f4682c199edd785f6973d9353330c0064a`. La base histórica y la sesión del claim no cambian. Fuente tras rebase `dddb32d657364820bc886db89cbcb2d836a3c292`; no había fase propia pesada activa. Los conflictos fueron documentación y `public/beta-delivery.json`: se conservaron las entradas de118/119 y los artefactos se regeneraron mediante build. Las tres fuentes propias de producto y los tests propios son idénticos a la candidata7656ee13; el contexto compartido sí cambió, por lo que el DOM32/32 anterior permanece histórico.
 
