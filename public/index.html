@@ -23427,12 +23427,13 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
     // (visto en el e2e: el primer deslizamiento no cambiaba de segmento y el segundo sí).
     const order=["recibos","deudas","metas"];
     const TH=0.07, FLICK_V=0.4, FLICK_MIN=26, MAX_PULL=46;
-    // Solo ARRIBA → abajo cambia de segmento. Abajo = ola. Plan en reposo va SIEMPRE en pan-y
-    // (si `mc-touch-own` queda puesto al estar arriba, `touch-action:none` bloquea también
-    // BAJAR a ver el contenido — feedback 5/8). `mc-touch-own` solo durante el gesto que nace
-    // arriba: tirón abajo = segmento; dedo arriba = scroll a mano hasta salir del tope.
+    // Solo ARRIBA → abajo cambia de segmento. Abajo = ola. Plan va SIEMPRE en pan-y: si se
+    // pone `touch-action:none` estando arriba, bloquea también BAJAR a ver el contenido
+    // (feedback 5/8). Y ponerlo DENTRO del touchstart no sirve de nada: el navegador decide el
+    // touch-action de un gesto antes de ejecutar ese handler (medido 2026-10-13, ver `onMove`).
+    // Así que el tirón de segmento se reclama solo con preventDefault, y el scroll es del navegador.
     let sx=0, sy=0, t0=0, axis=null, mode=null, dir=0, dyRaw=0, raf=0, pend=null;
-    let startAtTop=false, lastY=0, pageEl=null, ownOn=false;
+    let startAtTop=false, pageEl=null;
     const paint=function(){
       raf=0;
       const el=segElRef.current[seg];
@@ -23442,21 +23443,14 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
     const resist=function(px){ return Math.pow(Math.min(1,px/160),0.72)*MAX_PULL; };
     const cleanup=function(el){ if(el){ el.style.transition=""; el.style.transform=""; } };
     const atTopOf=function(pg){ return !pg || (pg.scrollTop||0)<=2; };
-    const setOwn=function(on){
-      if(!pageEl||!pageEl.classList) return;
-      if(on && !ownOn){ pageEl.classList.add("mc-touch-own"); ownOn=true; }
-      else if(!on && ownOn){ pageEl.classList.remove("mc-touch-own"); ownOn=false; }
-    };
     const onStart=function(e){
       if(document.documentElement.classList.contains("sheet-open")) return;
       if(!(e.touches&&e.touches[0])) return;
       const tt=e.touches[0];
       pageEl=root.closest(".page");
-      sx=tt.clientX; sy=tt.clientY; lastY=tt.clientY; t0=Date.now();
+      sx=tt.clientX; sy=tt.clientY; t0=Date.now();
       axis=null; mode=null; dir=0; dyRaw=0;
       startAtTop=atTopOf(pageEl);
-      // touch-action se decide al empezar el gesto: none solo si nacemos arriba (segmento).
-      setOwn(!!startAtTop);
     };
     const onMove=function(e){
       if(axis==="x"||mode==="x") return;
@@ -23466,29 +23460,28 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
         const eje=gestureAxis(ddx,ddy);
         if(!eje) return;
         axis=eje;
-        if(axis==="x"){ mode="x"; setOwn(false); return; }
+        if(axis==="x"){ mode="x"; return; }
         if(ddy>0 && startAtTop && atTopOf(pageEl)){ dir=1; mode="seg"; }
         else { mode="scroll"; }
       }
       if(mode==="scroll"){
+        /* Scroll normal: lo lleva el navegador y aquí NO se toca `scrollTop` (2026-10-13).
+           Antes, si el gesto nacía arriba del todo, el touchstart ponía `mc-touch-own`
+           (touch-action:none) y aquí se empujaba `scrollTop` a mano con TODO lo recorrido desde
+           el touchstart, «porque con none el navegador no scrollea». Medido en Chromium: el
+           touch-action de un gesto se decide ANTES de ejecutar el touchstart, así que esa clase
+           nunca gobernaba el gesto en curso y el navegador YA estaba scrolleando en nativo. El
+           empujón se sumaba encima: al bajar despacio desde el tope de Plan el contenido saltaba
+           12-16 px de golpe en un frame y se quedaba por delante del dedo — la queja del dueño,
+           «la pantalla se mueve sola» (INC-0710-01). Solo se corta la propagación para que el
+           swipe de pestañas del `.viewport` no se quede este touchmove. */
         e.stopPropagation();
-        // Con none el navegador no scrollea: empujamos scrollTop (dedo arriba → baja la lista).
-        if(ownOn && pageEl){
-          const fingerUp=lastY-tt.clientY;
-          lastY=tt.clientY;
-          if(fingerUp){
-            pageEl.scrollTop=Math.max(0, (pageEl.scrollTop||0)+fingerUp);
-            if(pageEl.scrollTop>2) setOwn(false);
-          }
-          if(e.cancelable) e.preventDefault();
-        }
         return;
       }
       if(mode!=="seg") return;
       e.stopPropagation();
       if((dir>0&&ddy<0)||(dir<0&&ddy>0)){ dyRaw=0; queue(0); return; }
       dyRaw=Math.abs(ddy);
-      lastY=tt.clientY;
       if(e.cancelable) e.preventDefault();
       queue(mcReduced()?0:dir*resist(dyRaw));
     };
@@ -23496,7 +23489,6 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
       if(raf){ cancelAnimationFrame(raf); raf=0; }
       pend=null;
       if(mode!=="seg"){
-        setOwn(false);
         axis=null; mode=null;
         return;
       }
@@ -23517,7 +23509,6 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
         el.style.transform="";
         setTimeout(function(){ cleanup(el); }, 230);
       } else cleanup(el);
-      setOwn(false);
       axis=null; mode=null; dir=0; dyRaw=0;
     };
     const onTouchEnd=function(){ finish(true); };
@@ -23530,7 +23521,6 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
     root.addEventListener("touchcancel", onTouchCancel, {passive:true});
     return function(){
       if(raf) cancelAnimationFrame(raf);
-      setOwn(false);
       root.removeEventListener("touchstart", onStart);
       root.removeEventListener("touchmove", onMove);
       root.removeEventListener("touchend", onTouchEnd);
@@ -25643,8 +25633,9 @@ function App(){
      Mapa: Gastos/Cartera = ola arriba y abajo (pan-y siempre). Resumen = ola solo abajo
      (arriba = perfil → `.mc-touch-own`). Plan = pan-y SIEMPRE en reposo: si lo poníamos en
      `mc-touch-own` al estar arriba, `touch-action:none` bloqueaba TAMBIÉN bajar a ver el
-     contenido (feedback 5/8: «me has bloqueado incluso que pueda bajar»). El gesto de segmento
-     pone/quita `mc-touch-own` solo DURANTE el tirón hacia abajo (14-v4-screens.js). */
+     contenido (feedback 5/8: «me has bloqueado incluso que pueda bajar»). Plan no pone esa
+     clase nunca: ponerla dentro del touchstart no gobierna el gesto en curso (medido
+     2026-10-13), el segmento se reclama con preventDefault (14-v4-screens.js). */
   const syncPageTouchAction=function(pageEl, pageIdx){
     if(!pageEl||!pageEl.classList) return;
     const id=tabIds[pageIdx];
