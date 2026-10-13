@@ -2,6 +2,18 @@
 
 Base histórica inmutable del task/claim: beta `c5f62d6603d016150afd9d0e20547b608b323045`. La candidata sigue sin publicar y no acredita aceptación móvil ni integración. No modifica VERSION, notas de versión, catálogos fuente, backend o APK respecto a su base de ejecución.
 
+## Mantenimiento autorizado a beta124 · fuente actual
+
+Señal cf8d3cefd824f40a580333712813216771f77211 leída íntegra; refs/heads/beta verificada en f5904735b514751ee926d25c22c92195b6ce3653. Task/claim447/sesión y base histórica intactos, sin result cerrado ni reclamación repetida. Antes del rebase se archivaron ec786260, todos sus ficheros y CI38378962443 completa: FAILURE/Tests exit1 únicamente docs-frescura; beta-sources y presupuesto pasan, siete archivos Deno pasan, privacidad posterior SKIPPED y ningún Playwright. Las fuentes45bd/889/78 y sus pruebas/revisión se conservan como historia.
+
+El rebase conserva completa la entrega124: gesto de Plan sin empujón, comentario de syncPageTouchAction, cinco specs de Inicio y su rendimiento hermético, Catálogo/Retiro124 y topes1351/371KiB. Los conflictos fueron el encabezado de CHANGELOG y beta-delivery generado: ambas historias se conservaron y public se reconstruyó desde src. Ningún productor de calendario, Inicio, Plan, backend ni nativo recibe edición propia. Las15 funciones proveedor/finanzas de06 y el bloque venta/borrado son iguales a base124; edición permanece intacta desde ec786.
+
+Inventario completo de50 descriptores con el codec oficial —incluido el lector del archivo109—: sin huellas web/código/edge/nativa adicionales respecto a beta124. La nueva identidad de navegación es web2133ea962e414490cc5ca9547b137d48c9d96e34c2632bcf084cf0d64961a7c8/código9eb1cd42ad7ae91e3a994960a41816f033fc75b07230e3d95cd842819b460f84, igual a la base. No se copian las identidades123 ni se repina un oráculo.
+
+Build/sintaxis, cinco Node propios, siete checks de logos, auth-disposal-fit, idiomas, mapa, seguridad, privacidad local y presupuesto exit0. Focal literal Catálogo122/123 históricos, Catálogo124 y Retiro124 exit0, sin cambiar aserciones; no es beta-sources completo. Tres mutantes propios nuevos de clase/regla detectados, solo en memoria; no sustituyen la revisión independiente final. Tamaño oficial124.99999/reserva95B:1.378.549/379.564 B min/gzip9 frente a base1.383.216/379.773; topes heredados1351/371KiB intactos. Docs-frescura sigue exit1 por las tres fuentes publicables posteriores al ancla124, sin bump autorizado.
+
+PR222 sigue en borrador; Tests remota se despacha únicamente sobre su fuente final remota exacta. DOM actual y seis CPU6 NO ejecutados: retención independiente FIN01 sin retorno observado ni admisión propia. El plan A/B cambia a base124 y la candidata, mismo guion/HTTP-archivo/32ms/workers1/retries0. DOM32 de3aaa, revisión78 y NO-GO45bd no acreditan este mantenimiento. Claim abierto, sin done por ACK/Node, integración, publicación, APK o aceptación móvil.
+
 ## Corrección causal posterior a45bd · orden48d97e12
 
 La fuente45bd, su CI38359279565 terminal y la revisión independiente se archivaron antes de corregir. Esa CI tuvo Tests exit1 en auth-disposal-fit, beta-sources y docs-frescura; logos/presupuesto y siete archivos Deno pasaron, privacidad posterior SKIPPED y ningún DOM/CPU6. La revisión limitada Node UTC/Madrid y sus seis mutantes no se heredan a la fuente nueva. El caso value:null→0 de fxAmountText es heredado, idéntico a beta123 y ajeno al diff; no se abre ni corrige aquí.
