@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "id": "inversiones-fecha-del-dato-por-origen-codex-20261013",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261013-32295a8f",
+  "createdAt": "2026-10-13T09:27:17.891Z",
+  "to": "codex",
+  "baseSHA": "3625fa7ed5134cfbc5e364adc4f588bfdaf670c0",
+  "objective": "Sale del diagnóstico de la PR 221: en Cartera, Inversiones, la pantalla enseña solo la HORA de la última cotización, sin día, y no dice de cuándo es el dato de cada bróker. Al día siguiente parece actualizado y no lo está. Que cada origen diga de cuándo es su dato, sin inventar fechas.",
+  "scope": [
+    "src/modules/06-sync-brokers.js y 11-app-main.js (sellos lastTrSync, lastMiSync, lastPriceSync)",
+    "textos es, en y ca",
+    "e2e cartera-inversiones"
+  ],
+  "acceptance": [
+    "Por cada bróker: fecha completa de la última lectura con éxito de ESE origen (sincronización, importación de CSV o edición manual), distinta de la fecha de cotizaciones. Si no consta, «Fecha no disponible» o equivalente ya existente; nunca hoy por defecto",
+    "La aplicación de la previsualización de cada tarjeta también sella su fecha (hoy no lo hace, según el diagnóstico)",
+    "Formato corto y en cristiano («Actualizado ayer a las 18:40», «hace 3 días»), reutilizando los formateadores que ya hay; sin colores ni componentes nuevos",
+    "No añadir sincronizaciones automáticas ni keepalive. No cambia ninguna cifra: demostrarlo",
+    "e2e del DOM con dos brókers sembrados con fechas distintas y uno sin fecha; registrado en el mapa. Sin tocar VERSION, notas, catálogo ni topes"
+  ]
+}
