@@ -31,7 +31,7 @@ La migración ampliada ejecuta beta125 durante 90 días con 12 semillas, avisos 
 | 10 | 346.20 | 681.46 | 641.96 | 285.42 |
 | 11 | 366.17 | 662.15 | 651.66 | 275.00 |
 
-El diagnóstico Node con 20.000 filas y 5.708 parejas no recalcula fechas al cambiar categoría y conserva referencias al repetir. No se confunde con CPU6. Los e2e de sincronización y pull reales, la subida de #dup, separar/unir, borrado/Deshacer y el A/B a CPU6 están preparados y registrados; pendientes de ejecución remota al escribir este corte. El workflow TR pair review ejecuta Node, DOM y rendimiento por separado y falla si falla cualquiera, conservando artefactos incluso si otro bloque falla. La suite Tests general conserva sus guardianes de integración.
+El diagnóstico Node con 20.000 filas y 5.708 parejas no recalcula fechas al cambiar categoría y conserva referencias al repetir. No se confunde con CPU6. Los e2e de sincronización y pull reales, la subida de #dup, separar/unir, borrado/Deshacer y el A/B a CPU6 están preparados y registrados; pendientes de ejecución remota al escribir este corte. El job opcional tr-pair-review del workflow Tests ejecuta Node, DOM y rendimiento por separado y falla si falla cualquiera, conservando artefactos incluso si otro bloque falla. La suite Tests general conserva sus guardianes de integración.
 
 ## Límites vigentes
 
