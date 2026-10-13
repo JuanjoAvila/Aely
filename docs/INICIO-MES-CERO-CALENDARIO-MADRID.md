@@ -40,7 +40,7 @@ La CI primaria de la fuente79 (Tests38385035060, job115254595911) terminó FAILU
 
 La comparación causal ejecutó los tres tests oficiales sobre snapshots exactos1233625fa7e, dependenciaWidget6f161fc8, candidato79dd0697 y beta124f5904735 en procesos UTC/Madrid/Canarias (36ejecuciones). Se repitió el árbitro con zona JVM explícita, porque TZ de Node no basta en Windows (12ejecuciones).
 
-| Test oficial | 123/beta124 | Widget6f y candidato79 | Candidato rebasado | Causa observada |
+| Test oficial | 123/beta124 | Widget6f y candidato79 | Rebase previo sobre66 | Causa observada |
 |---|---|---|---|---|
 | month-budget-stats | EXIT0 en las tres zonas | EXIT1 UTC/Canarias; EXIT0 Madrid | igual | getDate local devuelve25 para la medianoche Madrid del26sep (25sep22Z). Fixture exacto: spent100/income400/remaining1300 iguales en las12combinaciones |
 | widget-arbitraje | EXIT0 en las tres zonas | JVM UTC EXIT1; Madrid/Canarias EXIT0 | igual | Calendar de UTC añade46días desde25sep22Z y llega a10nov23:00Madrid, todavía día45. CalendarMadrid/Canarias llega a11nov00:00Madrid, ya día46. Se ejecutó WidgetPeriod real |
@@ -53,3 +53,5 @@ Los fallos adicionales ya existían en la dependencia, antes de los cambios prop
 Tras rebase sobre66e1f947, sólo son propios la igualdad en cyclePaceState, budgetPeriodOf, rama cycle de presetBoundsMs y su helper.02 y la tarjeta/serie de patrimonio reservada a Claude permanecen intactas; lastPaydayOf se hereda del titular. Registro beta-sources, VERSION, guardianes y topes son los de la dependencia. Conflictos generados resueltos con build; CHANGELOG124 preservado.
 
 Controles finales ligeros: sintaxis, nuevo barrido de calendario, Gastos-período, mesMadrid y registro EXIT0; Inicio-v42 EXIT0 en las tres zonas, con sus24mutaciones. Los tres oficiales conservan el patrón rojo anterior. Tamaño:1383654B crudo/379998B gzip, reservas95B y sello124.99999,230B/94B sobre topes124(1351/371KiB), EXIT1; ningún tope se cambia. CI remota del SHA final se despacha aparte. Runner FIN01nonce6fa sigue ajeno; sin PW/Chromium/CPU6/Gradle local.
+
+Revisión posterior del productor: `327e5e86` modifica exclusivamente los dos asserts locales de month-budget-stats a la medianoche exacta Madrid y su documentación. Se hereda mediante rebase, sin tocar los tests desde esta rama. Las tres ejecuciones post327 de month-budget-stats dan EXIT0. JavaUTC y recibosUTC/Canarias continúan pendientes de scope nuevo, con su causa y sus EXIT anteriores conservados. Tests38407073951 del head7db quedó obsoleto: cancelación solicitada, sin atribuir terminal cancelado mientras no se confirme. La CI del nuevo head se registra en evidencia independiente y en PR225.
