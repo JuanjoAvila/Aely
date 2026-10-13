@@ -253,7 +253,8 @@ function MyInvestorSync({state, set, open, onToggle}){
   const keyOf=function(p){ return p.isin||p.name; };
   const mappedN=positions?positions.filter(function(p){ return map[keyOf(p)]; }).length:0;
   const apply=function(){
-    const pos=positions;
+    const pos=positions, readAt=investmentStampMs(dataReadAt.current);
+    if(!Array.isArray(pos)||!readAt) return;
     set(function(s){
       let inv=(s.investments||[]).map(function(i){
         const po=pos.find(function(p){ return map[keyOf(p)]===i.id; });
@@ -268,7 +269,9 @@ function MyInvestorSync({state, set, open, onToggle}){
         return { id:uid(), ent:"myinvestor", name:po.name, isin:po.isin||null, shares:po.shares, value:po.value!=null?po.value:0, cost:po.cost!=null?po.cost:(po.value||0), cur:po.cur||"EUR" };
       });
       if(created.length) inv=inv.concat(created);
-      return Object.assign({},s,{investments:inv,lastMiSync:dataReadAt.current});
+      // La tarjeta ya leyó el bróker: compartir el sello evita repetir la lectura automática
+      // durante 30 minutos. Esperar en la previsualización no retrasa ese freno.
+      return Object.assign({},s,{investments:inv,lastMiSync:readAt});
     });
     setDoneN(mappedN); setPositions(null); setStep("connected");
   };
@@ -463,7 +466,8 @@ function TRSync({state, set, totals, open, onToggle}){
   };
   const mappedN=positions?positions.filter(function(p){ return map[p.isin]; }).length:0;
   const apply=function(){
-    const pos=positions, trCash=cash;
+    const pos=positions, trCash=cash, readAt=investmentStampMs(dataReadAt.current);
+    if(!Array.isArray(pos)||!readAt) return;
     set(function(s){
       const next=Object.assign({},s,{investments:s.investments.map(function(i){
         const po=pos.find(function(p){ return map[p.isin]===i.id; });
@@ -498,7 +502,7 @@ function TRSync({state, set, totals, open, onToggle}){
             })
           : s.accounts.concat([{ id:uid(), ent:"trade_republic", name:"Trade Republic", value:+trCash.toFixed(2), note:"" }]);
       }
-      next.lastTrSync=dataReadAt.current;
+      next.lastTrSync=readAt;
       return next;
     });
     setDoneN(mappedN); setPositions(null); setStep("done");
@@ -747,7 +751,16 @@ function investmentDataDate(state, ent){
 }
 function investmentDateText(value){
   const ms=investmentStampMs(value);
-  return ms?new Date(ms).toLocaleString(loc(),{timeZone:MC_TZ,day:"numeric",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"}):t("iv_date_missing");
+  if(!ms) return t("iv_date_missing");
+  const date=new Date(ms), now=new Date();
+  const dayOptions={timeZone:MC_TZ,year:"numeric",month:"2-digit",day:"2-digit"};
+  const day=date.toLocaleDateString("en-CA",dayOptions), today=now.toLocaleDateString("en-CA",dayOptions);
+  // Restar días de calendario de Madrid evita que medianoche o un día de 23/25 horas
+  // conviertan «ayer» en «hoy». La hora del dispositivo no decide la antigüedad del dato.
+  const days=(Date.parse(today)-Date.parse(day))/86400000;
+  if(days<2) return tf(days===0?"iv_date_today":"iv_date_yesterday",{time:date.toLocaleTimeString(loc(),{timeZone:MC_TZ,hour:"2-digit",minute:"2-digit"})});
+  if(days<7) return tf("iv_date_days",{n:days});
+  return date.toLocaleDateString(loc(),{timeZone:MC_TZ,day:"numeric",month:"short",year:day.slice(0,4)===today.slice(0,4)?undefined:"numeric"});
 }
 function Investments({state, set, fetchPrices, pricing, syncInv, v4Embed, toolsMode, fullMode, showToast}){
   const fx=fxRateOf("USD",state);   // USD→EUR (legacy + display toggle); GBP/CHF van en state.fxRates
@@ -1034,7 +1047,7 @@ function Investments({state, set, fetchPrices, pricing, syncInv, v4Embed, toolsM
               state.investments.length>0 && React.createElement("div",{className:"v4-legend"},React.createElement("span",null,React.createElement("b",{style:{background:"var(--muted-2)"}}),t("iv_gain_unknown"))),
               !missingFx && React.createElement("div",null,costTotal>0?t("iv_missing_cost"):t("iv_no_put")),
               state.investments.length>0&&!missingFx && React.createElement("button",{type:"button",className:"v4-link-mini","data-act":"inv-edit",style:{marginTop:8},onClick:function(){ beginBrokerEdit(missingCost&&missingCost.ent); }},t("iv_no_put_cta"))),
-        React.createElement("div",{className:"hint","data-inv-price-date":"1",style:{marginTop:6}},tf("iv_updated",{time:lastTime})),
+        state.investments.length>0 && React.createElement("div",{className:"hint","data-inv-price-date":"1",style:{marginTop:6}},tf("iv_updated",{time:lastTime})),
         React.createElement("div",{className:"hint",style:{marginTop:10}},tf("iv_fx_note",{fx:fx>0?fx.toFixed(4):"—"}))),
 
       React.createElement("div",{className:"v4-sec-h",style:{display:"flex",alignItems:"center",justifyContent:"space-between",gap:10,marginTop:22}},

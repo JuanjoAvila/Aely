@@ -9,19 +9,40 @@ No publicado ni aprobado en móvil. No modifica VERSION, notas de versión, cat�
 
 En Cartera → Ver todas tus inversiones, cada bróker muestra su última lectura aplicada,
 importación CSV o cambio manual. Las cotizaciones tienen una fecha global separada. Se muestran
-día, mes, año y hora en Madrid, con los formateadores de fecha existentes y los tres idiomas.
+hoy/ayer con hora, de dos a seis días la antigüedad y desde siete días la fecha corta.
+El año aparece solo si es distinto del actual. El calendario es Madrid en los tres idiomas.
 Una fecha ausente, inválida o futura se muestra como «Fecha no disponible»; no se reconstruye
 con el guardado de la cartera, las cotizaciones ni el reloj actual.
 
 Las tarjetas de MyInvestor y Trade Republic guardan `lastMiSync` / `lastTrSync` solo al aplicar
 la previsualización, usando la hora de la respuesta válida. Cancelar no modifica el sello. App
 ya guardaba esos campos al sincronizar: ese transporte permanece intacto. Revolut guarda
-`lastRevolutImport` al aplicar el CSV; la etiqueta dice importación porque no acredita cuándo
+`lastRevolutImport` al aplicar el CSV; la etiqueta CSV distingue la importación porque no acredita cuándo
 se generó el extracto. `manualUpdatedAt` permite distinguir el último cambio manual del mismo
 bróker, incluida una venta parcial. Es la última acción del origen, no una garantía de que
 todas sus posiciones se hayan actualizado juntas. No se añaden sincronizaciones ni keepalive.
 
-## Verificación y límites
+## Revisión del NO-GO de PR224
+
+La primera entrega `d4ccf238` quedó rechazada por la revisión independiente del spec: su
+`page.clock.setFixedTime` congelaba `Date.now` e impedía retirar el splash. El encargo nuevo
+`inversiones-fecha-revision-nogo-codex-20261013` conserva el claim y result anteriores como historia.
+La corrección usa `installFixtureClock` para las fechas sembradas y el reloj real para los casos
+que recargan, para no hacer futura una lectura al reiniciar el reloj de la página. Espera la
+retirada real del splash antes de los clics. La sonda del revisor no se atribuye al autor.
+
+Las etiquetas cortas Datos/CSV/Manual identifican el origen de la fecha; el spec mide una sola
+línea y que el texto quede dentro de su caja en Pixel 5 y es/en/ca, con las fuentes cargadas.
+Cotizaciones desaparece si no hay posiciones. MyInvestor y Trade Republic rechazan aplicar sin
+posiciones leídas o sin sello válido, conservando el estado anterior. El sello de MyInvestor
+alimenta intencionadamente el freno automático de 30 minutos desde la lectura, para no repetirla
+por haberla hecho desde la tarjeta; esperar en la previsualización no rejuvenece ese dato.
+
+Node cubre diez casos agrupados, incluidas catorce fronteras de día/mes/año, bisiesto y horario
+de verano, traducciones reales y las guardias. La ejecución propia del DOM y su EXIT se registran
+en la PR y en el result del encargo nuevo: preparar el spec no acredita que se haya ejecutado.
+
+## Verificación y límites de la primera entrega
 
 - Ensamblado oficial, sintaxis, traducciones, mapa de tests, privacidad, seguridad, parsers Revolut
   y `broker-sync-outcomes`: exit 0 en la verificación local focal, repetida sobre beta124.

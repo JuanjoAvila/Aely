@@ -605,7 +605,10 @@ escribir `Access-Control-Allow-Origin: "*"`.
   No se afirma que todas sus posiciones tengan esa antigüedad: es la última acción de ese origen.
   Sin sello válido se muestra «Fecha no disponible»; nunca se usa la fecha de precios, guardado
   global ni hoy como respaldo. No cambia importes, transporte ni frecuencia de sincronización.
-  Día, año y hora se formatean en `Europe/Madrid`, también si el móvil está en otra zona.
+  Día y hora usan `Europe/Madrid`: hoy/ayer con hora, dos a seis días relativos y después
+  fecha corta (año solo si difiere). Las tarjetas rechazan aplicar sin lectura válida.
+  `lastMiSync` conserva intencionadamente el freno automático de 30 minutos desde esa lectura,
+  también si se aplica desde la tarjeta. Ver el [acta](briefs/inversiones-fechas-origen.md).
 
 > **Apps Script / `GAS_URL`: archivado.** No reabrir.
 

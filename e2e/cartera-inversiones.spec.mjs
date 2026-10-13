@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
+import { seedLoggedInDashboard, dismissNews, installFixtureClock, FIXTURE_NOW } from "./fixtures.mjs";
 
 // Test de regresión (bug real, v4.7.1 2026-07-23): al quitar la UI de ordenar brókers, el orden
 // fijo se dejó como `groups=groupsBase.map(g=>g[0])` — convierte las ternas [id,nombre,subtítulo]
@@ -16,6 +16,7 @@ const investments = [
 ];
 
 async function openInvestments(page) {
+  await page.waitForFunction(()=>!document.getElementById("mc-load"));
   // Con Bienes siempre visible, Inversiones queda bajo el pliegue: el clic previo de Playwright
   // desplaza la página y la barra se esconde. Volver arriba la recupera antes de tocarla.
   await page.locator(".page").evaluateAll((pages) => pages.forEach((el) => { el.scrollTop = 0; }));
@@ -26,31 +27,60 @@ async function openInvestments(page) {
   return door;
 }
 
+async function expectDatesOnOneLine(page){
+  await page.evaluate(()=>document.fonts.ready.then(()=>null));
+  const sizes=await page.locator("[data-inv-data-date]").evaluateAll(nodes=>nodes.map(el=>{
+    const range=document.createRange();range.selectNodeContents(el);
+    const box=el.getBoundingClientRect(), rects=Array.from(range.getClientRects());
+    return {text:el.textContent,lines:rects.length,fits:rects.every(r=>r.left>=box.left-1&&r.right<=box.right+1)};
+  }));
+  for(const size of sizes){expect(size.lines,size.text).toBe(1);expect(size.fits,size.text).toBe(true);}
+}
+
 test.describe("fechas de datos por origen", () => {
   test.use({ timezoneId:"UTC" });
-  const now=Date.parse("2026-10-13T12:00:00Z");
-  test.beforeEach(async({page})=>{ await page.clock.setFixedTime(new Date(now)); });
+  const now=FIXTURE_NOW;
+  // El splash compara Date.now: el reloj debe avanzar aunque el día del fixture sea estable.
   const words={
-    es:{read:"Datos leídos",missing:"Fecha no disponible",quotes:"Cotizaciones"},
-    en:{read:"Data read",missing:"Date unavailable",quotes:"Quotes"},
-    ca:{read:"Dades llegides",missing:"Data no disponible",quotes:"Cotitzacions"},
+    es:{read:"Datos",missing:"Fecha no disponible",quotes:"Cotizaciones",yesterday:"ayer a las 20:40",days:"hace 3 días",today:"hoy a las 13:59"},
+    en:{read:"Data",missing:"Date unavailable",quotes:"Quotes",yesterday:"yesterday at 20:40",days:"3 days ago",today:"today at 13:59"},
+    ca:{read:"Dades",missing:"Data no disponible",quotes:"Cotitzacions",yesterday:"ahir a les 20:40",days:"fa 3 dies",today:"avui a les 13:59"},
   };
   for(const lang of ["es","en","ca"])test("dos fechas distintas y una ausente, sin mover importes ("+lang+")",async({page})=>{
-    await seedLoggedInDashboard(page,{investments,lastTrSync:Date.parse("2026-10-12T18:40:00Z"),lastMiSync:Date.parse("2026-10-10T09:15:00Z"),lastPriceSync:now-60000,settings:{autoPrices:false,theme:"green",lang}});
+    await installFixtureClock(page);
+    await seedLoggedInDashboard(page,{investments,lastTrSync:now-864e5+6*36e5+40*6e4,lastMiSync:now-3*864e5,lastPriceSync:now-60000,settings:{autoPrices:false,theme:"green",lang}});
     await page.goto("/"); await dismissNews(page);
     const before=await page.evaluate(()=>JSON.parse(localStorage.getItem("micartera_v3")).investments);
     await openInvestments(page);
     const w=words[lang];
     await expect(page.locator('[data-inv-data-date="trade_republic"]')).toContainText(w.read+":");
-    await expect(page.locator('[data-inv-data-date="trade_republic"]')).toContainText(/12 .*2026.*20:40/);
-    await expect(page.locator('[data-inv-data-date="myinvestor"]')).toContainText(/10 .*2026.*11:15/);
+    await expect(page.locator('[data-inv-data-date="trade_republic"]')).toHaveText(w.read+": "+w.yesterday);
+    await expect(page.locator('[data-inv-data-date="myinvestor"]')).toHaveText(w.read+": "+w.days);
     await expect(page.locator('[data-inv-data-date="revolut"]')).toHaveText(w.missing);
     await expect(page.locator("[data-inv-price-date]")).toContainText(w.quotes+":");
-    await expect(page.locator("[data-inv-price-date]")).toContainText(/13 .*2026.*13:59/);
+    await expect(page.locator("[data-inv-price-date]")).toHaveText(w.quotes+": "+w.today);
     await expect(page.locator('[data-inv-broker="trade_republic"] .am')).toContainText(/2[.,]300/);
     expect(await page.evaluate(()=>JSON.parse(localStorage.getItem("micartera_v3")).investments)).toEqual(before);
+    await expectDatesOnOneLine(page);
+  });
+  for(const lang of ["es","en","ca"])test("CSV y edición manual caben en una línea ("+lang+")",async({page})=>{
+    await installFixtureClock(page);
+    await seedLoggedInDashboard(page,{investments:investments.map(i=>i.ent==="myinvestor"?{...i,manualUpdatedAt:new Date(now-864e5+6*36e5+40*6e4).toISOString()}:i),
+      lastRevolutImport:now-864e5+6*36e5+40*6e4,settings:{autoPrices:false,theme:"green",lang}});
+    await page.goto("/");await dismissNews(page);await openInvestments(page);
+    await expect(page.locator('[data-inv-data-date="revolut"]')).toHaveText("CSV: "+words[lang].yesterday);
+    await expect(page.locator('[data-inv-data-date="myinvestor"]')).toHaveText("Manual: "+words[lang].yesterday);
+    await expectDatesOnOneLine(page);
+  });
+  test("sin posiciones no hay fecha de cotizaciones",async({page})=>{
+    await installFixtureClock(page);
+    await seedLoggedInDashboard(page,{investments:[]});
+    await page.goto("/");await dismissNews(page);await openInvestments(page);
+    await expect(page.locator("[data-inv-price-date]")).toHaveCount(0);
   });
   for(const kind of ["mi","tr"])test("la tarjeta "+kind+" sella solo al aplicar y conserva la hora de lectura",async({page})=>{
+    // Este caso recarga: conserva el reloj real para que el sello leído no quede en el futuro.
+    const now=Date.now();
     const ent=kind==="mi"?"myinvestor":"trade_republic", key=kind==="mi"?"lastMiSync":"lastTrSync";
     const positions=[{isin:"SYNTHETIC",name:"Posición sintética",shares:2,value:200,cost:160}];
     await seedLoggedInDashboard(page,{__seedOnce:true,investments:[{id:"stamp",ent,isin:"SYNTHETIC",name:"Posición sintética",shares:2,value:200,cost:160,cur:"EUR"}],
@@ -59,6 +89,7 @@ test.describe("fechas de datos por origen", () => {
       __cloudFns:{"myinvestor-sync":{data:{ok:true,positions},error:null}}});
     if(kind==="tr")await page.addInitScript(positions=>{window.MiCarteraTR={status:async()=>({connected:true}),sync:async()=>({ok:true,positions})};},positions);
     await page.goto("/"); await dismissNews(page);
+    await page.waitForFunction(()=>!document.getElementById("mc-load"));
     await page.evaluate(()=>window.dispatchEvent(new CustomEvent("mc-open-banks",{detail:{focus:null}})));
     const card=page.locator(".bk-card.bk-"+kind);
     await card.locator(".bk-brand").click();
@@ -68,15 +99,24 @@ test.describe("fechas de datos por origen", () => {
     expect(await stamp()).toBe(now-60000);
     await card.getByRole("button",{name:"Cancelar",exact:true}).click();
     expect(await stamp()).toBe(now-60000);
+    const readStart=await page.evaluate(()=>Date.now());
     await card.getByRole("button",{name:/^Sincronizar (posiciones|ahora)$/}).click();
     await expect(card.getByRole("button",{name:/Aplicar a 1/})).toBeVisible();
+    const readEnd=await page.evaluate(()=>Date.now());
     // Esperar en la previsualización no vuelve recientes los datos ya leídos.
-    await page.clock.setFixedTime(new Date(now+5*60000));
+    await page.evaluate(()=>{
+      const ReadDate=Date;
+      class LaterDate extends ReadDate { constructor(...args){super(...(args.length?args:[ReadDate.now()+5*60000]));} static now(){return ReadDate.now()+5*60000;} }
+      window.Date=LaterDate;
+    });
     await card.getByRole("button",{name:/Aplicar a 1/}).click();
-    await expect.poll(stamp).toBe(now);
+    await expect.poll(stamp).toBeGreaterThanOrEqual(readStart);
+    const applied=await stamp();
+    expect(applied).toBeLessThanOrEqual(readEnd);
     expect(await page.evaluate(()=>JSON.parse(localStorage.getItem("micartera_v3")).lastPriceSync)).toBe(now-3*864e5);
     await page.reload(); await dismissNews(page); await openInvestments(page);
-    await expect(page.locator('[data-inv-data-date="'+ent+'"]')).toHaveText("Datos leídos: 13 oct 2026, 14:00");
+    const readTime=new Date(applied).toLocaleTimeString("es-ES",{timeZone:"Europe/Madrid",hour:"2-digit",minute:"2-digit"});
+    await expect(page.locator('[data-inv-data-date="'+ent+'"]')).toHaveText("Datos: hoy a las "+readTime);
     await expect(page.locator('[data-inv-broker="'+ent+'"] .am')).toContainText("200");
   });
 });
@@ -213,7 +253,7 @@ test("Inversiones v4: coste cero no finge +0%, manual se identifica y solo edita
   await tr.locator("input").first().fill("501");
   await tr.getByRole("button", { name: /Guardar|Save|Desa/i }).click();
   await expect(tr.locator('[data-inv-position="manual"] .rsub')).toContainText(/a mano · \d|by hand · \d|a mà · \d/i);
-  await expect(tr.locator("[data-inv-data-date]")).toContainText(/Último cambio manual:|Last manual change:|Últim canvi manual:/);
+  await expect(tr.locator("[data-inv-data-date]")).toContainText(/Manual:/);
   await expect(revolut.locator("[data-inv-data-date]")).toContainText(/Fecha no disponible|Date unavailable|Data no disponible/);
 });
 
@@ -264,7 +304,7 @@ test("Inversiones v4: un coste parcial nunca se convierte en ganancia inventada"
   const hero=page.locator("[data-inv-hero]");
   await expect(hero).toContainText(/Ganancia —|Gain —|Guany —/);
   await expect(hero).toContainText(/Falta lo que pusiste|one or more positions is missing|Falta el que vas posar/i);
-  await expect(hero.locator("[data-inv-price-date]")).toContainText(/Cotizaciones:.*\d{4}.*\d{2}:\d{2}|Quotes:.*\d{4}.*\d{2}:\d{2}|Cotitzacions:.*\d{4}.*\d{2}:\d{2}/i);
+  await expect(hero.locator("[data-inv-price-date]")).toContainText(/(Cotizaciones: hoy a las|Quotes: today at|Cotitzacions: avui a les) \d{2}:\d{2}/i);
   await expect(hero).not.toContainText(/Han ganado 520|They gained 520|Han guanyat 520/i);
   await expect(hero).not.toContainText(/520\.00%/);
 });
