@@ -9,9 +9,9 @@ import { seedLoggedInDashboard, dismissNews } from "./fixtures.mjs";
 test.use({ viewport:{width:375,height:812}, hasTouch:true });
 
 for(const caso of [
-  {lang:"es", ahead:"Has gastado 300 € de tus 1000 €.", month:"del mes", start:"Aquí empieza el mes"},
-  {lang:"en", ahead:"You've spent 300 € of your 1000 €.", month:"of month", start:"Your month starts here"},
-  {lang:"ca", ahead:"Has gastat 300 € dels teus 1000 €.", month:"del mes", start:"Aquí comença el mes"},
+  {lang:"es", pace:"43 € al día durante 16 días", start:"Aquí empieza el mes"},
+  {lang:"en", pace:"43 € a day for 16 days", start:"Your month starts here"},
+  {lang:"ca", pace:"43 € al dia durant 16 dies", start:"Aquí comença el mes"},
 ]) test(`Inicio conserva la frase de gasto con ingresos mayores (${caso.lang})`,async({page})=>{
   await page.clock.install({time:new Date("2026-09-15T12:00:00Z")});
   await seedLoggedInDashboard(page,{
@@ -28,10 +28,11 @@ for(const caso of [
   await page.waitForFunction(()=>!document.getElementById("mc-load"));
   await dismissNews(page);
   const dash=page.locator(".v4-budget");
-  await expect(dash.locator(".v4-ring")).toContainText("30%");
+  // El anillo acompaña a «Te quedan»: 700 de 1000 es un 70 %, y a 16 días del 1/10 son 43 al día.
+  await expect(dash.locator(".v4-ring")).toHaveText("70%");
   await expect(dash.locator(".v42-cycle-amount>.serif")).toHaveText("700 €");
   await expect(dash.locator(".v42-cycle-of")).toContainText("1000");
-  await expect(dash.getByTestId("inicio-cycle-pace")).toHaveCount(0);
+  await expect(dash.getByTestId("inicio-cycle-pace")).toHaveText(caso.pace);
   await expect(dash).not.toContainText(caso.start);
   await expect(page.locator("[data-testid='dash-budget-streak']")).toHaveCount(0);
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
@@ -41,9 +42,9 @@ for(const caso of [
 });
 
 for(const caso of [
-  {lang:"es",cycle:"del ciclo",net:"Gasto neto desde el cobro: 980,00 € de tus 1000,00 €.",left:"Te quedan 20,00 €.",period:"Mi ciclo"},
-  {lang:"en",cycle:"of cycle",net:"Net spending since payday: 980,00 € of your 1000,00 €.",left:"20,00 € left.",period:"My cycle"},
-  {lang:"ca",cycle:"del cicle",net:"Despesa neta des del cobrament: 980,00 € dels teus 1000,00 €.",left:"Et queden 20,00 €.",period:"El meu cicle"},
+  {lang:"es",pace:"0 € al día durante 28 días",period:"Mi ciclo"},
+  {lang:"en",pace:"0 € a day for 28 days",period:"My cycle"},
+  {lang:"ca",pace:"0 € al dia durant 28 dies",period:"El meu cicle"},
 ]) test(`Inicio y Gastos dan el mismo neto y margen en Mi ciclo (${caso.lang})`,async({page})=>{
   await page.clock.install({time:new Date("2026-09-28T12:00:00Z")});
   await seedLoggedInDashboard(page,{
@@ -62,10 +63,11 @@ for(const caso of [
   await page.waitForFunction(()=>!document.getElementById("mc-load"));
   await dismissNews(page);
   const dash=page.locator(".v4-budget");
-  await expect(dash.locator(".v4-ring")).toContainText("98%");
+  // Quedan 20 de 1000 (un 2 %) para los 28 días hasta el cobro del 26/10: ni un euro entero al día.
+  await expect(dash.locator(".v4-ring")).toHaveText("2%");
   await expect(dash.locator(".v42-cycle-amount>.serif")).toHaveText("20 €");
   await expect(dash.locator(".v42-cycle-of")).toContainText("1000");
-  await expect(dash.getByTestId("inicio-cycle-pace")).toContainText("0 €");
+  await expect(dash.getByTestId("inicio-cycle-pace")).toHaveText(caso.pace);
   await expect(page.locator(".v4-budget-foot")).toHaveCount(0);
   await expect(dash.locator(".v4-budget-txt .ph")).not.toContainText("1450");
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
@@ -79,8 +81,9 @@ for(const caso of [
 });
 
 for(const caso of [
-  {income:780,net:"-680,00 €",left:"Te quedan 1680,00 €.",pct:"0%",remaining:"1680,00",progress:"0"},
-  {income:50,net:"1150,00 €",left:"Te faltan 150,00 €.",pct:"100%",remaining:"-150,00",progress:"1150"},
+  // Con más ingresos que gasto queda más que el presupuesto: el anillo se llena, no pasa de 100 %.
+  {income:780,pct:"100%",remaining:"1680,00",progress:"0"},
+  {income:50,pct:"0%",remaining:"-150,00",progress:"1150"},
 ]) test(`Mi ciclo explica el margen con ingreso ${caso.income}`,async({page})=>{
   await page.clock.install({time:new Date("2026-09-28T12:00:00Z")});
   await seedLoggedInDashboard(page,{
@@ -97,10 +100,11 @@ for(const caso of [
   await page.waitForFunction(()=>!document.getElementById("mc-load"));
   await dismissNews(page);
   const dash=page.locator(".v4-budget");
-  await expect(dash.locator(".v4-ring")).toContainText(caso.pct);
+  await expect(dash.locator(".v4-ring")).toHaveText(caso.pct);
   await expect(dash.locator(".v42-cycle-amount>.serif")).toHaveText((caso.income===780?"1680":"-150")+" €");
   await expect(dash).toHaveAttribute("data-state",caso.income===780?"start":"over");
-  await expect(dash.getByTestId("inicio-cycle-pace")).toHaveCount(caso.income===780?1:0);
+  if(caso.income===780) await expect(dash.getByTestId("inicio-cycle-pace")).toHaveText("60 € al día durante 28 días");
+  else await expect(dash.getByTestId("inicio-cycle-pace")).toHaveCount(0);
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
   const gastos=page.locator(".v4-gastos-summary");
   await expect(gastos.locator(".v4-gastos-summary-left")).toContainText(caso.remaining);
@@ -122,11 +126,11 @@ test("Inicio conserva la frase de gasto también con balance desfavorable",async
   await page.waitForFunction(()=>!document.getElementById("mc-load"));
   await dismissNews(page);
   const dash=page.locator(".v4-budget");
-  await expect(dash.locator(".v4-ring")).toContainText("30%");
+  await expect(dash.locator(".v4-ring")).toHaveText("70%");
   await expect(dash.locator(".v42-cycle-amount>.serif")).toHaveText("700 €");
   await expect(dash.locator(".v4-budget-txt .ph")).not.toContainText(/[−-]\s*300/);
   await expect(dash.locator(".v4-budget-txt .ph")).not.toContainText("Balance en contra");
-  await expect(dash.getByTestId("inicio-cycle-pace")).toHaveCount(0);
+  await expect(dash.getByTestId("inicio-cycle-pace")).toHaveText("43 € al día durante 16 días");
   await expect(dash.locator(".v4-budget-txt .st")).toHaveText("Vas sobrado");
 });
 
