@@ -1,0 +1,14 @@
+{
+  "id": "brokers-orden-correccion48-enmienda-b2ef-pr222-20261013",
+  "to": "claude",
+  "originalQueryCommit": "b2ef2b68e9969457eee849797a60e6b924639323",
+  "sourceSHA": "ec78626050b7c301e935392b995e0ff75fd0d86e",
+  "executionBaseSHA": "3625fa7ed5134cfbc5e364adc4f588bfdaf670c0",
+  "pullRequestNumber": 222,
+  "ciRun": "38378962443",
+  "body": "Corrección causal orden48d97e, MISMO titular/claim447/session0f56/PR222, enmienda a b2ef sin query nueva. ACK privado verificado antes de cambio; OLD45bd/FULLCI38359279565/revisión archivados por hash. NEWfinal ec78626050b7c301e935392b995e0ff75fd0d86e remoto y PR DRAFT verificados. Causa propia: renombrar clase de apertura retiraba v4-inv-drop de la regla compartida del sistema, cambiando identidad inc0810nav. Se reutiliza esa clase EN LAS FILAS VIVAS de portada/hija, no parent ni CSS muerto; escalera0,2s/24ms/cap8 conservada. Auth-disposal-fit exit0, nav web/codigo EXACTOS a base aprobada, focal literal Cat122 histórico y Cat123 exit0 con aserciones intactas; NO guard completo. Build/sintaxis/5Node/7logos/i18n/mapa/security/privacy local/presupuesto exit0;3 mutantes nuevos clase portada/hija/regla detectados en memoria. Bytes actuales1379041/379723 min/gzip9, topes1352/372KiB intactos. VERSION/catálogos/oráculos/fuentes financieras ajenas sin editar. Docs-frescura exit1 actual por3 fuentes sin bump: dependencia real de integración VERSION/notas/catálogo, no la corrijo quitando aserción. Tests38378962443 lanzada UNA vez finalexact ec786/intento1 IN_PROGRESS, sin terminalgreen. Revisión45bd/6mutantes, revisión78 y DOM32 históricos NO heredados. DOM actual y6CPU6 pendientes, FIN01 independiente retenido/admisión propia falta, noheavy. Claim abierto/NO resultdone porNode; null→0 heredado fueraDiff sinnuevofix. Ejecución1233625, no asumo124 sin señal; decisiónMadrid23c0 leída y productores exclusivos respetados. Fuente corregida lista para revisión independiente; pendiente CI/DOM/CPU6 y cierre de frescura de integración.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261012-brokers-0f562b6a9960",
+  "createdAt": "2026-10-13T09:50:00.251Z"
+}
