@@ -13,7 +13,7 @@ function state(cycle = false) {
   const from = cycle ? Date.parse("2026-10-05T00:00:00+02:00") : start;
   const anchor = cycle ? claveComoLaApp(rows[1]) : "", kind = cycle ? "ciclo" : "mes";
   return { accounts: [{ ent: "trade_republic", role: "diario", spendFrom: true }, { ent: "sabadell", role: "fijos" }],
-    settings: { budgetCycle: cycle }, budget: 100, deleted: [], reservaLog: [],
+    settings: { budgetCycle: cycle, gTotalMode: "net" }, budget: 100, deleted: [], reservaLog: [],
     widgetPeriod: { v: 2, kind, start: from, anchor,
       scope: JSON.stringify([2, from, kind, cycle ? "neto" : "gasto", anchor, 100, ["trade_republic"], "trade_republic"]) } };
 }
@@ -48,6 +48,7 @@ Deno.test("pago cerrado en día 45: cifra del ciclo nueva y mes compatible con A
     { ...rows[1], fecha: "2026-08-20T12:00:00+02:00" },
     { ...rows[0], fecha: "2026-09-02T12:00:00+02:00", importe: 140 },
     { ...rows[2], fecha: "2026-10-04T00:00:00+02:00" },
+    { ...rows[3], fecha: "2026-10-02T13:00:00+02:00", cat: "bizum", source: "ob:trade_republic" },
   ];
   s.budget = 1000;
   s.widgetPeriod = { v: 2, kind: "ciclo", start, anchor: claveComoLaApp(cycleRows[0]), scope: "" };
@@ -55,7 +56,7 @@ Deno.test("pago cerrado en día 45: cifra del ciclo nueva y mes compatible con A
   s.widgetPeriod.scope = scope("ciclo", start, s.widgetPeriod.anchor);
   for (const time of ["00:01:00", "09:30:00", "12:01:00", "23:59:59.999"]) {
     const at = Date.parse("2026-10-04T" + time + "+02:00");
-    assertEquals(widgetSnapshot(s, cycleRows, at, payment)?.spent, 145.45, time);
+    assertEquals(widgetSnapshot(s, cycleRows, at, payment)?.spent, 125.45, time);
     const from = inicioDeMesMs(at), monthly = { ...s, widgetPeriod: { v: 2, kind: "mes", start: from, anchor: "", scope: scope("mes", from, "") } };
     assertEquals(widgetSnapshot(monthly, cycleRows, at, payment)?.spent, 5.45, "APK55 " + time);
   }

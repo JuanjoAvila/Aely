@@ -120,14 +120,15 @@ try {
     const lib=loadPureLogicFromFile();
     lib.Date=class extends Date {static now(){return at;}};
     const s={budget:1000,accounts:[{ent:'trade_republic',role:'diario'}],reservaLog:[],deleted:[],
-      settings:{budgetCycle:true,expenseBanks:['trade_republic']},expenses:[
+      settings:{budgetCycle:true,gTotalMode:'net',expenseBanks:['trade_republic']},expenses:[
         {date:'2026-08-20T12:00:00+02:00',amount:-1800,merchant:'NOMINA SINTETICA',category:'ingreso',ent:'trade_republic'},
         {date:'2026-09-02T12:00:00+02:00',amount:140,category:'super',ent:'trade_republic'},
-        {date:'2026-10-02T12:00:00+02:00',amount:7,category:'super',ent:'trade_republic'}]};
+        {date:'2026-10-02T12:00:00+02:00',amount:7,category:'super',ent:'trade_republic'},
+        {date:'2026-10-02T13:00:00+02:00',amount:-20,category:'bizum',ent:'trade_republic'}]};
     const b=select(s,code,lib.Date,lib.dashboardBudgetStats,lib.monthBudgetStats);
     const cycle=day<45||day===45&&code===56, anchor=cycle?lib.keyOfExpense(s.expenses[0]):'';
     assert.equal(!!b.cycle,cycle,'periodo real APK'+code+' día'+day+' hora'+hour);
-    const expected=cycle?147:7;
+    const expected=cycle?127:7;
     const data=WEB.nueva(b,s,{current:[]},code,'es',lib.widgetScopeOf(s,b,anchor,'trade_republic'),lib.widgetCoveredEvents,lib.Date,
       {current:null},2000,{ent:'trade_republic'},()=>({label:'Cuenta'}),b.remaining,2000);
     assert.equal(data.spent,expected); assert.equal(data.budgetLeft,1000-expected);
