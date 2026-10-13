@@ -573,7 +573,12 @@ assert.deepEqual([verdictOn(saverSim,"2026-10-13","1m").months,verdictOn(saverSi
 const flatSeries=Array.from({length:400},(_,i)=>({day:new Date(Date.UTC(2025,8,i+1)).toISOString().slice(0,10),value:1000}));
 assert.equal(c.netWorthCompare(flatSeries.slice(-89),"1m","2026-10-13",0),null,"con 89 días no hay dos ventanas de 45 sin solapar: sin veredicto");
 assert.equal(c.netWorthCompare(flatSeries.slice(-90),"1m","2026-10-13",0).delta,0,"con 90 sí");
-assert.equal(c.netWorthCompare(flatSeries.slice(-200),"1y","2026-10-13",0),null,"1A sin un año de datos no se inventa");
+// Sin la ventana del periodo elegido pero con alguna anterior completa se usa la más antigua,
+// como «Todo», y la frase dice los meses de verdad (el dueño, con 118 días, leía «Aún sin datos»).
+assert.deepEqual(plain(c.netWorthCompare(flatSeries.slice(-200),"1y","2026-10-13",0)),{delta:0,days:155,months:5,verdict:"flat",margin:10},"1A con 200 días compara con la más antigua: «hace 5 meses»");
+const owner118=flatSeries.slice(-118).map((p,i)=>({...p,value:1000+i}));
+assert.deepEqual(["1m","3m","6m","all"].map(id=>{const k=c.netWorthCompare(owner118,id,"2026-10-13",0);return [k.days,k.months,k.delta];}),[[45,1,45],[73,2,73],[73,2,73],[73,2,73]],"118 días: 1M compara un mes; 3M, 6M y Todo con «hace 2 meses»");
+assert.equal(c.netWorthCompare(flatSeries.slice(-89),"3m","2026-10-13",0),null,"sin ninguna ventana anterior completa, ningún periodo compara");
 assert.deepEqual(plain(c.netWorthCompare(flatSeries,"all","2026-10-13",0)),{delta:0,days:355,months:12,verdict:"flat",margin:10},"«Todo» compara con la ventana más antigua completa");
 const bump=flatSeries.map((p,i)=>i>=flatSeries.length-45?{...p,value:1005}:p);
 assert.equal(c.netWorthCompare(bump,"1m","2026-10-13",0).verdict,"flat","cinco euros no dan color");

@@ -8650,9 +8650,12 @@ function netWorthCompare(series, rangeId, today, invested){
   if(!series||series.length<NW_WINDOW+1) return null;
   const n=series.length, back={"1m":30,"3m":91,"6m":182,"1y":365}[rangeId];
   // Las dos ventanas no se solapan (1M compara con la que termina 45 días atrás, que sigue
-  // siendo «el mes pasado»); Todo: la ventana más antigua completa.
-  const gap=Math.max(NW_WINDOW,back!=null?back:n-NW_WINDOW);
-  if(n-gap-NW_WINDOW<0) return null;
+  // siendo «el mes pasado»). Si el periodo elegido no tiene su ventana completa pero sí hay
+  // alguna anterior, se usa la más antigua (como «Todo») y la frase dice los meses de verdad:
+  // con 118 días de serie, 3M decía «Aún sin datos para comparar» teniendo historia desde junio.
+  const oldest=n-NW_WINDOW;
+  if(oldest<NW_WINDOW) return null;
+  const gap=Math.min(oldest,Math.max(NW_WINDOW,back!=null?back:oldest));
   const low=function(end){ let v=Infinity; for(let i=end-NW_WINDOW+1;i<=end;i++) if(series[i].value<v) v=series[i].value; return v; };
   const delta=Math.round((low(n-1)-low(n-1-gap))*100)/100;
   // El margen solo decide el color: 2 % de lo invertido (el vaivén de un día de bolsa) entre
