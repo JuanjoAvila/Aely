@@ -28,7 +28,7 @@ Promoción selectiva98 preparada7/10: el dueño aprobó ocultar juntos barra y b
 
 # Roadmap — Aely
 
-INC-2709-08, candidata separada sin publicar: ordenar brókers con pulsación mantenida en Cartera y en «Ver todas tus inversiones», edición manual solo en la hija y despliegue escalonado con reducción de movimiento. Rebasada por orden expresa a beta122/e6e211a5; Node/sintaxis/tamaño actuales pasan, DOM y A/B pendientes de la retención independiente de FIN01 y del turno propio. DOM histórico base3/3 y candidata29/29 PASS sobre3aaa511b no se atribuye al rebase. CI exacta e integración pendientes. [Contrato y pruebas](briefs/inc-2709-08-brokers-orden.md). No modifica la versión ni el estado de entrega de las tandas existentes.
+INC-2709-08, PR222 en borrador sin publicar: ordenar brókers con pulsación mantenida en Cartera y en «Ver todas tus inversiones», edición manual solo en la hija y despliegue escalonado con reducción de movimiento. Mantenimiento expreso sobre beta123/3625fa7e; Node/sintaxis/tamaño pasan. Head78a, revisión activa y CI38353998108 se conservan como historia122, sin atribuirse al nuevo head. DOM y A/B actuales pendientes de FIN01 y del turno propio; DOM32 anterior solo acredita3aaa511b. CI nueva exacta e integración pendientes. [Contrato y pruebas](briefs/inc-2709-08-brokers-orden.md). No modifica versión ni tandas existentes.
 
 MAIN4.26.110 incorpora PR196 (bdd75636), sólo pruebas, herramientas y documentación. Tests38005461796 y DeployPages38005461732 terminaron SUCCESS y sus artefactos se comprobaron; ese cierre no publica Inicio112 ni acredita APK nuevo o aceptación móvil. Las aprobadas99/100/101/102/106 ya entregadas conservan su cierre;109 sigue rechazada.
 

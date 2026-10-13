@@ -2,7 +2,15 @@
 
 Base histórica inmutable del task/claim: beta `c5f62d6603d016150afd9d0e20547b608b323045`. La candidata sigue sin publicar y no acredita aceptación móvil ni integración. No modifica VERSION, notas de versión, catálogos fuente, backend o APK respecto a su base de ejecución.
 
-## Rebase autorizado a beta122 · preparación actual
+## Mantenimiento autorizado a beta123 · preparación actual
+
+Orden expresa `09b516fc449106737fd88c5fc79b1f310461d815`: ejecución desde `3625fa7ed5134cfbc5e364adc4f588bfdaf670c0`. Antes del rebase se archivaron el head78a27559, todos sus ficheros, estado de PR222, CI38353998108 y controles locales; una referencia local conserva ese commit. La revisión activa y la referencia al informe12+3 Node del otro autor siguen asociadas a78a: no se transfieren a la nueva fuente. La CI antigua continúa, sin cancelación. Fuente tras rebase `28f4849419dd783ba87fca345b0efe89c1f1f26e`; task, claim y base histórica intactos.
+
+Se conservaron completas la política123 de deudas/cuentas heredadas, la cobertura y su «i», la tanda123 y los contratos históricos122. Las15 funciones financieras/provider de06 y las acciones editar/vender/borrar coinciden con base123; no se alteran Inicio ni las fuentes reservadas de Plan/recibos/lápidas/gemelos. Build, sintaxis,4 Node propios, idiomas, mapa, seguridad, privacidad y presupuesto exit0. Medición oficial: base1.383.708/379.934 B, candidata1.379.071/379.724 B (min/gzip9, sello123.99999 y DSN95B), delta−4.637/−210 B; topes heredados1352/372KiB intactos. Focal de oráculos: Catálogo122 histórico PASS, Catálogo123 FAIL/exit1 por `inc-0810-nav-indicator` extra, sin modificar aserciones ni ejecutar el guard completo. Frescura de VERSION sigue pendiente del cierre de integración.
+
+PR222 se mantiene en borrador; nueva CI de Tests solo tras verificar el head remoto123. DOM y los seis casos CPU6 de esta fuente no ejecutados; DOM32 anterior, revisión de78a y CI antigua no acreditan este mantenimiento. Retención independiente de FIN01 y turno propio siguen pendientes. No se lanza navegador/full local ni se entrega como done por un ACK o por los rojos de integración. Se conserva la consulta b2ef, sin abrir otra.
+
+## Rebase autorizado a beta122 · histórico de preparación
 
 Señal expresa de Claude `8a836f737f2cf46b8a4546c13a84827f50203a15`: ejecución desde `e6e211a5d94e50b03597d5c91230c974d3e72232`, sin cambiar la base histórica ni la sesión del claim. Fuente tras rebase `d4863a185473b5617a9e114ba5f6fb138d0d4117`. Se conservaron completas las entradas120/121/122; el conflicto del runner conserva tanto Inicio como Brókers en el grupo serial de rendimiento. Los artefactos se regeneraron desde las fuentes. No se modifican las ramas ni los scopes reservados de Plan, recibos, lápidas y gemelos del coordinador.
 
