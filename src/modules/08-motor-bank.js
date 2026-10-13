@@ -1161,7 +1161,7 @@ function importObExpenses(s, txs, links){
   };
   /* PRIMERA PASADA: la fila que ENTRARÍA por cada apunte, con todos los filtros de siempre
      (estado, ventana, modelados, id ya visto) pero SIN decidir todavía si ya la tenemos. */
-  const prepara=function(tx, aunVisto){
+  const prepara=function(tx){
     const esIngreso = tx.amount<0;
     if(esIngreso){
       // Un abono pendiente o futuro no acredita dinero disponible (feedback 30/9).
@@ -1174,7 +1174,7 @@ function importObExpenses(s, txs, links){
       const day=new Date(Number(parts[1]),Number(parts[2])-1,Number(parts[3]),12);
       if(dayKey(day)!==date || date>todayKey) return null;
       if(fuera(tx)) return null;
-      if(!aunVisto && tx.id && (seen[(tx.ent||"")+"|"+tx.id]||seenLegacy[tx.id])) return null;
+      if(tx.id && (seen[(tx.ent||"")+"|"+tx.id]||seenLegacy[tx.id])) return null;
       const e={ id:mcExpenseId(), date:new Date(tx.date+"T12:00:00").toISOString(),
         merchant:tx.merchant||"Ingreso", amount:tx.amount,
         category: esTraspasoPropio(s, tx) ? TRASPASO_CAT.id : INGRESO_CAT.id, source:"ob", ent:tx.ent };
@@ -1189,7 +1189,7 @@ function importObExpenses(s, txs, links){
     if(!tx.date || fuera(tx)) return null;
     const antiguo=parseDate(tx.date)<som;
     const recibos=modeledHit(tx.ent, tx.merchant, tx.amount, antiguo);
-    if(!aunVisto && tx.id && (seen[(tx.ent||"")+"|"+tx.id]||seenLegacy[tx.id])) return null;
+    if(tx.id && (seen[(tx.ent||"")+"|"+tx.id]||seenLegacy[tx.id])) return null;
     const esDiario=tx.ent===dailyEnt;
     // El aporte de hace dos meses ya se compró en su día o ya no toca: se apunta, pero no compra.
     const esAporteInv = !recibos && !antiguo && esDiario && daily && daily.monthlyInvest>0 && Math.abs(tx.amount-daily.monthlyInvest)<0.01;
@@ -1250,40 +1250,41 @@ function importObExpenses(s, txs, links){
      el mismo estado— no hay nada que distinga «repetida al paginar» de «dos bizums iguales», y
      ahí mandan los k del banco: es la función de esta entrega. */
   const firme=function(tx){ const st=String(tx.status||"").trim(); return !st || /book|post/i.test(st); };
-  /* UN APUNTE CON ID IDÉNTICO A UN GRUPO SIN ID OCUPA LA RANURA 1 (13/10/2026). El banco puede
-     mandar el mismo día, importe y nombre una vez con id y otra sin él. El de id va por su camino
-     y no contaba para las ranuras: si llegaba delante, el de sin id entraba también como
-     «primero» y quedaban dos filas con LA MISMA clave. Una sola cabía en la nube, el siguiente
-     pull las fundía y un «no es este recibo» sobre una soltaba las dos (gastado 0 → 21,98); si
-     llegaba detrás, o en otra sincronización, entraba una sola. Ahora, llegue como llegue, el de
-     sin id es el segundo: su ordinal, su fecha y su clave propias. Se mira en la respuesta
-     entera, también lo que ya está guardado por su id (`aunVisto`); y un pendiente sin id se da
-     por cubierto por el contabilizado con id, igual que entre los de sin id. */
+  /* UN APUNTE CON ID Y OTRO IDÉNTICO SIN ID SON EL MISMO CARGO (13/10/2026, decisión del
+     coordinador). El de id va por su camino y no contaba para las ranuras: si llegaba delante,
+     el de sin id entraba también como «primero» y quedaban dos filas con LA MISMA clave. Una
+     sola cabía en la nube, el siguiente pull las fundía (7,50 contados como 15 hasta entonces)
+     y un «no es este recibo» sobre una soltaba las dos; si llegaba detrás, o en otra
+     sincronización, entraba una. Ahora entra UNA desde el principio, la del id: ocupa la ranura
+     1 del grupo y a los de sin id les quedan de la 2 en adelante. Con dos ids iguales y uno sin
+     id sigue siendo una (los de id ya se fundían por clave); con un id y dos sin id, dos. No hay
+     dato de que un banco mande así dos cargos distintos. Cuenta el de id que entra ahora y el
+     que ya está guardado por su id; el que no pasa los filtros (un abono pendiente) no. */
   if(ordenGrupos.length){
+    const conId=function(g){ if(grupos[g]) grupos[g].conId=1; };
+    cands.forEach(function(c){ if(c.tx.id) conId((expenseBankOf(c.e)||c.e.ent||"")+"|"+baseKOf(c.e)); });
+    // Solo los que coinciden en banco e importe con algún grupo: el resto ni se mira.
+    const porImporte={};
+    ordenGrupos.forEach(function(g){ const c=grupos[g].miembros[0]; porImporte[(c.tx.ent||"")+"|"+c.tx.amount]=1; });
     txs.forEach(function(tx){
-      if(!tx.id) return;
-      const e=prepara(tx, true);
-      const g=e && grupos[(expenseBankOf(e)||e.ent||"")+"|"+baseKOf(e)];
-      if(!g) return;
-      g.conId=1;
-      if(firme(tx)) g.conIdFirmes=(g.conIdFirmes||0)+1;
+      if(!tx.id || !porImporte[(tx.ent||"")+"|"+tx.amount] || !(seen[(tx.ent||"")+"|"+tx.id]||seenLegacy[tx.id])) return;
+      // La clave que `prepara` le habría dado, sin volver a prepararlo.
+      conId((tx.ent||"")+"|"+String(new Date(tx.date+"T12:00:00").toISOString()).slice(0,10)+"|"+tx.amount+"|"+(tx.merchant||(tx.amount<0?"Ingreso":"Compra")));
     });
   }
   ordenGrupos.forEach(function(k){
     const g=grupos[k];
     g.miembros.sort(function(a,b){ const ha=huella(a.tx), hb=huella(b.tx); return ha<hb?-1:(ha>hb?1:0); });
     const firmes=g.miembros.filter(function(c){ return firme(c.tx); });
-    const cubren=firmes.length+(g.conIdFirmes||0);
-    if(cubren && firmes.length<g.miembros.length){
+    if(firmes.length && firmes.length<g.miembros.length){
       const pendientes=g.miembros.filter(function(c){ return !firme(c.tx); });
-      g.miembros=firmes.concat(pendientes.slice(cubren));   // los descartados se quedan sin ranura
+      g.miembros=firmes.concat(pendientes.slice(firmes.length));   // los descartados se quedan sin ranura
     }
-    const desde=g.conId||0, total=g.miembros.length+desde;
-    let n=desde, viejas=0;
+    let n=g.conId||0, viejas=0;
     g.miembros.forEach(function(c){
       // Siguiente ranura libre entre 1..k; las cubiertas se saltan sin gastar miembro… pero el
       // total de ranuras es k: pasado k, el miembro sobra (ya lo teníamos).
-      while(n<total){ n++; if(lapidaVieja(g,n)) viejas++; if(!cubierta(g,n)){ c.ord=n; break; } }
+      while(n<g.miembros.length){ n++; if(lapidaVieja(g,n)) viejas++; if(!cubierta(g,n)){ c.ord=n; break; } }
       c.saltar=viejas;
     });
   });
@@ -1470,53 +1471,94 @@ function reponerCargoDeRecibo(s, expenseId, fixedId, y, m, today, expected, ahor
    Fuera de un sync eso movía el saldo con el banco quieto (cuenta de gasto diario: 397,60 →
    335,20): se sujeta si había un cargo suyo marcado. → {state, subir} con las filas ya sin
    marca, para reescribir su `source`. */
-function sinCargoDelPlan(s, lista, id){
+function sinCargoDelPlan(s, lista, id, ahora){
   const subir=[], desde=budgetPeriodOf(s).startMs, mes=startOfMonth().getTime();
   const era=(s[lista]||[]).find(function(x){ return x.id===id; });
-  let marcadas=false, delMes=false;
+  if(!era) return { subir:subir, state:s };
+  let delMes=false;
   const expenses=(s.expenses||[]).map(function(e){
     if(!e || e.reciboId!==id) return e;
-    marcadas=true;
     if(dateMs(e.date)>=mes && cargoDeRecibo(e, s)) delMes=true;
     if(dateMs(e.date)<desde) return e;
     const x=Object.assign({}, e); delete x.reciboId;
     subir.push(x);
     return x;
   });
+  // `x`: las filas que pierden la marca, para devolvérsela si se pulsa «Deshacer».
+  const b={ d:desde, n:era.name||"" };
+  if(subir.length) b.x=subir.map(function(e){ return e.id; });
+  const at=Object.assign({}, s.reciboBorradoAt);
+  at[id]=Math.max(ahora||Date.now(), (at[id]||0)+1);
   const out=Object.assign({}, s, { [lista]:(s[lista]||[]).filter(function(x){ return x.id!==id; }) }, subir.length ? { expenses:expenses } : null,
-    marcadas ? { reciboBorrado:Object.assign({}, s.reciboBorrado, { [id]:{ d:desde, n:(era&&era.name)||"" } }) } : null);
+    { reciboBorrado:Object.assign({}, s.reciboBorrado, { [id]:b }), reciboBorradoAt:at });
+  return { subir:subir, state:(delMes || subir.length) ? conSaldoMostrado(s, out) : out };
+}
+/* «DESHACER» EL BORRADO DE UN RECIBO LO DEJA COMO ESTABA (13/10/2026). Plan lo devuelve con su
+   MISMO id (`undoLastBill`). Sin esto `reciboBorrado` seguía diciendo «borrado» y el siguiente
+   arranque lo sacaba otra vez del Plan; y, ya antes de unir nada, sus cargos del periodo se
+   quedaban sin marca: el recibo de vuelta en el Plan y el gastado con su cargo dentro (102,40
+   donde eran 40). Se levanta el borrado con su hora —gana a un estado más antiguo que aún lo
+   traiga— y las filas que perdieron la marca al borrarlo la recuperan, aquí y en la nube. Un
+   alta cualquiera (id nuevo, sin borrado que conste) es solo añadirlo. → {state, subir} */
+function conReciboEnPlan(s, lista, item, ahora){
+  const con=Object.assign({}, s, { [lista]:(s[lista]||[]).concat([item]) });
+  const b=item && s.reciboBorrado && s.reciboBorrado[item.id];
+  if(!b) return { subir:[], state:con };
+  const rb=Object.assign({}, s.reciboBorrado); delete rb[item.id];
+  const at=Object.assign({}, s.reciboBorradoAt);
+  at[item.id]=Math.max(ahora||Date.now(), (at[item.id]||0)+1);
+  const subir=[], suyas=b.x||[], mes=startOfMonth().getTime();
+  let delMes=false;
+  const expenses=(s.expenses||[]).map(function(e){
+    if(!e) return e;
+    if(e.reciboId===item.id && dateMs(e.date)>=mes) delMes=true;
+    if(e.reciboId || suyas.indexOf(e.id)<0 || !admiteMarcaDe(e, item)) return e;
+    const x=Object.assign({}, e, { reciboId:item.id });
+    subir.push(x);
+    return x;
+  });
+  const out=Object.assign({}, con, { reciboBorrado:rb, reciboBorradoAt:at }, subir.length ? { expenses:expenses } : null);
   return { subir:subir, state:(delMes || subir.length) ? conSaldoMostrado(s, out) : out };
 }
 /* EL BORRADO DE UN RECIBO SOBREVIVE A UN ESTADO MÁS ANTIGUO (13/10/2026). El estado viaja entero
    por «último que escribe», y el del móvil B —días sin abrirse, pero sellado como «más nuevo» por
    el primer guardado al arrancar— ganaba: el recibo volvía al Plan sin `reciboBorrado`, mientras
    su cargo del periodo ya estaba sin marca en la nube. Medido: B decía 40 de gastado (su fila
-   seguía marcada y el recibo existía) y A y el widget 102,40. `reciboBorrado` se UNE, y un recibo
-   que consta borrado sale del Plan gane el estado que gane; con eso `cargoDeRecibo` da lo mismo
-   en los dos móviles. No hace irreversible nada: borrar un recibo no tiene «Deshacer», y
-   volver a crearlo le da otro id. El saldo pintado se sujeta igual que al borrarlo a mano.
+   seguía marcada y el recibo existía) y A y el widget 102,40. `reciboBorrado` se une con la
+   regla de las lápidas y los vetos (`unionPorHora`, con `reciboBorradoAt`: gana lo último que
+   se dijo, borrar o «Deshacer»; lo que no lleva hora se suma), y un recibo que consta borrado
+   sale del Plan gane el estado que gane; con eso `cargoDeRecibo` da lo mismo en los dos móviles.
+   Todo borrado deja constancia, tuviera o no cargos marcados: sin ella el recibo volvía igual
+   desde el móvil atrasado. No tiene tope: de cada entrada depende que los cargos de meses
+   cerrados sigan sin contar. El saldo pintado se sujeta igual que al borrarlo a mano.
    → el mismo estado si no hay nada que unir. */
 function recibosBorradosUnion(s, local, nube){
-  const a=local&&local.reciboBorrado, b=nube&&nube.reciboBorrado;
-  let rb=a;
-  Object.keys(b||{}).forEach(function(id){
-    if((a&&a[id]) || !b[id] || typeof b[id].d!=="number") return;
-    if(rb===a) rb=Object.assign({}, a);
-    rb[id]=b[id];
-  });
-  if(!rb) return s;
+  const a=(local&&local.reciboBorrado)||{}, b=(nube&&nube.reciboBorrado)||{};
+  const vale=function(o){ return Object.keys(o).filter(function(id){ return o[id] && typeof o[id].d==="number"; }); };
+  const u=unionPorHora(vale(a), local&&local.reciboBorradoAt, vale(b), nube&&nube.reciboBorradoAt);
+  const igual=function(x, y){ const kx=Object.keys(x||{}), ky=Object.keys(y||{}); return kx.length===ky.length && kx.every(function(k){ return x[k]===y[k]; }); };
+  let rb={}, at=u.at;
+  u.lista.forEach(function(id){ rb[id]=a[id]||b[id]; });
+  if(igual(rb, s.reciboBorrado)) rb=s.reciboBorrado;
+  if(igual(at, s.reciboBorradoAt)) at=s.reciboBorradoAt;
+  const con=(rb===s.reciboBorrado && at===s.reciboBorradoAt) ? s : Object.assign({}, s, { reciboBorrado:rb, reciboBorradoAt:at });
+  if(!rb) return con;
   const fuera=function(x){ return !!(x && rb[x.id]); };
-  const con=rb===s.reciboBorrado ? s : Object.assign({}, s, { reciboBorrado:rb });
   if(!(s.fixed||[]).some(fuera) && !(s.oneoffs||[]).some(fuera)) return con;
   const sin=Object.assign({}, con, { fixed:(s.fixed||[]).filter(function(x){ return !fuera(x); }), oneoffs:(s.oneoffs||[]).filter(function(x){ return !fuera(x); }) });
-  const mes=startOfMonth().getTime();
-  const suelta=(s.expenses||[]).some(function(e){ return e && rb[e.reciboId] && dateMs(e.date)>=Math.min(mes, rb[e.reciboId].d) && cargoDeRecibo(e, s); });
+  // Con algún cargo suyo marcado, el saldo pintado no puede moverse con el banco quieto.
+  const suelta=(s.expenses||[]).some(function(e){ return e && rb[e.reciboId] && cargoDeRecibo(e, s); });
   return suelta ? conSaldoMostrado(s, sin) : sin;
 }
-// Las cuatro puertas de borrado de Plan pasan por aquí: el estado y, después, la nube.
+// Las puertas de borrado y de alta de Plan pasan por aquí: el estado y, después, la nube.
 function quitarDelPlan(set, lista, id){
   let subir=[];
   set(function(s){ const r=sinCargoDelPlan(s, lista, id); subir=r.subir; return r.state; });
+  if(cloud.enabled()) subir.forEach(function(e){ cloud.setExpenseRecibo(e).catch(function(){}); });
+}
+function ponerEnPlan(set, lista, item){
+  let subir=[];
+  set(function(s){ const r=conReciboEnPlan(s, lista, item); subir=r.subir; return r.state; });
   if(cloud.enabled()) subir.forEach(function(e){ cloud.setExpenseRecibo(e).catch(function(){}); });
 }
 /* LAS CUOTAS DE TUS DEUDAS, EN «DEUDAS» (4.21.0).
@@ -3321,7 +3363,7 @@ function removeFixedById(set, id){
   quitarDelPlan(set,"fixed",id);
 }
 function addFixedItem(set, item){
-  set(function(s){ return Object.assign({},s,{fixed:(s.fixed||[]).concat([item])}); });
+  ponerEnPlan(set,"fixed",item);
 }
 function patchFlowById(set, id, patch){
   set(function(s){
@@ -3358,7 +3400,7 @@ function removeOneoffById(set, id){
   quitarDelPlan(set,"oneoffs",id);
 }
 function addOneoffItem(set, item){
-  set(function(s){ return Object.assign({},s,{oneoffs:(s.oneoffs||[]).concat([item])}); });
+  ponerEnPlan(set,"oneoffs",item);
 }
 /* En modo sencillo no hay pestaña Deudas: la ficha de cuota SÍ puede escribir día/cuenta/amort. */
 function patchDebtFields(set, id, patch){

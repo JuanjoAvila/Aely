@@ -341,22 +341,47 @@ un móvil con días sin abrirse queda sellado como «más nuevo» por su primer 
 arrancar. Lo que no puede perderse así se une en `syncFromCloud`, gane el estado que gane:
 los vínculos aviso↔apunte (`fusionarGemelos`), los vetos (`reciboNoUnion`), las lápidas
 (`lapidasUnion`) y los recibos borrados (`recibosBorradosUnion`); las dos últimas solo con lo
-local del mismo titular. Las lápidas y los vetos comparten regla (`unionPorHora`): clave a
-clave gana lo último que se dijo, y sin hora se suman. Poner una lápida no apunta hora;
-levantarla («Deshacer» un borrado) sí, en `state.deletedAt` (tope 200), y volver a poner esa
-misma clave también: sin eso la lápida que A ya levantó volvería desde B y «Deshacer» sería
-irreversible. Un recibo que consta en `reciboBorrado` sale de `fixed`/`oneoffs` aunque el estado
-ganador lo traiga: sin eso el móvil atrasado seguía con el recibo y su cargo marcado (gastado
-40) mientras el otro y el widget contaban el cargo (102,40). Borrar un recibo no tiene
-«Deshacer» y recrearlo le da otro id. Al bajar gastos, si la nube trae varias filas con la
-misma clave (el aviso y el cargo del banco), refresca la local la de su mismo id, que es donde
-se escribió lo que se cambió en ella (categoría, «no tarjeta»); sin ninguna, la primera.
-Un apunte con id del banco idéntico a uno sin id ocupa la ranura 1 del grupo: el de sin id
-entra como segundo, con su ordinal, llegue en el orden que llegue (antes, dos filas con la
-misma clave o una, según el orden). Editar un gasto encadena en la nube el borrado de la fila
-vieja y el alta de la corregida (misma id: en paralelo el alta chocaba con la clave primaria,
-`23505`), y los eventos de error de `addExpense`/`deleteExpense` llevan la puerta de origen
-(`GASTO_ORIGENES`).
+local del mismo titular. Vetos, lápidas y recibos borrados comparten regla (`unionPorHora`):
+clave a clave gana lo último que se dijo, y lo que no lleva hora en ningún lado se suma.
+
+*Lápidas.* Ponerla y levantarla («Deshacer» un borrado, o editar un gasto hasta una clave que
+constaba retirada) apuntan su hora en `state.deletedAt`, siempre posterior a la que constara; se
+guardan las 200 decisiones más recientes. Sin eso la lápida que A ya levantó volvería desde B
+y «Deshacer» sería irreversible. Una lápida SIN hora la puso una versión anterior de la app:
+frente a un «Deshacer» de aquí gana solo si el estado que la trae se guardó después (es un
+borrado posterior); si se guardó antes, gana el «Deshacer». Tope de 500: las que llevan hora no
+se caen y de las demás se cae primero lo que solo traía la nube. **Límites:** (1) un «Deshacer»
+hecho en un móvil con versión anterior no apunta hora: si ese móvil había bajado la lápida con
+su hora, la unión se la devuelve; (2) con el reloj de un móvil adelantado, su «Deshacer» puede
+ganar a un borrado real posterior hecho en otro que no lo había bajado; (3) pasadas 200
+decisiones más recientes la hora se pierde y esa clave vuelve a sumarse.
+
+*Recibos borrados.* Todo borrado de un recibo o un puntual deja `reciboBorrado[id]` (`d`, `n`
+y, si soltó cargos del periodo, `x` con sus filas) y su hora en `reciboBorradoAt`, tuviera o no
+cargos marcados. Un recibo que consta borrado sale de `fixed`/`oneoffs` aunque el estado ganador
+lo traiga: sin eso el móvil atrasado seguía con el recibo y su cargo marcado (gastado 40)
+mientras el otro y el widget contaban el cargo (102,40). Borrar un recibo SÍ tiene «Deshacer»
+(Plan, `undoLastBill`, lo devuelve con el mismo id por `addFixedItem`/`addOneoffItem` →
+`conReciboEnPlan`): levanta el borrado con una hora posterior y devuelve la marca, aquí y en la
+nube, a las filas de `x`. `reciboBorrado` no tiene tope: de cada entrada depende que los cargos
+de meses cerrados sigan sin contar. **Límite:** el resto del Plan sigue siendo «último que
+escribe»; si tras un «Deshacer» gana el estado de otro móvil que aún no tiene el recibo, el
+recibo no está en ese estado (ya no consta como borrado, pero tampoco vuelve solo).
+
+*Gastos.* Al bajar la tabla, si la nube trae varias filas con la misma clave (el aviso y el
+cargo del banco), refresca la local la de su mismo id, que es donde se escribió lo que se
+cambió en ella (categoría, «no tarjeta»); sin ninguna, la primera (espera al final del pull,
+sin otra pasada por la tabla). Un apunte con id del banco y otro idéntico sin id (mismo banco,
+día, importe y nombre) son EL MISMO cargo: entra una fila, la del id, que ocupa la ranura 1
+del grupo de iguales; dos con id y uno sin id, una; uno con id y dos sin id, dos. Antes
+entraban dos filas con la misma clave, o una, según el orden, y el pull las fundía. Editar un
+gasto retira la clave vieja y levanta la nueva si constaba (10 → 12 → 10 escondía el gasto), y
+en la nube encadena el borrado de la fila vieja y el alta de la corregida (`subeEdicionesDeGasto`;
+misma id: en paralelo el alta chocaba con la clave primaria, `23505`). Si el borrado falla, el
+alta no se lanza y la edición espera en una cola en memoria hasta la siguiente edición o el
+evento `online`; **límite:** si la app se cierra antes, la fila vieja queda en la nube y el
+repaso dará `23505` con origen `backfill`. Los eventos de error de `addExpense`/`deleteExpense`
+llevan la puerta de origen (`GASTO_ORIGENES`).
 
 **Condición de publicación (medida en la revisión del 13/10).** Un dispositivo con la 4.26.120
 —el ordinal SIN esta entrega— lee `ob:<ent>~recibo.<id>` con el banco limpio y CUENTA el cargo

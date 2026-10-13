@@ -1786,10 +1786,12 @@ function subirGasto(e, donde){
     cloud.logEvent("error","addExpense "+(donde||"?")+": "+keyOfExpense(e), _errCloudMsg(err));
   });
 }
+// → true si la nube lo borró (o no hay nube); false si falló: quien encadena un alta lo mira.
 function borrarGastoNube(e, donde){
-  if(!cloud.enabled()) return Promise.resolve();
-  return cloud.deleteExpense(e).catch(function(err){
+  if(!cloud.enabled()) return Promise.resolve(true);
+  return cloud.deleteExpense(e).then(function(){ return true; }, function(err){
     cloud.logEvent("error","deleteExpense "+(donde||"?")+": "+keyOfExpense(e), _errCloudMsg(err));
+    return false;
   });
 }
 
@@ -2001,55 +2003,97 @@ function pushDeleted(list, key){
    lista sin esa lápida y el gasto volvía (o el banco lo metía otra vez). Una lápida es un hecho
    que vio un móvil; el otro no puede desmentirla por no tenerla.
    Pero unir a secas haría IRREVERSIBLE el «Deshacer» de un borrado: la lápida que A ya quitó
-   seguiría en B, y B se la devolvería a A. Por eso levantar una lápida deja apuntado CUÁNDO en
-   `deletedAt` (solo las levantadas: poner hora a las 500 engordaría el estado en cada guardado),
-   y al unir gana, clave a clave, lo último que se dijo — la regla de los vetos de recibo
-   (`reciboNoUnion`). Sin hora, o con la misma, se suman. Límite asumido: si B borra ese mismo
-   gasto sin saber que A lo borró y lo deshizo, gana el «Deshacer» de A y el gasto vuelve a
-   verse; se borra otra vez y esa ya lleva hora. Vuelve a verse, nunca se esconde solo. */
+   seguiría en B, y B se la devolvería a A. Por eso cada lápida que se pone o se levanta deja
+   apuntado CUÁNDO en `deletedAt` (las 200 decisiones más recientes; las anteriores quedan sin
+   hora), y al unir gana, clave a clave, lo último que se dijo — la regla de los vetos de recibo
+   (`reciboNoUnion`). Sin hora en ningún lado, o con la misma, se suman.
+   UNA HORA FRENTE A NINGUNA: una lápida sin hora la puso un móvil con una versión anterior (las
+   de esta versión nacen con ella, y la copia que otro móvil baja de la nube la arrastra). Gana
+   a un «Deshacer» de aquí solo si el estado que la trae se guardó DESPUÉS de ese «Deshacer»: es
+   un borrado posterior. Si no, gana el «Deshacer». Límite: un «Deshacer» hecho en un móvil con
+   versión anterior no apunta hora y lo pisa la lápida con hora de los demás. */
 const DELETED_AT_MAX=200;
-// Lo último que se dijo de cada clave, entre dos listas con sus horas. → {lista, at}
-function unionPorHora(na, ta, nb, tb){
+/* Lo último que se dijo de cada clave, entre dos listas con sus horas. → {lista, at}.
+   `sa`/`sb` (cuándo se guardó cada estado) solo los pasan las lápidas: ver arriba. */
+function unionPorHora(na, ta, nb, tb, sa, sb){
   na=na||[]; nb=nb||[]; ta=ta||{}; tb=tb||{};
-  const at={}, lista=[], vistas={};
-  na.concat(nb,Object.keys(ta),Object.keys(tb)).forEach(function(k){
+  const enA={}, enB={}, at={}, lista=[], vistas={};
+  na.forEach(function(k){ enA[k]=1; }); nb.forEach(function(k){ enB[k]=1; });
+  const mira=function(k){
     if(vistas[k]) return;
     vistas[k]=1;
-    const a=ta[k]||0, b=tb[k]||0;
+    let a=ta[k]||0, b=tb[k]||0;
     if(a||b) at[k]=Math.max(a,b);
-    if(a===b ? na.indexOf(k)>=0||nb.indexOf(k)>=0 : (a>b?na:nb).indexOf(k)>=0) lista.push(k);
-  });
+    if(a && !b && enB[k] && !enA[k]) b=sb||0;
+    else if(b && !a && enA[k] && !enB[k]) a=sa||0;
+    if(a===b ? enA[k]||enB[k] : (a>b?enA:enB)[k]) lista.push(k);
+  };
+  na.concat(nb,Object.keys(ta),Object.keys(tb)).forEach(mira);
   return { lista:lista, at:at };
 }
+/* Topes. De las horas se quedan las 200 más recientes. De las lápidas, 500: las que llevan hora
+   no se caen nunca (son las últimas decisiones, entre ellas la recién puesta) y de las demás se
+   cae lo de delante — lo que solo traía la nube y lo más antiguo de este móvil. */
 function lapidasTope(deleted, at){
   const claves=Object.keys(at);
   if(claves.length>DELETED_AT_MAX) claves.sort(function(a,b){ return at[b]-at[a]; }).slice(DELETED_AT_MAX).forEach(function(k){ delete at[k]; });
-  const out={ deleted:deleted.length>DELETED_MAX ? deleted.slice(deleted.length-DELETED_MAX) : deleted };
+  let sobran=deleted.length-DELETED_MAX;
+  const out={ deleted:sobran>0 ? deleted.filter(function(k){ return at[k] || sobran--<=0; }) : deleted };
   if(Object.keys(at).length) out.deletedAt=at;
   return out;
 }
-/* Pone la lápida de `key`. Si esa clave se levantó alguna vez, apunta la hora nueva: tiene que
-   ganar a aquel «Deshacer» en el otro móvil. → {deleted[, deletedAt]} para el estado. */
+/* Pone la lápida de `key` con su hora, siempre posterior a la que constara: con el reloj de este
+   móvil atrasado perdería contra un «Deshacer» del otro. → {deleted, deletedAt} para el estado. */
 function lapidaPon(s, key, ahora){
-  const out={ deleted:pushDeleted(s&&s.deleted, key) };
-  const at=s&&s.deletedAt;
-  if(at && at[key]!=null) out.deletedAt=Object.assign({}, at, { [key]:Math.max(ahora||Date.now(), at[key]+1) });
-  return out;
-}
-// Levanta la ÚLTIMA lápida de `key` («Deshacer») y apunta cuándo. → {deleted, deletedAt}
-function lapidaLevanta(s, key, ahora){
-  const deleted=((s&&s.deleted)||[]).slice(), i=deleted.lastIndexOf(key);
-  if(i>=0) deleted.splice(i,1);
   const at=Object.assign({}, s&&s.deletedAt);
-  // Siempre posterior a lo que constaba: con el reloj de este móvil atrasado perdería contra el otro.
   at[key]=Math.max(ahora||Date.now(), (at[key]||0)+1);
-  return lapidasTope(deleted, at);
+  return lapidasTope(pushDeleted(s&&s.deleted, key), at);
+}
+/* Levanta la lápida de `key` («Deshacer», o editar un gasto hasta dejarlo como uno que ya se
+   había retirado) y apunta cuándo. Todas las copias: `pushDeleted` nunca miró si ya estaba.
+   → {deleted, deletedAt} */
+function lapidaLevanta(s, key, ahora){
+  const at=Object.assign({}, s&&s.deletedAt);
+  at[key]=Math.max(ahora||Date.now(), (at[key]||0)+1);
+  return lapidasTope(((s&&s.deleted)||[]).filter(function(k){ return k!==key; }), at);
+}
+/* EDITAR UN GASTO retira su clave vieja (o el pull lo resucitaría con los datos de antes)… y
+   levanta la de la clave NUEVA si constaba (13/10/2026): corregir 10 → 12 y volver a 10 dejaba
+   la fila casando con la lápida de la primera edición, y el gasto desaparecía de las cuentas y
+   del widget (gastado 0). → {deleted, deletedAt} */
+function lapidasAlEditar(s, keyOrig, keyUpd, ahora){
+  const pon=lapidaPon(s, keyOrig, ahora);
+  return pon.deleted.indexOf(keyUpd)<0 ? pon : lapidaLevanta(Object.assign({}, s, pon), keyUpd, ahora);
+}
+/* LA NUBE AL EDITAR UN GASTO: EL ALTA ESPERA AL BORRADO, Y CADA EDICIÓN A LA ANTERIOR
+   (13/10/2026). La fila corregida conserva su id: lanzadas a la vez, si el alta llegaba antes
+   que el borrado chocaba con la fila vieja por la clave primaria (el `23505` de `addExpense`
+   en Actividad), el borrado se llevaba después la vieja y la nube se quedaba sin el gasto hasta
+   el siguiente repaso. Si el borrado FALLA (sin red) el alta no se lanza —sería ese mismo
+   `23505`, seguro—: la edición se queda en `cola.pend` y se reintenta con la siguiente edición
+   o al volver la conexión. Límite: la cola vive en memoria; si la app se cierra antes, la fila
+   vieja sigue en la nube y el repaso tras el pull dará `23505` con origen `backfill`.
+   `cola` = {pend:[{orig,upd}], fin:Promise}. */
+function subeEdicionesDeGasto(cola){
+  const paso=function(){
+    const p=cola.pend[0];
+    if(!p) return;
+    return borrarGastoNube(p.orig, "gastos-editar").then(function(ok){
+      if(!ok) return;
+      cola.pend.shift();
+      return subirGasto(p.upd, "gastos-editar").then(paso);
+    });
+  };
+  cola.fin=cola.fin.then(paso);
+  return cola.fin;
 }
 // → {deleted[, deletedAt]}. La lista local, tal cual, si la nube no aporta nada: la leen los `useMemo`.
 function lapidasUnion(local, nube){
   const na=(local&&local.deleted)||[];
-  const u=unionPorHora(na, local&&local.deletedAt, nube&&nube.deleted, nube&&nube.deletedAt);
-  const out=lapidasTope(u.lista, u.at);
+  const u=unionPorHora(na, local&&local.deletedAt, nube&&nube.deleted, nube&&nube.deletedAt, local&&local._savedAt, nube&&nube._savedAt);
+  // Lo que solo trae la nube, delante: el tope corta por ahí y no por lo último de este móvil.
+  const mias={}; na.forEach(function(k){ mias[k]=1; });
+  const out=lapidasTope(u.lista.length>DELETED_MAX ? u.lista.filter(function(k){ return !mias[k]; }).concat(u.lista.filter(function(k){ return mias[k]; })) : u.lista, u.at);
   if(out.deleted.length===na.length && out.deleted.every(function(k,i){ return k===na[i]; })) out.deleted=na;
   return out;
 }
@@ -2753,26 +2797,27 @@ function mergeExpensesFromCloud(prevList, incoming, readStartedAt){
      (13/10/2026). El aviso y el cargo del banco comparten clave y son dos filas en la nube; lo que
      él cambia aquí (categoría, «no tarjeta») se escribe por id en UNA de ellas. Refrescaba la
      primera que llegara: si era la otra, el segundo pull le devolvía la categoría y la tarjeta del
-     aviso. Sin ninguna con su id (lo subió otro móvil), la primera, como siempre. */
-  const suya={};
-  (incoming||[]).forEach(function(inc){
-    const k=keyOfExpense(inc), loc=byKey[k];
-    if(loc && inc.id!=null && inc.id===loc.id && !suya[k]) suya[k]=inc;
-  });
+     aviso. Sin ninguna con su id (lo subió otro móvil), la primera, como siempre: esa espera
+     en `espera` hasta ver si detrás viene la suya, sin otra pasada por la tabla. */
+  const espera={}, hecha={}; let hayEspera=false;
   const refresca=function(k,inc){
     const loc=byKey[k], merged=refreshExpenseFromCloud(loc, inc, readStartedAt);
     if(merged!==loc){ byKey[k]=merged; changed=true; }
   };
   (incoming||[]).forEach(function(inc){
     const k=keyOfExpense(inc);
-    if(seen[k]){ if(!ganaAviso(k,inc) && suya[k]===inc) refresca(k,inc); return; }
+    if(seen[k]){
+      if(!ganaAviso(k,inc) && !hecha[k] && inc.id===byKey[k].id){ hecha[k]=1; delete espera[k]; refresca(k,inc); }
+      return;
+    }
     seen[k]=1;
     const loc=byKey[k];
     if(!loc){ byKey[k]=inc; order.push(k); changed=true; nuevos++; return; }
     if(ganaAviso(k,inc)) return;
-    if(suya[k] && suya[k]!==inc) return;   // la suya viene detrás en este mismo pull
-    refresca(k,inc);
+    if(inc.id===loc.id){ hecha[k]=1; refresca(k,inc); }
+    else { espera[k]=inc; hayEspera=true; }
   });
+  if(hayEspera) for(const k in espera) refresca(k,espera[k]);
   const list=order.map(function(k){ return byKey[k]; });
   return { list:list, changed:changed, nuevos:nuevos, sinMarca:sinMarca };
 }
