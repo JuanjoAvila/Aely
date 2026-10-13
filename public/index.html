@@ -5580,8 +5580,8 @@ const LANG = {
     v42_net_i_kept_inv:"Inversiones", v42_net_i_kept_assets:"Bienes", v42_net_i_kept_manual:"Cuentas manuales", v42_net_i_and:" y ", v42_net_i_kept_v:"valor conocido mantenido",
     v42_net_i_debts:"Deudas", v42_net_i_debts_est:"según sus cuotas", v42_net_i_debts_kept:"saldo actual mantenido", v42_net_i_debts_mixed:"según sus cuotas; alguna, saldo actual", v42_net_i_ok:"Entendido",
     v42_range_1m:"1M", v42_range_3m:"3M", v42_range_6m:"6M", v42_range_1y:"1A", v42_range_all:"Todo",
-    v42_net_cmp_up:"{x} más que {when}", v42_net_cmp_down:"{x} menos que {when}", v42_net_cmp_flat:"Prácticamente igual que {when}", v42_net_cmp_none:"Aún sin un ciclo anterior con el que comparar",
-    v42_net_when_1:"en este punto del mes pasado", v42_net_when_n:"en este punto hace {n} meses",
+    v42_net_cmp_up:"{x} más que {when}", v42_net_cmp_down:"{x} menos que {when}", v42_net_cmp_same:"Igual que {when}", v42_net_cmp_none:"Aún sin datos para comparar",
+    v42_net_when_1:"el mes pasado", v42_net_when_n:"hace {n} meses", v42_net_when_12:"hace un año", v42_net_i_cmp:"Comparación", v42_net_i_cmp_v:"punto más bajo de cada 45 días",
     v42_this_cycle:"Este ciclo", v42_cycle_over:"Te has pasado {x}", v42_cycle_start:"Ciclo recién empezado", v42_cycle_comfort:"Vas sobrado", v42_cycle_good:"Vas bien", v42_cycle_tight:"Vas justito", v42_cycle_slow:"Toca frenar un poco", v42_cycle_of:"de {x}", v42_cycle_daily:"{x} al día", v42_cycle_day:"durante 1 día", v42_cycle_days:"durante {n} días",
     // INC-0810 es: fin del patrimonio de ahora.
     v4_nobud_t:"Ponle un presupuesto", v4_nobud_p:"Es la mitad de la app: sin un tope al mes no se puede saber cuánto te queda. Puedes cambiarlo cuando quieras.", v4_nobud_cta:"Ponle un presupuesto", v4_noup_t:"Aún no hay recibos", v4_noup_p:"Conecta tu banco y los recibos del mes aparecen solos, con su día y su importe.", v4_noup_cta:"Conecta tu banco", v4_nogoal_t:"Ponte tu primera meta", v4_nogoal_p:"Un viaje, un colchón, lo que sea: la app te dice cuánto falta y cuándo llegas.", v4_nogoal_cta:"Crear una meta", v4_see_gastos:"Ver gastos ›", v4_see_plan:"Ver plan ›",
@@ -8425,9 +8425,9 @@ function netWorthDebtPolicy(state, today, current){
   // es el saldo que pinta la app, también si el cargo de este mes aún no ha pasado.
   const rebuilt=function(d){ return d.months==null&&debtAmort(d)>0&&Number(d.value)>0.005&&!d.settledAt; };
   const at=function(d,day){
-    // Con fecha explícita de alta, antes de ese día la deuda no existía: el préstamo entró en la
-    // cuenta ese mismo día y el patrimonio no cambió. Antes esa fecha recortaba la serie (13/10).
-    if(/^\d{4}-\d{2}-\d{2}$/.test(d.asOfDate||d.startDate||"")&&day<(d.asOfDate||d.startDate)) return 0;
+    // Una fecha de referencia explícita no pone la deuda a cero antes: con una hipoteca sellada
+    // al darla de alta inflaría el patrimonio anterior en todo su principal (revisión 13/10).
+    // Antes de la fecha se mantiene el saldo (o su cuadro, como las demás).
     const p=day.split("-").map(Number), charge=debtChargeDay(d);
     const anchor=typeof d.asOf==="number"?d.asOf:month;
     const paidToday=(month-anchor)+(d.months!=null&&charge<=parts[2]?1:0);
@@ -8553,16 +8553,17 @@ function netWorthSeries(state, options){
     // Un cierre manual ya recoge su pata: sólo dos cuentas reconstruidas por flujos
     // permiten neutralizar ambas sin perder el traspaso (revisión12/10).
     if(!flowBanks[row.bank]||(row.ownTransfer&&flowBanks[row.ownTransfer])) return;
-    daily[day]=(daily[day]||0)-Math.round(e.amount*100);
-    if(!invKnown||e.amount===0) return;
     const text=String(e.merchant||"").toLowerCase(),target=e.toBank||e.to||e.counterpartyBank;
-    const linked=(state.investments||[]).some(function(i){
+    const linked=!!invKnown&&e.amount!==0&&(state.investments||[]).some(function(i){
       const name=String(i.ent||"").replace(/_/g," ").toLowerCase();
       return (e.investmentId&&e.investmentId===i.id)||(target&&target===i.ent)||(name.length>=4&&text.includes(name));
     });
-    // Un traspaso de una sola pata sin pista de bróker ya no recorta la serie hasta la foto
-    // siguiente: en la cartera real del 13/10 uno del 29/9 dejaba la gráfica en dos semanas.
-    // Sale como lo que dice la cuenta (dinero que se fue); si era al bróker, la foto lo recoge.
+    // Un movimiento INTERNO nunca se pinta como pérdida (revisión 13/10): un traspaso de una sola
+    // pata sin pista de bróker (la otra cuenta aún no tenía histórico, o es ajena) y una retirada
+    // de cajero sin pata de efectivo quedan NEUTROS, plano antes que un salto inventado. Antes el
+    // traspaso recortaba la serie hasta la foto siguiente y después salía como dinero perdido.
+    if(!row.ownTransfer&&((e.category==="traspaso"&&!linked)||(e.amount>0&&isAtmWithdrawal(e.merchant)))) return;
+    daily[day]=(daily[day]||0)-Math.round(e.amount*100);
     if(e.category==="inversion"||(e.category==="traspaso"&&linked)) contributions[day]=(contributions[day]||0)+row.cents;
   });
   const assetRows=[], assetHist=state.assetValueHistory||{};
@@ -8603,9 +8604,11 @@ function netWorthSeries(state, options){
     const day=utcFmt.format(ms);
     while(invIndex>=0&&investments[invIndex].day>day)invIndex--;
     // Antes de la primera foto vale la primera foto menos lo aportado entre medias: así una
-    // aportación al bróker de agosto no sale como pérdida, aunque la foto más antigua sea de septiembre.
+    // aportación al bróker de agosto no sale como pérdida, aunque la foto más antigua sea de
+    // septiembre. Sin suelo en cero: si se aportó más de lo que dice la foto, el total queda
+    // plano en vez de pintar la aportación como una caída (revisión 13/10).
     const photo=invIndex>=0?investments[invIndex]:invKnown;
-    let inv=day===today?invested:photo?Math.max(0,photo.value+(contributedBy(day)-contributedBy(photo.day))/100):0;
+    let inv=day===today?invested:photo?photo.value+(contributedBy(day)-contributedBy(photo.day))/100:0;
     let value=cash+Math.round(inv*100)-Math.round(debt.at(day)*100);
     steps.forEach(function(s,i){
       while(indices[i]>=0&&s.points[indices[i]].day>day)indices[i]--;
@@ -8633,47 +8636,32 @@ function netWorthRanges(series, today){
   });
   out.push({id:"all",points:series}); return out;
 }
-// Anclas del ciclo de hoy hacia atrás: el cobro de cada ciclo («Mi ciclo») o el día 1 de cada mes.
-// Reutiliza el lector de nómina del presupuesto; sin cobro en los 45 días anteriores la cadena se
-// corta y no se compara más atrás: un ciclo que no consta no se inventa (AGENTS §1).
-function netWorthCycleAnchors(state, bud, limit){
-  const out=[];
-  if(!bud||!Number.isFinite(bud.periodStart)) return out;
-  // El calendario es el de Madrid, como en cycleTiming: en un dispositivo en UTC el día 1 nace el 30.
-  const dayOfMs=function(ms){ const p=madridYmdParts(ms); return p.ym+"-"+String(p.d).padStart(2,"0"); };
-  let ms=bud.periodStart; out.push(dayOfMs(ms));
-  for(let i=0;i<(limit||13);i++){
-    if(bud.cycle){ const p=budgetPaydayOf(state, ms-1); if(!p) break; ms=p.start.getTime(); out.push(dayOfMs(ms)); }
-    else { const ym=out[out.length-1].slice(0,7).split("-").map(Number); out.push(new Date(Date.UTC(ym[0],ym[1]-2,1)).toISOString().slice(0,7)+"-01"); }
-  }
-  return out;
-}
-// Comparación de igual a igual: hoy frente al mismo día del ciclo N ciclos atrás (misma distancia
-// desde el cobro; con mes natural, el mismo día del mes). Comparar con el primer punto decía
-// «963 € menos» a quien había cobrado la víspera y gastaba lo normal del mes (feedback 13/10).
-// Si el ciclo anterior fue más corto se toma su víspera de cobro. Sin ciclo anterior con dato → null.
-function netWorthCompare(series, anchors, rangeId, today, invested){
-  if(!series||series.length<2||!anchors||anchors.length<2) return null;
-  const civil=function(day){ const p=day.split("-").map(Number); return Date.UTC(p[0],p[1]-1,p[2]); };
-  const elapsed=Math.max(0,Math.round((civil(today)-civil(anchors[0]))/864e5));
-  const byDay={}; series.forEach(function(p){ byDay[p.day]=p.value; });
-  const first=series[0].day, last=series[series.length-1].value;
-  const at=function(n){
-    if(n>=anchors.length) return null;
-    const cap=civil(anchors[n-1])-864e5, ms=Math.min(civil(anchors[n])+elapsed*864e5,cap);
-    const day=new Date(ms).toISOString().slice(0,10);
-    return day>=first&&byDay[day]!=null?{day:day,value:byDay[day],cycles:n}:null;
-  };
-  const wanted={"1m":1,"3m":3,"6m":6,"1y":12}[rangeId];
-  let ref=null;
-  if(wanted) ref=at(wanted);
-  else for(let n=anchors.length-1;n>=1&&!ref;n--) ref=at(n);
-  if(!ref) return null;
-  const delta=Math.round((last-ref.value)*100)/100;
-  // Margen sin veredicto: el 2 % de lo invertido (el vaivén normal de un día de bolsa) con suelo
-  // de 10 € (céntimos y redondeos). Dentro de él, ni verde ni rojo.
-  const margin=Math.max(10,Math.abs(invested||0)*.02);
-  return {delta:delta,day:ref.day,cycles:ref.cycles,verdict:delta>margin?"up":delta<-margin?"down":"flat",margin:margin};
+// Comparación robusta al calendario (revisión 13/10): el punto más bajo de los últimos 45 días
+// frente al punto más bajo de la ventana de 45 días que termina N días atrás (1M 30, 3M 91,
+// 6M 182, 1A 365, Todo la más antigua completa). El mínimo de una ventana que contiene un ciclo
+// entero es el saldo de la víspera del cobro: lo que de verdad quedó ahorrado ese ciclo, dé igual
+// que la nómina baile de día, que haya dos al mes o que el alquiler caiga nada más cobrar. Comparar
+// hoy con «el mismo día del ciclo anterior» o la media de 30 días daba «menos» a quien ahorra en
+// cuanto un ciclo era más largo que otro. Un gasto o una caída de bolsa que deje hoy por debajo de
+// la víspera del cobro entra en el mínimo el mismo día: no se esconde. Sin 45 días de serie a cada
+// lado → null (frase neutra, sin color: lo que no se sabe no se inventa, AGENTS §1).
+const NW_WINDOW=45;
+function netWorthCompare(series, rangeId, today, invested){
+  if(!series||series.length<NW_WINDOW+1) return null;
+  const n=series.length, back={"1m":30,"3m":91,"6m":182,"1y":365}[rangeId];
+  // Las dos ventanas no se solapan (1M compara con la que termina 45 días atrás, que sigue
+  // siendo «el mes pasado»). Si el periodo elegido no tiene su ventana completa pero sí hay
+  // alguna anterior, se usa la más antigua (como «Todo») y la frase dice los meses de verdad:
+  // con 118 días de serie, 3M decía «Aún sin datos para comparar» teniendo historia desde junio.
+  const oldest=n-NW_WINDOW;
+  if(oldest<NW_WINDOW) return null;
+  const gap=Math.min(oldest,Math.max(NW_WINDOW,back!=null?back:oldest));
+  const low=function(end){ let v=Infinity; for(let i=end-NW_WINDOW+1;i<=end;i++) if(series[i].value<v) v=series[i].value; return v; };
+  const delta=Math.round((low(n-1)-low(n-1-gap))*100)/100;
+  // El margen solo decide el color: 2 % de lo invertido (el vaivén de un día de bolsa) entre
+  // 10 € y 300 €; sin tope, 150.000 € invertidos escondían un gasto extra de 2.500 € dos meses.
+  const margin=Math.min(300,Math.max(10,Math.abs(invested||0)*.02));
+  return {delta:delta,days:gap,months:Math.max(1,Math.round(gap/30.44)),verdict:delta>margin?"up":delta<-margin?"down":"flat",margin:margin};
 }
 function netWorthChartGeometry(points){
   if(!points||points.length<2) return null;
@@ -9527,7 +9515,7 @@ function cycleTiming(bud,nowMs){
 // Las filas de la hoja «Cómo se calcula», como mucho tres y solo las que aplican: etiqueta por
 // tipo (nunca cuenta por cuenta ni bien por bien) y un dato corto. Antes era un párrafo más una
 // línea por cuenta, bien y deuda metido en la página («el textaco», feedback 13/10).
-function netWorthInfoRows(series, dateFmt){
+function netWorthInfoRows(series, dateFmt, compared){
   const coverage=series.coverage||[], rows=[];
   if(series.length<2) return rows;
   const start=series[0].day, startMs=Date.parse(start+"T12:00:00Z");
@@ -9547,6 +9535,8 @@ function netWorthInfoRows(series, dateFmt){
     const constant=debts.filter(function(g){ return g.constant; }).length;
     rows.push({k:t("v42_net_i_debts"),v:t(constant===debts.length?"v42_net_i_debts_kept":constant?"v42_net_i_debts_mixed":"v42_net_i_debts_est")});
   }
+  // Cuarta fila, solo cuando hay frase de comparación: con qué se compara, en corto.
+  if(compared) rows.push({k:t("v42_net_i_cmp"),v:t("v42_net_i_cmp_v")});
   return rows;
 }
 // Hoja inferior de la «i», con el mismo patrón que la del presupuesto: nada se inserta en la
@@ -9573,7 +9563,7 @@ function NetWorthInfoSheet({open, rows, onClose}){
       )
     ), document.body);
 }
-function NetWorthNow({tt, simple, series, splashGone, anchors}){
+function NetWorthNow({tt, simple, series, splashGone}){
   // La animación pertenece a esta tarjeta; repintar todo Inicio en cada frame
   // dispara las lecturas de layout de navegación con el histórico grande.
   const value=tt.netWorth, shown=useCountUp(tt.netWorth||0, splashGone);
@@ -9584,9 +9574,9 @@ function NetWorthNow({tt, simple, series, splashGone, anchors}){
   const svgRef=useRef(null), frameRef=useRef(0), fingerRef=useRef(null);
   const range=ranges.find(function(r){ return r.id===picked; })||ranges[0];
   const points=range?range.points:[], active=touch!=null?points[touch]:null;
-  // El veredicto compara con el mismo punto del ciclo anterior, nunca con el primer punto de la
-  // gráfica; y el rojo se queda solo para ir peor de verdad (feedback 13/10: «yo no voy mal»).
-  const compare=useMemo(function(){ return range?netWorthCompare(series,anchors,range.id,today,tt.invested):null; },[series,anchors,range&&range.id,today,tt.invested]);
+  // El veredicto compara mínimos de 45 días, nunca el primer punto de la gráfica con hoy; y el
+  // rojo se queda solo para ir peor de verdad (feedback 13/10: «yo no voy mal»).
+  const compare=useMemo(function(){ return range?netWorthCompare(series,range.id,today,tt.invested):null; },[series,range&&range.id,today,tt.invested]);
   const verdict=compare?compare.verdict:"none";
   const color=verdict==="up"?"var(--mint)":verdict==="down"?"var(--coral)":"var(--blue)";
   const chart=useMemo(function(){ return netWorthChartGeometry(points); },[points]);
@@ -9597,7 +9587,7 @@ function NetWorthNow({tt, simple, series, splashGone, anchors}){
   },[points,dateFmt]);
   // Fecha corta («18 jun») para la hoja; con el año se iba a dos renglones en el móvil.
   const shortFmt=useMemo(function(){return new Intl.DateTimeFormat(language,{timeZone:"Europe/Madrid",day:"numeric",month:"short"});},[language]);
-  const infoRows=useMemo(function(){ return netWorthInfoRows(series,shortFmt); },[series,shortFmt,language]);
+  const infoRows=useMemo(function(){ return netWorthInfoRows(series,shortFmt,!!compare); },[series,shortFmt,language,!!compare]);
   useEffect(function(){ setTouch(null); },[range&&range.id]);
   useEffect(function(){ return function(){ cancelAnimationFrame(frameRef.current); }; },[]);
   const valid=typeof value==="number" && Number.isFinite(value)&&!(series.coverage||[]).some(function(g){return g.unknown;});
@@ -9640,7 +9630,10 @@ function NetWorthNow({tt, simple, series, splashGone, anchors}){
     !valid&&React.createElement("div",{className:"hint",role:"status"}, t("v4_net_unknown")),
     valid&&series.length<2&&React.createElement("div",{className:"hint"},t(series.fresh?"v4_hist_empty":"v42_net_missing")),
     valid&&points.length>1&&React.createElement("div",{className:"v42-net-delta","data-testid":"inicio-net-delta","data-verdict":verdict,style:{color:verdict==="up"?"var(--mint)":verdict==="down"?"var(--coral)":"var(--muted)"}},
-      compare?tf("v42_net_cmp_"+verdict,{x:netWorthDeltaMoney(compare.delta),when:compare.cycles===1?t("v42_net_when_1"):tf("v42_net_when_n",{n:compare.cycles})}):t("v42_net_cmp_none")),
+      // El importe se enseña siempre; el margen solo apaga el color. «Hace N meses» son meses de
+      // calendario de verdad (días entre las dos ventanas), no ciclos de nómina.
+      compare?tf(compare.delta===0?"v42_net_cmp_same":compare.delta>0?"v42_net_cmp_up":"v42_net_cmp_down",{x:netWorthDeltaMoney(compare.delta),
+        when:compare.months<=1?t("v42_net_when_1"):compare.months>=12?t("v42_net_when_12"):tf("v42_net_when_n",{n:compare.months})}):t("v42_net_cmp_none")),
     valid&&chart&&React.createElement("div",{className:"v42-net-chart","data-noswipe":"1",onTouchStart:begin,onTouchMove:move,onTouchEnd:release,onTouchCancel:release},
       React.createElement("svg",{ref:svgRef,key:range.id,viewBox:"0 0 320 80",preserveAspectRatio:"none",role:"img","aria-label":t("v42_net_chart"),style:{color:color}},
         React.createElement("defs",null,React.createElement("linearGradient",{id:id,x1:"0",x2:"0",y1:"0",y2:"1"},
@@ -9745,9 +9738,6 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
   const dailyMoney=budAmt>0?cycleDailyMoney(rem,timing.left):null;
   const series=useMemo(function(){ return netWorthSeries(state,{today:seriesToday,liquid:tt.liquid,invested:tt.invested,debtTotal:tt.debtTotal,balanceInputs:tt}); },
     [state.accounts,state.obAccounts,state.accountBalanceHistory,state.invHistory,state.investments,state.assets,state.assetValueHistory,state.debts,state.expenses,state.deleted,state.flows,state.fixed,state.oneoffs,state.bankTx,state.aportaciones,state.settings,state.fx,state.fxRates,tt,seriesToday]);
-  // Los cobros anteriores salen del mismo lector que el presupuesto; sólo se recorren de nuevo
-  // cuando cambia lo que ese lector mira, no en cada render.
-  const anchors=useMemo(function(){ return netWorthCycleAnchors(state,bud); },[bud,state.expenses,state.deleted,state.flows,state.settings]);
 
   const overdue=[];
   // La fecha prevista no es un pago: la misma lectura de evidencia que Plan conserva los
@@ -9856,7 +9846,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
       }}, t("mr_share"))
     ),
 
-    !showSkel && React.createElement(NetWorthNow,{tt:tt, simple:simple, series:series, splashGone:splashGone, anchors:anchors}),
+    !showSkel && React.createElement(NetWorthNow,{tt:tt, simple:simple, series:series, splashGone:splashGone}),
 
     // Sin presupuesto, Inicio escondia su tarjeta estrella y te quedabas sin la mitad de la app
     // sin saber por que (P3). En vez de esconderla, la misma tarjeta en vacio y con salida: abre
@@ -21899,7 +21889,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="813f242f81594dc5177e2feb9642b93e0d2d9c248e42fdb1405484303b9eca2b";
+var _rnSha="688c2e24fe448e530bc2106f51fd17ca0830a517633c7120c4ef3236afccdf94";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
