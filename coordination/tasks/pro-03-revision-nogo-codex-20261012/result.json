@@ -1,0 +1,134 @@
+{
+  "status": "done",
+  "summary": "Candidatas PRO-03 entregadas para revision independiente segun orden 741. PR 209 web corregida y PR 220 nativa separada y apilada, sobre beta 122. CI finales rojas solo en catalogo, VERSION y tamano. Done cierra el encargo de candidato; no acredita integracion ni publicacion.",
+  "productSHA": "9202fa3e6a109a87625654df3acfa55d4d7b38b3",
+  "nativeSHA": "8233f48a80cec0e077c39ee5cbbf1fdc074085a3",
+  "executionBaseSHA": "e6e211a5d94e50b03597d5c91230c974d3e72232",
+  "deliveryAuthority": "74150b7dceaa761eb8b57c335ec56e76ed891916",
+  "deliveries": [
+    {
+      "kind": "web",
+      "pr": 209,
+      "sha": "9202fa3e6a109a87625654df3acfa55d4d7b38b3",
+      "base": "beta",
+      "sizeBytes": {
+        "minified": 1384266,
+        "gzip": 380124,
+        "exitCode": 1
+      },
+      "remainingExcess": {
+        "minified": 1866,
+        "gzip": 220
+      },
+      "ci": {
+        "run": 38351691182,
+        "job": 115145309698,
+        "sha": "9202fa3e6a109a87625654df3acfa55d4d7b38b3",
+        "status": "completed",
+        "conclusion": "failure",
+        "exitCode": 1,
+        "failed": [
+          "beta-sources",
+          "docs-frescura",
+          "presupuesto-rendimiento"
+        ],
+        "denoFilesPassed": 7,
+        "playwright": "not executed",
+        "privacyCI": "skipped"
+      }
+    },
+    {
+      "kind": "native",
+      "pr": 220,
+      "sha": "8233f48a80cec0e077c39ee5cbbf1fdc074085a3",
+      "base": "codex/pro03-recibo-saldo",
+      "sizeBytes": {
+        "minified": 1385188,
+        "gzip": 380363,
+        "exitCode": 1
+      },
+      "remainingExcess": {
+        "minified": 2788,
+        "gzip": 459
+      },
+      "ci": {
+        "run": 38351694815,
+        "job": 115145321582,
+        "sha": "8233f48a80cec0e077c39ee5cbbf1fdc074085a3",
+        "status": "completed",
+        "conclusion": "failure",
+        "exitCode": 1,
+        "failed": [
+          "beta-sources",
+          "docs-frescura",
+          "presupuesto-rendimiento"
+        ],
+        "denoFilesPassed": 7,
+        "playwright": "not executed",
+        "privacyCI": "skipped"
+      }
+    }
+  ],
+  "tests": [
+    {
+      "command": "node tests/receipt-alert-balance.test.mjs (ambas cabezas finales, local y CI)",
+      "exitCode": 0,
+      "result": "23 casos PASS y 14 mutaciones rechazadas"
+    },
+    {
+      "command": "node tests/receipt-native-notice.test.mjs (cabeza nativa final, local y CI)",
+      "exitCode": 0,
+      "result": "Productor PASS; JVM 50 PASS con worker y contrato reales y dobles de plataforma"
+    },
+    {
+      "command": "npm run build; sintaxis; privacidad local (ambas cabezas finales)",
+      "exitCode": 0
+    },
+    {
+      "command": "Comparacion diferencial sintetica web frente a a432 con motor beta 122",
+      "exitCode": 0,
+      "result": "2000 estados equivalentes, sin mutacion del estado"
+    },
+    {
+      "command": "CI final web run 38351691182 job 115145309698",
+      "exitCode": 1
+    },
+    {
+      "command": "CI final nativa run 38351694815 job 115145321582",
+      "exitCode": 1
+    },
+    {
+      "command": "presupuesto-rendimiento con esbuild 0.25.5 en ambas cabezas",
+      "exitCode": 1
+    }
+  ],
+  "limitations": [
+    "beta-sources falla la asercion del cambio de unidad del Catalogo 122 y confirma dos huecos reales: inc-0210-01-plan-cuota alcanza mcSandbox y _mcSandboxPinned, pero mutar por separado esas dependencias no mueve su digest. Debe completarse su vigilancia durante revision e integracion; ningun guardian repineado ni debilitado.",
+    "docs-frescura falla por codigo posterior al ancla VERSION. VERSION, catalogos, notas y topes fuera del alcance propio y sin editar. Claude ajustara el minimo medido de tamano en integracion segun orden 741.",
+    "Ambas CI finales: siete archivos Deno PASS; E2E no ejecutado y Privacidad CI omitida. Privacidad local EXIT 0 separado. No hay suite completa verde.",
+    "Sin navegador sobre estas cabezas beta 122. Los focos historicos de 11 casos en cada fuente beta 119 son solo historia y no se heredan. El spec web tampoco acredita el contenido de balanceNotice.",
+    "Sin Gradle, APK, instalacion, dispositivo, backend, merge, beta/main ni despliegue. La parte nativa requiere revision e integracion futura junto a Widget 45; contrato confirmado en 63f4eca623bb01345257f50b161e6f32dddedf33.",
+    "Hogar PRO-08 sigue reservado y congelado; este result libera solo PRO-03 revision. No se reanuda Hogar ni se adopta otra tarea.",
+    "Una nueva base beta requiere nueva senal para rebase y pruebas de esa fuente; no se hereda esta evidencia."
+  ],
+  "ownerTestSteps": [
+    "Tras revision e integracion autorizadas, usar datos sinteticos con banco asignado y saldo conocido; crear recibo alto de 89,54 a 2 o 3 dias para provocar el aviso web.",
+    "Con saldo100 y sin cargos previos debe prever10,46 restantes; con cargo anterior20,47 debe prever10,01 de falta. La nomina del mismo dia no cubre el cargo.",
+    "Si falta banco o el recibo ya consta BOOK anticipado, conservar texto original sin estimar. Recargar no duplica el aviso; modo pruebas no envia notificaciones ficticias.",
+    "La vispera nativa requiere la entrega Android PR220 y futura APK; esta PR web no acredita esa superficie.",
+    "Con futura APK autorizada y datos sinteticos, verificar aviso de vispera para recibo y cuota con banco conocido en es/en/ca.",
+    "Comprobar llega/falta/desconocido y compatibilidad con calendario antiguo o caducado; no duplicar aviso tras reiniciar.",
+    "Confirmar que APK anterior ignora el campo opcional; la validacion JVM no sustituye esta aceptacion en movil."
+  ],
+  "behavior": {
+    "web": "Frase opcional usando minimo del banco asignado hasta el cargo, cargos antes de ingresos; sin frase si BOOK anticipado o discrepancia con fixedPaymentState; calculo despues del sello; modo pruebas sin avisos ni calendario.",
+    "native": "Web transmite balanceNotice opcional; worker valida fecha/banco/centimos y anade frase es/en/ca sin recalcular saldo. Campo ausente, invalido o caducado conserva aviso legado."
+  },
+  "cleanup": "Sin recursos locales propios activos; temporales y junctions propios retirados. Ramas, worktrees y trabajo ajeno conservados.",
+  "schema": 1,
+  "taskId": "pro-03-revision-nogo-codex-20261012",
+  "actor": "codex",
+  "sessionId": "codex-local-20261012-78b990404671",
+  "createdAt": "2026-10-13T06:04:59.665Z",
+  "released": true
+}
