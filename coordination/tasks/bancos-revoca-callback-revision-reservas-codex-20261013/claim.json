@@ -1,0 +1,8 @@
+{
+  "schema": 1,
+  "taskId": "bancos-revoca-callback-revision-reservas-codex-20261013",
+  "actor": "codex",
+  "sessionId": "codex-local-20261013-revoke-rev-bef7af53cd85",
+  "createdAt": "2026-10-13T15:12:18.312Z",
+  "baseSHA": "f5904735b514751ee926d25c22c92195b6ce3653"
+}
