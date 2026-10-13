@@ -22517,5 +22517,41 @@
       "supabase/functions/ingest/widget.ts"
     ],
     "unidades": true
+  },
+  "plan-scroll-lento": {
+    "web": [
+      {
+        "file": "src/modules/14-v4-screens.js",
+        "from": "  /* DESLIZAR VERTICAL PARA CAMBIAR DE SEGMENTO",
+        "to": "  // Entrada sutil SOLO cuando el segmento cambia"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  /* Ola nativa (`touch-action:pan-y` en `.page`) vs gestos de borde.",
+        "to": "  const onPageScroll=function(e){"
+      },
+      {
+        "file": "src/shell.html",
+        "from": "  .page{flex:0 0 100%;min-width:100%;height:100%;overflow-y:auto;",
+        "to": "  .page.page-live{"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "gestureAxis"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "GEST_LEAD"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "GEST_MAX"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "mcReduced"
+      }
+    ],
+    "unidades": true
   }
 }

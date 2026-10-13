@@ -1,5 +1,52 @@
 [
   {
+    "v": "4.26.124",
+    "d": "2026-10-13",
+    "t": {
+      "es": "Plan: bajar despacio sin saltos",
+      "en": "Plan: scroll down slowly, no jumps",
+      "ca": "Pla: baixar a poc a poc sense salts"
+    },
+    "items": {
+      "es": [
+        "En Plan, al bajar despacio desde arriba del todo la pantalla ya no da un salto: sigue al dedo desde el principio."
+      ],
+      "en": [
+        "In Plan, scrolling down slowly from the very top no longer makes the screen jump: it follows your finger from the start."
+      ],
+      "ca": [
+        "A Pla, en baixar a poc a poc des de dalt de tot la pantalla ja no fa un salt: segueix el dit des del principi."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "plan-scroll-lento",
+        "t": {
+          "es": "Plan: bajar despacio ya no hace saltar la pantalla",
+          "en": "Plan: scrolling down slowly no longer makes the screen jump",
+          "ca": "Pla: baixar a poc a poc ja no fa saltar la pantalla"
+        },
+        "items": {
+          "es": [
+            "1. Abre Plan y toca «Deudas». Con la pantalla arriba del todo, pon el dedo a media pantalla y arrástralo MUY despacio hacia arriba, unos centímetros y sin soltar: el contenido acompaña al dedo desde el primer milímetro, de forma continua. Está mal si pega un brinco al empezar a moverse o se adelanta al dedo. Si en «Deudas» no hay lista suficiente para bajar, hazlo directamente en el paso 2.",
+            "2. Repite lo mismo en «Recibos» (si te sale «Ver más», tócalo antes para desplegar la lista y vuelve arriba del todo) y en «Metas». Después baja un buen trozo, vuelve arriba del todo y repítelo otra vez: en todos los casos el contenido sigue al dedo sin saltos.",
+            "3. Lo de siempre sigue igual: arriba del todo, tirar hacia abajo con un gesto normal cambia de sección (Recibos → Deudas → Metas); deslizar de lado cambia de pestaña; y al bajar la barra de abajo se esconde y al subir vuelve."
+          ],
+          "en": [
+            "1. Open Plan and tap “Debts”. With the screen at the very top, put your finger mid-screen and drag it VERY slowly upwards, a few centimetres and without lifting: the content follows your finger from the first millimetre, smoothly. It is wrong if it jumps when it starts moving or gets ahead of your finger. If “Debts” has too short a list to scroll, do it directly in step 2.",
+            "2. Do the same in “Bills” (if you see “See more”, tap it first to unfold the list and go back to the very top) and in “Goals”. Then scroll down a good way, go back to the very top and do it again: in every case the content follows your finger with no jumps.",
+            "3. Everything else works as before: at the very top, pulling down with a normal gesture switches section (Bills → Debts → Goals); swiping sideways switches tab; and scrolling down hides the bottom bar, which comes back when you scroll up."
+          ],
+          "ca": [
+            "1. Obre Pla i toca «Deutes». Amb la pantalla a dalt de tot, posa el dit a mitja pantalla i arrossega'l MOLT a poc a poc cap amunt, uns centímetres i sense deixar-lo anar: el contingut acompanya el dit des del primer mil·límetre, de manera contínua. Està malament si fa un bot en començar a moure's o s'avança al dit. Si a «Deutes» no hi ha prou llista per baixar, fes-ho directament al pas 2.",
+            "2. Repeteix el mateix a «Rebuts» (si et surt «Veure més», toca'l abans per desplegar la llista i torna a dalt de tot) i a «Metes». Després baixa un bon tros, torna a dalt de tot i repeteix-ho un altre cop: en tots els casos el contingut segueix el dit sense salts.",
+            "3. El de sempre continua igual: a dalt de tot, estirar cap avall amb un gest normal canvia de secció (Rebuts → Deutes → Metes); lliscar de costat canvia de pestanya; i en baixar la barra de baix s'amaga i en pujar torna."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.123",
     "d": "2026-10-13",
     "t": {
@@ -77,39 +124,7 @@
         "Si l'app s'equivoca de rebut, obre el moviment i prem «No és aquest rebut»: passarà a comptar com una despesa més. I si te'n penedeixes, es pot desfer des del mateix moviment."
       ]
     },
-    "tandas": [
-      {
-        "id": "recibo-cargo-en-gastos",
-        "t": {
-          "es": "Recibos: el cargo del banco se ve en Gastos sin contar dos veces",
-          "en": "Bills: the bank charge shows in Spending without counting twice",
-          "ca": "Rebuts: el càrrec del banc es veu a Despeses sense comptar dues vegades"
-        },
-        "items": {
-          "es": [
-            "1. Antes de sincronizar, apunta tres cifras: lo gastado del mes (cabecera de Gastos), el saldo de cada cuenta en Cartera y la cifra del widget de Aely. Después, en Cartera, dentro de «Tus cuentas», toca el icono «Sincronizar bancos» y espera a que termine. Las tres cifras son las mismas de antes, salvo por lo que sumen los movimientos nuevos que entren como un gasto normal (de Trade Republic pueden entrar varios que faltaban: es la tanda de más abajo). Está mal si lo gastado sube, o un saldo baja, justo por el importe de un recibo que ya tenías en Plan.",
-            "2. Abre Gastos: los adeudos de este mes que pagan un recibo de tu Plan salen atenuados y con el rótulo «Recibo: » y su nombre, o con interrogación («¿Recibo: Agua?») si solo se parece. Si tus recibos se cobran en una cuenta que no es de gasto diario, toca el botón de filtros (🎛️), elige «Todos los bancos» y pulsa «Listo» para verlos. Lo que ya salía en Gastos como un gasto normal sigue igual. Está mal si no sale ninguno aunque el banco ya haya cobrado recibos este mes.",
-            "3. Abre uno de esos movimientos (mejor uno que diga «Recibo: …», sin interrogación, y que tenga ya varios días) y pulsa «No es este recibo». El saldo de la cuenta no se mueve y, en Plan → Recibos, ese recibo vuelve a estar pendiente. Si la cuenta es de gasto diario, lo gastado del mes y el widget suben justo ese importe; si no lo es, no cambian y el movimiento pasa a decir «no es del día a día».",
-            "4. En esa misma ficha, toca «Paga un recibo», elige el mismo recibo y pulsa «Confirmar pago completo»: el movimiento vuelve a decir «Recibo: …», lo gastado y el widget vuelven a la cifra que tenían antes de pulsar «No es este recibo» y el recibo vuelve a salir pagado en Plan.",
-            "5. Abre Plan → Recibos y despliega «Ya has pagado»: están los recibos que el banco ha cobrado este mes, cada uno una sola vez."
-          ],
-          "en": [
-            "1. Before syncing, note down three figures: the amount spent this month (Spending header), the balance of each account in Portfolio and the figure on the Aely widget. Then, in Portfolio, inside “Your accounts”, tap the “Sync banks” icon and wait for it to finish. The three figures are the same as before, except for whatever new transactions add when they come in as regular spending (several missing ones may come in from Trade Republic: that is the round further down). It is wrong if the amount spent goes up, or a balance goes down, by exactly the amount of a bill you already had in Plan.",
-            "2. Open Spending: this month's bank charges that pay a bill in your Plan show dimmed and labelled “Bill: ” plus its name, or with a question mark (“Bill: Water?”) if it only looks like it. If your bills are charged to an account that is not for daily spending, tap the filters button (🎛️), choose “All banks” and press “Done” to see them. Anything that already showed in Spending as regular spending stays the same. It is wrong if none shows although the bank has already charged bills this month.",
-            "3. Open one of those transactions (best one that says “Bill: …”, with no question mark, and that is already a few days old) and tap “Not this bill”. The account balance does not move and, in Plan → Bills, that bill goes back to pending. If the account is for daily spending, the amount spent this month and the widget go up by exactly that amount; if it is not, they do not change and the transaction now says “not day-to-day”.",
-            "4. On that same transaction, tap “Pays a bill”, choose the same bill and press “Confirm full payment”: the transaction says “Bill: …” again, the amount spent and the widget go back to the figure they had before you tapped “Not this bill”, and the bill shows as paid again in Plan.",
-            "5. Open Plan → Bills and unfold “You already paid”: the bills the bank has charged this month are there, each one only once."
-          ],
-          "ca": [
-            "1. Abans de sincronitzar, apunta tres xifres: el que has gastat aquest mes (capçalera de Despeses), el saldo de cada compte a Cartera i la xifra del widget d'Aely. Després, a Cartera, dins de «Els teus comptes», toca la icona «Sincronitza els bancs» i espera que acabi. Les tres xifres són les mateixes d'abans, tret del que sumin els moviments nous que entrin com una despesa normal (de Trade Republic en poden entrar uns quants que faltaven: és la tanda de més avall). Està malament si el que has gastat puja, o un saldo baixa, just per l'import d'un rebut que ja tenies al Pla.",
-            "2. Obre Despeses: els càrrecs d'aquest mes que paguen un rebut del teu Pla surten atenuats i amb el rètol «Rebut: » i el seu nom, o amb interrogant («Rebut: Aigua?») si només s'hi assembla. Si els teus rebuts es cobren en un compte que no és de despesa diària, toca el botó de filtres (🎛️), tria «Tots els bancs» i prem «Fet» per veure'ls. El que ja sortia a Despeses com una despesa normal continua igual. Està malament si no en surt cap tot i que el banc ja ha cobrat rebuts aquest mes.",
-            "3. Obre un d'aquests moviments (millor un que digui «Rebut: …», sense interrogant, i que ja tingui uns quants dies) i prem «No és aquest rebut». El saldo del compte no es mou i, a Pla → Rebuts, aquest rebut torna a estar pendent. Si el compte és de despesa diària, el que has gastat aquest mes i el widget pugen just aquest import; si no ho és, no canvien i el moviment passa a dir «no és del dia a dia».",
-            "4. En aquesta mateixa fitxa, toca «Paga un rebut», tria el mateix rebut i prem «Confirmar pagament complet»: el moviment torna a dir «Rebut: …», el que has gastat i el widget tornen a la xifra que tenien abans de prémer «No és aquest rebut» i el rebut torna a sortir pagat al Pla.",
-            "5. Obre Pla → Rebuts i desplega «Ja has pagat»: hi ha els rebuts que el banc ha cobrat aquest mes, cadascun una sola vegada."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.121",
@@ -163,64 +178,7 @@
         "El que ja vas marcar com a repetit no torna a aparèixer en importar l'històric."
       ]
     },
-    "tandas": [
-      {
-        "id": "tr-iguales-ordinal",
-        "t": {
-          "es": "Trade Republic: los movimientos iguales ya no se funden",
-          "en": "Trade Republic: identical transactions are no longer merged",
-          "ca": "Trade Republic: els moviments iguals ja no es fonen"
-        },
-        "items": {
-          "es": [
-            "1. Abre Gastos y apunta lo gastado del mes que marca la cabecera. En Cartera, dentro de «Tus cuentas», toca el icono «Sincronizar bancos» y espera a que termine. Pueden entrar unos cuantos movimientos de Trade Republic que antes faltaban, y alguno puede venir con la pregunta «¿Es el mismo movimiento?»: en esta primera sincronización es lo esperado. Compara dos o tres de los que han entrado con la app de Trade Republic: tienen que ser cargos reales, con el mismo día e importe. Está mal si entra alguno que Trade Republic no tiene.",
-            "2. Toca «Sincronizar bancos» otra vez: no entra nada nuevo y lo gastado del mes no cambia.",
-            "3. Si entre dos movimientos iguales hay uno que de verdad sobra, bórralo y vuelve a sincronizar: no vuelve a entrar. Si los dos son cargos reales, no borres ninguno y deja este paso sin probar.",
-            "4. Mira el widget de Aely en el móvil y la cabecera de Gastos: los dos marcan lo mismo."
-          ],
-          "en": [
-            "1. Open Spending and note down the amount spent this month shown in the header. In Portfolio, inside “Your accounts”, tap the “Sync banks” icon and wait for it to finish. A few Trade Republic transactions that were missing before may come in, and some may arrive with the question “Is this the same movement?”: on this first sync that is expected. Check two or three of the ones that came in against the Trade Republic app: they must be real charges, with the same day and amount. It is wrong if one comes in that Trade Republic does not have.",
-            "2. Tap “Sync banks” again: nothing new comes in and the amount spent this month does not change.",
-            "3. If one of two identical transactions is really one too many, delete it and sync again: it does not come back. If both are real charges, do not delete either and leave this step untested.",
-            "4. Look at the Aely widget on your phone and at the Spending header: both show the same."
-          ],
-          "ca": [
-            "1. Obre Despeses i apunta el que has gastat aquest mes segons la capçalera. A Cartera, dins de «Els teus comptes», toca la icona «Sincronitza els bancs» i espera que acabi. Poden entrar uns quants moviments de Trade Republic que abans faltaven, i algun pot venir amb la pregunta «És el mateix moviment?»: en aquesta primera sincronització és el que s'espera. Compara'n dos o tres dels que han entrat amb l'app de Trade Republic: han de ser càrrecs reals, amb el mateix dia i import. Està malament si n'entra algun que Trade Republic no té.",
-            "2. Toca «Sincronitza els bancs» una altra vegada: no entra res de nou i el que has gastat aquest mes no canvia.",
-            "3. Si entre dos moviments iguals n'hi ha un que realment sobra, esborra'l i torna a sincronitzar: no torna a entrar. Si tots dos són càrrecs reals, no n'esborris cap i deixa aquest pas sense provar.",
-            "4. Mira el widget d'Aely al mòbil i la capçalera de Despeses: tots dos marquen el mateix."
-          ]
-        }
-      },
-      {
-        "id": "bancos-acuse-reconexion",
-        "t": {
-          "es": "Bancos: nada se pierde si falla la conexión o al reconectar",
-          "en": "Banks: nothing is lost if the connection fails or on reconnecting",
-          "ca": "Bancs: no es perd res si falla la connexió o en reconnectar"
-        },
-        "items": {
-          "es": [
-            "1. Haz antes la tanda de Trade Republic de arriba: su primera sincronización es la que puede traer movimientos y preguntas. Después, en Cartera, dentro de «Tus cuentas», toca el icono «Sincronizar bancos» y espera a que termine. Abre Gastos: están los movimientos recientes de tus bancos. Las preguntas «¿Es el mismo movimiento?» que tuvieras de antes siguen ahí hasta que las contestes, y no cuentan como fallo.",
-            "2. Sincroniza otra vez seguido: no entra ningún movimiento nuevo ni ninguna pregunta nueva. Las preguntas que ya tenías pendientes siguen ahí. Toca el icono «Conectar cuentas» para abrir «Mis bancos»: en cada banco, la línea «Saldo actualizado» marca la hora de ahora.",
-            "3. Abre Aely con tu cuenta en otro dispositivo o en el navegador del ordenador y sincroniza los bancos allí. Vuelve al móvil y sincroniza: no falta ningún movimiento y no entra ninguno dos veces. Si no tienes otro dispositivo a mano, deja este paso sin probar.",
-            "4. Para probar la reconexión (ahora, o cuando un banco te caduque): en «Mis bancos», toca un banco, pulsa «Reconectar» y autoriza la misma cuenta de siempre. Al volver a la app, toca «Sincronizar bancos»: en Gastos no falta ningún día entre la última vez y hoy, y no entra ningún movimiento dos veces. Si no reconectas ningún banco, deja este paso sin probar."
-          ],
-          "en": [
-            "1. Do the Trade Republic round above first: its first sync is the one that may bring transactions and questions. Then, in Portfolio, inside “Your accounts”, tap the “Sync banks” icon and wait for it to finish. Open Spending: the recent transactions from your banks are there. Any “Is this the same movement?” questions you already had stay there until you answer them, and they do not count as a failure.",
-            "2. Sync again straight away: no new transaction and no new question comes in. The questions you already had pending stay there. Tap the “Connect accounts” icon to open “My banks”: on each bank, the “Balance updated” line shows the time right now.",
-            "3. Open Aely with your account on another device or in your computer's browser and sync your banks there. Go back to your phone and sync: no transaction is missing and none comes in twice. If you have no other device at hand, leave this step untested.",
-            "4. To try reconnecting (now, or when a bank expires): in “My banks”, tap a bank, press “Reconnect” and authorise the same account as always. Back in the app, tap “Sync banks”: in Spending no day is missing between the last time and today, and no transaction comes in twice. If you do not reconnect any bank, leave this step untested."
-          ],
-          "ca": [
-            "1. Fes abans la tanda de Trade Republic de dalt: la seva primera sincronització és la que pot portar moviments i preguntes. Després, a Cartera, dins de «Els teus comptes», toca la icona «Sincronitza els bancs» i espera que acabi. Obre Despeses: hi ha els moviments recents dels teus bancs. Les preguntes «És el mateix moviment?» que tinguessis d'abans continuen allà fins que les contestis, i no compten com a error.",
-            "2. Sincronitza una altra vegada tot seguit: no entra cap moviment nou ni cap pregunta nova. Les preguntes que ja tenies pendents continuen allà. Toca la icona «Connectar comptes» per obrir «Els meus bancs»: a cada banc, la línia «Saldo actualitzat» marca l'hora d'ara.",
-            "3. Obre Aely amb el teu compte en un altre dispositiu o al navegador de l'ordinador i sincronitza els bancs allà. Torna al mòbil i sincronitza: no hi falta cap moviment i cap entra dues vegades. Si no tens cap altre dispositiu a mà, deixa aquest pas sense provar.",
-            "4. Per provar la reconnexió (ara, o quan un banc et caduqui): a «Els meus bancs», toca un banc, prem «Reconnecta» i autoritza el mateix compte de sempre. En tornar a l'app, toca «Sincronitza els bancs»: a Despeses no falta cap dia entre l'última vegada i avui, i no entra cap moviment dues vegades. Si no reconnectes cap banc, deixa aquest pas sense provar."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.119",

@@ -21798,7 +21798,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="e834337e44d01ff880830997bc20f731096149802dc40e44a25238f2e2a73cca";
+var _rnSha="adb15290002c929bf6368b37e0d6d2de0f4294fca0f8f170c9df46873fc3520b";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){

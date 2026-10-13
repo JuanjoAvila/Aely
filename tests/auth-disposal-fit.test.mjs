@@ -92,7 +92,10 @@ for(const [id,codigo,web]of [
 ]){
  expectedReg[id]=selectedReg[id];
  // Sólo la edición de regla cambió en beta: su contrato selectivo sigue fijado; las otras identidades vigilan HEAD.
- assert.deepEqual(betaRevision(id,id==='inc-0810-metas-editar-regla'?mainRead:read,undefined,id==='inc-0810-metas-editar-regla'?reg[id]:liveReg[id]),{web,codigo},id+': identidad aprobada, histórica sólo para edición de regla');
+ // La 124 cambia un comentario dentro del tramo de la barra que vigila el indicador (Plan ya no pone `mc-touch-own`):
+ // su huella viva se declara de nuevo. Que solo cambia ese comentario lo prueba Catálogo124 de beta-sources.
+ const vivo=id==='inc-0810-nav-indicator'?{web:'2133ea962e414490cc5ca9547b137d48c9d96e34c2632bcf084cf0d64961a7c8',codigo:'9eb1cd42ad7ae91e3a994960a41816f033fc75b07230e3d95cd842819b460f84'}:{web,codigo};
+ assert.deepEqual(betaRevision(id,id==='inc-0810-metas-editar-regla'?mainRead:read,undefined,id==='inc-0810-metas-editar-regla'?reg[id]:liveReg[id]),vivo,id+': identidad aprobada, histórica sólo para edición de regla');
  assert.deepEqual(betaRevision(id,selected,undefined,selectedReg[id]),{web,codigo},id+': ancla beta fija aprobada');
  for(const key of ['historial','auditoria','codigosCompatibles','compatibilidadGit'])assert.equal(reg[id][key],undefined,id+': sin aprobación heredada '+key);
 }
@@ -124,4 +127,4 @@ assert.notEqual(betaRevision('inc-0710-auth-disposal',mainRead,undefined,reg['in
 console.log('✓ fit102: retornos/receiver/excepciones diferidas, boot real sin throw, trazas equivalentes;7funciones/9datos, notas históricas106 intactas y registro con cierres107/108/110 explícitos; identidad102 nueva');
 
 }
-assert.equal(createHash('sha256').update(JSON.stringify(JSON.parse(read('scripts/beta-sources.json')))).digest('hex'),'187f8166cdbe36fcc4926ab6e0ca0e6bb7c668a5417d8c1ea33ac66cf4f48772','registro122 íntegro: el de la integración121 (870594f5) más la marca de recibo y sus vetos en veintiocho alcances, setExpenseRecibo en dieciocho listas de métodos de cloud y la tanda recibo-cargo-en-gastos; Catálogo122 de beta-sources lo fija unidad a unidad');
+assert.equal(createHash('sha256').update(JSON.stringify(JSON.parse(read('scripts/beta-sources.json')))).digest('hex'),'ab36a2d9092889250731d08903cad7b8da8bdb7001e2be4418a393c1b499d61e','registro124 íntegro: el de la integración122 (187f8166, que la 123 no tocó) más la tanda plan-scroll-lento, solo web; Catálogo124 de beta-sources lo fija unidad a unidad');

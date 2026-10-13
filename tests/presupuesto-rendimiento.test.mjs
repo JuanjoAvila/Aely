@@ -264,7 +264,12 @@ const PRESUPUESTO = {
   // crudo / 379.934 B gzip, +1.522 / +442 B sobre la 122. Es el cuadro de cuotas hacia atrás, el
   // primer cierre manual mantenido, la «i» con el detalle y seis textos en tres idiomas. 1351 KiB
   // (1.383.424) se queda corto por 284 B: 1352 es el mínimo, quedan 740 B.
-  minificado: 1352 * 1024,
+  // Integración 4.26.124 (13/10), el scroll lento de Plan, encima de la beta 123 (3625fa7e):
+  // medida tras el build, sello 4.26.124.99999 y reserva de 95 B: 1.383.216 B crudo / 379.773 B
+  // gzip, -492 / -161 B sobre la 123 (se va el empujón manual de `scrollTop` y `mc-touch-own` en
+  // Plan). El tope BAJA con la medida para que el hueco no lo ocupe otra entrega sin declararlo:
+  // 1351 KiB es el mínimo, quedan 208 B.
+  minificado: 1351 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -286,7 +291,8 @@ const PRESUPUESTO = {
   // Cargo de recibo en Gastos, sola: 368.865 B gzip. Unión con el ordinal, sin Inicio, medida: 371.208 B.
   // Integración 4.26.122: 379.492 B gzip, 612 B sobre 370 KiB. Mínimo medido: 371 KiB (quedan 412 B).
   // Integración 4.26.123: 379.934 B gzip, 30 B sobre 371 KiB. Mínimo medido: 372 KiB (quedan 994 B).
-  gzip: 372 * 1024,
+  // Integración 4.26.124: 379.773 B gzip, 161 B menos que la 123. El mínimo vuelve a 371 KiB (quedan 131 B).
+  gzip: 371 * 1024,
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 
