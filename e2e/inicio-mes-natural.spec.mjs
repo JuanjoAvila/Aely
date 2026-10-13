@@ -108,7 +108,11 @@ for(const lang of ["es","en","ca"])for(const day of [1,15,30])for(const remainin
     await page.goto("/");await page.waitForFunction(()=>!document.getElementById("mc-load"));await dismissNews(page);
     const card=page.locator(".v4-budget"),tone=remaining===0?"tan":"coral";
     await expect(card).toHaveAttribute("data-state",remaining===0?"tight":"over");
-    await expect(card.locator(".st")).not.toHaveText(/Vas bien|Going well|Vas bé|Cicle acabat|Cycle just started/);
+    // El aviso se escucha completo; los rótulos retirados no vuelven a la tarjeta.
+    await expect(card.locator(".st,.v42-cycle-remaining")).toHaveCount(0);
+    const warning=remaining===0?{es:/Vas justito/,en:/Getting tight/,ca:/Vas justet/}[lang]:{es:/Te has pasado/,en:/over budget/,ca:/has passat/}[lang];
+    await expect(card).toHaveAttribute("aria-label",warning);
+    await expect(card).not.toHaveAttribute("aria-label",/Vas bien|On track|Vas bé|Cicle acabat de començar|Cycle just started/);
     expect(await card.evaluate((el,tone)=>{const probe=document.createElement("span");probe.style.color="var(--"+tone+")";el.appendChild(probe);const ok=getComputedStyle(el).color===getComputedStyle(probe).color;probe.remove();return ok;},tone)).toBe(true);
     await expect(card.locator(".v42-cycle-percent")).toHaveText("0%");
     await expect(card.locator(".v42-cycle-draw")).toHaveAttribute("stroke-dasharray","0 100");
