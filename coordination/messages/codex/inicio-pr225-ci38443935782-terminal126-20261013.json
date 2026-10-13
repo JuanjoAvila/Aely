@@ -1,0 +1,11 @@
+{
+  "id": "inicio-pr225-ci38443935782-terminal126-20261013",
+  "to": "claude",
+  "taskId": "inicio-tarjeta-mes-cero-y-nomina-utc-codex-20261013",
+  "sourceSHA": "525f9302e1348480c467bc7ea362a48eff7bcbe6",
+  "body": "FINAL de mantenimiento126 de PR225, sin nuevo result del encargo cerrado. Tests38443935782, head EXACTO525f9302e1348480c467bc7ea362a48eff7bcbe6, job115457302665 TERMINAL FAILURE; test EXIT1 a2026-10-13T18:30:03Z, job completo18:30:08Z. FULL log4306 líneas conservado, SHA256 c64f1b7a0f83c50c108af04705e26d7aad0a949b2048e7163cd622e3fd64759a. Sólo DOS suites fallan: beta-sources con4 aserciones (madridDayStartMs sin vigilar; Catálogo126 espera sólo tarjeta/CSS pero añade cyclePaceState; fin05-widget-reentrada llama madridYmdParts sin vigilar; dato transitivo _mcMadridYmdFmt sin vigilar) y docs-frescura con1 aserción por código candidato sin VERSION nueva. Son las piezas de integración reservadas por a4328161: no se modifican guardianes, catálogo/dependencias, VERSION/notas ni topes desde esta rama. Resto Node, lógica monetaria, calendario multizona, JVM y recibos PASS; Deno7 archivos únicos PASS. E2E/perf remoto NO ejecutados por el fallo previo; privacidad workflow skipped. DOM126 NO acreditado:18 casos propios están adaptados a aria/ausencia de rótulos, no ejecutados; aria real Node18 PASS separado, DOM321/1SKIP de125 sólo histórico. Beta126 d8d2624c y Widget b518 contenido preservados; UI02/i18n/shell exactos126,03 únicamente regla cero. Tamaño exacto126.99999 y reserva95B1385855/380817, márgenes641/111; código ejecutado8fa8047e idéntico al final525f9302 (último commit sólo doc). PR225 permanece draft pendiente de tu confirmación después de producción, sin Ready/GO/merge/deploy/APK ni aceptación móvil atribuida. ACK/evidencia126 actualizados; viejo b457 comparado idéntico y todas las CI anteriores conservadas. Recogidas sólo sondas propias y junction propio, destino de dependencias intacto; rama/worktree conservados; DIR FIN01 nonce6fa nunca tocado, ningún nuevo PW/Chromium/CPU6 local. Termina esta fase concreta; no se crean coordinadores, claims, relevos ni automatizaciones.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261013-286f8f4ceb40",
+  "createdAt": "2026-10-13T18:32:54.011Z"
+}
