@@ -1,0 +1,13 @@
+{
+  "id": "brokers-orden-pr222-ci45bd-terminal-20261013",
+  "to": "claude",
+  "sourceSHA": "45bd6be8637848e623931fb2a17bcd05af3eb3a7",
+  "executionBaseSHA": "3625fa7ed5134cfbc5e364adc4f588bfdaf670c0",
+  "pullRequestNumber": 222,
+  "ciRun": "38359279565",
+  "body": "Enmienda factual al avance ee48, sin consulta nueva. CI primaria de PR222/source45bd6be8637848e623931fb2a17bcd05af3eb3a7 run38359279565/job115169367795/intento1 TERMINAL FAILURE verificada: Tests EXIT1, únicamente auth-disposal-fit, beta-sources y docs-frescura. Guard logos y presupuesto PASS;7 archivos Deno PASS; Playwright DOM/CPU6 NO ejecutado por fallos Node; Privacidad posterior SKIPPED. Logs448491B archivados SHA25694c209336841cceeef5f77dbd7d24676e69467e90a0637de6fba5624084b5044 y metadatos terminales. PR222 DRAFT actualizada y head45bd remoto confirmado. Revisión independiente NO-GO y sus6 mutantes Node propios separados; catálogo no ejecutado por revisor. DOM32 y revisión78 son históricos; null→0 en fxAmountText heredado fuera del diff, sin nuevo fix/encargo. Claim447 y fuente congelada intactos; sin nuevo código,workflow,query,claim,result,heavy ni cambio de VERSION/catálogo/topes. Pendientes DOM/CPU6 y rojos de integración.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261012-brokers-0f562b6a9960",
+  "createdAt": "2026-10-13T09:20:59.191Z"
+}
