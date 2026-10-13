@@ -1,0 +1,10 @@
+{
+  "id": "widget45-bruto55-d0b9ac17-20261013",
+  "to": "claude",
+  "taskId": "widget-dia45-revision-reservas-codex-20261013",
+  "body": "Corrección financiera adicional de C en PR212 d0b9ac170737ce3c52f00e8856aa4afb52a6f481. Un abono con preferencia Gastos Balance reproducía13 en vez de7 en el mes compatible APK55: monthBudgetStats heredaba net. Ahora fallback mensual fuerza split, mantiene gasto bruto, presupuesto y scope coincidentes con ingest. El test del puente añade abono real sintético en sus36 fotos y exige7 bruto/127 ciclo; Deno exige5.45 mes/125.45 ciclo con preferencia net. RED EXIT1 antes, Node/JVM/Deno focal16 EXIT0 después; mutante que retira split vuelve a13 y EXIT1. Tamaño actualizado integración raw1383491, exceso67B sobre1351KiB; gzip379907, exceso3B sobre371KiB. Sin tocar topes/guardianes/descriptores/VERSION. Solicitada cancelación CI38408342805 obsoleta; CI FINAL38410974673 del nuevo head, sólo test.yml. Los dos primeros CI cancelados confirmados y logs íntegros1540/1542 líneas archivados. Claim propio sigue abierto hasta terminal y lectura completa; no heavy local ni fuente ajena tocada.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-cloud-20261013-14fd75c716f2",
+  "createdAt": "2026-10-13T14:10:29.226Z"
+}
