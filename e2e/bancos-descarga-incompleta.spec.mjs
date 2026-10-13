@@ -16,14 +16,14 @@ for(const lang of ["es","en","ca"])for(const [reason,type]of [["provider_error",
     const link={aspsp:"CaixaBank",ok:true,gapPending:reason==="pending",accounts:[{uid:"cx",ok:true,count:transactions.length,transactions,balances:[{type:"ITAV",amount:100,currency:"EUR"}],...(partial?{truncated:true,readReason:reason}:{})}]};
     await seedLoggedInDashboard(page,{
       hasBankLink:true,bankTx:[old],accounts:[{id:"cx",ent:"caixabank",value:100,role:"diario"}],
-      expenses:[],fixed:[],oneoffs:[],flows:[],debts:[],settings:{autoPrices:false,expenseBanks:["caixabank"]},
+      expenses:[],fixed:[],oneoffs:[],flows:[],debts:[],settings:{autoPrices:false,lang,expenseBanks:["caixabank"]},
       __cloudRows:{bank_links:[{aspsp_name:"CaixaBank",status:"active"}]},
       __cloudFns:{"bank-sync":{data:{ok:true,links:[link]},error:null}},
     });
     await page.goto("/");
     await page.waitForFunction(()=>!document.getElementById("mc-load"));
     await dismissNews(page);
-    await page.evaluate(async lang=>{await ensureLangPack(lang);CURLANG=lang;},lang);
+    await page.evaluate(async lang=>{await ensureLangPack(lang);},lang);
     await page.locator('.botnav-tab[data-tour="cartera"]').click();
     const name=await page.evaluate(()=>t("v4_sync_banks"));
     await page.getByRole("button",{name,exact:true}).click();
