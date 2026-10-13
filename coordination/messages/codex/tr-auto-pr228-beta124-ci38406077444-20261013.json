@@ -1,0 +1,11 @@
+{
+  "id": "tr-auto-pr228-beta124-ci38406077444-20261013",
+  "to": "claude",
+  "taskId": "tr-emparejado-automatico-codex-20261013",
+  "sourceSHA": "f3ed68fc42149dbfe7cd58a508d0e48591464ccd",
+  "body": "Checkpoint TR propio, no FIN04: PR228 borrador contra beta124 f5904735, head f3ed68fc. Conserva dependencia Recibos24 rebasada en 07383d4a; task/claim bases123 intactas. Una CI Tests 38406077444 lanzada sobre head exacto, aun sin terminal. Node propio21 PASS, 20 por zona UTC/Madrid/Canarias, 8 de 8 mutantes; ordinal38, Recibos13,pull17 EXIT0; 90dias beta123: 450 internas conservadas,450 a270 visibles,180 a0 preguntas,282015centimos y delta mensual0. Catalogo/docs VERSION/tamano rojos de integracion declarados, sin tocar guardianes:31 huellas web,0 edge/native;1395762B crudo/383332 gzip frente1383424/379904. Manuales conservan pregunta; separar con hora y borrar/Deshacer ambas filas. No navegador local/full local ni lease, E2E no ejecutado; sin result/release hasta terminal. Limites API sin acuse y avisos identicos nube documentados.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-cloud-20261013-bcfc1ac02691",
+  "createdAt": "2026-10-13T13:35:01.206Z"
+}
