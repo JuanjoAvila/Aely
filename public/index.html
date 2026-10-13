@@ -25482,8 +25482,8 @@ function receiptAlertBalance(state,totals,bank,day,fixed){
     ||day>last) return null;
   const accounts=(state.accounts||[]).filter(function(a){ return a.ent===bank; });
   const balances=totals.bankBal||{};
-  if(!accounts.length||accounts.some(function(a){ return typeof a.value!=="number"||!Number.isFinite(a.value); })
-    ||!Object.prototype.hasOwnProperty.call(balances,bank)||typeof balances[bank]!=="number"
+  if(!accounts.length||accounts.some(function(a){ return !Number.isFinite(a.value); })
+    ||!Object.prototype.hasOwnProperty.call(balances,bank)
     ||!Number.isFinite(balances[bank])) return null;
   // Un cargo anticipado ya está en el saldo bancario. Si Plan y el calendario discrepan,
   // la previsión podría descontarlo otra vez o esconder un atrasado (revisión 12/10).
@@ -25492,22 +25492,26 @@ function receiptAlertBalance(state,totals,bank,day,fixed){
     return occursIn(e,m)&&accOf(e)===bank
       && fixedPaymentState(state,e,y,m,today).paid!==isPaidIn(e,m,today,y);
   })) return null;
-  const events=bankPendingEvents(state,bank,y,m,today);
-  if(events.some(function(e){ return !Number.isInteger(e.day)||e.day<1||e.day>last
-    ||typeof e.amt!=="number"||!Number.isFinite(e.amt); })) return null;
   // El motor recorre céntimos aquí para que diez cargos pequeños no inventen una falta de 0,01.
   const cents=function(n){ return Math.round(n*100); };
-  const start=cents(balances[bank]);
-  const due=events.filter(function(e){ return e.day<=day&&!(e.day===day&&e.amt>0); }).map(function(e){ return {day:e.day,amt:cents(e.amt)}; }).sort(function(a,b){ return a.day-b.day||a.amt-b.amt; });
-  if(!Number.isSafeInteger(start)||due.some(function(e){ return !Number.isSafeInteger(e.amt); })) return null;
+  const start=cents(balances[bank]), due=[];
+  if(!Number.isSafeInteger(start)) return null;
+  for(const e of bankPendingEvents(state,bank,y,m,today)){
+    if(!Number.isInteger(e.day)||e.day<1||e.day>last||!Number.isFinite(e.amt)) return null;
+    if(e.day<=day&&!(e.day===day&&e.amt>0)){
+      const amt=cents(e.amt);
+      if(!Number.isSafeInteger(amt)) return null;
+      due.push({day:e.day,amt:amt});
+    }
+  }
+  due.sort(function(a,b){ return a.day-b.day||a.amt-b.amt; });
   const minimum=minWalk(start,due).min;
   return Number.isSafeInteger(minimum)?{bank:bank,enough:minimum>=0,amount:Math.abs(minimum)/100}:null;
 }
 function receiptAlertBody(body,state,totals,bank,day,fixed){
   const balance=receiptAlertBalance(state,totals,bank,day,fixed);
   if(!balance) return body;
-  const values={bank:entOf(balance.bank).label,x:eur(balance.amount)};
-  return body+" "+(balance.enough?tf("rc_balance_ok",values):tf("rc_balance_short",values));
+  return body+" "+tf(balance.enough?"rc_balance_ok":"rc_balance_short",{bank:entOf(balance.bank).label,x:eur(balance.amount)});
 }
 function App(){
   const [state,setStateRaw]=useState(loadState);

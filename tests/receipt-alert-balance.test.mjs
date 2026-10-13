@@ -136,6 +136,13 @@ test("datos ausentes o inválidos dejan intacto el aviso",()=>{
     [state(),totals({bankBal:{sabadell:Infinity}}),"sabadell",28],
     [state(),totals({bankBal:{sabadell:Number.MAX_VALUE}}),"sabadell",28],
   ]){assert.equal(balance(s,t,bank,day),null);assert.equal(c.receiptAlertBody("Original",s,t,bank,day),"Original");}
+  // Number.isFinite no convierte cadenas, booleanos ni objetos: ahorrar la comprobación
+  // de typeof debe conservar el rechazo tanto en las cuentas como en saldo e ingresos.
+  for(const value of [undefined,null,"100",true,new Number(100),NaN,Infinity,-Infinity]){
+    assert.equal(balance(state({accounts:[{ent:"sabadell",value}]})),null);
+    assert.equal(balance(state(),totals({bankBal:{sabadell:value}})),null);
+    assert.equal(balance(state({flows:[{kind:"income",amount:value,day:29,to:"sabadell"}]})),null);
+  }
 });
 test("sin mutaciones y salida en los tres idiomas y moneda elegida",()=>{
   const s=state(),before=JSON.stringify(s);
