@@ -23,7 +23,7 @@ Con nómina BOOK1800 y compra BOOK12,34 del1oct, a30sep22:01Z, el extremo local 
 
 El guardián `tests/nomina-calendario-madrid.test.mjs`, registrado en `run-tests`, ejecuta procesos separados UTC/Madrid/Canarias: cambio de mes/año, bisiesto y DST marzo/octubre antes/después de ocho medianoches. Usa el importador real y el escritor web real del widget, con datos sintéticos; verifica BOOK, veto futura/PDNG/UNKNOWN/duplicada. La integración necesita 37 unidades de dependencia técnica en 19 alcances: 19 del helper, 9 del lector Madrid y 9 de su formatter. La propuesta privada detectó 57 mutaciones. Por orden `a4328161`, el autor retira todas las declaraciones de `beta-sources.json`; el fichero queda idéntico al de la base de ejecución. No se modifica ningún ID, nota, pasos de revisión ni retiro.
 
-## Evidencia y límites actuales
+## Evidencia conservada de la entrega79
 
 - Tarjeta: rojo causal anterior; verde posterior en UTC/Madrid/Canarias. El test existente sigue matando sus24 mutaciones.
 - Calendario: antes UTC48fallos/Canarias48/Madrid0; sólo presupuesto reduce a16/16/0; presupuesto+lista y comparación de payload real:0 en las tres zonas.
@@ -33,3 +33,23 @@ El guardián `tests/nomina-calendario-madrid.test.mjs`, registrado en `run-tests
 - FIN01 conserva su lease físico. No se lanza Chromium hasta devolución explícita y admisión propia. No se modifica su cerrojo, ni se adopta por reloj o ausencia de PID.
 
 Inventario focal (15 archivos, grupos de hasta8): inicio-cargos, inicio-v42, inicio-v42-rendimiento, inicio-solape-gastos, inicio-offline, inicio-mes-natural, inicio-grafica-significado, nomina-anticipada, pulido-vacios, pulido-numpad, pulido-apuntar, presupuesto-fluido, presupuesto-bancos, widget-banco, gastos-categorias-presupuesto. La evidencia de cada ejecución y sus salidas reales se conservará antes del result.
+
+## Mantenimiento sobre beta124
+
+La CI primaria de la fuente79 (Tests38385035060, job115254595911) terminó FAILURE/EXIT1 a las11:02:14Z del13/10. Además de cuatro aserciones de beta-sources y el VERSION de docs-frescura, fallaron month-budget-stats, widget-arbitraje y recibo-invariante. Deno7archivos pasó; E2E/rendimiento no se ejecutaron y el paso de privacidad del workflow quedó skipped. No se sustituye esa evidencia por las pruebas locales de mantenimiento.
+
+La comparación causal ejecutó los tres tests oficiales sobre snapshots exactos1233625fa7e, dependenciaWidget6f161fc8, candidato79dd0697 y beta124f5904735 en procesos UTC/Madrid/Canarias (36ejecuciones). Se repitió el árbitro con zona JVM explícita, porque TZ de Node no basta en Windows (12ejecuciones).
+
+| Test oficial | 123/beta124 | Widget6f y candidato79 | Candidato rebasado | Causa observada |
+|---|---|---|---|---|
+| month-budget-stats | EXIT0 en las tres zonas | EXIT1 UTC/Canarias; EXIT0 Madrid | igual | getDate local devuelve25 para la medianoche Madrid del26sep (25sep22Z). Fixture exacto: spent100/income400/remaining1300 iguales en las12combinaciones |
+| widget-arbitraje | EXIT0 en las tres zonas | JVM UTC EXIT1; Madrid/Canarias EXIT0 | igual | Calendar de UTC añade46días desde25sep22Z y llega a10nov23:00Madrid, todavía día45. CalendarMadrid/Canarias llega a11nov00:00Madrid, ya día46. Se ejecutó WidgetPeriod real |
+| recibo-invariante | EXIT0 en las tres zonas | EXIT1 UTC/Canarias,19pass/3fail; EXIT0 Madrid | igual | comparación completa incluye periodStart local de la119 frente al anclaMadrid; el fallo del caso5 interrumpe296extractos y el primeranual interrumpe3, de ahí476frente775 |
+
+Una sonda monetaria SEPARADA, sin editar assertions ni convertir los oficiales en verde, ejecutó el generador y las cadenas reales de los300extractos amplios en ambas fuentesWidget6f/79 y las tres zonas:151casos por UTC/Canarias con sólo fechas periodStart diferentes;0diferencias de importes, saldos o cierres; Madrid0diferencias. La primera clasificación de la sonda contaba periodStart anidados como importes; ese EXIT1 de instrumentación se conservó y la clasificación corregida tiene evidencia v2 aparte. No acredita todo escenario financiero o runtime.
+
+Los fallos adicionales ya existían en la dependencia, antes de los cambios propios. Se ha solicitado scope canónico secuencial para los tres oráculos; no se modifican aquí ni se clasifican como simples rojos de catálogo.
+
+Tras rebase sobre66e1f947, sólo son propios la igualdad en cyclePaceState, budgetPeriodOf, rama cycle de presetBoundsMs y su helper.02 y la tarjeta/serie de patrimonio reservada a Claude permanecen intactas; lastPaydayOf se hereda del titular. Registro beta-sources, VERSION, guardianes y topes son los de la dependencia. Conflictos generados resueltos con build; CHANGELOG124 preservado.
+
+Controles finales ligeros: sintaxis, nuevo barrido de calendario, Gastos-período, mesMadrid y registro EXIT0; Inicio-v42 EXIT0 en las tres zonas, con sus24mutaciones. Los tres oficiales conservan el patrón rojo anterior. Tamaño:1383654B crudo/379998B gzip, reservas95B y sello124.99999,230B/94B sobre topes124(1351/371KiB), EXIT1; ningún tope se cambia. CI remota del SHA final se despacha aparte. Runner FIN01nonce6fa sigue ajeno; sin PW/Chromium/CPU6/Gradle local.
