@@ -38,7 +38,8 @@ async function arranqueEscrito(page){
   // syncCloudExpenses (lastSync), el mes de presupuesto, los logros, el tipo de cambio y
   // la copia del día. Se espera a que estén en disco y se vuelca el temporizador antes de espiar.
   await expect.poll(()=>page.evaluate(()=>{
-    const s=JSON.parse(localStorage.getItem(mcStateKey())||"{}");
+    // El historial partido también debe haber cerrado el día antes de instalar el espía.
+    const s=mcLoadRaw(mcStateKey());
     const hoy=new Date();
     const dia=hoy.getFullYear()+"-"+String(hoy.getMonth()+1).padStart(2,"0")+"-"+String(hoy.getDate()).padStart(2,"0");
     const hist=s.accountBalanceHistory||{};

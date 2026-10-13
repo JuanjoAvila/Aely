@@ -73,6 +73,20 @@ En 4.26.62, `reconcileEarlyIncomeAnchors` conserva en el flujo solo `paidYm/paid
 
 El journal conserva eventos no cubiertos por la foto cloud. El parser tolera indentación del XML únicamente en líneas vacías e identificadores; vuelve a evaluar journalFull tras una foto de app, sin descartar entradas dañadas ni deltas desconocidos. La serialización nueva usa separadores entre eventos sin salto final. El tamaño restante sigue limitado; una recuperación necesita APK51, no OTA.
 
+## Apuntes iguales sin id y aviso reclamado una vez (rama `claude/tr-iguales-ordinal`, 12/10/2026)
+
+Un apunte de banco SIN id (Trade Republic por Open Banking: sin `entry_reference` ni comercio) tenía por identidad banco+día+importe con signo+nombre del banco, así que k apuntes iguales del mismo día se fundían en uno (5 bizums de 12 € → 1 fila, −48 €). Ahora el segundo igual y siguientes llevan `obOrd` (2, 3…); el primero no lleva nada y conserva EXACTAMENTE su clave, lápidas y filas de versiones anteriores incluidas. El ordinal se deriva de cuántos iguales trae el banco (ranuras 1..k, asignadas por contenido, no por posición): si tengo j y el banco trae k entran k−j; si trae menos no se borra nada. La regla vive en `obOrdinalOf`/`obOrdinalSufijo` (00-core) y la leen `keyOfExpense` (mezcla con la nube, lápidas, FIN-03), `importObExpenses` (clave del importador: `kOf`/`scopedKOf`), `expenseSourceForCloud`/`expenseFromRow` (viaje) y `claveComoLaApp`/`ordinalDeSource` en `_shared/presupuesto.ts` (widget). Los apuntes CON id no cambian; `reconcileObDupes` (solo cashback) no lo necesita. El histórico (`histCandExisting`, clave por contenido 1:1) tampoco, pero sí mira las lápidas y los vínculos: un candidato cuya clave de ranura 1 tiene lápida en `deleted` o figura como `banco` en `gemelos` es «ya lo tienes apuntado» (`histCandLapidas`), no nuevo. Sin eso, lo contestado «es el mismo» volvía premarcado y entraba con lápida: invisible en la lista, pero restando del saldo de la cuenta diaria (`expenseCountsCash` no excluye lápidas a propósito: la base anclada puede incluirlas) y resubido en cada pull (el backfill de `syncCloudExpenses` ahora salta las filas con lápida).
+
+Viaje: en `source` como último tramo `#n2` (`ob:trade_republic#dup#n2`), que un móvil o servidor anterior ignora (`split("#")[0]` sigue dando el banco y `[1]` la marca `dup`), y en `fecha` como mediodía + (ordinal−1) ms, porque el índice único de `expenses` es usuario+fecha+importe+comercio y sin ello la segunda fila igual chocaría y nunca subiría. Determinista: dos móviles que suban el mismo ordinal escriben la misma fila. Un móvil anterior funde las k filas al bajar (ve una, como hoy) y su importador no añade ninguna.
+
+**Formato completo de `source` para un apunte de banco** (lo que leen `expenseFromRow`, `expenseBankOf`, `partirEntDeuda` y `bancoDeSource`/`ordinalDeSource` del servidor): `ob:<ent>[~deuda.<id> | ~recibo.<id>][#dup][#n<k>]`, y lo mismo con `ob-hist:`. Los tramos `~` van pegados al banco (una app anterior lee un banco raro y deja la fila fuera: el lado seguro); los tramos `#` van detrás y una app anterior los ignora. `~recibo.<id>` lo escribe la entrega del recibo que entra en Gastos; esta rama ya lo lee aunque no lo escriba. Cualquier lector o escritor nuevo de `source` (FIN-04 incluido) tiene que aceptar exactamente esa expresión: `/^ob(-hist)?:[^~#]+(~(deuda|recibo)\.[A-Za-z0-9_-]+)*(#dup)?(#n\d{1,6})?$/`.
+
+**Versiones mezcladas en la misma cuenta** (beta en un móvil, producción en otro): el móvil anterior baja las k filas y las funde en una (ve la de siempre); si edita o resuelve esa fila la vuelve a subir SIN `#n` y sin el milisegundo, así que su escritura choca con la ranura 1 (misma fecha, importe y comercio) y no toca las demás. No hay pérdida muda: las filas 2..k siguen en la tabla y el móvil nuevo las sigue viendo; lo único que converge contestando es la marca `#dup` de la ranura 1, que el viejo puede quitar o poner. Un servidor sin `ordinalDeSource` funde las k en el widget hasta que se despliegue `ingest` (orden de despliegue en `SETUP-SUPABASE.md`).
+
+**Dos entradas del banco para un solo cargo** (revisión de la entrega 1): un banco puede entregar el mismo cargo como «pendiente» y como contabilizado en la misma respuesta, idénticos en todo lo demás. La señal es el `status`: en un grupo de iguales cada pendiente se da por cubierta por una contabilizada y solo las pendientes que sobran son cargos aparte (`importObExpenses`, `firme`). Sin señal —todas con el mismo estado, como una repetición al paginar— no hay nada que distinga «repetida» de «dos bizums iguales» y mandan los k del banco: es la función de esta entrega. El histórico sigue fundiendo los k iguales de una cuenta en un candidato (`skippedUniq`) y por eso nunca mete más de uno por grupo.
+
+Un aviso (noti/Wallet) empareja UNA sola vez: `state.gemelos` ({avisoId, aviso, banco}, tope 500, viaja en `app_state` como `deleted`; entre móviles se UNE gane quien gane el estado —`fusionarGemelos` en `syncFromCloud`—, porque un vínculo es un hecho que vio un móvil y el otro no puede desmentir por no tenerlo; `deleted` sigue yendo por último-que-escribe, como siempre) se da de alta al marcar «posible repetido» (`gemelosDeImportacion` tras `importObExpenses` y tras el histórico), se conserva al resolver «es el mismo» y se suelta con «son distintos»; `gemeloOtraVia` e `histCandCercanos` saltan los avisos reclamados (`avisosEmparejados`). Borrar a mano un apunte OB o resolver sin gemelo localizable deja `{aviso:"", banco}`; una lápida de ranura 1 sin vínculo es, por tanto, un «es el mismo» de una versión anterior y el importador da por reclamado el primer aviso que casa. El emparejado automático por cuenta de filas (entrega 2) decidirá sobre este mismo vínculo. Servidor: `presupuesto.ts` cambiado en la rama, SIN desplegar; un servidor sin él sigue fundiendo las k filas iguales en el widget. Límite que queda: dos AVISOS idénticos (mismo día, importe y comercio) siguen fundiéndose en la nube y al bajar (clave sin id).
+
 ## Lápidas y contabilidad local (4.26.54)
 
 `expenseCountsBudget` excluye filas cubiertas por `deleted` mediante `expenseIsTombstoned`; presupuesto y categorías heredan el criterio del servidor antes de `statsDelMes`. Gastos y últimos movimientos de Inicio las ocultan sin podar arrays ni borrar por ausencia. Copias de seguridad conservan el histórico crudo. No cambia identidad ni decisiones de duplicados. UUID manual y claves antiguas siguen vigentes. WeakMap indexa cada array `deleted`; los escritores lo reemplazan por copia y los memos de presupuesto dependen de él.
@@ -198,16 +212,136 @@ ventana, `bank-sync` lee además lo que falta, con estas reglas (`bank-sync/dema
 - Si la ventana no cabe en esas doce llamadas (o en las 2000 filas del lector) no hay tramo posible y `last_sync` sube a «ahora»,
   como antes de existir el tramo. Con un error a media lectura o una cuenta caída no se mueve.
 - El banco no entrega más de 90 días: un hueco mayor se pide desde ese tope y se señala con
-  `gapBeyondCap`. Reconectar un banco deja `last_sync` a null (`bank-callback`) y ese hueco no se
-  recupera por esta vía.
+  `gapBeyondCap`.
+- **Reconectar conserva el cursor (11/10).** Reconectar el mismo banco es la misma fila de
+  `bank_links` con otra autorización (`bank-connect` hace upsert). Si vuelven exactamente las
+  mismas cuentas (`bank-callback/reconnect.ts`: por IBAN y divisa, o por `identification_hash`;
+  el `uid` no vale, cambia en cada sesión) `bank-callback` no toca `last_sync` y la lectura
+  siguiente recupera el hueco como cualquier otro. Si cambian las cuentas, no hay identidad
+  estable o es la primera vez, `last_sync` queda a null y el enlace arranca con la ventana de
+  siempre: el cursor es del enlace y una cuenta nueva no puede heredarlo. Un hash o una divisa
+  que falta en UN lado no desmiente (los enlaces anteriores a guardar el hash solo tienen IBAN);
+  solo un dato conocido en los dos y distinto. Y «sin cuentas» solo borra cuentas y cursor si el
+  banco lo confirma: si el GET de la sesión falla, `bank-callback` sale con `msg=error` sin
+  tocar la fila.
 - Un cliente que no manda `recoverGaps` recibe solo la ventana; con hueco, su `last_sync` no sube
   para no quemar el tramo que un cliente nuevo sí puede guardar.
+- **Acuse (12/10).** El cursor se escribía al leer del banco, antes de que el móvil tuviera las
+  filas: una respuesta perdida dejaba ese trozo sin pedir nunca más. El cliente que acusa manda
+  `acks` (un objeto por nombre de banco, vacío la primera vez) y con él `bank-sync` no escribe
+  `last_sync` por lo que acaba de leer: lo entrega en `ack` (`cursor|clave del enlace`) y el
+  cliente lo devuelve en la pulsación siguiente, que es cuando se escribe (`ackCursor`: de ese
+  enlace y esa autorización, con la forma exacta que emite el servidor, no futuro, nunca hacia
+  atrás; la escritura va filtrada por `id` y solo se da por hecha si no devolvió error).
+  `last_sync` va así una pulsación por detrás. Sin `acks` (clientes anteriores) el cursor se sigue
+  escribiendo en la misma llamada. El cliente nuevo contra una función sin acuse no recibe `ack`
+  y no guarda nada.
+  - **Un enlace sin cursor recibe su punto de partida en el servidor.** Con `last_sync` nulo y
+    cliente de acuse, la primera lectura que responde escribe la víspera de la ventana, sellada
+    (`chunkCursor`), con filtro `is null`. No dice que nadie tenga filas, solo desde qué día se
+    sigue: si el punto de partida viviera solo en el acuse del móvil que pulsó, otro dispositivo
+    encontraría el enlace en null y leería «la ventana de hoy». «Ahora» sigue viajando en `ack`.
+  - **El acuse es local al dispositivo.** Vive en su clave de `localStorage`
+    (`micartera_v3_oback`, `obAckLoad`/`obAckSave`/`obAckDrop` en 00-core), fuera del estado:
+    el estado sube a la nube y otro móvil lo adopta entero, y un móvil no puede acusar filas
+    que recibió otro. Se escribe detrás de sus filas: `runBankSync` deja el acuse pendiente,
+    el efecto de `lastBankSync` vuelca el estado y `obAckSave` comprueba en disco que entró.
+    La marca vive en la clave ligera y las filas en la de gastos: si alguna escritura de gastos
+    falló en esta sesión (sin cuota), `obAckSave` compara además el histórico en disco con el
+    del estado y sin él no acusa; si nunca falló no lo toca.
+  - **El banco de pruebas no acusa.** Allí `obAckLoad` devuelve vacío y `obAckSave` no escribe:
+    `acks` viaja vacío, el servidor espera y el cursor real no se mueve (lo vigila `security`).
+  - **Reconectar invalida los acuses anteriores.** La clave del enlace (`ackLinkKey`) es su id
+    y su `state_issued_at`, que `bank-connect` renueva en cada autorización. Tras reconectar,
+    el cursor lo decide solo `bank-callback` (conservado o null) y un acuse emitido antes no
+    lo mueve: lo que ese móvil tuviera de más se lee otra vez y se deduplica por `ext_id`.
+  - Quitar un banco borra su acuse (`obAckDrop`).
+- **Banco que filtra por fecha valor.** La app pinta la fecha contable, que puede ir uno o dos
+  días antes de la que el banco usa para `date_from`. `syncFrom` va 3 días por debajo del primer
+  día pedido (`demandFloor`) para que el cliente no tire esas filas; al banco no se le pide más.
 
 Cada enlace de la respuesta lleva `syncFrom` (día más antiguo que puede traer; el cliente solo
-acepta lo anterior a su margen desde ahí, por banco) y `balanceAt` (hora de lectura del saldo, que
+acepta lo anterior a su margen desde ahí, por banco, con el día del suelo incluido) y `balanceAt` (hora de lectura del saldo, que
 es lo que pinta «Saldo actualizado»: `last_sync` puede ir por detrás). En `importObExpenses` lo
 anterior al margen se apunta con su fecha real pero no compra participaciones, y casa contra todo
 lo modelado, toque o no este mes.
+
+**El cargo de un recibo entra en Gastos, sin contar (12/10/2026).** El cargo del banco que
+casa con un recibo o un puntual del Plan ya no se descarta: entra con `reciboId`, en el sync
+diario (`importObExpenses`) y en «Importar histórico». **Invariante:** lleva la marca exactamente
+lo que antes se tiraba (mismo predicado: banco, `recAmtClose` y `recNameMatch`), y esa fila no
+mueve ninguna cifra, así que el gastado, el presupuesto, el saldo pintado, el previsto y el
+cierre de mes son los de antes. `tests/recibo-invariante` lo comprueba contra el código de la
+4.26.119; afinar el predicado es mover cifras. La marca se pone al importar y se guarda; no hay
+pasada que la recalcule. **Esa es la única cifra que cambia, y a propósito:** la 4.26.119
+volvía a juzgar el cargo en cada sync, de modo que el seguro anual o el puntual cobrado a fin de
+mes se tiraba en su mes y entraba como una compra al sincronizar el mes siguiente, y lo mismo el
+cargo de un recibo al que después se le subía el importe. Ahora sigue marcado: el gastado es
+menor que antes en exactamente esas compras (26 de 1.500 extractos medidos, nunca mayor) y el
+saldo no cambia. `cargoDeRecibo(e, s)` es la puerta única: devuelve el recibo vivo o
+null (si la fila es además cuota gana la deuda; un recibo borrado o un veto anulan la marca), y
+la usan `expenseCountsCash`, el cajón, el anclaje de `applyBankBalances`, el cierre de
+`reconcileTR` (también su `obFed`: un cargo de recibo no cuenta como «el banco ya trae sus
+movimientos», o el cierre dejaría de restar el redondeo), el redondeo de Cartera
+(`recompensasDelMes`), la retirada de efectivo (no se puede reconocer como tal), la foto del
+hogar e Inicio. Lo
+dudoso se distingue solo en la etiqueta (`cargoDeReciboFirme`): «Recibo: X» si es el cargo con
+el que `fixedPaymentState` da por pagado el recibo y lleva su nombre por palabras completas;
+«¿Recibo: X?» si solo se parece. La marca viaja en `source` como `ob:<ent>~recibo.<id>` u
+`ob-hist:<ent>~recibo.<id>`: una app anterior o el servidor del widget leen un banco
+inexistente y la excluyen sin conocerla, igual que con `~deuda.`. El orden de los sufijos es
+`ob:<ent>[~deuda.<id> | ~recibo.<id>][#dup][#n<k>]`. Toda escritura de la marca sobre una fila
+que ya está en la nube pasa por `cloud.setExpenseRecibo`, que la pone si la fila local la lleva
+y la quita si no: busca por fecha, importe y comercio (el id local puede no ser el de la nube, y
+un UPDATE por id que no casa no toca nada ni da error), lee antes de escribir y solo toca filas
+`ob:<ent>` u `ob-hist:<ent>`, conservando prefijo, `#dup` y `#n<k>`; una cuota, un aviso del
+móvil o un gasto a mano que coincidan no se tocan, y a un posible repetido no se le pone marca.
+La usan el alta cuando la fila ya existía, «No es este recibo», su vuelta atrás y el borrado de
+un recibo. Al bajar gastos de la nube, el aviso del móvil gana al cargo de recibo de su mismo
+día, importe y comercio llegue en el orden que llegue (`mergeExpensesFromCloud`), que es lo que
+pasa cuando el aviso estaba antes. «No es este recibo»
+(`quitarCargoDeRecibo`) quita la marca, guarda el veto en `state.reciboNo` (recibo + identidad
+del cargo, y recibo + id de fila + identidad, para que otro móvil con otro id local pueda
+levantarlo) con su hora en `state.reciboNoAt`, y retira la prueba de pago. Al bajar
+el estado de la nube, `reciboNoUnion` resuelve clave a clave: gana lo último que se dijo, sea
+vetar o levantar; sin hora, o con la misma, se suman; quien cambia una clave apunta siempre una
+hora posterior a la que ya constaba, aunque su reloj vaya atrasado. «Confirmar pago de X» con un cargo
+cualquiera NO lo marca: el gastado se queda como estaba, igual que en la 4.26.119 y como dice
+su diálogo. La excepción es confirmar con el mismo cargo del que se dijo «no es este recibo»
+(`reponerCargoDeRecibo`): eso lo deshace, levanta el veto y devuelve la marca, y el diálogo lo
+avisa con el texto de la marca, solo si la marca puede volver (`admiteMarcaDe`: fila del banco
+y del banco del recibo). Vale también para un puntual, que la ficha ofrece únicamente cuando se
+vetó para ese cargo. Borrar un recibo o un puntual pasa por `quitarDelPlan` → `sinCargoDelPlan`:
+solo sus filas del periodo en curso (el del gastado: mes natural o «Mi ciclo», `budgetPeriodOf`)
+pierden la marca, en el móvil y en la nube, porque el servidor del widget deja fuera todo
+`~recibo.` sin saber si el recibo existe. Las de periodos ya cerrados la conservan y sus cifras
+no se mueven: `state.reciboBorrado[id]` (`{d: desde cuándo, n: nombre}`) viaja en el estado y
+`cargoDeRecibo` sigue dando por cargo de aquel recibo lo anterior a `d`, con su nombre, y por
+gasto normal lo posterior, también en el móvil que aún tiene esas filas marcadas. Las tres
+re-anclan la base (`conSaldoMostrado`) para que el saldo pintado no se mueva fuera de un sync.
+
+**Con los apuntes iguales del mismo día (ordinal).** El veto de «No es este recibo» lleva el
+ordinal de la fila (`reciboNoIdentidad`): suelta solo el cargo tocado, en la app y en la nube
+(la fila con ordinal viaja con su fecha un milisegundo después, así que la escritura por
+fecha, importe y comercio da con ella). Cuando el aviso del móvil gana al cargo marcado, la
+fila que queda es la misma de antes —su id y el orden a mano, la categoría, la nota y el «no
+tarjeta» que se le pusieron— con el origen del aviso, y App reescribe sin marca la fila del
+banco en la nube (`sinMarca`): con una marcada y otra no, el servidor contaba una u otra según
+el orden de lectura. **Límites conocidos:** (1) dos cargos iguales el mismo día que casan con
+un recibo entran LOS DOS marcados y ninguno cuenta, igual que antes se tiraban los dos; si uno
+era una compra aparte, hay que decirlo con «No es este recibo». (2) Tras ese «No es este
+recibo» sobre uno de varios iguales de un recibo FIJO no hay vuelta atrás desde la ficha: el
+vínculo a mano exige que el cargo sea único en su mes (`fixedExpenseEligible`); en un puntual sí
+la hay.
+
+**Condición de publicación (medida en la revisión del 13/10).** Un dispositivo con la 4.26.120
+—el ordinal SIN esta entrega— lee `ob:<ent>~recibo.<id>` con el banco limpio y CUENTA el cargo
+(102,40 frente a 40), y al reescribir esa fila le borra la marca. Lo mismo el `ingest` de la
+120. Por tanto: la 4.26.120 no se promociona a producción sin esta entrega, y el `ingest` de
+esta rama se despliega antes que su web (ver `docs/SETUP-SUPABASE.md`). La entrega está
+integrada en la candidata 4.26.122, encima de la 4.26.121 (Inicio v4.2), que lleva dentro la 120:
+la condición vale igual para la 121. En esa unión `tests/recibo-invariante` sigue comparando
+contra `dea5d883` (la 4.26.119 más el ordinal, sin Inicio) y da las mismas cifras.
 
 La misma frontera rige el sync diario: `app_events` puede guardar el banco, una clase estable y
 recuentos agregados, pero nunca transacciones ni campos del proveedor. El volcado temporal usado
@@ -452,7 +586,8 @@ escribir `Access-Control-Allow-Origin: "*"`.
   Su posición se guarda en `settings.accountListOrder`, mezclada visualmente con `accounts` sin
   moverla de modelo ni alterar saldo, rol o presupuesto.
 - La ficha guarda un cierre diario real por cuenta en `accountBalanceHistory`, indexado por la
-  misma clave estable del orden (`acc:<id>` / `ob:<key>`) y limitado a 31 puntos. El gráfico de
+  misma clave estable del orden (`acc:<id>` / `ob:<key>`) y limitado a400 puntos mediante
+  `recordAccountBalances`, compartido con Inicio. El día civil es el de Madrid. El gráfico de
   14 días y la variación desde el día 1 solo aparecen cuando existen esos cierres: no se reconstruye
   saldo histórico a partir de gastos ni se atribuye la previsión agregada si hay dos cuentas del
   mismo banco. El primer cierre espera `mc-boot-ready`, que ya representa dato local definitivo sin
@@ -617,7 +752,9 @@ Antes el volcado se apuntaba dentro del updater de `set()`. React puede ejecutar
 
 Como es código común, el bloque de guardado forma parte del alcance de revisión de toda tanda cuyo código llama a `set` de App (18 de 25, decidido contra el código por `beta-sources`): cambiarlo vuelve a pedir su prueba. Una aprobación heredada por equivalencia de código deja de aplicarse cuando el código cambia; su registro histórico no se toca.
 
-Se conserva lo demás: una escritura como mucho cada 400 ms, volcado inmediato en `pagehide` y al pasar a oculto, guardado partido (`micartera_v3` y `micartera_v3_exp`), ninguna escritura al montar ni cuando un updater devuelve el mismo estado, y las salvaguardas del modo pruebas (`mcSkipPersist`, `mcRecargarSinVolcar`). Límite: una escritura pedida y aún no pintada cuando llega `pagehide` no se vuelca; antes tampoco estaba garantizado, salvo cuando React la calculaba por adelantado.
+Se conserva lo demás: una escritura como mucho cada 400 ms, volcado inmediato en `pagehide` y al pasar a oculto, guardado partido (`micartera_v3`, `micartera_v3_exp` y `micartera_v3_balhist`), ninguna escritura al montar ni cuando un updater devuelve el mismo estado, y las salvaguardas del modo pruebas (`mcSkipPersist`, `mcRecargarSinVolcar`). Límite: una escritura pedida y aún no pintada cuando llega `pagehide` no se vuelca; antes tampoco estaba garantizado, salvo cuando React la calculaba por adelantado.
+
+El historial por cuenta se guarda separado porque sus400 cierres no deben reescribirse al cambiar otro dato. `mcSaveRaw` conserva la referencia y el contenido de la última foto; una referencia nueva con el mismo contenido no escribe `_balhist` otra vez. La partición lleva `{schema:1,revision,history}`. Mientras falla esa escritura, la clave principal conserva la foto y `_balHistoryRevision`; si falla limpiar la principal después de guardar la partición, `mcLoadRaw` elige la revisión durable más reciente. No se borra la única copia cuando una escritura falla. El mismo contrato usa `micartera_sandbox_balhist` en modo pruebas y su reset no toca la partición real. Esta arquitectura llega con Inicio v4.2 (PR204) y está integrada en la candidata 4.26.121; publicación en beta y aceptación móvil pendientes.
 
 ### Ciclo de sesión y desmontaje (candidata102)
 
@@ -637,3 +774,5 @@ cloud.onAuth devuelve la retirada de su suscripción. App cancela timer y callba
 `useBackClose(open,onClose,identity)` transfiere la entrada propia de historial entre overlays dentro del mismo lote de efectos. Tokens y propietario distinguen pops propios/ajenos; el callback Capacitor usa el mismo controlador y BillsAddWizard registra la identidad del paso. AskHost re-registra el diálogo actual. Corresponde a la revisión110 aprobada; la cualificación de esta selección todavía está pendiente.
 
 `editReservaRule` compara la copia de apertura con el estado fresco, conserva id/contrato/campos desconocidos y no reescribe un asiento mensual ya aplicado. `applyReservaMensual` admite limitar el asiento pendiente a la regla editada. La línea mensual conserva la meta original del asiento si la regla cambia de destino. Corresponde a108; no se introducen sincronizaciones bancarias nuevas. [Alcance y gates](briefs/promocion-107-108-110-local26.md).
+
+Revisión de Inicio PR204 sobre119: historial local400/nube14 unido por fecha sólo para el propietario vigente; callback tardío sin sesión conserva el estado previo. El alta de Bienes se acredita sólo en Guardar; un bien legado sin escalones mantiene su valor actual hacia atrás con cobertura explícita. Con escalones reales se limita al tramo conocido, salvo el bien legado que se revalora: `recordAssetValues` anota la víspera el valor que tenía (`legacy`) y la serie lo mantiene hacia atrás (ajuste del 13/10, integrado en la 4.26.121 junto a la unión de `gemelos` de la 120, que ocupa el mismo punto del pull). Traspasos sólo se neutralizan entre dos cuentas de flujo; deudas sin plazo sitúan la amortización histórica en el día conocido de cuota, conservando el saldo actual. La caché depende de referencias financieras y día de Madrid. Contrato y gates: [ronda anterior](briefs/inicio-revision-nogo-20261012.md) y [segunda revisión](briefs/inicio-ronda3-bienes-20261012.md).

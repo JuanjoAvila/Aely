@@ -226,10 +226,16 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     // La lápida entra junto con la retirada local: si la nube refresca durante los cinco segundos,
     // no puede resucitar la fila por detrás del toast. La escritura remota sí se encadena para que
     // Deshacer vuelva a subir el MISMO id después de que termine cualquier delete aún en vuelo.
-    set(function(s){ return Object.assign({},s,{
-      expenses:(s.expenses||[]).filter(function(x){ return x.id!==e.id; }),
-      deleted:pushDeleted(s.deleted,key)
-    }); });
+    set(function(s){
+      const next=Object.assign({},s,{
+        expenses:(s.expenses||[]).filter(function(x){ return x.id!==e.id; }),
+        deleted:pushDeleted(s.deleted,key)
+      });
+      // Un apunte del banco borrado A MANO deja rastro «sin aviso» (12/10/2026): así el importador
+      // no confunde su lápida con un «es el mismo» antiguo y no da por reclamado ningún aviso.
+      if(e.source==="ob"||e.source==="ob-hist") next.gemelos=pushGemelos(s.gemelos,[{aviso:"",banco:key}]);
+      return next;
+    });
     const pending={expense:e,key:key,index:index<0?list.length:index,wasCloud:wasCloud,
       cloudDelete:wasCloud?borrarGastoNube(e,"gastos-borrar"):Promise.resolve()};
     undoDeleteRef.current=pending; setUndoDelete(pending);
@@ -281,7 +287,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   const recognizeWithdrawal=function(ex){
     if(!canRecognizeWithdrawal(ex) || ex.category==="traspaso" || withdrawalPending.current[ex.id]) return;
     if(!canRecognizeWithdrawal(ex,withdrawalState.current)){
-      showToast(t(withdrawalReceiptLink(withdrawalState.current,ex)?"f_withdraw_receipt_blocked":"f_withdraw_error")); return;
+      showToast(t(withdrawalReceiptLink(withdrawalState.current,ex)||cargoDeRecibo(ex,withdrawalState.current)?"f_withdraw_receipt_blocked":"f_withdraw_error")); return;
     }
     withdrawalPending.current[ex.id]=true;
     askConfirm({title:t("f_withdraw_title"),sub:tf("f_withdraw_sub",{x:eur(ex.amount)}),ok:t("f_withdraw_ok")})
@@ -405,6 +411,14 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     if(subir && cloud.enabled()) cloud.setExpenseDeuda(subir).catch(function(){});
     if(showToast) showToast(tf("v4_moved_cat",{cat:DEUDA_CAT.icon+" "+catName("deudas")}));
   };
+  /* «No es este recibo» (12/10/2026): el sync casa por nombre e importe parecidos y puede
+     equivocarse. Sin la marca, la fila vuelve a contar como un gasto cualquiera. */
+  const quitarRecibo=function(ex){
+    let subir=null;
+    set(function(s){ const r=quitarCargoDeRecibo(s, ex.id); if(!r) return s; subir=r.e; return r.state; });
+    // La marca viaja en `source`, y se busca la fila por lo que es: su id aquí puede no ser el de la nube.
+    if(subir && cloud.enabled()) cloud.setExpenseRecibo(subir).catch(function(){});
+  };
   const setReceipt=function(ex,fixedId){
     if(withdrawalPending.current[ex.id]){ showToast(t("f_withdraw_receipt_pending")); return; }
     const ds=String(ex.date||"").slice(0,10),y=Number(ds.slice(0,4)),m=Number(ds.slice(5,7)),now=new Date();
@@ -413,13 +427,29 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     const expected={identity:fixedPaymentIdentity(expenseBankOf(ex),ex),model:f&&fixedPaymentModel(f,m)};
     const save=function(){
       if(withdrawalPending.current[ex.id]){ showToast(t("f_withdraw_receipt_pending")); return; }
+      let subir=null;
       // El diálogo es asíncrono: otra sincronización puede sustituir el cargo o editar el recibo.
-      set(function(s){ return linkFixedPayment(s,ex.id,fixedId,y,m,today,expected); });
+      set(function(s){
+        // Solo si de ESTE cargo se dijo «no es este recibo»: confirmar lo deshace y repone la marca.
+        const r=fixedId!=null&&reponerCargoDeRecibo(s,ex.id,fixedId,y,m,today,expected);
+        if(r){ subir=r.e; return r.state; }
+        return linkFixedPayment(s,ex.id,fixedId,y,m,today,expected);
+      });
+      if(subir && cloud.enabled()) cloud.setExpenseRecibo(subir).catch(function(){});
     };
+    // Deshacer el vínculo de un cargo marcado es decir «no es este recibo»: una sola salida.
+    if(fixedId==null && cargoDeRecibo(ex,state)){ quitarRecibo(ex); return; }
     if(fixedId==null){ save(); return; }
-    if(!f) return;
-    askConfirm({title:tf("f_receipt_confirm",{name:f.name}),
-      sub:tf("f_receipt_confirm_sub",{merchant:ex.merchant,amount:eur(ex.amount),bank:entOf(expenseBankOf(ex)).label,date:fmtIsoCorto(ds),planned:entOf(accOf(f)).label,expected:eur(f.bankAmount>0?f.bankAmount:occAmountIn(f,m))}),
+    // Un puntual solo llega aquí para deshacer su «no es este recibo»: no tiene vínculo de pago.
+    const de=f||(state.oneoffs||[]).find(function(x){ return x.id===fixedId; });
+    /* El diálogo de siempre promete que el presupuesto se conserva, y es verdad salvo al deshacer
+       un «no es este recibo»: ahí el cargo vuelve a ser el de su recibo y deja de sumar en
+       Gastos, que es lo que dice el texto de la marca. Solo se anuncia si la marca va a volver
+       de verdad (`admiteMarcaDe`): con el recibo movido a otro banco no vuelve. */
+    const repone=!!de&&reciboNoDe(state,fixedId,reciboNoIdentidad(ex),ex.id).length>0&&admiteMarcaDe(ex,de);
+    if(!f&&!repone) return;
+    askConfirm({title:tf("f_receipt_confirm",{name:de.name}),
+      sub:repone?tf("f_recibo_marca",{name:de.name}):tf("f_receipt_confirm_sub",{merchant:ex.merchant,amount:eur(ex.amount),bank:entOf(expenseBankOf(ex)).label,date:fmtIsoCorto(ds),planned:entOf(accOf(f)).label,expected:eur(f.bankAmount>0?f.bankAmount:occAmountIn(f,m))}),
       ok:t("f_receipt_yes")}).then(function(yes){ if(yes) save(); });
   };
   // Marca/desmarca un gasto como "no tarjeta" (bizum/transferencia) para que no cuente el round-up TR.
@@ -591,7 +621,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     return sortExpensesForDisplay(out,state);
     // `state.settings`/`state.accounts` van en las dependencias porque `expenseBucket` los lee
     // (qué bancos son de gasto diario): cambiar eso tiene que re-filtrar la lista.
-  },[expensesDef,state.deleted,bounds,sel,bankSel,bucketSel,q,state.settings,state.accounts]);
+  },[expensesDef,state.deleted,bounds,sel,bankSel,bucketSel,q,state.settings,state.accounts,state.fixed,state.oneoffs,state.reciboNo]);
 
   /* El asa reclama el dedo desde el principio: dejar que la fila entera fuera arrastrable
      convertiría un scroll normal en cambios de orden accidentales. El destino se resuelve contra
@@ -639,13 +669,13 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       month:monthLong(day.m-1), cycle:!!selectedPeriod.cycle,
       periodLabel:periodLabel, budgetApplies:budgetApplies
     };
-  },[expensesDef,state.deleted,state.budget,state.reservaLog,state.accounts,state.settings,selectedPeriod,preset,range,budgetApplies,todayKey,madridDay]);
+  },[expensesDef,state.deleted,state.budget,state.reservaLog,state.accounts,state.settings,state.fixed,state.oneoffs,state.reciboNo,selectedPeriod,preset,range,budgetApplies,todayKey,madridDay]);
   // Desglose por categoría: misma regla/ventana que la cabecera. categoryBudgets en deps
   // porque una fila a 0 con límite tiene que aparecer aunque no haya gastos nuevos.
   const catBreakdown=useMemo(function(){
     const rows=categorySpentByMonth(Object.assign({},state,{expenses:expensesDef}),null,null,selectedPeriod);
     return budgetApplies?rows:rows.filter(function(row){ return row.spent>0; }).map(function(row){ return {id:row.id,spent:row.spent,limit:null}; });
-  },[expensesDef,state.deleted,state.categoryBudgets,state.accounts,state.settings,selectedPeriod,budgetApplies,todayKey,madridDay]);
+  },[expensesDef,state.deleted,state.categoryBudgets,state.accounts,state.settings,state.fixed,state.oneoffs,state.reciboNo,selectedPeriod,budgetApplies,todayKey,madridDay]);
   /* Abierto o plegado, por cuenta. `!==false` y no `!!`: quien nunca lo ha tocado lo ve ABIERTO
      —es como está hoy y como él lo aprobó—, y solo se pliega quien lo pliegue a mano. */
   const catsOpen=!(state.settings && state.settings.gastosCatsOff);
@@ -836,7 +866,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     if(!form.income && (state.budget||0)>0){
       const bud=state.budget;
       const monthStartMs=startOfMonth().getTime();
-      const before=(state.expenses||[]).filter(e=>dateMs(e.date)>=monthStartMs).reduce((a,e)=>a+e.amount,0);
+      const before=(state.expenses||[]).filter(e=>dateMs(e.date)>=monthStartMs&&!cargoDeRecibo(e,state)).reduce((a,e)=>a+e.amount,0);
       const after=before+amt;
       if(before<=bud && after>bud){ msg=tf("al_over",{x:eur0(after),b:eur0(bud)}); isAlert=true; }
       else if(before<bud*0.8 && after>=bud*0.8 && after<=bud){ msg=tf("al_80",{p:Math.round(after/bud*100)}); isAlert=true; }
@@ -1044,7 +1074,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
           : groups.map(function(g,i){ return g.sep
               ? React.createElement("div",{className:"day-sep",key:"s"+i},g.sep)
               : React.createElement(MovRow,{key:g.e.id||i, e:g.e, ms:g.ms, l:g.l, onOpen:openDetail, l10n:l10nKey,
-                  bucket:expenseBucket(g.e, state),dragging:!!(dragExpense&&dragExpense.from===g.e.id),
+                  bucket:expenseBucket(g.e, state),recibo:reciboEtiqueta(state,g.e),dragging:!!(dragExpense&&dragExpense.from===g.e.id),
                   dragOver:!!(dragExpense&&dragExpense.to===g.e.id&&dragExpense.from!==g.e.id),
                   onDragStart:startExpenseDrag,onDragMove:moveExpenseDrag,onDragEnd:endExpenseDrag}); }),
         visible<filtered.length && React.createElement("div",{className:"sentinel",ref:sentinelRefCb},t("g_loadmore"))
@@ -1067,7 +1097,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
         if(!skipSave && ex && editExp) saveEdit(ex);
         setDetailId(null); setEditExp(null);
       },
-      setCat:setCat, setCuota:setCuota, setReceipt:setReceipt, setCardFlag:setCardFlag, setBank:setBank, delExpense:delExpense, saveEdit:saveEdit, saveNote:saveNote,
+      setCat:setCat, setCuota:setCuota, setReceipt:setReceipt, quitarRecibo:quitarRecibo, setCardFlag:setCardFlag, setBank:setBank, delExpense:delExpense, saveEdit:saveEdit, saveNote:saveNote,
       resolveDup:resolveDup, recognizeWithdrawal:recognizeWithdrawal, withdrawalStatus:withdrawalStatus,
       showToast:showToast, aiBusy:aiBusy, suggestAi:suggestAi, state:state
     }),
@@ -1088,7 +1118,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
    `l10n` (idioma|símbolo de moneda) es un prop a posta: catName/entOf/eur leen globales que memo
    no puede ver, así que sin él cambiar de idioma o de moneda dejaría las filas en el idioma viejo.
    `onOpen` tiene que ser ESTABLE (useCallback) o el memo no sirve de nada. */
-const MovRow=React.memo(function MovRow({e, ms, l, onOpen, bucket, dragging, dragOver, onDragStart, onDragMove, onDragEnd}){
+const MovRow=React.memo(function MovRow({e, ms, l, onOpen, bucket, recibo, dragging, dragOver, onDragStart, onDragMove, onDragEnd}){
   // `ms` y no un `Date`: ver el porqué donde se construyen los grupos. El objeto se crea aquí,
   // que es la única línea que lo necesita, y solo cuando la fila se pinta de verdad.
   // `bucket` (string) lo pasa el padre: si se pasara `state` entero, el memo no acertaría nunca.
@@ -1100,8 +1130,9 @@ const MovRow=React.memo(function MovRow({e, ms, l, onOpen, bucket, dragging, dra
   // Un ingreso NO va apagado: entra dinero, no es un gasto que se descarta. Solo se atenúan los
   // dos cajones que no mueven el presupuesto, y cada uno dice el suyo en vez de un «no afecta»
   // genérico que hacía que una inversión y un recibo de Sabadell parecieran lo mismo.
-  const skip=bucket==="neutra"||bucket==="otrobanco"||bucket==="posible"||bucket==="deuda";
-  const skipTxt=skip?t("g_skip_"+bucket):"";
+  const skip=bucket==="neutra"||bucket==="otrobanco"||bucket==="posible"||bucket==="deuda"||bucket==="recibo";
+  // El recibo dice CUÁL es, y si solo lo parece lo pregunta: «no cuenta» a secas haría dudar.
+  const skipTxt=!skip?"":(bucket==="recibo"?recibo:t("g_skip_"+bucket));
   return React.createElement("button",{type:"button","data-expense-id":e.id,"data-expense-day":String(e.date||"").slice(0,10),
       className:"v4-mov"+(skip?" v4-mov-skip":"")+(dragging?" dragging":"")+(dragOver?" drag-over":""),
       onClick:function(ev){ if(ev.target&&ev.target.closest&&ev.target.closest(".v4-mov-drag")) return; onOpen(e); },style:skip?{opacity:.72}:null},
@@ -1279,7 +1310,7 @@ function PeriodMoreSheet({open, onClose, preset, setPreset}){
 }
 
 /* Sheet detalle/edición de un movimiento. Layout alineado con Apuntar/Cartera (feedback 2026-07-17). */
-function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota, setReceipt, setCardFlag, setBank, delExpense, saveEdit, saveNote, resolveDup, showToast, aiBusy, suggestAi, state, recognizeWithdrawal, withdrawalStatus}){
+function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota, setReceipt, quitarRecibo, setCardFlag, setBank, delExpense, saveEdit, saveNote, resolveDup, showToast, aiBusy, suggestAi, state, recognizeWithdrawal, withdrawalStatus}){
   /* UNA SOLA CONDICIÓN para pintarse y para los candados. Iban por separado (`!!exp` en los hooks,
      `!exp || !editExp` para pintar) y en cuanto se separaban el sheet desaparecía dejando el
      `overflow:hidden` y el bloqueo de `touchmove` puestos sobre una pantalla vacía: nada respondía
@@ -1359,20 +1390,25 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
     React.createElement("div",{className:"row",style:{gap:8}},
       React.createElement("button",{type:"button",className:"btn btn-primary",style:{flex:1},onClick:function(){ resolveDup&&resolveDup(exp,true); onClose(true); }},t("g_dup_same")),
       React.createElement("button",{type:"button",className:"btn btn-ghost",style:{flex:1},onClick:function(){ resolveDup&&resolveDup(exp,false); onClose(true); }},t("g_dup_diff"))));
+  const reciboDe=cargoDeRecibo(exp,state), reciboMarca=reciboDe?reciboDe.name||t("bp_hist_recibo"):"";
+  // A la vista al abrir la ficha, sin desplegar nada: un parecido dudoso se corrige de un toque.
+  const reciboAviso=reciboDe&&React.createElement("div",{className:"hint","data-testid":"exp-recibo-marca",style:{margin:"0 0 12px",padding:"10px 12px",borderRadius:12,background:"var(--surface-2)"}},
+    React.createElement("div",{style:{marginBottom:8}},tf(cargoDeReciboFirme(exp,state)?"f_recibo_marca":"f_recibo_quiza",{name:reciboMarca})),
+    React.createElement("button",{type:"button",className:"v4-chip","data-testid":"exp-recibo-no",onClick:function(){ quitarRecibo(exp); }},t("f_recibo_no")));
   const afterMeta=React.createElement(React.Fragment,null,
     calOpen && React.createElement(McCal,{value:dateIso,onPick:function(iso){ setCalOpen(false); saveEdit(exp,{date:iso}); }}),
     bankOpen && !auto && bankOpts.length>0 && React.createElement("div",{className:"v4-chips wrap","data-testid":"exp-bank-list"},
       React.createElement("button",{type:"button",className:"v4-chip"+(!bk?" on":""),onClick:function(){ setBank(exp,null); setBankOpen(false); }},t("ap_bank_none")),
       bankOpts.map(function(b){ return React.createElement("button",{key:b,type:"button",className:"v4-chip"+(bk===b?" on":""),
         onClick:function(){ setBank(exp,b); setBankOpen(false); }},"🏦 "+entOf(b).label); })),
-    trace,duplicate,
+    trace,duplicate,reciboAviso,
     canRecognizeWithdrawal(exp) && React.createElement("div",{className:"hint","data-testid":"exp-withdrawal-info"},
       React.createElement("div",null,t("f_withdraw_fields")),
       exp.category!=="traspaso" && React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-withdrawal",
         disabled:!canRecognizeWithdrawal(exp,state)||withdrawalStatus && withdrawalStatus.id===exp.id && withdrawalStatus.status==="pending",
         onClick:function(){ recognizeWithdrawal(exp); }},t("f_withdraw_action")),
       exp.category==="traspaso" && React.createElement("div",{"data-testid":"exp-withdrawal-neutral"},t("f_withdraw_done")),
-      withdrawalReceiptLink(state,exp)&&React.createElement("div",{"data-testid":"exp-withdrawal-receipt-blocked"},t("f_withdraw_receipt_blocked")),
+      (withdrawalReceiptLink(state,exp)||reciboDe)&&React.createElement("div",{"data-testid":"exp-withdrawal-receipt-blocked"},t("f_withdraw_receipt_blocked")),
       withdrawalStatus && withdrawalStatus.id===exp.id && withdrawalStatus.status==="done" && withdrawalStatus.receiptUndone && React.createElement("div",{role:"status"},t("f_withdraw_receipt_undone")),
       React.createElement("div",null,t("f_withdraw_cash_limit")),
       withdrawalStatus && withdrawalStatus.id===exp.id && withdrawalStatus.status!=="done" && React.createElement("div",{role:"status"},
@@ -1385,17 +1421,28 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
     return fixedExpenseEligible(state,exp,f,receiptYear,receiptMonth,receiptToday)&&
       (!fixedPaymentState(state,f,receiptYear,receiptMonth,receiptToday).paid||(receiptLinked&&receiptLinked.id===f.id));
   });
+  // Los puntuales no se vinculan a mano; solo se ofrece el que se vetó para ESTE cargo, que es
+  // la única vuelta atrás de un «No es este recibo» sobre un puntual (cuarta revisión).
+  const receiptPuntuales=(state.oneoffs||[]).filter(function(o){
+    return o.id&&admiteMarcaDe(exp,o)&&reciboNoDe(state,o.id,reciboNoIdentidad(exp),exp.id).length>0;
+  });
   const adjustments=React.createElement("div",{className:"v4-ficha-adjust"},
-    !isIncome&&!exp.possibleDup&&!CAT_NEUTRAS[exp.category]&&(state.fixed||[]).length>0&&React.createElement(React.Fragment,null,
+    // Con marca de recibo la fila sale siempre: si no, «No es este recibo» quedaba inalcanzable
+    // cuando la marca venía de un puntual o la categoría era neutra.
+    !isIncome&&!exp.possibleDup&&(reciboDe||receiptPuntuales.length>0||(!CAT_NEUTRAS[exp.category]&&(state.fixed||[]).length>0))&&React.createElement(React.Fragment,null,
       React.createElement("button",{type:"button",className:"v4-ficha-adjust-row","data-testid":"exp-receipt",onClick:function(){ setAdjustOpen(adjustOpen==="receipt"?null:"receipt"); }},
-        React.createElement("span",null,t("f_receipt_row")),React.createElement("span",{className:"value"},receiptLinked?receiptLinked.name:t("f_no")),React.createElement("span",{className:"chev"},"›")),
+        React.createElement("span",null,t("f_receipt_row")),React.createElement("span",{className:"value","data-testid":"exp-receipt-value"},receiptLinked?receiptLinked.name:(reciboMarca||t("f_no"))),React.createElement("span",{className:"chev"},"›")),
       adjustOpen==="receipt"&&React.createElement("div",{className:"v4-ficha-adjust-open","data-testid":"exp-receipt-options"},
         React.createElement("div",{className:"hint"},t("f_receipt_hint")),
         React.createElement("div",{className:"v4-chips wrap"},
-          receiptLinked&&React.createElement("button",{type:"button",className:"v4-chip","data-testid":"exp-receipt-unlink",onClick:function(){ setReceipt(exp,null); }},t("f_receipt_unlink")),
-          !receiptLinked&&receiptOptions.map(function(f){ return React.createElement("button",{key:f.id,type:"button",className:"v4-chip","data-testid":"exp-receipt-"+f.id,
-            onClick:function(){ setReceipt(exp,f.id); }},f.name+" · "+eur(occAmountIn(f,receiptMonth))); })),
-        !receiptLinked&&!receiptOptions.length&&React.createElement("div",{className:"hint"},t("f_receipt_none")))),
+          // Un cargo marcado ya es de un recibo aunque no tenga vínculo a mano: primero se deshace
+          // (es lo que pide el aviso de la retirada), y solo entonces se ofrece confirmar otro.
+          (receiptLinked||reciboDe)&&React.createElement("button",{type:"button",className:"v4-chip","data-testid":"exp-receipt-unlink",onClick:function(){ setReceipt(exp,null); }},t("f_receipt_unlink")),
+          !receiptLinked&&!reciboDe&&receiptOptions.map(function(f){ return React.createElement("button",{key:f.id,type:"button",className:"v4-chip","data-testid":"exp-receipt-"+f.id,
+            onClick:function(){ setReceipt(exp,f.id); }},f.name+" · "+eur(occAmountIn(f,receiptMonth))); }),
+          !receiptLinked&&!reciboDe&&receiptPuntuales.map(function(o){ return React.createElement("button",{key:o.id,type:"button",className:"v4-chip","data-testid":"exp-receipt-"+o.id,
+            onClick:function(){ setReceipt(exp,o.id); }},o.name+" · "+eur(o.amount)); })),
+        !receiptLinked&&!reciboDe&&!receiptOptions.length&&!receiptPuntuales.length&&React.createElement("div",{className:"hint"},t("f_receipt_none")))),
     React.createElement("button",{type:"button",className:"v4-ficha-adjust-row",onClick:function(){ setAdjustOpen(adjustOpen==="note"?null:"note"); }},
       React.createElement("span",null,t("f_note_row")),React.createElement("span",{className:"value"},editExp.note||t("f_note_none")),React.createElement("span",{className:"chev"},"›")),
     adjustOpen==="note" && React.createElement("div",{className:"v4-ficha-adjust-open"},

@@ -55,7 +55,7 @@ export const CORE = [
 export const E2E_MAP = [
   { file: "src/modules/11-app-main.js", specs: ["e2e/widget-banco.spec.mjs"] },
   {file:"src/modules/16-help-assistant.js",specs:["e2e/help-assistant.spec.mjs","e2e/help-preguntar-borde.spec.mjs"]},
-  { file: "src/modules/03-tab-dash.js", specs: ["e2e/dashboard-memo-profile.spec.mjs", "e2e/help-assistant.spec.mjs",
+  { file: "src/modules/03-tab-dash.js", specs: ["e2e/inicio-v42.spec.mjs", "e2e/inicio-v42-rendimiento.spec.mjs", "e2e/inicio-grafica-feedback.spec.mjs", "e2e/dashboard-memo-profile.spec.mjs", "e2e/help-assistant.spec.mjs",
     "e2e/listas-render.spec.mjs",
     "e2e/plan-cuota-contabilizada.spec.mjs",
 
@@ -63,6 +63,7 @@ export const E2E_MAP = [
     "e2e/metas-alta-regla.spec.mjs",
     "e2e/metas-mensual.spec.mjs",
     "e2e/inicio-cargos.spec.mjs",
+    "e2e/recibo-cargo-en-gastos.spec.mjs",
     "e2e/pulido-vacios.spec.mjs","e2e/inicio-grafica-significado.spec.mjs","e2e/indicador-arco.spec.mjs", "e2e/smoke.spec.mjs", "e2e/informe-mes.spec.mjs",
     "e2e/ultima-cuota-descartar.spec.mjs", "e2e/inicio-offline.spec.mjs", "e2e/presupuesto-fluido.spec.mjs", "e2e/inicio-mes-natural.spec.mjs"] },
   { file: "src/modules/04-tab-gastos.js", specs: [
@@ -71,12 +72,15 @@ export const E2E_MAP = [
     "e2e/metas-mensual.spec.mjs",
     "e2e/inicio-cargos.spec.mjs",
     "e2e/retirada-bancaria.spec.mjs",
+    "e2e/recibo-cargo-en-gastos.spec.mjs",
     "e2e/gastos-cajones.spec.mjs", "e2e/gastos-concepto.spec.mjs", "e2e/apuntar-sheet.spec.mjs",
     "e2e/categoria-elegida.spec.mjs",
     "e2e/gastos-diario-filtro.spec.mjs", "e2e/gastos-cabecera-bancos.spec.mjs", "e2e/gastos-orden.spec.mjs",
     "e2e/gastos-categorias-presupuesto.spec.mjs", "e2e/gastos-periodo-categorias.spec.mjs", "e2e/gastos-suelta-filas.spec.mjs",
     "e2e/gastos-deudas.spec.mjs", "e2e/cartera-ficha-cuenta.spec.mjs", "e2e/presupuesto-fluido.spec.mjs",
     "e2e/gastos-ayuda-ciclo.spec.mjs", "e2e/gastos-mes-madrid.spec.mjs",
+    // Apuntes iguales de TR por el cableado real: filas en Gastos, «Es el mismo» desde la ficha.
+    "e2e/tr-iguales-ordinal.spec.mjs",
   ] },
   { file: "src/modules/05-dialogs-inv.js", specs: [
     "e2e/help-assistant.spec.mjs",
@@ -92,6 +96,7 @@ export const E2E_MAP = [
     "e2e/metas-alta-regla.spec.mjs",
     "e2e/metas-mensual.spec.mjs",
     "e2e/nomina-anticipada.spec.mjs",
+    "e2e/recibo-cargo-en-gastos.spec.mjs",
     "e2e/help-assistant.spec.mjs",
     "e2e/hist-pagos-mensuales.spec.mjs", "e2e/bancos-historico-filtro.spec.mjs",
     "e2e/bancos-quitar-pending.spec.mjs", "e2e/gastos-deudas.spec.mjs",
@@ -129,8 +134,11 @@ export const E2E_MAP = [
     "e2e/presupuesto-bancos.spec.mjs", "e2e/quitar-banco.spec.mjs",
     "e2e/bancos-quitar-pending.spec.mjs", "e2e/bancos-hueco-sync.spec.mjs",
     "e2e/hist-pagos-mensuales.spec.mjs",
+    "e2e/recibo-cargo-en-gastos.spec.mjs",
     "e2e/bancos-historico-filtro.spec.mjs",
     "e2e/hist-visor.spec.mjs", "e2e/plan-gestionar.spec.mjs",
+    // El histórico da por apuntado lo contestado «es el mismo» (lápida o vínculo).
+    "e2e/tr-iguales-ordinal.spec.mjs",
   ] },
   { file: "src/modules/12-boot.js", specs: ["e2e/splash.spec.mjs", "e2e/smoke.spec.mjs", "e2e/csp.spec.mjs"] },
   { file: "src/modules/13-hogar.js", specs: ["e2e/cartera-orden-hogar.spec.mjs"] },
@@ -144,6 +152,8 @@ export const E2E_MAP = [
     "e2e/cartera-inversiones.spec.mjs", "e2e/cartera-orden-hogar.spec.mjs",
     "e2e/efectivo-apuntar.spec.mjs", "e2e/cartera-ficha-cuenta.spec.mjs", "e2e/plan-gestionar.spec.mjs",
     "e2e/plan-cover.spec.mjs", "e2e/perfil-filas-vacias.spec.mjs",
+    // Bajar despacio desde el tope de Plan: el contenido no salta por delante del dedo (13/10).
+    "e2e/plan-scroll-lento.spec.mjs",
   ] },
   { file: "src/modules/15-import-hoja.js", specs: ["e2e/import-hoja.spec.mjs", "e2e/import-docx-pdf.spec.mjs"] },
 ];
@@ -207,7 +217,7 @@ const STEPS_SUPABASE = [
   "prod117-edge-compat",
   "help-assistant", "guard-privacy", "edge-sintaxis", "presupuesto-servidor", "cuotas-deudas", "widget-coherente", "widget-arbitraje", "widget-offline", "widget-unknown-loss", "widget-unknown-journal", "widget-notificacion-render", "widget-inicio-paridad", "widget-puente-ciclo",
   "month-window", "wallet-notis", "ingest-classify", "ingest-identity", "ingest-handler", "divisa-original", "presupuesto-rendimiento",
-  "grants-migraciones", "entrada-edge", "bank-sync-paging", "bank-sync-progreso", "tr-open-banking",
+  "grants-migraciones", "entrada-edge", "bank-sync-paging", "bank-sync-progreso", "bank-sync-acuse", "bank-reconnect", "tr-open-banking",
   "categorize-limitador", "categorize-handler",
 ];
 

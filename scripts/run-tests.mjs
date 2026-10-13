@@ -108,6 +108,8 @@ const steps = [
   ["ob-ingresos", ["node", "tests/ob-ingresos.test.mjs"]],
   ["bank-sync-paging", ["node", "tests/bank-sync-paging.test.mjs"]],
   ["bank-sync-progreso", ["node", "tests/bank-sync-progreso.test.mjs"]],
+  ["bank-sync-acuse", ["node", "tests/bank-sync-acuse.test.mjs"]],
+  ["bank-reconnect", ["node", "tests/bank-reconnect.test.mjs"]],
   ["ob-hueco-sync", ["node", "tests/ob-hueco-sync.test.mjs"]],
   ["ob-hueco-recuperado", ["node", "tests/ob-hueco-recuperado.test.mjs"]],
   ["reserva-dinero", ["node", "tests/reserva-dinero.test.mjs"]],
@@ -115,6 +117,7 @@ const steps = [
   ["persist-commit", ["node", "tests/persist-commit.test.mjs"]],
   ["month-budget-stats", ["node", "tests/month-budget-stats.test.mjs"]],
   ["dash-metricas", ["node", "tests/dash-metricas.test.mjs"]],
+  ["inicio-v42", ["node", "tests/inicio-v42.test.mjs"]],
   ["informe-mes", ["node", "tests/informe-mes.test.mjs"]],
   ["presupuesto-categoria", ["node", "tests/presupuesto-categoria.test.mjs"]],
   ["month-window", ["node", "tests/month-window.test.mjs"]],
@@ -149,6 +152,8 @@ const steps = [
   ["plan-charges", ["node", "tests/plan-charges.test.mjs"]],
   ["fixed-day-reconcile", ["node", "tests/fixed-day-reconcile.test.mjs"]],
   ["fixed-payment-state", ["node", "tests/fixed-payment-state.test.mjs"]],
+  ["recibo-domiciliado-sin-acreditar", ["node", "tests/recibo-domiciliado-sin-acreditar.test.mjs"]],
+  ["recibo-invariante", ["node", "tests/recibo-invariante.test.mjs"]],
   ["hist-pagos-mensuales", ["node", "tests/hist-pagos-mensuales.test.mjs"]],
   ["revo-metales-coste", ["node", "tests/revo-metales-coste.test.mjs"]],
   ["parsers-revolut", ["node", "tests/parsers/revolut.test.mjs"]],
@@ -182,6 +187,7 @@ const steps = [
   ["efectivo-cierre", ["node", "tests/efectivo-cierre.test.mjs"]],
   ["atm-dual", ["node", "tests/atm-dual.test.mjs"]],
   ["tr-open-banking", ["node", "tests/tr-open-banking.test.mjs"]],
+  ["ob-iguales-ordinal", ["node", "tests/ob-iguales-ordinal.test.mjs"]],
   ["huella-bundle", ["node", "tests/huella-bundle.test.mjs"]],
   ["expense-note", ["node", "tests/expense-note.test.mjs"]],
   ["expense-id-cloud", ["node", "tests/expense-id-cloud.test.mjs"]],
@@ -299,7 +305,7 @@ if (!failed && plan.playwright !== false && plan.e2e !== "none") {
   // Las mediciones con CPU frenada competían con otros tres navegadores: scroll→swipe
   // daba 108/109 ms en dos completas y pasaba aislado (15/9). Medir después conserva
   // el umbral real; los funcionales siguen en paralelo y ningún caso del plan se pierde.
-  const isPerf = p => p.replaceAll("\\", "/").endsWith("/dashboard-memo-profile.spec.mjs") || /(?:^|\/)rendimiento(?:-(?:tabs|sostenido))?\.spec\.mjs$/.test(p.replaceAll("\\", "/"));
+  const isPerf = p => p.replaceAll("\\", "/").endsWith("/dashboard-memo-profile.spec.mjs") || p.replaceAll("\\", "/").endsWith("/inicio-v42-rendimiento.spec.mjs") || /(?:^|\/)rendimiento(?:-(?:tabs|sostenido))?\.spec\.mjs$/.test(p.replaceAll("\\", "/"));
   const groups = [["playwright-e2e", specs.filter(p => !isPerf(p)), []],
     ["playwright-perf", specs.filter(isPerf), ["--workers=1"]]];
   const reports = [];

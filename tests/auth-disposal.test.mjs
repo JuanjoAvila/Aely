@@ -4,6 +4,7 @@ import {createHash} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
 import {authFragments,authWorld} from './helpers/auth-disposal-fixture.mjs';
 import {betaRevision} from '../scripts/beta-revisions.mjs';
+import {scopeText} from '../scripts/beta-source-code.mjs';
 const read=f=>fs.readFileSync(new URL('../'+f,import.meta.url),'utf8').replace(/\r\n/g,'\n');
 // El contrato histórico106 no puede exigir que su nota y todos los lectores sigan siendo los últimos.
 const historyCache=new Map(),history106=f=>{if(!historyCache.has(f))historyCache.set(f,execFileSync('git',['show','8dcc5ed39b6e212ba1e34a90b550685794ce0bd5:'+f],{encoding:'utf8',maxBuffer:8e6}));return historyCache.get(f);};
@@ -62,8 +63,15 @@ for(const [key,scope]of Object.entries(oldReg)){
  assert.deepEqual(historicalReg[key],scope,key+': alcance y auditoría históricos intactos');
  assert.deepEqual(betaRevision(key,history106,undefined,scope),betaRevision(key,old,undefined,scope),key);
 }
-assert.deepEqual(currentReg[id],historicalReg[id],'el alcance auth actual conserva el contrato106');
-assert.deepEqual(betaRevision(id,read),betaRevision(id,history106),'la identidad auth actual conserva el contrato106');
+assert.deepEqual(currentReg[id],{...historicalReg[id],web:historicalReg[id].web.concat({file:'src/modules/00-core.js',function:'mergeAccountBalanceHistory'})},'contrato106 completo más la dependencia nueva del escritor de historial');
+// Partir el historial cambia los lectores/escritores compartidos, aunque no cambie auth.
+// No se hereda el OK106: se acredita por separado el contrato auth y el cambio de identidad.
+assert.deepEqual(parts,authFragments(history106('src/modules/00-core.js'),history106('src/modules/11-app-main.js')));
+const storage=['mcLoadRaw','mcSaveRaw','mcResetSandbox'],file='src/modules/00-core.js';
+let previousStorage=core;
+for(const name of storage)previousStorage=previousStorage.replace(scopeText({file,function:name},read),scopeText({file,function:name},history106));
+assert.deepEqual(betaRevision(id,f=>f===file?previousStorage:read(f),undefined,historicalReg[id]),betaRevision(id,history106,undefined,historicalReg[id]),'sólo la persistencia cambia la identidad auth; resto del contrato106 intacto');
+assert.notEqual(betaRevision(id,read).codigo,betaRevision(id,history106,undefined,historicalReg[id]).codigo,'persistencia y su unión nueva exigen revisión, nunca aprobación106');
 console.log('✓ auth disposal: remount, callbacks/promesas/timer/idle tardíos, controles activos, rojo anterior; '+Object.keys(oldReg).length+' revisiones anteriores intactas');
 
 const memoReg=currentReg['inc-0810-dashboard-recents-memo'];for(const key of ['historial','auditoria','codigosCompatibles','compatibilidadGit'])assert.equal(memoReg[key],undefined,'memo nueva sin heredar '+key);
@@ -90,7 +98,7 @@ for(const [key,scope]of Object.entries(oldReg)){
  assert.deepEqual(currentReg[key],expected,key+': alcance histórico conservado salvo cierres Madrid99/108/110 explícitos');
 }
 const approved=f=>execFileSync('git',['show','8dcc5ed39b6e212ba1e34a90b550685794ce0bd5:'+f],{encoding:'utf8',maxBuffer:8e6});
-assert.deepEqual(betaRevision('inc-0710-auth-disposal',mainRead),betaRevision('inc-0710-auth-disposal',approved),'identidad auth exacta aprobada en106');
+assert.deepEqual(betaRevision('inc-0710-auth-disposal',mainRead,undefined,reg['inc-0710-auth-disposal']),betaRevision('inc-0710-auth-disposal',approved,undefined,JSON.parse(approved('scripts/beta-sources.json'))['inc-0710-auth-disposal']),'identidad auth exacta aprobada en106');
 console.log('✓ auth disposal: remount, callbacks/promesas/timer/idle tardíos, controles activos, rojo anterior; '+Object.keys(oldReg).length+' descriptores históricos conservados salvo cierres Madrid99/108/110 explícitos');
 
 const memoReg=currentReg['inc-0810-dashboard-recents-memo'];for(const key of ['historial','auditoria','codigosCompatibles','compatibilidadGit'])assert.equal(memoReg[key],undefined,'memo nueva sin heredar '+key);
@@ -98,4 +106,4 @@ const memoNote=JSON.parse(execFileSync('git',['show','8dcc5ed39b6e212ba1e34a90b5
 for(const key of ['codigoDesde','revisionesDesde','codigosCompatibles','compatibilidadGit','verdict'])assert.equal(memoNote[key],undefined,'memo nueva sin heredar '+key);
 
 }
-assert.equal(createHash('sha256').update(JSON.stringify(JSON.parse(read('scripts/beta-sources.json')))).digest('hex'),'5b70b7fad46990744b5f01ef21fb0e399709dab4d6c905fefa292fad5e818191','registro117 aprobado íntegro en la reconciliación');
+assert.equal(createHash('sha256').update(JSON.stringify(JSON.parse(read('scripts/beta-sources.json')))).digest('hex'),'33c6ade5a3dcca0d1a6fc9948933a4514683b5b3cd562aa2a028cc7f22e98d46','registro126 íntegro: el de la integración125 (6342459b) más el descriptor nuevo inicio-tarjeta-ciclo-limpia al final (la tarjeta del mes de Inicio, su CSS, sus cuatro cálculos y lo que estos leen: eur0, eur, madridYmdParts, DISP, NF0, NF y _mcMadridYmdFmt), solo web, sin crecer ningún otro; Catálogo126 de beta-sources lo fija unidad a unidad');

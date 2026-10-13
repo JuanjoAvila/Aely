@@ -477,8 +477,7 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks,
       // `categoryOfNewMerchant` y no `autoCategory`: el cajero solo se detecta en ALTAS
       // NUEVAS, nunca desde la migracion que recategoriza el historico (tanda 6).
       const cat=(c&&c.category)||categoryOfNewMerchant(x.merchant||"");
-      const e={ id:mcExpenseId(), date:x.stamp||histDate(x.date), merchant:x.merchant, amount:Math.abs(x.amount), category:cat, source:"ob-hist", ent:x.ent, importBatchId:batchId };
-      if(x.id) e.extId=x.id;
+      const e=histFilaGasto(x, c, cat, batchId);
       histKeepAmbiguity(e,c);
       const nt=cleanNote(x.note, e.merchant); if(nt) e.note=nt;
       expAdds.push(e);
@@ -499,6 +498,9 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks,
           if(fixAdds.length) next.fixed=(s.fixed||[]).concat(fixAdds);
           if(keepLocal.length){
             next.lastHistImport={ batchId:batchId, localIds:keepLocal.map(function(e){ return e.id; }), cloudIds:offline?[]:ack.cloudIds, at:Date.now() };
+            // Los «puede que ya lo tengas» reclaman su aviso igual que el sync diario (12/10/2026).
+            const vinculos=gemelosDeImportacion(keepLocal, s.expenses);
+            if(vinculos.length) next.gemelos=pushGemelos(s.gemelos, vinculos);
           }
           return next;
         });
@@ -593,9 +595,10 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks,
   };
   const dupHint=function(c){
     if(c&&c.status==="maybe") return "🗐 "+t("bp_hist_dupmaybe");
+    if(c&&c.reciboId) return "🧾 "+tf(c.firme?"bp_hist_esrecibo":"bp_hist_quizarecibo",{name:(c.match&&c.match.name)||t("bp_hist_recibo")});
     if(!c||c.status!=="dup") return null;
-    if(c.reason==="modeled") return "🗐 "+t("bp_hist_dupmodel");
-    return "🗐 "+t("bp_hist_dupexist");
+    // Recibo sin id al que enlazar la fila: no es que ya esté apuntado, es que ya cuenta en el Plan.
+    return "🗐 "+t(c.reason==="modeled"?"bp_hist_dup":"bp_hist_dupexist");
   };
   return React.createElement("div",{style:wrap,className:"hist-import"}, React.createElement("div",{style:inner},
     React.createElement("button",{style:back,onClick:onClose}, "‹ "+t("bp_close")),
@@ -678,7 +681,8 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks,
             ),
             on && React.createElement("div",{style:{display:"flex",gap:6,marginTop:8,flexWrap:"wrap",paddingLeft:31}},
               !isIn && destChip(i,"gasto",t("bp_hist_as_gasto")),
-              !isIn && destChip(i,"recibo",t("bp_hist_as_recibo"),t("bp_hist_confirm_fijos_sub")),
+              // Ya es un recibo del Plan: ofrecer «Recibo» crearía otro igual que restaría cada mes.
+              !isIn && !(c&&c.reciboId) && destChip(i,"recibo",t("bp_hist_as_recibo"),t("bp_hist_confirm_fijos_sub")),
               destChip(i,"ingreso",t("bp_hist_as_ingreso"))
             )
           );
@@ -847,6 +851,7 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onL
       setBusy(name);
       cloud.bankDisconnect(name).then(function(){
         setConfirming("");
+        obAckDrop(name);
         // Si el banco tenía una cuenta con rol en Cartera, se le dice qué pasa con ella: SALE de
         // Cartera, y sus movimientos se quedan enteros en Gastos (ver el `set` de abajo).
         const teniaCuenta=!!(state.accounts||[]).find(function(a){ return a && a.ent===ent && a.bankIban; });

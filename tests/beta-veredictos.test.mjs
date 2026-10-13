@@ -110,6 +110,8 @@ const soloWebIds=["inc-2809-02-ayuda-ciclo"];
 const readSource=f => fs.readFileSync(new URL("../"+f,import.meta.url),"utf8");
 // Cerrar una entrega no debe borrar la regresión de su identidad y sus rechazos históricos.
 const historicalNotes=JSON.parse(execFileSync("git",["show","4403b252933410741a877eea59b85d812b2fe543:src/data/release-notes.json"],{encoding:"utf8",maxBuffer:5e6}));
+const baselineCache=new Map(),baselineSource=f=>{if(!baselineCache.has(f))baselineCache.set(f,execFileSync("git",["show","684a839d286f68d66c8855cf6e1a626b7220fd64:"+f],{encoding:"utf8",maxBuffer:10e6}));return baselineCache.get(f);};
+const baselineScopes=JSON.parse(baselineSource("scripts/beta-sources.json"));
 const registered=JSON.parse(readSource("scripts/beta-sources.json"));
 const approvedIds=["fin05-widget-reentrada", "fin05-pago-cerrada", "tr-descripcion-clasificacion", "widget-banco", "widget-app-cerrada", "inc-2709-01-arranque-red", "inc-2809-02-ayuda-ciclo"];
 
@@ -202,7 +204,8 @@ t("CLI real: revocación remota, rechazo histórico exacto y entrega desconocida
   assert.equal(actual.estado,'sin probar');
   assert.equal(actual.rechazoAnterior.tanda,'4.26.71/inc-3009-01-cargos');
   assert.equal(actual.entregaPendiente,true);
-  assert.deepEqual(data.tandas.filter(x=>x.estado==="approved").map(x=>x.corto),["inc-2709-01-arranque-red"],"solo la revisión que sigue idéntica conserva el OK; la otra cambió con el guardado de la 4.26.94");
+  assert.deepEqual(data.tandas.filter(x=>x.estado==="approved").map(x=>x.corto),[],"la partición cambia también el lector de Arranque: ningún OK antiguo acredita la revisión actual");
+  assert.equal(data.tandas.find(x=>x.corto==="inc-2709-01-arranque-red").estado,"sin probar","Arranque conserva el historial pero exige revisión de la persistencia nueva");
   for(const id of soloWebIds) assert.equal(data.tandas.find(x=>x.corto===id).estado,"sin probar",id+" pide veredicto nuevo");
 });
 
@@ -322,7 +325,7 @@ t("★ el veredicto no saca nada del panel: aprobar no es publicar", () => {
   assert.deepEqual(ids(pack).sort(), ["9.9.3/nativa", "9.9.3/web-vieja", "9.9.4/web-nueva"]);
 });
 
-t("★ la fuente idéntica conserva OK; cinco cambios web/nativos y uno solo web conservan historia sin aprobar la revisión nueva", () => conNotas(betaNotes(historicalNotes), () => {
+t("★ la fuente idéntica conserva OK; cinco cambios web/nativos y uno solo web conservan historia sin aprobar la revisión nueva", () => conNotas(betaNotes(historicalNotes,baselineSource,baselineScopes), () => {
   const pack=cli.betaChecklist("4.26.75.1","4.26.67",48);
   for(const id of approvedIds) {
     const g=pack.tandas.find(x=>String(x.id).split("/").pop()===id);
@@ -331,11 +334,11 @@ t("★ la fuente idéntica conserva OK; cinco cambios web/nativos y uno solo web
     const part=cli.betaVerdictFor(g,[{tanda:g.historial[0],verdict:"approved"}]);
     if(changedIds.includes(id)) {
       assert.equal(part,null,id+" no reutiliza la aprobación anterior");
-      // tr-descripcion-clasificacion declara como edge el fichero entero de bank-sync.
-      // El progreso del hueco (ventana primero, tramo antiguo con cursor) vive ahí: el
-      // origen edge es el cambio, no una huella web de otra tanda.
-      const edgeChanged=["fin05-pago-cerrada","widget-app-cerrada","tr-descripcion-clasificacion"].includes(id);
-      assert.deepEqual(Array.from(g.cambio),edgeChanged?["web","native","edge"]:["web","native"]);
+      // El fixture está fijado en684, antes del progreso de bank-sync de116. Mezclar
+      // aquella fuente con su cambio posterior inventaba un Edge cambiado en el histórico.
+      // La fuente viva y el mutante del avance se contrastan por separado debajo.
+      const edgeChanged=["fin05-pago-cerrada","widget-app-cerrada"].includes(id);
+      assert.deepEqual(Array.from(g.cambio),edgeChanged?["web","native","edge"]:["web","native"],id+": superficies de la fuente histórica684");
       assert.equal(g.desde.length,0);
       assert.notEqual(g.codigo,structuredClone(historicalNotes).flatMap(n=>n.tandas||[]).find(x=>x.id===id&&x.codigoDesde).codigoDesde);
       assert.notEqual(g.native,registered[id].auditoria.revisiones.native);
@@ -365,8 +368,29 @@ t("★ la fuente idéntica conserva OK; cinco cambios web/nativos y uno solo web
   }
 }));
 
+t("la clasificación bancaria conserva su Edge histórico y exige revisión al cambiar la fuente viva",()=>{
+  const id="tr-descripcion-clasificacion",notes=betaNotes(historicalNotes,baselineSource,baselineScopes);
+  const group=list=>cli.betaTandas({tandas:list.flatMap(n=>n.tandas||[]).filter(g=>g.id===id)})[0];
+  const old=group(notes),now=group(betaNotes(historicalNotes,readSource));
+  assert.deepEqual(Array.from(old.cambio),["web","native"],"684 no llevaba el avance bancario posterior");
+  assert.equal(old.edge,registered[id].auditoria.revisiones.edge,"el Edge de aquella fuente sigue auditado");
+  assert.notEqual(now.edge,old.edge,"el fichero vivo de bank-sync sí cambió después");
+  assert.deepEqual(Array.from(now.cambio),["web","native","edge"],"la fuente viva declara todas las superficies que cambian");
+  assert.equal(cli.betaVerdictFor(now,[{tanda:now.historial[0],verdict:"approved"}]),null,"el histórico no aprueba el avance nuevo");
+  const file="supabase/functions/bank-sync/index.ts";
+  const changed=f=>baselineSource(f)+(f===file?"\n// mutante: cambia el Edge histórico declarado":"");
+  const mutant=group(betaNotes(historicalNotes,changed,baselineScopes));
+  assert.notEqual(mutant.edge,old.edge,"el mutante toca la dependencia Edge real");
+  assert.throws(()=>assert.deepEqual(Array.from(mutant.cambio),["web","native"]),"declarar Edge cambiado como intacto debe fallar");
+  assert.deepEqual(Array.from(mutant.cambio),["web","native","edge"],"no se debilita la guarda Edge del histórico");
+});
+
 t("★ cada alias `desde` del repo lleva la huella del contenido y apunta a la MISMA tanda", () => {
-  const notas = betaNotes(JSON.parse(fs.readFileSync(new URL("../src/data/release-notes.json", import.meta.url), "utf8")));
+  // Los alias describen la fuente acreditada anterior, no una persistencia posterior.
+  // El control actual de abajo exige que un cambio de código invalide su aprobación.
+  const raw=JSON.parse(fs.readFileSync(new URL("../src/data/release-notes.json", import.meta.url), "utf8"));
+  // Una tanda nueva sin alias no pertenece a esta comparación histórica.
+  const notas = betaNotes(raw.map(n=>({...n,tandas:(n.tandas||[]).filter(g=>g.desde)})),baselineSource,baselineScopes);
   for (const nota of notas) for (const g of nota.tandas || []) {
     if (!g.desde) continue;
     const calc = cli.betaHuella(g.id, cli.rnT(g.t,"es"), cli.rnItems(g,"es"), g.rev);
@@ -374,6 +398,8 @@ t("★ cada alias `desde` del repo lleva la huella del contenido y apunta a la M
     assert.equal(g.codigoDesde, g.codigo, `${nota.v}/${g.id}: el código cambió; retira el alias y exige veredicto nuevo`);
     assert.match(registered[g.id].auditoria.sha,/^[0-9a-f]{40}$/);
     for (const a of g.desde) assert.match(a, new RegExp("^\\d+\\.\\d+\\.\\d+/" + g.id + "$"), `${nota.v}/${g.id}: alias ajeno ${a}`);
+    const current=cli.betaTandas({tandas:[betaNotes([{v:nota.v,tandas:[raw.find(n=>n.v===nota.v).tandas.find(x=>x.id===g.id)]}])[0].tandas[0]]})[0];
+    if(current.codigo!==g.codigo)for(const alias of g.desde)assert.equal(cli.betaVerdictFor(current,[{tanda:alias,verdict:"approved"}]),null,"el alias histórico no aprueba la persistencia nueva");
   }
 });
 

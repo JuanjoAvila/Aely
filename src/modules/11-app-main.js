@@ -172,8 +172,9 @@ function App(){
      Mapa: Gastos/Cartera = ola arriba y abajo (pan-y siempre). Resumen = ola solo abajo
      (arriba = perfil → `.mc-touch-own`). Plan = pan-y SIEMPRE en reposo: si lo poníamos en
      `mc-touch-own` al estar arriba, `touch-action:none` bloqueaba TAMBIÉN bajar a ver el
-     contenido (feedback 5/8: «me has bloqueado incluso que pueda bajar»). El gesto de segmento
-     pone/quita `mc-touch-own` solo DURANTE el tirón hacia abajo (14-v4-screens.js). */
+     contenido (feedback 5/8: «me has bloqueado incluso que pueda bajar»). Plan no pone esa
+     clase nunca: ponerla dentro del touchstart no gobierna el gesto en curso (medido
+     2026-10-13), el segmento se reclama con preventDefault (14-v4-screens.js). */
   const syncPageTouchAction=function(pageEl, pageIdx){
     if(!pageEl||!pageEl.classList) return;
     const id=tabIds[pageIdx];
@@ -489,7 +490,10 @@ function App(){
       // Esto garantiza que la tabla sea la fuente de verdad COMPLETA antes de dejar de duplicar
       // los gastos en app_state (ver slimForCloud). Upsert idempotente (ignoreDuplicates).
       const tableKeys={}; incoming.forEach(function(e){ tableKeys[keyOfExpense(e)]=1; });
-      (stateRef.current.expenses||[]).forEach(function(e){ if(e.amount!==0 && !tableKeys[keyOfExpense(e)]) subirGasto(e, "backfill"); });
+      // Una fila local con lápida nunca vuelve en `incoming` (se filtra arriba), así que sin esta
+      // comprobación se resubía en CADA pull como «huérfana» (revisión 12/10/2026): él ya dijo que
+      // ese apunte no cuenta, y la tabla no tiene que volver a verlo.
+      (stateRef.current.expenses||[]).forEach(function(e){ if(e.amount!==0 && !tableKeys[keyOfExpense(e)] && !expenseIsTombstoned(e, delSet)) subirGasto(e, "backfill"); });
       /* AQUÍ NO VA UN REPASO QUE RE-MARQUE LOS POSIBLES REPETIDOS VIEJOS (B09-D, 2026-09-08).
          Lo escribí y lo retiré: `addExpense` va con ignoreDuplicates y nunca cambia el `source` de
          una fila ya presente, así que los pendientes anteriores a esta versión siguen contando en
@@ -514,6 +518,9 @@ function App(){
         const kept=keepCategoryChoices(prev.expenses, incoming, readStartedAt);
         const merged=mergeExpensesFromCloud(kept.prev, kept.incoming, readStartedAt);
         const next=merged.list;
+        // El aviso ganó a un cargo de recibo: su fila del banco deja de llevar la marca en la nube,
+        // o el servidor contaría una u otra según el orden en que las lea.
+        if(merged.sinMarca.length) setTimeout(function(){ merged.sinMarca.forEach(function(e){ cloud.setExpenseRecibo(e).catch(function(){}); }); },0);
         const igual=!merged.changed && next.length===(prev.expenses||[]).length
           && next.every(function(e,i){ return e===(prev.expenses||[])[i]; });
         // Call site 3/3 de fixMovInvasion (tras pull expenses). Contención 4.18.6: sin bloque (b).
@@ -565,14 +572,32 @@ function App(){
         // EXCEPCIÓN CLAVE (fresh login): al INICIAR SESIÓN (móvil nuevo / reinstalado) la nube es la
         // verdad SIEMPRE. Sin esto, una cartera vacía recién creada podía "ganar" y machacar la nube.
         set(function(prev){
+          // Cerrar sesión mientras llega el pull no autoriza aplicar una cartera vieja
+          // ni sustituir los 400 cierres locales por la ventana corta de nube.
+          if(!sessionRef.current||!sessionRef.current.user||sessionRef.current.user.id!==u)return prev;
           const merged=mergeExpenses(prev.expenses, cloudState.expenses||[]);
           const localNewer=!freshLogin && (prev._savedAt||0) > (cloudState._savedAt||0);
           const baseObj = localNewer ? Object.assign({},prev,{expenses:merged.list})
                                      : Object.assign({},prev,cloudState,{expenses:merged.list});
+          // Los vínculos aviso↔apunte se UNEN gane quien gane (12/10/2026): un vínculo es un hecho
+          // que vio un móvil y el otro no puede desmentir por no tenerlo. Ver `fusionarGemelos`.
+          const gem=fusionarGemelos(prev.gemelos, cloudState.gemelos);
+          if(gem!==baseObj.gemelos) baseObj.gemelos=gem;
+          // La nube lleva una ventana corta: un cliente antiguo no debe borrar los cierres
+          // locales. El marcador sólo delimita este historial, nunca concede una sesión.
+          if(sessionRef.current&&sessionRef.current.user&&sessionRef.current.user.id===u){
+            const sameOwner=!(opts&&opts.dropTx)&&(!freshLogin||prev._historyOwner===u)&&(!prev._historyOwner||prev._historyOwner===u);
+            baseObj.accountBalanceHistory=sameOwner?mergeAccountBalanceHistory(prev.accountBalanceHistory,baseObj.accountBalanceHistory):cloudState.accountBalanceHistory||{};
+            baseObj.assetValueHistory=sameOwner?mergeAccountBalanceHistory(prev.assetValueHistory,baseObj.assetValueHistory):cloudState.assetValueHistory||{};
+            baseObj._historyOwner=u;
+          }
           // El extracto local no pertenece a la nube: al cambiar de usuario podría confirmar
           // una nómina ajena. Los eventos de arranque/refresco compiten con getSession y no
           // prueban por sí solos que haya otro titular (feedback 27/9).
           if(opts&&opts.dropTx) baseObj.bankTx=[];
+          // Los «no es este recibo» no se pisan con la lista de quien llegó el último: clave a
+          // clave gana lo más reciente que se dijo, sea ponerlo o levantarlo (`reciboNoUnion`).
+          if(prev.reciboNo||cloudState.reciboNo) Object.assign(baseObj, reciboNoUnion(prev, cloudState));
           // Usuario que ya tenía cartera en la nube: no repetir onboarding en otro dispositivo.
           if(freshLogin && (cloudState.accounts||[]).length) baseObj.onboarded=true;
           if(freshLogin && ((cloudState.accounts||[]).length || (cloudState.monthStartNet||0)>0)) baseObj.setupHint=false;
@@ -633,7 +658,13 @@ function App(){
     });
     return nubeLista.then(function(ok){
       if(!ok) throw SYNC_SIN_NUBE;
-      return Promise.all([cloud.bankSync({recoverGaps:true}), pDb]);
+      /* ACUSE (12/10). El servidor movía su cursor al LEER del banco: si la respuesta no llegaba
+         al móvil, ese trozo no se volvía a pedir nunca. Ahora cada respuesta trae el cursor que
+         le toca (`ack`) y aquí se devuelve el de la pulsación anterior, que se guardó en este
+         dispositivo cuando sus filas ya estaban en disco (`obAckLoad`, 00-core). `acks` va
+         siempre, aunque esté vacío: es lo que le dice al servidor que espere al acuse en vez
+         de avanzar por su cuenta. */
+      return Promise.all([cloud.bankSync({recoverGaps:true,acks:obAckLoad()}), pDb]);
     }).then(function(par){
       const res=par[0], dbLinks=par[1]||[];
       const links=(res&&res.links)||[];
@@ -653,6 +684,12 @@ function App(){
       }catch(e){}
       const preview=applyBankBalances(stateRef.current, links);   // función pura: solo para decidir el aviso
       let obAdded=[];                                             // compras de tarjeta importadas (roles de cuenta)
+      /* El acuse de esta respuesta NO se guarda todavía: espera a que el estado que lleva sus
+         filas esté escrito (efecto de `obAckPend`, abajo). `at` es la marca que une las dos
+         cosas, y se fija aquí fuera porque el updater puede ejecutarse más de una vez. */
+      const at=Date.now(), ack={};
+      links.forEach(function(l){ if(l&&l.ack) ack[l.aspsp]=l.ack; });
+      obAckPend.current={at:at,ack:ack};
       set(function(prev){
         const txs=flattenBankTx(links);
         // ORDEN anti-doble-conteo: primero entran las compras de tarjeta como gastos, y DESPUÉS
@@ -679,6 +716,13 @@ function App(){
           });
         }
         obAdded=add||[];
+        // Los avisos que acaban de quedar reclamados viajan con el estado (12/10/2026): así otro
+        // móvil, o la siguiente sincronización, no vuelven a ofrecer el mismo aviso como gemelo.
+        const vinculos=gemelosDeImportacion(add, invState.expenses);
+        if(vinculos.length){
+          const gem=pushGemelos(invState.gemelos, vinculos);
+          if(gem!==invState.gemelos) invState=Object.assign({},invState,{gemelos:gem});
+        }
         const baseExp=add? add.concat(invState.expenses||[]) : (invState.expenses||[]);
         // Rellena el CONCEPTO de lo que ya estaba apuntado con lo que acaba de traer el banco
         // (2026-07-24): si no, el histórico viejo —el que se consulta— seguiría sin explicar nada.
@@ -693,7 +737,7 @@ function App(){
            que hoy no dio saldo conserva la hora del que sigue en pantalla. */
         const balAt=Object.assign({},prev.obBalAt);
         links.forEach(function(l){ if(l&&l.balanceAt) balAt[l.aspsp]=l.balanceAt; });
-        return Object.assign({}, r.state, { lastBankSync:Date.now(), hasBankLink: links.length?true:prev.hasBankLink, bankTx: txs, bankIssues: bankIssuesOf(links, dbLinks), obBalAt:balAt });
+        return Object.assign({}, r.state, { lastBankSync:at, hasBankLink: links.length?true:prev.hasBankLink, bankTx: txs, bankIssues: bankIssuesOf(links, dbLinks), obBalAt:balAt });
       });
       // sube las importadas a la tabla expenses (best-effort; el estado local ya las tiene)
       setTimeout(function(){ obAdded.forEach(function(e){ subirGasto(e, "ob-import"); }); }, 0);
@@ -807,6 +851,20 @@ function App(){
       try{ window.dispatchEvent(new CustomEvent("mc-bank-links-changed")); }catch(e){}
     });
   };
+  /* EL ACUSE SE GUARDA DETRÁS DE SUS FILAS, NUNCA DELANTE. Aquí el estado que las lleva ya está
+     comprometido (su `lastBankSync` es la marca de esa respuesta) y el guardado lo tiene
+     apuntado desde el commit: se vuelca ahora y `obAckSave` comprueba en disco que entró antes
+     de escribir el acuse (el estado y, si alguna escritura de gastos falló, también el
+     histórico: por eso se le pasa). Si la app se cierra antes de llegar aquí no queda ni lo
+     uno ni lo otro, y la pulsación siguiente vuelve a pedir el mismo trozo. */
+  const obAckPend=useRef(null);
+  useEffect(function(){
+    const p=obAckPend.current;
+    if(!p || state.lastBankSync!==p.at) return;
+    obAckPend.current=null;
+    flushPersist();
+    obAckSave(p.at, p.ack, state.expenses);
+  },[state.lastBankSync]);
 
   /* ── Auto-refresh de brókers al abrir (petición 2026-07-15: «que se actualicen solos») ──
      SILENCIOSO a propósito y CONSERVADOR: solo re-ancla las posiciones que YA están mapeadas
@@ -1969,7 +2027,7 @@ function App(){
   // dinero de verdad (parte gorda del «se ralentiza cuanto más la uso» — 2026-07-24).
   },[state.accounts,state.expenses,state.bankTx,state.investments,state.assets,state.debts,state.fixed,
      state.flows,state.oneoffs,state.deleted,state.aportaciones,state.obAccounts,
-     state.trRewardsTotal,state.fx,state.fxRates,calendarDay]);
+     state.trRewardsTotal,state.fx,state.fxRates,state.reciboNo,calendarDay]);
 
   const budgetMonth=budgetYmKey();
   useEffect(function(){
@@ -2360,7 +2418,7 @@ function App(){
   const invSnapRef=useRef("");
   useEffect(function(){
     if(!(totals.invested>0)||totals.fxMissing>0) return;
-    const today=new Date().toISOString().slice(0,10);
+    const today=netWorthDay();
     const v=+totals.invested.toFixed(2);
     const c=+(totals.investedCost||0).toFixed(2);
     const key=today+"|"+v+"|"+c;
@@ -2370,7 +2428,19 @@ function App(){
       const h=recordInvSnapshot(s.invHistory, today, v, c);
       return Object.assign({},s,{invHistory:h});
     });
-  },[totals.invested, totals.investedCost, totals.fxMissing]);
+  },[totals.invested, totals.investedCost, totals.fxMissing,calendarDay]);
+
+  // Una edición manual sólo acredita su fecha: no se proyecta el precio nuevo hacia atrás.
+  const assetSnapRef=useRef(state.assets);
+  useEffect(function(){
+    const previous=assetSnapRef.current;assetSnapRef.current=state.assets;
+    const today=netWorthDay();
+    if(recordAssetValues(state.assetValueHistory,today,state.assets,previous)===state.assetValueHistory)return;
+    set(function(s){
+      const h=recordAssetValues(s.assetValueHistory,today,s.assets,previous);
+      return h!==s.assetValueHistory?Object.assign({},s,{assetValueHistory:h}):s;
+    });
+  },[state.assets,calendarDay]);
 
   // GAMIFICACIÓN: detecta logros nuevos y subidas de nivel → toast/confeti (1ª vez siembra sin avisar).
   useEffect(function(){
@@ -3429,7 +3499,7 @@ function App(){
   const hiddenTabIds = TABS.map(function(tt){return tt.id;}).filter(function(id){ return tabIds.indexOf(id)<0; });
   const pageFor=function(id){
     const simple=!!(state.settings&&state.settings.simpleMode);
-    if(id==="dash") return React.createElement(Dashboard,{state:state,totals:totals,budgetStreak:budgetStreak,set:set,showToast:showToast,
+    if(id==="dash") return React.createElement(Dashboard,{state:state,totals:totals,set:set,showToast:showToast,
       onOpenSettings:function(){ setDrawerOpen(true); },
       onOpenProfile:function(){
         // Montar cerrado un frame y luego abrir: si montas ya con .open no hay animación de entrada.

@@ -22,6 +22,40 @@ activo con pagos de prueba. Contrato/limitaciones nativas en [Setup Android](SET
 
 FEATURE-0210-01: ingest_logic y ALLOWED/HINTS de categorize incorporan Gasolina/Taxi solo en fuente de la candidata85. No se ha desplegado ninguna función ni se ha consultado el hash/BD de Supabase vivo; el clasificador anterior puede seguir dando Transporte hasta un gate de despliegue específico. El catálogo/selector/filtros/límites y altas manuales/MCC web funcionan sin despliegue; las notificaciones clasificadas por el servidor anterior aún pueden entrar como Transporte. La migración0001 define expenses.cat como text sin whitelist y las migraciones registradas no la restringen; no requiere SQL nueva. Tests sintéticos ejecutan alta cloud/pull con ambos IDs, presupuesto.ts del SHA3467 y retry/ACK/conflicto de ingest con clasificador de ese baseline: preservan elección manual y cuentan categorías diarias. Esto prueba fuente/contratos, no estado vivo ni captura Wallet nueva.
 
+## Apuntes iguales con ordinal (12/10, rama `claude/tr-iguales-ordinal`): `ingest` ANTES que la web, nunca después
+
+Cambia solo `_shared/presupuesto.ts` (`ordinalDeSource`, `claveComoLaApp` con el sufijo `|#n`, y
+`bancoDeSource` leyendo `ob-hist:…#n2` con el banco limpio). La única función que lo importa es
+`ingest`, así que es la única que hay que desplegar: sin migración ni secreto. Orden obligatorio:
+**`ingest` primero, o a la vez que el cliente; nunca después**. El servidor nuevo sobre filas de
+clientes viejos (sin `#n`) devuelve EXACTAMENTE lo mismo que el servidor anterior (probado en
+`ob-iguales-ordinal` y `widget.test.ts`), así que desplegarlo antes es inocuo. Al revés no: con el
+cliente nuevo y el `ingest` de hoy, el servidor funde las k filas iguales en una y el widget deja
+de cuadrar con la app (36 o 48 frente a 60 en la sonda de la revisión). Rollback: desplegar el
+`ingest` anterior; las filas con `#n` se leen con el banco de siempre y solo pierden la separación.
+
+## Cargo de recibo en Gastos (13/10, rama `claude/recibo-banco-no-acredita`): `ingest` DE ESTA RAMA antes que su web
+
+El `ingest` del ordinal lee el banco LIMPIO también en `ob:<ent>~recibo.<id>` (`bancoDeSource`),
+así que ese servidor, tal cual, CUENTA el cargo de un recibo que la app no cuenta. El servidor
+desplegado antes del ordinal lo dejaba fuera sin saberlo (leía un banco inexistente); el del
+ordinal ya no. Por eso esta rama añade a `_shared/presupuesto.ts` `esCargoDeRecibo` y lo excluye
+en `cuentaParaPresupuesto`. Orden obligatorio: **desplegar `ingest` desde esta rama antes, o a la
+vez, que su web**. Es inocuo adelantarlo: hasta que salga la web no existe ninguna fila
+`~recibo.`. Al revés, el widget suma cada recibo cobrado (medido en test: 200,40 frente a 3,40).
+Sin migración ni secreto. No se ha desplegado nada.
+
+**Condición de publicación (revisión del 13/10).** No es solo el servidor: un MÓVIL con la
+4.26.120 (ordinal sin esta entrega) lee `ob:<ent>~recibo.<id>` con el banco limpio y cuenta el
+cargo (102,40 frente a 40 en la sonda), y al reescribir la fila le borra la marca. Mientras la
+120 esté solo en beta no hay filas `~recibo.` y no pasa nada; el riesgo es tener en producción
+la 120 y, en otro móvil de la misma cuenta, esta entrega. **La 4.26.120 no se promociona a
+producción sin esta entrega**, y el `ingest` de esta rama va antes que su web.
+
+Integración (13/10): la rama entra en la candidata 4.26.122, encima de la 4.26.121, que lleva
+dentro la 120. El `ingest` que se despliega es el de la 122 (`_shared/presupuesto.ts` con
+`esCargoDeRecibo`), antes que su web, y ni la 120 ni la 121 van a producción sin la 122.
+
 ## bank-sync con tramo antiguo (INC-2709-06): solo en fuente, SIN desplegar
 
 `bank-sync` y `_shared/enablebanking.ts` (parámetros `maxPages` y `dateTo` de `fetchBankTransactions`)
@@ -32,6 +66,22 @@ seguros: la función nueva con cliente viejo entrega la ventana de siempre, y el
 la función vieja manda un campo que esta ignora y no recibe `syncFrom`, así que no guarda nada
 anterior a su margen. Rollback: desplegar el `bank-sync` anterior; un cursor sellado que quede en
 `last_sync` es una fecha válida para él.
+
+## Acuse del cursor y reconexión que lo conserva (12/10): solo en fuente, SIN desplegar
+
+Cambian `bank-sync` (acuse, `ackLinkKey`; con cliente de acuse y `last_sync` nulo escribe la
+víspera de la ventana como punto de partida, mirando el error de esa escritura y reintentándola una vez), `bank-callback` (no pone `last_sync` a null si
+vuelven las mismas cuentas; guarda `hash` en `accounts`; si el GET de la sesión falla sale con
+`msg=error` sin tocar la fila) y `bank-connect` (solo un comentario). Sin
+migración ni secreto: la clave del acuse usa `state_issued_at` (0019) y `accounts` es jsonb.
+Los cruces están probados en `bank-sync-acuse` y `bank-reconnect`: función nueva con cliente sin
+`acks` escribe el cursor como antes; cliente nuevo con el `bank-sync` desplegado no recibe `ack`
+y no guarda nada; `bank-callback` nuevo con el `bank-sync` desplegado recupera el hueco. Orden
+recomendado: `bank-sync`, después `bank-callback`, y por último el cliente. Ojo con
+`bank-callback` antes de que producción tenga el cliente con `recoverGaps`: ese cliente no
+recupera el tramo y, con el cursor conservado por detrás de la ventana, su `last_sync` no sube
+hasta que actualice. Rollback: desplegar las funciones anteriores; los acuses guardados en los
+móviles se ignoran y un `hash` de más en `accounts` no molesta.
 
 ## bank-sync desplegado para beta 4.26.53.1: concepto y MCC opcionales
 

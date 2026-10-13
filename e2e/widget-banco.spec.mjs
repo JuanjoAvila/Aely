@@ -180,7 +180,8 @@ for (const caso of INICIO) {
     ]);
     await page.waitForFunction(() => !document.getElementById("mc-load"));
     await dismissNews(page);
-    await expect(page.locator(".v4-budget .ph")).toContainText(caso.spent + " 600");
+    await expect(page.locator(".v42-cycle-amount>.serif")).toHaveText("400 €");
+    await expect(page.locator(".v4-budget .v4-ring")).toHaveText("40%");
   });
 }
 
@@ -262,7 +263,10 @@ for (const mode of ["new", "old-apk", "failed-read"]) {
     expect(snapshot.nativeCut).toBe(mode === "new" ? "4" : undefined);
     await page.waitForFunction(() => !document.getElementById("mc-load"));
     await dismissNews(page);
-    await expect(page.locator(".v4-budget .ph")).toContainText("Has gastado 5");
+    // Inicio 3b muestra lo disponible: el mismo gasto de5,45 debe dejar94,55 de100;
+    // conservar ambos importes evita que adaptar el texto oculte un descuadre del puente.
+    await expect(page.locator(".v42-cycle-amount > .num")).toHaveText("94,55 €");
+    await expect(page.locator(".v42-cycle-of")).toHaveText("de 100 €");
     if (mode === "new") {
       await expect.poll(() => page.evaluate(() => !!JSON.parse(localStorage.getItem("micartera_v3") || "{}").lastSync)).toBe(true);
       const lastSync = await page.evaluate(() => JSON.parse(localStorage.getItem("micartera_v3")).lastSync);
@@ -310,7 +314,8 @@ for(const lang of ["es","en","ca"]) test(`Widget80: pull antiguo no suma una ret
   // Tras medir la frontera, el splash necesita que Date avance para quitar su cortina.
   await page.clock.setSystemTime(new Date(now+2000));
   await page.waitForFunction(()=>!document.getElementById("mc-load"));await dismissNews(page);
-  await expect(page.locator(".v4-budget .ph")).toContainText("100");
+  await expect(page.locator(".v42-cycle-amount>.serif")).toHaveText("900 €");
+  await expect(page.locator(".v4-budget .v4-ring")).toHaveText("90%");
   expect(await page.evaluate(()=>window.__widgetCalls.every(x=>x.spent===100))).toBe(true);
 });
 for (const caso of [{ lang: "es" }, { lang: "en" }, { lang: "ca" }]) {
@@ -380,7 +385,10 @@ for (const lang of ["es", "en", "ca"]) {
     expect(snap.periodKind).toBe("ciclo");expect(snap.magnitude).toBe("neto");expect(snap.lang).toBe(lang);
     expect(snap.periodStart).toBe(Date.parse("2026-09-26T00:00:00+02:00"));
     await page.waitForFunction(()=>!document.getElementById("mc-load"));await dismissNews(page);
-    await expect(page.locator(".v4-budget .ph")).toContainText("180");
+    await expect(page.locator(".v42-cycle-amount>.serif")).toHaveText("1080 €");
+    // Quedan 1080 de 900: el anillo se llena y no pasa de 100 %. Texto exacto, que
+    // «contiene 0%» lo cumplían igual el 100 %, el 10 % y el 0 %.
+    await expect(page.locator(".v4-budget .v4-ring")).toHaveText("100%");
   });
 }
 
@@ -432,7 +440,8 @@ for(const v2 of [false,true]) test(`cobertura tras el día1, contrato v2=${v2}`,
   if(v2){expect(ack).toContain("tr:ev29");expect(ack).toContain("tr:old");}else{expect(ack).not.toContain("tr:ev29");}
   if(v2)expect(ack).not.toContain("tr:future");else expect(ack).toContain("tr:future"); // legado exacto
   await page.waitForFunction(()=>!document.getElementById("mc-load"));await dismissNews(page);
-  await expect(page.locator(".v4-budget .ph")).toContainText("130");
+  await expect(page.locator(".v42-cycle-amount>.serif")).toHaveText("870 €");
+  await expect(page.locator(".v4-budget .v4-ring")).toHaveText("87%");
 });
 
 for (const lang of ["es","en","ca"]) for (const mode of ["net","split"]) for (const cycle of [false,true]) {

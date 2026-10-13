@@ -62,7 +62,17 @@ t("solo bank-sync conserva los guardianes de paginado sin arrancar Chromium", ()
   assert.equal(p.playwright, false);
   assert.ok(p.steps.includes("bank-sync-paging"));
   assert.ok(p.steps.includes("bank-sync-progreso"), "la convergencia del tramo antiguo es de servidor");
+  assert.ok(p.steps.includes("bank-sync-acuse"), "el acuse del cursor se rompe igual desde el servidor");
   assert.ok(p.steps.includes("tr-open-banking"));
+});
+
+t("solo bank-callback o bank-connect: reconectar conserva el cursor y su acuse se prueban sin Chromium", () => {
+  for (const f of ["supabase/functions/bank-callback/index.ts", "supabase/functions/bank-callback/reconnect.ts", "supabase/functions/bank-connect/index.ts"]) {
+    const p = planFromFiles([f]);
+    assert.equal(p.playwright, false);
+    assert.ok(p.steps.includes("bank-reconnect"), f);
+    assert.ok(p.steps.includes("bank-sync-acuse"), f + ": el acuse depende de la autorización que escribe bank-connect");
+  }
 });
 
 t("solo Android: widget, sin e2e", () => {

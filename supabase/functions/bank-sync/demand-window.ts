@@ -11,6 +11,10 @@
 export const OB_DEMAND_CAP_DAYS = 90;
 export const OB_DEMAND_OVERLAP_DAYS = 3;
 export const OB_DEMAND_MARGIN_DAYS = 8;
+// Hay bancos que filtran `date_from` por fecha VALOR y la app pinta la fecha CONTABLE, que va
+// uno o dos días antes: el movimiento llega en la respuesta con una fecha anterior al primer
+// día pedido. El suelo que viaja al cliente baja estos días para que no lo tire (N5, 12/10).
+export const OB_DEMAND_SKEW_DAYS = 3;
 // Tope fijo de llamadas a /transactions por cuenta y pulsación. Lo comparten
 // la ventana de siempre y el tramo antiguo: nunca 12 + 12. Es el mismo techo
 // que ya tenía el bucle de páginas (2026-10-10).
@@ -43,6 +47,50 @@ export function currentDemandWindowStart(now: Date): string {
     por el siguiente», que es justo lo que diría un sync real hecho en ese instante. */
 export function chunkCursor(ymd: string): string {
   return ymd + "T23:59:59.999Z";
+}
+
+/** Suelo que acepta el cliente cuando al banco se le pidió desde `asked`. No se pide nada
+    más al banco (no gasta llamadas): solo deja entrar lo que ya viene en la respuesta. */
+export function demandFloor(asked: string): string {
+  return ymdAddDays(asked, -OB_DEMAND_SKEW_DAYS);
+}
+
+/** ACUSE (N2, 12/10). El cursor se escribía antes de que el móvil tuviera las filas: si la
+    respuesta se perdía, ese trozo no se volvía a pedir. Ahora la respuesta lleva el cursor
+    que le correspondería (`ack`) y el cliente lo devuelve en la pulsación siguiente, cuando
+    ya lo tiene guardado junto a las filas. El acuse lleva pegada la clave del enlace
+    (`ackLinkKey`): el acuse de otra persona, de otro banco o de una autorización anterior
+    adelantaría un cursor cuyas filas este móvil no tiene. */
+export function ackToken(cursor: string, linkKey: string): string {
+  return cursor + "|" + linkKey;
+}
+
+/** Clave del enlace dentro del acuse: su id y la AUTORIZACIÓN vigente.
+    Reconectar un banco NO cambia el id (`bank-connect` hace upsert sobre la misma fila), así
+    que el id solo no distingue «antes de reconectar» de «después». Lo que sí cambia en cada
+    autorización es `state_issued_at`, que escribe `bank-connect` y nadie más toca.
+    REGLA: al reconectar, el cursor lo decide `bank-callback` (lo conserva si vuelven las
+    mismas cuentas; si no, el enlace arranca como nuevo) y todo acuse emitido antes deja de
+    valer. Así un móvil con un acuse viejo no puede llevar el cursor a otro punto: ni
+    resucitar el de un enlace que arrancó de cero, ni adelantar el conservado. Lo que ese
+    móvil tuviera de más se vuelve a leer una vez y lo deduplica por `ext_id`. */
+export function ackLinkKey(linkId: unknown, issuedAt: unknown): string {
+  const ms = typeof issuedAt === "string" ? Date.parse(issuedAt) : NaN;
+  return String(linkId) + "." + (Number.isFinite(ms) ? ms.toString(36) : "0");
+}
+
+/** Decide si un acuse mueve el cursor: tiene que ser de ESTE enlace y de ESTA autorización
+    (`linkKey`), con la forma exacta que emite el servidor, no estar en el futuro y quedar
+    por delante del cursor actual (nunca retrocede). Devuelve el cursor nuevo o null. */
+export function ackCursor(raw: unknown, linkKey: string, lastSync: unknown, now: Date): string | null {
+  const m = typeof raw === "string" ? raw.match(/^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z)\|(.+)$/) : null;
+  if (!m || m[2] !== linkKey) return null;
+  const ms = Date.parse(m[1]);
+  // Ida y vuelta: `Date.parse` normaliza un «30 de febrero» al 2 de marzo en vez de
+  // rechazarlo, y esa fecha no la emitió nadie. Solo vale lo que se reescribe idéntico.
+  if (!Number.isFinite(ms) || new Date(ms).toISOString() !== m[1] || ms > now.getTime()) return null;
+  const cur = typeof lastSync === "string" ? Date.parse(lastSync) : NaN;
+  return Number.isFinite(cur) && cur >= ms ? null : m[1];
 }
 
 export type DemandPlan = {

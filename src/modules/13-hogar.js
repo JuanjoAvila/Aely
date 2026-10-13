@@ -28,6 +28,8 @@ function buildHouseholdSnapshot(state, totals, email){
   (state.expenses||[]).forEach(function(e){
     if(!(e.amount>0)) return;
     if(parseDate(e.date)<monthStart) return;
+    // El cargo de un recibo ya sale en los fijos de esta misma foto: aquí lo contaría dos veces.
+    if(cargoDeRecibo(e, state)) return;
     const k=e.category||"otros";
     byCat[k]=(byCat[k]||0)+e.amount;
   });
