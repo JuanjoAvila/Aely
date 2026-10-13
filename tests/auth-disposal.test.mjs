@@ -98,4 +98,4 @@ const memoNote=JSON.parse(execFileSync('git',['show','8dcc5ed39b6e212ba1e34a90b5
 for(const key of ['codigoDesde','revisionesDesde','codigosCompatibles','compatibilidadGit','verdict'])assert.equal(memoNote[key],undefined,'memo nueva sin heredar '+key);
 
 }
-assert.equal(createHash('sha256').update(JSON.stringify(JSON.parse(read('scripts/beta-sources.json')))).digest('hex'),'aa9cb034a46f2a3dd04b9e3585d7474fac8cbe8c7aa933e7bb57bcebe0cd296d','registro119 íntegro: el de la beta118 (2d4f62d4) más el acuse local de bancos en dos alcances y la tanda bancos-acuse-reconexion; Catálogo119 de beta-sources lo fija unidad a unidad');
+assert.equal(createHash('sha256').update(JSON.stringify(JSON.parse(read('scripts/beta-sources.json')))).digest('hex'),'8a0ad2c5f8c7fe914be85bc0b8423a1fbe0ecda5691211b6f39d1ef72358c4a2','registro120 íntegro: el de la beta119 (aa9cb034) más el ordinal y los vínculos en veinticinco alcances y la tanda tr-iguales-ordinal; Catálogo120 de beta-sources lo fija unidad a unidad');

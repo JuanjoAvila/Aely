@@ -169,8 +169,8 @@ console.log("ingest-handler");
 
 const denoCases=[];
 const widgetTest=read('supabase/functions/ingest/widget.test.ts').replace(/^import\s[\s\S]*?from\s+"[^"]+";\r?\n/gm,'');
-new Function('Deno','assertEquals','widgetSnapshot','widgetStart','readWidgetRows','claveComoLaApp','inicioDeMesMs',transformSync(widgetTest,{loader:'ts'}).code)(
-  {test:(name,fn)=>denoCases.push([name,fn])},assert.deepEqual,widgetBudget.widgetSnapshot,widgetBudget.widgetStart,widgetBudget.readWidgetRows,budget.claveComoLaApp,budget.inicioDeMesMs);
+new Function('Deno','assertEquals','widgetSnapshot','widgetStart','readWidgetRows','claveComoLaApp','inicioDeMesMs','bancoDeSource','filasComoLaApp','ordinalDeSource',transformSync(widgetTest,{loader:'ts'}).code)(
+  {test:(name,fn)=>denoCases.push([name,fn])},assert.deepEqual,widgetBudget.widgetSnapshot,widgetBudget.widgetStart,widgetBudget.readWidgetRows,budget.claveComoLaApp,budget.inicioDeMesMs,budget.bancoDeSource,budget.filasComoLaApp,budget.ordinalDeSource);
 for(const [name,fn] of denoCases) await t('Node ejecuta cuerpo Deno: '+name,fn);
 
 await t("respuesta dual: month legado intacto y widget v2 bruto para la misma compra", async () => {
