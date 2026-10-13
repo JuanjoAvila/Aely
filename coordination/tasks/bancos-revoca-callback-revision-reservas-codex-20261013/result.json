@@ -1,0 +1,241 @@
+{
+  "status": "done",
+  "summary": "Revision B entregada en PR226 draft: seis escrituras por enlace condicionadas a sesion/emision, revocacion acotada8s, DELETE local no borra autorizacion nueva y devuelve409; seleccion de usuario/logger protegidos. Node20/0,Deno29/0,causal8PASS8FAIL->16PASS0FAIL,10mutantes rechazados. CI terminal FAILURE solo catalogo122/version; consulta posdeploy preparada NO ejecutada.",
+  "tests": [
+    {
+      "command": "node tests/bank-revoke-callback-race.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/bank-sync-acuse.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/bank-reconnect.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/bank-sync-progreso.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/bank-sync-paging.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/logs-privacidad.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/security.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/edge-sintaxis.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/docs-frescura.test.mjs",
+      "exitCode": 1
+    },
+    {
+      "command": "deno test --no-lock --cached-only --allow-env supabase/functions/bank-disconnect/lifecycle.test.ts supabase/functions/_shared/crypto.test.ts supabase/functions/bank-sync/demand-window.test.ts",
+      "exitCode": 0
+    },
+    {
+      "command": "deno check --no-lock supabase/functions/bank-sync/index.ts supabase/functions/bank-disconnect/index.ts",
+      "exitCode": 0
+    },
+    {
+      "command": "Corrected causal native lifecycle on original handlers before revision",
+      "exitCode": 1,
+      "passed": 8,
+      "failed": 8,
+      "expectedRegression": true
+    },
+    {
+      "command": "native lifecycle after revision",
+      "exitCode": 0,
+      "passed": 16,
+      "failed": 0,
+      "realTimeoutSeconds": 8
+    },
+    {
+      "command": "Ten actual mutations against real handlers/SDK",
+      "exitCode": 1,
+      "killed": 10,
+      "restoredByteExact": true
+    },
+    {
+      "command": "guard-privacy",
+      "exitCode": 0
+    },
+    {
+      "command": "Exact final Tests38424754538 attempt1 job115391100456",
+      "exitCode": 1,
+      "failedSteps": [
+        "beta-sources",
+        "docs-frescura"
+      ],
+      "headSHA": "e677099ff1790909d82e7798253606abcdb4c6bd"
+    }
+  ],
+  "productSHA": "e677099ff1790909d82e7798253606abcdb4c6bd",
+  "pullRequest": "JuanjoAvila/Aely#226",
+  "claimBaseSHA": "f5904735b514751ee926d25c22c92195b6ce3653",
+  "executionBaseSHA": "2d53ab24dc32a83faf17ce08c3b2d50b304d8e55",
+  "ownReplayCommits": [
+    "4e77f31c",
+    "37d457f3"
+  ],
+  "executionVersion": "4.26.122 dependency, not published rollback",
+  "previousAResult": "58f158f7b305721f94d1d5311a7d9890d6b90997",
+  "sequentialAReleaseBeforeBClaim": true,
+  "scope": {
+    "base": "2d53ab24dc32a83faf17ce08c3b2d50b304d8e55",
+    "executionVersion": "4.26.122",
+    "checks": [
+      {
+        "name": "authCatch",
+        "unchanged": true,
+        "sha256": "1afcbd58b1ddc0fae9f5fe659560431e4e3ecb5115ea2dfa49212c468708bafc"
+      },
+      {
+        "name": "sessionQuery",
+        "unchanged": true,
+        "sha256": "d42d949b31c44477eac3901c5182b00bf4d17fae2be623dde7be3a7ca77990d8"
+      }
+    ],
+    "guardedWrites": 6,
+    "payloadsAnd119LtIsPreserved": true,
+    "callbackKeepsCursorDemandCipherCryptoUnchanged": true,
+    "versionCatalogueDescriptorsCapsWorkflowsAndUIUnchanged": true,
+    "AReleased": "58f158f7b305721f94d1d5311a7d9890d6b90997",
+    "NodeFinalPassed": 20,
+    "DenoFinalPassed": 29,
+    "postDeployQueryPreparedNotExecuted": true
+  },
+  "mutations": [
+    {
+      "name": "sync-sin-sesion",
+      "runner": "node",
+      "exitCode": 1,
+      "killed": true
+    },
+    {
+      "name": "sync-sin-emision",
+      "runner": "node",
+      "exitCode": 1,
+      "killed": true
+    },
+    {
+      "name": "selector-sin-usuario",
+      "runner": "node",
+      "exitCode": 1,
+      "killed": true
+    },
+    {
+      "name": "delete-sin-version",
+      "runner": "node",
+      "exitCode": 1,
+      "killed": true
+    },
+    {
+      "name": "log-tipo-incorrecto",
+      "runner": "node",
+      "exitCode": 1,
+      "killed": true
+    },
+    {
+      "name": "log-dueño-incorrecto",
+      "runner": "node",
+      "exitCode": 1,
+      "killed": true
+    },
+    {
+      "name": "sin-guardias-todas-escrituras",
+      "runner": "deno",
+      "exitCode": 1,
+      "killed": true
+    },
+    {
+      "name": "tope-DELETE-extendido",
+      "runner": "deno",
+      "exitCode": 1,
+      "killed": true
+    },
+    {
+      "name": "EQNULL-session_id",
+      "runner": "deno",
+      "exitCode": 1,
+      "killed": true
+    },
+    {
+      "name": "EQNULL-state_issued_at",
+      "runner": "deno",
+      "exitCode": 1,
+      "killed": true
+    }
+  ],
+  "concurrencyDecision": "Preserve any changed authorization instead of rereading and revoking an authorization created after disconnect began. DELETE matches user,bank,id,raw session and issuedAt. No-match409; no initial snapshot means no later delete.",
+  "postDeployment": {
+    "status": "prepared not executed",
+    "procedure": "After deployment only: substitute USER_UUID and BANK_NAME privately. Read exactly one active link with session_encrypted=true before and after one normal manual sync, no concurrent reauthorization. Wait at least1second between reads; updated_at must move forward; last_sync may remain until119 ACK. On failure preserve evidence, never remove filters or force cursor.",
+    "sql": "select status, updated_at, last_sync, coalesce(session_id like 'enc:v1:%', false) as session_encrypted from public.bank_links where user_id = '<USER_UUID>'::uuid and aspsp_name = '<BANK_NAME>';",
+    "containsSensitiveValues": false
+  },
+  "conflicts": [
+    "bank-sync with claude/brokers-falsa-caducidad: catch/session query untouched; dependency included, not edited",
+    "bank-sync with PR223 revision A: paging/diagnostic hunks differ from B guards; combine both, do not replace full file",
+    "runner/map/privacy/shared synthetic helpers have additive changes across both PRs"
+  ],
+  "ci": {
+    "workflow": "test.yml",
+    "event": "workflow_dispatch",
+    "runId": 38424754538,
+    "attempt": 1,
+    "headSHA": "e677099ff1790909d82e7798253606abcdb4c6bd",
+    "jobId": 115391100456,
+    "conclusion": "failure",
+    "exitCode": 1,
+    "processExitAtUTC": "2026-10-13T16:23:28.7201932Z",
+    "completedAtUTC": "2026-10-13T16:23:31Z",
+    "logBytes": 376812,
+    "logSHA256": "412b452ef4937e92960aa176eeb77b61e62c9df1901190b31fb53f9c54fbe8ad",
+    "triage": {
+      "failedSteps": [
+        "beta-sources",
+        "docs-frescura"
+      ],
+      "unknownSubstantiveFailures": false,
+      "NodeOwnPassed": 20,
+      "DenoRegisteredFilesPassed": 9,
+      "budgetPassed": true,
+      "logsPrivacyPassed": true,
+      "securityPassed": true,
+      "workflowPrivacy": "skipped",
+      "fullE2EAndPerf": "not executed because unit gates failed",
+      "postDeployQuery": "prepared, not executed",
+      "releaseReady": false
+    }
+  },
+  "limitations": [
+    "Review candidate only; Claude owns integration/catalogue/version and deployment/publication",
+    "No live bank/DB/SQL/RLS/migrations,APK/main/beta/deploy,VERSION/notes/catalogue/descriptors/caps/UI/workflow changes",
+    "Actual Postgres ciphertext predicate acceptance remains postdeployment; query documented only",
+    "Global E2E/perf not executed; workflow final Privacy SKIPPED despite Node privacy/security guards passing",
+    "No heavy local runner/browser/Gradle; foreign FIN01DIR6fa/hashd46 retained without RETURN untouched",
+    "A result58f158f7 released before B claim; old results9798/ffeaf and all historical claim/session/base objects immutable",
+    "Own source clean and temporary node_modules junction removed; no new workers/chats/coordinators/automations"
+  ],
+  "schema": 1,
+  "taskId": "bancos-revoca-callback-revision-reservas-codex-20261013",
+  "actor": "codex",
+  "sessionId": "codex-local-20261013-revoke-rev-bef7af53cd85",
+  "createdAt": "2026-10-13T16:29:44.807Z",
+  "released": true
+}
