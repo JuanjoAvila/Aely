@@ -97,4 +97,20 @@ test("un CSV que de verdad no se entiende sigue avisando", async ({ page }) => {
 
   await expect(csv.getByText(/No he podido leer el CSV/i)).toBeVisible();
   await expect(csv.locator(".alarmbox")).toHaveCount(1);
+  expect(await page.evaluate(()=>JSON.parse(localStorage.getItem("micartera_v3")).lastRevolutImport)).toBeUndefined();
+});
+
+test("el CSV sella la importación aplicada sin inventar una fecha de cotización", async ({ page }) => {
+  const csv=await abrirTarjetaCsv(page);
+  const before=await page.evaluate(()=>JSON.parse(localStorage.getItem("micartera_v3")));
+  await analizar(csv,MATERIAS);
+  expect(await page.evaluate(()=>JSON.parse(localStorage.getItem("micartera_v3")).lastRevolutImport)).toBeUndefined();
+  const started=await page.evaluate(()=>Date.now());
+  await csv.getByRole("button",{name:/Aplicar a 1/}).click();
+  await expect.poll(()=>page.evaluate(()=>JSON.parse(localStorage.getItem("micartera_v3")).lastRevolutImport||0)).toBeGreaterThanOrEqual(started);
+  const after=await page.evaluate(()=>JSON.parse(localStorage.getItem("micartera_v3")));
+  expect(after.lastPriceSync).toBe(before.lastPriceSync);
+  expect(after.lastMiSync).toBe(before.lastMiSync);
+  expect(after.lastTrSync).toBe(before.lastTrSync);
+  expect(after.investments[0].cost).toBe(100);
 });

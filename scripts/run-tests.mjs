@@ -34,6 +34,7 @@ if (plan.build !== false) {
 }
 
 const steps = [
+  ["investment-data-date", ["node", "tests/investment-data-date.test.mjs"]],
   ["prod117-edge-compat", ["node", "tests/prod117-edge-compat.test.mjs"]],
   ["backclose-history", ["node", "tests/backclose-history.test.mjs"]],
   ["gastos-mes-madrid", ["node", "tests/gastos-mes-madrid.test.mjs"]],

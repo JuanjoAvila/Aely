@@ -6572,7 +6572,9 @@ Object.assign(LANG.es,{
 Object.assign(LANG.es,{
   iv_see_all:"Ver todas tus inversiones", iv_title:"Tus inversiones", iv_now:"VALEN AHORA", iv_currency:"Moneda de visualización",
   iv_put:"Pusiste {amount}", iv_gained:"Han ganado {amount}", iv_lost:"Han perdido {amount}",
-  iv_percent:"{pct}% desde que empezaste · Actualizado {time}", iv_updated:"Actualizado {time}", iv_never:"sin actualizar",
+  iv_percent:"{pct}% desde que empezaste", iv_updated:"Cotizaciones: {time}",
+  iv_date_missing:"Fecha no disponible", iv_data_sync:"Datos: {date}", iv_data_import:"CSV: {date}", iv_data_manual:"Manual: {date}",
+  iv_date_today:"hoy a las {time}", iv_date_yesterday:"ayer a las {time}", iv_date_days:"hace {n} días",
   iv_no_put:"Dime lo que pusiste y te diré cuánto han ganado.", iv_no_put_cta:"Añadir lo que puse",
   iv_where:"Dónde lo tienes", iv_refresh:"↻ Actualizar inversiones", iv_refreshing:"Sincronizando brókers y precios…", iv_broker_none:"Sin brókers conectados",
   iv_refresh_ok:"✓ Precios actualizados · {time}", iv_refresh_fail:"No se pudieron actualizar los precios", iv_refresh_fail_sub:"Conservamos los últimos datos ({time}). Puedes volver a intentarlo.", iv_retry:"Reintentar",
@@ -12025,7 +12027,8 @@ function BrokerImport({state, set, fetchPrices, open, onToggle}){
                  value:pcost!=null?pcost:0, cost:pcost!=null?pcost:null, cur:po.cur||"EUR" };
       });
       if(created.length) inv=inv.concat(created);
-      return Object.assign({},s,{investments:inv});
+      // La fecha acredita esta importación aplicada, no la antigüedad del extracto ni un precio.
+      return Object.assign({},s,{investments:inv,lastRevolutImport:Date.now()});
     });
     setDoneN(mappedN); setParsed(null); setText("");
     // y nada más re-anclar, precios en vivo en silencio: el valor pasa de «último conocido» a real
@@ -12203,6 +12206,7 @@ function MyInvestorSync({state, set, open, onToggle}){
   const [err,setErr]=useState("");
   const [otpInfo,setOtpInfo]=useState(null);
   const [positions,setPositions]=useState(null);
+  const dataReadAt=useRef(null);
   const [map,setMap]=useState({});
   const [doneN,setDoneN]=useState(null);
   const [noSession,setNoSession]=useState(false);
@@ -12341,13 +12345,15 @@ function MyInvestorSync({state, set, open, onToggle}){
       if(!r||!r.ok||!Array.isArray(r.positions)){ fail(r); return; }
       const m={};
       r.positions.forEach(function(po){ const k=po.isin||po.name; const sug=brokerSuggest({isin:po.isin,name:po.name}, state.investments); m[k]=sug||"__new"; });
+      dataReadAt.current=Date.now();
       setPositions(r.positions); setMap(m); setStep("preview");
     }).catch(fail);
   };
   const keyOf=function(p){ return p.isin||p.name; };
   const mappedN=positions?positions.filter(function(p){ return map[keyOf(p)]; }).length:0;
   const apply=function(){
-    const pos=positions;
+    const pos=positions, readAt=investmentStampMs(dataReadAt.current);
+    if(!Array.isArray(pos)||!readAt) return;
     set(function(s){
       let inv=(s.investments||[]).map(function(i){
         const po=pos.find(function(p){ return map[keyOf(p)]===i.id; });
@@ -12362,7 +12368,9 @@ function MyInvestorSync({state, set, open, onToggle}){
         return { id:uid(), ent:"myinvestor", name:po.name, isin:po.isin||null, shares:po.shares, value:po.value!=null?po.value:0, cost:po.cost!=null?po.cost:(po.value||0), cur:po.cur||"EUR" };
       });
       if(created.length) inv=inv.concat(created);
-      return Object.assign({},s,{investments:inv});
+      // La tarjeta ya leyó el bróker: compartir el sello evita repetir la lectura automática
+      // durante 30 minutos. Esperar en la previsualización no retrasa ese freno.
+      return Object.assign({},s,{investments:inv,lastMiSync:readAt});
     });
     setDoneN(mappedN); setPositions(null); setStep("connected");
   };
@@ -12489,6 +12497,7 @@ function TRSync({state, set, totals, open, onToggle}){
   const [connected,setConnected]=useState(false);
   const [positions,setPositions]=useState(null);
   const [cash,setCash]=useState(null);
+  const dataReadAt=useRef(null);
   const [map,setMap]=useState({});
   const [doneN,setDoneN]=useState(null);
   useEffect(function(){
@@ -12531,6 +12540,7 @@ function TRSync({state, set, totals, open, onToggle}){
         if(sug) m[po.isin]=sug;
         else if(state.investments.length===0) m[po.isin]="__new";
       });
+      dataReadAt.current=Date.now();
       setMap(m); setPositions(r.positions); setCash(r.cash!=null?r.cash:null); setStep("preview");
     }).catch(fail);
   };
@@ -12555,7 +12565,8 @@ function TRSync({state, set, totals, open, onToggle}){
   };
   const mappedN=positions?positions.filter(function(p){ return map[p.isin]; }).length:0;
   const apply=function(){
-    const pos=positions, trCash=cash;
+    const pos=positions, trCash=cash, readAt=investmentStampMs(dataReadAt.current);
+    if(!Array.isArray(pos)||!readAt) return;
     set(function(s){
       const next=Object.assign({},s,{investments:s.investments.map(function(i){
         const po=pos.find(function(p){ return map[p.isin]===i.id; });
@@ -12590,6 +12601,7 @@ function TRSync({state, set, totals, open, onToggle}){
             })
           : s.accounts.concat([{ id:uid(), ent:"trade_republic", name:"Trade Republic", value:+trCash.toFixed(2), note:"" }]);
       }
+      next.lastTrSync=readAt;
       return next;
     });
     setDoneN(mappedN); setPositions(null); setStep("done");
@@ -12819,6 +12831,36 @@ function InvestmentRewards({state,set}){
   );
 }
 
+// Una cotización nueva no acredita una lectura del bróker. Los estados antiguos sin sello
+// siguen sin fecha; parseDate/dateMs no sirven aquí porque sustituyen un dato inválido por hoy.
+function investmentStampMs(value){
+  if(typeof value!=="number" && typeof value!=="string") return 0;
+  if(typeof value==="string" && !/^\d{4}-\d{2}-\d{2}T/.test(value)) return 0;
+  const ms=new Date(value).getTime();
+  return isFinite(ms)&&ms>0&&ms<=Date.now()?ms:0;
+}
+function investmentDataDate(state, ent){
+  const stamp=ent==="trade_republic"?state.lastTrSync:ent==="myinvestor"?state.lastMiSync:ent==="revolut"?state.lastRevolutImport:null;
+  let result={ms:investmentStampMs(stamp),kind:ent==="revolut"?"iv_data_import":"iv_data_sync"};
+  (state.investments||[]).forEach(function(i){
+    const ms=i.ent===ent?investmentStampMs(i.manualUpdatedAt):0;
+    if(ms>result.ms) result={ms:ms,kind:"iv_data_manual"};
+  });
+  return result;
+}
+function investmentDateText(value){
+  const ms=investmentStampMs(value);
+  if(!ms) return t("iv_date_missing");
+  const date=new Date(ms), now=new Date();
+  const dayOptions={timeZone:MC_TZ,year:"numeric",month:"2-digit",day:"2-digit"};
+  const day=date.toLocaleDateString("en-CA",dayOptions), today=now.toLocaleDateString("en-CA",dayOptions);
+  // Restar días de calendario de Madrid evita que medianoche o un día de 23/25 horas
+  // conviertan «ayer» en «hoy». La hora del dispositivo no decide la antigüedad del dato.
+  const days=(Date.parse(today)-Date.parse(day))/86400000;
+  if(days<2) return tf(days===0?"iv_date_today":"iv_date_yesterday",{time:date.toLocaleTimeString(loc(),{timeZone:MC_TZ,hour:"2-digit",minute:"2-digit"})});
+  if(days<7) return tf("iv_date_days",{n:days});
+  return date.toLocaleDateString(loc(),{timeZone:MC_TZ,day:"numeric",month:"short",year:day.slice(0,4)===today.slice(0,4)?undefined:"numeric"});
+}
 function Investments({state, set, fetchPrices, pricing, syncInv, v4Embed, toolsMode, fullMode, showToast}){
   const fx=fxRateOf("USD",state);   // USD→EUR (legacy + display toggle); GBP/CHF van en state.fxRates
   const [editing,setEditing]=useState(false);
@@ -12906,7 +12948,7 @@ function Investments({state, set, fetchPrices, pricing, syncInv, v4Embed, toolsM
       return Object.assign({},s,{
         investments:s.investments.map(function(i){
           if(i.id!==it.id) return i;
-          const o=Object.assign({},i,{ value:+(i.value*(1-f)).toFixed(2), cost:(i.cost!=null?+(i.cost*(1-f)).toFixed(2):i.cost) });
+          const o=Object.assign({},i,{ value:+(i.value*(1-f)).toFixed(2), cost:(i.cost!=null?+(i.cost*(1-f)).toFixed(2):i.cost), manualUpdatedAt:new Date().toISOString() });
           if(i.shares) o.shares=+(i.shares*(1-f)).toFixed(6);
           if(typeof i.costEur==="number") o.costEur=+(i.costEur*(1-f)).toFixed(2);
           return o;
@@ -12956,7 +12998,7 @@ function Investments({state, set, fetchPrices, pricing, syncInv, v4Embed, toolsM
   // conversores contables de arriba; duplicarlos aquí volvería a abrir la puerta a descuadres.
   const shownTotal=useCountUp(total,!!fullMode);
   const gainTotal=total-costTotal;
-  const lastPriceMs=(function(){ const n=new Date(state.lastPriceSync||0).getTime(); return isFinite(n)&&n>0?n:0; })();
+  const lastPriceMs=investmentStampMs(state.lastPriceSync);
   const stale=!!lastPriceMs && Date.now()-lastPriceMs>48*60*60*1000;
   useEffect(function(){
     const next=state.lastPriceSync||null;
@@ -12966,7 +13008,7 @@ function Investments({state, set, fetchPrices, pricing, syncInv, v4Embed, toolsM
       setRefreshError(false);
       const notices=notes.current.splice(0);
       if(showToast){
-        const time=new Date(next).toLocaleTimeString(loc(),{hour:"2-digit",minute:"2-digit"});
+        const time=new Date(next).toLocaleTimeString(loc(),{timeZone:MC_TZ,hour:"2-digit",minute:"2-digit"});
         showToast(notices.concat([tf("iv_refresh_ok",{time:time})]).join(" · "));
       }
     }
@@ -13061,8 +13103,8 @@ function Investments({state, set, fetchPrices, pricing, syncInv, v4Embed, toolsM
     if(showToast) showToast(t("iv_added"));
   };
   const manualLabel=function(it){
-    const ms=new Date(it.manualUpdatedAt||0).getTime();
-    return ms>0?tf("iv_manual_on",{date:new Date(ms).toLocaleDateString(loc(),{day:"2-digit",month:"short"})}):t("iv_manual");
+    const ms=investmentStampMs(it.manualUpdatedAt);
+    return ms?tf("iv_manual_on",{date:new Date(ms).toLocaleDateString(loc(),{timeZone:MC_TZ,day:"2-digit",month:"short"})}):t("iv_manual");
   };
   const beginBrokerEdit=function(gid){
     start();
@@ -13074,8 +13116,8 @@ function Investments({state, set, fetchPrices, pricing, syncInv, v4Embed, toolsM
   const saveBrokerEdit=function(){ save(); setEditBroker(null); };
 
   if(fullMode){
-    const lastTime=lastPriceMs?new Date(lastPriceMs).toLocaleTimeString(loc(),{hour:"2-digit",minute:"2-digit"}):t("iv_never");
-    const staleDay=lastPriceMs?new Date(lastPriceMs).toLocaleDateString(loc(),{weekday:"long"}):"—";
+    const lastTime=investmentDateText(lastPriceMs);
+    const staleDay=lastPriceMs?new Date(lastPriceMs).toLocaleDateString(loc(),{timeZone:MC_TZ,weekday:"long"}):"—";
     const heroBase=completeCost?Math.max(0,Math.min(costTotal,total)):Math.max(total,1);
     const heroGain=completeCost?Math.max(0,gainTotal):0;
     const heroSum=Math.max(1,heroBase+heroGain);
@@ -13099,12 +13141,12 @@ function Investments({state, set, fetchPrices, pricing, syncInv, v4Embed, toolsM
                 React.createElement("span",null,React.createElement("b",{style:{background:"var(--cream)"}}),tf("iv_put",{amount:f2(costTotal)})),
                 React.createElement("span",null,React.createElement("b",{style:{background:gainTotal>=0?"var(--mint)":"var(--coral)"}}),tf(gainTotal>=0?"iv_gained":"iv_lost",{amount:f2(Math.abs(gainTotal))}))),
               React.createElement("div",{style:{fontSize:13,fontWeight:750,color:gainTotal>=0?"var(--mint)":"var(--coral)",marginTop:10}},
-                tf("iv_percent",{pct:(plTotal>=0?"+":"")+plTotal.toFixed(2),time:lastTime})))
+                tf("iv_percent",{pct:(plTotal>=0?"+":"")+plTotal.toFixed(2)})))
           : React.createElement("div",{className:"hint",style:{marginTop:12}},
               state.investments.length>0 && React.createElement("div",{className:"v4-legend"},React.createElement("span",null,React.createElement("b",{style:{background:"var(--muted-2)"}}),t("iv_gain_unknown"))),
               !missingFx && React.createElement("div",null,costTotal>0?t("iv_missing_cost"):t("iv_no_put")),
-              state.investments.length>0 && React.createElement("div",{style:{marginTop:6}},tf("iv_updated",{time:lastTime})),
               state.investments.length>0&&!missingFx && React.createElement("button",{type:"button",className:"v4-link-mini","data-act":"inv-edit",style:{marginTop:8},onClick:function(){ beginBrokerEdit(missingCost&&missingCost.ent); }},t("iv_no_put_cta"))),
+        state.investments.length>0 && React.createElement("div",{className:"hint","data-inv-price-date":"1",style:{marginTop:6}},tf("iv_updated",{time:lastTime})),
         React.createElement("div",{className:"hint",style:{marginTop:10}},tf("iv_fx_note",{fx:fx>0?fx.toFixed(4):"—"}))),
 
       React.createElement("div",{className:"v4-sec-h",style:{display:"flex",alignItems:"center",justifyContent:"space-between",gap:10,marginTop:22}},
@@ -13150,13 +13192,15 @@ function Investments({state, set, fetchPrices, pricing, syncInv, v4Embed, toolsM
         const open=!!brokerOpen[gid];
         const isEditing=editing&&editBroker===gid;
         const panelId="iv_broker_"+gid;
+        const dataDate=investmentDataDate(state,gid);
         return React.createElement("div",{key:gid,className:"v4-card","data-inv-broker":gid,style:{padding:0,overflow:"hidden",borderColor:open?"var(--mint-deep)":"var(--line-soft)"}},
           React.createElement("button",{type:"button",className:"v4-mov",style:{margin:0,border:0,background:"transparent"},"aria-expanded":open,"aria-controls":panelId,
             onClick:function(){ setBrokerOpen(function(v){ return Object.assign({},v,{[gid]:!v[gid]}); }); }},
             React.createElement("div",{className:"tile",style:{background:"transparent",border:"none",padding:0}},React.createElement(Mono,{ent:gid,size:44})),
             React.createElement("div",{className:"nm"},
               React.createElement("div",null,g[1]),
-              React.createElement("div",{className:"meta"},tf("iv_positions",{n:items.length}),brokerMissing&&React.createElement("div",{className:"hint"},t("fx_unconverted")))),
+              React.createElement("div",{className:"meta"},tf("iv_positions",{n:items.length}),brokerMissing&&React.createElement("div",{className:"hint"},t("fx_unconverted"))),
+              React.createElement("div",{className:"meta","data-inv-data-date":gid},dataDate.ms?tf(dataDate.kind,{date:investmentDateText(dataDate.ms)}):t("iv_date_missing"))),
             React.createElement("div",{style:{textAlign:"right",flex:"0 0 auto"}},
               React.createElement("div",{className:"am num"},f0(o.v)),
               brokerCostComplete && React.createElement("div",{style:{fontSize:11,fontWeight:750,color:delta>=0?"var(--mint)":"var(--coral)"}},(delta>=0?"+":"")+f0(delta))),
@@ -13220,7 +13264,7 @@ function Investments({state, set, fetchPrices, pricing, syncInv, v4Embed, toolsM
     // (El hint «toca un bróker…» se retiró el 2026-07-18: ya estaba anticuado y ocupaba sitio.)
     !editing && hasTickers && !v4Embed && !toolsOnly && React.createElement("div",{className:"costtoggle",onClick:toggleAuto},
       React.createElement("span",{className:"cbx"+(autoOn?" on":"")}, autoOn?"✓":""),
-      React.createElement("span",null,t("inv_autoprices")+(state.lastPriceSync?tf("inv_lastprice",{d:new Date(state.lastPriceSync).toLocaleString(loc(),{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}):""))
+      React.createElement("span",null,t("inv_autoprices")+(state.lastPriceSync?tf("inv_lastprice",{d:investmentDateText(state.lastPriceSync)}):""))
     ),
     editing && !toolsOnly && React.createElement("div",{className:"costtoggle",onClick:()=>setShowCost(!showCost)},
       React.createElement("span",{className:"cbx"+(showCost?" on":"")}, showCost?"\u2713":""),

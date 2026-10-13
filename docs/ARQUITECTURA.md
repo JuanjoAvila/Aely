@@ -597,6 +597,18 @@ escribir `Access-Control-Allow-Origin: "*"`.
 - Inversiones abre como pantalla hija propia desde Cartera y solo actualiza precios cuando se pulsa
   su acción: no hay sincronización al montar. Auto precios y Proyección viven en Ajustes → Dinero;
   Redondeo y Saveback siguen en Cartera porque afectan al flujo diario, no a la valoración.
+- Candidato fechas por origen (13/10/2026): la pantalla hija separa `lastPriceSync` (cotizaciones
+  globales) de la última lectura aplicada de cada bróker (`lastTrSync` / `lastMiSync`). Las
+  tarjetas guardan la hora de la respuesta al confirmar la previsualización; cancelar o fallar no
+  la guarda. `lastRevolutImport` acredita la aplicación del CSV, no la fecha del extracto. El
+  último `manualUpdatedAt` del mismo bróker aparece como cambio manual si es más reciente.
+  No se afirma que todas sus posiciones tengan esa antigüedad: es la última acción de ese origen.
+  Sin sello válido se muestra «Fecha no disponible»; nunca se usa la fecha de precios, guardado
+  global ni hoy como respaldo. No cambia importes, transporte ni frecuencia de sincronización.
+  Día y hora usan `Europe/Madrid`: hoy/ayer con hora, dos a seis días relativos y después
+  fecha corta (año solo si difiere). Las tarjetas rechazan aplicar sin lectura válida.
+  `lastMiSync` conserva intencionadamente el freno automático de 30 minutos desde esa lectura,
+  también si se aplica desde la tarjeta. Ver el [acta](briefs/inversiones-fechas-origen.md).
 
 > **Apps Script / `GAS_URL`: archivado.** No reabrir.
 

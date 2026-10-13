@@ -2966,7 +2966,9 @@ Object.assign(LANG.ca,{
 Object.assign(LANG.es,{
   iv_see_all:"Ver todas tus inversiones", iv_title:"Tus inversiones", iv_now:"VALEN AHORA", iv_currency:"Moneda de visualización",
   iv_put:"Pusiste {amount}", iv_gained:"Han ganado {amount}", iv_lost:"Han perdido {amount}",
-  iv_percent:"{pct}% desde que empezaste · Actualizado {time}", iv_updated:"Actualizado {time}", iv_never:"sin actualizar",
+  iv_percent:"{pct}% desde que empezaste", iv_updated:"Cotizaciones: {time}",
+  iv_date_missing:"Fecha no disponible", iv_data_sync:"Datos: {date}", iv_data_import:"CSV: {date}", iv_data_manual:"Manual: {date}",
+  iv_date_today:"hoy a las {time}", iv_date_yesterday:"ayer a las {time}", iv_date_days:"hace {n} días",
   iv_no_put:"Dime lo que pusiste y te diré cuánto han ganado.", iv_no_put_cta:"Añadir lo que puse",
   iv_where:"Dónde lo tienes", iv_refresh:"↻ Actualizar inversiones", iv_refreshing:"Sincronizando brókers y precios…", iv_broker_none:"Sin brókers conectados",
   iv_refresh_ok:"✓ Precios actualizados · {time}", iv_refresh_fail:"No se pudieron actualizar los precios", iv_refresh_fail_sub:"Conservamos los últimos datos ({time}). Puedes volver a intentarlo.", iv_retry:"Reintentar",
@@ -2979,7 +2981,9 @@ Object.assign(LANG.es,{
 Object.assign(LANG.en,{
   iv_see_all:"See all your investments", iv_title:"Your investments", iv_now:"WORTH NOW", iv_currency:"Display currency",
   iv_put:"You put in {amount}", iv_gained:"They gained {amount}", iv_lost:"They lost {amount}",
-  iv_percent:"{pct}% since you started · Updated {time}", iv_updated:"Updated {time}", iv_never:"not updated yet",
+  iv_percent:"{pct}% since you started", iv_updated:"Quotes: {time}",
+  iv_date_missing:"Date unavailable", iv_data_sync:"Data: {date}", iv_data_import:"CSV: {date}", iv_data_manual:"Manual: {date}",
+  iv_date_today:"today at {time}", iv_date_yesterday:"yesterday at {time}", iv_date_days:"{n} days ago",
   iv_no_put:"Tell me what you put in and I'll show you how much they gained.", iv_no_put_cta:"Add what I put in",
   iv_where:"Where you keep them", iv_refresh:"↻ Update investments", iv_refreshing:"Syncing brokers and prices…", iv_broker_none:"No brokers connected",
   iv_refresh_ok:"✓ Prices updated · {time}", iv_refresh_fail:"Prices could not be updated", iv_refresh_fail_sub:"Your latest data is still here ({time}). You can try again.", iv_retry:"Try again",
@@ -2992,7 +2996,9 @@ Object.assign(LANG.en,{
 Object.assign(LANG.ca,{
   iv_see_all:"Veure totes les inversions", iv_title:"Les teves inversions", iv_now:"VALEN ARA", iv_currency:"Moneda de visualització",
   iv_put:"Hi vas posar {amount}", iv_gained:"Han guanyat {amount}", iv_lost:"Han perdut {amount}",
-  iv_percent:"{pct}% des que vas començar · Actualitzat {time}", iv_updated:"Actualitzat {time}", iv_never:"sense actualitzar",
+  iv_percent:"{pct}% des que vas començar", iv_updated:"Cotitzacions: {time}",
+  iv_date_missing:"Data no disponible", iv_data_sync:"Dades: {date}", iv_data_import:"CSV: {date}", iv_data_manual:"Manual: {date}",
+  iv_date_today:"avui a les {time}", iv_date_yesterday:"ahir a les {time}", iv_date_days:"fa {n} dies",
   iv_no_put:"Digues-me què hi vas posar i et diré quant han guanyat.", iv_no_put_cta:"Afegir el que hi vaig posar",
   iv_where:"On ho tens", iv_refresh:"↻ Actualitzar inversions", iv_refreshing:"Sincronitzant bròkers i preus…", iv_broker_none:"Sense bròkers connectats",
   iv_refresh_ok:"✓ Preus actualitzats · {time}", iv_refresh_fail:"No s'han pogut actualitzar els preus", iv_refresh_fail_sub:"Conservem les últimes dades ({time}). Ho pots tornar a provar.", iv_retry:"Torna-ho a provar",
