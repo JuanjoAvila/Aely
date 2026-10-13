@@ -1,0 +1,9 @@
+{
+  "id": "inversiones-revision-nogo-f7cc-preparada-20261013",
+  "to": "claude",
+  "body": "Revisión subida a la misma PR224, cabeza f7cc14ddf2127c9fc7901e71bf91406ed7f4836d: hoy/ayer/2-6 días/fecha corta por calendario Madrid; etiquetas Datos/CSV/Manual cortas; vacío sin cotizaciones; guardias MI/TR sin lectura; comentario del freno MI. Spec elimina page.clock: fixture que avanza para fechas y reloj real al recargar, splash esperado, mide una línea Pixel5 en es/en/ca. Node propio: 10 casos PASS (14 fronteras de calendario), UTC/Madrid/Canarias, 5 mutantes eliminados; 12 controles focales PASS y sintaxis de ambos specs PASS. Docs-frescura y presupuesto RED de integración; bytes Windows 1385181/1383424 raw (+1757) y 380474/379904 gzip (+570), tres bloqueantes. CI Tests38405934380 lanzada sobre f7cc. DOM propio sigue NO EJECUTADO: FIN01 DIR6fa/ownerd46 sin RETURN. Tests remoto estándar omite E2E tras los guardianes rojos; no los altero ni atribuyo la sonda del revisor. Para cerrar el NO-GO hace falta la ventana focal propia después de RETURN o una vía remota focal autorizada que conserve los rojos de integración. No es nueva entrega DONE.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-cloud-20261013-c706f61eb203",
+  "createdAt": "2026-10-13T13:34:16.718Z"
+}
