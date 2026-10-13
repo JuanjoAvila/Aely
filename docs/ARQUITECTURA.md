@@ -545,7 +545,12 @@ movimientos se leen desde cada `accounts[].transactions`; el bloque superior es 
 retrocompatible de la primera cuenta y no se suma dos veces.
 
 Un fallo pasajero no equivale a un permiso caducado. Open Banking solo pone el enlace en
-`expired` ante un `EB 401` firme; 403/404, límites 429, 5xx y timeouts conservan el enlace activo.
+`expired` ante un código de sesión terminada de Enable Banking (`EXPIRED_SESSION`,
+`CLOSED_SESSION`, `REVOKED_SESSION`; ver `ebFailure`). Cualquier otro 401 es un fallo de la
+aplicación frente al proveedor: conserva el enlace y queda en `app_events` con su código.
+403/404, límites 429, 5xx y timeouts también lo conservan. MyInvestor sigue la misma idea
+(`miReadWithRefresh`): solo el refresco rechazado con 400/401 deja `expired`; un 403/429/5xx,
+una respuesta sin token o la red caída responden `softFail` y no tocan el enlace.
 Trade Republic guarda aparte `_trAuthExpired`: que el puente arranque todavía sin sesión visible
 no enciende el aviso de reconexión. Al sincronizar a mano se intenta primero reutilizar y validar
 la sesión guardada, y solo una respuesta explícita `authExpired` pide volver a iniciar sesión.

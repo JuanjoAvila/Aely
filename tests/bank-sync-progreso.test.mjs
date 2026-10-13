@@ -126,11 +126,11 @@ async function pulsa(db, bank, { body = { recoverGaps: true }, fail = null, afte
     if (after) after(call, page);
     return page;
   };
-  const names = ["Deno", "createClient", "ebApi", "ebConfig", "jsonResp", "makeJWT", "mapTransaction", "withCors", "fetchBankTransactions", "Date"];
+  const names = ["Deno", "createClient", "ebApi", "ebConfig", "jsonResp", "makeJWT", "mapTransaction", "withCors", "fetchBankTransactions", "Date", "ebFailure"];
   new Function(...names, src)(
     { serve: (f) => { handler = f; }, env: { get: () => "synthetic" } }, () => db.client, api, () => ({}),
     (x, status = 200) => new Response(JSON.stringify(x), { status }), async () => "jwt", E.mapTransaction, (f) => f,
-    E.fetchBankTransactions, clock.FakeDate
+    E.fetchBankTransactions, clock.FakeDate, E.ebFailure
   );
   const res = await handler(new Request("https://app.invalid", { method: "POST", body: JSON.stringify(body) }));
   assert.equal(res.status, 200);

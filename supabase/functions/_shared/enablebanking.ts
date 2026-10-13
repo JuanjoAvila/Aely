@@ -85,6 +85,25 @@ export async function ebApi(jwt: string, path: string, init: { method?: string; 
   return data;
 }
 
+/* Qué dice un fallo de `ebApi` sobre el permiso del usuario. Un 401 NO basta: Enable Banking
+   lo devuelve también con errores de la aplicación (`AUTHORIZATION_NOT_PROVIDED`,
+   `UNAUTHORIZED_ACCESS`), y tratarlos como caducidad obligaba a reautorizar el banco por un
+   fallo que no era del consentimiento (queja del 12/10: «tengo que volver a identificarme casi
+   cada día»). Su FAQ pide decidir por el código de error y no por el HTTP:
+   https://enablebanking.com/docs/faq/#why-does-the-api-return-expired-session-when-the-session-has-valid-until-in-the-future
+   Los tres códigos son los que su referencia (`ErrorCode`) describe como sesión terminada:
+   caducada, cerrada por la aplicación o revocada por el usuario. En los tres la única salida
+   es una autorización nueva. Un 401 sin código, o con cualquier otro, es un error técnico. */
+const EB_SESSION_ENDED = ["EXPIRED_SESSION", "CLOSED_SESSION", "REVOKED_SESSION"];
+
+export function ebFailure(err: unknown): { status: number; code: string; sessionEnded: boolean } {
+  const m = String((err as Error)?.message || err || "").match(/\bEB\s+(\d{3})(?:\s+([A-Za-z0-9_.-]+))?/);
+  // Solo identificadores con la forma del enum del proveedor (PALABRAS_EN_MAYÚSCULAS, sin
+  // cifras): este código acaba en `app_events` y un IBAN también es «mayúsculas y números».
+  const code = m && /^[A-Z]+(?:_[A-Z]+)+$/.test(m[2] || "") && m[2].length <= 60 ? m[2] : "";
+  return { status: m ? Number(m[1]) : 0, code, sessionEnded: EB_SESSION_ENDED.includes(code) };
+}
+
 // Una página vacía NO significa que no haya movimientos: el proveedor puede seguir buscando
 // y devolver continuation_key. Mismo contrato para sync diario e histórico (15/9/2026).
 // https://enablebanking.com/docs/faq/

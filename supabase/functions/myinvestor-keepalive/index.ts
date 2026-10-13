@@ -11,7 +11,7 @@
 // ============================================================
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { CORS, jsonResp, MI_BASE, miHeaders } from "../_shared/myinvestor.ts";
+import { CORS, jsonResp, MI_BASE, miHeaders, miRefreshOutcome } from "../_shared/myinvestor.ts";
 import { miTokensFromRow, miTokensToRow } from "../_shared/token_store.ts";
 import { timingSafeEqual } from "../_shared/entrada.ts";
 
@@ -39,7 +39,9 @@ Deno.serve(async (req) => {
         // deno-lint-ignore no-explicit-any
         let j: any = null; try { j = JSON.parse(t); } catch { /* deja null */ }
         const d = (j && j.payload && j.payload.data) || {};
-        if ((r.status === 200 || r.status === 201) && d.accessToken) {
+        // La misma regla que usa el sync al refrescar: ver `miRefreshOutcome`.
+        const outcome = miRefreshOutcome(r.status, d);
+        if (outcome === "ok") {
           const refreshSecs = Number(d.refreshExpiresIn || 0);
           const enc = await miTokensToRow(d.accessToken, d.refreshToken || tokens.refresh);
           await admin.from("myinvestor_links").update({
@@ -49,7 +51,7 @@ Deno.serve(async (req) => {
             status: "active", updated_at: new Date().toISOString(),
           }).eq("user_id", link.user_id);
           refreshed++;
-        } else if (r.status === 400 || r.status === 401) {
+        } else if (outcome === "rejected") {
           // Solo 400/401 = refresh muerto de verdad. Un 403 (bot/rate-limit) NO caduca el enlace:
           // antes pedía captcha/OTP al abrir la app (feedback 2026-07-17).
           await admin.from("myinvestor_links").update({ status: "expired", updated_at: new Date().toISOString() }).eq("user_id", link.user_id);

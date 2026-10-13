@@ -42,6 +42,56 @@ export function miHeaders(deviceId: string, token?: string): Record<string, stri
   return h;
 }
 
+/* Qué significa la respuesta de POST /login/api/v1/auth/token/refresh. Es UNA regla para el
+   keepalive y para el sync: el keepalive ya la tenía (feedback 2026-07-17) y el sync no, así
+   que tras un 401 del acceso cualquier refresco fallido —un 403 anti-bot, un 429, un 503, un
+   200 sin token— dejaba el enlace en `expired`, el keepalive dejaba de renovarlo y había que
+   volver a meter la contraseña (queja del 12/10: «casi cada día»).
+   Solo 400/401 es el refresco rechazado. No se mira el cuerpo: en el repo no consta qué
+   devuelve MyInvestor al rechazarlo, y exigir una forma inventada escondería caducidades
+   reales. `data` es `payload.data` de la respuesta. */
+export type MiRefreshOutcome = "ok" | "rejected" | "temporary";
+
+// deno-lint-ignore no-explicit-any
+export function miRefreshOutcome(status: number, data: any): MiRefreshOutcome {
+  if ((status === 200 || status === 201) && data && data.accessToken) return "ok";
+  if (status === 400 || status === 401) return "rejected";
+  return "temporary";
+}
+
+/* Lectura autenticada con UN intento de refresco tras un 401 del acceso. Vive aquí, fuera del
+   handler, para poder probarla con dobles de `get` y `refresh`.
+   - `expired`: el refresco fue rechazado (o no hay token de refresco con el que renovar).
+     Es el único desenlace que obliga a identificarse otra vez.
+   - `temporary`: no se pudo saber. El enlace y lo último leído se quedan como están y el
+     usuario reintenta. Incluye el 401 que persiste DESPUÉS de un refresco aceptado: si
+     MyInvestor acaba de dar tokens nuevos la sesión está viva, y pedir la contraseña no
+     arreglaría nada que esos tokens no arreglen.
+   - `http`: respondió con un estado que no es ni 200 ni 401; decide quien llama.
+   `status: 0` en el refresco o `network` en el código = la petición no llegó a responder. */
+export type MiRead<T> =
+  | { kind: "ok"; res: T }
+  | { kind: "expired" }
+  | { kind: "temporary"; code: string }
+  | { kind: "http"; status: number };
+
+export async function miReadWithRefresh<T extends { status: number }>(
+  get: () => Promise<T>,
+  refresh: () => Promise<{ outcome: MiRefreshOutcome; status: number }>,
+): Promise<MiRead<T>> {
+  let res: T;
+  try { res = await get(); } catch { return { kind: "temporary", code: "access_network" }; }
+  if (res.status === 401) {
+    const r = await refresh();
+    if (r.outcome === "rejected") return { kind: "expired" };
+    if (r.outcome === "temporary") return { kind: "temporary", code: "refresh_" + (r.status || "network") };
+    try { res = await get(); } catch { return { kind: "temporary", code: "access_network" }; }
+    if (res.status === 401) return { kind: "temporary", code: "access_401_after_refresh" };
+  }
+  if (res.status !== 200) return { kind: "http", status: res.status };
+  return { kind: "ok", res };
+}
+
 // deno-lint-ignore no-explicit-any
 export function miPositionsFrom(detail: any): any[] {
   // detail = payload.data de GET /cperf-server/api/v2/securities-accounts/{id}

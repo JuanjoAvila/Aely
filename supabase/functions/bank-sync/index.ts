@@ -7,7 +7,7 @@
 // ============================================================
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { ebApi, ebConfig, jsonResp, makeJWT, mapTransaction, fetchBankTransactions } from "../_shared/enablebanking.ts";
+import { ebApi, ebConfig, ebFailure, jsonResp, makeJWT, mapTransaction, fetchBankTransactions } from "../_shared/enablebanking.ts";
 import { withCors } from "../_shared/cors.ts";
 import { OB_DEMAND_MAX_PAGES, ackCursor, ackLinkKey, ackToken, chunkCursor, demandFloor, demandPlan, demandReadComplete, nextChunkDays, ymdAddDays, ymdSpan } from "./demand-window.ts";
 
@@ -42,6 +42,21 @@ async function logObReadFailure(admin: any, userId: string, aspsp: string, err: 
       user_id: userId, email: null, kind: "error",
       message: `OB histórico (${obLogBank(aspsp)}): lectura no disponible`,
       detail: JSON.stringify({ code: obReadFailureCode(err) }),
+      app_version: "edge", platform: "server",
+    });
+  } catch (_) { /* diagnóstico best-effort: nunca cambia el resultado bancario */ }
+}
+
+/* Un 401 que NO cierra la sesión (ver `ebFailure`) deja el enlace como estaba, pero tiene que
+   quedar apuntado con su código: es un fallo de la aplicación frente al proveedor (clave,
+   cabecera, IP) y, sin rastro, desde fuera solo se vería «el banco no actualiza». */
+// deno-lint-ignore no-explicit-any
+async function logObAuthFailure(admin: any, userId: string, aspsp: string, err: unknown) {
+  try {
+    await admin.from("app_events").insert({
+      user_id: userId, email: null, kind: "error",
+      message: `OB sync (${obLogBank(aspsp)}): 401 sin cierre de sesión`,
+      detail: JSON.stringify({ code: obReadFailureCode(err), error: ebFailure(err).code }),
       app_version: "edge", platform: "server",
     });
   } catch (_) { /* diagnóstico best-effort: nunca cambia el resultado bancario */ }
@@ -289,16 +304,17 @@ Deno.serve(withCors(async (req: Request) => {
           // Solo cuenta como caducado el código inequívoco del proveedor. Buscar palabras como
           // "unauthorized" dentro de un 429/5xx podía convertir un bloqueo temporal en una
           // reconexión manual y dejar el enlace muerto para siempre hasta hacer OAuth otra vez.
-          if (/\bEB\s+401\b/i.test(msg)) {
-            anyExpired = true;
-          }
+          // Y el 401 a secas tampoco vale (12/10): lo decide el código, ver `ebFailure`.
+          const fail = ebFailure(err);
+          if (fail.sessionEnded) anyExpired = true;
+          else if (fail.status === 401) await logObAuthFailure(admin, user.id, link.aspsp_name, err);
           lastErr = msg;
           acctOut.push({ uid, iban: ac.iban || null, name: ac.name || null, currency: ac.currency || null, ok: false, error: msg, balances: [], count: 0, transactions: [] });
         } finally {
           clearTimeout(balTimer);
         }
       }
-      // Solo EB 401 firme caduca el permiso; 403/404/429/5xx conservan el enlace activo.
+      // Solo un código de sesión terminada caduca el permiso; el resto conserva el enlace activo.
       /* last_sync es del ENLACE y dice hasta dónde está leído en TODAS sus cuentas. Sin tramo
          pendiente sube a «ahora» en cuanto todas respondieron. Con una cuenta caída o un
          error a media paginación no sube (ese trozo quedaría fuera de la próxima petición),

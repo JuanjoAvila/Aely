@@ -1,5 +1,5 @@
 import { assertEquals, assertRejects } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { ebApi, mapTransaction } from "./enablebanking.ts";
+import { ebApi, ebFailure, mapTransaction } from "./enablebanking.ts";
 
 /* Convención del cliente: amount POSITIVO = gasto, NEGATIVO = ingreso.
    Fija por escrito en tests/ob-ingresos.test.mjs — aquí se fija el otro extremo: cómo se
@@ -71,4 +71,47 @@ Deno.test("ebApi: una respuesta de texto no sale en la excepción", async () => 
   } finally {
     globalThis.fetch = oldFetch;
   }
+});
+
+/* Queja del 12/10: reautorizar el banco casi a diario. bank-sync caducaba el enlace con
+   cualquier 401, y Enable Banking responde 401 también a errores de la aplicación. Cada caso
+   pasa por `ebApi` con el cuerpo que documenta su referencia (`code` numérico + `error`), para
+   que el clasificador se pruebe contra el mensaje que de verdad recibe. */
+async function fallo(status: number, body: unknown) {
+  const oldFetch = globalThis.fetch;
+  globalThis.fetch = () => Promise.resolve(new Response(typeof body === "string" ? body : JSON.stringify(body), { status }));
+  try {
+    return ebFailure(await assertRejects(() => ebApi("jwt", "/accounts/x/balances"), Error));
+  } finally {
+    globalThis.fetch = oldFetch;
+  }
+}
+
+Deno.test("ebFailure: solo los códigos de sesión terminada piden autorizar otra vez", async () => {
+  for (const code of ["EXPIRED_SESSION", "CLOSED_SESSION", "REVOKED_SESSION"]) {
+    assertEquals(await fallo(401, { code: 401, error: code, message: "x" }), { status: 401, code, sessionEnded: true });
+  }
+});
+
+Deno.test("ebFailure: un 401 de la aplicación no es la sesión del usuario", async () => {
+  for (const code of ["AUTHORIZATION_NOT_PROVIDED", "UNAUTHORIZED_ACCESS"]) {
+    assertEquals(await fallo(401, { code: 401, error: code, message: "x" }), { status: 401, code, sessionEnded: false });
+  }
+  // Sin código no se puede afirmar que la sesión terminó.
+  assertEquals(await fallo(401, { code: 401, message: "Unauthorized" }), { status: 401, code: "", sessionEnded: false });
+  assertEquals(await fallo(401, "Unauthorized"), { status: 401, code: "", sessionEnded: false });
+});
+
+Deno.test("ebFailure: bloqueos y caídas conservan su estado y nunca caducan", async () => {
+  assertEquals(await fallo(429, { code: 429, error: "ASPSP_RATE_LIMIT_EXCEEDED" }), { status: 429, code: "ASPSP_RATE_LIMIT_EXCEEDED", sessionEnded: false });
+  assertEquals(await fallo(503, "caído"), { status: 503, code: "", sessionEnded: false });
+  assertEquals(ebFailure(new Error("transactions_timeout")), { status: 0, code: "", sessionEnded: false });
+});
+
+Deno.test("ebFailure: el código que sale al diagnóstico tiene forma de identificador del proveedor", () => {
+  // Texto libre pegado al estado (un fallo antiguo lo traía) no debe acabar en app_events.
+  assertEquals(ebFailure(new Error("EB 401 titular-privado")).code, "");
+  assertEquals(ebFailure(new Error("EB 401: unauthorized")).code, "");
+  // Un IBAN también es «mayúsculas y números»: el enum del proveedor no lleva cifras.
+  assertEquals(ebFailure(new Error("EB 401 ES0000000000000000000000")).code, "");
 });

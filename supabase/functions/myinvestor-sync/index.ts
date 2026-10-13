@@ -7,12 +7,13 @@
 //   GET /cperf-server/api/v2/securities-accounts/{id}         → detalle con securitiesAccountInvestments
 //
 // Si el access token está caducado (401), renueva con el refresh (201, misma forma). Si el
-// refresh también falla → marca el enlace 'expired' y pide reconectar. NO escribe posiciones
+// refresh es RECHAZADO (400/401) → marca el enlace 'expired' y pide reconectar; si solo falla
+// de paso (403/429/5xx/red) el enlace se queda como está. NO escribe posiciones
 // en la nube: las devuelve para que la app re-ancle con previsualización (como Trade Republic).
 // ============================================================
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { jsonResp, MI_BASE, miHeaders, miPositionsFrom } from "../_shared/myinvestor.ts";
+import { jsonResp, MI_BASE, miHeaders, miPositionsFrom, miReadWithRefresh, miRefreshOutcome, type MiRefreshOutcome } from "../_shared/myinvestor.ts";
 import { miTokensFromRow, miTokensToRow, ensureMiLinkEncrypted } from "../_shared/token_store.ts";
 import { withCors } from "../_shared/cors.ts";
 
@@ -42,17 +43,22 @@ Deno.serve(withCors(async (req: Request) => {
       let j: unknown = null; try { j = JSON.parse(t); } catch { /* deja null */ }
       return { status: r.status, json: j };
     };
-    const refresh = async (): Promise<boolean> => {
-      if (!refreshPlain) return false;
-      const r = await fetch(MI_BASE + "/login/api/v1/auth/token/refresh", {
-        method: "POST", headers: miHeaders(deviceId),
-        body: JSON.stringify({ refreshToken: refreshPlain }),
-      });
-      const t = await r.text();
+    const refresh = async (): Promise<{ outcome: MiRefreshOutcome; status: number }> => {
+      // Sin token de refresco no hay con qué renovar: solo queda identificarse otra vez.
+      if (!refreshPlain) return { outcome: "rejected", status: 0 };
+      let r: Response, t: string;
+      try {
+        r = await fetch(MI_BASE + "/login/api/v1/auth/token/refresh", {
+          method: "POST", headers: miHeaders(deviceId),
+          body: JSON.stringify({ refreshToken: refreshPlain }),
+        });
+        t = await r.text();
+      } catch { return { outcome: "temporary", status: 0 }; }
       // deno-lint-ignore no-explicit-any
       let j: any = null; try { j = JSON.parse(t); } catch { /* */ }
       const d = (j && j.payload && j.payload.data) || {};
-      if ((r.status === 200 || r.status === 201) && d.accessToken) {
+      const outcome = miRefreshOutcome(r.status, d);
+      if (outcome === "ok") {
         token = d.accessToken;
         refreshPlain = d.refreshToken || refreshPlain;
         const refreshSecs = Number(d.refreshExpiresIn || 0);
@@ -63,25 +69,28 @@ Deno.serve(withCors(async (req: Request) => {
           refresh_expires_at: refreshSecs > 0 ? new Date(Date.now() + refreshSecs * 1000).toISOString() : link.refresh_expires_at,
           status: "active", updated_at: new Date().toISOString(),
         }).eq("user_id", user.id);
-        return true;
       }
-      return false;
+      return { outcome, status: r.status };
     };
 
-    // 1) lista de cuentas de valores (con auto-refresh si 401)
-    let acc = await apiGet("/cperf-server/api/v2/securities-accounts/self-basic");
-    if (acc.status === 401) {
-      if (await refresh()) acc = await apiGet("/cperf-server/api/v2/securities-accounts/self-basic");
-    }
-    // 403 = a menudo anti-bot/rate-limit, NO sesión muerta → no marcamos expired (captcha loop).
-    if (acc.status === 401) {
+    // 1) lista de cuentas de valores (con auto-refresh si 401). Solo el refresco RECHAZADO
+    // marca `expired`; un fallo pasajero no toca el enlace (ver `miReadWithRefresh`).
+    const read = await miReadWithRefresh(() => apiGet("/cperf-server/api/v2/securities-accounts/self-basic"), refresh);
+    if (read.kind === "expired") {
       await admin.from("myinvestor_links").update({ status: "expired", updated_at: new Date().toISOString() }).eq("user_id", user.id);
       return jsonResp({ ok: false, authExpired: true, error: "Tu sesión de MyInvestor caducó. Vuelve a conectar." });
     }
-    if (acc.status === 403) {
+    // `softFail` es el contrato que el cliente ya entiende como «reintenta, no pidas contraseña».
+    // `code` es una clase cerrada para soporte; nunca el cuerpo de MyInvestor.
+    if (read.kind === "temporary") {
+      return jsonResp({ ok: false, softFail: true, code: read.code, error: "MyInvestor no responde bien ahora. Prueba más tarde — tu sesión sigue guardada." });
+    }
+    // 403 = a menudo anti-bot/rate-limit, NO sesión muerta → no marcamos expired (captcha loop).
+    if (read.kind === "http" && read.status === 403) {
       return jsonResp({ ok: false, softFail: true, error: "MyInvestor no deja pasar ahora (anti-bot). Prueba más tarde — tu sesión sigue guardada." });
     }
-    if (acc.status !== 200) return jsonResp({ ok: false, error: "MyInvestor HTTP " + acc.status });
+    if (read.kind === "http") return jsonResp({ ok: false, error: "MyInvestor HTTP " + read.status });
+    const acc = read.res;
 
     // deno-lint-ignore no-explicit-any
     const list: any[] = ((acc.json as any)?.payload?.data) || [];

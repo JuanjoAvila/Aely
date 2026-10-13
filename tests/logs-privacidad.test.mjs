@@ -76,6 +76,15 @@ await t("bank-sync Edge: loggers no envían banco libre; conservan clase y recue
  await f.logObDemandResult(db,"synthetic-user",sensitive,"2026-09-01","ok",1,2,3,false,false,true);clean(rows);assert.equal(rows.length,3);assert.equal(rows[2].message,"OB sync (banco): ok");assert.equal(rows[2].email,null);
  assert.deepEqual(JSON.parse(rows[2].detail),{status:"ok",accounts:1,count:2,pages:3,truncated:false,dateFrom:"2026-09-01",capped:false,pending:true});
 });
+await t("bank-sync Edge: el 401 sin cierre de sesión solo apunta un código con forma de enum",async()=>{
+ // Cuarta inserción (13/10). El texto pegado al estado puede ser cualquier cosa, también un IBAN.
+ const rows=[];const src=read("supabase/functions/bank-sync/index.ts");const E=await import("data:text/javascript;base64,"+Buffer.from(transformSync(read("supabase/functions/_shared/enablebanking.ts"),{loader:"ts",format:"esm"}).code).toString("base64"));
+ const f=new Function("ebFailure",ts(src.slice(0,src.indexOf("Deno.serve")))+";return {logObAuthFailure};")(E.ebFailure);const db={from:()=>({insert:async x=>{rows.push(x);}})};
+ for(const marker of markers)await f.logObAuthFailure(db,"synthetic-user",sensitive,new Error("EB 401 "+marker));
+ await f.logObAuthFailure(db,"synthetic-user","Revolut",new Error("EB 401 UNAUTHORIZED_ACCESS"));clean(rows);assert.equal(rows.length,markers.length+1);
+ assert.deepEqual(JSON.parse(rows[0].detail),{code:"eb_401",error:""});assert.equal(rows[0].message,"OB sync (banco): 401 sin cierre de sesión");
+ assert.deepEqual(JSON.parse(rows.at(-1).detail),{code:"eb_401",error:"UNAUTHORIZED_ACCESS"});assert.equal(rows.at(-1).email,null);
+});
 await t("ingest Edge: code DB arbitrario y currency/source no salen a app_events",async()=>{
  const rows=[];const src=read("supabase/functions/ingest/index.ts");const f=new Function("Deno",ts(src.slice(src.indexOf("async function logIngestError")))+";return {logIngestError,logIngestSkip};")({env:{get:()=>null}});const db={from:()=>({insert:async x=>{rows.push(x);}})};
  await f.logIngestError(db,"synthetic-user","no se pudo guardar el gasto",{code:sensitive,source:"wallet"});await f.logIngestError(db,"synthetic-user","sin tipo de cambio para "+sensitive+": el gasto NO se ha apuntado",{currency:sensitive});await f.logIngestSkip(db,"synthetic-user","sin importe","wallet",12,2);clean(rows);assert.equal(rows.length,3);
@@ -98,7 +107,7 @@ await t("SDK Sentry instalado: sobre final capturado con transporte en memoria",
  S.setUser({email:markers[1],id:sensitive,segment:sensitive});S.getCurrentScope().setTransactionName(sensitive);S.setContext("bank",{note:sensitive});S.setExtra("note",sensitive);S.setTag("token",sensitive);S.addBreadcrumb({message:sensitive});S.captureException(error());await S.flush(2000);assert.equal(envelopes.length,1);clean(envelopes);const ev=envelopes[0][1].find(([header])=>header.type==="event")[1];assert.ok(ev.exception.values.length);assert.equal(ev.user,undefined);await S.close(2000);
 });
 await t("inventario de destinos completo: toda nueva ruta obliga a actualizar la matriz",()=>{
- const inventory={"src/modules/00-core.js":[4,2,0],"src/modules/01-i18n.js":[0,0,1],"src/modules/10-app-components.js":[0,0,2],"supabase/functions/bank-sync/index.ts":[3,0,0],"supabase/functions/bank-callback/index.ts":[1,0,1],"supabase/functions/ingest/index.ts":[2,0,0],"supabase/functions/_shared/ratelimit.ts":[0,0,2]};
+ const inventory={"src/modules/00-core.js":[4,2,0],"src/modules/01-i18n.js":[0,0,1],"src/modules/10-app-components.js":[0,0,2],"supabase/functions/bank-sync/index.ts":[4,0,0],"supabase/functions/bank-callback/index.ts":[1,0,1],"supabase/functions/ingest/index.ts":[2,0,0],"supabase/functions/_shared/ratelimit.ts":[0,0,2]};
  const found={};for(const dir of ["src/modules","supabase/functions"]){for(const file of fs.readdirSync(new URL("../"+dir,import.meta.url),{recursive:true})){if(!/\.(?:js|ts)$/.test(file)||file.endsWith(".test.ts"))continue;const path=dir+"/"+file.replaceAll("\\","/");const src=read(path);const counts=[(src.match(/\.from\(["']app_events["']\)/g)||[]).length,(src.match(/Sentry\.captureException\(/g)||[]).length,(src.match(/console\.(?:log|warn|error|info)\(/g)||[]).length];if(counts.some(Boolean))found[path]=counts;}}
  assert.deepEqual(found,inventory);
 });

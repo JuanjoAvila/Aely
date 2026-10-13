@@ -29,14 +29,14 @@ async function sync(links, reply, body={}, clock=null) {
     select:()=>({eq:()=>({in:async()=>({data:links})})}),
     update:x=>{const q={eq:()=>q,lt:()=>q,then:(ok,ko)=>{writes.push(x);return Promise.resolve({}).then(ok,ko);}};return q;},insert:async x=>{events.push(x);return {};}
   })};
-  const names=["Deno","createClient","ebApi","ebConfig","jsonResp","makeJWT","mapTransaction","withCors","fetchBankTransactions","Date"];
+  const names=["Deno","createClient","ebApi","ebConfig","jsonResp","makeJWT","mapTransaction","withCors","fetchBankTransactions","Date","ebFailure"];
   new Function(...names,src)(
     {serve:f=>{handler=f;},env:{get:()=>"synthetic"}},()=>db,api,()=>({}),
     (x,status=200)=>new Response(JSON.stringify(x),{status}),async()=>"jwt",E.mapTransaction,f=>f,
     (jwt,uid,from,apiFn,timeout,preferLongest,maxPages,dateTo)=>{
       budgets.push({uid,timeout});
       return E.fetchBankTransactions(jwt,uid,from,apiFn,timeout,preferLongest,maxPages,dateTo);
-    },clock||Date
+    },clock||Date,E.ebFailure
   );
   const res=await handler(new Request("https://app.invalid",{method:"POST",body:JSON.stringify(body)}));
   assert.equal(res.status,200);
@@ -165,17 +165,36 @@ await t("el filtro del cliente consulta solo los bancos elegidos",async()=>{
   assert.equal(r.data.links[0].aspsp,"CaixaBank");
   assert.ok(r.calls.every(p=>p.includes("CaixaBank")));
 });
-await t("solo un EB 401 firme caduca el enlace; 403/404/429 lo conservan",async()=>{
+await t("solo un código de sesión terminada caduca el enlace; 403/404/429 lo conservan",async()=>{
   for(const status of [403,404,429,503]){
     const reply=()=>({transactions:[]}); reply.balanceError=`EB ${status}: unauthorized temporal`;
     const r=await sync([link("CaixaBank")],reply);
     assert.equal(r.data.links[0].expired,false,"EB "+status+" no debe pedir OAuth");
     assert.equal(r.writes.at(-1).status,"active","EB "+status+" conserva el enlace");
   }
-  const reply401=()=>({transactions:[]}); reply401.balanceError="EB 401: unauthorized";
-  const r401=await sync([link("CaixaBank")],reply401);
-  assert.equal(r401.data.links[0].expired,true);
-  assert.equal(r401.writes.at(-1).status,"expired");
+  // Los mensajes llevan la forma exacta que construye `ebApi`: «EB <http> <código>».
+  for(const code of ["EXPIRED_SESSION","CLOSED_SESSION","REVOKED_SESSION"]){
+    const reply=()=>({transactions:[]}); reply.balanceError="EB 401 "+code;
+    const r=await sync([link("CaixaBank")],reply);
+    assert.equal(r.data.links[0].expired,true,code+" pide autorizar otra vez");
+    assert.equal(r.writes.at(-1).status,"expired");
+    assert.equal(r.events.filter(e=>e.kind==="error").length,0,"una caducidad real no es un error técnico");
+  }
+});
+await t("un 401 que no cierra la sesión no caduca el banco y queda apuntado con su código",async()=>{
+  // Queja del 12/10: reautorizar el banco casi a diario. Enable Banking responde 401 también
+  // a fallos de la aplicación, y cualquier 401 marcaba el enlace caducado hasta nuevo OAuth.
+  for(const [msg,code] of [["EB 401 AUTHORIZATION_NOT_PROVIDED","AUTHORIZATION_NOT_PROVIDED"],["EB 401 UNAUTHORIZED_ACCESS","UNAUTHORIZED_ACCESS"],["EB 401",""],["EB 401: unauthorized",""]]){
+    const reply=()=>({transactions:[]}); reply.balanceError=msg;
+    const r=await sync([link("Revolut")],reply);
+    assert.equal(r.data.links[0].ok,false,msg+" sigue siendo un fallo de lectura");
+    assert.equal(r.data.links[0].expired,false,msg+" no debe pedir OAuth");
+    assert.equal(r.writes.at(-1).status,"active",msg+" conserva el enlace");
+    const logged=r.events.filter(e=>e.kind==="error");
+    assert.equal(logged.length,1,msg+" deja un rastro");
+    assert.equal(logged[0].message,"OB sync (Revolut): 401 sin cierre de sesión");
+    assert.deepEqual(JSON.parse(logged[0].detail),{code:"eb_401",error:code});
+  }
 });
 await t("una Caixa con dos cuentas no recibe siete segundos por cuenta",async()=>{
   let now=Date.now(), first=true;
