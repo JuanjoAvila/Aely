@@ -1,0 +1,242 @@
+{
+  "status": "done",
+  "summary": "Candidata PR228 entregada para revision: emparejado exacto reversible, migracion y carrera concurrente corregida. CI terminal con cinco rojos de identidad/catalogo/version/tamano de integracion; DOM sin ejecutar. No publicacion ni aceptacion de producto.",
+  "productSHA": "2ff4c59ed6cd0a3c436efda2f2c0a7fc40925fdb",
+  "pullRequest": 228,
+  "branch": "codex/tr-emparejado-automatico-20261013",
+  "executionBaseSHA": "f5904735b514751ee926d25c22c92195b6ce3653",
+  "dependencySourceSHA": "24bfb4e5dd2e6dea00425952d3f8bec70d063146",
+  "dependencyRebasedSHA": "07383d4ada567f9dde03e3c927fe7969350ddd3c",
+  "tests": [
+    {
+      "command": "node tests/tr-emparejado-automatico.test.mjs",
+      "exitCode": 0,
+      "evidence": "22 casos; 21 en cada zona UTC, Madrid y Canarias; 9 mutantes muertos"
+    },
+    {
+      "command": "node tests/ob-iguales-ordinal.test.mjs",
+      "exitCode": 0,
+      "evidence": "38 casos"
+    },
+    {
+      "command": "node tests/recibos-bajas-y-union.test.mjs",
+      "exitCode": 0,
+      "evidence": "13 casos"
+    },
+    {
+      "command": "node tests/pull-historico-entero.test.mjs",
+      "exitCode": 0,
+      "evidence": "17 casos"
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0,
+      "evidence": "scripts inline validados"
+    },
+    {
+      "command": "node tests/i18n-keys.test.mjs",
+      "exitCode": 0,
+      "evidence": "es/en/ca"
+    },
+    {
+      "command": "node tests/i18n-bundle.test.mjs",
+      "exitCode": 0,
+      "evidence": "producto ensamblado"
+    },
+    {
+      "command": "node tests/security.test.mjs",
+      "exitCode": 0,
+      "evidence": "invariantes"
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0,
+      "evidence": "registro"
+    },
+    {
+      "command": "node --check e2e/tr-emparejado-automatico.spec.mjs",
+      "exitCode": 0,
+      "evidence": "solo sintaxis; DOM no ejecutado"
+    },
+    {
+      "command": "node scripts/guard-privacy.mjs",
+      "exitCode": 0,
+      "evidence": "privacidad"
+    },
+    {
+      "command": "node tests/auth-disposal.test.mjs",
+      "exitCode": 1,
+      "evidence": "huella histórica106 distinta (assert73), no fallo runtime nuevo demostrado"
+    },
+    {
+      "command": "node tests/auth-disposal-fit.test.mjs",
+      "exitCode": 1,
+      "evidence": "dependencia reconcileGemelosAutomaticos sin declarar en descriptor (assert45)"
+    },
+    {
+      "command": "node tests/beta-sources.test.mjs",
+      "exitCode": 1,
+      "evidence": "Catálogo124, Retiro124 y dependencias/datos/métodos por ampliar"
+    },
+    {
+      "command": "node tests/docs-frescura.test.mjs",
+      "exitCode": 1,
+      "evidence": "código cambiado sin VERSION, intacta por encargo"
+    },
+    {
+      "command": "node tests/presupuesto-rendimiento.test.mjs",
+      "exitCode": 1,
+      "evidence": "crudo y gzip exceden topes beta124 intactos"
+    },
+    {
+      "command": "Deno: siete ficheros del runner oficial",
+      "exitCode": 0,
+      "files": [
+        "supabase/functions/_shared/crypto.test.ts",
+        "supabase/functions/_shared/enablebanking.test.ts",
+        "supabase/functions/bank-sync/demand-window.test.ts",
+        "supabase/functions/delete-account/delete-account.test.ts",
+        "supabase/functions/ingest/ingest.test.ts",
+        "supabase/functions/ingest/widget.test.ts",
+        "supabase/functions/prices/prices.test.ts"
+      ]
+    },
+    {
+      "command": "CI Tests workflow_dispatch 38406561237 / node scripts/run-tests.mjs",
+      "exitCode": 1,
+      "evidence": "150 etapas Node; cinco fallan, siete ficheros Deno pasan; Playwright no ejecutado por failed=true",
+      "seconds": 1121.1
+    }
+  ],
+  "migration90": {
+    "internalBefore": 450,
+    "internalAfter": 450,
+    "visibleBefore": 450,
+    "visibleAfter": 270,
+    "pendingBefore": 180,
+    "pendingAfter": 0,
+    "totalCents": 282015,
+    "monthlyDeltaCents": 0,
+    "source": "bundle beta123 3625fa7e, datos sinteticos, segunda cuenta presupuesto.ts real"
+  },
+  "ci": {
+    "run": 38406561237,
+    "job": 115327599857,
+    "headSHA": "2ff4c59ed6cd0a3c436efda2f2c0a7fc40925fdb",
+    "conclusion": "failure",
+    "exitCode": 1,
+    "runnerSeconds": 1121.1,
+    "logBytes": 387750,
+    "logSha256": "2091dad9d695dd1a43dea934579da04c34fe43a38254e87905a5d65ae19f4481",
+    "failedStages": [
+      "auth-disposal",
+      "auth-disposal-fit",
+      "beta-sources",
+      "docs-frescura",
+      "presupuesto-rendimiento"
+    ],
+    "skippedSteps": [
+      "Privacidad",
+      "Post Run actions/setup-node@v4"
+    ],
+    "playwrightExecuted": false
+  },
+  "supersededCI": {
+    "run": 38406077444,
+    "job": 115325920379,
+    "headSHA": "f3ed68fc42149dbfe7cd58a508d0e48591464ccd",
+    "conclusion": "cancelled",
+    "reason": "Fallo reproducido de separacion frente a otra reserva: corregido y protegido por regresion y noveno mutante"
+  },
+  "integration": {
+    "rawBytes": 1395811,
+    "gzipBytes": 383356,
+    "rawCap": 1383424,
+    "gzipCap": 379904,
+    "blocking": 3,
+    "changedWebScopes": [
+      "inc-3009-01-cargos",
+      "fin05-widget-reentrada",
+      "fin05-pago-cerrada",
+      "tr-descripcion-clasificacion",
+      "widget-banco",
+      "widget-app-cerrada",
+      "inc-2809-02-ayuda-ciclo",
+      "inc-2909-02-inicio-natural",
+      "inc-2709-10-perfil",
+      "inc-3009-nomina-anticipada",
+      "inc-2909-03-retirada",
+      "inc-2909-01-widget-periodo",
+      "inc-0210-03-gastos-periodo",
+      "feature-0210-01-gasolina-taxi",
+      "inc-0310-01-meta-regla",
+      "feature-0310-01-movilidad",
+      "inc-0310-broker-resultados",
+      "inc-0310-gastos-sin-limite",
+      "inc-0710-gastos-mes-madrid",
+      "inc-0710-auth-disposal",
+      "inc-0810-metas-editar-regla",
+      "bienes-completo",
+      "widget-pago-app-cerrada",
+      "bancos-sin-hueco",
+      "widget-ciclo-puente",
+      "recibos-cargo-unico",
+      "bancos-acuse-reconexion",
+      "tr-iguales-ordinal",
+      "inicio-patrimonio-flujos",
+      "recibo-cargo-en-gastos",
+      "inc-0210-02-categoria-elegida"
+    ],
+    "edgeChanges": 0,
+    "nativeChanges": 0,
+    "scopeReaderExceptions": [
+      {
+        "id": "inc-0810-inicio-grafica-significado",
+        "error": "Bloque beta no inequívoco: src/modules/03-tab-dash.js",
+        "baselineAlsoFails": true
+      }
+    ],
+    "newUnits": [
+      "gemeloGrupo",
+      "gemeloBancoAutomatico",
+      "gemeloAvisoAutomatico",
+      "reconcileGemelosAutomaticos",
+      "gemeloAutomaticoDe",
+      "separarGemeloAutomatico",
+      "gemelosCambiosNube",
+      "pushGemelos",
+      "fusionarGemelos",
+      "cloud.setExpenseDup",
+      "lapidasAlEditar",
+      "lapidasUnion",
+      "recibosBorradosUnion",
+      "GASTO_ORIGENES"
+    ],
+    "unchanged": [
+      "VERSION",
+      "notas fuente",
+      "catalogo fuente",
+      "Retiro124",
+      "topes",
+      "lastPaydayOf",
+      "budgetPeriodOf"
+    ]
+  },
+  "limitations": [
+    "Playwright y Chromium no ejecutados: exclusion local vigente; CI omite E2E al haber rojos Node. No lease propio ni full local.",
+    "Auth-disposal y auth-disposal-fit abortan en guardianes de identidad/dependencias; no se presentan como suites aprobadas.",
+    "El paso independiente Privacidad queda skipped; guard-privacy dentro del runner pasa.",
+    "No dos moviles reales, banco real, backend vivo, despliegue, APK, beta/main ni aceptacion movil.",
+    "API heredada setExpenseDup sin acuse de fila: reparacion tras pull es un intento, no confirmacion remota.",
+    "Dos avisos identicos aun pueden fundirse por identidad heredada al bajar la nube; no se cambia esa identidad general.",
+    "Solo coincidencia exacta de banco/dia Madrid/importe; preguntas historicas fuera de ese grupo no se resuelven por parecido.",
+    "Registro limitado a 500 vinculos; decisiones con hora tienen prioridad, sin retencion ilimitada."
+  ],
+  "brief": "docs/briefs/tr-emparejado-automatico-20261013.md",
+  "schema": 1,
+  "taskId": "tr-emparejado-automatico-codex-20261013",
+  "actor": "codex",
+  "sessionId": "codex-cloud-20261013-bcfc1ac02691",
+  "createdAt": "2026-10-13T14:01:39.764Z",
+  "released": true
+}
