@@ -1,3 +1,7 @@
+## Emparejado automático Trade Republic · candidata sin publicar
+
+`tests/tr-emparejado-automatico.test.mjs`, registrado en `steps`, prueba 49 combinaciones de cantidades, migración de 90 días generada con el bundle beta123, cálculo de servidor independiente, unión con hora, borrar/Deshacer y arranque por sus bloques reales. Incluye ocho mutaciones causales y ejecuta los 20 casos en UTC, Madrid y Canarias. `e2e/tr-emparejado-automatico.spec.mjs`, registrado en `E2E_MAP` de Gastos, abre la ficha, separa y recarga; también conserva la pregunta manual. Está escrito y pendiente de ejecución: no se ha ejecutado navegador local en esta tarea. El segundo caso de `tr-iguales-ordinal` conserva la ruta manual anterior. [Acta y límites](briefs/tr-emparejado-automatico-20261013.md).
+
 Promoción117: conserva los contratos históricos de catálogo117/Retiro117 en c5f62d66 y añade un guardián de runtime y nota única más historial de main (227 entradas, todas con tandas vacías). revisar-beta cubre es/en/ca: entrega web y nativa con guiones publicados, Novedades reales sin109/112 incluso al desplegar todo el historial y decisiones intactas. Cinco identidades auth se asertan en vivo; sólo metas-editar-regla conserva el contrato selectivo histórico. prod117-edge-compat ejecuta fuentes cotejadas con ingestv50/pricesv13 y consumidores actuales sin red. [Acta y límites](briefs/prod-completa-117.md).
 
 ## Plan: bajar despacio sin saltos · candidata4.26.124

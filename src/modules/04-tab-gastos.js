@@ -223,20 +223,25 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     if(undoTimerRef.current) clearTimeout(undoTimerRef.current);
     const key=keyOfE(e), list=state.expenses||[], index=list.findIndex(function(x){ return x.id===e.id; });
     const wasCloud=cloud.enabled();
+    const pair=gemeloAutomaticoDe(state,e);
+    const paired=pair&&list.find(function(x){ return x.autoGemelo===e.id&&keyOfE(x)===pair.banco; });
+    const pairedIndex=paired?list.indexOf(paired):-1;
     // La lápida entra junto con la retirada local: si la nube refresca durante los cinco segundos,
     // no puede resucitar la fila por detrás del toast. La escritura remota sí se encadena para que
     // Deshacer vuelva a subir el MISMO id después de que termine cualquier delete aún en vuelo.
     set(function(s){
       const next=Object.assign({},s,{
-        expenses:(s.expenses||[]).filter(function(x){ return x.id!==e.id; })
+        expenses:(s.expenses||[]).filter(function(x){ return x.id!==e.id&&(!paired||x.id!==paired.id); })
       },lapidaPon(s,key));
+      // Borrar el movimiento visible también retira su apunte oculto; Deshacer devuelve ambos.
+      if(paired) Object.assign(next,lapidaPon(next,keyOfE(paired)));
       // Un apunte del banco borrado A MANO deja rastro «sin aviso» (12/10/2026): así el importador
       // no confunde su lápida con un «es el mismo» antiguo y no da por reclamado ningún aviso.
       if(e.source==="ob"||e.source==="ob-hist") next.gemelos=pushGemelos(s.gemelos,[{aviso:"",banco:key}]);
       return next;
     });
-    const pending={expense:e,key:key,index:index<0?list.length:index,wasCloud:wasCloud,
-      cloudDelete:wasCloud?borrarGastoNube(e,"gastos-borrar"):Promise.resolve()};
+    const pending={expense:e,key:key,index:index<0?list.length:index,wasCloud:wasCloud,paired:paired,pairedIndex:pairedIndex,
+      cloudDelete:wasCloud?Promise.all([e].concat(paired?[paired]:[]).map(function(row){ return borrarGastoNube(row,"gastos-borrar"); })):Promise.resolve()};
     undoDeleteRef.current=pending; setUndoDelete(pending);
     undoTimerRef.current=setTimeout(function(){
       if(undoDeleteRef.current!==pending) return;
@@ -254,10 +259,15 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
         expenses.splice(Math.min(pending.index,expenses.length),0,pending.expense);
       }
       // Con su hora: la lápida ya pudo subir a la nube, y sin ella volvería del otro móvil.
-      return Object.assign({},s,{expenses:expenses},lapidaLevanta(s,pending.key));
+      if(pending.paired&&!expenses.some(function(x){ return x.id===pending.paired.id; })){
+        expenses.splice(Math.min(pending.pairedIndex,expenses.length),0,pending.paired);
+      }
+      const next=Object.assign({},s,{expenses:expenses},lapidaLevanta(s,pending.key));
+      if(pending.paired) Object.assign(next,lapidaLevanta(next,keyOfE(pending.paired)));
+      return next;
     });
     if(pending.wasCloud){
-      Promise.resolve(pending.cloudDelete).then(function(){ return subirGasto(pending.expense,"gastos-deshacer"); });
+      Promise.resolve(pending.cloudDelete).then(function(){ return Promise.all([pending.expense].concat(pending.paired?[pending.paired]:[]).map(function(row){ return subirGasto(row,"gastos-deshacer"); })); });
     }
   };
   /* Posible repetido OB↔noti (2026-09-07): «es el mismo» borra la fila OB; «son distintos»
@@ -278,6 +288,16 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     });
     if(same) showToast(t("g_dup_same"));
     else showToast(t("g_dup_diff"));
+  };
+  const separarGemelo=function(e){
+    set(function(s){
+      const next=separarGemeloAutomatico(s,e.id);
+      if(next===s) return s;
+      const repairs=gemelosCambiosNube(next,s.expenses);
+      if(cloud.enabled()) setTimeout(function(){ repairs.forEach(function(r){ cloud.setExpenseDup(r.expense,r.dup).catch(function(){}); }); },0);
+      return next;
+    });
+    showToast(t("g_auto_separated"));
   };
   const withdrawalPending=useRef({});
   const withdrawalState=useRef(state); withdrawalState.current=state;
@@ -607,7 +627,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     for(let i=0;i<src.length;i++){
       const e=src[i];
       // La lápida puede venir de otro dispositivo sin retirar aún esta fila local.
-      if(expenseIsTombstoned(e,expenseDeletedSet(state))) continue;
+      if(e.autoGemelo||expenseIsTombstoned(e,expenseDeletedSet(state))) continue;
       if(!inBounds(dateMs(e.date),bounds)) continue;
       // `debt:<id>` en la misma lista que las categorías: el chip de cada deuda (4.21.0).
       if(catSet && !catSet.has(e.category) && !(e.debtId && catSet.has("debt:"+e.debtId))) continue;
@@ -1103,7 +1123,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
         setDetailId(null); setEditExp(null);
       },
       setCat:setCat, setCuota:setCuota, setReceipt:setReceipt, quitarRecibo:quitarRecibo, setCardFlag:setCardFlag, setBank:setBank, delExpense:delExpense, saveEdit:saveEdit, saveNote:saveNote,
-      resolveDup:resolveDup, recognizeWithdrawal:recognizeWithdrawal, withdrawalStatus:withdrawalStatus,
+      resolveDup:resolveDup, separarGemelo:separarGemelo, recognizeWithdrawal:recognizeWithdrawal, withdrawalStatus:withdrawalStatus,
       showToast:showToast, aiBusy:aiBusy, suggestAi:suggestAi, state:state
     }),
     undoDelete && ReactDOM.createPortal(
@@ -1315,7 +1335,7 @@ function PeriodMoreSheet({open, onClose, preset, setPreset}){
 }
 
 /* Sheet detalle/edición de un movimiento. Layout alineado con Apuntar/Cartera (feedback 2026-07-17). */
-function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota, setReceipt, quitarRecibo, setCardFlag, setBank, delExpense, saveEdit, saveNote, resolveDup, showToast, aiBusy, suggestAi, state, recognizeWithdrawal, withdrawalStatus}){
+function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota, setReceipt, quitarRecibo, setCardFlag, setBank, delExpense, saveEdit, saveNote, resolveDup, separarGemelo, showToast, aiBusy, suggestAi, state, recognizeWithdrawal, withdrawalStatus}){
   /* UNA SOLA CONDICIÓN para pintarse y para los candados. Iban por separado (`!!exp` en los hooks,
      `!exp || !editExp` para pintar) y en cuanto se separaban el sheet desaparecía dejando el
      `overflow:hidden` y el bloqueo de `touchmove` puestos sobre una pantalla vacía: nada respondía
@@ -1389,7 +1409,11 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
     {id:"date",testId:"exp-date",label:fmtIsoCorto(dateIso),lead:React.createElement("span",null,"📅"),on:calOpen,
       onClick:function(){ setCalOpen(function(v){ return !v; }); setBankOpen(false); }}
   ];
-  const duplicate=exp.possibleDup && React.createElement("div",{className:"hint",style:{margin:"0 0 12px",padding:"10px 12px",borderRadius:12,background:"var(--surface-2)"}},
+  const autoPair=gemeloAutomaticoDe(state,exp);
+  const paired=autoPair&&React.createElement("div",{className:"hint","data-testid":"exp-auto-paired"},
+    React.createElement("div",null,t("g_auto_paired")),
+    React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-auto-separate",onClick:function(){ separarGemelo(exp); onClose(true); }},t("g_auto_separate")));
+  const duplicate=exp.possibleDup && !exp.autoGemelo && React.createElement("div",{className:"hint",style:{margin:"0 0 12px",padding:"10px 12px",borderRadius:12,background:"var(--surface-2)"}},
     React.createElement("div",{style:{fontWeight:600,marginBottom:4}},t("g_dup_title")),
     React.createElement("div",{style:{marginBottom:10}},t("g_dup_sub")),
     React.createElement("div",{className:"row",style:{gap:8}},
@@ -1406,7 +1430,7 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
       React.createElement("button",{type:"button",className:"v4-chip"+(!bk?" on":""),onClick:function(){ setBank(exp,null); setBankOpen(false); }},t("ap_bank_none")),
       bankOpts.map(function(b){ return React.createElement("button",{key:b,type:"button",className:"v4-chip"+(bk===b?" on":""),
         onClick:function(){ setBank(exp,b); setBankOpen(false); }},"🏦 "+entOf(b).label); })),
-    trace,duplicate,reciboAviso,
+    trace,duplicate,paired,reciboAviso,
     canRecognizeWithdrawal(exp) && React.createElement("div",{className:"hint","data-testid":"exp-withdrawal-info"},
       React.createElement("div",null,t("f_withdraw_fields")),
       exp.category!=="traspaso" && React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-withdrawal",

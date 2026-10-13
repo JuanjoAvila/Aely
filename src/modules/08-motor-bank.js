@@ -1017,6 +1017,103 @@ function flattenBankTx(links){
   return out;
 }
 
+/* EMPAREJADO REVERSIBLE POR CUENTA DE FILAS (13/10/2026). La fila bancaria se conserva,
+   excluida con el mismo #dup que ya entiende la nube: separar nunca reconstruye un importe.
+   Solo se automatiza el mismo banco, día de Madrid y céntimo, sin id bancario; lo manual
+   conserva su pregunta. Un vínculo ocupa una ranura aunque otro móvil aún no tenga su fila. */
+function gemeloGrupo(e){
+  const ms=Date.parse(e&&e.date), ent=expenseBankOf(e), amount=Number(e&&e.amount);
+  if(!ent||!Number.isFinite(ms)||!Number.isFinite(amount)||!amount) return "";
+  const d=madridYmdParts(ms);
+  return ent+"|"+d.ym+"-"+d.d+"|"+Math.round(amount*100);
+}
+function gemeloBancoAutomatico(e){ return !!(e&&e.id)&&esFilaDeBanco(e)&&!e.extId&&!e.reciboId&&!e.debtId; }
+function gemeloAvisoAutomatico(e){ return !!(e&&e.id)&&!esFilaDeBanco(e)&&!isManualExpenseSource(e.source)&&!e.possibleDup&&!e.reciboId&&!e.debtId; }
+function reconcileGemelosAutomaticos(s){
+  const rows=(s&&s.expenses)||[];
+  if(!rows.length) return s;
+  const ids={}, porClave={}, bancos={}, grupos={}, usados={}, ocupados={}, destinos={};
+  const deleted=expenseDeletedSet(s);
+  rows.forEach(function(e){
+    if(!e||expenseIsTombstoned(e,deleted)) return;
+    if(e.id) ids[e.id]=e;
+    const key=gemeloAvisoKey(e); if(!porClave[key]) porClave[key]=e;
+    if(gemeloBancoAutomatico(e)) bancos[expenseBankOf(e)+"|"+keyOfExpense(e)]=e;
+    else if(gemeloAvisoAutomatico(e)){
+      const k=gemeloGrupo(e);
+      if(k) (grupos[k]=grupos[k]||[]).push(e);
+    }
+  });
+  Object.keys(grupos).forEach(function(k){ grupos[k].sort(function(a,b){ return String(a.id).localeCompare(String(b.id)); }); });
+  let gemelos=s.gemelos||[];
+  // El orden estable resuelve dos reservas concurrentes sin gastar dos veces el mismo aviso.
+  gemelos.filter(function(g){ return g&&typeof g.banco==="string"; }).sort(function(a,b){ return String(a.banco).localeCompare(String(b.banco))||String(a.avisoId||a.aviso).localeCompare(String(b.avisoId||b.aviso)); }).forEach(function(g){
+    const aviso=g.avisoId?ids[g.avisoId]:porClave[g.aviso];
+    const banco=bancos[(g.ent||expenseBankOf(aviso)||"")+"|"+g.banco];
+    if(!banco){ if(aviso) usados[aviso.id]=1; return; }
+    if(!aviso||!gemeloAvisoAutomatico(aviso)) { if(aviso&&isManualExpenseSource(aviso.source)) ocupados[banco.id]=1; return; }
+    if(gemeloGrupo(banco)!==gemeloGrupo(aviso)||!gemeloGrupo(banco)||usados[aviso.id]||ocupados[banco.id]) return;
+    usados[aviso.id]=ocupados[banco.id]=1;
+    const decision=g.auto?g:Object.assign({},g,{auto:true,at:1,ent:expenseBankOf(banco)});
+    if(!g.auto) gemelos=pushGemelos(gemelos,[decision]);
+    destinos[banco.id]=decision.separado?null:aviso.id;
+  });
+  Object.keys(bancos).sort().forEach(function(k){
+    const banco=bancos[k];
+    if(ocupados[banco.id]) return;
+    // Un manual señalado expresamente no se sustituye por otro aviso parecido.
+    if(banco.possibleDupOf&&ids[banco.possibleDupOf]&&isManualExpenseSource(ids[banco.possibleDupOf].source)) return;
+    const candidates=grupos[gemeloGrupo(banco)]||[];
+    const aviso=candidates.find(function(e){ return !usados[e.id]; });
+    if(!aviso) return;
+    usados[aviso.id]=ocupados[banco.id]=1;
+    const g=Object.assign(gemeloDe(aviso,banco),{auto:true,at:1,ent:expenseBankOf(banco)});
+    gemelos=pushGemelos(gemelos,[g]);
+    destinos[banco.id]=aviso.id;
+  });
+  let expenses=rows;
+  rows.forEach(function(e,i){
+    if(!e) return;
+    const tiene=Object.prototype.hasOwnProperty.call(destinos,e.id);
+    if(!tiene&&!e.autoGemelo) return;
+    const aviso=tiene&&destinos[e.id], dup=!!aviso;
+    if(!!e.possibleDup===dup&&(e.autoGemelo||null)===(aviso||null)) return;
+    if(expenses===rows) expenses=rows.slice();
+    const next=Object.assign({},e);
+    if(dup){ next.possibleDup=true; next.possibleDupOf=aviso; next.autoGemelo=aviso; }
+    else { delete next.possibleDup; delete next.possibleDupOf; delete next.autoGemelo; }
+    expenses[i]=next;
+  });
+  return expenses===rows&&(gemelos===s.gemelos||(!s.gemelos&&!gemelos.length))?s:Object.assign({},s,{expenses:expenses,gemelos:gemelos});
+}
+function gemeloAutomaticoDe(s,e){
+  if(!e) return null;
+  return ((s&&s.gemelos)||[]).find(function(g){
+    return g.auto&&!g.separado&&(g.avisoId?g.avisoId===e.id:g.aviso===gemeloAvisoKey(e))&&
+      (s.expenses||[]).some(function(b){ return b.autoGemelo===e.id&&keyOfExpense(b)===g.banco; });
+  })||null;
+}
+function separarGemeloAutomatico(s,id,ahora){
+  const e=(s.expenses||[]).find(function(x){ return x.id===id; }), g=gemeloAutomaticoDe(s,e);
+  if(!g) return s;
+  const decision=Object.assign({},g,{separado:true,at:Math.max(ahora||Date.now(),(g.at||0)+1)});
+  return reconcileGemelosAutomaticos(Object.assign({},s,{gemelos:pushGemelos(s.gemelos,[decision])}));
+}
+/* La decisión viaja en app_state; al leer filas atrasadas se repara solo su marca, con
+   la identidad recibida de la tabla. No se borra ni se cambia categoría, importe o cursor. */
+function gemelosCambiosNube(s,incoming){
+  const desired={}, out=[];
+  (s.gemelos||[]).forEach(function(g){ if(g.auto) desired[(g.ent||"")+"|"+g.banco]=g.separado?false:true; });
+  const local={}; (s.expenses||[]).forEach(function(e){ if(gemeloBancoAutomatico(e)) local[expenseBankOf(e)+"|"+keyOfExpense(e)]=e; });
+  (incoming||[]).forEach(function(e){
+    const k=expenseBankOf(e)+"|"+keyOfExpense(e), l=local[k];
+    if(!gemeloBancoAutomatico(e)||!l||!Object.prototype.hasOwnProperty.call(desired,k)) return;
+    const dup=!!l.autoGemelo;
+    if(!!e.possibleDup!==dup) out.push({expense:e,dup:dup});
+  });
+  return out;
+}
+
 /* GASTO VARIABLE VÍA OPEN BANKING (2026-08-05): entra TODO de CUALQUIER banco sincronizado
    (gastos e ingresos), estilo extracto de banca. Lo que RESTA del presupuesto y del saldo de
    gasto diario es solo lo de `expenseBankEnts` (cuenta diaria + extras marcados). El resto se

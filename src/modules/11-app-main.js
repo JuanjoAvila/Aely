@@ -347,8 +347,9 @@ function App(){
   },[]);
   // El updater solo calcula: ni apunta el volcado ni arma el temporizador (ver `mcPersistCommit`).
   const set=useCallback((updater)=>{ setStateRaw(prev=>{
-    const next=typeof updater==="function"?updater(prev):updater;
+    let next=typeof updater==="function"?updater(prev):updater;
     if(next===prev) return prev;
+    if(next.expenses!==prev.expenses||next.gemelos!==prev.gemelos||next.deleted!==prev.deleted) next=reconcileGemelosAutomaticos(next);
     return Object.assign({},next,{_savedAt:Date.now()});
   }); },[]);
   // En el propio commit (layout, no pasivo): así un `pagehide` inmediato ya vuelca este estado.
@@ -539,6 +540,12 @@ function App(){
             });
           },0);
         }
+        rec.state=reconcileGemelosAutomaticos(rec.state);
+        const repairs=gemelosCambiosNube(rec.state,incoming);
+        if(repairs.length) setTimeout(function(){
+          if(!readProof.valid||!sessionRef.current||!sessionRef.current.user||sessionRef.current.user.id!==readProof.userId) return;
+          repairs.forEach(function(r){ cloud.setExpenseDup(r.expense,r.dup).catch(function(){}); });
+        },0);
         return rec.state;
       });
       wR.current=true;
@@ -579,15 +586,14 @@ function App(){
           const localNewer=!freshLogin && (prev._savedAt||0) > (cloudState._savedAt||0);
           const baseObj = localNewer ? Object.assign({},prev,{expenses:merged.list})
                                      : Object.assign({},prev,cloudState,{expenses:merged.list});
-          // Los vínculos aviso↔apunte se UNEN gane quien gane (12/10/2026): un vínculo es un hecho
-          // que vio un móvil y el otro no puede desmentir por no tenerlo. Ver `fusionarGemelos`.
-          const gem=fusionarGemelos(prev.gemelos, cloudState.gemelos);
-          if(gem!==baseObj.gemelos) baseObj.gemelos=gem;
           // Igual las lápidas y los recibos borrados (13/10/2026): un borrado que vio un móvil no
           // lo deshace el estado más antiguo del otro. Ver `lapidasUnion` y `recibosBorradosUnion`.
           // Solo con lo local del MISMO titular: la lápida de otra cuenta que hubo en este móvil
           // escondería un gasto de esta que coincidiera en día, importe y comercio.
           const sameOwner=!(opts&&opts.dropTx)&&(!freshLogin||prev._historyOwner===u)&&(!prev._historyOwner||prev._historyOwner===u);
+          // Una separación pertenece a su titular; la cuenta anterior de este móvil no decide aquí.
+          const gem=sameOwner?fusionarGemelos(prev.gemelos,cloudState.gemelos):(cloudState.gemelos||[]);
+          if(gem!==baseObj.gemelos) baseObj.gemelos=gem;
           if(sameOwner){
             if(prev.deleted||cloudState.deleted) Object.assign(baseObj, lapidasUnion(prev, cloudState));
             if(prev.reciboBorrado||cloudState.reciboBorrado) Object.assign(baseObj, recibosBorradosUnion(baseObj, prev, cloudState));
@@ -731,7 +737,11 @@ function App(){
           const gem=pushGemelos(invState.gemelos, vinculos);
           if(gem!==invState.gemelos) invState=Object.assign({},invState,{gemelos:gem});
         }
-        const baseExp=add? add.concat(invState.expenses||[]) : (invState.expenses||[]);
+        const paired=reconcileGemelosAutomaticos(Object.assign({},invState,{expenses:add?add.concat(invState.expenses||[]):invState.expenses}));
+        invState=paired;
+        const pairedById={}; (paired.expenses||[]).forEach(function(e){ pairedById[e.id]=e; });
+        obAdded=(add||[]).map(function(e){ return pairedById[e.id]||e; });
+        const baseExp=paired.expenses;
         // Rellena el CONCEPTO de lo que ya estaba apuntado con lo que acaba de traer el banco
         // (2026-07-24): si no, el histórico viejo —el que se consulta— seguiría sin explicar nada.
         const withNotes=enrichNotesFromBankTx(baseExp, txs);

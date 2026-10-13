@@ -337,13 +337,13 @@ test("5 · las lápidas se unen entre móviles, y «Deshacer» sigue teniendo vu
 });
 
 test("5 · borrar, «Deshacer», «es el mismo» y editar pasan por las lápidas con hora (los bloques REALES de Gastos)", ()=>{
-  const pon=/const next=Object\.assign\(\{\},s,\{\s*expenses:\(s\.expenses\|\|\[\]\)\.filter\(function\(x\)\{ return x\.id!==e\.id; \}\)\s*\},lapidaPon\(s,key\)\);/.exec(bundle);
+  const pon=/const next=Object\.assign\(\{\},s,\{\s*expenses:\(s\.expenses\|\|\[\]\)\.filter\(function\(x\)\{ return x\.id!==e\.id&&\(!paired\|\|x\.id!==paired\.id\); \}\)\s*\},lapidaPon\(s,key\)\);/.exec(bundle);
   assert.ok(pon,"no se encuentra la lápida del borrado en Gastos");
-  const levanta=/set\(function\(s\)\{\s*const expenses=\(s\.expenses\|\|\[\]\)\.slice\(\);[\s\S]*?lapidaLevanta\(s,pending\.key\)\);\s*\}\);/.exec(bundle);
+  const levanta=/set\(function\(s\)\{\s*const expenses=\(s\.expenses\|\|\[\]\)\.slice\(\);[\s\S]*?lapidaLevanta\(s,pending\.key\)\);[\s\S]*?return next;\s*\}\);/.exec(bundle);
   assert.ok(levanta,"no se encuentra el «Deshacer» de Gastos");
   const e={id:"g1",date:"2026-10-07T10:00:00.000Z",merchant:"CARREFOUR",amount:40,source:"ob",ent:"bbva"}, key=c.keyOfExpense(e);
   let s={expenses:[e],deleted:[]};
-  s=new Function("s","e","key","lapidaPon",pon[0]+"\nreturn next;")(s,e,key,c.lapidaPon);
+  s=new Function("s","e","key","lapidaPon","paired",pon[0]+"\nreturn next;")(s,e,key,c.lapidaPon);
   assert.equal(j([s.expenses.length,s.deleted,typeof s.deletedAt[key]]),j([0,[key],"number"]));
   const puesta=s.deletedAt[key];
   new Function("set","pending","lapidaLevanta",levanta[0])(f=>{ s=f(s); },{key:key,expense:e,index:0},c.lapidaLevanta);

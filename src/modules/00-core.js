@@ -2109,8 +2109,8 @@ function lapidasUnion(local, nube){
    cargos: el mismo aviso era reclamado por DOS apuntes del banco en sincronizaciones distintas y,
    contestando siempre «es el mismo», se perdían 29,90 €. Viaja en `app_state` como `deleted`,
    con el mismo tope. Se da de alta al emparejar (pendiente) y se conserva al resolver «es el
-   mismo»; «son distintos» lo suelta. La entrega siguiente (emparejado automático) decide sobre
-   este MISMO vínculo: solo cambia quién contesta, no dónde se guarda. */
+   mismo»; «son distintos» manual lo suelta. El emparejado automático conserva también
+   `auto`, `ent`, `at` y `separado`: separar guarda una decisión con hora sobre el mismo vínculo. */
 const GEMELOS_MAX=500;
 function gemeloAvisoKey(e){ return keyOfExpense(e); }
 function gemeloDe(aviso, filaBanco){ return { avisoId:(aviso&&aviso.id)?String(aviso.id):undefined, aviso:gemeloAvisoKey(aviso), banco:keyOfExpense(filaBanco) }; }
@@ -2122,15 +2122,24 @@ function pushGemelos(list, nuevos){
   (nuevos||[]).forEach(function(g){
     if(!g || typeof g.aviso!=="string" || typeof g.banco!=="string") return;
     const k=firma(g);
-    if(ya[k]) return;
+    const at=Number(g.at)||0;
+    if(ya[k]){
+      const i=out.findIndex(function(x){ return firma(x)===k; }), old=out[i];
+      if(!g.auto||at<(old.at||0)||(at===(old.at||0)&&(!g.separado||old.separado))) return;
+      if(out===base) out=base.slice();
+      out[i]=Object.assign({},old,{auto:true,at:at,separado:!!g.separado,ent:g.ent||old.ent});
+      return;
+    }
     ya[k]=1;
     if(out===base) out=base.slice();
     const it={aviso:g.aviso, banco:g.banco};
     if(g.avisoId) it.avisoId=String(g.avisoId);
+    if(g.auto){ it.auto=true; it.at=at; if(g.ent) it.ent=g.ent; if(g.separado) it.separado=true; }
     out.push(it);
   });
   if(out===base) return list||base;
-  return out.length>GEMELOS_MAX ? out.slice(out.length-GEMELOS_MAX) : out;
+  // Una separación reciente no se pierde al unir muchos vínculos automáticos sin decisión humana.
+  return out.length>GEMELOS_MAX ? out.slice().sort(function(a,b){ return (a.at||0)-(b.at||0); }).slice(-GEMELOS_MAX) : out;
 }
 /* Quita el vínculo de un apunte OB (por su clave) — «son distintos». */
 function quitarGemeloDe(list, bancoKey){
@@ -2144,9 +2153,10 @@ function quitarGemeloDe(list, bancoKey){
    gemelo de otro apunte — justo la doble reclamación que `gemelos` existe para impedir. Un vínculo
    es un hecho («este aviso ya tiene su apunte del banco»), igual que una lápida: lo sabe quien lo
    vio, y el que no lo vio no puede desmentirlo por no tenerlo. Por eso, gane quien gane el estado,
-   `gemelos` es la UNIÓN de los dos. El precio es pequeño y asumido: un «son distintos» dado en A
-   puede volver desde un B que aún no lo sabía, y ese aviso queda reclamado de más (no se pierde
-   dinero: la fila ya cuenta). Devuelve la lista local tal cual si la nube no aporta nada. */
+   `gemelos` es la UNIÓN de los dos. Desde el emparejado automático, separar conserva una hora
+   y gana a la copia antigua (en empate también gana separar). Los vínculos manuales anteriores
+   siguen sin decisión con hora y pueden volver desde un móvil atrasado. Devuelve la lista local
+   tal cual si la nube no aporta nada. */
 function fusionarGemelos(local, nube){
   if(!Array.isArray(nube) || !nube.length) return Array.isArray(local) ? local : (nube||[]);
   return pushGemelos(Array.isArray(local) ? local : [], nube);

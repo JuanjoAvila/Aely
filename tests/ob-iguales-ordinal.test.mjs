@@ -553,7 +553,7 @@ t("backfill: una fila local con lápida no se resube en cada pull", () => {
 t("dos móviles: el vínculo de A sobrevive al estado de B (y al revés) con el bloque REAL de syncFromCloud", () => {
   const m = mainSrc.match(/const merged=mergeExpenses\(prev\.expenses[\s\S]*?if\(gem!==baseObj\.gemelos\) baseObj\.gemelos=gem;/);
   assert.ok(m, "no se encuentra el bloque de último-que-escribe en syncFromCloud");
-  const adopta = new Function("prev", "cloudState", "freshLogin", "mergeExpenses", "fusionarGemelos", m[0] + "\nreturn baseObj;");
+  const adopta = new Function("prev", "cloudState", "freshLogin", "mergeExpenses", "fusionarGemelos", "opts", "u", m[0] + "\nreturn baseObj;");
   const mezcla = (p) => ({ list: p });
   const A = estado(), B = estado();
   const av = aviso(-3, 10, 29.9, "Decathlon"); A.expenses.unshift(av); B.expenses.unshift(Object.assign({}, av));
@@ -649,9 +649,9 @@ t("«es el mismo» sobre una fila bajada de otro móvil (sin gemelo localizable)
 t("borrar a mano un apunte del banco (el bloque REAL de Gastos) deja rastro «sin aviso»", () => {
   const gastosSrc = H.read("public/index.html");
   // Desde el 13/10/2026 la lápida la pone `lapidaPon` (con su hora si esa clave se levantó antes).
-  const m = gastosSrc.match(/const next=Object\.assign\(\{\},s,\{\s*expenses:\(s\.expenses\|\|\[\]\)\.filter\(function\(x\)\{ return x\.id!==e\.id; \}\)\s*\},lapidaPon\(s,key\)\);[\s\S]*?return next;/);
+  const m = gastosSrc.match(/const next=Object\.assign\(\{\},s,\{\s*expenses:\(s\.expenses\|\|\[\]\)\.filter\(function\(x\)\{ return x\.id!==e\.id&&\(!paired\|\|x\.id!==paired\.id\); \}\)\s*\},lapidaPon\(s,key\)\);[\s\S]*?return next;/);
   assert.ok(m, "no se encuentra el bloque de borrar en 04-tab-gastos");
-  const borra = new Function("s", "e", "key", "lapidaPon", "pushGemelos", m[0]);
+  const borra = new Function("s", "e", "key", "lapidaPon", "pushGemelos", "paired", "keyOfE", m[0]);
   const s = estado();
   const x = sync(s, [ob(-2, 7)])[0];
   const next = borra(s, x, c.keyOfExpense(x), c.lapidaPon, c.pushGemelos);

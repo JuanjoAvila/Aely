@@ -55,9 +55,9 @@ test("tres bizums iguales de TR entran como tres filas en Gastos, y la segunda s
   expect(await guardadas(page)).toBe(3);
 });
 
-test("«Es el mismo» desde la ficha deja lápida y vínculo: el banco no lo vuelve a meter y el histórico lo da por apuntado", async ({ page }) => {
+test("Manual: «Es el mismo» desde la ficha deja lápida y vínculo: el banco no lo vuelve a meter y el histórico lo da por apuntado", async ({ page }) => {
   await abre(page, {
-    expenses: [aviso(29.9, "Decathlon")],
+    expenses: [Object.assign(aviso(29.9, "Decathlon"),{source:"manual"})],
     __cloudFns: { "bank-sync": respuesta([tr(29.9)]) },
   });
   await sincroniza(page);

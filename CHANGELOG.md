@@ -1,3 +1,7 @@
+### Candidata sin publicar · emparejado automático Trade Republic (13/10/2026)
+
+La reconciliación reserva una sola fila por aviso y conserva el apunte bancario excluido con la marca de duplicado existente. Se aplica al arrancar, al recibir gastos y al sincronizar el banco; evita volver a preguntar cada mes y permite separar sin reconstruir importes. La unión de decisiones automáticas usa hora y conserva la separación en empate; borrar y Deshacer operan ambas filas. La base incluye Recibos 24bfb4e5 rebasado sobre beta124, sin adoptar sus topes. No se cambia versión, notas de publicación ni catálogo: corresponde a integración. [Acta](docs/briefs/tr-emparejado-automatico-20261013.md).
+
 ## [4.26.124] — 2026-10-13 · Plan: bajar despacio desde arriba del todo ya no hace saltar el contenido; salen del panel las tres tandas aprobadas (solo web, sin APK nueva)
 
 - **Qué entra.** `claude/plan-scroll-lento` (`d89c8ac2`, merge `676fb3cd`) y `claude/ci-rojos-inicio` (`1fbfa69d`, merge `c74ffbc5`, solo specs) encima de la beta 4.26.123 (`3625fa7e`). Solo web: `versionCode` sigue en 55, `public/apk.json` no se toca, ninguna función Edge cambia y no hay migración.

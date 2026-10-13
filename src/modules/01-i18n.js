@@ -4088,7 +4088,7 @@ function loadState(){
     var writeBack=!(saved._dataVer>=6) || !saved._dynBalAnchored;
     // Call site 1/3 de fixMovInvasion (loadState / arranque). Contención dentro de la fn, no aquí.
     const seeded = seedFlows(fixMovInvasion(fixRevoDupes(fixInvAuto(fixInvSold(reconcileTR((saved._dataVer>=6) ? saved : migrate(saved)))))));
-    const now=new Date(), s=reconcileEarlyIncomeAnchors(seeded,now.getFullYear(),now.getMonth()+1,now.getDate());
+    const now=new Date(), s=reconcileGemelosAutomaticos(reconcileEarlyIncomeAnchors(seeded,now.getFullYear(),now.getMonth()+1,now.getDate()));
     if(writeBack || s!==seeded) mcSaveRaw(mcStateKey(), s);
     applyTheme(s.settings&&s.settings.theme);
     applyA11y(s);
@@ -4291,3 +4291,7 @@ Object.assign(LANG.ca,{
   "bk_field_bankTx": "Moviments dels bancs",
   "bk_field_budget": "Pressupost"
 });
+
+Object.assign(LANG.es,{g_auto_paired:"Aviso y apunte del banco unidos",g_auto_separate:"No es el mismo: separar",g_auto_separated:"Se han separado los dos movimientos"});
+Object.assign(LANG.en,{g_auto_paired:"Notification and bank entry matched",g_auto_separate:"Not the same: separate",g_auto_separated:"The two transactions have been separated"});
+Object.assign(LANG.ca,{g_auto_paired:"Avís i apunt del banc units",g_auto_separate:"No és el mateix: separar",g_auto_separated:"S'han separat els dos moviments"});
