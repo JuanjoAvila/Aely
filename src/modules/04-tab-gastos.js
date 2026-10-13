@@ -226,10 +226,16 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     // La lápida entra junto con la retirada local: si la nube refresca durante los cinco segundos,
     // no puede resucitar la fila por detrás del toast. La escritura remota sí se encadena para que
     // Deshacer vuelva a subir el MISMO id después de que termine cualquier delete aún en vuelo.
-    set(function(s){ return Object.assign({},s,{
-      expenses:(s.expenses||[]).filter(function(x){ return x.id!==e.id; }),
-      deleted:pushDeleted(s.deleted,key)
-    }); });
+    set(function(s){
+      const next=Object.assign({},s,{
+        expenses:(s.expenses||[]).filter(function(x){ return x.id!==e.id; }),
+        deleted:pushDeleted(s.deleted,key)
+      });
+      // Un apunte del banco borrado A MANO deja rastro «sin aviso» (12/10/2026): así el importador
+      // no confunde su lápida con un «es el mismo» antiguo y no da por reclamado ningún aviso.
+      if(e.source==="ob"||e.source==="ob-hist") next.gemelos=pushGemelos(s.gemelos,[{aviso:"",banco:key}]);
+      return next;
+    });
     const pending={expense:e,key:key,index:index<0?list.length:index,wasCloud:wasCloud,
       cloudDelete:wasCloud?borrarGastoNube(e,"gastos-borrar"):Promise.resolve()};
     undoDeleteRef.current=pending; setUndoDelete(pending);

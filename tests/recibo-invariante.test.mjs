@@ -3,8 +3,8 @@
 // entra en Gastos para que se vea. Eso es un cambio de lo que se ve, no de lo que se cuenta:
 // para cualquier extracto, las cifras tienen que ser las mismas que cuando la fila se tiraba.
 //
-// Este test no confía en ninguna regla escrita dos veces: carga el código de la 4.26.119
-// (`788432f4`, el mismo mecanismo de commit inmutable que usa `beta-sources`) y el de ahora, les
+// Este test no confía en ninguna regla escrita dos veces: carga el código de antes de esta
+// entrega (`BASE`, el mismo mecanismo de commit inmutable que usa `beta-sources`) y el de ahora, les
 // pasa los mismos extractos sintéticos por la cadena real del sync y compara al céntimo el
 // gastado y el presupuesto, el saldo pintado tras anclar, el saldo previsto y el cierre de mes.
 // Dos rondas afinaron la marca «para que fuera más correcta» y las dos movieron cifras
@@ -24,7 +24,10 @@ import {execFileSync} from "node:child_process";
 import { test } from "node:test";
 import { loadPureLogic } from "../scripts/load-pure-logic.mjs";
 
-const BASE="788432f4682c199edd785f6973d9353330c0064a";
+// La referencia es el código tal como queda ANTES de esta entrega: la 4.26.119 más los apuntes
+// iguales con ordinal (`claude/tr-iguales-ordinal`, `dea5d883`, que entra en beta primero). Ahí
+// el cargo parecido a un recibo se sigue tirando; donde se lee «la 119» es esa referencia.
+const BASE="dea5d8836cc772fff27feb329ee6fe1b56f6a959";
 const disco=file=>fs.readFileSync(new URL("../"+file,import.meta.url),"utf8");
 const deGit=file=>execFileSync("git",["show",BASE+":"+file],{encoding:"utf8",maxBuffer:3e7,cwd:new URL("..",import.meta.url)});
 function carga(src){
@@ -375,6 +378,35 @@ test("el cierre estima el redondeo igual con el cargo de un recibo en la lista q
   extractos++;
 });
 
+// ───── Las dos entregas juntas: el cargo de un recibo y los apuntes iguales del mismo día.
+test("dos cargos iguales del mismo día que casan con un recibo: entran los dos marcados, el segundo con su ordinal, y nada cuenta", ()=>{
+  for(const rol of ["ambos","diario"]){
+    const igual={ext_id:null,ent:"bbva",date:"2026-10-05",amount:10.99,merchant:"SPOTIFY AB",status:"BOOK",card:true};
+    const ex={estado:{accounts:[{id:"a",ent:"bbva",role:rol,spendFrom:true,value:3000}],settings:{},fixed:[{id:"spo",name:"Spotify",amount:10.99,freq:"mes",day:5,account:"bbva"}],
+        debts:[],oneoffs:[],flows:[],expenses:[],bankTx:[],deleted:[],budget:800,investments:[],assets:[],aportaciones:[],trAnchor:"2026-10"},
+      // Dos iguales del recibo y, aparte, dos compras iguales sin id que no son de ningún recibo.
+      txs:[igual,Object.assign({},igual),{ext_id:null,ent:"bbva",date:"2026-10-06",amount:5,merchant:"BIZUM A PEPE",status:"BOOK",card:false},{ext_id:null,ent:"bbva",date:"2026-10-06",amount:5,merchant:"BIZUM A PEPE",status:"BOOK",card:false}],
+      d1:12,d2:12,dn:2,saldos:[{bbva:2968.02},{bbva:2968.02},{bbva:2968.02}]};
+    const r=compara(ex,"iguales "+rol);
+    const filas=r.b.octubre.expenses.map(e=>[e.merchant,e.reciboId||null,e.obOrd||1,cand.c.expenseSourceForCloud(e)]).sort();
+    assert.deepEqual(filas,[["BIZUM A PEPE",null,1,"ob:bbva"],["BIZUM A PEPE",null,2,"ob:bbva#n2"],["SPOTIFY AB","spo",1,"ob:bbva~recibo.spo"],["SPOTIFY AB","spo",2,"ob:bbva~recibo.spo#n2"]]);
+    assert.equal(r.b.pasos.sync.presupuesto.spent,10,"cuentan los dos bizums; los dos cargos del recibo, ninguno");
+    assert.equal(r.a.octubre.expenses.length,2,"antes de esta entrega solo entraban los bizums");
+    // La fila con `~recibo.<id>#n2` da la vuelta por la nube sin perder nada y no se vuelve a importar.
+    const vuelta=r.b.octubre.expenses.map(e=>Object.assign(cand.c.expenseFromRow({id:e.id,fecha:e.date,importe:e.amount,comercio:e.merchant,cat:e.category,source:cand.c.expenseSourceForCloud(e),ob_name:e.obName}),{extId:e.extId}));
+    assert.deepEqual(vuelta.map(e=>[e.merchant,e.reciboId||null,e.obOrd||1,e.ent]).sort(),filas.map(f=>[f[0],f[1],f[2],"bbva"]));
+    cand.reloj.t=aLas(10,12);
+    const otra=sincroniza(cand.c,Object.assign({},r.b.octubre,{expenses:vuelta}),ex.txs,ex.saldos[0]);
+    assert.equal(otra.expenses.length,4,"volver a sincronizar no repite ninguna");
+    assert.deepEqual(cifras(cand.c,otra,2026,10,12).presupuesto,r.b.pasos.otroDia.presupuesto);
+    // Y si el banco trae un tercero igual, entra como la ranura 3, también marcado.
+    const tres=sincroniza(cand.c,otra,ex.txs.concat([Object.assign({},igual)]),ex.saldos[0]);
+    assert.deepEqual(tres.expenses.filter(e=>e.reciboId).map(e=>e.obOrd||1).sort(),[1,2,3]);
+    assert.equal(cifras(cand.c,tres,2026,10,12).presupuesto.spent,10);
+    extractos++;
+  }
+});
+
 test("el generador ha recorrido los extractos previstos", ()=>{
-  assert.equal(extractos,ROLES.length*2*2*3*SEMILLAS+ROLES.length*SEMILLAS+AMPLIOS+3+1+1);
+  assert.equal(extractos,ROLES.length*2*2*3*SEMILLAS+ROLES.length*SEMILLAS+AMPLIOS+3+1+1+2);
 });

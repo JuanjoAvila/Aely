@@ -489,7 +489,10 @@ function App(){
       // Esto garantiza que la tabla sea la fuente de verdad COMPLETA antes de dejar de duplicar
       // los gastos en app_state (ver slimForCloud). Upsert idempotente (ignoreDuplicates).
       const tableKeys={}; incoming.forEach(function(e){ tableKeys[keyOfExpense(e)]=1; });
-      (stateRef.current.expenses||[]).forEach(function(e){ if(e.amount!==0 && !tableKeys[keyOfExpense(e)]) subirGasto(e, "backfill"); });
+      // Una fila local con lápida nunca vuelve en `incoming` (se filtra arriba), así que sin esta
+      // comprobación se resubía en CADA pull como «huérfana» (revisión 12/10/2026): él ya dijo que
+      // ese apunte no cuenta, y la tabla no tiene que volver a verlo.
+      (stateRef.current.expenses||[]).forEach(function(e){ if(e.amount!==0 && !tableKeys[keyOfExpense(e)] && !expenseIsTombstoned(e, delSet)) subirGasto(e, "backfill"); });
       /* AQUÍ NO VA UN REPASO QUE RE-MARQUE LOS POSIBLES REPETIDOS VIEJOS (B09-D, 2026-09-08).
          Lo escribí y lo retiré: `addExpense` va con ignoreDuplicates y nunca cambia el `source` de
          una fila ya presente, así que los pendientes anteriores a esta versión siguen contando en
@@ -569,6 +572,10 @@ function App(){
           const localNewer=!freshLogin && (prev._savedAt||0) > (cloudState._savedAt||0);
           const baseObj = localNewer ? Object.assign({},prev,{expenses:merged.list})
                                      : Object.assign({},prev,cloudState,{expenses:merged.list});
+          // Los vínculos aviso↔apunte se UNEN gane quien gane (12/10/2026): un vínculo es un hecho
+          // que vio un móvil y el otro no puede desmentir por no tenerlo. Ver `fusionarGemelos`.
+          const gem=fusionarGemelos(prev.gemelos, cloudState.gemelos);
+          if(gem!==baseObj.gemelos) baseObj.gemelos=gem;
           // El extracto local no pertenece a la nube: al cambiar de usuario podría confirmar
           // una nómina ajena. Los eventos de arranque/refresco compiten con getSession y no
           // prueban por sí solos que haya otro titular (feedback 27/9).
@@ -694,6 +701,13 @@ function App(){
           });
         }
         obAdded=add||[];
+        // Los avisos que acaban de quedar reclamados viajan con el estado (12/10/2026): así otro
+        // móvil, o la siguiente sincronización, no vuelven a ofrecer el mismo aviso como gemelo.
+        const vinculos=gemelosDeImportacion(add, invState.expenses);
+        if(vinculos.length){
+          const gem=pushGemelos(invState.gemelos, vinculos);
+          if(gem!==invState.gemelos) invState=Object.assign({},invState,{gemelos:gem});
+        }
         const baseExp=add? add.concat(invState.expenses||[]) : (invState.expenses||[]);
         // Rellena el CONCEPTO de lo que ya estaba apuntado con lo que acaba de traer el banco
         // (2026-07-24): si no, el histórico viejo —el que se consulta— seguiría sin explicar nada.

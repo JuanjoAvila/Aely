@@ -225,18 +225,22 @@ const PRESUPUESTO = {
   // +964 / +318 B. Es el acuse local (`obAckLoad`, `obAckSave`, `obAckDrop`), su envío y el
   // efecto que lo guarda detrás de las filas. 1303 KiB (1.334.272) se queda corto por 254 B:
   // +1 KiB mínimo, quedan 770 B.
-  // Todo cargo del banco sale en Gastos (12/10), rama sobre la beta119 (788432f4), mismo
-  // minificador, sello 119.99999 y reserva de 95 B: 1.334.526/364.664 → 1.346.171/368.275 B
-  // (+11.645/+3.611). Es la fila marcada en el sync y en el histórico, su etiqueta firme o
-  // con pregunta, «No es este recibo» con su veto entre móviles, la escritura acotada en la
-  // nube y siete textos en tres idiomas. Antes de subir se recortó lo repetido: la regla del
-  // nombre entero vive una sola vez (`recFrase`) y se fueron dos funciones que se solapaban.
-  // 1304 KiB se queda corto por 10.875 B: 1315 es el mínimo y deja 389 B. No se recortan
-  // guardas ni idiomas para caber. La integración tiene que volver a medir con su sello.
-  // Cuarta revisión (13/10): quitar la marca en la nube al borrar el recibo, la vuelta atrás de
-  // un puntual, el veto que se levanta desde otro móvil y el aviso que gana al cargo marcado
-  // miden 1.348.175/368.865 B (+2.004/+590). Mínimos 1317/361, márgenes 433/799 B.
-  minificado: 1317 * 1024,
+  // Trade Republic, entrega 1 (12/10, `claude/tr-iguales-ordinal`): la base de la rama ya medía
+  // 1308/358 KB (fuera del tope en los dos). Con la revisión (histórico que respeta lápidas y
+  // vínculos, unión de `gemelos` entre móviles, pendiente+contabilizado como un cargo, conceptos
+  // no ambiguos, banco limpio en `ob-hist`), sellado 119.99999 y reserva de 95 B: 1.340.528 B
+  // crudo / 366.830 B gzip. Es la regla del ordinal y sus comentarios del porqué en el motor; sin
+  // texto nuevo de idiomas. Mínimos medidos: 1310 KiB (quedan 912 B) y 359 KiB (quedan 786 B).
+  // Todo cargo del banco sale en Gastos (12-13/10), sola sobre la beta119 (788432f4), mismo
+  // minificador, sello y reserva: 1.334.526/364.664 → 1.348.175/368.865 B (+13.649/+4.201). Es
+  // la fila marcada en el sync y en el histórico, su etiqueta firme o con pregunta, «No es este
+  // recibo» con su veto entre móviles y su vuelta atrás, la escritura acotada en la nube y siete
+  // textos en tres idiomas. Antes de subir se recortó lo repetido: la regla del nombre entero
+  // vive una sola vez (`recFrase`) y se fueron dos funciones que se solapaban.
+  // UNIÓN de las dos ramas (13/10), medida de nuevo tras fusionarlas, no sumada: 1.354.050 B
+  // crudo / 370.901 B gzip. Mínimos 1323/363 KiB (quedan 702/811 B). No se
+  // recortan guardas ni idiomas para caber; la integración vuelve a medir con su sello.
+  minificado: 1323 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -251,8 +255,10 @@ const PRESUPUESTO = {
   // +1 KiB mínimo (quedan 712 B).
   // Recibos118: 364.346 B gzip, 826 B sobre 355 KiB. +1 KiB mínimo (quedan 198 B).
   // Bancos119: 364.664 B gzip, 120 B sobre 356 KiB. +1 KiB mínimo (quedan 904 B).
-  // Cargo de recibo en Gastos: 368.275 B gzip, 2.707 B sobre 357 KiB. 360 es el mínimo (quedan 365 B).
-  gzip: 361 * 1024,
+  // Trade Republic, entrega 1 revisada (12/10): 366.830 B gzip, 1.398 B sobre 357 KiB (la base
+  // de la rama ya se pasaba). Mínimo medido: 359 KiB (quedan 786 B).
+  // Cargo de recibo en Gastos, sola: 368.865 B gzip. Unión de las dos, medida: 370.901 B.
+  gzip: 363 * 1024,
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 
