@@ -125,6 +125,8 @@ for(const rol of ["ambos","diario"]) test("1 · «Deshacer» el borrado de un re
   // Con el reloj de este móvil atrasado, el «Deshacer» sigue siendo posterior al borrado.
   const tarde=c.conReciboEnPlan(borrado,"fixed",guardado,OCT12-86400000);
   assert.equal(tarde.state.reciboBorradoAt.luz,borrado.reciboBorradoAt.luz+1);
+  // Y volver a borrarlo, también: si no, perdería contra aquel «Deshacer» en el otro móvil.
+  assert.equal(c.sinCargoDelPlan(tarde.state,"fixed","luz",OCT12-86400000).state.reciboBorradoAt.luz,borrado.reciboBorradoAt.luz+2);
   // Lo que sube a la nube al deshacer: la fila de octubre, otra vez con su marca.
   assert.equal(j(tarde.subir.map(e=>[String(e.date).slice(0,7),c.expenseSourceForCloud(e)])),j([["2026-10","ob:bbva~recibo.luz"]]));
   // Un alta cualquiera (id nuevo) es solo añadir: ni marcas ni horas.
@@ -322,6 +324,11 @@ test("5 · las lápidas se unen entre móviles, y «Deshacer» sigue teniendo vu
   assert.equal(j([u300.deleted.length,u300.deleted.indexOf("recien")>=0,u300.deleted.filter(k=>/^499-/.test(k)).length,u300.deleted.filter(k=>/^nube/.test(k)).length]),j([500,true,499,0]));
   const u500=c.lapidasUnion(mias,{deleted:Array.from({length:500},(_,i)=>"nube"+i)});
   assert.equal(j([u500.deleted.length,u500.deleted.indexOf("recien")>=0,u500.deleted.filter(k=>/^499-/.test(k)).length]),j([500,true,499]));
+  // Una decisión con hora no se cae aunque esté la primera de la lista.
+  const delante=c.lapidasUnion({deleted:["con-hora"].concat(viejas(499)),deletedAt:{"con-hora":5}},{deleted:Array.from({length:300},(_,i)=>"nube"+i)});
+  assert.equal(j([delante.deleted.length,delante.deleted.indexOf("con-hora")>=0]),j([500,true]));
+  // «Deshacer» levanta todas las copias de la clave: la lista nunca miró si ya estaba.
+  assert.equal(j(c.lapidaLevanta({deleted:[key,"otra",key]},key,9).deleted),j(["otra"]));
   const llena=c.lapidaPon({deleted:viejas(500)},"recien",1000);
   assert.equal(j([llena.deleted.length,llena.deleted[499]]),j([500,"recien"]));
   const at={}; for(let i=0;i<260;i++) at["h"+i]=i+1;
