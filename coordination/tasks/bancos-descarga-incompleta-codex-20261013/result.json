@@ -1,0 +1,175 @@
+{
+  "status": "done",
+  "summary": "Candidato completo para revision limpia de Claude, PR223 draft fuente f236a2f4 sobre123;34 pruebas causales Node y23 Deno reales. Sin despliegue ni entrega beta/main; CI global final en curso y21DOM no acreditados.",
+  "productSHA": "f236a2f4668929ea635ebeba4f3d96a91dc28727",
+  "executionBaseSHA": "3625fa7ed5134cfbc5e364adc4f588bfdaf670c0",
+  "taskBaseSHA": "e6e211a5d94e50b03597d5c91230c974d3e72232",
+  "pullRequest": "JuanjoAvila/Aely#223",
+  "brief": "docs/briefs/bancos-descarga-incompleta-20261013.md",
+  "tests": [
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/guard-privacy.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/bank-download-incomplete.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/bank-sync-paging.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/bank-sync-progreso.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/bank-sync-acuse.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/bank-reconnect.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/ob-hueco-sync.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/ob-hueco-recuperado.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/recibo-invariante.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/i18n-keys.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/security.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/docs-frescura.test.mjs",
+      "exitCode": 1
+    },
+    {
+      "command": "node tests/presupuesto-rendimiento.test.mjs",
+      "exitCode": 1
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "deno test --no-lock --cached-only --allow-env enablebanking.test.ts demand-window.test.ts",
+      "exitCode": 0,
+      "detail": "23 passed0 failed real Deno2.9.0; server unchanged"
+    },
+    {
+      "command": "six causal mutants restored; build regenerated",
+      "exitCode": 0,
+      "detail": "6/6 killed, each mutant EXIT1"
+    },
+    {
+      "command": "node tests/bank-download-incomplete.test.mjs final",
+      "exitCode": 0,
+      "detail": "34 PASS /0 FAIL; before sealed correction32PASS2FAIL EXIT1; original before5PASS20FAIL EXIT1"
+    },
+    {
+      "command": "node tests/beta-sources.test.mjs local bounded attempt",
+      "exitCode": null,
+      "signal": "SIGTERM",
+      "detail": "60s,18 passed reported,no terminal"
+    },
+    {
+      "command": "node --check e2e/bancos-descarga-incompleta.spec.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "gh workflow run test.yml --ref codex/bancos-descarga-incompleta",
+      "exitCode": 0,
+      "detail": "Dispatch confirmed; run38363428469 headf236 exact; not a test pass"
+    },
+    {
+      "command": "Tests workflow run38363428469 final",
+      "exitCode": null,
+      "detail": "In progress at result snapshot; no global verdict and no DOM acceptance"
+    },
+    {
+      "command": "reserved daily authentication catch compare normalized CRLF",
+      "exitCode": 0,
+      "detail": "SHA256dcead50a0a619d0519fb30e36572bc58fe3479c953fe357cf68b0682342143ab identical to123"
+    }
+  ],
+  "implementation": [
+    "Motivos es/en/ca: proveedor/respuesta/cursor repetido, limites propios, tramo antiguo pendiente; fallback generico servidor anterior",
+    "Account actually interrupted: retain previous feed and admit only new unique BOOK IDs, finite amount, valid nonfuture date. Sealed ancient prefix with complete returned accounts retains no-ID rows using maximum group multiplicity, not cache+read sum; real handler+updater regression verifies received rows before119 ack.",
+    "Registro enum saneado incluyendo error0paginas; sin UID/IBAN/tokens/texto libre",
+    "Continuacion repetida termina parcial y no ofrece cursor/acuse de lectura completa",
+    "Garantias119 preservadas; overflow propio paginas/filas conserva excepcion anterior; catch reservado identico"
+  ],
+  "limitations": [
+    "21 DOM cases authored and registered; zero local Chromium runs; final remote Tests in progress, no terminal/global/DOM verdict. Coordinator must inspect terminal CI and obtain runtime/mobile acceptance.",
+    "Budget EXIT1:1386301/1384448 minified (+1853 B),380786/380928 gzip (142 B margin),3blocking files; no cap change",
+    "TR100 rows1page without continuation: official API marks paging end; no proof of bank truncation, no heuristic or real bank call",
+    "No real provider/account/mobile/runtime acceptance, no Edge deploy/SQL/migrations/RLS/APK, no beta/main push",
+    "No VERSION/release entries/new catalogue units/descriptor repins; generated public fingerprints reflect source change and require integration review",
+    "Own worktree clean, temporary node_modules junction removed; own WIP122 archive and stash preserved, foreign FIN01 slot/locks and PR221/results unchanged",
+    "docs-frescura EXIT1 only unversioned candidate after anchor123; all version numbers aligned; no bump authorized",
+    "Sealed ancient prefix without ID is received before ack119 even if next chunk fails; incomplete account no-ID rows still deferred; multiplicity maximum prevents cache duplication",
+    "Only observed focal reds are unversioned-code docs-frescura and minified budget; catalog123 red observed in superseded cancelled run. Final complete suite may expose additional failures; not classified as globally green or solely integration-red before terminal.",
+    "Candidate/source work done; deployment, catalog/version/cap integration, clean review, terminal global CI and mobile acceptance remain distinct stages owned by coordinator. No automatic watcher, successor, new task, or additional publication created."
+  ],
+  "remoteCI": {
+    "workflow": "test.yml",
+    "event": "workflow_dispatch",
+    "run": 38363428469,
+    "job": 115182792134,
+    "headSHA": "f236a2f4668929ea635ebeba4f3d96a91dc28727",
+    "status": "in_progress",
+    "conclusion": null,
+    "snapshotUTC": "2026-10-13T08:24:14.310Z",
+    "verifiedBy": [
+      "GitHub connector jobs",
+      "fresh gh run view exact head"
+    ],
+    "exitCode": null
+  },
+  "inventoryMessage": "27cc54b7a6ada040af21d493d4e497511e7e5ac2",
+  "candidateMessage": "1724d5d8755791a63331a2eb07ab978c55871281",
+  "supersededCI": [
+    {
+      "run": 38360056330,
+      "job": 115171857837,
+      "headSHA": "63c85fe9e42b26ac30cd10e5b031900e23ccade1",
+      "status": "completed",
+      "conclusion": "cancelled",
+      "detail": "Superseded after fixing persisted language fixture; catalog123 assertion red observed; unit/Deno/DOM not terminal"
+    },
+    {
+      "run": 38361601291,
+      "job": 115176849852,
+      "headSHA": "8287bdcf34920817cee9b2b0a03ef6154c1ca3f0",
+      "conclusion": "cancelled",
+      "detail": "Superseded by sealed-prefix causal correction; not a pass"
+    }
+  ],
+  "finalCandidateMessage": "87bc61b64777212c4f7af0d8cf2be3c720dedd9b",
+  "schema": 1,
+  "taskId": "bancos-descarga-incompleta-codex-20261013",
+  "actor": "codex",
+  "sessionId": "codex-local-20261013-bancos-6a7d195aa92a",
+  "createdAt": "2026-10-13T08:24:15.161Z",
+  "released": true
+}
