@@ -4291,3 +4291,30 @@ Object.assign(LANG.ca,{
   "bk_field_bankTx": "Moviments dels bancs",
   "bk_field_budget": "Pressupost"
 });
+Object.assign(LANG.es,{
+  exp_pending_one:"1 cambio pendiente de sincronizar", exp_pending_discard:"Descartar cambio", exp_discard_title:"Adoptar lo que hay en la nube", exp_discard_help:"Se descartarán los cambios pendientes de este movimiento y se recuperará su estado actual en la nube. Si ya no existe, desaparecerá también aquí.", exp_discard_error:"No se pudo consultar la nube. El cambio sigue pendiente.",
+  exp_pending_n:"{n} cambios pendientes de sincronizar", exp_pending_help:"Los cambios ya se aplican aquí. Se conservarán hasta que la nube los confirme.",
+  exp_pending_movement:"Movimiento", exp_pending_wait:"Pendiente de confirmación", exp_pending_retry:"Reintentar",
+  exp_conflict_title:"Revisar cambio", exp_conflict_confirm:"Se volverá a intentar el cambio pendiente sobre la versión actual del movimiento. Si ya hay otro movimiento igual, seguirá pendiente para evitar duplicarlo.", exp_conflict_keep:"Mantener mi cambio",
+  exp_pending_session:"Vuelve a iniciar sesión con la misma cuenta para sincronizar.", exp_pending_identity:"No se ha podido confirmar el movimiento original. Revisa los otros dispositivos.",
+  exp_pending_conflict:"El movimiento cambió en otro dispositivo o coincide con otro. Revisa el cambio antes de continuar.",
+  exp_pending_storage:"No se pudo guardar el cambio pendiente. Libera espacio y reintenta antes de cerrar."
+});
+Object.assign(LANG.en,{
+  exp_pending_one:"1 change waiting to sync", exp_pending_discard:"Discard change", exp_discard_title:"Use the cloud version", exp_discard_help:"Pending changes to this transaction will be discarded and its current cloud version restored. If it no longer exists, it will disappear here too.", exp_discard_error:"The cloud could not be reached. The change is still pending.",
+  exp_pending_n:"{n} changes waiting to sync", exp_pending_help:"Changes already apply here. They will be kept until the cloud confirms them.",
+  exp_pending_movement:"Transaction", exp_pending_wait:"Awaiting confirmation", exp_pending_retry:"Retry",
+  exp_conflict_title:"Review change", exp_conflict_confirm:"The pending change will be retried on the current version of this transaction. If an identical transaction already exists, it will remain pending to avoid duplication.", exp_conflict_keep:"Keep my change",
+  exp_pending_session:"Sign in again with the same account to sync.", exp_pending_identity:"The original transaction could not be confirmed. Check your other devices.",
+  exp_pending_conflict:"The transaction changed on another device or matches another one. Review the change before continuing.",
+  exp_pending_storage:"The pending change could not be saved. Free up space and retry before closing."
+});
+Object.assign(LANG.ca,{
+  exp_pending_one:"1 canvi pendent de sincronitzar", exp_pending_discard:"Descarta el canvi", exp_discard_title:"Adoptar el que hi ha al núvol", exp_discard_help:"Es descartaran els canvis pendents d'aquest moviment i es recuperarà el seu estat actual al núvol. Si ja no existeix, desapareixerà també aquí.", exp_discard_error:"No s'ha pogut consultar el núvol. El canvi continua pendent.",
+  exp_pending_n:"{n} canvis pendents de sincronitzar", exp_pending_help:"Els canvis ja s'apliquen aquí. Es conservaran fins que el núvol els confirmi.",
+  exp_pending_movement:"Moviment", exp_pending_wait:"Pendent de confirmació", exp_pending_retry:"Torna-ho a provar",
+  exp_conflict_title:"Revisar el canvi", exp_conflict_confirm:"Es tornarà a provar el canvi pendent sobre la versió actual del moviment. Si ja hi ha un altre moviment igual, continuarà pendent per evitar duplicar-lo.", exp_conflict_keep:"Mantenir el meu canvi",
+  exp_pending_session:"Torna a iniciar sessió amb el mateix compte per sincronitzar.", exp_pending_identity:"No s'ha pogut confirmar el moviment original. Revisa els altres dispositius.",
+  exp_pending_conflict:"El moviment ha canviat en un altre dispositiu o coincideix amb un altre. Revisa el canvi abans de continuar.",
+  exp_pending_storage:"No s'ha pogut desar el canvi pendent. Allibera espai i torna-ho a provar abans de tancar."
+});

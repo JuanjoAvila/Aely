@@ -79,7 +79,7 @@ Un apunte de banco SIN id (Trade Republic por Open Banking: sin `entry_reference
 
 Viaje: en `source` como último tramo `#n2` (`ob:trade_republic#dup#n2`), que un móvil o servidor anterior ignora (`split("#")[0]` sigue dando el banco y `[1]` la marca `dup`), y en `fecha` como mediodía + (ordinal−1) ms, porque el índice único de `expenses` es usuario+fecha+importe+comercio y sin ello la segunda fila igual chocaría y nunca subiría. Determinista: dos móviles que suban el mismo ordinal escriben la misma fila. Un móvil anterior funde las k filas al bajar (ve una, como hoy) y su importador no añade ninguna.
 
-**Formato completo de `source` para un apunte de banco** (lo que leen `expenseFromRow`, `expenseBankOf`, `partirEntDeuda` y `bancoDeSource`/`ordinalDeSource` del servidor): `ob:<ent>[~deuda.<id> | ~recibo.<id>][#dup][#n<k>]`, y lo mismo con `ob-hist:`. Los tramos `~` van pegados al banco (una app anterior lee un banco raro y deja la fila fuera: el lado seguro); los tramos `#` van detrás y una app anterior los ignora. `~recibo.<id>` lo escribe la entrega del recibo que entra en Gastos; esta rama ya lo lee aunque no lo escriba. Cualquier lector o escritor nuevo de `source` (FIN-04 incluido) tiene que aceptar exactamente esa expresión: `/^ob(-hist)?:[^~#]+(~(deuda|recibo)\.[A-Za-z0-9_-]+)*(#dup)?(#n\d{1,6})?$/`.
+**Formato completo de `source` para un apunte de banco** (lo que leen `expenseFromRow`, `expenseBankOf`, `partirEntDeuda` y `bancoDeSource`/`ordinalDeSource` del servidor): `ob:<ent>[~deuda.<id> | ~recibo.<id>][#dup][#n<k>]`, y lo mismo con `ob-hist:`. Los tramos `~` van pegados al banco (una app anterior lee un banco raro y deja la fila fuera: el lado seguro); los tramos `#` van detrás y una app anterior los ignora. `~recibo.<id>` lo escribe la entrega del recibo que entra en Gastos; esta rama ya lo lee aunque no lo escriba. El contrato para nuevos transportes admite UNA marca alternativa y un ordinal canónico de 2 a 999999: `/^ob(-hist)?:[^~#]+(~(deuda|recibo)\.[A-Za-z0-9_-]+)?(#dup)?(#n[0-9]{1,6})?$/`, comprobando además mínimo 2 y ausencia de ceros iniciales. FIN-04 rechaza el orden inválido, marcas repetidas y ordinales no canónicos; los conversores heredados siguen leyendo formas antiguas con más tolerancia.
 
 **Versiones mezcladas en la misma cuenta** (beta en un móvil, producción en otro): el móvil anterior baja las k filas y las funde en una (ve la de siempre); si edita o resuelve esa fila la vuelve a subir SIN `#n` y sin el milisegundo, así que su escritura choca con la ranura 1 (misma fecha, importe y comercio) y no toca las demás. No hay pérdida muda: las filas 2..k siguen en la tabla y el móvil nuevo las sigue viendo; lo único que converge contestando es la marca `#dup` de la ranura 1, que el viejo puede quitar o poner. Un servidor sin `ordinalDeSource` funde las k en el widget hasta que se despliegue `ingest` (orden de despliegue en `SETUP-SUPABASE.md`).
 
@@ -469,9 +469,67 @@ y `traspaso` se conservan aunque no pertenezcan al catálogo ordinario de catego
 La categoría elegida a mano no la deshace un pull (4.26.86). Antes de mezclar,
 `keepCategoryChoices` mira la procedencia local de la fila: `catStale` son las categorías que
 la tabla puede devolver todavía y `catAckAt` la hora en que `cloud.setExpenseCat` confirmó que
-escribió al menos una fila. Sin confirmación se conserva lo local y se reintenta con el id de la
-fila de la nube. Con confirmación, una lectura empezada después es la verdad, diga lo que diga.
+escribió la fila del mismo propietario y UUID. Un UUID divergente no autoriza escribir en un
+gemelo por fecha, importe o comercio. Con confirmación, una lectura empezada después es la verdad, diga lo que diga.
 Ninguno de los dos campos viaja a la nube.
+
+FIN-04 (candidata sin publicar): banco, duplicidad, categoría, nota, no-tarjeta, marca de deuda,
+edición y borrado usan `writeExpenseField`. El gesto se aplica localmente al momento, sin depender
+de la conexión. Antes de enviar se registra una intención en `localStorage`, una clave
+`mc-expense-op:<propietario>:<opId>` por operación, fuera de `app_state`. Contiene UUID, campo,
+valor, base local anterior al gesto y estado. Cada escritura restringe propietario y UUID; cada ACK comprueba
+ambos, el valor solicitado y la época de sesión vigente. Si el UUID no existe o es legado, una lectura
+por propietario, fecha/instante, importe en céntimos, comercio y origen exactos debe devolver UNA fila:
+sólo entonces se realinea su UUID, orden manual, `possibleDupOf` y referencias de pruebas de recibos.
+Cero o varias candidatas dejan conflicto de identidad; nunca se decide por parecido.
+Sesión perdida o error siguen pendientes y visibles en Gastos, también
+tras recargar. Sin espacio de almacenamiento no sale la petición y se avisa de que la cola aún
+no es durable. Las operaciones de otra cuenta quedan aisladas; sin titular previamente aceptado no
+se encola. Caducar conserva el último titular; cerrar sesión o borrar la cuenta purga las claves
+privadas y anula los vuelos anteriores para impedir que las vuelvan a crear.
+
+La lectura remota precede al UPDATE con condiciones sobre los campos que se cambian. Para
+`source` se conserva el origen y las marcas ajenas de banco, deuda, recibo, duplicidad y ordinal; sólo cambia
+el componente decidido. El viaje local conserva deuda y recibo también en `ob-hist`; el ACK adopta el ordinal y la fecha ya desplazada, sin volver a sumarle milisegundos. Deuda sustituye recibo, y esa retirada queda protegida mientras hay una decisión pendiente. Las lápidas de la cola y del descarte reconstruyen el ordinal desde la foto; la unión con un aviso espera si pisaría banco/origen/marca pendiente. Hay como máximo tres intentos CAS y cada petición tiene corte de 10 s.
+El corte no acredita cancelación del servidor. Un cambio del mismo campo posterior al gesto, incluso
+si el gesto se hizo sin red, produce
+conflicto; Reintentar exige confirmar que se desea mantener el cambio antes de tomar una nueva
+base. Una colisión del índice único también es conflicto, nunca fusión ni borrado de otra fila.
+El reintento de un UPDATE cuyo valor exacto ya está presente confirma sin repetir la escritura.
+Los gestos sucesivos sobre la misma fila se ordenan y no adelantan una intención aún incierta.
+
+Editar comercio, importe o fecha conserva el UUID y hace UPDATE, no DELETE seguido de INSERT.
+El borrado local conserva la lápida y una intención durable; el individual espera los cinco
+segundos de Deshacer antes de enviar. El plazo absoluto viaja con la operación: al reabrir se
+retoma el tiempo restante o se drena inmediatamente si venció. Deshacer sólo cancela antes de
+intentar DELETE, sin recrear una fila remota. Los lotes guardan UUID ya confirmados. Una consulta
+del mismo titular que acredita ausencia cierra un borrado (o una fila retirada con lápida), también
+tras perder la respuesta. Esto es convergencia por ausencia, no un recibo de commit remoto.
+La ausencia en un pull ordinario sigue sin autorizar borrados locales.
+
+La cola se drena ordenadamente al aceptar sesión, recuperar red, volver a primer plano y después
+de cada pull de gastos. Los disparadores y envíos viven fuera de los updaters React, con un vuelo
+compartido y una pasada por disparador; los conflictos exigen decisión explícita. Descartar consulta
+el servidor antes de retirar las intenciones de esa fila y adoptar su estado (o quitarla si no existe).
+Una colisión única tiene así salida sin fusionar ni borrar otro gasto. El importe se redondea antes
+de aplicarlo localmente, encolarlo y compararlo. En TR con `ingest_event_id`, «Son distintos» restaura
+el origen `macrodroid` en vez de convertir la notificación en movimiento bancario.
+
+No hay SQL, recibo remoto de operación ni revisión global: esto no resuelve ABA ni arbitra clientes
+antiguos. Un cliente viejo que mezcla por la clave anterior puede conservar dos filas tras ediciones
+cruzadas; actualizarlo y revisar ese estado sigue siendo necesario. La lápida de la clave antigua
+puede viajar antes del UPDATE y ocultar temporalmente el movimiento en el otro móvil: el drenado
+automático reduce esa ventana al siguiente disparador con red, pero no proporciona atomicidad entre
+`app_state` y `expenses`. No se afirma que esos dos recursos se confirmen juntos.
+
+El pull empareja primero por UUID, incluso si la edición cambió la clave por atributos, y
+actualiza también banco, fecha, nota y categoría manual. Conserva los campos de intenciones
+pendientes y de lecturas iniciadas antes del ACK; el resto puede refrescarse. No convierte una
+decisión pendiente ni una fila con UUID ya presente en un alta de backfill. La UI muestra
+pendiente/conflicto, Reintentar y Descartar en es/en/ca, con singular para una operación. Sólo los
+cambios de la vista de cola notifican a Gastos; no la metainformación de CAS ni una cola vacía.
+El registro de ACK mantiene como máximo 256 identidades; al retirar una conserva una frontera
+temporal que descarta las lecturas anteriores, para que acotar memoria no autorice una foto vieja.
 
 Las equivalencias futuras son `catRules` (en `app_state`): comercio exacto + banco + con o sin
 tarjeta → categoría e instante en que se enseñó; vale para fechas posteriores a ese instante. Solo las aplica el pull, y solo a filas que el

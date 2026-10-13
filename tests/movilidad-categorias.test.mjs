@@ -85,16 +85,14 @@ t("presupuesto TS del baseline cuenta los tres IDs sin desplegar servidor",()=>{
   assert.equal(ctx.monthBudgetStats({...data,expenses:rows.map(ctx.expenseFromRow)},now).shown,54);
 });
 const written=[],updates=[];
-const db={auth:{getSession:async()=>({data:{session:{user:{id:"synthetic-user"}}}})},from:()=>({
-  upsert:async(row,opts)=>{written.push({...row});assert.equal(opts.ignoreDuplicates,true);return{error:null};},
-  update:patch=>{
-    const filters=[],q={eq:(key,value)=>{filters.push([key,value]);return q;},then:resolve=>{
-      assert.equal(filters[0][0],"user_id");assert.equal(filters[0][1],"synthetic-user");assert.equal(filters[1][0],"id");
-      const row=written.find(r=>r.id===filters[1][1]);assert.ok(row);Object.assign(row,patch);updates.push({...patch});resolve({error:null});
-    }};return q;
-  }
-})};
-const sandbox=createLogicSandbox();sandbox.window.supabase={createClient:()=>db};const cloudCtx=vm.createContext(sandbox);vm.runInContext(extractPureLogicSource(read("public/index.html")),cloudCtx);
+const {database,storage}=await import('./expense-write-fixture.mjs');
+const table=database({rows:written,before({patch}){if(patch)updates.push({...patch});}});table.login('synthetic-user');
+const db={...table.sb,from(name){const q=table.sb.from(name);
+  q.upsert=async(row,opts)=>{written.push({...row});assert.equal(opts.ignoreDuplicates,true);return{error:null};};return q;
+}};
+const sandbox=createLogicSandbox();sandbox.localStorage=storage();sandbox.window.localStorage=sandbox.localStorage;
+sandbox.window.supabase={createClient:()=>db};const cloudCtx=vm.createContext(sandbox);vm.runInContext(extractPureLogicSource(read("public/index.html")),cloudCtx);
+await vm.runInContext('cloud.session().then(mcExpenseSession)',cloudCtx);
 for(const [i,category] of ["multas","zona_azul","peajes"].entries()){
   await vm.runInContext('cloud.addExpense('+JSON.stringify({id:"550e8400-e29b-41d4-a716-44665544000"+i,date:"2026-09-20T12:00:00Z",amount:10,merchant:"Comercio ambiguo",category,source:"manual",ent:"trade_republic"})+')',cloudCtx);
   assert.equal(written.at(-1).cat,category);assert.equal(ctx.expenseFromRow(written.at(-1)).category,category);
@@ -107,6 +105,7 @@ for(const category of ["peajes","zona_azul","multas"]){
   assert.equal(JSON.stringify({...original,cat:undefined}),immutable,"corregir categoría no modifica dinero ni identidad");
 }
 count++;console.log("  ✓ corrección cloud real por UUID/titular conserva importe, origen e identidad");
+for(const q of table.calls){assert(q.filters.some(([k,v])=>k==='user_id'&&v==='synthetic-user'));assert(q.filters.some(([k,v])=>k==='id'&&v===original.id));}
 t("idiomas y clasificación forman parte de la huella sin tocar referencias históricas",()=>{
   const id="feature-0310-01-movilidad",base=betaRevision(id);
   for(const [cat,labels] of [["multas",["Multas","Fines","Multes"]],["zona_azul",["Zona azul","Blue zone","Zona blava"]],["peajes",["Peajes","Tolls","Peatges"]]])for(const label of labels){
