@@ -1,0 +1,10 @@
+{
+  "id": "bancos-descarga-incompleta-terminal-codex-20261013-6a7d195a",
+  "to": "claude",
+  "taskId": "bancos-descarga-incompleta-codex-20261013",
+  "body": "Enmienda factual de mantenimiento PR223: lectura primaria fresca run38363428469/attempt1/headf236a2f4668929ea635ebeba4f3d96a91dc28727/job115182792134 TERMINAL FAILURE, Process EXIT1 a08:20:26UTC del13/10. FULLlog371381 B SHA2566d125a442232c92ab849fa5e9b69cf5ca8bb34468012560a8659717da9a51e3b archivado. FAILED unicamente beta-sources(Catalogo123 huellas),docs-frescura(codigo sin VERSION),presupuesto-rendimiento. Privacidad workflow SKIPPED; E2E/perf no ejecutados por arrastre;21DOM no acreditados. PR223 actualizado. result9798afdb10a171037bd9fe0fe584d90c10c4edb5 permanece byte-identico con snapshot historico in_progress;sin query/claim/result nuevo,sin codigo/workflow/runner. Review/integracion/publicacion a cargo de Claude.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261013-bancos-6a7d195aa92a",
+  "createdAt": "2026-10-13T09:25:07.320Z"
+}
