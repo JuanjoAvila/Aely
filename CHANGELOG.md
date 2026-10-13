@@ -1,3 +1,7 @@
+### Candidata sin publicar · emparejado automático Trade Republic (13/10/2026)
+
+La reconciliación reserva una sola fila por aviso y conserva el apunte bancario excluido con la marca de duplicado existente. Se aplica al arrancar, al recibir gastos y al sincronizar el banco; evita volver a preguntar cada mes y permite separar sin reconstruir importes. La unión de decisiones automáticas usa hora y conserva la separación en empate; borrar y Deshacer operan ambas filas. La base incluye Recibos 24bfb4e5 rebasado sobre beta124, sin adoptar sus topes. No se cambia versión, notas de publicación ni catálogo: corresponde a integración. [Acta](docs/briefs/tr-emparejado-automatico-20261013.md).
+
 ## [4.26.126] — 2026-10-13 · Promoción completa
 
 - **Qué sube.** La ronda entera de beta 118 a 126 (`d8d2624c`) sobre la producción 4.26.117 (`0a623768`): recibos con un único cargo (118), acuse y reconexión de bancos (119), apuntes iguales de Trade Republic por ordinal (120), Inicio v4.2 con el patrimonio por flujos (121, 123 y 125), cargo de recibo a la vista en Gastos (122), scroll lento de Plan (124) y la tarjeta del mes de Inicio sin línea de estado (126). `main` no tenía ningún commit que beta no tuviera (`git log origin/beta..origin/main` vacío), así que la rama de promoción nace de la cabeza de beta y `main` avanza sin reconciliar nada. El producto (`src/modules`, `src/shell.html`, `supabase/`, `android/`) es idéntico al de la beta 126: lo fija el guardián `Promoción126`.
