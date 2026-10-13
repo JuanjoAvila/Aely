@@ -478,7 +478,13 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   // que entraron como gasto…). En la nube la clave es fecha|importe|comercio → se hace tombstone
   // de la fila vieja (deleted + deleteExpense) y se inserta la corregida, o el pull la resucitaría.
   const [editExp,setEditExp]=useState(null);   // {id, merchant, amount, income} — usado por el sheet de detalle
-  const editCloudRef=useRef(Promise.resolve());   // cola de las escrituras de `saveEdit` en la nube
+  const editCola=useRef({pend:[], fin:Promise.resolve()});   // escrituras de `saveEdit` en la nube
+  // Lo que se editó sin conexión se sube al volver: ver `subeEdicionesDeGasto`.
+  useEffect(function(){
+    const alVolver=function(){ if(editCola.current.pend.length) subeEdicionesDeGasto(editCola.current); };
+    window.addEventListener("online",alVolver);
+    return function(){ window.removeEventListener("online",alVolver); };
+  },[]);
   const [detailId,setDetailId]=useState(null);     // id del gasto abierto en sheet (SPEC §14)
   // PUNTO 5: al tocar la noti de un gasto, App pasa focusExp ({amount,merchant}) → abrimos la ficha
   // del gasto que casa (mismo importe y comercio parecido, el más reciente; si no, el último gasto).
@@ -547,17 +553,9 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     if(signed!==orig.amount){ delete upd.origAmount; delete upd.origCur; }
     set(function(s){ return rekeyFixedPaymentExpense(Object.assign({},s,{
       expenses:s.expenses.map(function(x){ return x.id===orig.id?upd:x; })
-    },lapidaPon(s, keyOfE(orig))),orig,upd); });
-    /* EL ALTA ESPERA AL BORRADO, Y CADA EDICIÓN A LA ANTERIOR (13/10/2026). La fila corregida
-       conserva su id: lanzadas a la vez, si el alta llegaba antes que el borrado chocaba con la
-       fila vieja por la clave primaria (el `23505` de `addExpense` en Actividad), el borrado se
-       llevaba después la vieja y la nube se quedaba sin el gasto hasta el siguiente repaso. Dos
-       guardados seguidos (cada blur guarda) se pisaban igual entre sí: van en una sola cola. */
-    if(cloud.enabled()){
-      editCloudRef.current=editCloudRef.current
-        .then(function(){ return borrarGastoNube(orig, "gastos-editar"); })
-        .then(function(){ return subirGasto(upd, "gastos-editar"); });
-    }
+    },lapidasAlEditar(s, keyOfE(orig), keyOfE(upd))),orig,upd); });
+    // Borrado y alta en la nube, en orden y detrás de la edición anterior (`subeEdicionesDeGasto`).
+    if(cloud.enabled()){ editCola.current.pend.push({orig:orig, upd:upd}); subeEdicionesDeGasto(editCola.current); }
     sincroniza(upd); showToast(t("g_edited"));
   };
 
