@@ -37,7 +37,7 @@ function cycleTiming(bud,nowMs){
 // Las filas de la hoja «Cómo se calcula», como mucho tres y solo las que aplican: etiqueta por
 // tipo (nunca cuenta por cuenta ni bien por bien) y un dato corto. Antes era un párrafo más una
 // línea por cuenta, bien y deuda metido en la página («el textaco», feedback 13/10).
-function netWorthInfoRows(series, dateFmt){
+function netWorthInfoRows(series, dateFmt, compared){
   const coverage=series.coverage||[], rows=[];
   if(series.length<2) return rows;
   const start=series[0].day, startMs=Date.parse(start+"T12:00:00Z");
@@ -57,6 +57,8 @@ function netWorthInfoRows(series, dateFmt){
     const constant=debts.filter(function(g){ return g.constant; }).length;
     rows.push({k:t("v42_net_i_debts"),v:t(constant===debts.length?"v42_net_i_debts_kept":constant?"v42_net_i_debts_mixed":"v42_net_i_debts_est")});
   }
+  // Cuarta fila, solo cuando hay frase de comparación: con qué se compara, en corto.
+  if(compared) rows.push({k:t("v42_net_i_cmp"),v:t("v42_net_i_cmp_v")});
   return rows;
 }
 // Hoja inferior de la «i», con el mismo patrón que la del presupuesto: nada se inserta en la
@@ -83,7 +85,7 @@ function NetWorthInfoSheet({open, rows, onClose}){
       )
     ), document.body);
 }
-function NetWorthNow({tt, simple, series, splashGone, anchors}){
+function NetWorthNow({tt, simple, series, splashGone}){
   // La animación pertenece a esta tarjeta; repintar todo Inicio en cada frame
   // dispara las lecturas de layout de navegación con el histórico grande.
   const value=tt.netWorth, shown=useCountUp(tt.netWorth||0, splashGone);
@@ -94,9 +96,9 @@ function NetWorthNow({tt, simple, series, splashGone, anchors}){
   const svgRef=useRef(null), frameRef=useRef(0), fingerRef=useRef(null);
   const range=ranges.find(function(r){ return r.id===picked; })||ranges[0];
   const points=range?range.points:[], active=touch!=null?points[touch]:null;
-  // El veredicto compara con el mismo punto del ciclo anterior, nunca con el primer punto de la
-  // gráfica; y el rojo se queda solo para ir peor de verdad (feedback 13/10: «yo no voy mal»).
-  const compare=useMemo(function(){ return range?netWorthCompare(series,anchors,range.id,today,tt.invested):null; },[series,anchors,range&&range.id,today,tt.invested]);
+  // El veredicto compara mínimos de 45 días, nunca el primer punto de la gráfica con hoy; y el
+  // rojo se queda solo para ir peor de verdad (feedback 13/10: «yo no voy mal»).
+  const compare=useMemo(function(){ return range?netWorthCompare(series,range.id,today,tt.invested):null; },[series,range&&range.id,today,tt.invested]);
   const verdict=compare?compare.verdict:"none";
   const color=verdict==="up"?"var(--mint)":verdict==="down"?"var(--coral)":"var(--blue)";
   const chart=useMemo(function(){ return netWorthChartGeometry(points); },[points]);
@@ -107,7 +109,7 @@ function NetWorthNow({tt, simple, series, splashGone, anchors}){
   },[points,dateFmt]);
   // Fecha corta («18 jun») para la hoja; con el año se iba a dos renglones en el móvil.
   const shortFmt=useMemo(function(){return new Intl.DateTimeFormat(language,{timeZone:"Europe/Madrid",day:"numeric",month:"short"});},[language]);
-  const infoRows=useMemo(function(){ return netWorthInfoRows(series,shortFmt); },[series,shortFmt,language]);
+  const infoRows=useMemo(function(){ return netWorthInfoRows(series,shortFmt,!!compare); },[series,shortFmt,language,!!compare]);
   useEffect(function(){ setTouch(null); },[range&&range.id]);
   useEffect(function(){ return function(){ cancelAnimationFrame(frameRef.current); }; },[]);
   const valid=typeof value==="number" && Number.isFinite(value)&&!(series.coverage||[]).some(function(g){return g.unknown;});
@@ -150,7 +152,10 @@ function NetWorthNow({tt, simple, series, splashGone, anchors}){
     !valid&&React.createElement("div",{className:"hint",role:"status"}, t("v4_net_unknown")),
     valid&&series.length<2&&React.createElement("div",{className:"hint"},t(series.fresh?"v4_hist_empty":"v42_net_missing")),
     valid&&points.length>1&&React.createElement("div",{className:"v42-net-delta","data-testid":"inicio-net-delta","data-verdict":verdict,style:{color:verdict==="up"?"var(--mint)":verdict==="down"?"var(--coral)":"var(--muted)"}},
-      compare?tf("v42_net_cmp_"+verdict,{x:netWorthDeltaMoney(compare.delta),when:compare.cycles===1?t("v42_net_when_1"):tf("v42_net_when_n",{n:compare.cycles})}):t("v42_net_cmp_none")),
+      // El importe se enseña siempre; el margen solo apaga el color. «Hace N meses» son meses de
+      // calendario de verdad (días entre las dos ventanas), no ciclos de nómina.
+      compare?tf(compare.delta===0?"v42_net_cmp_same":compare.delta>0?"v42_net_cmp_up":"v42_net_cmp_down",{x:netWorthDeltaMoney(compare.delta),
+        when:compare.months<=1?t("v42_net_when_1"):compare.months>=12?t("v42_net_when_12"):tf("v42_net_when_n",{n:compare.months})}):t("v42_net_cmp_none")),
     valid&&chart&&React.createElement("div",{className:"v42-net-chart","data-noswipe":"1",onTouchStart:begin,onTouchMove:move,onTouchEnd:release,onTouchCancel:release},
       React.createElement("svg",{ref:svgRef,key:range.id,viewBox:"0 0 320 80",preserveAspectRatio:"none",role:"img","aria-label":t("v42_net_chart"),style:{color:color}},
         React.createElement("defs",null,React.createElement("linearGradient",{id:id,x1:"0",x2:"0",y1:"0",y2:"1"},
@@ -255,9 +260,6 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
   const dailyMoney=budAmt>0?cycleDailyMoney(rem,timing.left):null;
   const series=useMemo(function(){ return netWorthSeries(state,{today:seriesToday,liquid:tt.liquid,invested:tt.invested,debtTotal:tt.debtTotal,balanceInputs:tt}); },
     [state.accounts,state.obAccounts,state.accountBalanceHistory,state.invHistory,state.investments,state.assets,state.assetValueHistory,state.debts,state.expenses,state.deleted,state.flows,state.fixed,state.oneoffs,state.bankTx,state.aportaciones,state.settings,state.fx,state.fxRates,tt,seriesToday]);
-  // Los cobros anteriores salen del mismo lector que el presupuesto; sólo se recorren de nuevo
-  // cuando cambia lo que ese lector mira, no en cada render.
-  const anchors=useMemo(function(){ return netWorthCycleAnchors(state,bud); },[bud,state.expenses,state.deleted,state.flows,state.settings]);
 
   const overdue=[];
   // La fecha prevista no es un pago: la misma lectura de evidencia que Plan conserva los
@@ -366,7 +368,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
       }}, t("mr_share"))
     ),
 
-    !showSkel && React.createElement(NetWorthNow,{tt:tt, simple:simple, series:series, splashGone:splashGone, anchors:anchors}),
+    !showSkel && React.createElement(NetWorthNow,{tt:tt, simple:simple, series:series, splashGone:splashGone}),
 
     // Sin presupuesto, Inicio escondia su tarjeta estrella y te quedabas sin la mitad de la app
     // sin saber por que (P3). En vez de esconderla, la misma tarjeta en vacio y con salida: abre

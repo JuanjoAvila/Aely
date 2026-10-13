@@ -108,8 +108,8 @@ const LANG = {
     v42_net_i_kept_inv:"Inversiones", v42_net_i_kept_assets:"Bienes", v42_net_i_kept_manual:"Cuentas manuales", v42_net_i_and:" y ", v42_net_i_kept_v:"valor conocido mantenido",
     v42_net_i_debts:"Deudas", v42_net_i_debts_est:"según sus cuotas", v42_net_i_debts_kept:"saldo actual mantenido", v42_net_i_debts_mixed:"según sus cuotas; alguna, saldo actual", v42_net_i_ok:"Entendido",
     v42_range_1m:"1M", v42_range_3m:"3M", v42_range_6m:"6M", v42_range_1y:"1A", v42_range_all:"Todo",
-    v42_net_cmp_up:"{x} más que {when}", v42_net_cmp_down:"{x} menos que {when}", v42_net_cmp_flat:"Prácticamente igual que {when}", v42_net_cmp_none:"Aún sin un ciclo anterior con el que comparar",
-    v42_net_when_1:"en este punto del mes pasado", v42_net_when_n:"en este punto hace {n} meses",
+    v42_net_cmp_up:"{x} más que {when}", v42_net_cmp_down:"{x} menos que {when}", v42_net_cmp_same:"Igual que {when}", v42_net_cmp_none:"Aún sin datos para comparar",
+    v42_net_when_1:"el mes pasado", v42_net_when_n:"hace {n} meses", v42_net_when_12:"hace un año", v42_net_i_cmp:"Comparación", v42_net_i_cmp_v:"punto más bajo de cada 45 días",
     v42_this_cycle:"Este ciclo", v42_cycle_over:"Te has pasado {x}", v42_cycle_start:"Ciclo recién empezado", v42_cycle_comfort:"Vas sobrado", v42_cycle_good:"Vas bien", v42_cycle_tight:"Vas justito", v42_cycle_slow:"Toca frenar un poco", v42_cycle_of:"de {x}", v42_cycle_daily:"{x} al día", v42_cycle_day:"durante 1 día", v42_cycle_days:"durante {n} días",
     // INC-0810 es: fin del patrimonio de ahora.
     v4_nobud_t:"Ponle un presupuesto", v4_nobud_p:"Es la mitad de la app: sin un tope al mes no se puede saber cuánto te queda. Puedes cambiarlo cuando quieras.", v4_nobud_cta:"Ponle un presupuesto", v4_noup_t:"Aún no hay recibos", v4_noup_p:"Conecta tu banco y los recibos del mes aparecen solos, con su día y su importe.", v4_noup_cta:"Conecta tu banco", v4_nogoal_t:"Ponte tu primera meta", v4_nogoal_p:"Un viaje, un colchón, lo que sea: la app te dice cuánto falta y cuándo llegas.", v4_nogoal_cta:"Crear una meta", v4_see_gastos:"Ver gastos ›", v4_see_plan:"Ver plan ›",
@@ -432,8 +432,8 @@ const LANG = {
     v42_net_i_kept_inv:"Investments", v42_net_i_kept_assets:"Property", v42_net_i_kept_manual:"Manual accounts", v42_net_i_and:" and ", v42_net_i_kept_v:"known value kept",
     v42_net_i_debts:"Debts", v42_net_i_debts_est:"by their payment schedule", v42_net_i_debts_kept:"current balance kept", v42_net_i_debts_mixed:"by their payment schedule; some, current balance", v42_net_i_ok:"Got it",
     v42_range_1m:"1M", v42_range_3m:"3M", v42_range_6m:"6M", v42_range_1y:"1Y", v42_range_all:"All",
-    v42_net_cmp_up:"{x} more than {when}", v42_net_cmp_down:"{x} less than {when}", v42_net_cmp_flat:"About the same as {when}", v42_net_cmp_none:"No earlier cycle to compare with yet",
-    v42_net_when_1:"at this point last month", v42_net_when_n:"at this point {n} months ago",
+    v42_net_cmp_up:"{x} more than {when}", v42_net_cmp_down:"{x} less than {when}", v42_net_cmp_same:"Same as {when}", v42_net_cmp_none:"Not enough data to compare yet",
+    v42_net_when_1:"last month", v42_net_when_n:"{n} months ago", v42_net_when_12:"a year ago", v42_net_i_cmp:"Comparison", v42_net_i_cmp_v:"lowest point of each 45 days",
     v42_this_cycle:"This cycle", v42_cycle_over:"You are {x} over budget", v42_cycle_start:"Cycle just started", v42_cycle_comfort:"Plenty of room", v42_cycle_good:"On track", v42_cycle_tight:"Getting tight", v42_cycle_slow:"Time to slow down", v42_cycle_of:"of {x}", v42_cycle_daily:"{x} a day", v42_cycle_day:"for 1 day", v42_cycle_days:"for {n} days",
     // INC-0810 en: fin del patrimonio de ahora.
     v4_nobud_t:"Set a monthly budget", v4_nobud_p:"It is half the app: without a monthly cap there is no way to know what you have left. You can change it whenever you want.", v4_nobud_cta:"Set a budget", v4_noup_t:"No bills yet", v4_noup_p:"Connect your bank and this month's bills show up on their own, with day and amount.", v4_noup_cta:"Connect your bank", v4_nogoal_t:"Set your first goal", v4_nogoal_p:"A trip, a safety net, anything: the app tells you how much is missing and when you get there.", v4_nogoal_cta:"Create a goal", v4_see_gastos:"See spending ›", v4_see_plan:"See plan ›",
@@ -743,8 +743,8 @@ const LANG = {
     v42_net_i_kept_inv:"Inversions", v42_net_i_kept_assets:"Béns", v42_net_i_kept_manual:"Comptes manuals", v42_net_i_and:" i ", v42_net_i_kept_v:"valor conegut mantingut",
     v42_net_i_debts:"Deutes", v42_net_i_debts_est:"segons les seves quotes", v42_net_i_debts_kept:"saldo actual mantingut", v42_net_i_debts_mixed:"segons les seves quotes; algun, saldo actual", v42_net_i_ok:"Entesos",
     v42_range_1m:"1M", v42_range_3m:"3M", v42_range_6m:"6M", v42_range_1y:"1A", v42_range_all:"Tot",
-    v42_net_cmp_up:"{x} més que {when}", v42_net_cmp_down:"{x} menys que {when}", v42_net_cmp_flat:"Pràcticament igual que {when}", v42_net_cmp_none:"Encara sense un cicle anterior amb què comparar",
-    v42_net_when_1:"en aquest punt del mes passat", v42_net_when_n:"en aquest punt fa {n} mesos",
+    v42_net_cmp_up:"{x} més que {when}", v42_net_cmp_down:"{x} menys que {when}", v42_net_cmp_same:"Igual que {when}", v42_net_cmp_none:"Encara sense dades per comparar",
+    v42_net_when_1:"el mes passat", v42_net_when_n:"fa {n} mesos", v42_net_when_12:"fa un any", v42_net_i_cmp:"Comparació", v42_net_i_cmp_v:"punt més baix de cada 45 dies",
     v42_this_cycle:"Aquest cicle", v42_cycle_over:"T'has passat {x}", v42_cycle_start:"Cicle acabat de començar", v42_cycle_comfort:"Vas sobrat", v42_cycle_good:"Vas bé", v42_cycle_tight:"Vas justet", v42_cycle_slow:"Toca frenar una mica", v42_cycle_of:"de {x}", v42_cycle_daily:"{x} al dia", v42_cycle_day:"durant 1 dia", v42_cycle_days:"durant {n} dies",
     // INC-0810 ca: fin del patrimonio de ahora.
     v4_nobud_t:"Posa-li un pressupost", v4_nobud_p:"És la meitat de l'app: sense un límit al mes no es pot saber quant et queda. El pots canviar quan vulguis.", v4_nobud_cta:"Posa-li un pressupost", v4_noup_t:"Encara no hi ha rebuts", v4_noup_p:"Connecta el teu banc i els rebuts del mes apareixen sols, amb el seu dia i el seu import.", v4_noup_cta:"Connecta el teu banc", v4_nogoal_t:"Posa't el teu primer objectiu", v4_nogoal_p:"Un viatge, un coixí, el que sigui: l'app et diu quant falta i quan hi arribes.", v4_nogoal_cta:"Crear un objectiu", v4_see_gastos:"Veure despeses ›", v4_see_plan:"Veure pla ›",

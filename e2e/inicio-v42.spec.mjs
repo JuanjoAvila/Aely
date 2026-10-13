@@ -71,7 +71,7 @@ for(const zone of ["UTC","Europe/Madrid"]) test.describe("calendario de Madrid e
     await expect(amount).toContainText("800,00 €");
     await expect(hero.locator(".v42-net-ranges button")).toHaveText(["Todo"]);
     // Un día de datos no tiene ciclo anterior: frase neutra, sin «menos» ni «más» (13/10).
-    await expect(hero.getByTestId("inicio-net-delta")).toHaveText("Aún sin un ciclo anterior con el que comparar");
+    await expect(hero.getByTestId("inicio-net-delta")).toHaveText("Aún sin datos para comparar");
     await expect(hero.getByTestId("inicio-net-delta")).toHaveAttribute("data-verdict","none");
     const path=await hero.locator(".v42-net-line").getAttribute("d");expect([...path.matchAll(/[ML]/g)]).toHaveLength(2);
     const box=await hero.locator(".v42-net-chart").boundingBox(),client=await page.context().newCDPSession(page);
@@ -87,13 +87,16 @@ for(const lang of ["es","en","ca"]) test("rangos, colores y puertas "+lang,async
   await open(page,{lang,falling:true});
   const hero=page.getByTestId("inicio-net-current"), ranges=hero.locator(".v42-net-ranges button");
   await expect(ranges).toHaveText({es:["1M","3M","6M","1A","Todo"],en:["1M","3M","6M","1Y","All"],ca:["1M","3M","6M","1A","Tot"]}[lang]);
-  // Una sola nómina: no hay ciclo anterior, así que ni verde ni rojo. La línea va en el color
-  // neutro y la frase en gris, aunque la serie baje (13/10: el rojo solo si va peor de verdad).
-  const same=()=>page.evaluate(()=>{const probe=document.createElement("span");probe.style.color="var(--blue)";document.body.appendChild(probe);
-    const blue=getComputedStyle(probe).color;probe.style.color="var(--muted)";const muted=getComputedStyle(probe).color;probe.remove();
-    return getComputedStyle(document.querySelector(".v42-net-chart svg")).color===blue&&getComputedStyle(document.querySelector(".v42-net-delta")).color===muted;});
+  // La serie baja 1 €/día durante un año: el mínimo de 45 días cae 45 € frente al anterior,
+  // rojo de verdad (margen 10 € sin inversión), y la línea va del mismo color que la frase.
+  // Con veredicto, la línea y la frase van del mismo color; sin datos para comparar (1A con
+  // 370 días no tiene dos ventanas de 45 a un año), línea neutra y frase en gris.
+  const same=()=>page.evaluate(()=>{const probe=document.createElement("span");document.body.appendChild(probe);const v=n=>{probe.style.color="var(--"+n+")";return getComputedStyle(probe).color;};
+    const line=getComputedStyle(document.querySelector(".v42-net-chart svg")).color,text=getComputedStyle(document.querySelector(".v42-net-delta")).color,verdict=document.querySelector(".v42-net-delta").dataset.verdict;
+    const ok=verdict==="none"?line===v("blue")&&text===v("muted"):line===text;probe.remove();return ok;});
   expect(await same()).toBe(true);
-  await expect(hero.getByTestId("inicio-net-delta")).toHaveText({es:"Aún sin un ciclo anterior con el que comparar",en:"No earlier cycle to compare with yet",ca:"Encara sense un cicle anterior amb què comparar"}[lang]);
+  await expect(hero.getByTestId("inicio-net-delta")).toHaveAttribute("data-verdict","down");
+  await expect(hero.getByTestId("inicio-net-delta")).toHaveText({es:/^\d+ € menos que el mes pasado$/,en:/^\d+ € less than last month$/,ca:/^\d+ € menys que el mes passat$/}[lang]);
   const original=await hero.locator("svg").evaluate(el=>{window.__v42Original=el;return true;});expect(original).toBe(true);
   await hero.locator(".v42-net-info").click(); await expect(page.getByRole("dialog",{name:{es:"Cómo se calcula",en:"How it's worked out",ca:"Com es calcula"}[lang]})).toBeVisible();
   expect(await hero.locator("svg").evaluate(el=>el===window.__v42Original)).toBe(true);
@@ -279,8 +282,9 @@ test("RONDA3 piso que llega de la nube no nace al montar el móvil",async({page}
   const ys=await wholeGoodsLine(hero);expect(ys).toHaveLength(35);
   // Plana salvo el gasto de 100 del 20/8: dos alturas y ninguna subida de 200.000.
   expect(new Set(ys).size).toBe(2);expect(ys.every((y,i)=>!i||y>=ys[i-1])).toBe(true);
-  // Mes natural: hoy (4/9) frente al 4/8; el gasto de 100 del 20/8 está entre medias y es de verdad.
-  await expect(hero.getByTestId("inicio-net-delta")).toHaveText("100 € menos que en este punto del mes pasado");
+  // 35 días de serie: no hay dos ventanas de 45 con las que comparar; frase neutra, sin color.
+  await expect(hero.getByTestId("inicio-net-delta")).toHaveText("Aún sin datos para comparar");
+  await expect(hero.getByTestId("inicio-net-delta")).toHaveAttribute("data-verdict","none");
   const stored=await ownGoodsState(page);
   expect(stored.assets).toEqual([{id:"cloud-home",name:"Piso nube sintético",value:200000}]);
   expect(stored.history?.["cloud-home"]).toBeUndefined();
@@ -297,7 +301,7 @@ test("RONDA3 guardar el alta en Bienes acredita la fecha sin cambiar días anter
   expect(saved.history[saved.assets[0].id]).toEqual([{day:"2026-09-04",value:15000,born:true}]);
   await page.locator('.botnav-tab[data-tour="inicio"]').click();
   const hero=page.getByTestId("inicio-net-current");await expect(hero.locator(".v4-hero-amt")).toContainText("20.000,00 €");
-  await expect(hero.getByTestId("inicio-net-delta")).toContainText("14.900");
+  await expect(hero.getByTestId("inicio-net-delta")).toHaveText("Aún sin datos para comparar");
   await page.reload();await page.waitForFunction(()=>!document.getElementById("mc-load"));await dismissNews(page);
   expect((await ownGoodsState(page)).history[saved.assets[0].id]).toEqual(saved.history[saved.assets[0].id]);
 });
@@ -314,7 +318,7 @@ test("revalorar un bien heredado conserva la gráfica y su valor anterior",async
   // Antes la serie se quedaba en un punto: sin línea, sin rangos y sin frase de comparación.
   const ys=await wholeGoodsLine(hero);expect(ys).toHaveLength(35);
   expect(new Set(ys).size).toBe(3);expect(ys.every((y,i)=>!i||y>=ys[i-1])).toBe(true);
-  await expect(hero.getByTestId("inicio-net-delta")).toHaveText("3.100 € menos que en este punto del mes pasado");
+  await expect(hero.getByTestId("inicio-net-delta")).toHaveText("Aún sin datos para comparar");
   await expect(hero.getByTestId("inicio-net-coverage")).toHaveCount(0);
   await hero.locator(".v42-net-info").click();
   expect(await filas(page)).toEqual([["Cuentas","movimientos reales desde 1 ago"],["Bienes","valor conocido mantenido"]]);
@@ -364,8 +368,8 @@ for(const lang of ["es","en","ca"])test("cartera heredada ve la gráfica el prim
   await hero.locator(".v42-net-info").click();
   // Tres filas y ya, por tipo, sin nombrar cuenta a cuenta (13/10: «el textaco… enorme»).
   expect(await filas(page)).toEqual({
-    es:[["Cuentas","movimientos reales desde "+fecha("2026-06-15","es")],["Inversiones, bienes y cuentas manuales","valor conocido mantenido"],["Deudas","según sus cuotas"]],
-    en:[["Accounts","real transactions from "+fecha("2026-06-15","en")],["Investments, property and manual accounts","known value kept"],["Debts","by their payment schedule"]],
-    ca:[["Comptes","moviments reals des de "+fecha("2026-06-15","ca")],["Inversions, béns i comptes manuals","valor conegut mantingut"],["Deutes","segons les seves quotes"]]}[lang]);
+    es:[["Cuentas","movimientos reales desde "+fecha("2026-06-15","es")],["Inversiones, bienes y cuentas manuales","valor conocido mantenido"],["Deudas","según sus cuotas"],["Comparación","punto más bajo de cada 45 días"]],
+    en:[["Accounts","real transactions from "+fecha("2026-06-15","en")],["Investments, property and manual accounts","known value kept"],["Debts","by their payment schedule"],["Comparison","lowest point of each 45 days"]],
+    ca:[["Comptes","moviments reals des de "+fecha("2026-06-15","ca")],["Inversions, béns i comptes manuals","valor conegut mantingut"],["Deutes","segons les seves quotes"],["Comparació","punt més baix de cada 45 dies"]]}[lang]);
   await page.mouse.click(10,60);await expect(page.locator('[data-sheet="net-info"]')).toHaveCount(0);
 });

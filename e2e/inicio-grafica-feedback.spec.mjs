@@ -25,7 +25,7 @@ const cssColor = (page, name) => page.evaluate((name) => { const probe = documen
 /* Un usuario que cobra, gasta y aporta: `spend` al día desde el 1/6. Con 110 €/día se funde la nómina. */
 function ciclo(spend) {
   const expenses = [], invHistory = []; let acc = 0;
-  for (let ms = Date.parse("2026-06-01T12:00:00Z"); ms <= Date.parse("2026-10-13T12:00:00Z"); ms += 864e5) {
+  for (let ms = Date.parse("2026-03-01T12:00:00Z"); ms <= Date.parse("2026-10-13T12:00:00Z"); ms += 864e5) {
     const day = new Date(ms).toISOString().slice(0, 10), d = Number(day.slice(8));
     if (d === 28) expenses.push({ id: "pay-" + day, date: day + "T09:00:00Z", amount: -2400, merchant: "Nómina sintética", category: "ingreso", ent: "sabadell" });
     if (d === 5) { expenses.push({ id: "inv-" + day, date: day + "T09:00:00Z", amount: 300, category: "inversion", ent: "sabadell", merchant: "Aportación sintética" }); acc += 300; }
@@ -72,7 +72,7 @@ for (const lang of ["es", "en", "ca"]) test("histórico desde junio: 1M y 3M, si
   // Cobra el día 1, gasta por debajo del presupuesto y paga la hipoteca: nunca en rojo.
   const delta = hero.getByTestId("inicio-net-delta");
   await expect(delta).toHaveAttribute("data-verdict", /^(up|flat)$/);
-  await expect(delta).toContainText({ es: "en este punto del mes pasado", en: "at this point last month", ca: "en aquest punt del mes passat" }[lang]);
+  await expect(delta).toContainText({ es: "más que el mes pasado", en: "more than last month", ca: "més que el mes passat" }[lang]);
   await expect(delta).not.toContainText({ es: "menos", en: "less", ca: "menys" }[lang]);
   const verdict = await delta.getAttribute("data-verdict");
   expect(await hero.locator(".v42-net-chart svg").evaluate((el) => getComputedStyle(el).color)).toBe(await cssColor(page, verdict === "up" ? "mint" : "blue"));
@@ -83,9 +83,9 @@ for (const lang of ["es", "en", "ca"]) test("histórico desde junio: 1M y 3M, si
   await expect(sheet).toBeVisible();
   expect(await page.evaluate(() => [document.documentElement.scrollHeight, document.querySelector(".v42-cycle-section").getBoundingClientRect().top])).toEqual(antes);
   expect(await filas(page)).toEqual({
-    es: [["Cuentas", "movimientos reales desde " + fechaCorta("2026-06-15", "es")], ["Inversiones, bienes y cuentas manuales", "valor conocido mantenido"], ["Deudas", "según sus cuotas"]],
-    en: [["Accounts", "real transactions from " + fechaCorta("2026-06-15", "en")], ["Investments, property and manual accounts", "known value kept"], ["Debts", "by their payment schedule"]],
-    ca: [["Comptes", "moviments reals des de " + fechaCorta("2026-06-15", "ca")], ["Inversions, béns i comptes manuals", "valor conegut mantingut"], ["Deutes", "segons les seves quotes"]] }[lang]);
+    es: [["Cuentas", "movimientos reales desde " + fechaCorta("2026-06-15", "es")], ["Inversiones, bienes y cuentas manuales", "valor conocido mantenido"], ["Deudas", "según sus cuotas"], ["Comparación", "punto más bajo de cada 45 días"]],
+    en: [["Accounts", "real transactions from " + fechaCorta("2026-06-15", "en")], ["Investments, property and manual accounts", "known value kept"], ["Debts", "by their payment schedule"], ["Comparison", "lowest point of each 45 days"]],
+    ca: [["Comptes", "moviments reals des de " + fechaCorta("2026-06-15", "ca")], ["Inversions, béns i comptes manuals", "valor conegut mantingut"], ["Deutes", "segons les seves quotes"], ["Comparació", "punt més baix de cada 45 dies"]] }[lang]);
   expect(await page.evaluate(() => document.activeElement && document.activeElement.closest('[data-sheet="net-info"]') != null)).toBe(true);
   // Ninguna fila se sale de la hoja ni se corta.
   expect(await sheet.evaluate((el) => [...el.querySelectorAll(".row")].every((r) => r.scrollWidth <= r.clientWidth + 1 && r.getBoundingClientRect().right <= el.getBoundingClientRect().right))).toBe(true);
@@ -100,12 +100,12 @@ for (const [spend, verdict, tone, word] of [[30, "up", "mint", "más"], [110, "d
   const hero = await abrir(page, ciclo(spend));
   const delta = hero.getByTestId("inicio-net-delta");
   await expect(delta).toHaveAttribute("data-verdict", verdict);
-  await expect(delta).toHaveText(new RegExp("^[\\d.]+ € " + word + " que en este punto del mes pasado$"));
+  await expect(delta).toHaveText(new RegExp("^[\\d.]+ € " + word + " que el mes pasado$"));
   expect(await delta.evaluate((el) => getComputedStyle(el).color)).toBe(await cssColor(page, tone));
   expect(await hero.locator(".v42-net-chart svg").evaluate((el) => getComputedStyle(el).color)).toBe(await cssColor(page, tone));
-  // Con 3M compara tres ciclos atrás y lo dice.
+  // Con 3M compara con tres meses de calendario atrás y lo dice.
   await hero.locator(".v42-net-ranges button").nth(1).click();
-  await expect(delta).toHaveText(new RegExp("^[\\d.]+ € " + word + " que en este punto hace 3 meses$"));
+  await expect(delta).toHaveText(new RegExp("^[\\d.]+ € " + word + " que hace 3 meses$"));
 });
 
 test("usuario nuevo: ni veredicto, ni periodos, ni líneas en la i", async ({ page }) => {
