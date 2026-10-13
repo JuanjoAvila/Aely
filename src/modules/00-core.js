@@ -135,6 +135,8 @@ function mcLogText(raw){
     .replace(/\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b/g,omit)
     .slice(0,2000);
 }
+// Las puertas que escriben un gasto en la nube (`subirGasto` / `borrarGastoNube`).
+const GASTO_ORIGENES=["v4-apuntar","gastos-apuntar","gastos-editar","gastos-borrar","gastos-deshacer","gastos-dup","ob-import","backfill"];
 function mcLogEvent(kind,message,detail){
   const m=String(message||"");
   if(kind==="use") return USO_OK.indexOf(m)>=0?{message:m,detail:null}:null;
@@ -155,7 +157,13 @@ function mcLogEvent(kind,message,detail){
   const routes=[[/^addExpense\b/,"addExpense"],[/^deleteExpense\b/,"deleteExpense"],[/^setExpenseDup\b/,"setExpenseDup"],[/^setExpenseDeuda\b/,"setExpenseDeuda"],[/^MI:/,"myinvestor"],[/^TR sync:/,"tr_sync"],[/^bankConnect\b/,"bank_connect"],[/^OB /,"ob_balance"],[/^bankSync sin pull/,"bank_sync_pull"],[/^CRASH:/,"render_crash"],[/^TOAST:/,"toast"],[/^Promise:/,"unhandled_promise"],[/^canal /,"channel_update"],[/^OTA /,"ota_update"],[/^APK /,"apk_update"],[/^import hoja:/,"import_sheet"]];
   let route="unhandled_error";
   routes.some(function(r){ if(r[0].test(m)){ route=r[1]; return true; } return false; });
-  return {message:route,detail:JSON.stringify({code:mcLogCode(detail||m)})};
+  /* DESDE DÓNDE se escribía el gasto (13/10/2026): un `23505` de `addExpense` no decía si venía
+     de editar, del repaso tras el pull o del banco, y hubo que deducirlo leyendo código. Solo
+     viaja si es una de las puertas conocidas: el resto del mensaje lleva el movimiento (SEC-03). */
+  const out={code:mcLogCode(detail||m)};
+  const origen=/^(?:addExpense|deleteExpense) ([a-z0-9-]+):/.exec(m);
+  if(origen&&GASTO_ORIGENES.indexOf(origen[1])>=0) out.origin=origen[1];
+  return {message:route,detail:JSON.stringify(out)};
 }
 function mcSentryEvent(ev){
   if(!ev) return null;
@@ -1988,6 +1996,63 @@ function pushDeleted(list, key){
   const out=(list||[]).concat([key]);
   return out.length>DELETED_MAX ? out.slice(out.length-DELETED_MAX) : out;
 }
+/* ENTRE MÓVILES, LAS LÁPIDAS SE UNEN, NO SE PISAN (13/10/2026). `deleted` viajaba con el estado
+   entero por «último que escribe»: el móvil B, que no había visto borrar un gasto en A, subía su
+   lista sin esa lápida y el gasto volvía (o el banco lo metía otra vez). Una lápida es un hecho
+   que vio un móvil; el otro no puede desmentirla por no tenerla.
+   Pero unir a secas haría IRREVERSIBLE el «Deshacer» de un borrado: la lápida que A ya quitó
+   seguiría en B, y B se la devolvería a A. Por eso levantar una lápida deja apuntado CUÁNDO en
+   `deletedAt` (solo las levantadas: poner hora a las 500 engordaría el estado en cada guardado),
+   y al unir gana, clave a clave, lo último que se dijo — la regla de los vetos de recibo
+   (`reciboNoUnion`). Sin hora, o con la misma, se suman. Límite asumido: si B borra ese mismo
+   gasto sin saber que A lo borró y lo deshizo, gana el «Deshacer» de A y el gasto vuelve a
+   verse; se borra otra vez y esa ya lleva hora. Vuelve a verse, nunca se esconde solo. */
+const DELETED_AT_MAX=200;
+// Lo último que se dijo de cada clave, entre dos listas con sus horas. → {lista, at}
+function unionPorHora(na, ta, nb, tb){
+  na=na||[]; nb=nb||[]; ta=ta||{}; tb=tb||{};
+  const at={}, lista=[], vistas={};
+  na.concat(nb,Object.keys(ta),Object.keys(tb)).forEach(function(k){
+    if(vistas[k]) return;
+    vistas[k]=1;
+    const a=ta[k]||0, b=tb[k]||0;
+    if(a||b) at[k]=Math.max(a,b);
+    if(a===b ? na.indexOf(k)>=0||nb.indexOf(k)>=0 : (a>b?na:nb).indexOf(k)>=0) lista.push(k);
+  });
+  return { lista:lista, at:at };
+}
+function lapidasTope(deleted, at){
+  const claves=Object.keys(at);
+  if(claves.length>DELETED_AT_MAX) claves.sort(function(a,b){ return at[b]-at[a]; }).slice(DELETED_AT_MAX).forEach(function(k){ delete at[k]; });
+  const out={ deleted:deleted.length>DELETED_MAX ? deleted.slice(deleted.length-DELETED_MAX) : deleted };
+  if(Object.keys(at).length) out.deletedAt=at;
+  return out;
+}
+/* Pone la lápida de `key`. Si esa clave se levantó alguna vez, apunta la hora nueva: tiene que
+   ganar a aquel «Deshacer» en el otro móvil. → {deleted[, deletedAt]} para el estado. */
+function lapidaPon(s, key, ahora){
+  const out={ deleted:pushDeleted(s&&s.deleted, key) };
+  const at=s&&s.deletedAt;
+  if(at && at[key]!=null) out.deletedAt=Object.assign({}, at, { [key]:Math.max(ahora||Date.now(), at[key]+1) });
+  return out;
+}
+// Levanta la ÚLTIMA lápida de `key` («Deshacer») y apunta cuándo. → {deleted, deletedAt}
+function lapidaLevanta(s, key, ahora){
+  const deleted=((s&&s.deleted)||[]).slice(), i=deleted.lastIndexOf(key);
+  if(i>=0) deleted.splice(i,1);
+  const at=Object.assign({}, s&&s.deletedAt);
+  // Siempre posterior a lo que constaba: con el reloj de este móvil atrasado perdería contra el otro.
+  at[key]=Math.max(ahora||Date.now(), (at[key]||0)+1);
+  return lapidasTope(deleted, at);
+}
+// → {deleted[, deletedAt]}. La lista local, tal cual, si la nube no aporta nada: la leen los `useMemo`.
+function lapidasUnion(local, nube){
+  const na=(local&&local.deleted)||[];
+  const u=unionPorHora(na, local&&local.deletedAt, nube&&nube.deleted, nube&&nube.deletedAt);
+  const out=lapidasTope(u.lista, u.at);
+  if(out.deleted.length===na.length && out.deleted.every(function(k,i){ return k===na[i]; })) out.deleted=na;
+  return out;
+}
 
 /* ---------- UN AVISO EMPAREJA UNA SOLA VEZ (12/10/2026) ----------
    `state.gemelos` guarda qué fila de la puerta del aviso (noti del móvil, Wallet…) ya quedó
@@ -2684,15 +2749,29 @@ function mergeExpensesFromCloud(prevList, incoming, readStartedAt){
     changed=true;
     return true;
   };
+  /* SI LA NUBE TRAE VARIAS FILAS CON ESTA CLAVE, REFRESCA LA QUE ES ESTA: la de su mismo id
+     (13/10/2026). El aviso y el cargo del banco comparten clave y son dos filas en la nube; lo que
+     él cambia aquí (categoría, «no tarjeta») se escribe por id en UNA de ellas. Refrescaba la
+     primera que llegara: si era la otra, el segundo pull le devolvía la categoría y la tarjeta del
+     aviso. Sin ninguna con su id (lo subió otro móvil), la primera, como siempre. */
+  const suya={};
+  (incoming||[]).forEach(function(inc){
+    const k=keyOfExpense(inc), loc=byKey[k];
+    if(loc && inc.id!=null && inc.id===loc.id && !suya[k]) suya[k]=inc;
+  });
+  const refresca=function(k,inc){
+    const loc=byKey[k], merged=refreshExpenseFromCloud(loc, inc, readStartedAt);
+    if(merged!==loc){ byKey[k]=merged; changed=true; }
+  };
   (incoming||[]).forEach(function(inc){
     const k=keyOfExpense(inc);
-    if(seen[k]){ ganaAviso(k,inc); return; }
+    if(seen[k]){ if(!ganaAviso(k,inc) && suya[k]===inc) refresca(k,inc); return; }
     seen[k]=1;
     const loc=byKey[k];
     if(!loc){ byKey[k]=inc; order.push(k); changed=true; nuevos++; return; }
     if(ganaAviso(k,inc)) return;
-    const merged=refreshExpenseFromCloud(loc, inc, readStartedAt);
-    if(merged!==loc){ byKey[k]=merged; changed=true; }
+    if(suya[k] && suya[k]!==inc) return;   // la suya viene detrás en este mismo pull
+    refresca(k,inc);
   });
   const list=order.map(function(k){ return byKey[k]; });
   return { list:list, changed:changed, nuevos:nuevos, sinMarca:sinMarca };

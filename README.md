@@ -95,6 +95,7 @@ mi-cartera/
 │   └── backclose-handover.spec.mjs # Dieciocho casos de historial/overlays; retorno cleanUrls2PASS/base1092RED
 ├── tests/recibo-invariante.test.mjs # Mismos extractos por el código de antes (dea5d883) y el de ahora: gastado, saldos y cierre iguales al céntimo
 ├── tests/recibo-domiciliado-sin-acreditar.test.mjs # Etiqueta, vetos entre móviles, recibo borrado, ordinal y escritura de la marca en la nube
+├── tests/recibos-bajas-y-union.test.mjs # Entre móviles: recibo borrado y lápidas por unión, «Deshacer» reversible; apunte con y sin id; editar sin `23505`
 ├── tests/inicio-v42.test.mjs # Serie de patrimonio por flujos con los callbacks reales de Guardar y del pull, UTC y Madrid
 ├── tests/backclose-history.test.mjs # Controlador y hook reales con cola de eventos History sintética
 ├── tests/widget-notificacion-render.test.mjs # Java real sobre preferencias APK52: notificación, registro, relectura y pintado
