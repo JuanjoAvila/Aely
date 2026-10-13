@@ -81,6 +81,7 @@ mi-cartera/
 ├── tests/beta-veredictos.test.mjs # Contrato compartido del panel y listo; beta-sources protege el ensamblado
 ├── tests/listo-actor.test.mjs # CLI real sin red: actor Dev autorizado y fallo cerrado si no se acredita
 ├── tests/backclose-history.test.mjs # Propiedad del historial y transferencias de overlays (selección110)
+├── tests/arranque-nube-commit.test.mjs # Barrera de arranque, sesión y memo con callbacks reales y transporte sintético
 ├── e2e/backclose-handover.spec.mjs · botnav-indicador.spec.mjs · metas-editar-regla.spec.mjs # Pantallas reales de110/107/108
 ├── tests/sync-memoria.test.mjs # Exportación sintética: cantidades, aviso Cloud e idempotencia; rechazo sin escrituras/borrados
 ├── tests/prod117-edge-compat.test.mjs # Fuentes desplegadas ingest50/prices13 y cliente actual, sin red
@@ -93,7 +94,9 @@ mi-cartera/
 │   ├── index.html          #     Generado por `npm run build` — no editar a mano
 │   ├── manifest.json · sw.js · vendor/ · fonts/
 │   └── privacy.html
-├── e2e/                    # Playwright (115 specs: pantallas, persistencia, copias, reglas mensuales y ayuda de Mi ciclo)
+├── e2e/                    # Playwright: pantallas, persistencia, copias, reglas mensuales y ayuda de Mi ciclo
+│   ├── rendimiento-arranque-nube.spec.mjs # A/B CPU×6 sintético de nube pendiente, offline y lenta; ejecución pendiente
+│   ├── helpers/arranque-nube-instrument.mjs # Ventana RAF tras retirada real del splash y baseline Git original
 │   ├── inicio-v42.spec.mjs # Inicio v4.2 en pantalla real: gráfica, consulta con el dedo, cobertura y tarjeta del mes
 │   ├── recibo-cargo-en-gastos.spec.mjs # El cargo de un recibo en Gastos, Inicio, Plan e «Importar histórico»; «No es este recibo» y su vuelta atrás, es/en/ca
 │   └── backclose-handover.spec.mjs # Dieciocho casos de historial/overlays; retorno cleanUrls2PASS/base1092RED

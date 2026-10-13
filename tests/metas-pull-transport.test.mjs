@@ -51,6 +51,9 @@ function banco(){
     reservaMensualLeido:{current:false},
     syncCloudExpenses:function(){ const d=diferida(); expenses.push(d); return d.promise; },
     showToast:()=>{},mcBootReady:()=>{},slimForCloud:identity,
+    // La barrera de pintado se prueba aparte con sus callbacks reales; este banco
+    // conserva el transporte/asiento financiero sin inventar frames de navegador.
+    bootAfterPaint:()=>{},
     // El orden de conciliación no decide la validez del pull: se aísla para medir SOLO el
     // transporte. La aportación y su identidad sí las calcula el motor financiero real.
     seedFlows:identity,fixMovInvasion:identity,fixRevoDupes:identity,fixInvAuto:identity,fixInvSold:identity,reconcileTR:identity,reconcileEarlyIncomeAnchors:identity,

@@ -404,6 +404,28 @@ function App(){
   const bankSyncing=useRef(false);          // evita syncs de banco solapados
   // Promesa → true si el pull de arranque (estado + gastos) terminó bien. La espera `runBankSync`.
   const pullOkRef=useRef(null);
+  // Resolver el pull no acredita un commit: el marcador comparte la cola de React
+  // con estado, gastos y asiento; sus frames empiezan después de aplicar esa cola.
+  const [bootPaint,setBootPaint]=useState(false);
+  const bootPaintRef=useRef({live:true,frame:0});
+  const bootAfterPaint=function(){
+    if(bootPaintRef.current.live&&!window.__mcBootReady)setBootPaint(true);
+  };
+  const bootPaintCommitted=function(){
+    const b=bootPaintRef.current;
+    if(!bootPaint||!b.live||window.__mcBootReady)return undefined;
+    if(b.frame)cancelAnimationFrame(b.frame);
+    b.frame=requestAnimationFrame(function(){
+      if(!b.live){b.frame=0;return;}
+      b.frame=requestAnimationFrame(function(){b.frame=0;if(b.live)mcBootReady();});
+    });
+    return function(){if(b.frame)cancelAnimationFrame(b.frame);b.frame=0;};
+  };
+  useLayoutEffect(bootPaintCommitted,[bootPaint]);
+  useEffect(function(){
+    const b=bootPaintRef.current;
+    return function(){b.live=false;if(b.frame)cancelAnimationFrame(b.frame);};
+  },[]);
   /* Las reglas mensuales de Metas se aplican al guardarlas; esto asienta el MES EN CURSO al abrir
      la app. Con nube, solo cuando termina bien ESE pull de estado, nunca con uno anterior: el
      estado gana entero por `_savedAt`, y una escritura automática sobre un estado local atrasado
@@ -617,12 +639,11 @@ function App(){
         }); }   // primera vez: sube lo que ya tienes
     }).then(function(){ return syncCloudExpenses(); });
     pullOkRef.current=pull.then(function(){ return true; }, function(){ return false; });
-    reservaMensualAlDia(pullOkRef.current.then(mensualPuerta.vale));
+    const asentado=reservaMensualAlDia(pullOkRef.current.then(mensualPuerta.vale));
     // INC-0410 mensual: límite del pull de estado del que depende el asiento.
-    pull.catch(function(e){ if(navigator.onLine!==false) showToast("✕ Nube: "+((e&&e.message)||e)); })   // si estás sin conexión, ni avisamos (es normal)
-      // Pase lo que pase, el splash se va: lo que se vea a partir de aquí ya es lo definitivo
-      // (o lo mejor que hay). Ver el porqué en el script del final de shell.html.
-      .then(mcBootReady, mcBootReady);
+    pull.then(function(){return asentado;})
+      .catch(function(e){ if(navigator.onLine!==false) showToast("✕ Nube: "+((e&&e.message)||e)); })
+      .then(bootAfterPaint, bootAfterPaint);
   };
 
   // CAPA 2 — Open Banking: lee el saldo del banco y re-ancla el motor (= editar el saldo a mano,
@@ -1031,7 +1052,9 @@ function App(){
       clearTimeout(tmr);
       if(!alive) return;
       setSession(sessionRef.current=s);
-      if(s) mcScheduleIdle(()=>{ if(alive) syncFromCloud(s); }); else boot();
+      // Esta lectura decide qué se ve al entrar; aplazarla a idle consumía el tope
+      // del splash y dejaba el estado nuevo llegar con la pantalla ya descubierta.
+      if(s) syncFromCloud(s); else boot();
     }, ()=>{ clearTimeout(tmr); boot(); });
     const off=cloud.onAuth((s,ev)=>{
       if(!alive) return;

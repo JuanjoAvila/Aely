@@ -149,11 +149,12 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
     return function(){ window.removeEventListener("mc-splash-gone", on); };
   },[splashGone]);
   useEffect(function(){
-    if(bootReady || !splashGone) return undefined;
+    if(bootReady) return undefined;
     const on=function(){ setBootReady(true); };
     window.addEventListener("mc-boot-ready", on);
     // Por si el evento se emitió entre el useState inicial y este effect.
     try{ if(window.__mcBootReady) setBootReady(true); }catch(e){}
+    if(!splashGone)return function(){window.removeEventListener("mc-boot-ready", on);};
     if(window.__mcSplashTimedOut){
       setBootReady(true);
       return function(){ window.removeEventListener("mc-boot-ready", on); };
@@ -207,8 +208,11 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
   const spentAgainst=Math.max(0,bud.against), rem=bud.remaining!=null?bud.remaining:budAmt-spentAgainst;
   const timing=cycleTiming(bud), paceState=cyclePaceState(spentAgainst,budAmt,timing.elapsed,timing.days);
   const dailyMoney=budAmt>0?cycleDailyMoney(rem,timing.left):null;
-  const series=useMemo(function(){ return netWorthSeries(state,{today:seriesToday,liquid:tt.liquid,invested:tt.invested,debtTotal:tt.debtTotal,balanceInputs:tt}); },
-    [state.accounts,state.obAccounts,state.accountBalanceHistory,state.invHistory,state.investments,state.assets,state.assetValueHistory,state.debts,state.expenses,state.deleted,state.flows,state.fixed,state.oneoffs,state.bankTx,state.aportaciones,state.settings,state.fx,state.fxRates,tt,seriesToday]);
+  // La nube puede aplicar estado y gastos en dos commits. No recorremos el histórico
+  // viejo bajo la cortina; si vence su tope, el estado local sí se muestra sin otra espera.
+  const seriesReady=bootReady||splashGone;
+  const series=useMemo(function(){ return seriesReady?netWorthSeries(state,{today:seriesToday,liquid:tt.liquid,invested:tt.invested,debtTotal:tt.debtTotal,balanceInputs:tt}):[]; },
+    [state.accounts,state.obAccounts,state.accountBalanceHistory,state.invHistory,state.investments,state.assets,state.assetValueHistory,state.debts,state.expenses,state.deleted,state.flows,state.fixed,state.oneoffs,state.bankTx,state.aportaciones,state.settings,state.fx,state.fxRates,tt,seriesToday,seriesReady]);
 
   const overdue=[];
   // La fecha prevista no es un pago: la misma lectura de evidencia que Plan conserva los

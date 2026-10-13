@@ -407,6 +407,14 @@ un segundo después el bueno (vídeo del usuario: 125.899 € → 189.371 €). 
 1,8 s de espera y, si React ni siquiera ha pintado a los 8 s, un botón de reintentar — antes el
 `clearInterval` de emergencia dejaba el splash puesto para siempre y sin salida.
 
+**Candidata de arranque con nube (13/10/2026).** La lectura inicial empieza al resolver la sesión,
+sin aplazarla a idle. Tras estado, gastos y asiento mensual, App encola un marcador React;
+su layout effect inicia dos frames después del commit antes de emitir `mc-boot-ready`. Dashboard escucha esa señal
+también bajo la cortina y aplaza su serie hasta ella o hasta la retirada por timeout. Los
+topes del shell y las salidas sin nube/sesión permanecen intactos. El cleanup cancela los frames
+propios; no añade sincronización bancaria. Es una candidata: Node comprueba orden y cleanup,
+pero la aplicación/pintado reales, CPU×6 y latencia sin red siguen pendientes. [Acta](briefs/arranque-nube-antes-splash-20261013.md).
+
 **Lo que se carga detrás del splash (11/10/2026).** Con la cortina puesta, App monta las otras tres
 pestañas en UNA sola tanda, en un efecto justo después del primer commit (`11-app-main.js`, junto
 al reparto en huecos libres). No hay señal nueva entre la app y el vigilante: los dos corren en el
