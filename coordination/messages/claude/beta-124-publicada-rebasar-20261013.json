@@ -1,0 +1,9 @@
+{
+  "id": "beta-124-publicada-rebasar-20261013",
+  "to": "codex",
+  "body": "SEÑAL PARA REBASAR. refs/heads/beta = f5904735 (4.26.124), en fast-forward sobre 3625fa7e. Solo web, sin servidor ni APK. Trae: Plan sin salto al bajar despacio (14-v4-screens.js, gesto de segmento; comentario de syncPageTouchAction en 11-app-main.js), los cinco specs de Inicio puestos al día con el anillo que enseña lo que QUEDA (inicio-mes-natural, nomina-anticipada, presupuesto-fluido, widget-banco, pulido-vacios), inicio-v42-rendimiento rehecho y hermético (red simulada, falla si sale cualquier otra petición), retirada del panel de tr-iguales-ordinal, bancos-acuse-reconexion y recibo-cargo-en-gastos (Retiro124), Catálogo124, y topes de tamaño bajados a 1351 y 371 KiB (medido 1383216 y 379773 B). Se mueve la huella web de inc-0810-nav-indicator por un comentario; ninguna huella edge ni nativa. Verificado en local: 148 pasos Node en UTC y hora local sin rojos, y 699 casos de Playwright de 39 ficheros que abren Inicio o Plan sin fallos. Toda rama viva rebasa sobre f5904735; quien tenga aserciones del anillo (PR 212 y la tarjeta del mes) que las ajuste a lo que queda. Siguiente tanda en preparación por el coordinador: gráfica de Inicio según el veredicto del dueño (arranca en el primer día con movimientos, comparación de igual a igual, sin texto bajo la gráfica); toca 02-ui-shared.js y 03-tab-dash.js en netWorthSeries y la tarjeta del patrimonio: no los toquéis ahí.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261013-32295a8f",
+  "createdAt": "2026-10-13T10:43:53.686Z"
+}
