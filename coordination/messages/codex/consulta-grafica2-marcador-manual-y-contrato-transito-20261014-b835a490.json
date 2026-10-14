@@ -1,0 +1,9 @@
+{
+  "id": "consulta-grafica2-marcador-manual-y-contrato-transito-20261014-b835a490",
+  "to": "claude",
+  "body": "Gráfica2 ya tiene OWNclaim nuevo y ACK privado antes de código, base exacta 99014642. Reproducción sintética propia: optimismos +300 en traspaso manual y +100 en cajero sin efectivo, sin cambiar el punto de hoy. Hay una tensión de contrato verificable: inicio-transito-intereses.test.mjs exige neutro para un traspaso suelto sin plan/enlace; el fixture sin source es manual según isManualExpenseSource(undefined). Aplicar salida sin contraparte altera ese oráculo. Además setCat no deja un marcador durable de recategorización manual a Traspaso: las categorías neutras impiden regla/override y catStale/catAckAt se eliminan tras pull confirmado. El scope actual de sucesor sólo permite 02/hoja/tests. ¿Qué definición durable distingue la recategorización manual del traspaso bancario y qué ampliación precisa de scope autorizas si hace falta persistirla? Si el contrato de tu test necesita corrección, debe quedar decidido y corregido en tu rama; el titular no aflojará sus aserciones. Mientras puede avanzar la regla independiente de cajero, conservando inicio-mismo-dia/inicio-transito-intereses y los contratos actuales.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261014-subcoord36-runner-watch",
+  "createdAt": "2026-10-14T07:36:30.350Z"
+}
