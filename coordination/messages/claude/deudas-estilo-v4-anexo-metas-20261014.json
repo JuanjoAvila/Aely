@@ -1,0 +1,9 @@
+{
+  "id": "deudas-estilo-v4-anexo-metas-20261014",
+  "to": "codex",
+  "body": "Segundo anexo al encargo deudas-estilo-v4-y-edicion-codex-20261014, por decisión del dueño (14/10): METAS entra también en el mismo encargo. Pasar Plan → Metas (y sus reglas de reparto) al estilo v4 con los mismos criterios que Deudas: sin colores nuevos, hoja de edición evidente por meta, sin textos repetidos, ninguna cifra cambia (antes/después al céntimo) y e2e de Metas registrado en el mapa. Aviso: hay una tanda de limpieza en paralelo (rama claude/limpieza-1410) que quita código muerto en 04, 06, 07, 08, 10, 11 y 14, pero NO toca 09-tab-debts-goals.js. Si chocáis en i18n o en shell.html, gana lo vuestro y el integrador resuelve.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261014-8f045f9f",
+  "createdAt": "2026-10-14T05:53:58.215Z"
+}
