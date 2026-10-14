@@ -5350,11 +5350,27 @@ function compareBackupExpenses(copy,current){
   return {list:list,counts:counts,copySum:sum(copy),currentSum:sum(current)};
 }
 
+/* El perfil guarda SOLO nombre y apodo. Antes se pedían nacionalidad, dirección, teléfono,
+   residencia fiscal, trabajo, sueldo, origen del patrimonio y propósito inversor (copiado de la
+   ficha de un banco) y todo eso viajaba a la nube con el estado. Decisión del dueño, 2026-10-14:
+   fuera por privacidad. Se aplica al CARGAR el estado y al SUBIRLO, así una copia vieja que
+   vuelva de la nube no los resucita y la fila de la nube se reescribe sin ellos en la
+   primera subida. Idempotente: si ya está limpio devuelve el mismo objeto. */
+function perfilSinDatosBanco(s){
+  const st=s&&s.settings, p=st&&st.profile;
+  if(!p||typeof p!=="object") return s;
+  const ks=Object.keys(p);
+  if(ks.every(function(k){ return k==="handle"||k==="fullName"; })) return s;
+  const np={};
+  if(p.handle!=null) np.handle=p.handle;
+  if(p.fullName!=null) np.fullName=p.fullName;
+  return Object.assign({},s,{settings:Object.assign({},st,{profile:np})});
+}
 /* Para el push FRECUENTE a la nube (cada ~1,2s): los gastos viven en su tabla `expenses`
    (fuente de verdad), así que NO los duplicamos en el JSONB de app_state → se mantiene ligero
    aunque haya miles de gastos. El backup diario sí guarda el estado completo. */
 function slimForCloud(s){
-  const c=Object.assign({},s);delete c.expenses;delete c.bankTx;
+  const c=perfilSinDatosBanco(Object.assign({},s));delete c.expenses;delete c.bankTx;
   if(s.accountBalanceHistory){
     const hist={};Object.keys(s.accountBalanceHistory).forEach(function(key){hist[key]=s.accountBalanceHistory[key].slice(-14);});
     c.accountBalanceHistory=hist;
@@ -6553,18 +6569,9 @@ Object.assign(LANG.es,{
 
 // --- Perfil personal (pull-down Inicio) ---
 Object.assign(LANG.es,{
-  pf_title:"Tu perfil", pf_people:"Tu gente", pf_personal:"Personal", pf_wealth:"Patrimonio", pf_investor:"Perfil inversor",
+  pf_title:"Tu perfil", pf_people:"Tu gente", pf_personal:"Personal", 
   pf_add:"Añadir", pf_handle:"Usuario", pf_basic:"Información básica", pf_name:"Nombre", pf_name_ph:"Tu nombre",
-  pf_birth:"Fecha de nacimiento", pf_birth_ph:"p. ej. 13 mayo 1998", pf_nationality:"Nacionalidad",
-  pf_country_ph:"España", pf_address:"Dirección", pf_address_ph:"Calle, CP, ciudad",
-  pf_phone:"Teléfono", pf_email:"Correo", pf_account_purpose:"Finalidad de la cuenta",
-  pf_purpose_ph:"p. ej. Gastos, cambio de divisas…", pf_tax:"Residencia fiscal",
-  pf_job:"Empleo", pf_job_status:"Situación laboral", pf_job_status_ph:"Empleado/a, autónomo…",
-  pf_job_sector:"Sector", pf_job_sector_ph:"Informática, sanidad…", pf_job_role:"Puesto",
-  pf_job_role_ph:"Desarrollador/a…", pf_salary:"Rango de ingresos", pf_salary_ph:"€50.001 – €75.000",
-  pf_wealth_src:"Origen del patrimonio", pf_wealth_src_ph:"Ingresos laborales…",
-  pf_networth:"Patrimonio neto", pf_networth_ph:"€150.001 – €400.000",
-  pf_inv_purpose:"Finalidad de la inversión", pf_inv_purpose_ph:"Exploratoria; riesgo equilibrado…",
+  pf_email:"Correo",
   pf_hint:"Estos datos viven solo en tu móvil (y en la nube de Aely si tienes sesión). No se comparten con bancos.",
   pf_to_settings:"Ir a Ajustes",
 });
@@ -7673,7 +7680,7 @@ function loadState(){
     var writeBack=!(saved._dataVer>=6) || !saved._dynBalAnchored;
     // Call site 1/3 de fixMovInvasion (loadState / arranque). Contención dentro de la fn, no aquí.
     const seeded = seedFlows(fixMovInvasion(fixRevoDupes(fixInvAuto(fixInvSold(reconcileTR((saved._dataVer>=6) ? saved : migrate(saved)))))));
-    const now=new Date(), s=reconcileEarlyIncomeAnchors(seeded,now.getFullYear(),now.getMonth()+1,now.getDate());
+    const now=new Date(), s=perfilSinDatosBanco(reconcileEarlyIncomeAnchors(seeded,now.getFullYear(),now.getMonth()+1,now.getDate()));
     if(writeBack || s!==seeded) mcSaveRaw(mcStateKey(), s);
     applyTheme(s.settings&&s.settings.theme);
     applyA11y(s);
@@ -24786,13 +24793,7 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
    en el repo: placeholders vacíos y el usuario rellena en su móvil (feedback 2026-07-17). */
 function profileOf(s){
   const p=((s&&s.settings)||{}).profile||{};
-  return {
-    handle:p.handle||"", fullName:p.fullName||"", birth:p.birth||"", nationality:p.nationality||"",
-    address:p.address||"", phone:p.phone||"", accountPurpose:p.accountPurpose||"",
-    taxResidency:p.taxResidency||"", jobStatus:p.jobStatus||"", jobSector:p.jobSector||"",
-    jobRole:p.jobRole||"", salaryRange:p.salaryRange||"", wealthSource:p.wealthSource||"",
-    netWorthRange:p.netWorthRange||"", investorPurpose:p.investorPurpose||""
-  };
+  return { handle:p.handle||"", fullName:p.fullName||"" };
 }
 function ProfilePanel({state, set, onClose, onOpenSettings}){
   const p=profileOf(state);
@@ -24832,8 +24833,6 @@ function ProfilePanel({state, set, onClose, onOpenSettings}){
       React.createElement("span",{className:"pr-edit","aria-hidden":"true"}, "✎")
     );
   };
-  const jobLines=[p.jobStatus,p.jobSector,p.jobRole,p.salaryRange].filter(function(x){ return val(x); });
-  const jobDisplay=jobLines.length ? jobLines.join(" · ") : null;
   return React.createElement(React.Fragment,null,
     React.createElement("div",{className:"profile-pull-h"},
       React.createElement("button",{type:"button",className:"back","aria-label":t("v4_back"),onClick:onClose},"✕"),
@@ -24866,56 +24865,10 @@ function ProfilePanel({state, set, onClose, onOpenSettings}){
     ),
     React.createElement("div",{className:"profile-sec"}, t("pf_personal")),
     React.createElement("div",{className:"profile-card"},
-      row(t("pf_basic"), [val(p.fullName),val(p.birth)].filter(Boolean).join(" · ")||null, function(){
-        askText({ title:t("pf_name"), ph:t("pf_name_ph"), value:p.fullName||"", ok:t("ask_ok"), mode:"text", compact:true }).then(function(n){
-          if(n==null) return;
-          askText({ title:t("pf_birth"), ph:t("pf_birth_ph"), value:p.birth||"", ok:t("ask_ok"), mode:"text", compact:true }).then(function(b){
-            if(b==null) return;
-            set(function(s){
-              const cur=profileOf(s);
-              cur.fullName=String(n).trim(); cur.birth=String(b).trim();
-              return Object.assign({},s,{settings:Object.assign({},s.settings,{profile:cur})});
-            });
-          });
-        });
-      }),
-      row(t("pf_nationality"), p.nationality, function(){ edit("nationality", t("pf_nationality"), t("pf_country_ph")); }),
-      row(t("pf_address"), p.address, function(){ edit("address", t("pf_address"), t("pf_address_ph")); }),
-      row(t("pf_phone"), p.phone, function(){ edit("phone", t("pf_phone"), "+34 …"); }),
+      row(t("pf_basic"), val(p.fullName), function(){ edit("fullName", t("pf_name"), t("pf_name_ph")); }),
       row(t("pf_email"), email||null, function(){
         if(onOpenSettings) onOpenSettings();
-      }),
-      row(t("pf_account_purpose"), p.accountPurpose, function(){ edit("accountPurpose", t("pf_account_purpose"), t("pf_purpose_ph")); }),
-      row(t("pf_tax"), p.taxResidency, function(){ edit("taxResidency", t("pf_tax"), t("pf_country_ph")); })
-    ),
-    React.createElement("div",{className:"profile-sec"}, t("pf_wealth")),
-    React.createElement("div",{className:"profile-card"},
-      row(t("pf_job"), jobDisplay, function(){
-        askText({ title:t("pf_job_status"), ph:t("pf_job_status_ph"), value:p.jobStatus||"", ok:t("ask_ok"), mode:"text", compact:true }).then(function(a){
-          if(a==null) return;
-          askText({ title:t("pf_job_sector"), ph:t("pf_job_sector_ph"), value:p.jobSector||"", ok:t("ask_ok"), mode:"text", compact:true }).then(function(b){
-            if(b==null) return;
-            askText({ title:t("pf_job_role"), ph:t("pf_job_role_ph"), value:p.jobRole||"", ok:t("ask_ok"), mode:"text", compact:true }).then(function(c){
-              if(c==null) return;
-              askText({ title:t("pf_salary"), ph:t("pf_salary_ph"), value:p.salaryRange||"", ok:t("ask_ok"), mode:"text", compact:true }).then(function(d){
-                if(d==null) return;
-                set(function(s){
-                  const cur=profileOf(s);
-                  cur.jobStatus=String(a).trim(); cur.jobSector=String(b).trim();
-                  cur.jobRole=String(c).trim(); cur.salaryRange=String(d).trim();
-                  return Object.assign({},s,{settings:Object.assign({},s.settings,{profile:cur})});
-                });
-              });
-            });
-          });
-        });
-      }),
-      row(t("pf_wealth_src"), p.wealthSource, function(){ edit("wealthSource", t("pf_wealth_src"), t("pf_wealth_src_ph")); }),
-      row(t("pf_networth"), p.netWorthRange, function(){ edit("netWorthRange", t("pf_networth"), t("pf_networth_ph")); })
-    ),
-    React.createElement("div",{className:"profile-sec"}, t("pf_investor")),
-    React.createElement("div",{className:"profile-card"},
-      row(t("pf_inv_purpose"), p.investorPurpose, function(){ edit("investorPurpose", t("pf_inv_purpose"), t("pf_inv_purpose_ph")); })
+      })
     ),
     React.createElement("p",{style:{fontSize:12,color:"var(--muted-2)",lineHeight:1.45,margin:"18px 2px 0"}}, t("pf_hint")),
     onOpenSettings && React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",style:{marginTop:14},onClick:function(){ onClose(); onOpenSettings(); }}, t("pf_to_settings"))

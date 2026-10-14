@@ -2917,50 +2917,23 @@ Object.assign(LANG.ca,{
 
 // --- Perfil personal (pull-down Inicio) ---
 Object.assign(LANG.es,{
-  pf_title:"Tu perfil", pf_people:"Tu gente", pf_personal:"Personal", pf_wealth:"Patrimonio", pf_investor:"Perfil inversor",
+  pf_title:"Tu perfil", pf_people:"Tu gente", pf_personal:"Personal", 
   pf_add:"Añadir", pf_handle:"Usuario", pf_basic:"Información básica", pf_name:"Nombre", pf_name_ph:"Tu nombre",
-  pf_birth:"Fecha de nacimiento", pf_birth_ph:"p. ej. 13 mayo 1998", pf_nationality:"Nacionalidad",
-  pf_country_ph:"España", pf_address:"Dirección", pf_address_ph:"Calle, CP, ciudad",
-  pf_phone:"Teléfono", pf_email:"Correo", pf_account_purpose:"Finalidad de la cuenta",
-  pf_purpose_ph:"p. ej. Gastos, cambio de divisas…", pf_tax:"Residencia fiscal",
-  pf_job:"Empleo", pf_job_status:"Situación laboral", pf_job_status_ph:"Empleado/a, autónomo…",
-  pf_job_sector:"Sector", pf_job_sector_ph:"Informática, sanidad…", pf_job_role:"Puesto",
-  pf_job_role_ph:"Desarrollador/a…", pf_salary:"Rango de ingresos", pf_salary_ph:"€50.001 – €75.000",
-  pf_wealth_src:"Origen del patrimonio", pf_wealth_src_ph:"Ingresos laborales…",
-  pf_networth:"Patrimonio neto", pf_networth_ph:"€150.001 – €400.000",
-  pf_inv_purpose:"Finalidad de la inversión", pf_inv_purpose_ph:"Exploratoria; riesgo equilibrado…",
+  pf_email:"Correo",
   pf_hint:"Estos datos viven solo en tu móvil (y en la nube de Aely si tienes sesión). No se comparten con bancos.",
   pf_to_settings:"Ir a Ajustes",
 });
 Object.assign(LANG.en,{
-  pf_title:"Your profile", pf_people:"Your people", pf_personal:"Personal", pf_wealth:"Wealth", pf_investor:"Investor profile",
+  pf_title:"Your profile", pf_people:"Your people", pf_personal:"Personal", 
   pf_add:"Add", pf_handle:"Username", pf_basic:"Basic info", pf_name:"Name", pf_name_ph:"Your name",
-  pf_birth:"Date of birth", pf_birth_ph:"e.g. 13 May 1998", pf_nationality:"Nationality",
-  pf_country_ph:"Spain", pf_address:"Address", pf_address_ph:"Street, postcode, city",
-  pf_phone:"Phone", pf_email:"Email", pf_account_purpose:"Account purpose",
-  pf_purpose_ph:"e.g. Spending, FX…", pf_tax:"Tax residency",
-  pf_job:"Employment", pf_job_status:"Employment status", pf_job_status_ph:"Employee, self-employed…",
-  pf_job_sector:"Industry", pf_job_sector_ph:"IT, healthcare…", pf_job_role:"Role",
-  pf_job_role_ph:"Developer…", pf_salary:"Income range", pf_salary_ph:"€50,001 – €75,000",
-  pf_wealth_src:"Source of wealth", pf_wealth_src_ph:"Employment income…",
-  pf_networth:"Net worth", pf_networth_ph:"€150,001 – €400,000",
-  pf_inv_purpose:"Investment purpose", pf_inv_purpose_ph:"Exploratory; balanced risk…",
+  pf_email:"Email",
   pf_hint:"This data stays on your phone (and Aely cloud if signed in). It is not shared with banks.",
   pf_to_settings:"Go to Settings",
 });
 Object.assign(LANG.ca,{
-  pf_title:"El teu perfil", pf_people:"La teva gent", pf_personal:"Personal", pf_wealth:"Patrimoni", pf_investor:"Perfil inversor",
+  pf_title:"El teu perfil", pf_people:"La teva gent", pf_personal:"Personal", 
   pf_add:"Afegeix", pf_handle:"Usuari", pf_basic:"Informació bàsica", pf_name:"Nom", pf_name_ph:"El teu nom",
-  pf_birth:"Data de naixement", pf_birth_ph:"p. ex. 13 maig 1998", pf_nationality:"Nacionalitat",
-  pf_country_ph:"Espanya", pf_address:"Adreça", pf_address_ph:"Carrer, CP, ciutat",
-  pf_phone:"Telèfon", pf_email:"Correu", pf_account_purpose:"Finalitat del compte",
-  pf_purpose_ph:"p. ex. Despeses, canvi de divises…", pf_tax:"Residència fiscal",
-  pf_job:"Ocupació", pf_job_status:"Situació laboral", pf_job_status_ph:"Assalariat/da, autònom…",
-  pf_job_sector:"Sector", pf_job_sector_ph:"Informàtica, sanitat…", pf_job_role:"Càrrec",
-  pf_job_role_ph:"Desenvolupador/a…", pf_salary:"Rang d'ingressos", pf_salary_ph:"€50.001 – €75.000",
-  pf_wealth_src:"Origen del patrimoni", pf_wealth_src_ph:"Ingressos laborals…",
-  pf_networth:"Patrimoni net", pf_networth_ph:"€150.001 – €400.000",
-  pf_inv_purpose:"Finalitat de la inversió", pf_inv_purpose_ph:"Exploratòria; risc equilibrat…",
+  pf_email:"Correu",
   pf_hint:"Aquestes dades viuen només al teu mòbil (i al núvol de Aely si tens sessió). No es comparteixen amb bancs.",
   pf_to_settings:"Ves a Ajustos",
 });
@@ -4091,7 +4064,7 @@ function loadState(){
     var writeBack=!(saved._dataVer>=6) || !saved._dynBalAnchored;
     // Call site 1/3 de fixMovInvasion (loadState / arranque). Contención dentro de la fn, no aquí.
     const seeded = seedFlows(fixMovInvasion(fixRevoDupes(fixInvAuto(fixInvSold(reconcileTR((saved._dataVer>=6) ? saved : migrate(saved)))))));
-    const now=new Date(), s=reconcileEarlyIncomeAnchors(seeded,now.getFullYear(),now.getMonth()+1,now.getDate());
+    const now=new Date(), s=perfilSinDatosBanco(reconcileEarlyIncomeAnchors(seeded,now.getFullYear(),now.getMonth()+1,now.getDate()));
     if(writeBack || s!==seeded) mcSaveRaw(mcStateKey(), s);
     applyTheme(s.settings&&s.settings.theme);
     applyA11y(s);
