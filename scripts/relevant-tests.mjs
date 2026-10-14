@@ -152,7 +152,7 @@ export const E2E_MAP = [
     "e2e/apuntar-sheet.spec.mjs", "e2e/apuntar-sugerencia.spec.mjs", "e2e/listas-render.spec.mjs", "e2e/plan-swipe-segmento.spec.mjs",
     "e2e/cartera-inversiones.spec.mjs", "e2e/cartera-orden-hogar.spec.mjs",
     "e2e/efectivo-apuntar.spec.mjs", "e2e/cartera-ficha-cuenta.spec.mjs", "e2e/plan-gestionar.spec.mjs",
-    "e2e/plan-cover.spec.mjs", "e2e/perfil-filas-vacias.spec.mjs",
+    "e2e/plan-cover.spec.mjs", "e2e/perfil-filas-vacias.spec.mjs", "e2e/perfil-sin-datos-banco.spec.mjs",
     // Bajar despacio desde el tope de Plan: el contenido no salta por delante del dedo (13/10).
     "e2e/plan-scroll-lento.spec.mjs",
   ] },

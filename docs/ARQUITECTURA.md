@@ -2,7 +2,7 @@
 
 ## InicioAhora y archivo109 · versión4.26.112 del canal beta
 
-Se retiran Ring, MiniPie y TabCoach sin consumidores, su CSS asociado y doce iconos sin uso. V4Ring, Tour, SparklineInv y .spark siguen activos; el flujo financiero, idiomas, notas e histórico se conservan. El presupuesto del paquete integrado y131 comprobaciones DOM propias pasan; el guardián conserva identidades111/106 y archivo109.
+Se retiran Ring, MiniPie y TabCoach sin consumidores, su CSS asociado y doce iconos sin uso. V4Ring y Tour siguen activos (SparklineInv y .spark se retiraron el 14/10/2026 con la ficha antigua de Inversiones); el flujo financiero, idiomas, notas e histórico se conservan. El presupuesto del paquete integrado y131 comprobaciones DOM propias pasan; el guardián conserva identidades111/106 y archivo109.
 
 Dashboard pasa `tt.netWorth` y el `shownNet` existente a `NetWorthNow`. La animación, idioma/divisa, total financiero e histórico persistido conservan su comportamiento; una entrada no numérica/finita se presenta como «—» y se explica. Sparkline se retira y los snapshots no se tratan como observaciones fechadas. El cuerpo de seedFlows es exactamente el de111, preservando Nómina. Recientes106 se reancla a la misma expresión sin cambiar su identidad ni recibo.
 
@@ -669,8 +669,8 @@ escribir `Access-Control-Allow-Origin: "*"`.
 - El rol (recibos/diario/todo) vive AQUÍ; en v4.0.x quedó inaccesible (solo existía en el
   Wealth v3 no montado) — no volver a dejar el rol sin puerta.
 - Inversiones abre como pantalla hija propia desde Cartera y solo actualiza precios cuando se pulsa
-  su acción: no hay sincronización al montar. Auto precios y Proyección viven en Ajustes → Dinero;
-  Redondeo y Saveback siguen en Cartera porque afectan al flujo diario, no a la valoración.
+  su acción: no hay sincronización al montar. La Proyección vive en esa misma pantalla (ficha plegada al pie de «Ver todas tus inversiones»);
+  el interruptor «Actualizar precios al abrir» se retiró (no hacía nada). Redondeo y Saveback siguen en Cartera porque afectan al flujo diario, no a la valoración.
 
 > **Apps Script / `GAS_URL`: archivado.** No reabrir.
 

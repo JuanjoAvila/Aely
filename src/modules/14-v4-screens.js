@@ -419,7 +419,7 @@ function PlanBills({state, set, totals, charges, manageOpen, setManageOpen, simp
   );
 }
 
-/* §2 variante A: `.settings-push` hub, sin montar `<Fijos>`. Reconcile → BankPanel (Claude). */
+/* §2 variante A: `.settings-push` hub. Reconcile → BankPanel (Claude). */
 function gbTxt(key, vars){
   // Las claves ya viven en LANG.es/en/ca; conservar el antiguo respaldo castellano duplicaba
   // texto y podía tapar una traducción ausente en vez de dejar que i18n-keys la detectase.
@@ -449,7 +449,7 @@ function billGlyph(row){
   return row&&row.kind==="flow"?"↔️":row&&row.kind==="oneoff"?"📅":"🧾";
 }
 
-/* §2 variante A: `.settings-push` hub, sin montar `<Fijos>`. Reconcile → BankPanel (Claude).
+/* §2 variante A: `.settings-push` hub. Reconcile → BankPanel (Claude).
    Ajustes dispara `mc-open-bills` → PlanTab abre este push con state vivo (no snapshot). */
 function BillsManagePush({open, onClose, state, set, totals, simple}){
   const [stack,setStack]=React.useState(["hub"]);
@@ -1175,10 +1175,9 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
       React.createElement("button",{type:"button",className:"v4-cta",style:{marginTop:10,height:46},onClick:function(){ try{ window.dispatchEvent(new CustomEvent("mc-open-banks",{detail:{focus:"trade_republic"}})); }catch(e){} }}, t("bk_tr_cta"))
     ),
     /* BLOQUES ORDENABLES (petición 2026-07-25: «poder ordenar las cosas de la tab de cartera»).
-       Mismo mecanismo que ya usan Fijos/Patrimonio/Deudas/Inversiones/Metas desde la 3.94:
        `OrderableSections` guarda el orden en settings.secOrder.cartera, así que viaja con la
        cuenta y está en el sitio donde el usuario ya sabe buscarlo («⇅ Ordenar secciones» al pie).
-       Se inventó un mecanismo nuevo cero: el que había ya hacía justo esto. */
+       Se inventó un mecanismo nuevo cero: el que había ya hacía justo esto (hoy solo lo usa Cartera). */
     React.createElement(OrderableSections,{tab:"cartera",state:state,set:set,items:[
       { id:"cuentas", label:t("v4_cuentas"), el:React.createElement(React.Fragment,null,
         React.createElement("div",{className:"v4-sec-h",style:{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8}},
@@ -1209,28 +1208,28 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
                 React.createElement("path",{d:"M18 16v6M15 19h6"})))
           )
         ),
-        React.createElement(Wealth,{state:state,set:set,totals:totals,v4Embed:true,parte:"cuentas",showToast:showToast,
+        React.createElement(Wealth,{state:state,set:set,totals:totals,parte:"cuentas",showToast:showToast,
           onBankSync:doBankSync,onReconnectBank:onReconnectBank,bankBusy:bankBusy})
       ) },
       // Bienes (piso, coche…) es su propio bloque: no son cuentas de banco y el usuario quiere
       // colocarlos donde le apetezca (feedback 2026-07-25).
       { id:"bienes", label:t("pt_goods"), el:React.createElement(React.Fragment,null,
         React.createElement("div",{className:"v4-sec-h"}, t("pt_goods")),
-        React.createElement(Wealth,{state:state,set:set,totals:totals,v4Embed:true,parte:"bienes"})
+        React.createElement(Wealth,{state:state,set:set,totals:totals,parte:"bienes"})
       ) },
       !simple && { id:"inversiones", label:t("v4_inversiones"), el:React.createElement("div",{className:"rise",style:{animationDelay:".12s"}},
         React.createElement("div",{className:"v4-sec-h"}, t("v4_inversiones")),
-        React.createElement(Investments,{state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,syncInv:syncInv,v4Embed:true,showToast:showToast}),
+        React.createElement(Investments,{state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,syncInv:syncInv,showToast:showToast}),
         React.createElement("button",{type:"button",className:"v4-link-mini",style:{marginTop:10},ref:invLinkRef,onClick:function(){ setInvTools(true); }}, t("iv_see_all")+" ›")
       ) }
     ]}),
     // La hija vive FUERA de los bloques ordenables: es un portal, no una sección, y meterla
     // dentro la desmontaría al reordenar (cerrándose sola a media consulta).
-    !simple && React.createElement(InvestmentsPush,{open:invTools,onClose:closeInvestments,state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,syncInv:syncInv,showToast:showToast})
+    !simple && React.createElement(InvestmentsPush,{open:invTools,onClose:closeInvestments,state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,syncInv:syncInv,totals:totals,showToast:showToast})
   );
 }
 
-function InvestmentsPush({open, onClose, state, set, fetchPrices, pricing, syncInv, showToast}){
+function InvestmentsPush({open, onClose, state, set, fetchPrices, pricing, syncInv, totals, showToast}){
   const tr=useRef(null), sr=useRef(null);
   const [shown,setShown]=useState(false);
   // Inversiones y Gestionar comparten compositor: el arrastre web nace en cualquier punto y el
@@ -1277,7 +1276,7 @@ function InvestmentsPush({open, onClose, state, set, fetchPrices, pricing, syncI
         React.createElement("button",{type:"button",className:"back","data-act":"back","aria-label":t("v4_back"),onClick:closePush},"‹"),
         React.createElement("h1",{id:"iv-screen-title",tabIndex:-1,ref:tr}, t("iv_title"))
       ),
-      React.createElement(Investments,{state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,syncInv:syncInv,fullMode:true,showToast:showToast})
+      React.createElement(Investments,{state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,syncInv:syncInv,totals:totals,fullMode:true,showToast:showToast})
     ), document.body);
 }
 
@@ -1496,13 +1495,7 @@ function ApuntarSheet({open, onClose, state, set, showToast, goGastos}){
    en el repo: placeholders vacíos y el usuario rellena en su móvil (feedback 2026-07-17). */
 function profileOf(s){
   const p=((s&&s.settings)||{}).profile||{};
-  return {
-    handle:p.handle||"", fullName:p.fullName||"", birth:p.birth||"", nationality:p.nationality||"",
-    address:p.address||"", phone:p.phone||"", accountPurpose:p.accountPurpose||"",
-    taxResidency:p.taxResidency||"", jobStatus:p.jobStatus||"", jobSector:p.jobSector||"",
-    jobRole:p.jobRole||"", salaryRange:p.salaryRange||"", wealthSource:p.wealthSource||"",
-    netWorthRange:p.netWorthRange||"", investorPurpose:p.investorPurpose||""
-  };
+  return { handle:p.handle||"", fullName:p.fullName||"" };
 }
 function ProfilePanel({state, set, onClose, onOpenSettings}){
   const p=profileOf(state);
@@ -1542,8 +1535,6 @@ function ProfilePanel({state, set, onClose, onOpenSettings}){
       React.createElement("span",{className:"pr-edit","aria-hidden":"true"}, "✎")
     );
   };
-  const jobLines=[p.jobStatus,p.jobSector,p.jobRole,p.salaryRange].filter(function(x){ return val(x); });
-  const jobDisplay=jobLines.length ? jobLines.join(" · ") : null;
   return React.createElement(React.Fragment,null,
     React.createElement("div",{className:"profile-pull-h"},
       React.createElement("button",{type:"button",className:"back","aria-label":t("v4_back"),onClick:onClose},"✕"),
@@ -1576,56 +1567,10 @@ function ProfilePanel({state, set, onClose, onOpenSettings}){
     ),
     React.createElement("div",{className:"profile-sec"}, t("pf_personal")),
     React.createElement("div",{className:"profile-card"},
-      row(t("pf_basic"), [val(p.fullName),val(p.birth)].filter(Boolean).join(" · ")||null, function(){
-        askText({ title:t("pf_name"), ph:t("pf_name_ph"), value:p.fullName||"", ok:t("ask_ok"), mode:"text", compact:true }).then(function(n){
-          if(n==null) return;
-          askText({ title:t("pf_birth"), ph:t("pf_birth_ph"), value:p.birth||"", ok:t("ask_ok"), mode:"text", compact:true }).then(function(b){
-            if(b==null) return;
-            set(function(s){
-              const cur=profileOf(s);
-              cur.fullName=String(n).trim(); cur.birth=String(b).trim();
-              return Object.assign({},s,{settings:Object.assign({},s.settings,{profile:cur})});
-            });
-          });
-        });
-      }),
-      row(t("pf_nationality"), p.nationality, function(){ edit("nationality", t("pf_nationality"), t("pf_country_ph")); }),
-      row(t("pf_address"), p.address, function(){ edit("address", t("pf_address"), t("pf_address_ph")); }),
-      row(t("pf_phone"), p.phone, function(){ edit("phone", t("pf_phone"), "+34 …"); }),
+      row(t("pf_basic"), val(p.fullName), function(){ edit("fullName", t("pf_name"), t("pf_name_ph")); }),
       row(t("pf_email"), email||null, function(){
         if(onOpenSettings) onOpenSettings();
-      }),
-      row(t("pf_account_purpose"), p.accountPurpose, function(){ edit("accountPurpose", t("pf_account_purpose"), t("pf_purpose_ph")); }),
-      row(t("pf_tax"), p.taxResidency, function(){ edit("taxResidency", t("pf_tax"), t("pf_country_ph")); })
-    ),
-    React.createElement("div",{className:"profile-sec"}, t("pf_wealth")),
-    React.createElement("div",{className:"profile-card"},
-      row(t("pf_job"), jobDisplay, function(){
-        askText({ title:t("pf_job_status"), ph:t("pf_job_status_ph"), value:p.jobStatus||"", ok:t("ask_ok"), mode:"text", compact:true }).then(function(a){
-          if(a==null) return;
-          askText({ title:t("pf_job_sector"), ph:t("pf_job_sector_ph"), value:p.jobSector||"", ok:t("ask_ok"), mode:"text", compact:true }).then(function(b){
-            if(b==null) return;
-            askText({ title:t("pf_job_role"), ph:t("pf_job_role_ph"), value:p.jobRole||"", ok:t("ask_ok"), mode:"text", compact:true }).then(function(c){
-              if(c==null) return;
-              askText({ title:t("pf_salary"), ph:t("pf_salary_ph"), value:p.salaryRange||"", ok:t("ask_ok"), mode:"text", compact:true }).then(function(d){
-                if(d==null) return;
-                set(function(s){
-                  const cur=profileOf(s);
-                  cur.jobStatus=String(a).trim(); cur.jobSector=String(b).trim();
-                  cur.jobRole=String(c).trim(); cur.salaryRange=String(d).trim();
-                  return Object.assign({},s,{settings:Object.assign({},s.settings,{profile:cur})});
-                });
-              });
-            });
-          });
-        });
-      }),
-      row(t("pf_wealth_src"), p.wealthSource, function(){ edit("wealthSource", t("pf_wealth_src"), t("pf_wealth_src_ph")); }),
-      row(t("pf_networth"), p.netWorthRange, function(){ edit("netWorthRange", t("pf_networth"), t("pf_networth_ph")); })
-    ),
-    React.createElement("div",{className:"profile-sec"}, t("pf_investor")),
-    React.createElement("div",{className:"profile-card"},
-      row(t("pf_inv_purpose"), p.investorPurpose, function(){ edit("investorPurpose", t("pf_inv_purpose"), t("pf_inv_purpose_ph")); })
+      })
     ),
     React.createElement("p",{style:{fontSize:12,color:"var(--muted-2)",lineHeight:1.45,margin:"18px 2px 0"}}, t("pf_hint")),
     onOpenSettings && React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",style:{marginTop:14},onClick:function(){ onClose(); onOpenSettings(); }}, t("pf_to_settings"))

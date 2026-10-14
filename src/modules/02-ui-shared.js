@@ -536,27 +536,13 @@ function CollapsibleCard({title, sub, dot, defaultOpen, right, children, storage
     return defaultOpen!==false;
   });
   const toggle=()=>{ const n=!open; setOpen(n); if(storageKey) store.set("col_"+storageKey,n); };
-  // Ocultar bloques en CUALQUIER pestaña (petición 2026-07-10, como los widgets del Resumen).
-  // App publica en cada render __mcBlocksEdit (modo edición, se activa en Ajustes) y
-  // __mcCardHidden (settings.cardHidden); el toggle viaja por evento porque esta tarjeta
-  // no recibe set(). Oculta y fuera de edición → no se pinta; en edición → atenuada + botón.
-  const blocksEdit=!!window.__mcBlocksEdit;
-  const cardHidden=(storageKey && Array.isArray(window.__mcCardHidden) && window.__mcCardHidden.indexOf(storageKey)>=0);
-  if(cardHidden && !blocksEdit) return null;
-  const hideBtn=(blocksEdit && storageKey) ? React.createElement("button",{
-    onClick:function(e){ e.stopPropagation(); try{ window.dispatchEvent(new CustomEvent("mc-card-toggle",{detail:storageKey})); }catch(_){} },
-    style:{fontSize:11.5,fontWeight:700,padding:"4px 9px",borderRadius:9,cursor:"pointer",
-      background:cardHidden?"var(--mint)":"var(--surface-2)",color:cardHidden?"#06120C":"var(--coral)",
-      border:cardHidden?"none":"1px solid var(--coral)"}
-  }, cardHidden?t("cc_show"):t("cc_hide")) : null;
-  return React.createElement("div",{className:"card",style:cardHidden?{opacity:.45,borderStyle:"dashed"}:null},
+  return React.createElement("div",{className:"card"},
     React.createElement("div",{className:"card-head",onClick:toggle},
       React.createElement("div",{className:"card-title"},
         dot && React.createElement("span",{className:"dot",style:{background:dot}}),
         React.createElement("div",null, title, sub && React.createElement("div",{className:"sub"},sub))
       ),
       React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10}},
-        hideBtn,
         help && React.createElement(HelpTip,{text:help}),
         right, React.createElement(I.chev,{className:"chev"+(open?" open":"")})
       )
@@ -1007,53 +993,6 @@ function recordInvSnapshot(hist, today, value, cost){
   if(h.length>400) h.splice(0,h.length-400);
   return h;
 }
-function invPeriodChange(hist){
-  if(!hist || hist.length<2) return null;
-  const a=hist[0], b=hist[hist.length-1];
-  if(!(a.v>0)) return null;
-  return {pct:(b.v-a.v)/a.v*100, abs:b.v-a.v, days:hist.length};
-}
-
-// Gráfico de evolución: valor (sólido) + coste aportado (discontinuo) si hay datos.
-function SparklineInv({hist}){
-  if(!hist || !hist.length) return null;
-  const vals=hist.map(function(h){ return h.v; });
-  const costPts=hist.map(function(h){ return h.c; });
-  const hasCost=costPts.some(function(c){ return c!=null && c>0; });
-  const w=320, h=82, pad=8;
-  const all=hasCost ? vals.concat(costPts.filter(function(c){ return c!=null; })) : vals.slice();
-  const min=Math.min.apply(null,all), max=Math.max.apply(null,all);
-  const rng=(max-min)||1;
-  const n=vals.length;
-  const xs=function(i){ return pad + (n>1 ? i*(w-2*pad)/(n-1) : (w-2*pad)/2); };
-  const ys=function(v){ return pad + (1-(v-min)/rng)*(h-2*pad); };
-  let dVal="M"+xs(0)+" "+ys(vals[0]);
-  for(let i=1;i<n;i++) dVal+=" L"+xs(i)+" "+ys(vals[i]);
-  const area=dVal+" L"+xs(n-1)+" "+h+" L"+xs(0)+" "+h+" Z";
-  let dCost=null;
-  if(hasCost){
-    let started=false;
-    for(let i=0;i<n;i++){
-      if(costPts[i]==null) continue;
-      const seg=(started?" L":"M")+xs(i)+" "+ys(costPts[i]);
-      dCost=(dCost||"")+seg; started=true;
-    }
-  }
-  const lastX=xs(n-1), lastY=ys(vals[n-1]);
-  return React.createElement("svg",{className:"spark",viewBox:"0 0 "+w+" "+h,preserveAspectRatio:"none",style:{height:82}},
-    React.createElement("defs",null,
-      React.createElement("linearGradient",{id:"invsparkfill",x1:"0",y1:"0",x2:"0",y2:"1"},
-        React.createElement("stop",{offset:"0",stopColor:"#5FD08A",stopOpacity:"0.22"}),
-        React.createElement("stop",{offset:"1",stopColor:"#5FD08A",stopOpacity:"0"})
-      )
-    ),
-    React.createElement("path",{d:area,fill:"url(#invsparkfill)"}),
-    dCost && React.createElement("path",{d:dCost,fill:"none",stroke:"#7FB5E8",strokeWidth:"1.8",strokeDasharray:"5 4",strokeLinecap:"round",vectorEffect:"non-scaling-stroke",opacity:0.85}),
-    React.createElement("path",{d:dVal,fill:"none",stroke:"#5FD08A",strokeWidth:"2.4",strokeLinecap:"round",strokeLinejoin:"round",vectorEffect:"non-scaling-stroke"}),
-    React.createElement("circle",{cx:lastX,cy:lastY,r:"3.5",fill:"#7DE8A8"})
-  );
-}
-
 function StackedBar({segments}){
   const total=segments.reduce((a,s)=>a+s.value,0)||1;
   return React.createElement("div",null,
@@ -1495,7 +1434,7 @@ function useEditable(items, onChange, opts){
 }
 
 /* Secciones ordenables por pestaña (petición 2026-07-11): como el orden de widgets del Resumen,
-   pero para las tarjetas de Fijos/Patrimonio/Deudas/Inversiones/Metas. El orden se guarda en
+   pero para los bloques de Cartera (las fichas de las demás pestañas se retiraron). El orden se guarda en
    settings.secOrder[tab]; onMove opcional para pestañas cuyo orden vive en los propios datos
    (deudas, metas → se reordena el array del estado y sincroniza igual que todo lo demás). */
 function secOrderOf(s, tab, allIds){
@@ -1724,9 +1663,6 @@ function expenseTopCategoryPick(ranked, currentId, catalog){
     if(top.length>=8) top[top.length-1]=valid[currentId]; else top.push(valid[currentId]);
   }
   return top;
-}
-function expenseTopCategories(expenses, currentId, catalog){
-  return expenseTopCategoryPick(expenseTopCategoryRanking(expenses,catalog),currentId,catalog);
 }
 function ExpenseCategoryGrid({items, selected, selectedMany, onPick, testPrefix}){
   return React.createElement("div",{className:"v4-ficha-cats","data-testid":testPrefix||"expense-cats"},

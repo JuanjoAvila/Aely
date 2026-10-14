@@ -24,20 +24,4 @@ t("recordInvSnapshot: un punto por día, actualiza valor/coste", () => {
   assert.equal(h[1].d, "2026-07-15");
 });
 
-t("invPeriodChange: null con menos de 2 puntos", () => {
-  assert.equal(ctx.invPeriodChange([]), null);
-  assert.equal(ctx.invPeriodChange([{ d: "2026-07-15", v: 100 }]), null);
-});
-
-t("invPeriodChange: calcula % y variación absoluta", () => {
-  const chg = ctx.invPeriodChange([
-    { d: "2026-07-01", v: 1000 },
-    { d: "2026-07-15", v: 1100 },
-  ]);
-  assert.ok(chg);
-  assert.equal(chg.pct, 10);
-  assert.equal(chg.abs, 100);
-  assert.equal(chg.days, 2);
-});
-
 console.log("\ninv-dashboard: OK");

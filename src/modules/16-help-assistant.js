@@ -169,7 +169,6 @@ function helpOpenDetail(state, totals, opts){
   state=state||{}; opts=opts||{};
   return {
     simple:!!(state.settings&&state.settings.simpleMode),
-    hiddenTabs:typeof tabHiddenOf==="function"?tabHiddenOf(state):[],
     hasCash:(state.accounts||[]).some(function(a){ return typeof isEfectivoEnt==="function"?isEfectivoEnt(a):a.ent==="efectivo"; }),
     helpAiOk:!!(state.settings&&state.settings.helpAiOk),
     helpAiAsked:!!(state.settings&&state.settings.helpAiAsked),

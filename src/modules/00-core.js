@@ -319,7 +319,6 @@ const DEUDA_CAT = { id:"deudas", name:"Deudas", color:"#C98A7A", icon:"💳" };
 const CAT_NEUTRAS = { inversion:1, traspaso:1, deudas:1 };
 const catOf = (id)=> id==="ingreso" ? INGRESO_CAT : (id==="inversion" ? INVERSION_CAT : (id==="traspaso" ? TRASPASO_CAT : (id==="deudas" ? DEUDA_CAT : (CAT[id] || CAT.otros))));
 const catName = (id)=> t("cat_"+(catOf(id).id));   // nombre traducido de la categoría
-const freqLabel = (f)=> t("freq_"+f);              // frecuencia traducida
 
 /* Autodetección de categoría por comercio (mismas keywords que el GAS, ampliadas) */
 /* Overrides personales: comercios concretos que mapeas a tu manera (substring en minúsculas) */
@@ -1390,7 +1389,8 @@ const cloud = (function(){
       if(!sb || !uid) return;
       const today=new Date().toISOString().slice(0,10);
       const {error}=await sb.from('state_backups').upsert(
-        { user_id:uid, day:today, data:data },
+        // Sin los datos tipo banco del perfil (decisión del dueño, 14/10/2026): la copia también sale de aquí.
+        { user_id:uid, day:today, data:perfilSinDatosBanco(data) },
         { onConflict:'user_id,day' }
       );
       if(error) throw error;
@@ -2906,11 +2906,27 @@ function compareBackupExpenses(copy,current){
   return {list:list,counts:counts,copySum:sum(copy),currentSum:sum(current)};
 }
 
+/* El perfil guarda SOLO nombre y apodo. Antes se pedían nacionalidad, dirección, teléfono,
+   residencia fiscal, trabajo, sueldo, origen del patrimonio y propósito inversor (copiado de la
+   ficha de un banco) y todo eso viajaba a la nube con el estado. Decisión del dueño, 2026-10-14:
+   fuera por privacidad. Se aplica al CARGAR el estado y al SUBIRLO, así una copia vieja que
+   vuelva de la nube no los resucita y la fila de la nube se reescribe sin ellos en la
+   primera subida. Idempotente: si ya está limpio devuelve el mismo objeto. */
+function perfilSinDatosBanco(s){
+  const st=s&&s.settings, p=st&&st.profile;
+  if(!p||typeof p!=="object") return s;
+  const ks=Object.keys(p);
+  if(ks.every(function(k){ return k==="handle"||k==="fullName"; })) return s;
+  const np={};
+  if(p.handle!=null) np.handle=p.handle;
+  if(p.fullName!=null) np.fullName=p.fullName;
+  return Object.assign({},s,{settings:Object.assign({},st,{profile:np})});
+}
 /* Para el push FRECUENTE a la nube (cada ~1,2s): los gastos viven en su tabla `expenses`
    (fuente de verdad), así que NO los duplicamos en el JSONB de app_state → se mantiene ligero
    aunque haya miles de gastos. El backup diario sí guarda el estado completo. */
 function slimForCloud(s){
-  const c=Object.assign({},s);delete c.expenses;delete c.bankTx;
+  const c=perfilSinDatosBanco(Object.assign({},s));delete c.expenses;delete c.bankTx;
   if(s.accountBalanceHistory){
     const hist={};Object.keys(s.accountBalanceHistory).forEach(function(key){hist[key]=s.accountBalanceHistory[key].slice(-14);});
     c.accountBalanceHistory=hist;

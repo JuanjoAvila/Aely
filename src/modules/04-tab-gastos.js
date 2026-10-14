@@ -169,9 +169,6 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   const [dragExpense,setDragExpense]=useState(null);
   const dragExpenseRef=useRef(null);
   const suppressOpenRef=useRef(0);
-  const [adding,setAdding]=useState(false);
-  const [form,setForm]=useState({merchant:"",amount:"",category:"super",income:false,noCard:false,date:""});
-  const [catEdit,setCatEdit]=useState(null);   // id del gasto al que estás cambiando la categoría
   const [aiBusy,setAiBusy]=useState(false);
   const [undoDelete,setUndoDelete]=useState(null);
   const undoDeleteRef=useRef(null);
@@ -399,7 +396,6 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       }
       return Object.assign({},invState,fuera);
     });
-    setCatEdit(null);
     const cc=CATEGORIES.concat([INGRESO_CAT,INVERSION_CAT,TRASPASO_CAT]).find(function(x){ return x.id===newCat; });
     if(showToast) showToast(tf("v4_moved_cat",{cat:(cc?cc.icon+" ":"")+catName(newCat)}));
   };
@@ -797,7 +793,6 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     if(Date.now()<suppressOpenRef.current) return;
     setDetailId(e.id);
     setEditExp({id:e.id, merchant:e.merchant||"", amount:String(Math.abs(e.amount)).replace('.',','), income:e.amount<0, note:e.note||"", date:String(e.date||"").slice(0,10)});
-    setCatEdit(null);
   },[]);
   // Invalida las filas memoizadas cuando cambia el idioma o la moneda de visualización (las leen
   // de globales que React.memo no ve).
@@ -844,38 +839,6 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     }
     groups.push({e:e,ms:ms,l:e.debtId&&filterSelLabel("debt:"+e.debtId,state.debts)});
   });
-
-  const addExpense=()=>{
-    const amt=parseFloat(String(form.amount).replace(',','.'))||0;
-    if(amt<=0){ showToast(t("g_invalid")); return; }
-    const signed=form.income? -amt : amt;   // ingreso = negativo (resta del gasto del mes)
-    // Fecha elegible (petición 2026-07-11: una transferencia de hace días no podía apuntarse en su
-    // día). Vacía = ahora; con fecha = ese día a las 12:00 local (evita bailes de zona horaria).
-    const when=form.date? new Date(form.date+"T12:00:00") : new Date();
-    const ex={ id:mcExpenseId(), date:(isNaN(when.getTime())?new Date():when).toISOString(), merchant:form.merchant||(form.income?"Ingreso":"Gasto"), amount:signed, category:form.income?"ingreso":form.category, source:"manual" };
-    if(form.income) ex.noCard=true;                   // un ingreso nunca alimenta el round-up (igual que al editar)
-    else if(form.noCard) ex.noCard=true;              // bizum/transfer: no cuenta round-up
-    // Gasto a mano: etiqueta el banco de gasto diario si hay uno (filtro por banco; 2026-07-16)
-    if(!form.income){ const daily=(state.accounts||[]).find(function(a){ return accDaily(a); }); if(daily&&daily.ent) ex.ent=daily.ent; }
-    set(s=>Object.assign({},s,{expenses:[ex].concat(s.expenses)}));
-    if(cloud.enabled()) subirGasto(ex, "gastos-apuntar");   // lo guarda también en la BD
-    // Avisos al apuntar (notificaciones "de andar por casa", las push reales llegarán con el APK):
-    // pasarse del presupuesto > cruzar el 80% > gasto tocho (≥15% del presupuesto). Si no, el toast normal.
-    let msg = form.income ? t("g_saved_i") : t("g_saved_g");
-    let isAlert=false;
-    if(!form.income && (state.budget||0)>0){
-      const bud=state.budget;
-      const monthStartMs=startOfMonth().getTime();
-      const before=(state.expenses||[]).filter(e=>dateMs(e.date)>=monthStartMs&&!cargoDeRecibo(e,state)).reduce((a,e)=>a+e.amount,0);
-      const after=before+amt;
-      if(before<=bud && after>bud){ msg=tf("al_over",{x:eur0(after),b:eur0(bud)}); isAlert=true; }
-      else if(before<bud*0.8 && after>=bud*0.8 && after<=bud){ msg=tf("al_80",{p:Math.round(after/bud*100)}); isAlert=true; }
-      else if(amt>=bud*0.15 && amt>=50){ msg=tf("al_big",{x:eur0(amt)}); isAlert=true; }
-    }
-    // En la app Android los avisos también salen como notificación de verdad (quedan en la bandeja).
-    if(isAlert){ const nat=natPlugin(); if(nat&&nat.showNotification){ try{ nat.showNotification({title:"Aely",body:msg}).catch(function(){}); }catch(e){} } }
-    setForm({merchant:"",amount:"",category:form.category,income:false,noCard:false,date:""}); setAdding(false); showToast(msg);
-  };
 
   return React.createElement("div",{className:"v4-screen",ref:rootRef},
     React.createElement("h1",{className:"v4-title serif"}, t("v4_gastos_title")),

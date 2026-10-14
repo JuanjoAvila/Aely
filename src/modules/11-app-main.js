@@ -9,8 +9,6 @@ function App(){
   const [mountedTabs,setMountedTabs]=useState(function(){ return {}; });
   const [mountNeighbors,setMountNeighbors]=useState(false);
   const tabRef=useRef(tab); useEffect(function(){ tabRef.current=tab; });   // pestaña activa (la usa el gesto atrás nativo)
-  const [tabOrderState,setTabOrderState]=useState(null);   // orden transitorio mientras arrastras una pestaña
-  const tabDrag=useRef(null);
   // Nav inferior que se esconde al bajar y reaparece al subir (estilo Revolut, petición 2026-07-17).
   // navHiddenRef espeja el estado para no re-render en cada píxel de scroll; scrollTab evita que el
   // primer scroll tras cambiar de pestaña (scrollTop distinto) lo lea como un salto y esconda la barra.
@@ -51,9 +49,6 @@ function App(){
     bottomOverscroll.current=false;
     if(navHiddenRef.current){ navHiddenRef.current=false; setNavHidden(false); }
   };
-  // clear del tope: solo API residual (enterScrollHost / swipe). Ya no se ARMA en scroll ni
-  // en touchmove — eso era el parpadeo.
-  const beginTopClear=function(){ /* no-op: ver comentario botnav arriba */ };
   const endTopClearNow=function(doReveal){
     if(topClearTimer.current){ clearTimeout(topClearTimer.current); topClearTimer.current=0; }
     topClearOn.current=false;
@@ -305,9 +300,6 @@ function App(){
     document.addEventListener("scrollend", onScrollEnd, true);
     return function(){ document.removeEventListener("scrollend", onScrollEnd, true); };
   },[]);
-  const [trashHot,setTrashHot]=useState(false);            // papelera resaltada durante el arrastre
-  const trashRef=useRef(null);
-  const [addTab,setAddTab]=useState(false);                // hoja "añadir pestaña" (botón +)
   const [gotoExp,setGotoExp]=useState(null);               // punto 5: gasto a enfocar al tocar la noti ({amount,merchant,ts})
   const [gastosForceAll,setGastosForceAll]=useState(0);    // al importar una hoja, aterrizar en Gastos con el filtro en "Todo" (si no, "Este mes" tapa lo importado)
   const [planGoto,setPlanGoto]=useState(null);             // segmento de Plan a forzar desde «Ver plan» ({id,ts})
@@ -1344,7 +1336,6 @@ function App(){
   useEffect(function(){
     try{ window.__mcEmail=(session&&session.user&&session.user.email)||""; }catch(e){}
   },[session]);
-  useBackClose(addTab, function(){ setAddTab(false); });           // gesto atrás: cierra la hoja "añadir pestaña"
   // APK Android: el gesto/botón "atrás". En navegador lo maneja la History API (useBackClose); en la
   // app nativa Capacitor NO enruta el gesto por el historial de la WebView (cierra la Activity y SALE),
   // así que lo capturamos con @capacitor/app: cerramos el overlay de arriba (_mcBackStack) o vamos al
@@ -1902,7 +1893,6 @@ function App(){
     setAuthStart("up");   // onboarding → "Crear cuenta" directo, sin pasar por el login (punto 5)
     setShowAuth(true);
   };
-  const tabbarRef=useRef(null);
 
   const madridDay=function(){ return new Date().toLocaleDateString("en-CA",{timeZone:MC_TZ}); };
   const [calendarDay,setCalendarDay]=useState(madridDay);
@@ -2501,7 +2491,7 @@ function App(){
     }).catch(function(e){ setSyncStatus({type:"err",msg:"No se pudo conectar con Supabase: "+((e&&e.message)||e)}); showToast("✕ Error al sincronizar"); }).then(function(){ setSyncing(false); });
   };
 
-  const tabIds = tabOrderState || tabOrderOf(state);
+  const tabIds = tabOrderOf(state);
   const prepMountTab=function(i){
     var id=tabIds[i]; if(!id) return;
     setMountedTabs(function(m){ return m[id]? m : Object.assign({},m,{[id]:true}); });
@@ -2889,7 +2879,6 @@ function App(){
       fingerScrollAt.current=Date.now(); fingerLastY.current=y;
     }
     const ddx=x-startX.current, ddy=y-startY.current;
-    // (antes: beginTopClear en tirón al tope → barra off/on en cada swipe y en la ola)
     // Inicio arriba: cortar overscroll/rebote ANTES de fijar eje (vídeo 2026-07-18).
     if(axis.current===null && tab===0 && ddy>0 && Math.abs(ddy)>=Math.abs(ddx)){
       const pages=trackRef.current&&trackRef.current.children;
@@ -3269,8 +3258,7 @@ function App(){
      medido con CDP, `.viewport` con 0 listeners, y los toques llegaban al documento sin que nadie
      los recogiera. Los gestos de pestañas no volvían hasta cerrar y reabrir la app.
      A quien mordía: cualquiera que ESTRENA la app (su padre y su pareja, su primer día).
-     El efecto de la tabbar de aquí al lado ya llevaba estas mismas deps por este mismo motivo
-     —«si la app arranca en el candado o el onboarding, la tabbar aún no existe»—; aquí faltaban. */
+     (Faltaban estas deps; el efecto de arrastre de pestañas que las llevaba ya no existe.) */
   },[locked, state.onboarded]);
   // Toque en la barra inferior (y cualquier setTab que no venga del gesto): mismo asentamiento
   // por rAF. Si el gesto ya lo arrancó hacia este índice, asentarTrack no reinicia.
@@ -3309,78 +3297,6 @@ function App(){
     window.addEventListener("orientationchange",alRedimensionar);
     return function(){ window.removeEventListener("resize",alRedimensionar); window.removeEventListener("orientationchange",alRedimensionar); };
   },[tab]);
-  /* auto-scroll del tab bar para que la pestaña activa siempre se vea */
-  useEffect(()=>{
-    const bar=tabbarRef.current; if(!bar) return;
-    const btn=bar.children[tab]; if(!btn) return;
-    const left = btn.offsetLeft - (bar.clientWidth/2) + (btn.clientWidth/2);
-    try{ bar.scrollTo({left:Math.max(0,left),behavior:"smooth"}); }catch(e){ bar.scrollLeft=Math.max(0,left); }
-  },[tab]);
-  /* ARRASTRE de pestañas por mantener pulsado, RESTAURADO a petición del usuario (2026-07-10;
-     se quitó en 3.83 y lo echaba de menos). Convive con Ajustes › «Editar pestañas»: los dos
-     escriben settings.tabOrder/tabHidden. Suelta sobre la papelera para ocultar (+ para recuperar). */
-  useEffect(function(){
-    const bar=tabbarRef.current; if(!bar) return;
-    const onTS=function(e){
-      const btn=e.target.closest && e.target.closest('[data-ti]'); if(!btn) return;
-      const tch=e.touches[0];
-      const order=tabOrderOf(stateRef.current);
-      // se arrastra la pestaña que TOCAS (no la activa): más natural
-      const ti=parseInt(btn.getAttribute('data-ti'),10);
-      const d={startX:tch.clientX,startY:tch.clientY,active:false,order:order,activeId:order[ti]||order[tabRef.current],timer:null,overTrash:false};
-      d.timer=setTimeout(function(){ d.active=true; bar.classList.add('reordering'); setTab(order.indexOf(d.activeId)); setTabOrderState(d.order.slice()); try{navigator.vibrate&&navigator.vibrate(15);}catch(_){} },380);
-      tabDrag.current=d;
-    };
-    const onTM=function(e){
-      const d=tabDrag.current; if(!d) return; const tch=e.touches[0];
-      if(!d.active){ if(Math.abs(tch.clientX-d.startX)>10||Math.abs(tch.clientY-d.startY)>10){ clearTimeout(d.timer); tabDrag.current=null; } return; }
-      e.preventDefault();
-      // ¿está el dedo sobre la papelera? → resáltala y no reordenes
-      const tr=trashRef.current;
-      if(tr){
-        const r=tr.getBoundingClientRect();
-        const over = tch.clientX>=r.left-10 && tch.clientX<=r.right+10 && tch.clientY>=r.top-10 && tch.clientY<=r.bottom+10;
-        if(over!==d.overTrash){ d.overTrash=over; setTrashHot(over); try{ if(over&&navigator.vibrate) navigator.vibrate(10); }catch(_){} }
-        if(over) return;
-      }
-      const kids=Array.prototype.slice.call(bar.querySelectorAll('[data-ti]'));
-      let target=-1,best=1e9;
-      kids.forEach(function(k,idx){ const r=k.getBoundingClientRect(); const c=r.left+r.width/2; const dist=Math.abs(c-tch.clientX); if(dist<best){best=dist;target=idx;} });
-      if(target<0) return;
-      const cur=d.order.indexOf(d.activeId);
-      if(target!==cur){ const o=d.order.slice(); o.splice(cur,1); o.splice(target,0,d.activeId); d.order=o; setTabOrderState(o.slice()); setTab(target); }
-    };
-    const onTE=function(){
-      const d=tabDrag.current; if(!d) return; clearTimeout(d.timer);
-      if(d.active){
-        bar.classList.remove('reordering'); setTrashHot(false);
-        if(d.overTrash && d.activeId!=="dash"){
-          // soltada en la papelera → se oculta (se recupera cuando quieras con el botón +)
-          const id=d.activeId; const fin=d.order.filter(function(x){ return x!==id; });
-          set(function(s){
-            const hid=tabHiddenOf(s); const nh=hid.indexOf(id)<0?hid.concat([id]):hid;
-            return Object.assign({},s,{settings:Object.assign({},s.settings,{tabHidden:nh, tabOrder:fin})});
-          });
-          setTab(Math.max(0, Math.min(d.order.indexOf(id), fin.length-1)));
-          setTabOrderState(null);
-          showToast(t("tb_removed"));
-        } else {
-          if(d.overTrash) showToast(t("tb_nodel"));   // el Resumen es fijo
-          const fin=d.order.slice();
-          set(function(s){ return Object.assign({},s,{settings:Object.assign({},s.settings,{tabOrder:fin})}); });
-          setTab(fin.indexOf(d.activeId)); setTabOrderState(null);
-        }
-      }
-      tabDrag.current=null;
-    };
-    bar.addEventListener('touchstart',onTS,{passive:true});
-    bar.addEventListener('touchmove',onTM,{passive:false});
-    bar.addEventListener('touchend',onTE,{passive:true});
-    bar.addEventListener('touchcancel',onTE,{passive:true});
-    return function(){ bar.removeEventListener('touchstart',onTS); bar.removeEventListener('touchmove',onTM); bar.removeEventListener('touchend',onTE); bar.removeEventListener('touchcancel',onTE); };
-    // deps: si la app arranca en el candado o el onboarding, la tabbar aún no existe en el
-    // primer montaje y los listeners no se instalarían nunca; al desbloquear se re-ejecuta.
-  },[locked, state.onboarded]);
   // `data-noswipe` además del stopPropagation: los toques de las pestañas van por listener nativo
   // y ese se dispara antes que los de React (ver `onStart`).
   const stopSwipe={ "data-noswipe":"1", onTouchStart:(e)=>e.stopPropagation(), onTouchMove:(e)=>e.stopPropagation() };
@@ -3478,24 +3394,7 @@ function App(){
     });
   },[]);
   useEffect(function(){ if(tab>tabIds.length-1) setTab(0); },[tabIds.length]);   // modo simple reduce pestañas → no dejar un índice fuera de rango
-  // Ocultar bloques por pestaña: publica el estado para CollapsibleCard (que no recibe props
-  // de App) y escucha el toggle. settings.cardHidden se sincroniza con la nube como todo.
-  window.__mcBlocksEdit = !!(state.settings && state.settings.blocksEdit);
-  window.__mcCardHidden = (state.settings && state.settings.cardHidden) || [];
-  useEffect(function(){
-    const h=function(e){
-      const k=e&&e.detail; if(!k) return;
-      set(function(s){
-        const cur=(s.settings&&s.settings.cardHidden)||[];
-        const n=cur.indexOf(k)>=0?cur.filter(function(x){return x!==k;}):cur.concat([k]);
-        return Object.assign({},s,{settings:Object.assign({},s.settings,{cardHidden:n})});
-      });
-    };
-    window.addEventListener("mc-card-toggle",h);
-    return function(){ window.removeEventListener("mc-card-toggle",h); };
-  },[]);
   const TABBYID={}; TABS.forEach(function(tt){ TABBYID[tt.id]=tt; });
-  const hiddenTabIds = TABS.map(function(tt){return tt.id;}).filter(function(id){ return tabIds.indexOf(id)<0; });
   const pageFor=function(id){
     const simple=!!(state.settings&&state.settings.simpleMode);
     if(id==="dash") return React.createElement(Dashboard,{state:state,totals:totals,set:set,showToast:showToast,
