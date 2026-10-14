@@ -1,0 +1,245 @@
+{
+  "status": "blocked",
+  "summary": "Candidata PR235: referencias bancarias distintas conservadas, focal remoto 3/3 y contratos propios 12/12. Contrato financiero e integracion pendientes; no Ready.",
+  "productSHA": "25e29d6e98e195e3ce334f5f463fd4e2116d785e",
+  "pr": 235,
+  "executionBaseSHA": "52e1957db385bc03cceba138fe68ff16b1b84f9f",
+  "rebaseAuthority": "85f33537f2a7132a574c0fbf7c243802cef32a16",
+  "historicalTaskBaseSHA": "24d0d463e0c0055ba000149f07d7fa2fe12d4c9b",
+  "tests": [
+    {
+      "command": "node tests/prod117-edge-compat.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/retirada-bancaria.test.mjs",
+      "exitCode": 0,
+      "passed": 50
+    },
+    {
+      "command": "node --test tests/compras-identicas-ids.test.mjs",
+      "exitCode": 0,
+      "passed": 12,
+      "failed": 0,
+      "skipped": 0,
+      "mutantsKilled": 7,
+      "mutantsSurvived": 0
+    },
+    {
+      "command": "node tests/ob-iguales-ordinal.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/recibos-bajas-y-union.test.mjs",
+      "exitCode": 0,
+      "passed": 13,
+      "failed": 0
+    },
+    {
+      "command": "node tests/recibo-domiciliado-sin-acreditar.test.mjs",
+      "exitCode": 0,
+      "passed": 60,
+      "failed": 0
+    },
+    {
+      "command": "node --test tests/tr-emparejado-nogo2.test.mjs",
+      "exitCode": 0,
+      "passed": 9,
+      "failed": 0,
+      "mutantsKilled": 2
+    },
+    {
+      "command": "node tests/ingest-handler.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/guard-privacy.mjs",
+      "exitCode": 0,
+      "environment": "local"
+    },
+    {
+      "command": "node tests/recibo-invariante.test.mjs",
+      "exitCode": 1,
+      "passed": 20,
+      "failed": 2,
+      "originalOracleUnchanged": true
+    },
+    {
+      "command": "node tests/docs-frescura.test.mjs",
+      "exitCode": 1
+    },
+    {
+      "command": "node tests/presupuesto-rendimiento.test.mjs",
+      "exitCode": 1
+    },
+    {
+      "command": "node node_modules/@playwright/test/cli.js test e2e/compras-identicas-ids.spec.mjs --project=chromium --workers=1 --retries=0",
+      "exitCode": 0,
+      "environment": "remote-CI",
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "flaky": 0,
+      "workers": 1,
+      "retries": 0
+    },
+    {
+      "command": "node scripts/run-tests.mjs",
+      "exitCode": 1,
+      "environment": "remote-CI",
+      "runId": 38646660465
+    }
+  ],
+  "causalRed": {
+    "baseSHA": "7865111be8e2e1f8994bccba4b515bf4c6193074",
+    "exitCode": 1,
+    "failed": 3,
+    "passedControl": 1
+  },
+  "threeSyntheticStatesCents": [
+    {
+      "before": 2456,
+      "after": 2456
+    },
+    {
+      "before": -179721,
+      "after": -179721
+    },
+    {
+      "before": 2345,
+      "after": 2345
+    }
+  ],
+  "threeCompleteStateChecks": {
+    "controlSHA": "7865111be8e2e1f8994bccba4b515bf4c6193074",
+    "states": 3,
+    "phases": [
+      "sync",
+      "contabilizado",
+      "cierre"
+    ],
+    "monthlyBudgetDisplayedBaseAndForecastBalancesEqual": true,
+    "exitCode": 0
+  },
+  "ci": {
+    "runId": 38646660465,
+    "headSHA": "25e29d6e98e195e3ce334f5f463fd4e2116d785e",
+    "conclusion": "failure",
+    "generalJobId": 116135072117,
+    "generalExitCode": 1,
+    "failedStages": [
+      "beta-sources",
+      "docs-frescura",
+      "presupuesto-rendimiento",
+      "recibo-invariante"
+    ],
+    "nodeStagesObserved": 161,
+    "nodeStagesPassed": 157,
+    "denoFilesPassed": 9,
+    "denoPassed": [
+      "supabase/functions/_shared/crypto.test.ts",
+      "supabase/functions/_shared/enablebanking.test.ts",
+      "supabase/functions/_shared/myinvestor.test.ts",
+      "supabase/functions/bank-disconnect/lifecycle.test.ts",
+      "supabase/functions/bank-sync/demand-window.test.ts",
+      "supabase/functions/delete-account/delete-account.test.ts",
+      "supabase/functions/ingest/ingest.test.ts",
+      "supabase/functions/ingest/widget.test.ts",
+      "supabase/functions/prices/prices.test.ts"
+    ],
+    "generalE2EExecuted": false,
+    "generalPerformanceExecuted": false,
+    "privacyStepConclusion": "skipped",
+    "focalJobId": 116135072507,
+    "focalPassed": 3,
+    "focalFailed": 0,
+    "focalSkipped": 0,
+    "focalFlaky": 0,
+    "focalWorkers": 1,
+    "focalRetries": 0
+  },
+  "previousCI": {
+    "runId": 38641094303,
+    "headSHA": "6eb0a036d58acfbd0bcb8d2f000e41efc0dae2d3",
+    "conclusion": "failure",
+    "failedStages": [
+      "prod117-edge-compat",
+      "retirada-bancaria",
+      "beta-sources",
+      "docs-frescura",
+      "presupuesto-rendimiento",
+      "recibo-invariante"
+    ],
+    "ownRegressionsFixedBeforeSecondRun": [
+      "shared fixture consumer path",
+      "legacy withdrawal source compatibility"
+    ],
+    "historyPreserved": true
+  },
+  "betaSourcesOpen": {
+    "failedAssertions": 2,
+    "catalogue": "Catálogo133 closed footprint inventory differs",
+    "dependency": "inc-3009-01-cargos unguarded bankRefSufijoCloud",
+    "catalogueAndGuardsUnchanged": true
+  },
+  "financialContractOpen": {
+    "test": "tests/recibo-invariante.test.mjs",
+    "baseline132Passed": 22,
+    "baseline132Failed": 0,
+    "finalPassed": 20,
+    "finalFailed": 2,
+    "caseIndex": 109,
+    "generatorSeed": 8417,
+    "syntheticDeltaCents": 75000,
+    "closingBaseBefore": 311.22,
+    "closingBaseAfter": 311.22000000000025,
+    "coverageObserved": 583,
+    "coverageOracle": 775,
+    "originalOracleUntouched": true,
+    "causalWitness": "Final source and seed8417 reproduce divergence. Disabling only the new ordinal normalizer in memory restores every stage of that case. Does not prove the unexecuted generator suffix."
+  },
+  "localSize": {
+    "minBytes": 1320840,
+    "minCap": 1317888,
+    "minExcess": 2952,
+    "gzipBytes": 366827,
+    "gzipCap": 366592,
+    "gzipExcess": 235,
+    "unchangedCaps": true
+  },
+  "limitations": [
+    "Receipt invariant remains red against its original fusion rule; explicit integration review required. No oracle amounts or counts changed.",
+    "VERSION and catalogue remain unchanged; integration gates retained. Local size is not an exact measurement of a separately served artifact.",
+    "Legacy expenses without bank reference keep content/ordinal matching. No lost historical identity invented; sequential synthetic cloud roundtrip is not real concurrent-device acceptance.",
+    "No local Chromium, browser, CPU6 or full functional suite. No runner lock or server taken.",
+    "No backend, Edge, SQL, migration, live bank, deployment, APK, merge or main/beta push. No served beta or physical mobile acceptance."
+  ],
+  "changes": [
+    "Client importer and cloud merges reuse TR ordinal slots for distinct bank references. Repeated ID and no-ID alias remain one charge.",
+    "Bank reference travels in source metadata; deletion enriches the existing no-notice link without consuming a second tombstone or raising limits.",
+    "Mapped Node and Gastos e2e contracts; ingest fixture shared with existing tests. Old financial invariant and integration caps remain intact.",
+    "Legacy withdrawal UUID accepts reference metadata absent on one side, rejects known reference conflict, and preserves remote source in category-only CAS."
+  ],
+  "mobileSteps": [
+    "Use a controlled mobile test environment with synthetic bank responses and state; integration must prepare that fixture.",
+    "Sync two equal 9.99 charges with references a and b: two rows and 19.98. Repeat sync: same rows and cents.",
+    "Sync repeated a plus equivalent no-ID alias: one charge. Add one no-ID notification with two distinct bank IDs: only one match, total 19.98.",
+    "Delete one identified charge, receive a new reference in a partial response, verify the deleted one stays absent. Undo, reload and repeat synthetic cloud roundtrip.",
+    "Record physical-device outcome separately; no such result is claimed here."
+  ],
+  "productReady": false,
+  "schema": 1,
+  "taskId": "compras-identicas-ids-distintos-2-codex-20261014",
+  "actor": "codex",
+  "sessionId": "codex-local-20261014-c4fc267773aa0839",
+  "createdAt": "2026-10-14T22:46:27.862Z",
+  "released": true
+}
