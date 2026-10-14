@@ -829,3 +829,13 @@ cloud.onAuth devuelve la retirada de su suscripción. App cancela timer y callba
 `editReservaRule` compara la copia de apertura con el estado fresco, conserva id/contrato/campos desconocidos y no reescribe un asiento mensual ya aplicado. `applyReservaMensual` admite limitar el asiento pendiente a la regla editada. La línea mensual conserva la meta original del asiento si la regla cambia de destino. Corresponde a108; no se introducen sincronizaciones bancarias nuevas. [Alcance y gates](briefs/promocion-107-108-110-local26.md).
 
 Revisión de Inicio PR204 sobre119: historial local400/nube14 unido por fecha sólo para el propietario vigente; callback tardío sin sesión conserva el estado previo. El alta de Bienes se acredita sólo en Guardar; un bien legado sin escalones mantiene su valor actual hacia atrás con cobertura explícita. Con escalones reales se limita al tramo conocido, salvo el bien legado que se revalora: `recordAssetValues` anota la víspera el valor que tenía (`legacy`) y la serie lo mantiene hacia atrás (ajuste del 13/10, integrado en la 4.26.121 junto a la unión de `gemelos` de la 120, que ocupa el mismo punto del pull). Traspasos sólo se neutralizan entre dos cuentas de flujo; deudas sin plazo sitúan la amortización histórica en el día conocido de cuota, conservando el saldo actual. La caché depende de referencias financieras y día de Madrid. Contrato y gates: [ronda anterior](briefs/inicio-revision-nogo-20261012.md) y [segunda revisión](briefs/inicio-ronda3-bienes-20261012.md).
+
+## Emparejado automático: candidata TR NO-GO 2
+
+El refresco aislado de Gastos lee las decisiones de `gemelos` antes de los gastos cuando
+hay parejas automáticas locales. Sólo une esas decisiones; no adopta otra parte de la
+cartera. Una fila sin `#dup` no acredita separación: manda la decisión explícita más
+reciente, incluso si su escritura de marca sigue pendiente. La lápida de un apunte
+oculto borrado a mano conserva el rastro «sin aviso» para no reclamar el aviso del
+siguiente cargo igual. Editar la fecha dentro de la ventana de un día mantiene el par.
+Contrato, pruebas y límites de entrega: [TR NO-GO 2](briefs/tr-emparejado-nogo2-20261014.md).

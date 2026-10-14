@@ -66,8 +66,8 @@ test("asignacion global desplaza el exacto para cubrir el aviso adyacente",()=>{
  const s=sync(state([notice("a8",8),notice("a9",9)]),[tx(10),tx(9)]);
  assert.equal(cents(s),2000);assert.equal(s.expenses.filter(e=>e.autoGemelo).length,2);
 });
-test("editar importe, fecha o banco separa el par de forma persistente",()=>{
- for(const extra of [{amount:12},{date:"2026-10-09T10:00:00Z"},{ent:"bbva"}]){
+test("editar importe, fecha fuera de ventana o banco separa el par de forma persistente",()=>{
+ for(const extra of [{amount:12},{date:"2026-10-10T10:00:00Z"},{ent:"bbva"}]){
   const s=sync(state([notice("a")]),[tx()]);
   const n=c.reconcileGemelosAutomaticos({...s,expenses:s.expenses.map(e=>e.id==="a"?{...e,...extra}:e)},s);
   const b=n.expenses.find(e=>e.source==="ob");assert.ok(!b.possibleDup&&!b.autoGemelo);assert.equal(b.gemeloSeparado,"a");assert.ok(n.gemelos.some(g=>g.separado));

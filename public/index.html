@@ -5190,10 +5190,10 @@ function refreshExpenseFromCloud(local, incoming, readStartedAt){
      declara, y un put(undefined) borraba el gemelo local en CADA pull (ámbar Claude 12/9). */
   if(incoming.possibleDup) put("possibleDup", true);
   else if(incoming.possibleDup===false || incoming.possibleDup==null){
-    /* Solo apagar la marca si la nube dice que ya no es dup (source sin #dup → possibleDup falsy
-       y la propiedad existe en expenseFromRow). Una pareja automática sí se separa: la
-       respuesta de otro móvil tiene prioridad aunque no conozca el metadato nuevo. */
-    if(Object.prototype.hasOwnProperty.call(incoming,"possibleDup") && !incoming.possibleDup){
+    /* Una fila sin #dup puede ser anterior a la reparación: no acredita «son distintos».
+       En una pareja automática la decisión viaja en gemelos; false explícito conserva
+       las respuestas del formato antiguo, distinto del undefined que decodifica la tabla. */
+    if(Object.prototype.hasOwnProperty.call(incoming,"possibleDup") && !incoming.possibleDup && (!local.autoGemelo||incoming.possibleDup===false)){
       put("possibleDup", undefined);
       if(local.autoGemelo){put("gemeloSeparado",local.autoGemelo);put("autoGemelo",undefined);put("possibleDupOf",undefined);}
       /* Ventana mínima del anti-race de ingest: la fila nace #dup y después se libera. Si un pull
@@ -10402,10 +10402,15 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
         expenses:(s.expenses||[]).filter(function(x){ return x.id!==e.id&&(!paired||x.id!==paired.id); })
       },lapidaPon(s,key));
       // Borrar el movimiento visible también retira su apunte oculto; Deshacer devuelve ambos.
-      if(paired) Object.assign(next,lapidaPon(next,keyOfE(paired)));
+      if(paired){
+        Object.assign(next,lapidaPon(next,keyOfE(paired)));
+        // También es un borrado a mano: sin este rastro su lápida parecería una respuesta
+        // antigua «es el mismo» y reservaría el aviso del siguiente pago igual.
+        next.gemelos=pushGemelos(next.gemelos,[{aviso:"",banco:keyOfE(paired)}]);
+      }
       // Un apunte del banco borrado A MANO deja rastro «sin aviso» (12/10/2026): así el importador
       // no confunde su lápida con un «es el mismo» antiguo y no da por reclamado ningún aviso.
-      if(e.source==="ob"||e.source==="ob-hist") next.gemelos=pushGemelos(s.gemelos,[{aviso:"",banco:key}]);
+      if(e.source==="ob"||e.source==="ob-hist") next.gemelos=pushGemelos(next.gemelos,[{aviso:"",banco:key}]);
       return next;
     });
     const pending={expense:e,key:key,index:index<0?list.length:index,wasCloud:wasCloud,paired:paired,pairedIndex:pairedIndex,
@@ -15659,7 +15664,7 @@ function reconcileGemelosAutomaticos(s,prev){
     prior.ids.forEach(function(b){
       if(!b.autoGemelo)return;
       const a=prior.ids.get(b.autoGemelo),n=index.ids.get(b.autoGemelo),live=index.ids.get(b.id);
-      if(!a||!n||!live||a.amount===n.amount&&a.date===n.date&&expenseBankOf(a)===expenseBankOf(n))return;
+      if(!a||!n||!live||a.amount===n.amount&&expenseBankOf(a)===expenseBankOf(n)&&gemeloCompatible(n,live,1))return;
       const g=Object.assign(gemeloDe(a,b),{auto:true,ent:expenseBankOf(b),separado:true,at:Date.now()});
       decisions=pushGemelos(decisions,[g]);const row=Object.assign({},live,{gemeloSeparado:a.id});delete row.autoGemelo;delete row.possibleDup;delete row.possibleDupOf;split.set(b.id,row);
     });
@@ -15679,11 +15684,13 @@ function reconcileGemelosAutomaticos(s,prev){
     const a=g.avisoId?ids[g.avisoId]:porClave[g.aviso],b=bancos[(g.ent||expenseBankOf(a)||"")+"|"+g.banco];
     if(!b){if(a)used.add(a.id);return;}
     if(occupied.has(b.id))return;
-    if(g.separado||b.gemeloSeparado&&!(g.auto&&g.at>1&&b.possibleDup)){occupied.add(b.id);destinos.set(b.id,null);if(a)used.add(a.id);return;}
+    // Una reunión explícita tiene hora propia; la marca de la tabla puede ir por detrás.
+    // La decisión ganadora no depende de que su PATCH de #dup ya haya llegado.
+    if(g.separado||b.gemeloSeparado&&!(g.auto&&g.at>1)){occupied.add(b.id);destinos.set(b.id,null);if(a)used.add(a.id);return;}
     if(!a)return;
     // #dup retirado en una versión antigua es una decisión humana, aunque app_state traiga
     // todavía el vínculo anterior o haya perdido los campos nuevos al pasar por esa versión.
-    if(!b.possibleDup&&!b.gemeloNuevo){occupied.add(b.id);used.add(a.id);return;}
+    if(!b.possibleDup&&!b.gemeloNuevo&&!(g.auto&&g.at>1)){occupied.add(b.id);used.add(a.id);return;}
     if(isManualExpenseSource(a.source)){reserve(b,a,false);return;}
     if(gemeloAvisoAutomatico(a)&&gemeloCompatible(a,b,3)&&!reserve(b,a,gemeloCompatible(a,b,1)))destinos.set(b.id,null);
   });
@@ -26456,6 +26463,7 @@ function App(){
   // Trae los gastos de la tabla y los mezcla en el estado (dedup).
   const syncCloudExpenses=function(){
     const readStartedAt=Date.now();
+    const readOwner=sessionRef.current&&sessionRef.current.user&&sessionRef.current.user.id;
     const ps=++wS.current;
     wR.current=false;
     wRead.current=null;
@@ -26475,10 +26483,18 @@ function App(){
     const readProof={valid:false,userId:null};
     const pull=readMark.then(function(mark){
       if(ps!==wS.current){ return wP.current; }
+      // Gastos también refresca sin pull general al volver al primer plano. Antes de reparar
+      // #dup necesita la decisión más reciente: una separación local vieja no puede deshacer
+      // «volver a unir» del otro móvil. Sólo mezclamos gemelos, no el resto de la cartera.
+      const needsGemelos=(stateRef.current.gemelos||[]).some(function(g){return g.auto;})||(stateRef.current.expenses||[]).some(function(e){return e.autoGemelo||e.gemeloSeparado;});
+      return (needsGemelos?cloud.pullState():Promise.resolve(null)).then(function(pack){
+      if(ps!==wS.current||readOwner&&(!sessionRef.current||!sessionRef.current.user||sessionRef.current.user.id!==readOwner)) return {total:0,nuevos:0};
+      const cloudGemelos=pack&&pack.data&&Array.isArray(pack.data.gemelos)?pack.data.gemelos:[];
       return cloud.pullExpenses(readProof).then(function(rows){
       // Si otra lectura empezó después, este resultado puede ser una foto anterior aunque
       // haya llegado el último. No mezclarlo con el estado ni reenviarlo al widget (FIN-05).
       if(ps!==wS.current) return wP.current;
+      if(readOwner&&(!sessionRef.current||!sessionRef.current.user||sessionRef.current.user.id!==readOwner)) return {total:0,nuevos:0};
       // La cobertura se forma al enviar, con la ventana vigente: el ciclo no acaba el día 1.
       wC.current=rows;
       // FIN-07: el paginador solo resuelve al terminar; un error intermedio no mezcla ni
@@ -26523,7 +26539,7 @@ function App(){
         const igual=!merged.changed && next.length===(prev.expenses||[]).length
           && next.every(function(e,i){ return e===(prev.expenses||[])[i]; });
         // Call site 3/3 de fixMovInvasion (tras pull expenses). Contención 4.18.6: sin bloque (b).
-        const base=Object.assign({},prev,{expenses: igual?prev.expenses:next, lastSync:Date.now()});
+        const base=Object.assign({},prev,{expenses: igual?prev.expenses:next, gemelos:cloudGemelos.length?fusionarGemelos(prev.gemelos,cloudGemelos):prev.gemelos, lastSync:Date.now()});
         const rec=reconcileObDupes(fixMovInvasion(base));
         // reconcileObDupes: solo recat (cashback); nunca DELETE automático por similitud.
         // kept.recat: su categoría elegida, con la identidad de la fila de la NUBE (el id local
@@ -26552,6 +26568,7 @@ function App(){
       wRead.current=readProof.valid && current && current.user && readProof.userId===current.user.id
         && !mcSandbox() && mark && typeof mark.readGeneration==="string" && typeof mark.nativeCut==="string"?mark:null;
       return { total:incoming.length, nuevos:count };
+      });
       });
     });
     wP.current=pull;

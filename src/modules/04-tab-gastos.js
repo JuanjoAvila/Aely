@@ -234,10 +234,15 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
         expenses:(s.expenses||[]).filter(function(x){ return x.id!==e.id&&(!paired||x.id!==paired.id); })
       },lapidaPon(s,key));
       // Borrar el movimiento visible también retira su apunte oculto; Deshacer devuelve ambos.
-      if(paired) Object.assign(next,lapidaPon(next,keyOfE(paired)));
+      if(paired){
+        Object.assign(next,lapidaPon(next,keyOfE(paired)));
+        // También es un borrado a mano: sin este rastro su lápida parecería una respuesta
+        // antigua «es el mismo» y reservaría el aviso del siguiente pago igual.
+        next.gemelos=pushGemelos(next.gemelos,[{aviso:"",banco:keyOfE(paired)}]);
+      }
       // Un apunte del banco borrado A MANO deja rastro «sin aviso» (12/10/2026): así el importador
       // no confunde su lápida con un «es el mismo» antiguo y no da por reclamado ningún aviso.
-      if(e.source==="ob"||e.source==="ob-hist") next.gemelos=pushGemelos(s.gemelos,[{aviso:"",banco:key}]);
+      if(e.source==="ob"||e.source==="ob-hist") next.gemelos=pushGemelos(next.gemelos,[{aviso:"",banco:key}]);
       return next;
     });
     const pending={expense:e,key:key,index:index<0?list.length:index,wasCloud:wasCloud,paired:paired,pairedIndex:pairedIndex,

@@ -458,6 +458,7 @@ function App(){
   // Trae los gastos de la tabla y los mezcla en el estado (dedup).
   const syncCloudExpenses=function(){
     const readStartedAt=Date.now();
+    const readOwner=sessionRef.current&&sessionRef.current.user&&sessionRef.current.user.id;
     const ps=++wS.current;
     wR.current=false;
     wRead.current=null;
@@ -477,10 +478,18 @@ function App(){
     const readProof={valid:false,userId:null};
     const pull=readMark.then(function(mark){
       if(ps!==wS.current){ return wP.current; }
+      // Gastos también refresca sin pull general al volver al primer plano. Antes de reparar
+      // #dup necesita la decisión más reciente: una separación local vieja no puede deshacer
+      // «volver a unir» del otro móvil. Sólo mezclamos gemelos, no el resto de la cartera.
+      const needsGemelos=(stateRef.current.gemelos||[]).some(function(g){return g.auto;})||(stateRef.current.expenses||[]).some(function(e){return e.autoGemelo||e.gemeloSeparado;});
+      return (needsGemelos?cloud.pullState():Promise.resolve(null)).then(function(pack){
+      if(ps!==wS.current||readOwner&&(!sessionRef.current||!sessionRef.current.user||sessionRef.current.user.id!==readOwner)) return {total:0,nuevos:0};
+      const cloudGemelos=pack&&pack.data&&Array.isArray(pack.data.gemelos)?pack.data.gemelos:[];
       return cloud.pullExpenses(readProof).then(function(rows){
       // Si otra lectura empezó después, este resultado puede ser una foto anterior aunque
       // haya llegado el último. No mezclarlo con el estado ni reenviarlo al widget (FIN-05).
       if(ps!==wS.current) return wP.current;
+      if(readOwner&&(!sessionRef.current||!sessionRef.current.user||sessionRef.current.user.id!==readOwner)) return {total:0,nuevos:0};
       // La cobertura se forma al enviar, con la ventana vigente: el ciclo no acaba el día 1.
       wC.current=rows;
       // FIN-07: el paginador solo resuelve al terminar; un error intermedio no mezcla ni
@@ -525,7 +534,7 @@ function App(){
         const igual=!merged.changed && next.length===(prev.expenses||[]).length
           && next.every(function(e,i){ return e===(prev.expenses||[])[i]; });
         // Call site 3/3 de fixMovInvasion (tras pull expenses). Contención 4.18.6: sin bloque (b).
-        const base=Object.assign({},prev,{expenses: igual?prev.expenses:next, lastSync:Date.now()});
+        const base=Object.assign({},prev,{expenses: igual?prev.expenses:next, gemelos:cloudGemelos.length?fusionarGemelos(prev.gemelos,cloudGemelos):prev.gemelos, lastSync:Date.now()});
         const rec=reconcileObDupes(fixMovInvasion(base));
         // reconcileObDupes: solo recat (cashback); nunca DELETE automático por similitud.
         // kept.recat: su categoría elegida, con la identidad de la fila de la NUBE (el id local
@@ -554,6 +563,7 @@ function App(){
       wRead.current=readProof.valid && current && current.user && readProof.userId===current.user.id
         && !mcSandbox() && mark && typeof mark.readGeneration==="string" && typeof mark.nativeCut==="string"?mark:null;
       return { total:incoming.length, nuevos:count };
+      });
       });
     });
     wP.current=pull;

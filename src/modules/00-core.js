@@ -2746,10 +2746,10 @@ function refreshExpenseFromCloud(local, incoming, readStartedAt){
      declara, y un put(undefined) borraba el gemelo local en CADA pull (ámbar Claude 12/9). */
   if(incoming.possibleDup) put("possibleDup", true);
   else if(incoming.possibleDup===false || incoming.possibleDup==null){
-    /* Solo apagar la marca si la nube dice que ya no es dup (source sin #dup → possibleDup falsy
-       y la propiedad existe en expenseFromRow). Una pareja automática sí se separa: la
-       respuesta de otro móvil tiene prioridad aunque no conozca el metadato nuevo. */
-    if(Object.prototype.hasOwnProperty.call(incoming,"possibleDup") && !incoming.possibleDup){
+    /* Una fila sin #dup puede ser anterior a la reparación: no acredita «son distintos».
+       En una pareja automática la decisión viaja en gemelos; false explícito conserva
+       las respuestas del formato antiguo, distinto del undefined que decodifica la tabla. */
+    if(Object.prototype.hasOwnProperty.call(incoming,"possibleDup") && !incoming.possibleDup && (!local.autoGemelo||incoming.possibleDup===false)){
       put("possibleDup", undefined);
       if(local.autoGemelo){put("gemeloSeparado",local.autoGemelo);put("autoGemelo",undefined);put("possibleDupOf",undefined);}
       /* Ventana mínima del anti-race de ingest: la fila nace #dup y después se libera. Si un pull

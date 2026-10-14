@@ -190,6 +190,7 @@ const steps = [
   ["tr-open-banking", ["node", "tests/tr-open-banking.test.mjs"]],
   ["tr-emparejado-automatico", ["node", "tests/tr-emparejado-automatico.test.mjs"]],
   ["tr-emparejado-revision", ["node", "tests/tr-emparejado-revision.test.mjs"]],
+  ["tr-emparejado-nogo2", ["node", "tests/tr-emparejado-nogo2.test.mjs"]],
   ["ob-iguales-ordinal", ["node", "tests/ob-iguales-ordinal.test.mjs"]],
   ["huella-bundle", ["node", "tests/huella-bundle.test.mjs"]],
   ["expense-note", ["node", "tests/expense-note.test.mjs"]],

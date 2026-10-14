@@ -1097,7 +1097,7 @@ function reconcileGemelosAutomaticos(s,prev){
     prior.ids.forEach(function(b){
       if(!b.autoGemelo)return;
       const a=prior.ids.get(b.autoGemelo),n=index.ids.get(b.autoGemelo),live=index.ids.get(b.id);
-      if(!a||!n||!live||a.amount===n.amount&&a.date===n.date&&expenseBankOf(a)===expenseBankOf(n))return;
+      if(!a||!n||!live||a.amount===n.amount&&expenseBankOf(a)===expenseBankOf(n)&&gemeloCompatible(n,live,1))return;
       const g=Object.assign(gemeloDe(a,b),{auto:true,ent:expenseBankOf(b),separado:true,at:Date.now()});
       decisions=pushGemelos(decisions,[g]);const row=Object.assign({},live,{gemeloSeparado:a.id});delete row.autoGemelo;delete row.possibleDup;delete row.possibleDupOf;split.set(b.id,row);
     });
@@ -1117,11 +1117,13 @@ function reconcileGemelosAutomaticos(s,prev){
     const a=g.avisoId?ids[g.avisoId]:porClave[g.aviso],b=bancos[(g.ent||expenseBankOf(a)||"")+"|"+g.banco];
     if(!b){if(a)used.add(a.id);return;}
     if(occupied.has(b.id))return;
-    if(g.separado||b.gemeloSeparado&&!(g.auto&&g.at>1&&b.possibleDup)){occupied.add(b.id);destinos.set(b.id,null);if(a)used.add(a.id);return;}
+    // Una reunión explícita tiene hora propia; la marca de la tabla puede ir por detrás.
+    // La decisión ganadora no depende de que su PATCH de #dup ya haya llegado.
+    if(g.separado||b.gemeloSeparado&&!(g.auto&&g.at>1)){occupied.add(b.id);destinos.set(b.id,null);if(a)used.add(a.id);return;}
     if(!a)return;
     // #dup retirado en una versión antigua es una decisión humana, aunque app_state traiga
     // todavía el vínculo anterior o haya perdido los campos nuevos al pasar por esa versión.
-    if(!b.possibleDup&&!b.gemeloNuevo){occupied.add(b.id);used.add(a.id);return;}
+    if(!b.possibleDup&&!b.gemeloNuevo&&!(g.auto&&g.at>1)){occupied.add(b.id);used.add(a.id);return;}
     if(isManualExpenseSource(a.source)){reserve(b,a,false);return;}
     if(gemeloAvisoAutomatico(a)&&gemeloCompatible(a,b,3)&&!reserve(b,a,gemeloCompatible(a,b,1)))destinos.set(b.id,null);
   });

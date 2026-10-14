@@ -129,7 +129,7 @@ test("mutaciones causales de cuenta, límites y decisión persistida",()=>{
     ["cruzar banco",'grupo:ent+"|"','grupo:""+"|"'],
     ["cruzar ventana","Math.abs(x.dia-y.dia)<=ventana","true"],
     ["cruzar importe","Math.round(amount*100),dia:","1200,dia:"],
-    ["perder separación","if(g.separado||b.gemeloSeparado&&!(g.auto&&g.at>1&&b.possibleDup))","if(false)"],
+    ["perder separación","if(g.separado||b.gemeloSeparado&&!(g.auto&&g.at>1))","if(false)"],
     ["perder hora","at<(old.at||0)","false"],
     ["perder metadato nube","if(g.auto){ it.auto=true; it.at=at; if(g.ent) it.ent=g.ent; if(g.separado) it.separado=true; }",""]
   ];

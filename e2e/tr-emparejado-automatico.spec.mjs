@@ -96,3 +96,55 @@ test("sync real conserva el apunte con comercio real y no oculta dinero por impo
  expect(await page.evaluate(()=>window.__pairWrites.filter(x=>x.kind==="add"&&x.source.includes("#dup")).length)).toBe(0);
  await syncBank(page);await expect(rows(page)).toHaveCount(2);
 });
+
+const spentCents=page=>page.evaluate(()=>{
+ const s=JSON.parse(localStorage.getItem("micartera_v3")||"{}");s.expenses=JSON.parse(localStorage.getItem("micartera_v3_exp")||"[]");
+ return s.expenses.filter(e=>expenseCountsBudget(e,s)).reduce((n,e)=>n+Math.round(e.amount*100),0);
+});
+test("NO-GO 1: borrar pareja y recibir otro pago igual no duplica el gastado",async({page})=>{
+ await bankApp(page,[notice],1);await syncBank(page);await expect.poll(async()=>(await saved(page)).length).toBe(2);
+ await page.locator('.botnav-tab[data-tour="gastos"]').click();await rows(page).first().click();
+ await page.getByRole("button",{name:/borrar/i}).last().click();await page.locator('[aria-labelledby="ask-dialog-title"]').getByRole("button",{name:"Borrar",exact:true}).click();
+ await expect.poll(async()=>(await saved(page)).length).toBe(0);expect(await spentCents(page)).toBe(0);
+ const second={...notice,id:"a1000000-0000-4000-8000-000000000002",merchant:"Segundo pago sintético"};
+ await page.evaluate(({n,feed})=>{
+  cloud.bankSync=async()=>feed;
+  window.__e2eCloudRows.expenses=[{id:n.id,fecha:n.date,importe:n.amount,comercio:n.merchant,cat:n.category,source:"macrodroid"}];
+  document.dispatchEvent(new Event("visibilitychange"));
+ },{n:second,feed:response(2)});
+ await expect.poll(async()=>(await saved(page)).some(e=>e.id===second.id)).toBe(true);
+ await syncBank(page);await expect.poll(async()=>(await saved(page)).length).toBe(2);
+ await expect(rows(page)).toHaveCount(1);await expect(rows(page)).toContainText("Segundo pago sintético");expect(await spentCents(page)).toBe(1200);
+});
+test("NO-GO 2: refresh real sin #dup conserva una fila y repara la nube",async({page})=>{
+ await bankApp(page,[notice],1);await syncBank(page);await expect.poll(async()=>(await saved(page)).length).toBe(2);
+ await page.locator('.botnav-tab[data-tour="gastos"]').click();await expect(rows(page)).toHaveCount(1);
+ await page.evaluate(()=>{
+  const list=JSON.parse(localStorage.getItem("micartera_v3_exp"));window.__pairWrites=[];
+  window.__e2eCloudRows.expenses=list.map(e=>({id:e.id,fecha:e.date,importe:e.amount,comercio:e.merchant,cat:e.category,ob_name:e.obName,source:e.source==="ob"?"ob:trade_republic":"macrodroid"}));
+  document.dispatchEvent(new Event("visibilitychange"));
+ });
+ await expect.poll(()=>page.evaluate(()=>window.__pairWrites.some(x=>x.kind==="dup"&&x.value===true))).toBe(true);
+ await expect(rows(page)).toHaveCount(1);expect(await spentCents(page)).toBe(1200);
+ await rows(page).first().click();await expect(page.getByTestId("exp-auto-paired")).toBeVisible();
+});
+test("NO-GO 3: otro móvil vuelve a unir antes del refresco de gastos con tabla atrasada",async({page})=>{
+ await bankApp(page,[notice],1);await syncBank(page);await expect.poll(async()=>(await saved(page)).length).toBe(2);
+ await page.locator('.botnav-tab[data-tour="gastos"]').click();await rows(page).first().click();await page.getByTestId("exp-auto-separate").click();await expect(rows(page)).toHaveCount(2);
+ await expect.poll(()=>page.evaluate(()=>window.__pairWrites.some(x=>x.kind==="dup"&&x.value===false))).toBe(true);
+ await page.evaluate(id=>{
+  const s=JSON.parse(localStorage.getItem("micartera_v3"));s.expenses=JSON.parse(localStorage.getItem("micartera_v3_exp"));
+  const joined=unirGemeloAutomatico(s,id,Date.now()+1000);
+  window.__e2eCloudRows.app_state=[{data:slimForCloud(joined),updated_at:new Date().toISOString()}];
+  window.__e2eCloudRows.expenses=s.expenses.map(e=>({id:e.id,fecha:e.date,importe:e.amount,comercio:e.merchant,cat:e.category,ob_name:e.obName,source:expenseSourceForCloud(e)}));
+  window.__pairReads=[];window.__pairWrites=[];
+  const state=cloud.pullState,expenses=cloud.pullExpenses;
+  cloud.pullState=function(){window.__pairReads.push("state");return state.apply(cloud,arguments);};
+  cloud.pullExpenses=function(){window.__pairReads.push("expenses");return expenses.apply(cloud,arguments);};
+  document.dispatchEvent(new Event("visibilitychange"));
+ },notice.id);
+ await expect(rows(page)).toHaveCount(1);await expect.poll(()=>page.evaluate(()=>window.__pairWrites.some(x=>x.kind==="dup"&&x.value===true))).toBe(true);
+ expect(await spentCents(page)).toBe(1200);
+ expect(await page.evaluate(()=>window.__pairReads.slice(0,2))).toEqual(["state","expenses"]);
+ expect(await page.evaluate(()=>window.__pairWrites.filter(x=>x.kind==="dup"&&x.value===false).length)).toBe(0);
+});
