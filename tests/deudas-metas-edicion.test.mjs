@@ -4,7 +4,9 @@ import vm from "node:vm";
 import { execFileSync } from "node:child_process";
 import { createLogicSandbox, extractPureLogicSource, loadPureLogic, loadPureLogicFromFile } from "../scripts/load-pure-logic.mjs";
 import { estadoHeredado } from "../e2e/fixtures.mjs";
-const baseHTML=()=>execFileSync("git",["show","33d39cb80764aaf22998f69ac8bbaeffeadf4013:public/index.html"],{encoding:"utf8",maxBuffer:8e6});
+const originalBase="33d39cb80764aaf22998f69ac8bbaeffeadf4013",executionBase="c945e37cdcc90eaac064ca80ffbb4c72459ed890";
+const argRef=process.argv.indexOf("--compare-ref"),compareRef=argRef>=0?process.argv[argRef+1]:executionBase;
+const baseHTML=(ref=originalBase)=>execFileSync("git",["show",ref+":public/index.html"],{encoding:"utf8",maxBuffer:8e6});
 const html=process.argv.includes("--baseline")?baseHTML():fs.readFileSync("public/index.html","utf8");
 const ctx=process.argv.includes("--baseline")?loadPureLogic(html):loadPureLogicFromFile();
 const plain=v=>JSON.parse(JSON.stringify(v));
@@ -67,12 +69,24 @@ assert.equal(ctx.planEditCommit(committed,"debts",debts[0],next),committed,"Repl
 const fresh={...s,debts:[{...debts[0],value:777}]};
 assert.equal(ctx.planEditCommit(fresh,"debts",debts[0],next),fresh,"No pisa una corrección de otro móvil");
 assert.equal(ctx.planEditCommit({...s,debts:[]},"debts",debts[0],next).debts.length,0,"No resucita una deuda borrada");
-const base=process.argv.includes("--compare-base")?loadPureLogic(baseHTML()):ctx;
-const metrics=(logic,s)=>({debts:s.debts.map(d=>({balance:cents(logic.debtBalance(d)),paid:logic.debtPaidCount(d),left:logic.debtLeft(d),amort:cents(d.amort!=null?d.amort:d.monthly||0),paidAmount:cents(Math.max(0,(d.original||logic.debtBalance(d))-logic.debtBalance(d)))})),totalDebt:cents(s.debts.reduce((a,d)=>a+logic.debtBalance(d),0)),monthly:cents(s.debts.reduce((a,d)=>a+(logic.debtActive(d)?d.monthly||0:0),0)),series:plain(logic.netWorthSeries(s)),goals:plain(s.goals),rules:plain(s.settings.reservaRules)});
+const base=process.argv.includes("--compare-base")||argRef>=0?loadPureLogic(baseHTML(compareRef)):ctx;
+const metrics=(logic,s)=>{const series=logic.netWorthSeries(s);return{debts:s.debts.map(d=>({balance:cents(logic.debtBalance(d)),paid:logic.debtPaidCount(d),left:logic.debtLeft(d),amort:cents(d.amort!=null?d.amort:d.monthly||0),paidAmount:cents(Math.max(0,(d.original||logic.debtBalance(d))-logic.debtBalance(d)))})),totalDebt:cents(s.debts.reduce((a,d)=>a+logic.debtBalance(d),0)),monthly:cents(s.debts.reduce((a,d)=>a+(logic.debtActive(d)?d.monthly||0:0),0)),series:plain(series),coverage:plain(series.coverage||[]),goals:plain(s.goals),rules:plain(s.settings.reservaRules)};};
+const evidence=[];
 for(let i=0;i<3;i++){
- const state={...estadoHeredado(),debts:[debts[i]],goals:[g],settings:{autoPrices:false,lang:"es",reservaRules:[{id:"r",kind:"fixed",value:50.25,goalId:g.id,mensual:true}]}};
- assert.deepEqual(metrics(ctx,state),metrics(base,state),"Antes/después: misma serie y cifras en estado "+i);
+ let state={...estadoHeredado(),debts:[debts[i]],goals:[g],settings:{autoPrices:false,lang:"es",reservaRules:[{id:"r",kind:"fixed",value:50.25,goalId:g.id,mensual:true}]}};
+ // Tras rebasar131, los tres estados incluyen sin parte, manual al50% y OB al50% con
+ // obAcc/bankUid. Se usa la base autorizada para preparar la cartera, nunca un matcher propio.
+ if(i===1)state=ctx.setAccountShare(state,state.accounts[0],"account",50);
+ if(i===2){
+  const joint={key:"synthetic-joint",ent:"revolut",iban:"ES00SYNTH0000000000000002",value:900,cur:"EUR",name:"Cuenta conjunta sintética"};
+  state={...state,obAccounts:[joint],expenses:state.expenses.concat([{id:"shared-mov",ent:"revolut",amount:100.25,date:"2026-10-10T12:00:00Z",merchant:"Compra sintética",category:"otros",obAcc:joint.iban,bankUid:joint.key}])};
+  state=ctx.setAccountShare(state,joint,"ob",50);
+ }
+ const before=metrics(base,state),after=metrics(ctx,state);
+ assert.deepEqual(after,before,"Antes/después: misma serie y cifras en estado "+i);
  const saved={...state,debts:state.debts.map(d=>ctx.debtEditResult(d,ctx.debtEditDraft(d)).item)};
- assert.deepEqual(metrics(ctx,saved),metrics(base,state),"Guardar sin cambios: mismas cifras en estado "+i);
+ assert.deepEqual(metrics(ctx,saved),before,"Guardar sin cambios: mismas cifras en estado "+i);
+ evidence.push({state:i,share:i===0?"none":i===1?"manual50":"ob50-with-obAcc-bankUid",before,after,unchangedSave:true});
 }
+if(process.env.OWN_FINANCIAL_EVIDENCE)fs.writeFileSync(process.env.OWN_FINANCIAL_EVIDENCE,JSON.stringify({compareRef,originalBase,exactCentsEqual:true,evidence},null,2));
 console.log("deudas-metas-edicion: tres estados al céntimo, null/0/decimales, guardar sin cambios, campos ajenos y escritura fresca OK");
