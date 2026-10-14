@@ -386,7 +386,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
       }}, t("mr_share"))
     ),
 
-    !showSkel && React.createElement(NetWorthNow,{tt:tt, simple:simple, series:series, paydays:paydays, splashGone:splashGone}),
+    !showSkel && React.createElement(NetWorthNow,{tt:tt, simple:simple, paydays:paydays, series:series, splashGone:splashGone}),
 
     // Sin presupuesto, Inicio escondia su tarjeta estrella y te quedabas sin la mitad de la app
     // sin saber por que (P3). En vez de esconderla, la misma tarjeta en vacio y con salida: abre
