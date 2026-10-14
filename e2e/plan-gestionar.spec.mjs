@@ -891,6 +891,29 @@ test("quitar un recibo tiene Deshacer y vuelve con el MISMO id", async ({ page }
   await expect.poll(async () => ((await estado(page)).fixed || []).filter((f) => f.id === "luz").length).toBe(1);
 });
 
+test("Deshacer el borrado de un recibo con su cargo en Gastos lo deja como estaba, también al volver a abrir", async ({ page }) => {
+  // El borrado deja constancia para que no lo deshaga otro móvil; sin levantarla al «Deshacer», el
+  // siguiente arranque sacaba el recibo del Plan otra vez, y su cargo se quedaba contando (13/10/2026).
+  const cargo = { id: "c-luz", date: "2026-09-05T10:00:00.000Z", amount: 50, merchant: "LUZ SA", obName: "LUZ SA", category: "recibos", source: "ob", ent: "sabadell", extId: "x-luz", reciboId: "luz" };
+  await appLista(page, { __seedOnce: true, expenses: [cargo], settings: { expenseBanks: ["sabadell"] },
+    __cloudRows: { app_state: [{ data: { accounts, fixed, debts, flows, oneoffs, investments: [], budget: 1000, _savedAt: 1 }, updated_at: "2026-09-01T00:00:00Z" }] } });
+  const foto = () => page.evaluate(() => { const s = mcLoadRaw(mcStateKey());
+    return { luz: (s.fixed || []).filter((f) => f.id === "luz").length, marca: ((s.expenses || []).find((e) => e.id === "c-luz") || {}).reciboId || null, borrado: Object.keys(s.reciboBorrado || {}) }; });
+  await expect.poll(foto).toEqual({ luz: 1, marca: "luz", borrado: [] });
+  await abreTusRecibos(page);
+  await grupo(page, "Servicios y suministros").click();
+  await fila(page, "Luz").click();
+  await ficha(page).locator(".v4-ficha-quitar").click();
+  await expect.poll(foto).toEqual({ luz: 0, marca: null, borrado: ["luz"] });
+  await page.locator(".v4-undo-toast").getByRole("button", { name: "Deshacer" }).click();
+  await expect.poll(foto).toEqual({ luz: 1, marca: "luz", borrado: [] });
+  await page.reload();
+  await expect(page.locator(".botnav")).toBeVisible({ timeout: 30_000 });
+  await page.waitForFunction(() => !document.getElementById("mc-load"), null, { timeout: 30_000 });
+  await page.waitForTimeout(1500);   // el estado de la nube ya ha bajado y se ha aplicado
+  expect(await foto()).toEqual({ luz: 1, marca: "luz", borrado: [] });
+});
+
 test("sin nada apuntado: una tarjeta que explica", async ({ page }) => {
   await appLista(page, { fixed: [], debts: [], flows: [], oneoffs: [] });
   await abreTusRecibos(page);

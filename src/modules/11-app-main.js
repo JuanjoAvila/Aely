@@ -339,8 +339,9 @@ function App(){
   },[]);
   // El updater solo calcula: ni apunta el volcado ni arma el temporizador (ver `mcPersistCommit`).
   const set=useCallback((updater)=>{ setStateRaw(prev=>{
-    const next=typeof updater==="function"?updater(prev):updater;
+    let next=typeof updater==="function"?updater(prev):updater;
     if(next===prev) return prev;
+    if(next.expenses!==prev.expenses||next.gemelos!==prev.gemelos||next.deleted!==prev.deleted) next=reconcileGemelosAutomaticos(next,prev);
     return Object.assign({},next,{_savedAt:Date.now()});
   }); },[]);
   // En el propio commit (layout, no pasivo): así un `pagehide` inmediato ya vuelca este estado.
@@ -449,6 +450,7 @@ function App(){
   // Trae los gastos de la tabla y los mezcla en el estado (dedup).
   const syncCloudExpenses=function(){
     const readStartedAt=Date.now();
+    const readOwner=sessionRef.current&&sessionRef.current.user&&sessionRef.current.user.id;
     const ps=++wS.current;
     wR.current=false;
     wRead.current=null;
@@ -468,9 +470,17 @@ function App(){
     const readProof={valid:false,userId:null};
     const pull=readMark.then(function(mark){
       if(ps!==wS.current){ return wP.current; }
+      // Gastos también refresca sin pull general al volver al primer plano. Antes de reparar
+      // #dup necesita la decisión más reciente: una separación local vieja no puede deshacer
+      // «volver a unir» del otro móvil. Sólo mezclamos gemelos, no el resto de la cartera.
+      const needsGemelos=(stateRef.current.gemelos||[]).some(function(g){return g.auto;})||(stateRef.current.expenses||[]).some(function(e){return e.autoGemelo||e.gemeloSeparado;});
+      return (needsGemelos?cloud.pullState():Promise.resolve(null)).then(function(pack){
+      if(ps!==wS.current||readOwner&&(!sessionRef.current||!sessionRef.current.user||sessionRef.current.user.id!==readOwner)) return {total:0,nuevos:0};
+      const cloudGemelos=pack&&pack.data&&Array.isArray(pack.data.gemelos)?pack.data.gemelos:[];
       return cloud.pullExpenses(readProof).then(function(rows){
       // Si otra lectura empezó después, este resultado puede ser una foto anterior aunque
       // haya llegado el último. No mezclarlo con el estado ni reenviarlo al widget (FIN-05).
+      if(readOwner&&(!sessionRef.current||!sessionRef.current.user||sessionRef.current.user.id!==readOwner)) return {total:0,nuevos:0};
       if(ps!==wS.current) return wP.current;
       // La cobertura se forma al enviar, con la ventana vigente: el ciclo no acaba el día 1.
       wC.current=rows;
@@ -516,7 +526,7 @@ function App(){
         const igual=!merged.changed && next.length===(prev.expenses||[]).length
           && next.every(function(e,i){ return e===(prev.expenses||[])[i]; });
         // Call site 3/3 de fixMovInvasion (tras pull expenses). Contención 4.18.6: sin bloque (b).
-        const base=Object.assign({},prev,{expenses: igual?prev.expenses:next, lastSync:Date.now()});
+        const base=Object.assign({},prev,{expenses: igual?prev.expenses:next, gemelos:cloudGemelos.length?fusionarGemelos(prev.gemelos,cloudGemelos):prev.gemelos, lastSync:Date.now()});
         const rec=reconcileObDupes(fixMovInvasion(base));
         // reconcileObDupes: solo recat (cashback); nunca DELETE automático por similitud.
         // kept.recat: su categoría elegida, con la identidad de la fila de la NUBE (el id local
@@ -531,6 +541,12 @@ function App(){
             });
           },0);
         }
+        rec.state=reconcileGemelosAutomaticos(rec.state,prev);
+        const repairs=gemelosCambiosNube(rec.state,incoming);
+        if(repairs.length) setTimeout(function(){
+          if(!readProof.valid||!sessionRef.current||!sessionRef.current.user||sessionRef.current.user.id!==readProof.userId) return;
+          repairs.forEach(function(r){ cloud.setExpenseDup(r.expense,r.dup).catch(function(){}); });
+        },0);
         return rec.state;
       });
       wR.current=true;
@@ -539,6 +555,7 @@ function App(){
       wRead.current=readProof.valid && current && current.user && readProof.userId===current.user.id
         && !mcSandbox() && mark && typeof mark.readGeneration==="string" && typeof mark.nativeCut==="string"?mark:null;
       return { total:incoming.length, nuevos:count };
+      });
       });
     });
     wP.current=pull;
@@ -571,14 +588,21 @@ function App(){
           const localNewer=!freshLogin && (prev._savedAt||0) > (cloudState._savedAt||0);
           const baseObj = localNewer ? Object.assign({},prev,{expenses:merged.list})
                                      : Object.assign({},prev,cloudState,{expenses:merged.list});
-          // Los vínculos aviso↔apunte se UNEN gane quien gane (12/10/2026): un vínculo es un hecho
-          // que vio un móvil y el otro no puede desmentir por no tenerlo. Ver `fusionarGemelos`.
-          const gem=fusionarGemelos(prev.gemelos, cloudState.gemelos);
+          // Igual las lápidas y los recibos borrados (13/10/2026): un borrado que vio un móvil no
+          // lo deshace el estado más antiguo del otro. Ver `lapidasUnion` y `recibosBorradosUnion`.
+          // Solo con lo local del MISMO titular: la lápida de otra cuenta que hubo en este móvil
+          // escondería un gasto de esta que coincidiera en día, importe y comercio.
+          const sameOwner=!(opts&&opts.dropTx)&&(!freshLogin||prev._historyOwner===u)&&(!prev._historyOwner||prev._historyOwner===u);
+          // Una separación pertenece a su titular; la cuenta anterior de este móvil no decide aquí.
+          const gem=sameOwner?fusionarGemelos(prev.gemelos,cloudState.gemelos):(cloudState.gemelos||[]);
           if(gem!==baseObj.gemelos) baseObj.gemelos=gem;
+          if(sameOwner){
+            if(prev.deleted||cloudState.deleted) Object.assign(baseObj, lapidasUnion(prev, cloudState));
+            if(prev.reciboBorrado||cloudState.reciboBorrado) Object.assign(baseObj, recibosBorradosUnion(baseObj, prev, cloudState));
+          }
           // La nube lleva una ventana corta: un cliente antiguo no debe borrar los cierres
           // locales. El marcador sólo delimita este historial, nunca concede una sesión.
           if(sessionRef.current&&sessionRef.current.user&&sessionRef.current.user.id===u){
-            const sameOwner=!(opts&&opts.dropTx)&&(!freshLogin||prev._historyOwner===u)&&(!prev._historyOwner||prev._historyOwner===u);
             baseObj.accountBalanceHistory=sameOwner?mergeAccountBalanceHistory(prev.accountBalanceHistory,baseObj.accountBalanceHistory):cloudState.accountBalanceHistory||{};
             baseObj.assetValueHistory=sameOwner?mergeAccountBalanceHistory(prev.assetValueHistory,baseObj.assetValueHistory):cloudState.assetValueHistory||{};
             baseObj._historyOwner=u;
@@ -715,7 +739,11 @@ function App(){
           const gem=pushGemelos(invState.gemelos, vinculos);
           if(gem!==invState.gemelos) invState=Object.assign({},invState,{gemelos:gem});
         }
-        const baseExp=add? add.concat(invState.expenses||[]) : (invState.expenses||[]);
+        const paired=reconcileGemelosAutomaticos(Object.assign({},invState,{expenses:add?add.concat(invState.expenses||[]):invState.expenses}));
+        invState=paired;
+        const pairedById={}; (paired.expenses||[]).forEach(function(e){ pairedById[e.id]=e; });
+        obAdded=(add||[]).map(function(e){ return pairedById[e.id]||e; });
+        const baseExp=paired.expenses;
         // Rellena el CONCEPTO de lo que ya estaba apuntado con lo que acaba de traer el banco
         // (2026-07-24): si no, el histórico viejo —el que se consulta— seguiría sin explicar nada.
         const withNotes=enrichNotesFromBankTx(baseExp, txs);

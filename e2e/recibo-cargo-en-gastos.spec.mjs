@@ -193,6 +193,25 @@ test("un «No es este recibo» sobre un puntual tiene vuelta atrás desde la mis
   await expect(page.locator('[data-testid="exp-recibo-marca"]')).toContainText("ITV coche");
 });
 
+test("con dos cargos iguales de un recibo fijo, el «No es este recibo» de uno también tiene vuelta atrás", async ({ page }) => {
+  // El motor no elige entre dos iguales: el recibo no se ofrecía en la ficha y confirmar no hacía nada (13/10/2026).
+  const cargo = (id, ord) => Object.assign({ id, date: "2026-09-05T10:00:00.00" + (ord - 1) + "Z", amount: 10.99, merchant: "Spotify", obName: "Spotify", category: "ocio", source: "ob", ent: "sabadell", reciboId: "spo" }, ord > 1 ? { obOrd: ord } : {});
+  await abre(page, "es", { fixed: [{ id: "spo", name: "Spotify", amount: 10.99, freq: "mes", day: 5, account: "sabadell" }], expenses: [cargo("c-1", 1), cargo("c-2", 2)] });
+  const foto = () => page.evaluate(() => { const s = mcLoadRaw(mcStateKey()); return { spent: monthBudgetStats(s).spent, marcas: s.expenses.map((e) => e.reciboId || null), vetos: (s.reciboNo || []).length }; });
+  await page.locator('.botnav-tab[data-tour="gastos"]').click();
+  await expect(fila(page, "Spotify")).toHaveCount(2);
+  await fila(page, "Spotify").first().click();
+  await page.locator('[data-testid="exp-recibo-no"]').click();
+  await expect.poll(async () => { const f = await foto(); return [f.spent, f.marcas.filter(Boolean).length, f.vetos]; }).toEqual([10.99, 1, 2]);
+  await page.locator('[data-testid="exp-receipt"]').click();
+  await page.locator('[data-testid="exp-receipt-spo"]').click();
+  // El diálogo promete que aquí no suma otra vez: al aceptar tiene que ser verdad.
+  await expect(page.locator(".askback")).toContainText(await page.evaluate(() => tf("f_recibo_marca", { name: "Spotify" })));
+  await page.locator(".askback .btn-primary").click();
+  await expect.poll(foto).toEqual({ spent: 0, marcas: ["spo", "spo"], vetos: 0 });
+  await expect(page.locator('[data-testid="exp-recibo-marca"]')).toContainText("Spotify");
+});
+
 test("Importar histórico: el cargo de un recibo sale marcado y con su nombre, no tachado como repetido", async ({ page }) => {
   await seedLoggedInDashboard(page, {
     hasBankLink: true, fixed: [recibo],

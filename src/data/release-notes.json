@@ -1,5 +1,52 @@
 [
   {
+    "v": "4.26.130",
+    "d": "2026-10-14",
+    "t": {
+      "es": "Trade Republic: los repetidos se juntan solos",
+      "en": "Trade Republic: duplicates now match on their own",
+      "ca": "Trade Republic: els repetits s’ajunten sols"
+    },
+    "items": {
+      "es": [
+        "Trade Republic ya no te pregunta si un movimiento está repetido: cuando la compra llega por el aviso y por el banco, la app las junta sola y cuenta una. Si alguna vez junta dos que eran distintas, puedes separarlas desde el propio movimiento."
+      ],
+      "en": [
+        "Trade Republic no longer asks whether a transaction is a duplicate: when a purchase arrives both as a notification and from the bank, the app matches them on its own and counts one. If it ever matches two that were different, you can separate them from the transaction itself."
+      ],
+      "ca": [
+        "Trade Republic ja no et pregunta si un moviment està repetit: quan la compra arriba per l’avís i pel banc, l’app les ajunta sola i en compta una. Si mai n’ajunta dues que eren diferents, les pots separar des del propi moviment."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "tr-empareja-sin-preguntar",
+        "t": {
+          "es": "Trade Republic: los repetidos se juntan solos",
+          "en": "Trade Republic: duplicates now match on their own",
+          "ca": "Trade Republic: els repetits s’ajunten sols"
+        },
+        "items": {
+          "es": [
+            "1. Abre Gastos: las compras de Trade Republic ya no salen como \"Movimiento · tócalo: ¿mismo o distinto?\"; ves una sola por compra, con su comercio.",
+            "2. Toca una de esas compras: sale \"Aviso y apunte del banco unidos\" y un botón \"No es el mismo: separar\"; no lo uses salvo que de verdad fueran dos compras distintas.",
+            "3. El total del ciclo en Inicio no ha subido de golpe: cuadra con lo que has gastado."
+          ],
+          "en": [
+            "1. Open Spending: Trade Republic purchases no longer show as \"Movement · tap: same or different?\"; you see a single one per purchase, with its merchant.",
+            "2. Tap one of those purchases: it says \"Notification and bank entry matched\" and has a \"Not the same: separate\" button; don't use it unless they really were two different purchases.",
+            "3. The cycle total on Home hasn't jumped up: it matches what you have spent."
+          ],
+          "ca": [
+            "1. Obre Despeses: les compres de Trade Republic ja no surten com \"Moviment · toca'l: mateix o diferent?\"; en veus una sola per compra, amb el seu comerç.",
+            "2. Toca una d’aquestes compres: surt \"Avís i apunt del banc units\" i un botó \"No és el mateix: separar\"; no l’usis si de veritat no eren dues compres diferents.",
+            "3. El total del cicle a Inici no ha pujat de cop: quadra amb el que has gastat."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.129",
     "d": "2026-10-14",
     "t": {
@@ -71,33 +118,7 @@
         "Els interessos de la hipoteca ja no es compten com si rebaixessin el deute."
       ]
     },
-    "tandas": [
-      {
-        "id": "inicio-mes-pasado-mismo-dia",
-        "t": {
-          "es": "Inicio: \"más que el mes pasado\" ya cuadra con la gráfica",
-          "en": "Home: \"more than last month\" now matches the chart",
-          "ca": "Inici: \"més que el mes passat\" ja quadra amb la gràfica"
-        },
-        "items": {
-          "es": [
-            "1. Abre Inicio con 1M: la frase bajo el patrimonio dice unos 1.300 € más que el mes pasado (hoy frente al mismo día del mes pasado). Mañana cambiará un poco, como la gráfica.",
-            "2. Toca la \"i\" de la gráfica: \"Comparación\" dice \"frente al mismo día del mes pasado\".",
-            "3. Mantén el dedo en la gráfica entre el 30/9 y el 7/10: no hay una caída de unos 500 € por el dinero que fue a MyInvestor."
-          ],
-          "en": [
-            "1. Open Home with 1M: the line under net worth says about €1,300 more than last month (today against the same day last month). Tomorrow it will change a little, like the chart.",
-            "2. Tap the \"i\" on the chart: \"Comparison\" says \"against the same day last month\".",
-            "3. Hold your finger on the chart between 30/9 and 7/10: there is no drop of about €500 for the money that went to MyInvestor."
-          ],
-          "ca": [
-            "1. Obre Inici amb 1M: la frase sota el patrimoni diu uns 1.300 € més que el mes passat (avui davant del mateix dia del mes passat). Demà canviarà una mica, com la gràfica.",
-            "2. Toca la \"i\" de la gràfica: \"Comparació\" diu \"davant del mateix dia del mes passat\".",
-            "3. Mantén el dit a la gràfica entre el 30/9 i el 7/10: no hi ha una caiguda d'uns 500 € pels diners que van anar a MyInvestor."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.127",
@@ -127,33 +148,7 @@
         "Si el banc lliura els moviments a mitges, es conserva el que ja tenies i l'app t'explica què ha passat i què pots fer."
       ]
     },
-    "tandas": [
-      {
-        "id": "bancos-reconexion-revoca",
-        "t": {
-          "es": "Bancos: sincronizar, reconectar y MyInvestor",
-          "en": "Banks: syncing, reconnecting and MyInvestor",
-          "ca": "Bancs: sincronitzar, reconnectar i MyInvestor"
-        },
-        "items": {
-          "es": [
-            "1. Ve a Cartera y, en «Tus cuentas», pulsa el icono de «Sincronizar bancos». Cuando acabe, los movimientos nuevos del banco aparecen en Gastos y no se repite ninguno. Está mal si falta un movimiento que ya tenías o si alguno sale duplicado.",
-            "2. Si algún banco sale con «⚠ Reconectar», reconéctalo: vuelve a sincronizar sin perder movimientos ni duplicarlos. Si no hay ninguno así, salta este paso. Está mal si al reconectar desaparecen movimientos o salen repetidos.",
-            "3. En la tarjeta de MyInvestor (Cartera → Inversiones), pulsa «Sincronizar posiciones»: salen las posiciones y el saldo sin ningún aviso de acceso perdido. Está mal si pide volver a entrar sin que hayas cambiado nada."
-          ],
-          "en": [
-            "1. Go to Portfolio and, under “Your accounts”, tap the “Sync banks” icon. When it finishes, the bank's new transactions show in Spending and none is repeated. It is wrong if a transaction you already had is missing or if any shows up twice.",
-            "2. If a bank shows “⚠ Reconnect”, reconnect it: it syncs again without losing or duplicating transactions. If none does, skip this step. It is wrong if transactions disappear or repeat after reconnecting.",
-            "3. On the MyInvestor card (Portfolio → Investments), tap “Sync positions”: the positions and balance come up with no lost-access warning. It is wrong if it asks you to sign in again when you have changed nothing."
-          ],
-          "ca": [
-            "1. Ves a Cartera i, a «Els teus comptes», prem la icona de «Sincronitza els bancs». Quan acabi, els moviments nous del banc apareixen a Despeses i no se'n repeteix cap. Està malament si falta un moviment que ja tenies o si algun surt duplicat.",
-            "2. Si algun banc surt amb «⚠ Reconnectar», reconnecta'l: torna a sincronitzar sense perdre moviments ni duplicar-los. Si no n'hi ha cap, salta aquest pas. Està malament si en reconnectar desapareixen moviments o en surten de repetits.",
-            "3. A la targeta de MyInvestor (Cartera → Inversions), prem «Sincronitza posicions»: surten les posicions i el saldo sense cap avís d'accés perdut. Està malament si et demana tornar a entrar sense que hagis canviat res."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.126",

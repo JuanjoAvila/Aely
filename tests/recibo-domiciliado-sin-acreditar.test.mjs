@@ -452,10 +452,12 @@ for(const [rol,accounts,settings] of ROLES){
       let porPantalla=r.state; (lista==="fixed"?c.removeFixedById:c.removeOneoffById)(f=>{ porPantalla=f(porPantalla); },id);
       assert.equal(j(porPantalla),j(sin));
     }
-    // Sin ningún cargo suyo en Gastos, borrar hace exactamente lo de siempre.
+    // Sin ningún cargo suyo en Gastos, borrar hace lo de siempre y deja constancia del borrado
+    // con su hora (13/10/2026): sin ella el recibo volvía desde un móvil atrasado.
     const sinFilas=Object.assign({},r.state,{expenses:r.state.expenses.filter(e=>e.reciboId!=="com")});
     const nada=c.sinCargoDelPlan(sinFilas,"fixed","com");
-    assert.equal(j(nada.state),j(Object.assign({},sinFilas,{fixed:sinFilas.fixed.filter(f=>f.id!=="com")})));
+    assert.equal(j(nada.state),j(Object.assign({},sinFilas,{fixed:sinFilas.fixed.filter(f=>f.id!=="com"),
+      reciboBorrado:{com:{d:c.budgetPeriodOf(sinFilas).startMs,n:"Comunidad"}},reciboBorradoAt:{com:ahora}})));
     assert.equal(nada.state.expenses,sinFilas.expenses,"y no reescribe el histórico");
     assert.equal(nada.subir.length,0);
     if(rol==="gasto diario"){

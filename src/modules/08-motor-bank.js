@@ -228,16 +228,9 @@ function reciboNoTope(no,at){
   return {reciboNo:no.slice(-RECIBO_NO_MAX),reciboNoAt:at};
 }
 function reciboNoUnion(local,nube){
-  var na=local.reciboNo||[],nb=nube.reciboNo||[],ta=local.reciboNoAt||{},tb=nube.reciboNoAt||{};
-  var at={},no=[],vistas={};
-  na.concat(nb,Object.keys(ta),Object.keys(tb)).forEach(function(k){
-    if(vistas[k]) return;
-    vistas[k]=1;
-    var a=ta[k]||0,b=tb[k]||0;
-    if(a||b) at[k]=Math.max(a,b);
-    if(a===b?na.indexOf(k)>=0||nb.indexOf(k)>=0:(a>b?na:nb).indexOf(k)>=0) no.push(k);
-  });
-  var out=reciboNoTope(no,at);
+  // La regla, clave a clave, es la misma de las lápidas: vive en `unionPorHora` (00-core).
+  var na=local.reciboNo||[],u=unionPorHora(na,local.reciboNoAt,nube.reciboNo,nube.reciboNoAt);
+  var out=reciboNoTope(u.lista,u.at);
   // Misma lista, misma referencia: la leen los `useMemo` de Gastos y de los totales en cada pull.
   if(out.reciboNo.length===na.length&&out.reciboNo.every(function(k,i){ return k===na[i]; })) out.reciboNo=na;
   return out;
@@ -1060,6 +1053,195 @@ function flattenBankTx(links, previous){
   return out;
 }
 
+/* Un único reparto por banco e importe evita que el importador y la reconciliación gasten
+   el mismo aviso dos veces. Las parejas automáticas viven en las filas, no en el registro
+   acotado de decisiones: 501 parejas no deben expulsarse y recrearse en cada render. */
+const gemeloCache=new WeakMap(), gemeloDatosCache=new WeakMap(), gemeloDiasCache=new Map();
+// Un comercio real no identifica un gemelo por importe: el extracto de recibos perdió
+// 750,50 al emparejar dos nombres distintos sin id (CI 13/10/2026). Sólo el genérico carece de identidad.
+function gemeloBancoAutomatico(e){ return !!(e&&e.id)&&esFilaDeBanco(e)&&!e.extId&&!e.reciboId&&!e.debtId&&sinComercioReal(e.obName!=null?e.obName:e.merchant); }
+function gemeloAvisoAutomatico(e){ return !!(e&&e.id)&&!esFilaDeBanco(e)&&!isManualExpenseSource(e.source)&&!e.possibleDup&&!e.pending&&!e.reciboId&&!e.debtId; }
+function gemeloDatos(e){
+  if(!e) return {grupo:"",dia:NaN};
+  let d=gemeloDatosCache.get(e); if(d) return d;
+  const ms=Date.parse(e.date), ent=expenseBankOf(e), amount=Number(e.amount);
+  if(!ent||!Number.isFinite(ms)||!Number.isFinite(amount)||!amount) d={grupo:"",dia:NaN};
+  else {
+    let dia=gemeloDiasCache.get(e.date);
+    if(dia===undefined){const m=madridYmdParts(ms);dia=Date.parse(m.ym+"-"+String(m.d).padStart(2,"0"))/86400000;if(gemeloDiasCache.size>=1024)gemeloDiasCache.delete(gemeloDiasCache.keys().next().value);gemeloDiasCache.set(e.date,dia);}
+    d={grupo:ent+"|"+Math.round(amount*100),dia:dia};
+  }
+  gemeloDatosCache.set(e,d); return d;
+}
+function gemeloGrupo(e){ const d=gemeloDatos(e); return d.grupo+"|"+d.dia; }
+function gemeloCompatible(a,b,ventana){ const x=gemeloDatos(a),y=gemeloDatos(b); return !!x.grupo&&x.grupo===y.grupo&&Math.abs(x.dia-y.dia)<=ventana; }
+function gemeloMismosCampos(a,b){
+  return a===b||!!(a&&b&&a.id===b.id&&a.date===b.date&&a.amount===b.amount&&a.ent===b.ent&&a.source===b.source&&a.extId===b.extId&&a.obName===b.obName&&a.obOrd===b.obOrd&&a.merchant===b.merchant&&a.reciboId===b.reciboId&&a.debtId===b.debtId&&a.pending===b.pending&&a.possibleDup===b.possibleDup&&a.possibleDupOf===b.possibleDupOf&&a.autoGemelo===b.autoGemelo&&a.gemeloNuevo===b.gemeloNuevo&&a.gemeloSeparado===b.gemeloSeparado);
+}
+/* Flujo por DÍAS, no por cada combinación de filas. Primero llena el día exacto y después
+   busca caminos alternos: un banco del 10 puede desplazar 9→9 a 9→8 para no dejar un aviso
+   libre y un cargo contando doble. Miles de iguales se asignan en un solo tramo. */
+function gemeloAsignar(bancos,avisos,ventana){
+  const bs=new Map(),as=new Map(),flow=new Map(),usedB=new Map(),usedA=new Map();
+  bancos.forEach(function(e){ const d=gemeloDatos(e).dia;if(!bs.has(d))bs.set(d,[]);bs.get(d).push(e); });
+  avisos.forEach(function(e){ const d=gemeloDatos(e).dia;if(!as.has(d))as.set(d,[]);as.get(d).push(e); });
+  const days=Array.from(bs.keys()).sort(function(a,b){return a-b;});
+  const edge=function(b,a){return (flow.get(b)||new Map()).get(a)||0;};
+  const put=function(b,a,n){if(!flow.has(b))flow.set(b,new Map());flow.get(b).set(a,edge(b,a)+n);usedB.set(b,(usedB.get(b)||0)+n);usedA.set(a,(usedA.get(a)||0)+n);};
+  days.forEach(function(d){if(as.has(d))put(d,d,Math.min(bs.get(d).length,as.get(d).length));});
+  for(let reach=1;reach<=ventana;reach++)days.forEach(function(root){
+    while((usedB.get(root)||0)<bs.get(root).length){
+      const queue=[{b:root}],seenB=new Set([root]),seenA=new Set(),parentB=new Map(),parentA=new Map();let finish=null;
+      for(let qi=0;qi<queue.length&&finish===null;qi++){
+        const b=queue[qi].b;
+        for(let delta=0;delta<=reach&&finish===null;delta++)for(const a of delta?[b-delta,b+delta]:[b]){
+          if(!as.has(a)||seenA.has(a))continue;seenA.add(a);parentA.set(a,b);
+          if((usedA.get(a)||0)<as.get(a).length){finish=a;break;}
+          days.forEach(function(other){if(!seenB.has(other)&&edge(other,a)>0){seenB.add(other);parentB.set(other,a);queue.push({b:other});}});
+        }
+      }
+      if(finish===null)break;
+      let n=Math.min(bs.get(root).length-(usedB.get(root)||0),as.get(finish).length-(usedA.get(finish)||0)),a=finish;
+      while(parentA.get(a)!==root){const b=parentA.get(a),prevA=parentB.get(b);n=Math.min(n,edge(b,prevA));a=prevA;}
+      a=finish;
+      while(true){const b=parentA.get(a);put(b,a,n);if(b===root)break;const prevA=parentB.get(b);put(b,prevA,-n);a=prevA;}
+    }
+  });
+  const result=[],offset=new Map();
+  days.forEach(function(d){let bi=0;const row=flow.get(d);if(!row)return;
+    Array.from(row.keys()).sort(function(a,b){return Math.abs(a-d)-Math.abs(b-d)||a-b;}).forEach(function(a){let ai=offset.get(a)||0;for(let n=edge(d,a);n>0;n--)result.push([bs.get(d)[bi++],as.get(a)[ai++]]);offset.set(a,ai);});
+  });
+  return result;
+}
+function reconcileGemelosAutomaticos(s,prev){
+  const rows=(s&&s.expenses)||[];if(!rows.length)return s;
+  const cached=gemeloCache.get(rows);
+  if(cached&&cached.gemelos===s.gemelos&&cached.deleted===s.deleted)return s;
+  const old=prev&&gemeloCache.get(prev.expenses);
+  // Cambiar categoría, nota o tarjeta no invalida ningún emparejado ni calcula fechas.
+  if(old&&prev.gemelos===s.gemelos&&prev.deleted===s.deleted&&rows.length===prev.expenses.length&&rows.every(function(e,i){return gemeloMismosCampos(e,prev.expenses[i]);})){
+    gemeloCache.set(rows,{gemelos:s.gemelos,deleted:s.deleted,index:old.index});return s;
+  }
+  const prior=old&&prev.gemelos===s.gemelos&&prev.deleted===s.deleted&&old.index;
+  const dirty=new Set(),index={ids:new Map(),groups:prior?new Map(prior.groups):new Map()};
+  rows.forEach(function(e){if(!e)return;index.ids.set(e.id,e);if(!prior||!gemeloMismosCampos(e,prior.ids.get(e.id))){dirty.add(gemeloDatos(e).grupo);if(prior&&prior.ids.has(e.id))dirty.add(gemeloDatos(prior.ids.get(e.id)).grupo);}});
+  if(prior)prior.ids.forEach(function(e,id){if(!index.ids.has(id))dirty.add(gemeloDatos(e).grupo);});
+  dirty.forEach(function(k){index.groups.set(k,[]);});
+  rows.forEach(function(e){if(e&&dirty.has(gemeloDatos(e).grupo))index.groups.get(gemeloDatos(e).grupo).push(e);});
+  if(prior){
+    const split=new Map();let decisions=s.gemelos;
+    prior.ids.forEach(function(b){
+      if(!b.autoGemelo)return;
+      const a=prior.ids.get(b.autoGemelo),n=index.ids.get(b.autoGemelo),live=index.ids.get(b.id);
+      if(!a||!n||!live||a.amount===n.amount&&expenseBankOf(a)===expenseBankOf(n)&&gemeloCompatible(n,live,1))return;
+      const g=Object.assign(gemeloDe(a,b),{auto:true,ent:expenseBankOf(b),separado:true,at:Date.now()});
+      decisions=pushGemelos(decisions,[g]);const row=Object.assign({},live,{gemeloSeparado:a.id});delete row.autoGemelo;delete row.possibleDup;delete row.possibleDupOf;split.set(b.id,row);
+    });
+    if(split.size)return reconcileGemelosAutomaticos(Object.assign({},s,{gemelos:decisions,expenses:rows.map(function(e){return split.get(e.id)||e;})}));
+  }
+  const workRows=[];dirty.forEach(function(k){workRows.push.apply(workRows,index.groups.get(k));});
+  const ids={},porClave={},bancos={},groups=new Map(),used=new Set(),occupied=new Set(),destinos=new Map();
+  const deleted=expenseDeletedSet(s),prevIds=new Set((prev&&prev.expenses||[]).map(function(e){return e.id;}));
+  workRows.forEach(function(e){
+    if(!e||expenseIsTombstoned(e,deleted))return;ids[e.id]=e;porClave[gemeloAvisoKey(e)]=e;
+    if(gemeloBancoAutomatico(e))bancos[expenseBankOf(e)+"|"+keyOfExpense(e)]=e;
+    const d=gemeloDatos(e);if(!d.grupo)return;if(!groups.has(d.grupo))groups.set(d.grupo,[]);groups.get(d.grupo).push(e);
+  });
+  let gemelos=s.gemelos||[];
+  const reserve=function(b,a,auto){if(occupied.has(b.id)||used.has(a.id))return false;used.add(a.id);occupied.add(b.id);destinos.set(b.id,{id:a.id,auto:auto});return true;};
+  gemelos.slice().sort(function(a,b){return (b.at||0)-(a.at||0)||Number(!!b.separado)-Number(!!a.separado);}).forEach(function(g){
+    const a=g.avisoId?ids[g.avisoId]:porClave[g.aviso],b=bancos[(g.ent||expenseBankOf(a)||"")+"|"+g.banco];
+    if(!b){if(a)used.add(a.id);return;}
+    if(occupied.has(b.id))return;
+    // Una reunión explícita tiene hora propia; la marca de la tabla puede ir por detrás.
+    // La decisión ganadora no depende de que su PATCH de #dup ya haya llegado.
+    if(g.separado||b.gemeloSeparado&&!(g.auto&&g.at>1)){occupied.add(b.id);destinos.set(b.id,null);if(a)used.add(a.id);return;}
+    if(!a)return;
+    // #dup retirado en una versión antigua es una decisión humana, aunque app_state traiga
+    // todavía el vínculo anterior o haya perdido los campos nuevos al pasar por esa versión.
+    if(!b.possibleDup&&!b.gemeloNuevo&&!(g.auto&&g.at>1)){occupied.add(b.id);used.add(a.id);return;}
+    if(isManualExpenseSource(a.source)){reserve(b,a,false);return;}
+    if(gemeloAvisoAutomatico(a)&&gemeloCompatible(a,b,3)&&!reserve(b,a,gemeloCompatible(a,b,1)))destinos.set(b.id,null);
+  });
+  // Los pares ya acreditados no saltan de aviso cuando llega un segundo pago al día siguiente.
+  workRows.forEach(function(b){const a=ids[b.autoGemelo||b.possibleDupOf];if(!gemeloBancoAutomatico(b)||!a||occupied.has(b.id))return;
+    if(b.gemeloSeparado){occupied.add(b.id);used.add(a.id);destinos.set(b.id,null);return;}
+    if(b.possibleDup&&gemeloAvisoAutomatico(a)&&gemeloCompatible(a,b,3))reserve(b,a,gemeloCompatible(a,b,1));
+    else if(b.possibleDup&&isManualExpenseSource(a.source))reserve(b,a,false);
+  });
+  // Las lápidas antiguas no guardan id de aviso. Se reserva la misma primera coincidencia
+  // que saltaba el importador anterior; jamás se utiliza para ocultar el ordinal siguiente.
+  (s.deleted||[]).forEach(function(key){
+    if(gemelos.some(function(g){return g.banco===key;}))return;
+    const m=String(key).match(/^(?:([^|]+)\|)?(\d{4}-\d{2}-\d{2})\|(-?[\d.]+)\|(.+)$/);
+    if(!m||/\|#\d+$/.test(key)||!sinComercioReal(m[4]))return;
+    const ent=m[1],amount=Number(m[3]);
+    groups.forEach(function(group){const a=group.find(function(e){return gemeloAvisoAutomatico(e)&&!used.has(e.id)&&(!ent||expenseBankOf(e)===ent)&&Math.round(e.amount*100)===Math.round(amount*100)&&Math.abs(dateMs(e.date)-Date.parse(m[2]+"T12:00:00Z"))<=DUP_DIAS_MS;});if(a)used.add(a.id);});
+  });
+  groups.forEach(function(group){
+    const notices=group.filter(function(e){return gemeloAvisoAutomatico(e)&&!used.has(e.id);});
+    const banks=group.filter(function(e){return gemeloBancoAutomatico(e)&&!occupied.has(e.id);});
+    // Un histórico sin #dup puede contener «son distintos» de 117. Solo una notificación
+    // NUEVA permite emparejar un banco sin pregunta; abrir una cartera nunca revoca esa respuesta.
+    const normal=banks.filter(function(e){return !e.possibleDup&&!e.gemeloNuevo&&!e.autoGemelo;});
+    const historical=notices.filter(function(e){return !prev||prevIds.has(e.id);});
+    gemeloAsignar(normal,historical,3).forEach(function(pair){occupied.add(pair[0].id);used.add(pair[1].id);});
+    const eligible=banks.filter(function(e){return !occupied.has(e.id)&&!e.gemeloSeparado;});
+    const available=notices.filter(function(e){return !used.has(e.id);});
+    gemeloAsignar(eligible,available,3).forEach(function(pair){reserve(pair[0],pair[1],gemeloCompatible(pair[0],pair[1],1));});
+  });
+  let expenses=rows;
+  rows.forEach(function(e,i){
+    if(!e||!dirty.has(gemeloDatos(e).grupo))return;const target=destinos.get(e.id),has=destinos.has(e.id);
+    if(!has&&!e.autoGemelo&&!e.gemeloNuevo&&!e.gemeloSeparado)return;
+    const id=target&&target.id,auto=target&&target.auto?id:undefined;
+    if(!!e.possibleDup===!!id&&(e.possibleDupOf||undefined)===(id||undefined)&&(e.autoGemelo||undefined)===auto&&!e.gemeloNuevo)return;
+    const n=Object.assign({},e);delete n.gemeloNuevo;
+    if(id){n.possibleDup=true;n.possibleDupOf=id;delete n.gemeloSeparado;if(auto)n.autoGemelo=id;else delete n.autoGemelo;}
+    else {delete n.possibleDup;delete n.possibleDupOf;delete n.autoGemelo;}
+    if(expenses===rows)expenses=rows.slice();expenses[i]=n;
+  });
+  const out=expenses===rows?s:Object.assign({},s,{expenses:expenses});
+  if(expenses!==rows)expenses.forEach(function(e){if(e&&index.ids.get(e.id)!==e)index.ids.set(e.id,e);});
+  dirty.forEach(function(k){index.groups.set(k,index.groups.get(k).map(function(e){return index.ids.get(e.id);}));});
+  gemeloCache.set(out.expenses,{gemelos:out.gemelos,deleted:out.deleted,index:index});return out;
+}
+function gemeloAutomaticoDe(s,e){
+  if(!e)return null;
+  const b=(s.expenses||[]).find(function(x){return x.autoGemelo===e.id&&x.possibleDup&&!x.gemeloSeparado;});
+  if(!b)return null;
+  const decision=(s.gemelos||[]).find(function(g){return g.banco===keyOfExpense(b)&&(g.avisoId===e.id||g.aviso===gemeloAvisoKey(e));});
+  if(decision&&decision.separado)return null;
+  return Object.assign(gemeloDe(e,b),{auto:true,ent:expenseBankOf(b),at:decision&&decision.at||1});
+}
+function separarGemeloAutomatico(s,id,ahora){
+  const e=(s.expenses||[]).find(function(x){return x.id===id;}),g=gemeloAutomaticoDe(s,e);if(!g)return s;
+  const decision=Object.assign({},g,{separado:true,at:Math.max(ahora||Date.now(),(g.at||0)+1)});
+  const expenses=s.expenses.map(function(b){if(b.autoGemelo!==id)return b;const n=Object.assign({},b,{gemeloSeparado:id});delete n.autoGemelo;delete n.possibleDup;delete n.possibleDupOf;return n;});
+  return reconcileGemelosAutomaticos(Object.assign({},s,{expenses:expenses,gemelos:pushGemelos(s.gemelos,[decision])}),s);
+}
+function unirGemeloAutomatico(s,id,ahora){
+  const a=(s.expenses||[]).find(function(e){return e.id===id;});if(!a)return s;
+  const decisions=(s.gemelos||[]).filter(function(g){return g.separado&&(g.avisoId===id||g.aviso===gemeloAvisoKey(a));}).sort(function(a,b){return (b.at||0)-(a.at||0);});
+  const g=decisions[0],b=(s.expenses||[]).find(function(e){return e.gemeloSeparado===id||g&&keyOfExpense(e)===g.banco&&expenseBankOf(e)===(g.ent||expenseBankOf(a));});
+  if(!b||!gemeloBancoAutomatico(b)||!gemeloAvisoAutomatico(a)||!gemeloCompatible(a,b,1))return s;
+  const decision=Object.assign(gemeloDe(a,b),{auto:true,ent:expenseBankOf(b),at:Math.max(ahora||Date.now(),(g&&g.at||0)+1)});
+  const expenses=s.expenses.map(function(e){if(e.id!==b.id)return e;const n=Object.assign({},e,{possibleDup:true,possibleDupOf:id,autoGemelo:id});delete n.gemeloSeparado;return n;});
+  return reconcileGemelosAutomaticos(Object.assign({},s,{expenses:expenses,gemelos:pushGemelos(s.gemelos,[decision])}));
+}
+function gemeloSeparadoDe(s,e){
+  if(!e)return null;
+  return (s.expenses||[]).find(function(b){return gemeloBancoAutomatico(b)&&!b.possibleDup&&gemeloCompatible(e,b,1)&&(b.gemeloSeparado===e.id||(s.gemelos||[]).some(function(g){return g.separado&&g.banco===keyOfExpense(b)&&(g.avisoId===e.id||g.aviso===gemeloAvisoKey(e));}));})||null;
+}
+function gemelosCambiosNube(s,incoming){
+  const local=new Map(),out=[];
+  (s.expenses||[]).forEach(function(e){if(gemeloBancoAutomatico(e))local.set(expenseBankOf(e)+"|"+keyOfExpense(e),e);});
+  (incoming||[]).forEach(function(e){const l=local.get(expenseBankOf(e)+"|"+keyOfExpense(e));if(!gemeloBancoAutomatico(e)||!l)return;
+    if(l.autoGemelo&&!e.possibleDup)out.push({expense:e,dup:true});
+    else if(l.gemeloSeparado&&e.possibleDup)out.push({expense:e,dup:false});
+  });return out;
+}
+
 /* GASTO VARIABLE VÍA OPEN BANKING (2026-08-05): entra TODO de CUALQUIER banco sincronizado
    (gastos e ingresos), estilo extracto de banca. Lo que RESTA del presupuesto y del saldo de
    gasto diario es solo lo de `expenseBankEnts` (cuenta diaria + extras marcados). El resto se
@@ -1148,7 +1330,7 @@ function importObExpenses(s, txs, links){
      diga «es el mismo» o «son distintos». Cero decisiones irreversibles automáticas. */
   const DUP_MS=DUP_DIAS_MS;   // misma ventana que el historico (`histCandCercanos`)
   const otrasVias=(s.expenses||[]).filter(function(e){
-    return e && e.source!=="ob" && e.source!=="ob-hist";
+    return e && !esFilaDeBanco(e) && !e.possibleDup && !e.pending && !e.reciboId && !e.debtId;
   });
   /* UN AVISO EMPAREJA UNA SOLA VEZ (12/10/2026). `usadoDup` ya lo garantizaba DENTRO de una
      sincronización; entre sincronizaciones —y desde otro móvil— el mismo aviso volvía a ser el
@@ -1160,24 +1342,16 @@ function importObExpenses(s, txs, links){
      (lápida sin vínculo en `gemelos`). Aquella versión no apuntó QUÉ aviso era; se da por reclamado
      el primero que casa —el que habría elegido entonces— y se busca a partir del siguiente. */
   const emparejados=avisosEmparejados(s);
-  const usadoDup={};
-  const gemeloOtraVia=function(tx, saltar){
-    if(!sinComercioReal(tx.merchant)) return null;
-    if(!tx.ent) return null;
-    const ms=parseDate(tx.date).getTime();
-    let quedan=saltar||0;
-    const hit=otrasVias.findIndex(function(e,i){
-      if(usadoDup[i]) return false;
-      if(expenseBankOf(e)!==tx.ent) return false;
-      if(Math.abs((e.amount||0)-tx.amount)>0.005) return false;
-      if(Math.abs(dateMs(e.date)-ms)>DUP_MS) return false;
-      if(avisoYaEmparejado(emparejados, e)) return false;
-      if(quedan>0){ quedan--; return false; }
-      return true;
+  const usadoDup={}, otrasPorImporte=new Map(), manualesPorImporte=new Map();
+  otrasVias.forEach(function(e,i){const k=expenseBankOf(e)+"|"+Math.round(Number(e.amount)*100),entry={e:e,i:i};if(!otrasPorImporte.has(k))otrasPorImporte.set(k,[]);otrasPorImporte.get(k).push(entry);if(isManualExpenseSource(e.source)){if(!manualesPorImporte.has(k))manualesPorImporte.set(k,[]);manualesPorImporte.get(k).push(entry);}});
+  const gemeloOtraVia=function(tx,saltar){
+    if(!sinComercioReal(tx.merchant)||!tx.ent)return null;
+    const ms=dateMs(tx.date),k=tx.ent+"|"+Math.round(Number(tx.amount)*100),candidates=(tx.id?otrasPorImporte:manualesPorImporte).get(k)||[];let quedan=saltar||0;
+    const hit=candidates.find(function(item){const e=item.e;
+      if(usadoDup[item.i]||Math.abs(dateMs(e.date)-ms)>DUP_MS||avisoYaEmparejado(emparejados,e))return false;
+      if(quedan>0){quedan--;return false;}return true;
     });
-    if(hit<0) return null;
-    usadoDup[hit]=1;
-    return otrasVias[hit];
+    if(!hit)return null;usadoDup[hit.i]=1;return hit.e;
   };
   // Cargos ya modelados ESTE mes por entidad (Fijos/deudas/puntuales), para no contar dos veces un recibo.
   const now=new Date(), ym=now.getMonth()+1, yy=now.getFullYear();
@@ -1293,6 +1467,21 @@ function importObExpenses(s, txs, links){
      el mismo estado— no hay nada que distinga «repetida al paginar» de «dos bizums iguales», y
      ahí mandan los k del banco: es la función de esta entrega. */
   const firme=function(tx){ const st=String(tx.status||"").trim(); return !st || /book|post/i.test(st); };
+  /* UN APUNTE CON ID Y OTRO IDÉNTICO SIN ID SON EL MISMO CARGO (13/10/2026, decisión del
+     coordinador). El de id va por su camino y no contaba para las ranuras: si llegaba delante,
+     el de sin id entraba también como «primero» y quedaban dos filas con LA MISMA clave. Una
+     sola cabía en la nube, el siguiente pull las fundía (7,50 contados como 15 hasta entonces)
+     y un «no es este recibo» sobre una soltaba las dos; si llegaba detrás, o en otra
+     sincronización, entraba una. Ahora entra UNA desde el principio, la del id: ocupa la ranura
+     1 del grupo y a los de sin id les quedan de la 2 en adelante. Con dos ids iguales y uno sin
+     id sigue siendo una (los de id ya se fundían por clave); con un id y dos sin id, dos. No hay
+     dato de que un banco mande así dos cargos distintos. Solo hace falta mirar el de id que
+     entra AHORA: el que ya está guardado tiene su clave en `keys` y cubre la ranura 1 él solo;
+     el que no pasa los filtros (un abono pendiente) no cuenta. */
+  if(ordenGrupos.length) cands.forEach(function(c){
+    const g=c.tx.id && grupos[(expenseBankOf(c.e)||c.e.ent||"")+"|"+baseKOf(c.e)];
+    if(g) g.conId=1;
+  });
   ordenGrupos.forEach(function(k){
     const g=grupos[k];
     g.miembros.sort(function(a,b){ const ha=huella(a.tx), hb=huella(b.tx); return ha<hb?-1:(ha>hb?1:0); });
@@ -1301,7 +1490,7 @@ function importObExpenses(s, txs, links){
       const pendientes=g.miembros.filter(function(c){ return !firme(c.tx); });
       g.miembros=firmes.concat(pendientes.slice(firmes.length));   // los descartados se quedan sin ranura
     }
-    let n=0, viejas=0;
+    let n=g.conId||0, viejas=0;
     g.miembros.forEach(function(c){
       // Siguiente ranura libre entre 1..k; las cubiertas se saltan sin gastar miembro… pero el
       // total de ranuras es k: pasado k, el miembro sobra (ya lo teníamos).
@@ -1323,12 +1512,16 @@ function importObExpenses(s, txs, links){
     // Lo que antes se tiraba (el cargo de un recibo) no puede gastar el gemelo de otra vía que
     // le tocaría a otro cargo. Sus iguales del mismo día sí llevan ordinal, como cualquiera.
     const gem=e.reciboId?null:gemeloOtraVia(tx, c.saltar);
+    if(gemeloBancoAutomatico(e)) e.gemeloNuevo=true;
     if(gem && gem.id){ e.possibleDup=true; e.possibleDupOf=gem.id; }
     keys[scopedKOf(e)]=1;
     if(tx.id) seen[(tx.ent||"")+"|"+tx.id]=1;
     add.push(e);
   });
-  return add.length? add : null;
+  if(!add.length)return null;
+  const paired=reconcileGemelosAutomaticos(Object.assign({},s,{expenses:add.concat(s.expenses||[])}),s);
+  const added=new Set(add.map(function(e){return e.id;}));
+  return paired.expenses.filter(function(e){return added.has(e.id);});
 }
 
 /* A QUÉ RECIBO PERTENECE UN CARGO cuando casa con varios (12/10/2026). `hits` son los que da el
@@ -1451,7 +1644,7 @@ function admiteMarcaDe(x, f){
    lo sigue teniendo el otro móvil: con el veto fuera y sin la marca, aquí contaría como compra
    y allí no. Es el ÚNICO vínculo a mano que marca; el de un cargo cualquiera deja el gastado
    como estaba (`linkFixedPayment`), que es lo que promete su diálogo. Si el vínculo no llega a
-   guardarse y el recibo sigue sin pagar, el veto se queda. Un PUNTUAL no tiene motor de pago
+   guardarse, el recibo sigue sin pagar y la fila no admite la marca, el veto se queda. Un PUNTUAL no tiene motor de pago
    ni vínculo: deshacer su veto es solo devolverle la marca, y si no la admite no hay nada que
    deshacer. → {state, e} (la fila marcada, para subirla; null si no admite marca) o null si no
    había veto que deshacer. */
@@ -1463,11 +1656,18 @@ function reponerCargoDeRecibo(s, expenseId, fixedId, y, m, today, expected, ahor
   const identidad=fixedPaymentIdentity(expenseBankOf(x), x), claves=reciboNoDe(s, fixedId, reciboNoIdentidad(x), x.id);
   if(!claves.length) return null;
   const marcar=admiteMarcaDe(x, f);
-  if(!fijo && (!marcar || (expected && expected.identity!==identidad))) return null;
+  // El diálogo se contestó sobre OTRO cargo (la fila cambió mientras estaba abierto): no se toca.
+  if(expected && expected.identity!==identidad) return null;
+  if(!fijo && !marcar) return null;
   const libre=Object.assign({}, s, reciboNoPon(s, claves, false, ahora||Date.now()));
   const link=fijo ? linkFixedPayment(libre, expenseId, fixedId, y, m, today, expected) : libre;
-  // Sin el veto el motor puede darlo por pagado él solo con ese cargo: también vale.
-  if(fijo && link===libre && reciboPagadoCon(fixedPaymentState(libre, f, y, m, today))!==identidad) return null;
+  /* Sin el veto el motor puede darlo por pagado él solo con ese cargo: también vale. Y si ni
+     se guarda el vínculo ni el motor lo da por pagado, PERO la fila admite la marca, se deshace
+     igual (13/10/2026): con dos cargos iguales de un recibo fijo el motor no elige ninguno, el
+     vínculo no se guardaba y «Confirmar pago» no hacía nada mientras su diálogo prometía «aquí
+     no suma otra vez». Devolverle la marca es dejarlo como estaba antes del veto, que es lo que
+     se promete; el recibo sigue pendiente, como lo estaba entonces. */
+  if(fijo && link===libre && !marcar && reciboPagadoCon(fixedPaymentState(libre, f, y, m, today))!==identidad) return null;
   const e=marcar ? Object.assign({}, x, { reciboId:fixedId }) : null;
   const con=e ? Object.assign({}, link, { expenses:link.expenses.map(function(r){ return r===x ? e : r; }) }) : link;
   return { state:conSaldoMostrado(s, con), e:e };
@@ -1485,27 +1685,94 @@ function reponerCargoDeRecibo(s, expenseId, fixedId, y, m, today, expected, ahor
    Fuera de un sync eso movía el saldo con el banco quieto (cuenta de gasto diario: 397,60 →
    335,20): se sujeta si había un cargo suyo marcado. → {state, subir} con las filas ya sin
    marca, para reescribir su `source`. */
-function sinCargoDelPlan(s, lista, id){
+function sinCargoDelPlan(s, lista, id, ahora){
   const subir=[], desde=budgetPeriodOf(s).startMs, mes=startOfMonth().getTime();
   const era=(s[lista]||[]).find(function(x){ return x.id===id; });
-  let marcadas=false, delMes=false;
+  if(!era) return { subir:subir, state:s };
+  let delMes=false;
   const expenses=(s.expenses||[]).map(function(e){
     if(!e || e.reciboId!==id) return e;
-    marcadas=true;
     if(dateMs(e.date)>=mes && cargoDeRecibo(e, s)) delMes=true;
     if(dateMs(e.date)<desde) return e;
     const x=Object.assign({}, e); delete x.reciboId;
     subir.push(x);
     return x;
   });
+  // `x`: las filas que pierden la marca, para devolvérsela si se pulsa «Deshacer».
+  const b={ d:desde, n:era.name||"" };
+  if(subir.length) b.x=subir.map(function(e){ return e.id; });
+  const at=Object.assign({}, s.reciboBorradoAt);
+  at[id]=Math.max(ahora||Date.now(), (at[id]||0)+1);
   const out=Object.assign({}, s, { [lista]:(s[lista]||[]).filter(function(x){ return x.id!==id; }) }, subir.length ? { expenses:expenses } : null,
-    marcadas ? { reciboBorrado:Object.assign({}, s.reciboBorrado, { [id]:{ d:desde, n:(era&&era.name)||"" } }) } : null);
+    { reciboBorrado:Object.assign({}, s.reciboBorrado, { [id]:b }), reciboBorradoAt:at });
   return { subir:subir, state:(delMes || subir.length) ? conSaldoMostrado(s, out) : out };
 }
-// Las cuatro puertas de borrado de Plan pasan por aquí: el estado y, después, la nube.
+/* «DESHACER» EL BORRADO DE UN RECIBO LO DEJA COMO ESTABA (13/10/2026). Plan lo devuelve con su
+   MISMO id (`undoLastBill`). Sin esto `reciboBorrado` seguía diciendo «borrado» y el siguiente
+   arranque lo sacaba otra vez del Plan; y, ya antes de unir nada, sus cargos del periodo se
+   quedaban sin marca: el recibo de vuelta en el Plan y el gastado con su cargo dentro (102,40
+   donde eran 40). Se levanta el borrado con su hora —gana a un estado más antiguo que aún lo
+   traiga— y las filas que perdieron la marca al borrarlo la recuperan, aquí y en la nube. Un
+   alta cualquiera (id nuevo, sin borrado que conste) es solo añadirlo. → {state, subir} */
+function conReciboEnPlan(s, lista, item, ahora){
+  const con=Object.assign({}, s, { [lista]:(s[lista]||[]).concat([item]) });
+  const b=item && s.reciboBorrado && s.reciboBorrado[item.id];
+  if(!b) return { subir:[], state:con };
+  const rb=Object.assign({}, s.reciboBorrado); delete rb[item.id];
+  const at=Object.assign({}, s.reciboBorradoAt);
+  at[item.id]=Math.max(ahora||Date.now(), (at[item.id]||0)+1);
+  const subir=[], suyas=b.x||[], mes=startOfMonth().getTime();
+  let delMes=false;
+  const expenses=(s.expenses||[]).map(function(e){
+    if(!e) return e;
+    if(e.reciboId===item.id && dateMs(e.date)>=mes) delMes=true;
+    if(e.reciboId || suyas.indexOf(e.id)<0 || !admiteMarcaDe(e, item)) return e;
+    const x=Object.assign({}, e, { reciboId:item.id });
+    subir.push(x);
+    return x;
+  });
+  const out=Object.assign({}, con, { reciboBorrado:rb, reciboBorradoAt:at }, subir.length ? { expenses:expenses } : null);
+  return { subir:subir, state:(delMes || subir.length) ? conSaldoMostrado(s, out) : out };
+}
+/* EL BORRADO DE UN RECIBO SOBREVIVE A UN ESTADO MÁS ANTIGUO (13/10/2026). El estado viaja entero
+   por «último que escribe», y el del móvil B —días sin abrirse, pero sellado como «más nuevo» por
+   el primer guardado al arrancar— ganaba: el recibo volvía al Plan sin `reciboBorrado`, mientras
+   su cargo del periodo ya estaba sin marca en la nube. Medido: B decía 40 de gastado (su fila
+   seguía marcada y el recibo existía) y A y el widget 102,40. `reciboBorrado` se une con la
+   regla de las lápidas y los vetos (`unionPorHora`, con `reciboBorradoAt`: gana lo último que
+   se dijo, borrar o «Deshacer»; lo que no lleva hora se suma), y un recibo que consta borrado
+   sale del Plan gane el estado que gane; con eso `cargoDeRecibo` da lo mismo en los dos móviles.
+   Todo borrado deja constancia, tuviera o no cargos marcados: sin ella el recibo volvía igual
+   desde el móvil atrasado. No tiene tope: de cada entrada depende que los cargos de meses
+   cerrados sigan sin contar. El saldo pintado se sujeta igual que al borrarlo a mano.
+   → el mismo estado si no hay nada que unir. */
+function recibosBorradosUnion(s, local, nube){
+  const a=(local&&local.reciboBorrado)||{}, b=(nube&&nube.reciboBorrado)||{};
+  const vale=function(o){ return Object.keys(o).filter(function(id){ return o[id] && typeof o[id].d==="number"; }); };
+  const u=unionPorHora(vale(a), local&&local.reciboBorradoAt, vale(b), nube&&nube.reciboBorradoAt);
+  const igual=function(x, y){ const kx=Object.keys(x||{}), ky=Object.keys(y||{}); return kx.length===ky.length && kx.every(function(k){ return x[k]===y[k]; }); };
+  let rb={}, at=u.at;
+  u.lista.forEach(function(id){ rb[id]=a[id]||b[id]; });
+  if(igual(rb, s.reciboBorrado)) rb=s.reciboBorrado;
+  if(igual(at, s.reciboBorradoAt)) at=s.reciboBorradoAt;
+  const con=(rb===s.reciboBorrado && at===s.reciboBorradoAt) ? s : Object.assign({}, s, { reciboBorrado:rb, reciboBorradoAt:at });
+  if(!rb) return con;
+  const fuera=function(x){ return !!(x && rb[x.id]); };
+  if(!(s.fixed||[]).some(fuera) && !(s.oneoffs||[]).some(fuera)) return con;
+  const sin=Object.assign({}, con, { fixed:(s.fixed||[]).filter(function(x){ return !fuera(x); }), oneoffs:(s.oneoffs||[]).filter(function(x){ return !fuera(x); }) });
+  // Con algún cargo suyo marcado, el saldo pintado no puede moverse con el banco quieto.
+  const suelta=(s.expenses||[]).some(function(e){ return e && rb[e.reciboId] && cargoDeRecibo(e, s); });
+  return suelta ? conSaldoMostrado(s, sin) : sin;
+}
+// Las puertas de borrado y de alta de Plan pasan por aquí: el estado y, después, la nube.
 function quitarDelPlan(set, lista, id){
   let subir=[];
   set(function(s){ const r=sinCargoDelPlan(s, lista, id); subir=r.subir; return r.state; });
+  if(cloud.enabled()) subir.forEach(function(e){ cloud.setExpenseRecibo(e).catch(function(){}); });
+}
+function ponerEnPlan(set, lista, item){
+  let subir=[];
+  set(function(s){ const r=conReciboEnPlan(s, lista, item); subir=r.subir; return r.state; });
   if(cloud.enabled()) subir.forEach(function(e){ cloud.setExpenseRecibo(e).catch(function(){}); });
 }
 /* LAS CUOTAS DE TUS DEUDAS, EN «DEUDAS» (4.21.0).
@@ -3314,7 +3581,7 @@ function removeFixedById(set, id){
   quitarDelPlan(set,"fixed",id);
 }
 function addFixedItem(set, item){
-  set(function(s){ return Object.assign({},s,{fixed:(s.fixed||[]).concat([item])}); });
+  ponerEnPlan(set,"fixed",item);
 }
 function patchFlowById(set, id, patch){
   set(function(s){
@@ -3351,7 +3618,7 @@ function removeOneoffById(set, id){
   quitarDelPlan(set,"oneoffs",id);
 }
 function addOneoffItem(set, item){
-  set(function(s){ return Object.assign({},s,{oneoffs:(s.oneoffs||[]).concat([item])}); });
+  ponerEnPlan(set,"oneoffs",item);
 }
 /* En modo sencillo no hay pestaña Deudas: la ficha de cuota SÍ puede escribir día/cuenta/amort. */
 function patchDebtFields(set, id, patch){

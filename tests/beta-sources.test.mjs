@@ -52,10 +52,15 @@ const sourceProd126=sourceAt("33d39cb80764aaf22998f69ac8bbaeffeadf4013");
 const sourceBeta127=sourceAt("b3edefb4fd561fc43e265a7796145a58d1976295");
 // Catálogo128 pasa a histórico en la 129: se lee de la beta 4.26.128 publicada (24d0d463), que sigue en el panel con sus dos tandas.
 const sourceBeta128=sourceAt("24d0d463e0c0055ba000149f07d7fa2fe12d4c9b");
+// Catálogo129 pasa a histórico en la 130: se lee de la beta 4.26.129 publicada (9f7bb3bd), que sigue en el panel con sus tres tandas.
+const sourceBeta129=sourceAt("9f7bb3bd5492e75d0adf5487e06d42dd67ca87f2");
 // La122 añade un método a `cloud` (`setExpenseRecibo`) y los alcances que listan los métodos que
 // leen lo ganan al final de su lista. Las comparaciones con descriptores anteriores lo descuentan;
 // Catálogo122 fija en lista cerrada cuáles son.
 const sinMetodo122=u=>u&&u.members?{...u,members:u.members.filter(m=>m!=="setExpenseRecibo")}:u;
+// La 130 suma `pullState` y `setExpenseDup` a los métodos de `cloud` que leen varios descriptores (el refresco de Gastos mezcla las decisiones de emparejado y repara #dup):
+// al compararse con los anteriores se descuentan de los dos lados.
+const sinPull130=u=>u&&u.members?{...u,members:u.members.filter(m=>m!=="pullState"&&m!=="setExpenseDup")}:u;
 // Integración129: la limpieza de código muerto borró unidades enteras (freqLabel, FREQ_LABEL, FREQ_OPTS,
 // el componente Fijos de motor-bank) y los textos que servían de ancla a tres bloques. Las comparaciones
 // con descriptores anteriores traducen el descriptor viejo a la ancla de hoy (o lo dan por retirado a
@@ -87,7 +92,7 @@ const boot="inc-2709-01-arranque-red";
 const modern=[{v:"4.26.69",tandas:[{id:boot}]}];
 let failed=0;
 const inicioOnly=process.argv.includes("--inicio-v42-only");
-function test(name,fn){ if(inicioOnly&&!name.startsWith("Inicio v4.2 ")&&!name.startsWith("Catálogo129 ")&&!name.startsWith("Catálogo128 ")&&!name.startsWith("Catálogo127 ")&&!name.startsWith("Catálogo126 ")&&!name.startsWith("Retiro126 ")&&!name.startsWith("Catálogo125 ")&&!name.startsWith("Retiro125 ")&&!name.startsWith("Catálogo124 ")&&!name.startsWith("Retiro124 ")&&!name.startsWith("Catálogo123 ")&&!name.startsWith("Catálogo122 ")&&!name.startsWith("Catálogo121 ")&&!name.startsWith("Catálogo120 ")&&!name.startsWith("Catálogo114 ")&&!name.startsWith("Catálogo117 ")&&!name.startsWith("Retiro117 ")&&!name.startsWith("Catálogo118 ")&&!name.startsWith("Splash117 ")&&!name.startsWith("Catálogo119 ")&&!name.startsWith("Retiro119 "))return;try{fn();console.log("  ✓ "+name);}catch(e){failed++;console.error("  ✗ "+name+"\n    "+e.message);} }
+function test(name,fn){ if(inicioOnly&&!name.startsWith("Inicio v4.2 ")&&!name.startsWith("Retiro130 ")&&!name.startsWith("Catálogo130 ")&&!name.startsWith("Catálogo129 ")&&!name.startsWith("Catálogo128 ")&&!name.startsWith("Catálogo127 ")&&!name.startsWith("Catálogo126 ")&&!name.startsWith("Retiro126 ")&&!name.startsWith("Catálogo125 ")&&!name.startsWith("Retiro125 ")&&!name.startsWith("Catálogo124 ")&&!name.startsWith("Retiro124 ")&&!name.startsWith("Catálogo123 ")&&!name.startsWith("Catálogo122 ")&&!name.startsWith("Catálogo121 ")&&!name.startsWith("Catálogo120 ")&&!name.startsWith("Catálogo114 ")&&!name.startsWith("Catálogo117 ")&&!name.startsWith("Retiro117 ")&&!name.startsWith("Catálogo118 ")&&!name.startsWith("Splash117 ")&&!name.startsWith("Catálogo119 ")&&!name.startsWith("Retiro119 "))return;try{fn();console.log("  ✓ "+name);}catch(e){failed++;console.error("  ✗ "+name+"\n    "+e.message);} }
 console.log("beta-sources");
 
 // La rayita comparte controlador y geometría con la barra: una aprobación de CSS aislada no
@@ -176,8 +181,8 @@ test("Inicio v4.2 cubre flujos, ciclo, renderer, llamada, animación, textos, CS
   // La base es la integración120 (apuntes iguales de Trade Republic): Inicio no puede retirar su alcance ni heredar su revisión.
   const integrated=JSON.parse(source120("scripts/beta-sources.json"));
   // Detrás de Inicio sólo ha entrado el alcance de la122 (el cargo de recibo en Gastos).
-  assert.deepEqual(Object.keys(scopes),Object.keys(integrated).concat(id,"recibo-cargo-en-gastos","plan-scroll-lento","inicio-tarjeta-ciclo-limpia","bancos-reconexion-revoca","inicio-mes-pasado-mismo-dia","limpieza-ajustes-perfil"),"Inicio y las altas de la122, la124, la126, la127, la128 y la129, sin retirar historia120");
-  for(const [key,value] of Object.entries(integrated))if(key!=="inicio-grafica-vuelve"){assert.deepEqual(scopes[key].native,value.native);assert.deepEqual(scopes[key].edge,value.edge);for(const part of (value.web||[]).map(limpieza129).filter(Boolean))assert.ok(scopes[key].web.some(s=>JSON.stringify(sinMetodo122(s))===JSON.stringify(part)),key+": no recortar descriptor ajeno120");}
+  assert.deepEqual(Object.keys(scopes),Object.keys(integrated).concat(id,"recibo-cargo-en-gastos","plan-scroll-lento","inicio-tarjeta-ciclo-limpia","bancos-reconexion-revoca","inicio-mes-pasado-mismo-dia","limpieza-ajustes-perfil","tr-empareja-sin-preguntar"),"Inicio y las altas de la122, la124, la126, la127, la128, la129 y la130, sin retirar historia120");
+  for(const [key,value] of Object.entries(integrated))if(key!=="inicio-grafica-vuelve"){assert.deepEqual(scopes[key].native,value.native);assert.deepEqual(scopes[key].edge,value.edge);for(const part of (value.web||[]).map(limpieza129).filter(Boolean))assert.ok(scopes[key].web.some(s=>JSON.stringify(sinMetodo122(s))===JSON.stringify(part)||JSON.stringify(sinPull130(sinMetodo122(s)))===JSON.stringify(sinPull130(sinMetodo122(part)))),key+": no recortar descriptor ajeno120");}
   assert.equal(scope.unidades,true);
   for(const key of ["historial","auditoria","codigosCompatibles","compatibilidadGit","compatibilidadSha"])
     assert.equal(scope[key],undefined,"no hereda identidad anterior: "+key);
@@ -2644,7 +2649,7 @@ const expected129={"v":"4.26.129","d":"2026-10-14","t":{"es":"Ajustes más limpi
 test("Catálogo129 añade la tanda de la limpieza de Ajustes y perfil sobre la beta128, con alcance propio, y declara cada huella que mueve",()=>{
   const tanda="limpieza-ajustes-perfil",inicio="inicio-mes-pasado-mismo-dia",banco="bancos-reconexion-revoca";
   const integrated=JSON.parse(sourceBeta128("scripts/beta-sources.json")),before=JSON.parse(sourceBeta128("src/data/release-notes.json"));
-  const source=f=>read(f).replace(/\r\n/g,"\n"),old=f=>sourceBeta128(f).replace(/\r\n/g,"\n");
+  const source=f=>sourceBeta129(f).replace(/\r\n/g,"\n"),old=f=>sourceBeta128(f).replace(/\r\n/g,"\n");
   assert.deepEqual(before.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id])),[["4.26.128",inicio],["4.26.127",banco]],"la beta128 deja las tandas de Inicio y de bancos en el panel");
   const expectedNotes=[expected129,...before];
   const notes=JSON.parse(source("src/data/release-notes.json"));
@@ -2756,6 +2761,198 @@ test("Catálogo129 añade la tanda de la limpieza de Ajustes y perfil sobre la b
   for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica","native"])assert.equal(group[key],undefined,"identidad nueva sin "+key);
 });
 
+
+const expected130={"v":"4.26.130","d":"2026-10-14","t":{"es":"Trade Republic: los repetidos se juntan solos","en":"Trade Republic: duplicates now match on their own","ca":"Trade Republic: els repetits s’ajunten sols"},"items":{"es":["Trade Republic ya no te pregunta si un movimiento está repetido: cuando la compra llega por el aviso y por el banco, la app las junta sola y cuenta una. Si alguna vez junta dos que eran distintas, puedes separarlas desde el propio movimiento."],"en":["Trade Republic no longer asks whether a transaction is a duplicate: when a purchase arrives both as a notification and from the bank, the app matches them on its own and counts one. If it ever matches two that were different, you can separate them from the transaction itself."],"ca":["Trade Republic ja no et pregunta si un moviment està repetit: quan la compra arriba per l’avís i pel banc, l’app les ajunta sola i en compta una. Si mai n’ajunta dues que eren diferents, les pots separar des del propi moviment."]},"tandas":[{"id":"tr-empareja-sin-preguntar","t":{"es":"Trade Republic: los repetidos se juntan solos","en":"Trade Republic: duplicates now match on their own","ca":"Trade Republic: els repetits s’ajunten sols"},"items":{"es":["1. Abre Gastos: las compras de Trade Republic ya no salen como \"Movimiento · tócalo: ¿mismo o distinto?\"; ves una sola por compra, con su comercio.","2. Toca una de esas compras: sale \"Aviso y apunte del banco unidos\" y un botón \"No es el mismo: separar\"; no lo uses salvo que de verdad fueran dos compras distintas.","3. El total del ciclo en Inicio no ha subido de golpe: cuadra con lo que has gastado."],"en":["1. Open Spending: Trade Republic purchases no longer show as \"Movement · tap: same or different?\"; you see a single one per purchase, with its merchant.","2. Tap one of those purchases: it says \"Notification and bank entry matched\" and has a \"Not the same: separate\" button; don't use it unless they really were two different purchases.","3. The cycle total on Home hasn't jumped up: it matches what you have spent."],"ca":["1. Obre Despeses: les compres de Trade Republic ja no surten com \"Moviment · toca'l: mateix o diferent?\"; en veus una sola per compra, amb el seu comerç.","2. Toca una d’aquestes compres: surt \"Avís i apunt del banc units\" i un botó \"No és el mateix: separar\"; no l’usis si de veritat no eren dues compres diferents.","3. El total del cicle a Inici no ha pujat de cop: quadra amb el que has gastat."]}}]};
+// 4.26.130 (14/10/2026): Trade Republic empareja solo el aviso y el cargo del banco, sin preguntar y de forma reversible
+// (PR 230, cabeza bd2b20f3, nacida de 33d39cb8). Tanda NUEVA solo web, encima de la beta 4.26.129 publicada (9f7bb3bd),
+// cuyas tres tandas (limpieza, Inicio y bancos) SIGUEN en el panel: cuatro tandas.
+test("Catálogo130 añade la tanda del emparejado automático de Trade Republic sobre la beta129, con alcance propio, y declara cada huella que mueve",()=>{
+  const tanda="tr-empareja-sin-preguntar",limpieza="limpieza-ajustes-perfil",inicio="inicio-mes-pasado-mismo-dia",banco="bancos-reconexion-revoca";
+  const integrated=JSON.parse(sourceBeta129("scripts/beta-sources.json")),before=JSON.parse(sourceBeta129("src/data/release-notes.json"));
+  const source=f=>read(f).replace(/\r\n/g,"\n"),old=f=>sourceBeta129(f).replace(/\r\n/g,"\n");
+  assert.deepEqual(before.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id])),[["4.26.129",limpieza],["4.26.128",inicio],["4.26.127",banco]],"la beta129 deja las tandas de la limpieza, de Inicio y de bancos en el panel");
+  // Inicio (128) y bancos (127) las aprobó el móvil el 14/10: salen del panel con `tandas:[]` y conservan nota, descriptor e historial (Retiro130).
+  const expectedNotes=[expected130,before[0],{...before[1],tandas:[]},{...before[2],tandas:[]},...before.slice(3)];
+  const notes=JSON.parse(source("src/data/release-notes.json"));
+  assert.deepEqual(notes,expectedNotes,"la nota 130 literal delante, la limpieza de la 129 intacta y las de Inicio y bancos retiradas con tandas:[]");
+  assert.deepEqual(notes.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id,g.apk||0])),[["4.26.130",tanda,0],["4.26.129",limpieza,0]],"el panel enseña dos tandas, ambas sin APK");
+  assert.equal(notes.length,before.length+1,"ninguna nota se borra");
+  assert.deepEqual(Object.keys(notes[0].tandas[0]),["id","t","items"],"identidad nueva, sin alias ni revisión heredada");
+  for(const lang of ["es","en","ca"]){
+    assert.equal(notes[0].items[lang].length,1,lang+": un punto familiar");
+    const steps=notes[0].tandas[0].items[lang];assert.equal(steps.length,3,lang+": tres pasos");
+    steps.forEach((step,i)=>assert.ok(step.startsWith((i+1)+". "),lang+": paso numerado "+(i+1)));
+    for(const text of steps)assert.equal(/borra|quita este|delete|remove|esborra|treu aquest|mañana|tomorrow|demà/i.test(text),false,lang+": ningún paso borra nada ni espera a otro día");
+    // Sin cocina en lo que lee la familia (AGENTS §4).
+    for(const text of [notes[0].t[lang],...notes[0].items[lang]])assert.equal(/beta|tanda|panel|APK|ordinal|acuse|cursor|token|Edge|servidor|Open Banking|\d+\.\d+\.\d+/i.test(text),false,lang+": sin jerga: "+text);
+  }
+  // Los rótulos que cita el guion son el texto real de la app, en su idioma.
+  const literal={es:[['"Aviso y apunte del banco unidos"','g_auto_paired:"Aviso y apunte del banco unidos"'],['"No es el mismo: separar"','g_auto_separate:"No es el mismo: separar"'],['tócalo: ¿mismo o distinto?','g_skip_posible:"tócalo: ¿mismo o distinto?"']],
+    en:[['"Notification and bank entry matched"','g_auto_paired:"Notification and bank entry matched"'],['"Not the same: separate"','g_auto_separate:"Not the same: separate"'],['tap: same or different?','g_skip_posible:"tap: same or different?"']],
+    ca:[['"Avís i apunt del banc units"','g_auto_paired:"Avís i apunt del banc units"'],['"No és el mateix: separar"','g_auto_separate:"No és el mateix: separar"'],["toca'l: mateix o diferent?",'g_skip_posible:"toca\'l: mateix o diferent?"']]};
+  const textos=source("src/modules/01-i18n.js");
+  for(const lang of ["es","en","ca"])for(const [rotulo,fuente] of literal[lang]){
+    assert.ok(notes[0].tandas[0].items[lang].join(" ").includes(rotulo),lang+": el guion cita "+rotulo);
+    assert.ok(textos.includes(fuente),lang+": "+rotulo+" es el texto de la app ("+fuente+")");
+  }
+  const verifyNotes=list=>assert.deepEqual(list,expectedNotes);
+  const twice=structuredClone(notes);twice[0].tandas.push(structuredClone(twice[0].tandas[0]));assert.throws(()=>verifyNotes(twice),assert.AssertionError,"no duplicar la tanda");
+  const inherited=structuredClone(notes);inherited[0].tandas[0].desde=["4.26.129/"+tanda];assert.throws(()=>verifyNotes(inherited),assert.AssertionError,"no heredar revisión");
+  const withApk=structuredClone(notes);withApk[0].tandas[0].apk=55;assert.throws(()=>verifyNotes(withApk),assert.AssertionError,"no hay APK que probar");
+  const sinLimpieza=structuredClone(notes);sinLimpieza[1].tandas=[];assert.throws(()=>verifyNotes(sinLimpieza),assert.AssertionError,"la tanda de la limpieza de la 129 sigue en el panel");
+  const conInicio=structuredClone(notes);conInicio[2].tandas.push(before[1].tandas[0]);assert.throws(()=>verifyNotes(conInicio),assert.AssertionError,"la tanda de Inicio, aprobada, no vuelve al panel");
+  const conBancos=structuredClone(notes);conBancos[3].tandas.push(before[2].tandas[0]);assert.throws(()=>verifyNotes(conBancos),assert.AssertionError,"la tanda de bancos, aprobada, no vuelve al panel");
+  // Un único descriptor nuevo, al final. Los demás son los de la beta129 con los crecimientos que exige el guardián de cierre (ver `crece`)
+  // y los métodos de `cloud` que esos lectores llaman (`pullState`: el refresco de Gastos mezcla las decisiones de emparejado; `setExpenseDup`: repara #dup en la nube).
+  const scopes=JSON.parse(source("scripts/beta-sources.json")),{[tanda]:added,...rest}=scopes;
+  assert.equal(integrated[tanda],undefined,"identidad que no existía");assert.equal(Object.keys(scopes).at(-1),tanda);
+  // Cada descriptor que crece lo hace con unidades que ya existen en la fuente: "8:nombre" es una función de 08-motor-bank, "0:" de 00-core, "1:" de 01-i18n
+  // y "@nombre" un dato. Son las dependencias que el guardián de cierre ("cada llamada de lógica mueve el digest") echa en falta tras la PR: el `set` de App
+  // llama a `reconcileGemelosAutomaticos`, `saveEdit`/`delExpense` de Gastos a las lápidas y a `gemeloAutomaticoDe`, el refresco a `lapidasUnion`...
+  const crece=
+{
+    "inc-0710-auth-disposal": "8:reconcileGemelosAutomaticos,8:gemeloMismosCampos,8:gemeloDatos,0:expenseBankOf,8:gemeloCompatible,0:gemeloDe,0:pushGemelos,1:expenseDeletedSet,0:expenseIsTombstoned,0:gemeloAvisoKey,8:gemeloBancoAutomatico,0:keyOfExpense,0:isManualExpenseSource,8:gemeloAvisoAutomatico,8:sinComercioReal,1:dateMs,8:gemeloAsignar,8:madridYmdParts,0:partirEntDeuda,0:keyOfExpenseLegacy,0:esFilaDeBanco,0:obOrdinalSufijo,1:_pdMs,0:obOrdinalOf,8:@gemeloCache,8:@DUP_DIAS_MS,8:@gemeloDatosCache,8:@gemeloDiasCache,0:@GEMELOS_MAX,1:@expenseDeletedSets,8:@_mcMadridYmdFmt,1:@_pdCache",
+    "inicio-patrimonio-flujos": "8:reconcileGemelosAutomaticos,8:gemeloMismosCampos,8:gemeloDatos,8:gemeloCompatible,0:gemeloDe,0:pushGemelos,0:gemeloAvisoKey,8:gemeloBancoAutomatico,8:gemeloAvisoAutomatico,8:sinComercioReal,8:gemeloAsignar,0:esFilaDeBanco,8:@gemeloCache,8:@DUP_DIAS_MS,8:@gemeloDatosCache,8:@gemeloDiasCache,0:@GEMELOS_MAX",
+    "inc-3009-01-cargos": "8:gemeloAutomaticoDe,0:lapidasAlEditar,0:subeEdicionesDeGasto,8:reconcileGemelosAutomaticos,0:gemeloAvisoKey,0:gemeloDe,0:lapidaPon,0:lapidaLevanta,8:gemeloMismosCampos,8:gemeloDatos,8:gemeloCompatible,0:pushGemelos,8:gemeloBancoAutomatico,8:gemeloAvisoAutomatico,8:sinComercioReal,8:gemeloAsignar,0:lapidasTope,8:madridYmdParts,0:esFilaDeBanco,0:@GASTO_ORIGENES,8:@gemeloCache,8:@gemeloDatosCache,8:@gemeloDiasCache,0:@GEMELOS_MAX,0:@DELETED_AT_MAX,8:@_mcMadridYmdFmt",
+    "fin05-widget-reentrada": "0:fusionarGemelos,8:reconcileGemelosAutomaticos,8:gemelosCambiosNube,0:pushGemelos,8:gemeloMismosCampos,8:gemeloDatos,8:gemeloCompatible,0:gemeloDe,0:gemeloAvisoKey,8:gemeloBancoAutomatico,8:gemeloAvisoAutomatico,8:gemeloAsignar,8:madridYmdParts,0:@GASTO_ORIGENES,8:@gemeloCache,0:@GEMELOS_MAX,8:@gemeloDatosCache,8:@gemeloDiasCache,8:@_mcMadridYmdFmt",
+    "fin05-pago-cerrada": "0:fusionarGemelos,8:reconcileGemelosAutomaticos,8:gemelosCambiosNube,0:pushGemelos,8:gemeloMismosCampos,8:gemeloDatos,8:gemeloCompatible,0:gemeloDe,0:gemeloAvisoKey,8:gemeloBancoAutomatico,8:gemeloAvisoAutomatico,8:gemeloAsignar,8:madridYmdParts,0:@GASTO_ORIGENES,8:@gemeloCache,0:@GEMELOS_MAX,8:@gemeloDatosCache,8:@gemeloDiasCache,8:@_mcMadridYmdFmt",
+    "tr-descripcion-clasificacion": "0:esFilaDeBanco,8:gemeloBancoAutomatico,8:reconcileGemelosAutomaticos,8:gemeloMismosCampos,8:gemeloDatos,8:gemeloCompatible,0:gemeloDe,0:pushGemelos,8:gemeloAvisoAutomatico,8:gemeloAsignar,8:@gemeloCache,8:@gemeloDatosCache,8:@gemeloDiasCache,0:@GEMELOS_MAX",
+    "widget-banco": "8:reconcileGemelosAutomaticos,8:gemeloMismosCampos,8:gemeloDatos,8:gemeloCompatible,0:gemeloDe,0:pushGemelos,0:gemeloAvisoKey,8:gemeloBancoAutomatico,8:gemeloAvisoAutomatico,8:sinComercioReal,8:gemeloAsignar,8:madridYmdParts,8:@gemeloCache,8:@gemeloDatosCache,8:@gemeloDiasCache,0:@GEMELOS_MAX,8:@_mcMadridYmdFmt",
+    "widget-app-cerrada": "0:fusionarGemelos,8:reconcileGemelosAutomaticos,8:gemelosCambiosNube,0:pushGemelos,8:gemeloMismosCampos,8:gemeloDatos,8:gemeloCompatible,0:gemeloDe,0:gemeloAvisoKey,8:gemeloBancoAutomatico,8:gemeloAvisoAutomatico,8:gemeloAsignar,8:madridYmdParts,0:@GASTO_ORIGENES,8:@gemeloCache,0:@GEMELOS_MAX,8:@gemeloDatosCache,8:@gemeloDiasCache,8:@_mcMadridYmdFmt",
+    "inc-2809-02-ayuda-ciclo": "8:reconcileGemelosAutomaticos,8:gemeloMismosCampos,8:gemeloDatos,0:expenseBankOf,8:gemeloCompatible,0:gemeloDe,0:pushGemelos,1:expenseDeletedSet,0:expenseIsTombstoned,0:gemeloAvisoKey,8:gemeloBancoAutomatico,0:keyOfExpense,0:isManualExpenseSource,8:gemeloAvisoAutomatico,8:sinComercioReal,1:dateMs,8:gemeloAsignar,8:madridYmdParts,0:partirEntDeuda,0:keyOfExpenseLegacy,0:esFilaDeBanco,0:obOrdinalSufijo,1:_pdMs,0:obOrdinalOf,8:@gemeloCache,8:@DUP_DIAS_MS,8:@gemeloDatosCache,8:@gemeloDiasCache,0:@GEMELOS_MAX,1:@expenseDeletedSets,8:@_mcMadridYmdFmt,1:@_pdCache",
+    "inc-2909-02-inicio-natural": "8:reconcileGemelosAutomaticos,8:gemeloMismosCampos,8:gemeloDatos,8:gemeloCompatible,0:gemeloDe,0:pushGemelos,0:gemeloAvisoKey,8:gemeloBancoAutomatico,8:gemeloAvisoAutomatico,8:sinComercioReal,8:gemeloAsignar,8:@gemeloCache,8:@gemeloDatosCache,8:@gemeloDiasCache,0:@GEMELOS_MAX",
+    "inc-2709-10-perfil": "8:reconcileGemelosAutomaticos,8:gemeloMismosCampos,8:gemeloDatos,0:expenseBankOf,8:gemeloCompatible,0:gemeloDe,0:pushGemelos,1:expenseDeletedSet,0:expenseIsTombstoned,0:gemeloAvisoKey,8:gemeloBancoAutomatico,0:keyOfExpense,0:isManualExpenseSource,8:gemeloAvisoAutomatico,8:sinComercioReal,1:dateMs,8:gemeloAsignar,8:madridYmdParts,0:partirEntDeuda,0:keyOfExpenseLegacy,0:esFilaDeBanco,0:obOrdinalSufijo,1:_pdMs,0:obOrdinalOf,8:@gemeloCache,8:@DUP_DIAS_MS,8:@gemeloDatosCache,8:@gemeloDiasCache,0:@GEMELOS_MAX,1:@expenseDeletedSets,8:@_mcMadridYmdFmt,1:@_pdCache",
+    "inc-3009-nomina-anticipada": "8:gemeloBancoAutomatico,8:reconcileGemelosAutomaticos,0:lapidasUnion,8:recibosBorradosUnion,8:gemelosCambiosNube,0:unionPorHora,8:gemeloMismosCampos,8:gemeloDatos,8:gemeloCompatible,8:gemeloAvisoAutomatico,8:gemeloAsignar,0:lapidasTope,8:conSaldoMostrado,0:@GASTO_ORIGENES,8:@gemeloCache,8:@gemeloDatosCache,8:@gemeloDiasCache,0:@DELETED_AT_MAX",
+    "inc-2909-03-retirada": "0:fusionarGemelos,8:reconcileGemelosAutomaticos,8:gemelosCambiosNube,0:pushGemelos,8:gemeloMismosCampos,8:gemeloDatos,8:gemeloCompatible,0:gemeloDe,0:gemeloAvisoKey,8:gemeloBancoAutomatico,8:gemeloAvisoAutomatico,8:gemeloAsignar,8:madridYmdParts,0:@GASTO_ORIGENES,8:@gemeloCache,0:@GEMELOS_MAX,8:@gemeloDatosCache,8:@gemeloDiasCache,8:@_mcMadridYmdFmt",
+    "inc-2909-01-widget-periodo": "0:fusionarGemelos,8:reconcileGemelosAutomaticos,8:gemelosCambiosNube,0:pushGemelos,8:gemeloMismosCampos,8:gemeloDatos,8:gemeloCompatible,0:gemeloDe,0:gemeloAvisoKey,8:gemeloBancoAutomatico,8:gemeloAvisoAutomatico,8:gemeloAsignar,8:madridYmdParts,0:@GASTO_ORIGENES,8:@gemeloCache,0:@GEMELOS_MAX,8:@gemeloDatosCache,8:@gemeloDiasCache,8:@_mcMadridYmdFmt",
+    "inc-0210-03-gastos-periodo": "8:gemeloAutomaticoDe,0:lapidaPon,0:lapidaLevanta,8:unirGemeloAutomatico,8:separarGemeloAutomatico,8:gemelosCambiosNube,0:subeEdicionesDeGasto,0:lapidasAlEditar,8:reconcileGemelosAutomaticos,0:lapidasTope,8:gemeloBancoAutomatico,8:gemeloAvisoAutomatico,8:gemeloCompatible,8:gemeloMismosCampos,8:gemeloDatos,8:gemeloAsignar,0:esFilaDeBanco,0:@GASTO_ORIGENES,8:@gemeloCache,0:@DELETED_AT_MAX,8:@gemeloDatosCache,8:@gemeloDiasCache",
+    "feature-0210-01-gasolina-taxi": "8:reconcileGemelosAutomaticos,8:gemeloMismosCampos,8:gemeloDatos,8:gemeloCompatible,0:gemeloDe,0:pushGemelos,0:gemeloAvisoKey,8:gemeloBancoAutomatico,8:gemeloAvisoAutomatico,8:sinComercioReal,8:gemeloAsignar,8:madridYmdParts,0:esFilaDeBanco,0:@GASTO_ORIGENES,8:@gemeloCache,8:@DUP_DIAS_MS,8:@gemeloDatosCache,8:@gemeloDiasCache,0:@GEMELOS_MAX,8:@_mcMadridYmdFmt",
+    "inc-0210-02-categoria-elegida": "0:fusionarGemelos,8:reconcileGemelosAutomaticos,8:gemelosCambiosNube,0:pushGemelos,8:gemeloMismosCampos,8:gemeloDatos,8:gemeloCompatible,0:gemeloDe,1:expenseDeletedSet,0:expenseIsTombstoned,0:gemeloAvisoKey,8:gemeloBancoAutomatico,8:gemeloAvisoAutomatico,8:gemeloAsignar,8:madridYmdParts,8:@gemeloCache,8:@DUP_DIAS_MS,0:@GEMELOS_MAX,8:@gemeloDatosCache,8:@gemeloDiasCache,1:@expenseDeletedSets,8:@_mcMadridYmdFmt",
+    "inc-0310-01-meta-regla": "8:reconcileGemelosAutomaticos,8:gemeloMismosCampos,8:gemeloDatos,8:gemeloCompatible,0:gemeloDe,0:pushGemelos,0:gemeloAvisoKey,8:gemeloBancoAutomatico,8:gemeloAvisoAutomatico,8:sinComercioReal,8:gemeloAsignar,0:esFilaDeBanco,8:@gemeloCache,8:@DUP_DIAS_MS,8:@gemeloDatosCache,8:@gemeloDiasCache,0:@GEMELOS_MAX",
+    "feature-0310-01-movilidad": "8:gemeloAutomaticoDe,0:lapidaPon,0:lapidaLevanta,8:unirGemeloAutomatico,8:separarGemeloAutomatico,8:gemelosCambiosNube,0:subeEdicionesDeGasto,0:lapidasAlEditar,8:gemeloSeparadoDe,0:fusionarGemelos,8:reconcileGemelosAutomaticos,0:lapidasTope,8:gemeloBancoAutomatico,8:gemeloAvisoAutomatico,8:gemeloCompatible,8:gemeloMismosCampos,8:gemeloDatos,8:gemeloAsignar,0:@GASTO_ORIGENES,8:@gemeloCache,0:@DELETED_AT_MAX,8:@gemeloDatosCache,8:@gemeloDiasCache",
+    "inc-0310-broker-resultados": "8:reconcileGemelosAutomaticos,8:gemeloMismosCampos,8:gemeloDatos,0:expenseBankOf,8:gemeloCompatible,0:gemeloDe,0:pushGemelos,1:expenseDeletedSet,0:expenseIsTombstoned,0:gemeloAvisoKey,8:gemeloBancoAutomatico,0:keyOfExpense,0:isManualExpenseSource,8:gemeloAvisoAutomatico,8:sinComercioReal,1:dateMs,8:gemeloAsignar,8:madridYmdParts,0:partirEntDeuda,0:keyOfExpenseLegacy,0:esFilaDeBanco,0:obOrdinalSufijo,1:_pdMs,0:obOrdinalOf,8:@gemeloCache,8:@DUP_DIAS_MS,8:@gemeloDatosCache,8:@gemeloDiasCache,0:@GEMELOS_MAX,1:@expenseDeletedSets,8:@_mcMadridYmdFmt,1:@_pdCache",
+    "inc-0310-gastos-sin-limite": "8:gemeloAutomaticoDe,0:lapidaPon,0:lapidaLevanta,8:unirGemeloAutomatico,8:separarGemeloAutomatico,8:gemelosCambiosNube,0:subeEdicionesDeGasto,0:lapidasAlEditar,8:reconcileGemelosAutomaticos,0:lapidasTope,8:gemeloBancoAutomatico,8:gemeloAvisoAutomatico,8:gemeloCompatible,8:gemeloMismosCampos,8:gemeloDatos,8:gemeloAsignar,0:esFilaDeBanco,0:@GASTO_ORIGENES,8:@gemeloCache,0:@DELETED_AT_MAX,8:@gemeloDatosCache,8:@gemeloDiasCache",
+    "inc-0710-gastos-mes-madrid": "8:gemeloAutomaticoDe,0:lapidaPon,0:lapidaLevanta,8:unirGemeloAutomatico,8:separarGemeloAutomatico,8:gemelosCambiosNube,0:subeEdicionesDeGasto,0:lapidasAlEditar,8:reconcileGemelosAutomaticos,0:lapidasTope,8:gemeloBancoAutomatico,8:gemeloAvisoAutomatico,8:gemeloCompatible,8:gemeloMismosCampos,8:gemeloDatos,8:gemeloAsignar,0:esFilaDeBanco,0:@GASTO_ORIGENES,8:@gemeloCache,0:@DELETED_AT_MAX,8:@gemeloDatosCache,8:@gemeloDiasCache",
+    "inc-0810-metas-editar-regla": "8:reconcileGemelosAutomaticos,8:gemeloMismosCampos,8:gemeloDatos,8:gemeloCompatible,0:gemeloDe,0:pushGemelos,0:expenseIsTombstoned,0:gemeloAvisoKey,8:gemeloBancoAutomatico,8:gemeloAvisoAutomatico,8:sinComercioReal,8:gemeloAsignar,0:esFilaDeBanco,0:@GASTO_ORIGENES,8:@gemeloCache,8:@DUP_DIAS_MS,8:@gemeloDatosCache,8:@gemeloDiasCache,0:@GEMELOS_MAX",
+    "bienes-completo": "8:reconcileGemelosAutomaticos,8:gemeloMismosCampos,8:gemeloDatos,0:expenseBankOf,8:gemeloCompatible,0:gemeloDe,0:pushGemelos,1:expenseDeletedSet,0:expenseIsTombstoned,0:gemeloAvisoKey,8:gemeloBancoAutomatico,0:keyOfExpense,0:isManualExpenseSource,8:gemeloAvisoAutomatico,8:sinComercioReal,1:dateMs,8:gemeloAsignar,0:partirEntDeuda,0:keyOfExpenseLegacy,0:esFilaDeBanco,0:obOrdinalSufijo,1:_pdMs,0:obOrdinalOf,8:@gemeloCache,8:@DUP_DIAS_MS,8:@gemeloDatosCache,8:@gemeloDiasCache,0:@GEMELOS_MAX,1:@expenseDeletedSets,1:@_pdCache",
+    "widget-pago-app-cerrada": "0:fusionarGemelos,8:reconcileGemelosAutomaticos,8:gemelosCambiosNube,0:pushGemelos,8:gemeloMismosCampos,8:gemeloDatos,8:gemeloCompatible,0:gemeloDe,0:gemeloAvisoKey,8:gemeloBancoAutomatico,8:gemeloAvisoAutomatico,8:gemeloAsignar,8:madridYmdParts,0:@GASTO_ORIGENES,8:@gemeloCache,0:@GEMELOS_MAX,8:@gemeloDatosCache,8:@gemeloDiasCache,8:@_mcMadridYmdFmt",
+    "bancos-sin-hueco": "0:esFilaDeBanco,8:gemeloBancoAutomatico,8:reconcileGemelosAutomaticos,8:gemeloMismosCampos,8:gemeloDatos,8:gemeloCompatible,8:gemeloAvisoAutomatico,8:gemeloAsignar,0:@GASTO_ORIGENES,8:@gemeloCache,8:@gemeloDatosCache,8:@gemeloDiasCache",
+    "widget-ciclo-puente": "0:fusionarGemelos,8:reconcileGemelosAutomaticos,8:gemelosCambiosNube,0:pushGemelos,8:gemeloMismosCampos,8:gemeloDatos,8:gemeloCompatible,0:gemeloDe,0:gemeloAvisoKey,8:gemeloBancoAutomatico,8:gemeloAvisoAutomatico,8:gemeloAsignar,8:madridYmdParts,0:@GASTO_ORIGENES,8:@gemeloCache,0:@GEMELOS_MAX,8:@gemeloDatosCache,8:@gemeloDiasCache,8:@_mcMadridYmdFmt",
+    "recibos-cargo-unico": "8:gemeloAutomaticoDe,0:lapidasAlEditar,0:subeEdicionesDeGasto,8:reconcileGemelosAutomaticos,0:gemeloAvisoKey,0:gemeloDe,0:lapidaPon,0:lapidaLevanta,8:gemeloMismosCampos,8:gemeloDatos,8:gemeloCompatible,0:pushGemelos,8:gemeloBancoAutomatico,8:gemeloAvisoAutomatico,8:sinComercioReal,8:gemeloAsignar,0:lapidasTope,8:madridYmdParts,0:esFilaDeBanco,0:@GASTO_ORIGENES,8:@gemeloCache,8:@gemeloDatosCache,8:@gemeloDiasCache,0:@GEMELOS_MAX,0:@DELETED_AT_MAX,8:@_mcMadridYmdFmt",
+    "bancos-acuse-reconexion": "0:esFilaDeBanco,8:gemeloBancoAutomatico,8:reconcileGemelosAutomaticos,8:gemeloMismosCampos,8:gemeloDatos,8:gemeloCompatible,8:gemeloAvisoAutomatico,8:gemeloAsignar,0:@GASTO_ORIGENES,8:@gemeloCache,8:@gemeloDatosCache,8:@gemeloDiasCache",
+    "tr-iguales-ordinal": "8:gemeloBancoAutomatico,8:reconcileGemelosAutomaticos,8:gemeloAutomaticoDe,0:lapidaPon,8:gemelosCambiosNube,0:lapidasUnion,8:recibosBorradosUnion,0:unionPorHora,8:gemeloMismosCampos,8:gemeloDatos,8:gemeloCompatible,8:gemeloAvisoAutomatico,8:gemeloAsignar,0:lapidasTope,8:conSaldoMostrado,0:@GASTO_ORIGENES,8:@gemeloCache,8:@gemeloDatosCache,8:@gemeloDiasCache,0:@DELETED_AT_MAX",
+    "recibo-cargo-en-gastos": "0:unionPorHora,8:gemeloBancoAutomatico,8:reconcileGemelosAutomaticos,8:gemeloAutomaticoDe,0:lapidaPon,0:lapidaLevanta,8:unirGemeloAutomatico,8:separarGemeloAutomatico,8:gemelosCambiosNube,0:subeEdicionesDeGasto,0:lapidasAlEditar,8:gemeloSeparadoDe,0:lapidasUnion,8:recibosBorradosUnion,8:gemeloMismosCampos,8:gemeloDatos,8:gemeloCompatible,8:gemeloAvisoAutomatico,8:gemeloAsignar,0:lapidasTope,0:@GASTO_ORIGENES,8:@gemeloCache,8:@gemeloDatosCache,8:@gemeloDiasCache,0:@DELETED_AT_MAX",
+    "inicio-mes-pasado-mismo-dia": "8:reconcileGemelosAutomaticos,8:gemeloMismosCampos,8:gemeloDatos,8:gemeloCompatible,0:gemeloDe,0:pushGemelos,0:gemeloAvisoKey,8:gemeloBancoAutomatico,8:gemeloAvisoAutomatico,8:sinComercioReal,8:gemeloAsignar,0:esFilaDeBanco,8:@gemeloCache,8:@DUP_DIAS_MS,8:@gemeloDatosCache,8:@gemeloDiasCache,0:@GEMELOS_MAX",
+    "limpieza-ajustes-perfil": "8:reconcileGemelosAutomaticos,8:gemeloMismosCampos,8:gemeloDatos,8:gemeloCompatible,0:gemeloDe,0:pushGemelos,1:expenseDeletedSet,0:expenseIsTombstoned,0:gemeloAvisoKey,8:gemeloBancoAutomatico,8:gemeloAvisoAutomatico,8:sinComercioReal,8:gemeloAsignar,8:madridYmdParts,0:esFilaDeBanco,0:@GASTO_ORIGENES,8:@gemeloCache,8:@DUP_DIAS_MS,8:@gemeloDatosCache,8:@gemeloDiasCache,0:@GEMELOS_MAX,1:@expenseDeletedSets,8:@_mcMadridYmdFmt"
+  };
+  // Métodos de `cloud` que esos mismos lectores nuevos llaman y el guardián de métodos ("los métodos realmente leídos quedan dentro del alcance") exige vigilar.
+  const miembros={"fin05-widget-reentrada":["pullState","setExpenseDup"],"fin05-pago-cerrada":["pullState","setExpenseDup"],"widget-app-cerrada":["pullState","setExpenseDup"],"inc-3009-nomina-anticipada":["setExpenseDup"],"inc-2909-03-retirada":["pullState","setExpenseDup"],"inc-2909-01-widget-periodo":["pullState","setExpenseDup"],"inc-0210-02-categoria-elegida":["setExpenseDup"],"feature-0310-01-movilidad":["pullState"],"widget-pago-app-cerrada":["pullState","setExpenseDup"],"widget-ciclo-puente":["pullState","setExpenseDup"]};
+  const ARCH={"0":"src/modules/00-core.js","1":"src/modules/01-i18n.js","8":"src/modules/08-motor-bank.js"};
+  const unidad=texto=>{const [f,n]=texto.split(":"),dato=n[0]==="@";return {file:ARCH[f],[dato?"data":"function"]:dato?n.slice(1):n};};
+  const crecido=Object.fromEntries(Object.entries(integrated).map(([key,scope])=>{
+    let web=scope.web;
+    if(miembros[key])web=web.map(u=>u.data==="cloud"&&u.members?{...u,members:u.members.concat(miembros[key])}:u);
+    if(crece[key])web=web.concat(crece[key].split(",").map(unidad));
+    return [key,{...scope,web}];
+  }));
+  assert.deepEqual(rest,crecido,"solo crecen los descriptores de `crece` (cierre de lectores) y los miembros de `cloud` de `miembros`; nada se recorta");
+  // Escribe estado con set() (Ajustes, Cartera): lleva el bloque del guardado igual que inc-2709-10-perfil (PERSIST91).
+  const guardado=integrated["inc-2709-10-perfil"].web.slice(3,-1);
+  assert.equal(guardado.length,14,"el bloque del guardado: marca de App más trece unidades de 00-core");
+  const propias=[...[{"file":"src/modules/00-core.js","function":"mcLogEvent"},{"file":"src/modules/00-core.js","function":"borrarGastoNube"},{"file":"src/modules/00-core.js","function":"unionPorHora"},{"file":"src/modules/00-core.js","function":"lapidasTope"},{"file":"src/modules/00-core.js","function":"lapidaPon"},{"file":"src/modules/00-core.js","function":"lapidaLevanta"},{"file":"src/modules/00-core.js","function":"lapidasAlEditar"},{"file":"src/modules/00-core.js","function":"subeEdicionesDeGasto"},{"file":"src/modules/00-core.js","function":"lapidasUnion"},{"file":"src/modules/00-core.js","function":"pushGemelos"},{"file":"src/modules/00-core.js","function":"gemelosDeImportacion"},{"file":"src/modules/00-core.js","function":"refreshExpenseFromCloud"},{"file":"src/modules/00-core.js","function":"mergeExpensesFromCloud"},{"file":"src/modules/00-core.js","data":"GASTO_ORIGENES"},{"file":"src/modules/00-core.js","data":"DELETED_AT_MAX"},{"file":"src/modules/01-i18n.js","function":"loadState"},{"file":"src/modules/08-motor-bank.js","function":"reciboNoUnion"},{"file":"src/modules/08-motor-bank.js","function":"gemeloBancoAutomatico"},{"file":"src/modules/08-motor-bank.js","function":"gemeloAvisoAutomatico"},{"file":"src/modules/08-motor-bank.js","function":"gemeloDatos"},{"file":"src/modules/08-motor-bank.js","function":"gemeloGrupo"},{"file":"src/modules/08-motor-bank.js","function":"gemeloCompatible"},{"file":"src/modules/08-motor-bank.js","function":"gemeloMismosCampos"},{"file":"src/modules/08-motor-bank.js","function":"gemeloAsignar"},{"file":"src/modules/08-motor-bank.js","function":"reconcileGemelosAutomaticos"},{"file":"src/modules/08-motor-bank.js","function":"gemeloAutomaticoDe"},{"file":"src/modules/08-motor-bank.js","function":"separarGemeloAutomatico"},{"file":"src/modules/08-motor-bank.js","function":"unirGemeloAutomatico"},{"file":"src/modules/08-motor-bank.js","function":"gemeloSeparadoDe"},{"file":"src/modules/08-motor-bank.js","function":"gemelosCambiosNube"},{"file":"src/modules/08-motor-bank.js","function":"importObExpenses"},{"file":"src/modules/08-motor-bank.js","function":"reponerCargoDeRecibo"},{"file":"src/modules/08-motor-bank.js","function":"sinCargoDelPlan"},{"file":"src/modules/08-motor-bank.js","function":"conReciboEnPlan"},{"file":"src/modules/08-motor-bank.js","function":"recibosBorradosUnion"},{"file":"src/modules/08-motor-bank.js","function":"ponerEnPlan"},{"file":"src/modules/08-motor-bank.js","function":"addFixedItem"},{"file":"src/modules/08-motor-bank.js","function":"addOneoffItem"},{"file":"src/modules/08-motor-bank.js","data":"gemeloCache"},{"file":"src/modules/08-motor-bank.js","data":"gemeloDatosCache"},{"file":"src/modules/08-motor-bank.js","data":"gemeloDiasCache"},{"file":"src/modules/04-tab-gastos.js","function":"ExpenseDetailSheet"},{"file":"src/modules/04-tab-gastos.js","from":"  const delExpense=function(e){","to":"  const withdrawalPending=useRef({});"},{"file":"src/modules/04-tab-gastos.js","from":"  const editCola=useRef(","to":"  const [detailId,setDetailId]"},{"file":"src/modules/04-tab-gastos.js","from":"    const splitByEdit=","to":"  const todayKey=new Date().toDateString();"},{"file":"src/modules/04-tab-gastos.js","from":"      if(e.autoGemelo||expenseIsTombstoned(","to":"      if(!inBounds(dateMs(e.date),bounds)) continue;"},{"file":"src/modules/04-tab-gastos.js","from":"      resolveDup:resolveDup, separarGemelo:separarGemelo,","to":"      showToast:showToast, aiBusy:aiBusy"},{"file":"src/modules/04-tab-gastos.js","from":"        React.createElement(\"span\",null,t(undoDelete.paired","to":"        React.createElement(\"button\",{type:\"button\",onClick:undoLastDelete}"},{"file":"src/modules/01-i18n.js","from":"Object.assign(LANG.es,{g_auto_paired:","to":"\n","includeTo":true},{"file":"src/modules/01-i18n.js","from":"Object.assign(LANG.en,{g_auto_paired:","to":"\n","includeTo":true},{"file":"src/modules/01-i18n.js","from":"Object.assign(LANG.ca,{g_auto_paired:","to":"\n","includeTo":true},{"file":"src/modules/01-i18n.js","from":"Object.assign(LANG.es,{g_auto_rejoin:","to":"\n","includeTo":true},{"file":"src/modules/01-i18n.js","from":"Object.assign(LANG.en,{g_auto_rejoin:","to":"\n","includeTo":true},{"file":"src/modules/01-i18n.js","from":"Object.assign(LANG.ca,{g_auto_rejoin:","to":"\n","includeTo":true},{"file":"src/modules/11-app-main.js","from":"  const syncCloudExpenses=function(){","to":"  const syncFromCloud=function(s, opts){"},{"file":"src/modules/11-app-main.js","from":"  const syncFromCloud=function(","to":"  // CAPA 2 — Open Banking:"},{"file":"src/modules/11-app-main.js","from":"  const avisaSync=function(opts,m){","to":"  const BROKER_SYNC_THROTTLE"}],...guardado];
+  assert.deepEqual(added.web.slice(0,propias.length),propias,"las unidades propias de la tanda, en este orden, y el bloque del guardado detrás");
+  assert.equal(added.unidades,true);assert.deepEqual(Object.keys(added),["web","unidades"],"solo web");
+  // El resto es el cierre de lectores (funciones y datos que leen las unidades propias, transitivamente) que exige el guardián de cierre:
+  // se recalcula aquí con el mismo lector hasta que no crece, sin listas escritas a mano.
+  {const fns=logicFunctions(source),dat=logicData(source);let web=propias.slice();
+    for(let ronda=0;ronda<10;ronda++){
+      const tiene=(file,nombre,clave)=>web.some(u=>u.file===file&&u[clave]===nombre),extra=[];
+      for(const fn of scopeDependencies({web},source,fns))if(!tiene(fn.file,fn.name,"function"))extra.push({file:fn.file,function:fn.name});
+      for(const d of scopeDataDependencies({web},source,fns,dat))if(!tiene(d.file,d.name,"data"))extra.push({file:d.file,data:d.name});
+      if(!extra.length)break;web=web.concat(extra);
+    }
+    const clave=u=>JSON.stringify(u);
+    assert.equal(added.web.length,web.length,"el cierre de lectores del descriptor es exactamente el calculado");
+    assert.deepEqual(new Set(added.web.map(clave)),new Set(web.map(clave)),"el cierre de lectores del descriptor es exactamente el calculado");
+    assert.ok(added.web.length>=150,"el cierre no se recorta");}
+  for(const u of added.web)assert.ok(scopeText(u,source).length>0,"la unidad existe en la fuente: "+JSON.stringify(u));
+  assert.equal(source("public/apk.json"),old("public/apk.json"),"sin APK nueva: apk.json no se toca");
+  for(const f of ["supabase/functions/bank-sync/index.ts","supabase/functions/bank-disconnect/index.ts","supabase/functions/_shared/enablebanking.ts","supabase/functions/_shared/myinvestor.ts","supabase/functions/myinvestor-sync/index.ts","supabase/functions/myinvestor-keepalive/index.ts"])assert.equal(source(f),old(f),"el servidor no cambia: "+f);
+  // Huellas que se mueven, lista cerrada: el emparejado toca el `set` de App (el bloque del guardado), `Expenses`, la fusión con la nube y el motor de bancos; se miden y se declaran una a una.
+  const expectedMoves=Object.fromEntries(["inc-3009-01-cargos","fin05-widget-reentrada","fin05-pago-cerrada","tr-descripcion-clasificacion","widget-banco","widget-app-cerrada","inc-2809-02-ayuda-ciclo","inc-2909-02-inicio-natural","inc-2709-10-perfil","inc-3009-nomina-anticipada","inc-2909-03-retirada","inc-2909-01-widget-periodo","inc-0210-03-gastos-periodo","feature-0210-01-gasolina-taxi","inc-0210-02-categoria-elegida","inc-0310-01-meta-regla","feature-0310-01-movilidad","inc-0310-broker-resultados","inc-0310-gastos-sin-limite","inc-0710-gastos-mes-madrid","inc-0710-auth-disposal","inc-0810-metas-editar-regla","bienes-completo","widget-pago-app-cerrada","bancos-sin-hueco","widget-ciclo-puente","recibos-cargo-unico","bancos-acuse-reconexion","tr-iguales-ordinal","inicio-patrimonio-flujos","recibo-cargo-en-gastos",inicio,limpieza].map(key=>[key,["web"]]));
+  const previous=new Map();
+  const measure=reader=>{
+    const now=JSON.parse(reader("scripts/beta-sources.json")),moved={};
+    for(const [key,scope] of Object.entries(integrated)){
+      if(key===archiveId){assert.deepEqual(auditedRevision(key,reader),auditedRevision(key,sourceBeta129));continue;}
+      if(!previous.has(key))previous.set(key,betaRevision(key,sourceBeta129,undefined,scope));
+      const a=previous.get(key),b=betaRevision(key,reader,undefined,now[key]);
+      const surfaces=["web","native","edge"].filter(x=>a[x]!==b[x]);
+      if(surfaces.length)moved[key]=surfaces;
+    }
+    return moved;
+  };
+  const verify=(reader,expected=expectedMoves)=>assert.deepEqual(measure(reader),expected,"lista cerrada: ni una huella extra ni una declarada que no cambie");
+  verify(source);
+  assert.equal(Object.keys(expectedMoves).includes(banco),false,"la tanda de bancos de la 127 conserva su huella");
+  assert.ok(Object.keys(expectedMoves).includes(inicio),"la tanda de Inicio de la 128 reabre: comparte el bloque del guardado");
+  assert.ok(Object.keys(expectedMoves).includes(limpieza),"la tanda de la limpieza de la 129 reabre: comparte el bloque del guardado");
+  assert.throws(()=>verify(source,{...expectedMoves,"plan-scroll-lento":["web"]}),/lista cerrada/,"una huella declarada que no cambia pone rojo");
+  const missing={...expectedMoves};delete missing[inicio];assert.throws(()=>verify(source,missing),/lista cerrada/,"una huella real no declarada pone rojo");
+  assert.deepEqual(betaRevision(banco,source,undefined,scopes[banco]),betaRevision(banco,old,undefined,integrated[banco]),"la revisión de bancos de la 127 es la misma");
+  // Cada pieza de la entrega reabre la tanda.
+  const current=betaRevision(tanda,source,undefined,scopes[tanda]);
+  assert.ok(current.web);assert.equal(current.edge,undefined);assert.equal(current.native,undefined);
+  const core="src/modules/00-core.js",txt="src/modules/01-i18n.js",bank="src/modules/08-motor-bank.js",gastos="src/modules/04-tab-gastos.js",appMain="src/modules/11-app-main.js";
+  for(const [file,a,b] of [
+    [bank,'function separarGemeloAutomatico(s,id,ahora){','function separarGemeloAutomatico(s,id,ahora,x){'],
+    [bank,'function reconcileGemelosAutomaticos(s,prev){','function reconcileGemelosAutomaticos(s,prev,x){'],
+    [core,'function lapidaPon(s, key, ahora){','function lapidaPon(s, key, ahora, x){'],
+    [core,'function lapidasUnion(local, nube){','function lapidasUnion(local, nube, x){'],
+    [txt,'s=perfilSinDatosBanco(reconcileGemelosAutomaticos(','s=perfilSinDatosBanco(('],
+    [gastos,'const separarGemelo=function(e,unir){','const separarGemelo=function(e,unir,x){'],
+    [gastos,'"data-testid":"exp-auto-separate"','"data-testid":"exp-auto-separar"'],
+    [appMain,'||next.deleted!==prev.deleted) next=reconcileGemelosAutomaticos(next,prev);',') next=reconcileGemelosAutomaticos(next,prev);']]){
+    assert.equal(source(file).split(a).length,2,"mutante sobre fuente real: "+a);
+    const mutated=betaRevision(tanda,f=>f===file?source(f).replace(a,b):source(f),undefined,scopes[tanda]);
+    assert.notEqual(mutated.web,current.web,"reabre la tanda: "+a);
+  }
+  // Lo que el build entrega al panel.
+  const built=betaNotes(notes,source,scopes),receipt=betaDelivery(built,source,scopes),group=built[0].tandas[0];
+  assert.deepEqual(built.flatMap(n=>(n.tandas||[]).map(g=>g.id)),[tanda,limpieza],"lo que el build entrega al panel");
+  assert.equal(group.web,current.web);assert.equal(group.edge,undefined);assert.equal(group.native,undefined);assert.equal(group.apk,undefined);
+  assert.equal(receipt.web[tanda],current.web);
+  assert.deepEqual(receipt.pruebas,{[tanda]:{v:"4.26.130",contenido:JSON.stringify([tanda,expected130.tandas[0].t.es,expected130.tandas[0].items.es,1])},[limpieza]:{v:"4.26.129",contenido:JSON.stringify([limpieza,expected129.tandas[0].t.es,expected129.tandas[0].items.es,1])}},"un guion por probar en cada tanda que sigue en el panel: el del emparejado con la 130 y el de la limpieza con la 129");
+  for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica","native"])assert.equal(group[key],undefined,"identidad nueva sin "+key);
+});
+
+
+// Retiro130: el dueño aprobó en el panel las dos tandas de la 128 (Inicio y bancos, 4.26.127/128). Salen del panel como en la 124 y la 126:
+// su nota conserva versión, fecha, título y texto y solo pierde la tanda, con `tandas:[]` (sin la propiedad resucitaría como /todo);
+// el descriptor y el historial se quedan, y el producto sigue íntegro en el recibo de entrega.
+test("Retiro130 elimina solo las tandas de Inicio y de bancos aprobadas en el móvil y conserva notas, descriptores e historial",()=>{
+  const inicio="inicio-mes-pasado-mismo-dia",banco="bancos-reconexion-revoca",limpieza="limpieza-ajustes-perfil",tr="tr-empareja-sin-preguntar";
+  const before=JSON.parse(sourceBeta129("src/data/release-notes.json")),notes=JSON.parse(read("src/data/release-notes.json"));
+  for(const id of [inicio,banco]){
+    assert.equal(before.flatMap(n=>n.tandas||[]).filter(g=>g.id===id).length,1,id+": la 129 publicada la llevaba");
+    assert.equal(notes.flatMap(n=>n.tandas||[]).some(g=>g.id===id),false,id+": ya no está en ninguna nota");
+  }
+  assert.equal(notes.length,before.length+1,"ninguna nota se borra");
+  assert.deepEqual(notes[2],{...before[1],tandas:[]});assert.deepEqual(notes[3],{...before[2],tandas:[]});
+  assert.deepEqual(notes[1],before[0],"la limpieza de la 129 sigue entera");
+  assert.deepEqual(notes.slice(4),before.slice(3),"el resto del catálogo, intacto");
+  const resurrected=structuredClone(notes);resurrected[2].tandas.unshift(before[1].tandas[0]);
+  assert.notDeepEqual(resurrected,notes,"no resucitar una tanda aprobada");
+  const scopes=JSON.parse(read("scripts/beta-sources.json")),old=JSON.parse(sourceBeta129("scripts/beta-sources.json"));
+  for(const id of [inicio,banco])for(const unit of old[id].web)assert.ok(scopes[id].web.some(u=>JSON.stringify(u)===JSON.stringify(unit)),id+": el descriptor conserva todas sus unidades");
+  assert.deepEqual(scopes[banco],old[banco],banco+": el descriptor queda como historia");
+  const receipt=betaDelivery(betaNotes(notes,read,scopes),read,scopes);
+  for(const id of [inicio,banco]){
+    assert.equal(receipt.web[id],betaRevision(id,read,undefined,scopes[id]).web,id+": el producto sigue íntegro");
+    assert.equal(receipt.pruebas[id],undefined,id+": el guion aprobado no permanece en el panel");
+  }
+  assert.deepEqual(Object.keys(receipt.pruebas).sort(),[limpieza,tr].sort(),"en el panel quedan la limpieza y el emparejado");
+});
 // Catálogo cerrado: desde la promoción126 se lee de la beta126 publicada (d8d2624c), que es la última con tandas en el panel.
 test("Inicio v4.2 conserva el catálogo120 y los retiros anteriores en la beta126 publicada (histórico)",()=>{
   const read=source126;
@@ -2940,7 +3137,8 @@ test("PERSIST91: el guardado en el commit invalida toda tanda que escribe estado
   const marca="INC-0410 guardado: de aquí al límite";
   const dependientes=Object.keys(registro).filter(id=>registro[id].web.some(x=>x.from&&x.from.includes(marca)));
   const ajenas=Object.keys(registro).filter(id=>!dependientes.includes(id));
-  assert.equal(dependientes.length,32);
+  assert.equal(dependientes.length,33);
+  assert.ok(dependientes.includes("tr-empareja-sin-preguntar"),"el emparejado borra, edita y deshace con el set real y lleva el bloque del guardado");
   assert.ok(dependientes.includes("limpieza-ajustes-perfil"),"la limpieza de Ajustes y perfil escribe estado con set() (Ajustes, Cartera) y lleva el bloque del guardado");
   assert.ok(dependientes.includes("inicio-mes-pasado-mismo-dia"),"la tanda de la comparación lleva el mismo alcance de Inicio que inicio-patrimonio-flujos, con su bloque del guardado");
   assert.ok(dependientes.includes("recibo-cargo-en-gastos"),"«No es este recibo», su vuelta atrás y el histórico escriben la marca con el set real");

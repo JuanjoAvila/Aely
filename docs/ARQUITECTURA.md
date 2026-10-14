@@ -1,5 +1,9 @@
 # Arquitectura — Aely
 
+## Emparejado candidato PR228
+
+La asignación de avisos y bancos vive en reconcileGemelosAutomaticos y se invoca desde importObExpenses, el updater, el arranque y el pull. Las marcas se devuelven antes de subir los apuntes. Los pares automáticos se derivan de filas; gemelos conserva decisiones y reservas históricas. La caché no se persiste: índices por referencia y grupos banco/importe, con fechas de Madrid cacheadas. Un cambio no financiero conserva las parejas. Una retirada de #dup recibida de otra versión se respeta como decisión humana. [Contrato actual, migración y límites](briefs/tr-emparejado-automatico-20261013.md).
+
 ## InicioAhora y archivo109 · versión4.26.112 del canal beta
 
 Se retiran Ring, MiniPie y TabCoach sin consumidores, su CSS asociado y doce iconos sin uso. V4Ring y Tour siguen activos (SparklineInv y .spark se retiraron el 14/10/2026 con la ficha antigua de Inversiones); el flujo financiero, idiomas, notas e histórico se conservan. El presupuesto del paquete integrado y131 comprobaciones DOM propias pasan; el guardián conserva identidades111/106 y archivo109.
@@ -85,7 +89,7 @@ Viaje: en `source` como último tramo `#n2` (`ob:trade_republic#dup#n2`), que un
 
 **Dos entradas del banco para un solo cargo** (revisión de la entrega 1): un banco puede entregar el mismo cargo como «pendiente» y como contabilizado en la misma respuesta, idénticos en todo lo demás. La señal es el `status`: en un grupo de iguales cada pendiente se da por cubierta por una contabilizada y solo las pendientes que sobran son cargos aparte (`importObExpenses`, `firme`). Sin señal —todas con el mismo estado, como una repetición al paginar— no hay nada que distinga «repetida» de «dos bizums iguales» y mandan los k del banco: es la función de esta entrega. El histórico sigue fundiendo los k iguales de una cuenta en un candidato (`skippedUniq`) y por eso nunca mete más de uno por grupo.
 
-Un aviso (noti/Wallet) empareja UNA sola vez: `state.gemelos` ({avisoId, aviso, banco}, tope 500, viaja en `app_state` como `deleted`; entre móviles se UNE gane quien gane el estado —`fusionarGemelos` en `syncFromCloud`—, porque un vínculo es un hecho que vio un móvil y el otro no puede desmentir por no tenerlo; `deleted` sigue yendo por último-que-escribe, como siempre) se da de alta al marcar «posible repetido» (`gemelosDeImportacion` tras `importObExpenses` y tras el histórico), se conserva al resolver «es el mismo» y se suelta con «son distintos»; `gemeloOtraVia` e `histCandCercanos` saltan los avisos reclamados (`avisosEmparejados`). Borrar a mano un apunte OB o resolver sin gemelo localizable deja `{aviso:"", banco}`; una lápida de ranura 1 sin vínculo es, por tanto, un «es el mismo» de una versión anterior y el importador da por reclamado el primer aviso que casa. El emparejado automático por cuenta de filas (entrega 2) decidirá sobre este mismo vínculo. Servidor: `presupuesto.ts` cambiado en la rama, SIN desplegar; un servidor sin él sigue fundiendo las k filas iguales en el widget. Límite que queda: dos AVISOS idénticos (mismo día, importe y comercio) siguen fundiéndose en la nube y al bajar (clave sin id).
+Un aviso (noti/Wallet) empareja UNA sola vez: `state.gemelos` ({avisoId, aviso, banco}, tope 500, viaja en `app_state` como `deleted`; entre móviles se UNE gane quien gane el estado —`fusionarGemelos` en `syncFromCloud`—, porque un vínculo es un hecho que vio un móvil y el otro no puede desmentir por no tenerlo; en esta rama `deleted` se une por hora mediante `lapidasUnion`, por la dependencia Recibos) se da de alta al marcar «posible repetido» (`gemelosDeImportacion` tras `importObExpenses` y tras el histórico), se conserva al resolver «es el mismo» y se suelta con «son distintos»; `gemeloOtraVia` e `histCandCercanos` saltan los avisos reclamados (`avisosEmparejados`). Borrar a mano un apunte OB o resolver sin gemelo localizable deja `{aviso:"", banco}`; una lápida de ranura 1 sin vínculo es, por tanto, un «es el mismo» de una versión anterior y el importador da por reclamado el primer aviso que casa. El emparejado automático por cuenta de filas decide sobre este mismo vínculo: añade `auto`, `ent`, `at` y `separado`. Agrupa por banco, fecha civil de Madrid e importe en céntimos con signo; cada fila sin id bancario consume como máximo un aviso no manual. Mantiene las dos filas internas, pero el banco lleva `possibleDup` (viaja como `#dup`) y `autoGemelo` local para ocultarlo en Gastos. El arranque y el updater central reconstruyen la marca desde los vínculos; separar levanta ambas marcas, conserva el vínculo y su hora, y gana a una copia antigua. Las uniones solo usan decisiones del mismo titular. `gemelosCambiosNube` compara las filas recibidas con la decisión local para reparar la marca mediante la API existente: es un intento sin acuse de fila, no una confirmación remota. El detalle y el límite de avisos idénticos se conservan en el acta de la candidata. Servidor: `presupuesto.ts` cambiado en la rama, SIN desplegar; un servidor sin él sigue fundiendo las k filas iguales en el widget. Límite que queda: dos AVISOS idénticos (mismo día, importe y comercio) siguen fundiéndose en la nube y al bajar (clave sin id).
 
 ## Lápidas y contabilidad local (4.26.54)
 
@@ -358,12 +362,61 @@ fecha, importe y comercio da con ella). Cuando el aviso del móvil gana al cargo
 fila que queda es la misma de antes —su id y el orden a mano, la categoría, la nota y el «no
 tarjeta» que se le pusieron— con el origen del aviso, y App reescribe sin marca la fila del
 banco en la nube (`sinMarca`): con una marcada y otra no, el servidor contaba una u otra según
-el orden de lectura. **Límites conocidos:** (1) dos cargos iguales el mismo día que casan con
+el orden de lectura. **Límite conocido:** dos cargos iguales el mismo día que casan con
 un recibo entran LOS DOS marcados y ninguno cuenta, igual que antes se tiraban los dos; si uno
-era una compra aparte, hay que decirlo con «No es este recibo». (2) Tras ese «No es este
-recibo» sobre uno de varios iguales de un recibo FIJO no hay vuelta atrás desde la ficha: el
-vínculo a mano exige que el cargo sea único en su mes (`fixedExpenseEligible`); en un puntual sí
-la hay.
+era una compra aparte, hay que decirlo con «No es este recibo». Ese «No es este recibo» tiene
+vuelta atrás desde la ficha también en un recibo FIJO (13/10/2026): la ficha ofrece el recibo
+vetado para ese cargo aunque el vínculo a mano no sea posible (`fixedExpenseEligible` exige un
+cargo único en su mes) y `reponerCargoDeRecibo` levanta el veto y devuelve la marca si la fila
+la admite; el recibo sigue pendiente, como antes del veto, porque el motor no elige entre dos
+iguales.
+
+**Entre móviles (13/10/2026).** El estado viaja entero por «último que escribe» (`_savedAt`), y
+un móvil con días sin abrirse queda sellado como «más nuevo» por su primer guardado al
+arrancar. Lo que no puede perderse así se une en `syncFromCloud`, gane el estado que gane:
+los vínculos aviso↔apunte (`fusionarGemelos`), los vetos (`reciboNoUnion`), las lápidas
+(`lapidasUnion`) y los recibos borrados (`recibosBorradosUnion`); las dos últimas solo con lo
+local del mismo titular. Vetos, lápidas y recibos borrados comparten regla (`unionPorHora`):
+clave a clave gana lo último que se dijo, y lo que no lleva hora en ningún lado se suma.
+
+*Lápidas.* Ponerla y levantarla («Deshacer» un borrado, o editar un gasto hasta una clave que
+constaba retirada) apuntan su hora en `state.deletedAt`, siempre posterior a la que constara; se
+guardan las 200 decisiones más recientes. Sin eso la lápida que A ya levantó volvería desde B
+y «Deshacer» sería irreversible. Una lápida SIN hora la puso una versión anterior de la app:
+frente a un «Deshacer» de aquí gana solo si el estado que la trae se guardó después (es un
+borrado posterior); si se guardó antes, gana el «Deshacer». Tope de 500: las que llevan hora no
+se caen y de las demás se cae primero lo que solo traía la nube. **Límites:** (1) un «Deshacer»
+hecho en un móvil con versión anterior no apunta hora: si ese móvil había bajado la lápida con
+su hora, la unión se la devuelve; (2) con el reloj de un móvil adelantado, su «Deshacer» puede
+ganar a un borrado real posterior hecho en otro que no lo había bajado; (3) pasadas 200
+decisiones más recientes la hora se pierde y esa clave vuelve a sumarse.
+
+*Recibos borrados.* Todo borrado de un recibo o un puntual deja `reciboBorrado[id]` (`d`, `n`
+y, si soltó cargos del periodo, `x` con sus filas) y su hora en `reciboBorradoAt`, tuviera o no
+cargos marcados. Un recibo que consta borrado sale de `fixed`/`oneoffs` aunque el estado ganador
+lo traiga: sin eso el móvil atrasado seguía con el recibo y su cargo marcado (gastado 40)
+mientras el otro y el widget contaban el cargo (102,40). Borrar un recibo SÍ tiene «Deshacer»
+(Plan, `undoLastBill`, lo devuelve con el mismo id por `addFixedItem`/`addOneoffItem` →
+`conReciboEnPlan`): levanta el borrado con una hora posterior y devuelve la marca, aquí y en la
+nube, a las filas de `x`. `reciboBorrado` no tiene tope: de cada entrada depende que los cargos
+de meses cerrados sigan sin contar. **Límite:** el resto del Plan sigue siendo «último que
+escribe»; si tras un «Deshacer» gana el estado de otro móvil que aún no tiene el recibo, el
+recibo no está en ese estado (ya no consta como borrado, pero tampoco vuelve solo).
+
+*Gastos.* Al bajar la tabla, si la nube trae varias filas con la misma clave (el aviso y el
+cargo del banco), refresca la local la de su mismo id, que es donde se escribió lo que se
+cambió en ella (categoría, «no tarjeta»); sin ninguna, la primera (espera al final del pull,
+sin otra pasada por la tabla). Un apunte con id del banco y otro idéntico sin id (mismo banco,
+día, importe y nombre) son EL MISMO cargo: entra una fila, la del id, que ocupa la ranura 1
+del grupo de iguales; dos con id y uno sin id, una; uno con id y dos sin id, dos. Antes
+entraban dos filas con la misma clave, o una, según el orden, y el pull las fundía. Editar un
+gasto retira la clave vieja y levanta la nueva si constaba (10 → 12 → 10 escondía el gasto), y
+en la nube encadena el borrado de la fila vieja y el alta de la corregida (`subeEdicionesDeGasto`;
+misma id: en paralelo el alta chocaba con la clave primaria, `23505`). Si el borrado falla, el
+alta no se lanza y la edición espera en una cola en memoria hasta la siguiente edición o el
+evento `online`; **límite:** si la app se cierra antes, la fila vieja queda en la nube y el
+repaso dará `23505` con origen `backfill`. Los eventos de error de `addExpense`/`deleteExpense`
+llevan la puerta de origen (`GASTO_ORIGENES`).
 
 **Condición de publicación (medida en la revisión del 13/10).** Un dispositivo con la 4.26.120
 —el ordinal SIN esta entrega— lee `ob:<ent>~recibo.<id>` con el banco limpio y CUENTA el cargo
@@ -855,3 +908,13 @@ Revisión de reservas PR226 (13/10, sin desplegar): todas las escrituras por enl
 la sesión/emisión leídas, incluidos cursores119 legacy y el expired sin cuentas. La revocación
 tiene tope8s; un DELETE local condicionado conserva la nueva generación y devuelve409 si cambió.
 Sin snapshot no se borra una conexión que aparezca tarde. Libro y balances no se editan.
+
+## Emparejado automático: candidata TR NO-GO 2
+
+El refresco aislado de Gastos lee las decisiones de `gemelos` antes de los gastos cuando
+hay parejas automáticas locales. Sólo une esas decisiones; no adopta otra parte de la
+cartera. Una fila sin `#dup` no acredita separación: manda la decisión explícita más
+reciente, incluso si su escritura de marca sigue pendiente. La lápida de un apunte
+oculto borrado a mano conserva el rastro «sin aviso» para no reclamar el aviso del
+siguiente cargo igual. Editar la fecha dentro de la ventana de un día mantiene el par.
+Contrato, pruebas y límites de entrega: [TR NO-GO 2](briefs/tr-emparejado-nogo2-20261014.md).

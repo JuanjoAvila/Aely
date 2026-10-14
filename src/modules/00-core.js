@@ -135,6 +135,8 @@ function mcLogText(raw){
     .replace(/\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b/g,omit)
     .slice(0,2000);
 }
+// Las puertas que escriben un gasto en la nube (`subirGasto` / `borrarGastoNube`).
+const GASTO_ORIGENES=["v4-apuntar","gastos-apuntar","gastos-editar","gastos-borrar","gastos-deshacer","gastos-dup","ob-import","backfill"];
 function mcLogEvent(kind,message,detail){
   const m=String(message||"");
   if(kind==="use") return USO_OK.indexOf(m)>=0?{message:m,detail:null}:null;
@@ -155,7 +157,13 @@ function mcLogEvent(kind,message,detail){
   const routes=[[/^addExpense\b/,"addExpense"],[/^deleteExpense\b/,"deleteExpense"],[/^setExpenseDup\b/,"setExpenseDup"],[/^setExpenseDeuda\b/,"setExpenseDeuda"],[/^MI:/,"myinvestor"],[/^TR sync:/,"tr_sync"],[/^bankConnect\b/,"bank_connect"],[/^OB /,"ob_balance"],[/^bankSync sin pull/,"bank_sync_pull"],[/^CRASH:/,"render_crash"],[/^TOAST:/,"toast"],[/^Promise:/,"unhandled_promise"],[/^canal /,"channel_update"],[/^OTA /,"ota_update"],[/^APK /,"apk_update"],[/^import hoja:/,"import_sheet"]];
   let route="unhandled_error";
   routes.some(function(r){ if(r[0].test(m)){ route=r[1]; return true; } return false; });
-  return {message:route,detail:JSON.stringify({code:mcLogCode(detail||m)})};
+  /* DESDE DÓNDE se escribía el gasto (13/10/2026): un `23505` de `addExpense` no decía si venía
+     de editar, del repaso tras el pull o del banco, y hubo que deducirlo leyendo código. Solo
+     viaja si es una de las puertas conocidas: el resto del mensaje lleva el movimiento (SEC-03). */
+  const out={code:mcLogCode(detail||m)};
+  const origen=/^(?:addExpense|deleteExpense) ([a-z0-9-]+):/.exec(m);
+  if(origen&&GASTO_ORIGENES.indexOf(origen[1])>=0) out.origin=origen[1];
+  return {message:route,detail:JSON.stringify(out)};
 }
 function mcSentryEvent(ev){
   if(!ev) return null;
@@ -1778,10 +1786,12 @@ function subirGasto(e, donde){
     cloud.logEvent("error","addExpense "+(donde||"?")+": "+keyOfExpense(e), _errCloudMsg(err));
   });
 }
+// → true si la nube lo borró (o no hay nube); false si falló: quien encadena un alta lo mira.
 function borrarGastoNube(e, donde){
-  if(!cloud.enabled()) return Promise.resolve();
-  return cloud.deleteExpense(e).catch(function(err){
+  if(!cloud.enabled()) return Promise.resolve(true);
+  return cloud.deleteExpense(e).then(function(){ return true; }, function(err){
     cloud.logEvent("error","deleteExpense "+(donde||"?")+": "+keyOfExpense(e), _errCloudMsg(err));
+    return false;
   });
 }
 
@@ -1988,6 +1998,105 @@ function pushDeleted(list, key){
   const out=(list||[]).concat([key]);
   return out.length>DELETED_MAX ? out.slice(out.length-DELETED_MAX) : out;
 }
+/* ENTRE MÓVILES, LAS LÁPIDAS SE UNEN, NO SE PISAN (13/10/2026). `deleted` viajaba con el estado
+   entero por «último que escribe»: el móvil B, que no había visto borrar un gasto en A, subía su
+   lista sin esa lápida y el gasto volvía (o el banco lo metía otra vez). Una lápida es un hecho
+   que vio un móvil; el otro no puede desmentirla por no tenerla.
+   Pero unir a secas haría IRREVERSIBLE el «Deshacer» de un borrado: la lápida que A ya quitó
+   seguiría en B, y B se la devolvería a A. Por eso cada lápida que se pone o se levanta deja
+   apuntado CUÁNDO en `deletedAt` (las 200 decisiones más recientes; las anteriores quedan sin
+   hora), y al unir gana, clave a clave, lo último que se dijo — la regla de los vetos de recibo
+   (`reciboNoUnion`). Sin hora en ningún lado, o con la misma, se suman.
+   UNA HORA FRENTE A NINGUNA: una lápida sin hora la puso un móvil con una versión anterior (las
+   de esta versión nacen con ella, y la copia que otro móvil baja de la nube la arrastra). Gana
+   a un «Deshacer» de aquí solo si el estado que la trae se guardó DESPUÉS de ese «Deshacer»: es
+   un borrado posterior. Si no, gana el «Deshacer». Límite: un «Deshacer» hecho en un móvil con
+   versión anterior no apunta hora y lo pisa la lápida con hora de los demás. */
+const DELETED_AT_MAX=200;
+/* Lo último que se dijo de cada clave, entre dos listas con sus horas. → {lista, at}.
+   `sa`/`sb` (cuándo se guardó cada estado) solo los pasan las lápidas: ver arriba. */
+function unionPorHora(na, ta, nb, tb, sa, sb){
+  na=na||[]; nb=nb||[]; ta=ta||{}; tb=tb||{};
+  const enA={}, enB={}, at={}, lista=[], vistas={};
+  na.forEach(function(k){ enA[k]=1; }); nb.forEach(function(k){ enB[k]=1; });
+  const mira=function(k){
+    if(vistas[k]) return;
+    vistas[k]=1;
+    let a=ta[k]||0, b=tb[k]||0;
+    if(a||b) at[k]=Math.max(a,b);
+    if(a && !b && enB[k] && !enA[k]) b=sb||0;
+    else if(b && !a && enA[k] && !enB[k]) a=sa||0;
+    if(a===b ? enA[k]||enB[k] : (a>b?enA:enB)[k]) lista.push(k);
+  };
+  na.concat(nb,Object.keys(ta),Object.keys(tb)).forEach(mira);
+  return { lista:lista, at:at };
+}
+/* Topes. De las horas se quedan las 200 más recientes. De las lápidas, 500: las que llevan hora
+   no se caen nunca (son las últimas decisiones, entre ellas la recién puesta) y de las demás se
+   cae lo de delante — lo que solo traía la nube y lo más antiguo de este móvil. */
+function lapidasTope(deleted, at){
+  const claves=Object.keys(at);
+  if(claves.length>DELETED_AT_MAX) claves.sort(function(a,b){ return at[b]-at[a]; }).slice(DELETED_AT_MAX).forEach(function(k){ delete at[k]; });
+  let sobran=deleted.length-DELETED_MAX;
+  const out={ deleted:sobran>0 ? deleted.filter(function(k){ return at[k] || sobran--<=0; }) : deleted };
+  if(Object.keys(at).length) out.deletedAt=at;
+  return out;
+}
+/* Pone la lápida de `key` con su hora, siempre posterior a la que constara: con el reloj de este
+   móvil atrasado perdería contra un «Deshacer» del otro. → {deleted, deletedAt} para el estado. */
+function lapidaPon(s, key, ahora){
+  const at=Object.assign({}, s&&s.deletedAt);
+  at[key]=Math.max(ahora||Date.now(), (at[key]||0)+1);
+  return lapidasTope(pushDeleted(s&&s.deleted, key), at);
+}
+/* Levanta la lápida de `key` («Deshacer», o editar un gasto hasta dejarlo como uno que ya se
+   había retirado) y apunta cuándo. Todas las copias: `pushDeleted` nunca miró si ya estaba.
+   → {deleted, deletedAt} */
+function lapidaLevanta(s, key, ahora){
+  const at=Object.assign({}, s&&s.deletedAt);
+  at[key]=Math.max(ahora||Date.now(), (at[key]||0)+1);
+  return lapidasTope(((s&&s.deleted)||[]).filter(function(k){ return k!==key; }), at);
+}
+/* EDITAR UN GASTO retira su clave vieja (o el pull lo resucitaría con los datos de antes)… y
+   levanta la de la clave NUEVA si constaba (13/10/2026): corregir 10 → 12 y volver a 10 dejaba
+   la fila casando con la lápida de la primera edición, y el gasto desaparecía de las cuentas y
+   del widget (gastado 0). → {deleted, deletedAt} */
+function lapidasAlEditar(s, keyOrig, keyUpd, ahora){
+  const pon=lapidaPon(s, keyOrig, ahora);
+  return pon.deleted.indexOf(keyUpd)<0 ? pon : lapidaLevanta(Object.assign({}, s, pon), keyUpd, ahora);
+}
+/* LA NUBE AL EDITAR UN GASTO: EL ALTA ESPERA AL BORRADO, Y CADA EDICIÓN A LA ANTERIOR
+   (13/10/2026). La fila corregida conserva su id: lanzadas a la vez, si el alta llegaba antes
+   que el borrado chocaba con la fila vieja por la clave primaria (el `23505` de `addExpense`
+   en Actividad), el borrado se llevaba después la vieja y la nube se quedaba sin el gasto hasta
+   el siguiente repaso. Si el borrado FALLA (sin red) el alta no se lanza —sería ese mismo
+   `23505`, seguro—: la edición se queda en `cola.pend` y se reintenta con la siguiente edición
+   o al volver la conexión. Límite: la cola vive en memoria; si la app se cierra antes, la fila
+   vieja sigue en la nube y el repaso tras el pull dará `23505` con origen `backfill`.
+   `cola` = {pend:[{orig,upd}], fin:Promise}. */
+function subeEdicionesDeGasto(cola){
+  const paso=function(){
+    const p=cola.pend[0];
+    if(!p) return;
+    return borrarGastoNube(p.orig, "gastos-editar").then(function(ok){
+      if(!ok) return;
+      cola.pend.shift();
+      return subirGasto(p.upd, "gastos-editar").then(paso);
+    });
+  };
+  cola.fin=cola.fin.then(paso);
+  return cola.fin;
+}
+// → {deleted[, deletedAt]}. La lista local, tal cual, si la nube no aporta nada: la leen los `useMemo`.
+function lapidasUnion(local, nube){
+  const na=(local&&local.deleted)||[];
+  const u=unionPorHora(na, local&&local.deletedAt, nube&&nube.deleted, nube&&nube.deletedAt, local&&local._savedAt, nube&&nube._savedAt);
+  // Lo que solo trae la nube, delante: el tope corta por ahí y no por lo último de este móvil.
+  const mias={}; na.forEach(function(k){ mias[k]=1; });
+  const out=lapidasTope(u.lista.length>DELETED_MAX ? u.lista.filter(function(k){ return !mias[k]; }).concat(u.lista.filter(function(k){ return mias[k]; })) : u.lista, u.at);
+  if(out.deleted.length===na.length && out.deleted.every(function(k,i){ return k===na[i]; })) out.deleted=na;
+  return out;
+}
 
 /* ---------- UN AVISO EMPAREJA UNA SOLA VEZ (12/10/2026) ----------
    `state.gemelos` guarda qué fila de la puerta del aviso (noti del móvil, Wallet…) ya quedó
@@ -2000,8 +2109,8 @@ function pushDeleted(list, key){
    cargos: el mismo aviso era reclamado por DOS apuntes del banco en sincronizaciones distintas y,
    contestando siempre «es el mismo», se perdían 29,90 €. Viaja en `app_state` como `deleted`,
    con el mismo tope. Se da de alta al emparejar (pendiente) y se conserva al resolver «es el
-   mismo»; «son distintos» lo suelta. La entrega siguiente (emparejado automático) decide sobre
-   este MISMO vínculo: solo cambia quién contesta, no dónde se guarda. */
+   mismo»; «son distintos» manual lo suelta. El emparejado automático conserva también
+   `auto`, `ent`, `at` y `separado`: separar guarda una decisión con hora sobre el mismo vínculo. */
 const GEMELOS_MAX=500;
 function gemeloAvisoKey(e){ return keyOfExpense(e); }
 function gemeloDe(aviso, filaBanco){ return { avisoId:(aviso&&aviso.id)?String(aviso.id):undefined, aviso:gemeloAvisoKey(aviso), banco:keyOfExpense(filaBanco) }; }
@@ -2013,15 +2122,24 @@ function pushGemelos(list, nuevos){
   (nuevos||[]).forEach(function(g){
     if(!g || typeof g.aviso!=="string" || typeof g.banco!=="string") return;
     const k=firma(g);
-    if(ya[k]) return;
+    const at=Number(g.at)||0;
+    if(ya[k]){
+      const i=out.findIndex(function(x){ return firma(x)===k; }), old=out[i];
+      if(!g.auto||at<(old.at||0)||(at===(old.at||0)&&(!g.separado||old.separado))) return;
+      if(out===base) out=base.slice();
+      out[i]=Object.assign({},old,{auto:true,at:at,separado:!!g.separado,ent:g.ent||old.ent});
+      return;
+    }
     ya[k]=1;
     if(out===base) out=base.slice();
     const it={aviso:g.aviso, banco:g.banco};
     if(g.avisoId) it.avisoId=String(g.avisoId);
+    if(g.auto){ it.auto=true; it.at=at; if(g.ent) it.ent=g.ent; if(g.separado) it.separado=true; }
     out.push(it);
   });
   if(out===base) return list||base;
-  return out.length>GEMELOS_MAX ? out.slice(out.length-GEMELOS_MAX) : out;
+  // Una separación reciente no se pierde al unir muchos vínculos automáticos sin decisión humana.
+  return out.length>GEMELOS_MAX ? out.slice().sort(function(a,b){ return (a.at||0)-(b.at||0); }).slice(-GEMELOS_MAX) : out;
 }
 /* Quita el vínculo de un apunte OB (por su clave) — «son distintos». */
 function quitarGemeloDe(list, bancoKey){
@@ -2035,9 +2153,10 @@ function quitarGemeloDe(list, bancoKey){
    gemelo de otro apunte — justo la doble reclamación que `gemelos` existe para impedir. Un vínculo
    es un hecho («este aviso ya tiene su apunte del banco»), igual que una lápida: lo sabe quien lo
    vio, y el que no lo vio no puede desmentirlo por no tenerlo. Por eso, gane quien gane el estado,
-   `gemelos` es la UNIÓN de los dos. El precio es pequeño y asumido: un «son distintos» dado en A
-   puede volver desde un B que aún no lo sabía, y ese aviso queda reclamado de más (no se pierde
-   dinero: la fila ya cuenta). Devuelve la lista local tal cual si la nube no aporta nada. */
+   `gemelos` es la UNIÓN de los dos. Desde el emparejado automático, separar conserva una hora
+   y gana a la copia antigua (en empate también gana separar). Los vínculos manuales anteriores
+   siguen sin decisión con hora y pueden volver desde un móvil atrasado. Devuelve la lista local
+   tal cual si la nube no aporta nada. */
 function fusionarGemelos(local, nube){
   if(!Array.isArray(nube) || !nube.length) return Array.isArray(local) ? local : (nube||[]);
   return pushGemelos(Array.isArray(local) ? local : [], nube);
@@ -2064,7 +2183,7 @@ function gemelosDeImportacion(add, expenses){
   if(!add || !add.length) return out;
   let porId=null;
   add.forEach(function(e){
-    if(!e || !e.possibleDup || !e.possibleDupOf) return;
+    if(!e || !e.possibleDup || !e.possibleDupOf || e.autoGemelo) return;
     if(!porId){ porId={}; (expenses||[]).forEach(function(x){ if(x&&x.id) porId[x.id]=x; }); }
     const tw=porId[e.possibleDupOf];
     if(tw) out.push(gemeloDe(tw, e));
@@ -2627,10 +2746,12 @@ function refreshExpenseFromCloud(local, incoming, readStartedAt){
      declara, y un put(undefined) borraba el gemelo local en CADA pull (ámbar Claude 12/9). */
   if(incoming.possibleDup) put("possibleDup", true);
   else if(incoming.possibleDup===false || incoming.possibleDup==null){
-    /* Solo apagar la marca si la nube dice que ya no es dup (source sin #dup → possibleDup falsy
-       y la propiedad existe en el literal de expenseFromRow). No tocar possibleDupOf. */
-    if(Object.prototype.hasOwnProperty.call(incoming,"possibleDup") && !incoming.possibleDup){
+    /* Una fila sin #dup puede ser anterior a la reparación: no acredita «son distintos».
+       En una pareja automática la decisión viaja en gemelos; false explícito conserva
+       las respuestas del formato antiguo, distinto del undefined que decodifica la tabla. */
+    if(Object.prototype.hasOwnProperty.call(incoming,"possibleDup") && !incoming.possibleDup && (!local.autoGemelo||incoming.possibleDup===false)){
       put("possibleDup", undefined);
+      if(local.autoGemelo){put("gemeloSeparado",local.autoGemelo);put("autoGemelo",undefined);put("possibleDupOf",undefined);}
       /* Ventana mínima del anti-race de ingest: la fila nace #dup y después se libera. Si un pull
          cae justo entre ambos pasos, el siguiente debe adoptar también el origen confirmado;
          apagar solo la marca dejaba una notificación TR localmente disfrazada de Open Banking. */
@@ -2684,16 +2805,31 @@ function mergeExpensesFromCloud(prevList, incoming, readStartedAt){
     changed=true;
     return true;
   };
+  /* SI LA NUBE TRAE VARIAS FILAS CON ESTA CLAVE, REFRESCA LA QUE ES ESTA: la de su mismo id
+     (13/10/2026). El aviso y el cargo del banco comparten clave y son dos filas en la nube; lo que
+     él cambia aquí (categoría, «no tarjeta») se escribe por id en UNA de ellas. Refrescaba la
+     primera que llegara: si era la otra, el segundo pull le devolvía la categoría y la tarjeta del
+     aviso. Sin ninguna con su id (lo subió otro móvil), la primera, como siempre: esa espera
+     en `espera` hasta ver si detrás viene la suya, sin otra pasada por la tabla. */
+  const espera={}, hecha={}; let hayEspera=false;
+  const refresca=function(k,inc){
+    const loc=byKey[k], merged=refreshExpenseFromCloud(loc, inc, readStartedAt);
+    if(merged!==loc){ byKey[k]=merged; changed=true; }
+  };
   (incoming||[]).forEach(function(inc){
     const k=keyOfExpense(inc);
-    if(seen[k]){ ganaAviso(k,inc); return; }
+    if(seen[k]){
+      if(!ganaAviso(k,inc) && !hecha[k] && inc.id===byKey[k].id){ hecha[k]=1; delete espera[k]; refresca(k,inc); }
+      return;
+    }
     seen[k]=1;
     const loc=byKey[k];
     if(!loc){ byKey[k]=inc; order.push(k); changed=true; nuevos++; return; }
     if(ganaAviso(k,inc)) return;
-    const merged=refreshExpenseFromCloud(loc, inc, readStartedAt);
-    if(merged!==loc){ byKey[k]=merged; changed=true; }
+    if(inc.id===loc.id){ hecha[k]=1; refresca(k,inc); }
+    else { espera[k]=inc; hayEspera=true; }
   });
+  if(hayEspera) for(const k in espera) refresca(k,espera[k]);
   const list=order.map(function(k){ return byKey[k]; });
   return { list:list, changed:changed, nuevos:nuevos, sinMarca:sinMarca };
 }

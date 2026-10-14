@@ -88,7 +88,13 @@ const enlaces=(txs,saldos)=>Object.keys(saldos).map(ent=>({aspsp:ASPSP[ent],ok:t
   accounts:[{uid:ent,ok:true,balances:[{type:"ITAV",amount:saldos[ent],currency:"EUR"}],transactions:txs.filter(t=>t.ent===ent)}]}));
 // Lo mismo que hace `runBankSync` con la respuesta: importar, guardar extracto y pruebas, anclar.
 function sincroniza(c,s,txs,saldos){
-  const links=enlaces(txs,saldos),flat=c.flattenBankTx(links),add=c.importObExpenses(s,flat,links)||[];
+  const links=enlaces(txs,saldos),flat=c.flattenBankTx(links),entran=c.importObExpenses(s,flat,links)||[];
+  /* LA CIFRA DE REFERENCIA ES LA CONVERGIDA (13/10/2026). El código de antes metía dos filas con
+     la MISMA clave cuando el banco mandaba un apunte con id y otro idéntico sin él: contaban
+     doble hasta el primer pull, que las funde en una (`mergeExpenses`, una fila por clave). Hoy
+     entra una desde el principio. Se compara contra lo que el código de antes acababa diciendo,
+     no contra el doble que decía durante un rato: aquí se funde igual que lo hace el pull. */
+  const unaPorClave=c.mergeExpenses([...entran].concat(s.expenses||[]),[]).list, add=[...entran].filter(e=>unaPorClave.indexOf(e)>=0);
   // Las cuotas de deuda que entran se marcan en el mismo paso, como en la app.
   c.cuotasDeDeudaPorMarcar(Object.assign({},s,{expenses:[...add].concat(s.expenses||[])})).forEach(a=>{ if(add.indexOf(a.e)>=0){ a.e.category="deudas"; a.e.debtId=a.debtId; } });
   const hoy=new c.Date(), dia=[hoy.getFullYear(),hoy.getMonth()+1,hoy.getDate()];

@@ -220,21 +220,30 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     if(undoTimerRef.current) clearTimeout(undoTimerRef.current);
     const key=keyOfE(e), list=state.expenses||[], index=list.findIndex(function(x){ return x.id===e.id; });
     const wasCloud=cloud.enabled();
+    const pair=gemeloAutomaticoDe(state,e);
+    const paired=pair&&list.find(function(x){ return x.autoGemelo===e.id&&keyOfE(x)===pair.banco; });
+    const pairedIndex=paired?list.indexOf(paired):-1;
     // La lápida entra junto con la retirada local: si la nube refresca durante los cinco segundos,
     // no puede resucitar la fila por detrás del toast. La escritura remota sí se encadena para que
     // Deshacer vuelva a subir el MISMO id después de que termine cualquier delete aún en vuelo.
     set(function(s){
       const next=Object.assign({},s,{
-        expenses:(s.expenses||[]).filter(function(x){ return x.id!==e.id; }),
-        deleted:pushDeleted(s.deleted,key)
-      });
+        expenses:(s.expenses||[]).filter(function(x){ return x.id!==e.id&&(!paired||x.id!==paired.id); })
+      },lapidaPon(s,key));
+      // Borrar el movimiento visible también retira su apunte oculto; Deshacer devuelve ambos.
+      if(paired){
+        Object.assign(next,lapidaPon(next,keyOfE(paired)));
+        // También es un borrado a mano: sin este rastro su lápida parecería una respuesta
+        // antigua «es el mismo» y reservaría el aviso del siguiente pago igual.
+        next.gemelos=pushGemelos(next.gemelos,[{aviso:"",banco:keyOfE(paired)}]);
+      }
       // Un apunte del banco borrado A MANO deja rastro «sin aviso» (12/10/2026): así el importador
       // no confunde su lápida con un «es el mismo» antiguo y no da por reclamado ningún aviso.
-      if(e.source==="ob"||e.source==="ob-hist") next.gemelos=pushGemelos(s.gemelos,[{aviso:"",banco:key}]);
+      if(e.source==="ob"||e.source==="ob-hist") next.gemelos=pushGemelos(next.gemelos,[{aviso:"",banco:key}]);
       return next;
     });
-    const pending={expense:e,key:key,index:index<0?list.length:index,wasCloud:wasCloud,
-      cloudDelete:wasCloud?borrarGastoNube(e,"gastos-borrar"):Promise.resolve()};
+    const pending={expense:e,key:key,index:index<0?list.length:index,wasCloud:wasCloud,paired:paired,pairedIndex:pairedIndex,
+      cloudDelete:wasCloud?Promise.all([e].concat(paired?[paired]:[]).map(function(row){ return borrarGastoNube(row,"gastos-borrar"); })):Promise.resolve()};
     undoDeleteRef.current=pending; setUndoDelete(pending);
     undoTimerRef.current=setTimeout(function(){
       if(undoDeleteRef.current!==pending) return;
@@ -247,16 +256,20 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     if(undoTimerRef.current) clearTimeout(undoTimerRef.current);
     undoTimerRef.current=null; undoDeleteRef.current=null; setUndoDelete(null);
     set(function(s){
-      const deleted=(s.deleted||[]).slice();
-      const di=deleted.lastIndexOf(pending.key); if(di>=0) deleted.splice(di,1);
       const expenses=(s.expenses||[]).slice();
       if(!expenses.some(function(x){ return x.id===pending.expense.id; })){
         expenses.splice(Math.min(pending.index,expenses.length),0,pending.expense);
       }
-      return Object.assign({},s,{expenses:expenses,deleted:deleted});
+      // Con su hora: la lápida ya pudo subir a la nube, y sin ella volvería del otro móvil.
+      if(pending.paired&&!expenses.some(function(x){ return x.id===pending.paired.id; })){
+        expenses.splice(Math.min(pending.pairedIndex,expenses.length),0,pending.paired);
+      }
+      const next=Object.assign({},s,{expenses:expenses},lapidaLevanta(s,pending.key));
+      if(pending.paired) Object.assign(next,lapidaLevanta(next,keyOfE(pending.paired)));
+      return next;
     });
     if(pending.wasCloud){
-      Promise.resolve(pending.cloudDelete).then(function(){ return subirGasto(pending.expense,"gastos-deshacer"); });
+      Promise.resolve(pending.cloudDelete).then(function(){ return Promise.all([pending.expense].concat(pending.paired?[pending.paired]:[]).map(function(row){ return subirGasto(row,"gastos-deshacer"); })); });
     }
   };
   /* Posible repetido OB↔noti (2026-09-07): «es el mismo» borra la fila OB; «son distintos»
@@ -266,7 +279,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     set(function(s){
       let next=resolvePossibleDup(s, e.id, same);
       if(same){
-        next=Object.assign({},next,{deleted:pushDeleted(next.deleted, keyOfE(e))});
+        next=Object.assign({},next,lapidaPon(next, keyOfE(e)));
         if(cloud.enabled()) borrarGastoNube(e, "gastos-dup");
       }
       // «Son distintos»: hay que QUITAR la marca también en la nube (B09-D). Si no, la fila sigue
@@ -277,6 +290,16 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     });
     if(same) showToast(t("g_dup_same"));
     else showToast(t("g_dup_diff"));
+  };
+  const separarGemelo=function(e,unir){
+    set(function(s){
+      const next=unir?unirGemeloAutomatico(s,e.id):separarGemeloAutomatico(s,e.id);
+      if(next===s) return s;
+      const repairs=gemelosCambiosNube(next,s.expenses);
+      if(cloud.enabled()) setTimeout(function(){ repairs.forEach(function(r){ cloud.setExpenseDup(r.expense,r.dup).catch(function(){}); }); },0);
+      return next;
+    });
+    showToast(t(unir?"g_auto_paired":"g_auto_separated"));
   };
   const withdrawalPending=useRef({});
   const withdrawalState=useRef(state); withdrawalState.current=state;
@@ -476,6 +499,13 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   // que entraron como gasto…). En la nube la clave es fecha|importe|comercio → se hace tombstone
   // de la fila vieja (deleted + deleteExpense) y se inserta la corregida, o el pull la resucitaría.
   const [editExp,setEditExp]=useState(null);   // {id, merchant, amount, income} — usado por el sheet de detalle
+  const editCola=useRef({pend:[], fin:Promise.resolve()});   // escrituras de `saveEdit` en la nube
+  // Lo que se editó sin conexión se sube al volver: ver `subeEdicionesDeGasto`.
+  useEffect(function(){
+    const alVolver=function(){ if(editCola.current.pend.length) subeEdicionesDeGasto(editCola.current); };
+    window.addEventListener("online",alVolver);
+    return function(){ window.removeEventListener("online",alVolver); };
+  },[]);
   const [detailId,setDetailId]=useState(null);     // id del gasto abierto en sheet (SPEC §14)
   // PUNTO 5: al tocar la noti de un gasto, App pasa focusExp ({amount,merchant}) → abrimos la ficha
   // del gasto que casa (mismo importe y comercio parecido, el más reciente; si no, el último gasto).
@@ -528,6 +558,8 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     const newDay=String(ed.date||origDay).slice(0,10);
     if(signed===orig.amount && merch===(orig.merchant||"") && newDay===origDay){ sincroniza(orig); return; }   // sin cambios
     const cat = ed.income ? "ingreso" : (orig.category==="ingreso" ? autoCategory(merch) : orig.category);
+    const splitByEdit=(signed!==orig.amount||newDay!==origDay)&&!!gemeloAutomaticoDe(state,orig);
+    if(splitByEdit) separarGemelo(orig);
     const upd=Object.assign({},orig,{merchant:merch, amount:signed, category:cat});
     if(newDay!==origDay) upd.date=newDay;
     /* Al renombrar un movimiento del banco, guardar CÓMO LO LLAMABA ÉL (2026-08-17). El dedup de
@@ -543,11 +575,11 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
        mentira — y en el detalle se leerían juntos como si fueran el mismo pago. */
     if(signed!==orig.amount){ delete upd.origAmount; delete upd.origCur; }
     set(function(s){ return rekeyFixedPaymentExpense(Object.assign({},s,{
-      expenses:s.expenses.map(function(x){ return x.id===orig.id?upd:x; }),
-      deleted:pushDeleted(s.deleted, keyOfE(orig))
-    }),orig,upd); });
-    if(cloud.enabled()){ borrarGastoNube(orig, "gastos-editar"); subirGasto(upd, "gastos-editar"); }
-    sincroniza(upd); showToast(t("g_edited"));
+      expenses:s.expenses.map(function(x){ return x.id===orig.id?upd:x; })
+    },lapidasAlEditar(s, keyOfE(orig), keyOfE(upd))),orig,upd); });
+    // Borrado y alta en la nube, en orden y detrás de la edición anterior (`subeEdicionesDeGasto`).
+    if(cloud.enabled()){ editCola.current.pend.push({orig:orig, upd:upd}); subeEdicionesDeGasto(editCola.current); }
+    sincroniza(upd); showToast(t(splitByEdit?"g_auto_edit_separated":"g_edited"));
   };
 
   const todayKey=new Date().toDateString();
@@ -598,7 +630,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     for(let i=0;i<src.length;i++){
       const e=src[i];
       // La lápida puede venir de otro dispositivo sin retirar aún esta fila local.
-      if(expenseIsTombstoned(e,expenseDeletedSet(state))) continue;
+      if(e.autoGemelo||expenseIsTombstoned(e,expenseDeletedSet(state))) continue;
       if(!inBounds(dateMs(e.date),bounds)) continue;
       // `debt:<id>` en la misma lista que las categorías: el chip de cada deuda (4.21.0).
       if(catSet && !catSet.has(e.category) && !(e.debtId && catSet.has("debt:"+e.debtId))) continue;
@@ -1061,12 +1093,12 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
         setDetailId(null); setEditExp(null);
       },
       setCat:setCat, setCuota:setCuota, setReceipt:setReceipt, quitarRecibo:quitarRecibo, setCardFlag:setCardFlag, setBank:setBank, delExpense:delExpense, saveEdit:saveEdit, saveNote:saveNote,
-      resolveDup:resolveDup, recognizeWithdrawal:recognizeWithdrawal, withdrawalStatus:withdrawalStatus,
+      resolveDup:resolveDup, separarGemelo:separarGemelo, recognizeWithdrawal:recognizeWithdrawal, withdrawalStatus:withdrawalStatus,
       showToast:showToast, aiBusy:aiBusy, suggestAi:suggestAi, state:state
     }),
     undoDelete && ReactDOM.createPortal(
       React.createElement("div",{className:"v4-undo-toast",role:"status","data-testid":"expense-undo"},
-        React.createElement("span",null,t("f_undo_deleted")),
+        React.createElement("span",null,t(undoDelete.paired?"g_auto_deleted":"f_undo_deleted")),
         React.createElement("button",{type:"button",onClick:undoLastDelete},t("f_undo"))),document.body)
   );
 }
@@ -1273,7 +1305,7 @@ function PeriodMoreSheet({open, onClose, preset, setPreset}){
 }
 
 /* Sheet detalle/edición de un movimiento. Layout alineado con Apuntar/Cartera (feedback 2026-07-17). */
-function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota, setReceipt, quitarRecibo, setCardFlag, setBank, delExpense, saveEdit, saveNote, resolveDup, showToast, aiBusy, suggestAi, state, recognizeWithdrawal, withdrawalStatus}){
+function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota, setReceipt, quitarRecibo, setCardFlag, setBank, delExpense, saveEdit, saveNote, resolveDup, separarGemelo, showToast, aiBusy, suggestAi, state, recognizeWithdrawal, withdrawalStatus}){
   /* UNA SOLA CONDICIÓN para pintarse y para los candados. Iban por separado (`!!exp` en los hooks,
      `!exp || !editExp` para pintar) y en cuanto se separaban el sheet desaparecía dejando el
      `overflow:hidden` y el bloqueo de `touchmove` puestos sobre una pantalla vacía: nada respondía
@@ -1347,7 +1379,12 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
     {id:"date",testId:"exp-date",label:fmtIsoCorto(dateIso),lead:React.createElement("span",null,"📅"),on:calOpen,
       onClick:function(){ setCalOpen(function(v){ return !v; }); setBankOpen(false); }}
   ];
-  const duplicate=exp.possibleDup && React.createElement("div",{className:"hint",style:{margin:"0 0 12px",padding:"10px 12px",borderRadius:12,background:"var(--surface-2)"}},
+  const splitPair=gemeloSeparadoDe(state,exp);
+  const autoPair=gemeloAutomaticoDe(state,exp);
+  const paired=splitPair?React.createElement("div",{className:"hint"},React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-auto-rejoin",onClick:function(){separarGemelo(exp,true);onClose(true);}},t("g_auto_rejoin"))):autoPair&&React.createElement("div",{className:"hint","data-testid":"exp-auto-paired"},
+    React.createElement("div",null,t("g_auto_paired")),
+    React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-auto-separate",onClick:function(){ separarGemelo(exp); onClose(true); }},t("g_auto_separate")));
+  const duplicate=exp.possibleDup && !exp.autoGemelo && React.createElement("div",{className:"hint",style:{margin:"0 0 12px",padding:"10px 12px",borderRadius:12,background:"var(--surface-2)"}},
     React.createElement("div",{style:{fontWeight:600,marginBottom:4}},t("g_dup_title")),
     React.createElement("div",{style:{marginBottom:10}},t("g_dup_sub")),
     React.createElement("div",{className:"row",style:{gap:8}},
@@ -1364,7 +1401,7 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
       React.createElement("button",{type:"button",className:"v4-chip"+(!bk?" on":""),onClick:function(){ setBank(exp,null); setBankOpen(false); }},t("ap_bank_none")),
       bankOpts.map(function(b){ return React.createElement("button",{key:b,type:"button",className:"v4-chip"+(bk===b?" on":""),
         onClick:function(){ setBank(exp,b); setBankOpen(false); }},"🏦 "+entOf(b).label); })),
-    trace,duplicate,reciboAviso,
+    trace,duplicate,paired,reciboAviso,
     canRecognizeWithdrawal(exp) && React.createElement("div",{className:"hint","data-testid":"exp-withdrawal-info"},
       React.createElement("div",null,t("f_withdraw_fields")),
       exp.category!=="traspaso" && React.createElement("button",{type:"button",className:"btn btn-ghost","data-testid":"exp-withdrawal",
@@ -1380,15 +1417,18 @@ function ExpenseDetailSheet({exp, editExp, setEditExp, onClose, setCat, setCuota
   const receiptDate=String(exp.date||"").slice(0,10),receiptYear=Number(receiptDate.slice(0,4)),receiptMonth=Number(receiptDate.slice(5,7)),receiptNow=new Date();
   const receiptToday=receiptYear===receiptNow.getFullYear()&&receiptMonth===receiptNow.getMonth()+1?receiptNow.getDate():new Date(receiptYear,receiptMonth,0).getDate();
   const receiptLinked=withdrawalReceiptLink(state,exp);
+  // El recibo o puntual que se vetó para ESTE cargo: ofrecerlo es la vuelta atrás de aquel «No es
+  // este recibo».
+  const vetadoAqui=function(r){ return r.id&&admiteMarcaDe(exp,r)&&reciboNoDe(state,r.id,reciboNoIdentidad(exp),exp.id).length>0; };
+  /* Un recibo FIJO vetado para este cargo se ofrece aunque no sea «elegible» (13/10/2026): con
+     dos cargos iguales el motor no admite vínculo a mano con ninguno, la opción no salía y el
+     veto de uno de ellos no tenía vuelta atrás desde la ficha. */
   const receiptOptions=(state.fixed||[]).filter(function(f){
-    return fixedExpenseEligible(state,exp,f,receiptYear,receiptMonth,receiptToday)&&
+    return vetadoAqui(f)||fixedExpenseEligible(state,exp,f,receiptYear,receiptMonth,receiptToday)&&
       (!fixedPaymentState(state,f,receiptYear,receiptMonth,receiptToday).paid||(receiptLinked&&receiptLinked.id===f.id));
   });
-  // Los puntuales no se vinculan a mano; solo se ofrece el que se vetó para ESTE cargo, que es
-  // la única vuelta atrás de un «No es este recibo» sobre un puntual (cuarta revisión).
-  const receiptPuntuales=(state.oneoffs||[]).filter(function(o){
-    return o.id&&admiteMarcaDe(exp,o)&&reciboNoDe(state,o.id,reciboNoIdentidad(exp),exp.id).length>0;
-  });
+  // Los puntuales no se vinculan a mano; solo se ofrece el que se vetó para ESTE cargo (cuarta revisión).
+  const receiptPuntuales=(state.oneoffs||[]).filter(vetadoAqui);
   const adjustments=React.createElement("div",{className:"v4-ficha-adjust"},
     // Con marca de recibo la fila sale siempre: si no, «No es este recibo» quedaba inalcanzable
     // cuando la marca venía de un puntual o la categoría era neutra.
