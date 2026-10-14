@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, devices } from "@playwright/test";
 import { seedLoggedInDashboard, dismissNews, estadoHeredado } from "./fixtures.mjs";
 
 test.use({ viewport:{width:412,height:915},timezoneId:"Europe/Madrid",serviceWorkers:"block" });
@@ -27,14 +27,15 @@ async function abrir(page,mode,prior=false,lang="es"){
 async function cifras(page){
   const hero=page.getByTestId("inicio-net-current");
   const result={now:await hero.locator(".v4-hero-amt").innerText(),card:await page.locator(".v42-cycle-amount>.serif").innerText(),delta:await hero.getByTestId("inicio-net-delta").innerText(),line:await hero.locator(".v42-net-line").getAttribute("d")};
-  await page.locator('.botnav-tab[data-tour="gastos"]').click();
+  await page.locator('.botnav-tab[data-tour="gastos"]').tap();
+  await expect(page.locator('.botnav-tab[data-tour="gastos"]')).toHaveClass(/active/);
   await expect(page.locator(".v4-gastos-summary")).toBeVisible();
   result.gastos=await page.locator(".v4-gastos-summary").innerText();
   return result;
 }
 for(const mode of ["sin-efectivo","con-efectivo","traspaso-cajero","transfer-alone","transfer-pair"]) test("reservas: gráfica y cifras actuales antes/después "+mode,{annotation:{type:"own-clock",description:"14/10/2026"}},async({browser},testInfo)=>{
   const read=async prior=>{
-    const context=await browser.newContext({baseURL:testInfo.project.use.baseURL,viewport:{width:412,height:915},timezoneId:"Europe/Madrid",serviceWorkers:"block"});
+    const context=await browser.newContext({...devices["Pixel 5"],baseURL:testInfo.project.use.baseURL,viewport:{width:412,height:915},timezoneId:"Europe/Madrid",serviceWorkers:"block"});
     try{const page=await context.newPage();await abrir(page,mode,prior);return await cifras(page);}finally{await context.close();}
   };
     const old=await read(true),next=await read(false);
