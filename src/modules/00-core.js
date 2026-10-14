@@ -2514,6 +2514,23 @@ function accountOwnsMovement(item, kind, acc){
   const uidOf=kind==="ob"?String(item&&item.key||""):/^ob:/.test(item&&item.accountOrderKey||"")?item.accountOrderKey.slice(3):"";
   return (!!iban&&iban===accountIbanKey(acc))||(!!uidOf&&uidOf===String(acc));
 }
+/* LOS MOVIMIENTOS VIEJOS SIN CUENTA LOS ATRIBUYE ÉL, no la app (14/10/2026). Lo anterior a
+   guardar `obAcc` no dice de qué cuenta salió, y en un banco con la personal al 100 % y la
+   conjunta al 50 % contaban enteros. La ficha le pregunta; su respuesta va a
+   `settings.accountShareLegacy[ent]` = {key, no, day} sin reescribir ningún gasto, y vale para
+   lo que entró sin cuenta hasta ese día. Quitarla deja todo como estaba. */
+function accountLegacyCount(state, ent){
+  return (state&&state.expenses||[]).filter(function(e){
+    return e&&!e.obAcc&&e.amount&&(e.source==="ob"||e.source==="ob-hist")&&expenseBankOf(e)===ent;
+  }).length;
+}
+function setAccountLegacy(state, ent, decision){
+  const next=Object.assign({},(state.settings||{}).accountShareLegacy);
+  if(decision) next[ent]=decision; else delete next[ent];
+  const settings=Object.assign({},state.settings);
+  if(Object.keys(next).length) settings.accountShareLegacy=next; else delete settings.accountShareLegacy;
+  return Object.assign({},state,{settings:settings});
+}
 function moveAccountInList(state, fromId, toId){
   if(!state||!fromId||!toId||fromId===toId) return state;
   const rows=accountRowsInOrder(state);

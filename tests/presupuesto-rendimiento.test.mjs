@@ -283,10 +283,11 @@ const PRESUPUESTO = {
   // intereses de la deuda en la serie), sobre la beta 127: medida tras el build, sello 4.26.128.99999 y
   // reserva de 95 B: 1.391.829 B crudo / 382.531 B gzip, +3.139 / +966 B sobre la 127. 1360 KiB es el mínimo (quedan 811 B).
   // Parte mía de una cuenta (14/10), sobre la 128: medida con el mismo sello y la misma reserva,
-  // 1.398.722 B crudo / 384.457 B gzip, +6.917 / +1.944 B (el porcentaje por cuenta en Cartera,
-  // patrimonio y gráfica, la cuenta de cada movimiento del banco y sus textos). 1366 KiB es el
-  // mínimo (quedan 62 B); al integrarla se vuelve a medir con el sello de verdad.
-  minificado: 1366 * 1024,
+  // 1.401.911 B crudo / 385.224 B gzip, +10.106 / +2.711 B (el porcentaje por cuenta en Cartera,
+  // patrimonio y gráfica, la cuenta de cada movimiento del banco, su decisión sobre los viejos sin
+  // cuenta y sus textos). 1370 KiB es el
+  // mínimo (quedan 969 B); al integrarla se vuelve a medir con el sello de verdad.
+  minificado: 1370 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -312,8 +313,8 @@ const PRESUPUESTO = {
   // Integración 4.26.125: 380.616 B gzip, 712 B sobre 371 KiB. Mínimo medido: 372 KiB (quedan 312 B).
   // Integración 4.26.127: 381.565 B gzip, 637 B sobre el tope anterior de 372 KiB. Mínimo medido: 373 KiB (quedan 387 B).
   // Integración 4.26.128: 382.531 B gzip, 955 B sobre el tope anterior de 373 KiB. Mínimo medido: 374 KiB (quedan 445 B).
-  // Parte mía de una cuenta: 384.457 B gzip, 1.497 B sobre 374 KiB. Mínimo medido: 376 KiB (quedan 567 B).
-  gzip: 376 * 1024,
+  // Parte mía de una cuenta: 385.224 B gzip, 2.264 B sobre 374 KiB. Mínimo medido: 377 KiB (quedan 824 B).
+  gzip: 377 * 1024,
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 

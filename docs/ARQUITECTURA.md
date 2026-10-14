@@ -669,7 +669,8 @@ escribir `Access-Control-Allow-Origin: "*"`.
   lo ya apuntado que el banco vuelve a mandar). `obAcc` es solo local: la tabla `expenses` no tiene
   columna para ella, así que otro móvil o un apunte que solo llega por la nube no la tiene. Un
   movimiento sin cuenta en un banco cuyas cuentas tienen partes distintas cuenta entero y la «i»
-  de Inicio lo dice.
+  de Inicio lo dice, salvo que él decida en la ficha de qué cuenta son: `settings.accountShareLegacy[ent]`
+  = `{key, no, day}` (sin reescribir gastos; vale para lo que entró sin cuenta hasta ese día; se deshace).
 - La ficha guarda un cierre diario real por cuenta en `accountBalanceHistory`, indexado por la
   misma clave estable del orden (`acc:<id>` / `ob:<key>`) y limitado a400 puntos mediante
   `recordAccountBalances`, compartido con Inicio. El día civil es el de Madrid. El gráfico de

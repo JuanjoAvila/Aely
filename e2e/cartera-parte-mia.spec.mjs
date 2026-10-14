@@ -79,3 +79,57 @@ test("poner 50 % en la conjunta: Liquidez y patrimonio de Inicio cuentan solo su
   const filas = page.locator('[data-sheet="net-info"] .row');
   await expect(filas.filter({ hasText: "Cuentas compartidas" })).toContainText("solo tu parte del saldo y de sus movimientos");
 });
+
+test("los movimientos viejos sin cuenta: él decide de qué cuenta son y se puede deshacer", async ({ page }) => {
+  await seedLoggedInDashboard(page, {
+    accounts: [{ id: "sb", ent: "sabadell", name: "Nómina", value: 2000, role: "fijos" }],
+    obAccounts: [
+      { key: "u-personal", ent: "revolut", aspsp: "Revolut", iban: "ES00SYNTH000000000001", name: "LUIS SINTÉTICO", value: 1000, cur: "EUR" },
+      { key: "u-conjunta", ent: "revolut", aspsp: "Revolut", iban: "ES00SYNTH000000000002", name: "ANA SINTÉTICA & LUIS SINTÉTICO", value: 1000, cur: "EUR" }],
+    obLabels: {}, hasBankLink: true,
+    expenses: [{ id: "alta-sb", date: hace(5), amount: 0, category: "otros", ent: "sabadell", merchant: "Alta" },
+      // Antiguo, de antes de guardar la cuenta de cada movimiento: no dice de cuál salió.
+      { id: "viejo", date: hace(3), amount: 400, category: "otros", ent: "revolut", source: "ob", merchant: "Crucero sintético" }],
+    settings: { autoPrices: false, theme: "green" },
+  });
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
+  await page.waitForFunction(() => !document.getElementById("mc-load"), null, { timeout: 30_000 });
+  await dismissNews(page);
+  await page.locator('.botnav-tab[data-tour="cartera"]').click();
+  await page.locator('button.v4-mov[data-ob-key="u-conjunta"]').click();
+  // Al 100 % no se pregunta nada: no cambiaría ninguna cifra.
+  await expect(ficha(page).getByTestId("ac-legacy")).toHaveCount(0);
+  await ficha(page).getByTestId("ac-share-edit").click();
+  const ask = page.locator(".askback .tabsheet");
+  await ask.locator("input").fill("50");
+  await ask.getByRole("button", { name: "Guardar" }).click();
+  const bloque = ficha(page).getByTestId("ac-legacy");
+  await expect(bloque).toContainText("Los 1 movimientos antiguos de Revolut que no dicen su cuenta: ¿son de esta cuenta?");
+
+  // «Preguntar después» no guarda nada.
+  await bloque.getByTestId("ac-legacy-btn").click();
+  await ask.getByRole("button", { name: "Preguntar después" }).click();
+  await expect(page.locator(".askback")).toHaveCount(0);
+  await expect(bloque).toContainText("¿son de esta cuenta?");
+
+  await bloque.getByTestId("ac-legacy-btn").click();
+  await ask.getByRole("button", { name: "Sí, son de esta cuenta" }).click();
+  await expect(bloque).toContainText("cuentan como de esta cuenta");
+  await expect(bloque.getByTestId("ac-legacy-btn")).toHaveText("Deshacer");
+  await page.locator(".v4-sheet-back").click({ position: { x: 10, y: 10 } });
+  await expect(ficha(page)).toHaveCount(0);
+  await expect(liquidez(page)).toContainText(/3\.?500/);
+
+  await page.locator('.botnav-tab[data-tour="inicio"]').click();
+  const hero = page.getByTestId("inicio-net-current");
+  await hero.locator(".v42-net-info").click();
+  await expect(page.locator('[data-sheet="net-info"] .row').filter({ hasText: "Cuentas compartidas" })).toContainText("los antiguos de Revolut, como dijiste en la ficha de la cuenta");
+  await page.getByRole("button", { name: "Entendido" }).click();
+
+  // Se deshace en la misma ficha y vuelve la pregunta.
+  await page.locator('.botnav-tab[data-tour="cartera"]').click();
+  await page.locator('button.v4-mov[data-ob-key="u-conjunta"]').click();
+  await ficha(page).getByTestId("ac-legacy-btn").click();
+  await expect(ficha(page).getByTestId("ac-legacy")).toContainText("¿son de esta cuenta?");
+});

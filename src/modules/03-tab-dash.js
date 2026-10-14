@@ -65,7 +65,8 @@ function netWorthInfoRows(series, dateFmt, comparedRange){
   const shared=coverage.filter(function(g){ return g.kind==="share"; });
   if(shared.length){
     const unsplit=shared.filter(function(g){ return g.unsplit; }).map(function(g){ return g.name; });
-    rows.push({k:t("v42_net_i_share"),v:t("v42_net_i_share_v")+(unsplit.length?tf("v42_net_i_share_unsplit",{bank:unsplit.join(", ")}):"")});
+    const legacy=shared.filter(function(g){ return g.legacy; }).map(function(g){ return g.name; });
+    rows.push({k:t("v42_net_i_share"),v:t("v42_net_i_share_v")+(legacy.length?tf("v42_net_i_share_legacy",{bank:legacy.join(", ")}):"")+(unsplit.length?tf("v42_net_i_share_unsplit",{bank:unsplit.join(", ")}):"")});
   }
   // Última fila, solo cuando hay frase de comparación: con qué día se compara hoy, en corto.
   const months=comparedRange&&NW_MONTHS[comparedRange];

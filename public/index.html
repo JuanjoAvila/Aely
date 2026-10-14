@@ -4958,6 +4958,23 @@ function accountOwnsMovement(item, kind, acc){
   const uidOf=kind==="ob"?String(item&&item.key||""):/^ob:/.test(item&&item.accountOrderKey||"")?item.accountOrderKey.slice(3):"";
   return (!!iban&&iban===accountIbanKey(acc))||(!!uidOf&&uidOf===String(acc));
 }
+/* LOS MOVIMIENTOS VIEJOS SIN CUENTA LOS ATRIBUYE ÉL, no la app (14/10/2026). Lo anterior a
+   guardar `obAcc` no dice de qué cuenta salió, y en un banco con la personal al 100 % y la
+   conjunta al 50 % contaban enteros. La ficha le pregunta; su respuesta va a
+   `settings.accountShareLegacy[ent]` = {key, no, day} sin reescribir ningún gasto, y vale para
+   lo que entró sin cuenta hasta ese día. Quitarla deja todo como estaba. */
+function accountLegacyCount(state, ent){
+  return (state&&state.expenses||[]).filter(function(e){
+    return e&&!e.obAcc&&e.amount&&(e.source==="ob"||e.source==="ob-hist")&&expenseBankOf(e)===ent;
+  }).length;
+}
+function setAccountLegacy(state, ent, decision){
+  const next=Object.assign({},(state.settings||{}).accountShareLegacy);
+  if(decision) next[ent]=decision; else delete next[ent];
+  const settings=Object.assign({},state.settings);
+  if(Object.keys(next).length) settings.accountShareLegacy=next; else delete settings.accountShareLegacy;
+  return Object.assign({},state,{settings:settings});
+}
 function moveAccountInList(state, fromId, toId){
   if(!state||!fromId||!toId||fromId===toId) return state;
   const rows=accountRowsInOrder(state);
@@ -5624,7 +5641,7 @@ const LANG = {
     v42_net_missing:"Todavía no hay gráfica: los datos empiezan hoy. Mañana ya aparecerá.",
     v42_net_i_accounts:"Cuentas", v42_net_i_accounts_v:"movimientos reales desde {day}", v42_net_i_accounts_later:" (alguna desde más tarde)",
     v42_net_i_kept_inv:"Inversiones", v42_net_i_kept_assets:"Bienes", v42_net_i_kept_manual:"Cuentas manuales", v42_net_i_and:" y ", v42_net_i_kept_v:"valor conocido mantenido",
-    v42_net_i_debts:"Deudas", v42_net_i_debts_est:"según sus cuotas", v42_net_i_debts_kept:"saldo actual mantenido", v42_net_i_debts_mixed:"según sus cuotas; alguna, saldo actual", v42_net_i_debts_norate:"; las cuotas sin tipo de interés se cuentan enteras como capital", v42_net_i_debts_badrate:"; un tipo de interés que no cuadra con su cuota se ignora", v42_net_i_ok:"Entendido", v42_net_i_share:"Cuentas compartidas", v42_net_i_share_v:"solo tu parte del saldo y de sus movimientos", v42_net_i_share_unsplit:"; los movimientos antiguos de {bank} no dicen de qué cuenta salieron y cuentan enteros",
+    v42_net_i_debts:"Deudas", v42_net_i_debts_est:"según sus cuotas", v42_net_i_debts_kept:"saldo actual mantenido", v42_net_i_debts_mixed:"según sus cuotas; alguna, saldo actual", v42_net_i_debts_norate:"; las cuotas sin tipo de interés se cuentan enteras como capital", v42_net_i_debts_badrate:"; un tipo de interés que no cuadra con su cuota se ignora", v42_net_i_ok:"Entendido", v42_net_i_share:"Cuentas compartidas", v42_net_i_share_v:"solo tu parte del saldo y de sus movimientos", v42_net_i_share_legacy:"; los antiguos de {bank}, como dijiste en la ficha de la cuenta", v42_net_i_share_unsplit:"; los movimientos antiguos de {bank} no dicen de qué cuenta salieron y cuentan enteros",
     v42_range_1m:"1M", v42_range_3m:"3M", v42_range_6m:"6M", v42_range_1y:"1A", v42_range_all:"Todo",
     v42_net_cmp_up:"{x} más que {when}", v42_net_cmp_down:"{x} menos que {when}", v42_net_cmp_same:"Igual que {when}", v42_net_cmp_none:"Aún sin datos para comparar",
     v42_net_when_1:"el mes pasado", v42_net_when_n:"hace {n} meses", v42_net_when_12:"hace un año", v42_net_i_cmp:"Comparación", v42_net_i_cmp_1m:"frente al mismo día del mes pasado", v42_net_i_cmp_n:"frente al mismo día de hace {n} meses", v42_net_i_cmp_12:"frente al mismo día de hace un año", v42_net_i_cmp_all:"desde el principio",
@@ -5962,7 +5979,7 @@ Object.assign(LANG.es,{
 
 /* Roles de cuenta + import OB + informe mensual */
 Object.assign(LANG.es,{
-  pt_ficha_saldo:"Saldo", pt_ficha_banco:"lo pone el banco", pt_ficha_manual:"lo pones tú", pt_ficha_nombre:"Cómo se llama", pt_ficha_rol:"Qué cuenta de esta cuenta", pt_ficha_quitar:"Quitar esta cuenta", pt_ficha_sync:"Última sincronización: {x}", ac_share_q:"Parte mía", ac_share_all:"Cuenta entera en tu patrimonio", ac_share_counts:"En tu patrimonio cuentan {x}", ac_share_change:"Cambiar", ac_share_title:"¿Qué parte de esta cuenta es tuya?", ac_share_sub:"En porcentaje, de 0 a 100. Solo cambia tu patrimonio: los gastos y el presupuesto siguen igual.", ac_share_ok:"Guardar", ac_share_bad:"Pon un número entre 0 y 100", ac_share_joint_hint:"Parece una cuenta con dos titulares. Si solo la mitad es tuya, pon 50 % y tu patrimonio contará solo tu parte.", pt_share_meta:"{n} % tuyo",
+  pt_ficha_saldo:"Saldo", pt_ficha_banco:"lo pone el banco", pt_ficha_manual:"lo pones tú", pt_ficha_nombre:"Cómo se llama", pt_ficha_rol:"Qué cuenta de esta cuenta", pt_ficha_quitar:"Quitar esta cuenta", pt_ficha_sync:"Última sincronización: {x}", ac_share_q:"Parte mía", ac_share_all:"Cuenta entera en tu patrimonio", ac_share_counts:"En tu patrimonio cuentan {x}", ac_share_change:"Cambiar", ac_share_title:"¿Qué parte de esta cuenta es tuya?", ac_share_sub:"En porcentaje, de 0 a 100. Solo cambia tu patrimonio: los gastos y el presupuesto siguen igual.", ac_share_ok:"Guardar", ac_share_bad:"Pon un número entre 0 y 100", ac_share_joint_hint:"Parece una cuenta con dos titulares. Si solo la mitad es tuya, pon 50 % y tu patrimonio contará solo tu parte.", pt_share_meta:"{n} % tuyo", ac_legacy_q:"Los {n} movimientos antiguos de {bank} que no dicen su cuenta: ¿son de esta cuenta?", ac_legacy_sub:"Solo cambia tu patrimonio y su gráfica. Puedes deshacerlo aquí mismo.", ac_legacy_yes:"Sí, son de esta cuenta", ac_legacy_no:"No, son de otra cuenta", ac_legacy_later:"Preguntar después", ac_legacy_decide:"Decidir", ac_legacy_undo:"Deshacer", ac_legacy_done_yes:"Los movimientos antiguos de {bank} sin cuenta cuentan como de esta cuenta.", ac_legacy_done_no:"Los movimientos antiguos de {bank} sin cuenta cuentan como de otra cuenta.", ac_legacy_done_other:"Los movimientos antiguos de {bank} sin cuenta los asignaste a otra cuenta.",
   ac_rename:"Renombrar", ac_manual_sub:"{bank} · la llevas a mano", ac_synced_sub:"{bank} · se actualiza sola", ac_balance_today:"SALDO DE HOY",
   ac_delta_month:"↑ {x} este mes", ac_delta_month_down:"↓ {x} este mes", ac_eom:"a fin de mes: {x}", ac_spark_from:"hace 14 días", ac_spark_to:"hoy", ac_spark_new:"Su histórico empieza hoy",
   ac_fix_balance:"✏️ Corregir saldo", ac_connect:"🔗 Conectar banco", ac_sync_now:"↻ Sincronizar ahora", ac_reconnect:"⚠ Reconectar", ac_role_q:"¿Para qué la usas?",
@@ -8563,11 +8580,24 @@ function netWorthSeries(state, options){
      al 50 % en Revolut) no deja saber a cuál aplicar: ahí cuentan enteros, como siempre, y la «i»
      lo dice. Repartirlos por saldo sería inventar (con las dos a cero ni siquiera hay saldo). Si
      todas las cuentas del banco tienen la misma parte, esa vale para todos sus movimientos. */
-  const byBank={}, unsplit={};
+  const byBank={}, unsplit={}, decided={};
   rows.forEach(function(r,i){ if(r.item.ent) (byBank[r.item.ent]||(byBank[r.item.ent]=[])).push({r:r,s:shares[i]}); });
-  const factorOf=function(e,bank){
-    const list=byBank[bank];
+  /* Lo que él decidió para los movimientos viejos sin cuenta de ese banco (`accountLegacyFor`):
+     «son de esta cuenta» les pone la parte de esa cuenta; «no son de esta» los deja entre las
+     demás, y si todas ellas tienen la misma parte, esa. Solo hasta el día en que lo decidió: lo
+     que entre después sin cuenta no lo ha visto. */
+  const legacy=(state.settings||{}).accountShareLegacy||{};
+  const factorOf=function(e,bank,day){
+    let list=byBank[bank];
     if(e.obAcc){ const hit=list.find(function(x){ return accountOwnsMovement(x.r.item,x.r.kind,e.obAcc); }); if(hit) return hit.s; }
+    const dec=!e.obAcc&&legacy[bank];
+    if(dec&&day<=dec.day){
+      const mine=function(x){ return accountShareKey(x.r.item,x.r.kind)===dec.key; };
+      const hit=list.find(mine);
+      if(hit) decided[bank]=true;
+      if(hit&&!dec.no) return hit.s;
+      if(hit&&list.length>1) list=list.filter(function(x){ return !mine(x); });
+    }
     if(list.every(function(x){ return x.s===list[0].s; })) return list[0].s;
     // Un apunte a cero no mueve nada que haya que separar: no avisa.
     if(e.amount) unsplit[bank]=true; return 1;
@@ -8581,7 +8611,7 @@ function netWorthSeries(state, options){
     if(!Number.isFinite(ms)) return;
     const hour=Math.floor(ms/3600000),bounds=hours[hour]||(hours[hour]=[fmt.format(hour*3600000),fmt.format(hour*3600000+3599999)]);
     const day=bounds[0]===bounds[1]?bounds[0]:fmt.format(ms);if(day>today) return;
-    const row={expense:e,bank:bank,day:day,ms:ms,cents:Math.round(e.amount*100),f:factorOf(e,bank)};entries.push(row);
+    const row={expense:e,bank:bank,day:day,ms:ms,cents:Math.round(e.amount*100),f:factorOf(e,bank,day)};entries.push(row);
     if(!firstByBank[bank]||day<firstByBank[bank]) firstByBank[bank]=day;
     if(row.cents){const key=Math.abs(row.cents);(byAmount[key]||(byAmount[key]=[])).push(row);}
   });
@@ -8731,6 +8761,7 @@ function netWorthSeries(state, options){
   debt.notes.forEach(function(n){gaps.push(n);});
   const start=first||today;
   rows.forEach(function(r,i){ if(shares[i]!==1) gaps.push({kind:"share",name:r.item.name||r.item.ent,pct:Math.round(shares[i]*10000)/100}); });
+  Object.keys(decided).forEach(function(b){ if(flowBanks[b]) gaps.push({kind:"share",legacy:true,name:(ENT[b]&&ENT[b].label)||b}); });
   Object.keys(unsplit).forEach(function(b){ if(flowBanks[b]) gaps.push({kind:"share",unsplit:true,name:(ENT[b]&&ENT[b].label)||b}); });
   // Lo que se mantiene constante antes de su primer dato se declara, en corto, en la «i»; un
   // «antes del» que cae fuera de la gráfica no cuenta nada y se calla.
@@ -9698,7 +9729,8 @@ function netWorthInfoRows(series, dateFmt, comparedRange){
   const shared=coverage.filter(function(g){ return g.kind==="share"; });
   if(shared.length){
     const unsplit=shared.filter(function(g){ return g.unsplit; }).map(function(g){ return g.name; });
-    rows.push({k:t("v42_net_i_share"),v:t("v42_net_i_share_v")+(unsplit.length?tf("v42_net_i_share_unsplit",{bank:unsplit.join(", ")}):"")});
+    const legacy=shared.filter(function(g){ return g.legacy; }).map(function(g){ return g.name; });
+    rows.push({k:t("v42_net_i_share"),v:t("v42_net_i_share_v")+(legacy.length?tf("v42_net_i_share_legacy",{bank:legacy.join(", ")}):"")+(unsplit.length?tf("v42_net_i_share_unsplit",{bank:unsplit.join(", ")}):"")});
   }
   // Última fila, solo cuando hay frase de comparación: con qué día se compara hoy, en corto.
   const months=comparedRange&&NW_MONTHS[comparedRange];
@@ -13745,6 +13777,21 @@ function AccountSheet({open, cuenta, state, set, totals, onClose, onRemove, onSa
         set(function(s){ return setAccountShare(s, shareItem, shareKind, pct); });
       });
   };
+  /* Los movimientos viejos del banco que no dicen su cuenta: los atribuye él, aquí, cuando la
+     cuenta no es suya entera y el banco tiene más de una (`setAccountLegacy`). Son tres respuestas,
+     así que es `askChoice`: «preguntar después» no guarda nada. Se deshace en el mismo sitio. */
+  const legacyKey=accountShareKey(shareItem,shareKind);
+  const legacyDec=((state.settings||{}).accountShareLegacy||{})[a.ent]||null;
+  const legacyN=cuentasMismaEnt>1?accountLegacyCount(state,a.ent):0;
+  const verLegacy=legacyN>0&&(!!legacyDec||sharePct!=null);
+  const pedirLegacy=function(){
+    askChoice({ title:tf("ac_legacy_q",{n:legacyN,bank:banco}), sub:t("ac_legacy_sub"), options:[
+      {v:"yes",label:t("ac_legacy_yes")},{v:"no",label:t("ac_legacy_no")},{v:"later",label:t("ac_legacy_later")}] })
+      .then(function(v){
+        if(v!=="yes"&&v!=="no") return;   // null = canceló; «later» = sin decidir
+        set(function(s){ return setAccountLegacy(s, a.ent, {key:legacyKey, no:v==="no", day:netWorthDay()}); });
+      });
+  };
   const title=a.name||banco;
   const sub=conectada?tf("ac_synced_sub",{bank:banco}):tf("ac_manual_sub",{bank:banco});
   const staleAge=conectada&&a.lastSync?Date.now()-dateMs(a.lastSync):0;
@@ -13792,7 +13839,15 @@ function AccountSheet({open, cuenta, state, set, totals, onClose, onRemove, onSa
                 sharePct==null||missingFx?t("ac_share_all"):tf("ac_share_counts",{x:eur(saldoHoy*sharePct/100)}))),
             React.createElement("button",{type:"button",className:"v4-account-action",style:{flex:"0 0 auto",minHeight:40,padding:"6px 14px"},
               "data-testid":"ac-share-edit",onClick:pedirParte}, t("ac_share_change"))),
-          pareceConjunta && React.createElement("div",{className:"hint",style:{marginTop:8}}, t("ac_share_joint_hint"))
+          pareceConjunta && React.createElement("div",{className:"hint",style:{marginTop:8}}, t("ac_share_joint_hint")),
+          verLegacy && React.createElement("div",{"data-testid":"ac-legacy",style:{display:"flex",alignItems:"center",gap:10,marginTop:10}},
+            React.createElement("div",{className:"hint",style:{flex:"1 1 auto",minWidth:0,margin:0}},
+              !legacyDec ? tf("ac_legacy_q",{n:legacyN,bank:banco})
+                : tf(legacyDec.key!==legacyKey?"ac_legacy_done_other":legacyDec.no?"ac_legacy_done_no":"ac_legacy_done_yes",{bank:banco})),
+            React.createElement("button",{type:"button",className:"v4-account-action",style:{flex:"0 0 auto",minHeight:40,padding:"6px 14px"},
+              "data-testid":"ac-legacy-btn",onClick:function(){
+                if(legacyDec) set(function(s){ return setAccountLegacy(s, a.ent, null); }); else pedirLegacy();
+              }}, t(legacyDec?"ac_legacy_undo":"ac_legacy_decide")))
         ),
         React.createElement("div",{className:"v4-account-actions"},
           !conectada && React.createElement("button",{type:"button",className:"v4-account-action"+(corrigiendo?" on":""),onClick:function(){
@@ -22163,7 +22218,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="b513d09287cfb1c9b141de90f214d2f4c19ac828c2b600a685b15e3a44868c24";
+var _rnSha="9de250df2dd812cbd080281d2b4fbac3de1834057d93445189474419de18bd4b";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){

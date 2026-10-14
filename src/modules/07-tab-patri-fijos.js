@@ -140,6 +140,21 @@ function AccountSheet({open, cuenta, state, set, totals, onClose, onRemove, onSa
         set(function(s){ return setAccountShare(s, shareItem, shareKind, pct); });
       });
   };
+  /* Los movimientos viejos del banco que no dicen su cuenta: los atribuye él, aquí, cuando la
+     cuenta no es suya entera y el banco tiene más de una (`setAccountLegacy`). Son tres respuestas,
+     así que es `askChoice`: «preguntar después» no guarda nada. Se deshace en el mismo sitio. */
+  const legacyKey=accountShareKey(shareItem,shareKind);
+  const legacyDec=((state.settings||{}).accountShareLegacy||{})[a.ent]||null;
+  const legacyN=cuentasMismaEnt>1?accountLegacyCount(state,a.ent):0;
+  const verLegacy=legacyN>0&&(!!legacyDec||sharePct!=null);
+  const pedirLegacy=function(){
+    askChoice({ title:tf("ac_legacy_q",{n:legacyN,bank:banco}), sub:t("ac_legacy_sub"), options:[
+      {v:"yes",label:t("ac_legacy_yes")},{v:"no",label:t("ac_legacy_no")},{v:"later",label:t("ac_legacy_later")}] })
+      .then(function(v){
+        if(v!=="yes"&&v!=="no") return;   // null = canceló; «later» = sin decidir
+        set(function(s){ return setAccountLegacy(s, a.ent, {key:legacyKey, no:v==="no", day:netWorthDay()}); });
+      });
+  };
   const title=a.name||banco;
   const sub=conectada?tf("ac_synced_sub",{bank:banco}):tf("ac_manual_sub",{bank:banco});
   const staleAge=conectada&&a.lastSync?Date.now()-dateMs(a.lastSync):0;
@@ -187,7 +202,15 @@ function AccountSheet({open, cuenta, state, set, totals, onClose, onRemove, onSa
                 sharePct==null||missingFx?t("ac_share_all"):tf("ac_share_counts",{x:eur(saldoHoy*sharePct/100)}))),
             React.createElement("button",{type:"button",className:"v4-account-action",style:{flex:"0 0 auto",minHeight:40,padding:"6px 14px"},
               "data-testid":"ac-share-edit",onClick:pedirParte}, t("ac_share_change"))),
-          pareceConjunta && React.createElement("div",{className:"hint",style:{marginTop:8}}, t("ac_share_joint_hint"))
+          pareceConjunta && React.createElement("div",{className:"hint",style:{marginTop:8}}, t("ac_share_joint_hint")),
+          verLegacy && React.createElement("div",{"data-testid":"ac-legacy",style:{display:"flex",alignItems:"center",gap:10,marginTop:10}},
+            React.createElement("div",{className:"hint",style:{flex:"1 1 auto",minWidth:0,margin:0}},
+              !legacyDec ? tf("ac_legacy_q",{n:legacyN,bank:banco})
+                : tf(legacyDec.key!==legacyKey?"ac_legacy_done_other":legacyDec.no?"ac_legacy_done_no":"ac_legacy_done_yes",{bank:banco})),
+            React.createElement("button",{type:"button",className:"v4-account-action",style:{flex:"0 0 auto",minHeight:40,padding:"6px 14px"},
+              "data-testid":"ac-legacy-btn",onClick:function(){
+                if(legacyDec) set(function(s){ return setAccountLegacy(s, a.ent, null); }); else pedirLegacy();
+              }}, t(legacyDec?"ac_legacy_undo":"ac_legacy_decide")))
         ),
         React.createElement("div",{className:"v4-account-actions"},
           !conectada && React.createElement("button",{type:"button",className:"v4-account-action"+(corrigiendo?" on":""),onClick:function(){

@@ -756,11 +756,24 @@ function netWorthSeries(state, options){
      al 50 % en Revolut) no deja saber a cuál aplicar: ahí cuentan enteros, como siempre, y la «i»
      lo dice. Repartirlos por saldo sería inventar (con las dos a cero ni siquiera hay saldo). Si
      todas las cuentas del banco tienen la misma parte, esa vale para todos sus movimientos. */
-  const byBank={}, unsplit={};
+  const byBank={}, unsplit={}, decided={};
   rows.forEach(function(r,i){ if(r.item.ent) (byBank[r.item.ent]||(byBank[r.item.ent]=[])).push({r:r,s:shares[i]}); });
-  const factorOf=function(e,bank){
-    const list=byBank[bank];
+  /* Lo que él decidió para los movimientos viejos sin cuenta de ese banco (`accountLegacyFor`):
+     «son de esta cuenta» les pone la parte de esa cuenta; «no son de esta» los deja entre las
+     demás, y si todas ellas tienen la misma parte, esa. Solo hasta el día en que lo decidió: lo
+     que entre después sin cuenta no lo ha visto. */
+  const legacy=(state.settings||{}).accountShareLegacy||{};
+  const factorOf=function(e,bank,day){
+    let list=byBank[bank];
     if(e.obAcc){ const hit=list.find(function(x){ return accountOwnsMovement(x.r.item,x.r.kind,e.obAcc); }); if(hit) return hit.s; }
+    const dec=!e.obAcc&&legacy[bank];
+    if(dec&&day<=dec.day){
+      const mine=function(x){ return accountShareKey(x.r.item,x.r.kind)===dec.key; };
+      const hit=list.find(mine);
+      if(hit) decided[bank]=true;
+      if(hit&&!dec.no) return hit.s;
+      if(hit&&list.length>1) list=list.filter(function(x){ return !mine(x); });
+    }
     if(list.every(function(x){ return x.s===list[0].s; })) return list[0].s;
     // Un apunte a cero no mueve nada que haya que separar: no avisa.
     if(e.amount) unsplit[bank]=true; return 1;
@@ -774,7 +787,7 @@ function netWorthSeries(state, options){
     if(!Number.isFinite(ms)) return;
     const hour=Math.floor(ms/3600000),bounds=hours[hour]||(hours[hour]=[fmt.format(hour*3600000),fmt.format(hour*3600000+3599999)]);
     const day=bounds[0]===bounds[1]?bounds[0]:fmt.format(ms);if(day>today) return;
-    const row={expense:e,bank:bank,day:day,ms:ms,cents:Math.round(e.amount*100),f:factorOf(e,bank)};entries.push(row);
+    const row={expense:e,bank:bank,day:day,ms:ms,cents:Math.round(e.amount*100),f:factorOf(e,bank,day)};entries.push(row);
     if(!firstByBank[bank]||day<firstByBank[bank]) firstByBank[bank]=day;
     if(row.cents){const key=Math.abs(row.cents);(byAmount[key]||(byAmount[key]=[])).push(row);}
   });
@@ -924,6 +937,7 @@ function netWorthSeries(state, options){
   debt.notes.forEach(function(n){gaps.push(n);});
   const start=first||today;
   rows.forEach(function(r,i){ if(shares[i]!==1) gaps.push({kind:"share",name:r.item.name||r.item.ent,pct:Math.round(shares[i]*10000)/100}); });
+  Object.keys(decided).forEach(function(b){ if(flowBanks[b]) gaps.push({kind:"share",legacy:true,name:(ENT[b]&&ENT[b].label)||b}); });
   Object.keys(unsplit).forEach(function(b){ if(flowBanks[b]) gaps.push({kind:"share",unsplit:true,name:(ENT[b]&&ENT[b].label)||b}); });
   // Lo que se mantiene constante antes de su primer dato se declara, en corto, en la «i»; un
   // «antes del» que cae fuera de la gráfica no cuenta nada y se calla.

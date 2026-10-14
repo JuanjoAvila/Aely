@@ -90,6 +90,22 @@ function comprobar(m) {
   assert.deepEqual(sinCuenta.coverage.filter(g => g.unsplit).map(g => g.name), ["Revolut"], "y la «i» lo dice");
   const alReves = S(share(base({ obAccounts: [joint, mine], expenses: [mov("a", "2026-10-10", 400)] }), joint, "ob", 50));
   assert.equal(at(alReves, "2026-10-09"), 3900, "da igual el orden de las cuentas: entero");
+  // Él decide de qué cuenta son los viejos sin cuenta (`accountShareLegacy`), sin tocar los gastos.
+  const viejos = dos([mov("a", "2026-10-10", 400), mov("b", "2026-10-12", 0)]);
+  assert.equal(m.accountLegacyCount(viejos, "revolut"), 1, "cuenta solo los de banco sin cuenta y con importe");
+  const decide = (st, item, no, day = today) => m.setAccountLegacy(st, "revolut", { key: m.accountShareKey(item, "ob"), no, day });
+  const si = S(decide(viejos, joint, false));
+  assert.equal(at(si, "2026-10-09"), 3700, "«son de la conjunta»: pesan su 50 %");
+  assert.deepEqual(si.coverage.filter(g => g.kind === "share" && (g.legacy || g.unsplit)).map(g => g.legacy ? "legacy" : "unsplit"), ["legacy"], "la «i» dice que manda su decisión");
+  const no = S(decide(viejos, joint, true));
+  assert.equal(at(no, "2026-10-09"), 3900, "«no son de la conjunta»: de la personal, enteros");
+  assert.ok(!no.coverage.some(g => g.unsplit), "y ya no hay nada sin separar");
+  assert.equal(at(S(decide(viejos, mine, false)), "2026-10-09"), 3900, "«son de la personal»: enteros");
+  const antes = S(decide(viejos, joint, false, "2026-10-05"));
+  assert.equal(at(antes, "2026-10-09"), 3900, "lo que entró después de decidir no lo cubre la decisión");
+  assert.ok(antes.coverage.some(g => g.unsplit), "y sigue avisando");
+  assert.deepEqual(plain(m.setAccountLegacy(decide(viejos, joint, false), "revolut", null).settings), plain(viejos.settings), "deshacer deja el estado como estaba");
+  assert.equal(decide(viejos, joint, false).expenses, viejos.expenses, "decidir no reescribe los gastos");
   // Las dos cuentas con la misma parte: da igual de cuál saliera.
   const iguales = S(share(dos([mov("a", "2026-10-10", 400)]), mine, "ob", 50));
   assert.equal(at(iguales, "2026-10-09"), 3200, "misma parte en todas: se aplica sin saber la cuenta");
@@ -107,6 +123,8 @@ function comprobar(m) {
   assert.equal(fila(mitad).v, "solo tu parte del saldo y de sus movimientos");
   assert.equal(fila(dos([mov("a", "2026-10-10", 400)])).v, "solo tu parte del saldo y de sus movimientos; los movimientos antiguos de Revolut no dicen de qué cuenta salieron y cuentan enteros");
   assert.equal(fila(st), undefined, "sin cuentas compartidas, sin fila");
+  assert.equal(fila(m.setAccountLegacy(dos([mov("a", "2026-10-10", 400)]), "revolut", { key: m.accountShareKey(joint, "ob"), no: false, day: today })).v,
+    "solo tu parte del saldo y de sus movimientos; los antiguos de Revolut, como dijiste en la ficha de la cuenta");
 
   // Gastos, presupuesto y recibos: idénticos al céntimo con la conjunta al 50 %.
   const NOW = Date.parse("2026-10-14T10:00:00Z");
@@ -155,6 +173,10 @@ const mutantes = [
   ["100 % no borra la entrada", "if(pct==null||pct===100) delete next[key];", "if(pct==null) delete next[key];"],
   ["más de 100 vale", "return n>=0&&n<=100?n:null;", "return n>=0?n:null;"],
   ["recuperar cuenta con ambigüedad", "byKey[k]=(k in byKey && byKey[k]!==tx.acc) ? \"\" : tx.acc;", "byKey[k]=tx.acc;"],
+  ["la decisión sin fecha tope", "if(dec&&day<=dec.day){", "if(dec){"],
+  ["«no son de esta» como «sí»", "if(hit&&!dec.no) return hit.s;", "if(hit) return hit.s;"],
+  ["sin mirar su decisión", "const dec=!e.obAcc&&legacy[bank];", "const dec=false;"],
+  ["deshacer no borra", "if(decision) next[ent]=decision; else delete next[ent];", "if(decision) next[ent]=decision;"],
   ["la «i» calla lo que cuenta entero", "Object.keys(unsplit).forEach(function(b){ if(flowBanks[b]) gaps.push", "Object.keys(unsplit).forEach(function(b){ if(false) gaps.push"],
 ];
 for (const [nombre, de, a] of mutantes) {
