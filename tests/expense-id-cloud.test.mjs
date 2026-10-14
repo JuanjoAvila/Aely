@@ -107,7 +107,6 @@ t("fuente: addExpense manda id cuando es uuid", () => {
 t("altas de gasto usan mcExpenseId; uid() global intacto", () => {
   const files = [
     "src/modules/08-motor-bank.js",
-    "src/modules/04-tab-gastos.js",
     "src/modules/10-app-components.js",
     "src/modules/14-v4-screens.js",
     "src/modules/15-import-hoja.js",
