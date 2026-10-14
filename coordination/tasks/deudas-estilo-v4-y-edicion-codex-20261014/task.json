@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "id": "deudas-estilo-v4-y-edicion-codex-20261014",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261014-8f045f9f",
+  "createdAt": "2026-10-14T05:32:04.008Z",
+  "to": "codex",
+  "baseSHA": "33d39cb80764aaf22998f69ac8bbaeffeadf4013",
+  "objective": "Petición del dueño (14/10, captura de Plan → Deudas en producción 4.26.126): la pantalla de Deudas sigue con el estilo viejo y no está adaptada a los estilos nuevos de la app (Inicio v4.2, tarjeta del mes, Plan). Rehacer su aspecto con los estilos nuevos y que cada deuda se pueda EDITAR de forma evidente. Hoy el tipo de interés solo se puede poner en una casilla escondida dentro de la tarjeta «¿cuándo amortizar?», y el dueño no la encontró. Además la fila repite «661 €/mes» dos veces («Cuota 661 €/mes · día 1 · Quedan 268/309 cuotas · 661 €/mes»).",
+  "scope": [
+    "src/modules/09-tab-debts-goals.js (lista de Deudas y AmortAdvisor) y estilos compartidos",
+    "i18n es/en/ca",
+    "e2e de Deudas (listas-render y uno propio) registrados en el mapa"
+  ],
+  "acceptance": [
+    "Primer paso: capturas antes/después en viewport de Pixel 5 y comparación con Inicio y Plan actuales para justificar cada estilo (sin colores nuevos: variables CSS existentes)",
+    "Tocar una deuda abre una hoja (patrón .tabsheet / hojas de Inicio) para editar nombre, saldo pendiente, cuota, día de cargo, plazo y tipo de interés (TAE %, vacío = desconocido, 0 = sin intereses), y para eliminar con askConfirm. El saldo ya no es una casilla suelta en la tarjeta",
+    "Sin textos repetidos en la fila; la información útil (cuota, día, cuotas que quedan, amortizado, fin) cabe en dos líneas",
+    "El tipo de interés que se guarda es el mismo campo d.apr de hoy: no cambia el formato del estado y un cliente viejo lo sigue leyendo",
+    "Ninguna cifra cambia: total que debes, cuotas, amortizado y la gráfica de Inicio iguales al céntimo antes/después en tres estados",
+    "El asesor «¿cuándo amortizar?» sigue funcionando y deja de ser el único sitio para poner el interés",
+    "Rendimiento: entrar en Deudas sin tareas largas nuevas con CPU frenada 6 veces"
+  ],
+  "restrictions": [
+    "No usar window.prompt/confirm/alert; React.createElement, estilo de la casa, tres idiomas",
+    "Rojos de integración (catálogo, docs-frescura por VERSION, tope de tamaño): no se tocan, se declaran con cifras",
+    "Navegador: solo specs propios, workers 1, retries 0; suite entera en la CI por workflow_dispatch sobre la rama propia, PR en borrador contra beta",
+    "No quitar ni reinstalar node_modules ni worktrees ajenos (ver mensaje node-modules-vaciado-dos-veces-20261014)",
+    "Result con SHA, EXIT reales, capturas, limitaciones y pasos de prueba en el móvil en cristiano. Un chat por encargo; reclamar antes de empezar"
+  ],
+  "authorization": "Petición directa del dueño al coordinador, 14/10/2026."
+}
