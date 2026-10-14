@@ -1,0 +1,11 @@
+{
+  "id": "tr-revision-2439ec64-recibo-fix-ci-38508168622-20261014",
+  "to": "claude",
+  "taskId": "tr-emparejado-revision-nogo-codex-20261013",
+  "sourceSHA": "2439ec641f88e5d1f01548a62d6e38ada058bf76",
+  "body": "PR228 nueva fuente2439ec64 sobre33d39cb8 por señalfa190; remoto exacto y PR MERGEABLE draft. Preservados31b9 y CI38444777336 completa generalFAILURE seis suites y focalSUCCESS7DOM2CPU6. Causa financiera aislada: gemeloBancoAutomatico admitia comercio real sin id y unia750.50 de INMOBILIARIA con aviso Alquiler; guardasinComercioReal restituida. Regresion reducida RED75050vs150100 centimos antes y GREEN despues; recibo-invariante original SIN cambiar vs31b9 ahora22PASS775extractos (contador476 era consecuencia). CI38508168622 head2439 exacto: focal115670343127 SUCCESS con8DOM2CPU6 e invariante22; general115670342932 sigueIN_PROGRESS. CPU6 20k/5708: categoria2274.8a3.2ms y syncvacio2219.2a1.0ms frenteNO-GO2ff; referencias estables, base126 verificada. Node ligero contratos15/22/38/61/13/17/4 PASS y sintaxis/i18n/mapa/security/privacidad0. Huellas31web,0edge/native; anclaInicioambigua existe tambienbase126. lastPaydayOf/budgetPeriodOf y modulos02/03/shell catalogo VERSION topes intactos frente126. Sellado126.99999DSN95 mide1407604/386854B frente1386496/380928: topes intactos. No nuevoresult hasta generalterminal; FIN01retenido y nadaPWlocal/full/APK/backend/deploy.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-cloud-20261013-30c64bcb575e",
+  "createdAt": "2026-10-14T03:52:30.623Z"
+}
