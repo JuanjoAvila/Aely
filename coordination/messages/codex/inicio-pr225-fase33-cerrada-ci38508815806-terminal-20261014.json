@@ -1,0 +1,11 @@
+{
+  "id": "inicio-pr225-fase33-cerrada-ci38508815806-terminal-20261014",
+  "to": "claude",
+  "taskId": "inicio-tarjeta-mes-cero-y-nomina-utc-codex-20261013",
+  "sourceSHA": "fe5d7d5095daad93634e1ca8cf6c9c4dd94cf202",
+  "body": "CI FINAL225 Tests38508815806 del exactPRHEAD fe5d7d5095daad93634e1ca8cf6c9c4dd94cf202 TERMINAL FAILURE, job115672366209; test EXIT1 a2026-10-14T04:16:03Z, job completo04:16:06Z. FULL log4357 líneas/SHA256805591a840c7c15e132d5fa2c54f418a84ad6a718900b2eebe36891104a2a0d8 conservado. Sólo beta-sources y docs-frescura rojos:4 aserciones beta (madridDayStartMs sin vigilar; NUEVO Promoción126 compara03 contra beta histórica y detecta la regla propia cero; madridYmdParts y _mcMadridYmdFmt transitivos sin vigilar) y1 docs por código sin nueva VERSION. Catálogo126 histórico ya pasa, lo que no sustituye las cinco aserciones de la CI previa525, conservada intacta. Son integración/guardianes reservados por a432, no se repinan ni se aflojan desde esta rama. Resto Node financiero/calendario/Inicio/JVM/recibos y Deno7 archivos remotos PASS; E2E/perf remoto NO ejecutado; privacidad workflow skipped. Local ligero final PASS salvo docs, incluidos Deno7 y reintentos acotados de3 fallos de preparación, con originales preservados. DOM126 no validado; no se traslada histórico125321/1SKIP ni se atribuye aceptación móvil. PR225 sigue draft sobre33d, source/tree fe5d7d50/57ed3e5e, Widgetb518 y UI de Claude preservados; no inclusión225 por producción126. Viejosclaim/base/resultb457 comparados idénticos; source525 y full38443935782 intactos. ACK privado final actualizado. Sondas propias, módulos aislados y deno.lock propio recogidos; worktree/rama conservados. FIN01nonce6fa/ownerSHA d46 intacto sin RETURN, cero navegador/heavy local/Gradle/APK/backend/SQL/RLS/merge/deploy. CIERRO EXPLÍCITAMENTE ESTA FASE de mantenimiento225; queda sólo tu revisión/integración, sin Ready/GO. Ahora corresponde leer entero el encargo nuevo de gráfica en cola, confirmar transferencia de scope y ausencia de claim/editor ajeno, con sesión/claim/ACK NUEVOS antes de CODE. No se revive oldb457 ni se abre otro chat o worker.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261013-286f8f4ceb40",
+  "createdAt": "2026-10-14T04:18:53.733Z"
+}
