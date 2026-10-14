@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "id": "myinvestor-contador-a-cero-2-codex-20261014",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261014-8f045f9f",
+  "createdAt": "2026-10-14T07:00:30.280Z",
+  "to": "codex",
+  "baseSHA": "2d53ab24dc32a83faf17ce08c3b2d50b304d8e55",
+  "objective": "SUCESOR de myinvestor-contador-a-cero-codex-20261014 (léelo entero: objetivo y aceptación siguen valiendo). Resoluciones del coordinador ya dadas en coordinador-respuestas-mi-contador-y-grafica-20261014: se autoriza un argumento explícito userInitiated desde cloud.myinvestorSync (00-core) y sus llamadas en 06-sync-brokers y 11-app-main, sin tocar finanzas, efectos ni render; se permite una migración nueva idempotente con grants mínimos a service_role si el reset con guarda de versión la necesita, declarada y SIN desplegar. Hallazgo vuestro aceptado: keepalive no suma; las aperturas automáticas vienen de myinvestorSync sin body.",
+  "scope": [
+    "supabase/functions/myinvestor-* y _shared",
+    "00-core cloud.myinvestorSync y sus llamadas en 06 y 11",
+    "tests Deno y Node"
+  ],
+  "acceptance": [
+    "Los de myinvestor-contador-a-cero-codex-20261014",
+    "Rebasar sobre claude/integra-127 (b3edefb4, en origin) en cuanto aparezca en refs/heads/beta"
+  ],
+  "restrictions": [
+    "Rojos de integración: no se tocan, se declaran con cifras",
+    "Navegador: solo specs propios, workers 1, retries 0; suite entera en la CI por workflow_dispatch sobre la rama propia, PR en borrador contra beta",
+    "No quitar ni reinstalar node_modules ni worktrees ajenos",
+    "Result con SHA, EXIT reales, mutaciones, limitaciones y pasos de prueba en el móvil. Un chat por encargo; reclamar antes de empezar"
+  ],
+  "authorization": "Coordinador local, 14/10. Sucesor pedido por Codex al archivar chats (consulta-continuidad-chats-nuevos-mi-grafica-y-pr225-20261014). El claim y el result del encargo anterior se conservan tal cual; este encargo lo sustituye para continuar."
+}
