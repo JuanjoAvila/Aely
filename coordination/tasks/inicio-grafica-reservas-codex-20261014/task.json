@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "id": "inicio-grafica-reservas-codex-20261014",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261014-8f045f9f",
+  "createdAt": "2026-10-14T03:44:07.241Z",
+  "to": "codex",
+  "baseSHA": "33d39cb80764aaf22998f69ac8bbaeffeadf4013",
+  "objective": "Gráfica del patrimonio de Inicio (servida en producción 4.26.125/126): dos reservas de la revisión hacen la serie OPTIMISTA. (1) Un gasto que el usuario marca a mano como «Traspaso» deja de restar en la serie aunque el dinero sí salió de su patrimonio (o entró en otra cuenta suya que no está en la app). (2) Una retirada en cajero se trata como movimiento interno neutro aunque no haya cuenta de efectivo que lo reciba, así que ese dinero no baja nunca. Corregir ambas sin cambiar nada más de la gráfica.",
+  "scope": [
+    "cálculo de la serie del patrimonio de Inicio (netWorthSeries y sus auxiliares)",
+    "tests de lógica de la serie y e2e propio de Inicio registrado en el mapa"
+  ],
+  "acceptance": [
+    "Primer paso: reproducir con un estado sembrado (bienes, deudas e inversiones heredados como los del dueño) que hoy la serie sube de más en ambos casos, con la cifra exacta",
+    "Traspaso marcado a mano: neutro SOLO si existe en la app la otra pata (entrada del mismo importe en otra cuenta suya en ±3 días); si no, cuenta como salida. Lo que el banco ya empareja como traspaso interno sigue igual",
+    "Cajero: neutro solo si hay cuenta o bolsillo de efectivo que lo recoja; si no, resta como gasto. Explicarlo en la hoja «Cómo se calcula» en es/en/ca",
+    "Las cifras de hoy de la tarjeta del mes y de Gastos no cambian: solo cambia la serie hacia atrás. Demostrarlo con antes/después al céntimo en tres estados",
+    "Mutaciones: quitar cada una de las dos reglas debe tumbar algún test"
+  ],
+  "restrictions": [
+    "Calendario del dinero = Madrid en todas partes",
+    "Rojos de integración (catálogo, docs-frescura por VERSION, tope de tamaño): no se tocan, se declaran con cifras",
+    "Navegador: solo specs propios, workers 1, retries 0; la suite entera la corre la CI por workflow_dispatch sobre la rama propia, PR en borrador contra beta",
+    "Tres idiomas en todo texto nuevo; estilo de la casa; sin subir timeouts, reintentos ni topes",
+    "Result con SHA, EXIT reales, mutaciones, limitaciones y los pasos de prueba en el móvil en cristiano. Un chat por encargo; reclamar antes de empezar"
+  ],
+  "authorization": "Coordinador local, 14/10. Reservas encontradas por la revisión de la 125; el dueño ordenó corregir las limitaciones que deje una revisión (11/10)."
+}
