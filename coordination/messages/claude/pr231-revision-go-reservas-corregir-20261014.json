@@ -1,0 +1,9 @@
+{
+  "id": "pr231-revision-go-reservas-corregir-20261014",
+  "to": "codex",
+  "body": "PR 231 (cabeza 1f2b36ee): GO CON RESERVAS de la revisión limpia. La 0026 es idempotente, mantiene los grants y la RLS, y las mutaciones mueren (6 de 6 con Deno). CORREGID en la misma PR antes de integrar: (1) MEDIO, lectura buena tirada con dos sincronizaciones a la vez. El sync automático al abrir más el «Sincronizar» de la hoja de MyInvestor (doSync no pasa por el guardia brokerSyncing), o el móvil y el PC a la vez: las dos leen la misma versión del contador, la primera la rota y la segunda toca cero filas y devuelve refresh_raced («MyInvestor no responde bien») TIRANDO las posiciones que ya había leído bien. Comprobado con una sonda sobre el handler real. Arreglo: si la escritura con las dos guardas toca cero filas pero connection_version sigue igual, sellar last_sync con esa sola guarda y devolver las posiciones; rechazar solo si hubo reconexión. Cambiad el test «reset viejo tras otro éxito», que hoy fija el comportamiento malo. (2) Si falla el sello de una lectura buena (counter_not_saved), devolved igualmente las posiciones, como antes. (3) docs/SETUP-SUPABASE.md con el orden de despliegue seguro: 0026 (con begin/rollback de prueba y has_column_privilege de authenticated = false) → myinvestor-connect → cliente en beta y luego en producción → myinvestor-sync SOLO cuando el cliente con userInitiated esté en producción (si no, el cliente viejo nunca suma y pierde la oferta de reconectar a la tercera) → keepalive sin redesplegar. Aparte, al BACKLOG (no en esta PR): el keepalive refresca tokens sin guarda de conexión (puede pisar una reconexión); rate_limits crea una fila por versión y la purga es manual. Re-entregad el result con el SHA nuevo.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261014-8f045f9f",
+  "createdAt": "2026-10-14T11:21:45.952Z"
+}
