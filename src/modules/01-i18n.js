@@ -3954,8 +3954,6 @@ function applyTextSize(size){
     el.classList.toggle("hugetext", size==="huge");
   }catch(e){}
 }
-// Compat: algunos sitios aún llaman applyBigText(bool). Se mapea al nuevo sistema.
-function applyBigText(on){ applyTextSize(on?"big":"normal"); }
 function applyReduceMotion(on){ try{ document.documentElement.classList.toggle("reduce-motion", !!on); }catch(e){} }
 function applyContrast(on){ try{ document.documentElement.classList.toggle("hi-contrast", !!on); }catch(e){} }
 // Temática de temporada (Mundial, Halloween, Navidad…): re-tinta acentos decorativos y activa

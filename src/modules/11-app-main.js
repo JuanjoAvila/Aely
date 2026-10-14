@@ -49,9 +49,6 @@ function App(){
     bottomOverscroll.current=false;
     if(navHiddenRef.current){ navHiddenRef.current=false; setNavHidden(false); }
   };
-  // clear del tope: solo API residual (enterScrollHost / swipe). Ya no se ARMA en scroll ni
-  // en touchmove — eso era el parpadeo.
-  const beginTopClear=function(){ /* no-op: ver comentario botnav arriba */ };
   const endTopClearNow=function(doReveal){
     if(topClearTimer.current){ clearTimeout(topClearTimer.current); topClearTimer.current=0; }
     topClearOn.current=false;
@@ -2883,7 +2880,6 @@ function App(){
       fingerScrollAt.current=Date.now(); fingerLastY.current=y;
     }
     const ddx=x-startX.current, ddy=y-startY.current;
-    // (antes: beginTopClear en tirón al tope → barra off/on en cada swipe y en la ola)
     // Inicio arriba: cortar overscroll/rebote ANTES de fijar eje (vídeo 2026-07-18).
     if(axis.current===null && tab===0 && ddy>0 && Math.abs(ddy)>=Math.abs(ddx)){
       const pages=trackRef.current&&trackRef.current.children;

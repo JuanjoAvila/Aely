@@ -283,7 +283,6 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks,
   const HIST_RENDER_CAP=60;
   const [renderCap,setRenderCap]=useState(HIST_RENDER_CAP);
   useBackClose(true, onClose);
-  const kOf=function(dt,am,mc){ return String(dt).slice(0,10)+"|"+am+"|"+(mc||""); };
   // Fallback si aún no hay clasificación (híbrido C: NUNCA recibo a ciegas).
   const defDest=function(x){ return x.kind==="in" ? "ingreso" : "gasto"; };
   const search=function(){
@@ -1631,7 +1630,6 @@ function BetaReviewPanel({onClose, showToast}){
   // y no tenían casilla. Al no poder marcarlas, contaban como pendientes y BLOQUEABAN el aprobar,
   // así que o mentía marcando «va bien» o la beta se quedaba sin veredicto. Esto NO bloquea.
   const na=activos.filter(function(i){ return marks[i]==="na"; }).length;
-  const pend=total-ok-ko-na;
 
   /* EL VEREDICTO DICE TAMBIÉN QUÉ APK LLEVABA PUESTA (2026-07-26).
      El veredicto ya viajaba con la versión web (4.12.0.27), pero no con el `versionCode` del APK,
@@ -2361,7 +2359,6 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
   const [expand,setExpand]=useState(null);   // fila-acordeón abierta: "lang" | "gview" | "tabs" | "cur" | null
   const [newsOpen,setNewsOpen]=useState(false);   // histórico de Novedades (WhatsNew reabierto a mano)
   const [privOpen,setPrivOpen]=useState(false);    // política de privacidad DENTRO de la app (no _blank)
-  const [sharedOpen,setSharedOpen]=useState(false);// Hogar + gastos compartidos (sin tab propia en v4)
   const [fbOpen,setFbOpen]=useState(false);        // sugerencias (mudadas fuera de Novedades, 2026-07-18)
   const [bioOn,setBioOn]=useState(bio.enabled());  // candado con huella (volvió a Ajustes, 2026-07-18)
   const toggleBio=function(){
@@ -2460,7 +2457,6 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
   },[]);
   // --- Banco (Open Banking) ---
   const [bankLinks,setBankLinks]=useState(null);   // null = cargando, [] = ninguno (resumen)
-  const [bankBusy,setBankBusy]=useState(false);
   const [trConn,setTrConn]=useState(false);        // TR también cuenta como banco conectado (feedback 2026-07-10)
   const [trKnown,setTrKnown]=useState(false);      // tuvo TR alguna vez (mc_tr_phone) → puede estar «caído»
   const [trExpired,setTrExpired]=useState(false);  // solo authExpired firme, no un status frío vacío
@@ -2525,14 +2521,6 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
       }
     }).catch(function(){ setBankLinks([]); });
   },[uid]);
-  const connectBank=function(){
-    setBankBusy(true); showToast(t("bank_connecting"));
-    cloud.bankConnect("Banco de Sabadell").then(function(d){
-      set(function(s){ return Object.assign({},s,{hasBankLink:true}); });
-      location.href=d.url;   // → login del banco (SCA); vuelve a la app con ?bank=ok
-    }).catch(function(e){ setBankBusy(false); showToast("⚠ "+t("bank_error")+": "+((e&&e.message)||e)); });
-  };
-  const refreshBank=function(){ if(!onBankSync) return; setBankBusy(true); Promise.resolve(onBankSync()).finally(function(){ setBankBusy(false); cloud.bankLinks().then(function(r){ setBankLinks(r||[]); }).catch(function(){}); }); };
   // Estilos de los pocos controles con input propio (presupuesto). Los demás usan el sistema
   // de filas .set-row/.swx. (lbl/btnGhost/link se quitaron en 2026-07-17: estaban muertos.)
   // Inputs se quedan en 16px (menos = zoom automático del móvil al enfocar); los botones sí

@@ -1586,9 +1586,6 @@ function expenseTopCategoryPick(ranked, currentId, catalog){
   }
   return top;
 }
-function expenseTopCategories(expenses, currentId, catalog){
-  return expenseTopCategoryPick(expenseTopCategoryRanking(expenses,catalog),currentId,catalog);
-}
 function ExpenseCategoryGrid({items, selected, selectedMany, onPick, testPrefix}){
   return React.createElement("div",{className:"v4-ficha-cats","data-testid":testPrefix||"expense-cats"},
     (items||[]).map(function(c){
