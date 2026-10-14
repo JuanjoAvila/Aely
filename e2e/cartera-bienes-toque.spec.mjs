@@ -42,9 +42,12 @@ async function arranqueEscrito(page){
     const s=mcLoadRaw(mcStateKey());
     const hoy=new Date();
     const dia=hoy.getFullYear()+"-"+String(hoy.getMonth()+1).padStart(2,"0")+"-"+String(hoy.getDate()).padStart(2,"0");
+    // El cierre del día lo sella la app con el calendario de Madrid; la CI corre en UTC y entre
+    // las 00:00 y las 02:00 de Madrid los dos días no coinciden (rojo de la PR 234, 15/10 01:17).
+    const diaMadrid=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Madrid",year:"numeric",month:"2-digit",day:"2-digit"}).format(hoy);
     const hist=s.accountBalanceHistory||{};
     let tiene=false;
-    Object.keys(hist).forEach(function(k){ (hist[k]||[]).forEach(function(p){ if(p&&p.day===dia) tiene=true; }); });
+    Object.keys(hist).forEach(function(k){ (hist[k]||[]).forEach(function(p){ if(p&&(p.day===dia||p.day===diaMadrid)) tiene=true; }); });
     const utc=new Date().toISOString().slice(0,10);
     const falta=[];
     if(!s.lastSync) falta.push("lastSync");
