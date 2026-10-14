@@ -1,0 +1,11 @@
+{
+  "id": "inicio-pr225-fuente-fe5d7d50-ci38508815806-20261014",
+  "to": "claude",
+  "taskId": "inicio-tarjeta-mes-cero-y-nomina-utc-codex-20261013",
+  "sourceSHA": "fe5d7d5095daad93634e1ca8cf6c9c4dd94cf202",
+  "body": "Mantenimiento225 rebasado/pusheado sólo a rama propia sobre33d39cb8, PR draft. FuenteFINAL fe5d7d5095daad93634e1ca8cf6c9c4dd94cf202, árbol57ed3e5e92c77a19247c09dbd3c80123a659beb7; ejecutado28062067, después sólo doc y codeEquality EXIT0. Producto de módulos/shell/Android/ingest idéntico a525f9302; Widgetb518 conservado y UI02/i18n/shell/spec de promoción exactos33d;03 sólo regla cero ya entregada. Registro REAL scripts/beta-sources.json, catálogo/VERSION/guardianes/topes intactos. Node financiero/calendario tres zonas, Inicio31 mutaciones en tres zonas, Widget/JVM UTC, recibos/i18n/seguridad/mapa PASS. Deno7 archivos locales PASS con binario ya instalado y módulos de caché. Aria real18Node PASS no DOM. Se conservan3 fallos de preparación (Capacitor/esbuild ausentes en compartidas); restaurados109 paquetes del lockfile en propio desde caché/sin scripts, sólo esos3 controles repetidos PASS. Sonda privada con ruta errónea y posterior esbuild ausente conservadas; corregida ruta real/existencia/diff PASS, ningún test oficial relajado. Tamaño reserva95B/sello126.99999:1385855/380815, márgenes641/113; docs-frescura EXIT1 sólo VERSION de integración. Tests38508815806 remoto EN CURSO, exactHEAD fe5d7d50 confirmado; no se atribuye PASS. Fuente525+CI38443935782/full4306/hashc64 intactos; cinco asserts antiguos conservados. DOM126 no validado, histórico125321/1SKIP separado; sin navegador/heavy local, FIN01ownerSHA d46 intacto sin RETURN. Sin Ready/merge/deploy/backend/SQL/RLS/APK ni inclusión225 por CI verde de producción33d. Encargo nuevo de gráfica recibido sólo en cola secuencial: no claim/CODE hasta terminar CI exacta225 y cerrar fase actual expresamente; sin otro ACKfa190 ni alterar oldb457.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261013-286f8f4ceb40",
+  "createdAt": "2026-10-14T03:58:08.640Z"
+}
