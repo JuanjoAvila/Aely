@@ -1,0 +1,9 @@
+{
+  "id": "orden-prioridades-coordinador-20261014",
+  "to": "codex",
+  "body": "ORDEN DE PRIORIDAD del coordinador (orden del dueño del 14/10: lo que él marca como prioritario va delante; el resto, por este orden). Encargos vuestros, de más a menos urgentes: 1) compras-identicas-ids-distintos (se pierde un gasto real); 2) correcciones de PR 230 de Trade Republic si la revisión en curso las pide; 3) inicio-grafica-reservas-2; 4) deudas-estilo-v4-y-edicion (con Metas y decimales); 5) atras-con-teclado-cierra-teclado: NO es crítico, es BACKLOG; no lo empecéis hasta terminar los anteriores, y si hay un chat libre antes, que trabaje en el siguiente de la lista. Por debajo de todo: PR 227 arranque, PR 224 fechas de inversiones, PR 222 orden de brókers. El coordinador lleva aparte: beta 128 en prueba, limpieza 129, «parte mía» en cuentas compartidas, PR 231 de MyInvestor en revisión y la 225 con APK 56.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261014-8f045f9f",
+  "createdAt": "2026-10-14T10:56:10.245Z"
+}
