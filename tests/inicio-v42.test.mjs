@@ -66,12 +66,16 @@ for(const [spent,budget,elapsed,days,id,tone] of [[1001,1000,1,30,"over","coral"
   const result=c.cyclePaceState(spent,budget,elapsed,days); assert.equal(result.id,id); assert.equal(result.tone,tone);
 }
 assert.equal(c.cyclePaceState(100,0,10,30).id,"over");
-assert.equal(c.cyclePaceState(1000,1000,29,30).id,"good","agotado no es excedido");
-assert.equal(c.cyclePaceState(1000.00000001,1000,29,30).id,"good","el ruido de coma flotante no crea exceso");
+assert.equal(c.cyclePaceState(1000,1000,29,30).id,"tight","agotado exige aviso, aunque no sea excedido");
+assert.equal(c.cyclePaceState(1000.00000001,1000,29,30).id,"tight","el ruido de coma flotante no crea exceso ni margen para verde");
 assert.equal(c.cyclePaceState(1000.01,1000,29,30).excess,.01);
+for(const elapsed of [0,1,2,3,15,29,30]){
+  assert.deepEqual(plain(c.cyclePaceState(1000,1000,elapsed,30)),{id:"tight",tone:"tan",excess:0},"cero nunca arranca verde, tampoco en los primeros días");
+  assert.equal(c.cyclePaceState(1000.01,1000,elapsed,30).tone,"coral","restante negativo conserva el aviso de exceso");
+}
 assert.equal(c.cycleMoney(-.01),"-0,01 €","el exceso de un céntimo no se oculta");
 const payState={settings:{budgetCycle:true},flows:[],expenses:[{id:"salary",date:"2026-08-31T12:00:00Z",amount:-2000,merchant:"Nómina",category:"ingreso",ent:"sabadell"}]};
-const start=new Date(2026,7,31).getTime(), now=new Date(2026,8,29,12).getTime();
+const start=Date.parse("2026-08-31T00:00:00+02:00"), now=Date.parse("2026-09-29T12:00:00+02:00");
 const nativeDate=c.Date;
 c.Date=class extends Date{ constructor(...args){ super(...(args.length?args:[now])); } static now(){ return now; } };
 const detected=c.dashboardBudgetStats(payState);

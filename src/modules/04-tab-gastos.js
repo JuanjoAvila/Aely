@@ -8,10 +8,21 @@ const DATE_PRESETS=[
 // «Mi ciclo» (petición pareja 2026-07-11): su nómina no cae en día fijo (23, 24…), así que el mes
 // natural le descuadra el ahorro. El ciclo se ancla al ÚLTIMO COBRO REAL apuntado: el ingreso
 // más reciente ≥200 € de los últimos 45 días (los bizums pequeños no cuentan). Sin cobro → mes.
+// Vigencia compartida con WidgetPeriod e ingest: docs/WIDGET-CICLO.md (calendario de Madrid).
 function lastPaydayOf(expenses, nowMs, delSet, eligible){
   const now=nowMs!=null?nowMs:Date.now();
-  const todayEnd=new Date(now); todayEnd.setHours(23,59,59,999);
-  const cut=now-45*86400000;
+  // La zona del móvil no puede cambiar el día del dinero. Buscar la frontera de Madrid
+  // conserva también las 23/25 horas del cambio de hora, sin desplazar el día 45.
+  const dayStart=function(ms,days){
+    const p=madridYmdParts(ms), target=Date.UTC(p.y,p.m-1,p.d+days);
+    let lo=target-14*3600000,hi=target+14*3600000;
+    while(lo<hi){
+      const mid=Math.floor((lo+hi)/2), d=madridYmdParts(mid);
+      if(Date.UTC(d.y,d.m-1,d.d)<target) lo=mid+1; else hi=mid;
+    }
+    return lo;
+  };
+  const cut=dayStart(now,-45), todayEnd=dayStart(now,1)-1;
   // El banco guarda muchas fechas a las 12:00; cobrar hoy por la mañana ya abre el ciclo.
   // Un apunte fechado mañana no puede adelantar ese reinicio. Se recorre sin ordenar/copiar
   // el histórico porque Inicio consulta el presupuesto en cada render.
@@ -22,11 +33,10 @@ function lastPaydayOf(expenses, nowMs, delSet, eligible){
     if(expenseIsTombstoned(e,delSet)) return;
     if(!isFinite(new Date(e.date).getTime())) return;
     const ms=dateMs(e.date);
-    if(ms>=cut && ms<=todayEnd.getTime() && ms>bestMs){ best=e; bestMs=ms; }
+    if(ms>=cut && ms<=todayEnd && ms>bestMs){ best=e; bestMs=ms; }
   });
   if(!best) return null;
-  const d=parseDate(best.date);
-  return { start:new Date(d.getFullYear(),d.getMonth(),d.getDate()), inc:best };   // desde las 00:00 del día del cobro
+  return { start:new Date(dayStart(bestMs,0)), inc:best };   // desde las 00:00 de Madrid del cobro
 }
 // Al usar «Mi ciclo» como presupuesto, un traspaso o un Bizum grande no puede fingir
 // que se ha cobrado la nómina. El filtro informativo antiguo conserva su ancla histórica;
@@ -59,8 +69,8 @@ function presetBoundsMs(preset,range,cycleStart){
   const monthEnd=nextMonthStart-1;
   if(preset==="month") return {from:startOfMonth().getTime(), to:monthEnd};
   if(preset==="cycle"){
-    const tomorrow=new Date(now); tomorrow.setHours(24,0,0,0);
-    return {from:(cycleStart||startOfMonth()).getTime(), to:cycleStart?tomorrow.getTime()-1:new Date(now.getFullYear(),now.getMonth()+1,1).getTime()-1};
+    // La cabecera y la lista comparten el día del dinero con Inicio, no el del navegador.
+    return {from:(cycleStart||startOfMonth()).getTime(),to:cycleStart?madridDayStartMs(now.getTime(),1)-1:monthEnd};
   }
   if(preset==="last") return {from:inicioDeMesMs(monthStart-1), to:monthStart-1};
   // Tres meses naturales de Madrid (mes actual y los dos anteriores): inicio local + fin Madrid

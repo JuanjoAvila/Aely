@@ -75,11 +75,10 @@ for(const lang of ["es","en","ca"]){
     await check(page,0,400,false);
     await page.clock.setSystemTime(new Date("2026-09-30T22:01:00Z"));
     await sync(page,october,2200);
-    // El importador ya usa Madrid; el ciclo aún usa día local. Se caracteriza esa frontera
-    // preexistente sin presentarla como coherencia de calendario corregida por esta tanda.
-    await check(page,1,2200,zone==="Europe/Madrid",zone==="Europe/Madrid"?500:2300);
+    // La nómina abre el mismo ciclo civil de Madrid aunque el navegador aún esté en septiembre.
+    await check(page,1,2200,true);
     await sync(page,{...salary,date:"2026-10-02"},2200);
-    await check(page,1,2200,zone==="Europe/Madrid",zone==="Europe/Madrid"?500:2300);
+    await check(page,1,2200,true);
     await page.clock.setSystemTime(new Date("2026-10-01T00:01:00Z"));
     await sync(page,october,2200);
     await check(page,1,2200,true);

@@ -320,7 +320,8 @@ t("un flow de nómina no convierte cualquier transferencia del banco en otro cob
   try{
     ctx.Date=class extends RealDate { static now(){ return Date.parse("2026-09-28T10:00:00Z"); } };
     const bs=ctx.monthBudgetStats(s);
-    assert.equal(new Date(bs.periodStart).getDate(),26);
+    // En UTC/Canarias, getDate() lee el día anterior a la medianoche financiera de Madrid.
+    assert.equal(bs.periodStart,Date.parse("2026-09-26T00:00:00+02:00"));
     assert.equal(bs.spent,100);
   }finally{ ctx.Date=RealDate; }
 });
@@ -335,7 +336,7 @@ t("un traspaso llamado Nómina sigue siendo neutro y no mueve el ancla", () => {
   try{
     ctx.Date=class extends RealDate { static now(){ return Date.parse("2026-09-28T10:00:00Z"); } };
     const bs=ctx.monthBudgetStats(s);
-    assert.equal(new Date(bs.periodStart).getDate(),26);
+    assert.equal(bs.periodStart,Date.parse("2026-09-26T00:00:00+02:00"));
     assert.equal(bs.spent,100);
   }finally{ ctx.Date=RealDate; }
 });

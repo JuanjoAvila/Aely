@@ -24,6 +24,12 @@ import {execFileSync} from "node:child_process";
 import { test } from "node:test";
 import { loadPureLogic } from "../scripts/load-pure-logic.mjs";
 
+// La referencia histórica usaba el calendario del dispositivo. Este A/B de recibos se
+// compara en Madrid, el calendario financiero acordado; así conserva TODOS los importes
+// y periodStart sin confundir el cambio de zona del ciclo con una regresión de recibos.
+// widget-ciclo cubre por separado la misma ventana en UTC, Canarias y ambos cambios horarios.
+process.env.TZ="Europe/Madrid";
+
 // La referencia es el código tal como queda ANTES de esta entrega: la 4.26.119 más los apuntes
 // iguales con ordinal (`claude/tr-iguales-ordinal`, `dea5d883`, que entra en beta primero). Ahí
 // el cargo parecido a un recibo se sigue tirando; donde se lee «la 119» es esa referencia.

@@ -4,6 +4,11 @@ Promoción3/10: fuente web aprobada86/49a preparada sobre main12884; APK estable
 
 # App nativa Android (Capacitor) — reemplazo de MacroDroid
 
+Candidato sin publicar: [vigencia del ciclo del widget](WIDGET-CICLO.md), compartida
+por web, `WidgetPeriod` e ingest, con calendario Madrid. La corrección nativa exige
+APK56; para anteriores, la OTA calcula y etiqueta el mes real si la guarda antigua
+rechazaría el ciclo. Conserva el decimal de APK53; no modifica las APK instaladas.
+
 Objetivo: empaquetar la PWA como app Android y añadir un **servicio nativo** que lee la
 notificación de gasto de Trade Republic y la manda a la Edge Function `ingest` — lo mismo que
 hacía MacroDroid, pero dentro de nuestro proyecto.

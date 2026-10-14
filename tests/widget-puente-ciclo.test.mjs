@@ -9,7 +9,8 @@
    Aquí viaja el contrato entero, con el Java de producción de TRES APK a la vez:
      payload que construye la web (código real de 11-app-main.js) → texto JSON → lectura con los
      getters REALES de Capacitor (node_modules) → `updateWidget` → `MiCarteraWidget` → lo pintado.
-   APK 52 = 22396f9a · APK 53 = dfc02866 · APK 54 = el árbol de trabajo.
+   APK 52 = 22396f9a · APK 53 = dfc02866 · paquete v54 = árbol candidato (previsto APK 56).
+   Se añaden APK 54 = c5f62d66 y APK 55 = 3625fa7e, ambas inmutables.
    Solo preferencias, RemoteViews y org.json son dobles. El doble de org.json tipa los números con
    la regla de `JSONTokener.readLiteral` de Android: entero que cabe en int → Integer, entero mayor
    → Long, con punto → Double. */
@@ -94,8 +95,48 @@ const puente=data=>JSON.stringify({type:'message',callbackId:'1',pluginId:'MiCar
 for(const [web,codes] of [['w111',{52:true,53:true,54:true}],['w115',{52:true,53:true,54:true}],['nueva',W]]) for(const code of [52,53,54]) for(const h of [0,1,2,3])
   for(const marca of [false,true]) datos.fotos[[web,code,h,marca?'marca':'sin'].join('/')]=puente(foto(web,codes[code],h,marca).data);
 datos.fotos['nueva/54/mes']=puente(foto('nueva',W[54],0,true,false).data);
+// La 54 sigue aceptando el decimal de compatibilidad de la 53: redondearlo movería el alcance.
+datos.fotos['nueva/54/decimal']=puente({...foto('nueva',W[54],0,false).data,periodStart:ciclo+0.5});
+for(const missing of ['null','omitido']) {
+  const data={...foto('nueva',W[54],0,false).data};
+  data.safeLiq=null; data.budgetLeft=null; delete data.afford;
+  if(missing==='omitido') delete data.safeLiq;
+  datos.fotos['nueva/54/sin-liquidez-'+missing]=puente(data);
+}
 for(const p of PAGOS) for(const v2 of [false,true]) datos.pagos[(v2?'v2':'legacy')+'/'+p.n]=respuesta(p,v2);
 cli.Date=RealDate;
+
+// El selector real decide la foto completa: no basta cambiar su rótulo para curar APK55.
+const selectA=mainNow.indexOf('  let budW='), selectB=mainNow.indexOf('  const trAccW=',selectA);
+assert.ok(selectA>0&&selectB>selectA);
+const select=new Function('state','wV2','Date','dashboardBudgetStats','monthBudgetStats',mainNow.slice(selectA,selectB)+'return budW;');
+datos.compat=[];
+const prevTZ=process.env.TZ;
+try {
+  process.env.TZ='Europe/Madrid';
+  for(const day of [44,45,46]) for(const hour of [0,9,12,23]) for(const code of [53,55,56]) {
+    const at=Date.parse('2026-10-'+String(day-41).padStart(2,'0')+'T'+String(hour).padStart(2,'0')+':30:00+02:00');
+    // La caché de fechas y las funciones reales pertenecen a una sola zona.
+    const lib=loadPureLogicFromFile();
+    lib.Date=class extends Date {static now(){return at;}};
+    const s={budget:1000,accounts:[{ent:'trade_republic',role:'diario'}],reservaLog:[],deleted:[],
+      settings:{budgetCycle:true,gTotalMode:'net',expenseBanks:['trade_republic']},expenses:[
+        {date:'2026-08-20T12:00:00+02:00',amount:-1800,merchant:'NOMINA SINTETICA',category:'ingreso',ent:'trade_republic'},
+        {date:'2026-09-02T12:00:00+02:00',amount:140,category:'super',ent:'trade_republic'},
+        {date:'2026-10-02T12:00:00+02:00',amount:7,category:'super',ent:'trade_republic'},
+        {date:'2026-10-02T13:00:00+02:00',amount:-20,category:'bizum',ent:'trade_republic'}]};
+    const b=select(s,code,lib.Date,lib.dashboardBudgetStats,lib.monthBudgetStats);
+    const cycle=day<45||day===45&&code===56, anchor=cycle?lib.keyOfExpense(s.expenses[0]):'';
+    assert.equal(!!b.cycle,cycle,'periodo real APK'+code+' día'+day+' hora'+hour);
+    const expected=cycle?127:7;
+    const data=WEB.nueva(b,s,{current:[]},code,'es',lib.widgetScopeOf(s,b,anchor,'trade_republic'),lib.widgetCoveredEvents,lib.Date,
+      {current:null},2000,{ent:'trade_republic'},()=>({label:'Cuenta'}),b.remaining,2000);
+    assert.equal(data.spent,expected); assert.equal(data.budgetLeft,1000-expected);
+    assert.equal(data.periodKind,cycle?'ciclo':'mes');
+    assert.deepEqual(JSON.parse(data.scope).slice(1,5),[b.periodStart,data.periodKind,cycle?'neto':'gasto',anchor]);
+    datos.compat.push({at,code,photo:puente(data),expected,kind:data.periodKind,start:b.periodStart});
+  }
+} finally {if(prevTZ===undefined)delete process.env.TZ;else process.env.TZ=prevTZ;}
 
 // ── NATIVO: el Java de producción de cada APK en su propio paquete, sobre los mismos dobles ────
 const capacitor=fs.readFileSync(path.join(root,'node_modules/@capacitor/android/capacitor/src/main/java/com/getcapacitor/PluginCall.java'),'utf8');
@@ -104,8 +145,8 @@ const getters=['String getString','Integer getInt','Double getDouble'].map(sig=>
   assert.equal(found&&found.length,2,'Capacitor ya no declara '+sig+' como se esperaba'); return found.join('\n');
 }).join('\n').replaceAll('@Nullable ','');
 const metodo=(src,firma)=>{ const m=src.match(new RegExp('^    '+firma+'[^]*?^    }','m')); return m?m[0]:''; };
-const arnes=code=>{
-  const ref=REFS[code], widget=show(ref,nativeDir+'MiCarteraWidget.java'), listener=show(ref,nativeDir+'TrExpenseListener.java'), plugin=show(ref,nativeDir+'MiCarteraPlugin.java');
+const arnes=(code,ref=REFS[code])=>{
+  const widget=show(ref,nativeDir+'MiCarteraWidget.java'), listener=show(ref,nativeDir+'TrExpenseListener.java'), plugin=show(ref,nativeDir+'MiCarteraPlugin.java');
   const methods=widget.slice(widget.indexOf('    private static WidgetSnapshotArbiter.State read('),widget.lastIndexOf('\n}')).replaceAll('org.json.','');
   const update=metodo(plugin,'public void updateWidget\\(PluginCall call\\)'); assert.ok(update,'APK '+code+' sin updateWidget');
   const read=metodo(plugin,'public void beginWidgetRead\\(PluginCall call\\)');
@@ -151,11 +192,13 @@ ${read}
   }
   public String text(int id){MiCarteraWidget.refreshAll(l);return MiCarteraWidget.last.text.get(id);}
 }
-`;
+`.replaceAll('System.currentTimeMillis()', 'fx.Fx.now()');
 };
 const FX=`package fx;
 import java.util.*;
 public class Fx {
+  public static long clock=System.currentTimeMillis();
+  public static long now(){return clock;}
   public static class SharedPreferences {
     public final Map<String,Object> values=new HashMap<>();
     public int commits;
@@ -269,6 +312,7 @@ public class Fx {
     public long optLong(int i,long d){return i<data.size()&&data.get(i) instanceof Number?((Number)data.get(i)).longValue():d;}
     public String optString(int i,String d){return i<data.size()&&data.get(i)!=null?String.valueOf(data.get(i)):d;}
     public JSONArray optJSONArray(int i){return i<data.size()&&data.get(i) instanceof JSONArray?(JSONArray)data.get(i):null;}
+    public JSONObject optJSONObject(int i){return i<data.size()&&data.get(i) instanceof JSONObject?(JSONObject)data.get(i):null;}
   }
   public static class JSObject extends JSONObject {
     public JSObject(){}
@@ -349,7 +393,59 @@ public class Driver {
     ok(a.text(R.id.w_title).equals("AELY · MI CICLO · GASTO NETO"),"cabecera de ciclo");
     Apk m=apk(54); m.updateWidget(Fx.bridge(fotos.optString("nueva/54/mes",null).replace("@GEN@","x").replace("@CUT@","0")));
     ok(m.prefs().getLong("periodStart",0)==mes&&m.text(R.id.w_title).contains("ESTE MES"),"el mes natural sigue guardando el día 1");
+    Apk decimal=apk(54); decimal.updateWidget(Fx.bridge(fotos.optString("nueva/54/decimal",null)));
+    ok(decimal.prefs().getLong("periodStart",0)==ciclo,"el decimal .5 se TRUNCA al inicio exacto, no se redondea");
+    ok(cifra(decimal).equals(neto(0))&&!pie(decimal).equals(AVISO),"el decimal pasa plugin, alcance y render reales");
+    for(String missing:new String[]{"null","omitido"}) {
+      Apk sin=apk(54); abrir(sin,"nueva",54,0,true);
+      ok(sin.prefs().contains("safeLiq"),"precondición: había liquidez conocida");
+      sin.updateWidget(Fx.bridge(fotos.optString("nueva/54/sin-liquidez-"+missing,null)));
+      ok(!sin.prefs().contains("safeLiq")&&!sin.prefs().contains("budgetLeft"),"sin dato no persiste cero ni conserva la cifra anterior: "+missing);
+      ok(sin.text(R.id.w_afford)==null,"sin liquidez ni presupuesto no pinta un disponible inventado: "+missing);
+      ok(cifra(sin).equals(neto(0)),"la falta de liquidez no inventa otro gasto");
+    }
     System.out.println("PASS contrato APK 54: payload web → JSON del puente → plugin → widget escribe ciclo y mes");
+  }
+  static void compat54(){
+    // v154 es solo un paquete aislado del test, no un versionCode ni una APK candidata.
+    Apk vieja=new v154.Harness(); abrir(vieja,"nueva",54,0,true);
+    ok(cifra(vieja).equals(neto(0)),"web nueva compatible con Java inmutable de APK54 anterior");
+    pagar(vieja,1,false); abrir(vieja,"nueva",54,1,true);
+    ok(cifra(vieja).equals(neto(1))&&vieja.prefs().getLong("periodStart",0)==ciclo,"APK54 anterior conserva pago y ventana");
+    System.out.println("PASS compatibilidad: web nueva con Java APK54 anterior, sin atribuirle la corrección nativa");
+  }
+  static void compat55(){
+    long real=Fx.clock; java.util.TimeZone old=java.util.TimeZone.getDefault();
+    try {
+      java.util.TimeZone.setDefault(java.util.TimeZone.getTimeZone("Europe/Madrid"));
+      JSONArray matrix=datos.optJSONArray("compat");
+      for(int i=0;i<matrix.length();i++){
+        JSONObject c=matrix.optJSONObject(i); Fx.clock=c.optLong("at",0);
+        int code=c.optInt("code",0); Apk a=code==53?new v53.Harness():code==55?new v55.Harness():new v54.Harness();
+        a.updateWidget(Fx.bridge(c.optString("photo",null)));
+        ok(cifra(a).equals(c.optInt("expected",0)+" €"),"APK "+code+" acepta foto día44/45/46: "+i+" cifra "+cifra(a));
+        ok(a.prefs().getLong("periodStart",0)==c.optLong("start",0),"conserva periodo real "+i);
+        ok(a.text(R.id.w_title).contains(c.optString("kind","").equals("ciclo")?"MI CICLO":"ESTE MES"),"rótulo honesto "+i);
+      }
+      System.out.println("PASS APK53/55 históricas y candidata56: "+matrix.length()+" fotos reales, cero rechazos");
+    } finally {Fx.clock=real;java.util.TimeZone.setDefault(old);}
+  }
+  static void caducidad(){
+    long real=Fx.clock;
+    try {
+      Apk a=apk(54); abrir(a,"nueva",54,0,true);
+      java.util.Calendar last=java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("Europe/Madrid"));last.setTimeInMillis(ciclo);
+      last.add(java.util.Calendar.DAY_OF_MONTH,45);last.set(java.util.Calendar.HOUR_OF_DAY,23);
+      last.set(java.util.Calendar.MINUTE,59);Fx.clock=last.getTimeInMillis();
+      ok(cifra(a).equals(neto(0)),"el día 45 de Madrid conserva la cifra hasta su última hora");
+      last.add(java.util.Calendar.DAY_OF_MONTH,1);Fx.clock=last.getTimeInMillis();
+      ok(cifra(a).equals("—"),"el ciclo vencido no enseña una cifra de otro periodo");
+      ok(a.text(R.id.w_afford)==null&&!a.text(R.id.w_foot).contains("€"),"el ciclo vencido oculta disponible y saldo");
+      ok(pie(a).equals("Sin datos de este ciclo"),"el ciclo vencido conserva el aviso");
+      a.updateWidget(Fx.bridge(fotos.optString("nueva/54/decimal",null)));
+      ok(cifra(a).equals("—"),"una foto antigua por plugin no recupera el ciclo vencido");
+      System.out.println("PASS render nativo: día45 vigente, día46 sin cifras y foto antigua rechazada");
+    } finally {Fx.clock=real;}
   }
   /** La secuencia del dueño con la web nueva sobre cada APK. */
   static void secuencia(int code,boolean servidorV2){
@@ -403,6 +499,9 @@ public class Driver {
     ciclo=datos.optLong("ciclo",0); mes=datos.optLong("mes",0);
     diagnostico();
     contrato54();
+    compat54();
+    compat55();
+    caducidad();
     for(int code:new int[]{52,53,54}) for(boolean v2:new boolean[]{false,true}) secuencia(code,v2);
     System.out.println("PASS secuencia del dueño (aviso → abrir → pagar cerrada → abrir) en APK 52, 53 y 54 con servidor legacy y v2");
     heredadoLleno();
@@ -419,6 +518,14 @@ try {
     for(const pure of ['WidgetSnapshotArbiter.java','WidgetPeriod.java'])
       escribir('v'+code+'/'+pure,show(REFS[code],nativeDir+pure).replace('package com.micartera.app;','package v'+code+';'));
   }
+  const old54='c5f62d6603d016150afd9d0e20547b608b323045';
+  escribir('v154/Harness.java',arnes(54,old54).replace('package v54;','package v154;'));
+  for(const pure of ['WidgetSnapshotArbiter.java','WidgetPeriod.java'])
+    escribir('v154/'+pure,show(old54,nativeDir+pure).replace('package com.micartera.app;','package v154;'));
+  const old55='3625fa7ed5134cfbc5e364adc4f588bfdaf670c0';
+  escribir('v55/Harness.java',arnes(55,old55));
+  for(const pure of ['WidgetSnapshotArbiter.java','WidgetPeriod.java'])
+    escribir('v55/'+pure,show(old55,nativeDir+pure).replace('package com.micartera.app;','package v55;'));
   fs.writeFileSync(path.join(dir,'datos.json'),JSON.stringify(datos));
   const jdk=process.env.JAVA_HOME?path.join(process.env.JAVA_HOME,'bin'):'C:/Program Files/Android/Android Studio/jbr/bin';
   for(const [name,args] of [['javac',['-encoding','UTF-8','-nowarn','-d',path.join(dir,'out'),...fuentes]],

@@ -52,6 +52,28 @@ Lo que sigue describe la rama del autor antes de integrarse. El guardián vigent
 
 Las pruebas ligeras sobre fuentes no sustituyen el HTML generado: mientras falta el turno de build, el artefacto público sigue siendo el de117. Hay que ejecutar los tests ordinarios, el DOM completo y la comparación CPU×6 en el bundle nuevo, con20.000 movimientos,400 cierres y tres entradas de al menos50 FPS; sin rebajar umbral, subir retries ni heredar resultados de otro SHA. [Acta](briefs/inicio-rebase117-20261012.md).
 
+## Vigencia de Mi ciclo en Madrid · candidato sin publicar
+
+`node tests/widget-ciclo.test.mjs` ejecuta la [tabla compartida](../tests/fixtures/widget-ciclo.tsv)
+contra el módulo fuente web y `WidgetPeriod` Java real con dispositivo en UTC,
+Madrid, Canarias, Santiago y Cairo, sin Gradle. La tabla completa se ejecuta también
+en `ingest/widget.test.ts` con Deno y permiso sólo de lectura de ese TSV, registrado
+en el runner. Incluye días 1/31/44/45/46/60, milisegundos, cobro de hoy y fronteras
+de Madrid en marzo/octubre; un barrido de 864 casos conserva cifras frente a b1d3c8e8
+cuando el dispositivo ya estaba en Madrid. [Regla](WIDGET-CICLO.md).
+El oráculo A/B está en `tests/fixtures/widget-payday-b1d3.json`, con función exacta,
+SHA de origen y checksum: un checkout limpio no depende del commit retirado por el rebase.
+`widget-puente-ciclo` añade decimal `.5` contra entero, liquidez nula/omitida tras
+un valor conocido y render nativo al caducar. Además pasa 36 fotos de días44/45/46
+por el Java inmutable de APK53/55 y el candidato56: la versión antigua recibe cifras
+y etiqueta de mes cuando rechazaría el ciclo. `widget-banco` prepara aserciones DOM
+exactas del porcentaje restante y negocia APK55/56 en el día45; sigue sin ejecutarse
+localmente mientras no haya reserva propia de navegador.
+No sustituye la CI del SHA ni la prueba en móvil con APK nueva.
+Los dos oráculos de ancla en `month-budget-stats` exigen el instante de medianoche
+de Madrid, no `getDate()` del proceso. Ese test y los lectores `gastos-periodo`,
+`ob-ingresos`, `invest-category` y `reserva-dinero` se verifican en UTC/Madrid/Canarias.
+
 ## Pantalla de entrada nueva · contrato histórico4.26.117
 
 `beta-sources` fija como oráculo literal la nota 117 (es/en/ca, una tanda `splash-animado`, solo web y sin APK), su descriptor (script del `<head>`, CSS del splash, `#mc-load` con su vigilante y el efecto de `App` que monta las pestañas detrás de la cortina) y que NINGUNA huella ajena se mueve respecto a la beta 116 (`moved={}`), en particular la de `inc-2709-01-arranque-red`. Seis mutantes sobre la fuente real reabren la tanda. El Catálogo116 se lee de su commit inmutable (`f012fc05`). `e2e/splash.spec.mjs` comprueba que al levantarse la cortina las cuatro pestañas ya están montadas; `e2e/hist-visor.spec.mjs` espera con `expect.poll` a que la fila 30 acabe visible en vez de leer la opacidad a mitad de la transición. `Retiro117` fija que `bancos-sin-hueco` (aprobada el 12/10) sale del panel conservando nota, descriptor e historial, y que la huella de `widget-ciclo-puente` no cambia. `e2e/revisar-beta.spec.mjs` fija la cola con la nota 117 delante y sin esa tanda. No se ha probado en el móvil ni con la APK 54 compilada.
@@ -1072,3 +1094,7 @@ reproducción del lag ni mejora de rendimiento. La fuente183 tiene CI37810907496
 `e2e/cartera-bienes-completo.spec.mjs` protege alta vacía, validación, edición, borrado confirmado/cancelado, cero, recarga y conservación de los demás datos. `e2e/cartera-bienes-toque.spec.mjs` comprueba abrir y cancelar por toque/teclado en es/en/ca y letra normal/grande. Ambos están en E2E_MAP para07 y14. `e2e/inicio-grafica-significado.spec.mjs`, registrado para03, protege el dibujo original, moneda, histórico y total desconocido. Son datos sintéticos; no sustituyen la aceptación móvil. Suite completa y CI pendientes de ejecución sobre el SHA del PR.
 
 Inicio PR204, revisión119: inicio-v42 prueba manual real, deuda/intereses, bienes y aportaciones, unión400/30, nube acotada y nueve mutantes monetarios. La segunda revisión añade alta del formulario frente a montaje/pull, bienes legados constantes, banco→manual con escalones, deuda sin plazo y callback tardío sin sesión. Los e2e ya registrados protegen scroll vertical, cobertura por cuenta, mes natural/último día y ancho de Inversiones. La focal nueva de Inicio es serial; Claude asume funcional completa y rendimiento limpio en integración. Se conservan los rojos y A/B anteriores. [Ronda anterior](briefs/inicio-revision-nogo-20261012.md) · [segunda revisión](briefs/inicio-ronda3-bienes-20261012.md).
+
+### Calendario del presupuesto en Madrid
+
+`tests/nomina-calendario-madrid.test.mjs`, registrado en `run-tests`, compara Inicio, cabecera del ciclo de Gastos y el payload del escritor web real del widget en procesos UTC/Madrid/Canarias. Cubre medianoches, mes/año, bisiesto y DST de 23/25 horas con BOOK y vetos futura/PDNG/UNKNOWN/duplicada. [Estado del candidato](INICIO-MES-CERO-CALENDARIO-MADRID.md).

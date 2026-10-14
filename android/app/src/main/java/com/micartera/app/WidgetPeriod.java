@@ -16,8 +16,6 @@ import java.util.TimeZone;
 final class WidgetPeriod {
     static final int CONTRACT = 2;
     static final String CICLO = "ciclo", MES = "mes";
-    /** Mismo tope que `lastPaydayOf`: pasado este plazo la app ya no ancla el ciclo. */
-    static final long CICLO_MAX_MS = 45L * 86400000L;
 
     private WidgetPeriod() {}
 
@@ -36,7 +34,17 @@ final class WidgetPeriod {
     }
 
     static boolean cycleValid(long start, long now) {
-        return start > 0 && start <= now && now - start <= CICLO_MAX_MS;
+        // Regla única: docs/WIDGET-CICLO.md. Restar horas caducaba antes que la web el día 45
+        // y tampoco representa días de Madrid cuando el ciclo cruza un cambio de hora.
+        Calendar cut = Calendar.getInstance(TimeZone.getTimeZone("Europe/Madrid"));
+        cut.setTimeInMillis(now);
+        // Primero la fecha, después su medianoche: no arrastrar una hora normalizada.
+        cut.add(Calendar.DAY_OF_MONTH, -45);
+        cut.set(Calendar.HOUR_OF_DAY, 0);
+        cut.set(Calendar.MINUTE, 0);
+        cut.set(Calendar.SECOND, 0);
+        cut.set(Calendar.MILLISECOND, 0);
+        return start > 0 && start <= now && start >= cut.getTimeInMillis();
     }
 
     /** La ventana que el widget da por buena AHORA para lo que tiene guardado. */

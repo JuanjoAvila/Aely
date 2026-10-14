@@ -78,7 +78,7 @@ export const E2E_MAP = [
     "e2e/gastos-diario-filtro.spec.mjs", "e2e/gastos-cabecera-bancos.spec.mjs", "e2e/gastos-orden.spec.mjs",
     "e2e/gastos-categorias-presupuesto.spec.mjs", "e2e/gastos-periodo-categorias.spec.mjs", "e2e/gastos-suelta-filas.spec.mjs",
     "e2e/gastos-deudas.spec.mjs", "e2e/cartera-ficha-cuenta.spec.mjs", "e2e/presupuesto-fluido.spec.mjs",
-    "e2e/gastos-ayuda-ciclo.spec.mjs", "e2e/gastos-mes-madrid.spec.mjs",
+    "e2e/gastos-ayuda-ciclo.spec.mjs", "e2e/gastos-mes-madrid.spec.mjs", "e2e/widget-banco.spec.mjs",
     // Apuntes iguales de TR por el cableado real: filas en Gastos, «Es el mismo» desde la ficha.
     "e2e/tr-iguales-ordinal.spec.mjs",
   ] },
@@ -212,10 +212,10 @@ export const CROSSCUTTING = [
 ];
 
 const STEPS_DOCS = ["guard-privacy", "docs-frescura", "memoria-espejo"];
-const STEPS_ANDROID = ["guard-privacy", "webdebug-guard", "widget-coherente", "widget-arbitraje", "widget-offline", "widget-unknown-loss", "widget-unknown-journal", "widget-notificacion-render", "widget-inicio-paridad", "widget-puente-ciclo", "ingest-identity", "ingest-handler"];
+const STEPS_ANDROID = ["guard-privacy", "webdebug-guard", "widget-coherente", "widget-arbitraje", "widget-offline", "widget-unknown-loss", "widget-unknown-journal", "widget-notificacion-render", "widget-inicio-paridad", "widget-puente-ciclo", "widget-ciclo", "ingest-identity", "ingest-handler"];
 const STEPS_SUPABASE = [
   "prod117-edge-compat",
-  "help-assistant", "guard-privacy", "edge-sintaxis", "presupuesto-servidor", "cuotas-deudas", "widget-coherente", "widget-arbitraje", "widget-offline", "widget-unknown-loss", "widget-unknown-journal", "widget-notificacion-render", "widget-inicio-paridad", "widget-puente-ciclo",
+  "help-assistant", "guard-privacy", "edge-sintaxis", "presupuesto-servidor", "cuotas-deudas", "widget-coherente", "widget-arbitraje", "widget-offline", "widget-unknown-loss", "widget-unknown-journal", "widget-notificacion-render", "widget-inicio-paridad", "widget-puente-ciclo", "widget-ciclo",
   "month-window", "wallet-notis", "ingest-classify", "ingest-identity", "ingest-handler", "divisa-original", "presupuesto-rendimiento",
   "grants-migraciones", "entrada-edge", "bank-sync-paging", "bank-sync-progreso", "bank-sync-acuse", "bank-reconnect", "tr-open-banking",
   "categorize-limitador", "categorize-handler",

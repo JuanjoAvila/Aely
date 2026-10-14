@@ -1,3 +1,5 @@
+Candidato sin publicar: la vigencia web/nativa de Mi ciclo se rige por [WIDGET-CICLO](WIDGET-CICLO.md). Sin cambio de contrato del puente; el cambio Java requiere APK nueva.
+
 # Arquitectura — Aely
 
 ## InicioAhora y archivo109 · versión4.26.112 del canal beta
@@ -37,6 +39,13 @@ El recibo web acredita código y añade el guion estrenado en `pruebas`. La cola
 V2 sigue dashboardBudgetStats de Inicio, declara ventana/ancla/magnitud/reservas/bancos/idioma y solo confirma eventos recibidos del último pull completo. Java conserva desconocidos hasta ACK/lápida; no inventa delta con ingestlegacy ni degrada contrato por timeout. El injerto mantiene readStartedAt/merge de79 y su conciliación de recibos, así como importación de ingresos BOOK no futuros de78. Source821 se mantiene equivalente; los cambios de esas primitivas se revisan con scopes transitorios de funciones/datos de79. APK52 exclusiva beta, no despliegue Edge/SQL. [Acta](briefs/inc-2909-01-widget.md).
 
 ## Ingresos bancarios pendientes y futuros (INC-3009-02)
+
+Revisión candidata PR212 (13/10): `lastPaydayOf`, `WidgetPeriod.cycleValid` e ingest
+usan Madrid para ancla y vigencia, aunque el dispositivo esté en otra zona. El fin
+de ventana de `budgetPeriodOf` pertenece al encargo separado de tarjeta del mes;
+esta PR no lo modifica. Para APK anterior a56, el productor web recalcula mes natural
+si la guarda antigua rechazaría el ciclo y persiste ese mismo alcance para ingest.
+[Regla y orden de despliegue, todavía pendientes](WIDGET-CICLO.md).
 
 `importObExpenses` admite abonos con estado normalizado BOOK o ausente y fecha bancaria
 YYYY-MM-DD válida no posterior a hoy Madrid (`madridYmdParts`). Rechaza antes de seen/keys,

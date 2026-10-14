@@ -172,8 +172,11 @@ const widgetTest=read('supabase/functions/ingest/widget.test.ts').replace(/^impo
 // Todo lo que `widget.test.ts` importa de `presupuesto.ts` tiene que llegar aquí: con la lista a
 // mano, los casos del ordinal y del cargo de recibo fallaban por un nombre sin definir (13/10).
 const dePresupuesto=['bancoDeSource','claveComoLaApp','cuentaParaPresupuesto','esCargoDeRecibo','filasComoLaApp','inicioDeMesMs','ordinalDeSource'];
-new Function('Deno','assertEquals','widgetSnapshot','widgetStart','readWidgetRows',...dePresupuesto,transformSync(widgetTest,{loader:'ts'}).code)(
-  {test:(name,fn)=>denoCases.push([name,fn])},assert.deepEqual,widgetBudget.widgetSnapshot,widgetBudget.widgetStart,widgetBudget.readWidgetRows,...dePresupuesto.map(n=>budget[n]));
+new Function('Deno','assertEquals','widgetSnapshot','widgetStart','readWidgetRows',...dePresupuesto,transformSync(widgetTest,{loader:'ts',define:{'import.meta.url':JSON.stringify(new URL('supabase/functions/ingest/widget.test.ts',root).href)}}).code)(
+  {test:(name,fn)=>denoCases.push([name,fn]),readTextFileSync:url=>{
+    assert.equal(url.href,new URL('tests/fixtures/widget-ciclo.tsv',root).href);
+    return fs.readFileSync(url,'utf8');
+  }},assert.deepEqual,widgetBudget.widgetSnapshot,widgetBudget.widgetStart,widgetBudget.readWidgetRows,...dePresupuesto.map(n=>budget[n]));
 for(const [name,fn] of denoCases) await t('Node ejecuta cuerpo Deno: '+name,fn);
 
 await t("respuesta dual: month legado intacto y widget v2 bruto para la misma compra", async () => {

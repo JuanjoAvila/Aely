@@ -20,7 +20,7 @@ async function ciclo(page,caso){
 }
 
 for(const caso of idiomas) for(const limite of [
-  {name:"agotado",spent:1000,pct:"0%",over:false},
+  {name:"agotado",spent:1000,pct:"0%",over:false,state:"tight"},
   {name:"excedido",spent:1200,pct:"0%",over:true},
   {name:"reservado entero",spent:100,reserved:1000,pct:"0%",over:true},
   {name:"sin actividad",spent:0,pct:"100%",over:false,daily:333},
@@ -44,7 +44,7 @@ for(const caso of idiomas) for(const limite of [
   }else{
     await expect(dash.locator(".v4-ring .num")).toHaveText(limite.pct);
     await expect(dash.locator(".v42-cycle-amount>.serif")).toHaveText(String(1000-(limite.reserved||0)-limite.spent)+" €");
-    await expect(dash).toHaveAttribute("data-state",limite.over?"over":limite.spent===0?"comfort":"good");
+    await expect(dash).toHaveAttribute("data-state",limite.over?"over":limite.spent===0?"comfort":limite.state||"good");
     if(limite.daily) await expect(dash.getByTestId("inicio-cycle-pace")).toHaveText(caso.pace(limite.daily));
     else await expect(dash.getByTestId("inicio-cycle-pace")).toHaveCount(0);
   }
@@ -94,5 +94,28 @@ for(const caso of idiomas) for(const perfil of ["split","net"]){
     await dismissNews(page);
     await expect(ring).toHaveText("33%");
     expect(await page.evaluate(()=>JSON.parse(localStorage.getItem("micartera_v3")).settings.gTotalMode)).toBe(perfil);
+  });
+}
+
+// El aviso depende del margen real antes que del ritmo: el verde con cero engañaba.
+for(const lang of ["es","en","ca"])for(const day of [1,15,30])for(const remaining of [0,-0.01]){
+  test(`Inicio avisa sin verde con restante${remaining} día${day} (${lang})`,async({page})=>{
+    const date="2026-09-"+String(day).padStart(2,"0")+"T12:00:00Z";
+    await page.clock.install({time:new Date(date)});
+    await seedLoggedInDashboard(page,{budget:1000,settings:{autoPrices:false,theme:"green",lang,budgetCycle:false,gTotalMode:"split",expenseBanks:["sabadell"]},
+      accounts:[{id:"daily",ent:"sabadell",name:"Cuenta sintética",value:1000,role:"diario",spendFrom:true}],
+      expenses:[{id:"spent",date,amount:1000-remaining,merchant:"Compra sintética",category:"super",ent:"sabadell"}]});
+    await page.goto("/");await page.waitForFunction(()=>!document.getElementById("mc-load"));await dismissNews(page);
+    const card=page.locator(".v4-budget"),tone=remaining===0?"tan":"coral";
+    await expect(card).toHaveAttribute("data-state",remaining===0?"tight":"over");
+    // El aviso se escucha completo; los rótulos retirados no vuelven a la tarjeta.
+    await expect(card.locator(".st,.v42-cycle-remaining")).toHaveCount(0);
+    const warning=remaining===0?{es:/Vas justito/,en:/Getting tight/,ca:/Vas justet/}[lang]:{es:/Te has pasado/,en:/over budget/,ca:/has passat/}[lang];
+    await expect(card).toHaveAttribute("aria-label",warning);
+    await expect(card).not.toHaveAttribute("aria-label",/Vas bien|On track|Vas bé|Cicle acabat de començar|Cycle just started/);
+    expect(await card.evaluate((el,tone)=>{const probe=document.createElement("span");probe.style.color="var(--"+tone+")";el.appendChild(probe);const ok=getComputedStyle(el).color===getComputedStyle(probe).color;probe.remove();return ok;},tone)).toBe(true);
+    await expect(card.locator(".v42-cycle-percent")).toHaveText("0%");
+    await expect(card.locator(".v42-cycle-draw")).toHaveAttribute("stroke-dasharray","0 100");
+    await expect(card.getByTestId("inicio-cycle-pace")).toHaveCount(0);
   });
 }
