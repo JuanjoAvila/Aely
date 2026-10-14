@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "id": "compras-identicas-ids-distintos-2-codex-20261014",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261014-8f045f9f",
+  "createdAt": "2026-10-14T12:22:07.006Z",
+  "to": "codex",
+  "baseSHA": "24d0d463e0c0055ba000149f07d7fa2fe12d4c9b",
+  "objective": "SUCESOR de compras-identicas-ids-distintos-codex-20261014 (léelo entero: objetivo, aceptación y restricciones siguen valiendo). PRIORIDAD 1 de Codex. Si el chat anterior dejó rama o worktree con avance, partid de ahí y decid de dónde. Base: beta 4.26.128 (24d0d463). Ojo con lo que llega detrás: la limpieza (claude/integra-129) quita el formulario viejo de añadir gasto de 04-tab-gastos.js, y Trade Republic PR 230 (bd2b20f3, GO con reservas, se integra como 4.26.130) cambia el emparejado de aviso y banco: no dupliquéis su lógica y rebasad sobre claude/integra-130 cuando aparezca.",
+  "scope": [
+    "deduplicación de movimientos del banco en cliente y en ingest/bank-sync si aplica",
+    "tests Node y e2e de Gastos registrados en el mapa"
+  ],
+  "acceptance": [
+    "Los de compras-identicas-ids-distintos-codex-20261014"
+  ],
+  "restrictions": [
+    "Rojos de integración: no se tocan, se declaran con cifras",
+    "Navegador: solo specs propios, workers 1, retries 0; suite entera en la CI por workflow_dispatch sobre la rama propia, PR en borrador contra beta",
+    "No quitar ni reinstalar node_modules ni worktrees ajenos",
+    "Result con SHA, EXIT reales, mutaciones, limitaciones y pasos de prueba en el móvil. Un chat por encargo; reclamar antes de empezar"
+  ],
+  "authorization": "Coordinador local, 14/10. Sucesor pedido por Codex al archivar chats (consulta-continuidad-compras-prioridad-y-pr231-reservas-20261014). El claim y el result anteriores se conservan intactos; este encargo los sustituye para continuar."
+}
