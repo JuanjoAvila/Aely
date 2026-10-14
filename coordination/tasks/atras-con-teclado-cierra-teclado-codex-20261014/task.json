@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "id": "atras-con-teclado-cierra-teclado-codex-20261014",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261014-8f045f9f",
+  "createdAt": "2026-10-14T10:55:02.418Z",
+  "to": "codex",
+  "baseSHA": "24d0d463e0c0055ba000149f07d7fa2fe12d4c9b",
+  "objective": "Fallo visto por el dueño en su móvil (OnePlus 13, Android 16, navegación por gestos, APK 55 con la beta 4.26.128). En Cartera → Inversiones → Gestionar, si edita un campo (teclado abierto) y hace el gesto de atrás deslizando desde el borde, la app CIERRA la pantalla de Gestionar y vuelve a Cartera, cuando lo esperado es que el primer atrás solo oculte el teclado. Lo mismo en Plan → Recibos → Gestionar al añadir o actualizar un recibo: el atrás vuelve a Plan. Corregirlo en todas las hojas y pantallas con campos de texto: con el teclado abierto, atrás = ocultar teclado (y quitar el foco), sin cerrar nada ni perder lo escrito; con el teclado cerrado, atrás funciona como hoy.",
+  "scope": [
+    "manejo de atrás (historial, popstate, botón atrás de Capacitor o del puente nativo) en src/modules (busca backclose, handover, history.pushState)",
+    "si hace falta, el lado nativo Android (OnBackPressedDispatcher / back predictivo con IME visible), declarándolo: necesitaría APK",
+    "e2e propio registrado en el mapa"
+  ],
+  "acceptance": [
+    "Primer paso: reproducir y decir si el atrás lo recibe la web (popstate o evento de Capacitor) con el teclado visible, o si el nativo ya lo consume; con evidencia (adb logcat o CDP si hay móvil, o razonamiento sobre el código y la documentación de Android 16)",
+    "Preferir arreglo solo web (OTA) si es posible: detectar teclado abierto (visualViewport, foco en input o textarea, o el aviso de teclado que ya exista) y en ese caso consumir el atrás con blur() sin cerrar la hoja",
+    "Cubre Inversiones → Gestionar, Recibos → Gestionar (añadir y editar), Apuntar y cualquier otra hoja con campos; lista cuáles has probado",
+    "No rompe lo aprobado de atrás: inc-0810-backclose-handover, volver de Ajustes sin salir, perfil; sus e2e siguen en verde",
+    "e2e que simule el atrás con un campo enfocado y compruebe que la hoja sigue abierta y el valor escrito sigue ahí, y que un segundo atrás sí la cierra"
+  ],
+  "restrictions": [
+    "Si el arreglo exige cambio nativo, separarlo y declararlo (va con la APK 56 junto al widget)",
+    "Rojos de integración: no se tocan, se declaran con cifras. Navegador: solo specs propios, workers 1, retries 0; suite entera en la CI por workflow_dispatch, PR en borrador contra beta",
+    "No quitar ni reinstalar node_modules ni worktrees ajenos",
+    "Result con SHA, EXIT reales, limitaciones y pasos de prueba en el móvil en cristiano. Un chat por encargo; reclamar antes de empezar"
+  ],
+  "authorization": "Petición directa del dueño al coordinador, 14/10/2026."
+}
