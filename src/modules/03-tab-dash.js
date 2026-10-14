@@ -34,7 +34,7 @@ function cycleTiming(bud,nowMs){
   const days=Math.max(1,(end-civil(start))/864e5), elapsed=Math.max(0,(civil(now)-civil(start))/864e5);
   return {days:days,elapsed:elapsed,left:Math.max(0,(end-civil(now))/864e5),reliable:!!bud.cycle};
 }
-// Las filas de la hoja «Cómo se calcula», como mucho tres y solo las que aplican: etiqueta por
+// Las filas de la hoja «Cómo se calcula», pocas y solo las que aplican: etiqueta por
 // tipo (nunca cuenta por cuenta ni bien por bien) y un dato corto. Antes era un párrafo más una
 // línea por cuenta, bien y deuda metido en la página («el textaco», feedback 13/10).
 function netWorthInfoRows(series, dateFmt, comparedRange){
@@ -60,7 +60,14 @@ function netWorthInfoRows(series, dateFmt, comparedRange){
     const noRate=debts.some(function(g){ return g.noRate; }),badRate=debts.some(function(g){ return g.badRate; });
     rows.push({k:t("v42_net_i_debts"),v:t(constant===debts.length?"v42_net_i_debts_kept":constant?"v42_net_i_debts_mixed":"v42_net_i_debts_est")+(noRate?t("v42_net_i_debts_norate"):"")+(badRate?t("v42_net_i_debts_badrate"):"")});
   }
-  // Cuarta fila, solo cuando hay frase de comparación: con qué día se compara hoy, en corto.
+  // Con una cuenta a medias, se dice que solo cuenta su parte; y si los movimientos viejos de un
+  // banco con dos cuentas no dicen de cuál salieron, que esos cuentan enteros (no se reparten).
+  const shared=coverage.filter(function(g){ return g.kind==="share"; });
+  if(shared.length){
+    const unsplit=shared.filter(function(g){ return g.unsplit; }).map(function(g){ return g.name; });
+    rows.push({k:t("v42_net_i_share"),v:t("v42_net_i_share_v")+(unsplit.length?tf("v42_net_i_share_unsplit",{bank:unsplit.join(", ")}):"")});
+  }
+  // Última fila, solo cuando hay frase de comparación: con qué día se compara hoy, en corto.
   const months=comparedRange&&NW_MONTHS[comparedRange];
   if(comparedRange) rows.push({k:t("v42_net_i_cmp"),v:!months?t("v42_net_i_cmp_all"):months===1?t("v42_net_i_cmp_1m"):months===12?t("v42_net_i_cmp_12"):tf("v42_net_i_cmp_n",{n:months})});
   return rows;

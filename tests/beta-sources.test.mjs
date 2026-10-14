@@ -173,7 +173,7 @@ test("Inicio v4.2 cubre flujos, ciclo, renderer, llamada, animación, textos, CS
     ["src/modules/03-tab-dash.js",'today:seriesToday,liquid:tt.liquid','today:"1900-01-01",liquid:tt.liquid'],
     ["src/modules/02-ui-shared.js",'Math.abs(mean)*.06','Math.abs(mean)*.6'],
     ["src/modules/02-ui-shared.js",'const debt=netWorthDebtPolicy(state,today,options.debtTotal);','const debt={current:0,first:null,value:function(){return 0;}};'],
-    ["src/modules/02-ui-shared.js",'daily[day]=(daily[day]||0)-Math.round(e.amount*100)','daily[day]=(daily[day]||0)+Math.round(e.amount*100)'],
+    ["src/modules/02-ui-shared.js",'else daily[day]=(daily[day]||0)-row.cents;','else daily[day]=(daily[day]||0)+row.cents;'],
     ["src/modules/03-tab-dash.js",'const valid=typeof value==="number" && Number.isFinite(value)&&','const valid=true&&'],
     ["src/modules/03-tab-dash.js",'p?p.sign+p.ent:"—"','p?p.sign+p.ent:"0"'],
     ["src/modules/03-tab-dash.js",'const value=tt.netWorth, shown=useCountUp','const value=0, shown=useCountUp'],

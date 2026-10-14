@@ -29,7 +29,7 @@ export const old={ent:"caixabank",id:"old",date:day(-2),amount:7,merchant:"Antes
 export function updater(source,links,overrides={},logic=ctx){
   const start=source.indexOf("      set(function(prev){",source.indexOf("obAckPend.current=")),end=source.indexOf("      // sube las importadas",start);
   assert.ok(start>=0&&end>start);
-  const names=["flattenBankTx","importObExpenses","applyInvestBuy","cuotasDeDeudaPorMarcar","gemelosDeImportacion","pushGemelos","enrichNotesFromBankTx","reconcileFixedPaymentProofs","reconcileEarlyIncomeAnchors","applyBankBalances","bankIssuesOf"];
+  const names=["flattenBankTx","importObExpenses","applyInvestBuy","cuotasDeDeudaPorMarcar","gemelosDeImportacion","pushGemelos","enrichNotesFromBankTx","tagObAccountsFromBankTx","reconcileFixedPaymentProofs","reconcileEarlyIncomeAnchors","applyBankBalances","bankIssuesOf"];
   const proof=[];
   let state={accounts:[{id:"cx",ent:"caixabank",value:100,role:"diario"}],investments:[],fixed:[],oneoffs:[],flows:[],debts:[],goals:[],assets:[],obAccounts:[],settings:{expenseBanks:["caixabank"]},bankTx:[old],deleted:["lapida-sintetica"],gemelos:[{id:"gemelo-previo",status:"kept"}],expenses:[{id:"guardado",extId:"old",source:"ob",ent:"caixabank",date:day(-2),amount:7,merchant:"Antes",category:"otros",reciboId:"marca-previa"}]};
   state=Object.assign(state,overrides);

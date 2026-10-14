@@ -122,6 +122,7 @@ const steps = [
   ["inicio-v42", ["node", "tests/inicio-v42.test.mjs"]],
   ["inicio-mismo-dia", ["node", "tests/inicio-mismo-dia.test.mjs"]],
   ["inicio-transito-intereses", ["node", "tests/inicio-transito-intereses.test.mjs"]],
+  ["cuenta-parte-mia", ["node", "tests/cuenta-parte-mia.test.mjs"]],
   ["informe-mes", ["node", "tests/informe-mes.test.mjs"]],
   ["presupuesto-categoria", ["node", "tests/presupuesto-categoria.test.mjs"]],
   ["month-window", ["node", "tests/month-window.test.mjs"]],
