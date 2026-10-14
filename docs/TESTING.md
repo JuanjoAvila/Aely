@@ -432,6 +432,18 @@ volcar→acusar ejecutando el efecto real, y el móvil sin cuota (el histórico 
 El banco, la BD con filtros de verdad y los móviles sintéticos de ambos viven en
 `tests/helpers/banco-sintetico.mjs`, que ejecuta los handlers en modo estricto, como Deno
 (`bank-sync-progreso` y `bank-sync-paging` tienen su propio arnés, no estricto).
+Desconexión/carrera13/10: `tests/bank-revoke-callback-race.test.mjs` está en `steps` y
+`STEPS_SUPABASE`. Ejecuta los handlers reales y cifrado AES-GCM real con DB/transporte
+sintéticos: ids cifrados y legacy, URL, aislamiento del borrado, diagnóstico cerrado, fallo
+de clave/registro, callback intercalado, sesión/emisión cambiadas y columnas null.
+`supabase/functions/bank-disconnect/lifecycle.test.ts`, registrado en `denoEnLista`, importa
+los tres handlers y `supabase-js` reales; intercepta toda petición y reproduce REST estricto,
+incluido que `EQ NULL` no coincide con una columna null. Deno mantiene tipos y sanitizadores.
+Ambos comparan snapshots separados de la fila viva: compartir la referencia ocultaría la carrera.
+Las mutaciones de ambos filtros y de NULL, descifrado, URL y registro deben dar rojo.
+`logs-privacidad` incluye el destino nuevo y prueba errores hostiles de descifrado/proveedor;
+los dobles de paginado/progreso incorporan `IS NULL` aplicando el predicado, no saltándolo.
+
 `supabase/functions/bank-sync/demand-window.test.ts` (Deno)
 cubre el plan de fechas, el suelo, la validación del acuse y la clave del enlace. En cliente, `tests/ob-hueco-sync.test.mjs` y `tests/ob-hueco-recuperado.test.mjs`
 fijan el suelo por banco y las reglas de dinero del tramo (no compra, no duplica fijos, repetido con
@@ -1074,3 +1086,8 @@ reproducción del lag ni mejora de rendimiento. La fuente183 tiene CI37810907496
 `e2e/cartera-bienes-completo.spec.mjs` protege alta vacía, validación, edición, borrado confirmado/cancelado, cero, recarga y conservación de los demás datos. `e2e/cartera-bienes-toque.spec.mjs` comprueba abrir y cancelar por toque/teclado en es/en/ca y letra normal/grande. Ambos están en E2E_MAP para07 y14. `e2e/inicio-grafica-significado.spec.mjs`, registrado para03, protege el dibujo original, moneda, histórico y total desconocido. Son datos sintéticos; no sustituyen la aceptación móvil. Suite completa y CI pendientes de ejecución sobre el SHA del PR.
 
 Inicio PR204, revisión119: inicio-v42 prueba manual real, deuda/intereses, bienes y aportaciones, unión400/30, nube acotada y nueve mutantes monetarios. La segunda revisión añade alta del formulario frente a montaje/pull, bienes legados constantes, banco→manual con escalones, deuda sin plazo y callback tardío sin sesión. Los e2e ya registrados protegen scroll vertical, cobertura por cuenta, mes natural/último día y ancho de Inversiones. La focal nueva de Inicio es serial; Claude asume funcional completa y rendimiento limpio en integración. Se conservan los rojos y A/B anteriores. [Ronda anterior](briefs/inicio-revision-nogo-20261012.md) · [segunda revisión](briefs/inicio-ronda3-bienes-20261012.md).
+
+Revisión B PR226: lifecycle.test.ts comparte SDK real y REST estricto con carreras ante
+connect/callback: sin cuentas, acuse, ancla null y ambos cursores legacy. Prueba usuario ajeno
+primero, logger exacto, DELETE concurrente y timeout real8s; todas las salidas son simuladas.
+Node cubre además cambios independientes de sesión/emisión en DELETE. No se consulta el backend.

@@ -575,8 +575,20 @@ Límites conocidos de esta regla, sin arreglar (13/10):
   reconectar») y es el mismo para todo `softFail` de MyInvestor, también las dos primeras
   veces del caso anterior. El texto distinto del servidor solo se ve en la tarjeta de
   MyInvestor.
-- `bank-disconnect` pasa `session_id` tal cual está guardado (cifrado) al `DELETE /sessions`,
-  así que la revocación en el proveedor no llega a hacerse; la fila sí se borra.
+**Desconexión y carrera con callback, candidato13/10 sin desplegar.** `bank-disconnect`
+descifra con `decryptSessionId` antes de codificar el id en el DELETE. Antes enviaba el valor
+cifrado y callaba el fallo, aunque borrase la fila. Ahora el fallo deja `app_events` con paso
+y código cerrado; nunca id, ciphertext, JWT o mensaje del proveedor. La fila local se borra
+igualmente, incluso si falla el registro. Los ids legacy siguen funcionando.
+
+La escritura final de estado de `bank-sync` compara dentro del UPDATE los `session_id` y
+`state_issued_at` que leyó: una sesión o generación distintas no reciben el resultado antiguo.
+Se usa el valor guardado, no el descifrado; las columnas null legacy se comparan con `IS NULL`.
+No hay SELECT adicional entre comparación y escritura. Un callback completado mientras el
+sync espera gana tanto al resultado caducado como al correcto que antes adelantaba `last_sync`.
+El payload y los demás bloques de cursor/acuse, `bank-callback` y `keepsCursor` se conservan.
+[Alcance, dependencia de Claude y evidencia](briefs/bancos-revoca-callback-20261013.md).
+
 Trade Republic guarda aparte `_trAuthExpired`: que el puente arranque todavía sin sesión visible
 no enciende el aviso de reconexión. Al sincronizar a mano se intenta primero reutilizar y validar
 la sesión guardada, y solo una respuesta explícita `authExpired` pide volver a iniciar sesión.
@@ -807,3 +819,8 @@ cloud.onAuth devuelve la retirada de su suscripción. App cancela timer y callba
 `editReservaRule` compara la copia de apertura con el estado fresco, conserva id/contrato/campos desconocidos y no reescribe un asiento mensual ya aplicado. `applyReservaMensual` admite limitar el asiento pendiente a la regla editada. La línea mensual conserva la meta original del asiento si la regla cambia de destino. Corresponde a108; no se introducen sincronizaciones bancarias nuevas. [Alcance y gates](briefs/promocion-107-108-110-local26.md).
 
 Revisión de Inicio PR204 sobre119: historial local400/nube14 unido por fecha sólo para el propietario vigente; callback tardío sin sesión conserva el estado previo. El alta de Bienes se acredita sólo en Guardar; un bien legado sin escalones mantiene su valor actual hacia atrás con cobertura explícita. Con escalones reales se limita al tramo conocido, salvo el bien legado que se revalora: `recordAssetValues` anota la víspera el valor que tenía (`legacy`) y la serie lo mantiene hacia atrás (ajuste del 13/10, integrado en la 4.26.121 junto a la unión de `gemelos` de la 120, que ocupa el mismo punto del pull). Traspasos sólo se neutralizan entre dos cuentas de flujo; deudas sin plazo sitúan la amortización histórica en el día conocido de cuota, conservando el saldo actual. La caché depende de referencias financieras y día de Madrid. Contrato y gates: [ronda anterior](briefs/inicio-revision-nogo-20261012.md) y [segunda revisión](briefs/inicio-ronda3-bienes-20261012.md).
+
+Revisión de reservas PR226 (13/10, sin desplegar): todas las escrituras por enlace comparan
+la sesión/emisión leídas, incluidos cursores119 legacy y el expired sin cuentas. La revocación
+tiene tope8s; un DELETE local condicionado conserva la nueva generación y devuelve409 si cambió.
+Sin snapshot no se borra una conexión que aparezca tarde. Libro y balances no se editan.

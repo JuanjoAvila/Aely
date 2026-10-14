@@ -29,8 +29,15 @@ async function sync(links, reply, body={}, clock=null) {
     return reply(new URL(p,"https://bank.invalid"));
   };
   const db={auth:{getUser:async()=>({data:{user:{id:"synthetic"}}})},from:()=>({
-    select:()=>({eq:()=>({in:async()=>({data:links})})}),
-    update:x=>{const q={eq:()=>q,lt:()=>q,then:(ok,ko)=>{writes.push(x);return Promise.resolve({}).then(ok,ko);}};return q;},insert:async x=>{events.push(x);return {};}
+    select:()=>({eq:()=>({in:async()=>({data:links.map(l=>Object.assign({},l))})})}),
+    update:x=>{
+      const filters=[];
+      const q={eq:(col,v)=>{filters.push(l=>l[col]===v);return q;},
+        is:(col,v)=>{filters.push(l=>(l[col]==null?null:l[col])===v);return q;},
+        lt:(col,v)=>{filters.push(l=>l[col]!=null&&Date.parse(l[col])<Date.parse(v));return q;},
+        then:(ok,ko)=>{const matches=links.filter(l=>filters.every(f=>f(l)));if(matches.length){writes.push(x);matches.forEach(l=>Object.assign(l,x));}return Promise.resolve({}).then(ok,ko);}};
+      return q;
+    },insert:async x=>{events.push(x);return {};}
   })};
   const names=["Deno","createClient","ebApi","ebConfig","jsonResp","makeJWT","mapTransaction","withCors","fetchBankTransactions","Date","ebFailure","ebSessionVerdict","decryptSessionId"];
   new Function(...names,src)(

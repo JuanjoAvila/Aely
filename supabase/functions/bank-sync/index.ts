@@ -98,6 +98,14 @@ async function logObDemandResult(admin: any, userId: string, aspsp: string, date
   } catch (_) { /* diagnóstico best-effort: nunca cambia el resultado bancario */ }
 }
 
+// Todo avance usa la misma autorización que se leyó. El callback o connect pueden cambiarla
+// mientras esperamos al banco; el predicado SQL compara el valor cifrado en reposo y su emisión.
+// deno-lint-ignore no-explicit-any
+function sameLinkVersion(query: any, link: any) {
+  query = link.session_id == null ? query.is("session_id", null) : query.eq("session_id", link.session_id);
+  return link.state_issued_at == null ? query.is("state_issued_at", null) : query.eq("state_issued_at", link.state_issued_at);
+}
+
 Deno.serve(withCors(async (req: Request) => {
   // El límite por cuenta no basta: muchas cuentas lentas podrían agotar la Edge y perder
   // también las respuestas buenas. Se reserva margen para devolverlas y cerrar la petición.
@@ -226,9 +234,9 @@ Deno.serve(withCors(async (req: Request) => {
         ? link.accounts
         : (link.account_uid ? [{ uid: link.account_uid, iban: link.iban, name: null, currency: null }] : []);
       if (!acctList.length) {
-        await admin.from("bank_links")
+        await sameLinkVersion(admin.from("bank_links")
           .update({ status: "expired", updated_at: new Date().toISOString() })
-          .eq("id", link.id);
+          .eq("id", link.id), link);
         out.push({ aspsp: link.aspsp_name, iban: link.iban, ok: false, expired: true, error: "cuenta sin uid · reconecta", balances: [], count: 0, transactions: [], accounts: [] });
         continue;
       }
@@ -250,7 +258,7 @@ Deno.serve(withCors(async (req: Request) => {
       if (acked) {
         let written = false;
         try {
-          const q = admin.from("bank_links").update({ last_sync: acked, updated_at: new Date().toISOString() }).eq("id", link.id);
+          const q = sameLinkVersion(admin.from("bank_links").update({ last_sync: acked, updated_at: new Date().toISOString() }).eq("id", link.id), link);
           // `lt` no casa con null: un enlace recién conectado necesita su propio filtro.
           const { error } = await (link.last_sync ? q.lt("last_sync", acked) : q.is("last_sync", null));
           written = !error;
@@ -374,17 +382,18 @@ Deno.serve(withCors(async (req: Request) => {
       if (acks && !link.last_sync && anyAcctOk) {
         for (let i = 0, written = false; i < 2 && !written; i++) {
           try {
-            const { error } = await admin.from("bank_links").update({ last_sync: chunkCursor(ymdAddDays(plan.windowStart, -1)) })
-              .eq("id", link.id).is("last_sync", null);
+            const { error } = await sameLinkVersion(admin.from("bank_links").update({ last_sync: chunkCursor(ymdAddDays(plan.windowStart, -1)) })
+              .eq("id", link.id).is("last_sync", null), link);
             written = !error;
           } catch (_) { /* corte de red: como un error devuelto */ }
         }
       }
-      await admin.from("bank_links")
+      const statusUpdate = admin.from("bank_links")
         .update(anyAcctOk
           ? { ...(toNow && !acks ? { last_sync: nowIso } : {}), status: "active", updated_at: nowIso }
           : { status: anyExpired ? "expired" : link.status, updated_at: nowIso })
         .eq("id", link.id);
+      await sameLinkVersion(statusUpdate, link);
       // top-level (balances/transactions/count) = primera cuenta OK: retrocompat con la Capa 2/3 antigua.
       const primary = acctOut.find((a) => a.ok) || acctOut[0] || { balances: [], transactions: [], count: 0 };
       // deno-lint-ignore no-explicit-any
@@ -476,13 +485,13 @@ Deno.serve(withCors(async (req: Request) => {
         const stamp = new Date().toISOString();
         if (day > p.to) {
           if (acks) r.entry.ack = ackToken(stamp, r.linkKey);
-          else await admin.from("bank_links").update({ last_sync: stamp, updated_at: stamp }).eq("id", r.link.id);
+          else await sameLinkVersion(admin.from("bank_links").update({ last_sync: stamp, updated_at: stamp }).eq("id", r.link.id), r.link);
           r.entry.gapPending = false;
         } else if (sealed) {
           if (acks) r.entry.ack = ackToken(chunkCursor(sealed), r.linkKey);
           // `lt`: otro móvil pudo terminar mientras tanto. El cursor nunca retrocede.
-          else await admin.from("bank_links").update({ last_sync: chunkCursor(sealed), updated_at: stamp })
-            .eq("id", r.link.id).lt("last_sync", chunkCursor(sealed));
+          else await sameLinkVersion(admin.from("bank_links").update({ last_sync: chunkCursor(sealed), updated_at: stamp })
+            .eq("id", r.link.id).lt("last_sync", chunkCursor(sealed)), r.link);
         }
       } catch (_) { /* sin cursor nuevo la próxima pulsación repite el trozo: no se pierde nada */ }
     }

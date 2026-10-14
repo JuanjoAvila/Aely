@@ -83,6 +83,7 @@ function baseDatos(links) {
       const filters = [];
       const q = {
         eq(col, v) { filters.push((r) => r[col] === v); return q; },
+        is(col, v) { filters.push((r) => (r[col] == null ? null : r[col]) === v); return q; },
         lt(col, v) { filters.push((r) => r[col] != null && Date.parse(r[col]) < Date.parse(v)); return q; },
         then(ok, ko) {
           links.forEach((l) => { if (filters.every((f) => f(l))) Object.assign(l, patch); });

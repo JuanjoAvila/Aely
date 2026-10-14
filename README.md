@@ -91,6 +91,8 @@ mi-cartera/
 ├── tests/sync-memoria.test.mjs # Exportación sintética: cantidades, aviso Cloud e idempotencia; rechazo sin escrituras/borrados
 ├── tests/prod117-edge-compat.test.mjs # Fuentes desplegadas ingest50/prices13 y cliente actual, sin red
 ├── tests/categorize-handler.test.mjs # Handler y helpers actuales, movilidad/SQLSTATE con SDK/DB/LLM simulados; sin red
+├── tests/bank-revoke-callback-race.test.mjs # Revocación cifrada y callback frente al sync antiguo; handlers reales con transporte sintético
+├── supabase/functions/bank-disconnect/lifecycle.test.ts # Deno, SDK real y REST simulado: revocación, carrera y NULL legacy
 ├── src/                    # 👈 Fuente editable (v3.108+)
 │   ├── shell.html          #     HTML shell (React, CSS, vendors)
 │   ├── build-order.json    #     Orden de ensamblado de módulos
