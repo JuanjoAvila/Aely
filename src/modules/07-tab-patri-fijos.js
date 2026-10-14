@@ -831,8 +831,6 @@ function Wealth({state, set, totals, v4Embed, parte, showToast, onBankSync, onRe
 /* ============================================================
    TAB: GASTOS FIJOS
    ============================================================ */
-const FREQ_LABEL={mes:"mensual",bimestral:"bimestral",trimestral:"trimestral",semestral:"semestral","año":"anual"};
-const FREQ_OPTS=["mes","bimestral","trimestral","semestral","año"];
 const MONTHS_ES=["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
 
 /* ============================================================

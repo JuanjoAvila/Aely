@@ -419,7 +419,7 @@ function PlanBills({state, set, totals, charges, manageOpen, setManageOpen, simp
   );
 }
 
-/* §2 variante A: `.settings-push` hub, sin montar `<Fijos>`. Reconcile → BankPanel (Claude). */
+/* §2 variante A: `.settings-push` hub. Reconcile → BankPanel (Claude). */
 function gbTxt(key, vars){
   // Las claves ya viven en LANG.es/en/ca; conservar el antiguo respaldo castellano duplicaba
   // texto y podía tapar una traducción ausente en vez de dejar que i18n-keys la detectase.
@@ -449,7 +449,7 @@ function billGlyph(row){
   return row&&row.kind==="flow"?"↔️":row&&row.kind==="oneoff"?"📅":"🧾";
 }
 
-/* §2 variante A: `.settings-push` hub, sin montar `<Fijos>`. Reconcile → BankPanel (Claude).
+/* §2 variante A: `.settings-push` hub. Reconcile → BankPanel (Claude).
    Ajustes dispara `mc-open-bills` → PlanTab abre este push con state vivo (no snapshot). */
 function BillsManagePush({open, onClose, state, set, totals, simple}){
   const [stack,setStack]=React.useState(["hub"]);

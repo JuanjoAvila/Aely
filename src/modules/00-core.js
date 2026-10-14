@@ -319,7 +319,6 @@ const DEUDA_CAT = { id:"deudas", name:"Deudas", color:"#C98A7A", icon:"💳" };
 const CAT_NEUTRAS = { inversion:1, traspaso:1, deudas:1 };
 const catOf = (id)=> id==="ingreso" ? INGRESO_CAT : (id==="inversion" ? INVERSION_CAT : (id==="traspaso" ? TRASPASO_CAT : (id==="deudas" ? DEUDA_CAT : (CAT[id] || CAT.otros))));
 const catName = (id)=> t("cat_"+(catOf(id).id));   // nombre traducido de la categoría
-const freqLabel = (f)=> t("freq_"+f);              // frecuencia traducida
 
 /* Autodetección de categoría por comercio (mismas keywords que el GAS, ampliadas) */
 /* Overrides personales: comercios concretos que mapeas a tu manera (substring en minúsculas) */
