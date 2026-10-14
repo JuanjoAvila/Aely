@@ -266,7 +266,7 @@ function AssetSheet({asset,set,onClose}){
     )),document.body);
 }
 
-function Wealth({state, set, totals, v4Embed, parte, showToast, onBankSync, onReconnectBank, bankBusy}){
+function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBank, bankBusy}){
   const [delAcc,setDelAcc]=React.useState("");   // id de la cuenta manual pendiente de confirmar borrado
   const [sheetAcc,setSheetAcc]=React.useState("");   // id de la cuenta cuya ficha está abierta (v4)
   const [sheetAsset,setSheetAsset]=useState(null);
@@ -289,7 +289,7 @@ function Wealth({state, set, totals, v4Embed, parte, showToast, onBankSync, onRe
   const bindListDrag=React.useCallback(function(node){
     if(listCleanRef.current){ listCleanRef.current(); listCleanRef.current=null; }
     listRef.current=node;
-    if(!node || !v4Embed || parte==="bienes") return;
+    if(!node || parte==="bienes") return;
     const HOLD=380;
     const onTS=function(e){
       const btn=e.target.closest&&e.target.closest("button.v4-mov[data-account-key]");
@@ -347,7 +347,7 @@ function Wealth({state, set, totals, v4Embed, parte, showToast, onBankSync, onRe
       node.removeEventListener("touchcancel",onTE);
       clearTimeout((dragAccRef.current&&dragAccRef.current.timer)||0);
     };
-  },[v4Embed,parte,set]);
+  },[parte,set]);
   React.useEffect(function(){
     return function(){ if(listCleanRef.current){ listCleanRef.current(); listCleanRef.current=null; } };
   },[]);
@@ -373,7 +373,7 @@ function Wealth({state, set, totals, v4Embed, parte, showToast, onBankSync, onRe
      cuentas propias como de las filas OB aún no promocionadas. No se reconstruye hacia atrás con
      movimientos potencialmente truncados: hasta el segundo día la ficha dice que empieza hoy. */
   React.useEffect(function(){
-    if(!v4Embed||parte!=="cuentas"||!balanceReady) return;
+    if(parte!=="cuentas"||!balanceReady) return;
     const today=netWorthDay();
     const rows=(state.accounts||[]).map(function(a){
       return {key:a.accountOrderKey||("acc:"+a.id),value:+Number(shownAcc(a)).toFixed(2)};
@@ -390,11 +390,7 @@ function Wealth({state, set, totals, v4Embed, parte, showToast, onBankSync, onRe
       const all=recordAccountBalances(s.accountBalanceHistory,today,rows);
       return all!==s.accountBalanceHistory?Object.assign({},s,{accountBalanceHistory:all}):s;
     });
-  },[v4Embed,parte,balanceReady,state.accounts,state.obAccounts,state.accountBalanceHistory,totals]);
-  const spendBal=(i)=> shownAcc(i);
-  // ROLES DE CUENTA: al cambiar el rol se RE-ANCLA `value` para que el saldo mostrado no cambie
-  // (despejamos value de la fórmula del rol nuevo). Solo puede haber UNA cuenta de gasto diario.
-  const setRole=(id,r)=>{ set(function(s){ return applyAccountRole(s, totals, id, r); }); };   // lógica compartida (applyAccountRole)
+  },[parte,balanceReady,state.accounts,state.obAccounts,state.accountBalanceHistory,totals]);
   /* LA FÓRMULA INVERSA DEL SALDO, EN UN SOLO SITIO. Editas el SALDO REAL de hoy y por dentro se
      guarda la base (inicio de mes) correcta; `valueDesdeSaldo` (00-core) es la que despeja.
      ⚠ Vive aquí con nombre propio porque la usan DOS pantallas: el editor de toda la vida
@@ -421,12 +417,7 @@ function Wealth({state, set, totals, v4Embed, parte, showToast, onBankSync, onRe
       })});
     });
   };
-  const astEd=useEditable(state.assets,it=>set(s=>Object.assign({},s,{assets:it})));
-  const accSum=totals.liquid;
-  const astSum=state.assets.reduce((a,i)=>a+i.value,0);
-  const tt=totals;
-  // En Cartera (v4Embed) pintamos cuentas y bienes planos; inversiones van aparte (Investments).
-  if(v4Embed){
+  // Cartera pinta cuentas y bienes planos; inversiones van aparte (Investments).
     // Rol EFECTIVO para pintar (feedback 2026-07-21, como Trade Republic original: el rol va
     // DEBAJO del banco, sin carritos sueltos): «gasto diario» cuenta tanto si la cuenta es la
     // principal (rol diario/ambos) como si su banco es extra de gasto diario (expenseBanks);
@@ -724,108 +715,6 @@ function Wealth({state, set, totals, v4Embed, parte, showToast, onBankSync, onRe
         sheetAsset&&React.createElement(AssetSheet,{asset:sheetAsset,set:set,onClose:function(){setSheetAsset(null);}})
       )
     );
-  }
-  return React.createElement("div",null,
-    !v4Embed && React.createElement("div",{className:"hero",style:{marginBottom:14}},
-      React.createElement("div",{className:"hero-label"},t("d_networth")),
-      (function(){const p=eurParts(tt.netWorth);return React.createElement("div",{className:"hero-amount serif num"},p.ent,React.createElement("span",{className:"cents"},","+p.dec+" "+p.sym));})(),
-      React.createElement("div",{className:"hero-pills"},
-        React.createElement("div",{className:"pill ghost"},t("d_assets")+" "+eur0(tt.activos)),
-        React.createElement("div",{className:"pill neg"},t("d_debts")+" "+eur0(tt.debtTotal))
-      )
-    ),
-    React.createElement(OrderableSections,{tab:"patri",state:state,set:set,items:[
-      {id:"acc",label:t("pt_accounts"),el:
-    React.createElement(CollapsibleCard,{title:t("pt_accounts"),sub:t("pt_cash_avail"),dot:"#5FD08A",storageKey:"w_acc",help:t("h_roles"),
-      right:React.createElement("button",{className:"edit-link"+(accEd.editing?" save":""),onClick:e=>{e.stopPropagation();accEd.editing?accEd.save():accEd.start();}},accEd.editing?t("fj_save"):t("fj_edit"))},
-      state.accounts.map(a=>React.createElement(React.Fragment,{key:a.id},
-        React.createElement("div",{className:"row"},
-          React.createElement("div",{className:"rl"},React.createElement(Mono,{ent:a.ent,size:38}),
-            React.createElement("div",{style:{minWidth:0}},React.createElement("div",{className:"rname"},entOf(a.ent).label),
-              // subtítulo = el NOMBRE de la cuenta (editable abajo en modo edición). Nada de
-              // desgloses aquí: el gasto del mes ya vive en Gastos (feedback 2026-07-06).
-              accEd.editing
-                ? React.createElement("input",{className:"af-in",style:{fontSize:13,padding:"5px 9px",maxWidth:170,marginTop:3},value:a.name||"",placeholder:t("pt_name_ph"),onChange:function(e){ const v=e.target.value; set(function(s){ return Object.assign({},s,{accounts:s.accounts.map(function(x){ return x.id===a.id?Object.assign({},x,{name:v}):x; })}); }); }})
-                : (a.name?React.createElement("div",{className:"rsub"},a.name):null))),
-          accEd.editing
-            ? React.createElement("input",{className:"editv num",value:accEd.draft[a.id],inputMode:"decimal",onChange:e=>{const v=e.target.value;accEd.setDraft(d=>Object.assign({},d,{[a.id]:v}));}})
-            : React.createElement("div",{className:"rval num"},eur(shownAcc(a)))
-        ),
-        // rol de la cuenta (solo en modo edición): recibos / gasto diario / todo + quitar cuenta
-        accEd.editing && React.createElement("div",{className:"rolechips"},
-          [["fijos","rl_fijos"],["diario","rl_diario"],["ambos","rl_ambos"]].map(function(rr){
-            const on=accRole(a)===rr[0];
-            return React.createElement("button",{key:rr[0],className:"rchip"+(on?" on":""),onClick:function(){ setRole(a.id, rr[0]); }}, t(rr[1]));
-          }),
-          React.createElement("button",{className:"ex-del",style:{marginLeft:"auto"},title:t("pt_acc_del"),onClick:function(){ setDelAcc(a.id); }},"🗑")
-        ),
-        // confirmación de borrado de la cuenta manual (inline, para no borrar sin querer)
-        accEd.editing && delAcc===a.id && React.createElement("div",{className:"rolechips",style:{alignItems:"center",flexWrap:"wrap"}},
-          React.createElement("span",{style:{fontSize:12.5,color:"var(--muted)",flex:"1 1 100%",marginBottom:2}}, t("pt_acc_del_q")),
-          React.createElement("button",{className:"rchip",style:{color:"var(--coral)",borderColor:"var(--coral)"},onClick:function(){ removeAccount(a.id); }}, t("pt_acc_del_yes")),
-          React.createElement("button",{className:"rchip",onClick:function(){ setDelAcc(""); }}, t("pt_acc_del_no"))
-        )
-      )),
-      accEd.editing && state.accounts.length>0 && React.createElement("div",{className:"hint"}, t("pt_acc_del_hint")),
-      accEd.editing && React.createElement("div",{className:"hint"}, t("rl_hint")),
-      // Cuentas extra de Open Banking (compartidas, 2ª cuenta de un banco…): saldo real sincronizado.
-      // Nombre editable (obLabels) con un default "bonito" (niceObName); el saldo es solo lectura.
-      (state.obAccounts||[]).map(function(o){ const custom=(state.obLabels||{})[o.key]; const disp=(custom!=null&&custom!=="")?custom:niceObName(o);
-        return React.createElement(React.Fragment,{key:"ob_"+o.key},
-        React.createElement("div",{className:"row"},
-        React.createElement("div",{className:"rl"},React.createElement(Mono,{ent:o.ent||"",size:38}),
-          React.createElement("div",{style:{minWidth:0}},
-            accEd.editing
-              ? React.createElement("input",{className:"af-in",style:{fontSize:13,padding:"5px 9px",maxWidth:170},value:custom!=null?custom:disp,placeholder:disp,onChange:function(e){ const v=e.target.value; set(function(s){ const ob=Object.assign({},s.obLabels); ob[o.key]=v; return Object.assign({},s,{obLabels:ob}); }); }})
-              : React.createElement("div",{className:"rname"}, disp, o.stale
-                  ? React.createElement("span",{className:"day-badge",style:{marginLeft:6,background:"#E2A05F22",color:"#E2A05F"}}, t("pt_ob_badge")+" · "+t(o.staleKind==="expired"?"bp_st_expired":"pt_ob_stale"))
-                  : React.createElement("span",{className:"day-badge",style:{marginLeft:6,background:"#7FB5E822",color:"var(--blue)"}}, t("pt_ob_badge"))),
-            React.createElement("div",{className:"rsub"}, entOf(o.ent).label))),
-        React.createElement("div",{className:"rval num"}, fxAmountText(o.value||0,o.cur||"EUR",state))
-        ),
-        // ROL también para las cuentas OB (bug pareja 2026-07-11: sin rol no podían recibir
-        // gastos fijos ni diarios — al elegir uno, la cuenta se «promociona» a cuenta con rol,
-        // sale de esta lista y aparece arriba con las manuales; el banco la sigue re-anclando).
-        accEd.editing && o.ent && React.createElement("div",{className:"rolechips"},
-          [["fijos","rl_fijos"],["diario","rl_diario"],["ambos","rl_ambos"]].map(function(rr){
-            return React.createElement("button",{key:rr[0],className:"rchip",disabled:toEurAmt(o.value,o.cur,state)==null,onClick:function(){
-              const nid=uid();
-              set(function(s){ return promoteObAccount(s, totals, o.key, rr[0], nid); });
-              // siembra el borrador del editor con el saldo real: sin esto la fila nueva salía vacía
-              accEd.setDraft(function(d){ const nd=Object.assign({},d); nd[nid]=+toEurAmt(o.value||0, o.cur||"EUR", state).toFixed(2); return nd; });
-            }}, t(rr[1]));
-          })
-        )
-      ); }),
-      React.createElement("div",{className:"subtotal"},React.createElement("span",{className:"muted"},t("pt_total_liquid")),React.createElement("span",{className:"num"},eur(accSum))),
-      React.createElement(FxNotice,{missing:totals.fxMissing})
-    )},
-      // (el desglose de efectivo de TR se quitó 2026-07-06: los movimientos ya viven en Gastos)
-      {id:"inv",label:t("pt_investments"),el:
-    React.createElement(CollapsibleCard,{title:t("pt_investments"),sub:t("pt_byBroker"),dot:"#7FB5E8",storageKey:"w_inv",help:t("h_ptinv")},
-      // Solo brókers con posiciones (los 3 fijos confundían a usuarios nuevos — feedback 2026-07-10)
-      ["revolut","trade_republic","myinvestor"].filter(g=>state.investments.some(i=>i.ent===g)).map(g=>{
-        const v=state.investments.filter(i=>i.ent===g).reduce((a,i)=>a+(invValueEur(i, state)||0),0);
-        return React.createElement("div",{className:"row",key:g},
-          React.createElement("div",{className:"rl"},React.createElement(Mono,{ent:g,size:38}),React.createElement("div",{className:"rname"},entOf(g).label)),
-          React.createElement("div",{className:"rval num"},eur(v)));
-      }),
-      React.createElement("div",{className:"subtotal"},React.createElement("span",{className:"muted"},t("pt_total_inv")),React.createElement("span",{className:"num"},eur(totals.invested)))
-    )},
-      {id:"goods",label:t("pt_goods"),el:
-    React.createElement(CollapsibleCard,{title:t("pt_goods"),sub:t("pt_nonliquid"),dot:"#E6C36A",storageKey:"w_ast",help:t("h_goods"),
-      right:React.createElement("button",{className:"edit-link"+(astEd.editing?" save":""),onClick:e=>{e.stopPropagation();astEd.editing?astEd.save():astEd.start();}},astEd.editing?t("fj_save"):t("fj_edit"))},
-      state.assets.map(a=>React.createElement("div",{className:"row",key:a.id},
-        React.createElement("div",{className:"rl"},React.createElement("div",{className:"ric"},a.kind==="piso"?"🏡":"🚙"),
-          React.createElement("div",null,React.createElement("div",{className:"rname"},a.name),a.note&&React.createElement("div",{className:"rsub"},a.note))),
-        astEd.editing
-          ? React.createElement("input",{className:"editv num",value:astEd.draft[a.id],inputMode:"decimal",onChange:e=>{const v=e.target.value;astEd.setDraft(d=>Object.assign({},d,{[a.id]:v}));}})
-          : React.createElement("div",{className:"rval num"},eur0(a.value))
-      )),
-      React.createElement("div",{className:"subtotal"},React.createElement("span",{className:"muted"},t("pt_total_goods")),React.createElement("span",{className:"num"},eur0(astSum)))
-    )}
-    ]})
-  );
 }
 
 /* ============================================================
