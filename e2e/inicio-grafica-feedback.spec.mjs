@@ -83,9 +83,9 @@ for (const lang of ["es", "en", "ca"]) test("histórico desde junio: 1M y 3M, si
   await expect(sheet).toBeVisible();
   expect(await page.evaluate(() => [document.documentElement.scrollHeight, document.querySelector(".v42-cycle-section").getBoundingClientRect().top])).toEqual(antes);
   expect(await filas(page)).toEqual({
-    es: [["Cuentas", "movimientos reales desde " + fechaCorta("2026-06-15", "es")], ["Inversiones, bienes y cuentas manuales", "valor conocido mantenido"], ["Deudas", "según sus cuotas"], ["Comparación", "el día antes de cada nómina"]],
-    en: [["Accounts", "real transactions from " + fechaCorta("2026-06-15", "en")], ["Investments, property and manual accounts", "known value kept"], ["Debts", "by their payment schedule"], ["Comparison", "the day before each payday"]],
-    ca: [["Comptes", "moviments reals des de " + fechaCorta("2026-06-15", "ca")], ["Inversions, béns i comptes manuals", "valor conegut mantingut"], ["Deutes", "segons les seves quotes"], ["Comparació", "el dia abans de cada nòmina"]] }[lang]);
+    es: [["Cuentas", "movimientos reales desde " + fechaCorta("2026-06-15", "es")], ["Inversiones, bienes y cuentas manuales", "valor conocido mantenido"], ["Deudas", "según sus cuotas"], ["Comparación", "frente al mismo día del mes pasado"]],
+    en: [["Accounts", "real transactions from " + fechaCorta("2026-06-15", "en")], ["Investments, property and manual accounts", "known value kept"], ["Debts", "by their payment schedule"], ["Comparison", "against the same day last month"]],
+    ca: [["Comptes", "moviments reals des de " + fechaCorta("2026-06-15", "ca")], ["Inversions, béns i comptes manuals", "valor conegut mantingut"], ["Deutes", "segons les seves quotes"], ["Comparació", "davant del mateix dia del mes passat"]] }[lang]);
   expect(await page.evaluate(() => document.activeElement && document.activeElement.closest('[data-sheet="net-info"]') != null)).toBe(true);
   // Ninguna fila se sale de la hoja ni se corta.
   expect(await sheet.evaluate((el) => [...el.querySelectorAll(".row")].every((r) => r.scrollWidth <= r.clientWidth + 1 && r.getBoundingClientRect().right <= el.getBoundingClientRect().right))).toBe(true);
@@ -96,10 +96,9 @@ for (const lang of ["es", "en", "ca"]) test("histórico desde junio: 1M y 3M, si
 });
 
 // Una siembra por test: dos `seedLoggedInDashboard` en la misma página se pisan (el primero gana).
-// Con el ciclo conocido la cifra es víspera de cobro contra víspera de cobro (27/9 frente a 27/8:
-// una nómina y 31 días de gasto; 3M, frente a 27/6: tres nóminas y 92 días). La regla de los
-// mínimos de 45 días mezclaba dos nóminas con un mes de gastos (feedback 14/10).
-for (const [spend, verdict, tone, word, mes, tres] of [[30, "up", "mint", "más", "1.470", "4.440"], [110, "down", "coral", "menos", "1.010", "2.920"]]) test("rojo sólo si se come la nómina (" + spend + " €/día → " + verdict + "); la línea sigue el mismo veredicto", async ({ page }) => {
+// La cifra es hoy (13/10) frente al mismo día de hace un mes (13/9): una nómina y 30 días de
+// gasto; 3M, frente al 13/7: tres nóminas y 92 días. Los extremos que se ven en la gráfica.
+for (const [spend, verdict, tone, word, mes, tres] of [[30, "up", "mint", "más", "1.500", "4.440"], [110, "down", "coral", "menos", "900", "2.920"]]) test("rojo sólo si se come la nómina (" + spend + " €/día → " + verdict + "); la línea sigue el mismo veredicto", async ({ page }) => {
   const hero = await abrir(page, ciclo(spend));
   const delta = hero.getByTestId("inicio-net-delta");
   await expect(delta).toHaveAttribute("data-verdict", verdict);
@@ -109,6 +108,9 @@ for (const [spend, verdict, tone, word, mes, tres] of [[30, "up", "mint", "más"
   // Con 3M compara con tres meses de calendario atrás y lo dice.
   await hero.locator(".v42-net-ranges button").nth(1).click();
   await expect(delta).toHaveText(tres + " € " + word + " que hace 3 meses");
+  // La hoja dice con qué día se compara el periodo elegido.
+  await hero.locator(".v42-net-info").click();
+  expect((await filas(page)).at(-1)).toEqual(["Comparación", "frente al mismo día de hace 3 meses"]);
 });
 
 test("usuario nuevo: ni veredicto, ni periodos, ni líneas en la i", async ({ page }) => {

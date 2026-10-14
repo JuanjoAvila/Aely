@@ -102,13 +102,13 @@ for(const zone of ["UTC","Europe/Madrid"]) test.describe("calendario de Madrid e
   });
 });
 for(const lang of ["es","en","ca"]) test("rangos, colores y puertas "+lang,async({page})=>{
-  await open(page,{lang,falling:true});
+  await open(page,{lang,falling:true,spent:2100});
   const hero=page.getByTestId("inicio-net-current"), ranges=hero.locator(".v42-net-ranges button");
   await expect(ranges).toHaveText({es:["1M","3M","6M","1A","Todo"],en:["1M","3M","6M","1Y","All"],ca:["1M","3M","6M","1A","Tot"]}[lang]);
-  // La serie baja 1 €/día durante un año: el mínimo de 45 días cae 45 € frente al anterior,
-  // rojo de verdad (margen 10 € sin inversión), y la línea va del mismo color que la frase.
-  // Con veredicto, la línea y la frase van del mismo color; sin datos para comparar (1A con
-  // 370 días no tiene dos ventanas de 45 a un año), línea neutra y frase en gris.
+  // La serie baja 1 €/día durante un año y el mes se gasta más que la nómina (2.000 cobrados,
+  // 2.100 gastados): hoy frente al mismo día del mes pasado son 130 € menos, rojo de verdad
+  // (margen 10 € sin inversión). Con veredicto, la línea y la frase van del mismo color; sin
+  // datos para comparar, línea neutra y frase en gris.
   const same=()=>page.evaluate(()=>{const probe=document.createElement("span");document.body.appendChild(probe);const v=n=>{probe.style.color="var(--"+n+")";return getComputedStyle(probe).color;};
     const line=getComputedStyle(document.querySelector(".v42-net-chart svg")).color,text=getComputedStyle(document.querySelector(".v42-net-delta")).color,verdict=document.querySelector(".v42-net-delta").dataset.verdict;
     const ok=verdict==="none"?line===v("blue")&&text===v("muted"):line===text;probe.remove();return ok;});
@@ -388,8 +388,8 @@ for(const lang of ["es","en","ca"])test("cartera heredada ve la gráfica el prim
   await hero.locator(".v42-net-info").click();
   // Tres filas y ya, por tipo, sin nombrar cuenta a cuenta (13/10: «el textaco… enorme»).
   expect(await filas(page)).toEqual({
-    es:[["Cuentas","movimientos reales desde "+fecha("2026-06-15","es")],["Inversiones, bienes y cuentas manuales","valor conocido mantenido"],["Deudas","según sus cuotas"],["Comparación","punto más bajo de cada 45 días"]],
-    en:[["Accounts","real transactions from "+fecha("2026-06-15","en")],["Investments, property and manual accounts","known value kept"],["Debts","by their payment schedule"],["Comparison","lowest point of each 45 days"]],
-    ca:[["Comptes","moviments reals des de "+fecha("2026-06-15","ca")],["Inversions, béns i comptes manuals","valor conegut mantingut"],["Deutes","segons les seves quotes"],["Comparació","punt més baix de cada 45 dies"]]}[lang]);
+    es:[["Cuentas","movimientos reales desde "+fecha("2026-06-15","es")],["Inversiones, bienes y cuentas manuales","valor conocido mantenido"],["Deudas","según sus cuotas"],["Comparación","desde el principio"]],
+    en:[["Accounts","real transactions from "+fecha("2026-06-15","en")],["Investments, property and manual accounts","known value kept"],["Debts","by their payment schedule"],["Comparison","since the start"]],
+    ca:[["Comptes","moviments reals des de "+fecha("2026-06-15","ca")],["Inversions, béns i comptes manuals","valor conegut mantingut"],["Deutes","segons les seves quotes"],["Comparació","des del principi"]]}[lang]);
   await page.mouse.click(10,60);await expect(page.locator('[data-sheet="net-info"]')).toHaveCount(0);
 });

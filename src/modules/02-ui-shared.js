@@ -861,88 +861,53 @@ function netWorthSeries(state, options){
   out.reverse();return done();
 }
 
+// Mismo día de hace `months` meses en el calendario de la serie (días de Madrid). Si ese día
+// no existe (31 → 30 de septiembre, 29/2 en año no bisiesto) cae en el último día del mes.
+function netWorthMonthsBack(day, months){
+  const end=new Date(day+"T12:00:00Z");
+  const d=new Date(Date.UTC(end.getUTCFullYear(),end.getUTCMonth()-months,1,12));
+  const max=new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth()+1,0)).getUTCDate();
+  d.setUTCDate(Math.min(max,end.getUTCDate()));
+  return d.toISOString().slice(0,10);
+}
+const NW_MONTHS={"1m":1,"3m":3,"6m":6,"1y":12};
 function netWorthRanges(series, today){
   if(!series||series.length<2) return [];
   const first=series[0].day, last=series[series.length-1].day;
-  const end=new Date(last+"T12:00:00Z");
   const out=[];
-  [["1m",1],["3m",3],["6m",6],["1y",12]].forEach(function(r){
+  ["1m","3m","6m","1y"].forEach(function(id){
     // Los meses del selector se comparan con hoy, no con una foto bancaria atrasada.
     if(today&&last!==today) return;
-    const d=new Date(Date.UTC(end.getUTCFullYear(),end.getUTCMonth()-r[1],1,12));
-    const max=new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth()+1,0)).getUTCDate();
-    d.setUTCDate(Math.min(max,end.getUTCDate()));
-    const start=d.toISOString().slice(0,10);
-    if(first<=start) out.push({id:r[0],points:series.filter(function(p){ return p.day>=start; })});
+    const start=netWorthMonthsBack(last,NW_MONTHS[id]);
+    if(first<=start) out.push({id:id,points:series.filter(function(p){ return p.day>=start; })});
   });
   out.push({id:"all",points:series}); return out;
 }
-// Comparación robusta al calendario (revisión 13/10): el punto más bajo de los últimos 45 días
-// frente al punto más bajo de la ventana de 45 días que termina N días atrás (1M 30, 3M 91,
-// 6M 182, 1A 365, Todo la más antigua completa). Es el plan B: solo se usa si la app no conoce
-// el ciclo de nómina (abajo, `paydays`). La regla suponía que el mínimo de cada ventana es la
-// víspera del cobro y con un patrimonio que sube dentro del mes (cuotas que son capital, bolsa)
-// no se cumple: el mínimo cae en el borde de la ventana y mezcla dos nóminas con un mes de
-// gastos (+3.769 € «más que el mes pasado» siendo +2.418, y +1.881 la víspera sin moverse un
-// euro; feedback 14/10). Un gasto o una caída de bolsa que deje hoy por debajo de la víspera
-// del cobro entra en el mínimo el mismo día: no se esconde. Sin 45 días de serie a cada lado →
-// null (frase neutra, sin color: lo que no se sabe no se inventa, AGENTS §1).
+// «X más que el mes pasado» compara los dos extremos que se ven en la gráfica: hoy frente al
+// mismo día de hace 1, 3, 6 o 12 meses, y «Todo» frente al primer punto. Se mueve cada día,
+// como la gráfica (decisión del dueño, 14/10). Antes comparaba el mínimo de dos ventanas de
+// 45 días suponiendo que era la víspera del cobro; con un patrimonio que sube dentro del mes
+// (cuotas que son capital, bolsa) el mínimo caía en el borde de la ventana y mezclaba dos
+// nóminas con un mes de gastos: decía +3.769 € con +1.452 de verdad, y cambiaba de un día a
+// otro sin moverse un euro. Con menos de 45 días de serie no hay frase (lo que no se sabe no
+// se inventa, AGENTS §1); el periodo además tiene que caber entero en la serie, que es justo
+// cuando el selector lo ofrece, así la cifra siempre casa con la gráfica que se ve.
 const NW_WINDOW=45;
-function netWorthCompare(series, rangeId, today, invested, paydays){
+function netWorthCompare(series, rangeId, today, invested){
   if(!series||series.length<NW_WINDOW+1) return null;
-  const n=series.length, back={"1m":30,"3m":91,"6m":182,"1y":365}[rangeId];
-  // Las dos ventanas no se solapan (1M compara con la que termina 45 días atrás, que sigue
-  // siendo «el mes pasado»). Si el periodo elegido no tiene su ventana completa pero sí hay
-  // alguna anterior, se usa la más antigua (como «Todo») y la frase dice los meses de verdad:
-  // con 118 días de serie, 3M decía «Aún sin datos para comparar» teniendo historia desde junio.
-  const oldest=n-NW_WINDOW;
-  if(oldest<NW_WINDOW) return null;
+  const last=series[series.length-1], months=NW_MONTHS[rangeId];
+  let from=series[0];
+  if(months){
+    const start=netWorthMonthsBack(last.day,months);
+    if(start<from.day) return null;
+    from=series.find(function(p){ return p.day>=start; });
+  }
+  const delta=Math.round((last.value-from.value)*100)/100;
+  const days=Math.round((Date.parse(last.day+"T12:00:00Z")-Date.parse(from.day+"T12:00:00Z"))/864e5);
   // El margen solo decide el color: 2 % de lo invertido (el vaivén de un día de bolsa) entre
   // 10 € y 300 €; sin tope, 150.000 € invertidos escondían un gasto extra de 2.500 € dos meses.
   const margin=Math.min(300,Math.max(10,Math.abs(invested||0)*.02));
-  const out=function(delta,days){
-    delta=Math.round(delta*100)/100;
-    return {delta:delta,days:days,months:Math.max(1,Math.round(days/30.44)),verdict:delta>margin?"up":delta<-margin?"down":"flat",margin:margin};
-  };
-  const pay=netWorthPaydayCompare(series,back,paydays);
-  if(pay) return Object.assign(out(pay.delta,pay.days),{basis:"payday"});
-  const gap=Math.min(oldest,Math.max(NW_WINDOW,back!=null?back:oldest));
-  const low=function(end){ let v=Infinity; for(let i=end-NW_WINDOW+1;i<=end;i++) if(series[i].value<v) v=series[i].value; return v; };
-  return out(low(n-1)-low(n-1-gap),gap);
-}
-// Con el ciclo conocido se compara lo que de verdad quedó ahorrado: la víspera del cobro
-// actual frente a la víspera del cobro de hace un mes (3M/6M/1A: el cobro más cercano a esa
-// distancia; Todo y un periodo más largo que la serie: el primer cobro con víspera en la
-// serie). La cifra solo cambia al entrar una nómina, no al pasar los días. El lado de hoy es
-// el mínimo desde la víspera: un gasto que deje hoy por debajo se ve el mismo día. Un cobro
-// que no casa con la distancia pedida (±10 días: fines de semana y meses de 28 a 31) no se
-// fuerza: devuelve null y manda la regla de los 45 días.
-function netWorthPaydayCompare(series, back, paydays){
-  if(!paydays||!paydays.length) return null;
-  const at={}, n=series.length;
-  series.forEach(function(p,i){ at[p.day]=i; });
-  const today=series[n-1].day, dayMs=function(day){ return Date.parse(day+"T12:00:00Z"); };
-  const eves=[];
-  paydays.forEach(function(day){
-    if(day>today) return;
-    const eve=new Date(dayMs(day)-864e5).toISOString().slice(0,10);
-    if(at[eve]!=null && eves.indexOf(eve)<0) eves.push(eve);
-  });
-  eves.sort();
-  if(eves.length<2) return null;
-  const cur=eves[eves.length-1], curMs=dayMs(cur);
-  let prev=eves[0];
-  if(back!=null && curMs-back*864e5>=dayMs(eves[0])-10*864e5){
-    let best=Infinity; prev=null;
-    eves.slice(0,-1).forEach(function(eve){
-      const off=Math.abs(dayMs(eve)-(curMs-back*864e5));
-      if(off<=10*864e5 && off<best){ best=off; prev=eve; }
-    });
-    if(!prev) return null;
-  }
-  let now=Infinity;
-  for(let i=at[cur];i<n;i++) if(series[i].value<now) now=series[i].value;
-  return {delta:now-series[at[prev]].value,days:Math.round((curMs-dayMs(prev))/864e5)};
+  return {delta:delta,days:days,months:months||Math.max(1,Math.round(days/30.44)),verdict:delta>margin?"up":delta<-margin?"down":"flat",margin:margin};
 }
 function netWorthChartGeometry(points){
   if(!points||points.length<2) return null;

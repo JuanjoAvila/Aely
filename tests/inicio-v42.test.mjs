@@ -478,14 +478,14 @@ const nothing=realSeries({accounts:[],obAccounts:[],investments:[],assets:[],deb
 assert.equal(nothing.length,1);assert.equal(nothing.fresh,true,"sin ningún dato: un punto y «Tu histórico empieza hoy»");
 console.log("inicio-v42: cartera heredada (13/10) pinta 121 días desde el 15/6 con 1M/3M, deudas al céntimo hacia atrás OK");
 
-// Feedback 13/10: «963 € menos desde que empezaste» a quien ahorra e invierte (comparaba el día
-// del cobro con hoy, a mitad de ciclo). La revisión tumbó también «el mismo día del ciclo
-// anterior»: daba «menos» a quien ahorra en cuanto la nómina bailaba de día o un mes era corto.
-// Ahora se comparan mínimos de 45 días (la víspera del cobro de cada ciclo). Criterio de
-// aceptación: barrido diario de un año con un ahorrador de +500 €/mes (alquiler el día 1, nómina
-// fija, bailando 22–26 y 23–33, dos nóminas, paga extra) → cero días en rojo en 1M/3M/6M; quien se
-// come 500 €/mes → cero días en verde; 150.000 € invertidos con un gasto extra de 2.500 € → rojo
-// visible; bolsa −3 % con 50.000 € → rojo. Nada aquí depende de «Mi ciclo» ni del mes natural.
+// Feedback 13/10: «963 € menos desde que empezaste» (comparaba el día del cobro con hoy). Desde
+// el 14/10, por decisión del dueño, la frase compara los dos extremos de la gráfica que ve: hoy
+// frente al mismo día de hace 1/3/6/12 meses (los mínimos de 45 días suponían que el mínimo era
+// la víspera del cobro y mezclaban dos nóminas con un mes de gastos). Barrido diario de un año:
+// con la nómina fija, dos nóminas o paga extra, el ahorrador de +500 €/mes nunca sale en rojo y
+// quien se come 500 €/mes nunca en verde. Con la nómina bailando de día, los días en que un
+// extremo ya cobró y el otro todavía no cuentan una nómina de más o de menos: es lo que enseña
+// la gráfica, y se acotan para que no crezcan sin que nadie lo vea.
 const simulate=function(p){
   let seed=7;const rnd=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
   let bank=1500000,inv=p.inv0||0;const expenses=[],truth={},photos=[];let n=0;
@@ -526,34 +526,29 @@ const jitterWide=(y,m)=>[[28+[0,-3,2,-1,5,-5,3,1,-2,4,0,-4][(y*12+m)%12],2400]];
 const jitterSmall=(y,m)=>[[[24,23,25,24,22,25,23,26,24,23,25,24][(y*12+m)%12],2400]];
 const twoPay=()=>[[28,1600,"NOMINA SINTETICA"],[14,800,"NOMINA PAREJA SINTETICA"]];
 const extraPay=(y,m)=>m===6||m===12?[[28,2400],[20,2400,"NOMINA PAGA EXTRA"]]:[[28,2400]];
+const jitterBound=pay=>pay===jitterWide?{m3:25,m1:32,b3:30,b1:40}:pay===jitterSmall?{m3:8,m1:12,b3:8,b1:12}:{m3:0,m1:0,b3:0,b1:0};
 const YEAR=["2026-01-01","2026-12-31"],RANGES=["1m","3m","6m"];
 for(const [name,pay] of [["nómina fija el 28",fixed28],["nómina 23…33",jitterWide],["nómina 22…26",jitterSmall],["dos nóminas (28 y 14)",twoPay],["paga extra (20/6 y 20/12)",extraPay]]){
-  const good=sweep(simulate({pay,daily:33,invest:300}),...YEAR,["3m","6m"]),good1m=sweep(simulate({pay,daily:33,invest:300}),...YEAR,["1m"]);
-  assert.equal(good.tally.down,0,"ahorrador +500/mes con "+name+": cero días en rojo en 3M/6M ("+JSON.stringify(good.tally)+")");
-  assert.ok(good.tally.up>good.tally.flat,"y casi siempre en verde: "+JSON.stringify(good.tally));
-  // Con la nómina bailando 23…33 un periodo de 41 días contiene dos alquileres y deja de verdad
-  // menos dinero en su víspera de cobro: en 1M salen 55 días en rojo de 365, peor −547 €. Es
-  // cierto, no un artefacto; se acota para que no crezca sin que nadie lo vea.
-  if(pay===jitterWide){ assert.ok(good1m.tally.down<=60&&good1m.worst.down>-600,"1M con nómina 23…33: "+JSON.stringify(good1m)); }
-  else assert.equal(good1m.tally.down,0,"ahorrador +500/mes con "+name+": cero días en rojo en 1M ("+JSON.stringify(good1m.tally)+")");
+  const good=sweep(simulate({pay,daily:33,invest:300}),...YEAR,["3m","6m"]),good1m=sweep(simulate({pay,daily:33,invest:300}),...YEAR,["1m"]),lim=jitterBound(pay);
+  assert.ok(good.tally.down<=lim.m3,"ahorrador +500/mes con "+name+": días en rojo en 3M/6M acotados ("+JSON.stringify(good.tally)+")");
+  assert.ok(good.tally.up>good.tally.flat+good.tally.down,"y casi siempre en verde: "+JSON.stringify(good.tally));
+  assert.ok(good1m.tally.down<=lim.m1,"ahorrador +500/mes con "+name+": días en rojo en 1M acotados ("+JSON.stringify(good1m.tally)+")");
   const bad=sweep(simulate({pay,daily:66,invest:0}),...YEAR,["3m","6m"]),bad1m=sweep(simulate({pay,daily:66,invest:0}),...YEAR,["1m"]);
   // Con paga extra, quien se come 500 €/mes tiene de verdad más dinero los meses siguientes a
   // cobrarla (+2.400 de golpe): el verde ahí es cierto y no cuenta como lectura errónea.
   if(pay!==extraPay){
-    assert.equal(bad.tally.up,0,"quien se come 500/mes con "+name+": cero días en verde en 3M/6M ("+JSON.stringify(bad.tally)+")");
-    assert.ok(bad.tally.down>bad.tally.flat+bad.tally.none,"y casi siempre en rojo: "+JSON.stringify(bad.tally));
-    // Y al revés: un periodo de 25 días con un solo alquiler deja más en su víspera (62 días en
-    // verde de 365 en 1M, peor +819 €); en 3M/6M ninguno.
-    if(pay===jitterWide) assert.ok(bad1m.tally.up<=70&&bad1m.worst.up<900,"1M con nómina 23…33 (un periodo corto deja más): "+JSON.stringify(bad1m));
-    else assert.equal(bad1m.tally.up,0,"quien se come 500/mes con "+name+": cero días en verde en 1M ("+JSON.stringify(bad1m.tally)+")");
+    assert.ok(bad.tally.up<=lim.b3,"quien se come 500/mes con "+name+": días en verde en 3M/6M acotados ("+JSON.stringify(bad.tally)+")");
+    assert.ok(bad.tally.down>bad.tally.flat+bad.tally.none+bad.tally.up,"y casi siempre en rojo: "+JSON.stringify(bad.tally));
+    assert.ok(bad1m.tally.up<=lim.b1,"quien se come 500/mes con "+name+": días en verde en 1M acotados ("+JSON.stringify(bad1m.tally)+")");
   }
 }
 // 150.000 € invertidos y un gasto extra de 2.500 € el 6/10: el margen tope de 300 € no lo esconde.
 const bigSpend=simulate({pay:fixed28,daily:33,invest:300,inv0:15000000,big:{"2026-10-06":2500}});
-for(let ms=Date.parse("2026-10-06T12:00:00Z");ms<=Date.parse("2026-11-27T12:00:00Z");ms+=864e5){
+// Se ve mientras el gasto está entre los dos extremos (del 6/10 al 5/11); el 6/11 ya no.
+for(let ms=Date.parse("2026-10-06T12:00:00Z");ms<=Date.parse("2026-11-05T12:00:00Z");ms+=864e5){
   const day=new Date(ms).toISOString().slice(0,10),k=verdictOn(bigSpend,day,"1m");
   // El importe negativo se ve desde el mismo día (en gris los tres primeros, −138/−242/−285) y
-  // en rojo desde el cuarto: el tope de 300 € del margen no lo esconde dos meses como antes.
+  // en rojo desde el cuarto: el tope de 300 € del margen no lo esconde.
   assert.ok(k&&k.delta<0&&k.verdict!=="up",day+": el gasto extra se ve desde el mismo día ("+JSON.stringify(k)+")");
   if(day>="2026-10-09") assert.equal(k.verdict,"down",day+": y en rojo desde el cuarto día ("+JSON.stringify(k)+")");
   assert.equal(k.margin,300,"el margen se acota a 300 €");
@@ -563,24 +558,23 @@ assert.equal(verdictOn(bigSpend,"2026-10-05","1m").verdict,"up","la víspera del
 const crash=simulate({pay:fixed28,daily:33,invest:300,inv0:5000000,shock:{"2026-10-06":-0.03}});
 assert.equal(verdictOn(crash,"2026-10-05","1m").verdict,"up");
 const afterCrash=[];for(let ms=Date.parse("2026-10-06T12:00:00Z");ms<=Date.parse("2026-10-31T12:00:00Z");ms+=864e5)afterCrash.push(verdictOn(crash,new Date(ms).toISOString().slice(0,10),"1m").verdict);
-// El mínimo de 45 días tarda en recoger una caída que no baja de la víspera del cobro anterior:
-// verde y gris hasta que lo perdido supera lo ahorrado en el ciclo (unas tres semanas), rojo después.
+// La caída se queda dentro del mes que se compara: de la segunda semana en adelante nunca verde.
 assert.ok(!afterCrash.slice(9).includes("up"),"tras la caída, de la segunda semana en adelante nunca verde: "+afterCrash.join(","));
 assert.ok(afterCrash.slice(-7).every(v=>v==="down"),"y rojo en la última semana del mes: "+afterCrash.join(","));
-// Etiquetas y huecos: meses de calendario de verdad, y sin 45 días a cada lado no se inventa nada.
+// Etiquetas y huecos: meses de calendario de verdad, y sin 45 días de serie no se inventa nada.
 const saverSim=simulate({pay:twoPay,daily:33,invest:300});
-assert.deepEqual([verdictOn(saverSim,"2026-10-13","1m").months,verdictOn(saverSim,"2026-10-13","3m").months,verdictOn(saverSim,"2026-10-13","6m").months,verdictOn(saverSim,"2026-10-13","1y").months],[1,3,6,12],"1M/3M/6M/1A son 30/91/182/365 días, no ciclos de nómina");
+assert.deepEqual([verdictOn(saverSim,"2026-10-13","1m").months,verdictOn(saverSim,"2026-10-13","3m").months,verdictOn(saverSim,"2026-10-13","6m").months,verdictOn(saverSim,"2026-10-13","1y").months],[1,3,6,12],"1M/3M/6M/1A son meses de calendario, no ciclos de nómina");
 const flatSeries=Array.from({length:400},(_,i)=>({day:new Date(Date.UTC(2025,8,i+1)).toISOString().slice(0,10),value:1000}));
-assert.equal(c.netWorthCompare(flatSeries.slice(-89),"1m","2026-10-13",0),null,"con 89 días no hay dos ventanas de 45 sin solapar: sin veredicto");
-assert.equal(c.netWorthCompare(flatSeries.slice(-90),"1m","2026-10-13",0).delta,0,"con 90 sí");
-// Sin la ventana del periodo elegido pero con alguna anterior completa se usa la más antigua,
-// como «Todo», y la frase dice los meses de verdad (el dueño, con 118 días, leía «Aún sin datos»).
-assert.deepEqual(plain(c.netWorthCompare(flatSeries.slice(-200),"1y","2026-10-13",0)),{delta:0,days:155,months:5,verdict:"flat",margin:10},"1A con 200 días compara con la más antigua: «hace 5 meses»");
+// flatSeries termina el 5/10/2026: 1M empieza el 5/9, 3M el 5/7.
+assert.equal(c.netWorthCompare(flatSeries.slice(-45),"all","2026-10-05",0),null,"con menos de 45 días de serie no hay frase");
+assert.equal(c.netWorthCompare(flatSeries.slice(-46),"1m","2026-10-05",0).delta,0,"con 45 sí");
+// El periodo tiene que caber en la serie (justo cuando el selector lo ofrece): no se inventa el extremo.
+assert.equal(c.netWorthCompare(flatSeries.slice(-200),"1y","2026-10-05",0),null,"1A con 200 días: sin frase");
 const owner118=flatSeries.slice(-118).map((p,i)=>({...p,value:1000+i}));
-assert.deepEqual(["1m","3m","6m","all"].map(id=>{const k=c.netWorthCompare(owner118,id,"2026-10-13",0);return [k.days,k.months,k.delta];}),[[45,1,45],[73,2,73],[73,2,73],[73,2,73]],"118 días: 1M compara un mes; 3M, 6M y Todo con «hace 2 meses»");
-assert.equal(c.netWorthCompare(flatSeries.slice(-89),"3m","2026-10-13",0),null,"sin ninguna ventana anterior completa, ningún periodo compara");
-assert.deepEqual(plain(c.netWorthCompare(flatSeries,"all","2026-10-13",0)),{delta:0,days:355,months:12,verdict:"flat",margin:10},"«Todo» compara con la ventana más antigua completa");
-const bump=flatSeries.map((p,i)=>i>=flatSeries.length-45?{...p,value:1005}:p);
+assert.deepEqual(["1m","3m","all"].map(id=>{const k=c.netWorthCompare(owner118,id,"2026-10-05",0);return [k.days,k.months,k.delta];}),[[30,1,30],[92,3,92],[117,4,117]],"118 días: los extremos de 1M, 3M y Todo");
+assert.equal(c.netWorthCompare(owner118,"6m","2026-10-05",0),null,"6M no cabe en 118 días");
+assert.deepEqual(plain(c.netWorthCompare(flatSeries,"all","2026-10-05",0)),{delta:0,days:399,months:13,verdict:"flat",margin:10},"«Todo» compara con el primer punto");
+const bump=flatSeries.map((p,i)=>i>=flatSeries.length-20?{...p,value:1005}:p);
 assert.equal(c.netWorthCompare(bump,"1m","2026-10-13",0).verdict,"flat","cinco euros no dan color");
 assert.equal(c.netWorthCompare(bump,"1m","2026-10-13",0).delta,5,"pero el importe se enseña igual");
 assert.equal(c.netWorthCompare(bump,"1m","2026-10-13",5000).margin,100,"2 % de lo invertido, con suelo de 10 €");
@@ -598,7 +592,7 @@ assert.deepEqual(plain(c.netWorthSeries(atm,opts)).map(p=>p.value),[600,600,600,
 const overContribution={...priorContribution,expenses:internalBase.expenses.concat(entry("i-over","2026-09-02",3000,"sabadell","inversion"))};
 assert.deepEqual(plain(c.netWorthSeries(overContribution,{...opts,invested:500})).map(p=>p.value),[1100,1100,1100,1100],"aportado más que la foto: plano, sin pintar la aportación como caída");
 assert.equal(c.netWorthDebtPolicy({debts:[{id:"dated",value:5000,monthly:100,day:1,asOf:2026*12+9,asOfDate:"2026-09-01"}]},inheritedToday,undefined).at("2026-08-15"),5200,"una deuda con fecha de referencia mantiene su cuadro hacia atrás (dos cuotas), nunca cero");
-console.log("inicio-v42: comparación por mínimos de 45 días (ahorrador nunca rojo, derrochador nunca verde, gasto extra y bolsa en rojo) y movimientos internos neutros OK");
+console.log("inicio-v42: comparación hoy frente al mismo día (ahorrador sin rojo con nómina fija, derrochador sin verde, gasto extra y bolsa en rojo) y movimientos internos neutros OK");
 
 // Cada mutante ejecuta un oráculo monetario/temporal, no una búsqueda de texto en fuente.
 const html=fs.readFileSync(new URL("../public/index.html",import.meta.url),"utf8").replace(/\r\n/g,"\n");
@@ -631,8 +625,8 @@ const mutantCases=[
   ["cajero sin pata neutro","(e.amount>0&&isAtmWithdrawal(e.merchant))","false",m=>assert.deepEqual(plain(m.netWorthSeries(atm,opts)).map(p=>p.value),[600,600,600,600])],
   ["margen solo decide el color (C5)","verdict:delta>margin?\"up\":delta<-margin?\"down\":\"flat\"","verdict:delta>0?\"up\":delta<0?\"down\":\"flat\"",m=>assert.equal(m.netWorthCompare(bump,"1m","2026-10-13",0).verdict,"flat")],
   ["tope del margen","const margin=Math.min(300,Math.max(10,Math.abs(invested||0)*.02));","const margin=Math.max(10,Math.abs(invested||0)*.02);",m=>assert.equal(m.netWorthCompare(bump,"1m","2026-10-13",1e6).margin,300)],
-  ["ventana de 45 días","const NW_WINDOW=45;","const NW_WINDOW=30;",m=>assert.equal(m.netWorthCompare(flatSeries.slice(-89),"1m","2026-10-13",0),null)],
-  ["mínimo, no último","if(series[i].value<v) v=series[i].value;","v=series[i].value;",m=>assert.equal(m.netWorthCompare(flatSeries.map((p,i)=>i===flatSeries.length-10?{...p,value:900}:p),"1m","2026-10-13",0).delta,-100)],
+  ["mínimo de 45 días de serie","const NW_WINDOW=45;","const NW_WINDOW=30;",m=>assert.equal(m.netWorthCompare(flatSeries.slice(-45),"all","2026-10-05",0),null)],
+  ["extremo de la gráfica","from=series.find(function(p){ return p.day>=start; });","from=series[0];",m=>assert.equal(m.netWorthCompare(owner118,"1m","2026-10-05",0).delta,30)],
   ["deuda con fecha mantiene saldo (F)","const p=day.split(\"-\").map(Number), charge=debtChargeDay(d);","if(day<(d.asOfDate||\"\")) return 0;\n    const p=day.split(\"-\").map(Number), charge=debtChargeDay(d);",m=>assert.equal(m.netWorthDebtPolicy({debts:[{id:"dated",value:5000,monthly:100,day:1,asOf:2026*12+9,asOfDate:"2026-09-01"}]},inheritedToday,undefined).at("2026-08-15"),5200)],
 ];
 for(const [name,from,to,check] of mutantCases){
