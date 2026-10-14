@@ -2744,11 +2744,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
         setS({budgetCycle:!(state.settings&&state.settings.budgetCycle)});
       },sw(!!(state.settings&&state.settings.budgetCycle))),
       React.createElement("div",{className:"hint",style:{margin:"2px 12px 10px"}},t("st_budget_cycle_d")),
-      // Estas dos puertas salieron de la ficha de Inversiones: son preferencias/simulaciones,
-      // no parte del saldo. Aquí siguen accesibles sin montar el panel financiero antiguo.
-      row("invauto","↻",t("inv_autoprices"),null,function(){
-        setS({autoPrices:!(state.settings&&state.settings.autoPrices)});
-      },sw(!!(state.settings&&state.settings.autoPrices))),
+      // La proyección salió de la ficha de Inversiones: es una simulación, no parte del saldo.
       row("invproj","📈",t("inv_proj"),t("inv_proj_sub"),function(){ toggleExp("invproj"); }),
       expand==="invproj" && React.createElement("div",{className:"set-exp","data-inv-settings-projection":"1"},
         React.createElement(Projection,{
@@ -2907,13 +2903,8 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
     ),
 
     React.createElement("div",{className:"v4-set-sec"}, t("v4_set_adv")),
-    grp("custom","🎛️",t("v4_set_adv"),"avanzado advanced vista gastos bloques blocks informe report customise",null,
+    grp("custom","🎛️",t("v4_set_adv"),"avanzado advanced vista gastos informe report customise",null,
       // («Personalizar widgets del Resumen» se retiró el 2026-07-18: era del Dashboard v3.)
-      (function(){
-        const on=!!(state.settings&&state.settings.blocksEdit);
-        return row("blocks","🧩",t("st_blocks"),null,function(){ setS({blocksEdit:!on}); }, sw(on));
-      })(),
-      React.createElement("div",{style:{fontSize:11.5,color:"var(--muted-2)",lineHeight:1.45,padding:"0 14px 10px"}}, t("st_blocks_hint")),
       totals && row("report","📸",t("rp_btn").replace(/^[^ ]+ /,""),null,function(){ shareMonthReport(state, totals, showToast); })
     ),
 

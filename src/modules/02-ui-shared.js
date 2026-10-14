@@ -536,27 +536,13 @@ function CollapsibleCard({title, sub, dot, defaultOpen, right, children, storage
     return defaultOpen!==false;
   });
   const toggle=()=>{ const n=!open; setOpen(n); if(storageKey) store.set("col_"+storageKey,n); };
-  // Ocultar bloques en CUALQUIER pestaña (petición 2026-07-10, como los widgets del Resumen).
-  // App publica en cada render __mcBlocksEdit (modo edición, se activa en Ajustes) y
-  // __mcCardHidden (settings.cardHidden); el toggle viaja por evento porque esta tarjeta
-  // no recibe set(). Oculta y fuera de edición → no se pinta; en edición → atenuada + botón.
-  const blocksEdit=!!window.__mcBlocksEdit;
-  const cardHidden=(storageKey && Array.isArray(window.__mcCardHidden) && window.__mcCardHidden.indexOf(storageKey)>=0);
-  if(cardHidden && !blocksEdit) return null;
-  const hideBtn=(blocksEdit && storageKey) ? React.createElement("button",{
-    onClick:function(e){ e.stopPropagation(); try{ window.dispatchEvent(new CustomEvent("mc-card-toggle",{detail:storageKey})); }catch(_){} },
-    style:{fontSize:11.5,fontWeight:700,padding:"4px 9px",borderRadius:9,cursor:"pointer",
-      background:cardHidden?"var(--mint)":"var(--surface-2)",color:cardHidden?"#06120C":"var(--coral)",
-      border:cardHidden?"none":"1px solid var(--coral)"}
-  }, cardHidden?t("cc_show"):t("cc_hide")) : null;
-  return React.createElement("div",{className:"card",style:cardHidden?{opacity:.45,borderStyle:"dashed"}:null},
+  return React.createElement("div",{className:"card"},
     React.createElement("div",{className:"card-head",onClick:toggle},
       React.createElement("div",{className:"card-title"},
         dot && React.createElement("span",{className:"dot",style:{background:dot}}),
         React.createElement("div",null, title, sub && React.createElement("div",{className:"sub"},sub))
       ),
       React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10}},
-        hideBtn,
         help && React.createElement(HelpTip,{text:help}),
         right, React.createElement(I.chev,{className:"chev"+(open?" open":"")})
       )

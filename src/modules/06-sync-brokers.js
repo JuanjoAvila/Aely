@@ -741,16 +741,10 @@ function Investments({state, set, fetchPrices, pricing, syncInv, v4Embed, toolsM
   const notes=useRef([]);
   const refreshBefore=useRef(null);
   const refreshCheckRef=useRef(0);
-  const didAuto=useRef(false);
   const hasTickers=state.investments.some(function(i){ return i.ticker; });
-  const autoOn=state.settings && state.settings.autoPrices;
   // Herramientas: sin lista de brókers duplicada, sin editar a mano / USD / auto-precios / líquido vendido
   // (feedback 2026-07-17). Las acciones solo entran por integración.
   const toolsOnly=!!toolsMode;
-  useEffect(function(){
-    if(autoOn && hasTickers && !didAuto.current && !toolsOnly && !v4Embed && !fullMode){ didAuto.current=true; fetchPrices(true); }
-  },[]);
-  const toggleAuto=()=> set(s=>Object.assign({},s,{settings:Object.assign({},s.settings,{autoPrices:!(s.settings&&s.settings.autoPrices)})}));
   // El selector ofrece los tres brókers soportados y cualquier bróker que YA exista en la
   // cartera. No toma cuentas bancarias ni inventa entidades: una posición importada con otro
   // id debe seguir siendo editable, pero no aparentamos que Aely conecte un cuarto bróker.
@@ -1122,10 +1116,6 @@ function Investments({state, set, fetchPrices, pricing, syncInv, v4Embed, toolsM
           )
     ),
     // (El hint «toca un bróker…» se retiró el 2026-07-18: ya estaba anticuado y ocupaba sitio.)
-    !editing && hasTickers && !v4Embed && !toolsOnly && React.createElement("div",{className:"costtoggle",onClick:toggleAuto},
-      React.createElement("span",{className:"cbx"+(autoOn?" on":"")}, autoOn?"✓":""),
-      React.createElement("span",null,t("inv_autoprices")+(state.lastPriceSync?tf("inv_lastprice",{d:new Date(state.lastPriceSync).toLocaleString(loc(),{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}):""))
-    ),
     editing && !toolsOnly && React.createElement("div",{className:"costtoggle",onClick:()=>setShowCost(!showCost)},
       React.createElement("span",{className:"cbx"+(showCost?" on":"")}, showCost?"\u2713":""),
       React.createElement("span",null,t("inv_alsoinvested"))

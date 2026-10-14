@@ -478,7 +478,7 @@ test("Inversiones v4: Reducir animaciones de Aely también evita el count-up y e
   await expect(page.locator('[data-rm-probe="1"]')).toHaveCSS("display","none");
 });
 
-test("Ajustes › Dinero conserva actualización automática y proyección", async ({ page }) => {
+test("Ajustes › Dinero conserva la proyección", async ({ page }) => {
   await seedLoggedInDashboard(page, { investments, settings: { autoPrices: false, theme: "green" } });
   await page.goto("/");
   await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
@@ -487,11 +487,6 @@ test("Ajustes › Dinero conserva actualización automática y proyección", asy
   const settings = page.locator(".settings-push.open");
   await expect(settings).toBeVisible();
   await settings.locator("button.set-row").filter({ hasText: /Dinero|Money/i }).first().click();
-
-  const automatic = settings.locator("button.set-row").filter({ hasText: /Actualizar precios USD al abrir|Update USD prices on app open|Actualitza preus USD/i });
-  await expect(automatic).toBeVisible();
-  await automatic.click();
-  await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("micartera_v3")).settings.autoPrices)).toBe(true);
 
   const projection = settings.locator("button.set-row").filter({ hasText: /Proyección|Projection|Projecció/i });
   await expect(projection).toBeVisible();

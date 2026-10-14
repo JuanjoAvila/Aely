@@ -260,8 +260,6 @@ const LANG = {
     ob_signup:"Crear cuenta nueva",
     st_custom:"Personalización", st_notifs:"Notificaciones", st_simple_lbl:"Modo sencillo",
     st_g_general:"General", st_search_ph:"🔍 Buscar en ajustes…", st_search_none:"Nada con ese nombre. Prueba con «tema», «banco», «copia»…",
-    st_blocks:"Ocultar bloques de las pestañas", st_blocks_hint:"Con esto activado, cada bloque de cualquier pestaña muestra un botón «Ocultar». Los ocultos se quedan atenuados mientras editas; al desactivarlo desaparecen del todo (y aquí los recuperas).",
-    cc_hide:"Ocultar", cc_show:"Mostrar",
     st_updates:"Actualizaciones", st_update:"Buscar actualización",
     st_up_ok:"✓ Estás a la última", st_up_web:"Hay versión web nueva: se instala sola — cierra y abre la app para estrenarla", st_up_applying:"⬇️ Actualizando a la v{v}… la app se recarga sola en unos segundos", st_up_apk:"⬇️ App {v} disponible · descargando, se abrirá el instalador",
     st_widget_hint:"📱 Widget: mantén pulsado el escritorio → Widgets → Aely. Verás el gasto del mes y lo que te queda.",
@@ -576,8 +574,6 @@ const LANG = {
     ob_signup:"Create a new account",
     st_custom:"Customisation", st_notifs:"Notifications", st_simple_lbl:"Simple mode",
     st_g_general:"General", st_search_ph:"🔍 Search settings…", st_search_none:"Nothing by that name. Try “theme”, “bank”, “backup”…",
-    st_blocks:"Hide blocks in tabs", st_blocks_hint:"With this on, every block in any tab shows a «Hide» button. Hidden ones stay dimmed while editing; turn it off and they disappear entirely (and you recover them here).",
-    cc_hide:"Hide", cc_show:"Show",
     st_updates:"Updates", st_update:"Check for updates",
     st_up_ok:"✓ You're up to date", st_up_web:"New web version available: it installs itself — close and reopen the app", st_up_applying:"⬇️ Updating to v{v}… the app will reload itself in a few seconds", st_up_apk:"⬇️ App {v} available · downloading, the installer will open",
     st_widget_hint:"📱 Widget: long-press the home screen → Widgets → Aely. Shows this month's spend and what's left.",
@@ -887,8 +883,6 @@ const LANG = {
     ob_signup:"Crea un compte nou",
     st_custom:"Personalització", st_notifs:"Notificacions", st_simple_lbl:"Mode senzill",
     st_g_general:"General", st_search_ph:"🔍 Cerca als ajustos…", st_search_none:"Res amb aquest nom. Prova amb «tema», «banc», «còpia»…",
-    st_blocks:"Amaga blocs de les pestanyes", st_blocks_hint:"Amb això activat, cada bloc de qualsevol pestanya mostra un botó «Amaga». Els amagats queden atenuats mentre edites; en desactivar-ho desapareixen del tot (i aquí els recuperes).",
-    cc_hide:"Amaga", cc_show:"Mostra",
     st_updates:"Actualitzacions", st_update:"Cerca actualització",
     st_up_ok:"✓ Estàs a l'última", st_up_web:"Hi ha versió web nova: s'instal·la sola — tanca i obre l'app per estrenar-la", st_up_applying:"⬇️ Actualitzant a la v{v}… l'app es recarrega sola en uns segons", st_up_apk:"⬇️ App {v} disponible · baixant, s'obrirà l'instal·lador",
     st_widget_hint:"📱 Widget: mantén premut l'escriptori → Widgets → Aely. Veuràs la despesa del mes i el que et queda.",
@@ -2152,7 +2146,7 @@ Object.assign(LANG.ca,{
 /* --- Diccionario: Inversiones, Proyección, Patrimonio, Deudas y login --- */
 Object.assign(LANG.es,{
   inv_total:"Total invertido", inv_save:"Guardar", inv_cancel:"Cancelar", inv_prices:"Precios USD", inv_pricing:"Precios…", inv_editmanual:"Editar a mano",
-  inv_autoprices:"Actualizar precios USD al abrir la app", inv_lastprice:" · última: {d}", inv_alsoinvested:"También ajustar lo invertido (si he comprado o vendido)",
+  inv_alsoinvested:"También ajustar lo invertido (si he comprado o vendido)",
   inv_cvg:"Contribuciones vs ganancias", inv_invested_lbl:"invertido {x}", inv_invested_tot:"Invertido (coste) total", inv_value_tot:"Valor actual total", inv_gain_lat:"Ganancia (plusvalía latente)", inv_contributed:"Aportado", inv_gain:"Ganancia",
   inv_cvg_hint:"«Invertido» es el coste de lo que tienes ahora (base de coste). Tras ventas parciales puede no cuadrar con las «contribuciones netas» que muestra tu bróker. La ganancia aquí es la plusvalía latente (valor − coste).",
   inv_bytype:"Distribución por tipo", inv_rend:"Rendimiento por posición", inv_best_worst:"mejor {best} · peor {worst}",
@@ -2222,7 +2216,7 @@ Object.assign(LANG.es,{
 });
 Object.assign(LANG.en,{
   inv_total:"Total invested", inv_save:"Save", inv_cancel:"Cancel", inv_prices:"USD prices", inv_pricing:"Prices…", inv_editmanual:"Edit manually",
-  inv_autoprices:"Update USD prices on app open", inv_lastprice:" · last: {d}", inv_alsoinvested:"Also adjust what's invested (if I bought or sold)",
+  inv_alsoinvested:"Also adjust what's invested (if I bought or sold)",
   inv_cvg:"Contributions vs gains", inv_invested_lbl:"invested {x}", inv_invested_tot:"Invested (cost) total", inv_value_tot:"Current value total", inv_gain_lat:"Gain (unrealised)", inv_contributed:"Contributed", inv_gain:"Gain",
   inv_cvg_hint:"«Invested» is the cost of what you hold now (cost basis). After partial sells it may not match the «net contributions» your broker shows. The gain here is unrealised (value − cost).",
   inv_bytype:"By asset type", inv_rend:"Performance by position", inv_best_worst:"best {best} · worst {worst}",
@@ -2292,7 +2286,7 @@ Object.assign(LANG.en,{
 });
 Object.assign(LANG.ca,{
   inv_total:"Total invertit", inv_save:"Desa", inv_cancel:"Cancel·la", inv_prices:"Preus USD", inv_pricing:"Preus…", inv_editmanual:"Edita a mà",
-  inv_autoprices:"Actualitza preus USD en obrir l'app", inv_lastprice:" · última: {d}", inv_alsoinvested:"Ajusta també l'invertit (si he comprat o venut)",
+  inv_alsoinvested:"Ajusta també l'invertit (si he comprat o venut)",
   inv_cvg:"Contribucions vs guanys", inv_invested_lbl:"invertit {x}", inv_invested_tot:"Invertit (cost) total", inv_value_tot:"Valor actual total", inv_gain_lat:"Guany (plusvàlua latent)", inv_contributed:"Aportat", inv_gain:"Guany",
   inv_cvg_hint:"«Invertit» és el cost del que tens ara (base de cost). Després de vendes parcials pot no quadrar amb les «contribucions netes» que mostra el teu bròker. El guany aquí és la plusvàlua latent (valor − cost).",
   inv_bytype:"Distribució per tipus", inv_rend:"Rendiment per posició", inv_best_worst:"millor {best} · pitjor {worst}",

@@ -5731,8 +5731,6 @@ const LANG = {
     ob_signup:"Crear cuenta nueva",
     st_custom:"Personalización", st_notifs:"Notificaciones", st_simple_lbl:"Modo sencillo",
     st_g_general:"General", st_search_ph:"🔍 Buscar en ajustes…", st_search_none:"Nada con ese nombre. Prueba con «tema», «banco», «copia»…",
-    st_blocks:"Ocultar bloques de las pestañas", st_blocks_hint:"Con esto activado, cada bloque de cualquier pestaña muestra un botón «Ocultar». Los ocultos se quedan atenuados mientras editas; al desactivarlo desaparecen del todo (y aquí los recuperas).",
-    cc_hide:"Ocultar", cc_show:"Mostrar",
     st_updates:"Actualizaciones", st_update:"Buscar actualización",
     st_up_ok:"✓ Estás a la última", st_up_web:"Hay versión web nueva: se instala sola — cierra y abre la app para estrenarla", st_up_applying:"⬇️ Actualizando a la v{v}… la app se recarga sola en unos segundos", st_up_apk:"⬇️ App {v} disponible · descargando, se abrirá el instalador",
     st_widget_hint:"📱 Widget: mantén pulsado el escritorio → Widgets → Aely. Verás el gasto del mes y lo que te queda.",
@@ -6276,7 +6274,7 @@ Object.assign(LANG.es,{
 /* --- Diccionario: Inversiones, Proyección, Patrimonio, Deudas y login --- */
 Object.assign(LANG.es,{
   inv_total:"Total invertido", inv_save:"Guardar", inv_cancel:"Cancelar", inv_prices:"Precios USD", inv_pricing:"Precios…", inv_editmanual:"Editar a mano",
-  inv_autoprices:"Actualizar precios USD al abrir la app", inv_lastprice:" · última: {d}", inv_alsoinvested:"También ajustar lo invertido (si he comprado o vendido)",
+  inv_alsoinvested:"También ajustar lo invertido (si he comprado o vendido)",
   inv_cvg:"Contribuciones vs ganancias", inv_invested_lbl:"invertido {x}", inv_invested_tot:"Invertido (coste) total", inv_value_tot:"Valor actual total", inv_gain_lat:"Ganancia (plusvalía latente)", inv_contributed:"Aportado", inv_gain:"Ganancia",
   inv_cvg_hint:"«Invertido» es el coste de lo que tienes ahora (base de coste). Tras ventas parciales puede no cuadrar con las «contribuciones netas» que muestra tu bróker. La ganancia aquí es la plusvalía latente (valor − coste).",
   inv_bytype:"Distribución por tipo", inv_rend:"Rendimiento por posición", inv_best_worst:"mejor {best} · peor {worst}",
@@ -8294,27 +8292,13 @@ function CollapsibleCard({title, sub, dot, defaultOpen, right, children, storage
     return defaultOpen!==false;
   });
   const toggle=()=>{ const n=!open; setOpen(n); if(storageKey) store.set("col_"+storageKey,n); };
-  // Ocultar bloques en CUALQUIER pestaña (petición 2026-07-10, como los widgets del Resumen).
-  // App publica en cada render __mcBlocksEdit (modo edición, se activa en Ajustes) y
-  // __mcCardHidden (settings.cardHidden); el toggle viaja por evento porque esta tarjeta
-  // no recibe set(). Oculta y fuera de edición → no se pinta; en edición → atenuada + botón.
-  const blocksEdit=!!window.__mcBlocksEdit;
-  const cardHidden=(storageKey && Array.isArray(window.__mcCardHidden) && window.__mcCardHidden.indexOf(storageKey)>=0);
-  if(cardHidden && !blocksEdit) return null;
-  const hideBtn=(blocksEdit && storageKey) ? React.createElement("button",{
-    onClick:function(e){ e.stopPropagation(); try{ window.dispatchEvent(new CustomEvent("mc-card-toggle",{detail:storageKey})); }catch(_){} },
-    style:{fontSize:11.5,fontWeight:700,padding:"4px 9px",borderRadius:9,cursor:"pointer",
-      background:cardHidden?"var(--mint)":"var(--surface-2)",color:cardHidden?"#06120C":"var(--coral)",
-      border:cardHidden?"none":"1px solid var(--coral)"}
-  }, cardHidden?t("cc_show"):t("cc_hide")) : null;
-  return React.createElement("div",{className:"card",style:cardHidden?{opacity:.45,borderStyle:"dashed"}:null},
+  return React.createElement("div",{className:"card"},
     React.createElement("div",{className:"card-head",onClick:toggle},
       React.createElement("div",{className:"card-title"},
         dot && React.createElement("span",{className:"dot",style:{background:dot}}),
         React.createElement("div",null, title, sub && React.createElement("div",{className:"sub"},sub))
       ),
       React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10}},
-        hideBtn,
         help && React.createElement(HelpTip,{text:help}),
         right, React.createElement(I.chev,{className:"chev"+(open?" open":"")})
       )
@@ -12930,16 +12914,10 @@ function Investments({state, set, fetchPrices, pricing, syncInv, v4Embed, toolsM
   const notes=useRef([]);
   const refreshBefore=useRef(null);
   const refreshCheckRef=useRef(0);
-  const didAuto=useRef(false);
   const hasTickers=state.investments.some(function(i){ return i.ticker; });
-  const autoOn=state.settings && state.settings.autoPrices;
   // Herramientas: sin lista de brókers duplicada, sin editar a mano / USD / auto-precios / líquido vendido
   // (feedback 2026-07-17). Las acciones solo entran por integración.
   const toolsOnly=!!toolsMode;
-  useEffect(function(){
-    if(autoOn && hasTickers && !didAuto.current && !toolsOnly && !v4Embed && !fullMode){ didAuto.current=true; fetchPrices(true); }
-  },[]);
-  const toggleAuto=()=> set(s=>Object.assign({},s,{settings:Object.assign({},s.settings,{autoPrices:!(s.settings&&s.settings.autoPrices)})}));
   // El selector ofrece los tres brókers soportados y cualquier bróker que YA exista en la
   // cartera. No toma cuentas bancarias ni inventa entidades: una posición importada con otro
   // id debe seguir siendo editable, pero no aparentamos que Aely conecte un cuarto bróker.
@@ -13311,10 +13289,6 @@ function Investments({state, set, fetchPrices, pricing, syncInv, v4Embed, toolsM
           )
     ),
     // (El hint «toca un bróker…» se retiró el 2026-07-18: ya estaba anticuado y ocupaba sitio.)
-    !editing && hasTickers && !v4Embed && !toolsOnly && React.createElement("div",{className:"costtoggle",onClick:toggleAuto},
-      React.createElement("span",{className:"cbx"+(autoOn?" on":"")}, autoOn?"✓":""),
-      React.createElement("span",null,t("inv_autoprices")+(state.lastPriceSync?tf("inv_lastprice",{d:new Date(state.lastPriceSync).toLocaleString(loc(),{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}):""))
-    ),
     editing && !toolsOnly && React.createElement("div",{className:"costtoggle",onClick:()=>setShowCost(!showCost)},
       React.createElement("span",{className:"cbx"+(showCost?" on":"")}, showCost?"\u2713":""),
       React.createElement("span",null,t("inv_alsoinvested"))
@@ -22482,11 +22456,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
         setS({budgetCycle:!(state.settings&&state.settings.budgetCycle)});
       },sw(!!(state.settings&&state.settings.budgetCycle))),
       React.createElement("div",{className:"hint",style:{margin:"2px 12px 10px"}},t("st_budget_cycle_d")),
-      // Estas dos puertas salieron de la ficha de Inversiones: son preferencias/simulaciones,
-      // no parte del saldo. Aquí siguen accesibles sin montar el panel financiero antiguo.
-      row("invauto","↻",t("inv_autoprices"),null,function(){
-        setS({autoPrices:!(state.settings&&state.settings.autoPrices)});
-      },sw(!!(state.settings&&state.settings.autoPrices))),
+      // La proyección salió de la ficha de Inversiones: es una simulación, no parte del saldo.
       row("invproj","📈",t("inv_proj"),t("inv_proj_sub"),function(){ toggleExp("invproj"); }),
       expand==="invproj" && React.createElement("div",{className:"set-exp","data-inv-settings-projection":"1"},
         React.createElement(Projection,{
@@ -22645,13 +22615,8 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
     ),
 
     React.createElement("div",{className:"v4-set-sec"}, t("v4_set_adv")),
-    grp("custom","🎛️",t("v4_set_adv"),"avanzado advanced vista gastos bloques blocks informe report customise",null,
+    grp("custom","🎛️",t("v4_set_adv"),"avanzado advanced vista gastos informe report customise",null,
       // («Personalizar widgets del Resumen» se retiró el 2026-07-18: era del Dashboard v3.)
-      (function(){
-        const on=!!(state.settings&&state.settings.blocksEdit);
-        return row("blocks","🧩",t("st_blocks"),null,function(){ setS({blocksEdit:!on}); }, sw(on));
-      })(),
-      React.createElement("div",{style:{fontSize:11.5,color:"var(--muted-2)",lineHeight:1.45,padding:"0 14px 10px"}}, t("st_blocks_hint")),
       totals && row("report","📸",t("rp_btn").replace(/^[^ ]+ /,""),null,function(){ shareMonthReport(state, totals, showToast); })
     ),
 
@@ -28915,22 +28880,6 @@ function App(){
     });
   },[]);
   useEffect(function(){ if(tab>tabIds.length-1) setTab(0); },[tabIds.length]);   // modo simple reduce pestañas → no dejar un índice fuera de rango
-  // Ocultar bloques por pestaña: publica el estado para CollapsibleCard (que no recibe props
-  // de App) y escucha el toggle. settings.cardHidden se sincroniza con la nube como todo.
-  window.__mcBlocksEdit = !!(state.settings && state.settings.blocksEdit);
-  window.__mcCardHidden = (state.settings && state.settings.cardHidden) || [];
-  useEffect(function(){
-    const h=function(e){
-      const k=e&&e.detail; if(!k) return;
-      set(function(s){
-        const cur=(s.settings&&s.settings.cardHidden)||[];
-        const n=cur.indexOf(k)>=0?cur.filter(function(x){return x!==k;}):cur.concat([k]);
-        return Object.assign({},s,{settings:Object.assign({},s.settings,{cardHidden:n})});
-      });
-    };
-    window.addEventListener("mc-card-toggle",h);
-    return function(){ window.removeEventListener("mc-card-toggle",h); };
-  },[]);
   const TABBYID={}; TABS.forEach(function(tt){ TABBYID[tt.id]=tt; });
   const pageFor=function(id){
     const simple=!!(state.settings&&state.settings.simpleMode);

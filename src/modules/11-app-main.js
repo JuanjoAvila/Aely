@@ -3399,22 +3399,6 @@ function App(){
     });
   },[]);
   useEffect(function(){ if(tab>tabIds.length-1) setTab(0); },[tabIds.length]);   // modo simple reduce pestañas → no dejar un índice fuera de rango
-  // Ocultar bloques por pestaña: publica el estado para CollapsibleCard (que no recibe props
-  // de App) y escucha el toggle. settings.cardHidden se sincroniza con la nube como todo.
-  window.__mcBlocksEdit = !!(state.settings && state.settings.blocksEdit);
-  window.__mcCardHidden = (state.settings && state.settings.cardHidden) || [];
-  useEffect(function(){
-    const h=function(e){
-      const k=e&&e.detail; if(!k) return;
-      set(function(s){
-        const cur=(s.settings&&s.settings.cardHidden)||[];
-        const n=cur.indexOf(k)>=0?cur.filter(function(x){return x!==k;}):cur.concat([k]);
-        return Object.assign({},s,{settings:Object.assign({},s.settings,{cardHidden:n})});
-      });
-    };
-    window.addEventListener("mc-card-toggle",h);
-    return function(){ window.removeEventListener("mc-card-toggle",h); };
-  },[]);
   const TABBYID={}; TABS.forEach(function(tt){ TABBYID[tt.id]=tt; });
   const pageFor=function(id){
     const simple=!!(state.settings&&state.settings.simpleMode);
