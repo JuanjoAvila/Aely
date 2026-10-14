@@ -10,6 +10,17 @@ const notice=(id,day=8,amount=10,extra={})=>({id,date:"2026-10-"+String(day).pad
 const tx=(day=8,amount=10)=>({date:"2026-10-"+String(day).padStart(2,"0"),amount,merchant:"Movimiento",ent:"trade_republic",status:"BOOK"});
 function sync(s,ts,ctx=c){const add=ctx.importObExpenses(s,ts,[{aspsp:"Trade Republic",syncFrom:"2026-01-01"}])||[];const next={...s,expenses:add.concat(s.expenses),gemelos:ctx.pushGemelos(s.gemelos,ctx.gemelosDeImportacion(add,s.expenses))};return ctx.reconcileGemelosAutomaticos?ctx.reconcileGemelosAutomaticos(next,s):next;}
 const cents=s=>s.expenses.filter(e=>c.expenseCountsBudget(e,s)).reduce((n,e)=>n+Math.round(e.amount*100),0);
+test("un apunte con comercio real sin id conserva su importe y no se empareja por casualidad",()=>{
+ const a=notice("alquiler",11,750.50,{merchant:"Alquiler piso",ent:"ing"});
+ const t={...tx(11,750.50),merchant:"INMOBILIARIA GARCIA SL",ent:"ing"};
+ const seed={...state([a]),accounts:[{id:"ing",ent:"ing",role:"diario",spendFrom:true,value:3000}],settings:{expenseBanks:["ing"]}};
+ const s=sync(seed,[t]),b=s.expenses.find(e=>e.source==="ob");
+ assert.equal(cents(s),150100);assert.ok(!b.possibleDup&&!b.autoGemelo);
+ assert.equal(cents(sync(s,[t])),150100);
+ const boot=c.reconcileGemelosAutomaticos({...s,expenses:s.expenses.map(e=>({...e}))});
+ assert.equal(cents(boot),150100);assert.ok(!c.gemeloBancoAutomatico(b));
+});
+
 test("NO-GO: dos cafes de dias distintos no comparten aviso ni pregunta",()=>{
  const s=sync(state([notice("cafe",8,1.5)]),[tx(9,1.5),tx(8,1.5)]);
  assert.equal(cents(s),300);assert.equal(s.expenses.filter(e=>e.possibleDupOf==="cafe").length,1);

@@ -15583,7 +15583,9 @@ function flattenBankTx(links){
    el mismo aviso dos veces. Las parejas automáticas viven en las filas, no en el registro
    acotado de decisiones: 501 parejas no deben expulsarse y recrearse en cada render. */
 const gemeloCache=new WeakMap(), gemeloDatosCache=new WeakMap(), gemeloDiasCache=new Map();
-function gemeloBancoAutomatico(e){ return !!(e&&e.id)&&esFilaDeBanco(e)&&!e.extId&&!e.reciboId&&!e.debtId; }
+// Un comercio real no identifica un gemelo por importe: el extracto de recibos perdió
+// 750,50 al emparejar dos nombres distintos sin id (CI 13/10/2026). Sólo el genérico carece de identidad.
+function gemeloBancoAutomatico(e){ return !!(e&&e.id)&&esFilaDeBanco(e)&&!e.extId&&!e.reciboId&&!e.debtId&&sinComercioReal(e.obName!=null?e.obName:e.merchant); }
 function gemeloAvisoAutomatico(e){ return !!(e&&e.id)&&!esFilaDeBanco(e)&&!isManualExpenseSource(e.source)&&!e.possibleDup&&!e.pending&&!e.reciboId&&!e.debtId; }
 function gemeloDatos(e){
   if(!e) return {grupo:"",dia:NaN};
