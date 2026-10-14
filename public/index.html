@@ -5577,7 +5577,7 @@ const LANG = {
     v42_net_missing:"Todavía no hay gráfica: los datos empiezan hoy. Mañana ya aparecerá.",
     v42_net_i_accounts:"Cuentas", v42_net_i_accounts_v:"movimientos reales desde {day}", v42_net_i_accounts_later:" (alguna desde más tarde)",
     v42_net_i_kept_inv:"Inversiones", v42_net_i_kept_assets:"Bienes", v42_net_i_kept_manual:"Cuentas manuales", v42_net_i_and:" y ", v42_net_i_kept_v:"valor conocido mantenido",
-    v42_net_i_debts:"Deudas", v42_net_i_debts_est:"según sus cuotas", v42_net_i_debts_kept:"saldo actual mantenido", v42_net_i_debts_mixed:"según sus cuotas; alguna, saldo actual", v42_net_i_debts_norate:"; las cuotas sin tipo de interés se cuentan enteras como capital", v42_net_i_ok:"Entendido",
+    v42_net_i_debts:"Deudas", v42_net_i_debts_est:"según sus cuotas", v42_net_i_debts_kept:"saldo actual mantenido", v42_net_i_debts_mixed:"según sus cuotas; alguna, saldo actual", v42_net_i_debts_norate:"; las cuotas sin tipo de interés se cuentan enteras como capital", v42_net_i_debts_badrate:"; un tipo de interés que no cuadra con su cuota se ignora", v42_net_i_ok:"Entendido",
     v42_range_1m:"1M", v42_range_3m:"3M", v42_range_6m:"6M", v42_range_1y:"1A", v42_range_all:"Todo",
     v42_net_cmp_up:"{x} más que {when}", v42_net_cmp_down:"{x} menos que {when}", v42_net_cmp_same:"Igual que {when}", v42_net_cmp_none:"Aún sin datos para comparar",
     v42_net_when_1:"el mes pasado", v42_net_when_n:"hace {n} meses", v42_net_when_12:"hace un año", v42_net_i_cmp:"Comparación", v42_net_i_cmp_1m:"frente al mismo día del mes pasado", v42_net_i_cmp_n:"frente al mismo día de hace {n} meses", v42_net_i_cmp_12:"frente al mismo día de hace un año", v42_net_i_cmp_all:"desde el principio",
@@ -8423,6 +8423,16 @@ function netWorthDebtPolicy(state, today, current){
   // el día de cuota. Así el día de la cuota la gráfica solo baja los intereses y el último punto
   // es el saldo que pinta la app, también si el cargo de este mes aún no ha pasado.
   const rebuilt=function(d){ return d.months==null&&debtAmort(d)>0&&Number(d.value)>0.005&&!d.settledAt; };
+  // El tipo se teclea a mano: «1,05» vale como 1,05 y un tipo cuyos intereses de un mes igualan o
+  // superan la cuota (un 105 por 1,05) no se aplica: la deuda crecería hacia delante y la gráfica
+  // inventaría 13.000 € de caída en un mes (revisión 14/10). La «i» lo dice.
+  const aprOf=function(d){ const v=d.apr==null||d.apr===""?NaN:Number(String(d.apr).replace(",",".")); return Number.isFinite(v)?v:null; };
+  const rateOf=function(d){
+    const apr=aprOf(d);
+    if(d.months!=null||d.amort!=null||!(apr>0)) return {rate:0,bad:false};
+    const rate=apr/1200,today=Number(d.value)-debtAmort(d)*Math.max(0,month-(typeof d.asOf==="number"?d.asOf:month));
+    return today*rate>=Number(d.monthly)?{rate:0,bad:true}:{rate:rate,bad:false};
+  };
   const at=function(d,day){
     // Una fecha de referencia explícita no pone la deuda a cero antes: con una hipoteca sellada
     // al darla de alta inflaría el patrimonio anterior en todo su principal (revisión 13/10).
@@ -8441,7 +8451,7 @@ function netWorthDebtPolicy(state, today, current){
     // contaba sus 660,85 € enteros como capital, ~148 € de más al mes; revisión 14/10). Sólo
     // hipotecas y préstamos sin plazo, que son los que se reconstruyen hacia atrás; sin tipo
     // se queda la cuota entera y la «i» lo dice. Con un `amort` propio manda ese capital.
-    const rate=d.months==null&&d.amort==null&&Number(d.apr)>0?Number(d.apr)/1200:0;
+    const rate=rateOf(d).rate;
     if(rate&&n<paidToday){
       value=Number(d.value)-debtAmort(d)*paidToday;
       for(let k=n;k<paidToday;k++) value=(value+Number(d.monthly))/(1+rate);
@@ -8455,7 +8465,7 @@ function netWorthDebtPolicy(state, today, current){
     // antes de esta versión no dice cuándo nació: antes recortaba la serie a hoy y dejaba Inicio
     // sin gráfica (13/10). Se reconstruye por cuotas y se declara en la «i».
     const estimated=debtAmort(d)>0&&Number(d.value)>0.005&&!d.settledAt;
-    notes.push({kind:"debt",name:d.name,estimated:estimated,constant:!estimated,noRate:estimated&&rebuilt(d)&&d.amort==null&&(d.apr==null||d.apr==="")});
+    notes.push({kind:"debt",name:d.name,estimated:estimated,constant:!estimated,noRate:estimated&&rebuilt(d)&&d.amort==null&&aprOf(d)==null,badRate:estimated&&rebuilt(d)&&rateOf(d).bad});
   });
   const sum=function(day){ return debts.reduce(function(n,d){ return n+at(d,day); },0); };
   const value=current!=null?current:sum(today);
@@ -8560,10 +8570,18 @@ function netWorthSeries(state, options){
   // Cartera). Lo que una foto sube sobre la anterior es el hueco que puede llenar lo aportado.
   const photos=investments.filter(function(p){ return p.day<today; }).concat(invKnown?[{day:today,value:invested}]:[]);
   const room=photos.map(function(p,i){ return i?Math.round((p.value-photos[i-1].value)*100):Infinity; });
-  // Un bróker sin pata (no hay cuenta suya con movimientos) con aportación periódica: la salida
-  // del banco por ese importe y con concepto de transferencia es esa aportación, aunque el banco
-  // la llame «traspaso» u «otros» (MyInvestor, 500 € a fin de mes, revisión 14/10).
-  const plans=(state.aportaciones||[]).filter(function(p){ return p&&p.amount>0&&!flowBanks[p.ent]&&(state.investments||[]).some(function(i){ return i.ent===p.ent; }); });
+  // Un bróker sin cuenta propia en la app con aportación periódica: la salida del banco por ese
+  // importe, a nombre del titular, es esa aportación aunque el banco la llame «traspaso» u
+  // «otros» (MyInvestor, 500 € a fin de mes, revisión 14/10). Si el bróker tiene su cuenta (aunque
+  // sea manual), la llegada ya la recoge ese saldo: contarla aquí también la sumaba dos veces.
+  const plans=(state.aportaciones||[]).filter(function(p){ return p&&p.amount>0&&!flowBanks[p.ent]&&!owned[p.ent]&&(state.investments||[]).some(function(i){ return i.ent===p.ent; }); });
+  // «A nombre del titular»: el concepto lleva su nombre (dos palabras del perfil) o «yo mismo».
+  // Una transferencia del mismo importe al casero no es una aportación.
+  const holder=recNorm(state.settings&&state.settings.profile&&state.settings.profile.fullName).split(" ").filter(function(w){ return w.length>=3; });
+  const toHolder=function(e){
+    const text=" "+recNorm([e.merchant,e.note,e.concept].join(" "))+" ";
+    return /\byo mismo\b|\bmismo titular\b|\bcuenta propia\b/.test(text)||holder.length>=2&&holder.filter(function(w){ return text.indexOf(" "+w+" ")>=0; }).length>=2;
+  };
   const daily={},contribs=[];
   entries.forEach(function(row){
     const e=row.expense,day=row.day;
@@ -8572,7 +8590,7 @@ function netWorthSeries(state, options){
     if(!flowBanks[row.bank]||(row.ownTransfer&&flowBanks[row.ownTransfer])) return;
     const text=String(e.merchant||"").toLowerCase(),target=e.toBank||e.to||e.counterpartyBank;
     const plan=!!invKnown&&!row.ownTransfer&&e.amount>0&&(e.category==="traspaso"||e.category==="otros")&&
-      /transferencia|traspaso|transfer/i.test([e.merchant,e.note,e.concept].join(" "))&&plans.some(function(p){ return Math.abs(p.amount-e.amount)<0.005; });
+      /transferencia|traspaso|transfer/i.test([e.merchant,e.note,e.concept].join(" "))&&toHolder(e)&&plans.some(function(p){ return Math.abs(p.amount-e.amount)<0.005; });
     const linked=plan||!!invKnown&&e.amount!==0&&(state.investments||[]).some(function(i){
       const name=String(i.ent||"").replace(/_/g," ").toLowerCase();
       return (e.investmentId&&e.investmentId===i.id)||(target&&target===i.ent)||(name.length>=4&&text.includes(name));
@@ -8587,26 +8605,32 @@ function netWorthSeries(state, options){
     // viaje de 247 € o un cambio de divisa de Revolut y movía 300 € la comparación (14/10).
     const transit=!row.ownTransfer&&e.amount>0&&((e.category==="traspaso"&&linked)||plan);
     if(!transit&&!row.ownTransfer&&((e.category==="traspaso"&&!linked)||(e.amount>0&&isAtmWithdrawal(e.merchant)))) return;
-    if(transit||e.category==="inversion"||(e.category==="traspaso"&&linked)) contribs.push({row:row,day:day,cents:row.cents,transit:transit});
+    if(transit||e.category==="inversion"||(e.category==="traspaso"&&linked)) contribs.push({row:row,day:day,cents:row.cents,transit:transit,plan:plan});
     else daily[day]=(daily[day]||0)-Math.round(e.amount*100);
   });
   // El dinero que va a un bróker cuenta como inversión DESDE QUE SALE DEL BANCO y se queda ahí
-  // hasta la primera foto que lo incluye (la que sube al menos la mitad de lo aportado, en diez
-  // días). Antes se daba por incluido en la foto del mismo día: con fotos diarias y un bróker
-  // que tarda (30/9 → 6/10) salía un bache de −500 € en tránsito, y el traspaso neutro dejaba
-  // todos los días anteriores 500 € más bajos (+1.452 «más que el mes pasado» con +952 de verdad).
+  // hasta la primera foto que lo incluye, en diez días. Antes se daba por incluido en la foto del
+  // mismo día: con fotos diarias y un bróker que tarda (30/9 → 6/10) salía un bache de −500 € en
+  // tránsito, y el traspaso neutro dejaba todos los días anteriores 500 € más bajos (+1.452 «más
+  // que el mes pasado» con +952 de verdad). Un traspaso enlazado por otra pista necesita una foto
+  // que suba la mitad de lo aportado; la aportación periódica ya está identificada y basta con
+  // una cuarta parte, así llega aunque la bolsa caiga ese día (+200 de 500 con −300 de bolsa).
+  const WINDOW=10*864e5,todayMs=Date.parse(today+"T12:00:00Z");
   contribs.sort(function(x,y){ return x.row.ms-y.row.ms; }).forEach(function(c){
     c.absorb=null;
     if(c.cents>0) for(let i=0;i<photos.length;i++){
-      if(photos[i].day<c.day||Date.parse(photos[i].day+"T12:00:00Z")-Date.parse(c.day+"T12:00:00Z")>10*864e5) continue;
-      if(room[i]*2>=c.cents){ room[i]-=c.cents; c.absorb=photos[i].day; break; }
+      if(photos[i].day<c.day||Date.parse(photos[i].day+"T12:00:00Z")-Date.parse(c.day+"T12:00:00Z")>WINDOW) continue;
+      if(room[i]*(c.plan?4:2)>=c.cents){ room[i]-=c.cents; c.absorb=photos[i].day; break; }
     }
   });
-  // Lo que ninguna foto recoge no se inventa: una aportación declarada se da por incluida el
-  // mismo día (como siempre); un traspaso queda neutro (sigue siendo movimiento interno) y una
-  // transferencia «otros», gasto, como antes.
+  // Lo que ninguna foto recoge no se inventa. Una aportación periódica que aún puede llegar
+  // (menos de diez días) sigue contando como inversión hasta ayer; hoy manda lo que dice Cartera,
+  // que no sabe del dinero en camino. Pasados diez días sin foto, vuelve a ser una salida.
+  // Un traspaso enlazado queda neutro, una transferencia «otros» es gasto, y una aportación
+  // declarada se da por incluida el mismo día, como siempre.
   const kept=contribs.filter(function(c){
-    if(c.absorb==null&&c.transit){ if(c.row.expense.category==="otros") daily[c.day]=(daily[c.day]||0)-c.cents; return false; }
+    if(c.absorb==null&&c.plan&&todayMs-Date.parse(c.day+"T12:00:00Z")<=WINDOW) c.absorb="9999-12-31";
+    if(c.absorb==null&&c.transit){ if(c.plan||c.row.expense.category==="otros") daily[c.day]=(daily[c.day]||0)-c.cents; return false; }
     if(c.absorb==null) c.absorb=c.day;
     daily[c.day]=(daily[c.day]||0)-c.cents;return true;
   });
@@ -9587,8 +9611,9 @@ function netWorthInfoRows(series, dateFmt, comparedRange){
   if(debts.length){
     const constant=debts.filter(function(g){ return g.constant; }).length;
     // Una cuota sin tipo de interés se cuenta entera como capital: se dice, no se esconde.
-    const noRate=debts.some(function(g){ return g.noRate; });
-    rows.push({k:t("v42_net_i_debts"),v:t(constant===debts.length?"v42_net_i_debts_kept":constant?"v42_net_i_debts_mixed":"v42_net_i_debts_est")+(noRate?t("v42_net_i_debts_norate"):"")});
+    // Y un tipo que no cuadra con su cuota (un 105 por 1,05) se ignora y también se dice.
+    const noRate=debts.some(function(g){ return g.noRate; }),badRate=debts.some(function(g){ return g.badRate; });
+    rows.push({k:t("v42_net_i_debts"),v:t(constant===debts.length?"v42_net_i_debts_kept":constant?"v42_net_i_debts_mixed":"v42_net_i_debts_est")+(noRate?t("v42_net_i_debts_norate"):"")+(badRate?t("v42_net_i_debts_badrate"):"")});
   }
   // Cuarta fila, solo cuando hay frase de comparación: con qué día se compara hoy, en corto.
   const months=comparedRange&&NW_MONTHS[comparedRange];
