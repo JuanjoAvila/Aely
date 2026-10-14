@@ -72,9 +72,20 @@ test("poner 50 % en la conjunta: Liquidez y patrimonio de Inicio cuentan solo su
   await expect(fila).toContainText("50 % tuyo");
   await expect(fila.locator(".am")).toContainText(/1\.?000,00/);
 
+  // Una cuenta de `accounts` (la manual de Sabadell) al 50 % también: 1.000 + 500.
+  await page.locator(".v4-card-list button.v4-mov").filter({ hasText: "Sabadell" }).first().click();
+  await ficha(page).getByTestId("ac-share-edit").click();
+  await ask.locator("input").fill("50");
+  await ask.getByRole("button", { name: "Guardar" }).click();
+  await expect(ficha(page).getByTestId("ac-share-pct")).toHaveText("50 %");
+  await page.locator(".v4-sheet-back").click({ position: { x: 10, y: 10 } });
+  await expect(ficha(page)).toHaveCount(0);
+  await expect(liquidez(page)).toContainText(/1\.?500/);
+  await expect(page.locator(".v4-card-list button.v4-mov").filter({ hasText: "Sabadell" }).first()).toContainText("50 % tuyo");
+
   await page.locator('.botnav-tab[data-tour="inicio"]').click();
   const hero = page.getByTestId("inicio-net-current");
-  await expect(hero.locator(".v4-hero-amt")).toContainText(/2\.?500,00/);
+  await expect(hero.locator(".v4-hero-amt")).toContainText(/1\.?500,00/);
   await hero.locator(".v42-net-info").click();
   const filas = page.locator('[data-sheet="net-info"] .row');
   await expect(filas.filter({ hasText: "Cuentas compartidas" })).toContainText("solo tu parte del saldo y de sus movimientos");
@@ -105,13 +116,14 @@ test("los movimientos viejos sin cuenta: él decide de qué cuenta son y se pued
   await ask.locator("input").fill("50");
   await ask.getByRole("button", { name: "Guardar" }).click();
   const bloque = ficha(page).getByTestId("ac-legacy");
-  await expect(bloque).toContainText("Los 1 movimientos antiguos de Revolut que no dicen su cuenta: ¿son de esta cuenta?");
+  await expect(bloque).toContainText("Revolut tiene 1 movimientos antiguos que no dicen de qué cuenta salieron. ¿Son todos de esta cuenta?");
 
   // «Preguntar después» no guarda nada.
   await bloque.getByTestId("ac-legacy-btn").click();
+  await expect(ask).toContainText("Se aplica a los 1 a la vez, también a los más grandes.");
   await ask.getByRole("button", { name: "Preguntar después" }).click();
   await expect(page.locator(".askback")).toHaveCount(0);
-  await expect(bloque).toContainText("¿son de esta cuenta?");
+  await expect(bloque).toContainText("¿Son todos de esta cuenta?");
 
   await bloque.getByTestId("ac-legacy-btn").click();
   await ask.getByRole("button", { name: "Sí, son de esta cuenta" }).click();
@@ -131,5 +143,5 @@ test("los movimientos viejos sin cuenta: él decide de qué cuenta son y se pued
   await page.locator('.botnav-tab[data-tour="cartera"]').click();
   await page.locator('button.v4-mov[data-ob-key="u-conjunta"]').click();
   await ficha(page).getByTestId("ac-legacy-btn").click();
-  await expect(ficha(page).getByTestId("ac-legacy")).toContainText("¿son de esta cuenta?");
+  await expect(ficha(page).getByTestId("ac-legacy")).toContainText("¿Son todos de esta cuenta?");
 });

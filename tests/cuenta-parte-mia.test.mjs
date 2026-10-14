@@ -106,12 +106,30 @@ function comprobar(m) {
   assert.ok(antes.coverage.some(g => g.unsplit), "y sigue avisando");
   assert.deepEqual(plain(m.setAccountLegacy(decide(viejos, joint, false), "revolut", null).settings), plain(viejos.settings), "deshacer deja el estado como estaba");
   assert.equal(decide(viejos, joint, false).expenses, viejos.expenses, "decidir no reescribe los gastos");
+  // Volver a poner la conjunta al 100 % tras decidir: ya no hay nada a medias y la «i» calla.
+  const vuelta = S(share(decide(viejos, joint, false), joint, "ob", 100));
+  assert.ok(!vuelta.coverage.some(g => g.kind === "share"), "sin cuentas a medias, la «i» no habla de cuentas compartidas");
+  // Una principal re-anclada SIN IBAN (en `accounts`): el banco deja su uid y sus movimientos pesan su parte.
+  const principal = { id: "p", ent: "revolut", name: "Principal", value: 1000, role: "fijos", bankUid: "u-p" };
+  const conUid = share(base({ obAccounts: [mine], accounts: [base().accounts[0], principal], expenses: [mov("a", "2026-10-10", 400, { obAcc: "u-p" })] }), principal, "account", 50);
+  const sUid = S(conUid);
+  assert.equal(at(sUid, "2026-10-09"), 3700, "principal sin IBAN al 50 %: 200, no 400");
+  assert.ok(!sUid.coverage.some(g => g.unsplit), "y la «i» no lo llama antiguo");
+  const reanclada = m.applyBankBalances(base({ accounts: [{ id: "p", ent: "revolut", name: "Principal", value: 1000, role: "fijos" }] }),
+    [{ aspsp: "Revolut", ok: true, accounts: [{ uid: "u-p", iban: null, ok: true, balances: [{ type: "ITAV", amount: "1000", currency: "EUR" }] }] }]).state;
+  assert.equal(reanclada.accounts[0].bankUid, "u-p", "al re-anclar sin IBAN, la principal guarda el uid del banco");
   // Las dos cuentas con la misma parte: da igual de cuál saliera.
   const iguales = S(share(dos([mov("a", "2026-10-10", 400)]), mine, "ob", 50));
   assert.equal(at(iguales, "2026-10-09"), 3200, "misma parte en todas: se aplica sin saber la cuenta");
   // Traspaso de 1.000 € de la personal a la conjunta: 500 pasan a ser de la pareja.
   const traspaso = S(dos([mov("t1", "2026-10-10", 1000, { obAcc: MINE, category: "traspaso" }), mov("t2", "2026-10-10", -1000, { obAcc: JOINT, category: "traspaso", ent: "revolut" })]));
   assert.equal(at(traspaso, "2026-10-09") - at(traspaso, "2026-10-10"), 500, "personal → conjunta al 50 %: −500 suyos");
+  // Patas en días distintos (sale el 13/9 de la personal, llega el 15/9 a la conjunta): sin bache
+  // de −1.000 mientras viaja; solo los −500 el día de la salida. El 14/9 es justo el «mismo día del
+  // mes pasado» de la comparación de 1M, y cae en el hueco.
+  const viaje = S(dos([mov("abre", "2026-08-20", 0, { obAcc: MINE }), mov("s1", "2026-09-13", 1000, { obAcc: MINE, category: "traspaso" }), mov("s2", "2026-09-15", -1000, { obAcc: JOINT, category: "traspaso" })]));
+  assert.deepEqual(["2026-09-12", "2026-09-13", "2026-09-14", "2026-09-15", "2026-09-16"].map(d => at(viaje, d)), [4000, 3500, 3500, 3500, 3500], "solo la diferencia, el día de la salida");
+  assert.equal(m.netWorthCompare(viaje, "1m", today, 0).delta, 0, "1M compara con el 14/9, en el hueco: sin la caída inventada");
   // Entre dos bancos al 100 % el traspaso sigue neutro, como siempre.
   const neutro = S(base({ accounts: [{ ...base().accounts[0], bankIban: "ES00SYNTH0000000000000009" }], obAccounts: [mine],
     expenses: [mov("n1", "2026-10-10", 300, { ent: "sabadell", category: "traspaso" }), mov("n2", "2026-10-10", -300, { obAcc: MINE, category: "traspaso" })] }));
@@ -147,8 +165,10 @@ function comprobar(m) {
   const yaEstaban = [mov("v1", "2026-10-12", 25, { extId: "e1", merchant: "Cena", date: "2026-10-12T10:00:00.000Z" }),
     mov("v2", "2026-10-12", 9, { merchant: "Taxi", date: new Date("2026-10-12T12:00:00").toISOString() }),
     mov("v3", "2026-10-12", 7, { merchant: "Otro" }), { id: "man", date: "2026-10-12T10:00:00Z", amount: 9, merchant: "Taxi", source: "manual", ent: "revolut" }];
+  // Renombrado por él: la clave usa lo que dijo el banco (`obName`), no el nombre de pantalla.
+  yaEstaban.push(mov("ren", "2026-10-12", 25, { merchant: "Cena con Ana", obName: "Cena", date: "2026-10-12T10:00:00.000Z" }));
   const tagged = m.tagObAccountsFromBankTx(yaEstaban, txs);
-  assert.deepEqual(plain(tagged.map(e => e.obAcc || null)), [JOINT, "u-sin", null, null], "recupera por id y por clave; no toca lo que no casa ni lo manual");
+  assert.deepEqual(plain(tagged.map(e => e.obAcc || null)), [JOINT, "u-sin", null, null, JOINT], "recupera por id y por clave (también renombrado); no toca lo que no casa ni lo manual");
   assert.equal(m.tagObAccountsFromBankTx(tagged, txs), tagged, "sin nada que añadir, el MISMO array (no reescribe el histórico)");
   // Un apunte igual en las dos cuentas el mismo día no dice de cuál es: se queda sin cuenta.
   const ambiguo = m.flattenBankTx([{ aspsp: "Revolut", ok: true, accounts: [
@@ -177,6 +197,11 @@ const mutantes = [
   ["«no son de esta» como «sí»", "if(hit&&!dec.no) return hit.s;", "if(hit) return hit.s;"],
   ["sin mirar su decisión", "const dec=!e.obAcc&&legacy[bank];", "const dec=false;"],
   ["deshacer no borra", "if(decision) next[ent]=decision; else delete next[ent];", "if(decision) next[ent]=decision;"],
+  ["traspaso con partes distintas: cada pata en su día", "if(row.ownTransfer&&flowBanks[row.ownTransfer]){ if(e.amount>0) daily[day]=(daily[day]||0)-(row.cents+row.mate.cents); return; }", ""],
+  ["la principal sin IBAN no se reconoce", "item&&item.bankUid?String(item.bankUid):", ""],
+  ["re-anclar no guarda el uid", "const uidCambia = !ac.iban && ac.uid!=null && a.bankUid!==String(ac.uid);", "const uidCambia = false;"],
+  ["«como dijiste» sin cuentas a medias", "if(flowBanks[b]&&anyShared) gaps.push", "if(flowBanks[b]) gaps.push"],
+  ["renombrado: clave por el nombre de pantalla", "e.obName!=null?e.obName:e.merchant)];", "e.merchant)];"],
   ["la «i» calla lo que cuenta entero", "Object.keys(unsplit).forEach(function(b){ if(flowBanks[b]) gaps.push", "Object.keys(unsplit).forEach(function(b){ if(false) gaps.push"],
 ];
 for (const [nombre, de, a] of mutantes) {

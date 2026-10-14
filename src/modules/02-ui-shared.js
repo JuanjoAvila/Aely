@@ -870,6 +870,10 @@ function netWorthSeries(state, options){
     // Entre dos cuentas con distinta parte el traspaso sí mueve lo suyo: 1.000 € de su cuenta a la
     // conjunta al 50 % son 500 € que pasan a ser de la pareja. Cada pata cuenta con su parte.
     if(!flowBanks[row.bank]||(row.ownTransfer&&flowBanks[row.ownTransfer]&&row.f===row.mate.f)) return;
+    // Con partes distintas no cuenta ninguna pata: solo la diferencia (salida × su parte − llegada ×
+    // la suya), el día de la salida. Contar cada pata en su día pintaba un bache de −1.000 mientras
+    // el dinero viajaba de la personal (día 10) a la conjunta (día 12), en vez de −500 (revisión 14/10).
+    if(row.ownTransfer&&flowBanks[row.ownTransfer]){ if(e.amount>0) daily[day]=(daily[day]||0)-(row.cents+row.mate.cents); return; }
     const text=String(e.merchant||"").toLowerCase(),target=e.toBank||e.to||e.counterpartyBank;
     const plan=!!invKnown&&!row.ownTransfer&&e.amount>0&&(e.category==="traspaso"||e.category==="otros")&&
       /transferencia|traspaso|transfer/i.test([e.merchant,e.note,e.concept].join(" "))&&toHolder(e)&&plans.some(function(p){ return Math.abs(p.amount-e.amount)<0.005; });
@@ -937,7 +941,8 @@ function netWorthSeries(state, options){
   debt.notes.forEach(function(n){gaps.push(n);});
   const start=first||today;
   rows.forEach(function(r,i){ if(shares[i]!==1) gaps.push({kind:"share",name:r.item.name||r.item.ent,pct:Math.round(shares[i]*10000)/100}); });
-  Object.keys(decided).forEach(function(b){ if(flowBanks[b]) gaps.push({kind:"share",legacy:true,name:(ENT[b]&&ENT[b].label)||b}); });
+  const anyShared=shares.some(function(s){ return s!==1; });
+  Object.keys(decided).forEach(function(b){ if(flowBanks[b]&&anyShared) gaps.push({kind:"share",legacy:true,name:(ENT[b]&&ENT[b].label)||b}); });
   Object.keys(unsplit).forEach(function(b){ if(flowBanks[b]) gaps.push({kind:"share",unsplit:true,name:(ENT[b]&&ENT[b].label)||b}); });
   // Lo que se mantiene constante antes de su primer dato se declara, en corto, en la «i»; un
   // «antes del» que cae fuera de la gráfica no cuenta nada y se calla.

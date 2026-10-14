@@ -2511,7 +2511,9 @@ function accountLooksJoint(name){
 function accountOwnsMovement(item, kind, acc){
   if(!acc) return false;
   const iban=accountIbanKey(item&&(item.bankIban||item.iban));
-  const uidOf=kind==="ob"?String(item&&item.key||""):/^ob:/.test(item&&item.accountOrderKey||"")?item.accountOrderKey.slice(3):"";
+  // Sin IBAN, el uid: el de la fila OB, el de la promocionada (su clave de orden) o el que el
+  // banco dejó al re-anclar una cuenta principal (`bankUid`, `applyBankBalances`).
+  const uidOf=kind==="ob"?String(item&&item.key||""):item&&item.bankUid?String(item.bankUid):/^ob:/.test(item&&item.accountOrderKey||"")?item.accountOrderKey.slice(3):"";
   return (!!iban&&iban===accountIbanKey(acc))||(!!uidOf&&uidOf===String(acc));
 }
 /* LOS MOVIMIENTOS VIEJOS SIN CUENTA LOS ATRIBUYE ÉL, no la app (14/10/2026). Lo anterior a

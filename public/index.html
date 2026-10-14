@@ -4955,7 +4955,9 @@ function accountLooksJoint(name){
 function accountOwnsMovement(item, kind, acc){
   if(!acc) return false;
   const iban=accountIbanKey(item&&(item.bankIban||item.iban));
-  const uidOf=kind==="ob"?String(item&&item.key||""):/^ob:/.test(item&&item.accountOrderKey||"")?item.accountOrderKey.slice(3):"";
+  // Sin IBAN, el uid: el de la fila OB, el de la promocionada (su clave de orden) o el que el
+  // banco dejó al re-anclar una cuenta principal (`bankUid`, `applyBankBalances`).
+  const uidOf=kind==="ob"?String(item&&item.key||""):item&&item.bankUid?String(item.bankUid):/^ob:/.test(item&&item.accountOrderKey||"")?item.accountOrderKey.slice(3):"";
   return (!!iban&&iban===accountIbanKey(acc))||(!!uidOf&&uidOf===String(acc));
 }
 /* LOS MOVIMIENTOS VIEJOS SIN CUENTA LOS ATRIBUYE ÉL, no la app (14/10/2026). Lo anterior a
@@ -5979,7 +5981,7 @@ Object.assign(LANG.es,{
 
 /* Roles de cuenta + import OB + informe mensual */
 Object.assign(LANG.es,{
-  pt_ficha_saldo:"Saldo", pt_ficha_banco:"lo pone el banco", pt_ficha_manual:"lo pones tú", pt_ficha_nombre:"Cómo se llama", pt_ficha_rol:"Qué cuenta de esta cuenta", pt_ficha_quitar:"Quitar esta cuenta", pt_ficha_sync:"Última sincronización: {x}", ac_share_q:"Parte mía", ac_share_all:"Cuenta entera en tu patrimonio", ac_share_counts:"En tu patrimonio cuentan {x}", ac_share_change:"Cambiar", ac_share_title:"¿Qué parte de esta cuenta es tuya?", ac_share_sub:"En porcentaje, de 0 a 100. Solo cambia tu patrimonio: los gastos y el presupuesto siguen igual.", ac_share_ok:"Guardar", ac_share_bad:"Pon un número entre 0 y 100", ac_share_joint_hint:"Parece una cuenta con dos titulares. Si solo la mitad es tuya, pon 50 % y tu patrimonio contará solo tu parte.", pt_share_meta:"{n} % tuyo", ac_legacy_q:"Los {n} movimientos antiguos de {bank} que no dicen su cuenta: ¿son de esta cuenta?", ac_legacy_sub:"Solo cambia tu patrimonio y su gráfica. Puedes deshacerlo aquí mismo.", ac_legacy_yes:"Sí, son de esta cuenta", ac_legacy_no:"No, son de otra cuenta", ac_legacy_later:"Preguntar después", ac_legacy_decide:"Decidir", ac_legacy_undo:"Deshacer", ac_legacy_done_yes:"Los movimientos antiguos de {bank} sin cuenta cuentan como de esta cuenta.", ac_legacy_done_no:"Los movimientos antiguos de {bank} sin cuenta cuentan como de otra cuenta.", ac_legacy_done_other:"Los movimientos antiguos de {bank} sin cuenta los asignaste a otra cuenta.",
+  pt_ficha_saldo:"Saldo", pt_ficha_banco:"lo pone el banco", pt_ficha_manual:"lo pones tú", pt_ficha_nombre:"Cómo se llama", pt_ficha_rol:"Qué cuenta de esta cuenta", pt_ficha_quitar:"Quitar esta cuenta", pt_ficha_sync:"Última sincronización: {x}", ac_share_q:"Parte mía", ac_share_all:"Cuenta entera en tu patrimonio", ac_share_counts:"En tu patrimonio cuentan {x}", ac_share_change:"Cambiar", ac_share_title:"¿Qué parte de esta cuenta es tuya?", ac_share_sub:"En porcentaje, de 0 a 100. Solo cambia tu patrimonio: los gastos y el presupuesto siguen igual.", ac_share_ok:"Guardar", ac_share_bad:"Pon un número entre 0 y 100", ac_share_joint_hint:"Parece una cuenta con dos titulares. Si solo la mitad es tuya, pon 50 % y tu patrimonio contará solo tu parte.", pt_share_meta:"{n} % tuyo", ac_legacy_q:"{bank} tiene {n} movimientos antiguos que no dicen de qué cuenta salieron. ¿Son todos de esta cuenta?", ac_legacy_sub:"Se aplica a los {n} a la vez, también a los más grandes. Solo cambia tu patrimonio y su gráfica; puedes deshacerlo aquí mismo.", ac_legacy_yes:"Sí, son de esta cuenta", ac_legacy_no:"No, son de otra cuenta", ac_legacy_later:"Preguntar después", ac_legacy_decide:"Decidir", ac_legacy_undo:"Deshacer", ac_legacy_done_yes:"Los movimientos antiguos de {bank} sin cuenta cuentan como de esta cuenta.", ac_legacy_done_no:"Los movimientos antiguos de {bank} sin cuenta cuentan como de otra cuenta.", ac_legacy_done_other:"Los movimientos antiguos de {bank} sin cuenta los asignaste a otra cuenta.",
   ac_rename:"Renombrar", ac_manual_sub:"{bank} · la llevas a mano", ac_synced_sub:"{bank} · se actualiza sola", ac_balance_today:"SALDO DE HOY",
   ac_delta_month:"↑ {x} este mes", ac_delta_month_down:"↓ {x} este mes", ac_eom:"a fin de mes: {x}", ac_spark_from:"hace 14 días", ac_spark_to:"hoy", ac_spark_new:"Su histórico empieza hoy",
   ac_fix_balance:"✏️ Corregir saldo", ac_connect:"🔗 Conectar banco", ac_sync_now:"↻ Sincronizar ahora", ac_reconnect:"⚠ Reconectar", ac_role_q:"¿Para qué la usas?",
@@ -8694,6 +8696,10 @@ function netWorthSeries(state, options){
     // Entre dos cuentas con distinta parte el traspaso sí mueve lo suyo: 1.000 € de su cuenta a la
     // conjunta al 50 % son 500 € que pasan a ser de la pareja. Cada pata cuenta con su parte.
     if(!flowBanks[row.bank]||(row.ownTransfer&&flowBanks[row.ownTransfer]&&row.f===row.mate.f)) return;
+    // Con partes distintas no cuenta ninguna pata: solo la diferencia (salida × su parte − llegada ×
+    // la suya), el día de la salida. Contar cada pata en su día pintaba un bache de −1.000 mientras
+    // el dinero viajaba de la personal (día 10) a la conjunta (día 12), en vez de −500 (revisión 14/10).
+    if(row.ownTransfer&&flowBanks[row.ownTransfer]){ if(e.amount>0) daily[day]=(daily[day]||0)-(row.cents+row.mate.cents); return; }
     const text=String(e.merchant||"").toLowerCase(),target=e.toBank||e.to||e.counterpartyBank;
     const plan=!!invKnown&&!row.ownTransfer&&e.amount>0&&(e.category==="traspaso"||e.category==="otros")&&
       /transferencia|traspaso|transfer/i.test([e.merchant,e.note,e.concept].join(" "))&&toHolder(e)&&plans.some(function(p){ return Math.abs(p.amount-e.amount)<0.005; });
@@ -8761,7 +8767,8 @@ function netWorthSeries(state, options){
   debt.notes.forEach(function(n){gaps.push(n);});
   const start=first||today;
   rows.forEach(function(r,i){ if(shares[i]!==1) gaps.push({kind:"share",name:r.item.name||r.item.ent,pct:Math.round(shares[i]*10000)/100}); });
-  Object.keys(decided).forEach(function(b){ if(flowBanks[b]) gaps.push({kind:"share",legacy:true,name:(ENT[b]&&ENT[b].label)||b}); });
+  const anyShared=shares.some(function(s){ return s!==1; });
+  Object.keys(decided).forEach(function(b){ if(flowBanks[b]&&anyShared) gaps.push({kind:"share",legacy:true,name:(ENT[b]&&ENT[b].label)||b}); });
   Object.keys(unsplit).forEach(function(b){ if(flowBanks[b]) gaps.push({kind:"share",unsplit:true,name:(ENT[b]&&ENT[b].label)||b}); });
   // Lo que se mantiene constante antes de su primer dato se declara, en corto, en la «i»; un
   // «antes del» que cae fuera de la gráfica no cuenta nada y se calla.
@@ -13785,7 +13792,7 @@ function AccountSheet({open, cuenta, state, set, totals, onClose, onRemove, onSa
   const legacyN=cuentasMismaEnt>1?accountLegacyCount(state,a.ent):0;
   const verLegacy=legacyN>0&&(!!legacyDec||sharePct!=null);
   const pedirLegacy=function(){
-    askChoice({ title:tf("ac_legacy_q",{n:legacyN,bank:banco}), sub:t("ac_legacy_sub"), options:[
+    askChoice({ title:tf("ac_legacy_q",{n:legacyN,bank:banco}), sub:tf("ac_legacy_sub",{n:legacyN}), options:[
       {v:"yes",label:t("ac_legacy_yes")},{v:"no",label:t("ac_legacy_no")},{v:"later",label:t("ac_legacy_later")}] })
       .then(function(v){
         if(v!=="yes"&&v!=="no") return;   // null = canceló; «later» = sin decidir
@@ -15446,12 +15453,16 @@ function applyBankBalances(s, links){
            vieja — y ese es justo el caso para el que existe el rastro: «mismo número, otra
            etiqueta». El instrumento estaba ciego a lo único que tenía que ver. */
         const rastroCambia = (inf.tipo||null)!==(a.balTipo||null) || Math.abs((a.balSaldo==null?NaN:a.balSaldo)-bal)>0.005;
-        if(Math.abs((a.value||0)-newBase)>0.005 || (ac.iban && a.bankIban!==ac.iban) || rastroCambia){
+        // Sin IBAN, el uid de la cuenta del banco: es lo que llevan sus movimientos (`obAcc`) y lo
+        // único que deja contar la parte de una principal a medias (revisión 14/10).
+        const uidCambia = !ac.iban && ac.uid!=null && a.bankUid!==String(ac.uid);
+        if(Math.abs((a.value||0)-newBase)>0.005 || (ac.iban && a.bankIban!==ac.iban) || rastroCambia || uidCambia){
           /* El rastro va también aquí: la Revolut de su padre es una cuenta PRINCIPAL re-anclada,
              no una obAccount, y era justo la que le bailaba. `balSaldo` es el saldo crudo que mandó
              el banco, sin la fórmula de dynBal encima, para poder comparar manzanas con manzanas. */
           accounts[ownerOf[k]]=Object.assign({}, a, { value:newBase, bankIban:ac.iban||a.bankIban,
-            balTipo:inf.tipo||null, balTipos:inf.tipos&&inf.tipos.length?inf.tipos:undefined, balSaldo:bal });
+            balTipo:inf.tipo||null, balTipos:inf.tipos&&inf.tipos.length?inf.tipos:undefined, balSaldo:bal },
+            uidCambia?{bankUid:String(ac.uid)}:null);
           changed=true;
         }
       } else {
@@ -22218,7 +22229,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="9de250df2dd812cbd080281d2b4fbac3de1834057d93445189474419de18bd4b";
+var _rnSha="49f9aae53c2cc1568a9125c80a4a3ae4483f7af2487d43b5d247899f4f2669a8";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){

@@ -148,7 +148,7 @@ function AccountSheet({open, cuenta, state, set, totals, onClose, onRemove, onSa
   const legacyN=cuentasMismaEnt>1?accountLegacyCount(state,a.ent):0;
   const verLegacy=legacyN>0&&(!!legacyDec||sharePct!=null);
   const pedirLegacy=function(){
-    askChoice({ title:tf("ac_legacy_q",{n:legacyN,bank:banco}), sub:t("ac_legacy_sub"), options:[
+    askChoice({ title:tf("ac_legacy_q",{n:legacyN,bank:banco}), sub:tf("ac_legacy_sub",{n:legacyN}), options:[
       {v:"yes",label:t("ac_legacy_yes")},{v:"no",label:t("ac_legacy_no")},{v:"later",label:t("ac_legacy_later")}] })
       .then(function(v){
         if(v!=="yes"&&v!=="no") return;   // null = canceló; «later» = sin decidir
