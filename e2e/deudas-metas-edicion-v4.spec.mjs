@@ -84,3 +84,15 @@ test("una corrección encolada mientras la hoja estaba abierta no se pisa ni se 
  await expect.poll(async()=> (await saved(page)).debts[0].value).toBe(99999.25);
  const d=(await saved(page)).debts[0];expect(d.value).toBe(99999.25);expect(d.apr).toBe(2);
 });
+test("la regla sin nombre no repite su meta y se edita en una hoja conservando identidad",async({page})=>{
+ const rule={id:"rule",name:"",kind:"fixed",value:50.25,goalId:"goal",mensual:true,unknown:{keep:9}};
+ await open(page,"es",{settings:{lang:"es",autoPrices:false,theme:"green",reservaRules:[rule]}});
+ await page.getByRole("tab",{name:"Metas",exact:true}).click();await page.getByText("Reservar dinero de tus ingresos",{exact:true}).click();
+ const row=page.locator('[data-reserva-rule="rule"]');await expect(row).toBeVisible();
+ expect(((await row.innerText()).match(/Viaje sintético/g)||[]).length).toBe(1);
+ const before=await saved(page);await row.getByRole("button",{name:"Editar regla",exact:true}).click();
+ const sheet=page.getByRole("dialog",{name:"Editar regla",exact:true});await expect(sheet).toBeVisible();
+ await sheet.getByRole("button",{name:"Guardar regla",exact:true}).click();await expect(sheet).toHaveCount(0);
+ expect((await saved(page)).settings.reservaRules).toEqual(before.settings.reservaRules);
+ expect((await saved(page)).reservaLog).toEqual(before.reservaLog);
+});

@@ -519,7 +519,7 @@ function ReservaRules({state, set}){
           React.createElement("div",{className:"sub-name"}, r.name||goalName(r.goalId)),
           React.createElement("div",{className:"sub-meta"}, (r.mensual===true
             ?(r.kind==="pct"?tf("rr_row_pct_m",{v:r.value}):tf("rr_row_fixed_m",{v:reservaEur(r.value)}))
-            :(r.kind==="pct"?tf("rr_row_pct",{v:r.value}):tf("rr_row_fixed",{v:reservaEur(r.value)})))+" → "+goalName(r.goalId)),
+            :(r.kind==="pct"?tf("rr_row_pct",{v:r.value}):tf("rr_row_fixed",{v:reservaEur(r.value)})))+(r.name?" → "+goalName(r.goalId):"")),
           r.mensual===true && React.createElement("div",{className:"sub-meta","data-reserva-mensual":r.id}, mensualTexto(r))
         ),
         React.createElement("button",{className:"chip",onClick:function(){ saving.current=false; setSent(null); setEditing(JSON.parse(JSON.stringify(r))); setForm({name:r.name||"",kind:r.kind,value:String(r.value).replace(".",numPadDecSep()),goalId:r.goalId}); setErr(""); setAdding(true); }},t("rr_edit")),
