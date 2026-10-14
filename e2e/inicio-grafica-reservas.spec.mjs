@@ -4,6 +4,7 @@ import { seedLoggedInDashboard, dismissNews, estadoHeredado } from "./fixtures.m
 test.use({ viewport:{width:412,height:915},timezoneId:"Europe/Madrid",serviceWorkers:"block" });
 test.describe.configure({retries:0});
 const today="2026-10-14";
+const currentAmount=mode=>mode==="con-efectivo"?"18.622,44":mode.startsWith("transfer-")?"18.302,40":"18.502,44";
 async function abrir(page,mode,prior=false,lang="es"){
   const state=estadoHeredado(today);
   if(mode!=="con-efectivo"){
@@ -19,14 +20,20 @@ async function abrir(page,mode,prior=false,lang="es"){
     expect(old).not.toBe(html);
     await route.fulfill({response,body:old});
   });
-  // Solo se fija el día financiero: los temporizadores de React y de la navegación
-  // necesitan seguir reales para comparar las dos pantallas, sin dirigir su render.
-  await page.clock.setFixedTime(new Date(today+"T12:00:00Z"));
+  // Como installFixtureClock: Date parte del día financiero y sigue avanzando. Fijarlo
+  // del todo deja el splash y el importe animado a cero; los temporizadores quedan nativos.
+  await page.addInitScript(epoch=>{
+    const NativeDate=Date,offset=epoch-NativeDate.now();
+    function FixtureDate(...args){const values=args.length?args:[NativeDate.now()+offset];return new.target?Reflect.construct(NativeDate,values,new.target):new NativeDate(NativeDate.now()+offset).toString();}
+    Object.setPrototypeOf(FixtureDate,NativeDate);FixtureDate.prototype=NativeDate.prototype;
+    FixtureDate.now=()=>NativeDate.now()+offset;window.Date=FixtureDate;
+  },Date.parse(today+"T12:00:00Z"));
   await seedLoggedInDashboard(page,{__seedOnce:true,...state,settings:{...state.settings,lang}});
   await page.goto("/");await page.waitForFunction(()=>!document.getElementById("mc-load"));await dismissNews(page);
   const settings=page.locator(".settings-push.open");
   if(await settings.count()) await settings.locator(".settings-push-h .back").click();
   await expect(settings).toHaveCount(0);
+  await expect(page.getByTestId("inicio-net-current").locator(".v4-hero-amt")).toContainText(currentAmount(mode));
   await expect(page.getByTestId("inicio-net-current").locator(".v42-net-line")).toHaveCount(1);
 }
 async function cifras(page){
@@ -45,7 +52,7 @@ for(const mode of ["sin-efectivo","con-efectivo","traspaso-cajero","transfer-alo
   };
     const old=await read(true),next=await read(false);
     expect({now:next.now,card:next.card,gastos:next.gastos}).toEqual({now:old.now,card:old.card,gastos:old.gastos});
-    expect(next.now).toContain(mode==="con-efectivo"?"18.622,44":mode.startsWith("transfer-")?"18.302,40":"18.502,44");
+    expect(next.now).toContain(currentAmount(mode));
     if(mode==="con-efectivo"||mode==="transfer-pair"){expect(next.delta).toBe(old.delta);expect(next.line).toBe(old.line);}
     else {expect(next.delta).not.toBe(old.delta);expect(next.line).not.toBe(old.line);}
 });
