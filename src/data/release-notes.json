@@ -1,5 +1,58 @@
 [
   {
+    "v": "4.26.128",
+    "d": "2026-10-14",
+    "t": {
+      "es": "Inicio: la comparación con el mes pasado cuadra con la gráfica",
+      "en": "Home: the comparison with last month now matches the chart",
+      "ca": "Inici: la comparació amb el mes passat quadra amb la gràfica"
+    },
+    "items": {
+      "es": [
+        "En Inicio, la frase bajo tu patrimonio compara hoy con el mismo día del mes pasado (o de hace 3 meses), igual que los dos extremos de la gráfica.",
+        "El dinero que mandas a tu bróker ya no desaparece de la gráfica mientras llega.",
+        "Los intereses de la hipoteca ya no se cuentan como si rebajaran la deuda."
+      ],
+      "en": [
+        "On Home, the line under your net worth compares today with the same day last month (or 3 months ago), just like the two ends of the chart.",
+        "Money you send to your broker no longer drops out of the chart while it arrives.",
+        "Mortgage interest is no longer counted as if it paid the loan down."
+      ],
+      "ca": [
+        "A Inici, la frase sota el teu patrimoni compara avui amb el mateix dia del mes passat (o de fa 3 mesos), igual que els dos extrems de la gràfica.",
+        "Els diners que envies al teu bròquer ja no desapareixen de la gràfica mentre arriben.",
+        "Els interessos de la hipoteca ja no es compten com si rebaixessin el deute."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inicio-mes-pasado-mismo-dia",
+        "t": {
+          "es": "Inicio: \"más que el mes pasado\" ya cuadra con la gráfica",
+          "en": "Home: \"more than last month\" now matches the chart",
+          "ca": "Inici: \"més que el mes passat\" ja quadra amb la gràfica"
+        },
+        "items": {
+          "es": [
+            "1. Abre Inicio con 1M: la frase bajo el patrimonio dice unos 1.300 € más que el mes pasado (hoy frente al mismo día del mes pasado). Mañana cambiará un poco, como la gráfica.",
+            "2. Toca la \"i\" de la gráfica: \"Comparación\" dice \"frente al mismo día del mes pasado\".",
+            "3. Mantén el dedo en la gráfica entre el 30/9 y el 7/10: no hay una caída de unos 500 € por el dinero que fue a MyInvestor."
+          ],
+          "en": [
+            "1. Open Home with 1M: the line under net worth says about €1,300 more than last month (today against the same day last month). Tomorrow it will change a little, like the chart.",
+            "2. Tap the \"i\" on the chart: \"Comparison\" says \"against the same day last month\".",
+            "3. Hold your finger on the chart between 30/9 and 7/10: there is no drop of about €500 for the money that went to MyInvestor."
+          ],
+          "ca": [
+            "1. Obre Inici amb 1M: la frase sota el patrimoni diu uns 1.300 € més que el mes passat (avui davant del mateix dia del mes passat). Demà canviarà una mica, com la gràfica.",
+            "2. Toca la \"i\" de la gràfica: \"Comparació\" diu \"davant del mateix dia del mes passat\".",
+            "3. Mantén el dit a la gràfica entre el 30/9 i el 7/10: no hi ha una caiguda d'uns 500 € pels diners que van anar a MyInvestor."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.127",
     "d": "2026-10-14",
     "t": {
