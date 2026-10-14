@@ -1,0 +1,9 @@
+{
+  "id": "deudas-estilo-v4-anexo-decimales-20261014",
+  "to": "codex",
+  "body": "Anexo al encargo deudas-estilo-v4-y-edicion-codex-20261014. Fallo real que el dueño acaba de sufrir: en AmortAdvisor (09-tab-debts-goals.js:42) la casilla del interés es controlada y en cada onChange hace parseFloat(v.replace(',','.')): al teclear «1,» o «1.» guarda 1 y la coma desaparece, así que NO se pueden escribir decimales; él tuvo que pegar «1.05». Además no hay ninguna señal de que el valor ya se ha guardado, y él creyó que solo podía amortizar. En la hoja de edición nueva (y en la casilla del asesor si se queda), el texto que se escribe se conserva tal cual mientras se edita (estado local en texto, se guarda al confirmar o al salir del campo), se aceptan coma y punto, y se ve que el valor ha quedado guardado. Test: teclear 1 , 0 5 carácter a carácter deja apr = 1.05; vaciar deja null; 0 deja 0.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261014-8f045f9f",
+  "createdAt": "2026-10-14T05:33:54.484Z"
+}
