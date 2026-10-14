@@ -19,15 +19,20 @@ async function abrir(page,mode,prior=false,lang="es"){
     expect(old).not.toBe(html);
     await route.fulfill({response,body:old});
   });
-  await page.clock.install({time:new Date(today+"T12:00:00Z")});
+  // Solo se fija el día financiero: los temporizadores de React y de la navegación
+  // necesitan seguir reales para comparar las dos pantallas, sin dirigir su render.
+  await page.clock.setFixedTime(new Date(today+"T12:00:00Z"));
   await seedLoggedInDashboard(page,{__seedOnce:true,...state,settings:{...state.settings,lang}});
   await page.goto("/");await page.waitForFunction(()=>!document.getElementById("mc-load"));await dismissNews(page);
+  const settings=page.locator(".settings-push.open");
+  if(await settings.count()) await settings.locator(".settings-push-h .back").click();
+  await expect(settings).toHaveCount(0);
   await expect(page.getByTestId("inicio-net-current").locator(".v42-net-line")).toHaveCount(1);
 }
 async function cifras(page){
   const hero=page.getByTestId("inicio-net-current");
   const result={now:await hero.locator(".v4-hero-amt").innerText(),card:await page.locator(".v42-cycle-amount>.serif").innerText(),delta:await hero.getByTestId("inicio-net-delta").innerText(),line:await hero.locator(".v42-net-line").getAttribute("d")};
-  await page.locator('.botnav-tab[data-tour="gastos"]').tap();
+  await page.getByRole("button",{name:"Ver gastos ›",exact:true}).click();
   await expect(page.locator('.botnav-tab[data-tour="gastos"]')).toHaveClass(/active/);
   await expect(page.locator(".v4-gastos-summary")).toBeVisible();
   result.gastos=await page.locator(".v4-gastos-summary").innerText();
