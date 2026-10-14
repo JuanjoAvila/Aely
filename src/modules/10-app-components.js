@@ -8,11 +8,7 @@ const TABS=[
   {id:"cartera",label:"Cartera",icon:I.invest},
 ];
 // v4: nav fija 5 slots (4 tabs + FAB). Los destinos viejos viven dentro de Plan/Cartera/Ajustes.
-const ADVANCED_TABS=[];
-const SIMPLE_DASH_HIDDEN=[];
-function tabHiddenOf(s){
-  return [];
-}
+// El orden ya no se personaliza (se quitó la UI de «Pestañas» el 2026-10-14: no hacía nada).
 function tabOrderOf(s){
   return ["dash","gastos","plan","cartera"];
 }
@@ -2678,7 +2674,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
     grp("easy","🍃",t("v4_set_easy"),"modo sencillo simple mode tutorial tour empezar fácil easy start",null,
       row("simple","🍃",t("st_simple_lbl"),null,function(){
         const sim=!simOn;
-        setS({simpleMode:sim, tabHidden: sim?ADVANCED_TABS.slice():[], dashHidden: sim?SIMPLE_DASH_HIDDEN.slice():[]});
+        setS({simpleMode:sim});
       }, sw(simOn)),
       React.createElement("div",{style:{fontSize:11.5,color:"var(--muted-2)",padding:"0 14px 10px"}}, t("st_mode_hint")),
       onTour && row("tour","🎓",t("v4_set_tour"),null,onTour)
@@ -2911,41 +2907,8 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
     ),
 
     React.createElement("div",{className:"v4-set-sec"}, t("v4_set_adv")),
-    grp("custom","🎛️",t("v4_set_adv"),"avanzado advanced pestañas tabs vista gastos bloques blocks informe report customise",null,
+    grp("custom","🎛️",t("v4_set_adv"),"avanzado advanced vista gastos bloques blocks informe report customise",null,
       // («Personalizar widgets del Resumen» se retiró el 2026-07-18: era del Dashboard v3.)
-      row("tabs","✎",t("et_tabs").replace("✎ ",""),null,function(){ toggleExp("tabs"); }),
-      expand==="tabs" && React.createElement("div",{className:"set-exp"},(function(){
-        const order=tabOrderOf(state);
-        const hidden=TABS.map(function(tb){return tb.id;}).filter(function(id){ return order.indexOf(id)<0; });
-        const moveTab=function(id,dir){ set(function(s){ const o=tabOrderOf(s); const i=o.indexOf(id), j=i+dir; if(i<0||j<0||j>=o.length) return s; const n=o.slice(); n[i]=o[j]; n[j]=id; return Object.assign({},s,{settings:Object.assign({},s.settings,{tabOrder:n})}); }); };
-        const hideTab=function(id){ if(id==="dash") return; set(function(s){ const hid=tabHiddenOf(s); const nh=hid.indexOf(id)<0?hid.concat([id]):hid; const ord=tabOrderOf(s).filter(function(x){return x!==id;}); return Object.assign({},s,{settings:Object.assign({},s.settings,{tabHidden:nh, tabOrder:ord})}); }); showToast(t("tb_removed")); };
-        const showTab=function(id){ set(function(s){ const hid=tabHiddenOf(s).filter(function(x){return x!==id;}); const ord=tabOrderOf(s).concat([id]); return Object.assign({},s,{settings:Object.assign({},s.settings,{tabHidden:hid, tabOrder:ord})}); }); };
-        const rowBtn={width:34,height:34,borderRadius:9,background:"var(--surface-2)",border:"1px solid var(--line)",color:"var(--muted)",fontSize:13,cursor:"pointer",flex:"0 0 auto"};
-        return React.createElement("div",{style:{marginTop:8}},
-          React.createElement("div",{style:{fontSize:11.5,color:"var(--muted-2)",lineHeight:1.5,marginBottom:10}}, t("et_intro")),
-          order.map(function(id,i){
-            const tb=TABS.find(function(x){return x.id===id;}); if(!tb) return null;
-            const fixed=(id==="dash");
-            return React.createElement("div",{key:id,style:{display:"flex",alignItems:"center",gap:8,padding:"8px 11px",borderRadius:11,background:"var(--surface-2)",border:"1px solid var(--line)",marginBottom:7}},
-              React.createElement("span",{style:{color:"var(--muted)",display:"flex"}}, React.createElement(tb.icon,{width:16,height:16})),
-              React.createElement("span",{style:{flex:1,fontWeight:700,fontSize:14,color:"var(--text)"}}, t("tab_"+id)),
-              React.createElement("button",{disabled:i===0,onClick:function(){ moveTab(id,-1); },style:Object.assign({},rowBtn,{opacity:i===0?0.35:1})}, "▲"),
-              React.createElement("button",{disabled:i===order.length-1,onClick:function(){ moveTab(id,1); },style:Object.assign({},rowBtn,{opacity:i===order.length-1?0.35:1})}, "▼"),
-              fixed
-                ? React.createElement("span",{style:{fontSize:10.5,color:"var(--muted-2)",width:34,textAlign:"center",flex:"0 0 auto"}}, t("et_fixed"))
-                : React.createElement("button",{onClick:function(){ hideTab(id); },style:Object.assign({},rowBtn,{color:"var(--coral)",borderColor:"var(--coral)"})}, "✕")
-            );
-          }),
-          hidden.length>0 && React.createElement("div",{style:{fontSize:11.5,color:"var(--muted-2)",margin:"12px 2px 6px"}}, t("et_hidden")),
-          hidden.map(function(id){
-            const tb=TABS.find(function(x){return x.id===id;}); if(!tb) return null;
-            return React.createElement("button",{key:id,onClick:function(){ showTab(id); },style:{display:"flex",alignItems:"center",gap:8,width:"100%",padding:"8px 11px",borderRadius:11,background:"var(--surface-2)",border:"1px dashed var(--line)",color:"var(--text)",fontWeight:700,fontSize:14,marginBottom:7,cursor:"pointer"}},
-              React.createElement("span",{style:{color:"var(--mint)",fontSize:16,fontWeight:800}}, "+"),
-              React.createElement("span",{style:{color:"var(--muted)",display:"flex"}}, React.createElement(tb.icon,{width:16,height:16})),
-              React.createElement("span",null, t("tab_"+id)));
-          })
-        );
-      })()),
       (function(){
         const on=!!(state.settings&&state.settings.blocksEdit);
         return row("blocks","🧩",t("st_blocks"),null,function(){ setS({blocksEdit:!on}); }, sw(on));
