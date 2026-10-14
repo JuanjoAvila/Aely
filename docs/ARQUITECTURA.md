@@ -545,7 +545,38 @@ movimientos se leen desde cada `accounts[].transactions`; el bloque superior es 
 retrocompatible de la primera cuenta y no se suma dos veces.
 
 Un fallo pasajero no equivale a un permiso caducado. Open Banking solo pone el enlace en
-`expired` ante un `EB 401` firme; 403/404, límites 429, 5xx y timeouts conservan el enlace activo.
+`expired` ante un código de sesión terminada de Enable Banking (`EXPIRED_SESSION`,
+`CLOSED_SESSION`, `REVOKED_SESSION`; ver `ebFailure`), venga con el HTTP que venga. Un 401 con
+otro código, o sin ninguno, no decide solo: si ninguna cuenta del banco respondió, `bank-sync`
+pregunta una vez por enlace con `GET /sessions/{id}` (`ebSessionVerdict`). Solo `AUTHORIZED`
+es una sesión viva; cualquier otro estado de `SessionStatus`, o un `SESSION_DOES_NOT_EXIST`,
+caduca el enlace. Si la sesión vive, o la consulta no responde claro (sin id guardado, 5xx,
+red), el enlace se conserva y queda un `app_events` con el código (lista cerrada del enum
+`ErrorCode`, u `OTRO`) y lo que dijo la consulta.
+403/404, límites 429, 5xx y timeouts también lo conservan. MyInvestor sigue la misma idea
+(`miReadWithRefresh`): solo el refresco rechazado con 400/401 deja `expired`, y solo si la fila
+sigue teniendo el refresco que se usó (sync y keepalive comparten token: el que llega segundo
+recibe el rechazo del viejo). Un 403/429/5xx, una respuesta sin token, la red caída o no poder
+guardar los tokens rotados responden `softFail` y no tocan el enlace. El caso «refresco
+aceptado y el acceso sigue en 401» responde `softFail` dos veces y a la tercera en seis horas
+caduca; el contador es el limitador de la migración 0019 (`rate_limits`), que cuenta veces
+dentro de la ventana, no veces seguidas, y si no responde no caduca.
+
+Límites conocidos de esta regla, sin arreglar (13/10):
+
+- El **histórico** (`bank-sync` con `dateFrom`) no pregunta por la sesión ni toca el enlace:
+  devuelve `eb_401` ante cualquier 401 y el cliente lo traduce siempre a «falta completar la
+  conexión» (`bankReadWarnings`), también cuando el fallo es de la aplicación.
+- En `myinvestor-sync`, el detalle de una cuenta que responde algo distinto de 200 y de 401
+  (403, 404, 5xx) se **salta**: la respuesta es `ok:true` con las posiciones de las demás, o
+  vacía. Solo el 401 del detalle corta con `softFail` (`detail_401`). No se cambia el resto sin
+  saber qué devuelve MyInvestor para una cuenta de valores cerrada.
+- El aviso suave de «Actualizar» lo redacta el cliente (`bank_syncsoft`: «no hace falta
+  reconectar») y es el mismo para todo `softFail` de MyInvestor, también las dos primeras
+  veces del caso anterior. El texto distinto del servidor solo se ve en la tarjeta de
+  MyInvestor.
+- `bank-disconnect` pasa `session_id` tal cual está guardado (cifrado) al `DELETE /sessions`,
+  así que la revocación en el proveedor no llega a hacerse; la fila sí se borra.
 Trade Republic guarda aparte `_trAuthExpired`: que el puente arranque todavía sin sesión visible
 no enciende el aviso de reconexión. Al sincronizar a mano se intenta primero reutilizar y validar
 la sesión guardada, y solo una respuesta explícita `authExpired` pide volver a iniciar sesión.

@@ -7,7 +7,8 @@
 // ============================================================
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { ebApi, ebConfig, jsonResp, makeJWT, mapTransaction, fetchBankTransactions } from "../_shared/enablebanking.ts";
+import { ebApi, ebConfig, ebFailure, ebSessionVerdict, jsonResp, makeJWT, mapTransaction, fetchBankTransactions } from "../_shared/enablebanking.ts";
+import { decryptSessionId } from "../_shared/token_store.ts";
 import { withCors } from "../_shared/cors.ts";
 import { OB_DEMAND_MAX_PAGES, ackCursor, ackLinkKey, ackToken, chunkCursor, demandFloor, demandPlan, demandReadComplete, nextChunkDays, ymdAddDays, ymdSpan } from "./demand-window.ts";
 
@@ -42,6 +43,23 @@ async function logObReadFailure(admin: any, userId: string, aspsp: string, err: 
       user_id: userId, email: null, kind: "error",
       message: `OB histórico (${obLogBank(aspsp)}): lectura no disponible`,
       detail: JSON.stringify({ code: obReadFailureCode(err) }),
+      app_version: "edge", platform: "server",
+    });
+  } catch (_) { /* diagnóstico best-effort: nunca cambia el resultado bancario */ }
+}
+
+/* Un 401 que NO cierra la sesión (ver `ebFailure` y `ebSessionVerdict`) deja el enlace como
+   estaba, pero tiene que quedar apuntado: es un fallo de la aplicación frente al proveedor
+   (clave, cabecera, IP) y, sin rastro, desde fuera solo se vería «el banco no actualiza».
+   `error` sale de la lista cerrada de `ebFailure` y `session` de la de `ebSessionVerdict`
+   (o `NO_CONSULTADA` si otra cuenta del mismo banco sí respondió). */
+// deno-lint-ignore no-explicit-any
+async function logObAuthFailure(admin: any, userId: string, aspsp: string, err: unknown, session: string) {
+  try {
+    await admin.from("app_events").insert({
+      user_id: userId, email: null, kind: "error",
+      message: `OB sync (${obLogBank(aspsp)}): 401 sin cierre de sesión`,
+      detail: JSON.stringify({ code: obReadFailureCode(err), error: ebFailure(err).code, session }),
       app_version: "edge", platform: "server",
     });
   } catch (_) { /* diagnóstico best-effort: nunca cambia el resultado bancario */ }
@@ -252,6 +270,7 @@ Deno.serve(withCors(async (req: Request) => {
       // deno-lint-ignore no-explicit-any
       const acctOut: any[] = [];
       let anyAcctOk = false, anyExpired = false, lastErr = "";
+      let auth401: unknown = null, authSession = "NO_CONSULTADA";
       for (const ac of acctList) {
         const uid = ac?.uid;
         if (!uid || typeof uid !== "string") continue;
@@ -289,16 +308,31 @@ Deno.serve(withCors(async (req: Request) => {
           // Solo cuenta como caducado el código inequívoco del proveedor. Buscar palabras como
           // "unauthorized" dentro de un 429/5xx podía convertir un bloqueo temporal en una
           // reconexión manual y dejar el enlace muerto para siempre hasta hacer OAuth otra vez.
-          if (/\bEB\s+401\b/i.test(msg)) {
-            anyExpired = true;
-          }
+          // Y el 401 a secas tampoco vale (12/10): lo decide el código, ver `ebFailure`. El
+          // que no trae código de cierre se guarda para preguntar por la sesión al acabar.
+          const fail = ebFailure(err);
+          if (fail.sessionEnded) anyExpired = true;
+          else if (fail.status === 401 && !auth401) auth401 = err;
           lastErr = msg;
           acctOut.push({ uid, iban: ac.iban || null, name: ac.name || null, currency: ac.currency || null, ok: false, error: msg, balances: [], count: 0, transactions: [] });
         } finally {
           clearTimeout(balTimer);
         }
       }
-      // Solo EB 401 firme caduca el permiso; 403/404/429/5xx conservan el enlace activo.
+      /* 401 SIN CÓDIGO DE CIERRE Y NINGUNA CUENTA LEÍDA (revisión del 13/10). Puede ser un
+         fallo de la aplicación o una sesión muerta que el proveedor nombra de otra forma;
+         dejarlo en «error técnico» mantenía el banco activo para siempre, sin ofrecer
+         reconectar. Se pregunta por la sesión UNA vez por enlace, no por cuenta. Si alguna
+         cuenta respondió, la sesión vive y no hay nada que preguntar. Sin respuesta clara
+         no se caduca: ver `ebSessionVerdict`. */
+      if (auth401 && !anyAcctOk && !anyExpired) {
+        let sessionId: string | null = null;
+        try { sessionId = await decryptSessionId(link.session_id || null); } catch (_) { /* sin clave: como sin id */ }
+        const verdict = await ebSessionVerdict(jwt, sessionId, ebApi, Math.min(8000, deadline - 5000 - Date.now()));
+        authSession = verdict.state;
+        if (verdict.ended) { anyExpired = true; auth401 = null; }
+      }
+      // Solo una sesión terminada caduca el permiso; el resto conserva el enlace activo.
       /* last_sync es del ENLACE y dice hasta dónde está leído en TODAS sus cuentas. Sin tramo
          pendiente sube a «ahora» en cuanto todas respondieron. Con una cuenta caída o un
          error a media paginación no sube (ese trozo quedaría fuera de la próxima petición),
@@ -369,6 +403,7 @@ Deno.serve(withCors(async (req: Request) => {
       };
       out.push(entry);
       reads.push({ link, linkKey, plan, used, counted, entry, primary, accounts: acctOut, asked: plan.windowStart,
+        auth401: anyExpired ? null : auth401, authSession,
         // El tramo solo se empieza con lo reciente ENTERO en todas las cuentas: gastar
         // llamadas en una mientras otra no avanza no movería el cursor.
         ready: wantOld && demandReadComplete(acctOut) });
@@ -461,6 +496,8 @@ Deno.serve(withCors(async (req: Request) => {
       const readStatus = readPartial ? (readCount ? "partial" : "error") : (readCount ? "ok" : "empty");
       const pages = Object.values(r.used as Record<string, number>).reduce((n, x) => n + x, 0);
       await logObDemandResult(admin, user.id, r.link.aspsp_name, r.asked, readStatus, accts.length, readCount, pages, readTruncated, r.plan.gapBeyondCap, !!r.entry.gapPending);
+      // Aquí, con todos los bancos ya leídos: apuntarlo en el bucle de cuentas retrasaba las siguientes.
+      if (r.auth401) await logObAuthFailure(admin, user.id, r.link.aspsp_name, r.auth401, r.authSession);
     }
 
     // Enlaces caducados/rotos: van en la respuesta SIN llamar a Enable Banking (fallaría igual).

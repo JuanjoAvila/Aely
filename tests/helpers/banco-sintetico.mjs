@@ -173,10 +173,10 @@ export async function llama(src, links, bank, body, fail, opts) {
     if (fail && fail(call)) throw new Error("EB 429");
     return bank.reply(uid, u.searchParams);
   };
-  const names = ["Deno", "createClient", "ebApi", "ebConfig", "jsonResp", "makeJWT", "mapTransaction", "withCors", "fetchBankTransactions", "Date"];
+  const names = ["Deno", "createClient", "ebApi", "ebConfig", "jsonResp", "makeJWT", "mapTransaction", "withCors", "fetchBankTransactions", "Date", "ebFailure", "ebSessionVerdict", "decryptSessionId"];
   new Function(...names, src)(
     deno((f) => { handler = f; }), () => baseDatos(rows, opts), api, () => ({}),
-    jsonResp, async () => "jwt", E.mapTransaction, (f) => f, E.fetchBankTransactions, FakeDate
+    jsonResp, async () => "jwt", E.mapTransaction, (f) => f, E.fetchBankTransactions, FakeDate, E.ebFailure, E.ebSessionVerdict, async (x) => x
   );
   const res = await handler(new Request("https://app.invalid", { method: "POST", body: JSON.stringify(body) }));
   assert.equal(res.status, 200);
