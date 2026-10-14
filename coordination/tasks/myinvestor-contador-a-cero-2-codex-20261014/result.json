@@ -1,0 +1,110 @@
+{
+  "status": "done",
+  "summary": "Candidato PR231: contador a cero al reconectar o leer bien, intentos manuales explícitos y guardas de versión; integración y aceptación pendientes",
+  "productSHA": "1f2b36eec71f70b41cf225f1d9292c0979ca4d56",
+  "baseSHA": "b3edefb4fd561fc43e265a7796145a58d1976295",
+  "pullRequest": 231,
+  "productReady": false,
+  "tests": [
+    {
+      "command": "deno test --cached-only --allow-read=supabase/functions supabase/functions/_shared/myinvestor-counter.test.ts (baseline antes de producto)",
+      "exitCode": 1,
+      "result": "2 PASS, 4 FAIL: login y tokens móvil 2->2, lectura buena 2->2, apertura automática caduca; keepalive 2->2 PASS"
+    },
+    {
+      "command": "deno test --cached-only --allow-read=supabase/functions supabase/functions/_shared/myinvestor-counter.test.ts (final sobre beta127)",
+      "exitCode": 0,
+      "result": "17 PASS, 0 FAIL; reconexión y lectura buena 2->0, keepalive 2->2; carreras y errores de acuse"
+    },
+    {
+      "command": "mutaciones propias Deno, una por vez, con restauración SHA256",
+      "exitCode": 0,
+      "result": "8/8 KILLED; quitar reset móvil/login/lectura, intención manual, guardas de contador en caducidad/reset, guarda de conexión en refresco y recifrado"
+    },
+    {
+      "command": "node tests/myinvestor-user-initiated.test.mjs",
+      "exitCode": 0,
+      "result": "12 contratos: cloud y runBrokerSync reales, llamadas manual/auto de la hoja"
+    },
+    {
+      "command": "node tests/myinvestor-sync-outcomes.test.mjs con esbuild existente en lectura",
+      "exitCode": 0,
+      "result": "18 PASS; doble de BD ampliado para versiones y fila de acuse"
+    },
+    {
+      "command": "node tests/myinvestor-keepalive.test.mjs con esbuild existente en lectura",
+      "exitCode": 0,
+      "result": "13 PASS; keepalive fuente intacta"
+    },
+    {
+      "command": "node tests/broker-sync-outcomes.test.mjs",
+      "exitCode": 0,
+      "result": "15 PASS"
+    },
+    {
+      "command": "node scripts/build-app.mjs; node scripts/check-syntax.mjs (ejecutados por separado)",
+      "exitCode": 0,
+      "result": "build PASS y siete bloques HTML revisados; artefactos generados propios restaurados"
+    },
+    {
+      "command": "node tests/security.test.mjs; node tests/relevant-tests.test.mjs; node tests/i18n-keys.test.mjs (por separado)",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/docs-frescura.test.mjs",
+      "exitCode": 1,
+      "result": "una comprobación falla: ocho paths después del ancla58482e4 sin nueva VERSION; no se cambia el gate"
+    },
+    {
+      "command": "node tests/presupuesto-rendimiento.test.mjs",
+      "exitCode": 0,
+      "result": "1356/1357KiB minificados,373/373KiB gzip,3/3 cargas; redondeados; topes intactos"
+    },
+    {
+      "command": "gh workflow run test.yml --repo JuanjoAvila/Aely --ref codex/myinvestor-contador2-20261014-16e07172",
+      "exitCode": 0,
+      "result": "run38536504332 sobre HEAD exacto1f2b36ee"
+    },
+    {
+      "command": "CI test.yml run38536504332",
+      "exitCode": 1,
+      "result": "terminal FAILURE; beta-sources82PASS/1FAIL Catálogo127 y docs-frescura1FAIL ocho paths; diez ficheros Deno PASS incluido contador, MyInvestor Node PASS; E2E/perf de navegador NO ejecutados por gates; privacidad separada omitida"
+    }
+  ],
+  "mutations": [
+    "reset-mobile: EXIT1,1FAIL",
+    "reset-login: EXIT1,1FAIL",
+    "reset-successful-read: EXIT1,2FAIL",
+    "manual-intention: EXIT1,1FAIL",
+    "expiry-counter-guard: EXIT1,1FAIL",
+    "reset-counter-guard: EXIT1,1FAIL",
+    "refresh-connection-guard: EXIT1,1FAIL",
+    "legacy-encryption-guard: EXIT1,1FAIL"
+  ],
+  "migration": "0026_myinvestor_access_counter.sql candidata idempotente: dos columnas UUID, grants sólo de columna a service_role, sin aplicar; SQL/advisors no ejecutados. CLI no disponible: preparada con numeración real sin instalar herramientas.",
+  "deploymentOrderProposed": [
+    "0026_myinvestor_access_counter.sql tras revisión SQL del coordinador",
+    "myinvestor-connect",
+    "myinvestor-sync",
+    "cliente beta con userInitiated explícito"
+  ],
+  "mobileTestSteps": [
+    "Tras nueva beta y Edge integradas, reconectar MyInvestor y actualizar para comprobar las posiciones",
+    "Cerrar/abrir y volver al primer plano: las aperturas por sí solas no deben disparar el aviso",
+    "Después de una lectura buena, el siguiente fallo manual comienza una serie nueva; carreras y tres fallos se simulan con mocks, sin provocar fallos de credenciales reales"
+  ],
+  "limitations": [
+    "Candidato sin revisión Claude, integración, despliegue, beta servida ni aceptación bancaria/móvil real",
+    "E2E y perf no ejecutados en CI por gates; no navegador local ni runner adquirido",
+    "VERSION/catálogo/topes/aserciones de integración intactos; se declaran tres huellas web extra observadas en Catálogo127: bancos-sin-hueco, inc-0310-broker-resultados, inc-0810-metas-editar-regla",
+    "Buckets previos quedan inertes hasta la limpieza manual existente; rollback al sync anterior recupera su contador antiguo",
+    "Colisiones para integración serie: cloud00, llamadasMI06 y llamadaMI11, runner de tests y tres docs; en11 sólo argumentoMyInvestor, sin tocar TR/finanzas/efectos/render",
+    "Sin instalaciones/deps nuevas/junctions/WT borrados; claims/results anteriores y WIP ajeno preservados"
+  ],
+  "schema": 1,
+  "taskId": "myinvestor-contador-a-cero-2-codex-20261014",
+  "actor": "codex",
+  "sessionId": "codex-local-20261014-myi2-16e07172",
+  "createdAt": "2026-10-14T10:31:39.540Z",
+  "released": true
+}
