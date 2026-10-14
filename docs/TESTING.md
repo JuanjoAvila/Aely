@@ -1,5 +1,13 @@
 Promoción117: conserva los contratos históricos de catálogo117/Retiro117 en c5f62d66 y añade un guardián de runtime y nota única más historial de main (227 entradas, todas con tandas vacías). revisar-beta cubre es/en/ca: entrega web y nativa con guiones publicados, Novedades reales sin109/112 incluso al desplegar todo el historial y decisiones intactas. Cinco identidades auth se asertan en vivo; sólo metas-editar-regla conserva el contrato selectivo histórico. prod117-edge-compat ejecuta fuentes cotejadas con ingestv50/pricesv13 y consumidores actuales sin red. [Acta y límites](briefs/prod-completa-117.md).
 
+## Inicio: «más/menos que el mes pasado», hoy frente al mismo día
+
+Decisión del dueño (14/10): la frase compara los dos extremos de la gráfica, hoy frente al mismo día de hace 1/3/6/12 meses (el 31 cae en el último día de un mes más corto, 29/2 incluido) y «Todo» frente al primer punto. `tests/inicio-mismo-dia` (en `run-tests`) lo fija con una serie sintética que sube dentro del mes: extremos exactos al céntimo, mes de 31 días, febrero normal y bisiesto, día de Madrid frente a UTC a las 23:30 y 00:30 (verano e invierno), mínimo de 45 días de serie y periodo que no cabe sin frase; cuatro mutantes (volver a los mínimos de 45 días, primer punto siempre, 30 días fijos, sin recorte a fin de mes). `tests/inicio-v42` cambia el barrido de un año: con la nómina fija, dos nóminas o paga extra el ahorrador nunca sale en rojo ni el que se come 500 €/mes en verde; con la nómina bailando, los días en que un extremo ya cobró y el otro no quedan acotados (23–33: ≤25 en 3M/6M y ≤32 en 1M; 22–26: ≤8 y ≤12). `e2e/inicio-grafica-feedback` comprueba la cifra exacta (1.500 € más / 900 € menos el 13/10; 4.440 / 2.920 en 3M) y la fila «Comparación» de la hoja.
+
+## Inicio: dinero en tránsito a un bróker e intereses de la deuda
+
+Dos inflados de la gráfica medidos con la cartera real (revisión 14/10). `tests/inicio-transito-intereses` (en `run-tests`), con datos sintéticos: (a) una salida a un bróker enlazada cuenta como inversión desde que sale del banco hasta la primera foto que la recoge en diez días. Con la pista de siempre (`investmentId`, destino o nombre del bróker) la foto tiene que subir la mitad de lo aportado; con la aportación periódica (`state.aportaciones`: mismo bróker e importe, concepto de transferencia a nombre del titular —«yo mismo» o dos palabras de `settings.profile.fullName`— y bróker SIN cuenta propia en la app) basta una cuarta parte, para que llegue aunque la bolsa caiga ese día. Mientras viaja (menos de diez días) cuenta hasta ayer y hoy manda Cartera; pasados diez días sin foto vuelve a ser salida. Plano con foto diaria, semanal y del mismo día, «traspaso» y «otros»; con caída de bolsa el mes dice −300; el alquiler al casero del mismo importe es gasto; un bróker con cuenta manual cuyo histórico empieza después de la salida no se cuenta dos veces; sin enlace sigue neutro (el vaivén de la bolsa «recogía» un seguro de 247 € o un cambio de divisa). (b) `netWorthDebtPolicy` deshace cada mes «saldo × (1 + tipo/12) − cuota» en hipotecas y préstamos sin plazo con `apr` (también escrito con coma); sin tipo, la cuota entera es capital; un tipo cuyos intereses de un mes igualan o superan la cuota (un 105 por 1,05) se ignora; la fila «Deudas» de la «i» dice las dos cosas; tipo 0 y `amort` propio no cambian. Trece mutantes. La tarjeta del mes, Gastos, categorías y saldos de deuda se compararon antes/después con la cartera real: idénticos. Los e2e de Inicio esperan la fila de deudas nueva (la cartera heredada tiene hipoteca y préstamo sin tipo).
+
 ## Inicio: la tarjeta del mes, más limpia · candidata4.26.126
 
 Integración (13/10), encima de la beta 4.26.125 (`6342459b`): entra `claude/inicio-tarjeta-ciclo-limpia` (`de96913d`). `beta-sources` añade `Catálogo126` (nota 126 literal de un punto; la tanda nueva `inicio-tarjeta-ciclo-limpia` con dos pasos cotejados contra `01-i18n.js`, sin el paso «toca la tarjeta» porque la tarjeta abre el presupuesto y no Gastos; un descriptor nuevo al final, solo web; lista cerrada de huellas que se mueven, todas por la web; cinco mutantes de la tarjeta y su CSS que reabren la tanda) y `Retiro126` (`inicio-patrimonio-flujos`, aprobada en el móvil sobre la 4.26.125.1 el 13/10 a las 17:00, 5 ok / 0 fallos, leído con `errores.mjs --kind=beta`, sale del panel con `tandas:[]`; el código del veredicto es el de la 125). `Catálogo125` y `Retiro125` pasan a leerse de `6342459b`. Los e2e de Inicio, presupuesto, pulido y smoke cambian al contrato nuevo (sin «Vas justito» ni «Te quedan» visibles) y `inicio-v42` mide el centrado del bloque contra el anillo.
@@ -403,6 +411,18 @@ de recibos. Teclea cadenas completas con `pressSequentially` para impedir que un
 robar el foco al título. El spec está en `scripts/relevant-tests.mjs`; `plan-gestionar` conserva el
 flujo histórico de alta/edición y ambos se ejecutan al tocar Plan.
 
+Descarga incompleta (candidato13/10): `tests/bank-download-incomplete.test.mjs`, registrado en
+runner y `STEPS_SUPABASE`, ejecuta lector, handler y updater real de App. Compara el updater con
+el padre123: ambas lecturas de `bankTx` conservan el extracto; falla sin el adaptador mínimo.
+Comprueba motivos,100 filas sin continuación, cursor/acuse ante corte, registro saneado incluso
+con cero páginas y no resurrección de lápidas/ordinales/vínculos de gemelos. El handler+updater
+también exige guardar filas sin id del prefijo antiguo completo antes de su acuse aunque falle
+el siguiente trozo; repetirlo conserva el máximo de iguales, sin sumar la caché. El Deno compartido
+`enablebanking.test.ts` amplía límites, repetición,100 filas, fallo del proveedor y timeout.
+`e2e/bancos-descarga-incompleta.spec.mjs` está en `E2E_MAP` de08: abre el sync manual y comprueba
+el aviso DOM y la conservación local en es/en/ca. Su registro no acredita una ejecución:
+la entrega documenta por separado si la CI llegó a Chromium.
+
 Lectura bancaria 4.25.4: `tests/bank-sync-paging.test.mjs` ejecuta el handler real con BD y proveedor
 simulados (sin consultar bancos): páginas vacías, fallback de periodo, fallo parcial, cursor cíclico,
 cuentas inactivas, aislamiento, timeout y topes. Registrado en `run-tests.mjs` y `STEPS_SUPABASE`;
@@ -432,6 +452,18 @@ volcar→acusar ejecutando el efecto real, y el móvil sin cuota (el histórico 
 El banco, la BD con filtros de verdad y los móviles sintéticos de ambos viven en
 `tests/helpers/banco-sintetico.mjs`, que ejecuta los handlers en modo estricto, como Deno
 (`bank-sync-progreso` y `bank-sync-paging` tienen su propio arnés, no estricto).
+Desconexión/carrera13/10: `tests/bank-revoke-callback-race.test.mjs` está en `steps` y
+`STEPS_SUPABASE`. Ejecuta los handlers reales y cifrado AES-GCM real con DB/transporte
+sintéticos: ids cifrados y legacy, URL, aislamiento del borrado, diagnóstico cerrado, fallo
+de clave/registro, callback intercalado, sesión/emisión cambiadas y columnas null.
+`supabase/functions/bank-disconnect/lifecycle.test.ts`, registrado en `denoEnLista`, importa
+los tres handlers y `supabase-js` reales; intercepta toda petición y reproduce REST estricto,
+incluido que `EQ NULL` no coincide con una columna null. Deno mantiene tipos y sanitizadores.
+Ambos comparan snapshots separados de la fila viva: compartir la referencia ocultaría la carrera.
+Las mutaciones de ambos filtros y de NULL, descifrado, URL y registro deben dar rojo.
+`logs-privacidad` incluye el destino nuevo y prueba errores hostiles de descifrado/proveedor;
+los dobles de paginado/progreso incorporan `IS NULL` aplicando el predicado, no saltándolo.
+
 `supabase/functions/bank-sync/demand-window.test.ts` (Deno)
 cubre el plan de fechas, el suelo, la validación del acuse y la clave del enlace. En cliente, `tests/ob-hueco-sync.test.mjs` y `tests/ob-hueco-recuperado.test.mjs`
 fijan el suelo por banco y las reglas de dinero del tramo (no compra, no duplica fijos, repetido con
@@ -1008,6 +1040,8 @@ Integración88 sobre039d incorpora motor movilidad45, ingest-handler y DOM9 es/e
 
 Brókers89: broker-sync-outcomes.test.mjs, registrado en run-tests, ejecuta runBrokerSync real con transportes ficticios: proveedor único, ambos, fallos parciales/estado/caducidad, throttle, ocupación y ausencia de enlaces. sync-resumen.spec.mjs abre Cartera y el resumen real en es/en/ca; conserva el caso bancario mixto y comprueba identidad de cada fila y ausencia de sync TR al abrir. No prueba cuentas reales.
 
+Falsa caducidad (13/10): `tests/myinvestor-sync-outcomes.test.mjs` ejecuta el handler real de `myinvestor-sync` con MyInvestor y BD sintéticos y fija qué se escribe en `myinvestor_links`: solo el refresco rechazado (400/401) o la falta de token de refresco dejan `expired`; 403/429/5xx, 200 sin token y red caída responden `softFail` sin tocar el enlace. También fija el 401 que persiste tras un refresco aceptado (dos avisos y a la tercera caduca, con el limitador sintético), los tokens rotados que no se guardan, el rechazo por carrera con el keepalive y el 401 en el detalle de una cuenta. `tests/myinvestor-keepalive.test.mjs` ejecuta el handler real del cron con una BD que filtra de verdad: guarda lo renovado, caduca solo con 400/401 y no pisa un refresco que el sync acaba de rotar. La regla vive en `_shared/myinvestor.ts` y la cubre `supabase/functions/_shared/myinvestor.test.ts` (Deno). En Open Banking, `bank-sync-paging` y `_shared/enablebanking.test.ts` (Deno) fijan que `EXPIRED_SESSION`, `CLOSED_SESSION` y `REVOKED_SESSION` caducan el banco con cualquier HTTP, y que un 401 sin código de cierre pregunta una vez por la sesión: caduca si no está `AUTHORIZED`, y si vive o no hay respuesta clara conserva el enlace y deja un `app_events` con códigos de lista cerrada. Respuestas sintéticas: nada se ha probado contra los proveedores.
+
 Gastos90: gastos-periodo-categorias.spec.mjs conserva el mapa existente y comprueba ausencia de presupuesto/restante/aviso y ancho completo en Mes pasado/Rango/3meses/Todo, es/en/ca, y regreso al límite/progreso de mes/ciclo. Fixtures sintéticos. El «DOM pendiente» de la candidata quedó resuelto antes de integrar (ver el corte siguiente).
 
 Corte de resultados 4/10 (cada ejecución acredita su SHA y nada más): **Brókers89** — CI de la fuente [37149680919](https://github.com/JuanjoAvila/Aely/actions/runs/37149680919) sin flaky (746 funcionales, 1 captura opcional omitida, 7 de rendimiento, 4 archivos Deno); su publicación [37154017094](https://github.com/JuanjoAvila/Aely/actions/runs/37154017094) pasó con 745 y **1 flaky** recuperado al reintento, y repetir después el test original en verde no borra ese flaky. **Gastos90** — CI de la fuente [37151630719](https://github.com/JuanjoAvila/Aely/actions/runs/37151630719) con 743 y **3 flaky** recuperados (los tres originales repetidos en verde, que tampoco los borra); su publicación [37158585994](https://github.com/JuanjoAvila/Aely/actions/runs/37158585994) sin flaky: 746 funcionales, 1 omitida, 7 de rendimiento, 4 archivos Deno. **PR117** (guardia `i18n-categorias`) — CI [37164666468](https://github.com/JuanjoAvila/Aely/actions/runs/37164666468) sin flaky, con la misma composición, y su publicación [37168006229](https://github.com/JuanjoAvila/Aely/actions/runs/37168006229) igual: 746 funcionales, 1 omitida, 7 de rendimiento y 4 archivos Deno, sin flaky; sirve la beta 4.26.90.2. Límites reales en local: la suite Node sale con código 1 solo por `memoria-espejo`, y Deno no está instalado, así que los tests Deno los acredita únicamente la CI. Ninguna de estas ejecuciones es una aceptación en el móvil.
@@ -1072,3 +1106,20 @@ reproducción del lag ni mejora de rendimiento. La fuente183 tiene CI37810907496
 `e2e/cartera-bienes-completo.spec.mjs` protege alta vacía, validación, edición, borrado confirmado/cancelado, cero, recarga y conservación de los demás datos. `e2e/cartera-bienes-toque.spec.mjs` comprueba abrir y cancelar por toque/teclado en es/en/ca y letra normal/grande. Ambos están en E2E_MAP para07 y14. `e2e/inicio-grafica-significado.spec.mjs`, registrado para03, protege el dibujo original, moneda, histórico y total desconocido. Son datos sintéticos; no sustituyen la aceptación móvil. Suite completa y CI pendientes de ejecución sobre el SHA del PR.
 
 Inicio PR204, revisión119: inicio-v42 prueba manual real, deuda/intereses, bienes y aportaciones, unión400/30, nube acotada y nueve mutantes monetarios. La segunda revisión añade alta del formulario frente a montaje/pull, bienes legados constantes, banco→manual con escalones, deuda sin plazo y callback tardío sin sesión. Los e2e ya registrados protegen scroll vertical, cobertura por cuenta, mes natural/último día y ancho de Inversiones. La focal nueva de Inicio es serial; Claude asume funcional completa y rendimiento limpio en integración. Se conservan los rojos y A/B anteriores. [Ronda anterior](briefs/inicio-revision-nogo-20261012.md) · [segunda revisión](briefs/inicio-ronda3-bienes-20261012.md).
+
+Revisión B PR226: lifecycle.test.ts comparte SDK real y REST estricto con carreras ante
+connect/callback: sin cuentas, acuse, ancla null y ambos cursores legacy. Prueba usuario ajeno
+primero, logger exacto, DELETE concurrente y timeout real8s; todas las salidas son simuladas.
+Node cubre además cambios independientes de sesión/emisión en DELETE. No se consulta el backend.
+
+### Revisión PR223 y focal remota manual
+
+tests/helpers/bank-download-fixture.mjs comparte el handler, el updater y sus respuestas
+sintéticas con Node y e2e. El spec de descarga incompleta tiene24 casos, también límites con
+acuse sin id entre pulsaciones. test.yml conserva la suite completa y agrega focal_spec opcional
+(ruta e2e/*.spec.mjs validada): job focal independiente,1worker/0retries, JSON como artefacto.
+Su pase no convierte un rojo de la suite completa en verde ni acredita móvil/despliegue.
+
+Integración 4.26.127 (14/10): `tests/beta-sources.test.mjs` gana `Catálogo127`, que lee el catálogo de la producción 4.26.126 (`33d39cb8`) como base inmutable y fija en lista cerrada el descriptor nuevo `bancos-reconexion-revoca` (web y seis superficies Edge), las seis huellas que se mueven y por qué, y nueve mutantes (tres de cliente y seis de servidor) que reabren la tanda. `Promoción126` pasa a leer `33d39cb8` en vez del árbol vivo. Los hashes del registro de `auth-disposal` y `auth-disposal-fit` se renuevan. Las pruebas de las tres ramas (`myinvestor-sync-outcomes`, `myinvestor-keepalive`, `bank-revoke-callback-race`, `bank-download-incomplete` y los Deno de `enablebanking`, `myinvestor` y `bank-disconnect/lifecycle`) ya estaban registradas por sus ramas.
+
+Integración 4.26.128 (14/10): `tests/beta-sources.test.mjs` gana `Catálogo128`, que lee el catálogo de la beta 127 publicada (`b3edefb4`) como base y fija el descriptor nuevo `inicio-mes-pasado-mismo-dia` (el mismo alcance web que `inicio-patrimonio-flujos`, que gana `netWorthMonthsBack` y `NW_MONTHS`), las dos huellas que se mueven (`inicio-patrimonio-flujos` e `inicio-grafica-vuelve`, y por qué unidades), que el servidor y la tanda de bancos de la 127 no cambian, que el panel enseña dos tandas y diez mutantes que reabren la nueva. `Catálogo127` pasa a leer `b3edefb4` en vez del árbol vivo, `PERSIST91` cuenta 31 tandas con el bloque del guardado y los hashes del registro de `auth-disposal` y `auth-disposal-fit` se renuevan.

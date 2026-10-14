@@ -76,6 +76,17 @@ await t("bank-sync Edge: loggers no envían banco libre; conservan clase y recue
  await f.logObDemandResult(db,"synthetic-user",sensitive,"2026-09-01","ok",1,2,3,false,false,true);clean(rows);assert.equal(rows.length,3);assert.equal(rows[2].message,"OB sync (banco): ok");assert.equal(rows[2].email,null);
  assert.deepEqual(JSON.parse(rows[2].detail),{status:"ok",accounts:1,count:2,pages:3,truncated:false,dateFrom:"2026-09-01",capped:false,pending:true});
 });
+await t("bank-sync Edge: el 401 sin cierre de sesión solo apunta un código con forma de enum",async()=>{
+ // Cuarta inserción (13/10). El texto pegado al estado puede ser cualquier cosa, también un IBAN.
+ const rows=[];const src=read("supabase/functions/bank-sync/index.ts");const E=await import("data:text/javascript;base64,"+Buffer.from(transformSync(read("supabase/functions/_shared/enablebanking.ts"),{loader:"ts",format:"esm"}).code).toString("base64"));
+ const f=new Function("ebFailure",ts(src.slice(0,src.indexOf("Deno.serve")))+";return {logObAuthFailure};")(E.ebFailure);const db={from:()=>({insert:async x=>{rows.push(x);}})};
+ // `error` y `session` salen de listas cerradas: ni un texto con forma de enum pasa tal cual.
+ for(const marker of markers.concat(["JUAN_PEREZ_GARCIA"])){const v=await E.ebSessionVerdict("jwt","sid",async()=>({status:marker}));await f.logObAuthFailure(db,"synthetic-user",sensitive,new Error("EB 401 "+marker),v.state);}
+ await f.logObAuthFailure(db,"synthetic-user","Revolut",new Error("EB 401 UNAUTHORIZED_ACCESS"),"AUTHORIZED");clean(rows);assert.equal(rows.length,markers.length+2);
+ assert.ok(!JSON.stringify(rows).includes("JUAN_PEREZ"),"un nombre con forma de enum no es un código del proveedor");
+ assert.deepEqual(JSON.parse(rows[0].detail),{code:"eb_401",error:"OTRO",session:"OTRO"});assert.equal(rows[0].message,"OB sync (banco): 401 sin cierre de sesión");
+ assert.deepEqual(JSON.parse(rows.at(-1).detail),{code:"eb_401",error:"UNAUTHORIZED_ACCESS",session:"AUTHORIZED"});assert.equal(rows.at(-1).email,null);
+});
 await t("ingest Edge: code DB arbitrario y currency/source no salen a app_events",async()=>{
  const rows=[];const src=read("supabase/functions/ingest/index.ts");const f=new Function("Deno",ts(src.slice(src.indexOf("async function logIngestError")))+";return {logIngestError,logIngestSkip};")({env:{get:()=>null}});const db={from:()=>({insert:async x=>{rows.push(x);}})};
  await f.logIngestError(db,"synthetic-user","no se pudo guardar el gasto",{code:sensitive,source:"wallet"});await f.logIngestError(db,"synthetic-user","sin tipo de cambio para "+sensitive+": el gasto NO se ha apuntado",{currency:sensitive});await f.logIngestSkip(db,"synthetic-user","sin importe","wallet",12,2);clean(rows);assert.equal(rows.length,3);
@@ -97,8 +108,22 @@ await t("SDK Sentry instalado: sobre final capturado con transporte en memoria",
  S.init({...x.options(),dsn:"https://synthetic@telemetry.invalid/1",transport:()=>({send:async envelope=>{envelopes.push(envelope);return {};},flush:async()=>true})});
  S.setUser({email:markers[1],id:sensitive,segment:sensitive});S.getCurrentScope().setTransactionName(sensitive);S.setContext("bank",{note:sensitive});S.setExtra("note",sensitive);S.setTag("token",sensitive);S.addBreadcrumb({message:sensitive});S.captureException(error());await S.flush(2000);assert.equal(envelopes.length,1);clean(envelopes);const ev=envelopes[0][1].find(([header])=>header.type==="event")[1];assert.ok(ev.exception.values.length);assert.equal(ev.user,undefined);await S.close(2000);
 });
+await t("desconexión Edge: descifrado y proveedor hostiles no salen al registro ni respuesta",async()=>{
+ const E=await import("data:text/javascript;base64,"+Buffer.from(transformSync(read("supabase/functions/_shared/enablebanking.ts"),{loader:"ts",format:"esm"}).code).toString("base64"));
+ for(const phase of ["decrypt","revoke"]){
+  const rows=[];let handler;
+  const db={auth:{getUser:async()=>({data:{user:{id:"synthetic-user"}}})},from:name=>name==="app_events"?{insert:async x=>{rows.push(x);return {};}}:{select:()=>({eq(){return this;},maybeSingle:async()=>({data:{session_id:sensitive}})}),delete:()=>({eq(){return this;},is(){return this;},select(){return this;},then:ok=>Promise.resolve({data:[{id:"synthetic"}],error:null}).then(ok)})}};
+  new Function("Deno","createClient","ebApi","ebConfig","jsonResp","makeJWT","withCors","decryptSessionId","ebFailure",ts(read("supabase/functions/bank-disconnect/index.ts")))(
+   {env:{get:()=>"synthetic"},serve:f=>handler=f},()=>db,async()=>{throw error();},()=>({}),
+   (x,status=200)=>new Response(JSON.stringify(x),{status}),async()=>sensitive,f=>f,
+   async()=>{if(phase==="decrypt")throw error();return sensitive;},E.ebFailure);
+  const res=await handler(new Request("https://edge.invalid",{method:"POST",body:JSON.stringify({aspsp_name:sensitive})}));
+  assert.equal(res.status,200);clean([rows,await res.json()]);assert.equal(rows.length,1);
+  assert.deepEqual(Object.keys(JSON.parse(rows[0].detail)).sort(),["code","status","step"]);
+ }
+});
 await t("inventario de destinos completo: toda nueva ruta obliga a actualizar la matriz",()=>{
- const inventory={"src/modules/00-core.js":[4,2,0],"src/modules/01-i18n.js":[0,0,1],"src/modules/10-app-components.js":[0,0,2],"supabase/functions/bank-sync/index.ts":[3,0,0],"supabase/functions/bank-callback/index.ts":[1,0,1],"supabase/functions/ingest/index.ts":[2,0,0],"supabase/functions/_shared/ratelimit.ts":[0,0,2]};
+ const inventory={"src/modules/00-core.js":[4,2,0],"src/modules/01-i18n.js":[0,0,1],"src/modules/10-app-components.js":[0,0,2],"supabase/functions/bank-sync/index.ts":[4,0,0],"supabase/functions/bank-disconnect/index.ts":[1,0,0],"supabase/functions/bank-callback/index.ts":[1,0,1],"supabase/functions/ingest/index.ts":[2,0,0],"supabase/functions/_shared/ratelimit.ts":[0,0,2]};
  const found={};for(const dir of ["src/modules","supabase/functions"]){for(const file of fs.readdirSync(new URL("../"+dir,import.meta.url),{recursive:true})){if(!/\.(?:js|ts)$/.test(file)||file.endsWith(".test.ts"))continue;const path=dir+"/"+file.replaceAll("\\","/");const src=read(path);const counts=[(src.match(/\.from\(["']app_events["']\)/g)||[]).length,(src.match(/Sentry\.captureException\(/g)||[]).length,(src.match(/console\.(?:log|warn|error|info)\(/g)||[]).length];if(counts.some(Boolean))found[path]=counts;}}
  assert.deepEqual(found,inventory);
 });

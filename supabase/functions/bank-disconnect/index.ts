@@ -11,7 +11,8 @@
 // ============================================================
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { ebApi, ebConfig, jsonResp, makeJWT } from "../_shared/enablebanking.ts";
+import { ebApi, ebConfig, ebFailure, jsonResp, makeJWT } from "../_shared/enablebanking.ts";
+import { decryptSessionId } from "../_shared/token_store.ts";
 import { withCors } from "../_shared/cors.ts";
 
 Deno.serve(withCors(async (req: Request) => {
@@ -32,20 +33,53 @@ Deno.serve(withCors(async (req: Request) => {
     const { data: link } = await admin.from("bank_links").select("*")
       .eq("user_id", user.id).eq("aspsp_name", aspsp_name).maybeSingle();
 
-    // Best-effort: revoca la sesión en Enable Banking. Si ya caducó / falla, da igual:
-    // borramos la fila igualmente para que el usuario deje de verlo en "Mis bancos".
+    // Sin snapshot no se puede revocar ni borrar una conexión que aparezca después de leer.
+    if (!link) return jsonResp({ ok: true });
+    // Revocar la sesión leída es best-effort y acotado. El borrado local conserva la versión:
+    // si se reconecta durante la espera, esa autorización nueva debe seguir viva y visible.
     if (link && link.session_id) {
+      let step = "decrypt";
       try {
+        // En reposo está cifrado; mandarlo tal cual dejaba vivo el consentimiento aunque
+        // la fila local desapareciese. El helper conserva también los ids legacy.
+        const sessionId = await decryptSessionId(link.session_id);
+        if (!sessionId) throw new Error("session_id vacío");
+        step = "revoke";
         const { appId, pem } = ebConfig();
         const jwt = await makeJWT(appId, pem);
-        await ebApi(jwt, `/sessions/${link.session_id}`, { method: "DELETE" });
-      } catch (_e) { /* consentimiento ya caducado o no revocable: se ignora */ }
+        const controller = new AbortController();
+        let timer: ReturnType<typeof setTimeout> | undefined;
+        try {
+          // Abort no basta si el transporte no reacciona: el race limita también esa espera.
+          await Promise.race([
+            ebApi(jwt, "/sessions/" + encodeURIComponent(sessionId), { method: "DELETE", signal: controller.signal }),
+            new Promise<never>((_resolve, reject) => { timer = setTimeout(() => { reject(new Error("revocation_timeout")); controller.abort(); }, 8000); }),
+          ]);
+        } finally { clearTimeout(timer); controller.abort(); }
+      } catch (err) {
+        // Desconectar localmente sigue siendo posible, pero soporte necesita saber si no
+        // se revocó. Solo clases cerradas: nunca id, ciphertext, JWT ni texto del proveedor.
+        const failure = step === "decrypt" ? { status: 0, code: "DESCIFRADO" } : String((err as Error)?.message) === "revocation_timeout" ? { status: 0, code: "TIEMPO" } : ebFailure(err);
+        try {
+          await admin.from("app_events").insert({
+            user_id: user.id, email: null, kind: "error", message: "OB desconexión: revocación no completada",
+            detail: JSON.stringify({ step, status: failure.status, code: failure.code || "SIN_CODIGO" }),
+            app_version: "edge", platform: "server",
+          });
+        } catch (_) { /* el diagnóstico no debe impedir el borrado local */ }
+      }
     }
 
-    const { error } = await admin.from("bank_links").delete()
-      .eq("user_id", user.id).eq("aspsp_name", aspsp_name);
+    // Se borra solo la generación revocada. Borrar la nueva dejaría su consentimiento vivo
+    // pero oculto en la app; el conflicto permite repetir sobre la autorización vigente.
+    let deletion = admin.from("bank_links").delete()
+      .eq("user_id", user.id).eq("aspsp_name", aspsp_name).eq("id", link.id);
+    deletion = link.session_id == null ? deletion.is("session_id", null) : deletion.eq("session_id", link.session_id);
+    deletion = link.state_issued_at == null ? deletion.is("state_issued_at", null) : deletion.eq("state_issued_at", link.state_issued_at);
+    const { data: removed, error } = await deletion.select("id");
     if (error) return jsonResp({ ok: false, error: error.message }, 500);
 
+    if (!removed || !removed.length) return jsonResp({ ok: false, error: "enlace cambiado; vuelve a intentarlo" }, 409);
     return jsonResp({ ok: true });
   } catch (e) {
     return jsonResp({ ok: false, error: String((e as Error)?.message || e) }, 500);

@@ -1,5 +1,38 @@
 [
   {
+    "v": "4.26.128",
+    "d": "2026-10-14",
+    "t": {
+      "es": "Bancos más fiables y un Inicio que compara bien",
+      "en": "More reliable banks, and a Home that compares properly",
+      "ca": "Bancs més fiables i un Inici que compara bé"
+    },
+    "items": {
+      "es": [
+        "Los bancos se reconectan solos cuando pueden: un fallo pasajero del banco o de MyInvestor ya no hace que la app dé la conexión por caducada, y solo te pide reconectar cuando de verdad hace falta.",
+        "Si MyInvestor no consigue recuperar el acceso, o el banco entrega los movimientos a medias, la app te lo explica con claridad y conserva lo que ya tenías.",
+        "Al desconectar un banco, el permiso se retira de verdad en el banco, no solo en la app.",
+        "En Inicio, la frase bajo tu patrimonio compara hoy con el mismo día del mes pasado (o de hace 3 meses), igual que los dos extremos de la gráfica.",
+        "El dinero que mandas a tu bróker ya no desaparece de la gráfica mientras llega, y los intereses de la hipoteca ya no se cuentan como si rebajaran la deuda."
+      ],
+      "en": [
+        "Banks reconnect on their own when they can: a passing failure at the bank or at MyInvestor no longer makes the app treat the connection as expired, and it only asks you to reconnect when it is really needed.",
+        "If MyInvestor cannot get access back, or the bank hands over only part of the transactions, the app explains it clearly and keeps what you already had.",
+        "When you disconnect a bank, the permission is really withdrawn at the bank, not just in the app.",
+        "On Home, the line under your net worth compares today with the same day last month (or 3 months ago), just like the two ends of the chart.",
+        "Money you send to your broker no longer drops out of the chart while it arrives, and mortgage interest is no longer counted as if it paid the loan down."
+      ],
+      "ca": [
+        "Els bancs es reconnecten sols quan poden: un error passatger del banc o de MyInvestor ja no fa que l'app doni la connexió per caducada, i només et demana reconnectar quan de debò cal.",
+        "Si MyInvestor no aconsegueix recuperar l'accés, o el banc lliura els moviments a mitges, l'app t'ho explica amb claredat i conserva el que ja tenies.",
+        "En desconnectar un banc, el permís es retira de debò al banc, no només a l'app.",
+        "A Inici, la frase sota el teu patrimoni compara avui amb el mateix dia del mes passat (o de fa 3 mesos), igual que els dos extrems de la gràfica.",
+        "Els diners que envies al teu bròquer ja no desapareixen de la gràfica mentre arriben, i els interessos de la hipoteca ja no es compten com si rebaixessin el deute."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.26.126",
     "d": "2026-10-13",
     "t": {

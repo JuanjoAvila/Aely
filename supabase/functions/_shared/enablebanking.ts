@@ -85,6 +85,74 @@ export async function ebApi(jwt: string, path: string, init: { method?: string; 
   return data;
 }
 
+/* Qué dice un fallo de `ebApi` sobre el permiso del usuario. Un 401 NO basta: Enable Banking
+   lo devuelve también con errores de la aplicación (`AUTHORIZATION_NOT_PROVIDED`,
+   `UNAUTHORIZED_ACCESS`), y tratarlos como caducidad obligaba a reautorizar el banco por un
+   fallo que no era del consentimiento (queja del 12/10: «tengo que volver a identificarme casi
+   cada día»). Su FAQ pide decidir por el código de error y no por el HTTP:
+   https://enablebanking.com/docs/faq/#why-does-the-api-return-expired-session-when-the-session-has-valid-until-in-the-future
+   Los tres códigos son los que su referencia (`ErrorCode`) describe como sesión terminada:
+   caducada, cerrada por la aplicación o revocada por el usuario. En los tres la única salida
+   es una autorización nueva. Un 401 sin código, o con cualquier otro, NO decide nada por sí
+   solo: quien llama pregunta por la sesión con `ebSessionVerdict`. */
+const EB_SESSION_ENDED = ["EXPIRED_SESSION", "CLOSED_SESSION", "REVOKED_SESSION"];
+
+/* El enum `ErrorCode` entero de https://enablebanking.com/docs/api/reference/ (leído el 13/10).
+   Es la lista CERRADA de lo que puede salir a `app_events`: `error` es un campo libre de la
+   respuesta y «tiene forma de enum» no basta (un nombre en mayúsculas con guiones bajos
+   también la tiene). Lo que no esté aquí se apunta como `OTRO`. */
+const EB_ERROR_CODES = ["ACCESS_DENIED", "ACCOUNT_DOES_NOT_EXIST", "ALREADY_AUTHORIZED", "ASPSP_ACCOUNT_NOT_ACCESSIBLE",
+  "ASPSP_ERROR", "ASPSP_PAYMENT_NOT_ACCESSIBLE", "ASPSP_PSU_ACTION_REQUIRED", "ASPSP_RATE_LIMIT_EXCEEDED", "ASPSP_TIMEOUT",
+  "AUTHORIZATION_NOT_PROVIDED", "CLOSED_SESSION", "DATE_FROM_IN_FUTURE", "DATE_TO_WITHOUT_DATE_FROM",
+  "EXPIRED_AUTHORIZATION_CODE", "EXPIRED_SESSION", "INVALID_ACCOUNT_ID", "INVALID_HOST", "INVALID_PAYMENT",
+  "NO_ACCOUNTS_ADDED", "PAYMENT_LIMIT_EXCEEDED", "PAYMENT_NOT_AUTHORIZED", "PAYMENT_NOT_FINALIZED", "PAYMENT_NOT_FOUND",
+  "PAYMENT_SUBMISSION_NOT_DEFERRED", "PAYMENT_SUBMISSION_NOT_SUPPORTED", "PSU_HEADER_INVALID", "PSU_HEADER_NOT_PROVIDED",
+  "REDIRECT_URI_NOT_ALLOWED", "REVOKED_SESSION", "SESSION_DOES_NOT_EXIST", "TRANSACTION_DOES_NOT_EXIST",
+  "UNAUTHORIZED_ACCESS", "UNAUTHORIZED_IP", "UNTRUSTED_PAYMENT_PARTY", "WEBHOOK_URI_NOT_ALLOWED", "WRONG_ASPSP_PROVIDED",
+  "WRONG_AUTHORIZATION_CODE", "WRONG_CONTINUATION_KEY", "WRONG_CREDENTIALS_PROVIDED", "WRONG_DATE_INTERVAL",
+  "WRONG_REQUEST_PARAMETERS", "WRONG_SESSION_STATUS", "WRONG_TRANSACTIONS_PERIOD"];
+
+// `code`: "" si el proveedor no mandó ninguno, uno del enum, u `OTRO`. Sin distinguir mayúsculas.
+export function ebFailure(err: unknown): { status: number; code: string; sessionEnded: boolean } {
+  const m = String((err as Error)?.message || err || "").match(/\bEB\s+(\d{3})(?:\s+([A-Za-z0-9_.-]+))?/);
+  const raw = String((m && m[2]) || "").toUpperCase();
+  const code = !raw ? "" : (EB_ERROR_CODES.includes(raw) ? raw : "OTRO");
+  return { status: m ? Number(m[1]) : 0, code, sessionEnded: EB_SESSION_ENDED.includes(code) };
+}
+
+/* Un 401 que no trae código de sesión terminada puede ser igualmente una sesión muerta
+   (`SESSION_DOES_NOT_EXIST`, `WRONG_SESSION_STATUS`, un `error` ausente: el campo es opcional)
+   o un fallo de la aplicación con la sesión viva. Dejarlo en «error técnico» sin más dejaba
+   el banco activo para siempre y sin botón de reconectar (revisión del 13/10). Se le pregunta
+   al proveedor, que es lo que su FAQ recomienda: GET /sessions/{id} y se mira `status`.
+   - `ended: true`  → hay que autorizar otra vez. Solo `AUTHORIZED` es una sesión que sirve
+     para leer; los otros siete estados de `SessionStatus` no lo son.
+   - `ended: false` → la sesión vive: el 401 era otra cosa.
+   - `ended: null`  → no se pudo saber (sin id guardado, la consulta falló, estado que no
+     consta). No se caduca por una pregunta sin respuesta.
+   `state` es una clase cerrada para el diagnóstico, nunca texto del proveedor. */
+const EB_SESSION_STATUSES = ["AUTHORIZED", "CANCELLED", "CLOSED", "EXPIRED", "INVALID", "PENDING_AUTHORIZATION",
+  "RETURNED_FROM_BANK", "REVOKED"];
+
+export async function ebSessionVerdict(jwt: string, sessionId: string | null, api = ebApi, timeoutMs = 8000): Promise<{ ended: boolean | null; state: string }> {
+  if (!sessionId) return { ended: null, state: "SIN_ID" };
+  if (timeoutMs <= 0) return { ended: null, state: "SIN_RESPUESTA" };
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const session = await api(jwt, `/sessions/${encodeURIComponent(sessionId)}`, { signal: controller.signal });
+    const status = String(session?.status || "").toUpperCase();
+    if (!EB_SESSION_STATUSES.includes(status)) return { ended: null, state: status ? "OTRO" : "SIN_ESTADO" };
+    return { ended: status !== "AUTHORIZED", state: status };
+  } catch (err) {
+    const fail = ebFailure(err);
+    if (fail.sessionEnded || fail.code === "SESSION_DOES_NOT_EXIST") return { ended: true, state: fail.code };
+    return { ended: null, state: fail.status ? "EB_" + fail.status : "SIN_RESPUESTA" };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 // Una página vacía NO significa que no haya movimientos: el proveedor puede seguir buscando
 // y devolver continuation_key. Mismo contrato para sync diario e histórico (15/9/2026).
 // https://enablebanking.com/docs/faq/
@@ -122,20 +190,25 @@ export async function fetchBankTransactions(jwt: string, uid: string, dateFrom: 
           continue;
         }
         if (!pages) throw err;
-        return {transactions, truncated:true, transactionError:controller.signal.aborted ? "timeout" : "transactions_unavailable"};
+        const invalid = /transactions_invalid/.test(String(err));
+        const status = String(err).match(/\bEB\s+(400|401|403|404|408|422|429|500|502|503|504)\b/i);
+        return {transactions, truncated:true, transactionError:controller.signal.aborted ? "timeout" : "transactions_unavailable",
+          readReason:controller.signal.aborted ? "time_limit" : invalid ? "invalid_response" : "provider_error",
+          failureCode:controller.signal.aborted ? "timeout" : invalid ? "invalid_response" : status ? "eb_" + status[1] : "unavailable"};
       }
       pages++;
       const rows = page.transactions;
       const room = 2000 - transactions.length;
       transactions.push(...rows.slice(0, room));
       continuation = page.continuation_key || null;
-      if (rows.length > room) return {transactions, truncated:true};
+      if (rows.length > room) return {transactions, truncated:true, readReason:"row_limit"};
       if (!continuation) return {transactions, truncated:false};
       // Un cursor cíclico no autoriza a dar por completo el extracto ni a repetir doce páginas.
-      if (visited.has(continuation)) return {transactions, truncated:true};
+      if (visited.has(continuation)) return {transactions, truncated:true, transactionError:"continuation_repeated", readReason:"repeated_cursor"};
       visited.add(continuation);
     }
-    return {transactions, truncated:true};
+    // El mismo truncated no decía si cortó el banco o si agotamos nuestro propio presupuesto.
+    return {transactions, truncated:true, readReason:transactions.length >= 2000 ? "row_limit" : "page_limit"};
   } finally {
     clearTimeout(timer);
   }

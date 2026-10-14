@@ -116,6 +116,7 @@ export function baseDatos(rows, { user = "synthetic", failUpdate = null, trasLee
       in(col, vs) { filters.push((r) => vs.includes(r[col])); return q; },
       lt(col, v) { filters.push((r) => r[col] != null && Date.parse(r[col]) < Date.parse(v)); return q; },
       is(col, v) { filters.push((r) => (r[col] == null ? null : r[col]) === v); return q; },
+      select() { return q; },
       maybeSingle() { return q.then((res) => ({ data: (res.data || [])[0] || null, error: null })); },
       then(ok, ko) {
         return Promise.resolve().then(() => apply(rows.filter((r) => filters.every((f) => f(r))))).then(ok, ko);
@@ -134,7 +135,7 @@ export function baseDatos(rows, { user = "synthetic", failUpdate = null, trasLee
       hit.forEach((r) => Object.assign(r, patch));
       return { error: null };
     }),
-    delete: () => consulta((hit) => { hit.forEach((r) => rows.splice(rows.indexOf(r), 1)); return { error: null }; }),
+    delete: () => consulta((hit) => { const data=hit.map(r=>({id:r.id}));hit.forEach((r) => rows.splice(rows.indexOf(r), 1)); return { data, error: null }; }),
     upsert: async (row, { onConflict }) => {
       const cols = onConflict.split(",");
       const cur = rows.find((r) => cols.every((c) => r[c] === row[c]));
@@ -173,10 +174,10 @@ export async function llama(src, links, bank, body, fail, opts) {
     if (fail && fail(call)) throw new Error("EB 429");
     return bank.reply(uid, u.searchParams);
   };
-  const names = ["Deno", "createClient", "ebApi", "ebConfig", "jsonResp", "makeJWT", "mapTransaction", "withCors", "fetchBankTransactions", "Date"];
+  const names = ["Deno", "createClient", "ebApi", "ebConfig", "jsonResp", "makeJWT", "mapTransaction", "withCors", "fetchBankTransactions", "Date", "ebFailure", "ebSessionVerdict", "decryptSessionId"];
   new Function(...names, src)(
     deno((f) => { handler = f; }), () => baseDatos(rows, opts), api, () => ({}),
-    jsonResp, async () => "jwt", E.mapTransaction, (f) => f, E.fetchBankTransactions, FakeDate
+    jsonResp, async () => "jwt", E.mapTransaction, (f) => f, E.fetchBankTransactions, FakeDate, E.ebFailure, E.ebSessionVerdict, async (x) => x
   );
   const res = await handler(new Request("https://app.invalid", { method: "POST", body: JSON.stringify(body) }));
   assert.equal(res.status, 200);
@@ -255,7 +256,7 @@ export const K1 = "L1.0";
 // funciones reales de 00-core. Si alguna deja de mandar o de guardar, estos tests lo ven; no
 // hay una copia aquí que pueda quedarse atrás.
 const mBody = main.match(/cloud\.bankSync\((\{recoverGaps:true[^;]*?\})\), pDb\]/);
-const mImport = main.match(/const txs=flattenBankTx\(links\);[\s\S]*?const add=importObExpenses\([^;]*\);/);
+const mImport = main.match(/const txs=flattenBankTx\(links(?:, prev\.bankTx)?\);[\s\S]*?const add=importObExpenses\([^;]*\);/);
 const mAck = main.match(/const at=Date\.now\(\), ack=\{\};\s*links\.forEach\(function\(l\)\{[^}]*\}\);/);
 // El efecto que guarda el acuse cuando el estado con sus filas ya está comprometido.
 const mEfecto = main.match(/useEffect\(function\(\)\{\s*(const p=obAckPend\.current;[\s\S]*?)\},\[state\.lastBankSync\]\);/);

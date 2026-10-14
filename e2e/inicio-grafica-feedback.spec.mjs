@@ -83,9 +83,9 @@ for (const lang of ["es", "en", "ca"]) test("histórico desde junio: 1M y 3M, si
   await expect(sheet).toBeVisible();
   expect(await page.evaluate(() => [document.documentElement.scrollHeight, document.querySelector(".v42-cycle-section").getBoundingClientRect().top])).toEqual(antes);
   expect(await filas(page)).toEqual({
-    es: [["Cuentas", "movimientos reales desde " + fechaCorta("2026-06-15", "es")], ["Inversiones, bienes y cuentas manuales", "valor conocido mantenido"], ["Deudas", "según sus cuotas"], ["Comparación", "punto más bajo de cada 45 días"]],
-    en: [["Accounts", "real transactions from " + fechaCorta("2026-06-15", "en")], ["Investments, property and manual accounts", "known value kept"], ["Debts", "by their payment schedule"], ["Comparison", "lowest point of each 45 days"]],
-    ca: [["Comptes", "moviments reals des de " + fechaCorta("2026-06-15", "ca")], ["Inversions, béns i comptes manuals", "valor conegut mantingut"], ["Deutes", "segons les seves quotes"], ["Comparació", "punt més baix de cada 45 dies"]] }[lang]);
+    es: [["Cuentas", "movimientos reales desde " + fechaCorta("2026-06-15", "es")], ["Inversiones, bienes y cuentas manuales", "valor conocido mantenido"], ["Deudas", "según sus cuotas; las cuotas sin tipo de interés se cuentan enteras como capital"], ["Comparación", "frente al mismo día del mes pasado"]],
+    en: [["Accounts", "real transactions from " + fechaCorta("2026-06-15", "en")], ["Investments, property and manual accounts", "known value kept"], ["Debts", "by their payment schedule; payments with no interest rate count in full as capital"], ["Comparison", "against the same day last month"]],
+    ca: [["Comptes", "moviments reals des de " + fechaCorta("2026-06-15", "ca")], ["Inversions, béns i comptes manuals", "valor conegut mantingut"], ["Deutes", "segons les seves quotes; les quotes sense tipus d\'interès es compten senceres com a capital"], ["Comparació", "davant del mateix dia del mes passat"]] }[lang]);
   expect(await page.evaluate(() => document.activeElement && document.activeElement.closest('[data-sheet="net-info"]') != null)).toBe(true);
   // Ninguna fila se sale de la hoja ni se corta.
   expect(await sheet.evaluate((el) => [...el.querySelectorAll(".row")].every((r) => r.scrollWidth <= r.clientWidth + 1 && r.getBoundingClientRect().right <= el.getBoundingClientRect().right))).toBe(true);
@@ -96,16 +96,21 @@ for (const lang of ["es", "en", "ca"]) test("histórico desde junio: 1M y 3M, si
 });
 
 // Una siembra por test: dos `seedLoggedInDashboard` en la misma página se pisan (el primero gana).
-for (const [spend, verdict, tone, word] of [[30, "up", "mint", "más"], [110, "down", "coral", "menos"]]) test("rojo sólo si se come la nómina (" + spend + " €/día → " + verdict + "); la línea sigue el mismo veredicto", async ({ page }) => {
+// La cifra es hoy (13/10) frente al mismo día de hace un mes (13/9): una nómina y 30 días de
+// gasto; 3M, frente al 13/7: tres nóminas y 92 días. Los extremos que se ven en la gráfica.
+for (const [spend, verdict, tone, word, mes, tres] of [[30, "up", "mint", "más", "1.500", "4.440"], [110, "down", "coral", "menos", "900", "2.920"]]) test("rojo sólo si se come la nómina (" + spend + " €/día → " + verdict + "); la línea sigue el mismo veredicto", async ({ page }) => {
   const hero = await abrir(page, ciclo(spend));
   const delta = hero.getByTestId("inicio-net-delta");
   await expect(delta).toHaveAttribute("data-verdict", verdict);
-  await expect(delta).toHaveText(new RegExp("^[\\d.]+ € " + word + " que el mes pasado$"));
+  await expect(delta).toHaveText(mes + " € " + word + " que el mes pasado");
   expect(await delta.evaluate((el) => getComputedStyle(el).color)).toBe(await cssColor(page, tone));
   expect(await hero.locator(".v42-net-chart svg").evaluate((el) => getComputedStyle(el).color)).toBe(await cssColor(page, tone));
   // Con 3M compara con tres meses de calendario atrás y lo dice.
   await hero.locator(".v42-net-ranges button").nth(1).click();
-  await expect(delta).toHaveText(new RegExp("^[\\d.]+ € " + word + " que hace 3 meses$"));
+  await expect(delta).toHaveText(tres + " € " + word + " que hace 3 meses");
+  // La hoja dice con qué día se compara el periodo elegido.
+  await hero.locator(".v42-net-info").click();
+  expect((await filas(page)).at(-1)).toEqual(["Comparación", "frente al mismo día de hace 3 meses"]);
 });
 
 test("usuario nuevo: ni veredicto, ni periodos, ni líneas en la i", async ({ page }) => {

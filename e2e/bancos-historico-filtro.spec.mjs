@@ -158,7 +158,7 @@ test("CaixaBank fallido se explica y permite importar lo recibido de Sabadell", 
   const overlay=await abrirHistorico(page,{custom:true,
     bankLinks:[{aspsp_name:"CaixaBank",status:"active"},bankLinks[1]],
     links:[{aspsp:"CaixaBank",accounts:[{ok:false,error:"privado",transactions:[]}]},histLinks[1]]});
-  await expect(overlay.locator(".bank-read-warning")).toContainText("CaixaBank: no se han podido leer");
+  await expect(overlay.locator(".bank-read-warning")).toContainText("CaixaBank: el banco o la conexión no han dejado terminar la lectura");
   await expect(overlay.getByText("Super Sabadell")).toBeVisible();
   await expect(overlay.getByRole("button",{name:/Importar 1/})).toBeVisible();
   await expect(overlay).not.toContainText("privado");
@@ -263,6 +263,6 @@ test("histórico parcial conserva filas y mantiene el aviso aunque no haya candi
 test("fallo de la consulta no afirma que no existen movimientos", async ({page}) => {
   const overlay=await abrirHistorico(page,{custom:true,error:{message:"sin red"}});
   await expect(overlay.locator(".bank-read-warning")).toHaveCount(2);
-  await expect(overlay.locator(".bank-read-warning").first()).toContainText("no se han podido leer");
+  await expect(overlay.locator(".bank-read-warning").first()).toContainText("no han dejado terminar la lectura");
   await expect(overlay).not.toContainText("No hay movimientos nuevos");
 });
