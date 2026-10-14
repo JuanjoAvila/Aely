@@ -597,12 +597,12 @@ console.log("inicio-v42: comparación hoy frente al mismo día (ahorrador sin ro
 // Cada mutante ejecuta un oráculo monetario/temporal, no una búsqueda de texto en fuente.
 const html=fs.readFileSync(new URL("../public/index.html",import.meta.url),"utf8").replace(/\r\n/g,"\n");
 const mutantCases=[
-  ["céntimos","daily[day]=(daily[day]||0)-Math.round(e.amount*100)","daily[day]=(daily[day]||0)-Math.trunc(e.amount)*100",m=>assert.equal(m.netWorthSeries({...base,expenses:coverage.concat(entry("mut-cent","2026-09-02",1.37))},opts)[0].value,601.37)],
+  ["céntimos","cents:Math.round(e.amount*100),f:factorOf(e,bank,day)","cents:Math.trunc(e.amount)*100,f:factorOf(e,bank,day)",m=>assert.equal(m.netWorthSeries({...base,expenses:coverage.concat(entry("mut-cent","2026-09-02",1.37))},opts)[0].value,601.37)],
   ["borrados","expenseIsTombstoned(e,del)","false",m=>assert.equal(m.netWorthSeries({...base,expenses:coverage.concat(deleted),deleted:[m.keyOfExpense(deleted)]},opts)[0].value,600)],
   ["manual actual","day===today||!s.points.length?s.value","!s.points.length?s.value",m=>assert.equal(m.netWorthSeries({...manual,accounts:manual.accounts.map(a=>a.id==="cash"?{...a,value:101.37}:a)},{...opts,liquid:701.37}).at(-1).value,701.37)],
   ["sobrado","CYCLE_COMFORT_DIFF=-15","CYCLE_COMFORT_DIFF=-5",m=>assert.equal(m.cyclePaceState(251,1000,12,30).id,"good")],
   ["no finito","if(values.some(function(v){ return typeof v!==\"number\"||!Number.isFinite(v); }))","if(false)",m=>assert.equal(m.netWorthSeries({...base,accounts:[{...base.accounts[0],value:Infinity}]},opts).length,0)],
-  ["primer manual hacia atrás","before:points.length?points[0].value:0","before:0",m=>assert.equal(m.netWorthSeries({...manual,accountBalanceHistory:{"acc:cash":[{day:"2026-09-03",value:100}]}},{...opts,liquid:700})[0].value,700)],
+  ["primer manual hacia atrás","before:part.length?part[0].value:0","before:0",m=>assert.equal(m.netWorthSeries({...manual,accountBalanceHistory:{"acc:cash":[{day:"2026-09-03",value:100}]}},{...opts,liquid:700})[0].value,700)],
   ["inversión antes de la primera foto","const photo=invIndex>=0?investments[invIndex]:invKnown;","const photo=invIndex>=0?investments[invIndex]:null;",m=>assert.equal(m.netWorthSeries(invested,{...opts,invested:100,debtTotal:20})[0].value,830)],
   ["bien con escalones no recorta","const stepped=!legacy&&points.length>0&&!points[0].born;","const stepped=false;",m=>assert.equal(m.netWorthSeries(steppedGood,{today,liquid:5000,invested:0,debtTotal:0})[0].value,195100)],
   ["cuotas entre esa fecha y hoy","const between=(month+(charge<=parts[2]?1:0))-((p[0]*12+p[1]-1)+(charge<=p[2]?1:0));","const between=0;",m=>assert.equal(Math.round(m.netWorthDebtPolicy({debts:[inherited.debts[0]]},inheritedToday,undefined).at("2026-09-30")*100)/100,177375.65)],
@@ -612,7 +612,7 @@ const mutantCases=[
   ["tope de lo pedido","if(n<0&&d.original>0) value=Math.min(value,Math.max(Number(d.original),Number(d.value)));","if(false) value=Math.min(value,Math.max(Number(d.original),Number(d.value)));",m=>assert.equal(m.netWorthDebtPolicy(capped,inheritedToday,undefined).at("2026-07-15"),1000)],
   ["liquidada no se reconstruye","&&!d.settledAt; };","; };",m=>assert.equal(m.netWorthDebtPolicy(settled,inheritedToday,undefined).at("2026-07-15"),100)],
   ["foto futura","!Number.isFinite(v)||d>today","!Number.isFinite(v)||false",m=>assert.equal(m.netWorthSeries({...base,investments:[{value:100}],invHistory:[{d:"2026-09-05",v:100}]},{...opts,invested:100}).coverage.find(g=>g.kind==="investment").day,today,"una foto futura no acredita valor propio")],
-  ["misma cuenta empareja","a.bank===b.bank||a.cents!==-b.cents","false||a.cents!==-b.cents",m=>assert.deepEqual(plain(m.netWorthSeries(sameBankPair,opts)).map(p=>p.value),[300,300,600,600])],
+  ["misma cuenta empareja","if(sameAcc||a.cents!==-b.cents","if(false||a.cents!==-b.cents",m=>assert.deepEqual(plain(m.netWorthSeries(sameBankPair,opts)).map(p=>p.value),[300,300,600,600])],
   ["valor anterior anotado","value:prior.value,legacy:true","value:value,legacy:true",m=>assert.equal(carValues(m,carEdit(m,carState,"2026-09-05",12000))[0],20000)],
   ["valor anterior la víspera","Date.parse(day+\"T12:00:00Z\")-864e5).toISOString()","Date.parse(day+\"T12:00:00Z\")).toISOString()",m=>assert.deepEqual(carValues(m,carEdit(m,carState,"2026-09-05",12000)),[20000,20000,20000,20000,17000,17000,17000])],
   ["sólo heredado sin escalones","if(!last&&!born&&prior&&Number.isFinite(prior.value))","if(!born&&prior&&Number.isFinite(prior.value))",m=>assert.ok(!carEdit(m,carStepped,"2026-09-05",12000).assetValueHistory["old-car"].some(p=>p.legacy))],

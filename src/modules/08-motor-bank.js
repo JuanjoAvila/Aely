@@ -801,12 +801,16 @@ function applyBankBalances(s, links){
            vieja — y ese es justo el caso para el que existe el rastro: «mismo número, otra
            etiqueta». El instrumento estaba ciego a lo único que tenía que ver. */
         const rastroCambia = (inf.tipo||null)!==(a.balTipo||null) || Math.abs((a.balSaldo==null?NaN:a.balSaldo)-bal)>0.005;
-        if(Math.abs((a.value||0)-newBase)>0.005 || (ac.iban && a.bankIban!==ac.iban) || rastroCambia){
+        // Sin IBAN, el uid de la cuenta del banco: es lo que llevan sus movimientos (`obAcc`) y lo
+        // único que deja contar la parte de una principal a medias (revisión 14/10).
+        const uidCambia = !ac.iban && ac.uid!=null && a.bankUid!==String(ac.uid);
+        if(Math.abs((a.value||0)-newBase)>0.005 || (ac.iban && a.bankIban!==ac.iban) || rastroCambia || uidCambia){
           /* El rastro va también aquí: la Revolut de su padre es una cuenta PRINCIPAL re-anclada,
              no una obAccount, y era justo la que le bailaba. `balSaldo` es el saldo crudo que mandó
              el banco, sin la fórmula de dynBal encima, para poder comparar manzanas con manzanas. */
           accounts[ownerOf[k]]=Object.assign({}, a, { value:newBase, bankIban:ac.iban||a.bankIban,
-            balTipo:inf.tipo||null, balTipos:inf.tipos&&inf.tipos.length?inf.tipos:undefined, balSaldo:bal });
+            balTipo:inf.tipo||null, balTipos:inf.tipos&&inf.tipos.length?inf.tipos:undefined, balSaldo:bal },
+            uidCambia?{bankUid:String(ac.uid)}:null);
           changed=true;
         }
       } else {
@@ -1015,15 +1019,18 @@ function flattenBankTx(links, previous){
     // En multicuenta el top-level solo contiene la PRIMERA cuenta compatible. Los movimientos
     // nuevos de una segunda cuenta estaban en `accounts[].transactions` y el cliente ni los
     // miraba: el banco figuraba sincronizado pero Gastos decía que no había nada nuevo.
-    let txs=[];
+    // Cada movimiento se queda con SU cuenta (IBAN, o el uid si el banco no da IBAN): con dos
+    // cuentas en el mismo banco y una conjunta a medias, es lo que deja contar en el patrimonio
+    // solo la parte de cada una (14/10/2026). El servidor ya lo mandaba; aquí se perdía.
+    let txs=[], accs=[];
     const accountTx=(lk.accounts||[]).filter(function(a){ return a&&Array.isArray(a.transactions); });
-    if(accountTx.length) accountTx.forEach(function(a){ txs=txs.concat(a.transactions); });
+    if(accountTx.length) accountTx.forEach(function(a){ txs=txs.concat(a.transactions); a.transactions.forEach(function(){ accs.push(a.iban||a.uid||null); }); });
     else txs=(lk.transactions||[]).slice();   // shape antiguo: una sola cuenta en top-level
-    txs.forEach(function(t){
+    txs.forEach(function(t,i){
       if(partial[ent]&&(!t||t.amount==null||String(t.amount).trim()===""||!isFinite(Number(t.amount)))) return;
       // `note` = concepto del extracto (remittance_information): lo que hace que el histórico se
       // entienda sin abrir la app del banco (2026-07-24).
-      out.push({ ent:ent, id:t.ext_id||null, date:String(t.date||"").slice(0,10), amount:Number(t.amount)||0, merchant:t.merchant||"", note:t.note||"", card:!!t.card, status:t.status||"", ...(t.mcc?{mcc:t.mcc}:{}), ...(t.concept?{concept:t.concept}:{}) });
+      out.push({ ent:ent, id:t.ext_id||null, date:String(t.date||"").slice(0,10), amount:Number(t.amount)||0, merchant:t.merchant||"", note:t.note||"", card:!!t.card, status:t.status||"", ...(t.mcc?{mcc:t.mcc}:{}), ...(t.concept?{concept:t.concept}:{}), ...(accs[i]?{acc:String(accs[i])}:{}) });
     });
   });
   if(Object.keys(partial).length||Object.keys(expired).length){
@@ -1395,6 +1402,7 @@ function importObExpenses(s, txs, links){
       const e={ id:mcExpenseId(), date:new Date(tx.date+"T12:00:00").toISOString(),
         merchant:tx.merchant||"Ingreso", amount:tx.amount,
         category: esTraspasoPropio(s, tx) ? TRASPASO_CAT.id : INGRESO_CAT.id, source:"ob", ent:tx.ent };
+      if(tx.acc) e.obAcc=tx.acc;
       e.obName=e.merchant;   // lo que dijo el banco: el dedup se queda con esto aunque él lo renombre
       // Ingresos fuera de gasto diario: se ven (Mi ciclo) pero no mueven el presupuesto «gastado».
       if(tx.ent && !allow[tx.ent]) e.budgetSkip=true;
@@ -1413,6 +1421,7 @@ function importObExpenses(s, txs, links){
     const e={ id:mcExpenseId(), date:new Date(tx.date+"T12:00:00").toISOString(),
       merchant:tx.merchant||"Compra", amount:tx.amount,
       category: esAporteInv ? "inversion" : categoryOfBankTx(tx), source:"ob", ent:tx.ent };
+    if(tx.acc) e.obAcc=tx.acc;
     e.obName=e.merchant;   // lo que dijo el banco: el dedup se queda con esto aunque él lo renombre
     if(tx.ent && !allow[tx.ent]) e.budgetSkip=true;
     // Un recibo sin id (sembrado antes de tenerlos) no tiene a qué enlazarse: se sigue tirando.
@@ -3290,6 +3299,32 @@ function enrichNotesFromBankTx(expenses, txs){
     if(!nt) return e;
     touched=true;
     return Object.assign({},e,{note:nt});
+  });
+  return touched? out : expenses;
+}
+/* La cuenta de origen de lo que YA estaba apuntado (14/10/2026). Cada sincronización vuelve a leer
+   el mes en curso con su cuenta, así que los movimientos de antes de guardarla la recuperan solos
+   en cuanto el banco los repite: por id del banco, o por día, importe y nombre del banco siempre
+   que no haya dos cuentas con ese mismo apunte. Lo que el banco ya no devuelve se queda sin
+   cuenta. Sin cambios, el MISMO array: no se reescribe el histórico (AGENTS §7 bis). */
+function tagObAccountsFromBankTx(expenses, txs){
+  if(!expenses || !expenses.length || !txs || !txs.length) return expenses;
+  const byExt={}, byKey={};
+  const kOf=function(ent,d,a,m){ return ent+"|"+String(d).slice(0,10)+"|"+Number(a||0).toFixed(2)+"|"+String(m||""); };
+  txs.forEach(function(tx){
+    if(!tx || !tx.acc || !tx.ent) return;
+    if(tx.id) byExt[tx.ent+"|"+tx.id]=tx.acc;
+    const k=kOf(tx.ent,tx.date,tx.amount,tx.merchant);
+    byKey[k]=(k in byKey && byKey[k]!==tx.acc) ? "" : tx.acc;
+  });
+  let touched=false;
+  const out=expenses.map(function(e){
+    if(!e || e.obAcc || (e.source!=="ob" && e.source!=="ob-hist")) return e;
+    const bank=expenseBankOf(e)||e.ent||"";
+    const acc=(e.extId&&byExt[bank+"|"+e.extId]) || byKey[kOf(bank,diaDeGasto(e),e.amount,e.obName!=null?e.obName:e.merchant)];
+    if(!acc) return e;
+    touched=true;
+    return Object.assign({},e,{obAcc:acc});
   });
   return touched? out : expenses;
 }

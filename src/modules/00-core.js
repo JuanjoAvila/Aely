@@ -2586,6 +2586,72 @@ function accountRowsInOrder(state){
   rows.forEach(function(r){ if(!seen[r.key]) out.push(r); });
   return out;
 }
+/* LA PARTE MÍA DE UNA CUENTA (14/10/2026). Una conjunta con la pareja contaba entera en el
+   patrimonio: el saldo que la llenaron los dos salía como suyo y la gráfica de Inicio arrancaba
+   ~4.300 € alta. El porcentaje vive en `settings.accountShare` y NO en la cuenta: las de Open
+   Banking se reconstruyen en cada sincronización y una marca puesta en ellas se perdería. La
+   clave es el IBAN cuando lo hay (sobrevive a reconectar el banco, que cambia el uid, y a darle
+   rol a la cuenta); sin IBAN, la de orden de la fila. Sin entrada = 100 %: un estado viejo no
+   cambia ni un céntimo. Solo mueve el PATRIMONIO; gastos, presupuesto y recibos no la miran. */
+function accountIbanKey(iban){ const s=String(iban||"").replace(/\s/g,"").toUpperCase(); return s?"iban:"+s:""; }
+function accountShareKey(item, kind){
+  return accountIbanKey(item&&(item.bankIban||(kind==="ob"?item.iban:null)))||accountOrderKeyOf(item,kind);
+}
+function accountSharePct(state, item, kind){
+  const map=(state&&state.settings||{}).accountShare;
+  if(!map) return null;
+  const v=map[accountShareKey(item,kind)];
+  return typeof v==="number"&&Number.isFinite(v)&&v>=0&&v<=100?v:null;
+}
+function accountShareOf(state, item, kind){ const p=accountSharePct(state,item,kind); return p==null?1:p/100; }
+// «50», «50,5», «33.33 %»: entre 0 y 100, con coma o punto. Lo demás no vale (null).
+function parseAccountShare(raw){
+  const s=String(raw==null?"":raw).replace(/[\s%]/g,"").replace(",",".");
+  if(!/^\d+(\.\d+)?$/.test(s)) return null;
+  const n=Math.round(Number(s)*100)/100;
+  return n>=0&&n<=100?n:null;
+}
+// 100 BORRA la entrada (vuelve a «sin campo»), así poner y quitar deja el estado como estaba.
+function setAccountShare(state, item, kind, pct){
+  const key=accountShareKey(item,kind), prev=(state.settings||{}).accountShare||{};
+  const next=Object.assign({},prev);
+  if(pct==null||pct===100) delete next[key]; else next[key]=pct;
+  const settings=Object.assign({},state.settings);
+  if(Object.keys(next).length) settings.accountShare=next; else delete settings.accountShare;
+  return Object.assign({},state,{settings:settings});
+}
+// Dos titulares en el nombre que da el banco: «ANA PÉREZ & LUIS GIL», «Ana y Luis».
+function accountLooksJoint(name){
+  const s=String(name||"").trim();
+  return /\S\s*&\s*\S/.test(s)||/[A-Za-zÀ-ÿ]{2,}\s+(?:y|i)\s+[A-ZÀ-Þ][A-Za-zÀ-ÿ]+/.test(s);
+}
+// ¿Este movimiento de banco salió de esta cuenta? `obAcc` es el IBAN (o el uid sin IBAN) que
+// mandó la sincronización; los movimientos de antes de guardarlo no lo llevan.
+function accountOwnsMovement(item, kind, acc){
+  if(!acc) return false;
+  const iban=accountIbanKey(item&&(item.bankIban||item.iban));
+  // Sin IBAN, el uid: el de la fila OB, el de la promocionada (su clave de orden) o el que el
+  // banco dejó al re-anclar una cuenta principal (`bankUid`, `applyBankBalances`).
+  const uidOf=kind==="ob"?String(item&&item.key||""):item&&item.bankUid?String(item.bankUid):/^ob:/.test(item&&item.accountOrderKey||"")?item.accountOrderKey.slice(3):"";
+  return (!!iban&&iban===accountIbanKey(acc))||(!!uidOf&&uidOf===String(acc));
+}
+/* LOS MOVIMIENTOS VIEJOS SIN CUENTA LOS ATRIBUYE ÉL, no la app (14/10/2026). Lo anterior a
+   guardar `obAcc` no dice de qué cuenta salió, y en un banco con la personal al 100 % y la
+   conjunta al 50 % contaban enteros. La ficha le pregunta; su respuesta va a
+   `settings.accountShareLegacy[ent]` = {key, no, day} sin reescribir ningún gasto, y vale para
+   lo que entró sin cuenta hasta ese día. Quitarla deja todo como estaba. */
+function accountLegacyCount(state, ent){
+  return (state&&state.expenses||[]).filter(function(e){
+    return e&&!e.obAcc&&e.amount&&(e.source==="ob"||e.source==="ob-hist")&&expenseBankOf(e)===ent;
+  }).length;
+}
+function setAccountLegacy(state, ent, decision){
+  const next=Object.assign({},(state.settings||{}).accountShareLegacy);
+  if(decision) next[ent]=decision; else delete next[ent];
+  const settings=Object.assign({},state.settings);
+  if(Object.keys(next).length) settings.accountShareLegacy=next; else delete settings.accountShareLegacy;
+  return Object.assign({},state,{settings:settings});
+}
 function moveAccountInList(state, fromId, toId){
   if(!state||!fromId||!toId||fromId===toId) return state;
   const rows=accountRowsInOrder(state);

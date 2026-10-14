@@ -712,6 +712,22 @@ escribir `Access-Control-Allow-Origin: "*"`.
   (`obLabels`) y solo se promociona con rol mediante una elección explícita (`promoteObAccount`).
   Su posición se guarda en `settings.accountListOrder`, mezclada visualmente con `accounts` sin
   moverla de modelo ni alterar saldo, rol o presupuesto.
+- **Parte mía** (14/10/2026): cualquier cuenta (manual, re-anclada o extra OB) puede contar solo
+  en parte en el patrimonio (una conjunta al 50 %). Vive en `settings.accountShare`, con clave
+  `iban:<IBAN>` si lo hay (sobrevive a reconectar y a promocionar) o la de orden de la fila; sin
+  entrada = 100 %. La aplican el total de Cartera (`liquid` en `totals`) y `netWorthSeries`
+  (saldo de hoy, cierres manuales y flujos de esa cuenta). Gastos, presupuesto, recibos, widget
+  y `bankBal` usan el saldo entero. Los movimientos OB guardan su cuenta en `obAcc` (IBAN o uid,
+  de `bank-sync` → `flattenBankTx` → `importObExpenses`; `tagObAccountsFromBankTx` la recupera en
+  lo ya apuntado que el banco vuelve a mandar). ⚠ `obAcc` **solo vive en el móvil que sincroniza**:
+  la tabla `expenses` no tiene columna para ella y no sube a la nube, así que otro móvil, una
+  reinstalación o un apunte que solo llega por la nube (el histórico del servidor incluido) no la
+  tienen y cuentan como «sin cuenta». Una principal re-anclada sin IBAN guarda el uid del banco en
+  `bankUid` para reconocer los suyos. Un traspaso entre dos cuentas con partes distintas cuenta solo
+  la diferencia, el día de la salida. Un
+  movimiento sin cuenta en un banco cuyas cuentas tienen partes distintas cuenta entero y la «i»
+  de Inicio lo dice, salvo que él decida en la ficha de qué cuenta son: `settings.accountShareLegacy[ent]`
+  = `{key, no, day}` (sin reescribir gastos; vale para lo que entró sin cuenta hasta ese día; se deshace).
 - La ficha guarda un cierre diario real por cuenta en `accountBalanceHistory`, indexado por la
   misma clave estable del orden (`acc:<id>` / `ob:<key>`) y limitado a400 puntos mediante
   `recordAccountBalances`, compartido con Inicio. El día civil es el de Madrid. El gráfico de

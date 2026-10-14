@@ -1,5 +1,52 @@
 [
   {
+    "v": "4.26.131",
+    "d": "2026-10-14",
+    "t": {
+      "es": "Cuentas compartidas: cuenta solo tu parte",
+      "en": "Shared accounts: count only your share",
+      "ca": "Comptes compartits: compta només la teva part"
+    },
+    "items": {
+      "es": [
+        "Cartera: ahora puedes decir qué parte de una cuenta es tuya (por ejemplo, la mitad de una cuenta conjunta). Tu patrimonio y su gráfica cuentan solo esa parte; los gastos y el presupuesto no cambian. Si una cuenta compartida tiene movimientos antiguos que no dicen de qué cuenta salieron, su ficha te pregunta si son de esa cuenta; puedes cambiarlo cuando quieras."
+      ],
+      "en": [
+        "Portfolio: you can now set how much of an account is yours (for example, half of a joint account). Your net worth and its chart count only that share; spending and budget stay the same. If a shared account has older transactions that don't say which account they came from, its page asks whether they belong to it; you can change it any time."
+      ],
+      "ca": [
+        "Cartera: ara pots dir quina part d'un compte és teva (per exemple, la meitat d'un compte conjunt). El teu patrimoni i la seva gràfica compten només aquesta part; les despeses i el pressupost no canvien. Si un compte compartit té moviments antics que no diuen de quin compte van sortir, la seva fitxa et pregunta si són d'aquest compte; ho pots canviar quan vulguis."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "cuenta-parte-mia",
+        "t": {
+          "es": "Cuentas compartidas: cuenta solo tu parte",
+          "en": "Shared accounts: count only your share",
+          "ca": "Comptes compartits: compta només la teva part"
+        },
+        "items": {
+          "es": [
+            "1. Cartera → Tus cuentas → toca la cuenta conjunta de Revolut: en \"Parte mía\" pulsa \"Cambiar\", pon 50 y \"Guardar\". La fila dice \"50 % tuyo\" y el saldo del banco no cambia.",
+            "2. En la misma ficha, en los movimientos antiguos de Revolut, pulsa \"Decidir\" y contesta \"Sí, son de esta cuenta\". En Inicio, con \"Todo\", la gráfica empieza unos 2.000 € más abajo y la frase de debajo sube.",
+            "3. Toca la \"i\" del patrimonio: sale \"Cuentas compartidas\" explicando que solo cuenta tu parte."
+          ],
+          "en": [
+            "1. Portfolio → Your accounts → tap the joint Revolut account: under \"My share\" tap \"Change\", enter 50 and \"Save\". The row says \"50 % yours\" and the bank balance doesn't change.",
+            "2. On the same page, on the older Revolut transactions, tap \"Decide\" and answer \"Yes, they're from this account\". On Home, with \"All\", the chart starts about €2,000 lower and the sentence below goes up.",
+            "3. Tap the \"i\" on net worth: it shows \"Shared accounts\", explaining that only your share counts."
+          ],
+          "ca": [
+            "1. Cartera → Els teus comptes → toca el compte conjunt de Revolut: a \"Part meva\" prem \"Canviar\", posa 50 i \"Desa\". La fila diu \"50 % teu\" i el saldo del banc no canvia.",
+            "2. A la mateixa fitxa, als moviments antics de Revolut, prem \"Decidir\" i respon \"Sí, són d'aquest compte\". A Inici, amb \"Tot\", la gràfica comença uns 2.000 € més avall i la frase de sota puja.",
+            "3. Toca la \"i\" del patrimoni: surt \"Comptes compartits\" explicant que només compta la teva part."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.130",
     "d": "2026-10-14",
     "t": {

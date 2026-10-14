@@ -8051,6 +8051,42 @@
       {
         "file": "src/modules/00-core.js",
         "data": "DELETED_AT_MAX"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "accountSharePct"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "accountLooksJoint"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "parseAccountShare"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "setAccountShare"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "accountShareKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "accountLegacyCount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "setAccountLegacy"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "tagObAccountsFromBankTx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "accountIbanKey"
       }
     ],
     "unidades": true
@@ -17677,6 +17713,26 @@
       {
         "file": "src/modules/00-core.js",
         "function": "isAtmWithdrawal"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "accountShareOf"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "accountOwnsMovement"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "accountShareKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "accountSharePct"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "accountIbanKey"
       }
     ],
     "unidades": true
@@ -19339,6 +19395,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "gemeloDiasCache"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "tagObAccountsFromBankTx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "diaDeGasto"
       }
     ],
     "unidades": true
@@ -21816,6 +21880,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "gemeloDiasCache"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "tagObAccountsFromBankTx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "diaDeGasto"
       }
     ],
     "edge": [
@@ -22918,6 +22990,14 @@
       {
         "file": "src/modules/00-core.js",
         "data": "DELETED_AT_MAX"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "tagObAccountsFromBankTx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "diaDeGasto"
       }
     ],
     "edge": [
@@ -23864,6 +23944,26 @@
       {
         "file": "src/modules/00-core.js",
         "data": "GEMELOS_MAX"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "accountShareOf"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "accountOwnsMovement"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "accountShareKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "accountSharePct"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "accountIbanKey"
       }
     ],
     "unidades": true
@@ -26343,6 +26443,26 @@
       {
         "file": "src/modules/00-core.js",
         "data": "GEMELOS_MAX"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "accountShareOf"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "accountOwnsMovement"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "accountShareKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "accountSharePct"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "accountIbanKey"
       }
     ],
     "unidades": true
@@ -28304,6 +28424,758 @@
       {
         "file": "src/modules/00-core.js",
         "function": "expenseCloudKeys"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "tagObAccountsFromBankTx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "diaDeGasto"
+      }
+    ],
+    "unidades": true
+  },
+  "cuenta-parte-mia": {
+    "web": [
+      {
+        "file": "src/modules/00-core.js",
+        "function": "accountIbanKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "accountShareKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "accountSharePct"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "accountShareOf"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "parseAccountShare"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "setAccountShare"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "accountLooksJoint"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "accountOwnsMovement"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "accountLegacyCount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "setAccountLegacy"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "netWorthSeries"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "netWorthDay"
+      },
+      {
+        "file": "src/modules/03-tab-dash.js",
+        "function": "netWorthInfoRows"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "applyBankBalances"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flattenBankTx"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "importObExpenses"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "tagObAccountsFromBankTx"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "AccountSheet"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "Wealth"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "    // cuentas extra de Open Banking (2ª cuenta de un banco, compartidas…): saldo puro",
+        "to": "    const investedBase="
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "        const withNotes=tagObAccountsFromBankTx(",
+        "to": "        const now=new Date(), withTx"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "     state.flows,state.oneoffs,state.deleted,state.aportaciones,state.obAccounts,",
+        "to": "     state.trRewardsTotal"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "ac_share_q:\"Parte mía\"",
+        "to": "ac_legacy_done_other:\"Los movimientos antiguos de {bank} sin cuenta los asignaste a otra cuenta.\","
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "ac_share_q:\"My share\"",
+        "to": "ac_legacy_done_other:\"You assigned older {bank} movements with no account to another account.\","
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "ac_share_q:\"Part meva\"",
+        "to": "ac_legacy_done_other:\"Els moviments antics de {bank} sense compte els vas assignar a un altre compte.\","
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  // INC-0410 guardado: de aquí al límite está cuándo y qué estado se escribe en disco. Cambiarlo invalida las revisiones que prometen conservar algo al cerrar o recargar.",
+        "to": "  // INC-0410 guardado: límite."
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcPersistCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSaveRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSkipPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcStateKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSandbox"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSandboxFlag"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "EXP_SUFFIX"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "store"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcSkipPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "STATE_KEY_TEST"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "STATE_KEY_REAL"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcSandboxPinned"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mem"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "accountOrderKeyOf"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseBankOf"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "accountRowsInOrder"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "insumosSaldoGasto"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "toEurAmt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "saldoCuentaMostrada"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseDeletedSet"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseIsTombstoned"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "_pdMs"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isEfectivoEnt"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accDaily"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "invValueEur"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recNorm"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isAtmWithdrawal"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "madridYmdParts"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "startOfMonth"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "parseDate"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cargoDeRecibo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "gastoDelMesPorBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "entFromAspsp"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "saldoLoMandaPuenteNativo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "pickBankBalanceInfo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "mkObAcct"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accRole"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "roundupOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "nominaYaEntro"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accInject"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "valueDesdeSaldo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseBankEnts"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obOrdinalSufijo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "esFilaDeBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "avisosEmparejados"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isManualExpenseSource"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "sinComercioReal"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "dateMs"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "avisoYaEmparejado"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recAmtClose"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recNameMatch"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "dayKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcExpenseId"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "esTraspasoPropio"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "cleanNote"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "categoryOfBankTx"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reciboParaCargo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "fechaConOrdinal"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "gemeloBancoAutomatico"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reconcileGemelosAutomaticos"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "diaDeGasto"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "entOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "loc"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "fxAmountText"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "eur"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "applyAccountRole"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "catOf"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "moveAccountInList"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "removeEfectivoAccount"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accFixed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "applySaqueCajero"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "applyEntradaEfectivo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "ensureEfectivoAccount"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "niceObName"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "uid"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "promoteObAccount"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "eur0"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "enrichNotesFromBankTx"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mergeAccountBalanceHistory"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "partirEntDeuda"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseCountsCash"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "fxRateOf"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "saldoCuentaGasto"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "keyOfExpense"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "keyOfExpenseLegacy"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "inicioDeMesMs"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reciboVetado"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reciboNoIdentidad"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "isCardSpend"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "spareOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "lastWorkingDay"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obOrdinalOf"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "gemeloAvisoKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recTokens"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "categoryOfNewMerchant"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "catKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cargoDeReciboFirme"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reciboNombreCasa"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "gemeloMismosCampos"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "gemeloDatos"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "gemeloCompatible"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "gemeloDe"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "pushGemelos"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "gemeloAvisoAutomatico"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "gemeloAsignar"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "fxTableOf"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentIdentity"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "autoCategory"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mobilityCategoryOfNewMerchant"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "cargoDeReciboFirmeCalc"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recFrase"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reciboPagadoCon"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentState"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recDay"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentProof"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAutoOwner"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenseRows"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedExpenseEligible"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContenders"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenseChoice"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentUnique"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentModel"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFeedClear"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenses"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedExpenseKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "ENT"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DUP_DIAS_MS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "TRASPASO_CAT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "INGRESO_CAT"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "expenseDeletedSets"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "_pdCache"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "_mcMadridYmdFmt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CONFIG"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NOTE_MAX"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "USER_OVERRIDES"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "gemeloCache"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "DISP"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "INVERSION_CAT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "DEUDA_CAT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CAT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF0"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "MC_TZ"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "_mcInicioMesTz"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "_mcInicioMesYmFmt"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "_mcInicioMesDiaFmt"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "_mcInicioMesByYm"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CAT_NEUTRAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "gemeloDatosCache"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "gemeloDiasCache"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "GEMELOS_MAX"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CATEGORIES"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "MERCHANT_OVERRIDES"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "KW_PALABRA"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "KW_INICIO"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "KW"
       }
     ],
     "unidades": true

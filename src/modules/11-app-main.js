@@ -746,7 +746,7 @@ function App(){
         const baseExp=paired.expenses;
         // Rellena el CONCEPTO de lo que ya estaba apuntado con lo que acaba de traer el banco
         // (2026-07-24): si no, el histórico viejo —el que se consulta— seguiría sin explicar nada.
-        const withNotes=enrichNotesFromBankTx(baseExp, txs);
+        const withNotes=tagObAccountsFromBankTx(enrichNotesFromBankTx(baseExp, txs), txs);
         const withExp=(withNotes!==(invState.expenses||[])) ? Object.assign({},invState,{expenses:withNotes}) : invState;
         const now=new Date(), withTx=Object.assign({},withExp,{bankTx:txs});
         const withProofs=reconcileFixedPaymentProofs(withTx,now.getFullYear(),now.getMonth()+1,now.getDate());
@@ -1963,8 +1963,11 @@ function App(){
       });
     };
     // cuentas extra de Open Banking (2ª cuenta de un banco, compartidas…): saldo puro, suma al líquido
-    const obLiquid=(state.obAccounts||[]).reduce((a,o)=> a + (toEurAmt(o.value||0, o.cur||"EUR", state)||0), 0);
-    const liquid=state.accounts.reduce((a,i)=> a + dynBal(i), 0) + obLiquid;
+    // Del patrimonio solo cuenta SU parte de cada cuenta (una conjunta al 50 %, `accountShareOf`).
+    // `bankBal` y todo lo de abajo siguen con el saldo entero: es lo que hay en el banco para
+    // pagar recibos, y eso no depende de quién lo puso.
+    const obLiquid=(state.obAccounts||[]).reduce((a,o)=> a + (toEurAmt(o.value||0, o.cur||"EUR", state)||0)*accountShareOf(state,o,"ob"), 0);
+    const liquid=state.accounts.reduce((a,i)=> a + dynBal(i)*accountShareOf(state,i,"account"), 0) + obLiquid;
     const investedBase=state.investments.reduce((a,i)=>a+(invValueEur(i, state)||0),0);
     const investedCost=state.investments.reduce((a,i)=>a+(invCostEur(i, state)||0),0);
     const invested=investedBase + roundupThisMonth + savebackThisMonth + monthlyInvestThisMonth;
@@ -2043,7 +2046,7 @@ function App(){
   // el buscador, al salir un toast… Con las porciones reales solo se recalcula cuando cambia el
   // dinero de verdad (parte gorda del «se ralentiza cuanto más la uso» — 2026-07-24).
   },[state.accounts,state.expenses,state.bankTx,state.investments,state.assets,state.debts,state.fixed,
-     state.flows,state.oneoffs,state.deleted,state.aportaciones,state.obAccounts,
+     state.flows,state.oneoffs,state.deleted,state.aportaciones,state.obAccounts,(state.settings||{}).accountShare,
      state.trRewardsTotal,state.fx,state.fxRates,state.reciboNo,calendarDay]);
 
   const budgetMonth=budgetYmKey();

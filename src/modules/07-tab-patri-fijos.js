@@ -121,6 +121,40 @@ function AccountSheet({open, cuenta, state, set, totals, onClose, onRemove, onSa
       saldoRef.current=v; return v;
     });
   };
+  /* PARTE MÍA (14/10/2026). Una conjunta con la pareja no es suya entera: aquí dice qué parte
+     cuenta en el patrimonio. Solo el patrimonio; gastos y presupuesto no la miran. Si el banco
+     da dos titulares y no la ha puesto, se le sugiere aquí, sin preguntar al abrir la app. */
+  const shareKind=a._obKey?"ob":"account";
+  const shareItem=a._obKey?{key:a._obKey,iban:a.iban}:a;
+  const sharePct=accountSharePct(state,shareItem,shareKind);
+  const shareTxt=new Intl.NumberFormat(loc(),{maximumFractionDigits:2}).format(sharePct==null?100:sharePct)+" %";
+  const pareceConjunta=sharePct==null&&(accountLooksJoint(a._holder||a.name)||/conjunt|compartid|joint|shared/i.test(a.name||""));
+  const pedirParte=function(){
+    askText({ title:t("ac_share_title"), sub:t("ac_share_sub"), ph:"50", ok:t("ac_share_ok"),
+      value:sharePct==null?"":String(sharePct).replace(".",","),
+      chips:[{v:50,label:"50 %"},{v:100,label:"100 %"}] })
+      .then(function(raw){
+        if(raw==null) return;   // null = canceló
+        const pct=parseAccountShare(raw);
+        if(pct==null){ askConfirm({title:t("ac_share_bad"),ok:t("ask_ok"),cancel:t("fj_cancel")}).then(function(again){ if(again) pedirParte(); }); return; }
+        set(function(s){ return setAccountShare(s, shareItem, shareKind, pct); });
+      });
+  };
+  /* Los movimientos viejos del banco que no dicen su cuenta: los atribuye él, aquí, cuando la
+     cuenta no es suya entera y el banco tiene más de una (`setAccountLegacy`). Son tres respuestas,
+     así que es `askChoice`: «preguntar después» no guarda nada. Se deshace en el mismo sitio. */
+  const legacyKey=accountShareKey(shareItem,shareKind);
+  const legacyDec=((state.settings||{}).accountShareLegacy||{})[a.ent]||null;
+  const legacyN=cuentasMismaEnt>1?accountLegacyCount(state,a.ent):0;
+  const verLegacy=legacyN>0&&(!!legacyDec||sharePct!=null);
+  const pedirLegacy=function(){
+    askChoice({ title:tf("ac_legacy_q",{n:legacyN,bank:banco}), sub:tf("ac_legacy_sub",{n:legacyN}), options:[
+      {v:"yes",label:t("ac_legacy_yes")},{v:"no",label:t("ac_legacy_no")},{v:"later",label:t("ac_legacy_later")}] })
+      .then(function(v){
+        if(v!=="yes"&&v!=="no") return;   // null = canceló; «later» = sin decidir
+        set(function(s){ return setAccountLegacy(s, a.ent, {key:legacyKey, no:v==="no", day:netWorthDay()}); });
+      });
+  };
   const title=a.name||banco;
   const sub=conectada?tf("ac_synced_sub",{bank:banco}):tf("ac_manual_sub",{bank:banco});
   const staleAge=conectada&&a.lastSync?Date.now()-dateMs(a.lastSync):0;
@@ -158,6 +192,25 @@ function AccountSheet({open, cuenta, state, set, totals, onClose, onRemove, onSa
                   React.createElement("span",null,new Date(history[0].day+"T12:00:00").toLocaleDateString(loc(),{day:"numeric",month:"short"})),React.createElement("span",null,t("ac_spark_to"))))
             : React.createElement("div",{className:"v4-account-spark-new"},t("ac_spark_new")),
           conectada && React.createElement("div",{className:"v4-account-lock"},t("pt_ficha_banco")+(a.lastSync?" · "+tf("pt_ficha_sync",{x:new Date(a.lastSync).toLocaleString()}):""))
+        ),
+        React.createElement("div",{className:"v4-account-share",style:{padding:"14px 0 2px"}},
+          React.createElement("div",{className:"v4-ficha-k"}, t("ac_share_q")),
+          React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10}},
+            React.createElement("div",{style:{flex:"1 1 auto",minWidth:0}},
+              React.createElement("span",{className:"v4-ficha-ot num","data-testid":"ac-share-pct"}, shareTxt),
+              React.createElement("span",{className:"v4-ficha-od"},
+                sharePct==null||missingFx?t("ac_share_all"):tf("ac_share_counts",{x:eur(saldoHoy*sharePct/100)}))),
+            React.createElement("button",{type:"button",className:"v4-account-action",style:{flex:"0 0 auto",minHeight:40,padding:"6px 14px"},
+              "data-testid":"ac-share-edit",onClick:pedirParte}, t("ac_share_change"))),
+          pareceConjunta && React.createElement("div",{className:"hint",style:{marginTop:8}}, t("ac_share_joint_hint")),
+          verLegacy && React.createElement("div",{"data-testid":"ac-legacy",style:{display:"flex",alignItems:"center",gap:10,marginTop:10}},
+            React.createElement("div",{className:"hint",style:{flex:"1 1 auto",minWidth:0,margin:0}},
+              !legacyDec ? tf("ac_legacy_q",{n:legacyN,bank:banco})
+                : tf(legacyDec.key!==legacyKey?"ac_legacy_done_other":legacyDec.no?"ac_legacy_done_no":"ac_legacy_done_yes",{bank:banco})),
+            React.createElement("button",{type:"button",className:"v4-account-action",style:{flex:"0 0 auto",minHeight:40,padding:"6px 14px"},
+              "data-testid":"ac-legacy-btn",onClick:function(){
+                if(legacyDec) set(function(s){ return setAccountLegacy(s, a.ent, null); }); else pedirLegacy();
+              }}, t(legacyDec?"ac_legacy_undo":"ac_legacy_decide")))
         ),
         React.createElement("div",{className:"v4-account-actions"},
           !conectada && React.createElement("button",{type:"button",className:"v4-account-action"+(corrigiendo?" on":""),onClick:function(){
@@ -502,6 +555,9 @@ function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBa
        lado del dinero que tienes». Si toda la tarjeta responde al toque, el chevron solo mete
        ruido justo al lado del número, que es lo que va a leer.
        Long-press para ordenar: listeners en el efecto de arriba (mismo gesto que las pestañas). */
+    // El importe de la fila es lo que hay en el banco; si solo una parte es suya, se dice al lado
+    // (así la suma de las filas no parece no cuadrar con el total).
+    const shareMeta=function(item,kind){ const p=accountSharePct(state,item,kind); return p==null?"":tf("pt_share_meta",{n:new Intl.NumberFormat(loc(),{maximumFractionDigits:2}).format(p)}); };
     const accRow=function(a,rowKey){
       const rowDragging=!!(dragAcc&&dragAcc.from===rowKey);
       const rowOver=!!(dragAcc&&dragAcc.to===rowKey&&dragAcc.from!==rowKey);
@@ -512,7 +568,7 @@ function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBa
         React.createElement("div",{className:"tile",style:{background:"transparent",border:"none",padding:0}},React.createElement(Mono,{ent:a.ent,size:44})),
         React.createElement("div",{className:"nm"},
           React.createElement("div",null,entOf(a.ent).label, isSynced(a)&&badge(t("pt_ob_badge"),"#7FB5E8")),
-          React.createElement("div",{className:"meta"}, [roleLab(a),a.name].filter(Boolean).join(" · ")||"—")
+          React.createElement("div",{className:"meta"}, [roleLab(a),a.name,shareMeta(a,"account")].filter(Boolean).join(" · ")||"—")
         ),
         React.createElement("div",{className:"am num"},eur(shownAcc(a)))
       );
@@ -571,7 +627,7 @@ function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBa
         React.createElement("div",{className:"tile",style:{background:"transparent",border:"none",padding:0}},React.createElement(Mono,{ent:o.ent||"",size:44})),
         React.createElement("div",{className:"nm"},
           React.createElement("div",null, disp),
-          React.createElement("div",{className:"meta"}, entOf(o.ent).label,
+          React.createElement("div",{className:"meta"}, entOf(o.ent).label+(shareMeta(o,"ob")?" · "+shareMeta(o,"ob"):""),
             o.stale ? badge(t("pt_ob_badge")+" · "+t(o.staleKind==="expired"?"bp_st_expired":"pt_ob_stale"),"#E2A05F") : badge(t("pt_ob_badge"),"#7FB5E8"))
         ),
         React.createElement("div",{className:"am num",style:toEurAmt(o.value,o.cur,state)==null?{maxWidth:"52%",whiteSpace:"normal",textAlign:"right",overflowWrap:"anywhere",flex:"0 1 auto"}:null}, fxAmountText(o.value||0,o.cur||"EUR",state))
@@ -601,7 +657,7 @@ function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBa
     const sheetCuenta=sheetRow&&sheetRow.kind==="ob" ? (function(){
       const o=sheetRow.item, custom=(state.obLabels||{})[o.key];
       return Object.assign({},o,{
-        id:sheetRow.key, name:(custom!=null&&custom!=="")?custom:niceObName(o),
+        id:sheetRow.key, name:(custom!=null&&custom!=="")?custom:niceObName(o), _holder:o.name,
         value:toEurAmt(o.value||0,o.cur||"EUR",state), _nativeValue:o.value, _obKey:o.key, accountOrderKey:sheetRow.key
       });
     })() : (sheetRow&&sheetRow.item)||null;

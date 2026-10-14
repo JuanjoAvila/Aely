@@ -54,6 +54,8 @@ const sourceBeta127=sourceAt("b3edefb4fd561fc43e265a7796145a58d1976295");
 const sourceBeta128=sourceAt("24d0d463e0c0055ba000149f07d7fa2fe12d4c9b");
 // Catálogo129 pasa a histórico en la 130: se lee de la beta 4.26.129 publicada (9f7bb3bd), que sigue en el panel con sus tres tandas.
 const sourceBeta129=sourceAt("9f7bb3bd5492e75d0adf5487e06d42dd67ca87f2");
+// Catálogo130 pasa a histórico en la 131: se lee de la beta 4.26.130 (67666d42), que sigue en el panel con sus tres tandas.
+const sourceBeta130=sourceAt("67666d4248d5bceb8c36e3b6f52824fd3a776b63");
 // La122 añade un método a `cloud` (`setExpenseRecibo`) y los alcances que listan los métodos que
 // leen lo ganan al final de su lista. Las comparaciones con descriptores anteriores lo descuentan;
 // Catálogo122 fija en lista cerrada cuáles son.
@@ -92,7 +94,7 @@ const boot="inc-2709-01-arranque-red";
 const modern=[{v:"4.26.69",tandas:[{id:boot}]}];
 let failed=0;
 const inicioOnly=process.argv.includes("--inicio-v42-only");
-function test(name,fn){ if(inicioOnly&&!name.startsWith("Inicio v4.2 ")&&!name.startsWith("Retiro130 ")&&!name.startsWith("Catálogo130 ")&&!name.startsWith("Catálogo129 ")&&!name.startsWith("Catálogo128 ")&&!name.startsWith("Catálogo127 ")&&!name.startsWith("Catálogo126 ")&&!name.startsWith("Retiro126 ")&&!name.startsWith("Catálogo125 ")&&!name.startsWith("Retiro125 ")&&!name.startsWith("Catálogo124 ")&&!name.startsWith("Retiro124 ")&&!name.startsWith("Catálogo123 ")&&!name.startsWith("Catálogo122 ")&&!name.startsWith("Catálogo121 ")&&!name.startsWith("Catálogo120 ")&&!name.startsWith("Catálogo114 ")&&!name.startsWith("Catálogo117 ")&&!name.startsWith("Retiro117 ")&&!name.startsWith("Catálogo118 ")&&!name.startsWith("Splash117 ")&&!name.startsWith("Catálogo119 ")&&!name.startsWith("Retiro119 "))return;try{fn();console.log("  ✓ "+name);}catch(e){failed++;console.error("  ✗ "+name+"\n    "+e.message);} }
+function test(name,fn){ if(inicioOnly&&!name.startsWith("Inicio v4.2 ")&&!name.startsWith("Catálogo131 ")&&!name.startsWith("Retiro130 ")&&!name.startsWith("Catálogo130 ")&&!name.startsWith("Catálogo129 ")&&!name.startsWith("Catálogo128 ")&&!name.startsWith("Catálogo127 ")&&!name.startsWith("Catálogo126 ")&&!name.startsWith("Retiro126 ")&&!name.startsWith("Catálogo125 ")&&!name.startsWith("Retiro125 ")&&!name.startsWith("Catálogo124 ")&&!name.startsWith("Retiro124 ")&&!name.startsWith("Catálogo123 ")&&!name.startsWith("Catálogo122 ")&&!name.startsWith("Catálogo121 ")&&!name.startsWith("Catálogo120 ")&&!name.startsWith("Catálogo114 ")&&!name.startsWith("Catálogo117 ")&&!name.startsWith("Retiro117 ")&&!name.startsWith("Catálogo118 ")&&!name.startsWith("Splash117 ")&&!name.startsWith("Catálogo119 ")&&!name.startsWith("Retiro119 "))return;try{fn();console.log("  ✓ "+name);}catch(e){failed++;console.error("  ✗ "+name+"\n    "+e.message);} }
 console.log("beta-sources");
 
 // La rayita comparte controlador y geometría con la barra: una aprobación de CSS aislada no
@@ -181,7 +183,7 @@ test("Inicio v4.2 cubre flujos, ciclo, renderer, llamada, animación, textos, CS
   // La base es la integración120 (apuntes iguales de Trade Republic): Inicio no puede retirar su alcance ni heredar su revisión.
   const integrated=JSON.parse(source120("scripts/beta-sources.json"));
   // Detrás de Inicio sólo ha entrado el alcance de la122 (el cargo de recibo en Gastos).
-  assert.deepEqual(Object.keys(scopes),Object.keys(integrated).concat(id,"recibo-cargo-en-gastos","plan-scroll-lento","inicio-tarjeta-ciclo-limpia","bancos-reconexion-revoca","inicio-mes-pasado-mismo-dia","limpieza-ajustes-perfil","tr-empareja-sin-preguntar"),"Inicio y las altas de la122, la124, la126, la127, la128, la129 y la130, sin retirar historia120");
+  assert.deepEqual(Object.keys(scopes),Object.keys(integrated).concat(id,"recibo-cargo-en-gastos","plan-scroll-lento","inicio-tarjeta-ciclo-limpia","bancos-reconexion-revoca","inicio-mes-pasado-mismo-dia","limpieza-ajustes-perfil","tr-empareja-sin-preguntar","cuenta-parte-mia"),"Inicio y las altas de la122, la124, la126, la127, la128, la129, la130 y la131, sin retirar historia120");
   for(const [key,value] of Object.entries(integrated))if(key!=="inicio-grafica-vuelve"){assert.deepEqual(scopes[key].native,value.native);assert.deepEqual(scopes[key].edge,value.edge);for(const part of (value.web||[]).map(limpieza129).filter(Boolean))assert.ok(scopes[key].web.some(s=>JSON.stringify(sinMetodo122(s))===JSON.stringify(part)||JSON.stringify(sinPull130(sinMetodo122(s)))===JSON.stringify(sinPull130(sinMetodo122(part)))),key+": no recortar descriptor ajeno120");}
   assert.equal(scope.unidades,true);
   for(const key of ["historial","auditoria","codigosCompatibles","compatibilidadGit","compatibilidadSha"])
@@ -192,7 +194,7 @@ test("Inicio v4.2 cubre flujos, ciclo, renderer, llamada, animación, textos, CS
     ["src/modules/03-tab-dash.js",'today:seriesToday,liquid:tt.liquid','today:"1900-01-01",liquid:tt.liquid'],
     ["src/modules/02-ui-shared.js",'Math.abs(mean)*.06','Math.abs(mean)*.6'],
     ["src/modules/02-ui-shared.js",'const debt=netWorthDebtPolicy(state,today,options.debtTotal);','const debt={current:0,first:null,value:function(){return 0;}};'],
-    ["src/modules/02-ui-shared.js",'daily[day]=(daily[day]||0)-Math.round(e.amount*100)','daily[day]=(daily[day]||0)+Math.round(e.amount*100)'],
+    ["src/modules/02-ui-shared.js",'else daily[day]=(daily[day]||0)-row.cents;','else daily[day]=(daily[day]||0)+row.cents;'],
     ["src/modules/03-tab-dash.js",'const valid=typeof value==="number" && Number.isFinite(value)&&','const valid=true&&'],
     ["src/modules/03-tab-dash.js",'p?p.sign+p.ent:"—"','p?p.sign+p.ent:"0"'],
     ["src/modules/03-tab-dash.js",'const value=tt.netWorth, shown=useCountUp','const value=0, shown=useCountUp'],
@@ -2769,7 +2771,7 @@ const expected130={"v":"4.26.130","d":"2026-10-14","t":{"es":"Trade Republic: lo
 test("Catálogo130 añade la tanda del emparejado automático de Trade Republic sobre la beta129, con alcance propio, y declara cada huella que mueve",()=>{
   const tanda="tr-empareja-sin-preguntar",limpieza="limpieza-ajustes-perfil",inicio="inicio-mes-pasado-mismo-dia",banco="bancos-reconexion-revoca";
   const integrated=JSON.parse(sourceBeta129("scripts/beta-sources.json")),before=JSON.parse(sourceBeta129("src/data/release-notes.json"));
-  const source=f=>read(f).replace(/\r\n/g,"\n"),old=f=>sourceBeta129(f).replace(/\r\n/g,"\n");
+  const source=f=>sourceBeta130(f).replace(/\r\n/g,"\n"),old=f=>sourceBeta129(f).replace(/\r\n/g,"\n");
   assert.deepEqual(before.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id])),[["4.26.129",limpieza],["4.26.128",inicio],["4.26.127",banco]],"la beta129 deja las tandas de la limpieza, de Inicio y de bancos en el panel");
   // Inicio (128) y bancos (127) las aprobó el móvil el 14/10: salen del panel con `tandas:[]` y conservan nota, descriptor e historial (Retiro130).
   const expectedNotes=[expected130,before[0],{...before[1],tandas:[]},{...before[2],tandas:[]},...before.slice(3)];
@@ -2931,6 +2933,7 @@ test("Catálogo130 añade la tanda del emparejado automático de Trade Republic 
 // su nota conserva versión, fecha, título y texto y solo pierde la tanda, con `tandas:[]` (sin la propiedad resucitaría como /todo);
 // el descriptor y el historial se quedan, y el producto sigue íntegro en el recibo de entrega.
 test("Retiro130 elimina solo las tandas de Inicio y de bancos aprobadas en el móvil y conserva notas, descriptores e historial",()=>{
+  const read=sourceBeta130;   // histórico desde la 131: la 130 publicada, donde ya estaban retiradas
   const inicio="inicio-mes-pasado-mismo-dia",banco="bancos-reconexion-revoca",limpieza="limpieza-ajustes-perfil",tr="tr-empareja-sin-preguntar";
   const before=JSON.parse(sourceBeta129("src/data/release-notes.json")),notes=JSON.parse(read("src/data/release-notes.json"));
   for(const id of [inicio,banco]){
@@ -2953,6 +2956,134 @@ test("Retiro130 elimina solo las tandas de Inicio y de bancos aprobadas en el m�
   }
   assert.deepEqual(Object.keys(receipt.pruebas).sort(),[limpieza,tr].sort(),"en el panel quedan la limpieza y el emparejado");
 });
+const expected131={"v":"4.26.131","d":"2026-10-14","t":{"es":"Cuentas compartidas: cuenta solo tu parte","en":"Shared accounts: count only your share","ca":"Comptes compartits: compta només la teva part"},"items":{"es":["Cartera: ahora puedes decir qué parte de una cuenta es tuya (por ejemplo, la mitad de una cuenta conjunta). Tu patrimonio y su gráfica cuentan solo esa parte; los gastos y el presupuesto no cambian. Si una cuenta compartida tiene movimientos antiguos que no dicen de qué cuenta salieron, su ficha te pregunta si son de esa cuenta; puedes cambiarlo cuando quieras."],"en":["Portfolio: you can now set how much of an account is yours (for example, half of a joint account). Your net worth and its chart count only that share; spending and budget stay the same. If a shared account has older transactions that don't say which account they came from, its page asks whether they belong to it; you can change it any time."],"ca":["Cartera: ara pots dir quina part d'un compte és teva (per exemple, la meitat d'un compte conjunt). El teu patrimoni i la seva gràfica compten només aquesta part; les despeses i el pressupost no canvien. Si un compte compartit té moviments antics que no diuen de quin compte van sortir, la seva fitxa et pregunta si són d'aquest compte; ho pots canviar quan vulguis."]},"tandas":[{"id":"cuenta-parte-mia","t":{"es":"Cuentas compartidas: cuenta solo tu parte","en":"Shared accounts: count only your share","ca":"Comptes compartits: compta només la teva part"},"items":{"es":["1. Cartera → Tus cuentas → toca la cuenta conjunta de Revolut: en \"Parte mía\" pulsa \"Cambiar\", pon 50 y \"Guardar\". La fila dice \"50 % tuyo\" y el saldo del banco no cambia.","2. En la misma ficha, en los movimientos antiguos de Revolut, pulsa \"Decidir\" y contesta \"Sí, son de esta cuenta\". En Inicio, con \"Todo\", la gráfica empieza unos 2.000 € más abajo y la frase de debajo sube.","3. Toca la \"i\" del patrimonio: sale \"Cuentas compartidas\" explicando que solo cuenta tu parte."],"en":["1. Portfolio → Your accounts → tap the joint Revolut account: under \"My share\" tap \"Change\", enter 50 and \"Save\". The row says \"50 % yours\" and the bank balance doesn't change.","2. On the same page, on the older Revolut transactions, tap \"Decide\" and answer \"Yes, they're from this account\". On Home, with \"All\", the chart starts about €2,000 lower and the sentence below goes up.","3. Tap the \"i\" on net worth: it shows \"Shared accounts\", explaining that only your share counts."],"ca":["1. Cartera → Els teus comptes → toca el compte conjunt de Revolut: a \"Part meva\" prem \"Canviar\", posa 50 i \"Desa\". La fila diu \"50 % teu\" i el saldo del banc no canvia.","2. A la mateixa fitxa, als moviments antics de Revolut, prem \"Decidir\" i respon \"Sí, són d'aquest compte\". A Inici, amb \"Tot\", la gràfica comença uns 2.000 € més avall i la frase de sota puja.","3. Toca la \"i\" del patrimoni: surt \"Comptes compartits\" explicant que només compta la teva part."]}}]};
+// 4.26.131 (14/10/2026): «Parte mía (%)» por cuenta (rama claude/cuenta-parte-mia, cabeza 450d544e, nacida de 24d0d463): el
+// patrimonio de Inicio y su gráfica cuentan solo la parte de cada cuenta que es suya; gastos y presupuesto no cambian. Tanda NUEVA
+// solo web, encima de la beta 4.26.130 publicada (67666d42), cuyas dos tandas (emparejado de TR y limpieza) SIGUEN en el panel: tres tandas.
+test("Catálogo131 añade la tanda de la parte mía de una cuenta sobre la beta130, con alcance propio, y declara cada huella que mueve",()=>{
+  const tanda="cuenta-parte-mia",tr="tr-empareja-sin-preguntar",limpieza="limpieza-ajustes-perfil",banco="bancos-reconexion-revoca",inicio="inicio-mes-pasado-mismo-dia";
+  const integrated=JSON.parse(sourceBeta130("scripts/beta-sources.json")),before=JSON.parse(sourceBeta130("src/data/release-notes.json"));
+  const source=f=>read(f).replace(/\r\n/g,"\n"),old=f=>sourceBeta130(f).replace(/\r\n/g,"\n");
+  assert.deepEqual(before.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id])),[["4.26.130",tr],["4.26.129",limpieza]],"la beta130 deja las tandas del emparejado y de la limpieza en el panel");
+  const expectedNotes=[expected131,...before];
+  const notes=JSON.parse(source("src/data/release-notes.json"));
+  assert.deepEqual(notes,expectedNotes,"la nota 131 literal delante y el catálogo de la beta130 intacto (sus dos tandas siguen)");
+  assert.deepEqual(notes.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id,g.apk||0])),[["4.26.131",tanda,0],["4.26.130",tr,0],["4.26.129",limpieza,0]],"el panel enseña tres tandas, todas sin APK");
+  assert.equal(notes.length,before.length+1,"ninguna nota se borra");
+  assert.deepEqual(Object.keys(notes[0].tandas[0]),["id","t","items"],"identidad nueva, sin alias ni revisión heredada");
+  for(const lang of ["es","en","ca"]){
+    assert.equal(notes[0].items[lang].length,1,lang+": un punto familiar");
+    const steps=notes[0].tandas[0].items[lang];assert.equal(steps.length,3,lang+": tres pasos");
+    steps.forEach((step,i)=>assert.ok(step.startsWith((i+1)+". "),lang+": paso numerado "+(i+1)));
+    for(const text of steps)assert.equal(/borra|quita este|delete|remove|esborra|treu aquest|mañana|tomorrow|demà/i.test(text),false,lang+": ningún paso borra nada ni espera a otro día");
+    // Sin cocina en lo que lee la familia (AGENTS §4).
+    for(const text of [notes[0].t[lang],...notes[0].items[lang]])assert.equal(/beta|tanda|panel|APK|ordinal|acuse|cursor|token|Edge|servidor|Open Banking|\d+\.\d+\.\d+/i.test(text),false,lang+": sin jerga: "+text);
+  }
+  // Los rótulos que cita el guion son el texto real de la app, en su idioma.
+  const literal={es:[['Tus cuentas','v4_cuentas:"Tus cuentas"'],['"Parte mía"','ac_share_q:"Parte mía"'],['"Cambiar"','ac_share_change:"Cambiar"'],['"Guardar"','ac_share_ok:"Guardar"'],['"50 % tuyo"','pt_share_meta:"{n} % tuyo"'],['"Decidir"','ac_legacy_decide:"Decidir"'],['"Sí, son de esta cuenta"','ac_legacy_yes:"Sí, son de esta cuenta"'],['"Cuentas compartidas"','v42_net_i_share:"Cuentas compartidas"']],
+    en:[['Your accounts','v4_cuentas:"Your accounts"'],['"My share"','ac_share_q:"My share"'],['"Change"','ac_share_change:"Change"'],['"Save"','ac_share_ok:"Save"'],['"50 % yours"','pt_share_meta:"{n} % yours"'],['"Decide"','ac_legacy_decide:"Decide"'],['"Yes, they\'re from this account"','ac_legacy_yes:"Yes, they\'re from this account"'],['"Shared accounts"','v42_net_i_share:"Shared accounts"']],
+    ca:[['Els teus comptes','v4_cuentas:"Els teus comptes"'],['"Part meva"','ac_share_q:"Part meva"'],['"Canviar"','ac_share_change:"Canviar"'],['"Desa"','ac_share_ok:"Desa"'],['"50 % teu"','pt_share_meta:"{n} % teu"'],['"Decidir"','ac_legacy_decide:"Decidir"'],['"Sí, són d\'aquest compte"','ac_legacy_yes:"Sí, són d\'aquest compte"'],['"Comptes compartits"','v42_net_i_share:"Comptes compartits"']]};
+  const textos=source("src/modules/01-i18n.js");
+  for(const lang of ["es","en","ca"])for(const [rotulo,fuente] of literal[lang]){
+    assert.ok(notes[0].tandas[0].items[lang].join(" ").includes(rotulo),lang+": el guion cita "+rotulo);
+    assert.ok(textos.includes(fuente),lang+": "+rotulo+" es el texto de la app ("+fuente+")");
+  }
+  const verifyNotes=list=>assert.deepEqual(list,expectedNotes);
+  const twice=structuredClone(notes);twice[0].tandas.push(structuredClone(twice[0].tandas[0]));assert.throws(()=>verifyNotes(twice),assert.AssertionError,"no duplicar la tanda");
+  const inherited=structuredClone(notes);inherited[0].tandas[0].desde=["4.26.130/"+tanda];assert.throws(()=>verifyNotes(inherited),assert.AssertionError,"no heredar revisión");
+  const withApk=structuredClone(notes);withApk[0].tandas[0].apk=55;assert.throws(()=>verifyNotes(withApk),assert.AssertionError,"no hay APK que probar");
+  const sinTr=structuredClone(notes);sinTr[1].tandas=[];assert.throws(()=>verifyNotes(sinTr),assert.AssertionError,"la tanda del emparejado de la 130 sigue en el panel");
+  const sinLimpieza=structuredClone(notes);sinLimpieza[2].tandas=[];assert.throws(()=>verifyNotes(sinLimpieza),assert.AssertionError,"la tanda de la limpieza de la 129 sigue en el panel");
+  // Un único descriptor nuevo, al final. Los demás son los de la beta130 con los crecimientos que exige el guardián de cierre (ver `crece`): las
+  // funciones nuevas (`accountShareOf`, `accountOwnsMovement`... en Inicio; `tagObAccountsFromBankTx` en los lectores del sync de bancos) y lo que ellas llaman.
+  const scopes=JSON.parse(source("scripts/beta-sources.json")),{[tanda]:added,...rest}=scopes;
+  assert.equal(integrated[tanda],undefined,"identidad que no existía");assert.equal(Object.keys(scopes).at(-1),tanda);
+  // Cada descriptor que crece lo hace con unidades que ya existen en la fuente: "8:nombre" es una función de 08-motor-bank, "0:" de 00-core, "1:" de 01-i18n
+  // y "@nombre" un dato. Son las dependencias que el guardián de cierre ("cada llamada de lógica mueve el digest") echa en falta tras la rama.
+  const crece=
+{
+    "inc-3009-nomina-anticipada": "0:accountSharePct,0:accountLooksJoint,0:parseAccountShare,0:setAccountShare,0:accountShareKey,0:accountLegacyCount,0:setAccountLegacy,8:tagObAccountsFromBankTx,0:accountIbanKey",
+    "inicio-grafica-vuelve": "0:accountShareOf,0:accountOwnsMovement,0:accountShareKey,0:accountSharePct,0:accountIbanKey",
+    "bancos-sin-hueco": "8:tagObAccountsFromBankTx,0:diaDeGasto",
+    "bancos-acuse-reconexion": "8:tagObAccountsFromBankTx,0:diaDeGasto",
+    "tr-iguales-ordinal": "8:tagObAccountsFromBankTx,0:diaDeGasto",
+    "inicio-patrimonio-flujos": "0:accountShareOf,0:accountOwnsMovement,0:accountShareKey,0:accountSharePct,0:accountIbanKey",
+    "inicio-mes-pasado-mismo-dia": "0:accountShareOf,0:accountOwnsMovement,0:accountShareKey,0:accountSharePct,0:accountIbanKey",
+    "tr-empareja-sin-preguntar": "8:tagObAccountsFromBankTx,0:diaDeGasto"
+  };
+  const ARCH={"0":"src/modules/00-core.js","1":"src/modules/01-i18n.js","8":"src/modules/08-motor-bank.js"};
+  const unidad=texto=>{const [f,n]=texto.split(":"),dato=n[0]==="@";return {file:ARCH[f],[dato?"data":"function"]:dato?n.slice(1):n};};
+  const crecido=Object.fromEntries(Object.entries(integrated).map(([key,scope])=>[key,crece[key]?{...scope,web:scope.web.concat(crece[key].split(",").map(unidad))}:scope]));
+  assert.deepEqual(rest,crecido,"solo crecen los descriptores de `crece` (cierre de lectores); nada se recorta");
+  // Escribe estado con set() (la ficha de cuenta, el sync): lleva el bloque del guardado igual que inc-2709-10-perfil (PERSIST91).
+  const guardado=integrated["inc-2709-10-perfil"].web.slice(3,17);
+  assert.equal(guardado.length,14,"el bloque del guardado: marca de App más trece unidades de 00-core");
+  assert.ok(guardado[0].from.includes("INC-0410 guardado: de aquí al límite"),"el bloque empieza en la marca del guardado");
+  const propias=[...[{"file":"src/modules/00-core.js","function":"accountIbanKey"},{"file":"src/modules/00-core.js","function":"accountShareKey"},{"file":"src/modules/00-core.js","function":"accountSharePct"},{"file":"src/modules/00-core.js","function":"accountShareOf"},{"file":"src/modules/00-core.js","function":"parseAccountShare"},{"file":"src/modules/00-core.js","function":"setAccountShare"},{"file":"src/modules/00-core.js","function":"accountLooksJoint"},{"file":"src/modules/00-core.js","function":"accountOwnsMovement"},{"file":"src/modules/00-core.js","function":"accountLegacyCount"},{"file":"src/modules/00-core.js","function":"setAccountLegacy"},{"file":"src/modules/02-ui-shared.js","function":"netWorthSeries"},{"file":"src/modules/02-ui-shared.js","function":"netWorthDay"},{"file":"src/modules/03-tab-dash.js","function":"netWorthInfoRows"},{"file":"src/modules/08-motor-bank.js","function":"applyBankBalances"},{"file":"src/modules/08-motor-bank.js","function":"flattenBankTx"},{"file":"src/modules/08-motor-bank.js","function":"importObExpenses"},{"file":"src/modules/08-motor-bank.js","function":"tagObAccountsFromBankTx"},{"file":"src/modules/07-tab-patri-fijos.js","function":"AccountSheet"},{"file":"src/modules/07-tab-patri-fijos.js","function":"Wealth"},{"file":"src/modules/11-app-main.js","from":"    // cuentas extra de Open Banking (2ª cuenta de un banco, compartidas…): saldo puro","to":"    const investedBase="},{"file":"src/modules/11-app-main.js","from":"        const withNotes=tagObAccountsFromBankTx(","to":"        const now=new Date(), withTx"},{"file":"src/modules/11-app-main.js","from":"     state.flows,state.oneoffs,state.deleted,state.aportaciones,state.obAccounts,","to":"     state.trRewardsTotal"},{"file":"src/modules/01-i18n.js","from":"ac_share_q:\"Parte mía\"","to":"ac_legacy_done_other:\"Los movimientos antiguos de {bank} sin cuenta los asignaste a otra cuenta.\","},{"file":"src/modules/01-i18n.js","from":"ac_share_q:\"My share\"","to":"ac_legacy_done_other:\"You assigned older {bank} movements with no account to another account.\","},{"file":"src/modules/01-i18n.js","from":"ac_share_q:\"Part meva\"","to":"ac_legacy_done_other:\"Els moviments antics de {bank} sense compte els vas assignar a un altre compte.\","}],...guardado];
+  assert.deepEqual(added.web.slice(0,propias.length),propias,"las unidades propias de la tanda, en este orden, y el bloque del guardado detrás");
+  assert.equal(added.unidades,true);assert.deepEqual(Object.keys(added),["web","unidades"],"solo web");
+  // El resto es el cierre de lectores (funciones y datos que leen las unidades propias, transitivamente) que exige el guardián de cierre:
+  // se recalcula aquí con el mismo lector hasta que no crece, sin listas escritas a mano.
+  {const fns=logicFunctions(source),dat=logicData(source);let web=propias.slice();
+    for(let ronda=0;ronda<10;ronda++){
+      const tiene=(file,nombre,clave)=>web.some(u=>u.file===file&&u[clave]===nombre),extra=[];
+      for(const fn of scopeDependencies({web},source,fns))if(!tiene(fn.file,fn.name,"function"))extra.push({file:fn.file,function:fn.name});
+      for(const d of scopeDataDependencies({web},source,fns,dat))if(!tiene(d.file,d.name,"data"))extra.push({file:d.file,data:d.name});
+      if(!extra.length)break;web=web.concat(extra);
+    }
+    const clave=u=>JSON.stringify(u);
+    assert.equal(added.web.length,web.length,"el cierre de lectores del descriptor es exactamente el calculado");
+    assert.deepEqual(new Set(added.web.map(clave)),new Set(web.map(clave)),"el cierre de lectores del descriptor es exactamente el calculado");
+    assert.ok(added.web.length>=150,"el cierre no se recorta");}
+  for(const u of added.web)assert.ok(scopeText(u,source).length>0,"la unidad existe en la fuente: "+JSON.stringify(u));
+  assert.equal(source("public/apk.json"),old("public/apk.json"),"sin APK nueva: apk.json no se toca");
+  for(const f of ["supabase/functions/bank-sync/index.ts","supabase/functions/bank-disconnect/index.ts","supabase/functions/_shared/enablebanking.ts","supabase/functions/_shared/myinvestor.ts","supabase/functions/myinvestor-sync/index.ts","supabase/functions/myinvestor-keepalive/index.ts"])assert.equal(source(f),old(f),"el servidor no cambia: "+f);
+  // Huellas que se mueven, lista cerrada: la parte mía toca el patrimonio (Inicio), las filas de banco del sync y la ficha de cuenta; se miden y se declaran una a una.
+  // Las de bancos y del emparejado (127, 130) también se mueven porque comparten el lector del sync (`importObExpenses`, `flattenBankTx`): la de bancos ya está aprobada y retirada.
+  const expectedMoves=Object.fromEntries(["fin05-widget-reentrada","fin05-pago-cerrada","tr-descripcion-clasificacion","widget-banco","widget-app-cerrada","inc-3009-nomina-anticipada","inc-2909-03-retirada","inc-2909-01-widget-periodo","inc-0210-01-plan-cuota","inicio-grafica-vuelve","widget-pago-app-cerrada","bancos-sin-hueco","widget-ciclo-puente","bancos-acuse-reconexion","tr-iguales-ordinal","inicio-patrimonio-flujos","recibo-cargo-en-gastos","bancos-reconexion-revoca","inicio-mes-pasado-mismo-dia","tr-empareja-sin-preguntar"].map(key=>[key,["web"]]));
+  const previous=new Map();
+  const measure=reader=>{
+    const now=JSON.parse(reader("scripts/beta-sources.json")),moved={};
+    for(const [key,scope] of Object.entries(integrated)){
+      if(key===archiveId){assert.deepEqual(auditedRevision(key,reader),auditedRevision(key,sourceBeta130));continue;}
+      if(!previous.has(key))previous.set(key,betaRevision(key,sourceBeta130,undefined,scope));
+      const a=previous.get(key),b=betaRevision(key,reader,undefined,now[key]);
+      const surfaces=["web","native","edge"].filter(x=>a[x]!==b[x]);
+      if(surfaces.length)moved[key]=surfaces;
+    }
+    return moved;
+  };
+  const verify=(reader,expected=expectedMoves)=>assert.deepEqual(measure(reader),expected,"lista cerrada: ni una huella extra ni una declarada que no cambie");
+  verify(source);
+  assert.ok(Object.keys(expectedMoves).includes(tr),"la tanda del emparejado de la 130 reabre: comparte el lector del sync de bancos");
+  assert.equal(Object.keys(expectedMoves).includes(limpieza),false,"la tanda de la limpieza de la 129 conserva su huella");
+  assert.throws(()=>verify(source,{...expectedMoves,"plan-scroll-lento":["web"]}),/lista cerrada/,"una huella declarada que no cambia pone rojo");
+  const missing={...expectedMoves};delete missing[inicio];assert.throws(()=>verify(source,missing),/lista cerrada/,"una huella real no declarada pone rojo");
+  assert.notDeepEqual(betaRevision(banco,source,undefined,scopes[banco]),betaRevision(banco,old,undefined,integrated[banco]),"la revisión de bancos de la 127 cambia (ya aprobada y retirada del panel)");
+  // Cada pieza de la entrega reabre la tanda.
+  const current=betaRevision(tanda,source,undefined,scopes[tanda]);
+  assert.ok(current.web);assert.equal(current.edge,undefined);assert.equal(current.native,undefined);
+  const core="src/modules/00-core.js",txt="src/modules/01-i18n.js",bank="src/modules/08-motor-bank.js",dash="src/modules/03-tab-dash.js",patri="src/modules/07-tab-patri-fijos.js",appMain="src/modules/11-app-main.js";
+  for(const [file,a,b] of [
+    [core,'return p==null?1:p/100;','return p==null?0:p/100;'],
+    [bank,'function tagObAccountsFromBankTx(expenses, txs){','function tagObAccountsFromBankTx(expenses, txs, x){'],
+    [txt,'pt_share_meta:"{n} % tuyo"','pt_share_meta:"{n} % mío"'],
+    [patri,'"data-testid":"ac-share-edit"','"data-testid":"ac-share-editar"'],
+    [dash,'t("v42_net_i_share_v")','t("v42_net_i_share")'],
+    [appMain,'*accountShareOf(state,o,"ob")','']]){
+    assert.equal(source(file).split(a).length,2,"mutante sobre fuente real: "+a);
+    const mutated=betaRevision(tanda,f=>f===file?source(f).replace(a,b):source(f),undefined,scopes[tanda]);
+    assert.notEqual(mutated.web,current.web,"reabre la tanda: "+a);
+  }
+  // Lo que el build entrega al panel.
+  const built=betaNotes(notes,source,scopes),receipt=betaDelivery(built,source,scopes),group=built[0].tandas[0];
+  assert.deepEqual(built.flatMap(n=>(n.tandas||[]).map(g=>g.id)),[tanda,tr,limpieza],"lo que el build entrega al panel");
+  assert.equal(group.web,current.web);assert.equal(group.edge,undefined);assert.equal(group.native,undefined);assert.equal(group.apk,undefined);
+  assert.equal(receipt.web[tanda],current.web);
+  assert.deepEqual(receipt.pruebas,{[tanda]:{v:"4.26.131",contenido:JSON.stringify([tanda,expected131.tandas[0].t.es,expected131.tandas[0].items.es,1])},[tr]:{v:"4.26.130",contenido:JSON.stringify([tr,expected130.tandas[0].t.es,expected130.tandas[0].items.es,1])},[limpieza]:{v:"4.26.129",contenido:JSON.stringify([limpieza,expected129.tandas[0].t.es,expected129.tandas[0].items.es,1])}},"un guion por probar en cada tanda que sigue en el panel: la parte mía con la 131, el emparejado con la 130 y la limpieza con la 129");
+  for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica","native"])assert.equal(group[key],undefined,"identidad nueva sin "+key);
+});
+
 // Catálogo cerrado: desde la promoción126 se lee de la beta126 publicada (d8d2624c), que es la última con tandas en el panel.
 test("Inicio v4.2 conserva el catálogo120 y los retiros anteriores en la beta126 publicada (histórico)",()=>{
   const read=source126;
@@ -3137,7 +3268,8 @@ test("PERSIST91: el guardado en el commit invalida toda tanda que escribe estado
   const marca="INC-0410 guardado: de aquí al límite";
   const dependientes=Object.keys(registro).filter(id=>registro[id].web.some(x=>x.from&&x.from.includes(marca)));
   const ajenas=Object.keys(registro).filter(id=>!dependientes.includes(id));
-  assert.equal(dependientes.length,33);
+  assert.equal(dependientes.length,34);
+  assert.ok(dependientes.includes("cuenta-parte-mia"),"la parte mía de una cuenta guarda con el set real (ficha de cuenta, sincronización) y lleva el bloque del guardado");
   assert.ok(dependientes.includes("tr-empareja-sin-preguntar"),"el emparejado borra, edita y deshace con el set real y lleva el bloque del guardado");
   assert.ok(dependientes.includes("limpieza-ajustes-perfil"),"la limpieza de Ajustes y perfil escribe estado con set() (Ajustes, Cartera) y lleva el bloque del guardado");
   assert.ok(dependientes.includes("inicio-mes-pasado-mismo-dia"),"la tanda de la comparación lleva el mismo alcance de Inicio que inicio-patrimonio-flujos, con su bloque del guardado");

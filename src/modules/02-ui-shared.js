@@ -726,13 +726,44 @@ function netWorthSeries(state, options){
   const rows=accountRowsInOrder(state), owned=Object.create(null), hist=state.accountBalanceHistory||{};
   const ins=options.balanceInputs?Object.assign({},options.balanceInputs,{roundup:options.balanceInputs.roundupThisMonth,monthlyInvest:options.balanceInputs.monthlyInvestThisMonth}):insumosSaldoGasto(state);
   rows.forEach(function(r){ if(r.item.ent) owned[r.item.ent]=true; });
-  const values=rows.map(function(r){
+  // Solo cuenta su parte de cada cuenta (`accountShareOf`): el saldo de hoy, sus cierres y sus
+  // movimientos. Sin parte puesta el factor es 1 y la serie sale idéntica al céntimo.
+  const shares=rows.map(function(r){ return accountShareOf(state,r.item,r.kind); });
+  const values=rows.map(function(r,i){
     if(typeof r.item.value!=="number"||!Number.isFinite(r.item.value)) return null;
-    return r.kind==="ob"?toEurAmt(r.item.value,r.item.cur||"EUR",state):saldoCuentaMostrada(r.item,ins);
+    const v=r.kind==="ob"?toEurAmt(r.item.value,r.item.cur||"EUR",state):saldoCuentaMostrada(r.item,ins);
+    return typeof v==="number"&&shares[i]!==1?v*shares[i]:v;
   });
   if(values.some(function(v){ return typeof v!=="number"||!Number.isFinite(v); })){
     gaps.push({kind:"balance",unknown:true,name:rows.filter(function(r,i){ return values[i]==null; }).map(function(r){ return r.item.name||r.item.ent; }).join(", ")});return done();
   }
+  /* De qué cuenta salió cada movimiento: los nuevos de Open Banking guardan la suya (`obAcc`). Los
+     de antes no, y un banco con dos cuentas a partes distintas (la personal al 100 % y la conjunta
+     al 50 % en Revolut) no deja saber a cuál aplicar: ahí cuentan enteros, como siempre, y la «i»
+     lo dice. Repartirlos por saldo sería inventar (con las dos a cero ni siquiera hay saldo). Si
+     todas las cuentas del banco tienen la misma parte, esa vale para todos sus movimientos. */
+  const byBank={}, unsplit={}, decided={};
+  rows.forEach(function(r,i){ if(r.item.ent) (byBank[r.item.ent]||(byBank[r.item.ent]=[])).push({r:r,s:shares[i]}); });
+  /* Lo que él decidió para los movimientos viejos sin cuenta de ese banco (`accountLegacyFor`):
+     «son de esta cuenta» les pone la parte de esa cuenta; «no son de esta» los deja entre las
+     demás, y si todas ellas tienen la misma parte, esa. Solo hasta el día en que lo decidió: lo
+     que entre después sin cuenta no lo ha visto. */
+  const legacy=(state.settings||{}).accountShareLegacy||{};
+  const factorOf=function(e,bank,day){
+    let list=byBank[bank];
+    if(e.obAcc){ const hit=list.find(function(x){ return accountOwnsMovement(x.r.item,x.r.kind,e.obAcc); }); if(hit) return hit.s; }
+    const dec=!e.obAcc&&legacy[bank];
+    if(dec&&day<=dec.day){
+      const mine=function(x){ return accountShareKey(x.r.item,x.r.kind)===dec.key; };
+      const hit=list.find(mine);
+      if(hit) decided[bank]=true;
+      if(hit&&!dec.no) return hit.s;
+      if(hit&&list.length>1) list=list.filter(function(x){ return !mine(x); });
+    }
+    if(list.every(function(x){ return x.s===list[0].s; })) return list[0].s;
+    // Un apunte a cero no mueve nada que haya que separar: no avisa.
+    if(e.amount) unsplit[bank]=true; return 1;
+  };
   const del=expenseDeletedSet(state), entries=[], byAmount={}, firstByBank={}, hours={};
   (state.expenses||[]).forEach(function(e){
     if(!e||e.possibleDup||expenseIsTombstoned(e,del)||typeof e.amount!=="number"||!Number.isFinite(e.amount)||
@@ -742,7 +773,7 @@ function netWorthSeries(state, options){
     if(!Number.isFinite(ms)) return;
     const hour=Math.floor(ms/3600000),bounds=hours[hour]||(hours[hour]=[fmt.format(hour*3600000),fmt.format(hour*3600000+3599999)]);
     const day=bounds[0]===bounds[1]?bounds[0]:fmt.format(ms);if(day>today) return;
-    const row={expense:e,bank:bank,day:day,ms:ms,cents:Math.round(e.amount*100)};entries.push(row);
+    const row={expense:e,bank:bank,day:day,ms:ms,cents:Math.round(e.amount*100),f:factorOf(e,bank,day)};entries.push(row);
     if(!firstByBank[bank]||day<firstByBank[bank]) firstByBank[bank]=day;
     if(row.cents){const key=Math.abs(row.cents);(byAmount[key]||(byAmount[key]=[])).push(row);}
   });
@@ -757,14 +788,19 @@ function netWorthSeries(state, options){
       while(low<high){const mid=(low+high)>>1;if(group[mid].ms<from)low=mid+1;else high=mid;}
       for(let i=low;i<group.length&&group[i].ms<=to;i++){
         const b=group[i],cat=b.expense.category;
-        if(a.bank===b.bank||a.cents!==-b.cents||(cat&&cat!=="traspaso"&&cat!=="otros"))continue;
+        // Dentro del mismo banco solo hay par si las dos patas dicen su cuenta y son distintas (de
+        // la personal a la conjunta): con la misma parte sigue neutro, como antes sin par.
+        const sameAcc=a.bank===b.bank&&!(a.expense.obAcc&&b.expense.obAcc&&a.expense.obAcc!==b.expense.obAcc);
+        if(sameAcc||a.cents!==-b.cents||(cat&&cat!=="traspaso"&&cat!=="otros"))continue;
         const ar=a.expense.transferId,br=b.expense.transferId;if(ar&&br&&ar!==br)continue;
         if(!mates.has(a))mates.set(a,new Set());if(!mates.has(b))mates.set(b,new Set());
         mates.get(a).add(b);mates.get(b).add(a);
       }
     });
-    mates.forEach(function(list,a){if(list.size!==1)return;const b=Array.from(list)[0];if(mates.get(b).size===1){a.ownTransfer=b.bank;b.ownTransfer=a.bank;}});
+    mates.forEach(function(list,a){if(list.size!==1)return;const b=Array.from(list)[0];if(mates.get(b).size===1){a.ownTransfer=b.bank;b.ownTransfer=a.bank;a.mate=b;b.mate=a;}});
   });
+  // Emparejados los traspasos con el importe entero, cada movimiento pesa ya su parte.
+  entries.forEach(function(row){ if(row.f!==1) row.cents=Math.round(row.expense.amount*100*row.f); });
   const manual=[], flowBanks={}, later=[];
   let first="";
   rows.forEach(function(r,i){
@@ -781,7 +817,9 @@ function netWorthSeries(state, options){
       // Antes del primer cierre, la cuenta manual conserva ese primer saldo: es la misma
       // aproximación que ya se hace sin historial y que un bien heredado, y un sobre de
       // efectivo con un cierre de hace dos semanas recortaba toda la serie a esa fecha (13/10).
-      manual.push({value:values[i],points:points,before:points.length?points[0].value:0});
+      // Los cierres guardan el saldo entero: pesan la misma parte que el de hoy.
+      const part=shares[i]===1?points:points.map(function(p){ return Object.assign({},p,{value:p.value*shares[i]}); });
+      manual.push({value:values[i],points:part,before:part.length?part[0].value:0});
       if(points.length) gaps.push({day:points[0].day,kind:"manual",name:r.item.name||bank,constant:true,prior:true});
     }
     if(points.length&&(!first||points[0].day<first)) first=points[0].day;
@@ -815,7 +853,13 @@ function netWorthSeries(state, options){
     const e=row.expense,day=row.day;
     // Un cierre manual ya recoge su pata: sólo dos cuentas reconstruidas por flujos
     // permiten neutralizar ambas sin perder el traspaso (revisión12/10).
-    if(!flowBanks[row.bank]||(row.ownTransfer&&flowBanks[row.ownTransfer])) return;
+    // Entre dos cuentas con distinta parte el traspaso sí mueve lo suyo: 1.000 € de su cuenta a la
+    // conjunta al 50 % son 500 € que pasan a ser de la pareja. Cada pata cuenta con su parte.
+    if(!flowBanks[row.bank]||(row.ownTransfer&&flowBanks[row.ownTransfer]&&row.f===row.mate.f)) return;
+    // Con partes distintas no cuenta ninguna pata: solo la diferencia (salida × su parte − llegada ×
+    // la suya), el día de la salida. Contar cada pata en su día pintaba un bache de −1.000 mientras
+    // el dinero viajaba de la personal (día 10) a la conjunta (día 12), en vez de −500 (revisión 14/10).
+    if(row.ownTransfer&&flowBanks[row.ownTransfer]){ if(e.amount>0) daily[day]=(daily[day]||0)-(row.cents+row.mate.cents); return; }
     const text=String(e.merchant||"").toLowerCase(),target=e.toBank||e.to||e.counterpartyBank;
     const plan=!!invKnown&&!row.ownTransfer&&e.amount>0&&(e.category==="traspaso"||e.category==="otros")&&
       /transferencia|traspaso|transfer/i.test([e.merchant,e.note,e.concept].join(" "))&&toHolder(e)&&plans.some(function(p){ return Math.abs(p.amount-e.amount)<0.005; });
@@ -834,7 +878,7 @@ function netWorthSeries(state, options){
     const transit=!row.ownTransfer&&e.amount>0&&((e.category==="traspaso"&&linked)||plan);
     if(!transit&&!row.ownTransfer&&((e.category==="traspaso"&&!linked)||(e.amount>0&&isAtmWithdrawal(e.merchant)))) return;
     if(transit||e.category==="inversion"||(e.category==="traspaso"&&linked)) contribs.push({row:row,day:day,cents:row.cents,transit:transit,plan:plan});
-    else daily[day]=(daily[day]||0)-Math.round(e.amount*100);
+    else daily[day]=(daily[day]||0)-row.cents;
   });
   // El dinero que va a un bróker cuenta como inversión DESDE QUE SALE DEL BANCO y se queda ahí
   // hasta la primera foto que lo incluye, en diez días. Antes se daba por incluido en la foto del
@@ -882,6 +926,10 @@ function netWorthSeries(state, options){
   if(debt.timingUnknown)gaps.push({kind:"debt",timingUnknown:true});
   debt.notes.forEach(function(n){gaps.push(n);});
   const start=first||today;
+  rows.forEach(function(r,i){ if(shares[i]!==1) gaps.push({kind:"share",name:r.item.name||r.item.ent,pct:Math.round(shares[i]*10000)/100}); });
+  const anyShared=shares.some(function(s){ return s!==1; });
+  Object.keys(decided).forEach(function(b){ if(flowBanks[b]&&anyShared) gaps.push({kind:"share",legacy:true,name:(ENT[b]&&ENT[b].label)||b}); });
+  Object.keys(unsplit).forEach(function(b){ if(flowBanks[b]) gaps.push({kind:"share",unsplit:true,name:(ENT[b]&&ENT[b].label)||b}); });
   // Lo que se mantiene constante antes de su primer dato se declara, en corto, en la «i»; un
   // «antes del» que cae fuera de la gráfica no cuenta nada y se calla.
   for(let i=gaps.length-1;i>=0;i--)if(gaps[i].prior&&gaps[i].day<=start)gaps.splice(i,1);
