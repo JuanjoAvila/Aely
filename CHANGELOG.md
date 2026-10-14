@@ -1,3 +1,5 @@
+Candidata sin publicar: compras iguales con referencias bancarias distintas, sobre 133. Contratos Node y mutaciones propios; guardián antiguo de Recibos y tamaño conservan sus rojos. Sin VERSION nueva, despliegue ni aceptación móvil. [Contrato](docs/briefs/compras-identicas-ids-distintos-20261014.md).
+
 ## [4.26.133] — 2026-10-14 · Deslizar hasta el final: vuelve la ola y la barra no asoma
 
 - **Fallo.** Con la barra inferior escondida, un fling hasta el fondo se paraba en seco, sin la ola nativa de Android, y dejaba asomar media barra por abajo.

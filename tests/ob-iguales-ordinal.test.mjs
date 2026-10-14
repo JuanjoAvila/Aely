@@ -15,7 +15,7 @@
  *     (usuario+fecha+importe+comercio) sin duplicarse ni perderse;
  *   · lo guardado y las lápidas de la versión anterior siguen casando (migración implícita);
  *   · el móvil con la versión anterior (788432f4) ni duplica ni pierde más que hoy;
- *   · los bancos que SÍ traen id no cambian.
+ *   · las referencias distintas del banco también conservan sus ranuras.
  */
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
@@ -292,13 +292,13 @@ t("segunda sincronización seguida, con respuestas mezcladas por el camino: 0 fi
 });
 
 /* ── 7. Banco que SÍ trae id: nada cambia ──────────────────────────────────────────────── */
-t("Sabadell (con entry_reference): dos cargos iguales con ids distintos se tratan como hoy (sin ordinal, misma fecha)", () => {
+t("Sabadell: dos cargos iguales con referencias distintas conservan dos ranuras", () => {
   const s = estado();
   s.accounts.push({ id: "sb", ent: "sabadell", role: "fijos", value: 100 });
   const tx = (ref) => H.E.mapTransaction({ entry_reference: ref, booking_date: ymd(-2), value_date: ymd(-2), status: "BOOK", transaction_amount: { amount: "9.99" }, credit_debit_indicator: "DBIT", creditor: { name: "Netflix" } });
   const add = c.importObExpenses(s, flat([tx("a"), tx("b")], ctx, "Banco Sabadell"), [{ aspsp: "Banco Sabadell", syncFrom: "2026-01-01" }]) || [];
-  assert.equal(add.filter((e) => e.obOrd).length, 0, "con id no hay ordinal");
-  assert.equal(add.length, 1, "misma fusión por clave que hoy (lo cambiará, si acaso, otra entrega)");
+  assert.equal(add.filter((e) => e.obOrd).length, 1, "el segundo usa la ranura dos");
+  assert.equal(add.length, 2, "dos referencias acreditan dos cargos");
   assert.equal(add[0].extId, "a");
   s.expenses = add.concat(s.expenses);
   assert.equal(c.importObExpenses(s, flat([tx("a")], ctx, "Banco Sabadell"), [{ aspsp: "Banco Sabadell", syncFrom: "2026-01-01" }]), null, "por id");
@@ -652,7 +652,7 @@ t("borrar a mano un apunte del banco (el bloque REAL de Gastos) deja rastro «si
   // Desde el 13/10/2026 la lápida la pone `lapidaPon` (con su hora si esa clave se levantó antes).
   const m = gastosSrc.match(/const next=Object\.assign\(\{\},s,\{\s*expenses:\(s\.expenses\|\|\[\]\)\.filter\(function\(x\)\{ return x\.id!==e\.id&&\(!paired\|\|x\.id!==paired\.id\); \}\)\s*\},lapidaPon\(s,key\)\);[\s\S]*?return next;/);
   assert.ok(m, "no se encuentra el bloque de borrar en 04-tab-gastos");
-  const borra = new Function("s", "e", "key", "lapidaPon", "pushGemelos", "paired", "keyOfE", m[0]);
+  const borra = new Function("bankDeletionLink", "s", "e", "key", "lapidaPon", "pushGemelos", "paired", "keyOfE", m[0]).bind(null,c.bankDeletionLink);
   const s = estado();
   const x = sync(s, [ob(-2, 7)])[0];
   const next = borra(s, x, c.keyOfExpense(x), c.lapidaPon, c.pushGemelos);

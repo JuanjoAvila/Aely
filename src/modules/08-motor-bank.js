@@ -1329,6 +1329,10 @@ function importObExpenses(s, txs, links){
   /* Lápidas: «es el mismo» borra la fila OB y deja clave en `deleted`. Sin esto el siguiente
      sync de TR volvería a meter el Movimiento y a marcarlo otra vez contra la noti. */
   const delSet={}; (s.deleted||[]).forEach(function(k){ delSet[k]=1; });
+  const deletedRefs={}, deletedSlots={};
+  (s.gemelos||[]).forEach(function(g){
+    if(g&&g.aviso===""&&g.bankRef&&delSet[g.banco]){deletedRefs[(g.ent||"")+"|"+g.bankRef]=1;deletedSlots[g.banco]=1;}
+  });
   /* POSIBLE REPETIDO, NO DESCARTE (2026-09-07). TR por OB no manda id/comercio/hora: un
      «Movimiento» sin nombre puede ser el mismo cargo que ya entró por la noti del móvil, o una
      compra distinta del mismo importe. Descartar callaba pérdidas (y, sin filtrar banco, un
@@ -1386,6 +1390,7 @@ function importObExpenses(s, txs, links){
   /* PRIMERA PASADA: la fila que ENTRARÍA por cada apunte, con todos los filtros de siempre
      (estado, ventana, modelados, id ya visto) pero SIN decidir todavía si ya la tenemos. */
   const prepara=function(tx){
+    if(tx.id&&deletedRefs[(tx.ent||"")+"|"+tx.id])return null;
     const esIngreso = tx.amount<0;
     if(esIngreso){
       // Un abono pendiente o futuro no acredita dinero disponible (feedback 30/9).
@@ -1476,20 +1481,19 @@ function importObExpenses(s, txs, links){
      el mismo estado— no hay nada que distinga «repetida al paginar» de «dos bizums iguales», y
      ahí mandan los k del banco: es la función de esta entrega. */
   const firme=function(tx){ const st=String(tx.status||"").trim(); return !st || /book|post/i.test(st); };
-  /* UN APUNTE CON ID Y OTRO IDÉNTICO SIN ID SON EL MISMO CARGO (13/10/2026, decisión del
-     coordinador). El de id va por su camino y no contaba para las ranuras: si llegaba delante,
-     el de sin id entraba también como «primero» y quedaban dos filas con LA MISMA clave. Una
-     sola cabía en la nube, el siguiente pull las fundía (7,50 contados como 15 hasta entonces)
-     y un «no es este recibo» sobre una soltaba las dos; si llegaba detrás, o en otra
-     sincronización, entraba una. Ahora entra UNA desde el principio, la del id: ocupa la ranura
-     1 del grupo y a los de sin id les quedan de la 2 en adelante. Con dos ids iguales y uno sin
-     id sigue siendo una (los de id ya se fundían por clave); con un id y dos sin id, dos. No hay
-     dato de que un banco mande así dos cargos distintos. Solo hace falta mirar el de id que
-     entra AHORA: el que ya está guardado tiene su clave en `keys` y cubre la ranura 1 él solo;
-     el que no pasa los filtros (un abono pendiente) no cuenta. */
+  /* El alias sin id ocupa una de las ranuras de los cargos identificados, nunca una adicional.
+     Dos referencias distintas acreditan dos cargos; repetida la referencia, solo uno. Las
+     ranuras de los identificados se reservan antes de repartir las del grupo sin identidad,
+     conservando el criterio de Recibos: el total es el mayor de ambos recuentos, no su suma. */
+  // Las referencias distintas ocupan ranuras distintas también al llegar por tandas.
+  const conIds=cands.filter(function(c){return !!c.tx.id;}).sort(function(a,b){return String(a.tx.id)<String(b.tx.id)?-1:String(a.tx.id)>String(b.tx.id)?1:0;});
+  const ordenadas=expenseBankIdOrdinals((s.expenses||[]).concat(conIds.map(function(c){return c.e;})),function(e,n){
+    return !!deletedSlots[keyOfExpenseLegacy(e)+(n>1?"|#"+n:"")];
+  });
+  conIds.forEach(function(c,i){c.e=ordenadas[(s.expenses||[]).length+i];});
   if(ordenGrupos.length) cands.forEach(function(c){
     const g=c.tx.id && grupos[(expenseBankOf(c.e)||c.e.ent||"")+"|"+baseKOf(c.e)];
-    if(g) g.conId=1;
+    if(g) g.conId=Math.max(g.conId||0,obOrdinalOf(c.e));
   });
   ordenGrupos.forEach(function(k){
     const g=grupos[k];
@@ -1513,6 +1517,7 @@ function importObExpenses(s, txs, links){
   cands.forEach(function(c){
     const tx=c.tx, e=c.e;
     if(tx.id){
+      if(seen[(tx.ent||"")+"|"+tx.id]||seenLegacy[tx.id])return;
       if(keys[scopedKOf(e)] || delSet[scopedKOf(e)] || delSet[kOf(e)]) return;
     }else{
       if(c.ord==null) return;   // sin ranura libre: ese apunte ya está guardado o resuelto

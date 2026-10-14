@@ -1,5 +1,12 @@
 # Arquitectura — Aely
 
+## Candidata: compras iguales con referencias distintas
+
+El importador y las mezclas conservan referencias distintas mediante las ranuras ordinales
+existentes. La referencia viaja en `source` como `#ref`, y el borrado conserva su identidad
+en el vínculo «sin aviso» ya existente, junto a la lápida de ranura. Sin esquema ni servidor nuevos.
+[Contrato y límites](briefs/compras-identicas-ids-distintos-20261014.md).
+
 ## Emparejado candidato PR228
 
 La asignación de avisos y bancos vive en reconcileGemelosAutomaticos y se invoca desde importObExpenses, el updater, el arranque y el pull. Las marcas se devuelven antes de subir los apuntes. Los pares automáticos se derivan de filas; gemelos conserva decisiones y reservas históricas. La caché no se persiste: índices por referencia y grupos banco/importe, con fechas de Madrid cacheadas. Un cambio no financiero conserva las parejas. Una retirada de #dup recibida de otra versión se respeta como decisión humana. [Contrato actual, migración y límites](briefs/tr-emparejado-automatico-20261013.md).
