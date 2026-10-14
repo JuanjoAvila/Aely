@@ -21704,8 +21704,10 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
         setS({budgetCycle:!(state.settings&&state.settings.budgetCycle)});
       },sw(!!(state.settings&&state.settings.budgetCycle))),
       React.createElement("div",{className:"hint",style:{margin:"2px 12px 10px"}},t("st_budget_cycle_d")),
-      // Plan/Dinero: flag pendiente + click Plan + evento (sin setTimeout; cold start idle).
-      row("bills","📋",t("v4s_change_bills"),null,function(){
+      // «Cambiar mis recibos» salió de Ajustes (14/10/2026: se gestionan desde Plan › Recibos › Gestionar).
+      // Solo se queda en modo sencillo, donde Plan no enseña «Gestionar» (NO-GO §5bis.2) y esta era la
+      // ÚNICA puerta. Plan/Dinero: flag pendiente + click Plan + evento (sin setTimeout; cold start idle).
+      simOn && row("bills","📋",t("v4s_change_bills"),null,function(){
         try{ window.__mcOpenBillsPending=true; }catch(e){}
         if(typeof onClose==="function") onClose();
         var ptab=document.querySelector('.botnav-tab[data-tour="plan"]');
