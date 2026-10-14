@@ -1,5 +1,49 @@
 [
   {
+    "v": "4.26.133",
+    "d": "2026-10-14",
+    "t": {
+      "es": "Deslizar hasta el final: vuelve la ola y la barra no asoma",
+      "en": "Swiping to the end: the glow is back and the bar stays hidden",
+      "ca": "Lliscar fins al final: torna l'ona i la barra no treu el cap"
+    },
+    "items": {
+      "es": [
+        "Al llegar al final o al principio de una pantalla deslizando rápido, vuelve la ola de Android y la barra de abajo ya no asoma a medias."
+      ],
+      "en": [
+        "When you swipe fast to the end or the start of a screen, the Android glow is back and the bottom bar no longer peeks out halfway."
+      ],
+      "ca": [
+        "En arribar al final o al principi d'una pantalla lliscant ràpid, torna l'ona d'Android i la barra de baix ja no treu el cap a mitges."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "scroll-borde-barra",
+        "t": {
+          "es": "Deslizar hasta el final: vuelve la ola y la barra no asoma",
+          "en": "Swiping to the end: the glow is back and the bar stays hidden",
+          "ca": "Lliscar fins al final: torna l'ona i la barra no treu el cap"
+        },
+        "items": {
+          "es": [
+            "1. En Gastos, con \"Todo\", baja un poco para que se esconda la barra y tira fuerte hacia abajo hasta el final: sale la ola de Android y no asoma nada de la barra. Sigue tirando hacia abajo: la barra sigue sin salir.",
+            "2. Desde el final, sube con decisión hasta arriba del todo en Gastos, Inicio y Cartera: la barra aparece al subir, sin frenazo arriba y con la ola al llegar al tope."
+          ],
+          "en": [
+            "1. In Spending, with \"All\", scroll down a little so the bar hides, then pull hard down to the end: the Android glow shows and nothing of the bar peeks out. Keep pulling down: the bar still stays hidden.",
+            "2. From the end, swipe up firmly to the very top in Spending, Home and Portfolio: the bar appears as you go up, with no abrupt stop at the top and with the glow when you reach the top."
+          ],
+          "ca": [
+            "1. A Despeses, amb \"Tot\", baixa una mica perquè s'amagui la barra i estira fort cap avall fins al final: surt l'ona d'Android i no treu el cap res de la barra. Continua estirant cap avall: la barra continua sense sortir.",
+            "2. Des del final, puja amb decisió fins a dalt de tot a Despeses, Inici i Cartera: la barra apareix en pujar, sense frenada a dalt i amb l'ona en arribar al tope."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.132",
     "d": "2026-10-14",
     "t": {
@@ -18,27 +62,7 @@
         "Inici: «Últims moviments» ensenya cada compra de Trade Republic només una vegada, amb el nom del comerç, sense una segona fila genèrica del mateix import. També s'arregla a la fitxa de cada compte i al resum de la llar."
       ]
     },
-    "tandas": [
-      {
-        "id": "inicio-recientes-sin-repetidos",
-        "t": {
-          "es": "Inicio: los últimos movimientos ya no repiten las compras de Trade Republic",
-          "en": "Home: recent transactions no longer repeat Trade Republic purchases",
-          "ca": "Inici: els darrers moviments ja no repeteixen les compres de Trade Republic"
-        },
-        "items": {
-          "es": [
-            "1. Abre Inicio y baja a \"Últimos movimientos\": cada compra de Trade Republic sale una sola vez, con el nombre del comercio, sin un \"Movimiento · Otros\" del mismo importe."
-          ],
-          "en": [
-            "1. Open Home and scroll to \"Latest activity\": each Trade Republic purchase appears once, with the merchant name, without a \"Movement · Other\" of the same amount."
-          ],
-          "ca": [
-            "1. Obre Inici i baixa a \"Últims moviments\": cada compra de Trade Republic surt una sola vegada, amb el nom del comerç, sense un \"Moviment · Altres\" del mateix import."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.131",

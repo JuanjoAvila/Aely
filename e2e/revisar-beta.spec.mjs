@@ -1793,19 +1793,19 @@ for(const lang of ["es","en","ca"])test(`promoción117: entrega por superficies,
 
 });
 
-/* Beta 4.26.132 (14/10/2026): la nota nueva de los últimos movimientos de Inicio sin repetidos con su tanda, ÚNICA del panel;
- * las de la parte mía (4.26.131), el emparejado de Trade Republic (4.26.130) y la limpieza (4.26.129), igual que las de Inicio (4.26.128) y bancos (4.26.127),
+/* Beta 4.26.133 (14/10/2026): la nota nueva del scroll al borde con la barra escondida con su tanda (dos pasos), ÚNICA del panel;
+ * las de los últimos movimientos (4.26.132), la parte mía (4.26.131), el emparejado de Trade Republic (4.26.130) y la limpieza (4.26.129), igual que las de Inicio (4.26.128) y bancos (4.26.127),
  * las aprobó el móvil y salen del panel con `tandas:[]`, sobre la producción 4.26.126 (33d39cb8), que ya consolidó la
  * ronda 118–126 en una sola nota. Aquí no se inyecta nada: se mira el catálogo que lleva el bundle. Las versiones se leen fila a fila (ver la nota
  * del 12/10 sobre «v4.26.11» + «22 sep»). */
-for(const lang of ["es","en","ca"])test(`beta132: la nota de los últimos movimientos con su tanda, y las cinco anteriores ya aprobadas, sobre el historial de producción (${lang})`,async({page})=>{
+for(const lang of ["es","en","ca"])test(`beta133: la nota del scroll al borde con su tanda, y las seis anteriores ya aprobadas, sobre el historial de producción (${lang})`,async({page})=>{
   await abrirRevisionBeta(page,lang);
   const production=JSON.parse(execFileSync("git",["show","33d39cb80764aaf22998f69ac8bbaeffeadf4013:src/data/release-notes.json"],{encoding:"utf8",maxBuffer:8e6}));
   expect(production.length).toBe(228);
   const catalog=await page.evaluate(()=>RELEASE_NOTES.map(n=>[n.v,Array.isArray(n.tandas)?n.tandas.length:-1]));
-  expect(catalog).toEqual([["4.26.132",1],["4.26.131",0],["4.26.130",0],["4.26.129",0],["4.26.128",0],["4.26.127",0],...production.map(n=>[n.v,0])]);
-  const pack=await page.evaluate(()=>{CONFIG.APP_VERSION="4.26.132.1";const p=betaChecklist(CONFIG.APP_VERSION,"4.26.117",55);return {tandas:p.tandas.length,items:p.items.length};});
-  expect(pack).toEqual({tandas:1,items:1});
+  expect(catalog).toEqual([["4.26.133",1],["4.26.132",0],["4.26.131",0],["4.26.130",0],["4.26.129",0],["4.26.128",0],["4.26.127",0],...production.map(n=>[n.v,0])]);
+  const pack=await page.evaluate(()=>{CONFIG.APP_VERSION="4.26.133.1";const p=betaChecklist(CONFIG.APP_VERSION,"4.26.117",55);return {tandas:p.tandas.length,items:p.items.length};});
+  expect(pack).toEqual({tandas:1,items:2});
   const title=await page.evaluate(lang=>rnT(RELEASE_NOTES[0].t,lang),lang);
   const items=await page.evaluate(lang=>rnItems(RELEASE_NOTES[0],lang),lang);
   expect(items.length).toBe(1);
@@ -1820,8 +1820,8 @@ for(const lang of ["es","en","ca"])test(`beta132: la nota de los últimos movimi
   const versions=news.locator('button').filter({hasText:/^v\d+\./});
   await expect(versions).toHaveCount(20);
   await news.locator('.btn-ghost.btn-block').click();
-  await expect(versions).toHaveCount(234);
+  await expect(versions).toHaveCount(235);
   const shown=(await versions.locator("span:first-child").allTextContents()).map(x=>x.match(/^v(\d+\.\d+\.\d+)/)[1]);
-  expect(shown).toEqual(["4.26.132","4.26.131","4.26.130","4.26.129","4.26.128","4.26.127",...production.map(n=>n.v)]);
+  expect(shown).toEqual(["4.26.133","4.26.132","4.26.131","4.26.130","4.26.129","4.26.128","4.26.127",...production.map(n=>n.v)]);
   for(const v of ["4.26.118","4.26.119","4.26.120","4.26.121","4.26.122","4.26.123","4.26.124","4.26.125"])expect(shown).not.toContain(v);
 });

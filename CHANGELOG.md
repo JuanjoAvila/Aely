@@ -1,3 +1,11 @@
+## [4.26.133] — 2026-10-14 · Deslizar hasta el final: vuelve la ola y la barra no asoma
+
+- **Fallo.** Con la barra inferior escondida, un fling hasta el fondo se paraba en seco, sin la ola nativa de Android, y dejaba asomar media barra por abajo.
+- **Causa.** Desde la 4.26.97 la barra escondida lleva `overflow-clip-margin:30px` (505fbb6c) para que el + salga entero. Esos 30 px de pintado cuentan como desbordamiento y el `<html>` pasaba a poder bajar 30 px solo con la barra oculta. Al llegar al fondo con inercia el gesto saltaba del host de scroll a la raíz, la subía esos 30 px y se paraba (`html` lleva `overscroll-behavior:none`, así que no había ola). Medido A/B con toques por CDP: 4.26.96 raíz 0/0, 4.26.97…4.26.132 raíz 30/30.
+- **Arreglo.** `.app` lleva `overflow:clip` (`src/shell.html`). `clip` y no `hidden`: no crea contenedor de scroll ni de `fixed`, así que el host de la ola sigue siendo el único que desplaza y el margen de la barra se sigue pintando.
+- **Prueba.** `e2e/rebote-barra-inferior.spec.mjs`: un fling real por CDP hasta el fondo con la barra escondida exige raíz sin desplazamiento posible, barra sin moverse y sin revelarse (falla sin el arreglo).
+- **Panel.** Tanda `scroll-borde-barra` (dos pasos), única del panel; `inicio-recientes-sin-repetidos` (132), aprobada por el dueño, sale con `tandas:[]`. `Catálogo132` y `Retiro132` pasan a histórico (leen 7865111b) y nacen `Catálogo133` y `Retiro133`.
+
 ## [4.26.132] — 2026-10-14 · Inicio: los últimos movimientos ya no repiten las compras de Trade Republic
 
 - **Fallo.** El dueño vio en la beta 4.26.131 que «Últimos movimientos» de Inicio enseñaba, junto a la compra con comercio, la fila oculta del banco de la pareja automática de Trade Republic («Movimiento · Otros», mismo importe). Gastos la esconde con `if(e.autoGemelo||expenseIsTombstoned(...)) continue;`; el filtro de `recent` en `03-tab-dash.js` solo quitaba las lápidas.
