@@ -29,7 +29,7 @@ async function abrir(page,mode,prior=false,lang="es"){
     FixtureDate.now=()=>NativeDate.now()+offset;window.Date=FixtureDate;
   },Date.parse(today+"T12:00:00Z"));
   await seedLoggedInDashboard(page,{__seedOnce:true,...state,settings:{...state.settings,lang}});
-  await page.goto("/");await page.waitForFunction(()=>!document.getElementById("mc-load"));await dismissNews(page);
+  await page.goto("/");await page.waitForFunction(()=>!document.getElementById("mc-load"),null,{timeout:5000});await dismissNews(page);
   const settings=page.locator(".settings-push.open");
   if(await settings.count()) await settings.locator(".settings-push-h .back").click();
   await expect(settings).toHaveCount(0);
@@ -48,11 +48,24 @@ async function cifras(page){
 for(const mode of ["sin-efectivo","con-efectivo","traspaso-cajero","transfer-alone","transfer-pair"]) test("reservas: gráfica y cifras actuales antes/después "+mode,{annotation:{type:"own-clock",description:"14/10/2026"}},async({browser},testInfo)=>{
   const read=async prior=>{
     const context=await browser.newContext({...devices["Pixel 5"],baseURL:testInfo.project.use.baseURL,viewport:{width:412,height:915},timezoneId:"Europe/Madrid",serviceWorkers:"block"});
-    try{const page=await context.newPage();await abrir(page,mode,prior);return await cifras(page);}finally{await context.close();}
+    const page=await context.newPage(),errors=[];let original;
+    page.on("pageerror",error=>errors.push(String(error.stack||error)));
+    page.on("console",message=>{if(message.type()==="error")errors.push(message.text());});
+    try{await abrir(page,mode,prior);return await cifras(page);}
+    catch(error){
+      original=error;
+      // Un fallo de navegación debe conservar la excepción de la página y el estado
+      // visible; cerrar el contexto no puede tapar el primer error de la comparación.
+      const state=await page.evaluate(()=>({tabs:[...document.querySelectorAll(".botnav-tab")].map(el=>({tab:el.dataset.tour,class:el.className})),settings:!!document.querySelector(".settings-push.open"),splash:!!document.getElementById("mc-load"),text:document.querySelector("#root")?.innerText,summary:document.querySelector(".v4-gastos-summary")?.innerText})).catch(e=>({readError:String(e)}));
+      await testInfo.attach((prior?"before":"after")+"-navigation",{body:Buffer.from(JSON.stringify({errors,state},null,2)),contentType:"application/json"});
+      await page.screenshot({path:testInfo.outputPath((prior?"before":"after")+"-navigation.png"),fullPage:true}).catch(()=>{});
+      throw error;
+    }finally{try{await context.close();}catch(error){if(!original)throw error;}}
   };
     const old=await read(true),next=await read(false);
     expect({now:next.now,card:next.card,gastos:next.gastos}).toEqual({now:old.now,card:old.card,gastos:old.gastos});
     expect(next.now).toContain(currentAmount(mode));
+    await testInfo.attach("financial-before-after",{body:Buffer.from(JSON.stringify({mode,before:old,after:next},null,2)),contentType:"application/json"});
     if(mode==="con-efectivo"||mode==="transfer-pair"){expect(next.delta).toBe(old.delta);expect(next.line).toBe(old.line);}
     else {expect(next.delta).not.toBe(old.delta);expect(next.line).not.toBe(old.line);}
 });

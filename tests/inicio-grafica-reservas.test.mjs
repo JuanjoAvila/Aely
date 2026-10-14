@@ -51,6 +51,15 @@ function traspasos(c){
   assert.deepEqual(plain(c.netWorthSeries({...base,expenses:base.expenses.concat(linked)},opts)),plain(baseline),"el par identificado del banco sigue neutro");
   const dst={accounts:[{id:"a",ent:"sabadell",value:400,bankIban:"synthetic-a"},{id:"b",ent:"revolut",value:400,bankIban:"synthetic-b"}],expenses:[{id:"cover",date:"2026-10-20T12:00:00Z",amount:0,ent:"sabadell"},{...out,date:"2026-10-25T00:01:00+02:00"},{...income,ent:"revolut",date:"2026-10-28T23:59:00+01:00"}]};
   assert.ok(c.netWorthSeries(dst,{today:"2026-10-30",liquid:800,invested:0,debtTotal:0}).every(p=>p.value===800),"tres fechas de Madrid al atrasar el reloj: casi 97 horas siguen dentro");
+  // Rebase 131: las patas se casan con el importe entero y pesan su parte después.
+  // La diferencia entre personal y conjunta aparece una sola vez, el día de salida.
+  const mine={key:"own-personal",ent:"revolut",value:400,cur:"EUR"},joint={key:"own-joint",ent:"revolut",value:400,cur:"EUR"};
+  const sharedBase=c.setAccountShare({accounts:[],obAccounts:[mine,joint],expenses:[{id:"share-cover",date:"2026-10-01T12:00:00Z",amount:0,ent:"revolut",obAcc:mine.key}],investments:[],assets:[],debts:[],settings:{}},joint,"ob",50);
+  const sharedOut={id:"share-out",date:"2026-10-02T12:00:00Z",amount:300.08,category:"traspaso",ent:"revolut",obAcc:mine.key};
+  const sharedPair=c.netWorthSeries({...sharedBase,expenses:sharedBase.expenses.concat(sharedOut,{id:"share-in",date:"2026-10-05T12:00:00Z",amount:-300.08,category:"traspaso",ent:"revolut",obAcc:joint.key})},{today});
+  assert.deepEqual(["2026-10-01","2026-10-02","2026-10-04","2026-10-05",today].map(day=>at(sharedPair,day)),[750.04,600,600,600,600],"parte mía distinta: sin bache de tránsito ni neutralidad ficticia");
+  const single=c.netWorthSeries({...sharedBase,expenses:sharedBase.expenses.concat({...sharedOut,obAcc:joint.key})},{today});
+  assert.deepEqual([at(single,"2026-10-01"),at(single,today)],[750.04,600],"sin contraparte la salida pesa solo su parte, al céntimo");
 }
 comprobar(loadPureLogicFromFile());
 traspasos(loadPureLogicFromFile());
