@@ -14,6 +14,7 @@ const rows=page=>page.locator(".v4-gastos-list-body button.v4-mov");
 async function open(page,transactions,{notice=false,cloud=[]}={}){
  const ent=notice?"trade_republic":"sabadell",aspsp=notice?"Trade Republic":"Banco Sabadell";
  await seedLoggedInDashboard(page,{
+  __seedOnce:true,
   accounts:[{id:"bank",ent,name:aspsp,role:"diario",spendFrom:true,value:1000}],
   settings:{autoPrices:false,theme:"green",expenseBanks:[ent]},hasBankLink:true,
   expenses:notice?[{id:"synthetic-notice",date:day+"T09:00:00Z",amount:9.99,merchant:"Compra aviso",category:"otros",source:"macrodroid",ent}]:[],
