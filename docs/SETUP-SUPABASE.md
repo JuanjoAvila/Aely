@@ -56,6 +56,10 @@ Integración (13/10): la rama entra en la candidata 4.26.122, encima de la 4.26.
 dentro la 120. El `ingest` que se despliega es el de la 122 (`_shared/presupuesto.ts` con
 `esCargoDeRecibo`), antes que su web, y ni la 120 ni la 121 van a producción sin la 122.
 
+## Integración 4.26.127 (14/10): bancos, cuatro funciones Edge SIN desplegar
+
+Reúne tres ramas (falsa caducidad `2d53ab24`, PR 226 `e677099f`, PR 223 `c71129e1`) sobre la 4.26.126. Funciones que cambian respecto a la producción 4.26.126: `bank-sync`, `bank-disconnect`, `myinvestor-sync` y `myinvestor-keepalive`, más los compartidos `_shared/enablebanking.ts` y `_shared/myinvestor.ts` (los importan, así que se despliegan una a una con sus dependencias). No hay migración (el limitador de MyInvestor reutiliza el de la 0019) ni secreto nuevo. Orden recomendado: `myinvestor-sync` y `myinvestor-keepalive` comparten la regla de caducidad, así que van juntas; `bank-sync` y `bank-disconnect` comparten el guard de sesión y `state_issued_at`. Un cliente anterior ignora los campos nuevos de `bank-sync`; el cliente nuevo con la Edge anterior conserva el aviso genérico de descarga incompleta. Rollback: volver a la fuente de `33d39cb8`; no borra ni restaura datos. Los detalles de cada rama siguen en las secciones de debajo.
+
 ## Desconexión y carrera con callback (13/10): candidato, SIN desplegar
 
 `bank-disconnect` reutiliza `decryptSessionId` de `_shared/token_store.ts`, también empleado

@@ -1,5 +1,61 @@
 [
   {
+    "v": "4.26.127",
+    "d": "2026-10-14",
+    "t": {
+      "es": "Bancos: se reconectan solos cuando pueden y avisan cuando no",
+      "en": "Banks: they reconnect on their own when they can and tell you when they can't",
+      "ca": "Bancs: es reconnecten sols quan poden i avisen quan no"
+    },
+    "items": {
+      "es": [
+        "Un fallo pasajero del banco o de MyInvestor ya no hace que la app dé la conexión por caducada: reintenta sola y solo te pide reconectar cuando de verdad hace falta.",
+        "Si MyInvestor no consigue recuperar el acceso, la app te lo avisa con claridad en vez de decir que todo sigue bien.",
+        "Al desconectar un banco, el permiso se retira de verdad en el banco, no solo en la app.",
+        "Si el banco entrega los movimientos a medias, se conserva lo que ya tenías y la app te explica qué ha pasado y qué puedes hacer."
+      ],
+      "en": [
+        "A passing failure at the bank or at MyInvestor no longer makes the app treat the connection as expired: it retries on its own and only asks you to reconnect when it is really needed.",
+        "If MyInvestor cannot get access back, the app tells you clearly instead of saying everything is fine.",
+        "When you disconnect a bank, the permission is really withdrawn at the bank, not just in the app.",
+        "If the bank hands over only part of the transactions, what you already had is kept and the app explains what happened and what you can do."
+      ],
+      "ca": [
+        "Un error passatger del banc o de MyInvestor ja no fa que l'app doni la connexió per caducada: reintenta sola i només et demana reconnectar quan de debò cal.",
+        "Si MyInvestor no aconsegueix recuperar l'accés, l'app t'ho avisa amb claredat en lloc de dir que tot continua bé.",
+        "En desconnectar un banc, el permís es retira de debò al banc, no només a l'app.",
+        "Si el banc lliura els moviments a mitges, es conserva el que ja tenies i l'app t'explica què ha passat i què pots fer."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "bancos-reconexion-revoca",
+        "t": {
+          "es": "Bancos: sincronizar, reconectar y MyInvestor",
+          "en": "Banks: syncing, reconnecting and MyInvestor",
+          "ca": "Bancs: sincronitzar, reconnectar i MyInvestor"
+        },
+        "items": {
+          "es": [
+            "1. Ve a Cartera y, en «Tus cuentas», pulsa el icono de «Sincronizar bancos». Cuando acabe, los movimientos nuevos del banco aparecen en Gastos y no se repite ninguno. Está mal si falta un movimiento que ya tenías o si alguno sale duplicado.",
+            "2. Si algún banco sale con «⚠ Reconectar», reconéctalo: vuelve a sincronizar sin perder movimientos ni duplicarlos. Si no hay ninguno así, salta este paso. Está mal si al reconectar desaparecen movimientos o salen repetidos.",
+            "3. En la tarjeta de MyInvestor (Cartera → Inversiones), pulsa «Sincronizar posiciones»: salen las posiciones y el saldo sin ningún aviso de acceso perdido. Está mal si pide volver a entrar sin que hayas cambiado nada."
+          ],
+          "en": [
+            "1. Go to Portfolio and, under “Your accounts”, tap the “Sync banks” icon. When it finishes, the bank's new transactions show in Spending and none is repeated. It is wrong if a transaction you already had is missing or if any shows up twice.",
+            "2. If a bank shows “⚠ Reconnect”, reconnect it: it syncs again without losing or duplicating transactions. If none does, skip this step. It is wrong if transactions disappear or repeat after reconnecting.",
+            "3. On the MyInvestor card (Portfolio → Investments), tap “Sync positions”: the positions and balance come up with no lost-access warning. It is wrong if it asks you to sign in again when you have changed nothing."
+          ],
+          "ca": [
+            "1. Ves a Cartera i, a «Els teus comptes», prem la icona de «Sincronitza els bancs». Quan acabi, els moviments nous del banc apareixen a Despeses i no se'n repeteix cap. Està malament si falta un moviment que ja tenies o si algun surt duplicat.",
+            "2. Si algun banc surt amb «⚠ Reconnectar», reconnecta'l: torna a sincronitzar sense perdre moviments ni duplicar-los. Si no n'hi ha cap, salta aquest pas. Està malament si en reconnectar desapareixen moviments o en surten de repetits.",
+            "3. A la targeta de MyInvestor (Cartera → Inversions), prem «Sincronitza posicions»: surten les posicions i el saldo sense cap avís d'accés perdut. Està malament si et demana tornar a entrar sense que hagis canviat res."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.126",
     "d": "2026-10-13",
     "t": {

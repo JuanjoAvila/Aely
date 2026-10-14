@@ -46,6 +46,8 @@ const source125=sourceAt("6342459b0eeecd65eb1817db8e01bc179787c549");
 // Promoción126: la beta126 servida (d8d2624c), que es lo último que probó el móvil y lo que sube
 // entero a producción con el catálogo consolidado.
 const source126=sourceAt("d8d2624c6666599a09b99e111c3360af6eec6f91");
+// Integración127: la producción 4.26.126 (33d39cb8), sobre la que entran las tres ramas de bancos. Su catálogo ya no se lee del árbol vivo.
+const sourceProd126=sourceAt("33d39cb80764aaf22998f69ac8bbaeffeadf4013");
 // La122 añade un método a `cloud` (`setExpenseRecibo`) y los alcances que listan los métodos que
 // leen lo ganan al final de su lista. Las comparaciones con descriptores anteriores lo descuentan;
 // Catálogo122 fija en lista cerrada cuáles son.
@@ -69,7 +71,7 @@ const boot="inc-2709-01-arranque-red";
 const modern=[{v:"4.26.69",tandas:[{id:boot}]}];
 let failed=0;
 const inicioOnly=process.argv.includes("--inicio-v42-only");
-function test(name,fn){ if(inicioOnly&&!name.startsWith("Inicio v4.2 ")&&!name.startsWith("Catálogo126 ")&&!name.startsWith("Retiro126 ")&&!name.startsWith("Catálogo125 ")&&!name.startsWith("Retiro125 ")&&!name.startsWith("Catálogo124 ")&&!name.startsWith("Retiro124 ")&&!name.startsWith("Catálogo123 ")&&!name.startsWith("Catálogo122 ")&&!name.startsWith("Catálogo121 ")&&!name.startsWith("Catálogo120 ")&&!name.startsWith("Catálogo114 ")&&!name.startsWith("Catálogo117 ")&&!name.startsWith("Retiro117 ")&&!name.startsWith("Catálogo118 ")&&!name.startsWith("Splash117 ")&&!name.startsWith("Catálogo119 ")&&!name.startsWith("Retiro119 "))return;try{fn();console.log("  ✓ "+name);}catch(e){failed++;console.error("  ✗ "+name+"\n    "+e.message);} }
+function test(name,fn){ if(inicioOnly&&!name.startsWith("Inicio v4.2 ")&&!name.startsWith("Catálogo127 ")&&!name.startsWith("Catálogo126 ")&&!name.startsWith("Retiro126 ")&&!name.startsWith("Catálogo125 ")&&!name.startsWith("Retiro125 ")&&!name.startsWith("Catálogo124 ")&&!name.startsWith("Retiro124 ")&&!name.startsWith("Catálogo123 ")&&!name.startsWith("Catálogo122 ")&&!name.startsWith("Catálogo121 ")&&!name.startsWith("Catálogo120 ")&&!name.startsWith("Catálogo114 ")&&!name.startsWith("Catálogo117 ")&&!name.startsWith("Retiro117 ")&&!name.startsWith("Catálogo118 ")&&!name.startsWith("Splash117 ")&&!name.startsWith("Catálogo119 ")&&!name.startsWith("Retiro119 "))return;try{fn();console.log("  ✓ "+name);}catch(e){failed++;console.error("  ✗ "+name+"\n    "+e.message);} }
 console.log("beta-sources");
 
 // La rayita comparte controlador y geometría con la barra: una aprobación de CSS aislada no
@@ -158,7 +160,7 @@ test("Inicio v4.2 cubre flujos, ciclo, renderer, llamada, animación, textos, CS
   // La base es la integración120 (apuntes iguales de Trade Republic): Inicio no puede retirar su alcance ni heredar su revisión.
   const integrated=JSON.parse(source120("scripts/beta-sources.json"));
   // Detrás de Inicio sólo ha entrado el alcance de la122 (el cargo de recibo en Gastos).
-  assert.deepEqual(Object.keys(scopes),Object.keys(integrated).concat(id,"recibo-cargo-en-gastos","plan-scroll-lento","inicio-tarjeta-ciclo-limpia"),"Inicio y las altas de la122, la124 y la126, sin retirar historia120");
+  assert.deepEqual(Object.keys(scopes),Object.keys(integrated).concat(id,"recibo-cargo-en-gastos","plan-scroll-lento","inicio-tarjeta-ciclo-limpia","bancos-reconexion-revoca"),"Inicio y las altas de la122, la124, la126 y la127, sin retirar historia120");
   for(const [key,value] of Object.entries(integrated))if(key!=="inicio-grafica-vuelve"){assert.deepEqual(scopes[key].native,value.native);assert.deepEqual(scopes[key].edge,value.edge);for(const part of value.web||[])assert.ok(scopes[key].web.some(s=>JSON.stringify(sinMetodo122(s))===JSON.stringify(part)),key+": no recortar descriptor ajeno120");}
   assert.equal(scope.unidades,true);
   for(const key of ["historial","auditoria","codigosCompatibles","compatibilidadGit","compatibilidadSha"])
@@ -2359,7 +2361,7 @@ test("Retiro126 histórico elimina solo la tanda de Inicio aprobada en la 4.26.1
 // archivo y APK no se tocan.
 const expectedProd126={"v":"4.26.126","d":"2026-10-13","t":{"es":"Inicio nuevo, y recibos y bancos más fiables","en":"A new Home, and more reliable bills and banks","ca":"Inici nou, i rebuts i bancs més fiables"},"items":{"es":["Inicio estrena una gráfica de cómo ha ido tu patrimonio desde el primer día del que hay datos, te dice cuánto tienes de más o de menos que el mes pasado y cuánto puedes gastar al día con lo que te queda.","La tarjeta del mes en Inicio enseña solo lo que te queda y cuánto puedes gastar al día; el color te dice cómo vas.","Cada cobro del banco paga un solo recibo, y ahora también se ve en Gastos con el nombre del recibo, sin contarse dos veces.","Si la conexión falla mientras se sincronizan los bancos, o al volver a conectar uno, ya no se pierde ningún movimiento: entran la próxima vez que sincronices.","Dos movimientos iguales del mismo día en Trade Republic ya no se funden en uno: salen los dos en Gastos.","En Plan, al bajar despacio la pantalla ya no da saltos."],"en":["Home has a new chart of how your net worth has moved since the first day there is data, tells you how much more or less you have than last month, and how much you can spend per day with what is left.","The month card on Home shows only what you have left and how much you can spend per day; the colour tells you how you are doing.","Each bank charge pays a single bill, and it now also shows in Spending with the bill's name, without being counted twice.","If the connection fails while your banks are syncing, or when you reconnect one, no transaction is lost any more: they come in the next time you sync.","Two identical transactions on the same day in Trade Republic are no longer merged into one: both show in Spending.","In Plan, scrolling down slowly no longer makes the screen jump."],"ca":["Inici estrena una gràfica de com ha anat el teu patrimoni des del primer dia del qual hi ha dades, et diu quant tens de més o de menys que el mes passat i quant pots gastar al dia amb el que et queda.","La targeta del mes a Inici ensenya només el que et queda i quant pots gastar al dia; el color et diu com vas.","Cada cobrament del banc paga un sol rebut, i ara també es veu a Despeses amb el nom del rebut, sense comptar-se dues vegades.","Si la connexió falla mentre se sincronitzen els bancs, o en tornar a connectar-ne un, ja no es perd cap moviment: entren la propera vegada que sincronitzis.","Dos moviments iguals del mateix dia a Trade Republic ja no es fonen en un: surten tots dos a Despeses.","A Pla, en baixar a poc a poc la pantalla ja no fa salts."]},"tandas":[]};
 test("Promoción126 muestra una nota y el historial de producción, retira la tanda de la tarjeta del mes y no toca producto, descriptores ni APK",()=>{
-  const tarjeta="inicio-tarjeta-ciclo-limpia",flujos="inicio-patrimonio-flujos",beta=f=>source126(f).replace(/\r\n/g,"\n"),source=f=>read(f).replace(/\r\n/g,"\n");
+  const tarjeta="inicio-tarjeta-ciclo-limpia",flujos="inicio-patrimonio-flujos",beta=f=>source126(f).replace(/\r\n/g,"\n"),source=f=>sourceProd126(f).replace(/\r\n/g,"\n");
   const production=JSON.parse(sourceProd117("src/data/release-notes.json")),before=JSON.parse(beta("src/data/release-notes.json"));
   assert.equal(production.length,227);assert.equal(production[0].v,"4.26.117");
   assert.deepEqual(before.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id])),[["4.26.126",tarjeta]],"la beta126 publicada llevaba solo la tanda de la tarjeta");
@@ -2401,6 +2403,116 @@ test("Promoción126 muestra una nota y el historial de producción, retira la ta
   // inicio-patrimonio-flujos no está en la lista: se aprobó con el código de la 125 (774b8cb6…,
   // fijado en Retiro126) y la 126 lo mueve por la tarjeta del mes, que juzga su propia tanda.
   for(const [id,code] of [["plan-scroll-lento","8d30d20bc32b0e98009311c7065186b5517772ba"],["recibo-cargo-en-gastos","42f1ba7102ea5baa87dff3d4021906debb492525"],["tr-iguales-ordinal","2cb5c0024194efbd9e79e1176856d34f7be82f61"],["bancos-acuse-reconexion","945389491c2e03a86304971ef1caae45ac3b5bce"]])assert.ok(betaRevision(id,source,undefined,scopes[id]).codigo.startsWith(code),id+": el código aprobado en el móvil es el vigente");
+});
+
+// 4.26.127 (14/10/2026): bancos que no se dan por caducados ante un fallo pasajero, desconexión que revoca
+// de verdad y descargas incompletas que conservan lo guardado. Tres ramas (2d53ab24, PR 226 e677099f,
+// PR 223 c71129e1) sobre la producción 4.26.126. Tanda NUEVA con servidor (cuatro funciones Edge) y web.
+// Lista cerrada frente a la producción126: un descriptor nuevo, qué huellas se mueven y por qué.
+const expected127={"v":"4.26.127","d":"2026-10-14","t":{"es":"Bancos: se reconectan solos cuando pueden y avisan cuando no","en":"Banks: they reconnect on their own when they can and tell you when they can't","ca":"Bancs: es reconnecten sols quan poden i avisen quan no"},"items":{"es":["Un fallo pasajero del banco o de MyInvestor ya no hace que la app dé la conexión por caducada: reintenta sola y solo te pide reconectar cuando de verdad hace falta.","Si MyInvestor no consigue recuperar el acceso, la app te lo avisa con claridad en vez de decir que todo sigue bien.","Al desconectar un banco, el permiso se retira de verdad en el banco, no solo en la app.","Si el banco entrega los movimientos a medias, se conserva lo que ya tenías y la app te explica qué ha pasado y qué puedes hacer."],"en":["A passing failure at the bank or at MyInvestor no longer makes the app treat the connection as expired: it retries on its own and only asks you to reconnect when it is really needed.","If MyInvestor cannot get access back, the app tells you clearly instead of saying everything is fine.","When you disconnect a bank, the permission is really withdrawn at the bank, not just in the app.","If the bank hands over only part of the transactions, what you already had is kept and the app explains what happened and what you can do."],"ca":["Un error passatger del banc o de MyInvestor ja no fa que l'app doni la connexió per caducada: reintenta sola i només et demana reconnectar quan de debò cal.","Si MyInvestor no aconsegueix recuperar l'accés, l'app t'ho avisa amb claredat en lloc de dir que tot continua bé.","En desconnectar un banc, el permís es retira de debò al banc, no només a l'app.","Si el banc lliura els moviments a mitges, es conserva el que ja tenies i l'app t'explica què ha passat i què pots fer."]},"tandas":[{"id":"bancos-reconexion-revoca","t":{"es":"Bancos: sincronizar, reconectar y MyInvestor","en":"Banks: syncing, reconnecting and MyInvestor","ca":"Bancs: sincronitzar, reconnectar i MyInvestor"},"items":{"es":["1. Ve a Cartera y, en «Tus cuentas», pulsa el icono de «Sincronizar bancos». Cuando acabe, los movimientos nuevos del banco aparecen en Gastos y no se repite ninguno. Está mal si falta un movimiento que ya tenías o si alguno sale duplicado.","2. Si algún banco sale con «⚠ Reconectar», reconéctalo: vuelve a sincronizar sin perder movimientos ni duplicarlos. Si no hay ninguno así, salta este paso. Está mal si al reconectar desaparecen movimientos o salen repetidos.","3. En la tarjeta de MyInvestor (Cartera → Inversiones), pulsa «Sincronizar posiciones»: salen las posiciones y el saldo sin ningún aviso de acceso perdido. Está mal si pide volver a entrar sin que hayas cambiado nada."],"en":["1. Go to Portfolio and, under “Your accounts”, tap the “Sync banks” icon. When it finishes, the bank's new transactions show in Spending and none is repeated. It is wrong if a transaction you already had is missing or if any shows up twice.","2. If a bank shows “⚠ Reconnect”, reconnect it: it syncs again without losing or duplicating transactions. If none does, skip this step. It is wrong if transactions disappear or repeat after reconnecting.","3. On the MyInvestor card (Portfolio → Investments), tap “Sync positions”: the positions and balance come up with no lost-access warning. It is wrong if it asks you to sign in again when you have changed nothing."],"ca":["1. Ves a Cartera i, a «Els teus comptes», prem la icona de «Sincronitza els bancs». Quan acabi, els moviments nous del banc apareixen a Despeses i no se'n repeteix cap. Està malament si falta un moviment que ja tenies o si algun surt duplicat.","2. Si algun banc surt amb «⚠ Reconnectar», reconnecta'l: torna a sincronitzar sense perdre moviments ni duplicar-los. Si no n'hi ha cap, salta aquest pas. Està malament si en reconnectar desapareixen moviments o en surten de repetits.","3. A la targeta de MyInvestor (Cartera → Inversions), prem «Sincronitza posicions»: surten les posicions i el saldo sense cap avís d'accés perdut. Està malament si et demana tornar a entrar sense que hagis canviat res."]}}]};
+const scope127={"web":[{"file":"src/modules/08-motor-bank.js","function":"flattenBankTx"},{"file":"src/modules/08-motor-bank.js","function":"bankReadWarnings"},{"file":"src/modules/08-motor-bank.js","function":"madridYmdParts"},{"file":"src/modules/08-motor-bank.js","function":"entFromAspsp"},{"file":"src/modules/00-core.js","function":"entOf"},{"file":"src/modules/11-app-main.js","from":"        const txs=flattenBankTx(links, prev.bankTx);","to":"        // ORDEN anti-doble-conteo"},{"file":"src/modules/11-app-main.js","from":"      if(opts.manual && preview.synced.length && !issues.length && !readWarnings.some(","to":"        const ents={}; preview.synced.forEach"},{"file":"src/modules/01-i18n.js","from":"  bank_read_reconnect:\"{bank}: falta completar la conexión.","to":"  bank_read_empty:"},{"file":"src/modules/01-i18n.js","from":"  bank_read_reconnect:\"{bank}: the connection needs to be completed.","to":"  bank_read_empty:"},{"file":"src/modules/01-i18n.js","from":"  bank_read_reconnect:\"{bank}: falta completar la connexió.","to":"  bank_read_empty:"},{"file":"src/modules/08-motor-bank.js","data":"_mcMadridYmdFmt"},{"file":"src/modules/00-core.js","data":"ENT"}],"edge":["supabase/functions/bank-sync/index.ts","supabase/functions/bank-disconnect/index.ts","supabase/functions/_shared/enablebanking.ts","supabase/functions/_shared/myinvestor.ts","supabase/functions/myinvestor-sync/index.ts","supabase/functions/myinvestor-keepalive/index.ts"],"unidades":true};
+test("Catálogo127 añade la tanda de bancos sobre la producción126, con web y servidor, y declara cada huella que mueve",()=>{
+  const banco="bancos-reconexion-revoca";
+  const integrated=JSON.parse(sourceProd126("scripts/beta-sources.json")),before=JSON.parse(sourceProd126("src/data/release-notes.json"));
+  const source=f=>read(f).replace(/\r\n/g,"\n"),old=f=>sourceProd126(f).replace(/\r\n/g,"\n");
+  assert.deepEqual(before.flatMap(n=>n.tandas||[]),[],"la producción126 no deja ninguna tanda en el panel");
+  const expectedNotes=[expected127,...before];
+  const notes=JSON.parse(source("src/data/release-notes.json"));
+  assert.deepEqual(notes,expectedNotes,"la nota 127 literal delante y el catálogo de producción126 intacto");
+  assert.deepEqual(notes.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id,g.apk||0])),[["4.26.127",banco,0]],"el panel enseña solo la tanda de bancos, con la 127 y sin APK");
+  for(const n of notes.slice(1))assert.deepEqual(n.tandas,[],n.v+": ni resucita /todo ni vuelve una tanda juzgada");
+  assert.equal(notes.length,before.length+1,"ninguna nota se borra");
+  assert.deepEqual(Object.keys(notes[0].tandas[0]),["id","t","items"],"identidad nueva, sin alias ni revisión heredada");
+  for(const lang of ["es","en","ca"]){
+    assert.equal(notes[0].items[lang].length,4,lang+": cuatro puntos familiares");
+    const steps=notes[0].tandas[0].items[lang];assert.equal(steps.length,3,lang+": tres pasos");
+    steps.forEach((step,i)=>assert.ok(step.startsWith((i+1)+". "),lang+": paso numerado "+(i+1)));
+    for(const text of steps)assert.equal(/borra|quita este|delete|remove|esborra|treu aquest|mañana|tomorrow|demà/i.test(text),false,lang+": ningún paso borra nada ni espera a otro día");
+    // Sin cocina en lo que lee la familia (AGENTS §4).
+    for(const text of [notes[0].t[lang],...notes[0].items[lang]])assert.equal(/beta|tanda|panel|APK|ordinal|acuse|cursor|token|Edge|servidor|Open Banking|\d+\.\d+\.\d+/i.test(text),false,lang+": sin jerga: "+text);
+  }
+  // Cada rótulo que cita el guion es el texto real de la app, en su idioma.
+  const literal={es:[["«Tus cuentas»",'v4_cuentas:"Tus cuentas"'],["«Sincronizar bancos»",'v4_sync_banks:"Sincronizar bancos"'],["«⚠ Reconectar»",'ac_reconnect:"⚠ Reconectar"'],["«Sincronizar posiciones»",'mi_sync:"Sincronizar posiciones"']],
+    en:[["“Your accounts”",'v4_cuentas:"Your accounts"'],["“Sync banks”",'v4_sync_banks:"Sync banks"'],["“⚠ Reconnect”",'ac_reconnect:"⚠ Reconnect"'],["“Sync positions”",'mi_sync:"Sync positions"']],
+    ca:[["«Els teus comptes»",'v4_cuentas:"Els teus comptes"'],["«Sincronitza els bancs»",'v4_sync_banks:"Sincronitza els bancs"'],["«⚠ Reconnectar»",'ac_reconnect:"⚠ Reconnectar"'],["«Sincronitza posicions»",'mi_sync:"Sincronitza posicions"']]};
+  const textos=source("src/modules/01-i18n.js");
+  for(const lang of ["es","en","ca"])for(const [rotulo,fuente] of literal[lang]){
+    assert.ok(notes[0].tandas[0].items[lang].join(" ").includes(rotulo),lang+": el guion cita "+rotulo);
+    assert.ok(textos.includes(fuente),lang+": "+rotulo+" es el texto de la app ("+fuente+")");
+  }
+  const verifyNotes=list=>assert.deepEqual(list,expectedNotes);
+  const twice=structuredClone(notes);twice[0].tandas.push(structuredClone(twice[0].tandas[0]));assert.throws(()=>verifyNotes(twice),assert.AssertionError,"no duplicar la tanda");
+  const inherited=structuredClone(notes);inherited[0].tandas[0].desde=["4.26.126/"+banco];assert.throws(()=>verifyNotes(inherited),assert.AssertionError,"no heredar revisión");
+  const withApk=structuredClone(notes);withApk[0].tandas[0].apk=55;assert.throws(()=>verifyNotes(withApk),assert.AssertionError,"no hay APK que probar");
+  const implicit=structuredClone(notes);delete implicit[1].tandas;assert.throws(()=>verifyNotes(implicit),assert.AssertionError,"sin la propiedad el panel resucitaría la nota 126 como /todo");
+  // Un único descriptor nuevo, al final; los demás, literales los de la producción126.
+  const scopes=JSON.parse(source("scripts/beta-sources.json")),{[banco]:added,...rest}=scopes;
+  assert.deepEqual(rest,integrated,"ningún descriptor retirado ni que crezca");
+  assert.equal(integrated[banco],undefined,"identidad que no existía");assert.equal(Object.keys(scopes).at(-1),banco);
+  assert.deepEqual(added,scope127,"el descriptor nuevo, literal");
+  assert.deepEqual(Object.keys(added),["web","edge","unidades"],"web y servidor, sin superficie nativa");
+  for(const u of added.web)assert.ok(scopeText(u,source).length>0,"la unidad existe en la fuente: "+JSON.stringify(u));
+  for(const f of added.edge)assert.ok(source(f).length>0,"la función existe: "+f);
+  // Lo que la entrega cambia dentro de su alcance: cada unidad web y cada función de servidor declaradas cambian de verdad.
+  const antes=u=>{try{return scopeText(u,old);}catch(error){return null;}};
+  assert.deepEqual(added.web.filter(u=>antes(u)===scopeText(u,source)).map(u=>u.function||u.data||u.from.trim().slice(0,30)),["madridYmdParts","entFromAspsp","entOf","_mcMadridYmdFmt","ENT"],"toda unidad web declarada cambia, salvo las dependencias que lee flattenBankTx (madridYmdParts, entFromAspsp, entOf, _mcMadridYmdFmt y ENT)");
+  assert.deepEqual(added.edge.filter(f=>old(f)===source(f)),[],"toda función de servidor declarada cambia");
+  assert.deepEqual(JSON.parse(source("scripts/beta-archives.json")),archiveRefs,"sin repinar el rechazo109");
+  assert.equal(source("public/apk.json"),old("public/apk.json"),"sin APK nueva: apk.json no se toca");
+  // Huellas que se mueven, lista cerrada: web y servidor de bancos.
+  const expectedMoves={"tr-descripcion-clasificacion":["web","edge"],"inc-3009-nomina-anticipada":["web"],"bancos-sin-hueco":["web"],"bancos-acuse-reconexion":["web","edge"],"tr-iguales-ordinal":["web"],"recibo-cargo-en-gastos":["web"]};
+  const previous=new Map();
+  const measure=reader=>{
+    const now=JSON.parse(reader("scripts/beta-sources.json")),moved={};
+    for(const [key,scope] of Object.entries(integrated)){
+      if(key===archiveId){assert.deepEqual(auditedRevision(key,reader),auditedRevision(key,sourceProd126));continue;}
+      if(!previous.has(key))previous.set(key,betaRevision(key,sourceProd126,undefined,scope));
+      const a=previous.get(key),b=betaRevision(key,reader,undefined,now[key]);
+      const surfaces=["web","native","edge"].filter(x=>a[x]!==b[x]);
+      if(surfaces.length)moved[key]=surfaces;
+    }
+    return moved;
+  };
+  const verify=(reader,expected=expectedMoves)=>assert.deepEqual(measure(reader),expected,"lista cerrada: ni una huella extra ni una declarada que no cambie");
+  verify(source);
+  for(const surfaces of Object.values(expectedMoves))assert.equal(surfaces.includes("native"),false,"ninguna huella nativa se mueve");
+  const why={};
+  for(const key of Object.keys(expectedMoves))why[key]=["web","edge"].flatMap(surface=>(integrated[key][surface]||[]).filter(u=>scopeText(u,old)!==scopeText(u,source)).map(u=>typeof u==="string"?u:(u.function||u.data||u.from.trim().slice(0,30))));
+  assert.deepEqual(why,{
+    "tr-descripcion-clasificacion":["flattenBankTx","supabase/functions/bank-sync/index.ts","supabase/functions/_shared/enablebanking.ts"],
+    "inc-3009-nomina-anticipada":["flattenBankTx","bankReadWarnings","const runBankSync=function("],
+    "bancos-sin-hueco":["flattenBankTx","const avisaSync=function(opts,","bankReadWarnings"],
+    "bancos-acuse-reconexion":["flattenBankTx","const avisaSync=function(opts,","bankReadWarnings","supabase/functions/bank-sync/index.ts","supabase/functions/_shared/enablebanking.ts"],
+    "tr-iguales-ordinal":["const avisaSync=function(opts,","bankReadWarnings","flattenBankTx"],
+    "recibo-cargo-en-gastos":["bankReadWarnings"]},"qué unidad mueve cada huella");
+  for(const key of Object.keys(expectedMoves))assert.equal(notes.flatMap(n=>n.tandas||[]).some(g=>g.id===key),false,key+": su huella cambia, pero no vuelve al panel");
+  assert.throws(()=>verify(source,{...expectedMoves,"plan-scroll-lento":["web"]}),/lista cerrada/,"una huella declarada que no cambia pone rojo");
+  const missing={...expectedMoves};delete missing["tr-iguales-ordinal"];assert.throws(()=>verify(source,missing),/lista cerrada/,"una huella real no declarada pone rojo");
+  // Cada pieza de la entrega reabre la tanda, por la superficie que toca.
+  const current=betaRevision(banco,source,undefined,scopes[banco]);
+  assert.ok(current.web);assert.ok(current.edge);assert.equal(current.native,undefined);
+  const motor="src/modules/08-motor-bank.js",app="src/modules/11-app-main.js",fn="supabase/functions/";
+  for(const [file,a,b,surface] of [
+    [motor,'freshNoId[k]>(oldNoId[k]||0)','freshNoId[k]>=(oldNoId[k]||0)',"web"],
+    [motor,'else if(l.gapPending) key="bank_read_pending";','else if(l.gapPending) key="bank_read_partial";',"web"],
+    [app,'w.key!=="bank_read_pending"','w.key!=="bank_read_empty"',"web"],
+    [fn+"bank-disconnect/index.ts",'}, 8000)','}, 9000)',"edge"],
+    [fn+"bank-sync/index.ts",'/transactions_budget/i.test(msg)) return "page_limit"','/transactions_budget/i.test(msg)) return "row_limit"',"edge"],
+    [fn+"_shared/enablebanking.ts",'const EB_SESSION_ENDED = ["EXPIRED_SESSION", "CLOSED_SESSION", "REVOKED_SESSION"];','const EB_SESSION_ENDED = ["EXPIRED_SESSION", "CLOSED_SESSION"];',"edge"],
+    [fn+"_shared/myinvestor.ts",'if (status === 400 || status === 401) return "rejected";','if (status === 400 || status === 401 || status === 403) return "rejected";',"edge"],
+    [fn+"myinvestor-keepalive/index.ts",'.eq("refresh_token", link.refresh_token);','.eq("refresh_token", link.refresh_token + "x");',"edge"],
+    [fn+"myinvestor-sync/index.ts",'for (let i = 0; i < 2 && !saved; i++)','for (let i = 0; i < 3 && !saved; i++)',"edge"]]){
+    assert.equal(source(file).split(a).length,2,"mutante sobre fuente real: "+a);
+    const mutated=betaRevision(banco,f=>f===file?source(f).replace(a,b):source(f),undefined,scopes[banco]);
+    assert.notEqual(mutated[surface],current[surface],"reabre la tanda: "+a);
+  }
+  // Lo que el build entrega al panel.
+  const built=betaNotes(notes,source,scopes),receipt=betaDelivery(built,source,scopes),group=built[0].tandas[0];
+  assert.deepEqual(built.flatMap(n=>(n.tandas||[]).map(g=>g.id)),[banco],"lo que el build entrega al panel");
+  assert.equal(group.web,current.web);assert.equal(group.edge,current.edge);assert.equal(group.native,undefined);assert.equal(group.apk,undefined);
+  assert.equal(receipt.web[banco],current.web);
+  assert.deepEqual(receipt.pruebas,{[banco]:{v:"4.26.127",contenido:JSON.stringify([banco,expected127.tandas[0].t.es,expected127.tandas[0].items.es,1])}},"un solo guion por probar: el de bancos con la 127");
+  for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica","native"])assert.equal(group[key],undefined,"identidad nueva sin "+key);
 });
 
 // Catálogo cerrado: desde la promoción126 se lee de la beta126 publicada (d8d2624c), que es la última con tandas en el panel.
@@ -2598,7 +2710,7 @@ test("PERSIST91: el guardado en el commit invalida toda tanda que escribe estado
   assert.ok(dependientes.includes("widget-pago-app-cerrada"),"la lectura que acredita el widget mezcla gastos con el set real");
   assert.ok(dependientes.includes("inc-0810-metas-editar-regla"),"editar una regla escribe con el set real y conserva el cierre de persistencia");
   assert.ok(dependientes.includes("inc-0710-gastos-mes-madrid"),"Gastos99 conserva la dependencia real de guardado de Expenses");
-  assert.deepEqual(ajenas.slice().sort(),["beta-panel-veredictos","inc-0210-01-plan-cuota","inc-0410-inicio-tres-metas","inc-0710-appstate-listener-cleanup","inc-0710-banknotif-cleanup","inc-0810-backclose-handover","inc-0810-dashboard-recents-memo","inc-0810-inicio-grafica-significado","inc-0810-nav-indicator","inc-2709-01-arranque-red","inc-2709-09-fechas-cache","inc-2709-12-cyber-fab","inc-2709-13-fab-contorno","inc-2709-14-preguntar","inicio-grafica-vuelve","inicio-solape-gastos","inicio-tarjeta-ciclo-limpia","ops-0410-panel-cola","plan-scroll-lento","splash-animado","tr-descripcion-clasificacion"]);
+  assert.deepEqual(ajenas.slice().sort(),["bancos-reconexion-revoca","beta-panel-veredictos","inc-0210-01-plan-cuota","inc-0410-inicio-tres-metas","inc-0710-appstate-listener-cleanup","inc-0710-banknotif-cleanup","inc-0810-backclose-handover","inc-0810-dashboard-recents-memo","inc-0810-inicio-grafica-significado","inc-0810-nav-indicator","inc-2709-01-arranque-red","inc-2709-09-fechas-cache","inc-2709-12-cyber-fab","inc-2709-13-fab-contorno","inc-2709-14-preguntar","inicio-grafica-vuelve","inicio-solape-gastos","inicio-tarjeta-ciclo-limpia","ops-0410-panel-cola","plan-scroll-lento","splash-animado","tr-descripcion-clasificacion"]);
   /* Quién depende del guardado lo decide el CÓDIGO, no la marca del registro (auditoría del
      coordinador, 4/10): se quita de cada alcance el bloque del guardado y se mira si lo que queda
      llama a `set` de App —las dependencias transitivas ya son unidades del alcance—. Tiene que

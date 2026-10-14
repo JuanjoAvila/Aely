@@ -22674,5 +22674,71 @@
       }
     ],
     "unidades": true
+  },
+  "bancos-reconexion-revoca": {
+    "web": [
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flattenBankTx"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankReadWarnings"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "madridYmdParts"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "entFromAspsp"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "entOf"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "        const txs=flattenBankTx(links, prev.bankTx);",
+        "to": "        // ORDEN anti-doble-conteo"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "      if(opts.manual && preview.synced.length && !issues.length && !readWarnings.some(",
+        "to": "        const ents={}; preview.synced.forEach"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "  bank_read_reconnect:\"{bank}: falta completar la conexión.",
+        "to": "  bank_read_empty:"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "  bank_read_reconnect:\"{bank}: the connection needs to be completed.",
+        "to": "  bank_read_empty:"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "  bank_read_reconnect:\"{bank}: falta completar la connexió.",
+        "to": "  bank_read_empty:"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "_mcMadridYmdFmt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "ENT"
+      }
+    ],
+    "edge": [
+      "supabase/functions/bank-sync/index.ts",
+      "supabase/functions/bank-disconnect/index.ts",
+      "supabase/functions/_shared/enablebanking.ts",
+      "supabase/functions/_shared/myinvestor.ts",
+      "supabase/functions/myinvestor-sync/index.ts",
+      "supabase/functions/myinvestor-keepalive/index.ts"
+    ],
+    "unidades": true
   }
 }

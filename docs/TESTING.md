@@ -1111,3 +1111,5 @@ sintéticas con Node y e2e. El spec de descarga incompleta tiene24 casos, tambi�
 acuse sin id entre pulsaciones. test.yml conserva la suite completa y agrega focal_spec opcional
 (ruta e2e/*.spec.mjs validada): job focal independiente,1worker/0retries, JSON como artefacto.
 Su pase no convierte un rojo de la suite completa en verde ni acredita móvil/despliegue.
+
+Integración 4.26.127 (14/10): `tests/beta-sources.test.mjs` gana `Catálogo127`, que lee el catálogo de la producción 4.26.126 (`33d39cb8`) como base inmutable y fija en lista cerrada el descriptor nuevo `bancos-reconexion-revoca` (web y seis superficies Edge), las seis huellas que se mueven y por qué, y nueve mutantes (tres de cliente y seis de servidor) que reabren la tanda. `Promoción126` pasa a leer `33d39cb8` en vez del árbol vivo. Los hashes del registro de `auth-disposal` y `auth-disposal-fit` se renuevan. Las pruebas de las tres ramas (`myinvestor-sync-outcomes`, `myinvestor-keepalive`, `bank-revoke-callback-race`, `bank-download-incomplete` y los Deno de `enablebanking`, `myinvestor` y `bank-disconnect/lifecycle`) ya estaban registradas por sus ramas.
