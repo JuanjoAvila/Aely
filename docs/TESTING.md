@@ -1,3 +1,5 @@
+PR228, revisión14/10: el job remoto opcional incluye ahora recibo-invariante (775 extractos sin cambiar oráculo), DOM del apunte con comercio real y CPU6 contra base126. El general conserva todos sus gates. [Acta](briefs/tr-emparejado-automatico-20261013.md).
+
 ## Emparejado automático Trade Republic · revisión NO-GO
 
 Los contratos registrados son tr-emparejado-automatico (22 casos, 8 mutantes y 21 casos por zona horaria), tr-emparejado-revision (14 casos, incluidos 12 historiales de 90 días) y ob-iguales-ordinal (38 casos). Los casos de decisiones del ordinal conservan la ruta manual o la resolución humana; la ruta automática tiene cobertura propia de sincronización real en e2e/tr-emparejado-automatico.spec.mjs, junto al pull con aviso tardío, marca #dup, separar/unir y Deshacer. El spec tr-emparejado-rendimiento compara el updater real de beta125, NO-GO228 y candidata, con 20.000 filas y 380/5.708 pares bajo CPU6; está registrado como prueba de rendimiento y corre con un worker. Todos los e2e nuevos permanecen pendientes de ejecución remota en este corte. [Acta y límites](briefs/tr-emparejado-automatico-20261013.md).

@@ -4,7 +4,7 @@ import {execFileSync} from "node:child_process";
 import {seedLoggedInDashboard,dismissNews,installFixtureClock} from "./fixtures.mjs";
 test.use({serviceWorkers:"block"});
 const sources=[
- ["beta125",execFileSync("git",["show","6342459b0eeecd65eb1817db8e01bc179787c549:public/index.html"],{encoding:"utf8",maxBuffer:16e6})],
+ ["beta126",execFileSync("git",["show","33d39cb80764aaf22998f69ac8bbaeffeadf4013:public/index.html"],{encoding:"utf8",maxBuffer:16e6})],
  ["nogo228",execFileSync("git",["show","2ff4c59ed6cd0a3c436efda2f2c0a7fc40925fdb:public/index.html"],{encoding:"utf8",maxBuffer:16e6})],
  ["candidate",fs.readFileSync(new URL("../public/index.html",import.meta.url),"utf8")]
 ];
@@ -36,7 +36,7 @@ for(const pairs of [380,5708])test("CPU6: 20000 filas y "+pairs+" pares, categor
    }
    const median=a=>a.slice(1).sort((a,b)=>a-b)[1];return {initialPairs,initialGemelos,categoryMs:median(values.category),emptySyncMs:median(values.emptySync),stable,samples:values};
   },{pairs,body:match[1]});
-  expect(result.sources[name].initialPairs).toBe(name==="beta125"?0:pairs);
+  expect(result.sources[name].initialPairs).toBe(name==="beta126"?0:pairs);
   await cdp.send("Emulation.setCPUThrottlingRate",{rate:1});await cdp.detach();await page.unroute(/\/$/);
  }
  console.log(JSON.stringify({trPairCpu6:result}));await info.attach("cpu6-"+pairs+".json",{body:JSON.stringify(result,null,2),contentType:"application/json"});

@@ -1,3 +1,7 @@
+### Corrección candidata PR228 · 14/10/2026, sin publicar
+
+El emparejado vuelve a exigir un apunte sin comercio real: un alquiler sin id con comercio identificado se unía por casualidad con un aviso del mismo importe y dejaba de contar750,50. Regresión causal roja antes, 775 extractos del oráculo original verdes después; rebase sobre126/33d39cb8. Nueva CI remota y revisión pendientes. [Acta](docs/briefs/tr-emparejado-automatico-20261013.md).
+
 ### Candidata sin publicar · revisión NO-GO de PR228 (13/10/2026)
 
 Se sustituye el emparejado independiente del importador y del render por una asignación global por banco/importe, con prioridad de día exacto y adyacente. Las lápidas sin vínculo reservan el aviso del cargo ya contestado; los históricos sin #dup conservan «son distintos». Las parejas no llenan gemelos y los cambios de categoría no recalculan fechas ni relaciones. Se añade volver a unir, separación explícita al editar y texto de borrado de ambas filas. Pruebas ampliadas: 12 historiales de 90 días, las tres regresiones financieras y versiones mezcladas; DOM y CPU6 preparados para CI remota, aún pendientes. Versión/notas/catálogo/topes reservados a integración. [Acta](docs/briefs/tr-emparejado-automatico-20261013.md).

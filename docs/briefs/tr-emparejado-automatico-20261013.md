@@ -1,6 +1,16 @@
 # Revisión NO-GO de PR228 · candidata sin publicar
 
-Encargo actual: tr-emparejado-revision-nogo-codex-20261013. Base del encargo beta124 f5904735; ejecución sobre beta125 6342459b. La entrega anterior 2ff4c59e fue rechazada y su resultado se conserva como histórico, no como aceptación. La dependencia Recibos queda rebasada en 603071c2. No se modifica VERSION, notas de publicación, catálogo ni topes.
+Encargo actual: tr-emparejado-revision-nogo-codex-20261013. Base del encargo beta124 f5904735; ejecución rebasada sobre producción/beta126 33d39cb80764aaf22998f69ac8bbaeffeadf4013. La entrega anterior 2ff4c59e fue rechazada y su resultado se conserva como histórico, no como aceptación. La dependencia Recibos queda rebasada en a921008a. No se modifica VERSION, notas de publicación, catálogo ni topes.
+
+## Corrección posterior a la CI general (14/10/2026)
+
+La fuente 31b9b9687cfba57e5e889e894d818b6f8dd79f6f quedó preservada antes del rebase. Tests 38444777336 terminó rojo en el job general 115460205272: auth-disposal, auth-disposal-fit, beta-sources, docs-frescura, presupuesto-rendimiento y recibo-invariante. El job focal 115460205068 pasó 7 DOM y 2 CPU6; ese verde no validaba el fallo financiero.
+
+Reproducción causal: el extracto amplio número 2 de recibo-invariante contaba 1481,40 frente a 2231,90 esperados. El apunte de ING sin id, con comercio real «INMOBILIARIA GARCIA SL», se emparejaba indebidamente con el aviso «Alquiler piso» por 750,50. Faltaba sinComercioReal en gemeloBancoAutomatico. Se recupera esa frontera sin tocar el oráculo: pasan sus 22 casos y los 775 extractos, incluido el contador que antes se interrumpía en 476. La regresión reducida falla primero (75050 frente a 150100 céntimos) y pasa después. La nueva prueba DOM sincroniza el comercio identificado y exige ambas filas visibles, sin #dup.
+
+El rebase126 conserva intactos módulos 02/03, shell, VERSION, catálogo/notas, topes y el test recibo-invariante respecto de sus fuentes aplicables. Sólo los artefactos generados y cabeceras documentales requirieron resolución. La invariante de recibos entra también en el job focal; el nuevo A/B usa base126. CI remota del nuevo SHA pendiente al escribir este commit. No se actualizan expectativas de huellas para esconder los rojos de integración.
+
+CPU6 histórico, fuente31b9 y CI38444777336: con 20.000 filas y 380 pares, categoría 86,5 → 1,9 ms y sync vacío 79,6 → 1,9 ms; con 5.708 pares, 3181,4 → 3,2 ms y 3022,4 → 1,3 ms, frente a la candidata NO-GO2ff4. La candidata conserva referencias; la antigua no con 5.708 pares. El navegador comprobó fuente y número real de pares; son medianas de tres muestras tras calentamiento, no aceptación móvil. La fuente126 corregida se mide otra vez.
 
 ## Qué cambia tras el NO-GO
 
@@ -12,7 +22,7 @@ Encargo actual: tr-emparejado-revision-nogo-codex-20261013. Base del encargo bet
 
 ## Evidencia local actual
 
-Siete regresiones nuevas fallaron en la fuente previa: tres importes incorrectos, migración de «son distintos», más de 500 parejas, aviso no elegible y retirada de #dup desde otra versión. Después del arreglo: 14/14 casos de revisión, 22/22 del contrato original adaptado al desfase permitido, 21/21 en UTC/Madrid/Canarias y 8/8 mutantes causales. Los mutantes solo se consideran muertos si provocan AssertionError; se ejecuta antes el mismo verificador sin mutar.
+Siete regresiones nuevas fallaron en la fuente previa: tres importes incorrectos, migración de «son distintos», más de 500 parejas, aviso no elegible y retirada de #dup desde otra versión. Después del arreglo: 15/15 casos de revisión, 22/22 del contrato original adaptado al desfase permitido, 21/21 en UTC/Madrid/Canarias y 8/8 mutantes causales. Los mutantes solo se consideran muertos si provocan AssertionError; se ejecuta antes el mismo verificador sin mutar.
 
 La migración ampliada ejecuta beta125 durante 90 días con 12 semillas, avisos de medianoche, respuestas antiguas sin vínculo y respuestas «son distintos». Los importes de cada mes son idénticos en beta/candidata al abrir, tras sync y tras segundo sync; cero preguntas pendientes en los tres puntos. Cada celda siguiente es beta = candidata, en euros sintéticos:
 
@@ -31,7 +41,7 @@ La migración ampliada ejecuta beta125 durante 90 días con 12 semillas, avisos 
 | 10 | 346.20 | 681.46 | 641.96 | 285.42 |
 | 11 | 366.17 | 662.15 | 651.66 | 275.00 |
 
-El diagnóstico Node con 20.000 filas y 5.708 parejas no recalcula fechas al cambiar categoría y conserva referencias al repetir. No se confunde con CPU6. Los e2e de sincronización y pull reales, la subida de #dup, separar/unir, borrado/Deshacer y el A/B a CPU6 están preparados y registrados; pendientes de ejecución remota al escribir este corte. El job opcional tr-pair-review del workflow Tests ejecuta Node, DOM y rendimiento por separado y falla si falla cualquiera, conservando artefactos incluso si otro bloque falla. La suite Tests general conserva sus guardianes de integración.
+El diagnóstico Node con 20.000 filas y 5.708 parejas no recalcula fechas al cambiar categoría y conserva referencias al repetir. No se confunde con CPU6. Los e2e de sincronización y pull reales, subida de #dup, separar/unir y borrado/Deshacer pasaron remotamente sobre31b9; la repetición sobre126 corregida y el nuevo caso de comercio real quedan pendientes al escribir este commit. El job opcional tr-pair-review del workflow Tests ejecuta Node, DOM y rendimiento por separado y falla si falla cualquiera, conservando artefactos incluso si otro bloque falla. La suite Tests general conserva sus guardianes de integración.
 
 ## Límites vigentes
 

@@ -80,6 +80,7 @@ jobs:
           node tests/tr-emparejado-automatico.test.mjs | tee test-results/tr-review/automatico.log
           node tests/tr-emparejado-revision.test.mjs | tee test-results/tr-review/revision.log
           node tests/ob-iguales-ordinal.test.mjs | tee test-results/tr-review/ordinal.log
+          node tests/recibo-invariante.test.mjs | tee test-results/tr-review/recibo-invariante.log
           node tests/recibo-domiciliado-sin-acreditar.test.mjs
           node tests/pull-historico-entero.test.mjs
           node tests/merge-expenses-cloud.test.mjs

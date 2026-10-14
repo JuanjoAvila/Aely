@@ -37,9 +37,10 @@ test("un gasto manual conserva la pregunta en su ficha bancaria",async({page})=>
 
 const links=[{aspsp_name:"Trade Republic",aspsp_country:"DE",status:"active",valid_until:"2027-01-01T00:00:00Z",accounts:[{uid:"tr-e2e"}]}];
 const response=n=>({data:{ok:true,links:[{aspsp:"Trade Republic",ok:true,accounts:[{uid:"tr-e2e",ok:true,balances:[],transactions:Array.from({length:n},()=>({date:day,amount:12,merchant:"Movimiento",status:"BOOK"}))}]}]},error:null});
-async function bankApp(page,expenses,n){
+async function bankApp(page,expenses,n,merchant){
+ const feed=response(n);if(merchant)feed.data.links[0].accounts[0].transactions.forEach(t=>{t.merchant=merchant;});
  await installFixtureClock(page);
- await seedLoggedInDashboard(page,{__seedOnce:true,accounts:[{id:"tr",ent:"trade_republic",role:"diario",value:900}],settings:{autoPrices:false,theme:"green",expenseBanks:["trade_republic"]},hasBankLink:true,expenses,gemelos:[],__cloudRows:{bank_links:links},__cloudFns:{"bank-sync":response(n)}});
+ await seedLoggedInDashboard(page,{__seedOnce:true,accounts:[{id:"tr",ent:"trade_republic",role:"diario",value:900}],settings:{autoPrices:false,theme:"green",expenseBanks:["trade_republic"]},hasBankLink:true,expenses,gemelos:[],__cloudRows:{bank_links:links},__cloudFns:{"bank-sync":feed}});
  await page.goto("/");await expect(page.locator(".botnav")).toBeVisible();await dismissNews(page);
  await page.evaluate(()=>{
    window.__pairWrites=[];
@@ -82,4 +83,16 @@ test("borrar la pareja explica ambas filas y Deshacer restaura ambas",async({pag
  await expect.poll(async()=>(await saved(page)).length).toBe(0);
  await page.getByRole("button",{name:/^Deshacer$/}).click();await expect(rows(page)).toHaveCount(1);
  await expect.poll(async()=>(await saved(page)).length).toBe(2);
+});
+
+
+test("sync real conserva el apunte con comercio real y no oculta dinero por importe igual",async({page})=>{
+ await bankApp(page,[notice],1,"COMERCIO IDENTIFICADO SL");await syncBank(page);
+ await expect.poll(async()=>(await saved(page)).length).toBe(2);
+ await page.locator('.botnav-tab[data-tour="gastos"]').click();await expect(rows(page)).toHaveCount(2);
+ await expect(rows(page).filter({hasText:"COMERCIO IDENTIFICADO SL"})).toHaveCount(1);
+ await expect(rows(page).filter({hasText:"Compra sintética"})).toHaveCount(1);
+ expect((await saved(page)).filter(e=>e.possibleDup||e.autoGemelo)).toHaveLength(0);
+ expect(await page.evaluate(()=>window.__pairWrites.filter(x=>x.kind==="add"&&x.source.includes("#dup")).length)).toBe(0);
+ await syncBank(page);await expect(rows(page)).toHaveCount(2);
 });
