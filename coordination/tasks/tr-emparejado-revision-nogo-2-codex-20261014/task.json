@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "id": "tr-emparejado-revision-nogo-2-codex-20261014",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261014-8f045f9f",
+  "createdAt": "2026-10-14T07:01:04.514Z",
+  "to": "codex",
+  "baseSHA": "2439ec641f88e5d1f01548a62d6e38ada058bf76",
+  "objective": "SUCESOR de tr-emparejado-revision-nogo-codex-20261013 para la PR 228. Corregir el NO-GO de la revisión limpia publicado en pr228-revision-nogo-2439ec64-20261014: (1) regresión que cuenta doble al borrar una pareja automática (la lápida de la fila del banco oculta entra sin la marca de banco que lleva un borrado normal); (2) refreshExpenseFromCloud convierte una pareja automática en separada a mano si la nube trae la fila sin #dup; (3) «volver a unir» lo deshace el otro móvil si llega antes syncCloudExpenses sin pullState; (4) menores: cambiar la fecha del aviso un día separa la pareja; y cubrir con test las dos mutaciones que sobreviven.",
+  "scope": [
+    "04-tab-gastos.js, 11-app-main.js y lógica de emparejado TR",
+    "tests Node y e2e propios registrados en el mapa"
+  ],
+  "acceptance": [
+    "Test en ROJO primero para cada defecto (1)-(3), con céntimos exactos",
+    "Simulación de 90 días con 12 semillas en UTC y Madrid sigue a 0 céntimos de la verdad",
+    "Migración desde un estado de 126 no cambia el gastado",
+    "Las dos mutaciones supervivientes (quitar reconcileGemelosAutomaticos del updater de App; volver automáticas las de 2-3 días) las mata algún test"
+  ],
+  "restrictions": [
+    "Rojos de integración: no se tocan, se declaran con cifras",
+    "Navegador: solo specs propios, workers 1, retries 0; suite entera en la CI por workflow_dispatch sobre la rama propia, PR en borrador contra beta",
+    "No quitar ni reinstalar node_modules ni worktrees ajenos",
+    "Result con SHA, EXIT reales, mutaciones, limitaciones y pasos de prueba en el móvil. Un chat por encargo; reclamar antes de empezar"
+  ],
+  "authorization": "Coordinador local, 14/10. Sucesor pedido por Codex al archivar chats (consulta-continuidad-chats-nuevos-mi-grafica-y-pr225-20261014). El claim y el result del encargo anterior se conservan tal cual; este encargo lo sustituye para continuar."
+}
