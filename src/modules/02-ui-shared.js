@@ -874,6 +874,12 @@ function netWorthSeries(state, options){
     const text=String(e.merchant||"").toLowerCase(),target=e.toBank||e.to||e.counterpartyBank;
     const plan=!!invKnown&&!row.ownTransfer&&e.amount>0&&(e.category==="traspaso"||e.category==="otros")&&
       /transferencia|traspaso|transfer/i.test([e.merchant,e.note,e.concept].join(" "))&&toHolder(e)&&plans.some(function(p){ return Math.abs(p.amount-e.amount)<0.005; });
+    // Si el plan corresponde a un bróker con cuenta propia, sus cierres ya recogen
+    // ese dinero. No convertirlo en una salida ni en otra aportación (regla de 99014642).
+    const ownPlan=!!invKnown&&!row.ownTransfer&&e.amount>0&&e.category==="traspaso"&&
+      (state.aportaciones||[]).some(function(p){return p&&owned[p.ent]&&Math.abs(p.amount-e.amount)<0.005&&(state.investments||[]).some(function(i){return i.ent===p.ent;});})&&
+      /transferencia|traspaso|transfer/i.test([e.merchant,e.note,e.concept].join(" "))&&toHolder(e);
+    if(!plan&&ownPlan) return;
     const linked=plan||!!invKnown&&e.amount!==0&&(state.investments||[]).some(function(i){
       const name=String(i.ent||"").replace(/_/g," ").toLowerCase();
       return (e.investmentId&&e.investmentId===i.id)||(target&&target===i.ent)||(name.length>=4&&text.includes(name));

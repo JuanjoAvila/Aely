@@ -64,7 +64,10 @@ function comprobar(m) {
   const suelto = S(cartera({ plan: false, photos: diarias() }));
   assert.equal(at(suelto, "2026-09-29"), 6500); assert.equal(at(suelto,"2026-09-30"),6000); assert.equal(at(suelto,"2026-10-06"),6500); assert.equal(suelto.at(-1).value, 6500, "sin enlace: salida y foto posterior sin doble conteo");
   // Otro importe, o el mismo importe a otra persona (el alquiler al casero), no es la aportación.
-  assert.equal(at(S({ ...cartera({ photos: diarias() }), aportaciones: [{ id: "p", ent: "myinvestor", amount: 300 }] }), "2026-09-29"), 6000);
+  // Decisiones «decision-grafica2-traspaso-sin-contraparte-20261014» y
+  // «decision-grafica2-segunda-asercion-autorizada-20261014», 14/10: un plan de 300
+  // no acredita el traspaso de 500; se conserva el fixture y cuenta como salida.
+  assert.equal(at(S({ ...cartera({ photos: diarias() }), aportaciones: [{ id: "p", ent: "myinvestor", amount: 300 }] }), "2026-09-29"), 6500);
   const casero = S(cartera({ category: "otros", note: "TRANSFERENCIA A Casero", merchant: "Casero", photos: fotos([["2026-10-03", 5300]]), invested: 5300 }), 5300);
   assert.deepEqual([at(casero, "2026-09-29"), at(casero, "2026-09-30"), at(casero, "2026-10-03")], [6500, 6000, 6300], "el alquiler es gasto aunque la bolsa suba ese día");
   // A nombre del titular también vale con su nombre del perfil, no solo con «yo mismo».
