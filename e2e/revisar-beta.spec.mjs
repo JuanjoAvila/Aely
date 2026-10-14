@@ -1793,22 +1793,22 @@ for(const lang of ["es","en","ca"])test(`promoción117: entrega por superficies,
 
 });
 
-/* Beta 4.26.132 (14/10/2026): la nota nueva de los últimos movimientos de Inicio sin repetidos con su tanda, ÚNICA del panel;
- * las de la parte mía (4.26.131), el emparejado de Trade Republic (4.26.130) y la limpieza (4.26.129), igual que las de Inicio (4.26.128) y bancos (4.26.127),
- * las aprobó el móvil y salen del panel con `tandas:[]`, sobre la producción 4.26.126 (33d39cb8), que ya consolidó la
- * ronda 118–126 en una sola nota. Aquí no se inyecta nada: se mira el catálogo que lleva el bundle. Las versiones se leen fila a fila (ver la nota
- * del 12/10 sobre «v4.26.11» + «22 sep»). */
-for(const lang of ["es","en","ca"])test(`beta132: la nota de los últimos movimientos con su tanda, y las cinco anteriores ya aprobadas, sobre el historial de producción (${lang})`,async({page})=>{
+/* Promoción132 (14/10/2026): la ronda de beta 129–132 sube entera sobre la producción 128
+ * (2358df21). Aquí no se inyecta nada: se mira el catálogo que lleva el bundle. La familia ve UNA
+ * nota más las 229 que ya tenía producción; las notas 129 a 131 no salen ni desplegando todo el
+ * historial, y el panel de revisión queda sin nada que pedir. Las versiones se leen fila a fila
+ * (ver la nota del 12/10 sobre «v4.26.11» + «22 sep»). */
+for(const lang of ["es","en","ca"])test(`promoción132: una nota, el historial de producción y el panel vacío (${lang})`,async({page})=>{
   await abrirRevisionBeta(page,lang);
-  const production=JSON.parse(execFileSync("git",["show","33d39cb80764aaf22998f69ac8bbaeffeadf4013:src/data/release-notes.json"],{encoding:"utf8",maxBuffer:8e6}));
-  expect(production.length).toBe(228);
+  const production=JSON.parse(execFileSync("git",["show","2358df2157c171b35de89baa4923cf51fd9b06b1:src/data/release-notes.json"],{encoding:"utf8",maxBuffer:8e6}));
+  expect(production.length).toBe(229);
   const catalog=await page.evaluate(()=>RELEASE_NOTES.map(n=>[n.v,Array.isArray(n.tandas)?n.tandas.length:-1]));
-  expect(catalog).toEqual([["4.26.132",1],["4.26.131",0],["4.26.130",0],["4.26.129",0],["4.26.128",0],["4.26.127",0],...production.map(n=>[n.v,0])]);
+  expect(catalog).toEqual([["4.26.132",0],...production.map(n=>[n.v,0])]);
   const pack=await page.evaluate(()=>{CONFIG.APP_VERSION="4.26.132.1";const p=betaChecklist(CONFIG.APP_VERSION,"4.26.117",55);return {tandas:p.tandas.length,items:p.items.length};});
-  expect(pack).toEqual({tandas:1,items:1});
+  expect(pack).toEqual({tandas:0,items:0});
   const title=await page.evaluate(lang=>rnT(RELEASE_NOTES[0].t,lang),lang);
   const items=await page.evaluate(lang=>rnItems(RELEASE_NOTES[0],lang),lang);
-  expect(items.length).toBe(1);
+  expect(items.length).toBe(5);
   await page.evaluate(()=>{
     const host=document.createElement("div");document.body.appendChild(host);
     ReactDOM.createRoot(host).render(React.createElement(WhatsNew,{onClose:()=>{}}));
@@ -1817,11 +1817,11 @@ for(const lang of ["es","en","ca"])test(`beta132: la nota de los últimos movimi
   await expect(news).toBeVisible();
   await expect(news).toContainText(title);
   for(const item of items)await expect(news).toContainText(item);
-  const versions=news.locator('button').filter({hasText:/^v\d+\./});
+  const versions=news.locator('button').filter({hasText:/^vd+./});
   await expect(versions).toHaveCount(20);
   await news.locator('.btn-ghost.btn-block').click();
-  await expect(versions).toHaveCount(234);
-  const shown=(await versions.locator("span:first-child").allTextContents()).map(x=>x.match(/^v(\d+\.\d+\.\d+)/)[1]);
-  expect(shown).toEqual(["4.26.132","4.26.131","4.26.130","4.26.129","4.26.128","4.26.127",...production.map(n=>n.v)]);
-  for(const v of ["4.26.118","4.26.119","4.26.120","4.26.121","4.26.122","4.26.123","4.26.124","4.26.125"])expect(shown).not.toContain(v);
+  await expect(versions).toHaveCount(230);
+  const shown=(await versions.locator("span:first-child").allTextContents()).map(x=>x.match(/^v(d+.d+.d+)/)[1]);
+  expect(shown).toEqual(["4.26.132",...production.map(n=>n.v)]);
+  for(const v of ["4.26.131","4.26.130","4.26.129","4.26.127"])expect(shown).not.toContain(v);
 });
