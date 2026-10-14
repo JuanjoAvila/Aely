@@ -118,6 +118,7 @@ const steps = [
   ["month-budget-stats", ["node", "tests/month-budget-stats.test.mjs"]],
   ["dash-metricas", ["node", "tests/dash-metricas.test.mjs"]],
   ["inicio-v42", ["node", "tests/inicio-v42.test.mjs"]],
+  ["inicio-vispera-cobro", ["node", "tests/inicio-vispera-cobro.test.mjs"]],
   ["informe-mes", ["node", "tests/informe-mes.test.mjs"]],
   ["presupuesto-categoria", ["node", "tests/presupuesto-categoria.test.mjs"]],
   ["month-window", ["node", "tests/month-window.test.mjs"]],

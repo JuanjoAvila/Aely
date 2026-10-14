@@ -879,15 +879,16 @@ function netWorthRanges(series, today){
 }
 // Comparación robusta al calendario (revisión 13/10): el punto más bajo de los últimos 45 días
 // frente al punto más bajo de la ventana de 45 días que termina N días atrás (1M 30, 3M 91,
-// 6M 182, 1A 365, Todo la más antigua completa). El mínimo de una ventana que contiene un ciclo
-// entero es el saldo de la víspera del cobro: lo que de verdad quedó ahorrado ese ciclo, dé igual
-// que la nómina baile de día, que haya dos al mes o que el alquiler caiga nada más cobrar. Comparar
-// hoy con «el mismo día del ciclo anterior» o la media de 30 días daba «menos» a quien ahorra en
-// cuanto un ciclo era más largo que otro. Un gasto o una caída de bolsa que deje hoy por debajo de
-// la víspera del cobro entra en el mínimo el mismo día: no se esconde. Sin 45 días de serie a cada
-// lado → null (frase neutra, sin color: lo que no se sabe no se inventa, AGENTS §1).
+// 6M 182, 1A 365, Todo la más antigua completa). Es el plan B: solo se usa si la app no conoce
+// el ciclo de nómina (abajo, `paydays`). La regla suponía que el mínimo de cada ventana es la
+// víspera del cobro y con un patrimonio que sube dentro del mes (cuotas que son capital, bolsa)
+// no se cumple: el mínimo cae en el borde de la ventana y mezcla dos nóminas con un mes de
+// gastos (+3.769 € «más que el mes pasado» siendo +2.418, y +1.881 la víspera sin moverse un
+// euro; feedback 14/10). Un gasto o una caída de bolsa que deje hoy por debajo de la víspera
+// del cobro entra en el mínimo el mismo día: no se esconde. Sin 45 días de serie a cada lado →
+// null (frase neutra, sin color: lo que no se sabe no se inventa, AGENTS §1).
 const NW_WINDOW=45;
-function netWorthCompare(series, rangeId, today, invested){
+function netWorthCompare(series, rangeId, today, invested, paydays){
   if(!series||series.length<NW_WINDOW+1) return null;
   const n=series.length, back={"1m":30,"3m":91,"6m":182,"1y":365}[rangeId];
   // Las dos ventanas no se solapan (1M compara con la que termina 45 días atrás, que sigue
@@ -896,13 +897,52 @@ function netWorthCompare(series, rangeId, today, invested){
   // con 118 días de serie, 3M decía «Aún sin datos para comparar» teniendo historia desde junio.
   const oldest=n-NW_WINDOW;
   if(oldest<NW_WINDOW) return null;
-  const gap=Math.min(oldest,Math.max(NW_WINDOW,back!=null?back:oldest));
-  const low=function(end){ let v=Infinity; for(let i=end-NW_WINDOW+1;i<=end;i++) if(series[i].value<v) v=series[i].value; return v; };
-  const delta=Math.round((low(n-1)-low(n-1-gap))*100)/100;
   // El margen solo decide el color: 2 % de lo invertido (el vaivén de un día de bolsa) entre
   // 10 € y 300 €; sin tope, 150.000 € invertidos escondían un gasto extra de 2.500 € dos meses.
   const margin=Math.min(300,Math.max(10,Math.abs(invested||0)*.02));
-  return {delta:delta,days:gap,months:Math.max(1,Math.round(gap/30.44)),verdict:delta>margin?"up":delta<-margin?"down":"flat",margin:margin};
+  const out=function(delta,days){
+    delta=Math.round(delta*100)/100;
+    return {delta:delta,days:days,months:Math.max(1,Math.round(days/30.44)),verdict:delta>margin?"up":delta<-margin?"down":"flat",margin:margin};
+  };
+  const pay=netWorthPaydayCompare(series,back,paydays);
+  if(pay) return Object.assign(out(pay.delta,pay.days),{basis:"payday"});
+  const gap=Math.min(oldest,Math.max(NW_WINDOW,back!=null?back:oldest));
+  const low=function(end){ let v=Infinity; for(let i=end-NW_WINDOW+1;i<=end;i++) if(series[i].value<v) v=series[i].value; return v; };
+  return out(low(n-1)-low(n-1-gap),gap);
+}
+// Con el ciclo conocido se compara lo que de verdad quedó ahorrado: la víspera del cobro
+// actual frente a la víspera del cobro de hace un mes (3M/6M/1A: el cobro más cercano a esa
+// distancia; Todo y un periodo más largo que la serie: el primer cobro con víspera en la
+// serie). La cifra solo cambia al entrar una nómina, no al pasar los días. El lado de hoy es
+// el mínimo desde la víspera: un gasto que deje hoy por debajo se ve el mismo día. Un cobro
+// que no casa con la distancia pedida (±10 días: fines de semana y meses de 28 a 31) no se
+// fuerza: devuelve null y manda la regla de los 45 días.
+function netWorthPaydayCompare(series, back, paydays){
+  if(!paydays||!paydays.length) return null;
+  const at={}, n=series.length;
+  series.forEach(function(p,i){ at[p.day]=i; });
+  const today=series[n-1].day, dayMs=function(day){ return Date.parse(day+"T12:00:00Z"); };
+  const eves=[];
+  paydays.forEach(function(day){
+    if(day>today) return;
+    const eve=new Date(dayMs(day)-864e5).toISOString().slice(0,10);
+    if(at[eve]!=null && eves.indexOf(eve)<0) eves.push(eve);
+  });
+  eves.sort();
+  if(eves.length<2) return null;
+  const cur=eves[eves.length-1], curMs=dayMs(cur);
+  let prev=eves[0];
+  if(back!=null && curMs-back*864e5>=dayMs(eves[0])-10*864e5){
+    let best=Infinity; prev=null;
+    eves.slice(0,-1).forEach(function(eve){
+      const off=Math.abs(dayMs(eve)-(curMs-back*864e5));
+      if(off<=10*864e5 && off<best){ best=off; prev=eve; }
+    });
+    if(!prev) return null;
+  }
+  let now=Infinity;
+  for(let i=at[cur];i<n;i++) if(series[i].value<now) now=series[i].value;
+  return {delta:now-series[at[prev]].value,days:Math.round((curMs-dayMs(prev))/864e5)};
 }
 function netWorthChartGeometry(points){
   if(!points||points.length<2) return null;

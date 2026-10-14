@@ -34,6 +34,19 @@ function cycleTiming(bud,nowMs){
   const days=Math.max(1,(end-civil(start))/864e5), elapsed=Math.max(0,(civil(now)-civil(start))/864e5);
   return {days:days,elapsed:elapsed,left:Math.max(0,(end-civil(now))/864e5),reliable:!!bud.cycle};
 }
+// Días (Madrid) de las nóminas que reconoce el ciclo, de la más antigua a la última. Se encadena
+// el mismo lector del presupuesto (`budgetPaydayOf`, que mira 45 días hacia atrás) desde la
+// víspera de cada cobro, así Inicio no tiene una segunda idea de qué es una nómina. Un hueco
+// de más de 45 días sin cobro corta la cadena: más atrás el ciclo ya no es fiable.
+function netWorthPaydays(state, nowMs){
+  const out=[];
+  let p=budgetPaydayOf(state, nowMs!=null?nowMs:Date.now());
+  for(let guard=0;p&&guard<60;guard++){
+    out.unshift(netWorthDay(dateMs(p.inc.date)));
+    p=budgetPaydayOf(state, p.start.getTime()-1);
+  }
+  return out.length?out:null;
+}
 // Las filas de la hoja «Cómo se calcula», como mucho tres y solo las que aplican: etiqueta por
 // tipo (nunca cuenta por cuenta ni bien por bien) y un dato corto. Antes era un párrafo más una
 // línea por cuenta, bien y deuda metido en la página («el textaco», feedback 13/10).
@@ -57,8 +70,9 @@ function netWorthInfoRows(series, dateFmt, compared){
     const constant=debts.filter(function(g){ return g.constant; }).length;
     rows.push({k:t("v42_net_i_debts"),v:t(constant===debts.length?"v42_net_i_debts_kept":constant?"v42_net_i_debts_mixed":"v42_net_i_debts_est")});
   }
-  // Cuarta fila, solo cuando hay frase de comparación: con qué se compara, en corto.
-  if(compared) rows.push({k:t("v42_net_i_cmp"),v:t("v42_net_i_cmp_v")});
+  // Cuarta fila, solo cuando hay frase de comparación: con qué se compara, en corto (la víspera
+  // de cada cobro si se conoce el ciclo; si no, el mínimo de 45 días).
+  if(compared) rows.push({k:t("v42_net_i_cmp"),v:t(compared.basis==="payday"?"v42_net_i_cmp_pay":"v42_net_i_cmp_v")});
   return rows;
 }
 // Hoja inferior de la «i», con el mismo patrón que la del presupuesto: nada se inserta en la
@@ -85,7 +99,7 @@ function NetWorthInfoSheet({open, rows, onClose}){
       )
     ), document.body);
 }
-function NetWorthNow({tt, simple, series, splashGone}){
+function NetWorthNow({tt, simple, series, paydays, splashGone}){
   // La animación pertenece a esta tarjeta; repintar todo Inicio en cada frame
   // dispara las lecturas de layout de navegación con el histórico grande.
   const value=tt.netWorth, shown=useCountUp(tt.netWorth||0, splashGone);
@@ -96,9 +110,9 @@ function NetWorthNow({tt, simple, series, splashGone}){
   const svgRef=useRef(null), frameRef=useRef(0), fingerRef=useRef(null);
   const range=ranges.find(function(r){ return r.id===picked; })||ranges[0];
   const points=range?range.points:[], active=touch!=null?points[touch]:null;
-  // El veredicto compara mínimos de 45 días, nunca el primer punto de la gráfica con hoy; y el
-  // rojo se queda solo para ir peor de verdad (feedback 13/10: «yo no voy mal»).
-  const compare=useMemo(function(){ return range?netWorthCompare(series,range.id,today,tt.invested):null; },[series,range&&range.id,today,tt.invested]);
+  // El veredicto compara vísperas de cobro (o mínimos de 45 días sin ciclo), nunca el primer punto
+  // de la gráfica con hoy; y el rojo se queda solo para ir peor de verdad (feedback 13/10: «yo no voy mal»).
+  const compare=useMemo(function(){ return range?netWorthCompare(series,range.id,today,tt.invested,paydays):null; },[series,range&&range.id,today,tt.invested,paydays]);
   const verdict=compare?compare.verdict:"none";
   const color=verdict==="up"?"var(--mint)":verdict==="down"?"var(--coral)":"var(--blue)";
   const chart=useMemo(function(){ return netWorthChartGeometry(points); },[points]);
@@ -109,7 +123,7 @@ function NetWorthNow({tt, simple, series, splashGone}){
   },[points,dateFmt]);
   // Fecha corta («18 jun») para la hoja; con el año se iba a dos renglones en el móvil.
   const shortFmt=useMemo(function(){return new Intl.DateTimeFormat(language,{timeZone:"Europe/Madrid",day:"numeric",month:"short"});},[language]);
-  const infoRows=useMemo(function(){ return netWorthInfoRows(series,shortFmt,!!compare); },[series,shortFmt,language,!!compare]);
+  const infoRows=useMemo(function(){ return netWorthInfoRows(series,shortFmt,compare); },[series,shortFmt,language,compare]);
   useEffect(function(){ setTouch(null); },[range&&range.id]);
   useEffect(function(){ return function(){ cancelAnimationFrame(frameRef.current); }; },[]);
   const valid=typeof value==="number" && Number.isFinite(value)&&!(series.coverage||[]).some(function(g){return g.unknown;});
@@ -254,6 +268,10 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
     return bud;
   },
     [state.expenses,state.deleted,state.accounts,state.settings,state.flows,state.budget,state.reservaLog,seriesToday]);
+  // Los cobros solo cuentan si la tarjeta ya trabaja por ciclo: la misma nómina que abre el
+  // presupuesto marca las vísperas con las que Inicio dice «más/menos que el mes pasado».
+  const paydays=useMemo(function(){ return bud.cycle?netWorthPaydays(state):null; },
+    [bud.cycle,state.expenses,state.deleted,state.accounts,state.settings,state.flows,seriesToday]);
   const budAmt=bud.budget!=null?bud.budget:(state.budget||0);
   const spentAgainst=Math.max(0,bud.against), rem=bud.remaining!=null?bud.remaining:budAmt-spentAgainst;
   const timing=cycleTiming(bud), paceState=cyclePaceState(spentAgainst,budAmt,timing.elapsed,timing.days);
@@ -368,7 +386,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
       }}, t("mr_share"))
     ),
 
-    !showSkel && React.createElement(NetWorthNow,{tt:tt, simple:simple, series:series, splashGone:splashGone}),
+    !showSkel && React.createElement(NetWorthNow,{tt:tt, simple:simple, series:series, paydays:paydays, splashGone:splashGone}),
 
     // Sin presupuesto, Inicio escondia su tarjeta estrella y te quedabas sin la mitad de la app
     // sin saber por que (P3). En vez de esconderla, la misma tarjeta en vacio y con salida: abre
