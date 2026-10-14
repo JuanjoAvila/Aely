@@ -2493,7 +2493,15 @@ function canRecognizeWithdrawal(e,state){
     &&withdrawalRowMatches(e,{id:current.id,source:expenseSourceForCloud(current),fecha:current.date,importe:current.amount,comercio:current.merchant});
 }
 function withdrawalRowMatches(e, row){
-  return !!(row && row.id===e.id && row.source===expenseSourceForCloud(e)
+  if(!row)return false;
+  var source=expenseSourceForCloud(e),remote=row.source,localRef=bankRefDeSource(source),remoteRef=bankRefDeSource(remote);
+  // La fila anterior a #ref sigue siendo la misma UUID. Dos referencias conocidas no se sustituyen.
+  if(localRef&&remoteRef&&localRef!==remoteRef)return false;
+  if(/^ob(?:-hist)?:/.test(source)&&/^ob(?:-hist)?:/.test(remote)){
+    if((/#ref/.test(source)&&!localRef)||(/#ref/.test(remote)&&!remoteRef))return false;
+    source=source.replace(/#ref[^#]*/,"");remote=remote.replace(/#ref[^#]*/,"");
+  }
+  return !!(row.id===e.id && remote===source
     && Number(row.importe)===e.amount && Date.parse(row.fecha)===Date.parse(e.date)
     && row.comercio===e.merchant);
 }

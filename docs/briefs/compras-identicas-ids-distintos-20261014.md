@@ -2,7 +2,8 @@
 
 Encargo sucesor `compras-identicas-ids-distintos-2-codex-20261014`. Base histórica inmutable
 `24d0d463e0c0055ba000149f07d7fa2fe12d4c9b`; ejecución autorizada sobre
-`7865111be8e2e1f8994bccba4b515bf4c6193074` (132). No es una versión publicada.
+`7865111be8e2e1f8994bccba4b515bf4c6193074` (132), rebasada por instrucción del canal
+`85f33537` sobre `52e1957db385bc03cceba138fe68ff16b1b84f9f` (133). No es una versión publicada.
 
 El handler real de bank-sync entrega las dos referencias. El importador las descartaba por
 día, importe y nombre; mergeExpenses y mergeExpensesFromCloud repetían esa fusión. El rojo
@@ -31,6 +32,15 @@ nube; otro móvil; borrado y Deshacer reales; tres estados sin colisión contra 
 2456, -179721 y 2345 céntimos idénticos. Siete mutaciones deben morir. El spec propio está
 registrado en Gastos y el Node en el runner. La fixture de ingest se comparte con su suite
 existente, sin cambiar sus mocks ni el handler.
+
+La primera CI sobre `6eb0a036` dejó seis etapas rojas: prod117-edge-compat,
+retirada-bancaria, beta-sources, docs-frescura, presupuesto-rendimiento y recibo-invariante;
+el focal propio pasó 3/3. Se corrigen las dos regresiones propias antes de repetir: el
+consumidor del fixture compartido lee su ubicación nueva sin cambiar los hashes desplegados;
+la retirada reconoce la misma UUID si un lado aún carece de #ref, mantiene la fuente remota
+en el CAS y rechaza referencias conocidas distintas. Banco, ordinal, #dup, fecha, importe y
+comercio siguen siendo guardas obligatorias. Sus 50 casos incluyen compatibilidad en ambos
+sentidos. El resultado de esa primera CI se conserva y no acredita el nuevo SHA.
 
 Se conserva SIN MODIFICAR el oráculo de `recibo-invariante.test.mjs`: sobre 132 pasa; con esta
 regla falla el extracto amplio 109 (semilla 8417), que contiene x1 BOOK y x2 PDNG, ambos de 750,
