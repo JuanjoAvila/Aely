@@ -1,5 +1,52 @@
 [
   {
+    "v": "4.26.129",
+    "d": "2026-10-14",
+    "t": {
+      "es": "Ajustes más limpios y app más ligera",
+      "en": "Cleaner Settings and a lighter app",
+      "ca": "Ajustos més nets i app més lleugera"
+    },
+    "items": {
+      "es": [
+        "Más limpio y más ligero: se han ido de Ajustes opciones que no hacían nada (ordenar pestañas, actualizar precios al abrir, ocultar bloques) y el perfil guarda solo tu nombre y tu apodo; el resto de datos personales se borra. La proyección de inversiones ahora está en Cartera, dentro de Inversiones."
+      ],
+      "en": [
+        "Lighter and tidier: Settings options that did nothing are gone (reorder tabs, update prices on open, hide blocks), and your profile now keeps only your name and nickname; the other personal details are erased. The investment projection now lives in Portfolio, inside Investments."
+      ],
+      "ca": [
+        "Més net i més lleuger: han desaparegut d’Ajustos opcions que no feien res (ordenar pestanyes, actualitzar preus en obrir, amagar blocs) i el perfil només guarda el teu nom i el teu sobrenom; la resta de dades personals s’esborra. La projecció d’inversions ara és a Cartera, dins d’Inversions."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "limpieza-ajustes-perfil",
+        "t": {
+          "es": "Ajustes más limpios y app más ligera",
+          "en": "Cleaner Settings and a lighter app",
+          "ca": "Ajustos més nets i app més lleugera"
+        },
+        "items": {
+          "es": [
+            "1. Abre Ajustes: ya no están \"Pestañas\", \"Ocultar bloques\", \"Actualizar precios al abrir\", la Proyección ni \"Cambiar mis recibos\".",
+            "2. Cartera → Inversiones → \"Ver todas\": abajo hay una ficha \"Proyección\"; ábrela y mueve los deslizadores.",
+            "3. Toca tu avatar → Perfil: solo salen tu nombre y apodo, el correo y Hogar, y tu nombre sigue ahí."
+          ],
+          "en": [
+            "1. Open Settings: \"Tabs\", \"Hide blocks\", \"Update prices on open\", the Projection and \"Change my bills\" are gone.",
+            "2. Portfolio → Investments → \"See all\": at the bottom there is a \"Your savings projection\" card; open it and move the sliders.",
+            "3. Tap your avatar → Profile: only your name and nickname, your email and Household show, and your name is still there."
+          ],
+          "ca": [
+            "1. Obre Ajustos: ja no hi són \"Pestanyes\", \"Amagar blocs\", \"Actualitzar preus en obrir\", la Projecció ni \"Canviar els meus rebuts\".",
+            "2. Cartera → Inversions → \"Veure totes\": a baix hi ha una fitxa \"Projecció\"; obre-la i mou els lliscadors.",
+            "3. Toca el teu avatar → Perfil: només surten el teu nom i sobrenom, el correu i Llar, i el teu nom continua allà."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.128",
     "d": "2026-10-14",
     "t": {

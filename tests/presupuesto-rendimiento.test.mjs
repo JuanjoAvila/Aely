@@ -282,7 +282,10 @@ const PRESUPUESTO = {
   // Integración 4.26.128 (14/10), Inicio compara con el mismo día del mes pasado (tránsito a un bróker e
   // intereses de la deuda en la serie), sobre la beta 127: medida tras el build, sello 4.26.128.99999 y
   // reserva de 95 B: 1.391.829 B crudo / 382.531 B gzip, +3.139 / +966 B sobre la 127. 1360 KiB es el mínimo (quedan 811 B).
-  minificado: 1360 * 1024,
+  // Integración 4.26.129 (14/10), limpieza de código muerto y de Ajustes, sobre la beta 128: medida tras el build,
+  // sello 4.26.129.99999 y reserva de 95 B: 1.283.806 B crudo / 356.590 B gzip, −108.023 / −25.941 B sobre la 128. El tope BAJA con la
+  // medida para que el hueco no lo ocupe otra entrega sin declararlo: 1254 KiB es el mínimo (quedan 290 B).
+  minificado: 1254 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -308,7 +311,8 @@ const PRESUPUESTO = {
   // Integración 4.26.125: 380.616 B gzip, 712 B sobre 371 KiB. Mínimo medido: 372 KiB (quedan 312 B).
   // Integración 4.26.127: 381.565 B gzip, 637 B sobre el tope anterior de 372 KiB. Mínimo medido: 373 KiB (quedan 387 B).
   // Integración 4.26.128: 382.531 B gzip, 955 B sobre el tope anterior de 373 KiB. Mínimo medido: 374 KiB (quedan 445 B).
-  gzip: 374 * 1024,
+  // Integración 4.26.129: 356.590 B gzip, 25.941 B menos que la 128. Mínimo medido: 349 KiB (quedan 786 B).
+  gzip: 349 * 1024,
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 

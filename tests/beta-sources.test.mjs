@@ -50,10 +50,24 @@ const source126=sourceAt("d8d2624c6666599a09b99e111c3360af6eec6f91");
 const sourceProd126=sourceAt("33d39cb80764aaf22998f69ac8bbaeffeadf4013");
 // Catálogo127 pasa a histórico en la 128: se lee de la beta 4.26.127 publicada (b3edefb4), que sigue en el panel con su tanda de bancos.
 const sourceBeta127=sourceAt("b3edefb4fd561fc43e265a7796145a58d1976295");
+// Catálogo128 pasa a histórico en la 129: se lee de la beta 4.26.128 publicada (24d0d463), que sigue en el panel con sus dos tandas.
+const sourceBeta128=sourceAt("24d0d463e0c0055ba000149f07d7fa2fe12d4c9b");
 // La122 añade un método a `cloud` (`setExpenseRecibo`) y los alcances que listan los métodos que
 // leen lo ganan al final de su lista. Las comparaciones con descriptores anteriores lo descuentan;
 // Catálogo122 fija en lista cerrada cuáles son.
 const sinMetodo122=u=>u&&u.members?{...u,members:u.members.filter(m=>m!=="setExpenseRecibo")}:u;
+// Integración129: la limpieza de código muerto borró unidades enteras (freqLabel, FREQ_LABEL, FREQ_OPTS,
+// el componente Fijos de motor-bank) y los textos que servían de ancla a tres bloques. Las comparaciones
+// con descriptores anteriores traducen el descriptor viejo a la ancla de hoy (o lo dan por retirado a
+// propósito) en vez de exigir que sobreviva un texto que ya no existe.
+const limpieza129=u=>{
+  if(!u||typeof u==="string")return u;
+  if(u.function==="freqLabel"||u.data==="FREQ_LABEL"||u.data==="FREQ_OPTS"||(u.function==="Fijos"&&u.file==="src/modules/08-motor-bank.js"))return null;
+  const cambios=[["  const tabIds = tabOrderState || tabOrderOf(state);","  const tabIds = tabOrderOf(state);"],["  // clear del tope: solo API residual","  const endTopClearNow=function(doReveal){"],["    );\n  }\n  return React.createElement(\"div\",null,","    );\n}\n\n/* ============================================================\n   TAB: GASTOS FIJOS"]];
+  const out={...u};
+  for(const [a,b] of cambios){if(out.from===a)out.from=b;if(out.to===a)out.to=b;}
+  return out;
+};
 const empty=[{v:"4.26.67",tandas:[]}];
 const archiveRefs=JSON.parse(read("scripts/beta-archives.json"));
 const archiveId="inc-0810-inicio-grafica-significado";
@@ -73,7 +87,7 @@ const boot="inc-2709-01-arranque-red";
 const modern=[{v:"4.26.69",tandas:[{id:boot}]}];
 let failed=0;
 const inicioOnly=process.argv.includes("--inicio-v42-only");
-function test(name,fn){ if(inicioOnly&&!name.startsWith("Inicio v4.2 ")&&!name.startsWith("Catálogo128 ")&&!name.startsWith("Catálogo127 ")&&!name.startsWith("Catálogo126 ")&&!name.startsWith("Retiro126 ")&&!name.startsWith("Catálogo125 ")&&!name.startsWith("Retiro125 ")&&!name.startsWith("Catálogo124 ")&&!name.startsWith("Retiro124 ")&&!name.startsWith("Catálogo123 ")&&!name.startsWith("Catálogo122 ")&&!name.startsWith("Catálogo121 ")&&!name.startsWith("Catálogo120 ")&&!name.startsWith("Catálogo114 ")&&!name.startsWith("Catálogo117 ")&&!name.startsWith("Retiro117 ")&&!name.startsWith("Catálogo118 ")&&!name.startsWith("Splash117 ")&&!name.startsWith("Catálogo119 ")&&!name.startsWith("Retiro119 "))return;try{fn();console.log("  ✓ "+name);}catch(e){failed++;console.error("  ✗ "+name+"\n    "+e.message);} }
+function test(name,fn){ if(inicioOnly&&!name.startsWith("Inicio v4.2 ")&&!name.startsWith("Catálogo129 ")&&!name.startsWith("Catálogo128 ")&&!name.startsWith("Catálogo127 ")&&!name.startsWith("Catálogo126 ")&&!name.startsWith("Retiro126 ")&&!name.startsWith("Catálogo125 ")&&!name.startsWith("Retiro125 ")&&!name.startsWith("Catálogo124 ")&&!name.startsWith("Retiro124 ")&&!name.startsWith("Catálogo123 ")&&!name.startsWith("Catálogo122 ")&&!name.startsWith("Catálogo121 ")&&!name.startsWith("Catálogo120 ")&&!name.startsWith("Catálogo114 ")&&!name.startsWith("Catálogo117 ")&&!name.startsWith("Retiro117 ")&&!name.startsWith("Catálogo118 ")&&!name.startsWith("Splash117 ")&&!name.startsWith("Catálogo119 ")&&!name.startsWith("Retiro119 "))return;try{fn();console.log("  ✓ "+name);}catch(e){failed++;console.error("  ✗ "+name+"\n    "+e.message);} }
 console.log("beta-sources");
 
 // La rayita comparte controlador y geometría con la barra: una aprobación de CSS aislada no
@@ -162,8 +176,8 @@ test("Inicio v4.2 cubre flujos, ciclo, renderer, llamada, animación, textos, CS
   // La base es la integración120 (apuntes iguales de Trade Republic): Inicio no puede retirar su alcance ni heredar su revisión.
   const integrated=JSON.parse(source120("scripts/beta-sources.json"));
   // Detrás de Inicio sólo ha entrado el alcance de la122 (el cargo de recibo en Gastos).
-  assert.deepEqual(Object.keys(scopes),Object.keys(integrated).concat(id,"recibo-cargo-en-gastos","plan-scroll-lento","inicio-tarjeta-ciclo-limpia","bancos-reconexion-revoca","inicio-mes-pasado-mismo-dia"),"Inicio y las altas de la122, la124, la126, la127 y la128, sin retirar historia120");
-  for(const [key,value] of Object.entries(integrated))if(key!=="inicio-grafica-vuelve"){assert.deepEqual(scopes[key].native,value.native);assert.deepEqual(scopes[key].edge,value.edge);for(const part of value.web||[])assert.ok(scopes[key].web.some(s=>JSON.stringify(sinMetodo122(s))===JSON.stringify(part)),key+": no recortar descriptor ajeno120");}
+  assert.deepEqual(Object.keys(scopes),Object.keys(integrated).concat(id,"recibo-cargo-en-gastos","plan-scroll-lento","inicio-tarjeta-ciclo-limpia","bancos-reconexion-revoca","inicio-mes-pasado-mismo-dia","limpieza-ajustes-perfil"),"Inicio y las altas de la122, la124, la126, la127, la128 y la129, sin retirar historia120");
+  for(const [key,value] of Object.entries(integrated))if(key!=="inicio-grafica-vuelve"){assert.deepEqual(scopes[key].native,value.native);assert.deepEqual(scopes[key].edge,value.edge);for(const part of (value.web||[]).map(limpieza129).filter(Boolean))assert.ok(scopes[key].web.some(s=>JSON.stringify(sinMetodo122(s))===JSON.stringify(part)),key+": no recortar descriptor ajeno120");}
   assert.equal(scope.unidades,true);
   for(const key of ["historial","auditoria","codigosCompatibles","compatibilidadGit","compatibilidadSha"])
     assert.equal(scope[key],undefined,"no hereda identidad anterior: "+key);
@@ -2525,7 +2539,7 @@ const expected128={"v":"4.26.128","d":"2026-10-14","t":{"es":"Inicio: la compara
 test("Catálogo128 añade la tanda de la comparación de Inicio sobre la beta127, con el alcance de inicio-patrimonio-flujos, y declara cada huella que mueve",()=>{
   const tanda="inicio-mes-pasado-mismo-dia",flujos="inicio-patrimonio-flujos",banco="bancos-reconexion-revoca";
   const integrated=JSON.parse(sourceBeta127("scripts/beta-sources.json")),before=JSON.parse(sourceBeta127("src/data/release-notes.json"));
-  const source=f=>read(f).replace(/\r\n/g,"\n"),old=f=>sourceBeta127(f).replace(/\r\n/g,"\n");
+  const source=f=>sourceBeta128(f).replace(/\r\n/g,"\n"),old=f=>sourceBeta127(f).replace(/\r\n/g,"\n");
   assert.deepEqual(before.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id])),[["4.26.127",banco]],"la beta127 deja solo la tanda de bancos en el panel");
   const expectedNotes=[expected128,...before];
   const notes=JSON.parse(source("src/data/release-notes.json"));
@@ -2621,6 +2635,127 @@ test("Catálogo128 añade la tanda de la comparación de Inicio sobre la beta127
   for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica","native"])assert.equal(group[key],undefined,"identidad nueva sin "+key);
 });
 
+// 4.26.129 (14/10/2026): limpieza de código muerto y de opciones de Ajustes que no hacían nada (rama
+// claude/limpieza-1410, cabeza a0bf906a, nacida de 33d39cb8): fuera Pestañas, Ocultar bloques, Actualizar
+// precios al abrir y Cambiar mis recibos de Ajustes; el perfil guarda solo nombre y apodo; la Proyección
+// pasa a Cartera > Inversiones > Ver todas. Tanda NUEVA solo web, encima de la beta 4.26.128 publicada
+// (24d0d463), cuyas dos tandas (Inicio y bancos) SIGUEN en el panel: tres tandas.
+const expected129={"v":"4.26.129","d":"2026-10-14","t":{"es":"Ajustes más limpios y app más ligera","en":"Cleaner Settings and a lighter app","ca":"Ajustos més nets i app més lleugera"},"items":{"es":["Más limpio y más ligero: se han ido de Ajustes opciones que no hacían nada (ordenar pestañas, actualizar precios al abrir, ocultar bloques) y el perfil guarda solo tu nombre y tu apodo; el resto de datos personales se borra. La proyección de inversiones ahora está en Cartera, dentro de Inversiones."],"en":["Lighter and tidier: Settings options that did nothing are gone (reorder tabs, update prices on open, hide blocks), and your profile now keeps only your name and nickname; the other personal details are erased. The investment projection now lives in Portfolio, inside Investments."],"ca":["Més net i més lleuger: han desaparegut d’Ajustos opcions que no feien res (ordenar pestanyes, actualitzar preus en obrir, amagar blocs) i el perfil només guarda el teu nom i el teu sobrenom; la resta de dades personals s’esborra. La projecció d’inversions ara és a Cartera, dins d’Inversions."]},"tandas":[{"id":"limpieza-ajustes-perfil","t":{"es":"Ajustes más limpios y app más ligera","en":"Cleaner Settings and a lighter app","ca":"Ajustos més nets i app més lleugera"},"items":{"es":["1. Abre Ajustes: ya no están \"Pestañas\", \"Ocultar bloques\", \"Actualizar precios al abrir\", la Proyección ni \"Cambiar mis recibos\".","2. Cartera → Inversiones → \"Ver todas\": abajo hay una ficha \"Proyección\"; ábrela y mueve los deslizadores.","3. Toca tu avatar → Perfil: solo salen tu nombre y apodo, el correo y Hogar, y tu nombre sigue ahí."],"en":["1. Open Settings: \"Tabs\", \"Hide blocks\", \"Update prices on open\", the Projection and \"Change my bills\" are gone.","2. Portfolio → Investments → \"See all\": at the bottom there is a \"Your savings projection\" card; open it and move the sliders.","3. Tap your avatar → Profile: only your name and nickname, your email and Household show, and your name is still there."],"ca":["1. Obre Ajustos: ja no hi són \"Pestanyes\", \"Amagar blocs\", \"Actualitzar preus en obrir\", la Projecció ni \"Canviar els meus rebuts\".","2. Cartera → Inversions → \"Veure totes\": a baix hi ha una fitxa \"Projecció\"; obre-la i mou els lliscadors.","3. Toca el teu avatar → Perfil: només surten el teu nom i sobrenom, el correu i Llar, i el teu nom continua allà."]}}]};
+test("Catálogo129 añade la tanda de la limpieza de Ajustes y perfil sobre la beta128, con alcance propio, y declara cada huella que mueve",()=>{
+  const tanda="limpieza-ajustes-perfil",inicio="inicio-mes-pasado-mismo-dia",banco="bancos-reconexion-revoca";
+  const integrated=JSON.parse(sourceBeta128("scripts/beta-sources.json")),before=JSON.parse(sourceBeta128("src/data/release-notes.json"));
+  const source=f=>read(f).replace(/\r\n/g,"\n"),old=f=>sourceBeta128(f).replace(/\r\n/g,"\n");
+  assert.deepEqual(before.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id])),[["4.26.128",inicio],["4.26.127",banco]],"la beta128 deja las tandas de Inicio y de bancos en el panel");
+  const expectedNotes=[expected129,...before];
+  const notes=JSON.parse(source("src/data/release-notes.json"));
+  assert.deepEqual(notes,expectedNotes,"la nota 129 literal delante y el catálogo de la beta128 intacto (sus dos tandas siguen)");
+  assert.deepEqual(notes.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id,g.apk||0])),[["4.26.129",tanda,0],["4.26.128",inicio,0],["4.26.127",banco,0]],"el panel enseña tres tandas, todas sin APK");
+  assert.equal(notes.length,before.length+1,"ninguna nota se borra");
+  assert.deepEqual(Object.keys(notes[0].tandas[0]),["id","t","items"],"identidad nueva, sin alias ni revisión heredada");
+  for(const lang of ["es","en","ca"]){
+    assert.equal(notes[0].items[lang].length,1,lang+": un punto familiar");
+    const steps=notes[0].tandas[0].items[lang];assert.equal(steps.length,3,lang+": tres pasos");
+    steps.forEach((step,i)=>assert.ok(step.startsWith((i+1)+". "),lang+": paso numerado "+(i+1)));
+    for(const text of steps)assert.equal(/borra|quita este|delete|remove|esborra|treu aquest|mañana|tomorrow|demà/i.test(text),false,lang+": ningún paso borra nada ni espera a otro día");
+    // Sin cocina en lo que lee la familia (AGENTS §4).
+    for(const text of [notes[0].t[lang],...notes[0].items[lang]])assert.equal(/beta|tanda|panel|APK|ordinal|acuse|cursor|token|Edge|servidor|Open Banking|\d+\.\d+\.\d+/i.test(text),false,lang+": sin jerga: "+text);
+  }
+  // Los rótulos que cita el guion de Inversiones son el texto real de la app, en su idioma; y las opciones retiradas ya no existen.
+  const literal={es:[['"Ver todas"','iv_see_all:"Ver todas'],['"Proyección"','inv_proj:"Proyección']],
+    en:[['"See all"','iv_see_all:"See all'],['"Your savings projection"','inv_proj:"Your savings projection"']],
+    ca:[['"Veure totes"','iv_see_all:"Veure totes'],['"Projecció"','inv_proj:"Projecció']]};
+  const textos=source("src/modules/01-i18n.js");
+  for(const lang of ["es","en","ca"])for(const [rotulo,fuente] of literal[lang]){
+    assert.ok(notes[0].tandas[0].items[lang].join(" ").includes(rotulo),lang+": el guion cita "+rotulo);
+    assert.ok(textos.includes(fuente),lang+": "+rotulo+" es el texto de la app ("+fuente+")");
+  }
+  assert.equal(/\bst_blocks:/.test(textos),false,"«Ocultar bloques» ya no tiene texto en ningún idioma");
+  const verifyNotes=list=>assert.deepEqual(list,expectedNotes);
+  const twice=structuredClone(notes);twice[0].tandas.push(structuredClone(twice[0].tandas[0]));assert.throws(()=>verifyNotes(twice),assert.AssertionError,"no duplicar la tanda");
+  const inherited=structuredClone(notes);inherited[0].tandas[0].desde=["4.26.128/"+tanda];assert.throws(()=>verifyNotes(inherited),assert.AssertionError,"no heredar revisión");
+  const withApk=structuredClone(notes);withApk[0].tandas[0].apk=55;assert.throws(()=>verifyNotes(withApk),assert.AssertionError,"no hay APK que probar");
+  const sinInicio=structuredClone(notes);sinInicio[1].tandas=[];assert.throws(()=>verifyNotes(sinInicio),assert.AssertionError,"la tanda de Inicio de la 128 sigue en el panel");
+  const sinBancos=structuredClone(notes);sinBancos[2].tandas=[];assert.throws(()=>verifyNotes(sinBancos),assert.AssertionError,"la tanda de bancos de la 127 sigue en el panel");
+  // Un único descriptor nuevo, al final. Los demás son los de la beta128 con la limpieza aplicada a sus anclas:
+  // se van las unidades de código borrado, tres bloques cambian de ancla y perfilSinDatosBanco entra detrás de slimForCloud (y al final de la edición de reglas de metas, que lee `cloud`).
+  const scopes=JSON.parse(source("scripts/beta-sources.json")),{[tanda]:added,...rest}=scopes;
+  assert.equal(integrated[tanda],undefined,"identidad que no existía");assert.equal(Object.keys(scopes).at(-1),tanda);
+  const perfil={file:"src/modules/00-core.js",function:"perfilSinDatosBanco"};
+  const ajustado=Object.fromEntries(Object.entries(integrated).map(([key,scope])=>[key,{...scope,web:scope.web.flatMap(u=>{const n=limpieza129(u);if(!n)return [];return u.function==="slimForCloud"?[n,perfil]:[n];}).concat(key==="inc-0810-metas-editar-regla"?[perfil]:[])}]));
+  assert.deepEqual(rest,ajustado,"solo cambian las anclas y las unidades que la limpieza borró; nada crece ni se recorta más");
+  // Escribe estado con set() (Ajustes, Cartera): lleva el bloque del guardado igual que inc-2709-10-perfil (PERSIST91).
+  const guardado=rest["inc-2709-10-perfil"].web.slice(3,-1);
+  assert.equal(guardado.length,14,"el bloque del guardado: marca de App más trece unidades de 00-core");
+  const propias=[
+    perfil,{file:"src/modules/00-core.js",function:"slimForCloud"},{file:"src/modules/01-i18n.js",function:"loadState"},
+    {file:"src/modules/10-app-components.js",function:"SettingsPanel"},
+    {file:"src/modules/14-v4-screens.js",function:"ProfilePanel"},{file:"src/modules/14-v4-screens.js",function:"profileOf"},
+    {file:"src/modules/14-v4-screens.js",function:"CarteraTab"},{file:"src/modules/14-v4-screens.js",function:"InvestmentsPush"},
+    {file:"src/modules/06-sync-brokers.js",function:"Investments"},{file:"src/modules/06-sync-brokers.js",function:"Projection"},...guardado];
+  assert.deepEqual(added.web.slice(0,propias.length),propias,"las unidades propias de la tanda, en este orden, y el bloque del guardado detrás");
+  assert.equal(added.unidades,true);assert.deepEqual(Object.keys(added),["web","unidades"],"solo web");
+  // El resto es el cierre de lectores (funciones y datos que leen las unidades propias, transitivamente) que exige el guardián de cierre:
+  // se recalcula aquí con el mismo lector hasta que no crece, sin listas escritas a mano.
+  {const fns=logicFunctions(source),dat=logicData(source);let web=propias.slice();
+    for(let ronda=0;ronda<10;ronda++){
+      const tiene=(file,nombre,clave)=>web.some(u=>u.file===file&&u[clave]===nombre),extra=[];
+      for(const fn of scopeDependencies({web},source,fns))if(!tiene(fn.file,fn.name,"function"))extra.push({file:fn.file,function:fn.name});
+      for(const d of scopeDataDependencies({web},source,fns,dat))if(!tiene(d.file,d.name,"data"))extra.push({file:d.file,data:d.name});
+      if(!extra.length)break;web=web.concat(extra);
+    }
+    const clave=u=>JSON.stringify(u);
+    assert.equal(added.web.length,web.length,"el cierre de lectores del descriptor es exactamente el calculado");
+    assert.deepEqual(new Set(added.web.map(clave)),new Set(web.map(clave)),"el cierre de lectores del descriptor es exactamente el calculado");
+    assert.ok(added.web.length>=150,"el cierre no se recorta");}
+  for(const u of added.web)assert.ok(scopeText(u,source).length>0,"la unidad existe en la fuente: "+JSON.stringify(u));
+  assert.equal(source("public/apk.json"),old("public/apk.json"),"sin APK nueva: apk.json no se toca");
+  for(const f of ["supabase/functions/bank-sync/index.ts","supabase/functions/bank-disconnect/index.ts","supabase/functions/_shared/enablebanking.ts","supabase/functions/_shared/myinvestor.ts","supabase/functions/myinvestor-sync/index.ts","supabase/functions/myinvestor-keepalive/index.ts"])assert.equal(source(f),old(f),"el servidor no cambia: "+f);
+  // Huellas que se mueven, lista cerrada: la limpieza toca código que leen veinte descriptores. De los dos que siguen
+  // en el panel, el de Inicio reabre (comparte slimForCloud con la limpieza) y el de bancos conserva la suya.
+  const expectedMoves=Object.fromEntries(["inc-0810-nav-indicator","beta-panel-veredictos","tr-descripcion-clasificacion","inc-2709-10-perfil","inc-3009-nomina-anticipada","inc-0210-03-gastos-periodo","inc-0210-02-categoria-elegida","inc-0310-01-meta-regla","feature-0310-01-movilidad","inc-0310-gastos-sin-limite","ops-0410-panel-cola","inc-0710-gastos-mes-madrid","inc-0810-metas-editar-regla","bienes-completo","bancos-sin-hueco","bancos-acuse-reconexion","tr-iguales-ordinal","inicio-patrimonio-flujos","recibo-cargo-en-gastos",inicio].map(key=>[key,["web"]]));
+  const previous=new Map();
+  const measure=reader=>{
+    const now=JSON.parse(reader("scripts/beta-sources.json")),moved={};
+    for(const [key,scope] of Object.entries(integrated)){
+      if(key===archiveId){assert.deepEqual(auditedRevision(key,reader),auditedRevision(key,sourceBeta128));continue;}
+      if(!previous.has(key))previous.set(key,betaRevision(key,sourceBeta128,undefined,scope));
+      const a=previous.get(key),b=betaRevision(key,reader,undefined,now[key]);
+      const surfaces=["web","native","edge"].filter(x=>a[x]!==b[x]);
+      if(surfaces.length)moved[key]=surfaces;
+    }
+    return moved;
+  };
+  const verify=(reader,expected=expectedMoves)=>assert.deepEqual(measure(reader),expected,"lista cerrada: ni una huella extra ni una declarada que no cambie");
+  verify(source);
+  assert.equal(Object.keys(expectedMoves).includes(banco),false,"la tanda de bancos de la 127 conserva su huella");
+  assert.ok(Object.keys(expectedMoves).includes(inicio),"la tanda de Inicio de la 128 reabre: su alcance lee slimForCloud");
+  assert.throws(()=>verify(source,{...expectedMoves,"plan-scroll-lento":["web"]}),/lista cerrada/,"una huella declarada que no cambia pone rojo");
+  const missing={...expectedMoves};delete missing[inicio];assert.throws(()=>verify(source,missing),/lista cerrada/,"una huella real no declarada pone rojo");
+  assert.deepEqual(betaRevision(banco,source,undefined,scopes[banco]),betaRevision(banco,old,undefined,integrated[banco]),"la revisión de bancos de la 127 es la misma");
+  // Cada pieza de la entrega reabre la tanda.
+  const current=betaRevision(tanda,source,undefined,scopes[tanda]);
+  assert.ok(current.web);assert.equal(current.edge,undefined);assert.equal(current.native,undefined);
+  const core="src/modules/00-core.js",txt="src/modules/01-i18n.js",screens="src/modules/14-v4-screens.js",brokers="src/modules/06-sync-brokers.js";
+  for(const [file,a,b] of [
+    [core,'return k==="handle"||k==="fullName"; })) return s;','return k==="handle"; })) return s;'],
+    [core,'const c=perfilSinDatosBanco(Object.assign({},s));','const c=Object.assign({},s);'],
+    [txt,'s=perfilSinDatosBanco(reconcileEarlyIncomeAnchors(','s=(reconcileEarlyIncomeAnchors('],
+    [screens,'function ProfilePanel({state, set, onClose, onOpenSettings}){','function ProfilePanel({state, set, onClose, onOpenSettings, x}){'],
+    [screens,'function InvestmentsPush({open,','function InvestmentsPush({x, open,'],
+    [brokers,'function Projection({invested, defMonthly}){','function Projection({invested, defMonthly, x}){']]){
+    assert.equal(source(file).split(a).length,2,"mutante sobre fuente real: "+a);
+    const mutated=betaRevision(tanda,f=>f===file?source(f).replace(a,b):source(f),undefined,scopes[tanda]);
+    assert.notEqual(mutated.web,current.web,"reabre la tanda: "+a);
+  }
+  // Lo que el build entrega al panel.
+  const built=betaNotes(notes,source,scopes),receipt=betaDelivery(built,source,scopes),group=built[0].tandas[0];
+  assert.deepEqual(built.flatMap(n=>(n.tandas||[]).map(g=>g.id)),[tanda,inicio,banco],"lo que el build entrega al panel");
+  assert.equal(group.web,current.web);assert.equal(group.edge,undefined);assert.equal(group.native,undefined);assert.equal(group.apk,undefined);
+  assert.equal(receipt.web[tanda],current.web);
+  assert.deepEqual(receipt.pruebas,{[tanda]:{v:"4.26.129",contenido:JSON.stringify([tanda,expected129.tandas[0].t.es,expected129.tandas[0].items.es,1])},[inicio]:{v:"4.26.128",contenido:JSON.stringify([inicio,expected128.tandas[0].t.es,expected128.tandas[0].items.es,1])},[banco]:{v:"4.26.127",contenido:JSON.stringify([banco,expected127.tandas[0].t.es,expected127.tandas[0].items.es,1])}},"un guion por probar en cada tanda: el de la limpieza con la 129, el de Inicio con la 128 y el de bancos con la 127");
+  for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica","native"])assert.equal(group[key],undefined,"identidad nueva sin "+key);
+});
+
 // Catálogo cerrado: desde la promoción126 se lee de la beta126 publicada (d8d2624c), que es la última con tandas en el panel.
 test("Inicio v4.2 conserva el catálogo120 y los retiros anteriores en la beta126 publicada (histórico)",()=>{
   const read=source126;
@@ -2634,7 +2769,7 @@ test("Inicio v4.2 conserva el catálogo120 y los retiros anteriores en la beta12
   for(const lang of ["es","en","ca"])for(const n of [0]){const changed=structuredClone(notes);changed[n].tandas[0].items[lang][0]+=" mutante";assert.throws(()=>verify(changed),assert.AssertionError);}
   const scopes=JSON.parse(source("scripts/beta-sources.json")),prior=JSON.parse(source120("scripts/beta-sources.json"));
   for(const id of ["tr-iguales-ordinal","bancos-acuse-reconexion","recibos-cargo-unico"]){
-    for(const part of prior[id].web)assert.ok(scopes[id].web.some(p=>JSON.stringify(sinMetodo122(p))===JSON.stringify(part)),id+": ninguna unidad120 retirada");
+    for(const part of prior[id].web.map(limpieza129).filter(Boolean))assert.ok(scopes[id].web.some(p=>JSON.stringify(sinMetodo122(p))===JSON.stringify(part)),id+": ninguna unidad120 retirada");
     assert.deepEqual(scopes[id].native,prior[id].native);assert.deepEqual(scopes[id].edge,prior[id].edge);
   }
   const receipt=betaDelivery(betaNotes(notes,source,scopes),source,scopes);
@@ -2805,7 +2940,8 @@ test("PERSIST91: el guardado en el commit invalida toda tanda que escribe estado
   const marca="INC-0410 guardado: de aquí al límite";
   const dependientes=Object.keys(registro).filter(id=>registro[id].web.some(x=>x.from&&x.from.includes(marca)));
   const ajenas=Object.keys(registro).filter(id=>!dependientes.includes(id));
-  assert.equal(dependientes.length,31);
+  assert.equal(dependientes.length,32);
+  assert.ok(dependientes.includes("limpieza-ajustes-perfil"),"la limpieza de Ajustes y perfil escribe estado con set() (Ajustes, Cartera) y lleva el bloque del guardado");
   assert.ok(dependientes.includes("inicio-mes-pasado-mismo-dia"),"la tanda de la comparación lleva el mismo alcance de Inicio que inicio-patrimonio-flujos, con su bloque del guardado");
   assert.ok(dependientes.includes("recibo-cargo-en-gastos"),"«No es este recibo», su vuelta atrás y el histórico escriben la marca con el set real");
   assert.ok(dependientes.includes("tr-iguales-ordinal"),"el sync, el borrado a mano y el histórico guardan vínculos y filas con el set real");
@@ -2867,7 +3003,7 @@ test("las tres correcciones UI vigilan también sus reglas y lectores",()=>{
     ["inc-2709-14-preguntar","src/shell.html","padding-bottom:calc(52px + var(--safe-bottom));","padding-bottom:calc(60px + var(--safe-bottom));"],
     ["inc-2709-14-preguntar","src/shell.html",".v4-sheet.aely-help-sheet{",".aely-help-sheet{"],
     ["inc-2709-14-preguntar","src/modules/16-help-assistant.js","setKbPad(pad>24?Math.round(pad):0);","setKbPad(pad>240?Math.round(pad):0);"],
-    ["inc-2709-10-perfil","src/modules/14-v4-screens.js","phone:p.phone||\"\"","phone:\"\""],
+    ["inc-2709-10-perfil","src/modules/14-v4-screens.js","fullName:p.fullName||\"\"","fullName:\"\""],
     ["inc-2709-10-perfil","src/modules/14-v4-screens.js","empty?\" pr-val-empty\":\"\"","empty?\" empty\":\"\""],
     ["inc-2709-10-perfil","src/shell.html",".profile-row .pr-val.pr-val-empty{",".profile-row .pr-val.empty{"],
     // El CSS vigilado no pinta nada si el elemento deja de llevar la clase: el vínculo está

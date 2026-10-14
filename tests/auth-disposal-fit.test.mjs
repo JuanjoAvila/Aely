@@ -94,7 +94,8 @@ for(const [id,codigo,web]of [
  // Sólo la edición de regla cambió en beta: su contrato selectivo sigue fijado; las otras identidades vigilan HEAD.
  // La 124 cambia un comentario dentro del tramo de la barra que vigila el indicador (Plan ya no pone `mc-touch-own`):
  // su huella viva se declara de nuevo. Que solo cambia ese comentario lo prueba Catálogo124 de beta-sources.
- const vivo=id==='inc-0810-nav-indicator'?{web:'2133ea962e414490cc5ca9547b137d48c9d96e34c2632bcf084cf0d64961a7c8',codigo:'9eb1cd42ad7ae91e3a994960a41816f033fc75b07230e3d95cd842819b460f84'}:{web,codigo};
+ // La 129 (limpieza) borra `tabOrderState` y la ancla pasa a `const tabIds = tabOrderOf(state);`: su huella viva se declara de nuevo.
+ const vivo=id==='inc-0810-nav-indicator'?{web:'ac693e0804b2487eec011a79c831bb34ac4a8babd94f551cc694d6b1c86d906b',codigo:'dac7dfae2bd713f803b8e52cce4592c150f430661887a79b0838b82897c33901'}:{web,codigo};
  assert.deepEqual(betaRevision(id,id==='inc-0810-metas-editar-regla'?mainRead:read,undefined,id==='inc-0810-metas-editar-regla'?reg[id]:liveReg[id]),vivo,id+': identidad aprobada, histórica sólo para edición de regla');
  assert.deepEqual(betaRevision(id,selected,undefined,selectedReg[id]),{web,codigo},id+': ancla beta fija aprobada');
  for(const key of ['historial','auditoria','codigosCompatibles','compatibilidadGit'])assert.equal(reg[id][key],undefined,id+': sin aprobación heredada '+key);
@@ -127,4 +128,4 @@ assert.notEqual(betaRevision('inc-0710-auth-disposal',mainRead,undefined,reg['in
 console.log('✓ fit102: retornos/receiver/excepciones diferidas, boot real sin throw, trazas equivalentes;7funciones/9datos, notas históricas106 intactas y registro con cierres107/108/110 explícitos; identidad102 nueva');
 
 }
-assert.equal(createHash('sha256').update(JSON.stringify(JSON.parse(read('scripts/beta-sources.json')))).digest('hex'),'4c2fe3584c588486ea8e48213a72282ba547e9f732da1a51a8acc34ccc9e7156','registro128 íntegro: el de la integración127 (b3edefb4) más el descriptor nuevo inicio-mes-pasado-mismo-dia al final (el mismo alcance web de Inicio que inicio-patrimonio-flujos, que a su vez gana netWorthMonthsBack y NW_MONTHS), sin crecer ningún otro; Catálogo128 de beta-sources lo fija unidad a unidad');
+assert.equal(createHash('sha256').update(JSON.stringify(JSON.parse(read('scripts/beta-sources.json')))).digest('hex'),'47d96ac42c20469c9474208ab9bfbadd8bb5a4caf8814fec88208b5176c8aa68','registro129 íntegro: el de la beta 4.26.128 (24d0d463) con la limpieza de código muerto aplicada a sus anclas (se van freqLabel, FREQ_LABEL, FREQ_OPTS y el componente Fijos; tres bloques cambian de ancla; perfilSinDatosBanco entra tras slimForCloud en los seis descriptores que lo leen y al final del de edición de reglas de metas) más el descriptor nuevo limpieza-ajustes-perfil al final (perfilSinDatosBanco, slimForCloud, loadState, SettingsPanel, ProfilePanel, profileOf, CarteraTab, InvestmentsPush, Investments y Projection, más el bloque del guardado que exige PERSIST91 y el cierre de lectores que exige el guardián de cierre), sin crecer ningún otro; Catálogo129 de beta-sources lo fija unidad a unidad');
