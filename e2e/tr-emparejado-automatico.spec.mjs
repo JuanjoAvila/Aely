@@ -148,7 +148,7 @@ test("NO-GO 3: otro móvil vuelve a unir antes del refresco de gastos con tabla 
  },notice.id);
  expect(remote.paired).toBe(1);expect(remote.decisions.some(g=>g.auto&&!g.separado)).toBe(true);
  await expect(rows(page)).toHaveCount(1);await expect.poll(()=>page.evaluate(()=>window.__pairWrites.some(x=>x.kind==="dup"&&x.value===true))).toBe(true);
- expect(await spentCents(page)).toBe(1200);
+ await expect.poll(()=>spentCents(page)).toBe(1200);
  expect(await page.evaluate(()=>window.__pairReads.slice(0,2))).toEqual(["state","expenses"]);
  expect(await page.evaluate(()=>window.__pairWrites.filter(x=>x.kind==="dup"&&x.value===false).length)).toBe(0);
 });
