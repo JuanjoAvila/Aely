@@ -2,6 +2,34 @@ Promoción117: inventario12/10 confirma bank-syncv33 alineado; ingestv50 y price
 
 # Setup Supabase — Fase 1 (Aely)
 
+## MyInvestor: contador consecutivo · candidato sin desplegar (14/10/2026)
+
+`0026_myinvestor_access_counter.sql` añade, de forma idempotente, dos UUID internos:
+`connection_version` cambia al conectar; `access_counter_version` cambia al conectar y al
+completar una lectura buena. El bucket de `rate_limits` incluye la versión del contador:
+cambiarla deja el contador activo en cero sin borrar buckets de otras peticiones. Las filas
+anteriores quedan inertes para el nuevo sync y conservan la limpieza manual de 0019.
+No cambian el límite de dos fallos antes del aviso del tercero ni la ventana de seis horas.
+
+Sólo `userInitiated:true` cuenta un `access_401_after_refresh`; la ausencia del argumento,
+`false` y otros valores se consideran automáticos. El cron keepalive no cuenta ni cambia la
+versión del contador. Una lectura buena, manual o automática, lo reinicia. El cliente pasa
+`true` en el botón de la hoja y en Actualizar manual; la apertura suave pasa `false`.
+
+El refresco y el recifrado legacy se condicionan a la versión de conexión. Caducar y sellar
+una lectura buena exigen además la versión del contador que se leyó al entrar. Las escrituras
+de sync comprueban el error y una fila devuelta: cero filas nunca acredita un reset o caducidad.
+No se da `connected:true` si falla el guardado de una reconexión. Los grants nuevos son sólo
+de columna para `service_role`; no se añaden tablas, funciones RPC ni políticas RLS.
+
+Orden propuesto, **pendiente de revisión y ejecución del coordinador**: migración 0026,
+`myinvestor-connect`, `myinvestor-sync`, cliente beta con el argumento explícito. Keepalive
+conserva su fuente. Sync sin migración devuelve `counter_not_available` sin llamar al banco;
+el cliente antiguo sigue funcionando, pero no suma a este contador al no señalar manualidad.
+Rollback de Edge/cliente: volver a las fuentes anteriores; conservar las columnas aditivas.
+La vuelta al sync antiguo recuperaría su contador antiguo acumulado: no acredita contador cero.
+SQL, advisors y aceptación bancaria/móvil reales no se han ejecutado en este encargo.
+
 `ingest/widget.ts` calcula la respuesta widget v2 de la ventana guardada
 por la app, validando ancla y scope; month conserva su payload mensual legacy para APK antiguas.
 El total v2 requiere conteo exacto, páginas completas con identidades únicas y el pago visible.

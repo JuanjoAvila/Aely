@@ -174,6 +174,7 @@ const steps = [
   ["broker-sync-outcomes", ["node", "tests/broker-sync-outcomes.test.mjs"]],
   ["myinvestor-sync-outcomes", ["node", "tests/myinvestor-sync-outcomes.test.mjs"]],
   ["myinvestor-keepalive", ["node", "tests/myinvestor-keepalive.test.mjs"]],
+  ["myinvestor-user-initiated", ["node", "tests/myinvestor-user-initiated.test.mjs"]],
   ["cartel-reconectar", ["node", "tests/cartel-reconectar.test.mjs"]],
   ["bank-callback-msg", ["node", "tests/bank-callback-msg.test.mjs"]],
   ["categorize-limitador", ["node", "tests/categorize-limitador.test.mjs"]],
@@ -231,6 +232,7 @@ const denoEnLista = [
   "supabase/functions/_shared/crypto.test.ts",
   "supabase/functions/_shared/enablebanking.test.ts",
   "supabase/functions/_shared/myinvestor.test.ts",
+  "supabase/functions/_shared/myinvestor-counter.test.ts",
   "supabase/functions/delete-account/delete-account.test.ts",
   "supabase/functions/prices/prices.test.ts",
   "supabase/functions/bank-sync/demand-window.test.ts",
@@ -267,7 +269,9 @@ if (plan.deno !== false) {
   const denoTests = denoEnLista;
   for (const testFile of denoTests) {
     const started = performance.now();
-    const denoArgs = testFile.includes("crypto.test")
+    const denoArgs = testFile.includes("myinvestor-counter.test")
+      ? ["test", "--allow-read=supabase/functions", testFile]
+      : testFile.includes("crypto.test")
       ? ["test", "--allow-env", testFile]
       : ["test", testFile];
     const deno = spawnSync("deno", denoArgs, {

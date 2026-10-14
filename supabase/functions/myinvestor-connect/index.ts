@@ -60,15 +60,19 @@ Deno.serve(withCors(async (req: Request) => {
       const refreshExp = refreshSecs > 0 ? new Date(Date.now() + refreshSecs * 1000).toISOString() : null;
       const admin = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
       const enc = await miTokensToRow(access, refresh);
-      await admin.from("myinvestor_links").upsert({
+      const { error } = await admin.from("myinvestor_links").upsert({
         user_id: user.id,
         device_id: devId,
         access_token: enc.access_token,
         refresh_token: enc.refresh_token,
         refresh_expires_at: refreshExp,
         status: "active",
+        // Otra sesión empieza en cero; los fallos en vuelo conservan su versión anterior.
+        access_counter_version: crypto.randomUUID(),
+        connection_version: crypto.randomUUID(),
         updated_at: new Date().toISOString(),
       }, { onConflict: "user_id" });
+      if (error) return jsonResp({ ok: false, error: "No se pudo guardar la sesión de MyInvestor. Prueba más tarde." }, 503);
       return jsonResp({ ok: true, connected: true });
     }
 
@@ -117,15 +121,18 @@ Deno.serve(withCors(async (req: Request) => {
       const refreshExp = refreshSecs > 0 ? new Date(Date.now() + refreshSecs * 1000).toISOString() : null;
       const admin = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
       const enc = await miTokensToRow(access, refresh || null);
-      await admin.from("myinvestor_links").upsert({
+      const { error } = await admin.from("myinvestor_links").upsert({
         user_id: user.id,
         device_id: deviceId,
         access_token: enc.access_token,
         refresh_token: enc.refresh_token,
         refresh_expires_at: refreshExp,
         status: "active",
+        access_counter_version: crypto.randomUUID(),
+        connection_version: crypto.randomUUID(),
         updated_at: new Date().toISOString(),
       }, { onConflict: "user_id" });
+      if (error) return jsonResp({ ok: false, error: "No se pudo guardar la sesión de MyInvestor. Prueba más tarde." }, 503);
       return jsonResp({ ok: true, connected: true });
     }
     // 400 u otros → credenciales/entrada inválidas

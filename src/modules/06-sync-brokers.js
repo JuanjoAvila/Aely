@@ -139,7 +139,7 @@ function MyInvestorSync({state, set, open, onToggle}){
         // si el token sigue vivo, reactivamos sin login ni captcha (feedback 2026-07-17).
         if(r&&r.status==="expired"){
           setExpired(true);
-          cloud.myinvestorSync().then(function(res){
+          cloud.myinvestorSync(false).then(function(res){
             if(res&&res.ok){ setExpired(false); setStep("connected"); }
           }).catch(function(){});
           return;
@@ -237,7 +237,7 @@ function MyInvestorSync({state, set, open, onToggle}){
   };
   const doSync=function(){
     setBusy(true); setErr(""); setDoneN(null);
-    cloud.myinvestorSync().then(function(r){
+    cloud.myinvestorSync(true).then(function(r){
       setBusy(false);
       // softFail = anti-bot/403: sesión sigue; no pedir OTP/captcha (feedback 2026-07-17).
       if(r&&r.softFail){ fail(r); return; }

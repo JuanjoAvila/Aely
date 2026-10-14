@@ -1,5 +1,15 @@
 # Arquitectura — Aely
 
+## MyInvestor: intención manual y contador por versión · candidato (14/10/2026)
+
+`cloud.myinvestorSync(userInitiated)` transmite únicamente el booleano explícito. La hoja
+distingue su apertura automática del botón; App transmite `opts.manual===true` sin modificar
+el orden, los efectos o el reanclaje financiero. Una reconexión genera versiones nuevas de
+conexión y contador; una lectura buena sólo cambia la del contador. La escritura condicionada
+y su fila devuelta impiden que una petición antigua reinicie o caduque la sesión nueva.
+La cuenta vive en los buckets versionados de `rate_limits`; los anteriores no participan en
+el contador actual. Migración y Edge aún sin desplegar: ver el orden en SETUP-SUPABASE.
+
 ## InicioAhora y archivo109 · versión4.26.112 del canal beta
 
 Se retiran Ring, MiniPie y TabCoach sin consumidores, su CSS asociado y doce iconos sin uso. V4Ring, Tour, SparklineInv y .spark siguen activos; el flujo financiero, idiomas, notas e histórico se conservan. El presupuesto del paquete integrado y131 comprobaciones DOM propias pasan; el guardián conserva identidades111/106 y archivo109.

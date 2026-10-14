@@ -982,7 +982,7 @@ function App(){
         }
         if(!(r && r.status==="active")) return;
         tried++;
-        return cloud.myinvestorSync().then(function(res){
+        return cloud.myinvestorSync(opts.manual===true).then(function(res){
           if(res&&res.authExpired){ expiredB.push("MyInvestor"); return; }
           if(!res || !res.ok || !Array.isArray(res.positions)){ if(opts.manual) soft.push("MyInvestor"); return; }
           applyBrokerPositions(res.positions, "lastMiSync"); updatedB.push("MyInvestor");
