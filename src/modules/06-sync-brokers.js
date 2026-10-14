@@ -723,13 +723,14 @@ function InvestmentRewards({state,set}){
   );
 }
 
-function Investments({state, set, fetchPrices, pricing, syncInv, fullMode, showToast}){
+function Investments({state, set, fetchPrices, pricing, syncInv, totals, fullMode, showToast}){
   const fx=fxRateOf("USD",state);   // USD→EUR (legacy + display toggle); GBP/CHF van en state.fxRates
   const [editing,setEditing]=useState(false);
   const [showCost,setShowCost]=useState(false);
   const [draft,setDraft]=useState({});
   const [brokerOpen,setBrokerOpen]=useState({});   // qué bróker tiene las posiciones desplegadas (Cartera)
   const [editBroker,setEditBroker]=useState(null);
+  const [projOpen,setProjOpen]=useState(false);   // Proyección plegada hasta que se pide (Ver todas › Proyección)
   const [manualAdd,setManualAdd]=useState(null);
   const manualAddRef=useRef(null);
   const manualNameRef=useRef(null);
@@ -1079,7 +1080,23 @@ function Investments({state, set, fetchPrices, pricing, syncInv, fullMode, showT
         React.createElement("span",null,t("iv_cash")),React.createElement("strong",{className:"num",style:{color:"var(--mint)"}},f0(state.soldCash))),
       typeSegs.length>0 && React.createElement("section",{className:"v4-card","data-inv-type":"1",style:{padding:16}},
         React.createElement("div",{style:{fontWeight:800,marginBottom:12}},t("iv_by_type")),
-        React.createElement(StackedBar,{segments:typeSegs}))
+        React.createElement(StackedBar,{segments:typeSegs})),
+      /* PROYECCIÓN (14/10/2026): vivía en Ajustes › Dinero, lejos de las inversiones que proyecta.
+         Es una simulación, no parte del saldo: va plegada al pie, con el aspecto de una ficha de
+         bróker, y parte del mismo valor invertido y de las aportaciones que usaba allí. */
+      React.createElement("section",{className:"v4-card","data-inv-projection-card":"1",style:{padding:0,overflow:"hidden",borderColor:projOpen?"var(--mint-deep)":"var(--line-soft)"}},
+        React.createElement("button",{type:"button",className:"v4-mov",style:{margin:0,border:0,background:"transparent"},"aria-expanded":projOpen,"aria-controls":"iv_projection",
+          onClick:function(){ setProjOpen(function(v){ return !v; }); }},
+          React.createElement("div",{className:"tile",style:{background:"transparent",border:"none",padding:0}},"📈"),
+          React.createElement("div",{className:"nm"},
+            React.createElement("div",null,t("inv_proj")),
+            React.createElement("div",{className:"meta"},t("inv_proj_sub"))),
+          React.createElement(I.chev,{className:"chev"+(projOpen?" open":"")})),
+        projOpen && React.createElement("div",{id:"iv_projection","data-inv-projection":"1",className:"v4-inv-drop",style:{padding:"0 14px 14px"}},
+          React.createElement(Projection,{
+            invested:(totals&&totals.invested)||0,
+            defMonthly:(state.aportaciones||[]).reduce(function(a,x){ return a+(x.amount||0); },0)
+          })))
     );
   }
 

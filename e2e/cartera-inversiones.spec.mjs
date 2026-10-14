@@ -478,21 +478,32 @@ test("Inversiones v4: Reducir animaciones de Aely también evita el count-up y e
   await expect(page.locator('[data-rm-probe="1"]')).toHaveCSS("display","none");
 });
 
-test("Ajustes › Dinero conserva la proyección", async ({ page }) => {
+test("La Proyección vive en Cartera › Inversiones y ya no está en Ajustes", async ({ page }) => {
   await seedLoggedInDashboard(page, { investments, settings: { autoPrices: false, theme: "green" } });
   await page.goto("/");
   await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
+  await page.waitForFunction(() => !document.getElementById("mc-load"));
   await dismissNews(page);
+
+  // Ajustes › Dinero: ni Proyección ni «Actualizar precios USD al abrir» (esta última no hacía nada).
   await page.evaluate(() => window.dispatchEvent(new CustomEvent("mc-open-settings")));
   const settings = page.locator(".settings-push.open");
   await expect(settings).toBeVisible();
-  await settings.locator("button.set-row").filter({ hasText: /Dinero|Money/i }).first().click();
+  await settings.locator("button.set-row").filter({ hasText: /Dinero|Money|Diners/i }).first().click();
+  await expect(settings.locator("button.set-row").filter({ hasText: /Proyección|Projection|Projecció/i })).toHaveCount(0);
+  await expect(settings.locator("button.set-row").filter({ hasText: /Actualizar precios USD|Update USD prices|Actualitza preus USD/i })).toHaveCount(0);
+  await expect(settings.locator("[data-inv-settings-projection]")).toHaveCount(0);
+  await settings.locator(".settings-push-h .back").first().click();
+  await expect(page.locator(".settings-push.open")).toHaveCount(0);
 
-  const projection = settings.locator("button.set-row").filter({ hasText: /Proyección|Projection|Projecció/i });
-  await expect(projection).toBeVisible();
-  await projection.click();
-  await expect(settings.locator("[data-inv-settings-projection]")).toBeVisible();
-  await expect(settings.locator("[data-inv-settings-projection] input[type=range]")).toBeVisible();
+  // Cartera › Inversiones › Ver todas: la ficha plegada se abre y trae el simulador.
+  await openInvestments(page);
+  const card = page.locator("[data-inv-projection-card]");
+  await expect(card).toBeVisible();
+  await expect(page.locator("[data-inv-projection]")).toHaveCount(0);
+  await card.locator("button.v4-mov").click();
+  await expect(page.locator("[data-inv-projection]")).toBeVisible();
+  await expect(page.locator("[data-inv-projection] input[type=range]").first()).toBeVisible();
 });
 
 test("Inversiones v4: apertura medida con CPU x6", async ({ page, browserName }) => {

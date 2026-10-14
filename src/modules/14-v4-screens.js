@@ -1225,11 +1225,11 @@ function CarteraTab({state, set, totals, fetchPrices, pricing, simple, onBankSyn
     ]}),
     // La hija vive FUERA de los bloques ordenables: es un portal, no una sección, y meterla
     // dentro la desmontaría al reordenar (cerrándose sola a media consulta).
-    !simple && React.createElement(InvestmentsPush,{open:invTools,onClose:closeInvestments,state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,syncInv:syncInv,showToast:showToast})
+    !simple && React.createElement(InvestmentsPush,{open:invTools,onClose:closeInvestments,state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,syncInv:syncInv,totals:totals,showToast:showToast})
   );
 }
 
-function InvestmentsPush({open, onClose, state, set, fetchPrices, pricing, syncInv, showToast}){
+function InvestmentsPush({open, onClose, state, set, fetchPrices, pricing, syncInv, totals, showToast}){
   const tr=useRef(null), sr=useRef(null);
   const [shown,setShown]=useState(false);
   // Inversiones y Gestionar comparten compositor: el arrastre web nace en cualquier punto y el
@@ -1276,7 +1276,7 @@ function InvestmentsPush({open, onClose, state, set, fetchPrices, pricing, syncI
         React.createElement("button",{type:"button",className:"back","data-act":"back","aria-label":t("v4_back"),onClick:closePush},"‹"),
         React.createElement("h1",{id:"iv-screen-title",tabIndex:-1,ref:tr}, t("iv_title"))
       ),
-      React.createElement(Investments,{state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,syncInv:syncInv,fullMode:true,showToast:showToast})
+      React.createElement(Investments,{state:state,set:set,fetchPrices:fetchPrices,pricing:pricing,syncInv:syncInv,totals:totals,fullMode:true,showToast:showToast})
     ), document.body);
 }
 

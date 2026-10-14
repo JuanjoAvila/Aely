@@ -2731,13 +2731,6 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
         setS({budgetCycle:!(state.settings&&state.settings.budgetCycle)});
       },sw(!!(state.settings&&state.settings.budgetCycle))),
       React.createElement("div",{className:"hint",style:{margin:"2px 12px 10px"}},t("st_budget_cycle_d")),
-      // La proyección salió de la ficha de Inversiones: es una simulación, no parte del saldo.
-      row("invproj","📈",t("inv_proj"),t("inv_proj_sub"),function(){ toggleExp("invproj"); }),
-      expand==="invproj" && React.createElement("div",{className:"set-exp","data-inv-settings-projection":"1"},
-        React.createElement(Projection,{
-          invested:totals.invested||0,
-          defMonthly:(state.aportaciones||[]).reduce(function(a,x){ return a+(x.amount||0); },0)
-        })),
       // Plan/Dinero: flag pendiente + click Plan + evento (sin setTimeout; cold start idle).
       row("bills","📋",t("v4s_change_bills"),null,function(){
         try{ window.__mcOpenBillsPending=true; }catch(e){}
