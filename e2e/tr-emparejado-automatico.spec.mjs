@@ -108,7 +108,7 @@ test("NO-GO 1: borrar pareja y recibir otro pago igual no duplica el gastado",as
  await expect.poll(async()=>(await saved(page)).length).toBe(0);expect(await spentCents(page)).toBe(0);
  const second={...notice,id:"a1000000-0000-4000-8000-000000000002",merchant:"Segundo pago sintético"};
  await page.evaluate(({n,feed})=>{
-  cloud.bankSync=async()=>feed;
+  cloud.bankSync=async()=>feed.data;
   window.__e2eCloudRows.expenses=[{id:n.id,fecha:n.date,importe:n.amount,comercio:n.merchant,cat:n.category,source:"macrodroid"}];
   document.dispatchEvent(new Event("visibilitychange"));
  },{n:second,feed:response(2)});
@@ -132,7 +132,9 @@ test("NO-GO 3: otro móvil vuelve a unir antes del refresco de gastos con tabla 
  await bankApp(page,[notice],1);await syncBank(page);await expect.poll(async()=>(await saved(page)).length).toBe(2);
  await page.locator('.botnav-tab[data-tour="gastos"]').click();await rows(page).first().click();await page.getByTestId("exp-auto-separate").click();await expect(rows(page)).toHaveCount(2);
  await expect.poll(()=>page.evaluate(()=>window.__pairWrites.some(x=>x.kind==="dup"&&x.value===false))).toBe(true);
- await page.evaluate(id=>{
+ await expect.poll(async()=>(await saved(page)).filter(e=>e.gemeloSeparado===notice.id).length).toBe(1);
+ await expect.poll(()=>page.evaluate(()=>JSON.parse(localStorage.getItem("micartera_v3")).gemelos.some(g=>g.separado))).toBe(true);
+ const remote=await page.evaluate(id=>{
   const s=JSON.parse(localStorage.getItem("micartera_v3"));s.expenses=JSON.parse(localStorage.getItem("micartera_v3_exp"));
   const joined=unirGemeloAutomatico(s,id,Date.now()+1000);
   window.__e2eCloudRows.app_state=[{data:slimForCloud(joined),updated_at:new Date().toISOString()}];
@@ -142,7 +144,9 @@ test("NO-GO 3: otro móvil vuelve a unir antes del refresco de gastos con tabla 
   cloud.pullState=function(){window.__pairReads.push("state");return state.apply(cloud,arguments);};
   cloud.pullExpenses=function(){window.__pairReads.push("expenses");return expenses.apply(cloud,arguments);};
   document.dispatchEvent(new Event("visibilitychange"));
+  return {paired:joined.expenses.filter(e=>e.autoGemelo===id).length,decisions:joined.gemelos.map(g=>({at:g.at,separado:!!g.separado,auto:!!g.auto}))};
  },notice.id);
+ expect(remote.paired).toBe(1);expect(remote.decisions.some(g=>g.auto&&!g.separado)).toBe(true);
  await expect(rows(page)).toHaveCount(1);await expect.poll(()=>page.evaluate(()=>window.__pairWrites.some(x=>x.kind==="dup"&&x.value===true))).toBe(true);
  expect(await spentCents(page)).toBe(1200);
  expect(await page.evaluate(()=>window.__pairReads.slice(0,2))).toEqual(["state","expenses"]);
