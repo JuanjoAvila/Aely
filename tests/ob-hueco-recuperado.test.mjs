@@ -179,9 +179,9 @@ t("los textos del tramo no prometen lo que el banco no entrega", () => {
     assert.match(cap, partes[i]);
     assert.doesNotMatch(cap, /hist[oò]ric|history/i);
   }
-  // Lo que queda por traer se dice con el aviso de lectura incompleta que ya existía: tampoco promete nada.
-  const main = fs.readFileSync(new URL("../src/modules/11-app-main.js", import.meta.url), "utf8");
-  assert.match(main, /if\(l&&l\.gapPending\) avisaSync\(opts,"⚠ "\+tf\("bank_read_partial",/);
+  // Un tramo que aún no se ha pedido no debe parecer una conexión cortada.
+  const warnings = ctx.bankReadWarnings([{ aspsp:"CaixaBank", ok:true, gapPending:true, accounts:[{ok:true,count:1}] }]);
+  assert.equal(warnings[0].key, "bank_read_pending");
   assert.doesNotMatch([...i18n.matchAll(/bank_read_partial:"([^"]+)"/g)].map((m) => m[1]).join(" "), /hist[oò]ric|history/i);
 });
 

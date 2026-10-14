@@ -403,6 +403,18 @@ de recibos. Teclea cadenas completas con `pressSequentially` para impedir que un
 robar el foco al título. El spec está en `scripts/relevant-tests.mjs`; `plan-gestionar` conserva el
 flujo histórico de alta/edición y ambos se ejecutan al tocar Plan.
 
+Descarga incompleta (candidato13/10): `tests/bank-download-incomplete.test.mjs`, registrado en
+runner y `STEPS_SUPABASE`, ejecuta lector, handler y updater real de App. Compara el updater con
+el padre123: ambas lecturas de `bankTx` conservan el extracto; falla sin el adaptador mínimo.
+Comprueba motivos,100 filas sin continuación, cursor/acuse ante corte, registro saneado incluso
+con cero páginas y no resurrección de lápidas/ordinales/vínculos de gemelos. El handler+updater
+también exige guardar filas sin id del prefijo antiguo completo antes de su acuse aunque falle
+el siguiente trozo; repetirlo conserva el máximo de iguales, sin sumar la caché. El Deno compartido
+`enablebanking.test.ts` amplía límites, repetición,100 filas, fallo del proveedor y timeout.
+`e2e/bancos-descarga-incompleta.spec.mjs` está en `E2E_MAP` de08: abre el sync manual y comprueba
+el aviso DOM y la conservación local en es/en/ca. Su registro no acredita una ejecución:
+la entrega documenta por separado si la CI llegó a Chromium.
+
 Lectura bancaria 4.25.4: `tests/bank-sync-paging.test.mjs` ejecuta el handler real con BD y proveedor
 simulados (sin consultar bancos): páginas vacías, fallback de periodo, fallo parcial, cursor cíclico,
 cuentas inactivas, aislamiento, timeout y topes. Registrado en `run-tests.mjs` y `STEPS_SUPABASE`;
@@ -1091,3 +1103,11 @@ Revisión B PR226: lifecycle.test.ts comparte SDK real y REST estricto con carre
 connect/callback: sin cuentas, acuse, ancla null y ambos cursores legacy. Prueba usuario ajeno
 primero, logger exacto, DELETE concurrente y timeout real8s; todas las salidas son simuladas.
 Node cubre además cambios independientes de sesión/emisión en DELETE. No se consulta el backend.
+
+### Revisión PR223 y focal remota manual
+
+tests/helpers/bank-download-fixture.mjs comparte el handler, el updater y sus respuestas
+sintéticas con Node y e2e. El spec de descarga incompleta tiene24 casos, también límites con
+acuse sin id entre pulsaciones. test.yml conserva la suite completa y agrega focal_spec opcional
+(ruta e2e/*.spec.mjs validada): job focal independiente,1worker/0retries, JSON como artefacto.
+Su pase no convierte un rojo de la suite completa en verde ni acredita móvil/despliegue.

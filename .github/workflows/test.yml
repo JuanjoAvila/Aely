@@ -5,7 +5,13 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      focal_spec:
+        description: "Spec e2e opcional, ejecutado además de la suite completa"
+        required: false
+        default: ""
+        type: string
 
 permissions:
   contents: read
@@ -46,3 +52,39 @@ jobs:
 
       - name: Privacidad
         run: node scripts/guard-privacy.mjs
+
+  # Un gate de catálogo/versión puede impedir llegar al navegador en la suite completa.
+  # Esta prueba manual acredita su spec y EXIT por separado; el job test conserva TODOS sus gates.
+  focal-e2e:
+    if: github.event_name == 'workflow_dispatch' && inputs.focal_spec != ''
+    runs-on: ubuntu-latest
+    env:
+      FOCAL_SPEC: ${{ inputs.focal_spec }}
+      MC_E2E_REPORT: test-results/focal-report.json
+      MC_E2E_OUTPUT_DIR: test-results/focal-output
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - name: Instalar Chromium
+        run: |
+          sudo rm -f /etc/apt/sources.list.d/google*.list /etc/apt/sources.list.d/google*.sources || true
+          sudo grep -rl "dl.google.com" /etc/apt/sources.list /etc/apt/sources.list.d/ 2>/dev/null | xargs -r sudo rm -f || true
+          npx playwright install chromium --with-deps
+      - name: Verificar spec y ensamblar
+        run: |
+          node -e 'const fs=require("fs");const p=process.env.FOCAL_SPEC;if(!/^e2e\/[a-z0-9-]+\.spec\.mjs$/.test(p)||!fs.existsSync(p))throw Error("Spec no permitido");'
+          node scripts/build-app.mjs
+      - name: E2E focal con un worker y cero retries
+        run: node node_modules/@playwright/test/cli.js test "$FOCAL_SPEC" --project=chromium --workers=1 --retries=0
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: focal-e2e-report
+          path: |
+            test-results/focal-report.json
+            test-results/focal-output

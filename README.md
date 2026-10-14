@@ -242,3 +242,7 @@ Gastos → Mes pasado, Rango, Últimos3meses yTodo muestran su resumen sin colum
 Diagnóstico de rendimiento Dashboard: guardianes de frecuencia de recientes, A/B virtual y control positivo separados, con fuente y límites en `docs/briefs/inc-0710-dashboard-react-profile.md`. La medición no declara resuelto el lag acumulativo.
 
 Verificación específica de la promoción106: `node scripts/verify-selective106.mjs --candidate=SHA` ([acta y retirada diferida](docs/briefs/promocion-aprobadas-local26.md)).
+
+Pruebas manuales focales: en Tests, el input opcional focal_spec ejecuta el spec solicitado
+además de la suite completa, en un job independiente con reporte JSON. Sus resultados se
+interpretan por separado; [circuito y límites](docs/TESTING.md).

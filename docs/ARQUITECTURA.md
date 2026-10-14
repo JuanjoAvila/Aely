@@ -180,6 +180,37 @@ se presentan como una respuesta de IA. Activación, coste y límites están en
 
 ## Lectura bancaria (4.25.4)
 
+**Candidato de descarga incompleta (13/10, sin desplegar).** `readReason` separa fallo del
+proveedor, respuesta inválida o continuación repetida de los topes propios de páginas, filas y
+tiempo. Los avisos es/en/ca distinguen ambos grupos y el tramo antiguo pendiente (`gapPending`),
+que por sí solo no significa que se haya cortado la lectura actual. El fallback
+`bank_read_partial` sigue atendiendo respuestas de servidores anteriores sin motivo.
+El diagnóstico diario e histórico añade `reasons` y `failureCodes` de vocabulario cerrado,
+también ante un error con cero páginas; no registra cuentas ni texto del proveedor.
+
+`flattenBankTx(links, prev.bankTx)` conserva el extracto anterior de un banco incompleto y de
+bancos omitidos en esa respuesta. Solo añade al banco incompleto filas nuevas BOOK con id único,
+importe finito y fecha válida no futura; no reemplaza ids conocidos ni toma decisiones con
+filas sin identidad de una cuenta cortada. Si solo falla el SIGUIENTE trozo antiguo y todas
+las cuentas entregadas están completas, las filas sin id del prefijo ya sellado sí se guardan:
+conservan la multiplicidad máxima por grupo y estado, sin sumar lectura y caché.119 puede
+acusar ese prefijo; descartarlo por el fallo posterior quemaría filas. Los bancos completos
+conservan su comportamiento anterior. El mismo
+extracto conservado alimenta las pruebas de pago y el guardado final de App. El importador
+mantiene sus lápidas, ordinales y vínculos de gemelos. Un fallo del proveedor/tiempo o una clave
+repetida no ofrece cursor ni acuse del tramo sin recibir; los trozos antiguos ya sellados sí
+pueden entregar su cursor. Se conserva la excepción previa de desbordamiento de la ventana por
+páginas/filas descrita abajo; no se cambia el protocolo119.
+
+Revisión de reservas13/10, sólo fuente: el desborde de ventana con acuse119 admite el prefijo
+sin id por multiplicidad máxima, incluso con page_limit/row_limit en cuentas. Otros cortes siguen
+exigiendo identidad segura; el sellado no admite fechas futuras. previous omitido se trata como [].
+Un expired explícito retira sólo el snapshot crudo, conservando el libro de Gastos. Timeout y límite
+de ventana tienen avisos distintos; el pendiente antiguo con cuentas completas conserva el
+actualizado del saldo. [Revisión y gates](briefs/bancos-descarga-incompleta-20261013.md).
+
+Detalle, evidencia sintética y límites: [brief del candidato](briefs/bancos-descarga-incompleta-20261013.md).
+
 `bank-sync` usa `fetchBankTransactions` para sync e histórico: continúa aunque una página esté
 vacía si hay cursor; máximo 12 páginas, 2000 filas y presupuesto acotado por cuenta. El deadline global
 de 60 segundos permite devolver las cuentas leídas y señalar las que no pudieron consultarse. Conserva resultados

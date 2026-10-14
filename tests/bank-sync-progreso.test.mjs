@@ -459,12 +459,14 @@ await t("la traza del sync lleva solo conteos, fechas y el nombre del banco", as
   await pulsa(db, bank);
   const ev = db.events.filter((e) => String(e.message || "").startsWith("OB sync"));
   assert.equal(ev.length, 1);
-  assert.equal(ev[0].message, "OB sync (CaixaBank): ok");
+  assert.equal(ev[0].message, "OB sync (CaixaBank): partial");
   const detail = JSON.parse(ev[0].detail);
-  assert.deepEqual(Object.keys(detail).sort(), ["accounts", "capped", "count", "dateFrom", "pages", "pending", "status", "truncated"]);
+  assert.deepEqual(Object.keys(detail).sort(), ["accounts", "capped", "count", "dateFrom", "failureCodes", "pages", "pending", "reasons", "status", "truncated"]);
   for (const [k, v] of Object.entries(detail)) {
     if (k === "status") assert.match(v, /^(ok|empty|partial|error)$/);
     else if (k === "dateFrom") assert.match(v, /^\d{4}-\d{2}-\d{2}$/);
+    else if(k === "reasons") { assert.deepEqual(v, ["page_limit"]); }
+    else if(k === "failureCodes") { assert.deepEqual(v, []); }
     else assert.ok(typeof v === "number" || typeof v === "boolean", k);
   }
   assert.equal(JSON.stringify(ev[0]).includes("cx|"), false);

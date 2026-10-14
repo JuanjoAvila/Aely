@@ -121,7 +121,7 @@ t("cliente nuevo con función vieja: sin syncFrom no entra lo anterior al margen
 // El llamador de verdad: se ejecutan las dos sentencias de runBankSync tal como están
 // escritas. Si deja de pasar la respuesta al importador, el tramo se tira y esto lo ve.
 t("runBankSync pasa el suelo de la respuesta al importador", () => {
-  const m = main.match(/const txs=flattenBankTx\(links\);[\s\S]*?const add=importObExpenses\([^;]*\);/);
+  const m = main.match(/const txs=flattenBankTx\(links(?:, prev\.bankTx)?\);[\s\S]*?const add=importObExpenses\([^;]*\);/);
   assert.ok(m, "no se encuentra la llamada en runBankSync");
   const run = new Function("flattenBankTx", "importObExpenses", "prev", "links", m[0] + " return add;");
   const viejo = day(-40);

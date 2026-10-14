@@ -101,6 +101,7 @@ export const E2E_MAP = [
     "e2e/hist-pagos-mensuales.spec.mjs", "e2e/bancos-historico-filtro.spec.mjs",
     "e2e/bancos-quitar-pending.spec.mjs", "e2e/gastos-deudas.spec.mjs",
     "e2e/bank-callback-msg.spec.mjs", "e2e/bancos-hueco-sync.spec.mjs", "e2e/plan-gestionar.spec.mjs",
+    "e2e/bancos-descarga-incompleta.spec.mjs",
     "e2e/plan-cover.spec.mjs",
   ] },
   { file: "src/modules/07-tab-patri-fijos.js", specs: [
@@ -217,7 +218,7 @@ const STEPS_SUPABASE = [
   "prod117-edge-compat",
   "help-assistant", "guard-privacy", "edge-sintaxis", "presupuesto-servidor", "cuotas-deudas", "widget-coherente", "widget-arbitraje", "widget-offline", "widget-unknown-loss", "widget-unknown-journal", "widget-notificacion-render", "widget-inicio-paridad", "widget-puente-ciclo",
   "month-window", "wallet-notis", "ingest-classify", "ingest-identity", "ingest-handler", "divisa-original", "presupuesto-rendimiento",
-  "grants-migraciones", "entrada-edge", "bank-sync-paging", "bank-sync-progreso", "bank-sync-acuse", "bank-reconnect", "bank-revoke-callback-race", "tr-open-banking", "myinvestor-sync-outcomes", "myinvestor-keepalive",
+  "grants-migraciones", "entrada-edge", "bank-sync-paging", "bank-download-incomplete", "bank-sync-progreso", "bank-sync-acuse", "bank-reconnect", "bank-revoke-callback-race", "tr-open-banking", "myinvestor-sync-outcomes", "myinvestor-keepalive",
   "categorize-limitador", "categorize-handler",
 ];
 

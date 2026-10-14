@@ -73,6 +73,17 @@ Las superficies candidatas son `bank-disconnect` y `bank-sync`; cualquier despli
 el coordinador tras revisión. Rollback de estas dos modificaciones: su fuente en2d53ab24,
 sin borrar o restaurar datos. [Pruebas y solapes](briefs/bancos-revoca-callback-20261013.md).
 
+## Avisos de descarga incompleta (13/10): candidato en fuente, SIN desplegar
+
+`bank-sync` y `_shared/enablebanking.ts` añaden el motivo cerrado de interrupción/topes y su
+diagnóstico en `app_events`. El cliente conserva el extracto incompleto y distingue los avisos
+en tres idiomas. No hay migración, secreto, cambio RLS ni nueva consulta al banco; no se amplían
+plazos o límites. El catch de autenticación reservado al candidato de falsa caducidad permanece
+idéntico. El despliegue corresponde al coordinador después de revisión y prueba beta.
+Cliente anterior ignora los campos nuevos; cliente nuevo con Edge anterior conserva el aviso
+genérico cuando no llega motivo. Rollback de fuente: volver al padre123; no elimina estado ni
+modifica la forma de acuse119. [Alcance y pruebas](briefs/bancos-descarga-incompleta-20261013.md).
+
 ## bank-sync con tramo antiguo (INC-2709-06): solo en fuente, SIN desplegar
 
 `bank-sync` y `_shared/enablebanking.ts` (parámetros `maxPages` y `dateTo` de `fetchBankTransactions`)
@@ -325,3 +336,8 @@ Revisión PR226 (13/10), SIN desplegar: guard de snapshot en todos los UPDATE po
 DELETE de desconexión; proveedor acotado8s con abort+race. Fila cambiada no se borra (409).
 No schema/secreto nuevo. La [consulta posdespliegue preparada](briefs/bancos-revoca-callback-20261013.md)
 verifica updated_at en sync normal y NO se ha ejecutado contra Postgres real.
+
+Revisión de reservas PR223 (13/10), sin desplegar: el logger combina motivos de paginación y
+diagnóstico de autenticación de la dependencia2d53 sin duplicar logObDemandResult. El presupuesto
+propio se etiqueta page_limit. No se cambia el cursor/acuse119 ni el catch/consulta de sesión.
+La fuente es candidata sobre esa dependencia, no una función desplegada de beta124.

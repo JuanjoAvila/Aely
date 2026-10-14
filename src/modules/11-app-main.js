@@ -691,7 +691,7 @@ function App(){
       links.forEach(function(l){ if(l&&l.ack) ack[l.aspsp]=l.ack; });
       obAckPend.current={at:at,ack:ack};
       set(function(prev){
-        const txs=flattenBankTx(links);
+        const txs=flattenBankTx(links, prev.bankTx);
         // ORDEN anti-doble-conteo: primero entran las compras de tarjeta como gastos, y DESPUÉS
         // se re-ancla con el saldo real del banco (que ya incluye esas compras).
         // `links` lleva el suelo del tramo recuperado (`syncFrom`): sin él, lo anterior al margen se tira.
@@ -776,13 +776,12 @@ function App(){
         readWarnings.forEach(function(w){ avisaSync(opts,"⚠ "+tf(w.key,{bank:w.bank})); });
       }
       // Tramo antiguo (INC-2709-06), solo si lo has pedido tú: lo que el banco ya no entrega y,
-      // si queda tramo por traer, el mismo «descarga incompleta» de una lectura cortada (otra
-      // pulsación sigue). Son filas del aviso de siempre, no un diálogo que espere respuesta.
+      // si queda tramo por traer, bankReadWarnings lo distingue del corte de una lectura.
+      // Son filas del aviso de siempre, no un diálogo que espere respuesta.
       if(opts.manual) links.forEach(function(l){
         if(l&&l.gapBeyondCap) avisaSync(opts,"⚠ "+tf("bank_gap_cap",{bank:bankLabelOf(l)}));
-        if(l&&l.gapPending) avisaSync(opts,"⚠ "+tf("bank_read_partial",{bank:bankLabelOf(l)}));
       });
-      if(opts.manual && preview.synced.length && !issues.length && !readWarnings.length){
+      if(opts.manual && preview.synced.length && !issues.length && !readWarnings.some(function(w){ return w.key!=="bank_read_pending"; })){
         const ents={}; preview.synced.forEach(function(x){ if(x&&x.ent) ents[x.ent]=1; });
         const bancos=Object.keys(ents);
         let msg = bancos.length===1

@@ -190,20 +190,25 @@ export async function fetchBankTransactions(jwt: string, uid: string, dateFrom: 
           continue;
         }
         if (!pages) throw err;
-        return {transactions, truncated:true, transactionError:controller.signal.aborted ? "timeout" : "transactions_unavailable"};
+        const invalid = /transactions_invalid/.test(String(err));
+        const status = String(err).match(/\bEB\s+(400|401|403|404|408|422|429|500|502|503|504)\b/i);
+        return {transactions, truncated:true, transactionError:controller.signal.aborted ? "timeout" : "transactions_unavailable",
+          readReason:controller.signal.aborted ? "time_limit" : invalid ? "invalid_response" : "provider_error",
+          failureCode:controller.signal.aborted ? "timeout" : invalid ? "invalid_response" : status ? "eb_" + status[1] : "unavailable"};
       }
       pages++;
       const rows = page.transactions;
       const room = 2000 - transactions.length;
       transactions.push(...rows.slice(0, room));
       continuation = page.continuation_key || null;
-      if (rows.length > room) return {transactions, truncated:true};
+      if (rows.length > room) return {transactions, truncated:true, readReason:"row_limit"};
       if (!continuation) return {transactions, truncated:false};
       // Un cursor cíclico no autoriza a dar por completo el extracto ni a repetir doce páginas.
-      if (visited.has(continuation)) return {transactions, truncated:true};
+      if (visited.has(continuation)) return {transactions, truncated:true, transactionError:"continuation_repeated", readReason:"repeated_cursor"};
       visited.add(continuation);
     }
-    return {transactions, truncated:true};
+    // El mismo truncated no decía si cortó el banco o si agotamos nuestro propio presupuesto.
+    return {transactions, truncated:true, readReason:transactions.length >= 2000 ? "row_limit" : "page_limit"};
   } finally {
     clearTimeout(timer);
   }
