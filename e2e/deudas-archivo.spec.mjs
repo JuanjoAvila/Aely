@@ -74,8 +74,8 @@ test("la amortización total marca la deuda una vez y no crea un movimiento",asy
 test("una deuda con cuotas vinculadas no se puede borrar y conserva su nombre",async({page})=>{
   await seedLoggedInDashboard(page,{debts:[debt],expenses:[expense]});
   await openDebts(page);
-  await page.getByRole("button",{name:"Editar saldos pendientes"}).click();
-  await page.locator(".v4-debt-card").getByRole("button",{name:"Eliminar esta deuda"}).click();
+  await page.locator(".v4-debt-card").getByRole("button",{name:"Editar Préstamo ejemplo",exact:true}).click();
+  await page.getByRole("dialog",{name:"Editar deuda",exact:true}).getByRole("button",{name:"Eliminar esta deuda"}).click();
   await expect(page.locator(".v4-debt-card")).toHaveCount(1);
   await expect(page.locator(".v4-debt-card")).toContainText("Préstamo ejemplo");
 });

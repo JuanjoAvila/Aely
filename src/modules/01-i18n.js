@@ -3826,3 +3826,56 @@ Object.assign(LANG.ca,{g_auto_paired:"Avís i apunt del banc units",g_auto_separ
 Object.assign(LANG.es,{g_auto_rejoin:"Volver a unir",g_auto_deleted:"Aviso y apunte del banco borrados",g_auto_edit_separated:"Cambio guardado. El aviso y el apunte del banco se han separado"});
 Object.assign(LANG.en,{g_auto_rejoin:"Match again",g_auto_deleted:"Notification and bank entry deleted",g_auto_edit_separated:"Change saved. The notification and bank entry have been separated"});
 Object.assign(LANG.ca,{g_auto_rejoin:"Tornar a unir",g_auto_deleted:"Avís i apunt del banc esborrats",g_auto_edit_separated:"Canvi desat. L’avís i l’apunt del banc s’han separat"});
+
+// Edición individual de Deudas y Metas (14/10): el guardado conserva el formato del estado.
+Object.assign(LANG.es, {
+  plan_edit_name:"Nombre",
+  plan_edit_quota:"Cuota al mes (€)",
+  plan_edit_invalid:"Revisa los importes y el día. Usa números positivos, con coma o punto para los decimales.",
+  plan_edit_changed:"Este dato cambió o se borró. Cierra y vuelve a abrir la edición para ver la versión actual.",
+  plan_edit_saved:"Cambios guardados",
+  db_edit_title:"Editar deuda",
+  db_edit_named:"Editar {name}",
+  db_left_count:"Quedan {n}/{tot} cuotas",
+  db_term_hint:"Plazo total, incluidas las cuotas ya pagadas. Déjalo vacío si no lo conoces.",
+  db_rate_edit_hint:"Vacío = interés desconocido. 0 = sin intereses. Se guarda al tocar Guardar cambios.",
+  db_set_rate:"Añadir interés",
+  gl_edit_title:"Editar meta",
+  gl_edit_named:"Editar {name}",
+  gl_delete_q:"¿Eliminar «{name}»?",
+  gl_delete_sub:"La meta desaparecerá de la lista. Las reglas y las aportaciones anteriores se conservan."
+});
+Object.assign(LANG.en, {
+  plan_edit_name:"Name",
+  plan_edit_quota:"Monthly payment (€)",
+  plan_edit_invalid:"Check the amounts and day. Use positive numbers, with a comma or dot for decimals.",
+  plan_edit_changed:"This item changed or was deleted. Close and reopen the editor to see the current version.",
+  plan_edit_saved:"Changes saved",
+  db_edit_title:"Edit debt",
+  db_edit_named:"Edit {name}",
+  db_left_count:"{n}/{tot} payments left",
+  db_term_hint:"Total term, including payments already made. Leave blank if unknown.",
+  db_rate_edit_hint:"Blank = unknown interest. 0 = no interest. Saved when you tap Save changes.",
+  db_set_rate:"Add interest",
+  gl_edit_title:"Edit goal",
+  gl_edit_named:"Edit {name}",
+  gl_delete_q:"Delete “{name}”?",
+  gl_delete_sub:"The goal will disappear from the list. Rules and past contributions are kept."
+});
+Object.assign(LANG.ca, {
+  plan_edit_name:"Nom",
+  plan_edit_quota:"Quota al mes (€)",
+  plan_edit_invalid:"Revisa els imports i el dia. Fes servir nombres positius, amb coma o punt per als decimals.",
+  plan_edit_changed:"Aquesta dada ha canviat o s’ha esborrat. Tanca i torna a obrir l’edició per veure la versió actual.",
+  plan_edit_saved:"Canvis desats",
+  db_edit_title:"Edita el deute",
+  db_edit_named:"Edita {name}",
+  db_left_count:"Queden {n}/{tot} quotes",
+  db_term_hint:"Termini total, incloses les quotes ja pagades. Deixa’l buit si no el coneixes.",
+  db_rate_edit_hint:"Buit = interès desconegut. 0 = sense interessos. Es desa en tocar Desa els canvis.",
+  db_set_rate:"Afegeix interès",
+  gl_edit_title:"Edita l’objectiu",
+  gl_edit_named:"Edita {name}",
+  gl_delete_q:"Vols eliminar «{name}»?",
+  gl_delete_sub:"L’objectiu desapareixerà de la llista. Les regles i les aportacions anteriors es conserven."
+});

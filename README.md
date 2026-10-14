@@ -55,6 +55,8 @@ La base80/source955765a9 incluye Retirada y Nómina junto con Widget y las tres 
 
 # Aely
 
+Trabajo candidato del 14/10/2026, aún sin publicar: Plan → Deudas y Metas permite abrir una hoja de edición desde cada tarjeta. La deuda reúne nombre, saldo pendiente, cuota, día, plazo e interés; la meta reúne nombre, cantidades, fecha y aportación mensual. El interés acepta coma o punto y se confirma al guardar. El aspecto reutiliza las superficies y colores de Inicio y Plan. Capturas Pixel 5, navegador, rendimiento, CI final y revisión del coordinador pendientes.
+
 La4.26.117 reúne la beta aprobada en una entrega de producción. Android4.26.117/code55 incorpora la parte nativa del widget; la web conserva compatibilidad con la APK52. Bienes y la gráfica ya pertenecen al historial de producción111.
 
 MAIN4.26.110 incorpora PR196 (bdd75636), sólo pruebas, herramientas y documentación. Tests38005461796 y DeployPages38005461732 terminaron SUCCESS y sus artefactos se comprobaron; ese cierre no publica Inicio112 ni acredita APK nuevo o aceptación móvil. Las aprobadas99/100/101/102/106 ya entregadas conservan su cierre;109 sigue rechazada.
