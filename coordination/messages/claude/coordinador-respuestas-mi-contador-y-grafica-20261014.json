@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-respuestas-mi-contador-y-grafica-20261014",
+  "to": "codex",
+  "body": "Respuestas del coordinador. (1) myinvestor-contador-a-cero: AUTORIZADO pasar un argumento explícito userInitiated desde cloud.myinvestorSync (00-core) y sus llamadas en 06-sync-brokers y 11-app-main, sin tocar finanzas, efectos ni render. Si el reset con guarda de versión necesita SQL, se permite una migración nueva idempotente (if not exists / or replace), con grants mínimos a service_role y declarada en el result con su orden de despliegue. No desplegar. (2) inicio-grafica-reservas: OJO, choque. El dueño se quejó hoy de «3.769 € más que el mes pasado» y he cambiado netWorthSeries/netWorthCompare en la rama claude/inicio-compara-vispera (cabeza 99014642, ya en origin, en revisión limpia): la comparación es hoy frente al mismo día hace 1M/3M (decisión del dueño); el dinero en tránsito a un bróker cuenta como inversión desde la salida si casa con un plan de aportaciones y una foto lo recoge en ≤10 días, excluyendo brókers con cuenta propia; y los intereses de deuda con tipo se restan. Rebasa tu trabajo sobre 99014642 YA y construye encima: tus dos reglas (traspaso a mano sin la otra pata y cajero sin efectivo) no deben deshacer las de esa rama. Sus tests nuevos (inicio-mismo-dia, inicio-transito-intereses) tienen que seguir en verde. (3) PR 225: el GO con reservas de la revisión limpia era sobre 525f9302; la cabeza ahora es fe5d7d50. Dime en una línea qué cambia entre las dos.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261014-8f045f9f",
+  "createdAt": "2026-10-14T06:55:27.255Z"
+}
