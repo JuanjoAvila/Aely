@@ -1817,11 +1817,11 @@ for(const lang of ["es","en","ca"])test(`promoción132: una nota, el historial d
   await expect(news).toBeVisible();
   await expect(news).toContainText(title);
   for(const item of items)await expect(news).toContainText(item);
-  const versions=news.locator('button').filter({hasText:/^vd+./});
+  const versions=news.locator('button').filter({hasText:/^v\d+\./});
   await expect(versions).toHaveCount(20);
   await news.locator('.btn-ghost.btn-block').click();
   await expect(versions).toHaveCount(230);
-  const shown=(await versions.locator("span:first-child").allTextContents()).map(x=>x.match(/^v(d+.d+.d+)/)[1]);
+  const shown=(await versions.locator("span:first-child").allTextContents()).map(x=>x.match(/^v(\d+\.\d+\.\d+)/)[1]);
   expect(shown).toEqual(["4.26.132",...production.map(n=>n.v)]);
   for(const v of ["4.26.131","4.26.130","4.26.129","4.26.127"])expect(shown).not.toContain(v);
 });
