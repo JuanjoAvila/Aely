@@ -29179,5 +29179,142 @@
       }
     ],
     "unidades": true
+  },
+  "inicio-recientes-sin-repetidos": {
+    "web": [
+      {
+        "file": "src/modules/03-tab-dash.js",
+        "from": "  // La fila del banco de una pareja automática (`autoGemelo`)",
+        "to": ",[state.expenses,state.deleted]);",
+        "includeTo": true
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "from": "  const gastosCuenta=(state.expenses||[])",
+        "to": "dateMs(y.date)-dateMs(x.date); });",
+        "includeTo": true
+      },
+      {
+        "file": "src/modules/13-hogar.js",
+        "function": "buildHouseholdSnapshot"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseIsTombstoned"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseDeletedSet"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseBankOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "dateMs"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "entOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "startOfMonth"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "parseDate"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cargoDeRecibo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "keyOfExpense"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isManualExpenseSource"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "keyOfExpenseLegacy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "partirEntDeuda"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "_pdMs"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "inicioDeMesMs"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reciboVetado"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reciboNoIdentidad"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obOrdinalSufijo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentIdentity"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obOrdinalOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "FREQ_M"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CONFIG"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "expenseDeletedSets"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "ENT"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "_pdCache"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "MC_TZ"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "_mcInicioMesTz"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "_mcInicioMesYmFmt"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "_mcInicioMesDiaFmt"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "_mcInicioMesByYm"
+      }
+    ],
+    "unidades": true
   }
 }

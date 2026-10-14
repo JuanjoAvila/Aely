@@ -74,7 +74,7 @@ function AccountSheet({open, cuenta, state, set, totals, onClose, onRemove, onSa
   const banco=entOf(a.ent).label||a.aspsp||"🏦";
   const missingFx=!!a._obKey&&a.value==null;
   const saldoHoy=missingFx?null:(Number(saldoMostrado(a))||0);
-  const gastosCuenta=(state.expenses||[]).filter(function(e){ return expenseBankOf(e)===a.ent; })
+  const gastosCuenta=(state.expenses||[]).filter(function(e){ return !e.autoGemelo && expenseBankOf(e)===a.ent; })
     .sort(function(x,y){ return dateMs(y.date)-dateMs(x.date); });
   const histKey=a.accountOrderKey||(a._obKey?("ob:"+a._obKey):("acc:"+a.id));
   const limite14=new Date(); limite14.setHours(0,0,0,0); limite14.setDate(limite14.getDate()-13);

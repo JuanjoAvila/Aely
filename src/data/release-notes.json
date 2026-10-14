@@ -1,5 +1,46 @@
 [
   {
+    "v": "4.26.132",
+    "d": "2026-10-14",
+    "t": {
+      "es": "Inicio: los últimos movimientos ya no repiten las compras de Trade Republic",
+      "en": "Home: recent transactions no longer repeat Trade Republic purchases",
+      "ca": "Inici: els darrers moviments ja no repeteixen les compres de Trade Republic"
+    },
+    "items": {
+      "es": [
+        "Inicio: «Últimos movimientos» enseña cada compra de Trade Republic una sola vez, con el nombre del comercio, sin una segunda fila genérica del mismo importe. También se arregla en la ficha de cada cuenta y en el resumen del hogar."
+      ],
+      "en": [
+        "Home: \"Latest activity\" shows each Trade Republic purchase once, with the merchant name, without a second generic row for the same amount. This is also fixed on each account page and in the household summary."
+      ],
+      "ca": [
+        "Inici: «Últims moviments» ensenya cada compra de Trade Republic només una vegada, amb el nom del comerç, sense una segona fila genèrica del mateix import. També s'arregla a la fitxa de cada compte i al resum de la llar."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inicio-recientes-sin-repetidos",
+        "t": {
+          "es": "Inicio: los últimos movimientos ya no repiten las compras de Trade Republic",
+          "en": "Home: recent transactions no longer repeat Trade Republic purchases",
+          "ca": "Inici: els darrers moviments ja no repeteixen les compres de Trade Republic"
+        },
+        "items": {
+          "es": [
+            "1. Abre Inicio y baja a \"Últimos movimientos\": cada compra de Trade Republic sale una sola vez, con el nombre del comercio, sin un \"Movimiento · Otros\" del mismo importe."
+          ],
+          "en": [
+            "1. Open Home and scroll to \"Latest activity\": each Trade Republic purchase appears once, with the merchant name, without a \"Movement · Other\" of the same amount."
+          ],
+          "ca": [
+            "1. Obre Inici i baixa a \"Últims moviments\": cada compra de Trade Republic surt una sola vegada, amb el nom del comerç, sense un \"Moviment · Altres\" del mateix import."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.131",
     "d": "2026-10-14",
     "t": {
@@ -18,33 +59,7 @@
         "Cartera: ara pots dir quina part d'un compte és teva (per exemple, la meitat d'un compte conjunt). El teu patrimoni i la seva gràfica compten només aquesta part; les despeses i el pressupost no canvien. Si un compte compartit té moviments antics que no diuen de quin compte van sortir, la seva fitxa et pregunta si són d'aquest compte; ho pots canviar quan vulguis."
       ]
     },
-    "tandas": [
-      {
-        "id": "cuenta-parte-mia",
-        "t": {
-          "es": "Cuentas compartidas: cuenta solo tu parte",
-          "en": "Shared accounts: count only your share",
-          "ca": "Comptes compartits: compta només la teva part"
-        },
-        "items": {
-          "es": [
-            "1. Cartera → Tus cuentas → toca la cuenta conjunta de Revolut: en \"Parte mía\" pulsa \"Cambiar\", pon 50 y \"Guardar\". La fila dice \"50 % tuyo\" y el saldo del banco no cambia.",
-            "2. En la misma ficha, en los movimientos antiguos de Revolut, pulsa \"Decidir\" y contesta \"Sí, son de esta cuenta\". En Inicio, con \"Todo\", la gráfica empieza unos 2.000 € más abajo y la frase de debajo sube.",
-            "3. Toca la \"i\" del patrimonio: sale \"Cuentas compartidas\" explicando que solo cuenta tu parte."
-          ],
-          "en": [
-            "1. Portfolio → Your accounts → tap the joint Revolut account: under \"My share\" tap \"Change\", enter 50 and \"Save\". The row says \"50 % yours\" and the bank balance doesn't change.",
-            "2. On the same page, on the older Revolut transactions, tap \"Decide\" and answer \"Yes, they're from this account\". On Home, with \"All\", the chart starts about €2,000 lower and the sentence below goes up.",
-            "3. Tap the \"i\" on net worth: it shows \"Shared accounts\", explaining that only your share counts."
-          ],
-          "ca": [
-            "1. Cartera → Els teus comptes → toca el compte conjunt de Revolut: a \"Part meva\" prem \"Canviar\", posa 50 i \"Desa\". La fila diu \"50 % teu\" i el saldo del banc no canvia.",
-            "2. A la mateixa fitxa, als moviments antics de Revolut, prem \"Decidir\" i respon \"Sí, són d'aquest compte\". A Inici, amb \"Tot\", la gràfica comença uns 2.000 € més avall i la frase de sota puja.",
-            "3. Toca la \"i\" del patrimoni: surt \"Comptes compartits\" explicant que només compta la teva part."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.130",
@@ -65,33 +80,7 @@
         "Trade Republic ja no et pregunta si un moviment està repetit: quan la compra arriba per l’avís i pel banc, l’app les ajunta sola i en compta una. Si mai n’ajunta dues que eren diferents, les pots separar des del propi moviment."
       ]
     },
-    "tandas": [
-      {
-        "id": "tr-empareja-sin-preguntar",
-        "t": {
-          "es": "Trade Republic: los repetidos se juntan solos",
-          "en": "Trade Republic: duplicates now match on their own",
-          "ca": "Trade Republic: els repetits s’ajunten sols"
-        },
-        "items": {
-          "es": [
-            "1. Abre Gastos: las compras de Trade Republic ya no salen como \"Movimiento · tócalo: ¿mismo o distinto?\"; ves una sola por compra, con su comercio.",
-            "2. Toca una de esas compras: sale \"Aviso y apunte del banco unidos\" y un botón \"No es el mismo: separar\"; no lo uses salvo que de verdad fueran dos compras distintas.",
-            "3. El total del ciclo en Inicio no ha subido de golpe: cuadra con lo que has gastado."
-          ],
-          "en": [
-            "1. Open Spending: Trade Republic purchases no longer show as \"Movement · tap: same or different?\"; you see a single one per purchase, with its merchant.",
-            "2. Tap one of those purchases: it says \"Notification and bank entry matched\" and has a \"Not the same: separate\" button; don't use it unless they really were two different purchases.",
-            "3. The cycle total on Home hasn't jumped up: it matches what you have spent."
-          ],
-          "ca": [
-            "1. Obre Despeses: les compres de Trade Republic ja no surten com \"Moviment · toca'l: mateix o diferent?\"; en veus una sola per compra, amb el seu comerç.",
-            "2. Toca una d’aquestes compres: surt \"Avís i apunt del banc units\" i un botó \"No és el mateix: separar\"; no l’usis si de veritat no eren dues compres diferents.",
-            "3. El total del cicle a Inici no ha pujat de cop: quadra amb el que has gastat."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.129",
@@ -112,33 +101,7 @@
         "Més net i més lleuger: han desaparegut d’Ajustos opcions que no feien res (ordenar pestanyes, actualitzar preus en obrir, amagar blocs) i el perfil només guarda el teu nom i el teu sobrenom; la resta de dades personals s’esborra. La projecció d’inversions ara és a Cartera, dins d’Inversions."
       ]
     },
-    "tandas": [
-      {
-        "id": "limpieza-ajustes-perfil",
-        "t": {
-          "es": "Ajustes más limpios y app más ligera",
-          "en": "Cleaner Settings and a lighter app",
-          "ca": "Ajustos més nets i app més lleugera"
-        },
-        "items": {
-          "es": [
-            "1. Abre Ajustes: ya no están \"Pestañas\", \"Ocultar bloques\", \"Actualizar precios al abrir\", la Proyección ni \"Cambiar mis recibos\".",
-            "2. Cartera → Inversiones → \"Ver todas\": abajo hay una ficha \"Proyección\"; ábrela y mueve los deslizadores.",
-            "3. Toca tu avatar → Perfil: solo salen tu nombre y apodo, el correo y Hogar, y tu nombre sigue ahí."
-          ],
-          "en": [
-            "1. Open Settings: \"Tabs\", \"Hide blocks\", \"Update prices on open\", the Projection and \"Change my bills\" are gone.",
-            "2. Portfolio → Investments → \"See all\": at the bottom there is a \"Your savings projection\" card; open it and move the sliders.",
-            "3. Tap your avatar → Profile: only your name and nickname, your email and Household show, and your name is still there."
-          ],
-          "ca": [
-            "1. Obre Ajustos: ja no hi són \"Pestanyes\", \"Amagar blocs\", \"Actualitzar preus en obrir\", la Projecció ni \"Canviar els meus rebuts\".",
-            "2. Cartera → Inversions → \"Veure totes\": a baix hi ha una fitxa \"Projecció\"; obre-la i mou els lliscadors.",
-            "3. Toca el teu avatar → Perfil: només surten el teu nom i sobrenom, el correu i Llar, i el teu nom continua allà."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.128",

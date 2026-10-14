@@ -152,3 +152,17 @@ test("NO-GO 3: otro móvil vuelve a unir antes del refresco de gastos con tabla 
  expect(await page.evaluate(()=>window.__pairReads.slice(0,2))).toEqual(["state","expenses"]);
  expect(await page.evaluate(()=>window.__pairWrites.filter(x=>x.kind==="dup"&&x.value===false).length)).toBe(0);
 });
+
+// Visto por el dueño en la beta 4.26.131 (14/10/2026): «Últimos movimientos» de Inicio enseñaba también la fila
+// oculta del banco ("Movimiento") con el mismo importe que la compra con comercio.
+test("Inicio enseña la pareja automática una sola vez, con el comercio",async({page})=>{
+ await installFixtureClock(page);
+ await seedLoggedInDashboard(page,{__seedOnce:true,accounts:[{id:"tr",ent:"trade_republic",role:"diario",value:900}],settings:{autoPrices:false,theme:"green",expenseBanks:["trade_republic"]},expenses:[notice,Object.assign({},bank,{autoGemelo:notice.id})],gemelos:[]});
+ await page.goto("/");await expect(page.locator(".botnav")).toBeVisible();await dismissNews(page);
+ const movs=page.getByText("Últimos movimientos",{exact:true}).first().locator("xpath=../following-sibling::*[1]").locator(".v4-mov");
+ await expect(movs.filter({hasText:"Compra sintética"})).toHaveCount(1);
+ await expect(movs.filter({hasText:/^Movimiento/})).toHaveCount(0);
+ await expect(movs).toHaveCount(1);
+ // La suma cuenta la compra una sola vez: 500 € de presupuesto menos 12 € (el banco oculto no resta otros 12).
+ await expect(page.getByText("488 €",{exact:true}).first()).toBeVisible();
+});

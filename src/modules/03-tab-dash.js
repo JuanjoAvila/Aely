@@ -326,7 +326,10 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
 
   // Inicio resume tres metas activas; Plan conserva todas sin cambiar su orden ni sus saldos.
   const goals=(state.goals||[]).filter(function(g){ return !g.done; }).slice(0,3);
-  const recent=useMemo((s=state)=>(s.expenses||[]).filter(e=>!expenseIsTombstoned(e,expenseDeletedSet(s))).sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,3),[state.expenses,state.deleted]);
+  // La fila del banco de una pareja automática (`autoGemelo`) queda oculta: la compra con comercio
+  // ya está en la lista y repetirla enseñaba «Movimiento · Otros» con el mismo importe. Misma regla
+  // que Gastos (visto por el dueño en la beta 4.26.131, 14/10/2026).
+  const recent=useMemo((s=state)=>(s.expenses||[]).filter(e=>!e.autoGemelo&&!expenseIsTombstoned(e,expenseDeletedSet(s))).sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,3),[state.expenses,state.deleted]);
   const ringPct=budAmt>0?Math.max(0,Math.min(1,rem/budAmt)):0;
   /* P6 — el anillo usa una animación de montaje, con estado final directo si se reduce
      el movimiento. Pausarla hasta que salga el splash evita gastarla detrás de la cortina. */

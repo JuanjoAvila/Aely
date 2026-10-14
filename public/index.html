@@ -9787,7 +9787,10 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
 
   // Inicio resume tres metas activas; Plan conserva todas sin cambiar su orden ni sus saldos.
   const goals=(state.goals||[]).filter(function(g){ return !g.done; }).slice(0,3);
-  const recent=useMemo((s=state)=>(s.expenses||[]).filter(e=>!expenseIsTombstoned(e,expenseDeletedSet(s))).sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,3),[state.expenses,state.deleted]);
+  // La fila del banco de una pareja automática (`autoGemelo`) queda oculta: la compra con comercio
+  // ya está en la lista y repetirla enseñaba «Movimiento · Otros» con el mismo importe. Misma regla
+  // que Gastos (visto por el dueño en la beta 4.26.131, 14/10/2026).
+  const recent=useMemo((s=state)=>(s.expenses||[]).filter(e=>!e.autoGemelo&&!expenseIsTombstoned(e,expenseDeletedSet(s))).sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,3),[state.expenses,state.deleted]);
   const ringPct=budAmt>0?Math.max(0,Math.min(1,rem/budAmt)):0;
   /* P6 — el anillo usa una animación de montaje, con estado final directo si se reduce
      el movimiento. Pausarla hasta que salga el splash evita gastarla detrás de la cortina. */
@@ -13415,7 +13418,7 @@ function AccountSheet({open, cuenta, state, set, totals, onClose, onRemove, onSa
   const banco=entOf(a.ent).label||a.aspsp||"🏦";
   const missingFx=!!a._obKey&&a.value==null;
   const saldoHoy=missingFx?null:(Number(saldoMostrado(a))||0);
-  const gastosCuenta=(state.expenses||[]).filter(function(e){ return expenseBankOf(e)===a.ent; })
+  const gastosCuenta=(state.expenses||[]).filter(function(e){ return !e.autoGemelo && expenseBankOf(e)===a.ent; })
     .sort(function(x,y){ return dateMs(y.date)-dateMs(x.date); });
   const histKey=a.accountOrderKey||(a._obKey?("ob:"+a._obKey):("acc:"+a.id));
   const limite14=new Date(); limite14.setHours(0,0,0,0); limite14.setDate(limite14.getDate()-13);
@@ -21638,7 +21641,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="b08a7d450add37df4c36ca5b4d7c480c2ec4f6acac8241fb67ffe67138c41add";
+var _rnSha="8d6edf78d17a5927658dd01ae7bbf3ab273b49a3a3a63f06389eccf9e70a44ce";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -22799,6 +22802,9 @@ function buildHouseholdSnapshot(state, totals, email){
   const monthStart=startOfMonth();
   (state.expenses||[]).forEach(function(e){
     if(!(e.amount>0)) return;
+    // Un posible repetido (también la fila oculta de una pareja automática) no mueve ninguna cifra:
+    // la foto del hogar contaba dos veces la misma compra (14/10/2026).
+    if(e.possibleDup) return;
     if(parseDate(e.date)<monthStart) return;
     // El cargo de un recibo ya sale en los fijos de esta misma foto: aquí lo contaría dos veces.
     if(cargoDeRecibo(e, state)) return;

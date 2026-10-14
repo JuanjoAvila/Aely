@@ -56,6 +56,8 @@ const sourceBeta128=sourceAt("24d0d463e0c0055ba000149f07d7fa2fe12d4c9b");
 const sourceBeta129=sourceAt("9f7bb3bd5492e75d0adf5487e06d42dd67ca87f2");
 // Catálogo130 pasa a histórico en la 131: se lee de la beta 4.26.130 (67666d42), que sigue en el panel con sus tres tandas.
 const sourceBeta130=sourceAt("67666d4248d5bceb8c36e3b6f52824fd3a776b63");
+// Catálogo131 pasa a histórico en la 132: se lee de la beta 4.26.131 (c945e37c), que sigue en el panel con sus tres tandas.
+const sourceBeta131=sourceAt("c945e37cdcc90eaac064ca80ffbb4c72459ed890");
 // La122 añade un método a `cloud` (`setExpenseRecibo`) y los alcances que listan los métodos que
 // leen lo ganan al final de su lista. Las comparaciones con descriptores anteriores lo descuentan;
 // Catálogo122 fija en lista cerrada cuáles son.
@@ -94,7 +96,7 @@ const boot="inc-2709-01-arranque-red";
 const modern=[{v:"4.26.69",tandas:[{id:boot}]}];
 let failed=0;
 const inicioOnly=process.argv.includes("--inicio-v42-only");
-function test(name,fn){ if(inicioOnly&&!name.startsWith("Inicio v4.2 ")&&!name.startsWith("Catálogo131 ")&&!name.startsWith("Retiro130 ")&&!name.startsWith("Catálogo130 ")&&!name.startsWith("Catálogo129 ")&&!name.startsWith("Catálogo128 ")&&!name.startsWith("Catálogo127 ")&&!name.startsWith("Catálogo126 ")&&!name.startsWith("Retiro126 ")&&!name.startsWith("Catálogo125 ")&&!name.startsWith("Retiro125 ")&&!name.startsWith("Catálogo124 ")&&!name.startsWith("Retiro124 ")&&!name.startsWith("Catálogo123 ")&&!name.startsWith("Catálogo122 ")&&!name.startsWith("Catálogo121 ")&&!name.startsWith("Catálogo120 ")&&!name.startsWith("Catálogo114 ")&&!name.startsWith("Catálogo117 ")&&!name.startsWith("Retiro117 ")&&!name.startsWith("Catálogo118 ")&&!name.startsWith("Splash117 ")&&!name.startsWith("Catálogo119 ")&&!name.startsWith("Retiro119 "))return;try{fn();console.log("  ✓ "+name);}catch(e){failed++;console.error("  ✗ "+name+"\n    "+e.message);} }
+function test(name,fn){ if(inicioOnly&&!name.startsWith("Inicio v4.2 ")&&!name.startsWith("Catálogo132 ")&&!name.startsWith("Retiro131 ")&&!name.startsWith("Catálogo131 ")&&!name.startsWith("Retiro130 ")&&!name.startsWith("Catálogo130 ")&&!name.startsWith("Catálogo129 ")&&!name.startsWith("Catálogo128 ")&&!name.startsWith("Catálogo127 ")&&!name.startsWith("Catálogo126 ")&&!name.startsWith("Retiro126 ")&&!name.startsWith("Catálogo125 ")&&!name.startsWith("Retiro125 ")&&!name.startsWith("Catálogo124 ")&&!name.startsWith("Retiro124 ")&&!name.startsWith("Catálogo123 ")&&!name.startsWith("Catálogo122 ")&&!name.startsWith("Catálogo121 ")&&!name.startsWith("Catálogo120 ")&&!name.startsWith("Catálogo114 ")&&!name.startsWith("Catálogo117 ")&&!name.startsWith("Retiro117 ")&&!name.startsWith("Catálogo118 ")&&!name.startsWith("Splash117 ")&&!name.startsWith("Catálogo119 ")&&!name.startsWith("Retiro119 "))return;try{fn();console.log("  ✓ "+name);}catch(e){failed++;console.error("  ✗ "+name+"\n    "+e.message);} }
 console.log("beta-sources");
 
 // La rayita comparte controlador y geometría con la barra: una aprobación de CSS aislada no
@@ -183,7 +185,7 @@ test("Inicio v4.2 cubre flujos, ciclo, renderer, llamada, animación, textos, CS
   // La base es la integración120 (apuntes iguales de Trade Republic): Inicio no puede retirar su alcance ni heredar su revisión.
   const integrated=JSON.parse(source120("scripts/beta-sources.json"));
   // Detrás de Inicio sólo ha entrado el alcance de la122 (el cargo de recibo en Gastos).
-  assert.deepEqual(Object.keys(scopes),Object.keys(integrated).concat(id,"recibo-cargo-en-gastos","plan-scroll-lento","inicio-tarjeta-ciclo-limpia","bancos-reconexion-revoca","inicio-mes-pasado-mismo-dia","limpieza-ajustes-perfil","tr-empareja-sin-preguntar","cuenta-parte-mia"),"Inicio y las altas de la122, la124, la126, la127, la128, la129, la130 y la131, sin retirar historia120");
+  assert.deepEqual(Object.keys(scopes),Object.keys(integrated).concat(id,"recibo-cargo-en-gastos","plan-scroll-lento","inicio-tarjeta-ciclo-limpia","bancos-reconexion-revoca","inicio-mes-pasado-mismo-dia","limpieza-ajustes-perfil","tr-empareja-sin-preguntar","cuenta-parte-mia","inicio-recientes-sin-repetidos"),"Inicio y las altas de la122, la124, la126, la127, la128, la129, la130, la131 y la132, sin retirar historia120");
   for(const [key,value] of Object.entries(integrated))if(key!=="inicio-grafica-vuelve"){assert.deepEqual(scopes[key].native,value.native);assert.deepEqual(scopes[key].edge,value.edge);for(const part of (value.web||[]).map(limpieza129).filter(Boolean))assert.ok(scopes[key].web.some(s=>JSON.stringify(sinMetodo122(s))===JSON.stringify(part)||JSON.stringify(sinPull130(sinMetodo122(s)))===JSON.stringify(sinPull130(sinMetodo122(part)))),key+": no recortar descriptor ajeno120");}
   assert.equal(scope.unidades,true);
   for(const key of ["historial","auditoria","codigosCompatibles","compatibilidadGit","compatibilidadSha"])
@@ -2963,7 +2965,7 @@ const expected131={"v":"4.26.131","d":"2026-10-14","t":{"es":"Cuentas compartida
 test("Catálogo131 añade la tanda de la parte mía de una cuenta sobre la beta130, con alcance propio, y declara cada huella que mueve",()=>{
   const tanda="cuenta-parte-mia",tr="tr-empareja-sin-preguntar",limpieza="limpieza-ajustes-perfil",banco="bancos-reconexion-revoca",inicio="inicio-mes-pasado-mismo-dia";
   const integrated=JSON.parse(sourceBeta130("scripts/beta-sources.json")),before=JSON.parse(sourceBeta130("src/data/release-notes.json"));
-  const source=f=>read(f).replace(/\r\n/g,"\n"),old=f=>sourceBeta130(f).replace(/\r\n/g,"\n");
+  const source=f=>sourceBeta131(f).replace(/\r\n/g,"\n"),old=f=>sourceBeta130(f).replace(/\r\n/g,"\n");
   assert.deepEqual(before.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id])),[["4.26.130",tr],["4.26.129",limpieza]],"la beta130 deja las tandas del emparejado y de la limpieza en el panel");
   const expectedNotes=[expected131,...before];
   const notes=JSON.parse(source("src/data/release-notes.json"));
@@ -3082,6 +3084,125 @@ test("Catálogo131 añade la tanda de la parte mía de una cuenta sobre la beta1
   assert.equal(receipt.web[tanda],current.web);
   assert.deepEqual(receipt.pruebas,{[tanda]:{v:"4.26.131",contenido:JSON.stringify([tanda,expected131.tandas[0].t.es,expected131.tandas[0].items.es,1])},[tr]:{v:"4.26.130",contenido:JSON.stringify([tr,expected130.tandas[0].t.es,expected130.tandas[0].items.es,1])},[limpieza]:{v:"4.26.129",contenido:JSON.stringify([limpieza,expected129.tandas[0].t.es,expected129.tandas[0].items.es,1])}},"un guion por probar en cada tanda que sigue en el panel: la parte mía con la 131, el emparejado con la 130 y la limpieza con la 129");
   for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica","native"])assert.equal(group[key],undefined,"identidad nueva sin "+key);
+});
+
+const expected132={"v":"4.26.132","d":"2026-10-14","t":{"es":"Inicio: los últimos movimientos ya no repiten las compras de Trade Republic","en":"Home: recent transactions no longer repeat Trade Republic purchases","ca":"Inici: els darrers moviments ja no repeteixen les compres de Trade Republic"},"items":{"es":["Inicio: «Últimos movimientos» enseña cada compra de Trade Republic una sola vez, con el nombre del comercio, sin una segunda fila genérica del mismo importe. También se arregla en la ficha de cada cuenta y en el resumen del hogar."],"en":["Home: \"Latest activity\" shows each Trade Republic purchase once, with the merchant name, without a second generic row for the same amount. This is also fixed on each account page and in the household summary."],"ca":["Inici: «Últims moviments» ensenya cada compra de Trade Republic només una vegada, amb el nom del comerç, sense una segona fila genèrica del mateix import. També s'arregla a la fitxa de cada compte i al resum de la llar."]},"tandas":[{"id":"inicio-recientes-sin-repetidos","t":{"es":"Inicio: los últimos movimientos ya no repiten las compras de Trade Republic","en":"Home: recent transactions no longer repeat Trade Republic purchases","ca":"Inici: els darrers moviments ja no repeteixen les compres de Trade Republic"},"items":{"es":["1. Abre Inicio y baja a \"Últimos movimientos\": cada compra de Trade Republic sale una sola vez, con el nombre del comercio, sin un \"Movimiento · Otros\" del mismo importe."],"en":["1. Open Home and scroll to \"Latest activity\": each Trade Republic purchase appears once, with the merchant name, without a \"Movement · Other\" of the same amount."],"ca":["1. Obre Inici i baixa a \"Últims moviments\": cada compra de Trade Republic surt una sola vegada, amb el nom del comerç, sense un \"Moviment · Altres\" del mateix import."]}}]};
+// 4.26.132 (14/10/2026): «Últimos movimientos» de Inicio (y la lista de la ficha de cuenta) dejan de pintar la fila oculta del banco de una pareja
+// automática de Trade Republic, y la foto del hogar deja de sumar los posibles repetidos. Tanda NUEVA solo web, encima de la beta 4.26.131 publicada
+// (c945e37c). Las tres tandas de la 131 (parte mía, emparejado y limpieza) las aprobó el dueño: salen del panel (Retiro132) y queda esta sola.
+test("Catálogo132 añade la tanda de los últimos movimientos sin repetidos sobre la beta131, con alcance propio, y declara cada huella que mueve",()=>{
+  const tanda="inicio-recientes-sin-repetidos",parte="cuenta-parte-mia",tr="tr-empareja-sin-preguntar",limpieza="limpieza-ajustes-perfil";
+  const integrated=JSON.parse(sourceBeta131("scripts/beta-sources.json")),before=JSON.parse(sourceBeta131("src/data/release-notes.json"));
+  const source=f=>read(f).replace(/\r\n/g,"\n"),old=f=>sourceBeta131(f).replace(/\r\n/g,"\n");
+  assert.deepEqual(before.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id])),[["4.26.131",parte],["4.26.130",tr],["4.26.129",limpieza]],"la beta131 deja las tres tandas en el panel");
+  const expectedNotes=[expected132,{...before[0],tandas:[]},{...before[1],tandas:[]},{...before[2],tandas:[]},...before.slice(3)];
+  const notes=JSON.parse(source("src/data/release-notes.json"));
+  assert.deepEqual(notes,expectedNotes,"la nota 132 literal delante y las tres tandas aprobadas de la 131 retiradas con tandas:[]");
+  assert.deepEqual(notes.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id,g.apk||0])),[["4.26.132",tanda,0]],"el panel enseña una sola tanda, sin APK");
+  assert.equal(notes.length,before.length+1,"ninguna nota se borra");
+  assert.deepEqual(Object.keys(notes[0].tandas[0]),["id","t","items"],"identidad nueva, sin alias ni revisión heredada");
+  for(const lang of ["es","en","ca"]){
+    assert.equal(notes[0].items[lang].length,1,lang+": un punto familiar");
+    const steps=notes[0].tandas[0].items[lang];assert.equal(steps.length,1,lang+": un paso");
+    steps.forEach((step,i)=>assert.ok(step.startsWith((i+1)+". "),lang+": paso numerado "+(i+1)));
+    for(const text of steps)assert.equal(/borra|quita este|delete|remove|esborra|treu aquest|mañana|tomorrow|demà/i.test(text),false,lang+": ningún paso borra nada ni espera a otro día");
+    for(const text of [notes[0].t[lang],...notes[0].items[lang]])assert.equal(/beta|tanda|panel|APK|ordinal|acuse|cursor|token|Edge|servidor|Open Banking|autoGemelo|\d+\.\d+\.\d+/i.test(text),false,lang+": sin jerga: "+text);
+  }
+  // El rótulo que cita el guion es el texto real de la app, en su idioma.
+  const textos=source("src/modules/01-i18n.js");
+  for(const [lang,rotulo] of [["es","Últimos movimientos"],["en","Latest activity"],["ca","Últims moviments"]]){
+    assert.ok(notes[0].tandas[0].items[lang].join(" ").includes(rotulo),lang+": el guion cita "+rotulo);
+    assert.ok(textos.includes('v4_recent:"'+rotulo+'"'),lang+": "+rotulo+" es el texto de la app");
+  }
+  const verifyNotes=list=>assert.deepEqual(list,expectedNotes);
+  const twice=structuredClone(notes);twice[0].tandas.push(structuredClone(twice[0].tandas[0]));assert.throws(()=>verifyNotes(twice),assert.AssertionError,"no duplicar la tanda");
+  const inherited=structuredClone(notes);inherited[0].tandas[0].desde=["4.26.131/"+tanda];assert.throws(()=>verifyNotes(inherited),assert.AssertionError,"no heredar revisión");
+  const withApk=structuredClone(notes);withApk[0].tandas[0].apk=55;assert.throws(()=>verifyNotes(withApk),assert.AssertionError,"no hay APK que probar");
+  const conParte=structuredClone(notes);conParte[1].tandas=structuredClone(before[0].tandas);assert.throws(()=>verifyNotes(conParte),assert.AssertionError,"la parte mía aprobada no vuelve al panel");
+  // Un único descriptor nuevo, al final; los demás son los de la beta131 sin recortar.
+  const scopes=JSON.parse(source("scripts/beta-sources.json")),{[tanda]:added,...rest}=scopes;
+  assert.equal(integrated[tanda],undefined,"identidad que no existía");assert.equal(Object.keys(scopes).at(-1),tanda);
+  const crece={};
+  const ARCH={"0":"src/modules/00-core.js","1":"src/modules/01-i18n.js","8":"src/modules/08-motor-bank.js"};
+  const unidad=texto=>{const [f,n]=texto.split(":"),dato=n[0]==="@";return {file:ARCH[f],[dato?"data":"function"]:dato?n.slice(1):n};};
+  const crecido=Object.fromEntries(Object.entries(integrated).map(([key,scope])=>[key,crece[key]?{...scope,web:scope.web.concat(crece[key].split(",").map(unidad))}:scope]));
+  assert.deepEqual(rest,crecido,"solo crecen los descriptores de `crece` (cierre de lectores); nada se recorta");
+  const propias=[{"file":"src/modules/03-tab-dash.js","from":"  // La fila del banco de una pareja automática (`autoGemelo`)","to":",[state.expenses,state.deleted]);","includeTo":true},{"file":"src/modules/07-tab-patri-fijos.js","from":"  const gastosCuenta=(state.expenses||[])","to":"dateMs(y.date)-dateMs(x.date); });","includeTo":true},{"file":"src/modules/13-hogar.js","function":"buildHouseholdSnapshot"}];
+  assert.deepEqual(added.web.slice(0,propias.length),propias,"las unidades propias de la tanda, en este orden");
+  assert.equal(added.unidades,true);assert.deepEqual(Object.keys(added),["web","unidades"],"solo web");
+  {const fns=logicFunctions(source),dat=logicData(source);let web=propias.slice();
+    for(let ronda=0;ronda<10;ronda++){
+      const tiene=(file,nombre,clave)=>web.some(u=>u.file===file&&u[clave]===nombre),extra=[];
+      for(const fn of scopeDependencies({web},source,fns))if(!tiene(fn.file,fn.name,"function"))extra.push({file:fn.file,function:fn.name});
+      for(const d of scopeDataDependencies({web},source,fns,dat))if(!tiene(d.file,d.name,"data"))extra.push({file:d.file,data:d.name});
+      if(!extra.length)break;web=web.concat(extra);
+    }
+    const clave=u=>JSON.stringify(u);
+    assert.equal(added.web.length,web.length,"el cierre de lectores del descriptor es exactamente el calculado");
+    assert.deepEqual(new Set(added.web.map(clave)),new Set(web.map(clave)),"el cierre de lectores del descriptor es exactamente el calculado");}
+  for(const u of added.web)assert.ok(scopeText(u,source).length>0,"la unidad existe en la fuente: "+JSON.stringify(u));
+  assert.equal(source("public/apk.json"),old("public/apk.json"),"sin APK nueva: apk.json no se toca");
+  for(const f of ["supabase/functions/bank-sync/index.ts","supabase/functions/bank-disconnect/index.ts","supabase/functions/_shared/enablebanking.ts","supabase/functions/_shared/myinvestor.ts","supabase/functions/myinvestor-sync/index.ts","supabase/functions/myinvestor-keepalive/index.ts"])assert.equal(source(f),old(f),"el servidor no cambia: "+f);
+  // Huellas que se mueven, lista cerrada: las que leen la lista de Recientes, la ficha de cuenta o la foto del hogar.
+  const expectedMoves=Object.fromEntries(["cuenta-parte-mia","inc-0410-inicio-tres-metas","inc-0810-dashboard-recents-memo","inc-3009-nomina-anticipada","recibo-cargo-en-gastos"].map(key=>[key,["web"]]));
+  const previous=new Map();
+  const measure=reader=>{
+    const now=JSON.parse(reader("scripts/beta-sources.json")),moved={};
+    for(const [key,scope] of Object.entries(integrated)){
+      if(key===archiveId){assert.deepEqual(auditedRevision(key,reader),auditedRevision(key,sourceBeta131));continue;}
+      if(!previous.has(key))previous.set(key,betaRevision(key,sourceBeta131,undefined,scope));
+      const a=previous.get(key),b=betaRevision(key,reader,undefined,now[key]);
+      const surfaces=["web","native","edge"].filter(x=>a[x]!==b[x]);
+      if(surfaces.length)moved[key]=surfaces;
+    }
+    return moved;
+  };
+  const verify=(reader,expected=expectedMoves)=>assert.deepEqual(measure(reader),expected,"lista cerrada: ni una huella extra ni una declarada que no cambie");
+  verify(source);
+  assert.throws(()=>verify(source,{...expectedMoves,"plan-scroll-lento":["web"]}),/lista cerrada/,"una huella declarada que no cambia pone rojo");
+  const missing={...expectedMoves};delete missing[Object.keys(expectedMoves)[0]];assert.throws(()=>verify(source,missing),/lista cerrada/,"una huella real no declarada pone rojo");
+  const current=betaRevision(tanda,source,undefined,scopes[tanda]);
+  assert.ok(current.web);assert.equal(current.edge,undefined);assert.equal(current.native,undefined);
+  const dash="src/modules/03-tab-dash.js",patri="src/modules/07-tab-patri-fijos.js",hogar="src/modules/13-hogar.js";
+  for(const [file,a,b] of [
+    [dash,'filter(e=>!e.autoGemelo&&!expenseIsTombstoned(','filter(e=>!expenseIsTombstoned('],
+    [patri,'return !e.autoGemelo && expenseBankOf(e)===a.ent;','return expenseBankOf(e)===a.ent;'],
+    [hogar,'    if(e.possibleDup) return;\n','']]){
+    assert.equal(source(file).split(a).length,2,"mutante sobre fuente real: "+a);
+    const mutated=betaRevision(tanda,f=>f===file?source(f).replace(a,b):source(f),undefined,scopes[tanda]);
+    assert.notEqual(mutated.web,current.web,"reabre la tanda: "+a);
+  }
+  const built=betaNotes(notes,source,scopes),receipt=betaDelivery(built,source,scopes),group=built[0].tandas[0];
+  assert.deepEqual(built.flatMap(n=>(n.tandas||[]).map(g=>g.id)),[tanda],"lo que el build entrega al panel");
+  assert.equal(group.web,current.web);assert.equal(group.edge,undefined);assert.equal(group.native,undefined);assert.equal(group.apk,undefined);
+  assert.equal(receipt.web[tanda],current.web);
+  assert.deepEqual(receipt.pruebas,{[tanda]:{v:"4.26.132",contenido:JSON.stringify([tanda,expected132.tandas[0].t.es,expected132.tandas[0].items.es,1])}},"un solo guion por probar: el de esta tanda");
+  for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica","native"])assert.equal(group[key],undefined,"identidad nueva sin "+key);
+});
+
+// Retiro132: el dueño aprobó en el panel las tres tandas de la 131 (parte mía, emparejado de TR y limpieza). Salen del panel como en la 130:
+// su nota conserva versión, fecha, título y texto y solo pierde la tanda, con `tandas:[]`; el descriptor y el historial se quedan, y el
+// producto sigue íntegro en el recibo de entrega.
+test("Retiro132 elimina solo las tres tandas aprobadas de la 131 y conserva notas, descriptores e historial",()=>{
+  const ids=["cuenta-parte-mia","tr-empareja-sin-preguntar","limpieza-ajustes-perfil"],tanda="inicio-recientes-sin-repetidos";
+  const before=JSON.parse(sourceBeta131("src/data/release-notes.json")),notes=JSON.parse(read("src/data/release-notes.json"));
+  for(const id of ids){
+    assert.equal(before.flatMap(n=>n.tandas||[]).filter(g=>g.id===id).length,1,id+": la 131 publicada la llevaba");
+    assert.equal(notes.flatMap(n=>n.tandas||[]).some(g=>g.id===id),false,id+": ya no está en ninguna nota");
+  }
+  assert.equal(notes.length,before.length+1,"ninguna nota se borra");
+  assert.deepEqual(notes.slice(1,4),before.slice(0,3).map(n=>({...n,tandas:[]})),"las tres notas conservan todo salvo la tanda");
+  assert.deepEqual(notes.slice(4),before.slice(3),"el resto del catálogo, intacto");
+  const resurrected=structuredClone(notes);resurrected[1].tandas.unshift(before[0].tandas[0]);
+  assert.notDeepEqual(resurrected,notes,"no resucitar una tanda aprobada");
+  const scopes=JSON.parse(read("scripts/beta-sources.json")),old=JSON.parse(sourceBeta131("scripts/beta-sources.json"));
+  for(const id of ids)for(const unit of old[id].web)assert.ok(scopes[id].web.some(u=>JSON.stringify(u)===JSON.stringify(unit)),id+": el descriptor conserva todas sus unidades");
+  const receipt=betaDelivery(betaNotes(notes,read,scopes),read,scopes);
+  for(const id of ids){
+    assert.equal(receipt.web[id],betaRevision(id,read,undefined,scopes[id]).web,id+": el producto sigue íntegro");
+    assert.equal(receipt.pruebas[id],undefined,id+": el guion aprobado no permanece en el panel");
+  }
+  assert.deepEqual(Object.keys(receipt.pruebas),[tanda],"en el panel queda sola la tanda nueva");
 });
 
 // Catálogo cerrado: desde la promoción126 se lee de la beta126 publicada (d8d2624c), que es la última con tandas en el panel.
@@ -3283,7 +3404,7 @@ test("PERSIST91: el guardado en el commit invalida toda tanda que escribe estado
   assert.ok(dependientes.includes("widget-pago-app-cerrada"),"la lectura que acredita el widget mezcla gastos con el set real");
   assert.ok(dependientes.includes("inc-0810-metas-editar-regla"),"editar una regla escribe con el set real y conserva el cierre de persistencia");
   assert.ok(dependientes.includes("inc-0710-gastos-mes-madrid"),"Gastos99 conserva la dependencia real de guardado de Expenses");
-  assert.deepEqual(ajenas.slice().sort(),["bancos-reconexion-revoca","beta-panel-veredictos","inc-0210-01-plan-cuota","inc-0410-inicio-tres-metas","inc-0710-appstate-listener-cleanup","inc-0710-banknotif-cleanup","inc-0810-backclose-handover","inc-0810-dashboard-recents-memo","inc-0810-inicio-grafica-significado","inc-0810-nav-indicator","inc-2709-01-arranque-red","inc-2709-09-fechas-cache","inc-2709-12-cyber-fab","inc-2709-13-fab-contorno","inc-2709-14-preguntar","inicio-grafica-vuelve","inicio-solape-gastos","inicio-tarjeta-ciclo-limpia","ops-0410-panel-cola","plan-scroll-lento","splash-animado","tr-descripcion-clasificacion"]);
+  assert.deepEqual(ajenas.slice().sort(),["bancos-reconexion-revoca","beta-panel-veredictos","inc-0210-01-plan-cuota","inc-0410-inicio-tres-metas","inc-0710-appstate-listener-cleanup","inc-0710-banknotif-cleanup","inc-0810-backclose-handover","inc-0810-dashboard-recents-memo","inc-0810-inicio-grafica-significado","inc-0810-nav-indicator","inc-2709-01-arranque-red","inc-2709-09-fechas-cache","inc-2709-12-cyber-fab","inc-2709-13-fab-contorno","inc-2709-14-preguntar","inicio-grafica-vuelve","inicio-recientes-sin-repetidos","inicio-solape-gastos","inicio-tarjeta-ciclo-limpia","ops-0410-panel-cola","plan-scroll-lento","splash-animado","tr-descripcion-clasificacion"]);
   /* Quién depende del guardado lo decide el CÓDIGO, no la marca del registro (auditoría del
      coordinador, 4/10): se quita de cada alcance el bloque del guardado y se mira si lo que queda
      llama a `set` de App —las dependencias transitivas ya son unidades del alcance—. Tiene que
@@ -3760,7 +3881,10 @@ test("Recientes106 reanclada conserva expresión, identidad y recibo completos",
   const actual121=JSON.parse(source121("scripts/beta-sources.json"))[id];
   assert.deepEqual(actual121.web,actual.web.slice(0,actual119.web.length+2),"el descriptor de la121 era el de la119 más el ordinal");
   assert.ok(actual.web.slice(actual121.web.length).some(u=>u.function==="reciboEtiqueta"),"en la122 gana la etiqueta de recibo y sus dependencias");
-  assert.equal(currentText,scopeText(anchor,source119),"la expresión de Recientes no cambia en la120 ni en la122");
+  // La 132 añade `!e.autoGemelo&&` al filtro (la pareja automática de Trade Republic no se pinta dos veces): es lo único que cambia respecto a la 119.
+  const sinAuto132=currentText.replace("filter(e=>!e.autoGemelo&&!expenseIsTombstoned(","filter(e=>!expenseIsTombstoned(");
+  assert.notEqual(sinAuto132,currentText,"la 132 excluye autoGemelo");
+  assert.equal(sinAuto132,scopeText(anchor,source119),"la expresión de Recientes no cambia en la120 ni en la122, salvo el filtro de la132");
   assert.notEqual(current.web,current119.web,"la clave con ordinal mueve la identidad: no se conserva la de la119");
   const cache=new Map(),at=(sha,f)=>{const k=sha+":"+f;if(!cache.has(k))cache.set(k,execFileSync("git",["show",k],{encoding:"utf8",maxBuffer:10e6}));return cache.get(k);};
   for(const sha of ["23a7808f65ef6d28e8a906f7100ffdf229917abb","f4ffb9340adfd0a13b631271e8158d2c630613c0","b1ad23f34f2a94933e57246dfdf12c451f5360a1"]){
@@ -3768,7 +3892,7 @@ test("Recientes106 reanclada conserva expresión, identidad y recibo completos",
     assert.ok(before,"el baseline debe contener la unidad106 real");
     assert.deepEqual({...actual,web:before.web},before,"ningún descriptor ajeno ni metadata106 cambia");
     assert.deepEqual(actual119.web.slice(1),before.web.slice(1),"todas las dependencias reales siguen presentes");
-    assert.equal(currentText,scopeText(before.web[0],source),"reanclaje no recorta ni amplía el contenido");
+    assert.equal(sinAuto132,scopeText(before.web[0],source),"reanclaje no recorta ni amplía el contenido");
     assert.equal(scopeText(anchor,source),scopeText(before.web[0],source),"el cierre también funciona en lectores históricos");
     assert.equal(current119.web,betaRevision(id,source,undefined,before).web,"identidad recalculada, sin copiar huella anterior");
     assert.equal(current119.web,betaRevision(id,source,undefined,actual119).web,"no absorbe constp del renderer histórico");
