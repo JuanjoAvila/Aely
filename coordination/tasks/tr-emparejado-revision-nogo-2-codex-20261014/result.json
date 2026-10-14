@@ -1,0 +1,122 @@
+{
+  "status": "done",
+  "summary": "Candidata TR NO-GO2 corregida con rojos causales, 11 DOM y 2 CPU6 verdes; CI general bloqueada por cinco suites de integracion conservadas. PR230 en borrador, sin entrega de producto.",
+  "productSHA": "bd2b20f3d75c7464bf0dd142ddd1ef1a94990693",
+  "pullRequest": "PR230",
+  "baseSHA": "2439ec641f88e5d1f01548a62d6e38ada058bf76",
+  "branch": "codex/tr-nogo2-20261014-df95",
+  "tests": [
+    {
+      "command": "node tests/tr-emparejado-nogo2.test.mjs before fix: defects 1-3 and date edit",
+      "exitCode": 1,
+      "details": "RED: 2000 instead of expected 1000 cents in each defect; source base2439"
+    },
+    {
+      "command": "TZ=UTC node tests/tr-emparejado-nogo2.test.mjs",
+      "exitCode": 0,
+      "details": "9 PASS; 12 seeds90days truth and126 migration unchanged monthly at open/sync/second sync"
+    },
+    {
+      "command": "TZ=Europe/Madrid node tests/tr-emparejado-nogo2.test.mjs",
+      "exitCode": 0,
+      "details": "9 PASS; zero cents difference for all12 seeds"
+    },
+    {
+      "command": "node tests/tr-emparejado-automatico.test.mjs",
+      "exitCode": 0,
+      "details": "22 PASS;8/8 previous mutants killed"
+    },
+    {
+      "command": "node tests/tr-emparejado-revision.test.mjs",
+      "exitCode": 0,
+      "details": "15 PASS; old migration and20000 rows references preserved"
+    },
+    {
+      "command": "node tests/recibo-invariante.test.mjs",
+      "exitCode": 0,
+      "details": "22 PASS; oracle775 unchanged"
+    },
+    {
+      "command": "node tests/pull-historico-entero.test.mjs",
+      "exitCode": 0,
+      "details": "17 PASS"
+    },
+    {
+      "command": "node tests/merge-expenses-cloud.test.mjs",
+      "exitCode": 0,
+      "details": "4 PASS"
+    },
+    {
+      "command": "node tests/widget-arbitraje.test.mjs",
+      "exitCode": 0,
+      "details": "actual JVM PASS; no foreign fixture edited"
+    },
+    {
+      "command": "node scripts/check-syntax.mjs; node tests/i18n-keys.test.mjs; node tests/relevant-tests.test.mjs; node scripts/guard-privacy.mjs",
+      "exitCode": 0,
+      "details": "Each individual command EXIT0, focused verification"
+    },
+    {
+      "command": "test.yml workflow_dispatch38548629439 job tr-pair-review on bd2b20f3d75c7464bf0dd142ddd1ef1a94990693",
+      "exitCode": 0,
+      "details": "11 DOM PASS,2 CPU6 PASS,1worker0retries,zero skips/flaky; contracts success"
+    },
+    {
+      "command": "test.yml workflow_dispatch38548629439 job test on bd2b20f3d75c7464bf0dd142ddd1ef1a94990693",
+      "exitCode": 1,
+      "details": "FAILED auth-disposal,auth-disposal-fit,beta-sources,docs-frescura,presupuesto-rendimiento; seven Deno files PASS; general E2E/perf and privacy step unexecuted"
+    }
+  ],
+  "mutations": {
+    "survivorsKilled": 2,
+    "previousKilled": 8,
+    "details": [
+      "remove reconcileGemelosAutomaticos from actual App updater",
+      "make two or three day pairs automatic"
+    ]
+  },
+  "performance": {
+    "rows": 20000,
+    "cpuRate": 6,
+    "pairs380": {
+      "categoryMs": 4,
+      "emptySyncMs": 1.6,
+      "stable": true
+    },
+    "pairs5708": {
+      "categoryMs": 3.9,
+      "emptySyncMs": 2.1,
+      "stable": true
+    }
+  },
+  "integrationGates": [
+    "beta-sources five assertions including new pullState dependency of fin05-widget-reentrada",
+    "docs-frescura one failure: five source files changed since126 anchor",
+    "auth-disposal and auth-disposal-fit historical digest failures",
+    "size1375/1354KB minified and378/372KB gzip"
+  ],
+  "artifacts": [
+    "docs/briefs/tr-emparejado-nogo2-20261014.md",
+    "GitHub Actions run38548629439"
+  ],
+  "limitations": [
+    "Claude review and serial integration pending",
+    "No beta served verification, APK or mobile acceptance",
+    "No local heavy runner admission or browser/CPU6/Gradle execution",
+    "No source catalogue, VERSION or size cap repin",
+    "Previous claims/results and first two failed CI runs preserved",
+    "No MyInvestor functions changed; shared refresh and sync paths require Claude serial integration"
+  ],
+  "mobileSteps": [
+    "After verified integration: notice plus bank payment show one row and one spent amount; separate and reopen show two",
+    "Delete pair, receive another notice with same amount and sync two bank entries: only new payment counts; Undo restores original rows",
+    "Rejoin from another phone then refresh Expenses first on previous phone: preserve one row and spent amount",
+    "Move notice date one day without changing amount or bank: preserve pair and spent amount"
+  ],
+  "schema": 1,
+  "taskId": "tr-emparejado-revision-nogo-2-codex-20261014",
+  "actor": "codex",
+  "sessionId": "codex-local-20261014-df95b78b2a58",
+  "createdAt": "2026-10-14T10:49:29.089Z",
+  "released": true
+}
