@@ -2,6 +2,7 @@ import { test, expect } from "@playwright/test";
 import { seedLoggedInDashboard, dismissNews, estadoHeredado } from "./fixtures.mjs";
 
 test.use({ viewport:{width:412,height:915},timezoneId:"Europe/Madrid",serviceWorkers:"block" });
+test.describe.configure({retries:0});
 const today="2026-10-14";
 async function abrir(page,mode,prior=false,lang="es"){
   const state=estadoHeredado(today);

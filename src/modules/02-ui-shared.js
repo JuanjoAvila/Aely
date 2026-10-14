@@ -773,7 +773,7 @@ function netWorthSeries(state, options){
     if(!Number.isFinite(ms)) return;
     const hour=Math.floor(ms/3600000),bounds=hours[hour]||(hours[hour]=[fmt.format(hour*3600000),fmt.format(hour*3600000+3599999)]);
     const day=bounds[0]===bounds[1]?bounds[0]:fmt.format(ms);if(day>today) return;
-    const row={expense:e,bank:bank,day:day,ms:ms,cents:Math.round(e.amount*100),f:factorOf(e,bank,day)};entries.push(row);
+    const row={expense:e,bank:bank,day:day,ms:ms,cents:Math.round(e.amount*100),f:factorOf(e,bank,day),atm:e.amount>0&&isAtmWithdrawal(e.merchant)};entries.push(row);
     if(!firstByBank[bank]||day<firstByBank[bank]) firstByBank[bank]=day;
     if(row.cents){const key=Math.abs(row.cents);(byAmount[key]||(byAmount[key]=[])).push(row);}
   });
@@ -796,7 +796,7 @@ function netWorthSeries(state, options){
         const sameAcc=a.bank===b.bank&&!(a.expense.obAcc&&b.expense.obAcc&&a.expense.obAcc!==b.expense.obAcc);
         if(sameAcc||a.cents!==-b.cents||(cat&&cat!=="traspaso"&&cat!=="otros"))continue;
         // Una entrada bancaria del mismo importe no acredita los billetes del cajero.
-        if(a.cents>0&&isAtmWithdrawal(a.expense.merchant)&&!isEfectivoEnt(b.bank)||b.cents>0&&isAtmWithdrawal(b.expense.merchant)&&!isEfectivoEnt(a.bank))continue;
+        if(a.atm&&!isEfectivoEnt(b.bank)||b.atm&&!isEfectivoEnt(a.bank))continue;
         const ar=a.expense.transferId,br=b.expense.transferId;if(ar&&br&&ar!==br)continue;
         if(!mates.has(a))mates.set(a,new Set());if(!mates.has(b))mates.set(b,new Set());
         mates.get(a).add(b);mates.get(b).add(a);
@@ -853,7 +853,7 @@ function netWorthSeries(state, options){
     const text=" "+recNorm([e.merchant,e.note,e.concept].join(" "))+" ";
     return /\byo mismo\b|\bmismo titular\b|\bcuenta propia\b/.test(text)||holder.length>=2&&holder.filter(function(w){ return text.indexOf(" "+w+" ")>=0; }).length>=2;
   };
-  const daily={},contribs=[],hasCash=rows.some(function(r){return isEfectivoEnt(r.item);});
+  const daily={},contribs=[],hasCash=rows.some(r=>isEfectivoEnt(r.item));
   entries.forEach(function(row){
     const e=row.expense,day=row.day;
     // Un cierre manual ya recoge su pata: sólo dos cuentas reconstruidas por flujos
@@ -867,7 +867,7 @@ function netWorthSeries(state, options){
     if(row.ownTransfer&&flowBanks[row.ownTransfer]){ if(e.amount>0) daily[day]=(daily[day]||0)-(row.cents+row.mate.cents); return; }
     // Sin bolsillo de efectivo la retirada sale del patrimonio registrado; la categoría
     // elegida en Gastos no acredita que otra cuenta haya recibido esos billetes (14/10).
-    if(!row.ownTransfer&&e.amount>0&&isAtmWithdrawal(e.merchant)){
+    if(!row.ownTransfer&&row.atm){
       if(!hasCash) daily[day]=(daily[day]||0)-row.cents;
       return;
     }
