@@ -83,9 +83,9 @@ for (const lang of ["es", "en", "ca"]) test("histórico desde junio: 1M y 3M, si
   await expect(sheet).toBeVisible();
   expect(await page.evaluate(() => [document.documentElement.scrollHeight, document.querySelector(".v42-cycle-section").getBoundingClientRect().top])).toEqual(antes);
   expect(await filas(page)).toEqual({
-    es: [["Cuentas", "movimientos reales desde " + fechaCorta("2026-06-15", "es")], ["Inversiones, bienes y cuentas manuales", "valor conocido mantenido"], ["Deudas", "según sus cuotas"], ["Comparación", "frente al mismo día del mes pasado"]],
-    en: [["Accounts", "real transactions from " + fechaCorta("2026-06-15", "en")], ["Investments, property and manual accounts", "known value kept"], ["Debts", "by their payment schedule"], ["Comparison", "against the same day last month"]],
-    ca: [["Comptes", "moviments reals des de " + fechaCorta("2026-06-15", "ca")], ["Inversions, béns i comptes manuals", "valor conegut mantingut"], ["Deutes", "segons les seves quotes"], ["Comparació", "davant del mateix dia del mes passat"]] }[lang]);
+    es: [["Cuentas", "movimientos reales desde " + fechaCorta("2026-06-15", "es")], ["Inversiones, bienes y cuentas manuales", "valor conocido mantenido"], ["Deudas", "según sus cuotas; las cuotas sin tipo de interés se cuentan enteras como capital"], ["Comparación", "frente al mismo día del mes pasado"]],
+    en: [["Accounts", "real transactions from " + fechaCorta("2026-06-15", "en")], ["Investments, property and manual accounts", "known value kept"], ["Debts", "by their payment schedule; payments with no interest rate count in full as capital"], ["Comparison", "against the same day last month"]],
+    ca: [["Comptes", "moviments reals des de " + fechaCorta("2026-06-15", "ca")], ["Inversions, béns i comptes manuals", "valor conegut mantingut"], ["Deutes", "segons les seves quotes; les quotes sense tipus d\'interès es compten senceres com a capital"], ["Comparació", "davant del mateix dia del mes passat"]] }[lang]);
   expect(await page.evaluate(() => document.activeElement && document.activeElement.closest('[data-sheet="net-info"]') != null)).toBe(true);
   // Ninguna fila se sale de la hoja ni se corta.
   expect(await sheet.evaluate((el) => [...el.querySelectorAll(".row")].every((r) => r.scrollWidth <= r.clientWidth + 1 && r.getBoundingClientRect().right <= el.getBoundingClientRect().right))).toBe(true);

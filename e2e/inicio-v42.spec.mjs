@@ -388,8 +388,8 @@ for(const lang of ["es","en","ca"])test("cartera heredada ve la gráfica el prim
   await hero.locator(".v42-net-info").click();
   // Tres filas y ya, por tipo, sin nombrar cuenta a cuenta (13/10: «el textaco… enorme»).
   expect(await filas(page)).toEqual({
-    es:[["Cuentas","movimientos reales desde "+fecha("2026-06-15","es")],["Inversiones, bienes y cuentas manuales","valor conocido mantenido"],["Deudas","según sus cuotas"],["Comparación","desde el principio"]],
-    en:[["Accounts","real transactions from "+fecha("2026-06-15","en")],["Investments, property and manual accounts","known value kept"],["Debts","by their payment schedule"],["Comparison","since the start"]],
-    ca:[["Comptes","moviments reals des de "+fecha("2026-06-15","ca")],["Inversions, béns i comptes manuals","valor conegut mantingut"],["Deutes","segons les seves quotes"],["Comparació","des del principi"]]}[lang]);
+    es:[["Cuentas","movimientos reales desde "+fecha("2026-06-15","es")],["Inversiones, bienes y cuentas manuales","valor conocido mantenido"],["Deudas","según sus cuotas; las cuotas sin tipo de interés se cuentan enteras como capital"],["Comparación","desde el principio"]],
+    en:[["Accounts","real transactions from "+fecha("2026-06-15","en")],["Investments, property and manual accounts","known value kept"],["Debts","by their payment schedule; payments with no interest rate count in full as capital"],["Comparison","since the start"]],
+    ca:[["Comptes","moviments reals des de "+fecha("2026-06-15","ca")],["Inversions, béns i comptes manuals","valor conegut mantingut"],["Deutes","segons les seves quotes; les quotes sense tipus d\'interès es compten senceres com a capital"],["Comparació","des del principi"]]}[lang]);
   await page.mouse.click(10,60);await expect(page.locator('[data-sheet="net-info"]')).toHaveCount(0);
 });

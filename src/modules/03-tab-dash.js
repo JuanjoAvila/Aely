@@ -55,7 +55,9 @@ function netWorthInfoRows(series, dateFmt, comparedRange){
   const debts=coverage.filter(function(g){ return g.kind==="debt"&&!g.timingUnknown; });
   if(debts.length){
     const constant=debts.filter(function(g){ return g.constant; }).length;
-    rows.push({k:t("v42_net_i_debts"),v:t(constant===debts.length?"v42_net_i_debts_kept":constant?"v42_net_i_debts_mixed":"v42_net_i_debts_est")});
+    // Una cuota sin tipo de interés se cuenta entera como capital: se dice, no se esconde.
+    const noRate=debts.some(function(g){ return g.noRate; });
+    rows.push({k:t("v42_net_i_debts"),v:t(constant===debts.length?"v42_net_i_debts_kept":constant?"v42_net_i_debts_mixed":"v42_net_i_debts_est")+(noRate?t("v42_net_i_debts_norate"):"")});
   }
   // Cuarta fila, solo cuando hay frase de comparación: con qué día se compara hoy, en corto.
   const months=comparedRange&&NW_MONTHS[comparedRange];
