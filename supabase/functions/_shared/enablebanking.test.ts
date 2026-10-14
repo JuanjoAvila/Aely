@@ -1,5 +1,5 @@
 import { assertEquals, assertRejects } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { ebApi, mapTransaction } from "./enablebanking.ts";
+import { ebApi, ebFailure, ebSessionVerdict, mapTransaction, fetchBankTransactions } from "./enablebanking.ts";
 
 /* Convención del cliente: amount POSITIVO = gasto, NEGATIVO = ingreso.
    Fija por escrito en tests/ob-ingresos.test.mjs — aquí se fija el otro extremo: cómo se
@@ -71,4 +71,135 @@ Deno.test("ebApi: una respuesta de texto no sale en la excepción", async () => 
   } finally {
     globalThis.fetch = oldFetch;
   }
+});
+
+/* Queja del 12/10: reautorizar el banco casi a diario. bank-sync caducaba el enlace con
+   cualquier 401, y Enable Banking responde 401 también a errores de la aplicación. Cada caso
+   pasa por `ebApi` con el cuerpo que documenta su referencia (`code` numérico + `error`), para
+   que el clasificador se pruebe contra el mensaje que de verdad recibe. */
+async function fallo(status: number, body: unknown) {
+  const oldFetch = globalThis.fetch;
+  globalThis.fetch = () => Promise.resolve(new Response(typeof body === "string" ? body : JSON.stringify(body), { status }));
+  try {
+    return ebFailure(await assertRejects(() => ebApi("jwt", "/accounts/x/balances"), Error));
+  } finally {
+    globalThis.fetch = oldFetch;
+  }
+}
+
+Deno.test("ebFailure: solo los códigos de sesión terminada piden autorizar otra vez", async () => {
+  for (const code of ["EXPIRED_SESSION", "CLOSED_SESSION", "REVOKED_SESSION"]) {
+    assertEquals(await fallo(401, { code: 401, error: code, message: "x" }), { status: 401, code, sessionEnded: true });
+  }
+});
+
+Deno.test("ebFailure: un 401 de la aplicación no es la sesión del usuario", async () => {
+  for (const code of ["AUTHORIZATION_NOT_PROVIDED", "UNAUTHORIZED_ACCESS"]) {
+    assertEquals(await fallo(401, { code: 401, error: code, message: "x" }), { status: 401, code, sessionEnded: false });
+  }
+  // Sin código no se puede afirmar que la sesión terminó.
+  assertEquals(await fallo(401, { code: 401, message: "Unauthorized" }), { status: 401, code: "", sessionEnded: false });
+  assertEquals(await fallo(401, "Unauthorized"), { status: 401, code: "", sessionEnded: false });
+});
+
+Deno.test("ebFailure: bloqueos y caídas conservan su estado y nunca caducan", async () => {
+  assertEquals(await fallo(429, { code: 429, error: "ASPSP_RATE_LIMIT_EXCEEDED" }), { status: 429, code: "ASPSP_RATE_LIMIT_EXCEEDED", sessionEnded: false });
+  assertEquals(await fallo(503, "caído"), { status: 503, code: "", sessionEnded: false });
+  assertEquals(ebFailure(new Error("transactions_timeout")), { status: 0, code: "", sessionEnded: false });
+});
+
+Deno.test("ebFailure: el código que sale al diagnóstico es de la lista cerrada del proveedor", async () => {
+  // `error` es un campo libre de la respuesta: lo que no esté en su enum se apunta como OTRO.
+  for (const libre of ["titular-privado", "ES0000000000000000000000", "JUAN_PEREZ_GARCIA", "SESSION_ABCDEF", "A_".repeat(40) + "B"]) {
+    assertEquals(await fallo(401, { code: 401, error: libre }), { status: 401, code: "OTRO", sessionEnded: false }, libre);
+  }
+  assertEquals(ebFailure(new Error("EB 401: unauthorized")).code, "");
+});
+
+Deno.test("ebFailure: el código no distingue mayúsculas", async () => {
+  assertEquals(await fallo(401, { code: 401, error: "expired_session" }), { status: 401, code: "EXPIRED_SESSION", sessionEnded: true });
+  assertEquals(await fallo(401, { code: 401, error: "Unauthorized_Access" }), { status: 401, code: "UNAUTHORIZED_ACCESS", sessionEnded: false });
+});
+
+Deno.test("ebFailure: decide el código, no el HTTP que lo acompaña", async () => {
+  for (const status of [400, 403, 404, 422]) {
+    assertEquals(await fallo(status, { code: status, error: "EXPIRED_SESSION" }), { status, code: "EXPIRED_SESSION", sessionEnded: true });
+  }
+});
+
+/* Revisión del 13/10: un 401 sin código de cierre dejaba el banco activo para siempre. Se le
+   pregunta al proveedor por la sesión; aquí se fija qué respuesta caduca, cuál no y cuál no
+   es una respuesta. Los estados son los ocho de `SessionStatus` de su referencia. */
+const sesion = (r: unknown) => (_jwt: string, path: string) => {
+  assertEquals(path, "/sessions/sid%2F1", "el id va escapado en la ruta");
+  return r instanceof Error ? Promise.reject(r) : Promise.resolve(r);
+};
+
+Deno.test("ebSessionVerdict: solo AUTHORIZED es una sesión que sirve", async () => {
+  assertEquals(await ebSessionVerdict("jwt", "sid/1", sesion({ status: "AUTHORIZED" })), { ended: false, state: "AUTHORIZED" });
+  for (const status of ["CANCELLED", "CLOSED", "EXPIRED", "INVALID", "PENDING_AUTHORIZATION", "RETURNED_FROM_BANK", "REVOKED"]) {
+    assertEquals(await ebSessionVerdict("jwt", "sid/1", sesion({ status })), { ended: true, state: status });
+  }
+  assertEquals(await ebSessionVerdict("jwt", "sid/1", sesion({ status: "expired" })), { ended: true, state: "EXPIRED" });
+});
+
+Deno.test("ebSessionVerdict: la consulta rechazada por sesión terminada o inexistente caduca", async () => {
+  for (const [msg, code] of [["EB 404 SESSION_DOES_NOT_EXIST", "SESSION_DOES_NOT_EXIST"], ["EB 401 EXPIRED_SESSION", "EXPIRED_SESSION"], ["EB 401 REVOKED_SESSION", "REVOKED_SESSION"]]) {
+    assertEquals(await ebSessionVerdict("jwt", "sid/1", sesion(new Error(msg))), { ended: true, state: code });
+  }
+});
+
+Deno.test("ebSessionVerdict: sin respuesta clara no se afirma nada", async () => {
+  assertEquals(await ebSessionVerdict("jwt", null), { ended: null, state: "SIN_ID" });
+  assertEquals(await ebSessionVerdict("jwt", "", sesion({ status: "EXPIRED" })), { ended: null, state: "SIN_ID" });
+  assertEquals(await ebSessionVerdict("jwt", "sid/1", sesion({ status: "EXPIRED" }), 0), { ended: null, state: "SIN_RESPUESTA" });
+  assertEquals(await ebSessionVerdict("jwt", "sid/1", sesion(new Error("EB 503"))), { ended: null, state: "EB_503" });
+  assertEquals(await ebSessionVerdict("jwt", "sid/1", sesion(new Error("EB 401 UNAUTHORIZED_ACCESS"))), { ended: null, state: "EB_401" });
+  assertEquals(await ebSessionVerdict("jwt", "sid/1", sesion(new TypeError("sin red"))), { ended: null, state: "SIN_RESPUESTA" });
+  assertEquals(await ebSessionVerdict("jwt", "sid/1", sesion({})), { ended: null, state: "SIN_ESTADO" });
+  // Un estado que no consta en la referencia no caduca ni sale tal cual al diagnóstico.
+  assertEquals(await ebSessionVerdict("jwt", "sid/1", sesion({ status: "ES0000000000000000000000" })), { ended: null, state: "OTRO" });
+});
+
+const pagedTx = { entry_reference: "synthetic", transaction_amount: { amount: "12.50" }, status: "BOOK" };
+for (const [name, response, cap, reason] of [
+  ["páginas", { transactions: [pagedTx], continuation_key: "next" }, 1, "page_limit"],
+  ["filas", { transactions: Array.from({ length: 2001 }, () => pagedTx) }, 12, "row_limit"],
+  ["continuación repetida", { transactions: [pagedTx], continuation_key: "loop" }, 12, "repeated_cursor"],
+] as const) {
+  Deno.test("fetchBankTransactions: " + name + " conserva el motivo", async () => {
+    let calls = 0;
+    const result = await fetchBankTransactions("synthetic", "synthetic", null, async () => { calls++; return response; }, 1000, false, cap);
+    assertEquals(result.truncated, true);
+    assertEquals(result.readReason, reason);
+    if (reason === "repeated_cursor") { assertEquals(calls, 2); assertEquals(result.transactionError, "continuation_repeated"); }
+  });
+}
+Deno.test("fetchBankTransactions: 100 filas sin continuación no prueban un tope", async () => {
+  const result = await fetchBankTransactions("synthetic", "synthetic", null, async () => ({ transactions: Array.from({ length: 100 }, () => pagedTx) }));
+  assertEquals(result.transactions.length, 100);
+  assertEquals(result.truncated, false);
+  assertEquals(result.readReason, undefined);
+});
+Deno.test("fetchBankTransactions: error posterior conserva prefijo y código, nunca texto libre", async () => {
+  let calls = 0;
+  const result = await fetchBankTransactions("synthetic", "synthetic", null, async () => {
+    if (calls++) throw new Error("EB 503 token-y-cuenta-privados");
+    return { transactions: [pagedTx], continuation_key: "next" };
+  });
+  assertEquals(result.transactions.length, 1);
+  assertEquals(result.readReason, "provider_error");
+  assertEquals(result.failureCode, "eb_503");
+  assertEquals(JSON.stringify(result).includes("token-y-cuenta-privados"), false);
+});
+Deno.test("fetchBankTransactions: tiempo propio distingue el corte sin ampliar el plazo", async () => {
+  const result = await fetchBankTransactions("synthetic", "synthetic", null, async (_jwt, path, init) => {
+    if (!path.includes("continuation_key")) return { transactions: [pagedTx], continuation_key: "next" };
+    return await new Promise((_resolve, reject) => {
+      if (init?.signal?.aborted) reject(new Error("aborted"));
+      else init?.signal?.addEventListener("abort", () => reject(new Error("aborted")), { once: true });
+    });
+  }, 5);
+  assertEquals(result.truncated, true);
+  assertEquals(result.readReason, "time_limit");
 });

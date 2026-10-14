@@ -21295,6 +21295,14 @@
       {
         "file": "src/modules/02-ui-shared.js",
         "data": "_mcSheetPrevOverflow"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "netWorthMonthsBack"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "NW_MONTHS"
       }
     ],
     "unidades": true
@@ -22671,6 +22679,941 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "_mcMadridYmdFmt"
+      }
+    ],
+    "unidades": true
+  },
+  "bancos-reconexion-revoca": {
+    "web": [
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flattenBankTx"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "bankReadWarnings"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "madridYmdParts"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "entFromAspsp"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "entOf"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "        const txs=flattenBankTx(links, prev.bankTx);",
+        "to": "        // ORDEN anti-doble-conteo"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "      if(opts.manual && preview.synced.length && !issues.length && !readWarnings.some(",
+        "to": "        const ents={}; preview.synced.forEach"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "  bank_read_reconnect:\"{bank}: falta completar la conexión.",
+        "to": "  bank_read_empty:"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "  bank_read_reconnect:\"{bank}: the connection needs to be completed.",
+        "to": "  bank_read_empty:"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "  bank_read_reconnect:\"{bank}: falta completar la connexió.",
+        "to": "  bank_read_empty:"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "_mcMadridYmdFmt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "ENT"
+      }
+    ],
+    "edge": [
+      "supabase/functions/bank-sync/index.ts",
+      "supabase/functions/bank-disconnect/index.ts",
+      "supabase/functions/_shared/enablebanking.ts",
+      "supabase/functions/_shared/myinvestor.ts",
+      "supabase/functions/myinvestor-sync/index.ts",
+      "supabase/functions/myinvestor-keepalive/index.ts"
+    ],
+    "unidades": true
+  },
+  "inicio-mes-pasado-mismo-dia": {
+    "web": [
+      {
+        "file": "src/modules/03-tab-dash.js",
+        "function": "NetWorthNow"
+      },
+      {
+        "file": "src/modules/03-tab-dash.js",
+        "from": "    !showSkel && React.createElement(NetWorthNow,",
+        "to": "\n    // Sin presupuesto, Inicio escondia"
+      },
+      {
+        "file": "src/modules/03-tab-dash.js",
+        "from": "  const tt=totals;",
+        "to": "  const [budgetOpen,setBudgetOpen]"
+      },
+      {
+        "file": "src/modules/03-tab-dash.js",
+        "from": "  const [splashGone,setSplashGone]=useState(function(){",
+        "to": "  const [bootReady,setBootReady]"
+      },
+      {
+        "file": "src/modules/03-tab-dash.js",
+        "from": "  useEffect(function(){\n    if(splashGone)",
+        "to": "  useEffect(function(){\n    if(bootReady"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "useCountUp"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "mcReduced"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "eurParts"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "t"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "CURLANG"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "SIMPLEMODE"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "    // INC-0810 es: patrimonio de ahora.",
+        "to": "    // INC-0810 es: fin del patrimonio de ahora."
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "    // INC-0810 en: patrimonio de ahora.",
+        "to": "    // INC-0810 en: fin del patrimonio de ahora."
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "    // INC-0810 ca: patrimonio de ahora.",
+        "to": "    // INC-0810 ca: fin del patrimonio de ahora."
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "    v4_money_total:\"Tu dinero en total\"",
+        "to": ", v4_of_month:"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "    v4_money_total:\"All your money\"",
+        "to": ", v4_of_month:"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "    v4_money_total:\"Els teus diners en total\"",
+        "to": ", v4_of_month:"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "  d_networth:\"Patrimonio neto\"",
+        "to": ", d_assets:"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "  d_networth:\"Net worth\"",
+        "to": ", d_assets:"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "  d_networth:\"Patrimoni net\"",
+        "to": ", d_assets:"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "  es:{ d_networth:\"Tu dinero en total\"",
+        "to": ", d_assets:"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "  en:{ d_networth:\"All your money\"",
+        "to": ", d_assets:"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "from": "  ca:{ d_networth:\"Els teus diners en total\"",
+        "to": ", d_assets:"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "DISP"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CUR_SYM"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "fxRateOf"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "fxTableOf"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  // Moneda de visualización: convierte todos los importes (en €)",
+        "to": "\n  CURLANG ="
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  CURLANG = (state.settings&&state.settings.lang)",
+        "to": "\n\n  /* ---------- Sincronización"
+      },
+      {
+        "file": "src/shell.html",
+        "from": "  .v4-micro{",
+        "to": "\n",
+        "includeTo": true
+      },
+      {
+        "file": "src/shell.html",
+        "from": "  .v4-hero{",
+        "to": "\n",
+        "includeTo": true
+      },
+      {
+        "file": "src/shell.html",
+        "from": "  .v4-hero-amt{",
+        "to": "\n",
+        "includeTo": true
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "netWorthSeries"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "netWorthDay"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "netWorthRanges"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "netWorthChartGeometry"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "netWorthDeltaMoney"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "netWorthDebtPolicy"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "recordAccountBalances"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcLoadRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSaveRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcResetSandbox"
+      },
+      {
+        "file": "src/modules/03-tab-dash.js",
+        "function": "cyclePaceState"
+      },
+      {
+        "file": "src/modules/03-tab-dash.js",
+        "function": "cycleTiming"
+      },
+      {
+        "file": "src/modules/03-tab-dash.js",
+        "function": "cycleMoney"
+      },
+      {
+        "file": "src/modules/03-tab-dash.js",
+        "data": "CYCLE_COMFORT_DIFF"
+      },
+      {
+        "file": "src/modules/03-tab-dash.js",
+        "from": "  const seriesToday=netWorthDay();",
+        "to": "\n  const overdue=[];"
+      },
+      {
+        "file": "src/modules/03-tab-dash.js",
+        "from": "    !showSkel && state.budget>0 && React.createElement(\"div\",{className:\"v42-cycle-section\"}",
+        "to": "\n    React.createElement(BudgetSheet,"
+      },
+      {
+        "file": "src/shell.html",
+        "from": "  .v42-net{",
+        "to": "  /* inline-block: el tour"
+      },
+      {
+        "file": "src/shell.html",
+        "from": "  .v4-budget{",
+        "to": "\n",
+        "includeTo": true
+      },
+      {
+        "file": "src/shell.html",
+        "from": "  .v4-budget-txt{",
+        "to": "\n",
+        "includeTo": true
+      },
+      {
+        "file": "src/shell.html",
+        "from": "  .v4-budget-txt .ph{",
+        "to": "\n",
+        "includeTo": true
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "useBackClose"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "loc"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "accountRowsInOrder"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseDeletedSet"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseIsTombstoned"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "_pdMs"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseBankOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "insumosSaldoGasto"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "toEurAmt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "saldoCuentaMostrada"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "invValueEur"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "madridYmdParts"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "eur0"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "eur"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "dashboardBudgetStats"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "_mcBackInitOnce"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "_mcBackAdd"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "_mcBackDrop"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "accountOrderKeyOf"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "keyOfExpense"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isManualExpenseSource"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "keyOfExpenseLegacy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "partirEntDeuda"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "startOfMonth"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "parseDate"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseCountsCash"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "nominaYaEntro"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accInject"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "roundupOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accFixed"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "gastoDelMesPorBanco"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accDaily"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "saldoCuentaGasto"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accRole"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isEfectivoEnt"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "monthBudgetStats"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "_mcBackSlot"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "_mcBackSame"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "_mcBackSchedule"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "inicioDeMesMs"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseBankEnts"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "lastWorkingDay"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "isCardSpend"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "spareOf"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "budgetPeriodOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "dateMs"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseCountsBudget"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reservedSince"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "budgetStatsFromAmounts"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "_mcBackFlush"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "_mcBackArm"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "_mcBackConsume"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "store"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "EXP_SUFFIX"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "STATE_KEY_TEST"
+      },
+      {
+        "file": "src/modules/03-tab-dash.js",
+        "data": "CYCLE_GOOD_DIFF"
+      },
+      {
+        "file": "src/modules/03-tab-dash.js",
+        "data": "CYCLE_TIGHT_DIFF"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "expenseDeletedSets"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "_pdCache"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "_mcMadridYmdFmt"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF0"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "_mcBackInit"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "_mcBackAt"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "_mcBackPending"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "_mcIgnorePop"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "_mcBackStack"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "_mcBackTurn"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CONFIG"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CAT_NEUTRAS"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "_mcBackOwner"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "_mcBackHistory"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "_mcBackScheduled"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "MC_TZ"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "_mcInicioMesTz"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "_mcInicioMesYmFmt"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "_mcInicioMesDiaFmt"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "_mcInicioMesByYm"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "_mcBackNext"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mem"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mergeAccountBalanceHistory"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtChargeDay"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtAmort"
+      },
+      {
+        "file": "src/modules/03-tab-dash.js",
+        "function": "cycleDailyMoney"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "monthNetForAccount"
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "function": "budgetPaydayOf"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "dayOf"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reconcileBank"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "occursIn"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "isPaidIn"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "occAmountIn"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtActive"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtBalloonIn"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "oneoffOccurs"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "flowOccursIn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "flowConfirmedDay"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "flowDay"
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "function": "lastPaydayOf"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recNorm"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recAmtClose"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recNameMatch"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recDay"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "accOf"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "dayIn"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recSane"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "chargeMonths"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtBalance"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "ymNow"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "flowMonths"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "lastWorkDom"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "firstWorkDom"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recTokens"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtPaidCount"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "ymAbs"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "slimForCloud"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "recordAssetValues"
+      },
+      {
+        "file": "src/modules/03-tab-dash.js",
+        "function": "cycleDailyMoney"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "          // La nube lleva una ventana corta:",
+        "to": "          // El extracto local no pertenece"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  const invSnapRef=useRef(\"\");",
+        "to": "  // GAMIFICACIÓN:"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "recordInvSnapshot"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "ENT"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "REC_GRACE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSandbox"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSandboxFlag"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcSandboxPinned"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  // INC-0410 guardado: de aquí al límite está cuándo y qué estado se escribe en disco. Cambiarlo invalida las revisiones que prometen conservar algo al cerrar o recargar.",
+        "to": "  // INC-0410 guardado: límite."
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcPersistCommit"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSkipPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcStateKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcSkipPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "STATE_KEY_REAL"
+      },
+      {
+        "file": "src/modules/03-tab-dash.js",
+        "from": "  const ringPct=",
+        "to": "\n",
+        "includeTo": true
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obOrdinalSufijo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obOrdinalOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cargoDeRecibo"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reciboVetado"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reciboNoIdentidad"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentIdentity"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "netWorthCompare"
+      },
+      {
+        "file": "src/modules/03-tab-dash.js",
+        "function": "netWorthInfoRows"
+      },
+      {
+        "file": "src/modules/03-tab-dash.js",
+        "function": "NetWorthInfoSheet"
+      },
+      {
+        "file": "src/shell.html",
+        "from": "  .v4-sheet-back{",
+        "to": "\n",
+        "includeTo": true
+      },
+      {
+        "file": "src/shell.html",
+        "from": "  .v4-sheet{",
+        "to": "\n",
+        "includeTo": true
+      },
+      {
+        "file": "src/shell.html",
+        "from": "  .v4-sheet-handle{",
+        "to": "\n",
+        "includeTo": true
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isAtmWithdrawal"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "useSheetSwipe"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "mcSheetLock"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "mcSheetUnlock"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "NW_WINDOW"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "_mcSheetLocks"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "_mcSheetPrevOverflow"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "netWorthMonthsBack"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "data": "NW_MONTHS"
       }
     ],
     "unidades": true

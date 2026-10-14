@@ -275,7 +275,14 @@ const PRESUPUESTO = {
   // serie que ya no recorta, la hoja «Cómo se calcula» y sus textos en tres idiomas. 1353 KiB
   // (1.385.472) se queda corto por 52 B: 1354 es el mínimo, quedan 972 B. No se recorta producto
   // ni idiomas para caber (mandato del dueño, 11/10).
-  minificado: 1354 * 1024,
+  // Integración 4.26.127 (14/10), bancos (reconexión, revocación y descarga incompleta), sobre la
+  // producción 126: medida tras el build, sello 4.26.127.99999 y reserva de 95 B: 1.388.690 B crudo /
+  // 381.565 B gzip, +3.166 / +949 B sobre la medida de la 125, que la 126 apenas movió (nota y guion en tres idiomas, avisos nuevos de
+  // descarga incompleta y el extracto previo en flattenBankTx). 1357 KiB es el mínimo (quedan 878 B).
+  // Integración 4.26.128 (14/10), Inicio compara con el mismo día del mes pasado (tránsito a un bróker e
+  // intereses de la deuda en la serie), sobre la beta 127: medida tras el build, sello 4.26.128.99999 y
+  // reserva de 95 B: 1.391.829 B crudo / 382.531 B gzip, +3.139 / +966 B sobre la 127. 1360 KiB es el mínimo (quedan 811 B).
+  minificado: 1360 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -299,7 +306,9 @@ const PRESUPUESTO = {
   // Integración 4.26.123: 379.934 B gzip, 30 B sobre 371 KiB. Mínimo medido: 372 KiB (quedan 994 B).
   // Integración 4.26.124: 379.773 B gzip, 161 B menos que la 123. El mínimo vuelve a 371 KiB (quedan 131 B).
   // Integración 4.26.125: 380.616 B gzip, 712 B sobre 371 KiB. Mínimo medido: 372 KiB (quedan 312 B).
-  gzip: 372 * 1024,
+  // Integración 4.26.127: 381.565 B gzip, 637 B sobre el tope anterior de 372 KiB. Mínimo medido: 373 KiB (quedan 387 B).
+  // Integración 4.26.128: 382.531 B gzip, 955 B sobre el tope anterior de 373 KiB. Mínimo medido: 374 KiB (quedan 445 B).
+  gzip: 374 * 1024,
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 

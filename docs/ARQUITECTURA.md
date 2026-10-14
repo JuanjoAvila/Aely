@@ -180,6 +180,37 @@ se presentan como una respuesta de IA. Activación, coste y límites están en
 
 ## Lectura bancaria (4.25.4)
 
+**Candidato de descarga incompleta (13/10, sin desplegar).** `readReason` separa fallo del
+proveedor, respuesta inválida o continuación repetida de los topes propios de páginas, filas y
+tiempo. Los avisos es/en/ca distinguen ambos grupos y el tramo antiguo pendiente (`gapPending`),
+que por sí solo no significa que se haya cortado la lectura actual. El fallback
+`bank_read_partial` sigue atendiendo respuestas de servidores anteriores sin motivo.
+El diagnóstico diario e histórico añade `reasons` y `failureCodes` de vocabulario cerrado,
+también ante un error con cero páginas; no registra cuentas ni texto del proveedor.
+
+`flattenBankTx(links, prev.bankTx)` conserva el extracto anterior de un banco incompleto y de
+bancos omitidos en esa respuesta. Solo añade al banco incompleto filas nuevas BOOK con id único,
+importe finito y fecha válida no futura; no reemplaza ids conocidos ni toma decisiones con
+filas sin identidad de una cuenta cortada. Si solo falla el SIGUIENTE trozo antiguo y todas
+las cuentas entregadas están completas, las filas sin id del prefijo ya sellado sí se guardan:
+conservan la multiplicidad máxima por grupo y estado, sin sumar lectura y caché.119 puede
+acusar ese prefijo; descartarlo por el fallo posterior quemaría filas. Los bancos completos
+conservan su comportamiento anterior. El mismo
+extracto conservado alimenta las pruebas de pago y el guardado final de App. El importador
+mantiene sus lápidas, ordinales y vínculos de gemelos. Un fallo del proveedor/tiempo o una clave
+repetida no ofrece cursor ni acuse del tramo sin recibir; los trozos antiguos ya sellados sí
+pueden entregar su cursor. Se conserva la excepción previa de desbordamiento de la ventana por
+páginas/filas descrita abajo; no se cambia el protocolo119.
+
+Revisión de reservas13/10, sólo fuente: el desborde de ventana con acuse119 admite el prefijo
+sin id por multiplicidad máxima, incluso con page_limit/row_limit en cuentas. Otros cortes siguen
+exigiendo identidad segura; el sellado no admite fechas futuras. previous omitido se trata como [].
+Un expired explícito retira sólo el snapshot crudo, conservando el libro de Gastos. Timeout y límite
+de ventana tienen avisos distintos; el pendiente antiguo con cuentas completas conserva el
+actualizado del saldo. [Revisión y gates](briefs/bancos-descarga-incompleta-20261013.md).
+
+Detalle, evidencia sintética y límites: [brief del candidato](briefs/bancos-descarga-incompleta-20261013.md).
+
 `bank-sync` usa `fetchBankTransactions` para sync e histórico: continúa aunque una página esté
 vacía si hay cursor; máximo 12 páginas, 2000 filas y presupuesto acotado por cuenta. El deadline global
 de 60 segundos permite devolver las cuentas leídas y señalar las que no pudieron consultarse. Conserva resultados
@@ -545,7 +576,50 @@ movimientos se leen desde cada `accounts[].transactions`; el bloque superior es 
 retrocompatible de la primera cuenta y no se suma dos veces.
 
 Un fallo pasajero no equivale a un permiso caducado. Open Banking solo pone el enlace en
-`expired` ante un `EB 401` firme; 403/404, límites 429, 5xx y timeouts conservan el enlace activo.
+`expired` ante un código de sesión terminada de Enable Banking (`EXPIRED_SESSION`,
+`CLOSED_SESSION`, `REVOKED_SESSION`; ver `ebFailure`), venga con el HTTP que venga. Un 401 con
+otro código, o sin ninguno, no decide solo: si ninguna cuenta del banco respondió, `bank-sync`
+pregunta una vez por enlace con `GET /sessions/{id}` (`ebSessionVerdict`). Solo `AUTHORIZED`
+es una sesión viva; cualquier otro estado de `SessionStatus`, o un `SESSION_DOES_NOT_EXIST`,
+caduca el enlace. Si la sesión vive, o la consulta no responde claro (sin id guardado, 5xx,
+red), el enlace se conserva y queda un `app_events` con el código (lista cerrada del enum
+`ErrorCode`, u `OTRO`) y lo que dijo la consulta.
+403/404, límites 429, 5xx y timeouts también lo conservan. MyInvestor sigue la misma idea
+(`miReadWithRefresh`): solo el refresco rechazado con 400/401 deja `expired`, y solo si la fila
+sigue teniendo el refresco que se usó (sync y keepalive comparten token: el que llega segundo
+recibe el rechazo del viejo). Un 403/429/5xx, una respuesta sin token, la red caída o no poder
+guardar los tokens rotados responden `softFail` y no tocan el enlace. El caso «refresco
+aceptado y el acceso sigue en 401» responde `softFail` dos veces y a la tercera en seis horas
+caduca; el contador es el limitador de la migración 0019 (`rate_limits`), que cuenta veces
+dentro de la ventana, no veces seguidas, y si no responde no caduca.
+
+Límites conocidos de esta regla, sin arreglar (13/10):
+
+- El **histórico** (`bank-sync` con `dateFrom`) no pregunta por la sesión ni toca el enlace:
+  devuelve `eb_401` ante cualquier 401 y el cliente lo traduce siempre a «falta completar la
+  conexión» (`bankReadWarnings`), también cuando el fallo es de la aplicación.
+- En `myinvestor-sync`, el detalle de una cuenta que responde algo distinto de 200 y de 401
+  (403, 404, 5xx) se **salta**: la respuesta es `ok:true` con las posiciones de las demás, o
+  vacía. Solo el 401 del detalle corta con `softFail` (`detail_401`). No se cambia el resto sin
+  saber qué devuelve MyInvestor para una cuenta de valores cerrada.
+- El aviso suave de «Actualizar» lo redacta el cliente (`bank_syncsoft`: «no hace falta
+  reconectar») y es el mismo para todo `softFail` de MyInvestor, también las dos primeras
+  veces del caso anterior. El texto distinto del servidor solo se ve en la tarjeta de
+  MyInvestor.
+**Desconexión y carrera con callback, candidato13/10 sin desplegar.** `bank-disconnect`
+descifra con `decryptSessionId` antes de codificar el id en el DELETE. Antes enviaba el valor
+cifrado y callaba el fallo, aunque borrase la fila. Ahora el fallo deja `app_events` con paso
+y código cerrado; nunca id, ciphertext, JWT o mensaje del proveedor. La fila local se borra
+igualmente, incluso si falla el registro. Los ids legacy siguen funcionando.
+
+La escritura final de estado de `bank-sync` compara dentro del UPDATE los `session_id` y
+`state_issued_at` que leyó: una sesión o generación distintas no reciben el resultado antiguo.
+Se usa el valor guardado, no el descifrado; las columnas null legacy se comparan con `IS NULL`.
+No hay SELECT adicional entre comparación y escritura. Un callback completado mientras el
+sync espera gana tanto al resultado caducado como al correcto que antes adelantaba `last_sync`.
+El payload y los demás bloques de cursor/acuse, `bank-callback` y `keepsCursor` se conservan.
+[Alcance, dependencia de Claude y evidencia](briefs/bancos-revoca-callback-20261013.md).
+
 Trade Republic guarda aparte `_trAuthExpired`: que el puente arranque todavía sin sesión visible
 no enciende el aviso de reconexión. Al sincronizar a mano se intenta primero reutilizar y validar
 la sesión guardada, y solo una respuesta explícita `authExpired` pide volver a iniciar sesión.
@@ -776,3 +850,8 @@ cloud.onAuth devuelve la retirada de su suscripción. App cancela timer y callba
 `editReservaRule` compara la copia de apertura con el estado fresco, conserva id/contrato/campos desconocidos y no reescribe un asiento mensual ya aplicado. `applyReservaMensual` admite limitar el asiento pendiente a la regla editada. La línea mensual conserva la meta original del asiento si la regla cambia de destino. Corresponde a108; no se introducen sincronizaciones bancarias nuevas. [Alcance y gates](briefs/promocion-107-108-110-local26.md).
 
 Revisión de Inicio PR204 sobre119: historial local400/nube14 unido por fecha sólo para el propietario vigente; callback tardío sin sesión conserva el estado previo. El alta de Bienes se acredita sólo en Guardar; un bien legado sin escalones mantiene su valor actual hacia atrás con cobertura explícita. Con escalones reales se limita al tramo conocido, salvo el bien legado que se revalora: `recordAssetValues` anota la víspera el valor que tenía (`legacy`) y la serie lo mantiene hacia atrás (ajuste del 13/10, integrado en la 4.26.121 junto a la unión de `gemelos` de la 120, que ocupa el mismo punto del pull). Traspasos sólo se neutralizan entre dos cuentas de flujo; deudas sin plazo sitúan la amortización histórica en el día conocido de cuota, conservando el saldo actual. La caché depende de referencias financieras y día de Madrid. Contrato y gates: [ronda anterior](briefs/inicio-revision-nogo-20261012.md) y [segunda revisión](briefs/inicio-ronda3-bienes-20261012.md).
+
+Revisión de reservas PR226 (13/10, sin desplegar): todas las escrituras por enlace comparan
+la sesión/emisión leídas, incluidos cursores119 legacy y el expired sin cuentas. La revocación
+tiene tope8s; un DELETE local condicionado conserva la nueva generación y devuelve409 si cambió.
+Sin snapshot no se borra una conexión que aparezca tarde. Libro y balances no se editan.

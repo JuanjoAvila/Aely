@@ -83,6 +83,7 @@ function baseDatos(links) {
       const filters = [];
       const q = {
         eq(col, v) { filters.push((r) => r[col] === v); return q; },
+        is(col, v) { filters.push((r) => (r[col] == null ? null : r[col]) === v); return q; },
         lt(col, v) { filters.push((r) => r[col] != null && Date.parse(r[col]) < Date.parse(v)); return q; },
         then(ok, ko) {
           links.forEach((l) => { if (filters.every((f) => f(l))) Object.assign(l, patch); });
@@ -126,11 +127,11 @@ async function pulsa(db, bank, { body = { recoverGaps: true }, fail = null, afte
     if (after) after(call, page);
     return page;
   };
-  const names = ["Deno", "createClient", "ebApi", "ebConfig", "jsonResp", "makeJWT", "mapTransaction", "withCors", "fetchBankTransactions", "Date"];
+  const names = ["Deno", "createClient", "ebApi", "ebConfig", "jsonResp", "makeJWT", "mapTransaction", "withCors", "fetchBankTransactions", "Date", "ebFailure", "ebSessionVerdict", "decryptSessionId"];
   new Function(...names, src)(
     { serve: (f) => { handler = f; }, env: { get: () => "synthetic" } }, () => db.client, api, () => ({}),
     (x, status = 200) => new Response(JSON.stringify(x), { status }), async () => "jwt", E.mapTransaction, (f) => f,
-    E.fetchBankTransactions, clock.FakeDate
+    E.fetchBankTransactions, clock.FakeDate, E.ebFailure, E.ebSessionVerdict, async (x) => x
   );
   const res = await handler(new Request("https://app.invalid", { method: "POST", body: JSON.stringify(body) }));
   assert.equal(res.status, 200);
@@ -458,12 +459,14 @@ await t("la traza del sync lleva solo conteos, fechas y el nombre del banco", as
   await pulsa(db, bank);
   const ev = db.events.filter((e) => String(e.message || "").startsWith("OB sync"));
   assert.equal(ev.length, 1);
-  assert.equal(ev[0].message, "OB sync (CaixaBank): ok");
+  assert.equal(ev[0].message, "OB sync (CaixaBank): partial");
   const detail = JSON.parse(ev[0].detail);
-  assert.deepEqual(Object.keys(detail).sort(), ["accounts", "capped", "count", "dateFrom", "pages", "pending", "status", "truncated"]);
+  assert.deepEqual(Object.keys(detail).sort(), ["accounts", "capped", "count", "dateFrom", "failureCodes", "pages", "pending", "reasons", "status", "truncated"]);
   for (const [k, v] of Object.entries(detail)) {
     if (k === "status") assert.match(v, /^(ok|empty|partial|error)$/);
     else if (k === "dateFrom") assert.match(v, /^\d{4}-\d{2}-\d{2}$/);
+    else if(k === "reasons") { assert.deepEqual(v, ["page_limit"]); }
+    else if(k === "failureCodes") { assert.deepEqual(v, []); }
     else assert.ok(typeof v === "number" || typeof v === "boolean", k);
   }
   assert.equal(JSON.stringify(ev[0]).includes("cx|"), false);

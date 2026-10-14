@@ -1000,11 +1000,25 @@ function categoryOfBankTx(tx){
   }
 }
 // Aplana los movimientos enlazados conservando bancos; el diario aplica su ventana de fechas.
-function flattenBankTx(links){
+function flattenBankTx(links, previous){
+  previous=Array.isArray(previous)?previous:[];
   const out=[];
+  const partial={}, reported={}, sealed={}, expired={};
   (links||[]).forEach(function(lk){
     const ent=entFromAspsp(lk && lk.aspsp);
     if(!ent) return;
+    reported[ent]=true;
+    if(lk.expired){ expired[ent]=true; return; }
+    if(lk.ok===false || lk.truncated || lk.readReason || (lk.accounts||[]).some(function(a){ return a&&(a.ok===false||a.truncated||a.transactionError||a.readReason); })) partial[ent]=true;
+    // El motivo del ENLACE puede ser el siguiente trozo antiguo que no entró. Si las cuentas
+    // entregadas están completas, ese prefijo sí se selló:119 puede acusarlo, incluso sin ids.
+    if(lk.ok!==false && lk.readReason && !lk.truncated && (lk.accounts||[]).length && lk.accounts.every(function(a){ return a&&a.ok===true&&!a.truncated&&!a.transactionError&&!a.readReason; })) sealed[ent]=true;
+    // La excepción119 acusa una ventana que rebasa páginas/filas, aunque esté truncada.
+    // Rechazar sus filas sin id vaciaba TR en cada pulsación; el acuse y TODAS las cuentas
+    // deben acreditar ese mismo límite, nunca un corte del banco ni un enlace truncado.
+    if(lk.ok===true && lk.ack && !lk.truncated && (lk.accounts||[]).length && lk.accounts.every(function(a){
+      return a&&a.ok===true&&!a.transactionError&&(!a.truncated&&!a.readReason || (a.truncated&&(a.readReason==="page_limit"||a.readReason==="row_limit")));
+    }) && lk.accounts.some(function(a){ return a.truncated; })) sealed[ent]=true;
     // En multicuenta el top-level solo contiene la PRIMERA cuenta compatible. Los movimientos
     // nuevos de una segunda cuenta estaban en `accounts[].transactions` y el cliente ni los
     // miraba: el banco figuraba sincronizado pero Gastos decía que no había nada nuevo.
@@ -1013,11 +1027,33 @@ function flattenBankTx(links){
     if(accountTx.length) accountTx.forEach(function(a){ txs=txs.concat(a.transactions); });
     else txs=(lk.transactions||[]).slice();   // shape antiguo: una sola cuenta en top-level
     txs.forEach(function(t){
+      if(partial[ent]&&(!t||t.amount==null||String(t.amount).trim()===""||!isFinite(Number(t.amount)))) return;
       // `note` = concepto del extracto (remittance_information): lo que hace que el histórico se
       // entienda sin abrir la app del banco (2026-07-24).
       out.push({ ent:ent, id:t.ext_id||null, date:String(t.date||"").slice(0,10), amount:Number(t.amount)||0, merchant:t.merchant||"", note:t.note||"", card:!!t.card, status:t.status||"", ...(t.mcc?{mcc:t.mcc}:{}), ...(t.concept?{concept:t.concept}:{}) });
     });
   });
+  if(Object.keys(partial).length||Object.keys(expired).length){
+    // Una cuenta cortada no sustituye un extracto: solo añade BOOK nuevos inequívocos.
+    // Un trozo antiguo ya sellado mantiene su lectura completa, aunque falle el siguiente.
+    const kept=previous.filter(function(x){ return x&&!expired[x.ent]&&(partial[x.ent]||!reported[x.ent]); }), seen={}, counts={}, oldNoId={}, freshNoId={};
+    const noIdKey=function(x){ const st=String(x.status||"").trim().toUpperCase(); return JSON.stringify([x.ent,String(x.date||"").slice(0,10),x.amount,x.merchant||"",!st||/book|post/i.test(st)?"BOOK":st]); };
+    const today=madridYmdParts(Date.now()), todayYmd=today.y+"-"+String(today.m).padStart(2,"0")+"-"+String(today.d).padStart(2,"0"), days=[31,28,31,30,31,30,31,31,30,31,30,31];
+    kept.forEach(function(x){ if(x.id) seen[x.ent+"|"+x.id]=1; else { const k=noIdKey(x); oldNoId[k]=(oldNoId[k]||0)+1; } });
+    out.forEach(function(x){ if(x.id){ const k=x.ent+"|"+x.id; counts[k]=(counts[k]||0)+1; } });
+    const fresh=out.filter(function(x){
+      if(!partial[x.ent]) return true;
+      const p=x.date.match(/^(\d{4})-(\d{2})-(\d{2})$/), y=p&&+p[1], m=p&&+p[2], d=p&&+p[3];
+      const valid=p&&y>0&&m>=1&&m<=12&&d>=1&&d<=days[m-1]+(m===2&&y%4===0&&(y%100!==0||y%400===0)?1:0);
+      if(!isFinite(x.amount)||!valid||x.date>todayYmd) return false;
+      // Un prefijo completo o la excepción119 acreditan multiplicidad sin id. Se conserva
+      // el máximo, no la suma; las fechas futuras tampoco se admiten por este camino.
+      if(sealed[x.ent]&&!x.id){ const k=noIdKey(x); freshNoId[k]=(freshNoId[k]||0)+1; return freshNoId[k]>(oldNoId[k]||0); }
+      const k=x.ent+"|"+x.id;
+      return typeof x.id==="string"&&x.id.trim()&&counts[k]===1&&!seen[k]&&x.status==="BOOK";
+    });
+    out.length=0; kept.concat(fresh).forEach(function(x){ out.push(x); });
+  }
   out.sort(function(a,b){ return String(b.date).localeCompare(String(a.date)); });
   // El servidor ya acota por cuenta. Un tope GLOBAL de 150 dejaba fuera un banco entero
   // si otro tenía más actividad reciente, antes incluso de llegar a importObExpenses.
@@ -2383,14 +2419,19 @@ function bankReadWarnings(links, expectedLinks, includeEmpty){
     let key=null;
     const failed=accts.filter(function(a){ return a&&a.ok===false; });
     const codes=failed.map(function(a){ return String(a.error||a.transactionError||"").toLowerCase(); });
+    const reasons=[l.readReason].concat(accts.map(function(a){ return a&&a.readReason; }));
     /* El histórico es solo lectura y no decide si un consentimiento murió. Solo un 401 firme o
        un enlace que la nube YA marca caducado pide reconectar; 403/404 suelen ser anti-abuso,
        cuenta tardía o hipo del ASPSP y autorizar otra vez no los arregla. */
     if(l.pending || l.expired || l.noacct || codes.some(function(c){ return /^(eb_)?401$/.test(c); })) key="bank_read_reconnect";
     else if(codes.some(function(c){ return c==="eb_429"; })) key="bank_read_rate";
-    else if(codes.some(function(c){ return c==="timeout"; })) key="bank_read_timeout";
-    else if(l.ok===false || failed.length) key="bank_read_failed";
+    else if(reasons.some(function(r){ return r==="time_limit"; })||codes.some(function(c){ return c==="timeout"; })) key="bank_read_timeout";
+    else if(l.gapPending && !l.truncated && accts.length && accts.every(function(a){ return a&&a.ok===true&&!a.truncated&&!a.transactionError&&!a.readReason; }) && reasons.some(function(r){ return r==="page_limit"||r==="row_limit"; })) key="bank_read_pending";
+    else if(reasons.some(function(r){ return r==="page_limit"||r==="row_limit"; })) key="bank_read_limited";
+    else if(reasons.some(function(r){ return r==="provider_error"||r==="invalid_response"||r==="repeated_cursor"; })) key="bank_read_interrupted";
+    else if(l.ok===false || failed.length) key="bank_read_interrupted";
     else if(l.truncated || accts.some(function(a){ return a&&(a.truncated||a.transactionError); })) key="bank_read_partial";
+    else if(l.gapPending) key="bank_read_pending";
     else if(includeEmpty && accts.length && accts.every(function(a){
       return a&&a.ok!==false && ((typeof a.count==="number"?a.count:((a.transactions||[]).length))===0);
     })) key="bank_read_empty";
@@ -2402,7 +2443,7 @@ function bankReadWarnings(links, expectedLinks, includeEmpty){
     if(!name || seen[name.toLowerCase()]) return;
     seen[name.toLowerCase()]=1;
     const ent=entFromAspsp(name);
-    out.push({bank:ent?entOf(ent).label:name,ent:ent||name,key:l.status==="active"?"bank_read_failed":"bank_read_reconnect"});
+    out.push({bank:ent?entOf(ent).label:name,ent:ent||name,key:l.status==="active"?"bank_read_interrupted":"bank_read_reconnect"});
   });
   return out;
 }
