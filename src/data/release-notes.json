@@ -3,110 +3,34 @@
     "v": "4.26.128",
     "d": "2026-10-14",
     "t": {
-      "es": "Inicio: la comparación con el mes pasado cuadra con la gráfica",
-      "en": "Home: the comparison with last month now matches the chart",
-      "ca": "Inici: la comparació amb el mes passat quadra amb la gràfica"
+      "es": "Bancos más fiables y un Inicio que compara bien",
+      "en": "More reliable banks, and a Home that compares properly",
+      "ca": "Bancs més fiables i un Inici que compara bé"
     },
     "items": {
       "es": [
-        "En Inicio, la frase bajo tu patrimonio compara hoy con el mismo día del mes pasado (o de hace 3 meses), igual que los dos extremos de la gráfica.",
-        "El dinero que mandas a tu bróker ya no desaparece de la gráfica mientras llega.",
-        "Los intereses de la hipoteca ya no se cuentan como si rebajaran la deuda."
-      ],
-      "en": [
-        "On Home, the line under your net worth compares today with the same day last month (or 3 months ago), just like the two ends of the chart.",
-        "Money you send to your broker no longer drops out of the chart while it arrives.",
-        "Mortgage interest is no longer counted as if it paid the loan down."
-      ],
-      "ca": [
-        "A Inici, la frase sota el teu patrimoni compara avui amb el mateix dia del mes passat (o de fa 3 mesos), igual que els dos extrems de la gràfica.",
-        "Els diners que envies al teu bròquer ja no desapareixen de la gràfica mentre arriben.",
-        "Els interessos de la hipoteca ja no es compten com si rebaixessin el deute."
-      ]
-    },
-    "tandas": [
-      {
-        "id": "inicio-mes-pasado-mismo-dia",
-        "t": {
-          "es": "Inicio: \"más que el mes pasado\" ya cuadra con la gráfica",
-          "en": "Home: \"more than last month\" now matches the chart",
-          "ca": "Inici: \"més que el mes passat\" ja quadra amb la gràfica"
-        },
-        "items": {
-          "es": [
-            "1. Abre Inicio con 1M: la frase bajo el patrimonio dice unos 1.300 € más que el mes pasado (hoy frente al mismo día del mes pasado). Mañana cambiará un poco, como la gráfica.",
-            "2. Toca la \"i\" de la gráfica: \"Comparación\" dice \"frente al mismo día del mes pasado\".",
-            "3. Mantén el dedo en la gráfica entre el 30/9 y el 7/10: no hay una caída de unos 500 € por el dinero que fue a MyInvestor."
-          ],
-          "en": [
-            "1. Open Home with 1M: the line under net worth says about €1,300 more than last month (today against the same day last month). Tomorrow it will change a little, like the chart.",
-            "2. Tap the \"i\" on the chart: \"Comparison\" says \"against the same day last month\".",
-            "3. Hold your finger on the chart between 30/9 and 7/10: there is no drop of about €500 for the money that went to MyInvestor."
-          ],
-          "ca": [
-            "1. Obre Inici amb 1M: la frase sota el patrimoni diu uns 1.300 € més que el mes passat (avui davant del mateix dia del mes passat). Demà canviarà una mica, com la gràfica.",
-            "2. Toca la \"i\" de la gràfica: \"Comparació\" diu \"davant del mateix dia del mes passat\".",
-            "3. Mantén el dit a la gràfica entre el 30/9 i el 7/10: no hi ha una caiguda d'uns 500 € pels diners que van anar a MyInvestor."
-          ]
-        }
-      }
-    ]
-  },
-  {
-    "v": "4.26.127",
-    "d": "2026-10-14",
-    "t": {
-      "es": "Bancos: se reconectan solos cuando pueden y avisan cuando no",
-      "en": "Banks: they reconnect on their own when they can and tell you when they can't",
-      "ca": "Bancs: es reconnecten sols quan poden i avisen quan no"
-    },
-    "items": {
-      "es": [
-        "Un fallo pasajero del banco o de MyInvestor ya no hace que la app dé la conexión por caducada: reintenta sola y solo te pide reconectar cuando de verdad hace falta.",
-        "Si MyInvestor no consigue recuperar el acceso, la app te lo avisa con claridad en vez de decir que todo sigue bien.",
+        "Los bancos se reconectan solos cuando pueden: un fallo pasajero del banco o de MyInvestor ya no hace que la app dé la conexión por caducada, y solo te pide reconectar cuando de verdad hace falta.",
+        "Si MyInvestor no consigue recuperar el acceso, o el banco entrega los movimientos a medias, la app te lo explica con claridad y conserva lo que ya tenías.",
         "Al desconectar un banco, el permiso se retira de verdad en el banco, no solo en la app.",
-        "Si el banco entrega los movimientos a medias, se conserva lo que ya tenías y la app te explica qué ha pasado y qué puedes hacer."
+        "En Inicio, la frase bajo tu patrimonio compara hoy con el mismo día del mes pasado (o de hace 3 meses), igual que los dos extremos de la gráfica.",
+        "El dinero que mandas a tu bróker ya no desaparece de la gráfica mientras llega, y los intereses de la hipoteca ya no se cuentan como si rebajaran la deuda."
       ],
       "en": [
-        "A passing failure at the bank or at MyInvestor no longer makes the app treat the connection as expired: it retries on its own and only asks you to reconnect when it is really needed.",
-        "If MyInvestor cannot get access back, the app tells you clearly instead of saying everything is fine.",
+        "Banks reconnect on their own when they can: a passing failure at the bank or at MyInvestor no longer makes the app treat the connection as expired, and it only asks you to reconnect when it is really needed.",
+        "If MyInvestor cannot get access back, or the bank hands over only part of the transactions, the app explains it clearly and keeps what you already had.",
         "When you disconnect a bank, the permission is really withdrawn at the bank, not just in the app.",
-        "If the bank hands over only part of the transactions, what you already had is kept and the app explains what happened and what you can do."
+        "On Home, the line under your net worth compares today with the same day last month (or 3 months ago), just like the two ends of the chart.",
+        "Money you send to your broker no longer drops out of the chart while it arrives, and mortgage interest is no longer counted as if it paid the loan down."
       ],
       "ca": [
-        "Un error passatger del banc o de MyInvestor ja no fa que l'app doni la connexió per caducada: reintenta sola i només et demana reconnectar quan de debò cal.",
-        "Si MyInvestor no aconsegueix recuperar l'accés, l'app t'ho avisa amb claredat en lloc de dir que tot continua bé.",
+        "Els bancs es reconnecten sols quan poden: un error passatger del banc o de MyInvestor ja no fa que l'app doni la connexió per caducada, i només et demana reconnectar quan de debò cal.",
+        "Si MyInvestor no aconsegueix recuperar l'accés, o el banc lliura els moviments a mitges, l'app t'ho explica amb claredat i conserva el que ja tenies.",
         "En desconnectar un banc, el permís es retira de debò al banc, no només a l'app.",
-        "Si el banc lliura els moviments a mitges, es conserva el que ja tenies i l'app t'explica què ha passat i què pots fer."
+        "A Inici, la frase sota el teu patrimoni compara avui amb el mateix dia del mes passat (o de fa 3 mesos), igual que els dos extrems de la gràfica.",
+        "Els diners que envies al teu bròquer ja no desapareixen de la gràfica mentre arriben, i els interessos de la hipoteca ja no es compten com si rebaixessin el deute."
       ]
     },
-    "tandas": [
-      {
-        "id": "bancos-reconexion-revoca",
-        "t": {
-          "es": "Bancos: sincronizar, reconectar y MyInvestor",
-          "en": "Banks: syncing, reconnecting and MyInvestor",
-          "ca": "Bancs: sincronitzar, reconnectar i MyInvestor"
-        },
-        "items": {
-          "es": [
-            "1. Ve a Cartera y, en «Tus cuentas», pulsa el icono de «Sincronizar bancos». Cuando acabe, los movimientos nuevos del banco aparecen en Gastos y no se repite ninguno. Está mal si falta un movimiento que ya tenías o si alguno sale duplicado.",
-            "2. Si algún banco sale con «⚠ Reconectar», reconéctalo: vuelve a sincronizar sin perder movimientos ni duplicarlos. Si no hay ninguno así, salta este paso. Está mal si al reconectar desaparecen movimientos o salen repetidos.",
-            "3. En la tarjeta de MyInvestor (Cartera → Inversiones), pulsa «Sincronizar posiciones»: salen las posiciones y el saldo sin ningún aviso de acceso perdido. Está mal si pide volver a entrar sin que hayas cambiado nada."
-          ],
-          "en": [
-            "1. Go to Portfolio and, under “Your accounts”, tap the “Sync banks” icon. When it finishes, the bank's new transactions show in Spending and none is repeated. It is wrong if a transaction you already had is missing or if any shows up twice.",
-            "2. If a bank shows “⚠ Reconnect”, reconnect it: it syncs again without losing or duplicating transactions. If none does, skip this step. It is wrong if transactions disappear or repeat after reconnecting.",
-            "3. On the MyInvestor card (Portfolio → Investments), tap “Sync positions”: the positions and balance come up with no lost-access warning. It is wrong if it asks you to sign in again when you have changed nothing."
-          ],
-          "ca": [
-            "1. Ves a Cartera i, a «Els teus comptes», prem la icona de «Sincronitza els bancs». Quan acabi, els moviments nous del banc apareixen a Despeses i no se'n repeteix cap. Està malament si falta un moviment que ja tenies o si algun surt duplicat.",
-            "2. Si algun banc surt amb «⚠ Reconnectar», reconnecta'l: torna a sincronitzar sense perdre moviments ni duplicar-los. Si no n'hi ha cap, salta aquest pas. Està malament si en reconnectar desapareixen moviments o en surten de repetits.",
-            "3. A la targeta de MyInvestor (Cartera → Inversions), prem «Sincronitza posicions»: surten les posicions i el saldo sense cap avís d'accés perdut. Està malament si et demana tornar a entrar sense que hagis canviat res."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.126",
