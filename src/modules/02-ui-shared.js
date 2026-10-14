@@ -784,14 +784,19 @@ function netWorthSeries(state, options){
     const hinted=group.filter(function(p){return p.expense.category==="traspaso";});if(!hinted.length)return;
     group.sort(function(a,b){return a.ms-b.ms;});const mates=new Map();
     hinted.forEach(function(a){
-      let low=0,high=group.length;const from=a.ms-7*864e5,to=a.ms+7*864e5;
-      while(low<high){const mid=(low+high)>>1;if(group[mid].ms<from)low=mid+1;else high=mid;}
-      for(let i=low;i<group.length&&group[i].ms<=to;i++){
+      // Son tres días civiles de Madrid: el cambio horario y la hora del apunte
+      // no adelantan ni retrasan el límite de la contrapartida (14/10).
+      const civil=Date.parse(a.day+"T12:00:00Z"),from=utcFmt.format(civil-3*864e5),to=utcFmt.format(civil+3*864e5);
+      let low=0,high=group.length;
+      while(low<high){const mid=(low+high)>>1;if(group[mid].day<from)low=mid+1;else high=mid;}
+      for(let i=low;i<group.length&&group[i].day<=to;i++){
         const b=group[i],cat=b.expense.category;
         // Dentro del mismo banco solo hay par si las dos patas dicen su cuenta y son distintas (de
         // la personal a la conjunta): con la misma parte sigue neutro, como antes sin par.
         const sameAcc=a.bank===b.bank&&!(a.expense.obAcc&&b.expense.obAcc&&a.expense.obAcc!==b.expense.obAcc);
         if(sameAcc||a.cents!==-b.cents||(cat&&cat!=="traspaso"&&cat!=="otros"))continue;
+        // Una entrada bancaria del mismo importe no acredita los billetes del cajero.
+        if(a.cents>0&&isAtmWithdrawal(a.expense.merchant)&&!isEfectivoEnt(b.bank)||b.cents>0&&isAtmWithdrawal(b.expense.merchant)&&!isEfectivoEnt(a.bank))continue;
         const ar=a.expense.transferId,br=b.expense.transferId;if(ar&&br&&ar!==br)continue;
         if(!mates.has(a))mates.set(a,new Set());if(!mates.has(b))mates.set(b,new Set());
         mates.get(a).add(b);mates.get(b).add(a);
@@ -848,7 +853,7 @@ function netWorthSeries(state, options){
     const text=" "+recNorm([e.merchant,e.note,e.concept].join(" "))+" ";
     return /\byo mismo\b|\bmismo titular\b|\bcuenta propia\b/.test(text)||holder.length>=2&&holder.filter(function(w){ return text.indexOf(" "+w+" ")>=0; }).length>=2;
   };
-  const daily={},contribs=[];
+  const daily={},contribs=[],hasCash=rows.some(function(r){return isEfectivoEnt(r.item);});
   entries.forEach(function(row){
     const e=row.expense,day=row.day;
     // Un cierre manual ya recoge su pata: sólo dos cuentas reconstruidas por flujos
@@ -860,6 +865,12 @@ function netWorthSeries(state, options){
     // la suya), el día de la salida. Contar cada pata en su día pintaba un bache de −1.000 mientras
     // el dinero viajaba de la personal (día 10) a la conjunta (día 12), en vez de −500 (revisión 14/10).
     if(row.ownTransfer&&flowBanks[row.ownTransfer]){ if(e.amount>0) daily[day]=(daily[day]||0)-(row.cents+row.mate.cents); return; }
+    // Sin bolsillo de efectivo la retirada sale del patrimonio registrado; la categoría
+    // elegida en Gastos no acredita que otra cuenta haya recibido esos billetes (14/10).
+    if(!row.ownTransfer&&e.amount>0&&isAtmWithdrawal(e.merchant)){
+      if(!hasCash) daily[day]=(daily[day]||0)-row.cents;
+      return;
+    }
     const text=String(e.merchant||"").toLowerCase(),target=e.toBank||e.to||e.counterpartyBank;
     const plan=!!invKnown&&!row.ownTransfer&&e.amount>0&&(e.category==="traspaso"||e.category==="otros")&&
       /transferencia|traspaso|transfer/i.test([e.merchant,e.note,e.concept].join(" "))&&toHolder(e)&&plans.some(function(p){ return Math.abs(p.amount-e.amount)<0.005; });
@@ -867,16 +878,13 @@ function netWorthSeries(state, options){
       const name=String(i.ent||"").replace(/_/g," ").toLowerCase();
       return (e.investmentId&&e.investmentId===i.id)||(target&&target===i.ent)||(name.length>=4&&text.includes(name));
     });
-    // Un movimiento INTERNO nunca se pinta como pérdida (revisión 13/10): un traspaso de una sola
-    // pata sin pista de bróker (la otra cuenta aún no tenía histórico, o es ajena) y una retirada
-    // de cajero sin pata de efectivo quedan NEUTROS, plano antes que un salto inventado. Antes el
-    // traspaso recortaba la serie hasta la foto siguiente y después salía como dinero perdido.
+    // La categoría no prueba que el dinero siga en el patrimonio registrado: sin otra
+    // pata propia, enlace a bróker o aportación periódica, es una salida (decisión 14/10).
     // Una salida de una sola pata hacia un bróker (traspaso con enlace, o la aportación
     // periódica) se decide abajo: si una foto de inversiones la recoge, es aportación. Sin
     // enlace no: medido con la cartera real, el vaivén diario de la bolsa «recogía» un seguro de
     // viaje de 247 € o un cambio de divisa de Revolut y movía 300 € la comparación (14/10).
     const transit=!row.ownTransfer&&e.amount>0&&((e.category==="traspaso"&&linked)||plan);
-    if(!transit&&!row.ownTransfer&&((e.category==="traspaso"&&!linked)||(e.amount>0&&isAtmWithdrawal(e.merchant)))) return;
     if(transit||e.category==="inversion"||(e.category==="traspaso"&&linked)) contribs.push({row:row,day:day,cents:row.cents,transit:transit,plan:plan});
     else daily[day]=(daily[day]||0)-row.cents;
   });
