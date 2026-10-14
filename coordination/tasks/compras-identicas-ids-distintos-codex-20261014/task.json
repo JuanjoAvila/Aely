@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "id": "compras-identicas-ids-distintos-codex-20261014",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261014-8f045f9f",
+  "createdAt": "2026-10-14T03:44:15.577Z",
+  "to": "codex",
+  "baseSHA": "33d39cb80764aaf22998f69ac8bbaeffeadf4013",
+  "objective": "Dos compras idénticas el mismo día (mismo banco, importe, concepto y fecha) que llegan del banco con identificadores DISTINTOS entran en Gastos como una sola: se pierde un gasto real. Encontrar qué deduplicación las funde (cliente, ingest o sync) y corregirla sin reabrir los duplicados reales.",
+  "scope": [
+    "deduplicación de movimientos del banco en cliente (Gastos, sync de nube) y en ingest/bank-sync si aplica",
+    "tests de lógica y un e2e de Gastos registrado en el mapa"
+  ],
+  "acceptance": [
+    "Primer paso: reproducir con estado sembrado y con la ruta real de entrada (sync de banco y aviso de notificación) cuál de las capas las funde",
+    "Regla vigente del coordinador: id distinto del banco = cargos distintos; con id + idéntico sin id = UN cargo (no romper esto, ver decisión de recibos-bajas-y-union y tr-iguales-ordinal)",
+    "Dos con ids distintos el mismo día = dos gastos; el mismo id repetido = uno; el aviso de notificación sin id que coincide con uno de los dos se casa con UNO solo y no deja el otro fuera",
+    "Ningún total del mes cambia en estados sin este caso: antes/después al céntimo en tres estados",
+    "Mutaciones: volver a la regla vieja tumba algún test"
+  ],
+  "restrictions": [
+    "Coordinarse con lo ya servido de Trade Republic (ordinal) y recibos: no duplicar su lógica, reutilizarla",
+    "Si toca ingest, no desplegar: declarar el orden de despliegue",
+    "Rojos de integración: no se tocan, se declaran con cifras. Navegador: solo specs propios, workers 1, retries 0; suite entera en la CI por workflow_dispatch, PR en borrador contra beta",
+    "Result con SHA, EXIT reales, mutaciones, limitaciones y pasos de prueba en el móvil. Un chat por encargo; reclamar antes de empezar"
+  ],
+  "authorization": "Coordinador local, 14/10. Limitación de la revisión de recibos (dos filas iguales); el dueño ordenó corregir las limitaciones que deje una revisión (11/10)."
+}
