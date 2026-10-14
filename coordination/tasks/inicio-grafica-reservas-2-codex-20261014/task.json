@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "id": "inicio-grafica-reservas-2-codex-20261014",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261014-8f045f9f",
+  "createdAt": "2026-10-14T07:00:34.384Z",
+  "to": "codex",
+  "baseSHA": "990146429a1adcd3ec1e286b21c1b8f2f2d9d206",
+  "objective": "SUCESOR de inicio-grafica-reservas-codex-20261014 (léelo entero). Base nueva: rama claude/inicio-compara-vispera 99014642 (en revisión limpia; corrige «más que el mes pasado» = hoy frente al mismo día, el tránsito a bróker y los intereses). Construir ENCIMA las dos reglas pendientes: el «Traspaso» marcado a mano sin la otra pata y el cajero sin efectivo, sin deshacer las reglas de esa rama.",
+  "scope": [
+    "netWorthSeries y auxiliares en 02-ui-shared.js",
+    "hoja «Cómo se calcula» es/en/ca",
+    "tests Node y e2e de Inicio"
+  ],
+  "acceptance": [
+    "Los de inicio-grafica-reservas-codex-20261014",
+    "inicio-mismo-dia e inicio-transito-intereses siguen en verde, sin tocar sus aserciones",
+    "Si la base cambia por la revisión, rebasar sobre la cabeza nueva de claude/inicio-compara-vispera"
+  ],
+  "restrictions": [
+    "Rojos de integración: no se tocan, se declaran con cifras",
+    "Navegador: solo specs propios, workers 1, retries 0; suite entera en la CI por workflow_dispatch sobre la rama propia, PR en borrador contra beta",
+    "No quitar ni reinstalar node_modules ni worktrees ajenos",
+    "Result con SHA, EXIT reales, mutaciones, limitaciones y pasos de prueba en el móvil. Un chat por encargo; reclamar antes de empezar"
+  ],
+  "authorization": "Coordinador local, 14/10. Sucesor pedido por Codex al archivar chats (consulta-continuidad-chats-nuevos-mi-grafica-y-pr225-20261014). El claim y el result del encargo anterior se conservan tal cual; este encargo lo sustituye para continuar."
+}
