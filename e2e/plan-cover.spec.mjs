@@ -360,14 +360,14 @@ test("Pregúntame abre Deudas en el segmented compacto", async ({ page }) => {
   await expect(page.locator('.page-live .v4-seg-btn.on')).toHaveAttribute("data-seg", "deudas");
 });
 
-test("Ajustes › Dinero desde Inicio frío abre BillsManage vivo y un alta se ve", async ({ page }) => {
+test("Modo sencillo: Ajustes › Dinero desde Inicio frío abre BillsManage vivo y un alta se ve", async ({ page }) => {
   // Cold start: no openPlan previo — cubre carrera de montaje idle (Codex 2038/2040).
   await page.clock.install({ time: RELOJ });
   await seedLoggedInDashboard(page, {
     accounts: accountsFijos,
     fixed: [{ id: "luz", name: "Luz", amount: 40, freq: "mes", day: 28, account: "sabadell" }],
     budget: 500,
-    settings: { autoPrices: false, theme: "green", lang: "es" },
+    settings: { autoPrices: false, theme: "green", lang: "es", simpleMode: true },
   });
   await page.goto("/");
   await expect(page.locator(".botnav")).toBeVisible({ timeout: 60_000 });
@@ -457,4 +457,21 @@ test("hojas BillsItem/BillsAdd son dialog con trap y restauran foco", async ({ p
   await page.keyboard.press("Escape");
   await expect(ficha).toHaveCount(0);
   await expect(fila).toBeFocused();
+});
+
+test("Ajustes ya no ofrece «Cambiar mis recibos» fuera del modo sencillo (se gestionan desde Plan)", async ({ page }) => {
+  await page.clock.install({ time: RELOJ });
+  await seedLoggedInDashboard(page, {
+    accounts: accountsFijos,
+    fixed: [{ id: "luz", name: "Luz", amount: 40, freq: "mes", day: 28, account: "sabadell" }],
+    budget: 500,
+    settings: { autoPrices: false, theme: "green", lang: "es" },
+  });
+  await page.goto("/");
+  await expect(page.locator(".botnav")).toBeVisible({ timeout: 60_000 });
+  await page.waitForFunction(() => !document.getElementById("mc-load"), null, { timeout: 30_000 });
+  await dismissNews(page);
+  await page.evaluate(() => window.dispatchEvent(new CustomEvent("mc-open-settings")));
+  await expect(page.locator(".settings-push.open")).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByRole("button", { name: /Cambiar mis recibos/i })).toHaveCount(0);
 });

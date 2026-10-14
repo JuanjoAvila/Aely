@@ -65,7 +65,7 @@ export const E2E_MAP = [
     "e2e/inicio-cargos.spec.mjs",
     "e2e/recibo-cargo-en-gastos.spec.mjs",
     "e2e/pulido-vacios.spec.mjs","e2e/inicio-grafica-significado.spec.mjs","e2e/indicador-arco.spec.mjs", "e2e/smoke.spec.mjs", "e2e/informe-mes.spec.mjs",
-    "e2e/ultima-cuota-descartar.spec.mjs", "e2e/inicio-offline.spec.mjs", "e2e/presupuesto-fluido.spec.mjs", "e2e/inicio-mes-natural.spec.mjs"] },
+    "e2e/ultima-cuota-descartar.spec.mjs", "e2e/inicio-offline.spec.mjs", "e2e/presupuesto-fluido.spec.mjs", "e2e/inicio-mes-natural.spec.mjs", "e2e/cartera-parte-mia.spec.mjs"] },
   { file: "src/modules/04-tab-gastos.js", specs: [
     "e2e/metas-borrar-regla.spec.mjs",
     "e2e/metas-alta-regla.spec.mjs",
@@ -81,6 +81,8 @@ export const E2E_MAP = [
     "e2e/gastos-ayuda-ciclo.spec.mjs", "e2e/gastos-mes-madrid.spec.mjs",
     // Apuntes iguales de TR por el cableado real: filas en Gastos, «Es el mismo» desde la ficha.
     "e2e/tr-iguales-ordinal.spec.mjs",
+    "e2e/tr-emparejado-automatico.spec.mjs",
+    "e2e/tr-emparejado-rendimiento.spec.mjs",
   ] },
   { file: "src/modules/05-dialogs-inv.js", specs: [
     "e2e/help-assistant.spec.mjs",
@@ -113,6 +115,8 @@ export const E2E_MAP = [
     "e2e/bancos-lista-fresca.spec.mjs",
     "e2e/cartera-orden-cuentas.spec.mjs",
     "e2e/efectivo-apuntar.spec.mjs",
+    // Parte mía de una cuenta: la ficha, Liquidez y el patrimonio de Inicio (14/10).
+    "e2e/cartera-parte-mia.spec.mjs",
   ] },
   { file: "src/modules/09-tab-debts-goals.js", specs: [
     "e2e/metas-editar-regla.spec.mjs",
@@ -152,9 +156,10 @@ export const E2E_MAP = [
     "e2e/apuntar-sheet.spec.mjs", "e2e/apuntar-sugerencia.spec.mjs", "e2e/listas-render.spec.mjs", "e2e/plan-swipe-segmento.spec.mjs",
     "e2e/cartera-inversiones.spec.mjs", "e2e/cartera-orden-hogar.spec.mjs",
     "e2e/efectivo-apuntar.spec.mjs", "e2e/cartera-ficha-cuenta.spec.mjs", "e2e/plan-gestionar.spec.mjs",
-    "e2e/plan-cover.spec.mjs", "e2e/perfil-filas-vacias.spec.mjs",
+    "e2e/plan-cover.spec.mjs", "e2e/perfil-filas-vacias.spec.mjs", "e2e/perfil-sin-datos-banco.spec.mjs",
     // Bajar despacio desde el tope de Plan: el contenido no salta por delante del dedo (13/10).
     "e2e/plan-scroll-lento.spec.mjs",
+    "e2e/cartera-parte-mia.spec.mjs",
   ] },
   { file: "src/modules/15-import-hoja.js", specs: ["e2e/import-hoja.spec.mjs", "e2e/import-docx-pdf.spec.mjs"] },
 ];

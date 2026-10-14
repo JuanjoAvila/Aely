@@ -8,11 +8,7 @@ const TABS=[
   {id:"cartera",label:"Cartera",icon:I.invest},
 ];
 // v4: nav fija 5 slots (4 tabs + FAB). Los destinos viejos viven dentro de Plan/Cartera/Ajustes.
-const ADVANCED_TABS=[];
-const SIMPLE_DASH_HIDDEN=[];
-function tabHiddenOf(s){
-  return [];
-}
+// El orden ya no se personaliza (se quitó la UI de «Pestañas» el 2026-10-14: no hacía nada).
 function tabOrderOf(s){
   return ["dash","gastos","plan","cartera"];
 }
@@ -287,7 +283,6 @@ function BankHistoryImport({state, set, showToast, onClose, linkEnts, bankLinks,
   const HIST_RENDER_CAP=60;
   const [renderCap,setRenderCap]=useState(HIST_RENDER_CAP);
   useBackClose(true, onClose);
-  const kOf=function(dt,am,mc){ return String(dt).slice(0,10)+"|"+am+"|"+(mc||""); };
   // Fallback si aún no hay clasificación (híbrido C: NUNCA recibo a ciegas).
   const defDest=function(x){ return x.kind==="in" ? "ingreso" : "gasto"; };
   const search=function(){
@@ -1054,9 +1049,8 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onL
       open:openBank==="br:mi", onToggle:function(){ setOpenBank(openBank==="br:mi"?"":"br:mi"); }}),
     brokersOn.indexOf("revolut")>=0 && React.createElement(BrokerImport,{state:state,set:set,fetchPrices:fetchPrices,
       open:openBank==="br:rev", onToggle:function(){ setOpenBank(openBank==="br:rev"?"":"br:rev"); }}),
-    /* «¿Cuadran tus recibos con el banco?» vivía SOLO dentro de Gestionar (`Fijos`). Con la
-       pantalla «Tus recibos» v4.1 (§2) Gestionar ya no monta `Fijos`, y esta era su única puerta:
-       se muda aquí, que es donde se busca lo del banco. Sin datos del banco no pinta nada. */
+    /* «¿Cuadran tus recibos con el banco?» vive aquí, que es donde se busca lo del banco.
+       Sin datos del banco no pinta nada. */
     React.createElement("div",{"data-bank-reconcile":""}, React.createElement(Reconcile,{state:state,set:set})),
     React.createElement("div",{className:"bk-ver"}, "v"+(CONFIG.APP_VERSION||"?")),
     // (bp_apk_hint fuera 2026-07-18: párrafo de circunstancias ya resueltas — menos letra aquí)
@@ -1636,7 +1630,6 @@ function BetaReviewPanel({onClose, showToast}){
   // y no tenían casilla. Al no poder marcarlas, contaban como pendientes y BLOQUEABAN el aprobar,
   // así que o mentía marcando «va bien» o la beta se quedaba sin veredicto. Esto NO bloquea.
   const na=activos.filter(function(i){ return marks[i]==="na"; }).length;
-  const pend=total-ok-ko-na;
 
   /* EL VEREDICTO DICE TAMBIÉN QUÉ APK LLEVABA PUESTA (2026-07-26).
      El veredicto ya viajaba con la versión web (4.12.0.27), pero no con el `versionCode` del APK,
@@ -2366,7 +2359,6 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
   const [expand,setExpand]=useState(null);   // fila-acordeón abierta: "lang" | "gview" | "tabs" | "cur" | null
   const [newsOpen,setNewsOpen]=useState(false);   // histórico de Novedades (WhatsNew reabierto a mano)
   const [privOpen,setPrivOpen]=useState(false);    // política de privacidad DENTRO de la app (no _blank)
-  const [sharedOpen,setSharedOpen]=useState(false);// Hogar + gastos compartidos (sin tab propia en v4)
   const [fbOpen,setFbOpen]=useState(false);        // sugerencias (mudadas fuera de Novedades, 2026-07-18)
   const [bioOn,setBioOn]=useState(bio.enabled());  // candado con huella (volvió a Ajustes, 2026-07-18)
   const toggleBio=function(){
@@ -2465,7 +2457,6 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
   },[]);
   // --- Banco (Open Banking) ---
   const [bankLinks,setBankLinks]=useState(null);   // null = cargando, [] = ninguno (resumen)
-  const [bankBusy,setBankBusy]=useState(false);
   const [trConn,setTrConn]=useState(false);        // TR también cuenta como banco conectado (feedback 2026-07-10)
   const [trKnown,setTrKnown]=useState(false);      // tuvo TR alguna vez (mc_tr_phone) → puede estar «caído»
   const [trExpired,setTrExpired]=useState(false);  // solo authExpired firme, no un status frío vacío
@@ -2530,14 +2521,6 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
       }
     }).catch(function(){ setBankLinks([]); });
   },[uid]);
-  const connectBank=function(){
-    setBankBusy(true); showToast(t("bank_connecting"));
-    cloud.bankConnect("Banco de Sabadell").then(function(d){
-      set(function(s){ return Object.assign({},s,{hasBankLink:true}); });
-      location.href=d.url;   // → login del banco (SCA); vuelve a la app con ?bank=ok
-    }).catch(function(e){ setBankBusy(false); showToast("⚠ "+t("bank_error")+": "+((e&&e.message)||e)); });
-  };
-  const refreshBank=function(){ if(!onBankSync) return; setBankBusy(true); Promise.resolve(onBankSync()).finally(function(){ setBankBusy(false); cloud.bankLinks().then(function(r){ setBankLinks(r||[]); }).catch(function(){}); }); };
   // Estilos de los pocos controles con input propio (presupuesto). Los demás usan el sistema
   // de filas .set-row/.swx. (lbl/btnGhost/link se quitaron en 2026-07-17: estaban muertos.)
   // Inputs se quedan en 16px (menos = zoom automático del móvil al enfocar); los botones sí
@@ -2678,7 +2661,7 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
     grp("easy","🍃",t("v4_set_easy"),"modo sencillo simple mode tutorial tour empezar fácil easy start",null,
       row("simple","🍃",t("st_simple_lbl"),null,function(){
         const sim=!simOn;
-        setS({simpleMode:sim, tabHidden: sim?ADVANCED_TABS.slice():[], dashHidden: sim?SIMPLE_DASH_HIDDEN.slice():[]});
+        setS({simpleMode:sim});
       }, sw(simOn)),
       React.createElement("div",{style:{fontSize:11.5,color:"var(--muted-2)",padding:"0 14px 10px"}}, t("st_mode_hint")),
       onTour && row("tour","🎓",t("v4_set_tour"),null,onTour)
@@ -2748,19 +2731,10 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
         setS({budgetCycle:!(state.settings&&state.settings.budgetCycle)});
       },sw(!!(state.settings&&state.settings.budgetCycle))),
       React.createElement("div",{className:"hint",style:{margin:"2px 12px 10px"}},t("st_budget_cycle_d")),
-      // Estas dos puertas salieron de la ficha de Inversiones: son preferencias/simulaciones,
-      // no parte del saldo. Aquí siguen accesibles sin montar el panel financiero antiguo.
-      row("invauto","↻",t("inv_autoprices"),null,function(){
-        setS({autoPrices:!(state.settings&&state.settings.autoPrices)});
-      },sw(!!(state.settings&&state.settings.autoPrices))),
-      row("invproj","📈",t("inv_proj"),t("inv_proj_sub"),function(){ toggleExp("invproj"); }),
-      expand==="invproj" && React.createElement("div",{className:"set-exp","data-inv-settings-projection":"1"},
-        React.createElement(Projection,{
-          invested:totals.invested||0,
-          defMonthly:(state.aportaciones||[]).reduce(function(a,x){ return a+(x.amount||0); },0)
-        })),
-      // Plan/Dinero: flag pendiente + click Plan + evento (sin setTimeout; cold start idle).
-      row("bills","📋",t("v4s_change_bills"),null,function(){
+      // «Cambiar mis recibos» salió de Ajustes (14/10/2026: se gestionan desde Plan › Recibos › Gestionar).
+      // Solo se queda en modo sencillo, donde Plan no enseña «Gestionar» (NO-GO §5bis.2) y esta era la
+      // ÚNICA puerta. Plan/Dinero: flag pendiente + click Plan + evento (sin setTimeout; cold start idle).
+      simOn && row("bills","📋",t("v4s_change_bills"),null,function(){
         try{ window.__mcOpenBillsPending=true; }catch(e){}
         if(typeof onClose==="function") onClose();
         var ptab=document.querySelector('.botnav-tab[data-tour="plan"]');
@@ -2911,46 +2885,8 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
     ),
 
     React.createElement("div",{className:"v4-set-sec"}, t("v4_set_adv")),
-    grp("custom","🎛️",t("v4_set_adv"),"avanzado advanced pestañas tabs vista gastos bloques blocks informe report customise",null,
+    grp("custom","🎛️",t("v4_set_adv"),"avanzado advanced vista gastos informe report customise",null,
       // («Personalizar widgets del Resumen» se retiró el 2026-07-18: era del Dashboard v3.)
-      row("tabs","✎",t("et_tabs").replace("✎ ",""),null,function(){ toggleExp("tabs"); }),
-      expand==="tabs" && React.createElement("div",{className:"set-exp"},(function(){
-        const order=tabOrderOf(state);
-        const hidden=TABS.map(function(tb){return tb.id;}).filter(function(id){ return order.indexOf(id)<0; });
-        const moveTab=function(id,dir){ set(function(s){ const o=tabOrderOf(s); const i=o.indexOf(id), j=i+dir; if(i<0||j<0||j>=o.length) return s; const n=o.slice(); n[i]=o[j]; n[j]=id; return Object.assign({},s,{settings:Object.assign({},s.settings,{tabOrder:n})}); }); };
-        const hideTab=function(id){ if(id==="dash") return; set(function(s){ const hid=tabHiddenOf(s); const nh=hid.indexOf(id)<0?hid.concat([id]):hid; const ord=tabOrderOf(s).filter(function(x){return x!==id;}); return Object.assign({},s,{settings:Object.assign({},s.settings,{tabHidden:nh, tabOrder:ord})}); }); showToast(t("tb_removed")); };
-        const showTab=function(id){ set(function(s){ const hid=tabHiddenOf(s).filter(function(x){return x!==id;}); const ord=tabOrderOf(s).concat([id]); return Object.assign({},s,{settings:Object.assign({},s.settings,{tabHidden:hid, tabOrder:ord})}); }); };
-        const rowBtn={width:34,height:34,borderRadius:9,background:"var(--surface-2)",border:"1px solid var(--line)",color:"var(--muted)",fontSize:13,cursor:"pointer",flex:"0 0 auto"};
-        return React.createElement("div",{style:{marginTop:8}},
-          React.createElement("div",{style:{fontSize:11.5,color:"var(--muted-2)",lineHeight:1.5,marginBottom:10}}, t("et_intro")),
-          order.map(function(id,i){
-            const tb=TABS.find(function(x){return x.id===id;}); if(!tb) return null;
-            const fixed=(id==="dash");
-            return React.createElement("div",{key:id,style:{display:"flex",alignItems:"center",gap:8,padding:"8px 11px",borderRadius:11,background:"var(--surface-2)",border:"1px solid var(--line)",marginBottom:7}},
-              React.createElement("span",{style:{color:"var(--muted)",display:"flex"}}, React.createElement(tb.icon,{width:16,height:16})),
-              React.createElement("span",{style:{flex:1,fontWeight:700,fontSize:14,color:"var(--text)"}}, t("tab_"+id)),
-              React.createElement("button",{disabled:i===0,onClick:function(){ moveTab(id,-1); },style:Object.assign({},rowBtn,{opacity:i===0?0.35:1})}, "▲"),
-              React.createElement("button",{disabled:i===order.length-1,onClick:function(){ moveTab(id,1); },style:Object.assign({},rowBtn,{opacity:i===order.length-1?0.35:1})}, "▼"),
-              fixed
-                ? React.createElement("span",{style:{fontSize:10.5,color:"var(--muted-2)",width:34,textAlign:"center",flex:"0 0 auto"}}, t("et_fixed"))
-                : React.createElement("button",{onClick:function(){ hideTab(id); },style:Object.assign({},rowBtn,{color:"var(--coral)",borderColor:"var(--coral)"})}, "✕")
-            );
-          }),
-          hidden.length>0 && React.createElement("div",{style:{fontSize:11.5,color:"var(--muted-2)",margin:"12px 2px 6px"}}, t("et_hidden")),
-          hidden.map(function(id){
-            const tb=TABS.find(function(x){return x.id===id;}); if(!tb) return null;
-            return React.createElement("button",{key:id,onClick:function(){ showTab(id); },style:{display:"flex",alignItems:"center",gap:8,width:"100%",padding:"8px 11px",borderRadius:11,background:"var(--surface-2)",border:"1px dashed var(--line)",color:"var(--text)",fontWeight:700,fontSize:14,marginBottom:7,cursor:"pointer"}},
-              React.createElement("span",{style:{color:"var(--mint)",fontSize:16,fontWeight:800}}, "+"),
-              React.createElement("span",{style:{color:"var(--muted)",display:"flex"}}, React.createElement(tb.icon,{width:16,height:16})),
-              React.createElement("span",null, t("tab_"+id)));
-          })
-        );
-      })()),
-      (function(){
-        const on=!!(state.settings&&state.settings.blocksEdit);
-        return row("blocks","🧩",t("st_blocks"),null,function(){ setS({blocksEdit:!on}); }, sw(on));
-      })(),
-      React.createElement("div",{style:{fontSize:11.5,color:"var(--muted-2)",lineHeight:1.45,padding:"0 14px 10px"}}, t("st_blocks_hint")),
       totals && row("report","📸",t("rp_btn").replace(/^[^ ]+ /,""),null,function(){ shareMonthReport(state, totals, showToast); })
     ),
 
