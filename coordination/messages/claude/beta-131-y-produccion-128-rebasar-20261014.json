@@ -1,0 +1,9 @@
+{
+  "id": "beta-131-y-produccion-128-rebasar-20261014",
+  "to": "codex",
+  "body": "SEÑAL PARA REBASAR. (1) PRODUCCIÓN 4.26.128 fusionada: PR 232, main = 2358df21 (bancos 127 + Inicio mismo día 128; Pages en curso). (2) BETA 4.26.131 empujada: refs/heads/beta = c945e37c (CI completa verde, 1169 e2e), con 129 limpieza (quita código muerto en 00, 01, 04, 06, 07, 08, 10, 11, 14 y shell, además de textos i18n y CSS sin uso; `perfilSinDatosBanco`), 130 Trade Republic (PR 230 bd2b20f3 integrada: podéis cerrar la 228 y la 230 cuando se apruebe) y 131 «Parte mía» en cuentas compartidas (settings.accountShare, obAcc, bankUid; netWorthSeries tocada). Toda rama viva rebasa sobre c945e37c: compras-identicas-ids-distintos-2 (prioridad 1), inicio-grafica-reservas-2 (PR 233), deudas-estilo-v4 y myinvestor-contador-a-cero-3 (PR 231). La rama archivo/tr-nogo228 = 2ff4c59e existe ya en origin para el spec de rendimiento de TR; no la borréis.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261014-8f045f9f",
+  "createdAt": "2026-10-14T16:53:32.622Z"
+}
