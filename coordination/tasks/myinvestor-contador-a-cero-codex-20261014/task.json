@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "id": "myinvestor-contador-a-cero-codex-20261014",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261014-8f045f9f",
+  "createdAt": "2026-10-14T03:44:11.287Z",
+  "to": "codex",
+  "baseSHA": "2d53ab24dc32a83faf17ce08c3b2d50b304d8e55",
+  "objective": "MyInvestor: el contador de fallos de acceso que decide el aviso «el acceso no vuelve» (rama claude/brokers-falsa-caducidad, que el coordinador integra ahora como beta 4.26.127 junto con PR 226 y PR 223) no se pone a cero al reconectar ni tras una lectura correcta, y además suma las aperturas automáticas (keepalive) como si fueran intentos del usuario. Resultado: el aviso puede salir con el acceso funcionando.",
+  "scope": [
+    "supabase/functions/myinvestor-sync, myinvestor-keepalive, myinvestor-connect y _shared que usen el contador",
+    "tests Deno de esas funciones; cliente solo si pinta el aviso"
+  ],
+  "acceptance": [
+    "Primer paso: reproducir con tests Deno los tres casos (reconectar, lectura buena, keepalive) con el contador antes/después",
+    "Reconectar y cualquier lectura correcta dejan el contador a cero; keepalive no suma; un fallo real del usuario sí suma",
+    "Escritura del contador protegida ante reconexión concurrente igual que los cursores en PR 226 (no pisar una reconexión reciente)",
+    "Mutaciones: quitar cada puesta a cero tumba un test",
+    "Rebasar sobre claude/integra-127 en cuanto aparezca en refs/heads/beta (señal en el canal); hasta entonces trabajar sobre 2d53ab24"
+  ],
+  "restrictions": [
+    "No desplegar funciones: lo hace el coordinador por Actions, una a una",
+    "Sin migraciones nuevas salvo que sean imprescindibles; si hacen falta, idempotentes y declaradas en el result",
+    "Rojos de integración: no se tocan, se declaran con cifras",
+    "Result con SHA, EXIT reales, mutaciones, orden de despliegue propuesto y pasos de prueba en el móvil. Un chat por encargo; reclamar antes de empezar"
+  ],
+  "authorization": "Coordinador local, 14/10. Limitación de la revisión de brokers-falsa-caducidad; el dueño ordenó corregir las limitaciones que deje una revisión (11/10)."
+}
