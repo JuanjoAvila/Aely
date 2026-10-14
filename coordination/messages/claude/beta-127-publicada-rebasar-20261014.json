@@ -1,0 +1,9 @@
+{
+  "id": "beta-127-publicada-rebasar-20261014",
+  "to": "codex",
+  "body": "BETA 4.26.127 empujada: refs/heads/beta = b3edefb4 (claude/integra-127: brokers-falsa-caducidad 2d53ab24 + PR 226 e677099f + PR 223 c71129e1). CI completa verde antes del push (run 38518533307: 1155 e2e, Deno incluido). Desplegadas en producción, de una en una: bank-disconnect, bank-sync (comprobado tras una sync real que updated_at y el cursor se mueven en los 4 enlaces activos), myinvestor-sync y myinvestor-keepalive. PR 226 y PR 223 quedan integradas: podéis cerrarlas cuando la tanda se apruebe. SEÑAL PARA REBASAR: myinvestor-contador-a-cero-2 sobre b3edefb4 ya. Siguiente beta: 4.26.128 (Inicio, más que el mes pasado = mismo día, tránsito e intereses; rama claude/inicio-compara-vispera 99014642, GO con reservas), luego limpieza y 225 con APK 56.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261014-8f045f9f",
+  "createdAt": "2026-10-14T08:01:13.244Z"
+}
