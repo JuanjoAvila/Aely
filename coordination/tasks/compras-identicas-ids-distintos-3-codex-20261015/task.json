@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "id": "compras-identicas-ids-distintos-3-codex-20261015",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261014-8f045f9f",
+  "createdAt": "2026-10-14T23:09:17.166Z",
+  "to": "codex",
+  "baseSHA": "25e29d6e98e195e3ce334f5f463fd4e2116d785e",
+  "objective": "SUCESOR de compras-identicas-ids-distintos-2 sobre la MISMA PR 235 (cabeza 25e29d6e; el result anterior queda intacto). Revisión limpia: GO CON RESERVAS. Decisiones del coordinador: (1) recibo-invariante: SE CAMBIA EL ORÁCULO, no la candidata. El extracto #109 (semilla 8417, ING 21/10, x1 BOOK y x2 PDNG de 75000, «INMOBILIARIA GARCIA SL») son dos cargos en el modelo del generador. En `compara`, declarad una segunda excepción con nombre: grupos con mismo banco, día, importe y nombre y dos o más ext_id distintos. Exigid gastado, pintado, previsto y cierre iguales a la base, y saldo base = base + suma de cargos extra. Comparad base redondeada al céntimo. Mantened 775 extractos y no toquéis el generador. (2) DEFECTO QUE BLOQUEA: un pendiente con referencia que vuelve contabilizado con OTRA referencia cuenta doble y para siempre. Mismo día y sync siguiente: 640 c frente a 320. Pendiente y contabilizado en la misma respuesta: 640 frente a 320. p1, p2 y después b1, b2: 1280 frente a 640. Implementad la regla POR ESTADO, coherente con la ya existente para los apuntes sin id («PENDIENTE + CONTABILIZADO … UN SOLO CARGO» en importObExpenses). En una misma respuesta, cada pendiente con referencia queda cubierto por un contabilizado de otra referencia del mismo grupo (banco, día, importe y nombre), y solo los pendientes sobrantes son cargos aparte. Entre sincronizaciones, la fila que entró como pendiente guarda una marca de pendiente; si llega un contabilizado del mismo grupo con otra referencia y la del pendiente ya no viene en una respuesta que cubre ese día, la fila ADOPTA la referencia nueva y no se añade otra. Corregid el test propio que fija «referencias distintas con BOOK y PDNG» en 150000. (3) Cubrid también «pendiente un día y contabilizado al siguiente», que ya fallaba antes, si la misma regla lo resuelve sin falsos positivos; si no, declaradlo.",
+  "scope": [
+    "importObExpenses y dedupe de Open Banking en 08-motor-bank.js y lo que toque de 00-core",
+    "tests/recibo-invariante.test.mjs (solo la excepción descrita)",
+    "tests/compras-identicas-ids*"
+  ],
+  "acceptance": [
+    "Test en ROJO primero para cada caso de (2), con céntimos exactos",
+    "Dos cafés reales con referencias distintas siguen siendo 2 (640 c); mismo id, 1; sin id, como hoy",
+    "Las 6 mutaciones de la revisión siguen muriendo, más una por regla nueva",
+    "Migración desde 4.26.132 sin cambios en el gastado salvo los casos corregidos"
+  ],
+  "restrictions": [
+    "Rojos de integración (catálogo, VERSION, tamaño): no se tocan, se declaran",
+    "Navegador: solo specs propios, workers 1, retries 0, cuando tengáis el runner",
+    "No quitar ni reinstalar node_modules ni worktrees ajenos",
+    "Result con SHA, EXIT reales, mutaciones y limitaciones. Un chat por encargo; reclamar antes de empezar"
+  ],
+  "authorization": "Coordinador local, 15/10 madrugada, tras la revisión limpia de la PR 235."
+}
