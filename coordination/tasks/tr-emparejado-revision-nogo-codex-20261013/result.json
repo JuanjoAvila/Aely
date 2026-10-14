@@ -1,0 +1,1179 @@
+{
+  "status": "done",
+  "summary": "Fase PR228 terminada y entregada para revision independiente: NO-GO financiero corregido causalmente, rebase126 y CI exacta terminal. Invariante22/775extractos y focal8DOM2CPU6 PASS. GeneralFAILURE cinco guardianes de integracion intactos. No lista para integrar/publicar ni aceptacion movil.",
+  "productSHA": "2439ec641f88e5d1f01548a62d6e38ada058bf76",
+  "pullRequest": 228,
+  "branch": "codex/tr-emparejado-automatico-20261013",
+  "executionBaseSHA": "33d39cb80764aaf22998f69ac8bbaeffeadf4013",
+  "dependencyRebasedSHA": "a921008a6386526876097050b3586ac685b2122a",
+  "tests": [
+    {
+      "command": "node tests/recibo-invariante.test.mjs",
+      "exitCode": 0,
+      "evidence": "22 casos y775 extractos; oraculo igual a31b9"
+    },
+    {
+      "command": "node tests/tr-emparejado-revision.test.mjs",
+      "exitCode": 0,
+      "evidence": "15 casos; tabla12historias90dias; RED comercio real antes de guarda"
+    },
+    {
+      "command": "node tests/tr-emparejado-automatico.test.mjs",
+      "exitCode": 0,
+      "evidence": "22 casos,21por UTC/Madrid/Canarias,8mutantes causales"
+    },
+    {
+      "command": "node tests/ob-iguales-ordinal.test.mjs",
+      "exitCode": 0,
+      "evidence": "38 casos"
+    },
+    {
+      "command": "node tests/recibo-domiciliado-sin-acreditar.test.mjs",
+      "exitCode": 0,
+      "evidence": "61 casos"
+    },
+    {
+      "command": "node tests/recibos-bajas-y-union.test.mjs",
+      "exitCode": 0,
+      "evidence": "13 casos"
+    },
+    {
+      "command": "node tests/pull-historico-entero.test.mjs",
+      "exitCode": 0,
+      "evidence": "17 casos"
+    },
+    {
+      "command": "node tests/merge-expenses-cloud.test.mjs",
+      "exitCode": 0,
+      "evidence": "4 casos"
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0,
+      "evidence": "7 bloques"
+    },
+    {
+      "command": "node tests/i18n-keys.test.mjs",
+      "exitCode": 0,
+      "evidence": "tres idiomas"
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0,
+      "evidence": "mapa completo"
+    },
+    {
+      "command": "node tests/security.test.mjs",
+      "exitCode": 0,
+      "evidence": "invariantes de seguridad"
+    },
+    {
+      "command": "node scripts/guard-privacy.mjs",
+      "exitCode": 0,
+      "evidence": "local"
+    },
+    {
+      "command": "CI tr-pair-review 38508168622 job115670343127",
+      "exitCode": 0,
+      "evidence": "8 DOM y2CPU6, contratos incluida invariante22/775extractos; worker1 retry0"
+    },
+    {
+      "command": "CI node tests/auth-disposal.test.mjs",
+      "exitCode": 1,
+      "evidence": "identidad106 esperada distinta; no suite aprobada"
+    },
+    {
+      "command": "CI node tests/auth-disposal-fit.test.mjs",
+      "exitCode": 1,
+      "evidence": "reconcileGemelosAutomaticos no cubierto por descriptor; no suite aprobada"
+    },
+    {
+      "command": "CI node tests/beta-sources.test.mjs",
+      "exitCode": 1,
+      "evidence": "dependencias nuevas Inicio/Gastos/Widget, GASTO_ORIGENES ysetExpenseDup; Promocion126 exige fuente base sin cambios"
+    },
+    {
+      "command": "CI node tests/docs-frescura.test.mjs",
+      "exitCode": 1,
+      "evidence": "VERSION intacta por encargo"
+    },
+    {
+      "command": "CI node tests/presupuesto-rendimiento.test.mjs",
+      "exitCode": 1,
+      "evidence": "1407604/386854B frente1386496/380928B;3bloqueantes"
+    },
+    {
+      "command": "CI Deno siete ficheros oficiales",
+      "exitCode": 0,
+      "files": [
+        "supabase/functions/ingest/ingest.test.ts",
+        "supabase/functions/ingest/widget.test.ts",
+        "supabase/functions/_shared/crypto.test.ts",
+        "supabase/functions/_shared/enablebanking.test.ts",
+        "supabase/functions/delete-account/delete-account.test.ts",
+        "supabase/functions/prices/prices.test.ts",
+        "supabase/functions/bank-sync/demand-window.test.ts"
+      ]
+    },
+    {
+      "command": "CI node scripts/run-tests.mjs",
+      "exitCode": 1,
+      "evidence": "1209.3s; cinco suites fallan; invariante financiera pasa; E2E general no ejecutado por gates, focal separado8DOM2CPU6"
+    }
+  ],
+  "migration90": {
+    "source": "beta125 generada; candidato126 corregido",
+    "states": 12,
+    "days": 90,
+    "units": "centimos sinteticos",
+    "monthlyTable": [
+      {
+        "seed": 0,
+        "open": {
+          "2026-07": {
+            "beta": 34578,
+            "candidate": 34578
+          },
+          "2026-08": {
+            "beta": 67174,
+            "candidate": 67174
+          },
+          "2026-09": {
+            "beta": 66226,
+            "candidate": 66226
+          },
+          "2026-10": {
+            "beta": 27484,
+            "candidate": 27484
+          }
+        },
+        "sync": {
+          "2026-07": {
+            "beta": 34578,
+            "candidate": 34578
+          },
+          "2026-08": {
+            "beta": 67174,
+            "candidate": 67174
+          },
+          "2026-09": {
+            "beta": 66226,
+            "candidate": 66226
+          },
+          "2026-10": {
+            "beta": 27484,
+            "candidate": 27484
+          }
+        },
+        "secondSync": {
+          "2026-07": {
+            "beta": 34578,
+            "candidate": 34578
+          },
+          "2026-08": {
+            "beta": 67174,
+            "candidate": 67174
+          },
+          "2026-09": {
+            "beta": 66226,
+            "candidate": 66226
+          },
+          "2026-10": {
+            "beta": 27484,
+            "candidate": 27484
+          }
+        }
+      },
+      {
+        "seed": 1,
+        "open": {
+          "2026-07": {
+            "beta": 34568,
+            "candidate": 34568
+          },
+          "2026-08": {
+            "beta": 67206,
+            "candidate": 67206
+          },
+          "2026-09": {
+            "beta": 65226,
+            "candidate": 65226
+          },
+          "2026-10": {
+            "beta": 28418,
+            "candidate": 28418
+          }
+        },
+        "sync": {
+          "2026-07": {
+            "beta": 34568,
+            "candidate": 34568
+          },
+          "2026-08": {
+            "beta": 67206,
+            "candidate": 67206
+          },
+          "2026-09": {
+            "beta": 65226,
+            "candidate": 65226
+          },
+          "2026-10": {
+            "beta": 28418,
+            "candidate": 28418
+          }
+        },
+        "secondSync": {
+          "2026-07": {
+            "beta": 34568,
+            "candidate": 34568
+          },
+          "2026-08": {
+            "beta": 67206,
+            "candidate": 67206
+          },
+          "2026-09": {
+            "beta": 65226,
+            "candidate": 65226
+          },
+          "2026-10": {
+            "beta": 28418,
+            "candidate": 28418
+          }
+        }
+      },
+      {
+        "seed": 2,
+        "open": {
+          "2026-07": {
+            "beta": 34632,
+            "candidate": 34632
+          },
+          "2026-08": {
+            "beta": 68184,
+            "candidate": 68184
+          },
+          "2026-09": {
+            "beta": 64105,
+            "candidate": 64105
+          },
+          "2026-10": {
+            "beta": 28564,
+            "candidate": 28564
+          }
+        },
+        "sync": {
+          "2026-07": {
+            "beta": 34632,
+            "candidate": 34632
+          },
+          "2026-08": {
+            "beta": 68184,
+            "candidate": 68184
+          },
+          "2026-09": {
+            "beta": 64105,
+            "candidate": 64105
+          },
+          "2026-10": {
+            "beta": 28564,
+            "candidate": 28564
+          }
+        },
+        "secondSync": {
+          "2026-07": {
+            "beta": 34632,
+            "candidate": 34632
+          },
+          "2026-08": {
+            "beta": 68184,
+            "candidate": 68184
+          },
+          "2026-09": {
+            "beta": 64105,
+            "candidate": 64105
+          },
+          "2026-10": {
+            "beta": 28564,
+            "candidate": 28564
+          }
+        }
+      },
+      {
+        "seed": 3,
+        "open": {
+          "2026-07": {
+            "beta": 35648,
+            "candidate": 35648
+          },
+          "2026-08": {
+            "beta": 66170,
+            "candidate": 66170
+          },
+          "2026-09": {
+            "beta": 65172,
+            "candidate": 65172
+          },
+          "2026-10": {
+            "beta": 28488,
+            "candidate": 28488
+          }
+        },
+        "sync": {
+          "2026-07": {
+            "beta": 35648,
+            "candidate": 35648
+          },
+          "2026-08": {
+            "beta": 66170,
+            "candidate": 66170
+          },
+          "2026-09": {
+            "beta": 65172,
+            "candidate": 65172
+          },
+          "2026-10": {
+            "beta": 28488,
+            "candidate": 28488
+          }
+        },
+        "secondSync": {
+          "2026-07": {
+            "beta": 35648,
+            "candidate": 35648
+          },
+          "2026-08": {
+            "beta": 66170,
+            "candidate": 66170
+          },
+          "2026-09": {
+            "beta": 65172,
+            "candidate": 65172
+          },
+          "2026-10": {
+            "beta": 28488,
+            "candidate": 28488
+          }
+        }
+      },
+      {
+        "seed": 4,
+        "open": {
+          "2026-07": {
+            "beta": 34612,
+            "candidate": 34612
+          },
+          "2026-08": {
+            "beta": 67228,
+            "candidate": 67228
+          },
+          "2026-09": {
+            "beta": 66125,
+            "candidate": 66125
+          },
+          "2026-10": {
+            "beta": 27469,
+            "candidate": 27469
+          }
+        },
+        "sync": {
+          "2026-07": {
+            "beta": 34612,
+            "candidate": 34612
+          },
+          "2026-08": {
+            "beta": 67228,
+            "candidate": 67228
+          },
+          "2026-09": {
+            "beta": 66125,
+            "candidate": 66125
+          },
+          "2026-10": {
+            "beta": 27469,
+            "candidate": 27469
+          }
+        },
+        "secondSync": {
+          "2026-07": {
+            "beta": 34612,
+            "candidate": 34612
+          },
+          "2026-08": {
+            "beta": 67228,
+            "candidate": 67228
+          },
+          "2026-09": {
+            "beta": 66125,
+            "candidate": 66125
+          },
+          "2026-10": {
+            "beta": 27469,
+            "candidate": 27469
+          }
+        }
+      },
+      {
+        "seed": 5,
+        "open": {
+          "2026-07": {
+            "beta": 34602,
+            "candidate": 34602
+          },
+          "2026-08": {
+            "beta": 67223,
+            "candidate": 67223
+          },
+          "2026-09": {
+            "beta": 65118,
+            "candidate": 65118
+          },
+          "2026-10": {
+            "beta": 28484,
+            "candidate": 28484
+          }
+        },
+        "sync": {
+          "2026-07": {
+            "beta": 34602,
+            "candidate": 34602
+          },
+          "2026-08": {
+            "beta": 67223,
+            "candidate": 67223
+          },
+          "2026-09": {
+            "beta": 65118,
+            "candidate": 65118
+          },
+          "2026-10": {
+            "beta": 28484,
+            "candidate": 28484
+          }
+        },
+        "secondSync": {
+          "2026-07": {
+            "beta": 34602,
+            "candidate": 34602
+          },
+          "2026-08": {
+            "beta": 67223,
+            "candidate": 67223
+          },
+          "2026-09": {
+            "beta": 65118,
+            "candidate": 65118
+          },
+          "2026-10": {
+            "beta": 28484,
+            "candidate": 28484
+          }
+        }
+      },
+      {
+        "seed": 6,
+        "open": {
+          "2026-07": {
+            "beta": 35689,
+            "candidate": 35689
+          },
+          "2026-08": {
+            "beta": 68171,
+            "candidate": 68171
+          },
+          "2026-09": {
+            "beta": 64101,
+            "candidate": 64101
+          },
+          "2026-10": {
+            "beta": 27534,
+            "candidate": 27534
+          }
+        },
+        "sync": {
+          "2026-07": {
+            "beta": 35689,
+            "candidate": 35689
+          },
+          "2026-08": {
+            "beta": 68171,
+            "candidate": 68171
+          },
+          "2026-09": {
+            "beta": 64101,
+            "candidate": 64101
+          },
+          "2026-10": {
+            "beta": 27534,
+            "candidate": 27534
+          }
+        },
+        "secondSync": {
+          "2026-07": {
+            "beta": 35689,
+            "candidate": 35689
+          },
+          "2026-08": {
+            "beta": 68171,
+            "candidate": 68171
+          },
+          "2026-09": {
+            "beta": 64101,
+            "candidate": 64101
+          },
+          "2026-10": {
+            "beta": 27534,
+            "candidate": 27534
+          }
+        }
+      },
+      {
+        "seed": 7,
+        "open": {
+          "2026-07": {
+            "beta": 35683,
+            "candidate": 35683
+          },
+          "2026-08": {
+            "beta": 67176,
+            "candidate": 67176
+          },
+          "2026-09": {
+            "beta": 65138,
+            "candidate": 65138
+          },
+          "2026-10": {
+            "beta": 27454,
+            "candidate": 27454
+          }
+        },
+        "sync": {
+          "2026-07": {
+            "beta": 35683,
+            "candidate": 35683
+          },
+          "2026-08": {
+            "beta": 67176,
+            "candidate": 67176
+          },
+          "2026-09": {
+            "beta": 65138,
+            "candidate": 65138
+          },
+          "2026-10": {
+            "beta": 27454,
+            "candidate": 27454
+          }
+        },
+        "secondSync": {
+          "2026-07": {
+            "beta": 35683,
+            "candidate": 35683
+          },
+          "2026-08": {
+            "beta": 67176,
+            "candidate": 67176
+          },
+          "2026-09": {
+            "beta": 65138,
+            "candidate": 65138
+          },
+          "2026-10": {
+            "beta": 27454,
+            "candidate": 27454
+          }
+        }
+      },
+      {
+        "seed": 8,
+        "open": {
+          "2026-07": {
+            "beta": 34640,
+            "candidate": 34640
+          },
+          "2026-08": {
+            "beta": 67122,
+            "candidate": 67122
+          },
+          "2026-09": {
+            "beta": 66160,
+            "candidate": 66160
+          },
+          "2026-10": {
+            "beta": 27522,
+            "candidate": 27522
+          }
+        },
+        "sync": {
+          "2026-07": {
+            "beta": 34640,
+            "candidate": 34640
+          },
+          "2026-08": {
+            "beta": 67122,
+            "candidate": 67122
+          },
+          "2026-09": {
+            "beta": 66160,
+            "candidate": 66160
+          },
+          "2026-10": {
+            "beta": 27522,
+            "candidate": 27522
+          }
+        },
+        "secondSync": {
+          "2026-07": {
+            "beta": 34640,
+            "candidate": 34640
+          },
+          "2026-08": {
+            "beta": 67122,
+            "candidate": 67122
+          },
+          "2026-09": {
+            "beta": 66160,
+            "candidate": 66160
+          },
+          "2026-10": {
+            "beta": 27522,
+            "candidate": 27522
+          }
+        }
+      },
+      {
+        "seed": 9,
+        "open": {
+          "2026-07": {
+            "beta": 34593,
+            "candidate": 34593
+          },
+          "2026-08": {
+            "beta": 67154,
+            "candidate": 67154
+          },
+          "2026-09": {
+            "beta": 65146,
+            "candidate": 65146
+          },
+          "2026-10": {
+            "beta": 28544,
+            "candidate": 28544
+          }
+        },
+        "sync": {
+          "2026-07": {
+            "beta": 34593,
+            "candidate": 34593
+          },
+          "2026-08": {
+            "beta": 67154,
+            "candidate": 67154
+          },
+          "2026-09": {
+            "beta": 65146,
+            "candidate": 65146
+          },
+          "2026-10": {
+            "beta": 28544,
+            "candidate": 28544
+          }
+        },
+        "secondSync": {
+          "2026-07": {
+            "beta": 34593,
+            "candidate": 34593
+          },
+          "2026-08": {
+            "beta": 67154,
+            "candidate": 67154
+          },
+          "2026-09": {
+            "beta": 65146,
+            "candidate": 65146
+          },
+          "2026-10": {
+            "beta": 28544,
+            "candidate": 28544
+          }
+        }
+      },
+      {
+        "seed": 10,
+        "open": {
+          "2026-07": {
+            "beta": 34620,
+            "candidate": 34620
+          },
+          "2026-08": {
+            "beta": 68146,
+            "candidate": 68146
+          },
+          "2026-09": {
+            "beta": 64196,
+            "candidate": 64196
+          },
+          "2026-10": {
+            "beta": 28542,
+            "candidate": 28542
+          }
+        },
+        "sync": {
+          "2026-07": {
+            "beta": 34620,
+            "candidate": 34620
+          },
+          "2026-08": {
+            "beta": 68146,
+            "candidate": 68146
+          },
+          "2026-09": {
+            "beta": 64196,
+            "candidate": 64196
+          },
+          "2026-10": {
+            "beta": 28542,
+            "candidate": 28542
+          }
+        },
+        "secondSync": {
+          "2026-07": {
+            "beta": 34620,
+            "candidate": 34620
+          },
+          "2026-08": {
+            "beta": 68146,
+            "candidate": 68146
+          },
+          "2026-09": {
+            "beta": 64196,
+            "candidate": 64196
+          },
+          "2026-10": {
+            "beta": 28542,
+            "candidate": 28542
+          }
+        }
+      },
+      {
+        "seed": 11,
+        "open": {
+          "2026-07": {
+            "beta": 36617,
+            "candidate": 36617
+          },
+          "2026-08": {
+            "beta": 66215,
+            "candidate": 66215
+          },
+          "2026-09": {
+            "beta": 65166,
+            "candidate": 65166
+          },
+          "2026-10": {
+            "beta": 27500,
+            "candidate": 27500
+          }
+        },
+        "sync": {
+          "2026-07": {
+            "beta": 36617,
+            "candidate": 36617
+          },
+          "2026-08": {
+            "beta": 66215,
+            "candidate": 66215
+          },
+          "2026-09": {
+            "beta": 65166,
+            "candidate": 65166
+          },
+          "2026-10": {
+            "beta": 27500,
+            "candidate": 27500
+          }
+        },
+        "secondSync": {
+          "2026-07": {
+            "beta": 36617,
+            "candidate": 36617
+          },
+          "2026-08": {
+            "beta": 66215,
+            "candidate": 66215
+          },
+          "2026-09": {
+            "beta": 65166,
+            "candidate": 65166
+          },
+          "2026-10": {
+            "beta": 27500,
+            "candidate": 27500
+          }
+        }
+      }
+    ]
+  },
+  "performance": [
+    {
+      "rows": 20000,
+      "pairs": 380,
+      "rate": 6,
+      "sources": {
+        "beta126": {
+          "initialPairs": 0,
+          "initialGemelos": 0,
+          "categoryMs": 1.3000000000029104,
+          "emptySyncMs": 0,
+          "stable": true,
+          "samples": {
+            "category": [
+              1.5,
+              1.3000000000029104,
+              1.3000000000029104,
+              1.5
+            ],
+            "emptySync": [
+              0,
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "nogo228": {
+          "initialPairs": 380,
+          "initialGemelos": 380,
+          "categoryMs": 58.19999999999709,
+          "emptySyncMs": 53.90000000000873,
+          "stable": true,
+          "samples": {
+            "category": [
+              73.89999999999418,
+              58.19999999999709,
+              56.89999999999418,
+              58.80000000000291
+            ],
+            "emptySync": [
+              67.30000000000291,
+              54.69999999999709,
+              53.90000000000873,
+              50
+            ]
+          }
+        },
+        "candidate": {
+          "initialPairs": 380,
+          "initialGemelos": 0,
+          "categoryMs": 2.1999999999970896,
+          "emptySyncMs": 1.3999999999941792,
+          "stable": true,
+          "samples": {
+            "category": [
+              3.2999999999883585,
+              5,
+              1.6000000000058208,
+              2.1999999999970896
+            ],
+            "emptySync": [
+              0.5,
+              2.1999999999970896,
+              1.3999999999941792,
+              0.20000000001164153
+            ]
+          }
+        }
+      }
+    },
+    {
+      "rows": 20000,
+      "pairs": 5708,
+      "rate": 6,
+      "sources": {
+        "beta126": {
+          "initialPairs": 0,
+          "initialGemelos": 0,
+          "categoryMs": 1.6999999999970896,
+          "emptySyncMs": 0,
+          "stable": true,
+          "samples": {
+            "category": [
+              1.6999999999970896,
+              1.6999999999970896,
+              1,
+              2.2000000000116415
+            ],
+            "emptySync": [
+              0,
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "nogo228": {
+          "initialPairs": 5708,
+          "initialGemelos": 500,
+          "categoryMs": 2274.7999999999884,
+          "emptySyncMs": 2219.2000000000116,
+          "stable": false,
+          "samples": {
+            "category": [
+              2610.5999999999913,
+              2419,
+              2274.7999999999884,
+              2250.5
+            ],
+            "emptySync": [
+              2806.300000000003,
+              2258.399999999994,
+              2219.2000000000116,
+              2169.399999999994
+            ]
+          }
+        },
+        "candidate": {
+          "initialPairs": 5708,
+          "initialGemelos": 0,
+          "categoryMs": 3.2000000000116415,
+          "emptySyncMs": 1,
+          "stable": true,
+          "samples": {
+            "category": [
+              4.900000000023283,
+              2.3999999999941792,
+              3.8999999999941792,
+              3.2000000000116415
+            ],
+            "emptySync": [
+              2.6000000000058208,
+              1.900000000023283,
+              0.1999999999825377,
+              1
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "integration": {
+    "head": "2439ec641f88e5d1f01548a62d6e38ada058bf76",
+    "base": "33d39cb80764aaf22998f69ac8bbaeffeadf4013",
+    "sealed": "4.26.126.99999",
+    "dsnBytes": 95,
+    "raw": 1407604,
+    "gzip": 386854,
+    "caps": {
+      "raw": 1386496,
+      "gzip": 380928
+    },
+    "blocking": 3,
+    "changedWebScopes": [
+      "inc-3009-01-cargos",
+      "fin05-widget-reentrada",
+      "fin05-pago-cerrada",
+      "tr-descripcion-clasificacion",
+      "widget-banco",
+      "widget-app-cerrada",
+      "inc-2809-02-ayuda-ciclo",
+      "inc-2909-02-inicio-natural",
+      "inc-2709-10-perfil",
+      "inc-3009-nomina-anticipada",
+      "inc-2909-03-retirada",
+      "inc-2909-01-widget-periodo",
+      "inc-0210-03-gastos-periodo",
+      "feature-0210-01-gasolina-taxi",
+      "inc-0210-02-categoria-elegida",
+      "inc-0310-01-meta-regla",
+      "feature-0310-01-movilidad",
+      "inc-0310-broker-resultados",
+      "inc-0310-gastos-sin-limite",
+      "inc-0710-gastos-mes-madrid",
+      "inc-0710-auth-disposal",
+      "inc-0810-metas-editar-regla",
+      "bienes-completo",
+      "widget-pago-app-cerrada",
+      "bancos-sin-hueco",
+      "widget-ciclo-puente",
+      "recibos-cargo-unico",
+      "bancos-acuse-reconexion",
+      "tr-iguales-ordinal",
+      "inicio-patrimonio-flujos",
+      "recibo-cargo-en-gastos"
+    ],
+    "edgeChanges": 0,
+    "nativeChanges": 0,
+    "scopeReaderExceptions": [
+      {
+        "id": "inc-0810-inicio-grafica-significado",
+        "base": "Error: Bloque beta no inequívoco: src/modules/03-tab-dash.js",
+        "current": "Error: Bloque beta no inequívoco: src/modules/03-tab-dash.js"
+      }
+    ],
+    "reserved": {
+      "lastPaydayOf": true,
+      "budgetPeriodOf": true
+    },
+    "missingDependencies": [
+      {
+        "id": "inc-0710-auth-disposal",
+        "missingFunctions": [
+          "reconcileGemelosAutomaticos",
+          "gemeloMismosCampos",
+          "gemeloDatos",
+          "expenseBankOf",
+          "gemeloDe",
+          "pushGemelos",
+          "expenseDeletedSet",
+          "expenseIsTombstoned",
+          "gemeloAvisoKey",
+          "gemeloBancoAutomatico",
+          "keyOfExpense",
+          "isManualExpenseSource",
+          "gemeloAvisoAutomatico",
+          "gemeloCompatible",
+          "sinComercioReal",
+          "dateMs",
+          "gemeloAsignar",
+          "madridYmdParts",
+          "partirEntDeuda",
+          "keyOfExpenseLegacy",
+          "esFilaDeBanco",
+          "obOrdinalSufijo",
+          "_pdMs",
+          "obOrdinalOf"
+        ],
+        "missingData": [
+          "gemeloCache",
+          "DUP_DIAS_MS",
+          "gemeloDatosCache",
+          "gemeloDiasCache",
+          "GEMELOS_MAX",
+          "expenseDeletedSets",
+          "_mcMadridYmdFmt",
+          "_pdCache"
+        ],
+        "mutationsRejected": []
+      },
+      {
+        "id": "inc-3009-01-cargos",
+        "missingFunctions": [
+          "gemeloAutomaticoDe",
+          "lapidasAlEditar",
+          "subeEdicionesDeGasto",
+          "reconcileGemelosAutomaticos",
+          "gemeloAvisoKey",
+          "gemeloDe",
+          "lapidaPon",
+          "lapidaLevanta",
+          "gemeloMismosCampos",
+          "gemeloDatos",
+          "pushGemelos",
+          "gemeloBancoAutomatico",
+          "gemeloAvisoAutomatico",
+          "gemeloCompatible",
+          "sinComercioReal",
+          "gemeloAsignar",
+          "lapidasTope",
+          "madridYmdParts",
+          "esFilaDeBanco"
+        ],
+        "missingData": [
+          "GASTO_ORIGENES",
+          "gemeloCache",
+          "gemeloDatosCache",
+          "gemeloDiasCache",
+          "GEMELOS_MAX",
+          "DELETED_AT_MAX",
+          "_mcMadridYmdFmt"
+        ],
+        "mutationsRejected": [
+          {
+            "kind": "data",
+            "name": "_pdCache",
+            "error": "Error: Bloque beta no inequívoco: src/modules/01-i18n.js"
+          }
+        ]
+      },
+      {
+        "id": "fin05-widget-reentrada",
+        "missingFunctions": [
+          "reconcileGemelosAutomaticos",
+          "gemelosCambiosNube",
+          "gemeloMismosCampos",
+          "gemeloDatos",
+          "gemeloDe",
+          "pushGemelos",
+          "gemeloAvisoKey",
+          "gemeloBancoAutomatico",
+          "gemeloAvisoAutomatico",
+          "gemeloCompatible",
+          "gemeloAsignar",
+          "madridYmdParts"
+        ],
+        "missingData": [
+          "GASTO_ORIGENES",
+          "gemeloCache",
+          "gemeloDatosCache",
+          "gemeloDiasCache",
+          "GEMELOS_MAX",
+          "_mcMadridYmdFmt"
+        ],
+        "mutationsRejected": [
+          {
+            "kind": "data",
+            "name": "_pdCache",
+            "error": "Error: Bloque beta no inequívoco: src/modules/01-i18n.js"
+          }
+        ]
+      }
+    ]
+  },
+  "ci": {
+    "run": 38508168622,
+    "headSHA": "2439ec641f88e5d1f01548a62d6e38ada058bf76",
+    "conclusion": "failure",
+    "generalJob": 115670342932,
+    "focusedJob": 115670343127,
+    "focusedConclusion": "success",
+    "generalConclusion": "failure",
+    "exitCode": 1,
+    "runnerSeconds": 1209.3,
+    "failedStages": [
+      "auth-disposal",
+      "auth-disposal-fit",
+      "beta-sources",
+      "docs-frescura",
+      "presupuesto-rendimiento"
+    ],
+    "logBytes": 404751,
+    "logSha256": "2b12691b83ebb9d176ce6e92af5ad33d7bd22df6e6c6ec3b3878f5e9b039e43f",
+    "focusedLogSha256": "f6357685bdab465069d6414b10e9c82f7346482c01ae156ea6f9b8aceae0d431",
+    "generalPlaywrightExecuted": false,
+    "skippedSteps": [
+      "Privacidad",
+      "Post Run actions/setup-node@v4"
+    ]
+  },
+  "preservedCI": {
+    "head": "31b9b9687cfba57e5e889e894d818b6f8dd79f6f",
+    "runId": 38444777336,
+    "general": "failure: 6 suites including receipt invariant",
+    "focused": "success:7DOM2CPU6"
+  },
+  "limitations": [
+    "No listo para integrar/publicar por esta entrega: catalogo/identidad/VERSION/topes de integracion pendientes Claude y revision independiente.",
+    "No navegador/CPU6/full local; FIN01 retenido. No banco real, dos dispositivos fisicos ni aceptacion movil.",
+    "setExpenseDup heredado sin acuse de fila; la reparacion es best-effort.",
+    "Identidad heredada de avisos exactamente iguales no cambia; parejas automaticas no saturan gemelos pero las decisiones humanas siguen acotadas.",
+    "8mutantes causales propios ejecutados; los12casos antes supervivientes tienen regresiones Node oDOM, sin afirmar26mutantes muertos.",
+    "No main/beta, deploy, servidor, SQL, APK ni cambios a topes/catalogo/VERSION.",
+    "El paso independiente Privacidad esta skipped; el guard-privacy del runner y local pasan."
+  ],
+  "brief": "docs/briefs/tr-emparejado-automatico-20261013.md",
+  "schema": 1,
+  "taskId": "tr-emparejado-revision-nogo-codex-20261013",
+  "actor": "codex",
+  "sessionId": "codex-cloud-20261013-30c64bcb575e",
+  "createdAt": "2026-10-14T04:12:23.567Z",
+  "released": true
+}
