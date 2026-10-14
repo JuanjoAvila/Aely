@@ -3694,7 +3694,8 @@ const cloud = (function(){
       if(!sb || !uid) return;
       const today=new Date().toISOString().slice(0,10);
       const {error}=await sb.from('state_backups').upsert(
-        { user_id:uid, day:today, data:data },
+        // Sin los datos tipo banco del perfil (decisión del dueño, 14/10/2026): la copia también sale de aquí.
+        { user_id:uid, day:today, data:perfilSinDatosBanco(data) },
         { onConflict:'user_id,day' }
       );
       if(error) throw error;
