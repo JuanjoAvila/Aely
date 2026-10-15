@@ -93,6 +93,7 @@ function NetWorthInfoSheet({open, rows, onClose}){
             // etiqueta → dato, no al revés (en la primera captura el dato ganaba a la etiqueta).
             React.createElement("div",{className:"rval",style:{fontWeight:600,fontSize:13,color:"var(--muted)",maxWidth:"60%",lineHeight:1.3}},r.v));
         }),
+        React.createElement("p",{className:"hint"},t("v42_net_i_flows")),
         React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",style:{marginTop:16},onClick:swipe.close}, t("v42_net_i_ok"))
       )
     ), document.body);
