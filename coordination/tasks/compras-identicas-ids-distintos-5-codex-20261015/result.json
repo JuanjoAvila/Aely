@@ -1,0 +1,186 @@
+{
+  "status": "blocked",
+  "summary": "PR235 Compras5: BOOK absorbido borrado de expenses cloud; caducar marcador ya no resucita640. ROJO640/640 y GREEN320/320. Candidata terminada, integracion y aceptacion pendientes.",
+  "productSHA": "1496559e16e801bda5a4d7efe2a2ddffbb7dd509",
+  "baseSHA": "d12d81a94e7dd24359b8b67e82ff1a1c3ce022d5",
+  "pr": 235,
+  "codeComplete": true,
+  "productReady": false,
+  "tests": [
+    {
+      "command": "node --test tests/compras-identicas-ids.test.mjs",
+      "exitCode": 0,
+      "timezone": "UTC"
+    },
+    {
+      "command": "node --test tests/compras-identicas-ids.test.mjs",
+      "exitCode": 0,
+      "timezone": "Europe/Madrid"
+    },
+    {
+      "command": "node tests/recibo-invariante.test.mjs",
+      "exitCode": 0,
+      "timezone": "UTC"
+    },
+    {
+      "command": "node tests/recibo-invariante.test.mjs",
+      "exitCode": 0,
+      "timezone": "Europe/Madrid"
+    },
+    {
+      "command": "node tests/security.test.mjs",
+      "exitCode": 0,
+      "timezone": "host-default"
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0,
+      "timezone": "host-default"
+    },
+    {
+      "command": "node tests/ingest-handler.test.mjs",
+      "exitCode": 0,
+      "timezone": "host-default"
+    },
+    {
+      "command": "node tests/merge-expenses-cloud.test.mjs",
+      "exitCode": 0,
+      "timezone": "host-default"
+    },
+    {
+      "command": "node tests/bank-sync-acuse.test.mjs",
+      "exitCode": 0,
+      "timezone": "host-default"
+    },
+    {
+      "command": "node scripts/guard-privacy.mjs",
+      "exitCode": 0,
+      "timezone": "host-default"
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0,
+      "timezone": "host-default"
+    },
+    {
+      "command": "node tests/docs-frescura.test.mjs",
+      "exitCode": 1,
+      "timezone": "host-default"
+    },
+    {
+      "command": "node tests/presupuesto-rendimiento.test.mjs",
+      "exitCode": 1,
+      "timezone": "host-default"
+    },
+    {
+      "command": "node tests/beta-sources.test.mjs --integration-only",
+      "exitCode": 1,
+      "timezone": "host-default"
+    }
+  ],
+  "causalRed": {
+    "source": "d12d81a94e7dd24359b8b67e82ff1a1c3ce022d5",
+    "command": "node --test --test-name-pattern=\"caducar la lápida\" tests/compras-identicas-ids.test.mjs",
+    "exitCode": 1,
+    "appFreshSyntheticMobileCents": 640,
+    "serverCents": 640,
+    "existingMobileWithLocalAliasCents": 320,
+    "flow": "Real bank-sync handler/updater/commit, cloud transport against synthetic DB, actual retention500/200 and server budget reader."
+  },
+  "green": {
+    "contracts": 32,
+    "fail": 0,
+    "skip": 0,
+    "mutantsKilled": 35,
+    "previousMutants": 27,
+    "sixReviewGuardsKilled": 6,
+    "newDeletionMutantKilled": true,
+    "newSandboxMutantKilled": true,
+    "afterPull": 320,
+    "repeatedSync": 320,
+    "secondSyntheticMobile": 320,
+    "afterTombstoneRetentionApp": 320,
+    "afterTombstoneRetentionServer": 320,
+    "cloudRowsAfterAbsorption": 1,
+    "timezones": [
+      "UTC",
+      "Europe/Madrid"
+    ]
+  },
+  "invariant": {
+    "pass": 22,
+    "fail": 0,
+    "extracts": 775,
+    "generatorOracleAuthorized109ExceptionUnchanged": true,
+    "timezones": [
+      "UTC",
+      "Europe/Madrid"
+    ]
+  },
+  "change": "obPendingAbsorbedState retains its marker and starts borrarGastoNube on the removed BOOK. Existing cloud.deleteExpense uses user plus UUID/slot, not bank reference; CLOUD_WRITES already covers it. Six guards kept and defended.",
+  "size": {
+    "command": "Private source comparison using scripts/minify-html.mjs settings, LF normalization and gzip level9; cap measured separately with tests/presupuesto-rendimiento.test.mjs.",
+    "reference": "cdea1015fb0aac85119a76f31cd01704bd67dc74",
+    "referenceName": "origin/main",
+    "rawDeltaMin": 10849,
+    "rawDeltaGzip": 2829,
+    "uniformServedReserveDeltaMin": 10849,
+    "uniformServedReserveDeltaGzip": 2832,
+    "ownDeltaFromBaseMin": 33,
+    "ownDeltaFromBaseGzip": 17,
+    "windowsServedMin": 1328320,
+    "windowsServedGzip": 368746,
+    "capMin": 1317888,
+    "capGzip": 366592,
+    "capExcessMin": 10432,
+    "capExcessGzip": 2154,
+    "previousClaude10830and2820HistoricalNotCurrentMeasurement": true,
+    "capExcessIsNotMainDelta": true
+  },
+  "integration": {
+    "docsExit": 1,
+    "sizeExit": 1,
+    "catalogueMode": "--integration-only",
+    "catalogueExit": 1,
+    "cataloguePass": 40,
+    "catalogueFail": 4,
+    "catalogueFailures": [
+      "Indicador107 and Integracion109 reference scripts/beta-sources.json absent at historical70ffea58.",
+      "Inicio v4.2 lacks watched dependency obAbsorptionKey.",
+      "Catalogo133 closed footprint list differs after source changes."
+    ],
+    "catalogueFullBeyondIntegrationOnlyNotExecuted": true,
+    "VERSIONCatalogueNotesCapsUnchanged": true
+  },
+  "publication": {
+    "sameDraftPRUpdated": true,
+    "normalPushExit": 0,
+    "headExactReadback": true,
+    "newCIRunsObserved": 0,
+    "noWorkflowDispatched": true
+  },
+  "deployment": {
+    "thisSuccessorChangesEdge": false,
+    "wholePRContainsPriorSharedServerReader": true,
+    "order": "Ingest containing the shared absorption reader BEFORE client publication; verify source and app/widget on same synthetic rows.",
+    "deployed": false,
+    "SQLOrMigration": false
+  },
+  "limitations": [
+    "borrarGastoNube retains existing best-effort error logging; marker remains, no new persistent retry queue or retrospective live-data repair is claimed.",
+    "Different-day PDNG to BOOK, crossbank unique-index collision and account/date expansion of absorption key remain outside scope.",
+    "No local or remote browser, CPU6, full local functional suite, native Deno CLI or new CI executed. Ingest/widget bodies ran under Node.",
+    "Claude clean review, integration, exact new served beta and real mobile acceptance pending.",
+    "No SQL/live bank/Edge deployment/Gradle/APK/main or beta merge or promotion."
+  ],
+  "previousTask4BlockedReleasedPreserved": true,
+  "previousResultsClaimsWIPBranchesWorktreesPreserved": true,
+  "runnerTaken": false,
+  "productReadyEvidenceAbsent": true,
+  "schema": 1,
+  "taskId": "compras-identicas-ids-distintos-5-codex-20261015",
+  "actor": "codex",
+  "sessionId": "codex-local-compras-five-gmopdjjlhegcahdechakmepplpfpipkkgmfjljmk",
+  "createdAt": "2026-10-15T11:35:02.873Z",
+  "released": true
+}
