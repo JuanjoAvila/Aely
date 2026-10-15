@@ -7,6 +7,9 @@ const today="2026-10-14";
 const currentAmount=mode=>mode==="con-efectivo"?"18.622,44":mode.startsWith("transfer-")?"18.302,40":"18.502,44";
 async function abrir(page,mode,prior=false,lang="es"){
   const state=estadoHeredado(today);
+  // El lector de cierres usa ob.key, como la API real. Dos ob:undefined alternaban
+  // sus saldos sin parar y no dejaban terminar la transición a Gastos.
+  state.obAccounts=state.obAccounts.map(o=>({...o,key:o.id}));
   if(mode!=="con-efectivo"){
     state.accounts=state.accounts.filter(a=>a.ent!=="efectivo");
     delete state.accountBalanceHistory["acc:cash"];
@@ -16,19 +19,8 @@ async function abrir(page,mode,prior=false,lang="es"){
   if(mode==="transfer-pair")state.expenses.push({id:"own-in",date:"2026-10-04T23:59:00+02:00",amount:-300.07,merchant:"Entrada sintética",category:"otros",ent:"caixabank"});
   if(prior) await page.route(/http:\/\/127\.0\.0\.1:\d+\/$/,async route=>{
     const response=await route.fetch(),html=await response.text();
-    let old=transfer?html.replace('if(transit||e.category==="inversion"||(e.category==="traspaso"&&linked)) contribs.push','if(!transit&&!row.ownTransfer&&e.category==="traspaso"&&!linked) return;\n    if(transit||e.category==="inversion"||(e.category==="traspaso"&&linked)) contribs.push'):html.replace('if(!hasCash) daily[day]=(daily[day]||0)-row.cents;', 'if(false) daily[day]=(daily[day]||0)-row.cents;');
+    const old=transfer?html.replace('if(transit||e.category==="inversion"||(e.category==="traspaso"&&linked)) contribs.push','if(!transit&&!row.ownTransfer&&e.category==="traspaso"&&!linked) return;\n    if(transit||e.category==="inversion"||(e.category==="traspaso"&&linked)) contribs.push'):html.replace('if(!hasCash) daily[day]=(daily[day]||0)-row.cents;', 'if(false) daily[day]=(daily[day]||0)-row.cents;');
     expect(old).not.toBe(html);
-    const hooks='const { useState, useEffect, useLayoutEffect, useRef, useMemo, useCallback, useDeferredValue } = React;';
-    expect(old).toContain(hooks);
-    old=old.replace(hooks,`const __originalUseState=React.useState,__stateWrappers=new WeakMap();
-      React.useState=function(...args){const value=__originalUseState(...args);let setter=__stateWrappers.get(value[1]);if(!setter){setter=function(...updates){const stack=new Error().stack;const counts=window.__stateProbe||(window.__stateProbe={});counts[stack]=(counts[stack]||0)+1;return value[1](...updates);};__stateWrappers.set(value[1],setter);}return [value[0],setter];};\n`+hooks);
-    for(const [from,to] of [
-      ['onGoGastos:function(){','onGoGastos:function(){ (window.__navProbe||=[]).push({step:"entry"});'],
-      ['const goTabTop=function(i){','const goTabTop=function(i){ (window.__navProbe||=[]).push({step:"top",i});'],
-      ['const goTab=function(i){','const goTab=function(i){ (window.__navProbe||=[]).push({step:"go",i,tab,ref:tabRef.current,ids:tabIds});'],
-      ['React.startTransition(function(){','React.startTransition(function(){ (window.__navProbe||=[]).push({step:"transition"});'],
-      ['tabRef.current=tab;','tabRef.current=tab; (window.__navProbe||=[]).push({step:"commit",tab});']
-    ]){expect(old).toContain(from);old=old.replace(from,to);}
     await route.fulfill({response,body:old});
   });
   // Como installFixtureClock: Date parte del día financiero y sigue avanzando. Fijarlo
@@ -58,7 +50,7 @@ async function cifras(page){
 }
 async function estadoNavegacion(page){
   return page.evaluate(()=>{
-    return {stateProbe:window.__stateProbe,probe:window.__navProbe,tabs:[...document.querySelectorAll(".botnav-tab")].map(el=>({tab:el.dataset.tour,class:el.className})),settings:!!document.querySelector(".settings-push.open"),splash:!!document.getElementById("mc-load"),text:document.querySelector("#root")?.innerText,summary:document.querySelector(".v4-gastos-summary")?.innerText};
+    return {tabs:[...document.querySelectorAll(".botnav-tab")].map(el=>({tab:el.dataset.tour,class:el.className})),settings:!!document.querySelector(".settings-push.open"),splash:!!document.getElementById("mc-load"),text:document.querySelector("#root")?.innerText,summary:document.querySelector(".v4-gastos-summary")?.innerText};
   }).catch(error=>({readError:String(error)}));
 }
 for(const mode of ["sin-efectivo","con-efectivo","traspaso-cajero","transfer-alone","transfer-pair"]) test("reservas: gráfica y cifras actuales antes/después "+mode,{annotation:{type:"own-clock",description:"14/10/2026"}},async({browser},testInfo)=>{
