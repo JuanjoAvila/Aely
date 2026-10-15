@@ -60,6 +60,12 @@ const sourceBeta130=sourceAt("67666d4248d5bceb8c36e3b6f52824fd3a776b63");
 const sourceBeta131=sourceAt("c945e37cdcc90eaac064ca80ffbb4c72459ed890");
 // Catálogo132 pasa a histórico en la 133: se lee de la beta 4.26.132 (7865111b), que sigue en el panel con su tanda.
 const sourceBeta132=sourceAt("7865111be8e2e1f8994bccba4b515bf4c6193074");
+// Catálogo133 y Retiro133 pasan a histórico en la promoción 133: se leen de la beta 4.26.133 publicada (52e1957d), lo último que probó el móvil y lo que sube entero.
+const sourceBeta133=sourceAt("52e1957db385bc03cceba138fe68ff16b1b84f9f");
+// Producción 4.26.128 servida (main, merge del PR 232): el historial que conserva la nota de la 132.
+const sourceProd128=sourceAt("2358df2157c171b35de89baa4923cf51fd9b06b1");
+// Producción 4.26.132 servida (main, merge del PR 234): su catálogo es el historial que la 133 conserva debajo de su nota, y el guardián Promoción132 lee su árbol.
+const sourceProd132=sourceAt("998c57f56fd1790ba6ea9fd230d9f562dd696b5a");
 // La122 añade un método a `cloud` (`setExpenseRecibo`) y los alcances que listan los métodos que
 // leen lo ganan al final de su lista. Las comparaciones con descriptores anteriores lo descuentan;
 // Catálogo122 fija en lista cerrada cuáles son.
@@ -2652,7 +2658,7 @@ test("Catálogo128 añade la tanda de la comparación de Inicio sobre la beta127
 // pasa a Cartera > Inversiones > Ver todas. Tanda NUEVA solo web, encima de la beta 4.26.128 publicada
 // (24d0d463), cuyas dos tandas (Inicio y bancos) SIGUEN en el panel: tres tandas.
 const expected129={"v":"4.26.129","d":"2026-10-14","t":{"es":"Ajustes más limpios y app más ligera","en":"Cleaner Settings and a lighter app","ca":"Ajustos més nets i app més lleugera"},"items":{"es":["Más limpio y más ligero: se han ido de Ajustes opciones que no hacían nada (ordenar pestañas, actualizar precios al abrir, ocultar bloques) y el perfil guarda solo tu nombre y tu apodo; el resto de datos personales se borra. La proyección de inversiones ahora está en Cartera, dentro de Inversiones."],"en":["Lighter and tidier: Settings options that did nothing are gone (reorder tabs, update prices on open, hide blocks), and your profile now keeps only your name and nickname; the other personal details are erased. The investment projection now lives in Portfolio, inside Investments."],"ca":["Més net i més lleuger: han desaparegut d’Ajustos opcions que no feien res (ordenar pestanyes, actualitzar preus en obrir, amagar blocs) i el perfil només guarda el teu nom i el teu sobrenom; la resta de dades personals s’esborra. La projecció d’inversions ara és a Cartera, dins d’Inversions."]},"tandas":[{"id":"limpieza-ajustes-perfil","t":{"es":"Ajustes más limpios y app más ligera","en":"Cleaner Settings and a lighter app","ca":"Ajustos més nets i app més lleugera"},"items":{"es":["1. Abre Ajustes: ya no están \"Pestañas\", \"Ocultar bloques\", \"Actualizar precios al abrir\", la Proyección ni \"Cambiar mis recibos\".","2. Cartera → Inversiones → \"Ver todas\": abajo hay una ficha \"Proyección\"; ábrela y mueve los deslizadores.","3. Toca tu avatar → Perfil: solo salen tu nombre y apodo, el correo y Hogar, y tu nombre sigue ahí."],"en":["1. Open Settings: \"Tabs\", \"Hide blocks\", \"Update prices on open\", the Projection and \"Change my bills\" are gone.","2. Portfolio → Investments → \"See all\": at the bottom there is a \"Your savings projection\" card; open it and move the sliders.","3. Tap your avatar → Profile: only your name and nickname, your email and Household show, and your name is still there."],"ca":["1. Obre Ajustos: ja no hi són \"Pestanyes\", \"Amagar blocs\", \"Actualitzar preus en obrir\", la Projecció ni \"Canviar els meus rebuts\".","2. Cartera → Inversions → \"Veure totes\": a baix hi ha una fitxa \"Projecció\"; obre-la i mou els lliscadors.","3. Toca el teu avatar → Perfil: només surten el teu nom i sobrenom, el correu i Llar, i el teu nom continua allà."]}}]};
-test("Catálogo129 añade la tanda de la limpieza de Ajustes y perfil sobre la beta128, con alcance propio, y declara cada huella que mueve",()=>{
+test("Catálogo129 histórico añade la tanda de la limpieza de Ajustes y perfil sobre la beta128, con alcance propio, y declara cada huella que mueve",()=>{
   const tanda="limpieza-ajustes-perfil",inicio="inicio-mes-pasado-mismo-dia",banco="bancos-reconexion-revoca";
   const integrated=JSON.parse(sourceBeta128("scripts/beta-sources.json")),before=JSON.parse(sourceBeta128("src/data/release-notes.json"));
   const source=f=>sourceBeta129(f).replace(/\r\n/g,"\n"),old=f=>sourceBeta128(f).replace(/\r\n/g,"\n");
@@ -2772,7 +2778,7 @@ const expected130={"v":"4.26.130","d":"2026-10-14","t":{"es":"Trade Republic: lo
 // 4.26.130 (14/10/2026): Trade Republic empareja solo el aviso y el cargo del banco, sin preguntar y de forma reversible
 // (PR 230, cabeza bd2b20f3, nacida de 33d39cb8). Tanda NUEVA solo web, encima de la beta 4.26.129 publicada (9f7bb3bd),
 // cuyas tres tandas (limpieza, Inicio y bancos) SIGUEN en el panel: cuatro tandas.
-test("Catálogo130 añade la tanda del emparejado automático de Trade Republic sobre la beta129, con alcance propio, y declara cada huella que mueve",()=>{
+test("Catálogo130 histórico añade la tanda del emparejado automático de Trade Republic sobre la beta129, con alcance propio, y declara cada huella que mueve",()=>{
   const tanda="tr-empareja-sin-preguntar",limpieza="limpieza-ajustes-perfil",inicio="inicio-mes-pasado-mismo-dia",banco="bancos-reconexion-revoca";
   const integrated=JSON.parse(sourceBeta129("scripts/beta-sources.json")),before=JSON.parse(sourceBeta129("src/data/release-notes.json"));
   const source=f=>sourceBeta130(f).replace(/\r\n/g,"\n"),old=f=>sourceBeta129(f).replace(/\r\n/g,"\n");
@@ -2936,7 +2942,7 @@ test("Catálogo130 añade la tanda del emparejado automático de Trade Republic 
 // Retiro130: el dueño aprobó en el panel las dos tandas de la 128 (Inicio y bancos, 4.26.127/128). Salen del panel como en la 124 y la 126:
 // su nota conserva versión, fecha, título y texto y solo pierde la tanda, con `tandas:[]` (sin la propiedad resucitaría como /todo);
 // el descriptor y el historial se quedan, y el producto sigue íntegro en el recibo de entrega.
-test("Retiro130 elimina solo las tandas de Inicio y de bancos aprobadas en el móvil y conserva notas, descriptores e historial",()=>{
+test("Retiro130 histórico elimina solo las tandas de Inicio y de bancos aprobadas en el móvil y conserva notas, descriptores e historial",()=>{
   const read=sourceBeta130;   // histórico desde la 131: la 130 publicada, donde ya estaban retiradas
   const inicio="inicio-mes-pasado-mismo-dia",banco="bancos-reconexion-revoca",limpieza="limpieza-ajustes-perfil",tr="tr-empareja-sin-preguntar";
   const before=JSON.parse(sourceBeta129("src/data/release-notes.json")),notes=JSON.parse(read("src/data/release-notes.json"));
@@ -2964,7 +2970,7 @@ const expected131={"v":"4.26.131","d":"2026-10-14","t":{"es":"Cuentas compartida
 // 4.26.131 (14/10/2026): «Parte mía (%)» por cuenta (rama claude/cuenta-parte-mia, cabeza 450d544e, nacida de 24d0d463): el
 // patrimonio de Inicio y su gráfica cuentan solo la parte de cada cuenta que es suya; gastos y presupuesto no cambian. Tanda NUEVA
 // solo web, encima de la beta 4.26.130 publicada (67666d42), cuyas dos tandas (emparejado de TR y limpieza) SIGUEN en el panel: tres tandas.
-test("Catálogo131 añade la tanda de la parte mía de una cuenta sobre la beta130, con alcance propio, y declara cada huella que mueve",()=>{
+test("Catálogo131 histórico añade la tanda de la parte mía de una cuenta sobre la beta130, con alcance propio, y declara cada huella que mueve",()=>{
   const tanda="cuenta-parte-mia",tr="tr-empareja-sin-preguntar",limpieza="limpieza-ajustes-perfil",banco="bancos-reconexion-revoca",inicio="inicio-mes-pasado-mismo-dia";
   const integrated=JSON.parse(sourceBeta130("scripts/beta-sources.json")),before=JSON.parse(sourceBeta130("src/data/release-notes.json"));
   const source=f=>sourceBeta131(f).replace(/\r\n/g,"\n"),old=f=>sourceBeta130(f).replace(/\r\n/g,"\n");
@@ -3092,7 +3098,7 @@ const expected132={"v":"4.26.132","d":"2026-10-14","t":{"es":"Inicio: los últim
 // 4.26.132 (14/10/2026): «Últimos movimientos» de Inicio (y la lista de la ficha de cuenta) dejan de pintar la fila oculta del banco de una pareja
 // automática de Trade Republic, y la foto del hogar deja de sumar los posibles repetidos. Tanda NUEVA solo web, encima de la beta 4.26.131 publicada
 // (c945e37c). Las tres tandas de la 131 (parte mía, emparejado y limpieza) las aprobó el dueño: salen del panel (Retiro132) y queda esta sola.
-test("Catálogo132 añade la tanda de los últimos movimientos sin repetidos sobre la beta131, con alcance propio, y declara cada huella que mueve",()=>{
+test("Catálogo132 histórico añade la tanda de los últimos movimientos sin repetidos sobre la beta131, con alcance propio, y declara cada huella que mueve",()=>{
   const tanda="inicio-recientes-sin-repetidos",parte="cuenta-parte-mia",tr="tr-empareja-sin-preguntar",limpieza="limpieza-ajustes-perfil";
   const integrated=JSON.parse(sourceBeta131("scripts/beta-sources.json")),before=JSON.parse(sourceBeta131("src/data/release-notes.json"));
   const source=f=>sourceBeta132(f).replace(/\r\n/g,"\n"),old=f=>sourceBeta131(f).replace(/\r\n/g,"\n");
@@ -3185,7 +3191,7 @@ test("Catálogo132 añade la tanda de los últimos movimientos sin repetidos sob
 // Retiro132: el dueño aprobó en el panel las tres tandas de la 131 (parte mía, emparejado de TR y limpieza). Salen del panel como en la 130:
 // su nota conserva versión, fecha, título y texto y solo pierde la tanda, con `tandas:[]`; el descriptor y el historial se quedan, y el
 // producto sigue íntegro en el recibo de entrega.
-test("Retiro132 elimina solo las tres tandas aprobadas de la 131 y conserva notas, descriptores e historial",()=>{
+test("Retiro132 histórico elimina solo las tres tandas aprobadas de la 131 y conserva notas, descriptores e historial",()=>{
   const ids=["cuenta-parte-mia","tr-empareja-sin-preguntar","limpieza-ajustes-perfil"],tanda="inicio-recientes-sin-repetidos";
   const before=JSON.parse(sourceBeta131("src/data/release-notes.json")),notes=JSON.parse(sourceBeta132("src/data/release-notes.json"));
   for(const id of ids){
@@ -3211,10 +3217,10 @@ const expected133={"v":"4.26.133","d":"2026-10-14","t":{"es":"Deslizar hasta el 
 // 4.26.133 (14/10/2026): el documento deja de poder desplazarse 30 px con la barra inferior escondida (`overflow:clip` en `.app`), así que el fling al fondo
 // vuelve a dar la ola de Android y no deja asomar media barra. Tanda NUEVA solo web, encima de la beta 4.26.132 publicada (7865111b). La de la 132
 // (últimos movimientos sin repetidos) la aprobó el dueño: sale del panel (Retiro133) y queda esta sola.
-test("Catálogo133 añade la tanda del borde de scroll con la barra escondida sobre la beta132, con alcance propio, y declara cada huella que mueve",()=>{
+test("Catálogo133 histórico añade la tanda del borde de scroll con la barra escondida sobre la beta132, con alcance propio, y declara cada huella que mueve",()=>{
   const tanda="scroll-borde-barra",previa="inicio-recientes-sin-repetidos";
   const integrated=JSON.parse(sourceBeta132("scripts/beta-sources.json")),before=JSON.parse(sourceBeta132("src/data/release-notes.json"));
-  const source=f=>read(f).replace(/\r\n/g,"\n"),old=f=>sourceBeta132(f).replace(/\r\n/g,"\n");
+  const source=f=>sourceBeta133(f).replace(/\r\n/g,"\n"),old=f=>sourceBeta132(f).replace(/\r\n/g,"\n");
   assert.deepEqual(before.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id])),[["4.26.132",previa]],"la beta132 deja su tanda en el panel");
   const expectedNotes=[expected133,{...before[0],tandas:[]},...before.slice(1)];
   const notes=JSON.parse(source("src/data/release-notes.json"));
@@ -3293,8 +3299,9 @@ test("Catálogo133 añade la tanda del borde de scroll con la barra escondida so
 
 // Retiro133: el dueño aprobó en el panel la tanda de la 132 (últimos movimientos sin repetidos). Sale del panel como en la 132: su nota conserva versión,
 // fecha, título y texto y solo pierde la tanda, con `tandas:[]`; el descriptor y el historial se quedan, y el producto sigue íntegro en el recibo de entrega.
-test("Retiro133 elimina solo la tanda aprobada de la 132 y conserva notas, descriptores e historial",()=>{
+test("Retiro133 histórico elimina solo la tanda aprobada de la 132 y conserva notas, descriptores e historial",()=>{
   const ids=["inicio-recientes-sin-repetidos"],tanda="scroll-borde-barra";
+  const read=sourceBeta133;   // histórico desde la promoción 133: la 133 publicada, donde ya estaba retirada
   const before=JSON.parse(sourceBeta132("src/data/release-notes.json")),notes=JSON.parse(read("src/data/release-notes.json"));
   for(const id of ids){
     assert.equal(before.flatMap(n=>n.tandas||[]).filter(g=>g.id===id).length,1,id+": la 132 publicada la llevaba");
@@ -3313,6 +3320,98 @@ test("Retiro133 elimina solo la tanda aprobada de la 132 y conserva notas, descr
     assert.equal(receipt.pruebas[id],undefined,id+": el guion aprobado no permanece en el panel");
   }
   assert.deepEqual(Object.keys(receipt.pruebas),[tanda],"en el panel queda sola la tanda nueva");
+});
+
+// Producción 4.26.132 (14/10/2026): suben a producción las cuatro tandas aprobadas de la beta 132
+// (limpieza-ajustes-perfil, tr-empareja-sin-preguntar, cuenta-parte-mia e inicio-recientes-sin-repetidos). `main`
+// (2358df21, producción 128) es la beta 128 más su catálogo, así que no hay nada que reconciliar: producto,
+// servidor y nativo son los de la beta132 byte a byte y lo único que cambia es el catálogo, que la familia ve
+// como UNA nota más el historial de producción128 (las notas 129 a 132 de beta quedan en Git y en `expected129`
+// a `expected132`). Sin APK nueva ni funciones del servidor que desplegar.
+const expectedProd132={"v":"4.26.132","d":"2026-10-14","t":{"es":"Una app más ligera, Trade Republic más cómodo y cuentas compartidas","en":"A lighter app, easier Trade Republic and shared accounts","ca":"Una app més lleugera, Trade Republic més còmode i comptes compartits"},"items":{"es":["Ajustes más limpios y app más ligera: se han ido las opciones que no hacían nada, y el perfil guarda solo tu nombre y tu apodo.","La proyección de tus inversiones ahora está en Cartera, dentro de Inversiones.","Trade Republic junta por sí solo los movimientos repetidos, sin preguntarte, y no toca los que de verdad son distintos. Inicio ya no repite en «Últimos movimientos» las compras de Trade Republic.","En cada cuenta puedes decir qué parte es tuya (por ejemplo, la mitad de una cuenta conjunta): tu patrimonio y su gráfica cuentan solo esa parte, y los gastos y el presupuesto no cambian.","Recibos: dar de baja un recibo ya no lo hace volver, y el mismo cargo no cuenta dos veces aunque llegue repetido del banco."],"en":["Cleaner Settings and a lighter app: options that did nothing are gone, and your profile now keeps only your name and nickname.","The projection of your investments now lives in Portfolio, inside Investments.","Trade Republic now merges repeated transactions on its own, without asking you, and leaves truly different ones alone. Home no longer repeats Trade Republic purchases in \"Recent transactions\".","On each account you can say how much of it is yours (for example, half of a joint account): your net worth and its chart count only that share, while spending and budget stay the same.","Bills: cancelling a bill no longer brings it back, and the same charge is not counted twice even if the bank sends it repeated."],"ca":["Ajustos més nets i app més lleugera: han desaparegut les opcions que no feien res, i el perfil només guarda el teu nom i el teu àlies.","La projecció de les teves inversions ara és a Cartera, dins d'Inversions.","Trade Republic ajunta per si sol els moviments repetits, sense preguntar-te, i no toca els que de debò són diferents. Inici ja no repeteix a «Darrers moviments» les compres de Trade Republic.","A cada compte pots dir quina part és teva (per exemple, la meitat d'un compte conjunt): el teu patrimoni i la seva gràfica compten només aquesta part, i les despeses i el pressupost no canvien.","Rebuts: donar de baixa un rebut ja no el fa tornar, i el mateix càrrec no compta dues vegades encara que arribi repetit del banc."]},"tandas":[]};
+test("Promoción132 histórico muestra una nota y el historial de producción, retira las cuatro tandas aprobadas y no toca producto, descriptores ni APK",()=>{
+  const tandas=["inicio-recientes-sin-repetidos","cuenta-parte-mia","tr-empareja-sin-preguntar","limpieza-ajustes-perfil"],beta=f=>sourceBeta132(f).replace(/\r\n/g,"\n"),source=f=>sourceProd132(f).replace(/\r\n/g,"\n");
+  const production=JSON.parse(sourceProd128("src/data/release-notes.json")),before=JSON.parse(beta("src/data/release-notes.json"));
+  assert.equal(production.length,229);assert.equal(production[0].v,"4.26.128");assert.deepEqual(production[0].tandas,[]);
+  const panel=before.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id]));
+  assert.deepEqual(panel,[["4.26.132",tandas[0]]],"la beta132 publicada solo lleva su tanda; las otras tres ya estaban retiradas");
+  assert.deepEqual(before.slice(0,6).map(n=>n.v),["4.26.132","4.26.131","4.26.130","4.26.129","4.26.128","4.26.127"],"las seis notas de la ronda");
+  assert.deepEqual(before.slice(6),production.slice(1),"debajo de la ronda, beta ya llevaba el historial de producción126 tal cual");
+  const expected=[expectedProd132,...production];
+  const verify=list=>assert.deepEqual(list,expected,"una nota literal y el historial de producción128 íntegro");
+  const notes=JSON.parse(source("src/data/release-notes.json"));verify(notes);
+  assert.equal(notes.length,230);assert.equal(new Set(notes.map(n=>n.v)).size,notes.length);
+  for(const n of notes)assert.deepEqual(n.tandas,[],n.v+": nunca resucitar /todo");
+  for(const v of ["4.26.131","4.26.130","4.26.129","4.26.127"])assert.equal(notes.some(n=>n.v===v),false,v+": nota intermedia ausente de Novedades");
+  for(const lang of ["es","en","ca"]){
+    assert.ok(notes[0].t[lang]);assert.equal(notes[0].items[lang].length,5,lang+": cinco puntos familiares");
+    // Sin cocina en la nota que lee la familia (AGENTS §4).
+    for(const text of [notes[0].t[lang],...notes[0].items[lang]])assert.equal(/beta|tanda|panel|APK|ordinal|acuse|cursor|token|Edge|servidor|Open Banking|v4\.2|\d+\.\d+\.\d+/i.test(text),false,lang+": sin jerga: "+text);
+  }
+  const resurrected=structuredClone(notes);resurrected[0].tandas=structuredClone(before[0].tandas);assert.throws(()=>verify(resurrected),assert.AssertionError,"la tanda de Inicio, entregada, no vuelve");
+  const intermediate=structuredClone(notes);intermediate.splice(1,0,{...before[1],tandas:[]});assert.throws(()=>verify(intermediate),assert.AssertionError,"la nota 131 no se enseña aparte");
+  const implicit=structuredClone(notes);delete implicit[0].tandas;assert.throws(()=>verify(implicit),assert.AssertionError,"sin la propiedad el panel la resucitaría como /todo");
+  const lost=structuredClone(notes);lost.splice(5,1);assert.throws(()=>verify(lost),assert.AssertionError,"no se pierde ninguna nota de producción");
+  // Lo que sube es lo que se probó: producto, servidor, nativo, descriptores y archivo, idénticos a la beta132.
+  const scopes=JSON.parse(source("scripts/beta-sources.json")),old=JSON.parse(beta("scripts/beta-sources.json"));
+  assert.deepEqual(scopes,old,"ningún descriptor se recorta ni se repina");
+  assert.deepEqual(JSON.parse(source("scripts/beta-archives.json")),JSON.parse(beta("scripts/beta-archives.json")),"archivo y rechazo109 no se repinan");
+  for(const file of JSON.parse(source("src/build-order.json")).map(f=>"src/modules/"+f).concat("src/shell.html","src/build-order.json","public/apk.json","android/app/build.gradle","supabase/functions/_shared/enablebanking.ts","supabase/functions/_shared/myinvestor.ts","supabase/functions/bank-disconnect/index.ts","supabase/functions/bank-sync/index.ts","supabase/functions/myinvestor-keepalive/index.ts","supabase/functions/myinvestor-sync/index.ts"))assert.equal(source(file),beta(file),file+": idéntico a la beta132");
+  // El panel queda vacío y el recibo web sigue entregando las cuatro unidades con su huella de la beta132.
+  const receipt=betaDelivery(betaNotes(notes,source,scopes),source,scopes);
+  assert.deepEqual(receipt.pruebas,{},"ningún guion por probar");
+  assert.equal(betaNotes(notes,source,scopes).flatMap(n=>n.tandas||[]).length,0);
+  for(const id of tandas){
+    const delivered=betaRevision(id,beta,undefined,old[id]);
+    assert.deepEqual(betaRevision(id,source,undefined,scopes[id]),delivered,id+": la huella es la de la beta132, sin revisión nueva que juzgar");
+    assert.equal(receipt.web[id],delivered.web,id+": entrega web independiente del catálogo visible");
+  }
+  assert.equal(receipt.edge,undefined,"el recibo web no declara entregas de servidor");
+});
+
+// Producción 4.26.133 (15/10/2026): sube a producción la tanda aprobada de la beta 133 (scroll-borde-barra: `.app` con `overflow:clip`,
+// vuelve la ola de Android al llegar al borde y la barra de abajo ya no asoma). Producto, servidor y nativo son los de la beta133 byte
+// a byte y lo único que cambia es el catálogo, que la familia ve como UNA nota más el historial de la producción132 (230 notas). La
+// 132 de beta (tanda ya retirada) y las notas 129 a 131 quedan en Git. Sin APK nueva (sigue la 55) ni funciones del servidor que desplegar.
+const expectedProd133={"v":"4.26.133","d":"2026-10-15","t":{"es":"Deslizar hasta el final: vuelve la ola y la barra no asoma","en":"Swiping to the end: the glow is back and the bar stays hidden","ca":"Lliscar fins al final: torna l'ona i la barra no treu el cap"},"items":{"es":["Al llegar al final o al principio de una pantalla deslizando rápido vuelve la ola de Android, y la barra de abajo ya no asoma a medias."],"en":["When you swipe fast to the end or the start of a screen, the Android glow is back and the bottom bar no longer peeks out halfway."],"ca":["En arribar al final o al principi d'una pantalla lliscant ràpid, torna l'ona d'Android i la barra de baix ja no treu el cap a mitges."]},"tandas":[]};
+test("Promoción133 muestra una nota y el historial de producción, retira la tanda aprobada y no toca producto, descriptores ni APK",()=>{
+  const tandas=["scroll-borde-barra","inicio-recientes-sin-repetidos"],beta=f=>sourceBeta133(f).replace(/\r\n/g,"\n"),source=f=>read(f).replace(/\r\n/g,"\n");
+  const production=JSON.parse(sourceProd132("src/data/release-notes.json")),before=JSON.parse(beta("src/data/release-notes.json"));
+  assert.equal(production.length,230);assert.equal(production[0].v,"4.26.132");assert.deepEqual(production[0].tandas,[]);
+  const panel=before.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id]));
+  assert.deepEqual(panel,[["4.26.133",tandas[0]]],"la beta133 publicada solo lleva su tanda; la de la 132 ya estaba retirada");
+  assert.deepEqual(before.slice(0,7).map(n=>n.v),["4.26.133","4.26.132","4.26.131","4.26.130","4.26.129","4.26.128","4.26.127"],"las siete notas de la ronda");
+  assert.deepEqual(before.slice(7),production.slice(2),"debajo de la ronda, beta ya llevaba el historial de producción128 tal cual");
+  const expected=[expectedProd133,...production];
+  const verify=list=>assert.deepEqual(list,expected,"una nota literal y el historial de producción132 íntegro");
+  const notes=JSON.parse(source("src/data/release-notes.json"));verify(notes);
+  assert.equal(notes.length,231);assert.equal(new Set(notes.map(n=>n.v)).size,notes.length);
+  for(const n of notes)assert.deepEqual(n.tandas,[],n.v+": nunca resucitar /todo");
+  for(const v of ["4.26.131","4.26.130","4.26.129","4.26.127"])assert.equal(notes.some(n=>n.v===v),false,v+": nota intermedia ausente de Novedades");
+  for(const lang of ["es","en","ca"]){
+    assert.ok(notes[0].t[lang]);assert.equal(notes[0].items[lang].length,1,lang+": un punto familiar");
+    // Sin cocina en la nota que lee la familia (AGENTS §4).
+    for(const text of [notes[0].t[lang],...notes[0].items[lang]])assert.equal(/beta|tanda|panel|APK|ordinal|acuse|cursor|token|Edge|servidor|Open Banking|v4\.2|\d+\.\d+\.\d+/i.test(text),false,lang+": sin jerga: "+text);
+  }
+  const resurrected=structuredClone(notes);resurrected[0].tandas=structuredClone(before[0].tandas);assert.throws(()=>verify(resurrected),assert.AssertionError,"la tanda del borde, entregada, no vuelve");
+  const intermediate=structuredClone(notes);intermediate.splice(2,0,{...before[2],tandas:[]});assert.throws(()=>verify(intermediate),assert.AssertionError,"la nota 131 no se enseña aparte");
+  const implicit=structuredClone(notes);delete implicit[0].tandas;assert.throws(()=>verify(implicit),assert.AssertionError,"sin la propiedad el panel la resucitaría como /todo");
+  const lost=structuredClone(notes);lost.splice(5,1);assert.throws(()=>verify(lost),assert.AssertionError,"no se pierde ninguna nota de producción");
+  // Lo que sube es lo que se probó: producto, servidor, nativo, descriptores y archivo, idénticos a la beta133.
+  const scopes=JSON.parse(source("scripts/beta-sources.json")),old=JSON.parse(beta("scripts/beta-sources.json"));
+  assert.deepEqual(scopes,old,"ningún descriptor se recorta ni se repina");
+  assert.deepEqual(JSON.parse(source("scripts/beta-archives.json")),JSON.parse(beta("scripts/beta-archives.json")),"archivo y rechazo109 no se repinan");
+  for(const file of JSON.parse(source("src/build-order.json")).map(f=>"src/modules/"+f).concat("src/shell.html","src/build-order.json","public/apk.json","android/app/build.gradle","supabase/functions/_shared/enablebanking.ts","supabase/functions/_shared/myinvestor.ts","supabase/functions/bank-disconnect/index.ts","supabase/functions/bank-sync/index.ts","supabase/functions/myinvestor-keepalive/index.ts","supabase/functions/myinvestor-sync/index.ts"))assert.equal(source(file),beta(file),file+": idéntico a la beta133");
+  // El panel queda vacío y el recibo web sigue entregando las dos unidades con su huella de la beta133.
+  const receipt=betaDelivery(betaNotes(notes,source,scopes),source,scopes);
+  assert.deepEqual(receipt.pruebas,{},"ningún guion por probar");
+  assert.equal(betaNotes(notes,source,scopes).flatMap(n=>n.tandas||[]).length,0);
+  for(const id of tandas){
+    const delivered=betaRevision(id,beta,undefined,old[id]);
+    assert.deepEqual(betaRevision(id,source,undefined,scopes[id]),delivered,id+": la huella es la de la beta133, sin revisión nueva que juzgar");
+    assert.equal(receipt.web[id],delivered.web,id+": entrega web independiente del catálogo visible");
+  }
+  assert.equal(receipt.edge,undefined,"el recibo web no declara entregas de servidor");
 });
 
 // Catálogo cerrado: desde la promoción126 se lee de la beta126 publicada (d8d2624c), que es la última con tandas en el panel.

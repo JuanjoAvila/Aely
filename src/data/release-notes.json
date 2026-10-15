@@ -1,7 +1,7 @@
 [
   {
     "v": "4.26.133",
-    "d": "2026-10-14",
+    "d": "2026-10-15",
     "t": {
       "es": "Deslizar hasta el final: vuelve la ola y la barra no asoma",
       "en": "Swiping to the end: the glow is back and the bar stays hidden",
@@ -9,7 +9,7 @@
     },
     "items": {
       "es": [
-        "Al llegar al final o al principio de una pantalla deslizando rápido, vuelve la ola de Android y la barra de abajo ya no asoma a medias."
+        "Al llegar al final o al principio de una pantalla deslizando rápido vuelve la ola de Android, y la barra de abajo ya no asoma a medias."
       ],
       "en": [
         "When you swipe fast to the end or the start of a screen, the Android glow is back and the bottom bar no longer peeks out halfway."
@@ -18,111 +18,37 @@
         "En arribar al final o al principi d'una pantalla lliscant ràpid, torna l'ona d'Android i la barra de baix ja no treu el cap a mitges."
       ]
     },
-    "tandas": [
-      {
-        "id": "scroll-borde-barra",
-        "t": {
-          "es": "Deslizar hasta el final: vuelve la ola y la barra no asoma",
-          "en": "Swiping to the end: the glow is back and the bar stays hidden",
-          "ca": "Lliscar fins al final: torna l'ona i la barra no treu el cap"
-        },
-        "items": {
-          "es": [
-            "1. En Gastos, con \"Todo\", baja un poco para que se esconda la barra y tira fuerte hacia abajo hasta el final: sale la ola de Android y no asoma nada de la barra. Sigue tirando hacia abajo: la barra sigue sin salir.",
-            "2. Desde el final, sube con decisión hasta arriba del todo en Gastos, Inicio y Cartera: la barra aparece al subir, sin frenazo arriba y con la ola al llegar al tope."
-          ],
-          "en": [
-            "1. In Spending, with \"All\", scroll down a little so the bar hides, then pull hard down to the end: the Android glow shows and nothing of the bar peeks out. Keep pulling down: the bar still stays hidden.",
-            "2. From the end, swipe up firmly to the very top in Spending, Home and Portfolio: the bar appears as you go up, with no abrupt stop at the top and with the glow when you reach the top."
-          ],
-          "ca": [
-            "1. A Despeses, amb \"Tot\", baixa una mica perquè s'amagui la barra i estira fort cap avall fins al final: surt l'ona d'Android i no treu el cap res de la barra. Continua estirant cap avall: la barra continua sense sortir.",
-            "2. Des del final, puja amb decisió fins a dalt de tot a Despeses, Inici i Cartera: la barra apareix en pujar, sense frenada a dalt i amb l'ona en arribar al tope."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.132",
     "d": "2026-10-14",
     "t": {
-      "es": "Inicio: los últimos movimientos ya no repiten las compras de Trade Republic",
-      "en": "Home: recent transactions no longer repeat Trade Republic purchases",
-      "ca": "Inici: els darrers moviments ja no repeteixen les compres de Trade Republic"
+      "es": "Una app más ligera, Trade Republic más cómodo y cuentas compartidas",
+      "en": "A lighter app, easier Trade Republic and shared accounts",
+      "ca": "Una app més lleugera, Trade Republic més còmode i comptes compartits"
     },
     "items": {
       "es": [
-        "Inicio: «Últimos movimientos» enseña cada compra de Trade Republic una sola vez, con el nombre del comercio, sin una segunda fila genérica del mismo importe. También se arregla en la ficha de cada cuenta y en el resumen del hogar."
+        "Ajustes más limpios y app más ligera: se han ido las opciones que no hacían nada, y el perfil guarda solo tu nombre y tu apodo.",
+        "La proyección de tus inversiones ahora está en Cartera, dentro de Inversiones.",
+        "Trade Republic junta por sí solo los movimientos repetidos, sin preguntarte, y no toca los que de verdad son distintos. Inicio ya no repite en «Últimos movimientos» las compras de Trade Republic.",
+        "En cada cuenta puedes decir qué parte es tuya (por ejemplo, la mitad de una cuenta conjunta): tu patrimonio y su gráfica cuentan solo esa parte, y los gastos y el presupuesto no cambian.",
+        "Recibos: dar de baja un recibo ya no lo hace volver, y el mismo cargo no cuenta dos veces aunque llegue repetido del banco."
       ],
       "en": [
-        "Home: \"Latest activity\" shows each Trade Republic purchase once, with the merchant name, without a second generic row for the same amount. This is also fixed on each account page and in the household summary."
+        "Cleaner Settings and a lighter app: options that did nothing are gone, and your profile now keeps only your name and nickname.",
+        "The projection of your investments now lives in Portfolio, inside Investments.",
+        "Trade Republic now merges repeated transactions on its own, without asking you, and leaves truly different ones alone. Home no longer repeats Trade Republic purchases in \"Recent transactions\".",
+        "On each account you can say how much of it is yours (for example, half of a joint account): your net worth and its chart count only that share, while spending and budget stay the same.",
+        "Bills: cancelling a bill no longer brings it back, and the same charge is not counted twice even if the bank sends it repeated."
       ],
       "ca": [
-        "Inici: «Últims moviments» ensenya cada compra de Trade Republic només una vegada, amb el nom del comerç, sense una segona fila genèrica del mateix import. També s'arregla a la fitxa de cada compte i al resum de la llar."
-      ]
-    },
-    "tandas": []
-  },
-  {
-    "v": "4.26.131",
-    "d": "2026-10-14",
-    "t": {
-      "es": "Cuentas compartidas: cuenta solo tu parte",
-      "en": "Shared accounts: count only your share",
-      "ca": "Comptes compartits: compta només la teva part"
-    },
-    "items": {
-      "es": [
-        "Cartera: ahora puedes decir qué parte de una cuenta es tuya (por ejemplo, la mitad de una cuenta conjunta). Tu patrimonio y su gráfica cuentan solo esa parte; los gastos y el presupuesto no cambian. Si una cuenta compartida tiene movimientos antiguos que no dicen de qué cuenta salieron, su ficha te pregunta si son de esa cuenta; puedes cambiarlo cuando quieras."
-      ],
-      "en": [
-        "Portfolio: you can now set how much of an account is yours (for example, half of a joint account). Your net worth and its chart count only that share; spending and budget stay the same. If a shared account has older transactions that don't say which account they came from, its page asks whether they belong to it; you can change it any time."
-      ],
-      "ca": [
-        "Cartera: ara pots dir quina part d'un compte és teva (per exemple, la meitat d'un compte conjunt). El teu patrimoni i la seva gràfica compten només aquesta part; les despeses i el pressupost no canvien. Si un compte compartit té moviments antics que no diuen de quin compte van sortir, la seva fitxa et pregunta si són d'aquest compte; ho pots canviar quan vulguis."
-      ]
-    },
-    "tandas": []
-  },
-  {
-    "v": "4.26.130",
-    "d": "2026-10-14",
-    "t": {
-      "es": "Trade Republic: los repetidos se juntan solos",
-      "en": "Trade Republic: duplicates now match on their own",
-      "ca": "Trade Republic: els repetits s’ajunten sols"
-    },
-    "items": {
-      "es": [
-        "Trade Republic ya no te pregunta si un movimiento está repetido: cuando la compra llega por el aviso y por el banco, la app las junta sola y cuenta una. Si alguna vez junta dos que eran distintas, puedes separarlas desde el propio movimiento."
-      ],
-      "en": [
-        "Trade Republic no longer asks whether a transaction is a duplicate: when a purchase arrives both as a notification and from the bank, the app matches them on its own and counts one. If it ever matches two that were different, you can separate them from the transaction itself."
-      ],
-      "ca": [
-        "Trade Republic ja no et pregunta si un moviment està repetit: quan la compra arriba per l’avís i pel banc, l’app les ajunta sola i en compta una. Si mai n’ajunta dues que eren diferents, les pots separar des del propi moviment."
-      ]
-    },
-    "tandas": []
-  },
-  {
-    "v": "4.26.129",
-    "d": "2026-10-14",
-    "t": {
-      "es": "Ajustes más limpios y app más ligera",
-      "en": "Cleaner Settings and a lighter app",
-      "ca": "Ajustos més nets i app més lleugera"
-    },
-    "items": {
-      "es": [
-        "Más limpio y más ligero: se han ido de Ajustes opciones que no hacían nada (ordenar pestañas, actualizar precios al abrir, ocultar bloques) y el perfil guarda solo tu nombre y tu apodo; el resto de datos personales se borra. La proyección de inversiones ahora está en Cartera, dentro de Inversiones."
-      ],
-      "en": [
-        "Lighter and tidier: Settings options that did nothing are gone (reorder tabs, update prices on open, hide blocks), and your profile now keeps only your name and nickname; the other personal details are erased. The investment projection now lives in Portfolio, inside Investments."
-      ],
-      "ca": [
-        "Més net i més lleuger: han desaparegut d’Ajustos opcions que no feien res (ordenar pestanyes, actualitzar preus en obrir, amagar blocs) i el perfil només guarda el teu nom i el teu sobrenom; la resta de dades personals s’esborra. La projecció d’inversions ara és a Cartera, dins d’Inversions."
+        "Ajustos més nets i app més lleugera: han desaparegut les opcions que no feien res, i el perfil només guarda el teu nom i el teu àlies.",
+        "La projecció de les teves inversions ara és a Cartera, dins d'Inversions.",
+        "Trade Republic ajunta per si sol els moviments repetits, sense preguntar-te, i no toca els que de debò són diferents. Inici ja no repeteix a «Darrers moviments» les compres de Trade Republic.",
+        "A cada compte pots dir quina part és teva (per exemple, la meitat d'un compte conjunt): el teu patrimoni i la seva gràfica compten només aquesta part, i les despeses i el pressupost no canvien.",
+        "Rebuts: donar de baixa un rebut ja no el fa tornar, i el mateix càrrec no compta dues vegades encara que arribi repetit del banc."
       ]
     },
     "tandas": []
@@ -131,55 +57,31 @@
     "v": "4.26.128",
     "d": "2026-10-14",
     "t": {
-      "es": "Inicio: la comparación con el mes pasado cuadra con la gráfica",
-      "en": "Home: the comparison with last month now matches the chart",
-      "ca": "Inici: la comparació amb el mes passat quadra amb la gràfica"
+      "es": "Bancos más fiables y un Inicio que compara bien",
+      "en": "More reliable banks, and a Home that compares properly",
+      "ca": "Bancs més fiables i un Inici que compara bé"
     },
     "items": {
       "es": [
-        "En Inicio, la frase bajo tu patrimonio compara hoy con el mismo día del mes pasado (o de hace 3 meses), igual que los dos extremos de la gráfica.",
-        "El dinero que mandas a tu bróker ya no desaparece de la gráfica mientras llega.",
-        "Los intereses de la hipoteca ya no se cuentan como si rebajaran la deuda."
-      ],
-      "en": [
-        "On Home, the line under your net worth compares today with the same day last month (or 3 months ago), just like the two ends of the chart.",
-        "Money you send to your broker no longer drops out of the chart while it arrives.",
-        "Mortgage interest is no longer counted as if it paid the loan down."
-      ],
-      "ca": [
-        "A Inici, la frase sota el teu patrimoni compara avui amb el mateix dia del mes passat (o de fa 3 mesos), igual que els dos extrems de la gràfica.",
-        "Els diners que envies al teu bròquer ja no desapareixen de la gràfica mentre arriben.",
-        "Els interessos de la hipoteca ja no es compten com si rebaixessin el deute."
-      ]
-    },
-    "tandas": []
-  },
-  {
-    "v": "4.26.127",
-    "d": "2026-10-14",
-    "t": {
-      "es": "Bancos: se reconectan solos cuando pueden y avisan cuando no",
-      "en": "Banks: they reconnect on their own when they can and tell you when they can't",
-      "ca": "Bancs: es reconnecten sols quan poden i avisen quan no"
-    },
-    "items": {
-      "es": [
-        "Un fallo pasajero del banco o de MyInvestor ya no hace que la app dé la conexión por caducada: reintenta sola y solo te pide reconectar cuando de verdad hace falta.",
-        "Si MyInvestor no consigue recuperar el acceso, la app te lo avisa con claridad en vez de decir que todo sigue bien.",
+        "Los bancos se reconectan solos cuando pueden: un fallo pasajero del banco o de MyInvestor ya no hace que la app dé la conexión por caducada, y solo te pide reconectar cuando de verdad hace falta.",
+        "Si MyInvestor no consigue recuperar el acceso, o el banco entrega los movimientos a medias, la app te lo explica con claridad y conserva lo que ya tenías.",
         "Al desconectar un banco, el permiso se retira de verdad en el banco, no solo en la app.",
-        "Si el banco entrega los movimientos a medias, se conserva lo que ya tenías y la app te explica qué ha pasado y qué puedes hacer."
+        "En Inicio, la frase bajo tu patrimonio compara hoy con el mismo día del mes pasado (o de hace 3 meses), igual que los dos extremos de la gráfica.",
+        "El dinero que mandas a tu bróker ya no desaparece de la gráfica mientras llega, y los intereses de la hipoteca ya no se cuentan como si rebajaran la deuda."
       ],
       "en": [
-        "A passing failure at the bank or at MyInvestor no longer makes the app treat the connection as expired: it retries on its own and only asks you to reconnect when it is really needed.",
-        "If MyInvestor cannot get access back, the app tells you clearly instead of saying everything is fine.",
+        "Banks reconnect on their own when they can: a passing failure at the bank or at MyInvestor no longer makes the app treat the connection as expired, and it only asks you to reconnect when it is really needed.",
+        "If MyInvestor cannot get access back, or the bank hands over only part of the transactions, the app explains it clearly and keeps what you already had.",
         "When you disconnect a bank, the permission is really withdrawn at the bank, not just in the app.",
-        "If the bank hands over only part of the transactions, what you already had is kept and the app explains what happened and what you can do."
+        "On Home, the line under your net worth compares today with the same day last month (or 3 months ago), just like the two ends of the chart.",
+        "Money you send to your broker no longer drops out of the chart while it arrives, and mortgage interest is no longer counted as if it paid the loan down."
       ],
       "ca": [
-        "Un error passatger del banc o de MyInvestor ja no fa que l'app doni la connexió per caducada: reintenta sola i només et demana reconnectar quan de debò cal.",
-        "Si MyInvestor no aconsegueix recuperar l'accés, l'app t'ho avisa amb claredat en lloc de dir que tot continua bé.",
+        "Els bancs es reconnecten sols quan poden: un error passatger del banc o de MyInvestor ja no fa que l'app doni la connexió per caducada, i només et demana reconnectar quan de debò cal.",
+        "Si MyInvestor no aconsegueix recuperar l'accés, o el banc lliura els moviments a mitges, l'app t'ho explica amb claredat i conserva el que ja tenies.",
         "En desconnectar un banc, el permís es retira de debò al banc, no només a l'app.",
-        "Si el banc lliura els moviments a mitges, es conserva el que ja tenies i l'app t'explica què ha passat i què pots fer."
+        "A Inici, la frase sota el teu patrimoni compara avui amb el mateix dia del mes passat (o de fa 3 mesos), igual que els dos extrems de la gràfica.",
+        "Els diners que envies al teu bròquer ja no desapareixen de la gràfica mentre arriben, i els interessos de la hipoteca ja no es compten com si rebaixessin el deute."
       ]
     },
     "tandas": []

@@ -1,4 +1,14 @@
-## [4.26.133] — 2026-10-14 · Deslizar hasta el final: vuelve la ola y la barra no asoma
+## [4.26.133] — 2026-10-15 · Promoción: la ola de Android y la barra de abajo
+
+- **Qué sube.** La beta 4.26.133 (`52e1957d`) sobre la producción 4.26.132 (`998c57f5`): `.app` lleva `overflow:clip`, con lo que el documento deja de poder desplazarse 30 px con la barra inferior escondida; el fling hasta el borde vuelve a dar la ola de Android y la barra no asoma a medias. Producto, servidor y nativo son los de la beta 133 byte a byte (guardián `Promoción133`).
+- **Veredicto del panel.** El dueño aprobó desde el móvil la tanda `scroll-borde-barra`. La de la 132 (`inicio-recientes-sin-repetidos`) ya estaba retirada en la beta.
+- **Novedades.** Una sola nota familiar es/en/ca con un punto más las 230 notas que ya tenía producción, todas con `tandas:[]`.
+- **Panel.** Descriptores y huellas se conservan sin repinar y el recibo web sigue entregando la unidad. `Catálogo133`, `Retiro133` y `Promoción132` pasan a histórico (leen su commit inmutable) y `e2e/revisar-beta.spec.mjs` cambia el caso de la beta por `promoción133` (es/en/ca): 231 versiones en orden y panel sin nada que pedir.
+- **Tests de main que la candidata conserva.** `e2e/cartera-bienes-toque.spec.mjs` (cierre del día con el calendario de Madrid) y las barras invertidas de las expresiones del e2e de promoción, ya arreglados en main tras la 132: la candidata sale de la beta y los trae para que el cierre no los pierda en silencio.
+- **Sin APK ni despliegue.** `android/` y `public/apk.json` no cambian: sigue la APK 4.26.117 / 55. No hay funciones Edge ni migraciones.
+
+### Corte de beta133 anterior a la promoción (histórico, solo web)
+
 
 - **Fallo.** Con la barra inferior escondida, un fling hasta el fondo se paraba en seco, sin la ola nativa de Android, y dejaba asomar media barra por abajo.
 - **Causa.** Desde la 4.26.97 la barra escondida lleva `overflow-clip-margin:30px` (505fbb6c) para que el + salga entero. Esos 30 px de pintado cuentan como desbordamiento y el `<html>` pasaba a poder bajar 30 px solo con la barra oculta. Al llegar al fondo con inercia el gesto saltaba del host de scroll a la raíz, la subía esos 30 px y se paraba (`html` lleva `overscroll-behavior:none`, así que no había ola). Medido A/B con toques por CDP: 4.26.96 raíz 0/0, 4.26.97…4.26.132 raíz 30/30.
@@ -6,7 +16,17 @@
 - **Prueba.** `e2e/rebote-barra-inferior.spec.mjs`: un fling real por CDP hasta el fondo con la barra escondida exige raíz sin desplazamiento posible, barra sin moverse y sin revelarse (falla sin el arreglo).
 - **Panel.** Tanda `scroll-borde-barra` (dos pasos), única del panel; `inicio-recientes-sin-repetidos` (132), aprobada por el dueño, sale con `tandas:[]`. `Catálogo132` y `Retiro132` pasan a histórico (leen 7865111b) y nacen `Catálogo133` y `Retiro133`.
 
-## [4.26.132] — 2026-10-14 · Inicio: los últimos movimientos ya no repiten las compras de Trade Republic
+
+## [4.26.132] — 2026-10-14 · Promoción completa
+
+- **Qué sube.** La ronda de beta 129 a 132 (`7865111b`) sobre la producción 4.26.128 (`2358df21`): limpieza de Ajustes y perfil con la Proyección en Cartera (129), emparejado automático de Trade Republic sin preguntar (130), «Parte mía» por cuenta (131) y «Últimos movimientos» de Inicio sin la fila oculta del banco (132). `main` es la beta 128 más su catálogo (`git diff 24d0d463 2358df21` solo toca catálogo, notas, guardianes, e2e de revisar-beta y docs): la rama nace de la cabeza de beta y no hay código de producción que reconciliar.
+- **Veredictos del panel.** El dueño aprobó desde el móvil las cuatro tandas: `limpieza-ajustes-perfil`, `tr-empareja-sin-preguntar`, `cuenta-parte-mia` e `inicio-recientes-sin-repetidos`. Esta promoción no cambia ni un byte de producto, servidor ni nativo respecto a la beta 132 (guardián `Promoción132`).
+- **Novedades.** Una sola nota familiar es/en/ca con cinco puntos más las 229 notas que ya tenía producción, todas con `tandas:[]`. Las notas 129 a 131 de beta no llegan a Novedades: quedan en Git y en los oráculos `expected129` a `expected132` de `tests/beta-sources.test.mjs`.
+- **Panel.** Las tandas salen del catálogo; sus descriptores y huellas se conservan sin repinar y el recibo web las sigue entregando. `Catálogo129` a `Catálogo132` y `Retiro130` y `Retiro132` pasan a histórico (leen su commit inmutable) y `e2e/revisar-beta.spec.mjs` cambia el caso de la beta por `promoción132` (es/en/ca): 230 versiones en orden y panel sin nada que pedir.
+- **Recibos entre móviles.** La rama `claude/recibos-bajas-y-union` (`747fb3e0`, `09e27c9c`, `5604231f`, `24bfb4e5`) ya estaba dentro de la 4.26.130: la trajo la PR 230 de Trade Republic como `65ac6203`, `a37c9248`, `a7a707f1` y `a921008a`. Un recibo dado de baja no vuelve por un estado antiguo de otro móvil y el mismo cargo no cuenta dos veces si llega repetido; `docs/TESTING.md` ya no la marca «sin integrar».
+- **Sin APK ni despliegue.** `android/` y `public/apk.json` no cambian: sigue la APK 4.26.117 / 55. No hay funciones Edge ni migraciones.
+
+### Corte de beta132 anterior a la promoción (histórico, solo web)
 
 - **Fallo.** El dueño vio en la beta 4.26.131 que «Últimos movimientos» de Inicio enseñaba, junto a la compra con comercio, la fila oculta del banco de la pareja automática de Trade Republic («Movimiento · Otros», mismo importe). Gastos la esconde con `if(e.autoGemelo||expenseIsTombstoned(...)) continue;`; el filtro de `recent` en `03-tab-dash.js` solo quitaba las lápidas.
 - **Arreglo.** `recent` excluye `e.autoGemelo` (misma regla que Gastos). Auditadas el resto de listas y sumas que recorren `expenses`: la lista «últimos movimientos» de la ficha de cuenta (`gastosCuenta`, `07-tab-patri-fijos.js`) pintaba también la fila oculta y ahora la excluye; la foto del hogar (`buildHouseholdSnapshot`, `13-hogar.js`) sumaba el gasto del mes sin mirar `possibleDup`, así que la fila oculta (que lleva `possibleDup`) contaba el importe dos veces en lo que ve la pareja, y ahora la salta. Las cifras de Inicio, Gastos y el widget pasan por `expenseCountsCash`/`expenseCountsBudget`, que ya descartan `possibleDup`: cuentan una vez (el e2e comprueba 488 € de 500 € con una pareja de 12 €). El ranking de categorías para el teclado de Apuntar cuenta la fila oculta, pero solo ordena sugerencias y no se toca.
