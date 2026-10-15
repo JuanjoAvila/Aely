@@ -18049,13 +18049,15 @@ function usePlanEditSave({state,set,field,item,onClose,showToast}){
     if(sending.current) return;
     if(result.error){ setError(result.error); return; }
     const next=result.item;
-    sending.current=true; const response={error:false}; outcome.current=response; setError(""); setPending(next);
-    set(function(s){
+    sending.current=true; const response={error:false}; outcome.current=response; setError("");
+    // Pendiente y escritura comparten prioridad: un Guardar urgente se confirmaba antes de
+    // rebasarse sobre una corrección ya en cola y desmontaba la hoja antes de poder avisar.
+    React.startTransition(function(){ setPending(next); set(function(s){
       const changed=planEditCommit(s,field,item,next);
       const rows=(changed[field]||[]).filter(function(x){ return x.id===item.id; });
       response.error=rows.length!==1||!planEditSame(rows[0],next);
       return changed;
-    });
+    }); });
   };
   return {save:save,error:error,pending:!!pending};
 }
