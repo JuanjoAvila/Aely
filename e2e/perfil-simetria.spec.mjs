@@ -127,7 +127,16 @@ test("tiro, no llega, y vuelvo a tirar: el segundo intento NO se ignora", async 
  * hacia abajo solo scrolleaba y al soltar el perfil seguía abierto. Tres rondas de arreglos
  * pasaron por encima de esto (2026-07-26). */
 test.describe("con el panel scrolleado", () => {
-  const scrollear = (page, y) => page.locator(".profile-pull").evaluate((el, v) => { el.scrollTop = v; }, y);
+  /* El perfil ya no mide ~1.680 px (14/10: solo quedan nombre y apodo y apenas hay nada que
+     scrollear), pero el gesto sobre un panel scrolleado sigue siendo código vivo. Se le da altura
+     con un separador de prueba para que el escenario exista igual que antes. */
+  const scrollear = (page, y) => page.locator(".profile-pull").evaluate((el, v) => {
+    if (el.scrollHeight < el.clientHeight + v + 400) {
+      const s = document.createElement("div"); s.style.height = "1500px"; s.setAttribute("data-test-spacer", "1");
+      el.appendChild(s);
+    }
+    el.scrollTop = v;
+  }, y);
 
   test("arrastrar largo desde el medio: el scroll llega al tope y el cierre toma el relevo", async ({ page }) => {
     const cdp = await app(page);

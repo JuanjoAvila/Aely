@@ -279,7 +279,21 @@ const PRESUPUESTO = {
   // producción 126: medida tras el build, sello 4.26.127.99999 y reserva de 95 B: 1.388.690 B crudo /
   // 381.565 B gzip, +3.166 / +949 B sobre la medida de la 125, que la 126 apenas movió (nota y guion en tres idiomas, avisos nuevos de
   // descarga incompleta y el extracto previo en flattenBankTx). 1357 KiB es el mínimo (quedan 878 B).
-  minificado: 1357 * 1024,
+  // Integración 4.26.128 (14/10), Inicio compara con el mismo día del mes pasado (tránsito a un bróker e
+  // intereses de la deuda en la serie), sobre la beta 127: medida tras el build, sello 4.26.128.99999 y
+  // reserva de 95 B: 1.391.829 B crudo / 382.531 B gzip, +3.139 / +966 B sobre la 127. 1360 KiB es el mínimo (quedan 811 B).
+  // Integración 4.26.129 (14/10), limpieza de código muerto y de Ajustes, sobre la beta 128: medida tras el build,
+  // sello 4.26.129.99999 y reserva de 95 B: 1.283.806 B crudo / 356.590 B gzip, −108.023 / −25.941 B sobre la 128. El tope BAJA con la
+  // medida para que el hueco no lo ocupe otra entrega sin declararlo: 1254 KiB es el mínimo (quedan 290 B).
+  // Integración 4.26.130 (14/10), el emparejado automático de Trade Republic (PR 230: emparejar, separar y volver a unir; lápidas y
+  // edición ordenada contra la nube; recibos con baja y unión) sobre la beta 129: medida tras el build, sello 4.26.130.99999 y reserva
+  // de 95 B: 1.306.899 B crudo / 363.055 B gzip, +23.093 / +6.465 B sobre la 129. El tope SUBE porque la tanda añade lógica de producto
+  // (nada se recorta para caber, mandato del dueño 11/10): 1277 KiB es el mínimo (quedan 749 B).
+  // Integración 4.26.131 (14/10), la parte mía de cada cuenta (porcentaje por cuenta en Cartera, patrimonio y gráfica, la cuenta de cada
+  // movimiento del banco y su decisión sobre los viejos sin cuenta) sobre la beta 130: medida tras el build, sello 4.26.131.99999 y reserva
+  // de 95 B: 1.317.413 B crudo / 365.878 B gzip, +10.514 / +2.823 B sobre la 130. El tope SUBE porque la tanda añade lógica de producto
+  // (nada se recorta para caber, mandato del dueño 11/10): 1287 KiB es el mínimo (quedan 475 B).
+  minificado: 1287 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -304,7 +318,11 @@ const PRESUPUESTO = {
   // Integración 4.26.124: 379.773 B gzip, 161 B menos que la 123. El mínimo vuelve a 371 KiB (quedan 131 B).
   // Integración 4.26.125: 380.616 B gzip, 712 B sobre 371 KiB. Mínimo medido: 372 KiB (quedan 312 B).
   // Integración 4.26.127: 381.565 B gzip, 637 B sobre el tope anterior de 372 KiB. Mínimo medido: 373 KiB (quedan 387 B).
-  gzip: 373 * 1024,
+  // Integración 4.26.128: 382.531 B gzip, 955 B sobre el tope anterior de 373 KiB. Mínimo medido: 374 KiB (quedan 445 B).
+  // Integración 4.26.129: 356.590 B gzip, 25.941 B menos que la 128. Mínimo medido: 349 KiB (quedan 786 B).
+  // Integración 4.26.130: 363.055 B gzip, 6.465 B más que la 129. Mínimo medido: 355 KiB (quedan 465 B).
+  // Integración 4.26.131: 365.878 B gzip, 2.823 B más que la 130. Mínimo medido: 358 KiB (quedan 714 B).
+  gzip: 358 * 1024,
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 

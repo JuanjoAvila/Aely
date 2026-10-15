@@ -478,43 +478,32 @@ test("Inversiones v4: Reducir animaciones de Aely también evita el count-up y e
   await expect(page.locator('[data-rm-probe="1"]')).toHaveCSS("display","none");
 });
 
-test("Ajustes › Dinero conserva actualización automática y proyección", async ({ page }) => {
+test("La Proyección vive en Cartera › Inversiones y ya no está en Ajustes", async ({ page }) => {
   await seedLoggedInDashboard(page, { investments, settings: { autoPrices: false, theme: "green" } });
   await page.goto("/");
   await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
+  await page.waitForFunction(() => !document.getElementById("mc-load"));
   await dismissNews(page);
+
+  // Ajustes › Dinero: ni Proyección ni «Actualizar precios USD al abrir» (esta última no hacía nada).
   await page.evaluate(() => window.dispatchEvent(new CustomEvent("mc-open-settings")));
   const settings = page.locator(".settings-push.open");
   await expect(settings).toBeVisible();
-  await settings.locator("button.set-row").filter({ hasText: /Dinero|Money/i }).first().click();
+  await settings.locator("button.set-row").filter({ hasText: /Dinero|Money|Diners/i }).first().click();
+  await expect(settings.locator("button.set-row").filter({ hasText: /Proyección|Projection|Projecció/i })).toHaveCount(0);
+  await expect(settings.locator("button.set-row").filter({ hasText: /Actualizar precios USD|Update USD prices|Actualitza preus USD/i })).toHaveCount(0);
+  await expect(settings.locator("[data-inv-settings-projection]")).toHaveCount(0);
+  await settings.locator(".settings-push-h .back").first().click();
+  await expect(page.locator(".settings-push.open")).toHaveCount(0);
 
-  const automatic = settings.locator("button.set-row").filter({ hasText: /Actualizar precios USD al abrir|Update USD prices on app open|Actualitza preus USD/i });
-  await expect(automatic).toBeVisible();
-  await automatic.click();
-  await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("micartera_v3")).settings.autoPrices)).toBe(true);
-
-  const projection = settings.locator("button.set-row").filter({ hasText: /Proyección|Projection|Projecció/i });
-  await expect(projection).toBeVisible();
-  await projection.click();
-  await expect(settings.locator("[data-inv-settings-projection]")).toBeVisible();
-  await expect(settings.locator("[data-inv-settings-projection] input[type=range]")).toBeVisible();
-});
-
-test("NO-GO Inversiones conserva el ancho completo de su gráfica",async({page})=>{
-  await seedLoggedInDashboard(page,{investments,invHistory:[{d:"2026-09-01",v:1000},{d:"2026-09-26",v:1500}]});
-  await page.goto("/");await page.waitForFunction(()=>!document.getElementById("mc-load"));await dismissNews(page);
-  await page.locator('.botnav-tab[data-tour="cartera"]').click();
-  await page.getByRole("button",{name:/Ver todas tus inversiones|See all your investments|Veure totes les inversions/i}).click();
-  // La hija fullMode no monta el gráfico legado. El contrato de su componente real
-  // se mide con el CSS servido, sin añadir al producto una puerta que no se ha pedido.
-  await page.evaluate(()=>{
-    const host=document.createElement("div");host.dataset.sparkCompat="1";host.style.width="320px";
-    document.querySelector("[data-inv-screen]").appendChild(host);
-    ReactDOM.createRoot(host).render(React.createElement(SparklineInv,{hist:mcLoadRaw(mcStateKey()).invHistory}));
-  });
-  const spark=page.locator("[data-spark-compat] .spark");await expect(spark).toBeVisible();
-  const widths=await spark.evaluate(el=>({svg:el.getBoundingClientRect().width,parent:el.parentElement.clientWidth-parseFloat(getComputedStyle(el.parentElement).paddingLeft)-parseFloat(getComputedStyle(el.parentElement).paddingRight)}));
-  expect(Math.abs(widths.svg-widths.parent)).toBeLessThan(2);
+  // Cartera › Inversiones › Ver todas: la ficha plegada se abre y trae el simulador.
+  await openInvestments(page);
+  const card = page.locator("[data-inv-projection-card]");
+  await expect(card).toBeVisible();
+  await expect(page.locator("[data-inv-projection]")).toHaveCount(0);
+  await card.locator("button.v4-mov").click();
+  await expect(page.locator("[data-inv-projection]")).toBeVisible();
+  await expect(page.locator("[data-inv-projection] input[type=range]").first()).toBeVisible();
 });
 
 test("Inversiones v4: apertura medida con CPU x6", async ({ page, browserName }) => {

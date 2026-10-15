@@ -723,13 +723,14 @@ function InvestmentRewards({state,set}){
   );
 }
 
-function Investments({state, set, fetchPrices, pricing, syncInv, v4Embed, toolsMode, fullMode, showToast}){
+function Investments({state, set, fetchPrices, pricing, syncInv, totals, fullMode, showToast}){
   const fx=fxRateOf("USD",state);   // USD→EUR (legacy + display toggle); GBP/CHF van en state.fxRates
   const [editing,setEditing]=useState(false);
   const [showCost,setShowCost]=useState(false);
   const [draft,setDraft]=useState({});
-  const [brokerOpen,setBrokerOpen]=useState({});   // qué bróker tiene las posiciones desplegadas (solo v4Embed)
+  const [brokerOpen,setBrokerOpen]=useState({});   // qué bróker tiene las posiciones desplegadas (Cartera)
   const [editBroker,setEditBroker]=useState(null);
+  const [projOpen,setProjOpen]=useState(false);   // Proyección plegada hasta que se pide (Ver todas › Proyección)
   const [manualAdd,setManualAdd]=useState(null);
   const manualAddRef=useRef(null);
   const manualNameRef=useRef(null);
@@ -741,16 +742,7 @@ function Investments({state, set, fetchPrices, pricing, syncInv, v4Embed, toolsM
   const notes=useRef([]);
   const refreshBefore=useRef(null);
   const refreshCheckRef=useRef(0);
-  const didAuto=useRef(false);
   const hasTickers=state.investments.some(function(i){ return i.ticker; });
-  const autoOn=state.settings && state.settings.autoPrices;
-  // Herramientas: sin lista de brókers duplicada, sin editar a mano / USD / auto-precios / líquido vendido
-  // (feedback 2026-07-17). Las acciones solo entran por integración.
-  const toolsOnly=!!toolsMode;
-  useEffect(function(){
-    if(autoOn && hasTickers && !didAuto.current && !toolsOnly && !v4Embed && !fullMode){ didAuto.current=true; fetchPrices(true); }
-  },[]);
-  const toggleAuto=()=> set(s=>Object.assign({},s,{settings:Object.assign({},s.settings,{autoPrices:!(s.settings&&s.settings.autoPrices)})}));
   // El selector ofrece los tres brókers soportados y cualquier bróker que YA exista en la
   // cartera. No toma cuentas bancarias ni inventa entidades: una posición importada con otro
   // id debe seguir siendo editable, pero no aparentamos que Aely conecte un cuarto bróker.
@@ -843,11 +835,6 @@ function Investments({state, set, fetchPrices, pricing, syncInv, v4Embed, toolsM
   const byBroker={};
   state.investments.forEach(function(i){ const v=invValueEur(i, state); const c=invCostEur(i, state); const o=byBroker[i.ent]||(byBroker[i.ent]={c:0,v:0}); o.c+=c||0; o.v+=v||0; });
   // rendimiento por posición (en €), ordenado de mejor a peor
-  const posList=state.investments.filter(function(i){ return invValueEur(i,state)!=null&&invCostEur(i,state)!=null; }).map(function(i){ const v=invValueEur(i, state); const c=invCostEur(i, state); return {id:i.id,name:i.name,ent:i.ent,v:v,c:c,gain:v-c,pl:c>0?(v-c)/c*100:0}; }).sort(function(a,b){ return b.gain-a.gain; });
-  const maxAbsGain=Math.max.apply(null,posList.map(function(p){return Math.abs(p.gain);}).concat([1]));
-  const best=posList[0], worst=posList[posList.length-1];
-  const invHist=(state.invHistory||[]);
-  const evoChg=invPeriodChange(invHist);
   // Desglose por tipo de activo (clasificación por id conocido, con respaldo por nombre)
   const TYPE_BY_ID={ "0mrszi5":"materias", "7zjaw0y":"etf", "0itlr5k":"fondo" };
   const invType=function(it){ if(TYPE_BY_ID[it.id]) return TYPE_BY_ID[it.id]; if(/oro|xau|materia|plata/i.test(it.name)) return "materias"; if(/etf|all.?world|s&p|amundi/i.test(it.name)) return "etf"; if(/fondo|indexad|fidelity|msci world/i.test(it.name)) return "fondo"; return "acciones"; };
@@ -1093,46 +1080,36 @@ function Investments({state, set, fetchPrices, pricing, syncInv, v4Embed, toolsM
         React.createElement("span",null,t("iv_cash")),React.createElement("strong",{className:"num",style:{color:"var(--mint)"}},f0(state.soldCash))),
       typeSegs.length>0 && React.createElement("section",{className:"v4-card","data-inv-type":"1",style:{padding:16}},
         React.createElement("div",{style:{fontWeight:800,marginBottom:12}},t("iv_by_type")),
-        React.createElement(StackedBar,{segments:typeSegs}))
+        React.createElement(StackedBar,{segments:typeSegs})),
+      /* PROYECCIÓN (14/10/2026): vivía en Ajustes › Dinero, lejos de las inversiones que proyecta.
+         Es una simulación, no parte del saldo: va plegada al pie, con el aspecto de una ficha de
+         bróker, y parte del mismo valor invertido y de las aportaciones que usaba allí. */
+      React.createElement("section",{className:"v4-card","data-inv-projection-card":"1",style:{padding:0,overflow:"hidden",borderColor:projOpen?"var(--mint-deep)":"var(--line-soft)"}},
+        React.createElement("button",{type:"button",className:"v4-mov",style:{margin:0,border:0,background:"transparent"},"aria-expanded":projOpen,"aria-controls":"iv_projection",
+          onClick:function(){ setProjOpen(function(v){ return !v; }); }},
+          React.createElement("div",{className:"tile",style:{background:"transparent",border:"none",padding:0}},"📈"),
+          React.createElement("div",{className:"nm"},
+            React.createElement("div",null,t("inv_proj")),
+            React.createElement("div",{className:"meta"},t("inv_proj_sub"))),
+          React.createElement(I.chev,{className:"chev"+(projOpen?" open":"")})),
+        projOpen && React.createElement("div",{id:"iv_projection","data-inv-projection":"1",className:"v4-inv-drop",style:{padding:"0 14px 14px"}},
+          React.createElement(Projection,{
+            invested:(totals&&totals.invested)||0,
+            defMonthly:(state.aportaciones||[]).reduce(function(a,x){ return a+(x.amount||0); },0)
+          })))
     );
   }
 
   return React.createElement("div",null,
     React.createElement(FxNotice,{missing:missingFx}),
-    !v4Embed && !toolsOnly && React.createElement("div",{className:"total-bar"},
-      React.createElement("div",null,
-        React.createElement("div",{className:"tl"},t("inv_total")),
-        React.createElement("div",{className:"tn num"},f2(total)),
-        React.createElement(FxNotice,{missing:missingFx}),
-        React.createElement("div",{style:{fontSize:12,fontWeight:700,marginTop:2,color:plTotal>=0?"var(--mint)":"var(--coral)"}},completeCost?(plTotal>=0?"+":"")+plTotal.toFixed(2)+"% global":"—"),
-        React.createElement("div",{className:"curtoggle",style:{marginTop:8}},
-          React.createElement("button",{type:"button",className:"curbtn"+(invCur==="EUR"?" on":""),onClick:()=>setInvCur("EUR")},"€"),
-          React.createElement("button",{type:"button",className:"curbtn"+(invCur==="USD"?" on":""),onClick:()=>setInvCur("USD")},"$")
-        ),
-        React.createElement("div",{className:"hint",style:{marginTop:8,maxWidth:260}}, t("fx_multi_hint"))
-      ),
-      editing
-        ? React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:6}},
-            React.createElement("button",{className:"btn btn-primary",onClick:save},t("inv_save")),
-            React.createElement("button",{className:"btn btn-ghost",style:{padding:"8px 12px"},onClick:cancel},t("inv_cancel"))
-          )
-        : React.createElement("div",{style:{display:"flex",flexDirection:"column",gap:6}},
-            hasTickers && React.createElement("button",{className:"btn btn-primary",onClick:()=>fetchPrices(false),disabled:pricing}, pricing?React.createElement(React.Fragment,null,React.createElement("span",{className:"spin"}),t("inv_pricing")):React.createElement(React.Fragment,null,React.createElement(I.sync,{width:15,height:15}),t("inv_prices"))),
-            React.createElement("button",{className:"btn btn-ghost",style:{padding:"8px 12px"},onClick:start},t("inv_editmanual"))
-          )
-    ),
-    // (El hint «toca un bróker…» se retiró el 2026-07-18: ya estaba anticuado y ocupaba sitio.)
-    !editing && hasTickers && !v4Embed && !toolsOnly && React.createElement("div",{className:"costtoggle",onClick:toggleAuto},
-      React.createElement("span",{className:"cbx"+(autoOn?" on":"")}, autoOn?"✓":""),
-      React.createElement("span",null,t("inv_autoprices")+(state.lastPriceSync?tf("inv_lastprice",{d:new Date(state.lastPriceSync).toLocaleString(loc(),{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}):""))
-    ),
-    editing && !toolsOnly && React.createElement("div",{className:"costtoggle",onClick:()=>setShowCost(!showCost)},
+
+    editing && React.createElement("div",{className:"costtoggle",onClick:()=>setShowCost(!showCost)},
       React.createElement("span",{className:"cbx"+(showCost?" on":"")}, showCost?"\u2713":""),
       React.createElement("span",null,t("inv_alsoinvested"))
     ),
-    // En Cartera (v4Embed): mismas fichas que «Tus cuentas» (v4-mov). El resumen completo
+    // En Cartera: mismas fichas que «Tus cuentas» (v4-mov). El resumen completo
     // vive en su pantalla hija para no montar dos veces toda la herramienta antigua.
-    v4Embed && React.createElement(React.Fragment,null,
+    React.createElement(React.Fragment,null,
       React.createElement("div",{className:"v4-card-list"},
         groups.map(function(g){
         const items=state.investments.filter(function(i){ return i.ent===g[0]; });
@@ -1168,80 +1145,7 @@ function Investments({state, set, fetchPrices, pricing, syncInv, v4Embed, toolsM
       ),
       React.createElement("div",{style:{marginTop:12}},React.createElement(InvestmentRewards,{state:state,set:set}))
     ),
-    !v4Embed && React.createElement(OrderableSections,{tab:"inv",state:state,set:set,items:[
-      {id:"ru",label:SIMPLEMODE?t("ru_title_simple"):t("ru_title"),el:React.createElement(InvestmentRewards,{state:state,set:set})},
-      {id:"cvg",label:t("inv_cvg"),el:
-    React.createElement(CollapsibleCard,{title:t("inv_cvg"),sub:completeCost?(plTotal>=0?"+":"")+plTotal.toFixed(1)+"%":"—",dot:"#5FD08A",defaultOpen:false,storageKey:"inv_cvg",help:t("h_cvg")},
-      // desglose por bróker, para poder comparar cada uno con su app (p.ej. Revolut en $)
-      groups.map(function(g){ const o=byBroker[g[0]]; if(!o||o.v===0) return null; const gain=o.v-o.c; const pl=o.c>0?gain/o.c*100:0;
-        return React.createElement("div",{className:"row",key:g[0]},
-          React.createElement("div",{className:"rl"},React.createElement(Mono,{ent:g[0],size:34}),
-            React.createElement("div",null,React.createElement("div",{className:"rname"},g[1]),React.createElement("div",{className:"rsub"},tf("inv_invested_lbl",{x:f0(o.c)})))),
-          React.createElement("div",{className:"rval num"}, f0(o.v),
-            completeCost && React.createElement("div",{className:"rvsub"+(gain<0?" neg":""),style:{color:gain>=0?"var(--mint)":"var(--coral)"}}, (gain>=0?"+":"")+f0(gain)+" ("+(pl>=0?"+":"")+pl.toFixed(1)+"%)")));
-      }),
-      React.createElement("div",{className:"subtotal"},React.createElement("span",{className:"muted"},t("inv_invested_tot")),React.createElement("span",{className:"num"},f0(costTotal))),
-      React.createElement("div",{className:"subtotal"},React.createElement("span",{className:"muted"},t("inv_value_tot")),React.createElement("span",{className:"num",style:{fontWeight:700}},f0(total))),
-      React.createElement("div",{className:"subtotal"},React.createElement("span",{className:"muted"},t("inv_gain_lat")),React.createElement("span",{className:"num",style:{fontWeight:700,color:(total-costTotal)>=0?"var(--mint)":"var(--coral)"}},completeCost?((total-costTotal)>=0?"+":"")+f0(total-costTotal):"—")),
-      React.createElement("div",{style:{marginTop:10}}, completeCost && React.createElement(StackedBar,{segments:[{label:t("inv_contributed"),value:costTotal,color:"#2f6b4a"},{label:t("inv_gain"),value:Math.max(0,total-costTotal),color:"var(--mint)"}]})),
-      React.createElement("div",{className:"hint",style:{fontSize:11,marginTop:8}},t("inv_cvg_hint"))
-    )},
-      {id:"bytype",label:t("inv_bytype"),el:
-    React.createElement(CollapsibleCard,{title:t("inv_bytype"),sub:f0(total),dot:"#7FB5E8",defaultOpen:false,storageKey:"inv_tipo",help:t("h_bytype")},
-      React.createElement(StackedBar,{segments:typeSegs})
-    )},
-      {id:"rend",label:t("inv_rend"),el:
-    posList.length>0 && React.createElement(CollapsibleCard,{title:t("inv_rend"),sub:best&&worst?tf("inv_best_worst",{best:best.name,worst:worst.name}):"",dot:"#5FD08A",defaultOpen:false,storageKey:"inv_rend",help:t("h_rend")},
-      posList.map(function(p){
-        const pos=p.gain>=0; const wpct=Math.min(100,Math.abs(p.gain)/maxAbsGain*100);
-        return React.createElement("div",{key:p.id,style:{padding:"8px 2px",borderBottom:"1px solid var(--line-soft)"}},
-          React.createElement("div",{style:{display:"flex",alignItems:"center",justifyContent:"space-between",gap:8,marginBottom:5}},
-            React.createElement("div",{style:{display:"flex",alignItems:"center",gap:9,minWidth:0}},React.createElement(LogoInv,{nombre:p.name,ent:p.ent,kind:p.kind,size:30}),React.createElement("div",{className:"rname",style:{whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}},p.name)),
-            React.createElement("div",{className:"num",style:{textAlign:"right",flex:"0 0 auto"}},
-              React.createElement("div",{style:{fontWeight:700,color:pos?"var(--mint)":"var(--coral)"}},(pos?"+":"")+f2(p.gain)),
-              React.createElement("div",{style:{fontSize:11,color:"var(--muted-2)"}},(p.pl>=0?"+":"")+p.pl.toFixed(1)+"%"))),
-          React.createElement("div",{className:"rendbar"},React.createElement("i",{style:{width:wpct+"%",background:pos?"var(--mint)":"var(--coral)"}}))
-        );
-      })
-    )},
-      {id:"evo",label:t("inv_evo"),el:React.createElement(React.Fragment,null,
-    !missingFx && invHist.length>=1 && total>0 && React.createElement(CollapsibleCard,{title:t("inv_evo"),sub:evoChg?tf("inv_evo_period",{sign:evoChg.pct>=0?"+":"",pct:Math.abs(evoChg.pct).toFixed(1),days:evoChg.days,x:f2(Math.abs(evoChg.abs))}):t("inv_evo_sub"),dot:"#7FB5E8",defaultOpen:false,storageKey:"inv_evo",help:t("h_evo")},
-      invHist.length>=2 ? React.createElement(SparklineInv,{hist:invHist}) : React.createElement("div",{className:"hint",style:{marginBottom:8}},t("inv_evo_today")),
-      invHist.length>=2 && React.createElement("div",{style:{display:"flex",justifyContent:"space-between",fontSize:12,color:"var(--muted)",marginTop:6}},
-        React.createElement("span",null,new Date(invHist[0].d).toLocaleDateString(loc(),{day:'2-digit',month:'short'})),
-        React.createElement("span",{className:"num"}, f2(total))),
-      invHist.some(function(h){ return h.c>0; }) && React.createElement("div",{className:"hint",style:{fontSize:11,marginTop:6}},t("inv_evo_cost"))
-    ),
-    invHist.length<1 && total>0 && React.createElement("div",{className:"hint",style:{padding:"0 4px 6px"}},t("inv_evo_hint"))
-    )},
-      {id:"brokers",label:t("pt_byBroker"),el:React.createElement(React.Fragment,null,
-    groups.map(function(g){
-      const items=state.investments.filter(i=>i.ent===g[0]);
-      if(items.length===0) return null;
-      const sub=items.reduce((a,i)=>a+(invValueEur(i, state)||0),0);
-      return React.createElement(CollapsibleCard,{key:g[0],title:g[1],sub:f0(sub),dot:entOf(g[0]).color,storageKey:"inv_"+g[0]},
-        React.createElement(InvRows,{items:items,st:state,fmt:f2,editing:editing,showCost:showCost,draft:draft,setF:setF,onSell:onSell,onDelete:onDelete})
-      );
-    }),
-    (state.soldCash>0) && React.createElement("div",{className:"costtoggle",style:{justifyContent:"space-between"}},
-      React.createElement("span",null,t("inv_sold")),
-      React.createElement("span",{className:"num",style:{fontWeight:700,color:"var(--mint)"}}, f0(state.soldCash))
-    )
-    )},
-      {id:"proj",label:t("inv_proj"),el:
-    React.createElement(CollapsibleCard,{title:t("inv_proj"),sub:t("inv_proj_sub"),dot:"#5FD08A",defaultOpen:false,storageKey:"inv_proj",help:t("h_proj")},
-      React.createElement(Projection,{invested:total, defMonthly: state.aportaciones.reduce(function(a,x){ return a+x.amount; },0)})
-    )},
-      {id:"manual",label:t("inv_manual_t"),el:
-    !editing && React.createElement(CollapsibleCard,{title:t("inv_manual_t"),sub:t("inv_manual_sub"),dot:"#C9A0E0",defaultOpen:false,storageKey:"inv_manual"},
-      React.createElement("div",{className:"hint",style:{lineHeight:1.55}},t("inv_manual_body"))
-    )}
-    ].filter(function(it){
-      // Herramientas: sin brókers duplicados ni «editar a mano» (feedback 2026-07-17).
-      if(!toolsOnly) return true;
-      return it.id!=="brokers" && it.id!=="manual";
-    })}),
-    !toolsOnly && React.createElement("div",{className:"hint",style:{padding:"0 4px"}}, editing
+    React.createElement("div",{className:"hint",style:{padding:"0 4px"}}, editing
       ? t("inv_hint_edit")
       : tf("inv_hint_view",{fx:fx}))
   );

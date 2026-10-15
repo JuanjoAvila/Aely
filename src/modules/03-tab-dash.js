@@ -34,10 +34,10 @@ function cycleTiming(bud,nowMs){
   const days=Math.max(1,(end-civil(start))/864e5), elapsed=Math.max(0,(civil(now)-civil(start))/864e5);
   return {days:days,elapsed:elapsed,left:Math.max(0,(end-civil(now))/864e5),reliable:!!bud.cycle};
 }
-// Las filas de la hoja «Cómo se calcula», como mucho tres y solo las que aplican: etiqueta por
+// Las filas de la hoja «Cómo se calcula», pocas y solo las que aplican: etiqueta por
 // tipo (nunca cuenta por cuenta ni bien por bien) y un dato corto. Antes era un párrafo más una
 // línea por cuenta, bien y deuda metido en la página («el textaco», feedback 13/10).
-function netWorthInfoRows(series, dateFmt, compared){
+function netWorthInfoRows(series, dateFmt, comparedRange){
   const coverage=series.coverage||[], rows=[];
   if(series.length<2) return rows;
   const start=series[0].day, startMs=Date.parse(start+"T12:00:00Z");
@@ -55,10 +55,22 @@ function netWorthInfoRows(series, dateFmt, compared){
   const debts=coverage.filter(function(g){ return g.kind==="debt"&&!g.timingUnknown; });
   if(debts.length){
     const constant=debts.filter(function(g){ return g.constant; }).length;
-    rows.push({k:t("v42_net_i_debts"),v:t(constant===debts.length?"v42_net_i_debts_kept":constant?"v42_net_i_debts_mixed":"v42_net_i_debts_est")});
+    // Una cuota sin tipo de interés se cuenta entera como capital: se dice, no se esconde.
+    // Y un tipo que no cuadra con su cuota (un 105 por 1,05) se ignora y también se dice.
+    const noRate=debts.some(function(g){ return g.noRate; }),badRate=debts.some(function(g){ return g.badRate; });
+    rows.push({k:t("v42_net_i_debts"),v:t(constant===debts.length?"v42_net_i_debts_kept":constant?"v42_net_i_debts_mixed":"v42_net_i_debts_est")+(noRate?t("v42_net_i_debts_norate"):"")+(badRate?t("v42_net_i_debts_badrate"):"")});
   }
-  // Cuarta fila, solo cuando hay frase de comparación: con qué se compara, en corto.
-  if(compared) rows.push({k:t("v42_net_i_cmp"),v:t("v42_net_i_cmp_v")});
+  // Con una cuenta a medias, se dice que solo cuenta su parte; y si los movimientos viejos de un
+  // banco con dos cuentas no dicen de cuál salieron, que esos cuentan enteros (no se reparten).
+  const shared=coverage.filter(function(g){ return g.kind==="share"; });
+  if(shared.length){
+    const unsplit=shared.filter(function(g){ return g.unsplit; }).map(function(g){ return g.name; });
+    const legacy=shared.filter(function(g){ return g.legacy; }).map(function(g){ return g.name; });
+    rows.push({k:t("v42_net_i_share"),v:t("v42_net_i_share_v")+(legacy.length?tf("v42_net_i_share_legacy",{bank:legacy.join(", ")}):"")+(unsplit.length?tf("v42_net_i_share_unsplit",{bank:unsplit.join(", ")}):"")});
+  }
+  // Última fila, solo cuando hay frase de comparación: con qué día se compara hoy, en corto.
+  const months=comparedRange&&NW_MONTHS[comparedRange];
+  if(comparedRange) rows.push({k:t("v42_net_i_cmp"),v:!months?t("v42_net_i_cmp_all"):months===1?t("v42_net_i_cmp_1m"):months===12?t("v42_net_i_cmp_12"):tf("v42_net_i_cmp_n",{n:months})});
   return rows;
 }
 // Hoja inferior de la «i», con el mismo patrón que la del presupuesto: nada se inserta en la
@@ -96,8 +108,8 @@ function NetWorthNow({tt, simple, series, splashGone}){
   const svgRef=useRef(null), frameRef=useRef(0), fingerRef=useRef(null);
   const range=ranges.find(function(r){ return r.id===picked; })||ranges[0];
   const points=range?range.points:[], active=touch!=null?points[touch]:null;
-  // El veredicto compara mínimos de 45 días, nunca el primer punto de la gráfica con hoy; y el
-  // rojo se queda solo para ir peor de verdad (feedback 13/10: «yo no voy mal»).
+  // El veredicto compara los dos extremos de la gráfica elegida (hoy y el mismo día de hace N
+  // meses); el rojo se queda solo para ir peor de verdad (feedback 13/10: «yo no voy mal»).
   const compare=useMemo(function(){ return range?netWorthCompare(series,range.id,today,tt.invested):null; },[series,range&&range.id,today,tt.invested]);
   const verdict=compare?compare.verdict:"none";
   const color=verdict==="up"?"var(--mint)":verdict==="down"?"var(--coral)":"var(--blue)";
@@ -109,7 +121,7 @@ function NetWorthNow({tt, simple, series, splashGone}){
   },[points,dateFmt]);
   // Fecha corta («18 jun») para la hoja; con el año se iba a dos renglones en el móvil.
   const shortFmt=useMemo(function(){return new Intl.DateTimeFormat(language,{timeZone:"Europe/Madrid",day:"numeric",month:"short"});},[language]);
-  const infoRows=useMemo(function(){ return netWorthInfoRows(series,shortFmt,!!compare); },[series,shortFmt,language,!!compare]);
+  const infoRows=useMemo(function(){ return netWorthInfoRows(series,shortFmt,compare?range.id:null); },[series,shortFmt,language,compare?range.id:null]);
   useEffect(function(){ setTouch(null); },[range&&range.id]);
   useEffect(function(){ return function(){ cancelAnimationFrame(frameRef.current); }; },[]);
   const valid=typeof value==="number" && Number.isFinite(value)&&!(series.coverage||[]).some(function(g){return g.unknown;});
@@ -314,7 +326,10 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
 
   // Inicio resume tres metas activas; Plan conserva todas sin cambiar su orden ni sus saldos.
   const goals=(state.goals||[]).filter(function(g){ return !g.done; }).slice(0,3);
-  const recent=useMemo((s=state)=>(s.expenses||[]).filter(e=>!expenseIsTombstoned(e,expenseDeletedSet(s))).sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,3),[state.expenses,state.deleted]);
+  // La fila del banco de una pareja automática (`autoGemelo`) queda oculta: la compra con comercio
+  // ya está en la lista y repetirla enseñaba «Movimiento · Otros» con el mismo importe. Misma regla
+  // que Gastos (visto por el dueño en la beta 4.26.131, 14/10/2026).
+  const recent=useMemo((s=state)=>(s.expenses||[]).filter(e=>!e.autoGemelo&&!expenseIsTombstoned(e,expenseDeletedSet(s))).sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,3),[state.expenses,state.deleted]);
   const ringPct=budAmt>0?Math.max(0,Math.min(1,rem/budAmt)):0;
   /* P6 — el anillo usa una animación de montaje, con estado final directo si se reduce
      el movimiento. Pausarla hasta que salga el splash evita gastarla detrás de la cortina. */

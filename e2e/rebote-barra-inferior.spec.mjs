@@ -133,6 +133,49 @@ test("seguir tirando abajo no revela la barra oculta; subir contenido sí", asyn
   }).toBe(false);
 });
 
+/* Regresión 4.26.97→4.26.132 (14/10/2026): el margen de clip de la barra escondida (30 px para que
+   el + salga entero) hacía desplazable el `<html>`. Un fling real hasta el fondo saltaba del host a
+   la raíz, la subía 30 px y se paraba en seco: sin ola nativa y con media barra asomando abajo.
+   Con `scrollTop` puesto por JS no pasa nada: hace falta el gesto de verdad, que es el que encadena. */
+test("un fling hasta el fondo con la barra escondida no desplaza la página entera", async ({ page }) => {
+  await seedLoggedInDashboard(page, { expenses: historico(45) });
+  await page.goto("/");
+  await appLista(page);
+  await irAGastosConTodo(page);
+  await scrollear(page, 0);
+  await page.waitForTimeout(500);
+
+  const cdp = await page.context().newCDPSession(page);
+  const arrastre = async (y0, y1, pasos, ms) => {
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x: 190, y: y0 }] });
+    for (let i = 1; i <= pasos; i++) {
+      await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: 190, y: Math.round(y0 + (y1 - y0) * i / pasos) }] });
+      if (ms) await page.waitForTimeout(ms);
+    }
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+  };
+  await arrastre(500, 380, 8, 16);
+  await expect.poll(async () => (await estado(page)).hidden).toBe(true);
+  await irAlFondo(page);
+  await scrollear(page, (await alturaMax(page)) - 700);
+  await page.waitForTimeout(300);
+  const navAntes = await page.evaluate(() => Math.round(document.querySelector(".botnav").getBoundingClientRect().bottom));
+  for (let k = 0; k < 6; k++) { await arrastre(650, 150, 5, 0); await page.waitForTimeout(250); }
+  await page.waitForTimeout(1200);
+
+  const fin = await page.evaluate(() => {
+    const h = document.querySelector(".page.page-scroll-host");
+    return { quedan: h.scrollHeight - h.clientHeight - h.scrollTop, raiz: document.scrollingElement.scrollTop,
+      raizMax: document.scrollingElement.scrollHeight - document.scrollingElement.clientHeight,
+      navAbajo: Math.round(document.querySelector(".botnav").getBoundingClientRect().bottom) };
+  });
+  expect(fin.quedan, "el fling tiene que llegar al fondo real del host").toBeLessThanOrEqual(2);
+  expect((await estado(page)).hidden, "llegar al fondo no muestra la barra").toBe(true);
+  expect(fin.raizMax, "con la barra escondida el documento no puede tener nada que desplazar").toBe(0);
+  expect(fin.raiz, "el fling no puede encadenar a la raíz (stopper sin ola)").toBe(0);
+  expect(fin.navAbajo, "la barra no puede subir y asomar a medias").toBe(navAntes);
+});
+
 test("el rebote grande con el dedo aún empujando abajo no revela la barra", async ({ page }) => {
   await seedLoggedInDashboard(page, { expenses: historico(200) });
   await page.goto("/");

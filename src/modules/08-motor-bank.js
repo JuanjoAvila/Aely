@@ -228,16 +228,9 @@ function reciboNoTope(no,at){
   return {reciboNo:no.slice(-RECIBO_NO_MAX),reciboNoAt:at};
 }
 function reciboNoUnion(local,nube){
-  var na=local.reciboNo||[],nb=nube.reciboNo||[],ta=local.reciboNoAt||{},tb=nube.reciboNoAt||{};
-  var at={},no=[],vistas={};
-  na.concat(nb,Object.keys(ta),Object.keys(tb)).forEach(function(k){
-    if(vistas[k]) return;
-    vistas[k]=1;
-    var a=ta[k]||0,b=tb[k]||0;
-    if(a||b) at[k]=Math.max(a,b);
-    if(a===b?na.indexOf(k)>=0||nb.indexOf(k)>=0:(a>b?na:nb).indexOf(k)>=0) no.push(k);
-  });
-  var out=reciboNoTope(no,at);
+  // La regla, clave a clave, es la misma de las lápidas: vive en `unionPorHora` (00-core).
+  var na=local.reciboNo||[],u=unionPorHora(na,local.reciboNoAt,nube.reciboNo,nube.reciboNoAt);
+  var out=reciboNoTope(u.lista,u.at);
   // Misma lista, misma referencia: la leen los `useMemo` de Gastos y de los totales en cada pull.
   if(out.reciboNo.length===na.length&&out.reciboNo.every(function(k,i){ return k===na[i]; })) out.reciboNo=na;
   return out;
@@ -808,12 +801,16 @@ function applyBankBalances(s, links){
            vieja — y ese es justo el caso para el que existe el rastro: «mismo número, otra
            etiqueta». El instrumento estaba ciego a lo único que tenía que ver. */
         const rastroCambia = (inf.tipo||null)!==(a.balTipo||null) || Math.abs((a.balSaldo==null?NaN:a.balSaldo)-bal)>0.005;
-        if(Math.abs((a.value||0)-newBase)>0.005 || (ac.iban && a.bankIban!==ac.iban) || rastroCambia){
+        // Sin IBAN, el uid de la cuenta del banco: es lo que llevan sus movimientos (`obAcc`) y lo
+        // único que deja contar la parte de una principal a medias (revisión 14/10).
+        const uidCambia = !ac.iban && ac.uid!=null && a.bankUid!==String(ac.uid);
+        if(Math.abs((a.value||0)-newBase)>0.005 || (ac.iban && a.bankIban!==ac.iban) || rastroCambia || uidCambia){
           /* El rastro va también aquí: la Revolut de su padre es una cuenta PRINCIPAL re-anclada,
              no una obAccount, y era justo la que le bailaba. `balSaldo` es el saldo crudo que mandó
              el banco, sin la fórmula de dynBal encima, para poder comparar manzanas con manzanas. */
           accounts[ownerOf[k]]=Object.assign({}, a, { value:newBase, bankIban:ac.iban||a.bankIban,
-            balTipo:inf.tipo||null, balTipos:inf.tipos&&inf.tipos.length?inf.tipos:undefined, balSaldo:bal });
+            balTipo:inf.tipo||null, balTipos:inf.tipos&&inf.tipos.length?inf.tipos:undefined, balSaldo:bal },
+            uidCambia?{bankUid:String(ac.uid)}:null);
           changed=true;
         }
       } else {
@@ -1022,15 +1019,18 @@ function flattenBankTx(links, previous){
     // En multicuenta el top-level solo contiene la PRIMERA cuenta compatible. Los movimientos
     // nuevos de una segunda cuenta estaban en `accounts[].transactions` y el cliente ni los
     // miraba: el banco figuraba sincronizado pero Gastos decía que no había nada nuevo.
-    let txs=[];
+    // Cada movimiento se queda con SU cuenta (IBAN, o el uid si el banco no da IBAN): con dos
+    // cuentas en el mismo banco y una conjunta a medias, es lo que deja contar en el patrimonio
+    // solo la parte de cada una (14/10/2026). El servidor ya lo mandaba; aquí se perdía.
+    let txs=[], accs=[];
     const accountTx=(lk.accounts||[]).filter(function(a){ return a&&Array.isArray(a.transactions); });
-    if(accountTx.length) accountTx.forEach(function(a){ txs=txs.concat(a.transactions); });
+    if(accountTx.length) accountTx.forEach(function(a){ txs=txs.concat(a.transactions); a.transactions.forEach(function(){ accs.push(a.iban||a.uid||null); }); });
     else txs=(lk.transactions||[]).slice();   // shape antiguo: una sola cuenta en top-level
-    txs.forEach(function(t){
+    txs.forEach(function(t,i){
       if(partial[ent]&&(!t||t.amount==null||String(t.amount).trim()===""||!isFinite(Number(t.amount)))) return;
       // `note` = concepto del extracto (remittance_information): lo que hace que el histórico se
       // entienda sin abrir la app del banco (2026-07-24).
-      out.push({ ent:ent, id:t.ext_id||null, date:String(t.date||"").slice(0,10), amount:Number(t.amount)||0, merchant:t.merchant||"", note:t.note||"", card:!!t.card, status:t.status||"", ...(t.mcc?{mcc:t.mcc}:{}), ...(t.concept?{concept:t.concept}:{}) });
+      out.push({ ent:ent, id:t.ext_id||null, date:String(t.date||"").slice(0,10), amount:Number(t.amount)||0, merchant:t.merchant||"", note:t.note||"", card:!!t.card, status:t.status||"", ...(t.mcc?{mcc:t.mcc}:{}), ...(t.concept?{concept:t.concept}:{}), ...(accs[i]?{acc:String(accs[i])}:{}) });
     });
   });
   if(Object.keys(partial).length||Object.keys(expired).length){
@@ -1058,6 +1058,195 @@ function flattenBankTx(links, previous){
   // El servidor ya acota por cuenta. Un tope GLOBAL de 150 dejaba fuera un banco entero
   // si otro tenía más actividad reciente, antes incluso de llegar a importObExpenses.
   return out;
+}
+
+/* Un único reparto por banco e importe evita que el importador y la reconciliación gasten
+   el mismo aviso dos veces. Las parejas automáticas viven en las filas, no en el registro
+   acotado de decisiones: 501 parejas no deben expulsarse y recrearse en cada render. */
+const gemeloCache=new WeakMap(), gemeloDatosCache=new WeakMap(), gemeloDiasCache=new Map();
+// Un comercio real no identifica un gemelo por importe: el extracto de recibos perdió
+// 750,50 al emparejar dos nombres distintos sin id (CI 13/10/2026). Sólo el genérico carece de identidad.
+function gemeloBancoAutomatico(e){ return !!(e&&e.id)&&esFilaDeBanco(e)&&!e.extId&&!e.reciboId&&!e.debtId&&sinComercioReal(e.obName!=null?e.obName:e.merchant); }
+function gemeloAvisoAutomatico(e){ return !!(e&&e.id)&&!esFilaDeBanco(e)&&!isManualExpenseSource(e.source)&&!e.possibleDup&&!e.pending&&!e.reciboId&&!e.debtId; }
+function gemeloDatos(e){
+  if(!e) return {grupo:"",dia:NaN};
+  let d=gemeloDatosCache.get(e); if(d) return d;
+  const ms=Date.parse(e.date), ent=expenseBankOf(e), amount=Number(e.amount);
+  if(!ent||!Number.isFinite(ms)||!Number.isFinite(amount)||!amount) d={grupo:"",dia:NaN};
+  else {
+    let dia=gemeloDiasCache.get(e.date);
+    if(dia===undefined){const m=madridYmdParts(ms);dia=Date.parse(m.ym+"-"+String(m.d).padStart(2,"0"))/86400000;if(gemeloDiasCache.size>=1024)gemeloDiasCache.delete(gemeloDiasCache.keys().next().value);gemeloDiasCache.set(e.date,dia);}
+    d={grupo:ent+"|"+Math.round(amount*100),dia:dia};
+  }
+  gemeloDatosCache.set(e,d); return d;
+}
+function gemeloGrupo(e){ const d=gemeloDatos(e); return d.grupo+"|"+d.dia; }
+function gemeloCompatible(a,b,ventana){ const x=gemeloDatos(a),y=gemeloDatos(b); return !!x.grupo&&x.grupo===y.grupo&&Math.abs(x.dia-y.dia)<=ventana; }
+function gemeloMismosCampos(a,b){
+  return a===b||!!(a&&b&&a.id===b.id&&a.date===b.date&&a.amount===b.amount&&a.ent===b.ent&&a.source===b.source&&a.extId===b.extId&&a.obName===b.obName&&a.obOrd===b.obOrd&&a.merchant===b.merchant&&a.reciboId===b.reciboId&&a.debtId===b.debtId&&a.pending===b.pending&&a.possibleDup===b.possibleDup&&a.possibleDupOf===b.possibleDupOf&&a.autoGemelo===b.autoGemelo&&a.gemeloNuevo===b.gemeloNuevo&&a.gemeloSeparado===b.gemeloSeparado);
+}
+/* Flujo por DÍAS, no por cada combinación de filas. Primero llena el día exacto y después
+   busca caminos alternos: un banco del 10 puede desplazar 9→9 a 9→8 para no dejar un aviso
+   libre y un cargo contando doble. Miles de iguales se asignan en un solo tramo. */
+function gemeloAsignar(bancos,avisos,ventana){
+  const bs=new Map(),as=new Map(),flow=new Map(),usedB=new Map(),usedA=new Map();
+  bancos.forEach(function(e){ const d=gemeloDatos(e).dia;if(!bs.has(d))bs.set(d,[]);bs.get(d).push(e); });
+  avisos.forEach(function(e){ const d=gemeloDatos(e).dia;if(!as.has(d))as.set(d,[]);as.get(d).push(e); });
+  const days=Array.from(bs.keys()).sort(function(a,b){return a-b;});
+  const edge=function(b,a){return (flow.get(b)||new Map()).get(a)||0;};
+  const put=function(b,a,n){if(!flow.has(b))flow.set(b,new Map());flow.get(b).set(a,edge(b,a)+n);usedB.set(b,(usedB.get(b)||0)+n);usedA.set(a,(usedA.get(a)||0)+n);};
+  days.forEach(function(d){if(as.has(d))put(d,d,Math.min(bs.get(d).length,as.get(d).length));});
+  for(let reach=1;reach<=ventana;reach++)days.forEach(function(root){
+    while((usedB.get(root)||0)<bs.get(root).length){
+      const queue=[{b:root}],seenB=new Set([root]),seenA=new Set(),parentB=new Map(),parentA=new Map();let finish=null;
+      for(let qi=0;qi<queue.length&&finish===null;qi++){
+        const b=queue[qi].b;
+        for(let delta=0;delta<=reach&&finish===null;delta++)for(const a of delta?[b-delta,b+delta]:[b]){
+          if(!as.has(a)||seenA.has(a))continue;seenA.add(a);parentA.set(a,b);
+          if((usedA.get(a)||0)<as.get(a).length){finish=a;break;}
+          days.forEach(function(other){if(!seenB.has(other)&&edge(other,a)>0){seenB.add(other);parentB.set(other,a);queue.push({b:other});}});
+        }
+      }
+      if(finish===null)break;
+      let n=Math.min(bs.get(root).length-(usedB.get(root)||0),as.get(finish).length-(usedA.get(finish)||0)),a=finish;
+      while(parentA.get(a)!==root){const b=parentA.get(a),prevA=parentB.get(b);n=Math.min(n,edge(b,prevA));a=prevA;}
+      a=finish;
+      while(true){const b=parentA.get(a);put(b,a,n);if(b===root)break;const prevA=parentB.get(b);put(b,prevA,-n);a=prevA;}
+    }
+  });
+  const result=[],offset=new Map();
+  days.forEach(function(d){let bi=0;const row=flow.get(d);if(!row)return;
+    Array.from(row.keys()).sort(function(a,b){return Math.abs(a-d)-Math.abs(b-d)||a-b;}).forEach(function(a){let ai=offset.get(a)||0;for(let n=edge(d,a);n>0;n--)result.push([bs.get(d)[bi++],as.get(a)[ai++]]);offset.set(a,ai);});
+  });
+  return result;
+}
+function reconcileGemelosAutomaticos(s,prev){
+  const rows=(s&&s.expenses)||[];if(!rows.length)return s;
+  const cached=gemeloCache.get(rows);
+  if(cached&&cached.gemelos===s.gemelos&&cached.deleted===s.deleted)return s;
+  const old=prev&&gemeloCache.get(prev.expenses);
+  // Cambiar categoría, nota o tarjeta no invalida ningún emparejado ni calcula fechas.
+  if(old&&prev.gemelos===s.gemelos&&prev.deleted===s.deleted&&rows.length===prev.expenses.length&&rows.every(function(e,i){return gemeloMismosCampos(e,prev.expenses[i]);})){
+    gemeloCache.set(rows,{gemelos:s.gemelos,deleted:s.deleted,index:old.index});return s;
+  }
+  const prior=old&&prev.gemelos===s.gemelos&&prev.deleted===s.deleted&&old.index;
+  const dirty=new Set(),index={ids:new Map(),groups:prior?new Map(prior.groups):new Map()};
+  rows.forEach(function(e){if(!e)return;index.ids.set(e.id,e);if(!prior||!gemeloMismosCampos(e,prior.ids.get(e.id))){dirty.add(gemeloDatos(e).grupo);if(prior&&prior.ids.has(e.id))dirty.add(gemeloDatos(prior.ids.get(e.id)).grupo);}});
+  if(prior)prior.ids.forEach(function(e,id){if(!index.ids.has(id))dirty.add(gemeloDatos(e).grupo);});
+  dirty.forEach(function(k){index.groups.set(k,[]);});
+  rows.forEach(function(e){if(e&&dirty.has(gemeloDatos(e).grupo))index.groups.get(gemeloDatos(e).grupo).push(e);});
+  if(prior){
+    const split=new Map();let decisions=s.gemelos;
+    prior.ids.forEach(function(b){
+      if(!b.autoGemelo)return;
+      const a=prior.ids.get(b.autoGemelo),n=index.ids.get(b.autoGemelo),live=index.ids.get(b.id);
+      if(!a||!n||!live||a.amount===n.amount&&expenseBankOf(a)===expenseBankOf(n)&&gemeloCompatible(n,live,1))return;
+      const g=Object.assign(gemeloDe(a,b),{auto:true,ent:expenseBankOf(b),separado:true,at:Date.now()});
+      decisions=pushGemelos(decisions,[g]);const row=Object.assign({},live,{gemeloSeparado:a.id});delete row.autoGemelo;delete row.possibleDup;delete row.possibleDupOf;split.set(b.id,row);
+    });
+    if(split.size)return reconcileGemelosAutomaticos(Object.assign({},s,{gemelos:decisions,expenses:rows.map(function(e){return split.get(e.id)||e;})}));
+  }
+  const workRows=[];dirty.forEach(function(k){workRows.push.apply(workRows,index.groups.get(k));});
+  const ids={},porClave={},bancos={},groups=new Map(),used=new Set(),occupied=new Set(),destinos=new Map();
+  const deleted=expenseDeletedSet(s),prevIds=new Set((prev&&prev.expenses||[]).map(function(e){return e.id;}));
+  workRows.forEach(function(e){
+    if(!e||expenseIsTombstoned(e,deleted))return;ids[e.id]=e;porClave[gemeloAvisoKey(e)]=e;
+    if(gemeloBancoAutomatico(e))bancos[expenseBankOf(e)+"|"+keyOfExpense(e)]=e;
+    const d=gemeloDatos(e);if(!d.grupo)return;if(!groups.has(d.grupo))groups.set(d.grupo,[]);groups.get(d.grupo).push(e);
+  });
+  let gemelos=s.gemelos||[];
+  const reserve=function(b,a,auto){if(occupied.has(b.id)||used.has(a.id))return false;used.add(a.id);occupied.add(b.id);destinos.set(b.id,{id:a.id,auto:auto});return true;};
+  gemelos.slice().sort(function(a,b){return (b.at||0)-(a.at||0)||Number(!!b.separado)-Number(!!a.separado);}).forEach(function(g){
+    const a=g.avisoId?ids[g.avisoId]:porClave[g.aviso],b=bancos[(g.ent||expenseBankOf(a)||"")+"|"+g.banco];
+    if(!b){if(a)used.add(a.id);return;}
+    if(occupied.has(b.id))return;
+    // Una reunión explícita tiene hora propia; la marca de la tabla puede ir por detrás.
+    // La decisión ganadora no depende de que su PATCH de #dup ya haya llegado.
+    if(g.separado||b.gemeloSeparado&&!(g.auto&&g.at>1)){occupied.add(b.id);destinos.set(b.id,null);if(a)used.add(a.id);return;}
+    if(!a)return;
+    // #dup retirado en una versión antigua es una decisión humana, aunque app_state traiga
+    // todavía el vínculo anterior o haya perdido los campos nuevos al pasar por esa versión.
+    if(!b.possibleDup&&!b.gemeloNuevo&&!(g.auto&&g.at>1)){occupied.add(b.id);used.add(a.id);return;}
+    if(isManualExpenseSource(a.source)){reserve(b,a,false);return;}
+    if(gemeloAvisoAutomatico(a)&&gemeloCompatible(a,b,3)&&!reserve(b,a,gemeloCompatible(a,b,1)))destinos.set(b.id,null);
+  });
+  // Los pares ya acreditados no saltan de aviso cuando llega un segundo pago al día siguiente.
+  workRows.forEach(function(b){const a=ids[b.autoGemelo||b.possibleDupOf];if(!gemeloBancoAutomatico(b)||!a||occupied.has(b.id))return;
+    if(b.gemeloSeparado){occupied.add(b.id);used.add(a.id);destinos.set(b.id,null);return;}
+    if(b.possibleDup&&gemeloAvisoAutomatico(a)&&gemeloCompatible(a,b,3))reserve(b,a,gemeloCompatible(a,b,1));
+    else if(b.possibleDup&&isManualExpenseSource(a.source))reserve(b,a,false);
+  });
+  // Las lápidas antiguas no guardan id de aviso. Se reserva la misma primera coincidencia
+  // que saltaba el importador anterior; jamás se utiliza para ocultar el ordinal siguiente.
+  (s.deleted||[]).forEach(function(key){
+    if(gemelos.some(function(g){return g.banco===key;}))return;
+    const m=String(key).match(/^(?:([^|]+)\|)?(\d{4}-\d{2}-\d{2})\|(-?[\d.]+)\|(.+)$/);
+    if(!m||/\|#\d+$/.test(key)||!sinComercioReal(m[4]))return;
+    const ent=m[1],amount=Number(m[3]);
+    groups.forEach(function(group){const a=group.find(function(e){return gemeloAvisoAutomatico(e)&&!used.has(e.id)&&(!ent||expenseBankOf(e)===ent)&&Math.round(e.amount*100)===Math.round(amount*100)&&Math.abs(dateMs(e.date)-Date.parse(m[2]+"T12:00:00Z"))<=DUP_DIAS_MS;});if(a)used.add(a.id);});
+  });
+  groups.forEach(function(group){
+    const notices=group.filter(function(e){return gemeloAvisoAutomatico(e)&&!used.has(e.id);});
+    const banks=group.filter(function(e){return gemeloBancoAutomatico(e)&&!occupied.has(e.id);});
+    // Un histórico sin #dup puede contener «son distintos» de 117. Solo una notificación
+    // NUEVA permite emparejar un banco sin pregunta; abrir una cartera nunca revoca esa respuesta.
+    const normal=banks.filter(function(e){return !e.possibleDup&&!e.gemeloNuevo&&!e.autoGemelo;});
+    const historical=notices.filter(function(e){return !prev||prevIds.has(e.id);});
+    gemeloAsignar(normal,historical,3).forEach(function(pair){occupied.add(pair[0].id);used.add(pair[1].id);});
+    const eligible=banks.filter(function(e){return !occupied.has(e.id)&&!e.gemeloSeparado;});
+    const available=notices.filter(function(e){return !used.has(e.id);});
+    gemeloAsignar(eligible,available,3).forEach(function(pair){reserve(pair[0],pair[1],gemeloCompatible(pair[0],pair[1],1));});
+  });
+  let expenses=rows;
+  rows.forEach(function(e,i){
+    if(!e||!dirty.has(gemeloDatos(e).grupo))return;const target=destinos.get(e.id),has=destinos.has(e.id);
+    if(!has&&!e.autoGemelo&&!e.gemeloNuevo&&!e.gemeloSeparado)return;
+    const id=target&&target.id,auto=target&&target.auto?id:undefined;
+    if(!!e.possibleDup===!!id&&(e.possibleDupOf||undefined)===(id||undefined)&&(e.autoGemelo||undefined)===auto&&!e.gemeloNuevo)return;
+    const n=Object.assign({},e);delete n.gemeloNuevo;
+    if(id){n.possibleDup=true;n.possibleDupOf=id;delete n.gemeloSeparado;if(auto)n.autoGemelo=id;else delete n.autoGemelo;}
+    else {delete n.possibleDup;delete n.possibleDupOf;delete n.autoGemelo;}
+    if(expenses===rows)expenses=rows.slice();expenses[i]=n;
+  });
+  const out=expenses===rows?s:Object.assign({},s,{expenses:expenses});
+  if(expenses!==rows)expenses.forEach(function(e){if(e&&index.ids.get(e.id)!==e)index.ids.set(e.id,e);});
+  dirty.forEach(function(k){index.groups.set(k,index.groups.get(k).map(function(e){return index.ids.get(e.id);}));});
+  gemeloCache.set(out.expenses,{gemelos:out.gemelos,deleted:out.deleted,index:index});return out;
+}
+function gemeloAutomaticoDe(s,e){
+  if(!e)return null;
+  const b=(s.expenses||[]).find(function(x){return x.autoGemelo===e.id&&x.possibleDup&&!x.gemeloSeparado;});
+  if(!b)return null;
+  const decision=(s.gemelos||[]).find(function(g){return g.banco===keyOfExpense(b)&&(g.avisoId===e.id||g.aviso===gemeloAvisoKey(e));});
+  if(decision&&decision.separado)return null;
+  return Object.assign(gemeloDe(e,b),{auto:true,ent:expenseBankOf(b),at:decision&&decision.at||1});
+}
+function separarGemeloAutomatico(s,id,ahora){
+  const e=(s.expenses||[]).find(function(x){return x.id===id;}),g=gemeloAutomaticoDe(s,e);if(!g)return s;
+  const decision=Object.assign({},g,{separado:true,at:Math.max(ahora||Date.now(),(g.at||0)+1)});
+  const expenses=s.expenses.map(function(b){if(b.autoGemelo!==id)return b;const n=Object.assign({},b,{gemeloSeparado:id});delete n.autoGemelo;delete n.possibleDup;delete n.possibleDupOf;return n;});
+  return reconcileGemelosAutomaticos(Object.assign({},s,{expenses:expenses,gemelos:pushGemelos(s.gemelos,[decision])}),s);
+}
+function unirGemeloAutomatico(s,id,ahora){
+  const a=(s.expenses||[]).find(function(e){return e.id===id;});if(!a)return s;
+  const decisions=(s.gemelos||[]).filter(function(g){return g.separado&&(g.avisoId===id||g.aviso===gemeloAvisoKey(a));}).sort(function(a,b){return (b.at||0)-(a.at||0);});
+  const g=decisions[0],b=(s.expenses||[]).find(function(e){return e.gemeloSeparado===id||g&&keyOfExpense(e)===g.banco&&expenseBankOf(e)===(g.ent||expenseBankOf(a));});
+  if(!b||!gemeloBancoAutomatico(b)||!gemeloAvisoAutomatico(a)||!gemeloCompatible(a,b,1))return s;
+  const decision=Object.assign(gemeloDe(a,b),{auto:true,ent:expenseBankOf(b),at:Math.max(ahora||Date.now(),(g&&g.at||0)+1)});
+  const expenses=s.expenses.map(function(e){if(e.id!==b.id)return e;const n=Object.assign({},e,{possibleDup:true,possibleDupOf:id,autoGemelo:id});delete n.gemeloSeparado;return n;});
+  return reconcileGemelosAutomaticos(Object.assign({},s,{expenses:expenses,gemelos:pushGemelos(s.gemelos,[decision])}));
+}
+function gemeloSeparadoDe(s,e){
+  if(!e)return null;
+  return (s.expenses||[]).find(function(b){return gemeloBancoAutomatico(b)&&!b.possibleDup&&gemeloCompatible(e,b,1)&&(b.gemeloSeparado===e.id||(s.gemelos||[]).some(function(g){return g.separado&&g.banco===keyOfExpense(b)&&(g.avisoId===e.id||g.aviso===gemeloAvisoKey(e));}));})||null;
+}
+function gemelosCambiosNube(s,incoming){
+  const local=new Map(),out=[];
+  (s.expenses||[]).forEach(function(e){if(gemeloBancoAutomatico(e))local.set(expenseBankOf(e)+"|"+keyOfExpense(e),e);});
+  (incoming||[]).forEach(function(e){const l=local.get(expenseBankOf(e)+"|"+keyOfExpense(e));if(!gemeloBancoAutomatico(e)||!l)return;
+    if(l.autoGemelo&&!e.possibleDup)out.push({expense:e,dup:true});
+    else if(l.gemeloSeparado&&e.possibleDup)out.push({expense:e,dup:false});
+  });return out;
 }
 
 /* GASTO VARIABLE VÍA OPEN BANKING (2026-08-05): entra TODO de CUALQUIER banco sincronizado
@@ -1148,7 +1337,7 @@ function importObExpenses(s, txs, links){
      diga «es el mismo» o «son distintos». Cero decisiones irreversibles automáticas. */
   const DUP_MS=DUP_DIAS_MS;   // misma ventana que el historico (`histCandCercanos`)
   const otrasVias=(s.expenses||[]).filter(function(e){
-    return e && e.source!=="ob" && e.source!=="ob-hist";
+    return e && !esFilaDeBanco(e) && !e.possibleDup && !e.pending && !e.reciboId && !e.debtId;
   });
   /* UN AVISO EMPAREJA UNA SOLA VEZ (12/10/2026). `usadoDup` ya lo garantizaba DENTRO de una
      sincronización; entre sincronizaciones —y desde otro móvil— el mismo aviso volvía a ser el
@@ -1160,24 +1349,16 @@ function importObExpenses(s, txs, links){
      (lápida sin vínculo en `gemelos`). Aquella versión no apuntó QUÉ aviso era; se da por reclamado
      el primero que casa —el que habría elegido entonces— y se busca a partir del siguiente. */
   const emparejados=avisosEmparejados(s);
-  const usadoDup={};
-  const gemeloOtraVia=function(tx, saltar){
-    if(!sinComercioReal(tx.merchant)) return null;
-    if(!tx.ent) return null;
-    const ms=parseDate(tx.date).getTime();
-    let quedan=saltar||0;
-    const hit=otrasVias.findIndex(function(e,i){
-      if(usadoDup[i]) return false;
-      if(expenseBankOf(e)!==tx.ent) return false;
-      if(Math.abs((e.amount||0)-tx.amount)>0.005) return false;
-      if(Math.abs(dateMs(e.date)-ms)>DUP_MS) return false;
-      if(avisoYaEmparejado(emparejados, e)) return false;
-      if(quedan>0){ quedan--; return false; }
-      return true;
+  const usadoDup={}, otrasPorImporte=new Map(), manualesPorImporte=new Map();
+  otrasVias.forEach(function(e,i){const k=expenseBankOf(e)+"|"+Math.round(Number(e.amount)*100),entry={e:e,i:i};if(!otrasPorImporte.has(k))otrasPorImporte.set(k,[]);otrasPorImporte.get(k).push(entry);if(isManualExpenseSource(e.source)){if(!manualesPorImporte.has(k))manualesPorImporte.set(k,[]);manualesPorImporte.get(k).push(entry);}});
+  const gemeloOtraVia=function(tx,saltar){
+    if(!sinComercioReal(tx.merchant)||!tx.ent)return null;
+    const ms=dateMs(tx.date),k=tx.ent+"|"+Math.round(Number(tx.amount)*100),candidates=(tx.id?otrasPorImporte:manualesPorImporte).get(k)||[];let quedan=saltar||0;
+    const hit=candidates.find(function(item){const e=item.e;
+      if(usadoDup[item.i]||Math.abs(dateMs(e.date)-ms)>DUP_MS||avisoYaEmparejado(emparejados,e))return false;
+      if(quedan>0){quedan--;return false;}return true;
     });
-    if(hit<0) return null;
-    usadoDup[hit]=1;
-    return otrasVias[hit];
+    if(!hit)return null;usadoDup[hit.i]=1;return hit.e;
   };
   // Cargos ya modelados ESTE mes por entidad (Fijos/deudas/puntuales), para no contar dos veces un recibo.
   const now=new Date(), ym=now.getMonth()+1, yy=now.getFullYear();
@@ -1221,6 +1402,7 @@ function importObExpenses(s, txs, links){
       const e={ id:mcExpenseId(), date:new Date(tx.date+"T12:00:00").toISOString(),
         merchant:tx.merchant||"Ingreso", amount:tx.amount,
         category: esTraspasoPropio(s, tx) ? TRASPASO_CAT.id : INGRESO_CAT.id, source:"ob", ent:tx.ent };
+      if(tx.acc) e.obAcc=tx.acc;
       e.obName=e.merchant;   // lo que dijo el banco: el dedup se queda con esto aunque él lo renombre
       // Ingresos fuera de gasto diario: se ven (Mi ciclo) pero no mueven el presupuesto «gastado».
       if(tx.ent && !allow[tx.ent]) e.budgetSkip=true;
@@ -1239,6 +1421,7 @@ function importObExpenses(s, txs, links){
     const e={ id:mcExpenseId(), date:new Date(tx.date+"T12:00:00").toISOString(),
       merchant:tx.merchant||"Compra", amount:tx.amount,
       category: esAporteInv ? "inversion" : categoryOfBankTx(tx), source:"ob", ent:tx.ent };
+    if(tx.acc) e.obAcc=tx.acc;
     e.obName=e.merchant;   // lo que dijo el banco: el dedup se queda con esto aunque él lo renombre
     if(tx.ent && !allow[tx.ent]) e.budgetSkip=true;
     // Un recibo sin id (sembrado antes de tenerlos) no tiene a qué enlazarse: se sigue tirando.
@@ -1293,6 +1476,21 @@ function importObExpenses(s, txs, links){
      el mismo estado— no hay nada que distinga «repetida al paginar» de «dos bizums iguales», y
      ahí mandan los k del banco: es la función de esta entrega. */
   const firme=function(tx){ const st=String(tx.status||"").trim(); return !st || /book|post/i.test(st); };
+  /* UN APUNTE CON ID Y OTRO IDÉNTICO SIN ID SON EL MISMO CARGO (13/10/2026, decisión del
+     coordinador). El de id va por su camino y no contaba para las ranuras: si llegaba delante,
+     el de sin id entraba también como «primero» y quedaban dos filas con LA MISMA clave. Una
+     sola cabía en la nube, el siguiente pull las fundía (7,50 contados como 15 hasta entonces)
+     y un «no es este recibo» sobre una soltaba las dos; si llegaba detrás, o en otra
+     sincronización, entraba una. Ahora entra UNA desde el principio, la del id: ocupa la ranura
+     1 del grupo y a los de sin id les quedan de la 2 en adelante. Con dos ids iguales y uno sin
+     id sigue siendo una (los de id ya se fundían por clave); con un id y dos sin id, dos. No hay
+     dato de que un banco mande así dos cargos distintos. Solo hace falta mirar el de id que
+     entra AHORA: el que ya está guardado tiene su clave en `keys` y cubre la ranura 1 él solo;
+     el que no pasa los filtros (un abono pendiente) no cuenta. */
+  if(ordenGrupos.length) cands.forEach(function(c){
+    const g=c.tx.id && grupos[(expenseBankOf(c.e)||c.e.ent||"")+"|"+baseKOf(c.e)];
+    if(g) g.conId=1;
+  });
   ordenGrupos.forEach(function(k){
     const g=grupos[k];
     g.miembros.sort(function(a,b){ const ha=huella(a.tx), hb=huella(b.tx); return ha<hb?-1:(ha>hb?1:0); });
@@ -1301,7 +1499,7 @@ function importObExpenses(s, txs, links){
       const pendientes=g.miembros.filter(function(c){ return !firme(c.tx); });
       g.miembros=firmes.concat(pendientes.slice(firmes.length));   // los descartados se quedan sin ranura
     }
-    let n=0, viejas=0;
+    let n=g.conId||0, viejas=0;
     g.miembros.forEach(function(c){
       // Siguiente ranura libre entre 1..k; las cubiertas se saltan sin gastar miembro… pero el
       // total de ranuras es k: pasado k, el miembro sobra (ya lo teníamos).
@@ -1323,12 +1521,16 @@ function importObExpenses(s, txs, links){
     // Lo que antes se tiraba (el cargo de un recibo) no puede gastar el gemelo de otra vía que
     // le tocaría a otro cargo. Sus iguales del mismo día sí llevan ordinal, como cualquiera.
     const gem=e.reciboId?null:gemeloOtraVia(tx, c.saltar);
+    if(gemeloBancoAutomatico(e)) e.gemeloNuevo=true;
     if(gem && gem.id){ e.possibleDup=true; e.possibleDupOf=gem.id; }
     keys[scopedKOf(e)]=1;
     if(tx.id) seen[(tx.ent||"")+"|"+tx.id]=1;
     add.push(e);
   });
-  return add.length? add : null;
+  if(!add.length)return null;
+  const paired=reconcileGemelosAutomaticos(Object.assign({},s,{expenses:add.concat(s.expenses||[])}),s);
+  const added=new Set(add.map(function(e){return e.id;}));
+  return paired.expenses.filter(function(e){return added.has(e.id);});
 }
 
 /* A QUÉ RECIBO PERTENECE UN CARGO cuando casa con varios (12/10/2026). `hits` son los que da el
@@ -1451,7 +1653,7 @@ function admiteMarcaDe(x, f){
    lo sigue teniendo el otro móvil: con el veto fuera y sin la marca, aquí contaría como compra
    y allí no. Es el ÚNICO vínculo a mano que marca; el de un cargo cualquiera deja el gastado
    como estaba (`linkFixedPayment`), que es lo que promete su diálogo. Si el vínculo no llega a
-   guardarse y el recibo sigue sin pagar, el veto se queda. Un PUNTUAL no tiene motor de pago
+   guardarse, el recibo sigue sin pagar y la fila no admite la marca, el veto se queda. Un PUNTUAL no tiene motor de pago
    ni vínculo: deshacer su veto es solo devolverle la marca, y si no la admite no hay nada que
    deshacer. → {state, e} (la fila marcada, para subirla; null si no admite marca) o null si no
    había veto que deshacer. */
@@ -1463,11 +1665,18 @@ function reponerCargoDeRecibo(s, expenseId, fixedId, y, m, today, expected, ahor
   const identidad=fixedPaymentIdentity(expenseBankOf(x), x), claves=reciboNoDe(s, fixedId, reciboNoIdentidad(x), x.id);
   if(!claves.length) return null;
   const marcar=admiteMarcaDe(x, f);
-  if(!fijo && (!marcar || (expected && expected.identity!==identidad))) return null;
+  // El diálogo se contestó sobre OTRO cargo (la fila cambió mientras estaba abierto): no se toca.
+  if(expected && expected.identity!==identidad) return null;
+  if(!fijo && !marcar) return null;
   const libre=Object.assign({}, s, reciboNoPon(s, claves, false, ahora||Date.now()));
   const link=fijo ? linkFixedPayment(libre, expenseId, fixedId, y, m, today, expected) : libre;
-  // Sin el veto el motor puede darlo por pagado él solo con ese cargo: también vale.
-  if(fijo && link===libre && reciboPagadoCon(fixedPaymentState(libre, f, y, m, today))!==identidad) return null;
+  /* Sin el veto el motor puede darlo por pagado él solo con ese cargo: también vale. Y si ni
+     se guarda el vínculo ni el motor lo da por pagado, PERO la fila admite la marca, se deshace
+     igual (13/10/2026): con dos cargos iguales de un recibo fijo el motor no elige ninguno, el
+     vínculo no se guardaba y «Confirmar pago» no hacía nada mientras su diálogo prometía «aquí
+     no suma otra vez». Devolverle la marca es dejarlo como estaba antes del veto, que es lo que
+     se promete; el recibo sigue pendiente, como lo estaba entonces. */
+  if(fijo && link===libre && !marcar && reciboPagadoCon(fixedPaymentState(libre, f, y, m, today))!==identidad) return null;
   const e=marcar ? Object.assign({}, x, { reciboId:fixedId }) : null;
   const con=e ? Object.assign({}, link, { expenses:link.expenses.map(function(r){ return r===x ? e : r; }) }) : link;
   return { state:conSaldoMostrado(s, con), e:e };
@@ -1485,27 +1694,94 @@ function reponerCargoDeRecibo(s, expenseId, fixedId, y, m, today, expected, ahor
    Fuera de un sync eso movía el saldo con el banco quieto (cuenta de gasto diario: 397,60 →
    335,20): se sujeta si había un cargo suyo marcado. → {state, subir} con las filas ya sin
    marca, para reescribir su `source`. */
-function sinCargoDelPlan(s, lista, id){
+function sinCargoDelPlan(s, lista, id, ahora){
   const subir=[], desde=budgetPeriodOf(s).startMs, mes=startOfMonth().getTime();
   const era=(s[lista]||[]).find(function(x){ return x.id===id; });
-  let marcadas=false, delMes=false;
+  if(!era) return { subir:subir, state:s };
+  let delMes=false;
   const expenses=(s.expenses||[]).map(function(e){
     if(!e || e.reciboId!==id) return e;
-    marcadas=true;
     if(dateMs(e.date)>=mes && cargoDeRecibo(e, s)) delMes=true;
     if(dateMs(e.date)<desde) return e;
     const x=Object.assign({}, e); delete x.reciboId;
     subir.push(x);
     return x;
   });
+  // `x`: las filas que pierden la marca, para devolvérsela si se pulsa «Deshacer».
+  const b={ d:desde, n:era.name||"" };
+  if(subir.length) b.x=subir.map(function(e){ return e.id; });
+  const at=Object.assign({}, s.reciboBorradoAt);
+  at[id]=Math.max(ahora||Date.now(), (at[id]||0)+1);
   const out=Object.assign({}, s, { [lista]:(s[lista]||[]).filter(function(x){ return x.id!==id; }) }, subir.length ? { expenses:expenses } : null,
-    marcadas ? { reciboBorrado:Object.assign({}, s.reciboBorrado, { [id]:{ d:desde, n:(era&&era.name)||"" } }) } : null);
+    { reciboBorrado:Object.assign({}, s.reciboBorrado, { [id]:b }), reciboBorradoAt:at });
   return { subir:subir, state:(delMes || subir.length) ? conSaldoMostrado(s, out) : out };
 }
-// Las cuatro puertas de borrado de Plan pasan por aquí: el estado y, después, la nube.
+/* «DESHACER» EL BORRADO DE UN RECIBO LO DEJA COMO ESTABA (13/10/2026). Plan lo devuelve con su
+   MISMO id (`undoLastBill`). Sin esto `reciboBorrado` seguía diciendo «borrado» y el siguiente
+   arranque lo sacaba otra vez del Plan; y, ya antes de unir nada, sus cargos del periodo se
+   quedaban sin marca: el recibo de vuelta en el Plan y el gastado con su cargo dentro (102,40
+   donde eran 40). Se levanta el borrado con su hora —gana a un estado más antiguo que aún lo
+   traiga— y las filas que perdieron la marca al borrarlo la recuperan, aquí y en la nube. Un
+   alta cualquiera (id nuevo, sin borrado que conste) es solo añadirlo. → {state, subir} */
+function conReciboEnPlan(s, lista, item, ahora){
+  const con=Object.assign({}, s, { [lista]:(s[lista]||[]).concat([item]) });
+  const b=item && s.reciboBorrado && s.reciboBorrado[item.id];
+  if(!b) return { subir:[], state:con };
+  const rb=Object.assign({}, s.reciboBorrado); delete rb[item.id];
+  const at=Object.assign({}, s.reciboBorradoAt);
+  at[item.id]=Math.max(ahora||Date.now(), (at[item.id]||0)+1);
+  const subir=[], suyas=b.x||[], mes=startOfMonth().getTime();
+  let delMes=false;
+  const expenses=(s.expenses||[]).map(function(e){
+    if(!e) return e;
+    if(e.reciboId===item.id && dateMs(e.date)>=mes) delMes=true;
+    if(e.reciboId || suyas.indexOf(e.id)<0 || !admiteMarcaDe(e, item)) return e;
+    const x=Object.assign({}, e, { reciboId:item.id });
+    subir.push(x);
+    return x;
+  });
+  const out=Object.assign({}, con, { reciboBorrado:rb, reciboBorradoAt:at }, subir.length ? { expenses:expenses } : null);
+  return { subir:subir, state:(delMes || subir.length) ? conSaldoMostrado(s, out) : out };
+}
+/* EL BORRADO DE UN RECIBO SOBREVIVE A UN ESTADO MÁS ANTIGUO (13/10/2026). El estado viaja entero
+   por «último que escribe», y el del móvil B —días sin abrirse, pero sellado como «más nuevo» por
+   el primer guardado al arrancar— ganaba: el recibo volvía al Plan sin `reciboBorrado`, mientras
+   su cargo del periodo ya estaba sin marca en la nube. Medido: B decía 40 de gastado (su fila
+   seguía marcada y el recibo existía) y A y el widget 102,40. `reciboBorrado` se une con la
+   regla de las lápidas y los vetos (`unionPorHora`, con `reciboBorradoAt`: gana lo último que
+   se dijo, borrar o «Deshacer»; lo que no lleva hora se suma), y un recibo que consta borrado
+   sale del Plan gane el estado que gane; con eso `cargoDeRecibo` da lo mismo en los dos móviles.
+   Todo borrado deja constancia, tuviera o no cargos marcados: sin ella el recibo volvía igual
+   desde el móvil atrasado. No tiene tope: de cada entrada depende que los cargos de meses
+   cerrados sigan sin contar. El saldo pintado se sujeta igual que al borrarlo a mano.
+   → el mismo estado si no hay nada que unir. */
+function recibosBorradosUnion(s, local, nube){
+  const a=(local&&local.reciboBorrado)||{}, b=(nube&&nube.reciboBorrado)||{};
+  const vale=function(o){ return Object.keys(o).filter(function(id){ return o[id] && typeof o[id].d==="number"; }); };
+  const u=unionPorHora(vale(a), local&&local.reciboBorradoAt, vale(b), nube&&nube.reciboBorradoAt);
+  const igual=function(x, y){ const kx=Object.keys(x||{}), ky=Object.keys(y||{}); return kx.length===ky.length && kx.every(function(k){ return x[k]===y[k]; }); };
+  let rb={}, at=u.at;
+  u.lista.forEach(function(id){ rb[id]=a[id]||b[id]; });
+  if(igual(rb, s.reciboBorrado)) rb=s.reciboBorrado;
+  if(igual(at, s.reciboBorradoAt)) at=s.reciboBorradoAt;
+  const con=(rb===s.reciboBorrado && at===s.reciboBorradoAt) ? s : Object.assign({}, s, { reciboBorrado:rb, reciboBorradoAt:at });
+  if(!rb) return con;
+  const fuera=function(x){ return !!(x && rb[x.id]); };
+  if(!(s.fixed||[]).some(fuera) && !(s.oneoffs||[]).some(fuera)) return con;
+  const sin=Object.assign({}, con, { fixed:(s.fixed||[]).filter(function(x){ return !fuera(x); }), oneoffs:(s.oneoffs||[]).filter(function(x){ return !fuera(x); }) });
+  // Con algún cargo suyo marcado, el saldo pintado no puede moverse con el banco quieto.
+  const suelta=(s.expenses||[]).some(function(e){ return e && rb[e.reciboId] && cargoDeRecibo(e, s); });
+  return suelta ? conSaldoMostrado(s, sin) : sin;
+}
+// Las puertas de borrado y de alta de Plan pasan por aquí: el estado y, después, la nube.
 function quitarDelPlan(set, lista, id){
   let subir=[];
   set(function(s){ const r=sinCargoDelPlan(s, lista, id); subir=r.subir; return r.state; });
+  if(cloud.enabled()) subir.forEach(function(e){ cloud.setExpenseRecibo(e).catch(function(){}); });
+}
+function ponerEnPlan(set, lista, item){
+  let subir=[];
+  set(function(s){ const r=conReciboEnPlan(s, lista, item); subir=r.subir; return r.state; });
   if(cloud.enabled()) subir.forEach(function(e){ cloud.setExpenseRecibo(e).catch(function(){}); });
 }
 /* LAS CUOTAS DE TUS DEUDAS, EN «DEUDAS» (4.21.0).
@@ -3026,6 +3302,32 @@ function enrichNotesFromBankTx(expenses, txs){
   });
   return touched? out : expenses;
 }
+/* La cuenta de origen de lo que YA estaba apuntado (14/10/2026). Cada sincronización vuelve a leer
+   el mes en curso con su cuenta, así que los movimientos de antes de guardarla la recuperan solos
+   en cuanto el banco los repite: por id del banco, o por día, importe y nombre del banco siempre
+   que no haya dos cuentas con ese mismo apunte. Lo que el banco ya no devuelve se queda sin
+   cuenta. Sin cambios, el MISMO array: no se reescribe el histórico (AGENTS §7 bis). */
+function tagObAccountsFromBankTx(expenses, txs){
+  if(!expenses || !expenses.length || !txs || !txs.length) return expenses;
+  const byExt={}, byKey={};
+  const kOf=function(ent,d,a,m){ return ent+"|"+String(d).slice(0,10)+"|"+Number(a||0).toFixed(2)+"|"+String(m||""); };
+  txs.forEach(function(tx){
+    if(!tx || !tx.acc || !tx.ent) return;
+    if(tx.id) byExt[tx.ent+"|"+tx.id]=tx.acc;
+    const k=kOf(tx.ent,tx.date,tx.amount,tx.merchant);
+    byKey[k]=(k in byKey && byKey[k]!==tx.acc) ? "" : tx.acc;
+  });
+  let touched=false;
+  const out=expenses.map(function(e){
+    if(!e || e.obAcc || (e.source!=="ob" && e.source!=="ob-hist")) return e;
+    const bank=expenseBankOf(e)||e.ent||"";
+    const acc=(e.extId&&byExt[bank+"|"+e.extId]) || byKey[kOf(bank,diaDeGasto(e),e.amount,e.obName!=null?e.obName:e.merchant)];
+    if(!acc) return e;
+    touched=true;
+    return Object.assign({},e,{obAcc:acc});
+  });
+  return touched? out : expenses;
+}
 
 // Selector compacto de meses (1-12) para gastos no mensuales.
 function MonthPicker({selected, onToggle}){
@@ -3233,8 +3535,7 @@ function Reconcile({state, set}){
   );
 }
 
-/* Helpers puros para §2 variante A (Gestionar → Tus recibos). Los usa el hub en `14` sin
-   montar `<Fijos>` entero. No tocan UI. */
+/* Helpers puros para §2 variante A (Gestionar → Tus recibos). Los usa el hub en `14`. No tocan UI. */
 function fixedMonthlyOf(e){
   if(!e) return 0;
   if(hasSchedule(e)) return e.schedule.reduce(function(a,x){ return a+(Number(x.amt)||0); },0)/12;
@@ -3315,7 +3616,7 @@ function removeFixedById(set, id){
   quitarDelPlan(set,"fixed",id);
 }
 function addFixedItem(set, item){
-  set(function(s){ return Object.assign({},s,{fixed:(s.fixed||[]).concat([item])}); });
+  ponerEnPlan(set,"fixed",item);
 }
 function patchFlowById(set, id, patch){
   set(function(s){
@@ -3352,7 +3653,7 @@ function removeOneoffById(set, id){
   quitarDelPlan(set,"oneoffs",id);
 }
 function addOneoffItem(set, item){
-  set(function(s){ return Object.assign({},s,{oneoffs:(s.oneoffs||[]).concat([item])}); });
+  ponerEnPlan(set,"oneoffs",item);
 }
 /* En modo sencillo no hay pestaña Deudas: la ficha de cuota SÍ puede escribir día/cuenta/amort. */
 function patchDebtFields(set, id, patch){
@@ -3366,437 +3667,3 @@ function patchDebtFields(set, id, patch){
     })});
   });
 }
-
-function Fijos({state, set, totals}){
-  const [editing,setEditing]=useState(false);
-  const [draft,setDraft]=useState({});
-  const [draftM,setDraftM]=useState({});
-  const [adding,setAdding]=useState(false);
-  const [form,setForm]=useState({name:"",amount:"",freq:"mes",months:[],day:""});
-  const monthly=fixedMonthlyOf;
-  const list=state.fixed.slice().sort((a,b)=>monthly(b)-monthly(a));
-  const servSum=(state.fixed||[]).reduce(function(a,e){ return a+monthly(e); },0);
-  const cuotas=(state.debts||[]).reduce(function(a,d){ return a+(debtActive(d)?(d.monthly||0):0); },0);
-  const grand=servSum+cuotas;
-  const top=list.filter(e=>monthly(e)>0)[0];
-
-  // bancos disponibles (de las cuentas que tiene el usuario), Sabadell primero
-  const banks=Array.from(new Set(state.accounts.map(a=>a.ent)));
-  if(banks.indexOf("sabadell")>0){ banks.splice(banks.indexOf("sabadell"),1); banks.unshift("sabadell"); }
-  // el default "sabadell" solo vale si ESTE usuario tiene Sabadell; si no, el <select> enseñaba un
-  // banco pero se guardaba otro (multiusuario 2026-07-11) → siempre un banco de SU lista
-  const bankOr=(b)=> banks.indexOf(b)>=0 ? b : (banks[0]||"sabadell");
-
-  // lecturas robustas: si el borrador no tiene el id (p.ej. recién añadido en modo edición), usa el valor real
-  const dAmt=(e)=> draft[e.id]!=null ? draft[e.id] : e.amount;
-  const dMonths=(e)=> draftM[e.id]!=null ? draftM[e.id] : (hasSchedule(e)? e.schedule.map(x=>x.m) : (e.months||[]));
-  const dBank=(e)=> draft["b_"+e.id]!=null ? draft["b_"+e.id] : accOf(e);
-  const dDay=(e)=> draft["d_"+e.id]!=null ? draft["d_"+e.id] : (e.day||"");
-  const cleanDay=(v)=>{ const n=parseInt(String(v),10); return (n>=1&&n<=31)?n:null; };
-  // importes/días a medida por cobro (schedule)
-  const dSched=(e)=> draft["sc_"+e.id]!=null ? draft["sc_"+e.id] : hasSchedule(e);
-  const dSA=(e,m)=>{ const k="sa_"+e.id+"_"+m; return draft[k]!=null ? draft[k] : (hasSchedule(e)? (((e.schedule.find(x=>x.m===m)||{}).amt)||"") : occAmountIn(e,m)); };
-  const dSD=(e,m)=>{ const k="sd_"+e.id+"_"+m; return draft[k]!=null ? draft[k] : (dayIn(e,m)||""); };
-
-  const startEdit=()=>{ const d={},dm={}; state.fixed.forEach(e=>{d[e.id]=e.amount; d["b_"+e.id]=accOf(e); d["d_"+e.id]=e.day||""; d["sc_"+e.id]=hasSchedule(e); dm[e.id]=(hasSchedule(e)?e.schedule.map(x=>x.m):(e.months||[])).slice(); if(hasSchedule(e)){ e.schedule.forEach(x=>{ d["sa_"+e.id+"_"+x.m]=x.amt; d["sd_"+e.id+"_"+x.m]=x.day||""; }); }}); setDraft(d); setDraftM(dm); setEditing(true); };
-  const toggleSched=(id)=> setDraft(d=>Object.assign({},d,{["sc_"+id]: !(d["sc_"+id]!=null?d["sc_"+id]:hasSchedule((state.fixed.find(x=>x.id===id)||{})))}));
-  const saveEdit=()=>{ set(s=>Object.assign({},s,{fixed:s.fixed.map(e=>{
-      const base=Object.assign({},e,{amount:parseFloat(String(dAmt(e)).replace(',','.'))||0, account:dBank(e), day:cleanDay(dDay(e)), months:dMonths(e).slice().sort((a,b)=>a-b)});
-      if(e.freq!=="mes" && dSched(e)){
-        const ms=dMonths(e).slice().sort((a,b)=>a-b);
-        base.schedule=ms.map(m=>({ m:m, amt:parseFloat(String(dSA(e,m)).replace(',','.'))||0, day:cleanDay(dSD(e,m)) }));
-      } else { delete base.schedule; }
-      return base;
-    })})); setEditing(false); };
-  const toggleDraftM=(id,m)=> setDraftM(dm=>{ const base=dm[id]!=null?dm[id]:(((state.fixed.find(x=>x.id===id)||{}).months)||[]); const cur=base.slice(); const i=cur.indexOf(m); if(i>=0)cur.splice(i,1); else cur.push(m); return Object.assign({},dm,{[id]:cur}); });
-  const del=(id)=> removeFixedById(set,id);
-  const toggleFormM=(m)=> setForm(f=>{ const cur=(f.months||[]).slice(); const i=cur.indexOf(m); if(i>=0)cur.splice(i,1); else cur.push(m); return Object.assign({},f,{months:cur}); });
-  const addFixed=()=>{ const amt=parseFloat(String(form.amount).replace(',','.'))||0; if(amt===0){ return; } const it={id:uid(),name:form.name||"Gasto fijo",amount:amt,freq:form.freq,account:bankOr(form.account||"sabadell")}; const dd=cleanDay(form.day); if(dd) it.day=dd; if(form.freq!=="mes"&&form.months&&form.months.length) it.months=form.months.slice().sort((a,b)=>a-b); set(s=>Object.assign({},s,{fixed:s.fixed.concat([it])})); setForm({name:"",amount:"",freq:"mes",months:[],day:"",account:(form.account||"sabadell")}); setAdding(false); };
-
-  // --- edición de cuotas de deuda (día + banco + cuota), igual que los gastos fijos ---
-  const [editingD,setEditingD]=useState(false);
-  const [draftD,setDraftD]=useState({});
-  const dDMon=(x)=> draftD[x.id]!=null?draftD[x.id]:x.monthly;
-  const dDBank=(x)=> draftD["b_"+x.id]!=null?draftD["b_"+x.id]:(x.account||"sabadell");
-  const dDDay=(x)=> draftD["dy_"+x.id]!=null?draftD["dy_"+x.id]:(x.day||"");
-  const dDAmort=(x)=> draftD["am_"+x.id]!=null?draftD["am_"+x.id]:(x.amort!=null?x.amort:(x.monthly||""));
-  const startEditD=()=>{ const d={}; state.debts.forEach(x=>{ d[x.id]=x.monthly; d["b_"+x.id]=x.account||"sabadell"; d["dy_"+x.id]=x.day||""; d["am_"+x.id]=(x.amort!=null?x.amort:(x.monthly||"")); }); setDraftD(d); setEditingD(true); };
-  const saveEditD=()=>{ set(s=>Object.assign({},s,{debts:s.debts.map(x=>{ const mon=parseFloat(String(dDMon(x)).replace(',','.'))||0; const am=parseFloat(String(dDAmort(x)).replace(',','.')); const o=Object.assign({},x,{ monthly:mon, account:dDBank(x), day:cleanDay(dDDay(x)) }); if(am>0 && Math.abs(am-mon)>0.005){ o.amort=am; } else { delete o.amort; } return o; })})); setEditingD(false); };
-
-  // --- edición de movimientos recurrentes (nómina + transferencias) — motor cash-flow ---
-  const flows=state.flows||[];
-  const [editingF,setEditingF]=useState(false);
-  const [draftF,setDraftF]=useState({});
-  const [addingF,setAddingF]=useState(false);
-  const [formF,setFormF]=useState({kind:"income",name:"",amount:"",day:"",when:"",to:"sabadell",from:"sabadell",once:false,month:new Date().getMonth()+1,year:new Date().getFullYear()});
-  const fAmt=(f)=> draftF[f.id]!=null?draftF[f.id]:f.amount;
-  const fDay=(f)=> draftF["dy_"+f.id]!=null?draftF["dy_"+f.id]:(f.day||"");
-  const fWhen=(f)=> draftF["wh_"+f.id]!=null?draftF["wh_"+f.id]:(f.when||"");
-  const fTo=(f)=> draftF["to_"+f.id]!=null?draftF["to_"+f.id]:(f.to||"sabadell");
-  const fFrom=(f)=> draftF["fr_"+f.id]!=null?draftF["fr_"+f.id]:(f.from||"sabadell");
-  const startEditF=()=>{ const d={}; flows.forEach(f=>{ d[f.id]=f.amount; d["dy_"+f.id]=f.day||""; d["wh_"+f.id]=f.when||""; d["to_"+f.id]=f.to||"sabadell"; d["fr_"+f.id]=f.from||"sabadell"; }); setDraftF(d); setEditingF(true); };
-  const saveEditF=()=>{ set(s=>keepShownAcrossFlows(s,(s.flows||[]).map(f=>{ const wh=fWhen(f); const o=Object.assign({},f,{amount:parseFloat(String(fAmt(f)).replace(',','.'))||0}); if(wh){ o.when=wh; delete o.day; } else { delete o.when; o.day=cleanDay(fDay(f)); } if(f.kind==="income"){ o.to=fTo(f); delete o.from; } else { o.from=fFrom(f); o.to=fTo(f); } if(o.amount!==f.amount||o.to!==f.to){ delete o.paidYm; delete o.paidDay; delete o.paidBank; delete o.paidAmount; } return o; }))); setEditingF(false); };
-  const delFlow=(id)=> set(s=>keepShownAcrossFlows(s,(s.flows||[]).filter(f=>f.id!==id)));
-  const addFlow=()=>{ const amt=parseFloat(String(formF.amount).replace(',','.'))||0; if(amt===0) return; const it={id:uid(),kind:formF.kind,name:formF.name||(formF.kind==="income"?"Ingreso":"Transferencia"),amount:amt}; if(formF.when){ it.when=formF.when; } else { const dd=cleanDay(formF.day); if(dd) it.day=dd; } if(formF.kind==="income"){ it.to=formF.to||"sabadell"; } else { it.from=formF.from||"sabadell"; it.to=formF.to||"trade_republic"; } if(formF.once){ it.once={y:parseInt(formF.year,10)||new Date().getFullYear(), m:parseInt(formF.month,10)||(new Date().getMonth()+1)}; } set(s=>Object.assign({},s,{flows:(s.flows||[]).concat([it])})); setFormF({kind:"income",name:"",amount:"",day:"",when:"",to:"sabadell",from:"sabadell",once:false,month:new Date().getMonth()+1,year:new Date().getFullYear()}); setAddingF(false); };
-  const whenLabel=(f)=> f.when==="last"?t("fj_when_last"):f.when==="first"?t("fj_when_first"):(f.day?tf("fj_day_n",{d:f.day}):null);
-
-  // --- cargos puntuales (un solo cobro): imprevistos, amortizaciones… ---
-  const [addingO,setAddingO]=useState(false);
-  const [formO,setFormO]=useState({name:"",amount:"",month:new Date().getMonth()+1,year:new Date().getFullYear(),day:"",account:"sabadell"});
-  const addOneoff=()=>{ const amt=parseFloat(String(formO.amount).replace(',','.'))||0; if(amt===0) return; const it={id:uid(),name:formO.name||"Cargo puntual",amount:amt,month:parseInt(formO.month,10)||(new Date().getMonth()+1),year:parseInt(formO.year,10)||new Date().getFullYear(),account:bankOr(formO.account||"sabadell")}; const dd=cleanDay(formO.day); if(dd) it.day=dd; set(s=>Object.assign({},s,{oneoffs:(s.oneoffs||[]).concat([it])})); setFormO({name:"",amount:"",month:new Date().getMonth()+1,year:new Date().getFullYear(),day:"",account:"sabadell"}); setAddingO(false); };
-  const delOneoff=(id)=> removeOneoffById(set,id);
-  const [editingO,setEditingO]=useState(false);   // modo edición GLOBAL de la tarjeta (como Servicios)
-  const [draftsO,setDraftsO]=useState({});
-  const startEditAllO=(list)=>{ const d={}; list.forEach(function(o){ d[o.id]={name:o.name,amount:String(o.amount),day:o.day?String(o.day):"",month:o.month,year:o.year,account:o.account||"sabadell"}; }); setDraftsO(d); setEditingO(true); };
-  const setDO=(id,k,v)=> setDraftsO(function(dr){ const n=Object.assign({},dr); n[id]=Object.assign({},n[id],{[k]:v}); return n; });
-  const saveAllO=()=>{ set(s=>Object.assign({},s,{oneoffs:(s.oneoffs||[]).map(function(o){ const dd=draftsO[o.id]; if(!dd) return o; const amt=parseFloat(String(dd.amount).replace(',','.')); const day=cleanDay(dd.day); const n=Object.assign({},o,{name:dd.name||o.name,amount:isNaN(amt)?o.amount:amt,month:parseInt(dd.month,10)||o.month,year:parseInt(dd.year,10)||o.year,account:dd.account||"sabadell"}); if(day) n.day=day; else delete n.day; return n; })})); setEditingO(false); };
-
-  // resumen de meses para el subtítulo de cada fila
-  const monthsLabel=(e)=>{ const ms=chargeMonths(e); if(e.freq==="mes"||ms.length>=12) return null; if(!ms.length) return t("fj_nomonth"); return ms.map(m=>monthShort(m-1)).join(", "); };
-
-  // --- Próximos cargos (motor dinámico): qué se cobra este mes y el que viene ---
-  const cm=totals.curMonth, nm=cm===12?1:cm+1, today=totals.today, cy=totals.curYear, ny=cm===12?cy+1:cy;
-  const oneoffs=state.oneoffs||[];
-  const chargesOf=(mo,yr)=>{ const items=[];
-    state.fixed.forEach(e=>{ if(occursIn(e,mo)&&occAmountIn(e,mo)!==0) items.push({key:e.id,name:e.name,amount:occAmountIn(e,mo),bank:accOf(e),day:dayIn(e,mo),paid:mo===cm&&yr===cy&&isPaidIn(e,mo,today,yr)}); });
-    state.debts.forEach(d=>{ if(debtActive(d)){ items.push({key:d.id,name:d.name,amount:d.monthly,debt:true,bank:d.account||"sabadell",day:debtChargeDay(d),paid:mo===cm&&isDebtPaidThisMonth(d,today,state,yr,mo)}); const bl=debtBalloonIn(d,yr,mo); if(bl>0) items.push({key:d.id+"_balloon",name:d.name+" "+t("db_balloon_tag"),amount:bl,debt:true,bank:d.account||"sabadell",day:debtChargeDay(d),paid:mo===cm&&isDebtPaidThisMonth(d,today,state,yr,mo)}); } });
-    oneoffs.forEach(o=>{ if(oneoffOccurs(o,yr,mo)&&(o.amount||0)!==0) items.push({key:o.id,name:o.name,amount:o.amount,oneoff:true,bank:o.account||"sabadell",day:o.day||null,paid:mo===cm&&yr===cy&&isPaidThisMonth(o,today)}); });
-    return items; };
-  const byDay=(a,b)=> ((a.day||99)-(b.day||99)) || (b.amount-a.amount);   // por DÍA; sin día, al final
-  // flujos de efectivo del mes (nómina + transferencias): se mezclan con el resto, ordenados por día
-  const flowsOf=(mo,yr)=> (state.flows||[]).filter(f=>flowOccursIn(f,mo,yr)).map(f=>({
-    key:f.id, name:f.name, flow:true, kind:f.kind,
-    amount: f.kind==="income" ? -(f.amount||0) : (f.amount||0),   // ingreso = entra (verde +) · transfer = sale
-    bank: f.kind==="income" ? (f.to||"sabadell") : (f.from||"sabadell"),
-    day: flowDay(f,yr,mo), paid: mo===cm&&yr===cy ? flowPaidIn(state,f,yr,mo,today) : false
-  }));
-  const thisM=chargesOf(cm,cy).concat(flowsOf(cm,cy)).sort(byDay);
-  const nextM=chargesOf(nm,ny);
-  const thisPending=thisM.filter(x=>!x.paid), thisPaid=thisM.filter(x=>x.paid);
-  const nextSum=nextM.reduce((a,x)=>a+x.amount,0);   // solo cargos (sin flujos) para el subtotal
-  const rowCharge=(x)=> React.createElement("div",{className:"row"+(x.paid?" paid-row":""),key:x.key},
-    React.createElement("div",{className:"rl"},React.createElement("div",null,
-      React.createElement("div",{className:"rname"}, x.name, x.day && React.createElement("span",{className:"day-badge"},tf("fj_day_n",{d:x.day}))),
-      React.createElement("div",{className:"rsub"}, (x.paid?t("fj_paid_tag"):"")+(x.flow?(x.kind==="income"?t("fj_income_tag"):t("fj_transfer_tag")):x.oneoff?t("fj_oneoff_tag"):x.debt?t("fj_debt_tag"):t("fj_fixed_tag"))+(x.bank&&x.bank!=="sabadell"?" · "+entOf(x.bank).label:"")))),
-    React.createElement("div",{className:"rval num",style:x.amount<0?{color:"var(--mint)"}:null},(x.amount<0?"+":"")+eur(Math.abs(x.amount))));
-  // totales por mes (12) para detectar meses "cargados" por encima de lo normal
-  const monthTotals=[]; for(let mo=1;mo<=12;mo++){ let tt=0; state.fixed.forEach(e=>{ if(occursIn(e,mo)) tt+=occAmountIn(e,mo); }); tt+=cuotas; monthTotals[mo]=tt; }
-  const avgMonth=monthTotals.slice(1).reduce((a,b)=>a+b,0)/12;
-  // primer mes de los próximos 4 que se dispara (>30% sobre la media)
-  let heavy=null; for(let k=0;k<4;k++){ const mo=((cm-1+k)%12)+1; if(monthTotals[mo]>avgMonth*1.3 && monthTotals[mo]>avgMonth+150){ heavy={mo:mo,total:monthTotals[mo],soon:k}; break; } }
-
-  return React.createElement("div",null,
-    React.createElement("div",{className:"total-bar"},
-      React.createElement("div",null,React.createElement("div",{className:"tl"},t("fj_monthly")),React.createElement("div",{className:"tn num"},eur(grand))),
-      React.createElement("div",{className:"cnt"},tf("fj_peryear",{x:eur0(grand*12)}))
-    ),
-    top && React.createElement("div",{className:"culpa"},
-      React.createElement("span",null,t("fj_top_a")),
-      React.createElement("span",{className:"big",style:{fontSize:15}}, top.name),
-      React.createElement("span",null,tf("fj_top_b",{x:eur0(monthly(top))}))
-    ),
-    React.createElement(OrderableSections,{tab:"fijos",state:state,set:set,items:[
-      {id:"afford",label:t("af_title"),el:React.createElement(AffordSim,{state:state, totals:totals, set:set})},
-      {id:"recon",label:t("rec_title"),el:React.createElement(Reconcile,{state:state, set:set})},
-      /* MOTOR DINÁMICO: próximos cargos */
-      {id:"prox",label:tf("fj_prox",{m:monthShort(cm-1)}),el:
-    React.createElement(CollapsibleCard,{title:tf("fj_prox",{m:monthShort(cm-1)}),sub:tf("fj_prox_sub",{x:eur0(totals.cargosMes)}),dot:"#E2A05F",storageKey:"f_prox",defaultOpen:true},
-      // estado del banco principal (Sabadell): cash-flow del mes (saldo + nómina − transfers − fijos)
-      React.createElement("div",{className:"liqbox"+((totals.mainMin<0||totals.mainProjected<0)?" danger":"")},
-        React.createElement("div",{className:"liqrow"},
-          React.createElement("span",{className:"muted"},tf("fj_today",{bank:entOf(totals.mainBank).label})),
-          React.createElement("span",{className:"num"},eur0(totals.mainBal))),
-        totals.mainIncome>0 && React.createElement("div",{className:"liqrow"},
-          React.createElement("span",{className:"muted"},t("fj_in")),
-          React.createElement("span",{className:"num",style:{color:"var(--mint)"}},"+"+eur0(totals.mainIncome))),
-        totals.mainTransferOut>0 && React.createElement("div",{className:"liqrow"},
-          React.createElement("span",{className:"muted"},t("fj_transf")),
-          React.createElement("span",{className:"num"},"−"+eur0(totals.mainTransferOut))),
-        React.createElement("div",{className:"liqrow"},
-          React.createElement("span",{className:"muted"},t("fj_pend")),
-          React.createElement("span",{className:"num"},"−"+eur0(totals.mainPending))),
-        React.createElement("div",{className:"liqrow strong"},
-          React.createElement("span",null,t("fj_eom")),
-          React.createElement("span",{className:"num",style:{color:totals.mainProjected<0?"var(--coral)":"var(--mint)"}},eur0(totals.mainProjected))),
-        // punto más bajo del mes (importa el orden: si los fijos salen antes de cobrar)
-        (totals.mainMin < totals.mainProjected-0.5) && React.createElement("div",{className:"liqrow",style:{color:totals.mainMin<0?"var(--coral)":"var(--muted-2)"}},
-          React.createElement("span",null,(totals.mainMin<0?"⚠ ":"")+(totals.mainMinDay?tf("fj_low_day",{d:totals.mainMinDay}):t("fj_low"))),
-          React.createElement("span",{className:"num"},eur0(totals.mainMin)))
-      ),
-      // ALARMA: el saldo mínimo del mes se va a negativo (bajón antes de cobrar o no llegar a fin de mes)
-      totals.bankAlerts.length>0 && React.createElement("div",{className:"alarmbox"},
-        t("fj_alarm"),totals.bankAlerts.map(b=>entOf(b).label).join(", "),
-        (totals.bankAlerts.length===1 && totals.minDayByBank[totals.bankAlerts[0]])
-          ? tf("fj_alarm_a",{x:eur0(totals.minByBank[totals.bankAlerts[0]]),d:totals.minDayByBank[totals.bankAlerts[0]]})
-          : t("fj_alarm_b")),
-      // aviso de mes cargado en el horizonte
-      heavy && React.createElement("div",{className:"hint",style:{margin:"8px 0 4px",color:"#E2A05F",fontWeight:600}},
-        (heavy.soon===0?t("fj_heavy_now"):heavy.soon===1?t("fj_heavy_next"):tf("fj_heavy_in",{m:monthShort(heavy.mo-1)}))+tf("fj_heavy_b",{x:eur0(heavy.total),avg:eur0(avgMonth)})),
-      React.createElement("div",{className:"hint",style:{margin:"8px 0 4px"}}, thisPending.length?tf("fj_pend_in",{m:monthShort(cm-1)}):t("fj_allpaid")),
-      thisPending.map(rowCharge),
-      thisPaid.length>0 && React.createElement("div",{className:"hint",style:{margin:"10px 0 2px"}},tf("fj_paid_m",{x:eur0(totals.paidThisMonth)})),
-      thisPaid.map(rowCharge),
-      React.createElement("div",{className:"subtotal"},React.createElement("span",{className:"muted"},tf("fj_pend_tot",{m:monthShort(cm-1)})),React.createElement("span",{className:"num"},eur(totals.pendingThisMonth))),
-      React.createElement("div",{className:"subtotal"},React.createElement("span",{className:"muted"},tf("fj_next_m",{m:monthShort(nm-1)})),React.createElement("span",{className:"num"},eur(nextSum))),
-      totals.sinProgramar>0 && React.createElement("div",{className:"hint",style:{marginTop:8,color:"#E2A05F"}},tf("fj_noprog",{n:totals.sinProgramar}))
-    )},
-      {id:"serv",label:t("fj_serv"),el:
-    React.createElement(CollapsibleCard,{title:t("fj_serv"),sub:tf("fj_permonth",{x:eur0(servSum)}),dot:"#7FB5E8",storageKey:"f_serv",help:t("h_serv"),
-      right:React.createElement("button",{className:"edit-link"+(editing?" save":""),onClick:e=>{e.stopPropagation(); editing?saveEdit():startEdit();}},editing?t("fj_save"):t("fj_edit"))},
-      list.map(e=>{
-        const m=monthly(e); const isCredit=m<0; const mlbl=monthsLabel(e);
-        const nMonths=chargeMonths(e).length;
-        const schedTotal=hasSchedule(e)? e.schedule.reduce((a,x)=>a+(x.amt||0),0) : 0;
-        const perCharge=hasSchedule(e) ? tf("fj_custom",{x:eur0(schedTotal)}) : ((e.freq==="año"||e.freq==="anual")&&nMonths>1 ? tf("fj_percharge",{x:eur0(occAmount(e))}) : "");
-        const row=React.createElement("div",{className:"row",key:e.id},
-          React.createElement("div",{className:"rl"},
-            editing && React.createElement("button",{className:"del-btn",onClick:()=>del(e.id)},"✕"),
-            React.createElement("div",null,
-              React.createElement("div",{className:"rname"},e.name),
-              React.createElement("div",{className:"rsub"},
-                (e.freq!=="mes" ? freqLabel(e.freq)+(hasSchedule(e)?"":" · "+eur(e.amount)+"/"+(e.freq==="año"?t("fj_year"):t("fj_time")))+perCharge : t("fj_mensual")),
-                accOf(e)!=="sabadell" && React.createElement("span",null," · "+entOf(accOf(e)).label),
-                mlbl && React.createElement("span",{style:{color:needsMonth(e)?"#E2A05F":"var(--muted-2)"}}," · "+mlbl)
-              )
-            )
-          ),
-          editing
-            ? React.createElement("div",{style:{display:"flex",alignItems:"center",gap:6}},
-                React.createElement("input",{className:"editv num",value:dAmt(e),inputMode:"decimal",onChange:ev=>{const v=ev.target.value;setDraft(d=>Object.assign({},d,{[e.id]:v}));}}),
-                React.createElement("span",{style:{fontSize:11,color:"var(--muted-2)"}},"/"+freqLabel(e.freq).slice(0,3))
-              )
-            : React.createElement("div",{className:"rval num",style:isCredit?{color:"var(--mint)"}:null},
-                React.createElement("div",null, (isCredit?"+":"")+eur(Math.abs(m)) ),
-                e.freq!=="mes" && React.createElement("div",{className:"rvsub",style:{color:"var(--muted-2)"}},t("fj_prorated"))
-              )
-        );
-        if(editing){
-          return React.createElement("div",{key:e.id,style:{borderBottom:"1px solid var(--line-soft)"}},
-            row,
-            React.createElement("div",{style:{padding:"2px 4px 10px"}},
-              React.createElement("div",{className:"edit-extra"},
-                React.createElement("span",{className:"rsub"},t("fj_chargedin")),
-                React.createElement("select",{className:"af-in",style:{width:"auto",padding:"6px 9px",fontSize:12.5},value:dBank(e),onChange:ev=>{const v=ev.target.value;setDraft(d=>Object.assign({},d,{["b_"+e.id]:v}));}}, banks.map(b=>React.createElement("option",{key:b,value:b},entOf(b).label))),
-                React.createElement("span",{className:"rsub",style:{marginLeft:4}},t("fj_day")),
-                React.createElement("input",{className:"af-in num",style:{width:54,padding:"6px 8px",fontSize:12.5},inputMode:"numeric",placeholder:"—",value:dDay(e),onChange:ev=>{const v=ev.target.value;setDraft(d=>Object.assign({},d,{["d_"+e.id]:v}));}})
-              ),
-              e.freq!=="mes" && React.createElement("div",{style:{marginTop:8}},
-                React.createElement("div",{className:"rsub",style:{marginBottom:5}},t("fj_whatmonths")),
-                React.createElement(MonthPicker,{selected:dMonths(e),onToggle:(mm)=>toggleDraftM(e.id,mm)})
-              ),
-              e.freq!=="mes" && dMonths(e).length>0 && React.createElement("div",{style:{marginTop:8}},
-                React.createElement("button",{type:"button",className:"mchip"+(dSched(e)?" on":""),style:{width:"auto",padding:"5px 10px"},onClick:()=>toggleSched(e.id)}, (dSched(e)?"✓ ":"")+t("fj_diffamounts")),
-                dSched(e) && React.createElement("div",{style:{marginTop:8}},
-                  dMonths(e).slice().sort((a,b)=>a-b).map(m=>React.createElement("div",{key:m,className:"sched-row"},
-                    React.createElement("span",{className:"rsub",style:{width:34}},monthShort(m-1)),
-                    React.createElement("input",{className:"af-in num",style:{flex:1,padding:"6px 8px",fontSize:12.5},inputMode:"decimal",placeholder:t("fj_amount"),value:dSA(e,m),onChange:ev=>{const v=ev.target.value;setDraft(d=>Object.assign({},d,{["sa_"+e.id+"_"+m]:v}));}}),
-                    React.createElement("span",{className:"rsub"},t("fj_day")),
-                    React.createElement("input",{className:"af-in num",style:{width:50,padding:"6px 8px",fontSize:12.5},inputMode:"numeric",placeholder:"—",value:dSD(e,m),onChange:ev=>{const v=ev.target.value;setDraft(d=>Object.assign({},d,{["sd_"+e.id+"_"+m]:v}));}})
-                  )),
-                  React.createElement("div",{className:"hint",style:{fontSize:11}},t("fj_sched_hint"))
-                )
-              )
-            )
-          );
-        }
-        return row;
-      }),
-      React.createElement("div",{className:"subtotal"},React.createElement("span",{className:"muted"},t("fj_serv_tot")),React.createElement("span",{className:"num"},eur(servSum))),
-      adding
-        ? React.createElement("div",{className:"add-form",style:{marginTop:12}},
-            React.createElement("input",{className:"af-in",placeholder:t("fj_concept_gym"),value:form.name,onChange:e=>setForm(Object.assign({},form,{name:e.target.value}))}),
-            React.createElement("div",{className:"af-row"},
-              React.createElement("input",{className:"af-in num",placeholder:"0,00 €",inputMode:"decimal",value:form.amount,onChange:e=>setForm(Object.assign({},form,{amount:e.target.value}))}),
-              React.createElement("select",{className:"af-in",value:form.freq,onChange:e=>setForm(Object.assign({},form,{freq:e.target.value,months:[]}))}, FREQ_OPTS.map(f=>React.createElement("option",{key:f,value:f},freqLabel(f))))
-            ),
-            form.freq!=="mes" && React.createElement("div",{style:{marginTop:4}},
-              React.createElement("div",{className:"rsub",style:{marginBottom:5}},t("fj_whatmonths_opt")),
-              React.createElement(MonthPicker,{selected:form.months,onToggle:toggleFormM})
-            ),
-            React.createElement("div",{className:"edit-extra"},
-              React.createElement("span",{className:"rsub"},t("fj_chargedin")),
-              React.createElement("select",{className:"af-in",style:{width:"auto",padding:"8px 11px"},value:bankOr(form.account||"sabadell"),onChange:e=>setForm(Object.assign({},form,{account:e.target.value}))}, banks.map(b=>React.createElement("option",{key:b,value:b},entOf(b).label))),
-              React.createElement("span",{className:"rsub",style:{marginLeft:4}},t("fj_day")),
-              React.createElement("input",{className:"af-in num",style:{width:60,padding:"8px 10px"},inputMode:"numeric",placeholder:"—",value:form.day,onChange:e=>setForm(Object.assign({},form,{day:e.target.value}))})
-            ),
-            React.createElement("div",{className:"hint",style:{fontSize:11.5}},t("fj_day_hint")),
-            React.createElement("div",{className:"af-row"},
-              React.createElement("button",{className:"btn btn-ghost",style:{flex:1},onClick:()=>{setAdding(false); setForm({name:"",amount:"",freq:"mes",months:[],day:"",account:"sabadell"});}},t("fj_cancel")),
-              React.createElement("button",{className:"btn btn-primary",style:{flex:2},onClick:addFixed},t("fj_addfixed"))
-            )
-          )
-        : React.createElement("button",{className:"btn btn-ghost btn-block",style:{marginTop:12},onClick:()=>setAdding(true)},React.createElement(I.plus,{width:16,height:16}),t("fj_addfixed"))
-    )},
-      {id:"cuotas",label:t("fj_debts"),el:
-    React.createElement(CollapsibleCard,{title:t("fj_debts"),sub:tf("fj_permonth",{x:eur0(cuotas)}),dot:"#E2705F",storageKey:"f_cuotas",help:t("h_debts"),
-      right:React.createElement("button",{className:"edit-link"+(editingD?" save":""),onClick:e=>{e.stopPropagation(); editingD?saveEditD():startEditD();}},editingD?t("fj_save"):t("fj_edit"))},
-      state.debts.map(d=>{
-        const bnk=d.account||"sabadell";
-        const row=React.createElement("div",{className:"row",key:d.id},
-          React.createElement("div",{className:"rl"},React.createElement(Mono,{ent:d.ent,size:38}),
-            React.createElement("div",null,
-              React.createElement("div",{className:"rname"}, d.name, d.day && React.createElement("span",{className:"day-badge"},tf("fj_day_n",{d:d.day}))),
-              React.createElement("div",{className:"rsub"},tf("fj_pending",{x:eur0(debtBalance(d))})+(bnk!=="sabadell"?" · "+entOf(bnk).label:"")))),
-          editingD
-            ? React.createElement("div",{style:{display:"flex",alignItems:"center",gap:6}},
-                React.createElement("input",{className:"editv num",style:{width:70},value:dDMon(d),inputMode:"decimal",onChange:ev=>{const v=ev.target.value;setDraftD(s=>Object.assign({},s,{[d.id]:v}));}}),
-                React.createElement("span",{style:{fontSize:11,color:"var(--muted-2)"}},t("fj_permonth2")))
-            : React.createElement("div",{className:"rval num"},eur(d.monthly)+t("fj_permonth2"))
-        );
-        if(editingD){
-          return React.createElement("div",{key:d.id,style:{borderBottom:"1px solid var(--line-soft)"}},
-            row,
-            React.createElement("div",{style:{padding:"2px 4px 10px"}},
-              React.createElement("div",{className:"edit-extra"},
-                React.createElement("span",{className:"rsub"},t("fj_chargedin")),
-                React.createElement("select",{className:"af-in",style:{width:"auto",padding:"6px 9px",fontSize:12.5},value:dDBank(d),onChange:ev=>{const v=ev.target.value;setDraftD(s=>Object.assign({},s,{["b_"+d.id]:v}));}}, banks.map(b=>React.createElement("option",{key:b,value:b},entOf(b).label))),
-                React.createElement("span",{className:"rsub",style:{marginLeft:4}},t("fj_day")),
-                React.createElement("input",{className:"af-in num",style:{width:54,padding:"6px 8px",fontSize:12.5},inputMode:"numeric",placeholder:"—",value:dDDay(d),onChange:ev=>{const v=ev.target.value;setDraftD(s=>Object.assign({},s,{["dy_"+d.id]:v}));}})
-              ),
-              React.createElement("div",{className:"edit-extra",style:{marginTop:6}},
-                React.createElement("span",{className:"rsub"},t("fj_amort")),
-                React.createElement("input",{className:"af-in num",style:{width:80,padding:"6px 8px",fontSize:12.5},inputMode:"decimal",value:dDAmort(d),onChange:ev=>{const v=ev.target.value;setDraftD(s=>Object.assign({},s,{["am_"+d.id]:v}));}}),
-                React.createElement("span",{className:"rsub",style:{flex:1}},t("fj_amort_hint"))
-              )
-            )
-          );
-        }
-        return row;
-      }),
-      React.createElement("div",{className:"subtotal"},React.createElement("span",{className:"muted"},t("fj_debts_tot")),React.createElement("span",{className:"num"},eur(cuotas))),
-      React.createElement("div",{className:"hint",style:{fontSize:11.5,marginTop:6}},t("fj_debts_hint"))
-    )},
-      {id:"flows",label:t("fj_flows"),el:
-    React.createElement(CollapsibleCard,{title:t("fj_flows"),sub:t("fj_flows_sub"),dot:"#5FD08A",storageKey:"f_flows",defaultOpen:false,help:t("h_flows"),
-      right:React.createElement("button",{className:"edit-link"+(editingF?" save":""),onClick:e=>{e.stopPropagation(); editingF?saveEditF():startEditF();}},editingF?t("fj_save"):t("fj_edit"))},
-      flows.filter(f=>!flowOncePast(f,cy,cm)).map(f=>{
-        const inc=f.kind==="income";
-        const sub=inc ? tf("fj_inc_to",{bank:entOf(f.to||"sabadell").label}) : tf("fj_tr_fromto",{from:entOf(f.from||"sabadell").label,to:entOf(f.to||"trade_republic").label});
-        const row=React.createElement("div",{className:"row",key:f.id},
-          React.createElement("div",{className:"rl"},
-            editingF && React.createElement("button",{className:"del-btn",onClick:()=>delFlow(f.id)},"✕"),
-            React.createElement("div",null,
-              React.createElement("div",{className:"rname"}, f.name, whenLabel(f) && React.createElement("span",{className:"day-badge"},whenLabel(f)), f.once && React.createElement("span",{className:"day-badge",style:{background:"#E2A05F22",color:"#E2A05F",marginLeft:4}}, "📅 "+monthShort(f.once.m-1)+" "+f.once.y)),
-              React.createElement("div",{className:"rsub"}, sub))),
-          editingF
-            ? React.createElement("div",{style:{display:"flex",alignItems:"center",gap:6}},
-                React.createElement("input",{className:"editv num",style:{width:74},value:fAmt(f),inputMode:"decimal",onChange:ev=>{const v=ev.target.value;setDraftF(s=>Object.assign({},s,{[f.id]:v}));}}))
-            : React.createElement("div",{className:"rval num",style:{color:inc?"var(--mint)":null}}, (inc?"+":"−")+eur(Math.abs(f.amount)))
-        );
-        if(editingF){
-          return React.createElement("div",{key:f.id,style:{borderBottom:"1px solid var(--line-soft)"}},
-            row,
-            React.createElement("div",{style:{padding:"2px 4px 10px"}},
-              React.createElement("div",{className:"edit-extra"},
-                React.createElement("span",{className:"rsub"}, inc?t("fj_entersin"):t("fj_from")),
-                React.createElement("select",{className:"af-in",style:{width:"auto",padding:"6px 9px",fontSize:12.5},value: inc?fTo(f):fFrom(f),onChange:ev=>{const v=ev.target.value; const key=inc?"to_":"fr_"; setDraftF(s=>Object.assign({},s,{[key+f.id]:v}));}}, banks.map(b=>React.createElement("option",{key:b,value:b},entOf(b).label))),
-                !inc && React.createElement("span",{className:"rsub"},"→"),
-                !inc && React.createElement("select",{className:"af-in",style:{width:"auto",padding:"6px 9px",fontSize:12.5},value:fTo(f),onChange:ev=>{const v=ev.target.value;setDraftF(s=>Object.assign({},s,{["to_"+f.id]:v}));}}, banks.map(b=>React.createElement("option",{key:b,value:b},entOf(b).label))),
-                React.createElement("span",{className:"rsub",style:{marginLeft:4}},t("fj_when")),
-                React.createElement("select",{className:"af-in",style:{width:"auto",padding:"6px 9px",fontSize:12.5},value:fWhen(f),onChange:ev=>{const v=ev.target.value;setDraftF(s=>Object.assign({},s,{["wh_"+f.id]:v}));}},
-                  React.createElement("option",{value:""},t("fj_fixedday")),
-                  React.createElement("option",{value:"last"},t("fj_lastwork")),
-                  React.createElement("option",{value:"first"},t("fj_firstwork"))),
-                !fWhen(f) && React.createElement("input",{className:"af-in num",style:{width:50,padding:"6px 8px",fontSize:12.5},inputMode:"numeric",placeholder:t("fj_day"),value:fDay(f),onChange:ev=>{const v=ev.target.value;setDraftF(s=>Object.assign({},s,{["dy_"+f.id]:v}));}})
-              )
-            )
-          );
-        }
-        return row;
-      }),
-      addingF
-        ? React.createElement("div",{className:"add-form",style:{marginTop:12}},
-            React.createElement("div",{className:"af-row"},
-              React.createElement("button",{className:"btn "+(formF.kind==="income"?"btn-primary":"btn-ghost"),style:{flex:1},onClick:()=>setFormF(Object.assign({},formF,{kind:"income",to:"sabadell"}))},t("fj_income")),
-              React.createElement("button",{className:"btn "+(formF.kind==="transfer"?"btn-primary":"btn-ghost"),style:{flex:1},onClick:()=>setFormF(Object.assign({},formF,{kind:"transfer",from:"sabadell",to:(banks.filter(b=>b!=="sabadell")[0]||"trade_republic")}))},t("fj_transfer"))
-            ),
-            React.createElement("div",{className:"af-row"},
-              React.createElement("button",{className:"btn "+(!formF.once?"btn-primary":"btn-ghost"),style:{flex:1},onClick:()=>setFormF(Object.assign({},formF,{once:false}))},"🔁 "+t("fj_recurring")),
-              React.createElement("button",{className:"btn "+(formF.once?"btn-primary":"btn-ghost"),style:{flex:1},onClick:()=>setFormF(Object.assign({},formF,{once:true}))},"📅 "+t("fj_once"))
-            ),
-            formF.once && React.createElement("div",{className:"edit-extra"},
-              React.createElement("span",{className:"rsub"}, t("fj_month")),
-              React.createElement("select",{className:"af-in",style:{width:"auto",padding:"8px 11px"},value:formF.month,onChange:e=>setFormF(Object.assign({},formF,{month:e.target.value}))}, MONTHS_ES.map((lbl,i)=>React.createElement("option",{key:i+1,value:i+1},monthShort(i)))),
-              React.createElement("span",{className:"rsub",style:{marginLeft:4}}, t("fj_year_lbl")),
-              React.createElement("input",{className:"af-in num",style:{width:74,padding:"8px 10px"},inputMode:"numeric",value:formF.year,onChange:e=>setFormF(Object.assign({},formF,{year:e.target.value}))})
-            ),
-            React.createElement("input",{className:"af-in",placeholder:t("fj_concept_payroll"),value:formF.name,onChange:e=>setFormF(Object.assign({},formF,{name:e.target.value}))}),
-            React.createElement("div",{className:"af-row"},
-              React.createElement("input",{className:"af-in num",placeholder:"0,00 €",inputMode:"decimal",value:formF.amount,onChange:e=>setFormF(Object.assign({},formF,{amount:e.target.value}))}),
-              React.createElement("select",{className:"af-in",value:formF.when,onChange:e=>setFormF(Object.assign({},formF,{when:e.target.value}))},
-                React.createElement("option",{value:""},t("fj_fixedday")),
-                React.createElement("option",{value:"last"},t("fj_lastwork")),
-                React.createElement("option",{value:"first"},t("fj_firstwork"))),
-              !formF.when && React.createElement("input",{className:"af-in num",placeholder:t("fj_day"),inputMode:"numeric",style:{maxWidth:70},value:formF.day,onChange:e=>setFormF(Object.assign({},formF,{day:e.target.value}))})
-            ),
-            React.createElement("div",{className:"edit-extra"},
-              React.createElement("span",{className:"rsub"}, formF.kind==="income"?t("fj_entersin"):t("fj_from")),
-              React.createElement("select",{className:"af-in",style:{width:"auto",padding:"8px 11px"},value: formF.kind==="income"?formF.to:formF.from,onChange:e=>{const v=e.target.value; setFormF(Object.assign({},formF, formF.kind==="income"?{to:v}:{from:v}));}}, banks.map(b=>React.createElement("option",{key:b,value:b},entOf(b).label))),
-              formF.kind==="transfer" && React.createElement("span",{className:"rsub"},"→"),
-              formF.kind==="transfer" && React.createElement("select",{className:"af-in",style:{width:"auto",padding:"8px 11px"},value:formF.to,onChange:e=>setFormF(Object.assign({},formF,{to:e.target.value}))}, banks.map(b=>React.createElement("option",{key:b,value:b},entOf(b).label)))
-            ),
-            React.createElement("div",{className:"af-row"},
-              React.createElement("button",{className:"btn btn-ghost",style:{flex:1},onClick:()=>{setAddingF(false); setFormF({kind:"income",name:"",amount:"",day:"",when:"",to:"sabadell",from:"sabadell",once:false,month:new Date().getMonth()+1,year:new Date().getFullYear()});}},t("fj_cancel")),
-              React.createElement("button",{className:"btn btn-primary",style:{flex:2},onClick:addFlow},t("fj_addmove"))
-            )
-          )
-        : React.createElement("button",{className:"btn btn-ghost btn-block",style:{marginTop:12},onClick:()=>setAddingF(true)},React.createElement(I.plus,{width:16,height:16}),t("fj_addflow")),
-      React.createElement("div",{className:"hint",style:{fontSize:11.5,marginTop:6}},t("fj_flows_hint"))
-    )},
-      {id:"oneoffs",label:t("fj_oneoffs"),el:
-    (function(){ const up=oneoffs.filter(o=>!oneoffPast(o,cy,cm)).sort((a,b)=> (a.year-b.year)||(a.month-b.month) );
-      return React.createElement(CollapsibleCard,{title:t("fj_oneoffs"),sub:t("fj_oneoffs_sub"),dot:"#E2A05F",storageKey:"f_oneoff",defaultOpen:false,help:t("h_oneoffs"),
-        right: up.length? React.createElement("button",{className:"edit-link"+(editingO?" save":""),onClick:e=>{ e.stopPropagation(); editingO?saveAllO():startEditAllO(up); }}, editingO?t("fj_save"):t("fj_edit")) : null},
-        up.length? up.map(function(o){
-          if(editingO){
-            const d=draftsO[o.id]||{}; return React.createElement("div",{className:"add-form",key:o.id,style:{marginBottom:10}},
-              React.createElement("input",{className:"af-in",placeholder:t("fj_concept_amort"),value:d.name||"",onChange:e=>setDO(o.id,"name",e.target.value)}),
-              React.createElement("div",{className:"af-row"},
-                React.createElement("input",{className:"af-in num",placeholder:"0,00 €",inputMode:"decimal",value:d.amount||"",onChange:e=>setDO(o.id,"amount",e.target.value)}),
-                React.createElement("select",{className:"af-in",value:d.month,onChange:e=>setDO(o.id,"month",e.target.value)}, MONTHS_ES.map((lbl,i)=>React.createElement("option",{key:i+1,value:i+1},monthShort(i)))),
-                React.createElement("input",{className:"af-in num",placeholder:t("fj_day"),inputMode:"numeric",style:{maxWidth:64},value:d.day||"",onChange:e=>setDO(o.id,"day",e.target.value)})
-              ),
-              React.createElement("div",{className:"edit-extra"},
-                React.createElement("span",{className:"rsub"},t("fj_year_lbl")),
-                React.createElement("input",{className:"af-in num",style:{width:74,padding:"8px 10px"},inputMode:"numeric",value:d.year,onChange:e=>setDO(o.id,"year",e.target.value)}),
-                React.createElement("span",{className:"rsub",style:{marginLeft:4}},t("fj_bank")),
-                React.createElement("select",{className:"af-in",style:{width:"auto",padding:"8px 11px"},value:d.account,onChange:e=>setDO(o.id,"account",e.target.value)}, banks.map(b=>React.createElement("option",{key:b,value:b},entOf(b).label)))
-              ),
-              React.createElement("button",{className:"btn btn-ghost btn-block",style:{color:"var(--coral)"},onClick:()=>delOneoff(o.id)},t("db_delete"))
-            );
-          }
-          return React.createElement("div",{className:"row",key:o.id},
-            React.createElement("div",{className:"rl"},
-              React.createElement("div",null,
-                React.createElement("div",{className:"rname"}, o.name, o.day && React.createElement("span",{className:"day-badge"},tf("fj_day_n",{d:o.day}))),
-                React.createElement("div",{className:"rsub"}, monthShort(o.month-1)+" "+o.year+(o.account!=="sabadell"?" · "+entOf(o.account).label:"")))),
-            React.createElement("div",{className:"rval num"}, eur(o.amount))
-          );
-        }) : React.createElement("div",{className:"hint"},t("fj_oneoffs_empty")),
-      addingO
-        ? React.createElement("div",{className:"add-form",style:{marginTop:12}},
-            React.createElement("input",{className:"af-in",placeholder:t("fj_concept_amort"),value:formO.name,onChange:e=>setFormO(Object.assign({},formO,{name:e.target.value}))}),
-            React.createElement("div",{className:"af-row"},
-              React.createElement("input",{className:"af-in num",placeholder:"0,00 €",inputMode:"decimal",value:formO.amount,onChange:e=>setFormO(Object.assign({},formO,{amount:e.target.value}))}),
-              React.createElement("select",{className:"af-in",value:formO.month,onChange:e=>setFormO(Object.assign({},formO,{month:e.target.value}))}, MONTHS_ES.map((lbl,i)=>React.createElement("option",{key:i+1,value:i+1},monthShort(i)))),
-              React.createElement("input",{className:"af-in num",placeholder:t("fj_day"),inputMode:"numeric",style:{maxWidth:64},value:formO.day,onChange:e=>setFormO(Object.assign({},formO,{day:e.target.value}))})
-            ),
-            React.createElement("div",{className:"edit-extra"},
-              React.createElement("span",{className:"rsub"},t("fj_year_lbl")),
-              React.createElement("input",{className:"af-in num",style:{width:74,padding:"8px 10px"},inputMode:"numeric",value:formO.year,onChange:e=>setFormO(Object.assign({},formO,{year:e.target.value}))}),
-              React.createElement("span",{className:"rsub",style:{marginLeft:4}},t("fj_bank")),
-              React.createElement("select",{className:"af-in",style:{width:"auto",padding:"8px 11px"},value:bankOr(formO.account),onChange:e=>setFormO(Object.assign({},formO,{account:e.target.value}))}, banks.map(b=>React.createElement("option",{key:b,value:b},entOf(b).label)))
-            ),
-            React.createElement("div",{className:"af-row"},
-              React.createElement("button",{className:"btn btn-ghost",style:{flex:1},onClick:()=>{setAddingO(false); setFormO({name:"",amount:"",month:cm,year:cy,day:"",account:"sabadell"});}},t("fj_cancel")),
-              React.createElement("button",{className:"btn btn-primary",style:{flex:2},onClick:addOneoff},t("fj_addoneoff"))
-            )
-          )
-        : React.createElement("button",{className:"btn btn-ghost btn-block",style:{marginTop:12},onClick:()=>setAddingO(true)},React.createElement(I.plus,{width:16,height:16}),t("fj_addoneoff")),
-      React.createElement("div",{className:"hint",style:{fontSize:11.5,marginTop:6}},t("fj_oneoff_hint"))
-    ); })()}
-    ]}),
-    React.createElement("div",{className:"hint",style:{padding:"0 4px"}},tf("fj_foot",{x:eur0(grand*12)}))
-  );
-}
-

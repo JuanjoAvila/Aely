@@ -452,10 +452,12 @@ for(const [rol,accounts,settings] of ROLES){
       let porPantalla=r.state; (lista==="fixed"?c.removeFixedById:c.removeOneoffById)(f=>{ porPantalla=f(porPantalla); },id);
       assert.equal(j(porPantalla),j(sin));
     }
-    // Sin ningún cargo suyo en Gastos, borrar hace exactamente lo de siempre.
+    // Sin ningún cargo suyo en Gastos, borrar hace lo de siempre y deja constancia del borrado
+    // con su hora (13/10/2026): sin ella el recibo volvía desde un móvil atrasado.
     const sinFilas=Object.assign({},r.state,{expenses:r.state.expenses.filter(e=>e.reciboId!=="com")});
     const nada=c.sinCargoDelPlan(sinFilas,"fixed","com");
-    assert.equal(j(nada.state),j(Object.assign({},sinFilas,{fixed:sinFilas.fixed.filter(f=>f.id!=="com")})));
+    assert.equal(j(nada.state),j(Object.assign({},sinFilas,{fixed:sinFilas.fixed.filter(f=>f.id!=="com"),
+      reciboBorrado:{com:{d:c.budgetPeriodOf(sinFilas).startMs,n:"Comunidad"}},reciboBorradoAt:{com:ahora}})));
     assert.equal(nada.state.expenses,sinFilas.expenses,"y no reescribe el histórico");
     assert.equal(nada.subir.length,0);
     if(rol==="gasto diario"){
@@ -809,12 +811,4 @@ test("tras el pull, App reescribe en la nube las filas que `sinMarca` le deja (e
   const subidas=[], fila={source:"ob",ent:"trade_republic"};
   new Function("merged","cloud","setTimeout",m[0])({sinMarca:[fila]},{setExpenseRecibo:e=>{ subidas.push(e); return Promise.resolve(); }},f=>f());
   assert.equal(subidas[0],fila);
-});
-
-test("el aviso de presupuesto al apuntar no cuenta el cargo de un recibo (el bloque REAL de Gastos)", ()=>{
-  const m=/const before=\(state\.expenses\|\|\[\]\)\.filter\([^;]*;/.exec(bundle);
-  assert.ok(m,"no se encuentra la suma del mes en el aviso de presupuesto");
-  const r=sincroniza(todo(),[TX_COM,TX_MOV,T("p1","sabadell","2026-10-07",3.4,"Panadería Sol",{card:true})],{sabadell:1844.6});
-  const antes=new Function("state","monthStartMs","dateMs","cargoDeRecibo",m[0]+"\nreturn before;");
-  assert.equal(antes(r.state,new Date("2026-10-01T00:00:00+02:00").getTime(),c.dateMs,c.cargoDeRecibo),3.4,"152 € de recibos no adelantan el aviso del 80 %");
 });

@@ -40,10 +40,6 @@ console.log("logo de banco o de empresa");
 const FILAS_DE_BANCO = [
   { f: "src/modules/06-sync-brokers.js", ancla: 'React.createElement(Mono,{ent:g[0],size:44',
     donde: "Inversiones · tarjeta de cada bróker en «Tus inversiones»" },
-  { f: "src/modules/06-sync-brokers.js", ancla: 'React.createElement(Mono,{ent:g[0],size:34',
-    donde: "Inversiones · desglose por bróker (inv_cvg)" },
-  { f: "src/modules/07-tab-patri-fijos.js", ancla: 'React.createElement(Mono,{ent:g,size:38',
-    donde: "Cartera · Inversiones por bróker" },
 ];
 
 for (const fila of FILAS_DE_BANCO) {
@@ -64,8 +60,6 @@ for (const fila of FILAS_DE_BANCO) {
 const FILAS_DE_EMPRESA = [
   { f: "src/modules/06-sync-brokers.js", ancla: "React.createElement(LogoInv,{nombre:it.name",
     donde: "Inversiones · cada posición dentro de un bróker (InvRows)" },
-  { f: "src/modules/06-sync-brokers.js", ancla: "React.createElement(LogoInv,{nombre:p.name",
-    donde: "Inversiones · rendimiento por posición" },
 ];
 
 for (const fila of FILAS_DE_EMPRESA) {

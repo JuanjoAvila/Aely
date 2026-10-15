@@ -6,7 +6,7 @@ export const RECENT = 'const recent=(state.expenses||[]).filter(function(e){ ret
 export const DASH = 'function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGastos, onGoPlan, showToast}){';
 export const SYNC = 'const syncCloudExpenses=function(){';
 
-export const MEMO = 'const recent=useMemo((s=state)=>(s.expenses||[]).filter(e=>!expenseIsTombstoned(e,expenseDeletedSet(s))).sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,3),[state.expenses,state.deleted]);';
+export const MEMO = 'const recent=useMemo((s=state)=>(s.expenses||[]).filter(e=>!e.autoGemelo&&!expenseIsTombstoned(e,expenseDeletedSet(s))).sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,3),[state.expenses,state.deleted]);';
 export function instrumentDashboard(html, variant){
   if(html.split(MEMO).length!==2)throw new Error("Memo recent ausente/duplicado");
   const source=variant==="baseline"?html.replace(MEMO,RECENT):html;

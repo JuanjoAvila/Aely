@@ -27,6 +27,9 @@ function buildHouseholdSnapshot(state, totals, email){
   const monthStart=startOfMonth();
   (state.expenses||[]).forEach(function(e){
     if(!(e.amount>0)) return;
+    // Un posible repetido (también la fila oculta de una pareja automática) no mueve ninguna cifra:
+    // la foto del hogar contaba dos veces la misma compra (14/10/2026).
+    if(e.possibleDup) return;
     if(parseDate(e.date)<monthStart) return;
     // El cargo de un recibo ya sale en los fijos de esta misma foto: aquí lo contaría dos veces.
     if(cargoDeRecibo(e, state)) return;

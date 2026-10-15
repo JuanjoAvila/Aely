@@ -123,7 +123,7 @@ test("backButton real de App consume Ajustes sin salir y permite reabrir Perfil"
   expect(await financial(page)).toEqual(before);await expect(page).toHaveURL(url);
 });
 
-test("Ask encadenado cancela el diálogo actual una vez y conserva Perfil",async({page})=>{
+test("Ask de Perfil cancela el diálogo una vez y conserva Perfil",async({page})=>{
   await start(page,"es");const url=page.url(),before=await financial(page);
   const initialName=await page.evaluate(()=>JSON.parse(localStorage.getItem("micartera_v3")).settings.profile?.fullName);
   await page.evaluate(()=>{
@@ -135,13 +135,11 @@ test("Ask encadenado cancela el diálogo actual una vez y conserva Perfil",async
   const basic=await page.evaluate(()=>t("pf_basic"));
   await page.locator(".profile-pull .profile-row").filter({hasText:basic}).click();
   const ask=page.locator(".askback [role=dialog]");await expect(ask).toBeVisible();
-  const title=await ask.locator("#ask-dialog-title").innerText();
-  await ask.locator("input").fill("Persona sintética");await ask.locator(".btn-primary").click();
-  await expect(ask.locator("#ask-dialog-title")).not.toHaveText(title);
+  await ask.locator("input").fill("Persona sintética");
   await page.goBack();await expect(ask).toHaveCount(0);
   await expect(page.locator(".profile-pull.open")).toBeVisible();
   await expect.poll(()=>page.evaluate(()=>_mcBackStack.length)).toBe(1);
-  expect(await page.evaluate(()=>window.__askResolutions.map(r=>r.calls))).toEqual([1,1]);
+  expect(await page.evaluate(()=>window.__askResolutions.map(r=>r.calls))).toEqual([1]);
   expect(await page.evaluate(()=>JSON.parse(localStorage.getItem("micartera_v3")).settings.profile?.fullName)).toEqual(initialName);
   expect(await financial(page)).toEqual(before);
   await page.goBack();await expect(page.locator(".profile-pull.open")).toHaveCount(0);await expect(page).toHaveURL(url);
