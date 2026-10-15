@@ -4,7 +4,7 @@ import vm from "node:vm";
 import { execFileSync } from "node:child_process";
 import { createLogicSandbox, extractPureLogicSource, loadPureLogic, loadPureLogicFromFile } from "../scripts/load-pure-logic.mjs";
 import { estadoHeredado } from "../e2e/fixtures.mjs";
-const originalBase="33d39cb80764aaf22998f69ac8bbaeffeadf4013",executionBase="7865111be8e2e1f8994bccba4b515bf4c6193074";
+const originalBase="33d39cb80764aaf22998f69ac8bbaeffeadf4013",executionBase="52e1957db385bc03cceba138fe68ff16b1b84f9f";
 const argRef=process.argv.indexOf("--compare-ref"),compareRef=argRef>=0?process.argv[argRef+1]:executionBase;
 const baseHTML=(ref=originalBase)=>execFileSync("git",["show",ref+":public/index.html"],{encoding:"utf8",maxBuffer:8e6});
 const html=process.argv.includes("--baseline")?baseHTML():fs.readFileSync("public/index.html","utf8");
