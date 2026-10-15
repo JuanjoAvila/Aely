@@ -1,5 +1,49 @@
 [
   {
+    "v": "4.26.134",
+    "d": "2026-10-15",
+    "t": {
+      "es": "La gráfica de Inicio ya no enseña bajones falsos",
+      "en": "The Home chart no longer shows false drops",
+      "ca": "La gràfica d'Inici ja no ensenya baixades falses"
+    },
+    "items": {
+      "es": [
+        "La gráfica de Inicio ya no baja cuando pasas dinero entre tus cuentas ni cuando sacas efectivo del cajero. Un traspaso a una cuenta que no tienes en la app cuenta como salida, y la «i» de la gráfica lo explica."
+      ],
+      "en": [
+        "The Home chart no longer drops when you move money between your own accounts or take cash out at an ATM. A transfer to an account you don't have in the app counts as money out, and the chart's \"i\" explains it."
+      ],
+      "ca": [
+        "La gràfica d'Inici ja no baixa quan passes diners entre els teus comptes ni quan treus efectiu del caixer. Un traspàs a un compte que no tens a l'app compta com a sortida, i la «i» de la gràfica ho explica."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "inicio-grafica-reservas",
+        "t": {
+          "es": "La gráfica de Inicio ya no enseña bajones falsos",
+          "en": "The Home chart no longer shows false drops",
+          "ca": "La gràfica d'Inici ja no ensenya baixades falses"
+        },
+        "items": {
+          "es": [
+            "1. Abre Inicio y mira la gráfica de patrimonio en un día en que pasaste dinero entre tus cuentas: la gráfica no baja por ese traspaso, aunque el dinero llegase a la otra cuenta uno o dos días después.",
+            "2. Pulsa la «i» de la gráfica y lee «Cómo se calcula»: al final explica que un traspaso sin entrada igual en otra cuenta tuya resta, y que sacar efectivo del cajero resta si no tienes una cuenta o bolsillo de efectivo."
+          ],
+          "en": [
+            "1. Open Home and look at the net worth chart on a day when you moved money between your own accounts: the chart does not drop for that transfer, even if the money reached the other account a day or two later.",
+            "2. Tap the chart's \"i\" and read \"How it's worked out\": at the end it explains that a transfer without an equal inflow in another of your accounts counts as money out, and that taking cash out at an ATM reduces it if you have no cash account or pocket."
+          ],
+          "ca": [
+            "1. Obre Inici i mira la gràfica de patrimoni un dia en què vas passar diners entre els teus comptes: la gràfica no baixa per aquest traspàs, encara que els diners arribessin a l'altre compte un o dos dies després.",
+            "2. Prem la «i» de la gràfica i llegeix «Com es calcula»: al final explica que un traspàs sense entrada igual en un altre compte teu resta, i que treure efectiu del caixer resta si no tens un compte o butxaca d'efectiu."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.133",
     "d": "2026-10-15",
     "t": {

@@ -66,6 +66,8 @@ const sourceBeta133=sourceAt("52e1957db385bc03cceba138fe68ff16b1b84f9f");
 const sourceProd128=sourceAt("2358df2157c171b35de89baa4923cf51fd9b06b1");
 // Producción 4.26.132 servida (main, merge del PR 234): su catálogo es el historial que la 133 conserva debajo de su nota, y el guardián Promoción132 lee su árbol.
 const sourceProd132=sourceAt("998c57f56fd1790ba6ea9fd230d9f562dd696b5a");
+// Producción 4.26.133 servida (main, merge del PR 236): su catálogo es el historial que la 134 conserva debajo de su nota, y el guardián Promoción133 lee su árbol.
+const sourceProd133=sourceAt("cdea1015fb0aac85119a76f31cd01704bd67dc74");
 // La122 añade un método a `cloud` (`setExpenseRecibo`) y los alcances que listan los métodos que
 // leen lo ganan al final de su lista. Las comparaciones con descriptores anteriores lo descuentan;
 // Catálogo122 fija en lista cerrada cuáles son.
@@ -193,7 +195,7 @@ test("Inicio v4.2 cubre flujos, ciclo, renderer, llamada, animación, textos, CS
   // La base es la integración120 (apuntes iguales de Trade Republic): Inicio no puede retirar su alcance ni heredar su revisión.
   const integrated=JSON.parse(source120("scripts/beta-sources.json"));
   // Detrás de Inicio sólo ha entrado el alcance de la122 (el cargo de recibo en Gastos).
-  assert.deepEqual(Object.keys(scopes),Object.keys(integrated).concat(id,"recibo-cargo-en-gastos","plan-scroll-lento","inicio-tarjeta-ciclo-limpia","bancos-reconexion-revoca","inicio-mes-pasado-mismo-dia","limpieza-ajustes-perfil","tr-empareja-sin-preguntar","cuenta-parte-mia","inicio-recientes-sin-repetidos","scroll-borde-barra"),"Inicio y las altas de la122, la124, la126, la127, la128, la129, la130, la131, la132 y la133, sin retirar historia120");
+  assert.deepEqual(Object.keys(scopes),Object.keys(integrated).concat(id,"recibo-cargo-en-gastos","plan-scroll-lento","inicio-tarjeta-ciclo-limpia","bancos-reconexion-revoca","inicio-mes-pasado-mismo-dia","limpieza-ajustes-perfil","tr-empareja-sin-preguntar","cuenta-parte-mia","inicio-recientes-sin-repetidos","scroll-borde-barra","inicio-grafica-reservas"),"Inicio y las altas de la122, la124, la126, la127, la128, la129, la130, la131, la132, la133 y la134, sin retirar historia120");
   for(const [key,value] of Object.entries(integrated))if(key!=="inicio-grafica-vuelve"){assert.deepEqual(scopes[key].native,value.native);assert.deepEqual(scopes[key].edge,value.edge);for(const part of (value.web||[]).map(limpieza129).filter(Boolean))assert.ok(scopes[key].web.some(s=>JSON.stringify(sinMetodo122(s))===JSON.stringify(part)||JSON.stringify(sinPull130(sinMetodo122(s)))===JSON.stringify(sinPull130(sinMetodo122(part)))),key+": no recortar descriptor ajeno120");}
   assert.equal(scope.unidades,true);
   for(const key of ["historial","auditoria","codigosCompatibles","compatibilidadGit","compatibilidadSha"])
@@ -3369,13 +3371,13 @@ test("Promoción132 histórico muestra una nota y el historial de producción, r
   assert.equal(receipt.edge,undefined,"el recibo web no declara entregas de servidor");
 });
 
-// Producción 4.26.133 (15/10/2026): sube a producción la tanda aprobada de la beta 133 (scroll-borde-barra: `.app` con `overflow:clip`,
+// Producción 4.26.133 (15/10/2026, histórico desde la 134: lee main, cdea1015): sube a producción la tanda aprobada de la beta 133 (scroll-borde-barra: `.app` con `overflow:clip`,
 // vuelve la ola de Android al llegar al borde y la barra de abajo ya no asoma). Producto, servidor y nativo son los de la beta133 byte
 // a byte y lo único que cambia es el catálogo, que la familia ve como UNA nota más el historial de la producción132 (230 notas). La
 // 132 de beta (tanda ya retirada) y las notas 129 a 131 quedan en Git. Sin APK nueva (sigue la 55) ni funciones del servidor que desplegar.
 const expectedProd133={"v":"4.26.133","d":"2026-10-15","t":{"es":"Deslizar hasta el final: vuelve la ola y la barra no asoma","en":"Swiping to the end: the glow is back and the bar stays hidden","ca":"Lliscar fins al final: torna l'ona i la barra no treu el cap"},"items":{"es":["Al llegar al final o al principio de una pantalla deslizando rápido vuelve la ola de Android, y la barra de abajo ya no asoma a medias."],"en":["When you swipe fast to the end or the start of a screen, the Android glow is back and the bottom bar no longer peeks out halfway."],"ca":["En arribar al final o al principi d'una pantalla lliscant ràpid, torna l'ona d'Android i la barra de baix ja no treu el cap a mitges."]},"tandas":[]};
 test("Promoción133 muestra una nota y el historial de producción, retira la tanda aprobada y no toca producto, descriptores ni APK",()=>{
-  const tandas=["scroll-borde-barra","inicio-recientes-sin-repetidos"],beta=f=>sourceBeta133(f).replace(/\r\n/g,"\n"),source=f=>read(f).replace(/\r\n/g,"\n");
+  const tandas=["scroll-borde-barra","inicio-recientes-sin-repetidos"],beta=f=>sourceBeta133(f).replace(/\r\n/g,"\n"),source=f=>sourceProd133(f).replace(/\r\n/g,"\n");
   const production=JSON.parse(sourceProd132("src/data/release-notes.json")),before=JSON.parse(beta("src/data/release-notes.json"));
   assert.equal(production.length,230);assert.equal(production[0].v,"4.26.132");assert.deepEqual(production[0].tandas,[]);
   const panel=before.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id]));
@@ -3412,6 +3414,117 @@ test("Promoción133 muestra una nota y el historial de producción, retira la ta
     assert.equal(receipt.web[id],delivered.web,id+": entrega web independiente del catálogo visible");
   }
   assert.equal(receipt.edge,undefined,"el recibo web no declara entregas de servidor");
+});
+
+const expected134={"v":"4.26.134","d":"2026-10-15","t":{"es":"La gráfica de Inicio ya no enseña bajones falsos","en":"The Home chart no longer shows false drops","ca":"La gràfica d'Inici ja no ensenya baixades falses"},"items":{"es":["La gráfica de Inicio ya no baja cuando pasas dinero entre tus cuentas ni cuando sacas efectivo del cajero. Un traspaso a una cuenta que no tienes en la app cuenta como salida, y la «i» de la gráfica lo explica."],"en":["The Home chart no longer drops when you move money between your own accounts or take cash out at an ATM. A transfer to an account you don't have in the app counts as money out, and the chart's \"i\" explains it."],"ca":["La gràfica d'Inici ja no baixa quan passes diners entre els teus comptes ni quan treus efectiu del caixer. Un traspàs a un compte que no tens a l'app compta com a sortida, i la «i» de la gràfica ho explica."]},"tandas":[{"id":"inicio-grafica-reservas","t":{"es":"La gráfica de Inicio ya no enseña bajones falsos","en":"The Home chart no longer shows false drops","ca":"La gràfica d'Inici ja no ensenya baixades falses"},"items":{"es":["1. Abre Inicio y mira la gráfica de patrimonio en un día en que pasaste dinero entre tus cuentas: la gráfica no baja por ese traspaso, aunque el dinero llegase a la otra cuenta uno o dos días después.","2. Pulsa la «i» de la gráfica y lee «Cómo se calcula»: al final explica que un traspaso sin entrada igual en otra cuenta tuya resta, y que sacar efectivo del cajero resta si no tienes una cuenta o bolsillo de efectivo."],"en":["1. Open Home and look at the net worth chart on a day when you moved money between your own accounts: the chart does not drop for that transfer, even if the money reached the other account a day or two later.","2. Tap the chart's \"i\" and read \"How it's worked out\": at the end it explains that a transfer without an equal inflow in another of your accounts counts as money out, and that taking cash out at an ATM reduces it if you have no cash account or pocket."],"ca":["1. Obre Inici i mira la gràfica de patrimoni un dia en què vas passar diners entre els teus comptes: la gràfica no baixa per aquest traspàs, encara que els diners arribessin a l'altre compte un o dos dies després.","2. Prem la «i» de la gràfica i llegeix «Com es calcula»: al final explica que un traspàs sense entrada igual en un altre compte teu resta, i que treure efectiu del caixer resta si no tens un compte o butxaca d'efectiu."]}}]};
+// 4.26.134 (15/10/2026): la gráfica de patrimonio de Inicio acredita los traspasos entre cuentas propias (una sola vez, ±3 días civiles de Madrid), cuenta como
+// salida el traspaso sin contrapartida y reconoce la retirada de efectivo. Tanda NUEVA solo web, encima de la producción 4.26.133 (cdea1015), cuya nota ya
+// llevaba `tandas:[]`: la del borde de scroll (Retiro134) está aprobada y entregada, y queda esta sola.
+test("Catálogo134 añade la tanda de la gráfica de Inicio con traspasos y efectivo sobre la producción133, con alcance propio, y declara cada huella que mueve",()=>{
+  const tanda="inicio-grafica-reservas",previa="scroll-borde-barra";
+  const integrated=JSON.parse(sourceProd133("scripts/beta-sources.json")),before=JSON.parse(sourceProd133("src/data/release-notes.json"));
+  const source=f=>read(f).replace(/\r\n/g,"\n"),old=f=>sourceProd133(f).replace(/\r\n/g,"\n");
+  assert.deepEqual(before.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id])),[],"la producción133 no deja tandas en el panel");
+  const expectedNotes=[expected134,...before];
+  const notes=JSON.parse(source("src/data/release-notes.json"));
+  assert.deepEqual(notes,expectedNotes,"la nota 134 literal delante y el historial de producción133 intacto, todo con tandas:[]");
+  assert.deepEqual(notes.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id,g.apk||0])),[["4.26.134",tanda,0]],"el panel enseña una sola tanda, sin APK");
+  assert.equal(notes.length,before.length+1,"ninguna nota se borra");
+  assert.deepEqual(Object.keys(notes[0].tandas[0]),["id","t","items"],"identidad nueva, sin alias ni revisión heredada");
+  for(const lang of ["es","en","ca"]){
+    assert.equal(notes[0].items[lang].length,1,lang+": un punto familiar");
+    const steps=notes[0].tandas[0].items[lang];assert.equal(steps.length,2,lang+": dos pasos");
+    steps.forEach((step,i)=>assert.ok(step.startsWith((i+1)+". "),lang+": paso numerado "+(i+1)));
+    for(const text of steps)assert.equal(/borra|quita este|delete|remove|esborra|treu aquest|mañana|tomorrow|demà/i.test(text),false,lang+": ningún paso borra nada ni espera a otro día");
+    for(const text of [notes[0].t[lang],...notes[0].items[lang]])assert.equal(/beta|tanda|panel|APK|ordinal|acuse|cursor|token|Edge|servidor|Open Banking|autoGemelo|\d+\.\d+\.\d+/i.test(text),false,lang+": sin jerga: "+text);
+  }
+  // El segundo paso manda leer la hoja «Cómo se calcula» de la gráfica: su título y el texto nuevo existen en cada idioma.
+  const textos=source("src/modules/01-i18n.js");
+  for(const [lang,rotulo] of [["es","Cómo se calcula"],["en","How it's worked out"],["ca","Com es calcula"]]){
+    assert.ok(notes[0].tandas[0].items[lang][1].includes(rotulo),lang+": el paso 2 cita "+rotulo);
+    assert.ok(textos.includes('v42_net_info_title:"'+rotulo+'"'),lang+": "+rotulo+" es el texto de la app");
+  }
+  assert.equal((textos.match(/v42_net_i_flows:/g)||[]).length,3,"la explicación de la gráfica está en los tres idiomas");
+  const verifyNotes=list=>assert.deepEqual(list,expectedNotes);
+  const twice=structuredClone(notes);twice[0].tandas.push(structuredClone(twice[0].tandas[0]));assert.throws(()=>verifyNotes(twice),assert.AssertionError,"no duplicar la tanda");
+  const inherited=structuredClone(notes);inherited[0].tandas[0].desde=["4.26.133/"+tanda];assert.throws(()=>verifyNotes(inherited),assert.AssertionError,"no heredar revisión");
+  const withApk=structuredClone(notes);withApk[0].tandas[0].apk=55;assert.throws(()=>verifyNotes(withApk),assert.AssertionError,"no hay APK que probar");
+  const conBorde=structuredClone(notes);conBorde[1].tandas=[{id:previa,t:{},items:{}}];assert.throws(()=>verifyNotes(conBorde),assert.AssertionError,"la tanda aprobada del borde de scroll no vuelve al panel");
+  // Un único descriptor nuevo, al final; los demás son los de la producción133 sin recortar ni crecer.
+  const scopes=JSON.parse(source("scripts/beta-sources.json")),{[tanda]:added,...rest}=scopes;
+  assert.equal(integrated[tanda],undefined,"identidad que no existía");assert.equal(Object.keys(scopes).at(-1),tanda);
+  assert.deepEqual(rest,integrated,"nada se recorta ni crece: solo se añade el descriptor nuevo");
+  const propias=[{"file":"src/modules/02-ui-shared.js","function":"netWorthSeries"},{"file":"src/modules/03-tab-dash.js","function":"NetWorthInfoSheet"}];
+  assert.deepEqual(added.web.slice(0,propias.length),propias,"las unidades propias de la tanda, en este orden");
+  assert.equal(added.unidades,true);assert.deepEqual(Object.keys(added),["web","unidades"],"solo web");
+  {const fns=logicFunctions(source),dat=logicData(source);let web=propias.slice();
+    for(let ronda=0;ronda<10;ronda++){
+      const tiene=(file,nombre,clave)=>web.some(u=>u.file===file&&u[clave]===nombre),extra=[];
+      for(const fn of scopeDependencies({web},source,fns))if(!tiene(fn.file,fn.name,"function"))extra.push({file:fn.file,function:fn.name});
+      for(const d of scopeDataDependencies({web},source,fns,dat))if(!tiene(d.file,d.name,"data"))extra.push({file:d.file,data:d.name});
+      if(!extra.length)break;web=web.concat(extra);
+    }
+    const clave=u=>JSON.stringify(u);
+    assert.equal(added.web.length,web.length,"el cierre de lectores del descriptor es exactamente el calculado");
+    assert.deepEqual(new Set(added.web.map(clave)),new Set(web.map(clave)),"el cierre de lectores del descriptor es exactamente el calculado");}
+  for(const u of added.web)assert.ok(scopeText(u,source).length>0,"la unidad existe en la fuente: "+JSON.stringify(u));
+  assert.equal(source("public/apk.json"),old("public/apk.json"),"sin APK nueva: apk.json no se toca");
+  for(const f of ["supabase/functions/bank-sync/index.ts","supabase/functions/bank-disconnect/index.ts","supabase/functions/_shared/enablebanking.ts","supabase/functions/_shared/myinvestor.ts","supabase/functions/myinvestor-sync/index.ts","supabase/functions/myinvestor-keepalive/index.ts"])assert.equal(source(f),old(f),"el servidor no cambia: "+f);
+  // Huellas que se mueven, lista cerrada: las que leen la serie del patrimonio o la hoja que la explica.
+  const expectedMoves=Object.fromEntries(["cuenta-parte-mia","inicio-grafica-vuelve","inicio-mes-pasado-mismo-dia","inicio-patrimonio-flujos"].map(key=>[key,["web"]]));
+  const previous=new Map();
+  const measure=reader=>{
+    const now=JSON.parse(reader("scripts/beta-sources.json")),moved={};
+    for(const [key,scope] of Object.entries(integrated)){
+      if(key===archiveId){assert.deepEqual(auditedRevision(key,reader),auditedRevision(key,sourceProd133));continue;}
+      if(!previous.has(key))previous.set(key,betaRevision(key,sourceProd133,undefined,scope));
+      const a=previous.get(key),b=betaRevision(key,reader,undefined,now[key]);
+      const surfaces=["web","native","edge"].filter(x=>a[x]!==b[x]);
+      if(surfaces.length)moved[key]=surfaces;
+    }
+    return moved;
+  };
+  const verify=(reader,expected=expectedMoves)=>assert.deepEqual(measure(reader),expected,"lista cerrada: ni una huella extra ni una declarada que no cambie");
+  verify(source);
+  assert.throws(()=>verify(source,{...expectedMoves,"plan-scroll-lento":["web"]}),/lista cerrada/,"una huella declarada que no cambia pone rojo");
+  const current=betaRevision(tanda,source,undefined,scopes[tanda]);
+  assert.ok(current.web);assert.equal(current.edge,undefined);assert.equal(current.native,undefined);
+  const fichero="src/modules/02-ui-shared.js";
+  for(const [file,a,b] of [[fichero,"Una entrada bancaria del mismo importe no acredita los billetes del cajero.","Una entrada bancaria del mismo importe acredita los billetes del cajero."]]){
+    assert.equal(source(file).split(a).length,2,"mutante sobre fuente real: "+a);
+    const mutated=betaRevision(tanda,f=>f===file?source(f).replace(a,b):source(f),undefined,scopes[tanda]);
+    assert.notEqual(mutated.web,current.web,"reabre la tanda: "+a);
+  }
+  const built=betaNotes(notes,source,scopes),receipt=betaDelivery(built,source,scopes),group=built[0].tandas[0];
+  assert.deepEqual(built.flatMap(n=>(n.tandas||[]).map(g=>g.id)),[tanda],"lo que el build entrega al panel");
+  assert.equal(group.web,current.web);assert.equal(group.edge,undefined);assert.equal(group.native,undefined);assert.equal(group.apk,undefined);
+  assert.equal(receipt.web[tanda],current.web);
+  assert.deepEqual(receipt.pruebas,{[tanda]:{v:"4.26.134",contenido:JSON.stringify([tanda,expected134.tandas[0].t.es,expected134.tandas[0].items.es,1])}},"un solo guion por probar: el de esta tanda");
+  for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica","native"])assert.equal(group[key],undefined,"identidad nueva sin "+key);
+});
+
+// Retiro134: el dueño aprobó en el panel la tanda de la 133 (borde de scroll con la barra escondida) y ya está en producción. Sale del panel como en la 133: su nota conserva
+// versión, título y texto y solo pierde la tanda, con `tandas:[]` (así la dejó la promoción 133, que además le fecha el 15/10); el descriptor y el historial se quedan, y el
+// producto sigue íntegro en el recibo de entrega.
+test("Retiro134 elimina solo la tanda aprobada de la 133 y conserva notas, descriptores e historial",()=>{
+  const ids=["scroll-borde-barra"],tanda="inicio-grafica-reservas";
+  const before=JSON.parse(sourceBeta133("src/data/release-notes.json")),prod=JSON.parse(sourceProd133("src/data/release-notes.json")),notes=JSON.parse(read("src/data/release-notes.json"));
+  for(const id of ids){
+    assert.equal(before.flatMap(n=>n.tandas||[]).filter(g=>g.id===id).length,1,id+": la beta133 publicada la llevaba");
+    assert.equal(notes.flatMap(n=>n.tandas||[]).some(g=>g.id===id),false,id+": ya no está en ninguna nota");
+  }
+  assert.deepEqual([notes[1].v,notes[1].t,notes[1].tandas],[before[0].v,before[0].t,[]],"la nota 133 conserva versión y título y solo pierde la tanda");
+  assert.deepEqual(notes.slice(1),prod,"el catálogo de la producción133, intacto debajo de la nota nueva");
+  const resurrected=structuredClone(notes);resurrected[1].tandas.unshift(before[0].tandas[0]);
+  assert.notDeepEqual(resurrected,notes,"no resucitar una tanda aprobada");
+  const scopes=JSON.parse(read("scripts/beta-sources.json")),old=JSON.parse(sourceBeta133("scripts/beta-sources.json"));
+  for(const id of ids)for(const unit of old[id].web)assert.ok(scopes[id].web.some(u=>JSON.stringify(u)===JSON.stringify(unit)),id+": el descriptor conserva todas sus unidades");
+  const receipt=betaDelivery(betaNotes(notes,read,scopes),read,scopes);
+  for(const id of ids){
+    assert.equal(receipt.web[id],betaRevision(id,read,undefined,scopes[id]).web,id+": el producto sigue íntegro");
+    assert.equal(receipt.pruebas[id],undefined,id+": el guion aprobado no permanece en el panel");
+  }
+  assert.deepEqual(Object.keys(receipt.pruebas),[tanda],"en el panel queda sola la tanda nueva");
 });
 
 // Catálogo cerrado: desde la promoción126 se lee de la beta126 publicada (d8d2624c), que es la última con tandas en el panel.
