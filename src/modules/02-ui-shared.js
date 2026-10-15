@@ -773,7 +773,7 @@ function netWorthSeries(state, options){
     if(!Number.isFinite(ms)) return;
     const hour=Math.floor(ms/3600000),bounds=hours[hour]||(hours[hour]=[fmt.format(hour*3600000),fmt.format(hour*3600000+3599999)]);
     const day=bounds[0]===bounds[1]?bounds[0]:fmt.format(ms);if(day>today) return;
-    const row={expense:e,bank:bank,day:day,ms:ms,cents:Math.round(e.amount*100),f:factorOf(e,bank,day),atm:e.amount>0&&isAtmWithdrawal(e.merchant)};entries.push(row);
+    const row={expense:e,bank:bank,day:day,civil:Date.parse(day)/864e5,ms:ms,cents:Math.round(e.amount*100),f:factorOf(e,bank,day),atm:e.amount>0&&isAtmWithdrawal(e.merchant)};entries.push(row);
     if(!firstByBank[bank]||day<firstByBank[bank]) firstByBank[bank]=day;
     if(row.cents){const key=Math.abs(row.cents);(byAmount[key]||(byAmount[key]=[])).push(row);}
   });
@@ -781,15 +781,15 @@ function netWorthSeries(state, options){
   // en bancos presentes y cercanas. Repetir el importe meses después no vuelve ambiguo ese par.
   Object.keys(byAmount).forEach(function(key){
     const group=byAmount[key];if(!group.some(function(p){return p.cents<0;}))return;
-    const hinted=group.filter(function(p){return p.expense.category==="traspaso";});if(!hinted.length)return;
-    group.sort(function(a,b){return a.ms-b.ms;});const mates=new Map();
-    hinted.forEach(function(a){
+    const hinted=group.filter(p=>p.expense.category==="traspaso");if(!hinted.length)return;
+    group.sort((a,b)=>a.ms-b.ms);const mates=new Map();
+    hinted.forEach(a=>{
       // Son tres días civiles de Madrid: el cambio horario y la hora del apunte
       // no adelantan ni retrasan el límite de la contrapartida (14/10).
-      const civil=Date.parse(a.day+"T12:00:00Z"),from=utcFmt.format(civil-3*864e5),to=utcFmt.format(civil+3*864e5);
+      const from=a.civil-3,to=from+6;
       let low=0,high=group.length;
-      while(low<high){const mid=(low+high)>>1;if(group[mid].day<from)low=mid+1;else high=mid;}
-      for(let i=low;i<group.length&&group[i].day<=to;i++){
+      while(low<high){const mid=(low+high)>>1;if(group[mid].civil<from)low=mid+1;else high=mid;}
+      for(let i=low;i<group.length&&group[i].civil<=to;i++){
         const b=group[i],cat=b.expense.category;
         // Dentro del mismo banco solo hay par si las dos patas dicen su cuenta y son distintas (de
         // la personal a la conjunta): con la misma parte sigue neutro, como antes sin par.
@@ -845,7 +845,7 @@ function netWorthSeries(state, options){
   // importe, a nombre del titular, es esa aportación aunque el banco la llame «traspaso» u
   // «otros» (MyInvestor, 500 € a fin de mes, revisión 14/10). Si el bróker tiene su cuenta (aunque
   // sea manual), la llegada ya la recoge ese saldo: contarla aquí también la sumaba dos veces.
-  const plans=(state.aportaciones||[]).filter(function(p){ return p&&p.amount>0&&!flowBanks[p.ent]&&!owned[p.ent]&&(state.investments||[]).some(function(i){ return i.ent===p.ent; }); });
+  const plans=(state.aportaciones||[]).filter(p=>p&&(state.investments||[]).some(i=>i.ent===p.ent));
   // «A nombre del titular»: el concepto lleva su nombre (dos palabras del perfil) o «yo mismo».
   // Una transferencia del mismo importe al casero no es una aportación.
   const holder=recNorm(state.settings&&state.settings.profile&&state.settings.profile.fullName).split(" ").filter(function(w){ return w.length>=3; });
@@ -871,15 +871,13 @@ function netWorthSeries(state, options){
       if(!hasCash) daily[day]=(daily[day]||0)-row.cents;
       return;
     }
-    const text=String(e.merchant||"").toLowerCase(),target=e.toBank||e.to||e.counterpartyBank;
-    const plan=!!invKnown&&!row.ownTransfer&&e.amount>0&&(e.category==="traspaso"||e.category==="otros")&&
-      /transferencia|traspaso|transfer/i.test([e.merchant,e.note,e.concept].join(" "))&&toHolder(e)&&plans.some(function(p){ return Math.abs(p.amount-e.amount)<0.005; });
+    const text=String(e.merchant||"").toLowerCase(),target=e.toBank||e.to||e.counterpartyBank,transfer=e.category==="traspaso";
+    const matches=!row.ownTransfer&&e.amount>0&&/transferencia|traspaso|transfer/i.test([e.merchant,e.note,e.concept].join(" "))&&toHolder(e)&&
+      plans.filter(p=>Math.abs(p.amount-e.amount)<0.005)||[];
+    const plan=!!invKnown&&(transfer||e.category==="otros")&&matches.some(p=>!flowBanks[p.ent]&&!owned[p.ent]&&p.amount>0);
     // Si el plan corresponde a un bróker con cuenta propia, sus cierres ya recogen
     // ese dinero. No convertirlo en una salida ni en otra aportación (regla de 99014642).
-    const ownPlan=!!invKnown&&!row.ownTransfer&&e.amount>0&&e.category==="traspaso"&&
-      (state.aportaciones||[]).some(function(p){return p&&owned[p.ent]&&Math.abs(p.amount-e.amount)<0.005&&(state.investments||[]).some(function(i){return i.ent===p.ent;});})&&
-      /transferencia|traspaso|transfer/i.test([e.merchant,e.note,e.concept].join(" "))&&toHolder(e);
-    if(!plan&&ownPlan) return;
+    if(!plan&&transfer&&matches.some(p=>owned[p.ent])) return;
     const linked=plan||!!invKnown&&e.amount!==0&&(state.investments||[]).some(function(i){
       const name=String(i.ent||"").replace(/_/g," ").toLowerCase();
       return (e.investmentId&&e.investmentId===i.id)||(target&&target===i.ent)||(name.length>=4&&text.includes(name));
@@ -890,7 +888,7 @@ function netWorthSeries(state, options){
     // periódica) se decide abajo: si una foto de inversiones la recoge, es aportación. Sin
     // enlace no: medido con la cartera real, el vaivén diario de la bolsa «recogía» un seguro de
     // viaje de 247 € o un cambio de divisa de Revolut y movía 300 € la comparación (14/10).
-    const transit=!row.ownTransfer&&e.amount>0&&((e.category==="traspaso"&&linked)||plan);
+    const transit=!row.ownTransfer&&e.amount>0&&((transfer&&linked)||plan);
     if(transit||e.category==="inversion"||(e.category==="traspaso"&&linked)) contribs.push({row:row,day:day,cents:row.cents,transit:transit,plan:plan});
     else daily[day]=(daily[day]||0)-row.cents;
   });
