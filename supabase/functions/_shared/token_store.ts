@@ -34,7 +34,7 @@ export async function ensureMiLinkEncrypted(
   // deno-lint-ignore no-explicit-any
   admin: any,
   userId: string,
-  link: { access_token?: string | null; refresh_token?: string | null },
+  link: { access_token?: string | null; refresh_token?: string | null; connection_version?: string },
 ): Promise<void> {
   if (!Deno.env.get("TOKEN_ENCRYPTION_KEY")) return;
   const patch: Record<string, string | null> = {};
@@ -45,7 +45,10 @@ export async function ensureMiLinkEncrypted(
     patch.refresh_token = await encryptSecret(link.refresh_token);
   }
   if (Object.keys(patch).length) {
-    await admin.from("myinvestor_links").update(patch).eq("user_id", userId);
+    const q = admin.from("myinvestor_links").update(patch).eq("user_id", userId);
+    // El recifrado legacy tampoco puede escribir tokens antiguos encima de una reconexión.
+    if (link.connection_version) q.eq("connection_version", link.connection_version);
+    await q;
   }
 }
 

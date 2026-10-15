@@ -2,6 +2,68 @@ Promoción117: inventario12/10 confirma bank-syncv33 alineado; ingestv50 y price
 
 # Setup Supabase — Fase 1 (Aely)
 
+## MyInvestor: contador consecutivo · candidato sin desplegar (14/10/2026)
+
+`0026_myinvestor_access_counter.sql` añade, de forma idempotente, dos UUID internos:
+`connection_version` cambia al conectar; `access_counter_version` cambia al conectar y al
+completar una lectura buena. El bucket de `rate_limits` incluye la versión del contador:
+cambiarla deja el contador activo en cero sin borrar buckets de otras peticiones. Las filas
+anteriores quedan inertes para el nuevo sync y conservan la limpieza manual de 0019.
+No cambian el límite de dos fallos antes del aviso del tercero ni la ventana de seis horas.
+
+Sólo `userInitiated:true` cuenta un `access_401_after_refresh`; la ausencia del argumento,
+`false` y otros valores se consideran automáticos. El cron keepalive no cuenta ni cambia la
+versión del contador. Una lectura buena, manual o automática, lo reinicia. El cliente pasa
+`true` en el botón de la hoja y en Actualizar manual; la apertura suave pasa `false`.
+
+El refresco y el recifrado legacy se condicionan a la versión de conexión. Caducar y reiniciar
+el contador exigen además la versión del contador que se leyó al entrar. Si otra lectura buena
+ya lo cambió, sync sella `last_sync` con la sola guarda de conexión, sin volver a cambiar el
+contador ganador ni borrar sus fallos posteriores. Cero filas en ese segundo UPDATE rechaza
+las posiciones antiguas por reconexión real; no se usa un SELECT previo como acuse. Si falla
+el sello por error devuelto o excepción, responde `ok:true` con las posiciones leídas y
+`code:counter_not_saved`: no acredita reset ni sello persistidos. Las escrituras comprueban
+el error y una fila devuelta: cero filas nunca acredita un reset o caducidad.
+No se da `connected:true` si falla el guardado de una reconexión. Los grants nuevos son sólo
+de columna para `service_role`; no se añaden tablas, funciones RPC ni políticas RLS.
+
+Orden seguro, **pendiente de revisión y ejecución del coordinador**:
+
+1. Revisar y aplicar `0026_myinvestor_access_counter.sql`, sin crear otra migración. Antes de
+   confirmar, probarla dentro de `BEGIN`/`ROLLBACK`: ejecutar su SQL existente en esa transacción,
+   comprobar columnas, idempotencia (segunda ejecución) y privilegios; terminar con `ROLLBACK`.
+   Esta prueba no aplica la migración definitivamente. Comprobación de privilegios propuesta
+   (cada fila debe devolver `false` en las tres columnas de permisos):
+
+   ```sql
+   BEGIN;
+   -- Ejecutar aquí el contenido revisado de 0026, dos veces, sin COMMIT.
+   SELECT col,
+     has_column_privilege('authenticated', 'public.myinvestor_links', col, 'SELECT') AS puede_leer,
+     has_column_privilege('authenticated', 'public.myinvestor_links', col, 'INSERT') AS puede_insertar,
+     has_column_privilege('authenticated', 'public.myinvestor_links', col, 'UPDATE') AS puede_cambiar
+   FROM (VALUES ('connection_version'), ('access_counter_version')) AS columnas(col);
+   ROLLBACK;
+   ```
+
+   Si aparece `true`, revisar también grants de tabla/heredados: un REVOKE de columna no quita
+   un permiso concedido a toda la tabla. No seguir al despliegue hasta resolverlo. La aplicación
+   definitiva de 0026 se hace después por el circuito de migraciones autorizado.
+2. Desplegar `myinvestor-connect` con las columnas ya disponibles.
+3. Publicar el cliente con `userInitiated` explícito en **beta y después en producción**;
+   comprobar la entrega efectiva en ambos canales.
+4. Desplegar `myinvestor-sync` **sólo cuando ese cliente ya esté en producción**. El cliente
+   anterior no señala manualidad: con el sync nuevo no suma los fallos del usuario y pierde
+   la oferta de reconectar al tercero. Una beta con el argumento no cubre producción.
+5. Mantener `myinvestor-keepalive` **sin redesplegar** en esta tanda.
+
+Sync sin migración devuelve `counter_not_available` sin llamar al banco. Quedan en BACKLOG,
+fuera de esta PR, la guarda de conexión del refresco en keepalive y la purga de los buckets
+versionados de `rate_limits`; no se modifica ni ejecuta ninguna de esas operaciones aquí.
+Rollback de Edge/cliente: volver a las fuentes anteriores; conservar las columnas aditivas.
+La vuelta al sync antiguo recuperaría su contador antiguo acumulado: no acredita contador cero.
+SQL, advisors y aceptación bancaria/móvil reales no se han ejecutado en este encargo.
+
 `ingest/widget.ts` calcula la respuesta widget v2 de la ventana guardada
 por la app, validando ancla y scope; month conserva su payload mensual legacy para APK antiguas.
 El total v2 requiere conteo exacto, páginas completas con identidades únicas y el pago visible.

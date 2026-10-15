@@ -1,5 +1,15 @@
 # Arquitectura — Aely
 
+## MyInvestor: intención manual y contador por versión · candidato (14/10/2026)
+
+`cloud.myinvestorSync(userInitiated)` transmite únicamente el booleano explícito. La hoja
+distingue su apertura automática del botón; App transmite `opts.manual===true` sin modificar
+el orden, los efectos o el reanclaje financiero. Una reconexión genera versiones nuevas de
+conexión y contador; una lectura buena sólo cambia la del contador. La escritura condicionada
+y su fila devuelta impiden que una petición antigua reinicie o caduque la sesión nueva.
+La cuenta vive en los buckets versionados de `rate_limits`; los anteriores no participan en
+el contador actual. Migración y Edge aún sin desplegar: ver el orden en SETUP-SUPABASE.
+
 ## Emparejado candidato PR228
 
 La asignación de avisos y bancos vive en reconcileGemelosAutomaticos y se invoca desde importObExpenses, el updater, el arranque y el pull. Las marcas se devuelven antes de subir los apuntes. Los pares automáticos se derivan de filas; gemelos conserva decisiones y reservas históricas. La caché no se persiste: índices por referencia y grupos banco/importe, con fechas de Madrid cacheadas. Un cambio no financiero conserva las parejas. Una retirada de #dup recibida de otra versión se respeta como decisión humana. [Contrato actual, migración y límites](briefs/tr-emparejado-automatico-20261013.md).
