@@ -2,13 +2,17 @@
 // la BD copia los SELECT y aplica filtros; ninguna petición puede alcanzar el banco real.
 export const response = (status: number, data: unknown = {}) => new Response(JSON.stringify(data), { status });
 export const accounts = () => response(200, { payload: { data: [] } });
+export const positionAccounts = () => response(200, { payload: { data: [{ accountId: "synthetic-account" }] } });
+export const positionDetail = () => response(200, { payload: { data: { securitiesAccountInvestments: {
+  INDEXED_FUND: { investmentList: [{ isin: "SYNTHETIC-FUND", investmentName: "Fondo sintético", shares: 3, originCurrencyLiquidationValue: 12.34, initialInvestmentCurrency: 30 }] },
+} } } });
 export const refreshed = () => response(201, { payload: { data: { accessToken: "new-access", refreshToken: "new-refresh" } } });
 export function fixture() {
   return {
     row: { user_id: "synthetic", status: "active", access_token: "access", refresh_token: "refresh", device_id: "device", updated_at: "2026-10-14T00:00:00Z", access_counter_version: "11111111-1111-4111-8111-111111111111", connection_version: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa" } as Record<string, any>,
     counters: new Map<string, number>(), writes: [] as any[], rates: [] as string[],
     beforeWrite: null as null | (() => void), beforeRate: null as null | (() => void),
-    saveError: false, rateError: false,
+    saveError: false, saveThrows: false, rateError: false,
   };
 }
 export function hits(f: ReturnType<typeof fixture>) {
@@ -23,7 +27,7 @@ export function seedHits(f: ReturnType<typeof fixture>, n: number) {
 let serial = 0;
 export async function run(
   name: "sync" | "connect" | "keepalive", f: ReturnType<typeof fixture>,
-  options: { body?: unknown; access?: (n: number) => Response; refresh?: () => Response; login?: () => Response } = {},
+  options: { body?: unknown; access?: (n: number) => Response; detail?: () => Response; refresh?: () => Response; login?: () => Response } = {},
 ) {
   let handler: (req: Request) => Promise<Response>, gets = 0;
   const db = {
@@ -33,6 +37,7 @@ export async function run(
       const filters: [string, unknown][] = [];
       const perform = () => {
         if (patch && f.beforeWrite) { const before = f.beforeWrite; f.beforeWrite = null; before(); }
+        if (patch && f.saveThrows) throw new Error("corte sintético al guardar");
         if (patch && f.saveError) return { data: null, error: { code: "synthetic" } };
         const matches = filters.every(([k, v]) => f.row[k] === v);
         if (patch && (upsert || matches)) { Object.assign(f.row, patch); f.writes.push({ ...patch }); }
@@ -71,6 +76,7 @@ export async function run(
       if (url.endsWith("/token/refresh")) return (options.refresh || refreshed)();
       if (url.endsWith("/v2/auth/token")) return (options.login || refreshed)();
       if (url.endsWith("/self-basic")) return (options.access || accounts)(gets++);
+      if (url.endsWith("/securities-accounts/synthetic-account")) return (options.detail || positionDetail)();
       throw new Error("ruta sintética no prevista");
     },
   };

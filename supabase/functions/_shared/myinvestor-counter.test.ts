@@ -1,7 +1,15 @@
-import { accounts, encryptLegacy, fixture, hits, refreshed, response, run, seedHits } from "./myinvestor-counter.fixture.ts";
+import { accounts, encryptLegacy, fixture, hits, positionAccounts, refreshed, response, run, seedHits } from "./myinvestor-counter.fixture.ts";
 const assert = { equal(actual: unknown, expected: unknown) {
   if (actual !== expected) throw new Error("esperado " + JSON.stringify(expected) + ", recibido " + JSON.stringify(actual));
 } };
+function assertPositions(data: any) {
+  assert.equal(data.ok, true);
+  assert.equal(data.positions?.length, 1);
+  assert.equal(data.positions[0].isin, "SYNTHETIC-FUND");
+  assert.equal(data.positions[0].shares, 3);
+  assert.equal(Math.round(data.positions[0].value * 100), 3702);
+  assert.equal(Math.round(data.positions[0].cost * 100), 3000);
+}
 
 Deno.test("reconectar por login deja el contador a cero: antes 2, después 0", async () => {
   const f = fixture(); seedHits(f, 2);
@@ -96,10 +104,10 @@ Deno.test("reconexión entre sumar y caducar: cero filas no es un acuse", async 
   assert.equal(f.row.status, "active");
   assert.equal(hits(f), 2);
 });
-Deno.test("reset que falla no da por buena la lectura; reconexión que falla tampoco dice conectado", async () => {
+Deno.test("sello que falla conserva las posiciones; reconexión que falla tampoco dice conectado", async () => {
   const f = fixture(); seedHits(f, 2); f.saveError = true;
-  const r = await run("sync", f);
-  assert.equal(r.data.ok, false);
+  const r = await run("sync", f, { access: positionAccounts });
+  assertPositions(r.data);
   assert.equal(r.data.code, "counter_not_saved");
   assert.equal(hits(f), 2);
   for (const body of [
@@ -143,16 +151,55 @@ Deno.test("lectura buena concurrente: el fallo viejo tampoco caduca el contador 
   assert.equal(f.row.status, "active");
 });
 
-Deno.test("reset viejo tras otro éxito: no borra los nuevos fallos del mismo enlace", async () => {
+Deno.test("reset viejo tras otro éxito: conserva posiciones y sello sin borrar los nuevos fallos del mismo enlace", async () => {
   const f = fixture(); seedHits(f, 2);
   f.beforeWrite = () => {
     f.row.access_counter_version = "33333333-3333-4333-8333-333333333333";
     f.counters.set("mi-401-tras-refresco:synthetic:" + f.row.access_counter_version, 1);
   };
-  const r = await run("sync", f);
+  const r = await run("sync", f, { access: positionAccounts });
+  assertPositions(r.data);
+  assert.equal(r.data.code, undefined);
+  assert.equal(hits(f), 1);
+  assert.equal(f.row.access_counter_version, "33333333-3333-4333-8333-333333333333");
+  assert.equal(typeof f.row.last_sync, "string");
+  assert.equal(f.writes.length, 1);
+  assert.equal(f.writes[0].access_counter_version, undefined);
+});
+Deno.test("reconexión entre reset perdido y sello: las posiciones antiguas no se aceptan", async () => {
+  const f = fixture();
+  f.beforeWrite = () => {
+    f.row.access_counter_version = "33333333-3333-4333-8333-333333333333";
+    f.beforeWrite = () => reconnect(f);
+  };
+  const r = await run("sync", f, { access: positionAccounts });
   assert.equal(r.data.ok, false);
   assert.equal(r.data.code, "refresh_raced");
+  assert.equal(r.data.positions, undefined);
+  assert.equal(f.row.last_sync, undefined);
+  assert.equal(f.row.access_token, "reconnected-access");
+  assert.equal(hits(f), 2);
+});
+Deno.test("sello tras carrera devuelve error: conserva posiciones y el contador ganador", async () => {
+  const f = fixture();
+  f.beforeWrite = () => {
+    f.row.access_counter_version = "33333333-3333-4333-8333-333333333333";
+    f.counters.set("mi-401-tras-refresco:synthetic:" + f.row.access_counter_version, 1);
+    f.beforeWrite = () => { f.saveError = true; };
+  };
+  const r = await run("sync", f, { access: positionAccounts });
+  assertPositions(r.data);
+  assert.equal(r.data.code, "counter_not_saved");
   assert.equal(hits(f), 1);
+  assert.equal(f.row.last_sync, undefined);
+});
+Deno.test("sello lanza por red: conserva igualmente todas las posiciones leídas", async () => {
+  const f = fixture(); seedHits(f, 2); f.saveThrows = true;
+  const r = await run("sync", f, { access: positionAccounts });
+  assertPositions(r.data);
+  assert.equal(r.data.code, "counter_not_saved");
+  assert.equal(hits(f), 2);
+  assert.equal(f.row.last_sync, undefined);
 });
 Deno.test("el recifrado legacy tampoco pisa los tokens de una reconexión", async () => {
   const f = fixture();
