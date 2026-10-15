@@ -1,0 +1,222 @@
+{
+  "status": "blocked",
+  "summary": "PR235 candidata terminada: referencias pendientes reconciliadas por estado, 24 contratos y 20 mutaciones verdes; 775 extractos completos. Integracion y caso entre dias pendientes.",
+  "productSHA": "f80a318424519dcfa4a2bb20d3f46f6ddf451cb4",
+  "baseSHA": "25e29d6e98e195e3ce334f5f463fd4e2116d785e",
+  "pr": 235,
+  "codeComplete": true,
+  "productReady": false,
+  "tests": [
+    {
+      "command": "node --test tests/compras-identicas-ids.test.mjs",
+      "exitCode": 0,
+      "timezone": "UTC"
+    },
+    {
+      "command": "node tests/recibo-invariante.test.mjs",
+      "exitCode": 0,
+      "timezone": "UTC"
+    },
+    {
+      "command": "node --test tests/compras-identicas-ids.test.mjs",
+      "exitCode": 0,
+      "timezone": "Europe/Madrid"
+    },
+    {
+      "command": "node tests/recibo-invariante.test.mjs",
+      "exitCode": 0,
+      "timezone": "Europe/Madrid"
+    },
+    {
+      "command": "node tests/bank-download-incomplete.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/bank-sync-acuse.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/merge-expenses-cloud.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/expense-note.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/beta-sources.test.mjs --integration-only",
+      "exitCode": 1
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/ob-iguales-ordinal.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/tr-emparejado-nogo2.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/recibos-bajas-y-union.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/recibo-domiciliado-sin-acreditar.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/retirada-bancaria.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/ingest-handler.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/prod117-edge-compat.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/security.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/i18n-keys.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/guard-privacy.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/presupuesto-rendimiento.test.mjs",
+      "exitCode": 1
+    },
+    {
+      "command": "node tests/docs-frescura.test.mjs",
+      "exitCode": 1
+    }
+  ],
+  "causalRed": {
+    "initial": {
+      "exitCode": 1,
+      "passedControls": 12,
+      "failedContracts": 7,
+      "examplesCents": [
+        {
+          "actual": 640,
+          "expected": 320
+        },
+        {
+          "actual": 1280,
+          "expected": 640
+        }
+      ]
+    },
+    "migrationAndStaleUUID": {
+      "exitCode": 1,
+      "failed": 2
+    },
+    "partialThenFull": {
+      "exitCode": 1,
+      "failed": 1,
+      "actualCents": 640,
+      "expectedCents": 320
+    }
+  },
+  "focal": {
+    "passed": 24,
+    "failed": 0,
+    "skipped": 0,
+    "mutantsKilled": 20,
+    "previousMutantsPreserved": 7,
+    "newMutantsKilled": 13
+  },
+  "invariant": {
+    "passed": 22,
+    "failed": 0,
+    "extracts": 775,
+    "generatorUnchanged": true,
+    "exception": "Distinct bank references in the same bank/day/amount/name group; spent, rendered, forecast and closing unchanged; baseline base rounded to cents plus extra represented charges. Original receipt persistence exception preserved."
+  },
+  "migration132": {
+    "states": 3,
+    "spentRenderedBaseForecastAndClosingEqual": true,
+    "totalCents": [
+      2456,
+      -179721,
+      2345
+    ],
+    "pendingMarkRecoveredOnlyWithPreviousPDNGEvidence": true
+  },
+  "integration": {
+    "unchangedVersion": "4.26.133",
+    "catalogueExitCode": 1,
+    "catalogueMode": "official --integration-only on final source",
+    "catalogueFailures": [
+      "✗ Catálogo133 añade la tanda del borde de scroll con la barra escondida sobre la beta132, con alcance propio, y declara cada huella que mueve"
+    ],
+    "priorFullCatalogue": {
+      "sourceSHA": "21eb5d82cbdfdf0b1c8b420bdf806abce6bf55f2",
+      "exitCode": 1,
+      "failures": [
+        "✗ Catálogo133 añade la tanda del borde de scroll con la barra escondida sobre la beta132, con alcance propio, y declara cada huella que mueve",
+        "✗ cada llamada de lógica, incluidas flechas y dependencias transitivas, mueve el digest",
+        "inc-3009-01-cargos: dependencia sin vigilar bankRefSufijoCloud",
+        "✗ cada dato leído transitivamente, incluidas cachés compartidas, mueve el digest",
+        "tr-descripcion-clasificacion: dato sin vigilar obPendingResponses"
+      ],
+      "notFinalSource": true
+    },
+    "docsFreshnessExitCode": 1,
+    "sizeExitCode": 1,
+    "sizeMetrics": [
+      {
+        "metric": "index.html minificado",
+        "bytes": 1326828,
+        "cap": 1317888,
+        "excess": 8940
+      },
+      {
+        "metric": "index.html gzip",
+        "bytes": 368323,
+        "cap": 366592,
+        "excess": 1731
+      },
+      {
+        "metric": "ficheros bloqueantes",
+        "bytes": 3,
+        "cap": 3,
+        "excess": 0
+      }
+    ],
+    "capsVersionAndCatalogueUntouched": true
+  },
+  "limitations": [
+    "Full catalogue completed on 21eb5d82 before the final bounded-history fix. Final f80a3184 repeats the official integration-only catalogue mode; the full transitive mutation suite was not repeated on that last cut.",
+    "Different references on different days remain separate: 640 instead of 320 cents if it was one purchase. No safe automatic identity inference; explicitly retained and tested.",
+    "No retrospective repair of live stored data, bank download or concurrent real-device acceptance. Legacy rows without a pending marker or prior PDNG proof are not guessed.",
+    "No new CI or DOM on this source under the Node-only CODE admission. Previous focal CI belongs to the old source, not this head.",
+    "No local browser, full functional suite, CPU6, runner lease, Gradle, APK, SQL, Edge/backend source changes, deploy, main/beta merge or mobile acceptance.",
+    "Review and integration remain required; this result is not ProductREADY."
+  ],
+  "changes": [
+    "BOOK covers PDNG by distinct bank-reference multiplicity within a response; only excess pending charges remain.",
+    "Complete covered-day response permits reference adoption without mutating previous state; partial response alone does not. A later complete response also reconciles a BOOK already added during a partial read.",
+    "Pending marker and former reference survive local persistence and cloud encoding. Stale pending pulls cannot restore old references, including a different UUID.",
+    "Exactly the authorized named receipt invariant exception; generator and 775-extract coverage preserved."
+  ],
+  "schema": 1,
+  "taskId": "compras-identicas-ids-distintos-3-codex-20261015",
+  "actor": "codex",
+  "sessionId": "codex-local-20261015-af7c993b2868fee7",
+  "createdAt": "2026-10-15T09:23:09.277Z",
+  "released": true
+}
