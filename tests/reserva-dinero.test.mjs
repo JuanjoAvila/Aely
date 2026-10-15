@@ -740,7 +740,7 @@ t("la tanda de edición actual conserva sus guardas sin congelar el historial fu
   // Integración 4.26.129: la limpieza borró el comentario que cerraba el bloque de pinNavVisible (hoy cierra en endTopClearNow)
   // y la función freqLabel; la alta anterior se compara con la ancla de hoy, sin exigir que sobreviva un texto borrado a propósito.
   const deHoy=e=>e.to==="  // clear del tope: solo API residual"?{...e,to:"  const endTopClearNow=function(doReveal){"}:e;
-  for(const entry of previous.web.filter(e=>e.function!=="freqLabel").map(deHoy))assert.ok(current.web.some(x=>JSON.stringify(x)===JSON.stringify(entry)),"la alta anterior conserva "+JSON.stringify(entry));
+  for(const entry of previous.web.filter(e=>e.function!=="freqLabel").map(deHoy))assert.ok(current.web.some(x=>JSON.stringify(x)===JSON.stringify(entry)||(entry.members&&x.file===entry.file&&x.data===entry.data&&x.members&&entry.members.every(m=>x.members.includes(m)))),"la alta anterior conserva "+JSON.stringify(entry));  // la 135 amplía los miembros de `cloud` (deleteExpense, logEvent): se conserva lo anterior y puede crecer
   for(const key of Object.keys(previous).filter(k=>k!=="web"))assert.deepEqual(current[key],previous[key],"la alta conserva "+key);
 });
 
