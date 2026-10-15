@@ -18,30 +18,7 @@
         "Dues compres iguals el mateix dia al mateix lloc ja no es fonen en una de sola. I si el banc envia primer una compra com a pendent i després com a carregada, ja no compta dues vegades, ni a l'app ni al widget."
       ]
     },
-    "tandas": [
-      {
-        "id": "compras-identicas-ids",
-        "t": {
-          "es": "Compras iguales: ni se funden ni se cuentan dos veces",
-          "en": "Identical purchases: no longer merged or counted twice",
-          "ca": "Compres iguals: ni es fonen ni es compten dues vegades"
-        },
-        "items": {
-          "es": [
-            "1. Abre Gastos y busca un día en que hiciste dos compras iguales en el mismo sitio y por el mismo importe: tienen que salir las dos como movimientos distintos, no una sola.",
-            "2. Mira el widget del gasto del día o del mes y compáralo con el total de Gastos de hoy: los dos números tienen que dar lo mismo."
-          ],
-          "en": [
-            "1. Open Spending and find a day when you made two identical purchases at the same place for the same amount: both must show up as separate entries, not just one.",
-            "2. Look at the daily or monthly spending widget and compare it with today's total in Spending: both numbers must be the same."
-          ],
-          "ca": [
-            "1. Obre Despeses i busca un dia en què vas fer dues compres iguals al mateix lloc i pel mateix import: han de sortir les dues com a moviments diferents, no només una.",
-            "2. Mira el widget de la despesa del dia o del mes i compara'l amb el total de Despeses d'avui: els dos números han de donar el mateix."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.134",
