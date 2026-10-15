@@ -49,12 +49,38 @@ async function cifras(page){
   return result;
 }
 async function estadoNavegacion(page){
-  return page.evaluate(()=>{
+  const state=await page.evaluate(()=>{
     const button=[...document.querySelectorAll("button")].find(el=>el.textContent.trim()==="Ver gastos ›"),parents=[];
     let fiber=button&&button[Object.keys(button).find(key=>key.startsWith("__reactFiber$"))];
     while(fiber&&parents.length<12){if(typeof fiber.type==="function")parents.push({component:fiber.type.name,onGoGastos:typeof fiber.memoizedProps?.onGoGastos});fiber=fiber.return;}
     return {tabs:[...document.querySelectorAll(".botnav-tab")].map(el=>({tab:el.dataset.tour,class:el.className})),settings:!!document.querySelector(".settings-push.open"),splash:!!document.getElementById("mc-load"),text:document.querySelector("#root")?.innerText,summary:document.querySelector(".v4-gastos-summary")?.innerText,events:window.__ownNavEvents,parents};
   }).catch(error=>({readError:String(error)}));
+  // CDP sólo lee los cierres del handler real tras el fallo. No se pausa la página,
+  // no se invoca el handler y no se corrige la navegación desde el banco de pruebas.
+  const session=await page.context().newCDPSession(page),group="own-navigation",seen=new Set();
+  try{
+    const result=await session.send("Runtime.evaluate",{expression:'(()=>{const b=[...document.querySelectorAll("button")].find(e=>e.textContent.trim()==="Ver gastos ›");return b?.[Object.keys(b).find(k=>k.startsWith("__reactProps$"))]?.onClick})()',objectGroup:group});
+    const scopes=[];
+    const inspect=async(fn,depth)=>{
+      if(!fn?.objectId||seen.has(fn.objectId)||depth>2)return;seen.add(fn.objectId);
+      const props=await session.send("Runtime.getProperties",{objectId:fn.objectId});
+      const list=props.internalProperties?.find(p=>p.name==="[[Scopes]]")?.value?.objectId;if(!list)return;
+      const items=await session.send("Runtime.getProperties",{objectId:list,ownProperties:true});
+      for(const item of items.result){
+        if(!item.value?.objectId||!item.value.description?.startsWith("Closure"))continue;
+        const values=await session.send("Runtime.getProperties",{objectId:item.value.objectId,ownProperties:true}),row={scope:item.value.description,values:{}};
+        for(const value of values.result.filter(v=>["onGoGastos","tabIds","tabRef","tab","goTab","goTabTop"].includes(v.name))){
+          row.values[value.name]=value.value?.value??value.value?.description;
+          if(["tabIds","tabRef"].includes(value.name)&&value.value?.objectId){const data=await session.send("Runtime.getProperties",{objectId:value.value.objectId,ownProperties:true});row.values[value.name]=Object.fromEntries(data.result.filter(v=>v.name==="current"||/^\d+$/.test(v.name)).map(v=>[v.name,v.value?.value??v.value?.description]));}
+          if(value.name==="onGoGastos")await inspect(value.value,depth+1);
+        }
+        if(Object.keys(row.values).length)scopes.push(row);
+      }
+    };
+    await inspect(result.result,0);state.handlerScopes=scopes;
+  }catch(error){state.scopeReadError=String(error);}
+  finally{await session.send("Runtime.releaseObjectGroup",{objectGroup:group}).catch(()=>{});await session.detach();}
+  return state;
 }
 test("base132: abrir Gastos con la misma cartera y contexto",{annotation:{type:"own-clock",description:"14/10/2026"}},async({browser},testInfo)=>{
   // Comparación pedida por Claude: bundle exacto de 132, sin ninguna regla propia.
