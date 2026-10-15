@@ -121,6 +121,78 @@ test("mutación de revisión: retirar la guarda de lectura truncada debe morir",
  check(c,html);const changed=html.replace('&&!l.truncated&&!l.readReason','&&!l.readReason');assert.notEqual(changed,html);assert.throws(()=>check(loadPureLogic(changed),changed));
 });
 
+async function retentionScenario(source=html,{sandbox=false}={}){
+ const ctx=loadPureLogic(source),env=fakeDb(),transport=cloudOn(env,ctx,source);
+ ctx.__transport=transport;vm.runInContext('Object.assign(cloud,__transport)',ctx);delete ctx.__transport;
+ const guardStart=source.indexOf('(function(){',source.indexOf('const CLOUD_WRITES=[')),guardEnd=source.indexOf('\n})();',guardStart)+6;
+ assert.ok(guardStart>=0&&guardEnd>guardStart);vm.runInContext(source.slice(guardStart,guardEnd),ctx);
+ const pending=await bank.sync(()=>({transactions:[coffee("p-retention","PDNG")]}));
+ let s=committed(state(),pending.data.links,ctx,source);
+ for(const e of s.expenses)await transport.addExpense(e);
+ const partial=await bank.sync((url,n)=>({transactions:n===1?[coffee("b-retention")]:[],continuation_key:"same-cursor"}));
+ s=committed(s,partial.data.links,ctx,source);assert.equal(cents(s,ctx),640);
+ for(const e of s.expenses)await transport.addExpense(e);
+ const before=clone(s),complete=await bank.sync(()=>({transactions:[coffee("b-retention")]}));
+ if(sandbox)ctx.mcSandbox=()=>true;
+ s=committed(s,complete.data.links,ctx,source);
+ await new Promise(resolve=>setImmediate(resolve));
+ const gone=before.expenses.find(e=>!s.expenses.some(keep=>keep.id===e.id)),key=ctx.obAbsorptionKey(gone);
+ assert.ok(s.deleted.includes(key));
+ const at=s.deletedAt[key];
+ for(let i=0;i<501;i++)s={...s,...ctx.lapidaPon(s,"synthetic-newer-deletion-"+i,at+i+1)};
+ assert.equal(s.deleted.includes(key),false,"la poda real 500/200 retira el marcador antiguo");
+ await transport.pushState("user",ctx.slimForCloud(s));
+ const pull=async local=>{const remote=(await transport.pullState()).data,del=ctx.lapidasUnion(local,remote),incoming=(await transport.pullExpenses()).map(ctx.expenseFromRow).filter(e=>!ctx.expenseIsTombstoned(e,ctx.expenseDeletedSet(del)));return {...local,...del,expenses:ctx.mergeExpensesFromCloud(local.expenses,incoming).list};};
+ s=await pull(s);
+ const app=cents(await pull(state()),ctx),serverValue=serverCents(env,s);
+ console.log(JSON.stringify({retentionExpired:{appCents:app,existingMobileCents:cents(s,ctx),serverCents:serverValue,cloudRows:env.rows.length}}));
+ if(sandbox){assert.equal(env.rows.length,2,"modo pruebas no borra la tabla real");return;}
+ assert.deepEqual({app,server:serverValue},{app:320,server:320},"la fila debe estar borrada, no solo tapada");
+ assert.equal(env.rows.length,1);assert.equal(env.rows[0].id,s.expenses[0].id,"sobrevive el UUID de la pendiente adoptada");
+ s=committed(s,complete.data.links,ctx,source);assert.equal(cents(await pull(s),ctx),320);
+ let other=await pull(state());assert.equal(cents(other,ctx),320);other=committed(other,complete.data.links,ctx,source);assert.equal(cents(other,ctx),320);
+ assert.equal(serverCents(env,other),320);
+}
+test("nube: caducar la lápida no resucita el BOOK absorbido en app ni servidor",async()=>{
+ await retentionScenario();
+});
+test("absorción: quitar el borrado cloud vuelve a 640 aunque la lápida funcionara",async()=>{
+ const changed=html.replace('    borrarGastoNube(e,"ob-absorbed");','');assert.notEqual(changed,html,"borrado retirado");
+ await assert.rejects(()=>retentionScenario(changed),error=>error.code==="ERR_ASSERTION"&&error.actual.app===640&&error.actual.server===640);
+});
+test("absorción: CLOUD_WRITES impide el borrado en modo pruebas",async()=>{
+ await retentionScenario(html,{sandbox:true});
+ const changed=html.replace('"deleteExpense","deleteExpensesByIds"','"deleteExpensesByIds"');assert.notEqual(changed,html,"guarda retirada");
+ await assert.rejects(()=>retentionScenario(changed,{sandbox:true}),error=>error.code==="ERR_ASSERTION"&&error.actual===1&&error.expected===2);
+});
+
+test("absorción: las seis guardas de revisión matan sus mutaciones",()=>{
+ const first=committed(state(),links([coffee("p-guard","PDNG")]));
+ const partial=committed(first,[{...links([coffee("b-guard")])[0],truncated:true}]);
+ const adopted=committed(partial,links([coffee("b-guard")])),keep=adopted.expenses[0],gone=partial.expenses.find(e=>e.id!==keep.id);
+ const seed=()=>({prev:clone(partial),next:{...clone(adopted),deleted:[],deletedAt:{},lastBankSync:123456789}});
+ const apply=(ctx,p)=>ctx.obPendingAbsorbedState(p.next,p.prev);
+ const clean=(ctx,p)=>assert.equal(apply(ctx,p).deleted.length,0);
+ const checks={
+  group:ctx=>{for(const changes of [{date:day(-2)},{amount:3.21},{merchant:"Otra compra",obName:"Otra compra"}])for(const where of ["old","removed"]){const p=seed(),id=where==="old"?keep.id:gone.id;p.prev.expenses=p.prev.expenses.map(e=>e.id===id?{...e,...changes}:e);clean(ctx,p);}},
+  account:ctx=>{const p=seed();p.next.expenses[0].obAcc="account-a";p.prev.expenses.find(e=>e.id===gone.id).obAcc="account-b";clean(ctx,p);},
+  pending:ctx=>{const p=seed();p.prev.bankTx=[];delete p.prev.expenses.find(e=>e.id===keep.id).obPending;clean(ctx,p);},
+  reference:ctx=>{const p=seed();p.prev.expenses.find(e=>e.id===keep.id).extId=keep.extId;p.next.expenses[0].obPendingRef=keep.extId;clean(ctx,p);},
+  book:ctx=>{const p=seed();p.prev.expenses.find(e=>e.id===gone.id).obPending=true;clean(ctx,p);},
+  time:ctx=>{const p=seed(),out=apply(ctx,p);assert.equal(out.deletedAt[ctx.obAbsorptionKey(gone)],p.next.lastBankSync);}
+ };
+ const mutations=[
+  ["group",s=>s.replace('||obPendingGroup(old)!==obPendingGroup(e)','').replace('obPendingGroup(e)!==obPendingGroup(keep)||','')],
+  ["account",s=>s.replace('||e.obAcc&&keep.obAcc&&e.obAcc!==keep.obAcc','')],
+  ["pending",s=>s.replace('if(pending)adopted.set','if(true)adopted.set')],
+  ["reference",s=>s.replace('||old.extId===e.extId','')],
+  ["book",s=>s.replace('if(ids.has(e.id)||!esFilaDeBanco(e)||!e.extId||e.obPending)return;','if(ids.has(e.id)||!esFilaDeBanco(e)||!e.extId)return;')],
+  ["time",s=>s.replace('lapidaPon(out,key,s.lastBankSync||Date.now())','lapidaPon(out,key,Date.now())')]
+ ];
+ for(const [name,mutate] of mutations){checks[name](c);const changed=mutate(html);assert.notEqual(changed,html,name+": aplicada");assert.throws(()=>checks[name](loadPureLogic(changed)),undefined,name+": muerta");}
+ console.log("compras5: seis guardas defendidas, 6/6 mutantes muertos");
+});
+
 test("mutaciones de absorción: commit, lápida específica, UUID y lector local",()=>{
  const check=(ctx,source)=>{
   const first=committed(state(),links([coffee("p","PDNG")]),ctx,source);

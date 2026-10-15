@@ -15657,10 +15657,9 @@ function obReconcilePending(expenses,txs,links){
   if(removed.size)out=out.filter(function(e){return !removed.has(e);});
   return{expenses:out,coveredBooks:coveredBooks};
 }
-/* El BOOK que entró durante un corte ya puede estar en expenses de la nube. Absorberlo
-   solo en el array dejaba al widget contando ambas ranuras para siempre (15/10/2026).
-   El commit conserva su lápida por clave, sin borrar por referencia: esa referencia es
-   precisamente la que acaba de adoptar la fila pendiente que debe seguir contando. */
+/* El BOOK que entró durante un corte también está en la nube. Su lápida protege los pulls
+   mientras se borra por UUID/ranura: borrar por referencia alcanzaría a la superviviente.
+   Sin el borrado, al caducar la lápida reaparecía en otro móvil y el widget (15/10/2026). */
 function obPendingAbsorbedState(s,prev){
   if(!s||!prev||s.expenses===prev.expenses)return s;
   const before=new Map((prev.expenses||[]).map(function(e){return[e.id,e];})),ids=new Set(),adopted=new Map();
@@ -15679,6 +15678,7 @@ function obPendingAbsorbedState(s,prev){
     if(!keep||obPendingGroup(e)!==obPendingGroup(keep)||e.obAcc&&keep.obAcc&&e.obAcc!==keep.obAcc)return;
     const key=obAbsorptionKey(e);if(!key||key===obAbsorptionKey(keep)||(out.deleted||[]).indexOf(key)>=0)return;
     out=Object.assign({},out,lapidaPon(out,key,s.lastBankSync||Date.now()));
+    borrarGastoNube(e,"ob-absorbed");
   });
   return out;
 }
