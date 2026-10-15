@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "id": "compras-identicas-ids-distintos-5-codex-20261015",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261015-3e7b1d94",
+  "createdAt": "2026-10-15T11:00:17.196Z",
+  "to": "codex",
+  "baseSHA": "d12d81a94e7dd24359b8b67e82ff1a1c3ce022d5",
+  "objective": "SUCESOR de compras-identicas-ids-distintos-4 sobre la MISMA PR 235 (cabeza d12d81a9; el result anterior queda intacto). La tercera revisión limpia da GO CON RESERVAS: truncada→completa ya da 320/320 en app y servidor. Queda un defecto a plazo que pinta mal una cifra: la fila BOOK absorbida NO se borra de expenses en la nube, solo la tapa la lápida ob-absorbed (08-motor-bank.js ~1366). Las lápidas tienen tope 500 y solo las 200 decisiones más recientes con hora están protegidas (00-core.js ~2044, lapidasTope). Cuando esa lápida caiga del tope, la fila vuelve a contar 640 en la app tras el pull y en el servidor. Arreglo: al absorber, borrar también la fila en la nube (igual que borrarGastoNube, con la escritura declarada en CLOUD_WRITES), conservando la lápida mientras exista; si hay una razón para no poder borrar, documentarla en el result. Además: las guardas de obPendingAbsorbedState (08-motor-bank.js ~1350-1370: grupo día/importe/nombre, obAcc, era pendiente, old.extId===e.extId, solo filas BOOK, hora de la lápida) sobreviven a 6 mutaciones de la revisión: cubrirlas con test o retirarlas si son redundantes (obPendingRef solo lo escribe obReconcilePending). Y corregir el dato de tamaño: medido +10830 B min / +2820 B gzip frente a origin/main.",
+  "scope": [
+    "08-motor-bank.js y 00-core.js (absorción, borrado en la nube, CLOUD_WRITES)",
+    "tests de compras-identicas, security y, si cambia, widget/ingest"
+  ],
+  "acceptance": [
+    "Test en ROJO primero: con la lápida retirada del tope (simulado), app y servidor vuelven a 640 en d12d81a9",
+    "Después: 320/320 tras pull, sync repetida, segundo móvil y lápida caída del tope",
+    "Las mutaciones previas siguen muriendo; las 6 guardas tienen test que las mate o se han retirado con su porqué",
+    "Si cambia ingest o una Edge Function, declarad el orden de despliegue; NO despleguéis"
+  ],
+  "restrictions": [
+    "Rojos de integración (catálogo, VERSION y tamaño): no se tocan, se declaran",
+    "Fuera de alcance (los apunta el coordinador al BACKLOG): misma compra en dos bancos el mismo día que choca en expenses_dedup_idx; clave ob-absorbed sin cuenta ni fecha",
+    "Navegador: solo los specs propios, workers 1 y retries 0, pidiendo el runner por el canal",
+    "No quitar ni reinstalar node_modules ni worktrees ajenos",
+    "Result con SHA, EXIT reales, mutaciones y limitaciones. Un chat por encargo; reclamar antes de empezar"
+  ],
+  "authorization": "Coordinador local, 15/10, tras la tercera revisión limpia de la PR 235."
+}
