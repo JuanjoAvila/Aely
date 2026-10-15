@@ -16,8 +16,15 @@ async function abrir(page,mode,prior=false,lang="es"){
   if(mode==="transfer-pair")state.expenses.push({id:"own-in",date:"2026-10-04T23:59:00+02:00",amount:-300.07,merchant:"Entrada sintética",category:"otros",ent:"caixabank"});
   if(prior) await page.route(/http:\/\/127\.0\.0\.1:\d+\/$/,async route=>{
     const response=await route.fetch(),html=await response.text();
-    const old=transfer?html.replace('if(transit||e.category==="inversion"||(e.category==="traspaso"&&linked)) contribs.push','if(!transit&&!row.ownTransfer&&e.category==="traspaso"&&!linked) return;\n    if(transit||e.category==="inversion"||(e.category==="traspaso"&&linked)) contribs.push'):html.replace('if(!hasCash) daily[day]=(daily[day]||0)-row.cents;', 'if(false) daily[day]=(daily[day]||0)-row.cents;');
+    let old=transfer?html.replace('if(transit||e.category==="inversion"||(e.category==="traspaso"&&linked)) contribs.push','if(!transit&&!row.ownTransfer&&e.category==="traspaso"&&!linked) return;\n    if(transit||e.category==="inversion"||(e.category==="traspaso"&&linked)) contribs.push'):html.replace('if(!hasCash) daily[day]=(daily[day]||0)-row.cents;', 'if(false) daily[day]=(daily[day]||0)-row.cents;');
     expect(old).not.toBe(html);
+    for(const [from,to] of [
+      ['onGoGastos:function(){','onGoGastos:function(){ (window.__navProbe||=[]).push({step:"entry"});'],
+      ['const goTabTop=function(i){','const goTabTop=function(i){ (window.__navProbe||=[]).push({step:"top",i});'],
+      ['const goTab=function(i){','const goTab=function(i){ (window.__navProbe||=[]).push({step:"go",i,tab,ref:tabRef.current,ids:tabIds});'],
+      ['React.startTransition(function(){','React.startTransition(function(){ (window.__navProbe||=[]).push({step:"transition"});'],
+      ['tabRef.current=tab;','tabRef.current=tab; (window.__navProbe||=[]).push({step:"commit",tab});']
+    ]){expect(old).toContain(from);old=old.replace(from,to);}
     await route.fulfill({response,body:old});
   });
   // Como installFixtureClock: Date parte del día financiero y sigue avanzando. Fijarlo
@@ -47,7 +54,7 @@ async function cifras(page){
 }
 async function estadoNavegacion(page){
   return page.evaluate(()=>{
-    return {tabs:[...document.querySelectorAll(".botnav-tab")].map(el=>({tab:el.dataset.tour,class:el.className})),settings:!!document.querySelector(".settings-push.open"),splash:!!document.getElementById("mc-load"),text:document.querySelector("#root")?.innerText,summary:document.querySelector(".v4-gastos-summary")?.innerText};
+    return {probe:window.__navProbe,tabs:[...document.querySelectorAll(".botnav-tab")].map(el=>({tab:el.dataset.tour,class:el.className})),settings:!!document.querySelector(".settings-push.open"),splash:!!document.getElementById("mc-load"),text:document.querySelector("#root")?.innerText,summary:document.querySelector(".v4-gastos-summary")?.innerText};
   }).catch(error=>({readError:String(error)}));
 }
 for(const mode of ["sin-efectivo","con-efectivo","traspaso-cajero","transfer-alone","transfer-pair"]) test("reservas: gráfica y cifras actuales antes/después "+mode,{annotation:{type:"own-clock",description:"14/10/2026"}},async({browser},testInfo)=>{
