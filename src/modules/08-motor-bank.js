@@ -1124,6 +1124,7 @@ function gemeloAsignar(bancos,avisos,ventana){
   return result;
 }
 function reconcileGemelosAutomaticos(s,prev){
+  s=obPendingAbsorbedState(s,prev);
   const rows=(s&&s.expenses)||[];if(!rows.length)return s;
   const cached=gemeloCache.get(rows);
   if(cached&&cached.gemelos===s.gemelos&&cached.deleted===s.deleted)return s;
@@ -1341,6 +1342,31 @@ function obReconcilePending(expenses,txs,links){
   });
   if(removed.size)out=out.filter(function(e){return !removed.has(e);});
   return{expenses:out,coveredBooks:coveredBooks};
+}
+/* El BOOK que entró durante un corte ya puede estar en expenses de la nube. Absorberlo
+   solo en el array dejaba al widget contando ambas ranuras para siempre (15/10/2026).
+   El commit conserva su lápida por clave, sin borrar por referencia: esa referencia es
+   precisamente la que acaba de adoptar la fila pendiente que debe seguir contando. */
+function obPendingAbsorbedState(s,prev){
+  if(!s||!prev||s.expenses===prev.expenses)return s;
+  const before=new Map((prev.expenses||[]).map(function(e){return[e.id,e];})),ids=new Set(),adopted=new Map();
+  (s.expenses||[]).forEach(function(e){
+    ids.add(e.id);if(!esFilaDeBanco(e)||!e.extId||!e.obPendingRef||e.obPending)return;
+    const old=before.get(e.id),bank=expenseBankOf(e);
+    if(!old||old.extId!==e.obPendingRef||old.extId===e.extId||obPendingGroup(old)!==obPendingGroup(e))return;
+    const pending=old.obPending||(prev.bankTx||[]).some(function(t){return t.id===old.extId&&t.ent===bank&&obIsPending(t)&&obPendingGroup(t)===obPendingGroup(old);});
+    if(pending)adopted.set(bank+"|"+e.extId,e);
+  });
+  if(!adopted.size)return s;
+  let out=s;
+  before.forEach(function(e){
+    if(ids.has(e.id)||!esFilaDeBanco(e)||!e.extId||e.obPending)return;
+    const keep=adopted.get(expenseBankOf(e)+"|"+e.extId);
+    if(!keep||obPendingGroup(e)!==obPendingGroup(keep)||e.obAcc&&keep.obAcc&&e.obAcc!==keep.obAcc)return;
+    const key=obAbsorptionKey(e);if(!key||key===obAbsorptionKey(keep)||(out.deleted||[]).indexOf(key)>=0)return;
+    out=Object.assign({},out,lapidaPon(out,key,s.lastBankSync||Date.now()));
+  });
+  return out;
 }
 function importObExpenses(s, txs, links){
   if(!txs || !txs.length) return null;

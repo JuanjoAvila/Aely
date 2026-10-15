@@ -29,6 +29,7 @@ const handlerJs = transformSync(stripped, { loader: "ts" }).code;
 
 function fakeDb(opts = {}) {
   const rows = (opts.rows || []).map((x) => ({ ...x }));
+  let appState=opts.state || { accounts: [{ ent: "trade_republic", role: "diario" }], settings: {} };
   const events = [];
   let seq = rows.length;
   let ackReads = 0;
@@ -41,15 +42,16 @@ function fakeDb(opts = {}) {
       in(k, values) { q.filters.push(["in", k, values]); return api; },
       gte(k, v) { q.filters.push(["gte", k, v]); return api; },
       lte(k, v) { q.filters.push(["lte", k, v]); return api; },
+      lt(k, v) { q.filters.push(["lt", k, v]); return api; },
       limit() { return api; },
-      order(k) { q.order = k; return api; },
+      order(k, {ascending=true}={}) { q.order = k; q.ascending=ascending; return api; },
       range(from, to) { q.range = [from, to]; return api; },
       upsert(row) { q.op = "upsert"; q.row = { ...row }; return api; },
       update(row) { q.op = "update"; q.row = { ...row }; return api; },
       delete() { q.op = "delete"; return api; },
       insert(row) { q.op = "insert"; q.row = row; return api; },
       maybeSingle: async () => {
-        if (name === "app_state") return { data: { data: opts.state || { accounts: [{ ent: "trade_republic", role: "diario" }], settings: {} } } };
+        if (name === "app_state") return { data: { data: appState } };
         return { data: null };
       },
       then(resolve, reject) { return Promise.resolve(run()).then(resolve, reject); },
@@ -60,12 +62,15 @@ function fakeDb(opts = {}) {
         if (op === "in") return v.map(String).includes(String(r[k]));
         const a = k === "importe" ? Number(r[k]) : String(r[k]);
         const b = k === "importe" ? Number(v) : String(v);
-        return op === "gte" ? a >= b : a <= b;
+        return op === "gte" ? a >= b : op === "lt" ? a < b : a <= b;
       }));
     }
     function run() {
       if (name === "app_events" && q.op === "insert") { events.push(q.row); return { data: null, error: null }; }
-      if (name === "app_state") return { data: [], error: null };
+      if (name === "app_state") {
+        if(q.op === "upsert" || q.op === "update") { appState=q.row.data; return {data:[{updated_at:q.row.updated_at}],error:null}; }
+        return { data: [], error: null };
+      }
       if (name !== "expenses") return { data: [], error: null };
       if (q.op === "select") {
         if (q.count && opts.widgetThrows) throw new Error("fallo sintético del widget opcional");
@@ -89,7 +94,7 @@ function fakeDb(opts = {}) {
           return { data: [], error: null };
         }
         const all = filtered();
-        if (q.order) all.sort((a,b) => String(a[q.order]).localeCompare(String(b[q.order])));
+        if (q.order) all.sort((a,b) => (q.ascending?1:-1)*String(a[q.order]).localeCompare(String(b[q.order])));
         if (q.count && opts.widgetReadError) return { data: null, count: null, error: { message: "lectura v2 fallida" } };
         const data = q.range ? all.slice(q.range[0], q.range[1] + 1) : all.slice(0, opts.rowLimit || all.length);
         return { data: opts.widgetTruncated && q.count ? data.slice(0,1) : data, error: null,

@@ -1800,10 +1800,17 @@ function bankDeletionLink(e){
 /* Lápidas anteriores al Paso 0 guardaban la clave sin id: siguen ocultando ese manual. */
 function expenseIsTombstoned(e, delSet){
   if(!delSet) return false;
+  const absorbed=obAbsorptionKey(e);if(absorbed&&delSet[absorbed])return true;
   const k=keyOfExpense(e);
   if(delSet[k]) return true;
   if(isManualExpenseSource(e&&e.source) && delSet[keyOfExpenseLegacy(e)]) return true;
   return false;
+}
+/* Una absorción retira una ranura de UNA referencia y banco, no cualquier compra futura
+   que reutilice el día/importe/nombre/ordinal. La identidad no depende del UUID local. */
+function obAbsorptionKey(e){
+  const bank=e&&expenseBankOf(e);
+  return e&&esFilaDeBanco(e)&&bank&&e.extId ? "ob-absorbed|"+encodeURIComponent(bank)+"|"+encodeURIComponent(String(e.extId))+"|"+keyOfExpense(e) : null;
 }
 function _errCloudMsg(err){
   return mcLogCode(err);

@@ -5,7 +5,7 @@ import {execFileSync} from "node:child_process";
 import vm from "node:vm";
 import {loadPureLogic} from "../scripts/load-pure-logic.mjs";
 import * as bank from "./helpers/bank-download-fixture.mjs";
-import {day,E} from "./helpers/banco-sintetico.mjs";
+import {day,E,ts} from "./helpers/banco-sintetico.mjs";
 import {fakeDb,post,budget as server} from "./helpers/ingest-handler-fixture.mjs";
 
 const html=fs.readFileSync(new URL("../public/index.html",import.meta.url),"utf8");
@@ -61,6 +61,101 @@ test("BOOK cubre un PDNG de otra referencia; mismo ID cuenta uno",()=>{
 
 const coffee=(id,status="BOOK",extra={})=>({...tx(id),status,transaction_amount:{amount:"3.20",currency:"EUR"},...extra});
 const realSync=(s,ts,extra={},ctx=c,source=html)=>bank.updater(source,[{...links(ts)[0],...extra}],s,ctx).state;
+
+// Métodos de transporte reales sobre la BD sintética del handler; solo se sustituye el SDK.
+function cloudOn(env,ctx=c,source=html){
+ const a=source.indexOf('const cloud = (function(){'),b=source.indexOf('\n})();',a),start=source.indexOf('  return {',a);
+ assert.ok(a>=0&&b>start&&start>a);
+ const db={...env.db,auth:{getSession:async()=>({data:{session:{user:{id:"user"}}}})}};
+ return vm.runInContext('(function(sb){'+source.slice(start,b)+'})',ctx)(db);
+}
+const committed=(s,feed,ctx=c,source=html)=>bank.updater(source,feed,s,ctx,true).state;
+const serverCents=(env,s)=>server.filasComoLaApp(env.rows,s.deleted).filter(row=>server.cuentaParaPresupuesto(row,server.bancosDeGastoDiario(s))).reduce((n,row)=>n+Math.round(Number(row.importe)*100),0);
+
+test("nube: truncada y completa dejan app y servidor en 320 c tras pull, repetir sync y otro móvil",async()=>{
+ const env=fakeDb(),cloud=cloudOn(env);
+ const pending=await bank.sync(()=>({transactions:[coffee("p1","PDNG")]}));
+ let s=committed(state(),pending.data.links);
+ assert.equal(cents(s),320,"el handler inicial entrega el PDNG");assert.equal(s.expenses[0].obPending,true);
+ for(const e of s.expenses)await cloud.addExpense(e);
+ const partial=await bank.sync((url,n)=>({transactions:n===1?[coffee("b1")]:[],continuation_key:"same-cursor"}));
+ assert.ok(partial.data.links[0].accounts.some(a=>a.truncated),"el corte viene del handler real");
+ s=committed(s,partial.data.links);assert.equal(cents(s),640);
+ for(const e of s.expenses)await cloud.addExpense(e);
+ assert.equal(env.rows.length,2);assert.equal(serverCents(env,s),640);
+ const complete=await bank.sync(()=>({transactions:[coffee("b1")]}));
+ const before=clone(s);s=committed(s,complete.data.links);assert.equal(cents(s),320);assert.equal(s.expenses.length,1);
+ // La referencia adoptada también puede llegar por su escritor de source vigente. Aun
+ // con esa metadata actualizada, la otra fila seguía contando en el servidor para siempre.
+ await cloud.setExpenseBank(s.expenses[0],"caixabank");
+ await cloud.pushState("user",c.slimForCloud(s));
+ let remote=(await cloud.pullState()).data;
+ console.log(JSON.stringify({truncatedThenComplete:{appCents:cents(s),serverCents:serverCents(env,remote),sources:env.rows.map(r=>r.source)}}));
+ assert.equal(serverCents(env,remote),320,"el BOOK absorbido debe quedar fuera también en la nube");
+ const absorbed=before.expenses.find(e=>!s.expenses.some(keep=>keep.id===e.id));
+ assert.ok(remote.deleted.includes(c.obAbsorptionKey(absorbed)));assert.ok(!remote.deleted.includes(c.obAbsorptionKey(s.expenses[0])));
+ const lap=c.expenseDeletedSet(remote);
+ for(const independent of [{...absorbed,extId:"other-book"},{...absorbed,ent:"sabadell"}]){
+  assert.equal(c.expenseIsTombstoned(independent,lap),false,"la lápida no alcanza otra referencia o banco en la misma ranura");
+  assert.equal(server.filasComoLaApp([wire(independent)],remote.deleted).length,1);
+ }
+ assert.equal(c.expenseIsTombstoned({...absorbed,id:"different-cloud-uuid"},lap),true,"también alcanza la misma fila con otro UUID");
+ assert.equal(server.filasComoLaApp([{...wire(absorbed),id:"different-cloud-uuid"}],remote.deleted).length,0);
+ const pull=async(local)=>{const pack=await cloud.pullState(),del=c.lapidasUnion(local,pack.data),incoming=(await cloud.pullExpenses()).map(c.expenseFromRow).filter(e=>!c.expenseIsTombstoned(e,c.expenseDeletedSet(del)));return {...local,...del,expenses:c.mergeExpensesFromCloud(local.expenses,incoming).list};};
+ s=await pull(s);assert.equal(cents(s),320);assert.equal(serverCents(env,remote),320);
+ s=committed(s,complete.data.links);await cloud.pushState("user",c.slimForCloud(s));assert.equal(cents(await pull(s)),320);
+ let other=await pull(state());assert.equal(cents(other),320);other=committed(other,complete.data.links);assert.equal(cents(other),320);
+ const stats=c.dashboardBudgetStats(s);s.widgetPeriod={v:2,kind:"mes",start:stats.periodStart,anchor:"",scope:c.widgetScopeOf(s,stats,"","caixabank")};
+ await cloud.pushState("user",c.slimForCloud(s));
+ // Aviso de otro banco, fuera del gasto diario: dispara month/widget reales sin añadir
+ // gasto de Caixa y acredita que ambos lectores respetan la lápida del BOOK absorbido.
+ const result=await post(env,{fuente:"tr",titulo:"Trade Republic",texto:"Has gastado 0,01 € en Otra cuenta sintetica",fecha:String(Date.now()),evento:"absorbed-cloud-contract"});
+ assert.equal(result.status,200);assert.equal(Math.round(result.data.month.spent*100),320);assert.ok(result.data.widget);assert.equal(Math.round(result.data.widget.spent*100),320);
+ console.log(JSON.stringify({convergence:{afterPullCents:cents(s),otherMobileCents:cents(other),ingestCents:Math.round(result.data.month.spent*100),widgetCents:Math.round(result.data.widget.spent*100)}}));
+});
+
+test("mutación de revisión: retirar la guarda de lectura truncada debe morir",()=>{
+ const check=(ctx,source)=>{const first={...realSync(state(),[coffee("p","PDNG")],{},ctx,source),bankTx:[]};assert.equal(cents(realSync(first,[coffee("b")],{truncated:true},ctx,source),ctx),640);};
+ check(c,html);const changed=html.replace('&&!l.truncated&&!l.readReason','&&!l.readReason');assert.notEqual(changed,html);assert.throws(()=>check(loadPureLogic(changed),changed));
+});
+
+test("mutaciones de absorción: commit, lápida específica, UUID y lector local",()=>{
+ const check=(ctx,source)=>{
+  const first=committed(state(),links([coffee("p","PDNG")]),ctx,source);
+  const partial=committed(first,[{...links([coffee("b")])[0],truncated:true}],ctx,source),old=clone(partial);
+  const after=committed(partial,links([coffee("b")]),ctx,source),keep=after.expenses[0],gone=partial.expenses.find(e=>e.id!==keep.id);
+  assert.deepEqual(clone(partial),old,"commit no muta el estado anterior");assert.equal(cents(after,ctx),320);
+  const rows=partial.expenses.map(e=>({...wire(e.id===keep.id?keep:e),source:ctx.expenseSourceForCloud(e.id===keep.id?keep:e)}));
+  assert.equal(server.filasComoLaApp(rows,after.deleted).reduce((n,r)=>n+Math.round(r.importe*100),0),320);
+  const del=ctx.expenseDeletedSet(after);
+  assert.equal(ctx.expenseIsTombstoned({...gone,id:"other-uuid"},del),true);
+  assert.equal(ctx.expenseIsTombstoned({...gone,extId:"other-ref"},del),false);
+  assert.equal(ctx.expenseIsTombstoned({...gone,ent:"sabadell"},del),false);
+  assert.equal(committed(after,links([coffee("b")]),ctx,source).deleted,after.deleted,"repetir sync no añade otra lápida");
+ };
+ check(c,html);
+ const cases=[
+  ["el commit omite la absorción",s=>s.replace('  s=obPendingAbsorbedState(s,prev);','')],
+  ["la lápida apunta a la superviviente",s=>s.replace('const key=obAbsorptionKey(e);if(!key','const key=obAbsorptionKey(keep);if(!key')],
+  ["lápida genérica alcanza otra referencia",s=>s.replace('"ob-absorbed|"+encodeURIComponent(bank)+"|"+encodeURIComponent(String(e.extId))+"|"+keyOfExpense(e)','keyOfExpense(e)')],
+  ["lápida depende del UUID local",s=>s.replace('"ob-absorbed|"+encodeURIComponent(bank)+"|"+encodeURIComponent(String(e.extId))+"|"+keyOfExpense(e)','"ob-absorbed|"+encodeURIComponent(bank)+"|"+encodeURIComponent(String(e.id))+"|"+keyOfExpense(e)')],
+  ["pull ignora la lápida específica",s=>s.replace('const absorbed=obAbsorptionKey(e);if(absorbed&&delSet[absorbed])return true;','')],
+ ];
+ for(const [name,mutate] of cases){const changed=mutate(html);assert.notEqual(changed,html,name);assert.throws(()=>check(loadPureLogic(changed),changed),undefined,name+": muerta");}
+ console.log("compras4: 5/5 mutaciones de absorción muertas; 20 anteriores y truncado conservadas");
+});
+
+test("lector servidor: la lápida de absorción es necesaria y preserva filas legacy",()=>{
+ const gone={...expense("b/:%","uuid-local"),obOrd:2},key=c.obAbsorptionKey(gone),row=wire(gone);
+ assert.equal(server.filasComoLaApp([row],[key]).length,0);
+ const legacy={...row,source:"ob:caixabank#n2"};assert.equal(server.filasComoLaApp([legacy],[key]).length,1);
+ assert.equal(server.filasComoLaApp([{...row,source:"ob:caixabank#ref%broken#n2"}],[key]).length,1);
+ const src=fs.readFileSync(new URL('../supabase/functions/_shared/presupuesto.ts',import.meta.url),'utf8');
+ const changed=src.replace('if (absorbed && lap.has(absorbed)) continue;','');assert.notEqual(changed,src);
+ const js=ts(changed).replace(/export\s*\{[\s\S]*?\};?\s*$/,'');
+ const mutant=new Function(js+';return filasComoLaApp;')();
+ assert.throws(()=>assert.equal(mutant([row],[key]).length,0),undefined,"lector sin lápida específica: mutación muerta");
+});
 
 test("estado: BOOK y PDNG con distinta referencia en una respuesta son 320 c",()=>{
  for(const ts of [[coffee("p","PDNG"),coffee("b")],[coffee("b"),coffee("p","PDNG")]]){

@@ -1,5 +1,15 @@
 Promoción117: inventario12/10 confirma bank-syncv33 alineado; ingestv50 y pricesv13 se prueban con fuentes desplegadas exactas y transportes sintéticos en prod117-edge-compat. SEC02/ingest-widget viajan como fuente sin despliegue ni anuncio de funciones activas. [Pins y límites](briefs/prod-completa-117.md).
 
+Compras4 (15/10/2026, candidata PR235): la absorción de un BOOK tras lectura truncada guarda
+una lápida `ob-absorbed|banco|referencia|clave` en `app_state.deleted`. Los dos primeros valores
+van codificados con `encodeURIComponent`; la clave conserva el ordinal. `filasComoLaApp` en
+`_shared/presupuesto.ts` debe reconocerla tanto para month como para widget. Orden de integración:
+**desplegar ingest con este lector antes de publicar el cliente**, verificar sus fuentes exactas
+y después validar ambos sobre las mismas filas sintéticas. El servidor nuevo conserva filas y
+lápidas legacy; un servidor anterior ignora el nuevo marcador y puede seguir sumando la fila
+absorbida. No requiere SQL, migración ni secretos. Esta entrega cambia solo fuente y pruebas;
+no despliega ni acredita funciones vivas. El cambio de referencia entre días queda fuera.
+
 # Setup Supabase — Fase 1 (Aely)
 
 `ingest/widget.ts` calcula la respuesta widget v2 de la ventana guardada

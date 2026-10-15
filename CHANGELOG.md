@@ -1,4 +1,8 @@
-Candidata sin publicar: compras iguales con referencias bancarias distintas, sobre 133. Contratos Node y mutaciones propios; guardián antiguo de Recibos y tamaño conservan sus rojos. Sin VERSION nueva, despliegue ni aceptación móvil. [Contrato](docs/briefs/compras-identicas-ids-distintos-20261014.md).
+Candidata sin publicar, Compras4/PR235: cuando una lectura completa absorbe el BOOK creado durante
+un corte, su fila queda retirada también en nube mediante lápida de banco/referencia/ranura.
+Cliente, month y widget comparten el filtro; requiere desplegar el lector de ingest antes del
+cliente. ROJO causal app320/servidor640 y contrato de convergencia sintético; sin VERSION nueva,
+despliegue ni aceptación móvil. [Contrato y etapas anteriores](docs/briefs/compras-identicas-ids-distintos-20261014.md).
 
 ## [4.26.133] — 2026-10-14 · Deslizar hasta el final: vuelve la ola y la barra no asoma
 

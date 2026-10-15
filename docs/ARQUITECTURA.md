@@ -4,8 +4,17 @@
 
 El importador y las mezclas conservan referencias distintas mediante las ranuras ordinales
 existentes. La referencia viaja en `source` como `#ref`, y el borrado conserva su identidad
-en el vínculo «sin aviso» ya existente, junto a la lápida de ranura. Sin esquema ni servidor nuevos.
+en el vínculo «sin aviso» ya existente, junto a la lápida de ranura. Sin esquema nuevo.
 [Contrato y límites](briefs/compras-identicas-ids-distintos-20261014.md).
+
+Sucesor Compras4 (15/10, PR235): el commit del estado conserva una lápida específica al absorber
+el BOOK que ya había entrado durante una lectura truncada. `obPendingAbsorbedState` exige la
+adopción del pendiente anterior y la desaparición de la fila BOOK de la misma referencia,
+banco, día e importe/nombre. `obAbsorptionKey` identifica banco, referencia y ranura, sin UUID;
+así otro móvil con UUID distinto la respeta y otra referencia que reutiliza la ranura queda viva.
+La clave viaja en `deleted` por el transporte de estado existente. `expenseIsTombstoned` y
+`filasComoLaApp` la leen en cliente, month y widget. No cambia la decisión de cuándo adoptar.
+El lector de ingest debe desplegarse antes del cliente; fuentes y pruebas aún no son despliegue.
 
 ## Emparejado candidato PR228
 

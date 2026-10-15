@@ -1,5 +1,29 @@
 # Compras iguales con referencias bancarias distintas · candidata
 
+## Sucesor Compras4 · 15/10/2026 · misma PR235
+
+Base inmutable `f80a318424519dcfa4a2bb20d3f46f6ddf451cb4`, tarea
+`compras-identicas-ids-distintos-4-codex-20261015`. La primera etapa descrita debajo se conserva
+como historia. Este sucesor sí modifica el lector compartido del servidor, sin desplegarlo.
+
+Rojo causal: handler bank-sync real, updater y commit reales, transporte cloud real contra BD
+sintética: PDNG p1, BOOK b1 en respuesta truncada, después lectura completa. App 320 céntimos,
+servidor 640 con `#refb1#prevrefp1` y `#refb1#n2`. La fila absorbida deja ahora una lápida de
+banco/referencia/ranura; ni la fila superviviente ni otra referencia de la misma ranura se borran.
+No depende del UUID, y no supone que una respuesta parcial pruebe la identidad.
+
+El contrato compara 320 céntimos en app y servidor después del pull, sync repetida y segundo
+móvil sintético, y ejecuta el handler ingest y widget reales. Preserva contratos y mutaciones
+anteriores; añade mutación de truncado, commit y lectores de lápidas. El invariante775 y sus
+generadores/oráculo no se editan. PDNG un día y BOOK al siguiente sigue fuera de esta entrega.
+
+Orden necesario: integrar y desplegar **ingest con `_shared/presupuesto.ts` de esta candidata
+antes del cliente**, validar las fuentes exactas y luego publicar/probar la app. No SQL ni
+migraciones. El servidor antiguo no conoce la lápida nueva. No se despliega, publica beta,
+ejecuta navegador/CPU6 ni acredita móvil desde esta fase ligera. VERSION/catálogo/caps reservados.
+
+## Historia de Compras2
+
 Encargo sucesor `compras-identicas-ids-distintos-2-codex-20261014`. Base histórica inmutable
 `24d0d463e0c0055ba000149f07d7fa2fe12d4c9b`; ejecución autorizada sobre
 `7865111be8e2e1f8994bccba4b515bf4c6193074` (132), rebasada por instrucción del canal

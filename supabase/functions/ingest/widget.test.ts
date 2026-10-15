@@ -3,6 +3,16 @@ import { readWidgetRows, widgetSnapshot, widgetStart } from "./widget.ts";
 import { bancoDeSource, claveComoLaApp, cuentaParaPresupuesto, esCargoDeRecibo, filasComoLaApp, inicioDeMesMs, ordinalDeSource } from "../_shared/presupuesto.ts";
 
 const now = Date.parse("2026-10-10T12:00:00Z"), start = inicioDeMesMs(now);
+Deno.test("BOOK absorbido: lápida específica conserva superviviente, otras referencias y UUID remoto", () => {
+  const kept = {id:"pending-uuid",fecha:"2026-10-10T12:00:00Z",importe:3.2,comercio:"Cafe sintetico",source:"ob:caixabank#refb1#prevrefp1"};
+  const gone = {...kept,id:"cloud-book-uuid",fecha:"2026-10-10T12:00:00.001Z",source:"ob:caixabank#refb1#n2"};
+  const key = "ob-absorbed|caixabank|b1|" + claveComoLaApp(gone);
+  assertEquals(filasComoLaApp([kept,gone],[key]),[kept]);
+  assertEquals(filasComoLaApp([{...gone,id:"another-uuid"}],[key]),[]);
+  assertEquals(filasComoLaApp([{...gone,source:"ob:caixabank#refother#n2"}],[key]).length,1);
+  assertEquals(filasComoLaApp([{...gone,source:"ob:sabadell#refb1#n2"}],[key]).length,1);
+  assertEquals(filasComoLaApp([{...gone,source:"ob:caixabank#n2"}],[key]).length,1);
+});
 const rows = [
   { id: "before", fecha: "2026-10-02T10:00:00Z", importe: 30, cat: "super", source: "macrodroid", comercio: "Compra" },
   { id: "anchor", fecha: "2026-10-05T10:00:00Z", importe: -1000, cat: "ingreso", source: "ob:sabadell", comercio: "Nomina" },
