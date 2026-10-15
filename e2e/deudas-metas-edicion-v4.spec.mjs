@@ -87,7 +87,7 @@ test("una corrección encolada mientras la hoja estaba abierta no se pisa ni se 
 test("la regla sin nombre no repite su meta y se edita en una hoja conservando identidad",async({page})=>{
  const rule={id:"rule",name:"",kind:"fixed",value:50.25,goalId:"goal",mensual:true,unknown:{keep:9}};
  await open(page,"es",{settings:{lang:"es",autoPrices:false,theme:"green",reservaRules:[rule]}});
- await page.getByRole("tab",{name:"Metas",exact:true}).click();await page.getByText("Reservar dinero de tus ingresos",{exact:true}).click();
+ await page.getByRole("tab",{name:"Metas",exact:true}).click();
  const row=page.locator('[data-reserva-rule="rule"]');await expect(row).toBeVisible();
  expect(((await row.innerText()).match(/Viaje sintético/g)||[]).length).toBe(1);
  const before=await saved(page);await row.getByRole("button",{name:"Editar regla",exact:true}).click();
