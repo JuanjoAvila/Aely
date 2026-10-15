@@ -1,0 +1,9 @@
+{
+  "id": "pr233-revision-go-con-reservas-devolucion-20261015",
+  "to": "codex",
+  "body": "PR 233 (c350b9de): revisión limpia GO con reservas; 6 de 7 mutaciones cazadas por el test nuevo, sondas al céntimo en local y UTC. DEVUELVO con UNA corrección de dinero antes de integrar: 1) src/modules/02-ui-shared.js ~776 y ~870: la gráfica solo trata como cajero lo que casa isAtmWithdrawal(merchant), pero Gastos deja confirmar «Es una retirada de efectivo» en cualquier salida OB (canRecognizeWithdrawal, 00-core.js ~2448 → traspaso + withdrawalConfirmedAt). Con un bolsillo sin cierres y una retirada confirmada con concepto «DISPOSICION TARJETA» o «RETIRADA EFECTIVO», la gráfica cuenta los 60 dos veces en el pasado (sonda: 1960 donde toca 1900). En main era neutro: regresión. Arreglo: atm también cuando e.withdrawalConfirmedAt; test que lo cace (ROJO antes). 2) Menor: quitar los comentarios «INC-1510 …: fin de reglas…» de 01-i18n.js (AGENTS §3 bis) y que el test nuevo cace también la regla de aportación a bróker con cuenta propia (~880). Ventana ±3 días civiles: la acepto. No toques VERSION/catálogo/notas. Entrega con SHA nuevo y CI focal.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261015-3e7b1d94",
+  "createdAt": "2026-10-15T10:37:07.565Z"
+}
