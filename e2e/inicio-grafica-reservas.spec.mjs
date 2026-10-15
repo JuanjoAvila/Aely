@@ -40,11 +40,21 @@ async function abrir(page,mode,prior=false,lang="es"){
 async function cifras(page){
   const hero=page.getByTestId("inicio-net-current");
   const result={now:await hero.locator(".v4-hero-amt").innerText(),card:await page.locator(".v42-cycle-amount>.serif").innerText(),delta:await hero.getByTestId("inicio-net-delta").innerText(),line:await hero.locator(".v42-net-line").getAttribute("d")};
+  // Observar el clic real, sin llamar a handlers ni cambiar estado de la app.
+  await page.evaluate(()=>{window.__ownNavEvents=[];[true,false].forEach(capture=>document.addEventListener("click",event=>window.__ownNavEvents.push({capture,target:event.target.tagName,text:event.target.textContent.slice(0,80),trusted:event.isTrusted,prevented:event.defaultPrevented}),{capture}));});
   await page.getByRole("button",{name:"Ver gastos ›",exact:true}).click();
   await expect(page.locator('.botnav-tab[data-tour="gastos"]')).toHaveClass(/active/);
   await expect(page.locator(".v4-gastos-summary")).toBeVisible();
   result.gastos=await page.locator(".v4-gastos-summary").innerText();
   return result;
+}
+async function estadoNavegacion(page){
+  return page.evaluate(()=>{
+    const button=[...document.querySelectorAll("button")].find(el=>el.textContent.trim()==="Ver gastos ›"),parents=[];
+    let fiber=button&&button[Object.keys(button).find(key=>key.startsWith("__reactFiber$"))];
+    while(fiber&&parents.length<12){if(typeof fiber.type==="function")parents.push({component:fiber.type.name,onGoGastos:typeof fiber.memoizedProps?.onGoGastos});fiber=fiber.return;}
+    return {tabs:[...document.querySelectorAll(".botnav-tab")].map(el=>({tab:el.dataset.tour,class:el.className})),settings:!!document.querySelector(".settings-push.open"),splash:!!document.getElementById("mc-load"),text:document.querySelector("#root")?.innerText,summary:document.querySelector(".v4-gastos-summary")?.innerText,events:window.__ownNavEvents,parents};
+  }).catch(error=>({readError:String(error)}));
 }
 test("base132: abrir Gastos con la misma cartera y contexto",{annotation:{type:"own-clock",description:"14/10/2026"}},async({browser},testInfo)=>{
   // Comparación pedida por Claude: bundle exacto de 132, sin ninguna regla propia.
@@ -60,7 +70,7 @@ test("base132: abrir Gastos con la misma cartera y contexto",{annotation:{type:"
     await testInfo.attach("base132-financial-values",{body:Buffer.from(JSON.stringify(values,null,2)),contentType:"application/json"});
   }catch(error){
     original=error;
-    const state=await page.evaluate(()=>({tabs:[...document.querySelectorAll(".botnav-tab")].map(el=>({tab:el.dataset.tour,class:el.className})),settings:!!document.querySelector(".settings-push.open"),splash:!!document.getElementById("mc-load"),text:document.querySelector("#root")?.innerText,summary:document.querySelector(".v4-gastos-summary")?.innerText})).catch(e=>({readError:String(e)}));
+    const state=await estadoNavegacion(page);
     await testInfo.attach("base132-navigation",{body:Buffer.from(JSON.stringify({errors,state},null,2)),contentType:"application/json"});
     await page.screenshot({path:testInfo.outputPath("base132-navigation.png"),fullPage:true}).catch(()=>{});
     throw error;
@@ -77,7 +87,7 @@ for(const mode of ["sin-efectivo","con-efectivo","traspaso-cajero","transfer-alo
       original=error;
       // Un fallo de navegación debe conservar la excepción de la página y el estado
       // visible; cerrar el contexto no puede tapar el primer error de la comparación.
-      const state=await page.evaluate(()=>({tabs:[...document.querySelectorAll(".botnav-tab")].map(el=>({tab:el.dataset.tour,class:el.className})),settings:!!document.querySelector(".settings-push.open"),splash:!!document.getElementById("mc-load"),text:document.querySelector("#root")?.innerText,summary:document.querySelector(".v4-gastos-summary")?.innerText})).catch(e=>({readError:String(e)}));
+      const state=await estadoNavegacion(page);
       await testInfo.attach((prior?"before":"after")+"-navigation",{body:Buffer.from(JSON.stringify({errors,state},null,2)),contentType:"application/json"});
       await page.screenshot({path:testInfo.outputPath((prior?"before":"after")+"-navigation.png"),fullPage:true}).catch(()=>{});
       throw error;
