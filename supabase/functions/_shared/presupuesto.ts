@@ -156,7 +156,7 @@ function claveAbsorcionOb(f: FilaGasto): string | null {
   if (!source.startsWith("ob:") && !source.startsWith("ob-hist:")) return null;
   const ref = /#ref([^#]*)/.exec(source), bank = bancoDeSource(source);
   if (!ref || !bank) return null;
-  try { return "ob-absorbed|" + encodeURIComponent(bank) + "|" + encodeURIComponent(decodeURIComponent(ref[1])) + "|" + claveComoLaApp(f); }
+  try { return "ob-absorbed|" + encodeURIComponent(bank) + "|" + encodeURIComponent(decodeURIComponent(ref[1])) + "|" + ordinalDeSource(source); }
   catch (_) { return null; }
 }
 

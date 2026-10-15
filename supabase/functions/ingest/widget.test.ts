@@ -6,7 +6,7 @@ const now = Date.parse("2026-10-10T12:00:00Z"), start = inicioDeMesMs(now);
 Deno.test("BOOK absorbido: lápida específica conserva superviviente, otras referencias y UUID remoto", () => {
   const kept = {id:"pending-uuid",fecha:"2026-10-10T12:00:00Z",importe:3.2,comercio:"Cafe sintetico",source:"ob:caixabank#refb1#prevrefp1"};
   const gone = {...kept,id:"cloud-book-uuid",fecha:"2026-10-10T12:00:00.001Z",source:"ob:caixabank#refb1#n2"};
-  const key = "ob-absorbed|caixabank|b1|" + claveComoLaApp(gone);
+  const key = "ob-absorbed|caixabank|b1|2";
   assertEquals(filasComoLaApp([kept,gone],[key]),[kept]);
   assertEquals(filasComoLaApp([{...gone,id:"another-uuid"}],[key]),[]);
   assertEquals(filasComoLaApp([{...gone,source:"ob:caixabank#refother#n2"}],[key]).length,1);

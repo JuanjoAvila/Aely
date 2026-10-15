@@ -1,8 +1,9 @@
 Promoción117: inventario12/10 confirma bank-syncv33 alineado; ingestv50 y pricesv13 se prueban con fuentes desplegadas exactas y transportes sintéticos en prod117-edge-compat. SEC02/ingest-widget viajan como fuente sin despliegue ni anuncio de funciones activas. [Pins y límites](briefs/prod-completa-117.md).
 
 Compras4 (15/10/2026, candidata PR235): la absorción de un BOOK tras lectura truncada guarda
-una lápida `ob-absorbed|banco|referencia|clave` en `app_state.deleted`. Los dos primeros valores
-van codificados con `encodeURIComponent`; la clave conserva el ordinal. `filasComoLaApp` en
+una lápida `ob-absorbed|banco|referencia|ordinal` en `app_state.deleted`. Los dos primeros valores
+van codificados con `encodeURIComponent`; el ordinal identifica la ranura sin depender de nombre
+o importe corregidos después. `filasComoLaApp` en
 `_shared/presupuesto.ts` debe reconocerla tanto para month como para widget. Orden de integración:
 **desplegar ingest con este lector antes de publicar el cliente**, verificar sus fuentes exactas
 y después validar ambos sobre las mismas filas sintéticas. El servidor nuevo conserva filas y

@@ -101,6 +101,8 @@ test("nube: truncada y completa dejan app y servidor en 320 c tras pull, repetir
  }
  assert.equal(c.expenseIsTombstoned({...absorbed,id:"different-cloud-uuid"},lap),true,"también alcanza la misma fila con otro UUID");
  assert.equal(server.filasComoLaApp([{...wire(absorbed),id:"different-cloud-uuid"}],remote.deleted).length,0);
+ assert.equal(c.expenseIsTombstoned({...absorbed,merchant:"Nombre posterior",amount:3.21},lap),true,"la identidad no cambia al corregir metadatos");
+ assert.equal(server.filasComoLaApp([{...wire(absorbed),comercio:"Nombre posterior",importe:3.21}],remote.deleted).length,0);
  const pull=async(local)=>{const pack=await cloud.pullState(),del=c.lapidasUnion(local,pack.data),incoming=(await cloud.pullExpenses()).map(c.expenseFromRow).filter(e=>!c.expenseIsTombstoned(e,c.expenseDeletedSet(del)));return {...local,...del,expenses:c.mergeExpensesFromCloud(local.expenses,incoming).list};};
  s=await pull(s);assert.equal(cents(s),320);assert.equal(serverCents(env,remote),320);
  s=committed(s,complete.data.links);await cloud.pushState("user",c.slimForCloud(s));assert.equal(cents(await pull(s)),320);
@@ -137,8 +139,8 @@ test("mutaciones de absorción: commit, lápida específica, UUID y lector local
  const cases=[
   ["el commit omite la absorción",s=>s.replace('  s=obPendingAbsorbedState(s,prev);','')],
   ["la lápida apunta a la superviviente",s=>s.replace('const key=obAbsorptionKey(e);if(!key','const key=obAbsorptionKey(keep);if(!key')],
-  ["lápida genérica alcanza otra referencia",s=>s.replace('"ob-absorbed|"+encodeURIComponent(bank)+"|"+encodeURIComponent(String(e.extId))+"|"+keyOfExpense(e)','keyOfExpense(e)')],
-  ["lápida depende del UUID local",s=>s.replace('"ob-absorbed|"+encodeURIComponent(bank)+"|"+encodeURIComponent(String(e.extId))+"|"+keyOfExpense(e)','"ob-absorbed|"+encodeURIComponent(bank)+"|"+encodeURIComponent(String(e.id))+"|"+keyOfExpense(e)')],
+  ["lápida genérica alcanza otra referencia",s=>s.replace('"ob-absorbed|"+encodeURIComponent(bank)+"|"+encodeURIComponent(String(e.extId))+"|"+obOrdinalOf(e)','keyOfExpense(e)')],
+  ["lápida depende del UUID local",s=>s.replace('"ob-absorbed|"+encodeURIComponent(bank)+"|"+encodeURIComponent(String(e.extId))+"|"+obOrdinalOf(e)','"ob-absorbed|"+encodeURIComponent(bank)+"|"+encodeURIComponent(String(e.id))+"|"+obOrdinalOf(e)')],
   ["pull ignora la lápida específica",s=>s.replace('const absorbed=obAbsorptionKey(e);if(absorbed&&delSet[absorbed])return true;','')],
  ];
  for(const [name,mutate] of cases){const changed=mutate(html);assert.notEqual(changed,html,name);assert.throws(()=>check(loadPureLogic(changed),changed),undefined,name+": muerta");}
