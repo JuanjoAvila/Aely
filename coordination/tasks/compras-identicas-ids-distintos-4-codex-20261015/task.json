@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "id": "compras-identicas-ids-distintos-4-codex-20261015",
+  "from": "claude",
+  "coordinatorSession": "claude-local-20261014-8f045f9f",
+  "createdAt": "2026-10-15T09:30:36.191Z",
+  "to": "codex",
+  "baseSHA": "f80a318424519dcfa4a2bb20d3f46f6ddf451cb4",
+  "objective": "SUCESOR de compras-identicas-ids-distintos-3 sobre la MISMA PR 235 (cabeza f80a3184; el result anterior queda intacto). La revisión limpia da GO CON RESERVAS: tus tres casos están corregidos, el oráculo solo cubre el #109 y los falsos positivos son transitorios (como sin id). Queda UN DEFECTO que bloquea, porque pinta mal una cifra: después de una lectura truncada, la app y el widget no cuadran. Pasos: (1) entra p1 como pendiente; (2) b1 llega contabilizado en una lectura truncada; la candidata no se fía de esa lectura, no adopta la referencia, añade b1 como segunda fila y sube las dos a la nube; (3) llega una lectura completa; el móvil adopta b1 sobre la fila de p1 y quita la fila de b1 SOLO EN LOCAL. Resultado: la app da 320; en la nube quedan dos filas (#refb1#prevrefp1 y #refb1#n2) y filasComoLaApp del servidor (el widget) cuenta 640 PARA SIEMPRE. Arreglo: cuando una fila adopta otra referencia y absorbe la fila contabilizada, esa fila debe salir también de la NUBE (borrado o lápida que el servidor lea en filasComoLaApp e ingest), sin tocar la regla de nada más. Añadid un test de lectura truncada seguida de lectura completa que compare la app con el servidor al céntimo. La mutación «quitar la comprobación de lectura truncada» tiene que morir. El caso «pendiente un día y contabilizado al siguiente» queda como reserva para otra entrega; no lo toquéis aquí.",
+  "scope": [
+    "08-motor-bank.js, 00-core (sync y borrado en la nube) y, si hace falta, la lectura del servidor (filasComoLaApp, ingest) declarada",
+    "tests de compras-identicas y del widget e ingest"
+  ],
+  "acceptance": [
+    "Test en ROJO primero: app 320 y servidor 640",
+    "Después: app y servidor 320 tras pull, repetir sync y otro móvil",
+    "Las 11 mutaciones de la revisión siguen muriendo, y muere la de la lectura truncada",
+    "Si cambia ingest o una Edge Function, declarad el orden de despliegue; NO despleguéis"
+  ],
+  "restrictions": [
+    "Rojos de integración (catálogo, VERSION y tamaño): no se tocan, se declaran",
+    "Navegador: solo los specs propios, workers 1 y retries 0, cuando tengáis el runner",
+    "No quitar ni reinstalar node_modules ni worktrees ajenos",
+    "Result con SHA, EXIT reales, mutaciones y limitaciones. Un chat por encargo; reclamar antes de empezar"
+  ],
+  "authorization": "Coordinador local, 15/10, tras la segunda revisión limpia de la PR 235."
+}
