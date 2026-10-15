@@ -1,5 +1,26 @@
 [
   {
+    "v": "4.26.133",
+    "d": "2026-10-15",
+    "t": {
+      "es": "Deslizar hasta el final: vuelve la ola y la barra no asoma",
+      "en": "Swiping to the end: the glow is back and the bar stays hidden",
+      "ca": "Lliscar fins al final: torna l'ona i la barra no treu el cap"
+    },
+    "items": {
+      "es": [
+        "Al llegar al final o al principio de una pantalla deslizando rápido vuelve la ola de Android, y la barra de abajo ya no asoma a medias."
+      ],
+      "en": [
+        "When you swipe fast to the end or the start of a screen, the Android glow is back and the bottom bar no longer peeks out halfway."
+      ],
+      "ca": [
+        "En arribar al final o al principi d'una pantalla lliscant ràpid, torna l'ona d'Android i la barra de baix ja no treu el cap a mitges."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.26.132",
     "d": "2026-10-14",
     "t": {

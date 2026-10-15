@@ -29316,5 +29316,16 @@
       }
     ],
     "unidades": true
+  },
+  "scroll-borde-barra": {
+    "web": [
+      {
+        "file": "src/shell.html",
+        "from": "  .app{height:100vh;height:100dvh;display:flex;flex-direction:column;",
+        "to": "    overflow:clip;}",
+        "includeTo": true
+      }
+    ],
+    "unidades": true
   }
 }
