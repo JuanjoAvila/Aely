@@ -95,9 +95,7 @@ const LANG = {
     // INC-0810 es: patrimonio de ahora.
     v4_hist_empty:"Tu histórico empieza hoy", v4_net_unknown:"El total actual no está disponible.",
     v42_net_info_title:"Cómo se calcula", v42_net_chart:"Evolución del patrimonio",
-    // INC-1510 es: reglas de traspasos y cajero.
     v42_net_i_flows:"Un traspaso resta sin entrada igual a otra cuenta propia en 3 días, enlace a bróker o aporte periódico coincidente. El cajero resta sin cuenta o bolsillo de efectivo.",
-    // INC-1510 es: fin de reglas de traspasos y cajero.
     v42_this_month:"Este mes", v42_remaining:"Te quedan",
     v42_net_missing:"Todavía no hay gráfica: los datos empiezan hoy. Mañana ya aparecerá.",
     v42_net_i_accounts:"Cuentas", v42_net_i_accounts_v:"movimientos reales desde {day}", v42_net_i_accounts_later:" (alguna desde más tarde)",
@@ -387,9 +385,7 @@ const LANG = {
     // INC-0810 en: patrimonio de ahora.
     v4_hist_empty:"Your history starts today", v4_net_unknown:"The current total is unavailable.",
     v42_net_info_title:"How it's worked out", v42_net_chart:"Net worth history",
-    // INC-1510 en: reglas de traspasos y cajero.
     v42_net_i_flows:"A transfer is an outflow without an equal inflow in another own account within three days, a broker link or a matching regular contribution. ATM withdrawals reduce net worth without a cash account or pocket.",
-    // INC-1510 en: fin de reglas de traspasos y cajero.
     v42_this_month:"This month", v42_remaining:"Left to spend",
     v42_net_missing:"No chart yet: your data starts today. It will appear tomorrow.",
     v42_net_i_accounts:"Accounts", v42_net_i_accounts_v:"real transactions from {day}", v42_net_i_accounts_later:" (some from later)",
@@ -666,9 +662,7 @@ const LANG = {
     // INC-0810 ca: patrimonio de ahora.
     v4_hist_empty:"El teu històric comença avui", v4_net_unknown:"El total actual no està disponible.",
     v42_net_info_title:"Com es calcula", v42_net_chart:"Evolució del patrimoni",
-    // INC-1510 ca: reglas de traspasos y cajero.
     v42_net_i_flows:"Un traspàs resta sense entrada igual en un altre compte propi en tres dies, enllaç a bróker o aportació periòdica coincident. El caixer resta patrimoni sense compte o butxaca d'efectiu.",
-    // INC-1510 ca: fin de reglas de traspasos y cajero.
     v42_this_month:"Aquest mes", v42_remaining:"Et queden",
     v42_net_missing:"Encara no hi ha gràfica: les dades comencen avui. Demà ja apareixerà.",
     v42_net_i_accounts:"Comptes", v42_net_i_accounts_v:"moviments reals des de {day}", v42_net_i_accounts_later:" (algun des de més tard)",

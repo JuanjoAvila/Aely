@@ -4,22 +4,23 @@ import { seedLoggedInDashboard, dismissNews, estadoHeredado } from "./fixtures.m
 test.use({ viewport:{width:412,height:915},timezoneId:"Europe/Madrid",serviceWorkers:"block" });
 test.describe.configure({retries:0});
 const today="2026-10-14";
-const currentAmount=mode=>mode==="con-efectivo"?"18.622,44":mode.startsWith("transfer-")?"18.302,40":"18.502,44";
+const currentAmount=mode=>mode==="con-efectivo"||mode.startsWith("confirmada-")?"18.622,44":mode.startsWith("transfer-")?"18.302,40":"18.502,44";
 async function abrir(page,mode,prior=false,lang="es"){
-  const state=estadoHeredado(today);
+  const state=estadoHeredado(today),confirmed=mode.startsWith("confirmada-");
   // El lector de cierres usa ob.key, como la API real. Dos ob:undefined alternaban
   // sus saldos sin parar y no dejaban terminar la transición a Gastos.
   state.obAccounts=state.obAccounts.map(o=>({...o,key:o.id}));
-  if(mode!=="con-efectivo"){
+  if(mode!=="con-efectivo"&&!confirmed){
     state.accounts=state.accounts.filter(a=>a.ent!=="efectivo");
     delete state.accountBalanceHistory["acc:cash"];
   }
+  if(confirmed) delete state.accountBalanceHistory["acc:cash"];
   const transfer=mode.startsWith("transfer-");
-  state.expenses.push({id:"own-out",date:"2026-10-01T12:00:00Z",amount:transfer?300.07:100.03,merchant:transfer?"Pago sintético":"RETIRADA CAJERO",category:transfer||mode==="traspaso-cajero"?"traspaso":"otros",ent:"sabadell",source:"manual"});
+  state.expenses.push({id:"own-out",date:"2026-10-01T12:00:00Z",amount:transfer?300.07:100.03,merchant:confirmed?(mode==="confirmada-tarjeta"?"DISPOSICION TARJETA":"RETIRADA EFECTIVO"):transfer?"Pago sintético":"RETIRADA CAJERO",category:transfer||mode==="traspaso-cajero"||confirmed?"traspaso":"otros",ent:"sabadell",source:confirmed?"ob":"manual",withdrawalConfirmedAt:confirmed?Date.parse("2026-10-02T12:00:00Z"):undefined});
   if(mode==="transfer-pair")state.expenses.push({id:"own-in",date:"2026-10-04T23:59:00+02:00",amount:-300.07,merchant:"Entrada sintética",category:"otros",ent:"caixabank"});
   if(prior) await page.route(/http:\/\/127\.0\.0\.1:\d+\/$/,async route=>{
     const response=await route.fetch(),html=await response.text();
-    const old=transfer?html.replace('if(transit||e.category==="inversion"||(e.category==="traspaso"&&linked)) contribs.push','if(!transit&&!row.ownTransfer&&e.category==="traspaso"&&!linked) return;\n    if(transit||e.category==="inversion"||(e.category==="traspaso"&&linked)) contribs.push'):html.replace('if(!hasCash) daily[day]=(daily[day]||0)-row.cents;', 'if(false) daily[day]=(daily[day]||0)-row.cents;');
+    const old=confirmed?html.replace('(e.withdrawalConfirmedAt||isAtmWithdrawal(e.merchant))','isAtmWithdrawal(e.merchant)'):transfer?html.replace('if(transit||e.category==="inversion"||(e.category==="traspaso"&&linked)) contribs.push','if(!transit&&!row.ownTransfer&&e.category==="traspaso"&&!linked) return;\n    if(transit||e.category==="inversion"||(e.category==="traspaso"&&linked)) contribs.push'):html.replace('if(!hasCash) daily[day]=(daily[day]||0)-row.cents;', 'if(false) daily[day]=(daily[day]||0)-row.cents;');
     expect(old).not.toBe(html);
     await route.fulfill({response,body:old});
   });
@@ -53,7 +54,7 @@ async function estadoNavegacion(page){
     return {tabs:[...document.querySelectorAll(".botnav-tab")].map(el=>({tab:el.dataset.tour,class:el.className})),settings:!!document.querySelector(".settings-push.open"),splash:!!document.getElementById("mc-load"),text:document.querySelector("#root")?.innerText,summary:document.querySelector(".v4-gastos-summary")?.innerText};
   }).catch(error=>({readError:String(error)}));
 }
-for(const mode of ["sin-efectivo","con-efectivo","traspaso-cajero","transfer-alone","transfer-pair"]) test("reservas: gráfica y cifras actuales antes/después "+mode,{annotation:{type:"own-clock",description:"14/10/2026"}},async({browser},testInfo)=>{
+for(const mode of ["sin-efectivo","con-efectivo","traspaso-cajero","transfer-alone","transfer-pair","confirmada-tarjeta","confirmada-efectivo"]) test("reservas: gráfica y cifras actuales antes/después "+mode,{annotation:{type:"own-clock",description:"14/10/2026"}},async({browser},testInfo)=>{
   const read=async prior=>{
     const context=await browser.newContext({...devices["Pixel 5"],baseURL:testInfo.project.use.baseURL,viewport:{width:412,height:915},timezoneId:"Europe/Madrid",serviceWorkers:"block"});
     const page=await context.newPage(),errors=[];let original;

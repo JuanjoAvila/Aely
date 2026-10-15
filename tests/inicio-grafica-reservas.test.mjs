@@ -29,7 +29,7 @@ function comprobar(c){
   const independent=c.netWorthSeries(bankIncome,opts);
   assert.equal(Math.round(((at(independent,"2026-10-01")-at(independent,"2026-09-30"))-(at(sin,"2026-10-01")-at(sin,"2026-09-30")))*100),-10003,"sin efectivo, un ingreso en otro banco no neutraliza el cajero");
 }
-function cajerosConfirmados(c){
+function cajerosConfirmados(c,log=false){
   for(const merchant of ["DISPOSICION TARJETA","RETIRADA EFECTIVO"]) for(const source of ["ob","ob-hist"]){
     const withdrawal={id:"confirmed-out",date:"2026-09-02T12:00:00Z",amount:60,merchant,source,category:"otros",ent:"sabadell"};
     const state={accounts:[{id:"bank",ent:"sabadell",value:1000,bankIban:"synthetic-bank"},{id:"cash",ent:"efectivo",value:900,role:"fijos"}],expenses:[{id:"cover",date:"2026-09-01T12:00:00Z",amount:0,ent:"sabadell"},withdrawal]};
@@ -39,7 +39,7 @@ function cajerosConfirmados(c){
     assert.ok(confirmed.expenses[1].withdrawalConfirmedAt,"confirmación por la puerta real de Gastos");
     const copy=JSON.stringify(confirmed),opts={today:"2026-09-04",liquid:1900,invested:0,debtTotal:0};
     const series=plain(c.netWorthSeries(confirmed,opts));
-    console.log("cajero confirmado "+merchant+" "+source+": "+JSON.stringify({before:series[0].value,want:1900,now:series.at(-1).value}));
+    if(log) console.log("cajero confirmado "+merchant+" "+source+": "+JSON.stringify({before:series[0].value,want:1900,now:series.at(-1).value}));
     assert.deepEqual(series.map(p=>Math.round(p.value*100)),[190000,190000,190000,190000],"bolsillo sin cierres: la confirmación mantiene 1900, no 1960");
     assert.equal(JSON.stringify(confirmed),copy,"reconstruir no modifica el reconocimiento ni los saldos");
     const noCash={...confirmed,accounts:confirmed.accounts.filter(a=>a.ent!=="efectivo")};
@@ -87,7 +87,7 @@ function traspasos(c){
   assert.deepEqual([at(single,"2026-10-01"),at(single,today)],[750.04,600],"sin contraparte la salida pesa solo su parte, al céntimo");
 }
 comprobar(loadPureLogicFromFile());
-cajerosConfirmados(loadPureLogicFromFile());
+cajerosConfirmados(loadPureLogicFromFile(),true);
 planConCuentaPropia(loadPureLogicFromFile());
 traspasos(loadPureLogicFromFile());
 const html=fs.readFileSync(new URL("../public/index.html",import.meta.url),"utf8");
@@ -97,6 +97,12 @@ assert.throws(()=>comprobar(loadPureLogic(mutant)),assert.AssertionError,"sin re
 const oldTransfer=html.replace('if(transit||e.category==="inversion"||(e.category==="traspaso"&&linked)) contribs.push', 'if(!transit&&!row.ownTransfer&&e.category==="traspaso"&&!linked) return;\n    if(transit||e.category==="inversion"||(e.category==="traspaso"&&linked)) contribs.push');
 assert.notEqual(oldTransfer,html);
 assert.throws(()=>traspasos(loadPureLogic(oldTransfer)),assert.AssertionError,"volver a neutralizar una sola pata elimina la salida y falla");
+const noConfirmation=html.replace('(e.withdrawalConfirmedAt||isAtmWithdrawal(e.merchant))','isAtmWithdrawal(e.merchant)');
+assert.notEqual(noConfirmation,html,"el mutante elimina el reconocimiento manual del cajero");
+assert.throws(()=>cajerosConfirmados(loadPureLogic(noConfirmation)),assert.AssertionError,"ignorar la confirmación vuelve a pintar 1960 en vez de 1900");
+const noOwnPlan=html.replace('if(!plan&&transfer&&matches.some(p=>owned[p.ent])) return;','');
+assert.notEqual(noOwnPlan,html,"el mutante retira la regla del bróker con cuenta propia");
+assert.throws(()=>planConCuentaPropia(loadPureLogic(noOwnPlan)),assert.AssertionError,"sin su regla, el cierre del bróker y la aportación se duplican");
 // La misma cartera con la regla anterior y la candidata: Inicio y Gastos siguen leyendo
 // sus lectores reales, con el reloj congelado, incluso cuando se dibuja toda la serie.
 function snapshot(m,state){
@@ -114,14 +120,15 @@ function snapshot(m,state){
   }finally{m.Date=Native;}
 }
 const current=loadPureLogic(html),prior=loadPureLogic(oldTransfer.replace('if(!hasCash) daily[day]=(daily[day]||0)-row.cents;', 'if(false) daily[day]=(daily[day]||0)-row.cents;'));
-for(const mode of ["sin-efectivo","con-efectivo","traspaso-cajero","transfer-alone","transfer-pair"]){
-  const state=estadoHeredado(today);
-  if(mode!=="con-efectivo") {state.accounts=state.accounts.filter(a=>a.ent!=="efectivo");delete state.accountBalanceHistory["acc:cash"];}
+for(const mode of ["sin-efectivo","con-efectivo","traspaso-cajero","transfer-alone","transfer-pair","confirmada-tarjeta","confirmada-efectivo"]){
+  const state=estadoHeredado(today),confirmed=mode.startsWith("confirmada-");
+  if(mode!=="con-efectivo"&&!confirmed) {state.accounts=state.accounts.filter(a=>a.ent!=="efectivo");delete state.accountBalanceHistory["acc:cash"];}
+  if(confirmed) delete state.accountBalanceHistory["acc:cash"];
   const transfer=mode.startsWith("transfer-");
-  state.expenses.push({id:"own-out",date:"2026-10-01T12:00:00Z",amount:transfer?300.07:100.03,merchant:transfer?"Pago sintético":"RETIRADA CAJERO",category:transfer||mode==="traspaso-cajero"?"traspaso":"otros",ent:"sabadell",source:"manual"});
+  state.expenses.push({id:"own-out",date:"2026-10-01T12:00:00Z",amount:transfer?300.07:100.03,merchant:confirmed?(mode==="confirmada-tarjeta"?"DISPOSICION TARJETA":"RETIRADA EFECTIVO"):transfer?"Pago sintético":"RETIRADA CAJERO",category:transfer||mode==="traspaso-cajero"||confirmed?"traspaso":"otros",ent:"sabadell",source:confirmed?"ob":"manual",withdrawalConfirmedAt:confirmed?Date.parse("2026-10-02T12:00:00Z"):undefined});
   if(mode==="transfer-pair")state.expenses.push({id:"own-in",date:"2026-10-04T23:59:00+02:00",amount:-300.07,merchant:"Entrada sintética",category:"otros",ent:"caixabank"});
   const old=snapshot(prior,state),candidate=snapshot(current,state);
   assert.deepEqual(candidate,old,"estados antes/después iguales al céntimo: "+mode);
   console.log(mode+": "+JSON.stringify(candidate));
 }
-console.log("inicio-grafica-reservas: traspaso ±3 días civiles y pruebas de contraparte; cajero con/sin efectivo; cifras de hoy intactas y dos mutaciones causales OK");
+console.log("inicio-grafica-reservas: traspaso ±3 días civiles y pruebas de contraparte; cajero detectado o confirmado con/sin efectivo; bróker con cuenta propia; cifras de hoy intactas y cuatro mutaciones causales OK");

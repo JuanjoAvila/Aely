@@ -773,14 +773,15 @@ function netWorthSeries(state, options){
     if(!Number.isFinite(ms)) return;
     const hour=Math.floor(ms/3600000),bounds=hours[hour]||(hours[hour]=[fmt.format(hour*3600000),fmt.format(hour*3600000+3599999)]);
     const day=bounds[0]===bounds[1]?bounds[0]:fmt.format(ms);if(day>today) return;
-    const row={expense:e,bank:bank,day:day,civil:Date.parse(day)/864e5,ms:ms,cents:Math.round(e.amount*100),f:factorOf(e,bank,day),atm:e.amount>0&&isAtmWithdrawal(e.merchant)};entries.push(row);
+    // La confirmación de Gastos acredita el cajero aunque el banco use otro concepto.
+    const row={expense:e,bank:bank,day:day,civil:Date.parse(day)/864e5,ms:ms,cents:Math.round(e.amount*100),f:factorOf(e,bank,day),atm:e.amount>0&&(e.withdrawalConfirmedAt||isAtmWithdrawal(e.merchant))};entries.push(row);
     if(!firstByBank[bank]||day<firstByBank[bank]) firstByBank[bank]=day;
     if(row.cents){const key=Math.abs(row.cents);(byAmount[key]||(byAmount[key]=[])).push(row);}
   });
   // La categoría sola no acredita un traspaso propio: dos patas únicas, opuestas,
   // en bancos presentes y cercanas. Repetir el importe meses después no vuelve ambiguo ese par.
   Object.keys(byAmount).forEach(function(key){
-    const group=byAmount[key];if(!group.some(function(p){return p.cents<0;}))return;
+    const group=byAmount[key];if(!group.some(p=>p.cents<0))return;
     const hinted=group.filter(p=>p.expense.category==="traspaso");if(!hinted.length)return;
     group.sort((a,b)=>a.ms-b.ms);const mates=new Map();
     hinted.forEach(a=>{
@@ -848,7 +849,7 @@ function netWorthSeries(state, options){
   const plans=(state.aportaciones||[]).filter(p=>p&&(state.investments||[]).some(i=>i.ent===p.ent));
   // «A nombre del titular»: el concepto lleva su nombre (dos palabras del perfil) o «yo mismo».
   // Una transferencia del mismo importe al casero no es una aportación.
-  const holder=recNorm(state.settings&&state.settings.profile&&state.settings.profile.fullName).split(" ").filter(function(w){ return w.length>=3; });
+  const holder=recNorm(state.settings&&state.settings.profile&&state.settings.profile.fullName).split(" ").filter(w=>w.length>=3);
   const toHolder=function(e){
     const text=" "+recNorm([e.merchant,e.note,e.concept].join(" "))+" ";
     return /\byo mismo\b|\bmismo titular\b|\bcuenta propia\b/.test(text)||holder.length>=2&&holder.filter(function(w){ return text.indexOf(" "+w+" ")>=0; }).length>=2;
