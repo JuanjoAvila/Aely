@@ -1,5 +1,49 @@
 [
   {
+    "v": "4.26.135",
+    "d": "2026-10-15",
+    "t": {
+      "es": "Compras iguales: ni se funden ni se cuentan dos veces",
+      "en": "Identical purchases: no longer merged or counted twice",
+      "ca": "Compres iguals: ni es fonen ni es compten dues vegades"
+    },
+    "items": {
+      "es": [
+        "Dos compras iguales el mismo día en el mismo sitio ya no se funden en una sola. Y si el banco manda primero una compra como pendiente y después como cargada, ya no cuenta dos veces, ni en la app ni en el widget."
+      ],
+      "en": [
+        "Two identical purchases on the same day at the same place no longer merge into one. And if your bank first sends a purchase as pending and later as charged, it no longer counts twice, in the app or in the widget."
+      ],
+      "ca": [
+        "Dues compres iguals el mateix dia al mateix lloc ja no es fonen en una de sola. I si el banc envia primer una compra com a pendent i després com a carregada, ja no compta dues vegades, ni a l'app ni al widget."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "compras-identicas-ids",
+        "t": {
+          "es": "Compras iguales: ni se funden ni se cuentan dos veces",
+          "en": "Identical purchases: no longer merged or counted twice",
+          "ca": "Compres iguals: ni es fonen ni es compten dues vegades"
+        },
+        "items": {
+          "es": [
+            "1. Abre Gastos y busca un día en que hiciste dos compras iguales en el mismo sitio y por el mismo importe: tienen que salir las dos como movimientos distintos, no una sola.",
+            "2. Mira el widget del gasto del día o del mes y compáralo con el total de Gastos de hoy: los dos números tienen que dar lo mismo."
+          ],
+          "en": [
+            "1. Open Spending and find a day when you made two identical purchases at the same place for the same amount: both must show up as separate entries, not just one.",
+            "2. Look at the daily or monthly spending widget and compare it with today's total in Spending: both numbers must be the same."
+          ],
+          "ca": [
+            "1. Obre Despeses i busca un dia en què vas fer dues compres iguals al mateix lloc i pel mateix import: han de sortir les dues com a moviments diferents, no només una.",
+            "2. Mira el widget de la despesa del dia o del mes i compara'l amb el total de Despeses d'avui: els dos números han de donar el mateix."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.134",
     "d": "2026-10-15",
     "t": {
@@ -18,30 +62,7 @@
         "La gràfica d'Inici ja no baixa quan passes diners entre els teus comptes ni quan treus efectiu del caixer. Un traspàs a un compte que no tens a l'app compta com a sortida, i la «i» de la gràfica ho explica."
       ]
     },
-    "tandas": [
-      {
-        "id": "inicio-grafica-reservas",
-        "t": {
-          "es": "La gráfica de Inicio ya no enseña bajones falsos",
-          "en": "The Home chart no longer shows false drops",
-          "ca": "La gràfica d'Inici ja no ensenya baixades falses"
-        },
-        "items": {
-          "es": [
-            "1. Abre Inicio y mira la gráfica de patrimonio en un día en que pasaste dinero entre tus cuentas: la gráfica no baja por ese traspaso, aunque el dinero llegase a la otra cuenta uno o dos días después.",
-            "2. Pulsa la «i» de la gráfica y lee «Cómo se calcula»: al final explica que un traspaso sin entrada igual en otra cuenta tuya resta, y que sacar efectivo del cajero resta si no tienes una cuenta o bolsillo de efectivo."
-          ],
-          "en": [
-            "1. Open Home and look at the net worth chart on a day when you moved money between your own accounts: the chart does not drop for that transfer, even if the money reached the other account a day or two later.",
-            "2. Tap the chart's \"i\" and read \"How it's worked out\": at the end it explains that a transfer without an equal inflow in another of your accounts counts as money out, and that taking cash out at an ATM reduces it if you have no cash account or pocket."
-          ],
-          "ca": [
-            "1. Obre Inici i mira la gràfica de patrimoni un dia en què vas passar diners entre els teus comptes: la gràfica no baixa per aquest traspàs, encara que els diners arribessin a l'altre compte un o dos dies després.",
-            "2. Prem la «i» de la gràfica i llegeix «Com es calcula»: al final explica que un traspàs sense entrada igual en un altre compte teu resta, i que treure efectiu del caixer resta si no tens un compte o butxaca d'efectiu."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.133",

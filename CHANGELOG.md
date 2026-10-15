@@ -1,3 +1,12 @@
+## [4.26.135] — 2026-10-15 · Compras idénticas: ni se funden ni se cuentan dos veces
+
+- **Fallo.** Dos compras reales iguales (mismo banco, día, importe y comercio) con referencias bancarias distintas se fundían en una, y la compra que el banco manda primero como pendiente y luego como cargada podía quedar contada dos veces al reponerse tras una lectura truncada (app 320 céntimos, servidor 640).
+- **Ordinal por banco/referencia.** Cada referencia distinta ocupa su ranura ordinal (`obOrd`, `fechaConOrdinal`) sin cambiar el día civil: la segunda fila pasa por el índice único de la nube. La referencia viaja en `source` como `#ref` (tras `#dup`, antes de `#n`); `mergeExpenses` y `mergeExpensesFromCloud` la respetan y la repetida se deduplica. Sin columna ni migración.
+- **Lápida `ob-absorbed`.** Cuando una lectura completa absorbe el BOOK que ya había entrado durante una lectura truncada, `obPendingAbsorbedState` (`08-motor-bank.js`) deja la lápida `ob-absorbed|banco|referencia|ranura` en `deleted` y la fila BOOK absorbida se borra también en la nube. La clave no depende del UUID, así que otro móvil la respeta. `expenseIsTombstoned` (cliente) y `filasComoLaApp` (`_shared/presupuesto.ts`, month y widget) la leen.
+- **Orden de despliegue.** La Edge Function `ingest` (que lleva `presupuesto.ts`) se despliega **antes** que el cliente: un servidor anterior ignora la lápida y seguiría sumando la fila absorbida. Sin SQL, migraciones ni secretos; sin APK.
+- **Pruebas.** `tests/compras-identicas-ids.test.mjs` (en `run-tests`), `e2e/compras-identicas-ids.spec.mjs` (en `relevant-tests`), fixture de ingest compartida y `widget.test.ts`. El guardián antiguo de Recibos (`recibo-invariante`) y el de tamaño conservan sus rojos declarados en el [acta](docs/briefs/compras-identicas-ids-distintos-20261014.md).
+- **Catálogo.** Alcance `compras-identicas-ids` (web + `ingest`); mueve la huella web de 41 alcances anteriores que leen las mismas funciones (lista cerrada en `Catálogo135`). `inicio-grafica-reservas` aprobada en el móvil (4.26.134.1) sale del panel (`Retiro135`).
+
 ## [4.26.134] — 2026-10-15 · Gráfica de Inicio: traspasos y efectivo sin bajones falsos
 
 - **Fallo.** La gráfica de patrimonio de Inicio podía enseñar bajones que no eran gasto: un traspaso entre cuentas propias con las patas en días distintos, o la retirada de efectivo en cajero. Y la regla contraria (neutralizar todo traspaso de una pata) escondía salidas reales.
