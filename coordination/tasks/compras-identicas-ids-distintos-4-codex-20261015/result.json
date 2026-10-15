@@ -1,0 +1,191 @@
+{
+  "status": "blocked",
+  "summary": "PR235 Compras4: fila BOOK absorbida retirada de cifras cloud; ROJO app320/servidor640 y GREEN320 en ambos. Candidata terminada; integracion, despliegue y aceptacion pendientes.",
+  "productSHA": "d12d81a94e7dd24359b8b67e82ff1a1c3ce022d5",
+  "baseSHA": "f80a318424519dcfa4a2bb20d3f46f6ddf451cb4",
+  "pr": 235,
+  "codeComplete": true,
+  "productReady": false,
+  "tests": [
+    {
+      "command": "node --test tests/compras-identicas-ids.test.mjs",
+      "exitCode": 0,
+      "timezone": "UTC"
+    },
+    {
+      "command": "node --test tests/compras-identicas-ids.test.mjs",
+      "exitCode": 0,
+      "timezone": "Europe/Madrid"
+    },
+    {
+      "command": "node tests/recibo-invariante.test.mjs",
+      "exitCode": 0,
+      "timezone": "UTC"
+    },
+    {
+      "command": "node tests/recibo-invariante.test.mjs",
+      "exitCode": 0,
+      "timezone": "Europe/Madrid"
+    },
+    {
+      "command": "node tests/ingest-handler.test.mjs",
+      "exitCode": 0,
+      "timezone": "host-default"
+    },
+    {
+      "command": "node tests/bank-download-incomplete.test.mjs",
+      "exitCode": 0,
+      "timezone": "host-default"
+    },
+    {
+      "command": "node tests/bank-sync-acuse.test.mjs",
+      "exitCode": 0,
+      "timezone": "host-default"
+    },
+    {
+      "command": "node tests/merge-expenses-cloud.test.mjs",
+      "exitCode": 0,
+      "timezone": "host-default"
+    },
+    {
+      "command": "node tests/ob-iguales-ordinal.test.mjs",
+      "exitCode": 0,
+      "timezone": "host-default"
+    },
+    {
+      "command": "node tests/tr-emparejado-nogo2.test.mjs",
+      "exitCode": 0,
+      "timezone": "host-default"
+    },
+    {
+      "command": "node tests/retirada-bancaria.test.mjs",
+      "exitCode": 0,
+      "timezone": "host-default"
+    },
+    {
+      "command": "node tests/recibos-bajas-y-union.test.mjs",
+      "exitCode": 0,
+      "timezone": "host-default"
+    },
+    {
+      "command": "node tests/prod117-edge-compat.test.mjs",
+      "exitCode": 0,
+      "timezone": "host-default"
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0,
+      "timezone": "host-default"
+    },
+    {
+      "command": "node tests/security.test.mjs",
+      "exitCode": 0,
+      "timezone": "host-default"
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0,
+      "timezone": "host-default"
+    },
+    {
+      "command": "node scripts/guard-privacy.mjs",
+      "exitCode": 0,
+      "timezone": "host-default"
+    },
+    {
+      "command": "node tests/docs-frescura.test.mjs",
+      "exitCode": 1,
+      "timezone": "host-default"
+    },
+    {
+      "command": "node tests/presupuesto-rendimiento.test.mjs",
+      "exitCode": 1,
+      "timezone": "host-default"
+    }
+  ],
+  "causalRed": {
+    "source": "f80a318424519dcfa4a2bb20d3f46f6ddf451cb4",
+    "command": "node --test --test-name-pattern=\"nube: truncada\" tests/compras-identicas-ids.test.mjs",
+    "exitCode": 1,
+    "appCents": 320,
+    "serverCents": 640,
+    "flow": "Real bank-sync handler, updater and commit, real cloud transport methods against synthetic database, actual server reader."
+  },
+  "green": {
+    "contracts": 28,
+    "fail": 0,
+    "skip": 0,
+    "mutantsKilled": 27,
+    "previousMutants": 20,
+    "newMutants": 7,
+    "truncationGuardMutantKilled": true,
+    "afterPullCents": 320,
+    "repeatedSyncCents": 320,
+    "secondSyntheticMobileCents": 320,
+    "ingestHandlerCents": 320,
+    "widgetCents": 320,
+    "timezones": [
+      "UTC",
+      "Europe/Madrid"
+    ]
+  },
+  "invariant": {
+    "pass": 22,
+    "fail": 0,
+    "extracts": 775,
+    "oracleGeneratorAndAuthorized109ExceptionUnchanged": true,
+    "timezones": [
+      "UTC",
+      "Europe/Madrid"
+    ]
+  },
+  "changes": [
+    "Commit records a scoped absorption tombstone in deleted for a BOOK removed after same-day reference adoption.",
+    "Tombstone uses bank, reference and ordinal, independent of UUID, corrected amount or merchant; different bank/reference remains untouched.",
+    "Local expenseIsTombstoned and shared server filasComoLaApp read the same marker; ingest month and widget honor it.",
+    "Decision to adopt references and next-day restriction unchanged."
+  ],
+  "deployment": {
+    "serverFile": "supabase/functions/_shared/presupuesto.ts",
+    "function": "ingest",
+    "order": "Deploy ingest containing this shared reader BEFORE publishing the client; verify exact server source, then validate app and widget on matching synthetic rows.",
+    "deployed": false,
+    "SQLOrMigrationRequired": false,
+    "oldServerDoesNotUnderstandNewMarker": true
+  },
+  "integration": {
+    "docsExit": 1,
+    "sizeExit": 1,
+    "minifiedBytes": 1328287,
+    "minifiedCap": 1317888,
+    "minifiedExcess": 10399,
+    "gzipBytes": 368729,
+    "gzipCap": 366592,
+    "gzipExcess": 2137,
+    "versionCatalogueCapsAndShellUnchanged": true,
+    "catalogue": {
+      "mode": "--integration-only",
+      "terminalFinalSourceResult": false,
+      "interruptedExit": 4294967295,
+      "reason": "Source changed while running; only exact own catalogue child stopped, partial output retained. No result attributed to final source.",
+      "partialFindings": [
+        "Historical beta-sources.json paths absent at a referenced commit.",
+        "New obAbsorptionKey dependency needs reserved integration descriptor."
+      ]
+    }
+  },
+  "limitations": [
+    "Different-day PDNG to BOOK remains outside scope, tested at 640 cents.",
+    "No retrospective live-data repair or bank connection.",
+    "No new CI; primary Actions query for this head returned zero runs at verification.",
+    "No local or remote browser, CPU6, full functional local suite or native Deno CLI execution; existing Deno widget test bodies ran under Node.",
+    "Claude clean review, integration, exact served beta and real mobile acceptance pending.",
+    "No Edge deployment, SQL, migrations, APK or merge/push to main/beta."
+  ],
+  "schema": 1,
+  "taskId": "compras-identicas-ids-distintos-4-codex-20261015",
+  "actor": "codex",
+  "sessionId": "codex-local-20261015-compras4-db-454cb3d8a29610",
+  "createdAt": "2026-10-15T10:32:51.455Z",
+  "released": true
+}
