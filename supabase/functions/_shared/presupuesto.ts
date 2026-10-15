@@ -139,12 +139,25 @@ export function filasComoLaApp<T extends FilaGasto>(filas: T[] | null | undefine
   for (const f of filas || []) {
     const k = claveComoLaApp(f);
     if (lap.has(k)) continue;
+    const absorbed = claveAbsorcionOb(f);
+    if (absorbed && lap.has(absorbed)) continue;
     if (esSourceManual(f.source) && lap.has(claveLegacySinId(f))) continue;
     if (vistas.has(k)) continue;
     vistas.add(k);
     out.push(f);
   }
   return out;
+}
+
+// Espejo de obAbsorptionKey: el UUID puede diferir entre móviles; banco, referencia y
+// ranura distinguen la fila absorbida sin ocultar otra compra que reutilice su ordinal.
+function claveAbsorcionOb(f: FilaGasto): string | null {
+  const source = String(f.source || "");
+  if (!source.startsWith("ob:") && !source.startsWith("ob-hist:")) return null;
+  const ref = /#ref([^#]*)/.exec(source), bank = bancoDeSource(source);
+  if (!ref || !bank) return null;
+  try { return "ob-absorbed|" + encodeURIComponent(bank) + "|" + encodeURIComponent(decodeURIComponent(ref[1])) + "|" + ordinalDeSource(source); }
+  catch (_) { return null; }
 }
 
 /**

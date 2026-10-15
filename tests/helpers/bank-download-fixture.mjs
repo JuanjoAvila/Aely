@@ -26,16 +26,25 @@ export async function sync(reply,{acks=true,balanceError=null,ageDays=5,rows=nul
   return {data:await response.json(),row,before,events,calls};
 }
 export const old={ent:"caixabank",id:"old",date:day(-2),amount:7,merchant:"Antes",status:"BOOK",extra:"conservar"};
-export function updater(source,links,overrides={},logic=ctx){
+export function updater(source,links,overrides={},logic=ctx,commit=false){
   const start=source.indexOf("      set(function(prev){",source.indexOf("obAckPend.current=")),end=source.indexOf("      // sube las importadas",start);
   assert.ok(start>=0&&end>start);
   const names=["flattenBankTx","importObExpenses","applyInvestBuy","cuotasDeDeudaPorMarcar","gemelosDeImportacion","pushGemelos","reconcileGemelosAutomaticos","enrichNotesFromBankTx","tagObAccountsFromBankTx","reconcileFixedPaymentProofs","reconcileEarlyIncomeAnchors","applyBankBalances","bankIssuesOf"];
   const proof=[];
   let state={accounts:[{id:"cx",ent:"caixabank",value:100,role:"diario"}],investments:[],fixed:[],oneoffs:[],flows:[],debts:[],goals:[],assets:[],obAccounts:[],settings:{expenseBanks:["caixabank"]},bankTx:[old],deleted:["lapida-sintetica"],gemelos:[{id:"gemelo-previo",status:"kept"}],expenses:[{id:"guardado",extId:"old",source:"ob",ent:"caixabank",date:day(-2),amount:7,merchant:"Antes",category:"otros",reciboId:"marca-previa"}]};
   state=Object.assign(state,overrides);
+  let set=fn=>state=fn(state);
+  if(commit){
+    // El commit real vuelve a reconciliar con prev: omitirlo escondía cambios de estado
+    // que la app sí persiste, aunque el updater del banco ya hubiera terminado.
+    const a=source.indexOf('  const set=useCallback((updater)=>'),b=source.indexOf('  // En el propio commit',a);
+    assert.ok(a>=0&&b>a);
+    set=new Function('useCallback','setStateRaw','reconcileGemelosAutomaticos','Date',source.slice(a,b)+'return set;')(
+      fn=>fn,fn=>state=fn(state),logic.reconcileGemelosAutomaticos,FakeDate);
+  }
   const args=names.map(name=>name==="reconcileFixedPaymentProofs"?(s,...a)=>{proof.push(s.bankTx);return logic[name](s,...a);}:logic[name]);
   new Function("set","links","dbLinks","DEUDA_CAT","Date","at",...names,"let obAdded=[];"+source.slice(start,end))(
-    fn=>state=fn(state),links,[{aspsp_name:"CaixaBank",status:"active"}],vm.runInContext("DEUDA_CAT",logic),FakeDate,FakeDate.now(),...args
+    set,links,[{aspsp_name:"CaixaBank",status:"active"}],vm.runInContext("DEUDA_CAT",logic),FakeDate,FakeDate.now(),...args
   );
   return {state,proof};
 }
