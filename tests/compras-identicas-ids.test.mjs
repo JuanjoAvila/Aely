@@ -52,11 +52,99 @@ test("control: mismo ID e idéntico sin ID siguen siendo un cargo",()=>{
  }
 });
 
-test("referencias distintas con BOOK y PDNG acreditan dos cargos; mismo ID cuenta uno",()=>{
+test("BOOK cubre un PDNG de otra referencia; mismo ID cuenta uno",()=>{
  const settled={...tx("a"),transaction_amount:{amount:"750.00"}};
  const pending={...settled,entry_reference:"b",status:"PDNG"};
- assert.equal(cents(sync(state(),[settled,pending])),150000);
+ assert.equal(cents(sync(state(),[settled,pending])),75000);
  assert.equal(cents(sync(state(),[settled,{...pending,entry_reference:"a"}])),75000);
+});
+
+const coffee=(id,status="BOOK",extra={})=>({...tx(id),status,transaction_amount:{amount:"3.20",currency:"EUR"},...extra});
+const realSync=(s,ts,extra={},ctx=c,source=html)=>bank.updater(source,[{...links(ts)[0],...extra}],s,ctx).state;
+
+test("estado: BOOK y PDNG con distinta referencia en una respuesta son 320 c",()=>{
+ for(const ts of [[coffee("p","PDNG"),coffee("b")],[coffee("b"),coffee("p","PDNG")]]){
+  const s=realSync(state(),ts);assert.equal(cents(s),320);assert.equal(s.expenses.length,1);assert.equal(s.expenses[0].extId,"b");
+ }
+});
+
+test("estado: la fila pendiente adopta la referencia BOOK en la siguiente sync sin mutar el estado previo",()=>{
+ const first=realSync(state(),[coffee("p","PDNG")]),saved=clone(first),id=first.expenses[0].id;
+ const next=realSync(first,[coffee("b")]);
+ assert.equal(cents(next),320);assert.equal(next.expenses.length,1);assert.equal(next.expenses[0].id,id);assert.equal(next.expenses[0].extId,"b");
+ assert.equal(next.expenses[0].obPending,undefined);assert.deepEqual(clone(first),saved);
+ assert.equal(cents(realSync(next,[coffee("b")])),320);
+});
+
+test("estado: dos pendientes y luego dos BOOK de otras referencias son 640 c",()=>{
+ const first=realSync(state(),[coffee("p1","PDNG"),coffee("p2","PDNG")]);
+ assert.equal(cents(first),640);
+ const next=realSync(first,[coffee("b2"),coffee("b1")]);
+ assert.equal(cents(next),640);assert.equal(next.expenses.length,2);
+ assert.deepEqual(next.expenses.map(e=>e.id).sort(),first.expenses.map(e=>e.id).sort());
+ assert.deepEqual(clone(next.expenses.map(e=>e.extId).sort()),["b1","b2"]);
+});
+
+test("estado: solo los pendientes sobrantes son cargos aparte y las referencias repetidas no consumen cobertura",()=>{
+ for(const ts of [[coffee("p1","PDNG"),coffee("p2","PDNG"),coffee("b")],[coffee("p1","PDNG"),coffee("p2","PDNG"),coffee("b"),coffee("b")]]){
+  assert.equal(cents(realSync(state(),ts)),640);
+ }
+ assert.equal(cents(realSync(state(),[coffee("p1","PDNG"),coffee("p2","PDNG"),coffee("p3","PDNG"),coffee("b1"),coffee("b2")])),960);
+});
+
+test("estado: una referencia que sigue presente, una lectura parcial o sin cobertura no autorizan adopción",()=>{
+ const first=realSync(state(),[coffee("p","PDNG")]);
+ for(const extra of [{ok:false},{truncated:true},{readReason:"page_limit"},{syncFrom:day(0)},{syncFrom:undefined}]){
+  const next=realSync(first,[coffee("b")],extra);assert.equal(cents(next),640);assert.equal(first.expenses[0].extId,"p");
+ }
+ assert.equal(cents(realSync(first,[coffee("p","PDNG"),coffee("b")])),320,"en la misma respuesta el BOOK sí cubre al pendiente presente");
+});
+
+test("estado: marca pendiente sobrevive al reinicio y la nube; un BOOK del mismo ID la retira",()=>{
+ const first=realSync(state(),[coffee("p","PDNG")]);assert.equal(first.expenses[0].obPending,true);
+ const fromCloud=c.expenseFromRow(wire(first.expenses[0]));assert.equal(fromCloud.obPending,true);
+ const fresh=realSync(state([fromCloud]),[coffee("b")]);assert.equal(cents(fresh),320);assert.equal(fresh.expenses[0].extId,"b");
+ const same=realSync(clone(first),[coffee("p")]);assert.equal(same.expenses[0].obPending,undefined);assert.equal(cents(same),320);
+ const oldPull=c.mergeExpensesFromCloud(fresh.expenses,[fromCloud]);
+ assert.equal(cents({...fresh,expenses:oldPull.list}),320);assert.equal(oldPull.list[0].extId,"b");assert.equal(oldPull.list[0].obPending,undefined);
+});
+
+test("migración 132: el extracto previo PDNG prueba la marca que aquella versión no guardaba",()=>{
+ const legacy=clone(realSync(state(),[coffee("p","PDNG")]));delete legacy.expenses[0].obPending;
+ const next=realSync(legacy,[coffee("b")]);assert.equal(cents(next),320);assert.equal(next.expenses[0].extId,"b");
+});
+
+test("otro móvil: un pull pendiente con UUID distinto tampoco restaura la referencia adoptada",()=>{
+ const first=realSync(state(),[coffee("p","PDNG")]),next=realSync(first,[coffee("b")]);
+ const old=c.expenseFromRow({...wire(first.expenses[0]),id:"otro-uuid"});
+ const pulled=c.mergeExpensesFromCloud(next.expenses,[old]);assert.equal(cents({...next,expenses:pulled.list}),320);assert.equal(pulled.list[0].extId,"b");
+ const encoded=c.expenseFromRow(wire(next.expenses[0]));
+ const afterReload=c.mergeExpensesFromCloud([encoded],[old]);assert.equal(cents({...next,expenses:afterReload.list}),320);
+});
+
+test("control: dos cafés firmes distintos siguen siendo 640 c y el estado desconocido no inventa adopción",()=>{
+ assert.equal(cents(realSync(state(),[coffee("a"),coffee("b")])),640);
+ const first=realSync(state(),[coffee("a","")]);assert.equal(cents(realSync(first,[coffee("b")])),640);
+ const nextDay=realSync(realSync(state(),[coffee("p","PDNG")]),[coffee("b","BOOK",{booking_date:day(0),value_date:day(0)})]);
+ assert.equal(cents(nextDay),640,"días distintos no prueban que sea el mismo cargo; limitación declarada");
+ console.log(JSON.stringify({nextDayKnownLimitation:{actualCents:cents(nextDay),desiredIfSamePurchaseCents:320,automaticAdoptionSafe:false}}));
+});
+
+test("mutaciones de estado: cobertura, persistencia, adopción y pull antiguo",()=>{
+ const cases=[
+  ["sin cobertura BOOK-PDNG",s=>s.replaceAll('covered.add(key+"|"+id);n--;','n--;'),(ctx,source)=>assert.equal(cents(realSync(state(),[coffee("p","PDNG"),coffee("b")],{},ctx,source),ctx),320)],
+  ["se pierden los pendientes sobrantes",s=>s.replace('let n=g.book.size;','let n=g.pending.size;'),(ctx,source)=>assert.equal(cents(realSync(state(),[coffee("p1","PDNG"),coffee("p2","PDNG"),coffee("b")],{},ctx,source),ctx),640)],
+  ["sin marca al importar",s=>s.replace('if(tx.id&&obIsPending(tx))e.obPending=true;',''),ctx=>{const feed=links([coffee("p","PDNG")]);const add=ctx.importObExpenses(state(),ctx.flattenBankTx(feed),feed);assert.equal(add[0].obPending,true,"la fila que sube a nube ya lleva la marca");}],
+  ["adopción sin cobertura de día",s=>s.replace('(!same&&covered(e))','!same'),(ctx,source)=>{const first=realSync(state(),[coffee("p","PDNG")],{},ctx,source);assert.equal(cents(realSync(first,[coffee("b")],{syncFrom:day(0)},ctx,source),ctx),640);} ],
+  ["adopción cruza de día",s=>s.replace('String(e.date).slice(0,10)+"|"+Math.round(Number(e.amount)*100)','Math.round(Number(e.amount)*100)'),(ctx,source)=>{const first=realSync(state(),[coffee("p","PDNG")],{},ctx,source);assert.equal(cents(realSync(first,[coffee("b","BOOK",{booking_date:day(0),value_date:day(0)})],{},ctx,source),ctx),640);} ],
+  ["adopción muta el estado previo",s=>s.replace('next=Object.assign({},e,{extId:tx.id});','e.extId=tx.id;next=e;'),(ctx,source)=>{const first=realSync(state(),[coffee("p","PDNG")],{},ctx,source),before=clone(first);realSync(first,[coffee("b")],{},ctx,source);assert.deepEqual(clone(first),before);} ],
+  ["pull antiguo restaura referencia pendiente",s=>s.replace('if(v&&!v.obPending){','if(false&&v&&!v.obPending){'),(ctx,source)=>{const first=realSync(state(),[coffee("p","PDNG")],{},ctx,source),old=ctx.expenseFromRow({...wire(first.expenses[0]),source:ctx.expenseSourceForCloud(first.expenses[0])}),next=realSync(first,[coffee("b")],{},ctx,source);const merged=ctx.mergeExpensesFromCloud(next.expenses,[old]);assert.equal(cents({...next,expenses:merged.list},ctx),320);assert.equal(merged.list[0].extId,"b");} ],
+  ["marca pendiente no viaja",s=>s.replace('+(e.obPending?"#pdng":"")',''),(ctx,source)=>{const first=realSync(state(),[coffee("p","PDNG")],{},ctx,source),e=first.expenses[0];assert.equal(ctx.expenseFromRow({...wire(e),source:ctx.expenseSourceForCloud(e)}).obPending,true);} ],
+  ["migración pierde el PDNG del extracto anterior",s=>s.replace('wasPending=!!e.obPending||!!(previous&&obPendingGroup(previous)===obPendingGroup(e))','wasPending=!!e.obPending'),(ctx,source)=>{const seed=clone(realSync(state(),[coffee("p","PDNG")],{},ctx,source));delete seed.expenses[0].obPending;assert.equal(cents(realSync(seed,[coffee("b")],{},ctx,source),ctx),320);} ],
+  ["se pierde el alias adoptado frente a otro UUID",s=>s.replace('next.obPendingRef=e.extId;',''),(ctx,source)=>{const first=realSync(state(),[coffee("p","PDNG")],{},ctx,source),next=realSync(first,[coffee("b")],{},ctx,source),old=ctx.expenseFromRow({...wire(first.expenses[0]),source:ctx.expenseSourceForCloud(first.expenses[0]),id:"otro-uuid"});assert.equal(cents({...next,expenses:ctx.mergeExpensesFromCloud(next.expenses,[old]).list},ctx),320);} ],
+ ];
+ for(const [name,mutate,check] of cases){check(c,html);const changed=mutate(html);assert.notEqual(changed,html,name+": aplicada");const mutant=loadPureLogic(changed);assert.throws(()=>check(mutant,changed),undefined,name+": muerta por el contrato");}
+ console.log("compras-identicas-ids: 10/10 nuevas mutaciones de estado muertas; 7 anteriores conservadas");
 });
 
 test("dos IDs y alias sin ID cuentan dos; mismo ID con datos distintos cuenta uno",()=>{
@@ -134,6 +222,17 @@ test("tres estados sin colisión conservan el total mensual al céntimo contra 1
  ];
  const evidence=cases.map(x=>{const before=sync(clone(x.seed),x.feed,old),after=sync(clone(x.seed),x.feed);return {name:x.name,beforeCents:cents(before,old),afterCents:cents(after)};});
  for(const row of evidence)assert.equal(row.afterCents,row.beforeCents,row.name);
+ const observation=(ctx,s)=>{
+  const now=new Date(),y=now.getFullYear(),m=now.getMonth()+1,d=now.getDate(),i=ctx.insumosSaldoGasto(s);
+  const money=n=>Math.round(n*100),budget=ctx.monthBudgetStats(s);
+  const shown=s.accounts.map(a=>ctx.saldoCuentaMostrada(a,{injTR:i.injTR,spentByBank:i.spentByBank,paidNetByBank:i.paidNetByBank,roundup:i.roundup,monthlyInvest:i.monthlyInvest}));
+  const forecast=shown.map((n,k)=>money(n+ctx.monthNetForAccount(s,s.accounts[k].ent,y,m,null)-ctx.monthNetForAccount(s,s.accounts[k].ent,y,m,d)));
+  const savedDate=ctx.Date,closeDate=new Date(y,m,2,12).getTime();
+  let closed;
+  try{ctx.Date=class extends Date{constructor(...a){super(...(a.length?a:[closeDate]));}static now(){return closeDate;}};closed=ctx.reconcileTR({...clone(s),trAnchor:y+"-"+String(m).padStart(2,"0")});}finally{ctx.Date=savedDate;}
+  return{spent:money(budget.spent),shown:shown.map(money),base:s.accounts.map(a=>money(a.value)),forecast,closing:closed.accounts.map(a=>money(a.value))};
+ };
+ for(const row of cases)assert.deepEqual(clone(observation(c,sync(clone(row.seed),row.feed))),clone(observation(old,sync(clone(row.seed),row.feed,old))),row.name+": gastado, pintado, base, previsto y cierre idénticos a 132");
  console.log(JSON.stringify({threeSyntheticStates:evidence}));
 });
 

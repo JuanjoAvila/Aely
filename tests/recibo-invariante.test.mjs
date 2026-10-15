@@ -10,7 +10,7 @@
 // Dos rondas afinaron la marca «para que fuera más correcta» y las dos movieron cifras
 // (+62,40 € de gastado con «Luz Endesa» frente a «ENDESA ENERGIA XXI»): por eso manda esto.
 //
-// UNA SOLA EXCEPCIÓN, aceptada el 12/10/2026 tras medir 1.500 extractos: la marca se queda. La
+// Primera excepción, aceptada el 12/10/2026 tras medir 1.500 extractos: la marca se queda. La
 // 4.26.119 volvía a juzgar el cargo en cada sync, y el que tiraba en su mes (el seguro anual
 // cobrado el 27, un puntual de fin de mes, el recibo al que luego se le sube el importe) lo
 // metía como una compra al sincronizar más tarde. Ahora ese cargo ya está en la lista con su
@@ -284,16 +284,56 @@ function recorreAmplio({c,reloj},ex){
 // La excepción aceptada, medida: qué compras reimporta la 119 que ahora siguen marcadas.
 function compara(ex,etiqueta){
   const a=recorreAmplio(base,ex), b=recorreAmplio(cand,ex);
-  assert.deepEqual(b.pasos,a.pasos,etiqueta+": hasta cerrar el mes, ni un céntimo de diferencia");
-  assert.equal(JSON.stringify(b.octubre.expenses.filter(e=>!e.reciboId).map(claveFila).sort()),JSON.stringify(a.octubre.expenses.map(claveFila).sort()),etiqueta+": sin marca entra exactamente lo que ya entraba");
+  /* Segunda excepción: referencias distintas (decisión del coordinador, 15/10/2026).
+     La base fundía dos cargos identificados del mismo banco/día/importe/nombre. El saldo
+     anclado incorpora los cargos extra; gastado, pintado, previsto y cierre no cambian.
+     Se calcula desde el extracto, no desde la diferencia observada entre los dos motores.
+     En la primera respuesta un BOOK cubre un PDNG; al contabilizar ambos IDs son cargos. */
+  const cargosExtraPorReferencia=function(mes,dia,contabilizados,filas){
+    const grupos=new Map(), extra={}, filasExtra=[];
+    ex.txs.filter(t=>t.ext_id&&t.amount>0&&t.date.startsWith("2026-"+dd(mes)+"-")&&t.date<="2026-"+dd(mes)+"-"+dd(dia)).forEach(function(t){
+      const k=JSON.stringify([t.ent,t.date,Math.round(t.amount*100),t.merchant||""]);
+      if(!grupos.has(k))grupos.set(k,{ent:t.ent,clave:claveFila(t),cents:Math.round(t.amount*100),ids:new Set(),book:new Set(),pending:new Set()});
+      const g=grupos.get(k);g.ids.add(t.ext_id);
+      if(contabilizados||t.status==="BOOK")g.book.add(t.ext_id);
+      else if(t.status==="PDNG")g.pending.add(t.ext_id);
+    });
+    grupos.forEach(function(g){
+      // Solo son extra los cargos que la base aún no representaba: el alias sin ID
+      // podía haber reservado ya dos ranuras. Un recibo descartado lo representaba el Plan.
+      const filasBase=mes===10?a.octubre.expenses:a.noviembre.expenses;
+      const yaRepresentados=filasBase.filter(e=>(e.source==="ob"||e.source==="ob-hist")&&claveFila(e)===g.clave).length;
+      if(g.ids.size<2||!yaRepresentados)return;
+      const ambas=[...g.pending].filter(id=>g.book.has(id)).length;
+      const cubiertas=contabilizados?0:Math.min(g.book.size-ambas,g.pending.size-ambas);
+      const n=g.ids.size-cubiertas;
+      const nuevos=Math.max(0,n-yaRepresentados);
+      extra[g.ent]=(extra[g.ent]||0)+nuevos*g.cents;
+      for(let i=0;i<nuevos;i++)filasExtra.push(g.clave);
+    });
+    return filas?filasExtra:ex.estado.accounts.map(acc=>extra[acc.ent]||0);
+  };
+  const comparaSaldo=function(actual,antes,extra,nombre){
+    const {base:baseB,...restoB}=actual,{base:baseA,...restoA}=antes;
+    assert.deepEqual(restoB,restoA,etiqueta+": "+nombre+", gastado/pintado/previsto sin cambios");
+    assert.deepEqual(baseB.map(x=>Math.round(x*100)),baseA.map((x,i)=>Math.round(x*100)+(extra[i]||0)),etiqueta+": "+nombre+", base al céntimo más cargos extra por referencia");
+  };
+  comparaSaldo(b.pasos.sync,a.pasos.sync,cargosExtraPorReferencia(10,ex.d1,false),"sync");
+  comparaSaldo(b.pasos.contabilizado,a.pasos.contabilizado,cargosExtraPorReferencia(10,ex.d1,true),"contabilizado");
+  comparaSaldo(b.pasos.otroDia,a.pasos.otroDia,cargosExtraPorReferencia(10,ex.d2,true),"otro día");
+  comparaSaldo(b.pasos.cierre,a.pasos.cierre,[],"cierre");
+  const extrasOctubre=cargosExtraPorReferencia(10,ex.d2,true,true);
+  const clavesOctubre=a.octubre.expenses.map(claveFila);
+  assert.equal(JSON.stringify(b.octubre.expenses.filter(e=>!e.reciboId).map(claveFila).sort()),JSON.stringify(clavesOctubre.concat(extrasOctubre.filter(k=>clavesOctubre.includes(k))).sort()),etiqueta+": sin marca solo se añaden las referencias distintas declaradas");
   const marcadas=new Set(b.noviembre.expenses.filter(e=>e.reciboId).map(claveFila)), sinMarca=new Set(b.noviembre.expenses.filter(e=>!e.reciboId).map(claveFila));
   const reimportadas=a.noviembre.expenses.filter(e=>!sinMarca.has(claveFila(e)));
   assert.ok(reimportadas.every(e=>marcadas.has(claveFila(e))),etiqueta+": lo único que la 119 tiene de más son cargos que aquí siguen marcados");
-  assert.equal(b.noviembre.expenses.filter(e=>!e.reciboId).length,a.noviembre.expenses.length-reimportadas.length,etiqueta+": y aquí no entra nada que allí no");
+  const extrasNoviembre=extrasOctubre.concat(cargosExtraPorReferencia(11,ex.dn,true,true)).filter(k=>a.noviembre.expenses.some(e=>claveFila(e)===k&&reimportadas.indexOf(e)<0));
+  assert.equal(b.noviembre.expenses.filter(e=>!e.reciboId).length,a.noviembre.expenses.length-reimportadas.length+extrasNoviembre.length,etiqueta+": las únicas filas extra tienen referencias distintas del extracto");
   // El saldo, idéntico. El presupuesto, el de la 119 sin esas compras que antes eran un recibo.
   const {presupuesto:pa,...saldoA}=a.trasNoviembre, {presupuesto:pb,...saldoB}=b.trasNoviembre;
-  assert.deepEqual(saldoB,saldoA,etiqueta+": saldo tras sincronizar en noviembre");
-  assert.deepEqual(b.diciembre,a.diciembre,etiqueta+": cierre de noviembre");
+  comparaSaldo(saldoB,saldoA,cargosExtraPorReferencia(11,ex.dn,true),"saldo tras sincronizar en noviembre");
+  assert.deepEqual(b.diciembre.map(x=>Math.round(x*100)),a.diciembre.map(x=>Math.round(x*100)),etiqueta+": cierre de noviembre");
   base.reloj.t=aLas(11,ex.dn);
   const sinEllas=Object.assign({},a.noviembre,{expenses:a.noviembre.expenses.filter(e=>reimportadas.indexOf(e)<0)});
   assert.deepEqual(pb,cifras(base.c,sinEllas,2026,11,ex.dn).presupuesto,etiqueta+": presupuesto tras sincronizar en noviembre");

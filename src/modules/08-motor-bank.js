@@ -997,6 +997,7 @@ function categoryOfBankTx(tx){
   }
 }
 // Aplana los movimientos enlazados conservando bancos; el diario aplica su ventana de fechas.
+const obPendingResponses=new WeakMap();
 function flattenBankTx(links, previous){
   previous=Array.isArray(previous)?previous:[];
   const out=[];
@@ -1057,6 +1058,7 @@ function flattenBankTx(links, previous){
   out.sort(function(a,b){ return String(b.date).localeCompare(String(a.date)); });
   // El servidor ya acota por cuenta. Un tope GLOBAL de 150 dejaba fuera un banco entero
   // si otro tenía más actividad reciente, antes incluso de llegar a importObExpenses.
+  obPendingResponses.set(out,{links:links||[],previous:previous});
   return out;
 }
 
@@ -1272,8 +1274,74 @@ function gemelosCambiosNube(s,incoming){
    INGRESOS: de cualquier banco (para «Mi ciclo»). Idempotente por ext_id + dedup.
    Los vínculos aviso↔apunte que deja (`possibleDupOf`) los recoge el llamador con
    `gemelosDeImportacion` y los guarda en `state.gemelos` (12/10/2026). */
+/* La referencia cambia al contabilizar en algunos bancos. La ausencia solo vale en una
+   respuesta completa que cubra aquel día; un tramo cortado no demuestra que el pendiente
+   desapareciera. Se conserva su fila e identidad local, sin mutar el estado del updater. */
+function obPendingGroup(e){ return (expenseBankOf(e)||e.ent||"")+"|"+String(e.date).slice(0,10)+"|"+Math.round(Number(e.amount)*100)+"|"+(e.obName!=null?e.obName:e.merchant||""); }
+function obIsPending(tx){ return String(tx.status||"").trim().toUpperCase()==="PDNG"; }
+function obIsBooked(tx){ return String(tx.status||"").trim().toUpperCase()==="BOOK"; }
+function obCoveredPending(txs){
+  const groups=new Map(), covered=new Set();
+  (txs||[]).forEach(function(tx){
+    if(!tx.id||!(tx.amount>0))return;
+    const key=obPendingGroup(tx);let g=groups.get(key);
+    if(!g){g={book:new Set(),pending:new Set()};groups.set(key,g);}
+    if(obIsBooked(tx))g.book.add(String(tx.id));
+    if(obIsPending(tx))g.pending.add(String(tx.id));
+  });
+  groups.forEach(function(g,key){
+    let n=g.book.size;
+    g.pending.forEach(function(id){if(g.book.has(id)){covered.add(key+"|"+id);n--;}});
+    Array.from(g.pending).sort().forEach(function(id){if(!g.book.has(id)&&n>0){covered.add(key+"|"+id);n--;}});
+  });
+  return covered;
+}
+function obReconcilePending(expenses,txs,links){
+  const response=obPendingResponses.get(txs)||{};
+  links=links||response.links||[];
+  const refs=new Map(), prior=new Map(), fresh=new Set(), books=new Map(), used=new Set(), coveredBooks=new Set();
+  (response.previous||[]).forEach(function(tx){if(tx.id&&obIsPending(tx))prior.set(tx.ent+"|"+tx.id,tx);});
+  (expenses||[]).forEach(function(e){if(e&&esFilaDeBanco(e)&&e.extId)used.add((expenseBankOf(e)||"")+"|"+e.extId);});
+  (txs||[]).forEach(function(tx){
+    if(!tx.id||!(tx.amount>0))return;
+    const k=tx.ent+"|"+tx.id, old=refs.get(k);if(!old||obIsBooked(tx))refs.set(k,tx);
+    if(obIsBooked(tx)&&!used.has(k)){
+      const group=obPendingGroup(tx);if(!books.has(group))books.set(group,new Map());books.get(group).set(String(tx.id),tx);
+    }
+  });
+  links.forEach(function(l){
+    const ent=entFromAspsp(l&&l.aspsp);if(!ent)return;
+    const accounts=(l.accounts||[]).filter(function(a){return a&&Array.isArray(a.transactions);});
+    (accounts.length?accounts.reduce(function(a,b){return a.concat(b.transactions);},[]):l.transactions||[]).forEach(function(t){if(t.ext_id)fresh.add(ent+"|"+t.ext_id);});
+  });
+  const covered=function(e){const bank=expenseBankOf(e),day=String(e.date).slice(0,10);return links.some(function(l){
+    return l&&entFromAspsp(l.aspsp)===bank&&l.syncFrom&&l.syncFrom<=day&&!l.expired&&l.ok!==false&&!l.truncated&&!l.readReason&&!(l.accounts||[]).some(function(a){return !a||a.ok===false||a.truncated||a.transactionError||a.readReason;});
+  });};
+  let out=expenses;
+  (expenses||[]).map(function(e,i){return{e:e,i:i};}).filter(function(item){const e=item.e,k=e&&(expenseBankOf(e)||"")+"|"+e.extId,tx=refs.get(k);return e&&(e.obPending||prior.has(k)||(tx&&obIsPending(tx)));}).sort(function(a,b){return String(a.e.extId||"").localeCompare(String(b.e.extId||""));}).forEach(function(item){
+    const e=item.e;if(!esFilaDeBanco(e)||!e.extId||!(e.amount>0))return;
+    const key=(expenseBankOf(e)||"")+"|"+e.extId, same=refs.get(key);
+    const previous=prior.get(key),wasPending=!!e.obPending||!!(previous&&obPendingGroup(previous)===obPendingGroup(e));
+    let next=wasPending&&!e.obPending?Object.assign({},e,{obPending:true}):e;
+    if(same&&obIsBooked(same)&&wasPending){next=Object.assign({},e);delete next.obPending;}
+    else if(same&&obIsPending(same)&&fresh.has(key)&&!e.obPending)next=Object.assign({},e,{obPending:true});
+    if(wasPending&&!(same&&obIsBooked(same))){
+      const group=books.get(obPendingGroup(e)), present=fresh.has(key);
+      const tx=group&&Array.from(group.values()).sort(function(a,b){return String(a.id).localeCompare(String(b.id));}).find(function(t){return !used.has(t.ent+"|"+t.id)&&(!e.obAcc||!t.acc||e.obAcc===t.acc);});
+      if(tx&&(present||(!same&&covered(e)))){
+        used.add(tx.ent+"|"+tx.id);
+        if(present)coveredBooks.add(tx.ent+"|"+tx.id);
+        else{next=Object.assign({},e,{extId:tx.id});next.obPendingRef=e.extId;delete next.obPending;}
+      }
+    }
+    if(next!==e){if(out===expenses)out=expenses.slice();out[item.i]=next;}
+  });
+  return{expenses:out,coveredBooks:coveredBooks};
+}
 function importObExpenses(s, txs, links){
   if(!txs || !txs.length) return null;
+  const settled=obReconcilePending(s.expenses||[],txs,links), coveredPending=obCoveredPending(txs);
+  if(settled.expenses!==s.expenses)s=Object.assign({},s,{expenses:settled.expenses});
   const ents=expenseBankEnts(s);
   const allow={}; ents.forEach(function(e){ allow[e]=1; });
   const daily=(s.accounts||[]).find(function(a){ return accDaily(a); });
@@ -1391,6 +1459,7 @@ function importObExpenses(s, txs, links){
      (estado, ventana, modelados, id ya visto) pero SIN decidir todavía si ya la tenemos. */
   const prepara=function(tx){
     if(tx.id&&deletedRefs[(tx.ent||"")+"|"+tx.id])return null;
+    if(tx.id&&(settled.coveredBooks.has(tx.ent+"|"+tx.id)||(obIsPending(tx)&&coveredPending.has(obPendingGroup(tx)+"|"+tx.id))))return null;
     const esIngreso = tx.amount<0;
     if(esIngreso){
       // Un abono pendiente o futuro no acredita dinero disponible (feedback 30/9).
@@ -1432,6 +1501,7 @@ function importObExpenses(s, txs, links){
     // Un recibo sin id (sembrado antes de tenerlos) no tiene a qué enlazarse: se sigue tirando.
     if(recibos){ const r=reciboParaCargo(s, recibos, e, txs); if(!r) return null; e.reciboId=r; }
     if(tx.id) e.extId=tx.id;
+    if(tx.id&&obIsPending(tx))e.obPending=true;
     const nt=cleanNote(tx.note, e.merchant); if(nt) e.note=nt;
     return e;
   };
@@ -3282,6 +3352,7 @@ function dropBankIssue(issues, aspsp){
    escribió a mano (noteEdited). Devuelve el MISMO array si no hay nada que cambiar, para no
    provocar un render de más. */
 function enrichNotesFromBankTx(expenses, txs){
+  expenses=obReconcilePending(expenses,txs).expenses;
   if(!expenses || !expenses.length || !txs || !txs.length) return expenses;
   const byExt={}, byKey={};
   const kOf=function(d,a,m){ return String(d).slice(0,10)+"|"+Math.abs(Number(a)||0).toFixed(2)+"|"+String(m||"").toLowerCase(); };

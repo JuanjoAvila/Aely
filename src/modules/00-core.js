@@ -1763,7 +1763,16 @@ function fechaConOrdinal(iso, ord){
    ranuras ya guardadas y sin tocar los avisos ni el primer cargo (14/10/2026). */
 function expenseBankIdOrdinals(list,reserved){
   const groups=new Map(); let out=list;
+  // Un pull anterior al asiento puede traer el mismo UUID aún pendiente: no puede restaurar
+  // su referencia vieja ni reservar otra ranura para una fila que ya se contabilizó.
+  const versions=new Map(),previousRefs=new Map();
+  (list||[]).forEach(function(e){if(!e||!esFilaDeBanco(e)||!e.id||!e.extId)return;const k=expenseBankOf(e)+"|"+e.id,old=versions.get(k);if(!old||(old.obPending&&!e.obPending))versions.set(k,e);if(e.obPendingRef&&!e.obPending)previousRefs.set(expenseBankOf(e)+"|"+e.obPendingRef,e);});
   (list||[]).forEach(function(e,i){
+    if(!e||!e.obPending||!esFilaDeBanco(e))return;
+    const alias=previousRefs.get(expenseBankOf(e)+"|"+e.extId),v=alias&&keyOfExpenseLegacy(alias)===keyOfExpenseLegacy(e)?alias:versions.get(expenseBankOf(e)+"|"+e.id);
+    if(v&&!v.obPending){if(out===list)out=list.slice();out[i]=Object.assign({},e,{extId:v.extId,date:v.date,obOrd:v.obOrd,obPendingRef:v.obPendingRef,obPending:undefined});}
+  });
+  (out||[]).forEach(function(e,i){
     if(!e||!esFilaDeBanco(e)||!e.extId||!isFinite(dateMs(e.date)))return;
     const key=(expenseBankOf(e)||"")+"|"+String(e.date).slice(0,10)+"|"+e.amount+"|"+(e.obName!=null?e.obName:e.merchant||"");
     let g=groups.get(key); if(!g){g={ids:new Map(),slots:new Set()};groups.set(key,g);}
@@ -1915,9 +1924,9 @@ function ordinalDeTramos(tramos){
 }
 /* La referencia debe sobrevivir al pull: sin ella, una lectura parcial no distingue un
    cargo nuevo de una ranura ya ocupada. Los lectores anteriores ignoran este tramo. */
-function bankRefSufijoCloud(e){ return e&&e.extId ? "#ref"+encodeURIComponent(String(e.extId)) : ""; }
-function bankRefDeSource(raw){
-  const m=/#ref([^#]*)/.exec(raw); if(!m)return undefined;
+function bankRefSufijoCloud(e){ return e&&e.extId ? "#ref"+encodeURIComponent(String(e.extId))+(e.obPendingRef?"#prevref"+encodeURIComponent(String(e.obPendingRef)):"")+(e.obPending?"#pdng":"") : ""; }
+function bankRefDeSource(raw,tag){
+  const m=(tag==="prevref"?/#prevref([^#]*)/:/#ref([^#]*)/).exec(raw); if(!m)return undefined;
   try{return decodeURIComponent(m[1])||undefined;}catch(_){return undefined;}
 }
 /* Codifica el banco en `source` de la tabla (sin migración SQL): ob:caixa, ob-hist:sabadell,
@@ -1946,7 +1955,7 @@ function expenseSourceForCloud(e){
   // final no le cambia nada: ve el banco limpio y la marca de repetido donde siempre. Con `~`
   // dentro del banco (como la cuota) ese móvil leería un banco raro y sacaría la fila del
   // presupuesto; con `#` detrás la lee como hoy. Ver `obOrdinalOf`.
-  // Orden final: ob:<ent>[~deuda.<id> | ~recibo.<id>][#dup][#ref<referencia>][#n<k>].
+  // Orden: ob:<ent>[~deuda.<id> | ~recibo.<id>][#dup][#ref<id>][#prevref<id>][#pdng][#n<k>].
   if(ent&&(s==="ob"||String(s).indexOf("ob:")===0)) return "ob:"+ent+(deudaSufijo(e&&e.debtId)||reciboSufijo(e&&e.reciboId))+((e&&e.possibleDup)?"#dup":"")+bankRefSufijoCloud(e)+ordinalSufijoCloud(e);
   if(ent&&(s==="ob-hist"||String(s).indexOf("ob-hist:")===0)) return "ob-hist:"+ent+reciboSufijo(e&&e.reciboId)+((e&&e.possibleDup)?"#dup":"")+bankRefSufijoCloud(e)+ordinalSufijoCloud(e);
   // Un alias TR/Wallet pendiente usa temporalmente el encoding OB que entienden también las OTA
@@ -2810,6 +2819,8 @@ function expenseFromRow(r){
     reciboId: reciboId || undefined,
     obOrd: ord>1 ? ord : undefined,
     extId: source==="ob"||source==="ob-hist" ? bankRefDeSource(raw) : undefined,
+    obPending: (source==="ob"||source==="ob-hist")&&/#pdng(?:#|$)/.test(raw) ? true : undefined,
+    obPendingRef: source==="ob"||source==="ob-hist" ? bankRefDeSource(raw,"prevref") : undefined,
   };
 }
 
@@ -2854,6 +2865,8 @@ function refreshExpenseFromCloud(local, incoming, readStartedAt){
   if(Object.prototype.hasOwnProperty.call(incoming,"noCard")) put("noCard", incoming.noCard||undefined);
   if(Object.prototype.hasOwnProperty.call(incoming,"obName")) put("obName", incoming.obName);
   if(incoming.extId) put("extId",incoming.extId);
+  if(Object.prototype.hasOwnProperty.call(incoming,"obPending")) put("obPending",incoming.obPending);
+  if(incoming.obPendingRef) put("obPendingRef",incoming.obPendingRef);
   if(Object.prototype.hasOwnProperty.call(incoming,"origAmount")) put("origAmount", incoming.origAmount);
   if(Object.prototype.hasOwnProperty.call(incoming,"origCur")) put("origCur", incoming.origCur);
   /* `possibleDup` SÍ viaja (sufijo #dup del source). `possibleDupOf` NO: expenseFromRow no lo
