@@ -1,0 +1,255 @@
+{
+  "status": "done",
+  "summary": "Candidata PR231 corregida: posiciones conservadas en carrera del contador y fallo del sello; reconexion real rechazada. Revision, integracion y movil pendientes.",
+  "productSHA": "f077a3384461d2f63652d78cc8fb07f232ae1e6c",
+  "baseSHA": "52e1957db385bc03cceba138fe68ff16b1b84f9f",
+  "historicalTaskBaseSHA": "1f2b36eec71f70b41cf225f1d9292c0979ca4d56",
+  "pullRequest": 231,
+  "productReady": false,
+  "tests": [
+    {
+      "command": "deno test --cached-only --allow-read=supabase/functions supabase/functions/_shared/myinvestor-counter.test.ts",
+      "phase": "RED",
+      "sourceSHA": "3cd4d729999ab5b9f9cf34bb7daf6d5061808725",
+      "exitCode": 1,
+      "result": "15 PASS,5 FAIL; unchanged original handler, real nonempty synthetic positions"
+    },
+    {
+      "command": "deno test --cached-only --allow-read=supabase/functions supabase/functions/_shared/myinvestor-counter.test.ts",
+      "phase": "FINAL",
+      "exitCode": 0,
+      "result": "22 PASS,0 FAIL"
+    },
+    {
+      "command": "deno test --cached-only supabase/functions/_shared/myinvestor.test.ts",
+      "exitCode": 0,
+      "result": "11 PASS,0 FAIL"
+    },
+    {
+      "command": "Deno counter mutations, one at a time with SHA256 source restoration",
+      "exitCode": 0,
+      "result": "16 of 16 KILLED; all original eight plus eight stamp/position regressions"
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/myinvestor-user-initiated.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/myinvestor-sync-outcomes.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/myinvestor-keepalive.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/broker-sync-outcomes.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/security.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/i18n-keys.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/guard-privacy.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/presupuesto-rendimiento.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/docs-frescura.test.mjs",
+      "exitCode": 1,
+      "result": "One assertion: three TS sources after versioned anchor; VERSION unchanged"
+    },
+    {
+      "command": "node tests/beta-sources.test.mjs --integration-only",
+      "exitCode": 1,
+      "result": "Official integration-only catalogue:43PASS/1FAIL; full transitive suite only in CI"
+    }
+  ],
+  "ci": {
+    "runId": 38713573988,
+    "headSHA": "f077a3384461d2f63652d78cc8fb07f232ae1e6c",
+    "conclusion": "failure",
+    "exitCode": 1,
+    "failedStages": [
+      "beta-sources",
+      "docs-frescura"
+    ],
+    "denoFilesPassed": 10,
+    "generalBrowserExecuted": false,
+    "generalPerformanceExecuted": false,
+    "privacyStep": "skipped"
+  },
+  "mutations": [
+    {
+      "name": "reset-mobile",
+      "exitCode": 1,
+      "passed": 21,
+      "failed": 1,
+      "killed": true
+    },
+    {
+      "name": "reset-login",
+      "exitCode": 1,
+      "passed": 21,
+      "failed": 1,
+      "killed": true
+    },
+    {
+      "name": "reset-successful-read",
+      "exitCode": 1,
+      "passed": 20,
+      "failed": 2,
+      "killed": true
+    },
+    {
+      "name": "manual-intention",
+      "exitCode": 1,
+      "passed": 21,
+      "failed": 1,
+      "killed": true
+    },
+    {
+      "name": "expiry-counter-guard",
+      "exitCode": 1,
+      "passed": 21,
+      "failed": 1,
+      "killed": true
+    },
+    {
+      "name": "reset-counter-guard",
+      "exitCode": 1,
+      "passed": 17,
+      "failed": 5,
+      "killed": true
+    },
+    {
+      "name": "refresh-connection-guard",
+      "exitCode": 1,
+      "passed": 21,
+      "failed": 1,
+      "killed": true
+    },
+    {
+      "name": "legacy-encryption-guard",
+      "exitCode": 1,
+      "passed": 21,
+      "failed": 1,
+      "killed": true
+    },
+    {
+      "name": "stamp-connection-guard",
+      "exitCode": 1,
+      "passed": 20,
+      "failed": 2,
+      "killed": true
+    },
+    {
+      "name": "stamp-restores-obsolete-counter-guard",
+      "exitCode": 1,
+      "passed": 20,
+      "failed": 2,
+      "killed": true
+    },
+    {
+      "name": "discard-read-on-save-error",
+      "exitCode": 1,
+      "passed": 18,
+      "failed": 4,
+      "killed": true
+    },
+    {
+      "name": "stamp-rotates-winning-counter",
+      "exitCode": 1,
+      "passed": 20,
+      "failed": 2,
+      "killed": true
+    },
+    {
+      "name": "stamp-reactivates-newer-expiry",
+      "exitCode": 1,
+      "passed": 21,
+      "failed": 1,
+      "killed": true
+    },
+    {
+      "name": "omit-stamp-after-race",
+      "exitCode": 1,
+      "passed": 16,
+      "failed": 6,
+      "killed": true
+    },
+    {
+      "name": "accept-reconnection-at-stamp",
+      "exitCode": 1,
+      "passed": 20,
+      "failed": 2,
+      "killed": true
+    },
+    {
+      "name": "hide-thrown-stamp-error",
+      "exitCode": 1,
+      "passed": 20,
+      "failed": 2,
+      "killed": true
+    }
+  ],
+  "changes": [
+    "Counter reset retains both version guards; a counter-only race stamps last_sync under connection guard alone without resetting the winning counter or reactivating its newer state",
+    "Real reconnection yields refresh_raced with no old positions; returned or thrown stamp errors retain positions and counter_not_saved",
+    "Safe deployment order documented, with proposed transaction/privilege test; existing migration and keepalive unchanged"
+  ],
+  "deploymentOrder": [
+    "0026 after reviewed BEGIN/ROLLBACK and authenticated column privileges false",
+    "myinvestor-connect",
+    "userInitiated client delivered in beta and then production",
+    "myinvestor-sync only after that client is in production",
+    "keepalive without redeploy"
+  ],
+  "mobileTestSteps": [
+    "After reviewed integration and authorized Edge/client rollout, reconnect MyInvestor and verify positions after a successful manual sync",
+    "Open the sheet and return to foreground: automatic openings must not contribute manual failures",
+    "In a controlled synthetic environment, run two same-connection reads together: both retain positions; a true reconnect rejects old reads",
+    "Simulate stamp storage errors with nonempty positions and verify positions remain available; do not provoke real credential failures",
+    "Record actual mobile outcome separately from source, Node, Deno and CI"
+  ],
+  "limitations": [
+    "Candidate only: Claude review, integration, served beta and real banking/mobile acceptance pending",
+    "Integration catalogue and VERSION gates unchanged; no cap raised or historical assertion weakened",
+    "Local first catalogue run had two missing historical side-branch commits; fetched exact objects, repeated gate43PASS/1FAIL. A separate private loader-path failure occurred before the repeated test and is preserved, not a product result",
+    "Existing esbuild used read-only, no dependency installation or linked node_modules created; Deno synthetic I/O only",
+    "No live SQL, migration, advisors, backend/Edge deployment, keepalive fix, rate_limits purge, local browser, CPU6, runner, Gradle, APK, merge or main/beta push",
+    "Original candidate1f and beta133 are preserved ancestors; normal same-PR push with no force; prior result92fc immutable"
+  ],
+  "scope": [
+    "supabase/functions/myinvestor-sync/index.ts",
+    "supabase/functions/_shared/myinvestor-counter.fixture.ts",
+    "supabase/functions/_shared/myinvestor-counter.test.ts",
+    "docs/SETUP-SUPABASE.md"
+  ],
+  "schema": 1,
+  "taskId": "myinvestor-contador-a-cero-3-codex-20261014",
+  "actor": "codex",
+  "sessionId": "codex-local-20261014-myi3-9f7ad638",
+  "createdAt": "2026-10-15T10:33:13.885Z",
+  "released": true
+}
