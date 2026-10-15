@@ -1,5 +1,4 @@
 import { test, expect, devices } from "@playwright/test";
-import { execFileSync } from "node:child_process";
 import { seedLoggedInDashboard, dismissNews, estadoHeredado } from "./fixtures.mjs";
 
 test.use({ viewport:{width:412,height:915},timezoneId:"Europe/Madrid",serviceWorkers:"block" });
@@ -51,26 +50,6 @@ async function estadoNavegacion(page){
     return {tabs:[...document.querySelectorAll(".botnav-tab")].map(el=>({tab:el.dataset.tour,class:el.className})),settings:!!document.querySelector(".settings-push.open"),splash:!!document.getElementById("mc-load"),text:document.querySelector("#root")?.innerText,summary:document.querySelector(".v4-gastos-summary")?.innerText};
   }).catch(error=>({readError:String(error)}));
 }
-test("base132: abrir Gastos con la misma cartera y contexto",{annotation:{type:"own-clock",description:"14/10/2026"}},async({browser},testInfo)=>{
-  // Comparación pedida por Claude: bundle exacto de 132, sin ninguna regla propia.
-  // El mismo contexto y la misma acción permiten comprobar el fallo antes de ampliar scope.
-  const baseline=execFileSync("git",["show","7865111be8e2e1f8994bccba4b515bf4c6193074:public/index.html"],{encoding:"utf8",maxBuffer:8e6});
-  const context=await browser.newContext({...devices["Pixel 5"],baseURL:testInfo.project.use.baseURL,viewport:{width:412,height:915},timezoneId:"Europe/Madrid",serviceWorkers:"block"});
-  const page=await context.newPage(),errors=[];let original;
-  page.on("pageerror",error=>errors.push(String(error.stack||error)));
-  page.on("console",message=>{if(message.type()==="error")errors.push(message.text());});
-  await page.route(/http:\/\/127\.0\.0\.1:\d+\/$/,route=>route.fulfill({status:200,contentType:"text/html; charset=utf-8",body:baseline}));
-  try{
-    await abrir(page,"sin-efectivo");const values=await cifras(page);
-    await testInfo.attach("base132-financial-values",{body:Buffer.from(JSON.stringify(values,null,2)),contentType:"application/json"});
-  }catch(error){
-    original=error;
-    const state=await estadoNavegacion(page).catch(error=>({readError:String(error)}));
-    await testInfo.attach("base132-navigation",{body:Buffer.from(JSON.stringify({errors,state},null,2)),contentType:"application/json"});
-    await page.screenshot({path:testInfo.outputPath("base132-navigation.png"),fullPage:true}).catch(()=>{});
-    throw error;
-  }finally{try{await context.close();}catch(error){if(!original)throw error;}}
-});
 for(const mode of ["sin-efectivo","con-efectivo","traspaso-cajero","transfer-alone","transfer-pair"]) test("reservas: gráfica y cifras actuales antes/después "+mode,{annotation:{type:"own-clock",description:"14/10/2026"}},async({browser},testInfo)=>{
   const read=async prior=>{
     const context=await browser.newContext({...devices["Pixel 5"],baseURL:testInfo.project.use.baseURL,viewport:{width:412,height:915},timezoneId:"Europe/Madrid",serviceWorkers:"block"});
