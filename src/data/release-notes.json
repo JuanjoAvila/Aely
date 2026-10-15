@@ -1,5 +1,38 @@
 [
   {
+    "v": "4.26.132",
+    "d": "2026-10-14",
+    "t": {
+      "es": "Una app más ligera, Trade Republic más cómodo y cuentas compartidas",
+      "en": "A lighter app, easier Trade Republic and shared accounts",
+      "ca": "Una app més lleugera, Trade Republic més còmode i comptes compartits"
+    },
+    "items": {
+      "es": [
+        "Ajustes más limpios y app más ligera: se han ido las opciones que no hacían nada, y el perfil guarda solo tu nombre y tu apodo.",
+        "La proyección de tus inversiones ahora está en Cartera, dentro de Inversiones.",
+        "Trade Republic junta por sí solo los movimientos repetidos, sin preguntarte, y no toca los que de verdad son distintos. Inicio ya no repite en «Últimos movimientos» las compras de Trade Republic.",
+        "En cada cuenta puedes decir qué parte es tuya (por ejemplo, la mitad de una cuenta conjunta): tu patrimonio y su gráfica cuentan solo esa parte, y los gastos y el presupuesto no cambian.",
+        "Recibos: dar de baja un recibo ya no lo hace volver, y el mismo cargo no cuenta dos veces aunque llegue repetido del banco."
+      ],
+      "en": [
+        "Cleaner Settings and a lighter app: options that did nothing are gone, and your profile now keeps only your name and nickname.",
+        "The projection of your investments now lives in Portfolio, inside Investments.",
+        "Trade Republic now merges repeated transactions on its own, without asking you, and leaves truly different ones alone. Home no longer repeats Trade Republic purchases in \"Recent transactions\".",
+        "On each account you can say how much of it is yours (for example, half of a joint account): your net worth and its chart count only that share, while spending and budget stay the same.",
+        "Bills: cancelling a bill no longer brings it back, and the same charge is not counted twice even if the bank sends it repeated."
+      ],
+      "ca": [
+        "Ajustos més nets i app més lleugera: han desaparegut les opcions que no feien res, i el perfil només guarda el teu nom i el teu àlies.",
+        "La projecció de les teves inversions ara és a Cartera, dins d'Inversions.",
+        "Trade Republic ajunta per si sol els moviments repetits, sense preguntar-te, i no toca els que de debò són diferents. Inici ja no repeteix a «Darrers moviments» les compres de Trade Republic.",
+        "A cada compte pots dir quina part és teva (per exemple, la meitat d'un compte conjunt): el teu patrimoni i la seva gràfica compten només aquesta part, i les despeses i el pressupost no canvien.",
+        "Rebuts: donar de baixa un rebut ja no el fa tornar, i el mateix càrrec no compta dues vegades encara que arribi repetit del banc."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.26.128",
     "d": "2026-10-14",
     "t": {

@@ -44,7 +44,7 @@ for(const cfg of [{},{offline:true},{navThrows:true},{disposed:true},{disposed:t
 const reader=f=>read(f),scope=JSON.parse(read('scripts/beta-sources.json'))['inc-0710-auth-disposal'],revision=betaRevision('inc-0710-auth-disposal',reader).web;
 let fns=0,data=0;for(const f of scopeDependencies(scope,reader)){assert.notEqual(betaRevision('inc-0710-auth-disposal',x=>x===f.file?mutateLogic(read(x),f):read(x)).web,revision,f.name);fns++;}
 for(const d of scopeDataDependencies(scope,reader)){assert.notEqual(betaRevision('inc-0710-auth-disposal',x=>x===d.file?mutateData(read(x),d):read(x)).web,revision,d.name);data++;}
-assert.equal(fns,8,'las siete funciones originales más la unión de historial transitiva del escritor');assert.equal(data,9);
+assert.equal(fns,32,'las siete funciones originales, la unión de historial transitiva del escritor y el cierre del emparejado automático (130)');assert.equal(data,17);
 const notes=JSON.parse(history106('src/data/release-notes.json')),oldNotes=JSON.parse(old('src/data/release-notes.json'));
 // La unidad106 añade una sola nota y alcance; el histórico102 conserva todos sus datos.
 assert.equal(notes[0].v,'4.26.106');assert.deepEqual(notes[0].tandas.map(g=>g.id),['inc-0810-dashboard-recents-memo']);
@@ -94,7 +94,8 @@ for(const [id,codigo,web]of [
  // Sólo la edición de regla cambió en beta: su contrato selectivo sigue fijado; las otras identidades vigilan HEAD.
  // La 124 cambia un comentario dentro del tramo de la barra que vigila el indicador (Plan ya no pone `mc-touch-own`):
  // su huella viva se declara de nuevo. Que solo cambia ese comentario lo prueba Catálogo124 de beta-sources.
- const vivo=id==='inc-0810-nav-indicator'?{web:'2133ea962e414490cc5ca9547b137d48c9d96e34c2632bcf084cf0d64961a7c8',codigo:'9eb1cd42ad7ae91e3a994960a41816f033fc75b07230e3d95cd842819b460f84'}:{web,codigo};
+ // La 129 (limpieza) borra `tabOrderState` y la ancla pasa a `const tabIds = tabOrderOf(state);`: su huella viva se declara de nuevo.
+ const vivo=id==='inc-0810-nav-indicator'?{web:'ac693e0804b2487eec011a79c831bb34ac4a8babd94f551cc694d6b1c86d906b',codigo:'dac7dfae2bd713f803b8e52cce4592c150f430661887a79b0838b82897c33901'}:{web,codigo};
  assert.deepEqual(betaRevision(id,id==='inc-0810-metas-editar-regla'?mainRead:read,undefined,id==='inc-0810-metas-editar-regla'?reg[id]:liveReg[id]),vivo,id+': identidad aprobada, histórica sólo para edición de regla');
  assert.deepEqual(betaRevision(id,selected,undefined,selectedReg[id]),{web,codigo},id+': ancla beta fija aprobada');
  for(const key of ['historial','auditoria','codigosCompatibles','compatibilidadGit'])assert.equal(reg[id][key],undefined,id+': sin aprobación heredada '+key);
@@ -127,4 +128,4 @@ assert.notEqual(betaRevision('inc-0710-auth-disposal',mainRead,undefined,reg['in
 console.log('✓ fit102: retornos/receiver/excepciones diferidas, boot real sin throw, trazas equivalentes;7funciones/9datos, notas históricas106 intactas y registro con cierres107/108/110 explícitos; identidad102 nueva');
 
 }
-assert.equal(createHash('sha256').update(JSON.stringify(JSON.parse(read('scripts/beta-sources.json')))).digest('hex'),'4c2fe3584c588486ea8e48213a72282ba547e9f732da1a51a8acc34ccc9e7156','registro128 íntegro: el de la integración127 (b3edefb4) más el descriptor nuevo inicio-mes-pasado-mismo-dia al final (el mismo alcance web de Inicio que inicio-patrimonio-flujos, que a su vez gana netWorthMonthsBack y NW_MONTHS), sin crecer ningún otro; Catálogo128 de beta-sources lo fija unidad a unidad');
+assert.equal(createHash('sha256').update(JSON.stringify(JSON.parse(read('scripts/beta-sources.json')))).digest('hex'),'8e812ff375cc6425e79dd0b7f6f508655d44c10009e21a781a1ef009ac1eb903','registro131 íntegro: el de la beta 4.26.130 (67666d42) más el descriptor nuevo cuenta-parte-mia al final (la parte mía de cada cuenta, su bloque del guardado y su cierre de lectores) y el cierre de lectores que las funciones nuevas exigen a los descriptores de Inicio, de bancos, del emparejado de Trade Republic y de la nómina anticipada; nada se recorta');
