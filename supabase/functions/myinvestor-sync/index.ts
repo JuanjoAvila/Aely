@@ -158,13 +158,27 @@ Deno.serve(withCors(async (req: Request) => {
       for (const p of miPositionsFrom(data)) positions.push(p);
     }
 
-    // El acuse y el reset son UNA escritura: ni un SELECT previo ni cero filas son un acuse.
-    const { data: saved, error: saveError } = await admin.from("myinvestor_links").update({
-      last_sync: new Date().toISOString(), status: "active", updated_at: new Date().toISOString(),
-      access_counter_version: crypto.randomUUID(),
-    }).eq("user_id", user.id).eq("connection_version", connectionVersion).eq("access_counter_version", counterVersion).select("user_id").maybeSingle();
-    if (saveError || !saved) return jsonResp({ ok: false, softFail: true, code: saveError ? "counter_not_saved" : "refresh_raced", error: "MyInvestor no responde bien ahora. Prueba más tarde — tu sesión sigue guardada." });
-    return jsonResp({ ok: true, positions });
+    // El reset exige ambas versiones para no borrar fallos posteriores de otra lectura.
+    // Si sólo perdió el contador, aún podemos sellar la lectura del MISMO enlace: cero
+    // filas con la guarda de conexión sí indica reconexión, sin un SELECT previo vulnerable.
+    let saved: { user_id: string } | null = null, saveError = false;
+    try {
+      const result = await admin.from("myinvestor_links").update({
+        last_sync: new Date().toISOString(), status: "active", updated_at: new Date().toISOString(),
+        access_counter_version: crypto.randomUUID(),
+      }).eq("user_id", user.id).eq("connection_version", connectionVersion).eq("access_counter_version", counterVersion).select("user_id").maybeSingle();
+      saved = result.data; saveError = !!result.error;
+      if (!saveError && !saved) {
+        const stamp = await admin.from("myinvestor_links").update({
+          last_sync: new Date().toISOString(), updated_at: new Date().toISOString(),
+        }).eq("user_id", user.id).eq("connection_version", connectionVersion).select("user_id").maybeSingle();
+        saved = stamp.data; saveError = !!stamp.error;
+        if (!saveError && !saved) return jsonResp({ ok: false, softFail: true, code: "refresh_raced", error: "MyInvestor no responde bien ahora. Prueba más tarde — tu sesión sigue guardada." });
+      }
+    } catch (_) { saveError = true; }
+    // El sello es metadato: un fallo de BD/red no debe tirar posiciones ya leídas bien.
+    // Tampoco afirmamos haber reiniciado el contador cuando falta ese acuse.
+    return jsonResp({ ok: true, positions, ...(saveError ? { code: "counter_not_saved" } : {}) });
   } catch (e) {
     return jsonResp({ ok: false, error: String((e as Error)?.message || e) }, 500);
   }

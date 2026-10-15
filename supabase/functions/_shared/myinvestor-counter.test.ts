@@ -69,9 +69,10 @@ function reconnect(f: ReturnType<typeof fixture>) {
 }
 Deno.test("reconexión durante lectura buena: el reset antiguo no borra los dos fallos nuevos", async () => {
   const f = fixture(); seedHits(f, 2); f.beforeWrite = () => reconnect(f);
-  const r = await run("sync", f);
+  const r = await run("sync", f, { access: positionAccounts });
   assert.equal(r.data.ok, false);
   assert.equal(r.data.code, "refresh_raced");
+  assert.equal(r.data.positions, undefined);
   assert.equal(hits(f), 2);
   assert.equal(f.row.access_token, "reconnected-access");
   assert.equal(f.row.last_sync, undefined);
@@ -200,6 +201,32 @@ Deno.test("sello lanza por red: conserva igualmente todas las posiciones leídas
   assert.equal(r.data.code, "counter_not_saved");
   assert.equal(hits(f), 2);
   assert.equal(f.row.last_sync, undefined);
+});
+Deno.test("sello tras carrera lanza por red: conserva posiciones sin reset ficticio", async () => {
+  const f = fixture();
+  f.beforeWrite = () => {
+    f.row.access_counter_version = "33333333-3333-4333-8333-333333333333";
+    f.counters.set("mi-401-tras-refresco:synthetic:" + f.row.access_counter_version, 1);
+    f.beforeWrite = () => { f.saveThrows = true; };
+  };
+  const r = await run("sync", f, { access: positionAccounts });
+  assertPositions(r.data);
+  assert.equal(r.data.code, "counter_not_saved");
+  assert.equal(hits(f), 1);
+  assert.equal(f.row.last_sync, undefined);
+});
+Deno.test("sello del mismo enlace no reactiva el estado que cambió tras otra lectura", async () => {
+  const f = fixture();
+  f.beforeWrite = () => {
+    f.row.access_counter_version = "33333333-3333-4333-8333-333333333333";
+    f.row.status = "expired";
+    f.counters.set("mi-401-tras-refresco:synthetic:" + f.row.access_counter_version, 3);
+  };
+  const r = await run("sync", f, { access: positionAccounts });
+  assertPositions(r.data);
+  assert.equal(f.row.status, "expired");
+  assert.equal(hits(f), 3);
+  assert.equal(typeof f.row.last_sync, "string");
 });
 Deno.test("el recifrado legacy tampoco pisa los tokens de una reconexión", async () => {
   const f = fixture();
