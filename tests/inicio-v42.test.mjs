@@ -198,10 +198,10 @@ assert.deepEqual(values({...base,expenses:coverage.concat(deleted),deleted:[c.ke
 assert.deepEqual(values({...base,expenses:coverage.concat(entry("removed-bank","2026-09-02",200,"ing"))}),[600,600,600,600],"un banco que no forma parte del patrimonio no suma dinero ficticio");
 for(const categories of [["traspaso","otros"],["otros","traspaso"]])assert.deepEqual(values({...base,expenses:coverage.concat(
   entry("pair-out","2026-09-02",300,"sabadell",categories[0]),entry("pair-in","2026-09-03",-300,"revolut",categories[1]))}),[600,600,600,600],"dos patas propias se emparejan aunque una categoría falte");
-// Revisión 13/10: un traspaso de una sola pata sin pista queda neutro (la otra cuenta puede ser
-// propia sin histórico ese día); antes salía como dinero perdido y la gráfica bajaba sin motivo.
-assert.deepEqual(separate(entry("external","2026-09-02",300,"sabadell","traspaso")),[600,600,600,600],"una sola pata sin pista no reduce el patrimonio: plano");
-assert.deepEqual(values({...base,expenses:coverage.concat(entry("out-not-salary","2026-09-02",300,"sabadell","traspaso"),entry("salary-coincides","2026-09-03",-300,"revolut","ingreso"))}),[300,300,600,600],"un ingreso conocido del mismo importe no se disfraza de la otra pata");
+// Decisión del coordinador, 14/10: sin prueba de recepción propia cuenta como salida
+// del patrimonio registrado. Una categoría elegida no acredita la otra pata.
+assert.deepEqual(separate(entry("external","2026-09-02",300,"sabadell","traspaso")),[900,600,600,600],"una sola pata sin pista resta desde el día de salida");
+assert.deepEqual(values({...base,expenses:coverage.concat(entry("out-not-salary","2026-09-02",300,"sabadell","traspaso"),entry("salary-coincides","2026-09-03",-300,"revolut","ingreso"))}),[600,300,600,600],"un ingreso conocido del mismo importe no se disfraza de la otra pata");
 const recurring={...base,expenses:[entry("cover-a","2026-08-01",0),entry("cover-b","2026-08-01",0,"revolut"),
   entry("aug-out","2026-08-02",300,"sabadell","traspaso"),entry("aug-in","2026-08-03",-300,"revolut","otros"),
   entry("sep-out","2026-09-02",300,"sabadell","otros"),entry("sep-in","2026-09-03",-300,"revolut","traspaso")]};
@@ -212,7 +212,7 @@ const bankToManual={accounts:[account("a","sabadell"),{id:"cash",ent:"revolut",v
   accountBalanceHistory:{"acc:cash":[{day:"2026-09-01",value:300},{day:"2026-09-02",value:600}]}};
 assert.deepEqual(plain(realSeries(bankToManual,today).result).map(p=>p.value),[900,900,900,900],"banco a manual con escalones: la pata de flujo compensa el cambio del cierre");
 const sameBankPair={...base,expenses:coverage.concat(entry("same-out","2026-09-02",300,"sabadell","traspaso"),entry("same-in","2026-09-03",-300,"sabadell","otros"))};
-assert.deepEqual(values(sameBankPair),[300,300,600,600],"dos cargos de la misma cuenta no son dos patas entre cuentas propias: la salida queda neutra y la entrada cuenta");
+assert.deepEqual(values(sameBankPair),[600,300,600,600],"dos cargos de la misma cuenta no prueban un traslado propio: la salida y la entrada cuentan cada una en su día");
 // Antes recortaba al primer cierre: un sobre de efectivo con cierres de hace dos semanas dejaba
 // sin gráfica meses de bancos (13/10). Se mantiene el primer saldo, como sin historial.
 const partial=c.netWorthSeries({...manual,accountBalanceHistory:{"acc:cash":[{day:"2026-09-03",value:100}]}},{...opts,liquid:700});
@@ -294,9 +294,9 @@ assert.equal(unknownDay.find(p=>p.day==="2025-11-01").value-unknownDay.find(p=>p
 const brokerUnlinked={...base,investments:[{id:"fund",ent:"trade_republic",value:500}],invHistory:[{d:"2026-09-01",v:0},{d:today,v:500}],
   expenses:coverage.concat(entry("unlinked-broker","2026-09-02",500,"sabadell","traspaso"))};
 // Un traspaso de una sola pata sin pista de bróker ya no recorta hasta la foto siguiente (en la
-// cartera real del 13/10 dejaba la gráfica en dos semanas): sale como lo que dice la cuenta y la
-// foto siguiente lo recoge. Con fotos diarias el valle dura un día.
-assert.deepEqual(plain(c.netWorthSeries(brokerUnlinked,{...opts,invested:500})).map(p=>[p.day,p.value]),[["2026-09-01",600],["2026-09-02",600],["2026-09-03",600],[today,1100]],"sin pista de destino la serie no se recorta y el traspaso queda neutro");
+// cartera real del 13/10 dejaba la gráfica en dos semanas). Decisión 14/10: se resta la salida
+// sin destino acreditado y la foto posterior recoge su valor sin una aportación inventada.
+assert.deepEqual(plain(c.netWorthSeries(brokerUnlinked,{...opts,invested:500})).map(p=>[p.day,p.value]),[["2026-09-01",1100],["2026-09-02",600],["2026-09-03",600],[today,1100]],"sin pista de destino: salida y foto posterior, sin recorte ni doble conteo");
 const withdrawal={accounts:[],obAccounts:[{id:"a",ent:"sabadell",value:1500,cur:"EUR"}],expenses:[entry("withdraw-cover","2026-09-01",0),
   {...entry("withdraw-own","2026-09-04",-500,"sabadell","inversion"),investmentId:"fund"}],investments:[{id:"fund",value:1500}],invHistory:[{d:"2026-09-01",v:2000},{d:"2026-09-07",v:1500}]};
 assert.ok(realSeries(withdrawal,"2026-09-07").result.every(p=>p.value===3000),"recuperar500 de la inversión propia no inventa ganancia entre fotos");
@@ -580,15 +580,17 @@ assert.equal(c.netWorthCompare(bump,"1m","2026-10-13",0).delta,5,"pero el import
 assert.equal(c.netWorthCompare(bump,"1m","2026-10-13",5000).margin,100,"2 % de lo invertido, con suelo de 10 €");
 assert.equal(c.netWorthCompare(bump,"1m","2026-10-13",1e6).margin,300,"y tope de 300 €");
 // Un movimiento interno nunca es una pérdida (revisión 13/10): aportación al bróker antes de la
-// primera foto, traspaso de una pata sin pista, cajero sin pata de efectivo, aportado más que la foto.
+// primera foto, aportado más que la foto. Un traspaso sin pista es salida; un cajero sólo conserva
+// el total si hay efectivo registrado: sin él, se deshace su salida hacia atrás (14/10).
 const internalBase={accounts:[account("a","sabadell")],expenses:[entry("i-cover","2026-09-01",0)]};
 const priorContribution={...internalBase,investments:[{id:"f",ent:"myinvestor",value:500}],invHistory:[{d:"2026-09-03",v:500},{d:today,v:500}],
   expenses:internalBase.expenses.concat(entry("i-contrib","2026-09-02",300,"sabadell","inversion"))};
 assert.deepEqual(plain(c.netWorthSeries(priorContribution,{...opts,invested:500})).map(p=>p.value),[1100,1100,1100,1100],"la aportación anterior a la primera foto se descuenta de la inversión: plano");
 const unlinked={...internalBase,expenses:internalBase.expenses.concat(entry("i-unlinked","2026-09-02",300,"sabadell","traspaso"))};
-assert.deepEqual(plain(c.netWorthSeries(unlinked,opts)).map(p=>p.value),[600,600,600,600],"un traspaso de una pata sin pista queda neutro, no es pérdida");
+assert.deepEqual(plain(c.netWorthSeries(unlinked,opts)).map(p=>p.value),[900,600,600,600],"un traspaso sin pista cuenta como salida del patrimonio registrado");
 const atm={...internalBase,expenses:internalBase.expenses.concat({...entry("i-atm","2026-09-02",100,"sabadell","otros"),merchant:"Cajero sintético"})};
-assert.deepEqual(plain(c.netWorthSeries(atm,opts)).map(p=>p.value),[600,600,600,600],"una retirada de cajero sin pata de efectivo queda neutra");
+assert.deepEqual(plain(c.netWorthSeries(atm,opts)).map(p=>p.value),[700,600,600,600],"sin efectivo la retirada baja el patrimonio desde el día de salida");
+assert.deepEqual(plain(c.netWorthSeries({...atm,accounts:atm.accounts.concat({id:"cash",ent:"efectivo",value:100,role:"fijos"})},{...opts,liquid:700})).map(p=>p.value),[700,700,700,700],"con efectivo registrado la retirada sólo cambia el dinero de sitio");
 const overContribution={...priorContribution,expenses:internalBase.expenses.concat(entry("i-over","2026-09-02",3000,"sabadell","inversion"))};
 assert.deepEqual(plain(c.netWorthSeries(overContribution,{...opts,invested:500})).map(p=>p.value),[1100,1100,1100,1100],"aportado más que la foto: plano, sin pintar la aportación como caída");
 assert.equal(c.netWorthDebtPolicy({debts:[{id:"dated",value:5000,monthly:100,day:1,asOf:2026*12+9,asOfDate:"2026-09-01"}]},inheritedToday,undefined).at("2026-08-15"),5200,"una deuda con fecha de referencia mantiene su cuadro hacia atrás (dos cuotas), nunca cero");
@@ -612,7 +614,7 @@ const mutantCases=[
   ["tope de lo pedido","if(n<0&&d.original>0) value=Math.min(value,Math.max(Number(d.original),Number(d.value)));","if(false) value=Math.min(value,Math.max(Number(d.original),Number(d.value)));",m=>assert.equal(m.netWorthDebtPolicy(capped,inheritedToday,undefined).at("2026-07-15"),1000)],
   ["liquidada no se reconstruye","&&!d.settledAt; };","; };",m=>assert.equal(m.netWorthDebtPolicy(settled,inheritedToday,undefined).at("2026-07-15"),100)],
   ["foto futura","!Number.isFinite(v)||d>today","!Number.isFinite(v)||false",m=>assert.equal(m.netWorthSeries({...base,investments:[{value:100}],invHistory:[{d:"2026-09-05",v:100}]},{...opts,invested:100}).coverage.find(g=>g.kind==="investment").day,today,"una foto futura no acredita valor propio")],
-  ["misma cuenta empareja","if(sameAcc||a.cents!==-b.cents","if(false||a.cents!==-b.cents",m=>assert.deepEqual(plain(m.netWorthSeries(sameBankPair,opts)).map(p=>p.value),[300,300,600,600])],
+  ["misma cuenta empareja","if(sameAcc||a.cents!==-b.cents","if(false||a.cents!==-b.cents",m=>assert.deepEqual(plain(m.netWorthSeries(sameBankPair,opts)).map(p=>p.value),[600,300,600,600])],
   ["valor anterior anotado","value:prior.value,legacy:true","value:value,legacy:true",m=>assert.equal(carValues(m,carEdit(m,carState,"2026-09-05",12000))[0],20000)],
   ["valor anterior la víspera","Date.parse(day+\"T12:00:00Z\")-864e5).toISOString()","Date.parse(day+\"T12:00:00Z\")).toISOString()",m=>assert.deepEqual(carValues(m,carEdit(m,carState,"2026-09-05",12000)),[20000,20000,20000,20000,17000,17000,17000])],
   ["sólo heredado sin escalones","if(!last&&!born&&prior&&Number.isFinite(prior.value))","if(!born&&prior&&Number.isFinite(prior.value))",m=>assert.ok(!carEdit(m,carStepped,"2026-09-05",12000).assetValueHistory["old-car"].some(p=>p.legacy))],
@@ -621,8 +623,8 @@ const mutantCases=[
   ["lectura del anterior","s.points[indices[i]].value:s.before||0","s.points[indices[i]].value:0",m=>assert.equal(carValues(m,carSaved)[0],20000)],
   ["aportación anterior a la primera foto (R1)","photo.value+(happenedBy(day)-includedBy(photo.day))/100:0;","photo.value:0;",m=>assert.equal(m.netWorthSeries(priorContribution,{...opts,invested:500})[0].value,1100)],
   ["sin suelo en cero (R2)","photo.value+(happenedBy(day)-includedBy(photo.day))/100:0;","Math.max(0,photo.value+(happenedBy(day)-includedBy(photo.day))/100):0;",m=>assert.equal(m.netWorthSeries(overContribution,{...opts,invested:500})[0].value,1100)],
-  ["traspaso sin pista neutro","(e.category===\"traspaso\"&&!linked)||","false||",m=>assert.deepEqual(plain(m.netWorthSeries(unlinked,opts)).map(p=>p.value),[600,600,600,600])],
-  ["cajero sin pata neutro","(e.amount>0&&isAtmWithdrawal(e.merchant))","false",m=>assert.deepEqual(plain(m.netWorthSeries(atm,opts)).map(p=>p.value),[600,600,600,600])],
+  ["traspaso sin pista resta","if(transit||e.category===\"inversion\"||(e.category===\"traspaso\"&&linked)) contribs.push","if(!transit&&!row.ownTransfer&&e.category===\"traspaso\"&&!linked) return;\n    if(transit||e.category===\"inversion\"||(e.category===\"traspaso\"&&linked)) contribs.push",m=>assert.deepEqual(plain(m.netWorthSeries(unlinked,opts)).map(p=>p.value),[900,600,600,600])],
+  ["cajero sin efectivo resta","if(!hasCash) daily[day]=(daily[day]||0)-row.cents;","if(false) daily[day]=(daily[day]||0)-row.cents;",m=>assert.deepEqual(plain(m.netWorthSeries(atm,opts)).map(p=>p.value),[700,600,600,600])],
   ["margen solo decide el color (C5)","verdict:delta>margin?\"up\":delta<-margin?\"down\":\"flat\"","verdict:delta>0?\"up\":delta<0?\"down\":\"flat\"",m=>assert.equal(m.netWorthCompare(bump,"1m","2026-10-13",0).verdict,"flat")],
   ["tope del margen","const margin=Math.min(300,Math.max(10,Math.abs(invested||0)*.02));","const margin=Math.max(10,Math.abs(invested||0)*.02);",m=>assert.equal(m.netWorthCompare(bump,"1m","2026-10-13",1e6).margin,300)],
   ["mínimo de 45 días de serie","const NW_WINDOW=45;","const NW_WINDOW=30;",m=>assert.equal(m.netWorthCompare(flatSeries.slice(-45),"all","2026-10-05",0),null)],
