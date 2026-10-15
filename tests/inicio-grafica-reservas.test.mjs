@@ -29,6 +29,31 @@ function comprobar(c){
   const independent=c.netWorthSeries(bankIncome,opts);
   assert.equal(Math.round(((at(independent,"2026-10-01")-at(independent,"2026-09-30"))-(at(sin,"2026-10-01")-at(sin,"2026-09-30")))*100),-10003,"sin efectivo, un ingreso en otro banco no neutraliza el cajero");
 }
+function cajerosConfirmados(c){
+  for(const merchant of ["DISPOSICION TARJETA","RETIRADA EFECTIVO"]) for(const source of ["ob","ob-hist"]){
+    const withdrawal={id:"confirmed-out",date:"2026-09-02T12:00:00Z",amount:60,merchant,source,category:"otros",ent:"sabadell"};
+    const state={accounts:[{id:"bank",ent:"sabadell",value:1000,bankIban:"synthetic-bank"},{id:"cash",ent:"efectivo",value:900,role:"fijos"}],expenses:[{id:"cover",date:"2026-09-01T12:00:00Z",amount:0,ent:"sabadell"},withdrawal]};
+    assert.equal(c.isAtmWithdrawal(merchant),false,"el concepto no acredita por sí solo una retirada");
+    assert.equal(c.canRecognizeWithdrawal(withdrawal,state),true);
+    const confirmed=c.applyRecognizedWithdrawal(state,withdrawal,Date.parse("2026-09-03T12:00:00Z"));
+    assert.ok(confirmed.expenses[1].withdrawalConfirmedAt,"confirmación por la puerta real de Gastos");
+    const copy=JSON.stringify(confirmed),opts={today:"2026-09-04",liquid:1900,invested:0,debtTotal:0};
+    const series=plain(c.netWorthSeries(confirmed,opts));
+    console.log("cajero confirmado "+merchant+" "+source+": "+JSON.stringify({before:series[0].value,want:1900,now:series.at(-1).value}));
+    assert.deepEqual(series.map(p=>Math.round(p.value*100)),[190000,190000,190000,190000],"bolsillo sin cierres: la confirmación mantiene 1900, no 1960");
+    assert.equal(JSON.stringify(confirmed),copy,"reconstruir no modifica el reconocimiento ni los saldos");
+    const noCash={...confirmed,accounts:confirmed.accounts.filter(a=>a.ent!=="efectivo")};
+    assert.deepEqual(plain(c.netWorthSeries(noCash,{...opts,liquid:1000})).map(p=>Math.round(p.value*100)),[106000,100000,100000,100000],"sin bolsillo, incluso la retirada confirmada resta");
+    const bankIncome={...confirmed,accounts:confirmed.accounts.concat({id:"other",ent:"caixabank",value:800,bankIban:"synthetic-other"}),expenses:confirmed.expenses.concat({id:"independent-in",date:"2026-09-03T12:00:00Z",amount:-60,merchant:"Entrada independiente",category:"otros",ent:"caixabank"})};
+    const withoutWithdrawal={...bankIncome,expenses:bankIncome.expenses.filter(e=>e.id!==withdrawal.id)};
+    assert.deepEqual(plain(c.netWorthSeries(bankIncome,{...opts,liquid:2700})),plain(c.netWorthSeries(withoutWithdrawal,{...opts,liquid:2700})),"el reconocimiento tampoco casa el cajero con una entrada bancaria independiente");
+  }
+}
+function planConCuentaPropia(c){
+  const state={accounts:[{id:"bank",ent:"sabadell",value:1000,bankIban:"synthetic-bank"},{id:"broker",ent:"myinvestor",value:20,role:"fijos"}],investments:[{id:"fund",ent:"myinvestor",value:5500}],aportaciones:[{ent:"myinvestor",amount:500}],accountBalanceHistory:{"acc:broker":[{day:"2026-10-01",value:520},{day:"2026-10-03",value:20}]},invHistory:[{d:"2026-09-29",v:5000},{d:"2026-10-03",v:5500}],expenses:[{id:"cover",date:"2026-09-29T12:00:00Z",amount:0,ent:"sabadell"},{id:"contribution",date:"2026-09-30T12:00:00Z",amount:500,category:"traspaso",merchant:"TRANSFERENCIA YO MISMO",ent:"sabadell"}]};
+  const series=plain(c.netWorthSeries(state,{today:"2026-10-04",liquid:1020,invested:5500,debtTotal:0}));
+  assert.deepEqual(series.map(p=>Math.round(p.value*100)),Array(6).fill(652000),"plan a bróker con cuenta propia: el cierre recoge la llegada una sola vez");
+}
 function traspasos(c){
   const base=estadoHeredado(today),opts={today,liquid:5320.23,invested:5200.17,debtTotal:187926.81};
   const out={id:"transfer-out",date:"2026-10-01T12:00:00Z",amount:300.07,category:"traspaso",merchant:"Pago sintético",ent:"sabadell",source:"manual"};
@@ -62,6 +87,8 @@ function traspasos(c){
   assert.deepEqual([at(single,"2026-10-01"),at(single,today)],[750.04,600],"sin contraparte la salida pesa solo su parte, al céntimo");
 }
 comprobar(loadPureLogicFromFile());
+cajerosConfirmados(loadPureLogicFromFile());
+planConCuentaPropia(loadPureLogicFromFile());
 traspasos(loadPureLogicFromFile());
 const html=fs.readFileSync(new URL("../public/index.html",import.meta.url),"utf8");
 const mutant=html.replace('if(!hasCash) daily[day]=(daily[day]||0)-row.cents;', 'if(false) daily[day]=(daily[day]||0)-row.cents;');
