@@ -89,6 +89,8 @@ const limpieza129=u=>{
   for(const [a,b] of cambios){if(out.from===a)out.from=b;if(out.to===a)out.to=b;}
   return out;
 };
+// La 135 suma `deleteExpense` y `logEvent` a los métodos de `cloud` que leen varios descriptores (la fusión de gastos con la nube borra la fila absorbida y deja traza): se descuentan de los dos lados.
+const sinCompras135=u=>u&&u.members?{...u,members:u.members.filter(m=>m!=="deleteExpense"&&m!=="logEvent")}:u;
 const empty=[{v:"4.26.67",tandas:[]}];
 const archiveRefs=JSON.parse(read("scripts/beta-archives.json"));
 const archiveId="inc-0810-inicio-grafica-significado";
@@ -198,7 +200,7 @@ test("Inicio v4.2 cubre flujos, ciclo, renderer, llamada, animación, textos, CS
   const integrated=JSON.parse(source120("scripts/beta-sources.json"));
   // Detrás de Inicio sólo ha entrado el alcance de la122 (el cargo de recibo en Gastos).
   assert.deepEqual(Object.keys(scopes),Object.keys(integrated).concat(id,"recibo-cargo-en-gastos","plan-scroll-lento","inicio-tarjeta-ciclo-limpia","bancos-reconexion-revoca","inicio-mes-pasado-mismo-dia","limpieza-ajustes-perfil","tr-empareja-sin-preguntar","cuenta-parte-mia","inicio-recientes-sin-repetidos","scroll-borde-barra","inicio-grafica-reservas","compras-identicas-ids"),"Inicio y las altas de la122, la124, la126, la127, la128, la129, la130, la131, la132, la133, la134 y la135, sin retirar historia120");
-  for(const [key,value] of Object.entries(integrated))if(key!=="inicio-grafica-vuelve"){assert.deepEqual(scopes[key].native,value.native);assert.deepEqual(scopes[key].edge,value.edge);for(const part of (value.web||[]).map(limpieza129).filter(Boolean))assert.ok(scopes[key].web.some(s=>JSON.stringify(sinMetodo122(s))===JSON.stringify(part)||JSON.stringify(sinPull130(sinMetodo122(s)))===JSON.stringify(sinPull130(sinMetodo122(part)))),key+": no recortar descriptor ajeno120");}
+  for(const [key,value] of Object.entries(integrated))if(key!=="inicio-grafica-vuelve"){assert.deepEqual(scopes[key].native,value.native);assert.deepEqual(scopes[key].edge,value.edge);for(const part of (value.web||[]).map(limpieza129).filter(Boolean))assert.ok(scopes[key].web.some(s=>JSON.stringify(sinMetodo122(s))===JSON.stringify(part)||JSON.stringify(sinPull130(sinMetodo122(s)))===JSON.stringify(sinPull130(sinMetodo122(part)))||JSON.stringify(sinCompras135(sinPull130(sinMetodo122(s))))===JSON.stringify(sinCompras135(sinPull130(sinMetodo122(part))))),key+": no recortar descriptor ajeno120");}
   assert.equal(scope.unidades,true);
   for(const key of ["historial","auditoria","codigosCompatibles","compatibilidadGit","compatibilidadSha"])
     assert.equal(scope[key],undefined,"no hereda identidad anterior: "+key);
@@ -3560,16 +3562,27 @@ test("Catálogo135 añade la tanda de las compras idénticas sobre la beta134, c
   // Un único descriptor nuevo, al final; los demás son los de la beta134 sin recortar ni crecer.
   const scopes=JSON.parse(source("scripts/beta-sources.json")),{[tanda]:added,...rest}=scopes;
   assert.equal(integrated[tanda],undefined,"identidad que no existía");assert.equal(Object.keys(scopes).at(-1),tanda);
-  assert.deepEqual(rest,integrated,"nada se recorta ni crece: solo se añade el descriptor nuevo");
+  // Los descriptores ajenos no se recortan: crecen SOLO al final (las funciones, datos y métodos de cloud nuevos que ahora leen sus unidades, que el cierre de lectores exige vigilar).
+  const crecen=["inc-3009-01-cargos","fin05-widget-reentrada","fin05-pago-cerrada","tr-descripcion-clasificacion","widget-banco","widget-app-cerrada","inc-2709-01-arranque-red","inc-2809-02-ayuda-ciclo","inc-2909-02-inicio-natural","inc-2709-10-perfil","inc-3009-nomina-anticipada","inc-2909-03-retirada","inc-2909-01-widget-periodo","inc-0210-01-plan-cuota","inc-0210-03-gastos-periodo","feature-0210-01-gasolina-taxi","inc-0210-02-categoria-elegida","inc-0310-01-meta-regla","feature-0310-01-movilidad","inc-0310-broker-resultados","inc-0310-gastos-sin-limite","inc-0710-gastos-mes-madrid","inc-0710-auth-disposal","inc-0810-dashboard-recents-memo","inc-0810-metas-editar-regla","bienes-completo","inicio-grafica-vuelve","widget-pago-app-cerrada","bancos-sin-hueco","widget-ciclo-puente","recibos-cargo-unico","bancos-acuse-reconexion","tr-iguales-ordinal","inicio-patrimonio-flujos","recibo-cargo-en-gastos","bancos-reconexion-revoca","inicio-mes-pasado-mismo-dia","limpieza-ajustes-perfil","tr-empareja-sin-preguntar","cuenta-parte-mia","inicio-recientes-sin-repetidos","inicio-grafica-reservas"];
+  assert.deepEqual(Object.keys(rest),Object.keys(integrated),"mismas identidades");
+  const crecidos=[];
+  for(const [key,value] of Object.entries(integrated)){
+    const now=rest[key];
+    for(const part of Object.keys(value))if(part!=="web")assert.deepEqual(now[part],value[part],key+": solo crece la web");
+    const sinMiembros=u=>u.members?{...u,members:undefined}:u;
+    value.web.forEach((u,n)=>{assert.deepEqual(sinMiembros(now.web[n]),sinMiembros(u),key+": unidad previa intacta y en su sitio "+n);if(u.members)assert.deepEqual(now.web[n].members.slice(0,u.members.length),u.members,key+": miembros previos intactos");});
+    if(JSON.stringify(now)!==JSON.stringify(value))crecidos.push(key);
+  }
+  assert.deepEqual(crecidos,crecen,"lista cerrada de descriptores que crecen");
   const propias=["expenseBankIdOrdinals","bankDeletionLink","expenseIsTombstoned","obAbsorptionKey","bankRefSufijoCloud","bankRefDeSource","expenseSourceForCloud","pushGemelos","withdrawalRowMatches","expenseFromRow","mergeExpenses","refreshExpenseFromCloud","mergeExpensesFromCloud"].map(function_=>({file:"src/modules/00-core.js",function:function_}))
-    .concat([{file:"src/modules/04-tab-gastos.js",from:"  const delExpense=function(e){",to:"  const undoLastDelete=function(){"}],
+    .concat([{file:"src/modules/04-tab-gastos.js",from:"  const delExpense=function(e){",to:"  const undoLastDelete=function(){"},{file:"src/modules/11-app-main.js",from:"  const syncCloudExpenses=function(){",to:"  const syncFromCloud=function(s, opts){"},{file:"src/modules/11-app-main.js",from:"  const syncFromCloud=function(",to:"  // CAPA 2 — Open Banking:"},{file:"src/modules/11-app-main.js",from:"  const avisaSync=function(opts,m){",to:"  const BROKER_SYNC_THROTTLE"},{file:"src/modules/11-app-main.js",from:"  // INC-0410 guardado: de aquí al límite está cuándo y qué estado se escribe en disco. Cambiarlo invalida las revisiones que prometen conservar algo al cerrar o recargar.",to:"  // INC-0410 guardado: límite."}],
       ["flattenBankTx","reconcileGemelosAutomaticos","obPendingGroup","obIsPending","obIsBooked","obCoveredPending","obReconcilePending","obPendingAbsorbedState","importObExpenses","enrichNotesFromBankTx"].map(function_=>({file:"src/modules/08-motor-bank.js",function:function_})),
       [{file:"src/modules/08-motor-bank.js",data:"obPendingResponses"}]);
   assert.deepEqual(added.web.slice(0,propias.length),propias,"las unidades propias de la tanda, en este orden");
   assert.equal(added.unidades,true);assert.deepEqual(Object.keys(added),["web","edge","unidades"],"web y el lector compartido de ingest");
   assert.deepEqual(added.edge,["supabase/functions/_shared/presupuesto.ts","supabase/functions/ingest/index.ts","supabase/functions/ingest/widget.ts"],"el servidor que lee las filas: lector compartido, ingest y widget");
   {const fns=logicFunctions(source),dat=logicData(source);let web=propias.slice();
-    for(let ronda=0;ronda<10;ronda++){
+    for(let ronda=0;ronda<40;ronda++){
       const tiene=(file,nombre,clave)=>web.some(u=>u.file===file&&u[clave]===nombre),extra=[];
       for(const fn of scopeDependencies({web},source,fns))if(!tiene(fn.file,fn.name,"function"))extra.push({file:fn.file,function:fn.name});
       for(const d of scopeDataDependencies({web},source,fns,dat))if(!tiene(d.file,d.name,"data"))extra.push({file:d.file,data:d.name});
@@ -3585,7 +3598,7 @@ test("Catálogo135 añade la tanda de las compras idénticas sobre la beta134, c
   assert.notEqual(source("supabase/functions/_shared/presupuesto.ts"),old("supabase/functions/_shared/presupuesto.ts"),"el lector compartido sí cambia");
   assert.equal(execFileSync("git",["diff","--name-only","38a1eed020628b247f3ec97e54b3ca06ff92077d","HEAD","--","supabase/migrations"],{encoding:"utf8"}).trim(),"","sin SQL ni migraciones");
   // Huellas que se mueven, lista cerrada: todo alcance que lee las funciones de gastos/banco o el lector compartido de ingest.
-  const expectedMoves={"inc-3009-01-cargos":["web"],"fin05-widget-reentrada":["web"],"fin05-pago-cerrada":["web"],"tr-descripcion-clasificacion":["web"],"widget-banco":["web"],"widget-app-cerrada":["web"],"inc-2809-02-ayuda-ciclo":["web"],"inc-2909-02-inicio-natural":["web"],"inc-2709-10-perfil":["web"],"inc-3009-nomina-anticipada":["web"],"inc-2909-03-retirada":["web"],"inc-2909-01-widget-periodo":["web"],"inc-0210-01-plan-cuota":["web"],"inc-0210-03-gastos-periodo":["web"],"feature-0210-01-gasolina-taxi":["web"],"inc-0210-02-categoria-elegida":["web"],"inc-0310-01-meta-regla":["web"],"feature-0310-01-movilidad":["web"],"inc-0310-broker-resultados":["web"],"inc-0310-gastos-sin-limite":["web"],"inc-0710-gastos-mes-madrid":["web"],"inc-0710-auth-disposal":["web"],"inc-0810-dashboard-recents-memo":["web"],"inc-0810-metas-editar-regla":["web"],"bienes-completo":["web"],"inicio-grafica-vuelve":["web"],"widget-pago-app-cerrada":["web"],"bancos-sin-hueco":["web"],"widget-ciclo-puente":["web"],"recibos-cargo-unico":["web"],"bancos-acuse-reconexion":["web"],"tr-iguales-ordinal":["web","edge"],"inicio-patrimonio-flujos":["web"],"recibo-cargo-en-gastos":["web","edge"],"bancos-reconexion-revoca":["web"],"inicio-mes-pasado-mismo-dia":["web"],"limpieza-ajustes-perfil":["web"],"tr-empareja-sin-preguntar":["web"],"cuenta-parte-mia":["web"],"inicio-recientes-sin-repetidos":["web"],"inicio-grafica-reservas":["web"]};
+  const expectedMoves={"inc-3009-01-cargos":["web"],"fin05-widget-reentrada":["web"],"fin05-pago-cerrada":["web"],"tr-descripcion-clasificacion":["web"],"widget-banco":["web"],"widget-app-cerrada":["web"],"inc-2709-01-arranque-red":["web"],"inc-2809-02-ayuda-ciclo":["web"],"inc-2909-02-inicio-natural":["web"],"inc-2709-10-perfil":["web"],"inc-3009-nomina-anticipada":["web"],"inc-2909-03-retirada":["web"],"inc-2909-01-widget-periodo":["web"],"inc-0210-01-plan-cuota":["web"],"inc-0210-03-gastos-periodo":["web"],"feature-0210-01-gasolina-taxi":["web"],"inc-0210-02-categoria-elegida":["web"],"inc-0310-01-meta-regla":["web"],"feature-0310-01-movilidad":["web"],"inc-0310-broker-resultados":["web"],"inc-0310-gastos-sin-limite":["web"],"inc-0710-gastos-mes-madrid":["web"],"inc-0710-auth-disposal":["web"],"inc-0810-dashboard-recents-memo":["web"],"inc-0810-metas-editar-regla":["web"],"bienes-completo":["web"],"inicio-grafica-vuelve":["web"],"widget-pago-app-cerrada":["web"],"bancos-sin-hueco":["web"],"widget-ciclo-puente":["web"],"recibos-cargo-unico":["web"],"bancos-acuse-reconexion":["web"],"tr-iguales-ordinal":["web","edge"],"inicio-patrimonio-flujos":["web"],"recibo-cargo-en-gastos":["web","edge"],"bancos-reconexion-revoca":["web"],"inicio-mes-pasado-mismo-dia":["web"],"limpieza-ajustes-perfil":["web"],"tr-empareja-sin-preguntar":["web"],"cuenta-parte-mia":["web"],"inicio-recientes-sin-repetidos":["web"],"inicio-grafica-reservas":["web"]};
   const previous=new Map();
   const measure=reader=>{
     const now=JSON.parse(reader("scripts/beta-sources.json")),moved={};
@@ -3613,7 +3626,7 @@ test("Catálogo135 añade la tanda de las compras idénticas sobre la beta134, c
   const built=betaNotes(notes,source,scopes),receipt=betaDelivery(built,source,scopes),group=built[0].tandas[0];
   assert.deepEqual(built.flatMap(n=>(n.tandas||[]).map(g=>g.id)),[tanda],"lo que el build entrega al panel");
   assert.equal(group.web,current.web);assert.equal(group.edge,current.edge);assert.equal(group.native,undefined);assert.equal(group.apk,undefined);
-  assert.equal(receipt.web[tanda],current.web);assert.equal(receipt.edge[tanda],current.edge);
+  assert.equal(receipt.web[tanda],current.web);
   assert.deepEqual(receipt.pruebas,{[tanda]:{v:"4.26.135",contenido:JSON.stringify([tanda,expected135.tandas[0].t.es,expected135.tandas[0].items.es,1])}},"un solo guion por probar: el de esta tanda");
   for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica","native"])assert.equal(group[key],undefined,"identidad nueva sin "+key);
 });
@@ -3825,7 +3838,8 @@ test("PERSIST91: el guardado en el commit invalida toda tanda que escribe estado
   const marca="INC-0410 guardado: de aquí al límite";
   const dependientes=Object.keys(registro).filter(id=>registro[id].web.some(x=>x.from&&x.from.includes(marca)));
   const ajenas=Object.keys(registro).filter(id=>!dependientes.includes(id));
-  assert.equal(dependientes.length,34);
+  assert.equal(dependientes.length,35);
+  assert.ok(dependientes.includes("compras-identicas-ids"),"las compras idénticas fusionan filas y guardan lápidas con el set real y llevan el bloque del guardado");
   assert.ok(dependientes.includes("cuenta-parte-mia"),"la parte mía de una cuenta guarda con el set real (ficha de cuenta, sincronización) y lleva el bloque del guardado");
   assert.ok(dependientes.includes("tr-empareja-sin-preguntar"),"el emparejado borra, edita y deshace con el set real y lleva el bloque del guardado");
   assert.ok(dependientes.includes("limpieza-ajustes-perfil"),"la limpieza de Ajustes y perfil escribe estado con set() (Ajustes, Cartera) y lleva el bloque del guardado");

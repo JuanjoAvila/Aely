@@ -44,7 +44,7 @@ for(const cfg of [{},{offline:true},{navThrows:true},{disposed:true},{disposed:t
 const reader=f=>read(f),scope=JSON.parse(read('scripts/beta-sources.json'))['inc-0710-auth-disposal'],revision=betaRevision('inc-0710-auth-disposal',reader).web;
 let fns=0,data=0;for(const f of scopeDependencies(scope,reader)){assert.notEqual(betaRevision('inc-0710-auth-disposal',x=>x===f.file?mutateLogic(read(x),f):read(x)).web,revision,f.name);fns++;}
 for(const d of scopeDataDependencies(scope,reader)){assert.notEqual(betaRevision('inc-0710-auth-disposal',x=>x===d.file?mutateData(read(x),d):read(x)).web,revision,d.name);data++;}
-assert.equal(fns,32,'las siete funciones originales, la unión de historial transitiva del escritor y el cierre del emparejado automático (130)');assert.equal(data,17);
+assert.equal(fns,45,'las siete funciones originales, la unión de historial transitiva del escritor, el cierre del emparejado automático (130) y el de las compras idénticas (135)');assert.equal(data,21);
 const notes=JSON.parse(history106('src/data/release-notes.json')),oldNotes=JSON.parse(old('src/data/release-notes.json'));
 // La unidad106 añade una sola nota y alcance; el histórico102 conserva todos sus datos.
 assert.equal(notes[0].v,'4.26.106');assert.deepEqual(notes[0].tandas.map(g=>g.id),['inc-0810-dashboard-recents-memo']);
@@ -128,4 +128,4 @@ assert.notEqual(betaRevision('inc-0710-auth-disposal',mainRead,undefined,reg['in
 console.log('✓ fit102: retornos/receiver/excepciones diferidas, boot real sin throw, trazas equivalentes;7funciones/9datos, notas históricas106 intactas y registro con cierres107/108/110 explícitos; identidad102 nueva');
 
 }
-assert.equal(createHash('sha256').update(JSON.stringify(JSON.parse(read('scripts/beta-sources.json')))).digest('hex'),'4fdc20e1d9671ed542c83c2b86cf618757d844d37e90a4134b46a04916435ab6','registro131 íntegro: el de la beta 4.26.130 (67666d42) más el descriptor nuevo cuenta-parte-mia al final (la parte mía de cada cuenta, su bloque del guardado y su cierre de lectores) y el cierre de lectores que las funciones nuevas exigen a los descriptores de Inicio, de bancos, del emparejado de Trade Republic y de la nómina anticipada; nada se recorta');
+assert.equal(createHash('sha256').update(JSON.stringify(JSON.parse(read('scripts/beta-sources.json')))).digest('hex'),'2cc440c121475a97ddf0a5c5019532d867053f5638f3769ce42035b45a94395a','registro131 íntegro: el de la beta 4.26.130 (67666d42) más el descriptor nuevo cuenta-parte-mia al final (la parte mía de cada cuenta, su bloque del guardado y su cierre de lectores) y el cierre de lectores que las funciones nuevas exigen a los descriptores de Inicio, de bancos, del emparejado de Trade Republic y de la nómina anticipada; nada se recorta');
