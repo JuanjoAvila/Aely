@@ -1,3 +1,9 @@
+Compras con referencias distintas: `tests/compras-identicas-ids.test.mjs` registrado en Node y
+`e2e/compras-identicas-ids.spec.mjs` en Gastos. Handlers reales con fixtures sintéticas,
+rojo causal, tres estados al céntimo y siete mutaciones. El oráculo antiguo de Recibos sigue
+intacto y rojo en su caso de referencias distintas; navegador local no ejecutado.
+[Acta de la candidata](briefs/compras-identicas-ids-distintos-20261014.md).
+
 PR228, revisión14/10: el job remoto opcional incluye ahora recibo-invariante (775 extractos sin cambiar oráculo), DOM del apunte con comercio real y CPU6 contra base126. El general conserva todos sus gates. [Acta](briefs/tr-emparejado-automatico-20261013.md).
 
 ## Emparejado automático Trade Republic · revisión NO-GO

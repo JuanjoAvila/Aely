@@ -48,6 +48,20 @@ await check("ACK solo cambia cat; UUID, banco, importe y saldo intactos",async()
   for(const kv of [["user_id","fixture-owner"],["id",expense.id],["source",row.source],["cat","otros"],["fecha",row.fecha],["importe",80],["comercio",row.comercio]])
     assert.ok(update[3].some(v=>v[0]===kv[0]&&v[1]===kv[1]),JSON.stringify(kv));
 });
+for(const [name,localRef,remoteRef] of [["fila legacy",true,false],["cliente legacy",false,true],["misma referencia",true,true]])
+  await check(name+": retirada compatible conserva la fuente remota",async()=>{
+    const e={...expense,...(localRef?{extId:"withdrawal/ref-fixture"}:{})};
+    const remote={...row,source:row.source+(remoteRef?"#refwithdrawal%2Fref-fixture":"")};
+    const c=client({row:remote}),ack=await run(c,e);
+    assert.equal(ack.cat,"traspaso");assert.deepEqual(c.data,{...remote,cat:"traspaso"});
+    const update=c.ops.find(op=>op[0]==="update");
+    assert.ok(update[3].some(v=>v[0]==="source"&&v[1]===remote.source));
+  });
+for(const source of ["ob:caixabank#refother","ob:caixabank#refwithdrawal%2Fref-fixture#n1","ob:caixabank#dup#refwithdrawal%2Fref-fixture","ob-hist:caixabank#refwithdrawal%2Fref-fixture"])
+  await check("referencia u origen divergente: no UPDATE "+source,async()=>{
+    const c=client({row:{...row,source}});
+    await assert.rejects(()=>run(c,{...expense,extId:"withdrawal/ref-fixture"}));assert.equal(c.updates,0);
+  });
 for(const [name,opts] of [["sesión ausente",{noSession:true}],["UUID no existe",{missing:true}],
   ["UUID remoto divergente",{row:{...row,id:"550e8400-e29b-41d4-a716-446655440001"}}],
   ["origen cambiado",{row:{...row,source:"ob:sabadell"}}],["importe cambiado",{row:{...row,importe:81}}],
