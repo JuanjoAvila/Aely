@@ -293,7 +293,10 @@ const PRESUPUESTO = {
   // movimiento del banco y su decisión sobre los viejos sin cuenta) sobre la beta 130: medida tras el build, sello 4.26.131.99999 y reserva
   // de 95 B: 1.317.413 B crudo / 365.878 B gzip, +10.514 / +2.823 B sobre la 130. El tope SUBE porque la tanda añade lógica de producto
   // (nada se recorta para caber, mandato del dueño 11/10): 1287 KiB es el mínimo (quedan 475 B).
-  minificado: 1287 * 1024,
+  // Integración 4.26.135 (15/10), compras idénticas (ordinal por banco y referencia, lápida `ob-absorbed` y borrado en la nube de la fila
+  // absorbida) sobre la producción 134: 1.328.724 B crudo / 368.967 B gzip con sello .99999 y reserva de 95 B. El job `beta` lo tumbó
+  // el tope: SUBE por lógica de dinero, no se recorta (mandato 11/10). 1298 KiB es el mínimo (quedan 428 B).
+  minificado: 1298 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -322,7 +325,8 @@ const PRESUPUESTO = {
   // Integración 4.26.129: 356.590 B gzip, 25.941 B menos que la 128. Mínimo medido: 349 KiB (quedan 786 B).
   // Integración 4.26.130: 363.055 B gzip, 6.465 B más que la 129. Mínimo medido: 355 KiB (quedan 465 B).
   // Integración 4.26.131: 365.878 B gzip, 2.823 B más que la 130. Mínimo medido: 358 KiB (quedan 714 B).
-  gzip: 358 * 1024,
+  // Integración 4.26.135: 368.967 B gzip, 2.375 B sobre 358 KiB. Mínimo medido: 361 KiB (quedan 697 B).
+  gzip: 361 * 1024,
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 
