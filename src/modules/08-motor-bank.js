@@ -1299,13 +1299,13 @@ function obCoveredPending(txs){
 function obReconcilePending(expenses,txs,links){
   const response=obPendingResponses.get(txs)||{};
   links=links||response.links||[];
-  const refs=new Map(), prior=new Map(), fresh=new Set(), books=new Map(), used=new Set(), coveredBooks=new Set();
+  const refs=new Map(), prior=new Map(), fresh=new Set(), books=new Map(), used=new Set(), existing=new Map(), unclaimed=new Set(), removed=new Set(), coveredBooks=new Set();
   (response.previous||[]).forEach(function(tx){if(tx.id&&obIsPending(tx))prior.set(tx.ent+"|"+tx.id,tx);});
-  (expenses||[]).forEach(function(e){if(e&&esFilaDeBanco(e)&&e.extId)used.add((expenseBankOf(e)||"")+"|"+e.extId);});
+  (expenses||[]).forEach(function(e){if(e&&esFilaDeBanco(e)&&e.extId){const k=(expenseBankOf(e)||"")+"|"+e.extId;used.add(k);existing.set(k,e);if(!e.obPending&&!e.obPendingRef&&!prior.has(k)&&(!response.expenseIds||response.expenseIds.has(e.id)))unclaimed.add(k);}});
   (txs||[]).forEach(function(tx){
     if(!tx.id||!(tx.amount>0))return;
     const k=tx.ent+"|"+tx.id, old=refs.get(k);if(!old||obIsBooked(tx))refs.set(k,tx);
-    if(obIsBooked(tx)&&!used.has(k)){
+    if(obIsBooked(tx)){
       const group=obPendingGroup(tx);if(!books.has(group))books.set(group,new Map());books.get(group).set(String(tx.id),tx);
     }
   });
@@ -1327,19 +1327,25 @@ function obReconcilePending(expenses,txs,links){
     else if(same&&obIsPending(same)&&fresh.has(key)&&!e.obPending)next=Object.assign({},e,{obPending:true});
     if(wasPending&&!(same&&obIsBooked(same))){
       const group=books.get(obPendingGroup(e)), present=fresh.has(key);
-      const tx=group&&Array.from(group.values()).sort(function(a,b){return String(a.id).localeCompare(String(b.id));}).find(function(t){return !used.has(t.ent+"|"+t.id)&&(!e.obAcc||!t.acc||e.obAcc===t.acc);});
+      const tx=group&&Array.from(group.values()).sort(function(a,b){return String(a.id).localeCompare(String(b.id));}).find(function(t){const k=t.ent+"|"+t.id;return (!used.has(k)||unclaimed.has(k))&&(!e.obAcc||!t.acc||e.obAcc===t.acc);});
       if(tx&&(present||(!same&&covered(e)))){
         used.add(tx.ent+"|"+tx.id);
+        unclaimed.delete(tx.ent+"|"+tx.id);
+        if(existing.has(tx.ent+"|"+tx.id))removed.add(existing.get(tx.ent+"|"+tx.id));
         if(present)coveredBooks.add(tx.ent+"|"+tx.id);
         else{next=Object.assign({},e,{extId:tx.id});next.obPendingRef=e.extId;delete next.obPending;}
       }
     }
     if(next!==e){if(out===expenses)out=expenses.slice();out[item.i]=next;}
   });
+  if(removed.size)out=out.filter(function(e){return !removed.has(e);});
   return{expenses:out,coveredBooks:coveredBooks};
 }
 function importObExpenses(s, txs, links){
   if(!txs || !txs.length) return null;
+  // El enriquecido de después no puede gastar otra vez el BOOK que ya cubrió un PDNG
+  // en esta respuesta. Solo se pueden reconciliar filas que existían ANTES de importarla.
+  const response=obPendingResponses.get(txs);if(response)response.expenseIds=new Set((s.expenses||[]).map(function(e){return e&&e.id;}));
   const settled=obReconcilePending(s.expenses||[],txs,links), coveredPending=obCoveredPending(txs);
   if(settled.expenses!==s.expenses)s=Object.assign({},s,{expenses:settled.expenses});
   const ents=expenseBankEnts(s);

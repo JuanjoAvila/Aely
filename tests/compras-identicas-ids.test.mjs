@@ -114,6 +114,12 @@ test("migración 132: el extracto previo PDNG prueba la marca que aquella versi�
  const next=realSync(legacy,[coffee("b")]);assert.equal(cents(next),320);assert.equal(next.expenses[0].extId,"b");
 });
 
+test("un BOOK añadido durante una lectura parcial se reconcilia al llegar la cobertura completa",()=>{
+ const first=realSync(state(),[coffee("p","PDNG")]),id=first.expenses[0].id;
+ const partial=realSync(first,[coffee("b")],{truncated:true});assert.equal(cents(partial),640,"sin cobertura aún no se demuestra identidad");
+ const full=realSync(partial,[coffee("b")]);assert.equal(cents(full),320);assert.equal(full.expenses.length,1);assert.equal(full.expenses[0].id,id);assert.equal(full.expenses[0].extId,"b");
+});
+
 test("otro móvil: un pull pendiente con UUID distinto tampoco restaura la referencia adoptada",()=>{
  const first=realSync(state(),[coffee("p","PDNG")]),next=realSync(first,[coffee("b")]);
  const old=c.expenseFromRow({...wire(first.expenses[0]),id:"otro-uuid"});
@@ -142,9 +148,11 @@ test("mutaciones de estado: cobertura, persistencia, adopción y pull antiguo",(
   ["marca pendiente no viaja",s=>s.replace('+(e.obPending?"#pdng":"")',''),(ctx,source)=>{const first=realSync(state(),[coffee("p","PDNG")],{},ctx,source),e=first.expenses[0];assert.equal(ctx.expenseFromRow({...wire(e),source:ctx.expenseSourceForCloud(e)}).obPending,true);} ],
   ["migración pierde el PDNG del extracto anterior",s=>s.replace('wasPending=!!e.obPending||!!(previous&&obPendingGroup(previous)===obPendingGroup(e))','wasPending=!!e.obPending'),(ctx,source)=>{const seed=clone(realSync(state(),[coffee("p","PDNG")],{},ctx,source));delete seed.expenses[0].obPending;assert.equal(cents(realSync(seed,[coffee("b")],{},ctx,source),ctx),320);} ],
   ["se pierde el alias adoptado frente a otro UUID",s=>s.replace('next.obPendingRef=e.extId;',''),(ctx,source)=>{const first=realSync(state(),[coffee("p","PDNG")],{},ctx,source),next=realSync(first,[coffee("b")],{},ctx,source),old=ctx.expenseFromRow({...wire(first.expenses[0]),source:ctx.expenseSourceForCloud(first.expenses[0]),id:"otro-uuid"});assert.equal(cents({...next,expenses:ctx.mergeExpensesFromCloud(next.expenses,[old]).list},ctx),320);} ],
+  ["BOOK de una lectura parcial no converge",s=>s.replace('if(removed.size)out=out.filter(function(e){return !removed.has(e);});',''),(ctx,source)=>{const first=realSync(state(),[coffee("p","PDNG")],{},ctx,source),partial=realSync(first,[coffee("b")],{truncated:true},ctx,source);assert.equal(cents(realSync(partial,[coffee("b")],{},ctx,source),ctx),320);} ],
+  ["el enriquecido gasta dos veces el BOOK de esta respuesta",s=>s.replace('&&(!response.expenseIds||response.expenseIds.has(e.id))',''),(ctx,source)=>assert.equal(cents(realSync(state(),[coffee("p1","PDNG"),coffee("p2","PDNG"),coffee("b")],{},ctx,source),ctx),640)],
  ];
  for(const [name,mutate,check] of cases){check(c,html);const changed=mutate(html);assert.notEqual(changed,html,name+": aplicada");const mutant=loadPureLogic(changed);assert.throws(()=>check(mutant,changed),undefined,name+": muerta por el contrato");}
- console.log("compras-identicas-ids: 10/10 nuevas mutaciones de estado muertas; 7 anteriores conservadas");
+ console.log("compras-identicas-ids: 12/12 nuevas mutaciones de estado muertas; 7 anteriores conservadas");
 });
 
 test("dos IDs y alias sin ID cuentan dos; mismo ID con datos distintos cuenta uno",()=>{
