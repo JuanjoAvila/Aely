@@ -96,7 +96,7 @@ test("base132: abrir Gastos con la misma cartera y contexto",{annotation:{type:"
     await testInfo.attach("base132-financial-values",{body:Buffer.from(JSON.stringify(values,null,2)),contentType:"application/json"});
   }catch(error){
     original=error;
-    const state=await estadoNavegacion(page);
+    const state=await estadoNavegacion(page).catch(error=>({readError:String(error)}));
     await testInfo.attach("base132-navigation",{body:Buffer.from(JSON.stringify({errors,state},null,2)),contentType:"application/json"});
     await page.screenshot({path:testInfo.outputPath("base132-navigation.png"),fullPage:true}).catch(()=>{});
     throw error;
@@ -113,7 +113,7 @@ for(const mode of ["sin-efectivo","con-efectivo","traspaso-cajero","transfer-alo
       original=error;
       // Un fallo de navegación debe conservar la excepción de la página y el estado
       // visible; cerrar el contexto no puede tapar el primer error de la comparación.
-      const state=await estadoNavegacion(page);
+      const state=await estadoNavegacion(page).catch(error=>({readError:String(error)}));
       await testInfo.attach((prior?"before":"after")+"-navigation",{body:Buffer.from(JSON.stringify({errors,state},null,2)),contentType:"application/json"});
       await page.screenshot({path:testInfo.outputPath((prior?"before":"after")+"-navigation.png"),fullPage:true}).catch(()=>{});
       throw error;
