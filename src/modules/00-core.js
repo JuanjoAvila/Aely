@@ -1733,7 +1733,7 @@ function keyOfExpenseLegacy(e){
 /* EL SEGUNDO APUNTE IGUAL DEL DÍA ES OTRO APUNTE (12/10/2026: «5 bizums iguales se apuntaban
    como uno»). Trade Republic por Open Banking no manda id ni comercio, así que cinco bizums de
    12 € del mismo día eran una sola clave día|importe|«Movimiento» y entraba UNO: faltaban 48 €.
-   Un apunte de banco sin id lleva `obOrd` (2, 3…) cuando ya hay otro igual el mismo día; el
+   Un apunte de banco lleva `obOrd` (2, 3…) cuando ya hay otro igual el mismo día; el
    primero no lleva nada, para que su clave sea EXACTAMENTE la de siempre y sigan casando las
    lápidas y las filas guardadas por las versiones anteriores. El ordinal no se saca de la
    posición en la respuesta del banco (cambia entre sincronizaciones) sino de cuántos iguales hay.
@@ -1758,18 +1758,59 @@ function fechaConOrdinal(iso, ord){
   const ms=Date.parse(iso);
   return isFinite(ms) ? new Date(ms+(n-1)).toISOString() : iso;
 }
+/* Dos referencias distintas no pueden compartir ranura: además de fundirse al bajar la nube,
+   chocarían con su índice único al subir. Se reutiliza el ordinal de TR, conservando las
+   ranuras ya guardadas y sin tocar los avisos ni el primer cargo (14/10/2026). */
+function expenseBankIdOrdinals(list,reserved){
+  const groups=new Map(); let out=list;
+  // Un pull anterior al asiento puede traer el mismo UUID aún pendiente: no puede restaurar
+  // su referencia vieja ni reservar otra ranura para una fila que ya se contabilizó.
+  const versions=new Map(),previousRefs=new Map();
+  (list||[]).forEach(function(e){if(!e||!esFilaDeBanco(e)||!e.id||!e.extId)return;const k=expenseBankOf(e)+"|"+e.id,old=versions.get(k);if(!old||(old.obPending&&!e.obPending))versions.set(k,e);if(e.obPendingRef&&!e.obPending)previousRefs.set(expenseBankOf(e)+"|"+e.obPendingRef,e);});
+  (list||[]).forEach(function(e,i){
+    if(!e||!e.obPending||!esFilaDeBanco(e))return;
+    const alias=previousRefs.get(expenseBankOf(e)+"|"+e.extId),v=alias&&keyOfExpenseLegacy(alias)===keyOfExpenseLegacy(e)?alias:versions.get(expenseBankOf(e)+"|"+e.id);
+    if(v&&!v.obPending){if(out===list)out=list.slice();out[i]=Object.assign({},e,{extId:v.extId,date:v.date,obOrd:v.obOrd,obPendingRef:v.obPendingRef,obPending:undefined});}
+  });
+  (out||[]).forEach(function(e,i){
+    if(!e||!esFilaDeBanco(e)||!e.extId||!isFinite(dateMs(e.date)))return;
+    const key=(expenseBankOf(e)||"")+"|"+String(e.date).slice(0,10)+"|"+e.amount+"|"+(e.obName!=null?e.obName:e.merchant||"");
+    let g=groups.get(key); if(!g){g={ids:new Map(),slots:new Set()};groups.set(key,g);}
+    let n=g.ids.get(String(e.extId));
+    if(!n){n=obOrdinalOf(e);while(g.slots.has(n)||(reserved&&reserved(e,n)))n++;g.ids.set(String(e.extId),n);g.slots.add(n);}
+    if(n===obOrdinalOf(e))return;
+    if(out===list)out=list.slice();
+    const base=new Date(dateMs(e.date)-(obOrdinalOf(e)-1)).toISOString();
+    out[i]=Object.assign({},e,{date:fechaConOrdinal(base,n),obOrd:n>1?n:undefined});
+  });
+  return out;
+}
 function keyOfExpense(e){
   const base=keyOfExpenseLegacy(e);
   if(isManualExpenseSource(e&&e.source)) return base+"|"+String((e&&e.id)||"");
   return base+obOrdinalSufijo(e);
 }
+/* El vínculo «sin aviso» ya acompaña al borrado; conserva también su referencia, sin gastar
+   otra lápida ni reducir las 500 existentes. Deshacer desactiva el vínculo al levantarla. */
+function bankDeletionLink(e){
+  const g={aviso:"",banco:keyOfExpense(e)};
+  if(e.extId){g.bankRef=String(e.extId);g.ent=expenseBankOf(e)||"";}
+  return g;
+}
 /* Lápidas anteriores al Paso 0 guardaban la clave sin id: siguen ocultando ese manual. */
 function expenseIsTombstoned(e, delSet){
   if(!delSet) return false;
+  const absorbed=obAbsorptionKey(e);if(absorbed&&delSet[absorbed])return true;
   const k=keyOfExpense(e);
   if(delSet[k]) return true;
   if(isManualExpenseSource(e&&e.source) && delSet[keyOfExpenseLegacy(e)]) return true;
   return false;
+}
+/* Una absorción retira una ranura de UNA referencia y banco, no cualquier compra futura
+   que reutilice el día/importe/nombre/ordinal. La identidad no depende del UUID local. */
+function obAbsorptionKey(e){
+  const bank=e&&expenseBankOf(e);
+  return e&&esFilaDeBanco(e)&&bank&&e.extId ? "ob-absorbed|"+encodeURIComponent(bank)+"|"+encodeURIComponent(String(e.extId))+"|"+obOrdinalOf(e) : null;
 }
 function _errCloudMsg(err){
   return mcLogCode(err);
@@ -1888,6 +1929,13 @@ function ordinalDeTramos(tramos){
   }
   return 1;
 }
+/* La referencia debe sobrevivir al pull: sin ella, una lectura parcial no distingue un
+   cargo nuevo de una ranura ya ocupada. Los lectores anteriores ignoran este tramo. */
+function bankRefSufijoCloud(e){ return e&&e.extId ? "#ref"+encodeURIComponent(String(e.extId))+(e.obPendingRef?"#prevref"+encodeURIComponent(String(e.obPendingRef)):"")+(e.obPending?"#pdng":"") : ""; }
+function bankRefDeSource(raw,tag){
+  const m=(tag==="prevref"?/#prevref([^#]*)/:/#ref([^#]*)/).exec(raw); if(!m)return undefined;
+  try{return decodeURIComponent(m[1])||undefined;}catch(_){return undefined;}
+}
 /* Codifica el banco en `source` de la tabla (sin migración SQL): ob:caixa, ob-hist:sabadell,
    macrodroid (= Trade Republic). Así el filtro por banco sobrevive a reinstalaciones. */
 function expenseSourceForCloud(e){
@@ -1914,9 +1962,9 @@ function expenseSourceForCloud(e){
   // final no le cambia nada: ve el banco limpio y la marca de repetido donde siempre. Con `~`
   // dentro del banco (como la cuota) ese móvil leería un banco raro y sacaría la fila del
   // presupuesto; con `#` detrás la lee como hoy. Ver `obOrdinalOf`.
-  // Orden final: ob:<ent>[~deuda.<id> | ~recibo.<id>][#dup][#n<k>].
-  if(ent&&(s==="ob"||String(s).indexOf("ob:")===0)) return "ob:"+ent+(deudaSufijo(e&&e.debtId)||reciboSufijo(e&&e.reciboId))+((e&&e.possibleDup)?"#dup":"")+ordinalSufijoCloud(e);
-  if(ent&&(s==="ob-hist"||String(s).indexOf("ob-hist:")===0)) return "ob-hist:"+ent+reciboSufijo(e&&e.reciboId)+((e&&e.possibleDup)?"#dup":"")+ordinalSufijoCloud(e);
+  // Orden: ob:<ent>[~deuda.<id> | ~recibo.<id>][#dup][#ref<id>][#prevref<id>][#pdng][#n<k>].
+  if(ent&&(s==="ob"||String(s).indexOf("ob:")===0)) return "ob:"+ent+(deudaSufijo(e&&e.debtId)||reciboSufijo(e&&e.reciboId))+((e&&e.possibleDup)?"#dup":"")+bankRefSufijoCloud(e)+ordinalSufijoCloud(e);
+  if(ent&&(s==="ob-hist"||String(s).indexOf("ob-hist:")===0)) return "ob-hist:"+ent+reciboSufijo(e&&e.reciboId)+((e&&e.possibleDup)?"#dup":"")+bankRefSufijoCloud(e)+ordinalSufijoCloud(e);
   // Un alias TR/Wallet pendiente usa temporalmente el encoding OB que entienden también las OTA
   // anteriores; al resolver «son distintos» vuelve a su origen real `macrodroid`.
   if(s==="macrodroid"||s==="tr") return (e&&e.possibleDup)?"ob:trade_republic#dup":"macrodroid";
@@ -2125,6 +2173,7 @@ function pushGemelos(list, nuevos){
     const at=Number(g.at)||0;
     if(ya[k]){
       const i=out.findIndex(function(x){ return firma(x)===k; }), old=out[i];
+      if(g.bankRef&&!old.bankRef){if(out===base)out=base.slice();out[i]=Object.assign({},old,{bankRef:String(g.bankRef),ent:g.ent||old.ent});}
       if(!g.auto||at<(old.at||0)||(at===(old.at||0)&&(!g.separado||old.separado))) return;
       if(out===base) out=base.slice();
       out[i]=Object.assign({},old,{auto:true,at:at,separado:!!g.separado,ent:g.ent||old.ent});
@@ -2133,6 +2182,7 @@ function pushGemelos(list, nuevos){
     ya[k]=1;
     if(out===base) out=base.slice();
     const it={aviso:g.aviso, banco:g.banco};
+    if(g.bankRef){it.bankRef=String(g.bankRef);it.ent=g.ent||"";}
     if(g.avisoId) it.avisoId=String(g.avisoId);
     if(g.auto){ it.auto=true; it.at=at; if(g.ent) it.ent=g.ent; if(g.separado) it.separado=true; }
     out.push(it);
@@ -2459,7 +2509,15 @@ function canRecognizeWithdrawal(e,state){
     &&withdrawalRowMatches(e,{id:current.id,source:expenseSourceForCloud(current),fecha:current.date,importe:current.amount,comercio:current.merchant});
 }
 function withdrawalRowMatches(e, row){
-  return !!(row && row.id===e.id && row.source===expenseSourceForCloud(e)
+  if(!row)return false;
+  var source=expenseSourceForCloud(e),remote=row.source,localRef=bankRefDeSource(source),remoteRef=bankRefDeSource(remote);
+  // La fila anterior a #ref sigue siendo la misma UUID. Dos referencias conocidas no se sustituyen.
+  if(localRef&&remoteRef&&localRef!==remoteRef)return false;
+  if(/^ob(?:-hist)?:/.test(source)&&/^ob(?:-hist)?:/.test(remote)){
+    if((/#ref/.test(source)&&!localRef)||(/#ref/.test(remote)&&!remoteRef))return false;
+    source=source.replace(/#ref[^#]*/,"");remote=remote.replace(/#ref[^#]*/,"");
+  }
+  return !!(row.id===e.id && remote===source
     && Number(row.importe)===e.amount && Date.parse(row.fecha)===Date.parse(e.date)
     && row.comercio===e.merchant);
 }
@@ -2767,16 +2825,23 @@ function expenseFromRow(r){
     debtId: debtId || undefined,
     reciboId: reciboId || undefined,
     obOrd: ord>1 ? ord : undefined,
+    extId: source==="ob"||source==="ob-hist" ? bankRefDeSource(raw) : undefined,
+    obPending: (source==="ob"||source==="ob-hist")&&/#pdng(?:#|$)/.test(raw) ? true : undefined,
+    obPendingRef: source==="ob"||source==="ob-hist" ? bankRefDeSource(raw,"prevref") : undefined,
   };
 }
 
 /* Une gastos en la lista local con dedup. ADITIVO: nunca borra los que ya tenías.
    Manuales: clave con id (Paso 0, 2026-09-11) — no se comen entre sí ni con el banco. */
 function mergeExpenses(prevList, incoming){
-  const seen={}; const list=[];
-  (prevList||[]).forEach(function(e){ const k=keyOfExpense(e); if(!seen[k]){ seen[k]=1; list.push(e); } });
+  const rows=expenseBankIdOrdinals((prevList||[]).concat(incoming||[]));
+  const previousLength=(prevList||[]).length;
+  prevList=rows.slice(0,previousLength); incoming=rows.slice(previousLength);
+  const seen={}; const list=[]; const refs=new Map();
+  const mergeKey=function(e){const ref=esFilaDeBanco(e)&&e.extId&&(expenseBankOf(e)||"")+"|"+e.extId;let k=ref&&refs.get(ref);if(!k){k=keyOfExpense(e);if(ref)refs.set(ref,k);}return k;};
+  (prevList||[]).forEach(function(e){ const k=mergeKey(e); if(!seen[k]){ seen[k]=1; list.push(e); } });
   let nuevos=0;
-  (incoming||[]).forEach(function(e){ const k=keyOfExpense(e); if(!seen[k]){ seen[k]=1; list.push(e); nuevos++; } });
+  (incoming||[]).forEach(function(e){ const k=mergeKey(e); if(!seen[k]){ seen[k]=1; list.push(e); nuevos++; } });
   return { list:list, nuevos:nuevos };
 }
 /* Refresca una fila LOCAL con lo que manda la nube SIN sustituir el array entero (12/9).
@@ -2806,6 +2871,9 @@ function refreshExpenseFromCloud(local, incoming, readStartedAt){
   if(incoming.merchant!=null && incoming.merchant!=="") put("merchant", incoming.merchant);
   if(Object.prototype.hasOwnProperty.call(incoming,"noCard")) put("noCard", incoming.noCard||undefined);
   if(Object.prototype.hasOwnProperty.call(incoming,"obName")) put("obName", incoming.obName);
+  if(incoming.extId) put("extId",incoming.extId);
+  if(Object.prototype.hasOwnProperty.call(incoming,"obPending")) put("obPending",incoming.obPending);
+  if(incoming.obPendingRef) put("obPendingRef",incoming.obPendingRef);
   if(Object.prototype.hasOwnProperty.call(incoming,"origAmount")) put("origAmount", incoming.origAmount);
   if(Object.prototype.hasOwnProperty.call(incoming,"origCur")) put("origCur", incoming.origCur);
   /* `possibleDup` SÍ viaja (sufijo #dup del source). `possibleDupOf` NO: expenseFromRow no lo
@@ -2845,12 +2913,17 @@ function refreshExpenseFromCloud(local, incoming, readStartedAt){
    Nunca elimina una clave que solo exista en local (contención 4.18.6 / FIN-07). */
 function esFilaDeBanco(e){ return e.source==="ob" || e.source==="ob-hist"; }
 function mergeExpensesFromCloud(prevList, incoming, readStartedAt){
-  const byKey={}; const order=[];
+  const rows=expenseBankIdOrdinals((prevList||[]).concat(incoming||[]));
+  const previousLength=(prevList||[]).length;
+  const identitiesChanged=rows.some(function(e,i){return i<previousLength&&e!==prevList[i];});
+  prevList=rows.slice(0,previousLength); incoming=rows.slice(previousLength);
+  const byKey={}; const order=[]; const refs=new Map();
+  const mergeKey=function(e){const ref=esFilaDeBanco(e)&&e.extId&&(expenseBankOf(e)||"")+"|"+e.extId;let k=ref&&refs.get(ref);if(!k){k=keyOfExpense(e);if(ref)refs.set(ref,k);}return k;};
   (prevList||[]).forEach(function(e){
-    const k=keyOfExpense(e);
+    const k=mergeKey(e);
     if(!byKey[k]){ byKey[k]=e; order.push(k); }
   });
-  let changed=false; let nuevos=0; const seen={};
+  let changed=identitiesChanged; let nuevos=0; const seen={};
   /* EL AVISO DEL MÓVIL GANA AL CARGO DE RECIBO DE SU MISMO DÍA, IMPORTE Y COMERCIO, llegue cuando
      llegue (cuarta revisión, 13/10/2026). Con el aviso ya en la lista el banco no añade su fila y
      el aviso cuenta, como siempre; si el aviso bajaba después, se fundía con la fila marcada y
@@ -2883,7 +2956,7 @@ function mergeExpensesFromCloud(prevList, incoming, readStartedAt){
     if(merged!==loc){ byKey[k]=merged; changed=true; }
   };
   (incoming||[]).forEach(function(inc){
-    const k=keyOfExpense(inc);
+    const k=mergeKey(inc);
     if(seen[k]){
       if(!ganaAviso(k,inc) && !hecha[k] && inc.id===byKey[k].id){ hecha[k]=1; delete espera[k]; refresca(k,inc); }
       return;
