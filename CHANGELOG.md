@@ -1,4 +1,13 @@
-## [4.26.134] — 2026-10-15 · Gráfica de Inicio: traspasos y efectivo sin bajones falsos
+## [4.26.134] — 2026-10-15 · Promoción: la gráfica de Inicio sin bajones falsos
+
+- **Qué sube.** La beta 4.26.134 (`38a1eed0`) sobre la producción 4.26.133 (`cdea1015`, merge de la PR 236): `netWorthSeries` empareja las dos patas de un traspaso propio una sola vez (±3 días civiles de Madrid), cuenta como salida el traspaso sin contrapartida y reconoce la retirada de efectivo. Producto, servidor y nativo son los de la beta 134 byte a byte (guardián `Promoción134`).
+- **Veredicto del panel.** El dueño aprobó desde el móvil (15/10, 14:21) la tanda `inicio-grafica-reservas`. La del borde de scroll (133) ya estaba en producción con `tandas:[]`.
+- **Novedades.** La misma nota familiar es/en/ca de un punto, ya con `tandas:[]`, más las 231 notas que tenía producción.
+- **Panel.** El descriptor y la huella se conservan sin repinar y el recibo web sigue entregando la unidad. `Catálogo134` y `Retiro134` pasan a histórico (leen `38a1eed0`) y `e2e/revisar-beta.spec.mjs` cambia el caso de la beta por `promoción134` (es/en/ca): 232 versiones en orden y panel sin nada que pedir.
+- **Sin APK ni despliegue.** `android/` y `public/apk.json` no cambian: sigue la APK 4.26.117 / 55. No hay funciones Edge ni migraciones.
+
+### Corte de beta134 anterior a la promoción (histórico, solo web)
+
 
 - **Fallo.** La gráfica de patrimonio de Inicio podía enseñar bajones que no eran gasto: un traspaso entre cuentas propias con las patas en días distintos, o la retirada de efectivo en cajero. Y la regla contraria (neutralizar todo traspaso de una pata) escondía salidas reales.
 - **Qué hace ahora** (`netWorthSeries`, `src/modules/02-ui-shared.js`). Empareja las dos patas de un traspaso propio **una sola vez** (importes opuestos, bancos presentes, misma cuenta solo si las dos dicen cuentas distintas) dentro de **±3 días civiles de Madrid**: se compara el día civil (`civil`), no los milisegundos, para que el cambio horario y la hora del apunte no muevan el límite. Un traspaso **sin contrapartida** propia, sin enlace a bróker ni aportación periódica coincidente, es una **salida** (decisión del dueño, 14/10). El plan periódico de un bróker con cuenta propia no se cuenta dos veces (regla de `99014642`).

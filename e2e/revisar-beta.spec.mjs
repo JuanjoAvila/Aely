@@ -1793,18 +1793,18 @@ for(const lang of ["es","en","ca"])test(`promoción117: entrega por superficies,
 
 });
 
-/* Beta 4.26.134 (15/10/2026): la nota nueva de la gráfica de Inicio con traspasos y efectivo con su tanda (dos pasos), ÚNICA del panel,
- * sobre la producción 4.26.133 (cdea1015), que ya consolidó la ronda 127–133 en una sola nota y el historial anterior. La del borde de scroll
- * (4.26.133) ya está en producción con `tandas:[]`. Aquí no se inyecta nada: se mira el catálogo que lleva el bundle. Las versiones se leen fila a fila
- * (ver la nota del 12/10 sobre «v4.26.11» + «22 sep»). */
-for(const lang of ["es","en","ca"])test(`beta134: la nota de la gráfica de Inicio con su tanda sobre el historial de producción (${lang})`,async({page})=>{
+/* Promoción134 (15/10/2026): la beta 134 (gráfica de Inicio con traspasos y efectivo) sube entera sobre la producción 133
+ * (cdea1015). Aquí no se inyecta nada: se mira el catálogo que lleva el bundle. La familia ve la nota de la 134 más las 231 que
+ * ya tenía producción, y el panel de revisión queda sin nada que pedir. Las versiones se leen fila a fila (ver la nota del
+ * 12/10 sobre «v4.26.11» + «22 sep»). */
+for(const lang of ["es","en","ca"])test(`promoción134: una nota, el historial de producción y el panel vacío (${lang})`,async({page})=>{
   await abrirRevisionBeta(page,lang);
   const production=JSON.parse(execFileSync("git",["show","cdea1015fb0aac85119a76f31cd01704bd67dc74:src/data/release-notes.json"],{encoding:"utf8",maxBuffer:8e6}));
   expect(production.length).toBe(231);
   const catalog=await page.evaluate(()=>RELEASE_NOTES.map(n=>[n.v,Array.isArray(n.tandas)?n.tandas.length:-1]));
-  expect(catalog).toEqual([["4.26.134",1],...production.map(n=>[n.v,0])]);
+  expect(catalog).toEqual([["4.26.134",0],...production.map(n=>[n.v,0])]);
   const pack=await page.evaluate(()=>{CONFIG.APP_VERSION="4.26.134.1";const p=betaChecklist(CONFIG.APP_VERSION,"4.26.117",55);return {tandas:p.tandas.length,items:p.items.length};});
-  expect(pack).toEqual({tandas:1,items:2});
+  expect(pack).toEqual({tandas:0,items:0});
   const title=await page.evaluate(lang=>rnT(RELEASE_NOTES[0].t,lang),lang);
   const items=await page.evaluate(lang=>rnItems(RELEASE_NOTES[0],lang),lang);
   expect(items.length).toBe(1);
