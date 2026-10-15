@@ -1,5 +1,26 @@
 [
   {
+    "v": "4.26.134",
+    "d": "2026-10-15",
+    "t": {
+      "es": "La gráfica de Inicio ya no enseña bajones falsos",
+      "en": "The Home chart no longer shows false drops",
+      "ca": "La gràfica d'Inici ja no ensenya baixades falses"
+    },
+    "items": {
+      "es": [
+        "La gráfica de Inicio ya no baja cuando pasas dinero entre tus cuentas ni cuando sacas efectivo del cajero. Un traspaso a una cuenta que no tienes en la app cuenta como salida, y la «i» de la gráfica lo explica."
+      ],
+      "en": [
+        "The Home chart no longer drops when you move money between your own accounts or take cash out at an ATM. A transfer to an account you don't have in the app counts as money out, and the chart's \"i\" explains it."
+      ],
+      "ca": [
+        "La gràfica d'Inici ja no baixa quan passes diners entre els teus comptes ni quan treus efectiu del caixer. Un traspàs a un compte que no tens a l'app compta com a sortida, i la «i» de la gràfica ho explica."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.26.133",
     "d": "2026-10-15",
     "t": {
