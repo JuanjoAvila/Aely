@@ -8,7 +8,7 @@ const goal={id:"goal",name:"Viaje sintético",target:4000.55,saved:1500.25,month
 const saved=page=>page.evaluate(()=>JSON.parse(localStorage.getItem("micartera_v3")));
 async function open(page,lang,overrides={}){
  await page.clock.install({time:new Date("2026-10-14T12:00:00Z")});
- await seedLoggedInDashboard(page,{__seedOnce:true,...estadoHeredado("2026-10-14"),debts:[debt],goals:[goal],expenses:[],settings:{lang,autoPrices:false,theme:"green",reservaRules:[]},...overrides});
+ await seedLoggedInDashboard(page,{__seedOnce:true,...estadoHeredado("2026-10-14"),obAccounts:estadoHeredado("2026-10-14").obAccounts.map(o=>({...o,key:o.id})),debts:[debt],goals:[goal],expenses:[],settings:{lang,autoPrices:false,theme:"green",reservaRules:[]},...overrides});
  await page.goto("/");await page.waitForFunction(()=>!document.getElementById("mc-load"));await dismissNews(page);
  await page.locator('.botnav-tab[data-tour="plan"]').click();await page.getByRole("tab",{name:texts[lang].debts,exact:true}).click();
 }
