@@ -1058,7 +1058,8 @@ function flattenBankTx(links, previous){
   out.sort(function(a,b){ return String(b.date).localeCompare(String(a.date)); });
   // El servidor ya acota por cuenta. Un tope GLOBAL de 150 dejaba fuera un banco entero
   // si otro tenía más actividad reciente, antes incluso de llegar a importObExpenses.
-  obPendingResponses.set(out,{links:links||[],previous:previous});
+  // Guardar el array viejo (otra clave del WeakMap) retendría toda la cadena de syncs.
+  obPendingResponses.set(out,{links:links||[],previous:previous.filter(function(tx){return tx&&obIsPending(tx);})});
   return out;
 }
 

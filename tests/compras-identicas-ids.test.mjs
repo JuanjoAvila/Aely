@@ -114,6 +114,15 @@ test("migración 132: el extracto previo PDNG prueba la marca que aquella versi�
  const next=realSync(legacy,[coffee("b")]);assert.equal(cents(next),320);assert.equal(next.expenses[0].extId,"b");
 });
 
+test("la prueba de migración no retiene la cadena de arrays de extractos anteriores",()=>{
+ const old=[{ent:"caixabank",id:"p",date,amount:3.2,merchant:"Panaderia sintetica",status:"PDNG"},{ent:"caixabank",id:"b",date,amount:3.2,status:"BOOK"}];
+ c.__oldBankTx=old;c.__newBankTx=c.flattenBankTx(links([coffee("b")]),old);
+ try{
+  assert.equal(vm.runInContext("obPendingResponses.get(__newBankTx).previous===__oldBankTx",c),false,"el array viejo es la clave de otro contexto: conservarlo encadena todas las sync");
+  assert.equal(vm.runInContext("obPendingResponses.get(__newBankTx).previous.length",c),1,"solo hace falta la prueba pendiente");
+ }finally{delete c.__oldBankTx;delete c.__newBankTx;}
+});
+
 test("un BOOK añadido durante una lectura parcial se reconcilia al llegar la cobertura completa",()=>{
  const first=realSync(state(),[coffee("p","PDNG")]),id=first.expenses[0].id;
  const partial=realSync(first,[coffee("b")],{truncated:true});assert.equal(cents(partial),640,"sin cobertura aún no se demuestra identidad");
@@ -150,9 +159,10 @@ test("mutaciones de estado: cobertura, persistencia, adopción y pull antiguo",(
   ["se pierde el alias adoptado frente a otro UUID",s=>s.replace('next.obPendingRef=e.extId;',''),(ctx,source)=>{const first=realSync(state(),[coffee("p","PDNG")],{},ctx,source),next=realSync(first,[coffee("b")],{},ctx,source),old=ctx.expenseFromRow({...wire(first.expenses[0]),source:ctx.expenseSourceForCloud(first.expenses[0]),id:"otro-uuid"});assert.equal(cents({...next,expenses:ctx.mergeExpensesFromCloud(next.expenses,[old]).list},ctx),320);} ],
   ["BOOK de una lectura parcial no converge",s=>s.replace('if(removed.size)out=out.filter(function(e){return !removed.has(e);});',''),(ctx,source)=>{const first=realSync(state(),[coffee("p","PDNG")],{},ctx,source),partial=realSync(first,[coffee("b")],{truncated:true},ctx,source);assert.equal(cents(realSync(partial,[coffee("b")],{},ctx,source),ctx),320);} ],
   ["el enriquecido gasta dos veces el BOOK de esta respuesta",s=>s.replace('&&(!response.expenseIds||response.expenseIds.has(e.id))',''),(ctx,source)=>assert.equal(cents(realSync(state(),[coffee("p1","PDNG"),coffee("p2","PDNG"),coffee("b")],{},ctx,source),ctx),640)],
+  ["el contexto retiene todos los extractos previos",s=>s.replace('previous:previous.filter(function(tx){return tx&&obIsPending(tx);})','previous:previous'),ctx=>{const old=[{ent:"caixabank",id:"p",date,amount:3.2,status:"PDNG"}];ctx.__oldBankTx=old;ctx.__newBankTx=ctx.flattenBankTx(links([coffee("b")]),old);try{assert.equal(vm.runInContext('obPendingResponses.get(__newBankTx).previous===__oldBankTx',ctx),false);}finally{delete ctx.__oldBankTx;delete ctx.__newBankTx;}}],
  ];
  for(const [name,mutate,check] of cases){check(c,html);const changed=mutate(html);assert.notEqual(changed,html,name+": aplicada");const mutant=loadPureLogic(changed);assert.throws(()=>check(mutant,changed),undefined,name+": muerta por el contrato");}
- console.log("compras-identicas-ids: 12/12 nuevas mutaciones de estado muertas; 7 anteriores conservadas");
+ console.log("compras-identicas-ids: 13/13 nuevas mutaciones de estado muertas; 7 anteriores conservadas");
 });
 
 test("dos IDs y alias sin ID cuentan dos; mismo ID con datos distintos cuenta uno",()=>{
