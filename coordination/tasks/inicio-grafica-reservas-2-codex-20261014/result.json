@@ -1,0 +1,502 @@
+{
+  "status": "blocked",
+  "codeComplete": true,
+  "summary": "PR233 corregida tras devolucion c2d38b9: retirada confirmada conserva1900 donde la candidata anterior pintaba1960. FINAL navegador10PASS0FAIL con siete comparaciones financieras y es/en/ca,1worker0retry. Node propio4mutantes y guardianes financieros PASS, sizePASS. Candidata lista para nueva revision; general actual en curso, integracion VERSION/catalogo reservada a Claude. No ProductREADY ni beta nueva servida.",
+  "productSHA": "a24cb7163fd482e3bb2c03cff2e485261bf7cd9e",
+  "executionBaseSHA": "52e1957db385bc03cceba138fe68ff16b1b84f9f",
+  "claimBaseSHA": "990146429a1adcd3ec1e286b21c1b8f2f2d9d206",
+  "pullRequestNumber": 233,
+  "tests": [
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/inicio-grafica-reservas.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/inicio-v42.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/inicio-mismo-dia.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/inicio-transito-intereses.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/cuenta-parte-mia.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/i18n-keys.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/docs-frescura.test.mjs",
+      "exitCode": 1
+    },
+    {
+      "command": "node tests/presupuesto-rendimiento.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/guard-privacy.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node node_modules/playwright/cli.js test e2e/inicio-grafica-reservas.spec.mjs --list --workers=1 --retries=0",
+      "exitCode": 0
+    },
+    {
+      "command": "workflow_dispatch test.yml focal_spec e2e/inicio-grafica-reservas.spec.mjs; run38722950475 job116381764764; workers1 retries0",
+      "exitCode": 0,
+      "passed": 10,
+      "failed": 0,
+      "skipped": 0,
+      "flaky": 0
+    }
+  ],
+  "causalRed": {
+    "sourceSHA": "38a666f4a5115922156bac2a0122106792b81d88",
+    "command": "node tests/inicio-grafica-reservas.test.mjs",
+    "exitCode": 1,
+    "actualCents": 196000,
+    "expectedCents": 190000
+  },
+  "correction": {
+    "field": "withdrawalConfirmedAt",
+    "merchants": [
+      "DISPOSICION TARJETA",
+      "RETIRADA EFECTIVO"
+    ],
+    "sources": [
+      "ob",
+      "ob-hist"
+    ],
+    "actualAfterCents": 190000,
+    "realRecognitionAPI": true,
+    "cashPocketWithoutClosures": true,
+    "noCashOutflowPreserved": true,
+    "independentBankInflowPreserved": true,
+    "brokerWithOwnAccountCents": 652000,
+    "ownBrokerRuleMutantKilled": true,
+    "unusedOwnMarkersRemoved": true,
+    "threeMadridCivilDaysAcceptedByReviewer": true
+  },
+  "mutationsKilled": {
+    "own": 4,
+    "v42": 31,
+    "sameDay": 4,
+    "transitInterest": 13,
+    "accountShare": 22
+  },
+  "size": [
+    {
+      "name": "base",
+      "minBytes": 1317447,
+      "gzip9Bytes": 365902,
+      "capMinBytes": 1317888,
+      "capGzipBytes": 366592
+    },
+    {
+      "name": "candidate",
+      "minBytes": 1317875,
+      "gzip9Bytes": 366140,
+      "capMinBytes": 1317888,
+      "capGzipBytes": 366592
+    }
+  ],
+  "currentFinancialReaders": {
+    "synthetic": true,
+    "calendar": "Europe/Madrid",
+    "nodeCases": [
+      {
+        "case": "sin-efectivo",
+        "inicio": {
+          "spent": 162.53,
+          "income": 0,
+          "balance": -162.53,
+          "mode": "net",
+          "budget": 1000,
+          "reserved": 0,
+          "remaining": 837.47,
+          "against": 162.53,
+          "shown": 162.53,
+          "periodStart": 1790805600000,
+          "cycle": true
+        },
+        "gastos": {
+          "spent": 162.53,
+          "income": 0,
+          "balance": -162.53,
+          "mode": "net",
+          "budget": 1000,
+          "reserved": 0,
+          "remaining": 837.47,
+          "against": 162.53,
+          "shown": 162.53,
+          "periodStart": 1790805600000,
+          "cycle": true
+        },
+        "netNowCents": 1850244
+      },
+      {
+        "case": "con-efectivo",
+        "inicio": {
+          "spent": 162.53,
+          "income": 0,
+          "balance": -162.53,
+          "mode": "net",
+          "budget": 1000,
+          "reserved": 0,
+          "remaining": 837.47,
+          "against": 162.53,
+          "shown": 162.53,
+          "periodStart": 1790805600000,
+          "cycle": true
+        },
+        "gastos": {
+          "spent": 162.53,
+          "income": 0,
+          "balance": -162.53,
+          "mode": "net",
+          "budget": 1000,
+          "reserved": 0,
+          "remaining": 837.47,
+          "against": 162.53,
+          "shown": 162.53,
+          "periodStart": 1790805600000,
+          "cycle": true
+        },
+        "netNowCents": 1862244
+      },
+      {
+        "case": "traspaso-cajero",
+        "inicio": {
+          "spent": 62.5,
+          "income": 0,
+          "balance": -62.5,
+          "mode": "net",
+          "budget": 1000,
+          "reserved": 0,
+          "remaining": 937.5,
+          "against": 62.5,
+          "shown": 62.5,
+          "periodStart": 1790805600000,
+          "cycle": true
+        },
+        "gastos": {
+          "spent": 62.5,
+          "income": 0,
+          "balance": -62.5,
+          "mode": "net",
+          "budget": 1000,
+          "reserved": 0,
+          "remaining": 937.5,
+          "against": 62.5,
+          "shown": 62.5,
+          "periodStart": 1790805600000,
+          "cycle": true
+        },
+        "netNowCents": 1850244
+      },
+      {
+        "case": "transfer-alone",
+        "inicio": {
+          "spent": 62.5,
+          "income": 0,
+          "balance": -62.5,
+          "mode": "net",
+          "budget": 1000,
+          "reserved": 0,
+          "remaining": 937.5,
+          "against": 62.5,
+          "shown": 62.5,
+          "periodStart": 1790805600000,
+          "cycle": true
+        },
+        "gastos": {
+          "spent": 62.5,
+          "income": 0,
+          "balance": -62.5,
+          "mode": "net",
+          "budget": 1000,
+          "reserved": 0,
+          "remaining": 937.5,
+          "against": 62.5,
+          "shown": 62.5,
+          "periodStart": 1790805600000,
+          "cycle": true
+        },
+        "netNowCents": 1830240
+      },
+      {
+        "case": "transfer-pair",
+        "inicio": {
+          "spent": 62.5,
+          "income": 300.07,
+          "balance": 237.57,
+          "mode": "net",
+          "budget": 1000,
+          "reserved": 0,
+          "remaining": 1237.57,
+          "against": -237.57,
+          "shown": 237.57,
+          "periodStart": 1790805600000,
+          "cycle": true
+        },
+        "gastos": {
+          "spent": 62.5,
+          "income": 300.07,
+          "balance": 237.57,
+          "mode": "net",
+          "budget": 1000,
+          "reserved": 0,
+          "remaining": 1237.57,
+          "against": -237.57,
+          "shown": 237.57,
+          "periodStart": 1790805600000,
+          "cycle": true
+        },
+        "netNowCents": 1830240
+      },
+      {
+        "case": "confirmada-tarjeta",
+        "inicio": {
+          "spent": 62.5,
+          "income": 0,
+          "balance": -62.5,
+          "mode": "net",
+          "budget": 1000,
+          "reserved": 0,
+          "remaining": 937.5,
+          "against": 62.5,
+          "shown": 62.5,
+          "periodStart": 1790805600000,
+          "cycle": true
+        },
+        "gastos": {
+          "spent": 62.5,
+          "income": 0,
+          "balance": -62.5,
+          "mode": "net",
+          "budget": 1000,
+          "reserved": 0,
+          "remaining": 937.5,
+          "against": 62.5,
+          "shown": 62.5,
+          "periodStart": 1790805600000,
+          "cycle": true
+        },
+        "netNowCents": 1862244
+      },
+      {
+        "case": "confirmada-efectivo",
+        "inicio": {
+          "spent": 62.5,
+          "income": 0,
+          "balance": -62.5,
+          "mode": "net",
+          "budget": 1000,
+          "reserved": 0,
+          "remaining": 937.5,
+          "against": 62.5,
+          "shown": 62.5,
+          "periodStart": 1790805600000,
+          "cycle": true
+        },
+        "gastos": {
+          "spent": 62.5,
+          "income": 0,
+          "balance": -62.5,
+          "mode": "net",
+          "budget": 1000,
+          "reserved": 0,
+          "remaining": 937.5,
+          "against": 62.5,
+          "shown": 62.5,
+          "periodStart": 1790805600000,
+          "cycle": true
+        },
+        "netNowCents": 1862244
+      }
+    ],
+    "browserCases": [
+      {
+        "mode": "sin-efectivo",
+        "currentAmountsUnchanged": true,
+        "before": {
+          "now": "18.502,44 €",
+          "card": "837,47 €",
+          "gastos": "BALANCE DESDE EL COBRO\n162,53 €\nGastos\n162,53 €\nIngresos\n0,00 €\nde 1000,00 €\nquedan 837,47 €\n01 OCT\nHOY · DÍA 14\nPOR CATEGORÍA · TOCA UNA PARA PONERLE UN LÍMITE\n▾ Ocultar\n📦 Otros\n100 €\n🛒 Supermercado\n63 €"
+        },
+        "after": {
+          "now": "18.502,44 €",
+          "card": "837,47 €",
+          "gastos": "BALANCE DESDE EL COBRO\n162,53 €\nGastos\n162,53 €\nIngresos\n0,00 €\nde 1000,00 €\nquedan 837,47 €\n01 OCT\nHOY · DÍA 14\nPOR CATEGORÍA · TOCA UNA PARA PONERLE UN LÍMITE\n▾ Ocultar\n📦 Otros\n100 €\n🛒 Supermercado\n63 €"
+        },
+        "historyChanged": true
+      },
+      {
+        "mode": "con-efectivo",
+        "currentAmountsUnchanged": true,
+        "before": {
+          "now": "18.622,44 €",
+          "card": "837,47 €",
+          "gastos": "BALANCE DESDE EL COBRO\n162,53 €\nGastos\n162,53 €\nIngresos\n0,00 €\nde 1000,00 €\nquedan 837,47 €\n01 OCT\nHOY · DÍA 14\nPOR CATEGORÍA · TOCA UNA PARA PONERLE UN LÍMITE\n▾ Ocultar\n📦 Otros\n100 €\n🛒 Supermercado\n63 €"
+        },
+        "after": {
+          "now": "18.622,44 €",
+          "card": "837,47 €",
+          "gastos": "BALANCE DESDE EL COBRO\n162,53 €\nGastos\n162,53 €\nIngresos\n0,00 €\nde 1000,00 €\nquedan 837,47 €\n01 OCT\nHOY · DÍA 14\nPOR CATEGORÍA · TOCA UNA PARA PONERLE UN LÍMITE\n▾ Ocultar\n📦 Otros\n100 €\n🛒 Supermercado\n63 €"
+        },
+        "historyChanged": false
+      },
+      {
+        "mode": "traspaso-cajero",
+        "currentAmountsUnchanged": true,
+        "before": {
+          "now": "18.502,44 €",
+          "card": "937,50 €",
+          "gastos": "BALANCE DESDE EL COBRO\n62,50 €\nGastos\n62,50 €\nIngresos\n0,00 €\nde 1000,00 €\nquedan 937,50 €\n01 OCT\nHOY · DÍA 14\nPOR CATEGORÍA · TOCA UNA PARA PONERLE UN LÍMITE\n▾ Ocultar\n🛒 Supermercado\n63 €"
+        },
+        "after": {
+          "now": "18.502,44 €",
+          "card": "937,50 €",
+          "gastos": "BALANCE DESDE EL COBRO\n62,50 €\nGastos\n62,50 €\nIngresos\n0,00 €\nde 1000,00 €\nquedan 937,50 €\n01 OCT\nHOY · DÍA 14\nPOR CATEGORÍA · TOCA UNA PARA PONERLE UN LÍMITE\n▾ Ocultar\n🛒 Supermercado\n63 €"
+        },
+        "historyChanged": true
+      },
+      {
+        "mode": "transfer-alone",
+        "currentAmountsUnchanged": true,
+        "before": {
+          "now": "18.302,40 €",
+          "card": "937,50 €",
+          "gastos": "BALANCE DESDE EL COBRO\n62,50 €\nGastos\n62,50 €\nIngresos\n0,00 €\nde 1000,00 €\nquedan 937,50 €\n01 OCT\nHOY · DÍA 14\nPOR CATEGORÍA · TOCA UNA PARA PONERLE UN LÍMITE\n▾ Ocultar\n🛒 Supermercado\n63 €"
+        },
+        "after": {
+          "now": "18.302,40 €",
+          "card": "937,50 €",
+          "gastos": "BALANCE DESDE EL COBRO\n62,50 €\nGastos\n62,50 €\nIngresos\n0,00 €\nde 1000,00 €\nquedan 937,50 €\n01 OCT\nHOY · DÍA 14\nPOR CATEGORÍA · TOCA UNA PARA PONERLE UN LÍMITE\n▾ Ocultar\n🛒 Supermercado\n63 €"
+        },
+        "historyChanged": true
+      },
+      {
+        "mode": "transfer-pair",
+        "currentAmountsUnchanged": true,
+        "before": {
+          "now": "18.302,40 €",
+          "card": "1237,57 €",
+          "gastos": "BALANCE DESDE EL COBRO\n237,57 €\nGastos\n62,50 €\nIngresos\n300,07 €\nde 1000,00 €\nquedan 1237,57 €\n01 OCT\nHOY · DÍA 14\nPOR CATEGORÍA · TOCA UNA PARA PONERLE UN LÍMITE\n▾ Ocultar\n🛒 Supermercado\n63 €"
+        },
+        "after": {
+          "now": "18.302,40 €",
+          "card": "1237,57 €",
+          "gastos": "BALANCE DESDE EL COBRO\n237,57 €\nGastos\n62,50 €\nIngresos\n300,07 €\nde 1000,00 €\nquedan 1237,57 €\n01 OCT\nHOY · DÍA 14\nPOR CATEGORÍA · TOCA UNA PARA PONERLE UN LÍMITE\n▾ Ocultar\n🛒 Supermercado\n63 €"
+        },
+        "historyChanged": false
+      },
+      {
+        "mode": "confirmada-tarjeta",
+        "currentAmountsUnchanged": true,
+        "before": {
+          "now": "18.622,44 €",
+          "card": "937,50 €",
+          "gastos": "BALANCE DESDE EL COBRO\n62,50 €\nGastos\n62,50 €\nIngresos\n0,00 €\nde 1000,00 €\nquedan 937,50 €\n01 OCT\nHOY · DÍA 14\nPOR CATEGORÍA · TOCA UNA PARA PONERLE UN LÍMITE\n▾ Ocultar\n🛒 Supermercado\n63 €"
+        },
+        "after": {
+          "now": "18.622,44 €",
+          "card": "937,50 €",
+          "gastos": "BALANCE DESDE EL COBRO\n62,50 €\nGastos\n62,50 €\nIngresos\n0,00 €\nde 1000,00 €\nquedan 937,50 €\n01 OCT\nHOY · DÍA 14\nPOR CATEGORÍA · TOCA UNA PARA PONERLE UN LÍMITE\n▾ Ocultar\n🛒 Supermercado\n63 €"
+        },
+        "historyChanged": true
+      },
+      {
+        "mode": "confirmada-efectivo",
+        "currentAmountsUnchanged": true,
+        "before": {
+          "now": "18.622,44 €",
+          "card": "937,50 €",
+          "gastos": "BALANCE DESDE EL COBRO\n62,50 €\nGastos\n62,50 €\nIngresos\n0,00 €\nde 1000,00 €\nquedan 937,50 €\n01 OCT\nHOY · DÍA 14\nPOR CATEGORÍA · TOCA UNA PARA PONERLE UN LÍMITE\n▾ Ocultar\n🛒 Supermercado\n63 €"
+        },
+        "after": {
+          "now": "18.622,44 €",
+          "card": "937,50 €",
+          "gastos": "BALANCE DESDE EL COBRO\n62,50 €\nGastos\n62,50 €\nIngresos\n0,00 €\nde 1000,00 €\nquedan 937,50 €\n01 OCT\nHOY · DÍA 14\nPOR CATEGORÍA · TOCA UNA PARA PONERLE UN LÍMITE\n▾ Ocultar\n🛒 Supermercado\n63 €"
+        },
+        "historyChanged": true
+      }
+    ]
+  },
+  "currentCI": {
+    "runId": 38722950475,
+    "headSHA": "a24cb7163fd482e3bb2c03cff2e485261bf7cd9e",
+    "focalJob": 116381764764,
+    "focalExit": 0,
+    "generalJob": 116381765190,
+    "generalStatus": "in_progress",
+    "generalConclusion": null,
+    "generalFinalLogsRead": false,
+    "generalResultNotInferred": true
+  },
+  "previousSourceCI": {
+    "headSHA": "c350b9de73ec68e4ff9c5ac7d5706b24018bd765",
+    "runId": 38714857180,
+    "focalPassed": 8,
+    "generalExitCode": 1,
+    "failedStages": [
+      "beta-sources",
+      "docs-frescura"
+    ],
+    "denoFilesPassed": 9,
+    "generalBrowserExecuted": false,
+    "performanceExecuted": false,
+    "privacy": "skipped",
+    "fullLogsRead": true,
+    "notAttributedToFinalSource": true
+  },
+  "review": {
+    "returnedMessageSHA": "c2d38b9adb645d99e987cfa785766dc9cc7c7faa",
+    "reviewedPreviousSHA": "c350b9de73ec68e4ff9c5ac7d5706b24018bd765",
+    "requestedCorrectionCompleted": true,
+    "newCleanReviewPending": true,
+    "integrator": "claude"
+  },
+  "limitations": [
+    "General CI actual continua en curso: ningun resultado Node/Deno/generalE2E/perf/privacidad remotos de esa etapa se infiere",
+    "Version, catalogo, notas y topes intactos por orden expresa de Claude65fe0cf; integracion a su cargo",
+    "Propuesta antigua134 preservada sin publicar, obsoleta y no aplicable al final tras la devolucion; no reserva version",
+    "Sin browser local, CPU6 local, runner pesado, integracion, deploy, APK ni aceptacion fisica movil",
+    "Se conservan fixture y oraculos protegidos con solo las dos excepciones expresas anteriores; rechazos e historicos intactos",
+    "La causa del fallo anterior de navegacion era fixture con dos ob:undefined, corregido solo en el e2e propio; no se alteran04/11/shell"
+  ],
+  "mobileStepsAfterIntegration": [
+    "Usar únicamente una cartera sintética en modo pruebas y la misma semilla en ambas versiones; anotar patrimonio actual, tarjeta del mes y Gastos al céntimo",
+    "Registrar una salida de 300,07 EUR marcada Traspaso sin entrada en otra cuenta: comprobar la corrección histórica de 300,07 EUR frente a la versión anterior",
+    "Añadir una entrada de 300,07 EUR en otra cuenta propia dentro de tres días civiles de Madrid: el traspaso queda neutro",
+    "Registrar una retirada de cajero de 100,03 EUR sin bolsillo de efectivo: comprobar la corrección histórica de 100,03 EUR; con bolsillo de efectivo, conservar neutralidad",
+    "Confirmar que las cifras de hoy, tarjeta y Gastos coinciden entre versiones sobre los mismos datos; revisar Cómo se calcula en es/en/ca",
+    "Comprobar dos cuentas propias del mismo banco con participaciones distintas: diferencia una sola vez en el día de salida y sin bache por tránsito",
+    "En cartera sintetica con bolsillo sin cierres previos, reconocer como retirada una salida OB de60EUR llamada DISPOSICION TARJETA o RETIRADA EFECTIVO: la grafica conserva1900, sin el falso1960; anotar cifras actuales separadamente"
+  ],
+  "productReady": false,
+  "schema": 1,
+  "taskId": "inicio-grafica-reservas-2-codex-20261014",
+  "actor": "codex",
+  "sessionId": "codex-local-20261014-b835a490",
+  "createdAt": "2026-10-15T10:56:18.244Z",
+  "released": true
+}
