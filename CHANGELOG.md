@@ -1,3 +1,9 @@
+## [4.26.136] — 2026-10-16 · Producción: compras idénticas sin duplicar ni perderse
+
+- **Qué sube.** Lo mismo que la promoción 135 preparada el 15/10 (beta 4.26.135 aprobada, `bad396a4`, más el BACKLOG auditado), con una línea más: `GASTO_ORIGENES` incluye `ob-absorbed`.
+- **Por qué cambia el número.** Las compras idénticas añadieron `borrarGastoNube(e,"ob-absorbed")` y su origen no estaba en la lista de puertas conocidas: un error al borrar la lápida llegaba a `app_events` sin origen. Lo cazó `recibos-bajas-y-union` en la CI de main del PR 238 (en beta el job `tests` no bloquea la publicación). Es código publicable, así que `docs-frescura` exige versión nueva: la producción sale como 4.26.136 con la misma nota familiar de la 135 (el cambio no se nota) y la próxima beta pasa a ser la 137. Decidido con el dueño el 16/10.
+- **Guardianes.** `Promoción135` pasa a `Promoción136`: el producto es el de la beta 135 byte a byte salvo esa línea de `00-core.js`, que se comprueba literal.
+
 ## [4.26.135] — 2026-10-15 · Promoción: compras idénticas sin duplicar ni perderse
 
 - **Qué sube.** La beta 4.26.135 (`bad396a4`, más un commit de solo documentación del BACKLOG, `2f3614e5`) sobre la producción 4.26.134 (`2751c866`, merge de la PR 237). Producto, servidor y nativo son los de la beta 135 byte a byte (guardián `Promoción135`).

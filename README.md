@@ -190,7 +190,7 @@ Push a `main` → GitHub Actions sella la versión del SW y publica `public/` en
 
 ## 🗺️ Roadmap
 
-Estado actual: **v4.26.135** — promoción a producción de la beta 135: las compras idénticas del mismo día no se funden en una, y la compra que el banco manda como pendiente y luego como cargada no cuenta doble ni en la app ni en el widget. `ingest` ya está desplegado desde `963f43c7`; la APK sigue en la 4.26.117/code55. Ninguna tanda en el panel.
+Estado actual: **v4.26.136** — producción con la beta 135 aprobada (más el origen `ob-absorbed` en el registro de errores): las compras idénticas del mismo día no se funden en una, y la compra que el banco manda como pendiente y luego como cargada no cuenta doble ni en la app ni en el widget. `ingest` ya está desplegado desde `963f43c7`; la APK sigue en la 4.26.117/code55. Ninguna tanda en el panel.
 
 Corte anterior (15/10): **v4.26.135** — candidata de beta: las compras idénticas del mismo día no se funden en una, y la compra que el banco manda como pendiente y luego como cargada no cuenta doble ni en la app ni en el widget. Encima de la 4.26.134. Requiere desplegar la función `ingest` antes que el cliente; la APK sigue en la 4.26.117/code55. Tanda `compras-identicas-ids` en revisión.
 

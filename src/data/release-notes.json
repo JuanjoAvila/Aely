@@ -1,7 +1,7 @@
 [
   {
-    "v": "4.26.135",
-    "d": "2026-10-15",
+    "v": "4.26.136",
+    "d": "2026-10-16",
     "t": {
       "es": "Compras iguales: ni se funden ni se cuentan dos veces",
       "en": "Identical purchases: no longer merged or counted twice",

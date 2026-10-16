@@ -3706,14 +3706,15 @@ test("Retiro135 histórico elimina solo la tanda aprobada de la 134 y conserva n
 // absorbido por el cargado deja lápida en cliente, mes y widget). Producto, servidor y nativo son los de la beta135 byte a byte y lo único que cambia es el catálogo,
 // que la familia ve como la MISMA nota ya sin tanda más el historial de la producción134 (232 notas). Sin APK nueva (sigue la 55); `ingest` ya está desplegado en
 // producción desde 963f43c7 con esta misma fuente, así que no queda nada del servidor por desplegar.
-test("Promoción135 muestra una nota y el historial de producción, retira la tanda aprobada y no toca producto, descriptores ni APK",()=>{
+// 16/10: sale como 4.26.136 con una sola línea más (`ob-absorbed` en GASTO_ORIGENES, cazado por la CI de main): ver CHANGELOG.
+test("Promoción136 muestra una nota y el historial de producción, retira la tanda aprobada y no toca producto, descriptores ni APK",()=>{
   const tanda="compras-identicas-ids",beta=f=>sourceBeta135(f).replace(/\r\n/g,"\n"),source=f=>read(f).replace(/\r\n/g,"\n");
   const production=JSON.parse(sourceProd134("src/data/release-notes.json")),before=JSON.parse(beta("src/data/release-notes.json"));
   assert.equal(production.length,232);assert.equal(production[0].v,"4.26.134");assert.deepEqual(production[0].tandas,[]);
   const panel=before.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id]));
   assert.deepEqual(panel,[["4.26.135",tanda]],"la beta135 aprobada solo lleva su tanda; la de la 134 ya estaba retirada");
   assert.deepEqual(before.slice(1),production,"debajo de la nota nueva, beta ya llevaba el historial de producción134 tal cual");
-  const expectedProd135={...expected135,tandas:[]};
+  const expectedProd135={...expected135,v:"4.26.136",d:"2026-10-16",tandas:[]};
   const expected=[expectedProd135,...production];
   const verify=list=>assert.deepEqual(list,expected,"una nota literal y el historial de producción134 íntegro");
   const notes=JSON.parse(source("src/data/release-notes.json"));verify(notes);
@@ -3733,7 +3734,7 @@ test("Promoción135 muestra una nota y el historial de producción, retira la ta
   const scopes=JSON.parse(source("scripts/beta-sources.json")),old=JSON.parse(beta("scripts/beta-sources.json"));
   assert.deepEqual(scopes,old,"ningún descriptor se recorta ni se repina");
   assert.deepEqual(JSON.parse(source("scripts/beta-archives.json")),JSON.parse(beta("scripts/beta-archives.json")),"archivo y rechazo109 no se repinan");
-  for(const file of JSON.parse(source("src/build-order.json")).map(f=>"src/modules/"+f).concat("src/shell.html","src/build-order.json","public/apk.json","android/app/build.gradle","supabase/functions/_shared/presupuesto.ts","supabase/functions/ingest/index.ts","supabase/functions/ingest/widget.ts","supabase/functions/_shared/enablebanking.ts","supabase/functions/_shared/myinvestor.ts","supabase/functions/bank-disconnect/index.ts","supabase/functions/bank-sync/index.ts","supabase/functions/myinvestor-keepalive/index.ts","supabase/functions/myinvestor-sync/index.ts"))assert.equal(source(file),beta(file),file+": idéntico a la beta135");
+  for(const file of JSON.parse(source("src/build-order.json")).map(f=>"src/modules/"+f).concat("src/shell.html","src/build-order.json","public/apk.json","android/app/build.gradle","supabase/functions/_shared/presupuesto.ts","supabase/functions/ingest/index.ts","supabase/functions/ingest/widget.ts","supabase/functions/_shared/enablebanking.ts","supabase/functions/_shared/myinvestor.ts","supabase/functions/bank-disconnect/index.ts","supabase/functions/bank-sync/index.ts","supabase/functions/myinvestor-keepalive/index.ts","supabase/functions/myinvestor-sync/index.ts"))assert.equal(source(file),file==="src/modules/00-core.js"?beta(file).replace('"ob-import","backfill"]','"ob-import","ob-absorbed","backfill"]'):beta(file),file+": idéntico a la beta135 (salvo ob-absorbed en GASTO_ORIGENES)");
   // El panel queda vacío y el recibo web sigue entregando la unidad con su huella de la beta135.
   const receipt=betaDelivery(betaNotes(notes,source,scopes),source,scopes);
   assert.deepEqual(receipt.pruebas,{},"ningún guion por probar");
