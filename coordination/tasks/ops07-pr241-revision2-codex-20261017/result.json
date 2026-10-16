@@ -1,0 +1,92 @@
+{
+  "status": "done",
+  "summary": "PR241 revision2 delivered DRAFT. Latest-event detail comparison preserves recovery and missing-field signals; lost UPDATE acknowledgement ambiguity explicitly documented. Ready for Claude review, not deployed.",
+  "baseSHA": "5c670eccb4090ec98a8a2d304b49fdb580431af6",
+  "productSHA": "fdc0524dfed1ed3728375a23af843fe289aca272",
+  "pullRequestNumber": 241,
+  "productReady": false,
+  "manifestSHA256": "f11d9b13d329fdc24f6dcf5b1b0fffed0b9b126885477b0eef441a558d6c1209",
+  "reportSHA256": "29dfe6d9469a32df9010b02eb81b0faa3c82c98fc6babe4294a7ca43021edda6",
+  "tests": [
+    {
+      "command": "Node keepalive",
+      "exitCode": 0,
+      "passed": 60
+    },
+    {
+      "command": "Deno handler typecheck",
+      "exitCode": 0
+    },
+    {
+      "command": "Deno shared MyInvestor",
+      "exitCode": 0,
+      "passed": 11
+    },
+    {
+      "command": "Node logs-privacidad",
+      "exitCode": 0,
+      "passed": 23
+    },
+    {
+      "command": "Node relevant-tests",
+      "exitCode": 0,
+      "passed": 15
+    },
+    {
+      "command": "guard-privacy and diff-check",
+      "exitCode": 0
+    }
+  ],
+  "causalRed": {
+    "baseFailures": 4,
+    "exitCode": 1,
+    "ambiguityCharacterizationPassed": 1
+  },
+  "newMutations": {
+    "total": 3,
+    "killed": 3,
+    "eachExitCode": 1,
+    "failedAssertions": [
+      4,
+      3,
+      4
+    ]
+  },
+  "previousMutations": {
+    "total": 9,
+    "sourceSHA": "5c670eccb4090ec98a8a2d304b49fdb580431af6",
+    "rerunOnThisRevision": false
+  },
+  "CI": {
+    "runId": 38981372059,
+    "status": "in_progress_at_readback",
+    "green": false
+  },
+  "preservedInvocationErrors": [
+    "deno check unsupported cached-only flag; corrected EXIT0",
+    "wrong privacy filename before test execution; corrected EXIT0"
+  ],
+  "budget": {
+    "block1FrozenUsed": 12,
+    "block2UsedBeforeResult": 2,
+    "cumulativeBeforeResult": 14,
+    "block2Grant": "db3299cd69020ccf15563e787d1a1f4b69e8a753",
+    "budgetNotice": "d677966bdc24227be1bfe7e3d496771c75967384",
+    "INCInherited": false
+  },
+  "limitations": [
+    "Candidato DRAFT para revisión Claude; no desplegado ni ProductREADY. CI general en curso al corte, sin integración ni artefacto servido de esta fuente.",
+    "Sin suite completa, CPU6, DOM/navegador, Gradle/APK, móvil físico, bancos ni SQL vivos, migraciones o despliegue. No se tocó main/beta, VERSION, catálogo, caps, sync, token_store ni cliente.",
+    "Último evento significa último por created_at e id; el límite no es atómico entre cron concurrentes. Si falla la lectura se omite el diagnóstico. Retención existente, sin garantías sobre eventos no guardados.",
+    "UPDATE aplicado con respuesta perdida puede producir skipped/raced en el reintento aunque los tokens nuevos estén guardados. Documentado y caracterizado, no distinguido mediante nuevas lecturas. No demuestra otro escritor.",
+    "Carrera general keepalive/sync pendiente. Dos errores de guardado tras renovar pueden requerir reconexión. Timeout de banco no limita BD ni lote completo.",
+    "Las nueve mutaciones previas pertenecen a5c670ecc; esta revisión ejecutó tres nuevas. No repitió sync18/security18/sintaxis39 anteriores, sin atribuirles verde en este SHA."
+  ],
+  "previousResultUnchanged": "3f5e56b94ef520635a7ff0a94788c1e1b2d07880",
+  "schema": 1,
+  "taskId": "ops07-pr241-revision2-codex-20261017",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-5fc9afdec60f82b1",
+  "createdAt": "2026-10-16T23:26:46.755Z",
+  "released": true
+}
