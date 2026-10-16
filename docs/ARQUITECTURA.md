@@ -836,6 +836,37 @@ FIN-06: FX puro devuelve null sin tipo (nunca 1:1). Las sumas vivas omiten conve
 
 Cliente probado y aprobado en beta 4.26.57.1; entrega exclusiva cliente 4.26.57 mediante PR49, Edge sin despliegue: los errores automáticos se reducen antes del transporte a operación y clase cerrada; app_events ya no añade el correo de sesión. El sobre Sentry se reconstruye por lista permitida (tipo/código/posición/versión/plataforma), sin contextos, breadcrumbs, tracing ni URL de petición. Feedback y notas de beta explícitos redactan patrones sensibles y filtran campos, con límites semánticos. user_id sigue siendo necesario para RLS: no es telemetría anónima. Matriz, pruebas y límites Edge/gateway en [SEC-03](briefs/sec03-privacidad-logs.md).
 
+SES-01, primera entrega web: los fallos finales de la tarjeta TR (login, verificación y sync) y
+del sync manual general pasan por `trLogFailure` y el `cloud.logEvent` existente. Se conserva
+`kind:error`, `message:tr_sync`; `detail` se reconstruye con `schema:1` y tres enums cerrados:
+
+| Campo | Valores admitidos |
+|---|---|
+| `code` | `auth_expired`, `soft_fail`, `sync_invalid`, `sync_rejected`, `status_rejected`, `login_failed`, `verify_failed`, `unknown` |
+| `origin` | `tr_card_sync`, `broker_manual_sync`, `tr_card_login`, `tr_card_verify`, `status_check`, `unknown` |
+| `snapshotAge` | `unknown`, `no_snapshot`, `invalid_clock`, `lt_5m`, `m5_lt_60m`, `h1_lt_24h`, `ge_24h` |
+
+Todos los productores de esta entrega emiten `snapshotAge:unknown`: la APK existente no entrega
+edad estructurada. Los tramos reservan menos de5min, de5min a menos de1h, de1h a menos de24h y
+24h o más; no se calcula edad desde `lastTrSync`, el texto del error ni timestamps del cliente.
+JSON inválido, campos extra y valores fuera de lista no pasan al registro. El prefijo antiguo
+`TR sync:` conserva la ruta sin analizar su texto para inferir una causa.
+
+`auth_expired` solo describe el flag del puente sin `softFail`/`wafBlocked`; no prueba HTTP401,
+ni distingue refresh de WebSocket. `soft_fail` describe esos flags temporales; los rechazos de
+promesa o excepciones síncronas del sync se registran como `sync_rejected`, sin texto crudo.
+`connected:false` por sí solo no genera un error de caducidad; la consulta automática de status
+sigue silenciosa y TR solo sincroniza a demanda. Un éxito no emite error y un fallo de TR conserva
+el resultado parcial de MyInvestor y el orden previo de los avisos.
+
+No hay escritor remoto nuevo, SQL ni Edge: se conservan el dedupe y tope20 por sesión, el bloqueo
+de `logEvent` en modo pruebas y la entrega best-effort. No se envían cookies, edad exacta,
+URL, error libre, teléfono, PIN/OTP, posiciones ni importes. El detalle no añade PII; la fila
+sigue incluyendo `user_id` por RLS. Las pruebas Node ejercitan los handlers de la tarjeta y el
+transporte `cloud.logEvent` con un INSERT sintético capturado, además del flujo general. No
+sustituyen DOM, móvil ni validación de cookies. La instrumentación nativa y su APK quedan para
+otra tanda; esta entrega no mide la vigencia remota del snapshot ni cambia sesión o reintentos.
+
 ## Evidencia de pago de recibos · INC-3009-01
 
 Inicio y Plan consultan `fixedPaymentState`. El feed BOOK solo acredita un cargo del mes, no futuro, con nombre/importe/banco compatibles y atribución única. El importe sin identidad no prueba pago. En la sincronización bancaria a demanda, `reconcileFixedPaymentProofs` conserva esa evidencia en `fixed[].paymentProofs[year*12+month]`, dentro de app_state; bankTx continúa siendo local y no viaja a la nube.

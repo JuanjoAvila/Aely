@@ -154,7 +154,17 @@ function mcLogEvent(kind,message,detail){
     return {message:"hist_read",detail:JSON.stringify(out)};
   }
   if(kind!=="error") return null;
-  const routes=[[/^addExpense\b/,"addExpense"],[/^deleteExpense\b/,"deleteExpense"],[/^setExpenseDup\b/,"setExpenseDup"],[/^setExpenseDeuda\b/,"setExpenseDeuda"],[/^MI:/,"myinvestor"],[/^TR sync:/,"tr_sync"],[/^bankConnect\b/,"bank_connect"],[/^OB /,"ob_balance"],[/^bankSync sin pull/,"bank_sync_pull"],[/^CRASH:/,"render_crash"],[/^TOAST:/,"toast"],[/^Promise:/,"unhandled_promise"],[/^canal /,"channel_update"],[/^OTA /,"ota_update"],[/^APK /,"apk_update"],[/^import hoja:/,"import_sheet"]];
+  // SES-01: el error nativo puede traer cookies/URL/credenciales. Solo reconstruimos enums;
+  // ni el texto antiguo ni un HTTP401 suelto demuestran dónde murió la sesión de TR.
+  if(m==="tr_sync" || /^TR sync:/.test(m)){
+    let p=null; try{ if(typeof detail==="string") p=JSON.parse(detail); }catch(e){}
+    const field=function(k,allowed){ return p&&p.schema===1&&!Array.isArray(p)&&Object.prototype.hasOwnProperty.call(p,k)&&typeof p[k]==="string"&&allowed.indexOf(p[k])>=0?p[k]:"unknown"; };
+    return {message:"tr_sync",detail:JSON.stringify({schema:1,
+      code:field("code",["auth_expired","soft_fail","sync_invalid","sync_rejected","status_rejected","login_failed","verify_failed","unknown"]),
+      origin:field("origin",["tr_card_sync","broker_manual_sync","tr_card_login","tr_card_verify","status_check","unknown"]),
+      snapshotAge:field("snapshotAge",["unknown","no_snapshot","invalid_clock","lt_5m","m5_lt_60m","h1_lt_24h","ge_24h"])})};
+  }
+  const routes=[[/^addExpense\b/,"addExpense"],[/^deleteExpense\b/,"deleteExpense"],[/^setExpenseDup\b/,"setExpenseDup"],[/^setExpenseDeuda\b/,"setExpenseDeuda"],[/^MI:/,"myinvestor"],[/^bankConnect\b/,"bank_connect"],[/^OB /,"ob_balance"],[/^bankSync sin pull/,"bank_sync_pull"],[/^CRASH:/,"render_crash"],[/^TOAST:/,"toast"],[/^Promise:/,"unhandled_promise"],[/^canal /,"channel_update"],[/^OTA /,"ota_update"],[/^APK /,"apk_update"],[/^import hoja:/,"import_sheet"]];
   let route="unhandled_error";
   routes.some(function(r){ if(r[0].test(m)){ route=r[1]; return true; } return false; });
   /* DESDE DÓNDE se escribía el gasto (13/10/2026): un `23505` de `addExpense` no decía si venía
