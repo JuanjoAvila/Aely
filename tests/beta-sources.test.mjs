@@ -3914,13 +3914,13 @@ test("Catálogo138 añade cinco tandas sobre la producción 137, con alcance pro
   for(const id of tandas)assert.equal(integrated[id],undefined,"identidad que no existía: "+id);
   assert.deepEqual(Object.keys(scopes).slice(-tandas.length),tandas);
   assert.deepEqual(rest,integrated,"ningún descriptor ajeno se recorta ni crece");
-  const D="src/modules/09-tab-debts-goals.js",G="src/modules/04-tab-gastos.js",C="src/modules/00-core.js",fn=(file,function_)=>({file,function:function_});
+  const P7="src/modules/07-tab-patri-fijos.js",deuda7=["ymAbs","ymNow","debtAmort","debtChargeDay","debtPaidCount","debtBalance","debtLeft"].map(n=>({file:P7,function:n})),D="src/modules/09-tab-debts-goals.js",G="src/modules/04-tab-gastos.js",C="src/modules/00-core.js",fn=(file,function_)=>({file,function:function_});
   const guardado=integrated["myinvestor-contador-a-cero"].web[3];
   assert.ok(guardado.from.includes("INC-0410 guardado"),"el bloque del guardado, tal como lo lleva MyInvestor");
   const edicion=["planEditNumber","debtEditDraft","debtEditFinished","debtEditResult"].map(n=>fn(D,n));
   const propias={
-    "deudas-metas-hoja-edicion":[...edicion,...["goalEditDraft","goalEditResult","planEditSame","planEditCommit","usePlanEditSave","PlanEditSheet","DebtEditSheet","GoalEditSheet","AmortAdvisor","Debts","Goals"].map(n=>fn(D,n)),guardado],
-    "deudas-plazo-cuota-cuadran":[...edicion,fn(D,"DebtEditSheet"),guardado],
+    "deudas-metas-hoja-edicion":[...edicion,...["goalEditDraft","goalEditResult","planEditSame","planEditCommit","usePlanEditSave","PlanEditSheet","DebtEditSheet","GoalEditSheet","AmortAdvisor","Debts","Goals"].map(n=>fn(D,n)),...deuda7,guardado],
+    "deudas-plazo-cuota-cuadran":[...edicion,fn(D,"DebtEditSheet"),...deuda7],
     "gastos-actualizar-gastos":[{file:G,from:'    React.createElement("div",{className:"action-row"},',to:'    React.createElement("div",{className:"sync-note"},'}],
     "gastos-suscripciones-botones":[fn(G,"SubRow"),guardado],
     "compras-pendientes-otro-dia":[fn(C,"mergeExpensesFromCloud"),fn("src/modules/01-i18n.js","expenseCountsBudget")]
@@ -3976,7 +3976,7 @@ test("Catálogo138 añade cinco tandas sobre la producción 137, con alcance pro
     ["deudas-metas-hoja-edicion",D,"debtPaidCount(d)>=d.months&&debtBalance(d)<=0.005; }","debtPaidCount(d)>=d.months&&debtBalance(d)<=0.5; }","web"],
     ["gastos-actualizar-gastos",G,'"aria-describedby":"gastos-refresh-scope"','"aria-describedby":"gastos-refresh"',"web"],
     ["gastos-suscripciones-botones",G,'gridColumn:"1 / -1"','gridColumn:"1"',"web"],
-    ["compras-pendientes-otro-dia",C,'&&e.extId&&(expenseBankOf(e)||"")+"|"+e.extId;','&&false&&e.extId&&(expenseBankOf(e)||"")+"|"+e.extId;',"web"],
+    ["compras-pendientes-otro-dia",C,'const byKey={}; const order=[]; const refs=new Map();','const byKey={}; const order=[]; const refs=new Map(); refs.get=function(){return null;};',"web"],
     ["compras-pendientes-otro-dia","supabase/functions/_shared/presupuesto.ts","if (ref && referencias.has(ref)) continue;","if (false && ref && referencias.has(ref)) continue;","edge"]]){
     assert.equal(source(file).split(a).length,2,"mutante sobre fuente real: "+a);
     const mutated=betaRevision(id,f=>f===file?source(f).replace(a,b):source(f),undefined,scopes[id]);
@@ -4177,8 +4177,8 @@ test("PERSIST91: el guardado en el commit invalida toda tanda que escribe estado
   const marca="INC-0410 guardado: de aquí al límite";
   const dependientes=Object.keys(registro).filter(id=>registro[id].web.some(x=>x.from&&x.from.includes(marca)));
   const ajenas=Object.keys(registro).filter(id=>!dependientes.includes(id));
-  assert.equal(dependientes.length,39);
-  for(const id of ["deudas-metas-hoja-edicion","deudas-plazo-cuota-cuadran","gastos-suscripciones-botones"])assert.ok(dependientes.includes(id),id+": las hojas de Deudas y Metas y SubRow escriben estado con el set real y llevan el bloque del guardado");
+  assert.equal(dependientes.length,38);
+  for(const id of ["deudas-metas-hoja-edicion","gastos-suscripciones-botones"])assert.ok(dependientes.includes(id),id+": las hojas de Deudas y Metas y SubRow escriben estado con el set real y llevan el bloque del guardado");
   assert.ok(dependientes.includes("myinvestor-contador-a-cero"),"la sincronización de brókers de App escribe posiciones con el set real y lleva el bloque del guardado");
   assert.ok(dependientes.includes("compras-identicas-ids"),"las compras idénticas fusionan filas y guardan lápidas con el set real y llevan el bloque del guardado");
   assert.ok(dependientes.includes("cuenta-parte-mia"),"la parte mía de una cuenta guarda con el set real (ficha de cuenta, sincronización) y lleva el bloque del guardado");
@@ -4195,7 +4195,7 @@ test("PERSIST91: el guardado en el commit invalida toda tanda que escribe estado
   assert.ok(dependientes.includes("widget-pago-app-cerrada"),"la lectura que acredita el widget mezcla gastos con el set real");
   assert.ok(dependientes.includes("inc-0810-metas-editar-regla"),"editar una regla escribe con el set real y conserva el cierre de persistencia");
   assert.ok(dependientes.includes("inc-0710-gastos-mes-madrid"),"Gastos99 conserva la dependencia real de guardado de Expenses");
-  assert.deepEqual(ajenas.slice().sort(),["bancos-reconexion-revoca","beta-panel-veredictos","compras-pendientes-otro-dia","gastos-actualizar-gastos","inc-0210-01-plan-cuota","inc-0410-inicio-tres-metas","inc-0710-appstate-listener-cleanup","inc-0710-banknotif-cleanup","inc-0810-backclose-handover","inc-0810-dashboard-recents-memo","inc-0810-inicio-grafica-significado","inc-0810-nav-indicator","inc-2709-01-arranque-red","inc-2709-09-fechas-cache","inc-2709-12-cyber-fab","inc-2709-13-fab-contorno","inc-2709-14-preguntar","inicio-grafica-reservas","inicio-grafica-vuelve","inicio-recientes-sin-repetidos","inicio-solape-gastos","inicio-tarjeta-ciclo-limpia","ops-0410-panel-cola","plan-scroll-lento","scroll-borde-barra","splash-animado","tr-descripcion-clasificacion"]);
+  assert.deepEqual(ajenas.slice().sort(),["bancos-reconexion-revoca","beta-panel-veredictos","compras-pendientes-otro-dia","deudas-plazo-cuota-cuadran","gastos-actualizar-gastos","inc-0210-01-plan-cuota","inc-0410-inicio-tres-metas","inc-0710-appstate-listener-cleanup","inc-0710-banknotif-cleanup","inc-0810-backclose-handover","inc-0810-dashboard-recents-memo","inc-0810-inicio-grafica-significado","inc-0810-nav-indicator","inc-2709-01-arranque-red","inc-2709-09-fechas-cache","inc-2709-12-cyber-fab","inc-2709-13-fab-contorno","inc-2709-14-preguntar","inicio-grafica-reservas","inicio-grafica-vuelve","inicio-recientes-sin-repetidos","inicio-solape-gastos","inicio-tarjeta-ciclo-limpia","ops-0410-panel-cola","plan-scroll-lento","scroll-borde-barra","splash-animado","tr-descripcion-clasificacion"]);
   /* Quién depende del guardado lo decide el CÓDIGO, no la marca del registro (auditoría del
      coordinador, 4/10): se quita de cada alcance el bloque del guardado y se mira si lo que queda
      llama a `set` de App —las dependencias transitivas ya son unidades del alcance—. Tiene que
