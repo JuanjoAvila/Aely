@@ -35,9 +35,12 @@ function debtEditResult(d,form){
     if(termChanged&&months!=null&&balance>0.005&&months<=paid) return {error:"db_err_paid"};
     if(amountChanged&&next.months==null){ next.asOf=ymNow(); next.value=+balance.toFixed(2); }
     else{
-      if(amountChanged&&!termChanged&&next.months!=null&&am>0){
-        const viaM=Math.max(0,balance-(next.balloon||0));
-        next.months=paid+(viaM>0?Math.ceil(viaM/am):(next.balloon>0&&balance>0.005?1:0));
+      // Día/cuota también cambian la proyección: mantener el plazo dejaba principal huérfano.
+      // Cuenta en céntimos para no añadir una cuota por el error binario de una división exacta.
+      if((amountChanged||quotaChanged||dayChanged)&&!termChanged&&next.months!=null&&am>0){
+        const viaM=Math.max(0,Math.round(balance*100)-Math.round((next.balloon||0)*100)),perMonth=Math.round(am*100);
+        if(viaM>0&&perMonth<=0) return {error:"plan_edit_invalid"};
+        next.months=paid+(viaM>0?Math.ceil(viaM/perMonth):(next.balloon>0&&balance>0.005?1:0));
       }
       next.value=+(balance+am*paid+(next.balloon>0&&next.months!=null&&paid>=next.months?next.balloon:0)).toFixed(2);
     }

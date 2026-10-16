@@ -96,3 +96,39 @@ test("la regla sin nombre no repite su meta y se edita en una hoja conservando i
  expect((await saved(page)).settings.reservaRules).toEqual(before.settings.reservaRules);
  expect((await saved(page)).reservaLog).toEqual(before.reservaLog);
 });
+
+// Dos filas distintas y edición de la segunda: guardar por índice no puede pasar inadvertido.
+const reviewDebt={id:"debt",name:"Deuda segunda sintética",value:2000,monthly:200,months:10,day:15,asOf:2026*12+9-4,unknown:{keep:7}};
+const reviewRows={debts:[{...reviewDebt,id:"debt-first",name:"Primera deuda sintética",value:900},reviewDebt],goals:[{...goal,id:"goal-first",name:"Primera meta sintética"},goal]};
+for(const scenario of [
+ {id:"día",field:"day",value:"1",balance:120000,left:6,total:11,last:20000},
+ {id:"cuota",field:"monthly",value:"100",balance:120000,left:12,total:16,last:10000},
+ {id:"saldo residual",field:"balance",value:"1300,25",balance:130025,left:7,total:11,last:10025}
+])test(`R1/M5: cambiar ${scenario.id} conserva saldo y muestra cuotas coherentes`,async({page})=>{
+ await open(page,"es",reviewRows);const before=await saved(page),row=page.locator('[data-debt-id="debt"]');
+ await expect(row.locator(".plan-debt-details")).toContainText("Quedan 6/10 cuotas");
+ await row.locator(".plan-item-open").click();const sheet=debtSheet(page,"es");await sheet.locator('[data-debt-field="'+scenario.field+'"]').fill(scenario.value);
+ await sheet.getByRole("button",{name:texts.es.saveDebt,exact:true}).click();await expect(sheet).toHaveCount(0);
+ await expect(row.locator(".plan-debt-details")).toContainText(`Quedan ${scenario.left}/${scenario.total} cuotas`);
+ const after=await saved(page),d=after.debts.find(x=>x.id==="debt");expect(after.debts).toHaveLength(2);expect(after.debts[0]).toEqual(before.debts[0]);expect(after.goals).toEqual(before.goals);expect(d).toMatchObject({id:"debt",months:scenario.total,asOf:reviewDebt.asOf,unknown:reviewDebt.unknown});
+ expect(await page.evaluate(d=>({balance:Math.round(debtBalance(d)*100),left:debtLeft(d)}),d)).toEqual({balance:scenario.balance,left:scenario.left});
+ await page.reload();await page.waitForFunction(()=>!document.getElementById("mc-load"));const restored=(await saved(page)).debts.find(x=>x.id==="debt");expect(restored).toEqual(d);
+ // Avanza el reloj real del navegador hasta la penúltima y última cuota, sin resembrar estado.
+ const firstMonth=9+(d.day<=14?1:0),penultimate=new Date(Date.UTC(2026,firstMonth+scenario.left-2,d.day,12)),last=new Date(Date.UTC(2026,firstMonth+scenario.left-1,d.day,12));
+ await page.clock.setSystemTime(penultimate);expect(await page.evaluate(d=>Math.round(debtBalance(d)*100),d)).toBe(scenario.last);
+ await page.clock.setSystemTime(last);expect(await page.evaluate(d=>({balance:Math.round(debtBalance(d)*100),left:debtLeft(d)}),d)).toEqual({balance:0,left:0});
+});
+
+test("M2: edita la segunda de DOS deudas por id y conserva las DOS metas",async({page})=>{
+ await open(page,"es",reviewRows);const before=await saved(page);await page.locator('[data-debt-id="debt"] .plan-item-open').click();const sheet=debtSheet(page,"es");await sheet.locator('[data-debt-field="name"]').fill("Segunda deuda editada");await sheet.getByRole("button",{name:texts.es.saveDebt,exact:true}).click();await expect.poll(async()=>JSON.stringify((await saved(page)).debts)!==JSON.stringify(before.debts)).toBe(true);
+ const after=await saved(page);expect(after.debts).toEqual([before.debts[0],{...before.debts[1],name:"Segunda deuda editada"}]);expect(after.goals).toEqual(before.goals);
+ await expect(sheet).toHaveCount(0);
+ await expect(page.locator('[data-debt-id="debt-first"]')).toHaveCount(1);await expect(page.locator('[data-debt-id="debt"]')).toHaveCount(1);
+});
+
+test("M2/M7: baja el objetivo de la segunda de DOS metas y recalcula done",async({page})=>{
+ await open(page,"es",reviewRows);const before=await saved(page);await page.getByRole("tab",{name:"Metas",exact:true}).click();await page.locator('[data-goal-id="goal"] .plan-item-open').click();const sheet=goalSheet(page,"es");await sheet.locator('[data-goal-field="target"]').fill("1400,15");await sheet.getByRole("button",{name:texts.es.saveGoal,exact:true}).click();await expect.poll(async()=>JSON.stringify((await saved(page)).goals)!==JSON.stringify(before.goals)).toBe(true);
+ const after=await saved(page);expect(after.goals).toHaveLength(2);expect(after.goals[0]).toEqual(before.goals[0]);expect(after.debts).toEqual(before.debts);expect(after.goals[1]).toMatchObject({...before.goals[1],target:1400.15,done:true});expect(after.goals[1].doneAt).toMatch(/^2026-10-14T/);
+ await expect(sheet).toHaveCount(0);
+ await page.reload();await page.waitForFunction(()=>!document.getElementById("mc-load"));expect((await saved(page)).goals).toEqual(after.goals);
+});
