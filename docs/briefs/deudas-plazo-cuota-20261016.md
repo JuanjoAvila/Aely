@@ -1,0 +1,9 @@
+# Deudas: coherencia de plazo y cuota · candidata PR240
+
+La edición de un plazo finito comprueba en céntimos que las cuotas restantes cancelan el saldo pendiente: no admite cuotas finales a cero ni principal sin pagar. Se aplica al cambio de plazo solo, con día, con saldo y con cuota. El contador usa el día propuesto; la amortización explícita y el pago final conservan su significado. La última cuota puede ser parcial.
+
+Cuando las cuotas pagadas con el ancla actual ya alcanzan el plazo, la ficha bloquea los campos financieros (saldo, cuota, día de cobro, plazo y TAE) y muestra una explicación en castellano, inglés y catalán. La función de guardado también rechaza esos cambios: solo se edita el nombre en esta ficha. No se desplaza `asOf` para compensar el día propuesto. Guardar sin cambios o corregir el nombre conserva exactamente el valor, la cuota, el ancla, el día, el plazo y los demás campos históricos. El saldo y las cuotas pendientes siguen a cero, también junto al día de corte y con pago final. No se añade un flujo para reabrirla; la decisión de producto es crear una deuda nueva si hace falta.
+
+`tests/deudas-metas-revision.test.mjs --mutations` protege identidad, recálculo de plazo, estado de metas y bloqueo de deudas terminadas con contrapruebas causales. `tests/deudas-plazo-cuota.test.mjs` cubre los límites en céntimos y la deuda terminada. `e2e/deudas-metas-edicion-v4.spec.mjs` abre la ficha real y comprueba validación, borrador, traducciones, persistencia y conservación de datos; `e2e/deudas-archivo.spec.mjs` conserva el contrato de liquidación y archivo. Todos usan datos sintéticos y reloj controlado donde la fecha determina el resultado.
+
+Esta es una candidata para revisión sobre la rama de PR239. Las pruebas focales y sus mutaciones no acreditan CI general, integración, beta servida ni aceptación móvil. No publica una versión ni cambia backend, Android, catálogos o presupuestos de tamaño.

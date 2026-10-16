@@ -59,10 +59,10 @@ for(const lang of Object.keys(texts)){
 }
 test("saldo, cuota, día y plazo se editan sin perder identidad ni campos desconocidos",async({page})=>{
  await open(page,"es");await page.locator('[data-debt-id="debt"] .plan-item-open').click();const sheet=debtSheet(page,"es");
- for(const [key,value] of Object.entries({name:"Deuda corregida",balance:"750,25",monthly:"80.35",day:"29",months:"50"}))await sheet.locator('[data-debt-field="'+key+'"]').fill(value);
+ for(const [key,value] of Object.entries({name:"Deuda corregida",balance:"750,25",monthly:"80.35",day:"29",months:"42"}))await sheet.locator('[data-debt-field="'+key+'"]').fill(value);
  await sheet.getByRole("button",{name:texts.es.saveDebt,exact:true}).click();await expect(sheet).toHaveCount(0);
  await expect.poll(async()=> (await saved(page)).debts[0].name).toBe("Deuda corregida");
- const d=(await saved(page)).debts[0];expect(d).toMatchObject({id:"debt",name:"Deuda corregida",monthly:80.35,day:29,months:50,unknown:debt.unknown});
+ const d=(await saved(page)).debts[0];expect(d).toMatchObject({id:"debt",name:"Deuda corregida",monthly:80.35,day:29,months:42,unknown:debt.unknown});
  const balance=await page.evaluate(d=>Math.round(debtBalance(d)*100),d);expect(balance).toBe(75025);
 });
 test("eliminar deuda pide confirmación y una cuota vinculada impide perder su identidad",async({page})=>{
@@ -158,7 +158,21 @@ for(const scenario of [
  expect(await page.evaluate(d=>({balance:Math.round(debtBalance(d)*100),left:debtLeft(d)}),d)).toEqual({balance:scenario.balance,left:scenario.left});await page.reload();await page.waitForFunction(()=>!document.getElementById("mc-load"));expect((await saved(page)).debts.find(x=>x.id==="debt")).toEqual(d);
  await page.clock.setSystemTime(new Date(Date.UTC(2026,9+scenario.left-2,15,12)));expect(await page.evaluate(d=>Math.round(debtBalance(d)*100),d)).toBe(scenario.last);await page.clock.setSystemTime(new Date(Date.UTC(2026,9+scenario.left-1,15,12)));expect(await page.evaluate(d=>Math.round(debtBalance(d)*100),d)).toBe(0);
 });
-for(const [oldDay,newDay]of [[15,1],[1,15]])test(`PC: terminada conserva cero y plazo al pasar día ${oldDay} a ${newDay}`,async({page})=>{
- await open(page,"es",pcRows(pcDebt({asOf:2026*12+9-20,day:oldDay})));const before=await saved(page);await page.locator('[data-debt-id="debt"] .plan-item-open').click();const sheet=debtSheet(page,"es");await sheet.locator('[data-debt-field="day"]').fill(String(newDay));await sheet.getByRole("button",{name:texts.es.saveDebt,exact:true}).click();await expect(sheet).toHaveCount(0);
- await expect.poll(async()=>(await saved(page)).debts.find(x=>x.id==="debt").day).toBe(newDay);const after=await saved(page),d=after.debts.find(x=>x.id==="debt");expect(d).toMatchObject({id:"debt",day:newDay,months:10,original:2000,asOf:before.debts[1].asOf,unknown:before.debts[1].unknown});expect(after.debts[0]).toEqual(before.debts[0]);expect(after.goals).toEqual(before.goals);expect(await page.evaluate(d=>({balance:Math.round(debtBalance(d)*100),active:debtActive(d)}),d)).toEqual({balance:0,active:false});await expect(page.locator('[data-debt-id="debt"] .plan-debt-details')).toContainText("Quedan 0/10 cuotas");await page.reload();await page.waitForFunction(()=>!document.getElementById("mc-load"));expect((await saved(page)).debts.find(x=>x.id==="debt")).toEqual(d);
+for(const mode of ["solo-plazo","plazo-dia","plazo-saldo"])for(const months of [20,7])test(`PC revisión: ${mode} rechaza plazo ${months} sin cambiar cuota`,async({page})=>{
+ await open(page,"es",pcRows(pcDebt({})));const before=await saved(page);await page.locator('[data-debt-id="debt"] .plan-item-open').click();const sheet=debtSheet(page,"es");await sheet.locator('[data-debt-field="months"]').fill(String(months));if(mode==="plazo-dia")await sheet.locator('[data-debt-field="day"]').fill("1");if(mode==="plazo-saldo")await sheet.locator('[data-debt-field="balance"]').fill("1300,25");await sheet.getByRole("button",{name:texts.es.saveDebt,exact:true}).click();await expect(sheet.getByRole("alert")).toHaveText(pcErrors.es);await expect(sheet.locator('[data-debt-field="monthly"]')).toHaveValue("200");await expect(sheet.locator('[data-debt-field="months"]')).toHaveValue(String(months));const after=await saved(page);expect(after.debts).toEqual(before.debts);expect(after.goals).toEqual(before.goals);
+});
+const finishedHints={es:"Deuda terminada: solo se pueden cambiar datos no financieros.",en:"Completed debt: only non-financial details can be changed.",ca:"Deute acabat: només es poden canviar dades no financeres."};
+for(const lang of ["es","en","ca"])for(const scenario of [
+ {id:"dia15",asOf:2026*12+9-20,day:15},
+ {id:"dia1",asOf:2026*12+9-20,day:1},
+ {id:"corte",asOf:2026*12+9-9,day:1},
+ {id:"balloon",asOf:2026*12+9-9,day:1,value:2400.11,balloon:400.11}
+])test(`PC revisión: terminada bloquea dia y plazo, conserva historia y permite nombre: ${scenario.id} (${lang})`,async({page})=>{
+ const {id,...fields}=scenario;await open(page,lang,pcRows(pcDebt(fields)));const before=await saved(page),old=before.debts.find(x=>x.id==="debt");await page.locator('[data-debt-id="debt"] .plan-item-open').click();const sheet=debtSheet(page,lang);
+ await expect(sheet.locator('[data-debt-field="day"]')).toBeDisabled();await expect(sheet.locator('[data-debt-field="months"]')).toBeDisabled();await expect(sheet.getByText(finishedHints[lang],{exact:true})).toBeVisible();
+ for(const key of ["apr","balance","monthly"])await expect(sheet.locator('[data-debt-field="'+key+'"]')).toBeDisabled();await expect(sheet.locator('[data-debt-field="name"]')).toBeEnabled();
+ await sheet.getByRole("button",{name:texts[lang].saveDebt,exact:true}).click();await expect(sheet).toHaveCount(0);expect((await saved(page)).debts).toEqual(before.debts);
+ await page.locator('[data-debt-id="debt"] .plan-item-open').click();await sheet.locator('[data-debt-field="name"]').fill("Nombre corregido");await sheet.getByRole("button",{name:texts[lang].saveDebt,exact:true}).click();await expect(sheet).toHaveCount(0);
+ await expect.poll(async()=>(await saved(page)).debts.find(x=>x.id==="debt").name).toBe("Nombre corregido");const after=await saved(page),d=after.debts.find(x=>x.id==="debt");expect(d).toEqual({...old,name:"Nombre corregido"});expect(after.debts[0]).toEqual(before.debts[0]);expect(after.goals).toEqual(before.goals);expect(await page.evaluate(d=>({balance:Math.round(debtBalance(d)*100),left:debtLeft(d),active:debtActive(d)}),d)).toEqual({balance:0,left:0,active:false});
+ await page.reload();await page.waitForFunction(()=>!document.getElementById("mc-load"));expect((await saved(page)).debts.find(x=>x.id==="debt")).toEqual(d);
 });

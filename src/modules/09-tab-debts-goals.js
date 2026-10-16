@@ -14,6 +14,7 @@ function debtEditDraft(d){
   return {name:d.name||"",balance:String(+debtBalance(d).toFixed(2)),monthly:String(d.monthly||0),
     day:String(debtChargeDay(d)),months:d.months==null?"":String(d.months),apr:d.apr==null?"":String(d.apr)};
 }
+function debtEditFinished(d){ return d.months!=null&&debtPaidCount(d)>=d.months; }
 function debtEditResult(d,form){
   const balance=planEditNumber(form.balance),monthly=planEditNumber(form.monthly),day=planEditNumber(form.day),
     months=planEditNumber(form.months,true),apr=planEditNumber(form.apr,true);
@@ -21,21 +22,23 @@ function debtEditResult(d,form){
     !Number.isInteger(day)||day<1||day>31 || months!=null&&!Number.isInteger(months)) return {error:"plan_edit_invalid"};
   const next=Object.assign({},d),oldBalance=+debtBalance(d).toFixed(2);
   const amountChanged=balance!==oldBalance,quotaChanged=monthly!==(d.monthly||0),dayChanged=day!==debtChargeDay(d),
-    termChanged=months!==(d.months==null?null:d.months);
+    termChanged=months!==(d.months==null?null:d.months),aprChanged=apr!==(d.apr==null?null:d.apr);
+  // Cambiar el calendario de una deuda terminada puede reabrirla o reescribir su historia.
+  // La guardia también protege llamadas que no pasan por los campos bloqueados de la ficha.
+  if(debtEditFinished(d)&&(amountChanged||quotaChanged||dayChanged||termChanged||aprChanged)) return {error:"db_finished_edit_hint"};
   if(form.name.trim()!==(d.name||"")) next.name=form.name.trim();
   if(quotaChanged) next.monthly=+monthly.toFixed(2);
   if(dayChanged) next.day=day;
   if(termChanged){ if(months==null) delete next.months; else next.months=months; }
-  if(apr!==(d.apr==null?null:d.apr)) next.apr=apr;
+  if(aprChanged) next.apr=apr;
   // Cambiar nombre/TAE o guardar lo mismo nunca re-ancla ni redondea una deuda heredada.
   // Si cambia el saldo, se conserva el contrato anterior: ancla nueva sin plazo, cuotas pagadas
   // intactas con plazo. Mover día/cuota conserva el pendiente real antes de proyectarlo de nuevo.
   if(amountChanged||quotaChanged||dayChanged||termChanged){
-    const am=debtAmort(next),paid=debtPaidCount(next),
-      finishedDay=dayChanged&&!amountChanged&&!quotaChanged&&!termChanged&&oldBalance===0&&d.months!=null;
+    const am=debtAmort(next),paid=debtPaidCount(next);
     // Plazo y cuota deben cancelar el pendiente: ni cuotas a cero ni principal sin pagar.
     // La última fracción es válida; amort y pago final mantienen su contrato original.
-    if(termChanged&&quotaChanged&&months!=null){
+    if(termChanged&&months!=null){
       const remaining=months-paid,perMonth=Math.round(am*100),principal=Math.round(balance*100)-Math.round((next.balloon||0)*100);
       if(remaining<=0||principal<=(remaining-1)*perMonth||principal>remaining*perMonth) return {error:"db_err_term_quota"};
     }
@@ -44,7 +47,7 @@ function debtEditResult(d,form){
     else{
       // Día/cuota también cambian la proyección: mantener el plazo dejaba principal huérfano.
       // Cuenta en céntimos para no añadir una cuota por el error binario de una división exacta.
-      if((amountChanged||quotaChanged||dayChanged)&&!termChanged&&next.months!=null&&am>0&&!finishedDay){
+      if((amountChanged||quotaChanged||dayChanged)&&!termChanged&&next.months!=null&&am>0){
         const viaM=Math.max(0,Math.round(balance*100)-Math.round((next.balloon||0)*100)),perMonth=Math.round(am*100);
         if(viaM>0&&perMonth<=0) return {error:"plan_edit_invalid"};
         next.months=paid+(viaM>0?Math.ceil(viaM/perMonth):(next.balloon>0&&balance>0.005?1:0));
@@ -111,14 +114,17 @@ function PlanEditSheet({title,onClose,children}){
 }
 function DebtEditSheet({debt,state,set,onClose,onDelete,showToast}){
   const [form,setForm]=useState(function(){ return debtEditDraft(debt); });
+  const finished=debtEditFinished(debt);
   const save=usePlanEditSave({state:state,set:set,field:"debts",item:debt,onClose:onClose,showToast:showToast});
   const input=function(key,label,mode){ return React.createElement("label",{key:key},t(label),
     React.createElement("input",{className:"af-in"+(mode?" num":""),inputMode:mode||"text",value:form[key],"data-debt-field":key,
+      disabled:finished&&key!=="name",
       onChange:function(e){ setForm(Object.assign({},form,{[key]:e.target.value})); }})); };
   return React.createElement(PlanEditSheet,{title:t("db_edit_title"),onClose:onClose},React.createElement("div",{className:"add-form"},
     input("name","plan_edit_name"),input("balance","db_pending","decimal"),
     React.createElement("div",{className:"af-row"},input("monthly","plan_edit_quota","decimal"),input("day","db_day_ph","numeric")),
     input("months","db_months_ph","numeric"),React.createElement("div",{className:"hint"},t("db_term_hint")),
+    finished&&React.createElement("div",{className:"hint"},t("db_finished_edit_hint")),
     input("apr","da_rate","decimal"),React.createElement("div",{className:"hint"},t("db_rate_edit_hint")),
     save.error&&React.createElement("div",{className:"hint",role:"alert"},t(save.error)),
     React.createElement("button",{type:"button",className:"btn btn-primary btn-block",disabled:save.pending,onClick:function(){save.save(debtEditResult(debt,form));}},t("db_savechanges")),
