@@ -12,7 +12,11 @@ const mutations={
  residual:{find:"||principal>remaining*perMonth",replace:"",witness:"residual-8"},
  monthly:{find:"remaining=next.months-paid,perMonth=Math.round(am*100),principal=",replace:"remaining=next.months-paid,perMonth=Math.round(next.monthly*100),principal=",witness:"amort-explicita-rechaza-fantasma"},
  // Vuelve al fallo de beta 4.26.138.1: con solo la cuota cambiada no se validaba nada.
- soloCuota:{find:"if((termChanged||quotaChanged)&&next.months!=null){",replace:"if(termChanged&&next.months!=null){",witness:"panel-cuota-baja-rechazada"},
+ soloCuota:{find:"if((termChanged||quotaChanged&&quotaIsAmort)&&next.months!=null){",replace:"if(termChanged&&next.months!=null){",witness:"panel-cuota-baja-rechazada"},
+ // Revisión d139: cuota y amort ligadas se mueven juntas; distintas, la cuota no toca el calendario.
+ amortQuieta:{find:"if(quotaIsAmort&&d.amort!=null) next.amort=next.monthly;",replace:"",witness:"alta-1000-3-cuota-340-ok"},
+ todoLigado:{find:"const quotaIsAmort=d.amort==null||Math.abs(d.amort-(d.monthly||0))<=0.005;",replace:"const quotaIsAmort=true;",witness:"prestamo-familiar-cuota-200-ok"},
+ nadaLigado:{find:"const quotaIsAmort=d.amort==null||Math.abs(d.amort-(d.monthly||0))<=0.005;",replace:"const quotaIsAmort=false;",witness:"alta-1000-3-cuota-100-rechazada"},
  balloon:{find:"principal=Math.round(balance*100)-Math.round((next.balloon||0)*100)",replace:"principal=Math.round(balance*100)",witness:"balloon-rechaza-fantasma"}
 };
 if(mutation){assert.ok(mutations[mutation],"Mutante conocido");const m=mutations[mutation];assert.equal(source.split(m.find).length-1,1,"Mutación aplicada exactamente una vez");source=source.replace(m.find,m.replace);}
@@ -28,6 +32,14 @@ const cases=[
  // Paso del panel (beta 4.26.138.1): con plazo, una cuota que no encaja con lo pendiente en el
  // plazo de la hoja se rechaza; ni se guarda ni se alarga el plazo por debajo.
  ["panel-cuota-baja-rechazada",r=>reject(r,debt(),{monthly:"100"})],
+ // Alta de la app 1000/3: amort 333,33 = cuota (3×333,33 = 999,99 por redondeo). Subir la cuota a
+ // 340 la liga a la amortización y cuadra en 3 meses; bajarla a 100 no cabe y se rechaza.
+ ["alta-1000-3-cuota-340-ok",r=>{const d=debt({value:1000,original:1000,monthly:333.33,amort:333.33,months:3,asOf:2026*12+9});const a=result(r,d,{monthly:"340"});assert.equal(a.error,undefined);const n=a.item;assert.equal(n.monthly,340);assert.equal(n.amort,340);assert.equal(n.months,3);assert.equal(cents(r.c.debtBalance(n)),100000);assert.equal(r.c.debtLeft(n),3);r.at(10,15);assert.equal(cents(r.c.debtBalance(n)),32000);r.at(11,15);assert.equal(cents(r.c.debtBalance(n)),0);}],
+ ["alta-1000-3-cuota-100-rechazada",r=>reject(r,debt({value:1000,original:1000,monthly:333.33,amort:333.33,months:3,asOf:2026*12+9}),{monthly:"100"})],
+ // Préstamo familiar: paga 197, amortiza 250. La cuota es solo lo que se paga: ni amort ni plazo.
+ ["prestamo-familiar-cuota-200-ok",r=>{const d=debt({value:6100,original:6100,monthly:197,amort:250,months:24,asOf:2026*12+9});const a=result(r,d,{monthly:"200"});assert.equal(a.error,undefined);assert.equal(a.item.monthly,200);assert.equal(a.item.amort,250);assert.equal(a.item.months,24);assert.equal(cents(r.c.debtBalance(a.item)),cents(r.c.debtBalance(d)));}],
+ // Hipoteca del fixture e2e (cuota 660,85 con intereses, amortiza 450,15): revisar la cuota no toca el plazo.
+ ["hipoteca-fixture-cuota-700-ok",r=>{const d={id:"debt",name:"Préstamo sintético",value:176714.8,original:180000,monthly:660.85,amort:450.15,months:309,asOf:2026*12+9-40,day:1,apr:1.05};const a=result(r,d,{monthly:"700"});assert.equal(a.error,undefined);assert.equal(a.item.monthly,700);assert.equal(a.item.amort,450.15);assert.equal(a.item.months,309);assert.equal(cents(r.c.debtBalance(a.item)),cents(r.c.debtBalance(d)));}],
  ["solo-cuota-alta-rechazada",r=>reject(r,debt(),{monthly:"500"})],
  ["solo-cuota-limite-exacto-rechazada",r=>reject(r,debt(),{monthly:"240"})],
  ["cuota-saldo-rechazada",r=>reject(r,debt(),{monthly:"100",balance:"1100"})],

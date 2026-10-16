@@ -223,6 +223,21 @@ for(const kind of ["debt","goal"])test(`apertura de la hoja de ${kind==="debt"?"
  const look=await sheet.evaluate(el=>{const back=getComputedStyle(el.parentElement).backgroundColor.match(/[\d.]+/g).map(Number);return {sheet:el.classList.contains("v4-sheet"),back:el.parentElement.classList.contains("v4-sheet-back"),alpha:back.length>3?back[3]:1,duration:parseFloat(getComputedStyle(el).animationDuration)};});
  expect(look).toMatchObject({sheet:true,back:true});expect(look.alpha).toBeLessThanOrEqual(0.3);expect(look.duration).toBeGreaterThanOrEqual(0.4);
 });
+// El atrás del sistema cierra la hoja con el borrador sin escribir y sin salir de la app. Sin
+// useBackClose el atrás se iba a la página anterior del historial y ningún test lo veía (revisión d139).
+for(const kind of ["debt","goal"])test(`atrás del sistema cierra la hoja de ${kind==="debt"?"deuda":"meta"} sin escribir ni salir`,async({page})=>{
+ await open(page,"es");if(kind==="goal")await page.getByRole("tab",{name:"Metas",exact:true}).click();
+ const url=page.url(),before=await saved(page),navs=[];page.on("framenavigated",f=>{if(f===page.mainFrame())navs.push(f.url());});
+ await page.locator(kind==="debt"?'[data-debt-id="debt"] .plan-item-open':'[data-goal-id="goal"] .plan-item-open').click();
+ const sheet=kind==="debt"?debtSheet(page,"es"):goalSheet(page,"es");await expect(sheet).toBeVisible();
+ await sheet.locator(kind==="debt"?'[data-debt-field="name"]':'[data-goal-field="name"]').fill("Borrador sin guardar");
+ await expect.poll(()=>page.evaluate(()=>_mcBackStack.length)).toBe(1);
+ await page.goBack();
+ await expect(sheet).toHaveCount(0);await expect(page).toHaveURL(url);await expect(page.locator(".botnav")).toBeVisible();
+ await expect.poll(()=>page.evaluate(()=>({stack:_mcBackStack.length,pending:_mcIgnorePop}))).toEqual({stack:0,pending:false});
+ expect(navs.every(n=>n===url)).toBe(true);
+ const after=await saved(page);expect(after.debts).toEqual(before.debts);expect(after.goals).toEqual(before.goals);
+});
 test("R2: residual del alta1000 en3 admite corregir un centimo a cero",async({page})=>{
  const d=pcDebt({value:1000,original:1000,monthly:333.33,amort:333.33,months:3,asOf:2026*12+9-3});await open(page,"es",pcRows(d));const before=await saved(page);await page.locator('[data-debt-id="debt"] .plan-item-open').click();const sheet=debtSheet(page,"es");for(const key of ["balance","monthly","day","months","apr"])await expect(sheet.locator('[data-debt-field="'+key+'"]')).toBeEnabled();await expect(sheet.locator('[data-debt-field="balance"]')).toHaveValue("0.01");await expect(sheet.getByText(finishedHints.es,{exact:true})).toHaveCount(0);await sheet.locator('[data-debt-field="balance"]').fill("0");await sheet.getByRole("button",{name:texts.es.saveDebt,exact:true}).click();await expect(sheet).toHaveCount(0);await expect.poll(async()=>(await saved(page)).debts[1].value).toBe(999.99);const after=await saved(page);expect(after.debts).toEqual([before.debts[0],{...before.debts[1],value:999.99}]);expect(after.goals).toEqual(before.goals);expect(await page.evaluate(d=>({balance:Math.round(debtBalance(d)*100),left:debtLeft(d)}),after.debts[1])).toEqual({balance:0,left:0});await page.reload();await page.waitForFunction(()=>!document.getElementById("mc-load"));expect((await saved(page)).debts).toEqual(after.debts);
 });

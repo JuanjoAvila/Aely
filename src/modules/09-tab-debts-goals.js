@@ -28,7 +28,11 @@ function debtEditResult(d,form){
   // La guardia también protege llamadas que no pasan por los campos bloqueados de la ficha.
   if(debtEditFinished(d)&&(amountChanged||quotaChanged||dayChanged||termChanged||aprChanged)) return {error:"db_finished_edit_hint"};
   if(form.name.trim()!==(d.name||"")) next.name=form.name.trim();
-  if(quotaChanged) next.monthly=+monthly.toFixed(2);
+  // Toda deuda con plazo dada de alta lleva `amort` = cuota. Si van ligadas (o no hay `amort`), la
+  // cuota ES lo que amortiza y se mueven juntas; si difieren (intereses, préstamo familiar que paga
+  // 197 y amortiza 250), cambiar la cuota solo cambia lo que se paga, no el calendario (revisión d139).
+  const quotaIsAmort=d.amort==null||Math.abs(d.amort-(d.monthly||0))<=0.005;
+  if(quotaChanged){ next.monthly=+monthly.toFixed(2); if(quotaIsAmort&&d.amort!=null) next.amort=next.monthly; }
   if(dayChanged) next.day=day;
   if(termChanged){ if(months==null) delete next.months; else next.months=months; }
   if(aprChanged) next.apr=apr;
@@ -39,9 +43,9 @@ function debtEditResult(d,form){
     const am=debtAmort(next),paid=debtPaidCount(next);
     // Plazo y cuota deben cancelar el pendiente: ni cuotas a cero ni principal sin pagar.
     // La última fracción es válida; amort y pago final mantienen su contrato original.
-    // También al tocar SOLO la cuota: antes se alargaba el plazo en silencio y una cuota que no
-    // cubría lo pendiente en el plazo de la hoja se guardaba igual (rechazo de beta 4.26.138.1).
-    if((termChanged||quotaChanged)&&next.months!=null){
+    // También al tocar SOLO la cuota que amortiza: antes se alargaba el plazo en silencio y una cuota
+    // que no cubría lo pendiente en el plazo de la hoja se guardaba igual (rechazo de beta 4.26.138.1).
+    if((termChanged||quotaChanged&&quotaIsAmort)&&next.months!=null){
       const remaining=next.months-paid,perMonth=Math.round(am*100),principal=Math.round(balance*100)-Math.round((next.balloon||0)*100);
       if(remaining<=0||principal<=(remaining-1)*perMonth||principal>remaining*perMonth) return {error:"db_err_term_quota"};
     }
