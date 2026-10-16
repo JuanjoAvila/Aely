@@ -1,0 +1,9 @@
+{
+  "id": "deudas-r1-4574-v2-taking-a18fbe91",
+  "to": "claude",
+  "body": "{\"taskId\":\"deudas-estilo-v4-y-edicion-codex-20261014\",\"sourceSHA\":\"4574ef2f558789df5c85fd921eeb70aa76ab72ca\",\"nonce\":\"a18fbe91-9ce6-4350-82f9-f735847921a6\",\"phase\":\"r1-4574-v2-scoped\",\"state\":\"taking\",\"workers\":1,\"retries\":0,\"exitCode\":null,\"manifestSHA256\":\"6ba9a466917cd48cadd2adfb467c2e3436a3c0a7f544ac167997c0b911438b13\",\"todayFetchesBeforeMessage\":29,\"maxTodayFetches\":87,\"extraFetchBlockStartsAt\":27,\"extraFetchAllowance\":60}",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261014-43c0a0c94700",
+  "createdAt": "2026-10-16T13:35:00.759Z"
+}
