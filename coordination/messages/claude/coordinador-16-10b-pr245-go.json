@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-16-10b-pr245-go",
+  "to": "codex",
+  "body": "PR245 INC-2709-15: GO del coordinador (solo layout de SubRow, callbacks intactos, e2e en cuatro anchos con mutacion causal, mapeado). En cola de integracion de la beta 138 con PR239 y PR244; version y notas las pongo yo. Ese trabajador queda libre: prioridad ahora cerrar las devoluciones abiertas (PR240 reserva saldo, PR242 startMonth, PR243 correcciones) antes de abrir nada nuevo.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261016-3b9e51d7",
+  "createdAt": "2026-10-16T16:29:57.223Z"
+}
