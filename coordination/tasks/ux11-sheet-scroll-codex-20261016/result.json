@@ -1,0 +1,125 @@
+{
+  "status": "done",
+  "summary": "UX11 investigation complete on exact assigned base:48 distinct real-DOM cases,4880 frame samples; vertical jump not reproduced. No speculative restore, product patch or empty PR. Incident remains open for device-specific evidence.",
+  "baseSHA": "9370565008aa2c4df9fb0588b2bf4f97e2cdc726",
+  "productSHA": "9370565008aa2c4df9fb0588b2bf4f97e2cdc726",
+  "productReady": false,
+  "productEdited": false,
+  "noNewProductCommit": true,
+  "noPullRequestBecauseNoCausalProductChange": true,
+  "contract": "BACKLOG UX11 is close REAL sheet then immediately swipe tabs; real CDP tab landing and active destination checked. No injected sheet or locator autoscroll. Keyboard closed.",
+  "tests": [
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node work/run-dom.mjs base-01",
+      "exitCode": 0,
+      "passed": 12,
+      "scope": "detail/Apuntar middle/bottom,backdrop/history/swipe"
+    },
+    {
+      "command": "node work/run-dom.mjs base-extra-02 --grep extra-",
+      "exitCode": 0,
+      "passed": 8,
+      "scope": "nested parent lock,inner scroller,reduced-motion,touchcancel"
+    },
+    {
+      "command": "node work/run-dom.mjs after-swipe-02 --grep after-",
+      "exitCode": 0,
+      "passed": 12,
+      "scope": "Gastos to Plan after detail/Apuntar plus no-sheet controls,safe-top0/44,source anchor"
+    },
+    {
+      "command": "node work/run-dom.mjs inicio-swipe-02 --grep inicio-",
+      "exitCode": 0,
+      "passed": 6,
+      "scope": "Inicio to Gastos after real graph i/Apuntar plus control,safe-top0/44,source and target"
+    },
+    {
+      "command": "node work/run-dom.mjs physical-swipe-01 --grep physical-",
+      "exitCode": 0,
+      "passed": 10,
+      "scope": "physical CDP opener/backdrop taps,actual focus defaults and horizontal swipe,source and target"
+    }
+  ],
+  "totals": {
+    "uniqueDOMCases": 48,
+    "frameSamples": 4880,
+    "horizontalContractsIncludingControls": 28,
+    "afterSheetCloseHorizontalCases": 18,
+    "noSheetHorizontalControls": 10,
+    "physicalTapCases": 10,
+    "maxVisibleScrollTopDeltaPx": 0,
+    "maxVisibleSourceAnchorDeltaPx": 0.247161865234375,
+    "maxVisibleTargetAnchorDeltaPx": 0,
+    "targetMeasuredCases": 16,
+    "predeclaredTolerancePx": 1
+  },
+  "html": {
+    "generatedAndLocallyServedSHA256": "b2c53c4722041b3f06429ff0b8de95a3c45078b90553f8ee6631bb2ceb90f65a",
+    "exactHTMLResponseChecks": 48,
+    "scope": "private isolated local source,not hosted beta"
+  },
+  "preservedHarnessFailures": [
+    {
+      "run": "base-extra-01",
+      "exitCode": 1,
+      "failed": 1,
+      "notRun": 7,
+      "diagnosis": "Wrong category text selector; actual UI says Las n. Fixed to structural real button selector,not product RED."
+    },
+    {
+      "run": "after-swipe-01",
+      "exitCode": 1,
+      "testsExecuted": 0,
+      "diagnosis": "Anchored grep selected no tests; corrected filter,not product RED."
+    },
+    {
+      "run": "inicio-swipe-01",
+      "exitCode": 1,
+      "testsExecuted": 0,
+      "diagnosis": "Archived specs rediscovered with invalid relative imports; excluded archives,not product RED."
+    }
+  ],
+  "sourceInputsUnchanged": 21,
+  "checkoutFinalClean": true,
+  "manifestSHA256": "7f0b8a64f9925d8bba3e614f05be619d7cb93ae5c92df01b7f76b6118a51bea3",
+  "reportSHA256": "690557870ace9fe9e4cd56a4dccbb5ec73108b8500e22a9fa8a30217fe258877",
+  "evidenceSHA256": "f52aa59cf32a762e2796b738198fce6e9934bf0999162938093b39f0e678d515",
+  "artifacts": [
+    "outputs/ux11-informe.txt",
+    "outputs/ux11-evidencia.json",
+    "outputs/ux11-manifest.json"
+  ],
+  "resourceReturn": {
+    "ownServerPort48511Closed": true,
+    "ownPlaywrightCompleted": true,
+    "foreignProcessesOrLocksModified": false,
+    "parallelDirectedAuthority": "027aeb19133c2129faef080bc70e27b2e0addce9",
+    "inheritedLease": false
+  },
+  "fetchLimit": 12,
+  "fetchUsedBeforeResult": 6,
+  "resultPublicationRace": {
+    "firstPushExitCode": 1,
+    "reason": "non-fast-forward after OPS07 result",
+    "retry": "one fresh preparation after FULL RAW read, same OWN claim, no force"
+  },
+  "limitations": [
+    "No causal product RED,fix,revert or mutation claimed. Close-only20 cases do not replace28 horizontal contracts including controls.",
+    "No reproduction on assigned base only; no claim about current production or family configuration. Keep incident open for video/device context offered in BACKLOG.",
+    "Synthetic desktop Chromium Pixel5 viewport UTC,simulated safe-top0/44. No physical Android/WebView,120Hz,real IME or real bank data.",
+    "Source anchor measured only while source page visible; target anchor measured in16 cases. Earlier12Gastos horizontal cases cover source only.",
+    "No full suite,npm test entire,CPU6/performance,general CI,public beta served,Android/APK,backend/deploy,integration or physical mobile acceptance.",
+    "No financial calculations,VERSION,catalogue,caps,main/beta or foreign checkout/lease changes. All external browser network aborted; synthetic client only.",
+    "First claim push non-fast-forward preserved,then one re-preparation after fresh FULL RAW read; no force. Own grant12 counted,not ROOT inheritance."
+  ],
+  "schema": 1,
+  "taskId": "ux11-sheet-scroll-codex-20261016",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-82dbe59f3ee831da",
+  "createdAt": "2026-10-16T23:00:20.649Z",
+  "released": true
+}
