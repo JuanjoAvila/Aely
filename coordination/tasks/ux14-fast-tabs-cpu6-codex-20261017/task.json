@@ -1,0 +1,41 @@
+{
+  "schema": 1,
+  "id": "ux14-fast-tabs-cpu6-codex-20261017",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261016-87ff5baf0f204091",
+  "createdAt": "2026-10-16T23:18:02.855Z",
+  "to": "codex",
+  "baseSHA": "a9916c3cdb21c93f9d3a47653c0608e630ce50ab",
+  "previousTaskId": "ux11-sheet-scroll-codex-20261016",
+  "previousResult": "4e80edab02da52f26b191b8303bc7e2ade6c3769",
+  "claudeGrant": "d112fc828f313806c8609f80a960b11779277f72",
+  "assignedWorkerSession": "codex-local-20261016-82dbe59f3ee831da",
+  "phase": "INVESTIGATION_CPU6_ONLY_AFTER_EXCLUSIVE_RUNNER_LIBRE",
+  "objective": "UX14: reproducir deslizamiento entre pestanas a velocidad muy alta que pierdefluidez/efectoraro. AGENTS7bis CPUthrottle6 viaCDP, deltasrequestAnimationFrame yframes>32ms, comprobaraterrizaje real. Consultarcausa aClaude antesproducto. Si noreproduce, informeconlimites comoUX11, sinparcheespeculativo.",
+  "scope": [
+    "src/modules solo lectura durante investigacion",
+    "src/shell.html solo lectura durante investigacion",
+    "e2e harness focal propio",
+    "tests y docs tecnicas focales"
+  ],
+  "fetchAllocation": {
+    "continueSameOWNWorkerBlockFromUX11": true,
+    "actualLedgerAuthoritative": true,
+    "noResetNoROOTInheritance": true,
+    "additional12OnlyAfterExhaustionWithBudgetNotice": true
+  },
+  "constraints": [
+    "Nuevo claim/readback/ACK OWN antes de producto; conservar resultados y presupuestos previos.",
+    "Misma identidad del trabajador, checkout aislado propio, no claims/leases heredados.",
+    "Sin VERSION,catalogo,caps,SQL vivo,migraciones,livebank,backend/deploy,main/beta push/merge,Gradle/APK ni suitecompleta por arrastre.",
+    "No repetir publicaciones rechazadas ni debilitar helper/filtro; payload publico solo numsPR/run y rutas relativas, sin URLs ni rutas privadas.",
+    "Nuevo checkout aislado desde maina9916c3c verificado remoto23:18UTC; preservar UX11 y evidencia anterior.",
+    "CPU6 EXCLUSIVO: request ROOT adjunto enmismo commit, sin duplicarlo. NO iniciar medicion,perfilador,CPUthrottle ni benchmark hasta runner-libre expresoClaude aplicable yOWNcenso/admisiones. Preparacionestatica/harness previa permitida.",
+    "Trasgrant especifico:1worker0retry,puerto propio,fixture sintetica yredbancaria bloqueada. Parar primerfallo ypreservar; repeticioninfra solo conalcance expreso.",
+    "Sembrar PerformanceObserver longtask antescarga; esperar #mc-load fuera. GestoCDP real a zona validada, fueraEDGE52 ystopSwipe; descartar muestras sin cambio realtab.",
+    "Medir rAF deltas/frame>32ms durantegesto y asentamiento. No confundas sondeo locator/waitFor conapp ni profileconmedidatiempo; trace atribucion separado y sellosgesto.",
+    "Separar buen caso de velocidadnorma frente alta, tamaño historial ycondicion barra/inercia. No afirmarmejora sinA/B pertinente. No fixproducto sinClaudeGOcausal ni movermetricas parafabricarROJO.",
+    "No infieras Android/WebView/120Hz o movilfisico deChromiumsintetico. Cierre propioCPU6 requiereRETURN/runner-libre con evidencias deprocesos propios parados; no borrar locks ajenos."
+  ],
+  "deliverable": "Informe causal CPU6 exclusivo o NO_REPRO con fuente/hashHTMLservido,guion/velocidades,aterrizajes,rAFseries/frames>32ms,longtasks,CPU6state,comandosEXITs,manifest yresultOWN;consultaClaude antescualquierfix."
+}
