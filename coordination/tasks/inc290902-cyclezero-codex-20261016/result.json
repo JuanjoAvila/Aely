@@ -1,0 +1,85 @@
+{
+  "status": "done",
+  "summary": "Investigacion causal terminada sin regresion nueva del toggle ni fix de producto.20 casos DOM distintos validados;0% legitimo agotado/reservas y redondeo con0.01 conservado. Informe enviado a Claude para contraste con dueno.",
+  "productSHA": "9370565008aa2c4df9fb0588b2bf4f97e2cdc726",
+  "baseSHA": "9370565008aa2c4df9fb0588b2bf4f97e2cdc726",
+  "productReady": false,
+  "productEdited": false,
+  "noNewProductCommit": true,
+  "noPullRequestBecauseNoProductChange": true,
+  "htmlSHA256": "b2c53c4722041b3f06429ff0b8de95a3c45078b90553f8ee6631bb2ceb90f65a",
+  "htmlScope": "local served source,40 exact response hashes,not public beta",
+  "causalConsult": "efd214c1a5dcefeb2acc369d5643aa0c758370c3",
+  "tests": [
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/month-budget-stats.test.mjs",
+      "exitCode": 0,
+      "passed": 16
+    },
+    {
+      "command": "playwright targeted private causal harness run04 --workers=1 --retries=0 --max-failures=1",
+      "exitCode": 1,
+      "passed": 0,
+      "failed": 1,
+      "notRun": 19,
+      "cause": "Harness decimal parser; not product RED"
+    },
+    {
+      "command": "playwright targeted private causal harness run05 --workers=1 --retries=0 --max-failures=1",
+      "exitCode": 1,
+      "passed": 2,
+      "failed": 1,
+      "notRun": 17,
+      "cause": "Harness assumed decimal locale EN; source keeps comma. Two Spanish cases valid"
+    },
+    {
+      "command": "playwright targeted private causal harness run06 --workers=1 --retries=0 --max-failures=1 --grep-invert \"normal (split|net) es\"",
+      "exitCode": 0,
+      "passed": 18,
+      "failed": 0
+    }
+  ],
+  "uniqueValidatedDOMCases": 20,
+  "validatedStates": 100,
+  "testTimezone": "UTC",
+  "reportSHA256": "3d52438247e17acb10c8d85d7406cdabe8e397b7ac5a28ddec21125d05df40cb",
+  "evidenceSHA256": "239ee5c03aa90aac4888339f585894ce262cb651e63f2c261d22246a169d257a",
+  "resourceReturn": {
+    "ownBrowserAndServerStopped": true,
+    "foreignProcessesAndLocksUntouched": true,
+    "leaseInherited": false,
+    "parallelFocalAuthority": "027aeb19133c2129faef080bc70e27b2e0addce9"
+  },
+  "fetchLimit": 12,
+  "fetchUsedBeforeResult": 9,
+  "limitations": [
+    "Exact family report configuration/source unknown; no real bank or family data used.",
+    "No new cause of financial regression proven. Integer percentage rounding reproduced with0.01 remaining; no precision or product change without ClaudeGO.",
+    "No full suite,CPU6,general CI,public served beta,Android or physical mobile acceptance.",
+    "Three preflight guard exits before any test; later relaxed only after explicit Claude parallel-focused authority.",
+    "Two harness failures preserved; no causal productRED claimed.",
+    "No VERSION,catalogue,caps,backend,deployment or main/beta changes."
+  ],
+  "artifacts": [
+    "outputs/informe-causal-inc290902.txt",
+    "outputs/resumen-evidencia-inc290902.json",
+    "outputs/redondeo-un-centimo.png"
+  ],
+  "claudeAcceptance": "cc499fe84e4e6e273baa26c013cdd1e45006455d",
+  "acceptanceScope": "Exact local base only; no claim to testing current served production",
+  "publicationRace": {
+    "firstPushExitCode": 1,
+    "reason": "non-fast-forward while Claude accepted report",
+    "retry": "one fresh preparation after full raw read, sameOWNclaim,no force"
+  },
+  "schema": 1,
+  "taskId": "inc290902-cyclezero-codex-20261016",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-5fc9afdec60f82b1",
+  "createdAt": "2026-10-16T22:45:36.989Z",
+  "released": true
+}
