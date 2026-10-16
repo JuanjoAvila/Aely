@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "id": "fin12-deuda-futura-inicio-codex-20261016",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261016-a55cdbc387b8",
+  "createdAt": "2026-10-16T15:36:20.783Z",
+  "to": "codex",
+  "baseSHA": "9370565008aa2c4df9fb0588b2bf4f97e2cdc726",
+  "model": "gpt-6-astra",
+  "modelReason": "Orden humana transmitida por Claude: dinero y servidor requieren Astra.",
+  "constraints": [
+    "Sin VERSION, notas, catalogo, caps, deploy, SQL, migraciones ni main/beta push.",
+    "Claim OWN y lectura remota exacta antes de producto. Datos sinteticos. ROJO antes del arreglo; consulta de causa antes del arreglo financiero o servidor.",
+    "Specs pequenos 1 worker 0 retry sin turno; repetir una sola vez solo infraestructura. Suite entera una por maquina, consulta-suite al inicio y runner-libre al fin; rendimiento exclusivo.",
+    "No tocar 09-tab-debts-goals.js ni ruta MyInvestor cliente; preservar claims y trabajo ajeno."
+  ],
+  "objective": "FIN-12: financiaciones futuras no cuentan como deuda en grafica de Inicio antes de existir. ROJO sintetico Roomba/gimnasio/suelo, limites temporales Madrid, causa consulta antes arreglo, oraculos centimos y mutaciones. No tocar reglas de Deudas PR239/240.",
+  "scope": [
+    "src/modules/02-ui-shared.js (netWorthSeries y helper deuda futura)",
+    "tests y e2e focales Inicio patrimonio",
+    "registro tests y docs tecnicas focales"
+  ],
+  "fetchAllocation": {
+    "newBlock120": 20,
+    "countSeparately": true,
+    "noPriorBudgetInherited": true
+  },
+  "deliverable": "PR nueva DRAFT contra main, SHA/push/readback exactos, ROJO/GREEN/mutaciones, evidencia propia; no afirmar CI/integracion/beta/movil sin pruebas."
+}
