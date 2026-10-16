@@ -6,6 +6,8 @@ import {createLogicSandbox,extractPureLogicSource} from "../scripts/load-pure-lo
 const option=n=>{const i=process.argv.indexOf(n);return i<0?null:process.argv[i+1];},html=fs.readFileSync(option("--html")||"public/index.html","utf8");
 let source=extractPureLogicSource(html);const mutation=option("--mutant");
 const mutations={
+ finishedNoBalance:{find:"&&debtBalance(d)<=0.005",replace:"",witness:"R2-residual-centimo-editable"},
+ remaining:{find:"remaining<=0||",replace:"",witness:"R2-restantes-cero-con-balloon"},
  phantom:{find:"principal<=(remaining-1)*perMonth||",replace:"",witness:"fantasma-20"},
  residual:{find:"||principal>remaining*perMonth",replace:"",witness:"residual-8"},
  monthly:{find:"remaining=months-paid,perMonth=Math.round(am*100),principal=",replace:"remaining=months-paid,perMonth=Math.round(next.monthly*100),principal=",witness:"amort-explicita-rechaza-fantasma"},
@@ -19,6 +21,14 @@ function result(r,d,changes){const form={...r.c.debtEditDraft(d),...changes},bef
 function reject(r,d,changes){const answer=result(r,d,changes);assert.equal(answer.error,KEY,"Debe rechazar la combinación incoherente con el error de la hoja");assert.equal(answer.item,undefined,"No hay estado para guardar al rechazar");}
 function accept(r,d,changes,balance,left,total,last){const answer=result(r,d,changes);assert.equal(answer.error,undefined,"La combinación coherente debe guardarse");const n=answer.item;assert.equal(n.id,d.id);assert.deepEqual(plain(n.unknown),d.unknown);assert.equal(n.original,d.original);assert.equal(n.amort,d.amort);assert.equal(n.balloon,d.balloon);assert.equal(n.months,total);assert.equal(cents(r.c.debtBalance(n)),balance);assert.equal(r.c.debtLeft(n),left);let previous=balance,sum=0,drop=0;for(let i=0;i<left;i++){r.at(9+(n.day<=14?1:0)+i,n.day);const pending=cents(r.c.debtBalance(n));drop=previous-pending;assert.ok(drop>0,"Cada cuota restante amortiza principal real");sum+=drop;previous=pending;}assert.equal(previous,0,"No queda saldo sin pagar");assert.equal(sum,balance,"El calendario cancela exactamente el pendiente");assert.equal(drop,last,"La última cuota parcial y el pago final se conservan");}
 const cases=[
+ ["R2-residual-centimo-editable",r=>{const d=debt({value:1000,original:1000,monthly:333.33,amort:333.33,months:3,asOf:2026*12+9-3});assert.equal(r.c.debtPaidCount(d),3);assert.equal(cents(r.c.debtBalance(d)),1);const answer=result(r,d,{balance:"0"});assert.equal(answer.error,undefined,"Un céntimo pendiente sigue editable y puede corregirse a cero");assert.equal(r.c.debtEditFinished(d),false);assert.equal(answer.item.value,999.99);assert.equal(cents(r.c.debtBalance(answer.item)),0);assert.equal(answer.item.months,3);assert.equal(r.c.debtLeft(answer.item),0);for(const key of ["monthly","amort","asOf","day","original","unknown"])assert.deepEqual(plain(answer.item[key]),d[key]);}],
+ ["R2-legado-pendiente-editable",r=>{const d=debt({value:2500,original:2500,asOf:2026*12+9-10});assert.equal(r.c.debtPaidCount(d),10);assert.equal(cents(r.c.debtBalance(d)),50000);accept(r,d,{monthly:"100"},50000,5,15,10000);assert.equal(r.observed.asOf,d.asOf);}],
+ ["R2-terminada-real-bloqueada",r=>{const d=debt({asOf:2026*12+9-10});assert.equal(cents(r.c.debtBalance(d)),0);assert.equal(r.c.debtEditFinished(d),true);const answer=result(r,d,{balance:"1"});assert.equal(answer.error,"db_finished_edit_hint");assert.equal(answer.item,undefined);}],
+ ["R2-restantes-cero-con-balloon",r=>reject(r,debt({value:2100,balloon:100}),{months:"4",balance:"0"})],
+ ["R2-restantes-negativas-con-balloon",r=>reject(r,debt({value:2300,balloon:300}),{months:"3",balance:"0"})],
+ ["R2-restante-uno-coherente",r=>accept(r,debt({value:2100,balloon:100}),{months:"5",balance:"200"},20000,1,5,20000)],
+ ["R2-saldo-cero-plazo-incoherente",r=>reject(r,debt(),{months:"5",balance:"0"})],
+ ["R2-cuota-cero-plazo-incoherente",r=>reject(r,debt(),{months:"5",monthly:"0"})],
  ["fantasma-20",r=>reject(r,debt(),{months:"20",monthly:"100"})],
  ["fantasma-limite-17",r=>reject(r,debt(),{months:"17",monthly:"100"})],
  ["residual-8",r=>reject(r,debt(),{months:"8",monthly:"100"})],
@@ -49,5 +59,5 @@ const cases=[
  ["terminada-balloon-value-intacto",r=>{const d=debt({value:2400.11,balloon:400.11,asOf:2026*12+9-20});assert.equal(cents(r.c.debtBalance(d)),0);const answer=result(r,d,{day:"1"});assert.equal(answer.error,"db_finished_edit_hint");assert.equal(answer.item,undefined);assert.equal(r.c.debtLeft(d),0);}]
 
 ];
-const selected=option("--case"),results=cases.filter(([id])=>!selected||id===selected).map(([id,run])=>{const r=runtime();try{run(r);return{id,passed:true,observed:r.observed};}catch(e){return{id,passed:false,error:e.message,code:e.code,observed:r.observed};}});assert.ok(results.length,"Selección no vacía");const report={runtime:"Node con lógica financiera real y reloj fijo; datos sintéticos",mutation:mutation||null,requiredWitness:mutation?mutations[mutation].witness:null,results,passed:results.filter(x=>x.passed).length,failed:results.filter(x=>!x.passed).length,browserExecuted:false};
+const selected=option("--case"),group=option("--group"),results=cases.filter(([id])=>(!selected||id===selected)&&(!group||group==="revision2"&&id.startsWith("R2-"))).map(([id,run])=>{const r=runtime();try{run(r);return{id,passed:true,observed:r.observed};}catch(e){return{id,passed:false,error:e.message,code:e.code,observed:r.observed};}});assert.ok(results.length,"Selección no vacía");const report={runtime:"Node con lógica financiera real y reloj fijo; datos sintéticos",mutation:mutation||null,requiredWitness:mutation?mutations[mutation].witness:null,results,passed:results.filter(x=>x.passed).length,failed:results.filter(x=>!x.passed).length,browserExecuted:false};
 if(process.env.OWN_PLAZO_EVIDENCE)fs.writeFileSync(process.env.OWN_PLAZO_EVIDENCE,JSON.stringify(report,null,2)+"\n");for(const r of results)console.log((r.passed?"PASS ":"FAIL ")+r.id+(r.error?"\n"+r.error:""));console.log(JSON.stringify({passed:report.passed,failed:report.failed,mutation:report.mutation,browserExecuted:false}));process.exitCode=report.failed?1:0;

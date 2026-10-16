@@ -14,7 +14,8 @@ function debtEditDraft(d){
   return {name:d.name||"",balance:String(+debtBalance(d).toFixed(2)),monthly:String(d.monthly||0),
     day:String(debtChargeDay(d)),months:d.months==null?"":String(d.months),apr:d.apr==null?"":String(d.apr)};
 }
-function debtEditFinished(d){ return d.months!=null&&debtPaidCount(d)>=d.months; }
+// Un plazo agotado puede dejar céntimos de redondeo o saldo legado: aún debe poder corregirse.
+function debtEditFinished(d){ return d.months!=null&&debtPaidCount(d)>=d.months&&debtBalance(d)<=0.005; }
 function debtEditResult(d,form){
   const balance=planEditNumber(form.balance),monthly=planEditNumber(form.monthly),day=planEditNumber(form.day),
     months=planEditNumber(form.months,true),apr=planEditNumber(form.apr,true);
