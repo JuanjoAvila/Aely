@@ -34295,5 +34295,51 @@
       "supabase/functions/ingest/widget.ts"
     ],
     "unidades": true
+  },
+  "myinvestor-contador-a-cero": {
+    "web": [
+      {
+        "file": "src/modules/00-core.js",
+        "data": "cloud",
+        "members": [
+          "myinvestorSync"
+        ]
+      },
+      {
+        "file": "src/modules/06-sync-brokers.js",
+        "function": "MyInvestorSync"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  const runBrokerSync=function(opts){",
+        "to": "  const syncInv=function(){"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "uid"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "eur"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CONFIG"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "DISP"
+      }
+    ],
+    "edge": [
+      "supabase/functions/myinvestor-connect/index.ts",
+      "supabase/functions/myinvestor-sync/index.ts",
+      "supabase/functions/_shared/token_store.ts"
+    ],
+    "unidades": true
   }
 }

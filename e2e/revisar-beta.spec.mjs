@@ -1793,19 +1793,17 @@ for(const lang of ["es","en","ca"])test(`promoción117: entrega por superficies,
 
 });
 
-/* Promoción136 (16/10/2026, preparada el 15/10 como 135): la beta 135 (compras idénticas sin duplicar ni perderse) sube entera
- * sobre la producción 134 (2751c866) y sale con el número 4.26.136 por una línea de registro de errores (ver CHANGELOG).
- * Aquí no se inyecta nada: se mira el catálogo que lleva el bundle. La familia ve la nota de la 135 (ya como 136) más las 232 que
- * ya tenía producción, y el panel de revisión queda sin nada que pedir. Las versiones se leen fila a fila (ver la nota del
- * 12/10 sobre «v4.26.11» + «22 sep»). */
-for(const lang of ["es","en","ca"])test(`promoción136: una nota, el historial de producción y el panel vacío (${lang})`,async({page})=>{
+/* Beta 4.26.137 (16/10/2026): la nota nueva de MyInvestor con su tanda (tres pasos), ÚNICA del panel, sobre la producción 4.26.136 (4941a061), que ya lleva
+ * la nota de las compras idénticas con `tandas:[]` y el historial anterior. Aquí no se inyecta nada: se mira el catálogo que lleva el bundle. Las versiones
+ * se leen fila a fila (ver la nota del 12/10 sobre «v4.26.11» + «22 sep»). */
+for(const lang of ["es","en","ca"])test(`beta137: la nota de MyInvestor con su tanda sobre el historial de producción (${lang})`,async({page})=>{
   await abrirRevisionBeta(page,lang);
-  const production=JSON.parse(execFileSync("git",["show","2751c866c74cb786b18cd35560355bcb0ec10cb8:src/data/release-notes.json"],{encoding:"utf8",maxBuffer:8e6}));
-  expect(production.length).toBe(232);
+  const production=JSON.parse(execFileSync("git",["show","4941a0619bc6befa04d75334409cc288dc827a11:src/data/release-notes.json"],{encoding:"utf8",maxBuffer:8e6}));
+  expect(production.length).toBe(233);
   const catalog=await page.evaluate(()=>RELEASE_NOTES.map(n=>[n.v,Array.isArray(n.tandas)?n.tandas.length:-1]));
-  expect(catalog).toEqual([["4.26.136",0],...production.map(n=>[n.v,0])]);
-  const pack=await page.evaluate(()=>{CONFIG.APP_VERSION="4.26.136.1";const p=betaChecklist(CONFIG.APP_VERSION,"4.26.117",55);return {tandas:p.tandas.length,items:p.items.length};});
-  expect(pack).toEqual({tandas:0,items:0});
+  expect(catalog).toEqual([["4.26.137",1],...production.map(n=>[n.v,0])]);
+  const pack=await page.evaluate(()=>{CONFIG.APP_VERSION="4.26.137.1";const p=betaChecklist(CONFIG.APP_VERSION,"4.26.117",55);return {tandas:p.tandas.length,items:p.items.length};});
+  expect(pack).toEqual({tandas:1,items:3});
   const title=await page.evaluate(lang=>rnT(RELEASE_NOTES[0].t,lang),lang);
   const items=await page.evaluate(lang=>rnItems(RELEASE_NOTES[0],lang),lang);
   expect(items.length).toBe(1);
@@ -1820,8 +1818,8 @@ for(const lang of ["es","en","ca"])test(`promoción136: una nota, el historial d
   const versions=news.locator('button').filter({hasText:/^v\d+\./});
   await expect(versions).toHaveCount(20);
   await news.locator('.btn-ghost.btn-block').click();
-  await expect(versions).toHaveCount(233);
+  await expect(versions).toHaveCount(234);
   const shown=(await versions.locator("span:first-child").allTextContents()).map(x=>x.match(/^v(\d+\.\d+\.\d+)/)[1]);
-  expect(shown).toEqual(["4.26.136",...production.map(n=>n.v)]);
+  expect(shown).toEqual(["4.26.137",...production.map(n=>n.v)]);
   for(const v of ["4.26.131","4.26.130","4.26.129","4.26.127"])expect(shown).not.toContain(v);
 });

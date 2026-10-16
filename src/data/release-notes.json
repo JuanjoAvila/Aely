@@ -1,5 +1,52 @@
 [
   {
+    "v": "4.26.137",
+    "d": "2026-10-16",
+    "t": {
+      "es": "MyInvestor: no pierde tus posiciones al sincronizar",
+      "en": "MyInvestor: your positions are kept when syncing",
+      "ca": "MyInvestor: no perd les teves posicions en sincronitzar"
+    },
+    "items": {
+      "es": [
+        "MyInvestor ya no pierde tus posiciones si una sincronización choca con otra o se queda a medias. Y solo te propone volver a conectar cuando de verdad hace falta."
+      ],
+      "en": [
+        "MyInvestor no longer loses your positions if one sync clashes with another or stops halfway. And it only suggests reconnecting when it is really needed."
+      ],
+      "ca": [
+        "MyInvestor ja no perd les teves posicions si una sincronització xoca amb una altra o es queda a mitges. I només et proposa tornar a connectar quan de debò cal."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "myinvestor-contador-a-cero",
+        "t": {
+          "es": "MyInvestor: no pierde tus posiciones al sincronizar",
+          "en": "MyInvestor: your positions are kept when syncing",
+          "ca": "MyInvestor: no perd les teves posicions en sincronitzar"
+        },
+        "items": {
+          "es": [
+            "1. Abre la ficha de MyInvestor y pulsa «Sincronizar posiciones»: tus posiciones y su valor tienen que seguir ahí, sin desaparecer ni duplicarse.",
+            "2. Ve a Cartera, Inversiones, y pulsa «↻ Actualizar inversiones» dos veces seguidas: las posiciones de MyInvestor tienen que quedarse igual.",
+            "3. Comprueba que en ningún momento te pide volver a conectar MyInvestor."
+          ],
+          "en": [
+            "1. Open the MyInvestor card and tap «Sync positions»: your positions and their value must still be there, neither missing nor duplicated.",
+            "2. Go to Portfolio, Investments, and tap «↻ Update investments» twice in a row: your MyInvestor positions must stay the same.",
+            "3. Check that it never asks you to connect MyInvestor again."
+          ],
+          "ca": [
+            "1. Obre la fitxa de MyInvestor i prem «Sincronitza posicions»: les teves posicions i el seu valor han de continuar allà, sense desaparèixer ni duplicar-se.",
+            "2. Ves a Cartera, Inversions, i prem «↻ Actualitzar inversions» dues vegades seguides: les posicions de MyInvestor s'han de quedar igual.",
+            "3. Comprova que en cap moment et demana tornar a connectar MyInvestor."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.136",
     "d": "2026-10-16",
     "t": {
