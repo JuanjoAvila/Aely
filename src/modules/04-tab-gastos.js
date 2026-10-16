@@ -103,20 +103,21 @@ function SubRow({sp, state, set, showToast}){
     set(function(s){ return Object.assign({},s,{subsDismissed:(s.subsDismissed||[]).concat([sp.key])}); });
     showToast(t("sub_dismissed_ok"));
   };
-  return React.createElement("div",{className:"sub-row"},
+  // Las acciones necesitan el ancho de la tarjeta: junto al importe quedaban recortadas en móvil.
+  return React.createElement("div",{className:"sub-row",style:{display:"grid",gridTemplateColumns:"34px minmax(0,1fr)",gap:"6px 11px"}},
     React.createElement("div",{className:"sub-ic",style:{borderColor:c.color+"55",color:c.color}}, c.icon),
     React.createElement("div",{className:"sub-mid"},
       React.createElement("div",{className:"sub-name"}, sp.name),
-      React.createElement("div",{className:"sub-meta"}, tf("sub_months",{n:sp.months})+" · "+tf("sub_peryear",{y:eur0(sp.yearly)})),
-      React.createElement("div",{style:{display:"flex",gap:6,marginTop:5,alignItems:"center"}},
-        React.createElement("button",{className:"chip",style:{fontSize:11.5,padding:"3px 10px"},onClick:toFixed}, "→ "+t("sub_tofixed")),
-        React.createElement("button",{className:"chip",style:{fontSize:11.5,padding:"3px 10px"},onClick:dismiss,title:t("sub_dismiss")}, "✕ "+t("sub_dismiss"))
-      )
+      React.createElement("div",{className:"sub-meta"}, tf("sub_months",{n:sp.months})+" · "+tf("sub_peryear",{y:eur0(sp.yearly)}))
     ),
-    React.createElement("div",{className:"sub-amt num",style:{display:"flex",alignItems:"baseline",gap:2}},
+    React.createElement("div",{className:"sub-amt num",style:{display:"flex",alignItems:"baseline",gap:2,gridColumn:2,minWidth:0}},
       React.createElement("input",{type:"text",inputMode:"decimal",value:amt,onChange:function(e){ setAmt(e.target.value); },
-        style:{width:52,textAlign:"right",background:"transparent",border:"none",borderBottom:"1px dashed var(--bd)",color:"inherit",font:"inherit"}}),
+        style:{width:"10ch",minWidth:0,textAlign:"right",background:"transparent",border:"none",borderBottom:"1px dashed var(--bd)",color:"inherit",font:"inherit"}}),
       " €"+t("sub_permonth")
+    ),
+    React.createElement("div",{style:{display:"flex",flexWrap:"wrap",gridColumn:"1 / -1",gap:6,alignItems:"center"}},
+      React.createElement("button",{className:"chip",style:{fontSize:11.5,padding:"3px 10px"},onClick:toFixed}, "→ "+t("sub_tofixed")),
+      React.createElement("button",{className:"chip",style:{fontSize:11.5,padding:"3px 10px"},onClick:dismiss,title:t("sub_dismiss")}, "✕ "+t("sub_dismiss"))
     )
   );
 }

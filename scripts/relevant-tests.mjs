@@ -68,6 +68,7 @@ export const E2E_MAP = [
     "e2e/ultima-cuota-descartar.spec.mjs", "e2e/inicio-offline.spec.mjs", "e2e/presupuesto-fluido.spec.mjs", "e2e/inicio-mes-natural.spec.mjs", "e2e/cartera-parte-mia.spec.mjs"] },
   { file: "src/modules/04-tab-gastos.js", specs: [
     "e2e/gastos-sincronizar-alcance.spec.mjs",
+    "e2e/gastos-suscripciones-movil.spec.mjs",
     "e2e/compras-identicas-ids.spec.mjs",
     "e2e/fin15-pendiente-contabilizada.spec.mjs",
     "e2e/metas-borrar-regla.spec.mjs",
