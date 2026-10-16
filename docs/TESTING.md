@@ -1,4 +1,4 @@
-FIN-15: `tests/fin15-pendiente-contabilizada.test.mjs` registrado en `run-tests` ejecuta
+FIN-15 (beta 4.26.138): `tests/fin15-pendiente-contabilizada.test.mjs` registrado en `run-tests` ejecuta
 cliente, month legacy y widget v2 con PDNG/BOOK en días distintos, en ambos órdenes.
 Incluye 676 comparaciones exactas sin `#ref` contra `9370565` y diez mutaciones semánticas.
 La revisión1 distingue fallos de preparación del mutante de fallos del oráculo y fija
@@ -6,7 +6,7 @@ PDNG30/BOOK33: primera fila en el lector, month sin orden explícito y widget po
 `e2e/fin15-pendiente-contabilizada.spec.mjs` está registrado en Gastos; comprueba una fila
 visible tras pull/reinicio y verifica el hash del HTML servido. Datos exclusivamente sintéticos.
 La suite completa y la aceptación móvil conservan sus gates independientes.
-UX15, candidata: `e2e/gastos-sincronizar-alcance.spec.mjs` registrado en el mapa de Gastos;
+UX15 (beta 4.26.138): `e2e/gastos-sincronizar-alcance.spec.mjs` registrado en el mapa de Gastos;
 DOM real es/en/ca, texto/ocupado/descripción accesible, una lectura en nube y ninguna
 invocación bancaria por pulsación. ROJO previo y mutaciones focales con 1 worker/0 reintentos.
 [Contrato, evidencia y límites](briefs/ux15-sincronizar-gastos-20261016.md).
@@ -49,7 +49,7 @@ La rama `claude/cuenta-parte-mia` (`450d544e`) se integra sobre la 4.26.130. Lo 
 
 Dos inflados de la gráfica medidos con la cartera real (revisión 14/10). `tests/inicio-transito-intereses` (en `run-tests`), con datos sintéticos: (a) una salida a un bróker enlazada cuenta como inversión desde que sale del banco hasta la primera foto que la recoge en diez días. Con la pista de siempre (`investmentId`, destino o nombre del bróker) la foto tiene que subir la mitad de lo aportado; con la aportación periódica (`state.aportaciones`: mismo bróker e importe, concepto de transferencia a nombre del titular —«yo mismo» o dos palabras de `settings.profile.fullName`— y bróker SIN cuenta propia en la app) basta una cuarta parte, para que llegue aunque la bolsa caiga ese día. Mientras viaja (menos de diez días) cuenta hasta ayer y hoy manda Cartera; pasados diez días sin foto vuelve a ser salida. Plano con foto diaria, semanal y del mismo día, «traspaso» y «otros»; con caída de bolsa el mes dice −300; el alquiler al casero del mismo importe es gasto; un bróker con cuenta manual cuyo histórico empieza después de la salida no se cuenta dos veces; sin enlace sigue neutro (el vaivén de la bolsa «recogía» un seguro de 247 € o un cambio de divisa). (b) `netWorthDebtPolicy` deshace cada mes «saldo × (1 + tipo/12) − cuota» en hipotecas y préstamos sin plazo con `apr` (también escrito con coma); sin tipo, la cuota entera es capital; un tipo cuyos intereses de un mes igualan o superan la cuota (un 105 por 1,05) se ignora; la fila «Deudas» de la «i» dice las dos cosas; tipo 0 y `amort` propio no cambian. Trece mutantes. La tarjeta del mes, Gastos, categorías y saldos de deuda se compararon antes/después con la cartera real: idénticos. Los e2e de Inicio esperan la fila de deudas nueva (la cartera heredada tiene hipoteca y préstamo sin tipo).
 
-## Deudas y Metas: edición individual · candidata sin publicar (14/10/2026)
+## Deudas y Metas: edición individual · PR 239/240, en la beta 4.26.138
 
 `tests/deudas-metas-edicion.test.mjs` ejecuta los handlers del componente real con hooks en memoria: teclear `1,05`/`1.05` conserva cada texto intermedio y sólo Guarda escribe `d.apr`; vacío y cero se mantienen distintos. Comprueba tres estados financieros, guardado sin cambios, identidad y campos desconocidos, y rechazo de una edición sobre un estado más nuevo. `--baseline --decimal-only` conserva la reproducción histórica del fallo de 33d39 en `1,`. Tras el rebase autorizado, `--compare-base` compara las cifras y la serie con beta133 `52e1957d` (se puede indicar `--compare-ref SHA`); los tres estados incluyen sin parte, cuenta manual al 50 % y cuenta OB al 50 % con `obAcc`/`bankUid`, sin cambiar sus reglas de reparto. Los resultados y baselines anteriores de 33d, 967, 131 y 132 se conservan como evidencia histórica. Estos resultados Node no acreditan DOM ni rendimiento.
 
