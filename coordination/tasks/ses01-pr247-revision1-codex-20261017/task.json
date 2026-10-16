@@ -1,0 +1,41 @@
+{
+  "schema": 1,
+  "id": "ses01-pr247-revision1-codex-20261017",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261016-87ff5baf0f204091",
+  "createdAt": "2026-10-16T22:47:10.999Z",
+  "to": "codex",
+  "baseSHA": "a9916c3cdb21c93f9d3a47653c0608e630ce50ab",
+  "previousTaskId": "ses01-tr-session-design-codex-20261016",
+  "candidateSourceSHA": "fb22a688ea0280b3425e11f4ccd2787fab00b38a",
+  "PR": 247,
+  "branch": "codex/ses01-tr-telemetry-web-20261017",
+  "claudeGrant": "25654d5a61730f5f3b8d34841bb5be7e04925c66",
+  "budgetRuleGrant": "db3299cd69020ccf15563e787d1a1f4b69e8a753",
+  "objective": "Cerrar las tres reservas de Claude para PR247 en misma rama, rebasada sobre main a9916c3c: evento arranque status_check una vez por sesion con code cerrado cuando authExpired o disconnected con telefono guardado; npm run build y bundle commiteado; separar fallos cliente applyBrokerPositions/brokerSuggest de sync_rejected con code client_error cerrado.",
+  "scope": [
+    "src/modules/00-core.js",
+    "src/modules/06-sync-brokers.js",
+    "src/modules/11-app-main.js",
+    "public/index.html generado por build",
+    "tests focales telemetria privacidad y broker",
+    "docs tecnicas focales"
+  ],
+  "fetchAllocation": {
+    "carryExistingWorkerBlock": true,
+    "previousUsedReported": 8,
+    "allowance": 12,
+    "additional12OnlyAfterExhaustion": true,
+    "budgetNoticeRequired": true,
+    "noResetNoROOTInheritance": true
+  },
+  "constraints": [
+    "Nuevo claim/readback/ACK OWN de este sucesor antes de CODE; resultado anterior y rechazo preservados.",
+    "Misma identidad del titular SES, checkout propio aislado; conservar candidato fb22a688 y registrar rebase exacto sobre a9916c3c. Solo rama PR247; no main/beta push ni merge.",
+    "ROJO causal primero y GREEN dirigido; mutacion para evento de arranque; separar code cliente sin texto crudo. SnapshotAge unknown, sin nativo/Android/session/reintentos bancarios.",
+    "Dirigidos paralelos propios permitidos por027aeb19,1worker0retry,puerto propio; repetir UNA vez solo infraestructura especifica. No fullsuite,CPU6,Gradle.",
+    "Sin VERSION, catalogo,caps,SQL,migraciones,Edge/backend/deploy ni PII. Build y bundle explicitamente concedidos; no afirmarCI/integracion/servido/movil sin evidencia.",
+    "No repetir publicacion rechazada ni debilitar helper/filtro; payloads publicos solo numsPR/run sin URLs ni rutas privadas."
+  ],
+  "deliverable": "PR247 actualizada DRAFT, sourceSHA/build bundle exactos, causalRED/GREEN/mutacion, manifest pequeno con refs verificables, resultOWN released nuevo con limitaciones."
+}
