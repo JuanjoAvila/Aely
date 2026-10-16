@@ -1,0 +1,130 @@
+{
+  "status": "done",
+  "summary": "UX13 web candidate: keyboard signal consumes first back; sheet, draft and financial state preserved. Real History, App callback and predictive gesture directed cases verified; PR248 DRAFT, physical IME and integration pending.",
+  "productSHA": "60c740dde41d446a2cdbf3f04f13344f15855b3b",
+  "baseSHA": "9370565008aa2c4df9fb0588b2bf4f97e2cdc726",
+  "pullRequestNumber": 248,
+  "branch": "codex/ux13-keyboard-back-20261016",
+  "productReady": false,
+  "cause": "Back handlers closed overlays without prioritizing an editable field with explicit reduced visualViewport. Predictive progress moved the parent and invoke could close after IME resize. Shared existing arbiter now handles keyboard only/peek modes; owned history rearmed only after matching traversal; predictive decision retained from start.",
+  "tests": [
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/backclose-history.test.mjs",
+      "exitCode": 0,
+      "passed": 24
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0,
+      "passed": 15
+    },
+    {
+      "command": "node tests/security.test.mjs",
+      "exitCode": 0,
+      "passed": 18
+    },
+    {
+      "command": "node scripts/guard-privacy.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "git diff --check base HEAD",
+      "exitCode": 0
+    },
+    {
+      "command": "playwright test e2e/backclose-handover.spec.mjs --workers=1 --retries=0 (private isolated server/config; committed HTML bytes)",
+      "exitCode": 0,
+      "passed": 25,
+      "failed": 0,
+      "flaky": 0,
+      "skipped": 0,
+      "timezone": "UTC"
+    }
+  ],
+  "causalRed": [
+    {
+      "run": "red-base",
+      "exitCode": 1,
+      "causalProductFailures": 2,
+      "scope": "Browser and App callback closed Ask with visible synthetic keyboard; physical-keyboard controls passed."
+    },
+    {
+      "run": "red-predictive",
+      "exitCode": 1,
+      "causalProductFailures": 2,
+      "scope": "Corrected parent container moved during predictive progress; first cancel comparison was raw style and superseded."
+    },
+    {
+      "run": "red-cancel-geometry",
+      "exitCode": 1,
+      "causalProductFailures": 1,
+      "scope": "Parent x moved from0 to157.2069 during keyboard-dedicated gesture."
+    }
+  ],
+  "mutations": {
+    "total": 4,
+    "killed": 4,
+    "allExitCode": 1,
+    "causalAssertionFailuresVerified": true,
+    "restoredExact": true,
+    "contracts": [
+      "native keyboard precedence",
+      "browser history rearm",
+      "predictive start latch after early IME resize",
+      "focus alone is not IME"
+    ]
+  },
+  "html": {
+    "committedSHA256": "b530b8bef6a1bbb5ed8b6cd0a664565fe46b08f8eb72d76716b98be6c5362c97",
+    "bytes": 2152126,
+    "exactLocalServedResponses": 60,
+    "gitBlob": "9d46c604d931fec850cb2fc82fab07a37871e1e9",
+    "windowsBuildSHA256": "be05fa0842c3ca01730aef630d0f3d8b394c329ff89593a152ccc6998656c99d",
+    "LFNormalizedEqual": true,
+    "scope": "Local served commit artifact; not hosted beta. Final metadata-only commit preserves exact tested HTML/source blobs."
+  },
+  "resourceReturn": {
+    "ownServerStopped": true,
+    "ownPlaywrightCompleted": true,
+    "foreignProcessesLocksUntouched": true,
+    "parallelFocalAuthority": "027aeb19133c2129faef080bc70e27b2e0addce9",
+    "leaseInherited": false
+  },
+  "fetchLimit": 12,
+  "fetchUsedBeforeResult": 6,
+  "limitations": [
+    "Chromium uses explicit synthetic visualViewport; no physical Android IME acceptance. Floating keyboard or simultaneous layout/visualViewport resize can lack this web signal. Native scope required if follow-up needs Java.",
+    "No full suite, npm test entire, CPU6, Gradle/APK, Deno general, official size-cap/catalogue gates locally. No gates weakened, no VERSION or source catalogue/approval/caps change.",
+    "Build-generated beta-delivery inventory delta saved privately; final PR retains original inventory outside scope. Generated HTML committed and tested by exact canonical bytes.",
+    "Initial predictive draft false GREEN was caused by measuring inner sheet and observing before420ms close; corrected before product fix. Raw-style cancel mismatch replaced with actual geometry; all original evidence retained.",
+    "Intermediate history guard rejected new top-level dependencies; implementation consolidated into existing guarded arbiter, with guardian tests unchanged and final24 contracts passing.",
+    "General CI in progress at recorded cut; focal-e2e and tr-pair-review skipped. No CI GREEN, ClaudeGO, integration, hosted beta or mobile acceptance inferred.",
+    "No real bank data, backend/deployment, main/beta push, merge or native changes."
+  ],
+  "ci": {
+    "runId": 38978798658,
+    "test": "IN_PROGRESS",
+    "focalE2E": "SKIPPED",
+    "trPairReview": "SKIPPED",
+    "green": false
+  },
+  "artifacts": [
+    "outputs/ux13-delivery.json",
+    "outputs/ux13-manifest.json",
+    "docs/briefs/ux13-keyboard-back-20261017.md"
+  ],
+  "schema": 1,
+  "taskId": "ux13-keyboard-back-codex-20261016",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-8e50dcf4186a58d7",
+  "createdAt": "2026-10-16T22:58:50.478Z",
+  "released": true
+}
