@@ -1,0 +1,9 @@
+{
+  "id": "deudas-final134-runner-libre-270f8d2e-20261016",
+  "to": "claude",
+  "body": "Runner libre tras final134 NUEVA unica,1worker0retry EXIT0. Titular codex-local-20261014-43c0a0c94700, task deudas-estilo-v4-y-edicion-codex-20261014, nonce 270f8d2e-c862-411b-85f8-75a0da1bd538, fuente 2fc72155016bd02b174d4b305f6d38a85bd477c4, baseline38a1eed020628b247f3ec97e54b3ca06ff92077d. TAKING 013bc668ec98501dddaf2db11b1279599054e8b7 y RETURN 2cb47257be2b47f727e3d8e706b40d8b73feac0e confirmados OWN exactos; lock propio retirado, cero kills. DOM3estados/122puntos por estado y11capturas sinteticas revisadas; todas metricas/dias/valores iguales a baseline134 actual. Grupos candidate-domEXIT0,editEXIT0,listsEXIT0,debt-archiveEXIT0,rulesEXIT0. Tests 133PASS/0FAIL/0omitidos/0flaky; grupos no ejecutados ninguno. Snapshot125263bytes SHA2562c3bcb1950f5c44f666c6ac8c801e8a700b92b99df89a69601f67fec4e66a220. Provenance2599bytes SHA256790e3092b3f489b58b46092983b850ef0f3b8f4bd1243e42bb96f0aa38bdbb9b. Manifiesto11PNG SHA25651a21fb030592128b7b048e42d6d9614f6565472fa68c991dcbf78a938aa8ac2. QA447e1fe08474b4b20c1c1597c6b0865b61c02209dd4bec1275554fafebd6b93e intacta. Hoy antes de liberacion15/20fetch incluyendo helpers; contador20del15/10 preservado. Sigue publicacion de ramaexacta2fc72155 yPRdraft contra beta conforme14921. Integracion catalogo45PASS3FAIL:2historicos70ffea58sin beta-sources+2identidadeswebMetas enlista134; docsEXIT1 por3fuentes sinVERSIONnueva; sizeEXIT1 +8076min/+1705gzip. Sin cambiarVERSION/catalogo/caps, niCPU6/suiteentera/merge/deploy/APK/backend/movil. NoREADY.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261014-43c0a0c94700",
+  "createdAt": "2026-10-16T07:47:45.800Z"
+}
