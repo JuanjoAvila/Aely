@@ -1,0 +1,71 @@
+{
+  "status": "done",
+  "summary": "INC-2709-15: recorte reproducido antes del fix; layout local corregido, cuatro casos moviles verdes y mutacion causal roja. Candidata PR245 DRAFT, sin integracion ni publicacion.",
+  "productSHA": "13d154903485d20da63a2f4a82c773fecde23b14",
+  "baseSHA": "9370565008aa2c4df9fb0588b2bf4f97e2cdc726",
+  "pullRequest": 245,
+  "draft": true,
+  "productReady": false,
+  "tests": [
+    {
+      "command": "Playwright gastos-suscripciones-movil --workers=1 --retries=0 --grep 320 antes del fix",
+      "exitCode": 1,
+      "outcome": "ROJO por recorte geometrico con ambos botones presentes"
+    },
+    {
+      "command": "Primera pasada posterior al fix, cuatro casos",
+      "exitCode": 1,
+      "outcome": "Geometria verde; cuatro fallos del arnes por lectura anterior al guardado diferido. Evidencia conservada."
+    },
+    {
+      "command": "Playwright gastos-suscripciones-movil --workers=1 --retries=0 tras corregir espera del arnes",
+      "exitCode": 0,
+      "outcome": "4/4: 320es 360en 390ca 414es; alta Fijos, importe editado, descarte y seis gastos persistidos"
+    },
+    {
+      "command": "Mutacion: retirar exclusivamente fix de layout y repetir 320",
+      "exitCode": 1,
+      "outcome": "ROJO causal por mismo recorte, no selector; fuente restaurada por hash y build EXIT0"
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0
+    },
+    {
+      "command": "git push rama propia y ls-remote; gh pr view",
+      "exitCode": 0,
+      "outcome": "SHA y base exactos; draft confirmado"
+    }
+  ],
+  "evidence": {
+    "private": true,
+    "sha256": "8ec363a29b2ae0aab0e530589aa24d9f135d0a4ee978f44d4c42b7440c413c72",
+    "fsyncReadback": true
+  },
+  "fetch": {
+    "block": "a5118e50f2c14ab21b749034e4d9df8917f65a9d",
+    "usedBeforeResult": 6,
+    "limit": 12,
+    "helperFetchesIncluded": true
+  },
+  "limitations": [
+    "CI exacta y suite general no ejecutadas por este trabajador",
+    "Integracion, beta, desplegado y movil fisico no acreditados",
+    "Sin CPU6 ni rendimiento; turnos FIN15 y FIN12 preservados",
+    "Sin VERSION, notas, catalogo, caps, shell,08,09,02,MyInvestor,i18n,sync,SQL o backend"
+  ],
+  "schema": 1,
+  "taskId": "inc2709-15-botones-suscripciones-codex-20261016",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-6afe3c0f4ab5",
+  "createdAt": "2026-10-16T16:28:05.120Z",
+  "released": true
+}
