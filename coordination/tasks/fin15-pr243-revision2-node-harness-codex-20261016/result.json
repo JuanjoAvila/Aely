@@ -1,0 +1,58 @@
+{
+  "status": "done",
+  "summary": "PR243 revision2 corrige solo la inyeccion statsDelMes del arnes Node. ROJO causal EXIT1 y GREEN Node/Deno EXIT0. Sin runtime ni suite completa; candidata DRAFT no ProductREADY.",
+  "productSHA": "2d4fa8de7fb103bc1455690c59dd42f8438eac81",
+  "pr": 243,
+  "productReady": false,
+  "scope": [
+    "tests/ingest-handler.test.mjs"
+  ],
+  "runtimeUnchanged": true,
+  "tests": [
+    {
+      "command": "node tests/ingest-handler.test.mjs antes del cambio",
+      "exitCode": 1,
+      "result": "31 casos pasan; falla solo el nuevo PDNG30 BOOK33 con ReferenceError statsDelMes is not defined."
+    },
+    {
+      "command": "node tests/ingest-handler.test.mjs tras inyeccion",
+      "exitCode": 0,
+      "result": "32/32 casos pasan, incluido el cuerpo Deno causal."
+    },
+    {
+      "command": "deno test --no-lock supabase/functions/ingest/widget.test.ts",
+      "exitCode": 0,
+      "result": "12/12"
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0
+    },
+    {
+      "command": "push normal rama propia y ls-remote",
+      "exitCode": 0,
+      "result": "SHA remoto exacto 2d4fa8de7fb103bc1455690c59dd42f8438eac81"
+    }
+  ],
+  "evidenceHashes": {
+    "red-node": "f04ee908f61d78c6bcb0d6e5329128c84564be97ea459f28cf9ed61b5dba5046",
+    "green-node": "2d3863071e021ddf1bb326c26e6e36722913604960867f18e9a74b365e7a1642",
+    "green-deno": "34e67d5bac8bccb97f17ce77acffe865bad96b7c90ef3296abc6eb29700093a2",
+    "product-push": "ec91255be5002d65256bfd6ef1dff43b0f8902db893fc279ba2274c2e839228c",
+    "product-readback": "2df65ff4e145d3d1d853846b4d7d7208d7534fad24217ea8820ad0dc290598dc"
+  },
+  "limitations": [
+    "Resultf136 y suite sobre36c46d1c EXIT1 preservados e inmutables; no son suite sobre el SHA nuevo.",
+    "Suite completa nueva, E2E, CPU6 y rendimiento no ejecutados. E2E anterior no ejecutado no se acredita verde.",
+    "beta-sources y docs-frescura siguen pendientes de integracion; no se repitieron ni cambiaron VERSION, catalogo o caps.",
+    "Siguiente suite completa Claude promocion137; FIN12 espera nuevo runner-libre coordinador. No se tomo ni heredo lease.",
+    "Sin runtime, backend, SQL, deploy, merge, main-beta push ni force.",
+    "Presupuestos previos14,6,7 congelados; cupo sucesor8 separado."
+  ],
+  "schema": 1,
+  "taskId": "fin15-pr243-revision2-node-harness-codex-20261016",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-46b86e3686e19bf3",
+  "createdAt": "2026-10-16T17:03:50.461Z",
+  "released": true
+}
