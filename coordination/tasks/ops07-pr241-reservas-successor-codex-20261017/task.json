@@ -1,0 +1,43 @@
+{
+  "schema": 1,
+  "id": "ops07-pr241-reservas-successor-codex-20261017",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261016-87ff5baf0f204091",
+  "createdAt": "2026-10-16T22:47:39.739Z",
+  "to": "codex",
+  "baseSHA": "c8774a2953c483e844c97d14fef32e3be2968c9c",
+  "previousTaskId": "ops07-keepalive-sesiones-codex-20261016",
+  "afterTaskId": "inc290902-cyclezero-codex-20261016",
+  "afterResult": "bce2e212f0792bab32af92ccdd0857cf4edc1672",
+  "claudeGrant": "cc499fe84e4e6e273baa26c013cdd1e45006455d",
+  "scopeGrant": "d32639d35a41e9a968d274f60ade4d7b1efddda8",
+  "budgetRuleGrant": "db3299cd69020ccf15563e787d1a1f4b69e8a753",
+  "assignedWorkerSession": "codex-local-20261016-5fc9afdec60f82b1",
+  "PR": 241,
+  "branch": "codex/ops07-keepalive-20261016",
+  "model": "gpt-6-astra",
+  "modelReason": "Preserve original task human money/server model requirement while same INC worker takes explicit OPS successor.",
+  "objective": "Cerrar R1/R2/R3/R5 de PR241 misma rama: mi_keepalive ok solo cambioestado o max1porhora porenlace; code cerrado ok,rejected,http_403,http_other,no_access_token,network,decrypt,encrypt,no_creds,save_error,raced y hasRefreshToken booleano; save_error trasrefreshbueno distinguible; reintento UNICO deguardado trasrefreshbueno como sync137; timeout fetchMyInvestor para no bloquear restoenlaces. ROJO/GREEN/mutaciones por reserva y documentacion honesta.",
+  "scope": [
+    "supabase/functions/myinvestor-keepalive/index.ts",
+    "tests focales keepalive",
+    "registro tests y docs tecnicas focales"
+  ],
+  "fetchAllocation": {
+    "allowance": 12,
+    "block": "OPS07-successor-own12",
+    "separateFromINCPreviousBlock": true,
+    "noPreviousRemainderCarried": true,
+    "additional12AfterExhaustionWithBudgetNotice": true
+  },
+  "constraints": [
+    "Asignado explicitamente porClaude al titularINC ahora que cerro su result. NUEVA tarea/claim/readback/ACK OWN, sin tomar claim antiguo ni borrar evidencia anterior.",
+    "Misma ramaPR241 ybasec877 confirmadas; checkout propio aislado NUEVO, preservar repoINC yWIPajeno. No editar checkout de antiguoOPS; no main/beta push/merge ni force.",
+    "Carrera keepalive/sync, connection_version o lock porusuario queda backlog aparte; NO tocar myinvestor-sync ni _shared/token_store.ts,ni ruta cliente.",
+    "Usar habilidadSupabase ydocsactuales antes de implementacion; verificar solo con sinteticos/dobles. No SQL/migraciones/livebank/Edge deploy/backend remoto ni secretos. DespliegueClaude trasproduccionMyInvestor.",
+    "Sin VERSION,notas,catalogo,caps,Deudas/Metas u oraculos ajenos; guardar shaEXITs reales,privacy e inventario pertinentes.",
+    "Pruebas dirigidas1worker0retry ypuerto propio pueden ir paralelas por027aeb19. UNA repeticion solo infraestructuraespecifica. No suitecompleta,CPU6,Gradle niAPK porarrastre.",
+    "Conservar token originalguarda y clasificacion400/401 frente403/429/5xx; nodo telemetry no puede filtrarPII ni ocultarerrores reales."
+  ],
+  "deliverable": "PR241 actualizadaDRAFT, sourceSHA exacto,ROJO/GREEN/mutantes paraR1/R2/R3/R5,NodeDeno dirigido pertinente,manifest refs yresultOWNreleased nuevo;CIgeneral/integracion/despliegue/movil diferenciados."
+}
