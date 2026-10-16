@@ -1,3 +1,10 @@
+FIN-15: `tests/fin15-pendiente-contabilizada.test.mjs` registrado en `run-tests` ejecuta
+cliente, month legacy y widget v2 con PDNG/BOOK en días distintos, en ambos órdenes.
+Incluye 676 comparaciones exactas sin `#ref` contra `9370565` y ocho mutaciones semánticas.
+`e2e/fin15-pendiente-contabilizada.spec.mjs` está registrado en Gastos; comprueba una fila
+visible tras pull/reinicio y verifica el hash del HTML servido. Datos exclusivamente sintéticos.
+La suite completa y la aceptación móvil conservan sus gates independientes.
+
 Compras con referencias distintas: `tests/compras-identicas-ids.test.mjs` registrado en Node y
 `e2e/compras-identicas-ids.spec.mjs` en Gastos. Handlers reales con fixtures sintéticas,
 rojo causal, tres estados al céntimo y siete mutaciones. El oráculo antiguo de Recibos sigue

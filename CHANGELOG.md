@@ -1,3 +1,10 @@
+### Candidata FIN-15 · sin publicar (16/10/2026)
+
+- `filasComoLaApp` reconoce la identidad banco + referencia `#ref` antes de deduplicar por contenido, después de aplicar las lápidas. Una compra PDNG un día y BOOK al siguiente con referencia estable pasa de 640 a 320 céntimos sintéticos en month y widget, igual que el cliente. Las referencias conocidas distintas siguen separadas.
+- Compatibilidad: 676 comparaciones exactas contra la base `9370565` para filas de clientes antiguos sin `#ref`; ambos órdenes, medianoche Madrid, lápidas, lectura truncada, handler ingest y ocho mutaciones semánticas. Node y DOM focales no acreditan integración, CI general ni aceptación móvil.
+- Límite conocido aprobado: referencias **distintas entre días sin alias estable** siguen separadas. Coincidir en importe/comercio no prueba que sean la misma compra. No se amplía la heurística ni se modifica el cliente.
+- **Claude despliega ingest antes del cliente.** Esta candidata solo contiene fuente y pruebas; no despliega, migra ni cambia versión, notas familiares o catálogo.
+
 ## [4.26.136] — 2026-10-16 · Producción: compras idénticas sin duplicar ni perderse
 
 - **Qué sube.** Lo mismo que la promoción 135 preparada el 15/10 (beta 4.26.135 aprobada, `bad396a4`, más el BACKLOG auditado), con una línea más: `GASTO_ORIGENES` incluye `ob-absorbed`.
