@@ -33,6 +33,13 @@ Deno.serve(withCors(async (req: Request) => {
     const tokens = link ? await miTokensFromRow(link) : null;
     if (!link || !tokens?.access || !tokens.deviceId) return jsonResp({ ok: false, error: "no conectado" });
 
+    const body = await req.json().catch(() => ({}));
+    // Sin señal expresa (también clientes antiguos) la apertura no es un intento manual.
+    const userInitiated = body?.userInitiated === true;
+    const counterVersion = link.access_counter_version;
+    const connectionVersion = link.connection_version;
+    if (!counterVersion || !connectionVersion) return jsonResp({ ok: false, softFail: true, code: "counter_not_available", error: "MyInvestor no responde bien ahora. Prueba más tarde — tu sesión sigue guardada." });
+
     const deviceId = tokens.deviceId;
     let token = tokens.access;
     let refreshPlain = tokens.refresh;
@@ -72,13 +79,14 @@ Deno.serve(withCors(async (req: Request) => {
         let saved = false;
         for (let i = 0; i < 2 && !saved; i++) {
           try {
-            const { error } = await admin.from("myinvestor_links").update({
+            const { data, error } = await admin.from("myinvestor_links").update({
               access_token: enc.access_token,
               refresh_token: enc.refresh_token,
               refresh_expires_at: refreshSecs > 0 ? new Date(Date.now() + refreshSecs * 1000).toISOString() : link.refresh_expires_at,
               status: "active", updated_at: new Date().toISOString(),
-            }).eq("user_id", user.id);
-            saved = !error;
+            }).eq("user_id", user.id).eq("connection_version", connectionVersion).select("user_id").maybeSingle();
+            if (!error && !data) return { outcome: "temporary", status: r.status, code: "refresh_raced" };
+            saved = !error && !!data;
           } catch (_) { /* corte de red: como un error devuelto */ }
         }
         if (!saved) return { outcome: "temporary", status: r.status, code: "refresh_not_saved" };
@@ -93,12 +101,12 @@ Deno.serve(withCors(async (req: Request) => {
        si se repite no tiene salida sola: cada pulsación gasta un refresco y la respuesta era
        siempre «prueba más tarde». A la TERCERA vez en seis horas se da el enlace por caducado
        para que la app ofrezca reconectar. El contador es el limitador que ya usa
-       `myinvestor-connect` (tabla `rate_limits`, migración 0019): `myinvestor_links` no tiene
-       columna donde llevarlo. Cuenta veces dentro de la ventana, no veces seguidas: una
-       lectura buena en medio no lo pone a cero. Si el limitador no responde deja pasar, o
-       sea que NO caduca. */
-    const stuck = read.kind === "temporary" && read.code === "access_401_after_refresh"
-      && !(await rateLimit(admin, "mi-401-tras-refresco:" + user.id, 2, 6 * 3600)).ok;
+       `myinvestor-connect` (tabla `rate_limits`, migración 0019). La versión del bucket cambia
+       al reconectar y al leer bien: el contador activo queda a cero sin borrar el de otra
+       petición. Un fallo viejo sólo suma a su bucket viejo; no puede caducar una reconexión.
+       Si el limitador no responde deja pasar, o sea que NO caduca. */
+    const stuck = userInitiated && read.kind === "temporary" && read.code === "access_401_after_refresh"
+      && !(await rateLimit(admin, "mi-401-tras-refresco:" + user.id + ":" + counterVersion, 2, 6 * 3600)).ok;
     /* El refresco rechazado solo es caducidad si la fila sigue teniendo el token que se usó.
        El keepalive corre cada 10 minutos con ese mismo token: si lo rotó mientras tanto, el
        rechazo es del token viejo y el enlace está vivo. Se vuelve a leer la fila en vez de
@@ -111,7 +119,9 @@ Deno.serve(withCors(async (req: Request) => {
       }
     }
     if (read.kind === "expired" || stuck) {
-      await admin.from("myinvestor_links").update({ status: "expired", updated_at: new Date().toISOString() }).eq("user_id", user.id);
+      const { data, error } = await admin.from("myinvestor_links").update({ status: "expired", updated_at: new Date().toISOString() })
+        .eq("user_id", user.id).eq("connection_version", connectionVersion).eq("access_counter_version", counterVersion).select("user_id").maybeSingle();
+      if (error || !data) return jsonResp({ ok: false, softFail: true, code: error ? "expiry_not_saved" : "refresh_raced", error: "MyInvestor no responde bien ahora. Prueba más tarde — tu sesión sigue guardada." });
       return jsonResp({ ok: false, authExpired: true, error: "Tu sesión de MyInvestor caducó. Vuelve a conectar." });
     }
     // `softFail` es el contrato que el cliente ya entiende como «reintenta, no pidas contraseña».
@@ -148,8 +158,27 @@ Deno.serve(withCors(async (req: Request) => {
       for (const p of miPositionsFrom(data)) positions.push(p);
     }
 
-    await admin.from("myinvestor_links").update({ last_sync: new Date().toISOString(), status: "active", updated_at: new Date().toISOString() }).eq("user_id", user.id);
-    return jsonResp({ ok: true, positions });
+    // El reset exige ambas versiones para no borrar fallos posteriores de otra lectura.
+    // Si sólo perdió el contador, aún podemos sellar la lectura del MISMO enlace: cero
+    // filas con la guarda de conexión sí indica reconexión, sin un SELECT previo vulnerable.
+    let saved: { user_id: string } | null = null, saveError = false;
+    try {
+      const result = await admin.from("myinvestor_links").update({
+        last_sync: new Date().toISOString(), status: "active", updated_at: new Date().toISOString(),
+        access_counter_version: crypto.randomUUID(),
+      }).eq("user_id", user.id).eq("connection_version", connectionVersion).eq("access_counter_version", counterVersion).select("user_id").maybeSingle();
+      saved = result.data; saveError = !!result.error;
+      if (!saveError && !saved) {
+        const stamp = await admin.from("myinvestor_links").update({
+          last_sync: new Date().toISOString(), updated_at: new Date().toISOString(),
+        }).eq("user_id", user.id).eq("connection_version", connectionVersion).select("user_id").maybeSingle();
+        saved = stamp.data; saveError = !!stamp.error;
+        if (!saveError && !saved) return jsonResp({ ok: false, softFail: true, code: "refresh_raced", error: "MyInvestor no responde bien ahora. Prueba más tarde — tu sesión sigue guardada." });
+      }
+    } catch (_) { saveError = true; }
+    // El sello es metadato: un fallo de BD/red no debe tirar posiciones ya leídas bien.
+    // Tampoco afirmamos haber reiniciado el contador cuando falta ese acuse.
+    return jsonResp({ ok: true, positions, ...(saveError ? { code: "counter_not_saved" } : {}) });
   } catch (e) {
     return jsonResp({ ok: false, error: String((e as Error)?.message || e) }, 500);
   }
