@@ -1,0 +1,69 @@
+{
+  "status": "done",
+  "summary": "PR241 R1/R2/R3/R5 implemented and pushed as DRAFT: hourly successes, closed codes, one guarded save retry, bank timeout. Candidate for Claude review/integration, not deployed.",
+  "productSHA": "5c670eccb4090ec98a8a2d304b49fdb580431af6",
+  "baseSHA": "c8774a2953c483e844c97d14fef32e3be2968c9c",
+  "pullRequestNumber": 241,
+  "productReady": false,
+  "manifestSHA256": "035a7d8ee2b0696b1f24f58ac2c55422bbe2dc67bc59607f66839d8568bbbe35",
+  "tests": [
+    {
+      "command": "node tests/myinvestor-keepalive.test.mjs",
+      "exitCode": 0,
+      "passed": 55
+    },
+    {
+      "command": "deno check myinvestor-keepalive with no-lock and node-modules-dir none",
+      "exitCode": 0
+    },
+    {
+      "command": "deno test shared myinvestor with no-lock node-modules-dir none cached-only",
+      "exitCode": 0,
+      "passed": 11
+    },
+    {
+      "command": "node tests/myinvestor-sync-outcomes.test.mjs",
+      "exitCode": 0,
+      "passed": 18
+    },
+    {
+      "command": "Node logs-privacidad security relevant-tests edge-sintaxis guard-privacy",
+      "exitCode": 0
+    }
+  ],
+  "causalRed": {
+    "baseFailures": 5,
+    "refinementFailures": 1
+  },
+  "mutations": {
+    "total": 9,
+    "killed": 9,
+    "eachExitCode": 1
+  },
+  "ci": {
+    "runId": 38978817581,
+    "status": "IN_PROGRESS_AT_READBACK",
+    "green": false
+  },
+  "limitations": [
+    "Hourly throttle best-effort and not atomic across concurrent cron.",
+    "General keepalive/sync race remains separate backlog; lost save acknowledgement not solved.",
+    "Two save failures after accepted refresh can require reconnect.",
+    "Timeout covers bank headers and body, not database or entire batch.",
+    "No fullsuite CPU6 DOM Android mobile livebank SQL migration deployment or served artifact evidence.",
+    "Auxiliary checks preceded final two-line telemetry refinement; final handler55 and Deno typecheck executed on delivered runtime."
+  ],
+  "budget": {
+    "block": "OPS07-successor-own12",
+    "usedBeforeResult": 6,
+    "INCActualClosed": 10,
+    "INCUnusedFrozen": 2,
+    "inherited": false
+  },
+  "schema": 1,
+  "taskId": "ops07-pr241-reservas-successor-codex-20261017",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-5fc9afdec60f82b1",
+  "createdAt": "2026-10-16T23:00:00.048Z",
+  "released": true
+}
