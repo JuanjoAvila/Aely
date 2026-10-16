@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "id": "fin12-pr242-revision1-codex-20261016",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261016-a55cdbc387b8",
+  "createdAt": "2026-10-16T16:04:12.739Z",
+  "to": "codex",
+  "baseSHA": "bdd46f4aa817eabc5aa3692719de8b6eed5c57f7",
+  "objective": "PR242 GO con reservas y bloqueo financiero: investigar asOf sembrado por migracion01-i18n frente alta real; consulta con criterio ANTES de aplicar guardia fiable. Si indistinguible, no usar ancla migrada como alta. Recuperar oraculo value600.03/monthly50.01/months12/day16 sinasOf hoy28oct consultando15ago600.03 (mutante700.05). Documentar/cubrir months y amort0 reancla en editor09 sin tocar09. ROJO sintetico, mutaciones, build y DOM si modifica serie.",
+  "scope": [
+    "src/modules/02-ui-shared.js",
+    "src/modules/01-i18n.js (solo lectura hasta criterio expreso)",
+    "src/modules/09-tab-debts-goals.js (solo lectura)",
+    "tests/inicio-deuda-futura.test.mjs",
+    "tests/inicio-v42.test.mjs",
+    "e2e/inicio-deuda-futura.spec.mjs",
+    "docs focales FIN12",
+    "public/index.html generado"
+  ],
+  "claudeGrant": "55da338dde4b79134c8e0d0c992cc776a19e4914",
+  "predecessorTaskId": "fin12-deuda-futura-inicio-codex-20261016",
+  "preservePriorResultReleased": true,
+  "constraints": [
+    "Mismo titular y chat, claim NUEVO propio; no reutilizar ni modificar resultado cerrado anterior.",
+    "Sin VERSION/notas/catalogo/caps/SQL/deploy/merge/main-beta push ni force.",
+    "Specs pequenos1worker0retry; solo una repeticion por infraestructura. Suite completa espera runner-libre Claude, orden FIN15 antesFIN12.",
+    "No cambio financiero de identidad fuera del grant ni mover anclas sin consulta y criterio."
+  ],
+  "fetchAllocation": {
+    "newBlock120": 10,
+    "countSeparately": true,
+    "predecessorSpentFrozen": 15,
+    "noInheritedBudget": true
+  },
+  "model": "gpt-6-astra",
+  "deliverable": "Misma PR actualizada push/readback exactos; result OWN nuevo con SHA, foco y mutaciones reales, limites y suite pendiente separada."
+}
