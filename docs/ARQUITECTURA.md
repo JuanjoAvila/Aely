@@ -1,5 +1,11 @@
 # Arquitectura — Aely
 
+FIN-15 (candidata): el lector servidor `filasComoLaApp` usa banco + referencia `#ref`
+para reconocer el mismo apunte en días distintos, como las mezclas del cliente. Aplica
+primero las lápidas y conserva el dedup por contenido para filas antiguas sin referencia.
+No modifica el importador ni deduce equivalencias entre referencias distintas por importe/comercio.
+Month y widget v2 usan el mismo lector; Claude despliega `ingest` antes del cliente.
+
 ## Candidata: compras iguales con referencias distintas
 
 El importador y las mezclas conservan referencias distintas mediante las ranuras ordinales

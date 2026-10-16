@@ -1,3 +1,12 @@
+### Candidata FIN-15 · sin publicar (16/10/2026)
+
+- `filasComoLaApp` reconoce la identidad banco + referencia `#ref` antes de deduplicar por contenido, después de aplicar las lápidas. Una compra PDNG un día y BOOK al siguiente con referencia estable pasa de 640 a 320 céntimos sintéticos en month y widget, igual que el cliente. Las referencias conocidas distintas siguen separadas.
+- Compatibilidad: 676 comparaciones exactas contra la base `9370565` para filas de clientes antiguos sin `#ref`; ambos órdenes, medianoche Madrid, lápidas, lectura truncada, handler ingest y diez mutaciones semánticas. El arnés separa ancla ausente, error de compilación y fallo de infraestructura del fallo del oráculo financiero: solo este último cuenta como mutante muerto. Node y DOM focales no acreditan integración, CI general ni aceptación móvil.
+- Efectos colaterales explícitos: la misma referencia con `#n2`, o una fila `ob:` y otra `ob-hist:` del mismo banco y referencia, pasan de 640 a 320 céntimos; dos referencias distintas el mismo día sin ordinal pasan de 320 a 640. La referencia identifica la compra por encima de la ranura y del origen diario/histórico.
+- Importes distintos bajo la misma referencia conservan la primera fila leída: PDNG 30,00 seguido de BOOK 33,00 da 30,00; el orden inverso da 33,00 en el lector mensual y en `widgetSnapshot`. El handler lee month sin orden explícito y widget por UUID ascendente: con UUID BOOK anterior obtiene widget 33,00 aunque month sea 30,00; con UUID PDNG anterior el widget da 30,00. El nuevo test fija ambas órdenes y ambas ordenaciones de UUID. La dependencia del orden y la preferencia de fila, junto con el signo de devoluciones, quedan para una tanda aparte cliente+servidor; aquí no se cambian.
+- Límite conocido aprobado: referencias **distintas entre días sin alias estable** siguen separadas. Coincidir en importe/comercio no prueba que sean la misma compra. No se amplía la heurística ni se modifica el cliente.
+- **Claude despliega ingest antes del cliente.** Esta candidata solo contiene fuente y pruebas; no despliega, migra ni cambia versión, notas familiares o catálogo.
+
 ## [4.26.136] — 2026-10-16 · Producción: compras idénticas sin duplicar ni perderse
 
 - **Qué sube.** Lo mismo que la promoción 135 preparada el 15/10 (beta 4.26.135 aprobada, `bad396a4`, más el BACKLOG auditado), con una línea más: `GASTO_ORIGENES` incluye `ob-absorbed`.

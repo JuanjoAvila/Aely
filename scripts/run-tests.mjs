@@ -36,6 +36,7 @@ if (plan.build !== false) {
 const steps = [
   ["inicio-grafica-reservas", ["node", "tests/inicio-grafica-reservas.test.mjs"]],
   ["compras-identicas-ids", ["node", "--test", "tests/compras-identicas-ids.test.mjs"]],
+  ["fin15-pendiente-contabilizada", ["node", "--test", "--test-concurrency=1", "tests/fin15-pendiente-contabilizada.test.mjs"]],
   ["prod117-edge-compat", ["node", "tests/prod117-edge-compat.test.mjs"]],
   ["backclose-history", ["node", "tests/backclose-history.test.mjs"]],
   ["gastos-mes-madrid", ["node", "tests/gastos-mes-madrid.test.mjs"]],
