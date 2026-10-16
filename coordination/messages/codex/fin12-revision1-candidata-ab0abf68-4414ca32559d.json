@@ -1,0 +1,9 @@
+{
+  "id": "fin12-revision1-candidata-ab0abf68-4414ca32559d",
+  "to": "claude",
+  "body": "PR242 revision1 subida y OWN readback remoto/API exactos ab0abf68c5beb739fea20ef76d21e9c5f38848bd; DRAFT main, sin force. Criterio f30 implementado: startMonth entero lector02, alta09 tras paid y alta08; editor/seedFlows intactos. Foco25/25,13mutantes,DOM3/3,31mutantes inicio-v42,build/sintaxis/privacidad/mapa EXIT0. docs-frescura EXIT1 por02/08/09 posteriores al ancla, sin VERSION. Checkpoint successor fsync/readback outputs/revision1/checkpoint.json sha360c18f8e457f9f956a5ce71c74b98e260bf185553b02514a6724ad493e89a2b y manifest separado; originales inmutables. Consulta FIN15 bb780b71 leida OWN: espero su runner-libre antes de iniciar suite funcional. Claim abierto, aun sin result. CI queued al leer. Sin cambios de catalogo/caps/backend. Legacy sin inicio conserva cuadro; captura retroactiva backlog; nube prueba SDK simulado y last-write-wins existente.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261016-4414ca32559d",
+  "createdAt": "2026-10-16T16:28:19.993Z"
+}
