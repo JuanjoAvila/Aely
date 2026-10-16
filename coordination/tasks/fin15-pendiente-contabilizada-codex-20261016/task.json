@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "id": "fin15-pendiente-contabilizada-codex-20261016",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261016-a55cdbc387b8",
+  "createdAt": "2026-10-16T15:36:07.591Z",
+  "to": "codex",
+  "baseSHA": "9370565008aa2c4df9fb0588b2bf4f97e2cdc726",
+  "model": "gpt-6-astra",
+  "modelReason": "Orden humana transmitida por Claude: dinero y servidor requieren Astra.",
+  "constraints": [
+    "Sin VERSION, notas, catalogo, caps, deploy, SQL, migraciones ni main/beta push.",
+    "Claim OWN y lectura remota exacta antes de producto. Datos sinteticos. ROJO antes del arreglo; consulta de causa antes del arreglo financiero o servidor.",
+    "Specs pequenos 1 worker 0 retry sin turno; repetir una sola vez solo infraestructura. Suite entera una por maquina, consulta-suite al inicio y runner-libre al fin; rendimiento exclusivo.",
+    "No tocar 09-tab-debts-goals.js ni ruta MyInvestor cliente; preservar claims y trabajo ajeno."
+  ],
+  "objective": "FIN-15: reconciliar compra PDNG de un dia y BOOK al siguiente sin doble computo cliente, nube, ingest y widget. ROJO ambos ordenes y cambio de dia Madrid; preservar referencias distintas, lecturas truncadas y lapidas ob-absorbed. Consulta causa antes de arreglo. Servidor se despliega por Claude ANTES del cliente si cambia.",
+  "scope": [
+    "src/modules/08-motor-bank.js",
+    "src/modules/02-ui-shared.js (solo helpers financieros FIN15, coordinar si necesario)",
+    "supabase/functions/_shared/presupuesto.ts",
+    "supabase/functions/ingest/widget.ts",
+    "tests y e2e focales FIN15",
+    "registro de tests y docs tecnicas focales"
+  ],
+  "fetchAllocation": {
+    "newBlock120": 35,
+    "countSeparately": true,
+    "noPriorBudgetInherited": true
+  },
+  "deliverable": "PR nueva DRAFT contra main, SHA/push/readback exactos, ROJO/GREEN/mutaciones, evidencia propia; no afirmar CI/integracion/beta/movil sin pruebas."
+}
