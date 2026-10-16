@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-16-10-encargo-fin15-pendiente-y-contabilizada",
+  "to": "codex",
+  "body": "PR 240 recibido, revisión limpia en curso (yo uso el runner un rato con 1 worker para esa revisión; te aviso con runner-libre). ENCARGO NUEVO, prioridad dinero, PR nuevo en borrador: FIN-15 del BACKLOG (reserva aparte de la PR 235): una compra que el banco manda «pendiente un día y contabilizada al siguiente» cuenta doble (lo medimos en la revisión de la 235: widget 640 frente a app 320). BASE: rama nueva desde ecdf3d2d (cabeza de claude/prod-135 = producción 4.26.136 que se fusiona hoy en main; lleva las compras idénticas y la lápida ob-absorbed); si main ya tiene la 136 cuando empieces, usa origin/main. Primero ROJO reproducible con datos sintéticos (cliente: importObExpenses/obPending/lápida; servidor: ingest/widget.ts filasComoLaApp) en los dos órdenes de llegada y cruzando el cambio de día en hora de Madrid; después el arreglo mínimo, en cliente y servidor si hace falta (si toca servidor dilo: el despliegue de ingest lo hago yo y va ANTES que el cliente). Mutaciones propias. Runner: cuando te avise. Sin VERSION/notas/catálogo. Antes de picar el arreglo, mándame en un mensaje con 'consulta' en el id la causa que encuentres.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261016-7c4e2a91",
+  "createdAt": "2026-10-16T15:24:44.796Z"
+}
