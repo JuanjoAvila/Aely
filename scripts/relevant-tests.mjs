@@ -53,6 +53,7 @@ export const CORE = [
  * (mejor un minuto de más que un verde ciego).
  */
 export const E2E_MAP = [
+  { file: "src/modules/03-tab-dash.js", specs: ["e2e/inicio-deuda-futura.spec.mjs"] },
   { file: "src/modules/11-app-main.js", specs: ["e2e/widget-banco.spec.mjs"] },
   {file:"src/modules/16-help-assistant.js",specs:["e2e/help-assistant.spec.mjs","e2e/help-preguntar-borde.spec.mjs"]},
   { file: "src/modules/03-tab-dash.js", specs: ["e2e/inicio-grafica-reservas.spec.mjs", "e2e/inicio-v42.spec.mjs", "e2e/inicio-v42-rendimiento.spec.mjs", "e2e/inicio-grafica-feedback.spec.mjs", "e2e/dashboard-memo-profile.spec.mjs", "e2e/help-assistant.spec.mjs",
@@ -94,6 +95,7 @@ export const E2E_MAP = [
     "e2e/tr-aviso.spec.mjs",
   ] },
   { file: "src/modules/08-motor-bank.js", specs: [
+    "e2e/inicio-deuda-futura.spec.mjs",
     "e2e/metas-editar-regla.spec.mjs",
     "e2e/metas-borrar-regla.spec.mjs",
     "e2e/metas-alta-regla.spec.mjs",
@@ -120,6 +122,7 @@ export const E2E_MAP = [
     "e2e/cartera-parte-mia.spec.mjs",
   ] },
   { file: "src/modules/09-tab-debts-goals.js", specs: [
+    "e2e/inicio-deuda-futura.spec.mjs",
     "e2e/metas-editar-regla.spec.mjs",
     "e2e/metas-borrar-regla.spec.mjs",
     "e2e/metas-alta-regla.spec.mjs",
