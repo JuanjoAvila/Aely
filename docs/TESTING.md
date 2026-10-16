@@ -1166,5 +1166,14 @@ watchdog independiente evita que una regresión cuelgue la prueba. Cubre limpiez
 excepciones, dos fallos sin tercer intento, cero filas y reconexión entre intentos.
 Se conservan los 39 casos anteriores y se añaden 16: 55 verdes; cinco fallos causales
 previos sobre c8774a29 y un sexto al detectar que el límite403 ocultaba un fallo de lectura
-del cuerpo. Nueve mutaciones detectadas. El test ya está registrado en el runner.
+del cuerpo. Nueve mutaciones detectadas en la revisión anterior. El test ya está registrado en el runner.
+La segunda revisión añade cinco casos (60 en total): recuperación `ok → 500 → ok`
+en la misma hora, cambios de presencia de cada campo del refresco y de ambos, repetición
+estable y recuperación de campos. El historial sintético ordena y limita realmente,
+incluido el desempate por `id`. Sobre5c670ecc esas cuatro secuencias fallan; el quinto
+caso caracteriza el UPDATE aplicado con respuesta perdida que termina en `raced`.
+Este último es una ambigüedad documentada, no un fallo corregido ni prueba de otro escritor.
+Tres mutaciones nuevas detectadas: volver al límite anterior, comparar solo el código
+y eliminar el desempate por identificador. Las nueve anteriores conservan su evidencia
+sobre5c670ecc y no se suman como nuevas ni se declaran repetidas en esta revisión.
 Son dobles locales, sin bancos ni SQL vivos; no acreditan CI general, integración ni despliegue.

@@ -31,7 +31,7 @@ async function tick(rows, refresco, key = "clave", options = {}) {
       assert.equal(tabla, "app_events");
       events.push(event);
       if (options.logThrows) throw new Error("synthetic-log-error");
-      if (!options.logError) history.push({ ...event, created_at: new Date().toISOString() });
+      if (!options.logError) history.push({ ...event, id: history.length + 1, created_at: new Date().toISOString() });
       return options.logError ? { error: { message: "synthetic-log-error" } } : {};
     },
     select: () => {
@@ -40,14 +40,22 @@ async function tick(rows, refresco, key = "clave", options = {}) {
         eq: (c, v) => { filtros.push([c, v]); return q; },
         gte: (c, v) => { q.since = [c, v]; return q; },
         like: (c, v) => { q.pattern = [c, v.slice(1, -1)]; return q; },
-        limit: () => q,
+        order: (column, { ascending }) => { (q.orders ||= []).push([column, ascending]); return q; },
+        limit: n => { q.count = n; return q; },
         maybeSingle: async () => ({ data: tabla === "cron_secrets" ? { secret: "clave" } : null }),
         // Copias: lo que el handler leyó no cambia aunque la fila cambie después.
         then: (ok, ko) => {
           if (tabla === "app_events") {
             eventReads.push({ filtros, since: q.since });
             if (options.readThrows) return Promise.reject(new Error("synthetic-event-read")).then(ok, ko);
-            return Promise.resolve(options.readError ? { error: { message: "synthetic-event-read" } } : { data: history.filter(r => casa(r, filtros) && (!q.since || r[q.since[0]] >= q.since[1]) && (!q.pattern || r[q.pattern[0]].includes(q.pattern[1]))) }).then(ok, ko);
+            const selected = history.filter(r => casa(r, filtros) && (!q.since || r[q.since[0]] >= q.since[1]) && (!q.pattern || r[q.pattern[0]].includes(q.pattern[1])));
+            selected.sort((a, b) => {
+              for (const [column, ascending] of q.orders || []) {
+                if (a[column] !== b[column]) return (a[column] < b[column] ? -1 : 1) * (ascending ? 1 : -1);
+              }
+              return 0;
+            });
+            return Promise.resolve(options.readError ? { error: { message: "synthetic-event-read" } } : { data: selected.slice(0, q.count ?? selected.length) }).then(ok, ko);
           }
           return Promise.resolve({ data: rows.filter((r) => casa(r, filtros)).map((r) => ({ ...r })) }).then(ok, ko);
         },
@@ -67,6 +75,7 @@ async function tick(rows, refresco, key = "clave", options = {}) {
           const tocadas = rows.filter((r) => casa(r, filtros));
           tocadas.forEach((r) => Object.assign(r, x));
           writes.push({ ...x, _filas: tocadas.length });
+          if (options.appliedError && attempts.length === 1) return Promise.resolve({ data: null, error: { message: "synthetic-lost-ack" } }).then(ok, ko);
           return Promise.resolve({ data: tocadas.map(row => ({ user_id: row.user_id })), error: null }).then(ok, ko);
         },
       };
@@ -428,6 +437,43 @@ await t("R2: error de cuerpo con HTTP403 no queda oculto por el límite de recha
   const onlyNetwork = history.filter(e => JSON.parse(e.detail).code === "network");
   const actual403 = await tick([enlace("a")], () => json(403, {}), "clave", { history: onlyNetwork });
   assert.equal(actual403.events.length, 1, "un fallo de lectura no cuenta como diagnóstico http_403");
+});
+
+await t("Rev2: ok-500-ok en una hora registra la recuperación y limita el siguiente idéntico", async () => {
+  const rows = [enlace("a")], history = [];
+  await tick(rows, () => nuevos(), "clave", { history });
+  await tick(rows, () => json(500, {}), "clave", { history });
+  // Empate realista de reloj: id desempata y evita elegir el éxito anterior.
+  const tiedAt = new Date().toISOString();
+  history.forEach(e => { e.created_at = tiedAt; });
+  const recovered = await tick(rows, () => nuevos(), "clave", { history });
+  assert.equal(recovered.events.length, 1, "registrar vuelta a ok aunque hubiese otro ok en la hora");
+  assert.equal(JSON.parse(recovered.events[0].detail).code, "ok");
+  assert.equal((await tick(rows, () => nuevos(), "clave", { history })).events.length, 0);
+});
+
+for (const missing of ["refreshExpiresIn", "refreshToken", "ambos"]) await t("Rev2: ok normal seguido de ok sin " + missing + " conserva la señal", async () => {
+  const rows = [enlace("a")], history = [];
+  await tick(rows, () => nuevos(), "clave", { history });
+  const extra = missing === "ambos" ? { refreshExpiresIn: undefined, refreshToken: undefined } : { [missing]: undefined };
+  const changed = await tick(rows, () => nuevos(extra), "clave", { history });
+  assert.equal(changed.events.length, 1);
+  const d = JSON.parse(changed.events[0].detail);
+  assert.equal(d.hasRefreshExpiresIn, missing === "refreshToken");
+  assert.equal(d.hasRefreshToken, missing === "refreshExpiresIn");
+  assert.equal((await tick(rows, () => nuevos(extra), "clave", { history })).events.length, 0);
+  assert.equal((await tick(rows, () => nuevos(), "clave", { history })).events.length, 1, "también registra la recuperación de campos");
+});
+
+await t("Rev2: guardado aplicado con respuesta perdida sigue siendo raced ambiguo", async () => {
+  const rows = [enlace("a")];
+  const r = await tick(rows, () => nuevos(), "clave", { appliedError: true });
+  assert.equal(rows[0].refresh_token, "refresco-nuevo", "el primer intento se aplicó");
+  assert.equal(r.attempts.length, 2);
+  assert.deepEqual(r.writes.map(w => w._filas), [1, 0]);
+  assert.deepEqual(r.data, { ok: true, refreshed: 0, expired: 0, skipped: 1 });
+  assert.equal(JSON.parse(r.events[0].detail).code, "raced");
+  assert.equal(JSON.parse(r.events[0].detail).guarded, true);
 });
 
 if (failures) { console.error("\n" + failures + " fallo(s)"); process.exit(1); }

@@ -87,9 +87,14 @@ con HTTP 200/201 distingue el guardado fallido después de un refresco aceptado.
 Fallos de red, descifrado, cifrado o guardado son `skipped`; los errores
 de diagnóstico no alteran el resultado ni impiden tratar los demás enlaces.
 
-Los éxitos y los 403 consultan por separado eventos equivalentes del mismo usuario durante la última hora;
-el segundo límite usa `code:http_403`, para no ocultar ni contar errores de lectura del cuerpo.
-si ya hay uno o la consulta falla, omite el registro. Esto limita los ticks secuenciales,
+Un éxito consulta el último evento `mi_keepalive` del mismo usuario en la última hora,
+ordenado por `created_at` descendente y por `id` descendente en caso de empate
+(`bigint identity`, migración0006). Solo omite el registro si ese último `detail` es
+idéntico: `ok → 500 → ok` registra la recuperación, y un éxito sin `refreshExpiresIn`
+o sin `refreshToken` registra el cambio de presencia y su posterior recuperación.
+Los 403 mantienen su límite separado por `code:http_403`, para no ocultar ni contar
+errores de lectura del cuerpo. Si falla cualquiera de estas consultas, omite el
+diagnóstico. Esto limita los ticks secuenciales,
 pero no es un bloqueo atómico entre cron concurrentes. No hay migración, secreto nuevo
 ni cambio de RLS. Se reutilizan los grants de0018 y los límites de0023; solo se ha leído
 el esquema versionado, no el servidor. La retención de eventos sigue siendo la existente.
@@ -100,7 +105,13 @@ refresco original. No vuelve a llamar al banco. Cero filas sin error significa `
 y corta los intentos. Si fallan ambos, se registra `save_error`: **no es inocuo**, el banco
 puede haber invalidado el refresco anterior y el enlace podría necesitar reconexión.
 La carrera general entre keepalive y sync sigue en backlog separado; esta guarda no
-serializa ambos procesos ni resuelve un guardado confirmado cuya respuesta se perdió.
+serializa ambos procesos. Si el primer UPDATE se aplicó pero devolvió un error o su
+respuesta se perdió, el reintento puede encontrar cero filas porque el propio primer
+intento cambió el token. También se informa `skipped`/`raced`, con `guarded:true`, aunque
+los tokens nuevos estén guardados. **`raced` no demuestra que haya otro escritor**:
+solo acredita que ese intento sin error no encontró el token original. No se hace una
+lectura adicional para resolver esta ambigüedad; la prueba sintética de respuesta
+perdida la caracteriza sin afirmar un fallo de persistencia ni una renovación confirmada.
 
 Cada llamada a MyInvestor tiene un máximo de 10 segundos para recibir cabeceras **y cuerpo**.
 El timeout aborta la petición, cuenta `skipped`/`network` y permite tratar el siguiente enlace;

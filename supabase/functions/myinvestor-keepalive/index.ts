@@ -111,14 +111,18 @@ Deno.serve(async (req) => {
           const detail = JSON.stringify({ outcome: eventOutcome, code, http, hasRefreshExpiresIn, hasRefreshToken, guarded });
           let log = true;
           if (eventOutcome === "ok" || (http === 403 && code === "http_403")) {
-            // El cron corre cada diez minutos: éxitos y 403 repetidos desplazan errores
-            // de la ventana de Actividad. Cada categoría se limita por enlace y hora.
+            // Comparar el último evento conserva recuperaciones y cambios de presencia
+            // de campos, aunque ya haya un éxito en la hora. Los 403 conservan su tope.
             // Si falla esta lectura, se omite el diagnóstico; el enlace ya está resuelto.
-            const { data: recent, error } = await admin.from("app_events").select("id")
+            let query = admin.from("app_events").select("detail")
               .eq("user_id", link.user_id).eq("kind", "mi_keepalive")
-              .like("detail", eventOutcome === "ok" ? '%"outcome":"ok",%' : '%"code":"http_403",%')
-              .gte("created_at", new Date(Date.now() - 60 * 60 * 1000).toISOString()).limit(1);
-            log = !error && Array.isArray(recent) && recent.length === 0;
+              .gte("created_at", new Date(Date.now() - 60 * 60 * 1000).toISOString());
+            query = eventOutcome === "ok"
+              ? query.order("created_at", { ascending: false }).order("id", { ascending: false })
+              : query.like("detail", '%"code":"http_403",%');
+            const { data: recent, error } = await query.limit(1);
+            log = !error && Array.isArray(recent)
+              && (recent.length === 0 || (eventOutcome === "ok" && recent[0].detail !== detail));
           }
           if (log) await admin.from("app_events").insert({
             user_id: link.user_id, email: null, kind: "mi_keepalive",
