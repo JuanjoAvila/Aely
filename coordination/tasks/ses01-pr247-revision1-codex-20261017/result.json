@@ -1,0 +1,114 @@
+{
+  "status": "done",
+  "summary": "PR247 revision1: startup status_inactive/status_check deduped once per session, client_error separate from bridge sync_rejected, npm build and generated bundle committed; rebased onto approved main. Candidate pending Claude integration and broader gates.",
+  "productSHA": "059218be274e7f711cda4d88572f9942faee1517",
+  "baseSHA": "a9916c3cdb21c93f9d3a47653c0608e630ce50ab",
+  "previousCandidateSHA": "fb22a688ea0280b3425e11f4ccd2787fab00b38a",
+  "rebasedCandidateSHA": "7685eddb19c0af87610cccb046bba2e3dbc32e5e",
+  "pullRequestNumber": 247,
+  "productReady": false,
+  "manifestSHA256": "92e436aa6a3ac54d6077135d96727fa44e1d8ea75ee02e1b645a411fb6be3742",
+  "bundleGitBlob": "872c42996ac63761715740f9c60dcce8f4d82441",
+  "bundleSHA256": "b1bb11e64854b9e703d6ca9e8b033f1eec3ffe4f53ffc99c6fced5825fc9bab5",
+  "tests": [
+    {
+      "command": "node tests/logs-privacidad.test.mjs",
+      "exitCode": 0,
+      "passed": 47,
+      "label": "rev1-final-privacy"
+    },
+    {
+      "command": "node tests/broker-sync-outcomes.test.mjs",
+      "exitCode": 0,
+      "passed": 29,
+      "label": "rev1-final-broker"
+    },
+    {
+      "command": "node tests/security.test.mjs",
+      "exitCode": 0,
+      "passed": 18,
+      "label": "rev1-security"
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0,
+      "passed": 15,
+      "label": "rev1-relevant"
+    },
+    {
+      "command": "node tests/sync-manual-un-aviso.test.mjs",
+      "exitCode": 0,
+      "passed": 8,
+      "label": "rev1-sync-manual"
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0,
+      "passed": 0,
+      "label": "rev1-bundle-syntax"
+    },
+    {
+      "command": "node scripts/guard-privacy.mjs",
+      "exitCode": 0,
+      "passed": 0,
+      "label": "rev1-privacy-guard"
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0,
+      "passed": 0,
+      "label": "rev1-diff-check"
+    },
+    {
+      "command": "cmd /d /c npm run build",
+      "exitCode": 0,
+      "passed": 0,
+      "label": "rev1-npm-build"
+    }
+  ],
+  "causalRed": [
+    {
+      "command": "node tests/logs-privacidad.test.mjs",
+      "exitCode": 1,
+      "failed": 5,
+      "passed": 42
+    },
+    {
+      "command": "node tests/broker-sync-outcomes.test.mjs",
+      "exitCode": 1,
+      "failed": 3,
+      "passed": 26
+    }
+  ],
+  "mutations": {
+    "total": 8,
+    "killed": 8,
+    "causalAssertionsVerified": true,
+    "eachExitCode": 1,
+    "restoredExact": true
+  },
+  "build": {
+    "command": "npm run build",
+    "exitCode": 0,
+    "generatedBundleCommitted": true
+  },
+  "ci": {
+    "runId": 38978429481,
+    "status": "IN_PROGRESS",
+    "green": false
+  },
+  "limitations": [
+    "CI general of this exact SHA is independent and not claimed green.",
+    "Full suite, Deno general, official catalogue/size-cap gates and performance/CPU6 not executed locally.",
+    "No DOM or physical mobile acceptance in this revision; Node executes actual startup effect/handlers and synthetic cloud transport.",
+    "All current producers use snapshotAge unknown; no precise native cause or token validity inferred.",
+    "Build generated a beta-delivery inventory delta; preserved privately, original committed inventory retained outside scope, no repins or catalogue/caps changes.",
+    "No VERSION/native/session/bank retry/backend/deploy/main/beta changes. Claude integration, served beta and mobile gates remain pending."
+  ],
+  "schema": 1,
+  "taskId": "ses01-pr247-revision1-codex-20261017",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-31bde4da8226b098",
+  "createdAt": "2026-10-16T22:55:30.044Z",
+  "released": true
+}
