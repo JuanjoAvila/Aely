@@ -20,6 +20,18 @@ const pending=row("pending","PDNG","2026-10-14T21:59:00Z"),booked=row("booked","
 const orders=rows=>[rows,[...rows].reverse()];
 const sum=rows=>rows.reduce((n,e)=>n+Math.round(Number(e.importe)*100),0);
 function serverModule(source){const module={exports:{}};new Function("module","exports",transformSync(source,{loader:"ts",format:"cjs"}).code)(module,module.exports);return module.exports;}
+function mutationResult(source,name,change,contract=identityContract){
+ const changed=change(source);
+ // Un ancla ausente o un error de compilación son fallos del arnés, nunca evidencia
+ // de que el oráculo financiero detectó la regresión. Solo ese oráculo cuenta muertes.
+ if(changed===source)throw Object.assign(new Error(name+": texto de mutación no encontrado"),{code:"MUTATION_NOT_APPLIED"});
+ const mutant=serverModule(changed);
+ try{contract(mutant);}catch(error){
+  if(!(error instanceof assert.AssertionError))throw error;
+  return {name,status:"killed",code:error.code};
+ }
+ throw Object.assign(new Error(name+": mutante superviviente"),{code:"MUTANT_SURVIVED"});
+}
 
 test("FIN15 cliente: import real PDNG/BOOK con referencia estable y dias distintos en ambos ordenes",()=>{
  const old=reloj.ms;reloj.ms=now;
@@ -86,6 +98,13 @@ function identityContract(server){
  const escaped={...booked,source:"ob:caixabank#refstable%2Dref"};
  assert.equal(sum(server.filasComoLaApp([pending,escaped],[])),320);
  assert.doesNotThrow(()=>server.filasComoLaApp([{...pending,source:"ob:caixabank#ref%invalid"}],[]));
+ // Una referencia vacía no acredita identidad entre días. Ni un marcador #ref
+ // en otra fuente ni un OB sin banco autorizan a fusionar filas independientes.
+ for(const source of ["ob:caixabank#ref","ob:#refstable","manual:caixabank#refstable","wallet#refstable"]){
+  for(const rows of orders([{...pending,source},{...booked,source}])){
+   assert.equal(sum(server.filasComoLaApp(rows,[])),640,"identidad no bancaria o vacía: "+source);
+  }
+ }
 }
 test("FIN15 identidad: sin fusionar referencias distintas ni perder legacy o lapidas",()=>identityContract(budget));
 
@@ -112,11 +131,52 @@ test("FIN15 mutaciones semanticas de identidad servidor",()=>{
   ["ignora lapida legacy",s=>s.replace('if (lap.has(k)) continue;','')],
   ["rompe fallback sin referencia",s=>s.replace('if (anteriores && (!ref || anteriores.has(""))) continue;','if (false) continue;')],
   ["no decodifica referencia",s=>s.replace('JSON.stringify([bank, decodeURIComponent(ref[1])])','JSON.stringify([bank, ref[1]])')],
+  ["acepta #ref vacio como identidad",s=>s.replace('/#ref([^#]+)/','/#ref([^#]*)/')],
+  ["quita guarda banco y prefijo OB",s=>s.replace('if (!bank || (!source.startsWith("ob:") && !source.startsWith("ob-hist:"))) return "";','')],
  ];
  identityContract(budget);
- for(const [name,change] of mutations){
-  const changed=change(source);assert.notEqual(changed,source,name+": mutacion aplicada");
-  assert.throws(()=>identityContract(serverModule(changed)),assert.AssertionError,name);
- }
- console.log("FIN15: "+mutations.length+"/"+mutations.length+" mutaciones semanticas muertas");
+ const results=mutations.map(([name,change])=>mutationResult(source,name,change));
+ assert.equal(results.filter(r=>r.status==="killed").length,mutations.length);
+ console.log("FIN15: "+results.length+"/"+mutations.length+" mutaciones semanticas muertas");
+});
+
+test("FIN15 revision1: arnes distingue texto ausente de fallo semantico",()=>{
+ const source=read("supabase/functions/_shared/presupuesto.ts"), killed=[];
+ const execute=(name,change,contract)=>killed.push(mutationResult(source,name,change,contract));
+ assert.throws(()=>execute("ancla ausente",s=>s.replace("FIN15_ANCLA_INEXISTENTE","")),error=>error.code==="MUTATION_NOT_APPLIED");
+ assert.throws(()=>execute("sintaxis rota",s=>s+"\nconst = ;"),error=>!(error instanceof assert.AssertionError));
+ assert.throws(()=>execute("cambio inocuo",s=>s+"\n// Sin efecto financiero"),error=>error.code==="MUTANT_SURVIVED");
+ assert.throws(()=>execute("oraculo roto",s=>s+"\n// Sin efecto",()=>{throw new TypeError("fixture rota");}),TypeError);
+ assert.equal(killed.length,0);
+ execute("fallo financiero",s=>s.replace('if (ref && referencias.has(ref)) continue;',''));
+ assert.deepEqual(killed.map(r=>r.status),["killed"]);
+});
+
+test("FIN15 revision1: guarda banco/prefijo tiene oraculo propio",()=>{
+ const source=read("supabase/functions/_shared/presupuesto.ts");
+ const result=mutationResult(source,"guarda banco/prefijo",s=>s.replace('if (!bank || (!source.startsWith("ob:") && !source.startsWith("ob-hist:"))) return "";',''));
+ assert.equal(result.status,"killed");
+});
+
+for(const [i,rows] of orders([{...pending,importe:30},{...booked,importe:33}]).entries())test("FIN15 revision1: PDNG30 BOOK33 fija month/widget dependientes del orden "+i,async()=>{
+ const expected=i===0?3000:3300,s=state(),start=budget.inicioDeMesMs(Date.now());
+ s.widgetPeriod={v:2,kind:"mes",start,anchor:"",scope:JSON.stringify([2,start,"mes","gasto","",1000,["caixabank"],"caixabank"])};
+ const day1=new Date(start+36*3600000).toISOString().slice(0,10),day2=new Date(start+60*3600000).toISOString().slice(0,10);
+ const current=rows.map(r=>({...r,fecha:(r.id==="pending"?day1:day2)+"T10:00:00Z"}));
+ assert.equal(cents({...s,expenses:c.mergeExpensesFromCloud([],current.map(c.expenseFromRow)).list}),expected);
+ assert.equal(Math.round(budget.statsDelMes(budget.filasComoLaApp(current,[]),s,start).spent*100),expected);
+ const trigger={...row("trigger","BOOK",new Date().toISOString(),"other","trade_republic")};
+ const direct=widgetBudget.widgetSnapshot(s,[...current,trigger],Date.now(),{id:trigger.id,event:"revision1",key:"synthetic"});
+ assert.ok(direct);assert.equal(Math.round(direct.spent*100),expected);
+ const env=fakeDb({state:s,rows:current});
+ const result=await post(env,{fuente:"tr",titulo:"Trade Republic",texto:"Has gastado 0,01 € en Otra cuenta sintetica",fecha:String(Date.now()),evento:"fin15-revision1-"+i});
+ assert.equal(result.status,200);assert.equal(Math.round(result.data.month.spent*100),expected);
+ // El handler lee month sin ordenar y widget por UUID ascendente: con estos IDs,
+ // booked precede a pending. No hay preferencia semántica por BOOK ni por su importe.
+ assert.ok(result.data.widget);assert.equal(Math.round(result.data.widget.spent*100),3300);
+ const swapped=fakeDb({state:s,rows:current.map(r=>({...r,id:r.id==="pending"?"a-pending":"z-booked"}))});
+ const opposite=await post(swapped,{fuente:"tr",titulo:"Trade Republic",texto:"Has gastado 0,01 € en Otra cuenta sintetica",fecha:String(Date.now()),evento:"fin15-revision1-opposite-"+i});
+ assert.equal(opposite.status,200);assert.equal(Math.round(opposite.data.month.spent*100),expected);
+ assert.ok(opposite.data.widget);assert.equal(Math.round(opposite.data.widget.spent*100),3000);
+ console.log(JSON.stringify({revision1Order:i,pending:30,booked:33,monthCents:Math.round(result.data.month.spent*100),widgetDirectCents:Math.round(direct.spent*100),widgetBookedFirstIdCents:Math.round(result.data.widget.spent*100),widgetPendingFirstIdCents:Math.round(opposite.data.widget.spent*100)}));
 });

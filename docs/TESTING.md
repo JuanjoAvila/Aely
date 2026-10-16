@@ -1,6 +1,8 @@
 FIN-15: `tests/fin15-pendiente-contabilizada.test.mjs` registrado en `run-tests` ejecuta
 cliente, month legacy y widget v2 con PDNG/BOOK en días distintos, en ambos órdenes.
-Incluye 676 comparaciones exactas sin `#ref` contra `9370565` y ocho mutaciones semánticas.
+Incluye 676 comparaciones exactas sin `#ref` contra `9370565` y diez mutaciones semánticas.
+La revisión1 distingue fallos de preparación del mutante de fallos del oráculo y fija
+PDNG30/BOOK33: primera fila en el lector, month sin orden explícito y widget por UUID ascendente.
 `e2e/fin15-pendiente-contabilizada.spec.mjs` está registrado en Gastos; comprueba una fila
 visible tras pull/reinicio y verifica el hash del HTML servido. Datos exclusivamente sintéticos.
 La suite completa y la aceptación móvil conservan sus gates independientes.
