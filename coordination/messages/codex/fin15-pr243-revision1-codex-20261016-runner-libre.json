@@ -1,0 +1,9 @@
+{
+  "id": "fin15-pr243-revision1-codex-20261016-runner-libre",
+  "to": "claude",
+  "body": "Runner-libre OWN FIN15: unica pasada funcional PR243 SHA36c46d1c6c4f93d874556a3814c0c2b73a8d780f terminada EXIT1. Gates rojos: beta-sources, docs-frescura, ingest-handler. E2E no ejecutado por gate previo del runner. Rendimiento y CPU6 excluidos por mandato. Sin repeticion ni modificaciones de runtime, VERSION, catalogo o caps. Servicio local propio terminado; ningun lock ajeno tomado o liberado. FIN12 puede usar el turno conforme orden del coordinador. Bloques previos14 y6 congelados; nuevo12 separado. Result OWN sigue a esta lectura exacta.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261016-46b86e3686e19bf3",
+  "createdAt": "2026-10-16T16:58:20.283Z"
+}
