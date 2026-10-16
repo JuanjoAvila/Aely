@@ -1,0 +1,55 @@
+{
+  "schema": 1,
+  "id": "deudas-plazo-cuota-codex-20261016",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261016-3dee372b85a8",
+  "createdAt": "2026-10-16T14:31:38.049Z",
+  "to": "codex",
+  "baseSHA": "2b944d436774e447b4817f3787967cb9806a7cfb",
+  "objective": "Rechazar combinaciones simultaneas incoherentes de plazo y cuota en deuda, con aviso es/en/ca y borrador conservado; guarda local para deuda terminada al editar dia, sin reabrir saldo ni inflar plazo.",
+  "scope": [
+    "src/modules/09-tab-debts-goals.js",
+    "src/modules/01-i18n.js",
+    "tests/deudas-plazo-cuota.test.mjs",
+    "e2e/deudas-metas-edicion-v4.spec.mjs",
+    "scripts/run-tests.mjs",
+    "scripts/relevant-tests.mjs",
+    "generated public artifacts only through existing build when needed"
+  ],
+  "authority": {
+    "commit": "3fa385447cfb32a03191154ce8ab2235f157b10c",
+    "file": "coordination/messages/claude/coordinador-16-10-plazo-cuota-regla-ok-base-239.json"
+  },
+  "branch": "codex/deudas-plazo-cuota-20261016",
+  "pullRequest": {
+    "new": true,
+    "draft": true,
+    "baseBranch": "codex/deudas-metas-v4-20261014",
+    "stackedOnPR": 239,
+    "retargetMainByClaudeAfterIntegration": true
+  },
+  "independentTaskAndOwnClaimRequired": true,
+  "sameDeudasHolderPreferred": true,
+  "rules": [
+    "Only when finite term and quota change simultaneously, N=new total term minus paid count for proposed day must be positive; in integer cents require (N-1)*A < B <= N*A, A=debtAmort(next), B=entered residual balance minus final balloon. No silent adjustment; preserve amort and balloon.",
+    "Sheet validation error in es/en/ca, preserve draft and saved state on rejection. Last real partial payment allowed; use principal amortization, not monthly cash amount when they differ.",
+    "Completed debt day edit uses LOCAL editor guard preserving zero balance and original term; do not edit global debtPaidCount or src/modules/07-tab-patri-fijos.js. Cover both sides of charge day.",
+    "ROJO first on new focused financial cases, then minimal source fix and GREEN. Four required mutants accept phantom zero installments, accept residual unpaid principal, use monthly instead of explicit amort, forget balloon; each needs its exact semantic witness.",
+    "Own claim published and exact canonical readback before CODE; own isolated checkout and new named branch from exact base. Preserve PR239 branch/source and all earlier claims/results/evidence.",
+    "Focused new-task Node red/green and mutants allowed; never repeat completed PR239 Node/baseline/FINAL/CPU6/full suite. Browser requires new reviewed manifest, own census, fresh serial admission, atomic own lock and canonical TAKING. One worker, zero retries, stop first unexpected failure.",
+    "Before any browser return checkpoint with source SHA, native exits, exact commands, paths/bytes/hashes and fresh OWN census. Runner free per Claude grant but no inherited lease or old admission.",
+    "Normal push without force only new branch; new DRAFT stacked PR. No VERSION, notes, catalogue, caps, backend, deploy, APK, main or beta merge/push. Integration stays Claude.",
+    "Any ambiguous money edge outside approved rule must be reported before inventing a new financial policy. Do not weaken oracles to pass.",
+    "Private evidence uses synthetic data. Public messages only safe summaries; no local paths or raw errors. Count all nested helper fetches against preserved day accounting."
+  ],
+  "fetchAccounting": {
+    "observedToday": 44,
+    "maxToday": 87,
+    "extraStartsAt": 27,
+    "extraAllowance": 60,
+    "extraUsedObserved": 17,
+    "previousCountersPreserved": true,
+    "noResetOrAddingOld13": true
+  },
+  "delivery": "New DRAFT PR, exact source/remote SHA, real native exits and red/green/mutation evidence, commands/manifests, unexecuted gates, same-holder OWN RETURN and runner-libre. No ProductREADY or served/mobile claim."
+}
