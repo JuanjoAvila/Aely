@@ -972,15 +972,19 @@ function App(){
     const bridge=(typeof trBridge==="function") ? trBridge() : null;
     if(bridge && bridge.status){
       jobs.push(Promise.resolve(bridge.status()).then(function(r){
+        if(!opts.manual) trLogStartupStatus(r);
         const hadPhone=typeof trPhoneSaved==="function"&&!!trPhoneSaved();
-        const syncTr=function(){ tried++; return Promise.resolve(bridge.sync()).then(function(res){
-          if(res&&res.authExpired&&!res.softFail&&!res.wafBlocked){ expiredB.push("Trade Republic"); signalTrDead(); return; }
+        const syncTr=function(){
+          tried++; let request;
+          try{ request=bridge.sync(); }catch(e){ soft.push("Trade Republic"); trLogFailure("broker_manual_sync","sync_rejected"); return Promise.resolve(); }
+          return Promise.resolve(request).then(function(res){
+          if(res&&res.authExpired&&!res.softFail&&!res.wafBlocked){ expiredB.push("Trade Republic"); signalTrDead(); trLogFailure("broker_manual_sync","auth_expired"); return; }
           /* anti-bot/hipo: en automático silencio y se reintenta luego. Pero si lo has pedido TÚ, callarse
              es el «sale conectado pero no te avisa ni nada» (rechazo tr-reactivo, 8/9): se dice. */
-          if(!res||!res.ok||!Array.isArray(res.positions)){ soft.push("Trade Republic"); return; }
+          if(!res||!res.ok||!Array.isArray(res.positions)){ soft.push("Trade Republic"); trLogFailure("broker_manual_sync",res&&(res.softFail||res.wafBlocked)?"soft_fail":"sync_invalid"); return; }
           signalTrAlive({manual:opts.manual});
           applyBrokerPositions(res.positions, "lastTrSync", res.cash); updatedB.push("Trade Republic");
-        }); };
+        },function(){ soft.push("Trade Republic"); trLogFailure("broker_manual_sync","sync_rejected"); }).catch(function(){ soft.push("Trade Republic"); trLogFailure("broker_manual_sync","client_error"); }); };
         if(!(r&&r.connected)){
           /* `connected=false` no es una prueba de caducidad: APK vieja, flag perdido o puente en
              frío. En automático no molestamos; si él pulsa Sincronizar validamos la cookie real
@@ -991,7 +995,7 @@ function App(){
         signalTrAlive({manual:opts.manual});
         if(!opts.manual || !bridge.sync) return;   // sync TR solo a demanda
         return syncTr();
-      }).catch(function(){ if(opts.manual) soft.push("Trade Republic"); }));
+      }).catch(function(){ if(opts.manual){ soft.push("Trade Republic"); trLogFailure("status_check","status_rejected"); } }));
     }
     // MyInvestor — Edge Function (funciona en web y en app)
     if(cloud.enabled() && sessionRef.current && (opts.manual || Date.now()-(st.lastMiSync||0) >= BROKER_SYNC_THROTTLE)){
