@@ -1,0 +1,96 @@
+{
+  "status": "done",
+  "summary": "SES-01 web-only candidate: closed tr_sync diagnostics for card login/verify/sync and general manual sync; native age unknown. Draft PR247, pending Claude integration and broader gates.",
+  "productSHA": "fb22a688ea0280b3425e11f4ccd2787fab00b38a",
+  "baseSHA": "9370565008aa2c4df9fb0588b2bf4f97e2cdc726",
+  "productReady": false,
+  "tests": [
+    {
+      "command": "node tests/logs-privacidad.test.mjs",
+      "exitCode": 0,
+      "passed": 38,
+      "label": "final-privacy"
+    },
+    {
+      "command": "node tests/broker-sync-outcomes.test.mjs",
+      "exitCode": 0,
+      "passed": 26,
+      "label": "final-broker"
+    },
+    {
+      "command": "node tests/security.test.mjs",
+      "exitCode": 0,
+      "passed": 18,
+      "label": "security"
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0,
+      "passed": 15,
+      "label": "relevant"
+    },
+    {
+      "command": "node tests/sync-manual-un-aviso.test.mjs",
+      "exitCode": 0,
+      "passed": 8,
+      "label": "sync-manual"
+    },
+    {
+      "command": "node ../source-syntax.cjs",
+      "exitCode": 0,
+      "passed": 0,
+      "label": "final-source-syntax"
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0,
+      "passed": 0,
+      "label": "diff-check"
+    }
+  ],
+  "causalRed": [
+    {
+      "command": "node tests/logs-privacidad.test.mjs",
+      "exitCode": 1,
+      "passed": 23,
+      "failed": 15
+    },
+    {
+      "command": "node tests/broker-sync-outcomes.test.mjs",
+      "exitCode": 1,
+      "passed": 17,
+      "failed": 9
+    }
+  ],
+  "mutations": {
+    "total": 8,
+    "killed": 8,
+    "eachExitCode": 1,
+    "restoredExact": true,
+    "sourceSHA": "fb22a688ea0280b3425e11f4ccd2787fab00b38a"
+  },
+  "manifestSHA256": "c38bda293f4fc9afade9f087662f9abf776408d6ac5f009ae53da549ad2714b8",
+  "limitations": [
+    "Build/generated bundle not executed; source syntax only.",
+    "Full Node/Deno suite and catalogue/size caps not executed; no gates changed.",
+    "General CI has its own current status and is not claimed green.",
+    "No Chromium/DOM/performance/physical mobile tests: explicit turn not granted.",
+    "No native snapshot age or refresh/WS cause available; all web producers use snapshotAge unknown.",
+    "No Android/APK changes, live bank, SQL, Edge, backend, deployment, main/beta push or merge.",
+    "Claude review, serial integration, served beta and mobile acceptance remain pending."
+  ],
+  "ci": {
+    "status": "Not accepted as green; independent workflow status recorded in private manifest.",
+    "runId": 38975892492
+  },
+  "noChromium": true,
+  "noNativeChanges": true,
+  "noFinancialChanges": true,
+  "pullRequestNumber": 247,
+  "schema": 1,
+  "taskId": "ses01-tr-session-design-codex-20261016",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-31bde4da8226b098",
+  "createdAt": "2026-10-16T22:32:40.066Z",
+  "released": true
+}
