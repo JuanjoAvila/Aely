@@ -3739,8 +3739,11 @@ test("Promoción136 muestra una nota y el historial de producción, retira la ta
   const receipt=betaDelivery(betaNotes(notes,source,scopes),source,scopes);
   assert.deepEqual(receipt.pruebas,{},"ningún guion por probar");
   assert.equal(betaNotes(notes,source,scopes).flatMap(n=>n.tandas||[]).length,0);
-  const delivered=betaRevision(tanda,beta,undefined,old[tanda]);
-  assert.deepEqual(betaRevision(tanda,source,undefined,scopes[tanda]),delivered,"la huella es la de la beta135, sin revisión nueva que juzgar");
+  // La huella de la tanda abarca GASTO_ORIGENES: se calcula sobre la beta135 con esa única línea, nada más.
+  const beta136=f=>f==="src/modules/00-core.js"?beta(f).replace('"ob-import","backfill"]','"ob-import","ob-absorbed","backfill"]'):beta(f);
+  const delivered=betaRevision(tanda,beta136,undefined,old[tanda]);
+  assert.notDeepEqual(delivered,betaRevision(tanda,beta,undefined,old[tanda]),"la línea cae dentro de la huella: sin ella no se vigilaría");
+  assert.deepEqual(betaRevision(tanda,source,undefined,scopes[tanda]),delivered,"la huella es la de la beta135 más ob-absorbed, sin revisión nueva que juzgar");
   assert.equal(receipt.web[tanda],delivered.web,"entrega web independiente del catálogo visible");
   assert.equal(receipt.edge,undefined,"el recibo web no declara entregas de servidor");
 });
