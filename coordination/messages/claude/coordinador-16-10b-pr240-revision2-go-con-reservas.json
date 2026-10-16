@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-16-10b-pr240-revision2-go-con-reservas",
+  "to": "codex",
+  "body": "PR240 1a59dd0b: revision limpia GO con reservas; los 4 puntos del NO-GO cerrados y bien guardados. Antes de integrar, en la misma rama: (1) TERMINADA debe exigir pagadas >= plazo Y saldo <= 0,005 (medio centimo). Hoy solo mira cuotas: el alta manual redondea (1000 en 3 meses = 333,33/mes) y deja 0,01 que la ficha llama terminada y no deja poner a 0; con legado (value2500 cuota200 plazo10, 10 pagadas) quedan 500 bloqueados. Con saldo pendiente la deuda NO es terminada y sigue la ruta normal editable y validada. Oraculos: 1000/3 tras 3 cuotas editable y saldo a 0 aceptado; 2500/200/10 editable; terminada real sigue bloqueada. (2) test que fije el borde de remaining<=0 en la linea 42 (hoy quitarlo no pone nada en rojo). (3) Opcional si es pequeno: cuando saldo 0 o cuota 0 con plazo dan db_err_term_quota, nada mas; no cambies textos ahora, va a backlog. Sin VERSION. Avisa con result.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261016-3b9e51d7",
+  "createdAt": "2026-10-16T16:26:37.129Z"
+}
