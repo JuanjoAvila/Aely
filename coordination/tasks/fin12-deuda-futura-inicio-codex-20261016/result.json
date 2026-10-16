@@ -1,0 +1,87 @@
+{
+  "status": "blocked",
+  "summary": "FIN12 candidata terminada en PR242 DRAFT; fix minimo aprobado, pruebas focales verdes. Integracion bloqueada por docs-frescura y suite general pendiente por otra ejecucion activa.",
+  "productSHA": "bdd46f4aa817eabc5aa3692719de8b6eed5c57f7",
+  "pr": 242,
+  "baseSHA": "9370565008aa2c4df9fb0588b2bf4f97e2cdc726",
+  "branch": "codex/fin12-deuda-futura-20261016",
+  "cause": "netWorthDebtPolicy devolvia principal inicial antes del mes asOf de financiaciones con plazo. Guarda months y asOf numerico: cero antes, cuadro intacto desde inicio. Hipotecas, legado, saldo presente suministrado y total global conservados.",
+  "consultation": "fin12-consulta-causa-20261016-4414ca32559d",
+  "approval": "coordinador-16-10-fin12-causa-aprobada",
+  "tests": [
+    {
+      "command": "node --test tests/inicio-deuda-futura.test.mjs (base ROJO)",
+      "exitCode": 1,
+      "result": "5fallos y2controles PASS antes del arreglo"
+    },
+    {
+      "command": "node --test tests/inicio-deuda-futura.test.mjs (candidata)",
+      "exitCode": 0,
+      "result": "8casos y9mutaciones semanticas PASS"
+    },
+    {
+      "command": "playwright test e2e/inicio-deuda-futura.spec.mjs --workers=1 --retries=0",
+      "exitCode": 0,
+      "result": "1PASS, seis importes reales al dedo y regreso al presente, Madrid"
+    },
+    {
+      "command": "node tests/inicio-v42.test.mjs",
+      "exitCode": 0,
+      "result": "regresion y31mutantes; oraculo antiguo antes del inicio actualizado expresamente"
+    },
+    {
+      "command": "node tests/inicio-transito-intereses.test.mjs",
+      "exitCode": 0,
+      "result": "13mutantes"
+    },
+    {
+      "command": "node tests/inicio-grafica-reservas.test.mjs",
+      "exitCode": 0,
+      "result": "4mutantes y cifras presentes intactas"
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/guard-privacy.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/docs-frescura.test.mjs (sobre commit)",
+      "exitCode": 1,
+      "result": "codigo publicable posterior al ancla versionada; sin permiso de VERSION/notas en este encargo"
+    },
+    {
+      "command": "git push rama propia y git ls-remote --heads origin rama propia",
+      "exitCode": 0,
+      "result": "SHA exacto confirmado; PR readback DRAFT main y mismo head"
+    }
+  ],
+  "limitations": [
+    "Suite general no iniciada: otra ejecucion activa; consulta-suite publicada. No se tomo ni libero un runner ajeno.",
+    "CI exacta IN_PROGRESS en lectura; dos jobs opcionales SKIPPED. No CI verde acreditada.",
+    "Sin CPU6/rendimiento, integracion, beta servida ni movil real.",
+    "Primer DOM EXIT1 por separador de miles esperado; test corregido, no ROJO financiero. Primer comando sintaxis EXIT1 por fichero inexistente; comando correcto EXIT0.",
+    "inicio-v42 inicial EXIT1 exigia principal antes del inicio; contrato sustituido por cero y principal desde mes inicial, sin borrar evidencia.",
+    "Precision mensual: no se inventa fecha diaria de compra ni se interpreta asOfDate como nacimiento.",
+    "VERSION/notas/catalogo/caps/backend/deploy/main-beta y ficheros ajenos conservados."
+  ],
+  "artifacts": [
+    "docs/briefs/fin12-deuda-futura-inicio-20261016.md",
+    "tests/inicio-deuda-futura.test.mjs",
+    "e2e/inicio-deuda-futura.spec.mjs"
+  ],
+  "fetchLimit": 20,
+  "fetchUsedBeforeResult": 13,
+  "schema": 1,
+  "taskId": "fin12-deuda-futura-inicio-codex-20261016",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-4414ca32559d",
+  "createdAt": "2026-10-16T15:49:50.721Z",
+  "released": true
+}
