@@ -111,6 +111,7 @@ function Debts({state, set, showToast}){
     // deuda ya empezada: retrasa el ancla tantos meses como cuotas pagadas para que
     // debtPaidCount()===paid hoy (compensa el +1 que suma si la cuota de este mes ya pasó)
     if(paid>0){ let anchor=ymNow()-paid; if(months>0 && it.day!=null && it.day<=new Date().getDate()) anchor+=1; it.asOf=anchor; }
+    if(months>0) it.startMonth=it.asOf;
     set(s=>Object.assign({},s,{debts:s.debts.concat([it])}));
     setForm({name:"",value:"",monthly:"",months:"",day:"",account:"sabadell",down:"",balloon:"",paid:""}); setAdding(false);
     showToast(t("db_added"));

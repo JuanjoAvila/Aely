@@ -3497,6 +3497,7 @@ function AffordSim({state, totals, set}){
     const financed=+((amt-dw).toFixed(2));
     const it={ id:uid(), ent:"familia", name:finName.trim()||t("db_newdebt"), value:financed, original:financed,
       monthly:quota, amort:quota, months:nM, asOf:ymNow(), account:bank, day:dd, note:t("db_addedmanual") };
+    it.startMonth=it.asOf;
     if(dw>0) it.downPayment=dw;
     set(function(s){ return Object.assign({},s,{debts:(s.debts||[]).concat([it])}); });
     setFinDone(true);

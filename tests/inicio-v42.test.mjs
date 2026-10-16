@@ -462,7 +462,8 @@ assert.equal(debtAt(inherited.debts[1],"2026-09-02"),11606);
 const gym=inherited.debts.find(d=>d.id==="gym");
 assert.equal(Math.round(debtAt(gym,inheritedToday)*100)/100,350.38);
 assert.equal(Math.round(debtAt(gym,"2026-09-28")*100)/100,525.57,"con plazo: la cuota del 29/9 se deshace hacia atrás");
-assert.equal(debtAt({...gym,original:undefined},"2026-05-15"),0,"FIN12: con plazo y ancla inicial no existía deuda antes, aunque no conste lo pedido");
+assert.equal(debtAt({...gym,original:undefined},"2026-05-15"),875.95,"sin startMonth conserva exactamente el principal legado");
+assert.equal(debtAt({...gym,original:undefined,startMonth:gym.asOf},"2026-05-15"),0,"FIN12: sólo el inicio explícito acredita ausencia previa");
 assert.equal(debtAt({...gym,original:undefined},"2026-07-01"),875.95,"en el mes inicial ya existe el principal, antes de su primera cuota");
 const archived=inherited.debts.find(d=>d.id==="old");
 assert.equal(debtAt(archived,inheritedToday),0);assert.equal(debtAt(archived,"2026-09-26"),149.75,"la archivada existía el mes pasado");
@@ -610,7 +611,7 @@ const mutantCases=[
   ["bien con escalones no recorta","const stepped=!legacy&&points.length>0&&!points[0].born;","const stepped=false;",m=>assert.equal(m.netWorthSeries(steppedGood,{today,liquid:5000,invested:0,debtTotal:0})[0].value,195100)],
   ["cuotas entre esa fecha y hoy","const between=(month+(charge<=parts[2]?1:0))-((p[0]*12+p[1]-1)+(charge<=p[2]?1:0));","const between=0;",m=>assert.equal(Math.round(m.netWorthDebtPolicy({debts:[inherited.debts[0]]},inheritedToday,undefined).at("2026-09-30")*100)/100,177375.65)],
   ["sin plazo reconstruye","if(d.months!=null||!rebuilt(d)) n=Math.max(0,n);","if(true) n=Math.max(0,n);",m=>assert.equal(Math.round(m.netWorthDebtPolicy({debts:[inherited.debts[0]]},inheritedToday,undefined).at("2026-09-30")*100)/100,177375.65)],
-  ["con plazo no existe antes del inicio","if(d.months!=null&&typeof d.asOf===\"number\"&&p[0]*12+p[1]-1<anchor) return 0;","",m=>assert.equal(m.netWorthDebtPolicy({debts:[{...gym,original:undefined}]},inheritedToday,undefined).at("2026-05-15"),0)],
+  ["con plazo no existe antes del inicio","if(d.months!=null&&Number.isInteger(d.startMonth)&&p[0]*12+p[1]-1<d.startMonth) return 0;","",m=>assert.equal(m.netWorthDebtPolicy({debts:[{...gym,original:undefined,startMonth:gym.asOf}]},inheritedToday,undefined).at("2026-05-15"),0)],
   ["día de cargo hacia atrás","(charge<=p[2]?1:0));\n    let n=paidToday-between;","1);\n    let n=paidToday-between;",m=>assert.equal(Math.round(m.netWorthDebtPolicy({debts:[inherited.debts[1]]},inheritedToday,undefined).at("2026-09-02")*100)/100,11606)],
   ["tope de lo pedido","if(n<0&&d.original>0) value=Math.min(value,Math.max(Number(d.original),Number(d.value)));","if(false) value=Math.min(value,Math.max(Number(d.original),Number(d.value)));",m=>assert.equal(m.netWorthDebtPolicy(capped,inheritedToday,undefined).at("2026-07-15"),1000)],
   ["liquidada no se reconstruye","&&!d.settledAt; };","; };",m=>assert.equal(m.netWorthDebtPolicy(settled,inheritedToday,undefined).at("2026-07-15"),100)],
