@@ -39,16 +39,19 @@ function debtEditResult(d,form){
     const am=debtAmort(next),paid=debtPaidCount(next);
     // Plazo y cuota deben cancelar el pendiente: ni cuotas a cero ni principal sin pagar.
     // La última fracción es válida; amort y pago final mantienen su contrato original.
-    if(termChanged&&months!=null){
-      const remaining=months-paid,perMonth=Math.round(am*100),principal=Math.round(balance*100)-Math.round((next.balloon||0)*100);
+    // También al tocar SOLO la cuota: antes se alargaba el plazo en silencio y una cuota que no
+    // cubría lo pendiente en el plazo de la hoja se guardaba igual (rechazo de beta 4.26.138.1).
+    if((termChanged||quotaChanged)&&next.months!=null){
+      const remaining=next.months-paid,perMonth=Math.round(am*100),principal=Math.round(balance*100)-Math.round((next.balloon||0)*100);
       if(remaining<=0||principal<=(remaining-1)*perMonth||principal>remaining*perMonth) return {error:"db_err_term_quota"};
     }
     if(termChanged&&months!=null&&balance>0.005&&months<=paid) return {error:"db_err_paid"};
     if(amountChanged&&next.months==null){ next.asOf=ymNow(); next.value=+balance.toFixed(2); }
     else{
-      // Día/cuota también cambian la proyección: mantener el plazo dejaba principal huérfano.
+      // Saldo/día también cambian la proyección: mantener el plazo dejaba principal huérfano.
+      // Con la cuota no se recalcula: ya se validó contra el plazo que el usuario ve.
       // Cuenta en céntimos para no añadir una cuota por el error binario de una división exacta.
-      if((amountChanged||quotaChanged||dayChanged)&&!termChanged&&next.months!=null&&am>0){
+      if((amountChanged||dayChanged)&&!quotaChanged&&!termChanged&&next.months!=null&&am>0){
         const viaM=Math.max(0,Math.round(balance*100)-Math.round((next.balloon||0)*100)),perMonth=Math.round(am*100);
         if(viaM>0&&perMonth<=0) return {error:"plan_edit_invalid"};
         next.months=paid+(viaM>0?Math.ceil(viaM/perMonth):(next.balloon>0&&balance>0.005?1:0));
