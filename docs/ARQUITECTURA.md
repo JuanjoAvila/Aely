@@ -1,5 +1,11 @@
 # Arquitectura — Aely
 
+UX15, candidata: Gastos → «Actualizar gastos» conserva `onSync` →
+`syncCloudExpenses` → `cloud.pullExpenses`, con lectura opcional de parejas
+y reconciliación/backfill existentes. Recupera gastos de todos los orígenes
+ya guardados en nube, incluidas notificaciones; no solicita `bank-sync`.
+El alcance se explica junto al botón en es/en/ca. [Contrato y límites](briefs/ux15-sincronizar-gastos-20261016.md).
+
 ## Candidata: compras iguales con referencias distintas
 
 El importador y las mezclas conservan referencias distintas mediante las ranuras ordinales

@@ -1025,8 +1025,9 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       )
     ),
     React.createElement("div",{className:"action-row"},
-      React.createElement("button",{className:"btn btn-ghost",onClick:onSync,disabled:syncing}, syncing?React.createElement(React.Fragment,null,React.createElement("span",{className:"spin"}),t("g_syncing")):React.createElement(React.Fragment,null,React.createElement(I.sync,{width:16,height:16}),t("g_sync")))
+      React.createElement("button",{className:"btn btn-ghost",onClick:onSync,disabled:syncing,"aria-describedby":"gastos-refresh-scope"}, syncing?React.createElement(React.Fragment,null,React.createElement("span",{className:"spin"}),t("g_refreshing_expenses")):React.createElement(React.Fragment,null,React.createElement(I.sync,{width:16,height:16}),t("g_refresh_expenses")))
     ),
+    React.createElement("p",{className:"hint",id:"gastos-refresh-scope"},t("g_refresh_expenses_hint")),
     React.createElement("div",{className:"sync-note"},
       React.createElement("span",{className:"sync-dot "+(syncStatus.type||"idle")}),
       syncStatus.msg || (state.lastSync?tf("g_lastsync",{d:new Date(state.lastSync).toLocaleString(loc(),{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}):t("g_nosync"))
