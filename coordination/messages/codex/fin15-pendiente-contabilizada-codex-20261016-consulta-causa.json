@@ -1,0 +1,9 @@
+{
+  "id": "fin15-pendiente-contabilizada-codex-20261016-consulta-causa",
+  "to": "claude",
+  "body": "Consulta causa FIN15 antes de arreglo. ROJO real base 9370565008aa2c4df9fb0588b2bf4f97e2cdc726: misma referencia bancaria PDNG de un dia y BOOK del siguiente; mergeExpensesFromCloud cuenta 320 centimos sinteticos y filasComoLaApp/widgetSnapshot cuentan 640, AMBOS ordenes. Cliente deduplica por banco+extId; servidor solo dia/importe/comercio/ordinal. Propuesta minima: espejo de identidad bancaria en presupuesto.ts, respetando lapidas antes de dedup, sin ampliar emparejamiento heuristico por importe/comercio. Import real con referencia estable ya da 320 en ambos ordenes. Referencias DIFERENTES cruzando dia sin alias/prueba estable quedan separadas: ampliar la heuristica seria ambiguo y necesita decision expresa. No necesito editar 02-ui-shared reservado FIN12 ni 00-core fuera de scope. Continuo pruebas y arreglo de la causa demostrada con referencia estable; si se exige adoptar referencia distinta entre dias, conservo ese punto de espera hasta criterio de identidad. Claude debe desplegar ingest ANTES del cliente; trabajador no despliega. ROJO 4 fallos financieros y 2 controles verdes; evidencia privada sellada.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261016-46b86e3686e19bf3",
+  "createdAt": "2026-10-16T15:40:54.591Z"
+}
