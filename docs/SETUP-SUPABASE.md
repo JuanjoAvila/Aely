@@ -129,6 +129,66 @@ Integración (13/10): la rama entra en la candidata 4.26.122, encima de la 4.26.
 dentro la 120. El `ingest` que se despliega es el de la 122 (`_shared/presupuesto.ts` con
 `esCargoDeRecibo`), antes que su web, y ni la 120 ni la 121 van a producción sin la 122.
 
+## OPS-07 keepalive (16/10): candidato, SIN desplegar
+
+`myinvestor-keepalive` condiciona también la escritura de éxito al `refresh_token`
+almacenado que leyó antes de llamar al banco. Una reconexión o rotación concurrente
+conserva sus tokens y metadatos. La respuesta del UPDATE distingue cero filas de un
+guardado: cero filas cuenta como `skipped`, nunca como renovación o caducidad.
+
+Cada enlace activo produce como máximo un intento de evento `mi_keepalive` por tick,
+sin email, tokens, dispositivo ni texto del proveedor. Solo se conserva el `user_id`
+estructural obligatorio de `app_events` (0006, FK; criterio de coordinación del16/10),
+mensaje fijo y `detail` con `outcome` (`ok`, `rejected`, `skipped`), `http` (número o
+null si no hubo respuesta), `hasRefreshExpiresIn` (presencia, también para cero/null),
+`hasRefreshToken` (booleano: la respuesta contiene un refresco no vacío) y `guarded`
+(UPDATE sin error que no encontró la fila original). `code` solo admite `ok`, `rejected`,
+`http_403`, `http_other`, `no_access_token`, `network`, `decrypt`, `encrypt`, `no_creds`,
+`save_error` y `raced`. No se registran tokens ni el valor de la duración. `save_error`
+con HTTP 200/201 distingue el guardado fallido después de un refresco aceptado.
+Fallos de red, descifrado, cifrado o guardado son `skipped`; los errores
+de diagnóstico no alteran el resultado ni impiden tratar los demás enlaces.
+
+Un éxito consulta el último evento `mi_keepalive` del mismo usuario en la última hora,
+ordenado por `created_at` descendente y por `id` descendente en caso de empate
+(`bigint identity`, migración0006). Solo omite el registro si ese último `detail` es
+idéntico: `ok → 500 → ok` registra la recuperación, y un éxito sin `refreshExpiresIn`
+o sin `refreshToken` registra el cambio de presencia y su posterior recuperación.
+Los 403 mantienen su límite separado por `code:http_403`, para no ocultar ni contar
+errores de lectura del cuerpo. Si falla cualquiera de estas consultas, omite el
+diagnóstico. Esto limita los ticks secuenciales,
+pero no es un bloqueo atómico entre cron concurrentes. No hay migración, secreto nuevo
+ni cambio de RLS. Se reutilizan los grants de0018 y los límites de0023; solo se ha leído
+el esquema versionado, no el servidor. La retención de eventos sigue siendo la existente.
+
+Tras un refresco aceptado, un error devuelto o una excepción del UPDATE permite **un solo
+reintento del mismo guardado**, con los mismos tokens cifrados, metadatos y guarda del
+refresco original. No vuelve a llamar al banco. Cero filas sin error significa `raced`
+y corta los intentos. Si fallan ambos, se registra `save_error`: **no es inocuo**, el banco
+puede haber invalidado el refresco anterior y el enlace podría necesitar reconexión.
+La carrera general entre keepalive y sync sigue en backlog separado; esta guarda no
+serializa ambos procesos. Si el primer UPDATE se aplicó pero devolvió un error o su
+respuesta se perdió, el reintento puede encontrar cero filas porque el propio primer
+intento cambió el token. También se informa `skipped`/`raced`, con `guarded:true`, aunque
+los tokens nuevos estén guardados. **`raced` no demuestra que haya otro escritor**:
+solo acredita que ese intento sin error no encontró el token original. No se hace una
+lectura adicional para resolver esta ambigüedad; la prueba sintética de respuesta
+perdida la caracteriza sin afirmar un fallo de persistencia ni una renovación confirmada.
+
+Cada llamada a MyInvestor tiene un máximo de 10 segundos para recibir cabeceras **y cuerpo**.
+El timeout aborta la petición, cuenta `skipped`/`network` y permite tratar el siguiente enlace;
+el temporizador siempre se limpia. No limita las consultas a la BD ni garantiza que un lote
+arbitrariamente grande termine dentro del límite global de la Edge Function. No hay reintento bancario.
+
+Pruebas: handler real con dobles sintéticos en `tests/myinvestor-keepalive.test.mjs`,
+ya registrado en `scripts/run-tests.mjs` y el grupo Edge de `scripts/relevant-tests.mjs`.
+Protege reconexión, valor cifrado original, aislamiento por usuario, outcomes, privacidad,
+errores de persistencia/telemetría, límite horario, códigos, reintento acotado y timeout
+de cabeceras/cuerpo. La fuente no toca sync, token_store
+ni cliente. Claude decide el despliegue de esta función **después de producción MyInvestor**;
+CI, integración, despliegue y aceptación real mantienen sus gates propios. Rollback:
+restaurar solo esta función desde la base93705650, sin borrar ni restaurar datos.
+
 ## Integración 4.26.127 (14/10): bancos, cuatro funciones Edge SIN desplegar
 
 Reúne tres ramas (falsa caducidad `2d53ab24`, PR 226 `e677099f`, PR 223 `c71129e1`) sobre la 4.26.126. Funciones que cambian respecto a la producción 4.26.126: `bank-sync`, `bank-disconnect`, `myinvestor-sync` y `myinvestor-keepalive`, más los compartidos `_shared/enablebanking.ts` y `_shared/myinvestor.ts` (los importan, así que se despliegan una a una con sus dependencias). No hay migración (el limitador de MyInvestor reutiliza el de la 0019) ni secreto nuevo. Orden recomendado: `myinvestor-sync` y `myinvestor-keepalive` comparten la regla de caducidad, así que van juntas; `bank-sync` y `bank-disconnect` comparten el guard de sesión y `state_issued_at`. Un cliente anterior ignora los campos nuevos de `bank-sync`; el cliente nuevo con la Edge anterior conserva el aviso genérico de descarga incompleta. Rollback: volver a la fuente de `33d39cb8`; no borra ni restaura datos. Los detalles de cada rama siguen en las secciones de debajo.
