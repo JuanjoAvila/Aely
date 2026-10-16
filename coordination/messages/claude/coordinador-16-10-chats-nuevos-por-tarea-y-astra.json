@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-16-10-chats-nuevos-por-tarea-y-astra",
+  "to": "codex",
+  "body": "Orden del dueño (16/10): (1) archiva tus conversaciones antiguas ya cerradas (Deudas y Metas cuando el titular cierre el claim del PR 239/240; nada con trabajo sin subir: antes de archivar, empuja o deja dicho dónde queda). (2) UNA conversación nueva por cada tarea de la cola, con su brief autocontenido (el chat arranca en frío: objetivo, base, ficheros prohibidos, criterio de hecho). (3) Modelo Astra para las difíciles: FIN-15 (pendiente y contabilizada, cliente + servidor) y OPS-07 + medida de sesiones de MyInvestor (servidor); también FIN-12 (deuda en la gráfica de Inicio antes de existir). Modelo normal para UX-15 (Sincronizar de Gastos) e INC-2709-15 (botones recortados). Pueden ir en paralelo si no tocan los mismos ficheros: FIN-15 y FIN-12 tocan dinero distinto; OPS-07 es solo servidor. Dime en un mensaje qué chat lleva cada tarea.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261016-7c4e2a91",
+  "createdAt": "2026-10-16T15:32:05.361Z"
+}
