@@ -1,0 +1,134 @@
+{
+  "status": "blocked",
+  "summary": "PR242 revision1 candidata corregida y focal verificada; pasada funcional general ejecutada una vez, gates pendientes de integración. No ProductREADY.",
+  "productSHA": "ab0abf68c5beb739fea20ef76d21e9c5f38848bd",
+  "baseSHA": "bdd46f4aa817eabc5aa3692719de8b6eed5c57f7",
+  "pr": 242,
+  "branch": "codex/fin12-deuda-futura-20261016",
+  "cause": "asOf se migra/reancla y no acredita nacimiento. Lector exige startMonth entero; alta09 lo escribe después de convertir paid y alta08 al crear. Editor y seedFlows intactos. Sin startMonth se restaura exactamente saldo/cuadro legado.",
+  "approval": "f30d80cac3ced25a2a65fb19dea2ff6d7e81bf87",
+  "tests": [
+    {
+      "command": "node --test --test-name-pattern=revision1 tests/inicio-deuda-futura.test.mjs (ROJO lector)",
+      "exitCode": 1,
+      "result": "A/C dos fallos por cifra; B60003 PASS y mutante70005 ejecutado"
+    },
+    {
+      "command": "node --test --test-name-pattern=revision1: alta tests/inicio-deuda-futura.test.mjs (ROJO altas)",
+      "exitCode": 1,
+      "result": "dos fallos reales, no se emitía startMonth"
+    },
+    {
+      "command": "node --test tests/inicio-deuda-futura.test.mjs",
+      "exitCode": 0,
+      "result": "25/25 tests,13mutantes semánticos (9lector,3altas,B); editor/migración y nube con SDK simulado"
+    },
+    {
+      "command": "playwright test e2e/inicio-deuda-futura.spec.mjs --workers=1 --retries=0",
+      "exitCode": 0,
+      "result": "ROJO previo2fallos, GREEN3/3;6valores al dedo y2regresiones legado"
+    },
+    {
+      "command": "node tests/inicio-v42.test.mjs",
+      "exitCode": 0,
+      "result": "31mutantes; restaurado87595legado, separado0coninicioexplicito"
+    },
+    {
+      "command": [
+        "node",
+        "scripts/build-app.mjs"
+      ],
+      "exitCode": 0
+    },
+    {
+      "command": [
+        "node",
+        "scripts/check-syntax.mjs"
+      ],
+      "exitCode": 0
+    },
+    {
+      "command": [
+        "node",
+        "tests/relevant-tests.test.mjs"
+      ],
+      "exitCode": 0
+    },
+    {
+      "command": [
+        "node",
+        "scripts/guard-privacy.mjs"
+      ],
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/run-tests.mjs --plan <plan-local-privado>",
+      "commandRedacted": true,
+      "exitCode": 1,
+      "result": {
+        "failures": [
+          "beta-sources",
+          "docs-frescura"
+        ],
+        "nodeCompleted": 163,
+        "denoFilesPassed": 0,
+        "denoMissing": true,
+        "e2eStarted": false,
+        "e2eStatus": "not executed due to prior runner gate",
+        "report": "outputs/revision1/full-functional-summary-verified.json",
+        "stdout": "outputs/revision1/full-functional.stdout.log",
+        "stderr": "outputs/revision1/full-functional.stderr.log"
+      }
+    }
+  ],
+  "limitations": [
+    "CI de este head: test FAILURE, focal-e2e y tr-pair-review SKIPPED. No CI verde ni ProductREADY.",
+    "Gates funcionales fallidos: beta-sources, docs-frescura. Sin elevar VERSION, tocar catálogo o subir caps.",
+    "Sin inicio explícito no hay reparación retroactiva; captura/confirmación de fecha de deudas existentes en backlog.",
+    "Nube: callbacks reales y serialización con SDK simulado; sin petición al backend. Last-write-wins de deuda completa conservado, sin merge por campo frente a clientes antiguos que omitan startMonth.",
+    "Seis specs DOM de rendimiento/CPU6 excluidos y declarados. E2e general condicionado a gates previos; no confundir foco3/3 con suiteDOMcompleta.",
+    "Sin integración, beta servida, deploy ni aceptación móvil real.",
+    "Original result f9bf971b y artefactos originales inmutables. Nuevo resultado sólo para claim sucesor.",
+    "ROJO altas primer comando falló por regex mal escapada; no cuenta como prueba financiera. Artefacto conservado y repetición válida posterior.",
+    "ACK de suite primer intento rechazado por incluir ruta local; retirado el dato privado y confirmado por el mismo titular. Intento fallido contado en ledger.",
+    "FE DE ERRATAS runner-libre cc9b78ca: NO hubo39 Deno PASS. Eran39 comprobaciones Node de sintaxis de archivos Supabase, contadas por un patron demasiado amplio. Deno0 archivos ejecutados; el runner omite desde el primero con deno no instalado. Summary-verified reemplaza el conteo del summary inicial, ambos preservados."
+  ],
+  "artifacts": [
+    "outputs/revision1/final/delivery.json",
+    "outputs/revision1/final/manifest.json",
+    "docs/briefs/fin12-deuda-futura-inicio-20261016.md"
+  ],
+  "fetchLimit": 20,
+  "fetchUsedBeforeResult": 18,
+  "previousFrozen": {
+    "original": 15,
+    "revisionOld": 8
+  },
+  "snapshotPolicy": "Final snapshot after canonical result readback; ledger copy immutable at cut, active ledger excluded. Preliminary checkpoint/manifest remain untouched.",
+  "runnerRelease": "cc9b78ca4c80a6dab0b742b40240149dee49b948",
+  "suiteDurationMs": 2072370,
+  "sourceHashesUnchanged": true,
+  "ci": [
+    {
+      "name": "test",
+      "status": "COMPLETED",
+      "conclusion": "FAILURE"
+    },
+    {
+      "name": "focal-e2e",
+      "status": "COMPLETED",
+      "conclusion": "SKIPPED"
+    },
+    {
+      "name": "tr-pair-review",
+      "status": "COMPLETED",
+      "conclusion": "SKIPPED"
+    }
+  ],
+  "schema": 1,
+  "taskId": "fin12-pr242-revision1-codex-20261016",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-4414ca32559d",
+  "createdAt": "2026-10-16T19:57:24.105Z",
+  "released": true
+}
