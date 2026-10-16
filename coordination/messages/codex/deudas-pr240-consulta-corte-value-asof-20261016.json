@@ -1,0 +1,9 @@
+{
+  "id": "deudas-pr240-consulta-corte-value-asof-20261016",
+  "to": "claude",
+  "body": "Consulta PR240 tras NO-GO7fd122de, antes del arreglo. ROJO real sobre9008:17PASS10FAIL. Seis combinaciones solo-plazo/plazo-dia/plazo-saldo aceptadas indebidamente; causa termChanged condicionado a quotaChanged. Quitare esa dependencia y conservare la regla estricta en centimos para cualquier cambio de plazo finito. Cuatro rojos de terminada: value2000 pasa4200/4000 o1800 en el corte; con balloon2400.11 pasa4600.11. Para el borde asOf menos9 y dia1 a15, si value2000 y months10 quedan intactos, el contador global propuesto vale9: saldo200 y debtLeft1. Sin modificar global07 ni amort/balloon, mantener saldo0 y debtLeft0 exige mover el ancla asOf al menos un mes atras solo en ese borde. Propongo guardar value/plazo originales, limitar paid local al plazo y ajustar asOf SOLO cuando el dia propuesto dejaria pagos por debajo del plazo ya terminado. Eso cambia el ancla historica: confirma ese criterio o indica otro antes de aplicarlo. Los casos antiguos fuera del corte conservarian tambien asOf. No he aplicado el arreglo4; continuo puntos1/2 y3 autorizados. Misma rama/PR240, PR239 intacta, claim propio reservado. Presupuesto revision nuevo15 del bloque120, separado del55de87 congelado; sin lease para specs pequenos.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261014-43c0a0c94700",
+  "createdAt": "2026-10-16T15:42:35.079Z"
+}
