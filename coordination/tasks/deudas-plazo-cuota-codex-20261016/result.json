@@ -1,0 +1,89 @@
+{
+  "status": "done",
+  "summary": "PR240 revision2 candidata DRAFT d16db899: saldo residual mantiene edicion normal; terminada exige plazo agotado y saldo maximo0.005. Ocho casos nuevos, cuatro DOM y dos mutantes causales. Integracion y aceptacion pendientes.",
+  "productSHA": "d16db899fa03ef882856aa994be0b75cd3580780",
+  "baseSHA": "1a59dd0b350134be3e64f570280aa8c5826eda0e",
+  "pr": 240,
+  "draft": true,
+  "productReady": false,
+  "criterionSHA": "e5be1ec68c02c5b4ad0072026c40986fbeed6b2f",
+  "tests": [
+    {
+      "command": "ROJO nuevo grupo revision2 antes de corregir predicate en1a59dd0b",
+      "exitCode": 1,
+      "outcome": "6PASS2FAIL: bloqueados un centimo del alta1000en3 y500 del legado2500"
+    },
+    {
+      "command": "node tests/deudas-plazo-cuota.test.mjs --group revision2",
+      "exitCode": 0,
+      "outcome": "8de8 nuevos; no se repite la focal anterior"
+    },
+    {
+      "command": "Mutante finishedNoBalance en grupo revision2",
+      "exitCode": 1,
+      "outcome": "Dos fallos causales al bloquear saldos pendientes"
+    },
+    {
+      "command": "Mutante remaining en grupo revision2",
+      "exitCode": 1,
+      "outcome": "Quitar remaining<=0 acepta dos ediciones con remaining0ynegativo, saldo0 yballoon; sin depender de guardia posterior"
+    },
+    {
+      "command": "Primer cotejo prebuild de snapshot",
+      "exitCode": 1,
+      "outcome": "Guardia tecnica comparo blobLF con servidoCRLF; se preservan ambos y texto normalizado exacto, antes de iniciar build o pruebas"
+    },
+    {
+      "command": "Primera seleccion Chromium con filtro anclado",
+      "exitCode": 1,
+      "outcome": "Cero tests seleccionados y cero ejecutados; snapshot y server cierre0 conservados"
+    },
+    {
+      "command": "Listado corregido Chromium R2",
+      "exitCode": 0,
+      "outcome": "Cuatro tests nuevos, seleccion verificada antes de ejecutar"
+    },
+    {
+      "command": "Chromium R2 foco real",
+      "exitCode": 0,
+      "outcome": "4de4,1worker0retry, sin skips flaky ni errores de pagina/red; hash HTML servido exacto"
+    },
+    {
+      "command": "Build, sintaxis monolito, sintaxis spec y git diff check",
+      "exitCode": 0
+    },
+    {
+      "command": "Push normal misma rama, ls-remote y gh PR240 readback",
+      "exitCode": 0,
+      "outcome": "Fuente remota y PR exactas; DRAFT base239 sin force ni retarget"
+    }
+  ],
+  "evidence": {
+    "private": true,
+    "sourceNodeSHA256": "786c7f6e55fa7a5c4e5168a80c719e40b554d7fccc8ac6fec5aba9ae4e52d13e",
+    "browserResultSHA256": "9831c988bad3675d903dd61b6e5a178b01b290dad2578d061b65056a5fc04586",
+    "servedHTMLSHA256": "ae14e1cb196a849ff6a1c9114051bf78a577425e4377fe8f30f150a153c59232",
+    "fsyncReadback": true
+  },
+  "fetch": {
+    "block": "a5118e50f2c14ab21b749034e4d9df8917f65a9d",
+    "limit": 8,
+    "usedBeforeResult": 2,
+    "helperFetchesIncluded": true,
+    "priorRevision16of20Frozen": true,
+    "old55of87Frozen": true
+  },
+  "limitations": [
+    "La evidencia54Node53DOM5familias de1a59dd0b se conserva y no se atribuye al nuevo SHA",
+    "Sin CIgeneral, docs-frescura, beta-sources ni tamano ejecutados sobre esta fuente",
+    "Sin suite general CPU6 lease heredado ni repeticion de tests acabados",
+    "RevisionClaude integracion beta servida y movil fisico pendientes",
+    "Sin VERSION textos notas catalogo caps backend SQL Android merge deploy ni tocar PR239"
+  ],
+  "schema": 1,
+  "taskId": "deudas-plazo-cuota-codex-20261016",
+  "actor": "codex",
+  "sessionId": "codex-local-20261014-43c0a0c94700",
+  "createdAt": "2026-10-16T16:36:08.617Z",
+  "released": true
+}
