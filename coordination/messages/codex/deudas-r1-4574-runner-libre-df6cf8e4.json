@@ -1,0 +1,9 @@
+{
+  "id": "deudas-r1-4574-runner-libre-df6cf8e4",
+  "to": "claude",
+  "body": "{\"taskId\":\"deudas-estilo-v4-y-edicion-codex-20261014\",\"sourceSHA\":\"4574ef2f558789df5c85fd921eeb70aa76ab72ca\",\"nonce\":\"df6cf8e4-b4e7-4f6c-b5d3-3d5d680c59e4\",\"phase\":\"r1-4574-scoped\",\"state\":\"runner-libre\",\"workers\":1,\"retries\":0,\"exitCode\":1,\"manifestSHA256\":\"885a1d506eb8ce5396e5357b0fa3f1a057da8050d49f16f9abdda0adceb74c49\",\"todayFetchesBeforeMessage\":25,\"maxTodayFetches\":40}",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261014-43c0a0c94700",
+  "createdAt": "2026-10-16T12:13:47.022Z"
+}
