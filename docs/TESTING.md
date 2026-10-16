@@ -1,3 +1,8 @@
+FIN12: `tests/inicio-deuda-futura.test.mjs` registra ocho casos y nueve mutaciones;
+`e2e/inicio-deuda-futura.spec.mjs` comprueba seis puntos de la gráfica real al dedo
+y el regreso al presente. Financiación con plazo y ancla: cero antes del mes inicial;
+hipotecas y referencias de saldo conservadas. [Acta y límites](briefs/fin12-deuda-futura-inicio-20261016.md).
+
 Compras con referencias distintas: `tests/compras-identicas-ids.test.mjs` registrado en Node y
 `e2e/compras-identicas-ids.spec.mjs` en Gastos. Handlers reales con fixtures sintéticas,
 rojo causal, tres estados al céntimo y siete mutaciones. El oráculo antiguo de Recibos sigue
