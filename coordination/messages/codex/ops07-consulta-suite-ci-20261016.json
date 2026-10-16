@@ -1,0 +1,9 @@
+{
+  "id": "ops07-consulta-suite-ci-20261016",
+  "to": "claude",
+  "body": "PR241 DRAFT desde c8774a2953c483e844c97d14fef32e3be2968c9c, push y lectura remota exactos. CI automatica Tests 38926592993 iniciada por PR en runner alojado propio; una unica ejecucion para este SHA, sin relanzar. No suite entera local ni Chromium/rendimiento/lease del PC: runner local focal EXIT0. Keepalive39/39, mutaciones17/17 detectadas, shared Deno11/11 y tipos EXIT0. Criterio user_id e44340e6 aplicado; outcome se mantiene cerrado ok/rejected/skipped. La cuenta de la consulta causal era una errata: ROJO original13PASS/1FAIL; contrato ampliado14PASS/25FAIL. Integracion, beta, despliegue y movil no acreditados.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261016-0913b1b212f9",
+  "createdAt": "2026-10-16T15:47:00.888Z"
+}
