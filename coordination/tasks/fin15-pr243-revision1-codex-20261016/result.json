@@ -1,0 +1,76 @@
+{
+  "status": "done",
+  "summary": "Revision1 PR243 revisada y suite funcional unica terminada EXIT1: bloqueada por integracion del arnes Node ingest-handler, beta-sources y docs-frescura. Candidata DRAFT, no ProductREADY.",
+  "productSHA": "36c46d1c6c4f93d874556a3814c0c2b73a8d780f",
+  "pr": 243,
+  "productReady": false,
+  "runtimeUnchanged": true,
+  "tests": [
+    {
+      "command": "Revision1 ROJO mutantes vacio y banco/prefijo; arnes",
+      "exitCode": 1,
+      "result": "Se confirmaron supervivencias y falso conteo del arnes antes del refuerzo."
+    },
+    {
+      "command": "Revision1 Node focal nuevos/afectados",
+      "exitCode": 0,
+      "result": "5/5;10/10 mutantes semanticos; errores de infraestructura no cuentan como muerte."
+    },
+    {
+      "command": "Revision1 Deno focal",
+      "exitCode": 0,
+      "result": "2/2"
+    },
+    {
+      "command": "Una pasada scripts/run-tests.mjs con plan funcional, TZ UTC y memoria ausente",
+      "exitCode": 1,
+      "result": "FIN15 15/15;676 comparaciones legacy exactas;10/10 mutantes. Gates rojos: beta-sources, docs-frescura, ingest-handler",
+      "playwrightExecuted": false,
+      "logSha256": "cc3ce9b5713aac800f068e78f540d3c32fed6f3619b84107977824b34ae11446"
+    },
+    {
+      "command": "Deno completo en la misma pasada",
+      "exitCode": 0,
+      "result": "9/9 ficheros Deno pasaron; el runner no imprime conteo individual de casos."
+    }
+  ],
+  "limitations": [
+    "Defecto de revision1: tests/ingest-handler.test.mjs transpila widget.test.ts sin exponer statsDelMes. El nuevo caso PDNG30 BOOK33 falla ReferenceError en Node; Deno nativo pasa. No corregido en esta pasada para preservar SHA36c46d1c y su evidencia solicitada; requiere revision de tests.",
+    "Rendimiento y CPU6 excluidos por mandato; no es una ejecucion literal de npm test sin filtro.",
+    "El runner condiciona e2e a pasos previos verdes; no se repite para esquivar los rojos.",
+    "Month/lector y widget directo conservan primera fila30/33; handler widget ordena UUID y queda33 con BOOK primero,30 con PDNG primero. No se cambia preferencia ni signo de devoluciones.",
+    "Resultado original y checkpoint anterior inmutables. Integracion, CI general, beta y movil no acreditados por este resultado.",
+    "Claude debe desplegar ingest ANTES del cliente. Sin deploy, SQL, migraciones, VERSION, caps ni notas familiares."
+  ],
+  "scope": [
+    "tests/fin15-pendiente-contabilizada.test.mjs",
+    "supabase/functions/ingest/widget.test.ts",
+    "CHANGELOG.md",
+    "docs/TESTING.md"
+  ],
+  "gates": [
+    {
+      "name": "beta-sources",
+      "exitCode": 1,
+      "cause": "Contrato Promocion136 exige presupuesto.ts identico a beta135 salvo ob-absorbed; detecta cambio FIN15."
+    },
+    {
+      "name": "docs-frescura",
+      "exitCode": 1,
+      "cause": "Dos ficheros supabase despues del ancla versionada; VERSION fuera de alcance."
+    },
+    {
+      "name": "ingest-handler",
+      "exitCode": 1,
+      "cause": "ReferenceError: statsDelMes is not defined en nuevo cuerpo Deno ejecutado por arnes Node."
+    }
+  ],
+  "suiteDurationMs": 2000900,
+  "runnerFreeCommit": "0d6b81264cf336b954216ec0b5893b7b92d994e5",
+  "schema": 1,
+  "taskId": "fin15-pr243-revision1-codex-20261016",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-46b86e3686e19bf3",
+  "createdAt": "2026-10-16T16:58:45.583Z",
+  "released": true
+}
