@@ -128,7 +128,7 @@ for(const rol of ["ambos","diario"]) test("1 · «Deshacer» el borrado de un re
   // Y volver a borrarlo, también: si no, perdería contra aquel «Deshacer» en el otro móvil.
   assert.equal(c.sinCargoDelPlan(tarde.state,"fixed","luz",OCT12-86400000).state.reciboBorradoAt.luz,borrado.reciboBorradoAt.luz+2);
   // Lo que sube a la nube al deshacer: la fila de octubre, otra vez con su marca.
-  assert.equal(j(tarde.subir.map(e=>[String(e.date).slice(0,7),c.expenseSourceForCloud(e)])),j([["2026-10","ob:bbva~recibo.luz"]]));
+  assert.equal(j(tarde.subir.map(e=>[String(e.date).slice(0,7),c.expenseSourceForCloud(e)])),j([["2026-10","ob:bbva~recibo.luz#refo1"]]));
   // Un alta cualquiera (id nuevo) es solo añadir: ni marcas ni horas.
   const alta=c.conReciboEnPlan(borrado,"fixed",F("nuevo","Luz Endesa",62.4,5,"bbva"));
   assert.equal(j([alta.subir.length,alta.state.fixed.map(f=>f.id),alta.state.reciboBorradoAt===borrado.reciboBorradoAt,alta.state.expenses===borrado.expenses]),j([0,["gim","nuevo"],true,true]));
@@ -212,9 +212,9 @@ test("3 · un apunte con id del banco y otro idéntico sin él son EL MISMO carg
   assert.equal(queda([[id],[id,sin]]),j([7.5,[["c1",1]],[1,0]]));
   assert.equal(queda([[sin],[id,sin]]),j([7.5,[[null,1]],[1,0]]));
   assert.equal(queda([[id,sin],[sin,id],[id,sin]]),j([7.5,[["c1",1]],[1,0,0]]));
-  // Recuento mínimo coherente: dos con id y uno sin id, una (los de id ya se fundían por clave);
+  // Dos referencias distintas acreditan dos cargos; el alias sin id no añade otro.
   // uno con id y dos sin id, dos (el de id es el primero de los iguales).
-  assert.equal(queda([[id,Object.assign({},id,{ext_id:"c2"}),sin]]),una);
+  assert.equal(queda([[id,Object.assign({},id,{ext_id:"c2"}),sin]]),j([15,[["c1",1],["c2",2]],[2]]));
   assert.equal(queda([[id,sin,Object.assign({},sin)]]),j([15,[[null,2],["c1",1]],[2]]));
   assert.equal(queda([[sin,Object.assign({},sin),id]]),j([15,[[null,2],["c1",1]],[2]]));
   // Lo borrado por él no vuelve como «segundo».
@@ -225,7 +225,7 @@ test("3 · un apunte con id del banco y otro idéntico sin él son EL MISMO carg
   const rec={fixed:[F("spo","Spotify",10.99,5,"sabadell")]};
   const rid=T("x1","sabadell","2026-10-05",10.99,"Spotify"), rsin=T(null,"sabadell","2026-10-05",10.99,"Spotify");
   const r=sincroniza(s0(rec),[rid,rsin],{sabadell:480}).state;
-  assert.equal(j(r.expenses.map(e=>[e.extId,e.reciboId,c.expenseSourceForCloud(e)])),j([["x1","spo","ob:sabadell~recibo.spo"]]));
+  assert.equal(j(r.expenses.map(e=>[e.extId,e.reciboId,c.expenseSourceForCloud(e)])),j([["x1","spo","ob:sabadell~recibo.spo#refx1"]]));
   assert.equal(gastado(c.quitarCargoDeRecibo(r,r.expenses[0].id,OCT12).state),10.99);
   // Una nómina con id y su abono idéntico sin id: 1.800, no 3.600.
   const nid=T("n1","sabadell","2026-10-01",-1800,"NOMINA ACME"), nsin=T(null,"sabadell","2026-10-01",-1800,"NOMINA ACME");

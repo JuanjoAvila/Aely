@@ -997,6 +997,7 @@ function categoryOfBankTx(tx){
   }
 }
 // Aplana los movimientos enlazados conservando bancos; el diario aplica su ventana de fechas.
+const obPendingResponses=new WeakMap();
 function flattenBankTx(links, previous){
   previous=Array.isArray(previous)?previous:[];
   const out=[];
@@ -1057,6 +1058,8 @@ function flattenBankTx(links, previous){
   out.sort(function(a,b){ return String(b.date).localeCompare(String(a.date)); });
   // El servidor ya acota por cuenta. Un tope GLOBAL de 150 dejaba fuera un banco entero
   // si otro tenía más actividad reciente, antes incluso de llegar a importObExpenses.
+  // Guardar el array viejo (otra clave del WeakMap) retendría toda la cadena de syncs.
+  obPendingResponses.set(out,{links:links||[],previous:previous.filter(function(tx){return tx&&obIsPending(tx);})});
   return out;
 }
 
@@ -1121,6 +1124,7 @@ function gemeloAsignar(bancos,avisos,ventana){
   return result;
 }
 function reconcileGemelosAutomaticos(s,prev){
+  s=obPendingAbsorbedState(s,prev);
   const rows=(s&&s.expenses)||[];if(!rows.length)return s;
   const cached=gemeloCache.get(rows);
   if(cached&&cached.gemelos===s.gemelos&&cached.deleted===s.deleted)return s;
@@ -1272,8 +1276,105 @@ function gemelosCambiosNube(s,incoming){
    INGRESOS: de cualquier banco (para «Mi ciclo»). Idempotente por ext_id + dedup.
    Los vínculos aviso↔apunte que deja (`possibleDupOf`) los recoge el llamador con
    `gemelosDeImportacion` y los guarda en `state.gemelos` (12/10/2026). */
+/* La referencia cambia al contabilizar en algunos bancos. La ausencia solo vale en una
+   respuesta completa que cubra aquel día; un tramo cortado no demuestra que el pendiente
+   desapareciera. Se conserva su fila e identidad local, sin mutar el estado del updater. */
+function obPendingGroup(e){ return (expenseBankOf(e)||e.ent||"")+"|"+String(e.date).slice(0,10)+"|"+Math.round(Number(e.amount)*100)+"|"+(e.obName!=null?e.obName:e.merchant||""); }
+function obIsPending(tx){ return String(tx.status||"").trim().toUpperCase()==="PDNG"; }
+function obIsBooked(tx){ return String(tx.status||"").trim().toUpperCase()==="BOOK"; }
+function obCoveredPending(txs){
+  const groups=new Map(), covered=new Set();
+  (txs||[]).forEach(function(tx){
+    if(!tx.id||!(tx.amount>0))return;
+    const key=obPendingGroup(tx);let g=groups.get(key);
+    if(!g){g={book:new Set(),pending:new Set()};groups.set(key,g);}
+    if(obIsBooked(tx))g.book.add(String(tx.id));
+    if(obIsPending(tx))g.pending.add(String(tx.id));
+  });
+  groups.forEach(function(g,key){
+    let n=g.book.size;
+    g.pending.forEach(function(id){if(g.book.has(id)){covered.add(key+"|"+id);n--;}});
+    Array.from(g.pending).sort().forEach(function(id){if(!g.book.has(id)&&n>0){covered.add(key+"|"+id);n--;}});
+  });
+  return covered;
+}
+function obReconcilePending(expenses,txs,links){
+  const response=obPendingResponses.get(txs)||{};
+  links=links||response.links||[];
+  const refs=new Map(), prior=new Map(), fresh=new Set(), books=new Map(), used=new Set(), existing=new Map(), unclaimed=new Set(), removed=new Set(), coveredBooks=new Set();
+  (response.previous||[]).forEach(function(tx){if(tx.id&&obIsPending(tx))prior.set(tx.ent+"|"+tx.id,tx);});
+  (expenses||[]).forEach(function(e){if(e&&esFilaDeBanco(e)&&e.extId){const k=(expenseBankOf(e)||"")+"|"+e.extId;used.add(k);existing.set(k,e);if(!e.obPending&&!e.obPendingRef&&!prior.has(k)&&(!response.expenseIds||response.expenseIds.has(e.id)))unclaimed.add(k);}});
+  (txs||[]).forEach(function(tx){
+    if(!tx.id||!(tx.amount>0))return;
+    const k=tx.ent+"|"+tx.id, old=refs.get(k);if(!old||obIsBooked(tx))refs.set(k,tx);
+    if(obIsBooked(tx)){
+      const group=obPendingGroup(tx);if(!books.has(group))books.set(group,new Map());books.get(group).set(String(tx.id),tx);
+    }
+  });
+  links.forEach(function(l){
+    const ent=entFromAspsp(l&&l.aspsp);if(!ent)return;
+    const accounts=(l.accounts||[]).filter(function(a){return a&&Array.isArray(a.transactions);});
+    (accounts.length?accounts.reduce(function(a,b){return a.concat(b.transactions);},[]):l.transactions||[]).forEach(function(t){if(t.ext_id)fresh.add(ent+"|"+t.ext_id);});
+  });
+  const covered=function(e){const bank=expenseBankOf(e),day=String(e.date).slice(0,10);return links.some(function(l){
+    return l&&entFromAspsp(l.aspsp)===bank&&l.syncFrom&&l.syncFrom<=day&&!l.expired&&l.ok!==false&&!l.truncated&&!l.readReason&&!(l.accounts||[]).some(function(a){return !a||a.ok===false||a.truncated||a.transactionError||a.readReason;});
+  });};
+  let out=expenses;
+  (expenses||[]).map(function(e,i){return{e:e,i:i};}).filter(function(item){const e=item.e,k=e&&(expenseBankOf(e)||"")+"|"+e.extId,tx=refs.get(k);return e&&(e.obPending||prior.has(k)||(tx&&obIsPending(tx)));}).sort(function(a,b){return String(a.e.extId||"").localeCompare(String(b.e.extId||""));}).forEach(function(item){
+    const e=item.e;if(!esFilaDeBanco(e)||!e.extId||!(e.amount>0))return;
+    const key=(expenseBankOf(e)||"")+"|"+e.extId, same=refs.get(key);
+    const previous=prior.get(key),wasPending=!!e.obPending||!!(previous&&obPendingGroup(previous)===obPendingGroup(e));
+    let next=wasPending&&!e.obPending?Object.assign({},e,{obPending:true}):e;
+    if(same&&obIsBooked(same)&&wasPending){next=Object.assign({},e);delete next.obPending;}
+    else if(same&&obIsPending(same)&&fresh.has(key)&&!e.obPending)next=Object.assign({},e,{obPending:true});
+    if(wasPending&&!(same&&obIsBooked(same))){
+      const group=books.get(obPendingGroup(e)), present=fresh.has(key);
+      const tx=group&&Array.from(group.values()).sort(function(a,b){return String(a.id).localeCompare(String(b.id));}).find(function(t){const k=t.ent+"|"+t.id;return (!used.has(k)||unclaimed.has(k))&&(!e.obAcc||!t.acc||e.obAcc===t.acc);});
+      if(tx&&(present||(!same&&covered(e)))){
+        used.add(tx.ent+"|"+tx.id);
+        unclaimed.delete(tx.ent+"|"+tx.id);
+        if(existing.has(tx.ent+"|"+tx.id))removed.add(existing.get(tx.ent+"|"+tx.id));
+        if(present)coveredBooks.add(tx.ent+"|"+tx.id);
+        else{next=Object.assign({},e,{extId:tx.id});next.obPendingRef=e.extId;delete next.obPending;}
+      }
+    }
+    if(next!==e){if(out===expenses)out=expenses.slice();out[item.i]=next;}
+  });
+  if(removed.size)out=out.filter(function(e){return !removed.has(e);});
+  return{expenses:out,coveredBooks:coveredBooks};
+}
+/* El BOOK que entró durante un corte también está en la nube. Su lápida protege los pulls
+   mientras se borra por UUID/ranura: borrar por referencia alcanzaría a la superviviente.
+   Sin el borrado, al caducar la lápida reaparecía en otro móvil y el widget (15/10/2026). */
+function obPendingAbsorbedState(s,prev){
+  if(!s||!prev||s.expenses===prev.expenses)return s;
+  const before=new Map((prev.expenses||[]).map(function(e){return[e.id,e];})),ids=new Set(),adopted=new Map();
+  (s.expenses||[]).forEach(function(e){
+    ids.add(e.id);if(!esFilaDeBanco(e)||!e.extId||!e.obPendingRef||e.obPending)return;
+    const old=before.get(e.id),bank=expenseBankOf(e);
+    if(!old||old.extId!==e.obPendingRef||old.extId===e.extId||obPendingGroup(old)!==obPendingGroup(e))return;
+    const pending=old.obPending||(prev.bankTx||[]).some(function(t){return t.id===old.extId&&t.ent===bank&&obIsPending(t)&&obPendingGroup(t)===obPendingGroup(old);});
+    if(pending)adopted.set(bank+"|"+e.extId,e);
+  });
+  if(!adopted.size)return s;
+  let out=s;
+  before.forEach(function(e){
+    if(ids.has(e.id)||!esFilaDeBanco(e)||!e.extId||e.obPending)return;
+    const keep=adopted.get(expenseBankOf(e)+"|"+e.extId);
+    if(!keep||obPendingGroup(e)!==obPendingGroup(keep)||e.obAcc&&keep.obAcc&&e.obAcc!==keep.obAcc)return;
+    const key=obAbsorptionKey(e);if(!key||key===obAbsorptionKey(keep)||(out.deleted||[]).indexOf(key)>=0)return;
+    out=Object.assign({},out,lapidaPon(out,key,s.lastBankSync||Date.now()));
+    borrarGastoNube(e,"ob-absorbed");
+  });
+  return out;
+}
 function importObExpenses(s, txs, links){
   if(!txs || !txs.length) return null;
+  // El enriquecido de después no puede gastar otra vez el BOOK que ya cubrió un PDNG
+  // en esta respuesta. Solo se pueden reconciliar filas que existían ANTES de importarla.
+  const response=obPendingResponses.get(txs);if(response)response.expenseIds=new Set((s.expenses||[]).map(function(e){return e&&e.id;}));
+  const settled=obReconcilePending(s.expenses||[],txs,links), coveredPending=obCoveredPending(txs);
+  if(settled.expenses!==s.expenses)s=Object.assign({},s,{expenses:settled.expenses});
   const ents=expenseBankEnts(s);
   const allow={}; ents.forEach(function(e){ allow[e]=1; });
   const daily=(s.accounts||[]).find(function(a){ return accDaily(a); });
@@ -1329,6 +1430,10 @@ function importObExpenses(s, txs, links){
   /* Lápidas: «es el mismo» borra la fila OB y deja clave en `deleted`. Sin esto el siguiente
      sync de TR volvería a meter el Movimiento y a marcarlo otra vez contra la noti. */
   const delSet={}; (s.deleted||[]).forEach(function(k){ delSet[k]=1; });
+  const deletedRefs={}, deletedSlots={};
+  (s.gemelos||[]).forEach(function(g){
+    if(g&&g.aviso===""&&g.bankRef&&delSet[g.banco]){deletedRefs[(g.ent||"")+"|"+g.bankRef]=1;deletedSlots[g.banco]=1;}
+  });
   /* POSIBLE REPETIDO, NO DESCARTE (2026-09-07). TR por OB no manda id/comercio/hora: un
      «Movimiento» sin nombre puede ser el mismo cargo que ya entró por la noti del móvil, o una
      compra distinta del mismo importe. Descartar callaba pérdidas (y, sin filtrar banco, un
@@ -1386,6 +1491,8 @@ function importObExpenses(s, txs, links){
   /* PRIMERA PASADA: la fila que ENTRARÍA por cada apunte, con todos los filtros de siempre
      (estado, ventana, modelados, id ya visto) pero SIN decidir todavía si ya la tenemos. */
   const prepara=function(tx){
+    if(tx.id&&deletedRefs[(tx.ent||"")+"|"+tx.id])return null;
+    if(tx.id&&(settled.coveredBooks.has(tx.ent+"|"+tx.id)||(obIsPending(tx)&&coveredPending.has(obPendingGroup(tx)+"|"+tx.id))))return null;
     const esIngreso = tx.amount<0;
     if(esIngreso){
       // Un abono pendiente o futuro no acredita dinero disponible (feedback 30/9).
@@ -1427,6 +1534,7 @@ function importObExpenses(s, txs, links){
     // Un recibo sin id (sembrado antes de tenerlos) no tiene a qué enlazarse: se sigue tirando.
     if(recibos){ const r=reciboParaCargo(s, recibos, e, txs); if(!r) return null; e.reciboId=r; }
     if(tx.id) e.extId=tx.id;
+    if(tx.id&&obIsPending(tx))e.obPending=true;
     const nt=cleanNote(tx.note, e.merchant); if(nt) e.note=nt;
     return e;
   };
@@ -1476,20 +1584,19 @@ function importObExpenses(s, txs, links){
      el mismo estado— no hay nada que distinga «repetida al paginar» de «dos bizums iguales», y
      ahí mandan los k del banco: es la función de esta entrega. */
   const firme=function(tx){ const st=String(tx.status||"").trim(); return !st || /book|post/i.test(st); };
-  /* UN APUNTE CON ID Y OTRO IDÉNTICO SIN ID SON EL MISMO CARGO (13/10/2026, decisión del
-     coordinador). El de id va por su camino y no contaba para las ranuras: si llegaba delante,
-     el de sin id entraba también como «primero» y quedaban dos filas con LA MISMA clave. Una
-     sola cabía en la nube, el siguiente pull las fundía (7,50 contados como 15 hasta entonces)
-     y un «no es este recibo» sobre una soltaba las dos; si llegaba detrás, o en otra
-     sincronización, entraba una. Ahora entra UNA desde el principio, la del id: ocupa la ranura
-     1 del grupo y a los de sin id les quedan de la 2 en adelante. Con dos ids iguales y uno sin
-     id sigue siendo una (los de id ya se fundían por clave); con un id y dos sin id, dos. No hay
-     dato de que un banco mande así dos cargos distintos. Solo hace falta mirar el de id que
-     entra AHORA: el que ya está guardado tiene su clave en `keys` y cubre la ranura 1 él solo;
-     el que no pasa los filtros (un abono pendiente) no cuenta. */
+  /* El alias sin id ocupa una de las ranuras de los cargos identificados, nunca una adicional.
+     Dos referencias distintas acreditan dos cargos; repetida la referencia, solo uno. Las
+     ranuras de los identificados se reservan antes de repartir las del grupo sin identidad,
+     conservando el criterio de Recibos: el total es el mayor de ambos recuentos, no su suma. */
+  // Las referencias distintas ocupan ranuras distintas también al llegar por tandas.
+  const conIds=cands.filter(function(c){return !!c.tx.id;}).sort(function(a,b){return String(a.tx.id)<String(b.tx.id)?-1:String(a.tx.id)>String(b.tx.id)?1:0;});
+  const ordenadas=expenseBankIdOrdinals((s.expenses||[]).concat(conIds.map(function(c){return c.e;})),function(e,n){
+    return !!deletedSlots[keyOfExpenseLegacy(e)+(n>1?"|#"+n:"")];
+  });
+  conIds.forEach(function(c,i){c.e=ordenadas[(s.expenses||[]).length+i];});
   if(ordenGrupos.length) cands.forEach(function(c){
     const g=c.tx.id && grupos[(expenseBankOf(c.e)||c.e.ent||"")+"|"+baseKOf(c.e)];
-    if(g) g.conId=1;
+    if(g) g.conId=Math.max(g.conId||0,obOrdinalOf(c.e));
   });
   ordenGrupos.forEach(function(k){
     const g=grupos[k];
@@ -1513,6 +1620,7 @@ function importObExpenses(s, txs, links){
   cands.forEach(function(c){
     const tx=c.tx, e=c.e;
     if(tx.id){
+      if(seen[(tx.ent||"")+"|"+tx.id]||seenLegacy[tx.id])return;
       if(keys[scopedKOf(e)] || delSet[scopedKOf(e)] || delSet[kOf(e)]) return;
     }else{
       if(c.ord==null) return;   // sin ranura libre: ese apunte ya está guardado o resuelto
@@ -3277,6 +3385,7 @@ function dropBankIssue(issues, aspsp){
    escribió a mano (noteEdited). Devuelve el MISMO array si no hay nada que cambiar, para no
    provocar un render de más. */
 function enrichNotesFromBankTx(expenses, txs){
+  expenses=obReconcilePending(expenses,txs).expenses;
   if(!expenses || !expenses.length || !txs || !txs.length) return expenses;
   const byExt={}, byKey={};
   const kOf=function(d,a,m){ return String(d).slice(0,10)+"|"+Math.abs(Number(a)||0).toFixed(2)+"|"+String(m||"").toLowerCase(); };

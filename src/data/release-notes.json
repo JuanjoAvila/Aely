@@ -1,5 +1,26 @@
 [
   {
+    "v": "4.26.136",
+    "d": "2026-10-16",
+    "t": {
+      "es": "Compras iguales: ni se funden ni se cuentan dos veces",
+      "en": "Identical purchases: no longer merged or counted twice",
+      "ca": "Compres iguals: ni es fonen ni es compten dues vegades"
+    },
+    "items": {
+      "es": [
+        "Dos compras iguales el mismo día en el mismo sitio ya no se funden en una sola. Y si el banco manda primero una compra como pendiente y después como cargada, ya no cuenta dos veces, ni en la app ni en el widget."
+      ],
+      "en": [
+        "Two identical purchases on the same day at the same place no longer merge into one. And if your bank first sends a purchase as pending and later as charged, it no longer counts twice, in the app or in the widget."
+      ],
+      "ca": [
+        "Dues compres iguals el mateix dia al mateix lloc ja no es fonen en una de sola. I si el banc envia primer una compra com a pendent i després com a carregada, ja no compta dues vegades, ni a l'app ni al widget."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.26.134",
     "d": "2026-10-15",
     "t": {

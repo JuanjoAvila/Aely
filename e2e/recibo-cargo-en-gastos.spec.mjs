@@ -252,7 +252,8 @@ test("Importar histórico: el cargo de un recibo sale marcado y con su nombre, n
   await expect.poll(() => page.evaluate(() => mcLoadRaw(mcStateKey()).expenses
     .filter((e) => e.source === "ob-hist").map((e) => e.merchant + "|" + (e.reciboId || "-")).sort()), { timeout: 15_000 })
     .toEqual(["COMUNIDAD DE PROPIETARIOS|com", "Netflix|-"]);
-  expect((await page.evaluate(() => window.__lote)).sort()).toEqual(["ob-hist:sabadell", "ob-hist:sabadell~recibo.com"]);
+  // Desde las compras idénticas (4.26.135) cada fila sube con su referencia bancaria (`#ref`), detrás de la marca del recibo.
+  expect((await page.evaluate(() => window.__lote)).sort()).toEqual(["ob-hist:sabadell#refnf1", "ob-hist:sabadell~recibo.com#refsb-com"]);
   // Solo recibos: el gastado es el de Netflix si ese banco cuenta, y nunca los 50 € del recibo.
   expect(await page.evaluate(() => monthBudgetStats(mcLoadRaw(mcStateKey())).spent)).toBeCloseTo(13, 2);
 });

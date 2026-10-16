@@ -1,3 +1,28 @@
+## [4.26.136] — 2026-10-16 · Producción: compras idénticas sin duplicar ni perderse
+
+- **Qué sube.** Lo mismo que la promoción 135 preparada el 15/10 (beta 4.26.135 aprobada, `bad396a4`, más el BACKLOG auditado), con una línea más: `GASTO_ORIGENES` incluye `ob-absorbed`.
+- **Por qué cambia el número.** Las compras idénticas añadieron `borrarGastoNube(e,"ob-absorbed")` y su origen no estaba en la lista de puertas conocidas: un error al borrar la lápida llegaba a `app_events` sin origen. Lo cazó `recibos-bajas-y-union` en la CI de main del PR 238 (en beta el job `tests` no bloquea la publicación). Es código publicable, así que `docs-frescura` exige versión nueva: la producción sale como 4.26.136 con la misma nota familiar de la 135 (el cambio no se nota) y la próxima beta pasa a ser la 137. Decidido con el dueño el 16/10.
+- **Guardianes.** `Promoción135` pasa a `Promoción136`: el producto es el de la beta 135 byte a byte salvo esa línea de `00-core.js`, que se comprueba literal.
+
+## [4.26.135] — 2026-10-15 · Promoción: compras idénticas sin duplicar ni perderse
+
+- **Qué sube.** La beta 4.26.135 (`bad396a4`, más un commit de solo documentación del BACKLOG, `2f3614e5`) sobre la producción 4.26.134 (`2751c866`, merge de la PR 237). Producto, servidor y nativo son los de la beta 135 byte a byte (guardián `Promoción135`).
+- **Veredicto del panel.** El dueño aprobó desde el móvil la tanda `compras-identicas-ids`. La de la 134 (`inicio-grafica-reservas`) ya estaba en producción con `tandas:[]`.
+- **Novedades.** La misma nota familiar es/en/ca de un punto, ya con `tandas:[]`, más las 232 notas que tenía producción.
+- **Panel.** El descriptor y la huella se conservan sin repinar y el recibo web sigue entregando la unidad. `Catálogo135` y `Retiro135` pasan a histórico (leen `bad396a4`) y `e2e/revisar-beta.spec.mjs` cambia el caso de la beta por `promoción135` (es/en/ca): 233 versiones en orden y panel sin nada que pedir.
+- **Servidor.** `ingest` (que lleva `_shared/presupuesto.ts`) ya está desplegado en producción desde `963f43c7` con esta misma fuente: no hay nada que desplegar antes ni después de la promoción. Sin SQL ni APK (sigue la 4.26.117 / 55).
+- **BACKLOG.** Entra UX-14: deslizar entre pestañas a velocidad muy alta deja de ir fluido (sin diagnosticar; medir con frames >32 ms a CPU x6 y gestos encadenados).
+
+### Corte de beta135 anterior a la promoción (histórico, solo web y `ingest`)
+
+
+- **Fallo.** Dos compras reales iguales (mismo banco, día, importe y comercio) con referencias bancarias distintas se fundían en una, y la compra que el banco manda primero como pendiente y luego como cargada podía quedar contada dos veces al reponerse tras una lectura truncada (app 320 céntimos, servidor 640).
+- **Ordinal por banco/referencia.** Cada referencia distinta ocupa su ranura ordinal (`obOrd`, `fechaConOrdinal`) sin cambiar el día civil: la segunda fila pasa por el índice único de la nube. La referencia viaja en `source` como `#ref` (tras `#dup`, antes de `#n`); `mergeExpenses` y `mergeExpensesFromCloud` la respetan y la repetida se deduplica. Sin columna ni migración.
+- **Lápida `ob-absorbed`.** Cuando una lectura completa absorbe el BOOK que ya había entrado durante una lectura truncada, `obPendingAbsorbedState` (`08-motor-bank.js`) deja la lápida `ob-absorbed|banco|referencia|ranura` en `deleted` y la fila BOOK absorbida se borra también en la nube. La clave no depende del UUID, así que otro móvil la respeta. `expenseIsTombstoned` (cliente) y `filasComoLaApp` (`_shared/presupuesto.ts`, month y widget) la leen.
+- **Orden de despliegue.** La Edge Function `ingest` (que lleva `presupuesto.ts`) se despliega **antes** que el cliente: un servidor anterior ignora la lápida y seguiría sumando la fila absorbida. Sin SQL, migraciones ni secretos; sin APK.
+- **Pruebas.** `tests/compras-identicas-ids.test.mjs` (en `run-tests`), `e2e/compras-identicas-ids.spec.mjs` (en `relevant-tests`), fixture de ingest compartida y `widget.test.ts`. El guardián antiguo de Recibos (`recibo-invariante`) y el de tamaño conservan sus rojos declarados en el [acta](docs/briefs/compras-identicas-ids-distintos-20261014.md).
+- **Catálogo.** Alcance `compras-identicas-ids` (web + `ingest`); mueve la huella web de 41 alcances anteriores que leen las mismas funciones (lista cerrada en `Catálogo135`). `inicio-grafica-reservas` aprobada en el móvil (4.26.134.1) sale del panel (`Retiro135`).
+
 ## [4.26.134] — 2026-10-15 · Promoción: la gráfica de Inicio sin bajones falsos
 
 - **Qué sube.** La beta 4.26.134 (`38a1eed0`) sobre la producción 4.26.133 (`cdea1015`, merge de la PR 236): `netWorthSeries` empareja las dos patas de un traspaso propio una sola vez (±3 días civiles de Madrid), cuenta como salida el traspaso sin contrapartida y reconoce la retirada de efectivo. Producto, servidor y nativo son los de la beta 134 byte a byte (guardián `Promoción134`).

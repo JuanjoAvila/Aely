@@ -23,7 +23,7 @@ const strip=s=>s.replace(/^import\s[\s\S]*?from\s+"[^"]+";\r?\n/gm,'');
 const deployedIngest=pin('8bda23a5d80e40a65111c58fd92d52e1b8215e73','supabase/functions/ingest/index.ts','744c67c8008da2075b857c129be605b9d8553dd1142911f22803a2f05281c2c8');
 const handlerJs=transformSync(strip(deployedIngest),{loader:'ts'}).code;
 // Reusar exactamente el doble de BD/SDK del handler vigente, sin ejecutar su suite ni duplicarlo.
-const harness=read('tests/ingest-handler.test.mjs'),start=harness.indexOf('function fakeDb('),end=harness.indexOf('let failures = 0;',start);
+const harness=read('tests/helpers/ingest-handler-fixture.mjs'),start=harness.indexOf('function fakeDb('),end=harness.indexOf('export {',start);
 assert.ok(start>0&&end>start,'límites del fixture existente');
 const {fakeDb,post}=new Function('handlerJs','logic','wallet','identity','budget','entrada','widgetBudget',harness.slice(start,end)+'\nreturn {fakeDb,post};')(
   handlerJs,mods.ingest_logic,mods.wallet,mods.ingest_identity,mods.presupuesto,mods.entrada,{});
