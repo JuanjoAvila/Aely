@@ -1,0 +1,120 @@
+{
+  "status": "done",
+  "summary": "UX15 candidata entregada en nueva PR244 DRAFT; texto aprobado por Claude, callback intacto, ROJO/GREEN y mutaciones locales verificadas. Integracion retenida por gates propios.",
+  "productSHA": "ea08241c7ef22bc0c5e18bb4f473f9720fb98f32",
+  "pr": 244,
+  "productReady": false,
+  "tests": [
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "label": "base-build"
+    },
+    {
+      "command": "node node_modules/@playwright/test/cli.js test --config=../ux15.config.mjs gastos-sincronizar-alcance.spec.mjs --workers=1 --retries=0",
+      "exitCode": 1,
+      "label": "red"
+    },
+    {
+      "command": "node node_modules/@playwright/test/cli.js test --config=../ux15.config.mjs gastos-sincronizar-alcance.spec.mjs --workers=1 --retries=0",
+      "exitCode": 0,
+      "label": "green"
+    },
+    {
+      "command": "node node_modules/@playwright/test/cli.js test --config=../ux15.config.mjs gastos-sincronizar-alcance.spec.mjs --workers=1 --retries=0",
+      "exitCode": 1,
+      "label": "mutation-no-hint"
+    },
+    {
+      "command": "node node_modules/@playwright/test/cli.js test --config=../ux15.config.mjs gastos-sincronizar-alcance.spec.mjs --workers=1 --retries=0",
+      "exitCode": 1,
+      "label": "mutation-bank-sync"
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "label": "final-build"
+    },
+    {
+      "command": "node node_modules/@playwright/test/cli.js test --config=../ux15.config.mjs gastos-sincronizar-alcance.spec.mjs --workers=1 --retries=0",
+      "exitCode": 0,
+      "label": "final-green"
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0,
+      "label": "syntax"
+    },
+    {
+      "command": "node tests/i18n-keys.test.mjs",
+      "exitCode": 0,
+      "label": "i18n"
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0,
+      "label": "map"
+    },
+    {
+      "command": "node scripts/guard-privacy.mjs",
+      "exitCode": 0,
+      "label": "privacy"
+    },
+    {
+      "command": "node tests/security.test.mjs",
+      "exitCode": 0,
+      "label": "security"
+    },
+    {
+      "command": "node tests/docs-frescura.test.mjs",
+      "exitCode": 0,
+      "label": "docs-gate"
+    },
+    {
+      "command": "node tests/docs-frescura.test.mjs",
+      "exitCode": 1,
+      "label": "docs-final"
+    },
+    {
+      "command": "node tests/beta-sources.test.mjs",
+      "exitCode": 4294967295,
+      "label": "catalog-gate",
+      "completed": false
+    }
+  ],
+  "evidence": {
+    "redReportSha256": "53ffd43ba5a45aba35e438e8cc1e7a01a93c9da91c362e31142d069375bfa125",
+    "greenReportSha256": "1b28615605b96ac6336f107a6c14dc83f0717a16313a98041738ddb6b45f6ea0",
+    "summarySha256": "6215dbb7f973a3d77db473422141578cfde36065a42087944b75ffe084682cb8",
+    "fsync": true,
+    "readbackExact": true
+  },
+  "limitations": [
+    "General suite not run; beta137 then FIN15 and FIN12 priority.",
+    "No claim of CI, integration, served beta or mobile acceptance.",
+    "No VERSION/notes/catalog/caps/server/deploy changes.",
+    "docs-frescura EXIT1 por dos modulos tras ancla versionada; VERSION fuera de alcance.",
+    "beta-sources interrumpido tras563s, EXIT1 real y ROJO detectado en Promocion136 por igualdad i18n. Comprobacion completa inconclusa; no tocar catalogo ni debilitar guardian."
+  ],
+  "fetchBudget": {
+    "allocation": "a5118e50f2c14ab21b749034e4d9df8917f65a9d",
+    "limit": 8,
+    "usedBeforeResult": 1,
+    "priorFrozen": [
+      {
+        "limit": 15,
+        "used": 11
+      }
+    ],
+    "includesInternalHelperFetch": true
+  },
+  "criterionSHA": "31fbb8f39e62528d0437abe8c50ead6ddfbbe745",
+  "baseSHA": "9370565008aa2c4df9fb0588b2bf4f97e2cdc726",
+  "version": "4.26.136",
+  "schema": 1,
+  "taskId": "ux15-sincronizar-gastos-codex-20261016",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-e7792ae7eec8",
+  "createdAt": "2026-10-16T16:20:03.023Z",
+  "released": true
+}
