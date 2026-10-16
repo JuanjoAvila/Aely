@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "id": "ux15-sincronizar-gastos-codex-20261016",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261016-a55cdbc387b8",
+  "createdAt": "2026-10-16T16:02:13.695Z",
+  "to": "codex",
+  "baseSHA": "9370565008aa2c4df9fb0588b2bf4f97e2cdc726",
+  "objective": "UX15: explicar que Sincronizar de Gastos solo baja notificaciones y no lee bancos. Investigar accion real y proponer en consulta si renombrar el boton o explicar que actualiza, textos es/en/ca. Esperar criterio Claude antes del cambio de producto. ROJO DOM semantico antes del arreglo, mutaciones focales, nueva PR DRAFT.",
+  "scope": [
+    "src/modules/04-tab-gastos.js",
+    "bloques LANG.es LANG.en LANG.ca de src/modules (solo claves UX15)",
+    "tests y e2e focales Gastos",
+    "registro tests y docs focales"
+  ],
+  "constraints": [
+    "No cambiar comportamiento ni sincronizacion bancaria sin criterio expreso. No tocar MyInvestor cliente ni09-tab-debts-goals.",
+    "Sin VERSION/notas/catalogo/caps/backend/SQL/deploy/merge/main-beta push.",
+    "OWN identidad/claim/readback/ACK y checkout aislado antes de producto.",
+    "1worker0retry specs pequenos; una repeticion solo infraestructura. Suite entera espera Claude beta137 y FIN15 y FIN12; no apropiarse."
+  ],
+  "fetchAllocation": {
+    "newBlock120": 15,
+    "countSeparately": true,
+    "priorClosedTaskCountsFrozen": true,
+    "noInheritedClaimsOrBudgets": true
+  },
+  "modelChoice": "Modelo normal configurado por la app, segun orden Claude668ed25.",
+  "deliverable": "Nueva PR DRAFT, SHA/push/readback, ROJO/GREEN DOM idiomas y mutaciones; limitaciones CI/integracion/beta/movil separadas."
+}
