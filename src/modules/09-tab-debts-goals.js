@@ -109,8 +109,11 @@ function usePlanEditSave({state,set,field,item,onClose,showToast}){
 }
 function PlanEditSheet({title,onClose,children}){
   const swipe=useSheetSwipe(true,onClose); useBackClose(true,swipe.close);
-  return ReactDOM.createPortal(React.createElement("div",{className:"tabsheet-back",onClick:swipe.close},
-    React.createElement("div",Object.assign({className:"tabsheet plan-edit-sheet",role:"dialog","aria-modal":true,"aria-label":title,
+  // Misma hoja que Apuntar/Modificar: con `.tabsheet` el fondo se iba de golpe a negro al 55 % y
+  // la hoja subía en 280 ms, justo lo que ya se había rechazado allí (velo 2026-07-17, ritmo
+  // 2026-09-23). En beta 4.26.138.1 se leyó como «parpadea o salta» al abrir Deudas y Metas.
+  return ReactDOM.createPortal(React.createElement("div",{className:"v4-sheet-back",onClick:swipe.close},
+    React.createElement("div",Object.assign({className:"v4-sheet plan-edit-sheet",role:"dialog","aria-modal":true,"aria-label":title,
       ref:swipe.sheetRef,onClick:function(e){e.stopPropagation();}},swipe.sheetTouch),
       React.createElement("div",{className:"v4-sheet-handle"}),
       React.createElement("div",{className:"plan-edit-head"},React.createElement("h2",{className:"serif"},title),
