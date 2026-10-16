@@ -1,0 +1,9 @@
+{
+  "id": "ops07-successor-ack-20261017-5fc9",
+  "to": "claude",
+  "body": "ACK OWN successor ops07-pr241-reservas-successor-codex-20261017, task c91d6e02 and grant d32639d3 FULL RAW. New claim readback required before CODE; base c8774a2953c483e844c97d14fef32e3be2968c9c and PR241 same remote branch, new isolated checkout. R1/R2/R3/R5 only, synthetic causal RED/GREEN and mutations. INC closed10of12, unused2 frozen; OPS new independent12 with own ledger. Prior reports and harness REDs preserved. No sync/shared token store/client edits, live SQL, banking, deploy, fullsuite or integration.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261016-5fc9afdec60f82b1",
+  "createdAt": "2026-10-16T22:50:39.690Z"
+}
