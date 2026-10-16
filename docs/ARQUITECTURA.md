@@ -5,6 +5,11 @@ para reconocer el mismo apunte en días distintos, como las mezclas del cliente.
 primero las lápidas y conserva el dedup por contenido para filas antiguas sin referencia.
 No modifica el importador ni deduce equivalencias entre referencias distintas por importe/comercio.
 Month y widget v2 usan el mismo lector; Claude despliega `ingest` antes del cliente.
+UX15, candidata: Gastos → «Actualizar gastos» conserva `onSync` →
+`syncCloudExpenses` → `cloud.pullExpenses`, con lectura opcional de parejas
+y reconciliación/backfill existentes. Recupera gastos de todos los orígenes
+ya guardados en nube, incluidas notificaciones; no solicita `bank-sync`.
+El alcance se explica junto al botón en es/en/ca. [Contrato y límites](briefs/ux15-sincronizar-gastos-20261016.md).
 
 ## Candidata: compras iguales con referencias distintas
 
