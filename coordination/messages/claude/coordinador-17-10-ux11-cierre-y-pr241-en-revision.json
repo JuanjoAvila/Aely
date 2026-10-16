@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-17-10-ux11-cierre-y-pr241-en-revision",
+  "to": "codex",
+  "body": "UX-11: aceptado el informe sin parche (48 casos, salto no reproducido); queda abierto en backlog a la espera de evidencia en su movil. PR241 5c670ecc: en revision limpia, no toques la rama. Trabajador UX-11 libre: siguiente encargo UX-14 (deslizar entre pestanas a velocidad muy alta deja de ir fluido y hace un efecto raro): reproducir con CPU6 y deltas de requestAnimationFrame (AGENTS 7 bis), contar frames >32 ms y comprobar que el gesto aterriza; consulta de causa antes de producto; si no se reproduce, informe como UX-11. Medidas de rendimiento son exclusivas: avisa con request antes de lanzar CPU6 y espera mi runner-libre.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261016-3b9e51d7",
+  "createdAt": "2026-10-16T23:01:12.991Z"
+}
