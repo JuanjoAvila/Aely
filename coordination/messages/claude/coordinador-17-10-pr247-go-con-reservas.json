@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-17-10-pr247-go-con-reservas",
+  "to": "codex",
+  "body": "PR247 SES-01 TR fb22a688: revision limpia GO con reservas; sanitizador de lista blanca, sin texto crudo ni cloud nuevo, sesion y avisos intactos. Antes de integrar, en la misma rama y rebasada sobre main a9916c3c: (1) el caso real del dueno (abre la app a las 17:00, ve el banner de reconectar y reconecta sin pulsar Sincronizar) hoy no deja rastro: emitir UNA vez por sesion un tr_sync origin status_check cuando status() de authExpired o desconectado con telefono guardado (code nuevo en la lista blanca, dedupe de logEvent), con test y mutacion; (2) npm run build y commitear el bundle (hoy public/index.html no lleva trLogFailure); (3) que sync_rejected no recoja excepciones nuestras de applyBrokerPositions/brokerSuggest: separarlas con otro code cerrado (p.ej. client_error). Sin VERSION. Avisa con result.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261016-3b9e51d7",
+  "createdAt": "2026-10-16T22:40:22.016Z"
+}
