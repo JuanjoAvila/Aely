@@ -33,11 +33,30 @@ function trCard(x,bridge){
  const src=read("src/modules/06-sync-brokers.js"),start=src.indexOf("function TRSync("),end=src.indexOf("  const mappedN=",start),helper=src.indexOf("function trLogFailure(");
  assert.ok(start>=0&&end>start);
  if(helper>=0)vm.runInContext(src.slice(helper,start),x.c);
- let hook=0;const marks=[];
- Object.assign(x.c,{trBridge:()=>bridge,trPhoneSaved:()=>markers[2],useState:initial=>{const index=hook++;return [index===2?"1234":index===3?"5678":typeof initial==="function"?initial():initial,()=>{}];},useEffect:()=>{},markTrAuthExpired:()=>marks.push("dead"),markTrConnected:()=>marks.push("alive"),brokerSuggest:()=>null,localStorage:{setItem:()=>{}}});
+ let hook=0;const marks=[],effects=[];
+ Object.assign(x.c,{trBridge:()=>bridge,trPhoneSaved:()=>markers[2],useState:initial=>{const index=hook++;return [index===2?"1234":index===3?"5678":typeof initial==="function"?initial():initial,()=>{}];},useEffect:fn=>effects.push(fn),markTrAuthExpired:()=>marks.push("dead"),markTrConnected:()=>marks.push("alive"),brokerSuggest:()=>null,localStorage:{setItem:()=>{}}});
  vm.runInContext(src.slice(start,end)+"return {doSync,doLogin,doVerify};}\nglobalThis.card=TRSync({state:{investments:[]}});",x.c);
- return {card:x.c.card,marks};
+ return {card:x.c.card,marks,effects};
 }
+for(const [status,phone,emit]of [[{authExpired:true,connected:true},false,true],[{connected:false},true,true],[{connected:false},false,false],[{connected:true},true,false],[null,true,false],[{},true,false]])await t("TR arranque: status="+JSON.stringify(status)+" teléfono="+phone,async()=>{
+ const x=client(),{effects,marks}=trCard(x,{status:async()=>status});x.c.trPhoneSaved=()=>phone?markers[2]:"";
+ effects[0]();effects[0]();await new Promise(setImmediate);
+ clean(x.rows);assert.equal(x.rows.length,emit?1:0);assert.ok(!marks.includes("dead"));if(emit)assert.deepEqual(JSON.parse(x.rows[0].detail),trDetail("status_inactive","status_check"));
+});
+await t("TR arranque: dos consumidores y cambios de motivo conservan UN evento por sesión",async()=>{
+ const x=client(),{effects}=trCard(x,{status:async()=>({connected:false})});effects[0]();await new Promise(setImmediate);
+ assert.equal(typeof x.c.trLogStartupStatus,"function");x.c.trLogStartupStatus({authExpired:true,connected:true});await new Promise(setImmediate);
+ clean(x.rows);assert.equal(x.rows.length,1);assert.deepEqual(JSON.parse(x.rows[0].detail),trDetail("status_inactive","status_check"));
+});
+await t("TR tarjeta: brokerSuggest que lanza es client_error, sin falso sync_rejected",async()=>{
+ const x=client(),{card}=trCard(x,{sync:async()=>({ok:true,positions:[{isin:"synthetic"}],cash:0})});x.c.brokerSuggest=()=>{throw error();};await card.doSync();await new Promise(setImmediate);
+ clean(x.rows);assert.equal(x.rows.length,1);assert.deepEqual(JSON.parse(x.rows[0].detail),trDetail("client_error","tr_card_sync"));
+});
+await t("TR bundle generado contiene los productores y sanitizador EXACTOS de fuente",()=>{
+ const built=read("public/index.html").replace(/\r\n/g,"\n"),src=read("src/modules/06-sync-brokers.js").replace(/\r\n/g,"\n"),normalizedCore=core.replace(/\r\n/g,"\n");
+ const helpers=src.slice(src.indexOf("function trLogFailure("),src.indexOf("function TRSync("));assert.ok(helpers.includes("function trLogStartupStatus("));assert.ok(built.includes(helpers));
+ const sanitizer=normalizedCore.slice(normalizedCore.indexOf("function mcLogEvent("),normalizedCore.indexOf("function mcSentryEvent("));assert.ok(built.includes(sanitizer));
+});
 await t("TR: el INSERT real conserva solo el contrato cerrado",async()=>{
  const x=client();await x.c.cloud.logEvent("error","tr_sync",JSON.stringify({...trDetail("auth_expired","tr_card_sync","lt_5m"),error:sensitive,cookies:sensitive,phone:sensitive,extra:{note:sensitive}}));
  clean(x.rows);assert.equal(x.rows.length,1);assert.equal(x.rows[0].message,"tr_sync");assert.equal(x.rows[0].email,null);assert.deepEqual(JSON.parse(x.rows[0].detail),trDetail("auth_expired","tr_card_sync","lt_5m"));

@@ -972,6 +972,7 @@ function App(){
     const bridge=(typeof trBridge==="function") ? trBridge() : null;
     if(bridge && bridge.status){
       jobs.push(Promise.resolve(bridge.status()).then(function(r){
+        if(!opts.manual) trLogStartupStatus(r);
         const hadPhone=typeof trPhoneSaved==="function"&&!!trPhoneSaved();
         const syncTr=function(){
           tried++; let request;
@@ -983,7 +984,7 @@ function App(){
           if(!res||!res.ok||!Array.isArray(res.positions)){ soft.push("Trade Republic"); trLogFailure("broker_manual_sync",res&&(res.softFail||res.wafBlocked)?"soft_fail":"sync_invalid"); return; }
           signalTrAlive({manual:opts.manual});
           applyBrokerPositions(res.positions, "lastTrSync", res.cash); updatedB.push("Trade Republic");
-        }).catch(function(){ soft.push("Trade Republic"); trLogFailure("broker_manual_sync","sync_rejected"); }); };
+        },function(){ soft.push("Trade Republic"); trLogFailure("broker_manual_sync","sync_rejected"); }).catch(function(){ soft.push("Trade Republic"); trLogFailure("broker_manual_sync","client_error"); }); };
         if(!(r&&r.connected)){
           /* `connected=false` no es una prueba de caducidad: APK vieja, flag perdido o puente en
              frío. En automático no molestamos; si él pulsa Sincronizar validamos la cookie real

@@ -842,7 +842,7 @@ del sync manual general pasan por `trLogFailure` y el `cloud.logEvent` existente
 
 | Campo | Valores admitidos |
 |---|---|
-| `code` | `auth_expired`, `soft_fail`, `sync_invalid`, `sync_rejected`, `status_rejected`, `login_failed`, `verify_failed`, `unknown` |
+| `code` | `auth_expired`, `soft_fail`, `sync_invalid`, `sync_rejected`, `status_rejected`, `status_inactive`, `client_error`, `login_failed`, `verify_failed`, `unknown` |
 | `origin` | `tr_card_sync`, `broker_manual_sync`, `tr_card_login`, `tr_card_verify`, `status_check`, `unknown` |
 | `snapshotAge` | `unknown`, `no_snapshot`, `invalid_clock`, `lt_5m`, `m5_lt_60m`, `h1_lt_24h`, `ge_24h` |
 
@@ -854,10 +854,21 @@ JSON inválido, campos extra y valores fuera de lista no pasan al registro. El p
 
 `auth_expired` solo describe el flag del puente sin `softFail`/`wafBlocked`; no prueba HTTP401,
 ni distingue refresh de WebSocket. `soft_fail` describe esos flags temporales; los rechazos de
-promesa o excepciones síncronas del sync se registran como `sync_rejected`, sin texto crudo.
-`connected:false` por sí solo no genera un error de caducidad; la consulta automática de status
-sigue silenciosa y TR solo sincroniza a demanda. Un éxito no emite error y un fallo de TR conserva
-el resultado parcial de MyInvestor y el orden previo de los avisos.
+promesa o excepciones síncronas del puente sync se registran como `sync_rejected`, sin texto crudo.
+Las excepciones del procesamiento local (`brokerSuggest` o `applyBrokerPositions`) son
+`client_error`: el segundo argumento de `.then` recoge solo el rechazo del puente, y el catch
+posterior separa nuestro procesamiento. Un fallo de TR conserva el resultado parcial de
+MyInvestor y el orden previo de los avisos.
+
+Revisión1: al arrancar, `trLogStartupStatus` observa `authExpired:true` o `connected:false` con
+teléfono guardado. Emite `status_inactive` con `origin:status_check` y edad `unknown`, sin enviar
+el teléfono ni cambiar la conexión. La tarjeta y el sync automático general usan la misma
+etiqueta: el dedupe existente de `logEvent` permite un solo INSERT por sesión aunque se remonte
+la tarjeta o cambie el motivo. Un status ausente/inválido, conectado o desconectado sin teléfono
+no emite este evento salvo `authExpired:true` explícito. No se deduce HTTP401 ni caducidad remota
+del flag local; no se añade sync bancario, notificación ni reintento. TR sigue solo a demanda.
+El bundle se genera con `npm run build`; el guardián de privacidad coteja sus helpers y
+sanitizador con la fuente para detectar un `public/index.html` atrasado.
 
 No hay escritor remoto nuevo, SQL ni Edge: se conservan el dedupe y tope20 por sesión, el bloqueo
 de `logEvent` en modo pruebas y la entrega best-effort. No se envían cookies, edad exacta,

@@ -160,7 +160,7 @@ function mcLogEvent(kind,message,detail){
     let p=null; try{ if(typeof detail==="string") p=JSON.parse(detail); }catch(e){}
     const field=function(k,allowed){ return p&&p.schema===1&&!Array.isArray(p)&&Object.prototype.hasOwnProperty.call(p,k)&&typeof p[k]==="string"&&allowed.indexOf(p[k])>=0?p[k]:"unknown"; };
     return {message:"tr_sync",detail:JSON.stringify({schema:1,
-      code:field("code",["auth_expired","soft_fail","sync_invalid","sync_rejected","status_rejected","login_failed","verify_failed","unknown"]),
+      code:field("code",["auth_expired","soft_fail","sync_invalid","sync_rejected","status_rejected","status_inactive","client_error","login_failed","verify_failed","unknown"]),
       origin:field("origin",["tr_card_sync","broker_manual_sync","tr_card_login","tr_card_verify","status_check","unknown"]),
       snapshotAge:field("snapshotAge",["unknown","no_snapshot","invalid_clock","lt_5m","m5_lt_60m","h1_lt_24h","ge_24h"])})};
   }

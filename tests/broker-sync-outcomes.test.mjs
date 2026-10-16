@@ -5,17 +5,18 @@ import fs from "node:fs";
 const source=fs.readFileSync("src/modules/11-app-main.js","utf8");
 const from=source.indexOf("  const runBrokerSync=function(opts){"),to=source.indexOf("  /* La pantalla de Inversiones",from);
 assert.ok(from>=0&&to>from);
-const make=Function("brokerSyncing","stateRef","trBridge","trPhoneSaved","signalTrAlive","signalTrDead","applyBrokerPositions","cloud","sessionRef","BROKER_SYNC_THROTTLE","avisaSync","tf","t","tabOrderOf","setTab","trLogFailure",source.slice(from,to)+"return runBrokerSync;");
+const make=Function("brokerSyncing","stateRef","trBridge","trPhoneSaved","signalTrAlive","signalTrDead","applyBrokerPositions","cloud","sessionRef","BROKER_SYNC_THROTTLE","avisaSync","tf","t","tabOrderOf","setTab","trLogFailure","trLogStartupStatus",source.slice(from,to)+"return runBrokerSync;");
 const core=fs.readFileSync("src/modules/00-core.js","utf8");
 const sanitize=Function("USO_OK",core.slice(core.indexOf("function mcLogCode("),core.indexOf("var _mcSentryReady"))+"return mcLogEvent;")([]);
 const trSource=fs.readFileSync("src/modules/06-sync-brokers.js","utf8"),logStart=trSource.indexOf("function trLogFailure("),logEnd=trSource.indexOf("function TRSync(",logStart);
-async function run(tr,mi,opts={manual:true,inv:true},busy=false){
+async function run(tr,mi,opts={manual:true,inv:true},busy=false,failApply=false){
   const applied=[],messages=[],calls=[],signals=[],events=[];
-  const bridge=tr==="none"?null:{status:async function(){ calls.push("tr-status"); if(tr==="status-error") throw new Error("fixture"); return {connected:tr!=="disconnected-ok"}; },sync:function(){ calls.push("tr-sync"); if(tr==="sync-throw")throw new Error("fixture");if(tr==="sync-error")return Promise.reject(new Error("fixture"));return Promise.resolve(typeof tr==="object"?tr:tr==="ok"||tr==="disconnected-ok"?{ok:true,positions:[],cash:0}:tr==="expired"?{authExpired:true}:{softFail:true}); }};
+  const bridge=tr==="none"?null:{status:async function(){ calls.push("tr-status"); if(tr==="status-error") throw new Error("fixture"); return tr==="boot-expired"?{connected:true,authExpired:true}:{connected:tr!=="disconnected-ok"&&tr!=="boot-disconnected"}; },sync:function(){ calls.push("tr-sync"); if(tr==="sync-throw")throw new Error("fixture");if(tr==="sync-error")return Promise.reject(new Error("fixture"));return Promise.resolve(typeof tr==="object"?tr:tr==="ok"||tr==="disconnected-ok"?{ok:true,positions:[],cash:0}:tr==="expired"?{authExpired:true}:{softFail:true}); }};
   const cloud={logEvent:function(kind,message,detail){events.push(sanitize(kind,message,detail));},enabled:function(){return true;},myinvestorStatus:async function(){calls.push("mi-status");if(mi==="status-error")throw new Error("fixture");return {status:mi==="none"?"none":mi==="expired"?"expired":"active"};},myinvestorSync:async function(){calls.push("mi-sync");if(mi==="sync-error")throw new Error("fixture");return mi==="ok"?{ok:true,positions:[]}:mi==="auth-expired"?{authExpired:true}:{ok:false};}};
   const trLog=logStart>=0?Function("cloud",trSource.slice(logStart,logEnd)+"return trLogFailure;")(cloud):function(){};
+  const startup=trSource.includes("function trLogStartupStatus(")?Function("cloud","trPhoneSaved",trSource.slice(logStart,logEnd)+"return trLogStartupStatus;")(cloud,()=>true):function(){};
   const lock={current:busy};
-  const fn=make(lock,{current:{lastMiSync:Date.now()}},function(){return bridge;},function(){return true;},function(){signals.push("alive");},function(){signals.push("dead");},function(p,key){applied.push(key);},cloud,{current:{}},60000,function(o,m){messages.push(m);},function(k,v){return k+":"+JSON.stringify(v);},function(k){return k;},function(){return ["inicio","gastos","plan","cartera"];},function(){},trLog);
+  const fn=make(lock,{current:{lastMiSync:Date.now()}},function(){return bridge;},function(){return true;},function(){signals.push("alive");},function(){signals.push("dead");},function(p,key){if(failApply&&key==="lastTrSync")throw new Error("synthetic client exception");applied.push(key);},cloud,{current:{}},60000,function(o,m){messages.push(m);},function(k,v){return k+":"+JSON.stringify(v);},function(k){return k;},function(){return ["inicio","gastos","plan","cartera"];},function(){},trLog,startup);
   const result=await fn(opts);
   return {applied,messages,calls,signals,events,result,locked:lock.current};
 }
@@ -40,5 +41,11 @@ for(const [result,code,origin]of [["expired","auth_expired","broker_manual_sync"
 });
 await check("status desconectado con sync bueno no inventa caída",async()=>{const r=await run("disconnected-ok","none");assert.deepEqual(r.events,[]);assert.ok(r.messages.includes(ok("Trade Republic")));assert.ok(!r.signals.includes("dead"));});
 await check("automático no emite errores TR ni ejecuta sync aun con rechazo de status",async()=>{const r=await run("status-error","none",{});assert.deepEqual(r.events,[]);assert.deepEqual(r.calls,["tr-status"]);});
+for(const tr of ["boot-expired","boot-disconnected"])await check("arranque general "+tr+" registra observación sin sync bancario",async()=>{
+ const r=await run(tr,"none",{});assert.deepEqual(r.events,[{message:"tr_sync",detail:JSON.stringify({schema:1,code:"status_inactive",origin:"status_check",snapshotAge:"unknown"})}]);assert.deepEqual(r.calls,["tr-status"]);assert.ok(!r.signals.includes("dead"));
+});
+await check("applyBrokerPositions que lanza es client_error y conserva el éxito MyInvestor",async()=>{
+ const r=await run("ok","ok",{manual:true},false,true);assert.deepEqual(r.events,[{message:"tr_sync",detail:JSON.stringify({schema:1,code:"client_error",origin:"broker_manual_sync",snapshotAge:"unknown"})}]);assert.ok(r.messages.includes(ok("MyInvestor")));assert.equal(r.locked,false);
+});
 console.log("broker-sync-outcomes: "+(count-failed)+" PASS / "+failed+" FAIL");
 if(failed)process.exit(1);

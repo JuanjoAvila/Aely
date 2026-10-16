@@ -384,6 +384,11 @@ function markTrConnected(opts){ try{ localStorage.removeItem("_trAuthExpired"); 
 function trLogFailure(origin, code){
   try{ const sent=cloud.logEvent("error","tr_sync",JSON.stringify({schema:1,code:code,origin:origin,snapshotAge:"unknown"})); if(sent&&typeof sent.catch==="function") sent.catch(function(){}); }catch(e){}
 }
+// Ambos consumidores de status comparten etiqueta: logEvent deduplica el mismo aviso en
+// esta sesión aunque se remonte la tarjeta o cambie el motivo. No se toca la conexión.
+function trLogStartupStatus(r){
+  if(r&&(r.authExpired===true||(r.connected===false&&!!trPhoneSaved()))) trLogFailure("status_check","status_inactive");
+}
 function TRSync({state, set, totals, open, onToggle}){
   const bridge=trBridge();
   const [step,setStep]=useState("idle");      // idle | code | preview | done
@@ -402,7 +407,7 @@ function TRSync({state, set, totals, open, onToggle}){
   const [doneN,setDoneN]=useState(null);
   useEffect(function(){
     if(!bridge||!bridge.status) return;
-    Promise.resolve(bridge.status()).then(function(r){ if(r&&r.connected) setConnected(true); }).catch(function(){});
+    Promise.resolve(bridge.status()).then(function(r){ trLogStartupStatus(r); if(r&&r.connected) setConnected(true); }).catch(function(){});
   },[]);
   // El texto sigue en la UI local; soporte recibe solo la operación y su resultado cerrado.
   const fail=function(e,origin,code){ setBusy(false); setErr(true); const m=(e&&(e.error||e.message))||(typeof e==="string"?e:""); setErrMsg(m);
@@ -440,7 +445,7 @@ function TRSync({state, set, totals, open, onToggle}){
         else if(state.investments.length===0) m[po.isin]="__new";
       });
       setMap(m); setPositions(r.positions); setCash(r.cash!=null?r.cash:null); setStep("preview");
-    }).catch(function(e){ fail(e,"tr_card_sync","sync_rejected"); });
+    },function(e){ fail(e,"tr_card_sync","sync_rejected"); }).catch(function(e){ fail(e,"tr_card_sync","client_error"); });
   };
   const doLogin=function(){
     if(!phone.trim()||!pin.trim()) return;
