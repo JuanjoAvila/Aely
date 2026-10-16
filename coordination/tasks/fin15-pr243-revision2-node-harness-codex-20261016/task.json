@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "id": "fin15-pr243-revision2-node-harness-codex-20261016",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261016-a55cdbc387b8",
+  "createdAt": "2026-10-16T17:01:34.193Z",
+  "to": "codex",
+  "baseSHA": "36c46d1c6c4f93d874556a3814c0c2b73a8d780f",
+  "objective": "PR243 mismo titular/rama: nuevo sucesor expone statsDelMes del presupuesto real en arnes Node tests/ingest-handler.test.mjs que transpila widget.test.ts. Capturar ROJO causal focal ReferenceError antes, corregir solo lista inyectada y GREEN Node/Deno afectados. Sin runtime ni nueva suite completa.",
+  "scope": [
+    "tests/ingest-handler.test.mjs",
+    "docs tecnicas FIN15 estrictamente necesarias"
+  ],
+  "claudeGrant": "0a4729df4b226cd1c16118fc663ea73c5615a5a4",
+  "supportingGrant": "06e6fe1ea4f70d70dac520ba8827e33016fd3a8d",
+  "predecessorTaskId": "fin15-pr243-revision1-codex-20261016",
+  "predecessorResultReleased": "f13690418ef1fa43ad39ac1c857f3eeba834992c",
+  "preservePriorResultReleased": true,
+  "constraints": [
+    "NUEVO claim/ACK OWN antes code/tests; no heredar claim/lease ni reabrir result.",
+    "No runtime, preferenciafila/signos, VERSION/notas/catalogo/caps/backend/SQL/deploy/merge/main-beta push ni force.",
+    "Sin suite completa/CPU6/rendimiento; siguiente suite completa Claude produccion137, FIN12 espera nuevo librecoordinador.",
+    "Solo focal causal nueva y GREEN Node/Deno relevantes; no repetir resto de pruebas cerradas. Datos sinteticos y evidencia EXIT real privada."
+  ],
+  "fetchAllocation": {
+    "newSuccessorGrant": 8,
+    "countSeparately": true,
+    "predecessorNew80SpentFrozen": 7,
+    "previousInitial14AndRevision1Old6Frozen": true,
+    "noInheritedBudget": true
+  },
+  "deliverable": "PR243 DRAFT fuente nueva push normal + readback exactos; result OWN nuevo con SHA/hash/EXIT y causalidad. Baseline suite36c EXIT1 y E2E no ejecutado conservados, no adjudicar a fuente nueva."
+}
