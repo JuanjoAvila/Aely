@@ -22,7 +22,7 @@ const enlace = (id, extra) => Object.assign({ user_id: id, status: "active", acc
 // poder simular lo que otra función escribe mientras la petición está en vuelo. La BD filtra
 // de verdad: una escritura condicionada que no casa no toca nada.
 async function tick(rows, refresco, key = "clave", options = {}) {
-  const writes = [], calls = [], events = [], eventReads = [];
+  const writes = [], calls = [], events = [], eventReads = [], attempts = [], timers = [];
   const history = options.history || [];
   let handler;
   const casa = (row, filtros) => filtros.every(([c, v]) => row[c] === v);
@@ -60,7 +60,10 @@ async function tick(rows, refresco, key = "clave", options = {}) {
         eq: (c, v) => { filtros.push([c, v]); return q; },
         select: () => q,
         then: (ok, ko) => {
-          if (options.writeError) return Promise.resolve({ data: null, error: { message: "synthetic-write-error" } }).then(ok, ko);
+          attempts.push({ patch: { ...x }, filters: filtros.map(f => [...f]) });
+          if (options.beforeWrite) options.beforeWrite(attempts.length, rows);
+          if (options.writeThrows && attempts.length <= options.writeThrows) return Promise.reject(new Error("synthetic-write-throw")).then(ok, ko);
+          if (options.writeError || attempts.length <= (options.writeFailures || 0)) return Promise.resolve({ data: null, error: { message: "synthetic-write-error" } }).then(ok, ko);
           const tocadas = rows.filter((r) => casa(r, filtros));
           tocadas.forEach((r) => Object.assign(r, x));
           writes.push({ ...x, _filas: tocadas.length });
@@ -73,9 +76,9 @@ async function tick(rows, refresco, key = "clave", options = {}) {
   const fetchFn = async (url, init) => {
     const token = JSON.parse(init.body).refreshToken;
     calls.push(token);
-    return refresco(token, rows.find((r) => (options.decodedRefresh || r.refresh_token) === token));
+    return refresco(token, rows.find((r) => (options.decodedRefresh || r.refresh_token) === token), init);
   };
-  const names = ["Deno", "createClient", "miTokensFromRow", "miTokensToRow", "timingSafeEqual", "fetch"];
+  const names = ["Deno", "createClient", "miTokensFromRow", "miTokensToRow", "timingSafeEqual", "fetch", "setTimeout", "clearTimeout"];
   new Function(...names, src)(
     { serve: (f) => { handler = f; }, env: { get: () => "synthetic" } }, () => db,
     async (l) => {
@@ -85,14 +88,18 @@ async function tick(rows, refresco, key = "clave", options = {}) {
     async (access, refresh) => {
       if (options.encodeThrows) throw new Error("synthetic-encrypt-error");
       return { access_token: access, refresh_token: refresh };
-    }, (a, b) => a === b, fetchFn
+    }, (a, b) => a === b, fetchFn,
+    (fn, delay) => { const timer = { delay, cleared: false, id: setTimeout(fn, options.fastClock ? 5 : delay) }; timers.push(timer); return timer; },
+    timer => { timer.cleared = true; clearTimeout(timer.id); }
   );
   const res = await handler(new Request("https://edge.invalid", { method: "POST", headers: { "x-cron-key": key } }));
-  return { status: res.status, data: await res.json(), writes, calls, events, eventReads };
+  assert.ok(timers.every(t => t.cleared), "cada petición terminada limpia su reloj");
+  return { status: res.status, data: await res.json(), writes, calls, events, eventReads, attempts, timers };
 }
 
 let failures = 0;
-async function t(name, fn) { try { await fn(); console.log("  ✓ " + name); } catch (e) { failures++; console.error("  ✗ " + name + ": " + e.message); } }
+const filterIndex = process.argv.indexOf("--filter");
+async function t(name, fn) { if (filterIndex >= 0 && !name.includes(process.argv[filterIndex + 1])) return; try { await fn(); console.log("  ✓ " + name); } catch (e) { failures++; console.error("  ✗ " + name + ": " + e.message); } }
 
 console.log("myinvestor-keepalive");
 
@@ -144,7 +151,7 @@ await t("rechazo de un refresco que una sincronización acaba de rotar: el enlac
   assert.equal(rows[0].refresh_token, "refresco-del-sync");
   assert.equal(r.writes.at(-1)._filas, 0, "la escritura va condicionada al refresco que se usó");
   assert.deepEqual(r.data, { ok: true, refreshed: 0, expired: 0, skipped: 1 });
-  eventDetail(r.events[0], "a", { http: 401, outcome: "skipped", hasRefreshExpiresIn: false, guarded: true });
+  eventDetail(r.events[0], "a", { http: 401, outcome: "skipped", code: "raced", hasRefreshExpiresIn: false, hasRefreshToken: false, guarded: true });
 });
 
 await t("éxito tardío tras reconectar: conserva íntegra la sesión nueva", async () => {
@@ -154,7 +161,7 @@ await t("éxito tardío tras reconectar: conserva íntegra la sesión nueva", as
   assert.deepEqual(rows[0], fresh);
   assert.equal(r.writes.at(-1)._filas, 0);
   assert.deepEqual(r.data, { ok: true, refreshed: 0, expired: 0, skipped: 1 });
-  eventDetail(r.events[0], "a", { http: 201, outcome: "skipped", hasRefreshExpiresIn: true, guarded: true });
+  eventDetail(r.events[0], "a", { http: 201, outcome: "skipped", code: "raced", hasRefreshExpiresIn: true, hasRefreshToken: true, guarded: true });
 });
 
 await t("la guarda compara el refresco almacenado, no el descifrado", async () => {
@@ -210,7 +217,8 @@ const diagnostics = [
 for (const [name, response, http, outcome, hasRefreshExpiresIn] of diagnostics) await t("evento cerrado por enlace: " + name, async () => {
   const r = await tick([enlace("a")], response);
   assert.equal(r.events.length, 1);
-  eventDetail(r.events[0], "a", { http, outcome, hasRefreshExpiresIn, guarded: false });
+  const code = outcome === "ok" ? "ok" : outcome === "rejected" ? "rejected" : http === 403 ? "http_403" : http === 200 ? "no_access_token" : http === null || http === 502 ? "network" : "http_other";
+  eventDetail(r.events[0], "a", { http, outcome, code, hasRefreshExpiresIn, hasRefreshToken: outcome === "ok", guarded: false });
 });
 
 await t("el evento nunca copia tokens, dispositivo, email, payload ni excepciones", async () => {
@@ -218,7 +226,7 @@ await t("el evento nunca copia tokens, dispositivo, email, payload ni excepcione
   const rows = [enlace("a", { email: marker, device_id: marker, access_token: marker, refresh_token: marker })];
   const r = await tick(rows, () => nuevos({ accessToken: marker, refreshToken: marker, refreshExpiresIn: marker, email: marker, message: marker }));
   assert.equal(r.events.length, 1);
-  eventDetail(r.events[0], "a", { http: 201, outcome: "ok", hasRefreshExpiresIn: true, guarded: false });
+  eventDetail(r.events[0], "a", { http: 201, outcome: "ok", code: "ok", hasRefreshExpiresIn: true, hasRefreshToken: true, guarded: false });
   assert.ok(!JSON.stringify(r.events).includes(marker));
 });
 
@@ -228,14 +236,14 @@ await t("falta de credenciales y fallo al descifrar se registran y no frenan el 
   assert.equal(r.status, 200);
   assert.deepEqual(r.calls, ["refresco-vivo"]);
   assert.equal(r.events.length, 4);
-  for (let i = 0; i < 3; i++) eventDetail(r.events[i], rows[i].user_id, { http: null, outcome: "skipped", hasRefreshExpiresIn: false, guarded: false });
-  eventDetail(r.events[3], "vivo", { http: 201, outcome: "ok", hasRefreshExpiresIn: true, guarded: false });
+  for (let i = 0; i < 3; i++) eventDetail(r.events[i], rows[i].user_id, { http: null, outcome: "skipped", code: i === 2 ? "decrypt" : "no_creds", hasRefreshExpiresIn: false, hasRefreshToken: false, guarded: false });
+  eventDetail(r.events[3], "vivo", { http: 201, outcome: "ok", code: "ok", hasRefreshExpiresIn: true, hasRefreshToken: true, guarded: false });
 });
 
 await t("fallo de cifrado no se anuncia como éxito y conserva el estado HTTP", async () => {
   const r = await tick([enlace("a")], () => nuevos(), "clave", { encodeThrows: true });
   assert.equal(r.events.length, 1);
-  eventDetail(r.events[0], "a", { http: 201, outcome: "skipped", hasRefreshExpiresIn: true, guarded: false });
+  eventDetail(r.events[0], "a", { http: 201, outcome: "skipped", code: "encrypt", hasRefreshExpiresIn: true, hasRefreshToken: true, guarded: false });
   assert.equal(r.data.skipped, 1);
   assert.deepEqual(r.writes, []);
 });
@@ -254,7 +262,7 @@ for (const status of [201, 401]) await t("error al guardar no cuenta como renova
   const r = await tick(rows, () => status === 201 ? nuevos() : json(status, {}), "clave", { writeError: true });
   assert.deepEqual(rows[0], original);
   assert.deepEqual(r.data, { ok: true, refreshed: 0, expired: 0, skipped: 1 });
-  eventDetail(r.events[0], "a", { http: status, outcome: "skipped", hasRefreshExpiresIn: status === 201, guarded: false });
+  eventDetail(r.events[0], "a", { http: status, outcome: "skipped", code: "save_error", hasRefreshExpiresIn: status === 201, hasRefreshToken: status === 201, guarded: false });
 });
 
 await t("403 repetido: uno por hora y por usuario, sin suprimir otros outcomes", async () => {
@@ -274,11 +282,11 @@ await t("403 repetido: uno por hora y por usuario, sin suprimir otros outcomes",
   assert.equal(nextHour.events.length, 2);
 });
 
-for (const options of [{ readThrows: true }, { readError: true }]) await t("si falla el control horario, omite el log de 403 y continúa: " + Object.keys(options)[0], async () => {
+for (const options of [{ readThrows: true }, { readError: true }]) await t("si falla el control horario, omite logs limitados y continúa: " + Object.keys(options)[0], async () => {
   const r = await tick([enlace("a"), enlace("b")], token => token === "refresco-a" ? json(403, {}) : nuevos(), "clave", options);
   assert.deepEqual(r.data, { ok: true, refreshed: 1, expired: 0, skipped: 1 });
-  assert.equal(r.events.length, 1);
-  eventDetail(r.events[0], "b", { http: 201, outcome: "ok", hasRefreshExpiresIn: true, guarded: false });
+  assert.equal(r.events.length, 0);
+  assert.equal(r.writes.filter(w => w._filas === 1).length, 1);
 });
 
 await t("cada enlace por separado; los que no están activos o no tienen refresco no se tocan", async () => {
@@ -296,6 +304,119 @@ await t("sin la clave del cron no se llama a MyInvestor", async () => {
   assert.equal(r.status, 401);
   assert.deepEqual(r.calls, []);
   assert.deepEqual(r.events, []);
+});
+
+await t("R1: éxito estable se limita por hora y usuario, pero sigue renovando", async () => {
+  const history = [], rows = [enlace("a"), enlace("b")];
+  const first = await tick(rows, () => nuevos(), "clave", { history });
+  assert.equal(first.events.length, 2);
+  const repeated = await tick(rows, () => nuevos(), "clave", { history });
+  assert.equal(repeated.events.length, 0);
+  assert.equal(repeated.data.refreshed, 2);
+  const error = await tick(rows, () => json(500, {}), "clave", { history });
+  assert.equal(error.events.length, 2, "el éxito anterior no tapa errores");
+  history.forEach(e => { e.created_at = new Date(Date.now() - 3600001).toISOString(); });
+  assert.equal((await tick(rows, () => nuevos(), "clave", { history })).events.length, 2);
+});
+
+await t("R2: código y presencia del refresco distinguen persistencia de rechazo", async () => {
+  const ok = await tick([enlace("a")], () => nuevos());
+  assert.equal(JSON.parse(ok.events[0].detail).code, "ok");
+  assert.equal(JSON.parse(ok.events[0].detail).hasRefreshToken, true);
+  const failed = await tick([enlace("a")], () => nuevos(), "clave", { writeError: true });
+  assert.equal(JSON.parse(failed.events[0].detail).code, "save_error");
+  assert.equal(JSON.parse(failed.events[0].detail).http, 201);
+  assert.equal(JSON.parse(failed.events[0].detail).outcome, "skipped");
+});
+
+await t("R3: primer guardado falla, el único reintento conserva token original y payload", async () => {
+  const rows = [enlace("a")];
+  const r = await tick(rows, () => nuevos(), "clave", { writeFailures: 1 });
+  assert.equal(rows[0].refresh_token, "refresco-nuevo");
+  assert.equal(r.data.refreshed, 1);
+  assert.equal(r.calls.length, 1, "no se vuelve a refrescar en el banco");
+  assert.equal(r.attempts.length, 2);
+  assert.deepEqual(r.attempts[0], r.attempts[1]);
+  assert.deepEqual(r.attempts[1].filters, [["user_id", "a"], ["refresh_token", "refresco-a"]]);
+});
+
+for (const bodyHang of [false, true]) await t("R5: timeout de " + (bodyHang ? "cuerpo" : "cabeceras") + " deja continuar al siguiente enlace", async () => {
+  let aborted = false;
+  const r = await tick([enlace("a"), enlace("b")], (token, _row, init) => {
+    if (token === "refresco-b") return nuevos();
+    const hang = () => new Promise((resolve, reject) => {
+      const watchdog = setTimeout(() => resolve(bodyHang ? "{}" : json(503, {})), 100);
+      init.signal?.addEventListener("abort", () => { aborted = true; clearTimeout(watchdog); reject(new DOMException("synthetic", "AbortError")); }, { once: true });
+    });
+    return bodyHang ? { status: 201, text: hang } : hang();
+  }, "clave", { fastClock: true });
+  assert.equal(aborted, true, "la petición debe cancelarse antes del watchdog sintético");
+  assert.deepEqual(r.data, { ok: true, refreshed: 1, expired: 0, skipped: 1 });
+  assert.equal(JSON.parse(r.events[0].detail).code, "network");
+  assert.equal(r.timers.length, 2);
+  assert.ok(r.timers.every(t => t.delay === 10000 && t.cleared));
+});
+
+await t("R1: el límite de éxito no cruza usuarios ni categorías", async () => {
+  const history = [];
+  await tick([enlace("a")], () => nuevos(), "clave", { history });
+  const other = await tick([enlace("b")], () => nuevos(), "clave", { history });
+  assert.equal(other.events.length, 1);
+  const rejected = await tick([enlace("a")], () => json(401, {}), "clave", { history });
+  assert.equal(JSON.parse(rejected.events[0].detail).code, "rejected");
+  const failed = await tick([enlace("a")], () => nuevos(), "clave", { history, writeError: true });
+  assert.equal(JSON.parse(failed.events[0].detail).code, "save_error");
+  assert.equal((await tick([enlace("a")], () => json(403, {}), "clave", { history })).events.length, 1);
+});
+
+for (const refreshToken of [undefined, null, ""]) await t("R2: refresco ausente o vacío es booleano false: " + String(refreshToken), async () => {
+  const rows = [enlace("a")];
+  const r = await tick(rows, () => nuevos({ refreshToken }));
+  assert.equal(JSON.parse(r.events[0].detail).hasRefreshToken, false);
+  assert.equal(rows[0].refresh_token, "refresco-a");
+});
+
+for (const option of ["writeFailures", "writeThrows"]) {
+  await t("R3: dos fallos de persistencia se detienen sin tercer intento: " + option, async () => {
+    const rows = [enlace("a")], before = { ...rows[0] };
+    const r = await tick(rows, () => nuevos(), "clave", { [option]: 2 });
+    assert.equal(r.attempts.length, 2);
+    assert.deepEqual(rows[0], before);
+    assert.deepEqual(r.data, { ok: true, refreshed: 0, expired: 0, skipped: 1 });
+    assert.equal(JSON.parse(r.events[0].detail).code, "save_error");
+    assert.equal(r.calls.length, 1);
+  });
+}
+
+await t("R3: excepción del primer UPDATE también permite guardar una vez", async () => {
+  const r = await tick([enlace("a")], () => nuevos(), "clave", { writeThrows: 1 });
+  assert.equal(r.attempts.length, 2);
+  assert.equal(r.data.refreshed, 1);
+});
+
+await t("R3: reconexión entre intentos conserva todos los campos y corta la carrera", async () => {
+  const rows = [enlace("a")];
+  const fresh = enlace("a", { access_token: "otro-acceso", refresh_token: "otro-refresco", status: "expired", updated_at: "2030-01-01T00:00:00Z" });
+  const r = await tick(rows, () => nuevos(), "clave", { writeFailures: 1,
+    beforeWrite: n => { if (n === 2) Object.assign(rows[0], fresh); } });
+  assert.equal(r.attempts.length, 2);
+  assert.deepEqual(rows[0], fresh);
+  assert.equal(JSON.parse(r.events[0].detail).code, "raced");
+  assert.equal(JSON.parse(r.events[0].detail).guarded, true);
+  assert.equal(r.data.skipped, 1);
+});
+
+await t("R3: cero filas al primer intento no se reintenta", async () => {
+  const r = await tick([enlace("a")], (_token, row) => { row.refresh_token = "rotado"; return nuevos(); });
+  assert.equal(r.attempts.length, 1);
+  assert.equal(JSON.parse(r.events[0].detail).code, "raced");
+});
+
+await t("R3: rechazo no habilita el reintento reservado al refresco bueno", async () => {
+  const r = await tick([enlace("a")], () => json(401, {}), "clave", { writeFailures: 1 });
+  assert.equal(r.attempts.length, 1);
+  assert.equal(JSON.parse(r.events[0].detail).code, "save_error");
+  assert.equal(JSON.parse(r.events[0].detail).http, 401);
 });
 
 if (failures) { console.error("\n" + failures + " fallo(s)"); process.exit(1); }

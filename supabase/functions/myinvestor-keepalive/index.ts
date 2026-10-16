@@ -15,6 +15,9 @@ import { CORS, jsonResp, MI_BASE, miHeaders, miRefreshOutcome } from "../_shared
 import { miTokensFromRow, miTokensToRow } from "../_shared/token_store.ts";
 import { timingSafeEqual } from "../_shared/entrada.ts";
 
+type KeepaliveCode = "ok" | "rejected" | "http_403" | "http_other" | "no_access_token"
+  | "network" | "decrypt" | "encrypt" | "no_creds" | "save_error" | "raced";
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
   try {
@@ -27,38 +30,62 @@ Deno.serve(async (req) => {
     const { data: links } = await admin.from("myinvestor_links").select("*").eq("status", "active");
     let refreshed = 0, expired = 0, skipped = 0;
     for (const link of links || []) {
-      let http: number | null = null, hasRefreshExpiresIn = false, guarded = false;
+      let http: number | null = null, hasRefreshExpiresIn = false, hasRefreshToken = false, guarded = false;
       let eventOutcome: "ok" | "rejected" | "skipped" = "skipped";
+      let code: KeepaliveCode = "decrypt";
       try {
         const tokens = await miTokensFromRow(link);
-        if (!tokens.refresh || !tokens.deviceId) { skipped++; continue; }
-        const r = await fetch(MI_BASE + "/login/api/v1/auth/token/refresh", {
-          method: "POST",
-          headers: miHeaders(tokens.deviceId),
-          body: JSON.stringify({ refreshToken: tokens.refresh }),
-        });
-        http = r.status;
-        const t = await r.text();
+        if (!tokens.refresh || !tokens.deviceId) { code = "no_creds"; skipped++; continue; }
+        code = "network";
+        // Acotar también el cuerpo: recibir cabeceras no impide que el banco se cuelgue.
+        // Cancelar libera la petición; limpiar el reloj evita abortos tardíos tras el éxito.
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 10000);
+        let t: string;
+        try {
+          const r = await fetch(MI_BASE + "/login/api/v1/auth/token/refresh", {
+            method: "POST",
+            headers: miHeaders(tokens.deviceId),
+            body: JSON.stringify({ refreshToken: tokens.refresh }),
+            signal: controller.signal,
+          });
+          http = r.status;
+          t = await r.text();
+        } finally { clearTimeout(timeout); }
         // deno-lint-ignore no-explicit-any
         let j: any = null; try { j = JSON.parse(t); } catch { /* deja null */ }
         const d = (j && j.payload && j.payload.data) || {};
         hasRefreshExpiresIn = Object.prototype.hasOwnProperty.call(d, "refreshExpiresIn");
+        hasRefreshToken = Boolean(d.refreshToken);
         // La misma regla que usa el sync al refrescar: ver `miRefreshOutcome`.
-        const outcome = miRefreshOutcome(r.status, d);
+        const outcome = miRefreshOutcome(http, d);
         if (outcome === "ok") {
+          code = "encrypt";
           const refreshSecs = Number(d.refreshExpiresIn || 0);
           const enc = await miTokensToRow(d.accessToken, d.refreshToken || tokens.refresh);
           // Una reconexión puede completar mientras esperamos al banco: el éxito viejo
           // tampoco debe sobrescribir los tokens ni la expiración de la sesión nueva.
-          const { data: saved, error } = await admin.from("myinvestor_links").update({
+          const patch = {
             access_token: enc.access_token,
             refresh_token: enc.refresh_token,
             refresh_expires_at: refreshSecs > 0 ? new Date(Date.now() + refreshSecs * 1000).toISOString() : link.refresh_expires_at,
             status: "active", updated_at: new Date().toISOString(),
-          }).eq("user_id", link.user_id).eq("refresh_token", link.refresh_token).select("user_id");
-          if (error) { skipped++; }
-          else if (!saved?.length) { guarded = true; skipped++; }
-          else { eventOutcome = "ok"; refreshed++; }
+          };
+          code = "save_error";
+          // El banco puede haber invalidado ya el refresco anterior. Reintentar UNA vez
+          // el mismo guardado, nunca el refresco; ambos intentos comparan el token original.
+          for (let attempt = 0; attempt < 2; attempt++) {
+            try {
+              const { data: saved, error } = await admin.from("myinvestor_links").update(patch)
+                .eq("user_id", link.user_id).eq("refresh_token", link.refresh_token).select("user_id");
+              if (error) continue;
+              if (!saved?.length) { guarded = true; code = "raced"; }
+              else { code = "ok"; eventOutcome = "ok"; }
+              break;
+            } catch { /* mismo reintento acotado si el transporte del UPDATE lanza */ }
+          }
+          if (eventOutcome === "ok") refreshed++;
+          else skipped++;
         } else if (outcome === "rejected") {
           // Solo 400/401 = refresh muerto de verdad. Un 403 (bot/rate-limit) NO caduca el enlace:
           // antes pedía captcha/OTP al abrir la app (feedback 2026-07-17).
@@ -66,26 +93,30 @@ Deno.serve(async (req) => {
           // puede haberlo rotado entretanto, y entonces el rechazo es del token viejo y el
           // enlace está vivo. Sin la condición, este `expired` pisaba los tokens recién
           // guardados y pedía la contraseña por una carrera (revisión del 13/10).
+          code = "save_error";
           const { data: saved, error } = await admin.from("myinvestor_links").update({ status: "expired", updated_at: new Date().toISOString() })
             .eq("user_id", link.user_id).eq("refresh_token", link.refresh_token).select("user_id");
           if (error) { skipped++; }
-          else if (!saved?.length) { guarded = true; skipped++; }
-          else { eventOutcome = "rejected"; expired++; }
+          else if (!saved?.length) { guarded = true; code = "raced"; skipped++; }
+          else { code = "rejected"; eventOutcome = "rejected"; expired++; }
         } else {
+          code = http === 403 ? "http_403" : (http >= 200 && http < 300 ? "no_access_token" : "http_other");
           skipped++;   // 403/5xx/raro: no tocamos nada y se reintenta al próximo tick
         }
-      } catch { skipped++; /* red/cifrado: reintenta al próximo tick */ }
+      } catch { skipped++; /* conservar la etapa, nunca el texto libre del error */ }
       finally {
         // Solo user_id estructural (FK obligatoria). Nunca copiar tokens, dispositivo,
         // datos del enlace ni texto libre del banco, del cifrado o de PostgREST.
         try {
-          const detail = JSON.stringify({ outcome: eventOutcome, http, hasRefreshExpiresIn, guarded });
+          const detail = JSON.stringify({ outcome: eventOutcome, code, http, hasRefreshExpiresIn, hasRefreshToken, guarded });
           let log = true;
-          if (http === 403 && eventOutcome === "skipped") {
-            // El cron corre cada diez minutos: no llenar Actividad con el mismo 403.
+          if (eventOutcome === "ok" || (http === 403 && eventOutcome === "skipped")) {
+            // El cron corre cada diez minutos: éxitos y 403 repetidos desplazan errores
+            // de la ventana de Actividad. Cada categoría se limita por enlace y hora.
             // Si falla esta lectura, se omite el diagnóstico; el enlace ya está resuelto.
             const { data: recent, error } = await admin.from("app_events").select("id")
-              .eq("user_id", link.user_id).eq("kind", "mi_keepalive").like("detail", '%"http":403,%')
+              .eq("user_id", link.user_id).eq("kind", "mi_keepalive")
+              .like("detail", eventOutcome === "ok" ? '%"outcome":"ok",%' : '%"http":403,%')
               .gte("created_at", new Date(Date.now() - 60 * 60 * 1000).toISOString()).limit(1);
             log = !error && Array.isArray(recent) && recent.length === 0;
           }
