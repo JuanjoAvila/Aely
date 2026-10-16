@@ -36,6 +36,9 @@ if (plan.build !== false) {
 const steps = [
   ["inicio-grafica-reservas", ["node", "tests/inicio-grafica-reservas.test.mjs"]],
   ["compras-identicas-ids", ["node", "--test", "tests/compras-identicas-ids.test.mjs"]],
+  ["deudas-metas-edicion", ["node", "tests/deudas-metas-edicion.test.mjs"]],
+  ["deudas-metas-revision", ["node", "tests/deudas-metas-revision.test.mjs", "--mutations"]],
+  ["deudas-plazo-cuota", ["node", "tests/deudas-plazo-cuota.test.mjs"]],
   ["prod117-edge-compat", ["node", "tests/prod117-edge-compat.test.mjs"]],
   ["backclose-history", ["node", "tests/backclose-history.test.mjs"]],
   ["gastos-mes-madrid", ["node", "tests/gastos-mes-madrid.test.mjs"]],

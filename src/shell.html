@@ -1632,6 +1632,31 @@
   .v4-debt-foot{font-size:12.5px;color:var(--muted);line-height:1.4;}
   .v4-debt-amort{width:100%;margin-top:12px;min-height:48px;border-radius:14px;border:1px solid var(--line-soft);background:var(--sur2);color:var(--text);font-weight:800;font-size:14.5px;font-family:inherit;cursor:pointer;}
   .v4-goal-cta{width:100%;margin-top:12px;min-height:48px;border:none;border-radius:14px;background:linear-gradient(160deg,var(--mint-hi),var(--mint));color:var(--on-mint);font-weight:800;font-size:15px;font-family:inherit;cursor:pointer;box-shadow:0 10px 22px -10px rgba(95,208,138,.5);}
+  /* Deudas/Metas usan las superficies de Plan y la jerarquía de Inicio; las hojas sólo se
+     montan al editar para no añadir trabajo a la entrada del segmento (feedback 14/10). */
+  .plan-summary{text-align:center;padding:22px 16px;}
+  .plan-summary-amount{font-size:46px;font-weight:560;letter-spacing:-.5px;line-height:1.05;margin-top:6px;overflow-wrap:anywhere;}
+  .plan-item-open{width:100%;padding:0;border:0;background:none;color:var(--text);font-family:inherit;text-align:left;cursor:pointer;min-height:48px;}
+  .plan-item .v4-debt-name{font-size:15px;font-weight:750;overflow-wrap:anywhere;}
+  .plan-item .v4-debt-emoji{font-size:22px;line-height:1.4;}
+  .plan-item-value{flex:0 0 auto;text-align:right;}
+  .plan-item-edit{display:block;margin-top:4px;color:var(--mint);font-size:12px;font-weight:700;}
+  .plan-debt-details{margin-top:9px;font-size:12px;}
+  .plan-item .v4-debt-bar,.plan-item .v4-goal-bar{height:4px;margin:10px 0 8px;}
+  .plan-item .v4-debt-bar i{background:var(--coral);}
+  .plan-item .v4-debt-foot{font-size:12px;}
+  .plan-item .v4-debt-amort,.plan-item .v4-goal-cta{margin-top:10px;background:var(--sur2);border:1px solid var(--line-soft);color:var(--text);box-shadow:none;font-size:13.5px;min-height:44px;}
+  .plan-rule-row{gap:8px;padding:12px 0;align-items:center;}
+  .plan-rule-row .sub-meta{line-height:1.45;}
+  .plan-edit-sheet{max-height:90dvh;overflow-y:auto;overscroll-behavior:contain;}
+  .plan-edit-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;}
+  .plan-edit-head h2{font-size:22px;font-weight:560;margin:0;}
+  .plan-edit-sheet .add-form{padding:0;background:none;border:0;}
+  .plan-edit-sheet label{display:block;font-size:12.5px;color:var(--muted);}
+  .plan-edit-sheet label .af-in{margin-top:5px;width:100%;}
+  .plan-edit-sheet .af-row>label{flex:1;min-width:0;}
+  .plan-edit-sheet [role="alert"]{color:var(--coral);}
+  .plan-item-open:focus-visible{outline:2px solid var(--mint);outline-offset:4px;border-radius:12px;}
   .v4-ghost-add{width:100%;margin-top:12px;min-height:52px;border-radius:18px;border:1.5px dashed var(--line);background:transparent;color:var(--muted);font-weight:700;font-size:14.5px;font-family:inherit;cursor:pointer;}
   .v4-tip{margin-top:14px;padding:4px;border-radius:18px;background:rgba(230,195,106,.08);border:1px solid rgba(230,195,106,.3);}
   .v4-tip .card{background:transparent;border:none;box-shadow:none;}

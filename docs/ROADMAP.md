@@ -54,6 +54,8 @@ Promoción selectiva98 preparada7/10: el dueño aprobó ocultar juntos barra y b
 
 # Roadmap — Aely
 
+En preparación, 14/10/2026: estilo y edición individual de Deudas y Metas en Plan, con el interés visible en la hoja de deuda y las reglas de reparto en una hoja propia. Código candidato y guardianes Node en la rama de trabajo; ninguna cifra ni contrato de reparto se modifica por el rediseño. Falta validar el DOM, las capturas y CPU6 tras la devolución expresa del runner del coordinador, además de CI final, revisión e integración. No es una versión publicada.
+
 MAIN4.26.110 incorpora PR196 (bdd75636), sólo pruebas, herramientas y documentación. Tests38005461796 y DeployPages38005461732 terminaron SUCCESS y sus artefactos se comprobaron; ese cierre no publica Inicio112 ni acredita APK nuevo o aceptación móvil. Las aprobadas99/100/101/102/106 ya entregadas conservan su cierre;109 sigue rechazada.
 
 Promoción4/10: las once tandas de beta4.26.94.1 tienen aprobación vigente. Producción4.26.94/source8bb0398f servida y cotejada; APK52 estable y las tres funciones Edge entregadas. La limpieza conserva notas y decisiones; solo retira las once entregadas, sin producto nuevo. Prioridad permanente: producción de lo aprobado antes de otra implementación. [Acta](briefs/promocion-aprobadas-2026-10-04.md).
