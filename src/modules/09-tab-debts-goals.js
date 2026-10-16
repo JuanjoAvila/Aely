@@ -31,13 +31,20 @@ function debtEditResult(d,form){
   // Si cambia el saldo, se conserva el contrato anterior: ancla nueva sin plazo, cuotas pagadas
   // intactas con plazo. Mover día/cuota conserva el pendiente real antes de proyectarlo de nuevo.
   if(amountChanged||quotaChanged||dayChanged||termChanged){
-    const am=debtAmort(next),paid=debtPaidCount(next);
+    const am=debtAmort(next),paid=debtPaidCount(next),
+      finishedDay=dayChanged&&!amountChanged&&!quotaChanged&&!termChanged&&oldBalance===0&&d.months!=null;
+    // Plazo y cuota deben cancelar el pendiente: ni cuotas a cero ni principal sin pagar.
+    // La última fracción es válida; amort y pago final mantienen su contrato original.
+    if(termChanged&&quotaChanged&&months!=null){
+      const remaining=months-paid,perMonth=Math.round(am*100),principal=Math.round(balance*100)-Math.round((next.balloon||0)*100);
+      if(remaining<=0||principal<=(remaining-1)*perMonth||principal>remaining*perMonth) return {error:"db_err_term_quota"};
+    }
     if(termChanged&&months!=null&&balance>0.005&&months<=paid) return {error:"db_err_paid"};
     if(amountChanged&&next.months==null){ next.asOf=ymNow(); next.value=+balance.toFixed(2); }
     else{
       // Día/cuota también cambian la proyección: mantener el plazo dejaba principal huérfano.
       // Cuenta en céntimos para no añadir una cuota por el error binario de una división exacta.
-      if((amountChanged||quotaChanged||dayChanged)&&!termChanged&&next.months!=null&&am>0){
+      if((amountChanged||quotaChanged||dayChanged)&&!termChanged&&next.months!=null&&am>0&&!finishedDay){
         const viaM=Math.max(0,Math.round(balance*100)-Math.round((next.balloon||0)*100)),perMonth=Math.round(am*100);
         if(viaM>0&&perMonth<=0) return {error:"plan_edit_invalid"};
         next.months=paid+(viaM>0?Math.ceil(viaM/perMonth):(next.balloon>0&&balance>0.005?1:0));

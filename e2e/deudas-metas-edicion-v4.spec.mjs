@@ -135,3 +135,30 @@ test("M2/M7: baja el objetivo de la segunda de DOS metas y recalcula done",async
  await expect(sheet).toHaveCount(0);
  await page.reload();await page.waitForFunction(()=>!document.getElementById("mc-load"));expect((await saved(page)).goals).toEqual(after.goals);
 });
+
+// PC: plazo y cuota se validan juntos sin perder el borrador ni tocar otra fila.
+const pcErrors={es:"El plazo y la cuota no encajan con el saldo pendiente. Revisa el plazo o la cuota.",en:"The term and payment do not match the remaining balance. Check the term or payment.",ca:"El termini i la quota no encaixen amb el saldo pendent. Revisa el termini o la quota."};
+const pcDebt=extra=>({...reviewDebt,original:2000,...extra}),pcRows=d=>({...reviewRows,debts:[reviewRows.debts[0],d]});
+const pcInvalid=[{id:"fantasma",months:20,debt:{}},{id:"residual",months:8,debt:{}},{id:"amort",months:16,debt:{monthly:300,amort:200}},{id:"balloon",months:20,debt:{value:2400,balloon:400}}];
+for(const lang of ["es","en","ca"])for(const scenario of pcInvalid.filter(x=>lang==="es"||x.id==="fantasma"||x.id==="residual"))test(`PC: rechaza ${scenario.id} y conserva borrador (${lang})`,async({page})=>{
+ await open(page,lang,pcRows(pcDebt(scenario.debt)));const before=await saved(page);await page.locator('[data-debt-id="debt"] .plan-item-open').click();const sheet=debtSheet(page,lang);
+ await sheet.locator('[data-debt-field="months"]').fill(String(scenario.months));await sheet.locator('[data-debt-field="monthly"]').fill("100");await sheet.getByRole("button",{name:texts[lang].saveDebt,exact:true}).click();
+ await expect(sheet.getByRole("alert")).toHaveText(pcErrors[lang]);
+ await expect(sheet).toBeVisible();await expect(sheet.locator('[data-debt-field="months"]')).toHaveValue(String(scenario.months));await expect(sheet.locator('[data-debt-field="monthly"]')).toHaveValue("100");
+ const after=await saved(page);expect(after.debts).toEqual(before.debts);expect(after.goals).toEqual(before.goals);expect(after.expenses).toEqual(before.expenses);
+ await sheet.getByRole("button",{name:texts[lang].cancel,exact:true}).click();await expect(sheet).toHaveCount(0);await page.reload();await page.waitForFunction(()=>!document.getElementById("mc-load"));expect((await saved(page)).debts).toEqual(before.debts);
+});
+for(const scenario of [
+ {id:"parcial",debt:{value:2000.25},months:17,value:1600.25,balance:120025,left:13,last:25},
+ {id:"amort",debt:{value:1800,monthly:300,amort:200},months:9,value:1800,balance:100000,left:5,last:20000},
+ {id:"balloon",debt:{value:2400.11,balloon:400.11},months:16,value:2000.11,balance:160011,left:12,last:50011}
+])test(`PC: acepta ${scenario.id} y conserva el contrato`,async({page})=>{
+ await open(page,"es",pcRows(pcDebt(scenario.debt)));const before=await saved(page);await page.locator('[data-debt-id="debt"] .plan-item-open').click();const sheet=debtSheet(page,"es");await sheet.locator('[data-debt-field="months"]').fill(String(scenario.months));await sheet.locator('[data-debt-field="monthly"]').fill("100");await sheet.getByRole("button",{name:texts.es.saveDebt,exact:true}).click();await expect(sheet).toHaveCount(0);
+ await expect.poll(async()=>(await saved(page)).debts.find(x=>x.id==="debt").months).toBe(scenario.months);const after=await saved(page),d=after.debts.find(x=>x.id==="debt");expect(after.debts[0]).toEqual(before.debts[0]);expect(after.goals).toEqual(before.goals);expect(d).toMatchObject({...before.debts[1],value:scenario.value,monthly:100,months:scenario.months});
+ expect(await page.evaluate(d=>({balance:Math.round(debtBalance(d)*100),left:debtLeft(d)}),d)).toEqual({balance:scenario.balance,left:scenario.left});await page.reload();await page.waitForFunction(()=>!document.getElementById("mc-load"));expect((await saved(page)).debts.find(x=>x.id==="debt")).toEqual(d);
+ await page.clock.setSystemTime(new Date(Date.UTC(2026,9+scenario.left-2,15,12)));expect(await page.evaluate(d=>Math.round(debtBalance(d)*100),d)).toBe(scenario.last);await page.clock.setSystemTime(new Date(Date.UTC(2026,9+scenario.left-1,15,12)));expect(await page.evaluate(d=>Math.round(debtBalance(d)*100),d)).toBe(0);
+});
+for(const [oldDay,newDay]of [[15,1],[1,15]])test(`PC: terminada conserva cero y plazo al pasar día ${oldDay} a ${newDay}`,async({page})=>{
+ await open(page,"es",pcRows(pcDebt({asOf:2026*12+9-20,day:oldDay})));const before=await saved(page);await page.locator('[data-debt-id="debt"] .plan-item-open').click();const sheet=debtSheet(page,"es");await sheet.locator('[data-debt-field="day"]').fill(String(newDay));await sheet.getByRole("button",{name:texts.es.saveDebt,exact:true}).click();await expect(sheet).toHaveCount(0);
+ await expect.poll(async()=>(await saved(page)).debts.find(x=>x.id==="debt").day).toBe(newDay);const after=await saved(page),d=after.debts.find(x=>x.id==="debt");expect(d).toMatchObject({id:"debt",day:newDay,months:10,original:2000,asOf:before.debts[1].asOf,unknown:before.debts[1].unknown});expect(after.debts[0]).toEqual(before.debts[0]);expect(after.goals).toEqual(before.goals);expect(await page.evaluate(d=>({balance:Math.round(debtBalance(d)*100),active:debtActive(d)}),d)).toEqual({balance:0,active:false});await expect(page.locator('[data-debt-id="debt"] .plan-debt-details')).toContainText("Quedan 0/10 cuotas");await page.reload();await page.waitForFunction(()=>!document.getElementById("mc-load"));expect((await saved(page)).debts.find(x=>x.id==="debt")).toEqual(d);
+});
