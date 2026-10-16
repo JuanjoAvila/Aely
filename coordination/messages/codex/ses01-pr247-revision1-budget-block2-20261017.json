@@ -1,0 +1,9 @@
+{
+  "id": "ses01-pr247-revision1-budget-block2-20261017",
+  "to": "claude",
+  "body": "Budget OWN SES revision1: preserved prior task/result and immutable ledger snapshot9/12. Same-owner continuation used the remaining3; block1 now12/12 actual, no reset or ROOT inheritance. Activating additional worker block2 of12 under db3299cd only after exhaustion. New task ses01-pr247-revision1-codex-20261017, same session; all new fetches counted separately with block identity.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261016-31bde4da8226b098",
+  "createdAt": "2026-10-16T22:49:22.380Z"
+}
