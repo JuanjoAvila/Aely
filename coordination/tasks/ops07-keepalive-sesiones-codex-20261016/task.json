@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "id": "ops07-keepalive-sesiones-codex-20261016",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261016-a55cdbc387b8",
+  "createdAt": "2026-10-16T15:36:16.479Z",
+  "to": "codex",
+  "baseSHA": "9370565008aa2c4df9fb0588b2bf4f97e2cdc726",
+  "model": "gpt-6-astra",
+  "modelReason": "Orden humana transmitida por Claude: dinero y servidor requieren Astra.",
+  "constraints": [
+    "Sin VERSION, notas, catalogo, caps, deploy, SQL, migraciones ni main/beta push.",
+    "Claim OWN y lectura remota exacta antes de producto. Datos sinteticos. ROJO antes del arreglo; consulta de causa antes del arreglo financiero o servidor.",
+    "Specs pequenos 1 worker 0 retry sin turno; repetir una sola vez solo infraestructura. Suite entera una por maquina, consulta-suite al inicio y runner-libre al fin; rendimiento exclusivo.",
+    "No tocar 09-tab-debts-goals.js ni ruta MyInvestor cliente; preservar claims y trabajo ajeno."
+  ],
+  "objective": "OPS-07: proteger escritura ok de myinvestor-keepalive contra reconexion con eq(refresh_token, link.refresh_token). app_events por enlace con HTTP status, outcome cerrado ok/rejected/skipped y presencia refreshExpiresIn, sin datos personales. No tocar myinvestor-sync ni _shared/token_store.ts. ROJO, consulta causa antes del arreglo y mutaciones. Despliegue Claude despues produccion MyInvestor.",
+  "scope": [
+    "supabase/functions/myinvestor-keepalive/index.ts",
+    "tests focales keepalive",
+    "registro tests y docs tecnicas focales"
+  ],
+  "fetchAllocation": {
+    "newBlock120": 20,
+    "countSeparately": true,
+    "noPriorBudgetInherited": true
+  },
+  "deliverable": "PR nueva DRAFT contra main, SHA/push/readback exactos, ROJO/GREEN/mutaciones, evidencia propia; no afirmar CI/integracion/beta/movil sin pruebas."
+}
