@@ -88,6 +88,7 @@ Fallos de red, descifrado, cifrado o guardado son `skipped`; los errores
 de diagnóstico no alteran el resultado ni impiden tratar los demás enlaces.
 
 Los éxitos y los 403 consultan por separado eventos equivalentes del mismo usuario durante la última hora;
+el segundo límite usa `code:http_403`, para no ocultar ni contar errores de lectura del cuerpo.
 si ya hay uno o la consulta falla, omite el registro. Esto limita los ticks secuenciales,
 pero no es un bloqueo atómico entre cron concurrentes. No hay migración, secreto nuevo
 ni cambio de RLS. Se reutilizan los grants de0018 y los límites de0023; solo se ha leído

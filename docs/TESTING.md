@@ -1164,6 +1164,7 @@ guardado con la guarda original y un timeout de 10 segundos que cubre cabeceras 
 El reloj del timeout se acelera en el doble; el aborto usa AbortController real y un
 watchdog independiente evita que una regresión cuelgue la prueba. Cubre limpieza de relojes,
 excepciones, dos fallos sin tercer intento, cero filas y reconexión entre intentos.
-Se conservan los 39 casos anteriores y se añaden 15: 54 verdes; cinco fallos causales
-previos sobre c8774a29 y ocho mutaciones detectadas. El test ya está registrado en el runner.
+Se conservan los 39 casos anteriores y se añaden 16: 55 verdes; cinco fallos causales
+previos sobre c8774a29 y un sexto al detectar que el límite403 ocultaba un fallo de lectura
+del cuerpo. Nueve mutaciones detectadas. El test ya está registrado en el runner.
 Son dobles locales, sin bancos ni SQL vivos; no acreditan CI general, integración ni despliegue.

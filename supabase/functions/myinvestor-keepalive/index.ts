@@ -110,13 +110,13 @@ Deno.serve(async (req) => {
         try {
           const detail = JSON.stringify({ outcome: eventOutcome, code, http, hasRefreshExpiresIn, hasRefreshToken, guarded });
           let log = true;
-          if (eventOutcome === "ok" || (http === 403 && eventOutcome === "skipped")) {
+          if (eventOutcome === "ok" || (http === 403 && code === "http_403")) {
             // El cron corre cada diez minutos: éxitos y 403 repetidos desplazan errores
             // de la ventana de Actividad. Cada categoría se limita por enlace y hora.
             // Si falla esta lectura, se omite el diagnóstico; el enlace ya está resuelto.
             const { data: recent, error } = await admin.from("app_events").select("id")
               .eq("user_id", link.user_id).eq("kind", "mi_keepalive")
-              .like("detail", eventOutcome === "ok" ? '%"outcome":"ok",%' : '%"http":403,%')
+              .like("detail", eventOutcome === "ok" ? '%"outcome":"ok",%' : '%"code":"http_403",%')
               .gte("created_at", new Date(Date.now() - 60 * 60 * 1000).toISOString()).limit(1);
             log = !error && Array.isArray(recent) && recent.length === 0;
           }

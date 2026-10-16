@@ -419,4 +419,15 @@ await t("R3: rechazo no habilita el reintento reservado al refresco bueno", asyn
   assert.equal(JSON.parse(r.events[0].detail).http, 401);
 });
 
+await t("R2: error de cuerpo con HTTP403 no queda oculto por el límite de rechazos403", async () => {
+  const history = [];
+  await tick([enlace("a")], () => json(403, {}), "clave", { history });
+  const failed = await tick([enlace("a")], () => ({ status: 403, text: async () => { throw new Error("synthetic-body"); } }), "clave", { history });
+  assert.equal(failed.events.length, 1);
+  assert.equal(JSON.parse(failed.events[0].detail).code, "network");
+  const onlyNetwork = history.filter(e => JSON.parse(e.detail).code === "network");
+  const actual403 = await tick([enlace("a")], () => json(403, {}), "clave", { history: onlyNetwork });
+  assert.equal(actual403.events.length, 1, "un fallo de lectura no cuenta como diagnóstico http_403");
+});
+
 if (failures) { console.error("\n" + failures + " fallo(s)"); process.exit(1); }
