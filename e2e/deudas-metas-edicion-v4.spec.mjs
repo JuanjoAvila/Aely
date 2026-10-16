@@ -110,9 +110,12 @@ for(const scenario of [
  await row.locator(".plan-item-open").click();const sheet=debtSheet(page,"es");await sheet.locator('[data-debt-field="'+scenario.field+'"]').fill(scenario.value);
  await sheet.getByRole("button",{name:texts.es.saveDebt,exact:true}).click();await expect(sheet).toHaveCount(0);
  await expect(row.locator(".plan-debt-details")).toContainText(`Quedan ${scenario.left}/${scenario.total} cuotas`);
+ await expect.poll(async()=>(await saved(page)).debts.find(x=>x.id==="debt").months).toBe(scenario.total);
  const after=await saved(page),d=after.debts.find(x=>x.id==="debt");expect(after.debts).toHaveLength(2);expect(after.debts[0]).toEqual(before.debts[0]);expect(after.goals).toEqual(before.goals);expect(d).toMatchObject({id:"debt",months:scenario.total,asOf:reviewDebt.asOf,unknown:reviewDebt.unknown});
  expect(await page.evaluate(d=>({balance:Math.round(debtBalance(d)*100),left:debtLeft(d)}),d)).toEqual({balance:scenario.balance,left:scenario.left});
- await page.reload();await page.waitForFunction(()=>!document.getElementById("mc-load"));const restored=(await saved(page)).debts.find(x=>x.id==="debt");expect(restored).toEqual(d);
+ await page.reload();await page.waitForFunction(()=>!document.getElementById("mc-load"));
+ await expect.poll(async()=>(await saved(page)).debts.find(x=>x.id==="debt").months).toBe(scenario.total);
+ const restored=(await saved(page)).debts.find(x=>x.id==="debt");expect(restored).toEqual(d);
  // Avanza el reloj real del navegador hasta la penúltima y última cuota, sin resembrar estado.
  const firstMonth=9+(d.day<=14?1:0),penultimate=new Date(Date.UTC(2026,firstMonth+scenario.left-2,d.day,12)),last=new Date(Date.UTC(2026,firstMonth+scenario.left-1,d.day,12));
  await page.clock.setSystemTime(penultimate);expect(await page.evaluate(d=>Math.round(debtBalance(d)*100),d)).toBe(scenario.last);
