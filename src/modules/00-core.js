@@ -1494,9 +1494,9 @@ const cloud = (function(){
       if(error) throw error;
       return data;
     },
-    async myinvestorSync(){
+    async myinvestorSync(userInitiated){
       if(!sb) throw new Error("nube no disponible");
-      const {data,error}=await sb.functions.invoke('myinvestor-sync');
+      const {data,error}=await sb.functions.invoke('myinvestor-sync',{body:{userInitiated:userInitiated===true}});
       if(error) throw error;
       return data;
     },

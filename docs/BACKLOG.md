@@ -12,6 +12,7 @@
 - FIN-15 · compra pendiente y contabilizada cuenta doble (reserva de PR 235)
 - FIN-10, FIN-11, FIN-14 · claves y lápidas de Open Banking, `obAcc` en la nube
 - FIN-13 · aviso de Trade Republic separa la pareja (DECISIÓN del dueño)
+- FIN-16 · editar plazo y cuota a la vez puede dejar cuotas fantasma o saldo sin cuota (en curso, Codex, apilado sobre PR 239; regla aprobada 16/10: rechazar al guardar si (N-1)·A < B ≤ N·A no se cumple)
 
 **2 · Cifras que engañan**
 
@@ -21,6 +22,7 @@
 
 **3 · Uso diario**
 
+- SES-01 · las sesiones de Trade Republic y MyInvestor duran horas (pedido suyo 15/10). Medido 16/10: el cron `myinvestor-keepalive` corre (144/144 en 24 h) y el refresco de MyInvestor dura 30 min; el 15/10 dejó de renovarse a las ~17:50 y caducó a las 23:06; el 16/10 aguantó de 09:41 a más de 17:10. TR: sincronizó ~09:40 y a las 17:00 pedía reconectar, sin dejar rastro en `app_events`. Siguiente: instrumentar keepalive/sync de MyInvestor (estado HTTP y código cerrado) y la caída de TR (edad del snapshot, origen del fallo), después de la beta de MyInvestor
 - INC-2709-09 (con UX-01) · lag sostenido
 - INC-2709-03 (con UX-08) · ola nativa en Gestionar plan
 - UX-03 (con INC-2709-01) · splash y arranque; UX-09 · splash con el verde por defecto
@@ -30,6 +32,7 @@
 - UX-14 · deslizar entre pestañas a velocidad muy alta deja de ir fluido y hace un efecto raro
 - INC-2709-15 · botones de suscripciones recortados: comprobar en móvil
 - INC-2709-06 · cargos CaixaBank ausentes (sin cierre acreditado)
+- UX-15 · «Sincronizar» de Gastos no lee los bancos (solo baja lo de las notificaciones): el round-up de TR del 16/10 no salió hasta «Actualizar» en Mis bancos. Renombrar o decir qué actualiza (16/10)
 
 **4 · Limpieza, servidor y seguridad**
 
@@ -42,6 +45,9 @@
 **5 · Funciones nuevas**
 
 - PRO-01, PRO-03, PRO-04, PRO-05, PRO-06, PRO-07, PRO-08; UX-10 · respiración del splash; BRAND-01 y DEC-01/02
+- UX-16 · vibración suave al llegar al borde (arriba o abajo) cuando sale la ola nativa (idea suya 16/10): un toque corto y único por gesto, nunca en cada frame, respetando el «sin vibración» del sistema; necesita nativo (APK) o `navigator.vibrate` medido en su OnePlus
+- PRO-09 · round-up de TR desde la notificación «Round up Invertido» (idea suya 16/10): hoy `ingest` la descarta a propósito; leerla exige emparejarla con la fila de Open Banking (banco, céntimo, ±días, con nombre) o entra doble. Después de UX-15
+- BIZ-01 · precio con descuento por fidelidad (idea suya 16/10): precio de entrada algo más alto que baja por mes/año de permanencia hasta un tope. Va con [escalado y monetización](memoria/mi-cartera-escalado.md), al final (DEC-01: Play Store al final)
 
 ---
 

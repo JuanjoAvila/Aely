@@ -3808,9 +3808,9 @@ const cloud = (function(){
       if(error) throw error;
       return data;
     },
-    async myinvestorSync(){
+    async myinvestorSync(userInitiated){
       if(!sb) throw new Error("nube no disponible");
-      const {data,error}=await sb.functions.invoke('myinvestor-sync');
+      const {data,error}=await sb.functions.invoke('myinvestor-sync',{body:{userInitiated:userInitiated===true}});
       if(error) throw error;
       return data;
     },
@@ -12427,7 +12427,7 @@ function MyInvestorSync({state, set, open, onToggle}){
         // si el token sigue vivo, reactivamos sin login ni captcha (feedback 2026-07-17).
         if(r&&r.status==="expired"){
           setExpired(true);
-          cloud.myinvestorSync().then(function(res){
+          cloud.myinvestorSync(false).then(function(res){
             if(res&&res.ok){ setExpired(false); setStep("connected"); }
           }).catch(function(){});
           return;
@@ -12525,7 +12525,7 @@ function MyInvestorSync({state, set, open, onToggle}){
   };
   const doSync=function(){
     setBusy(true); setErr(""); setDoneN(null);
-    cloud.myinvestorSync().then(function(r){
+    cloud.myinvestorSync(true).then(function(r){
       setBusy(false);
       // softFail = anti-bot/403: sesión sigue; no pedir OTP/captcha (feedback 2026-07-17).
       if(r&&r.softFail){ fail(r); return; }
@@ -21847,7 +21847,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="ba145eb226082f881b31e94d9e680c8c6fc2d4160f2414a3dbc2fbe41de21306";
+var _rnSha="72d238b75328f84cd272bc420c92eed4d9baa12211cb63af61699fb567b7f662";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -26402,7 +26402,7 @@ function App(){
         }
         if(!(r && r.status==="active")) return;
         tried++;
-        return cloud.myinvestorSync().then(function(res){
+        return cloud.myinvestorSync(opts.manual===true).then(function(res){
           if(res&&res.authExpired){ expiredB.push("MyInvestor"); return; }
           if(!res || !res.ok || !Array.isArray(res.positions)){ if(opts.manual) soft.push("MyInvestor"); return; }
           applyBrokerPositions(res.positions, "lastMiSync"); updatedB.push("MyInvestor");

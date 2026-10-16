@@ -22,13 +22,24 @@ const cuentas = () => json(200, { payload: { data: [] } });
 // (supabase-js no lanza: lo entrega). `entretanto(fila)` es lo que otro proceso hace con la fila
 // antes de que el handler la vuelva a leer. `veces` es el contador del limitador, que vive en
 // la BD y por eso se comparte entre pulsaciones.
-async function sync({ acceso, refresco, detalle, link = {}, guardar = () => null, entretanto = null, veces = { hits: 0 } }) {
+async function sync({ acceso, refresco, detalle, link = {}, guardar = () => null, entretanto = null, veces = { hits: 0 }, body = { userInitiated: true } }) {
   const fila = link.user_id ? link : Object.assign({ user_id: "synthetic", status: "active", access_token: "acceso-viejo", refresh_token: "refresco-viejo", device_id: "dev", refresh_expires_at: null }, link);
+  if (!fila.access_counter_version) fila.access_counter_version = "11111111-1111-4111-8111-111111111111";
+  if (!fila.connection_version) fila.connection_version = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
   const writes = [], calls = [], rate = [];
   let handler, lecturas = 0, selects = 0, intentos = 0;
   const db = { auth: { getUser: async () => ({ data: { user: { id: "synthetic" } } }) }, from: () => ({
-    select: () => ({ eq: () => ({ maybeSingle: async () => { if (selects++ > 0 && entretanto) entretanto(fila); return { data: fila }; } }) }),
-    update: (x) => ({ eq: async () => { const error = guardar(intentos++); if (error) return { error }; writes.push(x); Object.assign(fila, x); return {}; } }),
+    select: () => ({ eq: () => ({ maybeSingle: async () => { if (selects++ > 0 && entretanto) entretanto(fila); return { data: { ...fila } }; } }) }),
+    update: (x) => {
+      const filtros = [];
+      const q = { eq: (c, v) => { filtros.push([c, v]); return q; }, select: () => q,
+        maybeSingle: async () => {
+          const error = guardar(intentos++); if (error) return { error, data: null };
+          if (!filtros.every(([c, v]) => fila[c] === v)) return { data: null, error: null };
+          writes.push(x); Object.assign(fila, x); return { data: { user_id: fila.user_id }, error: null };
+        },
+      }; return q;
+    },
   }) };
   const fetchFn = async (url, init = {}) => {
     const path = String(url).replace("https://api.myinvestor.es", "");
@@ -49,7 +60,7 @@ async function sync({ acceso, refresco, detalle, link = {}, guardar = () => null
     async (l) => ({ access: l.access_token, refresh: l.refresh_token, deviceId: l.device_id }),
     async (access, refresh) => ({ access_token: access, refresh_token: refresh }), async () => {}, limitador, fetchFn
   );
-  const res = await handler(new Request("https://app.invalid", { method: "POST" }));
+  const res = await handler(new Request("https://app.invalid", { method: "POST", body: JSON.stringify(body) }));
   return { status: res.status, data: await res.json(), writes, calls, fila, rate };
 }
 
@@ -122,7 +133,7 @@ await t("401 que persiste tras un refresco aceptado: dos avisos suaves y a la te
     assert.match(r.data.error, /volver a conectar/);
     assert.equal(fila.status, "active");
     assert.equal(fila.access_token, "acceso-nuevo");
-    assert.deepEqual(r.rate, [{ bucket: "mi-401-tras-refresco:synthetic", limit: 2, windowSecs: 21600 }]);
+    assert.deepEqual(r.rate, [{ bucket: "mi-401-tras-refresco:synthetic:" + fila.access_counter_version, limit: 2, windowSecs: 21600 }]);
   }
   const r3 = await sync({ acceso: caducado, refresco: () => tokens(), link: fila, veces });
   assert.equal(r3.data.authExpired, true);
