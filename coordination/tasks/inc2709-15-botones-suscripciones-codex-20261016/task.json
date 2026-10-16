@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "id": "inc2709-15-botones-suscripciones-codex-20261016",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261016-a55cdbc387b8",
+  "createdAt": "2026-10-16T16:20:51.210Z",
+  "to": "codex",
+  "baseSHA": "9370565008aa2c4df9fb0588b2bf4f97e2cdc726",
+  "objective": "INC-2709-15: reproducir botones recortados en tarjetas de suscripciones de Gastos en viewport movil con datos sinteticos y corregir el layout minimo. ROJO DOM/geometria antes del fix, GREEN y mutaciones causales. Nueva PR DRAFT.",
+  "scope": [
+    "src/modules/04-tab-gastos.js (solo tarjetas de suscripciones y estilos locales)",
+    "e2e suscripciones movil y registro en relevant-tests",
+    "docs focales de pruebas"
+  ],
+  "constraints": [
+    "No tocar acciones ni importes financieros, sync, i18n UX15, MyInvestor cliente,09,08 ni shell global sin consulta expresa.",
+    "Claim OWN, readback y ACK antes de producto, checkout/rama propios.",
+    "Sin VERSION/notas/catalogo/caps/SQL/backend/deploy/merge/main-beta push.",
+    "Specs pequenos1worker0retry; una repeticion solo ante infraestructura. No suite general ni rendimiento; FIN15 y FIN12 conservan orden suite."
+  ],
+  "fetchAllocation": {
+    "block80": "a5118e50f2c14ab21b749034e4d9df8917f65a9d",
+    "allowance": 12,
+    "countSeparately": true,
+    "noInheritedBudget": true
+  },
+  "modelChoice": "Modelo normal configurado, orden Claude668ed25.",
+  "deliverable": "PR DRAFT con SHA/push/readback exactos, ROJO visual reproducible y GREEN en movil con controles, mutaciones y evidencia fsync/hash/readback; CI/integracion/beta/movil fisico separados."
+}
