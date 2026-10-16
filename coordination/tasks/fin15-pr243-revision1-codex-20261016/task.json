@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "id": "fin15-pr243-revision1-codex-20261016",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261016-a55cdbc387b8",
+  "createdAt": "2026-10-16T16:03:58.370Z",
+  "to": "codex",
+  "baseSHA": "2066cf68cb2d441c076b23567e10ff439b3c49b9",
+  "objective": "PR243 GO con reservas: en MISMA rama/PR, matar mutantes #ref vacio aceptado y quitar guarda banco/prefijo ob:. Caso pendiente30 contabilizada33 misma referencia ambos ordenes fija cifra month/widget y documenta orden. Harness no cuenta mutacion muerta si no encontro texto. CHANGELOG tecnico declara misma ref #n2 u ob/ob-hist640a320 y refs distintas mismo dia sinordinal320a640. No cambiar preferencia de fila ni signo de devoluciones. Nuevos tests ROJO/mutaciones antes correccion del arnes, foco sin repetir suites ya cerradas.",
+  "scope": [
+    "tests/fin15-pendiente-contabilizada.test.mjs",
+    "supabase/functions/ingest/widget.test.ts",
+    "CHANGELOG.md",
+    "docs tecnicas focales FIN15"
+  ],
+  "claudeGrant": "81c090df5039a9af852703e2dd49b13a25386ae5",
+  "predecessorTaskId": "fin15-pendiente-contabilizada-codex-20261016",
+  "preservePriorResultReleased": true,
+  "constraints": [
+    "Mismo titular y chat, claim NUEVO propio; no reutilizar ni modificar resultado cerrado anterior.",
+    "Sin VERSION/notas/catalogo/caps/SQL/deploy/merge/main-beta push ni force.",
+    "Specs pequenos1worker0retry; solo una repeticion por infraestructura. Suite completa espera runner-libre Claude, orden FIN15 antesFIN12.",
+    "No cambio financiero de identidad fuera del grant ni mover anclas sin consulta y criterio."
+  ],
+  "fetchAllocation": {
+    "newBlock120": 8,
+    "countSeparately": true,
+    "predecessorSpentFrozen": 14,
+    "noInheritedBudget": true
+  },
+  "model": "gpt-6-astra",
+  "deliverable": "Misma PR actualizada push/readback exactos; result OWN nuevo con SHA, foco y mutaciones reales, limites y suite pendiente separada."
+}
