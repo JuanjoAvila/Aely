@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "id": "ux13-keyboard-back-codex-20261016",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261016-52885e0966e16cf4",
+  "createdAt": "2026-10-16T19:21:02.192Z",
+  "to": "codex",
+  "baseSHA": "9370565008aa2c4df9fb0588b2bf4f97e2cdc726",
+  "objective": "Con teclado abierto, gesto o boton atras cierra primero teclado y conserva hoja y app. Reproducir historial real y corregir con e2e dirigido; PR DRAFT. Separar Android real de Chromium sintetico.",
+  "scope": [
+    "src/modules",
+    "src/shell.html",
+    "e2e",
+    "tests",
+    "scripts/relevant-tests.mjs",
+    "docs"
+  ],
+  "claudeGrant": "95a97815bef1ef6e61b42fcb0180ccad32db71a3",
+  "priority": 3,
+  "phase": "READ_ONLY_DESIGN_UNTIL_OWN_CLAIM_AND_BUDGET",
+  "constraints": [
+    "Own isolated checkout and identity; exact task only.",
+    "No inherited claims leases or budgets. Request own fresh fetch budget; root10 is not worker budget.",
+    "During FIN12 suite6ca89520 no Playwright/Chromium/e2e in parallel; wait new release.",
+    "No VERSION/catalogue/caps/integration/backend deployment or main/beta push.",
+    "RED first for approved product fix; synthetic evidence only; preserve exact cents."
+  ],
+  "requestedOwnFetchBudget": 12,
+  "ownFetchBudgetGranted": false
+}
