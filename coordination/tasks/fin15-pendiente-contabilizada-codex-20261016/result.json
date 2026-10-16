@@ -1,0 +1,68 @@
+{
+  "status": "done",
+  "summary": "FIN15 candidata DRAFT PR243: misma referencia entre dias cuenta una sola compra en month y widget. Causa y limite aprobados por Claude; gates generales pendientes, no ProductREADY.",
+  "productSHA": "2066cf68cb2d441c076b23567e10ff439b3c49b9",
+  "pr": 243,
+  "productReady": false,
+  "tests": [
+    {
+      "command": "ROJO base: lector, widget y handler ingest, ambos ordenes",
+      "exitCode": 1,
+      "result": "6 fallos causales: 640 frente a 320 centimos sinteticos"
+    },
+    {
+      "command": "Node focal seis ficheros",
+      "exitCode": 0,
+      "result": "47/47; FIN15 11/11 sobre HEAD; 676 comparaciones legacy exactas y 8/8 mutaciones muertas; paridad widget 1584 casos"
+    },
+    {
+      "command": "Deno ingest y widget",
+      "exitCode": 0,
+      "result": "25/25"
+    },
+    {
+      "command": "Chromium FIN15 1 worker 0 retry",
+      "exitCode": 0,
+      "result": "2/2 DOM tras pull y reinicio; hash de HTML servido exacto; una repeticion infraestructura tras falta de servidor estatico"
+    },
+    {
+      "command": "syntax, relevant-tests, security",
+      "exitCode": 0
+    },
+    {
+      "command": "docs-frescura sobre commit",
+      "exitCode": 1,
+      "result": "dos ficheros servidor tras ancla versionada; VERSION prohibida por encargo"
+    },
+    {
+      "command": "beta-sources local",
+      "exitCode": 4294967295,
+      "result": "interrumpido; gate largo duplicado con suite completa ajena; no concluyente"
+    },
+    {
+      "command": "git push rama propia y ls-remote",
+      "exitCode": 0,
+      "result": "HEAD remoto exacto 2066cf68cb2d441c076b23567e10ff439b3c49b9"
+    }
+  ],
+  "limitations": [
+    "Referencias distintas entre dias sin alias estable permanecen separadas segun decision coordinador-16-10-fin15-causa-aprobada.",
+    "Suite completa local no ejecutada por otra suite activa; consulta-suite publicada. No TAKING, RETURN ni runner-libre de recursos ajenos.",
+    "CI general observada en curso; integracion, beta, produccion y movil pendientes.",
+    "Claude despliega ingest ANTES del cliente. Sin deploy, SQL, migraciones, merge, VERSION, notas familiares, catalogo ni caps.",
+    "Sin cambios cliente ni edicion del modulo reservado a FIN12. Evidencia privada fsync/hash/readback; fetch ledger propio bajo 35."
+  ],
+  "scope": [
+    "supabase/functions/_shared/presupuesto.ts",
+    "supabase/functions/ingest/widget.test.ts",
+    "tests/fin15-pendiente-contabilizada.test.mjs",
+    "e2e/fin15-pendiente-contabilizada.spec.mjs",
+    "registro de tests y docs tecnicas"
+  ],
+  "schema": 1,
+  "taskId": "fin15-pendiente-contabilizada-codex-20261016",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-46b86e3686e19bf3",
+  "createdAt": "2026-10-16T15:53:55.103Z",
+  "released": true
+}
