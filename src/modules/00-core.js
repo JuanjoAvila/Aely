@@ -136,7 +136,7 @@ function mcLogText(raw){
     .slice(0,2000);
 }
 // Las puertas que escriben un gasto en la nube (`subirGasto` / `borrarGastoNube`).
-const GASTO_ORIGENES=["v4-apuntar","gastos-apuntar","gastos-editar","gastos-borrar","gastos-deshacer","gastos-dup","ob-import","backfill"];
+const GASTO_ORIGENES=["v4-apuntar","gastos-apuntar","gastos-editar","gastos-borrar","gastos-deshacer","gastos-dup","ob-import","ob-absorbed","backfill"];
 function mcLogEvent(kind,message,detail){
   const m=String(message||"");
   if(kind==="use") return USO_OK.indexOf(m)>=0?{message:m,detail:null}:null;
