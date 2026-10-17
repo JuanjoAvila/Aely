@@ -9712,6 +9712,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "obPendingResponses"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
       }
     ],
     "unidades": true
@@ -22170,6 +22174,10 @@
       {
         "file": "src/modules/00-core.js",
         "function": "expenseCloudKeys"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
       }
     ],
     "unidades": true
@@ -25065,6 +25073,10 @@
       {
         "file": "src/modules/00-core.js",
         "function": "expenseCloudKeys"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
       }
     ],
     "edge": [
@@ -26223,6 +26235,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "obPendingResponses"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
       }
     ],
     "edge": [
@@ -27278,6 +27294,10 @@
       {
         "file": "src/modules/00-core.js",
         "function": "isExpenseUuid"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "_mcBackCloseNative"
       }
     ],
     "unidades": true
@@ -31987,6 +32007,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "obPendingResponses"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
       }
     ],
     "unidades": true
@@ -34287,6 +34311,10 @@
       {
         "file": "src/modules/00-core.js",
         "function": "withdrawalReceiptLink"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRateLimited"
       }
     ],
     "edge": [

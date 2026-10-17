@@ -1793,20 +1793,20 @@ for(const lang of ["es","en","ca"])test(`promoción117: entrega por superficies,
 
 });
 
-/* Beta 4.26.139 (17/10/2026): la nota nueva (Deudas: cuota que encaja, hoja de editar suave, financiación futura) con sus dos tandas (6 pasos), ÚNICAS del panel, encima de la
- * 4.26.138, que queda con `tandas:[]` (propiedad presente), y del historial de la producción 4.26.137 (5d4c8da7). Aquí no se inyecta nada: se mira el catálogo
+/* Beta 4.26.140 (17/10/2026): la nota nueva (hoja de Deudas y Metas que cierra suave, atrás con teclado, nómina manual) con sus dos tandas (6 pasos), ÚNICAS del panel, encima de la
+ * 4.26.139, que queda con `tandas:[]` (propiedad presente), y del historial de la producción 4.26.137 (5d4c8da7). Aquí no se inyecta nada: se mira el catálogo
  * que lleva el bundle. Las versiones se leen fila a fila (ver la nota del 12/10 sobre «v4.26.11» + «22 sep»). */
-for(const lang of ["es","en","ca"])test(`beta139: la nota nueva con dos tandas sobre la 138 vacía y el historial de producción (${lang})`,async({page})=>{
+for(const lang of ["es","en","ca"])test(`beta140: la nota nueva con dos tandas sobre la 139 vacía y el historial de producción (${lang})`,async({page})=>{
   await abrirRevisionBeta(page,lang);
   const production=JSON.parse(execFileSync("git",["show","5d4c8da771e3658954d4b7e8d16a5f2a0101836c:src/data/release-notes.json"],{encoding:"utf8",maxBuffer:8e6}));
   expect(production.length).toBe(234);
   const catalog=await page.evaluate(()=>RELEASE_NOTES.map(n=>[n.v,Array.isArray(n.tandas)?n.tandas.length:-1]));
-  expect(catalog).toEqual([["4.26.139",2],["4.26.138",0],...production.map(n=>[n.v,0])]);
-  const pack=await page.evaluate(()=>{CONFIG.APP_VERSION="4.26.139.1";const p=betaChecklist(CONFIG.APP_VERSION,"4.26.117",55);return {tandas:p.tandas.length,items:p.items.length};});
+  expect(catalog).toEqual([["4.26.140",2],["4.26.139",0],["4.26.138",0],...production.map(n=>[n.v,0])]);
+  const pack=await page.evaluate(()=>{CONFIG.APP_VERSION="4.26.140.1";const p=betaChecklist(CONFIG.APP_VERSION,"4.26.117",55);return {tandas:p.tandas.length,items:p.items.length};});
   expect(pack).toEqual({tandas:2,items:6});
   const title=await page.evaluate(lang=>rnT(RELEASE_NOTES[0].t,lang),lang);
   const items=await page.evaluate(lang=>rnItems(RELEASE_NOTES[0],lang),lang);
-  expect(items.length).toBe(3);
+  expect(items.length).toBe(4);
   await page.evaluate(()=>{
     const host=document.createElement("div");document.body.appendChild(host);
     ReactDOM.createRoot(host).render(React.createElement(WhatsNew,{onClose:()=>{}}));
@@ -1818,8 +1818,8 @@ for(const lang of ["es","en","ca"])test(`beta139: la nota nueva con dos tandas s
   const versions=news.locator('button').filter({hasText:/^v\d+\./});
   await expect(versions).toHaveCount(20);
   await news.locator('.btn-ghost.btn-block').click();
-  await expect(versions).toHaveCount(236);
+  await expect(versions).toHaveCount(237);
   const shown=(await versions.locator("span:first-child").allTextContents()).map(x=>x.match(/^v(\d+\.\d+\.\d+)/)[1]);
-  expect(shown).toEqual(["4.26.139","4.26.138",...production.map(n=>n.v)]);
+  expect(shown).toEqual(["4.26.140","4.26.139","4.26.138",...production.map(n=>n.v)]);
   for(const v of ["4.26.131","4.26.130","4.26.129","4.26.127"])expect(shown).not.toContain(v);
 });

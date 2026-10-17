@@ -2416,7 +2416,12 @@ test("Catálogo140 añade dos tandas de Deudas y atrás sobre la beta 139, con a
   const scopes=JSON.parse(source("scripts/beta-sources.json")),rest={...scopes};for(const id of tandas)delete rest[id];
   for(const id of tandas)assert.equal(integrated[id],undefined,"identidad que no existía: "+id);
   assert.deepEqual(Object.keys(scopes).slice(-tandas.length),tandas);
-  assert.deepEqual(rest,integrated,"ningún descriptor ajeno se recorta ni crece");
+  // Descriptores que crecen, y solo por su cierre de lectores: la PR 256 añade `bankRateLimited` (00-core) que llaman las funciones de bancos, y la PR 248 hace que `_mcBackInitOnce`
+  // llame a `_mcBackCloseNative`, que Inicio v4.2 ya incluye con `_mcBackInitOnce`.
+  const grown=structuredClone(integrated),addUnit=(id,file,function_)=>grown[id].web.push({file,function:function_});
+  for(const id of ["inc-3009-nomina-anticipada","bancos-sin-hueco","bancos-acuse-reconexion","tr-iguales-ordinal","tr-empareja-sin-preguntar","compras-identicas-ids"])addUnit(id,"src/modules/00-core.js","bankRateLimited");
+  addUnit("inicio-patrimonio-flujos","src/modules/02-ui-shared.js","_mcBackCloseNative");
+  assert.deepEqual(rest,grown,"ningún descriptor ajeno se recorta ni crece, salvo el cierre de lectores declarado");
   const D="src/modules/09-tab-debts-goals.js",U="src/modules/02-ui-shared.js",fn=(file,function_)=>({file,function:function_});
   const propias={
     "deudas-metas-hoja-cierre-suave":[...["usePlanEditSave","PlanEditSheet","DebtEditSheet","GoalEditSheet"].map(n=>fn(D,n)),fn(U,"useSheetSwipe"),integrated["myinvestor-contador-a-cero"].web[3]],
@@ -2443,7 +2448,7 @@ test("Catálogo140 añade dos tandas de Deudas y atrás sobre la beta 139, con a
   assert.equal(source("public/apk.json"),old("public/apk.json"),"sin APK nueva: apk.json no se toca");
   assert.equal(execFileSync("git",["diff","--name-only","a9c9e45d76d0d92c2c529b0652c24496dea75300","HEAD","--","supabase/migrations"],{encoding:"utf8"}).trim(),"","sin SQL ni migraciones");
   // Huellas que se mueven, lista cerrada: todo alcance que lee Deudas y Metas, el núcleo (FIN-12, SES-01) o las funciones que éstos tocan.
-  const expectedMoves={};
+  const expectedMoves={"inc-0810-backclose-handover":["web"],"inc-3009-01-cargos":["web"],"fin05-widget-reentrada":["web"],"fin05-pago-cerrada":["web"],"tr-descripcion-clasificacion":["web","edge"],"widget-banco":["web"],"widget-app-cerrada":["web"],"inc-2809-02-ayuda-ciclo":["web"],"inc-2909-02-inicio-natural":["web"],"inc-2709-10-perfil":["web"],"inc-3009-nomina-anticipada":["web"],"inc-2909-03-retirada":["web"],"inc-2909-01-widget-periodo":["web"],"inc-0210-03-gastos-periodo":["web"],"feature-0210-01-gasolina-taxi":["web"],"inc-0210-02-categoria-elegida":["web"],"inc-0310-01-meta-regla":["web"],"feature-0310-01-movilidad":["web","edge"],"inc-0310-broker-resultados":["web"],"inc-0310-gastos-sin-limite":["web"],"inc-0710-gastos-mes-madrid":["web"],"inc-0710-auth-disposal":["web"],"inc-0810-metas-editar-regla":["web"],"bienes-completo":["web"],"inicio-grafica-vuelve":["web"],"widget-pago-app-cerrada":["web"],"bancos-sin-hueco":["web"],"widget-ciclo-puente":["web"],"recibos-cargo-unico":["web"],"bancos-acuse-reconexion":["web","edge"],"tr-iguales-ordinal":["web"],"inicio-patrimonio-flujos":["web"],"recibo-cargo-en-gastos":["web"],"bancos-reconexion-revoca":["edge"],"inicio-mes-pasado-mismo-dia":["web"],"limpieza-ajustes-perfil":["web"],"tr-empareja-sin-preguntar":["web"],"cuenta-parte-mia":["web"],"compras-identicas-ids":["web"],"myinvestor-contador-a-cero":["web","edge"],"deudas-metas-hoja-edicion":["web"],"deudas-plazo-cuota-cuadran":["web"],"gastos-suscripciones-botones":["web"],"deudas-plazo-cuota-encaja":["web"],"deudas-metas-hoja-sin-parpadeo":["web"]};
   const previous=new Map();
   const measure=reader=>{
     const now=JSON.parse(reader("scripts/beta-sources.json")),moved={};
@@ -2465,6 +2470,21 @@ test("Catálogo140 añade dos tandas de Deudas y atrás sobre la beta 139, con a
   for(const [id,file,a,b] of [
     ["deudas-metas-hoja-cierre-suave",U,'back.style.backgroundColor="rgba(8,28,20,0)";','back.style.backgroundColor="rgba(8,28,20,.28)";'],
     ["teclado-atras-conserva",U,'if(mode==="peek") return el;','if(mode==="peek") return null;']
+]){
+    assert.equal(source(file).split(a).length,2,"mutante sobre fuente real: "+a);
+    const mutated=betaRevision(id,f=>f===file?source(f).replace(a,b):source(f),undefined,scopes[id]);
+    assert.notEqual(mutated.web,currents[id].web,id+" reabre la tanda: "+a);
+  }
+  const built=betaNotes(notes,source,scopes),receipt=betaDelivery(built,source,scopes),groups=built[0].tandas;
+  assert.deepEqual(built.flatMap(n=>(n.tandas||[]).map(g=>g.id)),tandas,"lo que el build entrega al panel");
+  groups.forEach((group,i)=>{
+    const id=tandas[i];
+    assert.equal(group.web,currents[id].web);assert.equal(group.edge,undefined);assert.equal(group.native,undefined);assert.equal(group.apk,undefined);
+    assert.equal(receipt.web[id],currents[id].web);
+    for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica","native"])assert.equal(group[key],undefined,id+": identidad nueva sin "+key);
+  });
+  assert.deepEqual(receipt.pruebas,Object.fromEntries(expected140.tandas.map(g=>[g.id,{v:"4.26.140",contenido:JSON.stringify([g.id,g.t.es,g.items.es,1])}])),"un guion por probar por cada tanda");
+});
 
 // Catálogo cerrado: desde la promoción126 se lee de su commit inmutable (la promoción deja una sola nota y ninguna tanda).
 test("Catálogo126 histórico añade la tanda de la tarjeta del mes sobre la125, solo web, y declara cada huella que mueve",()=>{
