@@ -1,0 +1,116 @@
+{
+  "status": "done",
+  "summary": "SEC-02 candidate ready for Claude review: draft PR249 adds exactly approved rates before provider/link effects; no deployment or ProductREADY claim.",
+  "productSHA": "3530483b89f53da0650eca21c252e208903ebd04",
+  "baseSHA": "a9916c3cdb21c93f9d3a47653c0608e630ce50ab",
+  "branch": "codex/sec02-bank-rate-limit-20261017",
+  "PR": 249,
+  "causalGO": "5267ceb4005ecb98b37da2f8e4efbb280fb85c33",
+  "tests": [
+    {
+      "command": "node work/sec02-investigation.mjs --red (pre-fix base)",
+      "exitCode": 1,
+      "detail": "3 causal failures and 7 controls pass; private synthetic harness retained, not a Deno run"
+    },
+    {
+      "command": "node tests/bank-sync-paging.test.mjs",
+      "exitCode": 0,
+      "detail": "focal regression"
+    },
+    {
+      "command": "node tests/bank-sync-progreso.test.mjs",
+      "exitCode": 0,
+      "detail": "focal regression"
+    },
+    {
+      "command": "node tests/bank-sync-acuse.test.mjs",
+      "exitCode": 0,
+      "detail": "focal regression"
+    },
+    {
+      "command": "node tests/bank-reconnect.test.mjs",
+      "exitCode": 0,
+      "detail": "focal regression"
+    },
+    {
+      "command": "node tests/bank-revoke-callback-race.test.mjs",
+      "exitCode": 0,
+      "detail": "focal regression"
+    },
+    {
+      "command": "node tests/bank-callback-msg.test.mjs",
+      "exitCode": 0,
+      "detail": "focal regression"
+    },
+    {
+      "command": "node tests/entrada-edge.test.mjs",
+      "exitCode": 1,
+      "detail": "initial static callback privacy guard rejected literal code form; fixed product expression without weakening test"
+    },
+    {
+      "command": "node tests/entrada-edge.test.mjs; node tests/bank-connect-once.test.mjs; node tests/logs-privacidad.test.mjs; node tests/security.test.mjs",
+      "exitCode": 0,
+      "detail": "actual grouped shell invocation after correction, all summaries pass"
+    },
+    {
+      "command": "node tests/bank-sync-paging.test.mjs",
+      "exitCode": 0,
+      "detail": "final server entry:28 existing +9 SEC02 groups;12 mutants killed"
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0,
+      "detail": "15 mapping guards pass; rate contract imported by server subset entry bank-sync-paging"
+    },
+    {
+      "command": "node tests/edge-sintaxis.test.mjs",
+      "exitCode": 0,
+      "detail": "41 TypeScript files parse, not Deno runtime"
+    }
+  ],
+  "mutations": {
+    "killed": 12,
+    "survived": 0,
+    "oracles": [
+      "four ignored gates",
+      "four elevated limits",
+      "shared connect user bucket",
+      "wrong sync window",
+      "callback consumes state on rejection",
+      "callback429 instead of existing302"
+    ]
+  },
+  "behavior": [
+    "connect10/600 user;sync30/600 user shared across daily/history/acks;callback60/60 hashedIP before lookup plus10/600 known unexpired state user before consumption",
+    "connect/sync429 keep CORS;callback302 error path web/APK uses existing closed error code",
+    "real shared rate helper and atomic RPC reused;fail-open unchanged;denial has no provider calls,link/cursor writes,state consumption or app_events"
+  ],
+  "artifacts": [
+    "docs/briefs/sec02-bank-rate-limits.md",
+    "tests/helpers/bank-rate-contracts.mjs",
+    "tests/bank-sync-paging.test.mjs"
+  ],
+  "limitations": [
+    "SDK/RPC/provider synthetic;real Postgres concurrency not run.",
+    "Deno not on PATH: no Deno runtime test.",
+    "No full suite,CPU6,Gradle,browser,build,liveSQL,real banks,deploy,served beta or mobile verification.",
+    "General CI unverified;PR is draft. Product changes limited to three bank endpoints;VERSION,catalogue,caps,financial oracles and Deudas/Metas untouched.",
+    "Detailed documentation in scoped docs/briefs;SETUP-SUPABASE table remains an integration documentation follow-up outside assigned docs scope.",
+    "Callback double state exchange remains separate SEC-03: recorded OPEN in brief;no atomic state-consumption fix or migration in this PR. No other task claimed or created."
+  ],
+  "fetchBudget": {
+    "idbudget": "sec02-own12-1-d28e023b",
+    "usedBeforeResultReadback": 3,
+    "allowance": 12,
+    "initial10Closed": true,
+    "noReset": true,
+    "noROOT": true
+  },
+  "next": "Claude review/integration and any Edge deployment remain separate; preserve this candidate. SEC-03 requires separate scoped task before implementation.",
+  "schema": 1,
+  "taskId": "sec02-bank-rate-limit-codex-20261017",
+  "actor": "codex",
+  "sessionId": "codex-local-20261017-f7212f72d28e023b",
+  "createdAt": "2026-10-17T11:21:26.066Z",
+  "released": true
+}
