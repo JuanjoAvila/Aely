@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "id": "fin10-pr259-wildcard-survivor-test-codex-20261017",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261017-r58-5335d99b-84bfc768",
+  "createdAt": "2026-10-17T16:03:31.415Z",
+  "to": "codex",
+  "kind": "worker",
+  "baseSHA": "707f349ec080cadff0103f99e1eb775c539f1c8f",
+  "objective": "Add the final Claude-requested PR259 regression proving that a row hidden by the accountless wildcard does not consume the surviving row reference: the server must not fall from 320 to 0",
+  "scope": [
+    "tests/fin15-pendiente-contabilizada.test.mjs"
+  ],
+  "grantCommit": "1eb8ab40e2756031d0a85e1b2e9b3697de377de7",
+  "previousTaskId": "fin10-beta140-fin15-coexistence-codex-20261017",
+  "previousResult": "e907e1655101f7a434ac2034881f680bb4800f39",
+  "sameOriginalOwnerRequired": true,
+  "phase": "OWN claim/readback and public ACK only before separate private implementation admission",
+  "PR": 259,
+  "requiredPRBase": "beta",
+  "constraints": [
+    "Claude explicitly admits this single test remate in the same PR259. No product logic changes, unrelated tests, VERSION, catalogue, caps, generated files, or oracle weakening.",
+    "Start from exact reviewed PR259 head. Preserve released prior claim/result. Freeze the new final source after delivery; beta141 integration and FIN11 source admission remain Claude decisions.",
+    "Use existing own worker ledger and block only, last verified 11 of12 used with1 remaining. No new initial10, reset, ROOT allowance or inherited lease. Permanent additional12 only after actual exhaustion, own notice and readback; count first fetch and all internal readbacks.",
+    "Read all new canonical entries FULL RAW and verify cancellations before acting. Original helper, filter and identity; on rejection preserve exact error and STOP without bypass or unauthorized retry.",
+    "Run only a causal RED for the new case where feasible and the targeted file on the new final source, with actual EXIT evidence. Do not repeat completed broad suites, DOM, CPU6, Gradle, APK, deployment or integration."
+  ],
+  "deliverable": "Same draft PR259 updated only with the admitted regression, exact final SHA, actual targeted checks and limitations, own immutable result and claim release. No served-beta or ProductREADY claim.",
+  "fetchBudget": {
+    "sameWorkerExistingBlock": "fin10-own12-1-remates-691503ab",
+    "allowance": 12,
+    "lastVerifiedUsedActual": 11,
+    "lastVerifiedRemaining": 1,
+    "mustReadOwnLedger": true,
+    "noResetOrROOTInheritance": true,
+    "additional12OnlyAfterActualExhaustionAndOwnNotice": true
+  }
+}
