@@ -9,11 +9,11 @@ const repo = new URL("../", import.meta.url);
 const now = Date.parse('2026-10-17T12:00:00.000Z');
 class Clock extends Date { constructor(...a) { super(...(a.length ? a : [now])); } static now() { return now; } }
 const clone = x => structuredClone(x);
-const sources = ['supabase/functions/_shared/entrada.ts', 'supabase/functions/_shared/ratelimit.ts', 'supabase/functions/bank-callback/reconnect.ts', 'supabase/functions/bank-callback/index.ts'];
+const sources = ['supabase/functions/_shared/entrada.ts', 'supabase/functions/_shared/ratelimit.ts', 'supabase/functions/_shared/request_body.ts', 'supabase/functions/bank-callback/reconnect.ts', 'supabase/functions/bank-callback/index.ts'];
 const sourceText = Object.fromEntries(sources.map(p => [p, fs.readFileSync(new URL(p, repo), 'utf8')]));
 function compile(s) {
   const imports = (s.match(/^import .*;\r?$/gm) || []).map(x => x.trim());
-  assert.ok(imports.every(x => /^import .* from ["'](?:https:\/\/esm.sh\/@supabase\/supabase-js@2|\.\.\/_shared\/(?:enablebanking|token_store|entrada|ratelimit)\.ts|\.\/reconnect\.ts)["'];$/.test(x)));
+  assert.ok(imports.every(x => /^import .* from ["'](?:https:\/\/esm.sh\/@supabase\/supabase-js@2|\.\.\/_shared\/(?:enablebanking|token_store|entrada|ratelimit|request_body)\.ts|\.\/reconnect\.ts)["'];$/.test(x)));
   const clean = s.replace(/^import .*;\r?\n/gm, '').replace(/^export /gm, '');
   assert.ok(!/^\s*import\b/m.test(clean));
   return transformSync(clean, { loader: "ts", format: "cjs" }).code;
