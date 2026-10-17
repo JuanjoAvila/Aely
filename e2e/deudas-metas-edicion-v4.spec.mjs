@@ -15,6 +15,45 @@ async function open(page,lang,overrides={},realClock=false){
 }
 const debtSheet=(page,lang)=>page.getByRole("dialog",{name:texts[lang].editDebt,exact:true});
 const goalSheet=(page,lang)=>page.getByRole("dialog",{name:texts[lang].editGoal,exact:true});
+// Señal explícita de IME: el foco solo sigue cubierto por los cierres normales de abajo.
+async function editKeyboard(page,method){
+ await page.addInitScript(method=>{
+  const vv=new EventTarget();let gap=0;
+  Object.defineProperties(vv,{height:{get:()=>innerHeight-gap},width:{get:()=>innerWidth},offsetTop:{value:0},offsetLeft:{value:0},scale:{value:1}});
+  Object.defineProperty(window,"visualViewport",{value:vv,configurable:true});
+  window.__editKeyboard=value=>{gap=value;vv.dispatchEvent(new Event("resize"));};
+  window.__editBlur=0;document.addEventListener("blur",e=>{if(gap&&e.target.matches("input,textarea")){window.__editBlur++;window.__editKeyboard(0);}},true);
+  if(method==="native"){
+   window.__editExit=0;window.Capacitor={isNativePlatform:()=>false,Plugins:{App:{
+    addListener(name,callback){if(name==="backButton")window.__editBack=callback;return {remove(){}};},exitApp(){window.__editExit++;}
+   }}};
+  }
+ },method);
+}
+const editFinancial=page=>page.evaluate(()=>{
+ const s=JSON.parse(localStorage.getItem("micartera_v3"));
+ return {debts:s.debts,goals:s.goals,budget:s.budget,reservaLog:s.reservaLog,settings:s.settings,fixed:s.fixed,expenses:localStorage.getItem("micartera_v3_exp")};
+});
+for(const kind of ["debt","goal"])for(const method of ["browser","native"])test(`UX13 beta139: ${kind}/${method} conserva borrador al ocultar teclado y cierra en segundo atrás`,async({page})=>{
+ await editKeyboard(page,method);await open(page,"es",{},true);
+ if(kind==="goal")await page.getByRole("tab",{name:"Metas",exact:true}).click();
+ const before=await editFinancial(page),url=page.url();
+ await page.locator('[data-'+kind+'-id="'+kind+'"] .plan-item-open').click();
+ const sheet=kind==="debt"?debtSheet(page,"es"):goalSheet(page,"es");
+ const name=sheet.locator('[data-'+kind+'-field="name"]'),decimal=sheet.locator('[data-'+kind+'-field="'+(kind==="debt"?"apr":"saved")+'"]');
+ await name.fill("Borrador UX13 beta139");await decimal.fill("1,");
+ await page.evaluate(()=>{window.__editKeyboard(300);return new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));});
+ await expect(decimal).toBeFocused();
+ const back=async()=>{if(method==="browser")await page.goBack();else await page.evaluate(()=>window.__editBack());};
+ await back();
+ // El cierre de useSheetSwipe es diferido: esperar evita aceptar el fotograma anterior al desmontaje.
+ await page.waitForTimeout(500);await expect(sheet).toBeVisible();await expect(name).toHaveValue("Borrador UX13 beta139");await expect(decimal).toHaveValue("1,");
+ expect(await page.evaluate(()=>window.__editBlur)).toBe(1);expect(await editFinancial(page)).toEqual(before);await expect(page).toHaveURL(url);
+ await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+ await back();await expect(sheet).toHaveCount(0);await expect(page).toHaveURL(url);
+ await expect.poll(()=>page.evaluate(()=>({stack:_mcBackStack.length,pending:_mcIgnorePop}))).toEqual({stack:0,pending:false});
+ expect(await editFinancial(page)).toEqual(before);if(method==="native")expect(await page.evaluate(()=>window.__editExit)).toBe(0);
+});
 for(const lang of Object.keys(texts)){
  test(`TAE tecleada conserva coma/punto, null y cero, confirma y persiste (${lang})`,async({page})=>{
   await open(page,lang);const t=texts[lang],row=page.locator('[data-debt-id="debt"]');
