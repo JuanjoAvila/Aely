@@ -1,0 +1,274 @@
+{
+  "status": "blocked",
+  "summary": "Same PR248 race remates delivered at255eb082. Five consecutive isolated passes15/15 plus full canonical spec25/25;24controller contracts and2oracle mutants verified privately, no repetition during delivery. Fixture waits real opening focus and keyboard predicate, not blind pauses; runtime only local alpha-renames saves84min/9gzip. Actual DOM INPUT→H1 focus replacement disclosed, physical Android IME impact unknown, module14 outside scope intact. BLOCKED size+34Bcanonical/+58BWindows and pending integration/focus decision; not ProductREADY.",
+  "PR": 248,
+  "productSHA": "255eb082d57a0e07a7a7a0bf3baf378f2c50f702",
+  "baseSHA": "307362aaaee380a3933ce709496abd7b9828f20a",
+  "branch": "codex/ux13-keyboard-back-20261016",
+  "claimCommit": "353ce93b138f528f98ece993a00ab57656cdccab",
+  "ACKCommit": "d6ff17e7a6a4fa7a028ced96ec8b79c4513b380c",
+  "reviewGrant": "a89fb4a338e62d649a249aaf1db2d8e3b376471d",
+  "previousTaskId": "ux13-pr248-beta139-adaptation-codex-20261017",
+  "previousResultImmutable": "c8767ac659172ae880163becc7e439f7791108af",
+  "previousSourcePreserved": "307362aaaee380a3933ce709496abd7b9828f20a",
+  "preservedOWNRef": "refs/aely-ux13/preserved-pr248-pre-race-307362aa",
+  "productReady": false,
+  "tests": [
+    {
+      "command": "node work/run-race.cjs race-red-baseline \"UX13:.*predictivo\"",
+      "exitCode": 0,
+      "passed": 3,
+      "meaning": "Original local isolated run passed; not falsely described as reproduction of reviewer intermittent red."
+    },
+    {
+      "command": "node work/run-race.cjs race-focus-causal-probe-fixed \"PROBE UX13\"",
+      "environment": "UX13_RACE_PROBE=1",
+      "exitCode": 1,
+      "passed": 1,
+      "failed": 1,
+      "meaning": "Without mocked viewport real opening focuses INPUT then H1. Controlled release of actual queued focus after fill+gap300 yields H1/gap0/blur1 and fails required precondition."
+    },
+    {
+      "command": "node work/run-race.cjs race-stable-isolated-1 \"UX13:.*predictivo\"",
+      "exitCode": 0,
+      "passed": 3,
+      "workers": 1,
+      "retries": 0,
+      "consecutiveIteration": 1,
+      "phase": "private preparation only"
+    },
+    {
+      "command": "node work/run-race.cjs race-stable-isolated-2 \"UX13:.*predictivo\"",
+      "exitCode": 0,
+      "passed": 3,
+      "workers": 1,
+      "retries": 0,
+      "consecutiveIteration": 2,
+      "phase": "private preparation only"
+    },
+    {
+      "command": "node work/run-race.cjs race-stable-isolated-3 \"UX13:.*predictivo\"",
+      "exitCode": 0,
+      "passed": 3,
+      "workers": 1,
+      "retries": 0,
+      "consecutiveIteration": 3,
+      "phase": "private preparation only"
+    },
+    {
+      "command": "node work/run-race.cjs race-stable-isolated-4 \"UX13:.*predictivo\"",
+      "exitCode": 0,
+      "passed": 3,
+      "workers": 1,
+      "retries": 0,
+      "consecutiveIteration": 4,
+      "phase": "private preparation only"
+    },
+    {
+      "command": "node work/run-race.cjs race-stable-isolated-5 \"UX13:.*predictivo\"",
+      "exitCode": 0,
+      "passed": 3,
+      "workers": 1,
+      "retries": 0,
+      "consecutiveIteration": 5,
+      "phase": "private preparation only"
+    },
+    {
+      "command": "node work/run-race.cjs race-green-full-committed",
+      "environment": "UX13_COMMITTED_HTML=1",
+      "exitCode": 0,
+      "passed": 25,
+      "workers": 1,
+      "retries": 0,
+      "OWNPort": 4339,
+      "meaning": "Full backclose-handover spec once on exact committed canonical HTML; local server, not beta public."
+    },
+    {
+      "command": "node tests/backclose-history.test.mjs",
+      "exitCode": 0,
+      "reason": "Shared controller local names shortened to reduce the UX13 delta; verify existing contracts and assembled syntax on changed source, not unchanged predecessor."
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0,
+      "reason": "Shared controller local names shortened to reduce the UX13 delta; verify existing contracts and assembled syntax on changed source, not unchanged predecessor."
+    },
+    {
+      "command": "node work/run-race-oracle-mutants.cjs",
+      "exitCode": 0,
+      "killed": 2,
+      "childExitCodes": [
+        1,
+        1
+      ],
+      "restoredExact": true,
+      "meaning": "Changed fixture and replacement of postinvoke pause still kill latch-removal and keyboard-precedence bypass through original close/geometry assertions."
+    },
+    {
+      "command": "node tests/presupuesto-rendimiento.test.mjs",
+      "context": "Unmodified official guard/minifier in isolated canonical-input mirror; DSN95B/version4.26.139.99999 reserves; esbuild0.25.5.",
+      "exitCode": 1,
+      "canonicalExcess": 34,
+      "localWindowsExcess": 58
+    },
+    {
+      "command": "git push origin 255eb082d57a0e07a7a7a0bf3baf378f2c50f702:refs/heads/codex/ux13-keyboard-back-20261016",
+      "exitCode": 0,
+      "normal": true,
+      "meaning": "OWN remote/PR head307362aa confirmed before push; preserved by OWN ref; no force/rebase/reset."
+    },
+    {
+      "command": "gh pr edit248 --repo JuanjoAvila/Aely --body-file work/pr248-race-remates-delivery-body.md;gh pr view248 head/body/draft/main",
+      "exitCode": 0,
+      "meaning": "Final description includes product focus finding, real limits and size-red contexts; exact readback and artifact attached."
+    }
+  ],
+  "testsRepeatedDuringDelivery": false,
+  "codeBuildMeasurementsDuringDelivery": false,
+  "cause": "BillsAddWizard input autoFocus and opening effect rAF title focus compete. The old fixture could fill and enable synthetic keyboard before the pending title focus callback blurred it and reset the double.",
+  "fix": "Await actual initial h1 focus before filling; require input focus+gap300+real arbiter recognition. Wait actual blur after invoke instead of500ms, preserving all draft/parent/history/financial/exit assertions; cancellation also keeps focus.",
+  "productFocusFinding": {
+    "realDOMWithoutViewportDouble": true,
+    "trace": [
+      "INPUT",
+      "H1"
+    ],
+    "controlledSchedule": {
+      "before": {
+        "tag": "INPUT",
+        "gap": 300,
+        "blur": 0
+      },
+      "after": {
+        "tag": "H1",
+        "gap": 0,
+        "blur": 1
+      }
+    },
+    "origin": "src/modules/14-v4-screens.js BillsAddWizard autoFocus and opening rAF title effect",
+    "module14Changed": false,
+    "outsideApprovedScope": true,
+    "physicalAndroidIMEImpact": "UNKNOWN",
+    "requiresClaudeDecision": true,
+    "notHiddenByRefocusingAfterRace": true
+  },
+  "runtimeDelta": {
+    "onlyLocalAlphaRenames": true,
+    "exactOldToNewTransformationVerified": true,
+    "names": [
+      "keyboard→mode",
+      "keyboardGesture→ime"
+    ]
+  },
+  "validation": {
+    "fiveConsecutivePasses": true,
+    "isolatedPassed": 15,
+    "fullSpecPassed": 25,
+    "controllerContractsPassed": 24,
+    "oracleMutantsKilled": 2,
+    "mutantChildEXITs": [
+      1,
+      1
+    ],
+    "restoredExact": true,
+    "workers": 1,
+    "retries": 0
+  },
+  "canonicalServedArtifact": {
+    "HTMLSHA256": "eb9215897d6cec539e75663d62c659f3b881da8f6ba2b1ce69eeb66a080937a9",
+    "bytes": 2169470,
+    "OWNPort": 4339,
+    "exactResponses": true,
+    "serverStopped": true,
+    "publicBeta": false
+  },
+  "sizeGate": {
+    "exitCode": 1,
+    "canonical": {
+      "minified": 1342498,
+      "cap": 1342464,
+      "excess": 34,
+      "gzip": 372997,
+      "gzipCap": 373760
+    },
+    "localWindows": {
+      "minified": 1342522,
+      "excess": 58,
+      "gzip": 373010
+    },
+    "reductionFrom307362aa": {
+      "minified": 84,
+      "gzip": 9
+    },
+    "newOwnDeltaVsBeta139": {
+      "minified": 837,
+      "gzip": 359
+    },
+    "predecessorOwnDelta": {
+      "minified": 921,
+      "gzip": 368
+    },
+    "ClaudeReportedPredecessorDelta": {
+      "minified": 921,
+      "gzip": 362
+    },
+    "discrepancy": "6B gzip context difference retained; no claimed equivalence. Prior118B was absolute cap excess, not delta.",
+    "esbuild": "0.25.5",
+    "reserves": {
+      "DSNBytes": 95,
+      "version": "4.26.139.99999"
+    },
+    "capsChanged": false
+  },
+  "gates": {
+    "size": "RED official guard EXIT1; canonical+34B/localWindows+58B; no cap change",
+    "docsFrescura": "NOT_RERUN in this successor; predecessor EXIT1 and integration VERSION seal unresolved",
+    "betaSources": "NOT_EXECUTED",
+    "generalCI": "NOT_EXECUTED_OR_CHECKED",
+    "claudeReviewIntegration": "PENDING",
+    "source14FocusDecision": "PENDING",
+    "publicBeta": "NOT_DEPLOYED_OR_VERIFIED",
+    "physicalAndroidIMEAndMobile": "NOT_EXECUTED",
+    "CPU6GradleAPKSQLLiveBanksFullSuite": "NOT_EXECUTED"
+  },
+  "protected": "Module09,DebtEditSheet/debtEditResult,edit opening,module14,shell,financial logic,VERSION,catalogue,caps/oracles unchanged.",
+  "evidence": {
+    "privateCheckpointSHA256": "53502840e43ac3d51bb550527a0318cf71afd10cdf3f303cba457ef32e5c8fbf",
+    "privateManifestSHA256": "5aad5fcd9b8a8925930320a6b2ecbca8fa66980f97e7e078fbcf2bba12bfec4e",
+    "sourceFrozenHashesVerified": true,
+    "allNewIntermediatesReadFULL": 26,
+    "canonicalBeforeResult": "317eef820d570b2d7b603893774b4bfb73d09d5b",
+    "noApplicableCancellation": true
+  },
+  "fetchBudget": {
+    "id": "ux13-pr248-beta139-db3299cd-block2",
+    "allowance": 12,
+    "usedBeforeResult": 7,
+    "remainingBeforeReadback": 5,
+    "previousBlockClosed12of12": true,
+    "firstFetchCounted": true,
+    "noReset": true,
+    "noROOTInheritance": true,
+    "newBlock": false,
+    "readbackWillCount": true
+  },
+  "artifacts": [
+    "docs/briefs/ux13-pr248-race-remates-20261017.md"
+  ],
+  "limitations": [
+    "Actual product web DOM focus replacement observed without viewport double; physical Android keyboard behavior not proven. Module14 remains outside scope and unmodified; Claude decision pending.",
+    "Initial private-probe copy failed discovery from paths,0tests; corrected probe1PASS/1causalRED. Local original3PASS retained; no invented random red.",
+    "Five isolated+one full passes expressly required for this new race. Only changed-controller contracts/syntax and meaningful changed-oracle mutants added; no unrelated financial suite rerun.",
+    "Initial size equality assumption with Claude stopped; same canonical-input A/B measured afterward. Actual old own gzip delta368 versus Claude362 retained, not silently reconciled.",
+    "Size RED+34canonical/+58Windows; docs-frescura predecessor EXIT1 unresolved,not rerun here. GeneralCI,beta-sources/fullsuite,Claude review/integration,public beta and physical mobile pending.",
+    "No source/tests/build/size measurements repeated in delivery; no force/rebase/reset,main-beta push,SQL/livebanks,CPU6,Gradle/APK/backenddeploy or foreign WIP/claim/lease changes.",
+    "Previous307362aa/c8767ac6 and60c740dd sources/results/evidence immutable. Helper/filter and same original identity/OWN ledger retained."
+  ],
+  "nextAction": "After exact canonical result readback and final checkpoint release public slot, freeze255eb082 for Claude, STOP polling/new work/push. No messages to other chats.",
+  "schema": 1,
+  "taskId": "ux13-pr248-race-tests-remates-codex-20261017",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-8e50dcf4186a58d7",
+  "createdAt": "2026-10-17T14:21:06.058Z",
+  "released": true
+}
