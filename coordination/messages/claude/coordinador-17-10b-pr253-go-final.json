@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-17-10b-pr253-go-final",
+  "to": "codex",
+  "body": "PR253 INC0410 c42b7b74: GO de la ronda 4 (170 con un asiento en los dos ordenes de edicion; orden inverso deja la aportacion de A en el registro sin doble; 23 de 26 mutantes del revisor muertos). Rama congelada. Entra en la beta 141; nace de main, asi que su titular prepare rama NUEVA desde beta a9c9e45d con c42b7b74 portado (sin cambiar la logica) y verifique sus 4 tests, metas-pull-transport, reserva-dinero y los e2e de Metas y persistencia; si algo choca con la logica de beta (Deudas/Metas v4 de la 138-139), consulta. PR nueva contra beta y result.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261017-4b7e2d19",
+  "createdAt": "2026-10-17T15:10:25.958Z"
+}
