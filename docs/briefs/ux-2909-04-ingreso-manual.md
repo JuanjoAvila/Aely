@@ -1,7 +1,11 @@
 # UX-2909-04 · revisión de ingresos manuales coincidentes
 
-Estado: candidata local para PR borrador, bloqueada por tamaño minificado. No integrada,
-publicada ni aceptada en móvil. Base exacta `a9916c3cdb21c93f9d3a47653c0608e630ce50ab`.
+Estado: remates privados de PR251 sobre `da1b370eb9ccb09f0a943adb5c2561b784af794f`, sin
+commit ni push nuevo. Bloqueo minificado de 1214 bytes, cap intacto. GO de revisión
+`e3d09d2f25239ab0f0b13fcddedb05553398c20e`; sucesor `ux290904-pr251-remates-codex-20261017`,
+claim `a195a6a4` y ACK `ef3f8b91`. El result predecesor `09c58454` permanece inmutable.
+Sin integración, publicación de estos remates ni aceptación móvil.
+Base original exacta `a9916c3cdb21c93f9d3a47653c0608e630ce50ab`.
 GO causal de Claude `5267ceb4005ecb98b37da2f8e4efbb280fb85c33`: solo la propuesta A.
 La antigüedad de datos y los textos de sincronización (B) esperan UX-15/PR244.
 
@@ -25,11 +29,55 @@ o borrados no se reutilizan. No se repara retrospectivamente el histórico.
 La revisión usa la ficha existente: «Es el mismo» o «Son distintos». No borra por parecido,
 no oculta como gemelo automático y no cambia los gastos/avisos de nombre real. La marca
 `#dup` existente conserva la exclusión de saldo y presupuesto, también en su viaje a la nube.
-Una coincidencia exacta de nombre y timestamp reserva un milisegundo libre para conservar
-la fila bancaria frente a la restricción única de la tabla; no cambia el día ni el ordinal.
+Se ha retirado el mecanismo `bankKeys` y el ajuste de un milisegundo: el caso 11 conserva
+la deduplicación de la base ante nombre y fecha exactos, sin otra fila ni cambio de timestamp.
+`gemeloBancoAutomatico` vuelve exactamente al cuerpo de la base. La protección de revisión
+se limita al reparto automático cuando hay candidatos manuales de ingreso del mismo grupo
+y ventana; sin manuales, el genérico histórico conserva el emparejado con su aviso.
 No hay cambios de SDK, SQL, Edge ni formato de `source`.
 
-## Evidencia ejecutada
+## Evidencia privada de los remates
+
+El test nuevo de manual borrado mata la retirada del guardo: el mes pasa de 1800 a **0** si
+se empareja el BOOK con el manual que ya tenía lápida. Se comprueban lápida actual y legado,
+se conserva el manual borrado y no se reconstruye dinero ni histórico. El control pasa en
+UTC y Madrid. La mutación se ejecutó primero sobre el artefacto exacto del predecesor;
+después se volvió a matar sobre el WIP que reutiliza `delSet`.
+
+| Comprobación focal | Resultado |
+|---|---|
+| Build privado y sintaxis del artefacto | EXIT0 |
+| `manual-income-review` | 17 UTC + 17 Europe/Madrid, EXIT0 |
+| Mutantes off, ambiguous, book, window, bank, cents, counted, automatic, deleted | 9/9 muertos, EXIT1 por aserciones, no errores de inyector |
+| `ob-ingresos`, `tr-open-banking`, `month-budget-stats` | EXIT0 |
+| `recibo-invariante` | 22 PASS, EXIT0 |
+| DOM nuevo: genérico ambiguo con manuales y aviso | 1 PASS, 1 worker, 0 retries, puerto48544 |
+| `presupuesto-rendimiento` | EXIT1: 1214 bytes sobre el minificado; gzip y bloqueantes cumplen |
+
+La repetición focal se justifica por retirar la identidad alternativa, cambiar los nombres de
+los inyectores y restaurar la función de emparejado genérico. El nuevo control histórico se
+cotejó también contra el artefacto de main original. No se repitieron los tres DOM antiguos,
+ni security/relevant-tests, que conservan la evidencia previa y no tienen cambios de registro.
+
+La restauración global sin protección local rompe el caso de ambigüedad: vincula el BOOK
+genérico al aviso y lo oculta, pese a tener varios manuales. El mutante `automatic` mata
+precisamente la protección local; el control histórico sin manuales sigue pasando.
+
+| Bytes y cargas | Predecesor da1b370e | WIP privado | Cap intacto |
+|---|---:|---:|---:|
+| Minificado | 1330945 | 1330366 | 1329152 |
+| Gzip | 369438 | 369330 | 369664 |
+| Bloqueantes | 3 | 3 | 3 |
+
+Ahorro dentro del cambio: **579 bytes minificados y 108 gzip**. El bloque de revisión conserva
+la unicidad, el céntimo, el banco, la ventana y la exclusión de manuales borrados/reclamados;
+no se recortan esas guardas para caber. El cap no se sube: la decisión pendiente corresponde
+a Claude al integrar. Los remates acortan los nombres nuevos y reutilizan `delSet`.
+
+No se han hecho fetch, publicaciones de canal, cambios de PR ni push de producto en esta
+preparación. No se atribuye CI nueva ni se crea un result del sucesor antes del turno expreso.
+
+## Evidencia del predecesor, conservada
 
 | Comprobación focal | Resultado |
 |---|---|
