@@ -34,6 +34,7 @@ if (plan.build !== false) {
 }
 
 const steps = [
+  ["fin11-absorption-pending", ["node", "--test", "--test-concurrency=1", "tests/fin11-absorption-pending.test.mjs"]],
   ["inicio-deuda-futura", ["node", "--test", "tests/inicio-deuda-futura.test.mjs"]],
   ["run-deno-tests", ["node", "tests/run-deno-tests.test.mjs"]],
   ["inicio-grafica-reservas", ["node", "tests/inicio-grafica-reservas.test.mjs"]],
@@ -41,6 +42,7 @@ const steps = [
   ["deudas-metas-edicion", ["node", "tests/deudas-metas-edicion.test.mjs"]],
   ["deudas-metas-revision", ["node", "tests/deudas-metas-revision.test.mjs", "--mutations"]],
   ["deudas-plazo-cuota", ["node", "tests/deudas-plazo-cuota.test.mjs"]],
+  ["fin10-absorption-scope", ["node", "--test", "tests/fin10-absorption-scope.test.mjs"]],
   ["fin15-pendiente-contabilizada", ["node", "--test", "--test-concurrency=1", "tests/fin15-pendiente-contabilizada.test.mjs"]],
   ["prod117-edge-compat", ["node", "tests/prod117-edge-compat.test.mjs"]],
   ["backclose-history", ["node", "tests/backclose-history.test.mjs"]],
@@ -246,6 +248,7 @@ if (huerfanos.length) {
 }
 
 const denoEnLista = [
+  "supabase/functions/_shared/ob-absorbed-pending.test.ts",
   "supabase/functions/_shared/input_handlers.test.ts",
   "supabase/functions/_shared/request_body.test.ts",
   "supabase/functions/_shared/myinvestor_inputs.test.ts",

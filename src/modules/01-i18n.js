@@ -2695,14 +2695,14 @@ function sameEntList(a,b){
    ent) sí cuenta. Pedido 2026-08-17: Revolut+TR marcados → los dos se ven y cuentan. */
 const expenseDeletedSets=new WeakMap();
 function expenseDeletedSet(s){
-  const deleted=s&&s.deleted;
-  if(!Array.isArray(deleted)||!deleted.length) return null;
-  let delSet=expenseDeletedSets.get(deleted);
-  if(!delSet){
-    delSet=Object.create(null);
-    deleted.forEach(function(k){ delSet[k]=1; });
-    expenseDeletedSets.set(deleted,delSet);
-  }
+  const deleted=s&&s.deleted,pending=s&&s.obAbsorbedPending,owner=s&&s._historyOwner;
+  if((!Array.isArray(deleted)||!deleted.length)&&(!Array.isArray(pending)||!pending.length))return null;
+  const ref=Array.isArray(deleted)?deleted:pending,cached=expenseDeletedSets.get(ref);
+  if(cached&&cached.pending===pending&&cached.owner===owner)return cached.map;
+  const delSet=Object.create(null);
+  (Array.isArray(deleted)?deleted:[]).forEach(function(k){delSet[k]=1;});
+  (Array.isArray(pending)?pending:[]).forEach(function(p){if(obAbsorbedValid(p,owner))delSet[p.key]=1;});
+  expenseDeletedSets.set(ref,{pending:pending,owner:owner,map:delSet});
   return delSet;
 }
 function expenseCountsCash(e, s){

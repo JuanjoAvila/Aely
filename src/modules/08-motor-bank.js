@@ -1365,9 +1365,16 @@ function obPendingAbsorbedState(s,prev){
     if(ids.has(e.id)||!esFilaDeBanco(e)||!e.extId||e.obPending)return;
     const keep=adopted.get(expenseBankOf(e)+"|"+e.extId);
     if(!keep||obPendingGroup(e)!==obPendingGroup(keep)||e.obAcc&&keep.obAcc&&e.obAcc!==keep.obAcc)return;
-    const key=obAbsorptionKey(e);if(!key||key===obAbsorptionKey(keep)||(out.deleted||[]).indexOf(key)>=0)return;
+    const key=obAbsorptionKey(e);if(!key||obAbsorptionMatches(keep,{[key]:1})||(out.deleted||[]).indexOf(key)>=0)return;
+    if(cloud.enabled()&&!mcSandbox()){
+      const pending=obAbsorbedEnqueue(out,e,keep);
+      if(!pending){
+        // Sin espacio o sin escritura durable no se declara segura una retirada nueva.
+        out=Object.assign({},out,{expenses:(out.expenses||[]).map(function(x){return x.id===keep.id?before.get(keep.id):x;}).concat([e])});return;
+      }
+      out=Object.assign({},out,{obAbsorbedPending:pending});
+    }
     out=Object.assign({},out,lapidaPon(out,key,s.lastBankSync||Date.now()));
-    borrarGastoNube(e,"ob-absorbed");
   });
   return out;
 }
@@ -1432,7 +1439,7 @@ function importObExpenses(s, txs, links){
   const keys={}; (s.expenses||[]).forEach(function(e){ keys[scopedKOf(e)]=1; });
   /* Lápidas: «es el mismo» borra la fila OB y deja clave en `deleted`. Sin esto el siguiente
      sync de TR volvería a meter el Movimiento y a marcarlo otra vez contra la noti. */
-  const delSet={}; (s.deleted||[]).forEach(function(k){ delSet[k]=1; });
+  const delSet=expenseDeletedSet(s)||{};
   const deletedRefs={}, deletedSlots={};
   (s.gemelos||[]).forEach(function(g){
     if(g&&g.aviso===""&&g.bankRef&&delSet[g.banco]){deletedRefs[(g.ent||"")+"|"+g.bankRef]=1;deletedSlots[g.banco]=1;}

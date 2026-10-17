@@ -70,7 +70,7 @@ function cloudOn(env,ctx=c,source=html){
  return vm.runInContext('(function(sb){'+source.slice(start,b)+'})',ctx)(db);
 }
 const committed=(s,feed,ctx=c,source=html)=>bank.updater(source,feed,s,ctx,true).state;
-const serverCents=(env,s)=>server.filasComoLaApp(env.rows,s.deleted).filter(row=>server.cuentaParaPresupuesto(row,server.bancosDeGastoDiario(s))).reduce((n,row)=>n+Math.round(Number(row.importe)*100),0);
+const serverCents=(env,s)=>server.filasComoLaApp(env.rows,s.deleted,s.obAbsorbedPending,s._historyOwner).filter(row=>server.cuentaParaPresupuesto(row,server.bancosDeGastoDiario(s))).reduce((n,row)=>n+Math.round(Number(row.importe)*100),0);
 
 test("nube: truncada y completa dejan app y servidor en 320 c tras pull, repetir sync y otro móvil",async()=>{
  const env=fakeDb(),cloud=cloudOn(env);
@@ -123,11 +123,12 @@ test("mutación de revisión: retirar la guarda de lectura truncada debe morir",
 
 async function retentionScenario(source=html,{sandbox=false}={}){
  const ctx=loadPureLogic(source),env=fakeDb(),transport=cloudOn(env,ctx,source);
+ const durable=new Map();ctx.localStorage={getItem:k=>durable.get(k)||null,setItem:(k,v)=>durable.set(k,v)};ctx.AbortController=AbortController;
  ctx.__transport=transport;vm.runInContext('Object.assign(cloud,__transport)',ctx);delete ctx.__transport;
  const guardStart=source.indexOf('(function(){',source.indexOf('const CLOUD_WRITES=[')),guardEnd=source.indexOf('\n})();',guardStart)+6;
  assert.ok(guardStart>=0&&guardEnd>guardStart);vm.runInContext(source.slice(guardStart,guardEnd),ctx);
  const pending=await bank.sync(()=>({transactions:[coffee("p-retention","PDNG")]}));
- let s=committed(state(),pending.data.links,ctx,source);
+ let s=committed({...state(),_historyOwner:"user"},pending.data.links,ctx,source);
  for(const e of s.expenses)await transport.addExpense(e);
  const partial=await bank.sync((url,n)=>({transactions:n===1?[coffee("b-retention")]:[],continuation_key:"same-cursor"}));
  s=committed(s,partial.data.links,ctx,source);assert.equal(cents(s,ctx),640);
@@ -135,6 +136,7 @@ async function retentionScenario(source=html,{sandbox=false}={}){
  const before=clone(s),complete=await bank.sync(()=>({transactions:[coffee("b-retention")]}));
  if(sandbox)ctx.mcSandbox=()=>true;
  s=committed(s,complete.data.links,ctx,source);
+ await ctx.obAbsorbedRetry(()=>s,()=>"user",fn=>{s=fn(s);});
  await new Promise(resolve=>setImmediate(resolve));
  const gone=before.expenses.find(e=>!s.expenses.some(keep=>keep.id===e.id)),key=ctx.obAbsorptionKey(gone);
  assert.ok(s.deleted.includes(key));
@@ -142,7 +144,7 @@ async function retentionScenario(source=html,{sandbox=false}={}){
  for(let i=0;i<501;i++)s={...s,...ctx.lapidaPon(s,"synthetic-newer-deletion-"+i,at+i+1)};
  assert.equal(s.deleted.includes(key),false,"la poda real 500/200 retira el marcador antiguo");
  await transport.pushState("user",ctx.slimForCloud(s));
- const pull=async local=>{const remote=(await transport.pullState()).data,del=ctx.lapidasUnion(local,remote),incoming=(await transport.pullExpenses()).map(ctx.expenseFromRow).filter(e=>!ctx.expenseIsTombstoned(e,ctx.expenseDeletedSet(del)));return {...local,...del,expenses:ctx.mergeExpensesFromCloud(local.expenses,incoming).list};};
+ const pull=async local=>{const remote=(await transport.pullState()).data,del={...ctx.lapidasUnion(local,remote),_historyOwner:"user",obAbsorbedPending:ctx.obAbsorbedJoin(local.obAbsorbedPending,remote.obAbsorbedPending,"user")},incoming=(await transport.pullExpenses()).map(ctx.expenseFromRow).filter(e=>!ctx.expenseIsTombstoned(e,ctx.expenseDeletedSet(del)));return {...local,...del,expenses:ctx.mergeExpensesFromCloud(local.expenses,incoming).list};};
  s=await pull(s);
  const app=cents(await pull(state()),ctx),serverValue=serverCents(env,s);
  console.log(JSON.stringify({retentionExpired:{appCents:app,existingMobileCents:cents(s,ctx),serverCents:serverValue,cloudRows:env.rows.length}}));
@@ -156,13 +158,13 @@ async function retentionScenario(source=html,{sandbox=false}={}){
 test("nube: caducar la lápida no resucita el BOOK absorbido en app ni servidor",async()=>{
  await retentionScenario();
 });
-test("absorción: quitar el borrado cloud vuelve a 640 aunque la lápida funcionara",async()=>{
- const changed=html.replace('    borrarGastoNube(e,"ob-absorbed");','');assert.notEqual(changed,html,"borrado retirado");
- await assert.rejects(()=>retentionScenario(changed),error=>error.code==="ERR_ASSERTION"&&error.actual.app===640&&error.actual.server===640);
+test("absorción: quitar el reintento deja fila cloud viva aunque la protección aún funcione",async()=>{
+ const changed=html.replace('if(!await cloud.settleObAbsorbed(p,getOwner)||getOwner()!==owner)continue;','if(true)continue;');assert.notEqual(changed===html,true,"reintento retirado");
+ await assert.rejects(()=>retentionScenario(changed),error=>error.code==="ERR_ASSERTION"&&error.actual===2&&error.expected===1);
 });
 test("absorción: CLOUD_WRITES impide el borrado en modo pruebas",async()=>{
  await retentionScenario(html,{sandbox:true});
- const changed=html.replace('"deleteExpense","deleteExpensesByIds"','"deleteExpensesByIds"');assert.notEqual(changed,html,"guarda retirada");
+ const changed=html.replace(',"settleObAbsorbed"','').replaceAll('||mcSandbox()','||false').replaceAll('&&!mcSandbox()','&&true');assert.notEqual(changed===html,true,"guardas de la ruta nueva retiradas");
  await assert.rejects(()=>retentionScenario(changed,{sandbox:true}),error=>error.code==="ERR_ASSERTION"&&error.actual===1&&error.expected===2);
 });
 
@@ -211,8 +213,8 @@ test("mutaciones de absorción: commit, lápida específica, UUID y lector local
  const cases=[
   ["el commit omite la absorción",s=>s.replace('  s=obPendingAbsorbedState(s,prev);','')],
   ["la lápida apunta a la superviviente",s=>s.replace('const key=obAbsorptionKey(e);if(!key','const key=obAbsorptionKey(keep);if(!key')],
-  ["lápida genérica alcanza otra referencia",s=>s.replace('"ob-absorbed|"+encodeURIComponent(bank)+"|"+encodeURIComponent(String(e.extId))+"|"+obOrdinalOf(e)','keyOfExpense(e)')],
-  ["lápida depende del UUID local",s=>s.replace('"ob-absorbed|"+encodeURIComponent(bank)+"|"+encodeURIComponent(String(e.extId))+"|"+obOrdinalOf(e)','"ob-absorbed|"+encodeURIComponent(bank)+"|"+encodeURIComponent(String(e.id))+"|"+obOrdinalOf(e)')],
+  ["lápida genérica alcanza otra referencia",s=>s.replace('function obAbsorptionKey(e,legacy){','function obAbsorptionKey(e,legacy){return keyOfExpense(e);')],
+  ["lápida depende del UUID local",s=>s.replace('encodeURIComponent(String(e.extId))+"|"+obOrdinalOf(e)','encodeURIComponent(String(e.id))+"|"+obOrdinalOf(e)')],
   ["pull ignora la lápida específica",s=>s.replace('const absorbed=obAbsorptionKey(e);if(absorbed&&delSet[absorbed])return true;','')],
  ];
  for(const [name,mutate] of cases){const changed=mutate(html);assert.notEqual(changed,html,name);assert.throws(()=>check(loadPureLogic(changed),changed),undefined,name+": muerta");}
@@ -220,7 +222,7 @@ test("mutaciones de absorción: commit, lápida específica, UUID y lector local
 });
 
 test("lector servidor: la lápida de absorción es necesaria y preserva filas legacy",()=>{
- const gone={...expense("b/:%","uuid-local"),obOrd:2},key=c.obAbsorptionKey(gone),row=wire(gone);
+ const gone={...expense("b/:%","uuid-local"),obOrd:2,obAcc:"synthetic-account"},key=c.obAbsorptionKey(gone),row=wire(gone);
  assert.equal(server.filasComoLaApp([row],[key]).length,0);
  const legacy={...row,source:"ob:caixabank#n2"};assert.equal(server.filasComoLaApp([legacy],[key]).length,1);
  assert.equal(server.filasComoLaApp([{...row,source:"ob:caixabank#ref%broken#n2"}],[key]).length,1);

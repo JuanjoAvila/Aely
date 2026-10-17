@@ -757,7 +757,7 @@ function mcLoadRaw(key){
   const saved=mcSaveRaw.balanceHistory||(mcSaveRaw.balanceHistory={});
   saved[key]={ref:history,history:history,body:body,revision:revision,owner:base._historyOwner,partition:JSON.stringify(partition),durable:durable&&hist&&hist.schema===1&&(!hist.owner||hist.owner===base._historyOwner)&&JSON.stringify(hist.history)===body};
   delete base._balHistoryRevision;
-  return base;
+  return obAbsorbedRestore(base,key);
 }
 /* SE GUARDA LO QUE SE HA PINTADO, NO LO QUE SE CALCULÓ (INC-0410, 4/10/2026).
    Antes `set()` apuntaba el volcado pendiente DENTRO del updater. React puede ejecutar un updater
@@ -1125,6 +1125,7 @@ const cloud = (function(){
     },
     async pushState(uid, data, lastKnownUpdatedAt){
       if(!sb || !uid) return null;
+      if((data.obAbsorbedPending||[]).some(function(p){return !obAbsorbedValid(p,uid);})||(data.obAbsorbedPending||[]).length>OB_ABSORBED_MAX)throw new Error("ob_absorbed_owner");
       const now=new Date().toISOString();
       if(lastKnownUpdatedAt){
         const {data:rows,error}=await sb.from('app_state')
@@ -1374,6 +1375,41 @@ const cloud = (function(){
       if(!session) return;
       const {error}=await expenseCloudEq(sb.from('expenses').delete(), session.user.id, e);
       if(error) throw error;
+    },
+    // El acuse pertenece al objetivo leído, nunca a una referencia compartida con la superviviente.
+    async settleObAbsorbed(p, currentOwner){
+      if(!sb||mcSandbox()||!obAbsorbedValid(p,p&&p.owner)) return false;
+      const owner=p.owner, controller=new AbortController(), timer=setTimeout(function(){controller.abort();},8000);
+      const active=async function(){
+        if(currentOwner()!==owner)return false;
+        const r=await sb.auth.getSession(),s=r.data&&r.data.session;
+        return !r.error&&s&&s.user.id===owner&&(s.expires_at==null||Number.isFinite(Number(s.expires_at))&&Number(s.expires_at)*1000>Date.now())&&currentOwner()===owner;
+      };
+      const query=async function(q){const r=await q.abortSignal(controller.signal);if(r.error||!Array.isArray(r.data))throw new Error("ob_absorbed_read");return r.data;};
+      const columns="id,fecha,importe,comercio,source,ob_name";
+      const find=async function(){
+        if(!await active())throw new Error("ob_absorbed_owner");
+        const exact=await query(sb.from('expenses').select(columns).eq('user_id',owner).eq('id',p.id).limit(2));
+        if(exact.length>1)throw new Error("ob_absorbed_cardinality");
+        if(exact.length){if(!obAbsorbedCandidate(p,exact[0],false))throw new Error("ob_absorbed_changed");return exact[0];}
+        const day=p.key.split("|")[5],end=new Date(Date.parse(day+"T00:00:00Z")+86400000).toISOString();
+        const rows=await query(sb.from('expenses').select(columns).eq('user_id',owner).gte('fecha',day+"T00:00:00Z").lt('fecha',end).limit(201));
+        if(rows.length>=201)throw new Error("ob_absorbed_incomplete");
+        const possible=rows.filter(function(r){return obAbsorbedPossible(p,r);});
+        if(possible.length>1||possible.length===1&&!obAbsorbedCandidate(p,possible[0],true))throw new Error("ob_absorbed_ambiguous");
+        return possible[0]||null;
+      };
+      try{
+        const target=await find();
+        if(!target)return !!await active();
+        if(!await active())return false;
+        const rows=await query(sb.from('expenses').delete().eq('user_id',owner).eq('id',target.id)
+          .eq('source',target.source).eq('fecha',target.fecha).eq('importe',target.importe).eq('comercio',target.comercio).select('id'));
+        if(rows.length===1&&rows[0].id===target.id)return !!await active();
+        // Cero filas puede ser una carrera o una respuesta perdida: volver a leer, no inventar éxito.
+        return rows.length===0&&!await find()&&!!await active();
+      }catch(e){obAbsorbedWarn("retry");return false;}
+      finally{clearTimeout(timer);}
     },
     async prices(symbols){
       if(!sb) throw new Error("nube no disponible");
@@ -1807,20 +1843,130 @@ function bankDeletionLink(e){
   if(e.extId){g.bankRef=String(e.extId);g.ent=expenseBankOf(e)||"";}
   return g;
 }
+// El mapa de lápidas se cachea por la referencia de deleted. Su índice también: recorrer
+// 500 claves por cada fila convertía un render de 20000 movimientos en diez millones.
+const obAbsorptionIndexes=new WeakMap();
+function obAbsorptionIndex(delSet){
+  let index=obAbsorptionIndexes.get(delSet);if(index)return index;
+  index={any:Object.create(null),missing:Object.create(null)};
+  Object.keys(delSet).forEach(function(k){
+    if(!delSet[k])return;
+    const p=k.split("|");if(p.length!==6||p[0]!=="ob-absorbed2")return;
+    const base=p.slice(0,4).join("|")+"|"+p[5];
+    index.any[base]=1;if(!p[4])index.missing[base]=1;
+  });
+  obAbsorptionIndexes.set(delSet,index);return index;
+}
+/* El escritor usa ESTE MISMO predicado antes de proteger la fila retirada. Si falta la
+   cuenta en cualquiera de los dos lados, nunca puede alcanzar a la superviviente. */
+function obAbsorptionMatches(e,delSet){
+  const absorbed=obAbsorptionKey(e);if(absorbed&&delSet[absorbed])return true;
+  const legacy=obAbsorptionKey(e,true);if(legacy&&delSet[legacy])return true;
+  if(!absorbed)return false;
+  const p=absorbed.split("|"),k=p.slice(0,4).join("|")+"|"+p[5],index=obAbsorptionIndex(delSet);
+  return !!(e.obAcc ? index.missing[k] : index.any[k]);
+}
 /* Lápidas anteriores al Paso 0 guardaban la clave sin id: siguen ocultando ese manual. */
 function expenseIsTombstoned(e, delSet){
   if(!delSet) return false;
-  const absorbed=obAbsorptionKey(e);if(absorbed&&delSet[absorbed])return true;
+  if(obAbsorptionMatches(e,delSet))return true;
   const k=keyOfExpense(e);
   if(delSet[k]) return true;
   if(isManualExpenseSource(e&&e.source) && delSet[keyOfExpenseLegacy(e)]) return true;
   return false;
 }
-/* Una absorción retira una ranura de UNA referencia y banco, no cualquier compra futura
-   que reutilice el día/importe/nombre/ordinal. La identidad no depende del UUID local. */
-function obAbsorptionKey(e){
+/* La cuenta y el día acotan las absorciones nuevas. La clave antigua se conserva solo
+   para leer lo ya borrado: sus datos perdidos no permiten reparar colisiones históricas. */
+function obAbsorptionKey(e,legacy){
   const bank=e&&expenseBankOf(e);
-  return e&&esFilaDeBanco(e)&&bank&&e.extId ? "ob-absorbed|"+encodeURIComponent(bank)+"|"+encodeURIComponent(String(e.extId))+"|"+obOrdinalOf(e) : null;
+  const base=e&&esFilaDeBanco(e)&&bank&&e.extId ? encodeURIComponent(bank)+"|"+encodeURIComponent(String(e.extId))+"|"+obOrdinalOf(e) : null;
+  return base ? (legacy?"ob-absorbed|"+base:"ob-absorbed2|"+base+"|"+encodeURIComponent(String(e.obAcc||""))+"|"+String(e.date||"").slice(0,10)) : null;
+}
+/* FIN-11: la intención sobrevive al cierre y a la poda de las 500 lápidas. Guardar primero
+   en una partición pequeña con readback: el fallback en memoria no acredita persistencia. */
+const OB_ABSORBED_MAX=200,obAbsorbedWarnings=new Set(),obAbsorbedRuns=new Map();
+function obAbsorbedWarn(code){
+  if(!["full","persist","merge","retry"].includes(code)||obAbsorbedWarnings.has(code))return;
+  obAbsorbedWarnings.add(code);
+  try{Promise.resolve(cloud.logEvent("warn","ob_absorbed_"+code,null)).catch(function(){});}catch(e){}
+}
+function obAbsorbedValid(p,owner){
+  if(!p||!owner||p.owner!==owner||!isExpenseUuid(p.id)||!isExpenseUuid(p.keepId)||p.id===p.keepId)return false;
+  const a=String(p.key||"").split("|"),b=String(p.keepKey||"").split("|");
+  return a.length===6&&a[0]==="ob-absorbed2"&&!!a[1]&&!!a[2]&&/^[1-9]\d{0,5}$/.test(a[3])&&/^\d{4}-\d{2}-\d{2}$/.test(a[5])
+    &&b.length===6&&b[0]==="ob-absorbed2"&&typeof p.merchant==="string"&&typeof p.amount==="number"&&Number.isFinite(p.amount)&&p.amount>0;
+}
+function obAbsorbedJoin(a,b,owner){
+  const out=[],seen=new Set();
+  (Array.isArray(a)?a:[]).concat(Array.isArray(b)?b:[]).forEach(function(p){
+    if(!obAbsorbedValid(p,owner))return;
+    const key=p.id+"|"+p.key;if(!seen.has(key)){seen.add(key);out.push(p);}
+  });
+  if(out.length>OB_ABSORBED_MAX){obAbsorbedWarn("merge");return null;}
+  return Array.isArray(a)&&out.length===a.length&&out.every(function(p,i){return p===a[i];})?a:out;
+}
+function obAbsorbedStorageKey(owner,key){return (key||mcStateKey())+"_obabs_"+encodeURIComponent(owner);}
+function obAbsorbedPersist(owner,list){
+  if(!owner||!Array.isArray(list)||list.length>OB_ABSORBED_MAX||list.some(function(p){return !obAbsorbedValid(p,owner);}))return false;
+  try{
+    const key=obAbsorbedStorageKey(owner),body=JSON.stringify({owner:owner,pending:list});
+    localStorage.setItem(key,body);if(localStorage.getItem(key)===body)return true;
+  }catch(e){}
+  obAbsorbedWarn("persist");return false;
+}
+function obAbsorbedRestore(s,key){
+  const owner=s&&s._historyOwner;if(!owner)return s;
+  try{
+    const raw=localStorage.getItem(obAbsorbedStorageKey(owner,key));if(raw==null)return s;
+    const pack=JSON.parse(raw),list=obAbsorbedJoin(pack.pending,[],owner);
+    if(pack.owner===owner&&list&&Array.isArray(pack.pending)&&list.length===pack.pending.length)return Object.assign({},s,{obAbsorbedPending:list});
+  }catch(e){}
+  return s;
+}
+function obAbsorbedEnqueue(s,e,keep){
+  const owner=s&&s._historyOwner;
+  const p={owner:owner,id:e.id,key:obAbsorptionKey(e),keepId:keep.id,keepKey:obAbsorptionKey(keep),amount:e.amount,merchant:e.merchant||""};
+  if(!obAbsorbedValid(p,owner))return null;
+  const list=obAbsorbedJoin(s.obAbsorbedPending,[p],owner);
+  if(!list){obAbsorbedWarn("full");return null;}
+  return obAbsorbedPersist(owner,list)?list:null;
+}
+function obAbsorbedCandidate(p,row,alias){
+  if(!row||!isExpenseUuid(row.id)||row.id===p.keepId||typeof row.source!=="string"||typeof row.fecha!=="string"||typeof row.comercio!=="string")return false;
+  const e=expenseFromRow(row),key=obAbsorptionKey(e);
+  if(e.obPending||e.amount!==p.amount||e.merchant!==p.merchant||!key||!obAbsorptionMatches(e,{[p.key]:1})||obAbsorptionMatches(e,{[p.keepKey]:1}))return false;
+  // Sin UUID compartido, una cuenta ausente ya no acredita una coincidencia destructiva.
+  return !alias||!!p.key.split("|")[4]&&!!e.obAcc&&key===p.key;
+}
+// No encontrar un candidato borrable no prueba ausencia: un alias editado/legacy es incertidumbre.
+function obAbsorbedPossible(p,row){
+  if(!row||!row.id||typeof row.source!=="string")return true;
+  const e=expenseFromRow(row),key=obAbsorptionKey(e);
+  if(key)return obAbsorptionMatches(e,{[p.key]:1});
+  return esFilaDeBanco(e)&&encodeURIComponent(expenseBankOf(e)||"")===p.key.split("|")[1]
+    &&String(e.date||"").slice(0,10)===p.key.split("|")[5]&&e.amount===p.amount&&e.merchant===p.merchant;
+}
+async function obAbsorbedRetry(getState,getOwner,apply,offset){
+  const owner=getOwner(),s=getState();
+  if(!owner||!s||s._historyOwner!==owner||mcSandbox()||!cloud.enabled())return offset||0;
+  if(obAbsorbedRuns.has(owner))return obAbsorbedRuns.get(owner);
+  const list=obAbsorbedJoin(s.obAbsorbedPending,[],owner)||[],start=(offset||0)%Math.max(1,list.length);
+  const batch=list.slice(start).concat(list.slice(0,start)).slice(0,4);
+  const run=(async function(){
+    for(const p of batch){
+      if(getOwner()!==owner)break;
+      if(!await cloud.settleObAbsorbed(p,getOwner)||getOwner()!==owner)continue;
+      apply(function(prev){
+        if(getOwner()!==owner||prev._historyOwner!==owner)return prev;
+        const before=prev.obAbsorbedPending||[],next=before.filter(function(q){return q.id!==p.id||q.key!==p.key;});
+        if(next.length===before.length||!obAbsorbedPersist(owner,next))return prev;
+        return Object.assign({},prev,{obAbsorbedPending:next});
+      });
+    }
+    return (start+batch.length)%Math.max(1,list.length);
+  })();
+  obAbsorbedRuns.set(owner,run);
+  try{return await run;}finally{obAbsorbedRuns.delete(owner);}
 }
 function _errCloudMsg(err){
   return mcLogCode(err);
@@ -1858,7 +2004,7 @@ function borrarGastoNube(e, donde){
 
    Si añades un método a `cloud` que ESCRIBA algo, añádelo a esta lista. */
 const CLOUD_WRITES=[
-  "pushState","addExpense","addExpensesBatch","setExpenseBank","setExpenseDup","setExpenseNoCard","setExpenseNote","setExpenseCat","confirmExpenseWithdrawal","setExpenseDeuda","setExpenseRecibo","deleteExpense","deleteExpensesByIds",
+  "pushState","addExpense","addExpensesBatch","setExpenseBank","setExpenseDup","setExpenseNoCard","setExpenseNote","setExpenseCat","confirmExpenseWithdrawal","setExpenseDeuda","setExpenseRecibo","deleteExpense","deleteExpensesByIds","settleObAbsorbed",
   "backupState","bankConnect","bankDisconnect","myinvestorConnect","myinvestorStore",
   "myinvestorDisconnect","setIngestToken","clearIngestToken","logEvent","logUso","logPerf","feedback","betaReport",
   "deleteAccount","createHousehold","joinHousehold","publishHouseholdSnapshot","leaveHousehold",
@@ -1943,7 +2089,7 @@ function ordinalDeTramos(tramos){
    cargo nuevo de una ranura ya ocupada. Los lectores anteriores ignoran este tramo. */
 function bankRefSufijoCloud(e){ return e&&e.extId ? "#ref"+encodeURIComponent(String(e.extId))+(e.obPendingRef?"#prevref"+encodeURIComponent(String(e.obPendingRef)):"")+(e.obPending?"#pdng":"") : ""; }
 function bankRefDeSource(raw,tag){
-  const m=(tag==="prevref"?/#prevref([^#]*)/:/#ref([^#]*)/).exec(raw); if(!m)return undefined;
+  const m=(tag==="acc"?/#acc([^#]*)/:tag==="prevref"?/#prevref([^#]*)/:/#ref([^#]*)/).exec(raw); if(!m)return undefined;
   try{return decodeURIComponent(m[1])||undefined;}catch(_){return undefined;}
 }
 /* Codifica el banco en `source` de la tabla (sin migración SQL): ob:caixa, ob-hist:sabadell,
@@ -1972,9 +2118,11 @@ function expenseSourceForCloud(e){
   // final no le cambia nada: ve el banco limpio y la marca de repetido donde siempre. Con `~`
   // dentro del banco (como la cuota) ese móvil leería un banco raro y sacaría la fila del
   // presupuesto; con `#` detrás la lee como hoy. Ver `obOrdinalOf`.
-  // Orden: ob:<ent>[~deuda.<id> | ~recibo.<id>][#dup][#ref<id>][#prevref<id>][#pdng][#n<k>].
-  if(ent&&(s==="ob"||String(s).indexOf("ob:")===0)) return "ob:"+ent+(deudaSufijo(e&&e.debtId)||reciboSufijo(e&&e.reciboId))+((e&&e.possibleDup)?"#dup":"")+bankRefSufijoCloud(e)+ordinalSufijoCloud(e);
-  if(ent&&(s==="ob-hist"||String(s).indexOf("ob-hist:")===0)) return "ob-hist:"+ent+reciboSufijo(e&&e.reciboId)+((e&&e.possibleDup)?"#dup":"")+bankRefSufijoCloud(e)+ordinalSufijoCloud(e);
+  // Orden: ob:<ent>[~deuda.<id> | ~recibo.<id>][#dup][#ref<id>][#prevref<id>][#pdng][#acc<cuenta>][#n<k>].
+  // La cuenta debe sobrevivir al pull para no ensanchar la lápida al reinstalar u otro móvil.
+  const acc=e&&e.obAcc?"#acc"+encodeURIComponent(String(e.obAcc)):"";
+  if(ent&&(s==="ob"||String(s).indexOf("ob:")===0)) return "ob:"+ent+(deudaSufijo(e&&e.debtId)||reciboSufijo(e&&e.reciboId))+((e&&e.possibleDup)?"#dup":"")+bankRefSufijoCloud(e)+acc+ordinalSufijoCloud(e);
+  if(ent&&(s==="ob-hist"||String(s).indexOf("ob-hist:")===0)) return "ob-hist:"+ent+reciboSufijo(e&&e.reciboId)+((e&&e.possibleDup)?"#dup":"")+bankRefSufijoCloud(e)+acc+ordinalSufijoCloud(e);
   // Un alias TR/Wallet pendiente usa temporalmente el encoding OB que entienden también las OTA
   // anteriores; al resolver «son distintos» vuelve a su origen real `macrodroid`.
   if(s==="macrodroid"||s==="tr") return (e&&e.possibleDup)?"ob:trade_republic#dup":"macrodroid";
@@ -2526,6 +2674,11 @@ function withdrawalRowMatches(e, row){
   if(/^ob(?:-hist)?:/.test(source)&&/^ob(?:-hist)?:/.test(remote)){
     if((/#ref/.test(source)&&!localRef)||(/#ref/.test(remote)&&!remoteRef))return false;
     source=source.replace(/#ref[^#]*/,"");remote=remote.replace(/#ref[^#]*/,"");
+    // Añadir #acc no invalida el mismo UUID legacy; dos cuentas conocidas sí se distinguen.
+    const localAcc=bankRefDeSource(source,"acc"),remoteAcc=bankRefDeSource(remote,"acc");
+    if(localAcc&&remoteAcc&&localAcc!==remoteAcc)return false;
+    if((/#acc/.test(source)&&!localAcc)||(/#acc/.test(remote)&&!remoteAcc))return false;
+    source=source.replace(/#acc[^#]*/,"");remote=remote.replace(/#acc[^#]*/,"");
   }
   return !!(row.id===e.id && remote===source
     && Number(row.importe)===e.amount && Date.parse(row.fecha)===Date.parse(e.date)
@@ -2838,6 +2991,7 @@ function expenseFromRow(r){
     extId: source==="ob"||source==="ob-hist" ? bankRefDeSource(raw) : undefined,
     obPending: (source==="ob"||source==="ob-hist")&&/#pdng(?:#|$)/.test(raw) ? true : undefined,
     obPendingRef: source==="ob"||source==="ob-hist" ? bankRefDeSource(raw,"prevref") : undefined,
+    obAcc: source==="ob"||source==="ob-hist" ? bankRefDeSource(raw,"acc") : undefined,
   };
 }
 
@@ -2882,6 +3036,8 @@ function refreshExpenseFromCloud(local, incoming, readStartedAt){
   if(Object.prototype.hasOwnProperty.call(incoming,"noCard")) put("noCard", incoming.noCard||undefined);
   if(Object.prototype.hasOwnProperty.call(incoming,"obName")) put("obName", incoming.obName);
   if(incoming.extId) put("extId",incoming.extId);
+  // Un pull legacy sin cuenta no prueba que haya desaparecido la que ya sabemos.
+  if(incoming.obAcc) put("obAcc",incoming.obAcc);
   if(Object.prototype.hasOwnProperty.call(incoming,"obPending")) put("obPending",incoming.obPending);
   if(incoming.obPendingRef) put("obPendingRef",incoming.obPendingRef);
   if(Object.prototype.hasOwnProperty.call(incoming,"origAmount")) put("origAmount", incoming.origAmount);

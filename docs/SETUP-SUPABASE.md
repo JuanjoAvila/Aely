@@ -1,3 +1,8 @@
+FIN-11 candidata privada: presupuesto, ingest y widget reciben `obAbsorbedPending`
+con el titular autenticado, además de `deleted`. La protección se aplica antes de
+la deduplicación FIN-15. Sin SQL ni despliegue; servidor nuevo antes del cliente,
+por el coordinador tras revisión. [Contrato](briefs/fin11-absorciones-pendientes-20261017.md).
+
 FIN-15 (beta 4.26.138, 16/10/2026): `filasComoLaApp` deduplica una referencia bancaria estable
 por banco + `#ref`, aunque cambie el día al contabilizar. Aplica `deleted` y `ob-absorbed`
 antes de consumir la referencia; conserva el comportamiento de filas antiguas sin `#ref`.

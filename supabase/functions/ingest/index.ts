@@ -354,7 +354,7 @@ Deno.serve(async (req) => {
     // instante de lectura, no la llegada de la respuesta ni la fecha del movimiento.
     // Igual que la app al pintar Gastos: lápidas + una fila por día|importe|comercio.
     // Sin esto el widget suma gastos que él ya borró y notis gemelas (bug 907 vs 709, 2026-08-17).
-    const visibles = filasComoLaApp(rows || [], st?.data?.deleted);
+    const visibles = filasComoLaApp(rows || [], st?.data?.deleted, st?.data?.obAbsorbedPending, userId);
     const stats = statsDelMes(visibles, st?.data, desdeMs);
     // Si la app envía un snapshot mientras esta respuesta sigue en vuelo, el nativo necesita
     // la contribución de ESTA fila, no un absoluto que quizá preceda a ese snapshot.
@@ -417,7 +417,7 @@ Deno.serve(async (req) => {
         const widgetRows = await readWidgetRows(supabase, userId, start);
         if (widgetRows != null) widget = widgetSnapshot(st?.data, widgetRows, readAt, {
             id: String(ackId), event: eventKey || "", key: String(month.expenseKey),
-          });
+          }, userId);
       }
     } catch (_) { /* month y alert siguen disponibles */ }
   } catch (_) { /* opcional; el movimiento ya está guardado */ }
