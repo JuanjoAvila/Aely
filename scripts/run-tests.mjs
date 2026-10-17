@@ -120,6 +120,7 @@ const steps = [
   ["reserva-dinero", ["node", "tests/reserva-dinero.test.mjs"]],
   ["metas-pull-transport", ["node", "tests/metas-pull-transport.test.mjs"]],
   ["goals-three-way", ["node", "--test", "tests/goals-three-way.test.mjs"]],
+  ["goals-review-remates", ["node", "--test", "tests/goals-review-remates.test.mjs"]],
   ["persist-commit", ["node", "tests/persist-commit.test.mjs"]],
   ["month-budget-stats", ["node", "tests/month-budget-stats.test.mjs"]],
   ["dash-metricas", ["node", "tests/dash-metricas.test.mjs"]],

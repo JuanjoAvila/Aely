@@ -401,18 +401,17 @@ function App(){
       if(!sessionRef.current || !sessionRef.current.user || sessionRef.current.user.id!==u) return null;
       if(r && r.updated_at && cloudUpdatedAtRef.current===expected){
         cloudUpdatedAtRef.current=r.updated_at;
-        set(function(prev){ return goalSyncAck(prev,u,sent,expected,r.updated_at); });
+        setStateRaw(function(prev){ return goalSyncAck(prev,u,sent,expected,r.updated_at); });
       }
       return r;
     });
   };
-  const goalConflictSeen=useRef(null);
+  const notifyGoalConflicts=function(){
+    const meta=state._goalSync;
+    if(meta && meta.owner===uid) goalSyncNotify(mcStateKey(),meta,function(){cloud.logEvent("error","GOALS_SYNC_CONFLICT");});
+  };
   useEffect(function(){
-    const meta=state._goalSync,prev=goalConflictSeen.current;
-    goalConflictSeen.current=meta;
-    if(meta && meta.owner===uid && (meta.conflicts||[]).length && (!prev || prev.owner!==uid || (meta.conflicts||[]).length>(prev.conflicts||[]).length)){
-      cloud.logEvent("error","GOALS_SYNC_CONFLICT");
-    }
+    notifyGoalConflicts();
   },[state._goalSync,uid]);
   const bankSyncing=useRef(false);          // evita syncs de banco solapados
   // Promesa → true si el pull de arranque (estado + gastos) terminó bien. La espera `runBankSync`.
@@ -586,6 +585,7 @@ function App(){
   const syncFromCloud=function(s, opts){
     if(!s || !s.user) return;
     const u=s.user.id;
+    goalSyncActivate(mcStateKey(),u);
     const freshLogin=!!(opts&&opts.freshLogin);   // acaba de INICIAR SESIÓN (no un reconecta del mismo user)
     // INC-0410 mensual: el asiento solo vale si ESTE pull leyó un estado válido (o aún no hay ninguno).
     const mensualPuerta=reservaMensualPuerta();
@@ -613,8 +613,8 @@ function App(){
           // Solo con lo local del MISMO titular: la lápida de otra cuenta que hubo en este móvil
           // escondería un gasto de esta que coincidiera en día, importe y comercio.
           const sameOwner=!(opts&&opts.dropTx)&&(!freshLogin||prev._historyOwner===u)&&(!prev._historyOwner||prev._historyOwner===u);
-          const goalState=goalSyncPull(prev,cloudState,u,cloudPack.updated_at,!sameOwner);
-          if(goalState._goalSync.cloudOnly) baseObj=Object.assign({},cloudState,{expenses:merged.list});
+          const goalState=goalSyncPull(prev,cloudState,u,cloudPack.updated_at,!sameOwner,localNewer);
+          if(goalState._goalSync.cloudOnly) baseObj=Object.assign({},prev,cloudState,{expenses:merged.list,bankTx:prev.bankTx});
           Object.assign(baseObj,goalState);
           // Una separación pertenece a su titular; la cuenta anterior de este móvil no decide aquí.
           const gem=sameOwner?fusionarGemelos(prev.gemelos,cloudState.gemelos):(cloudState.gemelos||[]);
@@ -1078,7 +1078,10 @@ function App(){
       setSession(sessionRef.current=s);
       // Cerrar sesión rompe la asociación implícita del extracto local con el titular. El
       // próximo login no debe heredar sus apuntes, aunque no exista cartera en la nube.
-      if(!s&&ev==="SIGNED_OUT") set(p=>Object.assign({},p,{bankTx:[]}));
+      if(!s&&ev==="SIGNED_OUT"){
+        if(prev&&prev.user)goalSyncClear(mcStateKey(),prev.user.id);
+        set(p=>Object.assign({},p,{bankTx:[],_goalSync:null}));
+      }
       // Vuelta del email de recuperación: abre el panel para poner contraseña nueva.
       if(ev==="PASSWORD_RECOVERY"){ setRecovery(true); setShowAuth(true); }
       // login ya acredita otro titular si había sesión; dropTx no debe releer esos IDs.

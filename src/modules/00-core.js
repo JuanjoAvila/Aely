@@ -722,6 +722,7 @@ function mergeAccountBalanceHistory(local, incoming){
   return out;
 }
 function mcLoadRaw(key){
+  if(key.endsWith("_goal_conflicts")) return store.get(key);
   const base=store.get(key);
   if(!base) return null;
   const exp=store.get(key+EXP_SUFFIX);
@@ -748,6 +749,12 @@ function mcLoadRaw(key){
   const saved=mcSaveRaw.balanceHistory||(mcSaveRaw.balanceHistory={});
   saved[key]={ref:history,history:history,body:body,revision:revision,owner:base._historyOwner,partition:JSON.stringify(partition),durable:durable&&hist&&hist.schema===1&&(!hist.owner||hist.owner===base._historyOwner)&&JSON.stringify(hist.history)===body};
   delete base._balHistoryRevision;
+  if(base._goalSync){
+    const meta=base._goalSync,legacy=Object.prototype.hasOwnProperty.call(meta,"conflicts");
+    const disk=legacy?{records:goalSyncStore(key,meta)}:mcLoadRaw(key+"_goal_conflicts");
+    base._goalSync=Object.assign({},meta,{conflicts:disk && (!disk.owner || disk.owner===meta.owner)?goalSyncRecords(disk.records):[]});
+    if(legacy) mcSaveRaw(key,base,{expenses:false});
+  }
   return base;
 }
 /* SE GUARDA LO QUE SE HA PINTADO, NO LO QUE SE CALCULÓ (INC-0410, 4/10/2026).
@@ -776,8 +783,13 @@ function mcPersistCommit(p, prev, state, schedule){
    exista la clave partida, los gastos se escriben SIEMPRE. */
 function mcSaveRaw(key, s, opts){
   if(!s) return;
+  if(key.endsWith("_goal_conflicts")){ store.set(key,{owner:s.owner,records:goalSyncRecords(s.records)}); return; }
   const rest=Object.assign({},s);
   delete rest.expenses;
+  if(s._goalSync){
+    goalSyncStore(key,s._goalSync);
+    rest._goalSync=Object.assign({},s._goalSync); delete rest._goalSync.conflicts;
+  }
   // La caché pertenece a este escritor; su inicialización queda dentro de la función
   // que vigilan las revisiones, sin otro dato global compartido fuera de su alcance.
   const saved=mcSaveRaw.balanceHistory||(mcSaveRaw.balanceHistory={});
@@ -3212,6 +3224,50 @@ function goalSyncEqual(a,b){
 }
 function goalSyncCopy(v){ return v===undefined?undefined:JSON.parse(JSON.stringify(v)); }
 function goalSyncReserves(s){ return {rules:(s.settings||{}).reservaRules||[],log:s.reservaLog||[]}; }
+function goalSyncSnapshot(s){
+  const v={};["goals","budget","budgetByMonth","reservaLog"].forEach(function(k){ if(s && s[k]!==undefined) v[k]=goalSyncCopy(s[k]); });
+  if(s && s.settings) v.settings={reservaRules:goalSyncCopy(s.settings.reservaRules||[])};
+  return v;
+}
+function goalSyncRecords(list){
+  const out=[];
+  (Array.isArray(list)?list:[]).forEach(function(r){
+    if(!r || !r.local) return;
+    const v={code:r.code,local:r.code==="goals_reserve_conflict"?goalSyncSnapshot(r.local):goalSyncCopy(r.local)};
+    if(r.goalId) v.goalId=r.goalId; if(r.fields) v.fields=goalSyncCopy(r.fields); if(r.notified) v.notified=true;
+    const same=function(x){const a=Object.assign({},x),b=Object.assign({},v);delete a.notified;delete b.notified;return goalSyncEqual(a,b);};
+    const i=out.findIndex(same);if(i<0) out.push(v);else if(v.notified) out[i].notified=true;
+  });
+  return out.slice(-3);
+}
+function goalSyncStore(key,meta){
+  const blocked=goalSyncStore.blocked||(goalSyncStore.blocked={});
+  if(blocked[key]===meta.owner) return [];
+  const part=key+"_goal_conflicts",disk=mcLoadRaw(part),records=goalSyncRecords(meta.conflicts);
+  records.forEach(function(r){
+    if(disk && disk.owner===meta.owner && (disk.records||[]).some(function(old){const a=Object.assign({},old),b=Object.assign({},r);delete a.notified;delete b.notified;return old.notified && goalSyncEqual(a,b);})) r.notified=true;
+  });
+  const next={owner:meta.owner,records:records};
+  if(!goalSyncEqual(disk,next)) mcSaveRaw(part,next);
+  return records;
+}
+function goalSyncNotify(key,meta,emit){
+  const records=goalSyncStore(key,meta),pending=records.filter(function(r){return !r.notified;});
+  if(!pending.length) return;
+  pending.forEach(function(r){r.notified=true;});
+  const next={owner:meta.owner,records:records},part=key+"_goal_conflicts";mcSaveRaw(part,next);
+  // Sin confirmación durable no se emite: el fallback en memoria no prueba un próximo arranque.
+  try{if(!goalSyncEqual(JSON.parse(localStorage.getItem(part)),next))return;}catch(e){return;}
+  pending.forEach(function(){emit();});
+}
+function goalSyncClear(key,owner){
+  const disk=mcLoadRaw(key+"_goal_conflicts");
+  if(disk && disk.owner===owner){store.del(key+"_goal_conflicts");delete _mem[key+"_goal_conflicts"];}
+  const blocked=goalSyncStore.blocked||(goalSyncStore.blocked={});blocked[key]=owner;
+}
+function goalSyncActivate(key,owner){
+  const blocked=goalSyncStore.blocked;if(blocked && blocked[key]===owner)delete blocked[key];
+}
 function mergeGoalsThreeWay(base,local,remote){
   local=Array.isArray(local)?local:[]; remote=Array.isArray(remote)?remote:[];
   const index=function(rows){ const m=new Map(); for(const g of rows){ if(!g || typeof g.id!=="string" || !g.id || m.has(g.id)) return null; m.set(g.id,g); } return m; };
@@ -3227,34 +3283,37 @@ function mergeGoalsThreeWay(base,local,remote){
     if(!left){ if(!old || !goalSyncEqual(right,old)) goals.push(goalSyncCopy(right)); return; }
     if(!right){ if(!old || !goalSyncEqual(left,old)) goals.push(goalSyncCopy(left)); return; }
     const merged={},fields=[],keys=new Set([...Object.keys(right),...Object.keys(left),...Object.keys(old||{})]);
-    keys.forEach(function(k){
-      const has=function(o){ return !!o && Object.prototype.hasOwnProperty.call(o,k); };
-      const same=function(a,c){ return has(a)===has(c) && (!has(a) || goalSyncEqual(a[k],c[k])); };
+    const financial=["saved","target","done","doneAt"],groups=[financial];
+    keys.forEach(function(k){if(financial.indexOf(k)<0)groups.push([k]);});
+    groups.forEach(function(group){
+      const has=function(o,k){ return !!o && Object.prototype.hasOwnProperty.call(o,k); };
+      const same=function(a,c){ return group.every(function(k){return has(a,k)===has(c,k) && (!has(a,k) || goalSyncEqual(a[k],c[k]));}); };
       let source=right;
       if(same(left,old)) source=right;
       else if(same(right,old)) source=left;
-      else if(!same(left,right)) fields.push(k);
-      if(has(source)) Object.defineProperty(merged,k,{value:goalSyncCopy(source[k]),enumerable:true,writable:true,configurable:true});
+      else if(!same(left,right)) fields.push.apply(fields,group);
+      group.forEach(function(k){if(has(source,k))Object.defineProperty(merged,k,{value:goalSyncCopy(source[k]),enumerable:true,writable:true,configurable:true});});
     });
     goals.push(merged);
     if(fields.length) conflicts.push({code:"goals_field_conflict",goalId:id,fields:fields,local:goalSyncCopy(left)});
   });
   return {goals:goals,conflicts:conflicts};
 }
-function goalSyncPull(prev,remote,owner,revision,dropLocal){
+function goalSyncPull(prev,remote,owner,revision,dropLocal,localNewer){
   const kept=!dropLocal && prev._goalSync && prev._goalSync.owner===owner?prev._goalSync:null;
-  const reserves=goalSyncReserves(remote),baseReserves=kept&&kept.reserves||{rules:[],log:[]};
-  // GO cd02498b: no separar la proyección de metas de las reglas/asientos que la financiaron.
-  // También una sola rama cambiada exige conservar la foto coherente completa de la nube.
-  const reject=!dropLocal && (!goalSyncEqual(goalSyncReserves(prev),baseReserves) || !goalSyncEqual(reserves,baseReserves));
+  const reserves=goalSyncReserves(remote),baseReserves=kept&&kept.reserves||reserves;
+  const newer=localNewer===undefined?(prev._savedAt||0)>(remote._savedAt||0):localNewer;
+  const localChanged=!goalSyncEqual(goalSyncReserves(prev),baseReserves),remoteChanged=!goalSyncEqual(reserves,baseReserves);
+  const reject=!!kept && !dropLocal && remoteChanged && (localChanged || newer || !goalSyncEqual(prev.goals,kept.base));
   let merged;
-  if(reject){
-    const local=Object.assign({},prev); delete local._goalSync;
-    merged={goals:goalSyncCopy(remote.goals||[]),conflicts:[{code:"goals_reserve_conflict",local:goalSyncCopy(local)}]};
+  if(!kept || (localChanged && !remoteChanged)){
+    merged={goals:goalSyncCopy(!dropLocal && newer?prev.goals||[]:remote.goals||[]),conflicts:[]};
+  } else if(reject){
+    merged={goals:goalSyncCopy(remote.goals||[]),conflicts:[{code:"goals_reserve_conflict",local:goalSyncSnapshot(prev)}]};
   } else merged=mergeGoalsThreeWay(kept?kept.base:null,dropLocal?(remote.goals||[]):prev.goals,remote.goals);
-  const conflicts=kept?(kept.conflicts||[]).slice():[];
+  const conflicts=kept?goalSyncRecords(kept.conflicts):[];
   merged.conflicts.forEach(function(c){ if(!conflicts.some(function(v){ return goalSyncEqual(v,c); })) conflicts.push(c); });
-  return {goals:merged.goals,_goalSync:{owner:owner,revision:revision||null,base:goalSyncCopy(remote.goals||[]),reserves:goalSyncCopy(reserves),cloudOnly:reject,conflicts:conflicts}};
+  return {goals:merged.goals,_goalSync:{owner:owner,revision:revision||null,base:goalSyncCopy(remote.goals||[]),reserves:goalSyncCopy(reserves),cloudOnly:reject,conflicts:goalSyncRecords(conflicts)}};
 }
 function goalSyncAck(prev,owner,sent,expected,revision){
   const meta=prev._goalSync;

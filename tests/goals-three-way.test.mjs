@@ -10,9 +10,9 @@ const app=fs.readFileSync(new URL("src/modules/11-app-main.js",root),"utf8");
 const mutant=process.env.INC0410_MUTANT;
 const mutations={
  "quitar-base":["mergeGoalsThreeWay(kept?kept.base:null,","mergeGoalsThreeWay(null,"],
- "sumar":["let source=right;","let source=right; if(k===\"saved\" && old && left[k]!==old[k] && right[k]!==old[k]) source={saved:left[k]+right[k]-old[k]};"],
+ "sumar":["let source=right;","let source=right; if(group[0]===\"saved\" && old && left.saved!==old.saved && right.saved!==old.saved) source=Object.assign({},right,{saved:left.saved+right.saved-old.saved});"],
  "resucitar":["if(!right){ if(!old || !goalSyncEqual(left,old))","if(!right){ if(true)"]
- ,"quitar-proteccion-reservas":["const reject=!dropLocal && (","const reject=false && !dropLocal && ("]
+ ,"quitar-proteccion-reservas":["const reject=!!kept && !dropLocal && remoteChanged && (","const reject=false && !!kept && !dropLocal && remoteChanged && ("]
 };
 if(mutant){const [from,to]=mutations[mutant]||[];assert.ok(from&&core.includes(from),"mutante aplicable");core=core.replace(from,to);}
 function block(source,token){
@@ -23,7 +23,7 @@ function block(source,token){
 }
 function logic(){
  const c=loadPureLogicFromFile();vm.createContext(c);
- for(const name of ["goalSyncEqual","goalSyncCopy","goalSyncReserves","mergeGoalsThreeWay","goalSyncPull","goalSyncAck","goalSyncMetadataOnly","slimForCloud","mcLogEvent"]){vm.runInContext(block(core,"function "+name+"("),c);}
+ for(const name of [...core.matchAll(/^function (goalSync\w+|mergeGoalsThreeWay)\(/gm)].map(m=>m[1]).concat(["slimForCloud","mcLogEvent"])){vm.runInContext(block(core,"function "+name+"("),c);}
  return c;
 }
 const clone=x=>JSON.parse(JSON.stringify(x)),owner="synthetic-owner";
@@ -37,7 +37,7 @@ test("metas y campos disjuntos conservan ambas ediciones, incluidos campos desco
 });
 test("mismo campo: nube gana sin sumar; borrador local privado conserva el valor exacto",()=>{
  const c=logic(),base=goals(),l=clone(base),r=clone(base);l[0].saved=100.01;r[0].saved=100.02;
- const m=c.mergeGoalsThreeWay(base,l,r);assert.equal(m.goals[0].saved,100.02);assert.equal(m.conflicts[0].local.saved,100.01);assert.deepEqual(clean(m.conflicts[0].fields),["saved"]);
+ const m=c.mergeGoalsThreeWay(base,l,r);assert.equal(m.goals[0].saved,100.02);assert.equal(m.conflicts[0].local.saved,100.01);assert.deepEqual(clean(m.conflicts[0].fields),["saved","target","done","doneAt"]);
  const prev={goals:l,_goalSync:{owner,base,revision:"r0",conflicts:[]}};
  const once=c.goalSyncPull(prev,{goals:r},owner,"r1",false);const again=c.goalSyncPull({...once,goals:l},{goals:r},owner,"r1",false);
  assert.equal(once._goalSync.conflicts.length,1);assert.equal(again._goalSync.conflicts.length,1);
@@ -97,7 +97,7 @@ test("transporte real: mismo campo gana nube y el borrador local sobrevive al AC
  a.edit(s=>({...s,goals:s.goals.map(g=>g.id==="a"?{...g,saved:100.01}:g)}));z.edit(s=>({...s,goals:s.goals.map(g=>g.id==="a"?{...g,saved:100.02}:g)}));
  await a.send();await z.send();await z.send();assert.equal(b.row().data.goals[0].saved,100.01);assert.equal(z.state()._goalSync.conflicts[0].local.saved,100.02);
 });
-test("acople: rA/rB conserva la nube entera y guarda el estado local entero como conflicto privado",async()=>{
+test("acople: rA/rB conserva nube financiera y lo local propio, con registro saneado",async()=>{
  const b=transport(),a=b.device(),z=b.device();
  function reserve(d,id,goalId,value){d.edit(s=>d.monthly({...s,settings:{...s.settings,reservaRules:[{id,goalId,kind:"fixed",value,mensual:true}]}},id));}
  reserve(a,"rA","a",1);reserve(z,"rB","b",2);
@@ -105,19 +105,19 @@ test("acople: rA/rB conserva la nube entera y guarda el estado local entero como
  await a.send();const cloud=b.row().data;await z.send();await z.send();
  const state=b.row().data;assert.deepEqual(state.goals.map(g=>g.saved),[101,200]);
  assert.deepEqual(state.reservaLog.map(x=>x.ruleId),["rA"]);assert.deepEqual(state.settings.reservaRules.map(x=>x.id),["rA"]);
- assert.equal(state.budget,cloud.budget);assert.equal(state.unknownLocal,undefined);assert.equal(state._goalSync,undefined);
+ assert.equal(state.budget,cloud.budget);assert.equal(state.unknownLocal.keep,"local-entero");assert.equal(state._goalSync,undefined);
  const record=z.state()._goalSync.conflicts.find(x=>x.code==="goals_reserve_conflict");
- const saved=clone(local);delete saved._goalSync;assert.deepEqual(record.local,saved);
+ assert.equal(record.local.budget,local.budget);assert.equal(record.local.expenses,undefined);assert.equal(record.local.bankTx,undefined);
  assert.deepEqual(record.local.reservaLog.map(x=>x.ruleId),["rB"]);assert.equal(record.local.goals[1].saved,202);
- assert.equal(record.local.unknownLocal.keep,"local-entero");
+ assert.equal(record.local.unknownLocal,undefined);
 });
-test("acople: divergencia solo en reglas O solo en log, en cualquiera de las ramas, impide fusionar metas",()=>{
+test("acople: nube divergente exige rechazo; una edición solo local mantiene el camino anterior",()=>{
  const c=logic(),base=goals(),reserves={rules:[],log:[]};
  for(const branch of ["local","remote"])for(const field of ["rules","log"]){
   const prev={goals:clone(base),settings:{reservaRules:[]},reservaLog:[],_goalSync:{owner,base,reserves,revision:"r0",conflicts:[]}};
   const remote={goals:clone(base),settings:{reservaRules:[]},reservaLog:[]};prev.goals[0].saved=101;remote.goals[1].saved=202;
   const changed=branch==="local"?prev:remote;if(field==="rules")changed.settings.reservaRules=[{id:"r-synthetic"}];else changed.reservaLog=[{id:"log-synthetic",amount:1}];
-  const m=c.goalSyncPull(prev,remote,owner,"r1",false);assert.equal(m._goalSync.cloudOnly,true,branch+field);assert.deepEqual(clean(m.goals),remote.goals);assert.equal(m._goalSync.conflicts[0].code,"goals_reserve_conflict");
+  const m=c.goalSyncPull(prev,remote,owner,"r1",false);assert.equal(m._goalSync.cloudOnly,branch==="remote",branch+field);assert.deepEqual(clean(m.goals),remote.goals);if(branch==="remote")assert.equal(m._goalSync.conflicts[0].code,"goals_reserve_conflict");else assert.equal(m._goalSync.conflicts.length,0);
  }
 });
 test("acople: ACK retiene reglas y log enviados; sin divergencia las metas disjuntas sí se fusionan",()=>{

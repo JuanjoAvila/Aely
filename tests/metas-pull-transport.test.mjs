@@ -30,7 +30,7 @@ function banco(){
   const ctx=loadPureLogicFromFile(),monthly=ctx.applyReservaMensual;
   vm.createContext(ctx);
   const core=fs.readFileSync(path.join(root,"src/modules/00-core.js"),"utf8");
-  for(const name of ["goalSyncEqual","goalSyncCopy","goalSyncReserves","mergeGoalsThreeWay","goalSyncPull","goalSyncAck"]){
+  for(const name of [...core.matchAll(/^function (goalSync\w+|mergeGoalsThreeWay)\(/gm)].map(m=>m[1])){
     vm.runInContext(bloque(core,"function "+name+"("),ctx);
   }
   // Se cargan de la fuente vigente: el guardián también funciona contra el transporte anterior,
@@ -47,6 +47,7 @@ function banco(){
   const deps={
     cloud:{pullState:function(){ const d=diferida(); pulls.push(d); return d.promise; },pushState:()=>Promise.resolve({updated_at:"2026-11-02"})},
     set:function(updater){ state=updater(state); },stateRef:{current:state},cloudUpdatedAtRef:{current:null},pullOkRef:{current:null},
+    setStateRaw:function(updater){ state=updater(state); },
     // El transporte real consulta la sesión antes de unir el historial de Inicio;
     // omitirla en el banco cortaba el pull antes de pedir gastos y ocultaba el motivo.
     sessionRef:{current:{user:{id:"synthetic"}}},mergeAccountBalanceHistory:ctx.mergeAccountBalanceHistory,
