@@ -1,3 +1,41 @@
+## Runner Deno focal · PR255, remates privados, 17/10/2026
+
+`scripts/run-deno-tests.mjs` descubre recursivamente `*.test.ts` y `*_test.ts` en
+`supabase/`. `--list` imprime inventario con `executed:0`; para ejecutar se eligen
+archivos explícitos o `--all` para todos los Deno. No ejecuta build, Node ni E2E.
+Busca primero `deno` por PATH. Solo ante `ENOENT` prueba `AELY_DENO` (ruta
+absoluta literal) o, si no está configurada, `USERPROFILE` y `HOME` más
+`.deno/bin/deno[.exe]`. Un runtime roto o una configuración inválida fallan sin
+cambiar silenciosamente de ejecutable. No usa shell ni descarga Deno.
+
+```sh
+node scripts/run-deno-tests.mjs --list
+node scripts/run-deno-tests.mjs supabase/functions/_shared/crypto.test.ts
+```
+
+Sin Deno devuelve `EXIT 2`, `runtime-unavailable` y todos los seleccionados en
+`notRun`. Un fallo de test, incluso «Module not found», devuelve `EXIT 1` y frena
+sin reintentar. Mantiene `--allow-env` solo para crypto y lectura limitada a
+`supabase/functions` solo para myinvestor-counter; no concede permisos generales.
+Ejecuta con `--cached-only --no-lock --no-prompt`: sin descargas de dependencias,
+sin lockfile nuevo y sin peticiones interactivas de permisos. Solo lifecycle añade
+`--node-modules-dir=none` para resolver tipos npm desde la caché global existente.
+`tests/run-deno-tests.test.mjs` comprueba el proceso y el filesystem con fixtures
+sintéticas, está registrado en `steps` y no ejecuta los tests financieros Deno.
+
+En la base `a9916c3c`, los diez Deno están en `denoEnLista`. Main/PR y deploy
+preparan Deno; beta lo prepara según el plan, que puede omitirlos expresamente.
+Promote llama al runner sin instalar Deno explícitamente. Eso no prueba qué
+ejecutó una CI concreta: [inventario y propuesta](briefs/ops-deno-omitted-tests-20261017.md).
+El bloque Deno del runner general sigue intacto: todavía puede omitir runtime
+ausente o un error «not found». Esta preparación no acredita haber cerrado ese
+agujero en la suite general. La revisión privada verificó Deno2.9 instalado fuera
+del PATH y los diez Deno de main `a9916c3c`: 131 casos pasan, 15,31 s sumando
+ejecuciones válidas, con un fallo inicial de resolución npm conservado y 15,65 s
+incluyéndolo. Los nueve archivos verdes iniciales no se repitieron; lifecycle se
+volvió a ejecutar solo tras cambiar su resolución a caché global. No es CI ni
+una pasada única de la suite general. Fuente y resultados: [acta de remates](briefs/deno-pr255-runtime-real-tests-20261017.md).
+
 Compras con referencias distintas: `tests/compras-identicas-ids.test.mjs` registrado en Node y
 `e2e/compras-identicas-ids.spec.mjs` en Gastos. Handlers reales con fixtures sintéticas,
 rojo causal, tres estados al céntimo y siete mutaciones. El oráculo antiguo de Recibos sigue
