@@ -1,0 +1,40 @@
+{
+  "schema": 1,
+  "id": "ux290904-pr251-remates-codex-20261017",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261017-ff298a06",
+  "createdAt": "2026-10-17T11:50:24.392Z",
+  "kind": "worker",
+  "to": "codex",
+  "baseSHA": "da1b370eb9ccb09f0a943adb5c2561b784af794f",
+  "previousTaskId": "ux2909-04-stale-manual-duplicate-codex-20261017",
+  "previousResult": "09c58454ba953e2b17e770c28bab5ff1665118e1",
+  "grantCommit": "e3d09d2f25239ab0f0b13fcddedb05553398c20e",
+  "objective": "Apply only exact Claude review remates in existing PR251 with original owner",
+  "scope": [
+    "src/modules/08-motor-bank.js",
+    "tests",
+    "e2e",
+    "docs/briefs"
+  ],
+  "sameExistingPR": 251,
+  "sameOriginalOwner": true,
+  "fetchBudget": {
+    "sameWorkerBlockOnly": true,
+    "additional12AfterOwnExhaustion": true,
+    "noticeRequired": true,
+    "ownLedgerRequired": true,
+    "noResetOrROOTInheritance": true
+  },
+  "requirements": [
+    "New OWN claim/readback/ACK before code;closed predecessor result stays immutable;no claim transfer",
+    "Add causal test killing removal of deleted-manual-income guard;month must not show zero income",
+    "Remove exact-name mechanism bankKeys and plus1ms date adjustment per Claude review;adjust case11 because base already resolves it",
+    "Revert gemeloBancoAutomatico change unless exact assigned contract requires it;do not broaden generic historical income behavior",
+    "Reduce within this change where possible,including short names/delSet;cap remains intact. Any future cap decision belongs to Claude integration only",
+    "Use same PR and native worker,own isolated checkout from exact source;preserve prior WIP and evidence",
+    "New causal tests/mutants required by this review;repeat prior tests only when changed behavior requires it and record why",
+    "No09/DeudasMetas sheet/VERSION/catalogue/cap/oracle weakening;no fullsuite/CPU6/Gradle/SQL/livebank/deploy/main-beta push",
+    "Result uses numeric PR only with new sourceSHA,actual EXITs and all unexecuted gates;integration and deployments remain Claude"
+  ]
+}
