@@ -1,0 +1,229 @@
+{
+  "status": "done",
+  "summary": "PR253 R2 scoped delivery under7acaab1f/acaf456d: normal push of frozen ecd536bbd660e1e4d13fad3b097bdd1181910a73, samePR253/draft/main and canonical exact head/body readback. One-sided or identical reserve changes retain three-way goals; changed-side rules/log survive; genuine different two-sided divergence keeps full sanitized private local snapshot including concurrent debts/accounts. Sandbox key cleanup and no extra ordinary-save partition read. Generated HTML committed. Official minified/gzip gate NOT executed; pending Claude review/integration,size decision,generalCI and mobile/served evidence; PR remains NO-GO, not ProductREADY. No changes/tests/build/measurements repeated during delivery; prior source/results immutable.",
+  "productSHA": "ecd536bbd660e1e4d13fad3b097bdd1181910a73",
+  "baseSHA": "3e5884c48d56508ab06c518995fee4f2a763be22",
+  "pr": 253,
+  "branch": "codex/inc0410-lww-investigation-20261017",
+  "previousResultImmutable": "2ec32cc089b89c3b250ed8d4b2152a27d8ba7079",
+  "tests": [
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "evidence": "review2-build.json"
+    },
+    {
+      "command": "causal-red",
+      "exitCode": 1,
+      "evidence": "review2-causal-red.json"
+    },
+    {
+      "command": "green1",
+      "exitCode": 1,
+      "evidence": "review2-green1.json"
+    },
+    {
+      "command": "green2",
+      "exitCode": 0,
+      "evidence": "review2-green2.json"
+    },
+    {
+      "command": "mutant-equal-is-conflict",
+      "exitCode": 1,
+      "evidence": "review2-mutant-equal-is-conflict.json",
+      "pattern": "reservas cambiadas igual"
+    },
+    {
+      "command": "mutant-narrow-record",
+      "exitCode": 1,
+      "evidence": "review2-mutant-narrow-record.json",
+      "pattern": "R2-2"
+    },
+    {
+      "command": "mutant-no-reset-conflicts",
+      "exitCode": 1,
+      "evidence": "review2-mutant-no-reset-conflicts.json",
+      "pattern": "resetSandbox"
+    },
+    {
+      "command": "mutant-one-sided-lww",
+      "exitCode": 1,
+      "evidence": "review2-mutant-one-sided-lww.json",
+      "pattern": "R2-1: aportación"
+    },
+    {
+      "command": "mutant-remote-reserves",
+      "exitCode": 1,
+      "evidence": "review2-mutant-remote-reserves.json",
+      "pattern": "R2-1: aportación"
+    },
+    {
+      "command": "review2-mutant-remove-reserve-protection-v2.json",
+      "exitCode": 1,
+      "evidence": "review2-mutant-remove-reserve-protection-v2.json",
+      "pattern": "acople: rA/rB"
+    },
+    {
+      "command": "review2-mutant-remove-reserve-protection.json",
+      "exitCode": 0,
+      "evidence": "review2-mutant-remove-reserve-protection.json",
+      "pattern": "acople: reservas distintas"
+    },
+    {
+      "command": "node tests/backup-sin-datos-banco.test.mjs",
+      "exitCode": 0,
+      "evidence": "review2-regression-backup.json",
+      "env": {}
+    },
+    {
+      "command": "node tests/inicio-grafica-reservas.test.mjs",
+      "exitCode": 0,
+      "evidence": "review2-regression-history.json"
+    },
+    {
+      "command": "node --test --test-name-pattern=M12 tests/goals-review-remates.test.mjs",
+      "exitCode": 1,
+      "evidence": "review2-regression-M12.json",
+      "env": {
+        "INC0410_REVIEW_MUTANT": "M12"
+      }
+    },
+    {
+      "command": "node --test --test-name-pattern=M9 tests/goals-review-remates.test.mjs",
+      "exitCode": 1,
+      "evidence": "review2-regression-M9.json",
+      "env": {
+        "INC0410_REVIEW_MUTANT": "M9"
+      }
+    },
+    {
+      "command": "node tests/reserva-dinero.test.mjs",
+      "exitCode": 0,
+      "evidence": "review2-regression-monthly.json",
+      "env": {}
+    },
+    {
+      "command": "node tests/persist-commit.test.mjs",
+      "exitCode": 0,
+      "evidence": "review2-regression-persist.json",
+      "env": {}
+    },
+    {
+      "command": "node --test tests/goals-review-remates.test.mjs",
+      "exitCode": 0,
+      "evidence": "review2-regression-r1.json",
+      "env": {}
+    },
+    {
+      "command": "node tests/security.test.mjs",
+      "exitCode": 0,
+      "evidence": "review2-regression-security.json",
+      "env": {}
+    },
+    {
+      "command": "node --test tests/goals-three-way.test.mjs",
+      "exitCode": 0,
+      "evidence": "review2-regression-three-way.json",
+      "env": {}
+    },
+    {
+      "command": "node tests/metas-pull-transport.test.mjs",
+      "exitCode": 0,
+      "evidence": "review2-regression-transport.json"
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0,
+      "evidence": "review2-syntax.json"
+    },
+    {
+      "command": "git push normal frozen OWN candidate; gh pr edit253; exact PR head/body readback",
+      "exitCode": 0
+    }
+  ],
+  "mutations": [
+    {
+      "name": "one-sided-lww",
+      "exitCode": 1,
+      "causalAssertion": "20000 vs26001 cents"
+    },
+    {
+      "name": "remote-reserves",
+      "exitCode": 1,
+      "causalAssertion": "rule1 vs5"
+    },
+    {
+      "name": "narrow-record",
+      "exitCode": 1,
+      "causalAssertion": "missing concurrent accounts/debts"
+    },
+    {
+      "name": "no-reset-conflicts",
+      "exitCode": 1,
+      "causalAssertion": "sandbox conflict key remains"
+    },
+    {
+      "name": "equal-is-conflict",
+      "exitCode": 1,
+      "causalAssertion": "cloudOnly true vsfalse"
+    },
+    {
+      "name": "M9",
+      "exitCode": 1,
+      "causalAssertion": "4 pushes vs1"
+    },
+    {
+      "name": "M12",
+      "exitCode": 1,
+      "causalAssertion": "ACK base25 vs0 sent"
+    },
+    {
+      "name": "remove-reserve-protection-v2",
+      "exitCode": 1,
+      "causalAssertion": "[101,202] vs coherent cloud[101,200]"
+    }
+  ],
+  "validationQualification": {
+    "causalRed": "6 failures on R1 before product fix, EXIT1",
+    "green": "R2 6PASS;R1 10PASS;three-way12PASS;monthlytransport10cases; focal reserves/persist/history/backup/security/build/syntax EXIT0",
+    "invalidEvidence": "First remove-reserve-protection run had unmatched pattern EXIT0 and is excluded; corrected v2 matched rA/rB and failed causally. green1 had test-scope mistake inspecting legitimate main profile; corrected partition-only assertion before green2. Guessed absent history target executed nothing; existing Inicio history test later EXIT0.",
+    "noTestsOrBuildRepeatedDuringDelivery": true
+  },
+  "officialSizeGate": {
+    "executed": false,
+    "status": "pending",
+    "reason": "Authorized esbuild runtime unavailable; no installation or foreign modules. Raw HTML/gzip are not substituted for official minified caps."
+  },
+  "persistenceEvidence": {
+    "syntheticExpenses": 2000,
+    "mainWritesBytes": [
+      488,
+      487
+    ],
+    "separateRecords": 3,
+    "separatePartitionBytes": 921
+  },
+  "budget": {
+    "closedPrevious": "inc0410-own12-2-084e69a4 12of12",
+    "active": "inc0410-own12-3-084e69a4",
+    "usedBeforeResult": 4,
+    "allowance": 12,
+    "grant": "db3299cd69020ccf15563e787d1a1f4b69e8a753",
+    "noticeCommit": "999163d01c6246c7eec3fc5bf9018df904af6482",
+    "sameOwnerNoResetNoROOTInheritance": true
+  },
+  "limitations": [
+    "Official minified/gzip gate and Claude review/integration/size decision pending",
+    "GeneralCI,docs-frescura,beta-sources,browser/mobile and served beta acceptance pending",
+    "No09/editor,VERSION,catalogue,caps or unrelated oracle edits",
+    "No fullsuite,CPU6,Gradle,liveSQL,banks,backenddeploy,main-beta push/merge or deploy",
+    "Previous source3e5884c4 and result2ec32cc0 immutable; frozen current source retained",
+    "No new source/tests/build/measurements in this delivery turn"
+  ],
+  "schema": 1,
+  "taskId": "inc0410-pr253-review2-remates-codex-20261017",
+  "actor": "codex",
+  "sessionId": "codex-local-20261017-55a003910cb4f81a",
+  "createdAt": "2026-10-17T13:39:02.934Z",
+  "released": true
+}
