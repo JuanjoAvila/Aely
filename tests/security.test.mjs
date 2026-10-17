@@ -97,7 +97,8 @@ console.log("security");
 }
 
 // Ejecuta también el efecto de App: cortar una llamada en la guarda no prueba que se
-// haya cancelado el debounce ni que la edición se haya entregado al flush local existente.
+// haya cancelado el debounce. Abrir la guarda NO es una autorización de escritura local:
+// el búfer existente se conserva hasta el pagehide o su temporizador normal.
 {
   const app=read('src/modules/11-app-main.js').replace(/\r\n/g,'\n'),begin=app.indexOf('// Empuja el estado a la nube (debounced)'),end=app.indexOf('// Al volver, los gastos',begin);
   const timers=new Map(),listeners=new Map(),uploads=[],durable=[];let next=0,blocked=false;
@@ -109,8 +110,8 @@ console.log("security");
     window:{addEventListener:(n,f)=>listeners.set(n,f),removeEventListener:()=>{}},showToast:()=>{},syncFromCloud:()=>{},t:x=>x});
   vm.runInContext(app.slice(begin,end),ctx);
   const armed=timers.size===1;blocked=true;listeners.get('mc-sandbox-transition')();
-  if(!armed||timers.size||uploads.length||durable.length!==1||durable[0].budget!==state.budget)bad('transición cancela debounce y entrega edición al flush real','timer o edición perdidos');
-  else ok('transición cancela debounce y entrega la edición al flush local existente');
+  if(!armed||timers.size||uploads.length||durable.length)bad('transición cancela debounce sin forzar escrituras locales','timer activo o escritura local inducida');
+  else ok('transición cancela debounce sin forzar escrituras locales');
   blocked=false;listeners.get('mc-sandbox-transition')();
   if(timers.size!==1)bad('acuse fallido rearma el push normal','sin timer de recuperación');
   else{const callback=[...timers.values()][0];callback();if(uploads.length!==1||uploads[0].data.settings.pending!=='real-edit')bad('acuse fallido rearma el push normal','payload incorrecto');else ok('acuse fallido rearma el push normal con la edición real');}

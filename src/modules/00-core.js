@@ -951,7 +951,9 @@ function mcSkipPersist(){ return _mcSkipPersist; }
    lo que llama la UI. No es un atajo para las pruebas: son dos cosas distintas de verdad. */
 function mcMarcarNoVolcar(){ _mcSkipPersist=true; }
 function mcRecargarSinVolcar(){
-  mcMarcarNoVolcar();
+  // Solo el estado de PRUEBAS viejo puede pisar su semilla. Si salimos de REAL,
+  // pagehide debe conservar las ediciones reales pendientes en su clave fijada.
+  if(mcSandbox()) mcMarcarNoVolcar();
   location.reload();
 }
 /* Tira la cartera de pruebas y empieza otra desde cero copiando la real otra vez.

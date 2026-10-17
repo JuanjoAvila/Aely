@@ -2,6 +2,18 @@
 const SYNC_SIN_NUBE={motivo:"sync-sin-nube"};
 function App(){
   const [state,setStateRaw]=useState(loadState);
+  const [modeChangePending,setModeChangePending]=useState(mcSandboxTransition);
+  useEffect(function(){
+    const changed=function(){
+      const pending=mcSandboxTransition();
+      setModeChangePending(pending);
+      // Diagnóstico local de vocabulario cerrado; tampoco la telemetría puede saltarse
+      // CLOUD_WRITES durante la transición. El documento siguiente empieza sin esta marca.
+      if(pending) performance.mark("mc_mode_change_reopen_required");
+    };
+    window.addEventListener("mc-sandbox-transition",changed);
+    return function(){ window.removeEventListener("mc-sandbox-transition",changed); };
+  },[]);
   const [tab,setTab]=useState(0);
   // Lazy mount: solo monta pestañas visitadas + vecinas (swipe) → menos trabajo en arranque.
   // mountNeighbors=false al cold start: NO montar Gastos/Fijos en el primer pintado (lag al
@@ -1093,9 +1105,9 @@ function App(){
     const transition=function(){
       if(mcSandboxTransition()){
         clearTimeout(tmr); tmr=null;
-        // Conserva la edición en la cartera REAL por la vía local existente. Al volver,
-        // syncFromCloud conserva su _savedAt más reciente y el push normal la sube.
-        flushPersist();
+        // Cerrar los escritores no autoriza escribir la cartera real: sembrar pruebas
+        // debe ser un no-op sobre ella. El pagehide existente vuelca SOLO su búfer pendiente
+        // cuando se cierra de verdad el documento (incluida la entrada al modo vacío).
       }else queue();   // un acuse fallido cancela la transición, no el guardado normal
     };
     window.addEventListener("mc-sandbox-transition",transition);
@@ -3571,14 +3583,18 @@ function App(){
     );
   });
 
-  if(locked) return React.createElement(LockScreen,{onUnlock:function(){ setLocked(false); }});
+  const modeChangeWarning=modeChangePending && React.createElement("div",{role:"alert",className:"mode-change-warning",
+    style:{position:"fixed",top:0,left:0,right:0,zIndex:2147483647,padding:"16px",background:"var(--bg)",color:"var(--text)",borderBottom:"2px solid var(--accent)",fontSize:14}},t("mode_change_reopen"));
+  if(locked) return React.createElement(React.Fragment,null,modeChangeWarning,React.createElement(LockScreen,{onUnlock:function(){ setLocked(false); }}));
   if(state.onboarded===false) return React.createElement(React.Fragment,null,
+    modeChangeWarning,
     React.createElement(Onboarding,{set:set, onCloud:(cloud.enabled()?onCloudClick:null), onSignup:(cloud.enabled()?onSignupClick:null)}),
     showAuth && React.createElement(AuthPanel,{session:session,onClose:function(){ setShowAuth(false); setRecovery(false); },showToast:showToast,recovery:recovery,startMode:authStart}),
     toast && React.createElement("div",{className:"toast"},toast)
   );
 
   return React.createElement("div",{className:"app v4"+(mcSandbox()?" sandbox":"")},
+    modeChangeWarning,
     // seasonLayers → portal en document.body (ver useMemo arriba)
     seasonLayers,
     // Banda de MODO PRUEBAS, siempre visible (2026-07-24). Sin ella es cuestión de tiempo apuntar
