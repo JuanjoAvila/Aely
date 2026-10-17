@@ -109,3 +109,78 @@ test("fuera del modo pruebas no hay ni rastro de la banda", async ({ page }) => 
   await expect(page.locator(".botnav")).toBeVisible({ timeout: 15_000 });
   await expect(page.locator(".sandbox-bar")).toHaveCount(0);
 });
+
+import fs from 'node:fs';
+
+// No production endpoint is contacted. Keep every mock write, including startup and the
+// pending real push below; the interval is confirmation capture → old document pagehide.
+for(const action of ['activate','empty','deactivate']) test(`INC171001 terminal Settings ${action}: exact reload and whole-window isolation`,async({page,context},info)=>{
+  const events=[],errors=[],external=[];
+  page.on('pageerror',e=>errors.push(e.message));
+  await context.route('**/*',r=>{const u=new URL(r.request().url());if(u.origin===new URL(info.project.use.baseURL).origin)return r.continue();external.push({origin:u.origin,method:r.request().method()});return r.abort('blockedbyclient');});
+  await seedLoggedInDashboard(page,{__seedOnce:true,__cloudRows:{profiles:[{is_admin:true}]},budget:500,settings:{autoPrices:false,theme:'green'}});
+  await page.addInitScript(({action})=>{
+    const keys=['micartera_v3','micartera_v3_exp','micartera_v3_balhist'];
+    const real=()=>Object.fromEntries(keys.map(k=>[k,localStorage.getItem(k)]));
+    const log=(kind,detail)=>{const rows=JSON.parse(sessionStorage.getItem('_incWholeEvents')||'[]');rows.push({kind,time:performance.timeOrigin+performance.now(),boot:Number(sessionStorage.getItem('_incWholeBoot')),flag:localStorage.getItem('_mcSandbox'),pinned:typeof mcSandbox==='function'?mcSandbox():null,...detail});sessionStorage.setItem('_incWholeEvents',JSON.stringify(rows));};
+    sessionStorage.setItem('_incWholeBoot',String(Number(sessionStorage.getItem('_incWholeBoot')||0)+1));
+    if(!sessionStorage.getItem('_incWholePrepared')){
+      sessionStorage.setItem('_incWholePrepared','1');const s=JSON.parse(localStorage.getItem('micartera_v3'));
+      localStorage.setItem('micartera_v3_exp','[]');localStorage.setItem('micartera_v3_balhist','{}');
+      localStorage.setItem('micartera_sandbox',JSON.stringify({...s,budget:9999,accounts:[]}));localStorage.setItem('micartera_sandbox_exp','[]');
+      if(action!=='activate')localStorage.setItem('_mcSandbox','1');
+      localStorage.setItem('_mcAdminProfile',JSON.stringify({uid:'e2e-user',isAdmin:true}));
+    }
+    // Retain exact bytes BEFORE the new app boot can perform its normal real-session sync.
+    log('boot',{real:real()});
+    const descriptor=Object.getOwnPropertyDescriptor(window,'supabase');
+    Object.defineProperty(window,'supabase',{configurable:true,get:descriptor.get,set(lib){descriptor.set(lib);const mocked=descriptor.get();if(!mocked?.createClient)return;const create=mocked.createClient;mocked.createClient=()=>{const client=create(),from=client.from;client.from=table=>{const chain=from(table);for(const method of ['insert','update','upsert','delete'])if(chain[method]){const original=chain[method];chain[method]=(...args)=>{log('write',{table,method,budget:args[0]?.data?.budget,stack:new Error().stack});return original(...args);};}return chain;};window._incWholeInstrumented=true;return client;};}});
+    for(const method of ['back','pushState','replaceState']){const original=history[method];history[method]=function(...args){log('history-'+method,{state:history.state});return Reflect.apply(original,this,args);};}
+    for(const event of ['popstate','beforeunload','pagehide'])window.addEventListener(event,()=>log(event,{real:real(),state:history.state}));
+    document.addEventListener('click',e=>{
+      const b=e.target.closest('button');if(!b?.closest('[role=dialog]'))return;
+      const ok=action==='activate'?'Entrar a probar':action==='empty'?'Vaciar':'Salir a mi cartera real';
+      if(b.textContent!==ok)return;
+      log('confirm',{real:real(),state:history.state});
+      // A pending write through the REAL cloud API stays enabled. In the broken app the
+      // canceled reload lets it fire with the old mode; a successful unload cancels the timer.
+      const s=slimForCloud(mcLoadRaw(mcStateKey()));
+      setTimeout(()=>{log('pending-writer-fired',{budget:s.budget});cloud.pushState('e2e-user',s,null);},500);
+    },true);
+  },{action});
+  const snap=()=>page.evaluate(()=>({boot:Number(sessionStorage.getItem('_incWholeBoot')),events:JSON.parse(sessionStorage.getItem('_incWholeEvents')||'[]'),flag:localStorage.getItem('_mcSandbox'),emptyFlag:localStorage.getItem('_mcSandboxVacio'),pinned:mcSandbox(),emptyPinned:mcSandboxVacio(),key:mcStateKey(),budget:mcLoadRaw(mcStateKey())?.budget,sandbox:mcLoadRaw('micartera_sandbox'),instrumented:window._incWholeInstrumented,uiInside:document.body.innerText.includes('Banco de pruebas: DENTRO')}));
+  let outcome;
+  try{
+    await page.goto('/');await expect(page.locator('.botnav')).toBeVisible();await page.locator('#mc-load').waitFor({state:'detached'});await dismissNews(page);
+    // No startup-settling sleep and no write counters reset. Prove writers remain usable.
+    if(action==='activate')await page.evaluate(()=>cloud.pushState('e2e-user',slimForCloud(mcLoadRaw(mcStateKey())),null));
+    const open=async()=>{await page.locator('.v4-avatar').click();await page.getByRole('button',{name:'Ir a Ajustes',exact:true}).click();await expect(page.locator('.settings-push.open')).toBeVisible();};
+    await open();await page.getByRole('button',{name:new RegExp(action==='empty'?'Vaciar la cartera de pruebas':action==='activate'?'Banco de pruebas':'Banco de pruebas: DENTRO')}).click();
+    const ok=action==='activate'?'Entrar a probar':action==='empty'?'Vaciar':'Salir a mi cartera real';
+    await page.getByRole('dialog').getByRole('button',{name:ok,exact:true}).click();
+    await expect.poll(async()=>Number(await page.evaluate(()=>sessionStorage.getItem('_incWholeBoot'))),{timeout:6500}).toBe(2);
+    await page.locator('#mc-load').waitFor({state:'detached'});
+    outcome=await snap();expect(outcome.instrumented).toBe(true);
+    const confirm=outcome.events.find(e=>e.kind==='confirm'),hide=outcome.events.find(e=>e.kind==='pagehide'&&e.boot===1),boot=outcome.events.find(e=>e.kind==='boot'&&e.boot===2);
+    expect(confirm).toBeTruthy();expect(hide).toBeTruthy();expect(boot).toBeTruthy();
+    expect(hide.real).toEqual(confirm.real);expect(boot.real).toEqual(confirm.real);
+    expect(outcome.events.filter(e=>e.kind==='write'&&e.time>=confirm.time&&e.time<=hide.time)).toEqual([]);
+    expect(outcome.events.filter(e=>e.kind==='pending-writer-fired'&&e.boot===1)).toEqual([]);
+    if(action==='activate'){
+      expect(outcome.events.some(e=>e.kind==='write'&&e.time<confirm.time&&e.budget===500)).toBe(true);
+      expect(outcome.pinned).toBe(true);expect(outcome.budget).toBe(9999);await expect(page.locator('.sandbox-bar')).toBeVisible();
+      // A writer remains enabled at the call site, but the unchanged sandbox guard blocks it.
+      const n=outcome.events.filter(e=>e.kind==='write').length;
+      await page.evaluate(()=>cloud.pushState('e2e-user',slimForCloud(mcLoadRaw(mcStateKey())),null));
+      expect((await snap()).events.filter(e=>e.kind==='write')).toHaveLength(n);
+    }else if(action==='empty'){
+      expect(outcome.emptyPinned).toBe(true);expect(outcome.sandbox.budget).toBe(0);expect(outcome.sandbox.expenses).toEqual([]);await expect(page.locator('.v4-ob-title')).toBeVisible();
+    }else{expect(outcome.pinned).toBe(false);expect(outcome.budget).toBe(500);await expect(page.locator('.sandbox-bar')).toHaveCount(0);}
+    if(action!=='empty'){await open();await expect(page.getByRole('button',{name:/Banco de pruebas/})).toContainText(action==='activate'?'Banco de pruebas: DENTRO':'Banco de pruebas');await page.locator('.settings-push-h .back').click();await expect(page.locator('.settings-push.open')).toHaveCount(0);await open();}
+    expect(errors).toEqual([]);expect(external.filter(e=>!['GET','HEAD','OPTIONS'].includes(e.method))).toEqual([]);
+  }finally{
+    outcome=await snap().catch(()=>outcome);events.push(...outcome?.events||[]);
+    const artifact={action,outcome,events,errors,external,conflictCopyKeyPresent:false};
+    fs.writeFileSync(info.outputPath('whole-window.json'),JSON.stringify(artifact,null,2)+'\n');
+  }
+});

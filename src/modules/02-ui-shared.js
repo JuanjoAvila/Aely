@@ -1125,8 +1125,14 @@ function _mcBackAdd(close){
   _mcBackStack.push(e); _mcBackSchedule();
   return e;
 }
-function _mcBackDrop(e){
-  if(!e||!e.active) return;
+function _mcBackDrop(e,afterConsume){
+  if(!e||!e.active){ if(afterConsume) afterConsume(false); return; }
+  // Sólo el Ask terminal pide acuse: una entrada ajena, fallida o aún sin armar
+  // nunca autoriza su transición. El cierre ordinario conserva su camino.
+  if(afterConsume){
+    if(!e.slot||e.failed||e.slot.blocked||_mcBackPending||_mcBackSlot(history.state)!==e.slot){ afterConsume(false); return; }
+    e.afterConsume=afterConsume;
+  }
   e.active=false;
   var i=_mcBackStack.indexOf(e); if(i>=0) _mcBackStack.splice(i,1);
   if(e.slot) e.slot.retired=_mcBackTurn;
@@ -1148,14 +1154,17 @@ function _mcBackConsume(s){
   if(_mcBackPending||s.blocked||_mcBackSlot(history.state)!==s) return;
   // Una entrada ajena o un push fallido nunca autorizan a salir de la ruta por un cierre UI.
   _mcBackPending={from:s,state:s.before,url:s.beforeUrl}; _mcIgnorePop=true;
-  try{ history.back(); }catch(err){ s.blocked=true; _mcBackPending=null; _mcIgnorePop=false; }
+  try{ history.back(); }catch(err){
+    s.blocked=true; _mcBackPending=null; _mcIgnorePop=false;
+    var done=s.entry.afterConsume; s.entry.afterConsume=null; if(done) done(false);
+  }
 }
 function _mcBackFlush(){
   var turn=_mcBackTurn++;
   if(_mcBackPending) return;
   var current=_mcBackSlot(history.state);
   var waiting=_mcBackStack.filter(function(e){ return !e.slot&&!e.failed&&e.url===location.href; });
-  if(current&&!current.entry.active&&current.retired===turn&&waiting.length){
+  if(current&&!current.entry.active&&current.retired===turn&&waiting.length&&!current.entry.afterConsume){
     // Sólo se sustituye la entrada propia superior retirada en ESTE lote; su padre se conserva.
     if(_mcBackArm(waiting[0],current)){ waiting.shift(); current=_mcBackAt; }
   }
@@ -1189,9 +1198,12 @@ function _mcBackInitOnce(){
     _mcBackAt=current;
     if(pending){
       _mcBackPending=null; _mcIgnorePop=false;
-      if(location.href===pending.url&&_mcBackSame(ev.state,pending.state)){
+      var consumed=location.href===pending.url&&_mcBackSame(ev.state,pending.state);
+      if(consumed){
         pending.from.present=false;
       }
+      var done=pending.from.entry.afterConsume; pending.from.entry.afterConsume=null;
+      if(done) done(consumed);
       _mcBackSchedule(); return;
     }
     // Llegar desde otra ruta a nuestra entrada no equivale a haber salido de ella.
@@ -1216,6 +1228,7 @@ function _mcBackInitOnce(){
 }
 function useBackClose(open, onClose, identity){
   const close=useRef(null);
+  const entry=useRef(null);
   // Conserva la closure de apertura y las refs financieras existentes. Sólo los propietarios
   // que cambian de paso/diálogo solicitan explícitamente otro registro con identity.
   useEffect(function(){ close.current=open?onClose:null; },[open]);
@@ -1223,8 +1236,10 @@ function useBackClose(open, onClose, identity){
     _mcBackInitOnce();
     if(!open) return undefined;
     const e=_mcBackAdd(close.current);
-    return function(){ _mcBackDrop(e); };
+    entry.current=e;
+    return function(){ _mcBackDrop(e); if(entry.current===e) entry.current=null; };
   },[open,identity]);
+  return entry;
 }
 
 /* Pantallas hijas a página completa: dentro de la WebView se puede volver desde cualquier punto,

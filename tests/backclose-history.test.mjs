@@ -305,4 +305,58 @@ check("unidad110 vigila controlador completo y sus entradas reales de App, Ask y
   console.log("  "+mutants+" mutantes110 de UI/entradas; guardianes financieros actuales independientes");
 });
 
+const askSource=fs.readFileSync(new URL('../src/modules/05-dialogs-inv.js',import.meta.url),'utf8');
+function askDone(p,entry,terminal=true){
+  const body=askSource.match(/const done=(function\(r\)\{[\s\S]*?\n  \});/);
+  assert.ok(body,'se ejecuta done real de AskHost');
+  const results=[],cur={terminal,resolve:r=>results.push(r)};
+  const ctx=vm.createContext({cur,back:{current:entry},setCur:()=>{},setVal:()=>{},_mcBackDrop:p.ctx._mcBackDrop});
+  return {done:vm.runInContext('('+body[1]+')',ctx),results};
+}
+
+check('INC171001 aceptar terminal espera el pop exacto del Ask y conserva padre vivo',()=>{
+  const p=platform(),parent=p.ctx._mcBackAdd(()=>assert.fail('no cierra padre'));p.drain();
+  const child=p.ctx._mcBackAdd(()=>{});p.drain();const a=askDone(p,child);
+  a.done(true);p.micros();assert.deepEqual(a.results,[],'solicitar back no es acuse');
+  assert.equal(p.count('back'),1);p.task();assert.deepEqual(a.results,[true]);
+  assert.equal(p.history.state.mcBack.id,parent.slot.id);assert.equal(p.ctx._mcBackStack.length,1);
+  p.ctx._mcBackDrop(child);p.drain();assert.deepEqual(a.results,[true],'cleanup repetido no repite transición');
+});
+
+check('INC171001 cancelar terminal y Ask normal conservan resolución inmediata',()=>{
+  for(const [terminal,result] of [[true,false],[false,true],[false,'texto']]){
+    const p=platform(),e=p.ctx._mcBackAdd(()=>{});p.drain();const a=askDone(p,e,terminal);
+    a.done(result);assert.deepEqual(a.results,[result]);assert.equal(p.count('back'),0);
+    p.ctx._mcBackDrop(e);p.drain();assert.deepEqual(p.history.state,p.base);
+  }
+});
+
+check('INC171001 entrada ajena no autoriza transición ni consumo de su historial',()=>{
+  for(const method of ['pushState','replaceState']){
+    const p=platform(),e=p.ctx._mcBackAdd(()=>{});p.drain();p.history[method]({foreign:true},'','/foreign');
+    const a=askDone(p,e);a.done(true);p.ctx._mcBackDrop(e);p.drain();
+    assert.deepEqual(a.results,[false]);assert.equal(p.count('back'),0);assert.deepEqual(p.history.state,{foreign:true});
+  }
+});
+
+check('INC171001 pop ajeno durante consumo no da acuse ni lo rescata el pop posterior',()=>{
+  const p=platform();p.ctx._mcBackAdd(()=>{});p.drain();const e=p.ctx._mcBackAdd(()=>{});p.drain();
+  p.history.go(-3);const a=askDone(p,e);a.done(true);p.micros();p.task();
+  assert.deepEqual(a.results,[false]);p.task();assert.deepEqual(a.results,[false]);
+});
+
+check('INC171001 fallos de push/back no confirman una transición terminal',()=>{
+  for(const fail of ['failPush','failBack']){
+    const p=platform();if(fail==='failPush')p.failPush();const e=p.ctx._mcBackAdd(()=>{});p.drain();
+    if(fail==='failBack')p.failBack();const a=askDone(p,e);a.done(true);p.drain();
+    assert.deepEqual(a.results,[false]);assert.equal(p.ctx._mcBackPending,null);assert.equal(p.ctx._mcIgnorePop,false);
+  }
+});
+
+check('INC171001 otra alta no sustituye una entrada terminal pendiente de acuse',()=>{
+  const p=platform(),e=p.ctx._mcBackAdd(()=>{});p.drain();const a=askDone(p,e);a.done(true);
+  const next=p.ctx._mcBackAdd(()=>{});p.micros();assert.equal(p.count('replace'),0);assert.deepEqual(a.results,[]);
+  p.task();assert.deepEqual(a.results,[true]);assert.equal(p.history.state.mcBack.id,next.slot.id);
+});
+
 console.log(`${cases} contratos del controlador/hook reales preparados y verificados`);

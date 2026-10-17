@@ -51,8 +51,13 @@ function AskHost(){
     else root.classList.remove("ask-open");
     return function(){ root.classList.remove("ask-open"); };
   },[cur]);
-  // resolve ANTES de perder cur, y solo una vez: cerrar por el fondo y por «Cancelar» son el mismo camino
-  const done=function(r){ const f=cur.resolve; setCur(null); setVal(""); f(r); };
+  // Una acción terminal no puede recargar antes del back que limpia ESTE Ask:
+  // esa navegación cancela el reload. Cancelar y los demás Ask resuelven como siempre.
+  const done=function(r){
+    const f=cur.resolve; setCur(null); setVal("");
+    if(cur.terminal&&r===true) _mcBackDrop(back.current,function(consumed){ f(consumed); });
+    else f(r);
+  };
   const ok=function(){ done(cur.input?String(val):true); };
   // Con opciones, cancelar es `null` («no he elegido»), no `false` («he dicho que no»): con tres
   // caminos posibles, un `false` se confundiría con haber elegido el primero.
@@ -60,7 +65,7 @@ function AskHost(){
   const cancelRef=useRef(null); cancelRef.current=cancel;
   // Al encadenar diálogos la entrada cambia, pero la closure de apertura conserva esta ref:
   // Atrás debe resolver el Ask actual, no volver a cancelar el primero de la cadena.
-  useBackClose(!!cur,function(){ if(cancelRef.current) cancelRef.current(); },cur);
+  const back=useBackClose(!!cur,function(){ if(cancelRef.current) cancelRef.current(); },cur);
   useEffect(function(){
     if(!cur) return undefined;
     // El callback predictivo vive fuera de React y tiene prioridad sobre AndroidX mientras una

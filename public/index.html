@@ -8954,8 +8954,14 @@ function _mcBackAdd(close){
   _mcBackStack.push(e); _mcBackSchedule();
   return e;
 }
-function _mcBackDrop(e){
-  if(!e||!e.active) return;
+function _mcBackDrop(e,afterConsume){
+  if(!e||!e.active){ if(afterConsume) afterConsume(false); return; }
+  // Sólo el Ask terminal pide acuse: una entrada ajena, fallida o aún sin armar
+  // nunca autoriza su transición. El cierre ordinario conserva su camino.
+  if(afterConsume){
+    if(!e.slot||e.failed||e.slot.blocked||_mcBackPending||_mcBackSlot(history.state)!==e.slot){ afterConsume(false); return; }
+    e.afterConsume=afterConsume;
+  }
   e.active=false;
   var i=_mcBackStack.indexOf(e); if(i>=0) _mcBackStack.splice(i,1);
   if(e.slot) e.slot.retired=_mcBackTurn;
@@ -8977,14 +8983,17 @@ function _mcBackConsume(s){
   if(_mcBackPending||s.blocked||_mcBackSlot(history.state)!==s) return;
   // Una entrada ajena o un push fallido nunca autorizan a salir de la ruta por un cierre UI.
   _mcBackPending={from:s,state:s.before,url:s.beforeUrl}; _mcIgnorePop=true;
-  try{ history.back(); }catch(err){ s.blocked=true; _mcBackPending=null; _mcIgnorePop=false; }
+  try{ history.back(); }catch(err){
+    s.blocked=true; _mcBackPending=null; _mcIgnorePop=false;
+    var done=s.entry.afterConsume; s.entry.afterConsume=null; if(done) done(false);
+  }
 }
 function _mcBackFlush(){
   var turn=_mcBackTurn++;
   if(_mcBackPending) return;
   var current=_mcBackSlot(history.state);
   var waiting=_mcBackStack.filter(function(e){ return !e.slot&&!e.failed&&e.url===location.href; });
-  if(current&&!current.entry.active&&current.retired===turn&&waiting.length){
+  if(current&&!current.entry.active&&current.retired===turn&&waiting.length&&!current.entry.afterConsume){
     // Sólo se sustituye la entrada propia superior retirada en ESTE lote; su padre se conserva.
     if(_mcBackArm(waiting[0],current)){ waiting.shift(); current=_mcBackAt; }
   }
@@ -9018,9 +9027,12 @@ function _mcBackInitOnce(){
     _mcBackAt=current;
     if(pending){
       _mcBackPending=null; _mcIgnorePop=false;
-      if(location.href===pending.url&&_mcBackSame(ev.state,pending.state)){
+      var consumed=location.href===pending.url&&_mcBackSame(ev.state,pending.state);
+      if(consumed){
         pending.from.present=false;
       }
+      var done=pending.from.entry.afterConsume; pending.from.entry.afterConsume=null;
+      if(done) done(consumed);
       _mcBackSchedule(); return;
     }
     // Llegar desde otra ruta a nuestra entrada no equivale a haber salido de ella.
@@ -9045,6 +9057,7 @@ function _mcBackInitOnce(){
 }
 function useBackClose(open, onClose, identity){
   const close=useRef(null);
+  const entry=useRef(null);
   // Conserva la closure de apertura y las refs financieras existentes. Sólo los propietarios
   // que cambian de paso/diálogo solicitan explícitamente otro registro con identity.
   useEffect(function(){ close.current=open?onClose:null; },[open]);
@@ -9052,8 +9065,10 @@ function useBackClose(open, onClose, identity){
     _mcBackInitOnce();
     if(!open) return undefined;
     const e=_mcBackAdd(close.current);
-    return function(){ _mcBackDrop(e); };
+    entry.current=e;
+    return function(){ _mcBackDrop(e); if(entry.current===e) entry.current=null; };
   },[open,identity]);
+  return entry;
 }
 
 /* Pantallas hijas a página completa: dentro de la WebView se puede volver desde cualquier punto,
@@ -11800,8 +11815,13 @@ function AskHost(){
     else root.classList.remove("ask-open");
     return function(){ root.classList.remove("ask-open"); };
   },[cur]);
-  // resolve ANTES de perder cur, y solo una vez: cerrar por el fondo y por «Cancelar» son el mismo camino
-  const done=function(r){ const f=cur.resolve; setCur(null); setVal(""); f(r); };
+  // Una acción terminal no puede recargar antes del back que limpia ESTE Ask:
+  // esa navegación cancela el reload. Cancelar y los demás Ask resuelven como siempre.
+  const done=function(r){
+    const f=cur.resolve; setCur(null); setVal("");
+    if(cur.terminal&&r===true) _mcBackDrop(back.current,function(consumed){ f(consumed); });
+    else f(r);
+  };
   const ok=function(){ done(cur.input?String(val):true); };
   // Con opciones, cancelar es `null` («no he elegido»), no `false` («he dicho que no»): con tres
   // caminos posibles, un `false` se confundiría con haber elegido el primero.
@@ -11809,7 +11829,7 @@ function AskHost(){
   const cancelRef=useRef(null); cancelRef.current=cancel;
   // Al encadenar diálogos la entrada cambia, pero la closure de apertura conserva esta ref:
   // Atrás debe resolver el Ask actual, no volver a cancelar el primero de la cadena.
-  useBackClose(!!cur,function(){ if(cancelRef.current) cancelRef.current(); },cur);
+  const back=useBackClose(!!cur,function(){ if(cancelRef.current) cancelRef.current(); },cur);
   useEffect(function(){
     if(!cur) return undefined;
     // El callback predictivo vive fuera de React y tiene prioridad sobre AndroidX mientras una
@@ -22127,7 +22147,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="a362f095847c18679e1400803d0685a0cd47af49c3cdb8dd42f3daf928013fd3";
+var _rnSha="f2db704fe2f53ef291dfac93951ce2b3bb8b2a300083b31b4080acd45ec55ebc";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -22934,25 +22954,25 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
               return React.createElement(React.Fragment,null,
                 row("sbx", sandbox?"🧪":"🏦", sandbox?"Banco de pruebas: DENTRO":"Banco de pruebas", null, function(){
                   if(sandbox){
-                    askConfirm({ title:"¿Salir del banco de pruebas?", sub:"Vuelves a tu cartera real. La de pruebas se queda guardada por si quieres seguir otro día.", ok:"Salir a mi cartera real" })
+                    askConfirm({ title:"¿Salir del banco de pruebas?", sub:"Vuelves a tu cartera real. La de pruebas se queda guardada por si quieres seguir otro día.", ok:"Salir a mi cartera real", terminal:true })
                       .then(function(yes){ if(!yes) return; mcExitSandbox(); location.reload(); });
                   }else{
-                    askConfirm({ title:"¿Entrar al banco de pruebas?", sub:"Se copia tu cartera actual a un espacio aparte. Dentro NO se escribe nada en la nube: puedes trastear a gusto y tu cartera real (y la de tu padre y tu pareja) no se entera.", ok:"Entrar a probar" })
+                    askConfirm({ title:"¿Entrar al banco de pruebas?", sub:"Se copia tu cartera actual a un espacio aparte. Dentro NO se escribe nada en la nube: puedes trastear a gusto y tu cartera real (y la de tu padre y tu pareja) no se entera.", ok:"Entrar a probar", terminal:true })
                       .then(function(yes){ if(!yes) return; mcEnterSandbox(state); location.reload(); });
                   }
                 }, sw(sandbox)),
                 // MODO INICIAL: la app como recien instalada, dentro del banco de pruebas. Sin esto
                 // no habia manera de mirar las pantallas vacias sin vaciarse la cartera de verdad.
                 !sandbox && row("sbx0","🌱","Probar con la app vacía",null,function(){
-                  askConfirm({ title:"¿Ver la app como recién instalada?", sub:"Entras al banco de pruebas con una cartera VACÍA y el onboarding de la primera vez. Tu cartera real no se toca y sigue esperándote al salir.", ok:"Entrar vacío" })
+                  askConfirm({ title:"¿Ver la app como recién instalada?", sub:"Entras al banco de pruebas con una cartera VACÍA y el onboarding de la primera vez. Tu cartera real no se toca y sigue esperándote al salir.", ok:"Entrar vacío", terminal:true })
                     .then(function(yes){ if(!yes) return; mcSeedSandboxVacio(); mcEnterSandbox(); mcRecargarSinVolcar(); });
                 }),
                 sandbox && row("sbx0d","🌱","Vaciar la cartera de pruebas",null,function(){
-                  askConfirm({ title:"¿Dejarla como recién instalada?", sub:"La cartera de pruebas se queda vacía y vuelve el onboarding. Tu cartera real no se toca.", ok:"Vaciar", danger:true })
+                  askConfirm({ title:"¿Dejarla como recién instalada?", sub:"La cartera de pruebas se queda vacía y vuelve el onboarding. Tu cartera real no se toca.", ok:"Vaciar", danger:true, terminal:true })
                     .then(function(yes){ if(!yes) return; mcSeedSandboxVacio(); mcRecargarSinVolcar(); });
                 }),
                 sandbox && row("sbxr","♻️","Volver a copiar mi cartera real",null,function(){
-                  askConfirm({ title:"¿Empezar las pruebas de cero?", sub:"Se tira la cartera de pruebas actual y se copia otra vez la real. Tu cartera real no se toca.", ok:"Copiar de nuevo", danger:true })
+                  askConfirm({ title:"¿Empezar las pruebas de cero?", sub:"Se tira la cartera de pruebas actual y se copia otra vez la real. Tu cartera real no se toca.", ok:"Copiar de nuevo", danger:true, terminal:true })
                     .then(function(yes){ if(!yes) return; mcExitSandbox(); mcResetSandbox(); mcRecargarSinVolcar(); });
                 }),
                 React.createElement("div",{style:{fontSize:11.5,color:"var(--muted-2)",lineHeight:1.45,padding:"0 14px 10px"}},

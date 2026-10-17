@@ -90,6 +90,7 @@ export const E2E_MAP = [
     "e2e/tr-emparejado-rendimiento.spec.mjs",
   ] },
   { file: "src/modules/05-dialogs-inv.js", specs: [
+    "e2e/modo-pruebas.spec.mjs",
     "e2e/help-assistant.spec.mjs",
     "e2e/cartera-inversiones.spec.mjs", "e2e/brokers-selector.spec.mjs",
   ] },
