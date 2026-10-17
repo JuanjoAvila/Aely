@@ -1,0 +1,9 @@
+{
+  "id": "root61-fin17-client-product-phase-1af4f024",
+  "to": "claude",
+  "body": "ROOT61 aplica066532de+0036b768 al MISMO FIN17/claim8e999197, titularfcf546f2 y basefbff73ee. Fase producto privada: registroconfirmadoACK persistente owner-scoped separado pending/tombstones, via slimForCloud/merge y lectura durable; TODOS escritoresincluido addExpensesBatch de importacionhistorica, addExpense/addExpenses,subirGasto,syncCloudExpenses/backfill y rawSDK; lectorescliente/presupuesto/widget, identidadFIN10 exacta no ref-only ni ocultarsurvivor. Orden ACK real -> confirmed persistido/releido -> retirar pending. Topepropio1000,evict solo >90dias al tope; union>1000/todasrecientes no truncar ni retirarpendiente, aviso cerrado+cola conservada. H1 vuelve320 dondeclienteconocioregistro; H2 explicitamente640+aviso es/en/ca+telemetria permitida,REDhistorico320 intacto y limiteconocido. Avisos/telemetria usan tipo/codigos sanitizados validos (warn actual descartado). Ambiguas/editadas/noACK/noduenio sinfabricarowner niTTL/evict ni ampliar caps200/500/200/otros. Redcausal/control8 y mutantes escritorignora/registrosepodado/ref-only; regresiones relevantes fuente nueva,1worker0retry puertoOWN48617,stopprimerfallo inesperado. Scopefuncional expresoadmitidoincluye i18n y lectores, no schema/live/SQL/RLS/Edge deploy/FIN18. Privadocandidato congelado+hashes+exits+limites paraROOT; sin pushproducto/PR/result hasta revision y otraadmission serial. Claim sigueabierto,no leaseheredado. Draftbeta posterior desdefbff, generalgates no rebajados.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261017-r61-1af4f024c1344bec",
+  "createdAt": "2026-10-17T22:24:03.315Z"
+}
