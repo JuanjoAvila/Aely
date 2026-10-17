@@ -1443,8 +1443,17 @@ function useSheetSwipe(open, onClose, opts){
     // El fondo se libera al empezar la salida, no al desmontar: esperar esos 200–320 ms
     // recupera el tirón que ya se había eliminado (revisión independiente 2026-09-24).
     if(lockHeld.current){ lockHeld.current=false; mcSheetUnlock(); }
-    el.style.transition="transform "+ms+"ms "+(opts.closeEase||"cubic-bezier(.32,.72,0,1)");
+    const ease=opts.closeEase||"cubic-bezier(.32,.72,0,1)";
+    el.style.transition="transform "+ms+"ms "+ease;
     el.style.transform="translate3d(0,110%,0)";
+    // El velo se va con la hoja, mismo tiempo y curva. Antes solo bajaba la hoja y el velo se
+    // quedaba al 28 % hasta desmontarse: la pantalla entera se aclaraba de golpe en el último
+    // fotograma, medido en Deudas, Metas y también Apuntar (beta 4.26.139.1, 2026-10-17).
+    const back=el.parentElement;
+    if(back&&back.classList.contains("v4-sheet-back")){
+      back.style.transition="background-color "+ms+"ms "+ease;
+      back.style.backgroundColor="rgba(8,28,20,0)";
+    }
     closeTimer.current=setTimeout(function(){
       closeTimer.current=null;
       closing.current=false;
