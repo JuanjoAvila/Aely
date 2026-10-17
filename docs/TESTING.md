@@ -10,6 +10,11 @@ UX15 (beta 4.26.138): `e2e/gastos-sincronizar-alcance.spec.mjs` registrado en el
 DOM real es/en/ca, texto/ocupado/descripción accesible, una lectura en nube y ninguna
 invocación bancaria por pulsación. ROJO previo y mutaciones focales con 1 worker/0 reintentos.
 [Contrato, evidencia y límites](briefs/ux15-sincronizar-gastos-20261016.md).
+FIN12 revisión1: `tests/inicio-deuda-futura.test.mjs` registra 25 casos con 13 mutantes;
+altas reales 08/09, migración, reancla y transporte/merge de nube simulado.
+`e2e/inicio-deuda-futura.spec.mjs` comprueba seis puntos de la gráfica real al dedo,
+el regreso al presente y dos regresiones de legado. Sólo `startMonth` entero acredita
+inicio; `asOf` no. [Acta y límites](briefs/fin12-deuda-futura-inicio-20261016.md).
 
 Compras con referencias distintas: `tests/compras-identicas-ids.test.mjs` registrado en Node y
 `e2e/compras-identicas-ids.spec.mjs` en Gastos. Handlers reales con fixtures sintéticas,

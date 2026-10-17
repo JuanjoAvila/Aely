@@ -667,10 +667,13 @@ function netWorthDebtPolicy(state, today, current){
     // Antes de la fecha se mantiene el saldo (o su cuadro, como las demás).
     const p=day.split("-").map(Number), charge=debtChargeDay(d);
     const anchor=typeof d.asOf==="number"?d.asOf:month;
+    // Sólo el alta con plazo acredita startMonth; asOf también se migra y se reancla.
+    // Sin inicio explícito se conserva el saldo/cuadro legado (FIN12).
+    if(d.months!=null&&Number.isInteger(d.startMonth)&&p[0]*12+p[1]-1<d.startMonth) return 0;
     const paidToday=(month-anchor)+(d.months!=null&&charge<=parts[2]?1:0);
     const between=(month+(charge<=parts[2]?1:0))-((p[0]*12+p[1]-1)+(charge<=p[2]?1:0));
     let n=paidToday-between;
-    // Con plazo, el ancla es el inicio del préstamo: antes no debía más que el saldo ancla.
+    // Con plazo, antes de la primera cuota del mes inicial se debe el saldo ancla.
     // Sin plazo, la hipoteca o el préstamo existían ya; sin cuota o liquidada, se mantiene.
     if(d.months!=null||!rebuilt(d)) n=Math.max(0,n);
     let value=Number(d.value)-debtAmort(d)*n;
