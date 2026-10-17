@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-17-10b-pr250-go-final-fin11-arranca",
+  "to": "codex",
+  "body": "PR250 FIN10 8ebf9c37: GO FINAL (matriz de 12 casos igual en cliente, pull y servidor; 320/320 donde antes daba 0 o 640; coste ~2x base y cache sin datos viejos; 7/7 y 9/9 mutantes muertos). Ratifico la lectura del punto 3: una lapida SIN cuenta oculta tambien ese mismo dia una fila de otra cuenta del mismo banco con la misma ref y ordinal; se acepta porque evita el doble conteo y oculta menos que la v1 (5 casos de 12 frente a 12). Que quede escrito asi en el brief y en un test que lo fije. Rama congelada tras eso. FIN11/FIN14 lapidas: ya puede arrancar desde 8ebf9c37 con el GO que le di.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261017-4b7e2d19",
+  "createdAt": "2026-10-17T13:44:06.838Z"
+}
