@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "id": "inc1710-01-sandbox-settings-reactivity-codex-20261017",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261017-r60-d77e0b542f6e8da5",
+  "createdAt": "2026-10-17T19:48:58.571Z",
+  "kind": "worker",
+  "to": "codex",
+  "baseSHA": "503d23267091eb5aa0b0e37dd94fac20ea37bd08",
+  "grantCommit": "04811d77dd1003389fed05b3dfd95480557cd372",
+  "priority": "high",
+  "objective": "Investigate and causally reproduce beta140 test-bank controls not updating Settings or entering sandbox; preserve production data and cloud isolation",
+  "scope": [
+    "src/modules/00-core.js",
+    "src/modules/10-app-components.js",
+    "src/modules/11-app-main.js",
+    "src/modules/12-boot.js",
+    "src/modules/14-v4-screens.js",
+    "e2e/modo-pruebas.spec.mjs",
+    "tests/security.test.mjs",
+    "scripts/relevant-tests.mjs",
+    "docs/briefs/inc1710-01-sandbox-settings.md"
+  ],
+  "phase": "OWN reception, exact claim/readback and public ACK only. Separate private admission before investigation execution; causal RED before product. Cloud-write changes require Claude consultation first.",
+  "assignedOriginalClosedTask": "ux13-pr248-race-tests-remates-codex-20261017",
+  "assignmentReason": "Available released owner with recent Settings/backclose Chromium work; old PR248 and source remain frozen.",
+  "fetchBudget": {
+    "ownLedgerMustBeVerifiedBeforeFirstRead": true,
+    "sameWorkerBlockOnly": true,
+    "additional12OnlyAfterActualOwnExhaustion": true,
+    "noticeRequired": true,
+    "noResetOrROOTInheritance": true
+  },
+  "requirements": [
+    "New isolated checkout/branch from exact beta503d2326; preserve all old checkouts,WIP,claims,results,PR248 and source255eb082. Read AGENTS.md,EMPIEZA-AQUI.md,current relay policy and canonical protocol completely; current human relay order supersedes obsolete cancellation.",
+    "First phase only: verify own native identity,cwd/runtime, helper original/hash and existing OWN ledger; confirm old result released. Read ALL canonical intermediates FULL RAW, claim exact new task and own ACK, then private small atomic/fsync/readback receipt and STOP until separate admission.",
+    "After private investigation admission: reproduce REAL Settings flow in local Chromium using synthetic state and intercepted/stubbed cloud. Activate bank of tests,observe immediate screen and app behavior,reset via Vaciar,exit via Desactivar; include reopening via back. Existing tests that preseed sandbox cannot alone reproduce the reported entry failure.",
+    "Compare source134 to140 statically to locate causal change; suspects:Settings129 cleanup,sheet/veil140,backPR248,INC0410 conflict key if actually present,split persistence. Establish source presence rather than assuming an unintegrated PR. Preserve unmodified baseline and exact served local HTML hashes.",
+    "Causal RED and narrow controls must cover immediate UI reaction,sandbox flag/state selection,real main/expenses/history/conflict storage byte preservation and zero production cloud writes. Never use real bank,SQL,RLS,Edge or production data.",
+    "Before PRODUCT changes, return diagnosis, causal evidence and exact proposed scope. If touching cloud writes,guards or CLOUD_WRITES semantics, consult Claude first and wait applicable answer; no permission by inference from this incident.",
+    "Directed own spec only:1worker0retry,exclusive own port not used by another owner,stop-first-failure; no existing finished unrelated tests repeated. Only one infrastructure retry for ERR_NO_BUFFER_SPACE,CONNECTION_REFUSED or EMFILE under existing express rule. No suitecomplete,CPU6,Gradle,APK or heavy lease.",
+    "Final implementation if later admitted requires focused tests/security/registration, draft PR against beta and own immutable result under separate serial delivery admission. CI,integration,served beta and mobile separate; no ProductREADY.",
+    "No main/beta push or merge,deploy,VERSION/catalogue/cap/oracle weakening,unrelated financial changes,foreign locks/claims,install through linked modules,force/reset or alternate helper/filter/identity after rejection. Ordinary channel NFF only existing bounded retry authority6c8bb553 after FULL RAW; other rejection STOP."
+  ]
+}
