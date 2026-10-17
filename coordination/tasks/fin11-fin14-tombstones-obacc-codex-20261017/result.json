@@ -1,0 +1,127 @@
+{
+  "status": "blocked",
+  "summary": "FIN11 y FIN14: candidata PR262 borrador contra beta para revision de Claude. Implementacion focal terminada; tamano y docs-frescura siguen bloqueados. Beta-sources no ejecutado. No ProductREADY.",
+  "productSHA": "d68b3c98",
+  "approvedImplementationBase": "f872a24c",
+  "parentSHA": "f872a24c",
+  "originalTaskBaseSHA": "a9916c3c",
+  "originalClaimCommit": "4b70587d",
+  "originalACKCommit": "bcd694ea",
+  "sourceScopeACK": "da6dff8a",
+  "sourceAdmission": "6c8bb553",
+  "implementationGrant": "fa83f1c6",
+  "contentRewriteAuthority": "dd325951",
+  "shaFormat": "Eight hex as expressly authorized; exact full source retained in PR and private evidence.",
+  "pr": "pull/262",
+  "prBase": "beta",
+  "prDraft": true,
+  "tests": [
+    {
+      "name": "New source causal RED",
+      "exitCode": 1,
+      "pass": 1,
+      "fail": 2
+    },
+    {
+      "name": "Own Node initial: comparison fixture failed",
+      "exitCode": 1,
+      "pass": 18,
+      "fail": 1
+    },
+    {
+      "name": "Corrected comparison fixture, affected case only",
+      "exitCode": 0,
+      "pass": 1,
+      "fail": 0
+    },
+    {
+      "name": "Own meaningful mutants detected",
+      "exitCode": 0,
+      "count": 13
+    },
+    {
+      "name": "FIN10 FIN15 and Compras regressions",
+      "exitCode": 0,
+      "pass": 87
+    },
+    {
+      "name": "Deno own and widget cases",
+      "exitCode": 0,
+      "pass": 18
+    },
+    {
+      "name": "Directed DOM: one worker, zero retries, stop first failure",
+      "exitCode": 0,
+      "pass": 9
+    },
+    {
+      "name": "Build and syntax",
+      "exitCode": 0,
+      "scriptBlocks": 7
+    },
+    {
+      "name": "Security, language keys and test registration",
+      "exitCode": 0
+    },
+    {
+      "name": "Server budget command without private dependency loader",
+      "exitCode": 1,
+      "classification": "Infrastructure before oracle"
+    },
+    {
+      "name": "Server budget with existing declared dependency loader",
+      "exitCode": 0
+    },
+    {
+      "name": "Official size gate",
+      "exitCode": 1
+    },
+    {
+      "name": "Docs freshness gate",
+      "exitCode": 1
+    }
+  ],
+  "validationNote": "Own cases covered in separate runs: initial eighteen pass and one fixture fail, then corrected case passes. No single nineteen-case all-green run claimed. Thirteen own mutants only; foreign probes not double counted. No tests or builds repeated during delivery.",
+  "behavior": [
+    "Durable owner-bound pending intent before removing absorbed row; protection survives normal tombstone pruning and reopen.",
+    "Independent pending cap without eviction. Storage or capacity failure restores removed row and survivor state; merge overflow blocks state push and CAS advance.",
+    "Bounded retries only on cloud refresh or online recovery; bank sync does not delete or retry.",
+    "Remote confirmation checks owner, exact row identity and observed content; empty responses require reread. Uncertain aliases remain protected.",
+    "Client and authenticated server readers protect pending rows before cross-day reference consumption. Existing identity, account transport and symmetric wildcard remain intact."
+  ],
+  "limits": [
+    "Size EXIT1: minified1321 versus1311 KiB;gzip367 versus365 KiB;blocking resources within cap.",
+    "Docs-frescura EXIT1;VERSION and catalogue unchanged.",
+    "Beta-sources not executed on this adaptation;older interrupted audit gives no coverage.",
+    "Synthetic SDK and browser evidence only;no live SQL,RLS,banking,Edge deploy,native widget,Gradle,APK,CPU6,general suite or physical mobile acceptance.",
+    "General CI,integration,served beta and final Claude review remain pending.",
+    "Offline pending intent cannot protect the server before upload. Old clients can overwrite state or recreate rows after acknowledgement;no distributed closure guarantee against them.",
+    "PostgREST request timeout does not absolutely bound SDK session refresh.",
+    "No new product logic,commits,tests,builds,measurements,product pushes,dependency changes or leases during this content-only attempt."
+  ],
+  "scope": {
+    "sameOriginalTaskClaimACK": true,
+    "oldCandidatePreservedPrivately": true,
+    "ownChangesFromApprovedParent": 22,
+    "ownCommits": 1,
+    "PRIncludesApprovedParent": true,
+    "finalReviewAndIntegration": "claude"
+  },
+  "budget": {
+    "id": "fin11-fin14-own12-db329-block1",
+    "allowance": 12,
+    "usedAtPreparation": 5,
+    "remainingAtPreparation": 7,
+    "nextCanonicalReadbackCounts": true,
+    "noReset": true,
+    "noROOT": true,
+    "noNewBlock": true
+  },
+  "turn": "Source frozen;release turn after exact canonical result readback;STOP without polling or ROOT messages.",
+  "schema": 1,
+  "taskId": "fin11-fin14-tombstones-obacc-codex-20261017",
+  "actor": "codex",
+  "sessionId": "codex-local-20261017-qoxxwkrshebdfhaeqytokaml",
+  "createdAt": "2026-10-17T19:15:15.298Z",
+  "released": true
+}
