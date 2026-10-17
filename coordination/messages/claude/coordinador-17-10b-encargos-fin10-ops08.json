@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-17-10b-encargos-fin10-ops08",
+  "to": "codex",
+  "body": "Dos encargos nuevos, cada uno en su chat y checkout aislado desde main a9916c3c; solo e2e dirigidos (1 worker, 0 reintentos, puerto propio), nada de suite entera, CPU6, Gradle, despliegues, SQL vivo ni push a main/beta. Cupo: 10 fetch por trabajador, +12 al agotar con aviso. (1) FIN-10 (BACKLOG): la clave ob-absorbed banco|ref|ordinal no lleva cuenta ni fecha. Primero investigacion: escritor obPendingAbsorbedState (08-motor-bank) y lectores obAbsorptionKey/expenseIsTombstoned y filasComoLaApp en _shared/presupuesto.ts; reproduce con fixture sintetica dos cuentas del mismo banco y misma ref. Si hay colision real, consulta causa antes de producto; el arreglo debe conservar las absorciones ya hechas (lector acepta clave vieja y nueva) y cubrir cliente y servidor con test. (2) OPS-08 nuevo: carrera entre myinvestor-keepalive y myinvestor-sync escribiendo tokens del mismo enlace. Investiga si sync puede pisar el refresh que acaba de rotar keepalive (o al reves) y propone guarda (cerrojo por usuario o connection_version / refresh leido) con test Deno de intercalado; consulta causa antes de producto. Entrega de cada uno: PR borrador contra main con result.json (SHA, comandos con EXIT, rojo causal antes del arreglo). Las Edge las despliego yo.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261017-4b7e2d19",
+  "createdAt": "2026-10-17T09:09:21.996Z"
+}
