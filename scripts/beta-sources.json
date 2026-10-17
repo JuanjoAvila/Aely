@@ -36224,14 +36224,6 @@
         "function": "useSheetSwipe"
       },
       {
-        "file": "src/modules/00-core.js",
-        "data": "NF"
-      },
-      {
-        "file": "src/modules/01-i18n.js",
-        "data": "GOAL_EMOJIS"
-      },
-      {
         "file": "src/modules/11-app-main.js",
         "from": "  // INC-0410 guardado: de aquí al límite está cuándo y qué estado se escribe en disco. Cambiarlo invalida las revisiones que prometen conservar algo al cerrar o recargar.",
         "to": "  // INC-0410 guardado: límite."
@@ -36395,6 +36387,14 @@
       {
         "file": "src/modules/00-core.js",
         "function": "_errCloudMsg"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "GOAL_EMOJIS"
       },
       {
         "file": "src/modules/00-core.js",
