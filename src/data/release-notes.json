@@ -1,5 +1,86 @@
 [
   {
+    "v": "4.26.140",
+    "d": "2026-10-17",
+    "t": {
+      "es": "Deudas y Metas se cierran suave, y «atrás» respeta el teclado",
+      "en": "Debts and Goals close smoothly, and «back» respects the keyboard",
+      "ca": "Deutes i Metes es tanquen suau, i «enrere» respecta el teclat"
+    },
+    "items": {
+      "es": [
+        "La hoja para editar una deuda o una meta se cierra bajando suave, sin parpadeo, también al guardar.",
+        "Con el teclado abierto, el primer gesto de atrás solo lo esconde: la hoja sigue abierta y no pierdes lo que habías escrito.",
+        "Una nómina apuntada a mano y la misma que llega del banco ya no cuentan doble.",
+        "Más protección en las conexiones con los bancos y con MyInvestor, sin cambios visibles."
+      ],
+      "en": [
+        "The sheet to edit a debt or a goal closes by sliding down smoothly, without flicker, also when you save.",
+        "With the keyboard open, the first back gesture only hides it: the sheet stays open and you do not lose what you had typed.",
+        "A payroll you added by hand and the same one arriving from the bank no longer count twice.",
+        "More protection in the connections with banks and with MyInvestor, with no visible changes."
+      ],
+      "ca": [
+        "El full per editar un deute o una meta es tanca baixant suau, sense parpelleig, també en desar.",
+        "Amb el teclat obert, el primer gest d'enrere només l'amaga: el full continua obert i no perds el que havies escrit.",
+        "Una nòmina apuntada a mà i la mateixa que arriba del banc ja no compten doble.",
+        "Més protecció en les connexions amb els bancs i amb MyInvestor, sense canvis visibles."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "deudas-metas-hoja-cierre-suave",
+        "t": {
+          "es": "Deudas y Metas: la hoja se cierra suave",
+          "en": "Debts and Goals: the sheet closes smoothly",
+          "ca": "Deutes i Metes: el full es tanca suau"
+        },
+        "items": {
+          "es": [
+            "1. Abre Plan, pestaña Deudas, toca una deuda y toca «Guardar cambios» sin cambiar nada: la hoja baja suave y el fondo se aclara poco a poco, sin parpadeo.",
+            "2. Ábrela otra vez y ciérrala con la ✕, tocando fuera y con el gesto de atrás: igual de suave las tres veces.",
+            "3. Haz lo mismo en la pestaña Metas con una meta."
+          ],
+          "en": [
+            "1. Open Plan, Debts tab, tap a debt and tap «Save changes» without changing anything: the sheet slides down smoothly and the background lightens gradually, with no flicker.",
+            "2. Open it again and close it with the ✕, by tapping outside and with the back gesture: equally smooth all three times.",
+            "3. Do the same in the Goals tab with a goal."
+          ],
+          "ca": [
+            "1. Obre Pla, pestanya Deutes, toca un deute i toca «Desa els canvis» sense canviar res: el full baixa suau i el fons s'aclareix a poc a poc, sense parpelleig.",
+            "2. Obre'l un altre cop i tanca'l amb la ✕, tocant fora i amb el gest d'enrere: igual de suau les tres vegades.",
+            "3. Fes el mateix a la pestanya Metes amb una meta."
+          ]
+        }
+      },
+      {
+        "id": "teclado-atras-conserva",
+        "t": {
+          "es": "Atrás con el teclado abierto no pierde lo escrito",
+          "en": "Back with the keyboard open does not lose what you typed",
+          "ca": "Enrere amb el teclat obert no perd el que has escrit"
+        },
+        "items": {
+          "es": [
+            "1. Abre Plan, pestaña Deudas, toca una deuda y toca el nombre para que salga el teclado; escribe una letra.",
+            "2. Haz el gesto de atrás: se esconde el teclado y la hoja sigue abierta con lo que escribiste.",
+            "3. Haz atrás otra vez: ahora se cierra la hoja y sigues en Plan (sin salir de la app)."
+          ],
+          "en": [
+            "1. Open Plan, Debts tab, tap a debt and tap the name so the keyboard appears; type a letter.",
+            "2. Do the back gesture: the keyboard hides and the sheet stays open with what you typed.",
+            "3. Go back again: now the sheet closes and you stay in Plan (without leaving the app)."
+          ],
+          "ca": [
+            "1. Obre Pla, pestanya Deutes, toca un deute i toca el nom perquè surti el teclat; escriu una lletra.",
+            "2. Fes el gest d'enrere: s'amaga el teclat i el full continua obert amb el que has escrit.",
+            "3. Fes enrere un altre cop: ara es tanca el full i continues a Pla (sense sortir de l'app)."
+          ]
+        }
+      }
+    ]
+  },
+  {
     "v": "4.26.139",
     "d": "2026-10-17",
     "t": {
@@ -24,58 +105,7 @@
         "Un finançament que comença més endavant ja no compta com a deute abans de la data d'inici."
       ]
     },
-    "tandas": [
-      {
-        "id": "deudas-plazo-cuota-encaja",
-        "t": {
-          "es": "Deudas: la cuota tiene que encajar con el plazo",
-          "en": "Debts: the payment must fit the term",
-          "ca": "Deutes: la quota ha d'encaixar amb el termini"
-        },
-        "items": {
-          "es": [
-            "1. Abre Plan, pestaña Deudas, y toca una deuda que tenga plazo («Quedan X/Y cuotas») y sin intereses. Baja la cuota y toca «Guardar cambios»: sale el aviso de que no encajan y dice «Con N cuotas por pagar, la cuota tiene que estar entre A y B»; no se guarda.",
-            "2. Pon una cuota dentro de ese rango y guarda: sale «Cambios guardados» y la tarjeta muestra el «Quedan X/Y cuotas» nuevo.",
-            "3. Abre otra vez la deuda, pon la cuota a 0 y guarda: avisa de que con saldo pendiente la cuota no puede ser 0 y no guarda. Nota: si la deuda tiene intereses, bajar la cuota sí se guarda porque solo cambia lo que pagas, no lo que amortiza."
-          ],
-          "en": [
-            "1. Open Plan, Debts tab, and tap a debt that has a term («X/Y payments left») and no interest. Lower the payment and tap «Save changes»: the warning that they do not fit appears and says «With N payments left, the payment must be between A and B»; it is not saved.",
-            "2. Set a payment inside that range and save: «Changes saved» appears and the card shows the new «X/Y payments left».",
-            "3. Open the debt again, set the payment to 0 and save: it warns that with a balance left the payment cannot be 0 and does not save. Note: if the debt has interest, lowering the payment does save, because it only changes what you pay, not what it pays off."
-          ],
-          "ca": [
-            "1. Obre Pla, pestanya Deutes, i toca un deute que tingui termini («Queden X/Y quotes») i sense interessos. Baixa la quota i toca «Desa els canvis»: surt l'avís que no encaixen i diu «Amb N quotes per pagar, la quota ha d'estar entre A i B»; no es desa.",
-            "2. Posa una quota dins d'aquest rang i desa: surt «Canvis desats» i la targeta mostra el nou «Queden X/Y quotes».",
-            "3. Obre un altre cop el deute, posa la quota a 0 i desa: avisa que amb saldo pendent la quota no pot ser 0 i no desa. Nota: si el deute té interessos, baixar la quota sí que es desa perquè només canvia el que pagues, no el que amortitza."
-          ]
-        }
-      },
-      {
-        "id": "deudas-metas-hoja-sin-parpadeo",
-        "t": {
-          "es": "Deudas y Metas: la hoja de editar abre sin parpadeo",
-          "en": "Debts and Goals: the edit sheet opens without flicker",
-          "ca": "Deutes i Metes: el full d'editar s'obre sense parpelleig"
-        },
-        "items": {
-          "es": [
-            "1. Abre Plan, pestaña Deudas, y toca una deuda: la hoja sube suave desde abajo, el fondo se oscurece poco a poco y nada parpadea ni salta.",
-            "2. Cierra con el gesto de atrás del sistema: se cierra la hoja y sigues en Plan.",
-            "3. Haz lo mismo en la pestaña Metas con una meta."
-          ],
-          "en": [
-            "1. Open Plan, Debts tab, and tap a debt: the sheet slides up smoothly from the bottom, the background darkens gradually and nothing flickers or jumps.",
-            "2. Close it with the system back gesture: the sheet closes and you stay in Plan.",
-            "3. Do the same in the Goals tab with a goal."
-          ],
-          "ca": [
-            "1. Obre Pla, pestanya Deutes, i toca un deute: el full puja suau des de baix, el fons s'enfosqueix a poc a poc i res parpelleja ni salta.",
-            "2. Tanca amb el gest d'enrere del sistema: es tanca el full i continues a Pla.",
-            "3. Fes el mateix a la pestanya Metes amb una meta."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.138",
