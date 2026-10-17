@@ -1,0 +1,105 @@
+{
+  "status": "done",
+  "phase": "design-only",
+  "summary": "DONE only the Claude-approved FIN03/FIN09 design phase86cbba13. Draft PR254 contains five design-only files: origin/UUID/ACK contract, additive SQL proposal and guarded rollback outside migration runner, old-client conflict cases, existing causal RED reproduction. FIN03/FIN09 is NOT fixed; no client/server product, operative migration, SQL application or deployment. Source frozen for Claude review.",
+  "PR": 254,
+  "productSHA": "6aa62e8cf8be29e8baf37a6a06c2360a50a28aae",
+  "baseSHA": "a9916c3cdb21c93f9d3a47653c0608e630ce50ab",
+  "branch": "codex/fin03-fin09-crossbank-identity-20261017",
+  "claimCommit": "bf5861cd6f604645fc7217489ec185b3beb11982",
+  "ackCommit": "2dc7c408946175e8f06d0c6a6ef6a8ba5c5338c2",
+  "designGrant": "86cbba1336ff575492cdc2eeb2ca8e6054e21631",
+  "financialIssueFixed": false,
+  "migrationApplied": false,
+  "sqlTrialExecuted": false,
+  "tests": [
+    {
+      "command": "node --experimental-strip-types --test work/fin03-fin09-private-repro.mjs",
+      "exitCode": 1,
+      "cases": 14,
+      "pass": 7,
+      "causalRED": 7,
+      "meaning": "Previously executed baseline:import2/500c,merge and server1/250c;schema SDK model1row/1ACK;not repeated during design or delivery"
+    },
+    {
+      "command": "node work/package-design.mjs",
+      "exitCode": 0,
+      "meaning": "Portable research reproduction differs only loader paths and optional evidence sink;assertions/fixtures body byte-identical after undoing packaging edits;not a second financial test run"
+    },
+    {
+      "command": "node --check docs/briefs/fin03-identidad-gastos/causal-red.mjs",
+      "exitCode": 0,
+      "meaning": "Syntax only,executed during private design preparation"
+    },
+    {
+      "command": "git diff HEAD^ HEAD --check;protected-path diff against exact base",
+      "exitCode": 0,
+      "meaning": "Preparation checks;only five docs files,source/runtime/operative migrations unchanged"
+    },
+    {
+      "command": "git push origin refs/heads/codex/fin03-fin09-crossbank-identity-20261017:refs/heads/codex/fin03-fin09-crossbank-identity-20261017",
+      "exitCode": 0,
+      "meaning": "Normal push of ONLY OWN branch;no main/beta or foreign source touched"
+    },
+    {
+      "command": "gh pr create --draft --base main with reviewed body-file",
+      "exitCode": 0,
+      "meaning": "Created numericPR254;artifact attached;exact head,draft/main and five-file readback confirmed"
+    },
+    {
+      "command": "gh pr view254 --json headRefOid,isDraft,baseRefName,files",
+      "exitCode": 0,
+      "meaning": "Exact source6aa62e8c confirmed and durable readback saved privately"
+    }
+  ],
+  "sqlCompatibility": {
+    "oldIndexKept": true,
+    "newIndexDoesNotResolveOldCollision": true,
+    "oldTarget": "user_id,fecha,importe,comercio",
+    "unchangedIndexBehavior": "Old retry remains one row,but second legitimate bank still collides;new-origin target can encounter23505 from old index",
+    "unsafeCutBehavior": "Removing/replacing old index without adapted clients invalidates old onConflict with42P10;case specified,not SQL-executed",
+    "rollback": "Only additive phase before v2metadata use and after disabling/draining v2 readers/writers;guard aborts otherwise;no claim of safe automatic rollback after twins exist",
+    "phase2": "Requires separate Claude/owner decision and proven old-client transition;not implemented"
+  },
+  "artifacts": [
+    "docs/briefs/fin03-identidad-gastos.md",
+    "docs/briefs/fin03-identidad-gastos/01-additive.proposed.sql",
+    "docs/briefs/fin03-identidad-gastos/01-additive.rollback.proposed.sql",
+    "docs/briefs/fin03-identidad-gastos/causal-red.mjs",
+    "docs/briefs/fin03-identidad-gastos/old-client-isolated-cases.sql"
+  ],
+  "mutations": {
+    "executed": false,
+    "reason": "Design-only,no approved product fix;future mutants specified,not invented"
+  },
+  "limitations": [
+    "SQL proposals and old-client SQL cases NOT executed:Postgres/psql/docker/supabase absent from checked PATH/standard paths,pglite MODULE_NOT_FOUND;no installation/service start",
+    "No actual PostgreSQL,RLS,concurrency,migration/reversal,DataAPI or deployed-schema verification;SDK index model is not SQL proof",
+    "No new financial tests during design/delivery;prior7PASS/7RED retained,packaging equality and syntax only",
+    "No product containment,FIN10/FIN11 edits,VERSION/catalog/cap/oracle changes;source limited to five docs/research files",
+    "No fullsuite,E2E,CPU6,Deno,Gradle,liveSQL,realbanks,deploy,main/beta push or merge;generalCI/served artifact/mobile unverified",
+    "Legacy fallback is versioned without invented backfill;origin/account stability and actual client/ACK/server implementation remain future work",
+    "Draft review/integration only,DONE design phase is not FIN03fixed or ProductREADY"
+  ],
+  "fetchBudget": {
+    "initialOWN10Closed": {
+      "used": 10,
+      "remaining": 0
+    },
+    "idbudget": "fin03-fin09-own12-1-db3299cd-084e69a4",
+    "allowance": 12,
+    "usedBeforeResultPublication": 6,
+    "remainingBeforeResultPublication": 6,
+    "readbackWillBeCounted": true,
+    "separateLedger": true,
+    "noReset": true,
+    "noROOTInheritance": true
+  },
+  "nextAction": "Freeze6aa62e8c and end serial delivery turn after result canonical readback and private checkpoint.No polling,nextphase or financial/server code by inference.",
+  "schema": 1,
+  "taskId": "fin03-fin09-crossbank-identity-codex-20261017",
+  "actor": "codex",
+  "sessionId": "codex-local-20261017-ae2da5dc1681dae5",
+  "createdAt": "2026-10-17T12:53:21.236Z",
+  "released": true
+}
