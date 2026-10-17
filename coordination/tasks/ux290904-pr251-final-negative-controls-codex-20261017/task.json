@@ -1,0 +1,42 @@
+{
+  "schema": 1,
+  "id": "ux290904-pr251-final-negative-controls-codex-20261017",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261017-r58-5335d99b-84bfc768",
+  "createdAt": "2026-10-17T16:47:38.496Z",
+  "kind": "worker",
+  "to": "codex",
+  "baseSHA": "00bb2bbb9bb68be157e589195507abdcd32581ca",
+  "previousTaskId": "ux290904-pr251-remates-codex-20261017",
+  "previousResult": "6311b034b738373fb4701b3739ead57ca7d13f01",
+  "grantCommit": "d208404697851fa26a1dab0d425942d3d964625b",
+  "newBranchAuthority": "6c8bb5538c12c4629e470ff2a62e85d9719de20d",
+  "freezeAuthority": "1a930cedf2e7853ff8b138e5f38577b142e2b4b0",
+  "sameOriginalOwner": true,
+  "frozenPreviousPR": 251,
+  "newBranchAndNewDraftPRRequired": true,
+  "newPRBase": "main",
+  "objective": "Add only the two final negative controls requested by Claude, on a new branch from frozen PR251 head for beta141 review",
+  "scope": [
+    "tests/manual-income-review.test.mjs",
+    "docs/briefs/ux-2909-04-ingreso-manual.md"
+  ],
+  "phase": "New own claim/readback and public ACK only before separate private test-edit admission",
+  "fetchBudget": {
+    "sameWorkerBlockOnly": true,
+    "additional12AfterOwnExhaustion": true,
+    "noticeRequired": true,
+    "ownLedgerRequired": true,
+    "noResetOrROOTInheritance": true
+  },
+  "requirements": [
+    "Read product grant d2084046, freeze1a930ced and new publication confirmation6c8bb553 FULL RAW. Same original worker identity and existing budget only. Prior claim/result6311b034 immutable; new own claim and ACK before edits.",
+    "Old PR251 branch and exact source00bb2bbb remain frozen. Use a NEW isolated branch from that exact head and NEW draft PR against original verified base main. No beta rebase or source port invented by this test-only task.",
+    "Negative control: new manual-income protection must not extend to expense rows. An unpaired expense#dup with a manual expense within3days must distribute exactly as main.",
+    "Negative control: the protection must not apply beyond3days. Preserve exact cents, original matcher assertions and all existing contracts.",
+    "No product-source changes. Execute only the affected test file and meaningful targeted overextension mutants for the new controls. No unrelated completed DOM or financial suites or build/size measurements on unchanged product bytes.",
+    "Existing size/cap limitation stays declared; no cap, VERSION, catalogue,09/sheet, unrelated oracle or dependencies changed. Claude integration retains its cap decision.",
+    "Private candidate and checkpoint after separate admission, no branch push or PR/result until another serial delivery turn. Freeze final new source after delivery; no ProductREADY or served/mobile claims.",
+    "No fullsuite CPU6 Gradle APK SQL livebanks deploy main-beta push/merge, foreign claims or locks. Directed public channel NFF may retry at most twice under6c8bb553, only after FULL RAW ordinary advancement; all other rejections STOP without alternate helper/filter/identity/route."
+  ]
+}
