@@ -3096,7 +3096,7 @@ function mcLoadRaw(key){
   const saved=mcSaveRaw.balanceHistory||(mcSaveRaw.balanceHistory={});
   saved[key]={ref:history,history:history,body:body,revision:revision,owner:base._historyOwner,partition:JSON.stringify(partition),durable:durable&&hist&&hist.schema===1&&(!hist.owner||hist.owner===base._historyOwner)&&JSON.stringify(hist.history)===body};
   delete base._balHistoryRevision;
-  return base;
+  return obAbsorbedRestore(base,key);
 }
 /* SE GUARDA LO QUE SE HA PINTADO, NO LO QUE SE CALCULÓ (INC-0410, 4/10/2026).
    Antes `set()` apuntaba el volcado pendiente DENTRO del updater. React puede ejecutar un updater
@@ -3464,6 +3464,7 @@ const cloud = (function(){
     },
     async pushState(uid, data, lastKnownUpdatedAt){
       if(!sb || !uid) return null;
+      if((data.obAbsorbedPending||[]).some(function(p){return !obAbsorbedValid(p,uid);})||(data.obAbsorbedPending||[]).length>OB_ABSORBED_MAX)throw new Error("ob_absorbed_owner");
       const now=new Date().toISOString();
       if(lastKnownUpdatedAt){
         const {data:rows,error}=await sb.from('app_state')
@@ -3713,6 +3714,41 @@ const cloud = (function(){
       if(!session) return;
       const {error}=await expenseCloudEq(sb.from('expenses').delete(), session.user.id, e);
       if(error) throw error;
+    },
+    // El acuse pertenece al objetivo leído, nunca a una referencia compartida con la superviviente.
+    async settleObAbsorbed(p, currentOwner){
+      if(!sb||mcSandbox()||!obAbsorbedValid(p,p&&p.owner)) return false;
+      const owner=p.owner, controller=new AbortController(), timer=setTimeout(function(){controller.abort();},8000);
+      const active=async function(){
+        if(currentOwner()!==owner)return false;
+        const r=await sb.auth.getSession(),s=r.data&&r.data.session;
+        return !r.error&&s&&s.user.id===owner&&(s.expires_at==null||Number.isFinite(Number(s.expires_at))&&Number(s.expires_at)*1000>Date.now())&&currentOwner()===owner;
+      };
+      const query=async function(q){const r=await q.abortSignal(controller.signal);if(r.error||!Array.isArray(r.data))throw new Error("ob_absorbed_read");return r.data;};
+      const columns="id,fecha,importe,comercio,source,ob_name";
+      const find=async function(){
+        if(!await active())throw new Error("ob_absorbed_owner");
+        const exact=await query(sb.from('expenses').select(columns).eq('user_id',owner).eq('id',p.id).limit(2));
+        if(exact.length>1)throw new Error("ob_absorbed_cardinality");
+        if(exact.length){if(!obAbsorbedCandidate(p,exact[0],false))throw new Error("ob_absorbed_changed");return exact[0];}
+        const day=p.key.split("|")[5],end=new Date(Date.parse(day+"T00:00:00Z")+86400000).toISOString();
+        const rows=await query(sb.from('expenses').select(columns).eq('user_id',owner).gte('fecha',day+"T00:00:00Z").lt('fecha',end).limit(201));
+        if(rows.length>=201)throw new Error("ob_absorbed_incomplete");
+        const possible=rows.filter(function(r){return obAbsorbedPossible(p,r);});
+        if(possible.length>1||possible.length===1&&!obAbsorbedCandidate(p,possible[0],true))throw new Error("ob_absorbed_ambiguous");
+        return possible[0]||null;
+      };
+      try{
+        const target=await find();
+        if(!target)return !!await active();
+        if(!await active())return false;
+        const rows=await query(sb.from('expenses').delete().eq('user_id',owner).eq('id',target.id)
+          .eq('source',target.source).eq('fecha',target.fecha).eq('importe',target.importe).eq('comercio',target.comercio).select('id'));
+        if(rows.length===1&&rows[0].id===target.id)return !!await active();
+        // Cero filas puede ser una carrera o una respuesta perdida: volver a leer, no inventar éxito.
+        return rows.length===0&&!await find()&&!!await active();
+      }catch(e){obAbsorbedWarn("retry");return false;}
+      finally{clearTimeout(timer);}
     },
     async prices(symbols){
       if(!sb) throw new Error("nube no disponible");
@@ -4185,6 +4221,92 @@ function obAbsorptionKey(e,legacy){
   const base=e&&esFilaDeBanco(e)&&bank&&e.extId ? encodeURIComponent(bank)+"|"+encodeURIComponent(String(e.extId))+"|"+obOrdinalOf(e) : null;
   return base ? (legacy?"ob-absorbed|"+base:"ob-absorbed2|"+base+"|"+encodeURIComponent(String(e.obAcc||""))+"|"+String(e.date||"").slice(0,10)) : null;
 }
+/* FIN-11: la intención sobrevive al cierre y a la poda de las 500 lápidas. Guardar primero
+   en una partición pequeña con readback: el fallback en memoria no acredita persistencia. */
+const OB_ABSORBED_MAX=200,obAbsorbedWarnings=new Set(),obAbsorbedRuns=new Map();
+function obAbsorbedWarn(code){
+  if(!["full","persist","merge","retry"].includes(code)||obAbsorbedWarnings.has(code))return;
+  obAbsorbedWarnings.add(code);
+  try{Promise.resolve(cloud.logEvent("warn","ob_absorbed_"+code,null)).catch(function(){});}catch(e){}
+}
+function obAbsorbedValid(p,owner){
+  if(!p||!owner||p.owner!==owner||!isExpenseUuid(p.id)||!isExpenseUuid(p.keepId)||p.id===p.keepId)return false;
+  const a=String(p.key||"").split("|"),b=String(p.keepKey||"").split("|");
+  return a.length===6&&a[0]==="ob-absorbed2"&&!!a[1]&&!!a[2]&&/^[1-9]\d{0,5}$/.test(a[3])&&/^\d{4}-\d{2}-\d{2}$/.test(a[5])
+    &&b.length===6&&b[0]==="ob-absorbed2"&&typeof p.merchant==="string"&&typeof p.amount==="number"&&Number.isFinite(p.amount)&&p.amount>0;
+}
+function obAbsorbedJoin(a,b,owner){
+  const out=[],seen=new Set();
+  (Array.isArray(a)?a:[]).concat(Array.isArray(b)?b:[]).forEach(function(p){
+    if(!obAbsorbedValid(p,owner))return;
+    const key=p.id+"|"+p.key;if(!seen.has(key)){seen.add(key);out.push(p);}
+  });
+  if(out.length>OB_ABSORBED_MAX){obAbsorbedWarn("merge");return null;}
+  return Array.isArray(a)&&out.length===a.length&&out.every(function(p,i){return p===a[i];})?a:out;
+}
+function obAbsorbedStorageKey(owner,key){return (key||mcStateKey())+"_obabs_"+encodeURIComponent(owner);}
+function obAbsorbedPersist(owner,list){
+  if(!owner||!Array.isArray(list)||list.length>OB_ABSORBED_MAX||list.some(function(p){return !obAbsorbedValid(p,owner);}))return false;
+  try{
+    const key=obAbsorbedStorageKey(owner),body=JSON.stringify({owner:owner,pending:list});
+    localStorage.setItem(key,body);if(localStorage.getItem(key)===body)return true;
+  }catch(e){}
+  obAbsorbedWarn("persist");return false;
+}
+function obAbsorbedRestore(s,key){
+  const owner=s&&s._historyOwner;if(!owner)return s;
+  try{
+    const raw=localStorage.getItem(obAbsorbedStorageKey(owner,key));if(raw==null)return s;
+    const pack=JSON.parse(raw),list=obAbsorbedJoin(pack.pending,[],owner);
+    if(pack.owner===owner&&list&&Array.isArray(pack.pending)&&list.length===pack.pending.length)return Object.assign({},s,{obAbsorbedPending:list});
+  }catch(e){}
+  return s;
+}
+function obAbsorbedEnqueue(s,e,keep){
+  const owner=s&&s._historyOwner;
+  const p={owner:owner,id:e.id,key:obAbsorptionKey(e),keepId:keep.id,keepKey:obAbsorptionKey(keep),amount:e.amount,merchant:e.merchant||""};
+  if(!obAbsorbedValid(p,owner))return null;
+  const list=obAbsorbedJoin(s.obAbsorbedPending,[p],owner);
+  if(!list){obAbsorbedWarn("full");return null;}
+  return obAbsorbedPersist(owner,list)?list:null;
+}
+function obAbsorbedCandidate(p,row,alias){
+  if(!row||!isExpenseUuid(row.id)||row.id===p.keepId||typeof row.source!=="string"||typeof row.fecha!=="string"||typeof row.comercio!=="string")return false;
+  const e=expenseFromRow(row),key=obAbsorptionKey(e);
+  if(e.obPending||e.amount!==p.amount||e.merchant!==p.merchant||!key||!obAbsorptionMatches(e,{[p.key]:1})||obAbsorptionMatches(e,{[p.keepKey]:1}))return false;
+  // Sin UUID compartido, una cuenta ausente ya no acredita una coincidencia destructiva.
+  return !alias||!!p.key.split("|")[4]&&!!e.obAcc&&key===p.key;
+}
+// No encontrar un candidato borrable no prueba ausencia: un alias editado/legacy es incertidumbre.
+function obAbsorbedPossible(p,row){
+  if(!row||!row.id||typeof row.source!=="string")return true;
+  const e=expenseFromRow(row),key=obAbsorptionKey(e);
+  if(key)return obAbsorptionMatches(e,{[p.key]:1});
+  return esFilaDeBanco(e)&&encodeURIComponent(expenseBankOf(e)||"")===p.key.split("|")[1]
+    &&String(e.date||"").slice(0,10)===p.key.split("|")[5]&&e.amount===p.amount&&e.merchant===p.merchant;
+}
+async function obAbsorbedRetry(getState,getOwner,apply,offset){
+  const owner=getOwner(),s=getState();
+  if(!owner||!s||s._historyOwner!==owner||mcSandbox()||!cloud.enabled())return offset||0;
+  if(obAbsorbedRuns.has(owner))return obAbsorbedRuns.get(owner);
+  const list=obAbsorbedJoin(s.obAbsorbedPending,[],owner)||[],start=(offset||0)%Math.max(1,list.length);
+  const batch=list.slice(start).concat(list.slice(0,start)).slice(0,4);
+  const run=(async function(){
+    for(const p of batch){
+      if(getOwner()!==owner)break;
+      if(!await cloud.settleObAbsorbed(p,getOwner)||getOwner()!==owner)continue;
+      apply(function(prev){
+        if(getOwner()!==owner||prev._historyOwner!==owner)return prev;
+        const before=prev.obAbsorbedPending||[],next=before.filter(function(q){return q.id!==p.id||q.key!==p.key;});
+        if(next.length===before.length||!obAbsorbedPersist(owner,next))return prev;
+        return Object.assign({},prev,{obAbsorbedPending:next});
+      });
+    }
+    return (start+batch.length)%Math.max(1,list.length);
+  })();
+  obAbsorbedRuns.set(owner,run);
+  try{return await run;}finally{obAbsorbedRuns.delete(owner);}
+}
 function _errCloudMsg(err){
   return mcLogCode(err);
 }
@@ -4221,7 +4343,7 @@ function borrarGastoNube(e, donde){
 
    Si añades un método a `cloud` que ESCRIBA algo, añádelo a esta lista. */
 const CLOUD_WRITES=[
-  "pushState","addExpense","addExpensesBatch","setExpenseBank","setExpenseDup","setExpenseNoCard","setExpenseNote","setExpenseCat","confirmExpenseWithdrawal","setExpenseDeuda","setExpenseRecibo","deleteExpense","deleteExpensesByIds",
+  "pushState","addExpense","addExpensesBatch","setExpenseBank","setExpenseDup","setExpenseNoCard","setExpenseNote","setExpenseCat","confirmExpenseWithdrawal","setExpenseDeuda","setExpenseRecibo","deleteExpense","deleteExpensesByIds","settleObAbsorbed",
   "backupState","bankConnect","bankDisconnect","myinvestorConnect","myinvestorStore",
   "myinvestorDisconnect","setIngestToken","clearIngestToken","logEvent","logUso","logPerf","feedback","betaReport",
   "deleteAccount","createHousehold","joinHousehold","publishHouseholdSnapshot","leaveHousehold",
@@ -6814,14 +6936,14 @@ function sameEntList(a,b){
    ent) sí cuenta. Pedido 2026-08-17: Revolut+TR marcados → los dos se ven y cuentan. */
 const expenseDeletedSets=new WeakMap();
 function expenseDeletedSet(s){
-  const deleted=s&&s.deleted;
-  if(!Array.isArray(deleted)||!deleted.length) return null;
-  let delSet=expenseDeletedSets.get(deleted);
-  if(!delSet){
-    delSet=Object.create(null);
-    deleted.forEach(function(k){ delSet[k]=1; });
-    expenseDeletedSets.set(deleted,delSet);
-  }
+  const deleted=s&&s.deleted,pending=s&&s.obAbsorbedPending,owner=s&&s._historyOwner;
+  if((!Array.isArray(deleted)||!deleted.length)&&(!Array.isArray(pending)||!pending.length))return null;
+  const ref=Array.isArray(deleted)?deleted:pending,cached=expenseDeletedSets.get(ref);
+  if(cached&&cached.pending===pending&&cached.owner===owner)return cached.map;
+  const delSet=Object.create(null);
+  (Array.isArray(deleted)?deleted:[]).forEach(function(k){delSet[k]=1;});
+  (Array.isArray(pending)?pending:[]).forEach(function(p){if(obAbsorbedValid(p,owner))delSet[p.key]=1;});
+  expenseDeletedSets.set(ref,{pending:pending,owner:owner,map:delSet});
   return delSet;
 }
 function expenseCountsCash(e, s){
@@ -9923,13 +10045,13 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
   const bud=dashboardBudgetStats(state);
     return bud;
   },
-    [state.expenses,state.deleted,state.accounts,state.settings,state.flows,state.budget,state.reservaLog,seriesToday]);
+    [state.expenses,state.deleted,state.obAbsorbedPending,state._historyOwner,state.accounts,state.settings,state.flows,state.budget,state.reservaLog,seriesToday]);
   const budAmt=bud.budget!=null?bud.budget:(state.budget||0);
   const spentAgainst=Math.max(0,bud.against), rem=bud.remaining!=null?bud.remaining:budAmt-spentAgainst;
   const timing=cycleTiming(bud), paceState=cyclePaceState(spentAgainst,budAmt,timing.elapsed,timing.days);
   const dailyMoney=budAmt>0?cycleDailyMoney(rem,timing.left):null;
   const series=useMemo(function(){ return netWorthSeries(state,{today:seriesToday,liquid:tt.liquid,invested:tt.invested,debtTotal:tt.debtTotal,balanceInputs:tt}); },
-    [state.accounts,state.obAccounts,state.accountBalanceHistory,state.invHistory,state.investments,state.assets,state.assetValueHistory,state.debts,state.expenses,state.deleted,state.flows,state.fixed,state.oneoffs,state.bankTx,state.aportaciones,state.settings,state.fx,state.fxRates,tt,seriesToday]);
+    [state.accounts,state.obAccounts,state.accountBalanceHistory,state.invHistory,state.investments,state.assets,state.assetValueHistory,state.debts,state.expenses,state.deleted,state.obAbsorbedPending,state._historyOwner,state.flows,state.fixed,state.oneoffs,state.bankTx,state.aportaciones,state.settings,state.fx,state.fxRates,tt,seriesToday]);
 
   const overdue=[];
   // La fecha prevista no es un pago: la misma lectura de evidencia que Plan conserva los
@@ -9987,7 +10109,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
   // La fila del banco de una pareja automática (`autoGemelo`) queda oculta: la compra con comercio
   // ya está en la lista y repetirla enseñaba «Movimiento · Otros» con el mismo importe. Misma regla
   // que Gastos (visto por el dueño en la beta 4.26.131, 14/10/2026).
-  const recent=useMemo((s=state)=>(s.expenses||[]).filter(e=>!e.autoGemelo&&!expenseIsTombstoned(e,expenseDeletedSet(s))).sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,3),[state.expenses,state.deleted]);
+  const recent=useMemo((s=state)=>(s.expenses||[]).filter(e=>!e.autoGemelo&&!expenseIsTombstoned(e,expenseDeletedSet(s))).sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,3),[state.expenses,state.deleted,state.obAbsorbedPending,state._historyOwner]);
   const ringPct=budAmt>0?Math.max(0,Math.min(1,rem/budAmt)):0;
   /* P6 — el anillo usa una animación de montaje, con estado final directo si se reduce
      el movimiento. Pausarla hasta que salga el splash evita gastarla detrás de la cortina. */
@@ -10810,7 +10932,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
   const mad=madridYmdParts(Date.now()), madridDay=mad.ym+"-"+mad.d;
   const cycle=useMemo(()=>cycleEnabled?budgetPaydayOf(state,null,expensesDef)
     :lastPaydayOf(expensesDef,null,expenseDeletedSet(state)),
-    [expensesDef,state.deleted,state.flows,cycleEnabled,todayKey]);
+    [expensesDef,state.deleted,state.obAbsorbedPending,state._historyOwner,state.flows,cycleEnabled,todayKey]);
   // Bancos presentes en el período (o configurados como gasto) → chips de filtro.
   // "_manual" = apuntados a mano / sin banco conocido (no mezclar con OB).
   // Chips de banco: baratos y SIEMPRE visibles (no dependen de heavyOk → sin flash).
@@ -10870,7 +10992,7 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
     return sortExpensesForDisplay(out,state);
     // `state.settings`/`state.accounts` van en las dependencias porque `expenseBucket` los lee
     // (qué bancos son de gasto diario): cambiar eso tiene que re-filtrar la lista.
-  },[expensesDef,state.deleted,bounds,sel,bankSel,bucketSel,q,state.settings,state.accounts,state.fixed,state.oneoffs,state.reciboNo]);
+  },[expensesDef,state.deleted,state.obAbsorbedPending,state._historyOwner,bounds,sel,bankSel,bucketSel,q,state.settings,state.accounts,state.fixed,state.oneoffs,state.reciboNo]);
 
   /* El asa reclama el dedo desde el principio: dejar que la fila entera fuera arrastrable
      convertiría un scroll normal en cambios de orden accidentales. El destino se resuelve contra
@@ -10918,13 +11040,13 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       month:monthLong(day.m-1), cycle:!!selectedPeriod.cycle,
       periodLabel:periodLabel, budgetApplies:budgetApplies
     };
-  },[expensesDef,state.deleted,state.budget,state.reservaLog,state.accounts,state.settings,state.fixed,state.oneoffs,state.reciboNo,selectedPeriod,preset,range,budgetApplies,todayKey,madridDay]);
+  },[expensesDef,state.deleted,state.obAbsorbedPending,state._historyOwner,state.budget,state.reservaLog,state.accounts,state.settings,state.fixed,state.oneoffs,state.reciboNo,selectedPeriod,preset,range,budgetApplies,todayKey,madridDay]);
   // Desglose por categoría: misma regla/ventana que la cabecera. categoryBudgets en deps
   // porque una fila a 0 con límite tiene que aparecer aunque no haya gastos nuevos.
   const catBreakdown=useMemo(function(){
     const rows=categorySpentByMonth(Object.assign({},state,{expenses:expensesDef}),null,null,selectedPeriod);
     return budgetApplies?rows:rows.filter(function(row){ return row.spent>0; }).map(function(row){ return {id:row.id,spent:row.spent,limit:null}; });
-  },[expensesDef,state.deleted,state.categoryBudgets,state.accounts,state.settings,state.fixed,state.oneoffs,state.reciboNo,selectedPeriod,budgetApplies,todayKey,madridDay]);
+  },[expensesDef,state.deleted,state.obAbsorbedPending,state._historyOwner,state.categoryBudgets,state.accounts,state.settings,state.fixed,state.oneoffs,state.reciboNo,selectedPeriod,budgetApplies,todayKey,madridDay]);
   /* Abierto o plegado, por cuenta. `!==false` y no `!!`: quien nunca lo ha tocado lo ve ABIERTO
      —es como está hoy y como él lo aprobó—, y solo se pliega quien lo pliegue a mano. */
   const catsOpen=!(state.settings && state.settings.gastosCatsOff);
@@ -15803,8 +15925,15 @@ function obPendingAbsorbedState(s,prev){
     const keep=adopted.get(expenseBankOf(e)+"|"+e.extId);
     if(!keep||obPendingGroup(e)!==obPendingGroup(keep)||e.obAcc&&keep.obAcc&&e.obAcc!==keep.obAcc)return;
     const key=obAbsorptionKey(e);if(!key||obAbsorptionMatches(keep,{[key]:1})||(out.deleted||[]).indexOf(key)>=0)return;
+    if(cloud.enabled()&&!mcSandbox()){
+      const pending=obAbsorbedEnqueue(out,e,keep);
+      if(!pending){
+        // Sin espacio o sin escritura durable no se declara segura una retirada nueva.
+        out=Object.assign({},out,{expenses:(out.expenses||[]).map(function(x){return x.id===keep.id?before.get(keep.id):x;}).concat([e])});return;
+      }
+      out=Object.assign({},out,{obAbsorbedPending:pending});
+    }
     out=Object.assign({},out,lapidaPon(out,key,s.lastBankSync||Date.now()));
-    borrarGastoNube(e,"ob-absorbed");
   });
   return out;
 }
@@ -15869,7 +15998,7 @@ function importObExpenses(s, txs, links){
   const keys={}; (s.expenses||[]).forEach(function(e){ keys[scopedKOf(e)]=1; });
   /* Lápidas: «es el mismo» borra la fila OB y deja clave en `deleted`. Sin esto el siguiente
      sync de TR volvería a meter el Movimiento y a marcarlo otra vez contra la noti. */
-  const delSet={}; (s.deleted||[]).forEach(function(k){ delSet[k]=1; });
+  const delSet=expenseDeletedSet(s)||{};
   const deletedRefs={}, deletedSlots={};
   (s.gemelos||[]).forEach(function(g){
     if(g&&g.aviso===""&&g.bankRef&&delSet[g.banco]){deletedRefs[(g.ent||"")+"|"+g.bankRef]=1;deletedSlots[g.banco]=1;}
@@ -22085,7 +22214,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="2bc087e9f890f46c7dad9015e25013752b5c538d7b5d3b784eb0a37f79fe9744";
+var _rnSha="1c05ba964de0921221cc4708331303735f24a904be0b5bba7b7ea731840b586c";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
@@ -23514,7 +23643,7 @@ function PlanTab({state, set, totals, showToast, simple, gotoSeg, clearGoto}){
     : [{id:"recibos",lab:t("v4_plan_recibos")},{id:"deudas",lab:t("v4_plan_deudas")},{id:"metas",lab:t("v4_plan_metas")}];
   const charges=useMemo(function(){
     return planChargesMonth(state, totals.curMonth, totals.curYear, totals.today);
-  },[state.fixed,state.debts,state.oneoffs,state.flows,state.bankTx,state.accounts,state.expenses,state.deleted,totals.curMonth,totals.curYear,totals.today]);
+  },[state.fixed,state.debts,state.oneoffs,state.flows,state.bankTx,state.accounts,state.expenses,state.deleted,state.obAbsorbedPending,state._historyOwner,totals.curMonth,totals.curYear,totals.today]);
   const pick=useMemo(function(){
     return planCoverPickBank(totals, charges.pendingByBank, charges.pendingBills, charges.paidBills);
   },[totals.minByBank,totals.minDayByBank,totals.mainBank,charges.pendingByBank,charges.pendingBills,charges.paidBills]);
@@ -26030,6 +26159,14 @@ function App(){
   const [session,setSession]=useState(null);
   const uid = session && session.user ? session.user.id : null;
   const stateRef=useRef(state); useEffect(function(){ stateRef.current=state; });
+  const obAbsorbedLive=useRef(true),obAbsorbedCursor=useRef({owner:null,offset:0}),obAbsorbedWriteBlocked=useRef(false);
+  useEffect(function(){obAbsorbedLive.current=true;return function(){obAbsorbedLive.current=false;};},[]);
+  const retryObAbsorbedCloud=function(){
+    const getOwner=function(){return obAbsorbedLive.current&&sessionRef.current&&sessionRef.current.user&&sessionRef.current.user.id;};
+    const owner=getOwner(),cursor=obAbsorbedCursor.current;
+    if(cursor.owner!==owner){cursor.owner=owner;cursor.offset=0;}
+    return obAbsorbedRetry(function(){return stateRef.current;},getOwner,set,cursor.offset).then(function(offset){if(getOwner()===owner)cursor.offset=offset;});
+  };
   const sessionRef=useRef(null);
   const cloudUpdatedAtRef=useRef(null);   // sello del servidor para sync sin pisar otro dispositivo
   const bankSyncing=useRef(false);          // evita syncs de banco solapados
@@ -26124,7 +26261,7 @@ function App(){
       wC.current=rows;
       // FIN-07: el paginador solo resuelve al terminar; un error intermedio no mezcla ni
       // confirma páginas sueltas. La ausencia sigue sin significar borrado, incluso al terminar.
-      const delSet={}; (stateRef.current.deleted||[]).forEach(function(k){ delSet[k]=1; });
+      const delSet=expenseDeletedSet(stateRef.current);
       const incoming=rows.map(expenseFromRow).filter(function(e){ return e.amount!==0 && !expenseIsTombstoned(e, delSet); });
       // Backfill: sube a la tabla TODO gasto local que aún no esté en ella (no solo los manuales).
       // Esto garantiza que la tabla sea la fuente de verdad COMPLETA antes de dejar de duplicar
@@ -26196,8 +26333,12 @@ function App(){
       });
       });
     });
-    wP.current=pull;
-    return pull;
+    const completed=pull.then(function(result){
+      if(ps!==wS.current)return result;
+      return retryObAbsorbedCloud().then(function(){return result;});
+    });
+    wP.current=completed;
+    return completed;
   };
 
   // Al iniciar sesión: adopta el estado de la nube (o sube el local la 1ª vez) y trae gastos.
@@ -26211,6 +26352,15 @@ function App(){
       mensualPuerta.lee(cloudPack);
       // INC-0410 mensual: límite de la lectura válida.
       const cloudState=cloudPack ? cloudPack.data : null;
+      if(!sessionRef.current||sessionRef.current.user.id!==u)return;
+      // Si dos colas llenas no caben juntas, no se pierde ninguna ni se sobrescribe la remota.
+      // El CAS se conserva sin avanzar hasta poder unirlas; el refresco siguiente puede reintentarlo.
+      if(cloudState){
+        const own=stateRef.current._historyOwner===u?stateRef.current.obAbsorbedPending:[];
+        const pending=obAbsorbedJoin(own,cloudState.obAbsorbedPending,u);
+        if(!pending||pending.length&&!obAbsorbedPersist(u,pending)){obAbsorbedWriteBlocked.current=true;return;}
+      }
+      obAbsorbedWriteBlocked.current=false;
       if(cloudPack && cloudPack.updated_at) cloudUpdatedAtRef.current=cloudPack.updated_at;
       if(cloudState && validCloudState(cloudState)){
         // LAST-WRITE-WINS: si lo LOCAL es más reciente (p.ej. cambios hechos sin conexión),
@@ -26238,6 +26388,9 @@ function App(){
             if(prev.deleted||cloudState.deleted) Object.assign(baseObj, lapidasUnion(prev, cloudState));
             if(prev.reciboBorrado||cloudState.reciboBorrado) Object.assign(baseObj, recibosBorradosUnion(baseObj, prev, cloudState));
           }
+          const pending=obAbsorbedJoin(sameOwner?prev.obAbsorbedPending:[],cloudState.obAbsorbedPending,u);
+          if(!pending||pending.length&&!obAbsorbedPersist(u,pending)){obAbsorbedWriteBlocked.current=true;return prev;}
+          baseObj.obAbsorbedPending=pending;
           // La nube lleva una ventana corta: un cliente antiguo no debe borrar los cierres
           // locales. El marcador sólo delimita este historial, nunca concede una sesión.
           if(sessionRef.current&&sessionRef.current.user&&sessionRef.current.user.id===u){
@@ -26701,7 +26854,7 @@ function App(){
       setSession(sessionRef.current=s);
       // Cerrar sesión rompe la asociación implícita del extracto local con el titular. El
       // próximo login no debe heredar sus apuntes, aunque no exista cartera en la nube.
-      if(!s&&ev==="SIGNED_OUT") set(p=>Object.assign({},p,{bankTx:[]}));
+      if(!s&&ev==="SIGNED_OUT") set(p=>Object.assign({},p,{bankTx:[],obAbsorbedPending:[]}));
       // Vuelta del email de recuperación: abre el panel para poner contraseña nueva.
       if(ev==="PASSWORD_RECOVERY"){ setRecovery(true); setShowAuth(true); }
       // login ya acredita otro titular si había sesión; dropTx no debe releer esos IDs.
@@ -26718,6 +26871,7 @@ function App(){
   useEffect(function(){
     if(!uid) return;
     const tmr=setTimeout(function(){
+      if(obAbsorbedWriteBlocked.current||!sessionRef.current||sessionRef.current.user.id!==uid)return;
       cloud.pushState(uid, slimForCloud(state), cloudUpdatedAtRef.current).then(function(r){
         if(r && r.conflict){ showToast(t("st_sync_conflict")); syncFromCloud(sessionRef.current); return; }
         if(r && r.updated_at) cloudUpdatedAtRef.current=r.updated_at;
@@ -27122,10 +27276,12 @@ function App(){
     return function(){ window.removeEventListener("online",on); window.removeEventListener("offline",off); };
   },[]);
   useEffect(function(){
-    if(online && !wasOnline.current && uid){ cloud.pushState(uid, slimForCloud(stateRef.current), cloudUpdatedAtRef.current).then(function(r){
+    if(online && !wasOnline.current && uid){ retryObAbsorbedCloud().then(function(){
+      if(obAbsorbedWriteBlocked.current||!sessionRef.current||sessionRef.current.user.id!==uid)return;
+      return cloud.pushState(uid, slimForCloud(stateRef.current), cloudUpdatedAtRef.current).then(function(r){
       if(r && r.conflict){ showToast(t("st_sync_conflict")); syncFromCloud(sessionRef.current); return; }
       if(r && r.updated_at) cloudUpdatedAtRef.current=r.updated_at;
-    }).catch(function(){}); }   // reconectó → sube lo de offline
+    }); }).catch(function(){}); }   // reconectó → sube lo de offline
     wasOnline.current=online;
   },[online,uid]);
 
@@ -27688,7 +27844,7 @@ function App(){
   // el buscador, al salir un toast… Con las porciones reales solo se recalcula cuando cambia el
   // dinero de verdad (parte gorda del «se ralentiza cuanto más la uso» — 2026-07-24).
   },[state.accounts,state.expenses,state.bankTx,state.investments,state.assets,state.debts,state.fixed,
-     state.flows,state.oneoffs,state.deleted,state.aportaciones,state.obAccounts,(state.settings||{}).accountShare,
+     state.flows,state.oneoffs,state.deleted,state.obAbsorbedPending,state._historyOwner,state.aportaciones,state.obAccounts,(state.settings||{}).accountShare,
      state.trRewardsTotal,state.fx,state.fxRates,state.reciboNo,calendarDay]);
 
   const budgetMonth=budgetYmKey();
@@ -27700,7 +27856,7 @@ function App(){
   /* Una sola racha compartida por Inicio y el detector de logros. Con históricos grandes,
      calcularla otra vez dentro de cada pantalla triplicaba el recorrido al terminar un sync. */
   const budgetStreak=useMemo(function(){ return underBudgetStreak(state); },
-    [state.expenses,state.deleted,state.budgetByMonth,state.accounts,state.reservaLog,
+    [state.expenses,state.deleted,state.obAbsorbedPending,state._historyOwner,state.budgetByMonth,state.accounts,state.reservaLog,
      state.settings&&state.settings.expenseBanks,state.settings&&state.settings.gTotalMode,budgetMonth]);
 
   const [pricing,setPricing]=useState(false);
@@ -27903,7 +28059,7 @@ function App(){
     };
   // Otra lectura con filas idénticas también recupera el legado: no depender sólo de
   // cifras o del reloj, que puede coincidir con el último lastSync.
-  },[budW.shown,budW.against,budW.cycle,budW.periodStart,budW.budget,wV2,wScope,CURLANG,state.budget,state.deleted,state.lastSync,widgetCash,trAccW&&trAccW.ent,widgetBudgetLeft,widgetSafeLiq,calendarDay,uid,wRead.current]);
+  },[budW.shown,budW.against,budW.cycle,budW.periodStart,budW.budget,wV2,wScope,CURLANG,state.budget,state.deleted,state.obAbsorbedPending,state._historyOwner,state.lastSync,widgetCash,trAccW&&trAccW.ent,widgetBudgetLeft,widgetSafeLiq,calendarDay,uid,wRead.current]);
   // Tour de bienvenida: 1ª vez tras el onboarding (tourSeen=false), con la app ya pintada
   useEffect(function(){
     // No arrancar el tour encima del login (showAuth) ni con el cajón abierto: causaba el caos
@@ -28025,7 +28181,7 @@ function App(){
         }).catch(run);
       }catch(e){ run(); }
     } else run();
-  },[state.onboarded,locked,showAuth,state.fixed,state.debts,state.expenses,state.bankTx,state.deleted,totals.today,totals.curMonth,totals.curYear]);
+  },[state.onboarded,locked,showAuth,state.fixed,state.debts,state.expenses,state.bankTx,state.deleted,state.obAbsorbedPending,state._historyOwner,totals.today,totals.curMonth,totals.curYear]);
 
   // Empuja el calendario de recibos del mes al NATIVO (APK ≥29): AlertCheckWorker avisa la
   // víspera aunque la app esté CERRADA. Intercambio de sellos para no avisar dos veces:
@@ -28075,7 +28231,7 @@ function App(){
       const nat=natPlugin();
       if(nat&&nat.showNotification){ try{ nat.showNotification({title:"Aely",body:msg}).catch(function(){}); }catch(e){} }
     });
-  },[state.onboarded,locked,state.expenses,state.deleted,state.budget,state.reservaLog,state.accounts,state.settings]);
+  },[state.onboarded,locked,state.expenses,state.deleted,state.obAbsorbedPending,state._historyOwner,state.budget,state.reservaLog,state.accounts,state.settings]);
   // Snapshot diario del total invertido (€) para el gráfico de evolución (#6). Se actualiza si cambia valor/coste hoy.
   const invSnapRef=useRef("");
   useEffect(function(){

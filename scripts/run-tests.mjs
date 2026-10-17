@@ -34,6 +34,7 @@ if (plan.build !== false) {
 }
 
 const steps = [
+  ["fin11-absorption-pending", ["node", "--test", "--test-concurrency=1", "tests/fin11-absorption-pending.test.mjs"]],
   ["inicio-deuda-futura", ["node", "--test", "tests/inicio-deuda-futura.test.mjs"]],
   ["inicio-grafica-reservas", ["node", "tests/inicio-grafica-reservas.test.mjs"]],
   ["compras-identicas-ids", ["node", "--test", "tests/compras-identicas-ids.test.mjs"]],
@@ -243,6 +244,7 @@ if (huerfanos.length) {
 }
 
 const denoEnLista = [
+  "supabase/functions/_shared/ob-absorbed-pending.test.ts",
   "supabase/functions/ingest/ingest.test.ts",
   "supabase/functions/ingest/widget.test.ts",
   "supabase/functions/_shared/crypto.test.ts",

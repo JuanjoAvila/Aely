@@ -1,5 +1,13 @@
 # Arquitectura — Aely
 
+FIN-11 candidata privada desde FIN-10/FIN-15 coexistentes: `obAbsorbedPending`
+protege por titular fuera de la poda de lápidas. Una partición local con readback
+precede a la retirada; refresco cloud/online reintenta hasta cuatro objetivos y
+solo retira la intención tras confirmación remota y ACK durable. BankSync no borra.
+Los lectores filtran pendientes antes de consumir la referencia FIN-15 entre días;
+comodín de cuenta simétrico FIN-10 intacto. Un alias sin cuenta no autoriza DELETE.
+[Contrato, evidencia y límites](briefs/fin11-absorciones-pendientes-20261017.md).
+
 FIN-15 (beta 4.26.138): el lector servidor `filasComoLaApp` usa banco + referencia `#ref`
 para reconocer el mismo apunte en días distintos, como las mezclas del cliente. Aplica
 primero las lápidas y conserva el dedup por contenido para filas antiguas sin referencia.

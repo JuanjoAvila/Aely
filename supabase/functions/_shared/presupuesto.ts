@@ -132,8 +132,13 @@ function claveLegacySinId(f: { fecha?: string | null; importe?: number | string;
  * gastos que él ya borró y notis gemelas que la lista ya fusionó.
  * Lápidas viejas (sin id) siguen ocultando manuales borrados antes del Paso 0.
  */
-export function filasComoLaApp<T extends FilaGasto>(filas: T[] | null | undefined, deleted: string[] | null | undefined): T[] {
+export function filasComoLaApp<T extends FilaGasto>(filas: T[] | null | undefined, deleted: string[] | null | undefined,
+  pending?: { owner?: string; key?: string }[] | null, owner?: string | null): T[] {
   const lap = new Set(deleted || []);
+  // Las no confirmadas tienen su propio tope y no caducan con las 500 lápidas normales.
+  for (const p of Array.isArray(pending) ? pending : []) {
+    if (owner && p?.owner === owner && /^ob-absorbed2\|[^|]+\|[^|]+\|[1-9]\d{0,5}\|[^|]*\|\d{4}-\d{2}-\d{2}$/.test(p.key || "")) lap.add(p.key!);
+  }
   // La ausencia de cuenta en cualquiera de los lados es el mismo comodín que usa
   // el escritor para proteger a la superviviente; ambos índices se calculan una vez.
   const sinCuenta = new Set<string>();

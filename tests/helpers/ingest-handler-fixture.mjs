@@ -37,7 +37,8 @@ function fakeDb(opts = {}) {
   function table(name) {
     const q = { name, op: "select", cols: "*", filters: [], row: null, returning: false };
     const api = {
-      select(cols = "*", options) { q.cols = cols; q.count = options?.count; if (q.op === "upsert") q.returning = true; else q.op = "select"; return api; },
+      select(cols = "*", options) { q.cols = cols; q.count = options?.count; if (["upsert","update","delete"].includes(q.op)) q.returning = true; else q.op = "select"; return api; },
+      abortSignal() { return api; },
       eq(k, v) { q.filters.push(["eq", k, v]); return api; },
       in(k, values) { q.filters.push(["in", k, values]); return api; },
       gte(k, v) { q.filters.push(["gte", k, v]); return api; },
@@ -119,7 +120,7 @@ function fakeDb(opts = {}) {
         if (opts.deleteError) return { data: null, error: { message: "delete failed" } };
         const borrar = new Set(filtered());
         for (let i = rows.length - 1; i >= 0; i--) if (borrar.has(rows[i])) rows.splice(i, 1);
-        return { data: null, error: null };
+        return { data: q.returning ? Array.from(borrar).map(row=>({id:row.id})) : null, error: null };
       }
       return { data: null, error: null };
     }
