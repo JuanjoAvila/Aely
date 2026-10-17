@@ -1,0 +1,244 @@
+{
+  "status": "blocked",
+  "summary": "Exact PR251 remates delivered on same own branch and original session under GOe3d09d2f. Deleted-manual causal guard test added; bankKeys and plus1ms removed; gemeloBancoAutomatico restored to main with manual ambiguity protected only in scoped automatic distribution. BLOCKED official minified size1214bytes above unchanged cap. Frozen source and prior result preserved; not ProductREADY.",
+  "PR": 251,
+  "productSHA": "00bb2bbb9bb68be157e589195507abdcd32581ca",
+  "baseSHA": "da1b370eb9ccb09f0a943adb5c2561b784af794f",
+  "branch": "codex/ux2909-04-investigation-20261017",
+  "claimCommit": "a195a6a4e49d7cf967c3dfc5db86bc93c8969d70",
+  "ackCommit": "ef3f8b9175fbc604077db3c44625370213ec6989",
+  "grantCommit": "e3d09d2f25239ab0f0b13fcddedb05553398c20e",
+  "previousTaskId": "ux2909-04-stale-manual-duplicate-codex-20261017",
+  "previousResult": "09c58454ba953e2b17e770c28bab5ff1665118e1",
+  "previousResultImmutable": true,
+  "productReady": false,
+  "tests": [
+    {
+      "command": "node tests/manual-income-review.test.mjs",
+      "exitCode": 0,
+      "casesUTC": 17,
+      "casesEuropeMadrid": 17,
+      "phase": "private preparation; not rerun during delivery"
+    },
+    {
+      "command": "node tests/ob-ingresos.test.mjs",
+      "exitCode": 0,
+      "phase": "private preparation; not rerun during delivery"
+    },
+    {
+      "command": "node tests/tr-open-banking.test.mjs",
+      "exitCode": 0,
+      "phase": "private preparation; not rerun during delivery"
+    },
+    {
+      "command": "node tests/recibo-invariante.test.mjs",
+      "exitCode": 0,
+      "phase": "private preparation; not rerun during delivery"
+    },
+    {
+      "command": "node tests/month-budget-stats.test.mjs",
+      "exitCode": 0,
+      "phase": "private preparation; not rerun during delivery"
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0,
+      "phase": "private preparation; not rerun during delivery"
+    },
+    {
+      "command": "Playwright bundled CLI test --config=work/playwright-own.config.cjs --grep UX2909-remates --workers=1 --retries=0 --max-failures=1",
+      "exactGrep": "UX2909 remates",
+      "exitCode": 0,
+      "passed": 1,
+      "workers": 1,
+      "retries": 0,
+      "ownPort": 48544,
+      "phase": "private preparation; exact argv retained privately; not rerun during delivery"
+    },
+    {
+      "command": "node tests/presupuesto-rendimiento.test.mjs",
+      "exitCode": 1,
+      "phase": "private preparation using existing esbuild0.25.5 read-only runtime and official transform settings; exact invocation retained privately"
+    },
+    {
+      "command": "git push origin refs/heads/codex/ux2909-04-investigation-20261017:refs/heads/codex/ux2909-04-investigation-20261017",
+      "exitCode": 0,
+      "attempts": 1,
+      "force": false
+    },
+    {
+      "command": "gh pr edit 251 --repo JuanjoAvila/Aely --body-file work/pr251-remates-delivery-body.md",
+      "exitCode": 0
+    },
+    {
+      "command": "gh pr view 251 --repo JuanjoAvila/Aely --json number,url,title,body,headRefOid,headRefName,baseRefName,isDraft,state,statusCheckRollup --jq .",
+      "exitCode": 0,
+      "readback": "Exact new head;OPEN;draft;base main;general test IN_PROGRESS;focal-e2e and tr-pair-review SKIPPED"
+    }
+  ],
+  "mutations": {
+    "killed": 9,
+    "survived": 0,
+    "runs": [
+      {
+        "name": "off",
+        "command": "node tests/manual-income-review.test.mjs --mutation=off",
+        "exitCode": 1,
+        "killed": true,
+        "causalAssertion": true
+      },
+      {
+        "name": "ambiguous",
+        "command": "node tests/manual-income-review.test.mjs --mutation=ambiguous",
+        "exitCode": 1,
+        "killed": true,
+        "causalAssertion": true
+      },
+      {
+        "name": "book",
+        "command": "node tests/manual-income-review.test.mjs --mutation=book",
+        "exitCode": 1,
+        "killed": true,
+        "causalAssertion": true
+      },
+      {
+        "name": "window",
+        "command": "node tests/manual-income-review.test.mjs --mutation=window",
+        "exitCode": 1,
+        "killed": true,
+        "causalAssertion": true
+      },
+      {
+        "name": "bank",
+        "command": "node tests/manual-income-review.test.mjs --mutation=bank",
+        "exitCode": 1,
+        "killed": true,
+        "causalAssertion": true
+      },
+      {
+        "name": "cents",
+        "command": "node tests/manual-income-review.test.mjs --mutation=cents",
+        "exitCode": 1,
+        "killed": true,
+        "causalAssertion": true
+      },
+      {
+        "name": "counted",
+        "command": "node tests/manual-income-review.test.mjs --mutation=counted",
+        "exitCode": 1,
+        "killed": true,
+        "causalAssertion": true
+      },
+      {
+        "name": "automatic",
+        "command": "node tests/manual-income-review.test.mjs --mutation=automatic",
+        "exitCode": 1,
+        "killed": true,
+        "causalAssertion": true
+      },
+      {
+        "name": "deleted",
+        "command": "node tests/manual-income-review.test.mjs --mutation=deleted",
+        "exitCode": 1,
+        "killed": true,
+        "causalAssertion": true
+      }
+    ],
+    "deletedGuard": {
+      "actualIncome": 0,
+      "expectedIncome": 1800,
+      "exitCode": 1,
+      "currentAndLegacyTombstones": true
+    }
+  },
+  "sizeGate": {
+    "exitCode": 1,
+    "previousSHA": "da1b370eb9ccb09f0a943adb5c2561b784af794f",
+    "previous": {
+      "htmlSHA256": "9ac81c57d7d0f5dacb92d5bfe950a9a7cb4583d20e4f11179cd22fe612955283",
+      "minified": 1330945,
+      "gzip": 369438,
+      "blocking": 3
+    },
+    "candidate": {
+      "htmlSHA256": "10e79be06e820fc578dc1ba272a4d5b6872be6d4ea96ec444932c3cc41082537",
+      "minified": 1330366,
+      "gzip": 369330,
+      "blocking": 3
+    },
+    "caps": {
+      "minified": 1329152,
+      "gzip": 369664,
+      "blocking": 3
+    },
+    "delta": {
+      "minified": -579,
+      "gzip": -108
+    },
+    "candidateMinifiedExcess": 1214,
+    "tool": "esbuild0.25.5 existing read-only runtime, exact official transform settings, synthetic served reserve",
+    "capsChanged": false,
+    "officialExitCode": 1
+  },
+  "evidence": {
+    "privateCheckpointSHA256": "fe02de41be5ed721a42b3e1aa01e2bbf9c65b0a0cb4079198631e439f1a7b9e7",
+    "patchSHA256": "e49ceb4cd46aa6b7d1537094b69eba67fc4073ddd759aab50c52bace0d2ddc56",
+    "compiledHTMLSHA256": "10e79be06e820fc578dc1ba272a4d5b6872be6d4ea96ec444932c3cc41082537",
+    "allFrozenHashesVerified": true,
+    "committedPaths": [
+      "docs/briefs/ux-2909-04-ingreso-manual.md",
+      "e2e/nomina-anticipada.spec.mjs",
+      "src/modules/08-motor-bank.js",
+      "tests/manual-income-review.test.mjs"
+    ],
+    "generatedTrackedArtifactsRestored": true
+  },
+  "gates": {
+    "size": "RED EXIT1 excess1214bytes; cap unchanged",
+    "generalCI": "IN_PROGRESS at single PR readback; no final result claimed",
+    "docsFrescura": "NOT_EXECUTED in successor",
+    "betaSources": "NOT_EXECUTED",
+    "claudeReviewIntegration": "PENDING",
+    "publicBeta": "NOT_DEPLOYED_OR_VERIFIED",
+    "physicalMobileAcceptance": "PENDING"
+  },
+  "fetchBudget": {
+    "idbudget": "ux290904-own12-2-db3299cd",
+    "allowance": 12,
+    "initial10Closed": true,
+    "firstAdditional12Closed": true,
+    "usedBeforeResult": 4,
+    "remainingBeforeReadback": 8,
+    "readbackWillCount": true,
+    "firstFetchCounts": true,
+    "ownLedger": true,
+    "noReset": true,
+    "noROOTInheritance": true
+  },
+  "canonicalRead": {
+    "firstHead": "d29d3cf4c9eca18816a905809e13cacb995b5479",
+    "prepareHead": "a89fb4a338e62d649a249aaf1db2d8e3b376471d",
+    "firstIntermediates": 48,
+    "newIntermediates": 1,
+    "allReadFULL": true,
+    "applicableCancellation": false,
+    "oldResultUnchanged": true
+  },
+  "artifacts": [
+    "docs/briefs/ux-2909-04-ingreso-manual.md"
+  ],
+  "limitations": [
+    "No source changes,tests,mutants,build or size measurements repeated in delivery. Frozen preparation evidence only; source bytes verified before commit and publication.",
+    "Old negative family remains unproven; synthetic evidence only. Prior three DOM and security/registration checks were not rerun on successor.",
+    "No fullsuite,CPU6,Gradle,SQL,real bank,backend deploy,main-beta push or merge. Module09,debt sheet,VERSION,catalogue,caps and exact-cent oracles untouched.",
+    "General CI pending at snapshot; no integration,served beta or physical mobile acceptance. Claude decides integration and any cap change.",
+    "Compiled private artifact retained; generated tracked public artifacts restored to base per exact four-file successor scope. Brief retains preparation-state historical checkpoint."
+  ],
+  "nextAction": "Freeze delivered source for Claude review. Result released after exact canonical readback; finish serial delivery without forwarding messages.",
+  "schema": 1,
+  "taskId": "ux290904-pr251-remates-codex-20261017",
+  "actor": "codex",
+  "sessionId": "codex-local-20261017-0b83a68d560701ed",
+  "createdAt": "2026-10-17T13:17:46.703Z",
+  "released": true
+}
