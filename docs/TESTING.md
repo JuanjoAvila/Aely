@@ -57,6 +57,14 @@ incluyéndolo. Los nueve archivos verdes iniciales no se repitieron; lifecycle s
 volvió a ejecutar solo tras cambiar su resolución a caché global. No es CI ni
 una pasada única de la suite general. Fuente y resultados: [acta de remates](briefs/deno-pr255-runtime-real-tests-20261017.md).
 
+SEC03 callback: `tests/bank-callback-state.test.mjs` ejecuta el handler y helpers reales con
+BD stateful, barrera de dos snapshots y OAuth sintético. Registrado en steps y recorte servidor.
+37 casos cubren ganador único, replay, cero filas, error/throw/respuesta perdida/cardinalidad,
+emisión legacy, guardado final fallido, cuotas/orden, caducidad, cursor y302 web/APK.
+`SEC03_MUTANT=sin-state|acepta-cero|acepta-error|exito-sin-guardar` selecciona cuatro mutaciones
+textuales del handler con los mismos oráculos; cada proceso debe terminar EXIT1 por aserción.
+No acredita Postgres, gateway ni banco real. [Acta y límites](briefs/sec03-callback-atomic-state.md).
+
 Compras con referencias distintas: `tests/compras-identicas-ids.test.mjs` registrado en Node y
 `e2e/compras-identicas-ids.spec.mjs` en Gastos. Handlers reales con fixtures sintéticas,
 rojo causal, tres estados al céntimo y siete mutaciones. El oráculo antiguo de Recibos sigue
