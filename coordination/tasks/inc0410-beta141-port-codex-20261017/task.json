@@ -1,0 +1,60 @@
+{
+  "schema": 1,
+  "id": "inc0410-beta141-port-codex-20261017",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261017-r58-5335d99b-84bfc768",
+  "createdAt": "2026-10-17T16:32:44.407Z",
+  "to": "codex",
+  "kind": "worker",
+  "baseSHA": "a9c9e45d76d0d92c2c529b0652c24496dea75300",
+  "objective": "Port the frozen PR253 reviewed design and logic at c42b7b74 onto exact beta source for beta141, preserving beta Deudas/Metas v4 behavior",
+  "scope": [
+    "README.md",
+    "docs/ARQUITECTURA.md",
+    "docs/TESTING.md",
+    "docs/briefs/inc-0410-lww-rechazo-20261017.md",
+    "public/index.html",
+    "scripts/run-tests.mjs",
+    "src/modules/00-core.js",
+    "src/modules/11-app-main.js",
+    "tests/goals-review-remates.test.mjs",
+    "tests/goals-review2-remates.test.mjs",
+    "tests/goals-review3-reserve-conflict.test.mjs",
+    "tests/goals-three-way.test.mjs",
+    "tests/metas-pull-transport.test.mjs",
+    "tests/reserva-dinero.test.mjs",
+    "e2e/*metas*.spec.mjs",
+    "e2e/*persist*.spec.mjs"
+  ],
+  "grantCommit": "2d7767bafa474b80048ebff1865d9041ff577b9c",
+  "previousTaskId": "inc0410-pr253-review3-reserve-conflict-codex-20261017",
+  "previousResult": "47b4401eb93f46ea14bdbb2ee85ec876bc15dade",
+  "frozenSourceSHA": "c42b7b74c9a300d7103c9e1fcb8b69a17a41cce2",
+  "phase": "OWN claim/readback and public ACK only before separate private implementation admission",
+  "requiredNewDraftPRBase": "beta",
+  "sameOriginalOwnerRequired": true,
+  "constraints": [
+    "Original PR253 branch/source/result immutable; use NEW isolated branch/checkout from exact beta a9c9e45d. No push main/beta and no merge/deploy.",
+    "Port only existing reviewed logic. If beta v4 conflicts or new financial logic is needed, causal consultation before changes. No automatic inverse-upload convergence expansion.",
+    "Own existing worker block and actual counters only, no ROOT budgets/reset or new initial10; permanent additional12 only after actual exhaustion, own notice/readback and first fetch counted.",
+    "All interleaving channel messages FULL RAW, original helper/filter/identity, no retry after rejection without new authority.",
+    "No suitegeneral CPU6 Gradle APK livebank SQL migration deploy, foreign claims/leases/locks, VERSION catalogue caps or oracle weakening.",
+    "Directed E2E only after admitted exact scope, own port, one worker zero retries; do not repeat finished old-source tests merely for delivery."
+  ],
+  "requiredChecks": [
+    "The four existing PR253 goal test files: goals-three-way, goals-review-remates, goals-review2-remates, goals-review3-reserve-conflict",
+    "metas-pull-transport",
+    "reserva-dinero",
+    "Directed Metas and persistence E2E required by Claude; derive exact existing specs from approved checkout and report actual commands/EXIT."
+  ],
+  "deliverable": "NEW draft PR against beta and own immutable result with exact SHA, actual tests/EXIT, preserved inverse-upload manual-only limitation, source conflicts and pending integration/served/mobile gates. No ProductREADY.",
+  "fetchBudget": {
+    "sameWorkerExistingBlock": "inc0410-own12-four-aely",
+    "allowance": 12,
+    "lastVerifiedUsedActual": 6,
+    "lastVerifiedRemaining": 6,
+    "mustReadOwnLedger": true,
+    "noResetOrROOTInheritance": true,
+    "additional12OnlyAfterActualExhaustionAndOwnNotice": true
+  }
+}
