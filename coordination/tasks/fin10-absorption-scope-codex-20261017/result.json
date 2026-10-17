@@ -1,0 +1,107 @@
+{
+  "status": "done",
+  "summary": "Candidata FIN-10 y transporte obAcc FIN-14 implementados tras GO causal206f47c3. PR250 borrador contra main; pendiente revision/integracion y gates generales, no ProductREADY.",
+  "productSHA": "11707215f21438b150bd75a3f1dec0cb8fc22649",
+  "baseSHA": "a9916c3cdb21c93f9d3a47653c0608e630ce50ab",
+  "pullRequest": 250,
+  "claudeGO": "206f47c311e6d9e046b9f05991df49b1b1ba6352",
+  "tests": [
+    {
+      "command": "node --test outputs/fin10-causal.test.mjs",
+      "phase": "ROJO previo producto en base exacta; artefacto local del trabajador",
+      "exitCode": 1,
+      "passed": 5,
+      "failed": 4
+    },
+    {
+      "command": "node --test outputs/fin10-causal.test.mjs",
+      "phase": "mismo guion causal sobre runtime final",
+      "exitCode": 0,
+      "passed": 9
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node --test tests/fin10-absorption-scope.test.mjs tests/compras-identicas-ids.test.mjs",
+      "exitCode": 0,
+      "passed": 45
+    },
+    {
+      "command": "node --test tests/compras-identicas-ids.test.mjs",
+      "phase": "tras actualizar solo inyector de mutacion generica",
+      "exitCode": 0,
+      "passed": 32
+    },
+    {
+      "command": "node tests/retirada-bancaria.test.mjs",
+      "exitCode": 0,
+      "cases": 50
+    },
+    {
+      "command": "node tests/presupuesto-servidor.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node --test tests/ob-iguales-ordinal.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node --test tests/relevant-tests.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node node_modules/@playwright/test/cli.js test --config=../fin10-playwright.config.mjs fin10-absorption-scope.spec.mjs --workers=1 --retries=0",
+      "exitCode": 0,
+      "passed": 3,
+      "workers": 1,
+      "retries": 0,
+      "port": 48510
+    }
+  ],
+  "mutations": {
+    "ownKilled": 6,
+    "cases": [
+      "cliente ignora cuenta",
+      "dia ignorado",
+      "escritor vuelve a clave amplia",
+      "pull pierde obAcc",
+      "servidor ignora cuenta",
+      "servidor ignora dia"
+    ],
+    "priorOracles": "32 casos compras y mutaciones previas conservados; solo se adaptan inyectores a v2 y una fixture conocida para evitar fallback intencionado"
+  },
+  "behavior": "Escrituras solo ob-absorbed2|banco|ref|ordinal|cuenta|dia; dia literal guardado. Lectores vieja/nueva. Candidata sin cuenta casa por banco/ref/ordinal/dia; con cuenta conocida exige cuenta exacta. Source #acc viaja en OB/historico, pull enriquece sin borrar cuenta ante legacy. Guarda UUID de retirada compatible con metadata nueva/legacy y rechaza cuentas conocidas distintas. FIN15 importador/commit real, referencia estable PDNG/BOOK en dos dias y ambos ordenes, un cargo320c.",
+  "limitations": [
+    "Legacy amplio conserva su conducta; no reparacion historica ni identidad general entre cuentas. Varias filas simultaneas con misma referencia aun pueden fundirse antes del filtro; el DOM prueba el ciclo real despues de retirar la absorbida.",
+    "Primera fixture DOM y mapa duplicado fallaron, corregidos sin debilitar oraculos. Error inicial de ruta de servidor antes de casos y errores de harness/mutacion conservados en evidencia local.",
+    "Deno no disponible; no Deno, suite general, CPU6, Gradle, docs-frescura/beta-sources/tamano, SQLvivo/bancos/deploy ni movil real.",
+    "Integracion con FIN15/PR243 y tests raw-cloud/widget especificos pendientes sobre fuente integrada; esa suite no esta en la base main exacta.",
+    "CItest39022266913 observada IN_PROGRESS y focal-e2e SKIPPED; no CIverde general ni artefacto servido acreditados.",
+    "Ingest con lector nuevo debe desplegarlo Claude antes de publicar cliente.",
+    "Sin VERSION/catalogo/topes/09/hojaDeudasMetas; FIN11 y resto de alcance FIN14 ajeno preservados."
+  ],
+  "artifacts": [
+    "docs/briefs/fin10-absorption-scope-20261017.md",
+    "tests/fin10-absorption-scope.test.mjs",
+    "e2e/fin10-absorption-scope.spec.mjs"
+  ],
+  "fetchBudget": {
+    "idbudget": "fin10-own10-467e4067-084e69a4",
+    "allowance": 10,
+    "usedBeforeResultReadback": 8,
+    "ROOTInherited": false,
+    "additional12Activated": false
+  },
+  "schema": 1,
+  "taskId": "fin10-absorption-scope-codex-20261017",
+  "actor": "codex",
+  "sessionId": "codex-local-20261017-fcf546f25c8b1b50",
+  "createdAt": "2026-10-17T11:22:51.181Z",
+  "released": true
+}
