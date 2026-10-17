@@ -1,0 +1,119 @@
+{
+  "status": "done",
+  "summary": "SEC03 final remates delivered on NEW branch and NEW draft PR at exactfc2a7bf3, parent7ce911a2, under9751cc03 and freeze1a930ced/confirmation6c8bb553. eq-null double no longer matches SQLnull; legacy mutant killed. Final link update requires one returned matching id without error, rejects zero rows or unverifiable response via existing closed302. No restore/retry,ABA,connection_version,schema or SEC01 merge. OldPR257 and its remote branch remain frozen7ce. Candidate for Claude beta141 review/integration,not ProductREADY.",
+  "productSHA": "fc2a7bf364ef478b54c76d76bb8f4086792f75ec",
+  "baseSHA": "7ce911a2bbd19e1d710cba1284bf0a7ff8a637c7",
+  "pullRequest": 261,
+  "branch": "codex/sec03-final-write-confirmed-20261017",
+  "previousPR": 257,
+  "oldPR257HeadPreserved": "7ce911a2bbd19e1d710cba1284bf0a7ff8a637c7",
+  "claimCommit": "c77140958c997a7fb29299370ee3d51b487f67ff",
+  "ackCommit": "6feffd532c16de59e775e9e70b43bf2068fea0f6",
+  "causalGO": "9751cc0391055f6eb66ac79b243db5ab729b9e03",
+  "publicationFreeze": "1a930cedf2e7853ff8b138e5f38577b142e2b4b0",
+  "publicationConfirmation": "6c8bb5538c12c4629e470ff2a62e85d9719de20d",
+  "targetPRBase": "main",
+  "plannedReviewBeta": 141,
+  "productReady": false,
+  "tests": [
+    {
+      "command": "Node24 native TS adapter, new callback remates on7ce911a2",
+      "exitCode": 1,
+      "pass": 11,
+      "fail": 10,
+      "phase": "private causal RED"
+    },
+    {
+      "command": "Node24 native TS adapter SEC03_TEST_GROUPS focused callback contracts",
+      "exitCode": 0,
+      "cases": 31,
+      "meaning": "31of56, not full56. 25unchanged cases omitted. Green before only LF anchor normalization; reverse edit restores exact green test hash; handler fixtures and oracles identical"
+    },
+    {
+      "command": "Actual handler text mutant legacy-eq-null",
+      "exitCode": 1,
+      "killed": true,
+      "meaning": "Runtime assertion,not infrastructure"
+    },
+    {
+      "command": "Actual handler text mutant final-acepta-cero",
+      "exitCode": 1,
+      "killed": true,
+      "meaning": "Runtime assertion,not infrastructure"
+    },
+    {
+      "command": "Actual handler text mutant final-sin-json",
+      "exitCode": 1,
+      "killed": true,
+      "meaning": "Runtime assertion,not infrastructure"
+    },
+    {
+      "command": "Actual handler text mutant final-acepta-error",
+      "exitCode": 1,
+      "killed": true,
+      "meaning": "Runtime assertion,not infrastructure"
+    },
+    {
+      "command": "Actual handler text mutant exito-sin-guardar-fixed-anchor",
+      "exitCode": 1,
+      "killed": true,
+      "meaning": "Runtime assertion,not infrastructure"
+    },
+    {
+      "command": "exito-sin-guardar first anchor attempt",
+      "exitCode": 1,
+      "excluded": true,
+      "meaning": "LF/CRLF anchor mismatch; zero cases,not causal. Only this mutant rerun after anchor normalization"
+    },
+    {
+      "command": "Deno2.9 test --cached-only --no-config --no-lock --no-prompt --node-modules-dir=none supabase/functions/bank-disconnect/lifecycle.test.ts",
+      "exitCode": 0,
+      "cases": 16,
+      "meaning": "Actual Deno and SDK; synthetic REST/OAuth, no live DB/bank. Existing fixture unchanged; final update chain changed"
+    },
+    {
+      "command": "git diff --check and staged check before private commit",
+      "exitCode": 0
+    },
+    {
+      "command": "git switch new OWN branch at exactfc2;normal push only new OWN branch",
+      "exitCode": 0
+    },
+    {
+      "command": "gh pr create new draft against main;exact head/base/body readback and artifact attachment",
+      "exitCode": 0
+    }
+  ],
+  "artifacts": [
+    "docs/briefs/sec03-callback-atomic-state.md"
+  ],
+  "limitations": [
+    "Node focused execution uses private native TS adapter; stock esbuild and full privacy not rerun/green, previous missing dependencies preserved",
+    "Deno lifecycle uses real SDK but synthetic REST/OAuth; no actual Postgres/RLS/bank/transport or deployed guarantee",
+    "No fullsuite,unrelated regression suites,CPU6,Gradle,SQL,livebanks,deploy,main-beta merge/push,CIgeneral/integration/served/mobile evidence",
+    "SEC04ABA/connection_version/schema and SEC01 merge excluded; consume,redirects,account/cursor payload byte-invariants verified",
+    "Old source/result and PR249 preserved; no09/sheet/VERSION/catalogue/caps/oracle changes",
+    "No new commits,code,tests,builds or measurements during delivery. Source/artifact hashes exact and only Git CRLF normalization confirmed. Old source/results remain immutable.",
+    "No Node56of56 claim. Private Node adapter, not stock esbuild; prior missing Sentry/esbuild limits preserved. Deno16 uses synthetic REST/OAuth; no generalCI,integration,served beta,mobile or deploy proof."
+  ],
+  "fetchBudget": {
+    "idbudget": "sec03-own12-2-d28e023b",
+    "used": 11,
+    "allowance": 12,
+    "remaining": 1,
+    "ledger": "work/fetch-sec03-own12-2.jsonl",
+    "sha256": "113f9d2e2f660868e7fbcb58b433b53cb021a7c7c218179c73676c01c6c6fd23",
+    "previousBlockClosed": true,
+    "noReset": true,
+    "noROOT": true,
+    "noNew10": true,
+    "firstFetchCounts": true,
+    "noSEC01NoticeExemption": true
+  },
+  "schema": 1,
+  "taskId": "sec03-pr257-null-final-write-remates-codex-20261017",
+  "actor": "codex",
+  "sessionId": "codex-local-20261017-f7212f72d28e023b",
+  "createdAt": "2026-10-17T16:45:43.667Z",
+  "released": true
+}
