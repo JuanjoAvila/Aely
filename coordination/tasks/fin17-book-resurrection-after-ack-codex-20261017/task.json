@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "id": "fin17-book-resurrection-after-ack-codex-20261017",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261017-r61-1af4f024c1344bec",
+  "createdAt": "2026-10-17T21:52:42.290Z",
+  "kind": "worker",
+  "to": "codex",
+  "baseSHA": "fbff73ee6ae53ce21fb28b284fd8819c7fc8385e",
+  "grantCommit": "f6fe10bf76cbe7ade1c387be16dfaa351ec84517",
+  "investigationGrant": "323df048ef2327631fde95ea7063c57081b70242",
+  "dependsOnTask": "fin11-beta503-port-remates-codex-20261017",
+  "objective": "FIN17 investigate second-device BOOK reupload after absorption ACK and tombstone pruning/backfill; causal synthetic RED and scoped proposal to Claude before any product change",
+  "phase": "OWN reception claim/readback ACK only; separate private investigation admission required",
+  "scope": [
+    "src/modules/00-core.js",
+    "src/modules/08-motor-bank.js",
+    "src/modules/11-app-main.js",
+    "supabase/functions/_shared/presupuesto.ts",
+    "supabase/functions/ingest/index.ts",
+    "supabase/functions/ingest/widget.ts",
+    "tests/fin11-absorption-pending.test.mjs",
+    "tests/fin10-absorption-scope.test.mjs",
+    "tests/fin15-pendiente-contabilizada.test.mjs",
+    "private synthetic investigation harness and proposal only"
+  ],
+  "requirements": [
+    "Original FIN10 holder selected as DIFFERENT holder from FIN11; no old task/claim/result reused. Read task/base/grants FULL RAW and current/policy/protocol, verify own identity/cwd/runtime/helper/filter, all relevant source AGENTS/EMPIEZA and actual ledger before fresh counted read. Claim NEWtask only,exact readback/publicACK/private atomicfsync/readback checkpoint;STOP before checkout/product/tests pending separate ROOT investigation admission.",
+    "Exact fbff73ee after FIN11 delivery is the only baseline. Old FIN10/FIN11 sources/results/rejections frozen. No financial port or test rerun for already-validated FIN10/FIN11 source. Later private investigation uses own isolated checkout and harness;no branch source wholesale replacement.",
+    "Investigate second new-version mobile retaining local BOOK: after first mobile absorption DELETE/ACK, pruning500 normal tombstones, synthetic640cent display and local backfill can reupload server row. Build minimal exact-cent synthetic two-client SDK reproduction proving client and server path; separate offline pending intent from acknowledged removal. Preserve distinct bank refs,account/day,PDNG/BOOK identity and survivor. Do not recreate solved FIN11 unacknowledged queue bug as new evidence.",
+    "Also investigate ambiguous/edited pending queue entries that never settle: propose bounded expiry or manual settlement with explicit consent and no unconfirmed-loss/identity/oracle changes. Do not implement new expiry, deletion, reupload or cloud/server contract.",
+    "After separate investigation admission: causal RED first; private proposal with root cause, source anchors, alternatives/tradeoffs/retention bounds and security/privacy/cent consequences. CONSULT Claude and STOP before ANY product fix. Supabase skill/current docs for server semantics, only synthetic mocks;no live DB/RLS/cloud/banks/SQL/Edge/deploy/migration/backend/Gradle/APK/heavy/fullsuite/CPU6/foreignlocks/install.",
+    "OWN budget only: verify preceding FIN10 blocks10/10,12/12,12/12 truly exhausted,total34. Permanentdb3299cd allows own additional12 only after verified exhaustion with normal ownbudget notice/exactreadback;allfirst/internalfetch/readbacks count,no reset or ROOTinheritance. Fresh block required if old actually exhausted;do not spend old nonexistent allowance. Helperoriginal/hash/filter/route/identity maintained. NFF ordinary bounded6c8bb553 only,other real rejection STOPpreserve,no proxy or consumed rejection retries.",
+    "No productpush,PR,result,oldPRclosure,VERSION/catalogue/cap/oracle modification. Return reception checkpoint first and stop. Investigation checkpoints later include real exits/hashes/ledger/mutants or unexecuted checks and limitations. FIN11 source accepted as baseline for investigation does not imply integration/CI/served/mobile acceptance or ProductREADY."
+  ]
+}
