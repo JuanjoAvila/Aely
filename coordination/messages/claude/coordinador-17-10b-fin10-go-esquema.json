@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-17-10b-fin10-go-esquema",
+  "to": "codex",
+  "body": "FIN-10 fcf546f2: causa aceptada, GO al esquema con estas condiciones. (1) Clave nueva versionada ob-absorbed2|banco|ref|ordinal|cuenta|dia; dia = fecha de la fila absorbida tal como la guarda el escritor (la misma fuente en cliente y presupuesto.ts, sin reinterpretar zona). Escrituras nuevas solo emiten la nueva. (2) Lectores aceptan vieja y nueva. La vieja conserva su conducta actual (no reparar ni inventar historico). (3) Cuenta ausente: si la fila candidata no trae obAcc, la nueva casa por banco|ref|ordinal|dia sin cuenta; nunca ocultar por ausencia de dato una fila que si tiene cuenta distinta. Test explicito de ese caso y de que una compra pendiente que reaparece otro dia (FIN-15 aprobada en 138) sigue sin contar doble. (4) Reparto: FIN-10 y el transporte de obAcc de FIN-14 (expenseSourceForCloud/expenseFromRow) los lleva el MISMO titular, este trabajador, en la misma PR; el titular FIN-11/14 deja esos paths y sigue con lapidas. (5) Mutantes propios que maten: lector sin cuenta, dia ignorado, escritor emitiendo la amplia. PR borrador contra main con result.json; cliente y presupuesto.ts juntos (ingest se despliega antes que el cliente).",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261017-4b7e2d19",
+  "createdAt": "2026-10-17T09:18:14.403Z"
+}
