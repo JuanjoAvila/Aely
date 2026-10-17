@@ -1,0 +1,70 @@
+{
+  "schema": 1,
+  "phase": "design-only, no implementation or generated migration",
+  "baseSHA": "a9916c3cdb21c93f9d3a47653c0608e630ce50ab",
+  "designDecision": "360dcf54c9ce4f514f3255820f6ca847dacebf91",
+  "syntheticOnly": true,
+  "executionsAlreadyCompletedNotRepeated": [
+    {
+      "portableCommand": "node docs/briefs/pro09-roundup-ingest/previous-risks.mjs --post-only",
+      "actualExitCode": 1,
+      "passed": 2,
+      "failed": 7,
+      "packagedCopyExecuted": false
+    },
+    {
+      "portableCommand": "node docs/briefs/pro09-roundup-ingest/previous-risks.mjs --boundaries-only",
+      "actualExitCode": 1,
+      "passed": 10,
+      "failed": 2,
+      "packagedCopyExecuted": false
+    },
+    {
+      "portableCommand": "node docs/briefs/pro09-roundup-ingest/previous-risks.mjs --posted-boundary-only",
+      "actualExitCode": 1,
+      "passed": 0,
+      "failed": 1,
+      "packagedCopyExecuted": false
+    },
+    {
+      "portableCommand": "node docs/briefs/pro09-roundup-ingest/previous-risks.mjs --same-day-identity-only",
+      "actualExitCode": 1,
+      "passed": 0,
+      "failed": 1,
+      "packagedCopyExecuted": false
+    },
+    {
+      "portableCommand": "node docs/briefs/pro09-roundup-ingest/previous-risks.mjs --cash-risk-only",
+      "actualExitCode": 1,
+      "passed": 1,
+      "failed": 2,
+      "packagedCopyExecuted": false
+    },
+    {
+      "portableCommand": "node docs/briefs/pro09-roundup-ingest/causal-red.mjs",
+      "actualExitCode": 1,
+      "passed": 5,
+      "failed": 3,
+      "packagedCopyExecuted": false
+    }
+  ],
+  "earlierUniqueCases": {
+    "total": 30,
+    "passed": 18,
+    "failed": 12,
+    "currentAcceptanceRED": 3,
+    "counterfactualRisks": 9
+  },
+  "GOAUniqueCases": {
+    "total": 8,
+    "passed": 5,
+    "failed": 3,
+    "receiptOracles": 2,
+    "counterfactualExpensesStorageRisk": 1
+  },
+  "SQLApplied": false,
+  "proposedStoreUsedOrMocked": false,
+  "mutantsOfFixRun": false,
+  "notProductReady": true,
+  "qualification": "Original private fixtures emitted ISO dates first; affected evidence excluded, only affected POST paths rerun with native epoch milliseconds. Five independent controls retained without rerun. The+3boundary was repeated only after clock moved beyond BOOK date. No real TR payload observed beyond label. Documentation packaging preserves assertions/fixtures, not a new run or green claim."
+}
