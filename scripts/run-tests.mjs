@@ -247,6 +247,7 @@ const denoEnLista = [
   "supabase/functions/_shared/enablebanking.test.ts",
   "supabase/functions/_shared/myinvestor.test.ts",
   "supabase/functions/_shared/myinvestor-counter.test.ts",
+  "supabase/functions/_shared/myinvestor-token-race.test.ts",
   "supabase/functions/delete-account/delete-account.test.ts",
   "supabase/functions/prices/prices.test.ts",
   "supabase/functions/bank-sync/demand-window.test.ts",
@@ -285,8 +286,8 @@ if (plan.deno !== false) {
     const started = performance.now();
     const denoArgs = testFile.includes("input_handlers.test")
       ? ["test", "--allow-read=supabase/functions,supabase/config.toml", testFile]
-      : testFile.includes("myinvestor-counter.test")
-      ? ["test", "--allow-read=supabase/functions", testFile]
+      : /myinvestor-(counter|token-race)\.test/.test(testFile)
+      ? ["test", "--node-modules-dir=none", "--allow-read=supabase/functions", testFile]
       : testFile.includes("crypto.test")
       ? ["test", "--allow-env", testFile]
       : ["test", testFile];

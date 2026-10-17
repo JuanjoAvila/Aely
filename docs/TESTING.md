@@ -1167,3 +1167,30 @@ Su pase no convierte un rojo de la suite completa en verde ni acredita móvil/de
 Integración 4.26.127 (14/10): `tests/beta-sources.test.mjs` gana `Catálogo127`, que lee el catálogo de la producción 4.26.126 (`33d39cb8`) como base inmutable y fija en lista cerrada el descriptor nuevo `bancos-reconexion-revoca` (web y seis superficies Edge), las seis huellas que se mueven y por qué, y nueve mutantes (tres de cliente y seis de servidor) que reabren la tanda. `Promoción126` pasa a leer `33d39cb8` en vez del árbol vivo. Los hashes del registro de `auth-disposal` y `auth-disposal-fit` se renuevan. Las pruebas de las tres ramas (`myinvestor-sync-outcomes`, `myinvestor-keepalive`, `bank-revoke-callback-race`, `bank-download-incomplete` y los Deno de `enablebanking`, `myinvestor` y `bank-disconnect/lifecycle`) ya estaban registradas por sus ramas.
 
 Integración 4.26.128 (14/10): `tests/beta-sources.test.mjs` gana `Catálogo128`, que lee el catálogo de la beta 127 publicada (`b3edefb4`) como base y fija el descriptor nuevo `inicio-mes-pasado-mismo-dia` (el mismo alcance web que `inicio-patrimonio-flujos`, que gana `netWorthMonthsBack` y `NW_MONTHS`), las dos huellas que se mueven (`inicio-patrimonio-flujos` e `inicio-grafica-vuelve`, y por qué unidades), que el servidor y la tanda de bancos de la 127 no cambian, que el panel enseña dos tandas y diez mutantes que reabren la nueva. `Catálogo127` pasa a leer `b3edefb4` en vez del árbol vivo, `PERSIST91` cuenta 31 tandas con el bloque del guardado y los hashes del registro de `auth-disposal` y `auth-disposal-fit` se renuevan.
+
+
+OPS-07 reservas de PR241 (17/10): el handler real en `tests/myinvestor-keepalive.test.mjs`
+fija el límite de éxitos por usuario/hora sin frenar renovaciones ni ocultar otros errores,
+los once códigos cerrados y el booleano de refresco en respuesta, un único reintento de
+guardado con la guarda original y un timeout de 10 segundos que cubre cabeceras y cuerpo.
+El reloj del timeout se acelera en el doble; el aborto usa AbortController real y un
+watchdog independiente evita que una regresión cuelgue la prueba. Cubre limpieza de relojes,
+excepciones, dos fallos sin tercer intento, cero filas y reconexión entre intentos.
+Se conservan los 39 casos anteriores y se añaden 16: 55 verdes; cinco fallos causales
+previos sobre c8774a29 y un sexto al detectar que el límite403 ocultaba un fallo de lectura
+del cuerpo. Nueve mutaciones detectadas en la revisión anterior. El test ya está registrado en el runner.
+La segunda revisión añade cinco casos (60 en total): recuperación `ok → 500 → ok`
+en la misma hora, cambios de presencia de cada campo del refresco y de ambos, repetición
+estable y recuperación de campos. El historial sintético ordena y limita realmente,
+incluido el desempate por `id`. Sobre5c670ecc esas cuatro secuencias fallan; el quinto
+caso caracteriza el UPDATE aplicado con respuesta perdida que termina en `raced`.
+Este último es una ambigüedad documentada, no un fallo corregido ni prueba de otro escritor.
+Tres mutaciones nuevas detectadas: volver al límite anterior, comparar solo el código
+y eliminar el desempate por identificador. Las nueve anteriores conservan su evidencia
+sobre5c670ecc y no se suman como nuevas ni se declaran repetidas en esta revisión.
+Son dobles locales, sin bancos ni SQL vivos; no acreditan CI general, integración ni despliegue.
+
+
+## OPS-08 — guardas de rotación MyInvestor
+
+`myinvestor-token-race.test.ts` está registrado en el runner junto a `myinvestor-counter.test.ts`. Ambos leen únicamente fuentes bajo `supabase/functions`, sin permisos de red ni entorno: `deno test --node-modules-dir=none --allow-read=supabase/functions supabase/functions/_shared/myinvestor-token-race.test.ts supabase/functions/_shared/myinvestor-counter.test.ts`. El primero ejecuta handlers/helper reales, simulando Supabase, cifrado y proveedor; cubre ambos intercalados, reconexión, rechazo, refresh ausente en respuesta, acuse perdido, error de lectura, cero filas y recifrado legacy. Los Node de keepalive/sync cargan el helper real, sin sustituir su decisión. Mutaciones focales y límites en el [brief](briefs/ops08-refresh-cas.md).
