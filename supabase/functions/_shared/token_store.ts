@@ -29,29 +29,6 @@ export async function miTokensToRow(access: string, refresh: string | null): Pro
   };
 }
 
-/** Tras activar TOKEN_ENCRYPTION_KEY: re-cifra filas legacy en plaintext (best-effort). */
-export async function ensureMiLinkEncrypted(
-  // deno-lint-ignore no-explicit-any
-  admin: any,
-  userId: string,
-  link: { access_token?: string | null; refresh_token?: string | null; connection_version?: string },
-): Promise<void> {
-  if (!Deno.env.get("TOKEN_ENCRYPTION_KEY")) return;
-  const patch: Record<string, string | null> = {};
-  if (link.access_token && !isEncrypted(link.access_token)) {
-    patch.access_token = await encryptSecret(link.access_token);
-  }
-  if (link.refresh_token && !isEncrypted(link.refresh_token)) {
-    patch.refresh_token = await encryptSecret(link.refresh_token);
-  }
-  if (Object.keys(patch).length) {
-    const q = admin.from("myinvestor_links").update(patch).eq("user_id", userId);
-    // El recifrado legacy tampoco puede escribir tokens antiguos encima de una reconexión.
-    if (link.connection_version) q.eq("connection_version", link.connection_version);
-    await q;
-  }
-}
-
 export async function encryptSessionId(sessionId: string | null): Promise<string | null> {
   return encryptSecret(sessionId);
 }

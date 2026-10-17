@@ -10,6 +10,7 @@ const root = new URL("../", import.meta.url);
 const read = (p) => fs.readFileSync(new URL(p, root), "utf8");
 const ts = (s) => transformSync(s, { loader: "ts" }).code;
 const src = '"use strict";\n' + ts(read("supabase/functions/_shared/myinvestor.ts")).replace(/^export /gm, "")
+  + "\n" + ts(read("supabase/functions/_shared/myinvestor-refresh-save.ts")).replace(/^export /gm, "")
   + "\n" + ts(read("supabase/functions/myinvestor-sync/index.ts").replace(/^import .*?;\r?\n/gm, ""));
 
 const REFRESH = "/login/api/v1/auth/token/refresh", BASIC = "/cperf-server/api/v2/securities-accounts/self-basic";
@@ -32,12 +33,14 @@ async function sync({ acceso, refresco, detalle, link = {}, guardar = () => null
     select: () => ({ eq: () => ({ maybeSingle: async () => { if (selects++ > 0 && entretanto) entretanto(fila); return { data: { ...fila } }; } }) }),
     update: (x) => {
       const filtros = [];
-      const q = { eq: (c, v) => { filtros.push([c, v]); return q; }, select: () => q,
-        maybeSingle: async () => {
+      const perform = async () => {
           const error = guardar(intentos++); if (error) return { error, data: null };
           if (!filtros.every(([c, v]) => fila[c] === v)) return { data: null, error: null };
           writes.push(x); Object.assign(fila, x); return { data: { user_id: fila.user_id }, error: null };
-        },
+        };
+      const q = { eq: (c, v) => { filtros.push([c, v]); return q; }, is: (c, v) => { filtros.push([c, v]); return q; }, select: () => q,
+        maybeSingle: perform,
+        then: (ok, ko) => perform().then(r => ({ ...r, data: r.data ? [r.data] : [] })).then(ok, ko),
       }; return q;
     },
   }) };
@@ -54,11 +57,11 @@ async function sync({ acceso, refresco, detalle, link = {}, guardar = () => null
     if (veces.caido) return { ok: true, checked: false };
     return { ok: ++veces.hits <= limit, checked: true };
   };
-  const names = ["Deno", "createClient", "withCors", "miTokensFromRow", "miTokensToRow", "ensureMiLinkEncrypted", "rateLimit", "fetch"];
+  const names = ["Deno", "createClient", "withCors", "miTokensFromRow", "miTokensToRow", "rateLimit", "fetch"];
   new Function(...names, src)(
-    { serve: (f) => { handler = f; }, env: { get: () => "synthetic" } }, () => db, (f) => f,
+    { serve: (f) => { handler = f; }, env: { get: (key) => key === "TOKEN_ENCRYPTION_KEY" ? undefined : "synthetic" } }, () => db, (f) => f,
     async (l) => ({ access: l.access_token, refresh: l.refresh_token, deviceId: l.device_id }),
-    async (access, refresh) => ({ access_token: access, refresh_token: refresh }), async () => {}, limitador, fetchFn
+    async (access, refresh) => ({ access_token: access, refresh_token: refresh }), limitador, fetchFn
   );
   const res = await handler(new Request("https://app.invalid", { method: "POST", body: JSON.stringify(body) }));
   return { status: res.status, data: await res.json(), writes, calls, fila, rate };

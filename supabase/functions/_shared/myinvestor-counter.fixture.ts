@@ -51,7 +51,7 @@ export async function run(
         maybeSingle: async () => perform(),
         then: (resolve: any, reject: any) => {
           const result = perform();
-          return Promise.resolve({ ...result, data: patch ? result.data : [result.data].filter(Boolean) }).then(resolve, reject);
+          return Promise.resolve({ ...result, data: [result.data].filter(Boolean) }).then(resolve, reject);
         },
       };
       return { ...q, update: (x: any) => { patch = x; return q; }, upsert: (x: any) => { patch = x; upsert = true; return q; } };
@@ -67,11 +67,11 @@ export async function run(
     },
   };
   const mock = {
-    Deno: { serve: (h: typeof handler) => { handler = h; }, env: { get: () => "synthetic" } },
+    Deno: { serve: (h: typeof handler) => { handler = h; }, env: { get: (key: string) => key === "TOKEN_ENCRYPTION_KEY" ? undefined : "synthetic" } },
     createClient: () => db, withCors: (h: typeof handler) => h,
     miTokensFromRow: async (row: any) => ({ access: row.access_token, refresh: row.refresh_token, deviceId: row.device_id }),
     miTokensToRow: async (a: string, r: string) => ({ access_token: a, refresh_token: r }),
-    ensureMiLinkEncrypted: async () => {}, timingSafeEqual: (a: string, b: string) => a === b,
+    isEncrypted: () => false, timingSafeEqual: (a: string, b: string) => a === b,
     fetch: async (url: string) => {
       if (url.endsWith("/token/refresh")) return (options.refresh || refreshed)();
       if (url.endsWith("/v2/auth/token")) return (options.login || refreshed)();
@@ -82,7 +82,7 @@ export async function run(
   };
   const globalKey = "__miCounter" + serial++;
   (globalThis as any)[globalKey] = mock;
-  const files = ["myinvestor.ts", "ratelimit.ts", "../myinvestor-" + name + "/index.ts"];
+  const files = ["myinvestor.ts", "myinvestor-refresh-save.ts", "ratelimit.ts", "../myinvestor-" + name + "/index.ts"];
   let source = "const {" + Object.keys(mock).join(",") + "} = (globalThis as any)[" + JSON.stringify(globalKey) + "];\n";
   for (const file of files) source += (await Deno.readTextFile(new URL(file, import.meta.url)))
     .replace(/^import .*?;\r?\n/gm, "").replace(/^export /gm, "") + "\n";
@@ -92,25 +92,4 @@ export async function run(
     const res = await handler!(req);
     return { status: res.status, data: await res.json() };
   } finally { delete (globalThis as any)[globalKey]; }
-}
-
-export async function encryptLegacy(f: ReturnType<typeof fixture>, before: () => void) {
-  const key = "__miEncrypt" + serial++;
-  const patch: Record<string, unknown> = {}, filters: [string, unknown][] = [];
-  const q: any = {
-    eq: (k: string, v: unknown) => { filters.push([k, v]); return q; },
-    then: (resolve: any, reject: any) => {
-      before();
-      if (filters.every(([k, v]) => f.row[k] === v)) Object.assign(f.row, patch);
-      return Promise.resolve({}).then(resolve, reject);
-    },
-  };
-  (globalThis as any)[key] = { from: () => ({ update: (x: any) => { Object.assign(patch, x); return q; } }) };
-  const source = 'const Deno={env:{get:()=>"synthetic"}}; const encryptSecret=async(x:string)=>"enc:v1:"+x; const decryptSecret=async(x:string)=>x;\n'
-    + (await Deno.readTextFile(new URL("token_store.ts", import.meta.url))).replace(/^import .*?;\r?\n/gm, "")
-    + '\nexport const encrypt=async(row:any)=>ensureMiLinkEncrypted((globalThis as any)[' + JSON.stringify(key) + '], "synthetic", row);';
-  try {
-    const mod = await import("data:application/typescript," + encodeURIComponent(source));
-    await mod.encrypt({ ...f.row });
-  } finally { delete (globalThis as any)[key]; }
 }

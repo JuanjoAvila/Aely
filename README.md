@@ -284,3 +284,6 @@ Verificación específica de la promoción106: `node scripts/verify-selective106
 Pruebas manuales focales: en Tests, el input opcional focal_spec ejecuta el spec solicitado
 además de la suite completa, en un job independiente con reporte JSON. Sus resultados se
 interpretan por separado; [circuito y límites](docs/TESTING.md).
+
+
+OPS-08, candidata de servidor sin despliegue: guardado condicional de los tokens de MyInvestor entre sync y keepalive. El helper compartido y sus pruebas Deno viven en `supabase/functions/_shared/`; [contrato y límites](docs/briefs/ops08-refresh-cas.md).

@@ -960,3 +960,8 @@ reciente, incluso si su escritura de marca sigue pendiente. La lápida de un apu
 oculto borrado a mano conserva el rastro «sin aviso» para no reclamar el aviso del
 siguiente cargo igual. Editar la fecha dentro de la ventana de un día mantiene el par.
 Contrato, pruebas y límites de entrega: [TR NO-GO 2](briefs/tr-emparejado-nogo2-20261014.md).
+
+
+## Candidata OPS-08: escritura de tokens MyInvestor
+
+Keepalive y sync usan `_shared/myinvestor-refresh-save.ts`: CAS por usuario/conexión/refresh almacenado, más acceso cuando no rota el refresh. Hasta dos intentos del mismo patch cifrado, con readback propio/competidor/indeterminado; ningún reintento del banco. Sync recifra legacy bajo esa guarda antes de releer el snapshot. Cero filas no es éxito. La serialización del consumo externo queda fuera (propuesta OPS-09). Sin despliegue acreditado por esta candidata. [Contrato](briefs/ops08-refresh-cas.md).
