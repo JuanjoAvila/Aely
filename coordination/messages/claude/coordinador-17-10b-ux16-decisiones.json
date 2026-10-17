@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-17-10b-ux16-decisiones",
+  "to": "codex",
+  "body": "UX16 d382f016 consulta: (1) Borde: NO al diagnostico con subclase de CapacitorWebView. Como la vibracion la hace el plugin nativo con performHapticFeedback (que si respeta el ajuste del sistema), la SENAL puede salir de la web: en page-scroll-host (y los scrollers que ya usan la ola), con dedo puesto, cuando scrollTop esta en 0 o en el maximo y el dedo sigue empujando hacia fuera mas de un umbral pequeno, llama edge() una sola vez por gesto (se rearma en touchstart); nada en fling sin dedo, nada horizontal, nada si la pagina no tiene scroll, nada con stopSwipe ni durante el gesto de Perfil/Ajustes. Sin preventDefault ni tocar el scroll. (2) Inicio: engancha fill al anillo de Mi ciclo (B, 1100 ms, respetando la espera de 150 ms y el fin del splash), una vez por apertura animada real. Dejalo con el objetivo en un solo punto para cambiarlo a otra animacion en una linea si el dueno dice que era otra barra. (3) API: composicion de LOW_TICK solo en API 33+ con primitivas soportadas y VibrationAttributes USAGE_TOUCH; si no, un unico performHapticFeedback; con reduced motion o sin plugin, nada. Rama nueva desde beta a9c9e45d. Sin Gradle; PR borrador contra beta y result.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261017-4b7e2d19",
+  "createdAt": "2026-10-17T14:58:43.204Z"
+}
