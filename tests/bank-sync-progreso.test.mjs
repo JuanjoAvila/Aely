@@ -12,7 +12,8 @@ const shared = transformSync(read("supabase/functions/_shared/enablebanking.ts")
 const E = await import("data:text/javascript;base64," + Buffer.from(shared).toString("base64"));
 const demandSrc = transformSync(read("supabase/functions/bank-sync/demand-window.ts"), { loader: "ts", format: "esm" }).code;
 const demand = await import("data:text/javascript;base64," + Buffer.from(demandSrc).toString("base64"));
-const src = demandSrc.replace(/^export /gm, "") + "\n" + transformSync(read("supabase/functions/bank-sync/index.ts").replace(/^import .*?;\r?\n/gm, ""), { loader: "ts" }).code;
+const rateSrc = transformSync(read("supabase/functions/_shared/ratelimit.ts"), { loader: "ts" }).code.replace(/^export /gm, "");
+const src = rateSrc + "\n" + demandSrc.replace(/^export /gm, "") + "\n" + transformSync(read("supabase/functions/bank-sync/index.ts").replace(/^import .*?;\r?\n/gm, ""), { loader: "ts" }).code;
 
 const CAP = 12;
 const MS = Date.parse("2026-10-10T12:00:00Z");
@@ -94,7 +95,7 @@ function baseDatos(links) {
     },
     insert: async (row) => { if (name === "app_events") events.push(row); return {}; },
   });
-  return { links, events, client: { auth: { getUser: async () => ({ data: { user: { id: "synthetic" } } }) }, from } };
+  return { links, events, client: { auth: { getUser: async () => ({ data: { user: { id: "synthetic" } } }) }, rpc: async () => ({ data: true, error: null }), from } };
 }
 
 function reloj(ms) {
