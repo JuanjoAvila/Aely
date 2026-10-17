@@ -1,0 +1,347 @@
+{
+  "status": "done",
+  "summary": "PR255 misma rama actualizada a candidata exacta b8a71214. Fallback del Deno2.9 instalado y pruebas reales de main a9916c3c:10archivos/131casos aprobados. Fallo inicial lifecycle preservado y solo ese archivo repetido tras resolver tipos desde cache global. Sin integrar bloque Deno general ni workflows.",
+  "productSHA": "b8a712141d97f27f58ac5c467193fd93cd39bf18",
+  "baseSHA": "f7bba04d983c55cf97043594b6e13d9f5b652a84",
+  "sourceMainSHA": "a9916c3cdb21c93f9d3a47653c0608e630ce50ab",
+  "pullRequest": 255,
+  "draft": true,
+  "productReady": false,
+  "runtime": {
+    "version": "2.9.0",
+    "binarySHA256": "906a1ed48c754ceb91dd2192baaec0e2226b64291b99b630fe0a0a080537def8",
+    "discovery": "PATH ENOENT then existing USERPROFILE runtime; no installation",
+    "AELY_DENO": "absolute literal path when configured; errors not silently hidden",
+    "shell": false
+  },
+  "tests": [
+    {
+      "command": "node --test --test-name-pattern=fallback tests/run-deno-tests.test.mjs",
+      "exitCode": 1,
+      "result": "Causal RED before fallback:6FAIL/1controlPASS."
+    },
+    {
+      "command": [
+        "node",
+        "--test",
+        "--test-name-pattern=fallback|descubrimiento recursivo|runtime ausente|version que falla|modulo not found|senal|seleccion focal",
+        "tests/run-deno-tests.test.mjs"
+      ],
+      "exitCode": 0,
+      "result": "13PASS:7new fallback contracts and6old contracts affected by shared probe/argv change. Two unaffected old contracts not repeated."
+    },
+    {
+      "command": [
+        "node",
+        "--test",
+        "--test-name-pattern=lifecycle usa solo cache",
+        "tests/run-deno-tests.test.mjs"
+      ],
+      "exitCode": 1,
+      "result": "One new cache-resolution contract RED before per-file configuration."
+    },
+    {
+      "command": [
+        "node",
+        "--test",
+        "--test-name-pattern=lifecycle usa solo cache",
+        "tests/run-deno-tests.test.mjs"
+      ],
+      "exitCode": 0,
+      "result": "One new cache-resolution contract PASS;14distinct contracts verified across two green runs."
+    },
+    {
+      "command": "python work/runtime-fallback-mutants.py",
+      "exitCode": 0,
+      "result": "6new mutants killed; each contract process EXIT1. Prior6mutants preserved without repetition."
+    },
+    {
+      "command": "node work/run-main-deno-inventory.mjs",
+      "exitCode": 1,
+      "result": "Actual initial main Deno inventory:9files EXIT0; lifecycle EXIT1 before cases due @types/node local node_modules resolution. Total6669ms; failure retained."
+    },
+    {
+      "command": "node work/run-lifecycle-cache-followup.mjs",
+      "exitCode": 0,
+      "result": "Only previously failed lifecycle reexecuted after per-file --node-modules-dir=none.16cases PASS in8979ms; cached-only and typecheck retained."
+    },
+    {
+      "command": "git diff --cached --check",
+      "exitCode": 0,
+      "result": "Frozen candidate committed locally, parentf7bba04d, five authorized paths; clean working tree."
+    }
+  ],
+  "actualDeno": {
+    "effectiveFilesPassed": 10,
+    "effectiveCasesPassed": 131,
+    "effectiveCasesFailed": 0,
+    "successfulDurationsSumMs": 15313,
+    "allAttemptsMs": 15648,
+    "singleContinuousSuiteRun": false,
+    "initialFilesPassed": 9,
+    "initialFilesFailed": 1,
+    "onlyFailedFileReexecuted": true,
+    "firstFailureRetained": true,
+    "inventory": [
+      {
+        "file": "supabase/functions/_shared/crypto.test.ts",
+        "gitBlob": "8f4cbe91a801043f300ee6f489580abd29f96793",
+        "sha256": "5addcf89046d2e050eee047f3af98e7b7e67c5bd3af8c8d6a300f416ca76e908",
+        "effectiveArgs": [
+          "test",
+          "--cached-only",
+          "--no-lock",
+          "--no-prompt",
+          "--allow-env",
+          "supabase/functions/_shared/crypto.test.ts"
+        ],
+        "initialExitCode": 0,
+        "effectiveExitCode": 0,
+        "casesPassed": 2,
+        "casesFailed": 0,
+        "durationMs": 911,
+        "reexecuted": false,
+        "repeatCause": null
+      },
+      {
+        "file": "supabase/functions/_shared/enablebanking.test.ts",
+        "gitBlob": "efb8b383137d9ce830edf5050019520d244a7cc7",
+        "sha256": "7e39591dc6cc09f68810d98e001239eb5b4ef9b6c837d1c1267979c2bec7476c",
+        "effectiveArgs": [
+          "test",
+          "--cached-only",
+          "--no-lock",
+          "--no-prompt",
+          "supabase/functions/_shared/enablebanking.test.ts"
+        ],
+        "initialExitCode": 0,
+        "effectiveExitCode": 0,
+        "casesPassed": 21,
+        "casesFailed": 0,
+        "durationMs": 605,
+        "reexecuted": false,
+        "repeatCause": null
+      },
+      {
+        "file": "supabase/functions/_shared/myinvestor-counter.test.ts",
+        "gitBlob": "b56f2b8b79ad381331e5584012e8a80292341cf2",
+        "sha256": "71a678787cd023fd42ca1639bfebf16699690a1c5534d6a7ad1b92b107b47dda",
+        "effectiveArgs": [
+          "test",
+          "--cached-only",
+          "--no-lock",
+          "--no-prompt",
+          "--allow-read=supabase/functions",
+          "supabase/functions/_shared/myinvestor-counter.test.ts"
+        ],
+        "initialExitCode": 0,
+        "effectiveExitCode": 0,
+        "casesPassed": 22,
+        "casesFailed": 0,
+        "durationMs": 1043,
+        "reexecuted": false,
+        "repeatCause": null
+      },
+      {
+        "file": "supabase/functions/_shared/myinvestor.test.ts",
+        "gitBlob": "b7c9ca162b0c94bf7da14a81e9392684566bf8c3",
+        "sha256": "494741c1b7d8b071d1e0a5944952d8f5b6013669a49378dc4a8585d0a3c4e771",
+        "effectiveArgs": [
+          "test",
+          "--cached-only",
+          "--no-lock",
+          "--no-prompt",
+          "supabase/functions/_shared/myinvestor.test.ts"
+        ],
+        "initialExitCode": 0,
+        "effectiveExitCode": 0,
+        "casesPassed": 11,
+        "casesFailed": 0,
+        "durationMs": 608,
+        "reexecuted": false,
+        "repeatCause": null
+      },
+      {
+        "file": "supabase/functions/bank-disconnect/lifecycle.test.ts",
+        "gitBlob": "e2518f5136054ff767ffb030b3ef66b07fab2af6",
+        "sha256": "c647d8ea1143fd18b26b073674e3ca692e2cc3524ffc3a520d911956ad1aef20",
+        "effectiveArgs": [
+          "test",
+          "--cached-only",
+          "--no-lock",
+          "--no-prompt",
+          "--node-modules-dir=none",
+          "supabase/functions/bank-disconnect/lifecycle.test.ts"
+        ],
+        "initialExitCode": 1,
+        "effectiveExitCode": 0,
+        "casesPassed": 16,
+        "casesFailed": 0,
+        "durationMs": 8979,
+        "reexecuted": true,
+        "repeatCause": "Observed @types/node local node_modules resolution failure. Added only per-file --node-modules-dir=none to use existing global cache; typecheck/cached-only unchanged. Nine passed files not repeated."
+      },
+      {
+        "file": "supabase/functions/bank-sync/demand-window.test.ts",
+        "gitBlob": "bbf2469aa750b262908da9f607c7632a7e4b220f",
+        "sha256": "f0806efc9bc3f8f6059d412060c7eb1fdfea153e3d2e0e4c5aeab92284281b3b",
+        "effectiveArgs": [
+          "test",
+          "--cached-only",
+          "--no-lock",
+          "--no-prompt",
+          "supabase/functions/bank-sync/demand-window.test.ts"
+        ],
+        "initialExitCode": 0,
+        "effectiveExitCode": 0,
+        "casesPassed": 11,
+        "casesFailed": 0,
+        "durationMs": 1025,
+        "reexecuted": false,
+        "repeatCause": null
+      },
+      {
+        "file": "supabase/functions/delete-account/delete-account.test.ts",
+        "gitBlob": "d24acedd9e031488f64ed76ccf022a8d9f9494e0",
+        "sha256": "0e733cbf94ccce1fcdb1ff7ae3c8c35d65e6841891d5e0b8e86b1c21bd837133",
+        "effectiveArgs": [
+          "test",
+          "--cached-only",
+          "--no-lock",
+          "--no-prompt",
+          "supabase/functions/delete-account/delete-account.test.ts"
+        ],
+        "initialExitCode": 0,
+        "effectiveExitCode": 0,
+        "casesPassed": 3,
+        "casesFailed": 0,
+        "durationMs": 501,
+        "reexecuted": false,
+        "repeatCause": null
+      },
+      {
+        "file": "supabase/functions/ingest/ingest.test.ts",
+        "gitBlob": "7ab9e0d4ce1118959d7da182c9e0d1f67624aedb",
+        "sha256": "7048be0c753bd742ff37795005f4b6e2c3e01194bb91a68570863f13ad25e789",
+        "effectiveArgs": [
+          "test",
+          "--cached-only",
+          "--no-lock",
+          "--no-prompt",
+          "supabase/functions/ingest/ingest.test.ts"
+        ],
+        "initialExitCode": 0,
+        "effectiveExitCode": 0,
+        "casesPassed": 15,
+        "casesFailed": 0,
+        "durationMs": 493,
+        "reexecuted": false,
+        "repeatCause": null
+      },
+      {
+        "file": "supabase/functions/ingest/widget.test.ts",
+        "gitBlob": "f4591f1d950eeb1a3601cb5bb3e2ba535b57c4ca",
+        "sha256": "0d36b5817ec7392a1c0309852648573f29732611ac1264b6cb74ce8023c1f49b",
+        "effectiveArgs": [
+          "test",
+          "--cached-only",
+          "--no-lock",
+          "--no-prompt",
+          "supabase/functions/ingest/widget.test.ts"
+        ],
+        "initialExitCode": 0,
+        "effectiveExitCode": 0,
+        "casesPassed": 9,
+        "casesFailed": 0,
+        "durationMs": 587,
+        "reexecuted": false,
+        "repeatCause": null
+      },
+      {
+        "file": "supabase/functions/prices/prices.test.ts",
+        "gitBlob": "3ece6eac89166c90c0baf2de7b3bcf03ec665548",
+        "sha256": "a1aa6908eb6fc54b5c6ff9ec60fc6de8c240a449efd74b4f8e77ef818878227d",
+        "effectiveArgs": [
+          "test",
+          "--cached-only",
+          "--no-lock",
+          "--no-prompt",
+          "supabase/functions/prices/prices.test.ts"
+        ],
+        "initialExitCode": 0,
+        "effectiveExitCode": 0,
+        "casesPassed": 21,
+        "casesFailed": 0,
+        "durationMs": 561,
+        "reexecuted": false,
+        "repeatCause": null
+      }
+    ]
+  },
+  "mutationResults": [
+    {
+      "name": "sin-perfil",
+      "exitCode": 1,
+      "killed": true
+    },
+    {
+      "name": "ignora-configuracion",
+      "exitCode": 1,
+      "killed": true
+    },
+    {
+      "name": "tapa-runtime-roto",
+      "exitCode": 1,
+      "killed": true
+    },
+    {
+      "name": "pierde-ejecutable-resuelto",
+      "exitCode": 1,
+      "killed": true
+    },
+    {
+      "name": "permite-descargas",
+      "exitCode": 1,
+      "killed": true
+    },
+    {
+      "name": "omite-typecheck",
+      "exitCode": 1,
+      "killed": true
+    }
+  ],
+  "runtimePolicy": {
+    "cachedOnly": true,
+    "noLock": true,
+    "noPrompt": true,
+    "noAllowNetRunWrite": true,
+    "existingPerFilePermissionsUnchanged": true,
+    "lifecycleResolver": "--node-modules-dir=none uses existing global cache, no local node_modules or install, typecheck intact"
+  },
+  "noTestsBuildOrMeasurementsRepeatedForDelivery": true,
+  "limitations": [
+    "Real Deno files come ONLY from exact main a9916c3c. PR252/myinvestor-token-race absent from that source, not merged and not tested by this inventory.",
+    "10files/131cases effective PASS from9initial successful files plus1causal followup. The initial lifecycle type-resolution EXIT1 is preserved, not erased or called flaky.",
+    "15.313s is sum of effective successful invocations;15.648s includes failed initial attempt and overhead, not one continuous general-suite pass.",
+    "Original completed tests were not repeated for delivery. Six old contracts were revalidated only because shared runtime probe/argv changed in private phase; other prior evidence remains separate.",
+    "No download/install, local node_modules, lockfile, service credentials, real provider or database use. Deno cached-only and no allow-net/run/write; fixtures synthetic.",
+    "General Deno execution block and workflows remain unchanged; Claude decides integration after reviewing timing. Original predecessor result77423905 remains immutable.",
+    "No general Node suite, E2E/CPU6, Gradle/APK, live SQL/banking or deploy/main-beta operations. No CI-general, integration, served artifact or mobile acceptance claim.",
+    "09/edit sheet/VERSION/catalogue/caps/oracles, server product and foreign WIP/locks unchanged."
+  ],
+  "fetchBudget": {
+    "idbudget": "deno-pr255-runtime-own12-1-db3299cd",
+    "allowance": 12,
+    "usedBeforePush": 6,
+    "readbackExpectedUsed": 7,
+    "initialOwn10Closed": 10,
+    "reset": false,
+    "ROOTInherited": false
+  },
+  "schema": 1,
+  "taskId": "deno-pr255-runtime-real-tests-remates-codex-20261017",
+  "actor": "codex",
+  "sessionId": "codex-local-20261017-n-e462-cf2f-68fe-fbe4",
+  "createdAt": "2026-10-17T14:25:58.019Z",
+  "released": true
+}
