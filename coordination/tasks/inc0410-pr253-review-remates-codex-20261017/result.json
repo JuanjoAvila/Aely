@@ -1,0 +1,142 @@
+{
+  "status": "done",
+  "summary": "PR253 independent-review remediations delivered under fa83f1c6/acaf456d, same owner and new successor claim. Focal implementation only: official minified/gzip gate NOT executed due unavailable OWN esbuild; pending Claude review/integration/generalCI, not ProductREADY. Fixes OTA missing-base false conflicts, cap3 sanitized records in separate mcSaveRaw/mcLoadRaw key, local-only bankTx, offline localNewer preservation, ACK without _savedAt restamp, grouped saved/target/done/doneAt, once-per-record durable telemetry and SIGNED_OUT cleanup. Generated build committed. Source frozen after this delivery.",
+  "productSHA": "3e5884c48d56508ab06c518995fee4f2a763be22",
+  "baseSHA": "e3bbd92c41ad7168786ddb5550e35b95f686b3d3",
+  "pr": 253,
+  "branch": "codex/inc0410-lww-investigation-20261017",
+  "previousResultImmutable": "331b59eda4bb012bb3f4ae7d570ab59493cfbaa7",
+  "tests": [
+    {
+      "command": "node --test tests/goals-review-remates.test.mjs (causal RED before correction)",
+      "exitCode": 1,
+      "pass": 2,
+      "fail": 8
+    },
+    {
+      "command": "node --test tests/goals-review-remates.test.mjs",
+      "exitCode": 0,
+      "cases": 10
+    },
+    {
+      "command": "node --test tests/goals-three-way.test.mjs",
+      "exitCode": 0,
+      "cases": 12
+    },
+    {
+      "command": "node tests/metas-pull-transport.test.mjs",
+      "exitCode": 0,
+      "cases": 10
+    },
+    {
+      "command": "INC0410_REVIEW_MUTANT=M9 node --test --test-name-pattern=g-M9 tests/goals-review-remates.test.mjs",
+      "exitCode": 1,
+      "meaning": "Real effect/ACK loop:4pushes instead of1"
+    },
+    {
+      "command": "INC0410_REVIEW_MUTANT=M12 node --test --test-name-pattern=g-M12 tests/goals-review-remates.test.mjs",
+      "exitCode": 1,
+      "meaning": "Real pushAppState in-flight edit:ACK base25 instead of0 sent"
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "meaning": "Generated public/index.html committed"
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0,
+      "blocks": 7
+    },
+    {
+      "command": "node --test tests/persist-commit.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/inicio-grafica-reservas.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node --test tests/backup-sin-datos-banco.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/security.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "git diff --check and protected-path diff",
+      "exitCode": 0
+    },
+    {
+      "command": "git push OWN branch normally;gh pr edit253;canonical PR head/draft/main readback",
+      "exitCode": 0,
+      "meaning": "Exact final SHA confirmed,description updated,artifact attached"
+    }
+  ],
+  "mutations": [
+    {
+      "name": "M9",
+      "exitCode": 1,
+      "causalAssertion": "push count4versus1"
+    },
+    {
+      "name": "M12",
+      "exitCode": 1,
+      "causalAssertion": "ACK uses current25versus sent0"
+    },
+    {
+      "name": "quitar-base",
+      "exitCode": 1,
+      "causalAssertion": "disjoint goal delta lost"
+    },
+    {
+      "name": "sumar",
+      "exitCode": 1,
+      "causalAssertion": "100.03versus cloud100.02"
+    },
+    {
+      "name": "resucitar",
+      "exitCode": 1,
+      "causalAssertion": "deleted goal returns"
+    },
+    {
+      "name": "quitar-proteccion-reservas",
+      "exitCode": 1,
+      "causalAssertion": "incoherent rA/rB projection returns"
+    }
+  ],
+  "persistenceEvidence": {
+    "syntheticExpenses": 2000,
+    "mainBytesBefore": [
+      1097747,
+      1097746
+    ],
+    "mainBytesAfter": [
+      488,
+      487
+    ],
+    "separateRecords": 3,
+    "separatePartitionBytes": 618
+  },
+  "officialSizeGate": {
+    "executed": false,
+    "status": "pending",
+    "reason": "esbuild unavailable in OWN checkout/configured runtime;no install or foreign node_modules;raw HTML/gzip measurements are NOT substituted for official minified cap verification"
+  },
+  "limitations": [
+    "Official minified/gzip gate,CI general,docs-frescura,beta-sources,Claude review/integration,served beta and physical mobile acceptance pending",
+    "No fullsuite,e2e,CPU6,Deno,Gradle,liveSQL,realbanks,realDB/RLS/HTTP,backenddeploy,main/beta push or merge executed",
+    "No09/edit sheet,VERSION,catalogue,caps or financial expense oracle changes;no rule/log merge or new server contract",
+    "Tests and build were executed during causal source changes in private implementation;no tests repeated during this delivery;source hashes exact to frozen manifest",
+    "No UI for conflict resolution or idempotent cent-operation ledger in this scope",
+    "Predecessor result331b59ed and before-NOGO checkpoints preserved byte-exact;successor claim/session owned independently",
+    "Same OWN12-2 block preserved:used4of12 before this result publication;old blocks closed,no reset/ROOT inheritance"
+  ],
+  "schema": 1,
+  "taskId": "inc0410-pr253-review-remates-codex-20261017",
+  "actor": "codex",
+  "sessionId": "codex-local-20261017-55a003910cb4f81a",
+  "createdAt": "2026-10-17T12:40:07.070Z",
+  "released": true
+}
