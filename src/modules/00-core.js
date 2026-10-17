@@ -1807,20 +1807,44 @@ function bankDeletionLink(e){
   if(e.extId){g.bankRef=String(e.extId);g.ent=expenseBankOf(e)||"";}
   return g;
 }
+// El mapa de lápidas se cachea por la referencia de deleted. Su índice también: recorrer
+// 500 claves por cada fila convertía un render de 20000 movimientos en diez millones.
+const obAbsorptionIndexes=new WeakMap();
+function obAbsorptionIndex(delSet){
+  let index=obAbsorptionIndexes.get(delSet);if(index)return index;
+  index={any:Object.create(null),missing:Object.create(null)};
+  Object.keys(delSet).forEach(function(k){
+    if(!delSet[k])return;
+    const p=k.split("|");if(p.length!==6||p[0]!=="ob-absorbed2")return;
+    const base=p.slice(0,4).join("|")+"|"+p[5];
+    index.any[base]=1;if(!p[4])index.missing[base]=1;
+  });
+  obAbsorptionIndexes.set(delSet,index);return index;
+}
+/* El escritor usa ESTE MISMO predicado antes de proteger la fila retirada. Si falta la
+   cuenta en cualquiera de los dos lados, nunca puede alcanzar a la superviviente. */
+function obAbsorptionMatches(e,delSet){
+  const absorbed=obAbsorptionKey(e);if(absorbed&&delSet[absorbed])return true;
+  const legacy=obAbsorptionKey(e,true);if(legacy&&delSet[legacy])return true;
+  if(!absorbed)return false;
+  const p=absorbed.split("|"),k=p.slice(0,4).join("|")+"|"+p[5],index=obAbsorptionIndex(delSet);
+  return !!(e.obAcc ? index.missing[k] : index.any[k]);
+}
 /* Lápidas anteriores al Paso 0 guardaban la clave sin id: siguen ocultando ese manual. */
 function expenseIsTombstoned(e, delSet){
   if(!delSet) return false;
-  const absorbed=obAbsorptionKey(e);if(absorbed&&delSet[absorbed])return true;
+  if(obAbsorptionMatches(e,delSet))return true;
   const k=keyOfExpense(e);
   if(delSet[k]) return true;
   if(isManualExpenseSource(e&&e.source) && delSet[keyOfExpenseLegacy(e)]) return true;
   return false;
 }
-/* Una absorción retira una ranura de UNA referencia y banco, no cualquier compra futura
-   que reutilice el día/importe/nombre/ordinal. La identidad no depende del UUID local. */
-function obAbsorptionKey(e){
+/* La cuenta y el día acotan las absorciones nuevas. La clave antigua se conserva solo
+   para leer lo ya borrado: sus datos perdidos no permiten reparar colisiones históricas. */
+function obAbsorptionKey(e,legacy){
   const bank=e&&expenseBankOf(e);
-  return e&&esFilaDeBanco(e)&&bank&&e.extId ? "ob-absorbed|"+encodeURIComponent(bank)+"|"+encodeURIComponent(String(e.extId))+"|"+obOrdinalOf(e) : null;
+  const base=e&&esFilaDeBanco(e)&&bank&&e.extId ? encodeURIComponent(bank)+"|"+encodeURIComponent(String(e.extId))+"|"+obOrdinalOf(e) : null;
+  return base ? (legacy?"ob-absorbed|"+base:"ob-absorbed2|"+base+"|"+encodeURIComponent(String(e.obAcc||""))+"|"+String(e.date||"").slice(0,10)) : null;
 }
 function _errCloudMsg(err){
   return mcLogCode(err);
@@ -1943,7 +1967,7 @@ function ordinalDeTramos(tramos){
    cargo nuevo de una ranura ya ocupada. Los lectores anteriores ignoran este tramo. */
 function bankRefSufijoCloud(e){ return e&&e.extId ? "#ref"+encodeURIComponent(String(e.extId))+(e.obPendingRef?"#prevref"+encodeURIComponent(String(e.obPendingRef)):"")+(e.obPending?"#pdng":"") : ""; }
 function bankRefDeSource(raw,tag){
-  const m=(tag==="prevref"?/#prevref([^#]*)/:/#ref([^#]*)/).exec(raw); if(!m)return undefined;
+  const m=(tag==="acc"?/#acc([^#]*)/:tag==="prevref"?/#prevref([^#]*)/:/#ref([^#]*)/).exec(raw); if(!m)return undefined;
   try{return decodeURIComponent(m[1])||undefined;}catch(_){return undefined;}
 }
 /* Codifica el banco en `source` de la tabla (sin migración SQL): ob:caixa, ob-hist:sabadell,
@@ -1972,9 +1996,11 @@ function expenseSourceForCloud(e){
   // final no le cambia nada: ve el banco limpio y la marca de repetido donde siempre. Con `~`
   // dentro del banco (como la cuota) ese móvil leería un banco raro y sacaría la fila del
   // presupuesto; con `#` detrás la lee como hoy. Ver `obOrdinalOf`.
-  // Orden: ob:<ent>[~deuda.<id> | ~recibo.<id>][#dup][#ref<id>][#prevref<id>][#pdng][#n<k>].
-  if(ent&&(s==="ob"||String(s).indexOf("ob:")===0)) return "ob:"+ent+(deudaSufijo(e&&e.debtId)||reciboSufijo(e&&e.reciboId))+((e&&e.possibleDup)?"#dup":"")+bankRefSufijoCloud(e)+ordinalSufijoCloud(e);
-  if(ent&&(s==="ob-hist"||String(s).indexOf("ob-hist:")===0)) return "ob-hist:"+ent+reciboSufijo(e&&e.reciboId)+((e&&e.possibleDup)?"#dup":"")+bankRefSufijoCloud(e)+ordinalSufijoCloud(e);
+  // Orden: ob:<ent>[~deuda.<id> | ~recibo.<id>][#dup][#ref<id>][#prevref<id>][#pdng][#acc<cuenta>][#n<k>].
+  // La cuenta debe sobrevivir al pull para no ensanchar la lápida al reinstalar u otro móvil.
+  const acc=e&&e.obAcc?"#acc"+encodeURIComponent(String(e.obAcc)):"";
+  if(ent&&(s==="ob"||String(s).indexOf("ob:")===0)) return "ob:"+ent+(deudaSufijo(e&&e.debtId)||reciboSufijo(e&&e.reciboId))+((e&&e.possibleDup)?"#dup":"")+bankRefSufijoCloud(e)+acc+ordinalSufijoCloud(e);
+  if(ent&&(s==="ob-hist"||String(s).indexOf("ob-hist:")===0)) return "ob-hist:"+ent+reciboSufijo(e&&e.reciboId)+((e&&e.possibleDup)?"#dup":"")+bankRefSufijoCloud(e)+acc+ordinalSufijoCloud(e);
   // Un alias TR/Wallet pendiente usa temporalmente el encoding OB que entienden también las OTA
   // anteriores; al resolver «son distintos» vuelve a su origen real `macrodroid`.
   if(s==="macrodroid"||s==="tr") return (e&&e.possibleDup)?"ob:trade_republic#dup":"macrodroid";
@@ -2526,6 +2552,11 @@ function withdrawalRowMatches(e, row){
   if(/^ob(?:-hist)?:/.test(source)&&/^ob(?:-hist)?:/.test(remote)){
     if((/#ref/.test(source)&&!localRef)||(/#ref/.test(remote)&&!remoteRef))return false;
     source=source.replace(/#ref[^#]*/,"");remote=remote.replace(/#ref[^#]*/,"");
+    // Añadir #acc no invalida el mismo UUID legacy; dos cuentas conocidas sí se distinguen.
+    const localAcc=bankRefDeSource(source,"acc"),remoteAcc=bankRefDeSource(remote,"acc");
+    if(localAcc&&remoteAcc&&localAcc!==remoteAcc)return false;
+    if((/#acc/.test(source)&&!localAcc)||(/#acc/.test(remote)&&!remoteAcc))return false;
+    source=source.replace(/#acc[^#]*/,"");remote=remote.replace(/#acc[^#]*/,"");
   }
   return !!(row.id===e.id && remote===source
     && Number(row.importe)===e.amount && Date.parse(row.fecha)===Date.parse(e.date)
@@ -2838,6 +2869,7 @@ function expenseFromRow(r){
     extId: source==="ob"||source==="ob-hist" ? bankRefDeSource(raw) : undefined,
     obPending: (source==="ob"||source==="ob-hist")&&/#pdng(?:#|$)/.test(raw) ? true : undefined,
     obPendingRef: source==="ob"||source==="ob-hist" ? bankRefDeSource(raw,"prevref") : undefined,
+    obAcc: source==="ob"||source==="ob-hist" ? bankRefDeSource(raw,"acc") : undefined,
   };
 }
 
@@ -2882,6 +2914,8 @@ function refreshExpenseFromCloud(local, incoming, readStartedAt){
   if(Object.prototype.hasOwnProperty.call(incoming,"noCard")) put("noCard", incoming.noCard||undefined);
   if(Object.prototype.hasOwnProperty.call(incoming,"obName")) put("obName", incoming.obName);
   if(incoming.extId) put("extId",incoming.extId);
+  // Un pull legacy sin cuenta no prueba que haya desaparecido la que ya sabemos.
+  if(incoming.obAcc) put("obAcc",incoming.obAcc);
   if(Object.prototype.hasOwnProperty.call(incoming,"obPending")) put("obPending",incoming.obPending);
   if(incoming.obPendingRef) put("obPendingRef",incoming.obPendingRef);
   if(Object.prototype.hasOwnProperty.call(incoming,"origAmount")) put("origAmount", incoming.origAmount);
