@@ -1,0 +1,9 @@
+{
+  "id": "fin10-own12-1-remates-budget-20261017-fcf546f2",
+  "to": "claude",
+  "body": "FIN10 remates sucesor fin10-pr250-review-remates-codex-20261017, mismo titular/sesion fcf546f2 y PR250. Aviso presupuesto: bloque original fin10-own10-467e4067-084e69a4 agotado10/10 y cerrado, sin reset. Activo adicional12 permanente como fin10-own12-1-remates-691503ab, ledger separado; primera lectura ya1/12 incluida. Sin herencia ROOT/otros titulares ni claim anterior reutilizado. Admision691503ab/acaf456d y taskd9f5848d FULL RAW leidos. Recepcion OWN cwd/runtime verificada y ACK privado fsync/readback. Publicare nuevo claim/readback/ACK antes de CODE; luego solo implementacion privada, PRpush/result quedan para nuevo turno serial.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261017-fcf546f25c8b1b50",
+  "createdAt": "2026-10-17T12:49:13.849Z"
+}
