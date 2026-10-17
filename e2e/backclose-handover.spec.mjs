@@ -262,3 +262,162 @@ test("React real: cierre debajo de ruta externa conserva su URL/estado y el reto
   expect(await page.evaluate(()=>history.state)).toEqual({route:"external",keep:[1,2]});
   await page.goBack();await layersClosed(page,url,state);
 });
+
+/* UX13: señal de teclado explícita; Chromium no acredita un IME Android. */
+async function ux13Viewport(page){
+  await page.setViewportSize({width:393,height:844});
+  await page.addInitScript(()=>{
+    const vv=new EventTarget();let gap=0;
+    Object.defineProperties(vv,{
+      height:{get:()=>window.innerHeight-gap},width:{get:()=>window.innerWidth},
+      offsetTop:{value:0},offsetLeft:{value:0},scale:{value:1},
+    });
+    Object.defineProperty(window,"visualViewport",{value:vv,configurable:true});
+    window.__ux13Keyboard={gap:0,blurCalls:0};
+    window.__ux13SetKeyboard=function(value){
+      gap=value;window.__ux13Keyboard.gap=value;vv.dispatchEvent(new Event("resize"));
+    };
+    // El doble sólo oculta al desenfocar un editor; no simula el callback Atrás de producto.
+    document.addEventListener("blur",function(e){
+      if(gap&&e.target.matches&&e.target.matches('input,textarea,[contenteditable="true"]')){
+        window.__ux13Keyboard.blurCalls++;window.__ux13SetKeyboard(0);
+      }
+    },true);
+  });
+}
+
+async function ux13Settled(page){
+  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+}
+
+async function ux13Start(page,method){
+  if(method!=="browser") await nativeButton(page);
+  await ux13Viewport(page);
+  const previous=await start(page,"es",true),url=page.url();
+  return {previous,url,before:await financial(page)};
+}
+
+async function ux13Back(page,method){
+  if(method==="browser") await page.goBack();
+  else await page.evaluate(()=>{
+    if(typeof window.__backButton!=="function") throw Error("El listener App no está registrado");
+    window.__backButton();
+  });
+}
+
+async function ux13OpenAsk(page){
+  await page.evaluate(()=>{
+    const emit=askEmit;window.__ux13Ask=[];
+    askEmit=function(o){
+      const record={calls:0},resolve=o.resolve;window.__ux13Ask.push(record);
+      emit(Object.assign({},o,{resolve:function(value){record.calls++;resolve(value);}}));
+    };
+  });
+  await page.locator(".v4-avatar").click();
+  const basic=await page.evaluate(()=>t("pf_basic"));
+  await page.locator(".profile-pull .profile-row").filter({hasText:basic}).click();
+  const ask=page.locator(".askback [role=dialog]");await expect(ask).toBeVisible();
+  await ask.locator("input").fill("Persona sintética UX13");
+  return ask;
+}
+
+for(const method of ["browser","native"]) for(const keyboard of [true,false]){
+  test(`UX13: Ask conserva borrador en primer atrás sólo con teclado visible: ${method}/${keyboard}`,async({page})=>{
+    const {previous,url,before}=await ux13Start(page,method);
+    const profileBefore=await page.evaluate(()=>JSON.parse(localStorage.getItem("micartera_v3")).settings.profile);
+    const ask=await ux13OpenAsk(page);
+    if(keyboard) await page.evaluate(()=>window.__ux13SetKeyboard(300));
+    await ux13Settled(page);
+    // Foco sin reducción de viewport es el control de teclado físico: no debe consumir otro atrás.
+    await expect(ask.locator("input")).toBeFocused();
+    await ux13Back(page,method);
+    if(keyboard){
+      await expect(ask).toBeVisible();
+      await expect(ask.locator("input")).toHaveValue("Persona sintética UX13");
+      await expect.poll(()=>page.evaluate(()=>window.__ux13Keyboard.gap)).toBe(0);
+      expect(await page.evaluate(()=>window.__ux13Ask.map(x=>x.calls))).toEqual([0]);
+      expect(await financial(page)).toEqual(before);await expect(page).toHaveURL(url);
+      await ux13Back(page,method);
+    }
+    await expect(ask).toHaveCount(0);
+    await expect(page.locator(".profile-pull.open")).toBeVisible();
+    expect(await page.evaluate(()=>window.__ux13Ask.map(x=>x.calls))).toEqual([1]);
+    expect(await page.evaluate(()=>JSON.parse(localStorage.getItem("micartera_v3")).settings.profile)).toEqual(profileBefore);
+    await ux13Back(page,method);
+    await expect(page.locator(".profile-pull.open")).toHaveCount(0);
+    await expect.poll(()=>page.evaluate(()=>({stack:_mcBackStack.length,pending:_mcIgnorePop})))
+      .toEqual({stack:0,pending:false});
+    await expect(page).toHaveURL(url);expect(await financial(page)).toEqual(before);
+    if(method!=="browser") expect(await page.evaluate(()=>window.__backExitCalls)).toBe(0);
+    // Una sola travesía final conserva el historial real previo, sin entradas muertas.
+    await page.goBack();await expect(page).toHaveURL(previous);
+  });
+}
+
+async function ux13Bills(page){
+  await page.locator('.botnav-tab[data-tour="plan"]').click();
+  const manage=await page.evaluate(()=>t("v4_gestionar"));
+  await page.locator('.v4-screen > [data-seg="recibos"]').getByRole("button",{name:manage,exact:true}).click();
+  const hub=page.locator("[data-bills-manage]");await expect(hub).toBeVisible();
+  await hub.locator('[data-act="bill-add"]').first().click();
+  const wizard=page.locator('[data-sheet="bill-add"]');await expect(wizard).toHaveAttribute("data-step","what");
+  // El foco inicial del título llega en rAF después de autoFocus. Escribir antes deja que
+  // ese callback quite el foco al campo y el doble oculte el teclado antes del gesto.
+  await expect(wizard.locator("h1")).toBeFocused();
+  const input=wizard.locator("input.v4-bills-search");await input.fill("Recibo sintético UX13");
+  await page.evaluate(()=>window.__ux13SetKeyboard(300));
+  await expect.poll(()=>input.evaluate(el=>({focused:document.activeElement===el,
+    gap:window.__ux13Keyboard.gap,keyboard:_mcBackCloseNative("peek")===el})))
+    .toEqual({focused:true,gap:300,keyboard:true});
+  expect(await page.evaluate(()=>window.__mcNativeEdgeBackActive)).toBe(true);
+  return {hub,wizard,input};
+}
+
+async function ux13Edge(page,phase,progress=0){
+  await page.evaluate(({phase,progress})=>{
+    // El puente entrega phase/progress en el propio evento; detail no ejercitaría esta ruta.
+    window.dispatchEvent(Object.assign(new Event("mcNativeEdgeBack"),{phase,progress}));
+  },{phase,progress});
+}
+
+for(const hideBeforeInvoke of [false,true]){
+  test(`UX13: predictivo conserva alta y hub al ocultar teclado: hideAntesInvoke=${hideBeforeInvoke}`,async({page})=>{
+    const {previous,url,before}=await ux13Start(page,"native");
+    const {hub,wizard,input}=await ux13Bills(page);
+    const transform=await wizard.evaluate(el=>el.parentElement.style.transform);
+    await ux13Edge(page,"start");await ux13Edge(page,"progress",0.55);
+    expect(await wizard.evaluate(el=>el.parentElement.style.transform)).toBe(transform);
+    if(hideBeforeInvoke) await page.evaluate(()=>window.__ux13SetKeyboard(0));
+    await ux13Edge(page,"invoke",1);
+    // Esperar el desenfoque real también descubre un cierre indebido diferido: al desmontar
+    // ya no quedaría hoja para las aserciones siguientes. No depender de una pausa fija.
+    await expect(input).not.toBeFocused();
+    await expect(wizard).toHaveAttribute("data-step","what");await expect(hub).toBeVisible();
+    await expect(wizard.locator("input.v4-bills-search")).toHaveValue("Recibo sintético UX13");
+    await expect.poll(()=>page.evaluate(()=>window.__ux13Keyboard.gap)).toBe(0);
+    await expect(page).toHaveURL(url);expect(await financial(page)).toEqual(before);
+    expect(await page.evaluate(()=>window.__backExitCalls)).toBe(0);
+    // El siguiente gesto debe seguir funcionando, sin un temporizador que lo absorba.
+    await ux13Edge(page,"start");await ux13Edge(page,"progress",0.55);await ux13Edge(page,"invoke",1);
+    await expect(wizard).toHaveCount(0);await expect(hub).toBeVisible();
+    await page.goBack();await expect(hub).toHaveCount(0);
+    await expect.poll(()=>page.evaluate(()=>({stack:_mcBackStack.length,pending:_mcIgnorePop})))
+      .toEqual({stack:0,pending:false});
+    await expect(page).toHaveURL(url);expect(await financial(page)).toEqual(before);
+    await page.goBack();await expect(page).toHaveURL(previous);
+  });
+}
+
+test("UX13: cancelar predictivo con teclado conserva hoja, valor y geometría",async({page})=>{
+  const {url,before}=await ux13Start(page,"native");const {wizard,input}=await ux13Bills(page);
+  const x=await wizard.evaluate(el=>el.parentElement.getBoundingClientRect().x);
+  await ux13Edge(page,"start");await ux13Edge(page,"progress",0.4);
+  expect(await wizard.evaluate(el=>el.parentElement.getBoundingClientRect().x)).toBeCloseTo(x,1);
+  await ux13Edge(page,"cancel");
+  await expect(input).toBeFocused();
+  await expect(wizard).toHaveAttribute("data-step","what");
+  await expect(wizard.locator("input.v4-bills-search")).toHaveValue("Recibo sintético UX13");
+  expect(await wizard.evaluate(el=>el.parentElement.getBoundingClientRect().x)).toBeCloseTo(x,1);
+  expect(await page.evaluate(()=>window.__ux13Keyboard.gap)).toBe(300);
+  expect(await financial(page)).toEqual(before);await expect(page).toHaveURL(url);
+});
