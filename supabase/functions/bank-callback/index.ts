@@ -78,11 +78,23 @@ Deno.serve(async (req) => {
       throw new CallbackFallo("caducado", "state emitido hace más de 30 min");
     }
     // Un intento limitado conserva el state válido para poder terminar después.
-    // El consumo atómico frente a dos callbacks simultáneos es otro encargo.
     const userGate = await rateLimit(admin, "bank-callback:" + link.user_id, 10, 600);
     if (!userGate.ok) return callbackRateLimited(fromApp);
     // Se gasta ANTES de canjear el code: si el canje falla a mitad, el state ya no vale igual.
-    await admin.from("bank_links").update({ state: null }).eq("id", link.id);
+    // Solo quien consume esta autorización puede canjear el código. El SELECT anterior
+    // no reserva la fila: otro callback o bank-connect puede haberla cambiado después.
+    let consume = admin.from("bank_links").update({ state: null })
+      .eq("id", link.id).eq("state", state);
+    consume = link.state_issued_at == null
+      ? consume.is("state_issued_at", null)
+      : consume.eq("state_issued_at", link.state_issued_at);
+    const consumed = await consume.select("id");
+    if (consumed?.error || !Array.isArray(consumed?.data)
+      || consumed.data.length !== 1 || consumed.data[0]?.id !== link.id) {
+      // Un commit sin respuesta verificable también cierra el canje: leer state=null
+      // después no acredita quién ganó. No restaurar ni reintentar; hay que reconectar.
+      throw new CallbackFallo("error", "consumo de state no confirmado");
+    }
 
     const { appId, pem } = ebConfig();
     const jwt = await makeJWT(appId, pem);
@@ -179,7 +191,7 @@ Deno.serve(async (req) => {
        Los acuses que tuviera un móvil de antes de reconectar dejan de valer solos: van
        ligados a `state_issued_at`, que `bank-connect` renovó al empezar (`ackLinkKey`). */
     const keep = !!uid && keepsCursor(link, accts);
-    await admin.from("bank_links").update({
+    const { error: linkError } = await admin.from("bank_links").update({
       session_id: await encryptSessionId(sessionId),
       account_uid: uid,
       iban,
@@ -188,6 +200,7 @@ Deno.serve(async (req) => {
       ...(keep ? {} : { last_sync: null }),
       updated_at: new Date().toISOString(),
     }).eq("id", link.id);
+    if (linkError) throw new CallbackFallo("error", "enlace no guardado");
 
     // Si autorizó pero no obtuvimos una cuenta legible, no mentimos con "bank=ok".
     if (!uid) {
