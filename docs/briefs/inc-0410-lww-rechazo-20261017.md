@@ -1,0 +1,21 @@
+# INC-0410 · R3: asiento de reserva y conflicto de su meta
+
+Sucesora privada de PR253 sobre `ecd536bbd660e1e4d13fad3b097bdd1181910a73`, task `inc0410-pr253-review3-reserve-conflict-codex-20261017` (`622b72062ec83b567e4777c09754b3e98cc319eb`), NO-GO Claude `f9b0d2ae68140425586dd657c1232fa46cbaf4ed`. Mismo titular y PR; result R2 `ebbf174c6d0c96e434a075cda82b0752787922e9` y todas las fuentes/evidencias anteriores inmutables. Los demás casos R2 están cerrados por el revisor. Esta fuente trata exclusivamente R3-1 y sigue pendiente de revisión, tamaño e integración; no es ProductREADY.
+
+## Contrato
+
+Con base conocida, la fusión sigue siendo a tres vías. Solo se conservan las reservas locales si las metas tocadas por reglas/asientos locales nuevos o modificados no tienen un conflicto de campos con nube. Se comparan reglas y asientos por su identidad y contenido frente a la base; una regla base sin cambios no convierte otra meta en afectada. Si hay conflicto en una meta afectada, se usa el rechazo existente: foto financiera completa de nube, `keepLocalReserves:false` y copia privada saneada de todo el estado local. No se suman saldos absolutos ni se fusionan reglas/log.
+
+Caso causal: Z asienta 50 sobre 100 sin subir; A aporta 20 y sube 120 sin ese asiento. Antes quedaba 120 con el asiento de Z marcado, que impedía recuperar los 50. Tras rechazar se adopta 120 sin el asiento, se conserva el local 150 en el registro y el motor mensual real reaplica 50 al terminar ese pull válido: 170,00 EUR, exactamente 17000 céntimos y un único asiento. Repetir el motor no aporta de nuevo. También se prueba el orden inverso de edición de A/Z, manteniendo A como primer envío.
+
+El orden inverso de **entrega** tiene una semántica distinta bajo el contrato previo: Z sube primero 150 con el asiento y A intenta subir su 120 manual. Gana la nube 150 y el aporte manual queda recuperable en `goals_field_conflict`; el motor no duplica el asiento. El test llega a 17000 céntimos tras una edición explícita de 20 mediante el `set` real. Esta fase no implementa ni acredita una recuperación automática de aportes manuales en ese orden; sumarlos automáticamente sería ampliar el contrato de conflictos. Se declara esta distinción para revisión, sin presentar la recuperación manual como replay automático de los 50.
+
+Se mantienen R2: reservas cambiadas solo en un lado o iguales permiten fusión de metas disjuntas; divergencia distinta de ambos lados rechaza; grupo saved/target/done/doneAt indivisible; cap3 en partición privada, saneado de gastos/feed/históricos/perfil, resetSandbox, caché ordinaria, ACK sin re-sello ni bucle, notificación durable única y SIGNED_OUT.
+
+## Evidencia y límites
+
+`tests/goals-review3-reserve-conflict.test.mjs` está registrado en run-tests. Sobre ecd536bb, antes de modificar producto, el rojo da tres fallos y dos controles correctos: en ambos órdenes de edición se observa 12000 frente a 17000 céntimos; la nueva regla con conflicto de nombre tampoco rechazaba. La primera captura roja verificaba el asiento indebidamente retenido; la segunda adelanta la aserción monetaria para mostrar la pérdida exacta, conservando ambas. El verde final añade un control de regla base intacta: seis casos correctos. El mutante que retira solo la guarda nueva vuelve a perder los 50 en ambos casos y deja de rechazar la nueva regla: tres aserciones causales fallan.
+
+Las regresiones focales se justifican por el cambio en goalSyncPull: R2, tres vías, R1 (incluidos M9/M12, privacidad/partición/logout) y transporte del pull mensual. El build genera public/index.html y la sintaxis comprueba sus bloques. No se repiten suite general, pruebas ajenas ni motores sin cambios.
+
+No se modifica 08, 09/editor, VERSION, catálogo, caps, servidor u oráculos ajenos. La guarda vive en 00-core; 11-app-main ya aplica el rechazo completo y no requiere cambios. Tamaño oficial minificado/gzip pendiente por falta de esbuild autorizado; HTML/gzip crudos no lo sustituyen y no se hacen nuevas mediciones. CI general, revisión/integración de Claude, artefacto servido y aceptación navegador/móvil pendientes. Sin fullsuite, CPU6, Gradle, SQL, bancos o deploy. Fuente privada congelada hasta nuevo turno de entrega; sin lecturas/publicaciones de canal en esta fase.

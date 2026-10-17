@@ -394,6 +394,25 @@ function App(){
   const stateRef=useRef(state); useEffect(function(){ stateRef.current=state; });
   const sessionRef=useRef(null);
   const cloudUpdatedAtRef=useRef(null);   // sello del servidor para sync sin pisar otro dispositivo
+  // La base corresponde al payload confirmado, no al estado que pudo editarse durante el envío.
+  const pushAppState=function(u,snapshot){
+    const sent=slimForCloud(snapshot),expected=cloudUpdatedAtRef.current;
+    return cloud.pushState(u,sent,expected).then(function(r){
+      if(!sessionRef.current || !sessionRef.current.user || sessionRef.current.user.id!==u) return null;
+      if(r && r.updated_at && cloudUpdatedAtRef.current===expected){
+        cloudUpdatedAtRef.current=r.updated_at;
+        setStateRaw(function(prev){ return goalSyncAck(prev,u,sent,expected,r.updated_at); });
+      }
+      return r;
+    });
+  };
+  const notifyGoalConflicts=function(){
+    const meta=state._goalSync;
+    if(meta && meta.owner===uid) goalSyncNotify(mcStateKey(),meta,function(){cloud.logEvent("error","GOALS_SYNC_CONFLICT");});
+  };
+  useEffect(function(){
+    notifyGoalConflicts();
+  },[state._goalSync,uid]);
   const bankSyncing=useRef(false);          // evita syncs de banco solapados
   // Promesa → true si el pull de arranque (estado + gastos) terminó bien. La espera `runBankSync`.
   const pullOkRef=useRef(null);
@@ -566,6 +585,7 @@ function App(){
   const syncFromCloud=function(s, opts){
     if(!s || !s.user) return;
     const u=s.user.id;
+    goalSyncActivate(mcStateKey(),u);
     const freshLogin=!!(opts&&opts.freshLogin);   // acaba de INICIAR SESIÓN (no un reconecta del mismo user)
     // INC-0410 mensual: el asiento solo vale si ESTE pull leyó un estado válido (o aún no hay ninguno).
     const mensualPuerta=reservaMensualPuerta();
@@ -586,13 +606,19 @@ function App(){
           if(!sessionRef.current||!sessionRef.current.user||sessionRef.current.user.id!==u)return prev;
           const merged=mergeExpenses(prev.expenses, cloudState.expenses||[]);
           const localNewer=!freshLogin && (prev._savedAt||0) > (cloudState._savedAt||0);
-          const baseObj = localNewer ? Object.assign({},prev,{expenses:merged.list})
+          let baseObj = localNewer ? Object.assign({},prev,{expenses:merged.list})
                                      : Object.assign({},prev,cloudState,{expenses:merged.list});
           // Igual las lápidas y los recibos borrados (13/10/2026): un borrado que vio un móvil no
           // lo deshace el estado más antiguo del otro. Ver `lapidasUnion` y `recibosBorradosUnion`.
           // Solo con lo local del MISMO titular: la lápida de otra cuenta que hubo en este móvil
           // escondería un gasto de esta que coincidiera en día, importe y comercio.
           const sameOwner=!(opts&&opts.dropTx)&&(!freshLogin||prev._historyOwner===u)&&(!prev._historyOwner||prev._historyOwner===u);
+          const goalState=goalSyncPull(prev,cloudState,u,cloudPack.updated_at,!sameOwner,localNewer);
+          if(goalState._goalSync.cloudOnly) baseObj=Object.assign({},prev,cloudState,{expenses:merged.list,bankTx:prev.bankTx});
+          Object.assign(baseObj,goalState);
+          const reserveSource=goalState._goalSync.keepLocalReserves?prev:cloudState;
+          baseObj.settings=Object.assign({},baseObj.settings,{reservaRules:goalSyncCopy((reserveSource.settings||{}).reservaRules||[])});
+          baseObj.reservaLog=goalSyncCopy(reserveSource.reservaLog||[]);
           // Una separación pertenece a su titular; la cuenta anterior de este móvil no decide aquí.
           const gem=sameOwner?fusionarGemelos(prev.gemelos,cloudState.gemelos):(cloudState.gemelos||[]);
           if(gem!==baseObj.gemelos) baseObj.gemelos=gem;
@@ -625,12 +651,8 @@ function App(){
       } else if(cloudState){
         // llegó algo pero con forma inválida (corrupto/parcial) → NO machacar lo local; resube lo bueno
         showToast("⚠ Nube con formato inesperado: se conservan tus datos locales");
-        return cloud.pushState(u, slimForCloud(stateRef.current), cloudUpdatedAtRef.current).then(function(r){
-          if(r && r.updated_at) cloudUpdatedAtRef.current=r.updated_at;
-        });
-      } else { return cloud.pushState(u, slimForCloud(stateRef.current), cloudUpdatedAtRef.current).then(function(r){
-          if(r && r.updated_at) cloudUpdatedAtRef.current=r.updated_at;
-        }); }   // primera vez: sube lo que ya tienes
+        return pushAppState(u,stateRef.current);
+      } else { return pushAppState(u,stateRef.current); }   // primera vez: sube lo que ya tienes
     }).then(function(){ return syncCloudExpenses(); });
     pullOkRef.current=pull.then(function(){ return true; }, function(){ return false; });
     reservaMensualAlDia(pullOkRef.current.then(mensualPuerta.vale));
@@ -1059,7 +1081,10 @@ function App(){
       setSession(sessionRef.current=s);
       // Cerrar sesión rompe la asociación implícita del extracto local con el titular. El
       // próximo login no debe heredar sus apuntes, aunque no exista cartera en la nube.
-      if(!s&&ev==="SIGNED_OUT") set(p=>Object.assign({},p,{bankTx:[]}));
+      if(!s&&ev==="SIGNED_OUT"){
+        if(prev&&prev.user)goalSyncClear(mcStateKey(),prev.user.id);
+        set(p=>Object.assign({},p,{bankTx:[],_goalSync:null}));
+      }
       // Vuelta del email de recuperación: abre el panel para poner contraseña nueva.
       if(ev==="PASSWORD_RECOVERY"){ setRecovery(true); setShowAuth(true); }
       // login ya acredita otro titular si había sesión; dropTx no debe releer esos IDs.
@@ -1073,16 +1098,21 @@ function App(){
   // OJO con el nombre del timer: se llamaba `t` y TAPABA la función global de i18n `t()` — dentro
   // del callback `t("st_sync_conflict")` petaba («t is not a function»), el `.catch` se lo tragaba y
   // el conflicto de dos móviles NUNCA se resolvía (ni aviso ni re-sync). Bug encontrado 2026-07-24.
+  const cloudEffectState=useRef(null);
+  const cloudUploadState=useRef(state);
+  // Un ACK privado no debe limpiar el debounce de una edición posterior que sigue pendiente.
+  if(!goalSyncMetadataOnly(cloudEffectState.current,state)) cloudUploadState.current=state;
+  cloudEffectState.current=state;
+  const uploadState=cloudUploadState.current;
   useEffect(function(){
     if(!uid) return;
     const tmr=setTimeout(function(){
-      cloud.pushState(uid, slimForCloud(state), cloudUpdatedAtRef.current).then(function(r){
+      pushAppState(uid,uploadState).then(function(r){
         if(r && r.conflict){ showToast(t("st_sync_conflict")); syncFromCloud(sessionRef.current); return; }
-        if(r && r.updated_at) cloudUpdatedAtRef.current=r.updated_at;
       }).catch(function(){});
     }, 1200);
     return function(){ clearTimeout(tmr); };
-  },[state,uid]);
+  },[uploadState,uid]);
 
   // Al volver, los gastos pueden haber cambiado en la nube aunque el pull anterior sea reciente.
   // Bancos OB siguen sin consulta automática; su cupo PSD2 no depende de esta lectura.
@@ -1480,9 +1510,8 @@ function App(){
     return function(){ window.removeEventListener("online",on); window.removeEventListener("offline",off); };
   },[]);
   useEffect(function(){
-    if(online && !wasOnline.current && uid){ cloud.pushState(uid, slimForCloud(stateRef.current), cloudUpdatedAtRef.current).then(function(r){
+    if(online && !wasOnline.current && uid){ pushAppState(uid,stateRef.current).then(function(r){
       if(r && r.conflict){ showToast(t("st_sync_conflict")); syncFromCloud(sessionRef.current); return; }
-      if(r && r.updated_at) cloudUpdatedAtRef.current=r.updated_at;
     }).catch(function(){}); }   // reconectó → sube lo de offline
     wasOnline.current=online;
   },[online,uid]);

@@ -1,5 +1,9 @@
 # Arquitectura — Aely
 
+## INC-0410 · candidata de sincronización de Metas
+
+`_goalSync` retiene por titular la base de metas, reglas y asientos confirmados, junto con conflictos solo locales. Sin divergencia de reglas/log se fusionan metas por campo contra esa base; mismo campo incompatible conserva nube y borrador local, sin sumar saldos absolutos. Si cualquier rama cambia reglas o log respecto de la base, se conserva la instantánea completa de nube y se registra el estado local entero; no se fusionan reglas/asientos. El push frecuente y el backup diario excluyen esa metadata. El ACK usa la foto enviada y no cancela el debounce de una edición posterior. La telemetría se limita a un código cerrado y esta fase no añade UI ni servidor. [Contrato y límites](briefs/inc-0410-lww-rechazo-20261017.md).
+
 ## Candidata: compras iguales con referencias distintas
 
 El importador y las mezclas conservan referencias distintas mediante las ranuras ordinales

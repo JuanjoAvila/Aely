@@ -1,3 +1,7 @@
+## INC-0410 · candidata de fusión y rechazo de reservas
+
+`node --test tests/goals-three-way.test.mjs` está registrado en `run-tests`. Ejecuta transporte, merge, ACK y debounce de la fuente con backend sintético. Conserva ediciones disjuntas, registra conflictos sin sumar saldos, rechaza la fusión si reglas/log divergen, comprueba el estado local completo privado y que el ACK no cancele un envío pendiente. `INC0410_MUTANT=quitar-proteccion-reservas` debe romper rA/rB y la divergencia individual de reglas/log. No acredita UI, BD real, CI, límites de bundle ni entrega. [Contrato](briefs/inc-0410-lww-rechazo-20261017.md).
+
 Compras con referencias distintas: `tests/compras-identicas-ids.test.mjs` registrado en Node y
 `e2e/compras-identicas-ids.spec.mjs` en Gastos. Handlers reales con fixtures sintéticas,
 rojo causal, tres estados al céntimo y siete mutaciones. El oráculo antiguo de Recibos sigue
