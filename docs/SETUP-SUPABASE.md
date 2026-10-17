@@ -478,3 +478,10 @@ Revisión de reservas PR223 (13/10), sin desplegar: el logger combina motivos de
 diagnóstico de autenticación de la dependencia2d53 sin duplicar logObDemandResult. El presupuesto
 propio se etiqueta page_limit. No se cambia el cursor/acuse119 ni el catch/consulta de sesión.
 La fuente es candidata sobre esa dependencia, no una función desplegada de beta124.
+
+
+## OPS-08 — candidata CAS sobre PR241, sin desplegar
+
+Las fuentes de keepalive y sync incorporan `_shared/myinvestor-refresh-save.ts`; desplegar ambas con su helper requiere revisión y operación exclusiva de Claude. No añade SQL/migración/secretos. Exige `connection_version` ya introducida en la migración0026: comprobar su disponibilidad dentro del circuito de despliegue existente. Si falta, keepalive omite el enlace sin consumir refresh. El recifrado legacy de sync compara el snapshot antes de escribir y vuelve a leerlo; `token_store.ts` permanece igual a main.
+
+No basta con un UPDATE sin error: debe devolver filas o confirmarse su propio patch tras un acuse perdido. El readback se acota; una lectura fallida queda indeterminada y no anuncia renovación ni posiciones al día. Se mantienen timeout, clasificación HTTP y limitación de telemetría de PR241. CAS no serializa dos consumos externos; OPS-09 queda fuera. [Pruebas y límites](briefs/ops08-refresh-cas.md).

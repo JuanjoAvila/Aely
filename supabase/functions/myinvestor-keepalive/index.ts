@@ -14,6 +14,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { CORS, jsonResp, MI_BASE, miHeaders, miRefreshOutcome } from "../_shared/myinvestor.ts";
 import { miTokensFromRow, miTokensToRow } from "../_shared/token_store.ts";
 import { timingSafeEqual } from "../_shared/entrada.ts";
+import { miSaveRefresh } from "../_shared/myinvestor-refresh-save.ts";
 
 type KeepaliveCode = "ok" | "rejected" | "http_403" | "http_other" | "no_access_token"
   | "network" | "decrypt" | "encrypt" | "no_creds" | "save_error" | "raced";
@@ -36,6 +37,7 @@ Deno.serve(async (req) => {
       try {
         const tokens = await miTokensFromRow(link);
         if (!tokens.refresh || !tokens.deviceId) { code = "no_creds"; skipped++; continue; }
+        if (!link.connection_version) { code = "save_error"; skipped++; continue; }
         code = "network";
         // Acotar también el cuerpo: recibir cabeceras no impide que el banco se cuelgue.
         // Cancelar libera la petición; limpiar el reloj evita abortos tardíos tras el éxito.
@@ -72,18 +74,9 @@ Deno.serve(async (req) => {
             status: "active", updated_at: new Date().toISOString(),
           };
           code = "save_error";
-          // El banco puede haber invalidado ya el refresco anterior. Reintentar UNA vez
-          // el mismo guardado, nunca el refresco; ambos intentos comparan el token original.
-          for (let attempt = 0; attempt < 2; attempt++) {
-            try {
-              const { data: saved, error } = await admin.from("myinvestor_links").update(patch)
-                .eq("user_id", link.user_id).eq("refresh_token", link.refresh_token).select("user_id");
-              if (error) continue;
-              if (!saved?.length) { guarded = true; code = "raced"; }
-              else { code = "ok"; eventOutcome = "ok"; }
-              break;
-            } catch { /* mismo reintento acotado si el transporte del UPDATE lanza */ }
-          }
+          const saved = await miSaveRefresh(admin, link, patch, !d.refreshToken || d.refreshToken === tokens.refresh);
+          if (saved === "saved") { code = "ok"; eventOutcome = "ok"; }
+          else if (saved === "raced") { guarded = true; code = "raced"; }
           if (eventOutcome === "ok") refreshed++;
           else skipped++;
         } else if (outcome === "rejected") {
@@ -95,7 +88,8 @@ Deno.serve(async (req) => {
           // guardados y pedía la contraseña por una carrera (revisión del 13/10).
           code = "save_error";
           const { data: saved, error } = await admin.from("myinvestor_links").update({ status: "expired", updated_at: new Date().toISOString() })
-            .eq("user_id", link.user_id).eq("refresh_token", link.refresh_token).select("user_id");
+            .eq("user_id", link.user_id).eq("connection_version", link.connection_version)
+            .eq("refresh_token", link.refresh_token).select("user_id");
           if (error) { skipped++; }
           else if (!saved?.length) { guarded = true; code = "raced"; skipped++; }
           else { code = "rejected"; eventOutcome = "rejected"; expired++; }

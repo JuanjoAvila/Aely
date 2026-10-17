@@ -1189,3 +1189,8 @@ Tres mutaciones nuevas detectadas: volver al límite anterior, comparar solo el 
 y eliminar el desempate por identificador. Las nueve anteriores conservan su evidencia
 sobre5c670ecc y no se suman como nuevas ni se declaran repetidas en esta revisión.
 Son dobles locales, sin bancos ni SQL vivos; no acreditan CI general, integración ni despliegue.
+
+
+## OPS-08 — guardas de rotación MyInvestor
+
+`myinvestor-token-race.test.ts` está registrado en el runner junto a `myinvestor-counter.test.ts`. Ambos leen únicamente fuentes bajo `supabase/functions`, sin permisos de red ni entorno: `deno test --node-modules-dir=none --allow-read=supabase/functions supabase/functions/_shared/myinvestor-token-race.test.ts supabase/functions/_shared/myinvestor-counter.test.ts`. El primero ejecuta handlers/helper reales, simulando Supabase, cifrado y proveedor; cubre ambos intercalados, reconexión, rechazo, refresh ausente en respuesta, acuse perdido, error de lectura, cero filas y recifrado legacy. Los Node de keepalive/sync cargan el helper real, sin sustituir su decisión. Mutaciones focales y límites en el [brief](briefs/ops08-refresh-cas.md).

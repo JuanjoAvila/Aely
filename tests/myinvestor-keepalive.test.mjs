@@ -12,11 +12,12 @@ const ts = (s) => transformSync(s, { loader: "ts" }).code;
 const sourceArg = process.argv.indexOf("--source-file");
 const handlerSource = sourceArg < 0 ? read("supabase/functions/myinvestor-keepalive/index.ts") : fs.readFileSync(process.argv[sourceArg + 1], "utf8");
 const src = '"use strict";\n' + ts(read("supabase/functions/_shared/myinvestor.ts")).replace(/^export /gm, "")
+  + "\n" + ts(read("supabase/functions/_shared/myinvestor-refresh-save.ts")).replace(/^export /gm, "")
   + "\n" + ts(handlerSource.replace(/^import .*?;\r?\n/gm, ""));
 
 const json = (status, body) => new Response(body === undefined ? "" : JSON.stringify(body), { status });
 const nuevos = (extra) => json(201, { payload: { data: Object.assign({ accessToken: "acceso-nuevo", refreshToken: "refresco-nuevo", refreshExpiresIn: 3600 }, extra) } });
-const enlace = (id, extra) => Object.assign({ user_id: id, status: "active", access_token: "acceso-" + id, refresh_token: "refresco-" + id, device_id: "dev-" + id, refresh_expires_at: null }, extra);
+const enlace = (id, extra) => Object.assign({ user_id: id, connection_version: "conexion-" + id, status: "active", access_token: "acceso-" + id, refresh_token: "refresco-" + id, device_id: "dev-" + id, refresh_expires_at: null }, extra);
 
 // `refresco(token, fila)` responde al refresco hecho con ese token. Recibe la fila VIVA para
 // poder simular lo que otra función escribe mientras la petición está en vuelo. La BD filtra
@@ -42,7 +43,7 @@ async function tick(rows, refresco, key = "clave", options = {}) {
         like: (c, v) => { q.pattern = [c, v.slice(1, -1)]; return q; },
         order: (column, { ascending }) => { (q.orders ||= []).push([column, ascending]); return q; },
         limit: n => { q.count = n; return q; },
-        maybeSingle: async () => ({ data: tabla === "cron_secrets" ? { secret: "clave" } : null }),
+        maybeSingle: async () => ({ data: tabla === "cron_secrets" ? { secret: "clave" } : rows.filter(r => casa(r, filtros)).map(r => ({ ...r }))[0] || null }),
         // Copias: lo que el handler leyó no cambia aunque la fila cambie después.
         then: (ok, ko) => {
           if (tabla === "app_events") {
@@ -346,7 +347,7 @@ await t("R3: primer guardado falla, el único reintento conserva token original 
   assert.equal(r.calls.length, 1, "no se vuelve a refrescar en el banco");
   assert.equal(r.attempts.length, 2);
   assert.deepEqual(r.attempts[0], r.attempts[1]);
-  assert.deepEqual(r.attempts[1].filters, [["user_id", "a"], ["refresh_token", "refresco-a"]]);
+  assert.deepEqual(r.attempts[1].filters, [["user_id", "a"], ["connection_version", "conexion-a"], ["refresh_token", "refresco-a"]]);
 });
 
 for (const bodyHang of [false, true]) await t("R5: timeout de " + (bodyHang ? "cuerpo" : "cabeceras") + " deja continuar al siguiente enlace", async () => {
@@ -465,15 +466,15 @@ for (const missing of ["refreshExpiresIn", "refreshToken", "ambos"]) await t("Re
   assert.equal((await tick(rows, () => nuevos(), "clave", { history })).events.length, 1, "también registra la recuperación de campos");
 });
 
-await t("Rev2: guardado aplicado con respuesta perdida sigue siendo raced ambiguo", async () => {
+await t("OPS08: el readback confirma el guardado propio tras perder el acuse", async () => {
   const rows = [enlace("a")];
   const r = await tick(rows, () => nuevos(), "clave", { appliedError: true });
   assert.equal(rows[0].refresh_token, "refresco-nuevo", "el primer intento se aplicó");
-  assert.equal(r.attempts.length, 2);
-  assert.deepEqual(r.writes.map(w => w._filas), [1, 0]);
-  assert.deepEqual(r.data, { ok: true, refreshed: 0, expired: 0, skipped: 1 });
-  assert.equal(JSON.parse(r.events[0].detail).code, "raced");
-  assert.equal(JSON.parse(r.events[0].detail).guarded, true);
+  assert.equal(r.attempts.length, 1);
+  assert.deepEqual(r.writes.map(w => w._filas), [1]);
+  assert.deepEqual(r.data, { ok: true, refreshed: 1, expired: 0, skipped: 0 });
+  assert.equal(JSON.parse(r.events[0].detail).code, "ok");
+  assert.equal(JSON.parse(r.events[0].detail).guarded, false);
 });
 
 if (failures) { console.error("\n" + failures + " fallo(s)"); process.exit(1); }

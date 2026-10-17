@@ -14,7 +14,8 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { jsonResp, MI_BASE, miHeaders, miPositionsFrom, miReadWithRefresh, miRefreshOutcome, type MiRefreshOutcome } from "../_shared/myinvestor.ts";
-import { miTokensFromRow, miTokensToRow, ensureMiLinkEncrypted } from "../_shared/token_store.ts";
+import { miTokensFromRow, miTokensToRow, isEncrypted } from "../_shared/token_store.ts";
+import { miSaveRefresh } from "../_shared/myinvestor-refresh-save.ts";
 import { withCors } from "../_shared/cors.ts";
 import { rateLimit } from "../_shared/ratelimit.ts";
 
@@ -28,8 +29,20 @@ Deno.serve(withCors(async (req: Request) => {
     if (!user) return jsonResp({ ok: false, error: "sin sesión" }, 401);
 
     const admin = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-    const { data: link } = await admin.from("myinvestor_links").select("*").eq("user_id", user.id).maybeSingle();
-    if (link) await ensureMiLinkEncrypted(admin, user.id, link);
+    let { data: link } = await admin.from("myinvestor_links").select("*").eq("user_id", user.id).maybeSingle();
+    // El recifrado legacy también escribe tokens. Guardarlo con el mismo CAS y
+    // releer evita comparar el plaintext anterior con el ciphertext recién creado.
+    if (link?.connection_version && link.access_token && Deno.env.get("TOKEN_ENCRYPTION_KEY")
+      && (!isEncrypted(link.access_token) || (link.refresh_token && !isEncrypted(link.refresh_token)))) {
+      const plain = await miTokensFromRow(link);
+      const enc = await miTokensToRow(plain.access!, plain.refresh);
+      const saved = await miSaveRefresh(admin, link, enc, true);
+      if (saved !== "saved") return jsonResp({ ok: false, softFail: true, code: saved === "raced" ? "refresh_raced" : "refresh_not_saved", error: "MyInvestor no responde bien ahora. Prueba más tarde — tu sesión sigue guardada." });
+      const { data: now, error } = await admin.from("myinvestor_links").select("*").eq("user_id", user.id).maybeSingle();
+      if (error || !now) return jsonResp({ ok: false, softFail: true, code: "refresh_not_saved", error: "MyInvestor no responde bien ahora. Prueba más tarde — tu sesión sigue guardada." });
+      if (now.connection_version !== link.connection_version) return jsonResp({ ok: false, softFail: true, code: "refresh_raced", error: "MyInvestor no responde bien ahora. Prueba más tarde — tu sesión sigue guardada." });
+      link = now;
+    }
     const tokens = link ? await miTokensFromRow(link) : null;
     if (!link || !tokens?.access || !tokens.deviceId) return jsonResp({ ok: false, error: "no conectado" });
 
@@ -76,20 +89,16 @@ Deno.serve(withCors(async (req: Request) => {
            está gastado; responder `ok` dejaba el enlace muerto para la sincronización
            siguiente sin que nadie lo supiera. Se reintenta una vez y, si tampoco entra, la
            lectura no se da por buena: el usuario ve «prueba más tarde», no datos al día. */
-        let saved = false;
-        for (let i = 0; i < 2 && !saved; i++) {
-          try {
-            const { data, error } = await admin.from("myinvestor_links").update({
-              access_token: enc.access_token,
-              refresh_token: enc.refresh_token,
-              refresh_expires_at: refreshSecs > 0 ? new Date(Date.now() + refreshSecs * 1000).toISOString() : link.refresh_expires_at,
-              status: "active", updated_at: new Date().toISOString(),
-            }).eq("user_id", user.id).eq("connection_version", connectionVersion).select("user_id").maybeSingle();
-            if (!error && !data) return { outcome: "temporary", status: r.status, code: "refresh_raced" };
-            saved = !error && !!data;
-          } catch (_) { /* corte de red: como un error devuelto */ }
-        }
-        if (!saved) return { outcome: "temporary", status: r.status, code: "refresh_not_saved" };
+        const saved = await miSaveRefresh(admin, link, {
+          access_token: enc.access_token,
+          refresh_token: enc.refresh_token,
+          refresh_expires_at: refreshSecs > 0 ? new Date(Date.now() + refreshSecs * 1000).toISOString() : link.refresh_expires_at,
+          status: "active", updated_at: new Date().toISOString(),
+        }, !d.refreshToken || d.refreshToken === tokens.refresh);
+        if (saved !== "saved") return { outcome: "temporary", status: r.status, code: saved === "raced" ? "refresh_raced" : "refresh_not_saved" };
+        // La caducidad de un acceso todavía rechazado debe comparar nuestra rotación,
+        // no el refresco ya consumido con el que empezó esta petición.
+        link = { ...link, ...enc };
       }
       return { outcome, status: r.status };
     };
@@ -119,8 +128,11 @@ Deno.serve(withCors(async (req: Request) => {
       }
     }
     if (read.kind === "expired" || stuck) {
-      const { data, error } = await admin.from("myinvestor_links").update({ status: "expired", updated_at: new Date().toISOString() })
-        .eq("user_id", user.id).eq("connection_version", connectionVersion).eq("access_counter_version", counterVersion).select("user_id").maybeSingle();
+      const expiry = admin.from("myinvestor_links").update({ status: "expired", updated_at: new Date().toISOString() })
+        .eq("user_id", user.id).eq("connection_version", connectionVersion).eq("access_counter_version", counterVersion);
+      if (link.refresh_token == null) expiry.is("refresh_token", null);
+      else expiry.eq("refresh_token", link.refresh_token);
+      const { data, error } = await expiry.select("user_id").maybeSingle();
       if (error || !data) return jsonResp({ ok: false, softFail: true, code: error ? "expiry_not_saved" : "refresh_raced", error: "MyInvestor no responde bien ahora. Prueba más tarde — tu sesión sigue guardada." });
       return jsonResp({ ok: false, authExpired: true, error: "Tu sesión de MyInvestor caducó. Vuelve a conectar." });
     }
