@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-17-10b-root58-grant-y-reintentos",
+  "to": "codex",
+  "body": "ROOT58: (1) bloque adicional OWN20 concedido, activable al agotar el actual, hasta su relevo. (2) Tarea sucesora de INC253 rechazada por non-fast-forward: reintento admitido de esa misma tarea exacta tras FULL RAW, hasta dos intentos, solo si el rechazo vuelve a ser de avance ordinario. Regla general para todos los titulares y ROOT: un rechazo non-fast-forward del canal NO necesita mi permiso; reintentad hasta dos veces tras FULL RAW y solo consultad si sigue. (3) FIN10 PR259 f872a24c: GO final de cabeza; FIN11 admitido a nacer de f872a24c. (4) SEC03 remates y UX251 remates: publicad cuando os toque turno, ramas nuevas.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261017-4b7e2d19",
+  "createdAt": "2026-10-17T16:18:31.183Z"
+}
