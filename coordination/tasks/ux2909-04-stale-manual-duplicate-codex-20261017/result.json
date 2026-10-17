@@ -1,0 +1,118 @@
+{
+  "status": "blocked",
+  "summary": "GO causal5267ceb4 A implementado en PR251 draft contra main; revision de ingresos BOOK/manual con unicidad bidireccional, ambiguos possibleDup sin vinculo y sin borrado automatico. Candidata bloqueada para integracion: minificado excede1793bytes el tope intacto. B aparcado UX15/PR244. No ProductREADY.",
+  "productSHA": "da1b370eb9ccb09f0a943adb5c2561b784af794f",
+  "baseSHA": "a9916c3cdb21c93f9d3a47653c0608e630ce50ab",
+  "pullRequest": 251,
+  "tests": [
+    {
+      "command": "node work/reproduce-own.mjs --red (base exacta, antes de producto)",
+      "exitCode": 1,
+      "expected": "Causal RED: ingreso sintetico doble con nombre bancario; control generico cuenta una vez"
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/manual-income-review.test.mjs",
+      "exitCode": 0,
+      "cases": "15UTC+15Europe/Madrid"
+    },
+    {
+      "command": "node tests/manual-income-review.test.mjs --mutation=off|ambiguous|book|window|bank|cents|counted|automatic (ocho comandos individuales)",
+      "exitCode": 1,
+      "expected": "8/8 mutantes muertos por aserciones; detalles exactos en evidenciaOWN"
+    },
+    {
+      "command": "node tests/ob-ingresos.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/tr-open-banking.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/month-budget-stats.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/security.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "Playwright bundled CLI test --config=work/playwright-own.config.cjs --grep UX2909-manual --workers=1 --retries=0 --max-failures=1 (comando privado completo conservado)",
+      "exitCode": 0,
+      "cases": "3PASS mismo/distintos/ambiguo,Europe/Madrid,puerto48544"
+    },
+    {
+      "command": "node tests/presupuesto-rendimiento.test.mjs",
+      "exitCode": 1,
+      "observed": {
+        "minified": 1330945,
+        "minifiedCap": 1329152,
+        "gzip": 369438,
+        "gzipCap": 369664,
+        "blocking": 3,
+        "blockingCap": 3
+      }
+    },
+    {
+      "command": "git diff --check; git diff --exit-code; git diff HEAD~1 HEAD --exit-code -- reserved paths (comandos separados)",
+      "exitCode": 0
+    }
+  ],
+  "mutants": {
+    "off": 1,
+    "ambiguous": 1,
+    "book": 1,
+    "window": 1,
+    "bank": 1,
+    "cents": 1,
+    "counted": 1,
+    "automatic": 1
+  },
+  "compiledHTMLSHA256": "9ac81c57d7d0f5dacb92d5bfe950a9a7cb4583d20e4f11179cd22fe612955283",
+  "sizeAB": {
+    "baseMinified": 1328813,
+    "candidateMinified": 1330945,
+    "deltaMinified": 2132,
+    "baseGzip": 369003,
+    "candidateGzip": 369438,
+    "deltaGzip": 435,
+    "overMinifiedCap": 1793
+  },
+  "ci": {
+    "runId": "39022341126",
+    "head": "da1b370eb9ccb09f0a943adb5c2561b784af794f",
+    "test": "IN_PROGRESS al readback de PR",
+    "optionalFocalJobs": "SKIPPED, no atribuir evidencia"
+  },
+  "limitations": [
+    "Bloqueo real de tamano minificado; no topes/oraculos debilitados ni VERSION/catalogo nuevos",
+    "CI exacta no terminal; suite general no ejecutada localmente",
+    "Timeout inicial del guion aprobado: resumen sync interceptaba navegacion; 1fallo+2noejecutados preservados. Guion corregido da3PASS sin retries",
+    "Investigacion anterior con reloj fijo produjo timeout de splash sin validar DOM; error de loader y dependencia esbuild ausente en bundle preservados, resueltos usando runtime ya instalado de solo lectura, sin npmci/install ni enlaces",
+    "Negativo familiar original no reproducido ni causa atribuida; solo datos sinteticos",
+    "Sin CPU6,Gradle,SQL vivo,bancos reales,deploy,main/beta push ni movil",
+    "No09/hojaDeudasMetas; B antiguedad/textos aparcado; no cambios de servidor/SDK/source transport",
+    "Artefactos generados archivados localmente y restaurados; PR contiene fuente,tests,registro del runner y brief, CI debe ensamblar",
+    "No backfill retrospectivo de duplicados historicos; solo nuevas importaciones elegibles",
+    "OWN10 cerrado10/10; OWN12-1 continuado sin reset/herencia; primer aviso colisionado97ef4455 preservado, unico reintento25cc15e9 confirmado"
+  ],
+  "handoff": "Claude revisa PR251 y decide integracion/tamano. Este result libera SOLO el claimOWN del mismo titular; ROOT sigue por canal, sin proxy.",
+  "schema": 1,
+  "taskId": "ux2909-04-stale-manual-duplicate-codex-20261017",
+  "actor": "codex",
+  "sessionId": "codex-local-20261017-0b83a68d560701ed",
+  "createdAt": "2026-10-17T11:24:26.601Z",
+  "released": true
+}
