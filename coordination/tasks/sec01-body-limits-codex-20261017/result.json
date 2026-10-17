@@ -1,0 +1,383 @@
+{
+  "status": "done",
+  "summary": "Candidata SEC01 entregada en PR256draft contra main bajo GOd0c61347. Once guardas de entrada y lectura streaming por bytes/cancelacion,400/413 antes de efectos,delete-account JWT explicito. Fuente aprobada PR24953688288 mas merge NORMAL del finalPR2523544dd35; CAS/contadores intactos. Entrega del worker, pendiente revision/integracionClaude y gates generales; no ProductREADY.",
+  "productSHA": "0cd215b0cf6ab30a38bf2324e5b99618a9d34c28",
+  "PR": 256,
+  "branch": "codex/sec01-input-guards-pr249-20261017",
+  "originalBaseSHA": "a9916c3cdb21c93f9d3a47653c0608e630ce50ab",
+  "bankSourceSHA": "536882888eacc70921e462ab98e27620f613a29b",
+  "bankPhaseSHA": "7b7b0f9d3f9242a71fa6c539a3b1dee8c8453072",
+  "approvedMyInvestorSHA": "3544dd35ffcf4b6cc81342eace87770ff2e83a3b",
+  "approvedDependencyResult": "ba68ab652ad7ce1f3da7a46b5e73ba6541299a3e",
+  "mergeSHA": "59d1b59255f4564c4c3b24d434285beb2d8ce83b",
+  "mergeParents": [
+    "7b7b0f9d3f9242a71fa6c539a3b1dee8c8453072",
+    "3544dd35ffcf4b6cc81342eace87770ff2e83a3b"
+  ],
+  "mergeConflict": "Solo argumentos/permisos Deno del runner; se preservaron ambas entradas SEC01 y opciones OPS08. Siete handlers bancarios,config y lector de bytes quedaron iguales.",
+  "causalGO": "d0c6134774cacfaa8c0dfc1fb5503d06ea821111",
+  "claimCommit": "a3f43feeac65971a1c37383ebd28b7da780a66f3",
+  "ACKCommit": "11ebcf232dd4d476452737a72a15c30a187bb983",
+  "tests": [
+    {
+      "command": "deno test --no-config --no-lock --allow-read=supabase/functions,supabase/config.toml supabase/functions/_shared/input_handlers.test.ts",
+      "phase": "ROJO PR24953688288 antes del fix, arnes nuevo",
+      "exitCode": 1,
+      "passed": 15,
+      "failed": 37
+    },
+    {
+      "command": "deno test --no-config --no-lock --allow-read=supabase/functions,supabase/config.toml supabase/functions/_shared/input_handlers.test.ts",
+      "phase": "fase bancaria final, no repetida tras merge porque siete handlers y lector permanecen iguales",
+      "exitCode": 0,
+      "passed": 52
+    },
+    {
+      "command": "deno test --no-config --no-lock supabase/functions/_shared/request_body.test.ts",
+      "phase": "lector puro, frontera exacta,UTF8,cancelacion que no termina,forma",
+      "exitCode": 0,
+      "passed": 4
+    },
+    {
+      "command": "deno test --cached-only --no-config --no-lock supabase/functions/bank-disconnect/lifecycle.test.ts",
+      "exitCode": 0,
+      "passed": 16,
+      "qualification": "SDK y handlers reales con transportes sinteticos; RPC de cuota no disponible en ese fixture, fail-open, no contadores vivos"
+    },
+    {
+      "command": "deno test --cached-only --no-run --no-config --no-lock supabase/functions/bank-aspsps/index.ts supabase/functions/bank-connect/index.ts supabase/functions/bank-disconnect/index.ts supabase/functions/bank-sync/index.ts supabase/functions/bank-callback/index.ts supabase/functions/categorize/index.ts supabase/functions/delete-account/index.ts",
+      "exitCode": 0,
+      "phase": "tipos, no ejecucion"
+    },
+    {
+      "command": "deno test --no-config --no-lock --allow-read=supabase/functions,src/modules/00-core.js supabase/functions/_shared/myinvestor_inputs.test.ts",
+      "phase": "ROJO fuente merge59d1b592 antes del fix MyInvestor,30casos del arnes entonces",
+      "exitCode": 1,
+      "passed": 10,
+      "failed": 20
+    },
+    {
+      "command": "deno test --cached-only --no-config --no-lock --node-modules-dir=none --allow-read=supabase/functions,src/modules/00-core.js supabase/functions/_shared/myinvestor_inputs.test.ts",
+      "phase": "contrato nuevo final, emisor real y tercera caducidad manual",
+      "exitCode": 0,
+      "passed": 32
+    },
+    {
+      "command": "deno test --cached-only --no-config --no-lock --node-modules-dir=none --allow-read=supabase/functions,src/modules/00-core.js supabase/functions/_shared/myinvestor_inputs.test.ts supabase/functions/_shared/myinvestor-counter.test.ts supabase/functions/_shared/myinvestor-token-race.test.ts",
+      "exitCode": 1,
+      "passed": 79,
+      "failed": 1,
+      "qualification": "Unico fallo: legacy userInitiated texto true fue rechazado. Validador corregido sin cambiar el oraculo; no se atribuye una posterior ejecucion conjunta80verde"
+    },
+    {
+      "command": "deno test --cached-only --no-config --no-lock --node-modules-dir=none --allow-read=supabase/functions,src/modules/00-core.js supabase/functions/_shared/myinvestor-counter.test.ts --filter apertura-automatica",
+      "exactFilter": "apertura automática",
+      "exitCode": 0,
+      "passed": 1,
+      "filtered": 21,
+      "qualification": "Correccion focal del mismo fallo legacy; texto true permanece automatico y no suma"
+    },
+    {
+      "command": "deno test --cached-only --no-run --no-config --no-lock supabase/functions/myinvestor-connect/index.ts supabase/functions/myinvestor-sync/index.ts supabase/functions/myinvestor-disconnect/index.ts supabase/functions/myinvestor-keepalive/index.ts",
+      "exitCode": 0,
+      "phase": "tipos, no ejecucion"
+    },
+    {
+      "command": "node --import ../native-ts-loader.mjs tests/bank-rate-contracts.test.mjs",
+      "exitCode": 0,
+      "groups": 9,
+      "qualification": "Adaptador TypeScript nativo privado, no runner estandar esbuild. Incluye12mutantes previos de cuota, no se suman a23propiosSEC01"
+    },
+    {
+      "command": "node --import ../native-ts-loader.mjs tests/bank-sync-paging.test.mjs",
+      "exitCode": 0,
+      "qualification": "Fuente real con adapter TS nativo privado; errores iniciales de harness y correccion del orden auth conservados; no ejecutado durante entrega"
+    },
+    {
+      "command": "node --import ../native-ts-loader.mjs tests/bank-sync-progreso.test.mjs",
+      "exitCode": 0,
+      "qualification": "Fuente real con adapter TS nativo privado; errores iniciales de harness y correccion del orden auth conservados; no ejecutado durante entrega"
+    },
+    {
+      "command": "node --import ../native-ts-loader.mjs tests/bank-reconnect.test.mjs",
+      "exitCode": 0,
+      "qualification": "Fuente real con adapter TS nativo privado; errores iniciales de harness y correccion del orden auth conservados; no ejecutado durante entrega"
+    },
+    {
+      "command": "node --import ../native-ts-loader.mjs tests/bank-revoke-callback-race.test.mjs",
+      "exitCode": 0,
+      "qualification": "Fuente real con adapter TS nativo privado; errores iniciales de harness y correccion del orden auth conservados; no ejecutado durante entrega"
+    },
+    {
+      "command": "node --import ../native-ts-loader.mjs tests/categorize-handler.test.mjs",
+      "exitCode": 0,
+      "qualification": "Fuente real con adapter TS nativo privado; errores iniciales de harness y correccion del orden auth conservados; no ejecutado durante entrega"
+    },
+    {
+      "command": "node --import ../native-ts-loader.mjs tests/entrada-edge.test.mjs",
+      "exitCode": 0,
+      "qualification": "Fuente real con adapter TS nativo privado; errores iniciales de harness y correccion del orden auth conservados; no ejecutado durante entrega"
+    },
+    {
+      "command": "node --import ../native-ts-loader.mjs tests/security.test.mjs",
+      "exitCode": 0,
+      "qualification": "Fuente real con adapter TS nativo privado; errores iniciales de harness y correccion del orden auth conservados; no ejecutado durante entrega"
+    },
+    {
+      "command": "node --import ../native-ts-loader.mjs tests/relevant-tests.test.mjs",
+      "exitCode": 0,
+      "qualification": "Fuente real con adapter TS nativo privado; errores iniciales de harness y correccion del orden auth conservados; no ejecutado durante entrega"
+    },
+    {
+      "command": "node --import ../native-ts-loader.mjs tests/myinvestor-sync-outcomes.test.mjs",
+      "exitCode": 0,
+      "qualification": "Fuente real con adapter TS nativo privado; errores iniciales de harness y correccion del orden auth conservados; no ejecutado durante entrega"
+    },
+    {
+      "command": "node --import ../native-ts-loader.mjs tests/myinvestor-keepalive.test.mjs",
+      "exitCode": 0,
+      "qualification": "Fuente real con adapter TS nativo privado; errores iniciales de harness y correccion del orden auth conservados; no ejecutado durante entrega"
+    },
+    {
+      "command": "node --import ../native-ts-loader.mjs tests/myinvestor-user-initiated.test.mjs",
+      "exitCode": 0,
+      "qualification": "Fuente real con adapter TS nativo privado; errores iniciales de harness y correccion del orden auth conservados; no ejecutado durante entrega"
+    },
+    {
+      "command": "node --import ../native-ts-loader.mjs tests/logs-privacidad.test.mjs",
+      "exitCode": 1,
+      "qualification": "Falta dependencia @sentry/browser en checkoutOWN; demas casos terminan. No instalacion ni node_modules ajenos; no verde de privacidad completa"
+    },
+    {
+      "command": "node scripts/run-tests.mjs --plan ../registration-plan.json",
+      "exitCode": 0,
+      "stages": 0,
+      "qualification": "Registro/orfandad tras resolver merge y anadir tests;build,Deno yPlaywright desactivados en plan, no suite"
+    },
+    {
+      "command": "git push origin 0cd215b0cf6ab30a38bf2324e5b99618a9d34c28:refs/heads/codex/sec01-input-guards-pr249-20261017",
+      "exitCode": 0
+    },
+    {
+      "command": "gh pr create --draft --base main --head codex/sec01-input-guards-pr249-20261017 con body-file revisado; gh pr view256 head/body/draft/main",
+      "exitCode": 0,
+      "qualification": "PR256 adjunta al chat; fuente y descripcion confirmadas"
+    }
+  ],
+  "testsRepeatedDuringDelivery": false,
+  "codeChangesDuringDelivery": false,
+  "mutations": {
+    "bankOwnKilled": 11,
+    "myInvestorOwnKilled": 12,
+    "ownTotal": 23,
+    "bank": [
+      {
+        "name": "sin-tope-real",
+        "exitCode": 1,
+        "killed": true,
+        "assertionErrors": 9,
+        "mutantSHA256": "e44f310efb6f6823b9e4eaf00b99578a2ba64b3fd2c62cbe573ed3bac7ed88e5"
+      },
+      {
+        "name": "UTF16-en-vez-bytes",
+        "exitCode": 1,
+        "killed": true,
+        "assertionErrors": 1,
+        "mutantSHA256": "9fde22282a6b91440fd7f8f8d65d7b8ba795035be99a42ab0080e0fb536b1667"
+      },
+      {
+        "name": "sin-cancelar",
+        "exitCode": 1,
+        "killed": true,
+        "assertionErrors": 2,
+        "mutantSHA256": "c90e4ed424aca143b12ec7e15907aa2673e7c5ccefba12b5acfed9d382d087ab"
+      },
+      {
+        "name": "sin-tope-anunciado",
+        "exitCode": 1,
+        "killed": true,
+        "assertionErrors": 7,
+        "mutantSHA256": "e40e107a20d0ee3fc20d975375537ba2badd1485b25baa1753ae39524c6f06d6"
+      },
+      {
+        "name": "sin-forma",
+        "exitCode": 1,
+        "killed": true,
+        "assertionErrors": 14,
+        "mutantSHA256": "ebad362a02ba100deb6bc757b1b51502416105fc1249563efe55e0742b2b5b0a"
+      },
+      {
+        "name": "JSON-roto-como-vacio",
+        "exitCode": 1,
+        "killed": true,
+        "assertionErrors": 4,
+        "mutantSHA256": "65fa15b4b6952e64b8c4c21af0715152468e1b0f78d01bf3d829fd9bc7c457b2"
+      },
+      {
+        "name": "state-antes-de-validar",
+        "exitCode": 1,
+        "killed": true,
+        "assertionErrors": 7,
+        "mutantSHA256": "bac7d23919d2815f24336b0e61052c2a65fc0380bf015bf73d6b1ab52a139563"
+      },
+      {
+        "name": "sin-auth",
+        "exitCode": 1,
+        "killed": true,
+        "assertionErrors": 1,
+        "mutantSHA256": "cf1cd0c81c348effc759745ba5f5aeb8fff788e7389f96814f747cdf4e4d233b"
+      },
+      {
+        "name": "validar-tras-proveedor",
+        "exitCode": 1,
+        "killed": true,
+        "assertionErrors": 6,
+        "mutantSHA256": "54ed1c843e7a8186521416c97c644ca821ca8ea7feb87cb43c9c7b1fdf2ae0a0"
+      },
+      {
+        "name": "sin-config-JWT",
+        "exitCode": 1,
+        "killed": true,
+        "assertionErrors": 1,
+        "mutantSHA256": "3d31526276060ff9a148de9464816d1374dbdce1e3bfd8f7f757a63a13a76646"
+      },
+      {
+        "name": "frontera-exacta-rechazada",
+        "exitCode": 1,
+        "killed": true,
+        "assertionErrors": 1,
+        "mutantSHA256": "aa69c52621b1df4ef6273dad9a2934c5dc5b2232805acb0f96f05dd9b83499a1"
+      }
+    ],
+    "myInvestor": [
+      {
+        "name": "sin-guarda-connect",
+        "exitCode": 1,
+        "killed": true,
+        "assertionErrors": 6,
+        "mutantSHA256": "21824e61cdd78269915e57b20b7d735ca96b7161669b4acfa7a07aff0fe6549b"
+      },
+      {
+        "name": "sin-guarda-sync",
+        "exitCode": 1,
+        "killed": true,
+        "assertionErrors": 5,
+        "mutantSHA256": "39020a87c5cf9d09cceeda7663d216430d349398b63232cdecdd8d3668149e16"
+      },
+      {
+        "name": "sin-guarda-disconnect",
+        "exitCode": 1,
+        "killed": true,
+        "assertionErrors": 5,
+        "mutantSHA256": "fb383111568df21cef3aface612815ed167add35e2bc3b301c946383782f85e5"
+      },
+      {
+        "name": "sin-guarda-keepalive",
+        "exitCode": 1,
+        "killed": true,
+        "assertionErrors": 5,
+        "mutantSHA256": "bc87f5688af00f401d5b3a1920344497fa4734741438733198c54dce5bfcb77e"
+      },
+      {
+        "name": "pierde-intencion-manual",
+        "exitCode": 1,
+        "killed": true,
+        "assertionErrors": 1,
+        "mutantSHA256": "5a6e44f1f6dd0df01ba9f51114a8efce07fa8609d31523fdc8cb824abb45b149"
+      },
+      {
+        "name": "sync-solo-objeto-vacio",
+        "exitCode": 1,
+        "killed": true,
+        "assertionErrors": 3,
+        "mutantSHA256": "3a99c8a34e33497dc43c8d9503bebc2c091c24ac4236bd09f73a3255b5fb8d12"
+      },
+      {
+        "name": "OTP-numerico-rechazado",
+        "exitCode": 1,
+        "killed": true,
+        "assertionErrors": 1,
+        "mutantSHA256": "7f329828c7229522c1e1745ba8bcbedc5360cf82db1fca2eb94699ae6b5f2a05"
+      },
+      {
+        "name": "sin-auth-connect",
+        "exitCode": 1,
+        "killed": true,
+        "assertionErrors": 1,
+        "mutantSHA256": "e90a378011868464e0442538eb8eaaa0ffc780779b28cbcd637028cba4b4d54a"
+      },
+      {
+        "name": "parsear-tras-cuota",
+        "exitCode": 1,
+        "killed": true,
+        "assertionErrors": 6,
+        "mutantSHA256": "6f9eddb736062fe29075182558493d1e095f0c4f409170ea99566eea88d1e67e"
+      },
+      {
+        "name": "parsear-tras-recifrado",
+        "exitCode": 1,
+        "killed": true,
+        "assertionErrors": 5,
+        "mutantSHA256": "ce0f21d606f81289bba551fb1d53234d9765572856f1f1842d478a081bb93f93"
+      },
+      {
+        "name": "sync-tope-doblado",
+        "exitCode": 1,
+        "killed": true,
+        "assertionErrors": 2,
+        "mutantSHA256": "a104aaf2c848012bb13de1a629725234c2eb59c13f260c554964df0df3d47683"
+      },
+      {
+        "name": "flag-texto-como-manual",
+        "exitCode": 1,
+        "killed": true,
+        "assertionErrors": 1,
+        "mutantSHA256": "01699c35d27b8bbcfca145d5d8cc5dfd516a0ad73bcb2cec7e9b101e19035171"
+      }
+    ],
+    "qualification": "Asersiones runtime; no-check en mutantes para no contar errores de tipos. Campanas por fase, no una suite final inventada. No repetidas durante entrega."
+  },
+  "behavior": [
+    "callback cuotaIP prelookup -> tamano/forma -> state valido -> cuotauser -> consumo; denegacionIP conserva302,GET/caducado302 con entrada valida; cuerpo invalido400/413 antes de lookup aunque su state fuera caducado",
+    "Resto entrada -> auth -> cuota -> efectos/recifrado; sin cambiar topes de cuota o semantica financiera",
+    "bank16KiB,sync32KiB,credenciales64KiB,categorize8KiB,rutas sin argumentos/callback1KiB",
+    "userInitiated true/false y body ausente siguen200; texto true legacy sigue automatico via comparacion estricta. OTP numerico/parcial/null y storeTokens conservados",
+    "delete-account verify_jwt=true explicito; falta previa de seccion no se presenta como bypass de auth"
+  ],
+  "artifacts": [
+    "docs/briefs/sec01-body-limits-20261017.md",
+    "supabase/functions/_shared/request_body.ts",
+    "supabase/functions/_shared/request_body.test.ts",
+    "supabase/functions/_shared/input_handlers.test.ts",
+    "supabase/functions/_shared/myinvestor_inputs.test.ts"
+  ],
+  "limitations": [
+    "Privacidad completa EXIT1 por @sentry/browser ausente; no instalacion ni modulosajenos",
+    "Node focal usa parser TypeScript nativo privado; runner estandar esbuild no verificado",
+    "SDK/BD/proveedor/cifrado sinteticos; no SQL/RLS/Postgres o bancos reales ni garantia distribuida viva",
+    "No fullsuite,CIgeneral,docs-frescura,beta-sources,build/caps nuevos,CPU6,browser,Gradle,deploy,servido o movil. Sin ProductREADY",
+    "Ingest fuera y conserva comprobacion posterior a req.text; prices/help fuera. SEC03 consumo atomico del callback sigue separado",
+    "Cambios PR249/PR252 aprobados incluidos por ascendencia, no atribuidos a implementacion propiaSEC01; helperCAS/token_store/myinvestor exactos aPR252",
+    "Sin cambios propios a VERSION/catalogue/caps/09/hoja ni oraculos de dinero. Documentacion central de despliegues queda a integracion; brief registra estado real",
+    "Originales mainRED y fallos de harness/typecheck preservados aparte. Fuente nueva PR249 y mergePR252 tienen sus propios rojos antes del fix; no se inventa un verde global",
+    "No code/tests/build/mediciones durante este turno de entrega; fuente congelada0cd215b0"
+  ],
+  "fetchBudget": {
+    "idbudget": "sec01-own12-1-db3299cd-bde64db8",
+    "allowance": 12,
+    "usedBeforeResultReadback": 5,
+    "remainingBeforeReadback": 7,
+    "initialOwn10Closed10of10": true,
+    "separateLedger": true,
+    "noReset": true,
+    "noROOTInheritance": true,
+    "readbackWillCount": true
+  },
+  "next": "Fuente congelada en PR256draft; Claude revisa/integra/despliega por su circuito y movil pendiente. Tras result/readback termina el worker, sin polling ni mensajes de vuelta.",
+  "schema": 1,
+  "taskId": "sec01-body-limits-codex-20261017",
+  "actor": "codex",
+  "sessionId": "codex-local-20261017-bde64db818606157",
+  "createdAt": "2026-10-17T13:49:37.955Z",
+  "released": true
+}
