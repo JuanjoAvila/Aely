@@ -125,6 +125,31 @@ test("FIN15 y FIN10 v2: fila retirada no consume referencia y no alcanza otro di
  }
 });
 
+function accountlessWildcardSurvivor(server){
+ const hidden={...pending,source:pending.source+"#accsynthetic-account-a#n2"};
+ const survivor={...booked,source:booked.source+"#accsynthetic-account-a#n2"};
+ // La fila tiene cuenta conocida: la lápida vacía solo la alcanza por el comodín,
+ // no por igualdad de clave. La BOOK del otro día conserva la misma referencia.
+ const deleted=["ob-absorbed2|caixabank|stable-ref|2||2026-10-14"];
+ assert.deepEqual(server.filasComoLaApp([hidden],deleted),[]);
+ assert.deepEqual(server.filasComoLaApp([survivor],deleted),[survivor]);
+ for(const [order,rows] of orders([hidden,survivor]).entries()){
+  const filtered=server.filasComoLaApp(rows,deleted),serverCents=sum(filtered);
+  console.log(JSON.stringify({accountlessWildcardSurvivor:{order,serverCents,expectedCents:320}}));
+  assert.equal(serverCents,320,"la oculta por comodin no puede consumir la referencia y dejar cero");
+  assert.deepEqual(filtered,[survivor]);
+ }
+}
+test("FIN15 comodin sin cuenta: fila oculta no consume referencia superviviente",()=>{
+ accountlessWildcardSurvivor(budget);
+ const source=read("supabase/functions/_shared/presupuesto.ts");
+ const result=mutationResult(source,"comodin consume referencia antes de retirar fila",s=>s.replace(
+  'if (cuentaAusente.has(base) || (!cuentaDeSource(f.source) && sinCuenta.has(base))) continue;',
+  'if (cuentaAusente.has(base) || (!cuentaDeSource(f.source) && sinCuenta.has(base))) { const hiddenRef = referenciaOb(f); if (hiddenRef) referencias.add(hiddenRef); continue; }'
+ ),accountlessWildcardSurvivor);
+ assert.equal(result.status,"killed");
+});
+
 test("FIN15 clientes antiguos sin #ref: igualdad exacta contra base 9370565",()=>{
  const old=serverModule(execFileSync("git",["show","9370565008aa2c4df9fb0588b2bf4f97e2cdc726:supabase/functions/_shared/presupuesto.ts"],{encoding:"utf8"}));
  const sources=[null,"","manual","manual:caixabank","supabase","wallet","macrodroid","ob:caixabank","ob:caixabank#n2","ob:caixabank#pdng","ob-hist:caixabank#n3","ob:caixabank#dup","ob:caixabank~recibo.synthetic"];
