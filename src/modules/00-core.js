@@ -3282,6 +3282,8 @@ const bio = {
    banner, o dos bancos a la vez) lanzan bankConnect, la segunda vuelve con error=invalid_request
    aunque el banco diga «Operación realizada correctamente». Un candado compartido por Cartera y
    Mis bancos evita gastar el permiso dos veces. */
+// El SDK conserva el Response en context; no se deduce la cuota del texto libre del banco.
+function bankRateLimited(e){ return !!(e&&((e.context&&e.context.status===429)||e.message==="rate_limit")); }
 var _bankConnectBusy=null;
 /* TRADE REPUBLIC POR OPEN BANKING: CONVIVE, NO SE BLOQUEA (2026-08-01).
    El 31/7 esto se cerró a cal y canto —`bankConnectBlocked`— tras el susto de «todos los gastos

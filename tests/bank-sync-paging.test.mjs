@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import { requestBodyPrelude } from "./helpers/request-body.mjs";
 import { transformSync } from "esbuild";
 import { loadPureLogicFromFile } from "../scripts/load-pure-logic.mjs";
 
@@ -10,7 +11,8 @@ const read = p => fs.readFileSync(new URL(p, root), "utf8");
 const shared = transformSync(read("supabase/functions/_shared/enablebanking.ts"), {loader:"ts",format:"esm"}).code;
 const E = await import("data:text/javascript;base64," + Buffer.from(shared).toString("base64"));
 const demand = transformSync(read("supabase/functions/bank-sync/demand-window.ts"), {loader:"ts"}).code.replace(/^export /gm, "");
-const src = demand + "\n" + transformSync(read("supabase/functions/bank-sync/index.ts").replace(/^import .*?;\r?\n/gm,""), {loader:"ts"}).code;
+const rate = transformSync(read("supabase/functions/_shared/ratelimit.ts"), {loader:"ts"}).code.replace(/^export /gm, "");
+const src = requestBodyPrelude + rate + "\n" + demand + "\n" + transformSync(read("supabase/functions/bank-sync/index.ts").replace(/^import .*?;\r?\n/gm,""), {loader:"ts"}).code;
 const movement = (id="tx-1") => ({entry_reference:id, booking_date:"2026-09-15", transaction_amount:{amount:"12.50"},credit_debit_indicator:"DBIT",creditor:{name:"Comercio sintético"}});
 const link = (name="CaixaBank", status="active") => ({id:name,aspsp_name:name,status,accounts:[{uid:name+"-cuenta"}]});
 
@@ -28,7 +30,7 @@ async function sync(links, reply, body={}, clock=null) {
     }
     return reply(new URL(p,"https://bank.invalid"));
   };
-  const db={auth:{getUser:async()=>({data:{user:{id:"synthetic"}}})},from:()=>({
+  const db={auth:{getUser:async()=>({data:{user:{id:"synthetic"}}})},rpc:async()=>({data:true,error:null}),from:()=>({
     select:()=>({eq:()=>({in:async()=>({data:links.map(l=>Object.assign({},l))})})}),
     update:x=>{
       const filters=[];

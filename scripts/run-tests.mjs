@@ -115,6 +115,8 @@ const steps = [
   ["finance-core", ["node", "tests/finance-core.test.mjs"]],
   ["ob-ingresos", ["node", "tests/ob-ingresos.test.mjs"]],
   ["bank-sync-paging", ["node", "tests/bank-sync-paging.test.mjs"]],
+  ["bank-rate-contracts", ["node", "tests/bank-rate-contracts.test.mjs"]],
+  ["bank-rate-client", ["node", "tests/bank-rate-client.test.mjs"]],
   ["bank-download-incomplete", ["node", "tests/bank-download-incomplete.test.mjs"]],
   ["bank-sync-progreso", ["node", "tests/bank-sync-progreso.test.mjs"]],
   ["bank-sync-acuse", ["node", "tests/bank-sync-acuse.test.mjs"]],
@@ -242,12 +244,16 @@ if (huerfanos.length) {
 }
 
 const denoEnLista = [
+  "supabase/functions/_shared/input_handlers.test.ts",
+  "supabase/functions/_shared/request_body.test.ts",
+  "supabase/functions/_shared/myinvestor_inputs.test.ts",
   "supabase/functions/ingest/ingest.test.ts",
   "supabase/functions/ingest/widget.test.ts",
   "supabase/functions/_shared/crypto.test.ts",
   "supabase/functions/_shared/enablebanking.test.ts",
   "supabase/functions/_shared/myinvestor.test.ts",
   "supabase/functions/_shared/myinvestor-counter.test.ts",
+  "supabase/functions/_shared/myinvestor-token-race.test.ts",
   "supabase/functions/delete-account/delete-account.test.ts",
   "supabase/functions/prices/prices.test.ts",
   "supabase/functions/bank-sync/demand-window.test.ts",
@@ -284,8 +290,12 @@ if (plan.deno !== false) {
   const denoTests = denoEnLista;
   for (const testFile of denoTests) {
     const started = performance.now();
-    const denoArgs = testFile.includes("myinvestor-counter.test")
-      ? ["test", "--allow-read=supabase/functions", testFile]
+    const denoArgs = testFile.includes("myinvestor_inputs.test")
+      ? ["test", "--allow-read=supabase/functions,src/modules/00-core.js", testFile]
+      : testFile.includes("input_handlers.test")
+      ? ["test", "--allow-read=supabase/functions,supabase/config.toml", testFile]
+      : /myinvestor-(counter|token-race)\.test/.test(testFile)
+      ? ["test", "--node-modules-dir=none", "--allow-read=supabase/functions", testFile]
       : testFile.includes("crypto.test")
       ? ["test", "--allow-env", testFile]
       : ["test", testFile];

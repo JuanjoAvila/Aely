@@ -1,4 +1,4 @@
-import { accounts, encryptLegacy, fixture, hits, positionAccounts, refreshed, response, run, seedHits } from "./myinvestor-counter.fixture.ts";
+import { accounts, fixture, hits, positionAccounts, refreshed, response, run, seedHits } from "./myinvestor-counter.fixture.ts";
 const assert = { equal(actual: unknown, expected: unknown) {
   if (actual !== expected) throw new Error("esperado " + JSON.stringify(expected) + ", recibido " + JSON.stringify(actual));
 } };
@@ -52,6 +52,32 @@ Deno.test("fallo del usuario sí suma y el tercero ofrece reconectar", async () 
     assert.equal(hits(f), n);
     assert.equal(r.data.authExpired === true, n === 3);
   }
+});
+
+Deno.test("M10: tercer 401 tras refresh propio rotatorio ofrece reconectar", async () => {
+  const f = fixture();
+  let refreshCalls = 0, accessCalls = 0;
+  for (let n = 1; n <= 3; n++) {
+    const r = await run("sync", f, {
+      body: { userInitiated: true },
+      access: () => { accessCalls++; return response(401); },
+      // Un token distinto por pulsación evita que el snapshot viejo parezca actual
+      // por casualidad al guardar siempre el mismo refresco sintético.
+      refresh: () => {
+        refreshCalls++;
+        return response(201, { payload: { data: { accessToken: "access-" + n, refreshToken: "refresh-" + n } } });
+      },
+    });
+    assert.equal(f.row.access_token, "access-" + n);
+    assert.equal(f.row.refresh_token, "refresh-" + n);
+    assert.equal(hits(f), n);
+    assert.equal(r.data.code, n === 3 ? undefined : "access_401_after_refresh");
+    assert.equal(r.data.authExpired === true, n === 3);
+    assert.equal(f.row.status, n === 3 ? "expired" : "active");
+    assert.equal(r.data.positions, undefined);
+  }
+  assert.equal(refreshCalls, 3);
+  assert.equal(accessCalls, 6);
 });
 
 Deno.test("lectura buena tras refrescar pone a cero y el siguiente fallo vuelve a uno", async () => {
@@ -227,10 +253,4 @@ Deno.test("sello del mismo enlace no reactiva el estado que cambió tras otra le
   assert.equal(f.row.status, "expired");
   assert.equal(hits(f), 3);
   assert.equal(typeof f.row.last_sync, "string");
-});
-Deno.test("el recifrado legacy tampoco pisa los tokens de una reconexión", async () => {
-  const f = fixture();
-  await encryptLegacy(f, () => reconnect(f));
-  assert.equal(f.row.access_token, "reconnected-access");
-  assert.equal(f.row.refresh_token, "reconnected-refresh");
 });

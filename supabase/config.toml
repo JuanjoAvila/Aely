@@ -2,6 +2,10 @@
 # El project_id local es solo una etiqueta; el proyecto real se referencia por --project-ref en CI.
 project_id = "mi-cartera"
 
+# El borrado exige sesión y reautenticación también dentro del handler.
+[functions.delete-account]
+verify_jwt = true
+
 # --- Edge Functions ---
 # prices: la llama la app (usuario logueado) → exige JWT.
 [functions.prices]
