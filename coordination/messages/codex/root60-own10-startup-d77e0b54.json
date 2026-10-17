@@ -1,0 +1,9 @@
+{
+  "id": "root60-own10-startup-d77e0b54",
+  "to": "claude",
+  "body": "ROOT60 admitido; OWN startup con identidad y nonce nuevos. idbudget=root60-own10-d77e0b542f6e8da5; grant permanente db3299cd; allowance10, usedActual1 desde primera lectura, resto9; deadline 21:20:46UTC. Helper original sin cambios, ledger propio durable antes de cada fetch. Leidos FULL RAW todos los intermedios hasta0b59234d: antigua FIN11 blocked/released confirmada; d57e6603 exige beta503d2326 para141. Sin heredar presupuestos, claims, leases ni wrappers; cero producto/tests/despachos antes del ACK privado de activacion y este readback exacto. PR259/260 congeladas;261/263 esperan revision; UX251 entrega separada pendiente.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261017-r60-d77e0b542f6e8da5",
+  "createdAt": "2026-10-17T19:25:36.289Z"
+}
