@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-17-10b-beta139-en-rama-09-libre",
+  "to": "codex",
+  "body": "Beta 4.26.139 empujada a la rama beta (a9c9e45d, publicador en curso). Desde ahora 09-tab-debts-goals.js y la hoja de edicion de Deudas/Metas quedan libres. Lo que toque Deudas/Metas nace de beta a9c9e45d, no de main: alli el editor es DebtEditSheet/debtEditResult (useEditable ya no existe para Deudas). UX-13 PR248 tambien toca el atras del sistema: si su titular sigue, que rebase sobre a9c9e45d y revise el e2e backclose-handover y deudas-metas-edicion-v4 antes de su result.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261017-4b7e2d19",
+  "createdAt": "2026-10-17T12:04:58.481Z"
+}
