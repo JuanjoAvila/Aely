@@ -76,20 +76,23 @@ test("revision1: migración real no acredita nacimiento",()=>atOctober(()=>{
   assert.deepEqual(JSON.parse(JSON.stringify(migrated)),{...legacy,asOf:2026*12+9},"la migración no escribe procedencia ni fecha de alta");
   assert.equal(cents(c.netWorthDebtPolicy({debts:[migrated]},"2026-10-28").at("2026-08-15")),60003,"el ancla migrada conserva principal anterior");
 }));
-test("revision1: editor real con amort cero reancla sin acreditar nacimiento",()=>atOctober(()=>{
-  const d={id:"zero",value:600.03,monthly:50.01,months:12,amort:0,day:16,asOf:2026*12+7};
-  const previous=c.useEditable,stop={},captured={};
-  c.useEditable=(items,save,options)=>{captured.extra=options.extra;throw stop;};
-  try{c.Debts({state:{debts:[d]},set:()=>{},showToast:()=>{}});}catch(e){if(e!==stop)throw e;}finally{c.useEditable=previous;}
-  assert.equal(typeof captured.extra,"function","se captura el callback real antes del render");
-  const edited={...d,...captured.extra(d,600.03)};
-  assert.equal(edited.asOf,2026*12+9);
-  assert.equal(Object.hasOwn(edited,"startMonth"),false,"editar legado no inventa inicio");
-  assert.equal(cents(c.netWorthDebtPolicy({debts:[edited]},"2026-10-28").at("2026-08-15")),60003,"editar no borra la deuda anterior");
-  const explicit={...d,startMonth:2026*12+7},reanchored={...explicit,...captured.extra(explicit,600.03)};
-  assert.equal(reanchored.asOf,2026*12+9);assert.equal(reanchored.startMonth,2026*12+7);
-  assert.equal(cents(c.netWorthDebtPolicy({debts:[reanchored]},"2026-10-28").at("2026-07-31")),0);
-  assert.equal(cents(c.netWorthDebtPolicy({debts:[reanchored]},"2026-10-28").at("2026-08-15")),60003);
+// La beta 4.26.138 cambió el editor global (useEditable) por la hoja de cada deuda: el caso se
+// porta a `debtEditResult`, que es lo que guarda hoy (integración 4.26.139).
+test("revision1: editor real con amort cero conserva el inicio sin acreditar nacimiento",()=>atOctober(()=>{
+  const d={id:"zero",name:"Legado",value:600.03,monthly:50.01,months:12,amort:0,day:16,asOf:2026*12+7};
+  const edit=(x,changes)=>{const r=c.debtEditResult(x,{...c.debtEditDraft(x),...changes});assert.equal(r.error,undefined,"se guarda");return JSON.parse(JSON.stringify(r.item));};
+  for(const changes of [{name:"Legado corregido"},{apr:"1,5"},{day:"20"}]){
+    const edited=edit(d,changes);
+    assert.equal(Object.hasOwn(edited,"startMonth"),false,"editar legado no inventa inicio");
+    assert.equal(cents(c.netWorthDebtPolicy({debts:[edited]},"2026-10-28").at("2026-08-15")),60003,"editar no borra la deuda anterior");
+  }
+  const explicit={...d,startMonth:2026*12+7};
+  for(const changes of [{name:"Con inicio"},{day:"20"}]){
+    const reanchored=edit(explicit,changes);
+    assert.equal(reanchored.startMonth,2026*12+7,"el inicio explícito viaja con la edición");
+    assert.equal(cents(c.netWorthDebtPolicy({debts:[reanchored]},"2026-10-28").at("2026-07-31")),0);
+    assert.equal(cents(c.netWorthDebtPolicy({debts:[reanchored]},"2026-10-28").at("2026-08-15")),60003);
+  }
   const migrated=c.seedFlows({...fixture([explicit]),_dynBalAnchored:true}).debts[0];
   assert.equal(migrated.startMonth,explicit.startMonth);
 }));
