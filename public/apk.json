@@ -1,17 +1,11 @@
 {
-  "versionCode": 55,
-  "versionName": "4.26.117",
-  "url": "https://github.com/JuanjoAvila/Aely/releases/download/v4.26.117/Aely-4.26.117.apk",
-  "notes": "El widget se pone al día al pagar con el móvil aunque la app esté cerrada.",
+  "versionCode": 56,
+  "versionName": "4.26.141",
+  "url": "https://github.com/JuanjoAvila/Aely/releases/download/beta/Aely-4.26.141-beta-56.apk",
+  "notes": "Vibración suave al llegar al final de una pantalla y al rellenarse el anillo de Mi ciclo. Se instala encima sin perder datos.",
   "revisiones": {
-    "fin05-widget-reentrada": "78ff9b2c46f59b55936bb1390580044fdb1715a4c5583189259eeece4db230e4",
-    "fin05-pago-cerrada": "8a6f5aefbe66677ca3685ba430208766d5adc791e2fb50d1013a3d54d8397e50",
-    "tr-descripcion-clasificacion": "b5da02242a9aa595d33eb8033747dfa71846d2a1c40eaadd085a272f6b87888d",
-    "widget-banco": "379318fc0f01a04f5ed33716cf343d68ecc375548c09890702a88aa439fe9956",
-    "widget-app-cerrada": "8a6f5aefbe66677ca3685ba430208766d5adc791e2fb50d1013a3d54d8397e50",
-    "inc-2909-01-widget-periodo": "8a6f5aefbe66677ca3685ba430208766d5adc791e2fb50d1013a3d54d8397e50",
-    "widget-ciclo-puente": "8a6f5aefbe66677ca3685ba430208766d5adc791e2fb50d1013a3d54d8397e50"
+    "vibracion-borde-y-mi-ciclo": "c8ed347785c723e4690c4a1f6664b9f3d34421c65b3798f902223abb33f10080"
   },
-  "sha256": "bc24468bc8eef7a973c3072a88760bf68dc3c1dbd9e1b7eb4b63f59e50979003",
-  "sourceSha": "4eb0641036c1b6b1b4c51fe657fcdd9933da18f2"
+  "sha256": "a11ac5496d59135f7e262938f8c58a353e48f953f3f437cecd8e9c24dc54828e",
+  "sourceSha": "a84d29ec59672c3e88f3b4071bf08841f26961e0"
 }
