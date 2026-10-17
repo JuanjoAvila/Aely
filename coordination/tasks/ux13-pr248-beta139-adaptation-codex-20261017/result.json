@@ -1,0 +1,210 @@
+{
+  "status": "blocked",
+  "summary": "UX13 adaptation delivered to SAME draft PR248 at307362aa on exact beta139a9c9e45d. New DebtEditSheet/GoalEditSheet keyboard drafts preserved, module09 and debtEditResult unchanged. Focal86e2e/24contracts and new2mutants verified previously; source frozen. BLOCKED integration gates:canonical size+118B(local build+142B) and docs-frescura; VERSION/caps/catalogue untouched. Not ProductREADY.",
+  "PR": 248,
+  "pullRequestNumber": 248,
+  "productSHA": "307362aaaee380a3933ce709496abd7b9828f20a",
+  "baseSHA": "a9c9e45d76d0d92c2c529b0652c24496dea75300",
+  "branch": "codex/ux13-keyboard-back-20261016",
+  "privatePreparationBranch": "codex/ux13-pr248-beta139-private-20261017",
+  "productReady": false,
+  "claimCommit": "4b903ced8b60424f81cb729e3c5d4fa51a409850",
+  "ackCommit": "ea2df3d52101f2fcb0b44417e19389240b9ed9fc",
+  "grantCommit": "5047621640b085d7c18579858ead9934c8320b65",
+  "previousResult": "5418ec2759d3f96e2f3b792977d0f7f9b172d34f",
+  "previousResultImmutable": true,
+  "preservedPreviousSource": "60c740dde41d446a2cdbf3f04f13344f15855b3b",
+  "preservedOWNRef": "refs/aely-ux13/preserved-pr248-pre-beta139-60c740dd",
+  "protectedSource": "Entire module09 including DebtEditSheet/debtEditResult and PlanEditSheet opening byte-identical to beta139; no useEditable reintroduced. Existing financial assertions unchanged; only4new editor tests inserted.",
+  "tests": [
+    {
+      "command": "node tests/backclose-history.test.mjs",
+      "exitCode": 0,
+      "phase": "private preparation, not repeated at delivery"
+    },
+    {
+      "command": "node tests/deudas-metas-edicion.test.mjs",
+      "exitCode": 0,
+      "phase": "private preparation, not repeated at delivery"
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0,
+      "phase": "private preparation, not repeated at delivery"
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0,
+      "phase": "private preparation, not repeated at delivery"
+    },
+    {
+      "command": "node tests/security.test.mjs",
+      "exitCode": 0,
+      "phase": "private preparation, not repeated at delivery"
+    },
+    {
+      "command": "node tests/presupuesto-rendimiento.test.mjs",
+      "exitCode": 1,
+      "phase": "private preparation, not repeated at delivery"
+    },
+    {
+      "command": "node tests/docs-frescura.test.mjs",
+      "exitCode": 1,
+      "phase": "private preparation, not repeated at delivery"
+    },
+    {
+      "command": "node work/run-beta139.cjs beta139-red-editors-settled \"UX13 beta139\"",
+      "exitCode": 1,
+      "causalFailures": 4,
+      "meaning": "Base139 closes new debt/goal dialogs after deferred close with explicit keyboard signal."
+    },
+    {
+      "command": "node work/run-beta139.cjs beta139-green-named",
+      "exitCode": 0,
+      "passed": 86,
+      "workers": 1,
+      "retries": 0,
+      "meaning": "Both required specs complete on adapted source; preparation only."
+    },
+    {
+      "command": "node work/run-beta139.cjs beta139-canonical-editors \"UX13 beta139\"",
+      "environment": "UX13_COMMITTED_HTML=1",
+      "exitCode": 0,
+      "passed": 4,
+      "meaning": "Exact committed HTML bytes served only on OWN local port4472; not public beta."
+    },
+    {
+      "command": "node work/run-beta139-mutations.cjs",
+      "exitCode": 0,
+      "newMutants": 2,
+      "killed": 2,
+      "mutantRunExitCodes": [
+        1,
+        1
+      ],
+      "restoredExact": true,
+      "meaning": "Native/browser new editor regressions; initial ANSI summary classifier failure preserved and raw native failure reanalysed without rerun."
+    },
+    {
+      "command": "node tests/presupuesto-rendimiento.test.mjs",
+      "context": "Unchanged official guard and minifier; isolated mirror of canonical committed HTML with DSN95B/version reserve.",
+      "exitCode": 1,
+      "canonicalMinifiedBytes": 1342582,
+      "capBytes": 1342464,
+      "excessBytes": 118,
+      "canonicalGzipBytes": 373006,
+      "gzipCapBytes": 373760
+    },
+    {
+      "command": "node tests/docs-frescura.test.mjs",
+      "context": "Final committed source; private preparation, not repeated at delivery.",
+      "exitCode": 1,
+      "meaning": "Code changes after version anchor f77f453: module02 and existing beta139 module09; integration seal pending."
+    },
+    {
+      "command": "git push --force-with-lease=refs/heads/codex/ux13-keyboard-back-20261016:60c740dde41d446a2cdbf3f04f13344f15855b3b origin 307362aaaee380a3933ce709496abd7b9828f20a:refs/heads/codex/ux13-keyboard-back-20261016",
+      "exitCode": 0,
+      "meaning": "Only OWN PR248 branch; exact expected head confirmed by OWN ls-remote and PR read before push; predecessor preserved by OWN ref."
+    },
+    {
+      "command": "gh pr edit 248 --repo JuanjoAvila/Aely --title [final title] --body-file work/pr248-beta139-body.md",
+      "exitCode": 0,
+      "meaning": "Final implementation/gates description; head/draft/main/body readback exact; artifact attached."
+    }
+  ],
+  "mutations": {
+    "new": 2,
+    "killed": 2,
+    "causalAssertionsVerified": true,
+    "restoredExact": true
+  },
+  "localServedArtifact": {
+    "HTMLSHA256": "fe7cdae99c968307cd20c3ed26307d831a1eddcbe5037020e5eed14d7879c38e",
+    "bytes": 2169554,
+    "passed": 4,
+    "OWNPort": 4472,
+    "publicBeta": false,
+    "serverStopped": true
+  },
+  "sizeGate": {
+    "exitCode": 1,
+    "canonical": {
+      "minified": 1342582,
+      "cap": 1342464,
+      "excess": 118,
+      "gzip": 373006,
+      "gzipCap": 373760
+    },
+    "localBuild": {
+      "minified": 1342606,
+      "excess": 142,
+      "gzip": 373018
+    },
+    "reserves": {
+      "DSNBytes": 95,
+      "version": "4.26.139.99999"
+    },
+    "blockingFiles": 3,
+    "capsChanged": false
+  },
+  "gates": {
+    "docsFrescura": "RED EXIT1; integration seal pending, no VERSION bump in worker scope",
+    "generalCI": "UNVERIFIED",
+    "fullSuiteAndBetaSources": "NOT_EXECUTED",
+    "claudeReviewIntegration": "PENDING",
+    "publicBetaSource307362aa": "NOT_DEPLOYED_OR_VERIFIED",
+    "physicalAndroidIMEAndMobileAcceptance": "PENDING"
+  },
+  "fetchBudget": {
+    "originalBlock": {
+      "id": "ux13-keyboard-back-codex-20261016-db3299cd-block1",
+      "usedActual": 12,
+      "allowance": 12,
+      "closed": true
+    },
+    "id": "ux13-pr248-beta139-db3299cd-block2",
+    "allowance": 12,
+    "usedBeforeResult": 1,
+    "remainingBeforeReadback": 11,
+    "noticeCommit": "b1879b3342087da85d89d99340913682f86ba074",
+    "noticeReadbackExact": true,
+    "firstFetchCounted": true,
+    "separateLedger": true,
+    "noReset": true,
+    "noROOTInheritance": true,
+    "readbackWillCount": true
+  },
+  "evidence": {
+    "privateCheckpointSHA256": "051ae010e2006b3259771b87e34bd5abfa62bc4ff7b6662e96d15903f80eea60",
+    "privateManifestSHA256": "21aa3f2d347d4942c6c3061a171d66bf85056630302f3c600dc12d55fd2553c3",
+    "evidenceReferences": 105,
+    "oldDeliveryAndEvidenceVerified": 80
+  },
+  "artifacts": [
+    "docs/briefs/ux13-keyboard-back-20261017.md"
+  ],
+  "limitations": [
+    "No tests, mutants, build or size measurements repeated during delivery. Prior evidence preserved and hashes verified.",
+    "Explicit synthetic visualViewport and real product handlers are not physical Android IME proof; floating keyboard or simultaneous layout/visual viewport resize may lack signal.",
+    "4canonical cases served on OWN local port do not establish public beta deployment or mobile acceptance.",
+    "No fullsuite,CPU6,Java/Gradle/APK,backend/liveSQL/realbank/deploy/main-beta push or merge. Two inherited opening cases in required spec useCDP4.",
+    "Raw build gate+142B and canonical gate+118B both red; no cap/VERSION/catalogue/oracle changes. docs-frescura already included beta139 module09 and final commit adds module02.",
+    "Old60c740dd checkout/source/result and evidences immutable; PR head replaced only under explicit exact force-with-lease authorization, never canal/main/beta.",
+    "Preflight absent-ref show-ref returned128 and stopped before remote mutation; corrected ref inventory uses for-each-ref and update-ref old-zero guard.",
+    "Await Claude review/integration and public/mobile acceptance; source frozen after exact result readback."
+  ],
+  "nextAction": "Release serial delivery turn after canonical result readback/checkpoint; freeze307362aa for Claude. No polling or new work/push outside scope.",
+  "channelPublication": {
+    "firstNormalPush": "e4556fe4fa903180a79f757dd4b3bdb10c99e939",
+    "firstPushExitCode": 1,
+    "cause": "Remote canonical advance7acaab1f; FULL RAW read and no applicable cancellation. Single normal reevaluation, never force.",
+    "canonicalBeforeRetry": "b1879b3342087da85d89d99340913682f86ba074",
+    "allNewIntermediatesReadFULL": true
+  },
+  "schema": 1,
+  "taskId": "ux13-pr248-beta139-adaptation-codex-20261017",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-8e50dcf4186a58d7",
+  "createdAt": "2026-10-17T12:59:00.740Z",
+  "released": true
+}
