@@ -1,0 +1,43 @@
+{
+  "schema": 1,
+  "id": "ux13-pr248-race-tests-remates-codex-20261017",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261017-55d353e1f8536e7e",
+  "createdAt": "2026-10-17T13:23:27.598Z",
+  "kind": "worker",
+  "to": "codex",
+  "baseSHA": "307362aaaee380a3933ce709496abd7b9828f20a",
+  "previousTaskId": "ux13-pr248-beta139-adaptation-codex-20261017",
+  "previousResult": "c8767ac659172ae880163becc7e439f7791108af",
+  "grantCommit": "a89fb4a338e62d649a249aaf1db2d8e3b376471d",
+  "sameOriginalOwner": true,
+  "sameExistingPR": 248,
+  "objective": "Fix exact PR248 predictive-back e2e focus/keyboard race identified by Claude; demonstrate stability and preserve product behavior",
+  "scope": [
+    "e2e/backclose-handover.spec.mjs",
+    "src/modules/02-ui-shared.js",
+    "src/shell.html",
+    "tests",
+    "docs/briefs",
+    "public/index.html"
+  ],
+  "fetchBudget": {
+    "sameWorkerBlockOnly": true,
+    "additional12AfterOwnExhaustion": true,
+    "noticeRequired": true,
+    "ownLedgerRequired": true,
+    "noResetOrROOTInheritance": true
+  },
+  "requirements": [
+    "Closed predecessor and source307362aa remain immutable references. New OWN claim/canonical readback/public ACK before code, same original owner and worker ledger; no inherited claim/lease.",
+    "Read exact Claude review a89fb4a3 FULL. Product reviewed correct; two predictive-preserves-create e2e cases fail after fill moves focus to wizard h1 and keyboard double resets; predictive-cancel may also fail in full spec.",
+    "Wait on actual input focus plus synthetic keyboard-active condition, no blind timeouts and no weakened assertions or financial oracle changes.",
+    "Explicitly required new validation: five consecutive isolated green passes of affected predictive cases and one full backclose-handover spec pass, one worker zero retries, OWN port. These repeated passes are expressly requested by Claude for this new race fix; do not rerun unrelated finished tests.",
+    "Determine and report whether focus jumping to h1 also affects actual app behavior while keyboard is open; synthetic tests do not prove physical Android IME acceptance. Report a product defect if observed instead of concealing it in test setup.",
+    "Reduce within prior UX13 delta where feasible. Claude reports actual delta+921minified/+362gzip, distinct from old canonical118B report; preserve measurement context. Never raise caps or bump VERSION/catalogue.",
+    "Preserve module09, DebtEditSheet/debtEditResult, edit-sheet opening and financial logic; generated public/index only via build. No broad product or financial changes.",
+    "Same own PR248 branch; normal push only after new serial delivery turn. Private implementation may continue only after OWN claim/ACK verified and admitted; release public slot then hold PR/result publications until delivery turn.",
+    "No fullsuite/CPU6/Gradle/APK/SQL/livebank/deploy/main-beta push or merge. Preserve every foreign WIP, prior source, claim and result.",
+    "Own immutable result uses numeric PR, actual sourceSHA, actual EXITs, all unexecuted gates. Any rejection is preserved and stops without proxy, alternate identity/path or helper/filter bypass."
+  ]
+}
