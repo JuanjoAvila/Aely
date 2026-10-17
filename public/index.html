@@ -15634,7 +15634,10 @@ function reconcileGemelosAutomaticos(s,prev){
   });
   groups.forEach(function(group){
     const notices=group.filter(function(e){return gemeloAvisoAutomatico(e)&&!used.has(e.id);});
-    const banks=group.filter(function(e){return gemeloBancoAutomatico(e)&&!occupied.has(e.id);});
+    // La revisión contra manuales no puede saltar a un aviso por el orden del extracto.
+    // Sin candidato manual, el ingreso genérico histórico conserva su emparejado de siempre.
+    const manuales=group.filter(function(m){return isManualExpenseSource(m.source)&&m.category==="ingreso"&&!m.possibleDup&&!m.pending&&!m.reciboId&&!m.debtId;});
+    const banks=group.filter(function(e){return gemeloBancoAutomatico(e)&&!occupied.has(e.id)&&!(e.amount<0&&e.possibleDup&&!e.possibleDupOf&&manuales.some(function(m){return Math.abs(dateMs(e.date)-dateMs(m.date))<=DUP_DIAS_MS;}));});
     // Un histórico sin #dup puede contener «son distintos» de 117. Solo una notificación
     // NUEVA permite emparejar un banco sin pregunta; abrir una cartera nunca revoca esa respuesta.
     const normal=banks.filter(function(e){return !e.possibleDup&&!e.gemeloNuevo&&!e.autoGemelo;});
@@ -15899,6 +15902,12 @@ function importObExpenses(s, txs, links){
   const emparejados=avisosEmparejados(s);
   const usadoDup={}, otrasPorImporte=new Map(), manualesPorImporte=new Map();
   otrasVias.forEach(function(e,i){const k=expenseBankOf(e)+"|"+Math.round(Number(e.amount)*100),entry={e:e,i:i};if(!otrasPorImporte.has(k))otrasPorImporte.set(k,[]);otrasPorImporte.get(k).push(entry);if(isManualExpenseSource(e.source)){if(!manualesPorImporte.has(k))manualesPorImporte.set(k,[]);manualesPorImporte.get(k).push(entry);}});
+  const matchInc=function(e){
+    const k=expenseBankOf(e)+"|"+Math.round(Number(e.amount)*100);
+    return (manualesPorImporte.get(k)||[]).map(function(x){return x.e;}).filter(function(m){
+      return m.amount<0&&m.category==="ingreso"&&!expenseIsTombstoned(m,delSet)&&!avisoYaEmparejado(emparejados,m)&&Math.abs(dateMs(m.date)-dateMs(e.date))<=DUP_MS;
+    });
+  };
   const gemeloOtraVia=function(tx,saltar){
     if(!sinComercioReal(tx.merchant)||!tx.ent)return null;
     const ms=dateMs(tx.date),k=tx.ent+"|"+Math.round(Number(tx.amount)*100),candidates=(tx.id?otrasPorImporte:manualesPorImporte).get(k)||[];let quedan=saltar||0;
@@ -16057,11 +16066,31 @@ function importObExpenses(s, txs, links){
       c.saltar=viejas;
     });
   });
+  /* Una nómina con nombre también puede ser la que se apuntó a mano. El parecido solo abre
+     revisión: ningún nombre acredita que sean el mismo ingreso. La unicidad se comprueba en
+     AMBOS sentidos antes de gastar un manual, sin elegir por orden de respuesta (UX-2909-04). */
+  const reviews=new Map(), uses=new Map(), seenInc=new Set();
+  (s.expenses||[]).forEach(function(e){
+    if(!e||!esFilaDeBanco(e)||!(e.amount<0)||e.category!=="ingreso"||expenseIsTombstoned(e,delSet))return;
+    matchInc(e).forEach(function(m){uses.set(m.id,(uses.get(m.id)||0)+1);});
+  });
+  cands.forEach(function(c){
+    const tx=c.tx,e=c.e;
+    if(!(e.amount<0)||e.category!=="ingreso")return;
+    const booked=String(tx.status||"").trim().toUpperCase()==="BOOK";
+    if(!booked&&!sinComercioReal(tx.merchant))return;
+    if(tx.id?(seen[(tx.ent||"")+"|"+tx.id]||seenLegacy[tx.id]||keys[scopedKOf(e)]||delSet[scopedKOf(e)]||delSet[kOf(e)]):c.ord==null)return;
+    const id=tx.id?(tx.ent+"|"+tx.id):c;
+    if(seenInc.has(id))return;seenInc.add(id);
+    const matches=matchInc(e);if(!matches.length)return;
+    if(booked)reviews.set(c,matches);
+    matches.forEach(function(m){uses.set(m.id,(uses.get(m.id)||0)+1);});
+  });
   /* SEGUNDA PASADA, en el orden del banco (fecha descendente): emparejar con la otra vía y
      emitir. Los con id conservan su comprobación de clave de siempre. */
   const add=[];
   cands.forEach(function(c){
-    const tx=c.tx, e=c.e;
+    const tx=c.tx, e=c.e, review=reviews.get(c);
     if(tx.id){
       if(seen[(tx.ent||"")+"|"+tx.id]||seenLegacy[tx.id])return;
       if(keys[scopedKOf(e)] || delSet[scopedKOf(e)] || delSet[kOf(e)]) return;
@@ -16071,8 +16100,9 @@ function importObExpenses(s, txs, links){
     }
     // Lo que antes se tiraba (el cargo de un recibo) no puede gastar el gemelo de otra vía que
     // le tocaría a otro cargo. Sus iguales del mismo día sí llevan ordinal, como cualquiera.
-    const gem=e.reciboId?null:gemeloOtraVia(tx, c.saltar);
-    if(gemeloBancoAutomatico(e)) e.gemeloNuevo=true;
+    const gem=review?(review.length===1&&uses.get(review[0].id)===1?review[0]:null):(e.reciboId?null:gemeloOtraVia(tx, c.saltar));
+    if(review) e.possibleDup=true;
+    if(!review&&gemeloBancoAutomatico(e)) e.gemeloNuevo=true;
     if(gem && gem.id){ e.possibleDup=true; e.possibleDupOf=gem.id; }
     keys[scopedKOf(e)]=1;
     if(tx.id) seen[(tx.ent||"")+"|"+tx.id]=1;
@@ -22097,7 +22127,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="6fca238678690ba5ce05c488e6b8db4d79f44fa84286b1140ff9196ffb1a9e26";
+var _rnSha="462d6cb1261aeec2727868a01d332c4058fe47e49456b3d3937aaf12d8784ff3";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
