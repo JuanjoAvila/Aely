@@ -53,14 +53,36 @@ usuario; categorize 40/600; help-assistant 15/600, 30/día por usuario y 1000/d�
 global; myinvestor-sync 2/21600 por versión del contador; prices tiene una
 propuesta 30/600 apagada por defecto. Este cambio no altera esos contratos.
 
-`node tests/bank-sync-paging.test.mjs` ejecuta también
-`tests/helpers/bank-rate-contracts.mjs`, sin crear un test huérfano del runner:
+`node tests/bank-rate-contracts.test.mjs` tiene entrada propia en `steps` y en
+el recorte servidor de `relevant-tests`; ya no depende de importar desde paginado:
 nueve grupos para límites/fronteras/usuario/concurrencia, diario-histórico-acuse,
 IP hash, state, CORS, retorno web/APK, autenticación, preflight y fail-open.
 Doce mutantes deben morir: ignorar cualquiera de los cuatro frenos, elevar sus
 límites, mezclar usuarios, cambiar ventana, consumir state al denegar y sustituir
 el 302 del callback por un 429. Se ejecutan los handlers actuales y el helper
 real; SDK, RPC y transporte están simulados y sin red.
+
+## Remates de revisión (GO 1a420bb1)
+
+El sucesor `sec02-pr249-remates-codex-20261017` parte de `3530483b` en esta misma
+PR. El contrato anterior se mueve sin cambiar su cuerpo, salvo la raíz relativa
+del fichero y su comentario de entrada. Conserva la evidencia previa de doce
+mutantes muertos; no se repiten al verificar solo el traslado y el nuevo cliente.
+
+`node tests/bank-rate-client.test.mjs`, también registrado, ejecuta los handlers
+reales de conexión desde Mis bancos y el banner, y el flujo de sincronización.
+Usa `FunctionsHttpError` del SDK autoalojado y su `Response` sintético con 429:
+antes mostraban el error genérico en es/en/ca; ahora dicen que hay demasiados intentos
+y que se pruebe en un rato. Conserva busy, fallos de red/500 y la guarda
+de nube. No busca «429» dentro de mensajes libres ni hace reintentos automáticos.
+El código cerrado `rate_limit` también se reconoce si viene en el cuerpo fallido.
+
+El ROJO nuevo tiene once fallos y siete controles correctos; tras el cambio pasan
+los dieciocho casos, incluidos tres controles con el runner real en una carpeta
+sintética: entry invocado por su propio step, fichero borrado → fallo, step quitado
+con fichero presente → huérfano. La sonda de wiring no ejecuta el banco ni repite
+los mutantes de backend. `i18n-keys` se ejecuta por el runner focal; build y
+sintaxis del bundle se comprueban localmente. Sin navegador ni móvil real.
 
 Los bancos sintéticos de reconexión, paginado, cursores y privacidad cargan el
 helper actual y permiten la cuota mediante su RPC sintética: esos escenarios
@@ -77,5 +99,6 @@ No acredita Deno, Postgres real, CI general, Edge desplegadas ni aceptación
 móvil. El doble canje concurrente del mismo state sigue siendo un hallazgo
 independiente, SEC-03: esta cuota no garantiza consumo atómico. Claude pidió
 investigarlo tras SEC-02 y consultar antes de producto; no está reparado aquí.
-No cambia VERSION, catálogo, caps, oráculos financieros, Deudas/Metas ni cliente.
+No cambia VERSION, catálogo, caps, oráculos financieros ni Deudas/Metas. El cliente
+solo añade el aviso de espera en los flujos de conectar/reconectar/sincronizar.
 El despliegue de estas tres funciones corresponde a Claude, por separado.

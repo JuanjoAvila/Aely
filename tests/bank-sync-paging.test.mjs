@@ -385,5 +385,3 @@ await t("la ventana paginada y el tramo comparten el contador de llamadas",async
   assert.equal(r.data.links[0].accounts[0].transactions.length,asked.length);
 });
 if(failures) process.exitCode=1;
-// SEC-02 debe correr también cuando beta recorta solo las funciones de servidor.
-await import("./helpers/bank-rate-contracts.mjs");

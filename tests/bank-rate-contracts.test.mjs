@@ -1,12 +1,12 @@
 // SEC-02: handlers y limitador reales; solo se doblan SDK, RPC y banco.
-// Se ejecuta desde bank-sync-paging, registrado también en el recorte servidor.
+// Entrada propia registrada en steps y en el recorte de servidor.
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import vm from "node:vm";
 import { webcrypto, createHash } from "node:crypto";
 import { transformSync } from "esbuild";
 
-const root = new URL("../../", import.meta.url);
+const root = new URL("../", import.meta.url);
 const paths = ["bank-connect/index.ts", "bank-sync/index.ts", "bank-callback/index.ts", "_shared/ratelimit.ts", "_shared/cors.ts", "_shared/entrada.ts", "bank-sync/demand-window.ts", "bank-callback/reconnect.ts"];
 const source = Object.fromEntries(paths.map(p => [p, fs.readFileSync(new URL("supabase/functions/" + p, root), "utf8")]));
 const compile = s => transformSync(s.replace(/^import .*;\r?\n/gm, "").replace(/^export /gm, ""), { loader: "ts", format: "cjs" }).code;
