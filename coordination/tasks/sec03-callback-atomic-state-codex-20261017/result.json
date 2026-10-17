@@ -1,0 +1,120 @@
+{
+  "status": "done",
+  "summary": "SEC03 exact GO68d79894 delivered as draft candidate. Conditional UPDATE by id,original state and issuance returns id; only one confirmed row without error permits OAuth. Zero rows,error,throw,missing or malformed response stops exchange and final write with existing closed302 error. Final returned save error also rejects success. No state restore or retry. Rates,expiry,legacy,web/APK,cursor preserved; SEC04 connection_version backlog only. Integration/deployment Claude; not ProductREADY.",
+  "productSHA": "7ce911a2bbd19e1d710cba1284bf0a7ff8a637c7",
+  "baseSHA": "536882888eacc70921e462ab98e27620f613a29b",
+  "pullRequest": 257,
+  "branch": "codex/sec03-callback-atomic-state-20261017",
+  "claimCommit": "07cdbbf4cffb8c6479eced4c0a7fdffc1d87827c",
+  "ackCommit": "31b6c9cef3d028f6e4477e029a87718687addba6",
+  "causalGO": "68d79894adb2b7a67448c062c36b0a09d65d93b7",
+  "consultationCommit": "c9be87b453fb70c5657c386b3e085edf41dd9338",
+  "productReady": false,
+  "tests": [
+    {
+      "command": "Node24 native TS adapter: tests/bank-callback-state.test.mjs",
+      "exitCode": 0,
+      "cases": 37,
+      "meaning": "Real corrected handler; stateful DB and OAuth doubles, no stock esbuild/Deno"
+    },
+    {
+      "command": "SEC03_MUTANT=sin-state Node24 native TS adapter: tests/bank-callback-state.test.mjs",
+      "exitCode": 1,
+      "killed": true,
+      "meaning": "Actual handler textual mutant; runtime assertion, not infrastructure"
+    },
+    {
+      "command": "SEC03_MUTANT=acepta-cero Node24 native TS adapter: tests/bank-callback-state.test.mjs",
+      "exitCode": 1,
+      "killed": true,
+      "meaning": "Actual handler textual mutant; runtime assertion, not infrastructure"
+    },
+    {
+      "command": "SEC03_MUTANT=acepta-error Node24 native TS adapter: tests/bank-callback-state.test.mjs",
+      "exitCode": 1,
+      "killed": true,
+      "meaning": "Actual handler textual mutant; runtime assertion, not infrastructure"
+    },
+    {
+      "command": "SEC03_MUTANT=exito-sin-guardar Node24 native TS adapter: tests/bank-callback-state.test.mjs",
+      "exitCode": 1,
+      "killed": true,
+      "meaning": "Actual handler textual mutant; runtime assertion, not infrastructure"
+    },
+    {
+      "command": "Node24 native TS adapter, callback-only focal: tests/bank-rate-contracts.test.mjs",
+      "exitCode": 0,
+      "groups": 3,
+      "mutantsExecuted": 0,
+      "meaning": "No SEC02 mutants repeated; static12 footer is not execution evidence"
+    },
+    {
+      "command": "Node24 native TS adapter: tests/bank-reconnect.test.mjs",
+      "exitCode": 0,
+      "cases": 36
+    },
+    {
+      "command": "Node24 native TS adapter: tests/bank-revoke-callback-race.test.mjs",
+      "exitCode": 0,
+      "cases": 20
+    },
+    {
+      "command": "Node24 native TS adapter: tests/entrada-edge.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "Node24 native TS adapter: tests/logs-privacidad.test.mjs",
+      "exitCode": 1,
+      "meaning": "Full file blocked by missing Sentry package; actual callback case passed"
+    },
+    {
+      "command": "node tests/bank-callback-state.test.mjs",
+      "exitCode": 1,
+      "meaning": "Stock runner blocked by missing esbuild; no cases executed"
+    },
+    {
+      "command": "node --check tests/bank-callback-state.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "git diff --check;git diff --cached --check",
+      "exitCode": 0,
+      "meaning": "Private preparation, before local commit"
+    },
+    {
+      "command": "git push origin OWN SEC03 candidate branch",
+      "exitCode": 0,
+      "meaning": "Normal push exact7ce911a2 during delivery; PR head readback confirmed"
+    }
+  ],
+  "artifacts": [
+    "docs/briefs/sec03-callback-atomic-state.md"
+  ],
+  "limitations": [
+    "Node24 private native TypeScript adapter; standard esbuild and native Deno not verified. No SDK,Postgres,PostgREST or real bank concurrency proof.",
+    "Privacy full file EXIT1 missing Sentry; stock runner EXIT1 missing esbuild. No dependency install or foreign node_modules. Deno unavailable in PATH; lifecycle REST fixture changed but Deno run remains pending.",
+    "37 real corrected-handler cases and4 handler mutants separate from prior investigation7RED/7controls and independent11model. Prior investigation and SEC02 mutants not repeated in delivery. First new-test run35PASS/2FAIL was cross-realm fixture prototype error, fixed privately and not causal RED.",
+    "New authorization during OAuth remains SEC04,connection_version backlog; no timestamp ABA guard,bank-connect extension or migration.",
+    "General CI,docs-frescura,beta-sources,integration,served artifact,Claude deployment and physical mobile acceptance pending. No fullsuite,CPU6,Gradle,SQL,livebank,deploy,main-beta push or merge.",
+    "PR249 source53688288 and prior closed results remain frozen. No09,sheet,VERSION,catalogue,caps or financial oracle changes. No code,tests,build or measurements repeated in this delivery."
+  ],
+  "fetchBudget": {
+    "idbudget": "sec03-own12-2-d28e023b",
+    "allowance": 12,
+    "usedBeforeResult": 6,
+    "firstFetchCounts": true,
+    "noReset": true,
+    "noROOTInheritance": true,
+    "previousBlocksClosed": true
+  },
+  "schema": 1,
+  "taskId": "sec03-callback-atomic-state-codex-20261017",
+  "actor": "codex",
+  "sessionId": "codex-local-20261017-f7212f72d28e023b",
+  "createdAt": "2026-10-17T13:58:17.176Z",
+  "released": true
+}
