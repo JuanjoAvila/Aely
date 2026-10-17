@@ -1,0 +1,272 @@
+{
+  "status": "done",
+  "completionScope": "Scoped frozen R3 candidate delivery only. No GO or ProductREADY claimed.",
+  "summary": "PR 253 scoped R3 delivery: the frozen candidate was pushed normally and the same draft PR has exact head and description readback. The reserve guard rejects a local settlement when its touched goal has a cloud field conflict, retaining the full sanitized local snapshot. A cloud value of 120 with offline settlement 50 reaches 17000 cents automatically after rejection and real monthly replay, in the exact case and reverse edit order. Inverse UPLOAD order is distinct: remote 150 with its log remains 15000 cents; only an explicit MANUAL contribution of 20 through App.set reaches 17000 cents. Automatic inverse-upload convergence is NOT implemented or claimed. Official size was not executed; review, general CI, integration, served artifact and mobile acceptance remain pending. Previous sources and results are immutable.",
+  "productSHA": "c42b7b74c9a300d7103c9e1fcb8b69a17a41cce2",
+  "baseSHA": "ecd536bbd660e1e4d13fad3b097bdd1181910a73",
+  "pr": 253,
+  "branch": "codex/inc0410-lww-investigation-20261017",
+  "reviewGrant": "f9b0d2ae68140425586dd657c1232fa46cbaf4ed",
+  "deliveryDecision": "8d88348f5f7b19eeff9595ef2a6d19b09ddc9758",
+  "previousResultImmutable": "ebbf174c6d0c96e434a075cda82b0752787922e9",
+  "claimCommit": "4e4409038722dbf86ba983b71c68261c9aefa909",
+  "publicACK": "cb08118d43790b8085529d9c3b995900668aefe3",
+  "tests": [
+    {
+      "command": [
+        "node",
+        "scripts/build-app.mjs"
+      ],
+      "name": "build",
+      "evidence": "review3-build.json",
+      "exitCode": 0
+    },
+    {
+      "command": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "tests/goals-review3-reserve-conflict.test.mjs"
+      ],
+      "name": "causal-red-money",
+      "evidence": "review3-causal-red-money.json",
+      "exitCode": 1
+    },
+    {
+      "command": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "tests/goals-review3-reserve-conflict.test.mjs"
+      ],
+      "name": "causal-red",
+      "evidence": "review3-causal-red.json",
+      "exitCode": 1
+    },
+    {
+      "command": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "tests/goals-review3-reserve-conflict.test.mjs"
+      ],
+      "name": "green1",
+      "evidence": "review3-green1.json",
+      "exitCode": 0
+    },
+    {
+      "command": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "tests/goals-review3-reserve-conflict.test.mjs"
+      ],
+      "name": "green2",
+      "evidence": "review3-green2.json",
+      "exitCode": 0
+    },
+    {
+      "command": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern=R3-1",
+        "tests/goals-review3-reserve-conflict.test.mjs"
+      ],
+      "name": "mutant-remove-guard",
+      "evidence": "review3-mutant-remove-guard.json",
+      "exitCode": 1,
+      "pattern": "R3-1",
+      "mutant": "remove-guard"
+    },
+    {
+      "command": [
+        "node",
+        "tests/metas-pull-transport.test.mjs"
+      ],
+      "name": "regression-monthly-transport",
+      "evidence": "review3-regression-monthly-transport.json",
+      "exitCode": 0
+    },
+    {
+      "command": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "tests/goals-review-remates.test.mjs"
+      ],
+      "name": "regression-r1",
+      "evidence": "review3-regression-r1.json",
+      "exitCode": 0
+    },
+    {
+      "command": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "tests/goals-review2-remates.test.mjs"
+      ],
+      "name": "regression-r2",
+      "evidence": "review3-regression-r2.json",
+      "exitCode": 0
+    },
+    {
+      "command": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "tests/goals-three-way.test.mjs"
+      ],
+      "name": "regression-three-way",
+      "evidence": "review3-regression-three-way.json",
+      "exitCode": 0
+    },
+    {
+      "command": [
+        "node",
+        "scripts/check-syntax.mjs"
+      ],
+      "name": "syntax",
+      "evidence": "review3-syntax.json",
+      "exitCode": 0
+    },
+    {
+      "command": [
+        "git",
+        "push",
+        "origin",
+        "frozen own SHA to existing branch"
+      ],
+      "exitCode": 0
+    },
+    {
+      "command": [
+        "gh",
+        "pr",
+        "edit",
+        "253",
+        "and exact head/body readback"
+      ],
+      "exitCode": 0
+    }
+  ],
+  "validation": {
+    "causalRed": {
+      "baseSHA": "ecd536bbd660e1e4d13fad3b097bdd1181910a73",
+      "exitCode": 1,
+      "pass": 2,
+      "fail": 3,
+      "actualCents": 12000,
+      "expectedCents": 17000
+    },
+    "green": {
+      "exitCode": 0,
+      "pass": 6,
+      "fail": 0
+    },
+    "guardMutant": {
+      "exitCode": 1,
+      "matchedTests": 4,
+      "fail": 3,
+      "pass": 1,
+      "assertions": "Removing only the new guard returns 12000 instead of 17000 cents in both edit orders, and fails rejection of a new rule with a goal-name conflict."
+    },
+    "regressions": {
+      "R2": {
+        "pass": 6,
+        "exitCode": 0
+      },
+      "threeWay": {
+        "pass": 12,
+        "exitCode": 0
+      },
+      "R1": {
+        "pass": 10,
+        "exitCode": 0
+      },
+      "monthlyTransport": {
+        "cases": 10,
+        "exitCode": 0
+      }
+    },
+    "build": {
+      "exitCode": 0,
+      "generatedHTMLCommitted": true
+    },
+    "syntax": {
+      "exitCode": 0,
+      "blocks": 7
+    },
+    "diffCheck": {
+      "exitCode": 0
+    },
+    "noTestsBuildOrMeasurementsRepeatedDuringDelivery": true,
+    "redEvidenceQualification": "Initial red checked retained settlement count. Refined red asserted the exact monetary loss first, before product edits. Both evidence captures remain preserved."
+  },
+  "monetaryQualification": {
+    "unit": "cents",
+    "automaticCase": {
+      "base": 10000,
+      "Z_offlineSettlement": 5000,
+      "Z_offlineGoal": 15000,
+      "A_contribution": 2000,
+      "A_cloudGoal": 12000,
+      "cloudSnapshotAfterRejection": 12000,
+      "cloudSnapshotLogCount": 0,
+      "localPrivateSnapshot": 15000,
+      "monthlyReplay": 5000,
+      "finalLocalAndCloud": 17000,
+      "finalLogCount": 1,
+      "repeatMonthlyAdds": 0,
+      "exactAndReverseEditOrdersVerified": true
+    },
+    "inverseUpload": {
+      "Z_uploadsFirstWithLog": 15000,
+      "A_localManual": 12000,
+      "afterConflict": 15000,
+      "monthlyLogCount": 1,
+      "manualContributionRetainedInFieldConflict": true,
+      "manualReapplicationThroughAppSet": 2000,
+      "afterExplicitManualReapplication": 17000,
+      "automaticConvergenceImplemented": false,
+      "automaticConvergenceVerified": false
+    }
+  },
+  "officialSizeGate": {
+    "executed": false,
+    "status": "pending",
+    "reason": "Authorized esbuild runtime was absent. No new runtime search, installation, foreign modules or repeated size measurements. Raw HTML or gzip does not substitute the official minified gate. Claude decides size and integration."
+  },
+  "reviewStatus": "NO GO claimed. R3 independent review and integration pending.",
+  "productReady": false,
+  "budget": {
+    "closedPreviousId": "inc0410-own12-3-084e69a4",
+    "closedPreviousUsed": 12,
+    "closedPreviousAllowance": 12,
+    "activeId": "inc0410-own12-four-aely",
+    "activeAllowance": 12,
+    "activeUsedBeforeResult": 4,
+    "grant": "db3299cd69020ccf15563e787d1a1f4b69e8a753",
+    "normalNoticeCommit": "efc910aa7dda92b72696d1e966a340bc7689d985",
+    "noticeReadbackExact": true,
+    "activatedOnlyAfterExhaustion": true,
+    "noResetOrROOTInheritance": true,
+    "publicationAttemptCap": 1
+  },
+  "limitations": [
+    "No automatic inverse-upload convergence. Its 17000-cent test requires explicit manual reapplication of 20 through App.set.",
+    "Official minified and gzip gate, independent review, general CI, docs-frescura and beta-sources pending.",
+    "Claude size and integration decision, served artifact, browser and physical mobile acceptance pending.",
+    "No edits to 08, 09 or editor, VERSION, catalogue, caps, server or unrelated oracles.",
+    "No full suite, CPU6, Gradle, SQL, banks, backend deployment, main or beta push or merge.",
+    "No new code, tests, build, measurements or new oracles during delivery.",
+    "Previous claim, source, result and evidence preserved; current source frozen."
+  ],
+  "serialTurnReleasedAfterCheckpoint": true,
+  "schema": 1,
+  "taskId": "inc0410-pr253-review3-reserve-conflict-codex-20261017",
+  "actor": "codex",
+  "sessionId": "codex-local-20261017-55a003910cb4f81a",
+  "createdAt": "2026-10-17T14:52:12.492Z",
+  "released": true
+}
