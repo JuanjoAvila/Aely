@@ -127,14 +127,14 @@ function claveLegacySinId(f: { fecha?: string | null; importe?: number | string;
 }
 
 /**
- * Lo que la app ve de la tabla: sin las lápidas de `state.deleted` y una sola fila por clave.
+ * Lo que la app ve de la tabla: sin lápidas y una fila por identidad bancaria o clave legacy.
  * `ingest` tiene que pasar ESTO a `statsDelMes`, no el volcado crudo: si no, el widget suma
  * gastos que él ya borró y notis gemelas que la lista ya fusionó.
  * Lápidas viejas (sin id) siguen ocultando manuales borrados antes del Paso 0.
  */
 export function filasComoLaApp<T extends FilaGasto>(filas: T[] | null | undefined, deleted: string[] | null | undefined): T[] {
   const lap = new Set(deleted || []);
-  const vistas = new Set<string>();
+  const vistas = new Map<string, Set<string>>(), referencias = new Set<string>();
   const out: T[] = [];
   for (const f of filas || []) {
     const k = claveComoLaApp(f);
@@ -142,11 +142,29 @@ export function filasComoLaApp<T extends FilaGasto>(filas: T[] | null | undefine
     const absorbed = claveAbsorcionOb(f);
     if (absorbed && lap.has(absorbed)) continue;
     if (esSourceManual(f.source) && lap.has(claveLegacySinId(f))) continue;
-    if (vistas.has(k)) continue;
-    vistas.add(k);
+    // La fecha contable puede cambiar al pasar de PDNG a BOOK. El cliente identifica
+    // banco+referencia antes de mirar el día; sin este espejo el widget suma ambos.
+    // Las lápidas se aplican antes: una fila retirada no puede consumir la identidad.
+    const ref = referenciaOb(f), anteriores = vistas.get(k);
+    if (ref && referencias.has(ref)) continue;
+    if (ref) referencias.add(ref);
+    // Dos referencias conocidas distintas son compras distintas, incluso si todavía
+    // no tienen ordinal. Las filas antiguas sin referencia conservan su dedup por clave.
+    if (anteriores && (!ref || anteriores.has(""))) continue;
+    if (!anteriores) vistas.set(k, new Set([ref]));
+    else anteriores.add(ref);
     out.push(f);
   }
   return out;
+}
+
+function referenciaOb(f: FilaGasto): string {
+  const source = String(f.source || ""), bank = bancoDeSource(source);
+  if (!bank || (!source.startsWith("ob:") && !source.startsWith("ob-hist:"))) return "";
+  const ref = /#ref([^#]+)/.exec(source);
+  if (!ref) return "";
+  try { return JSON.stringify([bank, decodeURIComponent(ref[1])]); }
+  catch (_) { return ""; }
 }
 
 // Espejo de obAbsorptionKey: el UUID puede diferir entre móviles; banco, referencia y

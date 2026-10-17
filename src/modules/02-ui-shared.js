@@ -667,10 +667,13 @@ function netWorthDebtPolicy(state, today, current){
     // Antes de la fecha se mantiene el saldo (o su cuadro, como las demás).
     const p=day.split("-").map(Number), charge=debtChargeDay(d);
     const anchor=typeof d.asOf==="number"?d.asOf:month;
+    // Sólo el alta con plazo acredita startMonth; asOf también se migra y se reancla.
+    // Sin inicio explícito se conserva el saldo/cuadro legado (FIN12).
+    if(d.months!=null&&Number.isInteger(d.startMonth)&&p[0]*12+p[1]-1<d.startMonth) return 0;
     const paidToday=(month-anchor)+(d.months!=null&&charge<=parts[2]?1:0);
     const between=(month+(charge<=parts[2]?1:0))-((p[0]*12+p[1]-1)+(charge<=p[2]?1:0));
     let n=paidToday-between;
-    // Con plazo, el ancla es el inicio del préstamo: antes no debía más que el saldo ancla.
+    // Con plazo, antes de la primera cuota del mes inicial se debe el saldo ancla.
     // Sin plazo, la hipoteca o el préstamo existían ya; sin cuota o liquidada, se mantiene.
     if(d.months!=null||!rebuilt(d)) n=Math.max(0,n);
     let value=Number(d.value)-debtAmort(d)*n;
@@ -1159,7 +1162,20 @@ function _mcBackFlush(){
   if(current&&!current.entry.active){ _mcBackConsume(current); return; }
   waiting.forEach(function(e){ if(!e.failed) _mcBackArm(e,null); });
 }
-function _mcBackCloseNative(){
+function _mcBackCloseNative(mode, target){
+  var el=target||null;
+  try{
+    var active=document.activeElement, vv=window.visualViewport;
+    var tag=active&&active.tagName.toLowerCase();
+    // El foco también existe con teclado físico; el zoom y las barras no acreditan un IME.
+    if(!el&&active&&vv&&!active.disabled&&!active.readOnly&&active.inputMode!=="none"&&Math.abs(vv.scale-1)<.05&&
+      (active.isContentEditable||tag==="textarea"||(tag==="input"&&/^(text|search|tel|url|email|password|number)$/.test(active.type)))&&
+      window.innerHeight-vv.height-vv.offsetTop>Math.max(80,window.innerHeight*.15)) el=active;
+  }catch(err){}
+  // peek toma la decisión del inicio del gesto; only nunca cierra capas al ocultar el teclado.
+  if(mode==="peek") return el;
+  if(el){ try{ el.blur(); }catch(err){} return true; }
+  if(mode==="only") return false;
   var e=_mcBackStack[_mcBackStack.length-1];
   if(!e) return false;
   // Capacitor avisa sin recorrer History: el consumo pertenece al controlador, no a _byPop.
@@ -1190,6 +1206,9 @@ function _mcBackInitOnce(){
       // saltados recuperan protección sin recibir un callback de cierre ajeno.
       left.forEach(function(slot){ slot.present=false; if(slot!==previous&&slot.entry.active) slot.entry.slot=null; });
       var e=previous.entry;
+      // El navegador ya recorrió History: rearmar sólo las capas propias que acaba de saltar
+      // conserva la hoja sin restaurar a ciegas estados ajenos ni resolver su borrador.
+      if(e.active&&_mcBackCloseNative("only")){ e.slot=null; _mcBackSchedule(); return; }
       if(e.active){ _mcBackDrop(e); e._byPop=true; try{ e.close(); }finally{ _mcBackSchedule(); } }
     }
     _mcBackSchedule();
@@ -1260,8 +1279,17 @@ function useEdgePageClose(open,onClose,on,ref){
     const nat=natPlugin(), tog=function(v){
       if(nat&&nat.setEdgeBackEnabled){ try{ nat.setEdgeBackEnabled({enabled:v}).catch(function(){}); }catch(e){} }
     };
+    var ime=null;
     const back=function(e){
       const ph=e.phase;
+      // Android puede ocultar el IME antes de invoke. La decisión pertenece al inicio del gesto,
+      // sin temporizadores que absorban el siguiente atrás ni animar la página que queda debajo.
+      if(ph==="start") ime=_mcBackCloseNative("peek");
+      if(ime||_mcBackCloseNative("peek")){
+        if(ph==="invoke"){ _mcBackCloseNative("only",ime); ime=null; }
+        if(ph==="cancel") ime=null;
+        return;
+      }
       // Un AskHost vive por encima de la página. Con el callback OVERLAY, Android ya no llega al
       // back general de Capacitor: primero cerramos ese diálogo y nunca movemos el fondo debajo.
       if(document.documentElement.classList.contains("ask-open")){

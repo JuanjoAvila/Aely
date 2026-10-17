@@ -28,6 +28,73 @@ function client(){
 const ts=(text)=>transformSync(text.replace(/^import .*?;\r?\n/gm,""),{loader:"ts",format:"esm"}).code.replace(/^export /gm,"");
 let failed=0;
 async function t(name,fn){try{await fn();console.log("  ✓ "+name);}catch(e){failed++;console.log("  ✗ "+name+": "+e.message);}}
+const trDetail=(code="unknown",origin="unknown",snapshotAge="unknown")=>({schema:1,code,origin,snapshotAge});
+function trCard(x,bridge){
+ const src=read("src/modules/06-sync-brokers.js"),start=src.indexOf("function TRSync("),end=src.indexOf("  const mappedN=",start),helper=src.indexOf("function trLogFailure(");
+ assert.ok(start>=0&&end>start);
+ if(helper>=0)vm.runInContext(src.slice(helper,start),x.c);
+ let hook=0;const marks=[],effects=[];
+ Object.assign(x.c,{trBridge:()=>bridge,trPhoneSaved:()=>markers[2],useState:initial=>{const index=hook++;return [index===2?"1234":index===3?"5678":typeof initial==="function"?initial():initial,()=>{}];},useEffect:fn=>effects.push(fn),markTrAuthExpired:()=>marks.push("dead"),markTrConnected:()=>marks.push("alive"),brokerSuggest:()=>null,localStorage:{setItem:()=>{}}});
+ vm.runInContext(src.slice(start,end)+"return {doSync,doLogin,doVerify};}\nglobalThis.card=TRSync({state:{investments:[]}});",x.c);
+ return {card:x.c.card,marks,effects};
+}
+for(const [status,phone,emit]of [[{authExpired:true,connected:true},false,true],[{connected:false},true,true],[{connected:false},false,false],[{connected:true},true,false],[null,true,false],[{},true,false]])await t("TR arranque: status="+JSON.stringify(status)+" teléfono="+phone,async()=>{
+ const x=client(),{effects,marks}=trCard(x,{status:async()=>status});x.c.trPhoneSaved=()=>phone?markers[2]:"";
+ effects[0]();effects[0]();await new Promise(setImmediate);
+ clean(x.rows);assert.equal(x.rows.length,emit?1:0);assert.ok(!marks.includes("dead"));if(emit)assert.deepEqual(JSON.parse(x.rows[0].detail),trDetail("status_inactive","status_check"));
+});
+await t("TR arranque: dos consumidores y cambios de motivo conservan UN evento por sesión",async()=>{
+ const x=client(),{effects}=trCard(x,{status:async()=>({connected:false})});effects[0]();await new Promise(setImmediate);
+ assert.equal(typeof x.c.trLogStartupStatus,"function");x.c.trLogStartupStatus({authExpired:true,connected:true});await new Promise(setImmediate);
+ clean(x.rows);assert.equal(x.rows.length,1);assert.deepEqual(JSON.parse(x.rows[0].detail),trDetail("status_inactive","status_check"));
+});
+await t("TR tarjeta: brokerSuggest que lanza es client_error, sin falso sync_rejected",async()=>{
+ const x=client(),{card}=trCard(x,{sync:async()=>({ok:true,positions:[{isin:"synthetic"}],cash:0})});x.c.brokerSuggest=()=>{throw error();};await card.doSync();await new Promise(setImmediate);
+ clean(x.rows);assert.equal(x.rows.length,1);assert.deepEqual(JSON.parse(x.rows[0].detail),trDetail("client_error","tr_card_sync"));
+});
+await t("TR bundle generado contiene los productores y sanitizador EXACTOS de fuente",()=>{
+ const built=read("public/index.html").replace(/\r\n/g,"\n"),src=read("src/modules/06-sync-brokers.js").replace(/\r\n/g,"\n"),normalizedCore=core.replace(/\r\n/g,"\n");
+ const helpers=src.slice(src.indexOf("function trLogFailure("),src.indexOf("function TRSync("));assert.ok(helpers.includes("function trLogStartupStatus("));assert.ok(built.includes(helpers));
+ const sanitizer=normalizedCore.slice(normalizedCore.indexOf("function mcLogEvent("),normalizedCore.indexOf("function mcSentryEvent("));assert.ok(built.includes(sanitizer));
+});
+await t("TR: el INSERT real conserva solo el contrato cerrado",async()=>{
+ const x=client();await x.c.cloud.logEvent("error","tr_sync",JSON.stringify({...trDetail("auth_expired","tr_card_sync","lt_5m"),error:sensitive,cookies:sensitive,phone:sensitive,extra:{note:sensitive}}));
+ clean(x.rows);assert.equal(x.rows.length,1);assert.equal(x.rows[0].message,"tr_sync");assert.equal(x.rows[0].email,null);assert.deepEqual(JSON.parse(x.rows[0].detail),trDetail("auth_expired","tr_card_sync","lt_5m"));
+});
+await t("TR: todos los tramos cerrados pasan; edades numéricas o inventadas no",async()=>{
+ for(const age of ["unknown","no_snapshot","invalid_clock","lt_5m","m5_lt_60m","h1_lt_24h","ge_24h",0,123456789,-1,"edad=3min",sensitive]){
+  const x=client();await x.c.cloud.logEvent("error","tr_sync",JSON.stringify(trDetail("soft_fail","broker_manual_sync",age)));
+  clean(x.rows);assert.deepEqual(JSON.parse(x.rows[0].detail),trDetail("soft_fail","broker_manual_sync",typeof age==="string"&&["unknown","no_snapshot","invalid_clock","lt_5m","m5_lt_60m","h1_lt_24h","ge_24h"].includes(age)?age:"unknown"));
+ }
+});
+await t("TR: JSON inválido, arrays, herencia y claves hostiles no añaden precisión",async()=>{
+ for(const detail of [undefined,null,"{bad",JSON.stringify([trDetail("auth_expired")]),JSON.stringify({code:sensitive,origin:sensitive,snapshotAge:sensitive}),JSON.stringify({code:"refresh_401",origin:"native",snapshotAge:2}),Object.create(trDetail("auth_expired","tr_card_sync","lt_5m"))]){
+  const x=client();await x.c.cloud.logEvent("error","tr_sync",detail);clean(x.rows);assert.deepEqual(JSON.parse(x.rows[0].detail),trDetail());
+ }
+});
+await t("TR: ruta antigua no analiza el texto de error ni infiere HTTP401",async()=>{
+ const x=client();await x.c.cloud.logEvent("error","TR sync: HTTP 401 "+sensitive,sensitive);clean(x.rows);assert.equal(x.rows[0].message,"tr_sync");assert.deepEqual(JSON.parse(x.rows[0].detail),trDetail());
+});
+for(const [result,expected,dead]of [[{authExpired:true},"auth_expired",true],[{authExpired:true,wafBlocked:true},"soft_fail",false],[{authExpired:true,softFail:true},"soft_fail",false],[{ok:false},"sync_invalid",false],[null,"sync_invalid",false]])await t("TR tarjeta: "+expected+" conserva observación y APK antigua unknown",async()=>{
+ const x=client(),bridge={sync:async()=>result&&({...result,error:sensitive,snapshotAge:"lt_5m",code:"refresh_401"})};const {card,marks}=trCard(x,bridge);await card.doSync();await new Promise(setImmediate);
+ clean(x.rows);assert.equal(x.rows.length,1);assert.deepEqual(JSON.parse(x.rows[0].detail),trDetail(expected,"tr_card_sync"));assert.equal(marks.includes("dead"),dead);
+});
+for(const method of ["doLogin","doVerify"])for(const reject of [false,true])await t("TR tarjeta: "+method+(reject?" rechaza":" falla")+" con origen propio",async()=>{
+ const x=client(),bridge={login:async()=>{if(reject)throw error();return {ok:false,error:sensitive};},verify:async()=>{if(reject)throw error();return {ok:false,error:sensitive};}};
+ const {card}=trCard(x,bridge);card[method]();await new Promise(setImmediate);clean(x.rows);assert.equal(x.rows.length,1);assert.deepEqual(JSON.parse(x.rows[0].detail),trDetail(method==="doLogin"?"login_failed":"verify_failed",method==="doLogin"?"tr_card_login":"tr_card_verify"));
+});
+await t("TR tarjeta: rechazo de sync se registra sin texto; éxito no emite error",async()=>{
+ for(const reject of [true,false]){const x=client(),{card,marks}=trCard(x,{sync:async()=>{if(reject)throw error();return {ok:true,positions:[],cash:0};}});await card.doSync();await new Promise(setImmediate);clean(x.rows);assert.equal(x.rows.length,reject?1:0);if(reject)assert.deepEqual(JSON.parse(x.rows[0].detail),trDetail("sync_rejected","tr_card_sync"));else assert.deepEqual(marks,["alive"]);}
+});
+await t("TR: best-effort, dedupe, tope20 y banco de pruebas permanecen",async()=>{
+ const x=client();const helper=read("src/modules/06-sync-brokers.js"),a=helper.indexOf("function trLogFailure("),b=helper.indexOf("function TRSync(",a);assert.ok(a>=0&&b>a);vm.runInContext(helper.slice(a,b),x.c);
+ x.c.trLogFailure("tr_card_sync","auth_expired");x.c.trLogFailure("tr_card_sync","auth_expired");await new Promise(setImmediate);assert.equal(x.rows.length,1);
+ x.c.cloud._evN=20;x.c.trLogFailure("broker_manual_sync","soft_fail");await new Promise(setImmediate);assert.equal(x.rows.length,1);
+ const sandboxStart=core.indexOf("const CLOUD_WRITES="),sandboxEnd=core.indexOf("/* LA CUOTA DE DEUDA",sandboxStart);assert.ok(sandboxStart>=0&&sandboxEnd>sandboxStart);
+ vm.runInContext(core.slice(sandboxStart,sandboxEnd),x.c);x.c.mcSandbox=()=>true;x.c.cloud._evN=0;x.c.trLogFailure("tr_card_verify","verify_failed");await new Promise(setImmediate);assert.equal(x.rows.length,1);
+ x.c.cloud.logEvent=()=>{throw error();};assert.doesNotThrow(()=>x.c.trLogFailure("tr_card_sync","auth_expired"));
+ x.c.cloud.logEvent=()=>Promise.reject(error());x.c.trLogFailure("tr_card_sync","auth_expired");await new Promise(setImmediate);assert.equal(x.rows.length,1);
+});
 await t("errores libres y detail no salen; ruta y SQLSTATE permanecen",async()=>{
  const x=client();await x.c.cloud.logEvent("error","addExpense apuntar: "+sensitive,error().message);
  clean(x.rows);assert.equal(x.rows.length,1);assert.match(x.rows[0].message,/addExpense/);

@@ -103,20 +103,21 @@ function SubRow({sp, state, set, showToast}){
     set(function(s){ return Object.assign({},s,{subsDismissed:(s.subsDismissed||[]).concat([sp.key])}); });
     showToast(t("sub_dismissed_ok"));
   };
-  return React.createElement("div",{className:"sub-row"},
+  // Las acciones necesitan el ancho de la tarjeta: junto al importe quedaban recortadas en móvil.
+  return React.createElement("div",{className:"sub-row",style:{display:"grid",gridTemplateColumns:"34px minmax(0,1fr)",gap:"6px 11px"}},
     React.createElement("div",{className:"sub-ic",style:{borderColor:c.color+"55",color:c.color}}, c.icon),
     React.createElement("div",{className:"sub-mid"},
       React.createElement("div",{className:"sub-name"}, sp.name),
-      React.createElement("div",{className:"sub-meta"}, tf("sub_months",{n:sp.months})+" · "+tf("sub_peryear",{y:eur0(sp.yearly)})),
-      React.createElement("div",{style:{display:"flex",gap:6,marginTop:5,alignItems:"center"}},
-        React.createElement("button",{className:"chip",style:{fontSize:11.5,padding:"3px 10px"},onClick:toFixed}, "→ "+t("sub_tofixed")),
-        React.createElement("button",{className:"chip",style:{fontSize:11.5,padding:"3px 10px"},onClick:dismiss,title:t("sub_dismiss")}, "✕ "+t("sub_dismiss"))
-      )
+      React.createElement("div",{className:"sub-meta"}, tf("sub_months",{n:sp.months})+" · "+tf("sub_peryear",{y:eur0(sp.yearly)}))
     ),
-    React.createElement("div",{className:"sub-amt num",style:{display:"flex",alignItems:"baseline",gap:2}},
+    React.createElement("div",{className:"sub-amt num",style:{display:"flex",alignItems:"baseline",gap:2,gridColumn:2,minWidth:0}},
       React.createElement("input",{type:"text",inputMode:"decimal",value:amt,onChange:function(e){ setAmt(e.target.value); },
-        style:{width:52,textAlign:"right",background:"transparent",border:"none",borderBottom:"1px dashed var(--bd)",color:"inherit",font:"inherit"}}),
+        style:{width:"10ch",minWidth:0,textAlign:"right",background:"transparent",border:"none",borderBottom:"1px dashed var(--bd)",color:"inherit",font:"inherit"}}),
       " €"+t("sub_permonth")
+    ),
+    React.createElement("div",{style:{display:"flex",flexWrap:"wrap",gridColumn:"1 / -1",gap:6,alignItems:"center"}},
+      React.createElement("button",{className:"chip",style:{fontSize:11.5,padding:"3px 10px"},onClick:toFixed}, "→ "+t("sub_tofixed")),
+      React.createElement("button",{className:"chip",style:{fontSize:11.5,padding:"3px 10px"},onClick:dismiss,title:t("sub_dismiss")}, "✕ "+t("sub_dismiss"))
     )
   );
 }
@@ -1025,8 +1026,9 @@ function Expenses({state, set, onSync, syncing, syncStatus, showToast, stopSwipe
       )
     ),
     React.createElement("div",{className:"action-row"},
-      React.createElement("button",{className:"btn btn-ghost",onClick:onSync,disabled:syncing}, syncing?React.createElement(React.Fragment,null,React.createElement("span",{className:"spin"}),t("g_syncing")):React.createElement(React.Fragment,null,React.createElement(I.sync,{width:16,height:16}),t("g_sync")))
+      React.createElement("button",{className:"btn btn-ghost",onClick:onSync,disabled:syncing,"aria-describedby":"gastos-refresh-scope"}, syncing?React.createElement(React.Fragment,null,React.createElement("span",{className:"spin"}),t("g_refreshing_expenses")):React.createElement(React.Fragment,null,React.createElement(I.sync,{width:16,height:16}),t("g_refresh_expenses")))
     ),
+    React.createElement("p",{className:"hint",id:"gastos-refresh-scope"},t("g_refresh_expenses_hint")),
     React.createElement("div",{className:"sync-note"},
       React.createElement("span",{className:"sync-dot "+(syncStatus.type||"idle")}),
       syncStatus.msg || (state.lastSync?tf("g_lastsync",{d:new Date(state.lastSync).toLocaleString(loc(),{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}):t("g_nosync"))

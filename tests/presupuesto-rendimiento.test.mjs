@@ -296,7 +296,12 @@ const PRESUPUESTO = {
   // Integración 4.26.135 (15/10), compras idénticas (ordinal por banco y referencia, lápida `ob-absorbed` y borrado en la nube de la fila
   // absorbida) sobre la producción 134: 1.328.724 B crudo / 368.967 B gzip con sello .99999 y reserva de 95 B. El job `beta` lo tumbó
   // el tope: SUBE por lógica de dinero, no se recorta (mandato 11/10). 1298 KiB es el mínimo (quedan 428 B).
-  minificado: 1298 * 1024,
+  // Integración 4.26.138 (16/10): Deudas y Metas con hoja de edición por tarjeta (plazo y cuota validados, deuda terminada protegida), «Actualizar gastos» y suscripciones
+  // en cuadrícula, sobre la producción 137: el job `beta` quedó en 1307/363 KB frente a 1298/361. El tope SUBE por lógica de producto en tres idiomas, no se recorta
+  // (mandato 11/10). Mínimos medidos con sello .99999 y reserva de 95 B: 1308 KiB minificado y 363 KiB gzip.
+  // Integración 4.26.139 (17/10): cuota que encaja con el plazo (aviso con el rango en tres idiomas), hoja de editar con el velo de Apuntar, FIN-12 y SES-01 sobre la beta 138:
+  // 1310/364 KB frente a 1308/363. SUBE por lógica de producto en tres idiomas, no se recorta (mandato 11/10). Mínimos medidos: 1311 KiB minificado y 365 KiB gzip.
+  minificado: 1311 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -326,7 +331,7 @@ const PRESUPUESTO = {
   // Integración 4.26.130: 363.055 B gzip, 6.465 B más que la 129. Mínimo medido: 355 KiB (quedan 465 B).
   // Integración 4.26.131: 365.878 B gzip, 2.823 B más que la 130. Mínimo medido: 358 KiB (quedan 714 B).
   // Integración 4.26.135: 368.967 B gzip, 2.375 B sobre 358 KiB. Mínimo medido: 361 KiB (quedan 697 B).
-  gzip: 361 * 1024,
+  gzip: 365 * 1024,
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 

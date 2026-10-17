@@ -60,7 +60,8 @@ async function open(page,lang="es",mode="ok",remoteCat="otros",overrides={}){
   await page.waitForFunction(()=>!document.getElementById("mc-load"));
   await page.locator('.botnav-tab[data-tour="gastos"]').click();
   if(remoteCat==="traspaso"){
-    const syncLabel=await page.evaluate(()=>t("g_sync"));
+    // El botón de Gastos se llama «Actualizar gastos» desde la 4.26.138 (mismo onSync, otro texto).
+    const syncLabel=await page.evaluate(()=>t("g_refresh_expenses"));
     await page.locator('.v4-screen:has(.v4-gastos-summary)').getByRole("button",{name:syncLabel,exact:true}).click();
     await expect(page.locator('.v4-gastos-list-body button.v4-mov').filter({hasText:expense.merchant})).toHaveClass(/v4-mov-skip/);
   }
@@ -200,7 +201,7 @@ for(const lang of ["es","en","ca"])test(`vínculo bajado tras enviar UPDATE se c
   expect(after.state.fixed[0].paymentProofs[2026*12+9]).toBeUndefined();
   // El pull real posterior conserva la única retirada y no recrea la prueba invalidada.
   await page.locator('.v4-exp-sheet .v4-ficha-done').click();
-  const sync=await page.evaluate(()=>t("g_sync"));await page.locator('.v4-screen:has(.v4-gastos-summary)').getByRole("button",{name:sync,exact:true}).click();
+  const sync=await page.evaluate(()=>t("g_refresh_expenses"));await page.locator('.v4-screen:has(.v4-gastos-summary)').getByRole("button",{name:sync,exact:true}).click();
   await expect.poll(async()=>(await stored(page)).expenses[0]?.category).toBe("traspaso");
   await receiptOnB(browser,lang,await page.evaluate(()=>slimForCloud(mcLoadRaw(mcStateKey()))),false,bill);
 });

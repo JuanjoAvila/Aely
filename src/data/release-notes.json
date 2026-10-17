@@ -1,5 +1,113 @@
 [
   {
+    "v": "4.26.139",
+    "d": "2026-10-17",
+    "t": {
+      "es": "Deudas: la cuota y el plazo cuadran, y la hoja de editar abre suave",
+      "en": "Debts: the payment and the term add up, and the edit sheet opens smoothly",
+      "ca": "Deutes: la quota i el termini quadren, i el full d'editar s'obre suau"
+    },
+    "items": {
+      "es": [
+        "En Deudas, el plazo y la cuota tienen que cuadrar con lo que queda por pagar. Si no encajan, el aviso te dice entre qué cuotas encaja, y una deuda con saldo pendiente ya no puede quedarse con la cuota a 0.",
+        "La hoja para editar una deuda o una meta se abre igual que la de Apuntar, suave y sin parpadeos, y el gesto de atrás del móvil la cierra.",
+        "Una financiación que empieza más adelante ya no cuenta como deuda antes de su fecha de inicio."
+      ],
+      "en": [
+        "In Debts, the term and the payment must add up to what is left to pay. If they do not fit, the warning tells you between which payments they fit, and a debt with a balance left can no longer end up with the payment at 0.",
+        "The sheet to edit a debt or a goal now opens like the one in Add, smoothly and without flicker, and the back gesture on your phone closes it.",
+        "A financing that starts later no longer counts as debt before its start date."
+      ],
+      "ca": [
+        "A Deutes, el termini i la quota han de quadrar amb el que queda per pagar. Si no encaixen, l'avís et diu entre quines quotes encaixa, i un deute amb saldo pendent ja no pot quedar-se amb la quota a 0.",
+        "El full per editar un deute o una meta s'obre igual que el d'Apuntar, suau i sense parpelleigs, i el gest d'enrere del mòbil el tanca.",
+        "Un finançament que comença més endavant ja no compta com a deute abans de la data d'inici."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "deudas-plazo-cuota-encaja",
+        "t": {
+          "es": "Deudas: la cuota tiene que encajar con el plazo",
+          "en": "Debts: the payment must fit the term",
+          "ca": "Deutes: la quota ha d'encaixar amb el termini"
+        },
+        "items": {
+          "es": [
+            "1. Abre Plan, pestaña Deudas, y toca una deuda que tenga plazo («Quedan X/Y cuotas») y sin intereses. Baja la cuota y toca «Guardar cambios»: sale el aviso de que no encajan y dice «Con N cuotas por pagar, la cuota tiene que estar entre A y B»; no se guarda.",
+            "2. Pon una cuota dentro de ese rango y guarda: sale «Cambios guardados» y la tarjeta muestra el «Quedan X/Y cuotas» nuevo.",
+            "3. Abre otra vez la deuda, pon la cuota a 0 y guarda: avisa de que con saldo pendiente la cuota no puede ser 0 y no guarda. Nota: si la deuda tiene intereses, bajar la cuota sí se guarda porque solo cambia lo que pagas, no lo que amortiza."
+          ],
+          "en": [
+            "1. Open Plan, Debts tab, and tap a debt that has a term («X/Y payments left») and no interest. Lower the payment and tap «Save changes»: the warning that they do not fit appears and says «With N payments left, the payment must be between A and B»; it is not saved.",
+            "2. Set a payment inside that range and save: «Changes saved» appears and the card shows the new «X/Y payments left».",
+            "3. Open the debt again, set the payment to 0 and save: it warns that with a balance left the payment cannot be 0 and does not save. Note: if the debt has interest, lowering the payment does save, because it only changes what you pay, not what it pays off."
+          ],
+          "ca": [
+            "1. Obre Pla, pestanya Deutes, i toca un deute que tingui termini («Queden X/Y quotes») i sense interessos. Baixa la quota i toca «Desa els canvis»: surt l'avís que no encaixen i diu «Amb N quotes per pagar, la quota ha d'estar entre A i B»; no es desa.",
+            "2. Posa una quota dins d'aquest rang i desa: surt «Canvis desats» i la targeta mostra el nou «Queden X/Y quotes».",
+            "3. Obre un altre cop el deute, posa la quota a 0 i desa: avisa que amb saldo pendent la quota no pot ser 0 i no desa. Nota: si el deute té interessos, baixar la quota sí que es desa perquè només canvia el que pagues, no el que amortitza."
+          ]
+        }
+      },
+      {
+        "id": "deudas-metas-hoja-sin-parpadeo",
+        "t": {
+          "es": "Deudas y Metas: la hoja de editar abre sin parpadeo",
+          "en": "Debts and Goals: the edit sheet opens without flicker",
+          "ca": "Deutes i Metes: el full d'editar s'obre sense parpelleig"
+        },
+        "items": {
+          "es": [
+            "1. Abre Plan, pestaña Deudas, y toca una deuda: la hoja sube suave desde abajo, el fondo se oscurece poco a poco y nada parpadea ni salta.",
+            "2. Cierra con el gesto de atrás del sistema: se cierra la hoja y sigues en Plan.",
+            "3. Haz lo mismo en la pestaña Metas con una meta."
+          ],
+          "en": [
+            "1. Open Plan, Debts tab, and tap a debt: the sheet slides up smoothly from the bottom, the background darkens gradually and nothing flickers or jumps.",
+            "2. Close it with the system back gesture: the sheet closes and you stay in Plan.",
+            "3. Do the same in the Goals tab with a goal."
+          ],
+          "ca": [
+            "1. Obre Pla, pestanya Deutes, i toca un deute: el full puja suau des de baix, el fons s'enfosqueix a poc a poc i res parpelleja ni salta.",
+            "2. Tanca amb el gest d'enrere del sistema: es tanca el full i continues a Pla.",
+            "3. Fes el mateix a la pestanya Metes amb una meta."
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "v": "4.26.138",
+    "d": "2026-10-16",
+    "t": {
+      "es": "Deudas y Metas se editan desde su tarjeta, y Gastos más claro",
+      "en": "Debts and Goals are edited from their card, and Expenses is clearer",
+      "ca": "Deutes i Metes s'editen des de la seva targeta, i Despeses més clar"
+    },
+    "items": {
+      "es": [
+        "En Plan, cada deuda y cada meta se abre en su propia hoja para corregir sus datos. Si el plazo y la cuota no cuadran con lo que queda por pagar, te avisa, y una deuda ya terminada no se puede cambiar por error.",
+        "En Gastos, el botón se llama ahora «Actualizar gastos» y explica lo que hace: trae los gastos guardados y no consulta tus bancos.",
+        "Los botones de las suscripciones detectadas se ven enteros en el móvil.",
+        "Una compra que el banco manda primero como pendiente y reaparece otro día ya no cuenta dos veces en el gasto del mes ni en el widget."
+      ],
+      "en": [
+        "In Plan, each debt and each goal opens in its own sheet so you can correct its details. If the term and the payment do not match what is left to pay, it warns you, and a debt that is already finished cannot be changed by mistake.",
+        "In Expenses, the button is now called «Refresh expenses» and explains what it does: it brings in the expenses already saved and does not contact your banks.",
+        "The buttons of the detected subscriptions now show in full on your phone.",
+        "A purchase that the bank first sends as pending and shows up again on another day no longer counts twice in the month's spending or in the widget."
+      ],
+      "ca": [
+        "A Pla, cada deute i cada meta s'obre en el seu propi full per corregir-ne les dades. Si el termini i la quota no quadren amb el que queda per pagar, t'avisa, i un deute ja acabat no es pot canviar per error.",
+        "A Despeses, el botó es diu ara «Actualitza les despeses» i explica què fa: porta les despeses ja desades i no consulta els teus bancs.",
+        "Els botons de les subscripcions detectades es veuen sencers al mòbil.",
+        "Una compra que el banc envia primer com a pendent i reapareix un altre dia ja no compta dues vegades a la despesa del mes ni al widget."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.26.137",
     "d": "2026-10-16",
     "t": {

@@ -1,3 +1,21 @@
+FIN-15 (beta 4.26.138): `tests/fin15-pendiente-contabilizada.test.mjs` registrado en `run-tests` ejecuta
+cliente, month legacy y widget v2 con PDNG/BOOK en días distintos, en ambos órdenes.
+Incluye 676 comparaciones exactas sin `#ref` contra `9370565` y diez mutaciones semánticas.
+La revisión1 distingue fallos de preparación del mutante de fallos del oráculo y fija
+PDNG30/BOOK33: primera fila en el lector, month sin orden explícito y widget por UUID ascendente.
+`e2e/fin15-pendiente-contabilizada.spec.mjs` está registrado en Gastos; comprueba una fila
+visible tras pull/reinicio y verifica el hash del HTML servido. Datos exclusivamente sintéticos.
+La suite completa y la aceptación móvil conservan sus gates independientes.
+UX15 (beta 4.26.138): `e2e/gastos-sincronizar-alcance.spec.mjs` registrado en el mapa de Gastos;
+DOM real es/en/ca, texto/ocupado/descripción accesible, una lectura en nube y ninguna
+invocación bancaria por pulsación. ROJO previo y mutaciones focales con 1 worker/0 reintentos.
+[Contrato, evidencia y límites](briefs/ux15-sincronizar-gastos-20261016.md).
+FIN12 revisión1: `tests/inicio-deuda-futura.test.mjs` registra 25 casos con 13 mutantes;
+altas reales 08/09, migración, reancla y transporte/merge de nube simulado.
+`e2e/inicio-deuda-futura.spec.mjs` comprueba seis puntos de la gráfica real al dedo,
+el regreso al presente y dos regresiones de legado. Sólo `startMonth` entero acredita
+inicio; `asOf` no. [Acta y límites](briefs/fin12-deuda-futura-inicio-20261016.md).
+
 Compras con referencias distintas: `tests/compras-identicas-ids.test.mjs` registrado en Node y
 `e2e/compras-identicas-ids.spec.mjs` en Gastos. Handlers reales con fixtures sintéticas,
 rojo causal, tres estados al céntimo y siete mutaciones. El oráculo antiguo de Recibos sigue
@@ -35,6 +53,12 @@ La rama `claude/cuenta-parte-mia` (`450d544e`) se integra sobre la 4.26.130. Lo 
 ## Inicio: dinero en tránsito a un bróker e intereses de la deuda
 
 Dos inflados de la gráfica medidos con la cartera real (revisión 14/10). `tests/inicio-transito-intereses` (en `run-tests`), con datos sintéticos: (a) una salida a un bróker enlazada cuenta como inversión desde que sale del banco hasta la primera foto que la recoge en diez días. Con la pista de siempre (`investmentId`, destino o nombre del bróker) la foto tiene que subir la mitad de lo aportado; con la aportación periódica (`state.aportaciones`: mismo bróker e importe, concepto de transferencia a nombre del titular —«yo mismo» o dos palabras de `settings.profile.fullName`— y bróker SIN cuenta propia en la app) basta una cuarta parte, para que llegue aunque la bolsa caiga ese día. Mientras viaja (menos de diez días) cuenta hasta ayer y hoy manda Cartera; pasados diez días sin foto vuelve a ser salida. Plano con foto diaria, semanal y del mismo día, «traspaso» y «otros»; con caída de bolsa el mes dice −300; el alquiler al casero del mismo importe es gasto; un bróker con cuenta manual cuyo histórico empieza después de la salida no se cuenta dos veces; sin enlace sigue neutro (el vaivén de la bolsa «recogía» un seguro de 247 € o un cambio de divisa). (b) `netWorthDebtPolicy` deshace cada mes «saldo × (1 + tipo/12) − cuota» en hipotecas y préstamos sin plazo con `apr` (también escrito con coma); sin tipo, la cuota entera es capital; un tipo cuyos intereses de un mes igualan o superan la cuota (un 105 por 1,05) se ignora; la fila «Deudas» de la «i» dice las dos cosas; tipo 0 y `amort` propio no cambian. Trece mutantes. La tarjeta del mes, Gastos, categorías y saldos de deuda se compararon antes/después con la cartera real: idénticos. Los e2e de Inicio esperan la fila de deudas nueva (la cartera heredada tiene hipoteca y préstamo sin tipo).
+
+## Deudas y Metas: edición individual · PR 239/240, en la beta 4.26.138
+
+`tests/deudas-metas-edicion.test.mjs` ejecuta los handlers del componente real con hooks en memoria: teclear `1,05`/`1.05` conserva cada texto intermedio y sólo Guarda escribe `d.apr`; vacío y cero se mantienen distintos. Comprueba tres estados financieros, guardado sin cambios, identidad y campos desconocidos, y rechazo de una edición sobre un estado más nuevo. `--baseline --decimal-only` conserva la reproducción histórica del fallo de 33d39 en `1,`. Tras el rebase autorizado, `--compare-base` compara las cifras y la serie con beta133 `52e1957d` (se puede indicar `--compare-ref SHA`); los tres estados incluyen sin parte, cuenta manual al 50 % y cuenta OB al 50 % con `obAcc`/`bankUid`, sin cambiar sus reglas de reparto. Los resultados y baselines anteriores de 33d, 967, 131 y 132 se conservan como evidencia histórica. Estos resultados Node no acreditan DOM ni rendimiento.
+
+`e2e/deudas-metas-edicion-v4.spec.mjs`, registrado para el módulo09, abre las hojas en es/en/ca y verifica escritura carácter a carácter, confirmación, persistencia, cancelación, eliminación y escritura concurrente. `listas-render` exige la puerta visible de editar en cada lista. Los guardianes de archivo de Deudas y alta/edición de reglas se adaptan a las hojas, conservando sus cifras e historial esperados; las escrituras concurrentes usan el `set` real de Goals, sin mutar localStorage por detrás. No se ejecutan hasta tener turno de navegador: runner único, censo fresco, adquisición atómica propia, un worker, cero retries y devolución expresa por fase. La suite completa corresponde a `test.yml` por workflow_dispatch sobre el SHA final de la rama propia.
 
 ## Inicio: la tarjeta del mes, más limpia · candidata4.26.126
 

@@ -203,6 +203,53 @@ check("un pop ajeno mientras hay consumo pendiente no cierra otro overlay ni pis
   assert.equal(p.ctx._mcIgnorePop,false);
 });
 
+function keyboard(p,props={},viewport={}){
+  let blurs=0;
+  const vv=Object.assign({height:544,offsetTop:0,scale:1},viewport);
+  const el=Object.assign({tagName:"INPUT",type:"text",blur(){blurs++;vv.height=844;}},props);
+  p.ctx.document={activeElement:el};p.ctx.window.innerHeight=844;p.ctx.window.visualViewport=vv;
+  return {el,vv,blurs:()=>blurs};
+}
+
+check("UX13 distingue editor con teclado de foco físico, zoom y controles no editables",()=>{
+  for(const [name,props,viewport,visible] of [
+    ["texto",{},{},true],["decimal",{type:"number"},{},true],
+    ["textarea",{tagName:"TEXTAREA"},{},true],["editable",{tagName:"DIV",isContentEditable:true},{},true],
+    ["físico",{},{height:844},false],["barra",{},{height:790},false],
+    ["zoom",{},{scale:2},false],["desplazado",{},{offsetTop:300},false],
+    ["readonly",{readOnly:true},{},false],["desactivado",{disabled:true},{},false],
+    ["sin teclado",{inputMode:"none"},{},false],["checkbox",{type:"checkbox"},{},false],
+  ]){
+    const p=platform(),k=keyboard(p,props,viewport);
+    assert.equal(p.ctx._mcBackCloseNative("peek")===k.el,visible,name+": señal");
+    assert.equal(k.blurs(),0,name+": consultar no oculta");
+    assert.equal(p.ctx._mcBackCloseNative(),visible,name+": antes de salir sin capas");
+    assert.equal(k.blurs(),visible?1:0,name+": cierre teclado");
+    assert.equal(p.ctx._mcBackStack.length,0,name+": sin capa ficticia");
+  }
+});
+
+check("UX13 browser back oculta teclado, rearma hijo y conserva padres e historial real",()=>{
+  const p=platform();let parent=0,child=0;
+  p.ctx._mcBackAdd(()=>parent++);p.drain();p.ctx._mcBackAdd(()=>child++);p.drain();
+  const k=keyboard(p);p.history.back();p.drain();
+  assert.equal(k.blurs(),1);assert.equal(parent,0);assert.equal(child,0);
+  assert.equal(p.ctx._mcBackStack.length,2);assert.equal(p.location.href,p.app);
+  p.history.back();p.drain();assert.equal(child,1);assert.equal(parent,0);
+  p.history.back();p.drain();assert.equal(parent,1);assert.deepEqual(p.history.state,p.base);
+  p.history.back();p.drain();assert.equal(p.location.href,p.route);
+});
+
+check("UX13 go(-2) con teclado recupera las dos capas y no absorbe otro atrás",()=>{
+  const p=platform();let parent=0,child=0;
+  p.ctx._mcBackAdd(()=>parent++);p.drain();p.ctx._mcBackAdd(()=>child++);p.drain();
+  keyboard(p);p.history.go(-2);p.drain();
+  assert.equal(parent+child,0);assert.equal(p.ctx._mcBackStack.length,2);
+  p.history.back();p.drain();assert.equal(child,1);assert.equal(parent,0);
+  p.history.back();p.drain();assert.equal(parent,1);assert.deepEqual(p.history.state,p.base);
+  p.history.back();p.drain();assert.equal(p.location.href,p.route);
+});
+
 check("todos los helpers/datos del controlador alcanzables por Brókers invalidan su revisión",()=>{
   const read=f=>fs.readFileSync(new URL("../"+f,import.meta.url),"utf8"),file="src/modules/02-ui-shared.js";
   const scope=JSON.parse(read("scripts/beta-sources.json"))["inc-0310-broker-resultados"];
