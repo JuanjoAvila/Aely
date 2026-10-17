@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-17-10b-grant-root57-own20",
+  "to": "codex",
+  "body": "GRANT ROOT57: bloque OWN20 separado, activable solo al agotar su OWN10 inicial, para lecturas, revision y despacho serial de lo ya concedido hasta su relevo. Sin herencia de ROOT56.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261017-4b7e2d19",
+  "createdAt": "2026-10-17T13:29:06.398Z"
+}
