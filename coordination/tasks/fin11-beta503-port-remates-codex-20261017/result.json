@@ -1,0 +1,185 @@
+{
+  "status": "blocked",
+  "summary": "FIN11 port completo22paths y dos remates323df048 sobre FIN10 af387031,fuente exacta fbff73ee entregada como PR266 NUEVA borrador contra beta bajo grantf6fe10bf. BLOCK tamanoEXIT1 y docs-frescuraEXIT1;Claude reconcilia VERSION/catalogo/topes al integrar. Fallos previos preservados. Sin ProductREADY.",
+  "productSHA": "fbff73ee6ae53ce21fb28b284fd8819c7fc8385e",
+  "parentSHA": "af387031feab76caf4ace026fa5f22d21ca90f90",
+  "approvedImplementationBase": "af387031feab76caf4ace026fa5f22d21ca90f90",
+  "pr": "pull/266",
+  "prBase": "beta",
+  "prDraft": true,
+  "branch": "codex/fin11-af387-port-remates-20261017",
+  "originalClaimCommit": "558e4000db0ca8f1f0806d724310b22df4d9d9e9",
+  "originalACKCommit": "bacf3f78da1e2d01a1f757967cff51c460174960",
+  "taskCommit": "060fb92782bebb6fcfbc9385ec4d69722ea19793",
+  "deliveryGrant": "f6fe10bf76cbe7ade1c387be16dfaa351ec84517",
+  "scopeCorrection": "3b601b99bd364f2ab9b1f4854b8461694f2b6e0f",
+  "tests": [
+    {
+      "command": "node --import ../test-deps-hook.mjs --test --test-concurrency=1 tests/fin11-absorption-pending.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node --import ../test-deps-hook.mjs --test --test-concurrency=1 tests/fin11-absorption-pending.test.mjs tests/fin10-absorption-scope.test.mjs tests/fin15-pendiente-contabilizada.test.mjs tests/compras-identicas-ids.test.mjs",
+      "exitCode": 1
+    },
+    {
+      "command": "node --import ../test-deps-hook.mjs --test --test-concurrency=1 tests/fin10-absorption-scope.test.mjs tests/fin15-pendiente-contabilizada.test.mjs tests/compras-identicas-ids.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node --import ../test-deps-hook.mjs --test --test-concurrency=1 tests/fin10-absorption-scope.test.mjs tests/fin15-pendiente-contabilizada.test.mjs tests/compras-identicas-ids.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "deno test --cached-only supabase/functions/_shared/ob-absorbed-pending.test.ts supabase/functions/ingest/widget.test.ts",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/security.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/i18n-keys.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node --import ../test-deps-hook.mjs tests/presupuesto-servidor.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node ../with-test-runtime.mjs tests/presupuesto-rendimiento.test.mjs",
+      "exitCode": 1
+    },
+    {
+      "command": "node ../fin11-af387-e2e-run.mjs",
+      "exitCode": 1
+    },
+    {
+      "command": "node ../fin11-af387-e2e-run.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/docs-frescura.test.mjs",
+      "exitCode": 1
+    },
+    {
+      "command": "node --import ./work/test-deps-hook.mjs --test --test-concurrency=1 --test-name-pattern=guardia201|nubeLista work/product-af387/tests/fin11-absorption-pending.test.mjs (before remate)",
+      "exitCode": 1
+    },
+    {
+      "command": "node --import ./work/test-deps-hook.mjs --test --test-concurrency=1 --test-name-pattern=guardia201|nubeLista|hook-real work/product-af387/tests/fin11-absorption-pending.test.mjs (CRLF mutation-anchor failure)",
+      "exitCode": 1
+    },
+    {
+      "command": "node --import ./work/test-deps-hook.mjs --test --test-concurrency=1 --test-name-pattern=guardia201|nubeLista|hook-real work/product-af387/tests/fin11-absorption-pending.test.mjs (fixture CRLF normalized)",
+      "exitCode": 0
+    }
+  ],
+  "validation": {
+    "ownMadrid": "21/21 PASS EXIT0;label own-utc erroneous,actual defaultEurope/Madrid verified",
+    "ownUTC": "21/21 PASS inside initial105/108 matrix EXIT1 due to3 Compras cases using old generatedHTML;own module sources unchanged thereafter",
+    "artifactRegressionUTC": "87/87 EXIT0 after ownbuild",
+    "artifactRegressionMadrid": "87/87 EXIT0 after ownbuild",
+    "ownMutantsDetected": 15,
+    "mutants": "12 originals+1 FIN15 reference order+1 guardian201 unique alias+1 DELETE barrier",
+    "Deno": "18/18 EXIT0,6 own+12widget",
+    "directedDOM": "9/9 EXIT0;OWN48543,1worker0retry,maxFailures1;servedHTML hash checked",
+    "causalRED": "EXIT1,bankSync0 vs expected1 before unresolvedDELETE;guardian201 exclusive mutation passes",
+    "preparations": "CRLF mutation-anchor EXIT1 and DOM launcher EXIT1 beforeChromium preserved;only affected fixture/launcher corrected",
+    "deliveryCodeTestsBuilds": 0
+  },
+  "scope": {
+    "reviewedPortFrom": "f872a24cf180ee0817ccf1139ab3e01721e091eb",
+    "reviewedPortTo": "d68b3c98a1833175aea0e6416e459c7a7a2d89a7",
+    "ownPaths": 22,
+    "PRCommits": 2,
+    "PRPaths": 26,
+    "PRBaseSHA": "503d23267091eb5aa0b0e37dd94fac20ea37bd08",
+    "rematesOnly": [
+      "Successful pull/merge starts cleanup in background;nubeLista no longer waitsDELETE;failedpull still blocksbank;queue remains until realACK.",
+      "Causal guardian201 with missing exactUUID,one unique complete knownaccountalias+200 unrelatedidentities;control200 permitsDELETE/ACK;removingonly201guard fails unsafeDELETE."
+    ],
+    "FIN10IdentityTransport11FunctionsUnchanged": true,
+    "FIN10SymmetricAccountDayWildcardUnchanged": true,
+    "FIN15ReferenceConsumptionUnchanged": true,
+    "FIN17Excluded": true,
+    "newServerContracts": false
+  },
+  "gates": {
+    "size": {
+      "exitCode": 1,
+      "minKiB": "1324/1314",
+      "gzipKiB": "368/366",
+      "blocking": "3/3"
+    },
+    "docsFrescura": {
+      "exitCode": 1,
+      "VERSION": "4.26.140",
+      "codeFilesAfterAnchor": 11,
+      "anchor": "aa96460"
+    },
+    "build": 0,
+    "syntax": 0,
+    "security": 0,
+    "i18n": 0,
+    "registration": 0,
+    "serverBudget": 0,
+    "generalCI": "NOT RUN",
+    "betaSources": "NOT RUN",
+    "generalSuite": "NOT RUN",
+    "CPU6": "NOT RUN",
+    "integration": "NOT PERFORMED",
+    "servedRelease": "NOT PERFORMED",
+    "realMobile": "NOT PERFORMED"
+  },
+  "limitations": [
+    "Both integrationgates remain real;VERSION/catalogue/caps/dependencies and financialoracles unchanged. Claude reconciles during integration after remate review.",
+    "SyntheticSDK/browser only,no liveRLS/SQL/banks/networkauthorization or nativewidget validation. No Edge/backend deployment,Gradle/APK,release or physicalmobile acceptance.",
+    "No generalCI/beta-sources/suitegeneral/CPU6 or servedrelease evidence;PRdraft and resultreleased do not imply ProductREADY.",
+    "Pendingcap200 never evicts unconfirmed;uncertainaccount/ambiguous/edited/legacy/incomplete rows retain protection and overlap.",
+    "Server cannot know offlineintent before upload. FIN17 secondmobile reupload afterACK/poda/backfill and expiry/manualsettlement excluded;differentholder after delivery.",
+    "PostgRESTabort8s does not boundSDKrefresh absolutely;cleanup no longer holds completedpull.",
+    "Initial overallmatrixUTC EXIT1,causalRED EXIT1,CRLFanchor EXIT1 and launcher EXIT1 retained;not rewritten as green.",
+    "Old PR262/d68,old result0b59234d,claim/ACK,rejectedpayloads and consumed71authority remain unchanged. PR262 closure only after this exactOWN releasedresult readback and citing replacement266.",
+    "No code,commits,tests,builds or measurements repeated during serialdelivery."
+  ],
+  "evidence": {
+    "contract": "docs/briefs/fin11-absorciones-pendientes-20261017.md",
+    "privateManifestSHA256": "1a63e2b707b2fecbbf11448388e4cb4c50ad84067c7983e02f4e0d9330c4e2ce",
+    "privateCheckpointSHA256": "0b80135e5cdddca69488706050f23fdb450f17cad92963ab28a8207e5cdd99b4",
+    "privateProvenanceSHA256": "4e3a2a21e90e090f60d36ce446c579fafce0fbb2a358a71ad94a7588137f2ebb",
+    "bundleSHA256": "a62e45a23dba53643919ba5f823e8ebdaa63bc940c1a62ffb96bc3dc0ae69432"
+  },
+  "budget": {
+    "idbudget": "fin11-fin14-own12-db329-block2",
+    "allowance": 12,
+    "usedActualAtPreparation": 2,
+    "remainingAtPreparation": 10,
+    "nextCanonicalReadbackCounts": true,
+    "projectedUsedAfterNextReadback": 3,
+    "projectedRemaining": 9,
+    "previousBlockClosed12of12": true,
+    "noReset": true,
+    "noROOTInheritance": true
+  },
+  "supersedes": "pull/262",
+  "next": "After exactOWN releasedresultreadback closePR262 as superseded citingPR266,checkpoint andSTOP. Claude retains finalreview/integration;FIN17 maystartdifferentholder fromfbff73ee afterdelivery.",
+  "schema": 1,
+  "taskId": "fin11-beta503-port-remates-codex-20261017",
+  "actor": "codex",
+  "sessionId": "codex-local-20261017-qoxxwkrshebdfhaeqytokaml",
+  "createdAt": "2026-10-17T21:50:57.227Z",
+  "released": true
+}
