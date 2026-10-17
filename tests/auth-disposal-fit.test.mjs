@@ -95,7 +95,8 @@ for(const [id,codigo,web]of [
  // La 124 cambia un comentario dentro del tramo de la barra que vigila el indicador (Plan ya no pone `mc-touch-own`):
  // su huella viva se declara de nuevo. Que solo cambia ese comentario lo prueba Catálogo124 de beta-sources.
  // La 129 (limpieza) borra `tabOrderState` y la ancla pasa a `const tabIds = tabOrderOf(state);`: su huella viva se declara de nuevo.
- const vivo=id==='inc-0810-nav-indicator'?{web:'ac693e0804b2487eec011a79c831bb34ac4a8babd94f551cc694d6b1c86d906b',codigo:'dac7dfae2bd713f803b8e52cce4592c150f430661887a79b0838b82897c33901'}:{web,codigo};
+ // La 140 toca `_mcBackCloseNative`, `_mcBackInitOnce`, `useEdgePageClose` (atrás con teclado abierto, PR 248) y `useSheetSwipe` (el velo baja con la hoja): su huella viva se declara de nuevo; el ancla beta fija de abajo no se toca.
+ const vivo=id==='inc-0810-nav-indicator'?{web:'ac693e0804b2487eec011a79c831bb34ac4a8babd94f551cc694d6b1c86d906b',codigo:'dac7dfae2bd713f803b8e52cce4592c150f430661887a79b0838b82897c33901'}:id==='inc-0810-backclose-handover'?{web:'b351f551311d940dfd167ef523e28d80d12a273b88803271d4f7a3689ef2380c',codigo:'684344a037693ff91981983bb18ea10eb898d6c3d275d411f50c25e3e520e75d'}:{web,codigo};
  assert.deepEqual(betaRevision(id,id==='inc-0810-metas-editar-regla'?mainRead:read,undefined,id==='inc-0810-metas-editar-regla'?reg[id]:liveReg[id]),vivo,id+': identidad aprobada, histórica sólo para edición de regla');
  assert.deepEqual(betaRevision(id,selected,undefined,selectedReg[id]),{web,codigo},id+': ancla beta fija aprobada');
  for(const key of ['historial','auditoria','codigosCompatibles','compatibilidadGit'])assert.equal(reg[id][key],undefined,id+': sin aprobación heredada '+key);
@@ -128,4 +129,4 @@ assert.notEqual(betaRevision('inc-0710-auth-disposal',mainRead,undefined,reg['in
 console.log('✓ fit102: retornos/receiver/excepciones diferidas, boot real sin throw, trazas equivalentes;7funciones/9datos, notas históricas106 intactas y registro con cierres107/108/110 explícitos; identidad102 nueva');
 
 }
-assert.equal(createHash('sha256').update(JSON.stringify(JSON.parse(read('scripts/beta-sources.json')))).digest('hex'),'71baef3ee95194288ff5d87111cbe9c23434d06d0d2bc05db471cc6b4f2d9059','registro131 íntegro: el de la beta 4.26.130 (67666d42) más el descriptor nuevo cuenta-parte-mia al final (la parte mía de cada cuenta, su bloque del guardado y su cierre de lectores) y el cierre de lectores que las funciones nuevas exigen a los descriptores de Inicio, de bancos, del emparejado de Trade Republic y de la nómina anticipada; nada se recorta');
+assert.equal(createHash('sha256').update(JSON.stringify(JSON.parse(read('scripts/beta-sources.json')))).digest('hex'),'5dc51dcd72477d9b9cf05ffadb7032a6fa3d2ab6834987c4bf180b0afed86228','registro131 íntegro: el de la beta 4.26.130 (67666d42) más el descriptor nuevo cuenta-parte-mia al final (la parte mía de cada cuenta, su bloque del guardado y su cierre de lectores) y el cierre de lectores que las funciones nuevas exigen a los descriptores de Inicio, de bancos, del emparejado de Trade Republic y de la nómina anticipada; nada se recorta');
