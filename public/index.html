@@ -5621,6 +5621,8 @@ const bio = {
    banner, o dos bancos a la vez) lanzan bankConnect, la segunda vuelve con error=invalid_request
    aunque el banco diga «Operación realizada correctamente». Un candado compartido por Cartera y
    Mis bancos evita gastar el permiso dos veces. */
+// El SDK conserva el Response en context; no se deduce la cuota del texto libre del banco.
+function bankRateLimited(e){ return !!(e&&((e.context&&e.context.status===429)||e.message==="rate_limit")); }
 var _bankConnectBusy=null;
 /* TRADE REPUBLIC POR OPEN BANKING: CONVIVE, NO SE BLOQUEA (2026-08-01).
    El 31/7 esto se cerró a cal y canto —`bankConnectBlocked`— tras el susto de «todos los gastos
@@ -6470,6 +6472,7 @@ Object.assign(LANG.es,{
   bank_connected:"Banco conectado ✓", bank_error:"No se pudo conectar el banco",
   bank_error_invalid:"Ese permiso ya se usó o caducó · vuelve a pulsar Reconectar y termina solo esa autorización",
   bank_error_busy:"Ya hay una autorización en marcha · termínala antes de abrir otra",
+  bank_rate_limit:"Demasiados intentos. Prueba en un rato.",
   // SEC-01 (4.23.0): códigos cortos del bank-callback. El detalle crudo se queda en el servidor.
   bank_err_eb:"El banco rechazó la autorización · vuelve a intentarlo",
   bank_err_sin_code:"Faltó el código del banco · vuelve a pulsar Conectar y termina solo esa autorización",
@@ -20709,6 +20712,7 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onL
       .catch(function(e){
         setBusy("");
         if(e&&e.code==="busy"){ showToast("⚠ "+t("bank_error_busy")); return; }
+        if(bankRateLimited(e)){ showToast("⚠ "+t("bank_rate_limit")); return; }
         const msg=(e&&e.message)||String(e);
         showToast("⚠ "+t("bank_error")+": "+msg);
         /* ANTES ESTE FALLO ERA MUDO: solo un toast, que se lee y se olvida. La conexión de TR
@@ -26478,7 +26482,7 @@ function App(){
         if(opts.manual) avisaSync(opts, "⚠ "+t("bank_sync_sin_nube"));
         return;
       }
-      if(opts.manual || navigator.onLine!==false) avisaSync(opts.manual?opts:null, "⚠ "+t("bank_syncfail"));
+      if(opts.manual || navigator.onLine!==false) avisaSync(opts.manual?opts:null, "⚠ "+t(bankRateLimited(e)?"bank_rate_limit":"bank_syncfail"));
     }).finally(function(){
       bankSyncing.current=false;
       /* AVISA DE QUE LA LISTA DE BANCOS HA CAMBIADO (2026-09-12, reportado por el desde la app:
@@ -27096,6 +27100,7 @@ function App(){
     bankConnectOnce(aspsp,"ES").then(function(d){ location.href=d.url; })
       .catch(function(e){
         if(e&&e.code==="busy"){ showToast("⚠ "+t("bank_error_busy")); return; }
+        if(bankRateLimited(e)){ showToast("⚠ "+t("bank_rate_limit")); return; }
         showToast("⚠ "+t("bank_error")+": "+((e&&e.message)||e));
       });
   };
