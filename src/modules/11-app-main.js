@@ -3269,6 +3269,15 @@ function App(){
   },[tab, tabIds]);
   const gestRef=useRef({});
   gestRef.current={ s:onStart, m:onMove, e:onEnd, c:onCancel };
+  const hapticBlockRef=useRef(null);
+  hapticBlockRef.current=function(){
+    return locked||state.onboarded===false||gestureMode.current==="profile"||gestureMode.current==="drawer"||gestureMode.current==="tab"||
+      (dDrag.current&&dAx.current==="x")||(pDrag.current&&pOwn.current&&pAx.current==="y");
+  };
+  useEffect(function(){
+    // Observador pasivo aparte: no reclama el gesto ni cambia la física de los scrollers.
+    return mcBindEdgeHaptics(document,function(){ return hapticBlockRef.current(); });
+  },[]);
   useEffect(function(){
     const el=viewportRef.current; if(!el) return undefined;
     const s=function(e){ gestRef.current.s(e); };
