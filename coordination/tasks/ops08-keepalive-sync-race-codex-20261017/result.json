@@ -1,0 +1,144 @@
+{
+  "status": "done",
+  "summary": "OPS-08 propuestaA implementada tras GO5267ceb4; CAS compartido entre keepalive/sync, snapshot legacy guardado y releido, readback propio/competidor/indeterminado, cero filas sin exito, sin repetir refresh. PR252 borrador contra main; pendiente revision/integracion/despliegueClaude.",
+  "productSHA": "4aa3e015a83bbfec2feafe2e33d417904a854c0d",
+  "pullRequest": 252,
+  "branch": "codex/ops08-cas-pr241-20261017",
+  "originalBaseSHA": "a9916c3cdb21c93f9d3a47653c0608e630ce50ab",
+  "approvedSourceSHA": "fdc0524dfed1ed3728375a23af843fe289aca272",
+  "reconciliationSHA": "70c499419d543df415477e5fb2104435ac6ee638",
+  "tests": [
+    {
+      "command": "deno test --allow-read=work/product/supabase/functions outputs/ops08-race.repro.ts",
+      "exitCode": 1,
+      "result": "ROJO main exacta:7 failed/4 controls passed"
+    },
+    {
+      "command": "deno test --allow-read=work/approved/supabase/functions outputs/ops08-approved-base.repro.ts",
+      "exitCode": 1,
+      "result": "ROJO reconciliacion70c49941 antes del fix:4 failed/7 controls passed"
+    },
+    {
+      "command": "deno test --node-modules-dir=none --allow-read=supabase/functions supabase/functions/_shared/myinvestor-token-race.test.ts supabase/functions/_shared/myinvestor-counter.test.ts",
+      "exitCode": 0,
+      "result": "49 passed:27 race/22 counter"
+    },
+    {
+      "command": "Node24 native TS adapter; tests/myinvestor-keepalive.test.mjs",
+      "exitCode": 0,
+      "result": "60 passed; exact private loader invocation in OWN evidence; stock esbuild runner not run"
+    },
+    {
+      "command": "Node24 native TS adapter; tests/myinvestor-sync-outcomes.test.mjs",
+      "exitCode": 0,
+      "result": "18 passed; exact private loader invocation in OWN evidence; stock esbuild runner not run"
+    },
+    {
+      "command": "node tests/myinvestor-user-initiated.test.mjs",
+      "exitCode": 0,
+      "result": "12 passed"
+    },
+    {
+      "command": "deno check --node-modules-dir=none supabase/functions/_shared/myinvestor-refresh-save.ts",
+      "exitCode": 0
+    },
+    {
+      "command": "node --check scripts/run-tests.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "git diff --check a9916c3cdb21c93f9d3a47653c0608e630ce50ab HEAD",
+      "exitCode": 0
+    },
+    {
+      "command": "Deno focal isolated mutant sin-refresh-cas; exact private invocation in OWN evidence",
+      "exitCode": 1,
+      "result": "FAILED | 24 passed | 3 failed (440ms)",
+      "mutantSHA256": "2401d8994efd913d269d09d999b1d6b2a69540108de8ced10e1844321ca68b4f",
+      "killed": true
+    },
+    {
+      "command": "Deno focal isolated mutant sin-connection-cas; exact private invocation in OWN evidence",
+      "exitCode": 1,
+      "result": "FAILED | 25 passed | 2 failed (387ms)",
+      "mutantSHA256": "e3abe3024ef7474d8512ecba3d323c7b6d01f24ab32310997660887259fd482c",
+      "killed": true
+    },
+    {
+      "command": "Deno focal isolated mutant sin-access-cas; exact private invocation in OWN evidence",
+      "exitCode": 1,
+      "result": "FAILED | 25 passed | 2 failed (337ms)",
+      "mutantSHA256": "36bebecff9558a1231cc9425982de908d16dfd3bfb336fb7ee1f2d8230efd634",
+      "killed": true
+    },
+    {
+      "command": "Deno focal isolated mutant cero-filas-exito; exact private invocation in OWN evidence",
+      "exitCode": 1,
+      "result": "FAILED | 23 passed | 4 failed (285ms)",
+      "mutantSHA256": "48060b7e22f98aa3aeb69a9264495784be999adb2da649ce8ae2843be0a1e498",
+      "killed": true
+    },
+    {
+      "command": "Deno focal isolated mutant reintento-ciego; exact private invocation in OWN evidence",
+      "exitCode": 1,
+      "result": "FAILED | 19 passed | 8 failed (350ms)",
+      "mutantSHA256": "bff49e0aaa92d1df465baea19bd6f05cd87163031eaec61bed5b779dbdd2b4e9",
+      "killed": true
+    },
+    {
+      "command": "Deno focal isolated mutant ignorar-error-update; exact private invocation in OWN evidence",
+      "exitCode": 1,
+      "result": "FAILED | 22 passed | 5 failed (243ms)",
+      "mutantSHA256": "ffc3e81ed753d39bc6b15fa43ac90748a6312af8c9a1d20c70ea7072a0709a5c",
+      "killed": true
+    },
+    {
+      "command": "Deno focal isolated mutant sin-cas-keepalive; exact private invocation in OWN evidence",
+      "exitCode": 1,
+      "result": "FAILED | 19 passed | 8 failed (221ms)",
+      "mutantSHA256": "4e8396b2e4954ee570e225be1a23c064d085e636f6245c08ceed0bab2f4333dd",
+      "killed": true
+    },
+    {
+      "command": "Deno focal isolated mutant sin-cas-sync; exact private invocation in OWN evidence",
+      "exitCode": 1,
+      "result": "FAILED | 18 passed | 9 failed (226ms)",
+      "mutantSHA256": "4779be558e393044ea651d4813ebe9a6e678b9b691c2abf41073e6531bd80cc6",
+      "killed": true
+    },
+    {
+      "command": "Deno focal isolated mutant repetir-refresh; exact private invocation in OWN evidence",
+      "exitCode": 1,
+      "result": "FAILED | 26 passed | 1 failed (230ms)",
+      "mutantSHA256": "37e3c87c49e234204a94b7dc83d541f47931780697927547a076b01b95141c07",
+      "killed": true
+    }
+  ],
+  "limitations": [
+    "No suite completa/E2E/CPU6/Gradle/SQL vivo/bancos/despliegue/merge main-beta; CIgeneral, artefacto servido y movil pendientes.",
+    "Node focales usan stripTypeScriptTypes nativo con adaptador privado porque esbuild no existe en checkout; no npm install ni node_modules ajenos; no se acredita runner estandar esbuild.",
+    "Primeros ensayos fallidos de typecheck/permisos del harness y mutantes quedaron preservados y EXCLUIDOS de rojos causales/mutantes muertos.",
+    "CAS no serializa consumos externos simultaneos; propuestaOPS09 solo documentada, sin BD/RPC/migracion. No se creo otra tarea ni chat.",
+    "PR241 congelada intacta. Rama OWN nace de fdc0524d y reconcilia main exacta sin conflictos para conservar PR231; cero diff en src, token_store, migraciones, VERSION y catalogo respecto a main original.",
+    "Despliegue soloClaude; status done/released acredita entrega del trabajador, no ProductREADY."
+  ],
+  "artifacts": [
+    "docs/briefs/ops08-refresh-cas.md"
+  ],
+  "fetchBudget": {
+    "initialId": "ops08-own10-467e4067-084e69a4",
+    "initialUsed": 10,
+    "additionalId": "ops08-own12-after10-5267ceb4",
+    "additionalAllowance": 12,
+    "noticeCommit": "5f99ccc5192e8558e2af9f2a184cc208ce117f4d",
+    "usedBeforeResult": 3,
+    "noReset": true,
+    "noRootInheritance": true
+  },
+  "schema": 1,
+  "taskId": "ops08-keepalive-sync-race-codex-20261017",
+  "actor": "codex",
+  "sessionId": "codex-local-20261017-1858e3462fa4ae5d",
+  "createdAt": "2026-10-17T11:26:02.454Z",
+  "released": true
+}
