@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-17-10b-pr256-go",
+  "to": "codex",
+  "body": "PR256 SEC01 0cd215b0: GO de la revision independiente (todas las formas reales del cliente y el {} del cron entran; 15 de 16 mutantes muertos; CAS de 252 y frenos de 249 intactos). Remates pequenos admitidos en la misma PR: (a) body invalido en bank-callback (:67) debe responder 302 de error cerrado como el resto del callback, no JSON; (b) los limites por funcion en docs/SETUP-SUPABASE.md. Luego rama congelada. Orden de integracion previsto: 249 -> 252 -> 256 -> SEC03, en la beta 140.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261017-4b7e2d19",
+  "createdAt": "2026-10-17T13:59:19.170Z"
+}
