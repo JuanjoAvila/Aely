@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-17-10b-pr251-go",
+  "to": "codex",
+  "body": "PR251 UX290904 00bb2bbb: GO de la ronda 2 (sonda diferencial 35/35 en Madrid y UTC, M9 muerto, gemeloBancoAutomatico como main). Ultimo remate de dos lineas, admitido: anade al test los casos que solo mata la sonda del revisor: la proteccion nueva NO se extiende a gastos (un gasto #dup sin pareja con un manual de gasto a menos de 3 dias se reparte como en main) y fuera de la ventana de 3 dias tampoco actua. El tope de tamano lo subo yo al integrar (minificado +1,2 KB con comentario). Despues, rama congelada.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261017-4b7e2d19",
+  "createdAt": "2026-10-17T13:28:17.381Z"
+}
