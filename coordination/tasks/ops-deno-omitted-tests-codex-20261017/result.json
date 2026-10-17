@@ -1,0 +1,105 @@
+{
+  "status": "done",
+  "summary": "Runner Deno focal independiente e inventario de cobertura entregados en PR borrador 255 contra main; Deno real ausente, cero tests Deno ejecutados. Sin cambios del bloque Deno general ni workflows.",
+  "productSHA": "f7bba04d983c55cf97043594b6e13d9f5b652a84",
+  "baseSHA": "a9916c3cdb21c93f9d3a47653c0608e630ce50ab",
+  "pullRequest": 255,
+  "draft": true,
+  "productReady": false,
+  "tests": [
+    {
+      "command": "node work/repro-base-deno.mjs",
+      "exitCode": 1,
+      "result": "ROJO causal: ENOENT y Module not found dejan failed=false en el bloque Deno original. Control de asercion ordinaria reconocido; spawn controlado, sin suite real."
+    },
+    {
+      "command": "node --test tests/run-deno-tests.test.mjs",
+      "exitCode": 0,
+      "result": "8/8 contratos del runner; 0 skips. Filesystem real y subprocess controlado."
+    },
+    {
+      "command": "python work/mutate-runner.py",
+      "exitCode": 0,
+      "result": "6/6 mutantes detectados; cada proceso de contrato del mutante sale1."
+    },
+    {
+      "command": "node scripts/run-deno-tests.mjs --list",
+      "exitCode": 0,
+      "result": "10 archivos descubiertos, executed0; los10 registrados en la base, sin huerfanos."
+    },
+    {
+      "command": "node scripts/run-deno-tests.mjs supabase/functions/_shared/crypto.test.ts",
+      "exitCode": 2,
+      "result": "Deno real AUSENTE ENOENT; executed0, archivo pendiente explicito; NO pase Deno."
+    },
+    {
+      "command": "git diff --cached --check",
+      "exitCode": 0,
+      "result": "Candidata sin errores de whitespace; commit de5paths autorizados y checkout limpio."
+    }
+  ],
+  "mutations": [
+    {
+      "name": "runtime-ausente-verde",
+      "exitCode": 1,
+      "killed": true
+    },
+    {
+      "name": "modulo-not-found-omitido",
+      "exitCode": 1,
+      "killed": true
+    },
+    {
+      "name": "sin-descubrimiento-anidado",
+      "exitCode": 1,
+      "killed": true
+    },
+    {
+      "name": "shell-activada",
+      "exitCode": 1,
+      "killed": true
+    },
+    {
+      "name": "permisos-sin-limite",
+      "exitCode": 1,
+      "killed": true
+    },
+    {
+      "name": "sigue-despues-de-fallo",
+      "exitCode": 1,
+      "killed": true
+    }
+  ],
+  "testsRepeatedForDelivery": false,
+  "actualDenoTestsExecuted": 0,
+  "coverageInventory": {
+    "discovered": 10,
+    "registered": 10,
+    "orphans": 0,
+    "brief": "docs/briefs/ops-deno-omitted-tests-20261017.md",
+    "sourceOnly": true,
+    "promoteExplicitDenoSetup": false
+  },
+  "limitations": [
+    "No Deno instalado o ejecutado realmente; ruta de exito del proceso validada con dobles. El EXIT2 focal es falta de runtime, no cobertura Deno verde.",
+    "Bloque Deno general conserva su comportamiento previo. Workflows intactos; inventario de fuentes no acredita ejecuciones CI concretas.",
+    "Sin suite completa, suite Deno real, E2E/CPU6, Gradle, SQL vivo, bancos, deploy, integracion, servido o aceptacion movil.",
+    "Los8contratos y6mutantes se conservan sin repetir. Runner/tests/registro mantienen bytes ya validados; solo documentacion ajustada antes del commit.",
+    "Wrapper de validacion previo EXIT1 al imprimir Unicode despues de guardar los EXIT reales0/0/2 de sus hijos; fallo de empaquetado CRLF previo conservado y corregido aplicando filtros clean de Git.",
+    "09/hoja DeudasMetas, VERSION, catalogo, caps, oraculos y Edge de producto intactos. Tooling autorizado por grant original; no GO financiero adicional requerido."
+  ],
+  "fetchBudget": {
+    "idbudget": "deno-own10-084e69a4",
+    "allowance": 10,
+    "usedBeforeResultPush": 8,
+    "readbackExpectedUsed": 9,
+    "reset": false,
+    "inherited": false
+  },
+  "schema": 1,
+  "taskId": "ops-deno-omitted-tests-codex-20261017",
+  "actor": "codex",
+  "sessionId": "codex-local-20261017-n-e462-cf2f-68fe-fbe4",
+  "createdAt": "2026-10-17T13:22:19.295Z",
+  "released": true
+}
