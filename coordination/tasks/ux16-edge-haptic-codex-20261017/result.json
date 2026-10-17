@@ -1,0 +1,177 @@
+{
+  "status": "done",
+  "completionScope": "SEALED CANDIDATE DELIVERY FOR CLAUDE REVIEW; NOT PRODUCTREADY",
+  "summary": "UX16 delivered as new draft PR 260 against beta, exact source 8a34391a and parent a9c9e45d. Passive web edge signal and native system-aware haptics; Mi ciclo ring fill only, after actual animation delay and splash. Original claim/base preserved. Full plugin compilation, physical acceptance and general gates pending.",
+  "PR": 260,
+  "draft": true,
+  "pullRequestBase": "beta",
+  "productSHA": "8a34391adb65634c55ee8fd4535c5bd308b22da0",
+  "baseSHA": "a9916c3cdb21c93f9d3a47653c0608e630ce50ab",
+  "originalClaimBase": "a9916c3cdb21c93f9d3a47653c0608e630ce50ab",
+  "implementationBase": "a9c9e45d76d0d92c2c529b0652c24496dea75300",
+  "parent": "a9c9e45d76d0d92c2c529b0652c24496dea75300",
+  "branch": "codex/ux16-beta-haptic-20261017",
+  "claimCommit": "c39031b5ab811145580aabb0dd59a358c4fe931c",
+  "ACKCommit": "374e29ca58efb1c9baa6c7f06f7e1b33f64b098a",
+  "sourceScopeACK": "0c786ff4ba25ecb86948a770d39b145895a4c741",
+  "claudeDecision": "6a7b12f44e719ecfc59a0355bb88c0ef6cb35a5a",
+  "nativePRAttachmentConfirmed": true,
+  "sourceFrozen": true,
+  "productReady": false,
+  "tests": [
+    {
+      "name": "New causal browser RED on exact beta",
+      "exitCode": 1,
+      "passed": 14,
+      "failed": 7,
+      "source": "a9c9e45d76d0d92c2c529b0652c24496dea75300",
+      "phase": "Executed privately before fix; not repeated in delivery"
+    },
+    {
+      "name": "Actual DOM CSS navigation shared case function via dependency-free CDP",
+      "exitCode": 0,
+      "passed": 25,
+      "failed": 0,
+      "syntheticTouchEvents": true,
+      "nativeTransportMock": true,
+      "playwrightRunnerExecuted": false,
+      "browser": "Edge 155",
+      "oneBrowserAtATime": true,
+      "retries": 0,
+      "phase": "Previously completed; not repeated"
+    },
+    {
+      "command": [
+        "node",
+        "--test",
+        "tests/ux16-haptics.test.mjs"
+      ],
+      "exitCode": 0,
+      "passed": 5,
+      "realSourceExtracted": true,
+      "phase": "Previously completed; not repeated"
+    },
+    {
+      "name": "Pure Java HapticPlan with JBR and existing JUnit",
+      "compileExit": 0,
+      "exitCode": 0,
+      "passed": 3,
+      "motorDurationPairs": 49,
+      "AndroidPluginCompiled": false,
+      "Gradle": false,
+      "phase": "Previously completed; not repeated"
+    },
+    {
+      "name": "Nine distinct isolated semantic mutants",
+      "exitCode": 1,
+      "killed": 9,
+      "browser": 4,
+      "node": 2,
+      "JVM": 3,
+      "mutantJavaCompileExit": 0,
+      "assertionBased": true,
+      "phase": "Previously completed; not repeated"
+    },
+    {
+      "command": [
+        "node",
+        "scripts/build-app.mjs"
+      ],
+      "exitCode": 0,
+      "phase": "Previously completed private web build; not repeated"
+    },
+    {
+      "command": [
+        "node",
+        "scripts/check-syntax.mjs"
+      ],
+      "exitCode": 0,
+      "blocks": 7,
+      "phase": "Previously completed; not repeated"
+    },
+    {
+      "name": "Private staged diff check",
+      "exitCode": 0,
+      "phase": "Previously completed; not repeated"
+    }
+  ],
+  "behavior": {
+    "edge": "Passive observer, existing wave scrollers, outward ten pixels counted from boundary with finger, one call per gesture; touchstart rearms. No fling, horizontal, no-scroll, stopSwipe, cancel, multitouch or Profile/Settings navigation gestures. No preventDefault or scroll change.",
+    "fill": "Single Mi ciclo target, actual CSS animationstart and 1100ms duration, after150ms CSS delay and splash pause; dedupe CSSAnimation instance, no rerender or non-animated return trigger.",
+    "native": "Existing WebView and registered Capacitor plugin, no diagnostic subclass. performHapticFeedback without ignore flags; supported LOW_TICK Composition only API33 or higher with USAGE_TOUCH, normal VIBRATE permission, estimated primitive duration included in1200ms and ten-tick bound; single tick fallback. Reduced motion or no plugin is silent."
+  },
+  "validationQualification": {
+    "servedDiskHTMLSHA256": "ca3d5cadee563745a59f498e2e17871e4dc0c3a1af36fb39fd8ed4adb376ef06",
+    "committedLFHTMLSHA256": "0c9e692d4e3df732f128ebc8f74073588db06949ad09f7cae267741f3dbe7c6e",
+    "equalAfterLFNormalization": true,
+    "initialHarnessFailureExcludedFromCausalRED": true,
+    "firstNoSwipeMutantDownstreamCountsQualifiedByIndependentCase": true,
+    "privateEvidenceAndFailuresPreserved": true
+  },
+  "deliveryCommands": [
+    {
+      "command": [
+        "git",
+        "push",
+        "origin",
+        "8a34391adb65634c55ee8fd4535c5bd308b22da0:refs/heads/codex/ux16-beta-haptic-20261017"
+      ],
+      "exitCode": 0,
+      "normalPush": true
+    },
+    {
+      "tool": "gh pr create",
+      "PR": 260,
+      "base": "beta",
+      "draft": true,
+      "exitCode": 0
+    },
+    {
+      "tool": "gh pr view",
+      "PR": 260,
+      "headBodyDraftBaseAndSixteenPathsExact": true,
+      "exitCode": 0
+    }
+  ],
+  "testsRepeatedDuringDelivery": false,
+  "buildRepeatedDuringDelivery": false,
+  "sourceChangedDuringDelivery": false,
+  "fetchBudget": {
+    "idbudget": "ux16-own12-1-db3299cd-084e69a4",
+    "allowance": 12,
+    "usedBeforeResultReadback": 11,
+    "readbackExpectedUsed": 12,
+    "remainingExpected": 0,
+    "firstReadCounted": true,
+    "allInternalFetchesAndReadbacksCounted": true,
+    "initialOwn10Closed10of10": true,
+    "reset": false,
+    "ROOTInherited": false,
+    "newBlockActivated": false,
+    "newNotice": false,
+    "SEC01WaiverApplied": false
+  },
+  "limitations": [
+    "CDP ran real DOM/CSS/navigation with synthetic touches and a mocked native transport; the registered Playwright wrapper was not launched locally.",
+    "JVM validates the pure timing plan only. Full Android plugin compilation and review by Claude, Gradle/APK and real motor/system setting acceptance were not executed or credited.",
+    "Real WebView may cancel touch delivery before reaching an edge; actual wave/finger behavior requires mobile acceptance. Primitive durations are estimates; physical timing and bridge latency unmeasured.",
+    "General CI, full suite, docs-frescura, beta-sources, official minified size/caps, integration, release metadata, served beta and physical mobile acceptance pending. No ProductREADY.",
+    "No CPU6, live SQL/banks, deployment, main-beta push/merge, new dependencies, VERSION/catalogue/cap or financial source changes. Rejected diagnostic preserved unapplied; original investigation/WIP untouched.",
+    "Private manifest preserves exact source bytes and Git-normalized hashes; no private paths copied into the public result. No code/tests/build/measurements repeated during serial delivery."
+  ],
+  "artifacts": [
+    "docs/briefs/ux16-haptics.md",
+    "e2e/ux16-haptics.spec.mjs",
+    "tests/ux16-haptics.test.mjs",
+    "android/app/src/main/java/com/micartera/app/AelyHapticsPlugin.java",
+    "android/app/src/main/java/com/micartera/app/HapticPlan.java",
+    "android/app/src/test/java/com/micartera/app/HapticPlanTest.java"
+  ],
+  "nextAction": "After exact own result readback close actually exhausted OWN12 ledger, save delivery checkpoint, release public slot and STOP. No polling or coordinator messages; Claude review and integration remain separate.",
+  "schema": 1,
+  "taskId": "ux16-edge-haptic-codex-20261017",
+  "actor": "codex",
+  "sessionId": "codex-local-20261017-d382f016f7ca68b8",
+  "createdAt": "2026-10-17T15:42:52.693Z",
+  "released": true
+}
