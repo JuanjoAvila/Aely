@@ -107,7 +107,7 @@ function usePlanEditSave({state,set,field,item,onClose,showToast}){
     if(!pending||!outcome.current) return;
     if(outcome.current.error){ sending.current=false; setPending(null); setError("plan_edit_changed"); return; }
     const rows=(state[field]||[]).filter(function(x){ return x.id===item.id; });
-    // La hoja ya no se desmonta aquí sino tras bajar: durante esos 300 ms otra escritura (la nube,
+    // La hoja ya no se desmonta aquí sino tras bajar: durante esa salida otra escritura (la nube,
     // un sync) volvía a pasar por este efecto y repetía el cierre y el «Cambios guardados».
     if(rows.length===1&&planEditSame(rows[0],pending)){ outcome.current=null; onClose(); if(showToast) showToast(t("plan_edit_saved")); }
   },[pending,state[field]]);
@@ -832,8 +832,8 @@ function ContributeGoalSheet({goal, state, onClose, onContribute}){
       setBank(goal.fromBank || (daily&&daily.ent) || (bankOpts[0]||null));
     }
   },[goal]);
-  useBackClose(!!goal, onClose);
   const swipe=useSheetSwipe(!!goal, onClose);
+  useBackClose(!!goal, swipe.close);
   if(!goal) return null;
   const amt=parseNumPadRaw(raw);
   const save=function(){

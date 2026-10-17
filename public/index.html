@@ -9043,6 +9043,8 @@ function _mcBackInitOnce(){
     _mcBackSchedule();
   });
 }
+/* Una hoja con useSheetSwipe pasa aquí `swipe.close`, no su onClose: con el pelado, atrás la
+   desmontaba de golpe sin bajar ni aclarar el velo (Filtros, Más…, bienes, aportar a meta; 2026-10-17). */
 function useBackClose(open, onClose, identity){
   const close=useRef(null);
   // Conserva la closure de apertura y las refs financieras existentes. Sólo los propietarios
@@ -9284,7 +9286,7 @@ function useSheetSwipe(open, onClose, opts){
     }
     if(e.cancelable) e.preventDefault();
   };
-  const closeAnimated=function(done){
+  const runClose=function(done,fromDrag){
     if(closing.current) return;
     const finish=typeof done==="function"?done:onClose;
     const el=sheetRef.current;
@@ -9293,11 +9295,16 @@ function useSheetSwipe(open, onClose, opts){
     // El transform arranca antes del setState/guardado que pueda ejecutar quien cierra: al vivir
     // en el compositor sigue avanzando aunque React tenga que recalcular la lista de Gastos.
     el.classList.remove("dragging");
-    const ms=opts.closeMs||300;
+    // Soltar tras arrastrar sigue con la curva rápida: continúa la velocidad del dedo. Atrás, ✕,
+    // Guardar y tocar el velo salen de parado, y con esa curva la hoja hacía el 71 % del camino en
+    // 66 ms y el velo se aclaraba igual de golpe: en su móvil desaparecía en ~120 ms por atrás,
+    // borde o ✕ («se baja rápido y no suave» en todas las hojas; en Deudas, la más alta, se leía
+    // como parpadeo — beta 4.26.140.1, 2026-10-17). Sin dedo, el ritmo pausado de la apertura.
+    const ms=fromDrag?(opts.closeMs||300):420;
     // El fondo se libera al empezar la salida, no al desmontar: esperar esos 200–320 ms
     // recupera el tirón que ya se había eliminado (revisión independiente 2026-09-24).
     if(lockHeld.current){ lockHeld.current=false; mcSheetUnlock(); }
-    const ease=opts.closeEase||"cubic-bezier(.32,.72,0,1)";
+    const ease=fromDrag?(opts.closeEase||"cubic-bezier(.32,.72,0,1)"):"cubic-bezier(.3,0,.2,1)";
     el.style.transition="transform "+ms+"ms "+ease;
     el.style.transform="translate3d(0,110%,0)";
     // El velo se va con la hoja, mismo tiempo y curva. Antes solo bajaba la hoja y el velo se
@@ -9314,6 +9321,7 @@ function useSheetSwipe(open, onClose, opts){
       finish();
     },ms);
   };
+  const closeAnimated=function(done){ runClose(done,false); };
   const onTouchEnd=function(e){
     if(e&&e.stopPropagation) e.stopPropagation();
     if(closing.current) return;
@@ -9324,14 +9332,17 @@ function useSheetSwipe(open, onClose, opts){
     if(!el){ if(dist>80) onClose(); return; }
     el.classList.remove("dragging");
     if(dist>80){
-      closeAnimated();
+      runClose(null,true);
     } else if(mcReduced()){
       el.style.transition=""; el.style.transform="";
     } else {
       const snapMs=opts.snapMs||280;
       el.style.transition="transform "+snapMs+"ms "+(opts.snapEase||"cubic-bezier(.32,.72,0,1)");
       el.style.transform="translate3d(0,0,0)";
-      setTimeout(function(){ try{ el.style.transition=""; el.style.transform=""; }catch(err){} },snapMs);
+      // Un toque en ✕ o Guardar también pasa por aquí (touchend antes del click que cierra). Si la
+      // hoja ya está saliendo, borrar su transform la devolvía arriba antes de desmontarse: en su
+      // móvil, la hoja de Deudas reaparecía de golpe al final del cierre (medido 2026-10-17).
+      setTimeout(function(){ if(closing.current) return; try{ el.style.transition=""; el.style.transform=""; }catch(err){} },snapMs);
     }
   };
   const onTouchCancel=function(e){
@@ -11389,8 +11400,8 @@ function filterSelLabel(id, debts){
   return d&&d.name||catName("deudas");
 }
 function GastosFilterSheet({open, onClose, sel, setSel, bankSel, setBankSel, bucketSel, setBucketSel, bankOpts, diarioEnts, debts}){
-  useBackClose(!!open, onClose);
   const swipe=useSheetSwipe(!!open, onClose);
+  useBackClose(!!open, swipe.close);
   const [qCat,setQCat]=useState("");
   const [filterCatsOpen,setFilterCatsOpen]=useState(false);
   useEffect(function(){
@@ -11514,8 +11525,8 @@ function GastosFilterSheet({open, onClose, sel, setSel, bankSel, setBankSel, buc
    único sheet que no se podía cerrar tirando hacia abajo («el más de la foto» — feedback
    2026-07-18) ni con el gesto atrás. Mismo patrón que BudgetSheet. */
 function PeriodMoreSheet({open, onClose, preset, setPreset}){
-  useBackClose(!!open, onClose);
   const swipe=useSheetSwipe(!!open, onClose);
+  useBackClose(!!open, swipe.close);
   if(!open) return null;
   return ReactDOM.createPortal(
     React.createElement("div",{className:"v4-sheet-back",onClick:onClose},
@@ -13834,8 +13845,8 @@ function AssetSheet({asset,set,onClose}){
   const [name,setName]=useState(asset.name||"");
   const [raw,setRaw]=useState(asset.value==null?"":String(asset.value));
   const [kind,setKind]=useState(asset.kind||"piso");
-  useBackClose(true,onClose);
   const swipe=useSheetSwipe(true,onClose);
+  useBackClose(true,swipe.close);
   const amount=Number(raw.replace(",","."));
   const valid=name.trim()&&/^\d+(?:[.,]\d{1,2})?$/.test(raw)&&Number.isSafeInteger(Math.round(amount*100));
   const save=function(){
@@ -18359,7 +18370,7 @@ function usePlanEditSave({state,set,field,item,onClose,showToast}){
     if(!pending||!outcome.current) return;
     if(outcome.current.error){ sending.current=false; setPending(null); setError("plan_edit_changed"); return; }
     const rows=(state[field]||[]).filter(function(x){ return x.id===item.id; });
-    // La hoja ya no se desmonta aquí sino tras bajar: durante esos 300 ms otra escritura (la nube,
+    // La hoja ya no se desmonta aquí sino tras bajar: durante esa salida otra escritura (la nube,
     // un sync) volvía a pasar por este efecto y repetía el cierre y el «Cambios guardados».
     if(rows.length===1&&planEditSame(rows[0],pending)){ outcome.current=null; onClose(); if(showToast) showToast(t("plan_edit_saved")); }
   },[pending,state[field]]);
@@ -19084,8 +19095,8 @@ function ContributeGoalSheet({goal, state, onClose, onContribute}){
       setBank(goal.fromBank || (daily&&daily.ent) || (bankOpts[0]||null));
     }
   },[goal]);
-  useBackClose(!!goal, onClose);
   const swipe=useSheetSwipe(!!goal, onClose);
+  useBackClose(!!goal, swipe.close);
   if(!goal) return null;
   const amt=parseNumPadRaw(raw);
   const save=function(){
@@ -22127,7 +22138,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="a362f095847c18679e1400803d0685a0cd47af49c3cdb8dd42f3daf928013fd3";
+var _rnSha="6dc82926b6420585b8e02d6b937021c7cc4862cff3cb026442b794ac1cccbbca";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){

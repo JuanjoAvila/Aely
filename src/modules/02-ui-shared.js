@@ -1214,6 +1214,8 @@ function _mcBackInitOnce(){
     _mcBackSchedule();
   });
 }
+/* Una hoja con useSheetSwipe pasa aquí `swipe.close`, no su onClose: con el pelado, atrás la
+   desmontaba de golpe sin bajar ni aclarar el velo (Filtros, Más…, bienes, aportar a meta; 2026-10-17). */
 function useBackClose(open, onClose, identity){
   const close=useRef(null);
   // Conserva la closure de apertura y las refs financieras existentes. Sólo los propietarios
@@ -1455,7 +1457,7 @@ function useSheetSwipe(open, onClose, opts){
     }
     if(e.cancelable) e.preventDefault();
   };
-  const closeAnimated=function(done){
+  const runClose=function(done,fromDrag){
     if(closing.current) return;
     const finish=typeof done==="function"?done:onClose;
     const el=sheetRef.current;
@@ -1464,11 +1466,16 @@ function useSheetSwipe(open, onClose, opts){
     // El transform arranca antes del setState/guardado que pueda ejecutar quien cierra: al vivir
     // en el compositor sigue avanzando aunque React tenga que recalcular la lista de Gastos.
     el.classList.remove("dragging");
-    const ms=opts.closeMs||300;
+    // Soltar tras arrastrar sigue con la curva rápida: continúa la velocidad del dedo. Atrás, ✕,
+    // Guardar y tocar el velo salen de parado, y con esa curva la hoja hacía el 71 % del camino en
+    // 66 ms y el velo se aclaraba igual de golpe: en su móvil desaparecía en ~120 ms por atrás,
+    // borde o ✕ («se baja rápido y no suave» en todas las hojas; en Deudas, la más alta, se leía
+    // como parpadeo — beta 4.26.140.1, 2026-10-17). Sin dedo, el ritmo pausado de la apertura.
+    const ms=fromDrag?(opts.closeMs||300):420;
     // El fondo se libera al empezar la salida, no al desmontar: esperar esos 200–320 ms
     // recupera el tirón que ya se había eliminado (revisión independiente 2026-09-24).
     if(lockHeld.current){ lockHeld.current=false; mcSheetUnlock(); }
-    const ease=opts.closeEase||"cubic-bezier(.32,.72,0,1)";
+    const ease=fromDrag?(opts.closeEase||"cubic-bezier(.32,.72,0,1)"):"cubic-bezier(.3,0,.2,1)";
     el.style.transition="transform "+ms+"ms "+ease;
     el.style.transform="translate3d(0,110%,0)";
     // El velo se va con la hoja, mismo tiempo y curva. Antes solo bajaba la hoja y el velo se
@@ -1485,6 +1492,7 @@ function useSheetSwipe(open, onClose, opts){
       finish();
     },ms);
   };
+  const closeAnimated=function(done){ runClose(done,false); };
   const onTouchEnd=function(e){
     if(e&&e.stopPropagation) e.stopPropagation();
     if(closing.current) return;
@@ -1495,14 +1503,17 @@ function useSheetSwipe(open, onClose, opts){
     if(!el){ if(dist>80) onClose(); return; }
     el.classList.remove("dragging");
     if(dist>80){
-      closeAnimated();
+      runClose(null,true);
     } else if(mcReduced()){
       el.style.transition=""; el.style.transform="";
     } else {
       const snapMs=opts.snapMs||280;
       el.style.transition="transform "+snapMs+"ms "+(opts.snapEase||"cubic-bezier(.32,.72,0,1)");
       el.style.transform="translate3d(0,0,0)";
-      setTimeout(function(){ try{ el.style.transition=""; el.style.transform=""; }catch(err){} },snapMs);
+      // Un toque en ✕ o Guardar también pasa por aquí (touchend antes del click que cierra). Si la
+      // hoja ya está saliendo, borrar su transform la devolvía arriba antes de desmontarse: en su
+      // móvil, la hoja de Deudas reaparecía de golpe al final del cierre (medido 2026-10-17).
+      setTimeout(function(){ if(closing.current) return; try{ el.style.transition=""; el.style.transform=""; }catch(err){} },snapMs);
     }
   };
   const onTouchCancel=function(e){
