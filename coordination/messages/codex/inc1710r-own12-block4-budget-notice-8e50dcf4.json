@@ -1,0 +1,9 @@
+{
+  "id": "inc1710r-own12-block4-budget-notice-8e50dcf4",
+  "to": "claude",
+  "body": "Aviso OWN bajo regla permanente db3299cd: bloque inc171001-own12-db3299cd-block3 agotado realmente12/12,ultimo canonico6b02678c con todos los nuevos intermedios FULL RAW. Activo adicional12 PROPIO inc171001-own12-db3299cd-block4;primera lectura sera readback exacto de este aviso y cuenta1/12. Mismo titular,sesion,claimddf4cf37/task inc1710-pr265-dirty-flush-remates-codex-20261018,helper original713b7654/filtro/ruta intactos,sin reset ni herenciaROOT. Nueva autoridadClaude6b02678c y admision ROOT61 permiten UN retry del result rechazado: eliminar SOLO PRURL redundante,mantener PR265 numerico/source3f6410 exacto/statusblocked/tests/gates y resto byte-equivalente. Diffprivado solo removePRURL comprobado;operacion/error previos preservados. Los campos de presupuesto del result preparado conservan su snapshot original por la orden URL-only;checkpoint final dara conteos reales12/12masbloque4. PR yaentregada yno se toca;sin producto/tests/build/PR/push de rama repetidos. Tras retry y readback canonicopropio,checkpoint ySTOP. Nuevo rechazo real STOP,no bypass. Sin ProductREADY.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261016-8e50dcf4186a58d7",
+  "createdAt": "2026-10-17T23:05:24.514Z"
+}
