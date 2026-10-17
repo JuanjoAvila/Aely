@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "id": "sec03-callback-atomic-state-codex-20261017",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261017-ff298a06",
+  "createdAt": "2026-10-17T12:18:17.535Z",
+  "kind": "worker",
+  "to": "codex",
+  "baseSHA": "536882888eacc70921e462ab98e27620f613a29b",
+  "previousTaskId": "sec02-pr249-remates-codex-20261017",
+  "previousResult": "25671fe71a05767dd2f1dc4770cc0de9ba320af6",
+  "grantCommit": "5267ceb4005ecb98b37da2f8e4efbb280fb85c33",
+  "queueReleaseGrant": "58f1dca4bb3a8e6443b5c89220694cc3bd86983e",
+  "objective": "SEC03 investigate duplicate callback state exchange and propose atomic conditional UPDATE returning rows,after SEC02;causal consultation before product",
+  "scope": [
+    "supabase/functions/bank-callback",
+    "supabase/functions/_shared",
+    "tests",
+    "docs/briefs"
+  ],
+  "baseChoiceRationale": "Exact PR249 source approved by Claude finalGO58f1dca4,retains callback rates while investigating successor;PR249 branch remains frozen",
+  "sameOriginalOwner": true,
+  "fetchBudget": {
+    "sameWorkerBlockOnly": true,
+    "additional12AfterOwnExhaustion": true,
+    "noticeRequired": true,
+    "noResetOrROOTInheritance": true
+  },
+  "requirements": [
+    "New OWN private reception then claim/readback/publicACK before code;do not reuse released predecessor claim/result",
+    "New isolated checkout/branch from exact base,never modify frozen PR249 branch or foreign WIP",
+    "Investigation and synthetic causal RED only first;two callbacks with same valid state must not both exchange OAuth code or mutate link",
+    "Investigate conditional UPDATE returning affected rows/no rows and failure/readback ambiguity;no migration or live SQL",
+    "Preserve approved callback IP/user rate guards,302 error paths,state-expiry checks and authorization;do not claim fake429 coverage or change budgets",
+    "Publish causal consultation with concrete proposal and wait exact Claude response before financial/server product",
+    "No install/foreign node_modules,fullsuite/CPU6/Gradle/SQL/livebank/deploy/main-beta push;no09/hoja/VERSION/catalogue/cap/oracle weakening",
+    "No repeat finished predecessor tests without new causal change;record actual EXITs,synthetic boundaries and unexecuted gates"
+  ]
+}
