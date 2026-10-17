@@ -50,7 +50,7 @@ const results=evaluate(source),failed=results.filter(x=>!x.passed),mutations=[];
 if(!failed.length&&process.argv.includes("--mutations")){
  const definitions=[
   {id:"M2-indice-en-vez-de-id",find:"s[field].map(function(x){ return x.id===before.id?next:x; })",replace:"s[field].map(function(x,i){ return i===0?next:x; })",cases:["M2-id-debts","M2-id-goals"]},
-  {id:"M5-no-recalcular-plazo",find:/if\(\(amountChanged\|\|dayChanged\)&&!quotaChanged&&!termChanged&&next.months!=null&&am>0\)/,replace:"if(false)",cases:["R1-dia","M5-saldo-residual"]},
+  {id:"M5-no-recalcular-plazo",find:/if\(\(amountChanged\|\|dayChanged\)&&!\(quotaChanged&&quotaIsAmort\)&&!termChanged&&next.months!=null&&am>0\)/,replace:"if(false)",cases:["R1-dia","M5-saldo-residual"]},
   {id:"M10-cuota-sin-validar",find:"if((termChanged||quotaChanged&&quotaIsAmort)&&next.months!=null)",replace:"if(termChanged&&next.months!=null)",cases:["R1-cuota-baja-rechazada","R1-amort-ligada-cuota-rechazada"]},
   {id:"M11-cuota-siempre-amortiza",find:"const quotaIsAmort=d.amort==null||Math.abs(d.amort-(d.monthly||0))<=0.005;",replace:"const quotaIsAmort=true;",cases:["R1-amort-distinta-cuota"]},
   {id:"M8-sin-bloqueo-terminada",find:"if(debtEditFinished(d)&&(amountChanged||quotaChanged||dayChanged||termChanged||aprChanged))",replace:"if(false)",cases:["M8-terminada-bloquea-saldo","M8-terminada-bloquea-cuota","M8-terminada-bloquea-TAE","M8-terminada-bloquea-dia","M8-terminada-bloquea-plazo","M8-terminada-bloquea-sin-plazo"]},

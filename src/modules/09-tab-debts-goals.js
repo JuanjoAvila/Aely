@@ -53,9 +53,11 @@ function debtEditResult(d,form){
     if(amountChanged&&next.months==null){ next.asOf=ymNow(); next.value=+balance.toFixed(2); }
     else{
       // Saldo/día también cambian la proyección: mantener el plazo dejaba principal huérfano.
-      // Con la cuota no se recalcula: ya se validó contra el plazo que el usuario ve.
+      // Con la cuota que amortiza no se recalcula: ya se validó contra el plazo que el usuario ve.
+      // Si la cuota no amortiza (amort distinta), saldo+cuota a la vez sigue recalculando: si no,
+      // nadie miraba el plazo y quedaba principal sin cuotas o cuotas fantasma (revisión d139).
       // Cuenta en céntimos para no añadir una cuota por el error binario de una división exacta.
-      if((amountChanged||dayChanged)&&!quotaChanged&&!termChanged&&next.months!=null&&am>0){
+      if((amountChanged||dayChanged)&&!(quotaChanged&&quotaIsAmort)&&!termChanged&&next.months!=null&&am>0){
         const viaM=Math.max(0,Math.round(balance*100)-Math.round((next.balloon||0)*100)),perMonth=Math.round(am*100);
         if(viaM>0&&perMonth<=0) return {error:"plan_edit_invalid"};
         next.months=paid+(viaM>0?Math.ceil(viaM/perMonth):(next.balloon>0&&balance>0.005?1:0));

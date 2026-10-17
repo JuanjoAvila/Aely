@@ -18212,9 +18212,11 @@ function debtEditResult(d,form){
     if(amountChanged&&next.months==null){ next.asOf=ymNow(); next.value=+balance.toFixed(2); }
     else{
       // Saldo/día también cambian la proyección: mantener el plazo dejaba principal huérfano.
-      // Con la cuota no se recalcula: ya se validó contra el plazo que el usuario ve.
+      // Con la cuota que amortiza no se recalcula: ya se validó contra el plazo que el usuario ve.
+      // Si la cuota no amortiza (amort distinta), saldo+cuota a la vez sigue recalculando: si no,
+      // nadie miraba el plazo y quedaba principal sin cuotas o cuotas fantasma (revisión d139).
       // Cuenta en céntimos para no añadir una cuota por el error binario de una división exacta.
-      if((amountChanged||dayChanged)&&!quotaChanged&&!termChanged&&next.months!=null&&am>0){
+      if((amountChanged||dayChanged)&&!(quotaChanged&&quotaIsAmort)&&!termChanged&&next.months!=null&&am>0){
         const viaM=Math.max(0,Math.round(balance*100)-Math.round((next.balloon||0)*100)),perMonth=Math.round(am*100);
         if(viaM>0&&perMonth<=0) return {error:"plan_edit_invalid"};
         next.months=paid+(viaM>0?Math.ceil(viaM/perMonth):(next.balloon>0&&balance>0.005?1:0));
@@ -22007,7 +22009,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="8a667625433382e9fa75e7afe5fd16afaa79e28d822e75a2394f4acb65af1410";
+var _rnSha="ad0b8914233c59226bfe4e4a96a6a11ce2f1d42a578ecffd4aff189cd95debbc";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){

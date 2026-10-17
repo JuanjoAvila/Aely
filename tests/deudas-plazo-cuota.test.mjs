@@ -17,6 +17,9 @@ const mutations={
  amortQuieta:{find:"if(quotaIsAmort&&d.amort!=null) next.amort=next.monthly;",replace:"",witness:"alta-1000-3-cuota-340-ok"},
  todoLigado:{find:"const quotaIsAmort=d.amort==null||Math.abs(d.amort-(d.monthly||0))<=0.005;",replace:"const quotaIsAmort=true;",witness:"prestamo-familiar-cuota-200-ok"},
  nadaLigado:{find:"const quotaIsAmort=d.amort==null||Math.abs(d.amort-(d.monthly||0))<=0.005;",replace:"const quotaIsAmort=false;",witness:"alta-1000-3-cuota-100-rechazada"},
+ // Saldo y cuota no ligada a la vez: sin recálculo el plazo no cancelaba lo pendiente (revisión d139).
+ mixtaSinRecalculo:{find:"&&!(quotaChanged&&quotaIsAmort)&&!termChanged&&",replace:"&&!quotaChanged&&!termChanged&&",witness:"prestamo-familiar-saldo-y-cuota-recalcula"},
+ tolerancia:{find:"Math.abs(d.amort-(d.monthly||0))<=0.005",replace:"Math.abs(d.amort-(d.monthly||0))<=0.5",witness:"amort-centimo-distinta-no-ligada"},
  balloon:{find:"principal=Math.round(balance*100)-Math.round((next.balloon||0)*100)",replace:"principal=Math.round(balance*100)",witness:"balloon-rechaza-fantasma"}
 };
 if(mutation){assert.ok(mutations[mutation],"Mutante conocido");const m=mutations[mutation];assert.equal(source.split(m.find).length-1,1,"Mutación aplicada exactamente una vez");source=source.replace(m.find,m.replace);}
@@ -40,6 +43,11 @@ const cases=[
  ["prestamo-familiar-cuota-200-ok",r=>{const d=debt({value:6100,original:6100,monthly:197,amort:250,months:24,asOf:2026*12+9});const a=result(r,d,{monthly:"200"});assert.equal(a.error,undefined);assert.equal(a.item.monthly,200);assert.equal(a.item.amort,250);assert.equal(a.item.months,24);assert.equal(cents(r.c.debtBalance(a.item)),cents(r.c.debtBalance(d)));}],
  // Hipoteca del fixture e2e (cuota 660,85 con intereses, amortiza 450,15): revisar la cuota no toca el plazo.
  ["hipoteca-fixture-cuota-700-ok",r=>{const d={id:"debt",name:"Préstamo sintético",value:176714.8,original:180000,monthly:660.85,amort:450.15,months:309,asOf:2026*12+9-40,day:1,apr:1.05};const a=result(r,d,{monthly:"700"});assert.equal(a.error,undefined);assert.equal(a.item.monthly,700);assert.equal(a.item.amort,450.15);assert.equal(a.item.months,309);assert.equal(cents(r.c.debtBalance(a.item)),cents(r.c.debtBalance(d)));}],
+ // Revisión del banco con saldo nuevo y cuota que no amortiza: el plazo se recalcula igual que con
+ // solo el saldo, ni principal sin cuotas ni cuotas fantasma.
+ ["prestamo-familiar-saldo-y-cuota-recalcula",r=>{const d=debt({value:6000,original:6000,monthly:197,amort:250,months:24});const solo=result(r,d,{balance:"4000"});const a=result(r,d,{balance:"4000",monthly:"200"});assert.equal(solo.error,undefined);assert.equal(a.error,undefined);assert.equal(a.item.monthly,200);assert.equal(a.item.amort,250);assert.equal(a.item.months,solo.item.months);assert.equal(a.item.months,r.c.debtPaidCount(d)+16);assert.equal(cents(r.c.debtBalance(a.item)),400000);}],
+ // Un céntimo de diferencia ya es otra cuota: no se liga a la amortización ni se valida.
+ ["amort-centimo-distinta-no-ligada",r=>{const d=debt({value:1000,original:1000,monthly:333.33,amort:333.34,months:3,asOf:2026*12+9});const a=result(r,d,{monthly:"100"});assert.equal(a.error,undefined);assert.equal(a.item.monthly,100);assert.equal(a.item.amort,333.34);assert.equal(a.item.months,3);}],
  ["solo-cuota-alta-rechazada",r=>reject(r,debt(),{monthly:"500"})],
  ["solo-cuota-limite-exacto-rechazada",r=>reject(r,debt(),{monthly:"240"})],
  ["cuota-saldo-rechazada",r=>reject(r,debt(),{monthly:"100",balance:"1100"})],
