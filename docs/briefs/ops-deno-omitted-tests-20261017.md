@@ -1,3 +1,9 @@
+> Corte histórico de la primera candidata `f7bba04d`, entregada en PR255 con
+> result77423905. La ausencia observada era en PATH; no acreditaba ausencia de
+> una instalación en el perfil. Los remates privados verifican Deno2.9 y131 casos
+> reales: [fuente, tiempos y límites](deno-pr255-runtime-real-tests-20261017.md).
+> El texto y los resultados anteriores se conservan debajo como evidencia de esa fase.
+
 # Higiene Deno: inventario y candidata privada
 
 Tarea `ops-deno-omitted-tests-codex-20261017`; base exacta main
