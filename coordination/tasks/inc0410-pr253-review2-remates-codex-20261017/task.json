@@ -1,0 +1,42 @@
+{
+  "schema": 1,
+  "id": "inc0410-pr253-review2-remates-codex-20261017",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261017-ff298a06",
+  "createdAt": "2026-10-17T13:00:34.734Z",
+  "kind": "worker",
+  "to": "codex",
+  "baseSHA": "3e5884c48d56508ab06c518995fee4f2a763be22",
+  "previousTaskId": "inc0410-pr253-review-remates-codex-20261017",
+  "previousResult": "2ec32cc089b89c3b250ed8d4b2152a27d8ba7079",
+  "grantCommit": "7acaab1f8c1172dec034271d135250dffac2db22",
+  "sameOriginalOwner": true,
+  "PR": 253,
+  "objective": "Correct exact round2 PR253 NO-GO: one-sided reserve changes retain three-way goals and changed-side reserves, full sanitized private local conflict record and sandbox cleanup",
+  "scope": [
+    "src/modules/00-core.js",
+    "src/modules/11-app-main.js",
+    "tests",
+    "docs/briefs",
+    "public/index.html"
+  ],
+  "requirements": [
+    "New own reception/claim/readback/publicACK before code; same original owner/session/budget only; predecessor result2ec32cc0 and all previous sources/evidence immutable",
+    "NO-GO7acaab1f and general ruleacaf456d already authorize exactly these remates; no additional product GO after ownclaimACK",
+    "R2-1 divergence only if BOTH sides changed reserves differently from base; if only one side changed reserves, retain that side reserves and merge goals three-way; causalRED and exact-cent tests both orders of contribution and rule edit",
+    "R2-2 conflict record retains WHOLE local state except expenses,bankTx,histories,profile; preserve concurrent debt and account edits; retain separate local key cap3, no telemetry/private payload leak",
+    "mcResetSandbox deletes the new conflicts key; avoid extra read on each normal save if straightforward without expanding scope",
+    "Preserve prior M9/M12 behavior, coherent saved-target-done-doneAt group, ACK timestamp, once-per-record telemetry and SIGNED_OUT cleanup; no weakening or whole-list last-write fallback for one-sided reserve changes",
+    "Causal mutants for new corrected behavior and appropriate focal validation; do not repeat completed prior tests unless changed source affects them and reason recorded",
+    "Generated build committed; official size remains real gate but Claude decides integration and cap; no VERSION/cap/catalogue/oracle changes and no09/edit sheet",
+    "Private implementation after ownclaimACK; samePR253 push and numericPR result only in serial delivery slot; actualSHA,EXITs,mutants and unexecuted gates, no ProductREADY",
+    "No install/foreign dependencies,SQL/livebanks/backenddeploy,CPU6/fullsuite/Gradle/main-beta push or merge"
+  ],
+  "fetchBudget": {
+    "sameWorkerBlockOnly": true,
+    "additional12AfterOwnExhaustion": true,
+    "noticeRequired": true,
+    "firstFetchCounted": true,
+    "noResetOrROOTInheritance": true
+  }
+}
