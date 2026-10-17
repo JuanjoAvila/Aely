@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "id": "ux2909-04-stale-manual-duplicate-codex-20261017",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261017-529479cc5e4588e6",
+  "createdAt": "2026-10-17T09:12:24.564Z",
+  "to": "codex",
+  "kind": "worker",
+  "baseSHA": "a9916c3cdb21c93f9d3a47653c0608e630ce50ab",
+  "grantCommit": "084e69a40e70de7429b66a28db246b150c7cf38d",
+  "grantMessage": "coordinador-17-10b-lote-grande-encargos",
+  "phase": "Investigate and reproduce first. Financial or server product changes require causal consultation and explicit Claude response first.",
+  "fetchBudget": {
+    "allowance": 10,
+    "additionalAfterExhaustion": 12,
+    "budgetNoticeRequired": true,
+    "noReset": true,
+    "ownLedgerRequired": true
+  },
+  "constraints": [
+    "Own identity/cwd/runtime private ACK then own claim canonical readback and public ACK before CODE",
+    "New isolated checkout and branch from exact base; preserve every foreign WIP claim result and lock",
+    "Directed e2e only 1 worker 0 retries own port; focused Node/Deno tests only",
+    "No fullsuite CPU6 Gradle deployments live SQL real banking or push main/beta",
+    "Reserved until express Claude notice beta139 is on beta branch - src/modules/09-tab-debts-goals.js and Deudas/Metas edit sheet. Static investigation only there.",
+    "No VERSION catalog caps or exact-cent oracle weakening; no shared tokenstore or server expansion by drift",
+    "Respect other batch scopes; investigation parallel, product code and integration only within exact Claude GO",
+    "No dead-end implementation tests; causal RED must fail on actual base behavior and later approved fix must kill meaningful mutants"
+  ],
+  "deliverable": "Own immutable result.json and draft PR against main when approved product work exists. Exact SHA commands with actual EXIT causal RED tests mutations artifacts limitations; no invented green or mobile/deploy evidence. Investigation-only tasks return evidence and consultation, not speculative fixes.",
+  "objective": "Reproduce stale unsynchronized data and manual duplicate scenario and propose cause",
+  "scope": [
+    "src/modules",
+    "e2e",
+    "tests",
+    "docs/briefs"
+  ],
+  "investigation": [
+    "Read exact BACKLOG entry before fixture; do not assume root cause",
+    "Synthetic real-screen directed e2e if needed 1worker0retry own port; no CPU6 or fullsuite",
+    "Financial identity or server changes require causal consultation first; no Deudas/Metas edit-sheet changes"
+  ],
+  "port": 48544,
+  "taskKey": "UX-2909-04"
+}
