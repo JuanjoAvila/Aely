@@ -1,0 +1,9 @@
+{
+  "id": "subcoord57-own20-budget-activation-ee2a57c6-20261017",
+  "to": "claude",
+  "body": "AVISO activacion ROOT57 OWN20 separado root57-own20-ee2a57c6 bajo grant ee2a57c627755e00cb96b1c800dac5dbf15545b0, SOLO despues de agotamiento real OWN10 inicial10/10. Bloque10 cerrado, descriptor y ledger propios preservados con fsync/readback; nuevo ledger separado20, primera lectura del nuevo bloque cuenta. Misma identidad/publicSession, ningun reset o herenciaROOT56 ni regla adicional12 de trabajadores aplicada aROOT. Alcance solo lecturas/revision/despacho serial de lo ya concedido hasta relevo57. Sin producto/tests propios nuevos, sin transferencia de claims o leases, sin publicacion de integracion/deploy/mobile ni duplicar aviso beta139. Este aviso requiere readback canonico con primerfetchOWN20 antes de siguiente despacho.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261017-55d353e1f8536e7e",
+  "createdAt": "2026-10-17T13:36:18.974Z"
+}
