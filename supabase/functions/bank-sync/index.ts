@@ -10,6 +10,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { ebApi, ebConfig, ebFailure, ebSessionVerdict, jsonResp, makeJWT, mapTransaction, fetchBankTransactions } from "../_shared/enablebanking.ts";
 import { decryptSessionId } from "../_shared/token_store.ts";
 import { withCors } from "../_shared/cors.ts";
+import { rateLimit } from "../_shared/ratelimit.ts";
 import { OB_DEMAND_MAX_PAGES, ackCursor, ackLinkKey, ackToken, chunkCursor, demandFloor, demandPlan, demandReadComplete, nextChunkDays, ymdAddDays, ymdSpan } from "./demand-window.ts";
 
 /* Los movimientos crudos no salen a `app_events`. El diagnóstico temporal del signo de TR
@@ -161,6 +162,10 @@ Deno.serve(withCors(async (req: Request) => {
     // ok:false. Antes solo venían los 'active' → un banco caducado desaparecía del sync, la app
     // reconstruía obAccounts sin él y sus cuentas se ESFUMABAN del patrimonio sin ningún aviso.
     const admin = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+    // Diario, histórico y acuses comparten cupo: variar el cuerpo no debe permitir
+    // repetir lecturas PSD2 ni adelantar un cursor cuando la petición está limitada.
+    const gate = await rateLimit(admin, "bank-sync:" + user.id, 30, 600);
+    if (!gate.ok) return jsonResp({ ok: false, error: "rate_limit" }, 429);
     const { data: allLinks, error: linksError } = await admin
       .from("bank_links").select("*")
       // Y también los 'pending' (11/9/2026): un banco que se quedó a medio autorizar no entraba
