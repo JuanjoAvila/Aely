@@ -1,0 +1,51 @@
+{
+  "status": "blocked",
+  "summary": "Old UX251 final-controls phase closed by original holder under explicit Claude d1c35333: base and PR contract changed to beta503. Private candidate ea7b2cb4 preserved without product push or new PR. Await new successor task to port R1/R5 controls onto approved beta and a draft PR against beta. This closure is not product delivery or ProductREADY.",
+  "closureAuthority": "d1c35333b2978fd4069e7aeb1de92f46af8e8900",
+  "productSHA": "ea7b2cb4f9baf9aaab6bae787a6bdd244ecbe541",
+  "baseSHA": "00bb2bbb9bb68be157e589195507abdcd32581ca",
+  "approvedNextBaseSHA": "503d23267091eb5aa0b0e37dd94fac20ea37bd08",
+  "sourceDisposition": "Private clean commit preserved locally; not pushed; no new PR",
+  "claimCommit": "707d0b1133b9fca3229f810470b3b4621e5efa1b",
+  "ACKCommit": "05c08c0ef1513dd5155e00b9614bbc12a4b8f926",
+  "tests": [],
+  "historicalEvidence": {
+    "privateCheckpointSHA256": "dac481229c0f9a9b0c8b9717dceb85c8bfba65149b665e6177226e8ff0761761",
+    "preserved": true,
+    "notReexecuted": true,
+    "notEvidenceForBeta503": true
+  },
+  "preservation": {
+    "previousPR": 251,
+    "previousSource": "00bb2bbb9bb68be157e589195507abdcd32581ca",
+    "previousResult": "6311b034b738373fb4701b3739ead57ca7d13f01",
+    "previousResultByteIdentical": true,
+    "sourceAndWIPUntouched": true,
+    "helperFilterIdentityUnchanged": true
+  },
+  "fetchBudget": {
+    "idbudget": "ux290904-own12-2-db3299cd",
+    "allowance": 12,
+    "usedBeforeResult": 9,
+    "readbackCounts": true,
+    "expectedAfterReadback": 10,
+    "initial10Closed": true,
+    "first12Closed": true,
+    "noReset": true,
+    "noROOTInheritance": true,
+    "newBlock": false
+  },
+  "limitations": [
+    "Closure only after changed base contract. No product push,PR,port,source edit,new task or new claim in this turn.",
+    "No new or repeated tests,build,size measurement,DOM,CPU6,Gradle,SQL,banks,deploy,main-beta push or merge.",
+    "Previous size excess1214bytes belongs to old source and is not remeasured. Caps,VERSION,catalogue,09,sheet,oracles and dependencies untouched.",
+    "Old private evidence remains preserved separately; beta503 port,CI,integration,served artifact and mobile acceptance unverified. No ProductREADY."
+  ],
+  "nextAction": "STOP after exact result readback and private checkpoint. Wait NEW successor task; no polling or coordinator messages.",
+  "schema": 1,
+  "taskId": "ux290904-pr251-final-negative-controls-codex-20261017",
+  "actor": "codex",
+  "sessionId": "codex-local-20261017-0b83a68d560701ed",
+  "createdAt": "2026-10-17T20:07:18.866Z",
+  "released": true
+}
