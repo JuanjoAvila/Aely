@@ -8568,6 +8568,79 @@ function mcReduced(){
   try{ return document.documentElement.classList.contains("reduce-motion")||(window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches); }catch(e){ return false; }
 }
 
+// UX16: la web observa el dedo; solo Android decide si el ajuste táctil permite el toque.
+function mcHaptic(method, args){
+  if(mcReduced()||document.hidden) return;
+  try{
+    const cap=window.Capacitor, plugin=cap&&cap.Plugins&&cap.Plugins.AelyHaptics;
+    if(!plugin||typeof plugin[method]!=="function") return;
+    Promise.resolve(plugin[method](args||{})).catch(function(){});
+  }catch(e){}
+}
+function mcBindEdgeHaptics(root, blocked){
+  let g=null;
+  const end=function(){ g=null; };
+  const boundary=function(el){
+    const max=el.scrollHeight-el.clientHeight, y=el.scrollTop;
+    return max>1?(y<=1?"top":y>=max-1?"bottom":null):null;
+  };
+  const start=function(e){
+    g=null;
+    if(!e.touches||e.touches.length!==1||blocked()||mcReduced()) return;
+    const target=e.target;
+    if(!target||!target.closest||target.closest("[data-noswipe]")) return;
+    for(let el=target;el&&el!==document.body;el=el.parentElement){
+      const css=getComputedStyle(el);
+      if(el.scrollWidth>el.clientWidth+4&&/^(auto|scroll)$/.test(css.overflowX)) return;
+      if(el.scrollHeight<=el.clientHeight+1||!/^(auto|scroll)$/.test(css.overflowY)) continue;
+      // Un scroller interior sin ola no debe delegar su borde en la página exterior.
+      if(css.overscrollBehaviorY==="none"||(el.classList.contains("page")&&!el.classList.contains("page-scroll-host"))) return;
+      const t=e.touches[0];
+      g={el:el,id:t.identifier,x:t.clientX,y:t.clientY,lastY:t.clientY,anchor:t.clientY,edge:boundary(el),fired:false};
+      return;
+    }
+  };
+  const move=function(e){
+    if(!g) return;
+    if(!e.touches||e.touches.length!==1||e.touches[0].identifier!==g.id||blocked()||e.defaultPrevented){ end(); return; }
+    if(g.fired) return;
+    const t=e.touches[0], dx=t.clientX-g.x, dy=t.clientY-g.y, step=t.clientY-g.lastY;
+    g.lastY=t.clientY;
+    if(Math.abs(dx)>8&&Math.abs(dx)>Math.abs(dy)){ end(); return; }
+    const edge=boundary(g.el);
+    // Al aterrizar en el borde se empieza a contar desde allí: el recorrido de scroll no vale.
+    if(!edge||edge!==g.edge){ g.edge=edge; g.anchor=t.clientY; return; }
+    if((edge==="top"&&step<0)||(edge==="bottom"&&step>0)){ g.anchor=t.clientY; return; }
+    if(Math.abs(dy)<=Math.abs(dx)*1.2) return;
+    const outward=edge==="top"?t.clientY-g.anchor:g.anchor-t.clientY;
+    if(outward<10) return;
+    g.fired=true;
+    mcHaptic("edge");
+  };
+  const listeners={touchstart:start,touchmove:move,touchend:end,touchcancel:end,visibilitychange:end};
+  Object.keys(listeners).forEach(function(type){ root.addEventListener(type,listeners[type],{passive:true}); });
+  return function(){ end(); Object.keys(listeners).forEach(function(type){ root.removeEventListener(type,listeners[type]); }); };
+}
+// Un solo objetivo: cambiar esta línea selecciona otra animación sin multiplicar disparos.
+const MC_INICIO_HAPTIC={selector:".v42-cycle-draw",animation:"v42-cycle-draw"};
+function mcInicioFillHaptic(e){
+  const el=e.target;
+  if(!el||!el.matches(MC_INICIO_HAPTIC.selector)||e.animationName!==MC_INICIO_HAPTIC.animation||e.elapsedTime!==0||mcReduced()||document.hidden) return;
+  if(!window.__mcSplashGone&&document.getElementById("mc-load")) return;
+  const page=el.closest(".page");
+  if(!page||!page.classList.contains("page-scroll-host")) return;
+  try{
+    const animation=el.getAnimations().find(function(a){ return a.animationName===MC_INICIO_HAPTIC.animation; });
+    if(!animation||animation.playState!=="running") return;
+    const duration=animation.effect.getComputedTiming().duration;
+    const seen=mcInicioFillHaptic.seen||(mcInicioFillHaptic.seen=new WeakSet());
+    if(seen.has(animation)||!Number.isFinite(duration)||duration<=0) return;
+    seen.add(animation);
+    // animationstart sucede DESPUÉS del delay CSS y de la pausa del splash: sin segundo reloj.
+    mcHaptic("fill",{durationMs:duration});
+  }catch(err){}
+}
+
 /* Count-up compartido (B2). `ready` es la puerta: Inicio espera `mc-splash-gone`; Cartera espera
    el bus `mcOnCarteraActive`. Sin puerta, la animación se gasta con la pestaña premontada (o
    detrás del splash) y al llegar el número ya está puesto — peor que no animar. */
@@ -10190,7 +10263,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
   const monthName=monthLong(new Date().getMonth());
   const closedCard=closedMonthCardOf(state);
 
-  return React.createElement("div",{className:"v4-screen"},
+  return React.createElement("div",{className:"v4-screen",onAnimationStart:mcInicioFillHaptic},
     React.createElement("div",{className:"v4-inicio-head rise"},
       React.createElement("div",null,
         React.createElement("div",{className:"v4-inicio-date"}, new Date().toLocaleDateString(loc(),{weekday:"long",day:"numeric",month:"long"})),
@@ -29172,6 +29245,15 @@ function App(){
   },[tab, tabIds]);
   const gestRef=useRef({});
   gestRef.current={ s:onStart, m:onMove, e:onEnd, c:onCancel };
+  const hapticBlockRef=useRef(null);
+  hapticBlockRef.current=function(){
+    return locked||state.onboarded===false||gestureMode.current==="profile"||gestureMode.current==="drawer"||gestureMode.current==="tab"||
+      (dDrag.current&&dAx.current==="x")||(pDrag.current&&pOwn.current&&pAx.current==="y");
+  };
+  useEffect(function(){
+    // Observador pasivo aparte: no reclama el gesto ni cambia la física de los scrollers.
+    return mcBindEdgeHaptics(document,function(){ return hapticBlockRef.current(); });
+  },[]);
   useEffect(function(){
     const el=viewportRef.current; if(!el) return undefined;
     const s=function(e){ gestRef.current.s(e); };

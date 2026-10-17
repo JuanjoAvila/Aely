@@ -337,7 +337,7 @@ function Dashboard({state, totals, set, onOpenSettings, onOpenProfile, onGoGasto
   const monthName=monthLong(new Date().getMonth());
   const closedCard=closedMonthCardOf(state);
 
-  return React.createElement("div",{className:"v4-screen"},
+  return React.createElement("div",{className:"v4-screen",onAnimationStart:mcInicioFillHaptic},
     React.createElement("div",{className:"v4-inicio-head rise"},
       React.createElement("div",null,
         React.createElement("div",{className:"v4-inicio-date"}, new Date().toLocaleDateString(loc(),{weekday:"long",day:"numeric",month:"long"})),

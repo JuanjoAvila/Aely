@@ -2,6 +2,13 @@
 
 Los cuatro tests goals-three-way, goals-review-remates, goals-review2-remates y goals-review3-reserve-conflict están registrados en run-tests y se ejecutan sobre el HTML/fuentes de este checkout, junto a metas-pull-transport y reserva-dinero. Cubren tres vías, partición privada, ACK/M9/M12, reservas unilaterales/iguales y replay mensual17000c con un asiento; la subida inversa requiere replay manual20. E2E dirigidos de Metas y persistencia con datos sintéticos, puerto propio, un worker y cero reintentos; sin suite general ni CPU6. Resultados reales y gates pendientes en el [brief](briefs/inc-0410-lww-rechazo-20261017.md). Las evidencias de la fuente original permanecen separadas.
 
+UX16 (candidata sin APK): `tests/ux16-haptics.test.mjs` está registrado en `run-tests`;
+`e2e/ux16-haptics.spec.mjs`, en el mapa de UI compartida, Inicio y navegación.
+Comprueban guardas y animaciones con transporte nativo sintético; `HapticPlanTest`
+prueba en JVM el reparto acotado, contando la duración de cada primitiva.
+La fuente del plugin completo, el APK y el motor físico requieren revisión aparte.
+[Contrato y límites](briefs/ux16-haptics.md).
+
 FIN-15 (beta 4.26.138): `tests/fin15-pendiente-contabilizada.test.mjs` registrado en `run-tests` ejecuta
 cliente, month legacy y widget v2 con PDNG/BOOK en días distintos, en ambos órdenes.
 Incluye 676 comparaciones exactas sin `#ref` contra `9370565` y diez mutaciones semánticas.
