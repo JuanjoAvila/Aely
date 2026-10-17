@@ -64,7 +64,7 @@ async function fixture(run: (rows: Row[], events: Row[], calls: { path: string; 
       const matches = filtered(rows, url);
       // Una lectura JSON está separada de la fila viva, como en PostgREST.
       if (method === "GET") { const detached = JSON.parse(JSON.stringify(matches)); if (control.onRead) { const action=control.onRead; control.onRead=undefined; await action(); } return response(detached); }
-      if (method === "PATCH") { const patch = await request.json(); if(control.beforePatch)await control.beforePatch(patch); filtered(rows,url).forEach((row) => Object.assign(row, patch)); return response([]); }
+      if (method === "PATCH") { const patch = await request.json(); if(control.beforePatch)await control.beforePatch(patch); const hit = filtered(rows,url); hit.forEach((row) => Object.assign(row, patch)); return response(request.headers.get("prefer")?.includes("return=representation") ? hit.map(row => ({ id: row.id })) : []); }
       if (method === "DELETE") { const data=matches.map(row=>({id:row.id}));matches.forEach((row) => rows.splice(rows.indexOf(row), 1)); return response(data); }
       throw new Error("Mutación no modelada");
     }

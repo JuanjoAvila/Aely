@@ -11,6 +11,7 @@ import { ebApi, ebConfig, makeJWT } from "../_shared/enablebanking.ts";
 import { encryptSessionId } from "../_shared/token_store.ts";
 import { CallbackFallo, codigoCallback, codigoNolink } from "../_shared/entrada.ts";
 import { keepsCursor, type LinkedAccount } from "./reconnect.ts";
+import { bucketKey, callerIp, rateLimit } from "../_shared/ratelimit.ts";
 
 const APP_URL = Deno.env.get("APP_URL") || "https://juanjoavila.github.io/Aely/";
 
@@ -24,6 +25,14 @@ const APP_URL = Deno.env.get("APP_URL") || "https://juanjoavila.github.io/Aely/"
 function backToApp(ok: boolean, msg?: string): Response {
   const qs = ok ? "?ok=1" : `?msg=${encodeURIComponent(msg || "error")}`;
   return Response.redirect(`${APP_URL}back.html${qs}`, 302);
+}
+
+// Conserva el puente web/APK y su código cerrado: un freno no debe convertirse en
+// un error nuevo de OAuth ni llevar la query bancaria al navegador o al registro.
+function callbackRateLimited(fromApp: boolean): Response {
+  const msg = "error";
+  return fromApp ? backToApp(false, msg)
+    : Response.redirect(`${APP_URL}?bank=error&msg=${encodeURIComponent(msg)}`, 302);
 }
 
 Deno.serve(async (req) => {
@@ -45,6 +54,12 @@ Deno.serve(async (req) => {
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     admin = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
+    // La IP solo agrupa abuso antes del lookup; no autentica. El hash reutiliza el
+    // contrato de ingest y nunca guarda code/state ni la dirección en claro.
+    const ipBucket = await bucketKey("bank-callback-ip", callerIp(req));
+    const ipGate = await rateLimit(admin, ipBucket, 60, 60);
+    if (!ipGate.ok) return callbackRateLimited(fromApp);
+
     const { data: link } = await admin.from("bank_links").select("*").eq("state", state).maybeSingle();
     if (!link) throw new CallbackFallo("state", "state desconocido");
     userId = link.user_id || null;
@@ -62,8 +77,24 @@ Deno.serve(async (req) => {
     if (!isNaN(issued) && Date.now() - issued > 30 * 60 * 1000) {
       throw new CallbackFallo("caducado", "state emitido hace más de 30 min");
     }
+    // Un intento limitado conserva el state válido para poder terminar después.
+    const userGate = await rateLimit(admin, "bank-callback:" + link.user_id, 10, 600);
+    if (!userGate.ok) return callbackRateLimited(fromApp);
     // Se gasta ANTES de canjear el code: si el canje falla a mitad, el state ya no vale igual.
-    await admin.from("bank_links").update({ state: null }).eq("id", link.id);
+    // Solo quien consume esta autorización puede canjear el código. El SELECT anterior
+    // no reserva la fila: otro callback o bank-connect puede haberla cambiado después.
+    let consume = admin.from("bank_links").update({ state: null })
+      .eq("id", link.id).eq("state", state);
+    consume = link.state_issued_at == null
+      ? consume.is("state_issued_at", null)
+      : consume.eq("state_issued_at", link.state_issued_at);
+    const consumed = await consume.select("id");
+    if (consumed?.error || !Array.isArray(consumed?.data)
+      || consumed.data.length !== 1 || consumed.data[0]?.id !== link.id) {
+      // Un commit sin respuesta verificable también cierra el canje: leer state=null
+      // después no acredita quién ganó. No restaurar ni reintentar; hay que reconectar.
+      throw new CallbackFallo("error", "consumo de state no confirmado");
+    }
 
     const { appId, pem } = ebConfig();
     const jwt = await makeJWT(appId, pem);
@@ -160,7 +191,7 @@ Deno.serve(async (req) => {
        Los acuses que tuviera un móvil de antes de reconectar dejan de valer solos: van
        ligados a `state_issued_at`, que `bank-connect` renovó al empezar (`ackLinkKey`). */
     const keep = !!uid && keepsCursor(link, accts);
-    await admin.from("bank_links").update({
+    const { error: linkError } = await admin.from("bank_links").update({
       session_id: await encryptSessionId(sessionId),
       account_uid: uid,
       iban,
@@ -169,6 +200,7 @@ Deno.serve(async (req) => {
       ...(keep ? {} : { last_sync: null }),
       updated_at: new Date().toISOString(),
     }).eq("id", link.id);
+    if (linkError) throw new CallbackFallo("error", "enlace no guardado");
 
     // Si autorizó pero no obtuvimos una cuenta legible, no mentimos con "bank=ok".
     if (!uid) {

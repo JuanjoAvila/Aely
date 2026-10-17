@@ -2120,6 +2120,7 @@ Object.assign(LANG.es,{
   bank_connected:"Banco conectado ✓", bank_error:"No se pudo conectar el banco",
   bank_error_invalid:"Ese permiso ya se usó o caducó · vuelve a pulsar Reconectar y termina solo esa autorización",
   bank_error_busy:"Ya hay una autorización en marcha · termínala antes de abrir otra",
+  bank_rate_limit:"Demasiados intentos. Prueba en un rato.",
   // SEC-01 (4.23.0): códigos cortos del bank-callback. El detalle crudo se queda en el servidor.
   bank_err_eb:"El banco rechazó la autorización · vuelve a intentarlo",
   bank_err_sin_code:"Faltó el código del banco · vuelve a pulsar Conectar y termina solo esa autorización",
@@ -2150,6 +2151,7 @@ Object.assign(LANG.en,{
   bank_connected:"Bank connected ✓", bank_error:"Couldn't connect the bank",
   bank_error_invalid:"That permission was already used or expired · tap Reconnect again and finish only that one authorization",
   bank_error_busy:"An authorization is already in progress · finish it before opening another",
+  bank_rate_limit:"Too many attempts. Try again in a little while.",
   bank_err_eb:"The bank rejected the authorization · try again",
   bank_err_sin_code:"The bank code was missing · tap Connect again and finish only that authorization",
   bank_err_state:"That authorization doesn't match · tap Connect again from the app",
@@ -2173,6 +2175,7 @@ Object.assign(LANG.ca,{
   bank_connected:"Banc connectat ✓", bank_error:"No s'ha pogut connectar el banc",
   bank_error_invalid:"Aquest permís ja s'ha usat o ha caducat · torna a prémer Reconnecta i acaba només aquesta autorització",
   bank_error_busy:"Ja hi ha una autorització en marxa · acaba-la abans d'obrir-ne una altra",
+  bank_rate_limit:"Massa intents. Torna-ho a provar d'aquí a una estona.",
   bank_err_eb:"El banc ha rebutjat l'autorització · torna-ho a provar",
   bank_err_sin_code:"Ha faltat el codi del banc · torna a prémer Connecta i acaba només aquesta autorització",
   bank_err_state:"L'autorització no encaixa · torna a prémer Connecta des de l'app",

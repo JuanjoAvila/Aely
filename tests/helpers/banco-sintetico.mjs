@@ -24,7 +24,7 @@ export const Reconnect = await modulo("supabase/functions/bank-callback/reconnec
 // asignación a una variable sin declarar pasaba aquí en silencio y en producción lanzaba: así
 // vivió `bank-callback` con un `getDiag = …` que convertía un fallo del GET en `msg=error`
 // sin que ningún test viera ni lo uno ni lo otro (revisión del 12/10).
-export const handlerSrc = (index, ...vecinos) => '"use strict";\n' + vecinos.map((v) => ts(v).replace(/^export /gm, "")).join("\n")
+export const handlerSrc = (index, ...vecinos) => '"use strict";\n' + vecinos.concat(index.includes('../_shared/ratelimit.ts') ? [read("supabase/functions/_shared/ratelimit.ts")] : []).map((v) => ts(v).replace(/^export /gm, "")).join("\n")
   + "\n" + transformSync(index.replace(/^import .*?;\r?\n/gm, ""), { loader: "ts" }).code;
 export const SYNC = handlerSrc(read("supabase/functions/bank-sync/index.ts"), read("supabase/functions/bank-sync/demand-window.ts"));
 export const CALLBACK = handlerSrc(read("supabase/functions/bank-callback/index.ts"), read("supabase/functions/bank-callback/reconnect.ts"));
@@ -111,15 +111,16 @@ export function baseDatos(rows, { user = "synthetic", failUpdate = null, trasLee
   let leido = false;
   const consulta = (apply) => {
     const filters = [];
+    let returning = false;
     const q = {
       eq(col, v) { filters.push((r) => r[col] === v); return q; },
       in(col, vs) { filters.push((r) => vs.includes(r[col])); return q; },
       lt(col, v) { filters.push((r) => r[col] != null && Date.parse(r[col]) < Date.parse(v)); return q; },
       is(col, v) { filters.push((r) => (r[col] == null ? null : r[col]) === v); return q; },
-      select() { return q; },
+      select() { returning = true; return q; },
       maybeSingle() { return q.then((res) => ({ data: (res.data || [])[0] || null, error: null })); },
       then(ok, ko) {
-        return Promise.resolve().then(() => apply(rows.filter((r) => filters.every((f) => f(r))))).then(ok, ko);
+        return Promise.resolve().then(() => apply(rows.filter((r) => filters.every((f) => f(r))), returning)).then(ok, ko);
       },
     };
     return q;
@@ -130,10 +131,10 @@ export function baseDatos(rows, { user = "synthetic", failUpdate = null, trasLee
       if (trasLeer && !leido) { leido = true; trasLeer(rows); }
       return { data, error: null };
     }),
-    update: (patch) => consulta((hit) => {
+    update: (patch) => consulta((hit, returning) => {
       if (failUpdate && failUpdate(patch, hit)) return { error: { message: "synthetic" } };
       hit.forEach((r) => Object.assign(r, patch));
-      return { error: null };
+      return { error: null, ...(returning ? { data: hit.map(r => ({ id: r.id })) } : {}) };
     }),
     delete: () => consulta((hit) => { const data=hit.map(r=>({id:r.id}));hit.forEach((r) => rows.splice(rows.indexOf(r), 1)); return { data, error: null }; }),
     upsert: async (row, { onConflict }) => {
@@ -147,6 +148,9 @@ export function baseDatos(rows, { user = "synthetic", failUpdate = null, trasLee
   };
   return {
     auth: { getUser: async () => ({ data: { user: { id: user } } }) },
+    // Estos escenarios prueban cursores/reconexión; el contrato de cuotas se prueba
+    // aparte con la RPC simulada que sí cuenta, a través del mismo helper real.
+    rpc: async () => ({ data: true, error: null }),
     from: (name) => (name === "bank_links" ? links : { insert: async () => ({}) }),
   };
 }

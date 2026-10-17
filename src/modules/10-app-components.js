@@ -787,6 +787,7 @@ function BankPanel({state, set, showToast, uid, onBankSync, onClose, totals, onL
       .catch(function(e){
         setBusy("");
         if(e&&e.code==="busy"){ showToast("⚠ "+t("bank_error_busy")); return; }
+        if(bankRateLimited(e)){ showToast("⚠ "+t("bank_rate_limit")); return; }
         const msg=(e&&e.message)||String(e);
         showToast("⚠ "+t("bank_error")+": "+msg);
         /* ANTES ESTE FALLO ERA MUDO: solo un toast, que se lee y se olvida. La conexión de TR

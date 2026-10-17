@@ -41,6 +41,7 @@
 - OPS-08 · decidir si se automatiza la purga de `rate_limits` (la purga ya existe)
 - SEC-01 · `delete-account` fuera de `config.toml`; tope de cuerpo en 3 de 14 funciones (resto en PR 211)
 - SEC-02 · límites: ninguna `bank-*` lo tiene; `prices` apagado por `PRICES_RATE_LIMIT`
+- SEC-04 · callback frente a una nueva autorización durante OAuth: la escritura final por id puede sobrescribir sesión/status de la reconexión. Resolver con `connection_version`, no con una fecha como generación. Fuera de la candidata SEC03 de consumo atómico; sin migración ni implementación aquí. [Alcance](briefs/sec03-callback-atomic-state.md).
 
 **5 · Funciones nuevas**
 
