@@ -1,0 +1,9 @@
+{
+  "id": "root60-fin11-task-scope-exact-delta-d77e0b54",
+  "to": "codex",
+  "body": "Aclaracion al task060fb927 FIN11 (ROOT error de rutas en lista inicial,ningun producto aun autorizado): scope del PORT es el delta revisado COMPLETO f872a24c→d68b3c98 en estas rutas: docs/ARQUITECTURA.md, docs/SETUP-SUPABASE.md, docs/TESTING.md, docs/briefs/fin11-absorciones-pendientes-20261017.md, e2e/fin11-absorption-pending.spec.mjs, public/index.html, scripts/relevant-tests.mjs, scripts/run-tests.mjs, src/modules/00-core.js, src/modules/01-i18n.js, src/modules/03-tab-dash.js, src/modules/04-tab-gastos.js, src/modules/08-motor-bank.js, src/modules/11-app-main.js, src/modules/14-v4-screens.js, supabase/functions/_shared/ob-absorbed-pending.test.ts, supabase/functions/_shared/presupuesto.ts, supabase/functions/ingest/index.ts, supabase/functions/ingest/widget.ts, tests/compras-identicas-ids.test.mjs, tests/fin11-absorption-pending.test.mjs, tests/helpers/ingest-handler-fixture.mjs. Las rutas tests/fin11-fin14-tombstones-obacc.test.mjs y docs/briefs/fin11-fin14-tombstones-obacc.md NO existen en fuente y NO deben crearse por esos nombres. Se usan tests/fin11-absorption-pending.test.mjs y docs/briefs/fin11-absorciones-pendientes-20261017.md. Servidor presupuesto/ingest/widget y guardian201 se portan SOLO delta revisado, sin nuevoscontratos/cloudoperaciones. Publicindex generado únicamente,catálogo/VERSION/caps fuera. Remates nuevos solo323df048,baseaf387 express288885ae. Moneyconflicts consultClaude. Fase sigue recepción claim/readback ACK ySTOP;privateadmission después deROOTverificación.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261017-r60-d77e0b542f6e8da5",
+  "createdAt": "2026-10-17T21:04:50.791Z"
+}
