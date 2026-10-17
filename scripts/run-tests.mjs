@@ -239,6 +239,8 @@ if (huerfanos.length) {
 }
 
 const denoEnLista = [
+  "supabase/functions/_shared/input_handlers.test.ts",
+  "supabase/functions/_shared/request_body.test.ts",
   "supabase/functions/ingest/ingest.test.ts",
   "supabase/functions/ingest/widget.test.ts",
   "supabase/functions/_shared/crypto.test.ts",
@@ -281,7 +283,9 @@ if (plan.deno !== false) {
   const denoTests = denoEnLista;
   for (const testFile of denoTests) {
     const started = performance.now();
-    const denoArgs = testFile.includes("myinvestor-counter.test")
+    const denoArgs = testFile.includes("input_handlers.test")
+      ? ["test", "--allow-read=supabase/functions,supabase/config.toml", testFile]
+      : testFile.includes("myinvestor-counter.test")
       ? ["test", "--allow-read=supabase/functions", testFile]
       : testFile.includes("crypto.test")
       ? ["test", "--allow-env", testFile]

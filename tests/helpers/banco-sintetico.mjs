@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import { requestBodyPrelude } from "./request-body.mjs";
 import vm from "node:vm";
 import { transformSync } from "esbuild";
 import { createLogicSandbox, extractPureLogicSource } from "../../scripts/load-pure-logic.mjs";
@@ -24,7 +25,7 @@ export const Reconnect = await modulo("supabase/functions/bank-callback/reconnec
 // asignación a una variable sin declarar pasaba aquí en silencio y en producción lanzaba: así
 // vivió `bank-callback` con un `getDiag = …` que convertía un fallo del GET en `msg=error`
 // sin que ningún test viera ni lo uno ni lo otro (revisión del 12/10).
-export const handlerSrc = (index, ...vecinos) => '"use strict";\n' + vecinos.concat(index.includes('../_shared/ratelimit.ts') ? [read("supabase/functions/_shared/ratelimit.ts")] : []).map((v) => ts(v).replace(/^export /gm, "")).join("\n")
+export const handlerSrc = (index, ...vecinos) => '"use strict";\n' + (index.includes('../_shared/request_body.ts') ? requestBodyPrelude : '') + vecinos.concat(index.includes('../_shared/ratelimit.ts') ? [read("supabase/functions/_shared/ratelimit.ts")] : []).map((v) => ts(v).replace(/^export /gm, "")).join("\n")
   + "\n" + transformSync(index.replace(/^import .*?;\r?\n/gm, ""), { loader: "ts" }).code;
 export const SYNC = handlerSrc(read("supabase/functions/bank-sync/index.ts"), read("supabase/functions/bank-sync/demand-window.ts"));
 export const CALLBACK = handlerSrc(read("supabase/functions/bank-callback/index.ts"), read("supabase/functions/bank-callback/reconnect.ts"));

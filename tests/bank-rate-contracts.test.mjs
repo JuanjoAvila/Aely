@@ -2,6 +2,7 @@
 // Entrada propia registrada en steps y en el recorte de servidor.
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import { requestBodyPrelude } from "./helpers/request-body.mjs";
 import vm from "node:vm";
 import { webcrypto, createHash } from "node:crypto";
 import { transformSync } from "esbuild";
@@ -56,7 +57,7 @@ function handler(name, opts = {}, sources = source) {
     },
   };
   const context = vm.createContext({ Deno: { serve: f => serve = f, env: { get: k => ({ SUPABASE_URL: "https://db.invalid", SUPABASE_ANON_KEY: "fixture-anon", SUPABASE_SERVICE_ROLE_KEY: "fixture-service", APP_URL: "https://app.invalid/" })[k] } },
-    createClient: () => db, Request, Response, Headers, URL, TextEncoder, crypto: webcrypto, Date: Clock, AbortController, setTimeout, clearTimeout,
+    createClient: () => db, Request, Response, Headers, URL, TextEncoder, TextDecoder, crypto: webcrypto, Date: Clock, AbortController, setTimeout, clearTimeout,
     console: { error: (...a) => calls.logs.push(a) }, fetch() { throw Error("TRANSPORTE NO SIMULADO"); },
     jsonResp: (x, status = 200) => new Response(JSON.stringify(x), { status }),
     ebConfig: () => ({}), makeJWT: async () => { calls.sign++; return "fixture-jwt"; },
@@ -65,6 +66,7 @@ function handler(name, opts = {}, sources = source) {
     encryptSessionId: async x => x, decryptSessionId: async x => x,
     ebFailure: () => ({ status: 500, sessionEnded: false }), ebSessionVerdict: async () => ({ state: "UNKNOWN", ended: false }),
   }, { codeGeneration: { strings: false, wasm: false } });
+  vm.runInContext(requestBodyPrelude, context, { filename: "request_body.ts" });
   const files = ["_shared/ratelimit.ts", "_shared/cors.ts", "_shared/entrada.ts", ...(name === "bank-sync" ? ["bank-sync/demand-window.ts"] : name === "bank-callback" ? ["bank-callback/reconnect.ts"] : []), name + "/index.ts"];
   for (const p of files) {
     assert.ok(!/\bimport\s*\(/.test(sources[p]), "sin import dinámico ni red");

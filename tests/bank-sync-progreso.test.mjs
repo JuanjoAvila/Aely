@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import { requestBodyPrelude } from "./helpers/request-body.mjs";
 import { transformSync } from "esbuild";
 
 // Convergencia del tramo antiguo contra el handler REAL (INC-2709-06, tercera ronda).
@@ -13,7 +14,7 @@ const E = await import("data:text/javascript;base64," + Buffer.from(shared).toSt
 const demandSrc = transformSync(read("supabase/functions/bank-sync/demand-window.ts"), { loader: "ts", format: "esm" }).code;
 const demand = await import("data:text/javascript;base64," + Buffer.from(demandSrc).toString("base64"));
 const rateSrc = transformSync(read("supabase/functions/_shared/ratelimit.ts"), { loader: "ts" }).code.replace(/^export /gm, "");
-const src = rateSrc + "\n" + demandSrc.replace(/^export /gm, "") + "\n" + transformSync(read("supabase/functions/bank-sync/index.ts").replace(/^import .*?;\r?\n/gm, ""), { loader: "ts" }).code;
+const src = requestBodyPrelude + rateSrc + "\n" + demandSrc.replace(/^export /gm, "") + "\n" + transformSync(read("supabase/functions/bank-sync/index.ts").replace(/^import .*?;\r?\n/gm, ""), { loader: "ts" }).code;
 
 const CAP = 12;
 const MS = Date.parse("2026-10-10T12:00:00Z");

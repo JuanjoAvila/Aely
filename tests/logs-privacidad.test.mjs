@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import { requestBodyPrelude } from "./helpers/request-body.mjs";
 import vm from "node:vm";
 import { createHash, webcrypto } from "node:crypto";
 import { execFileSync } from "node:child_process";
@@ -25,7 +26,7 @@ function client(){
   vm.runInContext(core.slice(core.indexOf("const cloud = (function()"),core.indexOf("/* Escritura de gastos"))+";globalThis.cloud=cloud;",c);
   return {c,db,rows,captures,logs,options:()=>options};
 }
-const ts=(text)=>transformSync(text.replace(/^import .*?;\r?\n/gm,""),{loader:"ts",format:"esm"}).code.replace(/^export /gm,"");
+const ts=(text)=>(text.includes("../_shared/request_body.ts")?requestBodyPrelude:"")+transformSync(text.replace(/^import .*?;\r?\n/gm,""),{loader:"ts",format:"esm"}).code.replace(/^export /gm,"");
 let failed=0;
 async function t(name,fn){try{await fn();console.log("  ✓ "+name);}catch(e){failed++;console.log("  ✗ "+name+": "+e.message);}}
 await t("errores libres y detail no salen; ruta y SQLSTATE permanecen",async()=>{

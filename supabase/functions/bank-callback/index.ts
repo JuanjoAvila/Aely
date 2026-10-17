@@ -12,6 +12,7 @@ import { encryptSessionId } from "../_shared/token_store.ts";
 import { CallbackFallo, codigoCallback, codigoNolink } from "../_shared/entrada.ts";
 import { keepsCursor, type LinkedAccount } from "./reconnect.ts";
 import { bucketKey, callerIp, rateLimit } from "../_shared/ratelimit.ts";
+import { readInput } from "../_shared/request_body.ts";
 
 const APP_URL = Deno.env.get("APP_URL") || "https://juanjoavila.github.io/Aely/";
 
@@ -59,6 +60,13 @@ Deno.serve(async (req) => {
     const ipBucket = await bucketKey("bank-callback-ip", callerIp(req));
     const ipGate = await rateLimit(admin, ipBucket, 60, 60);
     if (!ipGate.ok) return callbackRateLimited(fromApp);
+
+    // La cuota IP frena abuso público; un cuerpo inválido no debe consultar ni
+    // consumir state, cuota del usuario o autorización del proveedor.
+    const input = await readInput(req, "bank-callback");
+    if (!input.ok) return new Response(JSON.stringify({ ok: false, error: input.error }), {
+      status: input.status, headers: { "Content-Type": "application/json" },
+    });
 
     const { data: link } = await admin.from("bank_links").select("*").eq("state", state).maybeSingle();
     if (!link) throw new CallbackFallo("state", "state desconocido");

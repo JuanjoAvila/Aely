@@ -10,6 +10,7 @@ const paths = {
   logic: "supabase/functions/_shared/ingest_logic.ts",
   cors: "supabase/functions/_shared/cors.ts",
   rate: "supabase/functions/_shared/ratelimit.ts",
+  body: "supabase/functions/_shared/request_body.ts",
 };
 const sources = Object.fromEntries(Object.entries(paths).map(([key, p]) =>
   [key, fs.readFileSync(new URL("../" + p, import.meta.url), "utf8")]));
@@ -18,6 +19,7 @@ const imports = [
   'import { categorizar } from "../_shared/ingest_logic.ts";',
   'import { withCors } from "../_shared/cors.ts";',
   'import { rateLimit } from "../_shared/ratelimit.ts";',
+  'import { readInput } from "../_shared/request_body.ts";',
 ];
 
 function compile(input) {
@@ -82,7 +84,7 @@ function makeHandler(options = {}, compiled = code) {
     } }] }));
   }
   // Ni process, require, SDK remoto ni fetch del host entran en el contexto del runtime.
-  const context = vm.createContext({ Deno, createClient, fetch, Request, Response, Headers, URL,
+  const context = vm.createContext({ Deno, createClient, fetch, Request, Response, Headers, URL, TextDecoder,
     console: Object.fromEntries(["error", "warn", "log"].map((level) =>
       [level, (...args) => calls.logs.push({ level, args })])),
   }, { codeGeneration: { strings: false, wasm: false } });
@@ -92,8 +94,8 @@ function makeHandler(options = {}, compiled = code) {
       { filename: paths[key], timeout: 1000 });
     return context.module.exports;
   }
-  const logic = module("logic"), cors = module("cors"), rate = module("rate");
-  Object.assign(context, { categorizar: logic.categorizar, withCors: cors.withCors, rateLimit: rate.rateLimit });
+  const logic = module("logic"), cors = module("cors"), rate = module("rate"), body = module("body");
+  Object.assign(context, { categorizar: logic.categorizar, withCors: cors.withCors, rateLimit: rate.rateLimit, readInput: body.readInput });
   vm.runInContext(compiled.handler, context, { filename: paths.handler, timeout: 1000 });
   assert.equal(calls.serve, 1, "el handler viene de Deno.serve real");
 
@@ -304,7 +306,8 @@ await t("body inválido o merchant vacío no llegan al limitador", async () => {
     const res = await h.request("", { rawBody });
     assert.equal(res.status, 400);
     assert.deepEqual(res.data, { ok: false, error: "merchant" });
-    assert.equal(h.calls.auth, 1);
+    // SEC-01: el GO exige forma/tamaño antes de auth y antes de gastar cuota.
+    assert.equal(h.calls.auth, 0);
     assert.equal(h.calls.rpc.length + h.calls.llm.length, 0);
   }
 });
