@@ -1,0 +1,162 @@
+{
+  "status": "done",
+  "summary": "PR250 FIN10 remates del NO-GO691503ab entregados por el mismo titular y sucesora propia. Escritor y lectores simetricos con cuenta ausente y nuevo indice cliente cacheado. Candidata pendiente de revision FINALClaude e integracion; no ProductREADY.",
+  "productSHA": "8ebf9c375577500c5e0ab305e2fbd574b14e1e65",
+  "baseSHA": "11707215f21438b150bd75a3f1dec0cb8fc22649",
+  "PR": 250,
+  "branch": "codex/fin10-absorption-scope-20261017",
+  "previousTaskId": "fin10-absorption-scope-codex-20261017",
+  "previousResultImmutable": "6d2dadf313df9b2a04226777eaab2b9805546010",
+  "claudeAdmission": "691503ab31d8b38dbd4665d2ad9743a4908c5ebe",
+  "claimCommit": "910c0e2b6d41d826426f21556cb5d1303d837c8d",
+  "ACKCommit": "4404b5ffa180099ec786890b05398de035c502e0",
+  "tests": [
+    {
+      "command": "node --test --test-name-pattern='FIN10 remates' tests/fin10-absorption-scope.test.mjs",
+      "phase": "causal RED before fix",
+      "exitCode": 1,
+      "pass": 4,
+      "fail": 6
+    },
+    {
+      "name": "node-fin10",
+      "command": "node --test tests/fin10-absorption-scope.test.mjs",
+      "exitCode": 0,
+      "at": "2026-10-17T12:53:58.408Z",
+      "passed": 25
+    },
+    {
+      "name": "node-compras",
+      "command": "node --test tests/compras-identicas-ids.test.mjs",
+      "exitCode": 0,
+      "at": "2026-10-17T12:53:59.516Z",
+      "passed": 32
+    },
+    {
+      "name": "server-budget",
+      "command": "node tests/presupuesto-servidor.test.mjs",
+      "exitCode": 0,
+      "at": "2026-10-17T12:53:59.671Z"
+    },
+    {
+      "name": "syntax",
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0,
+      "at": "2026-10-17T12:53:59.735Z"
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "phase": "Generated from authorized sources, exact source inclusion recorded in private manifest"
+    },
+    {
+      "command": "node node_modules/@playwright/test/cli.js test --config=../fin10-playwright.config.mjs fin10-absorption-scope.spec.mjs --workers=1 --retries=0",
+      "exitCode": 0,
+      "pass": 3,
+      "workers": 1,
+      "retries": 0,
+      "port": 48510
+    },
+    {
+      "command": "git diff --check and protected-path diff",
+      "exitCode": 0
+    }
+  ],
+  "testsRepeatedDuringDelivery": false,
+  "buildRepeatedDuringDelivery": false,
+  "mutations": {
+    "newKilled": 4,
+    "priorOwnRetained": 6,
+    "cases": [
+      {
+        "id": "M1",
+        "behavior": "restore writer exact-key equality",
+        "causalFailure": "local survivor0c vs320c"
+      },
+      {
+        "id": "M2",
+        "behavior": "client fails tombstone missing-account side",
+        "causalFailure": "known row falsely survives v2 tombstone"
+      },
+      {
+        "id": "M3",
+        "behavior": "discard cached index per expense",
+        "causalFailure": "200 enumerations/100000 descriptors vs1/500 for200 rows"
+      },
+      {
+        "id": "M4",
+        "behavior": "server fails tombstone missing-account side",
+        "causalFailure": "known row falsely survives;640c cloud/widget scenario covered separately"
+      }
+    ],
+    "execution": "Actual source mutated in VM/server module; expected ERR_ASSERTION kills inside Node test, not separate invented process EXITs"
+  },
+  "financialEvidence": {
+    "combinations": 4,
+    "ordinals": [
+      1,
+      2
+    ],
+    "legacyLinkWithoutAccounts": true,
+    "actualUpdaterCommit": true,
+    "clientServerOtherMobileWidgetCents": 320,
+    "causalRed": {
+      "pass": 4,
+      "fail": 6,
+      "exitCode": 1,
+      "failures": "0c survivor and640c server/widget before correction"
+    },
+    "greenFin10Cases": 25,
+    "greenComprasCases": 32,
+    "greenDOMCases": 3
+  },
+  "costEvidence": {
+    "rows": 20000,
+    "tombstones": 500,
+    "before": {
+      "enumerations": 20000,
+      "descriptors": 10000000
+    },
+    "after": {
+      "enumerations": 1,
+      "descriptors": 500
+    },
+    "mutant": {
+      "rows": 200,
+      "enumerations": 200,
+      "descriptors": 100000
+    },
+    "timingIsNotMobileAcceptance": true
+  },
+  "behavior": "Cuenta ausente en cualquiera de los dos lados es comodin dentro de banco/ref/ordinal/dia. El escritor usa el mismo predicado del lector antes de lapidar para no alcanzar la superviviente. Dos cuentas conocidas distintas siguen separadas. Indice WeakMap por mapa de lapidas con invalidacion al cambiar el array; sin estado persistido ni topes nuevos.",
+  "limitations": [
+    "Pendientes revision FINALClaude, integracion serial, CI exacta, tamano oficial, docs-frescura, beta-delivery, fuente integrada FIN15/PR243, artefacto servido y aceptacion movil. Lectura PR durante entrega tenia checks vacios; no CIverde afirmada.",
+    "Deno no ejecutado en esta fase. No se afirma ausencia del runtime: Claude informo su ruta fuera de PATH en mensaje PR255, leido FULL RAW. Presupuesto/widget TypeScript se verificaron con OWN esbuild y transportes sinteticos ya existentes.",
+    "No fullsuite,CPU6,Gradle,SQLvivo,bancos reales,deploy,main-beta push/merge,instalaciones ni modulosajenos.",
+    "Tiempos de coste instrumentados en Node no acreditan rendimiento movil.",
+    "Legacy conserva conducta amplia; no reparacion historica ni rediseño de identidad general.",
+    "VERSION,catalogo,caps,09 y hoja DeudasMetas intactos; beta-delivery generado restaurado a base; gates de integracion a cargo deClaude por691503ab.",
+    "FIN11 sigue esperando GO/fuente FINALClaude: este result no le concede integracion, migraciones ni su alcance de borrados pendientes.",
+    "Resultado anterior6d2dadf3 cerrado inmutable; nueva claim propia y misma session/nonce/ledger, sin herencia ni reset."
+  ],
+  "artifacts": [
+    "docs/briefs/fin10-absorption-scope-20261017.md",
+    "tests/fin10-absorption-scope.test.mjs",
+    "e2e/fin10-absorption-scope.spec.mjs"
+  ],
+  "fetchBudget": {
+    "idbudget": "fin10-own12-1-remates-691503ab",
+    "allowance": 12,
+    "usedBeforeResultReadback": 5,
+    "previousOwn10Closed": true,
+    "ROOTInherited": false,
+    "reset": false,
+    "additionalBlockNotActivated": true
+  },
+  "schema": 1,
+  "taskId": "fin10-pr250-review-remates-codex-20261017",
+  "actor": "codex",
+  "sessionId": "codex-local-20261017-fcf546f25c8b1b50",
+  "createdAt": "2026-10-17T13:35:17.975Z",
+  "released": true
+}
