@@ -1,0 +1,260 @@
+{
+  "status": "done",
+  "completionScope": "DESIGN DELIVERY ONLY",
+  "summary": "PRO09 design-only delivered in new draft PR258 at exact8d917bea. Six docs/briefs files: brief, inert proposed SQL and causal research reproductions. No implementation or generated migration. Existing evidence preserved: eight A cases5PASS/3FAIL; thirty earlier unique cases18PASS/12FAIL with three current acceptance failures and nine counterfactual risks. No tests repeated during delivery. Claude and owner decide any implementation separately; not ProductREADY.",
+  "PR": 258,
+  "draft": true,
+  "productSHA": "8d917beaef4b3e1f779b5384d3f89c7971a61158",
+  "baseSHA": "a9916c3cdb21c93f9d3a47653c0608e630ce50ab",
+  "branch": "codex/pro09-tr-roundup-ingest-20261017",
+  "claimCommit": "d653d7786f633d844f034dfaf568a83d1be58454",
+  "ACKCommit": "8efdf5475d281036044c615e2323029f3189d124",
+  "designDecision": "360dcf54c9ce4f514f3255820f6ca847dacebf91",
+  "productReady": false,
+  "tests": [
+    {
+      "command": [
+        "node",
+        "outputs/pro09-investigacion.mjs",
+        "--post-only"
+      ],
+      "exitCode": 1,
+      "passed": 2,
+      "failed": 7,
+      "phase": "Executed before documentation packaging; not repeated in delivery",
+      "qualification": "Affected native POST paths only; ISO fixture evidence excluded"
+    },
+    {
+      "command": [
+        "node",
+        "outputs/pro09-investigacion.mjs",
+        "--boundaries-only"
+      ],
+      "exitCode": 1,
+      "passed": 10,
+      "failed": 2,
+      "phase": "Executed before documentation packaging; not repeated in delivery",
+      "qualification": "New boundaries; future BOOK variant replaced by posted-boundary evidence, not counted twice"
+    },
+    {
+      "command": [
+        "node",
+        "outputs/pro09-investigacion.mjs",
+        "--posted-boundary-only"
+      ],
+      "exitCode": 1,
+      "passed": 0,
+      "failed": 1,
+      "phase": "Executed before documentation packaging; not repeated in delivery",
+      "qualification": "Only plus-three boundary after advancing synthetic clock beyond BOOK date"
+    },
+    {
+      "command": [
+        "node",
+        "outputs/pro09-investigacion.mjs",
+        "--same-day-identity-only"
+      ],
+      "exitCode": 1,
+      "passed": 0,
+      "failed": 1,
+      "phase": "Executed before documentation packaging; not repeated in delivery",
+      "qualification": "New same-day durable bank-reference oracle"
+    },
+    {
+      "command": [
+        "node",
+        "outputs/pro09-investigacion.mjs",
+        "--cash-risk-only"
+      ],
+      "exitCode": 1,
+      "passed": 1,
+      "failed": 2,
+      "phase": "Executed before documentation packaging; not repeated in delivery",
+      "qualification": "Counterfactual future signal-as-expense cash/month-close risks"
+    },
+    {
+      "command": [
+        "node",
+        "outputs/pro09-a-storage-admission.test.mjs"
+      ],
+      "exitCode": 1,
+      "passed": 5,
+      "failed": 3,
+      "phase": "Executed before documentation packaging; not repeated in delivery",
+      "qualification": "Two proposed receipt oracles and counterfactual expenses-dup storage risk"
+    },
+    {
+      "command": [
+        "node",
+        "--check",
+        "docs/briefs/pro09-roundup-ingest/runtime.mjs"
+      ],
+      "exitCode": 0,
+      "phase": "Previously completed packaging syntax/scope check; not repeated in delivery"
+    },
+    {
+      "command": [
+        "node",
+        "--check",
+        "docs/briefs/pro09-roundup-ingest/causal-red.mjs"
+      ],
+      "exitCode": 0,
+      "phase": "Previously completed packaging syntax/scope check; not repeated in delivery"
+    },
+    {
+      "command": [
+        "node",
+        "--check",
+        "docs/briefs/pro09-roundup-ingest/previous-risks.mjs"
+      ],
+      "exitCode": 0,
+      "phase": "Previously completed packaging syntax/scope check; not repeated in delivery"
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exitCode": 0,
+      "phase": "Previously completed packaging syntax/scope check; not repeated in delivery"
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "--exit-code",
+        "a9916c3cdb21c93f9d3a47653c0608e630ce50ab",
+        "--",
+        "src",
+        "public",
+        "supabase",
+        "scripts",
+        "tests",
+        "VERSION",
+        "package.json",
+        "package-lock.json"
+      ],
+      "exitCode": 0,
+      "phase": "Previously completed packaging syntax/scope check; not repeated in delivery"
+    }
+  ],
+  "deliveryCommands": [
+    {
+      "command": [
+        "git",
+        "push",
+        "origin",
+        "8d917beaef4b3e1f779b5384d3f89c7971a61158:refs/heads/codex/pro09-tr-roundup-ingest-20261017"
+      ],
+      "exitCode": 0,
+      "normalPush": true
+    },
+    {
+      "command": [
+        "gh",
+        "pr",
+        "create",
+        "--repo",
+        "JuanjoAvila/Aely",
+        "--base",
+        "main",
+        "--head",
+        "codex/pro09-tr-roundup-ingest-20261017",
+        "--draft",
+        "--body-file",
+        "work/pro09-design-pr-body.md"
+      ],
+      "exitCode": 0,
+      "PR": 258,
+      "titleOmittedFromCommandSummary": true
+    },
+    {
+      "command": [
+        "gh",
+        "pr",
+        "view",
+        "258",
+        "--repo",
+        "JuanjoAvila/Aely",
+        "--json",
+        "number,url,isDraft,baseRefName,headRefName,headRefOid,body,files,state"
+      ],
+      "exitCode": 0,
+      "exactHeadDraftBaseBodyAndSixPathsConfirmed": true
+    }
+  ],
+  "nativePRAttachmentConfirmed": true,
+  "design": {
+    "pendingTypedSignalOnly": true,
+    "BOOKSoleCashOutflow": true,
+    "proposedTable": "roundup_signals",
+    "SQLInertOutsideMigrations": true,
+    "SQLGuardBeforeDDL": true,
+    "pendingReceiptACKProposed": true,
+    "expiry": "End of seventh Europe-Madrid calendar day with event local day zero",
+    "retention": "Proposed minimum terminal identity while account exists; active cap proposed; owner decision pending",
+    "atomicMechanism": "Proposed server transaction with cooperative locks, two-sided uniqueness and decision revalidation; not implemented or proven",
+    "categoryOptions": [
+      "Future explicit provenance and revision; legacy unknown",
+      "Conservative preservation of unknown legacy category including Otros; explicit review required"
+    ]
+  },
+  "evidenceQualification": {
+    "syntheticOnly": true,
+    "realTRContentObserved": "Only supplied label Round up Invertido; no complete real payload",
+    "initialISOFixtureExcludedForAffectedCases": true,
+    "onlyAffectedPathsRerunBeforePackaging": true,
+    "fiveIndependentControlsRetainedWithoutRerun": true,
+    "portableCopiesExecuted": false,
+    "fixMutantCampaignRun": false,
+    "proposedStoreUsedOrMocked": false
+  },
+  "preservation": {
+    "onlySixDocsBriefsFiles": true,
+    "functionalFilesUnchanged": true,
+    "schemaByteIdenticalToInertProposal": true,
+    "sourceFrozen": true,
+    "noProductTestsOrBuildOrMeasurementsDuringDelivery": true,
+    "helperFilterUnchanged": true,
+    "claimAndSessionUnchanged": true
+  },
+  "fetchBudget": {
+    "idbudget": "pro09-own12-db3299cd-d66ca98e",
+    "allowance": 12,
+    "usedBeforeResult": 3,
+    "readbackExpectedUsed": 4,
+    "noticeCommit": "0be1102d63c9ff7fd45743be1196607b391c579f",
+    "noticeReadbackExact": true,
+    "initialOwn10Closed10of10": true,
+    "firstFetchCounted": true,
+    "allInternalFetchesCounted": true,
+    "noReset": true,
+    "noROOTInheritance": true,
+    "noSEC01NoticeWaiver": true
+  },
+  "artifacts": [
+    "docs/briefs/pro09-roundup-ingest-diseno.md",
+    "docs/briefs/pro09-roundup-ingest/runtime.mjs",
+    "docs/briefs/pro09-roundup-ingest/causal-red.mjs",
+    "docs/briefs/pro09-roundup-ingest/previous-risks.mjs",
+    "docs/briefs/pro09-roundup-ingest/schema.proposed.sql",
+    "docs/briefs/pro09-roundup-ingest/evidence-summary.json"
+  ],
+  "limitations": [
+    "Design completed only; table, ACK, retention, provenance, atomic operation and client gating await Claude and owner decisions.",
+    "Actual prior handler/helper execution used Node TypeScript stripping and existing synthetic Data API/client doubles. No Deno, HTTP, SQL/RLS or concurrency validation.",
+    "Three new A failures are two missing-receipt oracles and one counterfactual rejected storage design. Earlier twelve failures include nine counterfactual risks; not twelve deployed bugs.",
+    "Portable reproductions were packaged with preserved assertions but not rerun; expected EXIT1 on base. No implemented fix or fix mutants.",
+    "No migration generated or SQL executed; no live banking, backend deployment, full suite, CPU6, Gradle, APK, browser or physical mobile acceptance.",
+    "General CI, integration, served artifact and production acceptance not executed or credited. No ProductREADY.",
+    "No source edits during delivery; six hashes and exact PR head preserved. No foreign WIP, claim, lease or frozen branch touched."
+  ],
+  "nextAction": "After exact canonical own result readback save delivery checkpoint, release public slot and STOP. No further polling or work, no messages to coordinators.",
+  "schema": 1,
+  "taskId": "pro09-tr-roundup-ingest-codex-20261017",
+  "actor": "codex",
+  "sessionId": "codex-local-20261017-443c8c67d66ca98e",
+  "createdAt": "2026-10-17T15:24:20.154Z",
+  "released": true
+}
