@@ -1,3 +1,10 @@
+FIN-10 / FIN-14 · candidata sin versión nueva (17/10): las absorciones nuevas se acotan
+por cuenta y día; cliente/servidor conservan el lector antiguo. `obAcc` viaja en `source`
+y sobrevive al pull sin que una fila legacy lo borre. La guarda de UUID de retiradas
+acepta el source previo sin cuenta y rechaza cuentas conocidas distintas. No cambia
+la reconciliación general por referencia, ni repara historia, ni despliega ingest.
+[ROJO, mutantes y gates pendientes](docs/briefs/fin10-absorption-scope-20261017.md).
+
 ## [4.26.137] — 2026-10-16 · Producción: MyInvestor conserva las posiciones (PR 231)
 
 - **Qué sube.** La beta 4.26.137.1 aprobada por el dueño en su panel (`6f18228c`, tanda `myinvestor-contador-a-cero`) sobre la producción 4.26.136 (`93705650`, árbol `4941a061`). Producto, servidor y migración son los de la beta byte a byte (guardián `Promoción137`); `main` ya era ancestro de la beta, así que no hace falta commit de cierre con `main`.

@@ -1,3 +1,8 @@
+FIN-10: `tests/fin10-absorption-scope.test.mjs` registrado en `steps`: escritor real,
+ambos lectores, cuenta ausente, legacy, transporte `#acc`, FIN-15 y seis mutantes.
+`e2e/fin10-absorption-scope.spec.mjs` está en Gastos: tres casos DOM posteriores a una
+absorción. Evidencia focal y gates pendientes en [acta](briefs/fin10-absorption-scope-20261017.md).
+
 Compras con referencias distintas: `tests/compras-identicas-ids.test.mjs` registrado en Node y
 `e2e/compras-identicas-ids.spec.mjs` en Gastos. Handlers reales con fixtures sintéticas,
 rojo causal, tres estados al céntimo y siete mutaciones. El oráculo antiguo de Recibos sigue

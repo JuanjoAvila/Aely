@@ -1,3 +1,7 @@
+FIN-10 / FIN-14 candidata17/10: absorciones v2 con cuenta/día y transporte `#acc`, sin
+SQL ni cambios de identidad general. Mantener lector legacy y desplegar ingest antes
+del cliente. Pendientes integración, CI y móvil. [Contrato y límites](docs/briefs/fin10-absorption-scope-20261017.md).
+
 Preparación de promoción completa117 (12/10/2026): rama reconciliada desde beta `c5f62d66` con main `b2dfd2c0`, inventario y tratamiento de109/115/servidor aceptados por el coordinador. Sin publicación todavía. CI exacta y revisión pendientes; APK estable52 anunciada, fuente nativa117/code55 pendiente de compilación y asset por el coordinador. Los cortes fechados de abajo conservan la historia, no son instrucciones de coordinación vigentes. [Contrato de esta reconciliación](docs/briefs/prod-completa-117.md).
 
 Edición de reglas de Metas108 integrada en fuente109: no borrar/recrear para editar. Preservar ID, `mensual`/legado y campos desconocidos, comparar estado fresco y conservar los asientos anteriores. El coordinador local26 serializa integración y concede Chromium; reportes propios mediante `MC_E2E_OUTPUT_DIR` para no borrar otras evidencias. [Acta](docs/briefs/inc-0810-metas-editar-regla.md).

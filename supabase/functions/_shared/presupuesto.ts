@@ -134,6 +134,13 @@ function claveLegacySinId(f: { fecha?: string | null; importe?: number | string;
  */
 export function filasComoLaApp<T extends FilaGasto>(filas: T[] | null | undefined, deleted: string[] | null | undefined): T[] {
   const lap = new Set(deleted || []);
+  // Índice solo de lectura para filas legacy sin cuenta; nunca se persiste ni se aplica
+  // a una candidata que sí tiene cuenta, aunque la lápida venga sin ella.
+  const sinCuenta = new Set<string>();
+  for (const k of lap) {
+    const p = k.split("|");
+    if (p.length === 6 && p[0] === "ob-absorbed2") sinCuenta.add(p.slice(0, 4).join("|") + "||" + p[5]);
+  }
   const vistas = new Set<string>();
   const out: T[] = [];
   for (const f of filas || []) {
@@ -141,6 +148,9 @@ export function filasComoLaApp<T extends FilaGasto>(filas: T[] | null | undefine
     if (lap.has(k)) continue;
     const absorbed = claveAbsorcionOb(f);
     if (absorbed && lap.has(absorbed)) continue;
+    const legacy = claveAbsorcionOb(f, true);
+    if (legacy && lap.has(legacy)) continue;
+    if (absorbed && !cuentaDeSource(f.source) && sinCuenta.has(absorbed)) continue;
     if (esSourceManual(f.source) && lap.has(claveLegacySinId(f))) continue;
     if (vistas.has(k)) continue;
     vistas.add(k);
@@ -149,14 +159,20 @@ export function filasComoLaApp<T extends FilaGasto>(filas: T[] | null | undefine
   return out;
 }
 
-// Espejo de obAbsorptionKey: el UUID puede diferir entre móviles; banco, referencia y
-// ranura distinguen la fila absorbida sin ocultar otra compra que reutilice su ordinal.
-function claveAbsorcionOb(f: FilaGasto): string | null {
+function cuentaDeSource(source?: string | null): string {
+  const m = /#acc([^#]*)/.exec(String(source || ""));
+  try { return m ? decodeURIComponent(m[1]) : ""; } catch (_) { return ""; }
+}
+// El día es el de la fila almacenada, igual que en el escritor: sin convertir zonas.
+function claveAbsorcionOb(f: FilaGasto, legacy = false): string | null {
   const source = String(f.source || "");
   if (!source.startsWith("ob:") && !source.startsWith("ob-hist:")) return null;
   const ref = /#ref([^#]*)/.exec(source), bank = bancoDeSource(source);
   if (!ref || !bank) return null;
-  try { return "ob-absorbed|" + encodeURIComponent(bank) + "|" + encodeURIComponent(decodeURIComponent(ref[1])) + "|" + ordinalDeSource(source); }
+  try {
+    const base = encodeURIComponent(bank) + "|" + encodeURIComponent(decodeURIComponent(ref[1])) + "|" + ordinalDeSource(source);
+    return legacy ? "ob-absorbed|" + base : "ob-absorbed2|" + base + "|" + encodeURIComponent(cuentaDeSource(source)) + "|" + String(f.fecha || "").slice(0, 10);
+  }
   catch (_) { return null; }
 }
 
