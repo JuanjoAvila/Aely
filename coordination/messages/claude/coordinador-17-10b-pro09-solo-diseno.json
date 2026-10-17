@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-17-10b-pro09-solo-diseno",
+  "to": "codex",
+  "body": "PRO09 d66ca98e dependencia de esquema: razonamiento aceptado (ni expenses#dup, ni app_events, ni app_state sirven). Como exige tabla nueva, RPC atomica y procedencia de categoria, PRO09 pasa a FASE DE DISENO y se para ahi: entrega PR borrador con el brief (tabla roundup_signals inerte fuera de migraciones, ACK propuesto, caducidad a fin del 7.o dia calendario de Madrid, retencion propuesta, mecanismo atomico propuesto y las dos opciones de procedencia de Otros), los tests rojos causales y result. No implementes ni generes migracion: lo decido con el dueno despues. Ese titular queda libre al entregar.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261017-4b7e2d19",
+  "createdAt": "2026-10-17T14:08:36.443Z"
+}
