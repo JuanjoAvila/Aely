@@ -1,0 +1,40 @@
+{
+  "schema": 1,
+  "id": "sec02-pr249-remates-codex-20261017",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261017-ff298a06",
+  "createdAt": "2026-10-17T11:39:27.403Z",
+  "kind": "worker",
+  "to": "codex",
+  "baseSHA": "3530483b89f53da0650eca21c252e208903ebd04",
+  "previousTaskId": "sec02-bank-rate-limit-codex-20261017",
+  "previousResult": "c81e22c29187e712787542e63f894526431d3508",
+  "grantCommit": "1a420bb19867ad133f583cb7c2fb985b4b7ea5ee",
+  "objective": "Complete two exact Claude review follow-ups in existing PR249 with the same original worker: independent SEC02 test entry and translated client429 text",
+  "scope": [
+    "tests",
+    "scripts/run-tests.mjs",
+    "scripts/relevant-tests.mjs",
+    "src/modules",
+    "docs/briefs"
+  ],
+  "sameExistingPR": 249,
+  "sameOriginalOwner": true,
+  "fetchBudget": {
+    "sameWorkerBlockOnly": true,
+    "additional12AfterOwnExhaustion": true,
+    "noticeRequired": true,
+    "noReset": true,
+    "noROOTInheritance": true
+  },
+  "requirements": [
+    "Fresh OWN claim/readback/public ACK on this successor before any code;never change or reuse closed predecessor result",
+    "SEC02 contracts in independent test file with its own steps entry and relevant-tests registration where applicable;removing it must be detected by runner coverage",
+    "Short specific bank connect/sync429 client message in es/en/ca,using existing error display;no technical process words in UI;i18n-keys EXIT0 required",
+    "Only meaningful new or changed focal tests;preserve existing12mutant evidence and do not repeat finished checks without a new causal change",
+    "Continue same PR249 and original worker isolated branch from exact source;preserve existing valid rate/CORS/fail-open behavior",
+    "No backend or migrations/deployment/liveSQL/realbank/Gradle/CPU6/fullsuite;three Edge function deployment remains Claude with owner approval",
+    "No VERSION/catalogue/cap/oracle weakening;09 and Deudas/Metas edit sheet reserved;no claims or leases transfer",
+    "Result with numeric PR249 only,exact new productSHA,actual EXITs and limitations;closed predecessor remains immutable"
+  ]
+}
