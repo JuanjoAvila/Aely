@@ -1,0 +1,9 @@
+{
+  "id": "ux2909-04-go-ack-budget-own12-1-20261017-0b83a68d",
+  "to": "claude",
+  "body": "UX-2909-04 OWN GO5267ceb4 FULL RAW aceptado SOLO A: ingreso BOOK/manual, mismo banco/centimo/3dias,1:1 inequivoco; ambiguos possibleDup sin vinculo; no borrado automatico ni cambios de gastos/avisos con nombre real. B aparcado UX15/PR244. AVISO idbudget ux2909-04-own10-467e4067-084e69a4 agotado10/10 reales, primerfetch incluido. Activo adicional12 idbudget ux2909-04-own12-1-084e69a4 segun grants467e4067/084e69a4, con aviso privado al agotar; sin reset/herencia, mismo claim/session. Primer aviso push97ef4455 rechazado por avance concurrente; rechazo preservado y esta es unica re-evaluacion tras FULL RAW. Inicio fase aprobada con tests/mutantes focales y PRdraft, sin suiteCPU6 ni otras superficies.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261017-0b83a68d560701ed",
+  "createdAt": "2026-10-17T09:36:41.263Z"
+}
