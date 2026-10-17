@@ -1,0 +1,226 @@
+{
+  "status": "done",
+  "completionScope": "Frozen scoped beta port delivered in a new draft PR. Independent review and release gates remain pending; not ProductREADY.",
+  "summary": "New beta port of the reviewed PR 253 logic delivered in draft PR 263. Normal push and exact own head, base and body readback confirmed. Parent is the exact approved beta source. Runtime delta equals the reviewed c42 design with beta changes preserved; five ported test files are unchanged after line-ending normalization, and no semantic v4 overlap was found. The new source passed the four goal test files, monthly transport, reserva-dinero and directed Metas/persistence browser checks. Old PR 253, its branch and result are frozen. No code, test, build or size measurement was repeated during this delivery.",
+  "productSHA": "600d5021360cbd9bbd898a1fdd7099cc4a75d741",
+  "baseSHA": "a9c9e45d76d0d92c2c529b0652c24496dea75300",
+  "parentSHA": "a9c9e45d76d0d92c2c529b0652c24496dea75300",
+  "pr": 263,
+  "branch": "codex/inc0410-beta141-port-20261017",
+  "targetPRBase": "beta",
+  "isDraft": true,
+  "oldPR": 253,
+  "previousResultImmutable": "47b4401e",
+  "frozenReviewedSource": "c42b7b74c9a300d7103c9e1fcb8b69a17a41cce2",
+  "claimCommit": "ec6c8cbd8b69b4ddc46c4fc4e1d2ab0cd5dd8f15",
+  "publicACK": "378e0071d400088d8bddb303e4dd5042ba01baa2",
+  "productGrant": "2d7767ba",
+  "deliveryDecision": "dd325951",
+  "tests": [
+    {
+      "name": "build",
+      "command": [
+        "node",
+        "scripts/build-app.mjs"
+      ],
+      "exitCode": 0
+    },
+    {
+      "name": "syntax",
+      "command": [
+        "node",
+        "scripts/check-syntax.mjs"
+      ],
+      "exitCode": 0
+    },
+    {
+      "name": "goals-three-way",
+      "command": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "tests/goals-three-way.test.mjs"
+      ],
+      "exitCode": 0
+    },
+    {
+      "name": "goals-review-remates",
+      "command": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "tests/goals-review-remates.test.mjs"
+      ],
+      "exitCode": 0
+    },
+    {
+      "name": "goals-review2-remates",
+      "command": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "tests/goals-review2-remates.test.mjs"
+      ],
+      "exitCode": 0
+    },
+    {
+      "name": "goals-review3-reserve-conflict",
+      "command": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "tests/goals-review3-reserve-conflict.test.mjs"
+      ],
+      "exitCode": 0
+    },
+    {
+      "name": "metas-pull-transport",
+      "command": [
+        "node",
+        "tests/metas-pull-transport.test.mjs"
+      ],
+      "exitCode": 0
+    },
+    {
+      "name": "reserva-dinero",
+      "command": [
+        "node",
+        "tests/reserva-dinero.test.mjs"
+      ],
+      "exitCode": 0
+    },
+    {
+      "name": "reserve guard mutant",
+      "command": [
+        "node",
+        "--test",
+        "--test-reporter=tap",
+        "--test-name-pattern=R3-1",
+        "tests/goals-review3-reserve-conflict.test.mjs"
+      ],
+      "exitCode": 1,
+      "env": {
+        "INC0410_R3_MUTANT": "remove-guard"
+      }
+    },
+    {
+      "name": "Directed Metas and persistence E2E",
+      "command": "node work/beta141-e2e-run.mjs",
+      "runnerQualification": "Private runner uses configured OWN Playwright public test API and installed Edge. Relative runner command recorded here; complete runtime command remains in private execution receipt. No installs, npx or other-checkout modules.",
+      "specs": [
+        "e2e/deudas-metas-edicion-v4.spec.mjs",
+        "e2e/metas-alta-regla.spec.mjs",
+        "e2e/metas-borrar-regla.spec.mjs",
+        "e2e/metas-editar-regla.spec.mjs",
+        "e2e/metas-mensual.spec.mjs",
+        "e2e/persistencia.spec.mjs"
+      ],
+      "exitCode": 0,
+      "passed": 165,
+      "workers": 1,
+      "retries": 0,
+      "skipped": 0,
+      "flaky": 0
+    },
+    {
+      "name": "Diff check",
+      "command": "git diff --check",
+      "exitCode": 0
+    },
+    {
+      "name": "Normal own branch push",
+      "command": "git push origin frozen SHA to new own branch",
+      "exitCode": 0
+    },
+    {
+      "name": "New draft PR and exact readback",
+      "command": "gh pr create --draft --base beta; gh pr view exact head, base and body",
+      "exitCode": 0
+    }
+  ],
+  "validation": {
+    "goalCases": 34,
+    "goalGroups": {
+      "threeWay": 12,
+      "R1": 10,
+      "R2": 6,
+      "R3": 6
+    },
+    "monthlyTransportExit": 0,
+    "reservaDineroExit": 0,
+    "buildExit": 0,
+    "syntaxExit": 0,
+    "syntaxBlocks": 7,
+    "guardMutant": {
+      "exitCode": 1,
+      "matched": 4,
+      "fail": 3,
+      "pass": 1,
+      "causalAssertion": "Without the reserve guard, both edit orders return 12000 instead of 17000 cents; new-rule field conflict also fails rejection."
+    },
+    "E2E": {
+      "exitCode": 0,
+      "passed": 165,
+      "byFile": {
+        "v4": 57,
+        "createRule": 42,
+        "deleteRule": 12,
+        "editRule": 30,
+        "monthly": 15,
+        "persistence": 9
+      },
+      "workers": 1,
+      "retries": 0,
+      "flaky": 0,
+      "skipped": 0,
+      "allSingleAttempt": true,
+      "servedHTMLMatchesBeforeAfterAndCommit": true
+    },
+    "runtimePortEqualsReviewedDelta": true,
+    "betaV4Preserved": true,
+    "noTestsOrBuildRepeatedDuringDelivery": true
+  },
+  "monetaryQualification": {
+    "automaticExactAndReverseEditOrdersCents": 17000,
+    "settlementCount": 1,
+    "inverseUPLOADAfterConflictCents": 15000,
+    "inverseUPLOADAfterExplicitManual20ThroughAppSetCents": 17000,
+    "inverseUPLOADAutomaticConvergence": false
+  },
+  "auxiliaryMetadataQualification": "The full build output was used during E2E. Generated release-notes and beta-delivery digests were subsequently restored to the exact beta because catalogue changes are outside task scope. Tested HTML/runtime bytes are unchanged. E2E does not certify catalogue receipt coherence; beta-sources remains an independent integration gate.",
+  "officialSizeGate": {
+    "executed": false,
+    "pending": true,
+    "reason": "Authorized esbuild runtime unavailable. No install, foreign modules, cap change or raw/gzip substitute."
+  },
+  "budget": {
+    "closedPreviousId": "inc0410-own12-four-aely",
+    "closedPreviousUsed": 12,
+    "closedPreviousAllowance": 12,
+    "activeId": "inc0410-own12-five-aely",
+    "activeAllowance": 12,
+    "activeUsedBeforeResult": 4,
+    "grant": "db3299cd",
+    "normalNoticeCommit": "4f426739",
+    "normalNoticeReadbackExact": true,
+    "activatedOnlyAfterActualExhaustion": true,
+    "noResetOrROOTInheritance": true
+  },
+  "limitations": [
+    "Independent review of the new beta port, general CI, docs-frescura, beta-sources and catalogue receipt gates pending.",
+    "Claude size and integration decision, served beta and physical mobile acceptance pending.",
+    "Inverse upload requires explicit MANUAL contribution of 20 through App.set; automatic convergence is not implemented or verified.",
+    "No changes to 08 or 09, VERSION, catalogue, caps, server or unrelated financial oracles.",
+    "No full suite, CPU6, Gradle, APK, SQL, banks, backend deployment, main or beta push or merge.",
+    "No tests, build, product edits, size measurements or new oracles during delivery.",
+    "Old sources, claim and result remain immutable; current source frozen. No heavy runner lease was used."
+  ],
+  "reviewStatus": "New-source review and integration pending; no ProductREADY",
+  "productReady": false,
+  "schema": 1,
+  "taskId": "inc0410-beta141-port-codex-20261017",
+  "actor": "codex",
+  "sessionId": "codex-local-20261017-55a003910cb4f81a",
+  "createdAt": "2026-10-17T17:12:11.902Z",
+  "released": true
+}
