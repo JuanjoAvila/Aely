@@ -1,0 +1,107 @@
+{
+  "status": "done",
+  "summary": "INC-0410 scoped rejection candidate delivered as draft PR253 under Claude GO5267ceb4/cd02498b. Three-way goal/field merge only without reserve-rule/log divergence; otherwise coherent whole cloud snapshot and whole local private conflict record. Same-field conflicts keep cloud, never sum absolute money. Private metadata excluded from push and daily backup. Own ACK circuit also preserves pending edit debounce, with causal RED before correction. Module09/UI/VERSION/catalog/caps untouched. Candidate for review/integration only, not ProductREADY.",
+  "productSHA": "e3bbd92c41ad7168786ddb5550e35b95f686b3d3",
+  "baseSHA": "a9916c3cdb21c93f9d3a47653c0608e630ce50ab",
+  "branch": "codex/inc0410-lww-investigation-20261017",
+  "pr": 253,
+  "tests": [
+    {
+      "command": "node outputs/reproduce-inc0410.mjs --assert-preservation",
+      "exitCode": 1,
+      "meaning": "Initial causal RED before authorized fix:4 losses, sequential control preserved"
+    },
+    {
+      "command": "node --test tests/goals-three-way.test.mjs (before rejection guard)",
+      "exitCode": 1,
+      "meaning": "Financial coupling RED:7pass/1fail, goals retained but only one reserve entry"
+    },
+    {
+      "command": "node --test --test-name-pattern='ACK de metadata' tests/goals-three-way.test.mjs (before ACK correction)",
+      "exitCode": 1,
+      "meaning": "New own-ACK regression RED:pending edit timer0 instead of1"
+    },
+    {
+      "command": "node --test tests/goals-three-way.test.mjs",
+      "exitCode": 0,
+      "cases": 12,
+      "meaning": "Final current-source focal contract, including coherent rA/rB rejection, privacy and pending edit timer"
+    },
+    {
+      "command": "node tests/metas-pull-transport.test.mjs",
+      "exitCode": 0,
+      "cases": 10,
+      "meaning": "Existing transport after retained reserve base change"
+    },
+    {
+      "command": "INC0410_MUTANT=quitar-proteccion-reservas node --test tests/goals-three-way.test.mjs",
+      "exitCode": 1,
+      "meaning": "8pass/2causal failures; guard unchanged when independent backup/timer cases later added"
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0,
+      "meaning": "Final source assembled; generated files kept out of candidate"
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0,
+      "meaning": "7generated HTML script blocks"
+    },
+    {
+      "command": "node --test tests/backup-sin-datos-banco.test.mjs",
+      "exitCode": 0,
+      "cases": 1
+    },
+    {
+      "command": "node tests/security.test.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "git diff --check and protected-path diff",
+      "exitCode": 0
+    },
+    {
+      "command": "git push OWN branch and gh pr create --draft --base main",
+      "exitCode": 0,
+      "meaning": "PR253 canonical head and draft/main readback confirmed; checkout clean"
+    }
+  ],
+  "mutations": [
+    {
+      "name": "quitar-base",
+      "exitCode": 1,
+      "meaning": "Prior phase:additional contract assertion failures beyond known coupling RED"
+    },
+    {
+      "name": "sumar",
+      "exitCode": 1,
+      "meaning": "Prior phase:cloud-wins same-field tests fail on invented absolute sum"
+    },
+    {
+      "name": "resucitar",
+      "exitCode": 1,
+      "meaning": "Prior phase:deleted-goal test fails"
+    },
+    {
+      "name": "quitar-proteccion-reservas",
+      "exitCode": 1,
+      "meaning": "Causal rA/rB and single-rule/log divergence tests fail"
+    }
+  ],
+  "limitations": [
+    "No fullsuite/e2e/CPU6/Deno/Gradle/liveSQL/realbanks/deploy executed; no main/beta push or merge",
+    "No PostgreSQL/RLS/HTTP or physical mobile evidence:source-extracted real client transport with synthetic Data API backend",
+    "No general CI,docs-frescura,beta-sources,served beta139 or mobile acceptance verified by this worker",
+    "Minified/gzip size gate not executed:esbuild unavailable in OWN checkout;no dependencies installed or foreign node_modules linked;caps unchanged",
+    "Local conflict resolution UI absent by scope;idempotent cent-operation ledger remains future owner decision",
+    "Case repetitions were caused by new reserve-base and own-ACK circuit changes;initial RED and prior mutation evidence preserved,not reset",
+    "Budget initial OWN10 closed10of10;separate inc0410-own12-1-084e69a4 used7of12 before this result publication;no inherited budget"
+  ],
+  "schema": 1,
+  "taskId": "inc0410-metas-lww-investigation-codex-20261017",
+  "actor": "codex",
+  "sessionId": "codex-local-20261017-55a003910cb4f81a",
+  "createdAt": "2026-10-17T11:47:42.917Z",
+  "released": true
+}
