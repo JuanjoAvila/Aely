@@ -1,0 +1,42 @@
+{
+  "schema": 1,
+  "id": "sec01-pr256-callback-redirect-docs-remates-codex-20261017",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261017-55d353e1f8536e7e",
+  "createdAt": "2026-10-17T14:11:03.246Z",
+  "kind": "worker",
+  "to": "codex",
+  "baseSHA": "0cd215b0cf6ab30a38bf2324e5b99618a9d34c28",
+  "previousTaskId": "sec01-body-limits-codex-20261017",
+  "previousResult": "f49adc1fce258a920081d0838c887907336b17ac",
+  "grantCommit": "cb8c56a979b663a3b167618af8a1f9bb4c5d4603",
+  "sameOriginalOwner": true,
+  "sameExistingPR": 256,
+  "objective": "Apply only final SEC01 callback invalid-body closed-error redirect and document per-function input limits, then freeze PR256",
+  "scope": [
+    "supabase/functions/bank-callback/index.ts",
+    "supabase/functions/_shared/input_handlers.test.ts",
+    "tests",
+    "docs/SETUP-SUPABASE.md",
+    "docs/briefs"
+  ],
+  "fetchBudget": {
+    "sameWorkerBlockOnly": true,
+    "additional12AfterOwnExhaustion": true,
+    "noticeRequired": true,
+    "ownLedgerRequired": true,
+    "noResetOrROOTInheritance": true
+  },
+  "requirements": [
+    "Read exact Claude GO/remates cb8c56a9 FULL. Same original owner/session and PR256, source0cd215b0; previous resultf49adc1f, first rejection and successful express reevaluation evidence remain immutable.",
+    "New OWN claim/canonical readback/public ACK before code. Continue actual same worker ledger7/12 without reset or ROOT inheritance; inspect descriptor and preserve any closed-state evidence. No additional12 before actual exhaustion or actual new authority.",
+    "Only change invalid body handling in bank-callback to existing closed 302 error redirect instead of JSON response. Preserve parsing limits, auth/IP/state/user quota ordering, all real accepted client/cron forms, rate guards and PR252 CAS/counters.",
+    "Causal RED against0cd215b0 first for actual malformed/oversized callback body redirect contract. Correct focused assertions for this explicit protocol change, demonstrate meaningful mutant reverting JSON behavior; no weakened financial oracles.",
+    "Add exact existing per-function byte limits to docs/SETUP-SUPABASE.md derived from implementation; do not invent limits or expand them. Update brief with actual scope/gates.",
+    "SEC03 remains separate frozen source7ce911a2. Do not merge/rebase/implement SEC03 or ABA/SEC04 here; Claude integration order is249->252->256->SEC03 in planned beta140, not permission to deploy/integrate.",
+    "Run only newly affected focused callback tests/regressions, one worker zero retries if directed browser needed; no repeat of unchanged bank/MyInvestor suites, builds or size measurements.",
+    "Private work only after OWN claim/ACK and admission, public slot released. Normal own branch push/update samePR256/result only in separate serial delivery turn; exact numericPR/SHA/EXITs and remaining gates.",
+    "No other handlers/schema/SQL/live banks/fullsuite/CPU6/Gradle/APK/deploy/main-beta push/merge/09/sheet/VERSION/catalogue/cap changes. Preserve all foreign WIP/claims/leases and previous source.",
+    "Any rejection preserved and STOP; no proxy, alternate identity/path/helper/filter bypass or retry without new authority/effective OWN state. Branch frozen after final remates."
+  ]
+}
