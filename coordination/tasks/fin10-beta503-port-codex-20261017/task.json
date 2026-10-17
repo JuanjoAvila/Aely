@@ -1,0 +1,43 @@
+{
+  "schema": 1,
+  "id": "fin10-beta503-port-codex-20261017",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261017-r60-d77e0b542f6e8da5",
+  "createdAt": "2026-10-17T20:09:06.613Z",
+  "kind": "worker",
+  "to": "codex",
+  "baseSHA": "503d23267091eb5aa0b0e37dd94fac20ea37bd08",
+  "grantCommit": "d1c35333b2978fd4069e7aeb1de92f46af8e8900",
+  "previousTaskId": "fin10-pr259-wildcard-survivor-test-codex-20261017",
+  "previousResult": "eff278541d8f01a7e40a3e07233a61ae2771c3a8",
+  "frozenSource": "f872a24cf180ee0817ccf1139ab3e01721e091eb",
+  "originalSourceBase": "a9c9e45d76d0d92c2c529b0652c24496dea75300",
+  "sameOriginalOwner": true,
+  "priority": "after-INC1710",
+  "objective": "Port reviewed FIN10 final source to exact beta503 without new financial semantics, preserving beta140 changes and FIN15 coexistence; deliver reviewed FINAL dependency for FIN11",
+  "scope": [
+    "src/modules/00-core.js",
+    "src/modules/08-motor-bank.js",
+    "supabase/functions/_shared/presupuesto.ts",
+    "tests/fin10-absorption-scope.test.mjs",
+    "tests/compras-identicas-ids.test.mjs",
+    "tests/fin15-pendiente-contabilizada.test.mjs",
+    "e2e/fin15-pendiente-contabilizada.spec.mjs",
+    "scripts/run-tests.mjs",
+    "docs/briefs/fin10-fin15-beta-coexistence-20261017.md"
+  ],
+  "phase": "OWN reception, claim/readback and public ACK only; separate private port admission after ROOT checks. FIN11 waits exact reviewed FINAL.",
+  "newDraftPRBase": "beta",
+  "requirements": [
+    "Original FIN10 holder only; verify identity/cwd/runtime,OWN ledger/helper hash and previous immutable result closure before first channel read. Read current/policy/protocol and exact-source AGENTS/EMPIEZA-AQUI completely. All new intermediates FULL RAW before watermark advance.",
+    "Claim ONLY this new task, own public ACK/readback and small private atomic/fsync/readback checkpoint; STOP before checkout/product/tests until separate private admission. Old PR259/GO/sourcef872/result eff27854/WIP remain preserved.",
+    "After private admission: new isolated checkout and own branch from exact beta503d2326. Apply only reviewed FIN10 delta of a9-to-f872, retaining existing beta140 changes. Never replace entire shared files from old source. Any money-logic conflict goes to Claude before resolving.",
+    "Claude permits clean rebase and requires new branch for conflicts; safest isolated new branch preserves frozen original. If head requires new branch,new draft PRbeta and later old PR closure as substituted citing new PR,ONLY after separate serial delivery admission. No force/reset or overwriting old source.",
+    "Preserve account/day/obAcc transport,bank-reference identity,symmetric wildcard and FIN15 cross-day consumption ordering,all exact-cent oracles and previous mutant strength. No new debt/queue/tombstone policy. FIN11 queue/remates and FIN17 are excluded.",
+    "Validate ported changed source with only own FIN10,FIN15 and Compras causal regressions,UTC/Madrid where calendar-sensitive,local Deno reader if affected,directed own DOM1worker0retry/ownport48542/stopfirstfailure after separate admission. Do not retag old green or repeat completed unchanged-source suites.",
+    "Server-reader scope is local source/test port only. Apply Supabase skill for relevant existing library contracts; no SQL,RLS,livebank,Edge/backend deployment,auth/config/dependency/schema changes or remote test queries. Synthetic data only.",
+    "No suitecomplete,CPU6,Gradle,APK,foreign leases/locks,install through links,main-beta push/merge,VERSION/catalogue/cap/oracle changes. Build only generated public from authorized source when needed; do not hand-edit generated output.",
+    "Final private candidate must prove exact503 ancestry,parent/scope/hash/EXITs and limitations before review. PR/result only in later serial delivery turn; FIN11 successor base is exact reviewed FINAL,not raw503/oldf872. CI/integration/served/mobile separate,no ProductREADY.",
+    "Worker own remaining budget only;additional12 after actual exhaustion underdb3299cd with normal notice/exactreadback,firstreadcounted. No reset or ROOT inheritance. Rejection non-NFF STOP;ordinary NFF retries only bounded6c8bb553 after FULLRAW,never alternate helper/filter/identity/route."
+  ]
+}
