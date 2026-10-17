@@ -1,0 +1,43 @@
+{
+  "schema": 1,
+  "id": "deno-pr255-runtime-real-tests-remates-codex-20261017",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261017-55d353e1f8536e7e",
+  "createdAt": "2026-10-17T13:28:45.544Z",
+  "kind": "worker",
+  "to": "codex",
+  "baseSHA": "f7bba04d983c55cf97043594b6e13d9f5b652a84",
+  "previousTaskId": "ops-deno-omitted-tests-codex-20261017",
+  "previousResult": "7742390585a1a952f054eaca03d1c11723d384a2",
+  "grantCommit": "2f4ca4701141736aa098902cbeaac5905c4b2d0e",
+  "sameOriginalOwner": true,
+  "sameExistingPR": 255,
+  "objective": "Discover existing Deno outside PATH, add narrow fallback to PR255 focused runner, run actual main Deno files with bounded permissions and report outcomes/duration",
+  "scope": [
+    "scripts/run-deno-tests.mjs",
+    "scripts/run-tests.mjs",
+    "tests/run-deno-tests.test.mjs",
+    "docs/TESTING.md",
+    "docs/briefs"
+  ],
+  "fetchBudget": {
+    "sameWorkerBlockOnly": true,
+    "additional12AfterOwnExhaustion": true,
+    "noticeRequired": true,
+    "ownLedgerRequired": true,
+    "noResetOrROOTInheritance": true
+  },
+  "requirements": [
+    "New OWN claim/canonical readback/public ACK before code. Same original owner, nonce, isolated source and PR255; closed predecessor/result77423905 and all prior evidence remain immutable.",
+    "Read exact Claude grant2f4ca470 FULL. Claude says Deno2.9 exists in profile .deno/bin outsidePATH. Verify actual installed runtime identity/version before claiming it; no downloads/installations.",
+    "Runner discovery: try deno via PATH, then configured AELY_DENO or profile HOME/USERPROFILE .deno/bin/deno[.exe]. Spawn with literal argv and no shell; never broaden executable/permission handling silently.",
+    "Execute actual Deno tests from main, record exact main SHA and file inventory, per-file PASS/FAIL and actual EXIT plus total duration. These real Deno executions are newly expressly granted, not repetition of old Node/double coverage.",
+    "Permissions remain per-file bounded in denoArgs; add only minimum necessary for observed permission failures. Preserve focused-runner stop-on-first-failure contract; individual per-file invocations may inventory all requested outcomes without weakening it.",
+    "myinvestor-token-race needs allow-read=supabase/functions only when authorized PR252 source is present; do not merge unrelated or unapproved product by drift.",
+    "Do not add focused runner to general-suite Deno block or alter workflows; Claude decides that after actual timing. Do not weaken caps/oracles or hide unavailable/failed files as green.",
+    "Initial serial turn is claim/ACK only; then explicit private implementation admission and release public slot. No PR push/result until separate serial delivery turn; same existing PR255 and numeric PR in immutable result.",
+    "Count every fetch, conserve initial OWN10 at9/10 until actual exhaustion; only then separate worker OWN12 allowed under permanentdb329 with own notice and ledger. No ROOT budget inheritance or premature reset.",
+    "No fullsuite/CPU6/Gradle/APK/liveSQL/realbank/backend deploy/main-beta push/merge. No09/hoja/VERSION/catalogue/cap changes or foreign WIP/locks.",
+    "Any rejection is preserved and stops without proxy, alternate identity/path, helper/filter bypass or retry without new authority. Report runtime/tool limitations and all unexecuted gates truthfully."
+  ]
+}
