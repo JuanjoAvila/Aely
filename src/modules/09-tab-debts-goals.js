@@ -104,10 +104,12 @@ function usePlanEditSave({state,set,field,item,onClose,showToast}){
   const [pending,setPending]=useState(null),[error,setError]=useState(""),[range,setRange]=useState(null);
   const sending=useRef(false),outcome=useRef(null);
   useLayoutEffect(function(){
-    if(!pending) return;
-    if(outcome.current&&outcome.current.error){ sending.current=false; setPending(null); setError("plan_edit_changed"); return; }
+    if(!pending||!outcome.current) return;
+    if(outcome.current.error){ sending.current=false; setPending(null); setError("plan_edit_changed"); return; }
     const rows=(state[field]||[]).filter(function(x){ return x.id===item.id; });
-    if(rows.length===1&&planEditSame(rows[0],pending)){ sending.current=false; onClose(); if(showToast) showToast(t("plan_edit_saved")); }
+    // La hoja ya no se desmonta aquí sino tras bajar: durante esos 300 ms otra escritura (la nube,
+    // un sync) volvía a pasar por este efecto y repetía el cierre y el «Cambios guardados».
+    if(rows.length===1&&planEditSame(rows[0],pending)){ outcome.current=null; onClose(); if(showToast) showToast(t("plan_edit_saved")); }
   },[pending,state[field]]);
   const save=function(result){
     if(sending.current) return;
@@ -125,8 +127,12 @@ function usePlanEditSave({state,set,field,item,onClose,showToast}){
   };
   return {save:save,error:error,range:range,pending:!!pending};
 }
-function PlanEditSheet({title,onClose,children}){
+function PlanEditSheet({title,onClose,closer,children}){
   const swipe=useSheetSwipe(true,onClose); useBackClose(true,swipe.close);
+  // Guardar también cierra bajando la hoja. Con el `onClose` pelado desaparecía de un fotograma
+  // al siguiente, hoja y velo a la vez: el «suave parpadeo cuando se cierra solo» de beta
+  // 4.26.139.1 (2026-10-17). Apuntar ya guardaba así.
+  if(closer) closer.current=swipe.close;
   // Misma hoja que Apuntar/Modificar: con `.tabsheet` el fondo se iba de golpe a negro al 55 % y
   // la hoja subía en 280 ms, justo lo que ya se había rechazado allí (velo 2026-07-17, ritmo
   // 2026-09-23). En beta 4.26.138.1 se leyó como «parpadea o salta» al abrir Deudas y Metas.
@@ -140,12 +146,13 @@ function PlanEditSheet({title,onClose,children}){
 function DebtEditSheet({debt,state,set,onClose,onDelete,showToast}){
   const [form,setForm]=useState(function(){ return debtEditDraft(debt); });
   const finished=debtEditFinished(debt);
-  const save=usePlanEditSave({state:state,set:set,field:"debts",item:debt,onClose:onClose,showToast:showToast});
+  const closer=useRef(null);
+  const save=usePlanEditSave({state:state,set:set,field:"debts",item:debt,onClose:function(){ closer.current?closer.current():onClose(); },showToast:showToast});
   const input=function(key,label,mode){ return React.createElement("label",{key:key},t(label),
     React.createElement("input",{className:"af-in"+(mode?" num":""),inputMode:mode||"text",value:form[key],"data-debt-field":key,
       disabled:finished&&key!=="name",
       onChange:function(e){ setForm(Object.assign({},form,{[key]:e.target.value})); }})); };
-  return React.createElement(PlanEditSheet,{title:t("db_edit_title"),onClose:onClose},React.createElement("div",{className:"add-form"},
+  return React.createElement(PlanEditSheet,{title:t("db_edit_title"),onClose:onClose,closer:closer},React.createElement("div",{className:"add-form"},
     input("name","plan_edit_name"),input("balance","db_pending","decimal"),
     React.createElement("div",{className:"af-row"},input("monthly","plan_edit_quota","decimal"),input("day","db_day_ph","numeric")),
     input("months","db_months_ph","numeric"),React.createElement("div",{className:"hint"},t("db_term_hint")),
@@ -160,11 +167,12 @@ function DebtEditSheet({debt,state,set,onClose,onDelete,showToast}){
 }
 function GoalEditSheet({goal,state,set,onClose,onDelete,showToast}){
   const [form,setForm]=useState(function(){return goalEditDraft(goal);});
-  const save=usePlanEditSave({state:state,set:set,field:"goals",item:goal,onClose:onClose,showToast:showToast});
+  const closer=useRef(null);
+  const save=usePlanEditSave({state:state,set:set,field:"goals",item:goal,onClose:function(){ closer.current?closer.current():onClose(); },showToast:showToast});
   const input=function(key,label,type){ return React.createElement("label",{key:key},t(label),React.createElement("input",{
     className:"af-in",type:type||"text",inputMode:key==="target"||key==="saved"||key==="monthly"?"decimal":undefined,value:form[key],"data-goal-field":key,
     onChange:function(e){setForm(Object.assign({},form,{[key]:e.target.value}));}})); };
-  return React.createElement(PlanEditSheet,{title:t("gl_edit_title"),onClose:onClose},React.createElement("div",{className:"add-form"},
+  return React.createElement(PlanEditSheet,{title:t("gl_edit_title"),onClose:onClose,closer:closer},React.createElement("div",{className:"add-form"},
     input("name","plan_edit_name"),React.createElement("div",{className:"af-row"},input("saved","gl_saved_ph"),input("target","gl_target_ph")),
     input("deadline","gl_deadline","month"),input("monthly","gl_monthly_ph"),
     React.createElement("div",{className:"emoji-pick"},GOAL_EMOJIS.map(function(e){return React.createElement("button",{key:e,type:"button",className:form.emoji===e?"on":"","aria-pressed":form.emoji===e,onClick:function(){setForm(Object.assign({},form,{emoji:e}));}},e);})),

@@ -252,3 +252,33 @@ test("R2: terminada real mantiene bloqueo financiero y nombre editable",async({p
 test("R2: plazo sin cuotas restantes con saldo0 y balloon conserva borrador",async({page})=>{
  await open(page,"es",pcRows(pcDebt({value:2100,balloon:100})));const before=await saved(page);await page.locator('[data-debt-id="debt"] .plan-item-open').click();const sheet=debtSheet(page,"es");await sheet.locator('[data-debt-field="months"]').fill("4");await sheet.locator('[data-debt-field="balance"]').fill("0");await sheet.getByRole("button",{name:texts.es.saveDebt,exact:true}).click();await expect(sheet.getByRole("alert")).toHaveText(pcErrors.es);await expect(sheet.locator('[data-debt-field="months"]')).toHaveValue("4");await expect(sheet.locator('[data-debt-field="balance"]')).toHaveValue("0");expect((await saved(page)).debts).toEqual(before.debts);
 });
+// Rechazo de beta 4.26.139.1: «un suave parpadeo cuando se cierra solo». Medido fotograma a
+// fotograma con la CPU a 4×: al Guardar la hoja desaparecía de golpe (sin bajar) y, en cualquier
+// cierre —también en Apuntar—, el velo seguía al 28 % hasta desmontarse y la pantalla entera se
+// aclaraba en un solo fotograma. Este guardián exige que la hoja baje y que el velo llegue ya
+// desvanecido al último fotograma, en Deudas, Metas y en Apuntar como control.
+for(const scenario of [{kind:"debt",how:"save"},{kind:"debt",how:"x"},{kind:"goal",how:"save"},{kind:"goal",how:"back"},{kind:"apuntar",how:"velo"}])test(`cierre de la hoja (${scenario.kind}, ${scenario.how}): baja y el velo se va con ella`,async({page})=>{
+ const {kind,how}=scenario;
+ await open(page,"es",reviewRows,true);if(kind==="goal")await page.getByRole("tab",{name:"Metas",exact:true}).click();
+ if(kind==="apuntar")await page.locator(".botnav-fab").evaluate(b=>b.click());
+ else await page.locator(kind==="debt"?'[data-debt-id="debt"] .plan-item-open':'[data-goal-id="goal"] .plan-item-open').evaluate(b=>b.click());
+ await page.waitForFunction(()=>{const el=document.querySelector(".v4-sheet");return !!el&&getComputedStyle(el).transform==="none";},null,{timeout:10000});
+ const cdp=await page.context().newCDPSession(page);await cdp.send("Emulation.setCPUThrottlingRate",{rate:4});
+ await page.evaluate(()=>{const rec=window.__cierre=[],t0=performance.now();(function f(){const sh=document.querySelector(".v4-sheet"),bk=document.querySelector(".v4-sheet-back");
+  const c=bk&&getComputedStyle(bk).backgroundColor.match(/[\d.]+/g).map(Number);
+  rec.push({sheet:sh?Math.round(sh.getBoundingClientRect().top):null,alpha:c?(c.length>3?c[3]:1):null});if(performance.now()-t0<1500)requestAnimationFrame(f);})();});
+ // Clics crudos: el de Playwright espera sondeando el DOM y falsea el ritmo de fotogramas.
+ await page.evaluate(how=>{
+  if(how==="save")document.querySelector(".plan-edit-sheet .btn-primary").click();
+  if(how==="x")document.querySelector(".plan-edit-head button").click();
+  if(how==="velo")document.querySelector(".v4-sheet-back").click();
+  if(how==="back")history.back();
+ },how);
+ await expect(page.locator(".v4-sheet")).toHaveCount(0);await page.waitForTimeout(300);await cdp.send("Emulation.setCPUThrottlingRate",{rate:1});
+ const rec=await page.evaluate(()=>window.__cierre),live=rec.filter(f=>f.sheet!=null);
+ expect(rec[rec.length-1].sheet,"la hoja termina desmontada").toBeNull();
+ expect(new Set(live.map(f=>f.sheet)).size,"la hoja baja en varios fotogramas, no desaparece de golpe").toBeGreaterThan(4);
+ for(let i=1;i<live.length;i++)expect(live[i].alpha,"el velo nunca se oscurece al cerrar").toBeLessThanOrEqual(live[i-1].alpha+0.001);
+ expect(live[live.length-1].alpha,"el velo ya se ha ido cuando se desmonta").toBeLessThanOrEqual(0.03);
+ if(kind!=="apuntar"&&how==="save")await expect(page.getByText(texts.es.saved,{exact:true})).toHaveCount(1);
+});
