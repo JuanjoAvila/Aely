@@ -134,12 +134,16 @@ function claveLegacySinId(f: { fecha?: string | null; importe?: number | string;
  */
 export function filasComoLaApp<T extends FilaGasto>(filas: T[] | null | undefined, deleted: string[] | null | undefined): T[] {
   const lap = new Set(deleted || []);
-  // Índice solo de lectura para filas legacy sin cuenta; nunca se persiste ni se aplica
-  // a una candidata que sí tiene cuenta, aunque la lápida venga sin ella.
+  // La ausencia de cuenta en cualquiera de los lados es el mismo comodín que usa
+  // el escritor para proteger a la superviviente; ambos índices se calculan una vez.
   const sinCuenta = new Set<string>();
+  const cuentaAusente = new Set<string>();
   for (const k of lap) {
     const p = k.split("|");
-    if (p.length === 6 && p[0] === "ob-absorbed2") sinCuenta.add(p.slice(0, 4).join("|") + "||" + p[5]);
+    if (p.length === 6 && p[0] === "ob-absorbed2") {
+      const base = p.slice(0, 4).join("|") + "||" + p[5];
+      sinCuenta.add(base); if (!p[4]) cuentaAusente.add(base);
+    }
   }
   const vistas = new Set<string>();
   const out: T[] = [];
@@ -150,7 +154,10 @@ export function filasComoLaApp<T extends FilaGasto>(filas: T[] | null | undefine
     if (absorbed && lap.has(absorbed)) continue;
     const legacy = claveAbsorcionOb(f, true);
     if (legacy && lap.has(legacy)) continue;
-    if (absorbed && !cuentaDeSource(f.source) && sinCuenta.has(absorbed)) continue;
+    if (absorbed) {
+      const p = absorbed.split("|"), base = p.slice(0, 4).join("|") + "||" + p[5];
+      if (cuentaAusente.has(base) || (!cuentaDeSource(f.source) && sinCuenta.has(base))) continue;
+    }
     if (esSourceManual(f.source) && lap.has(claveLegacySinId(f))) continue;
     if (vistas.has(k)) continue;
     vistas.add(k);

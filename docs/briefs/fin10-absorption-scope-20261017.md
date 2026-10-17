@@ -1,5 +1,45 @@
 # FIN-10 y transporte de cuenta FIN-14 · candidata
 
+## Remates del NO-GO 691503ab · privados, pendientes de nuevo turno de entrega
+
+Sucesora `fin10-pr250-review-remates-codex-20261017`, base `11707215`. El resultado
+anterior `6d2dadf3` queda cerrado e inmutable. La revisión independiente detectó una
+asimetría no cubierta por el primer contrato: una lápida con cuenta podía ocultar la
+superviviente sin cuenta (320 → 0 c); al enriquecer una fila que el escritor no conocía,
+la asimetría inversa dejaba 640 c en servidor y widget. La regla corregida, admitida por
+691503ab/acaf456d, trata **cuenta ausente en cualquiera de los dos lados** como comodín,
+siempre dentro de banco, referencia, ordinal y día. Dos cuentas conocidas diferentes
+siguen siendo distintas. Esta decisión sustituye la regla asimétrica de la primera
+entrega y su aserción de cuenta ausente; conserva íntegro el oráculo de 320 céntimos.
+
+`obPendingAbsorbedState` consulta el mismo predicado que el lector cliente antes de
+escribir la lápida. Si ese marcador pudiera alcanzar a la superviviente, no lo escribe.
+El servidor aplica el mismo comodín. Los índices `any`/`missing` del cliente se calculan
+una vez por mapa de lápidas y se cachean con WeakMap; un nuevo array de `deleted` obtiene
+su mapa e índice nuevos. No se persiste el índice ni se amplía la lista de lápidas.
+
+ROJO causal sobre 11707215: 10 casos, cuatro pasan y seis fallan, EXIT1. El updater y
+commit reales con enlace legacy **sin `accounts[]`** cubren las cuatro combinaciones
+con/sin cuenta en superviviente y BOOK, para ranuras 1 y 2. El resultado esperado en
+cliente, otro móvil, `filasComoLaApp` y widget real es siempre 320 c. Los diez casos
+pasan tras el arreglo. El test de coste instrumenta la fuente real con 20.000 filas y
+500 lápidas: antes 20.000 enumeraciones/10.000.000 descriptores; después una/500.
+Los tiempos instrumentados (6.229 ms antes, 87 ms después) no acreditan rendimiento
+móvil ni sustituyen CPU6, que no se ha ejecutado.
+
+La ampliación completa queda en 25 casos FIN-10 y 32 de compras, todos EXIT0. Mueren
+cuatro mutantes nuevos: restituir guarda exacta del escritor (0 c), quitar el lado
+ausente del cliente, quitarlo del servidor y reconstruir el índice por fila (200
+enumeraciones/100.000 descriptores para 200 filas). Se conservan los seis mutantes
+propios anteriores adaptando solo el punto de inyección de la cuenta al lector nuevo.
+También pasan presupuesto servidor, sintaxis y los tres DOM dirigidos de Gastos con
+un worker, cero reintentos y puerto 48510. Se repiten por cambio causal de esos lectores,
+escritor y build, sin suite general ni CPU6.
+
+Esta fase prepara commit y evidencia privados: **sin push de PR250 ni result de la
+sucesora hasta un nuevo turno serial**. Tamaño, docs-frescura, beta-delivery y versión
+son de integración de Claude. No se modifica FIN-11 ni se añaden migraciones.
+
 Base exacta `a9916c3cdb21c93f9d3a47653c0608e630ce50ab`. GO causal de Claude
 `206f47c311e6d9e046b9f05991df49b1b1ba6352`. Esta fuente no acredita integración,
 publicación, despliegue de ingest ni aceptación móvil.
@@ -18,8 +58,8 @@ fecha guardada, sin convertir zonas. Los lectores cliente y servidor reconocen a
 versiones. La vieja mantiene exactamente su conducta amplia: no se puede reconstruir
 la cuenta o el día perdidos, ni se afirma una reparación histórica.
 
-Si la candidata no tiene cuenta, una lápida v2 casa por banco, referencia, ordinal y
-día. Si sí tiene cuenta, se exige la cuenta exacta; una lápida sin cuenta no la oculta.
+Tras el remate, si falta cuenta en la candidata o en la lápida, v2 casa por banco,
+referencia, ordinal y día; con ambas cuentas conocidas se exige igualdad.
 `expenseSourceForCloud` y `expenseFromRow` transportan la cuenta como `#acc` codificado
 antes del ordinal final. Conservan referencias, estado pendiente, recibos, duplicados,
 histórico y las fuentes legacy. No hay SQL ni columna nueva. FIN-11 conserva la cola
@@ -29,7 +69,7 @@ El pull enriquece `obAcc` en filas existentes sin borrar la cuenta ante un sourc
 La guarda por UUID de retiradas permite añadir `#acc` a una fila legacy sin aceptar dos
 cuentas conocidas diferentes; conserva las guardas de referencia y source anteriores.
 
-Pruebas focales: trece casos propios y 32 anteriores de compras, con seis mutantes
+Primera entrega, anterior al NO-GO: trece casos propios y 32 anteriores de compras, con seis mutantes
 propios muertos (cuenta, día, escritor amplio, transporte y los dos lectores servidor).
 Se conserva el oráculo de las pruebas anteriores; se actualizan únicamente los puntos
 de inyección que cambian con el nuevo formato. Presupuesto servidor, ordinal y sintaxis

@@ -4111,17 +4111,33 @@ function bankDeletionLink(e){
   if(e.extId){g.bankRef=String(e.extId);g.ent=expenseBankOf(e)||"";}
   return g;
 }
+// El mapa de lápidas se cachea por la referencia de deleted. Su índice también: recorrer
+// 500 claves por cada fila convertía un render de 20000 movimientos en diez millones.
+const obAbsorptionIndexes=new WeakMap();
+function obAbsorptionIndex(delSet){
+  let index=obAbsorptionIndexes.get(delSet);if(index)return index;
+  index={any:Object.create(null),missing:Object.create(null)};
+  Object.keys(delSet).forEach(function(k){
+    if(!delSet[k])return;
+    const p=k.split("|");if(p.length!==6||p[0]!=="ob-absorbed2")return;
+    const base=p.slice(0,4).join("|")+"|"+p[5];
+    index.any[base]=1;if(!p[4])index.missing[base]=1;
+  });
+  obAbsorptionIndexes.set(delSet,index);return index;
+}
+/* El escritor usa ESTE MISMO predicado antes de proteger la fila retirada. Si falta la
+   cuenta en cualquiera de los dos lados, nunca puede alcanzar a la superviviente. */
+function obAbsorptionMatches(e,delSet){
+  const absorbed=obAbsorptionKey(e);if(absorbed&&delSet[absorbed])return true;
+  const legacy=obAbsorptionKey(e,true);if(legacy&&delSet[legacy])return true;
+  if(!absorbed)return false;
+  const p=absorbed.split("|"),k=p.slice(0,4).join("|")+"|"+p[5],index=obAbsorptionIndex(delSet);
+  return !!(e.obAcc ? index.missing[k] : index.any[k]);
+}
 /* Lápidas anteriores al Paso 0 guardaban la clave sin id: siguen ocultando ese manual. */
 function expenseIsTombstoned(e, delSet){
   if(!delSet) return false;
-  const absorbed=obAbsorptionKey(e);if(absorbed&&delSet[absorbed])return true;
-  const legacy=obAbsorptionKey(e,true);if(legacy&&delSet[legacy])return true;
-  // Sin cuenta en la fila no se puede exigirla, pero el día sigue siendo obligatorio.
-  // La omisión nunca amplía una lápida hacia otra fila que SÍ trae su cuenta.
-  if(absorbed&&!e.obAcc){
-    const p=absorbed.split("|");
-    if(Object.keys(delSet).some(function(k){const q=k.split("|");return delSet[k]&&q.length===6&&q[0]===p[0]&&q[1]===p[1]&&q[2]===p[2]&&q[3]===p[3]&&q[5]===p[5];}))return true;
-  }
+  if(obAbsorptionMatches(e,delSet))return true;
   const k=keyOfExpense(e);
   if(delSet[k]) return true;
   if(isManualExpenseSource(e&&e.source) && delSet[keyOfExpenseLegacy(e)]) return true;
@@ -15709,7 +15725,7 @@ function obPendingAbsorbedState(s,prev){
     if(ids.has(e.id)||!esFilaDeBanco(e)||!e.extId||e.obPending)return;
     const keep=adopted.get(expenseBankOf(e)+"|"+e.extId);
     if(!keep||obPendingGroup(e)!==obPendingGroup(keep)||e.obAcc&&keep.obAcc&&e.obAcc!==keep.obAcc)return;
-    const key=obAbsorptionKey(e);if(!key||key===obAbsorptionKey(keep)||(out.deleted||[]).indexOf(key)>=0)return;
+    const key=obAbsorptionKey(e);if(!key||obAbsorptionMatches(keep,{[key]:1})||(out.deleted||[]).indexOf(key)>=0)return;
     out=Object.assign({},out,lapidaPon(out,key,s.lastBankSync||Date.now()));
     borrarGastoNube(e,"ob-absorbed");
   });

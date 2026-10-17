@@ -5,6 +5,7 @@ import {transformSync} from "esbuild";
 import {loadPureLogic} from "../scripts/load-pure-logic.mjs";
 import * as bank from "./helpers/bank-download-fixture.mjs";
 import {E,day} from "./helpers/banco-sintetico.mjs";
+import {widgetBudget} from "./helpers/ingest-handler-fixture.mjs";
 
 const html=fs.readFileSync(new URL("../public/index.html",import.meta.url),"utf8"),c=loadPureLogic(html);
 const source=fs.readFileSync(new URL("../supabase/functions/_shared/presupuesto.ts",import.meta.url),"utf8");
@@ -30,6 +31,79 @@ function visibility(ctx,srv,e,deleted,hidden){
 }
 const otherAccount={...gone,id:"other-account",obAcc:"synthetic-account-b"},otherDay={...gone,id:"other-day",date:day(-1)+"T12:00:00.001Z"};
 
+function rematesScenario(ctx,srv,keepAccount,bookAccount,ordinal){
+ const p={...pending,obAcc:keepAccount?"synthetic-account-a":undefined};
+ const b={...gone,obOrd:ordinal>1?ordinal:undefined,date:day(-2)+"T12:00:00.00"+(ordinal-1)+"Z",obAcc:bookAccount?"synthetic-account-a":undefined};
+ const prev={accounts:[{id:"cx",ent:"caixabank",role:"diario",spendFrom:true,value:1000}],settings:{expenseBanks:["caixabank"]},expenses:[p,b],gemelos:[],deleted:[],fixed:[],debts:[],oneoffs:[],flows:[],investments:[],goals:[],assets:[],budget:1000,bankTx:[]};
+ const tx={entry_reference:b.extId,booking_date:day(-2),value_date:day(-2),status:"BOOK",transaction_amount:{amount:"3.20",currency:"EUR"},credit_debit_indicator:"DBIT",creditor:{name:b.merchant}};
+ const links=[{aspsp:"CaixaBank",syncFrom:"2026-01-01",transactions:[E.mapTransaction(tx)]}];
+ assert.equal(links[0].accounts,undefined,"enlace legacy real sin accounts[]");
+ const before=clone(prev),after=bank.updater(html,links,prev,ctx,true).state;
+ assert.deepEqual(clone(prev),before,"previo intacto");assert.equal(after.expenses.length,1);
+ const survivor=after.expenses[0];
+ const localCents=after.expenses.filter(e=>ctx.expenseCountsBudget(e,after)).reduce((n,e)=>n+Math.round(e.amount*100),0);
+ // El segundo móvil puede haber enriquecido la cuenta que el escritor no conocía,
+ // o seguir sin ella: las dos lecturas de la misma fila deben converger.
+ const cloudRows=[wire(survivor,ctx),wire({...b,obAcc:bookAccount?undefined:"synthetic-account-a"},ctx)];
+ const filtered=srv.filasComoLaApp(cloudRows,after.deleted);
+ const serverCents=filtered.reduce((n,r)=>n+Math.round(Number(r.importe)*100),0);
+ const incoming=cloudRows.map(ctx.expenseFromRow).filter(e=>!ctx.expenseIsTombstoned(e,ctx.expenseDeletedSet(after)));
+ const other=ctx.mergeExpensesFromCloud([],incoming).list;
+ const otherCents=other.filter(e=>ctx.expenseCountsBudget(e,{...after,expenses:other})).reduce((n,e)=>n+Math.round(e.amount*100),0);
+ const start=srv.inicioDeMesMs(Date.now());
+ const widgetState={...after,widgetPeriod:{v:2,kind:"mes",start,anchor:"",scope:JSON.stringify([2,start,"mes","gasto","",1000,["caixabank"],"caixabank"])}};
+ const trigger={id:"outside-budget",fecha:new Date().toISOString(),importe:0.01,comercio:"Otro banco sintetico",cat:"otros",source:"ob:trade_republic#refoutside"};
+ const snapshot=widgetBudget.widgetSnapshot(widgetState,cloudRows.concat(trigger),Date.now(),{id:trigger.id,event:"fin10-review",key:"synthetic"});
+ const widgetCents=snapshot&&Math.round(snapshot.spent*100);
+ console.log(JSON.stringify({remates:{keepAccount,bookAccount,ordinal,localCents,serverCents,otherCents,widgetCents,deleted:after.deleted}}));
+ assert.equal(localCents,320,"superviviente local");assert.equal(serverCents,320,"servidor");assert.equal(otherCents,320,"otro movil");assert.equal(widgetCents,320,"widget real");
+ if(ordinal===1)assert.equal(after.deleted.length,0,"no lapidar si el comodin alcanzaria a la superviviente");
+ else assert.equal(after.deleted.length,1,"otra ranura si admite la proteccion precisa");
+ return after;
+}
+function rematesCost(ctx,n=20000){
+ const deleted=Array.from({length:500},(_,i)=>"ob-absorbed2|caixabank|gone-"+i+"|2|synthetic-account-a|"+day(-2));
+ const set=ctx.expenseDeletedSet({deleted});assert.equal(ctx.expenseDeletedSet({deleted}),set,"indice de la misma referencia de deleted");
+ let enumerations=0,descriptors=0;
+ const proxied=new Proxy(set,{ownKeys(target){enumerations++;return Reflect.ownKeys(target);},getOwnPropertyDescriptor(target,k){descriptors++;return Reflect.getOwnPropertyDescriptor(target,k);}});
+ const start=performance.now();
+ for(let i=0;i<n;i++)assert.equal(ctx.expenseIsTombstoned({...gone,extId:"row-"+i,obAcc:undefined},proxied),false);
+ const elapsedMs=performance.now()-start;
+ console.log(JSON.stringify({rematesCost:{rows:n,tombstones:500,enumerations,descriptors,elapsedMs}}));
+ assert.ok(enumerations<=1,"el indice enumera lapidas una sola vez, no una por fila");
+ assert.ok(descriptors<=500,"trabajo de lapidas lineal500, no filas por500");
+}
+for(const keepAccount of [false,true])for(const bookAccount of [false,true])for(const ordinal of [1,2]){
+ test("FIN10 remates ROJO legado cuentas keep="+keepAccount+" book="+bookAccount+" ordinal="+ordinal,()=>rematesScenario(c,server,keepAccount,bookAccount,ordinal));
+}
+test("FIN10 remates ROJO comodin simetrico entre los cuatro lados de la cuenta",()=>{
+ for(const tombAccount of [undefined,"synthetic-account-a"])for(const candidateAccount of [undefined,"synthetic-account-a"]){
+  visibility(c,server,{...gone,obAcc:candidateAccount},[c.obAbsorptionKey({...gone,obAcc:tombAccount})],true);
+ }
+});
+test("FIN10 remates ROJO coste real20000filas500lapidas",()=>rematesCost(c));
+test("FIN10 remates indice se renueva al recibir otro conjunto de lapidas",()=>{
+ const deleted=[key],before=c.expenseDeletedSet({deleted});
+ assert.equal(c.expenseIsTombstoned({...gone,obAcc:undefined},before),true);
+ const changed=c.expenseDeletedSet({deleted:["ob-absorbed2|caixabank|distinct-ref|2||"+day(-2)]});
+ assert.equal(c.expenseIsTombstoned({...gone,obAcc:undefined},changed),false);
+ assert.equal(c.expenseIsTombstoned({...gone,extId:"distinct-ref",obAcc:"synthetic-account-b"},changed),true);
+});
+test("FIN10 remates mutantes propios de simetria escritor/lectores y coste mueren",()=>{
+ const localCases=[
+  ["M1-escritor-asimetrico",s=>s.replace('obAbsorptionMatches(keep,{[key]:1})','key===obAbsorptionKey(keep)'),ctx=>rematesScenario(ctx,server,false,true,1)],
+  ["M2-lector-cliente-asimetrico",s=>s.replace('e.obAcc ? index.missing[k] : index.any[k]','e.obAcc ? false : index.any[k]'),ctx=>visibility(ctx,server,{...gone,obAcc:"synthetic-account-a"},[ctx.obAbsorptionKey({...gone,obAcc:undefined})],true)],
+  ["M3-indice-recalculado-por-fila",s=>s.replace('obAbsorptionIndexes.get(delSet)','null'),ctx=>rematesCost(ctx,200)]
+ ];
+ for(const [name,mutate,check] of localCases){
+  check(c);const changed=mutate(html);assert.notEqual(changed,html,name);
+  assert.throws(()=>check(loadPureLogic(changed)),{code:"ERR_ASSERTION"},name);
+ }
+ const changed=source.replace('cuentaAusente.has(base) || ','');assert.notEqual(changed,source,"M4-lector-servidor-asimetrico");
+ assert.throws(()=>visibility(c,serverModule(changed),{...gone,obAcc:"synthetic-account-a"},[c.obAbsorptionKey({...gone,obAcc:undefined})],true),{code:"ERR_ASSERTION"});
+ console.log("FIN10 remates: M1/M2/M3/M4 muertos por centimos y coste real");
+});
+
 test("FIN10 escritor real emite solo v2 y ambos lectores conservan cuenta/dia",()=>{
  const s=absorbed();assert.deepEqual(Array.from(s.deleted),[key]);assert.equal(s.deletedAt[key],123456789);
  assert.equal(s.expenses.length,1);assert.equal(s.expenses[0].id,pending.id);
@@ -46,9 +120,9 @@ test("FIN10 candidata sin cuenta casa solo el mismo banco/ref/ordinal/dia",()=>{
  visibility(c,server,{...unknown,ent:"sabadell"},[key],false);
  visibility(c,server,{...unknown,extId:"distinct-ref"},[key],false);
 });
-test("FIN10 lapida sin cuenta nunca oculta candidata con cuenta conocida",()=>{
+test("FIN10 cuenta ausente en lapida o candidata usa el mismo comodin aprobado en revision",()=>{
  const noAccount=c.obAbsorptionKey({...gone,obAcc:undefined});
- for(const e of [gone,otherAccount])visibility(c,server,e,[noAccount],false);
+ for(const e of [gone,otherAccount])visibility(c,server,e,[noAccount],true);
  visibility(c,server,{...gone,obAcc:undefined},[noAccount],true);
 });
 test("FIN10 UUID, nombre e importe editados no resucitan absorbida legitima",()=>{
@@ -105,7 +179,7 @@ test("FIN10 mutantes propios de cliente/escritor mueren por comportamiento",()=>
   transport:ctx=>assert.equal(ctx.expenseFromRow(wire(gone,ctx)).obAcc,gone.obAcc)
  };
  const mutants=[
-  ["account",s=>s.replace('if(absorbed&&!e.obAcc){','if(absorbed){')],
+  ["account",s=>s.replace('e.obAcc ? index.missing[k] : index.any[k]','index.any[k]')],
   ["day",s=>s.replace('String(e.date||"\").slice(0,10)','""')],
   ["writer",s=>s.replace('const key=obAbsorptionKey(e);if(!key','const key=obAbsorptionKey(e,true);if(!key')],
   ["transport",s=>s.replace('obAcc: source==="ob"||source==="ob-hist" ? bankRefDeSource(raw,"acc") : undefined,','obAcc: undefined,')]
