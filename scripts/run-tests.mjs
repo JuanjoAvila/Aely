@@ -34,6 +34,7 @@ if (plan.build !== false) {
 }
 
 const steps = [
+  ["ux16-haptics", ["node", "--test", "tests/ux16-haptics.test.mjs"]],
   ["inicio-deuda-futura", ["node", "--test", "tests/inicio-deuda-futura.test.mjs"]],
   ["inicio-grafica-reservas", ["node", "tests/inicio-grafica-reservas.test.mjs"]],
   ["compras-identicas-ids", ["node", "--test", "tests/compras-identicas-ids.test.mjs"]],
