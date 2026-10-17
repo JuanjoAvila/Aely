@@ -35749,5 +35749,107 @@
       "supabase/functions/_shared/presupuesto.ts"
     ],
     "unidades": true
+  },
+  "deudas-plazo-cuota-encaja": {
+    "web": [
+      {
+        "file": "src/modules/09-tab-debts-goals.js",
+        "function": "planEditNumber"
+      },
+      {
+        "file": "src/modules/09-tab-debts-goals.js",
+        "function": "debtEditDraft"
+      },
+      {
+        "file": "src/modules/09-tab-debts-goals.js",
+        "function": "debtEditFinished"
+      },
+      {
+        "file": "src/modules/09-tab-debts-goals.js",
+        "function": "debtEditResult"
+      },
+      {
+        "file": "src/modules/09-tab-debts-goals.js",
+        "function": "usePlanEditSave"
+      },
+      {
+        "file": "src/modules/09-tab-debts-goals.js",
+        "function": "DebtEditSheet"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "ymAbs"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "ymNow"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtAmort"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtChargeDay"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtPaidCount"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtBalance"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "debtLeft"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "eur"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "DISP"
+      }
+    ],
+    "unidades": true
+  },
+  "deudas-metas-hoja-sin-parpadeo": {
+    "web": [
+      {
+        "file": "src/modules/09-tab-debts-goals.js",
+        "function": "PlanEditSheet"
+      },
+      {
+        "file": "src/modules/09-tab-debts-goals.js",
+        "function": "DebtEditSheet"
+      },
+      {
+        "file": "src/modules/09-tab-debts-goals.js",
+        "function": "GoalEditSheet"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "eur"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "GOAL_EMOJIS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "DISP"
+      }
+    ],
+    "unidades": true
   }
 }
