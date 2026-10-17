@@ -191,7 +191,7 @@ Deno.serve(async (req) => {
        Los acuses que tuviera un móvil de antes de reconectar dejan de valer solos: van
        ligados a `state_issued_at`, que `bank-connect` renovó al empezar (`ackLinkKey`). */
     const keep = !!uid && keepsCursor(link, accts);
-    const { error: linkError } = await admin.from("bank_links").update({
+    const saved = await admin.from("bank_links").update({
       session_id: await encryptSessionId(sessionId),
       account_uid: uid,
       iban,
@@ -199,8 +199,13 @@ Deno.serve(async (req) => {
       status: uid ? "active" : "error",
       ...(keep ? {} : { last_sync: null }),
       updated_at: new Date().toISOString(),
-    }).eq("id", link.id);
-    if (linkError) throw new CallbackFallo("error", "enlace no guardado");
+    }).eq("id", link.id).select("id");
+    // También puede desaparecer la fila después del consumo: cero filas sin error
+    // no confirma que la sesión se haya guardado. No anunciar éxito ni reintentar.
+    if (saved?.error || !Array.isArray(saved?.data)
+      || saved.data.length !== 1 || saved.data[0]?.id !== link.id) {
+      throw new CallbackFallo("error", "enlace no guardado");
+    }
 
     // Si autorizó pero no obtuvimos una cuenta legible, no mentimos con "bank=ok".
     if (!uid) {

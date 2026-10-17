@@ -32,8 +32,9 @@ function fixture(opt = {}, handlerSource = sourceText[sources.at(-1)]) {
       const filters = [];
       const q = {
         select() { returning = true; return q; },
-        eq(k, v) { filters.push([k, v]); return q; },
-        is(k, v) { filters.push([k, v]); return q; },
+        // PostgREST eq.null no equivale a IS NULL: no debe esconder la regresión legacy.
+        eq(k, v) { filters.push([k, v, 'eq']); return q; },
+        is(k, v) { filters.push([k, v, 'is']); return q; },
         update(p) { op = 'update'; payload = clone(p); return q; },
         insert(p) { op = 'insert'; payload = clone(p); return q; },
         maybeSingle() { return execute(true); },
@@ -41,7 +42,7 @@ function fixture(opt = {}, handlerSource = sourceText[sources.at(-1)]) {
       };
       const execute = single => executed ||= (async () => {
         if (op === 'read') {
-          const matches = row && filters.every(([k, v]) => row[k] === v);
+          const matches = row && filters.every(([k, v, op]) => op === 'is' ? (row[k] ?? null) === v : v != null && row[k] != null && row[k] === v);
           const snapshot = matches ? clone(row) : null;
           events.push({ op: 'lookup', matched: !!matches, snapshotState: snapshot?.state ?? null });
           if (opt.parallelReads && ++reads <= 2) { if (reads === 2) barrierResolve(); await barrier; }
@@ -52,11 +53,12 @@ function fixture(opt = {}, handlerSource = sourceText[sources.at(-1)]) {
         if (consume && opt.beforeConsume === 'replace') replace();
         if (consume && opt.beforeConsume === 'issuance') { row.state_issued_at = new Clock(now).toISOString(); events.push({ op: 'external-issuance' }); }
         if (consume && opt.beforeConsume === 'delete') { row = null; events.push({ op: 'external-delete' }); }
+        if (!consume && opt.beforeSave === 'delete') { row = null; events.push({ op: 'external-delete-before-save' }); }
         const fault = consume ? opt.consumeFault : opt.finalFault;
         if (fault === 'error-with-row') return { data: [{ id: initial.id }], error: { code: 'fixture-incoherent-error' } };
         if (fault === 'throw-before') { events.push({ op: 'consume-throw-before' }); throw Error('fixture transport unavailable'); }
         if (fault === 'error-before') { events.push({ op: consume ? 'consume-error-before' : 'link-error-before' }); return { data: null, error: { code: '42501', message: 'fixture denied' } }; }
-        const match = row && filters.every(([k, v]) => row[k] === v);
+        const match = row && filters.every(([k, v, op]) => op === 'is' ? (row[k] ?? null) === v : v != null && row[k] != null && row[k] === v);
         if (match) Object.assign(row, payload);
         const returned = match ? [clone(row)] : [];
         events.push({ op: consume ? 'consume' : 'link-update', filters: clone(filters), affected: match ? 1 : 0, patch: payload, returning });
@@ -97,14 +99,20 @@ function fixture(opt = {}, handlerSource = sourceText[sources.at(-1)]) {
   const evidence = responses => ({ responses, oauthExchanges: events.filter(e => e.op === 'oauth-exchange').length, consumeAffected: events.filter(e => e.op === 'consume').reduce((a, e) => a + e.affected, 0), linkUpdates: events.filter(e => e.op === 'link-update' && e.affected).length, stateAfter: row?.state ?? null, statusAfter: row?.status ?? null, sessionAfter: row?.session_id ?? null, events, logs });
   return { request, evidence, initial, row: () => clone(row), db, replace };
 }
-const index = sourceText[sources.at(-1)];
+// Las anclas textuales multilínea deben ser iguales en checkout LF y CRLF.
+const index = sourceText[sources.at(-1)].replace(/\r\n/g, '\n');
 const mutants = {
   'sin-state': ['.eq("id", link.id).eq("state", state);', '.eq("id", link.id);', 'concurrent'],
   'acepta-cero': ['|| consumed.data.length !== 1 || consumed.data[0]?.id !== link.id', '|| consumed.data.length > 1 || (consumed.data.length === 1 && consumed.data[0]?.id !== link.id)', 'zero'],
   'acepta-error': ['if (consumed?.error || !Array.isArray(consumed?.data)', 'if (!Array.isArray(consumed?.data)', 'error'],
-  'exito-sin-guardar': ['if (linkError) throw new CallbackFallo("error", "enlace no guardado");', 'if (false) throw new CallbackFallo("error", "enlace no guardado");', 'save'],
+  'exito-sin-guardar': ['if (saved?.error || !Array.isArray(saved?.data)\n      || saved.data.length !== 1 || saved.data[0]?.id !== link.id) {', 'if (false) {', 'save'],
+  'legacy-eq-null': ['consume.is("state_issued_at", null)', 'consume.eq("state_issued_at", null)', 'legacy'],
+  'final-acepta-cero': ['|| saved.data.length !== 1 || saved.data[0]?.id !== link.id', '|| saved.data.length > 1 || (saved.data.length === 1 && saved.data[0]?.id !== link.id)', 'final-zero'],
+  'final-sin-json': ['}).eq("id", link.id).select("id");', '}).eq("id", link.id);', 'final-confirmed'],
+  'final-acepta-error': ['if (saved?.error || !Array.isArray(saved?.data)', 'if (!Array.isArray(saved?.data)', 'final-json'],
 };
 const mutantName = process.env.SEC03_MUTANT;
+const testGroups = process.env.SEC03_TEST_GROUPS?.split(',');
 let handlerSource = index;
 if (mutantName) {
   assert.ok(mutants[mutantName], 'mutante conocido');
@@ -114,6 +122,7 @@ const selected = mutantName ? mutants[mutantName][2] : null;
 let pass = 0, fail = 0;
 async function test(name, group, fn) {
   if (selected && group !== selected) return;
+  if (testGroups && !testGroups.includes(group)) return;
   try { await fn(); pass++; console.log('PASS ' + name); }
   catch (e) { fail++; console.error('FAIL ' + name + ': ' + e.message); }
 }
@@ -143,7 +152,7 @@ for (const app of [false, true]) {
   await test('error de escritura final nunca es éxito, APK=' + app, 'save', async () => {
     const f = make({ app, finalFault: 'error-before' }); const r = await f.request(), e = f.evidence([r]); closed(r, app); assert.equal(e.oauthExchanges, 1); assert.equal(e.linkUpdates, 0); assert.equal(e.stateAfter, null); assert.equal(e.sessionAfter, f.initial.session_id);
   });
-  await test('legacy null consume y conserva cursor, APK=' + app, 'normal', async () => {
+  await test('legacy null consume y conserva cursor, APK=' + app, 'legacy', async () => {
     const f = make({ app, legacy: true }); const r = await f.request(), e = f.evidence([r]); assert.equal(r.location, okLocation(app)); assert.equal(e.oauthExchanges, 1); assert.equal(f.row().last_sync, f.initial.last_sync); assert.equal(f.row().accounts[0].iban, f.initial.iban);
   });
 }
@@ -168,5 +177,32 @@ await test('orden IP,lookup,usuario,consumo,OAuth,guardado y cursor', 'normal', 
   assert.deepEqual(e.events.filter(x => x.op !== 'diagnostic').map(x => x.op), ['rate', 'lookup', 'rate', 'consume', 'oauth-exchange', 'link-update']);
   assert.equal(f.row().last_sync, f.initial.last_sync); assert.equal(f.row().accounts.length, 1); assert.equal(f.row().account_uid, 'fixture-account-1');
 });
+await test('doble SQL: eq(null) no casa e is(null) sí', 'null-double', async () => {
+  const f = make({ legacy: true });
+  const equal = await f.db.from('bank_links').select('id').eq('state_issued_at', null).maybeSingle();
+  const isNull = await f.db.from('bank_links').select('id').is('state_issued_at', null).maybeSingle();
+  assert.equal(equal.error, null); assert.equal(equal.data, null);
+  assert.equal(isNull.error, null); assert.equal(isNull.data.id, f.initial.id);
+});
+for (const app of [false, true]) {
+  await test('guardado final cero filas sin error, APK=' + app, 'final-zero', async () => {
+    const f = make({ app, beforeSave: 'delete' }); const r = await f.request(), e = f.evidence([r]);
+    closed(r, app); assert.equal(e.oauthExchanges, 1); assert.equal(e.consumeAffected, 1); assert.equal(e.linkUpdates, 0);
+    assert.equal(e.events.filter(x => x.op === 'link-update').length, 1, 'una escritura sin retry');
+  });
+  await test('guardado final confirmado permite éxito, APK=' + app, 'final-confirmed', async () => {
+    const f = make({ app }); const r = await f.request(), e = f.evidence([r]);
+    assert.equal(r.status, 302); assert.equal(r.location, okLocation(app)); assert.equal(e.linkUpdates, 1);
+    assert.equal(e.oauthExchanges, 1); assert.equal(f.row().last_sync, f.initial.last_sync);
+  });
+  for (const finalFault of ['missingrows', 'rows-empty', 'rows-other', 'rows-multiple', 'absent', 'null', 'error-with-row']) {
+    await test('guardado final sin confirmación válida ' + finalFault + ', APK=' + app, 'final-json', async () => {
+      const f = make({ app, finalFault }); const r = await f.request(), e = f.evidence([r]);
+      closed(r, app); assert.equal(e.oauthExchanges, 1); assert.equal(e.consumeAffected, 1);
+      assert.equal(e.events.filter(x => x.op === 'consume').length, 1, 'no restaura state');
+      assert.ok(!JSON.stringify(e.logs).includes('fixture-incoherent-error'));
+    });
+  }
+}
 console.log(JSON.stringify({ suite: 'bank-callback-state', mutant: mutantName || null, pass, fail, limitation: 'handler real; BD y OAuth sintéticos, sin Postgres/SDK/transporte vivos' }));
 process.exitCode = fail ? 1 : 0;

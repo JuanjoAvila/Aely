@@ -1,8 +1,9 @@
 # SEC03 · consumo único del callback bancario
 
-Candidata local sobre `536882888eacc70921e462ab98e27620f613a29b`, fuente aprobada de
-PR249, que queda congelada. GO causal exacto de Claude
-`68d79894adb2b7a67448c062c36b0a09d65d93b7`, tras consulta `c9be87b4`.
+Remates privados sobre `7ce911a2bbd19e1d710cba1284bf0a7ff8a637c7`, misma PR257,
+por GO de revisión `9751cc0391055f6eb66ac79b243db5ab729b9e03`. El predecesor queda
+inmutable. La primera entrega partió de la fuente aprobada PR249 `53688288`
+con GO causal `68d79894adb2b7a67448c062c36b0a09d65d93b7` y consulta `c9be87b4`.
 Sin despliegue, migración ni SQL vivo. Este SEC03 de callback es distinto del
 histórico SEC-03 de privacidad de logs.
 
@@ -18,8 +19,9 @@ anunciaba como éxito. No se afirma aceptación doble de códigos por un banco r
 El consumo ahora filtra por id, state original y emisión del snapshot (IS NULL
 para legacy), y pide el id actualizado. Solo una fila con el id esperado y sin
 error permite OAuth. Cero filas, error, excepción, respuesta ausente o forma
-inesperada detienen el canje y la escritura final. El error devuelto por el
-guardado final también devuelve error cerrado. Se reutiliza `error`, ya traducido,
+inesperada detienen el canje y la escritura final. El guardado final también exige
+una fila con el id esperado y sin error; cero filas o respuesta no verificable
+devuelven error cerrado. Se reutiliza `error`, ya traducido,
 con302 web y puente APK; no cambia el cliente ni añade códigos.
 
 No hay restauración ni reintento de state: ante commit con respuesta perdida,
@@ -29,7 +31,7 @@ cerrado en la autorización y no cambia el fail-open del rate limiter.
 Se conserva el orden IP hash60/60 → lookup → caducidad30min → usuario10/600 →
 consumo → OAuth → guardado, así como compatibilidad legacy, cuentas y cursor.
 
-## Validación local
+## Primera entrega `7ce911a2` · evidencia conservada
 
 `tests/bank-callback-state.test.mjs`, registrado en steps y recorte servidor,
 ejecuta el handler y helpers reales con BD stateful, barrera de snapshots y
@@ -69,6 +71,53 @@ sin cambiar producto; no son ROJO causal.
 El ROJO anterior7 FAIL/7 controles y modelo11 PASS se conservan como evidencia
 de investigación; no se repiten ni se presentan como validación de este fix.
 
+## Remates de revisión `9751cc03` · validación privada actual
+
+El doble distingue `.eq(col, null)` de `.is(col, null)` tanto al leer como al
+actualizar. El primero no casa con SQL null; el segundo conserva el enlace legacy.
+Contrato cotejado con [eq](https://supabase.com/docs/reference/javascript/using-filters-eq)
+e [is](https://supabase.com/docs/reference/javascript/using-filters-is). El guardado
+final encadena `.select("id")` y comprueba error, array, cardinalidad e id; pedir
+filas se corresponde con [select tras UPDATE](https://supabase.com/docs/reference/javascript/using-modifiers-select).
+No añade predicados de generación ni reintentos.
+
+El nuevo ROJO ejecutó el handler original `7ce911a2`, con tests nuevos y doble
+corregido:21 casos,11 PASS/10 FAIL, EXIT1. Dos fallos son borrado real entre
+consumo y guardado final (web/APK); ocho son respuestas sin confirmación válida.
+El verde focal del handler corregido ejecutó31 casos, EXIT0: esos21 y los diez
+controles afectados de ganador único/replay, cuotas, caducidad, cursor y error
+final. `SEC03_TEST_GROUPS` permite seleccionar esos grupos sin repetir los25
+casos no afectados del mismo archivo. El default registrado contiene56 casos;
+no se afirma una ejecución nueva de todos ellos ni de las suites anteriores.
+
+Cinco mutantes textuales afectados terminan EXIT1 por aserciones del handler:
+
+| Mutante | Oráculo que lo mata |
+|---|---|
+| `legacy-eq-null` | Legacy debe completar y conservar cursor; con eq(null) se rechaza |
+| `final-acepta-cero` | Fila borrada no puede anunciar éxito web/APK |
+| `final-sin-json` | Guardado correcto debe devolver éxito; sin representación no se confirma |
+| `final-acepta-error` | Error+fila contradictorio sigue rechazado |
+| `exito-sin-guardar` actualizado | Error final nunca anuncia éxito |
+
+El primer intento del último mutante falló por ancla LF/CRLF sin ejecutar casos:
+se conserva y se excluye de causalidad. Se normalizó solo el texto de las anclas
+y se repitió únicamente ese mutante, que entonces dio2 fallos runtime. Los otros
+cuatro no se repitieron. El verde31 precede a esa normalización de saltos de línea;
+producto, fixtures y oráculos del verde permanecen iguales.
+
+La cadena de escritura final cambió, por lo que se ejecutó lifecycle real con
+Deno2.9.0 instalado, SDK real y REST/OAuth sintéticos:16/16, EXIT0. Args:
+`test --cached-only --no-config --no-lock --no-prompt --node-modules-dir=none supabase/functions/bank-disconnect/lifecycle.test.ts`.
+Sin allow-net/run/write, descargas ni instalación; el fixture REST existente ya
+devuelve representación y no necesitó edición. Sus avisos de cuota son fail-open
+del doble sin RPC, no evidencia de contadores vivos. Los16/16 del revisor sobre
+`7ce911a2` siguen siendo evidencia distinta de esta nueva ejecución.
+
+Solo callback, test y este brief cambian. La ausencia de esbuild/Sentry y los
+EXIT1 de la primera fase se conservan; no se repiten ni se presentan como verdes.
+Sin fetch/canal/avisos/activación de presupuesto/push/PR/result durante esta fase.
+
 ## Límite explícito: SEC-04
 
 Una autorización nueva durante OAuth todavía puede recibir la escritura final
@@ -76,8 +125,8 @@ del callback antiguo, que sigue filtrando por id. No se introduce una guarda
 ABA por fecha: Claude la excluye de esta PR y reserva `connection_version` para
 SEC-04, registrado en BACKLOG. No se amplía bank-connect ni el esquema.
 
-Pendientes: compilación/ejecución stock, Deno (incluido lifecycle REST ajustado
-para devolver ids en UPDATE con representación), Postgres/SDK reales, revisión
-Claude, CI general/docs-frescura/beta-sources e integración, artefacto servido,
+Pendientes: ejecución stock de Node/esbuild y privacidad completa, Postgres y
+transporte real, revisión final Claude, CI general/docs-frescura/beta-sources e
+integración tras PR256 por Claude, artefacto servido,
 despliegue por Claude y aceptación móvil. Sin fullsuite, CPU6, Gradle, bancos,
 migración/SQL vivo ni cambios09, hoja, VERSION, catálogo, caps u oráculos.
