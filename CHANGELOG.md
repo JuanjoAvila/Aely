@@ -6,6 +6,7 @@
 - **FIN-12 (PR 242).** Solo un `startMonth` entero acredita inicio de financiación; `asOf` no. Una financiación que empieza más adelante no cuenta como deuda antes de empezar (gráfica de Inicio y deuda total), con migración y reancla de lo guardado y transporte/merge de nube simulados en `tests/inicio-deuda-futura.test.mjs`.
 - **SES-01 (PR 247).** Telemetría web de la sesión de Trade Republic: deja rastro cuando la sesión se cae, sin cambio visible, sin datos personales (`tests/logs-privacidad.test.mjs`).
 - **Tope de tamaño.** El bundle queda en 1310/364 KB y el tope de `tests/presupuesto-rendimiento.test.mjs` sube a 1311 KiB minificado y 365 KiB gzip (lógica de producto en tres idiomas, mandato 11/10); el hash de `scripts/beta-sources.json` se actualiza en `auth-disposal` y `auth-disposal-fit`.
+- **Descriptores.** `deudas-plazo-cuota-encaja` lleva además el bloque del guardado (la hoja llama a `set` real tras a7c044e5, PERSIST91 pasa a 39 dependientes) y el descriptor `deudas-plazo-cuota-cuadran` de la 138 suma el dato `NF` a su cierre de lectores porque la hoja formatea ahora con `eur`.
 - **Panel.** Nota 4.26.139 es/en/ca encima de la 138, que queda con `tandas: []`, y dos tandas con descriptor propio: `deudas-plazo-cuota-encaja` (3 pasos) y `deudas-metas-hoja-sin-parpadeo` (3 pasos). FIN-12 y SES-01 no entran en el panel. El catálogo 138 pasa a histórico en `tests/beta-sources.test.mjs`.
 
 ## [4.26.138] — 2026-10-16 · Candidata de beta: Deudas y Metas editables, «Actualizar gastos», suscripciones en móvil y FIN-15
