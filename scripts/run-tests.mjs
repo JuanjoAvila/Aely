@@ -122,6 +122,7 @@ const steps = [
   ["goals-three-way", ["node", "--test", "tests/goals-three-way.test.mjs"]],
   ["goals-review-remates", ["node", "--test", "tests/goals-review-remates.test.mjs"]],
   ["goals-review2-remates", ["node", "--test", "tests/goals-review2-remates.test.mjs"]],
+  ["goals-review3-reserve-conflict", ["node", "--test", "tests/goals-review3-reserve-conflict.test.mjs"]],
   ["persist-commit", ["node", "tests/persist-commit.test.mjs"]],
   ["month-budget-stats", ["node", "tests/month-budget-stats.test.mjs"]],
   ["dash-metricas", ["node", "tests/dash-metricas.test.mjs"]],

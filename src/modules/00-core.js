@@ -3310,23 +3310,33 @@ function mergeGoalsThreeWay(base,local,remote){
   });
   return {goals:goals,conflicts:conflicts};
 }
+function goalSyncReserveGoalConflict(base,local,conflicts){
+  const touched=new Set();
+  ["rules","log"].forEach(function(k){
+    const old=new Map((base[k]||[]).filter(Boolean).map(function(r){return [r.id,r];}));
+    (local[k]||[]).forEach(function(r){if(r && r.goalId && !goalSyncEqual(r,old.get(r.id)))touched.add(r.goalId);});
+  });
+  return conflicts.some(function(c){return c.code==="goals_field_conflict" && touched.has(c.goalId);});
+}
 function goalSyncPull(prev,remote,owner,revision,dropLocal,localNewer){
   const kept=!dropLocal && prev._goalSync && prev._goalSync.owner===owner?prev._goalSync:null;
   const reserves=goalSyncReserves(remote),baseReserves=kept&&kept.reserves||reserves;
   const newer=localNewer===undefined?(prev._savedAt||0)>(remote._savedAt||0):localNewer;
   const localReserves=goalSyncReserves(prev),localChanged=!goalSyncEqual(localReserves,baseReserves),remoteChanged=!goalSyncEqual(reserves,baseReserves);
-  // R2: un cambio en un solo lado no compite con la aportación a otra meta del segundo móvil.
-  const reject=!!kept && !dropLocal && localChanged && remoteChanged && !goalSyncEqual(localReserves,reserves);
+  // Una reserva local no puede quedar aplicada si el conflicto de su meta descarta el dinero.
   const keepLocalReserves=!dropLocal && (kept?localChanged&&!remoteChanged:newer);
+  const goalMerge=kept?mergeGoalsThreeWay(kept?kept.base:null,prev.goals,remote.goals):null;
+  const reserveGoalConflict=!!kept && keepLocalReserves && goalSyncReserveGoalConflict(baseReserves,localReserves,goalMerge.conflicts);
+  const reject=!!kept && !dropLocal && localChanged && remoteChanged && !goalSyncEqual(localReserves,reserves) || reserveGoalConflict;
   let merged;
   if(!kept){
     merged={goals:goalSyncCopy(!dropLocal && newer?prev.goals||[]:remote.goals||[]),conflicts:[]};
   } else if(reject){
     merged={goals:goalSyncCopy(remote.goals||[]),conflicts:[{code:"goals_reserve_conflict",local:goalSyncSnapshot(prev)}]};
-  } else merged=mergeGoalsThreeWay(kept?kept.base:null,dropLocal?(remote.goals||[]):prev.goals,remote.goals);
+  } else merged=goalMerge;
   const conflicts=kept?goalSyncRecords(kept.conflicts):[];
   merged.conflicts.forEach(function(c){ if(!conflicts.some(function(v){ return goalSyncEqual(v,c); })) conflicts.push(c); });
-  return {goals:merged.goals,_goalSync:{owner:owner,revision:revision||null,base:goalSyncCopy(remote.goals||[]),reserves:goalSyncCopy(reserves),keepLocalReserves:keepLocalReserves,cloudOnly:reject,conflicts:goalSyncRecords(conflicts)}};
+  return {goals:merged.goals,_goalSync:{owner:owner,revision:revision||null,base:goalSyncCopy(remote.goals||[]),reserves:goalSyncCopy(reserves),keepLocalReserves:keepLocalReserves && !reject,cloudOnly:reject,conflicts:goalSyncRecords(conflicts)}};
 }
 function goalSyncAck(prev,owner,sent,expected,revision){
   const meta=prev._goalSync;
