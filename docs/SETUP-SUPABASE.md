@@ -1,3 +1,9 @@
+FIN-10 / transporte FIN-14, candidata17/10: `_shared/presupuesto.ts` lee `ob-absorbed2`
+con cuenta y día, además del marcador antiguo. Cuenta viaja como `#acc` en `source`;
+no necesita SQL. **Desplegar ingest con el lector nuevo antes del cliente**, por el
+coordinador, tras integrar y verificar fuentes exactas. Aquí no se despliega nada.
+[Contrato y caso de cuenta ausente](briefs/fin10-absorption-scope-20261017.md).
+
 Promoción117: inventario12/10 confirma bank-syncv33 alineado; ingestv50 y pricesv13 se prueban con fuentes desplegadas exactas y transportes sintéticos en prod117-edge-compat. SEC02/ingest-widget viajan como fuente sin despliegue ni anuncio de funciones activas. [Pins y límites](briefs/prod-completa-117.md).
 
 Compras4 (15/10/2026, candidata PR235): la absorción de un BOOK tras lectura truncada guarda

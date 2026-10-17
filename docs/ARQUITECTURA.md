@@ -1,5 +1,14 @@
 # Arquitectura — Aely
 
+## FIN-10 / FIN-14 · candidata sin integrar
+
+Las absorciones nuevas llevan cuenta y día literal en `ob-absorbed2`; los lectores
+cliente/servidor conservan la clave antigua. La cuenta viaja en `source` como `#acc`
+antes del ordinal. Una candidata sin cuenta casa por banco/ref/ordinal/día; con cuenta
+se exige igualdad, incluso si la lápida no la trae. No cambia cuándo se adopta un BOOK,
+no repara historia ni cambia la identidad general por referencia.
+[Contrato, ROJO y límites](briefs/fin10-absorption-scope-20261017.md).
+
 ## Candidata: compras iguales con referencias distintas
 
 El importador y las mezclas conservan referencias distintas mediante las ranuras ordinales
