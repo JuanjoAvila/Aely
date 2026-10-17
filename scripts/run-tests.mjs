@@ -35,6 +35,7 @@ if (plan.build !== false) {
 
 const steps = [
   ["inicio-deuda-futura", ["node", "--test", "tests/inicio-deuda-futura.test.mjs"]],
+  ["run-deno-tests", ["node", "tests/run-deno-tests.test.mjs"]],
   ["inicio-grafica-reservas", ["node", "tests/inicio-grafica-reservas.test.mjs"]],
   ["compras-identicas-ids", ["node", "--test", "tests/compras-identicas-ids.test.mjs"]],
   ["deudas-metas-edicion", ["node", "tests/deudas-metas-edicion.test.mjs"]],
