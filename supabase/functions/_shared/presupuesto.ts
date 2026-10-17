@@ -133,8 +133,25 @@ function claveLegacySinId(f: { fecha?: string | null; importe?: number | string;
  * Lápidas viejas (sin id) siguen ocultando manuales borrados antes del Paso 0.
  */
 export function filasComoLaApp<T extends FilaGasto>(filas: T[] | null | undefined, deleted: string[] | null | undefined,
-  pending?: { owner?: string; key?: string }[] | null, owner?: string | null): T[] {
+  pending?: { owner?: string; key?: string }[] | null, owner?: string | null,
+  confirmed?: { owner?: string; id?: string; key?: string; keepKey?: string; keepId?: string; ackAt?: unknown }[] | null): T[] {
   const lap = new Set(deleted || []);
+  const validKey = (k?: string) => /^ob-absorbed2\|[^|]+\|[^|]+\|[1-9]\d{0,5}\|[^|]*\|\d{4}-\d{2}-\d{2}$/.test(k || "");
+  const uuid = (id?: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id || "");
+  const own = (Array.isArray(confirmed) ? confirmed : []).filter(p => owner && p?.owner === owner && uuid(p.id) && uuid(p.keepId) && p.id !== p.keepId && validKey(p.key) && validKey(p.keepKey) && Object.prototype.hasOwnProperty.call(p,"ackAt"));
+  const gone = new Set(own.map(p => p.key!)), kept = new Set(own.map(p => p.keepKey!)), keepIds = new Set(own.map(p => p.keepId));
+  const index = (keys: Set<string>) => {
+    const any = new Set<string>(), missing = new Set<string>();
+    for (const key of keys) { const p = key.split("|"), base = p.slice(0,4).join("|") + "|" + p[5]; any.add(base); if (!p[4]) missing.add(base); }
+    return { any, missing };
+  };
+  const goneIndex = index(gone), keptIndex = index(kept);
+  const matches = (f: T, keys: Set<string>, ix: ReturnType<typeof index>) => {
+    const key = claveAbsorcionOb(f); if (!key) return false;
+    if (keys.has(key)) return true;
+    const p = key.split("|"), base = p.slice(0,4).join("|") + "|" + p[5];
+    return cuentaDeSource(f.source) ? ix.missing.has(base) : ix.any.has(base);
+  };
   // Las no confirmadas tienen su propio tope y no caducan con las 500 lápidas normales.
   for (const p of Array.isArray(pending) ? pending : []) {
     if (owner && p?.owner === owner && /^ob-absorbed2\|[^|]+\|[^|]+\|[1-9]\d{0,5}\|[^|]*\|\d{4}-\d{2}-\d{2}$/.test(p.key || "")) lap.add(p.key!);
@@ -153,6 +170,9 @@ export function filasComoLaApp<T extends FilaGasto>(filas: T[] | null | undefine
   const vistas = new Map<string, Set<string>>(), referencias = new Set<string>();
   const out: T[] = [];
   for (const f of filas || []) {
+    // Igual que FIN10 cliente: primero superviviente, cuenta/día/ordinal completos;
+    // una fila confirmada no puede consumir la referencia antes de quedar oculta.
+    if (!keepIds.has(String(f.id)) && !matches(f,kept,keptIndex) && matches(f,gone,goneIndex)) continue;
     const k = claveComoLaApp(f);
     if (lap.has(k)) continue;
     const absorbed = claveAbsorcionOb(f);

@@ -2694,15 +2694,19 @@ function sameEntList(a,b){
    «Todos los bancos» enseña el extracto entero. Contabilidad: solo los marcados. A mano (sin
    ent) sí cuenta. Pedido 2026-08-17: Revolut+TR marcados → los dos se ven y cuentan. */
 const expenseDeletedSets=new WeakMap();
+Object.assign(LANG.es,{ob_absorbed_review:"Hay movimientos pendientes de revisar"});
+Object.assign(LANG.en,{ob_absorbed_review:"Some transactions need review"});
+Object.assign(LANG.ca,{ob_absorbed_review:"Hi ha moviments pendents de revisar"});
 function expenseDeletedSet(s){
-  const deleted=s&&s.deleted,pending=s&&s.obAbsorbedPending,owner=s&&s._historyOwner;
-  if((!Array.isArray(deleted)||!deleted.length)&&(!Array.isArray(pending)||!pending.length))return null;
-  const ref=Array.isArray(deleted)?deleted:pending,cached=expenseDeletedSets.get(ref);
-  if(cached&&cached.pending===pending&&cached.owner===owner)return cached.map;
+  const deleted=s&&s.deleted,pending=s&&s.obAbsorbedPending,confirmed=s&&s.obAbsorbedConfirmed,owner=s&&s._historyOwner;
+  if((!Array.isArray(deleted)||!deleted.length)&&(!Array.isArray(pending)||!pending.length)&&(!Array.isArray(confirmed)||!confirmed.length))return null;
+  const ref=Array.isArray(deleted)?deleted:Array.isArray(pending)?pending:confirmed,cached=expenseDeletedSets.get(ref);
+  if(cached&&cached.pending===pending&&cached.confirmed===confirmed&&cached.owner===owner)return cached.map;
   const delSet=Object.create(null);
   (Array.isArray(deleted)?deleted:[]).forEach(function(k){delSet[k]=1;});
   (Array.isArray(pending)?pending:[]).forEach(function(p){if(obAbsorbedValid(p,owner))delSet[p.key]=1;});
-  expenseDeletedSets.set(ref,{pending:pending,owner:owner,map:delSet});
+  expenseConfirmedSets.set(delSet,{list:confirmed,owner:owner});
+  expenseDeletedSets.set(ref,{pending:pending,confirmed:confirmed,owner:owner,map:delSet});
   return delSet;
 }
 function expenseCountsCash(e, s){

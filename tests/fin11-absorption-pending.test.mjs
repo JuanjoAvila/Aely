@@ -254,7 +254,7 @@ test('FIN11 mutantes de persistencia, recuperación, protección, acuse, dueño 
  };
  const mutants=[
   ['persist',s=>s.replace('return obAbsorbedPersist(owner,list)?list:null;','return list;')],
-  ['reopen',s=>s.replace('return obAbsorbedRestore(base,key);','return base;')],
+  ['reopen',s=>s.replace('return obConfirmedRestore(obAbsorbedRestore(base,key),key);','return obConfirmedRestore(base,key);')],
   ['protect',s=>s.replace('if(obAbsorbedValid(p,owner))delSet[p.key]=1;','')],
   ['ack',s=>s.replace('rows.length===0&&!await find()&&!!await active()','rows.length===0')],
   ['owner',s=>s.replaceAll('currentOwner()!==owner','false').replaceAll('currentOwner()===owner','true')],

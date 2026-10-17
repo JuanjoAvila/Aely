@@ -139,6 +139,10 @@ function mcLogText(raw){
 const GASTO_ORIGENES=["v4-apuntar","gastos-apuntar","gastos-editar","gastos-borrar","gastos-deshacer","gastos-dup","ob-import","ob-absorbed","backfill"];
 function mcLogEvent(kind,message,detail){
   const m=String(message||"");
+  if(kind==="error"&&m==="ob_absorbed"){
+    let p;try{p=JSON.parse(detail);}catch(e){return null;}
+    return p&&["full","persist","merge","retry","owner","confirmed_full","confirmed_persist","confirmed_merge"].includes(p.code)?{message:m,detail:JSON.stringify({code:p.code})}:null;
+  }
   if(kind==="use") return USO_OK.indexOf(m)>=0?{message:m,detail:null}:null;
   if(kind==="perf"){
     const match=m.match(/^([a-z_]+) (\d+(?:\.\d)?)s$/);
@@ -757,7 +761,7 @@ function mcLoadRaw(key){
   const saved=mcSaveRaw.balanceHistory||(mcSaveRaw.balanceHistory={});
   saved[key]={ref:history,history:history,body:body,revision:revision,owner:base._historyOwner,partition:JSON.stringify(partition),durable:durable&&hist&&hist.schema===1&&(!hist.owner||hist.owner===base._historyOwner)&&JSON.stringify(hist.history)===body};
   delete base._balHistoryRevision;
-  return obAbsorbedRestore(base,key);
+  return obConfirmedRestore(obAbsorbedRestore(base,key),key);
 }
 /* SE GUARDA LO QUE SE HA PINTADO, NO LO QUE SE CALCULÓ (INC-0410, 4/10/2026).
    Antes `set()` apuntaba el volcado pendiente DENTRO del updater. React puede ejecutar un updater
@@ -1125,6 +1129,9 @@ const cloud = (function(){
     },
     async pushState(uid, data, lastKnownUpdatedAt){
       if(!sb || !uid) return null;
+      const current=await this.session();if(!current||current.user.id!==uid)throw new Error("ob_confirmed_owner");
+      const confirmed=obConfirmedMerge(data,null,uid);if(!confirmed)throw new Error("ob_confirmed_merge");
+      data=Object.assign({},data,{obAbsorbedConfirmed:confirmed});
       if((data.obAbsorbedPending||[]).some(function(p){return !obAbsorbedValid(p,uid);})||(data.obAbsorbedPending||[]).length>OB_ABSORBED_MAX)throw new Error("ob_absorbed_owner");
       const now=new Date().toISOString();
       if(lastKnownUpdatedAt){
@@ -1177,6 +1184,7 @@ const cloud = (function(){
       if(!sb) return;
       const {data:{session}}=await sb.auth.getSession();
       if(!session) return;
+      if(!await obConfirmedCanUpload(e,session.user.id,sb))return null;
       // source lleva el banco embebido (ob:caixa…) para filtrar en Gastos tras reinstalación
       // sin columna nueva en Supabase (feedback 2026-07-16).
       const base={ user_id:session.user.id, fecha:e.date, importe:e.amount, comercio:e.merchant, cat:e.category, source:expenseSourceForCloud(e), no_card:!!e.noCard };
@@ -1191,8 +1199,10 @@ const cloud = (function(){
       // Cómo lo llamaba el banco (migración 0021). Sin esto, renombrar el «Movimiento» de Trade
       // Republic hacía que el siguiente sync no reconociera la fila y metiera el gasto otra vez.
       const obn={ ob_name:(e.obName!=null?String(e.obName).slice(0,160):null) };
+      let denied=false;
       const r=await withNotaFallback(
-        function(conNota, conDivisa, conObName){
+        async function(conNota, conDivisa, conObName){
+          if(!await obConfirmedCanUpload(e,session.user.id,sb)){denied=true;return {data:null,error:null};}
           let fila=base;
           if(conNota) fila=Object.assign({},fila,nota);
           if(conDivisa) fila=Object.assign({},fila,divisa);
@@ -1209,6 +1219,7 @@ const cloud = (function(){
           return e.reciboId ? q.select('id') : q;
         }
       );
+      if(denied)return null;
       return !!(r && r.data && r.data.length);
     },
     /* LA MARCA DE RECIBO DE UNA FILA QUE YA ESTÁ EN LA NUBE: la pone si `e` la lleva y la quita
@@ -1222,7 +1233,8 @@ const cloud = (function(){
       if(!sb || !e.ent) return;
       const {data:{session}}=await sb.auth.getSession();
       if(!session) return;
-      const {data,error}=await sb.from('expenses').select('id,source')
+      if(!await obConfirmedCanUpload(e,session.user.id,sb))return;
+      const {data,error}=await sb.from('expenses').select('id,source,fecha,importe,comercio')
         .eq('user_id',session.user.id).eq('fecha',e.date).eq('importe',e.amount).eq('comercio',e.merchant);
       if(error) throw error;
       for(const r of data||[]){
@@ -1230,6 +1242,7 @@ const cloud = (function(){
         if(!m || m[2]!==e.ent || (e.reciboId && m[4].indexOf("#dup")>=0)) continue;
         const src=m[1]+":"+m[2]+reciboSufijo(e.reciboId)+m[4];
         if(src===r.source) continue;
+        if(!await obConfirmedCanUpload(expenseFromRow(r),session.user.id,sb))continue;
         const w=await sb.from('expenses').update({ source:src }).eq('user_id',session.user.id).eq('id',r.id);
         if(w.error) throw w.error;
       }
@@ -1241,11 +1254,15 @@ const cloud = (function(){
       if(!sb) return { cloudIds:[], offline:true };
       const {data:{session}}=await sb.auth.getSession();
       if(!session) return { cloudIds:[], offline:true };
-      const list=(expenses||[]).filter(Boolean);
+      const candidates=(expenses||[]).filter(Boolean),list=[];
+      for(const e of candidates)if(await obConfirmedCanUpload(e,session.user.id,sb))list.push(e);
       if(!list.length) return { cloudIds:[], offline:false };
       const uid=session.user.id;
-      const r=await withNotaFallback(function(conNota, conDivisa, conObName){
-        const filas=list.map(function(e){
+      const r=await withNotaFallback(async function(conNota, conDivisa, conObName){
+        const checked=[];for(const e of list)if(await obConfirmedCanUpload(e,uid,sb))checked.push(e);
+        const records=obConfirmedRead(uid);
+        const active=records&&!obConfirmedBlocked.has(uid)?checked.filter(function(e){return !obConfirmedMatches(e,records,uid);}):[];
+        const filas=active.map(function(e){
           const base={ user_id:uid, fecha:e.date, importe:e.amount, comercio:e.merchant, cat:e.category, source:expenseSourceForCloud(e), no_card:!!e.noCard };
           if(isExpenseUuid(e&&e.id)) base.id=e.id;
           let fila=base;
@@ -1254,6 +1271,7 @@ const cloud = (function(){
           if(conObName) fila=Object.assign({},fila,{ ob_name:(e.obName!=null?String(e.obName).slice(0,160):null) });
           return fila;
         });
+        if(!filas.length)return {data:[],error:null};
         return sb.from('expenses').upsert(
           filas,
           { onConflict:'user_id,fecha,importe,comercio', ignoreDuplicates:true }
@@ -1279,6 +1297,7 @@ const cloud = (function(){
       if(!sb) return;
       const {data:{session}}=await sb.auth.getSession();
       if(!session) return;
+      if(!await obConfirmedCanUpload(e,session.user.id,sb)||!await obConfirmedCanUpload(Object.assign({},e,{ent:ent||undefined}),session.user.id,sb))return;
       const src=expenseSourceForCloud(Object.assign({},e,{ent:ent||undefined}));
       const {error}=await expenseCloudEq(sb.from('expenses').update({ source:src }), session.user.id, e);
       if(error) throw error;
@@ -1291,6 +1310,7 @@ const cloud = (function(){
       if(!sb) return;
       const {data:{session}}=await sb.auth.getSession();
       if(!session) return;
+      if(!await obConfirmedCanUpload(e,session.user.id,sb))return;
       const src=expenseSourceForCloud(Object.assign({},e,{possibleDup:!!isDup}));
       const {error}=await expenseCloudEq(sb.from('expenses').update({ source:src }), session.user.id, e);
       if(error) throw error;
@@ -1300,6 +1320,7 @@ const cloud = (function(){
       if(!sb) return;
       const {data:{session}}=await sb.auth.getSession();
       if(!session) return;
+      if(!await obConfirmedCanUpload(e,session.user.id,sb))return;
       const {error}=await expenseCloudEq(sb.from('expenses').update({ no_card:!!noCard }), session.user.id, e);
       if(error) throw error;
     },
@@ -1309,6 +1330,7 @@ const cloud = (function(){
       if(!sb) return;
       const {data:{session}}=await sb.auth.getSession();
       if(!session) return;
+      if(!await obConfirmedCanUpload(e,session.user.id,sb))return;
       // Si la migración 0017 aún no está aplicada, esto no puede hacer nada útil: se avisa al
       // llamante en vez de fallar mudo (aquí el concepto ES el dato que el usuario quiere guardar).
       const {error}=await expenseCloudEq(sb.from('expenses').update({ nota:String(note||"").slice(0,160)||null, nota_edit:true }), session.user.id, e);
@@ -1321,6 +1343,7 @@ const cloud = (function(){
       if(!sb) return;
       const {data:{session}}=await sb.auth.getSession();
       if(!session) return;
+      if(!await obConfirmedCanUpload(e,session.user.id,sb))return 0;
       const upd={ cat:String(cat||"otros") };
       // Sacar una cuota de «Deudas» a mano le quita también la marca en la nube; si no, el
       // siguiente pull le devolvería el `debtId` (4.21.0).
@@ -1344,6 +1367,7 @@ const cloud = (function(){
       if(read.error) throw read.error;
       const row=read.data;
       if(!withdrawalRowMatches(e,row)) throw new Error("withdrawal identity changed");
+      if(!await obConfirmedCanUpload(e,session.user.id,sb))throw new Error("withdrawal unavailable");
       // El vínculo puede llegar mientras se consulta la fila: no neutralizar un pago compartido.
       if(!ready()) throw new Error("withdrawal unavailable");
       if(row.cat==="traspaso") return row;
@@ -1366,6 +1390,7 @@ const cloud = (function(){
       if(!sb) return;
       const {data:{session}}=await sb.auth.getSession();
       if(!session) return;
+      if(!await obConfirmedCanUpload(e,session.user.id,sb))return;
       const {error}=await expenseCloudEq(sb.from('expenses').update({ cat:"deudas", source:expenseSourceForCloud(e) }), session.user.id, e);
       if(error) throw error;
     },
@@ -1845,7 +1870,7 @@ function bankDeletionLink(e){
 }
 // El mapa de lápidas se cachea por la referencia de deleted. Su índice también: recorrer
 // 500 claves por cada fila convertía un render de 20000 movimientos en diez millones.
-const obAbsorptionIndexes=new WeakMap();
+const obAbsorptionIndexes=new WeakMap(),expenseConfirmedSets=new WeakMap();
 function obAbsorptionIndex(delSet){
   let index=obAbsorptionIndexes.get(delSet);if(index)return index;
   index={any:Object.create(null),missing:Object.create(null)};
@@ -1869,6 +1894,8 @@ function obAbsorptionMatches(e,delSet){
 /* Lápidas anteriores al Paso 0 guardaban la clave sin id: siguen ocultando ese manual. */
 function expenseIsTombstoned(e, delSet){
   if(!delSet) return false;
+  const confirmed=expenseConfirmedSets.get(delSet);
+  if(confirmed&&obConfirmedMatches(e,confirmed.list,confirmed.owner))return true;
   if(obAbsorptionMatches(e,delSet))return true;
   const k=keyOfExpense(e);
   if(delSet[k]) return true;
@@ -1886,9 +1913,101 @@ function obAbsorptionKey(e,legacy){
    en una partición pequeña con readback: el fallback en memoria no acredita persistencia. */
 const OB_ABSORBED_MAX=200,obAbsorbedWarnings=new Set(),obAbsorbedRuns=new Map();
 function obAbsorbedWarn(code){
-  if(!["full","persist","merge","retry"].includes(code)||obAbsorbedWarnings.has(code))return;
+  if(!["full","persist","merge","retry","owner","confirmed_full","confirmed_persist","confirmed_merge"].includes(code)||obAbsorbedWarnings.has(code))return;
   obAbsorbedWarnings.add(code);
-  try{Promise.resolve(cloud.logEvent("warn","ob_absorbed_"+code,null)).catch(function(){});}catch(e){}
+  try{Promise.resolve(cloud.logEvent("error","ob_absorbed",JSON.stringify({code:code}))).catch(function(){});}catch(e){}
+  // El aviso se pinta fuera del updater financiero; tampoco transporta datos del movimiento.
+  Promise.resolve().then(function(){try{window.dispatchEvent(new CustomEvent("mc-ob-absorbed-warning",{detail:code}));}catch(e){}});
+}
+/* FIN17: un ACK no es una intención pendiente. Esta memoria tiene su propio límite y
+   nunca desaparece al podar las lápidas normales. No es un cerco atómico del servidor. */
+const OB_CONFIRMED_MAX=1000,OB_CONFIRMED_AGE=90*86400000,obConfirmedBlocked=new Set(),obConfirmedIndexes=new WeakMap(),obConfirmedReadCache=new Map();
+function obConfirmedValid(p,owner){
+  const key=function(k){const a=String(k||"").split("|");return a.length===6&&a[0]==="ob-absorbed2"&&!!a[1]&&!!a[2]&&/^[1-9]\d{0,5}$/.test(a[3])&&/^\d{4}-\d{2}-\d{2}$/.test(a[5]);};
+  return !!p&&!!owner&&p.owner===owner&&isExpenseUuid(p.id)&&isExpenseUuid(p.keepId)&&p.id!==p.keepId&&key(p.key)&&key(p.keepKey)&&Object.prototype.hasOwnProperty.call(p,"ackAt");
+}
+function obConfirmedJoin(a,b,owner,evict,now){
+  if(a!=null&&!Array.isArray(a)||b!=null&&!Array.isArray(b))return null;
+  const out=[],seen=new Map();
+  for(const p of (Array.isArray(a)?a:[]).concat(Array.isArray(b)?b:[])){
+    if(p&&p.owner!==owner)continue;
+    if(!obConfirmedValid(p,owner))return null;
+    const k=JSON.stringify([p.key,p.keepKey,p.keepId]),i=seen.get(k);
+    if(i==null){seen.set(k,out.length);out.push(p);}
+    else{
+      const q=out[i],valid=function(n){return typeof n==="number"&&Number.isFinite(n)&&n>0;};
+      const at=valid(q.ackAt)&&valid(p.ackAt)?Math.max(q.ackAt,p.ackAt):null;
+      if(q.ackAt!==at)out[i]=Object.assign({},q,{ackAt:at});
+    }
+  }
+  if(out.length>OB_CONFIRMED_MAX){
+    if(!evict)return null;
+    const cut=(now==null?Date.now():now)-OB_CONFIRMED_AGE;
+    const eligible=out.filter(function(p){return typeof p.ackAt==="number"&&Number.isFinite(p.ackAt)&&p.ackAt>0&&p.ackAt<cut;}).sort(function(x,y){return x.ackAt-y.ackAt;});
+    const n=out.length-OB_CONFIRMED_MAX;if(eligible.length<n)return null;
+    const drop=new Set(eligible.slice(0,n));return out.filter(function(p){return !drop.has(p);});
+  }
+  return Array.isArray(a)&&out.length===a.length&&out.every(function(p,i){return p===a[i];})?a:out;
+}
+function obConfirmedMatches(e,list,owner){
+  if(!Array.isArray(list)||!list.length)return false;
+  let index=obConfirmedIndexes.get(list);
+  if(!index||index.owner!==owner){
+    index={owner:owner,keep:Object.create(null),gone:Object.create(null),ids:new Set()};
+    list.forEach(function(p){if(obConfirmedValid(p,owner)){index.keep[p.keepKey]=1;index.gone[p.key]=1;index.ids.add(p.keepId);}});
+    obConfirmedIndexes.set(list,index);
+  }
+  // El veto de TODAS las supervivientes precede al match: jamás se oculta una por referencia.
+  if(e&&index.ids.has(e.id)||obAbsorptionMatches(e,index.keep))return false;
+  return obAbsorptionMatches(e,index.gone);
+}
+function obConfirmedStorageKey(owner,key){return (key||mcStateKey())+"_oback_"+encodeURIComponent(owner);}
+function obConfirmedStorage(){return typeof localStorage!=="undefined"?localStorage:window.localStorage;}
+function obConfirmedRead(owner,key){
+  if(!owner)return null;
+  try{const storageKey=obConfirmedStorageKey(owner,key),raw=obConfirmedStorage().getItem(storageKey),cached=obConfirmedReadCache.get(storageKey);
+    if(cached&&cached.raw===raw)return cached.list;
+    if(raw==null){const empty=[];obConfirmedReadCache.set(storageKey,{raw:raw,list:empty});return empty;}
+    const p=JSON.parse(raw);if(p.owner!==owner||!Array.isArray(p.confirmed))return null;
+    const list=obConfirmedJoin(p.confirmed,[],owner);if(list)obConfirmedReadCache.set(storageKey,{raw:raw,list:list});return list;
+  }catch(e){return null;}
+}
+function obConfirmedPersist(owner,list,key){
+  if(!owner||!Array.isArray(list)||list.length>OB_CONFIRMED_MAX||list.some(function(p){return !obConfirmedValid(p,owner);}))return false;
+  // JSON omite undefined: una edad ilegible se conserva como null, nunca como pérdida del ACK.
+  const durable=list.map(function(p){return typeof p.ackAt==="number"&&Number.isFinite(p.ackAt)&&p.ackAt>0?p:Object.assign({},p,{ackAt:null});});
+  try{const body=JSON.stringify({owner:owner,confirmed:durable}),k=obConfirmedStorageKey(owner,key);
+    const storage=obConfirmedStorage();storage.setItem(k,body);return storage.getItem(k)===body;
+  }catch(e){return false;}
+}
+function obConfirmedMerge(local,remote,owner,key){
+  const disk=obConfirmedRead(owner,key),own=local&&local._historyOwner===owner?local.obAbsorbedConfirmed:[];
+  const joined=disk&&obConfirmedJoin(disk,own,owner),list=joined&&obConfirmedJoin(joined,remote&&remote.obAbsorbedConfirmed,owner);
+  // Una unión vacía no incorpora ningún ACK: no necesita inventar una escritura durable vacía.
+  if(!list||list.length&&!obConfirmedPersist(owner,list,key)){obConfirmedBlocked.add(owner);obAbsorbedWarn("confirmed_merge");return null;}
+  obConfirmedBlocked.delete(owner);return list;
+}
+function obConfirmedRestore(s,key){
+  const owner=s&&s._historyOwner;if(!owner)return s;
+  const list=obConfirmedMerge(s,null,owner,key);
+  return list?Object.assign({},s,{obAbsorbedConfirmed:list}):Object.assign({},s,{obAbsorbedIssue:"confirmed_merge"});
+}
+function obConfirmedAck(s,p,owner){
+  const disk=obConfirmedRead(owner),own=disk&&obConfirmedJoin(disk,s.obAbsorbedConfirmed,owner);
+  const record={owner:owner,id:p.id,key:p.key,keepId:p.keepId,keepKey:p.keepKey,ackAt:Date.now()};
+  const list=own&&obConfirmedJoin(own,[record],owner,true);
+  if(!list){obAbsorbedWarn("confirmed_full");return null;}
+  if(!obConfirmedPersist(owner,list)){obAbsorbedWarn("confirmed_persist");return null;}
+  return list;
+}
+async function obConfirmedCanUpload(e,owner,sdk){
+  // Revalidar el MISMO SDK que enviará la escritura, incluso en métodos ligados a otra instancia.
+  if(!sdk||!sdk.auth||typeof sdk.auth.getSession!=="function")return false;
+  const response=await sdk.auth.getSession(),session=!response.error&&response.data&&response.data.session;
+  if(!session||!session.user||session.user.id!==owner||(session.expires_at!=null&&(!Number.isFinite(Number(session.expires_at))||Number(session.expires_at)*1000<=Date.now())))return false;
+  const list=obConfirmedRead(owner);
+  if(!list||obConfirmedBlocked.has(owner)){obAbsorbedWarn("confirmed_merge");return false;}
+  return !obConfirmedMatches(e,list,owner);
 }
 function obAbsorbedValid(p,owner){
   if(!p||!owner||p.owner!==owner||!isExpenseUuid(p.id)||!isExpenseUuid(p.keepId)||p.id===p.keepId)return false;
@@ -1926,7 +2045,7 @@ function obAbsorbedRestore(s,key){
 function obAbsorbedEnqueue(s,e,keep){
   const owner=s&&s._historyOwner;
   const p={owner:owner,id:e.id,key:obAbsorptionKey(e),keepId:keep.id,keepKey:obAbsorptionKey(keep),amount:e.amount,merchant:e.merchant||""};
-  if(!obAbsorbedValid(p,owner))return null;
+  if(!obAbsorbedValid(p,owner)){obAbsorbedWarn("owner");return null;}
   const list=obAbsorbedJoin(s.obAbsorbedPending,[p],owner);
   if(!list){obAbsorbedWarn("full");return null;}
   return obAbsorbedPersist(owner,list)?list:null;
@@ -1959,8 +2078,10 @@ async function obAbsorbedRetry(getState,getOwner,apply,offset){
       apply(function(prev){
         if(getOwner()!==owner||prev._historyOwner!==owner)return prev;
         const before=prev.obAbsorbedPending||[],next=before.filter(function(q){return q.id!==p.id||q.key!==p.key;});
-        if(next.length===before.length||!obAbsorbedPersist(owner,next))return prev;
-        return Object.assign({},prev,{obAbsorbedPending:next});
+        if(next.length===before.length)return prev;
+        const confirmed=obConfirmedAck(prev,p,owner);if(!confirmed)return prev;
+        if(!obAbsorbedPersist(owner,next))return Object.assign({},prev,{obAbsorbedConfirmed:confirmed});
+        return Object.assign({},prev,{obAbsorbedPending:next,obAbsorbedConfirmed:confirmed});
       });
     }
     return (start+batch.length)%Math.max(1,list.length);
@@ -1974,6 +2095,7 @@ function _errCloudMsg(err){
 function subirGasto(e, donde){
   if(!cloud.enabled()) return Promise.resolve();
   return cloud.addExpense(e).then(function(nueva){
+    if(nueva===null)return; // denegado por confirmación: no es un duplicado que haya que retocar
     /* El alta ignora duplicados: si la fila ya estaba en la nube sin la marca de recibo (otro
        móvil la importó antes), allí seguiría como una compra y el widget contaría lo que la app
        no cuenta. Solo entonces se le pone; la que acaba de entrar ya la lleva (la primera
