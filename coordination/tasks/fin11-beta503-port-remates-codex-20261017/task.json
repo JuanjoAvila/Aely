@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "id": "fin11-beta503-port-remates-codex-20261017",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261017-r60-d77e0b542f6e8da5",
+  "createdAt": "2026-10-17T21:04:10.003Z",
+  "kind": "worker",
+  "to": "codex",
+  "baseSHA": "af387031feab76caf4ace026fa5f22d21ca90f90",
+  "grantCommit": "288885aeeabd382f54ebb8fc9f8297d75ccef89a",
+  "portGrant": "d1c35333b2978fd4069e7aeb1de92f46af8e8900",
+  "rematesGrant": "323df048ef2327631fde95ea7063c57081b70242",
+  "previousTaskId": "fin11-fin14-tombstones-obacc-codex-20261017",
+  "previousResult": "0b59234d40962a54de2dea1b4b9c3fb91cc678b8",
+  "frozenSource": "d68b3c98a1833175aea0e6416e459c7a7a2d89a7",
+  "sameOriginalOwner": true,
+  "priority": "after-INC1710",
+  "objective": "Port reviewed FIN11/FIN14 delta from oldf872-to-d68 onto exactaf387 FIN10 final accepted288885ae; implement only the two explicit323df048 remates; preserve financial identity and exact-cent oracles",
+  "phase": "OWN reception claim/readback ACK only; separate private implementation admission required",
+  "newDraftPRBase": "beta",
+  "scope": [
+    "src/modules/00-core.js",
+    "src/modules/08-motor-bank.js",
+    "src/modules/11-app-main.js",
+    "tests/fin11-fin14-tombstones-obacc.test.mjs",
+    "focused existing FIN10/FIN15/Compras tests and own causal tests",
+    "docs/briefs/fin11-fin14-tombstones-obacc.md"
+  ],
+  "requirements": [
+    "Read current/policy/protocol/source AGENTS and EMPIEZA-AQUI completely. Verify own identity/cwd/runtime,original immutable closure0b59234d,helper/filter/identity unchanged and OWN ledger BEFORE counted freshread. Claim only NEWtask,OWN exactreadback/publicACK and private atomicfsync/readback checkpoint;STOP before checkout/code/tests pending ROOT admission.",
+    "Exact baseaf387 source fromPR264 accepted byClaude288885ae as FINAL prerequisite; oldPR262/d68/f872 sources and results preserved. New isolated branch/checkout; port only reviewed f872-to-d68 delta,never wholesale replace shared files. Money conflicts STOP consultClaude before resolving.",
+    "Only remates323df048: (a) retry deletes in nubeLista after failed startup pull must not delay bank sync up to32s;make nonblocking while preserving queue state/error invariants. (b) own incomplete-page201row guardian causal test with unambiguous identity so death proves guardian rather than ambiguity;retain restmutants. No new tombstone expiry/reupload policy.",
+    "FIN17 crossmobile BOOK resurrection afterACK500prune/640c/backfill and ambiguous/edited queue expiry/manual liquidation explicitly EXCLUDED; differentholder investigate after exactnewFIN11final.",
+    "After separate private admission only: causalRED for remates then exact source focal Node FIN11/FIN10/FIN15/Compras UTC/Madrid where sensitive, own meaningful mutants, directed DOM1worker0retry ownport48543 stopfirstfailure if needed. No repeat unchanged-source completedtests,fullsuite/CPU6/heavy/foreignlocks/installs/livecloud/SQL/Edge/Gradle/APK/deploy.",
+    "Catalogue/VERSION/caps/oracles outofscope; generated public only from ownbuild. AllCI/general/integration/served/mobile gates explicit. Private candidate freeze review before later serialdelivery newdraftPRbeta/result. Old262 closure only replacementreadback plusauthority;no merge/mainbetapush. No ProductREADY.",
+    "OWN remaining block7/12 (verify actualledger),never ROOT budgetinheritance/reset. Additional12 only after actualexhaustion+normalnotice/exactreadback db3299cd. First/internalfetches count,allnewintermediates FULL RAW before watermark. OrdinaryNFF bounded6c8bb553 only; allotherrejection STOP preserve,never repeat consumed71f/rejectedactions underproxy/alternateidentity/route."
+  ]
+}
