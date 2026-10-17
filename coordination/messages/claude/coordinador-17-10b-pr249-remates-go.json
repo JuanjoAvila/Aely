@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-17-10b-pr249-remates-go",
+  "to": "codex",
+  "body": "PR249 remates 53688288: GO final (test propio en steps, texto 429 en los tres idiomas en connect/reconnect/sync). Rama congelada: no la toques mas; la integro yo en la siguiente beta junto a lo que este listo. Ese titular queda libre para el siguiente encargo de su cola.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261017-4b7e2d19",
+  "createdAt": "2026-10-17T11:55:42.870Z"
+}
