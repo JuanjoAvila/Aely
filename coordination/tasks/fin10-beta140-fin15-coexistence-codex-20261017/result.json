@@ -1,0 +1,261 @@
+{
+  "status": "done",
+  "completionScope": "CANDIDATE DELIVERY FOR CLAUDE REVIEW AND SERIAL INTEGRATION",
+  "summary": "FIN10 complete port delivered as NEW draft PR259 against beta at707f349e, exact parent a9c9e45d. Preserves FIN15 cross-day bank-reference identity alongside v2 account-day absorption and symmetric absent-account wildcard. Catalogue-seal reconciliation and general gates remain pending; not ProductREADY.",
+  "PR": 259,
+  "draft": true,
+  "pullRequestBase": "beta",
+  "productSHA": "707f349ec080cadff0103f99e1eb775c539f1c8f",
+  "baseSHA": "a9c9e45d76d0d92c2c529b0652c24496dea75300",
+  "parent": "a9c9e45d76d0d92c2c529b0652c24496dea75300",
+  "branch": "codex/fin10-fin15-beta-coexistence-20261017",
+  "sourceCandidate": "8ebf9c375577500c5e0ab305e2fbd574b14e1e65",
+  "portOriginalBase": "a9916c3cdb21c93f9d3a47653c0608e630ce50ab",
+  "previousTaskId": "fin10-pr250-review-remates-codex-20261017",
+  "previousResultImmutable": "a1be379d64c0380fd676b3a54d0165f4ac9937f8",
+  "frozenPR": 250,
+  "frozenOldSource": "8ebf9c375577500c5e0ab305e2fbd574b14e1e65",
+  "claudeGrant": "5313ed886fa586cb41c220b2a26e027ef4667dda",
+  "freezeCommit": "1a930cedf2e7853ff8b138e5f38577b142e2b4b0",
+  "claimCommit": "7d73afb1120fbff3f7e04fbae0c264c501a5806e",
+  "ACKCommit": "7c396edfb85879236ad54575d8cf9541450f3eca",
+  "nativePRAttachmentConfirmed": true,
+  "productReady": false,
+  "tests": [
+    {
+      "name": "baseline-fin15-runtime-fixed",
+      "command": [
+        "node",
+        "--test",
+        "--test-concurrency=1",
+        "tests/fin15-pendiente-contabilizada.test.mjs"
+      ],
+      "exitCode": 0,
+      "zone": "UTC",
+      "phase": "Already executed privately; not repeated during delivery",
+      "passed": 15,
+      "failed": 0,
+      "source": "a9c9e45d76d0d92c2c529b0652c24496dea75300"
+    },
+    {
+      "name": "red-fin10-matrix",
+      "command": [
+        "node",
+        "--test",
+        "--test-name-pattern=matriz12|punto3|escritor real|vieja conserva",
+        "tests/fin10-absorption-scope.test.mjs"
+      ],
+      "exitCode": 1,
+      "zone": "UTC",
+      "phase": "Already executed privately; not repeated during delivery",
+      "passed": 8,
+      "failed": 7,
+      "source": "a9c9e45d76d0d92c2c529b0652c24496dea75300",
+      "causal": true
+    },
+    {
+      "name": "sealed-node-UTC",
+      "command": [
+        "node",
+        "--test",
+        "--test-concurrency=1",
+        "tests/fin10-absorption-scope.test.mjs",
+        "tests/fin15-pendiente-contabilizada.test.mjs",
+        "tests/compras-identicas-ids.test.mjs"
+      ],
+      "exitCode": 0,
+      "zone": "UTC",
+      "phase": "Already executed privately; not repeated during delivery",
+      "passed": 86,
+      "failed": 0,
+      "source": "707f349ec080cadff0103f99e1eb775c539f1c8f",
+      "observedZone": "UTC"
+    },
+    {
+      "name": "sealed-node-Madrid",
+      "command": [
+        "node",
+        "--test",
+        "--test-concurrency=1",
+        "tests/fin10-absorption-scope.test.mjs",
+        "tests/fin15-pendiente-contabilizada.test.mjs",
+        "tests/compras-identicas-ids.test.mjs"
+      ],
+      "exitCode": 0,
+      "zone": "Europe/Madrid",
+      "phase": "Already executed privately; not repeated during delivery",
+      "passed": 86,
+      "failed": 0,
+      "source": "707f349ec080cadff0103f99e1eb775c539f1c8f",
+      "observedZone": "Europe/Madrid"
+    },
+    {
+      "tool": "Playwright",
+      "specs": [
+        "e2e/compras-identicas-ids.spec.mjs",
+        "e2e/fin15-pendiente-contabilizada.spec.mjs"
+      ],
+      "source": "707f349ec080cadff0103f99e1eb775c539f1c8f",
+      "exitCode": 0,
+      "passed": 8,
+      "failed": 0,
+      "flaky": 0,
+      "skipped": 0,
+      "workers": 1,
+      "retries": 0,
+      "maxFailures": 1,
+      "zone": "Europe/Madrid",
+      "HTMLSHA256": "0efa8948b4ec57b3c802bee5644cec6d803d34a70522769a4e80a412bae10976",
+      "privateOwnConfigPreserved": true,
+      "phase": "Actual8-case run passed; not repeated during delivery"
+    },
+    {
+      "name": "final-build",
+      "command": [
+        "node",
+        "scripts/build-app.mjs"
+      ],
+      "exitCode": 0,
+      "zone": "UTC",
+      "phase": "Already executed privately; not repeated during delivery"
+    },
+    {
+      "name": "server-budget",
+      "command": [
+        "node",
+        "tests/presupuesto-servidor.test.mjs"
+      ],
+      "exitCode": 0,
+      "zone": "UTC",
+      "phase": "Already executed privately; not repeated during delivery"
+    },
+    {
+      "name": "syntax",
+      "command": [
+        "node",
+        "scripts/check-syntax.mjs"
+      ],
+      "exitCode": 0,
+      "zone": "UTC",
+      "phase": "Already executed privately; not repeated during delivery"
+    },
+    {
+      "name": "relevant-registration",
+      "command": [
+        "node",
+        "tests/relevant-tests.test.mjs"
+      ],
+      "exitCode": 0,
+      "zone": "UTC",
+      "phase": "Already executed privately; not repeated during delivery"
+    }
+  ],
+  "testsRepeatedDuringDelivery": false,
+  "buildRepeatedDuringDelivery": false,
+  "sourceChangedDuringDelivery": false,
+  "matrix": {
+    "cases": 12,
+    "dimensions": "marker account A-or-absent times candidate account A-B-or-absent times same-or-other literal stored day",
+    "clientV2Hidden": 5,
+    "serverV2Hidden": 5,
+    "legacyV1Hidden": 12,
+    "point3Ratified": "An absent-account tombstone also hides another known account for identical bank-reference-ordinal-day only. No wildcard across dates."
+  },
+  "mutations": {
+    "fin10RetainedKilled": 10,
+    "fin15Killed": 11,
+    "semanticOraclesPreserved": true,
+    "legacyComparisonsExact": 676,
+    "execution": "Actual mutated client VM or server TS module; assertion-based kills inside tests, not separate invented process exits."
+  },
+  "coexistence": "Server retains referenciaOb, Map of keys to reference sets and cross-day bank-reference set. Tombstones filter before reference identity consumption. Known distinct references remain distinct. Writer and client use the same symmetric matcher; account source metadata survives cloud transport.",
+  "financialEvidence": {
+    "uniqueFinalNodeCases": 86,
+    "fin10": 38,
+    "fin15": 16,
+    "compras": 32,
+    "eachZonePass": 86,
+    "not172UniqueCases": true,
+    "localServerOtherMobileWidgetCents": 320,
+    "combinedRetiredVsNextDaySurvivorCents": 320
+  },
+  "costEvidence": {
+    "rows": 20000,
+    "tombstones": 500,
+    "afterEnumerations": 1,
+    "afterDescriptors": 500,
+    "notMobilePerformanceAcceptance": true
+  },
+  "preservation": {
+    "oldPR250NotTouched": true,
+    "oldSourceAndResultsImmutable": true,
+    "ownClaimSessionUnchanged": true,
+    "helperFilterUnchanged": true,
+    "sourceClean": true,
+    "VERSIONCatalogueRegistriesCaps09AndFIN11Unchanged": true
+  },
+  "deliveryCommands": [
+    {
+      "command": [
+        "git",
+        "push",
+        "origin",
+        "707f349ec080cadff0103f99e1eb775c539f1c8f:refs/heads/codex/fin10-fin15-beta-coexistence-20261017"
+      ],
+      "exitCode": 0,
+      "normalPush": true
+    },
+    {
+      "tool": "gh pr create",
+      "head": "codex/fin10-fin15-beta-coexistence-20261017",
+      "base": "beta",
+      "draft": true,
+      "PR": 259,
+      "exitCode": 0
+    },
+    {
+      "tool": "gh pr view",
+      "PR": 259,
+      "headExact": true,
+      "baseExact": true,
+      "bodyExact": true,
+      "exitCode": 0
+    }
+  ],
+  "limitations": [
+    "Catalogue/seal BLOCK: generated catalogue byproducts remain private evidence. Public release-notes and beta-delivery stay byte-identical to base; generated index retains newly generated catalogue seal. Claude integration must reconcile catalogue and seal before publication. Focal green does not qualify the release-notes panel.",
+    "Pending independent Claude review, serial integration, exact-SHA general CI, full suite, docs-frescura, beta-sources, official size gate, Deno, served artifact and physical mobile acceptance. PR readback during delivery returned no checks; no green CI claimed.",
+    "Initial runtime/import and partial-port failures preserved in private evidence and excluded from final qualification; no tests/build/measurement repeated for delivery.",
+    "No CPU6, Gradle/APK, live SQL/banks, migrations, deployment, main-beta push or merge. No install or foreign modules; private phase used this same worker predecessor runtime.",
+    "No09/editor, VERSION, catalogue-registry, cap or financial-oracle changes. Legacy broad tombstone behavior preserved without historical repair.",
+    "FIN11 remains HOLD until this NEW source receives final Claude review and explicit source admission; neither this result nor release grants FIN11 implementation or integration.",
+    "Private manifest and checkpoint preserve exact bytes, hashes, actual commands/exits, failed attempts and test-source provenance; private paths are not copied into this public result."
+  ],
+  "artifacts": [
+    "docs/briefs/fin10-fin15-beta-coexistence-20261017.md",
+    "tests/fin10-absorption-scope.test.mjs",
+    "tests/fin15-pendiente-contabilizada.test.mjs",
+    "e2e/fin15-pendiente-contabilizada.spec.mjs"
+  ],
+  "fetchBudget": {
+    "idbudget": "fin10-own12-1-remates-691503ab",
+    "allowance": 12,
+    "usedBeforeResultReadback": 10,
+    "readbackExpectedUsed": 11,
+    "remainingExpected": 1,
+    "oldOwn10Closed10of10": true,
+    "firstFetchCounted": true,
+    "allInternalFetchesAndReadbacksCounted": true,
+    "reset": false,
+    "ROOTInherited": false,
+    "newBlockActivated": false,
+    "SEC01NoticeWaiverApplied": false
+  },
+  "nextAction": "After exact own canonical result readback save delivery checkpoint, release public slot and STOP. No polling or coordinator messages. Claude review/integration and express FIN11 admission remain separate.",
+  "schema": 1,
+  "taskId": "fin10-beta140-fin15-coexistence-codex-20261017",
+  "actor": "codex",
+  "sessionId": "codex-local-20261017-fcf546f25c8b1b50",
+  "createdAt": "2026-10-17T15:36:36.193Z",
+  "released": true
+}
