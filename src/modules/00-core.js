@@ -139,6 +139,7 @@ function mcLogText(raw){
 const GASTO_ORIGENES=["v4-apuntar","gastos-apuntar","gastos-editar","gastos-borrar","gastos-deshacer","gastos-dup","ob-import","ob-absorbed","backfill"];
 function mcLogEvent(kind,message,detail){
   const m=String(message||"");
+  if(kind==="error" && m==="GOALS_SYNC_CONFLICT") return {message:"goals_sync_conflict",detail:'{"code":"goals_sync_conflict"}'};
   if(kind==="use") return USO_OK.indexOf(m)>=0?{message:m,detail:null}:null;
   if(kind==="perf"){
     const match=m.match(/^([a-z_]+) (\d+(?:\.\d)?)s$/);
@@ -1394,11 +1395,12 @@ const cloud = (function(){
     // Copia de seguridad diaria del estado COMPLETO (idempotente por día) + poda a 30 días.
     // Best-effort: si la tabla aún no existe (migración 0002 sin aplicar), simplemente falla y se ignora.
     async backupState(uid, data){
+      const snapshot=Object.assign({},data); delete snapshot._goalSync;
       if(!sb || !uid) return;
       const today=new Date().toISOString().slice(0,10);
       const {error}=await sb.from('state_backups').upsert(
         // Sin los datos tipo banco del perfil (decisión del dueño, 14/10/2026): la copia también sale de aquí.
-        { user_id:uid, day:today, data:perfilSinDatosBanco(data) },
+        { user_id:uid, day:today, data:perfilSinDatosBanco(snapshot) },
         { onConflict:'user_id,day' }
       );
       if(error) throw error;
@@ -3200,8 +3202,72 @@ function perfilSinDatosBanco(s){
 /* Para el push FRECUENTE a la nube (cada ~1,2s): los gastos viven en su tabla `expenses`
    (fuente de verdad), así que NO los duplicamos en el JSONB de app_state → se mantiene ligero
    aunque haya miles de gastos. El backup diario sí guarda el estado completo. */
+// INC-0410: la base y los borradores en conflicto son privados de ESTE dispositivo.
+// Comparar por campo permite conservar dos ediciones disjuntas sin sumar saldos absolutos.
+function goalSyncEqual(a,b){
+  if(a===b) return true;
+  if(!a || !b || typeof a!=="object" || typeof b!=="object" || Array.isArray(a)!==Array.isArray(b)) return false;
+  const ak=Object.keys(a),bk=Object.keys(b);
+  return ak.length===bk.length && ak.every(function(k){ return Object.prototype.hasOwnProperty.call(b,k) && goalSyncEqual(a[k],b[k]); });
+}
+function goalSyncCopy(v){ return v===undefined?undefined:JSON.parse(JSON.stringify(v)); }
+function goalSyncReserves(s){ return {rules:(s.settings||{}).reservaRules||[],log:s.reservaLog||[]}; }
+function mergeGoalsThreeWay(base,local,remote){
+  local=Array.isArray(local)?local:[]; remote=Array.isArray(remote)?remote:[];
+  const index=function(rows){ const m=new Map(); for(const g of rows){ if(!g || typeof g.id!=="string" || !g.id || m.has(g.id)) return null; m.set(g.id,g); } return m; };
+  const l=index(local),r=index(remote),b=Array.isArray(base)?index(base):null;
+  if(!l || !r || !b){
+    return {goals:goalSyncCopy(remote),conflicts:goalSyncEqual(local,remote)?[]:[{code:"goals_base_missing",local:goalSyncCopy(local)}]};
+  }
+  const goals=[],conflicts=[],ids=new Set([...r.keys(),...l.keys(),...b.keys()]);
+  ids.forEach(function(id){
+    const old=b.get(id),left=l.get(id),right=r.get(id);
+    if(!left && !right) return;
+    // Una ausencia respecto a la base borra, salvo una edición concurrente de esa misma meta.
+    if(!left){ if(!old || !goalSyncEqual(right,old)) goals.push(goalSyncCopy(right)); return; }
+    if(!right){ if(!old || !goalSyncEqual(left,old)) goals.push(goalSyncCopy(left)); return; }
+    const merged={},fields=[],keys=new Set([...Object.keys(right),...Object.keys(left),...Object.keys(old||{})]);
+    keys.forEach(function(k){
+      const has=function(o){ return !!o && Object.prototype.hasOwnProperty.call(o,k); };
+      const same=function(a,c){ return has(a)===has(c) && (!has(a) || goalSyncEqual(a[k],c[k])); };
+      let source=right;
+      if(same(left,old)) source=right;
+      else if(same(right,old)) source=left;
+      else if(!same(left,right)) fields.push(k);
+      if(has(source)) Object.defineProperty(merged,k,{value:goalSyncCopy(source[k]),enumerable:true,writable:true,configurable:true});
+    });
+    goals.push(merged);
+    if(fields.length) conflicts.push({code:"goals_field_conflict",goalId:id,fields:fields,local:goalSyncCopy(left)});
+  });
+  return {goals:goals,conflicts:conflicts};
+}
+function goalSyncPull(prev,remote,owner,revision,dropLocal){
+  const kept=!dropLocal && prev._goalSync && prev._goalSync.owner===owner?prev._goalSync:null;
+  const reserves=goalSyncReserves(remote),baseReserves=kept&&kept.reserves||{rules:[],log:[]};
+  // GO cd02498b: no separar la proyección de metas de las reglas/asientos que la financiaron.
+  // También una sola rama cambiada exige conservar la foto coherente completa de la nube.
+  const reject=!dropLocal && (!goalSyncEqual(goalSyncReserves(prev),baseReserves) || !goalSyncEqual(reserves,baseReserves));
+  let merged;
+  if(reject){
+    const local=Object.assign({},prev); delete local._goalSync;
+    merged={goals:goalSyncCopy(remote.goals||[]),conflicts:[{code:"goals_reserve_conflict",local:goalSyncCopy(local)}]};
+  } else merged=mergeGoalsThreeWay(kept?kept.base:null,dropLocal?(remote.goals||[]):prev.goals,remote.goals);
+  const conflicts=kept?(kept.conflicts||[]).slice():[];
+  merged.conflicts.forEach(function(c){ if(!conflicts.some(function(v){ return goalSyncEqual(v,c); })) conflicts.push(c); });
+  return {goals:merged.goals,_goalSync:{owner:owner,revision:revision||null,base:goalSyncCopy(remote.goals||[]),reserves:goalSyncCopy(reserves),cloudOnly:reject,conflicts:conflicts}};
+}
+function goalSyncAck(prev,owner,sent,expected,revision){
+  const meta=prev._goalSync;
+  if(meta && (meta.owner!==owner || meta.revision!==expected)) return prev;
+  return Object.assign({},prev,{_goalSync:{owner:owner,revision:revision,base:goalSyncCopy(sent.goals||[]),reserves:goalSyncCopy(goalSyncReserves(sent)),conflicts:meta?(meta.conflicts||[]):[]}});
+}
+function goalSyncMetadataOnly(prev,next){
+  if(!prev || prev._goalSync===next._goalSync) return false;
+  return [...new Set([...Object.keys(prev),...Object.keys(next)])].every(function(k){ return k==="_goalSync" || k==="_savedAt" || prev[k]===next[k]; });
+}
 function slimForCloud(s){
   const c=perfilSinDatosBanco(Object.assign({},s));delete c.expenses;delete c.bankTx;
+  delete c._goalSync;
   if(s.accountBalanceHistory){
     const hist={};Object.keys(s.accountBalanceHistory).forEach(function(key){hist[key]=s.accountBalanceHistory[key].slice(-14);});
     c.accountBalanceHistory=hist;

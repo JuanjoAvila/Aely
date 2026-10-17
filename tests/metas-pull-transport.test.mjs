@@ -29,6 +29,10 @@ async function ticks(){ for(let i=0;i<20;i++) await Promise.resolve(); }
 function banco(){
   const ctx=loadPureLogicFromFile(),monthly=ctx.applyReservaMensual;
   vm.createContext(ctx);
+  const core=fs.readFileSync(path.join(root,"src/modules/00-core.js"),"utf8");
+  for(const name of ["goalSyncEqual","goalSyncCopy","goalSyncReserves","mergeGoalsThreeWay","goalSyncPull","goalSyncAck"]){
+    vm.runInContext(bloque(core,"function "+name+"("),ctx);
+  }
   // Se cargan de la fuente vigente: el guardián también funciona contra el transporte anterior,
   // que no tenía puerta y acreditaba una copia local tras rescatar una nube inválida.
   for(const name of ["reservaMensualNubeLeida","reservaMensualPuerta"]){
@@ -58,7 +62,7 @@ function banco(){
   };
   const names=Object.keys(deps);
   const factory=vm.runInContext("(function("+names.join(",")+"){"+
-    bloque(app,"const reservaMensualAlDia=function(")+bloque(app,"const syncFromCloud=function(")+"return syncFromCloud;})",ctx);
+    bloque(app,"const reservaMensualAlDia=function(")+bloque(app,"const pushAppState=function(")+bloque(app,"const syncFromCloud=function(")+"return syncFromCloud;})",ctx);
   const sync=factory(...names.map(k=>deps[k]));
   return {pulls,expenses,state:()=>state,valid:()=>({data:JSON.parse(JSON.stringify(state))}),
     start:function(){ sync({user:{id:"synthetic"}}); return deps.pullOkRef.current; }};
