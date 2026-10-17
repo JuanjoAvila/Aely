@@ -1,3 +1,12 @@
+FIN-11: Node `fin11-absorption-pending` y Deno `_shared/ob-absorbed-pending.test.ts`
+registrados en el runner; DOM `e2e/fin11-absorption-pending.spec.mjs` en Gastos.
+Cubren persistencia/reapertura, confirmación, saturación, aliases inciertos y la
+protección pendiente antes de consumir la referencia FIN-15 en otro día, con
+mutante causal de cero céntimos. El port af387 añade control200/guardia201 con alias
+único y mutación exclusiva de la guardia; barrera real `nubeLista` con limpieza
+pendiente/fallida y pull fallido, más mutación que restaura la espera del DELETE.
+[Evidencia y límites](briefs/fin11-absorciones-pendientes-20261017.md).
+
 FIN-15 (beta 4.26.138): `tests/fin15-pendiente-contabilizada.test.mjs` registrado en `run-tests` ejecuta
 cliente, month legacy y widget v2 con PDNG/BOOK en días distintos, en ambos órdenes.
 Incluye 676 comparaciones exactas sin `#ref` contra `9370565` y diez mutaciones semánticas.
