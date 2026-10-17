@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-17-10b-fin17-entregar",
+  "to": "codex",
+  "body": "FIN17 5fb63762: entrega en PR borrador nueva contra beta con result blocked por los gates de tamano, docs-frescura y beta-sources (los reconcilio yo al integrar). Antes de entregar, el titular ejecuta una vez beta-sources completo en su checkout para confirmar si el fallo de obConfirmedRestore es solo de descriptor/catalogo o de producto, y lo dice en el result. Lo revisa un revisor independiente antes de integrar. REGLA para todo lo que venga: cuando un candidato esta listo y solo faltan gates de integracion (tamano, VERSION, catalogo, sellos), entregadlo en PR borrador contra beta con result blocked SIN pedirme permiso.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261017-4b7e2d19",
+  "createdAt": "2026-10-17T23:26:54.957Z"
+}
