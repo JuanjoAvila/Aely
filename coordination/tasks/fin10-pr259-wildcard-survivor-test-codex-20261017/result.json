@@ -1,0 +1,165 @@
+{
+  "status": "done",
+  "completionScope": "SINGLE REGRESSION TEST DELIVERY; FINAL SOURCE FROZEN FOR CLAUDE REVIEW",
+  "summary": "PR259 updated normally to exactf872a24c from reviewed707f349e under grant1eb8ab40. Only FIN15 test file changes,25 lines added and0 removed. New regression proves the accountless-wildcard hidden row does not consume the survivor reference: server remains320 in both orders. Targeted17of17 EXIT0; deliberate in-memory causal mutant gives0 instead of320 and EXIT1. Final source frozen; no ProductREADY.",
+  "PR": 259,
+  "draft": true,
+  "requiredPRBase": "beta",
+  "productSHA": "f872a24cf180ee0817ccf1139ab3e01721e091eb",
+  "baseSHA": "707f349ec080cadff0103f99e1eb775c539f1c8f",
+  "parent": "707f349ec080cadff0103f99e1eb775c539f1c8f",
+  "branch": "codex/fin10-fin15-beta-coexistence-20261017",
+  "grantCommit": "1eb8ab40e2756031d0a85e1b2e9b3697de377de7",
+  "taskCommit": "2c26cd139ae3beebba0b04ab768383eb4ab1cd8e",
+  "claimCommit": "f80c5ce5fb92d059ea6ec1fc4aaff28ffa87b8db",
+  "ACKCommit": "5501c291d34bc65415c75a50a28a37f2b04edba2",
+  "previousTaskId": "fin10-beta140-fin15-coexistence-codex-20261017",
+  "previousResultImmutable": "e907e1655101f7a434ac2034881f680bb4800f39",
+  "previousHeadReviewed": "707f349ec080cadff0103f99e1eb775c539f1c8f",
+  "sourceFrozen": true,
+  "productReady": false,
+  "nativePRAttachmentConfirmed": true,
+  "scope": [
+    "tests/fin15-pendiente-contabilizada.test.mjs"
+  ],
+  "diff": {
+    "files": 1,
+    "addedLines": 25,
+    "deletedLines": 0,
+    "existingTestsPreserved": true,
+    "productLogicUnchanged": true,
+    "generatedFilesUnchanged": true
+  },
+  "tests": [
+    {
+      "name": "New accountless-wildcard survivor causal RED",
+      "tool": "node test runner",
+      "testFile": "tests/fin15-pendiente-contabilizada.test.mjs",
+      "onlyNewCase": true,
+      "sourceBeforeCommit": "707f349ec080cadff0103f99e1eb775c539f1c8f",
+      "testBytesMatchFinal": true,
+      "explicitInMemoryServerMutant": true,
+      "serverFileWritten": false,
+      "exitCode": 1,
+      "passed": 0,
+      "failed": 1,
+      "actualCents": 0,
+      "expectedCents": 320,
+      "assertion": "ERR_ASSERTION",
+      "notAReviewedBaseDefect": true,
+      "phase": "Executed privately; not repeated during delivery"
+    },
+    {
+      "command": [
+        "node",
+        "--test",
+        "--test-concurrency=1",
+        "tests/fin15-pendiente-contabilizada.test.mjs"
+      ],
+      "source": "f872a24cf180ee0817ccf1139ab3e01721e091eb",
+      "exitCode": 0,
+      "passed": 17,
+      "failed": 0,
+      "skipped": 0,
+      "zone": "UTC",
+      "observedZone": "UTC",
+      "newCaseBothOrdersCents": [
+        320,
+        320
+      ],
+      "newEmbeddedMutantKilled": true,
+      "existingElevenSemanticMutantsPreserved": true,
+      "legacyComparisons": 676,
+      "phase": "Executed on exact private final commit; not repeated during delivery"
+    },
+    {
+      "command": [
+        "git",
+        "diff",
+        "707f349ec080cadff0103f99e1eb775c539f1c8f",
+        "f872a24cf180ee0817ccf1139ab3e01721e091eb",
+        "--check"
+      ],
+      "exitCode": 0,
+      "phase": "Previously completed private scope check; not repeated during delivery"
+    }
+  ],
+  "mutant": {
+    "change": "When the accountless wildcard hides a row, add its bank-reference identity to seen references before continue.",
+    "effect": "Hidden-first order filters both rows and returns zero rather than320.",
+    "actualAssertionBasedKill": true,
+    "originalServerSHA256": "1b898a04428c07c7baa5fbc0452e549dc0c3ec1828e1864b281154fd583f7fc1",
+    "mutatedServerSHA256": "59094a0393de0d736b36d2f2abe3b572bb1ccf6b304dd4f3361438195d0a9b4d",
+    "onlyInMemory": true,
+    "newKilled": 1
+  },
+  "testSourceSHA256": "472414f5921c7bf76c7e15c26c9dbe9b131d5e34bab35831ef03a6140b7c0d84",
+  "deliveryCommands": [
+    {
+      "command": [
+        "git",
+        "push",
+        "origin",
+        "f872a24cf180ee0817ccf1139ab3e01721e091eb:refs/heads/codex/fin10-fin15-beta-coexistence-20261017"
+      ],
+      "exitCode": 0,
+      "normalPush": true
+    },
+    {
+      "tool": "gh pr edit",
+      "PR": 259,
+      "descriptionUpdated": true,
+      "exitCode": 0
+    },
+    {
+      "tool": "gh pr view",
+      "PR": 259,
+      "headDraftBetaBodyExact": true,
+      "exitCode": 0
+    }
+  ],
+  "testsRepeatedDuringDelivery": false,
+  "buildRepeatedDuringDelivery": false,
+  "measurementsRepeatedDuringDelivery": false,
+  "sourceChangedDuringDelivery": false,
+  "helperFilterIdentityUnchanged": true,
+  "preservation": {
+    "previousReleasedClaimsResultsUntouched": true,
+    "originalPR250AndSource8ebFrozen": true,
+    "VERSIONCatalogueCapsUnchanged": true,
+    "noNewProductCode": true
+  },
+  "limitations": [
+    "Catalogue/seal BLOCK inherited from the reviewed parent: base public catalogue bytes were preserved while generated index retains the generated catalogue seal. Claude integration must reconcile them before publication; this test-only remate does not change or qualify that surface.",
+    "Pending Claude final-head review, serial integration, exact general CI/full suite, docs-frescura, beta-sources, official size, Deno, served beta141 and physical mobile acceptance. PR readback returned no checks; no green CI claimed.",
+    "The prior86-case UTC/Madrid and8-case E2E evidence belongs to707f349e and was not rerun or relabeled as exact-head testing. Only targeted17-case file and new causal regression executed for this remate.",
+    "Causal RED uses a deliberate transient server mutant, not a failure claim against correct reviewed707f349e. No server source file was changed.",
+    "No build, unrelated tests, broad suites, DOM, CPU6, live SQL/banks, migrations, deployment, Gradle/APK, main-beta push or merge.",
+    "Final source is frozen after delivery. FIN11 remains HOLD until Claude reviews and expressly admits this final head; this result does not authorize FIN11 or integration."
+  ],
+  "fetchBudget": {
+    "idbudget": "fin10-own12-2-db3299cd-fcf546f2",
+    "allowance": 12,
+    "usedBeforeResultReadback": 5,
+    "readbackExpectedUsed": 6,
+    "remainingExpected": 6,
+    "previousBlockActuallyClosed12of12": true,
+    "initialOwn10Closed10of10": true,
+    "firstFetchCounted": true,
+    "allInternalReadbacksCounted": true,
+    "reset": false,
+    "ROOTInherited": false,
+    "newBlockActivatedThisTurn": false,
+    "SEC01NoticeWaiverApplied": false
+  },
+  "artifacts": [
+    "tests/fin15-pendiente-contabilizada.test.mjs"
+  ],
+  "nextAction": "Confirm exact own canonical result readback, save small delivery checkpoint, release serial public slot and STOP. No polling or coordinator messages. Claude final-head review/integration and express FIN11 admission remain separate.",
+  "schema": 1,
+  "taskId": "fin10-pr259-wildcard-survivor-test-codex-20261017",
+  "actor": "codex",
+  "sessionId": "codex-local-20261017-fcf546f25c8b1b50",
+  "createdAt": "2026-10-17T16:14:17.071Z",
+  "released": true
+}
