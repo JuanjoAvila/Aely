@@ -17,7 +17,7 @@ import { timingSafeEqual } from "../_shared/entrada.ts";
 import { miSaveRefresh } from "../_shared/myinvestor-refresh-save.ts";
 
 type KeepaliveCode = "ok" | "rejected" | "http_403" | "http_other" | "no_access_token"
-  | "network" | "decrypt" | "encrypt" | "no_creds" | "save_error" | "raced";
+  | "network" | "decrypt" | "encrypt" | "no_creds" | "connection_unavailable" | "save_error" | "raced";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
@@ -37,7 +37,7 @@ Deno.serve(async (req) => {
       try {
         const tokens = await miTokensFromRow(link);
         if (!tokens.refresh || !tokens.deviceId) { code = "no_creds"; skipped++; continue; }
-        if (!link.connection_version) { code = "save_error"; skipped++; continue; }
+        if (!link.connection_version) { code = "connection_unavailable"; skipped++; continue; }
         code = "network";
         // Acotar también el cuerpo: recibir cabeceras no impide que el banco se cuelgue.
         // Cancelar libera la petición; limpiar el reloj evita abortos tardíos tras el éxito.

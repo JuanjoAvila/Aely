@@ -160,7 +160,6 @@ async function run(
       access_token: encode(a),
       refresh_token: encode(r),
     }),
-    ensureMiLinkEncrypted: async () => {},
     isEncrypted: (x: string) => x.startsWith("enc:"),
     timingSafeEqual: (a: string, b: string) => a === b,
     rateLimit: async () => ({ ok: true, checked: true }),

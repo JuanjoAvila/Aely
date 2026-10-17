@@ -113,6 +113,16 @@ async function t(name, fn) { if (filterIndex >= 0 && !name.includes(process.argv
 
 console.log("myinvestor-keepalive");
 
+await t("Remates: falta connection_version es connection_unavailable sin guardar", async () => {
+  const r = await tick([enlace("a", { connection_version: undefined })], () => { throw new Error("no debe llamar al banco"); });
+  assert.deepEqual(r.data, { ok: true, refreshed: 0, expired: 0, skipped: 1 });
+  assert.equal(r.calls.length, 0);
+  assert.equal(r.attempts.length, 0);
+  assert.equal(r.writes.length, 0);
+  assert.equal(r.events.length, 1);
+  eventDetail(r.events[0], "a", { outcome: "skipped", code: "connection_unavailable", http: null, hasRefreshExpiresIn: false, hasRefreshToken: false, guarded: false });
+});
+
 await t("refresco aceptado: guarda los dos tokens nuevos y el enlace sigue activo", async () => {
   const rows = [enlace("a")];
   const r = await tick(rows, () => nuevos());

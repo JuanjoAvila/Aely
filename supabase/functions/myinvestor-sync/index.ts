@@ -118,8 +118,9 @@ Deno.serve(withCors(async (req: Request) => {
       && !(await rateLimit(admin, "mi-401-tras-refresco:" + user.id + ":" + counterVersion, 2, 6 * 3600)).ok;
     /* El refresco rechazado solo es caducidad si la fila sigue teniendo el token que se usó.
        El keepalive corre cada 10 minutos con ese mismo token: si lo rotó mientras tanto, el
-       rechazo es del token viejo y el enlace está vivo. Se vuelve a leer la fila en vez de
-       comparar en el `update` porque `ensureMiLinkEncrypted` pudo recifrarla al entrar. */
+       rechazo es del token viejo y el enlace está vivo. Se descifra la fila actual para
+       comparar la credencial, no ciphertexts que podrían tener IV distintos. El UPDATE
+       posterior conserva además la guarda atómica de conexión, contador y snapshot. */
     if (read.kind === "expired") {
       const { data: now } = await admin.from("myinvestor_links").select("*").eq("user_id", user.id).maybeSingle();
       const current = now ? await miTokensFromRow(now) : null;

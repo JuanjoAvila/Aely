@@ -38,3 +38,23 @@ no se deducen de los fixtures sintéticos. No cambia VERSION, catálogo ni orác
 
 Referencias actuales de API: [UPDATE y retorno de filas](https://supabase.com/docs/reference/javascript/update),
 [igualdad y NULL](https://supabase.com/docs/reference/javascript/eq).
+
+## Remates de revisión de PR252 (GO e3d09d2f)
+
+El caso M10 ahora entrega un refresh distinto en cada una de las tres pulsaciones
+manuales que siguen en 401 tras renovarse: exige caducidad en la tercera, tres
+refresh y seis lecturas, sin posiciones ni otro intento bancario. Quitar
+`link = { ...link, ...enc }` deja el snapshot viejo y hace fallar ese caso con
+`refresh_raced` en lugar de ofrecer reconectar. La asignación de producto se conserva.
+
+El inventario local de la fuente4aa3e015 no encuentra consumidores de producción
+de `ensureMiLinkEncrypted`: sólo su definición, dobles y una prueba que lo invoca.
+Se retiran esa función, su fixture y esa prueba; las pruebas del recifrado real
+guardado en sync permanecen. La referencia histórica del CHANGELOG describe su
+versión antigua. La mención previa a token_store sin cambios corresponde a la
+primera candidata; este remate retira únicamente el helper sin consumidores.
+
+Faltar `connection_version` emite `connection_unavailable`, manteniendo el mismo
+payload cerrado y sin llamadas bancarias ni UPDATE. No se presenta como fallo de
+guardado. Candidata para revisión, sin despliegue; estos remates no repiten los
+nueve mutantes anteriores ni acreditan CI o entrega por su evidencia sintética.

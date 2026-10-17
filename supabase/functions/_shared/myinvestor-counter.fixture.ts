@@ -71,7 +71,7 @@ export async function run(
     createClient: () => db, withCors: (h: typeof handler) => h,
     miTokensFromRow: async (row: any) => ({ access: row.access_token, refresh: row.refresh_token, deviceId: row.device_id }),
     miTokensToRow: async (a: string, r: string) => ({ access_token: a, refresh_token: r }),
-    isEncrypted: () => false, ensureMiLinkEncrypted: async () => {}, timingSafeEqual: (a: string, b: string) => a === b,
+    isEncrypted: () => false, timingSafeEqual: (a: string, b: string) => a === b,
     fetch: async (url: string) => {
       if (url.endsWith("/token/refresh")) return (options.refresh || refreshed)();
       if (url.endsWith("/v2/auth/token")) return (options.login || refreshed)();
@@ -92,25 +92,4 @@ export async function run(
     const res = await handler!(req);
     return { status: res.status, data: await res.json() };
   } finally { delete (globalThis as any)[globalKey]; }
-}
-
-export async function encryptLegacy(f: ReturnType<typeof fixture>, before: () => void) {
-  const key = "__miEncrypt" + serial++;
-  const patch: Record<string, unknown> = {}, filters: [string, unknown][] = [];
-  const q: any = {
-    eq: (k: string, v: unknown) => { filters.push([k, v]); return q; },
-    then: (resolve: any, reject: any) => {
-      before();
-      if (filters.every(([k, v]) => f.row[k] === v)) Object.assign(f.row, patch);
-      return Promise.resolve({}).then(resolve, reject);
-    },
-  };
-  (globalThis as any)[key] = { from: () => ({ update: (x: any) => { Object.assign(patch, x); return q; } }) };
-  const source = 'const Deno={env:{get:()=>"synthetic"}}; const encryptSecret=async(x:string)=>"enc:v1:"+x; const decryptSecret=async(x:string)=>x;\n'
-    + (await Deno.readTextFile(new URL("token_store.ts", import.meta.url))).replace(/^import .*?;\r?\n/gm, "")
-    + '\nexport const encrypt=async(row:any)=>ensureMiLinkEncrypted((globalThis as any)[' + JSON.stringify(key) + '], "synthetic", row);';
-  try {
-    const mod = await import("data:application/typescript," + encodeURIComponent(source));
-    await mod.encrypt({ ...f.row });
-  } finally { delete (globalThis as any)[key]; }
 }

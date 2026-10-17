@@ -57,11 +57,11 @@ async function sync({ acceso, refresco, detalle, link = {}, guardar = () => null
     if (veces.caido) return { ok: true, checked: false };
     return { ok: ++veces.hits <= limit, checked: true };
   };
-  const names = ["Deno", "createClient", "withCors", "miTokensFromRow", "miTokensToRow", "ensureMiLinkEncrypted", "rateLimit", "fetch"];
+  const names = ["Deno", "createClient", "withCors", "miTokensFromRow", "miTokensToRow", "rateLimit", "fetch"];
   new Function(...names, src)(
     { serve: (f) => { handler = f; }, env: { get: (key) => key === "TOKEN_ENCRYPTION_KEY" ? undefined : "synthetic" } }, () => db, (f) => f,
     async (l) => ({ access: l.access_token, refresh: l.refresh_token, deviceId: l.device_id }),
-    async (access, refresh) => ({ access_token: access, refresh_token: refresh }), async () => {}, limitador, fetchFn
+    async (access, refresh) => ({ access_token: access, refresh_token: refresh }), limitador, fetchFn
   );
   const res = await handler(new Request("https://app.invalid", { method: "POST", body: JSON.stringify(body) }));
   return { status: res.status, data: await res.json(), writes, calls, fila, rate };
