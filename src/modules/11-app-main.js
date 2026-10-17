@@ -1078,15 +1078,30 @@ function App(){
   // del callback `t("st_sync_conflict")` petaba («t is not a function»), el `.catch` se lo tragaba y
   // el conflicto de dos móviles NUNCA se resolvía (ni aviso ni re-sync). Bug encontrado 2026-07-24.
   useEffect(function(){
-    if(!uid) return;
-    const tmr=setTimeout(function(){
-      cloud.pushState(uid, slimForCloud(state), cloudUpdatedAtRef.current).then(function(r){
-        if(r && r.conflict){ showToast(t("st_sync_conflict")); syncFromCloud(sessionRef.current); return; }
-        if(r && r.updated_at) cloudUpdatedAtRef.current=r.updated_at;
-      }).catch(function(){});
-    }, 1200);
-    return function(){ clearTimeout(tmr); };
-  },[state,uid]);
+    let tmr=null;
+    const queue=function(){
+      clearTimeout(tmr); tmr=null;
+      if(!uid||mcSandboxTransition()) return;
+      tmr=setTimeout(function(){
+        tmr=null;
+        cloud.pushState(uid, slimForCloud(state), cloudUpdatedAtRef.current).then(function(r){
+          if(r && r.conflict){ showToast(t("st_sync_conflict")); syncFromCloud(sessionRef.current); return; }
+          if(r && r.updated_at) cloudUpdatedAtRef.current=r.updated_at;
+        }).catch(function(){});
+      }, 1200);
+    };
+    const transition=function(){
+      if(mcSandboxTransition()){
+        clearTimeout(tmr); tmr=null;
+        // Conserva la edición en la cartera REAL por la vía local existente. Al volver,
+        // syncFromCloud conserva su _savedAt más reciente y el push normal la sube.
+        flushPersist();
+      }else queue();   // un acuse fallido cancela la transición, no el guardado normal
+    };
+    window.addEventListener("mc-sandbox-transition",transition);
+    queue();
+    return function(){ clearTimeout(tmr); window.removeEventListener("mc-sandbox-transition",transition); };
+  },[state,uid,flushPersist]);
 
   // Al volver, los gastos pueden haber cambiado en la nube aunque el pull anterior sea reciente.
   // Bancos OB siguen sin consulta automática; su cupo PSD2 no depende de esta lectura.

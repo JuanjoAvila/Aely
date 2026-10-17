@@ -310,14 +310,16 @@ function askDone(p,entry,terminal=true){
   const body=askSource.match(/const done=(function\(r\)\{[\s\S]*?\n  \});/);
   assert.ok(body,'se ejecuta done real de AskHost');
   const results=[],cur={terminal,resolve:r=>results.push(r)};
-  const ctx=vm.createContext({cur,back:{current:entry},setCur:()=>{},setVal:()=>{},_mcBackDrop:p.ctx._mcBackDrop});
-  return {done:vm.runInContext('('+body[1]+')',ctx),results};
+  const transitions=[];
+  const ctx=vm.createContext({cur,back:{current:entry},setCur:()=>{},setVal:()=>{},_mcBackDrop:p.ctx._mcBackDrop,mcSandboxTransition:v=>transitions.push(v)});
+  return {done:vm.runInContext('('+body[1]+')',ctx),results,transitions};
 }
 
 check('INC171001 aceptar terminal espera el pop exacto del Ask y conserva padre vivo',()=>{
   const p=platform(),parent=p.ctx._mcBackAdd(()=>assert.fail('no cierra padre'));p.drain();
   const child=p.ctx._mcBackAdd(()=>{});p.drain();const a=askDone(p,child);
   a.done(true);p.micros();assert.deepEqual(a.results,[],'solicitar back no es acuse');
+  assert.deepEqual(a.transitions,[true],'bloquea nube antes de esperar historial');
   assert.equal(p.count('back'),1);p.task();assert.deepEqual(a.results,[true]);
   assert.equal(p.history.state.mcBack.id,parent.slot.id);assert.equal(p.ctx._mcBackStack.length,1);
   p.ctx._mcBackDrop(child);p.drain();assert.deepEqual(a.results,[true],'cleanup repetido no repite transición');
@@ -327,6 +329,7 @@ check('INC171001 cancelar terminal y Ask normal conservan resolución inmediata'
   for(const [terminal,result] of [[true,false],[false,true],[false,'texto']]){
     const p=platform(),e=p.ctx._mcBackAdd(()=>{});p.drain();const a=askDone(p,e,terminal);
     a.done(result);assert.deepEqual(a.results,[result]);assert.equal(p.count('back'),0);
+    assert.deepEqual(a.transitions,[],'cancelar y Ask normal no abren transición');
     p.ctx._mcBackDrop(e);p.drain();assert.deepEqual(p.history.state,p.base);
   }
 });
@@ -336,6 +339,7 @@ check('INC171001 entrada ajena no autoriza transición ni consumo de su historia
     const p=platform(),e=p.ctx._mcBackAdd(()=>{});p.drain();p.history[method]({foreign:true},'','/foreign');
     const a=askDone(p,e);a.done(true);p.ctx._mcBackDrop(e);p.drain();
     assert.deepEqual(a.results,[false]);assert.equal(p.count('back'),0);assert.deepEqual(p.history.state,{foreign:true});
+    assert.deepEqual(a.transitions,[true,false],'un acuse inválido libera el bloqueo');
   }
 });
 

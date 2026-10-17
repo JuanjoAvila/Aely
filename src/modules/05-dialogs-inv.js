@@ -55,7 +55,13 @@ function AskHost(){
   // esa navegación cancela el reload. Cancelar y los demás Ask resuelven como siempre.
   const done=function(r){
     const f=cur.resolve; setCur(null); setVal("");
-    if(cur.terminal&&r===true) _mcBackDrop(back.current,function(consumed){ f(consumed); });
+    if(cur.terminal&&r===true){
+      mcSandboxTransition(true);
+      _mcBackDrop(back.current,function(consumed){
+        if(!consumed) mcSandboxTransition(false);
+        f(consumed);
+      });
+    }
     else f(r);
   };
   const ok=function(){ done(cur.input?String(val):true); };

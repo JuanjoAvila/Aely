@@ -3190,6 +3190,15 @@ function mcSandboxFlag(){ try{ return localStorage.getItem("_mcSandbox")==="1"; 
    se cierra, pase lo que pase con la bandera. Entrar y salir siempre recargan, así que la sesión
    siguiente ya arranca con el modo nuevo. */
 var _mcSandboxPinned=null;
+// La ventana termina con el documento: el siguiente arranque vuelve a evaluar su modo.
+var _mcSandboxTransition=false;
+function mcSandboxTransition(on){
+  if(arguments.length&&_mcSandboxTransition!==(on===true)){
+    _mcSandboxTransition=on===true;
+    window.dispatchEvent(new CustomEvent("mc-sandbox-transition"));
+  }
+  return _mcSandboxTransition;
+}
 function mcSandbox(){
   if(_mcSandboxPinned===null) _mcSandboxPinned=mcSandboxFlag();
   return _mcSandboxPinned;
@@ -3223,6 +3232,7 @@ function mcSandboxVacio(){
    `store.get(STATE_KEY_REAL)` devuelve la mitad LIGERA, así que entrar al banco de pruebas te
    copiaba la cartera sin un solo gasto. */
 function mcEnterSandbox(seedFrom){
+  mcSandboxTransition(true);
   try{
     if(!store.get(STATE_KEY_TEST)) mcSaveRaw(STATE_KEY_TEST, seedFrom||mcLoadRaw(STATE_KEY_REAL)||{});
     localStorage.setItem("_mcSandbox","1");
@@ -3231,7 +3241,7 @@ function mcEnterSandbox(seedFrom){
 /* Entrar y salir NO cambian el modo de la sesión en curso a propósito (ver mcSandbox): quien las
    llama recarga inmediatamente después, y así lo que quede por volcar se guarda en la clave
    correcta, la de la sesión que se está cerrando. */
-function mcExitSandbox(){ try{ localStorage.removeItem("_mcSandbox"); localStorage.removeItem("_mcSandboxVacio"); }catch(e){} }
+function mcExitSandbox(){ mcSandboxTransition(true); try{ localStorage.removeItem("_mcSandbox"); localStorage.removeItem("_mcSandboxVacio"); }catch(e){} }
 /* MODO INICIAL (peticion suya, 9/9/2026): el banco de pruebas COPIA la cartera real, asi que no
    habia forma de ver la app como la ve alguien que acaba de instalarla — y justo eso es lo que hay
    que probar del pulido v4 (hero sin grafico, tarjetas vacias, racha a cero). Sus palabras: «si no,
@@ -3256,6 +3266,7 @@ function mcExitSandbox(){ try{ localStorage.removeItem("_mcSandbox"); localStora
    por donde lo lee la app. Es el mismo patrón de siempre: la regla escrita en dos sitios y un
    test que solo mira uno. */
 function mcSeedSandboxVacio(){
+  mcSandboxTransition(true);
   try{ localStorage.setItem("_mcSandboxVacio","1"); }catch(e){}
   mcSaveRaw(STATE_KEY_TEST, {
     _dataVer:6, onboarded:false, tourSeen:false, setupHint:false,
@@ -4216,7 +4227,7 @@ const CLOUD_READS_QUE_LLENAN=[
     const real=cloud[name];
     if(typeof real!=="function") return;   // método renombrado: mejor enterarse en los tests que fallar mudo
     cloud[name]=function(){
-      if(mcSandbox()) return Promise.resolve(null);   // modo pruebas: no sale nada de este móvil
+      if(mcSandbox()||mcSandboxTransition()) return Promise.resolve(null);   // también entre confirmar y el arranque destino
       return real.apply(cloud, arguments);
     };
   });
@@ -11819,7 +11830,13 @@ function AskHost(){
   // esa navegación cancela el reload. Cancelar y los demás Ask resuelven como siempre.
   const done=function(r){
     const f=cur.resolve; setCur(null); setVal("");
-    if(cur.terminal&&r===true) _mcBackDrop(back.current,function(consumed){ f(consumed); });
+    if(cur.terminal&&r===true){
+      mcSandboxTransition(true);
+      _mcBackDrop(back.current,function(consumed){
+        if(!consumed) mcSandboxTransition(false);
+        f(consumed);
+      });
+    }
     else f(r);
   };
   const ok=function(){ done(cur.input?String(val):true); };
@@ -26778,15 +26795,30 @@ function App(){
   // del callback `t("st_sync_conflict")` petaba («t is not a function»), el `.catch` se lo tragaba y
   // el conflicto de dos móviles NUNCA se resolvía (ni aviso ni re-sync). Bug encontrado 2026-07-24.
   useEffect(function(){
-    if(!uid) return;
-    const tmr=setTimeout(function(){
-      cloud.pushState(uid, slimForCloud(state), cloudUpdatedAtRef.current).then(function(r){
-        if(r && r.conflict){ showToast(t("st_sync_conflict")); syncFromCloud(sessionRef.current); return; }
-        if(r && r.updated_at) cloudUpdatedAtRef.current=r.updated_at;
-      }).catch(function(){});
-    }, 1200);
-    return function(){ clearTimeout(tmr); };
-  },[state,uid]);
+    let tmr=null;
+    const queue=function(){
+      clearTimeout(tmr); tmr=null;
+      if(!uid||mcSandboxTransition()) return;
+      tmr=setTimeout(function(){
+        tmr=null;
+        cloud.pushState(uid, slimForCloud(state), cloudUpdatedAtRef.current).then(function(r){
+          if(r && r.conflict){ showToast(t("st_sync_conflict")); syncFromCloud(sessionRef.current); return; }
+          if(r && r.updated_at) cloudUpdatedAtRef.current=r.updated_at;
+        }).catch(function(){});
+      }, 1200);
+    };
+    const transition=function(){
+      if(mcSandboxTransition()){
+        clearTimeout(tmr); tmr=null;
+        // Conserva la edición en la cartera REAL por la vía local existente. Al volver,
+        // syncFromCloud conserva su _savedAt más reciente y el push normal la sube.
+        flushPersist();
+      }else queue();   // un acuse fallido cancela la transición, no el guardado normal
+    };
+    window.addEventListener("mc-sandbox-transition",transition);
+    queue();
+    return function(){ clearTimeout(tmr); window.removeEventListener("mc-sandbox-transition",transition); };
+  },[state,uid,flushPersist]);
 
   // Al volver, los gastos pueden haber cambiado en la nube aunque el pull anterior sea reciente.
   // Bancos OB siguen sin consulta automática; su cupo PSD2 no depende de esta lectura.
