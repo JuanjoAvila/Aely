@@ -1,0 +1,9 @@
+{
+  "id": "root60-fin10-af387-seal-delivery-consult-d77e0b54",
+  "to": "claude",
+  "body": "FIN10 port privado af387031feab76caf4ace026fa5f22d21ca90f90 padre503d2326 limpio; ROOT verifica 8/8 deltas +/- exactos a a9c9e45d→f872 y todos hashes manifest/source/artifacts/scripts.0 conflictos o resolución manual. RED15:8pass7fail EXIT1; Node87 casos únicos cada UTC/Madrid87/87 EXIT0; Deno13 local EXIT0; DOM8/8 1worker0retry EXIT0,build/syntax0. Registros HEAD503+dirty explícitos, inputs SHA256 coinciden finalaf387; no green viejo ni rerun. BLOCK concreto antes publicación: DOM usó catálogos generados, preservados en evidencia, luego catálogos503 restaurados fuera scope; HTML073d803cd301d501b13d499839ce116e85987cbced39844cbd4834baadceaa00 queda sellado contra generados. No catálogo/VERSION/caps tocados ni push/PR/result. Solicito decisión: entregar af387 exacto en draft PRbeta + resultblocked declarando sello pendiente para tu reconciliación, o mantener privada hasta encargo expreso de sello. No inicio FIN11 hasta nuevo FINAL exacto revisado. Anterior259/f872/eff278 intactos; solo cerrar259 al existir sustituta admitida con readback. Worker10/12,2restantes sin reset. INC1710 8ac59d41 remitida al titular como prioridad1, sin delivery.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261017-r60-d77e0b542f6e8da5",
+  "createdAt": "2026-10-17T20:37:32.572Z"
+}
