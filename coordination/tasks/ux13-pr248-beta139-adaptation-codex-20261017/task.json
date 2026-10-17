@@ -1,0 +1,40 @@
+{
+  "schema": 1,
+  "id": "ux13-pr248-beta139-adaptation-codex-20261017",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261017-ff298a06",
+  "createdAt": "2026-10-17T12:15:25.745Z",
+  "kind": "worker",
+  "to": "codex",
+  "baseSHA": "a9c9e45d76d0d92c2c529b0652c24496dea75300",
+  "previousTaskId": "ux13-keyboard-back-codex-20261016",
+  "previousResult": "5418ec2759d3f96e2f3b792977d0f7f9b172d34f",
+  "grantCommit": "5047621640b085d7c18579858ead9934c8320b65",
+  "sameOriginalOwner": true,
+  "PR": 248,
+  "objective": "Adapt same PR248 keyboard/back correction to exact integrated beta139 source and verify named e2e",
+  "scope": [
+    "src/modules/09-tab-debts-goals.js",
+    "src/modules/02-ui-shared.js",
+    "src/shell.html",
+    "e2e",
+    "tests",
+    "docs/briefs",
+    "public/index.html"
+  ],
+  "requirements": [
+    "New OWN reception/claim/readback/publicACK before code; old closed result immutable; same original owner and worker ledger, no inherited claims or leases",
+    "Deudas/Metas must start beta a9c9e45d not main; preserve prior PR source and evidence before rebase; samePR248, editorDebtEditSheet/debtEditResult instead of removed useEditable in Deudas",
+    "Only prior UX13 keyboard/back scope and required adaptation; preserve beta139 edit-sheet opening and backclose integration; no financial motor expansion",
+    "Review and run newly required backclose-handover and deudas-metas-edicion-v4 e2e on adapted source before result; directed1worker0retry ownport; noCPU6/fullsuite/Gradle/deploy",
+    "Causal RED for new defect before correction; do not rerun finished old-source tests without relevant changed-source reason",
+    "VERSION,catalogue,caps,exact-cent oracles unchanged; public/index generated; preserve every foreignWIP and source",
+    "Private work only after claimACK; PR push/result only with serial turn; exactSHA commands actualEXIT evidence limitations no physicalIME/mobile acceptance claim"
+  ],
+  "fetchBudget": {
+    "sameWorkerBlockOnly": true,
+    "additional12AfterOwnExhaustion": true,
+    "noticeRequired": true,
+    "noResetOrROOTInheritance": true
+  }
+}
