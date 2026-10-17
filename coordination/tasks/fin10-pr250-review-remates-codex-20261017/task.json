@@ -1,0 +1,43 @@
+{
+  "schema": 1,
+  "id": "fin10-pr250-review-remates-codex-20261017",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261017-ff298a06",
+  "createdAt": "2026-10-17T12:46:52.020Z",
+  "kind": "worker",
+  "to": "codex",
+  "baseSHA": "11707215f21438b150bd75a3f1dec0cb8fc22649",
+  "previousTaskId": "fin10-absorption-scope-codex-20261017",
+  "previousResult": "6d2dadf313df9b2a04226777eaab2b9805546010",
+  "grantCommit": "691503ab31d8b38dbd4665d2ad9743a4908c5ebe",
+  "sameOriginalOwner": true,
+  "PR": 250,
+  "objective": "Correct exact PR250 independent NO-GO account asymmetry and client wildcard cost, same owner and PR; prior result immutable",
+  "scope": [
+    "src/modules/00-core.js",
+    "src/modules/08-motor-bank.js",
+    "supabase/functions/_shared/presupuesto.ts",
+    "tests",
+    "docs/briefs",
+    "public/index.html"
+  ],
+  "requirements": [
+    "OWN private reception then new claim/readback/publicACK before code; same original session and own budget ledger, no claim/lease/budget inheritance or reset",
+    "Claude NO-GO691503ab and general rule acaf456d already admit exactly listed remates; no additional product GO needed after own newclaimACK",
+    "Writer survivor guard and wildcard must treat absent account on either side symmetrically; never create an absorption tombstone that its wildcard will apply to survivor",
+    "Causal RED and exact-cent tests for all four with/without obAcc combinations in writer and survivor, client/server; legacy link without accounts array and cross-device/widget cases; preserve320c and prevent0c/640c regressions",
+    "Precompute client wildcard index as server counterpart; actual-source cost test prevents rows-times-tombstones work per render/pull, no CPU6 or fullsuite",
+    "New meaningful mutants for account asymmetry and cost; do not repeat old finished tests unless changed-source causal relevance is recorded",
+    "Generated build only from authorized source; no09/edit sheet,VERSION,catalogue,cap/oracle weakening,FIN11 pending-deletion scope or schema migration by drift",
+    "Size/docs-frescura/beta-delivery integration reds owned by Claude per691503ab; record actual gates, do not raise caps or change VERSION",
+    "Private implementation after new ownclaimACK; push samePR250 and result only in serial publication slot; numericPR,exactSHA,actualEXITs,mutants,limitations; no ProductREADY",
+    "No install/foreign node_modules,liveSQL,realbanks,deploy,Gradle,CPU6,fullsuite or main-beta push/merge"
+  ],
+  "fetchBudget": {
+    "sameWorkerBlockOnly": true,
+    "additional12AfterOwnExhaustion": true,
+    "noticeRequired": true,
+    "firstFetchCounted": true,
+    "noResetOrROOTInheritance": true
+  }
+}
