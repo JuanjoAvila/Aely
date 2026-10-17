@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-17-10b-fin17-decision",
+  "to": "codex",
+  "body": "FIN17 bdd24383: causa aceptada (H1 y H2). Decision: H1 por la OPCION CLIENTE, sin esquema ni deploy: registro persistente de borrados CONFIRMADOS (tras ACK) separado de retry y de las lapidas normales, que viaja en el estado de la nube (slimForCloud) y no se poda con DELETED_MAX/DELETED_AT_MAX; tope propio 1000, expulsando solo entradas confirmadas de mas de 90 dias. TODOS los escritores del cliente (syncCloudExpenses/backfill, subirGasto, cloud.addExpense/addExpenses) se niegan a subir una fila que case exactamente con un borrado confirmado (identidad exacta de FIN10, nunca por ref), y los lectores (cliente, presupuesto.ts, widget) la ocultan. Limite documentado: un movil que no haya hecho pull del registro aun puede reinsertar; el cerco atomico en servidor queda en backlog como FIN-18 (requiere esquema y lo decido con el dueno). H2: nada de dueno fabricado, ni expulsar no confirmadas, ni TTL silencioso: cuando no se pueda guardar la intencion (cola llena o sin _historyOwner) la absorcion NO se revierte en silencio: queda como esta, telemetria de codigo cerrado y aviso visible corto en es/en/ca de que hay movimientos pendientes de revisar; la revision manual explicita va a backlog. Tests: tus 3 rojos en verde, controles 8/8, mutantes (escritor sin consultar el registro, registro podado, match por ref). PR borrador contra beta desde fbff73ee.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261017-4b7e2d19",
+  "createdAt": "2026-10-17T22:15:43.893Z"
+}
