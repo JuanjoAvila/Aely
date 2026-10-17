@@ -51,7 +51,9 @@ function debtEditResult(d,form){
         // Con solo la cuota tocada se dice qué cuota encaja: «no encajan» a secas dejaba a la
         // hipoteca heredada sin forma de saber qué valor aceptaba (revisión d139c).
         const lo=remaining>0?Math.ceil(principal/remaining):0,hi=remaining>1?Math.ceil(principal/(remaining-1))-1:null;
-        if(quotaChanged&&!termChanged&&principal>0&&lo>0&&(hi==null||hi>=lo))
+        // Sin `amort` y con TAE, la cuota real lleva intereses que este cálculo no ve: el rango saldría
+        // muy por debajo de lo que paga (481 frente a 700 en la revisión d139d) y engañaría.
+        if(quotaChanged&&!termChanged&&principal>0&&lo>0&&(hi==null||hi>=lo)&&!(d.amort==null&&d.apr>0))
           return {error:"db_err_term_quota",range:{n:remaining,min:lo/100,max:hi==null?null:hi/100}};
         return {error:"db_err_term_quota"};
       }
@@ -150,8 +152,9 @@ function DebtEditSheet({debt,state,set,onClose,onDelete,showToast}){
     finished&&React.createElement("div",{className:"hint"},t("db_finished_edit_hint")),
     input("apr","da_rate","decimal"),React.createElement("div",{className:"hint"},t("db_rate_edit_hint")),
     save.error&&React.createElement("div",{className:"hint",role:"alert"},t(save.error),
-      save.range&&" "+(save.range.max==null?tf("db_err_quota_min",{n:save.range.n,min:eur(save.range.min)}):
-        tf("db_err_quota_range",{n:save.range.n,min:eur(save.range.min),max:eur(save.range.max)}))),
+      // En euros como el campo, no con eur(): esa pasa a la moneda de visualización (revisión d139d).
+      save.range&&" "+(save.range.max==null?tf("db_err_quota_min",{n:save.range.n,min:NF.format(save.range.min)+" €"}):
+        tf("db_err_quota_range",{n:save.range.n,min:NF.format(save.range.min)+" €",max:NF.format(save.range.max)+" €"}))),
     React.createElement("button",{type:"button",className:"btn btn-primary btn-block",disabled:save.pending,onClick:function(){save.save(debtEditResult(debt,form));}},t("db_savechanges")),
     React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",onClick:function(){onDelete(debt);}},t("db_delete"))));
 }

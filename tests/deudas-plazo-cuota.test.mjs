@@ -24,6 +24,8 @@ const mutations={
  // Revisión d139c: el error dice qué cuota encaja, y una cuota a 0 con pendiente no se guarda aunque no amortice.
  sinRango:{find:"return {error:\"db_err_term_quota\",range:",replace:"if(0)return {error:\"db_err_term_quota\",range:",witness:"rango-cuota-limites-exactos"},
  rangoCorrido:{find:"hi=remaining>1?Math.ceil(principal/(remaining-1))-1:null",replace:"hi=remaining>1?Math.ceil(principal/(remaining-1)):null",witness:"rango-cuota-limites-exactos"},
+ heredadaConRango:{find:"&&!(d.amort==null&&d.apr>0))",replace:")",witness:"rango-no-en-heredada-con-tae"},
+ floorMin:{find:"const lo=remaining>0?Math.ceil(principal/remaining):0",replace:"const lo=remaining>0?Math.floor(principal/remaining):0",witness:"rango-centimos-exactos"},
  ceroLibre:{find:"if(quotaChanged&&!(next.monthly>0)&&balance>0.005) return",replace:"if(false) return",witness:"no-ligada-cuota-cero-rechazada"}
 };
 if(mutation){assert.ok(mutations[mutation],"Mutante conocido");const m=mutations[mutation];assert.equal(source.split(m.find).length-1,1,"Mutación aplicada exactamente una vez");source=source.replace(m.find,m.replace);}
@@ -44,6 +46,8 @@ const cases=[
   const fmt=x=>String(x).replace(".",",");for(const ok of [a.range.min,a.range.max])assert.equal(result(r,d,{monthly:fmt(ok)}).error,undefined,"El límite "+ok+" encaja");
   for(const bad of [+(a.range.min-0.01).toFixed(2),+(a.range.max+0.01).toFixed(2)])assert.equal(result(r,d,{monthly:fmt(bad)}).error,KEY,"Fuera del rango "+bad);}],
  ["rango-ultima-cuota-solo-minimo",r=>{const d=debt({months:5}),a=result(r,d,{monthly:"100"});assert.equal(a.error,KEY);assert.equal(a.range.n,1);assert.equal(a.range.max,null);assert.equal(a.range.min,cents(r.c.debtBalance(d))/100);}],
+ ["rango-no-en-heredada-con-tae",r=>{const d=debt({apr:2.1}),a=result(r,d,{monthly:"100"});assert.equal(a.error,KEY);assert.equal(a.range,undefined,"Sin amort y con TAE el rango ignoraría los intereses");const l=result(r,debt({apr:2.1,amort:200}),{monthly:"100"});assert.equal(l.error,KEY);assert.equal(l.range.min,200);}],
+ ["rango-centimos-exactos",r=>{const d=debt({value:2000.37}),a=result(r,d,{monthly:"100"});assert.equal(a.error,KEY);const fmt=x=>String(x).replace(".",",");for(const ok of [a.range.min,a.range.max])assert.equal(result(r,d,{monthly:fmt(ok)}).error,undefined,"Límite "+ok);for(const bad of [+(a.range.min-0.01).toFixed(2),+(a.range.max+0.01).toFixed(2)])assert.equal(result(r,d,{monthly:fmt(bad)}).error,KEY,"Fuera "+bad);}],
  ["rango-no-con-plazo-cambiado",r=>{const a=result(r,debt(),{monthly:"100",months:"8"});assert.equal(a.error,KEY);assert.equal(a.range,undefined);}],
  ["no-ligada-cuota-cero-rechazada",r=>{const d=debt({value:6100,original:6100,monthly:197,amort:250,months:24,asOf:2026*12+9});const a=result(r,d,{monthly:"0"});assert.equal(a.error,"db_edit_quota_zero");assert.equal(a.item,undefined);assert.equal(result(r,d,{monthly:"150"}).error,undefined,"La cuota que no amortiza sigue pudiendo bajar");}],
  // Alta de la app 1000/3: amort 333,33 = cuota (3×333,33 = 999,99 por redondeo). Subir la cuota a
