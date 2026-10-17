@@ -62,11 +62,10 @@ Deno.serve(async (req) => {
     if (!ipGate.ok) return callbackRateLimited(fromApp);
 
     // La cuota IP frena abuso público; un cuerpo inválido no debe consultar ni
-    // consumir state, cuota del usuario o autorización del proveedor.
+    // consumir state, cuota del usuario o autorización del proveedor. La vuelta
+    // web/APK conserva su error cerrado, sin enseñar JSON en el navegador.
     const input = await readInput(req, "bank-callback");
-    if (!input.ok) return new Response(JSON.stringify({ ok: false, error: input.error }), {
-      status: input.status, headers: { "Content-Type": "application/json" },
-    });
+    if (!input.ok) return callbackRateLimited(fromApp);
 
     const { data: link } = await admin.from("bank_links").select("*").eq("state", state).maybeSingle();
     if (!link) throw new CallbackFallo("state", "state desconocido");

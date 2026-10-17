@@ -1,12 +1,17 @@
-# SEC-01: port de entradas de once funciones, candidata privada
+# SEC-01: port de entradas de once funciones, PR256 y remates privados
 
 GO causal `d0c6134774cacfaa8c0dfc1fb5503d06ea821111`. Rama propia desde
 PR249 `536882888eacc70921e462ab98e27620f613a29b`, cuya rama se conserva congelada.
-No desplegado, sin PR ni resultado de cierre todavía. El claim original sigue abierto.
+PR256 draft entregada en `0cd215b0cf6ab30a38bf2324e5b99618a9d34c28` y result original
+`f49adc1fce258a920081d0838c887907336b17ac` cerrado e inmutable. No desplegado.
+La sucesora `sec01-pr256-callback-redirect-docs-remates-codex-20261017` mantiene al
+mismo titular y PR; claim nuevo `4fb5a77c549cabd3aafd65f8a491087686659e41`,
+ACK `317eef820d570b2d7b603893774b4bfb73d09d5b`, abierto durante estos remates privados.
 
 Se incorporan únicamente entradas de bank-aspsps/connect/disconnect/sync/callback,
 categorize, delete-account y las cuatro MyInvestor. El lector cuenta bytes mientras llegan, cancela al exceder
-y rechaza UTF8/JSON/forma inválidos con400 o tamaño con413. Los límites aprobados son
+y rechaza UTF8/JSON/forma inválidos con400 o tamaño con413 en las rutas JSON;
+callback devuelve302 de error cerrado, según el remate aprobado debajo. Los límites son
 16KiB para bancos,32KiB sync,64KiB credenciales,8KiB categorize y1KiB callback.
 delete-account declara `verify_jwt=true`: la falta anterior de sección no demuestra
 un bypass, porque el gateway exige JWT por defecto y el handler reautentica.
@@ -70,9 +75,44 @@ body en connect/sync. No cambian CAS, contadores, cuotas, timeout ni telemetría
 
 Se conservan los rojos originales de main y la incompatibilidad de PR211 por separado.
 La candidata incluye por ascendencia las fuentes aprobadas PR249/PR252 y sus documentos;
-no se presenta ese diff heredado como implementación propia SEC01. Sin push, PR o result
-durante el hold. Esperar turno de publicación del coordinador.
+no se presenta ese diff heredado como implementación propia SEC01. La primera entrega
+se hizo en turno serial; el primer rechazo non-fast-forward y la reevaluación expresa
+posterior permanecen preservados. Esta fase no repite ni publica esa entrega.
 
 Ingest/help/prices,09/hoja,VERSION,catálogo,caps y oráculos ajenos están intactos. No suite,
-CPU6,Gradle,SQLvivo,bancos reales,deploy ni móvil. La documentación central de despliegues
-se actualizará al integrar la fuente completa; este brief no acredita servicio vivo.
+CPU6,Gradle,SQLvivo,bancos reales,deploy ni móvil. Este brief no acredita servicio vivo.
+
+## Remates de la revisión independiente sobre 0cd215b0
+
+GO `cb8c56a979b663a3b167618af8a1f9bb4c5d4603`: solo cuerpo inválido de callback y
+tabla de límites existentes por función en `docs/SETUP-SUPABASE.md`. La salida inválida
+reutiliza el302 de error cerrado ya existente: web `?bank=error&msg=error`, APK
+`back.html?msg=error`. No expone JSON, cuerpo ni query OAuth; no añade diagnóstico.
+Se conserva cuota IP → lectura acotada → lookup/state válido → cuota usuario → canje.
+Ningún cambio al lector, topes, otros handlers, CAS/contadores de PR252 o guards de PR249.
+
+ROJO causal contra handler/lector exactos de `0cd215b0`, con las nuevas aserciones:
+5PASS/12FAIL, EXIT1. Tras sustituir solo la respuesta inválida:17PASS/0FAIL, EXIT0.
+Comando focal: `deno test --no-config --no-lock
+--allow-read=supabase/functions,supabase/config.toml
+supabase/functions/_shared/input_handlers.test.ts --filter '/callback/'`.
+Los43casos ajenos quedaron filtrados. Web/APK cubren JSON roto, null/array, tamaño real
+y anunciado, UTF8 inválido, stream cancelado antes del lookup, límite exacto admitido,
+GET y destinos válidos; se conservan los controles de cuota IP/usuario y state caducado.
+Un mutante aislado que restaura JSON400/413 muere con las12aserciones runtime, EXIT1
+(5PASS/12FAIL); no fallo de tipos. No se repite la campaña anterior de23mutantes.
+`deno test --cached-only --no-run --no-config --no-lock
+supabase/functions/bank-callback/index.ts`: EXIT0, tipos, no ejecución real del banco.
+
+Se consultaron changelog y documentación de estados HTTP de Supabase; los3xx de
+`Response.redirect` están contemplados para flujos de autenticación
+([referencia](https://supabase.com/docs/guides/functions/status-codes)). El aviso TLS
+del12/10 no cambia este protocolo de respuesta. Los tests ejecutan el handler y lector
+reales con SDK/RPC/proveedor/cifrado sintéticos y sin permisos de red/entorno.
+
+Fuente privada pendiente de turno serial para actualizar la misma PR256 y publicar
+el result nuevo. No fetch de canal, anuncio de presupuesto, push ni PRupdate en esta fase;
+ledger propio10/12, quedan2, sin reset/herencia. SEC03 sigue separado; ABA/schema fuera.
+Claude conserva revisión/integración249→252→256→SEC03 en beta140 y despliegue. CI general,
+docs-frescura, beta-sources, servicio vivo y aceptación móvil pendientes; privacidad completa
+sigue con el EXIT1 previo por dependencia Sentry ausente. Sin ProductREADY.

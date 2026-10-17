@@ -13,6 +13,41 @@ no despliega ni acredita funciones vivas. El cambio de referencia entre días qu
 
 # Setup Supabase — Fase 1 (Aely)
 
+## SEC01: límites del cuerpo por función · PR256 candidata, sin desplegar (17/10/2026)
+
+`_shared/request_body.ts` aplica estos límites de bytes del cuerpo mientras lee el
+stream, antes de reservarlo entero. `Content-Length` permite el rechazo anticipado;
+su ausencia o un valor menor no sustituye el conteo real. El límite exacto se admite.
+
+| Función | Máximo del cuerpo |
+|---|---:|
+| `bank-aspsps` | 16 384 bytes (16 KiB) |
+| `bank-connect` | 16 384 bytes (16 KiB) |
+| `bank-disconnect` | 16 384 bytes (16 KiB) |
+| `bank-sync` | 32 768 bytes (32 KiB) |
+| `bank-callback` | 1 024 bytes (1 KiB) |
+| `categorize` | 8 192 bytes (8 KiB) |
+| `delete-account` | 65 536 bytes (64 KiB) |
+| `myinvestor-connect` | 65 536 bytes (64 KiB) |
+| `myinvestor-sync` | 1 024 bytes (1 KiB) |
+| `myinvestor-disconnect` | 1 024 bytes (1 KiB) |
+| `myinvestor-keepalive` | 1 024 bytes (1 KiB) |
+
+El exceso cancela la lectura; UTF-8, JSON o forma inválidos se rechazan sin efectos
+de producto. Las rutas JSON devuelven 413 por tamaño o 400 por entrada inválida.
+`bank-callback` conserva el protocolo del navegador: **302 de error cerrado** a la web
+o al puente `back.html` de la APK, también por cuerpo inválido o demasiado grande,
+sin reflejar el cuerpo ni code/state. Primero aplica la cuota IP; el rechazo de entrada
+ocurre antes del lookup/consumo de state, la cuota del usuario y el canje OAuth.
+GET sin cuerpo y las formas legítimas de cliente/cron conservan sus rutas anteriores.
+Estos límites son preventivos; no son máximos observados en bancos ni cambian cuotas,
+CAS o contadores. Ingest/help/prices quedan fuera de este port.
+
+La tabla describe la fuente candidata, no funciones vivas. Sin migración ni secretos
+nuevos. Revisión, integración, despliegue y aceptación móvil siguen pendientes del
+circuito de Claude; el orden previsto es PR249 → PR252 → PR256 → SEC03 en beta140.
+Esta documentación no autoriza ese despliegue ni incorpora SEC03/ABA a PR256.
+
 ## MyInvestor: contador consecutivo · candidato sin desplegar (14/10/2026)
 
 `0026_myinvestor_access_counter.sql` añade, de forma idempotente, dos UUID internos:
