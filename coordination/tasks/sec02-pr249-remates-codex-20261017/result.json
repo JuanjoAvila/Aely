@@ -1,0 +1,107 @@
+{
+  "status": "done",
+  "summary": "PR249 two exact review follow-ups completed and pushed: independent SEC02 test registered in steps/server subset, and short client429 wait text in es/en/ca in existing connect/reconnect/sync flows. Draft candidate for Claude review; not ProductREADY.",
+  "PR": 249,
+  "productSHA": "536882888eacc70921e462ab98e27620f613a29b",
+  "baseSHA": "3530483b89f53da0650eca21c252e208903ebd04",
+  "branch": "codex/sec02-bank-rate-limit-20261017",
+  "grantCommit": "1a420bb19867ad133f583cb7c2fb985b4b7ea5ee",
+  "previousResult": "c81e22c29187e712787542e63f894526431d3508",
+  "previousResultUnchanged": true,
+  "tests": [
+    {
+      "command": "node tests/bank-rate-client.test.mjs (before UI fix)",
+      "exitCode": 1,
+      "detail": "11 causal RED,7 controls PASS; three real client flows in three languages previously showed generic errors"
+    },
+    {
+      "command": "node tests/bank-rate-client.test.mjs (final)",
+      "exitCode": 0,
+      "detail": "18 PASS including hosted SDK FunctionsHttpError with synthetic Response429; busy,network500,cloud pull guards preserved; real runner fixture detects missing test and missing step"
+    },
+    {
+      "command": "node scripts/run-tests.mjs --plan <private focal plan>",
+      "exitCode": 0,
+      "plan": {
+        "build": false,
+        "deno": false,
+        "playwright": false,
+        "e2e": "none",
+        "steps": [
+          "i18n-keys"
+        ]
+      },
+      "detail": "actual private plan path omitted;1179 used keys present,all es/en/ca placeholders correct;runner registration checked"
+    },
+    {
+      "command": "node --check tests/bank-rate-contracts.test.mjs",
+      "exitCode": 0,
+      "detail": "independent entry parses; body equality to predecessor except entry comment and relative root verified"
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node tests/presupuesto-rendimiento.test.mjs (initial)",
+      "exitCode": 1,
+      "detail": "raw exceeded cap by6bytes; own short text reduced;no caps changed"
+    },
+    {
+      "command": "node tests/presupuesto-rendimiento.test.mjs (final)",
+      "exitCode": 0,
+      "detail": "raw,gzip,blocking files within unchanged caps"
+    },
+    {
+      "command": "git push origin refs/heads/codex/sec02-bank-rate-limit-20261017:refs/heads/codex/sec02-bank-rate-limit-20261017",
+      "exitCode": 0,
+      "detail": "PR249 head exact readback matches productSHA"
+    }
+  ],
+  "mutations": {
+    "predecessorSource": "3530483b89f53da0650eca21c252e208903ebd04",
+    "priorKilled": 12,
+    "repeated": false,
+    "detail": "backend unchanged; moved test differs only entry comment/relative root; prior evidence preserved,not claimed as new executions"
+  },
+  "artifacts": [
+    "tests/bank-rate-contracts.test.mjs",
+    "tests/bank-rate-client.test.mjs",
+    "scripts/run-tests.mjs",
+    "scripts/relevant-tests.mjs",
+    "docs/briefs/sec02-bank-rate-limits.md"
+  ],
+  "scopePreserved": [
+    "Same PR249 original owner,session,nonce and successor claim;predecessor result immutable",
+    "Backend,VERSION,catalogue,caps,financial oracles,09 and Deudas/Metas edit sheet unchanged",
+    "No new auto-retry,no raw backend text used to classify429,existing error display paths retained"
+  ],
+  "limitations": [
+    "Node client functions and actual hosted SDK error exercised;no browser or physical mobile verification.",
+    "Independent backend entry relocated and syntax/body equivalence verified;old12 mutants intentionally not rerun.",
+    "Local build/syntax/size passed;generated artifacts retained privately and restored from source base before source-only commit;integration must rebuild.",
+    "No fullsuite,CPU6,Gradle,Deno,Postgres/liveSQL,real banking or deployment;general CI and served artifact unverified.",
+    "PR remains draft;Claude owns final review,integration and separate Edge deployment with owner approval.",
+    "SEC03 atomic state consumption remains separate and unimplemented."
+  ],
+  "fetchBudget": {
+    "idbudget": "sec02-own12-1-d28e023b",
+    "allowance": 12,
+    "snapshotAtPreparation": 9,
+    "readbackFetchNotYetCounted": true,
+    "initial10Closed": true,
+    "noReset": true,
+    "noROOT": true
+  },
+  "next": "Freeze this source after result readback;Claude reviews and integrates. No additional task or deployment claimed.",
+  "schema": 1,
+  "taskId": "sec02-pr249-remates-codex-20261017",
+  "actor": "codex",
+  "sessionId": "codex-local-20261017-f7212f72d28e023b",
+  "createdAt": "2026-10-17T11:53:49.808Z",
+  "released": true
+}
