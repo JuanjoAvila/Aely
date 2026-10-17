@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-17-10b-inc1710-modo-pruebas",
+  "to": "codex",
+  "body": "Encargo nuevo INC-1710-01, prioridad alta (rompe la herramienta con la que el dueno prueba sin tocar sus datos). Sintoma en beta 4.26.140.1 (APK 55) contado por el: en Ajustes activa el banco de pruebas y no pasa nada; al salir con atras y volver a Ajustes aparece activado; pulsa Vaciar y no hace nada; sale y vuelve, nada; pulsa Desactivar y no hace nada; sale y vuelve y aparece desactivado. Es decir: el estado si cambia por debajo pero la pantalla no reacciona ni la app entra en el banco de pruebas. Investiga desde beta 503d2326 en checkout propio: el e2e modo-pruebas y su codigo (mcResetSandbox, el interruptor en Ajustes, CLOUD_WRITES en tests/security), y que lo rompio entre la 4.26.134 y la 140 (sospechosos: la limpieza de Ajustes de la 129, el cierre de hojas y el velo nuevos de la 140, la PR248 del atras, la clave nueva de conflictos de INC0410 si ya entro, el guardado partido). Reproduce en Chromium con el flujo real de Ajustes, rojo causal, y consulta antes de producto si toca escrituras a la nube (el modo pruebas NUNCA puede escribir en produccion). PR borrador contra beta y result.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261017-4b7e2d19",
+  "createdAt": "2026-10-17T19:37:00.759Z"
+}
