@@ -1,0 +1,124 @@
+{
+  "status": "done",
+  "summary": "PR256 misma candidata actualizada a8f64624b bajo GOcb8c56a9. Solo remates sobre0cd215b0: callbackbodyinvalido devuelve302errorcerrado web/APK antes de lookup,state/cuotauser/canje, y documentacion exacta de once limites existentes porfuncion. Lector/topes,otros handlers,CAS/contadoresPR252 y guardasPR249 intactos. Fuente congelada; entrega del worker, revision/integracionClaude y gates generales pendientes, no ProductREADY.",
+  "PR": 256,
+  "productSHA": "8f64624bf587018ac7ff0df3242205751123b0ac",
+  "baseSHA": "0cd215b0cf6ab30a38bf2324e5b99618a9d34c28",
+  "parent": "0cd215b0cf6ab30a38bf2324e5b99618a9d34c28",
+  "branch": "codex/sec01-input-guards-pr249-20261017",
+  "claimCommit": "4fb5a77c549cabd3aafd65f8a491087686659e41",
+  "ACKCommit": "317eef820d570b2d7b603893774b4bfb73d09d5b",
+  "causalGO": "cb8c56a979b663a3b167618af8a1f9bb4c5d4603",
+  "taskCommit": "057778026c323a5fd8161682f605c7945d086919",
+  "previousTaskId": "sec01-body-limits-codex-20261017",
+  "previousResultImmutable": "f49adc1fce258a920081d0838c887907336b17ac",
+  "previousSourcePreserved": "0cd215b0cf6ab30a38bf2324e5b99618a9d34c28",
+  "approvedPR249Source": "536882888eacc70921e462ab98e27620f613a29b",
+  "approvedPR252Source": "3544dd35ffcf4b6cc81342eace87770ff2e83a3b",
+  "productReady": false,
+  "tests": [
+    {
+      "command": "deno test --no-config --no-lock --allow-read=supabase/functions,supabase/config.toml supabase/functions/_shared/input_handlers.test.ts --filter '/callback/'",
+      "phase": "ROJO exactbase0cd handler/reader before fix with new assertions only",
+      "exitCode": 1,
+      "passed": 5,
+      "failed": 12,
+      "filtered": 43,
+      "meaning": "Status400/413 instead of302, actual handler behavior; not harness/type failure"
+    },
+    {
+      "command": "deno test --no-config --no-lock --allow-read=supabase/functions,supabase/config.toml supabase/functions/_shared/input_handlers.test.ts --filter '/callback/'",
+      "phase": "Final private candidate",
+      "exitCode": 0,
+      "passed": 17,
+      "failed": 0,
+      "filtered": 43,
+      "meaning": "Web/APK malformed,null,array,actual/header size,UTF8,stream cancellation before lookup,exact byte cap,GET,valid destinations,IP/user quota and expiry controls"
+    },
+    {
+      "command": "deno test --cached-only --no-config --no-lock --allow-read=supabase/functions,supabase/config.toml supabase/functions/_shared/input_handlers.test.ts --filter '/callback/'",
+      "phase": "Isolated real-handler mutant restores JSON400/413",
+      "exitCode": 1,
+      "passed": 5,
+      "failed": 12,
+      "filtered": 43,
+      "killed": true,
+      "assertionFailures": 12,
+      "mutantSHA256": "1bef6a128dd33be42dbf5aaa48a78ff93b7394f2f58e657a6aa42e6b6f64de00",
+      "meaning": "Same causal runtime assertions, types checked; no source tree mutation"
+    },
+    {
+      "command": "deno test --cached-only --no-run --no-config --no-lock supabase/functions/bank-callback/index.ts",
+      "exitCode": 0,
+      "meaning": "Typecheck only, no real provider execution"
+    },
+    {
+      "command": "git diff --check and git diff --cached --check",
+      "exitCode": 0,
+      "phase": "private preparation"
+    },
+    {
+      "command": "git push origin 8f64624bf587018ac7ff0df3242205751123b0ac:refs/heads/codex/sec01-input-guards-pr249-20261017",
+      "exitCode": 0,
+      "normal": true
+    },
+    {
+      "command": "gh pr edit256 with reviewed body-file; gh pr view256 exact head/body/draft/main",
+      "exitCode": 0,
+      "meaning": "Existing PR256 updated and read back; no duplicate PR"
+    }
+  ],
+  "testsRepeatedDuringDelivery": false,
+  "codeBuildMeasurementsDuringDelivery": false,
+  "behavior": [
+    "Invalid body reuses existing closed302error web/APK,empty response,no raw JSON/body/OAuth query reflection or newdiagnostic",
+    "IP quota then bounded input then valid state then user quota then consume/exchange; parsing caps and auth unchanged",
+    "Exact existing11function byte caps documented; no cap increases or reader modifications",
+    "No SEC03 merge or ABA/schema extension; Claude integrates249->252->256->SEC03 separately"
+  ],
+  "preservation": {
+    "readerAndLimits": true,
+    "ratelimit": true,
+    "token_store": true,
+    "myinvestor": true,
+    "myinvestorRefreshSave": true,
+    "otherHandlers": true,
+    "firstResultRejectionAndExpressReevaluationImmutable": true,
+    "previousClaimAndResultNotReused": true
+  },
+  "fetchBudget": {
+    "idbudget": "sec01-own12-1-db3299cd-bde64db8",
+    "allowance": 12,
+    "usedBeforeResultReadback": 11,
+    "expectedAfterReadback": 12,
+    "remainingBeforeReadback": 1,
+    "readbackCounts": true,
+    "closeOnlyAfterActualExhaustion": true,
+    "initialOwn10Closed10of10": true,
+    "noReset": true,
+    "noROOTInheritance": true,
+    "newBlockActivated": false
+  },
+  "artifacts": [
+    "supabase/functions/bank-callback/index.ts",
+    "supabase/functions/_shared/input_handlers.test.ts",
+    "docs/SETUP-SUPABASE.md",
+    "docs/briefs/sec01-body-limits-20261017.md"
+  ],
+  "limitations": [
+    "Real Deno handler/reader with SDK/RPC/provider/crypto synthetic; no SQL/RLS/Postgres/livebank or production endpoint proof",
+    "43unrelated cases filtered; previous bank/MyInvestor/full suites and23mutants not repeated; earlier campaigns in immutable resultf49adc1f, no new globalgreen",
+    "Prior privacy fullfile EXIT1 missing @sentry/browser remains; prior Node used private nativeTSadapter; no install/foreign modules",
+    "GeneralCI,docs-frescura,beta-sources,review/integrationClaude,servedartifact,deploy and physicalmobile acceptance pending; not ProductREADY",
+    "No build/size/CPU6/browser/Gradle/SQL/deploy/main-beta merge/push or VERSION/catalogue/caps/09/financial oracle changes",
+    "SEC03frozen source7ce911a2 separate, final remates owned elsewhere; ABA/connection_version/schema outside scope",
+    "No code/tests/build/measurements repeated in serial delivery. Same original session/claim/helper/filter, all7new intermediosFULL; no applicable cancellation"
+  ],
+  "next": "After exact canonical result readback close exhausted OWN12 ledger, save delivery checkpoint, release publicslot and STOP. Source8f64624b frozen PR256 for Claude. No polling/messages back or new work.",
+  "schema": 1,
+  "taskId": "sec01-pr256-callback-redirect-docs-remates-codex-20261017",
+  "actor": "codex",
+  "sessionId": "codex-local-20261017-bde64db818606157",
+  "createdAt": "2026-10-17T14:46:27.162Z",
+  "released": true
+}
