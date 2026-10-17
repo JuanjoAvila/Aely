@@ -18,9 +18,12 @@ import { miTokensFromRow, miTokensToRow, isEncrypted } from "../_shared/token_st
 import { miSaveRefresh } from "../_shared/myinvestor-refresh-save.ts";
 import { withCors } from "../_shared/cors.ts";
 import { rateLimit } from "../_shared/ratelimit.ts";
+import { readInput } from "../_shared/request_body.ts";
 
 Deno.serve(withCors(async (req: Request) => {
   try {
+    const input = await readInput(req, "myinvestor-sync");
+    if (!input.ok) return jsonResp({ ok: false, error: input.error }, input.status);
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const supa = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_ANON_KEY")!, {
       global: { headers: { Authorization: req.headers.get("Authorization") || "" } },
@@ -46,7 +49,7 @@ Deno.serve(withCors(async (req: Request) => {
     const tokens = link ? await miTokensFromRow(link) : null;
     if (!link || !tokens?.access || !tokens.deviceId) return jsonResp({ ok: false, error: "no conectado" });
 
-    const body = await req.json().catch(() => ({}));
+    const body = input.body;
     // Sin señal expresa (también clientes antiguos) la apertura no es un intento manual.
     const userInitiated = body?.userInitiated === true;
     const counterVersion = link.access_counter_version;

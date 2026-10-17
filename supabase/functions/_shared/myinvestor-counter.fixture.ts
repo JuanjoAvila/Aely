@@ -82,7 +82,7 @@ export async function run(
   };
   const globalKey = "__miCounter" + serial++;
   (globalThis as any)[globalKey] = mock;
-  const files = ["myinvestor.ts", "myinvestor-refresh-save.ts", "ratelimit.ts", "../myinvestor-" + name + "/index.ts"];
+  const files = ["myinvestor.ts", "myinvestor-refresh-save.ts", "ratelimit.ts", "request_body.ts", "../myinvestor-" + name + "/index.ts"];
   let source = "const {" + Object.keys(mock).join(",") + "} = (globalThis as any)[" + JSON.stringify(globalKey) + "];\n";
   for (const file of files) source += (await Deno.readTextFile(new URL(file, import.meta.url)))
     .replace(/^import .*?;\r?\n/gm, "").replace(/^export /gm, "") + "\n";

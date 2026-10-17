@@ -15,6 +15,7 @@ import { CORS, jsonResp, MI_BASE, miHeaders, miRefreshOutcome } from "../_shared
 import { miTokensFromRow, miTokensToRow } from "../_shared/token_store.ts";
 import { timingSafeEqual } from "../_shared/entrada.ts";
 import { miSaveRefresh } from "../_shared/myinvestor-refresh-save.ts";
+import { readInput } from "../_shared/request_body.ts";
 
 type KeepaliveCode = "ok" | "rejected" | "http_403" | "http_other" | "no_access_token"
   | "network" | "decrypt" | "encrypt" | "no_creds" | "connection_unavailable" | "save_error" | "raced";
@@ -22,6 +23,8 @@ type KeepaliveCode = "ok" | "rejected" | "http_403" | "http_other" | "no_access_
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
   try {
+    const input = await readInput(req, "myinvestor-keepalive");
+    if (!input.ok) return jsonResp({ ok: false, error: input.error }, input.status);
     const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
     const key = req.headers.get("x-cron-key") || "";
     const { data: sec } = await admin.from("cron_secrets").select("secret").eq("name", "myinvestor-keepalive").maybeSingle();

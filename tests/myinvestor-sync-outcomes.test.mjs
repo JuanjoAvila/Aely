@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import { requestBodyPrelude } from "./helpers/request-body.mjs";
 import { transformSync } from "esbuild";
 
 // El handler REAL de myinvestor-sync contra un MyInvestor y una BD sintéticos. Los tests de
@@ -9,7 +10,7 @@ import { transformSync } from "esbuild";
 const root = new URL("../", import.meta.url);
 const read = (p) => fs.readFileSync(new URL(p, root), "utf8");
 const ts = (s) => transformSync(s, { loader: "ts" }).code;
-const src = '"use strict";\n' + ts(read("supabase/functions/_shared/myinvestor.ts")).replace(/^export /gm, "")
+const src = '"use strict";\n' + requestBodyPrelude + ts(read("supabase/functions/_shared/myinvestor.ts")).replace(/^export /gm, "")
   + "\n" + ts(read("supabase/functions/_shared/myinvestor-refresh-save.ts")).replace(/^export /gm, "")
   + "\n" + ts(read("supabase/functions/myinvestor-sync/index.ts").replace(/^import .*?;\r?\n/gm, ""));
 

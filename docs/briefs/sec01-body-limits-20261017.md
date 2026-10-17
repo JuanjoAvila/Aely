@@ -1,11 +1,11 @@
-# SEC-01: port de entradas, fase bancaria privada
+# SEC-01: port de entradas de once funciones, candidata privada
 
 GO causal `d0c6134774cacfaa8c0dfc1fb5503d06ea821111`. Rama propia desde
 PR249 `536882888eacc70921e462ab98e27620f613a29b`, cuya rama se conserva congelada.
 No desplegado, sin PR ni resultado de cierre todavía. El claim original sigue abierto.
 
 Se incorporan únicamente entradas de bank-aspsps/connect/disconnect/sync/callback,
-categorize y delete-account. El lector cuenta bytes mientras llegan, cancela al exceder
+categorize, delete-account y las cuatro MyInvestor. El lector cuenta bytes mientras llegan, cancela al exceder
 y rechaza UTF8/JSON/forma inválidos con400 o tamaño con413. Los límites aprobados son
 16KiB para bancos,32KiB sync,64KiB credenciales,8KiB categorize y1KiB callback.
 delete-account declara `verify_jwt=true`: la falta anterior de sección no demuestra
@@ -39,14 +39,39 @@ progreso, reconexión, carreras, categorías, seguridad y mapas pasan. Privacida
 quedaEXIT1 por dependencia `@sentry/browser` ausente; sus demás casos terminaron, sin
 instalar dependencias ni utilizar node_modules de otro checkout.
 
-## Dependencia antes de completar la entrega
+## Fuente MyInvestor incorporada sin sustituir sus guards
 
-MyInvestor permanece intacto. Esperar el result final de rematesPR252 y autorización del
-coordinador para leerlo; después merge normal de su cabeza final en esta rama propia.
-Solo entonces incorporar las cuatro guardas restantes y probar emisor real00-core con
-userInitiated true/false/ausente, variantes OTP y mutante de pérdida del flag. Los rojos de
-main y el hallazgo PR211 que rechazaba ese flag se conservan por separado, no como evidencia
-de la fuente futura. No tocar la rama de PR252 ni la de PR249.
+Result finalPR252 `ba68ab652ad7ce1f3da7a46b5e73ba6541299a3e`, fuente final
+`3544dd35ffcf4b6cc81342eace87770ff2e83a3b`, recibidos completos bajo instrucción
+del coordinador. Merge normal `59d1b59255f4564c4c3b24d434285beb2d8ce83b`, padres
+`7b7b0f9d3f9242a71fa6c539a3b1dee8c8453072` y `3544dd35ffcf4b6cc81342eace87770ff2e83a3b`.
+Único conflicto en permisos/selección de argumentos Deno del runner, resuelto conservando
+las dos entradas de tests SEC01 y los permisos/argumentos de carreras OPS08. Las siete
+fuentes bancarias y el lector de bytes quedaron intactos: no se repitieron52+4+16 ni los11
+mutantes bancarios por el solo merge. Las ramas congeladas permanecen intactas.
+
+Baseline MyInvestor nueva antes del fix sobre el merge:30casos,10PASS/20FAIL, EXIT1.
+Final32casos nuevos PASS: rechazo antes de auth/cuota/recifrado, transporte real00-core,
+true/false/ausencia de body, OTP numérico/parcial/null, storeTokens y formas inválidas.
+La prueba semántica comprueba la tercera caducidad manual y que false/ausencia no suman.
+Regresión inicial conjunta:79PASS/1FAIL; el caso previo del cliente que manda `"true"`
+exige que siga siendo automático. Se corrigió el validador, no el oráculo: corrección
+focal1PASS; los otros21contadores y27carreras quedaron verdes en la ejecución anterior.
+Doce mutantes nuevos muertos por aserción, incluida intención manual perdida, objeto
+cerrado a{}, OTP numérico rechazado, auth retirada, parseo tras cuota/recifrado, topes
+y coerción indebida de `"true"` a manual. No se hereda el verde del titular OPS08.
+
+Los Node focales de keepalive/sync/emisor pasan con el adaptador nativo privado; los
+cuatro handlers MyInvestor pasan la comprobación de tipos Deno cached-only/no-run.
+Los arneses de carreras/contadores cargan ahora el lector real, conservando sus oráculos.
+`myinvestor-refresh-save.ts`, `token_store.ts` y `myinvestor.ts` conservan exactamente la
+fuente aprobada3544dd35. Solo se añaden los imports/guardas y se cambia la lectura del
+body en connect/sync. No cambian CAS, contadores, cuotas, timeout ni telemetría.
+
+Se conservan los rojos originales de main y la incompatibilidad de PR211 por separado.
+La candidata incluye por ascendencia las fuentes aprobadas PR249/PR252 y sus documentos;
+no se presenta ese diff heredado como implementación propia SEC01. Sin push, PR o result
+durante el hold. Esperar turno de publicación del coordinador.
 
 Ingest/help/prices,09/hoja,VERSION,catálogo,caps y oráculos ajenos están intactos. No suite,
 CPU6,Gradle,SQLvivo,bancos reales,deploy ni móvil. La documentación central de despliegues

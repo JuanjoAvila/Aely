@@ -183,7 +183,8 @@ async function run(
     "}=(globalThis as any)[" + JSON.stringify(key) + "];\n";
   for (
     const p of [
-      "_shared/myinvestor.ts",
+    "_shared/request_body.ts",
+    "_shared/myinvestor.ts",
       "_shared/myinvestor-refresh-save.ts",
       "myinvestor-" + actor + "/index.ts",
     ]

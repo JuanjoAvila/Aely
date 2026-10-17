@@ -34,6 +34,8 @@ export const BODY_LIMITS = {
   "bank-aspsps": 16 * 1024, "bank-connect": 16 * 1024,
   "bank-disconnect": 16 * 1024, "bank-sync": 32 * 1024,
   "bank-callback": 1024, "categorize": 8 * 1024, "delete-account": 64 * 1024,
+  "myinvestor-connect": 64 * 1024, "myinvestor-sync": 1024,
+  "myinvestor-disconnect": 1024, "myinvestor-keepalive": 1024,
 } as const;
 export type InputName = keyof typeof BODY_LIMITS;
 type ObjectBody = Record<string, unknown>;
@@ -57,6 +59,23 @@ export function validInput(name: InputName, b: unknown): b is ObjectBody {
       && optional(b, "aspsps", (v) => Array.isArray(v) && v.every((s) => s === null || typeof s === "string"));
     case "categorize": return text(b.merchant);
     case "delete-account": return text(b.password);
+    // El cliente actual siempre puede mandar el booleano. Cerrar este objeto a{}
+    // como hacía PR211 rompería la señal manual y sus contadores de la fuente OPS08.
+    // El legado también manda "true" como texto: sigue siendo automático, nunca
+    // manual. La comparación estricta del handler conserva ese oráculo del contador.
+    case "myinvestor-sync": return true;
+    case "myinvestor-connect": {
+      if (!optional(b, "storeTokens", (v) => typeof v === "boolean") || !text(b.deviceId)) return false;
+      if (b.storeTokens === true) return text(b.accessToken)
+        && optional(b, "refreshToken", (v) => v === null || typeof v === "string")
+        && optional(b, "refreshExpiresIn", (v) => v === null || typeof v === "number" && Number.isFinite(v) && v >= 0
+          && Number.isFinite(new Date(Date.now() + v * 1000).getTime()));
+      if (!text(b.customerId) || !text(b.password)) return false;
+      // OTP parcial/null sigue siendo login normal y los números conservan la
+      // conversión que ya usa el handler; no se reinterpretan como objetos.
+      return ["otpId", "signatureRequestId", "code"].every((k) => optional(b, k,
+        (v) => v == null || typeof v === "string" || typeof v === "number" && Number.isFinite(v)));
+    }
     default: return Object.keys(b).length === 0;
   }
 }
