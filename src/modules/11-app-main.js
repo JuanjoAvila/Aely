@@ -616,6 +616,9 @@ function App(){
           const goalState=goalSyncPull(prev,cloudState,u,cloudPack.updated_at,!sameOwner,localNewer);
           if(goalState._goalSync.cloudOnly) baseObj=Object.assign({},prev,cloudState,{expenses:merged.list,bankTx:prev.bankTx});
           Object.assign(baseObj,goalState);
+          const reserveSource=goalState._goalSync.keepLocalReserves?prev:cloudState;
+          baseObj.settings=Object.assign({},baseObj.settings,{reservaRules:goalSyncCopy((reserveSource.settings||{}).reservaRules||[])});
+          baseObj.reservaLog=goalSyncCopy(reserveSource.reservaLog||[]);
           // Una separación pertenece a su titular; la cuenta anterior de este móvil no decide aquí.
           const gem=sameOwner?fusionarGemelos(prev.gemelos,cloudState.gemelos):(cloudState.gemelos||[]);
           if(gem!==baseObj.gemelos) baseObj.gemelos=gem;

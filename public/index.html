@@ -3264,7 +3264,7 @@ function mcRecargarSinVolcar(){
    Las DOS mitades: borrar solo la ligera dejaba `micartera_sandbox_exp` huérfana, y la siguiente
    entrada al banco de pruebas se encontraba los gastos de la sesión anterior mezclados con la
    copia nueva de la cartera real. */
-function mcResetSandbox(){ store.del(STATE_KEY_TEST); store.del(STATE_KEY_TEST+EXP_SUFFIX); store.del(STATE_KEY_TEST+"_balhist"); if(mcSaveRaw.balanceHistory) delete mcSaveRaw.balanceHistory[STATE_KEY_TEST]; try{ localStorage.removeItem("_mcSandboxVacio"); }catch(e){} }
+function mcResetSandbox(){ store.del(STATE_KEY_TEST); store.del(STATE_KEY_TEST+EXP_SUFFIX); store.del(STATE_KEY_TEST+"_balhist"); store.del(STATE_KEY_TEST+"_goal_conflicts"); delete _mem[STATE_KEY_TEST+"_goal_conflicts"]; if(goalSyncStore.cache)delete goalSyncStore.cache[STATE_KEY_TEST]; if(mcSaveRaw.balanceHistory) delete mcSaveRaw.balanceHistory[STATE_KEY_TEST]; try{ localStorage.removeItem("_mcSandboxVacio"); }catch(e){} }
 
 /* ---------- ACUSE del cursor de bancos: LOCAL a este dispositivo (12/10/2026) ----------
    `bank-sync` no mueve su cursor al leer del banco: entrega en cada respuesta el que le tocaría
@@ -5539,15 +5539,22 @@ function goalSyncEqual(a,b){
 function goalSyncCopy(v){ return v===undefined?undefined:JSON.parse(JSON.stringify(v)); }
 function goalSyncReserves(s){ return {rules:(s.settings||{}).reservaRules||[],log:s.reservaLog||[]}; }
 function goalSyncSnapshot(s){
-  const v={};["goals","budget","budgetByMonth","reservaLog"].forEach(function(k){ if(s && s[k]!==undefined) v[k]=goalSyncCopy(s[k]); });
-  if(s && s.settings) v.settings={reservaRules:goalSyncCopy(s.settings.reservaRules||[])};
-  return v;
+  // La copia recuperable conserva también cuentas/deudas y campos desconocidos, sin duplicar históricos.
+  const prune=function(v){
+    if(v==null || typeof v!=="object")return v;
+    if(Array.isArray(v))return v.map(prune);
+    const out={};Object.keys(v).forEach(function(k){
+      if(["expenses","bankTx","profile","_goalSync","_balHistoryRevision"].indexOf(k)>=0 || /(?:history|histories|historico|historicos)$/i.test(k))return;
+      Object.defineProperty(out,k,{value:prune(v[k]),enumerable:true,writable:true,configurable:true});
+    });return out;
+  };
+  return prune(s);
 }
 function goalSyncRecords(list){
   const out=[];
   (Array.isArray(list)?list:[]).forEach(function(r){
     if(!r || !r.local) return;
-    const v={code:r.code,local:r.code==="goals_reserve_conflict"?goalSyncSnapshot(r.local):goalSyncCopy(r.local)};
+    const v={code:r.code,local:goalSyncSnapshot(r.local)};
     if(r.goalId) v.goalId=r.goalId; if(r.fields) v.fields=goalSyncCopy(r.fields); if(r.notified) v.notified=true;
     const same=function(x){const a=Object.assign({},x),b=Object.assign({},v);delete a.notified;delete b.notified;return goalSyncEqual(a,b);};
     const i=out.findIndex(same);if(i<0) out.push(v);else if(v.notified) out[i].notified=true;
@@ -5557,12 +5564,15 @@ function goalSyncRecords(list){
 function goalSyncStore(key,meta){
   const blocked=goalSyncStore.blocked||(goalSyncStore.blocked={});
   if(blocked[key]===meta.owner) return [];
+  const cache=goalSyncStore.cache||(goalSyncStore.cache={}),cached=cache[key];
+  if(cached && cached.owner===meta.owner && cached.input===meta.conflicts)return cached.records;
   const part=key+"_goal_conflicts",disk=mcLoadRaw(part),records=goalSyncRecords(meta.conflicts);
   records.forEach(function(r){
     if(disk && disk.owner===meta.owner && (disk.records||[]).some(function(old){const a=Object.assign({},old),b=Object.assign({},r);delete a.notified;delete b.notified;return old.notified && goalSyncEqual(a,b);})) r.notified=true;
   });
   const next={owner:meta.owner,records:records};
   if(!goalSyncEqual(disk,next)) mcSaveRaw(part,next);
+  cache[key]={owner:meta.owner,input:meta.conflicts,records:records};
   return records;
 }
 function goalSyncNotify(key,meta,emit){
@@ -5571,13 +5581,14 @@ function goalSyncNotify(key,meta,emit){
   pending.forEach(function(r){r.notified=true;});
   const next={owner:meta.owner,records:records},part=key+"_goal_conflicts";mcSaveRaw(part,next);
   // Sin confirmación durable no se emite: el fallback en memoria no prueba un próximo arranque.
-  try{if(!goalSyncEqual(JSON.parse(localStorage.getItem(part)),next))return;}catch(e){return;}
+  try{if(!goalSyncEqual(JSON.parse(localStorage.getItem(part)),next)){delete goalSyncStore.cache[key];return;}}catch(e){delete goalSyncStore.cache[key];return;}
   pending.forEach(function(){emit();});
 }
 function goalSyncClear(key,owner){
   const disk=mcLoadRaw(key+"_goal_conflicts");
   if(disk && disk.owner===owner){store.del(key+"_goal_conflicts");delete _mem[key+"_goal_conflicts"];}
   const blocked=goalSyncStore.blocked||(goalSyncStore.blocked={});blocked[key]=owner;
+  if(goalSyncStore.cache)delete goalSyncStore.cache[key];
 }
 function goalSyncActivate(key,owner){
   const blocked=goalSyncStore.blocked;if(blocked && blocked[key]===owner)delete blocked[key];
@@ -5617,17 +5628,19 @@ function goalSyncPull(prev,remote,owner,revision,dropLocal,localNewer){
   const kept=!dropLocal && prev._goalSync && prev._goalSync.owner===owner?prev._goalSync:null;
   const reserves=goalSyncReserves(remote),baseReserves=kept&&kept.reserves||reserves;
   const newer=localNewer===undefined?(prev._savedAt||0)>(remote._savedAt||0):localNewer;
-  const localChanged=!goalSyncEqual(goalSyncReserves(prev),baseReserves),remoteChanged=!goalSyncEqual(reserves,baseReserves);
-  const reject=!!kept && !dropLocal && remoteChanged && (localChanged || newer || !goalSyncEqual(prev.goals,kept.base));
+  const localReserves=goalSyncReserves(prev),localChanged=!goalSyncEqual(localReserves,baseReserves),remoteChanged=!goalSyncEqual(reserves,baseReserves);
+  // R2: un cambio en un solo lado no compite con la aportación a otra meta del segundo móvil.
+  const reject=!!kept && !dropLocal && localChanged && remoteChanged && !goalSyncEqual(localReserves,reserves);
+  const keepLocalReserves=!dropLocal && (kept?localChanged&&!remoteChanged:newer);
   let merged;
-  if(!kept || (localChanged && !remoteChanged)){
+  if(!kept){
     merged={goals:goalSyncCopy(!dropLocal && newer?prev.goals||[]:remote.goals||[]),conflicts:[]};
   } else if(reject){
     merged={goals:goalSyncCopy(remote.goals||[]),conflicts:[{code:"goals_reserve_conflict",local:goalSyncSnapshot(prev)}]};
   } else merged=mergeGoalsThreeWay(kept?kept.base:null,dropLocal?(remote.goals||[]):prev.goals,remote.goals);
   const conflicts=kept?goalSyncRecords(kept.conflicts):[];
   merged.conflicts.forEach(function(c){ if(!conflicts.some(function(v){ return goalSyncEqual(v,c); })) conflicts.push(c); });
-  return {goals:merged.goals,_goalSync:{owner:owner,revision:revision||null,base:goalSyncCopy(remote.goals||[]),reserves:goalSyncCopy(reserves),cloudOnly:reject,conflicts:goalSyncRecords(conflicts)}};
+  return {goals:merged.goals,_goalSync:{owner:owner,revision:revision||null,base:goalSyncCopy(remote.goals||[]),reserves:goalSyncCopy(reserves),keepLocalReserves:keepLocalReserves,cloudOnly:reject,conflicts:goalSyncRecords(conflicts)}};
 }
 function goalSyncAck(prev,owner,sent,expected,revision){
   const meta=prev._goalSync;
@@ -26141,6 +26154,9 @@ function App(){
           const goalState=goalSyncPull(prev,cloudState,u,cloudPack.updated_at,!sameOwner,localNewer);
           if(goalState._goalSync.cloudOnly) baseObj=Object.assign({},prev,cloudState,{expenses:merged.list,bankTx:prev.bankTx});
           Object.assign(baseObj,goalState);
+          const reserveSource=goalState._goalSync.keepLocalReserves?prev:cloudState;
+          baseObj.settings=Object.assign({},baseObj.settings,{reservaRules:goalSyncCopy((reserveSource.settings||{}).reservaRules||[])});
+          baseObj.reservaLog=goalSyncCopy(reserveSource.reservaLog||[]);
           // Una separación pertenece a su titular; la cuenta anterior de este móvil no decide aquí.
           const gem=sameOwner?fusionarGemelos(prev.gemelos,cloudState.gemelos):(cloudState.gemelos||[]);
           if(gem!==baseObj.gemelos) baseObj.gemelos=gem;
