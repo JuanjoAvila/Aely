@@ -1,0 +1,225 @@
+{
+  "status": "blocked",
+  "summary": "FIN17 exact candidate delivered in NEW draft PR against beta. Confirmed absorption ACK registry prevents learned ACK resurrection after normal tombstone pruning and stale-client backfill. Batch final same-SDK owner/expiry barrier closes the reviewed between-row window. Complete beta-sources executed once and classified below; integration gates remain blocked. H2 retains640uncertain cents with warning. Independent review/integration and FIN18 fence remain pending;not ProductREADY.",
+  "PR": 267,
+  "draft": true,
+  "pullRequestBase": "beta",
+  "pullRequestBaseSHA": "503d23267091eb5aa0b0e37dd94fac20ea37bd08",
+  "productSHA": "5fb637621eb0f7194cc3c9c62b711dcc927df026",
+  "parent": "077f712b15b65d233c194b7996a989cd00a66bb1",
+  "baseSHA": "fbff73ee6ae53ce21fb28b284fd8819c7fc8385e",
+  "branch": "codex/fin17-investigation-fbff-20261018",
+  "claimCommit": "8e99919784a2d915ab1c4bd4e8011ce0f29f5919",
+  "ACKCommit": "7b48728f957034278c32acbf4dbc55291130a718",
+  "deliveryGrant": "91dee825cdc847d6ae2b6b594bdfa994b72ffc1b",
+  "normalProductPushExit": 0,
+  "remoteHeadExact": true,
+  "PRHeadBaseDraftBodyExact": true,
+  "nativePRAttachmentConfirmed": true,
+  "tests": [
+    {
+      "name": "FIN17 focal UTC",
+      "exitCode": 0,
+      "passed": 19,
+      "controls": 8,
+      "mutantsKilledByAssertion": 3
+    },
+    {
+      "name": "FIN17 focal Europe-Madrid",
+      "exitCode": 0,
+      "passed": 19,
+      "controls": 8,
+      "mutantsKilledByAssertion": 3
+    },
+    {
+      "name": "financial FIN11 FIN10 FIN15 compras UTC",
+      "exitCode": 0,
+      "passed": 108
+    },
+    {
+      "name": "financial FIN11 FIN10 FIN15 compras Europe-Madrid",
+      "exitCode": 0,
+      "passed": 108
+    },
+    {
+      "name": "synthetic DOM",
+      "exitCode": 0,
+      "passed": 6,
+      "workers": 1,
+      "retries": 0,
+      "maxFailures": 1
+    },
+    {
+      "name": "Deno retained from077f",
+      "exitCode": 0,
+      "passed": 22,
+      "rerun": false,
+      "qualification": "Server code and tests unchanged in5fb batch delta;previous execution explicitly retained."
+    },
+    {
+      "name": "build syntax security i18n registration",
+      "exitCode": 0,
+      "qualification": "Prior exact-byte executions retained;not repeated during delivery."
+    },
+    {
+      "name": "complete beta-sources",
+      "command": "node tests/beta-sources.test.mjs with own verified runtime inherited by children",
+      "exitCode": 1,
+      "passed": 98,
+      "failed": 7,
+      "completed": true,
+      "executionsThisAdmission": 1,
+      "classification": "All7 failures are catalogue/descriptor coverage or stale source anchors:missing obConfirmedRestore,closure97versus136,missing obConfirmedMatches and expenseConfirmedSets,and3 memo-anchor extraction failures. obConfirmedRestore is the transitive ACK-registry restore helper omitted from the Inicio descriptor,not a demonstrated runtime failure. These remain blocking integration gates;no descriptor or guardian was changed."
+    }
+  ],
+  "causalEvidence": {
+    "sourceBeforeFix": "077f712b15b65d233c194b7996a989cd00a66bb1",
+    "intentionalREDExit": 1,
+    "redCases": 2,
+    "redPassed": 1,
+    "redFailed": 1,
+    "fallbackSDKupsertsBefore": 1,
+    "candidateFilterSDKupsertsBefore": 0,
+    "targetedGREENExit": 0,
+    "targetedGreenCases": 3,
+    "bothOwnerSwitchWindowsSDKupsertsAfter": 0,
+    "lastAwaitDurableReread": true,
+    "actualACKIDs": true
+  },
+  "inputProvenance": {
+    "sourceAndCommitByteParityVerified": true,
+    "canonicalGitLFParity": true,
+    "HTMLSHA256": "c955a002ecae80a286ce410a3909a28cdc851b89f9ec8f8e0e55a643c9d4bbbe",
+    "privateCandidateManifestSHA256": "7f8e1d7ae9dd51344f4f9eab24bd0a933588c331bad04fae7e27bb0097ce0c86",
+    "testsRepeatedDuringDelivery": "Only one complete beta-sources explicitly admitted;no other suites rerun",
+    "sourceChangedDuringDelivery": false,
+    "previous077fEvidencePreserved": true
+  },
+  "integrationGates": {
+    "size": {
+      "exitCode": 1,
+      "minKiB": "1333/1314",
+      "gzipKiB": "370/366",
+      "blockingFiles": "3/3"
+    },
+    "docsFrescura": {
+      "exitCode": 1,
+      "VERSION": "4.26.140",
+      "publishableFilesAfterAnchor": 13,
+      "anchor": "aa96460"
+    },
+    "betaSources": {
+      "exitCode": 1,
+      "completed": true,
+      "executedOnce": true,
+      "classification": "All7 failures are catalogue/descriptor coverage or stale source anchors:missing obConfirmedRestore,closure97versus136,missing obConfirmedMatches and expenseConfirmedSets,and3 memo-anchor extraction failures. obConfirmedRestore is the transitive ACK-registry restore helper omitted from the Inicio descriptor,not a demonstrated runtime failure. These remain blocking integration gates;no descriptor or guardian was changed.",
+      "failures": [
+        {
+          "name": "Inicio v4.2 cubre flujos, ciclo, renderer, llamada, animación, textos, CSS y moneda vigentes",
+          "detail": "dependencia v4.2 vigilada: obConfirmedRestore",
+          "category": "catalogue-missing-function",
+          "source": [
+            "tests/beta-sources.test.mjs:294",
+            "scripts/beta-source-code.mjs:235",
+            "src/modules/00-core.js:764",
+            "src/modules/00-core.js:1994"
+          ],
+          "reason": "scopeDependencies follows mcLoadRaw to obConfirmedRestore;inicio-patrimonio-flujos includes mcLoadRaw but omits obConfirmedRestore and its new registry closure."
+        },
+        {
+          "name": "Catálogo140 añade dos tandas de Deudas y atrás sobre la beta 139, con alcance propio, y declara cada huella que mueve",
+          "detail": "deudas-metas-hoja-cierre-suave: el cierre de lectores del descriptor es exactamente el calculado\n\n97 !== 136",
+          "category": "catalogue-incomplete-closure",
+          "source": [
+            "tests/beta-sources.test.mjs:2444"
+          ],
+          "reason": "Static closure recomputation from Deudas own units produces136 entries versus97 in reserved descriptor. This assertion compares source coverage metadata,not a financial result."
+        },
+        {
+          "name": "PERSIST91: el guardado en el commit invalida toda tanda que escribe estado, y solo esas",
+          "detail": "Bloque beta no inequívoco: src/modules/03-tab-dash.js",
+          "category": "catalogue-stale-memo-anchor",
+          "source": [
+            "tests/beta-sources.test.mjs:4381",
+            "scripts/beta-source-code.mjs:119",
+            "src/modules/03-tab-dash.js:333"
+          ],
+          "reason": "Both inc-0810-dashboard-recents-memo and inicio-recientes-sin-repetidos retain to-anchor ,[state.expenses,state.deleted]); while actual memo also depends on pending,confirmed and owner. scopeText aborts because delimiter is absent."
+        },
+        {
+          "name": "cada llamada de lógica, incluidas flechas y dependencias transitivas, mueve el digest",
+          "detail": "inc-3009-01-cargos: dependencia sin vigilar obConfirmedMatches",
+          "category": "catalogue-missing-function",
+          "source": [
+            "tests/beta-sources.test.mjs:4497"
+          ],
+          "reason": "A source-only mutation of obConfirmedMatches does not move inc-3009-01-cargos digest: the transitive new helper is not covered by the reserved descriptor. This is a real coverage gate."
+        },
+        {
+          "name": "cada dato leído transitivamente, incluidas cachés compartidas, mueve el digest",
+          "detail": "inc-3009-01-cargos: dato sin vigilar expenseConfirmedSets",
+          "category": "catalogue-missing-data",
+          "source": [
+            "tests/beta-sources.test.mjs:4571",
+            "src/modules/00-core.js:1877",
+            "src/modules/00-core.js:1901",
+            "src/modules/01-i18n.js:2708"
+          ],
+          "reason": "Source-only mutation of expenseConfirmedSets WeakMap does not move the same digest. Registry metadata is consulted outside delSet own properties and needs catalogue data coverage."
+        },
+        {
+          "name": "los métodos realmente leídos quedan dentro del alcance y sus cambios lo invalidan",
+          "detail": "Bloque beta no inequívoco: src/modules/11-app-main.js",
+          "category": "catalogue-stale-memo-anchor",
+          "source": [
+            "tests/beta-sources.test.mjs:4683",
+            "scripts/beta-source-code.mjs:119",
+            "src/modules/11-app-main.js:2099"
+          ],
+          "reason": "cuenta-parte-mia from-anchor lists deleted immediately followed by aportaciones;actual memo now inserts pending,confirmed and owner between them. Direct source read confirms from-anchor is absent before method audit can run."
+        },
+        {
+          "name": "Recientes106 reanclada conserva expresión, identidad y recibo completos",
+          "detail": "Bloque beta no inequívoco: src/modules/03-tab-dash.js",
+          "category": "catalogue-stale-memo-anchor",
+          "source": [
+            "tests/beta-sources.test.mjs:4862",
+            "scripts/beta-source-code.mjs:119",
+            "src/modules/03-tab-dash.js:333"
+          ],
+          "reason": "Recientes106 reaches the same missing old memo to-anchor as PERSIST91. The guardian aborts on descriptor source extraction;it is not evidence of a changed monetary output."
+        }
+      ],
+      "stdoutSHA256": "80f9ef6bbea3bd1f07648746eeeeefb342bd577a36e6149f8f70d394a6b0c439",
+      "stderrSHA256": "223d034f809f4840681f22a6493004fc3644ffe7d9b6856dc4cb13289d1e8d37",
+      "earlierIncompleteExecutionPreserved": true
+    },
+    "catalogueDescriptorVERSIONCapsUnchanged": true
+  },
+  "limitations": [
+    "Confirmed cap1000;eviction only under capacity pressure and age strictly beyond90days. Retention is bounded.",
+    "H2 missingowner/fullqueue keeps640uncertain cents,original rows and pending intent,with es/en/ca warning and closed telemetry;historical320oracle remains unresolved.",
+    "FIN18:client without registry pull,legacy writer and check/write race require atomic server fence and separate owner/schema decision.",
+    "Synthetic SDK/DOM and retained Deno do not prove liveSQL/RLS/banks,server or Edge deployment,fullsuite,CPU6,Gradle/APK,served beta or physicalmobile acceptance.",
+    "Size/docs/catalogue gates stay real;independent reviewer and Claude integration required before served/mobile acceptance. No merge or deploy."
+  ],
+  "PRChecksAtReadback": [],
+  "fetchBudget": {
+    "id": "fin17-own12-4-db3299cd-fcf546f2",
+    "allowance": 12,
+    "usedBeforeResultReadback": 4,
+    "expectedUsedAfterReadback": 5,
+    "previousOwnFetches": 46,
+    "allFirstInternalReadbacksCounted": true,
+    "noReset": true,
+    "noROOTInheritance": true
+  },
+  "productReady": false,
+  "nextAction": "Canonical exact OWN blocked/released result and originalclaim readback,private durable finalcheckpoint,then STOP. Independent review,Claude integration,served beta and mobile remain separate.",
+  "schema": 1,
+  "taskId": "fin17-book-resurrection-after-ack-codex-20261017",
+  "actor": "codex",
+  "sessionId": "codex-local-20261017-fcf546f25c8b1b50",
+  "createdAt": "2026-10-17T23:51:58.922Z",
+  "released": true
+}
