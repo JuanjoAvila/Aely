@@ -1,5 +1,26 @@
 [
   {
+    "v": "4.26.137",
+    "d": "2026-10-16",
+    "t": {
+      "es": "MyInvestor: no pierde tus posiciones al sincronizar",
+      "en": "MyInvestor: your positions are kept when syncing",
+      "ca": "MyInvestor: no perd les teves posicions en sincronitzar"
+    },
+    "items": {
+      "es": [
+        "MyInvestor ya no pierde tus posiciones si una sincronización choca con otra o se queda a medias. Y solo te propone volver a conectar cuando de verdad hace falta."
+      ],
+      "en": [
+        "MyInvestor no longer loses your positions if one sync clashes with another or stops halfway. And it only suggests reconnecting when it is really needed."
+      ],
+      "ca": [
+        "MyInvestor ja no perd les teves posicions si una sincronització xoca amb una altra o es queda a mitges. I només et proposa tornar a connectar quan de debò cal."
+      ]
+    },
+    "tandas": []
+  },
+  {
     "v": "4.26.136",
     "d": "2026-10-16",
     "t": {
