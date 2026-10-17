@@ -20,7 +20,11 @@ const mutations={
  // Saldo y cuota no ligada a la vez: sin recálculo el plazo no cancelaba lo pendiente (revisión d139).
  mixtaSinRecalculo:{find:"&&!(quotaChanged&&quotaIsAmort)&&!termChanged&&",replace:"&&!quotaChanged&&!termChanged&&",witness:"prestamo-familiar-saldo-y-cuota-recalcula"},
  tolerancia:{find:"Math.abs(d.amort-(d.monthly||0))<=0.005",replace:"Math.abs(d.amort-(d.monthly||0))<=0.5",witness:"amort-centimo-distinta-no-ligada"},
- balloon:{find:"principal=Math.round(balance*100)-Math.round((next.balloon||0)*100)",replace:"principal=Math.round(balance*100)",witness:"balloon-rechaza-fantasma"}
+ balloon:{find:"principal=Math.round(balance*100)-Math.round((next.balloon||0)*100)",replace:"principal=Math.round(balance*100)",witness:"balloon-rechaza-fantasma"},
+ // Revisión d139c: el error dice qué cuota encaja, y una cuota a 0 con pendiente no se guarda aunque no amortice.
+ sinRango:{find:"return {error:\"db_err_term_quota\",range:",replace:"if(0)return {error:\"db_err_term_quota\",range:",witness:"rango-cuota-limites-exactos"},
+ rangoCorrido:{find:"hi=remaining>1?Math.ceil(principal/(remaining-1))-1:null",replace:"hi=remaining>1?Math.ceil(principal/(remaining-1)):null",witness:"rango-cuota-limites-exactos"},
+ ceroLibre:{find:"if(quotaChanged&&!(next.monthly>0)&&balance>0.005) return",replace:"if(false) return",witness:"no-ligada-cuota-cero-rechazada"}
 };
 if(mutation){assert.ok(mutations[mutation],"Mutante conocido");const m=mutations[mutation];assert.equal(source.split(m.find).length-1,1,"Mutación aplicada exactamente una vez");source=source.replace(m.find,m.replace);}
 const cents=x=>Math.round(x*100),plain=x=>JSON.parse(JSON.stringify(x)),anchor=2026*12+9-4,KEY="db_err_term_quota";
@@ -35,6 +39,13 @@ const cases=[
  // Paso del panel (beta 4.26.138.1): con plazo, una cuota que no encaja con lo pendiente en el
  // plazo de la hoja se rechaza; ni se guarda ni se alarga el plazo por debajo.
  ["panel-cuota-baja-rechazada",r=>reject(r,debt(),{monthly:"100"})],
+ // El aviso dice entre qué cuotas cuadra, y esos dos límites son justo los que se aceptan (revisión d139c).
+ ["rango-cuota-limites-exactos",r=>{const d=debt(),paid=r.c.debtPaidCount(d),a=result(r,d,{monthly:"100"});assert.equal(a.error,KEY);assert.equal(a.range.n,d.months-paid);assert.equal(a.range.min,200);assert.equal(a.range.max,239.99);
+  const fmt=x=>String(x).replace(".",",");for(const ok of [a.range.min,a.range.max])assert.equal(result(r,d,{monthly:fmt(ok)}).error,undefined,"El límite "+ok+" encaja");
+  for(const bad of [+(a.range.min-0.01).toFixed(2),+(a.range.max+0.01).toFixed(2)])assert.equal(result(r,d,{monthly:fmt(bad)}).error,KEY,"Fuera del rango "+bad);}],
+ ["rango-ultima-cuota-solo-minimo",r=>{const d=debt({months:5}),a=result(r,d,{monthly:"100"});assert.equal(a.error,KEY);assert.equal(a.range.n,1);assert.equal(a.range.max,null);assert.equal(a.range.min,cents(r.c.debtBalance(d))/100);}],
+ ["rango-no-con-plazo-cambiado",r=>{const a=result(r,debt(),{monthly:"100",months:"8"});assert.equal(a.error,KEY);assert.equal(a.range,undefined);}],
+ ["no-ligada-cuota-cero-rechazada",r=>{const d=debt({value:6100,original:6100,monthly:197,amort:250,months:24,asOf:2026*12+9});const a=result(r,d,{monthly:"0"});assert.equal(a.error,"db_edit_quota_zero");assert.equal(a.item,undefined);assert.equal(result(r,d,{monthly:"150"}).error,undefined,"La cuota que no amortiza sigue pudiendo bajar");}],
  // Alta de la app 1000/3: amort 333,33 = cuota (3×333,33 = 999,99 por redondeo). Subir la cuota a
  // 340 la liga a la amortización y cuadra en 3 meses; bajarla a 100 no cabe y se rechaza.
  ["alta-1000-3-cuota-340-ok",r=>{const d=debt({value:1000,original:1000,monthly:333.33,amort:333.33,months:3,asOf:2026*12+9});const a=result(r,d,{monthly:"340"});assert.equal(a.error,undefined);const n=a.item;assert.equal(n.monthly,340);assert.equal(n.amort,340);assert.equal(n.months,3);assert.equal(cents(r.c.debtBalance(n)),100000);assert.equal(r.c.debtLeft(n),3);r.at(10,15);assert.equal(cents(r.c.debtBalance(n)),32000);r.at(11,15);assert.equal(cents(r.c.debtBalance(n)),0);}],

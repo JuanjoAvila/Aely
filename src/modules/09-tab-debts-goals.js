@@ -28,9 +28,9 @@ function debtEditResult(d,form){
   // La guardia también protege llamadas que no pasan por los campos bloqueados de la ficha.
   if(debtEditFinished(d)&&(amountChanged||quotaChanged||dayChanged||termChanged||aprChanged)) return {error:"db_finished_edit_hint"};
   if(form.name.trim()!==(d.name||"")) next.name=form.name.trim();
-  // Toda deuda con plazo dada de alta lleva `amort` = cuota. Si van ligadas (o no hay `amort`), la
-  // cuota ES lo que amortiza y se mueven juntas; si difieren (intereses, préstamo familiar que paga
-  // 197 y amortiza 250), cambiar la cuota solo cambia lo que se paga, no el calendario (revisión d139).
+  // El alta con plazo pone `amort` lineal (saldo/plazo), no la cuota tecleada: si coinciden (o no hay
+  // `amort`), la cuota ES lo que amortiza y se mueven juntas; si difieren (intereses, préstamo familiar
+  // que paga 197 y amortiza 250), cambiar la cuota solo cambia lo que se paga, no el calendario (revisión d139).
   const quotaIsAmort=d.amort==null||Math.abs(d.amort-(d.monthly||0))<=0.005;
   if(quotaChanged){ next.monthly=+monthly.toFixed(2); if(quotaIsAmort&&d.amort!=null) next.amort=next.monthly; }
   if(dayChanged) next.day=day;
@@ -47,8 +47,18 @@ function debtEditResult(d,form){
     // que no cubría lo pendiente en el plazo de la hoja se guardaba igual (rechazo de beta 4.26.138.1).
     if((termChanged||quotaChanged&&quotaIsAmort)&&next.months!=null){
       const remaining=next.months-paid,perMonth=Math.round(am*100),principal=Math.round(balance*100)-Math.round((next.balloon||0)*100);
-      if(remaining<=0||principal<=(remaining-1)*perMonth||principal>remaining*perMonth) return {error:"db_err_term_quota"};
+      if(remaining<=0||principal<=(remaining-1)*perMonth||principal>remaining*perMonth){
+        // Con solo la cuota tocada se dice qué cuota encaja: «no encajan» a secas dejaba a la
+        // hipoteca heredada sin forma de saber qué valor aceptaba (revisión d139c).
+        const lo=remaining>0?Math.ceil(principal/remaining):0,hi=remaining>1?Math.ceil(principal/(remaining-1))-1:null;
+        if(quotaChanged&&!termChanged&&principal>0&&lo>0&&(hi==null||hi>=lo))
+          return {error:"db_err_term_quota",range:{n:remaining,min:lo/100,max:hi==null?null:hi/100}};
+        return {error:"db_err_term_quota"};
+      }
     }
+    // Una cuota a 0 con saldo pendiente deja la deuda parada para siempre. La que no amortiza no pasa
+    // por la cuenta de arriba, así que se guardaba sin aviso (revisión d139c: 1.000 € y cuota 0).
+    if(quotaChanged&&!(next.monthly>0)&&balance>0.005) return {error:"db_edit_quota_zero"};
     if(termChanged&&months!=null&&balance>0.005&&months<=paid) return {error:"db_err_paid"};
     if(amountChanged&&next.months==null){ next.asOf=ymNow(); next.value=+balance.toFixed(2); }
     else{
@@ -89,7 +99,7 @@ function planEditCommit(s,field,before,next){
   return Object.assign({},s,{[field]:s[field].map(function(x){ return x.id===before.id?next:x; })});
 }
 function usePlanEditSave({state,set,field,item,onClose,showToast}){
-  const [pending,setPending]=useState(null),[error,setError]=useState("");
+  const [pending,setPending]=useState(null),[error,setError]=useState(""),[range,setRange]=useState(null);
   const sending=useRef(false),outcome=useRef(null);
   useLayoutEffect(function(){
     if(!pending) return;
@@ -99,9 +109,9 @@ function usePlanEditSave({state,set,field,item,onClose,showToast}){
   },[pending,state[field]]);
   const save=function(result){
     if(sending.current) return;
-    if(result.error){ setError(result.error); return; }
+    if(result.error){ setError(result.error); setRange(result.range||null); return; }
     const next=result.item;
-    sending.current=true; const response={error:false}; outcome.current=response; setError("");
+    sending.current=true; const response={error:false}; outcome.current=response; setError(""); setRange(null);
     // Pendiente y escritura comparten prioridad: un Guardar urgente se confirmaba antes de
     // rebasarse sobre una corrección ya en cola y desmontaba la hoja antes de poder avisar.
     React.startTransition(function(){ setPending(next); set(function(s){
@@ -111,7 +121,7 @@ function usePlanEditSave({state,set,field,item,onClose,showToast}){
       return changed;
     }); });
   };
-  return {save:save,error:error,pending:!!pending};
+  return {save:save,error:error,range:range,pending:!!pending};
 }
 function PlanEditSheet({title,onClose,children}){
   const swipe=useSheetSwipe(true,onClose); useBackClose(true,swipe.close);
@@ -139,7 +149,9 @@ function DebtEditSheet({debt,state,set,onClose,onDelete,showToast}){
     input("months","db_months_ph","numeric"),React.createElement("div",{className:"hint"},t("db_term_hint")),
     finished&&React.createElement("div",{className:"hint"},t("db_finished_edit_hint")),
     input("apr","da_rate","decimal"),React.createElement("div",{className:"hint"},t("db_rate_edit_hint")),
-    save.error&&React.createElement("div",{className:"hint",role:"alert"},t(save.error)),
+    save.error&&React.createElement("div",{className:"hint",role:"alert"},t(save.error),
+      save.range&&" "+(save.range.max==null?tf("db_err_quota_min",{n:save.range.n,min:eur(save.range.min)}):
+        tf("db_err_quota_range",{n:save.range.n,min:eur(save.range.min),max:eur(save.range.max)}))),
     React.createElement("button",{type:"button",className:"btn btn-primary btn-block",disabled:save.pending,onClick:function(){save.save(debtEditResult(debt,form));}},t("db_savechanges")),
     React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",onClick:function(){onDelete(debt);}},t("db_delete"))));
 }

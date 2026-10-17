@@ -138,6 +138,7 @@ test("M2/M7: baja el objetivo de la segunda de DOS metas y recalcula done",async
 
 // PC: plazo y cuota se validan juntos sin perder el borrador ni tocar otra fila.
 const pcErrors={es:"El plazo y la cuota no encajan con el saldo pendiente. Revisa el plazo o la cuota.",en:"The term and payment do not match the remaining balance. Check the term or payment.",ca:"El termini i la quota no encaixen amb el saldo pendent. Revisa el termini o la quota."};
+const pcRange={es:"Con 6 cuotas por pagar, la cuota tiene que estar entre",en:"With 6 payments left, the payment must be between",ca:"Amb 6 quotes per pagar, la quota ha d'estar entre"};
 const pcDebt=extra=>({...reviewDebt,original:2000,...extra}),pcRows=d=>({...reviewRows,debts:[reviewRows.debts[0],d]});
 const pcInvalid=[{id:"fantasma",months:20,debt:{}},{id:"residual",months:8,debt:{}},{id:"amort",months:16,debt:{monthly:300,amort:200}},{id:"balloon",months:20,debt:{value:2400,balloon:400}}];
 for(const lang of ["es","en","ca"])for(const scenario of pcInvalid.filter(x=>lang==="es"||x.id==="fantasma"||x.id==="residual"))test(`PC: rechaza ${scenario.id} y conserva borrador (${lang})`,async({page})=>{
@@ -155,7 +156,8 @@ for(const lang of ["es","en","ca"])test(`panel: cuota baja con plazo avisa y no 
  await row.locator(".plan-item-open").click();const sheet=debtSheet(page,lang);
  await expect(sheet.locator('[data-debt-field="months"]')).toHaveValue("10");await sheet.locator('[data-debt-field="monthly"]').fill("100");
  await sheet.getByRole("button",{name:texts[lang].saveDebt,exact:true}).click();
- await expect(sheet.getByRole("alert")).toHaveText(pcErrors[lang]);await expect(sheet).toBeVisible();
+ // Y dice entre qué cuotas cuadra: el «no encajan» a secas no decía qué valor aceptaba (revisión d139c).
+ const alert=sheet.getByRole("alert");await expect(alert).toContainText(pcErrors[lang]);await expect(alert).toContainText(pcRange[lang]);await expect(alert).toContainText(/239[,.]99/);await expect(sheet).toBeVisible();
  await expect(sheet.locator('[data-debt-field="monthly"]')).toHaveValue("100");await expect(sheet.locator('[data-debt-field="months"]')).toHaveValue("10");
  await expect(page.getByText(texts[lang].saved,{exact:true})).toHaveCount(0);
  const after=await saved(page);expect(after.debts).toEqual(before.debts);expect(after.goals).toEqual(before.goals);
