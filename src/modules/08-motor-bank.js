@@ -1365,7 +1365,7 @@ function obPendingAbsorbedState(s,prev){
     if(ids.has(e.id)||!esFilaDeBanco(e)||!e.extId||e.obPending)return;
     const keep=adopted.get(expenseBankOf(e)+"|"+e.extId);
     if(!keep||obPendingGroup(e)!==obPendingGroup(keep)||e.obAcc&&keep.obAcc&&e.obAcc!==keep.obAcc)return;
-    const key=obAbsorptionKey(e);if(!key||key===obAbsorptionKey(keep)||(out.deleted||[]).indexOf(key)>=0)return;
+    const key=obAbsorptionKey(e);if(!key||obAbsorptionMatches(keep,{[key]:1})||(out.deleted||[]).indexOf(key)>=0)return;
     out=Object.assign({},out,lapidaPon(out,key,s.lastBankSync||Date.now()));
     borrarGastoNube(e,"ob-absorbed");
   });
