@@ -211,8 +211,8 @@ test("mutaciones de absorción: commit, lápida específica, UUID y lector local
  const cases=[
   ["el commit omite la absorción",s=>s.replace('  s=obPendingAbsorbedState(s,prev);','')],
   ["la lápida apunta a la superviviente",s=>s.replace('const key=obAbsorptionKey(e);if(!key','const key=obAbsorptionKey(keep);if(!key')],
-  ["lápida genérica alcanza otra referencia",s=>s.replace('"ob-absorbed|"+encodeURIComponent(bank)+"|"+encodeURIComponent(String(e.extId))+"|"+obOrdinalOf(e)','keyOfExpense(e)')],
-  ["lápida depende del UUID local",s=>s.replace('"ob-absorbed|"+encodeURIComponent(bank)+"|"+encodeURIComponent(String(e.extId))+"|"+obOrdinalOf(e)','"ob-absorbed|"+encodeURIComponent(bank)+"|"+encodeURIComponent(String(e.id))+"|"+obOrdinalOf(e)')],
+  ["lápida genérica alcanza otra referencia",s=>s.replace('function obAbsorptionKey(e,legacy){','function obAbsorptionKey(e,legacy){return keyOfExpense(e);')],
+  ["lápida depende del UUID local",s=>s.replace('encodeURIComponent(String(e.extId))+"|"+obOrdinalOf(e)','encodeURIComponent(String(e.id))+"|"+obOrdinalOf(e)')],
   ["pull ignora la lápida específica",s=>s.replace('const absorbed=obAbsorptionKey(e);if(absorbed&&delSet[absorbed])return true;','')],
  ];
  for(const [name,mutate] of cases){const changed=mutate(html);assert.notEqual(changed,html,name);assert.throws(()=>check(loadPureLogic(changed),changed),undefined,name+": muerta");}
@@ -220,7 +220,7 @@ test("mutaciones de absorción: commit, lápida específica, UUID y lector local
 });
 
 test("lector servidor: la lápida de absorción es necesaria y preserva filas legacy",()=>{
- const gone={...expense("b/:%","uuid-local"),obOrd:2},key=c.obAbsorptionKey(gone),row=wire(gone);
+ const gone={...expense("b/:%","uuid-local"),obOrd:2,obAcc:"synthetic-account"},key=c.obAbsorptionKey(gone),row=wire(gone);
  assert.equal(server.filasComoLaApp([row],[key]).length,0);
  const legacy={...row,source:"ob:caixabank#n2"};assert.equal(server.filasComoLaApp([legacy],[key]).length,1);
  assert.equal(server.filasComoLaApp([{...row,source:"ob:caixabank#ref%broken#n2"}],[key]).length,1);
