@@ -85,3 +85,40 @@ for(const lang of ["es","en","ca"]){
     await check(page,1,2200,true);
   });
 }
+
+for(const decision of ["mismo","distintos","ambiguo"]){
+  test("UX2909 manual: BOOK con nombre pide revision " + decision,async({page})=>{
+    await page.clock.install({time:new Date("2026-10-17T12:00:00Z")});
+    const manual={id:"manual-salary",source:"manual",ent:"sabadell",date:"2026-10-16T12:00:00Z",amount:-1800,merchant:"Nomina manual",category:"ingreso"};
+    await seedLoggedInDashboard(page,{__seedOnce:true,__seenVersion:"4.26.137",hasBankLink:true,budget:500,
+      accounts:[{id:"sb",ent:"sabadell",name:"Cuenta ficticia",role:"diario",spendFrom:true,value:400}],
+      expenses:decision==="ambiguo"?[manual,{...manual,id:"other-manual",merchant:"Otra nomina manual"}]:[manual],
+      settings:{autoPrices:false,theme:"green",lang:"es",budgetCycle:false,gTotalMode:"net",expenseBanks:["sabadell"]}});
+    await page.goto("/");
+    await page.locator(".botnav").waitFor({state:"visible"});
+    await page.waitForFunction(()=>!document.getElementById("mc-load"));
+    await dismissNews(page);
+    const feed=links({...salary,date:"2026-10-16"},2200);
+    await page.evaluate(feed=>{cloud.bankSync=()=>Promise.resolve({ok:true,links:feed});},feed);
+    await page.locator('.botnav-tab[data-tour="cartera"]').click();
+    await page.getByRole("button",{name:/Sincronizar bancos/i}).click();
+    await expect.poll(()=>page.evaluate(()=>JSON.parse(localStorage.getItem("micartera_v3_exp")||"[]").some(e=>e.extId==="salary"))).toBe(true);
+    const pending=await page.evaluate(()=>JSON.parse(localStorage.getItem("micartera_v3_exp")).find(e=>e.extId==="salary"));
+    expect(pending.possibleDup).toBe(true);
+    expect(pending.possibleDupOf).toBe(decision==="ambiguo"?undefined:"manual-salary");
+    expect(pending.autoGemelo).toBeUndefined();
+    await page.locator(".sync-report").getByRole("button",{name:"Cerrar",exact:true}).click();
+    await page.locator('.botnav-tab[data-tour="gastos"]').click();
+    const bank=page.locator('.v4-gastos-list-body button.v4-mov').filter({hasText:"NOMINA EMPRESA SL"});
+    await expect(bank).toHaveCount(1);
+    await bank.click();
+    await expect(page.getByText("¿Es el mismo movimiento?",{exact:true})).toBeVisible();
+    if(decision==="ambiguo"){
+      // No fabricar un gemelo concreto: se puede conservar como distinto desde la ficha.
+      await page.getByRole("button",{name:"Son distintos",exact:true}).click();
+    }else await page.getByRole("button",{name:decision==="mismo"?"Es el mismo":"Son distintos",exact:true}).click();
+    await expect.poll(()=>page.evaluate(()=>{
+      const s=mcLoadRaw("micartera_v3");return {rows:s.expenses.length,income:monthBudgetStats(s).income};
+    })).toEqual({rows:decision==="mismo"?1:decision==="ambiguo"?3:2,income:decision==="mismo"?1800:decision==="ambiguo"?5400:3600});
+  });
+}

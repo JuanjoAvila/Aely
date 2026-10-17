@@ -1069,7 +1069,7 @@ function flattenBankTx(links, previous){
 const gemeloCache=new WeakMap(), gemeloDatosCache=new WeakMap(), gemeloDiasCache=new Map();
 // Un comercio real no identifica un gemelo por importe: el extracto de recibos perdió
 // 750,50 al emparejar dos nombres distintos sin id (CI 13/10/2026). Sólo el genérico carece de identidad.
-function gemeloBancoAutomatico(e){ return !!(e&&e.id)&&esFilaDeBanco(e)&&!e.extId&&!e.reciboId&&!e.debtId&&sinComercioReal(e.obName!=null?e.obName:e.merchant); }
+function gemeloBancoAutomatico(e){ return !!(e&&e.id)&&esFilaDeBanco(e)&&!e.extId&&!e.reciboId&&!e.debtId&&!(e.amount<0&&e.possibleDup&&!e.possibleDupOf)&&sinComercioReal(e.obName!=null?e.obName:e.merchant); }
 function gemeloAvisoAutomatico(e){ return !!(e&&e.id)&&!esFilaDeBanco(e)&&!isManualExpenseSource(e.source)&&!e.possibleDup&&!e.pending&&!e.reciboId&&!e.debtId; }
 function gemeloDatos(e){
   if(!e) return {grupo:"",dia:NaN};
@@ -1426,7 +1426,7 @@ function importObExpenses(s, txs, links){
   const baseKOf=function(e){ return String(e.date).slice(0,10)+"|"+e.amount+"|"+nameForKey(e); };
   const kOf=function(e){ return baseKOf(e)+obOrdinalSufijo(e); };
   const scopedKOf=function(e){ return (expenseBankOf(e)||e.ent||"")+"|"+kOf(e); };
-  const keys={}; (s.expenses||[]).forEach(function(e){ keys[scopedKOf(e)]=1; });
+  const keys={}, bankKeys={}; (s.expenses||[]).forEach(function(e){ keys[scopedKOf(e)]=1; if(esFilaDeBanco(e))bankKeys[scopedKOf(e)]=1; });
   /* Lápidas: «es el mismo» borra la fila OB y deja clave en `deleted`. Sin esto el siguiente
      sync de TR volvería a meter el Movimiento y a marcarlo otra vez contra la noti. */
   const delSet={}; (s.deleted||[]).forEach(function(k){ delSet[k]=1; });
@@ -1456,6 +1456,13 @@ function importObExpenses(s, txs, links){
   const emparejados=avisosEmparejados(s);
   const usadoDup={}, otrasPorImporte=new Map(), manualesPorImporte=new Map();
   otrasVias.forEach(function(e,i){const k=expenseBankOf(e)+"|"+Math.round(Number(e.amount)*100),entry={e:e,i:i};if(!otrasPorImporte.has(k))otrasPorImporte.set(k,[]);otrasPorImporte.get(k).push(entry);if(isManualExpenseSource(e.source)){if(!manualesPorImporte.has(k))manualesPorImporte.set(k,[]);manualesPorImporte.get(k).push(entry);}});
+  const deletedIncome=expenseDeletedSet(s);
+  const incomeMatches=function(e){
+    const k=expenseBankOf(e)+"|"+Math.round(Number(e.amount)*100);
+    return (manualesPorImporte.get(k)||[]).map(function(x){return x.e;}).filter(function(m){
+      return m.amount<0&&m.category==="ingreso"&&!expenseIsTombstoned(m,deletedIncome)&&!avisoYaEmparejado(emparejados,m)&&Math.abs(dateMs(m.date)-dateMs(e.date))<=DUP_MS;
+    });
+  };
   const gemeloOtraVia=function(tx,saltar){
     if(!sinComercioReal(tx.merchant)||!tx.ent)return null;
     const ms=dateMs(tx.date),k=tx.ent+"|"+Math.round(Number(tx.amount)*100),candidates=(tx.id?otrasPorImporte:manualesPorImporte).get(k)||[];let quedan=saltar||0;
@@ -1555,6 +1562,7 @@ function importObExpenses(s, txs, links){
     if(tx.id) return;
     const g=(expenseBankOf(e)||e.ent||"")+"|"+baseKOf(e);
     if(!grupos[g]){ grupos[g]={scoped:g, base:baseKOf(e), miembros:[]}; ordenGrupos.push(g); }
+    if(e.amount<0&&e.category==="ingreso"&&String(tx.status||"").trim().toUpperCase()==="BOOK"&&incomeMatches(e).length)grupos[g].incomeReview=true;
     grupos[g].miembros.push(c);
   });
   const huella=function(tx){ return [tx.note||"", tx.concept||"", tx.mcc||"", tx.card?1:0, tx.status||""].join("\u0001"); };
@@ -1566,7 +1574,7 @@ function importObExpenses(s, txs, links){
      (29,90 → 59,80). Mismo criterio que `histCandLapidas`. */
   const cubierta=function(g, n){
     const suf=n>1 ? "|#"+n : "";
-    return !!(keys[g.scoped+suf] || delSet[g.scoped+suf] || delSet[g.base+suf] || vinculado[g.scoped+suf] || vinculado[g.base+suf]);
+    return !!((g.incomeReview?bankKeys:keys)[g.scoped+suf] || delSet[g.scoped+suf] || delSet[g.base+suf] || vinculado[g.scoped+suf] || vinculado[g.base+suf]);
   };
   /* Lápida de «es el mismo» dejada por una versión SIN `gemelos`: su aviso sigue sin marcar. Solo
      puede ser la ranura 1 (aquella versión no conocía ordinales) y solo si ningún vínculo la
@@ -1614,26 +1622,56 @@ function importObExpenses(s, txs, links){
       c.saltar=viejas;
     });
   });
+  /* Una nómina con nombre también puede ser la que se apuntó a mano. El parecido solo abre
+     revisión: ningún nombre acredita que sean el mismo ingreso. La unicidad se comprueba en
+     AMBOS sentidos antes de gastar un manual, sin elegir por orden de respuesta (UX-2909-04). */
+  const incomeReviews=new Map(), incomeUses=new Map(), incomeSeen=new Set();
+  (s.expenses||[]).forEach(function(e){
+    if(!e||!esFilaDeBanco(e)||!(e.amount<0)||e.category!=="ingreso"||expenseIsTombstoned(e,deletedIncome))return;
+    incomeMatches(e).forEach(function(m){incomeUses.set(m.id,(incomeUses.get(m.id)||0)+1);});
+  });
+  cands.forEach(function(c){
+    const tx=c.tx,e=c.e;
+    if(!(e.amount<0)||e.category!=="ingreso")return;
+    const incomeBook=String(tx.status||"").trim().toUpperCase()==="BOOK";
+    if(!incomeBook&&!sinComercioReal(tx.merchant))return;
+    if(tx.id?(seen[(tx.ent||"")+"|"+tx.id]||seenLegacy[tx.id]||bankKeys[scopedKOf(e)]||delSet[scopedKOf(e)]||delSet[kOf(e)]):c.ord==null)return;
+    const id=tx.id?(tx.ent+"|"+tx.id):c;
+    if(incomeSeen.has(id))return;incomeSeen.add(id);
+    const matches=incomeMatches(e);if(!matches.length)return;
+    if(incomeBook)incomeReviews.set(c,matches);
+    matches.forEach(function(m){incomeUses.set(m.id,(incomeUses.get(m.id)||0)+1);});
+  });
   /* SEGUNDA PASADA, en el orden del banco (fecha descendente): emparejar con la otra vía y
      emitir. Los con id conservan su comprobación de clave de siempre. */
-  const add=[];
+  const add=[];let incomeDateSlots=null;
+  const incomeDateKey=function(e){return dateMs(e.date)+"|"+e.amount+"|"+e.merchant;};
   cands.forEach(function(c){
-    const tx=c.tx, e=c.e;
+    const tx=c.tx, e=c.e, incomeReview=incomeReviews.get(c);
     if(tx.id){
       if(seen[(tx.ent||"")+"|"+tx.id]||seenLegacy[tx.id])return;
-      if(keys[scopedKOf(e)] || delSet[scopedKOf(e)] || delSet[kOf(e)]) return;
+      if((incomeReview?bankKeys[scopedKOf(e)]:keys[scopedKOf(e)]) || delSet[scopedKOf(e)] || delSet[kOf(e)]) return;
     }else{
       if(c.ord==null) return;   // sin ranura libre: ese apunte ya está guardado o resuelto
       if(c.ord>1){ e.obOrd=c.ord; e.date=fechaConOrdinal(e.date, c.ord); }
     }
     // Lo que antes se tiraba (el cargo de un recibo) no puede gastar el gemelo de otra vía que
     // le tocaría a otro cargo. Sus iguales del mismo día sí llevan ordinal, como cualquiera.
-    const gem=e.reciboId?null:gemeloOtraVia(tx, c.saltar);
-    if(gemeloBancoAutomatico(e)) e.gemeloNuevo=true;
+    const gem=incomeReview?(incomeReview.length===1&&incomeUses.get(incomeReview[0].id)===1?incomeReview[0]:null):(e.reciboId?null:gemeloOtraVia(tx, c.saltar));
+    if(incomeReview){
+      e.possibleDup=true;
+      // La terna única de la nube incluye la hora completa. No perder la fila de revisión
+      // cuando el manual tiene exactamente el mismo nombre y mediodía que devuelve el banco.
+      if(!incomeDateSlots)incomeDateSlots=new Set((s.expenses||[]).concat(add).map(incomeDateKey));
+      while(incomeDateSlots.has(incomeDateKey(e)))e.date=new Date(dateMs(e.date)+1).toISOString();
+    }
+    if(!incomeReview&&gemeloBancoAutomatico(e)) e.gemeloNuevo=true;
     if(gem && gem.id){ e.possibleDup=true; e.possibleDupOf=gem.id; }
     keys[scopedKOf(e)]=1;
+    bankKeys[scopedKOf(e)]=1;
     if(tx.id) seen[(tx.ent||"")+"|"+tx.id]=1;
     add.push(e);
+    if(incomeDateSlots)incomeDateSlots.add(incomeDateKey(e));
   });
   if(!add.length)return null;
   const paired=reconcileGemelosAutomaticos(Object.assign({},s,{expenses:add.concat(s.expenses||[])}),s);
