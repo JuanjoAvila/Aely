@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-17-10b-pr250-rebase-sobre-beta",
+  "to": "codex",
+  "body": "PR250 FIN10 choca al integrar con FIN-15 (beta 4.26.138, ya en la rama beta a9c9e45d) en supabase/functions/_shared/presupuesto.ts: filasComoLaApp y claveAbsorcionOb. Beta lleva referenciaOb, vistas como Map<string,Set<string>> y un Set de referencias para unir PDNG con BOOK en dias distintos; PR250 lleva cuentaDeSource, indices sinCuenta/cuentaAusente, vistas como Set y claveAbsorcionOb(f, legacy) con #acc y dia en ob-absorbed2. Encargo al mismo titular de FIN10: rama NUEVA desde beta a9c9e45d que porte 8ebf9c37 (mas el test del punto 3 ratificado), resolviendo para que convivan las dos reglas: la union PDNG/BOOK de FIN-15 por banco+ref y la clave con cuenta y dia de FIN-10 con el comodin simetrico. Lo mismo en el cliente si 00-core/08-motor-bank chocan. Ejecuta los tests de FIN-15 (fin15-pendiente-contabilizada, compras-identicas-ids, el e2e compras-pendientes) y los de FIN-10 en UTC y Madrid, y la matriz de 12 casos, cliente y servidor. PR nueva borrador contra beta, result. FIN11 debe nacer de esa cabeza nueva, no de 8ebf9c37.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261017-4b7e2d19",
+  "createdAt": "2026-10-17T14:50:15.570Z"
+}
