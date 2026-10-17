@@ -1,0 +1,263 @@
+{
+  "status": "blocked",
+  "completionScope": "EXACT CANDIDATE DELIVERED; INDEPENDENT GUARD REVIEW, CATALOGUE SEAL AND GENERAL GATES PENDING",
+  "summary": "INC1710 exact673fc18 delivered unchanged in NEWdraftPR265 against beta503. Own Ask acknowledgement prevents canceled reload; explicit8ac59d41 transition guard closes cloud writers before flag/seed and cancels debounce. Final3/3E2E and30history/security EXIT0;4windows0writes and realpendingedit preserved/uploaded on return. Independent Claude review then onlyifGO beta142;blocked/released,not ProductREADY.",
+  "PR": 265,
+  "draft": true,
+  "pullRequestBase": "beta",
+  "productSHA": "673fc18f2498893306c1bfbaca13ddaff5643927",
+  "parent": "654d38a730d4c5672dbc0deaaa1d6f0a85f7fb00",
+  "baseSHA": "503d23267091eb5aa0b0e37dd94fac20ea37bd08",
+  "branch": "codex/inc171001-settings-diagnosis-20261017",
+  "taskCommit": "2671e1935d7ac756981d42be08054dffe26655b0",
+  "claimCommit": "147b93d33734b9810e036147ae9c6fdc28391062",
+  "ACKCommit": "d359c90180039cb82b9e8ce5cfc8ec9f5a3e8b9a",
+  "implementationGrant": "c87b4f67d32c3305d1df3b1d07e0b5959a76b08d",
+  "windowGuardGrant": "8ac59d41bc4d9cb20ca56aac9a2a7a10a8ab1326",
+  "deliveryGrant": "95bb7fac63288448017d51b4d261ad2b9f7ce278",
+  "sourceFrozen": true,
+  "normalProductPushExit": 0,
+  "remoteHeadExact": true,
+  "PRHeadBaseDraftBodyExact": true,
+  "PRReadbackExit": 0,
+  "nativePRAttachmentConfirmed": true,
+  "PRChecksAtReadback": [],
+  "productReady": false,
+  "tests": [
+    {
+      "name": "inc171001-baseline-settings-503-exact-blob",
+      "exitCode": 1,
+      "recordedHEAD": "503d23267091eb5aa0b0e37dd94fac20ea37bd08",
+      "dirtyTreeAtExecution": true,
+      "htmlSHA256": "82956808743a80415a7eebaa0785976b838d9e0e279cc39c2e52a71ef58ff65a",
+      "workers": 1,
+      "retries": 0,
+      "maxFailures": 1,
+      "buildExitCode": null,
+      "meaning": "Unmodified503 runtime and new synthetic Settings fixture reproduce all3failed transitions. Initial startup backup/savedAt noise retained.",
+      "phase": "Already completed privately; no rerun during delivery"
+    },
+    {
+      "name": "inc171001-causal-history-navigation-503",
+      "exitCode": 1,
+      "recordedHEAD": "503d23267091eb5aa0b0e37dd94fac20ea37bd08",
+      "dirtyTreeAtExecution": true,
+      "htmlSHA256": "82956808743a80415a7eebaa0785976b838d9e0e279cc39c2e52a71ef58ff65a",
+      "workers": 1,
+      "retries": 0,
+      "maxFailures": 1,
+      "buildExitCode": null,
+      "meaning": "New History/CDP causal observer: reload is superseded by own Ask cleanup back; manual reload control completes3. Not acceptance or a repeated identical run.",
+      "phase": "Already completed privately; no rerun during delivery"
+    },
+    {
+      "name": "inc171001-red-whole-window-503",
+      "exitCode": 1,
+      "recordedHEAD": "503d23267091eb5aa0b0e37dd94fac20ea37bd08",
+      "dirtyTreeAtExecution": true,
+      "htmlSHA256": "82956808743a80415a7eebaa0785976b838d9e0e279cc39c2e52a71ef58ff65a",
+      "workers": 1,
+      "retries": 0,
+      "maxFailures": 1,
+      "buildExitCode": null,
+      "meaning": "New whole-window case fails on baseline503; pending real writer and normal backup/push remain visible; stop-first-failure,2unexecuted.",
+      "phase": "Already completed privately; no rerun during delivery"
+    },
+    {
+      "name": "inc171001-green-terminal-whole-window",
+      "exitCode": 0,
+      "recordedHEAD": "503d23267091eb5aa0b0e37dd94fac20ea37bd08",
+      "dirtyTreeAtExecution": true,
+      "htmlSHA256": "9c0837e085e67c150689ab26863e6a75a2429e6f7d2c6ef8d050484f4e6a4855",
+      "workers": 1,
+      "retries": 0,
+      "maxFailures": 1,
+      "buildExitCode": 0,
+      "meaning": "Navigation-only predecessor input later frozen as654d:3functional passes do NOT satisfy mandatory cloud-window gate.",
+      "phase": "Already completed privately; no rerun during delivery"
+    },
+    {
+      "name": "inc171001-immediate-writer-product-probe",
+      "exitCode": 1,
+      "recordedHEAD": "503d23267091eb5aa0b0e37dd94fac20ea37bd08",
+      "dirtyTreeAtExecution": true,
+      "htmlSHA256": "9c0837e085e67c150689ab26863e6a75a2429e6f7d2c6ef8d050484f4e6a4855",
+      "workers": 1,
+      "retries": 0,
+      "maxFailures": 1,
+      "buildExitCode": null,
+      "meaning": "Same predecessor HTML, NEW0ms timing probe EXIT1; app_state upsert realbudget500 at4ms,not seed9999. Preserved adverse evidence.",
+      "phase": "Already completed privately; no rerun during delivery"
+    },
+    {
+      "name": "inc171001-green-window-guard-immediate-pending-edit",
+      "exitCode": 0,
+      "recordedHEAD": "654d38a730d4c5672dbc0deaaa1d6f0a85f7fb00",
+      "dirtyTreeAtExecution": true,
+      "htmlSHA256": "10f297340079f74594da639ac2eecf71b1f2131f544381c0443c52c2abc0fc04",
+      "workers": 1,
+      "retries": 0,
+      "maxFailures": 1,
+      "buildExitCode": 0,
+      "meaning": "Final runtime input later frozen as673fc18:3/3 Settings with due0ms writer actually firing under guard;4observed zero-write windows; pending real edit durable and uploaded on return; no marked seed in ANYupsert.",
+      "phase": "Already completed privately; no rerun during delivery"
+    },
+    {
+      "name": "Final focused security",
+      "command": "node tests/security.test.mjs",
+      "exitCode": 0,
+      "meaning": "Actual CLOUD_WRITES wrapper exercised for every listed writer with transition and pinned real; unchanged-list sandbox coverage retained; actual App debounce effect cancels,flushes existing local path and rearms on aborted transition.",
+      "recordedHEAD": "654d38a730d4c5672dbc0deaaa1d6f0a85f7fb00",
+      "dirtyTreeAtExecution": true,
+      "phase": "Already completed privately; inputs match final source"
+    },
+    {
+      "name": "Final history and Ask",
+      "command": "node tests/backclose-history.test.mjs",
+      "exitCode": 0,
+      "contracts": 30,
+      "meaning": "Exact own acknowledgement,foreign history/pop,cancellation,history failures,guard opening and failure release; ordinary Ask unchanged.",
+      "recordedHEAD": "654d38a730d4c5672dbc0deaaa1d6f0a85f7fb00",
+      "dirtyTreeAtExecution": true,
+      "phase": "Already completed privately; inputs match final source"
+    },
+    {
+      "name": "Relevant test registration historical check",
+      "command": "node tests/relevant-tests.test.mjs",
+      "exitCode": 0,
+      "qualification": "Completed on prior candidate; registration file unchanged in673. Not rerun or relabeled as new final-runtime validation."
+    }
+  ],
+  "inputProvenance": "Final executions recorded HEAD654d plus dirty guard/test tree,not an execution after committing673. Before/served/after runtime hashes and frozen commit parity prove the exact673 input bytes. Earlier predecessor probes recorded HEAD503+dirty Ask tree later frozen654d. Historical results remain distinct,not retagged. No new code,builds,tests or size measurements during delivery.",
+  "finalEvidence": {
+    "htmlSHA256": "10f297340079f74594da639ac2eecf71b1f2131f544381c0443c52c2abc0fc04",
+    "htmlBytes": 2205621,
+    "servedRequests": 7,
+    "sourceAndHTMLBeforeAfterUnchanged": true,
+    "buildExitCode": 0,
+    "workers": 1,
+    "retries": 0,
+    "maxFailures": 1,
+    "ownPort": 48541,
+    "ownServerStopped": true,
+    "windows": [
+      {
+        "action": "deactivate",
+        "boot": 1,
+        "ms": 15.2998046875,
+        "writes": 0,
+        "realMainExpensesHistoryByteExactAtHide": true,
+        "realMainExpensesHistoryByteExactAtDestinationInit": true
+      },
+      {
+        "action": "empty",
+        "boot": 1,
+        "ms": 15.699951171875,
+        "writes": 0,
+        "realMainExpensesHistoryByteExactAtHide": true,
+        "realMainExpensesHistoryByteExactAtDestinationInit": true
+      },
+      {
+        "action": "activate",
+        "boot": 1,
+        "ms": 19.400146484375,
+        "writes": 0,
+        "realMainExpensesHistoryByteExactAtHide": true,
+        "realMainExpensesHistoryByteExactAtDestinationInit": true
+      },
+      {
+        "action": "activate",
+        "boot": 2,
+        "ms": 15.800048828125,
+        "writes": 0,
+        "realMainExpensesHistoryByteExactAtHide": true,
+        "realMainExpensesHistoryByteExactAtDestinationInit": true
+      }
+    ],
+    "immediateProbeActuallyFiredAll3": true,
+    "noSeedInAnyUpsert": true,
+    "allRealMainExpensesHistoryBytesExactAtConfirmHideDestinationInit": true,
+    "zeroProductionNetworkMutations": true,
+    "syntheticInterceptedOnly": true
+  },
+  "pendingRealEdit": {
+    "choice": "Existing durable real local state,not a new queue or schema.",
+    "implementation": "Before flag/seed, App cancels its1200ms cloud debounce and calls existing flushPersist. Returning to real loads that local state; existing local-newer LWW and normal sync/push upload it.",
+    "proof": "Actual Settings reduceMotion edit durable but not in any prior upsert; survives activation and is uploaded in real destination boot3 with budget500.",
+    "preserved": true,
+    "returnUploadVerified": true
+  },
+  "old4msPayload": {
+    "table": "app_state",
+    "method": "upsert",
+    "budget": 500,
+    "realState": true,
+    "sandboxSeed": false,
+    "seedBudget": 9999
+  },
+  "scope": {
+    "askAcknowledgement": [
+      "src/modules/02-ui-shared.js",
+      "src/modules/05-dialogs-inv.js",
+      "src/modules/10-app-components.js"
+    ],
+    "expressWindowGuard": [
+      "src/modules/00-core.js",
+      "src/modules/05-dialogs-inv.js",
+      "src/modules/11-app-main.js"
+    ],
+    "CLOUD_WRITESUnchanged": true,
+    "pinnedUnchanged": true,
+    "persistenceBodyPartitionsSchemaUnchanged": true,
+    "normalAskUnchanged": true,
+    "noTimeoutOrForeignHistoryConsumption": true,
+    "sourceVersionCatalogueCapsUnchanged": true,
+    "publicArtifactsGeneratedOnly": true
+  },
+  "evidencePreservation": {
+    "privateCheckpointSHA256": "236a8dc1c06314be1221139a77558b42062a1fa8709a44caf1b3d235a30dd6e1",
+    "privateManifestSHA256": "fe0c87ba9f2b1fcec9e40982d8932a42c3fb02b7a1cccb3b1d4a7a7fe4868ca3",
+    "priorStoppedCandidate": "654d38a730d4c5672dbc0deaaa1d6f0a85f7fb00",
+    "priorGateRedPreserved": true,
+    "previous2136And547EntryAuditsPreserved": true,
+    "priorUX13PR": 248,
+    "priorUX13Source": "255eb082d57a0e07a7a7a0bf3baf378f2c50f702",
+    "priorUX13FrozenAndNotClosed": true
+  },
+  "limitations": [
+    "Independent review of the cloud guard is pending; this delivery is not GO. Claude considers beta142 only if that review gives GO.",
+    "Catalogue and receipt seal reconciliation,source descriptors and official size/general gates remain pending with integration owner. No VERSION,catalogue or cap edits were made to bypass gates.",
+    "General CI/fullsuite,docs-frescura,beta-sources,official size,integration,served beta and physical mobile acceptance are unexecuted or unconfirmed; no ProductREADY.",
+    "Canonical source HTML is unstamped dev; exact local source/HTML hashes do not prove APK55 or a served OTA.",
+    "Conflict-copy INC0410 is absent from503; empty-key comparison is not a populated-conflict oracle.",
+    "No CPU6,Gradle/APK,livebank,SQL,RLS,Edge/backend operations,dependency installs,foreign leases,deploy,main-beta push or merge.",
+    "Harness-only preflights EXIT1 for WindowsCRLF-versus-GitLF comparisons are preserved; corrected in private harness,not by changing product,list or oracles."
+  ],
+  "artifacts": [
+    "docs/briefs/inc1710-01-sandbox-settings.md",
+    "e2e/modo-pruebas.spec.mjs",
+    "tests/security.test.mjs",
+    "tests/backclose-history.test.mjs"
+  ],
+  "fetchBudget": {
+    "idbudget": "inc171001-own12-db3299cd-block3",
+    "allowance": 12,
+    "usedBeforeResultReadback": 5,
+    "readbackExpectedUsed": 6,
+    "firstAndInternalReadsCounted": true,
+    "noReset": true,
+    "noROOTInheritance": true,
+    "noAdditionalBlock": true
+  },
+  "testsRepeatedDuringDelivery": false,
+  "buildRepeatedDuringDelivery": false,
+  "sourceChangedDuringDelivery": false,
+  "helperFilterIdentityUnchanged": true,
+  "nextAction": "Exact own blocked/released result readback,private atomicfsync/readback checkpoint with actual ledger,release serial slot and STOP without polling. PR248 stays frozen. Await independent Claude review; no further product work by inference.",
+  "schema": 1,
+  "taskId": "inc1710-01-sandbox-settings-reactivity-codex-20261017",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-8e50dcf4186a58d7",
+  "createdAt": "2026-10-17T21:09:03.496Z",
+  "released": true
+}
