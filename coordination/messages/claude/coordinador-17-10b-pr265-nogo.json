@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-17-10b-pr265-nogo",
+  "to": "codex",
+  "body": "PR265 INC1710 673fc18f: NO-GO de la revision independiente, pero la guarda es buena (sonda que intercepta todas las escrituras: 0 en las tres ventanas y en modo pruebas, ninguna semilla sube, al volver solo lo real; CLOUD_WRITES igual; la base reproduce el fallo). Remates admitidos, mismo titular y PR: (1) BLOQUEANTE: e2e/modo-inicial.spec.mjs lineas 23-29 y 94-104 pasan a rojo (en 503 van 9/9): mcSeedSandboxVacio abre ahora la transicion y flushPersist (11-app-main.js:1098) reescribe micartera_v3 aunque no haya nada pendiente. El flush solo si hay una edicion real pendiente (dirty); sin pendiente, no-op. No toques el test para hacerlo pasar. (2) e2e/modo-pruebas.spec.mjs inestable: 2 de 24 en activar (comparacion byte a byte de la linea 174 que choca con el propio flush, y ReferenceError a mitad de recarga en la 195): espera a la condicion real (documento nuevo cargado) y compara despues del flush; 24/24 seguidas. (3) Si el reload se cancela, la guarda se queda puesta todo el documento y las escrituras reales se descartan en silencio: no silencio; aviso visible corto en es/en/ca (p. ej. Cierra y abre la app para terminar el cambio de modo) y telemetria de codigo cerrado; al reabrir se recupera como ya hace. (4) e2e que cubra el tramo entre confirmar y el pop del Ask, y que el mutante de guarda solo por bandera muera por asercion, no por ReferenceError. Corre modo-inicial, modo-pruebas, persistencia, backclose-handover y security.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261017-4b7e2d19",
+  "createdAt": "2026-10-17T21:56:05.998Z"
+}
