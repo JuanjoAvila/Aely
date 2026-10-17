@@ -11,6 +11,7 @@ import { ebApi, ebConfig, makeJWT } from "../_shared/enablebanking.ts";
 import { encryptSessionId } from "../_shared/token_store.ts";
 import { CallbackFallo, codigoCallback, codigoNolink } from "../_shared/entrada.ts";
 import { keepsCursor, type LinkedAccount } from "./reconnect.ts";
+import { bucketKey, callerIp, rateLimit } from "../_shared/ratelimit.ts";
 
 const APP_URL = Deno.env.get("APP_URL") || "https://juanjoavila.github.io/Aely/";
 
@@ -24,6 +25,14 @@ const APP_URL = Deno.env.get("APP_URL") || "https://juanjoavila.github.io/Aely/"
 function backToApp(ok: boolean, msg?: string): Response {
   const qs = ok ? "?ok=1" : `?msg=${encodeURIComponent(msg || "error")}`;
   return Response.redirect(`${APP_URL}back.html${qs}`, 302);
+}
+
+// Conserva el puente web/APK y su código cerrado: un freno no debe convertirse en
+// un error nuevo de OAuth ni llevar la query bancaria al navegador o al registro.
+function callbackRateLimited(fromApp: boolean): Response {
+  const msg = "error";
+  return fromApp ? backToApp(false, msg)
+    : Response.redirect(`${APP_URL}?bank=error&msg=${encodeURIComponent(msg)}`, 302);
 }
 
 Deno.serve(async (req) => {
@@ -45,6 +54,12 @@ Deno.serve(async (req) => {
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     admin = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
+    // La IP solo agrupa abuso antes del lookup; no autentica. El hash reutiliza el
+    // contrato de ingest y nunca guarda code/state ni la dirección en claro.
+    const ipBucket = await bucketKey("bank-callback-ip", callerIp(req));
+    const ipGate = await rateLimit(admin, ipBucket, 60, 60);
+    if (!ipGate.ok) return callbackRateLimited(fromApp);
+
     const { data: link } = await admin.from("bank_links").select("*").eq("state", state).maybeSingle();
     if (!link) throw new CallbackFallo("state", "state desconocido");
     userId = link.user_id || null;
@@ -62,6 +77,10 @@ Deno.serve(async (req) => {
     if (!isNaN(issued) && Date.now() - issued > 30 * 60 * 1000) {
       throw new CallbackFallo("caducado", "state emitido hace más de 30 min");
     }
+    // Un intento limitado conserva el state válido para poder terminar después.
+    // El consumo atómico frente a dos callbacks simultáneos es otro encargo.
+    const userGate = await rateLimit(admin, "bank-callback:" + link.user_id, 10, 600);
+    if (!userGate.ok) return callbackRateLimited(fromApp);
     // Se gasta ANTES de canjear el code: si el canje falla a mitad, el state ya no vale igual.
     await admin.from("bank_links").update({ state: null }).eq("id", link.id);
 
