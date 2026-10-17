@@ -6,8 +6,9 @@ const texts={es:{debts:"Deudas",goals:"Metas",editDebt:"Editar deuda",editGoal:"
 const debt={id:"debt",name:"Préstamo sintético",value:176714.8,original:180000,monthly:660.85,amort:450.15,months:309,asOf:2026*12+9-40,day:1,apr:2,account:"sabadell",unknown:{keep:7}};
 const goal={id:"goal",name:"Viaje sintético",target:4000.55,saved:1500.25,monthly:75.1,emoji:"✈️",unknown:{keep:8}};
 const saved=page=>page.evaluate(()=>JSON.parse(localStorage.getItem("micartera_v3")));
-async function open(page,lang,overrides={}){
- await page.clock.install({time:new Date("2026-10-14T12:00:00Z")});
+async function open(page,lang,overrides={},realClock=false){
+ // El reloj falso también sustituye requestAnimationFrame: para medir frames hay que ir sin él.
+ if(!realClock)await page.clock.install({time:new Date("2026-10-14T12:00:00Z")});
  await seedLoggedInDashboard(page,{__seedOnce:true,...estadoHeredado("2026-10-14"),obAccounts:estadoHeredado("2026-10-14").obAccounts.map(o=>({...o,key:o.id})),debts:[debt],goals:[goal],expenses:[],settings:{lang,autoPrices:false,theme:"green",reservaRules:[]},...overrides});
  await page.goto("/");await page.waitForFunction(()=>!document.getElementById("mc-load"));await dismissNews(page);
  await page.locator('.botnav-tab[data-tour="plan"]').click();await page.getByRole("tab",{name:texts[lang].debts,exact:true}).click();
@@ -102,7 +103,6 @@ const reviewDebt={id:"debt",name:"Deuda segunda sintética",value:2000,monthly:2
 const reviewRows={debts:[{...reviewDebt,id:"debt-first",name:"Primera deuda sintética",value:900},reviewDebt],goals:[{...goal,id:"goal-first",name:"Primera meta sintética"},goal]};
 for(const scenario of [
  {id:"día",field:"day",value:"1",balance:120000,left:6,total:11,last:20000},
- {id:"cuota",field:"monthly",value:"100",balance:120000,left:12,total:16,last:10000},
  {id:"saldo residual",field:"balance",value:"1300,25",balance:130025,left:7,total:11,last:10025}
 ])test(`R1/M5: cambiar ${scenario.id} conserva saldo y muestra cuotas coherentes`,async({page})=>{
  await open(page,"es",reviewRows);const before=await saved(page),row=page.locator('[data-debt-id="debt"]');
@@ -138,6 +138,7 @@ test("M2/M7: baja el objetivo de la segunda de DOS metas y recalcula done",async
 
 // PC: plazo y cuota se validan juntos sin perder el borrador ni tocar otra fila.
 const pcErrors={es:"El plazo y la cuota no encajan con el saldo pendiente. Revisa el plazo o la cuota.",en:"The term and payment do not match the remaining balance. Check the term or payment.",ca:"El termini i la quota no encaixen amb el saldo pendent. Revisa el termini o la quota."};
+const pcRange={es:"Con 6 cuotas por pagar, la cuota tiene que estar entre",en:"With 6 payments left, the payment must be between",ca:"Amb 6 quotes per pagar, la quota ha d'estar entre"};
 const pcDebt=extra=>({...reviewDebt,original:2000,...extra}),pcRows=d=>({...reviewRows,debts:[reviewRows.debts[0],d]});
 const pcInvalid=[{id:"fantasma",months:20,debt:{}},{id:"residual",months:8,debt:{}},{id:"amort",months:16,debt:{monthly:300,amort:200}},{id:"balloon",months:20,debt:{value:2400,balloon:400}}];
 for(const lang of ["es","en","ca"])for(const scenario of pcInvalid.filter(x=>lang==="es"||x.id==="fantasma"||x.id==="residual"))test(`PC: rechaza ${scenario.id} y conserva borrador (${lang})`,async({page})=>{
@@ -147,6 +148,21 @@ for(const lang of ["es","en","ca"])for(const scenario of pcInvalid.filter(x=>lan
  await expect(sheet).toBeVisible();await expect(sheet.locator('[data-debt-field="months"]')).toHaveValue(String(scenario.months));await expect(sheet.locator('[data-debt-field="monthly"]')).toHaveValue("100");
  const after=await saved(page);expect(after.debts).toEqual(before.debts);expect(after.goals).toEqual(before.goals);expect(after.expenses).toEqual(before.expenses);
  await sheet.getByRole("button",{name:texts[lang].cancel,exact:true}).click();await expect(sheet).toHaveCount(0);await page.reload();await page.waitForFunction(()=>!document.getElementById("mc-load"));expect((await saved(page)).debts).toEqual(before.debts);
+});
+// Paso del panel de beta 4.26.138.1, tal cual: deuda con plazo, SOLO se baja la cuota y Guardar.
+// Antes se guardaba alargando el plazo por debajo; ahora avisa, no guarda y la tarjeta no cambia.
+for(const lang of ["es","en","ca"])test(`panel: cuota baja con plazo avisa y no guarda (${lang})`,async({page})=>{
+ await open(page,lang,pcRows(pcDebt({})));const before=await saved(page),row=page.locator('[data-debt-id="debt"]');const card=await row.locator(".plan-debt-details").innerText();
+ await row.locator(".plan-item-open").click();const sheet=debtSheet(page,lang);
+ await expect(sheet.locator('[data-debt-field="months"]')).toHaveValue("10");await sheet.locator('[data-debt-field="monthly"]').fill("100");
+ await sheet.getByRole("button",{name:texts[lang].saveDebt,exact:true}).click();
+ // Y dice entre qué cuotas cuadra: el «no encajan» a secas no decía qué valor aceptaba (revisión d139c).
+ const alert=sheet.getByRole("alert");await expect(alert).toContainText(pcErrors[lang]);await expect(alert).toContainText(pcRange[lang]);await expect(alert).toContainText(/239[,.]99/);await expect(sheet).toBeVisible();
+ await expect(sheet.locator('[data-debt-field="monthly"]')).toHaveValue("100");await expect(sheet.locator('[data-debt-field="months"]')).toHaveValue("10");
+ await expect(page.getByText(texts[lang].saved,{exact:true})).toHaveCount(0);
+ const after=await saved(page);expect(after.debts).toEqual(before.debts);expect(after.goals).toEqual(before.goals);
+ await sheet.getByRole("button",{name:texts[lang].cancel,exact:true}).click();await expect(sheet).toHaveCount(0);await expect(row.locator(".plan-debt-details")).toHaveText(card);
+ await page.reload();await page.waitForFunction(()=>!document.getElementById("mc-load"));expect((await saved(page)).debts).toEqual(before.debts);
 });
 for(const scenario of [
  {id:"parcial",debt:{value:2000.25},months:17,value:1600.25,balance:120025,left:13,last:25},
@@ -177,11 +193,58 @@ for(const lang of ["es","en","ca"])for(const scenario of [
  await page.reload();await page.waitForFunction(()=>!document.getElementById("mc-load"));expect((await saved(page)).debts.find(x=>x.id==="debt")).toEqual(d);
 });
 
+// Rechazo de beta 4.26.138.1: «al abrir la hoja de editar parpadea o salta». Medido frame a frame
+// con la CPU frenada no había remontaje ni movimiento del fondo; lo que cambiaba de golpe era el
+// velo negro al 55 % y la subida en 280 ms de `.tabsheet`, ya rechazados en Apuntar. Este guardián
+// abre las dos hojas reales y exige: un solo montaje, fondo quieto, subida sin retrocesos y la
+// misma hoja que Apuntar (velo suave y ritmo pausado).
+for(const kind of ["debt","goal"])test(`apertura de la hoja de ${kind==="debt"?"deuda":"meta"}: sin remontaje, fondo quieto y hoja de Apuntar`,async({page})=>{
+ const many={debts:[1,2,3,4].map(i=>pcDebt({id:"d"+i,name:"Deuda "+i,value:2000*i,original:2000*i,months:10*i})),goals:[1,2,3,4].map(i=>({...goal,id:"g"+i,name:"Meta "+i,target:4000*i}))};
+ await open(page,"es",many,true);if(kind==="goal")await page.getByRole("tab",{name:"Metas",exact:true}).click();
+ const cdp=await page.context().newCDPSession(page);await cdp.send("Emulation.setCPUThrottlingRate",{rate:4});
+ const card=page.locator(kind==="debt"?'[data-debt-id="d2"]':'[data-goal-id="g2"]');
+ await page.evaluate(()=>{const host=document.querySelector(".page-scroll-host");host.scrollTop=200;});await page.waitForTimeout(400);
+ await page.evaluate(sel=>{
+  const rec=window.__apertura={frames:[],mounts:0,unmounts:0},pg=document.querySelector(sel).closest(".page");
+  const watch=n=>n.nodeType===1&&!!(n.matches(".plan-edit-sheet")||n.querySelector&&n.querySelector(".plan-edit-sheet"));
+  new MutationObserver(ms=>{for(const m of ms){for(const n of m.addedNodes)if(watch(n))rec.mounts++;for(const n of m.removedNodes)if(watch(n))rec.unmounts++;}}).observe(document.body,{childList:true,subtree:true});
+  const t0=performance.now();(function f(){const sh=document.querySelector(".plan-edit-sheet"),c=document.querySelector(sel);
+   rec.frames.push({sheet:sh?sh.getBoundingClientRect().top:null,card:c.getBoundingClientRect().top,scroll:pg.scrollTop});
+   if(performance.now()-t0<2500)requestAnimationFrame(f);})();
+ },kind==="debt"?'[data-debt-id="d2"]':'[data-goal-id="g2"]');
+ // Clic crudo: el de Playwright puede desplazar la página para «ver» el botón y falsear el fondo.
+ await card.locator(".plan-item-open").evaluate(b=>b.click());
+ const sheet=kind==="debt"?debtSheet(page,"es"):goalSheet(page,"es");await expect(sheet).toBeVisible();
+ await page.waitForFunction(()=>{const el=document.querySelector(".plan-edit-sheet");return !!el&&getComputedStyle(el).transform==="none";},null,{timeout:10000});
+ await page.waitForTimeout(150);await cdp.send("Emulation.setCPUThrottlingRate",{rate:1});
+ const rec=await page.evaluate(()=>window.__apertura),shown=rec.frames.filter(f=>f.sheet!=null);
+ expect(rec.mounts).toBe(1);expect(rec.unmounts).toBe(0);
+ expect(new Set(rec.frames.map(f=>Math.round(f.card))).size).toBe(1);expect(new Set(rec.frames.map(f=>f.scroll))).toEqual(new Set([200]));
+ expect(shown.length).toBeGreaterThan(3);
+ for(let i=1;i<shown.length;i++)expect(shown[i].sheet,"la hoja nunca retrocede al subir").toBeLessThanOrEqual(shown[i-1].sheet+0.5);
+ const look=await sheet.evaluate(el=>{const back=getComputedStyle(el.parentElement).backgroundColor.match(/[\d.]+/g).map(Number);return {sheet:el.classList.contains("v4-sheet"),back:el.parentElement.classList.contains("v4-sheet-back"),alpha:back.length>3?back[3]:1,duration:parseFloat(getComputedStyle(el).animationDuration)};});
+ expect(look).toMatchObject({sheet:true,back:true});expect(look.alpha).toBeLessThanOrEqual(0.3);expect(look.duration).toBeGreaterThanOrEqual(0.4);
+});
+// El atrás del sistema cierra la hoja con el borrador sin escribir y sin salir de la app. Sin
+// useBackClose el atrás se iba a la página anterior del historial y ningún test lo veía (revisión d139).
+for(const kind of ["debt","goal"])test(`atrás del sistema cierra la hoja de ${kind==="debt"?"deuda":"meta"} sin escribir ni salir`,async({page})=>{
+ await open(page,"es");if(kind==="goal")await page.getByRole("tab",{name:"Metas",exact:true}).click();
+ const url=page.url(),before=await saved(page),navs=[];page.on("framenavigated",f=>{if(f===page.mainFrame())navs.push(f.url());});
+ await page.locator(kind==="debt"?'[data-debt-id="debt"] .plan-item-open':'[data-goal-id="goal"] .plan-item-open').click();
+ const sheet=kind==="debt"?debtSheet(page,"es"):goalSheet(page,"es");await expect(sheet).toBeVisible();
+ await sheet.locator(kind==="debt"?'[data-debt-field="name"]':'[data-goal-field="name"]').fill("Borrador sin guardar");
+ await expect.poll(()=>page.evaluate(()=>_mcBackStack.length)).toBe(1);
+ await page.goBack();
+ await expect(sheet).toHaveCount(0);await expect(page).toHaveURL(url);await expect(page.locator(".botnav")).toBeVisible();
+ await expect.poll(()=>page.evaluate(()=>({stack:_mcBackStack.length,pending:_mcIgnorePop}))).toEqual({stack:0,pending:false});
+ expect(navs.every(n=>n===url)).toBe(true);
+ const after=await saved(page);expect(after.debts).toEqual(before.debts);expect(after.goals).toEqual(before.goals);
+});
 test("R2: residual del alta1000 en3 admite corregir un centimo a cero",async({page})=>{
  const d=pcDebt({value:1000,original:1000,monthly:333.33,amort:333.33,months:3,asOf:2026*12+9-3});await open(page,"es",pcRows(d));const before=await saved(page);await page.locator('[data-debt-id="debt"] .plan-item-open').click();const sheet=debtSheet(page,"es");for(const key of ["balance","monthly","day","months","apr"])await expect(sheet.locator('[data-debt-field="'+key+'"]')).toBeEnabled();await expect(sheet.locator('[data-debt-field="balance"]')).toHaveValue("0.01");await expect(sheet.getByText(finishedHints.es,{exact:true})).toHaveCount(0);await sheet.locator('[data-debt-field="balance"]').fill("0");await sheet.getByRole("button",{name:texts.es.saveDebt,exact:true}).click();await expect(sheet).toHaveCount(0);await expect.poll(async()=>(await saved(page)).debts[1].value).toBe(999.99);const after=await saved(page);expect(after.debts).toEqual([before.debts[0],{...before.debts[1],value:999.99}]);expect(after.goals).toEqual(before.goals);expect(await page.evaluate(d=>({balance:Math.round(debtBalance(d)*100),left:debtLeft(d)}),after.debts[1])).toEqual({balance:0,left:0});await page.reload();await page.waitForFunction(()=>!document.getElementById("mc-load"));expect((await saved(page)).debts).toEqual(after.debts);
 });
 test("R2: legado2500 tras10 cuotas de200 permite cuota normal y conserva500",async({page})=>{
- await open(page,"es",pcRows(pcDebt({value:2500,original:2500,asOf:2026*12+9-10})));const before=await saved(page);await page.locator('[data-debt-id="debt"] .plan-item-open').click();const sheet=debtSheet(page,"es");for(const key of ["balance","monthly","day","months","apr"])await expect(sheet.locator('[data-debt-field="'+key+'"]')).toBeEnabled();await expect(sheet.locator('[data-debt-field="balance"]')).toHaveValue("500");await sheet.locator('[data-debt-field="monthly"]').fill("100");await sheet.getByRole("button",{name:texts.es.saveDebt,exact:true}).click();await expect(sheet).toHaveCount(0);await expect.poll(async()=>(await saved(page)).debts[1].monthly).toBe(100);const after=await saved(page);expect(after.debts).toEqual([before.debts[0],{...before.debts[1],monthly:100,months:15,value:1500,settledAt:null,archivedAt:null}]);expect(await page.evaluate(d=>({balance:Math.round(debtBalance(d)*100),left:debtLeft(d)}),after.debts[1])).toEqual({balance:50000,left:5});await page.reload();await page.waitForFunction(()=>!document.getElementById("mc-load"));expect((await saved(page)).debts).toEqual(after.debts);
+ await open(page,"es",pcRows(pcDebt({value:2500,original:2500,asOf:2026*12+9-10})));const before=await saved(page);await page.locator('[data-debt-id="debt"] .plan-item-open').click();const sheet=debtSheet(page,"es");for(const key of ["balance","monthly","day","months","apr"])await expect(sheet.locator('[data-debt-field="'+key+'"]')).toBeEnabled();await expect(sheet.locator('[data-debt-field="balance"]')).toHaveValue("500");await sheet.locator('[data-debt-field="monthly"]').fill("100");await sheet.locator('[data-debt-field="months"]').fill("15");await sheet.getByRole("button",{name:texts.es.saveDebt,exact:true}).click();await expect(sheet).toHaveCount(0);await expect.poll(async()=>(await saved(page)).debts[1].monthly).toBe(100);const after=await saved(page);expect(after.debts).toEqual([before.debts[0],{...before.debts[1],monthly:100,months:15,value:1500,settledAt:null,archivedAt:null}]);expect(await page.evaluate(d=>({balance:Math.round(debtBalance(d)*100),left:debtLeft(d)}),after.debts[1])).toEqual({balance:50000,left:5});await page.reload();await page.waitForFunction(()=>!document.getElementById("mc-load"));expect((await saved(page)).debts).toEqual(after.debts);
 });
 test("R2: terminada real mantiene bloqueo financiero y nombre editable",async({page})=>{
  await open(page,"es",pcRows(pcDebt({asOf:2026*12+9-10})));const before=await saved(page);await page.locator('[data-debt-id="debt"] .plan-item-open').click();const sheet=debtSheet(page,"es");for(const key of ["balance","monthly","day","months","apr"])await expect(sheet.locator('[data-debt-field="'+key+'"]')).toBeDisabled();await expect(sheet.getByText(finishedHints.es,{exact:true})).toBeVisible();await sheet.locator('[data-debt-field="name"]').fill("Terminada corregida");await sheet.getByRole("button",{name:texts.es.saveDebt,exact:true}).click();await expect(sheet).toHaveCount(0);await expect.poll(async()=>(await saved(page)).debts[1].name).toBe("Terminada corregida");expect((await saved(page)).debts).toEqual([before.debts[0],{...before.debts[1],name:"Terminada corregida"}]);

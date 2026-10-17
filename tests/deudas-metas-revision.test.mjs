@@ -21,12 +21,17 @@ function schedule(runtime,d,expectedBalance,expectedLeft,expectedTotal,expectedL
 }
 const cases=[
  ["R1-dia",r=>{const d=debt();assert.equal(r.c.debtLeft(d),6);const n=edited(r.c,d,{day:"1"});assert.equal(n.asOf,anchor);assert.equal(n.value,2200);schedule(r,n,120000,6,11,20000);}],
- ["R1-cuota",r=>{const n=edited(r.c,debt(),{monthly:"100"});assert.equal(n.value,1600);schedule(r,n,120000,12,16,10000);}],
+ ["R1-cuota",r=>{const n=edited(r.c,debt(),{monthly:"100",months:"16"});assert.equal(n.value,1600);schedule(r,n,120000,12,16,10000);}],
+ // Rechazo de beta 4.26.138.1: solo la cuota, sin tocar el plazo visible, ya no alarga el plazo.
+ ["R1-cuota-baja-rechazada",r=>{const d=debt(),answer=r.c.debtEditResult(d,{...r.c.debtEditDraft(d),monthly:"100"});assert.equal(answer.error,"db_err_term_quota");assert.equal(answer.item,undefined);}],
  ["M5-saldo-residual",r=>{const n=edited(r.c,debt(),{balance:"1300,25"});schedule(r,n,130025,7,11,10025);}],
- ["M5-saldo-dia-cuota",r=>{const n=edited(r.c,debt(),{balance:"1300,25",day:"1",monthly:"100"});schedule(r,n,130025,14,19,25);}],
+ ["M5-saldo-dia-cuota",r=>{const n=edited(r.c,debt(),{balance:"1300,25",day:"1",monthly:"100",months:"19"});schedule(r,n,130025,14,19,25);}],
  ["R1-dia-retrocede",r=>{const d={...debt(),day:1};assert.equal(cents(r.c.debtBalance(d)),100000);const n=edited(r.c,d,{day:"15"});schedule(r,n,100000,5,9,20000);}],
- ["R1-amort-distinta-cuota",r=>{const n=edited(r.c,{...debt(),amort:200},{monthly:"100"});assert.equal(n.amort,200);schedule(r,n,120000,6,10,20000);}],
- ["R1-pago-final",r=>{const n=edited(r.c,{...debt(),value:2400.11,balloon:400.11},{monthly:"100"});assert.equal(n.balloon,400.11);schedule(r,n,160011,12,16,50011);}],
+ // Cuota 300 que amortiza 200 (no ligadas): cambiar la cuota solo cambia lo que se paga.
+ ["R1-amort-distinta-cuota",r=>{const n=edited(r.c,{...debt(),monthly:300,amort:200},{monthly:"100"});assert.equal(n.amort,200);schedule(r,n,120000,6,10,20000);}],
+ // Ligadas (amort = cuota, como cualquier alta con plazo): se mueven juntas y se valida con la nueva.
+ ["R1-amort-ligada-cuota-rechazada",r=>{const d={...debt(),amort:200},answer=r.c.debtEditResult(d,{...r.c.debtEditDraft(d),monthly:"100"});assert.equal(answer.error,"db_err_term_quota");assert.equal(answer.item,undefined);}],
+ ["R1-pago-final",r=>{const n=edited(r.c,{...debt(),value:2400.11,balloon:400.11},{monthly:"100",months:"16"});assert.equal(n.balloon,400.11);schedule(r,n,160011,12,16,50011);}],
  ["R1-centimos-sin-cuota-fantasma",r=>{const d={...debt(),value:0.14,monthly:0.01,months:14,asOf:2026*12+9};const n=edited(r.c,d,{day:"1"});schedule(r,n,14,14,15,1);}],
  ...[["saldo",{balance:"100"}],["cuota",{monthly:"100"}],["TAE",{apr:"1,05"}],["dia",{day:"15"}],["plazo",{months:"12"}],["sin-plazo",{months:""}]].map(([kind,changes])=>["M8-terminada-bloquea-"+kind,r=>{const d={...debt(),day:1,asOf:2026*12+9-9},before=JSON.stringify(d);assert.equal(cents(r.c.debtBalance(d)),0);const answer=r.c.debtEditResult(d,{...r.c.debtEditDraft(d),...changes});assert.equal(answer.error,"db_finished_edit_hint");assert.equal(answer.item,undefined);assert.equal(JSON.stringify(d),before);assert.equal(r.c.debtLeft(d),0);}]),
  ...["balance","monthly"].map(field=>["M9-ficha-bloquea-"+field,r=>{r.c.React.createElement=(type,props,...children)=>({type,props:props||{},children});const d={...debt(),day:1,asOf:2026*12+9-9},tree=r.c.DebtEditSheet({debt:d,state:{debts:[d]},set:()=>{},onClose:()=>{},onDelete:()=>{},showToast:()=>{}}),nodes=[];function walk(n){if(!n||typeof n!=="object")return;if(Array.isArray(n)){n.forEach(walk);return;}nodes.push(n);walk(n.children);}walk(tree);const input=nodes.find(n=>n.props?.["data-debt-field"]===field);assert.ok(input,"Campo financiero real presente");assert.equal(input.props.disabled,true,"Campo financiero bloqueado en ficha real");}]),
@@ -45,7 +50,9 @@ const results=evaluate(source),failed=results.filter(x=>!x.passed),mutations=[];
 if(!failed.length&&process.argv.includes("--mutations")){
  const definitions=[
   {id:"M2-indice-en-vez-de-id",find:"s[field].map(function(x){ return x.id===before.id?next:x; })",replace:"s[field].map(function(x,i){ return i===0?next:x; })",cases:["M2-id-debts","M2-id-goals"]},
-  {id:"M5-no-recalcular-plazo",find:/if\(\(amountChanged\|\|quotaChanged\|\|dayChanged\)&&!termChanged&&next.months!=null&&am>0\)/,replace:"if(false)",cases:["R1-dia","R1-cuota","M5-saldo-residual","M5-saldo-dia-cuota"]},
+  {id:"M5-no-recalcular-plazo",find:/if\(\(amountChanged\|\|dayChanged\)&&!\(quotaChanged&&quotaIsAmort\)&&!termChanged&&next.months!=null&&am>0\)/,replace:"if(false)",cases:["R1-dia","M5-saldo-residual"]},
+  {id:"M10-cuota-sin-validar",find:"if((termChanged||quotaChanged&&quotaIsAmort)&&next.months!=null)",replace:"if(termChanged&&next.months!=null)",cases:["R1-cuota-baja-rechazada","R1-amort-ligada-cuota-rechazada"]},
+  {id:"M11-cuota-siempre-amortiza",find:"const quotaIsAmort=d.amort==null||Math.abs(d.amort-(d.monthly||0))<=0.005;",replace:"const quotaIsAmort=true;",cases:["R1-amort-distinta-cuota"]},
   {id:"M8-sin-bloqueo-terminada",find:"if(debtEditFinished(d)&&(amountChanged||quotaChanged||dayChanged||termChanged||aprChanged))",replace:"if(false)",cases:["M8-terminada-bloquea-saldo","M8-terminada-bloquea-cuota","M8-terminada-bloquea-TAE","M8-terminada-bloquea-dia","M8-terminada-bloquea-plazo","M8-terminada-bloquea-sin-plazo"]},
   {id:"M9-ficha-desbloquea-saldo-cuota",find:'disabled:finished&&key!=="name"',replace:'disabled:finished&&(key==="day"||key==="months"||key==="apr")',cases:["M9-ficha-bloquea-balance","M9-ficha-bloquea-monthly"]},
   {id:"M7-done-no-recalculado",find:/  if\(next.target!==g.target\|\|next.saved!==g.saved\)\{[^\n]+\}\r?\n/,replace:"",cases:["M7-objetivo-baja-done","M7-objetivo-sube-reabre"]}
