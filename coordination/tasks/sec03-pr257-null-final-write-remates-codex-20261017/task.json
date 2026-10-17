@@ -1,0 +1,40 @@
+{
+  "schema": 1,
+  "id": "sec03-pr257-null-final-write-remates-codex-20261017",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261017-55d353e1f8536e7e",
+  "createdAt": "2026-10-17T14:27:18.292Z",
+  "kind": "worker",
+  "to": "codex",
+  "baseSHA": "7ce911a2bbd19e1d710cba1284bf0a7ff8a637c7",
+  "previousTaskId": "sec03-callback-atomic-state-codex-20261017",
+  "previousResult": "8e0d3b1ed795da8a71b7b86baf3753064fe9ff87",
+  "grantCommit": "9751cc0391055f6eb66ac79b243db5ab729b9e03",
+  "sameOriginalOwner": true,
+  "sameExistingPR": 257,
+  "objective": "Apply only final SEC03 PostgREST-null test-double and zero-row final-write rejection remates, then freeze PR257",
+  "scope": [
+    "supabase/functions/bank-callback/index.ts",
+    "tests/bank-callback-state.test.mjs",
+    "supabase/functions/bank-disconnect/lifecycle.test.ts",
+    "docs/briefs"
+  ],
+  "fetchBudget": {
+    "sameWorkerBlockOnly": true,
+    "additional12AfterOwnExhaustion": true,
+    "noticeRequired": true,
+    "ownLedgerRequired": true,
+    "noResetOrROOTInheritance": true
+  },
+  "requirements": [
+    "Read exact Claude GO9751cc03 FULL. Same original owner/session, PR257 and source7ce911a2. Closed predecessor result8e0d3b1e/source/PR249 remain immutable references.",
+    "New OWN claim/canonical readback/public ACK before edits. Continue actual sec03-own12-2-d28e023b ledger7/12, no reset, ROOT inheritance or premature additional12.",
+    "Correct test DB double: eq(column,null) must NOT match a null row, as PostgREST/SQL; proper is-null branch remains distinct. Kill actual legacy mutant using eq(state_issued_at,null), without weakening existing handler assertions.",
+    "Final link write zero affected rows and no error is not success: require returned-row confirmation and existing closed302 error. Causal RED on7ce source and focused tests for zero rows versus confirmed successful write; preserve original consume-state single-winner guard, expiry,quotas,web/APK/cursor and no restore/retry.",
+    "Do not add timestamp ABA,connection_version/bank-connect guard, schema or SEC04 implementation. Do not merge/rebase SEC01 here: Claude integration after finalPR256 into planned beta140 is separate.",
+    "Run only newly affected callback tests, meaningful JSON/null/zero-row mutants and lifecycle regression if actual final-write chain/fixture changed. Preserve reviewer16/16 source qualification; no unrelated repeated suites.",
+    "Private phase only after own claim/ACK/admission and slot release; normal own branch push/update samePR257/result only with serial delivery turn. NumericPR, exact sourceSHA/EXITs and all remaining limitations.",
+    "No09/sheet/VERSION/catalogue/cap/oracle changes, no fullsuite/CPU6/Gradle/SQL/livebanks/deploy/main-beta push/merge, no install or foreign modules.",
+    "Any rejection preserved and STOP; no proxy, alternate identity/path/helper/filter bypass or retry without new authority/effective OWN state. Freeze branch after final remates."
+  ]
+}
