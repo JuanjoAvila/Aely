@@ -1,0 +1,41 @@
+{
+  "schema": 1,
+  "id": "inc0410-pr253-review-remates-codex-20261017",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261017-ff298a06",
+  "createdAt": "2026-10-17T12:15:06.560Z",
+  "kind": "worker",
+  "to": "codex",
+  "baseSHA": "e3bbd92c41ad7168786ddb5550e35b95f686b3d3",
+  "previousTaskId": "inc0410-metas-lww-investigation-codex-20261017",
+  "previousResult": "331b59eda4bb012bb3f4ae7d570ab59493cfbaa7",
+  "grantCommit": "fa83f1c681750095c017f8448e2353040cb91456",
+  "sameOriginalOwner": true,
+  "PR": 253,
+  "objective": "Correct every independent review blocker and minimum GO in Claude PR253 review, same owner and PR; prior result immutable",
+  "scope": [
+    "src/modules/00-core.js",
+    "src/modules/11-app-main.js",
+    "tests",
+    "docs/briefs",
+    "public/index.html"
+  ],
+  "requirements": [
+    "OWN reception then new claim/readback/publicACK before code; preserve predecessor WIP/evidence and same worker budgets; no lease inheritance",
+    "No base: seed base from cloud and follow prior path, no false cloudOnly conflict for identical local and cloud reserves",
+    "Conflict records exclude expenses,bankTx,histories,profile; cap3 in separate key using mcSaveRaw/mcLoadRaw",
+    "cloudOnly starts from prev to preserve local-only bankTx; respect localNewer if cloud reserves unchanged from base",
+    "ACK must not re-stamp _savedAt; group saved,target,done,doneAt coherently",
+    "Kill M9 with ACK push-count ant-loop and M12 ACK through pushAppState using sent snapshot; causal RED before correction",
+    "Telemetry once per conflict record; clear records on SIGNED_OUT; generated build committed; all minimumGO of fa83f1c6 authoritative",
+    "No09/edit sheet,VERSION,catalogue,cap or oracle changes; public/index generated from authorized sources only",
+    "No repeat completed tests unless causal source change; focused tests and directed e2e only if needed1worker0retry ownport; no fullsuiteCPU6GradleSQLlivebankdeploymainbetapush",
+    "Draft samePR253 against main, exactSHA actualEXIT mutation evidence size and unexecuted gates; result own identity after explicit serial publication turn"
+  ],
+  "fetchBudget": {
+    "sameWorkerBlockOnly": true,
+    "additional12AfterOwnExhaustion": true,
+    "noticeRequired": true,
+    "noResetOrROOTInheritance": true
+  }
+}
