@@ -361,10 +361,16 @@ async function ux13Bills(page){
   const hub=page.locator("[data-bills-manage]");await expect(hub).toBeVisible();
   await hub.locator('[data-act="bill-add"]').first().click();
   const wizard=page.locator('[data-sheet="bill-add"]');await expect(wizard).toHaveAttribute("data-step","what");
-  await wizard.locator("input.v4-bills-search").fill("Recibo sintético UX13");
-  await page.evaluate(()=>window.__ux13SetKeyboard(300));await ux13Settled(page);
+  // El foco inicial del título llega en rAF después de autoFocus. Escribir antes deja que
+  // ese callback quite el foco al campo y el doble oculte el teclado antes del gesto.
+  await expect(wizard.locator("h1")).toBeFocused();
+  const input=wizard.locator("input.v4-bills-search");await input.fill("Recibo sintético UX13");
+  await page.evaluate(()=>window.__ux13SetKeyboard(300));
+  await expect.poll(()=>input.evaluate(el=>({focused:document.activeElement===el,
+    gap:window.__ux13Keyboard.gap,keyboard:_mcBackCloseNative("peek")===el})))
+    .toEqual({focused:true,gap:300,keyboard:true});
   expect(await page.evaluate(()=>window.__mcNativeEdgeBackActive)).toBe(true);
-  return {hub,wizard};
+  return {hub,wizard,input};
 }
 
 async function ux13Edge(page,phase,progress=0){
@@ -377,14 +383,15 @@ async function ux13Edge(page,phase,progress=0){
 for(const hideBeforeInvoke of [false,true]){
   test(`UX13: predictivo conserva alta y hub al ocultar teclado: hideAntesInvoke=${hideBeforeInvoke}`,async({page})=>{
     const {previous,url,before}=await ux13Start(page,"native");
-    const {hub,wizard}=await ux13Bills(page);
+    const {hub,wizard,input}=await ux13Bills(page);
     const transform=await wizard.evaluate(el=>el.parentElement.style.transform);
     await ux13Edge(page,"start");await ux13Edge(page,"progress",0.55);
     expect(await wizard.evaluate(el=>el.parentElement.style.transform)).toBe(transform);
     if(hideBeforeInvoke) await page.evaluate(()=>window.__ux13SetKeyboard(0));
     await ux13Edge(page,"invoke",1);
-    // El cierre difiere 420ms: esperar evita confundir el fotograma anterior con conservación.
-    await page.waitForTimeout(500);
+    // Esperar el desenfoque real también descubre un cierre indebido diferido: al desmontar
+    // ya no quedaría hoja para las aserciones siguientes. No depender de una pausa fija.
+    await expect(input).not.toBeFocused();
     await expect(wizard).toHaveAttribute("data-step","what");await expect(hub).toBeVisible();
     await expect(wizard.locator("input.v4-bills-search")).toHaveValue("Recibo sintético UX13");
     await expect.poll(()=>page.evaluate(()=>window.__ux13Keyboard.gap)).toBe(0);
@@ -402,11 +409,12 @@ for(const hideBeforeInvoke of [false,true]){
 }
 
 test("UX13: cancelar predictivo con teclado conserva hoja, valor y geometría",async({page})=>{
-  const {url,before}=await ux13Start(page,"native");const {wizard}=await ux13Bills(page);
+  const {url,before}=await ux13Start(page,"native");const {wizard,input}=await ux13Bills(page);
   const x=await wizard.evaluate(el=>el.parentElement.getBoundingClientRect().x);
   await ux13Edge(page,"start");await ux13Edge(page,"progress",0.4);
   expect(await wizard.evaluate(el=>el.parentElement.getBoundingClientRect().x)).toBeCloseTo(x,1);
   await ux13Edge(page,"cancel");
+  await expect(input).toBeFocused();
   await expect(wizard).toHaveAttribute("data-step","what");
   await expect(wizard.locator("input.v4-bills-search")).toHaveValue("Recibo sintético UX13");
   expect(await wizard.evaluate(el=>el.parentElement.getBoundingClientRect().x)).toBeCloseTo(x,1);

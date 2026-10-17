@@ -1162,7 +1162,7 @@ function _mcBackFlush(){
   if(current&&!current.entry.active){ _mcBackConsume(current); return; }
   waiting.forEach(function(e){ if(!e.failed) _mcBackArm(e,null); });
 }
-function _mcBackCloseNative(keyboard, target){
+function _mcBackCloseNative(mode, target){
   var el=target||null;
   try{
     var active=document.activeElement, vv=window.visualViewport;
@@ -1173,9 +1173,9 @@ function _mcBackCloseNative(keyboard, target){
       window.innerHeight-vv.height-vv.offsetTop>Math.max(80,window.innerHeight*.15)) el=active;
   }catch(err){}
   // peek toma la decisión del inicio del gesto; only nunca cierra capas al ocultar el teclado.
-  if(keyboard==="peek") return el;
+  if(mode==="peek") return el;
   if(el){ try{ el.blur(); }catch(err){} return true; }
-  if(keyboard==="only") return false;
+  if(mode==="only") return false;
   var e=_mcBackStack[_mcBackStack.length-1];
   if(!e) return false;
   // Capacitor avisa sin recorrer History: el consumo pertenece al controlador, no a _byPop.
@@ -1279,15 +1279,15 @@ function useEdgePageClose(open,onClose,on,ref){
     const nat=natPlugin(), tog=function(v){
       if(nat&&nat.setEdgeBackEnabled){ try{ nat.setEdgeBackEnabled({enabled:v}).catch(function(){}); }catch(e){} }
     };
-    var keyboardGesture=null;
+    var ime=null;
     const back=function(e){
       const ph=e.phase;
       // Android puede ocultar el IME antes de invoke. La decisión pertenece al inicio del gesto,
       // sin temporizadores que absorban el siguiente atrás ni animar la página que queda debajo.
-      if(ph==="start") keyboardGesture=_mcBackCloseNative("peek");
-      if(keyboardGesture||_mcBackCloseNative("peek")){
-        if(ph==="invoke"){ _mcBackCloseNative("only",keyboardGesture); keyboardGesture=null; }
-        if(ph==="cancel") keyboardGesture=null;
+      if(ph==="start") ime=_mcBackCloseNative("peek");
+      if(ime||_mcBackCloseNative("peek")){
+        if(ph==="invoke"){ _mcBackCloseNative("only",ime); ime=null; }
+        if(ph==="cancel") ime=null;
         return;
       }
       // Un AskHost vive por encima de la página. Con el callback OVERLAY, Android ya no llega al
