@@ -1,0 +1,116 @@
+{
+  "status": "done",
+  "summary": "Remates exactos de PR252 bajo GOe3d09d2f entregados. Nuevo caso real con refresh distinto por intento mata M10 al quitar link spread enc; comentario corregido y helper ensureMiLinkEncrypted retirado tras censo sin consumidores de produccion en fuente; connection_unavailable distinto de save_error con cero efectos. Misma PR252, titular/sesion/rama y CAS previo; fuente congelada para revisionClaude. Entrega worker, no ProductREADY.",
+  "productSHA": "3544dd35ffcf4b6cc81342eace87770ff2e83a3b",
+  "baseSHA": "4aa3e015a83bbfec2feafe2e33d417904a854c0d",
+  "approvedOriginalSourceSHA": "fdc0524dfed1ed3728375a23af843fe289aca272",
+  "pullRequest": 252,
+  "branch": "codex/ops08-cas-pr241-20261017",
+  "claimCommit": "19cc47973f46e9d56eab494bf5ec415b8e53e449",
+  "ackCommit": "cd32b2e85ed173f01374097588a88949582acfa0",
+  "previousTaskId": "ops08-keepalive-sync-race-codex-20261017",
+  "previousResult": "aa8dfb195a5226474c5b455ba90eb71604ef9c81",
+  "previousResultImmutable": true,
+  "tests": [
+    {
+      "command": "deno test --node-modules-dir=none --allow-read=supabase/functions --filter M10 supabase/functions/_shared/myinvestor-counter.test.ts",
+      "exitCode": 0,
+      "cases": 1,
+      "meaning": "New real-handler control: three distinct own refresh rotations, expiry on third manual attempt,3refresh/6access, no positions"
+    },
+    {
+      "command": "Deno isolated M10 remove link spread enc; exact private invocation in OWN evidence",
+      "exitCode": 1,
+      "meaning": "Causal runtime assertion: expected no code at third expiry, received refresh_raced;1failure,not infrastructure",
+      "killed": true,
+      "mutantSHA256": "581e27febdfb90eaafbc8d44e9873068b6c851a58961783681406ed94d7447d5"
+    },
+    {
+      "command": "Node24 native TS adapter; tests/myinvestor-keepalive.test.mjs --filter Remates:",
+      "exitCode": 1,
+      "meaning": "Before product change:save_error vs expected connection_unavailable; causal RED"
+    },
+    {
+      "command": "deno test --node-modules-dir=none --allow-read=supabase/functions supabase/functions/_shared/myinvestor-counter.test.ts",
+      "exitCode": 0,
+      "cases": 22,
+      "meaning": "Affected fixture/import contract; newM10 added, obsolete direct helper test removed perGO"
+    },
+    {
+      "command": "deno test --node-modules-dir=none --allow-read=supabase/functions --filter legacy supabase/functions/_shared/myinvestor-token-race.test.ts",
+      "exitCode": 0,
+      "cases": 3,
+      "meaning": "Retained real guarded recipher cases after unused helper/doubles removal"
+    },
+    {
+      "command": "Node24 native TS adapter; tests/myinvestor-sync-outcomes.test.mjs",
+      "exitCode": 0,
+      "cases": 18,
+      "meaning": "Affected mock argument list; exact private invocation in OWN evidence; not stock esbuild"
+    },
+    {
+      "command": "Node24 native TS adapter; tests/myinvestor-keepalive.test.mjs --filter Remates:",
+      "exitCode": 0,
+      "cases": 1,
+      "meaning": "Distinct closed connection_unavailable and exact telemetry shape;0bank calls/0UPDATE attempts/0writes"
+    },
+    {
+      "command": "Node24 native TS adapter with isolated keepalive code restored to save_error; exact private invocation in OWN evidence",
+      "exitCode": 1,
+      "killed": true,
+      "meaning": "New diagnostic regression mutant; actual code mismatch,not infrastructure"
+    },
+    {
+      "command": "rg -n ensureMiLinkEncrypted|encryptLegacy supabase src tests scripts",
+      "exitCode": 1,
+      "meaning": "Expected inventory:zero remaining runtime/test/runner references; before census and after proof retained privately"
+    },
+    {
+      "command": "deno check --node-modules-dir=none supabase/functions/_shared/token_store.ts",
+      "exitCode": 0
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0
+    },
+    {
+      "command": "git push origin refs/heads/codex/ops08-cas-pr241-20261017:refs/heads/codex/ops08-cas-pr241-20261017",
+      "exitCode": 0,
+      "meaning": "Normal push onlyOWN branch; head3544dd35 confirmed in PR252"
+    },
+    {
+      "command": "gh pr edit 252 --repo JuanjoAvila/Aely --body-file OWN-private-description",
+      "exitCode": 0,
+      "meaning": "Final description and exact head/main/draft readback confirmed"
+    }
+  ],
+  "artifacts": [
+    "docs/briefs/ops08-refresh-cas.md"
+  ],
+  "limitations": [
+    "No tests or mutants repeated during delivery turn. Existing9mutants and prior49Deno remain previous4aa3e015 evidence, not a new full-source execution. Affected counter/legacy/Node focal repeats during private prep justified by removed helper/test/doubles.",
+    "Node focal uses Node24 native stripTypeScriptTypes adapter because esbuild absent in OWN checkout; standard esbuild runner not verified. No install or foreign node_modules.",
+    "Production-use census covers authorized source; no live deployed code inspection. Guarded sync recipher tests retained. No additional financial/server behavior or schema changes.",
+    "No fullsuite/E2E/CPU6/Gradle/SQL/livebank/deploy/main-beta merge or push. PR241 remains untouched;VERSION/catalog/caps/oracles unchanged.",
+    "General CI/docs-frescura/beta-sources, served artifact and physical mobile remain unverified by this worker. Claude aligns version/notes/descriptor on integration; no ProductREADY.",
+    "CAS external-consumption serialization remains out of scope OPS09; integration and deployment onlyClaude."
+  ],
+  "fetchBudget": {
+    "initial10Closed": true,
+    "firstAdditional12Closed": true,
+    "idbudget": "ops08-own12-second-db3299cd",
+    "allowance": 12,
+    "noticeCommit": "0e0ac1ffc012e70949428877214b0ef6da40af99",
+    "usedBeforeResult": 3,
+    "firstFetchCounts": true,
+    "separateLedger": true,
+    "noReset": true,
+    "noROOTInheritance": true
+  },
+  "schema": 1,
+  "taskId": "ops08-pr252-remates-codex-20261017",
+  "actor": "codex",
+  "sessionId": "codex-local-20261017-1858e3462fa4ae5d",
+  "createdAt": "2026-10-17T12:36:03.598Z",
+  "released": true
+}
