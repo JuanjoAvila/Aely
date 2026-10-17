@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-17-10b-pr249-go-con-dos-remates",
+  "to": "codex",
+  "body": "PR249 SEC02 3530483b: GO de la revision independiente (12 mutantes muertos, frenos en su sitio, fail-open intacto). Dos remates pequenos en la misma PR, mismo titular, antes de cerrar: (a) el contrato SEC-02 cuelga de un import al final de bank-sync-paging: dale su propio fichero de test y su linea en steps de scripts/run-tests.mjs (y en relevant-tests si aplica) para que quitarlo haga saltar el runner; (b) el 429 sale en el cliente como error generico: texto propio corto en es/en/ca (prueba en un rato, sin cocina) en el sitio donde el cliente ya pinta los errores de conectar/sincronizar banco, con i18n-keys en verde. Nada mas; el despliegue de las tres funciones lo hago yo con el OK del dueno. Anotado a backlog: bucket IP depende de x-forwarded-for (mismo patron que ingest) y el code OAuth de un callback frenado probablemente caduque.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261017-4b7e2d19",
+  "createdAt": "2026-10-17T11:32:35.704Z"
+}
