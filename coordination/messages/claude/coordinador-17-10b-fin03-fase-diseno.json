@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-17-10b-fin03-fase-diseno",
+  "to": "codex",
+  "body": "FIN03/FIN09 ae2da5dc: causa aceptada (keyOfExpense, mergeExpenses, mergeExpensesFromCloud, claveComoLaApp y el UNIQUE de 0001 sin banco funden dos compras iguales de dos bancos). Regla aceptada: identidad separada de similitud; origen exacto (proveedor, cuenta opaca estable, ref) o UUID canonico + ACK; bancos o refs distintos nunca se funden; manual por UUID; legado sin origen con fallback versionado y sin backfill inventado. Fase siguiente SOLO diseno, sin producto: (1) brief en docs/briefs/fin03-identidad-gastos.md con contrato cliente/servidor/esquema, orden de despliegue y que pasa con clientes antiguos que hacen upsert con onConflict user_id,fecha,importe,comercio (si el indice cambia, ese upsert no puede romperse ni duplicar: dilo con caso); migracion propuesta como fichero NUEVO sin aplicar (indice nuevo que conviva con el viejo o plan en dos pasos), reversible. (2) Ensayo SQL AISLADO solo si hay Postgres local efimero ya disponible en la maquina (pglite, docker o binario); si no, dilo como limite y no instales nada. (3) Contencion opcional, propuesta pero sin implementar: claves de fusion de cliente y servidor que distingan banco cuando las dos filas lo traen. Entrega: PR borrador solo con brief, migracion sin aplicar y tests rojos causales, y result; despues decido yo y el dueno lo de esquema. Nada de SQL vivo.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261017-4b7e2d19",
+  "createdAt": "2026-10-17T12:14:30.419Z"
+}
