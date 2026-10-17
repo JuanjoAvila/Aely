@@ -10,6 +10,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { ebApi, ebConfig, ebFailure, ebSessionVerdict, jsonResp, makeJWT, mapTransaction, fetchBankTransactions } from "../_shared/enablebanking.ts";
 import { decryptSessionId } from "../_shared/token_store.ts";
 import { withCors } from "../_shared/cors.ts";
+import { readInput } from "../_shared/request_body.ts";
+import { rateLimit } from "../_shared/ratelimit.ts";
 import { OB_DEMAND_MAX_PAGES, ackCursor, ackLinkKey, ackToken, chunkCursor, demandFloor, demandPlan, demandReadComplete, nextChunkDays, ymdAddDays, ymdSpan } from "./demand-window.ts";
 
 /* Los movimientos crudos no salen a `app_events`. El diagnóstico temporal del signo de TR
@@ -127,6 +129,8 @@ Deno.serve(withCors(async (req: Request) => {
   // también las respuestas buenas. Se reserva margen para devolverlas y cerrar la petición.
   const deadline = Date.now() + 60000;
   try {
+    const input = await readInput(req, "bank-sync");
+    if (!input.ok) return jsonResp({ ok: false, error: input.error }, input.status);
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const supa = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_ANON_KEY")!, {
       global: { headers: { Authorization: req.headers.get("Authorization") || "" } },
@@ -138,7 +142,7 @@ Deno.serve(withCors(async (req: Request) => {
     // movimientos desde esa fecha (tope PSD2 ~90 días). Modo LECTURA PURA: NO toca saldos ni el
     // estado de los enlaces (a diferencia del sync normal). Solo devuelve las transacciones para
     // que la app enseñe un selector "elige qué gastos importar".
-    const body = await req.json().catch(() => ({}));
+    const body = input.body;
     const dateFrom = (typeof body?.dateFrom === "string" && /^\d{4}-\d{2}-\d{2}$/.test(body.dateFrom))
       ? body.dateFrom : null;
     // Campo distinto de dateFrom a propósito: dateFrom abre el histórico de solo lectura
@@ -151,16 +155,20 @@ Deno.serve(withCors(async (req: Request) => {
        punto de partida, que no depende de lo leído). El cliente que no lo manda no puede
        acusar nada, así que con él el cursor se sigue escribiendo aquí, como hasta ahora. */
     const acks: Record<string, unknown> | null = recoverGaps && body?.acks && typeof body.acks === "object" && !Array.isArray(body.acks)
-      ? body.acks : null;
+      ? body.acks as Record<string, unknown> : null;
     const hasAspspFilter = Array.isArray(body?.aspsps);
     const wantedAspsps = hasAspspFilter
-      ? body.aspsps.map((x: unknown) => String(x || "").trim().toLowerCase()).filter(Boolean).slice(0, 12)
+      ? (body.aspsps as unknown[]).map((x: unknown) => String(x || "").trim().toLowerCase()).filter(Boolean).slice(0, 12)
       : [];
 
     // OJO (bug CaixaBank 2026-07-11): también se devuelven los enlaces caducados/rotos, marcados
     // ok:false. Antes solo venían los 'active' → un banco caducado desaparecía del sync, la app
     // reconstruía obAccounts sin él y sus cuentas se ESFUMABAN del patrimonio sin ningún aviso.
     const admin = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+    // Diario, histórico y acuses comparten cupo: variar el cuerpo no debe permitir
+    // repetir lecturas PSD2 ni adelantar un cursor cuando la petición está limitada.
+    const gate = await rateLimit(admin, "bank-sync:" + user.id, 30, 600);
+    if (!gate.ok) return jsonResp({ ok: false, error: "rate_limit" }, 429);
     const { data: allLinks, error: linksError } = await admin
       .from("bank_links").select("*")
       // Y también los 'pending' (11/9/2026): un banco que se quedó a medio autorizar no entraba

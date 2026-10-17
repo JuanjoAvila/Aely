@@ -857,7 +857,7 @@ function App(){
         if(opts.manual) avisaSync(opts, "⚠ "+t("bank_sync_sin_nube"));
         return;
       }
-      if(opts.manual || navigator.onLine!==false) avisaSync(opts.manual?opts:null, "⚠ "+t("bank_syncfail"));
+      if(opts.manual || navigator.onLine!==false) avisaSync(opts.manual?opts:null, "⚠ "+t(bankRateLimited(e)?"bank_rate_limit":"bank_syncfail"));
     }).finally(function(){
       bankSyncing.current=false;
       /* AVISA DE QUE LA LISTA DE BANCOS HA CAMBIADO (2026-09-12, reportado por el desde la app:
@@ -1471,6 +1471,7 @@ function App(){
     bankConnectOnce(aspsp,"ES").then(function(d){ location.href=d.url; })
       .catch(function(e){
         if(e&&e.code==="busy"){ showToast("⚠ "+t("bank_error_busy")); return; }
+        if(bankRateLimited(e)){ showToast("⚠ "+t("bank_rate_limit")); return; }
         showToast("⚠ "+t("bank_error")+": "+((e&&e.message)||e));
       });
   };

@@ -8,9 +8,13 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { ebApi, ebConfig, jsonResp, makeJWT } from "../_shared/enablebanking.ts";
 import { withCors } from "../_shared/cors.ts";
+import { rateLimit } from "../_shared/ratelimit.ts";
+import { readInput } from "../_shared/request_body.ts";
 
 Deno.serve(withCors(async (req: Request) => {
   try {
+    const input = await readInput(req, "bank-connect");
+    if (!input.ok) return jsonResp({ ok: false, error: input.error }, input.status);
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     // Usuario a partir del JWT de la petición.
     const supa = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_ANON_KEY")!, {
@@ -19,9 +23,15 @@ Deno.serve(withCors(async (req: Request) => {
     const { data: { user } } = await supa.auth.getUser();
     if (!user) return jsonResp({ ok: false, error: "sin sesión" }, 401);
 
-    const body = await req.json().catch(() => ({}));
+    const body = input.body;
     const aspsp_name = body.aspsp_name || "Banco de Sabadell";
     const aspsp_country = String(body.country || "ES").toUpperCase();
+
+    // El cupo pertenece al usuario, no al banco enviado: cambiar el nombre no debe abrir
+    // otro permiso. Se frena antes de llamar al banco o sustituir un state pendiente.
+    const admin = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+    const gate = await rateLimit(admin, "bank-connect:" + user.id, 10, 600);
+    if (!gate.ok) return jsonResp({ ok: false, error: "rate_limit" }, 429);
 
     const { appId, pem } = ebConfig();
     const jwt = await makeJWT(appId, pem);
@@ -44,7 +54,6 @@ Deno.serve(withCors(async (req: Request) => {
     });
 
     // Guarda/actualiza el enlace 'pending' (service role salta RLS).
-    const admin = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
     const { error } = await admin.from("bank_links").upsert({
       user_id: user.id,
       aspsp_name,

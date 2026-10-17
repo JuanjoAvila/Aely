@@ -7474,3 +7474,8 @@ Con esto queda **completo el motor dinámico**: calendario de fijos, día de cob
 - Sincronización de gastos con deduplicación.
 - Swipe entre las 6 pestañas con detección de eje.
 - Dashboard: patrimonio neto, sparkline, anillo de presupuesto, racha.
+
+
+### Sin publicar: OPS-08 (servidor)
+
+El reintento de sync después de perder el acuse podía sobrescribir un refresh posterior de keepalive. Ambos escritores comparan conexión y tokens almacenados, verifican filas/error y reconocen el guardado propio mediante readback acotado, sin consumir otro refresh. Se preservan PR241 y el contador de PR231. Sin despliegue, migración, VERSION ni cambio de catálogo; [evidencia y límites](docs/briefs/ops08-refresh-cas.md).

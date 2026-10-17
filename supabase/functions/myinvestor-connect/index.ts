@@ -20,9 +20,12 @@ import { jsonResp, MI_BASE, miHeaders } from "../_shared/myinvestor.ts";
 import { miTokensToRow } from "../_shared/token_store.ts";
 import { withCors } from "../_shared/cors.ts";
 import { rateLimit } from "../_shared/ratelimit.ts";
+import { readInput } from "../_shared/request_body.ts";
 
 Deno.serve(withCors(async (req: Request) => {
   try {
+    const input = await readInput(req, "myinvestor-connect");
+    if (!input.ok) return jsonResp({ ok: false, error: input.error }, input.status);
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const supa = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_ANON_KEY")!, {
       global: { headers: { Authorization: req.headers.get("Authorization") || "" } },
@@ -40,7 +43,7 @@ Deno.serve(withCors(async (req: Request) => {
     const gate = await rateLimit(admin0, "mi-login:" + user.id, 10, 600);
     if (!gate.ok) return jsonResp({ ok: false, error: "Demasiados intentos seguidos. Espera unos minutos antes de volver a probar (tu banco bloquea la cuenta si insistes)." }, 429);
 
-    const body = await req.json().catch(() => ({}));
+    const body = input.body;
 
     // Modo «guardar tokens» (v4.0.12): el login se hizo EN EL MÓVIL (CapacitorHttp, IP
     // residencial — el reCAPTCHA condicional salta casi siempre desde la IP de datacenter de
