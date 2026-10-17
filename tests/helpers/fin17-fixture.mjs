@@ -35,7 +35,7 @@ function client(db,label,state=seed(),source=original){
     // Authenticated SDK surface is simulated; this is not live RLS verification.
     let rows=db.rows.filter(r=>r.user_id===e.owner&&filters.every(([op,k,v])=>op==='eq'?r[k]===v:op==='gte'?Date.parse(r[k])>=Date.parse(v):k==='fecha'?Date.parse(r[k])<Date.parse(v):r[k]<v));
     if(order)rows.sort((a,b)=>(a[order[0]]<b[order[0]]?-1:1)*(order[1]?1:-1));rows=rows.slice(0,limit);
-    const trace={client:label,op,filters:copy(filters),limit:Number.isFinite(limit)?limit:null,matched:rows.map(r=>r.id)};db.queries.push(trace);
+    const trace={client:label,sessionOwner:e.owner,op,filters:copy(filters),limit:Number.isFinite(limit)?limit:null,matched:rows.map(r=>r.id)};db.queries.push(trace);
     if(op==='delete'){
      if(db.failDelete)return{data:null,error:{code:'SYNTHETIC_OFFLINE'}};
      db.rows=db.rows.filter(r=>!rows.includes(r));trace.deleted=rows.map(r=>r.id);

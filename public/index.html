@@ -3599,6 +3599,10 @@ const cloud = (function(){
       const uid=session.user.id;
       const r=await withNotaFallback(async function(conNota, conDivisa, conObName){
         const checked=[];for(const e of list)if(await obConfirmedCanUpload(e,uid,sb))checked.push(e);
+        // Una fila posterior puede haber cambiado de sesión después de aprobar la anterior.
+        // Desde esta barrera hasta construir el envío no hay más awaits; el registro se relee después.
+        const current=await sb.auth.getSession(),activeSession=!current.error&&current.data&&current.data.session;
+        if(!activeSession||!activeSession.user||activeSession.user.id!==uid||(activeSession.expires_at!=null&&(!Number.isFinite(Number(activeSession.expires_at))||Number(activeSession.expires_at)*1000<=Date.now())))return {data:[],error:null};
         const records=obConfirmedRead(uid);
         const active=records&&!obConfirmedBlocked.has(uid)?checked.filter(function(e){return !obConfirmedMatches(e,records,uid);}):[];
         const filas=active.map(function(e){
@@ -22416,7 +22420,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="98ee0fc08e9dfd7275a73cfdc1429f81ade7815ee0df7cddeca44a1787fd7d3d";
+var _rnSha="3efb0a0a6ae1b8e15849cea1f8f86976d4ad93874c739d51b60113ba3967b1b6";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){

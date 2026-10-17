@@ -1260,6 +1260,10 @@ const cloud = (function(){
       const uid=session.user.id;
       const r=await withNotaFallback(async function(conNota, conDivisa, conObName){
         const checked=[];for(const e of list)if(await obConfirmedCanUpload(e,uid,sb))checked.push(e);
+        // Una fila posterior puede haber cambiado de sesión después de aprobar la anterior.
+        // Desde esta barrera hasta construir el envío no hay más awaits; el registro se relee después.
+        const current=await sb.auth.getSession(),activeSession=!current.error&&current.data&&current.data.session;
+        if(!activeSession||!activeSession.user||activeSession.user.id!==uid||(activeSession.expires_at!=null&&(!Number.isFinite(Number(activeSession.expires_at))||Number(activeSession.expires_at)*1000<=Date.now())))return {data:[],error:null};
         const records=obConfirmedRead(uid);
         const active=records&&!obConfirmedBlocked.has(uid)?checked.filter(function(e){return !obConfirmedMatches(e,records,uid);}):[];
         const filas=active.map(function(e){

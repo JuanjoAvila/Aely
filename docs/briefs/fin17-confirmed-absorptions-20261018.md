@@ -22,6 +22,11 @@ ausente de FIN10 y veto de superviviente; nunca se deduce una retirada por refer
 Los lectores cliente, presupuesto e ingest/widget aplican esta protección antes de consumir
 una referencia. Los cambios de registro invalidan sus cachés y memos.
 
+El batch comprueba además la sesión del mismo SDK después de evaluar todas las filas y
+justo antes de releer el registro y construir el envío. Un cambio de propietario al evaluar
+una fila posterior no puede dejar subir las que se habían aprobado antes. El rojo de revisión
+con dos filas detectó esa ventana en el filtro del fallback; el filtro inicial ya era seguro.
+
 H2 conserva **640 céntimos inciertos**, los originales y la intención, con aviso breve
 es/en/ca y telemetría de código cerrado. El rojo histórico de 320 queda como límite conocido:
 no se presenta como deduplicación resuelta. No se fabrica propietario, no se expulsa una

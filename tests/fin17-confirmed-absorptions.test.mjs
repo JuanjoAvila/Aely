@@ -6,6 +6,26 @@ const make=()=>{const db=database(),a=client(db,'A');db.rows=[a.wire(pending),a.
 const record=(a,n=0,ackAt=1792324800000)=>({owner:uid,id:uuid(100+n),key:a.c.obAbsorptionKey(n?{...booked,extId:'confirmed-'+n}:booked),keepId:kept.id,keepKey:a.c.obAbsorptionKey(kept),ackAt});
 const boundCloud=e=>{const s=read('src/modules/00-core.js'),a=s.indexOf('const cloud = (function(){'),b=s.indexOf('\n})();',a),start=s.indexOf('  return {',a);assert.ok(a>=0&&b>start);return vm.runInContext('(function(sb){'+s.slice(start,b)+'})',e.c)(e.sdk);};
 
+for(const [phase,switchAt] of [['candidate-filter',3],['fallback-checked',5]])test('FIN17 batch session barrier '+phase+': dos filas,cambio A→B exige0SDKupserts',async()=>{
+ const {a,db}=make();db.rows=[];
+ const first={...booked,id:uuid(9),extId:'first-reference'},second={...booked,id:uuid(10),extId:'second-reference',date:'2026-10-16T12:00:01Z'};
+ db.onSession=(e,n)=>{if(n===switchAt)e.owner='synthetic-owner-b';};
+ const result=await a.cloud.addExpensesBatch([first,second]),writes=db.queries.filter(q=>q.op==='upsert');
+ console.log(JSON.stringify({batchWindow:phase,sessionCalls:a.sessions,sessionOwner:a.owner,SDKupserts:writes.length,sentOwners:writes.flatMap(q=>(Array.isArray(q.payload)?q.payload:[q.payload]).map(p=>p.user_id))}));
+ assert.equal(writes.length,0,phase+' no envía una fila aprobada bajo otro dueño');
+ assert.equal(result.cloudIds.length,0,'sin falso ACK de batch');
+});
+
+test('FIN17 batch barrera final conserva ACK reales y relee confirmed después del último await',async()=>{
+ const rows=[{...booked,id:uuid(9),extId:'first-reference'},{...booked,id:uuid(10),extId:'second-reference',date:'2026-10-16T12:00:01Z'}];
+ const {a,db}=make();db.rows=[];const normal=await a.cloud.addExpensesBatch(rows);assert.deepEqual(Array.from(normal.cloudIds),rows.map(e=>e.id));
+ assert.equal(db.queries.filter(q=>q.op==='upsert').length,1);
+ const {a:b,db:db2}=make();db2.rows=[];
+ db2.onSession=(e,n)=>{if(n===6)e.c.obConfirmedPersist(uid,[{...record(e),id:rows[0].id,key:e.c.obAbsorptionKey(rows[0])}]);};
+ const result=await b.cloud.addExpensesBatch(rows);assert.deepEqual(Array.from(result.cloudIds),[rows[1].id]);
+ assert.deepEqual(db2.queries.filter(q=>q.op==='upsert').flatMap(q=>q.payload.map(e=>e.id)),[rows[1].id]);
+});
+
 test('FIN17 binding: SDK real del escritor, no cloud global, con guarda después de await',async()=>{
  const {a,db}=make();db.rows=[];a.cloud.session=async()=>null;const bound=boundCloud(a);
  delete a.c.localStorage; // El mismo Storage del navegador también es accesible por window.
