@@ -29,6 +29,8 @@
 **1 · Dinero · otros pendientes conservados**
 
 - INC-1810-02 · Recibos: cambiar el nombre de un recibo (p. ej. «Ibi» → «IBI») rompe el vínculo con el cargo ya cobrado y el recibo vuelve a salir pendiente. Pedido del dueño 18/10, sin reproducir; sospecha: el cargo se casa por nombre/texto y no por la identidad del recibo. Al arreglar, no reescribir sus vínculos viejos sin su OK. Estado 18/10: arreglo sin reproducción real del móvil en la beta 4.26.144 (PR 278, pruebas de recibo v2 solo hacia delante); un vínculo ya roto se rehace a mano (Gastos → cargo → Paga un recibo → Deshacer vínculo), pendiente de su OK.
+- INC-1810-03 · Deudas: una cuota de deuda de 197 € pagada por transferencia aparece en Plan como pagada, pero la ficha del cargo dice que no es una cuota, su categoría queda en Recibos y se muestra el aviso de retirada de efectivo. Pedido del dueño 18/10. Estado 19/10: en curso (Codex); criterio dado: Plan solo marca ✓ con un cargo real, un lector de solo lectura común para la ficha y el aviso de retirada solo si lo es. Va a la beta 145 como PR aparte, tras revisión.
+- INC-1810-04 · Recibos: YouTube Premium aparece pagado en Plan pero su cargo no figura enlazado en la ficha. Pedido del dueño 18/10. Estado 19/10: en curso (Codex), junto a INC-1810-03 (mismo criterio: ✓ solo con cargo real enlazado).
 - FIN-04 · decisiones y ediciones confirmadas
 - FIN-05 / INC-2909-01 · widget con app cerrada y periodo/modo (PR 212 y PR 225, widget día 45: una sola tarea)
 - FIN-08 · daños históricos previos

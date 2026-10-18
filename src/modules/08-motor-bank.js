@@ -2280,6 +2280,33 @@ function removeReservaRule(state, ruleId){
   const rules=(state.settings&&state.settings.reservaRules)||[];
   if(!rules.some(function(r){ return r.id===ruleId; })) return state;
   const log=state.reservaLog||[];
+  const releases=reservaLiberaciones(log,ruleId,function(){ return uid(); });
+  return Object.assign({},state,{
+    settings:Object.assign({},state.settings,{reservaRules:rules.filter(function(r){ return r.id!==ruleId; })}),
+    reservaLog:releases.length?log.concat(releases):state.reservaLog
+  });
+}
+/* Una regla que ya no está y sigue restando del presupuesto (hotfix 18/10/2026). En una cuenta
+   real quedó apartado lo de una regla por ingreso que se borró sin su asiento inverso: el
+   presupuesto del mes seguía bajado y quitar la regla «no se deshacía». Por qué camino se perdió
+   no se sabe desde aquí, así que no se adivina: lo que sigue reservado por una regla que no existe
+   se libera con el MISMO criterio que al borrarla. El id sale del asiento original y no de `uid()`:
+   dos móviles que lo arreglen a la vez escriben el mismo asiento, no dos liberaciones. PURA; sin
+   huérfanos devuelve el MISMO estado (ni re-render ni reescritura). */
+function liberarReservasHuerfanas(state){
+  const log=state&&state.reservaLog;
+  if(!Array.isArray(log) || !log.length) return state;
+  const vivas=Object.create(null);
+  ((state.settings&&state.settings.reservaRules)||[]).forEach(function(r){ if(r&&r.id) vivas[r.id]=true; });
+  const huerfanas=[];
+  log.forEach(function(x){ if(x&&typeof x.ruleId==="string"&&x.ruleId&&!vivas[x.ruleId]&&huerfanas.indexOf(x.ruleId)===-1) huerfanas.push(x.ruleId); });
+  let releases=[];
+  huerfanas.forEach(function(id){ releases=releases.concat(reservaLiberaciones(log,id,function(x){ return "release|"+x.id; })); });
+  if(!releases.length) return state;
+  return Object.assign({},state,{reservaLog:log.concat(releases)});
+}
+// Los asientos inversos de una regla: lo que sigue reservado por ella y puede comprobarse.
+function reservaLiberaciones(log, ruleId, idOf){
   const ids=Object.create(null), released=Object.create(null), originals=Object.create(null);
   log.forEach(function(x){
     if(!x) return;
@@ -2292,15 +2319,11 @@ function removeReservaRule(state, ruleId){
   // Sin vínculo comprobable en un descuento anterior, no sabemos qué sigue reservado.
   const unknown=log.some(function(x){ return x&&x.ruleId===ruleId&&
     (typeof x.amount!=="number" || !isFinite(x.amount) || (x.amount<0 && !originals[x.releaseOf])); });
-  const releases=log.filter(function(x){ return !unknown&&x&&x.ruleId===ruleId&&
+  return log.filter(function(x){ return !unknown&&x&&x.ruleId===ruleId&&
     typeof x.id==="string"&&x.id&&ids[x.id]===1&&!released[x.id]&&!x.releaseOf&&
     typeof x.amount==="number"&&isFinite(x.amount)&&x.amount>0&&
     typeof x.incomeKey==="string"&&x.incomeKey&&x.date!=null&&isFinite(new Date(x.date).getTime()); }).map(function(x){
-    return Object.assign({},x,{id:uid(),amount:-x.amount,releaseOf:x.id,releasedAt:new Date().toISOString()});
-  });
-  return Object.assign({},state,{
-    settings:Object.assign({},state.settings,{reservaRules:rules.filter(function(r){ return r.id!==ruleId; })}),
-    reservaLog:releases.length?log.concat(releases):state.reservaLog
+    return Object.assign({},x,{id:idOf(x),amount:-x.amount,releaseOf:x.id,releasedAt:new Date().toISOString()});
   });
 }
 // Aplica el reparto: suma cada meta (mismo efecto que "Aportar a una meta") y deja el registro que

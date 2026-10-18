@@ -1,3 +1,12 @@
+## [4.26.145] — 2026-10-19 · Candidata de beta: vibración ronda 3 (APK 58), saldo del banco por fases (H2) y hotfix 4.26.142
+
+- **Qué lleva.** La beta 4.26.144 (`70908020`) más tres merges normales y en este orden: PR 279 H2 saldo por fases (`3940e1b2`), PR 280 vibración UX-16 ronda 3, nativo (`5ee28328`) y `origin/main` (hotfix de producción 4.26.142, `liberarReservasHuerfanas`). Con APK nueva: 4.26.145 / code 58.
+- **Vibración (rechazo de la 144).** Su frase sobre la APK 57: «tienes que ser más suavecito y sutil, de más suave a más fuerte». Ronda 3: el relleno de Mi ciclo es una onda continua de 3 a 30/255 en 60 tramos (techo = toque de borde) y, sin control de amplitud, calla en vez de simular con primitivas; el borde da un único toque (8 ms a 30/255 o LOW_TICK a escala 0,25) y se repite cada 150 ms mientras el mismo dedo sigue tirando contra el mismo extremo; el cursor de la gráfica de Inicio da un tick por día cambiado (mínimo 35 ms entre ticks, sin cola). La barra de pestañas no se toca. Solo se acredita con la APK 58 instalada y el móvil real.
+- **Saldo por fases (PR 279).** El servidor separa saldo y movimientos por cuenta (`accountPhases:1`) y el cliente retiene el saldo y la fecha anteriores de la cuenta cuyo saldo falla, sin inventar un cero. Toca la Edge `bank-sync`: **no se despliega** hasta que el dueño dé su OK tras la beta; por eso no va en la nota familiar ni hay tanda.
+- **Hotfix 4.26.142 (producción).** Lo reservado por una regla de reserva ya borrada vuelve al presupuesto (`liberarReservasHuerfanas`, `reservaLiberaciones`). Conflictos del merge de `origin/main`: VERSION/package, notas, CHANGELOG, ROADMAP, README, `beta-sources.json` (los cinco bloques de descriptores se concatenan: lo de la 144 y lo de la 142 se añaden al final de los mismos alcances) y los guardianes Promoción137, auth-disposal(-fit) y tope de tamaño.
+- **Panel.** Una tanda nueva, `vibracion-suave-ronda-3` (APK 58, pasos 0-4 con qué es MAL en cada uno). La 144 conserva solo `deudas-guardar-motivo` (sin votar); `vibracion-suave-ronda-2` (rechazada) y `recibo-renombrado-sigue-pagado` (aprobada) salen del panel.
+- **Pendiente de la APK.** `public/apk.json` anuncia 4.26.145 / 58 con la revisión nativa de la tanda nueva, pero su `sha256` y `sourceSha` son todavía los de la APK 57: hay que rellenarlos al compilar y subir `Aely-4.26.145-beta-58.apk` al release `beta`.
+
 ## [4.26.144] — 2026-10-18 · Candidata de beta: vibración suave (ronda 2, APK 57), Guardar en Deudas, recibo renombrado y CaixaBank con identidad histórica
 
 - **Qué lleva.** La beta 4.26.143 (`983f4628`) más cuatro integraciones con merge normal y en este orden: PR 277 Guardar en Deudas (`c9757feb`), PR 278 recibo renombrado (`b9bc6f87`), PR 275 CaixaBank identidad histórica (`2b5e14a1`) y PR 276 vibración UX-16 ronda 2, nativo (`f65d74b9`). Con APK nueva: 4.26.144 / code 57.
@@ -26,6 +35,12 @@
 ## Pendiente de integración · INC-290902 · 2026-10-18
 
 - El redondeo entero del anillo podía mostrar 0% con un céntimo disponible. La etiqueta muestra ahora `<1 %` (es/ca) o `<1%` (en) si el resto redondeado a céntimos es positivo y el porcentaje entero da cero. Conserva 0% para agotado/exceso; no cambia importes, fórmula, arco ni servidor. Diez e2e dirigidos y límites en `docs/briefs/night-g-cycle-percent-20261018.md`. Candidata sobre beta 141, sin publicación ni aceptación móvil.
+
+## [4.26.142] — 2026-10-18 · Hotfix de producción: lo reservado por una regla borrada vuelve al presupuesto
+
+- **Qué pasaba.** En una cuenta real de la familia quedó en `reservaLog` el asiento de una regla de reserva por ingreso (333 €, 26/09) cuya regla ya no estaba en `settings.reservaRules` ni tenía asiento inverso (`releaseOf`). `reservedSince` lo seguía restando del presupuesto del periodo y quitar la regla «no se deshacía». El camino por el que se perdió la liberación no se puede reconstruir desde el estado (la meta también se había borrado), así que no se adivina.
+- **Arreglo.** `liberarReservasHuerfanas` (08-motor-bank.js) libera lo que siga reservado por una regla inexistente con el mismo criterio que `removeReservaRule` (extraído a `reservaLiberaciones`: identidad única, sin liberaciones previas, importe y fecha comprobables, y nada si la regla tiene un asiento de importe desconocido). El id del inverso es `release|<id original>`, determinista: dos móviles que lo curen a la vez escriben el mismo asiento. Corre al final de `loadState` y del updater de adopción de `syncFromCloud`; sin huérfanos devuelve el mismo estado (ni re-render ni reescritura). No toca metas ni movimientos. El inverso conserva la fecha original, así que también lo descuentan el widget y `presupuesto.ts` sin desplegar nada.
+- **Por qué directo a producción.** Petición urgente del dueño (18/10): el fallo solo existe en esa cuenta y no se puede reproducir en su móvil de beta. Test nuevo en `tests/reserva-dinero.test.mjs` con la forma exacta del caso real; revisión independiente antes de fusionar.
 
 ## [4.26.141] — 2026-10-17 · Candidata de beta: fichas que cierran suave con atrás, vibración (APK 56), Metas sin pérdidas entre móviles, FIN-10 y SEC-03
 

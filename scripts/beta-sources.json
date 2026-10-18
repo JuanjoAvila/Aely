@@ -10667,6 +10667,14 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "liberarReservasHuerfanas"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reservaLiberaciones"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "cuotasDeDeudaPorMarcar"
       },
       {
@@ -17082,6 +17090,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "reservaLiberaciones"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "applyReserva"
       },
       {
@@ -23115,6 +23127,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "removeReservaRule"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reservaLiberaciones"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -32795,6 +32811,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "histBookResponses"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "liberarReservasHuerfanas"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reservaLiberaciones"
       }
     ],
     "edge": [
@@ -35714,6 +35738,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "histBookResponses"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "liberarReservasHuerfanas"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reservaLiberaciones"
       }
     ],
     "edge": [
@@ -38152,6 +38184,14 @@
       {
         "file": "src/modules/00-core.js",
         "data": "OB_CONFIRMED_AGE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "liberarReservasHuerfanas"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reservaLiberaciones"
       }
     ],
     "unidades": true
@@ -39655,6 +39695,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContract"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "liberarReservasHuerfanas"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reservaLiberaciones"
       }
     ],
     "unidades": true
@@ -42511,6 +42559,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "fixedPaymentContract"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "liberarReservasHuerfanas"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reservaLiberaciones"
       }
     ],
     "edge": [
@@ -48941,6 +48997,59 @@
         "file": "src/modules/00-core.js",
         "function": "autoCategory"
       }
+    ],
+    "unidades": true
+  },
+  "vibracion-suave-ronda-3": {
+    "web": [
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "mcHaptic"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "mcBindEdgeHaptics"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "mcInicioFillHaptic"
+      },
+      {
+        "file": "src/modules/03-tab-dash.js",
+        "from": "  return React.createElement(\"div\",{className:\"v4-screen\",onAnimationStart:mcInicioFillHaptic},",
+        "to": "    React.createElement(\"div\",{className:\"v4-inicio-head rise\"},"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  const hapticBlockRef=useRef(null);",
+        "to": "    const el=viewportRef.current; if(!el) return undefined;"
+      },
+      {
+        "file": "src/modules/03-tab-dash.js",
+        "function": "NetWorthNow"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "loc"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "eurParts"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "DISP"
+      }
+    ],
+    "native": [
+      "android/app/src/main/java/com/micartera/app/AelyHapticsPlugin.java",
+      "android/app/src/main/java/com/micartera/app/HapticPlan.java",
+      "android/app/src/main/java/com/micartera/app/MainActivity.java",
+      "android/app/src/main/AndroidManifest.xml"
     ],
     "unidades": true
   }

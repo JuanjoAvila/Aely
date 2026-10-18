@@ -1,5 +1,65 @@
 [
   {
+    "v": "4.26.145",
+    "d": "2026-10-19",
+    "t": {
+      "es": "Vibración más suave y progresiva, también en la gráfica de Inicio",
+      "en": "Softer, gradual vibration, also on the Home chart",
+      "ca": "Vibració més suau i progressiva, també al gràfic d'Inici"
+    },
+    "items": {
+      "es": [
+        "La vibración del anillo de Mi ciclo empieza casi imperceptible y va subiendo poco a poco mientras se rellena. Necesita instalar la app nueva.",
+        "Al llegar al final de una pantalla, el toque es un pelín más notorio, y si sigues tirando del borde se repite suave mientras lo mantienes.",
+        "Al mover el dedo por la gráfica de Inicio, notas un toque suave cada vez que cambias de día."
+      ],
+      "en": [
+        "The vibration of the My cycle ring starts almost unnoticeable and rises little by little while it fills. It needs the new version of the app.",
+        "When you reach the end of a screen the tap is slightly more noticeable, and if you keep pulling at the edge it repeats softly while you hold it.",
+        "When you move your finger along the Home chart, you feel a soft tap each time you change day."
+      ],
+      "ca": [
+        "La vibració de l'anell de El meu cicle comença gairebé imperceptible i va pujant a poc a poc mentre s'omple. Cal instal·lar l'app nova.",
+        "En arribar al final d'una pantalla, el toc és una mica més notori, i si continues estirant de la vora es repeteix suau mentre la mantens.",
+        "En moure el dit pel gràfic d'Inici, notes un toc suau cada vegada que canvies de dia."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "vibracion-suave-ronda-3",
+        "t": {
+          "es": "Vibración suave y progresiva en Mi ciclo, el borde y la gráfica",
+          "en": "Soft, gradual vibration in My cycle, the edge and the chart",
+          "ca": "Vibració suau i progressiva a El meu cicle, la vora i el gràfic"
+        },
+        "items": {
+          "es": [
+            "0. Instala la app nueva de Aely que te llega (APK 58, versión 4.26.145). Tu última frase fue «tienes que ser más suavecito y sutil, de más suave a más fuerte»: esta ronda lo busca.",
+            "1. Abre Inicio y mira el anillo de Mi ciclo mientras se rellena: la vibración debe empezar casi imperceptible y subir poco a poco, sin golpes. MAL: un golpe o varios toques separados, que empiece fuerte, o que no vibre nada.",
+            "2. Ve a Gastos (o cualquier lista larga), lanza la lista con el dedo y suelta. Al llegar al final ella sola, sin dedo encima, debe vibrar una vez, suave, un pelín más que la rueda. MAL: un golpe fuerte, o que al llegar por impulso no vibre.",
+            "3. Con la lista ya en el borde, tira más allá con el dedo y mantenlo: debe repetir un toque suave mientras sigues tirando, y parar al soltar. MAL: un golpe fuerte, que solo vibre una vez aunque sigas tirando, o que siga vibrando después de soltar.",
+            "4. En Inicio, pon el dedo sobre la gráfica y desplázalo despacio: un toque suave cada vez que cambia el punto (el día) que marca el cursor. MAL: un golpe fuerte, que vibre sin que cambie el punto, o que no vibre nada."
+          ],
+          "en": [
+            "0. Install the new Aely app you receive (APK 58, version 4.26.145). Your last words were «tienes que ser más suavecito y sutil, de más suave a más fuerte» (you have to be softer and subtler, from softer to stronger): this round aims at that.",
+            "1. Open Home and watch the My cycle ring while it fills: the vibration should start almost unnoticeable and rise little by little, with no thumps. WRONG: a thump or several separate taps, starting strong, or no vibration at all.",
+            "2. Go to Spending (or any long list), flick the list with your finger and let go. When it reaches the end by itself, with no finger on it, it should vibrate once, softly, a touch more than the ring. WRONG: a hard thump, or no vibration when it arrives by momentum.",
+            "3. With the list already at the edge, pull past it with your finger and hold: it should repeat a soft tap while you keep pulling, and stop when you let go. WRONG: a hard thump, vibrating only once even if you keep pulling, or still vibrating after you let go.",
+            "4. On Home, put your finger on the chart and slide it slowly: one soft tap each time the point (the day) marked by the cursor changes. WRONG: a hard thump, vibrating without the point changing, or no vibration at all."
+          ],
+          "ca": [
+            "0. Instal·la l'app nova d'Aely que et arriba (APK 58, versió 4.26.145). La teva última frase va ser «tienes que ser más suavecito y sutil, de más suave a más fuerte» (has de ser més suau i subtil, de més suau a més fort): aquesta ronda ho busca.",
+            "1. Obre Inici i mira l'anell de El meu cicle mentre s'omple: la vibració ha de començar gairebé imperceptible i pujar a poc a poc, sense cops. MALAMENT: un cop o diversos tocs separats, que comenci fort, o que no vibri gens.",
+            "2. Ves a Despeses (o qualsevol llista llarga), llança la llista amb el dit i deixa-la anar. En arribar al final ella sola, sense dit a sobre, ha de vibrar una vegada, suau, una mica més que l'anell. MALAMENT: un cop fort, o que en arribar per impuls no vibri.",
+            "3. Amb la llista ja a la vora, estira més enllà amb el dit i mantén-lo: ha de repetir un toc suau mentre continues estirant, i parar en deixar-lo anar. MALAMENT: un cop fort, que vibri només una vegada encara que continuïs estirant, o que continuï vibrant en deixar-lo anar.",
+            "4. A Inici, posa el dit sobre el gràfic i desplaça'l a poc a poc: un toc suau cada vegada que canvia el punt (el dia) que marca el cursor. MALAMENT: un cop fort, que vibri sense que canviï el punt, o que no vibri gens."
+          ]
+        },
+        "apk": 58
+      }
+    ]
+  },
+  {
     "v": "4.26.144",
     "d": "2026-10-18",
     "t": {
@@ -29,35 +89,6 @@
     },
     "tandas": [
       {
-        "id": "vibracion-suave-ronda-2",
-        "t": {
-          "es": "Vibración suave en Mi ciclo y al llegar al final",
-          "en": "Gentle vibration in My cycle and at the end of a list",
-          "ca": "Vibració suau a El meu cicle i en arribar al final"
-        },
-        "items": {
-          "es": [
-            "0. Instala la app nueva de Aely que te llega (versión 4.26.144).",
-            "1. Abre Inicio y mira el anillo de Mi ciclo mientras se rellena: la vibración debe acompañar el relleno, suave y continua. MAL: un golpe fuerte y seco, o que no vibre nada.",
-            "2. Ve a Gastos (o cualquier lista larga), lanza la lista con el dedo hacia arriba o hacia abajo y suelta. Al llegar al final ella sola, sin dedo encima, debe vibrar una vez, suave. MAL: un golpe fuerte, o que al llegar por impulso no vibre.",
-            "3. Con la lista ya en el borde, tira más allá con el dedo: también un toque suave, y no se repite hasta que te separas del borde y vuelves. MAL: un golpe fuerte, o que vibre una y otra vez seguidas."
-          ],
-          "en": [
-            "0. Install the new Aely app you receive (version 4.26.144).",
-            "1. Open Home and watch the My cycle ring while it fills: the vibration should follow the fill, soft and continuous. WRONG: a hard, sharp thump, or no vibration at all.",
-            "2. Go to Spending (or any long list), flick the list up or down with your finger and let go. When it reaches the end by itself, with no finger on it, it should vibrate once, softly. WRONG: a hard thump, or no vibration when it arrives by momentum.",
-            "3. With the list already at the edge, pull past it with your finger: also a soft tap, and it does not repeat until you move away from the edge and come back. WRONG: a hard thump, or vibrating again and again."
-          ],
-          "ca": [
-            "0. Instal·la l'app nova d'Aely que et arriba (versió 4.26.144).",
-            "1. Obre Inici i mira l'anell de El meu cicle mentre s'omple: la vibració ha d'acompanyar l'ompliment, suau i contínua. MALAMENT: un cop fort i sec, o que no vibri gens.",
-            "2. Ves a Despeses (o qualsevol llista llarga), llança la llista amb el dit cap amunt o cap avall i deixa-la anar. En arribar al final ella sola, sense dit a sobre, ha de vibrar una vegada, suau. MALAMENT: un cop fort, o que en arribar per impuls no vibri.",
-            "3. Amb la llista ja a la vora, estira més enllà amb el dit: també un toc suau, i no es repeteix fins que t'allunyes de la vora i hi tornes. MALAMENT: un cop fort, o que vibri una vegada i una altra."
-          ]
-        },
-        "apk": 57
-      },
-      {
         "id": "deudas-guardar-motivo",
         "t": {
           "es": "Deudas: el motivo del rechazo se ve entero al guardar",
@@ -79,34 +110,6 @@
             "1. Obre Pla, pestanya Deutes, toca un deute amb quotes i escriu a la quota mensual un import molt més baix (per exemple, la meitat). Toca «Desa els canvis».",
             "2. No es desa res i es veu sencer l'avís que explica per què no encaixa, amb el rang de quota possible. Torna a tocar «Desa els canvis» sense canviar res: l'avís es torna a mostrar.",
             "3. Escriu una quota dins del rang que indica i toca «Desa els canvis»: es desa i la fitxa es tanca."
-          ]
-        }
-      },
-      {
-        "id": "recibo-renombrado-sigue-pagado",
-        "t": {
-          "es": "Recibos: cambiar mayúsculas no lo deja sin pagar",
-          "en": "Bills: changing capital letters does not make it unpaid",
-          "ca": "Rebuts: canviar majúscules no el deixa sense pagar"
-        },
-        "items": {
-          "es": [
-            "1. Abre Plan, pestaña Recibos, y busca un recibo que ya hayas pagado este mes: aparece en «Ya pagado».",
-            "2. Toca «Gestionar», abre ese recibo y cambia solo las mayúsculas de su nombre (por ejemplo, «Ibi» por «IBI»).",
-            "3. Vuelve a Recibos: sigue en «Ya pagado», con el mismo importe, y no pasa a «Pendiente».",
-            "4. Si algún recibo ya se quedó pendiente por esto en otra ocasión: en Gastos abre el cargo del banco, toca «Paga un recibo», «Deshacer vínculo», elige el recibo y confirma."
-          ],
-          "en": [
-            "1. Open Plan, Bills tab, and find a bill you have already paid this month: it shows under «Already paid».",
-            "2. Tap «Manage», open that bill and change only the capital letters of its name (for example, «Ibi» to «IBI»).",
-            "3. Go back to Bills: it is still under «Already paid», with the same amount, and does not move to «Pending».",
-            "4. If a bill was left pending by this on another occasion: in Spending open the bank charge, tap «Pays a bill», «Undo link», choose the bill and confirm."
-          ],
-          "ca": [
-            "1. Obre Pla, pestanya Rebuts, i busca un rebut que ja hagis pagat aquest mes: apareix a «Ja pagat».",
-            "2. Toca «Gestionar», obre aquest rebut i canvia només les majúscules del nom (per exemple, «Ibi» per «IBI»).",
-            "3. Torna a Rebuts: continua a «Ja pagat», amb el mateix import, i no passa a «Pendent».",
-            "4. Si algun rebut ja es va quedar pendent per això en una altra ocasió: a Despeses obre el càrrec del banc, toca «Paga un rebut», «Desfer vincle», tria el rebut i confirma."
           ]
         }
       }
@@ -141,6 +144,27 @@
         "A Inici, quan et queda un marge molt petit del cicle, el percentatge diu «<1 %» en lloc de 0 %.",
         "El banc de proves ja no mostra un avís de reinici sense motiu i protegeix millor la teva cartera real.",
         "Les devolucions d'un pagament i les compres pendents del banc es compten amb més cura, sense canvis visibles."
+      ]
+    },
+    "tandas": []
+  },
+  {
+    "v": "4.26.142",
+    "d": "2026-10-18",
+    "t": {
+      "es": "Presupuesto: quitar una regla de reservar lo devuelve",
+      "en": "Budget: removing a reserve rule gives it back",
+      "ca": "Pressupost: treure una regla de reservar el retorna"
+    },
+    "items": {
+      "es": [
+        "Si quitaste una regla de «Reservar dinero» y el presupuesto del mes seguía bajado, ya vuelve a su cifra de siempre. Lo que ya habías aportado a tus metas no se toca."
+      ],
+      "en": [
+        "If you removed a «Reserve money» rule and this month’s budget stayed lower, it now goes back to its usual amount. What you had already added to your goals is not touched."
+      ],
+      "ca": [
+        "Si vas treure una regla de «Reservar diners» i el pressupost del mes seguia rebaixat, ja torna a la seva xifra de sempre. El que ja havies aportat a les teves metes no es toca."
       ]
     },
     "tandas": []

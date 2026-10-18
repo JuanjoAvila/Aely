@@ -88,8 +88,12 @@ const sourceBeta140=sourceAt("503d23267091eb5aa0b0e37dd94fac20ea37bd08");
 const sourceBeta141=sourceAt("ff53b0e7243fe79f9164bbc1bcf2313fb2e28d13");
 // Catálogo143 pasa a histórico con la 144: se lee de la beta 4.26.143 servida (983f4628), lo que probó el móvil y sobre lo que la 144 añade sus tres tandas.
 const sourceBeta143=sourceAt("983f46282f702205b5d65737744e90d584377bcf");
+// Catálogo144 pasa a histórico con la 145: se lee de la beta 4.26.144 servida (70908020), lo que probó el móvil y sobre lo que la 145 añade su tanda de vibración.
+const sourceBeta144=sourceAt("7090802099ac0c7956c0d3597a9936a82c52a95f");
 // Catálogo137 pasa a histórico en la promoción 137: se lee de la beta 4.26.137.1 aprobada (6f18228c), lo último que probó el móvil y lo que sube entero.
 const sourceBeta137=sourceAt("6f18228cbd81c1cc9abfa7fabce0a878819234f4");
+// Promoción137 pasa a histórico con el hotfix 4.26.142 (18/10), que sí cambia producto y nota: se lee de la producción 137 tal cual se fusionó (nombre propio: la beta 138 ya usa `sourceProd137` para otro commit).
+const sourceProd137Main=sourceAt("a9916c3cdb21c93f9d3a47653c0608e630ce50ab");
 // La122 añade un método a `cloud` (`setExpenseRecibo`) y los alcances que listan los métodos que
 // leen lo ganan al final de su lista. Las comparaciones con descriptores anteriores lo descuentan;
 // Catálogo122 fija en lista cerrada cuáles son.
@@ -2735,10 +2739,10 @@ const expected144={"v":"4.26.144","d":"2026-10-18","t":{"es":"Vibración más su
 // 4.26.144 (18/10/2026): cuatro integraciones sobre la beta 4.26.143 servida (983f4628): PR 277 (Guardar en Deudas, c9757feb), PR 278 (recibo renombrado, b9bc6f87),
 // PR 275 (CaixaBank, identidad histórica, 2b5e14a1) y PR 276 (vibración UX-16 ronda 2, nativo, f65d74b9). Tres tandas NUEVAS; la 143 queda con `tandas: []`.
 // La de la vibración exige la APK 57 (code 57). CaixaBank no entra en el panel: no hay forma clara de forzar una lectura dudosa hoy.
-test("Catálogo144 añade tres tandas (vibración con APK 57, Guardar en Deudas, recibo renombrado) sobre la beta 143, con alcance propio, y declara cada huella que mueve",()=>{
+test("Catálogo144 histórico añade tres tandas (vibración con APK 57, Guardar en Deudas, recibo renombrado) sobre la beta 143, con alcance propio, y declara cada huella que mueve",()=>{
   const tandas=["vibracion-suave-ronda-2","deudas-guardar-motivo","recibo-renombrado-sigue-pagado"],pasos=[4,3,4];
   const integrated=JSON.parse(sourceBeta143("scripts/beta-sources.json")),before=JSON.parse(sourceBeta143("src/data/release-notes.json"));
-  const source=f=>read(f).replace(/\r\n/g,"\n"),old=f=>sourceBeta143(f).replace(/\r\n/g,"\n");
+  const source=f=>sourceBeta144(f).replace(/\r\n/g,"\n"),old=f=>sourceBeta143(f).replace(/\r\n/g,"\n");
   assert.equal(before[0].v,"4.26.143");assert.equal(before[0].tandas.length,3,"la beta 143 llevaba tres tandas");
   const expectedNotes=[expected144,{...before[0],tandas:[]},...before.slice(1)];
   const notes=JSON.parse(source("src/data/release-notes.json"));
@@ -2811,7 +2815,7 @@ test("Catálogo144 añade tres tandas (vibración con APK 57, Guardar en Deudas,
   for(const [id,h] of Object.entries(apkOld.revisiones||{}))assert.equal(apk.revisiones[id],h,"conserva la revisión nativa "+id);
   assert.ok(apk.revisiones[tandas[0]],"acredita la tanda nativa nueva");
   assert.match(source("android/app/build.gradle"),/versionCode 57\s+versionName "4\.26\.144"/,"build.gradle anuncia la APK 57");
-  assert.equal(execFileSync("git",["diff","--name-only","983f46282f702205b5d65737744e90d584377bcf","HEAD","--","supabase/migrations"],{encoding:"utf8"}).trim(),"","sin SQL ni migraciones");
+  assert.equal(execFileSync("git",["diff","--name-only","983f46282f702205b5d65737744e90d584377bcf","7090802099ac0c7956c0d3597a9936a82c52a95f","--","supabase/migrations"],{encoding:"utf8"}).trim(),"","sin SQL ni migraciones");
   // Huellas que se mueven, lista cerrada: todo alcance que lee lo que tocan las cuatro integraciones.
   const expectedMoves={"inc-3009-01-cargos":["web"],"fin05-widget-reentrada":["web"],"fin05-pago-cerrada":["web"],"tr-descripcion-clasificacion":["web"],"widget-banco":["web"],"widget-app-cerrada":["web"],"inc-2909-02-inicio-natural":["web"],"inc-3009-nomina-anticipada":["web"],"inc-2909-03-retirada":["web"],"inc-2909-01-widget-periodo":["web"],"inc-0210-01-plan-cuota":["web"],"inc-0210-03-gastos-periodo":["web"],"feature-0310-01-movilidad":["web"],"inc-0310-gastos-sin-limite":["web"],"inc-0710-gastos-mes-madrid":["web"],"inc-0810-dashboard-recents-memo":["web"],"widget-pago-app-cerrada":["web"],"bancos-sin-hueco":["web"],"widget-ciclo-puente":["web"],"recibos-cargo-unico":["web"],"bancos-acuse-reconexion":["web"],"tr-iguales-ordinal":["web"],"recibo-cargo-en-gastos":["web"],"tr-empareja-sin-preguntar":["web"],"cuenta-parte-mia":["web"],"compras-identicas-ids":["web"],"deudas-metas-hoja-edicion":["web"],"deudas-plazo-cuota-cuadran":["web"],"deudas-plazo-cuota-encaja":["web"],"deudas-metas-hoja-sin-parpadeo":["web"],"deudas-metas-hoja-cierre-suave":["web"],"fichas-cierre-suave-atras":["web"],"vibracion-borde-y-mi-ciclo":["web","native"],"deudas-aviso-plazo":["web"]};
   const previous=new Map();
@@ -2853,6 +2857,130 @@ test("Catálogo144 añade tres tandas (vibración con APK 57, Guardar en Deudas,
     for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica"])assert.equal(group[key],undefined,id+": identidad nueva sin "+key);
   });
   assert.deepEqual(receipt.pruebas,Object.fromEntries(expected144.tandas.map(g=>[g.id,{v:"4.26.144",contenido:JSON.stringify([g.id,g.t.es,g.items.es,1])}])),"un guion por probar por cada tanda");
+});
+
+
+const expected145={"v":"4.26.145","d":"2026-10-19","t":{"es":"Vibración más suave y progresiva, también en la gráfica de Inicio","en":"Softer, gradual vibration, also on the Home chart","ca":"Vibració més suau i progressiva, també al gràfic d'Inici"},"items":{"es":["La vibración del anillo de Mi ciclo empieza casi imperceptible y va subiendo poco a poco mientras se rellena. Necesita instalar la app nueva.","Al llegar al final de una pantalla, el toque es un pelín más notorio, y si sigues tirando del borde se repite suave mientras lo mantienes.","Al mover el dedo por la gráfica de Inicio, notas un toque suave cada vez que cambias de día."],"en":["The vibration of the My cycle ring starts almost unnoticeable and rises little by little while it fills. It needs the new version of the app.","When you reach the end of a screen the tap is slightly more noticeable, and if you keep pulling at the edge it repeats softly while you hold it.","When you move your finger along the Home chart, you feel a soft tap each time you change day."],"ca":["La vibració de l'anell de El meu cicle comença gairebé imperceptible i va pujant a poc a poc mentre s'omple. Cal instal·lar l'app nova.","En arribar al final d'una pantalla, el toc és una mica més notori, i si continues estirant de la vora es repeteix suau mentre la mantens.","En moure el dit pel gràfic d'Inici, notes un toc suau cada vegada que canvies de dia."]},"tandas":[{"id":"vibracion-suave-ronda-3","t":{"es":"Vibración suave y progresiva en Mi ciclo, el borde y la gráfica","en":"Soft, gradual vibration in My cycle, the edge and the chart","ca":"Vibració suau i progressiva a El meu cicle, la vora i el gràfic"},"items":{"es":["0. Instala la app nueva de Aely que te llega (APK 58, versión 4.26.145). Tu última frase fue «tienes que ser más suavecito y sutil, de más suave a más fuerte»: esta ronda lo busca.","1. Abre Inicio y mira el anillo de Mi ciclo mientras se rellena: la vibración debe empezar casi imperceptible y subir poco a poco, sin golpes. MAL: un golpe o varios toques separados, que empiece fuerte, o que no vibre nada.","2. Ve a Gastos (o cualquier lista larga), lanza la lista con el dedo y suelta. Al llegar al final ella sola, sin dedo encima, debe vibrar una vez, suave, un pelín más que la rueda. MAL: un golpe fuerte, o que al llegar por impulso no vibre.","3. Con la lista ya en el borde, tira más allá con el dedo y mantenlo: debe repetir un toque suave mientras sigues tirando, y parar al soltar. MAL: un golpe fuerte, que solo vibre una vez aunque sigas tirando, o que siga vibrando después de soltar.","4. En Inicio, pon el dedo sobre la gráfica y desplázalo despacio: un toque suave cada vez que cambia el punto (el día) que marca el cursor. MAL: un golpe fuerte, que vibre sin que cambie el punto, o que no vibre nada."],"en":["0. Install the new Aely app you receive (APK 58, version 4.26.145). Your last words were «tienes que ser más suavecito y sutil, de más suave a más fuerte» (you have to be softer and subtler, from softer to stronger): this round aims at that.","1. Open Home and watch the My cycle ring while it fills: the vibration should start almost unnoticeable and rise little by little, with no thumps. WRONG: a thump or several separate taps, starting strong, or no vibration at all.","2. Go to Spending (or any long list), flick the list with your finger and let go. When it reaches the end by itself, with no finger on it, it should vibrate once, softly, a touch more than the ring. WRONG: a hard thump, or no vibration when it arrives by momentum.","3. With the list already at the edge, pull past it with your finger and hold: it should repeat a soft tap while you keep pulling, and stop when you let go. WRONG: a hard thump, vibrating only once even if you keep pulling, or still vibrating after you let go.","4. On Home, put your finger on the chart and slide it slowly: one soft tap each time the point (the day) marked by the cursor changes. WRONG: a hard thump, vibrating without the point changing, or no vibration at all."],"ca":["0. Instal·la l'app nova d'Aely que et arriba (APK 58, versió 4.26.145). La teva última frase va ser «tienes que ser más suavecito y sutil, de más suave a más fuerte» (has de ser més suau i subtil, de més suau a més fort): aquesta ronda ho busca.","1. Obre Inici i mira l'anell de El meu cicle mentre s'omple: la vibració ha de començar gairebé imperceptible i pujar a poc a poc, sense cops. MALAMENT: un cop o diversos tocs separats, que comenci fort, o que no vibri gens.","2. Ves a Despeses (o qualsevol llista llarga), llança la llista amb el dit i deixa-la anar. En arribar al final ella sola, sense dit a sobre, ha de vibrar una vegada, suau, una mica més que l'anell. MALAMENT: un cop fort, o que en arribar per impuls no vibri.","3. Amb la llista ja a la vora, estira més enllà amb el dit i mantén-lo: ha de repetir un toc suau mentre continues estirant, i parar en deixar-lo anar. MALAMENT: un cop fort, que vibri només una vegada encara que continuïs estirant, o que continuï vibrant en deixar-lo anar.","4. A Inici, posa el dit sobre el gràfic i desplaça'l a poc a poc: un toc suau cada vegada que canvia el punt (el dia) que marca el cursor. MALAMENT: un cop fort, que vibri sense que canviï el punt, o que no vibri gens."]},"apk":58}]};
+// 4.26.145 (19/10/2026): tres integraciones sobre la beta 4.26.144 servida (70908020): PR 279 (H2, saldo por fases, 3940e1b2; toca la Edge bank-sync, sin desplegar y sin tanda), PR 280 (vibración UX-16
+// ronda 3, nativo, 5ee28328) y origin/main (hotfix de producción 4.26.142, abd76706, liberarReservasHuerfanas). Una tanda NUEVA (vibración, APK 58); la 144 conserva solo la de Guardar en Deudas (sin votar):
+// la de vibración ronda 2 (rechazada) y la de recibo renombrado (aprobada) salen del panel. La 143 y la 142 quedan con `tandas: []`.
+test("Catálogo145 añade la tanda de vibración con APK 58 sobre la beta 144, que conserva solo Guardar en Deudas, con alcance propio, y declara cada huella que mueve",()=>{
+  const tandas=["vibracion-suave-ronda-3"],pasos=[5],sobrevive="deudas-guardar-motivo";
+  const integrated=JSON.parse(sourceBeta144("scripts/beta-sources.json")),before=JSON.parse(sourceBeta144("src/data/release-notes.json"));
+  const source=f=>read(f).replace(/\r\n/g,"\n"),old=f=>sourceBeta144(f).replace(/\r\n/g,"\n");
+  assert.equal(before[0].v,"4.26.144");assert.deepEqual(before[0].tandas.map(g=>g.id),["vibracion-suave-ronda-2","deudas-guardar-motivo","recibo-renombrado-sigue-pagado"],"la beta 144 llevaba tres tandas");
+  const kept=before[0].tandas.filter(g=>g.id===sobrevive);assert.equal(kept.length,1);
+  const hotfix=JSON.parse(sourceAt("abd767060ebc6d631a01f6aa00a1064021560185")("src/data/release-notes.json")).find(n=>n.v==="4.26.142");
+  assert.deepEqual(hotfix.tandas,[],"el hotfix de producción no lleva tandas");
+  const expectedNotes=[expected145,{...before[0],tandas:kept},before[1],hotfix,...before.slice(2)];
+  const notes=JSON.parse(source("src/data/release-notes.json"));
+  assert.deepEqual(notes,expectedNotes,"la nota 145 literal delante, la 144 solo con Guardar en Deudas, la 143 y la 142 sin tandas (propiedad presente) con el resto intacto");
+  assert.deepEqual(notes[3].tandas,[],"la 142 conserva la propiedad tandas, vacía");assert.deepEqual(notes[2].tandas,[],"la 143 también");
+  assert.deepEqual(notes.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id,g.apk||0])),[["4.26.145",tandas[0],58],["4.26.144",sobrevive,0]],"el panel enseña dos tandas: la de la vibración exige la APK 58 y la de Guardar en Deudas sigue sin votar");
+  assert.equal(notes.length,242);assert.equal(new Set(notes.map(n=>n.v)).size,notes.length);
+  assert.deepEqual(Object.keys(notes[0].tandas[0]),["id","t","items","apk"],"identidad nueva, sin alias ni revisión heredada");
+  for(const lang of ["es","en","ca"]){
+    assert.equal(notes[0].items[lang].length,3,lang+": tres puntos familiares");
+    const steps=notes[0].tandas[0].items[lang];assert.equal(steps.length,pasos[0],lang+": pasos de "+tandas[0]);
+    steps.forEach((step,j)=>assert.ok(step.startsWith(j+". "),lang+": paso numerado "+j));
+    for(const text of steps)assert.equal(/borra|quita este|delete|remove|esborra|treu aquest|mañana|tomorrow|demà/i.test(text),false,lang+": ningún paso borra nada ni espera a otro día: "+text);
+    assert.ok(/suavecito y sutil, de más suave a más fuerte/.test(steps[0]),lang+": cita su frase del rechazo");
+    for(const text of [notes[0].t[lang],...notes[0].items[lang]])assert.equal(/beta|tanda|panel|APK|contador|sello|versión|acuse|cursor|token|Edge|servidor|Open Banking|FIN-|SES-|\d+\.\d+\.\d+/i.test(text),false,lang+": sin jerga: "+text);
+  }
+  const verifyNotes=list=>assert.deepEqual(list,expectedNotes);
+  const twice=structuredClone(notes);twice[0].tandas.push(structuredClone(twice[0].tandas[0]));assert.throws(()=>verifyNotes(twice),assert.AssertionError,"no duplicar una tanda");
+  const revived=structuredClone(notes);revived[1].tandas=structuredClone(before[0].tandas);assert.throws(()=>verifyNotes(revived),assert.AssertionError,"ni la vibración rechazada ni el recibo aprobado de la 144 vuelven al panel");
+  const sinApk=structuredClone(notes);delete sinApk[0].tandas[0].apk;assert.throws(()=>verifyNotes(sinApk),assert.AssertionError,"la tanda de vibración no puede perder su exigencia de APK");
+  // Un descriptor nuevo, al final; los demás son los de la beta 144 con su cierre de lectores recalculado sobre la fuente nueva (PR 279, PR 280 y el hotfix 142).
+  const scopes=JSON.parse(source("scripts/beta-sources.json")),rest={...scopes};for(const id of tandas)delete rest[id];
+  for(const id of tandas)assert.equal(integrated[id],undefined,"identidad que no existía: "+id);
+  assert.deepEqual(Object.keys(scopes).slice(-tandas.length),tandas);
+  const T="src/modules/03-tab-dash.js",U="src/modules/02-ui-shared.js",fn=(file,function_)=>({file,function:function_});
+  const java="android/app/src/main/java/com/micartera/app/";
+  const propias={"vibracion-suave-ronda-3":integrated["vibracion-borde-y-mi-ciclo"].web.slice(0,5).concat([fn(T,"NetWorthNow")])};
+  const nativas={"vibracion-suave-ronda-3":[java+"AelyHapticsPlugin.java",java+"HapticPlan.java",java+"MainActivity.java","android/app/src/main/AndroidManifest.xml"]};
+  const fns=logicFunctions(source),dat=logicData(source);
+  const closure=start=>{
+    let web=start.slice();
+    for(let ronda=0;ronda<40;ronda++){
+      const tiene=(file,nombre,clave)=>web.some(u=>u.file===file&&u[clave]===nombre),extra=[];
+      for(const f of scopeDependencies({web},source,fns))if(!tiene(f.file,f.name,"function"))extra.push({file:f.file,function:f.name});
+      for(const d of scopeDataDependencies({web},source,fns,dat))if(!tiene(d.file,d.name,"data"))extra.push({file:d.file,data:d.name});
+      if(!extra.length)break;web=web.concat(extra);
+    }
+    return web;
+  };
+  // El descriptor de la gráfica de Inicio con significado ya no tiene sus bloques en la fuente desde antes de la 141: se conserva tal cual, sin recalcular.
+  const congelados=new Set(["inc-0810-inicio-grafica-significado"]);
+  for(const [id,scope] of Object.entries(integrated)){
+    if(congelados.has(id)){assert.deepEqual(rest[id],scope,"descriptor congelado: "+id);continue;}
+    const web=closure(scope.web||[]);
+    assert.deepEqual(rest[id],{...scope,web},"cierre de lectores recalculado, ni se recorta ni crece sin declararlo: "+id);
+  }
+  assert.deepEqual(Object.keys(rest),Object.keys(integrated),"ningún descriptor ajeno nuevo ni retirado");
+  for(const id of tandas){
+    const added=scopes[id],own=propias[id];
+    assert.deepEqual(added.web.slice(0,own.length),own,id+": las unidades propias de la tanda, en este orden");
+    assert.equal(added.unidades,true);
+    assert.deepEqual(added.native,nativas[id],id+": ficheros nativos de la tanda");
+    assert.deepEqual(Object.keys(added),["web","native","unidades"],id+": web, nativo y unidades");
+    const web=closure(own),clave=u=>JSON.stringify(u);
+    assert.equal(added.web.length,web.length,id+": el cierre de lectores del descriptor es exactamente el calculado");
+    assert.deepEqual(new Set(added.web.map(clave)),new Set(web.map(clave)),id+": el cierre de lectores del descriptor es exactamente el calculado");
+    for(const u of added.web)assert.ok(scopeText(u,source).length>0,"la unidad existe en la fuente: "+JSON.stringify(u));
+    for(const file of added.native||[])assert.ok(source(file).length>0,"el fichero nativo existe: "+file);
+  }
+  // La APK 58 sube al release beta y apk.json la anuncia sin perder las revisiones nativas que ya acreditaba la 57.
+  const apk=JSON.parse(source("public/apk.json")),apkOld=JSON.parse(old("public/apk.json"));
+  assert.equal(apk.versionCode,58);assert.equal(apk.versionName,"4.26.145");
+  assert.ok(apk.url.endsWith("/releases/download/beta/Aely-4.26.145-beta-58.apk"),"apunta al asset de beta");
+  assert.match(apk.sha256,/^[0-9a-f]{64}$/);
+  for(const [id,h] of Object.entries(apkOld.revisiones||{}))assert.equal(apk.revisiones[id],h,"conserva la revisión nativa "+id);
+  assert.ok(apk.revisiones[tandas[0]],"acredita la tanda nativa nueva");
+  assert.match(source("android/app/build.gradle"),/versionCode 58\s+versionName "4\.26\.145"/,"build.gradle anuncia la APK 58");
+  assert.equal(execFileSync("git",["diff","--name-only","7090802099ac0c7956c0d3597a9936a82c52a95f","HEAD","--","supabase/migrations"],{encoding:"utf8"}).trim(),"","sin SQL ni migraciones");
+  // Huellas que se mueven, lista cerrada: todo alcance que lee lo que tocan PR 279, PR 280 y el hotfix 142.
+  const expectedMoves={"tr-descripcion-clasificacion":["edge"],"inc-3009-nomina-anticipada":["web"],"inc-2909-03-retirada":["web"],"inc-0310-01-meta-regla":["web"],"inc-0810-metas-editar-regla":["web"],"inicio-grafica-vuelve":["web"],"bancos-sin-hueco":["web"],"bancos-acuse-reconexion":["web","edge"],"tr-iguales-ordinal":["web"],"inicio-patrimonio-flujos":["web"],"recibo-cargo-en-gastos":["web"],"bancos-reconexion-revoca":["web","edge"],"inicio-mes-pasado-mismo-dia":["web"],"limpieza-ajustes-perfil":["web"],"tr-empareja-sin-preguntar":["web"],"cuenta-parte-mia":["web"],"compras-identicas-ids":["web"],"vibracion-borde-y-mi-ciclo":["web","native"],"cuenta-saldo-cierre-atras":["web"],"vibracion-suave-ronda-2":["web","native"]};
+  const previous=new Map();
+  const measure=reader=>{
+    const now=JSON.parse(reader("scripts/beta-sources.json")),moved={};
+    for(const [key,scope] of Object.entries(integrated)){
+      if(key===archiveId||congelados.has(key))continue;
+      if(!previous.has(key))previous.set(key,betaRevision(key,sourceBeta144,undefined,scope));
+      const a=previous.get(key),b=betaRevision(key,reader,undefined,now[key]);
+      const surfaces=["web","native","edge"].filter(x=>a[x]!==b[x]);
+      if(surfaces.length)moved[key]=surfaces;
+    }
+    return moved;
+  };
+  const verify=(reader,expected=expectedMoves)=>assert.deepEqual(measure(reader),expected,"lista cerrada: ni una huella extra ni una declarada que no cambie");
+  verify(source);
+  const currents=Object.fromEntries([...tandas,sobrevive].map(id=>[id,betaRevision(id,source,undefined,scopes[id])]));
+  for(const id of [...tandas,sobrevive]){assert.ok(currents[id].web);assert.equal(currents[id].edge,undefined);}
+  assert.ok(currents[tandas[0]].native,"la tanda de vibración lleva huella nativa");assert.equal(currents[sobrevive].native,undefined);
+  assert.equal(currents[sobrevive].web,betaRevision(sobrevive,sourceBeta144,undefined,integrated[sobrevive]).web,"Guardar en Deudas conserva su huella: no se le pide re-probar lo que no ha cambiado");
+  // Mutantes sobre la fuente real: la tanda se reabre si cambia lo suyo (tirón repetido y tick de la gráfica).
+  for(const [id,file,a,b] of [
+    [tandas[0],U,'boundary(own.el)!==own.edge','boundary(own.el)===own.edge'],
+    [tandas[0],T,'if(day&&now-h.at>=35){','if(day&&now-h.at>=36){']
+  ]){
+    assert.equal(source(file).split(a).length,2,"mutante sobre fuente real: "+a);
+    const mutated=betaRevision(id,f=>f===file?source(f).replace(a,()=>b):source(f),undefined,scopes[id]);
+    assert.notEqual(mutated.web,currents[id].web,id+" reabre la tanda: "+a);
+  }
+  // El Java también reabre: un cambio en el plugin invalida la huella nativa de la vibración y solo la suya.
+  const javaFile=java+"HapticPlan.java",mutadoNativo=betaRevision(tandas[0],f=>f===javaFile?source(f)+"\n// x\n":source(f),undefined,scopes[tandas[0]]);
+  assert.notEqual(mutadoNativo.native,currents[tandas[0]].native,"un cambio en el Java reabre la huella nativa");
+  const built=betaNotes(notes,source,scopes),receipt=betaDelivery(built,source,scopes);
+  assert.deepEqual(built.flatMap(n=>(n.tandas||[]).map(g=>g.id)),[...tandas,sobrevive],"lo que el build entrega al panel");
+  const groups=built.flatMap(n=>n.tandas||[]);
+  groups.forEach((group,i)=>{
+    const id=i?sobrevive:tandas[0];
+    assert.equal(group.web,currents[id].web);assert.equal(group.edge,undefined);assert.equal(group.native,i?undefined:currents[id].native);assert.equal(group.apk,i?undefined:58);
+    assert.equal(receipt.web[id],currents[id].web);
+    if(!i)for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica"])assert.equal(group[key],undefined,id+": identidad nueva sin "+key);
+  });
+  assert.deepEqual(receipt.pruebas,Object.fromEntries(notes.flatMap(n=>(n.tandas||[]).map(g=>[g.id,{v:n.v,contenido:JSON.stringify([g.id,g.t.es,g.items.es,1])}]))),"un guion por probar por cada tanda");
 });
 
 
@@ -4420,7 +4548,7 @@ test("Catálogo137 histórico añade la tanda de MyInvestor sobre la producción
 // byte y lo único que cambia es el catálogo: la MISMA nota familiar, ya sin tanda, sobre el historial de la producción 136 (233 notas). Sin APK nueva (sigue la 55). La
 // migración 0026 y `myinvestor-connect` ya están en producción; `myinvestor-sync` se despliega SOLO cuando este cliente esté servido.
 test("Promoción137 histórico muestra una nota y el historial de producción, retira la tanda aprobada y no toca producto, descriptores ni APK",()=>{
-  const tanda="myinvestor-contador-a-cero",beta=f=>sourceBeta137(f).replace(/\r\n/g,"\n"),source=f=>sourceProd137(f).replace(/\r\n/g,"\n");
+  const tanda="myinvestor-contador-a-cero",beta=f=>sourceBeta137(f).replace(/\r\n/g,"\n"),source=f=>sourceProd137Main(f).replace(/\r\n/g,"\n");
   const production=JSON.parse(sourceProd136("src/data/release-notes.json")),before=JSON.parse(beta("src/data/release-notes.json"));
   assert.equal(production.length,233);assert.equal(production[0].v,"4.26.136");assert.deepEqual(production[0].tandas,[]);
   const panel=before.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id]));
