@@ -95,6 +95,19 @@ function goalEditResult(g,form){
   return {item:JSON.stringify(next)===JSON.stringify(g)?g:next};
 }
 function planEditSame(a,b){ return JSON.stringify(a)===JSON.stringify(b); }
+function debtEditTermChange(d,form,result){
+  if(!result.item||d.months==null||planEditNumber(form.months,true)!==d.months||result.item.months===d.months) return null;
+  return {before:d.months,after:result.item.months,leftBefore:debtLeft(d),leftAfter:debtLeft(result.item)};
+}
+function debtEditConfirmResult(state,debt,form,confirmed){
+  const rows=(state.debts||[]).filter(function(d){return d.id===debt.id;});
+  if(rows.length!==1||!planEditSame(rows[0],debt)) return {error:"plan_edit_changed"};
+  const result=debtEditResult(rows[0],form);
+  if(result.error) return result;
+  // La confirmación no autoriza otra proyección si cambió el borrador o pasó el día de cobro.
+  if(!planEditSame(result.item,confirmed.item)||!planEditSame(debtEditTermChange(rows[0],form,result),confirmed.change)) return {error:"db_edit_projection_changed"};
+  return result;
+}
 function planEditCommit(s,field,before,next){
   const matches=(s[field]||[]).filter(function(x){ return x.id===before.id; });
   if(matches.length!==1||planEditSame(matches[0],next)||!planEditSame(matches[0],before)) return s;
@@ -148,6 +161,22 @@ function DebtEditSheet({debt,state,set,onClose,onDelete,showToast}){
   const finished=debtEditFinished(debt);
   const closer=useRef(null);
   const save=usePlanEditSave({state:state,set:set,field:"debts",item:debt,onClose:function(){ closer.current?closer.current():onClose(); },showToast:showToast});
+  const [confirmPending,setConfirmPending]=useState(false),confirming=useRef(false),latest=useRef(null);
+  useLayoutEffect(function(){ latest.current={state:state,form:form,save:save}; });
+  useEffect(function(){ return function(){latest.current=null;}; },[]);
+  const submit=function(){
+    if(confirming.current||save.pending) return;
+    const result=debtEditResult(debt,form),change=debtEditTermChange(debt,form,result);
+    if(!change){ save.save(result); return; }
+    confirming.current=true; setConfirmPending(true);
+    askConfirm({title:t("db_edit_term_confirm"),sub:tf(change.after===1?"db_edit_term_summary_one":"db_edit_term_summary",change),ok:t("db_savechanges"),cancel:t("db_edit_term_cancel")}).then(function(yes){
+      confirming.current=false; const current=latest.current;
+      if(!current) return;
+      setConfirmPending(false);
+      if(!yes) return;
+      current.save.save(debtEditConfirmResult(current.state,debt,current.form,{item:result.item,change:change}));
+    });
+  };
   const input=function(key,label,mode){ return React.createElement("label",{key:key},t(label),
     React.createElement("input",{className:"af-in"+(mode?" num":""),inputMode:mode||"text",value:form[key],"data-debt-field":key,
       disabled:finished&&key!=="name",
@@ -162,7 +191,7 @@ function DebtEditSheet({debt,state,set,onClose,onDelete,showToast}){
       // En euros como el campo, no con eur(): esa pasa a la moneda de visualización (revisión d139d).
       save.range&&" "+(save.range.max==null?tf("db_err_quota_min",{n:save.range.n,min:NF.format(save.range.min)+" €"}):
         tf("db_err_quota_range",{n:save.range.n,min:NF.format(save.range.min)+" €",max:NF.format(save.range.max)+" €"}))),
-    React.createElement("button",{type:"button",className:"btn btn-primary btn-block",disabled:save.pending,onClick:function(){save.save(debtEditResult(debt,form));}},t("db_savechanges")),
+    React.createElement("button",{type:"button",className:"btn btn-primary btn-block",disabled:save.pending||confirmPending,onClick:submit},t("db_savechanges")),
     React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",onClick:function(){onDelete(debt);}},t("db_delete"))));
 }
 function GoalEditSheet({goal,state,set,onClose,onDelete,showToast}){
