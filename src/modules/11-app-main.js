@@ -2,6 +2,28 @@
 const SYNC_SIN_NUBE={motivo:"sync-sin-nube"};
 function App(){
   const [state,setStateRaw]=useState(loadState);
+  const [modeChangePending,setModeChangePending]=useState(false);
+  useEffect(function(){
+    let timer=null;
+    const clear=function(){ if(timer!==null){ clearTimeout(timer); timer=null; } };
+    const changed=function(){
+      if(!mcSandboxTransition()){ clear(); setModeChangePending(false); }
+    };
+    const requested=function(){
+      if(!mcSandboxTransition()||timer!==null) return;
+      timer=setTimeout(function(){
+        timer=null;
+        if(!mcSandboxTransition()) return;
+        setModeChangePending(true);
+        // Diagnóstico local cerrado: solo si sigue vivo este documento después del reload.
+        performance.mark("mc_mode_change_reopen_required");
+      },1800);
+    };
+    window.addEventListener("mc-sandbox-transition",changed);
+    window.addEventListener("mc-sandbox-reload-requested",requested);
+    window.addEventListener("pagehide",clear);
+    return function(){ clear(); window.removeEventListener("mc-sandbox-transition",changed); window.removeEventListener("mc-sandbox-reload-requested",requested); window.removeEventListener("pagehide",clear); };
+  },[]);
   const [tab,setTab]=useState(0);
   // Lazy mount: solo monta pestañas visitadas + vecinas (swipe) → menos trabajo en arranque.
   // mountNeighbors=false al cold start: NO montar Gastos/Fijos en el primer pintado (lag al
@@ -1109,13 +1131,28 @@ function App(){
   cloudEffectState.current=state;
   const uploadState=cloudUploadState.current;
   useEffect(function(){
-    if(!uid) return;
-    const tmr=setTimeout(function(){
-      pushAppState(uid,uploadState).then(function(r){
-        if(r && r.conflict){ showToast(t("st_sync_conflict")); syncFromCloud(sessionRef.current); return; }
-      }).catch(function(){});
-    }, 1200);
-    return function(){ clearTimeout(tmr); };
+    let tmr=null;
+    const queue=function(){
+      clearTimeout(tmr); tmr=null;
+      if(!uid||mcSandboxTransition()) return;
+      tmr=setTimeout(function(){
+        tmr=null;
+        pushAppState(uid,uploadState).then(function(r){
+          if(r && r.conflict){ showToast(t("st_sync_conflict")); syncFromCloud(sessionRef.current); return; }
+        }).catch(function(){});
+      }, 1200);
+    };
+    const transition=function(){
+      if(mcSandboxTransition()){
+        clearTimeout(tmr); tmr=null;
+        // Cerrar los escritores no autoriza escribir la cartera real: sembrar pruebas
+        // debe ser un no-op sobre ella. El pagehide existente vuelca SOLO su búfer pendiente
+        // cuando se cierra de verdad el documento (incluida la entrada al modo vacío).
+      }else queue();   // un acuse fallido cancela la transición, no el guardado normal
+    };
+    window.addEventListener("mc-sandbox-transition",transition);
+    queue();
+    return function(){ clearTimeout(tmr); window.removeEventListener("mc-sandbox-transition",transition); };
   },[uploadState,uid]);
 
   // Al volver, los gastos pueden haber cambiado en la nube aunque el pull anterior sea reciente.
@@ -3594,20 +3631,24 @@ function App(){
     );
   });
 
-  if(locked) return React.createElement(LockScreen,{onUnlock:function(){ setLocked(false); }});
+  const modeChangeWarning=modeChangePending && React.createElement("div",{role:"alert",className:"mode-change-warning",
+    style:{position:"fixed",top:0,left:0,right:0,zIndex:2147483647,padding:"16px",background:"var(--bg)",color:"var(--text)",borderBottom:"2px solid var(--accent)",fontSize:14}},t("mode_change_reopen"));
+  if(locked) return React.createElement(React.Fragment,null,modeChangeWarning,React.createElement(LockScreen,{onUnlock:function(){ setLocked(false); }}));
   if(state.onboarded===false) return React.createElement(React.Fragment,null,
+    modeChangeWarning,
     React.createElement(Onboarding,{set:set, onCloud:(cloud.enabled()?onCloudClick:null), onSignup:(cloud.enabled()?onSignupClick:null)}),
     showAuth && React.createElement(AuthPanel,{session:session,onClose:function(){ setShowAuth(false); setRecovery(false); },showToast:showToast,recovery:recovery,startMode:authStart}),
     toast && React.createElement("div",{className:"toast"},toast)
   );
 
   return React.createElement("div",{className:"app v4"+(mcSandbox()?" sandbox":"")},
+    modeChangeWarning,
     // seasonLayers → portal en document.body (ver useMemo arriba)
     seasonLayers,
     // Banda de MODO PRUEBAS, siempre visible (2026-07-24). Sin ella es cuestión de tiempo apuntar
     // un gasto de verdad en la cartera de mentira y volverse loco buscándolo. Tocarla te saca.
     mcSandbox() && React.createElement("button",{type:"button",className:"sandbox-bar",
-      onClick:function(){ mcExitSandbox(); location.reload(); }},
+      onClick:function(){ mcExitSandbox(); mcSandboxReload(); }},
       "🧪 MODO PRUEBAS · los datos no son reales · toca para salir"),
     React.createElement("div",{className:"app-shell"+(hostTab>=0?" scroll-host-on":"")+(navBlurOff.current?" nav-sin-blur":""),ref:appShellRef},
       React.createElement("div",{className:"viewport"+(hostTab>=0?" scroll-host-open":""),ref:viewportRef},

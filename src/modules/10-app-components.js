@@ -2954,25 +2954,25 @@ function SettingsPanel({state, set, onClose, showToast, uid, onBankSync, onTour,
               return React.createElement(React.Fragment,null,
                 row("sbx", sandbox?"🧪":"🏦", sandbox?"Banco de pruebas: DENTRO":"Banco de pruebas", null, function(){
                   if(sandbox){
-                    askConfirm({ title:"¿Salir del banco de pruebas?", sub:"Vuelves a tu cartera real. La de pruebas se queda guardada por si quieres seguir otro día.", ok:"Salir a mi cartera real" })
-                      .then(function(yes){ if(!yes) return; mcExitSandbox(); location.reload(); });
+                    askConfirm({ title:"¿Salir del banco de pruebas?", sub:"Vuelves a tu cartera real. La de pruebas se queda guardada por si quieres seguir otro día.", ok:"Salir a mi cartera real", terminal:true })
+                      .then(function(yes){ if(!yes) return; mcExitSandbox(); mcSandboxReload(); });
                   }else{
-                    askConfirm({ title:"¿Entrar al banco de pruebas?", sub:"Se copia tu cartera actual a un espacio aparte. Dentro NO se escribe nada en la nube: puedes trastear a gusto y tu cartera real (y la de tu padre y tu pareja) no se entera.", ok:"Entrar a probar" })
-                      .then(function(yes){ if(!yes) return; mcEnterSandbox(state); location.reload(); });
+                    askConfirm({ title:"¿Entrar al banco de pruebas?", sub:"Se copia tu cartera actual a un espacio aparte. Dentro NO se escribe nada en la nube: puedes trastear a gusto y tu cartera real (y la de tu padre y tu pareja) no se entera.", ok:"Entrar a probar", terminal:true })
+                      .then(function(yes){ if(!yes) return; mcEnterSandbox(state); mcSandboxReload(); });
                   }
                 }, sw(sandbox)),
                 // MODO INICIAL: la app como recien instalada, dentro del banco de pruebas. Sin esto
                 // no habia manera de mirar las pantallas vacias sin vaciarse la cartera de verdad.
                 !sandbox && row("sbx0","🌱","Probar con la app vacía",null,function(){
-                  askConfirm({ title:"¿Ver la app como recién instalada?", sub:"Entras al banco de pruebas con una cartera VACÍA y el onboarding de la primera vez. Tu cartera real no se toca y sigue esperándote al salir.", ok:"Entrar vacío" })
+                  askConfirm({ title:"¿Ver la app como recién instalada?", sub:"Entras al banco de pruebas con una cartera VACÍA y el onboarding de la primera vez. Tu cartera real no se toca y sigue esperándote al salir.", ok:"Entrar vacío", terminal:true })
                     .then(function(yes){ if(!yes) return; mcSeedSandboxVacio(); mcEnterSandbox(); mcRecargarSinVolcar(); });
                 }),
                 sandbox && row("sbx0d","🌱","Vaciar la cartera de pruebas",null,function(){
-                  askConfirm({ title:"¿Dejarla como recién instalada?", sub:"La cartera de pruebas se queda vacía y vuelve el onboarding. Tu cartera real no se toca.", ok:"Vaciar", danger:true })
+                  askConfirm({ title:"¿Dejarla como recién instalada?", sub:"La cartera de pruebas se queda vacía y vuelve el onboarding. Tu cartera real no se toca.", ok:"Vaciar", danger:true, terminal:true })
                     .then(function(yes){ if(!yes) return; mcSeedSandboxVacio(); mcRecargarSinVolcar(); });
                 }),
                 sandbox && row("sbxr","♻️","Volver a copiar mi cartera real",null,function(){
-                  askConfirm({ title:"¿Empezar las pruebas de cero?", sub:"Se tira la cartera de pruebas actual y se copia otra vez la real. Tu cartera real no se toca.", ok:"Copiar de nuevo", danger:true })
+                  askConfirm({ title:"¿Empezar las pruebas de cero?", sub:"Se tira la cartera de pruebas actual y se copia otra vez la real. Tu cartera real no se toca.", ok:"Copiar de nuevo", danger:true, terminal:true })
                     .then(function(yes){ if(!yes) return; mcExitSandbox(); mcResetSandbox(); mcRecargarSinVolcar(); });
                 }),
                 React.createElement("div",{style:{fontSize:11.5,color:"var(--muted-2)",lineHeight:1.45,padding:"0 14px 10px"}},

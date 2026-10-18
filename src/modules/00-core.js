@@ -864,6 +864,21 @@ function mcSandboxFlag(){ try{ return localStorage.getItem("_mcSandbox")==="1"; 
    se cierra, pase lo que pase con la bandera. Entrar y salir siempre recargan, así que la sesión
    siguiente ya arranca con el modo nuevo. */
 var _mcSandboxPinned=null;
+// La ventana termina con el documento: el siguiente arranque vuelve a evaluar su modo.
+var _mcSandboxTransition=false;
+function mcSandboxTransition(on){
+  if(arguments.length&&_mcSandboxTransition!==(on===true)){
+    _mcSandboxTransition=on===true;
+    window.dispatchEvent(new CustomEvent("mc-sandbox-transition"));
+  }
+  return _mcSandboxTransition;
+}
+// El aviso de recuperación se arma DESPUÉS de pedir la recarga. Si el documento
+// se descarga normalmente, nunca llega al plazo del fallback de App.
+function mcSandboxReload(){
+  location.reload();
+  window.dispatchEvent(new CustomEvent("mc-sandbox-reload-requested"));
+}
 function mcSandbox(){
   if(_mcSandboxPinned===null) _mcSandboxPinned=mcSandboxFlag();
   return _mcSandboxPinned;
@@ -897,6 +912,7 @@ function mcSandboxVacio(){
    `store.get(STATE_KEY_REAL)` devuelve la mitad LIGERA, así que entrar al banco de pruebas te
    copiaba la cartera sin un solo gasto. */
 function mcEnterSandbox(seedFrom){
+  mcSandboxTransition(true);
   try{
     if(!store.get(STATE_KEY_TEST)) mcSaveRaw(STATE_KEY_TEST, seedFrom||mcLoadRaw(STATE_KEY_REAL)||{});
     localStorage.setItem("_mcSandbox","1");
@@ -905,7 +921,7 @@ function mcEnterSandbox(seedFrom){
 /* Entrar y salir NO cambian el modo de la sesión en curso a propósito (ver mcSandbox): quien las
    llama recarga inmediatamente después, y así lo que quede por volcar se guarda en la clave
    correcta, la de la sesión que se está cerrando. */
-function mcExitSandbox(){ try{ localStorage.removeItem("_mcSandbox"); localStorage.removeItem("_mcSandboxVacio"); }catch(e){} }
+function mcExitSandbox(){ mcSandboxTransition(true); try{ localStorage.removeItem("_mcSandbox"); localStorage.removeItem("_mcSandboxVacio"); }catch(e){} }
 /* MODO INICIAL (peticion suya, 9/9/2026): el banco de pruebas COPIA la cartera real, asi que no
    habia forma de ver la app como la ve alguien que acaba de instalarla — y justo eso es lo que hay
    que probar del pulido v4 (hero sin grafico, tarjetas vacias, racha a cero). Sus palabras: «si no,
@@ -930,6 +946,7 @@ function mcExitSandbox(){ try{ localStorage.removeItem("_mcSandbox"); localStora
    por donde lo lee la app. Es el mismo patrón de siempre: la regla escrita en dos sitios y un
    test que solo mira uno. */
 function mcSeedSandboxVacio(){
+  mcSandboxTransition(true);
   try{ localStorage.setItem("_mcSandboxVacio","1"); }catch(e){}
   mcSaveRaw(STATE_KEY_TEST, {
     _dataVer:6, onboarded:false, tourSeen:false, setupHint:false,
@@ -953,8 +970,10 @@ function mcSkipPersist(){ return _mcSkipPersist; }
    lo que llama la UI. No es un atajo para las pruebas: son dos cosas distintas de verdad. */
 function mcMarcarNoVolcar(){ _mcSkipPersist=true; }
 function mcRecargarSinVolcar(){
-  mcMarcarNoVolcar();
-  location.reload();
+  // Solo el estado de PRUEBAS viejo puede pisar su semilla. Si salimos de REAL,
+  // pagehide debe conservar las ediciones reales pendientes en su clave fijada.
+  if(mcSandbox()) mcMarcarNoVolcar();
+  mcSandboxReload();
 }
 /* Tira la cartera de pruebas y empieza otra desde cero copiando la real otra vez.
    Las DOS mitades: borrar solo la ligera dejaba `micartera_sandbox_exp` huérfana, y la siguiente
@@ -1915,7 +1934,7 @@ const CLOUD_READS_QUE_LLENAN=[
     const real=cloud[name];
     if(typeof real!=="function") return;   // método renombrado: mejor enterarse en los tests que fallar mudo
     cloud[name]=function(){
-      if(mcSandbox()) return Promise.resolve(null);   // modo pruebas: no sale nada de este móvil
+      if(mcSandbox()||mcSandboxTransition()) return Promise.resolve(null);   // también entre confirmar y el arranque destino
       return real.apply(cloud, arguments);
     };
   });

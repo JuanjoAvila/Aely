@@ -57,7 +57,7 @@ export const E2E_MAP = [
   { file: "src/modules/03-tab-dash.js", specs: ["e2e/ux16-haptics.spec.mjs"] },
   { file: "src/modules/11-app-main.js", specs: ["e2e/ux16-haptics.spec.mjs"] },
   { file: "src/modules/03-tab-dash.js", specs: ["e2e/inicio-deuda-futura.spec.mjs"] },
-  { file: "src/modules/11-app-main.js", specs: ["e2e/widget-banco.spec.mjs"] },
+  { file: "src/modules/11-app-main.js", specs: ["e2e/widget-banco.spec.mjs", "e2e/inc1710-reload-fallback-delay.spec.mjs"] },
   {file:"src/modules/16-help-assistant.js",specs:["e2e/help-assistant.spec.mjs","e2e/help-preguntar-borde.spec.mjs"]},
   { file: "src/modules/03-tab-dash.js", specs: ["e2e/inicio-grafica-reservas.spec.mjs", "e2e/inicio-v42.spec.mjs", "e2e/inicio-v42-rendimiento.spec.mjs", "e2e/inicio-grafica-feedback.spec.mjs", "e2e/dashboard-memo-profile.spec.mjs", "e2e/help-assistant.spec.mjs",
     "e2e/listas-render.spec.mjs",
@@ -93,6 +93,7 @@ export const E2E_MAP = [
     "e2e/tr-emparejado-rendimiento.spec.mjs",
   ] },
   { file: "src/modules/05-dialogs-inv.js", specs: [
+    "e2e/modo-pruebas.spec.mjs",
     "e2e/help-assistant.spec.mjs",
     "e2e/cartera-inversiones.spec.mjs", "e2e/brokers-selector.spec.mjs",
   ] },
@@ -138,6 +139,7 @@ export const E2E_MAP = [
     "e2e/plan-ahorro.spec.mjs", "e2e/deudas-archivo.spec.mjs",
   ] },
   { file: "src/modules/10-app-components.js", specs: [
+    "e2e/inc1710-reload-fallback-delay.spec.mjs",
     "e2e/backup-restauracion.spec.mjs",
     "e2e/logs-privacidad.spec.mjs",
     "e2e/help-assistant.spec.mjs",

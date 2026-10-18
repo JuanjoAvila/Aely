@@ -7,6 +7,7 @@ let CURLANG = "es";
 const LANGS = [["es","Español"],["en","English"],["ca","Català"]];
 const LANG = {
   es:{
+    mode_change_reopen:"Cierra y vuelve a abrir la app para terminar el cambio de modo.",
     beta_review_intro:"Revisa lo nuevo. Aprobar una tanda no la publica; su entrega se comprueba aparte.",
     notes_unavailable:"No se han podido comprobar las novedades. Conecta y vuelve a intentarlo.",
     beta_notes_unavailable:"Comprobaciones sin confirmar. Conecta y vuelve a abrir para cargar las de esta versión.", beta_android_app:"app Android", beta_approved_pending:"Aprobada. No necesitas aprobarla otra vez; falta confirmar su entrega.", beta_delivery_pending:"Pendiente de publicar: {x}.", beta_delivery_unknown:"Entrega sin confirmar: {x}.",
@@ -296,6 +297,7 @@ const LANG = {
     cur_jpy:"¥ Yen", cur_cad:"C$ Dólar canadiense", cur_aud:"A$ Dólar australiano", cur_cny:"¥ Yuan", cur_mxn:"$ Peso mexicano", cur_sek:"kr Corona sueca", cur_nok:"kr Corona noruega", cur_dkk:"kr Corona danesa", cur_pln:"zł Złoty", cur_brl:"R$ Real", cur_inr:"₹ Rupia", cur_try:"₺ Lira turca",
   },
   en:{
+    mode_change_reopen:"Close and reopen the app to finish changing mode.",
     beta_review_intro:"Review new changes. Approving a batch does not publish it; delivery is checked separately.",
     notes_unavailable:"The updates could not be verified. Connect and try again.",
     beta_notes_unavailable:"Checks are unconfirmed. Connect and reopen to load the checks for this version.", beta_android_app:"Android app", beta_approved_pending:"Approved. You do not need to approve it again; delivery still needs confirmation.", beta_delivery_pending:"Awaiting publication: {x}.", beta_delivery_unknown:"Delivery unconfirmed: {x}.",
@@ -573,6 +575,7 @@ const LANG = {
     cur_jpy:"¥ Yen", cur_cad:"C$ Canadian dollar", cur_aud:"A$ Australian dollar", cur_cny:"¥ Yuan", cur_mxn:"$ Mexican peso", cur_sek:"kr Swedish krona", cur_nok:"kr Norwegian krone", cur_dkk:"kr Danish krone", cur_pln:"zł Złoty", cur_brl:"R$ Real", cur_inr:"₹ Rupee", cur_try:"₺ Turkish lira",
   },
   ca:{
+    mode_change_reopen:"Tanca i torna a obrir l’app per acabar el canvi de mode.",
     beta_review_intro:"Revisa els canvis nous. Aprovar una tanda no la publica; l’entrega es comprova a part.",
     notes_unavailable:"No s’han pogut comprovar les novetats. Connecta i torna-ho a provar.",
     beta_notes_unavailable:"Comprovacions sense confirmar. Connecta i torna a obrir per carregar les d’aquesta versió.", beta_android_app:"app Android", beta_approved_pending:"Aprovada. No cal que l’aprovis de nou; falta confirmar-ne l’entrega.", beta_delivery_pending:"Pendent de publicar: {x}.", beta_delivery_unknown:"Entrega sense confirmar: {x}.",
