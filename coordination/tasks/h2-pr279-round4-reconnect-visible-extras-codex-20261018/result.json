@@ -1,0 +1,68 @@
+{
+  "status": "blocked",
+  "released": true,
+  "productSHA": "0ad88ec82b659cd82d4f1dd30e6eea2c7b9caad9",
+  "baseSHA": "ff53b0e7243fe79f9164bbc1bcf2313fb2e28d13",
+  "PR": 279,
+  "draft": true,
+  "productReady": false,
+  "realIncidentClosed": false,
+  "manifestSHA256": "e661b26f87356b5b2c2289372de35cbfa3a63811263ce622426a088875d47368",
+  "checkpointSHA256": "b44f1b2435fc848e59bcc2a320524d4bf06c2f43493b5ddb279a75c939516db7",
+  "tests": [
+    {
+      "name": "R4 RED actualbase",
+      "exitCode": 1,
+      "passed": 0,
+      "failed": 12
+    },
+    {
+      "name": "identity",
+      "exitCode": 0,
+      "passed": 44,
+      "newCases": 12,
+      "explicitSupersededExpectations": 4
+    },
+    {
+      "name": "phases",
+      "exitCode": 0,
+      "passed": 27
+    },
+    {
+      "name": "directedmutants",
+      "driverExit": 0,
+      "exitCodes": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "name": "syntax privacy diff",
+      "exitCode": 0
+    },
+    {
+      "name": "size/docs/catalog",
+      "exitCodes": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "name": "priorRound2Round3Evidence",
+      "rerun": false,
+      "provenanceOnly": true
+    }
+  ],
+  "summary": "PR279 ronda4 HEAD0ad88ec82b659cd82d4f1dd30e6eea2c7b9caad9 desde09ccd8ad baseff53. R1 cambioTOTALUIDsinIBAN ningunaidentidadpreviaretorna: principalprimera/restoextras, reemplazaextrasomitidas,10000c frenteRED5000. R2 dosmanuales/unavinculada/trescuentas10500c frenteRED9000. BundlebaseREAL/servidorviejoynuevo. IBANexactoprioritario. Todalibrevalida visibleextra; cambioparcialUID/variasprincipales noasignanpororden. Solapamientomanualantigua/banco ambiguo pendiente, nodeduplicacionuniversal. RED12FAIL0PASS; GREEN44identidad12nuevos+27fasesEXIT0, cuatroexpectativasviejas expresamentesustituidasporgrant,6mutantesEXIT1driver0,syntaxprivacydiff0. Solo4rutas08/public/testexistente/brief; servidorACKauthtelemetriafixturesversioncatalogocapsintactos. Size1330/1328 docsPOSTcommit catalog10 EXIT1. CI sinchecks; Claude finalGO/integracion/servido/movil pendientes. EvidenciaR36db15f01/R2 procedencia; noDOM/generalCPU6GradleAPK/liveSQLdeploymerge. Push0/PRdraftbaseheadbody/remotoexactos clean;20fuentesGitLF. Claim91e353 ACKc10ad2dc ownexactos. OWNblock4 antesresult12/20total54 readbackprevisto13/20total55, intervalos>=30s, infraccionprevia40to41=22.729249 preservada sinreset. Manifest/checkpoint nuevos sellados; blockedreleased pendingfinalreview ySTOP. UX03/09 noasumidos.",
+  "nextAction": "STOP after exact canonical readback.",
+  "schema": 1,
+  "taskId": "h2-pr279-round4-reconnect-visible-extras-codex-20261018",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-5fc9afdec60f82b1",
+  "createdAt": "2026-10-18T13:35:58.807Z"
+}
