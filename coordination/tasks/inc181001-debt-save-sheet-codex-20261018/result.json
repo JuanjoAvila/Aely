@@ -1,0 +1,43 @@
+{
+  "status": "blocked",
+  "productSHA": "c9757feb8f55881095757c5a2c47660b34643869",
+  "baseSHA": "ff53b0e7243fe79f9164bbc1bcf2313fb2e28d13",
+  "PR": 277,
+  "draft": true,
+  "productReady": false,
+  "realIncidentClosed": false,
+  "tests": [
+    {
+      "name": "Real sheet causal RED",
+      "exitCode": 1,
+      "reason": "rejection clipped ratio0.949"
+    },
+    {
+      "name": "Real sheet focal GREEN",
+      "exitCode": 0,
+      "passed": 4,
+      "workers": 1,
+      "retries": 0,
+      "skipped": 0,
+      "flaky": 0
+    },
+    {
+      "name": "Two own semantic mutants",
+      "exitCodes": [
+        1,
+        1
+      ]
+    },
+    {
+      "name": "build syntax i18n registration",
+      "exitCode": 0
+    }
+  ],
+  "summary": "INC181001 candidato acotado entregado PR277 draftbeta, fuente c9757feb8f55881095757c5a2c47660b34643869. ROJO real abre hoja y pulsa Guardar: rechazo FIN16 existe pero queda recortado, sin exceptionJS/red. No reproducido bloqueo TOTAL del boton ni causa fisica del dueno; control ventana menor ya guardaba/cerraba en base. Arreglo UI enfoca y centra motivo en cada intento rechazado, incluso mismo error, textos es/en/ca existentes y borrador intactos. GREEN4de4 EXIT0,1worker0retry0skip0flaky: idiomas, reintento, correccion cuota/TAE decimal, centimos exactos, persistencia reload y deuda terminada. Dosmutantes propios EXIT1 por segundo intento sinfoco y boton desconectado. Formula,guardas,usePlanEditSave,PlanEditSheet y resto09 byteidenticos; no contrato financiero nuevo. DOM sobre6218dab5; final solo alinea dosJSON de build con hashnotas, HTML y recursosruntime byteidenticos verificados. Sin VERSION/catalogofuente/caps. Fallos discovery singular, quoting/repeticion accidental y primer scroll nearest insuficiente preservados. Build/sintaxis/i18n/registro EXIT0. GeneralCI,size,docs-frescura,betaSources,fullsuite,CPU6,GradleAPK,SQLbancosEdge,servido/movil no ejecutados. Revision/integracion y aceptacion incidente real pendientes; noProductREADY ni cierrecausal total. PrevioPR240/269 y claims/results/WIP/RETURN intactos. ManifestSHA 906090ad453df604a0d19f9e9d065fdfb9a9e2da06804fe1ea008444371071d4; checkpointSHA 352fbcbce0259392e1cf0bbeded1e6eb218272f3dc4cb18c6592cb6db13ef79e. OWN10+12+12 agotados congelados; OWN20b0390 real sinresetherencia,todosfetchmin30s. Resultado propio blocked/released,STOP.",
+  "schema": 1,
+  "taskId": "inc181001-debt-save-sheet-codex-20261018",
+  "actor": "codex",
+  "sessionId": "codex-local-20261014-43c0a0c94700",
+  "createdAt": "2026-10-18T10:28:38.481Z",
+  "released": true
+}
