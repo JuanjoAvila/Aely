@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "id": "h2-pr279-round4-reconnect-visible-extras-codex-20261018",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261018-r68-1141875c91e6e665",
+  "createdAt": "2026-10-18T13:25:23.713Z",
+  "to": "codex",
+  "kind": "worker",
+  "model": "gpt-6-astra",
+  "priority": 1,
+  "baseSHA": "09ccd8ad8b3b454607b456c4a8948079d54b79c2",
+  "originalBetaBaseSHA": "ff53b0e7243fe79f9164bbc1bcf2313fb2e28d13",
+  "claudeGrant": "7fd5c4c70955959d58e6716c2223f76e92f86181",
+  "previousTaskId": "h2-pr279-round3-new-bank-multiaccount-codex-20261018",
+  "previousResult": "66475d37f7d83f8c8e6f8c8291c455fd8f61d77e",
+  "PR": 279,
+  "branch": "codex/h2-balance-transactions-20261018",
+  "objective": "Short round4 only under Claude conditional GO: restore real-base total-UID-change reconnection distribution for no-IBAN bank and never hide free bank accounts as extras when principal assignment remains ambiguous.",
+  "scope": [
+    "src/modules/08-motor-bank.js applyBankBalances R1 total-identity replacement and R2 visible-extra allocation only",
+    "Focused exact-cent tests against actual ff53b0e7 public/index.html for R1/R2 with old/new server, meaningful mutants and necessary focused changed-source regression",
+    "Generated artifact and minimal scoped brief/private immutable evidence only"
+  ],
+  "requirements": [
+    "Claude complete grant is binding: PR279 ronda 3 09ccd8ad: el caso bloqueante queda bien y B1-B4 al centimo. GO condicionado a una ronda 4 corta, admitida sin preguntar, porque el consentimiento caduca y reconectar es periodico: R1 reconexion de un banco SIN IBAN con dos o mas cuentas cuando la principal tiene bankUid y TODOS los UID cambian: PR 5000c (principal rancia en 50 y las cuentas nuevas no aparecen), base 10000c. Regla: si ninguna identidad previa del banco aparece en la respuesta (cambio total de UID, como uidCambia), aplica el reparto de la base (principal a la primera, resto extras por orden) y las extras viejas sin identidad se sustituyen, no se suman. R2 dos manuales (una vinculada) y el banco pasa a tener tres cuentas: la sin vinculo queda rancia y b y c no aparecen (9000c vs 10500c base). Regla general: una cuenta libre del banco que no se puede asignar a una principal NUNCA se esconde; entra como extra. La restriccion de no adivinar se queda solo para elegir CUAL principal se re-ancla, no para ocultar saldo. Tests con el bundle real de la base para R1 y R2, y conservar todos los demas casos.",
+    "SAME original H Astra holder/session/helper/filter/runtime/cwd, same branchPR279 from09ccd8ad8. Fresh OWNclaim/readback/ACK after released66475d37. No inherited claim/lease/budget. PreservePR275/276/278, prior evidence and foreign WIP/returns.",
+    "RED first R1: noIBAN bank with principalbankUid and2+accounts; ALL previous UIDs replaced in response, none prior bank identities present. Candidate5000c versus actualbase10000c. Apply original distribution principalfirst/restextrasbyorder in this total identity-change case; replace stale noidentity oldextras rather than sum them. Exact IBAN identities retain precedence; do not generalize partial UID changes unsafely.",
+    "RED first R2: two manual principals, one linked, bank now3accounts. Candidate9000c versus actualbase10500c. A free returned bank account that cannot be assigned to a principal must ALWAYS be visible as an extra. No-guess restriction applies to choosing WHICH principal to reanchor, not hiding bank balance. Prove no double count/lostbalance and retain genuinely distinct exact identities.",
+    "Use REAL public/index.html ff53b0e7 baseline and actual candidate consumer, old/new server, precise money oracles. Preserve all previous R3/B1-B4 cases,22500c/10000c/cero/date/UID/IBAN, transaction-only cursorACK/durablepersistence/security/diagnostics/serialtimecaps and90dayoverflow limits. No backend/server/Edge/ACK/auth/telemetry changes outside existing fixed contract.",
+    "Prior R3 manifest6db15f01/checkpoint4cf2fab4 and101evidence/20sources/19commandrecords privately verified exact byROOT,20GitLFparity. Reuse old32identity27phases6mutants as provenance; new changed-source targeted reruns only when necessary for these fixes, no repeated finished DOM/general/suiteCPU6GradleAPK. Preserve existing financialfixtures/oracles.",
+    "Continue holder OWN20block4 actual lastclosing8/20,total50,remaining12; verify OWNledger first, allfirst/internal/readback counted min30s, guard beforepushandinsidefetch. Prior40to41=22.729249s violation remains disclosed and frozen; noreset/inheritance. NextOWN20 only actualexhaustion thenown notice/readback underb0390.",
+    "Same draftPR279 beta, newHEAD/report/manifest/checkpoint, actualRED/GREEN/mutantexits andlimits; own releasedblocked pending newindependentClaude finalGO/integration, exactcanonicalreadbackthenSTOP. ConditionalGO is not finalacceptance. UX03/09 static queue afterH, do notassume.",
+    "No livebank/SQL/auth/cloudwrites/deploy/backend/server/Edge/migration, no mainbetapush/merge/releasemetadata/VERSIONcataloguecaps edits orgateweakening. Size/docs/catalogue remainexplicit. No newchat/other-chatmessages/foreignlock/processcleanup. Public numericPR/SHA, noPCpaths/URLs."
+  ],
+  "deliverable": "PR279 round4 narrowly repaired R1/R2 and REAL-base exact-cent evidence; own releasedblocked result awaiting final Claude review."
+}
