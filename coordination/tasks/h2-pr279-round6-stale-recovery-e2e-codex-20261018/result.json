@@ -1,0 +1,74 @@
+{
+  "status": "blocked",
+  "released": true,
+  "productSHA": "3940e1b237b28a559aa05252f9c765dd1a510bbb",
+  "baseSHA": "7090802099ac0c7956c0d3597a9936a82c52a95f",
+  "oracleSHA": "ff53b0e7243fe79f9164bbc1bcf2313fb2e28d13",
+  "PR": 279,
+  "draft": true,
+  "productReady": false,
+  "realIncidentClosed": false,
+  "manifestSHA256": "65d8b2cf99ee03be68cf20cae16567b3b8a777475dc6b6dece35c7954aebca0c",
+  "checkpointSHA256": "1c01b1f306ca694e5f6f144c6f1c3b6cfacf81ce1161c8a6e19f79201d11da58",
+  "tests": [
+    {
+      "name": "R6 causal RED",
+      "nodeExit": 1,
+      "nodeFailures": 4,
+      "webExit": 1
+    },
+    {
+      "name": "identity",
+      "exitCode": 0,
+      "passed": 50,
+      "fullComparisons": 56
+    },
+    {
+      "name": "phases",
+      "exitCode": 0,
+      "passed": 33
+    },
+    {
+      "name": "mutants",
+      "driverExit": 0,
+      "exitCodes": [
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "name": "web file",
+      "exitCode": 1,
+      "passed": 7,
+      "failed": 1,
+      "cause": "promotion selector corrected"
+    },
+    {
+      "name": "web promotion focused",
+      "exitCode": 0,
+      "passed": 1
+    },
+    {
+      "name": "syntax privacy diff",
+      "exitCode": 0
+    },
+    {
+      "name": "size docs catalogue11",
+      "exitCodes": [
+        1,
+        1,
+        1
+      ]
+    }
+  ],
+  "summary": "PR279 R6 HEAD3940e1b237b28a559aa05252f9c765dd1a510bbb base7090802099ac0c7956c0d3597a9936a82c52a95f oracleREALff53. Cinco lineas eliminan balanceStale preexistente al saldo valido, mismoimporte y extra stale promovida; no nuevo balanceAt, identidadordenformula intactos. RED4Node y1web causales antesproducto EXIT1; primerwebtimeout por no cerrar informe conservado aparte. GREEN33fases/50escenarios56comparacionescompletasreplay EXIT0;5mutantes EXIT1 driver0. Web puerto46391 propio CI no reuse1worker0retry:7PASS1FAIL selector promocion, corregido selector y solo promocion1PASS EXIT0. No suite8/8 EXIT0;8casos cubiertos7+1. SyncUIreal backend sintetico10000/11000, stale visiblefallo y ausenterecuperacion, fechaprevia reciente intacta; aviso edad48h sigue. Sintaxisprivacidaddiff0. Size1369/1368 docsPOSTcommit catalog11 EXIT1 sinVERSIONcapsrepin. CI sinchecks; Claude final/integracion/servido/movil pendientes. Push0 rama remoto/PR279head/refs-pull279head EXACTOS3940e1b2 beta/draft/bodyexactos, clean20fuentes5deltaR6. ServidorACKauthtelemetria intactos, PR275 congelada en 2b5e14a1 sin diff. R5manifest2998acb5/cierre73e1eff3 preservados procedencia. Claim67fb6f88 ACK77706274 exactos. OWNblock5antesresult4/20total66 previsto5/20total67, spacing>=30incluidatransicion; guard freno ACKtemprano antespushfetch, infraccionvieja40a41=22.729249preservada. Informe manifiesto checkpoint nuevos sellados. blockedreleased pendiente nueva revision Claude ySTOP. Sin otras tareas/chats/fullsuiteCPU6GradleAPK/liveSQLbancosEdge/deploymerge.",
+  "nextAction": "STOP after exact canonical readback.",
+  "schema": 1,
+  "taskId": "h2-pr279-round6-stale-recovery-e2e-codex-20261018",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-5fc9afdec60f82b1",
+  "createdAt": "2026-10-18T21:47:13.685Z"
+}
