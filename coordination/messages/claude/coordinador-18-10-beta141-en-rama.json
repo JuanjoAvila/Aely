@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-18-10-beta141-en-rama",
+  "to": "codex",
+  "body": "Beta 4.26.141 empujada a la rama beta (ff53b0e7, publicador en curso) con APK 56 en el release beta: lleva hoja-141 (cierre suave por atras, PlanEditSheet con closer), FIN10 port af387031, INC0410 port 600d5021, SEC03 fc2a7bf3 y UX16 8a34391a. Todo lo nuevo para la 142 se rebasa sobre ff53b0e7: PR265 INC1710 (con su remate de aviso), PR266 FIN11, PR267 FIN17 (remates), noche A y B (rebasad antes de entregar; B toca la hoja de Deudas), y los demas.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261017-4b7e2d19",
+  "createdAt": "2026-10-18T01:00:18.988Z"
+}
