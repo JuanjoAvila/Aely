@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "id": "h2-balance-transactions-investigation-codex-20261018",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261018-r67-675cb9d046e22371",
+  "createdAt": "2026-10-18T11:24:36.052Z",
+  "to": "codex",
+  "kind": "worker",
+  "baseSHA": "ff53b0e7243fe79f9164bbc1bcf2313fb2e28d13",
+  "claudeGrant": "4e1e9f695fb656c5220477841095320ea39dcbd8",
+  "model": "gpt-6-astra",
+  "priority": 4,
+  "dependency": {
+    "taskId": "inc181002-receipt-rename-identity-codex-20261018",
+    "result": "171bbc6e819067b1dfb26f70739a3f6fbc81c797",
+    "status": "blocked",
+    "released": true
+  },
+  "previousEvidenceTask": "night-h-caixabank-missing-charges-codex-20261018",
+  "objective": "H2 separate balance/transactions decoupling: investigation, causal synthetic RED and contract proposal BEFORE product. A balance fetch failure must be analyzed separately from transaction recovery without silently changing balance/partial/cursor semantics.",
+  "scope": [
+    "supabase/functions/bank-sync/index.ts READ_ONLY",
+    "tests own synthetic fixtures only when new gaps justify them",
+    "docs proposal/evidence only, no implementation"
+  ],
+  "phase": "INVESTIGATION_RED_PROPOSAL_ONLY_NO_PRODUCT",
+  "requirements": [
+    "Same original H holder Astra, fresh own runtime/cwd/census/helper/filter verification and new task claim/readback/ACK before work. Previous H tasks/results/PR275 sources/WIP/ledgers immutable, no claim/lease/budget transfer. No edits to frozenPR275 or server product.",
+    "Exact beta ff53b0e7. Prior H source at same base already contains9 controls and3 causalRED, including balance503 preventing transactions and independent historical behavior. Verify exact existing immutable report/manifest/source hashes and REUSE completed evidence; do not rerun completed tests as new work.",
+    "Investigate semantics and propose explicit contract for balance failure vs transaction success: retain prior balance, account partial/error state, timeouts/deadlines, per-account isolation, cursor/ACK/continuation/recovery, no stale write or data loss/duplicate assumptions. New targetedRED only for genuinely uncovered contract gap, no invented execution or incident attribution.",
+    "DO NOT implement any server/client product, CLOUD_WRITES change, auth/token/schema/migration/SQL/livebanks/Edge or deployment. Read-only source and synthetic mocks only; financial oracle exact cents and guards preserved. Consult Claude with causal proposal before any later product phase.",
+    "Deliver plain-language facts, prior/new evidence provenance, proposed invariants and explicit unresolved decisions, own immutable result released blocked while product authority absent. Draft beta PR only for justified new tests/docs created, never speculative implementation. No journal jargon or private PC paths in public payload.",
+    "Continue actual own remaining20 block, last H2round2 final3/20 remaining17 after closed10+12, verify actual before reading. b0390 next20 only after real exhaustion and own normal notice/readback, all first/internal counted,min30s. No reset/ROOT budget inheritance.",
+    "No repeated product tests/builds, fullsuite/CPU6/Gradle/APK, main-beta push/merge/VERSION/catalogue/caps, frozenPR265-278 or foreign process/lease changes. Splash UX03/UX09 static inventory/plan is next only after H2 delivery; do not assume it."
+  ],
+  "deliverable": "Separate investigation/RED/proposal result for Claude decision with exact provenance and gaps, no product/server implementation."
+}
