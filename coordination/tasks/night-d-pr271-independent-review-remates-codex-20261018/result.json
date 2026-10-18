@@ -1,0 +1,250 @@
+{
+  "status": "blocked",
+  "summary": "PR271 remates delivered normal descendant eafd6569d609ec4d781b61e5ddf4bc326cd47972 from ce373d0a, same draft beta. Regression harnesses repaired without weakening financial assertions; FIN15 and ob-iguales pass UTC/Madrid. BOOK preference early return without pending and only bank/ref candidate complete keys. Raw null/legacy category and offset-date state discrepancy documented/tested, all preserve one row and320cents. Entire registered Node suite executed: 173/180 steps PASS, EXIT1, failures beta-sources, docs-frescura, memoria-espejo, presupuesto-rendimiento, recibo-domiciliado-sin-acreditar, recibos-bajas-y-union, tr-emparejado-automatico. Three additional extraction harnesses repaired afterward; affected cases pass UTC/Madrid and TR pull also Canary. No whole-green rerun claimed. Remaining gates beta-sources, docs-frescura, memoria-espejo, presupuesto-rendimiento. Corrected own synthetic20k A/B below; initial wrong bank-field fixture timings invalidated and preserved. Integration remains Claude scope; no ProductREADY. Own blocked/released and STOP.",
+  "productSHA": "eafd6569d609ec4d781b61e5ddf4bc326cd47972",
+  "baseSHA": "ce373d0ab4bc0980dc82fee6f8b2422c09bcbdb7",
+  "pr": 271,
+  "draft": true,
+  "productReady": false,
+  "claimCommit": "d6de946ce8be2bb203ca9499c9d3446432113343",
+  "ACKCommit": "e1730203b9128996774b195107e55bbfcda9295c",
+  "tests": [
+    {
+      "name": "affected regressions UTC",
+      "exitCode": 0
+    },
+    {
+      "name": "affected regressions Madrid",
+      "exitCode": 0
+    },
+    {
+      "name": "entire registered Node suite",
+      "exitCode": 1,
+      "steps": 180,
+      "passed": 173,
+      "failures": [
+        "beta-sources",
+        "docs-frescura",
+        "memoria-espejo",
+        "presupuesto-rendimiento",
+        "recibo-domiciliado-sin-acreditar",
+        "recibos-bajas-y-union",
+        "tr-emparejado-automatico"
+      ]
+    },
+    {
+      "name": "late harness repairs",
+      "runs": [
+        {
+          "tz": "UTC",
+          "file": "recibo-domiciliado-sin-acreditar",
+          "pattern": "al bajar el estado de la nube",
+          "exitCode": 0
+        },
+        {
+          "tz": "UTC",
+          "file": "recibos-bajas-y-union",
+          "pattern": "",
+          "exitCode": 0
+        },
+        {
+          "tz": "UTC",
+          "file": "tr-emparejado-automatico",
+          "pattern": "el pull REAL no trae decisiones",
+          "exitCode": 0
+        },
+        {
+          "tz": "Europe/Madrid",
+          "file": "recibo-domiciliado-sin-acreditar",
+          "pattern": "al bajar el estado de la nube",
+          "exitCode": 0
+        },
+        {
+          "tz": "Europe/Madrid",
+          "file": "recibos-bajas-y-union",
+          "pattern": "",
+          "exitCode": 0
+        },
+        {
+          "tz": "Europe/Madrid",
+          "file": "tr-emparejado-automatico",
+          "pattern": "el pull REAL no trae decisiones",
+          "exitCode": 0
+        },
+        {
+          "tz": "Atlantic/Canary",
+          "file": "tr-emparejado-automatico",
+          "pattern": "el pull REAL no trae decisiones",
+          "exitCode": 0
+        }
+      ],
+      "exitCode": 0
+    },
+    {
+      "name": "corrected own20k A/B",
+      "exitCode": 0
+    }
+  ],
+  "performance": [
+    {
+      "scenario": "noPending",
+      "method": "preferBookedExpenses",
+      "rows": 20000,
+      "beforeMs": 51.0625,
+      "afterMs": 0.10149999999998727,
+      "ratio": 0.001987760097918967
+    },
+    {
+      "scenario": "noPending",
+      "method": "mergeExpenses",
+      "rows": 20000,
+      "beforeMs": 100.82049999999981,
+      "afterMs": 49.129999999999654,
+      "ratio": 0.48730168963652976
+    },
+    {
+      "scenario": "noPending",
+      "method": "mergeExpensesFromCloud",
+      "rows": 20000,
+      "beforeMs": 100.12760000000026,
+      "afterMs": 48.27269999999953,
+      "ratio": 0.48211182531089736
+    },
+    {
+      "scenario": "sparsePending",
+      "method": "preferBookedExpenses",
+      "rows": 20001,
+      "beforeMs": 49.25720000000001,
+      "afterMs": 2.666200000000572,
+      "ratio": 0.05412812746158067
+    },
+    {
+      "scenario": "sparsePending",
+      "method": "mergeExpenses",
+      "rows": 20001,
+      "beforeMs": 100.2506000000003,
+      "afterMs": 53.33820000000014,
+      "ratio": 0.5320486859929016
+    },
+    {
+      "scenario": "sparsePending",
+      "method": "mergeExpensesFromCloud",
+      "rows": 20001,
+      "beforeMs": 101.67129999999997,
+      "afterMs": 52.85440000000017,
+      "ratio": 0.5198556524801019
+    }
+  ],
+  "performanceMethod": "Synthetic Node20k;2 warmups,9 alternating samples,median; identical outputs and cents; no CPU throttle/browser; shared host may add noise",
+  "manifestSHA256": "017b70b33251d95fd33130be961dd8bb73ed7a5a8dc4061b8129b0792fb9105f",
+  "checkpointSHA256": "2c5b85e96921f30c485cce29c97eb297bb125031c66b49e0c2ef6828a28402b1",
+  "budget": {
+    "priorOwn10Frozen": true,
+    "firstAdditional12Frozen": true,
+    "currentAdditional12": {
+      "grant": "db3299cd69020ccf15563e787d1a1f4b69e8a753",
+      "budget": 12,
+      "used": 1,
+      "remaining": 11,
+      "priorFrozen": [
+        14,
+        6,
+        7,
+        7,
+        10,
+        12
+      ],
+      "noInheritance": true
+    }
+  },
+  "normalPushExit": 0,
+  "remoteHeadExact": true,
+  "prHeadBaseBodyExact": true,
+  "limitations": [
+    "Node-only suite; not full npmtest",
+    "No current DOM rerun: old DOM belongs to ce373d0a",
+    "No CPU6,Gradle,APK,SQL,banks,Edge,deploy,merge,served/mobile acceptance",
+    "VERSION/catalogue/caps untouched; FIN03/C/FIN17 excluded"
+  ],
+  "initialFailuresPreserved": true,
+  "previousResultPreserved": "d90eba5243ea01f216dd54808fa8974b9fbb5244",
+  "testEvidence": {
+    "affectedUTC": 0,
+    "affectedMadrid": 0,
+    "fin15Groups": 17,
+    "bookPreferenceGroups": 9,
+    "bookMutantsKilled": 6,
+    "obIgualesFilePass": true,
+    "nodeSuiteExit": 1,
+    "nodeSteps": 180,
+    "passedSteps": 173,
+    "failedSteps": [
+      "beta-sources",
+      "docs-frescura",
+      "memoria-espejo",
+      "presupuesto-rendimiento",
+      "recibo-domiciliado-sin-acreditar",
+      "recibos-bajas-y-union",
+      "tr-emparejado-automatico"
+    ],
+    "lateFixtureValidation": [
+      {
+        "tz": "UTC",
+        "file": "recibo-domiciliado-sin-acreditar",
+        "pattern": "al bajar el estado de la nube",
+        "exitCode": 0
+      },
+      {
+        "tz": "UTC",
+        "file": "recibos-bajas-y-union",
+        "pattern": "",
+        "exitCode": 0
+      },
+      {
+        "tz": "UTC",
+        "file": "tr-emparejado-automatico",
+        "pattern": "el pull REAL no trae decisiones",
+        "exitCode": 0
+      },
+      {
+        "tz": "Europe/Madrid",
+        "file": "recibo-domiciliado-sin-acreditar",
+        "pattern": "al bajar el estado de la nube",
+        "exitCode": 0
+      },
+      {
+        "tz": "Europe/Madrid",
+        "file": "recibos-bajas-y-union",
+        "pattern": "",
+        "exitCode": 0
+      },
+      {
+        "tz": "Europe/Madrid",
+        "file": "tr-emparejado-automatico",
+        "pattern": "el pull REAL no trae decisiones",
+        "exitCode": 0
+      },
+      {
+        "tz": "Atlantic/Canary",
+        "file": "tr-emparejado-automatico",
+        "pattern": "el pull REAL no trae decisiones",
+        "exitCode": 0
+      }
+    ],
+    "remainingGates": [
+      "beta-sources",
+      "docs-frescura",
+      "memoria-espejo",
+      "presupuesto-rendimiento"
+    ],
+    "denoRun": false,
+    "browserRun": false,
+    "wholeNpmTest": false
+  },
+  "schema": 1,
+  "taskId": "night-d-pr271-independent-review-remates-codex-20261018",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-46b86e3686e19bf3",
+  "createdAt": "2026-10-18T04:03:01.067Z",
+  "released": true
+}
