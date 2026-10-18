@@ -31,7 +31,7 @@ await t('balance failure does not suppress transaction query, complete transacti
 await t('healthy sister preserves 12500 cents and timestamp, total 22500 cents',async()=>{
  const r=await failedBalance();const s=L.applyBankBalances(state(),r.data.links).state;
  assert.equal(cents(s),22500);const a=s.obAccounts.find(a=>a.key==='a');
- assert.equal(a.stale,true);assert.equal(a.balanceAt,prior);assert.equal(s.obAccounts.find(a=>a.key==='b').balanceAt,stamp);
+ assert.equal(a.stale,true);assert.equal(a.balanceAt,prior);assert.equal(s.obAccounts.find(a=>a.key==='b').balanceAt,undefined,'healthy output retains exact base shape');
  assert.equal(r.data.links[0].balanceAt,undefined);
  assert.ok(L.bankReadWarnings(r.data.links,[],false).some(w=>w.key==='bank_read_balance'));
 });
@@ -39,7 +39,7 @@ await t('first transaction page failure still applies valid 10000-cent balance, 
  const b=bank();b.accounts=[{uid:'a'}];const r=await sync([b],()=>{throw Error('EB 503');},body,Clock);
  assert.equal(r.data.links[0].accounts[0].balanceOk,true);assert.equal(r.data.links[0].ack,undefined);
  const s=L.applyBankBalances({...state(),obAccounts:state().obAccounts.slice(0,1)},r.data.links).state;
- assert.equal(cents(s),10000);assert.equal(s.obAccounts[0].balanceAt,stamp);
+ assert.equal(cents(s),10000);assert.equal(s.obAccounts[0].balanceAt,undefined,'healthy output retains exact base shape');
 });
 await t('old client new server keeps entire bank and cursor when balance missing; replay stable',async()=>{
  const r=await failedBalance({recoverGaps:true,acks:{}}),l=r.data.links[0];
@@ -81,13 +81,13 @@ await t('boolean and structured provider amounts are not valid numeric balances'
   assert.equal(cents(L.applyBankBalances({...state(),obAccounts:state().obAccounts.slice(0,1)},r.data.links).state),12500);
  }
 });
-await t('promoted UID and IBAN identities survive reorder; failed main retains value/date',()=>{
+await t('R5 base order ignores prior UID; exact IBAN still retains assigned failed main',()=>{
  const s={...state(),accounts:[{id:'main',ent:'caixabank',role:'fijos',bankUid:'a',value:125,balSaldo:125,balanceAt:prior}],obAccounts:state().obAccounts.slice(1)};
  const l={aspsp:'CaixaBank',ok:true,accountPhases:1,accounts:[{uid:'b',balanceOk:true,balanceAt:stamp,balances:[{amount:100,type:'ITAV'}]},{uid:'a',balanceOk:false,balances:[]}]};
  const got=L.applyBankBalances(s,[l]).state;
- assert.equal(got.accounts[0].value,125);assert.equal(got.accounts[0].balanceAt,prior);assert.equal(got.accounts[0].balanceStale,true);assert.equal(cents(got),10000);
+ assert.equal(got.accounts[0].value,100);assert.equal(got.accounts[0].bankUid,'b');assert.equal(got.accounts[0].balanceAt,prior);assert.equal(got.obAccounts.length,0); // Backlog base: UID no participa en asignacion.
  const ib={...s,accounts:[{...s.accounts[0],bankIban:'IBAN-A'}]};l.accounts[1].iban='IBAN-A';l.accounts[1].uid='changed';
- assert.equal(L.applyBankBalances(ib,[l]).state.accounts[0].value,125);
+ const exact=L.applyBankBalances(ib,[l]).state;assert.equal(exact.accounts[0].value,125);assert.equal(exact.accounts[0].balanceAt,prior);assert.equal(exact.accounts[0].balanceStale,true);assert.equal(cents(exact),10000);
 });
 await t('principal without identity binds the only free account',()=>{
  const s={...state(),accounts:[{ent:'caixabank',role:'fijos',value:125}],obAccounts:[]};
@@ -147,17 +147,17 @@ await t('H2 ACK waits for expenses on disk even if balance and state are persist
  assert.equal(m.ctx.obAckSave(2,ack,updated.expenses),true);
  assert.equal(JSON.parse(m.disco.actual.get(ACK_KEY)).CaixaBank,ack.CaixaBank);
 });
-await t('duplicate incoming account identity cannot double the balance',()=>{
+await t('R5 duplicate incoming identity equals base; duplicate money remains separate backlog',()=>{
  const a={uid:'a',balanceOk:true,balances:[{amount:100,type:'ITAV'}]};
  const s=L.applyBankBalances({...state(),obAccounts:state().obAccounts.slice(0,1)},[{aspsp:'CaixaBank',ok:true,accountPhases:1,accounts:[a,a]}]).state;
- assert.equal(cents(s),12500);assert.equal(s.obAccounts.length,1);assert.equal(s.obAccounts[0].stale,true);
+ const base=old.applyBankBalances({...state(),obAccounts:state().obAccounts.slice(0,1)},[{aspsp:'CaixaBank',ok:true,accountPhases:1,accounts:[a,a]}]).state;assert.deepEqual(plain(s),plain(base));assert.equal(cents(s),20000);
 });
-await t('contradictory IBAN with the same UID neither replaces nor duplicates prior money',()=>{
+await t('R5 contradictory IBAN follows base unchanged; ambiguity is backlog',()=>{
  const s={...state(),obAccounts:[{...state().obAccounts[0],iban:'IBAN-A'}]};
  const a={uid:'a',iban:'IBAN-B',balanceOk:true,balances:[{type:'ITAV',amount:100}]};
  for(const accounts of [[a],[a,{...a,iban:'IBAN-C'}]]){
   const got=L.applyBankBalances(s,[{aspsp:'CaixaBank',ok:true,accountPhases:1,accounts}]).state;
-  assert.equal(cents(got),12500);assert.equal(got.obAccounts.length,1);assert.equal(got.obAccounts[0].iban,'IBAN-A');
+  assert.deepEqual(plain(got),plain(old.applyBankBalances(s,[{aspsp:'CaixaBank',ok:true,accountPhases:1,accounts}]).state));assert.equal(cents(got),10000*accounts.length);
  }
 });
 await t('promotion without IBAN preserves UID and original freshness through next failed sync',async()=>{
@@ -168,17 +168,17 @@ await t('promotion without IBAN preserves UID and original freshness through nex
  assert.equal(got.accounts[0].value,125);assert.equal(got.accounts[0].balanceAt,prior);assert.equal(got.accounts[0].balanceStale,true);
  assert.equal(cents(got),10000);
 });
-await t('UID still matches when a response omits a previously known IBAN',()=>{
+await t('R5 omitted IBAN keeps exact healthy base output',()=>{
  const s=state();s.obAccounts[0].iban='IBAN-A';
  const l={aspsp:'CaixaBank',ok:true,accountPhases:1,accounts:[{uid:'a',balanceOk:true,balances:[{type:'ITAV',amount:100}]}]};
  const got=L.applyBankBalances(s,[l]).state;assert.equal(cents(got),10000);assert.equal(got.obAccounts.length,1);
- assert.equal(got.obAccounts.find(a=>a.key==='a').iban,'IBAN-A');assert.equal(got.obAccounts.find(a=>a.key==='a').balanceAt,prior);
+ assert.deepEqual(plain(got),plain(old.applyBankBalances(s,[l]).state));assert.equal(got.obAccounts[0].iban,null);assert.equal(got.obAccounts[0].balanceAt,undefined);
 });
-await t('duplicate principal owners are both retained stale, never chosen by array order',()=>{
+await t('R5 duplicate principal owners follow base order unchanged',()=>{
  const s={...state(),obAccounts:[],accounts:[{ent:'caixabank',bankUid:'a',value:125},{ent:'caixabank',bankUid:'a',value:80}]};
  const links=[{aspsp:'CaixaBank',ok:true,accountPhases:1,accounts:[{uid:'a',balanceOk:true,balances:[{type:'ITAV',amount:100}]}]}];
  const got=L.applyBankBalances(s,links).state;
- assert.deepEqual(plain(got.accounts.map(a=>a.value)),[125,80]);assert.ok(got.accounts.every(a=>a.balanceStale));assert.equal(got.obAccounts.length,0);
+ assert.deepEqual(plain(got),plain(old.applyBankBalances(s,links).state));assert.deepEqual(plain(got.accounts.map(a=>a.value)),[100,80]);assert.equal(got.obAccounts.length,0);
 });
 await t('previously promoted account retains its explicit ob order UID',()=>{
  const s={...state(),obAccounts:[],accounts:[{ent:'caixabank',role:'fijos',accountOrderKey:'ob:a',value:125}]};
@@ -200,5 +200,23 @@ await t('valid balance does not suppress transaction 401 session verdict',async(
   assert.equal(r.data.links[0].accounts[0].balanceOk,true);assert.equal(r.data.links[0].expired,closed);assert.equal(r.data.links[0].ack,undefined);
   assert.equal(cents(L.applyBankBalances({...state(),obAccounts:state().obAccounts.slice(0,1)},r.data.links).state),10000);
  }
+});
+// Se retiene la principal que asignaria la BASE, incluso cuando su identidad es
+// imperfecta; no se vuelve a reservar por UID/IBAN en una segunda pasada de H2.
+await t('R5 failed assigned slot retains its previous amount and date, not later linked principal',()=>{
+ const initial={...state(),obAccounts:[],accounts:[{id:'first',ent:'caixabank',role:'fijos',value:50,balanceAt:prior},{id:'linked',ent:'caixabank',role:'fijos',bankIban:'IBAN-A',value:20,balanceAt:prior}]};
+ const acs=[{uid:'a',iban:'IBAN-A',balanceOk:true,balances:[{amount:100,type:'ITAV'}]},{uid:'b',iban:'IBAN-B',balanceOk:true,balances:[{amount:70,type:'ITAV'}]}];
+ const healthy=[{aspsp:'CaixaBank',ok:true,accountPhases:1,accounts:acs}];
+ assert.deepEqual(plain(L.applyBankBalances(initial,healthy)),plain(old.applyBankBalances(initial,healthy)));
+ assert.deepEqual(plain(old.applyBankBalances(initial,healthy).state.accounts.map(a=>a.bankIban)),['IBAN-A','IBAN-B']);
+ const failed=plain(healthy);failed[0].accounts[0].balanceOk=false;failed[0].accounts[0].balances=[];
+ const got=L.applyBankBalances(initial,failed).state;
+ assert.deepEqual(plain(got.accounts.map(a=>a.value)),[50,70]);assert.equal(got.accounts[0].balanceAt,prior);assert.equal(got.accounts[0].balanceStale,true);assert.equal(got.accounts[1].bankIban,'IBAN-B');assert.equal(got.obAccounts.length,0);
+ assert.deepEqual(plain(L.applyBankBalances(got,failed).state),plain(got));
+});
+await t('R5 failed assigned extra retains date and value with distinct healthy sibling',()=>{
+ const initial={...state(),accounts:[{ent:'caixabank',role:'fijos',value:20,bankIban:'IBAN-B'}]};
+ const links=[{aspsp:'CaixaBank',ok:true,accountPhases:1,accounts:[{uid:'a',balanceOk:false,balances:[]},{uid:'b',iban:'IBAN-B',balanceOk:true,balances:[{amount:100,type:'ITAV'}]}]}];
+ const got=L.applyBankBalances(initial,links).state;assert.equal(got.accounts[0].value,100);assert.equal(cents(got),12500);assert.equal(got.obAccounts[0].key,'a');assert.equal(got.obAccounts[0].balanceAt,prior);assert.equal(got.obAccounts[0].stale,true);
 });
 console.log(JSON.stringify({passed:pass,failed:fail}));process.exitCode=fail?1:0;
