@@ -1,0 +1,60 @@
+{
+  "status": "blocked",
+  "summary": "PR268 narrow test-only successor delivered normal descendant3d28b96f over7fbcb9e0. One connected-bank while-sheet-open case PASS and own reconstructedM4 killed by financialDOM assertion:87.65 expected versus12.34. Guard prevents manual draft overwriting bank8765cents. Product unchanged; only existing spec changed. Prior8DOM/M1-M3/P1-P5 not repeated. IndependentGO34d32979 applies prior runtime; integration/generalCI/served/mobile remain pending. Ownblocked/released and STOP;notProductREADY.",
+  "productSHA": "3d28b96f4848e2ea9be6f61cc8e3765e043e7f13",
+  "baseSHA": "7fbcb9e0de20300811ea39fd1a3bfd850a95f989",
+  "pr": 268,
+  "claimCommit": "9b0bea4aa1e3ea00b2a65de1ffd918ab5fb6ee85",
+  "ACKCommit": "28d23d3aa2dc98f4d62b2e06cdbad7b826f03034",
+  "productReady": false,
+  "tests": [
+    {
+      "name": "new affected connected-bank DOM control",
+      "exitCode": 0,
+      "passed": 1,
+      "workers": 1,
+      "retries": 0,
+      "storedCents": 8765
+    },
+    {
+      "name": "M4 own reconstructed guard mutation",
+      "exitCode": 1,
+      "expectedFailure": true,
+      "killedBy": "DOM after reopen1234 versus8765 cents",
+      "originalReviewerBytes": false
+    },
+    {
+      "name": "scope whitespace and exact product bundle comparison",
+      "exitCode": 0
+    }
+  ],
+  "normalPushExit": 0,
+  "remoteHeadExact": true,
+  "PRHeadBaseBodyExact": true,
+  "productUnchanged": true,
+  "manifestSHA256": "651fc972d5f50a9cc94f0f7cf9f97e4b71feb500fceabd657e663ccdf2361286",
+  "checkpointSHA256": "a0def7a54e8f0f5d3040d46a7e68b826377c86c559fc2d79a0a7f693b38c9fa1",
+  "budget": {
+    "priorAdditional12": 12,
+    "next12": 7,
+    "limit": 12,
+    "noticeReadback": "7f53beb1a03c947741c9ae626353d09892993b41"
+  },
+  "failuresPreserved": [
+    "Channel concurrent advance consumed final two fetches; hard cap stopped retry, next12 activated with own notice/readback before same claim retry",
+    "Delivery initial LF Git blob versus CRLF checkout comparator failed before push; corrected exact baseline checkout comparison, no test rerun"
+  ],
+  "limitations": [
+    "No full suite/general CI/CPU6/Gradle/APK/physical Android",
+    "No SQL/banks/Edge/deploy/merge",
+    "No build/VERSION/catalogue/caps/beta-delivery edits",
+    "Prior results and FIN12 preserved"
+  ],
+  "next": "Claude integration and beta-delivery regeneration; freeze and STOP",
+  "schema": 1,
+  "taskId": "night-a-pr268-connected-bank-guard-e2e-codex-20261018",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-4414ca32559d",
+  "createdAt": "2026-10-18T01:49:32.185Z",
+  "released": true
+}
