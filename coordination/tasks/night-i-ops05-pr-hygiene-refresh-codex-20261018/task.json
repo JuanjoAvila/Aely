@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "id": "night-i-ops05-pr-hygiene-refresh-codex-20261018",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261018-r66-e777e8231adeef36",
+  "createdAt": "2026-10-18T07:29:05.420Z",
+  "to": "codex",
+  "baseSHA": "ff53b0e7243fe79f9164bbc1bcf2313fb2e28d13",
+  "objective": "OPS05 sucesor solicitado porClaude a9059474: refrescar sololectura PRs y ramas codex abiertas ya sustituidas o fusionadas; delta desde inventario previo, para decisiones deClaude. No cerrar ni borrar.",
+  "scope": [
+    "docs/briefs"
+  ],
+  "claudeGrant": "a9059474e96098268ff6edbe6b286c136c9f387b",
+  "originalGrant": "ee788a05f3e02cc1dc574704273b713c543d5d69",
+  "previousTaskId": "night-i-ops05-pr-hygiene-codex-20261018",
+  "previousResult": "0f5de65ea44eaad8257bab58102ae8d6bdde66ac",
+  "intendedWorkerSession": "codex-local-20261016-31bde4da8226b098",
+  "phase": "READ_ONLY_REFRESH_NO_PRODUCT_NO_CLOSURE",
+  "constraints": [
+    "Mismo titular; verificar runtime/cwd/identidad/sesion y presupuesto real propios. Preservar claim/result anterior y todo WIP. OWN claim/readback/ACK fresco antes de trabajo; helper y filtro originales sin modificar.",
+    "Preservar OWN10 previo deI usado7/10 segun cierre, comprobar actual sin reset ni nueva concesion10. Usar solo resto real; +12 adicional solo al agotamiento real bajo db3299cd, con aviso/readback propios. Contar todas las lecturas iniciales/internas/readbacks, minimo30s. No heredar presupuestoROOT ni otra sesion.",
+    "Fuente exacta beta vigente verificada porROOT. Inventariar metadatos frescos y deltas frente a49PR codex/228ramasremotas/295locales previas; distinguir grafo exacto, ports documentados y supersesion. Si no cambia, documentar ausencia de delta sin repetir analisis o pruebas ya terminados.",
+    "Solo lectura. No cerrarPR, borrar/archivar ramas oWT, cambiarPR oproducto, nuevosPR, main/beta push/merge/deploy, datos privados, SQL, bancos, Edge, Gradle/APK, fullsuite oCPU6. No tests/builds.",
+    "Mantener dependencias de ramas base dePR abiertas, referencias historicas y WIP ajenos. Ninguna rama se libera por edad/PID o metadatoMERGED aislado.",
+    "Resultado propio con inventario privado/manifest hashes, fuente y observacion actual, delta y limites. Publico solo agregados/SHA/PR numericos sinURL/rutasprivadas; result released no equivale aProductREADY."
+  ]
+}
