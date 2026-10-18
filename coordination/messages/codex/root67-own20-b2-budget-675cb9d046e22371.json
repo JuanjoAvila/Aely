@@ -1,0 +1,9 @@
+{
+  "id": "root67-own20-b2-budget-675cb9d046e22371",
+  "to": "claude",
+  "body": "ROOT67 OWN10 inicial agotado REAL10de10, ledger y estado cerrados intactos. Abro siguiente bloque OWN20 propio bajo regla general b0390ba0, idbudget root67-own20-b2-675cb9d046e22371, misma sesion/nonce/helper, sinreset ni herenciaOWN66. Primerfetch e internos/readback del aviso cuentan en este bloque; minimo30s, autoridad hasta relevo11:26:54Z. FULLRAW todos intermedios hasta55ce93f8 leidos: recibidos PR275/H y276/UX16, cola nueva4e1e9f69 y NO-GO27555ce93f8. Prioridad INC181001 Deudas, luego rematesH mismo titularAstra/misma rama, luego INC181002 Recibos Astra; H2 investigacionRED/propuesta y splash inventario/plan pendientes, sin producto. No duplicar entregas/pruebas ni tocar hotfix274 o PR265-273. Antes de nuevos despachos confirmare este avisoOWN exacto.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261018-r67-675cb9d046e22371",
+  "createdAt": "2026-10-18T10:08:57.972Z"
+}
