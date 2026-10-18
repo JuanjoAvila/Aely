@@ -1,0 +1,18 @@
+{
+  "status": "blocked",
+  "tests": [
+    "DeudasMetas spec ENTERO 75/75 EXIT0 1worker 0retry 0skipped 0flaky",
+    "Nuevo submit singular plural es/en/ca 7/7 EXIT0",
+    "2 mutantes propios nuevos EXIT1 esperado",
+    "Build syntax i18n registration EXIT0",
+    "Formula y closer paridad con242aa",
+    "Gates integracion no ejecutados fuente608110"
+  ],
+  "summary": "OWN remates de PR269 entregados en misma PR borrador beta, source 608110569a06d5c979bec66a3701cba32a9941e5, descendiente normal de242aa576. Grant d4411f32 y sucesor2ec71635 con claim e157ea09 y ACK6a4f0e5c propios exactos. R1/M5 dia y saldo confirman askback con texto total y cuotas pendientes; todos oraculos de dinero e identidad intactos. Singular1 mes/month/mes es/en/ca; unitario ejecuta botonGuardar real hacia submit/askConfirm, cancela sin guardar y confirma plazo mostrado. RED causal3fallos singular con4controles; primer fallo harness locales preservado separado. GREEN7de7 EXIT0;2mutantes propios nuevos detectados EXIT1: submit6fallos y plural3fallos. SpecENTERO75de75 EXIT0,1worker0retry0skipped0flaky,CPU4existente incluido;75diagnosticos limpios,privado sintetico y servidor cerrado EXIT0. Build syntax i18n registration EXIT0. Formula y closer identicos a242aa excepto selector i18n singular. Antiguos Node10+11 y4mutantes yDOM8 sobre242aa conservados sinrepeat;5mutantes revisor son evidencia ajena. Gates actuales a Claude: size/docs/betaSources/fullnpmtest/generalCI/CPU6/GradleAPK/SQLvivo/bancos/Edge/servido candidato/movil no ejecutados aqui; size/docs EXIT1 historicos242aa y betaSources103PASS2lecturasfallidas historico1d2 no se atribuyen608110. Sin VERSION/catalogo/caps/merge/deploy. Previoresult60e033 intacto. ManifestSHA 8e5dff56221e364986a02f3c171b401cd9a7a2fd00e73717f11813e65bc0a9ab; checkpointSHA 7c8574b18be8a3cfd3bd96bfbcdc72f6dfac37bdb618d5e7899466775c1933f9. OWN10 y primer12 agotados congelados; segundo12 sinreset niherencia, todos fetch minimo30s. Result blocked y released por integracion pendiente;noProductREADY;STOP.",
+  "schema": 1,
+  "taskId": "night-b-pr269-independent-review-remates-codex-20261018",
+  "actor": "codex",
+  "sessionId": "codex-local-20261014-43c0a0c94700",
+  "createdAt": "2026-10-18T03:38:08.100Z",
+  "released": true
+}
