@@ -2557,7 +2557,13 @@ test("Catálogo141 añade dos tandas (fichas y vibración con APK 56) sobre la b
     for(const u of added.web)assert.ok(scopeText(u,source).length>0,"la unidad existe en la fuente: "+JSON.stringify(u));
     for(const file of added.native||[])assert.ok(source(file).length>0,"el fichero nativo existe: "+file);
   }
-  assert.equal(source("public/apk.json"),old("public/apk.json"),"apk.json no se toca hasta que exista el asset de la APK 56 de beta");
+  // La APK 56 ya está en el release beta: apk.json la anuncia sin perder las revisiones nativas que ya acreditaba la 55.
+  const apk=JSON.parse(source("public/apk.json")),apkOld=JSON.parse(old("public/apk.json"));
+  assert.equal(apk.versionCode,56);assert.equal(apk.versionName,"4.26.141");
+  assert.ok(apk.url.endsWith("/releases/download/beta/Aely-4.26.141-beta-56.apk"),"apunta al asset de beta");
+  assert.match(apk.sha256,/^[0-9a-f]{64}$/);
+  for(const [id,h] of Object.entries(apkOld.revisiones||{}))assert.equal(apk.revisiones[id],h,"conserva la revisión nativa "+id);
+  assert.ok(apk.revisiones["vibracion-borde-y-mi-ciclo"],"acredita la tanda nativa nueva");
   assert.match(source("android/app/build.gradle"),/versionCode 56\s+versionName "4\.26\.141"/,"build.gradle anuncia la APK 56");
   assert.equal(execFileSync("git",["diff","--name-only","503d23267091eb5aa0b0e37dd94fac20ea37bd08","HEAD","--","supabase/migrations"],{encoding:"utf8"}).trim(),"","sin SQL ni migraciones");
   // Huellas que se mueven, lista cerrada: todo alcance que lee lo que tocan las cinco integraciones.
