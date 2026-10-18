@@ -8855,6 +8855,14 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "liberarReservasHuerfanas"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reservaLiberaciones"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "cuotasDeDeudaPorMarcar"
       },
       {
@@ -13910,6 +13918,10 @@
       },
       {
         "file": "src/modules/08-motor-bank.js",
+        "function": "reservaLiberaciones"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
         "function": "applyReserva"
       },
       {
@@ -18675,6 +18687,10 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "removeReservaRule"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reservaLiberaciones"
       },
       {
         "file": "src/modules/08-motor-bank.js",
@@ -26223,6 +26239,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "obPendingResponses"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "liberarReservasHuerfanas"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reservaLiberaciones"
       }
     ],
     "edge": [
@@ -28698,6 +28722,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "obPendingResponses"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "liberarReservasHuerfanas"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reservaLiberaciones"
       }
     ],
     "edge": [
@@ -30736,6 +30768,14 @@
       {
         "file": "src/modules/00-core.js",
         "data": "DELETED_AT_MAX"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "liberarReservasHuerfanas"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reservaLiberaciones"
       }
     ],
     "unidades": true
@@ -31987,6 +32027,14 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "obPendingResponses"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "liberarReservasHuerfanas"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reservaLiberaciones"
       }
     ],
     "unidades": true
@@ -34287,6 +34335,14 @@
       {
         "file": "src/modules/00-core.js",
         "function": "withdrawalReceiptLink"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "liberarReservasHuerfanas"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reservaLiberaciones"
       }
     ],
     "edge": [

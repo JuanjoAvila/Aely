@@ -620,7 +620,8 @@ function App(){
           // Call site 2/3 de fixMovInvasion (syncFromCloud). Contención dentro de la fn, no aquí.
           const seeded=seedFlows(fixMovInvasion(fixRevoDupes(fixInvAuto(fixInvSold(reconcileTR(baseObj))))));
           const now=new Date();
-          return reconcileEarlyIncomeAnchors(seeded,now.getFullYear(),now.getMonth()+1,now.getDate());
+          // Lo de la nube también: el otro móvil puede traer una regla borrada que aún resta.
+          return liberarReservasHuerfanas(reconcileEarlyIncomeAnchors(seeded,now.getFullYear(),now.getMonth()+1,now.getDate()));
         });
       } else if(cloudState){
         // llegó algo pero con forma inválida (corrupto/parcial) → NO machacar lo local; resube lo bueno

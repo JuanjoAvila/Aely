@@ -744,4 +744,51 @@ t("la tanda de edición actual conserva sus guardas sin congelar el historial fu
   for(const key of Object.keys(previous).filter(k=>k!=="web"))assert.deepEqual(current[key],previous[key],"la alta conserva "+key);
 });
 
+// Hotfix 18/10: una cuenta real tenía una regla ya borrada cuyo apartado seguía restando del
+// presupuesto del mes. Quitarla «no se deshacía». Se libera al cargar y al leer la nube.
+t("lo reservado por una regla que ya no existe vuelve al presupuesto, una sola vez", () => {
+  const s = estado();
+  s.settings = { reservaRules: s.settings.reservaRules.filter(r => r.id !== "r2") };
+  s.reservaLog = [
+    { id: "huerfana", ruleId: "r2", goalId: "borrada", name: "x", amount: 333, date: "2026-09-26T10:00:00.000Z", incomeKey: "2026-09-26|-1439.22|NOMINA" },
+    { id: "viva", ruleId: "r1", goalId: "gB", name: "y", amount: 70, date: "2026-09-26T10:00:00.000Z", incomeKey: "2026-09-26|-1439.22|NOMINA" },
+  ];
+  const start = Date.parse("2026-09-26T00:00:00.000Z");
+  assert.equal(ctx.reservedSince(s, start), 403);
+  const healed = ctx.liberarReservasHuerfanas(s);
+  assert.equal(ctx.reservedSince(healed, start), 70, "solo sigue apartado lo de la regla viva");
+  assert.equal(healed.reservaLog.length, 3);
+  const inv = healed.reservaLog[2];
+  assert.equal(inv.id, "release|huerfana", "id determinista: dos móviles escriben el mismo asiento");
+  assert.equal(inv.releaseOf, "huerfana");
+  assert.equal(inv.amount, -333);
+  assert.equal(inv.date, s.reservaLog[0].date, "resta en el mismo periodo en que se apartó");
+  assert.strictEqual(healed.goals, s.goals, "no mueve dinero de ninguna meta");
+  assert.strictEqual(healed.settings, s.settings);
+  assert.strictEqual(ctx.liberarReservasHuerfanas(healed), healed, "segunda pasada: mismo estado, sin reescritura");
+  const vacio = estado();
+  assert.strictEqual(ctx.liberarReservasHuerfanas(vacio), vacio);
+  const sano = estado();
+  sano.reservaLog = [s.reservaLog[1]];
+  assert.strictEqual(ctx.liberarReservasHuerfanas(sano), sano, "con todas las reglas vivas no toca nada");
+  // Ya liberada al borrarla (id aleatorio): no se libera dos veces.
+  const borrada = ctx.removeReservaRule(Object.assign({}, s, { settings: estado().settings }), "r2");
+  assert.equal(ctx.reservedSince(borrada, start), 70);
+  assert.strictEqual(ctx.liberarReservasHuerfanas(borrada), borrada);
+  // Un asiento de importe desconocido de esa regla: no se sabe qué sigue apartado, no se toca.
+  const raro = Object.assign({}, s, { reservaLog: s.reservaLog.concat([{ id: "raro", ruleId: "r2", amount: "?", date: "2026-09-27" }]) });
+  assert.strictEqual(ctx.liberarReservasHuerfanas(raro), raro);
+});
+
+// Sin las dos llamadas la cura no llega nunca a su móvil: la revisión del hotfix quitó cada una y
+// los tests de arriba seguían en verde.
+t("la cura corre al cargar y al adoptar la nube", () => {
+  const carga = fs.readFileSync("src/modules/01-i18n.js", "utf8");
+  const ini = carga.indexOf("function loadState(");
+  assert.ok(ini > 0 && carga.slice(ini, carga.indexOf("\n}", ini)).includes("liberarReservasHuerfanas("), "loadState");
+  const app = fs.readFileSync("src/modules/11-app-main.js", "utf8");
+  const sync = app.indexOf("Call site 2/3 de fixMovInvasion");
+  assert.ok(sync > 0 && app.slice(sync, sync + 600).includes("return liberarReservasHuerfanas("), "syncFromCloud");
+});
+
 console.log("\nreserva-dinero: OK");
