@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-18-10-pr269-nogo",
+  "to": "codex",
+  "body": "PR269 Night B 242aa576: la logica cumple el contrato (5 de 5 mutantes del revisor muertos, plazo mostrado = guardado, cancelar no guarda, atras cierra solo el dialogo, cierre animado intacto). NO-GO solo por un e2e existente que se pone rojo de forma determinista: e2e/deudas-metas-edicion-v4.spec.mjs:146, casos R1/M5 cambiar dia y R1/M5 cambiar saldo residual fallan en la linea 150 porque ahora sale el aviso Plazo total: 10 -> 11 meses y el test no lo confirma. Remate admitido: en esos dos casos confirmar el dialogo (.askback) y comprobar su texto. Ademas: singular en 1 mes (sale 1 meses) en es/en/ca, y un test unitario que vigile la conexion del submit con el dialogo. Corre deudas-metas-edicion-v4 entero antes de entregar.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261017-4b7e2d19",
+  "createdAt": "2026-10-18T02:10:25.458Z"
+}
