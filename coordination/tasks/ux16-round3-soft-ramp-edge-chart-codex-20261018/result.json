@@ -1,0 +1,163 @@
+{
+  "status": "blocked",
+  "summary": "UX16 ronda3 entregada PR280 DRAFT beta, fuente5ee28328cbbc86ec5b66063b4b70ffd2f2130438 desde7090802099ac0c7956c0d3597a9936a82c52a95f. Mi ciclo solicita una sola onda continua3a30sobre255, sesenta tramos sin apagados durante duracionreal y tope1200ms; sin amplitud controlable o con error del efecto queda en silencio, nunca tren de golpes. Borde y cursor:8ms a30sobre255 o una LOW_TICK0.25, reserva muy suave o silencio. Borde conserva llegada inercial unica y repite150ms solo manteniendo el tiron; release/cancel/inward/oculto/bloqueo cancelan. Cursor de GRAFICA Inicio pulsa por dia cambiado y minimo35ms en el RAF existente, sin colas ni nuevos layouts; stopSwipe y seleccion financiera intactos, nada botnav. RED web5fallos18controles y JVM2aserciones EXIT1; GREEN23comprobacionesweb,4metodosJVM y10controles transporteAPI36sintetico EXIT0. Nueve mutantes semanticos muertos EXIT1. javacAPI35real con doblesCapacitor, build/syntax/map/registry/diff EXIT0. PR276 y toda evidencia anterior preservadas. Ruta e intensidad fisicas no observadas; respuesta mantiene path y anade continuous. Revision/integracion/CIgates/APK/servido/movil pendientes, noProductREADY. Result propio blocked/released, cierre durable ySTOP.",
+  "productSHA": "5ee28328cbbc86ec5b66063b4b70ffd2f2130438",
+  "baseSHA": "7090802099ac0c7956c0d3597a9936a82c52a95f",
+  "branch": "codex/ux16-round3-ramp-edge-chart-20261018",
+  "PR": 280,
+  "draft": true,
+  "claimCommit": "fdeb08fb2823fb117dc072fb2a04c3ee866b0a09",
+  "ACKCommit": "99b627b816de5222a8fbde3d8e0bb3c2bdf98003",
+  "previousOwnResult": "b368e4aa9f52aede8d1096fd7fa280b1f7a179a6",
+  "grants": [
+    "f63320f381d7c469c0a30b11436e9f9b1455fc9f",
+    "c0696cbc72116f01921ca09260f2791dfbd3d214"
+  ],
+  "dependencyReleasedResult": "6749b7ff401b9f332c70ce18f1337539a8dff1a0",
+  "normalProductPushExit": 0,
+  "remoteBranchAndPullRefExact": true,
+  "PRHeadBaseBodyDraftExact": true,
+  "nativePRAttachmentConfirmed": true,
+  "tests": [
+    {
+      "command": "node work/ux16-round3-browser-run.mjs red",
+      "exit": 1,
+      "passedChecks": 18,
+      "failedChecks": 5,
+      "causalRED": true,
+      "baseArtifactUnmodified": true
+    },
+    {
+      "command": "node work/ux16-round3-browser-run.mjs green",
+      "exit": 0,
+      "passedChecks": 23,
+      "browser": "Edge155",
+      "workers": 1,
+      "retries": 0,
+      "ownPort": 48548,
+      "syntheticTouchesAndNativeTransport": true,
+      "realDOMAndRAF": true
+    },
+    {
+      "command": "node work/ux16-round3-jvm.mjs red",
+      "compileExit": 0,
+      "exit": 1,
+      "assertionFailures": 2,
+      "causalRED": true
+    },
+    {
+      "command": "node work/ux16-round3-jvm.mjs green",
+      "compileExit": 0,
+      "exit": 0,
+      "newMethods": 4,
+      "oldMethodsExecuted": 0
+    },
+    {
+      "command": "node work/ux16-round3-native-transport.mjs",
+      "typecheckExit": 0,
+      "compileExit": 0,
+      "exit": 0,
+      "newChecks": 10,
+      "realAndroidAPITypecheck": 35,
+      "runtimeAPI36Doubles": true,
+      "capacitorDoubles": true,
+      "physicalMotor": false
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exit": 0
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exit": 0
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exit": 0
+    },
+    {
+      "command": "node scripts/run-tests.mjs with own registry-only plan",
+      "exit": 0,
+      "productTestsRun": 0
+    },
+    {
+      "command": "git diff --cached --check",
+      "exit": 0
+    }
+  ],
+  "mutations": {
+    "killedByAssertion": 9,
+    "exitCodes": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "names": [
+      "ramp ceiling",
+      "unsupported fill amplitude",
+      "edge scale",
+      "ramp off gap",
+      "held pull repetition",
+      "touch release ignored",
+      "same chart point repetition",
+      "chart rate cap",
+      "chart reduced motion"
+    ],
+    "compileAndBrowserErrorsAbsent": true,
+    "survivors": 0
+  },
+  "evidence": {
+    "manifestSHA256": "056eb1d0a0c2be3be33451e303d2c6b4d9ea45d0f95976ac163d25e21f9333e7",
+    "candidateCheckpointSHA256": "25a411c62a9f0aa2eb5b428efa80bd8d29c8e16d51f5c75c97b6cc1565486938",
+    "deliveryCheckpointSHA256": "0fa822b588f6b70deef0d744d4a8661cceeb458c69c4d2020418daf5f15e6d5a",
+    "immutablePrivateReferences": 61,
+    "sourceInputs": 10,
+    "rawTestedHTMLSHA256": "032f7ba8ca834dcb23cae6cb9de6e967e1ad9d42439176e28327becd5b62b01f",
+    "sourceAndGitLFParity": true,
+    "evidenceFileFsyncAndReadback": true,
+    "oldResultsSourcesWIPLedgersPreserved": true
+  },
+  "preservedFailures": [
+    "Private inline generator failed PowerShell quoting EXIT1 before file creation; two dependent commands MODULE_NOT_FOUND EXIT1, zero cases. Corrected private generator underbc1c5e1d, no product failure attributed",
+    "Private delivery fsync EXIT1 EPERM on read-only Windows file descriptor; same evidence paths opened rplus, fsync and all hashes verified. No policy denial, alternate identity or product/test rerun",
+    "First result normal push NFF EXIT1 preserved; all new INC18100304 consultation and released investigation FULL RAW read, no applicable UX16 cancellation. One retry under5997 after minimum30s, same task/session/helper/filter. Readback consumes15of20, no reset",
+    "Retry1 result NFF EXIT1 preserved. Fresh FULL RAW56464894 read: separate INC18100304 productGO, no scope transfer or explicit UX16 cancellation; UX16 source/testing already complete and delivery only. Retry2 same holder/task/helper after60s under5997; actual15of20, expectedreadback16of20",
+    "Post-backoff freshfetch16 FULL RAW650ad3cf confirms INC UI task separate and original UX16 already executing, no takeover. Same result retry2 after more60s under5997; expected ownreadback17of20."
+  ],
+  "limitations": [
+    "No actual device route or intensity observation, physical motor/system acceptance or WebView inertia proof; JVM and browser cannot accredit APK58",
+    "Fill intentionally silent without amplitude control or if its effect fails. Edge and chart retain low-tick or very soft fallback. This avoids the rejected repeated strong fill pulses but reduces hardware coverage",
+    "Native transport execution uses Android and Capacitor doubles; real API35 typecheck does not link real Capacitor, Gradle or APK",
+    "New spec function executed by own dependency-free CDP harness; Playwright wrapper not launched. Synthetic held contacts and programmatic scroll are not physical gestures",
+    "No general CI/fullsuite, CPU6, beta-sources, official size or docs-frescura execution. Empty PR check rollup is not CI success",
+    "No live data, SQL, banks, Edge, deploy, merge, served beta or physical mobile acceptance",
+    "No VERSION/catalogue/caps/financial-oracle changes. Botnav, financial series and08 unchanged. Generated beta-delivery and release notes restored exact to base; integrator reconciles metadata",
+    "Old pulsed-fill test expectations explicitly replaced by continuous-fill and single-edge contracts. Historical tests and foreign tests not rerun as new evidence"
+  ],
+  "budget": {
+    "idbudget": "ux16-own20-20261018-d382f016",
+    "continuedPreviousUsed": 8,
+    "usedBeforeResult": 16,
+    "expectedAfterReadback": 17,
+    "allowance": 20,
+    "previousClosed": 22,
+    "allFirstInternalReadbacksCounted": true,
+    "minimumSeconds": 30,
+    "noResetOrROOTInheritance": true
+  },
+  "physicalAPI36RouteObserved": false,
+  "productReady": false,
+  "next": "Canonical OWN released blocked result and claim readback, final durable checkpoint and ledger snapshot, STOP. Return private checkout path only in native reply. Claude review/integration/APK and physical acceptance remain separate.",
+  "schema": 1,
+  "taskId": "ux16-round3-soft-ramp-edge-chart-codex-20261018",
+  "actor": "codex",
+  "sessionId": "codex-local-20261017-d382f016f7ca68b8",
+  "createdAt": "2026-10-18T22:10:35.904Z",
+  "released": true
+}
