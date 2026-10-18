@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "id": "inc181001-debt-save-sheet-codex-20261018",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261018-r67-675cb9d046e22371",
+  "createdAt": "2026-10-18T10:10:57.318Z",
+  "to": "codex",
+  "kind": "worker",
+  "baseSHA": "ff53b0e7243fe79f9164bbc1bcf2313fb2e28d13",
+  "claudeGrant": "4e1e9f695fb656c5220477841095320ea39dcbd8",
+  "moneyModelGrant": "1695316a112f1e4689d82427d1c31d65eb20a526",
+  "model": "gpt-6-astra",
+  "priority": 1,
+  "objective": "INC-1810-01: Debt manage/edit sheet Save silently does nothing and sheet stays open; reproduce real sheet E2E and fix valid save/close or explicit es/en/ca in-sheet rejection reason, never silence.",
+  "scope": [
+    "src/modules/09-tab-debts-goals.js",
+    "src/modules i18n entries strictly needed for debt sheet save validation",
+    "e2e",
+    "tests",
+    "docs/briefs"
+  ],
+  "requirements": [
+    "Same original Deudas holder; verify own runtime/cwd/census/helper/filter, preserve every previous task result/claim/source/WIP/ledger/RETURN. New task requires own fresh claim canonical readback and ACK before product. No foreign lease transfer or reset.",
+    "New isolated branch/checkout from exact beta ff53b0e7, no edits to frozenPR240/269 or root checkout. FIN16 term/payment rejection is a suspicion to investigate, not established cause.",
+    "ROJO first by actual directed E2E opening the manage/edit sheet and clicking Save with synthetic debt. Keep real logs/screenshots private. A unit/Node invocation is not real E2E.",
+    "Valid edited debt persists and sheet closes; invalid/incompatible term/payment yields clear in-sheet explanation in Spanish, English and Catalan. Preserve existing finished-debt/decimal semantics and exact-cent financial values; never relax money guards/oracles to force save. Consult Claude before a new financial contract/arithmetic change.",
+    "Focused directed browser specs only own port, one worker zero retries, effective census; no fullsuite/CPU6/Gradle/APK. Preserve all original tests/failures, no unnecessary replay of completed old tasks. New causalGREEN and meaningful mutation evidence with real EXITs.",
+    "Existing own remaining allowance must be verified and used without reset. b0390ba0 permits subsequent own20 after actual exhaustion and own budget notice/readback; count first/internal/readback,min30s. No ROOT or other worker budget inheritance.",
+    "Draft PR against beta and own immutable blocked/released result if review/integration pending. Exact SHA/base, commands/EXITs, manifest/checkpoint and limits. No SQLlive/banks/Edge/deploy/merge/main-beta push/VERSION/catalogue/caps/foreign oracles.",
+    "Do not touch production hotfixPR274 or frozenPR265-273; Claude integrates beta143. H PR275 round2 is next after this task, then Recibos181002; do not pick any other task."
+  ],
+  "deliverable": "Draft PR beta + own result; concrete real E2E causal RED/GREEN for debt Save and visible three-language rejection, financial invariants unchanged."
+}
