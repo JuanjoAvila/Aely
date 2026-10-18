@@ -870,6 +870,11 @@ function applyBankBalances(s, links){
             uidCambia?{bankUid:String(ac.uid)}:null);
           changed=true;
         }
+        if(Object.prototype.hasOwnProperty.call(a,"balanceStale")){
+          accounts[ownerOf[k]]=Object.assign({},accounts[ownerOf[k]]);
+          delete accounts[ownerOf[k]].balanceStale;
+          changed=true;
+        }
       } else {
         obAccts.push(mkObAcct(lk,ac,bal,inf));
         synced.push({ ent:ent, bal:bal, iban:ac.iban||null });

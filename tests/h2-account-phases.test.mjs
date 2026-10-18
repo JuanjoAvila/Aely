@@ -18,7 +18,7 @@ const state=()=>({accounts:[],expenses:[],obAccounts:[{key:'a',ent:'caixabank',a
 const cents=s=>Math.round(s.obAccounts.reduce((n,a)=>n+a.value,0)*100);
 const plain=x=>JSON.parse(JSON.stringify(x));
 let pass=0,fail=0;
-async function t(name,fn){ now=Date.parse(stamp);try{await fn();pass++;console.log('PASS '+name);}catch(e){fail++;console.error('FAIL '+name+'\n'+e.stack);} }
+async function t(name,fn){ if(process.env.H2_CASE_FILTER&&!name.includes(process.env.H2_CASE_FILTER))return;now=Date.parse(stamp);try{await fn();pass++;console.log('PASS '+name);}catch(e){fail++;console.error('FAIL '+name+'\n'+e.stack);} }
 async function failedBalance(mode=body){const reply=tx;reply.balanceError=p=>p.includes('/a/')?'EB 503: synthetic':null;try{return await sync([bank()],reply,mode,Clock);}finally{delete reply.balanceError;} }
 
 await t('balance failure does not suppress transaction query, complete transactions offer ACK',async()=>{
@@ -218,5 +218,26 @@ await t('R5 failed assigned extra retains date and value with distinct healthy s
  const initial={...state(),accounts:[{ent:'caixabank',role:'fijos',value:20,bankIban:'IBAN-B'}]};
  const links=[{aspsp:'CaixaBank',ok:true,accountPhases:1,accounts:[{uid:'a',balanceOk:false,balances:[]},{uid:'b',iban:'IBAN-B',balanceOk:true,balances:[{amount:100,type:'ITAV'}]}]}];
  const got=L.applyBankBalances(initial,links).state;assert.equal(got.accounts[0].value,100);assert.equal(cents(got),12500);assert.equal(got.obAccounts[0].key,'a');assert.equal(got.obAccounts[0].balanceAt,prior);assert.equal(got.obAccounts[0].stale,true);
+});
+for(const promoted of [false,true])for(const firstAmount of [125,100])await t('R6 '+(promoted?'promoted stale extra':'failed principal')+' recovers '+firstAmount+' then 110 without new dates',()=>{
+ const linkFor=n=>[{aspsp:'CaixaBank',ok:true,accountPhases:1,accounts:[{uid:'a',balanceOk:n!==null,balanceAt:stamp,balances:n===null?[]:[{amount:n,type:'ITAV'}]}]}];
+ let initial={...state(),obAccounts:[],accounts:[{id:'main',ent:'caixabank',role:'fijos',bankUid:'a',value:125,balSaldo:125,balTipo:'ITAV',balanceAt:prior}]};
+ if(promoted){
+  const failed=L.applyBankBalances({...state(),obAccounts:state().obAccounts.slice(0,1)},linkFor(null)).state;
+  assert.equal(failed.obAccounts[0].stale,true);assert.equal(failed.obAccounts[0].balanceAt,prior);
+  initial=L.promoteObAccount(failed,{},'a','fijos','main');
+ }else initial=L.applyBankBalances(initial,linkFor(null)).state;
+ assert.equal(initial.accounts[0].balanceStale,true);assert.equal(initial.accounts[0].value*100,12500);assert.equal(initial.accounts[0].balanceAt,prior);
+ for(const amount of [firstAmount,110]){
+  const before=plain(initial),got=L.applyBankBalances(initial,linkFor(amount));
+  assert.equal(got.state.accounts[0].value*100,amount*100);
+  assert.equal(Object.hasOwn(got.state.accounts[0],'balanceStale'),false,'valid recovery removes the flag, including unchanged amount');
+  assert.equal(got.state.accounts[0].balanceAt,prior,'recovery does not write a new date');
+  const expected=plain(old.applyBankBalances(initial,linkFor(amount)).state);delete expected.accounts[0].balanceStale;
+  assert.deepEqual(plain(got.state),expected,'only the preexisting stale flag differs from real base');
+  assert.deepEqual(plain(initial),before,'input state is not mutated');assert.equal(got.changed,true);
+  assert.deepEqual(plain(L.applyBankBalances(got.state,linkFor(amount)).state),plain(got.state),'replay stable');
+  initial=got.state;
+ }
 });
 console.log(JSON.stringify({passed:pass,failed:fail}));process.exitCode=fail?1:0;
