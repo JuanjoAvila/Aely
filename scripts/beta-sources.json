@@ -1381,6 +1381,22 @@
       {
         "file": "src/modules/00-core.js",
         "data": "CATEGORIES"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRival"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentModelMatches"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBind"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContract"
       }
     ],
     "unidades": true
@@ -2795,6 +2811,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "obAbsorbedRuns"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRival"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentModelMatches"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContract"
       }
     ],
     "native": [
@@ -4039,6 +4067,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "obAbsorbedRuns"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRival"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentModelMatches"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContract"
       }
     ],
     "native": [
@@ -4887,6 +4927,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "STATE_KEY_REAL"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "histDistinctBookRef"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "histDifferentBankRef"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "histNumberBookRefs"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "histDeletedBookRefs"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRival"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentModelMatches"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContract"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "histBookResponses"
       }
     ],
     "native": [
@@ -6200,6 +6272,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "obAbsorbedRuns"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRival"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentModelMatches"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContract"
       }
     ],
     "native": [
@@ -7444,6 +7528,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "obAbsorbedRuns"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRival"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentModelMatches"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContract"
       }
     ],
     "native": [
@@ -9249,6 +9345,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "obAbsorbedRuns"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRival"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentModelMatches"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContract"
       }
     ],
     "unidades": true
@@ -11632,6 +11740,34 @@
       {
         "file": "src/modules/00-core.js",
         "data": "obConfirmedReadCache"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "histDistinctBookRef"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "histDifferentBankRef"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBind"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentModelMatches"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRival"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContract"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "histBookResponses"
       }
     ],
     "unidades": true
@@ -12669,6 +12805,22 @@
       {
         "file": "src/modules/00-core.js",
         "data": "obAbsorbedRuns"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBind"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRival"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentModelMatches"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContract"
       }
     ],
     "unidades": true
@@ -13898,6 +14050,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "obAbsorbedRuns"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRival"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentModelMatches"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContract"
       }
     ],
     "native": [
@@ -14257,6 +14421,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "obConfirmedReadCache"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRival"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentModelMatches"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContract"
       }
     ]
   },
@@ -15384,6 +15560,22 @@
       {
         "file": "src/modules/00-core.js",
         "data": "obAbsorbedRuns"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBind"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentModelMatches"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRival"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContract"
       }
     ],
     "unidades": true
@@ -18825,6 +19017,22 @@
       {
         "file": "src/modules/00-core.js",
         "data": "obAbsorbedRuns"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBind"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentModelMatches"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRival"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContract"
       }
     ],
     "edge": [
@@ -20599,6 +20807,22 @@
       {
         "file": "src/modules/00-core.js",
         "data": "obAbsorbedRuns"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBind"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentModelMatches"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRival"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContract"
       }
     ],
     "unidades": true
@@ -21943,6 +22167,22 @@
       {
         "file": "src/modules/00-core.js",
         "data": "obAbsorbedRuns"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBind"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentModelMatches"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRival"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContract"
       }
     ],
     "unidades": true
@@ -22747,6 +22987,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "obConfirmedReadCache"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRival"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentModelMatches"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContract"
       }
     ],
     "unidades": true
@@ -26440,6 +26692,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "obAbsorbedRuns"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRival"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentModelMatches"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContract"
       }
     ],
     "native": [
@@ -27534,6 +27798,22 @@
       {
         "file": "src/modules/00-core.js",
         "data": "CATEGORIES"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBind"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentModelMatches"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRival"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContract"
       }
     ],
     "unidades": true
@@ -28763,6 +29043,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "obAbsorbedRuns"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRival"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentModelMatches"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContract"
       }
     ],
     "native": [
@@ -29954,6 +30246,22 @@
       {
         "file": "src/modules/00-core.js",
         "data": "CATEGORIES"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRival"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentModelMatches"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBind"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContract"
       }
     ],
     "unidades": true
@@ -31041,6 +31349,22 @@
       {
         "file": "src/modules/00-core.js",
         "data": "CATEGORIES"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBind"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentModelMatches"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRival"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContract"
       }
     ],
     "edge": [
@@ -32427,6 +32751,42 @@
       {
         "file": "src/modules/00-core.js",
         "data": "OB_CONFIRMED_AGE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "histDistinctBookRef"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "histDifferentBankRef"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "histDeletedBookRefs"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "histNumberBookRefs"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBind"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentModelMatches"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRival"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContract"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "histBookResponses"
       }
     ],
     "edge": [
@@ -35306,6 +35666,42 @@
       {
         "file": "src/modules/00-core.js",
         "data": "OB_CONFIRMED_AGE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRival"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentModelMatches"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "histDeletedBookRefs"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "histNumberBookRefs"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "histDifferentBankRef"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBind"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "histDistinctBookRef"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContract"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "histBookResponses"
       }
     ],
     "edge": [
@@ -39231,6 +39627,22 @@
       {
         "file": "src/modules/00-core.js",
         "data": "OB_CONFIRMED_AGE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBind"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRival"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentModelMatches"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContract"
       }
     ],
     "unidades": true
@@ -40264,6 +40676,18 @@
       {
         "file": "src/modules/00-core.js",
         "data": "obAbsorbedRuns"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRival"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentModelMatches"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContract"
       }
     ],
     "unidades": true
@@ -42059,6 +42483,22 @@
       {
         "file": "src/modules/00-core.js",
         "data": "OB_CONFIRMED_AGE"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBind"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentModelMatches"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRival"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContract"
       }
     ],
     "edge": [
@@ -47712,6 +48152,329 @@
       {
         "file": "src/modules/00-core.js",
         "function": "isManualExpenseSource"
+      }
+    ],
+    "unidades": true
+  },
+  "vibracion-suave-ronda-2": {
+    "web": [
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "mcHaptic"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "mcBindEdgeHaptics"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "mcInicioFillHaptic"
+      },
+      {
+        "file": "src/modules/03-tab-dash.js",
+        "from": "  return React.createElement(\"div\",{className:\"v4-screen\",onAnimationStart:mcInicioFillHaptic},",
+        "to": "    React.createElement(\"div\",{className:\"v4-inicio-head rise\"},"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  const hapticBlockRef=useRef(null);",
+        "to": "    const el=viewportRef.current; if(!el) return undefined;"
+      }
+    ],
+    "native": [
+      "android/app/src/main/java/com/micartera/app/AelyHapticsPlugin.java",
+      "android/app/src/main/java/com/micartera/app/HapticPlan.java",
+      "android/app/src/main/java/com/micartera/app/MainActivity.java",
+      "android/app/src/main/AndroidManifest.xml"
+    ],
+    "unidades": true
+  },
+  "deudas-guardar-motivo": {
+    "web": [
+      {
+        "file": "src/modules/09-tab-debts-goals.js",
+        "function": "DebtEditSheet"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF"
+      }
+    ],
+    "unidades": true
+  },
+  "recibo-renombrado-sigue-pagado": {
+    "web": [
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContract"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentModelMatches"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBind"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentBookRival"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentAutoOwner"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentProof"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "linkFixedPayment"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reconcileFixedPaymentProofs"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "rekeyFixedPaymentExpense"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentState"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "patchFixedById"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentModel"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentUnique"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentIdentity"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reciboVetado"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recNorm"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentContenders"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recFrase"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recNameMatch"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recAmtClose"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentDate"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentFeedClear"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenses"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedExpenseEligible"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseBankOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accFixed"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedExpenseKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "keyOfExpense"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "keyOfExpenseLegacy"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recDay"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenseRows"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reciboNoIdentidad"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentExpenseChoice"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reconcileBank"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "dayKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recTokens"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseIsTombstoned"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseDeletedSet"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "partirEntDeuda"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accRole"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isManualExpenseSource"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obOrdinalSufijo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "dateMs"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "recSane"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "esFilaDeBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obConfirmedMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorbedValid"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obOrdinalOf"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "_pdMs"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obConfirmedValid"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionIndex"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isExpenseUuid"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorbedKeyOk"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obPolarity"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CAT_NEUTRAS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DUP_DIAS_MS"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "REC_GRACE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "expenseConfirmedSets"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "expenseDeletedSets"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obConfirmedIndexes"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obAbsorptionIndexes"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "_pdCache"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "OB_CONFIRMED_MAX"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "OB_CONFIRMED_AGE"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obConfirmedBlocked"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obConfirmedReadCache"
       }
     ],
     "unidades": true

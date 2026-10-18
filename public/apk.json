@@ -1,8 +1,8 @@
 {
-  "versionCode": 56,
-  "versionName": "4.26.141",
-  "url": "https://github.com/JuanjoAvila/Aely/releases/download/beta/Aely-4.26.141-beta-56.apk",
-  "notes": "Vibración suave al llegar al final de una pantalla y al rellenarse el anillo de Mi ciclo. Se instala encima sin perder datos.",
+  "versionCode": 57,
+  "versionName": "4.26.144",
+  "url": "https://github.com/JuanjoAvila/Aely/releases/download/beta/Aely-4.26.144-beta-57.apk",
+  "notes": "Vibración más suave al rellenarse el anillo de Mi ciclo y al llegar al final de una lista. Se instala encima sin perder datos.",
   "revisiones": {
     "fin05-widget-reentrada": "78ff9b2c46f59b55936bb1390580044fdb1715a4c5583189259eeece4db230e4",
     "fin05-pago-cerrada": "8a6f5aefbe66677ca3685ba430208766d5adc791e2fb50d1013a3d54d8397e50",
@@ -11,7 +11,8 @@
     "widget-app-cerrada": "8a6f5aefbe66677ca3685ba430208766d5adc791e2fb50d1013a3d54d8397e50",
     "inc-2909-01-widget-periodo": "8a6f5aefbe66677ca3685ba430208766d5adc791e2fb50d1013a3d54d8397e50",
     "widget-ciclo-puente": "8a6f5aefbe66677ca3685ba430208766d5adc791e2fb50d1013a3d54d8397e50",
-    "vibracion-borde-y-mi-ciclo": "c8ed347785c723e4690c4a1f6664b9f3d34421c65b3798f902223abb33f10080"
+    "vibracion-borde-y-mi-ciclo": "c8ed347785c723e4690c4a1f6664b9f3d34421c65b3798f902223abb33f10080",
+    "vibracion-suave-ronda-2": "cad0f5b6d33aa6cff3c1e588315cd5cd1a73364e1cb497109696efb0b2cc7b9f"
   },
   "sha256": "a11ac5496d59135f7e262938f8c58a353e48f953f3f437cecd8e9c24dc54828e",
   "sourceSha": "a84d29ec59672c3e88f3b4071bf08841f26961e0"

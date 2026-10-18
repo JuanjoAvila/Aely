@@ -86,6 +86,8 @@ const sourceBeta139=sourceAt("a9c9e45d76d0d92c2c529b0652c24496dea75300");
 const sourceBeta140=sourceAt("503d23267091eb5aa0b0e37dd94fac20ea37bd08");
 // Catálogo141 pasa a histórico con la 143: se lee de la beta 4.26.141 servida (ff53b0e7), lo que probó el móvil y sobre lo que la 143 añade sus tres tandas.
 const sourceBeta141=sourceAt("ff53b0e7243fe79f9164bbc1bcf2313fb2e28d13");
+// Catálogo143 pasa a histórico con la 144: se lee de la beta 4.26.143 servida (983f4628), lo que probó el móvil y sobre lo que la 144 añade sus tres tandas.
+const sourceBeta143=sourceAt("983f46282f702205b5d65737744e90d584377bcf");
 // Catálogo137 pasa a histórico en la promoción 137: se lee de la beta 4.26.137.1 aprobada (6f18228c), lo último que probó el móvil y lo que sube entero.
 const sourceBeta137=sourceAt("6f18228cbd81c1cc9abfa7fabce0a878819234f4");
 // La122 añade un método a `cloud` (`setExpenseRecibo`) y los alcances que listan los métodos que
@@ -219,7 +221,7 @@ test("Inicio v4.2 cubre flujos, ciclo, renderer, llamada, animación, textos, CS
   // La base es la integración120 (apuntes iguales de Trade Republic): Inicio no puede retirar su alcance ni heredar su revisión.
   const integrated=JSON.parse(source120("scripts/beta-sources.json"));
   // Detrás de Inicio sólo ha entrado el alcance de la122 (el cargo de recibo en Gastos).
-  assert.deepEqual(Object.keys(scopes),Object.keys(integrated).concat(id,"recibo-cargo-en-gastos","plan-scroll-lento","inicio-tarjeta-ciclo-limpia","bancos-reconexion-revoca","inicio-mes-pasado-mismo-dia","limpieza-ajustes-perfil","tr-empareja-sin-preguntar","cuenta-parte-mia","inicio-recientes-sin-repetidos","scroll-borde-barra","inicio-grafica-reservas","compras-identicas-ids","myinvestor-contador-a-cero","deudas-metas-hoja-edicion","deudas-plazo-cuota-cuadran","gastos-actualizar-gastos","gastos-suscripciones-botones","compras-pendientes-otro-dia","deudas-plazo-cuota-encaja","deudas-metas-hoja-sin-parpadeo","deudas-metas-hoja-cierre-suave","teclado-atras-conserva","fichas-cierre-suave-atras","vibracion-borde-y-mi-ciclo","deudas-aviso-plazo","cuenta-saldo-cierre-atras","banco-pruebas-sin-aviso"),"Inicio y las altas de la122, la124, la126, la127, la128, la129, la130, la131, la132, la133, la134, la135, la137, la138, la139, la140, la141 y la143, sin retirar historia120");
+  assert.deepEqual(Object.keys(scopes),Object.keys(integrated).concat(id,"recibo-cargo-en-gastos","plan-scroll-lento","inicio-tarjeta-ciclo-limpia","bancos-reconexion-revoca","inicio-mes-pasado-mismo-dia","limpieza-ajustes-perfil","tr-empareja-sin-preguntar","cuenta-parte-mia","inicio-recientes-sin-repetidos","scroll-borde-barra","inicio-grafica-reservas","compras-identicas-ids","myinvestor-contador-a-cero","deudas-metas-hoja-edicion","deudas-plazo-cuota-cuadran","gastos-actualizar-gastos","gastos-suscripciones-botones","compras-pendientes-otro-dia","deudas-plazo-cuota-encaja","deudas-metas-hoja-sin-parpadeo","deudas-metas-hoja-cierre-suave","teclado-atras-conserva","fichas-cierre-suave-atras","vibracion-borde-y-mi-ciclo","deudas-aviso-plazo","cuenta-saldo-cierre-atras","banco-pruebas-sin-aviso","vibracion-suave-ronda-2","deudas-guardar-motivo","recibo-renombrado-sigue-pagado"),"Inicio y las altas de la122, la124, la126, la127, la128, la129, la130, la131, la132, la133, la134, la135, la137, la138, la139, la140, la141, la143 y la144, sin retirar historia120");
   for(const [key,value] of Object.entries(integrated))if(key!=="inicio-grafica-vuelve"){assert.deepEqual(scopes[key].native,value.native);assert.deepEqual(scopes[key].edge,value.edge);for(const part of (value.web||[]).map(limpieza129).filter(Boolean))assert.ok(scopes[key].web.some(s=>JSON.stringify(sinMetodo122(s))===JSON.stringify(part)||JSON.stringify(sinPull130(sinMetodo122(s)))===JSON.stringify(sinPull130(sinMetodo122(part)))||JSON.stringify(sinAbsorcion143(sinCompras135(sinPull130(sinMetodo122(s)))))===JSON.stringify(sinCompras135(sinPull130(sinMetodo122(part))))),key+": no recortar descriptor ajeno120");}
   assert.equal(scope.unidades,true);
   for(const key of ["historial","auditoria","codigosCompatibles","compatibilidadGit","compatibilidadSha"])
@@ -2618,10 +2620,10 @@ const expected143={"v":"4.26.143","d":"2026-10-18","t":{"es":"Avisos de plazo al
 // 4.26.143 (18/10/2026): ocho integraciones sobre la beta 4.26.141 servida (ff53b0e7): PR 265 (banco de pruebas, d7212fd5), PR 268 (saldo de cuenta con atrás, 3d28b96f), PR 273 (Mi ciclo «<1 %», 7ee69d4c),
 // PR 269 (aviso de plazo en Deudas, 60811056), PR 271 (BOOK sobre PDNG, eafd6569), PR 272 (devoluciones con signo, 79c2c324), PR 270 (docs, 7a2d50dc) y PR 267 (FIN-17 con FIN-11, 307419e6).
 // Tres tandas NUEVAS solo web; la 141 queda con `tandas: []`. Mi ciclo y las devoluciones (dependen de `ingest`) no entran en el panel. Sin SQL ni APK nueva: `apk.json` y `android/` no se tocan.
-test("Catálogo143 añade tres tandas web (plazo en Deudas, saldo de cuenta con atrás, banco de pruebas) sobre la beta 141, con alcance propio, y declara cada huella que mueve",()=>{
+test("Catálogo143 histórico añade tres tandas web (plazo en Deudas, saldo de cuenta con atrás, banco de pruebas) sobre la beta 141, con alcance propio, y declara cada huella que mueve",()=>{
   const tandas=["deudas-aviso-plazo","cuenta-saldo-cierre-atras","banco-pruebas-sin-aviso"],pasos=[3,4,3];
   const integrated=JSON.parse(sourceBeta141("scripts/beta-sources.json")),before=JSON.parse(sourceBeta141("src/data/release-notes.json"));
-  const source=f=>read(f).replace(/\r\n/g,"\n"),old=f=>sourceBeta141(f).replace(/\r\n/g,"\n");
+  const source=f=>sourceBeta143(f).replace(/\r\n/g,"\n"),old=f=>sourceBeta141(f).replace(/\r\n/g,"\n");
   assert.equal(before[0].v,"4.26.141");assert.equal(before[0].tandas.length,2,"la beta 141 llevaba dos tandas");
   const expectedNotes=[expected143,{...before[0],tandas:[]},...before.slice(1)];
   const notes=JSON.parse(source("src/data/release-notes.json"));
@@ -2688,7 +2690,7 @@ test("Catálogo143 añade tres tandas web (plazo en Deudas, saldo de cuenta con 
   }
   assert.equal(source("public/apk.json"),old("public/apk.json"),"sin APK nueva: apk.json no se toca");
   assert.equal(source("android/app/build.gradle"),old("android/app/build.gradle"),"sin APK nueva: android/ no se toca");
-  assert.equal(execFileSync("git",["diff","--name-only","ff53b0e7243fe79f9164bbc1bcf2313fb2e28d13","HEAD","--","supabase/migrations","android"],{encoding:"utf8"}).trim(),"","sin SQL ni nativo");
+  assert.equal(execFileSync("git",["diff","--name-only","ff53b0e7243fe79f9164bbc1bcf2313fb2e28d13","983f46282f702205b5d65737744e90d584377bcf","--","supabase/migrations","android"],{encoding:"utf8"}).trim(),"","sin SQL ni nativo");
   // Huellas que se mueven, lista cerrada: todo alcance que lee lo que tocan las ocho integraciones.
   const expectedMoves={"inc-0810-backclose-handover":["web"],"inc-3009-01-cargos":["web"],"beta-panel-veredictos":["web"],"fin05-widget-reentrada":["web"],"fin05-pago-cerrada":["web","edge"],"tr-descripcion-clasificacion":["web"],"widget-banco":["web"],"widget-app-cerrada":["web","edge"],"inc-2809-02-ayuda-ciclo":["web"],"inc-2909-02-inicio-natural":["web"],"inc-2709-10-perfil":["web"],"inc-3009-nomina-anticipada":["web"],"inc-2909-03-retirada":["web"],"inc-2909-01-widget-periodo":["web"],"inc-0210-01-plan-cuota":["web"],"inc-0210-03-gastos-periodo":["web"],"feature-0210-01-gasolina-taxi":["web"],"inc-0210-02-categoria-elegida":["web"],"inc-0310-01-meta-regla":["web"],"feature-0310-01-movilidad":["web"],"inc-0310-broker-resultados":["web"],"inc-0310-gastos-sin-limite":["web"],"ops-0410-panel-cola":["web"],"inc-0710-gastos-mes-madrid":["web"],"inc-0710-auth-disposal":["web"],"inc-0810-dashboard-recents-memo":["web"],"inc-0810-metas-editar-regla":["web"],"bienes-completo":["web"],"inicio-grafica-vuelve":["web"],"widget-pago-app-cerrada":["web"],"bancos-sin-hueco":["web"],"widget-ciclo-puente":["web"],"recibos-cargo-unico":["web"],"bancos-acuse-reconexion":["web"],"tr-iguales-ordinal":["web","edge"],"inicio-patrimonio-flujos":["web"],"recibo-cargo-en-gastos":["web","edge"],"inicio-tarjeta-ciclo-limpia":["web"],"bancos-reconexion-revoca":["web"],"inicio-mes-pasado-mismo-dia":["web"],"limpieza-ajustes-perfil":["web"],"tr-empareja-sin-preguntar":["web"],"cuenta-parte-mia":["web"],"inicio-recientes-sin-repetidos":["web"],"inicio-grafica-reservas":["web"],"compras-identicas-ids":["web","edge"],"myinvestor-contador-a-cero":["web"],"deudas-metas-hoja-edicion":["web"],"deudas-plazo-cuota-cuadran":["web"],"gastos-suscripciones-botones":["web"],"compras-pendientes-otro-dia":["web","edge"],"deudas-plazo-cuota-encaja":["web"],"deudas-metas-hoja-sin-parpadeo":["web"],"deudas-metas-hoja-cierre-suave":["web"],"teclado-atras-conserva":["web"],"fichas-cierre-suave-atras":["web"]};
   const previous=new Map();
@@ -2726,6 +2728,131 @@ test("Catálogo143 añade tres tandas web (plazo en Deudas, saldo de cuenta con 
     for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica"])assert.equal(group[key],undefined,id+": identidad nueva sin "+key);
   });
   assert.deepEqual(receipt.pruebas,Object.fromEntries(expected143.tandas.map(g=>[g.id,{v:"4.26.143",contenido:JSON.stringify([g.id,g.t.es,g.items.es,1])}])),"un guion por probar por cada tanda");
+});
+
+
+const expected144={"v":"4.26.144","d":"2026-10-18","t":{"es":"Vibración más suave, y arreglos al guardar deudas y renombrar recibos","en":"Gentler vibration, and fixes when saving debts and renaming bills","ca":"Vibració més suau, i millores en desar deutes i canviar el nom dels rebuts"},"items":{"es":["La vibración al rellenarse el anillo de Mi ciclo es más suave y acompaña el relleno, y también da un toque suave al llegar al final de una lista por impulso. Necesita instalar la app nueva.","Al guardar una deuda cuya cuota no encaja con el plazo, el aviso que explica el motivo se ve entero.","Si cambias solo las mayúsculas del nombre de un recibo que ya has pagado este mes, sigue contando como pagado.","Al importar el histórico de CaixaBank, una lectura dudosa ya no se da por nueva: sale sin marcar para que la confirmes."],"en":["The vibration while the My cycle ring fills is gentler and follows the fill, and there is also a soft tap when a list reaches its end by momentum. It needs the new version of the app.","When you save a debt whose payment does not fit the term, the notice that explains why now shows in full.","If you change only the capital letters in the name of a bill you have already paid this month, it still counts as paid.","When importing CaixaBank history, a doubtful reading is no longer taken as new: it comes unticked so you can confirm it."],"ca":["La vibració en omplir-se l'anell de El meu cicle és més suau i acompanya l'ompliment, i també dona un toc suau en arribar al final d'una llista per impuls. Cal instal·lar l'app nova.","En desar un deute amb una quota que no encaixa amb el termini, l'avís que n'explica el motiu es veu sencer.","Si canvies només les majúscules del nom d'un rebut que ja has pagat aquest mes, continua comptant com a pagat.","En importar l'historial de CaixaBank, una lectura dubtosa ja no es dona per nova: surt sense marcar perquè la confirmis."]},"tandas":[{"id":"vibracion-suave-ronda-2","t":{"es":"Vibración suave en Mi ciclo y al llegar al final","en":"Gentle vibration in My cycle and at the end of a list","ca":"Vibració suau a El meu cicle i en arribar al final"},"items":{"es":["0. Instala la app nueva de Aely que te llega (versión 4.26.144).","1. Cierra Aely del todo y ábrela. En Inicio, mientras se rellena el anillo de Mi ciclo, tiene que acompañar el relleno una vibración suave, no un golpe seco. Compárala con la de la rueda al girar un selector de fecha u hora en el móvil: deben notarse igual de suaves.","2. Ve a Gastos, lanza la lista hacia abajo con un impulso fuerte y suelta el dedo. Cuando llegue arriba del todo por inercia, sin dedo encima, tiene que dar un toque suave. Haz lo mismo hacia el otro extremo.","3. Con la lista ya en el borde, tira de ella con el dedo: un solo toque suave por gesto."],"en":["0. Install the new Aely app you receive (version 4.26.144).","1. Close Aely completely and open it. On Home, while the My cycle ring fills, a gentle vibration should follow the fill, not a sharp thump. Compare it with the wheel when you turn a date or time picker on your phone: they should feel equally gentle.","2. Go to Spending, flick the list downward with a strong swipe and lift your finger. When it reaches the very top by momentum, with no finger on it, it should give a soft tap. Do the same toward the other end.","3. With the list already at the edge, pull on it with your finger: a single soft tap per gesture."],"ca":["0. Instal·la l'app nova d'Aely que et arriba (versió 4.26.144).","1. Tanca Aely del tot i obre-la. A Inici, mentre s'omple l'anell de El meu cicle, ha d'acompanyar l'ompliment una vibració suau, no un cop sec. Compara-la amb la de la roda en girar un selector de data o hora al mòbil: s'han de notar igual de suaus.","2. Ves a Despeses, llança la llista cap avall amb un impuls fort i deixa anar el dit. Quan arribi dalt de tot per inèrcia, sense dit a sobre, ha de fer un toc suau. Fes el mateix cap a l'altre extrem.","3. Amb la llista ja a la vora, estira-la amb el dit: un sol toc suau per gest."]},"apk":57},{"id":"deudas-guardar-motivo","t":{"es":"Deudas: el motivo del rechazo se ve entero al guardar","en":"Debts: the reason for a rejection shows in full when saving","ca":"Deutes: el motiu del rebuig es veu sencer en desar"},"items":{"es":["1. Abre Plan, pestaña Deudas, toca una deuda con cuotas y escribe en la cuota mensual un importe mucho más bajo (por ejemplo, la mitad). Toca «Guardar cambios».","2. No se guarda nada y se ve entero el aviso que explica por qué no encaja, con el rango de cuota posible. Vuelve a tocar «Guardar cambios» sin cambiar nada: el aviso se vuelve a mostrar.","3. Escribe una cuota dentro del rango que indica y toca «Guardar cambios»: se guarda y la ficha se cierra."],"en":["1. Open Plan, Debts tab, tap a debt with instalments and type a much lower amount in the monthly payment (for example, half). Tap «Save changes».","2. Nothing is saved and the notice explaining why it does not fit shows in full, with the possible payment range. Tap «Save changes» again without changing anything: the notice shows again.","3. Type a payment inside the range it gives and tap «Save changes»: it is saved and the sheet closes."],"ca":["1. Obre Pla, pestanya Deutes, toca un deute amb quotes i escriu a la quota mensual un import molt més baix (per exemple, la meitat). Toca «Desa els canvis».","2. No es desa res i es veu sencer l'avís que explica per què no encaixa, amb el rang de quota possible. Torna a tocar «Desa els canvis» sense canviar res: l'avís es torna a mostrar.","3. Escriu una quota dins del rang que indica i toca «Desa els canvis»: es desa i la fitxa es tanca."]}},{"id":"recibo-renombrado-sigue-pagado","t":{"es":"Recibos: cambiar mayúsculas no lo deja sin pagar","en":"Bills: changing capital letters does not make it unpaid","ca":"Rebuts: canviar majúscules no el deixa sense pagar"},"items":{"es":["1. Abre Plan, pestaña Recibos, y busca un recibo que ya hayas pagado este mes: aparece en «Ya pagado».","2. Toca «Gestionar», abre ese recibo y cambia solo las mayúsculas de su nombre (por ejemplo, «Ibi» por «IBI»).","3. Vuelve a Recibos: sigue en «Ya pagado», con el mismo importe, y no pasa a «Pendiente».","4. Si algún recibo ya se quedó pendiente por esto en otra ocasión: en Gastos abre el cargo del banco, toca «Paga un recibo», «Deshacer vínculo», elige el recibo y confirma."],"en":["1. Open Plan, Bills tab, and find a bill you have already paid this month: it shows under «Already paid».","2. Tap «Manage», open that bill and change only the capital letters of its name (for example, «Ibi» to «IBI»).","3. Go back to Bills: it is still under «Already paid», with the same amount, and does not move to «Pending».","4. If a bill was left pending by this on another occasion: in Spending open the bank charge, tap «Pays a bill», «Undo link», choose the bill and confirm."],"ca":["1. Obre Pla, pestanya Rebuts, i busca un rebut que ja hagis pagat aquest mes: apareix a «Ja pagat».","2. Toca «Gestionar», obre aquest rebut i canvia només les majúscules del nom (per exemple, «Ibi» per «IBI»).","3. Torna a Rebuts: continua a «Ja pagat», amb el mateix import, i no passa a «Pendent».","4. Si algun rebut ja es va quedar pendent per això en una altra ocasió: a Despeses obre el càrrec del banc, toca «Paga un rebut», «Desfer vincle», tria el rebut i confirma."]}}]};
+// 4.26.144 (18/10/2026): cuatro integraciones sobre la beta 4.26.143 servida (983f4628): PR 277 (Guardar en Deudas, c9757feb), PR 278 (recibo renombrado, b9bc6f87),
+// PR 275 (CaixaBank, identidad histórica, 2b5e14a1) y PR 276 (vibración UX-16 ronda 2, nativo, f65d74b9). Tres tandas NUEVAS; la 143 queda con `tandas: []`.
+// La de la vibración exige la APK 57 (code 57). CaixaBank no entra en el panel: no hay forma clara de forzar una lectura dudosa hoy.
+test("Catálogo144 añade tres tandas (vibración con APK 57, Guardar en Deudas, recibo renombrado) sobre la beta 143, con alcance propio, y declara cada huella que mueve",()=>{
+  const tandas=["vibracion-suave-ronda-2","deudas-guardar-motivo","recibo-renombrado-sigue-pagado"],pasos=[4,3,4];
+  const integrated=JSON.parse(sourceBeta143("scripts/beta-sources.json")),before=JSON.parse(sourceBeta143("src/data/release-notes.json"));
+  const source=f=>read(f).replace(/\r\n/g,"\n"),old=f=>sourceBeta143(f).replace(/\r\n/g,"\n");
+  assert.equal(before[0].v,"4.26.143");assert.equal(before[0].tandas.length,3,"la beta 143 llevaba tres tandas");
+  const expectedNotes=[expected144,{...before[0],tandas:[]},...before.slice(1)];
+  const notes=JSON.parse(source("src/data/release-notes.json"));
+  assert.deepEqual(notes,expectedNotes,"la nota 144 literal delante y la 143 sin tandas (propiedad presente) con el resto intacto");
+  assert.deepEqual(notes[1].tandas,[],"la 143 conserva la propiedad tandas, vacía");
+  assert.deepEqual(notes.flatMap(n=>(n.tandas||[]).map(g=>[n.v,g.id,g.apk||0])),tandas.map((id,i)=>["4.26.144",id,i?0:57]),"el panel enseña tres tandas: la de la vibración exige la APK 57");
+  assert.equal(notes.length,240);assert.equal(new Set(notes.map(n=>n.v)).size,notes.length);
+  notes[0].tandas.forEach((g,i)=>assert.deepEqual(Object.keys(g),i?["id","t","items"]:["id","t","items","apk"],"identidad nueva, sin alias ni revisión heredada: "+g.id));
+  for(const lang of ["es","en","ca"]){
+    assert.equal(notes[0].items[lang].length,4,lang+": cuatro puntos familiares");
+    notes[0].tandas.forEach((g,i)=>{
+      const steps=g.items[lang];assert.equal(steps.length,pasos[i],lang+": pasos de "+g.id);
+      steps.forEach((step,j)=>assert.ok(step.startsWith((j+(i?1:0))+". "),lang+": paso numerado de "+g.id+" "+j));
+      for(const text of steps)assert.equal(/borra|quita este|delete|remove|esborra|treu aquest|mañana|tomorrow|demà/i.test(text),false,lang+": ningún paso borra nada ni espera a otro día: "+text);
+    });
+    for(const text of [notes[0].t[lang],...notes[0].items[lang]])assert.equal(/beta|tanda|panel|APK|contador|sello|versión|acuse|cursor|token|Edge|servidor|Open Banking|FIN-|SES-|\d+\.\d+\.\d+/i.test(text),false,lang+": sin jerga: "+text);
+  }
+  const verifyNotes=list=>assert.deepEqual(list,expectedNotes);
+  const twice=structuredClone(notes);twice[0].tandas.push(structuredClone(twice[0].tandas[0]));assert.throws(()=>verifyNotes(twice),assert.AssertionError,"no duplicar una tanda");
+  const revived=structuredClone(notes);revived[1].tandas=structuredClone(before[0].tandas);assert.throws(()=>verifyNotes(revived),assert.AssertionError,"las tandas de la 143 no vuelven al panel");
+  const sinApk=structuredClone(notes);delete sinApk[0].tandas[0].apk;assert.throws(()=>verifyNotes(sinApk),assert.AssertionError,"la tanda de vibración no puede perder su exigencia de APK");
+  // Tres descriptores nuevos, al final y en este orden; los demás son los de la beta 143 con su cierre de lectores recalculado sobre la fuente nueva (las dos piezas de PR 275 y PR 278 que leen los recibos y el histórico).
+  const scopes=JSON.parse(source("scripts/beta-sources.json")),rest={...scopes};for(const id of tandas)delete rest[id];
+  for(const id of tandas)assert.equal(integrated[id],undefined,"identidad que no existía: "+id);
+  assert.deepEqual(Object.keys(scopes).slice(-tandas.length),tandas);
+  const D="src/modules/09-tab-debts-goals.js",U="src/modules/02-ui-shared.js",M="src/modules/08-motor-bank.js",fn=(file,function_)=>({file,function:function_});
+  const java="android/app/src/main/java/com/micartera/app/";
+  const propias={
+    "vibracion-suave-ronda-2":integrated["vibracion-borde-y-mi-ciclo"].web.slice(0,5),
+    "deudas-guardar-motivo":[fn(D,"DebtEditSheet")],
+    "recibo-renombrado-sigue-pagado":["fixedPaymentContract","fixedPaymentModelMatches","fixedPaymentBind","fixedPaymentBookRival","fixedPaymentAutoOwner","fixedPaymentProof","linkFixedPayment","reconcileFixedPaymentProofs","rekeyFixedPaymentExpense","fixedPaymentState","patchFixedById"].map(n=>fn(M,n))
+  };
+  const nativas={"vibracion-suave-ronda-2":[java+"AelyHapticsPlugin.java",java+"HapticPlan.java",java+"MainActivity.java","android/app/src/main/AndroidManifest.xml"]};
+  const fns=logicFunctions(source),dat=logicData(source);
+  const closure=start=>{
+    let web=start.slice();
+    for(let ronda=0;ronda<40;ronda++){
+      const tiene=(file,nombre,clave)=>web.some(u=>u.file===file&&u[clave]===nombre),extra=[];
+      for(const f of scopeDependencies({web},source,fns))if(!tiene(f.file,f.name,"function"))extra.push({file:f.file,function:f.name});
+      for(const d of scopeDataDependencies({web},source,fns,dat))if(!tiene(d.file,d.name,"data"))extra.push({file:d.file,data:d.name});
+      if(!extra.length)break;web=web.concat(extra);
+    }
+    return web;
+  };
+  // El descriptor de la gráfica de Inicio con significado ya no tiene sus bloques en la fuente desde antes de la 141: se conserva tal cual, sin recalcular.
+  const congelados=new Set(["inc-0810-inicio-grafica-significado"]);
+  for(const [id,scope] of Object.entries(integrated)){
+    if(congelados.has(id)){assert.deepEqual(rest[id],scope,"descriptor congelado: "+id);continue;}
+    const web=closure(scope.web||[]);
+    assert.deepEqual(rest[id],{...scope,web},"cierre de lectores recalculado, ni se recorta ni crece sin declararlo: "+id);
+  }
+  assert.deepEqual(Object.keys(rest),Object.keys(integrated),"ningún descriptor ajeno nuevo ni retirado");
+  for(const id of tandas){
+    const added=scopes[id],own=propias[id];
+    assert.deepEqual(added.web.slice(0,own.length),own,id+": las unidades propias de la tanda, en este orden");
+    assert.equal(added.unidades,true);
+    assert.deepEqual(added.native,nativas[id],id+": ficheros nativos de la tanda (solo la de la vibración)");
+    assert.deepEqual(Object.keys(added),nativas[id]?["web","native","unidades"]:["web","unidades"],id+": web, y nativo solo donde hay APK");
+    const web=closure(own),clave=u=>JSON.stringify(u);
+    assert.equal(added.web.length,web.length,id+": el cierre de lectores del descriptor es exactamente el calculado");
+    assert.deepEqual(new Set(added.web.map(clave)),new Set(web.map(clave)),id+": el cierre de lectores del descriptor es exactamente el calculado");
+    for(const u of added.web)assert.ok(scopeText(u,source).length>0,"la unidad existe en la fuente: "+JSON.stringify(u));
+    for(const file of added.native||[])assert.ok(source(file).length>0,"el fichero nativo existe: "+file);
+  }
+  // La APK 57 sube al release beta y apk.json la anuncia sin perder las revisiones nativas que ya acreditaba la 56.
+  const apk=JSON.parse(source("public/apk.json")),apkOld=JSON.parse(old("public/apk.json"));
+  assert.equal(apk.versionCode,57);assert.equal(apk.versionName,"4.26.144");
+  assert.ok(apk.url.endsWith("/releases/download/beta/Aely-4.26.144-beta-57.apk"),"apunta al asset de beta");
+  assert.match(apk.sha256,/^[0-9a-f]{64}$/);
+  for(const [id,h] of Object.entries(apkOld.revisiones||{}))assert.equal(apk.revisiones[id],h,"conserva la revisión nativa "+id);
+  assert.ok(apk.revisiones[tandas[0]],"acredita la tanda nativa nueva");
+  assert.match(source("android/app/build.gradle"),/versionCode 57\s+versionName "4\.26\.144"/,"build.gradle anuncia la APK 57");
+  assert.equal(execFileSync("git",["diff","--name-only","983f46282f702205b5d65737744e90d584377bcf","HEAD","--","supabase/migrations"],{encoding:"utf8"}).trim(),"","sin SQL ni migraciones");
+  // Huellas que se mueven, lista cerrada: todo alcance que lee lo que tocan las cuatro integraciones.
+  const expectedMoves={"inc-3009-01-cargos":["web"],"fin05-widget-reentrada":["web"],"fin05-pago-cerrada":["web"],"tr-descripcion-clasificacion":["web"],"widget-banco":["web"],"widget-app-cerrada":["web"],"inc-2909-02-inicio-natural":["web"],"inc-3009-nomina-anticipada":["web"],"inc-2909-03-retirada":["web"],"inc-2909-01-widget-periodo":["web"],"inc-0210-01-plan-cuota":["web"],"inc-0210-03-gastos-periodo":["web"],"feature-0310-01-movilidad":["web"],"inc-0310-gastos-sin-limite":["web"],"inc-0710-gastos-mes-madrid":["web"],"inc-0810-dashboard-recents-memo":["web"],"widget-pago-app-cerrada":["web"],"bancos-sin-hueco":["web"],"widget-ciclo-puente":["web"],"recibos-cargo-unico":["web"],"bancos-acuse-reconexion":["web"],"tr-iguales-ordinal":["web"],"recibo-cargo-en-gastos":["web"],"tr-empareja-sin-preguntar":["web"],"cuenta-parte-mia":["web"],"compras-identicas-ids":["web"],"deudas-metas-hoja-edicion":["web"],"deudas-plazo-cuota-cuadran":["web"],"deudas-plazo-cuota-encaja":["web"],"deudas-metas-hoja-sin-parpadeo":["web"],"deudas-metas-hoja-cierre-suave":["web"],"fichas-cierre-suave-atras":["web"],"vibracion-borde-y-mi-ciclo":["web","native"],"deudas-aviso-plazo":["web"]};
+  const previous=new Map();
+  const measure=reader=>{
+    const now=JSON.parse(reader("scripts/beta-sources.json")),moved={};
+    for(const [key,scope] of Object.entries(integrated)){
+      if(key===archiveId||congelados.has(key))continue;
+      if(!previous.has(key))previous.set(key,betaRevision(key,sourceBeta143,undefined,scope));
+      const a=previous.get(key),b=betaRevision(key,reader,undefined,now[key]);
+      const surfaces=["web","native","edge"].filter(x=>a[x]!==b[x]);
+      if(surfaces.length)moved[key]=surfaces;
+    }
+    return moved;
+  };
+  const verify=(reader,expected=expectedMoves)=>assert.deepEqual(measure(reader),expected,"lista cerrada: ni una huella extra ni una declarada que no cambie");
+  verify(source);
+  const currents=Object.fromEntries(tandas.map(id=>[id,betaRevision(id,source,undefined,scopes[id])]));
+  for(const id of tandas){assert.ok(currents[id].web);assert.equal(currents[id].edge,undefined);}
+  assert.ok(currents[tandas[0]].native,"la tanda de vibración lleva huella nativa");assert.equal(currents[tandas[1]].native,undefined);assert.equal(currents[tandas[2]].native,undefined);
+  // Mutantes sobre la fuente real: cada tanda se reabre si cambia lo suyo.
+  for(const [id,file,a,b] of [
+    [tandas[0],U,'if(outward<10) return;','if(outward<11) return;'],
+    [tandas[1],D,'setAttempt(function(n){return n+1;});','setAttempt(function(n){return n;});'],
+    [tandas[2],M,'p.modelVersion===2&&p.receiptId===e.id&&','p.modelVersion===2&&p.receiptId!==e.id&&']
+  ]){
+    assert.equal(source(file).split(a).length,2,"mutante sobre fuente real: "+a);
+    const mutated=betaRevision(id,f=>f===file?source(f).replace(a,()=>b):source(f),undefined,scopes[id]);
+    assert.notEqual(mutated.web,currents[id].web,id+" reabre la tanda: "+a);
+  }
+  // El Java también reabre: un cambio en el plugin invalida la huella nativa de la vibración y solo la suya.
+  const javaFile=java+"HapticPlan.java",mutadoNativo=betaRevision(tandas[0],f=>f===javaFile?source(f)+"\n// x\n":source(f),undefined,scopes[tandas[0]]);
+  assert.notEqual(mutadoNativo.native,currents[tandas[0]].native,"un cambio en el Java reabre la huella nativa");
+  const built=betaNotes(notes,source,scopes),receipt=betaDelivery(built,source,scopes),groups=built[0].tandas;
+  assert.deepEqual(built.flatMap(n=>(n.tandas||[]).map(g=>g.id)),tandas,"lo que el build entrega al panel");
+  groups.forEach((group,i)=>{
+    const id=tandas[i];
+    assert.equal(group.web,currents[id].web);assert.equal(group.edge,undefined);assert.equal(group.native,i?undefined:currents[id].native);assert.equal(group.apk,i?undefined:57);
+    assert.equal(receipt.web[id],currents[id].web);
+    for(const key of ["desde","codigoDesde","revisionesDesde","huella","historial","codigosCompatibles","compatibilidadGit","compatibilidadSha","referenciaAnterior","referenciaHistorica"])assert.equal(group[key],undefined,id+": identidad nueva sin "+key);
+  });
+  assert.deepEqual(receipt.pruebas,Object.fromEntries(expected144.tandas.map(g=>[g.id,{v:"4.26.144",contenido:JSON.stringify([g.id,g.t.es,g.items.es,1])}])),"un guion por probar por cada tanda");
 });
 
 
