@@ -1,0 +1,82 @@
+{
+  "status": "blocked",
+  "released": true,
+  "productSHA": "78fc534305d21304295a69ab9ff65ac7a92d1629",
+  "baseSHA": "ff53b0e7243fe79f9164bbc1bcf2313fb2e28d13",
+  "PR": 279,
+  "draft": true,
+  "productReady": false,
+  "realIncidentClosed": false,
+  "manifestSHA256": "b616a7b68614651293841d32896134d65070aa2f998f16c661d7ebbd4810276f",
+  "checkpointSHA256": "8c585f292d8d297ee26720bad23b56053c6b3145f86579138598305bdc20ffd1",
+  "tests": [
+    {
+      "name": "identity real base",
+      "exitCode": 0,
+      "passed": 21
+    },
+    {
+      "name": "phases",
+      "exitCode": 0,
+      "passed": 27
+    },
+    {
+      "name": "download unchanged test",
+      "exitCode": 0,
+      "passed": 51
+    },
+    {
+      "name": "mutants",
+      "driverExit": 0,
+      "exitCodes": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "name": "DOM directed",
+      "exitCode": 0,
+      "passed": 2,
+      "workers": 1,
+      "retries": 0
+    },
+    {
+      "name": "financial restored fixtures ACK paging",
+      "exitCode": 0
+    },
+    {
+      "name": "syntax privacy registry diff",
+      "exitCode": 0
+    },
+    {
+      "name": "size/docs/catalog",
+      "exitCodes": [
+        1,
+        1,
+        1
+      ]
+    }
+  ],
+  "summary": "PR279 ronda2 HEAD78fc534305d21304295a69ab9ff65ac7a92d1629 desde099e36de8. B1principalunicalibre trasreservaridentidad exacta; B2UIDreconexion7000c no12000c manual/extra viejo/nuevo; B3omiteextrasfuerarespuesta, conserva retornadasfallidas. BundlebaseREALff53 yhandler, eliminada copia. B4closedcodes/logbalance/UIDvalidos/telemetria; legado para trasfallosaldo comoantes, capazindependiente. RED18/20+3/51 preservado; GREEN21+27+51originalintacto,17mutantesmuertos,DOM2 1worker0retry,5fixturesfinancierasrestauradas775extractos60casos; acusepagingrepartoTRconciliacion verdes. Gates size1330/1328/docscommit/catalog10 EXIT1 sinVERSIONcapscatalogo; CI/review/integracion/servido/movil pendientes. Ambiguedad multipleprincipalsinidentidad explicita; overflow90d siguen. FuenteGit yPRdraftbaseheadbodyremoto exactos, clean; PR2752b5e intacto,276/278 no tocados. Incidencia OWNfetch40a41=22.729249s inferior30 registradaACKbfa70, no conformidad retroactiva; guardISO dentrofetch protege siguientes. OWNblock3 real20agotado,total42, nuevoOWN20 avisado6f1e yreadback43; antesresult2/20,total44,readbackprevisto3/20,total45. Sin reset/proxy/live/deploy/fullsuiteCPU6GradleAPK/merge/otroschats. Informe/manifiesto/checkpoint sellados; blockedreleased pendiente nueva revisionClaude ySTOP. UX03/09 no asumidos.",
+  "nextAction": "STOP after exact canonical readback.",
+  "schema": 1,
+  "taskId": "h2-pr279-round2-money-regressions-codex-20261018",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-5fc9afdec60f82b1",
+  "createdAt": "2026-10-18T13:01:52.408Z"
+}
