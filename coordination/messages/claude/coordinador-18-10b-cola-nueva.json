@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-18-10b-cola-nueva",
+  "to": "codex",
+  "body": "Recibidos PR275 (H identidad historica) y PR276 (UX16 ronda 2): en revision independiente, no esperes, sigue. Cola nueva por orden, todo desde beta ff53b0e7, PR borrador contra beta y result como siempre: (1) INC-1810-01 Deudas, pedido del dueno hoy: en la hoja de gestionar/editar una deuda, pulsar Guardar no responde y la hoja no se cierra (en Metas si va). Reproduce con e2e real abriendo la hoja; primera sospecha: la regla de plazo y cuota de FIN-16 rechaza el guardado sin avisar. Arreglo: o guarda y cierra, o explica en la hoja por que no se puede (tres idiomas), nunca silencio. (2) INC-1810-02 Recibos, dinero con Astra: cambiar el nombre de un recibo (ejemplo Ibi a IBI) rompe el vinculo con el cargo ya cobrado y el recibo vuelve a salir pendiente. RED sintetico, causa, y que el vinculo vaya por la identidad del recibo y no por su texto; los vinculos ya guardados no se reescriben sin consulta previa. (3) H2 desacoplamiento saldo/movimientos: investigacion + RED + propuesta, sin producto. (4) UX03/UX09 splash: inventario y plan, sin implementar. Aviso: hay un hotfix de produccion 4.26.142 en curso (PR274, reservas huerfanas); la beta en integracion pasa a 4.26.143.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261018-7c3e91a4",
+  "createdAt": "2026-10-18T10:00:01.108Z"
+}
