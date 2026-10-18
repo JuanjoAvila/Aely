@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "id": "inc181002-receipt-rename-identity-codex-20261018",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261018-r67-675cb9d046e22371",
+  "createdAt": "2026-10-18T10:54:16.759Z",
+  "to": "codex",
+  "kind": "worker",
+  "baseSHA": "ff53b0e7243fe79f9164bbc1bcf2313fb2e28d13",
+  "claudeGrant": "4e1e9f695fb656c5220477841095320ea39dcbd8",
+  "model": "gpt-6-astra",
+  "priority": 3,
+  "dependency": {
+    "taskId": "night-h-pr275-round2-remates-codex-20261018",
+    "result": "4cbc36d717110f825d31a175d395e8a04ea338cb",
+    "status": "blocked",
+    "released": true
+  },
+  "objective": "INC-1810-02: renaming a receipt, e.g. Ibi toIBI, breaks its already paid bank-charge link and makes it pending. Causal synthetic RED, root cause and stable receipt identity independent of display text.",
+  "scope": [
+    "src/modules receipt editing/matching/import code strictly needed for stable receipt identity",
+    "tests",
+    "e2e",
+    "docs/briefs"
+  ],
+  "requirements": [
+    "Original Recibos/Deudas holder Astra only. Verify own identity/runtime/cwd/census, same public session/original helper/filter, preserve earlier claims/results/sources/WIP/RETURN. Fresh task own claim/readback/ACK before product, new isolated branch/checkout from beta exactff53b0e7. Do not touch frozenPR239/240/269/277.",
+    "ROJO synthetic first using a paid receipt linked to a distinct actual-code bank charge: rename Ibi toIBI and a substantive label change; association, paid state and exact amounts must remain after save/reload. Identify code cause before minimal product fix.",
+    "New matching/link logic must use stable RECEIPT identity, not editable display text. Preserve bank reference/account/date and exact-cent oracles, no fuzzy label-only autojoin or guessed absorbed/rejoin identities. Cover same/similar names and distinct paid/pending charges as negative controls.",
+    "CRITICAL: existing persisted links MUST NOT be rewritten/migrated without prior Claude consultation and explicit answer. If fixing existing records needs a rewrite, keep that portion unapplied, provide causal proposal and ask Claude through authorized channel; continue independent allowed work. No silent legacy reinterpretation.",
+    "Focused actual-code synthetic tests and directed own DOM where relevant; one worker zero retries own port/census, no fullsuite/CPU6/Gradle/APK. GREEN, meaningful financial mutants, exact cents through relevant save/reload/serialization, real EXITs and immutable manifest; no gratuitous replay of completed earlier tasks.",
+    "Own ledger only; previous INC181001 final OWN20 used8/rem12 after frozen10+12+12 is snapshot, holder verifies actual. Continue remaining same block without reset. b0390ba0 next OWN20 only after real exhaustion and normal own notice/readback; first/internal/readback count,min30s. No ROOT/H budgets inherited.",
+    "Draft PR beta + own immutable result released blocked if independent review/integration pending. Exact SHA/base/commands/EXITs/artifacts/limits; no real bank incident recovery or mobile/served proof by assertion.",
+    "No SQLlive/banks/Edge/server/CLOUD_WRITES changes, deployment/merge/main-beta push, VERSION/catalogue/caps/foreign oracles. No H275 code, hotfixPR274 or frozenPR265-273/276/277. Claude handles beta144 integration/release metadata. H2 balance/transactions investigation and splash static plan remain later tasks, do not assume them."
+  ],
+  "deliverable": "Causal RED and stable receipt identity fix within authorized no-migration scope; draft PR beta, own result and evidence. Consult first for any rewrite of existing persisted links."
+}
