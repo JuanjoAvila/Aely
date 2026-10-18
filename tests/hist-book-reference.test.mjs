@@ -74,6 +74,8 @@ test("legacy-and-pending-compatibility",()=>{
  const rows=[tx("P",{status:"PDNG"}),tx("A"),tx("B")];assert.deepEqual(refs(flat(payload(rows))),["A","B"]);
  // Sin evidencia BOOK no se cambia el agrupado histórico anterior.
  assert.equal(flat(payload([tx("L1",{status:""}),tx("L2",{status:""})])).length,1);
+ for(const rows of [[tx("X",{status:"POST"}),tx("A"),tx("B")],[tx("A"),tx("X",{status:"POST"}),tx("B")]])
+  assert.deepEqual(refs(flat(payload(rows))),["A","B"],"una fila ambigua previa no oculta dos referencias BOOK explícitas");
 });
 test("accounts-and-legacy-cloud-dates",()=>{
  const p=payload([tx("A"),tx("B")],[{uid:"h-account-2",transactions:[tx("C")]}]);

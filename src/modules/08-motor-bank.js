@@ -3008,7 +3008,7 @@ function histFlattenHistoryLinks(res, expenses, allow){
             g.refs.add(refKey); g.rows.push(row); return;
           }
           skippedUniq++;
-          if(quality(tx)>quality(g.rows[prevI].tx)){
+          if(quality(tx)>quality(g.rows[prevI].tx) || (bookRef(tx)&&!bookRef(g.rows[prevI].tx))){
             g.rows[prevI]=row;
             if(bookRef(tx)) g.refs.add(refKey);
           }

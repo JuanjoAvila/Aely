@@ -7,7 +7,8 @@ Antes, el histórico conservaba 1250; invertir la entrada cambiaba el supervivie
 Esto demuestra un mecanismo de pérdida, no la causa del incidente real de CaixaBank.
 
 El aplanado conserva referencias BOOK distintas y mantiene la elección previa para
-legacy/PDNG. Reutiliza los ordinales del diario, incluidos los ya guardados, antes de
+legacy/PDNG; una fila POST previa no puede ocultar dos BOOK explícitos (RED adicional
+por orden de entrada). Reutiliza los ordinales del diario, incluidos los ya guardados, antes de
 filtrar referencias conocidas. Así una lectura truncada con solo B no consume A ni
 choca con su fecha al subir por el batch existente. La clasificación evita también
 que otra referencia contabilizada aparezca como duplicado exacto o cercano.
@@ -26,7 +27,7 @@ repeticiones y orden inverso, dos cuentas, ingresos, nube, diario, legacy, pendi
 borrados y absorciones. Controles existentes: hist-uniq-por-banco, hist-import-dup,
 hist-dia-local, hist-fecha-que-baila. Build, sintaxis, registro, privacidad y seguridad.
 
-Seis mutantes semánticos: colapsar BOOK, comparar referencias distintas por contenido,
+Siete mutantes semánticos: colapsar BOOK, ocultar BOOK detrás de POST, comparar referencias distintas por contenido,
 omitir ordinales existentes, omitir identidad de ingresos, omitir reserva de borrados,
 omitir lápidas de absorción. Todos producen EXIT1 por aserción. La primera prueba de
 reserva no mataba su mutante; se añadió la respuesta truncada que solo contiene C.
