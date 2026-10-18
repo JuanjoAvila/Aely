@@ -6,6 +6,54 @@ const make=()=>{const db=database(),a=client(db,'A');db.rows=[a.wire(pending),a.
 const record=(a,n=0,ackAt=1792324800000)=>({owner:uid,id:uuid(100+n),key:a.c.obAbsorptionKey(n?{...booked,extId:'confirmed-'+n}:booked),keepId:kept.id,keepKey:a.c.obAbsorptionKey(kept),ackAt});
 const boundCloud=e=>{const s=read('src/modules/00-core.js'),a=s.indexOf('const cloud = (function(){'),b=s.indexOf('\n})();',a),start=s.indexOf('  return {',a);assert.ok(a>=0&&b>start);return vm.runInContext('(function(sb){'+s.slice(start,b)+'})',e.c)(e.sdk);};
 
+test('FIN17R F1 union1001 conserva recientes y permite alta manual ajena',async()=>{
+ const {a,db}=make(),many=Array.from({length:1000},(_,i)=>record(a,i+1));a.c.obConfirmedPersist(uid,many);
+ const merged=a.c.obConfirmedMerge({...seed(),obAbsorbedConfirmed:many},{obAbsorbedConfirmed:[record(a)]},uid);
+ assert.equal(merged&&merged.length,1001,'la capacidad no bloquea la union');
+ assert.equal(a.c.obConfirmedRead(uid).length,1001,'todos los ACK son durables');
+ const manual={...booked,id:uuid(9999),source:'manual',extId:undefined,date:'2026-10-18T13:00:00Z'};
+ await a.cloud.addExpense(manual);assert.ok(db.rows.some(r=>r.id===manual.id));
+});
+test('FIN17R F1 union expulsa solo el mayor90dias bajo presion',()=>{
+ const {a}=make(),many=Array.from({length:1000},(_,i)=>record(a,i+1,i?1792324800000:1792324800000-91*864e5));a.c.obConfirmedPersist(uid,many);
+ const merged=a.c.obConfirmedMerge({...seed(),obAbsorbedConfirmed:many},{obAbsorbedConfirmed:[record(a)]},uid);
+ assert.equal(merged&&merged.length,1000);assert.ok(!merged.some(r=>r.key===many[0].key));assert.ok(merged.some(r=>r.key===record(a).key));
+});
+test('FIN17R F2 issue local no viaja en pushState',async()=>{
+ const {a,db}=make();await a.cloud.pushState(uid,a.c.slimForCloud({...seed(),obAbsorbedIssue:'full'}),'cas');
+ assert.equal(Object.hasOwn(db.stateWrite.data,'obAbsorbedIssue'),false,'bandera local excluida del transporte');
+});
+test('FIN17R F2 resolver pending elimina incidencia',async()=>{
+ const {a}=make();a.stage();a.state.obAbsorbedIssue='full';await a.drain();assert.equal(a.state.obAbsorbedPending.length,0);assert.equal(a.state.obAbsorbedIssue,undefined);
+});
+test('FIN17R F2 aviso una vez por incidencia y dispositivo incluso tras reabrir',async()=>{
+ const {a}=make();a.stage();a.state.obAbsorbedIssue='full';a.c.obAbsorbedWarn('full',uid);
+ const mount=e=>{const s=read('src/modules/11-app-main.js'),event=s.indexOf('window.addEventListener("mc-ob-absorbed-warning",warning);'),start=s.lastIndexOf('  useEffect(function(){',event),end=s.indexOf('\n  },[]);',event)+10;assert.ok(start>=0&&end>event);const messages=[];e.c.__noticeMessages=messages;
+ vm.runInContext('(function(state){const stateRef={current:state};const showToast=m=>__noticeMessages.push(m),useEffect=fn=>fn();'+s.slice(start,end)+'})',e.c)(e.state);return messages;};
+ assert.equal(mount(a).length,1,'primera presentacion');
+ const b=client(database(),'reopened',a.state);a.storage.map.forEach((v,k)=>b.storage.setItem(k,v));assert.equal(mount(b).length,0,'reapertura del mismo dispositivo no repite');
+ await a.drain();a.c.obAbsorbedWarn('full',uid);assert.equal(mount(a).length,1,'incidencia nueva despues de resolver');
+ const c=client(database(),'another-device',a.state);c.c.obAbsorbedWarn('full',uid);assert.equal(mount(c).length,1,'otro dispositivo tiene aviso propio');
+});
+test('FIN17R F3 persistencia identica no reescribe registro',()=>{
+ const {a}=make(),list=Array.from({length:1000},(_,i)=>record(a,i+1));let writes=0;const set=a.storage.setItem;a.storage.setItem=(k,v)=>{if(k.includes('_oback_'))writes++;return set(k,v);};
+ assert.equal(a.c.obConfirmedPersist(uid,list),true);assert.equal(a.c.obConfirmedPersist(uid,list),true);assert.equal(writes,1,'solo una escritura para datos iguales');
+});
+test('FIN17R F3 registro compacto reduce bytes conservando identidad',()=>{
+ const {a}=make(),list=Array.from({length:1000},(_,i)=>record(a,i+1));const before=Buffer.byteLength(JSON.stringify({owner:uid,confirmed:list}));a.c.obConfirmedPersist(uid,list);
+ const raw=a.storage.getItem(a.c.obConfirmedStorageKey(uid));assert.ok(Buffer.byteLength(raw)<before*0.8,'reduccion minima20porciento con fixture identica');
+ const restored=a.c.obConfirmedRead(uid);assert.equal(restored.length,1000);assert.equal(a.c.obConfirmedMatches({...booked,extId:'confirmed-1'},restored,uid),true);assert.equal(a.c.obConfirmedMatches({...booked,extId:'other'},restored,uid),false);
+});
+test('FIN17R F5 SIGNED_OUT elimina solo particiones salientes',()=>{
+ const {a}=make();a.stage();a.c.obConfirmedPersist(uid,[record(a)]);const other='synthetic-other-owner';
+ const ownKeys=[a.c.obConfirmedStorageKey(uid),a.c.obAbsorbedStorageKey(uid)],otherKeys=[a.c.obConfirmedStorageKey(other),a.c.obAbsorbedStorageKey(other)];otherKeys.forEach(k=>a.storage.setItem(k,'synthetic-other-unchanged'));
+ let fire;a.sdk.auth.onAuthStateChange=fn=>{fire=fn;return{data:{subscription:{unsubscribe(){}}}};};
+ const source=read('src/modules/11-app-main.js'),start=source.indexOf('    const off=cloud.onAuth((s,ev)=>{'),end=source.indexOf('\n    return ()=>{ alive=false;',start);assert.ok(start>=0&&end>start);
+ const factory=vm.runInContext('(function(state,session){let alive=true;const stateRef={current:state},sessionRef={current:session};const set=fn=>stateRef.current=fn(stateRef.current);const setSession=()=>{},setRecovery=()=>{},setShowAuth=()=>{},syncFromCloud=()=>{};'+source.slice(start,end)+'return ()=>stateRef.current;})',a.c);
+ const state=factory(a.state,{user:{id:uid}});fire('TOKEN_REFRESHED',{user:{id:uid}});ownKeys.forEach(k=>assert.notEqual(a.storage.getItem(k),null));fire('SIGNED_OUT',null);
+ ownKeys.forEach(k=>assert.equal(a.storage.getItem(k),null,'particion saliente eliminada'));otherKeys.forEach(k=>assert.equal(a.storage.getItem(k),'synthetic-other-unchanged'));assert.equal(state().obAbsorbedConfirmed.length,0);
+});
+
 for(const [phase,switchAt] of [['candidate-filter',3],['fallback-checked',5]])test('FIN17 batch session barrier '+phase+': dos filas,cambio A→B exige0SDKupserts',async()=>{
  const {a,db}=make();db.rows=[];
  const first={...booked,id:uuid(9),extId:'first-reference'},second={...booked,id:uuid(10),extId:'second-reference',date:'2026-10-16T12:00:01Z'};

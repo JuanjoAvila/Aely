@@ -1370,7 +1370,7 @@ function obPendingAbsorbedState(s,prev){
       const pending=obAbsorbedEnqueue(out,e,keep);
       if(!pending){
         // Sin espacio o sin escritura durable no se declara segura una retirada nueva.
-        out=Object.assign({},out,{obAbsorbedIssue:!out._historyOwner?"owner":(out.obAbsorbedPending||[]).length>=200?"full":"persist",expenses:(out.expenses||[]).map(function(x){return x.id===keep.id?before.get(keep.id):x;}).concat([e])});return;
+        out=Object.assign({},out,{expenses:(out.expenses||[]).map(function(x){return x.id===keep.id?before.get(keep.id):x;}).concat([e])});return;
       }
       out=Object.assign({},out,{obAbsorbedPending:pending});
     }

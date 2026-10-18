@@ -377,9 +377,13 @@ function App(){
     try{ const s=String(m||""); if(/^[✕⚠✗]/.test(s)) cloud.logEvent('error','TOAST: '+s.slice(0,300)); }catch(e){}
   };
   useEffect(function(){
-    const warning=function(){showToast("⚠ "+t("ob_absorbed_review"));};
+    const warning=function(event){
+      const owner=stateRef.current&&stateRef.current._historyOwner;
+      if(event&&event.detail&&event.detail!==owner)return;
+      if(obAbsorbedTakeNotice(owner)||obAbsorbedTakeNotice(""))showToast("⚠ "+t("ob_absorbed_review"));
+    };
     window.addEventListener("mc-ob-absorbed-warning",warning);
-    if(stateRef.current&&stateRef.current.obAbsorbedIssue)warning();
+    warning();
     return function(){window.removeEventListener("mc-ob-absorbed-warning",warning);};
   },[]);
   // Moneda de visualización: convierte todos los importes (en €) a la moneda elegida en Ajustes.
@@ -624,6 +628,7 @@ function App(){
           const localNewer=!freshLogin && (prev._savedAt||0) > (cloudState._savedAt||0);
           const baseObj = localNewer ? Object.assign({},prev,{expenses:merged.list})
                                      : Object.assign({},prev,cloudState,{expenses:merged.list});
+          delete baseObj.obAbsorbedIssue;
           // Igual las lápidas y los recibos borrados (13/10/2026): un borrado que vio un móvil no
           // lo deshace el estado más antiguo del otro. Ver `lapidasUnion` y `recibosBorradosUnion`.
           // Solo con lo local del MISMO titular: la lápida de otra cuenta que hubo en este móvil
@@ -1105,7 +1110,17 @@ function App(){
       setSession(sessionRef.current=s);
       // Cerrar sesión rompe la asociación implícita del extracto local con el titular. El
       // próximo login no debe heredar sus apuntes, aunque no exista cartera en la nube.
-      if(!s&&ev==="SIGNED_OUT") set(p=>Object.assign({},p,{bankTx:[],obAbsorbedPending:[],obAbsorbedConfirmed:[]}));
+      if(!s&&ev==="SIGNED_OUT"){
+        // El evento ya trae sesión nula: la partición pertenece a la sesión saliente.
+        const owner=prev&&prev.user&&prev.user.id;
+        if(owner){
+          const key=obConfirmedStorageKey(owner);
+          try{obConfirmedStorage().removeItem(key);obConfirmedStorage().removeItem(obAbsorbedStorageKey(owner));}catch(e){}
+          obConfirmedReadCache.delete(key);obConfirmedBlocked.delete(owner);
+          obAbsorbedClearNotice(owner);
+        }
+        set(p=>Object.assign({},p,{bankTx:[],obAbsorbedPending:[],obAbsorbedConfirmed:[]}));
+      }
       // Vuelta del email de recuperación: abre el panel para poner contraseña nueva.
       if(ev==="PASSWORD_RECOVERY"){ setRecovery(true); setShowAuth(true); }
       // login ya acredita otro titular si había sesión; dropTx no debe releer esos IDs.

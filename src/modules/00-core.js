@@ -1131,7 +1131,7 @@ const cloud = (function(){
       if(!sb || !uid) return null;
       const current=await this.session();if(!current||current.user.id!==uid)throw new Error("ob_confirmed_owner");
       const confirmed=obConfirmedMerge(data,null,uid);if(!confirmed)throw new Error("ob_confirmed_merge");
-      data=Object.assign({},data,{obAbsorbedConfirmed:confirmed});
+      data=Object.assign({},data,{obAbsorbedConfirmed:confirmed});delete data.obAbsorbedIssue;
       if((data.obAbsorbedPending||[]).some(function(p){return !obAbsorbedValid(p,uid);})||(data.obAbsorbedPending||[]).length>OB_ABSORBED_MAX)throw new Error("ob_absorbed_owner");
       const now=new Date().toISOString();
       if(lastKnownUpdatedAt){
@@ -1437,7 +1437,7 @@ const cloud = (function(){
         if(rows.length===1&&rows[0].id===target.id)return !!await active();
         // Cero filas puede ser una carrera o una respuesta perdida: volver a leer, no inventar éxito.
         return rows.length===0&&!await find()&&!!await active();
-      }catch(e){obAbsorbedWarn("retry");return false;}
+      }catch(e){obAbsorbedWarn("retry",p.owner);return false;}
       finally{clearTimeout(timer);}
     },
     async prices(symbols){
@@ -1915,13 +1915,26 @@ function obAbsorptionKey(e,legacy){
 }
 /* FIN-11: la intención sobrevive al cierre y a la poda de las 500 lápidas. Guardar primero
    en una partición pequeña con readback: el fallback en memoria no acredita persistencia. */
-const OB_ABSORBED_MAX=200,obAbsorbedWarnings=new Set(),obAbsorbedRuns=new Map();
-function obAbsorbedWarn(code){
-  if(!["full","persist","merge","retry","owner","confirmed_full","confirmed_persist","confirmed_merge"].includes(code)||obAbsorbedWarnings.has(code))return;
-  obAbsorbedWarnings.add(code);
-  try{Promise.resolve(cloud.logEvent("error","ob_absorbed",JSON.stringify({code:code}))).catch(function(){});}catch(e){}
+const OB_ABSORBED_MAX=200,obAbsorbedWarnings=new Set(),obAbsorbedRuns=new Map(),obAbsorbedNotices=new Map();
+function obAbsorbedNoticeKey(owner){return mcStateKey()+"_obissue_"+encodeURIComponent(owner||"");}
+function obAbsorbedTakeNotice(owner){
+  const key=obAbsorbedNoticeKey(owner),notice=obAbsorbedNotices.get(key)||store.get(key);
+  if(!notice||notice.shown)return false;
+  const shown=Object.assign({},notice,{shown:true});obAbsorbedNotices.set(key,shown);store.set(key,shown);return true;
+}
+function obAbsorbedClearNotice(owner){
+  const key=obAbsorbedNoticeKey(owner);obAbsorbedNotices.delete(key);store.del(key);
+}
+function obAbsorbedWarn(code,owner){
+  if(!["full","persist","merge","retry","owner","confirmed_full","confirmed_persist","confirmed_merge"].includes(code))return;
+  const key=obAbsorbedNoticeKey(owner);
+  if(!obAbsorbedNotices.has(key)&&!store.get(key)){const notice={code:code,shown:false};obAbsorbedNotices.set(key,notice);store.set(key,notice);}
+  if(!obAbsorbedWarnings.has(code)){
+    obAbsorbedWarnings.add(code);
+    try{Promise.resolve(cloud.logEvent("error","ob_absorbed",JSON.stringify({code:code}))).catch(function(){});}catch(e){}
+  }
   // El aviso se pinta fuera del updater financiero; tampoco transporta datos del movimiento.
-  Promise.resolve().then(function(){try{window.dispatchEvent(new CustomEvent("mc-ob-absorbed-warning",{detail:code}));}catch(e){}});
+  Promise.resolve().then(function(){try{window.dispatchEvent(new CustomEvent("mc-ob-absorbed-warning",{detail:owner||""}));}catch(e){}});
 }
 /* FIN17: un ACK no es una intención pendiente. Esta memoria tiene su propio límite y
    nunca desaparece al podar las lápidas normales. No es un cerco atómico del servidor. */
@@ -1945,11 +1958,17 @@ function obConfirmedJoin(a,b,owner,evict,now){
     }
   }
   if(out.length>OB_CONFIRMED_MAX){
-    if(!evict)return null;
+    if(!evict)return out;
     const cut=(now==null?Date.now():now)-OB_CONFIRMED_AGE;
     const eligible=out.filter(function(p){return typeof p.ackAt==="number"&&Number.isFinite(p.ackAt)&&p.ackAt>0&&p.ackAt<cut;}).sort(function(x,y){return x.ackAt-y.ackAt;});
-    const n=out.length-OB_CONFIRMED_MAX;if(eligible.length<n)return null;
-    const drop=new Set(eligible.slice(0,n));return out.filter(function(p){return !drop.has(p);});
+    const n=Math.min(out.length-OB_CONFIRMED_MAX,eligible.length);
+    const drop=new Set(eligible.slice(0,n)),kept=out.filter(function(p){return !drop.has(p);});
+    // El tope no autoriza perder ACK recientes ni parar toda la cartera (revisión FIN17).
+    if(kept.length>OB_CONFIRMED_MAX&&!obAbsorbedWarnings.has("confirmed_full")){
+      obAbsorbedWarnings.add("confirmed_full");
+      try{Promise.resolve(cloud.logEvent("error","ob_absorbed",JSON.stringify({code:"confirmed_full"}))).catch(function(){});}catch(e){}
+    }
+    return kept;
   }
   return Array.isArray(a)&&out.length===a.length&&out.every(function(p,i){return p===a[i];})?a:out;
 }
@@ -1977,7 +1996,7 @@ function obConfirmedRead(owner,key){
   }catch(e){return null;}
 }
 function obConfirmedPersist(owner,list,key){
-  if(!owner||!Array.isArray(list)||list.length>OB_CONFIRMED_MAX||list.some(function(p){return !obConfirmedValid(p,owner);}))return false;
+  if(!owner||!Array.isArray(list)||list.some(function(p){return !obConfirmedValid(p,owner);}))return false;
   // JSON omite undefined: una edad ilegible se conserva como null, nunca como pérdida del ACK.
   const durable=list.map(function(p){return typeof p.ackAt==="number"&&Number.isFinite(p.ackAt)&&p.ackAt>0?p:Object.assign({},p,{ackAt:null});});
   try{const body=JSON.stringify({owner:owner,confirmed:durable}),k=obConfirmedStorageKey(owner,key);
@@ -1986,22 +2005,23 @@ function obConfirmedPersist(owner,list,key){
 }
 function obConfirmedMerge(local,remote,owner,key){
   const disk=obConfirmedRead(owner,key),own=local&&local._historyOwner===owner?local.obAbsorbedConfirmed:[];
-  const joined=disk&&obConfirmedJoin(disk,own,owner),list=joined&&obConfirmedJoin(joined,remote&&remote.obAbsorbedConfirmed,owner);
+  const joined=disk&&obConfirmedJoin(disk,own,owner),list=joined&&obConfirmedJoin(joined,remote&&remote.obAbsorbedConfirmed,owner,true);
   // Una unión vacía no incorpora ningún ACK: no necesita inventar una escritura durable vacía.
-  if(!list||list.length&&!obConfirmedPersist(owner,list,key)){obConfirmedBlocked.add(owner);obAbsorbedWarn("confirmed_merge");return null;}
+  if(!list||list.length&&!obConfirmedPersist(owner,list,key)){obConfirmedBlocked.add(owner);obAbsorbedWarn("confirmed_merge",owner);return null;}
   obConfirmedBlocked.delete(owner);return list;
 }
 function obConfirmedRestore(s,key){
   const owner=s&&s._historyOwner;if(!owner)return s;
   const list=obConfirmedMerge(s,null,owner,key);
-  return list?Object.assign({},s,{obAbsorbedConfirmed:list}):Object.assign({},s,{obAbsorbedIssue:"confirmed_merge"});
+  const next=Object.assign({},s);delete next.obAbsorbedIssue;
+  if(list)next.obAbsorbedConfirmed=list;return next;
 }
 function obConfirmedAck(s,p,owner){
   const disk=obConfirmedRead(owner),own=disk&&obConfirmedJoin(disk,s.obAbsorbedConfirmed,owner);
   const record={owner:owner,id:p.id,key:p.key,keepId:p.keepId,keepKey:p.keepKey,ackAt:Date.now()};
   const list=own&&obConfirmedJoin(own,[record],owner,true);
-  if(!list){obAbsorbedWarn("confirmed_full");return null;}
-  if(!obConfirmedPersist(owner,list)){obAbsorbedWarn("confirmed_persist");return null;}
+  if(!list){obAbsorbedWarn("confirmed_full",owner);return null;}
+  if(!obConfirmedPersist(owner,list)){obAbsorbedWarn("confirmed_persist",owner);return null;}
   return list;
 }
 async function obConfirmedCanUpload(e,owner,sdk){
@@ -2010,7 +2030,7 @@ async function obConfirmedCanUpload(e,owner,sdk){
   const response=await sdk.auth.getSession(),session=!response.error&&response.data&&response.data.session;
   if(!session||!session.user||session.user.id!==owner||(session.expires_at!=null&&(!Number.isFinite(Number(session.expires_at))||Number(session.expires_at)*1000<=Date.now())))return false;
   const list=obConfirmedRead(owner);
-  if(!list||obConfirmedBlocked.has(owner)){obAbsorbedWarn("confirmed_merge");return false;}
+  if(!list||obConfirmedBlocked.has(owner)){obAbsorbedWarn("confirmed_merge",owner);return false;}
   return !obConfirmedMatches(e,list,owner);
 }
 function obAbsorbedValid(p,owner){
@@ -2025,7 +2045,7 @@ function obAbsorbedJoin(a,b,owner){
     if(!obAbsorbedValid(p,owner))return;
     const key=p.id+"|"+p.key;if(!seen.has(key)){seen.add(key);out.push(p);}
   });
-  if(out.length>OB_ABSORBED_MAX){obAbsorbedWarn("merge");return null;}
+  if(out.length>OB_ABSORBED_MAX){obAbsorbedWarn("merge",owner);return null;}
   return Array.isArray(a)&&out.length===a.length&&out.every(function(p,i){return p===a[i];})?a:out;
 }
 function obAbsorbedStorageKey(owner,key){return (key||mcStateKey())+"_obabs_"+encodeURIComponent(owner);}
@@ -2035,7 +2055,7 @@ function obAbsorbedPersist(owner,list){
     const key=obAbsorbedStorageKey(owner),body=JSON.stringify({owner:owner,pending:list});
     localStorage.setItem(key,body);if(localStorage.getItem(key)===body)return true;
   }catch(e){}
-  obAbsorbedWarn("persist");return false;
+  obAbsorbedWarn("persist",owner);return false;
 }
 function obAbsorbedRestore(s,key){
   const owner=s&&s._historyOwner;if(!owner)return s;
@@ -2049,9 +2069,9 @@ function obAbsorbedRestore(s,key){
 function obAbsorbedEnqueue(s,e,keep){
   const owner=s&&s._historyOwner;
   const p={owner:owner,id:e.id,key:obAbsorptionKey(e),keepId:keep.id,keepKey:obAbsorptionKey(keep),amount:e.amount,merchant:e.merchant||""};
-  if(!obAbsorbedValid(p,owner)){obAbsorbedWarn("owner");return null;}
+  if(!obAbsorbedValid(p,owner)){obAbsorbedWarn("owner",owner);return null;}
   const list=obAbsorbedJoin(s.obAbsorbedPending,[p],owner);
-  if(!list){obAbsorbedWarn("full");return null;}
+  if(!list){obAbsorbedWarn("full",owner);return null;}
   return obAbsorbedPersist(owner,list)?list:null;
 }
 function obAbsorbedCandidate(p,row,alias){
@@ -2085,7 +2105,9 @@ async function obAbsorbedRetry(getState,getOwner,apply,offset){
         if(next.length===before.length)return prev;
         const confirmed=obConfirmedAck(prev,p,owner);if(!confirmed)return prev;
         if(!obAbsorbedPersist(owner,next))return Object.assign({},prev,{obAbsorbedConfirmed:confirmed});
-        return Object.assign({},prev,{obAbsorbedPending:next,obAbsorbedConfirmed:confirmed});
+        const state=Object.assign({},prev,{obAbsorbedPending:next,obAbsorbedConfirmed:confirmed});
+        if(!next.length){obAbsorbedClearNotice(owner);delete state.obAbsorbedIssue;}
+        return state;
       });
     }
     return (start+batch.length)%Math.max(1,list.length);
@@ -3493,7 +3515,7 @@ function perfilSinDatosBanco(s){
    (fuente de verdad), así que NO los duplicamos en el JSONB de app_state → se mantiene ligero
    aunque haya miles de gastos. El backup diario sí guarda el estado completo. */
 function slimForCloud(s){
-  const c=perfilSinDatosBanco(Object.assign({},s));delete c.expenses;delete c.bankTx;
+  const c=perfilSinDatosBanco(Object.assign({},s));delete c.expenses;delete c.bankTx;delete c.obAbsorbedIssue;
   if(s.accountBalanceHistory){
     const hist={};Object.keys(s.accountBalanceHistory).forEach(function(key){hist[key]=s.accountBalanceHistory[key].slice(-14);});
     c.accountBalanceHistory=hist;
