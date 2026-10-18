@@ -1,0 +1,24 @@
+{
+  "schema": 1,
+  "id": "night-c-pr272-independent-review-remates-codex-20261018",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261018-r64-2616c5a28afe44cf",
+  "createdAt": "2026-10-18T03:25:31.840Z",
+  "to": "codex",
+  "baseSHA": "07b080d915b142e3216c97aa3807d38951603bf9",
+  "objective": "Claudece0bdf91 PR272 GOwithreservations: compute base tombstone/refund key once perrow instead of3; own20000rows before/after expenseIsTombstoned and filasComoLaApp. Same-ref0EUR preauthorization must not leave extra0row; zero rows generate no own identity orcount,with test. Add explicit wildcardv2 control to refund-polarity while preserving v1/v2 bothsign semantics and all exact cents.",
+  "scope": [
+    "src/modules/00-core.js",
+    "supabase/functions/_shared/presupuesto.ts",
+    "tests/refund-polarity.test.mjs",
+    "tests",
+    "docs/briefs"
+  ],
+  "claudeGrant": "ce0bdf91fa2290dd866364c4e108fce0c1cfc877",
+  "model": "gpt-6-astra",
+  "modelReason": "Explicit original money-model authority1695316a and sameholder Claude remates",
+  "holderSession": "codex-local-20261017-qoxxwkrshebdfhaeqytokaml",
+  "samePR": 272,
+  "previousTaskId": "night-c-refund-same-reference-codex-20261018",
+  "instructions": "Same original holder/public session/helper/filter and Astra; new own successor claim normalpush plus canonical readback and ACK before code/tests. Continue actual worker fetch ledger without reset or inheritance; permanent additional12 only after actual exhaustion and own notice/readback; first/internal fetches count,min30s. Preserve prior claims/results/sources/WIP/failures. Same draft PR against beta,normal descendant/no force. Claude handles integration gates; no VERSION/catalogue/caps or foreign oracle relaxation. No CPU6/full npmtest/Gradle/APK/SQL/live banks/deploy/merge. Report real EXITs,mutation provenance,source/head and private manifest/checkpoint; own result blocked/released if integration pending;STOP. Do not repeat completed controls unrelated to new remates. Own synthetic Node20k A/B before/after per AGENTS7bis,not CPU6. New zero-preauth and wildcardv2 RED/green/controls; preserve distinct ref/sign/legacy invariants. Claude reconciles size,beta-sources obPolarity/catalogue/docs gates and coordinates ingest/client deployment with owner; worker no deploy. Preserve FIN11 alignment directive; no separate PR266 task while thisobjectiveactive."
+}
