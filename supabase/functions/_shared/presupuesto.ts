@@ -161,25 +161,27 @@ export function filasComoLaApp<T extends FilaGasto>(filas: T[] | null | undefine
   pending?: { owner?: string; key?: string }[] | null, owner?: string | null,
   confirmed?: unknown): T[] {
   const lap = new Set(deleted || []);
-  const validKey = (k?: string) => /^ob-absorbed2\|[^|]+\|[^|]+\|[1-9]\d{0,5}\|[^|]*\|\d{4}-\d{2}-\d{2}$/.test(k || "");
+  // v2 (sin signo) sigue valiendo para las colas que guardó una versión anterior; v3 lleva el signo.
+  const validKey = (k?: string) => /^ob-absorbed(?:2\|[^|]+\|[^|]+\|[1-9]\d{0,5}\|[^|]*\|\d{4}-\d{2}-\d{2}|3\|[^|]+\|[^|]+\|[1-9]\d{0,5}\|[^|]*\|\d{4}-\d{2}-\d{2}\|(?:-1|0|1))$/.test(k || "");
   const uuid = (id?: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id || "");
   const own = confirmadasOb(confirmed,owner).filter(p => owner && p?.owner === owner && uuid(p.id) && uuid(p.keepId) && p.id !== p.keepId && validKey(p.key) && validKey(p.keepKey) && Object.prototype.hasOwnProperty.call(p,"ackAt"));
   const gone = new Set(own.map(p => p.key!)), kept = new Set(own.map(p => p.keepKey!)), keepIds = new Set(own.map(p => p.keepId));
   const index = (keys: Set<string>) => {
     const any = new Set<string>(), missing = new Set<string>();
-    for (const key of keys) { const p = key.split("|"), base = p.slice(0,4).join("|") + "|" + p[5]; any.add(base); if (!p[4]) missing.add(base); }
+    for (const key of keys) { const p = key.split("|"), base = p.slice(0,4).join("|") + "|" + p[5] + (p.length === 7 ? "|" + p[6] : ""); any.add(base); if (!p[4]) missing.add(base); }
     return { any, missing };
   };
   const goneIndex = index(gone), keptIndex = index(kept);
   const matches = (f: T, keys: Set<string>, ix: ReturnType<typeof index>) => {
     const key = claveAbsorcionOb(f); if (!key) return false;
     if (keys.has(key)) return true;
-    const p = key.split("|"), base = p.slice(0,4).join("|") + "|" + p[5];
-    return cuentaDeSource(f.source) ? ix.missing.has(base) : ix.any.has(base);
+    const p = key.split("|"), v2 = p.slice(0,4).join("|") + "|" + p[5], v3 = p.length === 7 ? v2 + "|" + p[6] : v2;
+    const set = cuentaDeSource(f.source) ? ix.missing : ix.any;
+    return set.has(v3) || set.has(v2);
   };
   // Las no confirmadas tienen su propio tope y no caducan con las 500 lápidas normales.
   for (const p of Array.isArray(pending) ? pending : []) {
-    if (owner && p?.owner === owner && /^ob-absorbed2\|[^|]+\|[^|]+\|[1-9]\d{0,5}\|[^|]*\|\d{4}-\d{2}-\d{2}$/.test(p.key || "")) lap.add(p.key!);
+    if (owner && p?.owner === owner && validKey(p.key)) lap.add(p.key!);
   }
   // La ausencia de cuenta en cualquiera de los lados es el mismo comodín que usa
   // el escritor para proteger a la superviviente; ambos índices se calculan una vez.

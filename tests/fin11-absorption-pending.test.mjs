@@ -231,8 +231,12 @@ test('FIN11/FIN15 pendiente con comodín filtra antes de consumir referencia ent
   assert.equal(cents(server),320);assert.deepEqual(server.map(x=>x.id),[survivor.id]);
  }
  const source=read('supabase/functions/_shared/presupuesto.ts');
- const anchor='if (cuentaAusente.has(base) || (!cuentaDeSource(f.source) && sinCuenta.has(base))) continue;';
- const changed=source.replace(anchor,'if (cuentaAusente.has(base) || (!cuentaDeSource(f.source) && sinCuenta.has(base))) { const ref = referenciaOb(f); if (ref) referencias.add(ref); continue; }');
+ // La referencia se declara antes de la fase de filtrado (la preferencia BOOK separa filtrado y dedup) para que el mutante falle por perder dinero, no por la TDZ.
+ const anchor='if (omitida) continue;';
+ const changed=source
+  .replace('const live: T[] = [], books = new Map<string, T>();','const referencias = new Set<string>(); const live: T[] = [], books = new Map<string, T>();')
+  .replace('const vistas = new Map<string, Set<string>>(), referencias = new Set<string>();','const vistas = new Map<string, Set<string>>();')
+  .replace(anchor,'if (omitida) { const ref = referenciaOb(f); if (ref) referencias.add(ref); continue; }');
  assert.notEqual(changed,source,'el mutante debe aplicarse y compilar antes de contar una muerte');
  const mutant=await serverModule(changed);
  assert.equal(cents(mutant.filasComoLaApp([hidden,survivor],[],pending,owner)),0,'mutante causal consume la referencia de la superviviente');

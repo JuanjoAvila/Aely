@@ -145,7 +145,7 @@ function zeroCycle(f,raw=clientSource,initial=[]){
  const set=fn=>{s=fn(s);};class Clock extends Date{constructor(...a){super(...(a.length?a:[now]));}static now(){return now;}}
  const links=[{aspsp:'CaixaBank',syncFrom:'2026-10-01',transactions:[{ext_id:'zero-cycle',date:purchase.date.slice(0,10),amount:0,merchant:'Synthetic zero',status:'PDNG'}]}];
  const a=raw.indexOf('      set(function(prev){',raw.indexOf('obAckPend.current=')),b=raw.indexOf('      // INC-2909-03:',a);
- const p=raw.indexOf('      const delSet={};',raw.indexOf('const syncCloudExpenses=')),q=raw.indexOf('        const rec=reconcileObDupes',p);
+ const p=raw.indexOf('      const delSet=expenseDeletedSet(',raw.indexOf('const syncCloudExpenses=')),q=raw.indexOf('        const rec=reconcileObDupes',p);
  assert.ok(a>=0&&b>a&&p>=0&&q>p,'bloques reales encontrados');
  const names=['flattenBankTx','importObExpenses','applyInvestBuy','cuotasDeDeudaPorMarcar','gemelosDeImportacion','pushGemelos','reconcileGemelosAutomaticos','enrichNotesFromBankTx','tagObAccountsFromBankTx','reconcileFixedPaymentProofs','reconcileEarlyIncomeAnchors','applyBankBalances','bankIssuesOf','expenseFromRow','expenseIsTombstoned','expenseDeletedSet','keyOfExpense','keepCategoryChoices','mergeExpensesFromCloud','fusionarGemelos'];
  const namesExtra=['set','links','dbLinks','DEUDA_CAT','Date','at','setTimeout','subirGasto','opts','showToast','tf','stateRef','rows','readStartedAt','cloudGemelos','cloud'];

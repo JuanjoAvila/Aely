@@ -4365,8 +4365,14 @@ function obConfirmedUnpack(value,owner){
   }
   return list;
 }
+// Desde que la clave de absorción lleva el signo (v3) una devolución no oculta su compra, pero
+// las colas guardadas por versiones anteriores (v2) siguen siendo válidas: se aceptan las dos.
+function obAbsorbedKeyOk(k){
+  const a=String(k||"").split("|");
+  return (a.length===6&&a[0]==="ob-absorbed2"||a.length===7&&a[0]==="ob-absorbed3"&&/^(?:-1|0|1)$/.test(a[6]))&&!!a[1]&&!!a[2]&&/^[1-9]\d{0,5}$/.test(a[3])&&/^\d{4}-\d{2}-\d{2}$/.test(a[5]);
+}
 function obConfirmedValid(p,owner){
-  const key=function(k){const a=String(k||"").split("|");return a.length===6&&a[0]==="ob-absorbed2"&&!!a[1]&&!!a[2]&&/^[1-9]\d{0,5}$/.test(a[3])&&/^\d{4}-\d{2}-\d{2}$/.test(a[5]);};
+  const key=obAbsorbedKeyOk;
   return !!p&&!!owner&&p.owner===owner&&isExpenseUuid(p.id)&&isExpenseUuid(p.keepId)&&p.id!==p.keepId&&key(p.key)&&key(p.keepKey)&&Object.prototype.hasOwnProperty.call(p,"ackAt");
 }
 function obConfirmedJoin(a,b,owner,evict,now){
@@ -4463,11 +4469,9 @@ async function obConfirmedCanUpload(e,owner,sdk){
 }
 function obAbsorbedValid(p,owner){
   if(!p||!owner||p.owner!==owner||!isExpenseUuid(p.id)||!isExpenseUuid(p.keepId)||p.id===p.keepId)return false;
-  const a=String(p.key||"").split("|"),b=String(p.keepKey||"").split("|");
-  return a.length===6&&a[0]==="ob-absorbed2"&&!!a[1]&&!!a[2]&&/^[1-9]\d{0,5}$/.test(a[3])&&/^\d{4}-\d{2}-\d{2}$/.test(a[5])
-    &&b.length===6&&b[0]==="ob-absorbed2"&&(p.idsOnly===true
+  return obAbsorbedKeyOk(p.key)&&obAbsorbedKeyOk(p.keepKey)&&(p.idsOnly===true
       ?Object.keys(p).every(function(k){return ["owner","id","key","keepId","keepKey","keepRefKey","idsOnly"].includes(k);})
-        &&(p.keepRefKey==null||typeof p.keepRefKey==="string"&&p.keepRefKey.split("|").length===6&&p.keepRefKey.indexOf("ob-absorbed2|")===0)
+        &&(p.keepRefKey==null||typeof p.keepRefKey==="string"&&obAbsorbedKeyOk(p.keepRefKey))
       :typeof p.merchant==="string"&&typeof p.amount==="number"&&Number.isFinite(p.amount)&&p.amount>0);
 }
 function obAbsorbedJoin(a,b,owner){
