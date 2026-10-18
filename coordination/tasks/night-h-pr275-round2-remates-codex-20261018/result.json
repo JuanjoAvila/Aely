@@ -1,0 +1,173 @@
+{
+  "status": "blocked",
+  "summary": "H275 ronda2 entregada misma PR275 DRAFTbeta y rama, fuente 2b5e14a12673252dc621f0f95dd1e10baafe979d sobre dd77f859, sin rebase. ALTO1: guardado ref distinta solo NEW con BOOK en misma respuesta o obPendingRef; sin prueba MAYBE visible desmarcado, sin union adivinada. PDNG conservado en ambos constructores y UI de gasto/ingreso. ALTO2: IBAN antes UID; sin ambos omite cuenta, sin posicion persistida. Probadas pertenencia, clave/lapida de absorcion y parte propia625c sobre1250c. Brief retirado de PR y preservado privado. RED8 grupos EXIT1; GREEN21UTC+21Madrid EXIT0; 52 controles afectados EXIT0; diez mutantes finales muertos por asercion EXIT1. Build/sintaxis/registro/diff EXIT0. Fallo fixture diario ingresoPDNG y dos anclajesCRLF preservados, no contados como kills; corregidos solo harness. Original resultado48ff7c9f y fallos anteriores intactos. Size/docs previos EXIT1 y beta-sources interrumpido4294967295 preservados, no repetidos ni validacion nueva. Review/integracion/gates generales/CI/servido/movil pendientes; noProductREADY ni recuperacion realCaixa. Push normal EXIT0 y SHA/base/body/draft exactos. OWN10+12 congelados22; OWN20 antes resultado2/20,total24; readback esperado3/20,total25,min30s. Sin server/CLOUD_WRITES/saldo-transactions,VERSION/catalogo/notas/hashesintegracion/caps/PR265-274,fullsuiteCPU6GradleAPKliveSQLbancosEdge/deploymerge. Own result blocked/released, checkpoint y STOP; no asumir Recibos.",
+  "productSHA": "2b5e14a12673252dc621f0f95dd1e10baafe979d",
+  "parentSHA": "dd77f859dd2203c957d0faafc71a1a867e3904ec",
+  "baseSHA": "ff53b0e7243fe79f9164bbc1bcf2313fb2e28d13",
+  "branch": "codex/night-h-caixa-20261018",
+  "PR": 275,
+  "draft": true,
+  "productReady": false,
+  "claimCommit": "771dda5d8fcd21e862ca29c282409e492b7c98e4",
+  "ACKCommit": "dde9adedaf4a40828c8af37f4d93e57f2731896c",
+  "previousResult": "48ff7c9fcd2d86ad84c23e17077960a8d268d6f6",
+  "normalProductPushExit": 0,
+  "remoteAndPRExact": true,
+  "manifest": {
+    "path": "outputs/manifiesto-night-h-pr275-ronda2.json",
+    "bytes": 28035,
+    "sha256": "3e4533d8d0b4ade9fe82fe0bafe7dfbbbc5dcef150fa6ba57884a125599d9ca6"
+  },
+  "candidateCheckpoint": {
+    "path": "outputs/checkpoint-night-h-pr275-ronda2-candidato.json",
+    "bytes": 3059,
+    "sha256": "2ea32b8f762ecf88701b9a27e9857824c3b5d832331113537aea949ff9e6d679"
+  },
+  "sourceBundleSHA256": "3b12ec137c2d91d3ff22ca51321ed49fe56231e37e25d70b43c0eae402941964",
+  "tests": [
+    {
+      "name": "r2-build",
+      "exitCode": 0
+    },
+    {
+      "name": "r2-commit",
+      "exitCode": 0
+    },
+    {
+      "name": "r2-diff",
+      "exitCode": 0
+    },
+    {
+      "name": "r2-green-first",
+      "exitCode": 1
+    },
+    {
+      "name": "r2-green-madrid",
+      "exitCode": 0
+    },
+    {
+      "name": "r2-green-utc",
+      "exitCode": 0
+    },
+    {
+      "name": "r2-hist-bank",
+      "exitCode": 0
+    },
+    {
+      "name": "r2-hist-dup",
+      "exitCode": 0
+    },
+    {
+      "name": "r2-mutant-consumeAmbiguous",
+      "exitCode": 1
+    },
+    {
+      "name": "r2-mutant-exactDup",
+      "exitCode": 1
+    },
+    {
+      "name": "r2-mutant-iban",
+      "exitCode": 1
+    },
+    {
+      "name": "r2-mutant-pendingBuild-v2",
+      "exitCode": 1
+    },
+    {
+      "name": "r2-mutant-pendingBuild",
+      "exitCode": 1
+    },
+    {
+      "name": "r2-mutant-pendingFila-v2",
+      "exitCode": 1
+    },
+    {
+      "name": "r2-mutant-pendingFila",
+      "exitCode": 1
+    },
+    {
+      "name": "r2-mutant-pendingIncome",
+      "exitCode": 1
+    },
+    {
+      "name": "r2-mutant-position",
+      "exitCode": 1
+    },
+    {
+      "name": "r2-mutant-sameResponse",
+      "exitCode": 1
+    },
+    {
+      "name": "r2-mutant-settledProof",
+      "exitCode": 1
+    },
+    {
+      "name": "r2-mutant-unproven",
+      "exitCode": 1
+    },
+    {
+      "name": "r2-red",
+      "exitCode": 1
+    },
+    {
+      "name": "r2-registry",
+      "exitCode": 0
+    },
+    {
+      "name": "r2-syntax",
+      "exitCode": 0
+    }
+  ],
+  "mutants": {
+    "semanticKills": 10,
+    "exitCodes": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "initialHarnessAnchorErrors": 2
+  },
+  "sourceAndGitLFParity": true,
+  "budgetBeforeResult": {
+    "own10FrozenUsed": 10,
+    "additional12FrozenUsed": 12,
+    "own20Used": 2,
+    "own20Remaining": 18,
+    "total": 24,
+    "minSeconds": 30,
+    "noResetOrInheritance": true,
+    "ledger": {
+      "path": "work/night-h/fetch-own-block3.jsonl",
+      "bytes": 1039,
+      "sha256": "87d901cd7a7436bc9e53c2381b421f7cb1a63fe7fa7c937e43fa8d74712fd584"
+    }
+  },
+  "limitations": [
+    "Independent re-review/integration pending; blocked/released candidate, not ProductREADY.",
+    "Synthetic selection/import uses actual UI function bodies and cloud serializer with local transport; no DOM/browser, live Supabase or bank acceptance.",
+    "Round1 size EXIT1 1330/1328 KiB and committed docs-frescura EXIT1 are preserved, not rerun or qualified for this new SHA; general gates still unresolved.",
+    "Round1 beta-sources interrupted real child EXIT4294967295; not rerun and does not qualify this SHA.",
+    "No fullsuite/general CI, CPU6, Gradle/APK, SQL, live banks, Edge, deployment, merge, served or mobile acceptance.",
+    "Balance/transactions decoupling remains a separate investigation without server product changes; no real CaixaBank recovery claimed.",
+    "VERSION/catalogue/release notes/integration receipt/caps/financial oracles/CLOUD_WRITES unchanged; only four base-relative files changed.",
+    "Old private probe remains untracked work/ in the isolated checkout; no foreign WIP/process/lease touched."
+  ],
+  "preservedFailures": [
+    "r2-green-first EXIT1: test incorrectly attempted daily PDNG income, which daily intentionally excludes; fixture restricted to daily expenses, both income signs retained in historical UI test.",
+    "r2-mutant-pendingFila and pendingBuild initial EXIT1 were anchor errors, not kills; corrected CRLF handling, v2 semantic assertion failures count.",
+    "All original round1 REDs, errors, survivor, size/docs failures and beta-sources interruption preserved."
+  ],
+  "schema": 1,
+  "taskId": "night-h-pr275-round2-remates-codex-20261018",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-5fc9afdec60f82b1",
+  "createdAt": "2026-10-18T10:51:58.120Z",
+  "released": true
+}
