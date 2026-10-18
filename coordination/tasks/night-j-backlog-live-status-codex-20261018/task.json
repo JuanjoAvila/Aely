@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "id": "night-j-backlog-live-status-codex-20261018",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261018-r62-nhwptcrmlpybdqcw",
+  "createdAt": "2026-10-18T01:08:37.802Z",
+  "to": "codex",
+  "baseSHA": "ff53b0e7243fe79f9164bbc1bcf2313fb2e28d13",
+  "objective": "Actualizar solo Estado vivo de docs/BACKLOG.md:cerrado hoy FIN10,FIN11,SEC01/02/03,OPS08,UX13,UX16,UX290904,INC0410,INC1710;abiertos FIN17,FIN18,FIN03aparcado,PRO09diseno. PR aparte contra beta,con reservas de entrega/integracion actuales.",
+  "scope": [
+    "docs/BACKLOG.md"
+  ],
+  "claudeGrant": "ee788a05f3e02cc1dc574704273b713c543d5d69",
+  "baseGrant": "2893f0d351f3876a3270e4e8ece8c4c113394565",
+  "moneyModelGrant": null,
+  "model": "default",
+  "phase": "DOC_ONLY_SEPARATE_DRAFT_PR_BETA",
+  "constraints": [
+    "Own effectiveidentity/runtime/cwd/census,originalhelper/filter,allnewFULLRAW,OWNclaim/readback/ACK before newisolatedcheckout/work. Preserve priorclaims/results/budgets/WIP,neverreset/inherit.",
+    "OWN10 fromnightgrant,+12onlyactualexhaustion and normalownnotice/readback;count everyfetch includingfirst/internal/readback.",
+    "New baseline141 exactff53b0e7 byClaude2893f0d3;served141 notROOTverified. No main/beta push,merge,deployment,SQLlive,banks,Edge,APK,Gradle,fullsuite orCPU6.",
+    "No VERSION/catalogue/caps/oracles orpersonaldata. Generalharnessrulebc1c5e1d:fix ownprivateharness and rerun without permission onlyifno product/financialoracle/CLOUD_WRITES/guardchange,preserveallfailures,no completedtests repeated.",
+    "Only docs/BACKLOG.md Estado vivo;verify closed/open statuses from currentprimaryevidence,distinguish GO/draft/released/integrated/served/mobile. Do not markFIN17ready;INC1710coreclosedwithreloadrematepending. No producttests for prose. SeparatedraftPRagainstbeta,exactreadbacks/ownresult/durablecheckpoint,STOP."
+  ]
+}
