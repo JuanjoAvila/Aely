@@ -61,10 +61,11 @@ public class AelyHapticsPlugin extends Plugin {
                             }
                         }
                     }
-                    HapticPlan.Path selected = HapticPlan.select(Build.VERSION.SDK_INT, true, amplitude, lowTick, primitiveMs);
+                    HapticPlan.Path selected = edge ? HapticPlan.select(Build.VERSION.SDK_INT, true, amplitude, lowTick, primitiveMs)
+                        : HapticPlan.selectFill(Build.VERSION.SDK_INT, true, amplitude);
                     VibrationEffect effect = null;
                     if (selected == HapticPlan.Path.WAVEFORM) {
-                        if (edge) effect = VibrationEffect.createOneShot(8, 10);
+                        if (edge) effect = VibrationEffect.createOneShot(8, HapticPlan.EDGE_AMPLITUDE);
                         else {
                             HapticPlan.Wave wave = HapticPlan.waveform(duration);
                             effect = VibrationEffect.createWaveform(wave.timings, wave.amplitudes, -1);
@@ -81,14 +82,15 @@ public class AelyHapticsPlugin extends Plugin {
                     if (effect != null && Build.VERSION.SDK_INT >= 33) {
                         vibrator.vibrate(effect, new VibrationAttributes.Builder().setUsage(VibrationAttributes.USAGE_TOUCH).build());
                         path = selected.name();
-                    } else path = softFallback(view);
+                    } else if (edge) path = softFallback(view);
                 }
             } catch (RuntimeException ignored) {
-                try { path = softFallback(view); } catch (RuntimeException unavailable) { path = "NONE"; }
+                try { path = edge ? softFallback(view) : "NONE"; } catch (RuntimeException unavailable) { path = "NONE"; }
             }
             // Respuesta por llamada sin logs ni identificadores: la APK permite leer la ruta real.
             result.put("path", path);result.put("api", Build.VERSION.SDK_INT);
             result.put("amplitudeControl", amplitude);result.put("lowTick", lowTick);result.put("primitiveMs", primitiveMs);
+            result.put("continuous", !edge && path.equals("WAVEFORM"));
             call.resolve(result);
         });
     }

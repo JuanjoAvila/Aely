@@ -1,5 +1,9 @@
 # UX16 · suavidad e inercia · segunda ronda
 
+Acta histórica de la segunda ronda. El relleno por primitivas y las intensidades
+se sustituyen en la [tercera ronda](ux16-round3-ramp-edge-chart.md), tras el nuevo
+rechazo comunicado. Las pruebas de esta acta conservan su fuente original.
+
 Candidata de revisión desde beta `ff53b0e7243fe79f9164bbc1bcf2313fb2e28d13`.
 Encargo nuevo tras el rechazo comunicado del APK 56: un toque fuerte en vez de
 acompañar el relleno y ausencia de toque al llegar al extremo por inercia.

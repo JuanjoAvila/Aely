@@ -1,7 +1,9 @@
 package com.micartera.app;
 
-/** Reparte pausas DESPUÉS de cada primitiva, incluyendo su duración estimada en el tope. */
+/** El relleno es una onda continua; las primitivas quedan reservadas a un solo toque de borde. */
 final class HapticPlan {
+    static final int EDGE_AMPLITUDE = 30;
+    static final float EDGE_SCALE = .25f;
     enum Path { NONE, WAVEFORM, LOW_TICK, SOFT_TICK }
     static Path select(int api, boolean allowed, boolean amplitudeControl, boolean lowTick, int primitiveMs) {
         if (!allowed) return Path.NONE;
@@ -12,6 +14,10 @@ final class HapticPlan {
         }
         return api >= 34 ? Path.SOFT_TICK : Path.NONE;
     }
+    static Path selectFill(int api, boolean allowed, boolean amplitudeControl) {
+        // Un tren de primitivas no es una rampa continua: en estos motores preferimos callar.
+        return api >= 33 && allowed && amplitudeControl ? Path.WAVEFORM : Path.NONE;
+    }
     static final class Wave {
         final long[] timings;
         final int[] amplitudes;
@@ -20,11 +26,11 @@ final class HapticPlan {
     static Wave waveform(int requestedMs) {
         int duration = Math.min(1200, requestedMs);
         if (duration <= 0) return null;
-        int count = Math.min(12, duration);
+        int count = Math.min(60, duration);
         Wave wave = new Wave(count);
         for (int i = 0; i < count; i++) {
             wave.timings[i] = duration / count + (i < duration % count ? 1 : 0);
-            wave.amplitudes[i] = count == 1 ? 10 : 10 + Math.round(50f * i / (count - 1));
+            wave.amplitudes[i] = count == 1 ? 3 : 3 + Math.round((EDGE_AMPLITUDE - 3f) * i / (count - 1));
         }
         return wave;
     }
@@ -39,15 +45,8 @@ final class HapticPlan {
     static HapticPlan create(int requestedMs, int primitiveMs) {
         int duration = Math.min(1200, requestedMs);
         if (primitiveMs <= 0 || duration < primitiveMs) return null;
-        int count = Math.min(10, duration / primitiveMs);
-        HapticPlan plan = new HapticPlan(count);
-        int previousEnd = 0;
-        for (int i = 0; i < count; i++) {
-            int start = count == 1 ? 0 : Math.round((duration - primitiveMs) * (float) i / (count - 1));
-            plan.delays[i] = start - previousEnd;
-            plan.scales[i] = count == 1 ? .04f : .04f + .12f * i / (count - 1);
-            previousEnd = start + primitiveMs;
-        }
+        HapticPlan plan = new HapticPlan(1);
+        plan.scales[0] = EDGE_SCALE;
         return plan;
     }
 }

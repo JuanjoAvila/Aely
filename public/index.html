@@ -9010,8 +9010,9 @@ function mcHaptic(method, args){
   }catch(e){}
 }
 function mcBindEdgeHaptics(root, blocked){
-  let g=null, states=new WeakMap();
-  const end=function(){ g=null; };
+  let g=null, states=new WeakMap(), pullTimer=0;
+  const stopPull=function(){ clearTimeout(pullTimer); pullTimer=0; if(g) g.pulling=false; };
+  const end=function(){ stopPull(); g=null; };
   const boundary=function(el){
     const max=el.scrollHeight-el.clientHeight, y=el.scrollTop;
     return max>1?(y<=1?"top":y>=max-1?"bottom":null):null;
@@ -9039,6 +9040,16 @@ function mcBindEdgeHaptics(root, blocked){
     s.latched=edge; s.armed=false;
     mcHaptic("edge");
   };
+  const repeatPull=function(){
+    const own=g;
+    if(pullTimer||!own||!own.pulling) return;
+    pullTimer=setTimeout(function(){
+      pullTimer=0;
+      if(g!==own||!own.pulling) return;
+      if(quiet()||!own.el.isConnected||scroller(own.el)!==own.el||boundary(own.el)!==own.edge){ stopPull(); return; }
+      mcHaptic("edge"); repeatPull();
+    },150);
+  };
   const scroll=function(e){
     const el=scroller(e.target);
     if(!el||el!==e.target) return;
@@ -9052,29 +9063,28 @@ function mcBindEdgeHaptics(root, blocked){
     s.edge=edge;
   };
   const start=function(e){
-    g=null;
+    end();
     if(!e.touches||e.touches.length!==1||quiet()) return;
     const el=scroller(e.target);
     if(!el) return;
     const t=e.touches[0]; stateOf(el);
-    g={el:el,id:t.identifier,x:t.clientX,y:t.clientY,lastY:t.clientY,anchor:t.clientY,edge:boundary(el),fired:false};
+    g={el:el,id:t.identifier,x:t.clientX,y:t.clientY,lastY:t.clientY,anchor:t.clientY,edge:boundary(el),pulling:false};
   };
   const move=function(e){
     if(!g) return;
     if(!e.touches||e.touches.length!==1||e.touches[0].identifier!==g.id||blocked()||e.defaultPrevented){ end(); return; }
-    if(g.fired) return;
     const t=e.touches[0], dx=t.clientX-g.x, dy=t.clientY-g.y, step=t.clientY-g.lastY;
     g.lastY=t.clientY;
     if(Math.abs(dx)>8&&Math.abs(dx)>Math.abs(dy)){ end(); return; }
     const edge=boundary(g.el);
     // Al aterrizar en el borde se empieza a contar desde allí: el recorrido de scroll no vale.
-    if(!edge||edge!==g.edge){ g.edge=edge; g.anchor=t.clientY; return; }
-    if((edge==="top"&&step<0)||(edge==="bottom"&&step>0)){ g.anchor=t.clientY; return; }
+    if(!edge||edge!==g.edge){ stopPull(); g.edge=edge; g.anchor=t.clientY; return; }
+    if((edge==="top"&&step<0)||(edge==="bottom"&&step>0)){ stopPull(); g.anchor=t.clientY; return; }
     if(Math.abs(dy)<=Math.abs(dx)*1.2) return;
     const outward=edge==="top"?t.clientY-g.anchor:g.anchor-t.clientY;
-    if(outward<10) return;
-    g.fired=true;
+    if(outward<10){ stopPull(); return; }
     pulse(g.el,edge);
+    g.pulling=true; repeatPull();
   };
   const listeners={touchstart:start,touchmove:move,touchend:end,touchcancel:end,visibilitychange:end};
   Object.keys(listeners).forEach(function(type){ root.addEventListener(type,listeners[type],{passive:true}); });
@@ -10508,7 +10518,7 @@ function NetWorthNow({tt, simple, series, splashGone}){
   const today=netWorthDay();
   const ranges=useMemo(function(){ return netWorthRanges(series,today); },[series,today]);
   const [picked,setPicked]=useState("1m"), [touch,setTouch]=useState(null), [info,setInfo]=useState(false);
-  const svgRef=useRef(null), frameRef=useRef(0), fingerRef=useRef(null);
+  const svgRef=useRef(null), frameRef=useRef(0), fingerRef=useRef(null), hapticRef=useRef({day:null,at:-Infinity});
   const range=ranges.find(function(r){ return r.id===picked; })||ranges[0];
   const points=range?range.points:[], active=touch!=null?points[touch]:null;
   // El veredicto compara los dos extremos de la gráfica elegida (hoy y el mismo día de hace N
@@ -10534,13 +10544,20 @@ function NetWorthNow({tt, simple, series, splashGone}){
   const pointAt=function(x,rect){
     const local=(x-rect.left)/rect.width*320;
     fingerRef.current=Math.max(0,Math.min(points.length-1,Math.round((local-4)/312*(points.length-1))));
-    if(!frameRef.current) frameRef.current=requestAnimationFrame(function(){frameRef.current=0;setTouch(fingerRef.current);});
+    if(!frameRef.current) frameRef.current=requestAnimationFrame(function(){
+      frameRef.current=0;
+      const index=fingerRef.current, day=points[index]&&points[index].day, h=hapticRef.current;
+      // Solo el punto que realmente se pinta: sin búsquedas, layouts ni ticks por cada touchmove.
+      if(day!==h.day){ h.day=day; const now=performance.now(); if(day&&now-h.at>=35){ h.at=now; mcHaptic("edge"); } }
+      setTouch(index);
+    });
   };
   const begin=function(e){
     e.stopPropagation();
     if(!chart||!svgRef.current||!e.touches.length) return;
     const g={x:e.touches[0].clientX,y:e.touches[0].clientY,rect:svgRef.current.getBoundingClientRect(),active:false};
     gestureRef.current=g;clearTimeout(holdRef.current);
+    hapticRef.current.day=null;
     holdRef.current=setTimeout(function(){if(gestureRef.current===g){g.active=true;pointAt(g.x,g.rect);}},250);
   };
   const move=function(e){
@@ -23105,7 +23122,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="4d864eaae0b040134c1bb4eeb99e24350f57c9032e7b86e0e99c066430b1ee1f";
+var _rnSha="1c742d63889c73a22e44ddc659ee0d1911563c46c4943232bc092ec120ad934b";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
