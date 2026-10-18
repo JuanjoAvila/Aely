@@ -1,0 +1,18 @@
+{
+  "status": "blocked",
+  "tests": [
+    "DOM141 8/8 EXIT0",
+    "Node previos 10+11 PASS preservados por paridad",
+    "4mutantes previos EXIT1 esperado",
+    "build syntax registration EXIT0",
+    "size docs EXIT1",
+    "beta-sources anterior EXIT1"
+  ],
+  "summary": "Night B entregada PR269 borrador beta, source 242aa5769f940392938c0c6bf0f104f5e6b78476 sobre141 ff53b0e7243fe79f9164bbc1bcf2313fb2e28d13. Claimbase503 historica intacta. GO331c50bc y entrega directa6c1a4cdf FULLOWN leidos. Confirmacion total y cuotas pendientes antes/despues es/en/ca, cancelar conserva borrador y confirmar revalida estado/proyeccion. Formula,form.months y closer preservados. DOM fuente final8de8 EXIT0,1worker0retry0flaky;build/sintaxis/registroEXIT0. Node10 inicial y11 nuevos PASS conservados sinrepeat,4mutantes EXIT1 esperado;paridad de formula,helpers,hoja y dependencias financieras demostrada. RED503 y fallos privados reloj/espera persistencia preservados;DOMprevio3mas5 no atribuido a141. Sizefinal EXIT1 min1329de1328KiB,gzip370de370 PASS;docsfinal EXIT1 por version pendiente. BetaSources anterior1d2 unica ejecucion EXIT1: 103PASS y2fallos de lectura historica Indicador107 e Integracion109; objeto70ffea58 ausente local,cat-file yshow fallan. No fallo de producto en esta ejecucion. No betaSources nuevo141, suiteentera/generalCI,CPU6,GradleAPK,SQLvivo,Edgebancos,artefacto servido candidato ni movil. Sin VERSION/catalogo/caps,merge/deploy. ManifestSHA 8daa64c3f06e4f7f300afe6533a1b7df2a88fd2b0cda5ca66650ccd5276555c2 checkpointSHA a373149f3bbe53dd18c7cfe5601724d0ea4e229b02faa834316ba13f7b84972f. Result blocked y released;noProductREADY;STOP.",
+  "schema": 1,
+  "taskId": "night-b-debt-term-warning-codex-20261018",
+  "actor": "codex",
+  "sessionId": "codex-local-20261014-43c0a0c94700",
+  "createdAt": "2026-10-18T01:28:46.029Z",
+  "released": true
+}
