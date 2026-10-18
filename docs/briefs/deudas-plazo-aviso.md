@@ -30,3 +30,12 @@ mínimo temporal del splash y no permite probar el editor.
 La evidencia dirigida no sustituye los gates generales, la revisión e integración,
 los artefactos de beta servidos ni la aceptación en un móvil real. VERSION,
 catálogo beta y topes quedan para integración; esta tanda no los modifica.
+
+La revisión de PR269 exige que los dos casos R1/M5 existentes de cambio de día y
+saldo residual confirmen el diálogo y comprueben el plazo y las cuotas que anuncia.
+El texto usa singular cuando el plazo resultante es un mes, en los tres idiomas.
+`tests/deudas-plazo-submit.test.mjs` pulsa el callback real del botón Guardar del
+componente con hooks sintéticos: exige diálogo antes de escribir, texto traducido,
+cancelación sin escritura y coincidencia entre el plazo confirmado y el guardado.
+Sus mutantes propios desconectan el botón del diálogo o fuerzan el plural; no son
+los mutantes del revisor. La fórmula y el cierre animado permanecen intactos.

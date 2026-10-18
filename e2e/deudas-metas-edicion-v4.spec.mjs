@@ -147,7 +147,11 @@ for(const scenario of [
  await open(page,"es",reviewRows);const before=await saved(page),row=page.locator('[data-debt-id="debt"]');
  await expect(row.locator(".plan-debt-details")).toContainText("Quedan 6/10 cuotas");
  await row.locator(".plan-item-open").click();const sheet=debtSheet(page,"es");await sheet.locator('[data-debt-field="'+scenario.field+'"]').fill(scenario.value);
- await sheet.getByRole("button",{name:texts.es.saveDebt,exact:true}).click();await expect(sheet).toHaveCount(0);
+ await sheet.getByRole("button",{name:texts.es.saveDebt,exact:true}).click();
+ const confirmation=page.locator(".askback");await expect(confirmation).toBeVisible();
+ await expect(confirmation).toContainText(`Plazo total: 10 → ${scenario.total} meses. Cuotas pendientes: 6 → ${scenario.left}.`);
+ expect((await saved(page)).debts).toEqual(before.debts);
+ await confirmation.getByRole("button",{name:texts.es.saveDebt,exact:true}).click();await expect(sheet).toHaveCount(0);
  await expect(row.locator(".plan-debt-details")).toContainText(`Quedan ${scenario.left}/${scenario.total} cuotas`);
  await expect.poll(async()=>(await saved(page)).debts.find(x=>x.id==="debt").months).toBe(scenario.total);
  const after=await saved(page),d=after.debts.find(x=>x.id==="debt");expect(after.debts).toHaveLength(2);expect(after.debts[0]).toEqual(before.debts[0]);expect(after.goals).toEqual(before.goals);expect(d).toMatchObject({id:"debt",months:scenario.total,asOf:reviewDebt.asOf,unknown:reviewDebt.unknown});

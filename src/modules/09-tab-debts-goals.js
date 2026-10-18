@@ -169,7 +169,7 @@ function DebtEditSheet({debt,state,set,onClose,onDelete,showToast}){
     const result=debtEditResult(debt,form),change=debtEditTermChange(debt,form,result);
     if(!change){ save.save(result); return; }
     confirming.current=true; setConfirmPending(true);
-    askConfirm({title:t("db_edit_term_confirm"),sub:tf("db_edit_term_summary",change),ok:t("db_savechanges"),cancel:t("db_edit_term_cancel")}).then(function(yes){
+    askConfirm({title:t("db_edit_term_confirm"),sub:tf(change.after===1?"db_edit_term_summary_one":"db_edit_term_summary",change),ok:t("db_savechanges"),cancel:t("db_edit_term_cancel")}).then(function(yes){
       confirming.current=false; const current=latest.current;
       if(!current) return;
       setConfirmPending(false);

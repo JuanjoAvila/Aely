@@ -8002,6 +8002,7 @@ Object.assign(LANG.es, {
   db_term_hint:"Plazo total, incluidas las cuotas ya pagadas. Déjalo vacío si no lo conoces.",
   db_edit_term_confirm:"¿Guardar con el nuevo plazo?",
   db_edit_term_summary:"Plazo total: {before} → {after} meses. Cuotas pendientes: {leftBefore} → {leftAfter}.",
+  db_edit_term_summary_one:"Plazo total: {before} → {after} mes. Cuotas pendientes: {leftBefore} → {leftAfter}.",
   db_edit_term_cancel:"Seguir editando",
   db_edit_projection_changed:"La previsión ha cambiado. Revisa los datos y vuelve a guardar para confirmarla.",
   db_rate_edit_hint:"Vacío = interés desconocido. 0 = sin intereses. Se guarda al tocar Guardar cambios.",
@@ -18691,7 +18692,7 @@ function DebtEditSheet({debt,state,set,onClose,onDelete,showToast}){
     const result=debtEditResult(debt,form),change=debtEditTermChange(debt,form,result);
     if(!change){ save.save(result); return; }
     confirming.current=true; setConfirmPending(true);
-    askConfirm({title:t("db_edit_term_confirm"),sub:tf("db_edit_term_summary",change),ok:t("db_savechanges"),cancel:t("db_edit_term_cancel")}).then(function(yes){
+    askConfirm({title:t("db_edit_term_confirm"),sub:tf(change.after===1?"db_edit_term_summary_one":"db_edit_term_summary",change),ok:t("db_savechanges"),cancel:t("db_edit_term_cancel")}).then(function(yes){
       confirming.current=false; const current=latest.current;
       if(!current) return;
       setConfirmPending(false);
@@ -22426,7 +22427,7 @@ var RELEASE_NOTES_MAX=20;
    lo rellena desde el JSON. NO pegues el histórico entero en este módulo. */
 var RELEASE_NOTES=[];
 var _rnLoad=null;
-var _rnSha="d112ac39b661447b91f1144be23ad0ab5c5784e52c85559ba9ec0be3b1763b65";
+var _rnSha="a54c0c30b46038557356d9da70ba6fb5b2e6a1a715b5197c5165f2c1d31c8034";
 function betaNotesVerified(arr){
   // El SW puede contestar con JSON viejo: una petición correcta no acredita esta compilación.
   return crypto.subtle.digest("SHA-256",new TextEncoder().encode(JSON.stringify(arr))).then(function(buf){
