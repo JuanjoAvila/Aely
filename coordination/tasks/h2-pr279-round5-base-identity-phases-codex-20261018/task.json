@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "id": "h2-pr279-round5-base-identity-phases-codex-20261018",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261018-r69-d649989ec6163ddc",
+  "createdAt": "2026-10-18T13:41:35.404Z",
+  "to": "codex",
+  "kind": "worker",
+  "model": "gpt-6-astra",
+  "priority": 1,
+  "baseSHA": "0ad88ec82b659cd82d4f1dd30e6eea2c7b9caad9",
+  "originalBetaBaseSHA": "ff53b0e7243fe79f9164bbc1bcf2313fb2e28d13",
+  "claudeGrant": "3d5ca8cac7cb8ca5c260c5f8173aedcf7d5249c3",
+  "previousTaskId": "h2-pr279-round4-reconnect-visible-extras-codex-20261018",
+  "previousResult": "3953c91d6495d99b3bceabb03f903144c3b930c3",
+  "PR": 279,
+  "branch": "codex/h2-balance-transactions-20261018",
+  "objective": "Round5 under Claude NO-GO: restore EXACT real-base identity allocation in every all-balances-OK case, limit H2 to account phases, failed assigned balance retention and existing cursor/ACK/legacy/B4 contract.",
+  "scope": [
+    "src/modules/08-motor-bank.js identity allocation restored exactly to actual ff53b0e7 base with H2 phases above it",
+    "Focused existing identity/phases tests and strictly necessary private harness; generated public/index.html and scoped brief",
+    "Differential full state against real ff53b0e7 bundle for all44 identity cases plus6 reviewer cases, old/new server where applicable"
+  ],
+  "requirements": [
+    "Binding complete Claude instruction: PR279 ronda 4 0ad88ec8: NO-GO, y la culpa es de mi regla de la ronda 4 (toda libre como extra): cuenta dos veces el mismo dinero (dos manuales sin vinculo del mismo banco, banco con 2 cuentas: base 10000c, PR 17000c; con 1 cuenta 9000c vs 14000c; cambio parcial de UID 10500c vs 15500c; bankUid que pasa a IBAN 10000c vs 15000c). Cambio de enfoque para cerrar sin mas rondas, ronda 5 admitida: la ASIGNACION de identidades (que cuenta del banco va a que principal o extra, uidCambia, IBAN, orden) vuelve a ser EXACTAMENTE la de la base ff53b0e7 en todos los casos; esa logica no es parte de H2 y no se toca. H2 se limita a la capa de fases encima: si la cuenta que la base habria asignado llega con balanceOk false, se conserva el saldo y la fecha previos de ESA cuenta marcada rancia, en lugar de perderla o de bloquear el banco entero; saldo valido con movimientos fallidos se aplica; cursor/ACK como ahora; compatibilidad legacy como ahora; B4 (codigos cerrados, balanceError en el registro, cursor con UID validos, telemetria) se mantiene. Test diferencial obligatorio: con todos los saldos OK, el cliente nuevo da el MISMO estado que el bundle real de la base en toda tu matriz de identidad (los 44 casos mas los 6 de esta revision); solo pueden diferir los casos con balanceOk false. Deja anotado en el result que casos de identidad de la base siguen siendo imperfectos (por ejemplo la vinculada caida que la base asigna mal) como backlog aparte, sin arreglarlos aqui.",
+    "Same original H Astra holder/session/helper/filter/cwd, same branch and draftPR279. Continue from0ad88ec8, actual baseff53b0e7. Fresh OWNclaim/readback/ACK for this new task after released3953c91d. No claim/lease/budget transfer, no foreign WIP/lock/process cleanup. R4 ROOT private integrity verified103evidence20sources20commands exact20GitLF; this integrity is not financial acceptance.",
+    "RED first against actual R4 consumer and REAL ff53b0e7 public/index.html: known double counts17000vs10000 for2manuals2accounts,14000vs9000 for1bankaccount,15500vs10500 partialUID,15000vs10000 UIDtoIBAN. Cover all6 reviewer cases plus44 existing identity scenarios. Compare complete relevant account state including mapping/identity/order/extras/amount/date, not only total. Financial data synthetic. Preserve causal RED and old expectations explicitly superseded by this new grant.",
+    "Identity assignment MUST be EXACT base for every all-balances-OK matrix case; uidCambia/IBAN/order/manual/extra choice is outside H2 and must not be repaired here. Do not keep R4 always-free-extra or prior heuristic identity redesign merely because a focal total passes. Document imperfect base identity cases as separate backlog, including wrongly assigned failed linked principal, without fixing them.",
+    "H2 allowed difference only for balanceOk false on the account that BASE would assign: retain THAT previous amount/date and mark stale. Valid balance still applies when transactions fail. Preserve cursor/ACK durable persistence/auth guards, legacy compatibility and B4 closed error codes/balanceError logging/UID-valid completeness/telemetry. Server/backend/auth/ACK implementation not newly admitted for editing.",
+    "Keep exact-cent failure/sister12500+10000=22500,10000/zero/date/UID/IBAN,serial60s/15s/5s/12calls/2000rows,90dayoverflow limits. Prior finished download/mutation/DOM evidence reused only as provenance. Targeted changed-source reruns as necessary; no repeated completed DOM/general suite/CPU6/Gradle/APK/live/SQL/deploy.",
+    "Holder block4 last actual13/20,total55,remaining7 reference only: verify OWNledger and guard first, allfirst/internal/readbacks count min30s; no reset/inheritance. Preserve prior40to41 22.729249s violation. NextOWN20 only actualexhaustion with own notice/readback underb0390. Root has separate budget and never lends it.",
+    "Deliver same draftPR279 beta with newHEAD/report/manifest/checkpoint and actual exits/oracles/mutants. Own resultblockedreleased pending NEW independent Claude final review, exact canonicalreadback thenSTOP. Size/docs/catalogue remain explicit gates; no VERSION/catalogue/caps repin/raise or gateweakening. No source backend/Edge/SQL/cloudwrite/deploy/mainbetapush/merge. No other-chat messages/newchats. PreservePR275/276/278 and all historical evidence. UX03/09 stillqueued, not assumed."
+  ],
+  "deliverable": "PR279 R5 differential base-equivalent all-OK identity allocation, H2 failed balance account-phase behavior, real RED/GREEN/mutant records, immutable evidence and own releasedblocked result awaiting final Claude review."
+}
