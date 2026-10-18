@@ -145,9 +145,15 @@ function PlanEditSheet({title,onClose,closer,children}){
 }
 function DebtEditSheet({debt,state,set,onClose,onDelete,showToast}){
   const [form,setForm]=useState(function(){ return debtEditDraft(debt); });
+  const [attempt,setAttempt]=useState(0),errorRef=useRef(null);
   const finished=debtEditFinished(debt);
   const closer=useRef(null);
   const save=usePlanEditSave({state:state,set:set,field:"debts",item:debt,onClose:function(){ closer.current?closer.current():onClose(); },showToast:showToast});
+  // El rechazo puede quedar bajo el borde de la hoja. Cada Guardar vuelve a mostrarlo, incluso
+  // si se repite el mismo error: el borrador y las guardas financieras no cambian (18/10).
+  useLayoutEffect(function(){
+    if(save.error&&errorRef.current){ errorRef.current.focus({preventScroll:true}); errorRef.current.scrollIntoView({block:"nearest"}); }
+  },[save.error,save.range,attempt]);
   const input=function(key,label,mode){ return React.createElement("label",{key:key},t(label),
     React.createElement("input",{className:"af-in"+(mode?" num":""),inputMode:mode||"text",value:form[key],"data-debt-field":key,
       disabled:finished&&key!=="name",
@@ -158,11 +164,11 @@ function DebtEditSheet({debt,state,set,onClose,onDelete,showToast}){
     input("months","db_months_ph","numeric"),React.createElement("div",{className:"hint"},t("db_term_hint")),
     finished&&React.createElement("div",{className:"hint"},t("db_finished_edit_hint")),
     input("apr","da_rate","decimal"),React.createElement("div",{className:"hint"},t("db_rate_edit_hint")),
-    save.error&&React.createElement("div",{className:"hint",role:"alert"},t(save.error),
+    save.error&&React.createElement("div",{className:"hint",role:"alert",tabIndex:-1,ref:errorRef},t(save.error),
       // En euros como el campo, no con eur(): esa pasa a la moneda de visualización (revisión d139d).
       save.range&&" "+(save.range.max==null?tf("db_err_quota_min",{n:save.range.n,min:NF.format(save.range.min)+" €"}):
         tf("db_err_quota_range",{n:save.range.n,min:NF.format(save.range.min)+" €",max:NF.format(save.range.max)+" €"}))),
-    React.createElement("button",{type:"button",className:"btn btn-primary btn-block",disabled:save.pending,onClick:function(){save.save(debtEditResult(debt,form));}},t("db_savechanges")),
+    React.createElement("button",{type:"button",className:"btn btn-primary btn-block",disabled:save.pending,onClick:function(){setAttempt(function(n){return n+1;});save.save(debtEditResult(debt,form));}},t("db_savechanges")),
     React.createElement("button",{type:"button",className:"btn btn-ghost btn-block",onClick:function(){onDelete(debt);}},t("db_delete"))));
 }
 function GoalEditSheet({goal,state,set,onClose,onDelete,showToast}){

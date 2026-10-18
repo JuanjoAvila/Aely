@@ -129,6 +129,7 @@ export const E2E_MAP = [
   ] },
   { file: "src/modules/09-tab-debts-goals.js", specs: [
     "e2e/deudas-metas-edicion-v4.spec.mjs",
+    "e2e/deudas-guardar-feedback.spec.mjs",
     "e2e/inicio-deuda-futura.spec.mjs",
     "e2e/metas-editar-regla.spec.mjs",
     "e2e/metas-borrar-regla.spec.mjs",
