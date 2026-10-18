@@ -106,7 +106,7 @@ function NetWorthNow({tt, simple, series, splashGone}){
   const today=netWorthDay();
   const ranges=useMemo(function(){ return netWorthRanges(series,today); },[series,today]);
   const [picked,setPicked]=useState("1m"), [touch,setTouch]=useState(null), [info,setInfo]=useState(false);
-  const svgRef=useRef(null), frameRef=useRef(0), fingerRef=useRef(null);
+  const svgRef=useRef(null), frameRef=useRef(0), fingerRef=useRef(null), hapticRef=useRef({day:null,at:-Infinity});
   const range=ranges.find(function(r){ return r.id===picked; })||ranges[0];
   const points=range?range.points:[], active=touch!=null?points[touch]:null;
   // El veredicto compara los dos extremos de la gráfica elegida (hoy y el mismo día de hace N
@@ -132,13 +132,20 @@ function NetWorthNow({tt, simple, series, splashGone}){
   const pointAt=function(x,rect){
     const local=(x-rect.left)/rect.width*320;
     fingerRef.current=Math.max(0,Math.min(points.length-1,Math.round((local-4)/312*(points.length-1))));
-    if(!frameRef.current) frameRef.current=requestAnimationFrame(function(){frameRef.current=0;setTouch(fingerRef.current);});
+    if(!frameRef.current) frameRef.current=requestAnimationFrame(function(){
+      frameRef.current=0;
+      const index=fingerRef.current, day=points[index]&&points[index].day, h=hapticRef.current;
+      // Solo el punto que realmente se pinta: sin búsquedas, layouts ni ticks por cada touchmove.
+      if(day!==h.day){ h.day=day; const now=performance.now(); if(day&&now-h.at>=35){ h.at=now; mcHaptic("edge"); } }
+      setTouch(index);
+    });
   };
   const begin=function(e){
     e.stopPropagation();
     if(!chart||!svgRef.current||!e.touches.length) return;
     const g={x:e.touches[0].clientX,y:e.touches[0].clientY,rect:svgRef.current.getBoundingClientRect(),active:false};
     gestureRef.current=g;clearTimeout(holdRef.current);
+    hapticRef.current.day=null;
     holdRef.current=setTimeout(function(){if(gestureRef.current===g){g.active=true;pointAt(g.x,g.rect);}},250);
   };
   const move=function(e){

@@ -567,8 +567,9 @@ function mcHaptic(method, args){
   }catch(e){}
 }
 function mcBindEdgeHaptics(root, blocked){
-  let g=null, states=new WeakMap();
-  const end=function(){ g=null; };
+  let g=null, states=new WeakMap(), pullTimer=0;
+  const stopPull=function(){ clearTimeout(pullTimer); pullTimer=0; if(g) g.pulling=false; };
+  const end=function(){ stopPull(); g=null; };
   const boundary=function(el){
     const max=el.scrollHeight-el.clientHeight, y=el.scrollTop;
     return max>1?(y<=1?"top":y>=max-1?"bottom":null):null;
@@ -596,6 +597,16 @@ function mcBindEdgeHaptics(root, blocked){
     s.latched=edge; s.armed=false;
     mcHaptic("edge");
   };
+  const repeatPull=function(){
+    const own=g;
+    if(pullTimer||!own||!own.pulling) return;
+    pullTimer=setTimeout(function(){
+      pullTimer=0;
+      if(g!==own||!own.pulling) return;
+      if(quiet()||!own.el.isConnected||scroller(own.el)!==own.el||boundary(own.el)!==own.edge){ stopPull(); return; }
+      mcHaptic("edge"); repeatPull();
+    },150);
+  };
   const scroll=function(e){
     const el=scroller(e.target);
     if(!el||el!==e.target) return;
@@ -609,29 +620,28 @@ function mcBindEdgeHaptics(root, blocked){
     s.edge=edge;
   };
   const start=function(e){
-    g=null;
+    end();
     if(!e.touches||e.touches.length!==1||quiet()) return;
     const el=scroller(e.target);
     if(!el) return;
     const t=e.touches[0]; stateOf(el);
-    g={el:el,id:t.identifier,x:t.clientX,y:t.clientY,lastY:t.clientY,anchor:t.clientY,edge:boundary(el),fired:false};
+    g={el:el,id:t.identifier,x:t.clientX,y:t.clientY,lastY:t.clientY,anchor:t.clientY,edge:boundary(el),pulling:false};
   };
   const move=function(e){
     if(!g) return;
     if(!e.touches||e.touches.length!==1||e.touches[0].identifier!==g.id||blocked()||e.defaultPrevented){ end(); return; }
-    if(g.fired) return;
     const t=e.touches[0], dx=t.clientX-g.x, dy=t.clientY-g.y, step=t.clientY-g.lastY;
     g.lastY=t.clientY;
     if(Math.abs(dx)>8&&Math.abs(dx)>Math.abs(dy)){ end(); return; }
     const edge=boundary(g.el);
     // Al aterrizar en el borde se empieza a contar desde allí: el recorrido de scroll no vale.
-    if(!edge||edge!==g.edge){ g.edge=edge; g.anchor=t.clientY; return; }
-    if((edge==="top"&&step<0)||(edge==="bottom"&&step>0)){ g.anchor=t.clientY; return; }
+    if(!edge||edge!==g.edge){ stopPull(); g.edge=edge; g.anchor=t.clientY; return; }
+    if((edge==="top"&&step<0)||(edge==="bottom"&&step>0)){ stopPull(); g.anchor=t.clientY; return; }
     if(Math.abs(dy)<=Math.abs(dx)*1.2) return;
     const outward=edge==="top"?t.clientY-g.anchor:g.anchor-t.clientY;
-    if(outward<10) return;
-    g.fired=true;
+    if(outward<10){ stopPull(); return; }
     pulse(g.el,edge);
+    g.pulling=true; repeatPull();
   };
   const listeners={touchstart:start,touchmove:move,touchend:end,touchcancel:end,visibilitychange:end};
   Object.keys(listeners).forEach(function(type){ root.addEventListener(type,listeners[type],{passive:true}); });
