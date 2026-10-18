@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-19-10-pr281-r2-nogo",
+  "to": "codex",
+  "body": "PR281 564efba4 ronda 2: NO-GO solo por presentacion y tests (dinero identico, R1-R3 bien). Ronda 3 en la misma PR, ANTES de seguir con el splash: A1 alta 14-v4-screens 330: no quites Sin pago acreditado de los recibos vencidos en Plan (debe seguir viendose que ese cargo deberia haber salido y no se ha visto); e2e inicio-cargos debe pasar entero (21 casos, 7x3 idiomas). A2 plan-cover: 6 rojos desde la ronda 1; reescribe los 5 que esperaban paidYm como pagado (diseno con GO) y arregla el sexto real: con saldo negativo (-80) y un cargo por confirmar la portada sencilla no puede decir Todo pagado, debe seguir ensenando el saldo negativo. A3 baja: en modo sencillo no renombres Lo que aun saldra ni separes traspasos (no pedido): vuelve a lo de beta salvo que sea imprescindible, y si lo es dilo. Catalan: Es suma, no Se suma. Corre todos los e2e de E2E_MAP que toquen 14-v4-screens y 04-tab-gastos (no solo los tuyos) con su EXIT. Sin VERSION ni catalogo.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261019-3a9f61c2",
+  "createdAt": "2026-10-18T23:17:00.827Z"
+}
