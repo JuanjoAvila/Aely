@@ -1,0 +1,49 @@
+{
+  "status": "blocked",
+  "released": true,
+  "phase": "PARTIAL_WEB_CORRECTNESS_DIAGNOSIS_PREEMPTED_BY_PR281_R3",
+  "baseSHA": "7090802099ac0c7956c0d3597a9936a82c52a95f",
+  "diagnosticComplete": false,
+  "inventoryComplete": false,
+  "previousInventoryRemainsComplete": true,
+  "productChanged": false,
+  "productReady": false,
+  "realIncidentClosed": false,
+  "PR": null,
+  "tests": [
+    {
+      "name": "build-base",
+      "exitCode": 0
+    },
+    {
+      "name": "correctness-first",
+      "exitCode": 1
+    },
+    {
+      "name": "correctness-clockfix",
+      "exitCode": 1
+    },
+    {
+      "name": "correctness-remaining",
+      "exitCode": 0
+    }
+  ],
+  "uniqueScenarios": 8,
+  "finalCoverage": "4 passed first run plus4 passed corrected remaining; no single8of8 exit0 run",
+  "performanceMeasured": false,
+  "CPU6": false,
+  "nativeRuns": 0,
+  "APKBuilds": 0,
+  "blockingCanonical": "70b60fcdd7bf7e28620e0a25448af270f3aeaf26",
+  "reportPath": "work/ux03-ux09-web/diagnostico-interrumpido.txt",
+  "reportSHA256": "02f613b8443770ce6dd6ea9177b622813cf4023d58af085f18a9841afd87baa9",
+  "manifestSHA256": "bab2aad8d7d5368676a3585096ab76fdd2fb24d5a476f1e569a96cdc7a59b243",
+  "checkpointSHA256": "cf901395b9bd6a3922ab7a27705a05685d49fde00ebf04ace4967850c3bfa06f",
+  "summary": "PARCIAL detenido al OWN read85 por Claude70b60fc: PR281 R3 antes splash. Fase0 local70908020 build0 HTML c55a9bba exacto servido propio58631; HTTP estable142 beta144.1 ZIP3db5c48c index9474915c, no prueba APK instalada. Correctness8casos un worker cero retry cubiertos4 mas4: primera pasada EXIT1 cuatroPASS y cuatroFAIL por Date.now congelado del harness; corregido reloj solo en harness. Selector anclado no encontro tests EXIT1 conservado; restantes4PASS EXIT0, no repetir primeros4. Claro oscuro correctos antesvendor, manifest fijo, velo nativo SOLO simulado endpoints controlados; idioma retenido y sesion pendiente con salida eventual; reentrada snapshot3particiones exacto y reload tema. Oraculos centimos objetos completos y snapshots privados; cero llamadas cloud/bank observadas y bloqueo externo. Escrituras locales normales del arranque conservadas, no se afirma cero escrituras locales. Consulta e49bc17c sin admision expresa: ceroCPU6 profiling o tiempos representativos, cero nativo APK dispositivo. Sin causa fisica demostrada ni causalRED de producto, sin parche ni PR. Fuentes checkout limpio, inventarios anteriores y H2 preservados. OWN bloque5 congelado20 total82; bloque6 aviso c946043c, trasdosNFF5 de20 total87 previsto6 de20 total88, minimo30s, antigua infraccion40 a41 intacta. ROOT avisado. Released parcial ySTOP; solo nuevo despacho tras R3. Dos push EXIT1 NFF conservados; task claim ACK ajenos R3 FULL RAW leidos aceptados, sin reclamarlos. Reintento2 regla5997e0b4 pausa60s mismo task session helper sin force.",
+  "nextAction": "STOP after exact canonical readback; PR281 R3 release, ROOT verification and new dispatch before any further splash work.",
+  "schema": 1,
+  "taskId": "ux03-ux09-web-diagnostic-candidate-codex-20261019",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-5fc9afdec60f82b1",
+  "createdAt": "2026-10-18T23:23:23.802Z"
+}
