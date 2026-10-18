@@ -1,53 +1,68 @@
-## Estado vivo · 15/10/2026
+## Estado vivo · 18/10/2026
 
-**Fuente para empezar: esta lista.** Lo que hay debajo es historia y conserva el detalle. La auditoría del 15/10 contrastó el backlog con producción 4.26.134, las notas y los veredictos del dueño; lo que no figura aquí o está cerrado o no se ha vuelto a auditar. Producción 4.26.134, beta 4.26.135.
+**Fuente para empezar: esta lista.** Corte documental del lote de coordinación del 18/10 (`ee788a05`), sobre beta 4.26.141 en rama (`ff53b0e7`). Lo que hay debajo conserva el historial. «Cerrado» en esta ronda significa cierre del encargo técnico por Claude: un GO, una PR en borrador o un resultado `released` no acreditan por sí solos integración, despliegue, artefacto servido ni aceptación móvil. Claude anuncia la 141 servida; esta revisión no verifica sus hashes servidos ni declara ProductREADY.
 
-**1 · Dinero**
+**Cerrados técnicamente en esta ronda**
 
-- FIN-03 · identidad de gastos de extremo a extremo (incluye FIN-09, dos bancos el mismo día)
+| Encargo | Alcance y reserva de entrega |
+|---|---|
+| FIN-10 | Identidad y lápidas de Open Banking; port integrado en la rama beta 141. No cierra FIN-03 ni acredita entrega del lector servidor. |
+| FIN-11 | GO de PR266 (`fbff73ee`), congelada; sigue en borrador contra beta, pendiente de alineación con la 141 e integración para la 142. El registro de confirmadas debe coordinar su signo con la nueva tarea de devoluciones. |
+| SEC-01 / SEC-02 | Límites de entrada y frecuencia, respectivamente; cierre técnico del lote. La fuente incorporada en beta no prueba por sí sola que cada función Edge esté desplegada. `prices` conserva su alcance propio. |
+| SEC-03 | Consumo único del callback, port `fc2a7bf3` incorporado en beta 141. Distinto del SEC-03 histórico de privacidad de logs; la carrera frente a una autorización nueva sigue en SEC-04. |
+| OPS-08 | Guarda CAS de refresh entre keepalive y sync; cierre técnico del lote. No acredita por asociación la automatización de purga de `rate_limits` de la entrada histórica con el mismo rótulo. |
+| UX-13 | Prioridad del teclado al volver atrás; implementación incorporada en beta. La señal web sintética no sustituye aceptación del IME físico en Android. |
+| UX-16 | Hápticos de borde e Inicio, port `8a34391a` en beta 141. WebView, vibración del sistema y dispositivo real conservan su aceptación propia. |
+| UX-2909-04 | Revisión de ingresos manuales coincidentes. Antigüedad de datos y qué sincroniza cada botón siguen bajo UX-15. |
+| INC-0410 | Conflictos de escritura de Metas, port `600d5021` en beta 141. No equivale a una solución general de atomicidad del servidor. |
+| INC-1710 | Núcleo de separación de modos con GO de ronda 2 (`3f6410f2`). PR265 sigue en borrador: remate del aviso de recarga en curso, alineación con la 141 e integración para la 142 pendientes. |
+
+**Abiertos destacados y candidatas pendientes**
+
+- FIN-17 · PR267 (`5fb63762`) en borrador y **NO-GO** de revisión independiente: remates F1–F5 en curso. El resultado anterior `blocked/released` libera aquel encargo, no valida sus cifras ni cierra estos remates; no está listo para integrar.
+- FIN-18 · esquema/registro separado y cerco atómico de servidor: backlog reservado, requiere decisión del dueño; sin implementación admitida.
+- FIN-03 · identidad de gastos de extremo a extremo, incluidos dos bancos el mismo día: **aparcado**. La preferencia BOOK frente a PDNG no autoriza resolver el defecto de otro banco con el mismo contenido.
+- PRO-09 · round-up de TR desde «Round up Invertido»: **diseño** pendiente de emparejamiento con Open Banking; sin implementación ni aceptación por asociación con UX-15.
+- Saldo de cuenta · PR268 (`7fbcb9e0` sobre la 141), borrador en revisión independiente; resultado `blocked/released`, sin GO ni entrega acreditados en este corte.
+
+**1 · Dinero · otros pendientes conservados**
+
 - FIN-04 · decisiones y ediciones confirmadas
 - FIN-05 / INC-2909-01 · widget con app cerrada y periodo/modo (PR 212 y PR 225, widget día 45: una sola tarea)
 - FIN-08 · daños históricos previos
 - FIN-12 · financiaciones cuentan como deuda antes de existir en la gráfica de Inicio
 - FIN-15 · compra pendiente y contabilizada cuenta doble (reserva de PR 235)
-- FIN-10, FIN-11, FIN-14 · claves y lápidas de Open Banking, `obAcc` en la nube
+- FIN-14 · `obAcc` en la nube
 - FIN-13 · aviso de Trade Republic separa la pareja (DECISIÓN del dueño)
 - FIN-16 · editar plazo y cuota a la vez puede dejar cuotas fantasma o saldo sin cuota (en curso, Codex, apilado sobre PR 239; regla aprobada 16/10: rechazar al guardar si (N-1)·A < B ≤ N·A no se cumple)
 
 **2 · Cifras que engañan**
 
-- INC-2909-02 · 0 % al salir de Mi ciclo (sin cierre acreditado)
-- UX-2909-04 · datos sin sincronizar y duplicado manual
-- INC-0410 · escrituras simultáneas LWW en Metas
+- INC-2909-02 · 0 % al salir de Mi ciclo: investigación anterior sin reproducción; nuevo contraste del redondeo y del cierre de ciclo asignado en el lote nocturno, sin cierre del síntoma humano.
 
 **3 · Uso diario**
 
-- SES-01 · las sesiones de Trade Republic y MyInvestor duran horas (pedido suyo 15/10). Medido 16/10: el cron `myinvestor-keepalive` corre (144/144 en 24 h) y el refresco de MyInvestor dura 30 min; el 15/10 dejó de renovarse a las ~17:50 y caducó a las 23:06; el 16/10 aguantó de 09:41 a más de 17:10. TR: sincronizó ~09:40 y a las 17:00 pedía reconectar, sin dejar rastro en `app_events`. Siguiente: instrumentar keepalive/sync de MyInvestor (estado HTTP y código cerrado) y la caída de TR (edad del snapshot, origen del fallo), después de la beta de MyInvestor
+- SES-01 · las sesiones de Trade Republic y MyInvestor duran horas (pedido suyo 15/10). La instrumentación y las guardas de keepalive/sync tienen entregas técnicas separadas; no acreditan resolver la duración de la sesión real.
 - INC-2709-09 (con UX-01) · lag sostenido
 - INC-2709-03 (con UX-08) · ola nativa en Gestionar plan
 - UX-03 (con INC-2709-01) · splash y arranque; UX-09 · splash con el verde por defecto
-- UX-11 · salto vertical tras cerrar una hoja
+- UX-11 · salto vertical tras cerrar una hoja: informe sin parche aceptado; no reproducido en 48 casos sintéticos, sigue abierto para evidencia del dispositivo.
 - UX-12 · Deudas y Metas al estilo v4 (en curso, Codex)
-- UX-13 · atrás con el teclado abierto (en cola)
-- UX-14 · deslizar entre pestañas a velocidad muy alta deja de ir fluido y hace un efecto raro
+- UX-14 · deslizar entre pestañas a velocidad muy alta deja de ir fluido y hace un efecto raro: preparación estática; CPU6 pendiente de runner-libre expreso, sin medición ejecutada.
 - INC-2709-15 · botones de suscripciones recortados: comprobar en móvil
-- INC-2709-06 · cargos CaixaBank ausentes (sin cierre acreditado)
-- UX-15 · «Sincronizar» de Gastos no lee los bancos (solo baja lo de las notificaciones): el round-up de TR del 16/10 no salió hasta «Actualizar» en Mis bancos. Renombrar o decir qué actualiza (16/10)
+- INC-2709-06 · cargos CaixaBank ausentes: revisión con fixtures sintéticas asignada, sin cierre acreditado.
+- UX-15 · «Sincronizar» de Gastos no lee los bancos (solo baja lo de las notificaciones): renombrado/explicación con entrega técnica separada; no confundir con la lectura bancaria ni cerrar PRO-09 por asociación.
 
 **4 · Limpieza, servidor y seguridad**
 
-- OPS-01 · repo frente a servidor vivo; OPS-02 · recuperación compartida; OPS-05 · higiene de PR
+- OPS-01 · repo frente a servidor vivo; OPS-02 · recuperación compartida; OPS-05 · higiene de PR, inventario de solo lectura para decisión de Claude, sin cierres ni borrado de ramas.
 - OPS-06 · ronda de validación antes de Play Store; OPS-07 · guarda de `myinvestor-keepalive`
-- OPS-08 · decidir si se automatiza la purga de `rate_limits` (la purga ya existe)
-- SEC-01 · `delete-account` fuera de `config.toml`; tope de cuerpo en 3 de 14 funciones (resto en PR 211)
-- SEC-02 · límites: ninguna `bank-*` lo tiene; `prices` apagado por `PRICES_RATE_LIMIT`
-- SEC-04 · callback frente a una nueva autorización durante OAuth: la escritura final por id puede sobrescribir sesión/status de la reconexión. Resolver con `connection_version`, no con una fecha como generación. Fuera de la candidata SEC03 de consumo atómico; sin migración ni implementación aquí. [Alcance](briefs/sec03-callback-atomic-state.md).
+- Purga de `rate_limits` · decisión histórica de automatización sin cierre acreditado aquí; distinta de la guarda de refresh cerrada como OPS-08.
+- SEC-04 · callback frente a una nueva autorización durante OAuth: propuesta con `connection_version` en investigación separada; no queda resuelta por el consumo único de SEC-03. [Alcance](briefs/sec03-callback-atomic-state.md).
 
 **5 · Funciones nuevas**
 
 - PRO-01, PRO-03, PRO-04, PRO-05, PRO-06, PRO-07, PRO-08; UX-10 · respiración del splash; BRAND-01 y DEC-01/02
-- UX-16 · vibración suave al llegar al borde (arriba o abajo) cuando sale la ola nativa (idea suya 16/10): un toque corto y único por gesto, nunca en cada frame, respetando el «sin vibración» del sistema; necesita nativo (APK) o `navigator.vibrate` medido en su OnePlus
-- PRO-09 · round-up de TR desde la notificación «Round up Invertido» (idea suya 16/10): hoy `ingest` la descarta a propósito; leerla exige emparejarla con la fila de Open Banking (banco, céntimo, ±días, con nombre) o entra doble. Después de UX-15
 - BIZ-01 · precio con descuento por fidelidad (idea suya 16/10): precio de entrada algo más alto que baja por mes/año de permanencia hasta un tope. Va con [escalado y monetización](memoria/mi-cartera-escalado.md), al final (DEC-01: Play Store al final)
 
 ---
