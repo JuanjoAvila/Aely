@@ -28,7 +28,7 @@
 
 **1 · Dinero · otros pendientes conservados**
 
-- INC-1810-02 · Recibos: cambiar el nombre de un recibo (p. ej. «Ibi» → «IBI») rompe el vínculo con el cargo ya cobrado y el recibo vuelve a salir pendiente. Pedido del dueño 18/10, sin reproducir; sospecha: el cargo se casa por nombre/texto y no por la identidad del recibo. Al arreglar, no reescribir sus vínculos viejos sin su OK.
+- INC-1810-02 · Recibos: cambiar el nombre de un recibo (p. ej. «Ibi» → «IBI») rompe el vínculo con el cargo ya cobrado y el recibo vuelve a salir pendiente. Pedido del dueño 18/10, sin reproducir; sospecha: el cargo se casa por nombre/texto y no por la identidad del recibo. Al arreglar, no reescribir sus vínculos viejos sin su OK. Estado 18/10: arreglo sin reproducción real del móvil en la beta 4.26.144 (PR 278, pruebas de recibo v2 solo hacia delante); un vínculo ya roto se rehace a mano (Gastos → cargo → Paga un recibo → Deshacer vínculo), pendiente de su OK.
 - FIN-04 · decisiones y ediciones confirmadas
 - FIN-05 / INC-2909-01 · widget con app cerrada y periodo/modo (PR 212 y PR 225, widget día 45: una sola tarea)
 - FIN-08 · daños históricos previos
@@ -44,7 +44,7 @@
 
 **3 · Uso diario**
 
-- INC-1810-01 · Deudas: en la hoja de gestionar/editar una deuda, pulsar Guardar no responde y la hoja no se cierra (en Metas sí). Pedido del dueño 18/10, sin reproducir ni asignar; mirar primero si la regla nueva de plazo y cuota (FIN-16) rechaza el guardado sin avisar, en producción 4.26.137 y en beta.
+- INC-1810-01 · Deudas: en la hoja de gestionar/editar una deuda, pulsar Guardar no responde y la hoja no se cierra (en Metas sí). Pedido del dueño 18/10, sin reproducir ni asignar; mirar primero si la regla nueva de plazo y cuota (FIN-16) rechaza el guardado sin avisar, en producción 4.26.137 y en beta. Estado 18/10: la beta 4.26.144 (PR 277) hace que el aviso del rechazo se vea entero; no acredita ser la causa del bloqueo total, pendiente de su OK.
 - SES-01 · las sesiones de Trade Republic y MyInvestor duran horas (pedido suyo 15/10). La instrumentación y las guardas de keepalive/sync tienen entregas técnicas separadas; no acreditan resolver la duración de la sesión real.
 - INC-2709-09 (con UX-01) · lag sostenido
 - INC-2709-03 (con UX-08) · ola nativa en Gestionar plan

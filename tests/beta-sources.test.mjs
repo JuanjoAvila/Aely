@@ -2769,7 +2769,7 @@ test("Catálogo144 añade tres tandas (vibración con APK 57, Guardar en Deudas,
   const propias={
     "vibracion-suave-ronda-2":integrated["vibracion-borde-y-mi-ciclo"].web.slice(0,5),
     "deudas-guardar-motivo":[fn(D,"DebtEditSheet")],
-    "recibo-renombrado-sigue-pagado":["fixedPaymentContract","fixedPaymentModelMatches","fixedPaymentBind","fixedPaymentBookRival","fixedPaymentAutoOwner","fixedPaymentProof","linkFixedPayment","reconcileFixedPaymentProofs","rekeyFixedPaymentExpense","fixedPaymentState","patchFixedById"].map(n=>fn(M,n))
+    "recibo-renombrado-sigue-pagado":["fixedPaymentContract","fixedPaymentModelMatches","fixedPaymentBind","fixedPaymentBookRival","fixedPaymentAutoOwner","fixedPaymentProof","linkFixedPayment","reconcileFixedPaymentProofs","rekeyFixedPaymentExpense","fixedPaymentState","patchFixedById"].map(n=>fn(M,n)).concat(integrated["cuenta-saldo-cierre-atras"].web.find(x=>x.from&&x.from.includes("INC-0410 guardado")))
   };
   const nativas={"vibracion-suave-ronda-2":[java+"AelyHapticsPlugin.java",java+"HapticPlan.java",java+"MainActivity.java","android/app/src/main/AndroidManifest.xml"]};
   const fns=logicFunctions(source),dat=logicData(source);
@@ -4753,7 +4753,7 @@ test("PERSIST91: el guardado en el commit invalida toda tanda que escribe estado
   const marca="INC-0410 guardado: de aquí al límite";
   const dependientes=Object.keys(registro).filter(id=>registro[id].web.some(x=>x.from&&x.from.includes(marca)));
   const ajenas=Object.keys(registro).filter(id=>!dependientes.includes(id));
-  assert.equal(dependientes.length,42);
+  assert.equal(dependientes.length,43);
   for(const id of ["deudas-metas-hoja-edicion","deudas-plazo-cuota-encaja","deudas-metas-hoja-cierre-suave","fichas-cierre-suave-atras","gastos-suscripciones-botones"])assert.ok(dependientes.includes(id),id+": las hojas de Deudas y Metas y SubRow escriben estado con el set real y llevan el bloque del guardado");
   assert.ok(dependientes.includes("myinvestor-contador-a-cero"),"la sincronización de brókers de App escribe posiciones con el set real y lleva el bloque del guardado");
   assert.ok(dependientes.includes("compras-identicas-ids"),"las compras idénticas fusionan filas y guardan lápidas con el set real y llevan el bloque del guardado");
@@ -4762,6 +4762,7 @@ test("PERSIST91: el guardado en el commit invalida toda tanda que escribe estado
   assert.ok(dependientes.includes("tr-empareja-sin-preguntar"),"el emparejado borra, edita y deshace con el set real y lleva el bloque del guardado");
   assert.ok(dependientes.includes("limpieza-ajustes-perfil"),"la limpieza de Ajustes y perfil escribe estado con set() (Ajustes, Cartera) y lleva el bloque del guardado");
   assert.ok(dependientes.includes("inicio-mes-pasado-mismo-dia"),"la tanda de la comparación lleva el mismo alcance de Inicio que inicio-patrimonio-flujos, con su bloque del guardado");
+  assert.ok(dependientes.includes("recibo-renombrado-sigue-pagado"),"renombrar un recibo reescribe sus pruebas de pago con el set real (patchFixedById) y lleva el bloque del guardado");
   assert.ok(dependientes.includes("recibo-cargo-en-gastos"),"«No es este recibo», su vuelta atrás y el histórico escriben la marca con el set real");
   assert.ok(dependientes.includes("tr-iguales-ordinal"),"el sync, el borrado a mano y el histórico guardan vínculos y filas con el set real");
   assert.ok(dependientes.includes("inicio-patrimonio-flujos"),"las fotos de bienes e inversión de la unidad nueva escriben con el set real");
@@ -4772,7 +4773,7 @@ test("PERSIST91: el guardado en el commit invalida toda tanda que escribe estado
   assert.ok(dependientes.includes("widget-pago-app-cerrada"),"la lectura que acredita el widget mezcla gastos con el set real");
   assert.ok(dependientes.includes("inc-0810-metas-editar-regla"),"editar una regla escribe con el set real y conserva el cierre de persistencia");
   assert.ok(dependientes.includes("inc-0710-gastos-mes-madrid"),"Gastos99 conserva la dependencia real de guardado de Expenses");
-  assert.deepEqual(ajenas.slice().sort(),["banco-pruebas-sin-aviso","bancos-reconexion-revoca","beta-panel-veredictos","compras-pendientes-otro-dia","deudas-aviso-plazo","deudas-metas-hoja-sin-parpadeo","deudas-plazo-cuota-cuadran","gastos-actualizar-gastos","inc-0210-01-plan-cuota","inc-0410-inicio-tres-metas","inc-0710-appstate-listener-cleanup","inc-0710-banknotif-cleanup","inc-0810-backclose-handover","inc-0810-dashboard-recents-memo","inc-0810-inicio-grafica-significado","inc-0810-nav-indicator","inc-2709-01-arranque-red","inc-2709-09-fechas-cache","inc-2709-12-cyber-fab","inc-2709-13-fab-contorno","inc-2709-14-preguntar","inicio-grafica-reservas","inicio-grafica-vuelve","inicio-recientes-sin-repetidos","inicio-solape-gastos","inicio-tarjeta-ciclo-limpia","ops-0410-panel-cola","plan-scroll-lento","scroll-borde-barra","splash-animado","teclado-atras-conserva","tr-descripcion-clasificacion","vibracion-borde-y-mi-ciclo"]);
+  assert.deepEqual(ajenas.slice().sort(),["banco-pruebas-sin-aviso","bancos-reconexion-revoca","beta-panel-veredictos","compras-pendientes-otro-dia","deudas-aviso-plazo","deudas-guardar-motivo","deudas-metas-hoja-sin-parpadeo","deudas-plazo-cuota-cuadran","gastos-actualizar-gastos","inc-0210-01-plan-cuota","inc-0410-inicio-tres-metas","inc-0710-appstate-listener-cleanup","inc-0710-banknotif-cleanup","inc-0810-backclose-handover","inc-0810-dashboard-recents-memo","inc-0810-inicio-grafica-significado","inc-0810-nav-indicator","inc-2709-01-arranque-red","inc-2709-09-fechas-cache","inc-2709-12-cyber-fab","inc-2709-13-fab-contorno","inc-2709-14-preguntar","inicio-grafica-reservas","inicio-grafica-vuelve","inicio-recientes-sin-repetidos","inicio-solape-gastos","inicio-tarjeta-ciclo-limpia","ops-0410-panel-cola","plan-scroll-lento","scroll-borde-barra","splash-animado","teclado-atras-conserva","tr-descripcion-clasificacion","vibracion-borde-y-mi-ciclo","vibracion-suave-ronda-2"]);
   /* Quién depende del guardado lo decide el CÓDIGO, no la marca del registro (auditoría del
      coordinador, 4/10): se quita de cada alcance el bloque del guardado y se mira si lo que queda
      llama a `set` de App —las dependencias transitivas ya son unidades del alcance—. Tiene que
