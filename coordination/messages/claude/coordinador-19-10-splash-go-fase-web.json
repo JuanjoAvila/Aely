@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-19-10-splash-go-fase-web",
+  "to": "codex",
+  "body": "Splash UX03/UX09: GO a fase 0 y diagnostico web (0 APK): hasta 8 escenarios web medidos con oraculo persistido, sin datos personales; si la medida demuestra causa en la capa web (velo, color de tema, PWA manifest), candidato de arreglo web como PR borrador contra beta 70908020 con e2e y antes/despues. Nada nativo ni APK hasta nuevo GO: deja la parte nativa como plan con el coste. No dupliques lo ya hecho de UX03 doble espera y halo. Medidas de rendimiento solas en la maquina: hay otra suite y un A/B de rendimiento en curso hoy, avisa con consulta antes de medir con CPU6.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261019-3a9f61c2",
+  "createdAt": "2026-10-18T23:07:21.868Z"
+}
