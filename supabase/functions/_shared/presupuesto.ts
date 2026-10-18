@@ -140,8 +140,8 @@ export function filasComoLaApp<T extends FilaGasto>(filas: T[] | null | undefine
   const cuentaAusente = new Set<string>();
   for (const k of lap) {
     const p = k.split("|");
-    if (p.length === 6 && p[0] === "ob-absorbed2") {
-      const base = p.slice(0, 4).join("|") + "||" + p[5];
+    if ((p.length === 6 && p[0] === "ob-absorbed2") || (p.length === 7 && p[0] === "ob-absorbed3")) {
+      const base = p.slice(0, 4).join("|") + "||" + p[5] + (p.length === 7 ? "|" + p[6] : "");
       sinCuenta.add(base); if (!p[4]) cuentaAusente.add(base);
     }
   }
@@ -154,10 +154,15 @@ export function filasComoLaApp<T extends FilaGasto>(filas: T[] | null | undefine
     if (absorbed && lap.has(absorbed)) continue;
     const legacy = claveAbsorcionOb(f, true);
     if (legacy && lap.has(legacy)) continue;
-    if (absorbed) {
-      const p = absorbed.split("|"), base = p.slice(0, 4).join("|") + "||" + p[5];
-      if (cuentaAusente.has(base) || (!cuentaDeSource(f.source) && sinCuenta.has(base))) continue;
+    const old = claveAbsorcionOb(f, 2);
+    if (old && lap.has(old)) continue;
+    let omitida = false;
+    for (const key of [absorbed, old]) {
+      if (!key) continue;
+      const p = key.split("|"), base = p.slice(0, 4).join("|") + "||" + p[5] + (p.length === 7 ? "|" + p[6] : "");
+      if (cuentaAusente.has(base) || (!cuentaDeSource(f.source) && sinCuenta.has(base))) omitida = true;
     }
+    if (omitida) continue;
     if (esSourceManual(f.source) && lap.has(claveLegacySinId(f))) continue;
     // La fecha contable puede cambiar al pasar de PDNG a BOOK. El cliente identifica
     // banco+referencia antes de mirar el día; sin este espejo el widget suma ambos.
@@ -180,7 +185,7 @@ function referenciaOb(f: FilaGasto): string {
   if (!bank || (!source.startsWith("ob:") && !source.startsWith("ob-hist:"))) return "";
   const ref = /#ref([^#]+)/.exec(source);
   if (!ref) return "";
-  try { return JSON.stringify([bank, decodeURIComponent(ref[1])]); }
+  try { return JSON.stringify([bank, decodeURIComponent(ref[1]), Number(f.importe)>0?1:Number(f.importe)<0?-1:0]); }
   catch (_) { return ""; }
 }
 
@@ -189,14 +194,14 @@ function cuentaDeSource(source?: string | null): string {
   try { return m ? decodeURIComponent(m[1]) : ""; } catch (_) { return ""; }
 }
 // El día es el de la fila almacenada, igual que en el escritor: sin convertir zonas.
-function claveAbsorcionOb(f: FilaGasto, legacy = false): string | null {
+function claveAbsorcionOb(f: FilaGasto, legacy: boolean | 2 = false): string | null {
   const source = String(f.source || "");
   if (!source.startsWith("ob:") && !source.startsWith("ob-hist:")) return null;
   const ref = /#ref([^#]*)/.exec(source), bank = bancoDeSource(source);
   if (!ref || !bank) return null;
   try {
     const base = encodeURIComponent(bank) + "|" + encodeURIComponent(decodeURIComponent(ref[1])) + "|" + ordinalDeSource(source);
-    return legacy ? "ob-absorbed|" + base : "ob-absorbed2|" + base + "|" + encodeURIComponent(cuentaDeSource(source)) + "|" + String(f.fecha || "").slice(0, 10);
+    return legacy === true ? "ob-absorbed|" + base : (legacy === 2 ? "ob-absorbed2|" : "ob-absorbed3|") + base + "|" + encodeURIComponent(cuentaDeSource(source)) + "|" + String(f.fecha || "").slice(0, 10) + (legacy === 2 ? "" : "|" + (Number(f.importe)>0?1:Number(f.importe)<0?-1:0));
   }
   catch (_) { return null; }
 }

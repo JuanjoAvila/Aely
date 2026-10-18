@@ -144,8 +144,8 @@ test("FIN15 comodin sin cuenta: fila oculta no consume referencia superviviente"
  accountlessWildcardSurvivor(budget);
  const source=read("supabase/functions/_shared/presupuesto.ts");
  const result=mutationResult(source,"comodin consume referencia antes de retirar fila",s=>s.replace(
-  'if (cuentaAusente.has(base) || (!cuentaDeSource(f.source) && sinCuenta.has(base))) continue;',
-  'if (cuentaAusente.has(base) || (!cuentaDeSource(f.source) && sinCuenta.has(base))) { const hiddenRef = referenciaOb(f); if (hiddenRef) referencias.add(hiddenRef); continue; }'
+  'if (omitida) continue;',
+  'if (omitida) { const hiddenRef = referenciaOb(f); if (hiddenRef) referencias.add(hiddenRef); continue; }'
  ),accountlessWildcardSurvivor);
  assert.equal(result.status,"killed");
 });
@@ -166,14 +166,14 @@ test("FIN15 mutaciones semanticas de identidad servidor",()=>{
  const source=read("supabase/functions/_shared/presupuesto.ts");
  const mutations=[
   ["sin dedup por referencia",s=>s.replace('if (ref && referencias.has(ref)) continue;','')],
-  ["referencia vuelve a depender del dia",s=>s.replace('JSON.stringify([bank, decodeURIComponent(ref[1])])','JSON.stringify([bank, decodeURIComponent(ref[1]), f.fecha])')],
-  ["pierde ambito de banco",s=>s.replace('JSON.stringify([bank, decodeURIComponent(ref[1])])','JSON.stringify([decodeURIComponent(ref[1])])')],
+  ["referencia vuelve a depender del dia",s=>s.replace('JSON.stringify([bank, decodeURIComponent(ref[1]), Number(f.importe)>0?1:Number(f.importe)<0?-1:0])','JSON.stringify([bank, decodeURIComponent(ref[1]), f.fecha, Number(f.importe)>0?1:Number(f.importe)<0?-1:0])')],
+  ["pierde ambito de banco",s=>s.replace('JSON.stringify([bank, decodeURIComponent(ref[1]), Number(f.importe)>0?1:Number(f.importe)<0?-1:0])','JSON.stringify([decodeURIComponent(ref[1]), Number(f.importe)>0?1:Number(f.importe)<0?-1:0])')],
   ["funde referencias distintas por contenido",s=>s.replace('if (anteriores && (!ref || anteriores.has(""))) continue;','if (anteriores) continue;')],
   ["ignora lapida de absorcion",s=>s.replace('if (legacy && lap.has(legacy)) continue;','')],
-  ["ignora lapida v2 antes de identidad FIN15",s=>s.replace('if (absorbed && lap.has(absorbed)) continue;','')],
+  ["ignora lapida v2 antes de identidad FIN15",s=>s.replace('if (old && lap.has(old)) continue;','')],
   ["ignora lapida legacy",s=>s.replace('if (lap.has(k)) continue;','')],
   ["rompe fallback sin referencia",s=>s.replace('if (anteriores && (!ref || anteriores.has(""))) continue;','if (false) continue;')],
-  ["no decodifica referencia",s=>s.replace('JSON.stringify([bank, decodeURIComponent(ref[1])])','JSON.stringify([bank, ref[1]])')],
+  ["no decodifica referencia",s=>s.replace('JSON.stringify([bank, decodeURIComponent(ref[1]), Number(f.importe)>0?1:Number(f.importe)<0?-1:0])','JSON.stringify([bank, ref[1], Number(f.importe)>0?1:Number(f.importe)<0?-1:0])')],
   ["acepta #ref vacio como identidad",s=>s.replace('/#ref([^#]+)/','/#ref([^#]*)/')],
   ["quita guarda banco y prefijo OB",s=>s.replace('if (!bank || (!source.startsWith("ob:") && !source.startsWith("ob-hist:"))) return "";','')],
  ];

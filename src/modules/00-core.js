@@ -1790,10 +1790,10 @@ function expenseBankIdOrdinals(list,reserved){
   // Un pull anterior al asiento puede traer el mismo UUID aún pendiente: no puede restaurar
   // su referencia vieja ni reservar otra ranura para una fila que ya se contabilizó.
   const versions=new Map(),previousRefs=new Map();
-  (list||[]).forEach(function(e){if(!e||!esFilaDeBanco(e)||!e.id||!e.extId)return;const k=expenseBankOf(e)+"|"+e.id,old=versions.get(k);if(!old||(old.obPending&&!e.obPending))versions.set(k,e);if(e.obPendingRef&&!e.obPending)previousRefs.set(expenseBankOf(e)+"|"+e.obPendingRef,e);});
+  (list||[]).forEach(function(e){if(!e||!esFilaDeBanco(e)||!e.id||!e.extId)return;const k=expenseBankOf(e)+"|"+e.id,old=versions.get(k);if(!old||(old.obPending&&!e.obPending))versions.set(k,e);if(e.obPendingRef&&!e.obPending)previousRefs.set(obReferenceKey(expenseBankOf(e),e.obPendingRef,e.amount),e);});
   (list||[]).forEach(function(e,i){
     if(!e||!e.obPending||!esFilaDeBanco(e))return;
-    const alias=previousRefs.get(expenseBankOf(e)+"|"+e.extId),v=alias&&keyOfExpenseLegacy(alias)===keyOfExpenseLegacy(e)?alias:versions.get(expenseBankOf(e)+"|"+e.id);
+    const alias=previousRefs.get(obReferenceKey(expenseBankOf(e),e.extId,e.amount)),v=alias&&keyOfExpenseLegacy(alias)===keyOfExpenseLegacy(e)?alias:versions.get(expenseBankOf(e)+"|"+e.id);
     if(v&&!v.obPending){if(out===list)out=list.slice();out[i]=Object.assign({},e,{extId:v.extId,date:v.date,obOrd:v.obOrd,obPendingRef:v.obPendingRef,obPending:undefined});}
   });
   (out||[]).forEach(function(e,i){
@@ -1816,9 +1816,13 @@ function keyOfExpense(e){
 }
 /* El vínculo «sin aviso» ya acompaña al borrado; conserva también su referencia, sin gastar
    otra lápida ni reducir las 500 existentes. Deshacer desactiva el vínculo al levantarla. */
+// Una devolución puede reutilizar la referencia de su compra: el signo separa ambas,
+// sin partir el mismo cargo cuando cambia de importe o fecha al contabilizarse.
+function obPolarity(amount){ return Number(amount)>0?1:Number(amount)<0?-1:0; }
+function obReferenceKey(bank,ref,amount){ return (bank||"")+"|"+ref+"|"+obPolarity(amount); }
 function bankDeletionLink(e){
   const g={aviso:"",banco:keyOfExpense(e)};
-  if(e.extId){g.bankRef=String(e.extId);g.ent=expenseBankOf(e)||"";}
+  if(e.extId){g.bankRef=String(e.extId);g.ent=expenseBankOf(e)||"";g.bankRefV=2;g.bankRefSign=obPolarity(e.amount);}
   return g;
 }
 // El mapa de lápidas se cachea por la referencia de deleted. Su índice también: recorrer
@@ -1829,8 +1833,8 @@ function obAbsorptionIndex(delSet){
   index={any:Object.create(null),missing:Object.create(null)};
   Object.keys(delSet).forEach(function(k){
     if(!delSet[k])return;
-    const p=k.split("|");if(p.length!==6||p[0]!=="ob-absorbed2")return;
-    const base=p.slice(0,4).join("|")+"|"+p[5];
+    const p=k.split("|");if(!(p.length===6&&p[0]==="ob-absorbed2")&&!(p.length===7&&p[0]==="ob-absorbed3"))return;
+    const base=p.slice(0,4).join("|")+"|"+p[5]+(p.length===7?"|"+p[6]:"");
     index.any[base]=1;if(!p[4])index.missing[base]=1;
   });
   obAbsorptionIndexes.set(delSet,index);return index;
@@ -1841,8 +1845,11 @@ function obAbsorptionMatches(e,delSet){
   const absorbed=obAbsorptionKey(e);if(absorbed&&delSet[absorbed])return true;
   const legacy=obAbsorptionKey(e,true);if(legacy&&delSet[legacy])return true;
   if(!absorbed)return false;
-  const p=absorbed.split("|"),k=p.slice(0,4).join("|")+"|"+p[5],index=obAbsorptionIndex(delSet);
-  return !!(e.obAcc ? index.missing[k] : index.any[k]);
+  const old=obAbsorptionKey(e,2);if(old&&delSet[old])return true;
+  const index=obAbsorptionIndex(delSet);
+  return [absorbed,old].some(function(key){const p=key.split("|"),k=p.slice(0,4).join("|")+"|"+p[5]+(p.length===7?"|"+p[6]:"");
+    return !!(e.obAcc ? index.missing[k] : index.any[k]);
+  });
 }
 /* Lápidas anteriores al Paso 0 guardaban la clave sin id: siguen ocultando ese manual. */
 function expenseIsTombstoned(e, delSet){
@@ -1853,12 +1860,12 @@ function expenseIsTombstoned(e, delSet){
   if(isManualExpenseSource(e&&e.source) && delSet[keyOfExpenseLegacy(e)]) return true;
   return false;
 }
-/* La cuenta y el día acotan las absorciones nuevas. La clave antigua se conserva solo
+/* Signo, cuenta y día acotan las absorciones nuevas. Las claves antiguas se conservan solo
    para leer lo ya borrado: sus datos perdidos no permiten reparar colisiones históricas. */
 function obAbsorptionKey(e,legacy){
   const bank=e&&expenseBankOf(e);
   const base=e&&esFilaDeBanco(e)&&bank&&e.extId ? encodeURIComponent(bank)+"|"+encodeURIComponent(String(e.extId))+"|"+obOrdinalOf(e) : null;
-  return base ? (legacy?"ob-absorbed|"+base:"ob-absorbed2|"+base+"|"+encodeURIComponent(String(e.obAcc||""))+"|"+String(e.date||"").slice(0,10)) : null;
+  return base ? (legacy===true?"ob-absorbed|"+base:(legacy===2?"ob-absorbed2|":"ob-absorbed3|")+base+"|"+encodeURIComponent(String(e.obAcc||""))+"|"+String(e.date||"").slice(0,10)+(legacy===2?"":"|"+obPolarity(e.amount))) : null;
 }
 function _errCloudMsg(err){
   return mcLogCode(err);
@@ -2223,7 +2230,7 @@ function pushGemelos(list, nuevos){
     const at=Number(g.at)||0;
     if(ya[k]){
       const i=out.findIndex(function(x){ return firma(x)===k; }), old=out[i];
-      if(g.bankRef&&!old.bankRef){if(out===base)out=base.slice();out[i]=Object.assign({},old,{bankRef:String(g.bankRef),ent:g.ent||old.ent});}
+      if(g.bankRef&&!old.bankRef){if(out===base)out=base.slice();out[i]=Object.assign({},old,{bankRef:String(g.bankRef),ent:g.ent||old.ent,...(g.bankRefV===2&&[-1,0,1].includes(g.bankRefSign)?{bankRefV:2,bankRefSign:g.bankRefSign}:{})});}
       if(!g.auto||at<(old.at||0)||(at===(old.at||0)&&(!g.separado||old.separado))) return;
       if(out===base) out=base.slice();
       out[i]=Object.assign({},old,{auto:true,at:at,separado:!!g.separado,ent:g.ent||old.ent});
@@ -2232,7 +2239,7 @@ function pushGemelos(list, nuevos){
     ya[k]=1;
     if(out===base) out=base.slice();
     const it={aviso:g.aviso, banco:g.banco};
-    if(g.bankRef){it.bankRef=String(g.bankRef);it.ent=g.ent||"";}
+    if(g.bankRef){it.bankRef=String(g.bankRef);it.ent=g.ent||"";if(g.bankRefV===2&&[-1,0,1].includes(g.bankRefSign)){it.bankRefV=2;it.bankRefSign=g.bankRefSign;}}
     if(g.avisoId) it.avisoId=String(g.avisoId);
     if(g.auto){ it.auto=true; it.at=at; if(g.ent) it.ent=g.ent; if(g.separado) it.separado=true; }
     out.push(it);
@@ -2894,7 +2901,7 @@ function mergeExpenses(prevList, incoming){
   const previousLength=(prevList||[]).length;
   prevList=rows.slice(0,previousLength); incoming=rows.slice(previousLength);
   const seen={}; const list=[]; const refs=new Map();
-  const mergeKey=function(e){const ref=esFilaDeBanco(e)&&e.extId&&(expenseBankOf(e)||"")+"|"+e.extId;let k=ref&&refs.get(ref);if(!k){k=keyOfExpense(e);if(ref)refs.set(ref,k);}return k;};
+  const mergeKey=function(e){const ref=esFilaDeBanco(e)&&e.extId&&obReferenceKey(expenseBankOf(e),e.extId,e.amount);let k=ref&&refs.get(ref);if(!k){k=keyOfExpense(e);if(ref)refs.set(ref,k);}return k;};
   (prevList||[]).forEach(function(e){ const k=mergeKey(e); if(!seen[k]){ seen[k]=1; list.push(e); } });
   let nuevos=0;
   (incoming||[]).forEach(function(e){ const k=mergeKey(e); if(!seen[k]){ seen[k]=1; list.push(e); nuevos++; } });
@@ -2976,7 +2983,7 @@ function mergeExpensesFromCloud(prevList, incoming, readStartedAt){
   const identitiesChanged=rows.some(function(e,i){return i<previousLength&&e!==prevList[i];});
   prevList=rows.slice(0,previousLength); incoming=rows.slice(previousLength);
   const byKey={}; const order=[]; const refs=new Map();
-  const mergeKey=function(e){const ref=esFilaDeBanco(e)&&e.extId&&(expenseBankOf(e)||"")+"|"+e.extId;let k=ref&&refs.get(ref);if(!k){k=keyOfExpense(e);if(ref)refs.set(ref,k);}return k;};
+  const mergeKey=function(e){const ref=esFilaDeBanco(e)&&e.extId&&obReferenceKey(expenseBankOf(e),e.extId,e.amount);let k=ref&&refs.get(ref);if(!k){k=keyOfExpense(e);if(ref)refs.set(ref,k);}return k;};
   (prevList||[]).forEach(function(e){
     const k=mergeKey(e);
     if(!byKey[k]){ byKey[k]=e; order.push(k); }

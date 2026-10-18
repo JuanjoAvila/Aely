@@ -1040,8 +1040,8 @@ function flattenBankTx(links, previous){
     const kept=previous.filter(function(x){ return x&&!expired[x.ent]&&(partial[x.ent]||!reported[x.ent]); }), seen={}, counts={}, oldNoId={}, freshNoId={};
     const noIdKey=function(x){ const st=String(x.status||"").trim().toUpperCase(); return JSON.stringify([x.ent,String(x.date||"").slice(0,10),x.amount,x.merchant||"",!st||/book|post/i.test(st)?"BOOK":st]); };
     const today=madridYmdParts(Date.now()), todayYmd=today.y+"-"+String(today.m).padStart(2,"0")+"-"+String(today.d).padStart(2,"0"), days=[31,28,31,30,31,30,31,31,30,31,30,31];
-    kept.forEach(function(x){ if(x.id) seen[x.ent+"|"+x.id]=1; else { const k=noIdKey(x); oldNoId[k]=(oldNoId[k]||0)+1; } });
-    out.forEach(function(x){ if(x.id){ const k=x.ent+"|"+x.id; counts[k]=(counts[k]||0)+1; } });
+    kept.forEach(function(x){ if(x.id) seen[obReferenceKey(x.ent,x.id,x.amount)]=1; else { const k=noIdKey(x); oldNoId[k]=(oldNoId[k]||0)+1; } });
+    out.forEach(function(x){ if(x.id){ const k=obReferenceKey(x.ent,x.id,x.amount); counts[k]=(counts[k]||0)+1; } });
     const fresh=out.filter(function(x){
       if(!partial[x.ent]) return true;
       const p=x.date.match(/^(\d{4})-(\d{2})-(\d{2})$/), y=p&&+p[1], m=p&&+p[2], d=p&&+p[3];
@@ -1050,7 +1050,7 @@ function flattenBankTx(links, previous){
       // Un prefijo completo o la excepción119 acreditan multiplicidad sin id. Se conserva
       // el máximo, no la suma; las fechas futuras tampoco se admiten por este camino.
       if(sealed[x.ent]&&!x.id){ const k=noIdKey(x); freshNoId[k]=(freshNoId[k]||0)+1; return freshNoId[k]>(oldNoId[k]||0); }
-      const k=x.ent+"|"+x.id;
+      const k=obReferenceKey(x.ent,x.id,x.amount);
       return typeof x.id==="string"&&x.id.trim()&&counts[k]===1&&!seen[k]&&x.status==="BOOK";
     });
     out.length=0; kept.concat(fresh).forEach(function(x){ out.push(x); });
@@ -1305,11 +1305,11 @@ function obReconcilePending(expenses,txs,links){
   const response=obPendingResponses.get(txs)||{};
   links=links||response.links||[];
   const refs=new Map(), prior=new Map(), fresh=new Set(), books=new Map(), used=new Set(), existing=new Map(), unclaimed=new Set(), removed=new Set(), coveredBooks=new Set();
-  (response.previous||[]).forEach(function(tx){if(tx.id&&obIsPending(tx))prior.set(tx.ent+"|"+tx.id,tx);});
-  (expenses||[]).forEach(function(e){if(e&&esFilaDeBanco(e)&&e.extId){const k=(expenseBankOf(e)||"")+"|"+e.extId;used.add(k);existing.set(k,e);if(!e.obPending&&!e.obPendingRef&&!prior.has(k)&&(!response.expenseIds||response.expenseIds.has(e.id)))unclaimed.add(k);}});
+  (response.previous||[]).forEach(function(tx){if(tx.id&&obIsPending(tx))prior.set(obReferenceKey(tx.ent,tx.id,tx.amount),tx);});
+  (expenses||[]).forEach(function(e){if(e&&esFilaDeBanco(e)&&e.extId){const k=obReferenceKey(expenseBankOf(e),e.extId,e.amount);used.add(k);existing.set(k,e);if(!e.obPending&&!e.obPendingRef&&!prior.has(k)&&(!response.expenseIds||response.expenseIds.has(e.id)))unclaimed.add(k);}});
   (txs||[]).forEach(function(tx){
     if(!tx.id||!(tx.amount>0))return;
-    const k=tx.ent+"|"+tx.id, old=refs.get(k);if(!old||obIsBooked(tx))refs.set(k,tx);
+    const k=obReferenceKey(tx.ent,tx.id,tx.amount), old=refs.get(k);if(!old||obIsBooked(tx))refs.set(k,tx);
     if(obIsBooked(tx)){
       const group=obPendingGroup(tx);if(!books.has(group))books.set(group,new Map());books.get(group).set(String(tx.id),tx);
     }
@@ -1317,27 +1317,27 @@ function obReconcilePending(expenses,txs,links){
   links.forEach(function(l){
     const ent=entFromAspsp(l&&l.aspsp);if(!ent)return;
     const accounts=(l.accounts||[]).filter(function(a){return a&&Array.isArray(a.transactions);});
-    (accounts.length?accounts.reduce(function(a,b){return a.concat(b.transactions);},[]):l.transactions||[]).forEach(function(t){if(t.ext_id)fresh.add(ent+"|"+t.ext_id);});
+    (accounts.length?accounts.reduce(function(a,b){return a.concat(b.transactions);},[]):l.transactions||[]).forEach(function(t){if(t.ext_id)fresh.add(obReferenceKey(ent,t.ext_id,t.amount));});
   });
   const covered=function(e){const bank=expenseBankOf(e),day=String(e.date).slice(0,10);return links.some(function(l){
     return l&&entFromAspsp(l.aspsp)===bank&&l.syncFrom&&l.syncFrom<=day&&!l.expired&&l.ok!==false&&!l.truncated&&!l.readReason&&!(l.accounts||[]).some(function(a){return !a||a.ok===false||a.truncated||a.transactionError||a.readReason;});
   });};
   let out=expenses;
-  (expenses||[]).map(function(e,i){return{e:e,i:i};}).filter(function(item){const e=item.e,k=e&&(expenseBankOf(e)||"")+"|"+e.extId,tx=refs.get(k);return e&&(e.obPending||prior.has(k)||(tx&&obIsPending(tx)));}).sort(function(a,b){return String(a.e.extId||"").localeCompare(String(b.e.extId||""));}).forEach(function(item){
+  (expenses||[]).map(function(e,i){return{e:e,i:i};}).filter(function(item){const e=item.e,k=e&&obReferenceKey(expenseBankOf(e),e.extId,e.amount),tx=refs.get(k);return e&&(e.obPending||prior.has(k)||(tx&&obIsPending(tx)));}).sort(function(a,b){return String(a.e.extId||"").localeCompare(String(b.e.extId||""));}).forEach(function(item){
     const e=item.e;if(!esFilaDeBanco(e)||!e.extId||!(e.amount>0))return;
-    const key=(expenseBankOf(e)||"")+"|"+e.extId, same=refs.get(key);
+    const key=obReferenceKey(expenseBankOf(e),e.extId,e.amount), same=refs.get(key);
     const previous=prior.get(key),wasPending=!!e.obPending||!!(previous&&obPendingGroup(previous)===obPendingGroup(e));
     let next=wasPending&&!e.obPending?Object.assign({},e,{obPending:true}):e;
     if(same&&obIsBooked(same)&&wasPending){next=Object.assign({},e);delete next.obPending;}
     else if(same&&obIsPending(same)&&fresh.has(key)&&!e.obPending)next=Object.assign({},e,{obPending:true});
     if(wasPending&&!(same&&obIsBooked(same))){
       const group=books.get(obPendingGroup(e)), present=fresh.has(key);
-      const tx=group&&Array.from(group.values()).sort(function(a,b){return String(a.id).localeCompare(String(b.id));}).find(function(t){const k=t.ent+"|"+t.id;return (!used.has(k)||unclaimed.has(k))&&(!e.obAcc||!t.acc||e.obAcc===t.acc);});
+      const tx=group&&Array.from(group.values()).sort(function(a,b){return String(a.id).localeCompare(String(b.id));}).find(function(t){const k=obReferenceKey(t.ent,t.id,t.amount);return (!used.has(k)||unclaimed.has(k))&&(!e.obAcc||!t.acc||e.obAcc===t.acc);});
       if(tx&&(present||(!same&&covered(e)))){
-        used.add(tx.ent+"|"+tx.id);
-        unclaimed.delete(tx.ent+"|"+tx.id);
-        if(existing.has(tx.ent+"|"+tx.id))removed.add(existing.get(tx.ent+"|"+tx.id));
-        if(present)coveredBooks.add(tx.ent+"|"+tx.id);
+        used.add(obReferenceKey(tx.ent,tx.id,tx.amount));
+        unclaimed.delete(obReferenceKey(tx.ent,tx.id,tx.amount));
+        if(existing.has(obReferenceKey(tx.ent,tx.id,tx.amount)))removed.add(existing.get(obReferenceKey(tx.ent,tx.id,tx.amount)));
+        if(present)coveredBooks.add(obReferenceKey(tx.ent,tx.id,tx.amount));
         else{next=Object.assign({},e,{extId:tx.id});next.obPendingRef=e.extId;delete next.obPending;}
       }
     }
@@ -1357,13 +1357,13 @@ function obPendingAbsorbedState(s,prev){
     const old=before.get(e.id),bank=expenseBankOf(e);
     if(!old||old.extId!==e.obPendingRef||old.extId===e.extId||obPendingGroup(old)!==obPendingGroup(e))return;
     const pending=old.obPending||(prev.bankTx||[]).some(function(t){return t.id===old.extId&&t.ent===bank&&obIsPending(t)&&obPendingGroup(t)===obPendingGroup(old);});
-    if(pending)adopted.set(bank+"|"+e.extId,e);
+    if(pending)adopted.set(obReferenceKey(bank,e.extId,e.amount),e);
   });
   if(!adopted.size)return s;
   let out=s;
   before.forEach(function(e){
     if(ids.has(e.id)||!esFilaDeBanco(e)||!e.extId||e.obPending)return;
-    const keep=adopted.get(expenseBankOf(e)+"|"+e.extId);
+    const keep=adopted.get(obReferenceKey(expenseBankOf(e),e.extId,e.amount));
     if(!keep||obPendingGroup(e)!==obPendingGroup(keep)||e.obAcc&&keep.obAcc&&e.obAcc!==keep.obAcc)return;
     const key=obAbsorptionKey(e);if(!key||obAbsorptionMatches(keep,{[key]:1})||(out.deleted||[]).indexOf(key)>=0)return;
     out=Object.assign({},out,lapidaPon(out,key,s.lastBankSync||Date.now()));
@@ -1407,8 +1407,8 @@ function importObExpenses(s, txs, links){
   const seen={}, seenLegacy={}; (s.expenses||[]).forEach(function(e){
     if(e.extId){
       const bank=expenseBankOf(e)||e.ent||"";
-      if(bank) seen[bank+"|"+e.extId]=1;
-      else seenLegacy[e.extId]=1;  // filas antiguas: sin banco no se puede acotar sin duplicarlas
+      if(bank) seen[obReferenceKey(bank,e.extId,e.amount)]=1;
+      else seenLegacy[obReferenceKey("",e.extId,e.amount)]=1;  // filas antiguas: sin banco no se puede acotar sin duplicarlas
     }
   });
   /* EL DEDUP USA EL NOMBRE DEL BANCO, NO EL QUE VE EL USUARIO (2026-08-17).
@@ -1433,9 +1433,9 @@ function importObExpenses(s, txs, links){
   /* Lápidas: «es el mismo» borra la fila OB y deja clave en `deleted`. Sin esto el siguiente
      sync de TR volvería a meter el Movimiento y a marcarlo otra vez contra la noti. */
   const delSet={}; (s.deleted||[]).forEach(function(k){ delSet[k]=1; });
-  const deletedRefs={}, deletedSlots={};
+  const deletedRefs={}, deletedSignedRefs={}, deletedSlots={};
   (s.gemelos||[]).forEach(function(g){
-    if(g&&g.aviso===""&&g.bankRef&&delSet[g.banco]){deletedRefs[(g.ent||"")+"|"+g.bankRef]=1;deletedSlots[g.banco]=1;}
+    if(g&&g.aviso===""&&g.bankRef&&delSet[g.banco]){if(g.bankRefV===2&&[-1,0,1].includes(g.bankRefSign))deletedSignedRefs[obReferenceKey(g.ent,g.bankRef,g.bankRefSign)]=1;else deletedRefs[(g.ent||"")+"|"+g.bankRef]=1;deletedSlots[g.banco]=1;}
   });
   /* POSIBLE REPETIDO, NO DESCARTE (2026-09-07). TR por OB no manda id/comercio/hora: un
      «Movimiento» sin nombre puede ser el mismo cargo que ya entró por la noti del móvil, o una
@@ -1500,8 +1500,8 @@ function importObExpenses(s, txs, links){
   /* PRIMERA PASADA: la fila que ENTRARÍA por cada apunte, con todos los filtros de siempre
      (estado, ventana, modelados, id ya visto) pero SIN decidir todavía si ya la tenemos. */
   const prepara=function(tx){
-    if(tx.id&&deletedRefs[(tx.ent||"")+"|"+tx.id])return null;
-    if(tx.id&&(settled.coveredBooks.has(tx.ent+"|"+tx.id)||(obIsPending(tx)&&coveredPending.has(obPendingGroup(tx)+"|"+tx.id))))return null;
+    if(tx.id&&(deletedRefs[(tx.ent||"")+"|"+tx.id]||deletedSignedRefs[obReferenceKey(tx.ent,tx.id,tx.amount)]))return null;
+    if(tx.id&&(settled.coveredBooks.has(obReferenceKey(tx.ent,tx.id,tx.amount))||(obIsPending(tx)&&coveredPending.has(obPendingGroup(tx)+"|"+tx.id))))return null;
     const esIngreso = tx.amount<0;
     if(esIngreso){
       // Un abono pendiente o futuro no acredita dinero disponible (feedback 30/9).
@@ -1514,7 +1514,7 @@ function importObExpenses(s, txs, links){
       const day=new Date(Number(parts[1]),Number(parts[2])-1,Number(parts[3]),12);
       if(dayKey(day)!==date || date>todayKey) return null;
       if(fuera(tx)) return null;
-      if(tx.id && (seen[(tx.ent||"")+"|"+tx.id]||seenLegacy[tx.id])) return null;
+      if(tx.id && (seen[obReferenceKey(tx.ent,tx.id,tx.amount)]||seenLegacy[obReferenceKey("",tx.id,tx.amount)])) return null;
       const e={ id:mcExpenseId(), date:new Date(tx.date+"T12:00:00").toISOString(),
         merchant:tx.merchant||"Ingreso", amount:tx.amount,
         category: esTraspasoPropio(s, tx) ? TRASPASO_CAT.id : INGRESO_CAT.id, source:"ob", ent:tx.ent };
@@ -1530,7 +1530,7 @@ function importObExpenses(s, txs, links){
     if(!tx.date || fuera(tx)) return null;
     const antiguo=parseDate(tx.date)<som;
     const recibos=modeledHit(tx.ent, tx.merchant, tx.amount, antiguo);
-    if(tx.id && (seen[(tx.ent||"")+"|"+tx.id]||seenLegacy[tx.id])) return null;
+    if(tx.id && (seen[obReferenceKey(tx.ent,tx.id,tx.amount)]||seenLegacy[obReferenceKey("",tx.id,tx.amount)])) return null;
     const esDiario=tx.ent===dailyEnt;
     // El aporte de hace dos meses ya se compró en su día o ya no toca: se apunta, pero no compra.
     const esAporteInv = !recibos && !antiguo && esDiario && daily && daily.monthlyInvest>0 && Math.abs(tx.amount-daily.monthlyInvest)<0.01;
@@ -1636,8 +1636,8 @@ function importObExpenses(s, txs, links){
     if(!(e.amount<0)||e.category!=="ingreso")return;
     const booked=String(tx.status||"").trim().toUpperCase()==="BOOK";
     if(!booked&&!sinComercioReal(tx.merchant))return;
-    if(tx.id?(seen[(tx.ent||"")+"|"+tx.id]||seenLegacy[tx.id]||keys[scopedKOf(e)]||delSet[scopedKOf(e)]||delSet[kOf(e)]):c.ord==null)return;
-    const id=tx.id?(tx.ent+"|"+tx.id):c;
+    if(tx.id?(seen[obReferenceKey(tx.ent,tx.id,tx.amount)]||seenLegacy[obReferenceKey("",tx.id,tx.amount)]||keys[scopedKOf(e)]||delSet[scopedKOf(e)]||delSet[kOf(e)]):c.ord==null)return;
+    const id=tx.id?(obReferenceKey(tx.ent,tx.id,tx.amount)):c;
     if(seenInc.has(id))return;seenInc.add(id);
     const matches=matchInc(e);if(!matches.length)return;
     if(booked)reviews.set(c,matches);
@@ -1649,7 +1649,7 @@ function importObExpenses(s, txs, links){
   cands.forEach(function(c){
     const tx=c.tx, e=c.e, review=reviews.get(c);
     if(tx.id){
-      if(seen[(tx.ent||"")+"|"+tx.id]||seenLegacy[tx.id])return;
+      if(seen[obReferenceKey(tx.ent,tx.id,tx.amount)]||seenLegacy[obReferenceKey("",tx.id,tx.amount)])return;
       if(keys[scopedKOf(e)] || delSet[scopedKOf(e)] || delSet[kOf(e)]) return;
     }else{
       if(c.ord==null) return;   // sin ranura libre: ese apunte ya está guardado o resuelto
@@ -1662,7 +1662,7 @@ function importObExpenses(s, txs, links){
     if(!review&&gemeloBancoAutomatico(e)) e.gemeloNuevo=true;
     if(gem && gem.id){ e.possibleDup=true; e.possibleDupOf=gem.id; }
     keys[scopedKOf(e)]=1;
-    if(tx.id) seen[(tx.ent||"")+"|"+tx.id]=1;
+    if(tx.id) seen[obReferenceKey(tx.ent,tx.id,tx.amount)]=1;
     add.push(e);
   });
   if(!add.length)return null;
@@ -2913,8 +2913,8 @@ function histFlattenHistoryLinks(res, expenses, allow){
   const seen={}, seenLegacy={}; (expenses||[]).forEach(function(e){
     if(!e.extId) return;
     const bank=expenseBankOf(e)||e.ent||"";
-    if(bank) seen[bank+"|"+e.extId]=1;
-    else seenLegacy[e.extId]=1;
+    if(bank) seen[obReferenceKey(bank,e.extId,e.amount)]=1;
+    else seenLegacy[obReferenceKey("",e.extId,e.amount)]=1;
   });
   let bankReported=0, bankPayload=0, skippedAllow=0, skippedBad=0, skippedExt=0, skippedUniq=0, acctAtCap=0;
   const out=[], groups={}, groupOrder=[];
@@ -2984,7 +2984,7 @@ function histFlattenHistoryLinks(res, expenses, allow){
   groupOrder.forEach(function(cloudK){
     groups[cloudK].rows.forEach(function(row,slot){
       const tx=row.tx;
-      if(tx.ext_id && (seen[row.entKey+"|"+tx.ext_id]||seenLegacy[tx.ext_id])){ skippedExt++; return; }
+      if(tx.ext_id && (seen[obReferenceKey(row.entKey,tx.ext_id,tx.amount)]||seenLegacy[obReferenceKey("",tx.ext_id,tx.amount)])){ skippedExt++; return; }
       out.push({
         id:tx.ext_id||null, date:row.dt, amount:row.abs,
         merchant:row.merchant,
@@ -3422,7 +3422,7 @@ function enrichNotesFromBankTx(expenses, txs){
   txs.forEach(function(tx){
     const n=String(tx&&tx.note||"").trim();
     if(!n) return;
-    if(tx.id) byExt[tx.id]=n;
+    if(tx.id) byExt[obReferenceKey("",tx.id,tx.amount)]=n;
     // Varios apuntes iguales del día con conceptos DISTINTOS (12/10/2026): la clave no dice cuál es
     // de cuál, y el último en pasar le colgaba su concepto a cualquier igual sin nota. Si no son
     // unánimes, por clave no se rellena nada; el que entra nuevo ya trae el suyo del importador.
@@ -3432,7 +3432,7 @@ function enrichNotesFromBankTx(expenses, txs){
   let touched=false;
   const out=expenses.map(function(e){
     if(!e || e.noteEdited || (e.note&&String(e.note).trim())) return e;
-    const raw=(e.extId&&byExt[e.extId]) || byKey[kOf(e.date,e.amount,e.merchant)];
+    const raw=(e.extId&&byExt[obReferenceKey("",e.extId,e.amount)]) || byKey[kOf(e.date,e.amount,e.merchant)];
     if(!raw) return e;
     const nt=cleanNote(raw, e.merchant);
     if(!nt) return e;
@@ -3452,7 +3452,7 @@ function tagObAccountsFromBankTx(expenses, txs){
   const kOf=function(ent,d,a,m){ return ent+"|"+String(d).slice(0,10)+"|"+Number(a||0).toFixed(2)+"|"+String(m||""); };
   txs.forEach(function(tx){
     if(!tx || !tx.acc || !tx.ent) return;
-    if(tx.id) byExt[tx.ent+"|"+tx.id]=tx.acc;
+    if(tx.id) byExt[obReferenceKey(tx.ent,tx.id,tx.amount)]=tx.acc;
     const k=kOf(tx.ent,tx.date,tx.amount,tx.merchant);
     byKey[k]=(k in byKey && byKey[k]!==tx.acc) ? "" : tx.acc;
   });
@@ -3460,7 +3460,7 @@ function tagObAccountsFromBankTx(expenses, txs){
   const out=expenses.map(function(e){
     if(!e || e.obAcc || (e.source!=="ob" && e.source!=="ob-hist")) return e;
     const bank=expenseBankOf(e)||e.ent||"";
-    const acc=(e.extId&&byExt[bank+"|"+e.extId]) || byKey[kOf(bank,diaDeGasto(e),e.amount,e.obName!=null?e.obName:e.merchant)];
+    const acc=(e.extId&&byExt[obReferenceKey(bank,e.extId,e.amount)]) || byKey[kOf(bank,diaDeGasto(e),e.amount,e.obName!=null?e.obName:e.merchant)];
     if(!acc) return e;
     touched=true;
     return Object.assign({},e,{obAcc:acc});
