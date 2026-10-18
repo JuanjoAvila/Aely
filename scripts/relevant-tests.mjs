@@ -117,6 +117,7 @@ export const E2E_MAP = [
     "e2e/plan-cover.spec.mjs",
   ] },
   { file: "src/modules/07-tab-patri-fijos.js", specs: [
+    "e2e/cartera-saldo-atras.spec.mjs",
     "e2e/cartera-bienes-completo.spec.mjs",
     "e2e/cartera-bienes-toque.spec.mjs",
     "e2e/plan-cuota-contabilizada.spec.mjs",

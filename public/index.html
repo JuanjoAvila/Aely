@@ -13882,10 +13882,8 @@ function AccountSheet({open, cuenta, state, set, totals, onClose, onRemove, onSa
   const [saldo,setSaldo]=React.useState("");
   const [corrigiendo,setCorrigiendo]=React.useState(false);
   const [renombrando,setRenombrando]=React.useState(false);
-  /* Ref del importe tecleado: al cerrar por atrás/swipe, `useBackClose`/`useSheetSwipe` se
-     quedan con el `onClose` del primer render (deps solo `[open]`). Sin ref, volcaban el saldo
-     vacío de la apertura. Rechazo 4.19.67 paso 5, 2026-09-12: *«si solo pones un número… y lo
-     quitas… no se guarda»* — el blur no llega al cerrar con el foco dentro. */
+  /* El borrador debe sobrevivir al cierre por atrás/swipe sin depender del blur: al cerrar
+     con el foco dentro no siempre llega (rechazo 4.19.67 paso 5, 2026-09-12). */
   const saldoRef=React.useRef("");
   const cuentaRef=React.useRef(cuenta);
   const conectadaRef=React.useRef(false);
@@ -13910,8 +13908,13 @@ function AccountSheet({open, cuenta, state, set, totals, onClose, onRemove, onSa
   /* Cerrar = volcar el saldo PRIMERO. El blur sigue por si salta al nombre con el teclado
      («flechita»), que era el único camino que le funcionaba. */
   const cerrar=function(){ guardaSaldo(); onClose(); };
-  useBackClose(!!open, cerrar);
-  const swipe=useSheetSwipe(!!open, cerrar);
+  /* Atrás conserva su callback de apertura, pero onSaldo usa los totales del padre. Un gasto
+     recibido con la ficha abierta —también durante la salida— cambia la base necesaria para
+     guardar el saldo tecleado. Resolver el cierre vigente AL TERMINAR evita usar esos totales
+     viejos y deja que atrás salga con la misma animación que el arrastre (18/10/2026). */
+  const cerrarRef=React.useRef(cerrar); cerrarRef.current=cerrar;
+  const swipe=useSheetSwipe(!!open, function(){ cerrarRef.current(); });
+  useBackClose(!!open, swipe.close);
   if(!open||!cuenta) return null;
   const a=cuenta;
   cuentaRef.current=a;
