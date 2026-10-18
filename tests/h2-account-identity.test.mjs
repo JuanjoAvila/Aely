@@ -22,7 +22,7 @@ reply.balance=p=>({balances:[{balance_type:'ITAV',balance_amount:{amount:p.inclu
 const modes=[['new',undefined],['legacy',baseServer]];
 let pass=0,fail=0;
 async function t(name,fn){if(process.env.H2_CASE_FILTER&&!name.includes(process.env.H2_CASE_FILTER))return;try{await fn();pass++;console.log('PASS '+name);}catch(e){fail++;console.error('FAIL '+name+'\n'+e.stack);}}
-async function response(accounts,source){return (await sync([bank(accounts)],reply,{recoverGaps:true,acks:{},accountPhases:1},Clock,null,source)).data.links;}
+async function response(accounts,source,answer=reply){return (await sync([bank(accounts)],answer,{recoverGaps:true,acks:{},accountPhases:1},Clock,null,source)).data.links;}
 function compare(s,links,expected){
  const baseline=old.applyBankBalances(plain(s),links).state;
  assert.equal(cents(baseline),expected,'actual base oracle');
@@ -32,6 +32,33 @@ function compare(s,links,expected){
  return got;
 }
 for(const [mode,source] of modes){
+ for(const withExtra of [false,true])await t(`R4 R1 ${mode}: total UID replacement restores 10000 cents (old extra=${withExtra})`,async()=>{
+  const links=await response([{uid:'a'},{uid:'b'}],source);
+  const got=compare(state([manual(50,{bankUid:'old-main'})],withExtra?[extra('old-extra',20)]:[]),links,10000);
+  assert.equal(got.accounts[0].value,70);assert.equal(got.accounts[0].bankUid,'a');assert.equal(got.accounts[0].balanceStale,false);
+  assert.deepEqual(plain(got.obAccounts.map(a=>[a.key,a.value])),[['b',30]]);
+ });
+ for(const identity of ['UID','IBAN'])await t(`R4 R2 ${mode}/${identity}: reserve exact principal then allocate first free and visible extra, 10500 cents`,async()=>{
+  const answer=()=>({transactions:[]});answer.balance=p=>({balances:[{balance_type:'ITAV',balance_amount:{amount:p.includes('/b/')?'30':p.includes('/c/')?'5':'70',currency:'EUR'}}]});
+  const known=identity==='IBAN'?{bankIban:'IBAN-A'}:{bankUid:'a'};
+  const links=await response([{uid:'b'},{uid:'a',...(identity==='IBAN'?{iban:'IBAN-A'}:{})},{uid:'c'}],source,answer);
+  const got=compare(state([manual(50,known),manual(20,{id:'free'})]),links,10500);
+  assert.deepEqual(plain(got.accounts.map(a=>a.value)),[70,30]);assert.equal(got.accounts[1].bankUid,'b');
+  assert.deepEqual(plain(got.obAccounts.map(a=>[a.key,a.value])),[['c',5]]);
+ });
+ await t(`R4 boundary ${mode}: partial UID replacement keeps principal and shows every free account`,async()=>{
+  const links=await response([{uid:'a'},{uid:'b'},{uid:'c'}],source);
+  const got=L.applyBankBalances(state([manual(50,{bankUid:'old-main',balanceAt:prior})],[extra('b',20)]),links).state;
+  assert.equal(got.accounts[0].bankUid,'old-main');assert.equal(got.accounts[0].value,50);assert.equal(got.accounts[0].balanceAt,prior);assert.equal(got.accounts[0].balanceStale,true);
+  assert.deepEqual(plain(got.obAccounts.map(a=>[a.key,a.value])),[['a',70],['b',30],['c',70]]);assert.equal(cents(got),22000);
+  assert.equal(cents(L.applyBankBalances(got,links).state),22000);
+ });
+ await t(`R4 boundary ${mode}: multiple unbound principals stay unassigned with visible extras`,async()=>{
+  const links=await response([{uid:'a'},{uid:'b'}],source);
+  const got=L.applyBankBalances(state([manual(50,{bankUid:'old1'}),manual(30,{id:'second',bankUid:'old2'})]),links).state;
+  assert.deepEqual(plain(got.accounts.map(a=>[a.value,a.bankUid])),[[50,'old1'],[30,'old2']]);assert.ok(got.accounts.every(a=>a.balanceStale));
+  assert.deepEqual(plain(got.obAccounts.map(a=>[a.key,a.value])),[['a',70],['b',30]]);assert.equal(cents(got),18000);
+ });
  for(const count of [2,3])await t(`R3 ${mode}: new bank ${count} accounts assigns first to sole unlinked manual`,async()=>{
   const links=await response(['a','b','c'].slice(0,count).map(uid=>({uid})),source);
   const got=compare(state([manual(50)]),links,count===2?10000:17000);
@@ -66,20 +93,21 @@ for(const [mode,source] of modes){
   assert.equal(got.obAccounts.length,1);assert.equal(got.obAccounts[0].key,'a');
  });
 }
-await t('R3: multiple unlinked principals keep ambiguity, no automatic first match',()=>{
+// R4 sustituye expresamente el antiguo contrato de ocultar extras ambiguas.
+await t('R3 updated by R4: multiple unlinked principals stay unassigned with visible extras',()=>{
  const s=state([manual(50),manual(30,{id:'second'})]);
  const links=[{aspsp:'CaixaBank',ok:true,accountPhases:1,accounts:['a','b'].map(uid=>({uid,balanceOk:true,balances:[{amount:70,type:'ITAV'}]}))}];
- const got=L.applyBankBalances(s,links).state;assert.equal(cents(got),8000);assert.ok(got.accounts.every(a=>!a.bankUid&&a.balanceStale));assert.equal(got.obAccounts.length,0);
+ const got=L.applyBankBalances(s,links).state;assert.equal(cents(got),22000);assert.ok(got.accounts.every(a=>!a.bankUid&&a.balanceStale));assert.deepEqual(plain(got.accounts.map(a=>a.value)),[50,30]);assert.deepEqual(plain(got.obAccounts.map(a=>a.key)),['a','b']);
 });
-await t('R3: previously linked UID with several replacements remains ambiguous',()=>{
+await t('R3 updated by R4: total UID replacement restores first principal and extras',()=>{
  const s=state([manual(50,{bankUid:'old'})]);
  const links=[{aspsp:'CaixaBank',ok:true,accountPhases:1,accounts:['a','b'].map(uid=>({uid,balanceOk:true,balances:[{amount:70,type:'ITAV'}]}))}];
- const got=L.applyBankBalances(s,links).state;assert.equal(cents(got),5000);assert.equal(got.accounts[0].bankUid,'old');assert.equal(got.obAccounts.length,0);
+ const got=L.applyBankBalances(s,links).state;assert.equal(cents(got),14000);assert.equal(got.accounts[0].bankUid,'a');assert.equal(got.accounts[0].value,70);assert.deepEqual(plain(got.obAccounts.map(a=>a.key)),['b']);
 });
-await t('R3: multiple principals with only one unlinked do not broaden new-bank fallback',()=>{
+await t('R3 updated by R4: one unlinked principal receives first free after exact reservations',()=>{
  const s=state([manual(50),manual(30,{id:'known',bankUid:'known'})]);
  const links=[{aspsp:'CaixaBank',ok:true,accountPhases:1,accounts:['known','a','b'].map(uid=>({uid,balanceOk:true,balances:[{amount:70,type:'ITAV'}]}))}];
- const got=L.applyBankBalances(s,links).state;assert.equal(cents(got),12000);assert.equal(got.accounts[0].value,50);assert.equal(got.accounts[0].bankUid,undefined);assert.equal(got.obAccounts.length,0);
+ const got=L.applyBankBalances(s,links).state;assert.equal(cents(got),21000);assert.equal(got.accounts[0].value,70);assert.equal(got.accounts[0].bankUid,'a');assert.equal(got.accounts[1].bankUid,'known');assert.deepEqual(plain(got.obAccounts.map(a=>a.key)),['b']);
 });
 await t('B1: explicitly failed principal reserves its identity before free manual assignment',()=>{
  const s=state([manual(125,{bankUid:'a',balanceAt:prior}),manual(80,{id:'free'})]);
@@ -99,7 +127,7 @@ await t('distinct known IBAN is never rebound to an unrelated free bank account'
 await t('several unmatched no-IBAN principals do not choose new UIDs by order',()=>{
  const s=state([manual(50,{bankUid:'old1'}),manual(30,{id:'second',bankUid:'old2'})]);
  const links=[{aspsp:'CaixaBank',ok:true,accountPhases:1,accounts:['new1','new2'].map(uid=>({uid,balanceOk:true,balances:[{amount:70,type:'ITAV'}]}))}];
- const got=L.applyBankBalances(s,links).state;assert.equal(cents(got),8000);assert.deepEqual(plain(got.accounts.map(a=>a.bankUid)),['old1','old2']);assert.ok(got.accounts.every(a=>a.balanceStale));
+ const got=L.applyBankBalances(s,links).state;assert.equal(cents(got),22000);assert.deepEqual(plain(got.accounts.map(a=>[a.value,a.bankUid])),[[50,'old1'],[30,'old2']]);assert.ok(got.accounts.every(a=>a.balanceStale));assert.deepEqual(plain(got.obAccounts.map(a=>a.key)),['new1','new2']);
 });
 for(const phases of [false,true])await t(`UID-less metadata does not block complete cursor (phases=${phases})`,async()=>{
  const b=bank([{uid:'a'},{iban:'metadata only'}]);

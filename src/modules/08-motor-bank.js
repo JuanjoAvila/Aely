@@ -806,17 +806,18 @@ function applyBankBalances(s, links){
       if(!usable(accs[j])){ accounts[i]=Object.assign({},a,{balanceStale:true}); changed=true; }
     });
     const free=accs.map(function(ac,k){return ac&&(ac.uid||ac.iban)&&ownerOf[k]==null&&!blocked[k]?k:-1;}).filter(function(k){return k>=0;});
-    // Primera conexión con una sola principal sin vínculo: como en la base, la primera
-    // libre es la principal y las demás son extras. Un UID previo o varias principales
-    // conservan la restricción de pareja única; los IBAN exactos ya están reservados.
-    const firstConnection=unbound.length===1 && !uidOf(accounts[unbound[0]]) && accounts.filter(function(a){return a.ent===ent;}).length===1;
-    if(unbound.length===1 && free.length && (free.length===1 || firstConnection)){
+    // Los vínculos exactos ya están reservados. Una única principal sin vínculo toma
+    // la primera libre como en la base, aunque existan otras principales vinculadas.
+    // Un UID previo solo admite varias libres si TODOS los UID cambiaron, sin IBAN.
+    const firstConnection=unbound.length===1 && !uidOf(accounts[unbound[0]]);
+    const replacedUids=prior.some(function(o){return uidOf(o);}) &&
+      prior.every(function(o){return !o.bankIban&&!o.iban;}) && accs.every(function(ac){return ac&&!ac.iban;}) &&
+      !prior.some(function(o){return accs.some(function(ac){return ac&&overlaps(o,ac);});});
+    if(unbound.length===1 && free.length && (free.length===1 || firstConnection || replacedUids)){
       ownerOf[free[0]]=unbound[0]; usedPrimary[unbound[0]]=true;
-    } else if(unbound.length){
-      // Varias identidades desconocidas no acreditan qué principal corresponde a cuál.
-      // No asignarlas por orden ni sumar sus posibles duplicados como cuentas extra.
-      free.forEach(function(k){blocked[k]=true;});
     }
+    // No adivinar cuál de varias principales corresponde no oculta saldos bancarios:
+    // toda cuenta válida que siga libre aparece como extra.
     // Solo una identidad DEVUELTA sin saldo usable conserva valor/fecha. Las omitidas
     // desaparecen como en la base: retenerlas sumaba la cuenta vieja tras reconectar.
     (s.obAccounts||[]).forEach(function(o){
