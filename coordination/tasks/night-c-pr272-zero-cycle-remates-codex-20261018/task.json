@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "id": "night-c-pr272-zero-cycle-remates-codex-20261018",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261018-r65-aa1eb85b6ed7681f",
+  "createdAt": "2026-10-18T05:27:15.455Z",
+  "to": "codex",
+  "baseSHA": "7c582a98025a3f97ec99f4f6c786a7de97289c09",
+  "objective": "PR272 ronda2: cerrar bucle cero de sync/pull y limitar la regla a banco con importe numerico0.",
+  "scope": [
+    "src/modules/00-core.js",
+    "src/modules/08-motor-bank.js",
+    "public/index.html",
+    "tests propios afectados",
+    "docs/briefs/night-c-refund-polarity-20261018.md"
+  ],
+  "previousTaskId": "night-c-pr272-independent-review-remates-codex-20261018",
+  "previousResult": "b4841bc0c4a4b5905e4b243c24984d1413b85fdf",
+  "claudeGrant": "080ffba9a4cfec70f1f15470cb25ba39a8e22bd8",
+  "instructions": "Sucesor propio de NightC PR272 bajo080ffba9;base7c582a98,previoresultb4841bc0 inmutable. Mismo titular/session,Astra,misma PR borrador contra beta,descendiente normal. Claim y ACK OWN con lectura canonica antes producto/tests. ROJO causal del ciclo sync->pull tres vueltas; prepara/importObExpenses debe retornar null para transacciones de banco con importe estrictamente numerico0. Limitar todas las guardas cero a fila BANCO e importe numerico0: otrasfuentes y amount null no se borran en local sin aviso. Conservar v1/v2,signos,cercosFIN10,identidad y oraculos monetarios. Verificar nuevos y afectados, sin repetir lo terminado ni beta-sources/fullsuite/CPU6. Control negativo de fuente manual/null, positivos banco0 y no0, ciclo sin aviso/subida/reescritura fantasma. Sin VERSION/catalogo/caps/FIN11paralelo/SQL/bancos/Edge/GradleAPK/deploymerge. Privacidad y helper/filtro intactos. Registrar todos EXIT,mutantes/logs,manifest,checkpoint. Result propio blocked/released si integracion pendiente,readback exacto ySTOP. OWN12 adicional tras agotar previo bajo db3299cd con aviso y readback,primer e internos cuentan,min30s;ninguna herencia ROOT."
+}
