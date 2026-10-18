@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "id": "inc181003-04-plan-expense-link-investigation-codex-20261018",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261018-r73-b132dc8db089d0ba",
+  "createdAt": "2026-10-18T21:55:31.846Z",
+  "to": "codex",
+  "kind": "worker",
+  "priority": 3,
+  "model": "gpt-6-astra",
+  "baseSHA": "7090802099ac0c7956c0d3597a9936a82c52a95f",
+  "claudeGrant": "f63320f381d7c469c0a30b11436e9f9b1455fc9f",
+  "dependsOnReleasedTask": "h2-pr279-round6-stale-recovery-e2e-codex-20261018",
+  "objective": "Astra investigation INC181003/04: explain why Plan paid debt/receipt and expense detail disagree about the saved link; synthetic RED, cause and proposal only.",
+  "scope": [
+    "Read existing Plan/debt/receipt payment recognition and expense-detail link/control derivation",
+    "Read existing identity, reconciliation, saved-link and persistence code only as needed for cause",
+    "Strictly private synthetic RED harness and concise relative-source proposal; no product edits"
+  ],
+  "requirements": [
+    "No execution, claim or native dispatch before PR279 round6 delivers its own released result and ROOT verifies canonical delivery. Task preparation only.",
+    "Own identity/runtime/cwd/ledger and exact task must be verified; fresh OWNclaim canonical readback and ACK before work. No claim, lease or budget transfer. Every first/internal/readback fetch counts, minimum30s. New budget only after actual exhaustion under the permanent grants, with own notice/readback.",
+    "Preserve foreign WIP, claims, evidence and runner. Directed tests: one worker, zero retries, own fixtures and port. No full suite, CPU6, Gradle, APK, live data, SQL, Edge deployment, main/beta push or merge. Do not weaken VERSION, catalogue, size caps, financial oracle or tests.",
+    "Only changed-scope focused checks needed for the actual change. Never rerun completed unrelated tests. No physical mobile or served beta acceptance claim from synthetic/JVM/web results.",
+    "INC181003: synthetic debt installment recognized paid in Plan, while expense detail denies debt link, offers receipt controls and wrongly shows an ATM-related message. Determine exact causes and whether these symptoms share a derivation defect.",
+    "INC181004: synthetic receipt recognized paid in Plan but corresponding expense detail lacks receipt link. Identify stable receipt/debt IDs and the precise divergence between the two views.",
+    "Report RED evidence, exact cents and identity where relevant, causal source and bounded proposal with regressions to cover. Do not assume a label-only issue or change matching rules to make a focal total pass.",
+    "No product implementation authorized in this investigation. In particular saved links, financial contracts, migration or remote writes require consultation with Claude before any proposed product action. Coordination messaging is explicitly authorized by the human; do not request that permission again.",
+    "Use a new isolated checkout for investigation on exact beta70908020; preserve the holder previous FIN15 source and results. Use Astra. Deliver a released investigation result and stop for Claude review; no speculative PR or saved-link rewrite."
+  ],
+  "deliverable": "Synthetic causal RED for both incidents, source-level diagnosis, proposal and saved-link impact inventory; own released investigation result, no product change."
+}
