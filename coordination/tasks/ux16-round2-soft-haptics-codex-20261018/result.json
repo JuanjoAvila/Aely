@@ -1,0 +1,160 @@
+{
+  "status": "blocked",
+  "summary": "UX16 ronda2 entregada PR276 DRAFTbeta, headf65d74b9f43ca0475160db3acb1f23ef3d57e71b sobreff53b0e7. Relleno con onda10a60sobre255 durante duracionreal si amplitudcontrolable; si no LOW_TICK0.04a0.16; reservaSEGMENT_FREQUENT_TICK o silencio, nuncaCLOCK_TICK. Borde8ms10sobre255 oLOW_TICK0.04/reservasuave. USAGE_TOUCH y ajusteView/sistema respetados. Web captura scroll incluyendo llegada porinercia tras soltar; una llegada porborde hasta separarse12px, no rearmarconotro touchstart. REDweb causal EXIT1 cincofallos y diezcontroles; GREEN15comprobaciones EXIT0. REDJVM escala EXIT1; tresmetodosnuevos GREEN EXIT0. Plugin javacAPI35real con doblesCapacitor EXIT0 y trececontroles transporteAPI36sintetico EXIT0; ninguna ejecucionAndroidreal. Ocho mutantes muertosEXIT1; uno redundante sobrevive porguardas restantes yseconserva. Build/syntax/map/registry/diff EXIT0. No se repiten pruebasronda1; specantiguo solo adapta contratos incompatibles. Rutaactual delOnePlus y suavidadfisica NOobservadas; respuesta porllamada permite diagnosticar proximaAPK. Revision/integracion/gatesgenerales/APK/servido/movil pendientes, noProductREADY. Ownresult blocked/released,checkpointdurable ySTOP.",
+  "productSHA": "f65d74b9f43ca0475160db3acb1f23ef3d57e71b",
+  "baseSHA": "ff53b0e7243fe79f9164bbc1bcf2313fb2e28d13",
+  "branch": "codex/ux16-round2-soft-haptics-20261018",
+  "PR": 276,
+  "draft": true,
+  "claimCommit": "f4d4319ca2cf919d6a6b61dfb3ac1be5994619a2",
+  "ACKCommit": "1f308f1e48df4d63cfa105675cbf7853ac175bff",
+  "grants": [
+    "8515ba8daf48438d2d71afde9fbfd3e35df8e35c",
+    "b0390ba0cad563401e1a8ac472262af6b1f39750"
+  ],
+  "normalProductPushExit": 0,
+  "remoteHeadExact": true,
+  "PRHeadBaseBodyDraftExact": true,
+  "nativePRAttachmentConfirmed": true,
+  "tests": [
+    {
+      "command": "node work/ux16-round2-browser-run.mjs red",
+      "exit": 1,
+      "expectedCausalRED": true,
+      "passedChecks": 10,
+      "failedChecks": 5,
+      "unchangedBaseArtifact": true
+    },
+    {
+      "command": "node work/ux16-round2-browser-run.mjs green",
+      "exit": 0,
+      "passedChecks": 15,
+      "browser": "Edge155",
+      "workers": 1,
+      "retries": 0,
+      "port": 48547,
+      "syntheticScrollSequenceAndNativeTransport": true
+    },
+    {
+      "command": "node work/ux16-round2-jvm.mjs red",
+      "compileExit": 0,
+      "exit": 1,
+      "assertion": "primitive scale0.12 versus required0.04"
+    },
+    {
+      "command": "node work/ux16-round2-jvm.mjs green",
+      "compileExit": 0,
+      "exit": 0,
+      "newMethods": 3,
+      "oldMethodsExecuted": 0,
+      "pathMatrixIncludesAPI36": true
+    },
+    {
+      "command": "node work/ux16-round2-native-transport.mjs final",
+      "typecheckExit": 0,
+      "compileExit": 0,
+      "exit": 0,
+      "checks": 13,
+      "androidAPITypecheck": 35,
+      "capacitorDoubles": true,
+      "runtimeAndroidDoubles": true,
+      "physicalAndroid": false
+    },
+    {
+      "command": "node scripts/build-app.mjs",
+      "exit": 0
+    },
+    {
+      "command": "node scripts/check-syntax.mjs",
+      "exit": 0
+    },
+    {
+      "command": "node tests/relevant-tests.test.mjs",
+      "exit": 0
+    },
+    {
+      "command": "node scripts/run-tests.mjs with registry-only private plan",
+      "exit": 0,
+      "productTestsRun": 0
+    },
+    {
+      "command": "git diff --check",
+      "exit": 0
+    }
+  ],
+  "mutations": {
+    "killedByAssertion": 8,
+    "killed": [
+      "waveform priority",
+      "system setting path",
+      "amplitude ramp",
+      "duration cap",
+      "scroll listener",
+      "touchstart rearm",
+      "edge separation",
+      "stopSwipe"
+    ],
+    "allKilledCompileOrBrowserErrorsAbsent": true,
+    "killedExitCodes": [
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    "redundantSurvivor": {
+      "name": "remove only listener reduced-motion guard",
+      "exit": 0,
+      "reason": "pulse and native transport still silence reduced motion",
+      "preserved": true
+    }
+  },
+  "evidence": {
+    "immutableManifestSHA256": "36e90645ce65656fa5ab247a0bfe2d49b41c3258e0c205936a89b6a33eb1f28f",
+    "deliveryCheckpointSHA256": "7f2e373f0ed80128c2ae1402401b5946ee4579f0f072317a564551a9c534dae8",
+    "immutablePrivateReferences": 71,
+    "sourceInputs": 10,
+    "rawTestedHTMLSHA256": "8d5090a7fc4a49e3fd3488f72a2ca6b074c856d3a3d70e876d0b5e52abdfff44",
+    "sourceAndGitLFParity": true,
+    "oldRound1ResultAndSourcesPreserved": true,
+    "oldClosedLedgersPreserved": true,
+    "fsyncAndReadback": true
+  },
+  "preservedFailures": [
+    "First normal budget notice NFF; one retry after FULLRAW and30s under5997 succeeded",
+    "ACK message id uppercase invalid before commit/push; lower-case format correction with same holder/task/helper succeeded; original preserved",
+    "Private candidate reader ENOBUFS before manifest completion; buffer fixed underbc1c5e1d, no tests rerun. Normal own branch push occurred before manifest completion; full byte parity and durable manifest completed before PR creation",
+    "Redundant reduced-motion mutant survived as documented"
+  ],
+  "limitations": [
+    "No real API36 path observation or motor/system intensity acceptance; no OnePlus or WebView physical fling proof",
+    "Synthetic native transport is not real Capacitor linking, Gradle, APK or Android execution",
+    "Programmatic scroll arrival can produce the same edge signal; scroll events do not identify physical origin",
+    "No fullsuite/general CI, CPU6, beta-sources, official size or docs-frescura execution; empty PR check rollup is not CI pass",
+    "No SQL,banks,Edge,merge,deploy,served beta or mobile acceptance",
+    "VERSION/catalogue/caps/money/08/PR265-273 unchanged. Generated delivery receipt and release notes restored byte-exact to base; integration metadata reconciliation remains Claude",
+    "Old round1 tests not repeated. Updated old spec contracts are unexecuted on this candidate; new spec function executed through own CDP runner, Playwright wrapper not launched"
+  ],
+  "budget": {
+    "idbudget": "ux16-own20-20261018-d382f016",
+    "usedBeforeResult": 7,
+    "expectedAfterReadback": 8,
+    "allowance": 20,
+    "previousClosedActual": 22,
+    "minimumSeconds": 30,
+    "allFirstInternalReadbackCounted": true,
+    "noResetOrInheritance": true
+  },
+  "physicalAPI36RouteObserved": false,
+  "productReady": false,
+  "next": "Exact OWN canonical blocked/released result and originalclaim readback,final durable checkpoint/ledger snapshot,STOP. Claude independent review/integration/APK and physical acceptance remain separate.",
+  "schema": 1,
+  "taskId": "ux16-round2-soft-haptics-codex-20261018",
+  "actor": "codex",
+  "sessionId": "codex-local-20261017-d382f016f7ca68b8",
+  "createdAt": "2026-10-18T09:58:19.357Z",
+  "released": true
+}
