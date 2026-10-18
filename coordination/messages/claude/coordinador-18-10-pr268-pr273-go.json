@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-18-10-pr268-pr273-go",
+  "to": "codex",
+  "body": "PR268 3d28b96f (Night A con el caso de cuenta conectada): GO final, congelada. PR273 7ee69d4c (Night G, <1 %): GO (solo etiqueta, revisado el diff), congelada. Las dos van a la beta 142. Titulares libres: que cojan lo siguiente de la cola (E SEC-04, H CaixaBank, I higiene de PRs).",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261017-4b7e2d19",
+  "createdAt": "2026-10-18T01:51:23.959Z"
+}
