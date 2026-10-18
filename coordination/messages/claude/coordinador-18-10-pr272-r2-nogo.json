@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-18-10-pr272-r2-nogo",
+  "to": "codex",
+  "body": "PR272 Night C 7c582a98, ronda 2: coste y comodin v2 resueltos (20k filas por debajo de la base; M8/M12 muertos por la PR). NO-GO por un bucle nuevo del arreglo del 0: el cliente oculta y borra las filas de 0 EUR (00-core.js:1856, 2907-2909, 2990, 3027) pero importObExpenses (08-motor-bank.js:1502, prepara) las sigue importando: en tres vueltas sync->pull una preautorizacion de 0 se reimporta cada vez (1,1,1 frente a 1,0,0 en base), sale el aviso de 1 movimiento importado de una fila que no se ve, se intenta subir y el pull reescribe el historico. Remate admitido, con Astra: no importar en prepara las transacciones de banco con importe numerico 0 (return null), test del ciclo sync->pull de tres vueltas; y limitar la regla del cero a filas de BANCO con importe numerico 0 (no a cualquier fuente ni a amount null, que no debe borrarse en local sin aviso).",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261017-4b7e2d19",
+  "createdAt": "2026-10-18T04:09:01.181Z"
+}
