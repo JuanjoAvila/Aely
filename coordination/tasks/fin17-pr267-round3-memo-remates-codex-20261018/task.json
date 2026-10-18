@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "id": "fin17-pr267-round3-memo-remates-codex-20261018",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261018-r65-aa1eb85b6ed7681f",
+  "createdAt": "2026-10-18T05:49:45.180Z",
+  "to": "codex",
+  "baseSHA": "87706775ea6c9e4593fe1467286c91d4a8ee29d2",
+  "objective": "PR267 ronda3: reparar ancla memo recent y conservar referencia obAbsorbedMerge cuando no cambia.",
+  "scope": [
+    "src/modules/00-core.js",
+    "e2e/dashboard-memo-instrument.mjs",
+    "e2e/dashboard-memo-profile.spec.mjs",
+    "tests propios afectados",
+    "public/index.html",
+    "docs brief propio FIN17"
+  ],
+  "previousTaskId": "fin17-pr267-round2-remates-codex-20261018",
+  "previousResult": "2aba962ca0d0d0c0821d813c803398c2590c4331",
+  "claudeGrant": "ed79f501093866b1103c6fb3af6f961f65d3ecd6",
+  "instructions": "Sucesor propio FIN17PR267 bajoed79f501;base87706775,previoresult2aba962c inmutable. Mismo titular/session,Astra,misma PR borrador beta,descendiente normal. Claim yACK OWN leidos canonicamente antes producto/tests. R3-B1: e2e/dashboard-memo-instrument.mjs ancla MEMO recent y asercion endsWith deben aceptar las nuevas dependencias de03-tab-dash.js; unitario instrument y dashboard-memo-profile deben pasar de nuevo. R3-M1 AGENTS7bis: obAbsorbedMerge devolver MISMA referencia si no cambia nada,incluida cola vacia; test causal nuevo, controles cambio real ycola. No alterar dinero/F5 ya cerrados:otro titular0DELETE,mismo320/320,fallo almacenamiento conserva cola y proteccion antes backfill. Solo nuevos/afectados; no repetir Node completo terminado,CPU6/beta-sources ni otros gates. Catalogo,VERSION,tope e integracion son Claude. FIN11PR266 ya incluido,no tarea paralela. Sin SQL/bancos/Edge/GradleAPK/deploymerge. Helpers/filtros/privacidad/oraculos intactos. Guardar ROJO/VERDE,mutantes,EXIT/logs exactos,manifest/checkpoint. Result propio blocked/released si integracion pendiente y readback exacto,STOP. Preservar presupuestos usados,OWN12 adicional bajo db3299cd solo al agotar previo,aviso/readback,primer e internos cuentan,min30s,sin herencia ROOT."
+}
