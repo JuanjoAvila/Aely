@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "id": "inc1710-pr265-reload-fallback-delay-codex-20261018",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261018-r62-nhwptcrmlpybdqcw",
+  "createdAt": "2026-10-18T00:35:31.563Z",
+  "to": "codex",
+  "baseSHA": "3f6410f29a9c617443c9c3b1d8751a4afa5ebad1",
+  "objective": "PR265: mostrar aviso de recarga y marca de rendimiento solo si el documento sobrevive1800ms tras solicitar location.reload,por ordenClaude50a6a439.",
+  "scope": [
+    "src/modules/11-app-main.js",
+    "e2e/modo-pruebas.spec.mjs",
+    "e2e/inc1710-reload-fallback-delay.spec.mjs",
+    "scripts/relevant-tests.mjs",
+    "public/index.html",
+    "docs/briefs"
+  ],
+  "claudeGrant": "50a6a4394e25a9f66958fa2eada920b16b4225b5",
+  "sameOriginalHolder": "codex-local-20261016-8e50dcf4186a58d7",
+  "previousTaskId": "inc1710-pr265-dirty-flush-remates-codex-20261018",
+  "previousResult": "70d84444b399558d157c5f4bebb570f0d1e0a522",
+  "PR": 265,
+  "constraints": [
+    "OWNclaim/readback/ACK previos al codigo;checkout propio aislado;fuente anterior inmutable",
+    "CausalRED sobre3f sin cambios y focalGREEN ida/vuelta:reload normal sin aviso/marca,reload cancelado con ambos tras1800ms",
+    "Dirigidos1worker0retry,puerto propio,censoOWN;no repetir suites60/60,9/9,10mutantes,24estabilidad ya terminadas",
+    "Actualizar MISMA PR265 con push normal descendiente y exacthead/base/body readback;no PR nueva",
+    "Nuevo result propio blocked/released si solo gatesintegracion;manifest y checkpointdurables,luegoSTOP y congelar",
+    "No VERSION/catalogo/caps/oraculos,suitecompleta,CPU6,Gradle,SQLvivo,bancos,Edge,merge ni deploy"
+  ]
+}
