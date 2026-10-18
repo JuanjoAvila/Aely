@@ -1,0 +1,167 @@
+{
+  "status": "done",
+  "summary": "OPS05 read-only inventory complete for Claude decisions:49 open Codex PRs,228 remote and295 local Codex branches;15 exact heads already in beta141,2 documented merged ports and6 historical supersession cases. No closures, deletions, product edits/tests or new PR.",
+  "tests": [],
+  "baseSHA": "ff53b0e7243fe79f9164bbc1bcf2313fb2e28d13",
+  "inventoryMainSHA": "a9916c3cdb21c93f9d3a47653c0608e630ce50ab",
+  "inventoryBetaSHA": "ff53b0e7243fe79f9164bbc1bcf2313fb2e28d13",
+  "manifestSHA256": "99bb8f0de01f1003cbda66c1d7ed102b7866ba442f0a3b971f3f76ddc134505a",
+  "inventorySHA256": "d07302b9825d629d1334b570598f93f16398608efa605e3bbde73a5a39aeda42",
+  "summarySHA256": "67115eec5b3dd70bbb487f7c36b5dcc438e7f9f450ae8612b8e66742e618b913",
+  "counts": {
+    "openPRsTotal": 50,
+    "openCodexPRs": 49,
+    "remoteCodexBranches": 228,
+    "localCodexBranches": 295,
+    "localOnlyCodexBranches": 140,
+    "registeredWorktreesAll": 368,
+    "registeredCodexWorktrees": 142,
+    "openPRExactHeadInMain": 0,
+    "openPRExactHeadInBetaOnly": 15,
+    "documentedPortCandidates": 2,
+    "historicalSupersessionCandidates": 6,
+    "remoteHeadsInMain": 87,
+    "remoteHeadsInBetaOnly": 19,
+    "remoteMergedPRMetadataCandidates": 21,
+    "remoteMergedButNotReachable": 2,
+    "localHeadDiffersRemote": 15,
+    "dependentBaseBranches": 2,
+    "PRHeadDrift": [],
+    "reportedBaseDiffersLivePointer": [
+      267,
+      266,
+      265,
+      245,
+      244,
+      243,
+      242,
+      241,
+      231,
+      227,
+      225,
+      224,
+      222,
+      221,
+      219,
+      218,
+      217,
+      216,
+      214,
+      213,
+      212,
+      211,
+      210,
+      209,
+      195,
+      182,
+      181,
+      180,
+      170,
+      105,
+      48,
+      43
+    ]
+  },
+  "exactHeadsInBeta": [
+    {
+      "PR": 261,
+      "headSHA": "fc2a7bf364ef478b54c76d76bb8f4086792f75ec"
+    },
+    {
+      "PR": 257,
+      "headSHA": "7ce911a2bbd19e1d710cba1284bf0a7ff8a637c7"
+    },
+    {
+      "PR": 256,
+      "headSHA": "8f64624bf587018ac7ff0df3242205751123b0ac"
+    },
+    {
+      "PR": 255,
+      "headSHA": "b8a712141d97f27f58ac5c467193fd93cd39bf18"
+    },
+    {
+      "PR": 252,
+      "headSHA": "3544dd35ffcf4b6cc81342eace87770ff2e83a3b"
+    },
+    {
+      "PR": 251,
+      "headSHA": "00bb2bbb9bb68be157e589195507abdcd32581ca"
+    },
+    {
+      "PR": 249,
+      "headSHA": "536882888eacc70921e462ab98e27620f613a29b"
+    },
+    {
+      "PR": 248,
+      "headSHA": "255eb082d57a0e07a7a7a0bf3baf378f2c50f702"
+    },
+    {
+      "PR": 247,
+      "headSHA": "059218be274e7f711cda4d88572f9942faee1517"
+    },
+    {
+      "PR": 245,
+      "headSHA": "13d154903485d20da63a2f4a82c773fecde23b14"
+    },
+    {
+      "PR": 244,
+      "headSHA": "ea08241c7ef22bc0c5e18bb4f473f9720fb98f32"
+    },
+    {
+      "PR": 243,
+      "headSHA": "2d4fa8de7fb103bc1455690c59dd42f8438eac81"
+    },
+    {
+      "PR": 242,
+      "headSHA": "ab0abf68c5beb739fea20ef76d21e9c5f38848bd"
+    },
+    {
+      "PR": 241,
+      "headSHA": "fdc0524dfed1ed3728375a23af843fe289aca272"
+    },
+    {
+      "PR": 240,
+      "headSHA": "d16db899fa03ef882856aa994be0b75cd3580780"
+    }
+  ],
+  "documentedPortCandidates": [
+    {
+      "PR": 250,
+      "replacementPR": 264,
+      "replacementHead": "af387031feab76caf4ace026fa5f22d21ca90f90"
+    },
+    {
+      "PR": 253,
+      "replacementPR": 263,
+      "replacementHead": "600d5021360cbd9bbd898a1fdd7099cc4a75d741"
+    }
+  ],
+  "historicalSupersessionCandidates": [
+    48,
+    87,
+    105,
+    170,
+    180,
+    181
+  ],
+  "targetsStableAtEnd": true,
+  "priorLedgersPreserved": true,
+  "frozenPR247Unchanged": true,
+  "noProductChanges": true,
+  "noClosuresOrDeletions": true,
+  "productReady": false,
+  "limitations": [
+    "Inventory is complete as a read-only snapshot; later actions require exact head/ref recheck and Claude authority.",
+    "Fifteen open heads are exact ancestors of beta141, none of main; beta is not production acceptance.",
+    "Two ports and six historical supersession cases have documentary/graph evidence, not a claim of whole-tree patch equivalence.",
+    "Two branches are bases of open PRs240 and220; hold them. Local WIP/owner/submodule/embedded-repo checks were not performed;295 local branches and opaque worktree census recorded.",
+    "Two historical merged PR branches are not reachable from current main/beta; never mark them integrated merely from MERGED metadata.",
+    "No tests/builds or product/backend/deploy/PR/branch/worktree mutations performed; no beta notice. Claude alone decides closures/deletions/archives."
+  ],
+  "schema": 1,
+  "taskId": "night-i-ops05-pr-hygiene-codex-20261018",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-31bde4da8226b098",
+  "createdAt": "2026-10-18T01:17:29.060Z",
+  "released": true
+}
