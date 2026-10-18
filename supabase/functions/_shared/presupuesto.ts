@@ -126,6 +126,14 @@ function claveLegacySinId(f: { fecha?: string | null; importe?: number | string;
   return String(f.fecha || "").slice(0, 10) + "|" + (Number(f.importe) || 0) + "|" + (f.comercio || "");
 }
 
+// Espejo de obBookedPreferenceKey: decidir BOOK no amplía la identidad ni los borrados.
+function clavePreferenciaBook(f: FilaGasto): string {
+  const ref = referenciaOb(f), day = String(f.fecha || "").slice(0, 10), cents = Math.round(Number(f.importe) * 100);
+  if (!ref || !JSON.parse(ref)[1].trim() || !/^\d{4}-\d{2}-\d{2}$/.test(day) || !Number.isSafeInteger(cents) || !f.comercio) return "";
+  const marks = String(f.source || "").split("#").filter(t => !/^(?:pdng|n\d{1,6})$/.test(t) && !/^ref|^acc/.test(t)).join("#");
+  return JSON.stringify([...JSON.parse(ref), day, ordinalDeSource(f.source), cuentaDeSource(f.source), cents, f.comercio, f.cat || "", marks]);
+}
+
 /**
  * Lo que la app ve de la tabla: sin lápidas y una fila por identidad bancaria o clave legacy.
  * `ingest` tiene que pasar ESTO a `statsDelMes`, no el volcado crudo: si no, el widget suma
@@ -145,8 +153,7 @@ export function filasComoLaApp<T extends FilaGasto>(filas: T[] | null | undefine
       sinCuenta.add(base); if (!p[4]) cuentaAusente.add(base);
     }
   }
-  const vistas = new Map<string, Set<string>>(), referencias = new Set<string>();
-  const out: T[] = [];
+  const live: T[] = [], books = new Map<string, T>();
   for (const f of filas || []) {
     const k = claveComoLaApp(f);
     if (lap.has(k)) continue;
@@ -159,6 +166,15 @@ export function filasComoLaApp<T extends FilaGasto>(filas: T[] | null | undefine
       if (cuentaAusente.has(base) || (!cuentaDeSource(f.source) && sinCuenta.has(base))) continue;
     }
     if (esSourceManual(f.source) && lap.has(claveLegacySinId(f))) continue;
+    live.push(f);
+    const bookKey = clavePreferenciaBook(f);
+    if (bookKey && !books.has(bookKey) && !/#pdng(?:#|$)/.test(String(f.source))) books.set(bookKey, f);
+  }
+  const vistas = new Map<string, Set<string>>(), referencias = new Set<string>();
+  const out: T[] = [];
+  for (const original of live) {
+    const book = /#pdng(?:#|$)/.test(String(original.source)) && books.get(clavePreferenciaBook(original));
+    const f = book || original, k = claveComoLaApp(f);
     // La fecha contable puede cambiar al pasar de PDNG a BOOK. El cliente identifica
     // banco+referencia antes de mirar el día; sin este espejo el widget suma ambos.
     // Las lápidas se aplican antes: una fila retirada no puede consumir la identidad.

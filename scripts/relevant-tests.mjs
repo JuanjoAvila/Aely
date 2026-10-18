@@ -75,6 +75,7 @@ export const E2E_MAP = [
     "e2e/gastos-suscripciones-movil.spec.mjs",
     "e2e/compras-identicas-ids.spec.mjs",
     "e2e/fin15-pendiente-contabilizada.spec.mjs",
+    "e2e/fin15-book-preference.spec.mjs",
     "e2e/metas-borrar-regla.spec.mjs",
     "e2e/metas-alta-regla.spec.mjs",
     "e2e/metas-mensual.spec.mjs",

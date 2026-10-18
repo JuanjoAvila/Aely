@@ -44,6 +44,7 @@ const steps = [
   ["deudas-plazo-cuota", ["node", "tests/deudas-plazo-cuota.test.mjs"]],
   ["fin10-absorption-scope", ["node", "--test", "tests/fin10-absorption-scope.test.mjs"]],
   ["fin15-pendiente-contabilizada", ["node", "--test", "--test-concurrency=1", "tests/fin15-pendiente-contabilizada.test.mjs"]],
+  ["fin15-book-preference", ["node", "--test", "--test-concurrency=1", "tests/fin15-book-preference.test.mjs"]],
   ["prod117-edge-compat", ["node", "tests/prod117-edge-compat.test.mjs"]],
   ["backclose-history", ["node", "tests/backclose-history.test.mjs"]],
   ["gastos-mes-madrid", ["node", "tests/gastos-mes-madrid.test.mjs"]],

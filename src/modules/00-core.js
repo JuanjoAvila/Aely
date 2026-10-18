@@ -2887,10 +2887,29 @@ function expenseFromRow(r){
   };
 }
 
+/* La preferencia de estado no acredita una compra: exige la misma identidad y dinero.
+   Cuenta ausente solo casa con ausente; nunca presta identidad a otra cuenta conocida. */
+function obBookedPreferenceKey(e){
+  const bank=e&&expenseBankOf(e), day=String(e&&e.date||"").slice(0,10), cents=Math.round(Number(e&&e.amount)*100);
+  if(!e||!esFilaDeBanco(e)||!bank||!e.extId||!String(e.extId).trim()||!/^\d{4}-\d{2}-\d{2}$/.test(day)||!Number.isSafeInteger(cents)||!e.merchant)return "";
+  const marks=expenseSourceForCloud(e).split("#").filter(function(t){return !/^(?:pdng|n\d{1,6})$/.test(t)&&!/^ref|^acc/.test(t);}).join("#");
+  return JSON.stringify([bank,String(e.extId),day,obOrdinalOf(e),String(e.obAcc||""),cents,e.merchant,e.category||"",marks]);
+}
+function preferBookedExpenses(rows,delSet){
+  const books=new Set(); let out=rows;
+  rows.forEach(function(e){if(e&&!e.obPending&&!expenseIsTombstoned(e,delSet)){const k=obBookedPreferenceKey(e);if(k)books.add(k);}});
+  rows.forEach(function(e,i){
+    if(!e||!e.obPending||expenseIsTombstoned(e,delSet))return;
+    const k=obBookedPreferenceKey(e);if(!k||!books.has(k))return;
+    // Solo el estado del BOOK: conserva UUID, orden y decisiones del superviviente local.
+    if(out===rows)out=rows.slice();out[i]=Object.assign({},e);delete out[i].obPending;
+  });
+  return out;
+}
 /* Une gastos en la lista local con dedup. ADITIVO: nunca borra los que ya tenías.
    Manuales: clave con id (Paso 0, 2026-09-11) — no se comen entre sí ni con el banco. */
-function mergeExpenses(prevList, incoming){
-  const rows=expenseBankIdOrdinals((prevList||[]).concat(incoming||[]));
+function mergeExpenses(prevList, incoming, delSet){
+  const rows=expenseBankIdOrdinals(preferBookedExpenses((prevList||[]).concat(incoming||[]),delSet));
   const previousLength=(prevList||[]).length;
   prevList=rows.slice(0,previousLength); incoming=rows.slice(previousLength);
   const seen={}; const list=[]; const refs=new Map();
@@ -2970,8 +2989,8 @@ function refreshExpenseFromCloud(local, incoming, readStartedAt){
 /* Mezcla el pull con lo local: refresca campos de claves ya vistas y solo AÑADE las nuevas.
    Nunca elimina una clave que solo exista en local (contención 4.18.6 / FIN-07). */
 function esFilaDeBanco(e){ return e.source==="ob" || e.source==="ob-hist"; }
-function mergeExpensesFromCloud(prevList, incoming, readStartedAt){
-  const rows=expenseBankIdOrdinals((prevList||[]).concat(incoming||[]));
+function mergeExpensesFromCloud(prevList, incoming, readStartedAt, delSet){
+  const rows=expenseBankIdOrdinals(preferBookedExpenses((prevList||[]).concat(incoming||[]),delSet));
   const previousLength=(prevList||[]).length;
   const identitiesChanged=rows.some(function(e,i){return i<previousLength&&e!==prevList[i];});
   prevList=rows.slice(0,previousLength); incoming=rows.slice(previousLength);
