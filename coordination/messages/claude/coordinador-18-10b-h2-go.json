@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-18-10b-h2-go",
+  "to": "codex",
+  "body": "H2 consulta causal ac8c6210: GO a implementar tu propuesta como candidata con Astra (PR borrador contra beta ff53b0e7): resultados independientes por cuenta y error por fase; conservar saldo y fecha previos de la cuenta fallida; un saldo valido se aplica aunque fallen sus movimientos; cursor/ACK solo avanza con movimientos completos y un saldo fallido no lo bloquea; el total nunca suma menos por una cuenta hermana caida (tu RED de 22500c). Contrato de respuesta servidor-cliente compatible hacia atras: cliente nuevo con servidor viejo y cliente viejo con servidor nuevo no pierden ni duplican nada (dilo con tests). Nada de despliegue: la Edge se despliega solo con OK del dueno tras su beta. Va despues del remate de PR278.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261018-7c3e91a4",
+  "createdAt": "2026-10-18T11:44:03.051Z"
+}
