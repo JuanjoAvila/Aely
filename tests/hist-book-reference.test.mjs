@@ -27,7 +27,9 @@ function transport(){
    for(const row of incoming){if(rows.some(r=>['user_id','fecha','importe','comercio'].every(k=>r[k]===row[k])))continue;rows.push(row);added.push({id:row.id});}
    return {data:added,error:null};
   }})};}};
- const batch=vm.runInNewContext(batchSource,{sb,withNotaFallback:fn=>fn(true,true,true),expenseSourceForCloud:c.expenseSourceForCloud,isExpenseUuid:c.isExpenseUuid});
+ const batch=vm.runInNewContext(batchSource,{sb,withNotaFallback:fn=>fn(true,true,true),expenseSourceForCloud:c.expenseSourceForCloud,isExpenseUuid:c.isExpenseUuid,
+  // FIN-17 (143): el batch consulta el registro de absorciones confirmadas del dueño antes de subir.
+  ...Object.fromEntries(["obConfirmedCanUpload","obConfirmedRead","obConfirmedBlocked","obConfirmedMatches"].map(n=>[n,vm.runInContext(n,c)])),Date});
  return {rows,calls,batch,pull:()=>rows.map(r=>c.expenseFromRow(r))};
 }
 async function importUI(p,s,cloud,choose){
@@ -216,7 +218,7 @@ test("r2-account-own-part",async()=>{
  const joint={id:"joint",ent:"caixabank",name:"Conjunta",role:"fijos",bankIban:IBAN,value:1000};
  const mine={key:"mine",ent:"caixabank",iban:"ES00SYNTH000000000000001",value:1000,name:"Personal"};
  const s={...state(),accounts:[joint],obAccounts:[mine],investments:[],assets:[],aportaciones:[],accountBalanceHistory:{},
-  expenses:[{id:"start",date:"2026-10-01T12:00:00Z",amount:0,source:"ob",ent:"caixabank"},...r.next.expenses]};
+  expenses:[{id:"start",date:"2026-10-01T12:00:00Z",amount:0,source:"wallet",ent:"caixabank"},...r.next.expenses]};
  const series=c.netWorthSeries(c.setAccountShare(s,joint,"account",50),{today:"2026-10-18"});
  assert.equal(Math.round(series.find(x=>x.day==="2026-10-16").value*100),150625);
  assert.equal(Math.round(series.find(x=>x.day==="2026-10-18").value*100),150000);
@@ -229,6 +231,13 @@ test("r2-account-fallback-and-no-position",async()=>{
   assert.equal(x.obAcc,account.uid);assert.equal(e.obAcc,account.uid);assert.equal(db.pull()[0].obAcc,account.uid);
   if(!account.uid){assert.ok(!Object.hasOwn(x,"obAcc"));assert.ok(!Object.hasOwn(e,"obAcc"));}
  }
+});
+test("r2-ya-importada-por-signo",async()=>{
+ // PR 272 + PR 275: la referencia ya importada se filtra DESPUÉS de numerar (amount ya es absoluto),
+ // así que el signo se reconstruye con `kind`. Una devolución con la referencia de su compra NO es «ya importada».
+ const e={id:"x",extId:"R1",ent:"caixabank",amount:12.5,date:"2026-10-17T12:00:00Z",source:"ob",merchant:"Tienda sintética H"};
+ const got=flat(payload([tx("R1"),tx("R1",{amount:-12.5,merchant:"Devolución sintética"})]),state([e]));
+ assert.deepEqual(Array.from(got,x=>x.kind),["in"],"la compra ya importada sale; la devolución con la misma referencia se queda");
 });
 const only=process.env.HIST_CASE;let failed=0,passed=0;
 for(const {name,fn} of tests){if(only&&!new RegExp(only).test(name))continue;try{await fn();passed++;console.log("PASS "+name);}catch(e){failed++;console.error("FAIL "+name+"\n"+e.stack);}}
