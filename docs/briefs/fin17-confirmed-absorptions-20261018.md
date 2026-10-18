@@ -35,9 +35,27 @@ intención sin confirmar ni se añade caducidad silenciosa o liquidación manual
 
 Remates F1–F5, sobre beta141 exacta `ff53b0e7243fe79f9164bbc1bcf2313fb2e28d13`:
 el aviso se guarda por dispositivo y propietario, se consume una vez y se elimina al
-resolver la cola. No viaja en `app_state`. `SIGNED_OUT` elimina las particiones confirmada
-y pendiente del propietario saliente; el guardado posterior no recrea una partición vacía.
-Las particiones de otros propietarios se conservan.
+resolver la cola. No viaja en `app_state`. La ronda 2 (`181d74fd`) cambia F5: `SIGNED_OUT`
+elimina confirmadas y limpia el estado visible, pero conserva las intenciones sin ACK en
+una partición del titular saliente con solo identificadores. Se guardan propietario,
+UUID objetivo/superviviente y claves de identidad completas, incluida la referencia
+pendiente anterior de la superviviente cuando está acreditada. No guarda importe ni comercio.
+El readback debe coincidir antes de retirar la partición pendiente original. Si falla,
+la cola original permanece como fallback durable; en ese caso la minimización de datos
+no se ha completado. Las particiones de otros propietarios permanecen intactas.
+
+La reapertura, el pull y el reintento del mismo titular restauran las intenciones. Para
+ejecutar el DELETE se relee la superviviente por su UUID, con sesión vigente y clave exacta;
+su importe y comercio actuales deben coincidir con el objetivo bajo las guardas FIN11.
+Una superviviente ausente o con identidad cambiada deja la intención pendiente. El ACK
+durable retira únicamente los identificadores del objetivo confirmado. El cierre de sesión
+no confirma un borrado y no caduca ninguna intención. Se conserva el límite de cuatro
+objetivos por reintento y la serialización por propietario.
+
+Las fixtures de la ronda 2 aportan las dependencias reales de sesión, caché, almacenamiento
+con readback y bloqueo de escritura. Los importes, conflictos, controles de cancelación,
+límites y mutantes conservan sus aserciones. El histórico auth normaliza explícitamente
+solo el bloque nuevo de salida y la caché; no hereda la aprobación anterior del catálogo.
 
 El formato compacto v1 usa un diccionario y buckets de hash corto. Cada entrada conserva
 su testigo de identidad completo; el hash nunca decide si se oculta un movimiento y las

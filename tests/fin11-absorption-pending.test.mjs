@@ -172,6 +172,7 @@ test('FIN11 un ACK cuya escritura local falla permanece pendiente y puede recupe
 test('FIN11 cada refresco acota a cuatro objetivos y serializa dos llamadas simultáneas',async()=>{
  const e=environment();e.stage();const first=e.state.obAbsorbedPending[0];
  e.state.obAbsorbedPending=Array.from({length:9},(_,i)=>({...first,id:uuid(i+10),key:e.c.obAbsorptionKey({...b,extId:'batch-'+i}),merchant:'Compra '+i}));
+ assert.equal(e.c.obAbsorbedPersist(owner,e.state.obAbsorbedPending),true,'la cola sintetica de nueve sustituye tambien su particion durable');
  e.rows=e.state.obAbsorbedPending.map((p,i)=>e.wire({...b,id:p.id,extId:'batch-'+i,merchant:p.merchant}));
  await Promise.all([e.drain(),e.drain()]);assert.equal(e.queries.filter(q=>q.op==='delete').length,4);assert.equal(e.state.obAbsorbedPending.length,5);
 });
@@ -258,7 +259,7 @@ test('FIN11 mutantes de persistencia, recuperación, protección, acuse, dueño 
   ['protect',s=>s.replace('if(obAbsorbedValid(p,owner))delSet[p.key]=1;','')],
   ['ack',s=>s.replace('rows.length===0&&!await find()&&!!await active()','rows.length===0')],
   ['owner',s=>s.replaceAll('currentOwner()!==owner','false').replaceAll('currentOwner()===owner','true')],
-  ['cap',s=>s.replace('if(out.length>OB_ABSORBED_MAX){obAbsorbedWarn("merge");return null;}','if(out.length>OB_ABSORBED_MAX)return out.slice(-OB_ABSORBED_MAX);')],
+  ['cap',s=>s.replace('if(out.length>OB_ABSORBED_MAX){obAbsorbedWarn("merge",owner);return null;}','if(out.length>OB_ABSORBED_MAX)return out.slice(-OB_ABSORBED_MAX);')],
   ['uuid',s=>s.replace(".eq('id',target.id)","")],
   ['alias',s=>s.replace('return !alias||!!p.key.split("|")[4]&&!!e.obAcc&&key===p.key;','return true;')],
   ['ambiguous',s=>s.replace('if(possible.length>1||possible.length===1&&!obAbsorbedCandidate(p,possible[0],true))','if(false)')],

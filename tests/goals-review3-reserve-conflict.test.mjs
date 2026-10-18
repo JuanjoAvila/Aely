@@ -12,17 +12,17 @@ function block(s,t){const m=codeMask(s),a=m.indexOf(t);assert.ok(a>=0,t);let b=m
 const seed=()=>({accounts:[],debts:[],investments:[],fixed:[],expenses:[],bankTx:[{id:"local-feed"}],budget:1000,
  goals:[{id:"g",name:"Sintetica",target:1000,saved:100,done:false,doneAt:null},{id:"other",name:"Otra",target:1000,saved:0,done:false,doneAt:null}],
  settings:{reservaRules:[{id:"r",goalId:"g",kind:"fixed",value:50,mensual:true}]},reservaLog:[],_savedAt:NOV-10000,_historyOwner:owner});
-function logic(){const c=loadPureLogicFromFile();vm.createContext(c);for(const name of [...core.matchAll(/^function (goalSync\w+|mergeGoalsThreeWay)\(/gm)].map(m=>m[1]))vm.runInContext(block(core,"function "+name+"("),c);return c;}
+function logic(){const c=loadPureLogicFromFile(),storage=new Map();vm.createContext(c);c.localStorage={getItem:k=>storage.get(k)??null,setItem:(k,v)=>storage.set(k,String(v)),removeItem:k=>storage.delete(k)};c.window.localStorage=c.localStorage;for(const name of [...core.matchAll(/^function (goalSync\w+|mergeGoalsThreeWay)\(/gm)].map(m=>m[1]))vm.runInContext(block(core,"function "+name+"("),c);return c;}
 function bank(){
  let now=NOV,row={user_id:owner,data:seed(),updated_at:"r0"},casMisses=0;
- const sb={from(){let value,mode="read",where=[];const q={update(v){value=v;mode="update";return q;},upsert(v){value=v;mode="upsert";return q;},eq(k,v){where.push([k,v]);return q;},select(){if(mode==="read")return q;const match=mode==="upsert"||where.every(([k,v])=>row[k]===v);if(match)row=copy(value);else casMisses++;return Promise.resolve({data:match?[{updated_at:row.updated_at}]:[],error:null});},maybeSingle:async()=>({data:copy(row),error:null})};return q;}};
+ const sb={auth:{getSession:async()=>({data:{session:{user:{id:owner}}},error:null})},from(){let value,mode="read",where=[];const q={update(v){value=v;mode="update";return q;},upsert(v){value=v;mode="upsert";return q;},eq(k,v){where.push([k,v]);return q;},select(){if(mode==="read")return q;const match=mode==="upsert"||where.every(([k,v])=>row[k]===v);if(match)row=copy(value);else casMisses++;return Promise.resolve({data:match?[{updated_at:row.updated_at}]:[],error:null});},maybeSingle:async()=>({data:copy(row),error:null})};return q;}};
  function device(){
   const c=logic();class Clock extends Date{constructor(...a){super(...(a.length?a:[now]));}static now(){return now;}}c.Date=Clock;
   let state=seed();Object.assign(state,c.goalSyncPull(state,copy(state),owner,"r0",false));const beforeMonthly=[];
-  const deps={stateRef:{current:state},sessionRef:{current:{user:{id:owner}}},cloudUpdatedAtRef:{current:"r0"},pullOkRef:{current:null},uid:owner,useCallback:f=>f,
+  const deps={obAbsorbedWriteBlocked:{current:false},stateRef:{current:state},sessionRef:{current:{user:{id:owner}}},cloudUpdatedAtRef:{current:"r0"},pullOkRef:{current:null},uid:owner,useCallback:f=>f,
    setStateRaw:f=>{state=f(state);deps.stateRef.current=state;},syncCloudExpenses:async()=>{beforeMonthly.push(copy(state));},showToast:()=>{},mcBootReady:()=>{},t:x=>x,navigator:{onLine:true},reconcileGemelosAutomaticos:x=>x,
    seedFlows:x=>x,fixMovInvasion:x=>x,fixRevoDupes:x=>x,fixInvAuto:x=>x,fixInvSold:x=>x,reconcileTR:x=>x,reconcileEarlyIncomeAnchors:x=>x};
-  deps.cloud=vm.runInContext("(function(sb){return {"+["async pullState(","async pushState("].map(t=>block(core,t)).join(",")+"};})",c)(sb);
+  deps.cloud=vm.runInContext("(function(sb){const statePushCache=new Map();return {"+["async session(","async pullState(","async pushState("].map(t=>block(core,t)).join(",")+"};})",c)(sb);
   const a=app.indexOf("const set=useCallback((updater)=>"),b=app.indexOf("},[]);",a)+"},[]);".length,names=Object.keys(deps);
   const api=vm.runInContext("(function("+names.join(",")+"){"+app.slice(a,b)+block(app,"const reservaMensualAlDia=function(")+";"+block(app,"const pushAppState=function(")+";"+block(app,"const syncFromCloud=function(")+";return {set,push:pushAppState,sync:syncFromCloud};})",c)(...names.map(k=>deps[k]));
   return {c,state:()=>copy(state),beforeMonthly,edit:fn=>{now+=1000;api.set(fn);},settle:()=>{now+=1000;api.set(s=>c.applyReservaMensual(s,now));},send:async()=>{now+=1000;const r=await api.push(owner,state);if(r?.conflict){api.sync(deps.sessionRef.current);await deps.pullOkRef.current;await Promise.resolve();}return r;}};

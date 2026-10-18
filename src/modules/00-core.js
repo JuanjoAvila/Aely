@@ -1451,6 +1451,15 @@ const cloud = (function(){
         return possible[0]||null;
       };
       try{
+        if(p.idsOnly){
+          if(!await active())return false;
+          const keep=await query(sb.from('expenses').select(columns).eq('user_id',owner).eq('id',p.keepId).limit(2));
+          if(keep.length!==1)return false;
+          const witness=expenseFromRow(keep[0]),key=obAbsorptionKey(witness);
+          if(!key||(key!==p.keepKey&&key!==p.keepRefKey)||!Number.isFinite(witness.amount)||witness.amount<=0)return false;
+          // El importe y comercio se acreditan de nuevo con la superviviente, nunca con el objetivo.
+          p=Object.assign({},p,{amount:witness.amount,merchant:witness.merchant||""});delete p.idsOnly;
+        }
         const target=await find();
         if(!target)return !!await active();
         if(!await active())return false;
@@ -2089,7 +2098,10 @@ function obAbsorbedValid(p,owner){
   if(!p||!owner||p.owner!==owner||!isExpenseUuid(p.id)||!isExpenseUuid(p.keepId)||p.id===p.keepId)return false;
   const a=String(p.key||"").split("|"),b=String(p.keepKey||"").split("|");
   return a.length===6&&a[0]==="ob-absorbed2"&&!!a[1]&&!!a[2]&&/^[1-9]\d{0,5}$/.test(a[3])&&/^\d{4}-\d{2}-\d{2}$/.test(a[5])
-    &&b.length===6&&b[0]==="ob-absorbed2"&&typeof p.merchant==="string"&&typeof p.amount==="number"&&Number.isFinite(p.amount)&&p.amount>0;
+    &&b.length===6&&b[0]==="ob-absorbed2"&&(p.idsOnly===true
+      ?Object.keys(p).every(function(k){return ["owner","id","key","keepId","keepKey","keepRefKey","idsOnly"].includes(k);})
+        &&(p.keepRefKey==null||typeof p.keepRefKey==="string"&&p.keepRefKey.split("|").length===6&&p.keepRefKey.indexOf("ob-absorbed2|")===0)
+      :typeof p.merchant==="string"&&typeof p.amount==="number"&&Number.isFinite(p.amount)&&p.amount>0);
 }
 function obAbsorbedJoin(a,b,owner){
   const out=[],seen=new Set();
@@ -2101,6 +2113,46 @@ function obAbsorbedJoin(a,b,owner){
   return Array.isArray(a)&&out.length===a.length&&out.every(function(p,i){return p===a[i];})?a:out;
 }
 function obAbsorbedStorageKey(owner,key){return (key||mcStateKey())+"_obabs_"+encodeURIComponent(owner);}
+function obAbsorbedIdsKey(owner,key){return (key||mcStateKey())+"_obabs_ids_"+encodeURIComponent(owner);}
+function obAbsorbedDisk(owner,key,ids){
+  try{
+    const raw=localStorage.getItem(ids?obAbsorbedIdsKey(owner,key):obAbsorbedStorageKey(owner,key));if(raw==null)return [];
+    const pack=JSON.parse(raw),list=obAbsorbedJoin(pack.pending,[],owner);
+    if(pack.owner===owner&&list&&Array.isArray(pack.pending)&&list.length===pack.pending.length)return list;
+  }catch(e){}
+  obAbsorbedWarn("persist",owner);return null;
+}
+function obAbsorbedMerge(a,b,owner,key){
+  const disk=obAbsorbedDisk(owner,key,false),ids=obAbsorbedDisk(owner,key,true),list=obAbsorbedJoin(a,b,owner);
+  if(!disk||!ids||!list)return null;
+  const durable=obAbsorbedJoin(ids,disk,owner);return durable&&obAbsorbedJoin(durable,list,owner);
+}
+function obAbsorbedSignOut(owner,s){
+  if(!owner)return;
+  const list=obAbsorbedMerge(s&&s._historyOwner===owner?s.obAbsorbedPending:[],[],owner);if(!list)return;
+  try{
+    if(list.length){
+      const pending=list.map(function(p){
+        const keep=s&&s._historyOwner===owner&&(s.expenses||[]).find(function(e){return e.id===p.keepId&&obAbsorptionKey(e)===p.keepKey;});
+        const ref=keep&&keep.obPendingRef?obAbsorptionKey(Object.assign({},keep,{extId:keep.obPendingRef})):p.keepRefKey;
+        const id={owner:owner,id:p.id,key:p.key,keepId:p.keepId,keepKey:p.keepKey,idsOnly:true};if(ref)id.keepRefKey=ref;return id;
+      });
+      const key=obAbsorbedIdsKey(owner),body=JSON.stringify({owner:owner,pending:pending});
+      localStorage.setItem(key,body);if(localStorage.getItem(key)!==body)throw new Error("ob_absorbed_readback");
+    }
+    localStorage.removeItem(obAbsorbedStorageKey(owner));
+  }catch(e){obAbsorbedWarn("persist",owner);}
+}
+function obAbsorbedIdsAck(owner,p){
+  const list=obAbsorbedDisk(owner,undefined,true);if(!list)return false;
+  const next=list.filter(function(q){return q.id!==p.id||q.key!==p.key;});if(next.length===list.length)return true;
+  try{
+    const key=obAbsorbedIdsKey(owner),body=JSON.stringify({owner:owner,pending:next});
+    if(next.length)localStorage.setItem(key,body);else localStorage.removeItem(key);
+    if(localStorage.getItem(key)===(next.length?body:null))return true;
+  }catch(e){}
+  obAbsorbedWarn("persist",owner);return false;
+}
 function obAbsorbedPersist(owner,list){
   if(!owner||!Array.isArray(list)||list.length>OB_ABSORBED_MAX||list.some(function(p){return !obAbsorbedValid(p,owner);}))return false;
   try{
@@ -2111,12 +2163,8 @@ function obAbsorbedPersist(owner,list){
 }
 function obAbsorbedRestore(s,key){
   const owner=s&&s._historyOwner;if(!owner)return s;
-  try{
-    const raw=localStorage.getItem(obAbsorbedStorageKey(owner,key));if(raw==null)return s;
-    const pack=JSON.parse(raw),list=obAbsorbedJoin(pack.pending,[],owner);
-    if(pack.owner===owner&&list&&Array.isArray(pack.pending)&&list.length===pack.pending.length)return Object.assign({},s,{obAbsorbedPending:list});
-  }catch(e){}
-  return s;
+  const list=obAbsorbedMerge(s.obAbsorbedPending,[],owner,key);
+  return list?Object.assign({},s,{obAbsorbedPending:list}):s;
 }
 function obAbsorbedEnqueue(s,e,keep){
   const owner=s&&s._historyOwner;
@@ -2145,7 +2193,9 @@ async function obAbsorbedRetry(getState,getOwner,apply,offset){
   const owner=getOwner(),s=getState();
   if(!owner||!s||s._historyOwner!==owner||mcSandbox()||!cloud.enabled())return offset||0;
   if(obAbsorbedRuns.has(owner))return obAbsorbedRuns.get(owner);
-  const list=obAbsorbedJoin(s.obAbsorbedPending,[],owner)||[],start=(offset||0)%Math.max(1,list.length);
+  const list=obAbsorbedMerge(s.obAbsorbedPending,[],owner);if(!list)return offset||0;
+  apply(function(prev){return getOwner()===owner&&prev._historyOwner===owner?Object.assign({},prev,{obAbsorbedPending:list}):prev;});
+  const start=(offset||0)%Math.max(1,list.length);
   const batch=list.slice(start).concat(list.slice(0,start)).slice(0,4);
   const run=(async function(){
     for(const p of batch){
@@ -2157,6 +2207,7 @@ async function obAbsorbedRetry(getState,getOwner,apply,offset){
         if(next.length===before.length)return prev;
         const confirmed=obConfirmedAck(prev,p,owner);if(!confirmed)return prev;
         if(!obAbsorbedPersist(owner,next))return Object.assign({},prev,{obAbsorbedConfirmed:confirmed});
+        if(!obAbsorbedIdsAck(owner,p))return Object.assign({},prev,{obAbsorbedConfirmed:confirmed});
         const state=Object.assign({},prev,{obAbsorbedPending:next,obAbsorbedConfirmed:confirmed});
         if(!next.length){obAbsorbedClearNotice(owner);delete state.obAbsorbedIssue;}
         return state;

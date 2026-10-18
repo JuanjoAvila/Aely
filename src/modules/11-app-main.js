@@ -491,7 +491,9 @@ function App(){
     if(readOwner){
       const confirmed=obConfirmedMerge(stateRef.current,null,readOwner);
       if(!confirmed)return Promise.reject(new Error("ob_confirmed_merge"));
-      set(function(prev){return prev._historyOwner===readOwner?Object.assign({},prev,{obAbsorbedConfirmed:confirmed}):prev;});
+      const pending=obAbsorbedMerge(stateRef.current._historyOwner===readOwner?stateRef.current.obAbsorbedPending:[],[],readOwner);
+      if(!pending)return Promise.reject(new Error("ob_absorbed_merge"));
+      set(function(prev){return prev._historyOwner===readOwner?Object.assign({},prev,{obAbsorbedConfirmed:confirmed,obAbsorbedPending:pending}):prev;});
     }
     const ps=++wS.current;
     wR.current=false;
@@ -629,7 +631,7 @@ function App(){
       if(cloudState){
         if(!obConfirmedMerge(stateRef.current,cloudState,u)){obAbsorbedWriteBlocked.current=true;return;}
         const own=stateRef.current._historyOwner===u?stateRef.current.obAbsorbedPending:[];
-        const pending=obAbsorbedJoin(own,cloudState.obAbsorbedPending,u);
+        const pending=obAbsorbedMerge(own,cloudState.obAbsorbedPending,u);
         if(!pending||pending.length&&!obAbsorbedPersist(u,pending)){obAbsorbedWriteBlocked.current=true;return;}
       }
       obAbsorbedWriteBlocked.current=false;
@@ -667,7 +669,7 @@ function App(){
             if(prev.deleted||cloudState.deleted) Object.assign(baseObj, lapidasUnion(prev, cloudState));
             if(prev.reciboBorrado||cloudState.reciboBorrado) Object.assign(baseObj, recibosBorradosUnion(baseObj, prev, cloudState));
           }
-          const pending=obAbsorbedJoin(sameOwner?prev.obAbsorbedPending:[],cloudState.obAbsorbedPending,u);
+          const pending=obAbsorbedMerge(sameOwner?prev.obAbsorbedPending:[],cloudState.obAbsorbedPending,u);
           if(!pending||pending.length&&!obAbsorbedPersist(u,pending)){obAbsorbedWriteBlocked.current=true;return prev;}
           const confirmed=obConfirmedMerge(sameOwner?prev:null,cloudState,u);
           if(!confirmed){obAbsorbedWriteBlocked.current=true;return prev;}
@@ -1137,12 +1139,12 @@ function App(){
         const owner=prev&&prev.user&&prev.user.id;
         if(owner){
           const key=obConfirmedStorageKey(owner);
-          try{obConfirmedStorage().removeItem(key);obConfirmedStorage().removeItem(obAbsorbedStorageKey(owner));}catch(e){}
+          try{obConfirmedStorage().removeItem(key);}catch(e){}
           obConfirmedReadCache.delete(key);obConfirmedBlocked.delete(owner);
           obAbsorbedClearNotice(owner);
         }
         if(prev&&prev.user)goalSyncClear(mcStateKey(),prev.user.id);
-        set(p=>Object.assign({},p,{bankTx:[],_goalSync:null,obAbsorbedPending:[],obAbsorbedConfirmed:[]}));
+        set(p=>{obAbsorbedSignOut(owner,p);return Object.assign({},p,{bankTx:[],_goalSync:null,obAbsorbedPending:[],obAbsorbedConfirmed:[]});});
       }
       // Vuelta del email de recuperación: abre el panel para poner contraseña nueva.
       if(ev==="PASSWORD_RECOVERY"){ setRecovery(true); setShowAuth(true); }

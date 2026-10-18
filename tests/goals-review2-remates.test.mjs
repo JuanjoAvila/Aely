@@ -27,14 +27,14 @@ const seed=()=>({accounts:[{id:"account",value:400}],debts:[{id:"debt",value:100
  goals:[{id:"a",target:1000,saved:0,done:false,doneAt:null},{id:"b",target:1000,saved:200,done:false,doneAt:null}],budget:1000,settings:{reservaRules:[{id:"r",goalId:"a",value:1}],theme:"keep"},reservaLog:[],_savedAt:1,_historyOwner:owner});
 function bank(){
  let now=1000,row={user_id:owner,data:seed(),updated_at:"r0"},conflicts=0;
- const sb={from(){let value,mode="read",where=[];const q={update(v){value=v;mode="update";return q;},upsert(v){value=v;mode="upsert";return q;},eq(k,v){where.push([k,v]);return q;},select(){if(mode==="read")return q;const match=mode==="upsert"||where.every(([k,v])=>row[k]===v);if(match)row=copy(value);else conflicts++;return Promise.resolve({data:match?[{updated_at:row.updated_at}]:[],error:null});},maybeSingle:async()=>({data:copy(row),error:null})};return q;}};
+ const sb={auth:{getSession:async()=>({data:{session:{user:{id:owner}}},error:null})},from(){let value,mode="read",where=[];const q={update(v){value=v;mode="update";return q;},upsert(v){value=v;mode="upsert";return q;},eq(k,v){where.push([k,v]);return q;},select(){if(mode==="read")return q;const match=mode==="upsert"||where.every(([k,v])=>row[k]===v);if(match)row=copy(value);else conflicts++;return Promise.resolve({data:match?[{updated_at:row.updated_at}]:[],error:null});},maybeSingle:async()=>({data:copy(row),error:null})};return q;}};
  function device(){
   const x=logic(),c=x.c;class Clock extends Date{constructor(...a){super(...(a.length?a:[now]));}static now(){return now;}}c.Date=Clock;
   let state=seed();Object.assign(state,c.goalSyncPull(state,copy(state),owner,"r0",false));
-  const deps={stateRef:{current:state},sessionRef:{current:{user:{id:owner}}},cloudUpdatedAtRef:{current:"r0"},pullOkRef:{current:null},uid:owner,useCallback:f=>f,
+  const deps={obAbsorbedWriteBlocked:{current:false},stateRef:{current:state},sessionRef:{current:{user:{id:owner}}},cloudUpdatedAtRef:{current:"r0"},pullOkRef:{current:null},uid:owner,useCallback:f=>f,
    setStateRaw:f=>{state=f(state);deps.stateRef.current=state;},syncCloudExpenses:async()=>{},reservaMensualAlDia:()=>{},showToast:()=>{},mcBootReady:()=>{},t:x=>x,navigator:{onLine:true},reconcileGemelosAutomaticos:x=>x,
    seedFlows:x=>x,fixMovInvasion:x=>x,fixRevoDupes:x=>x,fixInvAuto:x=>x,fixInvSold:x=>x,reconcileTR:x=>x,reconcileEarlyIncomeAnchors:x=>x};
-  deps.cloud=vm.runInContext("(function(sb){return {"+["async pullState(","async pushState("].map(t=>block(core,t)).join(",")+"};})",c)(sb);
+  deps.cloud=vm.runInContext("(function(sb){const statePushCache=new Map();return {"+["async session(","async pullState(","async pushState("].map(t=>block(core,t)).join(",")+"};})",c)(sb);
   const a=app.indexOf("const set=useCallback((updater)=>"),b=app.indexOf("},[]);",a)+"},[]);".length;
   const names=Object.keys(deps),api=vm.runInContext("(function("+names.join(",")+"){"+app.slice(a,b)+block(app,"const pushAppState=function(")+";"+block(app,"const syncFromCloud=function(")+";return {set,push:pushAppState,sync:syncFromCloud};})",c)(...names.map(k=>deps[k]));
   return {...x,state:()=>copy(state),edit:fn=>{now+=1000;api.set(fn);},send:async()=>{now+=1000;const r=await api.push(owner,state);if(r?.conflict){api.sync(deps.sessionRef.current);await deps.pullOkRef.current;}return r;}};

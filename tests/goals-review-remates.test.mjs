@@ -21,7 +21,7 @@ function based(s){return {...copy(s),_goalSync:{owner,base:copy(s.goals),reserve
 function machine(initial,pack){
  const x=logic(),c=x.c;let state=copy(initial),clock=100,resolvePush;const calls=[];
  class Clock extends Date{constructor(...a){super(...(a.length?a:[clock]));}static now(){return clock;}}c.Date=Clock;
- const deps={stateRef:{current:state},sessionRef:{current:{user:{id:owner}}},cloudUpdatedAtRef:{current:"r0"},pullOkRef:{current:null},uid:owner,useCallback:f=>f,
+ const deps={obAbsorbedWriteBlocked:{current:false},stateRef:{current:state},sessionRef:{current:{user:{id:owner}}},cloudUpdatedAtRef:{current:"r0"},pullOkRef:{current:null},uid:owner,useCallback:f=>f,
  setStateRaw:f=>{state=typeof f==="function"?f(state):f;deps.stateRef.current=state;},setSession:()=>{},
  cloud:{pullState:async()=>copy(pack),pushState:(u,s,r)=>{calls.push({u,s:copy(s),r});return new Promise(resolve=>{resolvePush=resolve;});}},
  syncCloudExpenses:async()=>{},reservaMensualAlDia:()=>{},showToast:()=>{},mcBootReady:()=>{},reconcileGemelosAutomaticos:x=>x,
@@ -67,8 +67,8 @@ test("g-M12: ACK real conserva foto enviada mientras se edita durante la peticiÃ
 });
 test("g-M9: contar pushes del efecto real mata el bucle de ACK",async()=>{
  const b=machine(based(seed()),null),c=b.c,refs=[],timers=new Map();let hook=0,effect,next=0;
- const render=vm.runInContext("(function(state,uid,useRef,useEffect,setTimeout,clearTimeout,pushAppState,t,showToast,syncFromCloud,sessionRef){"+b.effectSource+"})",c);
- function frame(){hook=0;render(b.state(),owner,v=>refs[hook++]||(refs[hook-1]={current:v}),(fn,deps)=>{if(!effect||deps.some((v,i)=>v!==effect.deps[i])){if(effect?.clean)effect.clean();effect={deps,clean:fn()};}},fn=>{timers.set(++next,fn);return next;},id=>timers.delete(id),b.pushFunction,x=>x,()=>{},()=>{},b.deps.sessionRef);}
+ const render=vm.runInContext("(function(state,uid,useRef,useEffect,setTimeout,clearTimeout,pushAppState,t,showToast,syncFromCloud,sessionRef,obAbsorbedWriteBlocked){"+b.effectSource+"})",c);
+ function frame(){hook=0;render(b.state(),owner,v=>refs[hook++]||(refs[hook-1]={current:v}),(fn,deps)=>{if(!effect||deps.some((v,i)=>v!==effect.deps[i])){if(effect?.clean)effect.clean();effect={deps,clean:fn()};}},fn=>{timers.set(++next,fn);return next;},id=>timers.delete(id),b.pushFunction,x=>x,()=>{},()=>{},b.deps.sessionRef,b.deps.obAbsorbedWriteBlocked);}
  frame();for(let i=0;i<4;i++){if(!timers.size)break;const [id,fn]=timers.entries().next().value;timers.delete(id);fn();b.ack();for(let j=0;j<12;j++)await Promise.resolve();frame();}
  assert.equal(b.calls.length,1);assert.equal(timers.size,0);
 });

@@ -116,6 +116,54 @@ test('FIN17R F3 registro compacto reduce bytes conservando identidad',()=>{
  const raw=a.storage.getItem(a.c.obConfirmedStorageKey(uid));assert.ok(Buffer.byteLength(raw)<before*0.8,'reduccion minima20porciento con fixture identica');
  const restored=a.c.obConfirmedRead(uid);assert.equal(restored.length,1000);assert.equal(a.c.obConfirmedMatches({...booked,extId:'confirmed-1'},restored,uid),true);assert.equal(a.c.obConfirmedMatches({...booked,extId:'other'},restored,uid),false);
 });
+function signOut(e){
+ let fire;e.sdk.auth.onAuthStateChange=fn=>{fire=fn;return{data:{subscription:{unsubscribe(){}}}};};
+ const source=read('src/modules/11-app-main.js'),start=source.indexOf('    const off=cloud.onAuth((s,ev)=>{'),end=source.indexOf('\n    return ()=>{ alive=false;',start);assert.ok(start>=0&&end>start);
+ const factory=vm.runInContext('(function(state,session){let alive=true;const stateRef={current:state},sessionRef={current:session};const set=fn=>stateRef.current=fn(stateRef.current);const setSession=()=>{},setRecovery=()=>{},setShowAuth=()=>{},syncFromCloud=()=>{};'+source.slice(start,end)+'return ()=>stateRef.current;})',e.c);
+ const state=factory(e.state,{user:{id:e.owner}});fire('SIGNED_OUT',null);e.state=state();
+}
+const idsKey=e=>'micartera_v3_obabs_ids_'+encodeURIComponent(e.owner);
+test('FIN17S F5 cierre conserva intencion sin ACK solo con identificadores y vuelta del titular reintenta',async()=>{
+ const {a,db}=make();a.stage();db.failDelete=true;await a.drain();const intent=a.state.obAbsorbedPending[0];
+ signOut(a);const raw=a.storage.getItem(idsKey(a));assert.ok(raw,'SIGNED_OUT conserva intencion sin ACK');
+ const pack=JSON.parse(raw);assert.equal(pack.owner,uid);assert.equal(pack.pending.length,1);
+ assert.deepEqual(Object.keys(pack.pending[0]).sort(),['id','idsOnly','keepId','keepKey','keepRefKey','key','owner'].sort(),'solo identificadores y discriminador');
+ assert.equal(raw.includes(booked.merchant),false);assert.equal(Object.hasOwn(pack.pending[0],'amount'),false);
+ assert.equal(pack.pending[0].id,intent.id);assert.equal(a.state.obAbsorbedPending.length,0);
+ assert.equal(a.storage.getItem(a.c.obAbsorbedStorageKey(uid)),null);
+ db.failDelete=false;await a.drain();assert.equal(a.state.obAbsorbedPending.length,0);assert.equal(a.state.obAbsorbedConfirmed.length,1);
+ assert.deepEqual(db.rows.map(r=>r.id),[pending.id]);assert.equal(a.storage.getItem(idsKey(a)),null,'solo ACK durable consume identificadores');assert.equal(a.spent(),320);
+});
+test('FIN17S F5 otro titular y reapertura no consumen intencion; fallo y testigo cambiado conservan IDs',async()=>{
+ const {a,db}=make();a.stage();signOut(a);const key=idsKey(a),raw=a.storage.getItem(key);assert.ok(raw,'intencion conservada');
+ const b=client(db,'reopened',{...seed(),_historyOwner:'synthetic-owner-b',expenses:[]});a.storage.map.forEach((v,k)=>b.storage.setItem(k,v));b.owner='synthetic-owner-b';
+ await b.drain();signOut(b);assert.equal(b.storage.getItem(key),raw);assert.equal(db.queries.filter(q=>q.op==='delete').length,0);
+ b.owner=uid;b.state={...seed(),expenses:[{...kept}],obAbsorbedPending:[]};db.failDelete=true;await b.drain();assert.equal(b.state.obAbsorbedPending.length,1);assert.equal(b.storage.getItem(key),raw);
+ db.failDelete=false;db.rows[0].source='manual';await b.drain();assert.equal(b.state.obAbsorbedPending.length,1,'testigo cambiado no autoriza borrado');assert.equal(db.rows.length,2);
+ db.rows[0]=b.wire(pending);await b.drain();assert.equal(b.state.obAbsorbedPending.length,0);assert.equal(b.storage.getItem(key),null);assert.deepEqual(db.rows.map(r=>r.id),[pending.id]);
+});
+test('FIN17S F5 readback fallido no destruye la intencion anterior',()=>{
+ const {a}=make();a.stage();const key=a.c.obAbsorbedStorageKey(uid),before=a.storage.getItem(key),write=a.storage.setItem;
+ a.storage.setItem=(k,v)=>{if(k.includes('_obabs_ids_'))throw Error('synthetic quota');return write(k,v);};signOut(a);
+ assert.equal(a.storage.getItem(key),before,'fallo durable retiene cola anterior');
+});
+test('FIN17S F5 pull real restaura IDs y un ACK no retira otra intencion',async()=>{
+ const {a,db}=make();a.stage();const first=a.state.obAbsorbedPending[0],second={...first,id:uuid(8),key:a.c.obAbsorptionKey({...booked,id:uuid(8),extId:'another-booked'})};
+ a.state.obAbsorbedPending.push(second);assert.equal(a.c.obAbsorbedPersist(uid,a.state.obAbsorbedPending),true);signOut(a);
+ const b=client(db,'reopen-pull',{...seed(),expenses:[],obAbsorbedPending:[]});a.storage.map.forEach((v,k)=>b.storage.setItem(k,v));
+ db.appState={data:{...seed(),expenses:[{...kept}],obAbsorbedPending:[],_savedAt:1},updated_at:'round2-pull'};await b.pull();
+ assert.equal(b.state.obAbsorbedPending.length,2,'pull anterior a reintento protege ambos IDs');
+ db.rows.push({...b.wire({...booked,id:uuid(8),extId:'another-booked'}),comercio:'Changed synthetic merchant'});
+ await b.drain();assert.deepEqual(Array.from(b.state.obAbsorbedPending,p=>p.id),[second.id]);
+ assert.deepEqual(JSON.parse(b.storage.getItem(idsKey(b))).pending.map(p=>p.id),[second.id]);
+ assert.equal(b.state.obAbsorbedConfirmed.length,1);assert.equal(db.rows.some(r=>r.id===second.id),true,'fila cambiada intacta');
+});
+test('FIN17S F5 sync restaura IDs antes de backfill incluso sin pull general',async()=>{
+ const {a,db}=make();a.stage();a.prune();signOut(a);a.state.expenses=[{...kept},{...booked}];db.rows=[a.wire(pending)];db.failDelete=true;
+ await a.sync();assert.equal(db.queries.filter(q=>q.op==='upsert').length,0,'IDs conservados protegen backfill antes del reintento');assert.equal(a.spent(),320);
+ assert.equal(db.rows.some(r=>r.id===booked.id),false);
+});
+
 test('FIN17R F5 SIGNED_OUT elimina solo particiones salientes',()=>{
  const {a}=make();a.stage();a.c.obConfirmedPersist(uid,[record(a)]);const other='synthetic-other-owner';
  const ownKeys=[a.c.obConfirmedStorageKey(uid),a.c.obAbsorbedStorageKey(uid)],otherKeys=[a.c.obConfirmedStorageKey(other),a.c.obAbsorbedStorageKey(other)];otherKeys.forEach(k=>a.storage.setItem(k,'synthetic-other-unchanged'));

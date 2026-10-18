@@ -67,7 +67,7 @@ function cloudOn(env,ctx=c,source=html){
  const a=source.indexOf('const cloud = (function(){'),b=source.indexOf('\n})();',a),start=source.indexOf('  return {',a);
  assert.ok(a>=0&&b>start&&start>a);
  const db={...env.db,auth:{getSession:async()=>({data:{session:{user:{id:"user"}}}})}};
- return vm.runInContext('(function(sb){'+source.slice(start,b)+'})',ctx)(db);
+ return vm.runInContext('(function(sb){const statePushCache=new Map();'+source.slice(start,b)+'})',ctx)(db);
 }
 const committed=(s,feed,ctx=c,source=html)=>bank.updater(source,feed,s,ctx,true).state;
 const serverCents=(env,s)=>server.filasComoLaApp(env.rows,s.deleted,s.obAbsorbedPending,s._historyOwner).filter(row=>server.cuentaParaPresupuesto(row,server.bancosDeGastoDiario(s))).reduce((n,row)=>n+Math.round(Number(row.importe)*100),0);
