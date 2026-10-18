@@ -1,0 +1,67 @@
+{
+  "status": "blocked",
+  "released": true,
+  "productSHA": "09ccd8ad8b3b454607b456c4a8948079d54b79c2",
+  "baseSHA": "ff53b0e7243fe79f9164bbc1bcf2313fb2e28d13",
+  "PR": 279,
+  "draft": true,
+  "productReady": false,
+  "realIncidentClosed": false,
+  "manifestSHA256": "6db15f015288972122a5f3d317ed86da3bb5b2d233817c70fda6d438a36c3c39",
+  "checkpointSHA256": "4cf2fab44b8fc1a7c8c1cb9710b6231a9fd984dc24ae6f7cfebfa9a0348ed1da",
+  "tests": [
+    {
+      "name": "R3 RED actualbase",
+      "exitCode": 1,
+      "passed": 5,
+      "failed": 6
+    },
+    {
+      "name": "identity",
+      "exitCode": 0,
+      "passed": 32,
+      "newCases": 11
+    },
+    {
+      "name": "phases",
+      "exitCode": 0,
+      "passed": 27
+    },
+    {
+      "name": "directedmutants",
+      "driverExit": 0,
+      "exitCodes": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "name": "syntax privacy diff",
+      "exitCode": 0
+    },
+    {
+      "name": "size/docs/catalog",
+      "exitCodes": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "name": "priorRound2DownloadDOMFinancial",
+      "rerun": false,
+      "provenanceOnly": true
+    }
+  ],
+  "summary": "PR279 ronda3 HEAD09ccd8ad8b3b454607b456c4a8948079d54b79c2 desde78fc5343, baseff53. Unico remateUNAmanualsinvinculo+variaslibres: primeraalaprincipal/restoextras, manual50 banco70+30=10000c viejo/nuevoservidor frenteRED5000c. BundlebaseREAL. IBANexactomanda; UIDprevio/variasprincipales conservan restriccion. Solo4rutas08/public/testexistente/brief; servidorACKauthtelemetria/versioncatalogocaps intactos. RED5PASS6FAIL; GREEN32identidad(11nuevos)+27fasesEXIT0,6mutantesmuertosEXIT1,syntaxprivacydiffEXIT0. Tamaño1330/1328/docsPOSTcommit/catalog10 EXIT1 visibles. Ronda2b616a7b6 procedencia51download17mutantes2DOM775extractos60Recibos, no rerunDOM/general/CPU6GradleAPK. CI/revisionClaude/integracion/servido/movil pendientes. Push0, PRdraftbaseheadbody/remoto exactos clean,4delta/20fuentes verificadas. Claim445740905 ACK1d86b781 ownexactos. OWNblock4 antesresult7/20total49, readbackprevisto8/20total50; intervalosblock4>=30s, infraccionprevia40a41=22.729249 preservada; guardprepush bloqueo intento temprano sinpush/fetch. Sin reset/proxy/otroschats/deploy/merge/live/SQL/Edge. Manifest/checkpoint sellados, blockedreleased nueva revision ySTOP, UX03/09 no asumidos.",
+  "nextAction": "STOP after exact canonical readback.",
+  "schema": 1,
+  "taskId": "h2-pr279-round3-new-bank-multiaccount-codex-20261018",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-5fc9afdec60f82b1",
+  "createdAt": "2026-10-18T13:18:27.931Z"
+}
