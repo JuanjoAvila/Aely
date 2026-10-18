@@ -1,0 +1,46 @@
+{
+  "schema": 1,
+  "id": "fin17-pr267-independent-review-remates-codex-20261018",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261018-r62-nhwptcrmlpybdqcw",
+  "createdAt": "2026-10-18T00:38:42.834Z",
+  "to": "codex",
+  "baseSHA": "5fb637621eb0f7194cc3c9c62b711dcc927df026",
+  "objective": "FIN17 PR267 NO-GO independiente: remates F1-F5 admitidos porClaude1e5c59d3,con Astra,misma PR y titular.",
+  "scope": [
+    "src/modules/00-core.js",
+    "src/modules/01-i18n.js",
+    "src/modules/11-app-main.js",
+    "src/modules/10-app-components.js",
+    "src/modules/08-motor-bank.js",
+    "supabase/functions/_shared/presupuesto.ts",
+    "supabase/functions",
+    "tests/fin17-confirmed-absorptions.test.mjs",
+    "e2e/fin17-confirmed-absorptions.spec.mjs",
+    "scripts/run-tests.mjs",
+    "scripts/relevant-tests.mjs",
+    "docs/briefs"
+  ],
+  "claudeGrant": "1e5c59d375d5750b1c2b79be8a6354e1b771046f",
+  "moneyModelGrant": "1695316a112f1e4689d82427d1c31d65eb20a526",
+  "model": "gpt-6-astra",
+  "modelReason": "Ordenexpresa de dinero,Astra;revisionindependiente con Astra exige correccion financiera",
+  "sameOriginalHolder": "codex-local-20261017-fcf546f25c8b1b50",
+  "previousTaskId": "fin17-book-resurrection-after-ack-codex-20261017",
+  "previousResult": "c011954685e2dbb07b0be78d890a50d1e265f0ab",
+  "PR": 267,
+  "requirements": [
+    "F1 union aplica expulsion solo por capacidad y estrictamente>90dias;si aun supera1000 recientes,conservarTODAS con telemetria,sin truncar,devolvernull ni bloquear sincronizacion o altas ajenas",
+    "F2 aviso local una vez por incidencia y movil;limpiar al resolver cola;no bandera permanente enviada a nube",
+    "F3 forma compacta con clavehash corta por entrada,solo reescribir/enviar cuando cambia;medirbytes/escrituras/envios A-B sin CPU6;preservar identidad exactaFIN10 y colisiones seguras",
+    "F4 matarM9,M11,M12 de sondaindependiente:obtener fuente exacta y hash,NO inventar su significado",
+    "F5 SIGNED_OUT limpia particiones registroconfirmado y FIN11 del owner saliente sin tocar otrosowners"
+  ],
+  "constraints": [
+    "NuevoOWNclaim/readback/ACK,fuente5fb y resultados anteriores inmutables;checkout propio aislado",
+    "CausalRED primero por remate,controles y focalGREEN exactos;no repetir suites anteriores noafectadas",
+    "MismaPR267 por pushnormal descendiente tras remoteheadexact5fb;sincrearotraPR;resultpropio blocked/released y checkpointmanifest final,STOP",
+    "OWNblock4 continua5de12;no reset/herenciaROOT,+12soloagotamiento realaviso/readback",
+    "Dirigidos1worker0retry/spec/puertopropio;sin suiteentera,CPU6,Gradle,SQLvivo,bancos,Edge/deploy/merge,VERSION/catalogo/caps/oraculosajenos"
+  ]
+}
