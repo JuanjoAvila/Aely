@@ -1,0 +1,270 @@
+{
+  "status": "blocked",
+  "summary": "Night H historical identity delivered DRAFT PR275 beta, headdd77f859dd2203c957d0faafc71a1a867e3904ec, baseff53b0e7. Two distinct BOOK refs retain2500c not1250 through selection/import/re-read/existing cloud; truncated and partial selection,accounts,incomes,legacy,PDNG ambiguity,tombstones covered. Focal13UTC+13Madrid and63 existing controls EXIT0; seven semantic mutants EXIT1 killed. Initial harness uid failure and initial deletion mutant survivor preserved; corrected harness and stronger truncated fixture, no oracle weakening. Build/syntax/registry/privacy/security/diff EXIT0. Size/docs-frescura EXIT1; beta-sources interrupted after source change,real child EXIT4294967295,not final-source validation. VERSION/catalogue/caps/CLOUD_WRITES unchanged; no server fix. Balance503 remains separate RED/proposal. No real incident attribution/recovery, generalCI/DOM/CPU6/APK/served/mobile/live/deploy/merge; review/integration pending,not ProductREADY. OWN10 frozen10/10; additional12 before result8/12,total18; allreadbacks count,noreset. Original helper/filter unchanged. Own result blocked/released and STOP.",
+  "productSHA": "dd77f859dd2203c957d0faafc71a1a867e3904ec",
+  "baseSHA": "ff53b0e7243fe79f9164bbc1bcf2313fb2e28d13",
+  "pr": 275,
+  "draft": true,
+  "productReady": false,
+  "manifest": {
+    "path": "outputs/manifiesto-night-h-identidad-historica.json",
+    "bytes": 44220,
+    "sha256": "339a5401770e0c17489bd476134d0a8de864f385c2fced09b944c3f456575ee0"
+  },
+  "checkpoint": {
+    "path": "outputs/checkpoint-night-h-identidad-candidato.json",
+    "bytes": 991,
+    "sha256": "6f797099cff67dd1e44ee12b95d08d95c4ad344c67773ce69744a8dd37b5f773"
+  },
+  "tests": [
+    {
+      "name": "history-beta-sources",
+      "exitCode": 4294967295
+    },
+    {
+      "name": "history-boundary-red",
+      "exitCode": 1
+    },
+    {
+      "name": "history-build-1",
+      "exitCode": 0
+    },
+    {
+      "name": "history-build-2",
+      "exitCode": 0
+    },
+    {
+      "name": "history-build-final",
+      "exitCode": 0
+    },
+    {
+      "name": "history-date-window-controls",
+      "exitCode": 0
+    },
+    {
+      "name": "history-deleted-truncated-green",
+      "exitCode": 0
+    },
+    {
+      "name": "history-diff-check",
+      "exitCode": 0
+    },
+    {
+      "name": "history-docs-committed",
+      "exitCode": 1
+    },
+    {
+      "name": "history-docs",
+      "exitCode": 0
+    },
+    {
+      "name": "history-downstream-red-fixed",
+      "exitCode": 1
+    },
+    {
+      "name": "history-downstream-red",
+      "exitCode": 1
+    },
+    {
+      "name": "history-final-utc",
+      "exitCode": 0
+    },
+    {
+      "name": "history-focal-1",
+      "exitCode": 0
+    },
+    {
+      "name": "history-focal-2",
+      "exitCode": 0
+    },
+    {
+      "name": "history-focal-final",
+      "exitCode": 0
+    },
+    {
+      "name": "history-import-controls",
+      "exitCode": 0
+    },
+    {
+      "name": "history-local-day-controls",
+      "exitCode": 0
+    },
+    {
+      "name": "history-madrid-final-source",
+      "exitCode": 0
+    },
+    {
+      "name": "history-madrid",
+      "exitCode": 0
+    },
+    {
+      "name": "history-mutant-absorption",
+      "exitCode": 1
+    },
+    {
+      "name": "history-mutant-collapse",
+      "exitCode": 1
+    },
+    {
+      "name": "history-mutant-content",
+      "exitCode": 1
+    },
+    {
+      "name": "history-mutant-deleted-truncated",
+      "exitCode": 1
+    },
+    {
+      "name": "history-mutant-deleted",
+      "exitCode": 0
+    },
+    {
+      "name": "history-mutant-final-absorption",
+      "exitCode": 1
+    },
+    {
+      "name": "history-mutant-final-bookpriority",
+      "exitCode": 1
+    },
+    {
+      "name": "history-mutant-final-collapse",
+      "exitCode": 1
+    },
+    {
+      "name": "history-mutant-final-content",
+      "exitCode": 1
+    },
+    {
+      "name": "history-mutant-final-deleted",
+      "exitCode": 1
+    },
+    {
+      "name": "history-mutant-final-income",
+      "exitCode": 1
+    },
+    {
+      "name": "history-mutant-final-ordinal",
+      "exitCode": 1
+    },
+    {
+      "name": "history-mutant-income",
+      "exitCode": 1
+    },
+    {
+      "name": "history-mutant-ordinal",
+      "exitCode": 1
+    },
+    {
+      "name": "history-pr-create",
+      "exitCode": 0
+    },
+    {
+      "name": "history-pr-readback",
+      "exitCode": 0
+    },
+    {
+      "name": "history-privacy",
+      "exitCode": 0
+    },
+    {
+      "name": "history-product-push-final",
+      "exitCode": 0
+    },
+    {
+      "name": "history-product-push",
+      "exitCode": 0
+    },
+    {
+      "name": "history-product-readback",
+      "exitCode": 0
+    },
+    {
+      "name": "history-registry",
+      "exitCode": 0
+    },
+    {
+      "name": "history-remote-pr-existing",
+      "exitCode": 0
+    },
+    {
+      "name": "history-security",
+      "exitCode": 0
+    },
+    {
+      "name": "history-size-final-source",
+      "exitCode": 1
+    },
+    {
+      "name": "history-size",
+      "exitCode": 1
+    },
+    {
+      "name": "history-status-order-red",
+      "exitCode": 1
+    },
+    {
+      "name": "history-syntax-final-source",
+      "exitCode": 0
+    },
+    {
+      "name": "history-syntax",
+      "exitCode": 0
+    },
+    {
+      "name": "history-uniq-controls",
+      "exitCode": 0
+    },
+    {
+      "name": "history-uniq-final-source",
+      "exitCode": 0
+    },
+    {
+      "name": "history-utc-final-source",
+      "exitCode": 0
+    }
+  ],
+  "limitations": [
+    "Synthetic mechanism only; no attribution or recovery of the real CaixaBank incident.",
+    "Size and committed docs-frescura fail; beta-sources outcome retained separately.",
+    "No full/general suite or CI verification, DOM/E2E, CPU6, Gradle/APK, served/mobile acceptance.",
+    "No SQLlive, banks, Edge, deployment or merge.",
+    "Balance/transactions decoupling remains prior RED/proposal, no server fix.",
+    "VERSION/catalogue/caps/CLOUD_WRITES/foreign oracles unchanged; build receipt restored byte-exact to base.",
+    "Private baseline probe remains untracked in the isolated clone; preserved as evidence, not delivered product."
+  ],
+  "sourceQualification": {
+    "finalBundleSHA256": "b17918ce828dc5ecf732d7fa0c2465d9c03c16cbda9cddb27f5490b83859444d",
+    "finalFocal": [
+      "history-utc-final-source",
+      "history-madrid-final-source"
+    ],
+    "finalMutants": 7,
+    "finalGroupingControl": "history-uniq-final-source",
+    "finalSyntax": "history-syntax-final-source",
+    "finalSize": "history-size-final-source",
+    "unchangedFunctionControls": [
+      "history-import-controls",
+      "history-local-day-controls",
+      "history-date-window-controls"
+    ],
+    "docsFailedAt": "91e819bdcebfea511287e05dfa541ce7c3e54d8f",
+    "betaSources": "Interrupted after source changed; no final-source qualification; real child EXIT4294967295, wrapper EXIT1."
+  },
+  "fetchBudgetAtPublication": {
+    "original10Used": 10,
+    "additional12Used": 8,
+    "remaining": 4,
+    "total": 18,
+    "readbackAlsoCounts": true
+  },
+  "encodingHelperCorrection": {
+    "path": "work/night-h/history-delivery-encoding-failure.json",
+    "bytes": 310,
+    "sha256": "f7c5546a4a2f35942d4fbfa859904aa961061c87b11ebb0f9bb34ba8e6990043"
+  },
+  "schema": 1,
+  "taskId": "night-h-caixabank-missing-charges-codex-20261018",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-5fc9afdec60f82b1",
+  "createdAt": "2026-10-18T09:56:09.603Z",
+  "released": true
+}
