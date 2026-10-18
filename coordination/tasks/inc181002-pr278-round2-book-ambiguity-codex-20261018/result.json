@@ -1,0 +1,60 @@
+{
+  "status": "blocked",
+  "productSHA": "b9bc6f871b5c6d43be58352dffd91ae06bcfb1a5",
+  "parentSHA": "7796389b695c81d483b9f179800354df062ba4dc",
+  "baseSHA": "ff53b0e7243fe79f9164bbc1bcf2313fb2e28d13",
+  "PR": 278,
+  "draft": true,
+  "productReady": false,
+  "realIncidentClosed": false,
+  "previousResult": "171bbc6e819067b1dfb26f70739a3f6fbc81c797",
+  "manifestSHA256": "ede4cb8184ca1281b5127b1642acb953ba2a5af8942f7ec976c931a2372f5bff",
+  "checkpointSHA256": "9bb0b9b6c26505deab870fb3c6d2864263e2d43bbee337cc9cdf1a2c23753f06",
+  "tests": [
+    {
+      "name": "New BOOK rival causal RED",
+      "exitCode": 1,
+      "failed": 4,
+      "passed": 6
+    },
+    {
+      "name": "Additional occurrence guard RED preserved",
+      "exitCode": 1,
+      "failed": 1,
+      "passed": 10
+    },
+    {
+      "name": "Final directed Node",
+      "exitCode": 0,
+      "passed": 11,
+      "failed": 0
+    },
+    {
+      "name": "Six new semantic mutants",
+      "exitCodes": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "name": "Source syntax, registration, scope and Git LF parity",
+      "exitCode": 0
+    },
+    {
+      "name": "Prior144Node5DOM8mutants and reviewer157E2E",
+      "executedThisRound": false,
+      "qualifiesFinalSHA": false
+    }
+  ],
+  "summary": "PR278 ronda 2 entregada en la misma rama, fuente b9bc6f871b5c6d43be58352dffd91ae06bcfb1a5 sobre7796389b. ROJO exacto: r1 BOOK v2 renombrado IBI y r2 con el nombre original daban pendiente/pagado y transferian la prueba. Ahora ambos pendientes; reconcile conserva la misma referencia de estado y no escribe prueba en r2. fixedPaymentState rama TX y fixedPaymentAutoOwner consideran el receiptName de otro BOOK v2 del mismo mes e identidad. Id unico, contrato, banco, ocurrencia y veto acotan la reserva. Rama expense byteidentica; cargos, referencias, cuentas, fechas y centimos intactos. GREEN nuevo11 EXIT0; seis mutantes nuevos rechazados EXIT1. Control adicional de recibo fuera de mes dio EXIT1, corregido con occursIn y preservado. Sintaxis fuente, registro, scope, diff y paridad Git LF verificados. Push normal EXIT0, PR draftbeta y head/body exactos. NO builds: public conserva7796389b y requiere regeneracion al integrar. No repetidos144Node/5DOM/8mutantes propios ni157E2E de revision: solo procedencia anterior, no validacion de esteSHA. Revision independiente, integracion, gates generales, CI, servido y movil pendientes. Sin backend/auth/CLOUD_WRITES/SQL/Edge/VERSION/catalogo/caps/fullsuiteCPU6GradleAPK/deploy/merge ni otras PR. Notas legacy/sync/etiqueta quedan a Claude. Helper OWN4e354b40 y filtro originales intactos. Anterior20 agotado y congelado junto a10+12+12; siguienteOWN20 usado7 antesresultado, internos/readbacks cuentan y minimo30s. Manifiesto ede4cb8184ca1281b5127b1642acb953ba2a5af8942f7ec976c931a2372f5bff; checkpoint 9bb0b9b6c26505deab870fb3c6d2864263e2d43bbee337cc9cdf1a2c23753f06. Resultado propio blocked/released y STOP; H2 no asumido.",
+  "schema": 1,
+  "taskId": "inc181002-pr278-round2-book-ambiguity-codex-20261018",
+  "actor": "codex",
+  "sessionId": "codex-local-20261014-43c0a0c94700",
+  "createdAt": "2026-10-18T11:46:57.713Z",
+  "released": true
+}
