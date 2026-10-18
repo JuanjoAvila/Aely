@@ -1,0 +1,29 @@
+{
+  "schema": 1,
+  "id": "night-b-debt-term-warning-codex-20261018",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261018-r62-nhwptcrmlpybdqcw",
+  "createdAt": "2026-10-18T00:36:54.851Z",
+  "to": "codex",
+  "baseSHA": "503d23267091eb5aa0b0e37dd94fac20ea37bd08",
+  "objective": "Deudas:cambiar solo saldo o dia desplaza el plazo sin avisar. Reproducir,oraculo de dinero exacto y proponer aviso visible o confirmacion. ConsultarClaude antes de producto.",
+  "scope": [
+    "src/modules/09-tab-debts-goals.js",
+    "e2e",
+    "tests",
+    "docs/briefs"
+  ],
+  "claudeGrant": "ee788a05f3e02cc1dc574704273b713c543d5d69",
+  "moneyModelGrant": "1695316a112f1e4689d82427d1c31d65eb20a526",
+  "model": "gpt-6-astra",
+  "modelReason": "Ordenexpresa reportadaClaude:modelomaspotente para dinero",
+  "phase": "INVESTIGATION_CAUSAL_RED_PROPOSAL_ONLY_NO_PRODUCT",
+  "constraints": [
+    "Originalhelper/filtro e identidadOWN;taskcanonico exacto,OWNclaim/readback/ACK antes de codigo o pruebas. Censo/runtime/checkoutpropios y aislados;preservar todo trabajo previo.",
+    "Solo base exacta503d2326;141 solo si Claude publica y su fuente exacta se verifica,no adoptar rama por nombre. Dinero usa Astra por1695316a.",
+    "Investigacion y causalRED con fixtures sinteticas;consulta previa de dinero oservidor. Nunca cambiar producto para hacer pasar evidencia antes de ClaudeGO.",
+    "E2E dirigidos1worker0retries con spec/puertopropio;stopprimerfallo inesperado. No suiteentera,CPU6,Gradle,APK,SQLvivo,deploy,merge ni bancosreales.",
+    "No VERSION/catalogo/caps/oraculosajenos. No repetir pruebas ya terminadas. Result propio blocked/released si solo falta integracion,PRborradorbeta cuandoproducto listo trasGO;manifestevidencia/EXITS/hash,STOP.",
+    "OWN10 por concesion loteee788a05;bloquesprevios sinreset niherencia. +12 solo tras agotamiento real y aviso/readbackOWN bajo regla permanente. Todos fetch internos/readbacks cuentan."
+  ]
+}
