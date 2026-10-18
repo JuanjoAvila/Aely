@@ -1,0 +1,95 @@
+{
+  "status": "done",
+  "summary": "Night J docs-only: Estado vivo refreshed to18Oct,technical closures separated from pending alignment/integration/served/mobile. PR270 DRAFT againstbeta,head/base/body exact;only live section changed,history exact.No product tests or product edits.",
+  "baseSHA": "ff53b0e7243fe79f9164bbc1bcf2313fb2e28d13",
+  "productSHA": "7a2d50dc22c505451b6beed9938abd9f91140517",
+  "pullRequestNumber": 270,
+  "branch": "codex/night-j-backlog-live-20261018",
+  "productReady": false,
+  "scope": [
+    "docs/BACKLOG.md Estado vivo"
+  ],
+  "tests": [],
+  "checks": [
+    {
+      "command": "git diff --check base head",
+      "exitCode": 0
+    },
+    {
+      "command": "git diff --name-only base head",
+      "exitCode": 0,
+      "result": "docs/BACKLOG.md only"
+    },
+    {
+      "command": "Git historical suffix byte comparison",
+      "exitCode": 0,
+      "exact": true
+    },
+    {
+      "command": "gh API branch and PR head/base/draft/body readbacks",
+      "exitCode": 0,
+      "exact": true
+    }
+  ],
+  "docSHA256": "1068a9817156a441a76d20a96a6b7c9cc3c701df83b53854cf975b580dc58192",
+  "historicalSuffixSHA256": "6debe63cf04545312b4a9461aed48b9711938f3bece5d38fa36e17dbf4595ace",
+  "manifestSHA256": "5b7debf4db5445bf49afa1012b35d42bcaf2a2708927d2c11cf272bf63a1f68d",
+  "fetchBudget": {
+    "idbudget": "night-j-own10-ee788a05",
+    "allowance": 10,
+    "usedBeforeResult": 5,
+    "separateFromOld10of12": true,
+    "noROOTInheritance": true,
+    "usedBeforeFirstPush": 4
+  },
+  "closedTechnical": [
+    "FIN10",
+    "FIN11",
+    "SEC01",
+    "SEC02",
+    "SEC03",
+    "OPS08 refreshCAS",
+    "UX13",
+    "UX16",
+    "UX290904",
+    "INC0410",
+    "INC1710 core"
+  ],
+  "open": [
+    "FIN17 NO-GO/remates",
+    "FIN18 owner decision/schema",
+    "FIN03 parked",
+    "PRO09 design"
+  ],
+  "deliveryReservations": [
+    "FIN11 PR266 GO but pending141alignment/integration",
+    "INC1710 coreGO;PR265 reload notice remate still active",
+    "PR268 draft independent review,noGOclaimed",
+    "No ROOTserved141 or physical mobile acceptance",
+    "OPS08 refresh closure does not certify historical rate_limits purge automation"
+  ],
+  "artifacts": [
+    "outputs/night-j-manifest.json"
+  ],
+  "limitations": [
+    "Docs snapshot and separate draftPR only;Claude review/integration pending.",
+    "No product tests/builds,VERSION,catalogue,caps,release notes,code,SQL,banks,Edge,CPU6,Gradle,APK,merge,deploy,branch deletion or PR closures.",
+    "OldUX11/UX14 WIP,claims/results,CPU6 reservations and10of12 ledger preserved; no prior task resumed."
+  ],
+  "publicationRace": {
+    "firstPushExitCode": 1,
+    "reason": "non-fast-forward",
+    "freshFullRawRead": true,
+    "retry": 1,
+    "pauseMs": 30000,
+    "authority": "5997e0b4ce30821b47bdda19729e4354047884f1",
+    "sameTaskSessionHelper": true,
+    "force": false
+  },
+  "schema": 1,
+  "taskId": "night-j-backlog-live-status-codex-20261018",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-82dbe59f3ee831da",
+  "createdAt": "2026-10-18T01:17:20.569Z",
+  "released": true
+}
