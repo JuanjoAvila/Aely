@@ -1,0 +1,199 @@
+{
+  "status": "blocked",
+  "summary": "Night C: compra y devolucion con referencia bancaria compartida conservadas por polaridad. Candidata focal verificada; integracion bloqueada por gates documentados. PR borrador contra beta; no ProductREADY.",
+  "productSHA": "07b080d915b142e3216c97aa3807d38951603bf9",
+  "baseSHA": "ff53b0e7243fe79f9164bbc1bcf2313fb2e28d13",
+  "originalClaimBase": "503d23267091eb5aa0b0e37dd94fac20ea37bd08",
+  "claimCommit": "c1f58bdaafe8b87deab1e43c1567d5465b84cfb9",
+  "ackCommit": "437191617ff3e95f909e70cd0a09fecb552c2cc3",
+  "contractGrant": "6c965ff8649568ededca6ae765c4e3cbd0f8dacf",
+  "pr": 272,
+  "prBase": "beta",
+  "prDraft": true,
+  "brief": "docs/briefs/night-c-refund-polarity-20261018.md",
+  "coverage": {
+    "ownDistinctCases": 119,
+    "ownMutants": 12,
+    "financialMatrix": 60,
+    "controls": 27,
+    "fin10fin15DistinctCases": 55,
+    "domDistinctCases": 4,
+    "noteAndRenameRegressionFiles": 2,
+    "comprasDistinctCases": 32
+  },
+  "tests": [
+    {
+      "name": "night-c-boundaries",
+      "exitCode": 0
+    },
+    {
+      "name": "night-c-build",
+      "exitCode": 0
+    },
+    {
+      "name": "night-c-compras-anchors-aligned",
+      "exitCode": 0
+    },
+    {
+      "name": "night-c-controls",
+      "exitCode": 0
+    },
+    {
+      "name": "night-c-delete-mutants-metadata",
+      "exitCode": 0
+    },
+    {
+      "name": "night-c-deno-check",
+      "exitCode": 0
+    },
+    {
+      "name": "night-c-dom",
+      "exitCode": 1
+    },
+    {
+      "name": "night-c-dom-settings-fixed",
+      "exitCode": 0
+    },
+    {
+      "name": "night-c-extra-red",
+      "exitCode": 1
+    },
+    {
+      "name": "night-c-fin10-fin15-regression",
+      "exitCode": 1
+    },
+    {
+      "name": "night-c-green-clock-fixed",
+      "exitCode": 0
+    },
+    {
+      "name": "night-c-green-first",
+      "exitCode": 1
+    },
+    {
+      "name": "night-c-guardians-aligned",
+      "exitCode": 0
+    },
+    {
+      "name": "night-c-integration-guards",
+      "exitCode": 1
+    },
+    {
+      "name": "night-c-new-controls-mutants",
+      "exitCode": 0
+    },
+    {
+      "name": "night-c-note-account-regression",
+      "exitCode": 0
+    },
+    {
+      "name": "night-c-privacy",
+      "exitCode": 0
+    },
+    {
+      "name": "night-c-red",
+      "exitCode": 1
+    },
+    {
+      "name": "night-c-registration",
+      "exitCode": 0
+    },
+    {
+      "name": "night-c-size",
+      "exitCode": 1
+    },
+    {
+      "name": "night-c-syntax",
+      "exitCode": 0
+    },
+    {
+      "name": "night-c-docs-committed",
+      "exitCode": 1
+    }
+  ],
+  "validationNote": "Separate runs; failed harness and guardian anchors preserved, only affected or strengthened cases rerun. No single all-green combined run claimed.",
+  "behavior": [
+    "Indices banco y referencia separados por polaridad sin importe completo o dia. Mismo signo mantiene deduplicacion previa.",
+    "Absorciones nuevas ob-absorbed3 con signo y cercos FIN10. Marcas antiguas v1 y v2 conservan conducta sin signo; no restauracion.",
+    "Vinculos nuevos de borrado bankRefV2 y bankRefSign sobreviven al merge; antiguos sin reinterpretar."
+  ],
+  "integration": "FIN11 PR266 y FIN17 PR267 deben heredar signo en registro confirmado al integrar; ramas intactas. NightD y FIN03 fuera.",
+  "limitations": [
+    "full suite",
+    "general CI",
+    "Deno tests (typecheck executed separately)",
+    "full Edge handler and SDK writes/deletes",
+    "live SQL and RLS",
+    "bank sync",
+    "CPU6",
+    "Gradle and APK",
+    "deployment",
+    "served beta exact proof",
+    "physical mobile"
+  ],
+  "gateSummary": {
+    "build": 0,
+    "syntax": 0,
+    "privacy": 0,
+    "registration": 0,
+    "e2eMap": 0,
+    "security": 0,
+    "docsFreshness": 1,
+    "serverBudgetParity": 0,
+    "cloudMerge": 0,
+    "income": 0,
+    "notesAndRename": 0,
+    "denoCheck": 0,
+    "ownNodeDistinct": 119,
+    "ownMutants": 12,
+    "fin10fin15Distinct": 55,
+    "comprasDistinct": 32,
+    "DOM": 4,
+    "combinedIntegrationCommandExit": 1,
+    "combinedTests": {
+      "initialPass": 40,
+      "initialFail": 2,
+      "total": 42,
+      "alignedComprasCase": 1
+    },
+    "size": {
+      "exit": 1,
+      "minifiedKiB": 1329,
+      "capMinifiedKiB": 1328,
+      "gzipKiB": 369,
+      "capGzipKiB": 370,
+      "blockingResources": 3,
+      "capBlockingResources": 3
+    },
+    "betaSources": {
+      "exit": 1,
+      "runs": 1,
+      "durationMs": 1027127.0174,
+      "failures": [
+        "Inicio v4.2 dependency obPolarity not watched",
+        "Catalogo141 fichas dependency closure125 vs127",
+        "Transitive logic mutation inc-3009-01-cargos dependency obPolarity not watched"
+      ]
+    },
+    "noCapsCatalogueVersionOrFinancialOracleChanges": true,
+    "notProductReady": true,
+    "docsFreshnessBeforeCommit": 0,
+    "docsFreshnessCommittedFinding": "Three product files after version anchor90c05ad; VERSION unchanged by scope. Final follow-up only brief; product blobs identical."
+  },
+  "manifestSHA256": "a892dd854ec0542b39ed113879fa43ebfc095d6a5313f58424c7ac04deeb2a17",
+  "budget": {
+    "id": "night-c-own12-ee788a05-block1-qoxxwkrs",
+    "usedBeforePublication": 1,
+    "allowance": 12,
+    "previousOwn10Exhausted": true,
+    "allFetchesCounted": true,
+    "oldBlocksImmutable": true
+  },
+  "stop": "Release own claim after exact result readback; no polling. Review and integration belong to Claude.",
+  "schema": 1,
+  "taskId": "night-c-refund-same-reference-codex-20261018",
+  "actor": "codex",
+  "sessionId": "codex-local-20261017-qoxxwkrshebdfhaeqytokaml",
+  "createdAt": "2026-10-18T01:37:09.428Z",
+  "released": true
+}
