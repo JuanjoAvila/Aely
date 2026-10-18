@@ -11,6 +11,7 @@ const cases = [
   { name:"saldo negativo de un céntimo", method:"native", typed:"-0.01", cents:-1 },
   { name:"borrador vacío conserva saldo", method:"native", typed:null, cents:5000 },
   { name:"conectada conserva saldo bancario", method:"native", typed:null, connected:true, cents:5000 },
+  { name:"conectada con hoja abierta rechaza borrador manual", method:"native", typed:"12.34", connectWhileOpen:true, cents:8765 },
   { name:"movimiento reducido conserva guardado", method:"native", typed:"12.34", reduced:true, cents:1234 },
 ];
 
@@ -86,6 +87,22 @@ for(const c of cases) test("Saldo al cerrar: "+c.name, async({page},info)=>{
   if(c.expense==="before"){
     await incomingExpense(page);await expect(sheet.locator(".v4-account-amount")).toHaveText("49,93 €");
   }
+  if(c.connectWhileOpen){
+    // Conectar después de teclear deja un borrador válido pendiente: ocultar el editor no
+    // basta. La guarda del cierre debe impedir que ese borrador pise el saldo del banco.
+    await page.evaluate(()=>{
+      const el=document.querySelector(".v4-sheet");window.__saldoBeforeConnection=el;
+      let f=el[Object.keys(el).find(k=>k.startsWith("__reactFiber$"))];
+      while(f&&f.type?.name!=="AccountSheet") f=f.return;
+      if(!f) throw new Error("No se encontró AccountSheet");
+      f.memoizedProps.set(s=>Object.assign({},s,{accounts:s.accounts.map(a=>a.id==="saldo-atras-cash"
+        ?Object.assign({},a,{bankIban:"SYNTHETIC",value:87.65}):a)}));
+    });
+    await expect(fix).toHaveCount(0);
+    await expect(sheet.locator(".v4-account-amount")).toHaveText("87,65 €");
+    expect(await page.evaluate(()=>window.__saldoBeforeConnection===document.querySelector(".v4-sheet")
+      &&window.__saldoBeforeConnection.isConnected),"la conexión no remonta ni cierra la hoja").toBe(true);
+  }
   await page.evaluate(()=>{
     const el=document.querySelector(".v4-sheet");
     window.__saldoMotion={styles:[],touches:0};window.__saldoClosingElement=el;
@@ -108,7 +125,7 @@ for(const c of cases) test("Saldo al cerrar: "+c.name, async({page},info)=>{
   const closeMs=c.method==="swipe"?300:420;
   expect(motion.styles.some(s=>s.transform.includes("110%")&&s.transition.includes(closeMs+"ms")),"salida por el compositor").toBe(!c.reduced);
   await row.click();await expect(sheet).toBeVisible();
-  await expect(sheet.locator(".v4-account-amount")).toHaveText(c.typed===null?"50,00 €":c.typed.replace(".",",")+" €");
+  await expect(sheet.locator(".v4-account-amount")).toHaveText(c.connectWhileOpen?"87,65 €":c.typed===null?"50,00 €":c.typed.replace(".",",")+" €");
   // Persistencia NATURAL: se espera su debounce, sin pagehide ni flush artificial. Comparar
   // céntimos enteros detecta 1234/1227 frente a la base1241 y saldo1234 esperados.
   await expect.poll(()=>page.evaluate(()=>Math.round(JSON.parse(localStorage.getItem("micartera_v3")).accounts.find(a=>a.id==="saldo-atras-cash").value*100))).toBe(c.cents);
