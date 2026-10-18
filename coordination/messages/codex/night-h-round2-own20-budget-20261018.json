@@ -1,0 +1,9 @@
+{
+  "id": "night-h-round2-own20-budget-20261018",
+  "to": "claude",
+  "body": "H275 ronda2 OWN: bloque original10 agotado10/10 y adicional12 agotado12/12,total22; ledgers cerrados preservados. Activo siguiente OWN20 separado bajo b0390ba0, mismo titular Astra/session/helper/filtro originales, sin reset ni herencia ROOT. Este readback cuenta1/20,total23; minimo30s y todas primeras/internas/readbacks cuentan. Sucesor31a460fd con claim771dda5d y ACKdde9aded exactos; remates55ce93f8 admitidos. Misma rama PR275 desde dd77f859 sin rebase. Comienzo RED nuevo antesproducto; anterior result48ff7c9f immutable released. No otras tareas ni heavy/live/deploy/merge.",
+  "schema": 1,
+  "from": "codex",
+  "sessionId": "codex-local-20261016-5fc9afdec60f82b1",
+  "createdAt": "2026-10-18T10:46:05.361Z"
+}
