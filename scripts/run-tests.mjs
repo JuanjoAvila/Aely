@@ -177,6 +177,7 @@ const steps = [
   ["fixed-day-reconcile", ["node", "tests/fixed-day-reconcile.test.mjs"]],
   ["fixed-payment-state", ["node", "tests/fixed-payment-state.test.mjs"]],
   ["recibos-renombrar", ["node", "tests/recibos-renombrar.test.mjs"]],
+  ["recibos-book-rival", ["node", "tests/recibos-book-rival.test.mjs"]],
   ["recibo-domiciliado-sin-acreditar", ["node", "tests/recibo-domiciliado-sin-acreditar.test.mjs"]],
   ["recibo-invariante", ["node", "tests/recibo-invariante.test.mjs"]],
   ["recibos-bajas-y-union", ["node", "tests/recibos-bajas-y-union.test.mjs"]],

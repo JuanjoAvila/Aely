@@ -176,10 +176,21 @@ function fixedPaymentUnique(s,e){
   // La misma guarda protege la confirmación y su prueba al viajar entre móviles.
   return !!e.id&&(s.fixed||[]).filter(function(f){ return f.id===e.id; }).length===1;
 }
-function fixedPaymentAutoOwner(s,e,y,m,bank,merchant,amount,category,book){
+function fixedPaymentBookRival(s,e,y,m,identity){
+  var p=e.paymentProofs&&e.paymentProofs[y*12+m];
+  // La ambigüedad puede invalidar el pago, pero no regalar su cargo al recibo nuevo.
+  // Solo esta identidad y este mes conservan el nombre que vinculó el BOOK al id.
+  return p&&p.kind==="book"&&p.modelVersion===2&&p.identity===identity&&
+    fixedPaymentUnique(s,e)&&occursIn(e,m)&&fixedPaymentModelMatches(p,e,m)&&p.bank===accOf(e)&&
+    p.identity===fixedPaymentIdentity(p.bank,p)&&!reciboVetado(s,e.id,identity)?p:null;
+}
+function fixedPaymentAutoOwner(s,e,y,m,bank,merchant,amount,category,book,identity){
   if(!fixedPaymentUnique(s,e)) return false;
   var name=recNorm(merchant),best=-1,winners=[];
   fixedPaymentContenders(s,y,m).forEach(function(f){
+    var other=book&&identity&&f.kind==="fixed"&&f.id!==e.id&&(s.fixed||[]).find(function(r){ return r.id===f.id; });
+    var rival=other&&fixedPaymentBookRival(s,other,y,m,identity);
+    if(rival) f=Object.assign({},f,{name:rival.receiptName});
     var n=recNorm(f.name),full=recFrase(n,name);
     var exact=Math.round(Number(f.amount)*100)===Math.round(Number(amount)*100);
     if(book){
@@ -270,7 +281,7 @@ function fixedPaymentProof(s,e,y,m,today){
       return fixedPaymentIdentity(tx.ent,tx)===p.identity&&(tx.possibleDup||String(tx.status||"").toUpperCase()!=="BOOK");
     })) return null;
     if((s.accounts||[]).filter(function(a){ return a.ent===p.bank&&accFixed(a); }).length!==1||
-      !fixedPaymentAutoOwner(owners,owner,y,m,p.bank,p.merchant,p.amount,null,true)) return null;
+      !fixedPaymentAutoOwner(owners,owner,y,m,p.bank,p.merchant,p.amount,null,true,p.identity)) return null;
     if((s.bankTx||[]).filter(function(tx){
       return tx.ent===p.bank&&String(tx.status||"").toUpperCase()==="BOOK"&&fixedPaymentDate(tx.date,y,m,today)&&Number(tx.amount)>0&&recNameMatch(owner.name,tx.merchant)&&recAmtClose(target,Number(tx.amount));
     }).length>1) return null;
@@ -373,7 +384,7 @@ function fixedPaymentState(s,e,y,m,today){
   var tx=matches.length===1?matches[0]:null;
   if(tx){
     if((s.fixed||[]).some(function(f){
-      var p=fixedPaymentProof(s,f,y,m,today);
+      var p=fixedPaymentProof(s,f,y,m,today)||fixedPaymentBookRival(s,f,y,m,fixedPaymentIdentity(tx.ent,tx));
       return f.id!==e.id&&p&&p.identity===fixedPaymentIdentity(tx.ent,tx);
     })) tx=null;
   }
@@ -381,7 +392,7 @@ function fixedPaymentState(s,e,y,m,today){
     // El feed solo identifica entidad: exige una cuenta y un único ganador antes de
     // guardarlo. Una cuota o un puntual también pueden reclamar este mismo cargo.
     var accounts=(s.accounts||[]).filter(function(a){ return a.ent===bank&&accFixed(a); });
-    if(accounts.length!==1||!fixedPaymentAutoOwner(s,e,y,m,bank,tx.merchant,Number(tx.amount),null,true)) tx=null;
+    if(accounts.length!==1||!fixedPaymentAutoOwner(s,e,y,m,bank,tx.merchant,Number(tx.amount),null,true,fixedPaymentIdentity(tx.ent,tx))) tx=null;
   }
   var proof=fixedPaymentProof(s,e,y,m,today),expense=null;
   // El extracto es local, pero Gastos conserva el cargo importado o notificado. El
