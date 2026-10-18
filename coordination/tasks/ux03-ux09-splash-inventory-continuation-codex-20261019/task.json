@@ -1,0 +1,47 @@
+{
+  "schema": 1,
+  "id": "ux03-ux09-splash-inventory-continuation-codex-20261019",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261018-r73-b132dc8db089d0ba",
+  "createdAt": "2026-10-18T22:59:04.856Z",
+  "to": "codex",
+  "kind": "worker",
+  "priority": 4,
+  "baseSHA": "7090802099ac0c7956c0d3597a9936a82c52a95f",
+  "previousTaskId": "ux03-ux09-splash-inventory-plan-codex-20261019",
+  "assignedPublicSessionId": "codex-local-20261016-5fc9afdec60f82b1",
+  "claudeGrant": "38b7bb27e1f2f48371acaf8bf5ff24eda91acd07",
+  "dependsOnReleasedTasks": [
+    "h2-pr279-round6-stale-recovery-e2e-codex-20261018",
+    "ux16-round3-soft-ramp-edge-chart-codex-20261018",
+    "inc181003-04-plan-expense-link-ui-fix-codex-20261019",
+    "inc181003-04-pr281-round2-ui-remates-codex-20261019"
+  ],
+  "objective": "Resume preserved partial UX03 UX09 static splash inventory and phased plan after PR281 round2 release; no implementation or new execution.",
+  "scope": [
+    "Read startup, splash and loading source and existing documentation on exact base",
+    "Map entry points, state conditions, native and web boundaries, existing evidence and missing observations",
+    "Private inventory and plan with relative source references and explicit limits; no implementation or execution"
+  ],
+  "requirements": [
+    "Claude38b7bb27 orders splash after PR281 round2. ROOT own canonical0cced9c9 and private hashes verified after released result; dependency satisfied. New task and new own claim/readback/ACK required; never reopen immutable partial task or claim/resultf348410a.",
+    "Own original H2 holder identity, runtime, cwd and existing ledger; no inherited budget, claims or leases. New exact task claim normal push, canonical readback and ACK before work; all first/internal/readbacks count minimum30s. Permanent next budget grant only after real exhaustion and own notice/readback. Preserve every previous H2 source, PR279, failure, result and frozen ledger.",
+    "Read Claude77cc7b28 and exact task fully. Use isolated read-only source checkout from exact70908020; do not edit the existing H2 checkout or any product source. Read applicable AGENTS and current protocol.",
+    "This task is inventory and plan only, as explicitly requested after PR279; UX16r3 resultfe06ec50 is also released. Do not implement, redesign, fix, rebase, open PR or modify source, generated bundle, catalogue, VERSION, caps or financial oracle.",
+    "Map splash and loading entry points, web first-paint and native Android lifecycle boundaries, state gates, existing tests and evidence, and source owners. Inspect prior relevant task/result documents selectively; distinguish frozen historical work from current base.",
+    "Claude took over splash-animado-carga and related prior work. Do not claim or reopen it, alter its status, duplicate its implementation, or infer that any old unclaimed task is available. Inventory may reference it read-only.",
+    "Provide a bounded reproduction and instrumentation plan for UX03/UX09, with synthetic scenarios, checkpoints, proposed acceptance and resource prerequisites. Separate static evidence from timings or device behavior; do not invent measurements or assume physical WebView behavior from source.",
+    "Do not execute tests, builds, CPU6, benchmarks, profiling, Gradle, APK, devices or app launches. No runner or lease changes, live data, banks, SQL, Edge, backend, deploy, main/beta push or merge. No repeat of any completed test.",
+    "Only private documentation/evidence files may be written. Report exact baseline and relative source pointers, inventory, reproduction plan, evidence gaps and proposed next decision. Publish own released investigation result and STOP for Claude; no product-ready or mobile acceptance claim.",
+    "Latest Claude53645eaa confirms PR281 received with independent review in progress; docs and size are for Claude integration. Inventory must distinguish cold versus warm startup in web and native: what appears, sequence and state gates, known cause and evidence gaps. Describe only what is proven by existing evidence or source, label inferences and unavailable physical observations explicitly. Do not invent current visual or timing acceptance from static code.",
+    "Deliver a phased proposal and estimate the scope or resource cost of an APK change, build and acceptance for each phase. No native code until explicit GO; this inventory authorizes no product code, APK build, device run or new measurements. Report contains evidence matrix, causal source pointers and proposed decisions, and is delivered in own released result.",
+    "Continue preserved private partial report, manifest, checkpoint and closure from previous inventory. Do not overwrite those immutable files. Reuse own isolated clean read-only70908020 checkout; new continuation documentation names. Carry forward proven static facts and complete missing matrix/causes/phased proposal/APK cost without repeating finished work. Preserve block5 actual12of20 remaining8 and previous62 actual frozen as worker last reported; verify own live counter, no reset/inheritance. No tests/builds/launches/new visual or timing measurements.",
+    "Latest Claude d43f29cd confirms PR281564efba4 received under review, Claude reconciles size and docs at integration, and explicitly orders UX03UX09 inventory and plan resumed. No native code until GO; scope remains private static inventory only."
+  ],
+  "deliverable": "Completed private static cold/warm web/native inventory, evidence matrix and phased proposal including APK cost with source manifest and limitations; own released result then STOP for Claude.",
+  "priorityGrant": "47c276969b57d808489ed692e9cbac479f31bea6",
+  "latestClaudeGrant": "d43f29cd00bafed65c721f679c18eee405c470f6",
+  "previousPartialResult": "f348410a1c0bdc582fe7775f7c221a35c08435d8",
+  "dependencyResult": "0cced9c9e24616a6c4e445ae58ccc245b5cee5e0",
+  "claudeResumeGrant": "d43f29cd00bafed65c721f679c18eee405c470f6"
+}
