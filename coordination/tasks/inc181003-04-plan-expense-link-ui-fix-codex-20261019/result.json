@@ -1,0 +1,141 @@
+{
+  "status": "blocked",
+  "released": true,
+  "phase": "UI_CANDIDATE_PENDING_CLAUDE_INTEGRATION",
+  "baseSHA": "7090802099ac0c7956c0d3597a9936a82c52a95f",
+  "productSHA": "c10df468e6780dfc15b27ef688daa2d38ba8e2b6",
+  "productChanged": true,
+  "PR": 281,
+  "productReady": false,
+  "realIncidentClosed": false,
+  "claimCommit": "7de491355eabeb12dc2f02e49740f3681d7ddf17",
+  "ackCommit": "e380fcc0be16617a65bce88903e63c749a724801",
+  "claudeGrant": "56464894757ebe9c77e8145b9b09fbbd13bf4f9f",
+  "manifestSHA256": "01c1afb20ab62e7ec0be9db1fbf6dda632cf5ec849a3871b7632615e68a94866",
+  "checkpointSHA256": "4938925881f295b0b4a9a19b65279deb8b0cf97b605a633af76b0f2465ce6e48",
+  "report": {
+    "path": "work/inc181003-04-ui/delivery-report.txt",
+    "sha256": "8d1db2383dbb5e8396a2f11c27dcf11d88647ff1d83b62627421c07aa8b1e2e1"
+  },
+  "counts": {
+    "causalRedScenarios": 3,
+    "focusedChecks": 27,
+    "e2e": 7,
+    "financialOracles": 15,
+    "mutants": 5,
+    "fixedRegression": 41,
+    "debtRegression": 40
+  },
+  "tests": [
+    {
+      "name": "red",
+      "exitCode": 1
+    },
+    {
+      "name": "red-settled",
+      "exitCode": 1
+    },
+    {
+      "name": "pure-red",
+      "exitCode": 1
+    },
+    {
+      "name": "pure-green1",
+      "exitCode": 0
+    },
+    {
+      "name": "edge-red",
+      "exitCode": 1
+    },
+    {
+      "name": "edge-green",
+      "exitCode": 0
+    },
+    {
+      "name": "missing-account-red",
+      "exitCode": 1
+    },
+    {
+      "name": "registered-green",
+      "exitCode": 0
+    },
+    {
+      "name": "green1",
+      "exitCode": 0
+    },
+    {
+      "name": "green2",
+      "exitCode": 0
+    },
+    {
+      "name": "green-final",
+      "exitCode": 0
+    },
+    {
+      "name": "build-final",
+      "exitCode": 0
+    },
+    {
+      "name": "syntax-final",
+      "exitCode": 0
+    },
+    {
+      "name": "fixed-regression",
+      "exitCode": 0
+    },
+    {
+      "name": "debt-regression",
+      "exitCode": 0
+    },
+    {
+      "name": "i18n",
+      "exitCode": 0
+    },
+    {
+      "name": "registry-e2e",
+      "exitCode": 0
+    },
+    {
+      "name": "docs-gate",
+      "exitCode": 1
+    },
+    {
+      "name": "size-gate",
+      "exitCode": 1
+    },
+    {
+      "name": "final-oracles-mutants",
+      "exitCode": 0
+    }
+  ],
+  "summary": "DraftPR281 beta sourcec10df468 exact remote readback. New presentation only: calendar or paidYm alone pending confirmation es/en/ca, unique validated read-only receipt and debt relation shared with Plan, affirmative withdrawal warning only confirmed timestamp. Existing motor financial functions and writer modules unchanged; no matching/backfill or saved link mutation. Causal DOM3RED then final7PASS ownport59420 worker1 retries0; focused27PASS, fixed41 debt40 regressionPASS, 15 exact base-versus-candidate InicioPlanwidget oracles and saved-byte/no-cloud-write invariants, five intentional mutants AssertionErrorEXIT1. Syntax build translations registration pass. docs-frescuraEXIT1 and sizeEXIT1 remain blocking; no VERSION/catalogue/caps change. Prior investigation and NightD artifacts exact. Claude review/integration/served/mobile pending. Releasedblocked and STOP.",
+  "limitations": [
+    "Synthetic fixture evidence only; real family incident not accessed.",
+    "Initial DOM startup-backup fixture effect preserved; settled causal RED retained separately.",
+    "Initial source audit CRLF versus GitLF harness failure preserved and corrected without product edits.",
+    "docs-frescura EXIT1; size EXIT1 minified1373of1368KiB gzip381of380KiB.",
+    "General CI, fullsuite, CPU6, native/Gradle/APK, backend, SQL/livebanks/Edge, deploy/merge and physical mobile not run."
+  ],
+  "budgetBeforeResult": {
+    "grant": "b0390ba0cad563401e1a8ac472262af6b1f39750",
+    "budget": 20,
+    "used": 2,
+    "remaining": 18,
+    "priorFrozen": [
+      14,
+      6,
+      7,
+      7,
+      10,
+      12,
+      12
+    ],
+    "noInheritance": true
+  },
+  "nextAction": "Claude review and integration; exact own canonical readback then STOP. No takeover of UX16 or new task.",
+  "schema": 1,
+  "taskId": "inc181003-04-plan-expense-link-ui-fix-codex-20261019",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-46b86e3686e19bf3",
+  "createdAt": "2026-10-18T22:29:37.735Z"
+}
