@@ -1,3 +1,5 @@
+H2 candidata: saldo y movimientos independientes por cuenta, valor/fecha anteriores retenidos por UID/IBAN, capacidad explícita y fallback conservador para móviles antiguos. Cursor y ACK siguen la lectura de movimientos y la persistencia local, con la excepción de desbordamiento existente. [Contrato y límites](briefs/h2-saldos-movimientos-20261018.md).
+
 # Arquitectura — Aely
 
 FIN-11 candidata privada desde FIN-10/FIN-15 coexistentes: `obAbsorbedPending`

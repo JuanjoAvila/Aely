@@ -72,7 +72,7 @@ t("reconcileBank: movimiento sin modelo → newCharges", () => {
 t("applyBankBalances: re-ancla cuenta primaria con saldo real", () => {
   const now = new Date();
   const s = {
-    accounts: [{ id: "x", ent: "sabadell", name: "Sabadell", value: 900, role: "fijos" }],
+    accounts: [{ id: "x", ent: "sabadell", bankIban: "ES001", name: "Sabadell", value: 900, role: "fijos" }],
     fixed: [],
     debts: [],
     obAccounts: [],

@@ -160,9 +160,10 @@ function AccountSheet({open, cuenta, state, set, totals, onClose, onRemove, onSa
   };
   const title=a.name||banco;
   const sub=conectada?tf("ac_synced_sub",{bank:banco}):tf("ac_manual_sub",{bank:banco});
-  const staleAge=conectada&&a.lastSync?Date.now()-dateMs(a.lastSync):0;
-  const stale=staleAge>48*60*60*1000;
-  const staleDay=stale?new Date(a.lastSync).toLocaleDateString(loc(),staleAge>6*24*60*60*1000?{day:"numeric",month:"short"}:{weekday:"long"}):"";
+  const balanceDate=a.balanceAt||a.lastSync;
+  const staleAge=conectada&&balanceDate?Date.now()-dateMs(balanceDate):0;
+  const stale=!!a.balanceStale||staleAge>48*60*60*1000;
+  const staleDay=stale&&balanceDate?new Date(balanceDate).toLocaleDateString(loc(),staleAge>6*24*60*60*1000?{day:"numeric",month:"short"}:{weekday:"long"}):"";
   return ReactDOM.createPortal(
     React.createElement("div",{className:"v4-sheet-back",onClick:cerrar},
       React.createElement("div",Object.assign({className:"v4-sheet",ref:swipe.sheetRef,onClick:function(e){ e.stopPropagation(); },style:{maxHeight:"88dvh"}}, swipe.sheetTouch),
@@ -183,7 +184,7 @@ function AccountSheet({open, cuenta, state, set, totals, onClose, onRemove, onSa
             deltaMes!=null&&Math.abs(deltaMes)>=.005 && React.createElement("span",{className:"v4-account-delta"+(deltaMes<0?" down":"")},
               tf(deltaMes<0?"ac_delta_month_down":"ac_delta_month",{x:eur(Math.abs(deltaMes))})),
             projected!=null && React.createElement("span",null,tf("ac_eom",{x:eur(projected)})),
-            stale && React.createElement("span",{className:"v4-account-stale"},tf("st_stale",{day:staleDay}))),
+            stale && React.createElement("span",{className:"v4-account-stale"},staleDay?tf("st_stale",{day:staleDay}):t("pt_ob_stale"))),
           !missingFx&&history.length>=2
             ? React.createElement(React.Fragment,null,
                 React.createElement("div",{className:"v4-account-spark","aria-label":t("ac_spark_from")+" · "+t("ac_spark_to")},
@@ -194,7 +195,7 @@ function AccountSheet({open, cuenta, state, set, totals, onClose, onRemove, onSa
                 React.createElement("div",{className:"v4-account-spark-foot"},
                   React.createElement("span",null,new Date(history[0].day+"T12:00:00").toLocaleDateString(loc(),{day:"numeric",month:"short"})),React.createElement("span",null,t("ac_spark_to"))))
             : React.createElement("div",{className:"v4-account-spark-new"},t("ac_spark_new")),
-          conectada && React.createElement("div",{className:"v4-account-lock"},t("pt_ficha_banco")+(a.lastSync?" · "+tf("pt_ficha_sync",{x:new Date(a.lastSync).toLocaleString()}):""))
+          conectada && React.createElement("div",{className:"v4-account-lock"},t("pt_ficha_banco")+(balanceDate?" · "+tf("pt_ficha_sync",{x:new Date(balanceDate).toLocaleString()}):""))
         ),
         React.createElement("div",{className:"v4-account-share",style:{padding:"14px 0 2px"}},
           React.createElement("div",{className:"v4-ficha-k"}, t("ac_share_q")),
@@ -491,7 +492,7 @@ function Wealth({state, set, totals, parte, showToast, onBankSync, onReconnectBa
       return a.name||"";
     };
     // Cuenta re-anclada por Open Banking: su saldo lo trae el banco (no se edita a mano).
-    const isSynced=function(a){ return !!a.bankIban; };
+    const isSynced=function(a){ return !!(a.bankIban||a.bankUid); };
     const badge=function(txt, color){
       return React.createElement("span",{className:"v4-ob-badge",style:{background:color+"22",color:color}}, txt);
     };

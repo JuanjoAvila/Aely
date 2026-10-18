@@ -108,6 +108,7 @@ export const E2E_MAP = [
     "e2e/tr-aviso.spec.mjs",
   ] },
   { file: "src/modules/08-motor-bank.js", specs: [
+    "e2e/h2-account-phases.spec.mjs",
     "e2e/inicio-deuda-futura.spec.mjs",
     "e2e/metas-editar-regla.spec.mjs",
     "e2e/metas-borrar-regla.spec.mjs",
@@ -124,6 +125,8 @@ export const E2E_MAP = [
   ] },
   { file: "src/modules/07-tab-patri-fijos.js", specs: [
     "e2e/cartera-saldo-atras.spec.mjs",
+
+    "e2e/h2-account-phases.spec.mjs",
     "e2e/cartera-bienes-completo.spec.mjs",
     "e2e/cartera-bienes-toque.spec.mjs",
     "e2e/plan-cuota-contabilizada.spec.mjs",
@@ -246,7 +249,7 @@ const STEPS_SUPABASE = [
   "prod117-edge-compat",
   "help-assistant", "guard-privacy", "edge-sintaxis", "presupuesto-servidor", "cuotas-deudas", "widget-coherente", "widget-arbitraje", "widget-offline", "widget-unknown-loss", "widget-unknown-journal", "widget-notificacion-render", "widget-inicio-paridad", "widget-puente-ciclo",
   "month-window", "wallet-notis", "ingest-classify", "ingest-identity", "ingest-handler", "divisa-original", "presupuesto-rendimiento",
-  "grants-migraciones", "entrada-edge", "bank-sync-paging", "bank-rate-contracts", "bank-callback-state", "bank-rate-client", "bank-download-incomplete", "bank-sync-progreso", "bank-sync-acuse", "bank-reconnect", "bank-revoke-callback-race", "tr-open-banking", "myinvestor-sync-outcomes", "myinvestor-keepalive",
+  "grants-migraciones", "entrada-edge", "h2-account-phases", "bank-sync-paging", "bank-rate-contracts", "bank-callback-state", "bank-rate-client", "bank-download-incomplete", "bank-sync-progreso", "bank-sync-acuse", "bank-reconnect", "bank-revoke-callback-race", "tr-open-banking", "myinvestor-sync-outcomes", "myinvestor-keepalive",
   "categorize-limitador", "categorize-handler",
 ];
 

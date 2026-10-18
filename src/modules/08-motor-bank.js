@@ -664,7 +664,7 @@ function mkObAcct(lk, ac, bal, info){
   return { key:String(ac.uid||ac.iban||(lk&&lk.aspsp)), ent:entFromAspsp(lk&&lk.aspsp), iban:ac.iban||null, name:ac.name||null, value:+Number(bal).toFixed(2), cur:cur, aspsp:(lk&&lk.aspsp)||null,
     /* Rastro para diagnosticar el baile del saldo (queja de su padre, 11/9): qué saldo de los
        que manda el banco hemos usado, y cuáles había. Sin esto solo se ve el número. */
-    balTipo:(info&&info.tipo)||null, balTipos:(info&&info.tipos)||undefined };
+    balTipo:(info&&info.tipo)||null, balTipos:(info&&info.tipos)||undefined, balanceAt:ac.balanceAt||lk.balanceAt||null };
 }
 // Nombre "bonito" por defecto para una cuenta extra (el banco suele devolver algo feo: los
 // titulares de una conjunta, un tipo técnico o nada). El usuario puede sobreescribirlo (obLabels).
@@ -695,6 +695,9 @@ function promoteObAccount(s, totals, key, role, id){
   const acc={ id:id||uid(), ent:o.ent, name:name, value:base, role:"fijos", spendFrom:false,
     accountOrderKey:"ob:"+o.key };
   if(o.iban) acc.bankIban=o.iban;                            // el sync del banco la re-ancla por IBAN
+  else if(o.key) acc.bankUid=String(o.key);
+  if(o.balanceAt) acc.balanceAt=o.balanceAt;
+  if(o.stale) acc.balanceStale=true;
   let ns=Object.assign({},s,{ accounts:(s.accounts||[]).concat([acc]), obAccounts:(s.obAccounts||[]).filter(function(x){ return x.key!==key; }) });
   if(role && role!=="fijos") ns=applyAccountRole(ns, totals, acc.id, role);
   /* Si era la última OB, el orden mixto ya contiene toda la lista: alinear `accounts` aquí evita
@@ -755,12 +758,13 @@ function applyBankBalances(s, links){
   const dailyEnt=dailyAcc&&dailyAcc.ent;
   const porBanco=gastoDelMesPorBanco(monthExp, dailyEnt);
   links.forEach(function(lk){
-    if(lk && lk.ok===false){
+    if(lk && lk.ok===false && lk.accountPhases!==1){
       // Banco que falló/caducó este sync: CONSERVA sus cuentas sincronizadas tal y como estaban,
       // marcadas rancias (stale) para que Patrimonio enseñe «caducado» en vez de esfumarlas.
       // (Bug CaixaBank 2026-07-11: al reconstruir obAccounts sin el banco caído, desaparecía.)
       const asp=String((lk&&lk.aspsp)||"").toLowerCase();
       (s.obAccounts||[]).forEach(function(o){ if(String(o.aspsp||"").toLowerCase()===asp) obAccts.push(Object.assign({},o,{stale:true,staleKind:lk.expired?"expired":"temporary"})); });
+      accounts.forEach(function(a,i){if(a.ent===entFromAspsp(lk.aspsp)&&(a.bankIban||a.bankUid)){accounts[i]=Object.assign({},a,{balanceStale:true});changed=true;}});
       return;
     }
     const ent=entFromAspsp(lk && lk.aspsp);
@@ -769,42 +773,50 @@ function applyBankBalances(s, links){
     // sus movimientos siguen su camino, que van por `flattenBankTx`/`importObExpenses` y no por
     // aquí. Ver `saldoLoMandaPuenteNativo`.
     if(saldoLoMandaPuenteNativo(s, ent)) return;
-    // Si este banco al final no aporta NINGUNA cuenta utilizable (todas ok:false o sin saldo),
-    // conserva las que ya tenía marcadas rancias, igual que un banco caído: reconstruir
-    // obAccounts sin él las esfumaría en silencio (caso CaixaBank 2026-07-11, segunda variante).
-    const keepStale=function(){
-      const asp=String((lk&&lk.aspsp)||"").toLowerCase();
-      (s.obAccounts||[]).forEach(function(o){ if(String(o.aspsp||"").toLowerCase()===asp) obAccts.push(Object.assign({},o,{stale:true,staleKind:lk&&lk.expired?"expired":"temporary"})); });
+    // Identidad antes de saldo: una hermana sana no hereda la principal que falló.
+    // Con servidor viejo no hay fases: ok:false/saldo ausente retienen la cuenta previa.
+    const accs=(Array.isArray(lk.accounts)&&lk.accounts.length) ? lk.accounts
+      : [{ uid:lk.iban||null, iban:lk.iban||null, name:null, balances:lk.balances }];
+    const uidOf=function(o){return o.bankUid||o.key||o.uid||(String(o.accountOrderKey||"").indexOf("ob:")===0?String(o.accountOrderKey).slice(3):"");};
+    const overlaps=function(o,ac){return !!(ac.iban&&(o.bankIban||o.iban)&&String(o.bankIban||o.iban)===String(ac.iban)||ac.uid&&uidOf(o)&&String(uidOf(o))===String(ac.uid));};
+    const same=function(o,ac){
+      if((o.bankIban||o.iban)&&ac.iban) return String(o.bankIban||o.iban)===String(ac.iban);
+      const priorUid=uidOf(o);
+      return !!ac.uid && String(priorUid)===String(ac.uid);
     };
-    // cuentas del banco: shape nuevo (lk.accounts) o antiguo (una sola, de lk.balances)
-    const accs=(Array.isArray(lk.accounts)&&lk.accounts.length)
-      ? lk.accounts.filter(function(a){ return a && a.ok!==false; })
-      : [{ uid:lk.iban||lk.aspsp, iban:lk.iban||null, name:null, balances:(lk&&lk.balances) }];
-    if(!accs.length){ keepStale(); return; }
-    if(ent==null){   // banco SIN cuenta manual en la app → TODAS sus cuentas van a obAccounts
-      let pushed=0;
-      accs.forEach(function(ac){ const inf=pickBankBalanceInfo(ac.balances); if(inf.valor!=null){ obAccts.push(mkObAcct(lk,ac,inf.valor,inf)); pushed++; } });
-      if(!pushed) keepStale();
-      return;
-    }
-    // hay ent conocido: re-ancla CADA cuenta MANUAL de ese banco (puede haber varias desde que
-    // una cuenta OB se puede promocionar con rol, 2026-07-11): 1º casa por IBAN guardado; si no,
-    // la primera cuenta del banco aún libre. Cualquier rol vale: si un banco OB es tu cuenta de
-    // gasto diario (o "todo"), su saldo real también re-ancla. La TR de gasto del creador nunca
-    // entra aquí porque TR no está en Open Banking (sin link posible).
-    const ownerOf={};                                        // idx de accs → idx de accounts
+    const prior=(s.obAccounts||[]).filter(function(o){return String(o.aspsp||"").toLowerCase()===String(lk.aspsp||"").toLowerCase();}).concat(accounts.filter(function(a){return a.ent===ent;}));
+    const usable=function(ac){ return ac && (ac.iban||ac.uid) && accs.filter(function(x){return x&&overlaps(x,ac);}).length===1 && !prior.some(function(o){return overlaps(o,ac)&&!same(o,ac);}) &&
+      (lk.accountPhases===1 ? ac.balanceOk===true : ac.ok!==false) && pickBankBalanceInfo(ac.balances).valor!=null; };
+    const ownerOf={}, blocked={};
     accounts.forEach(function(a,i){
       if(a.ent!==ent || usedPrimary[i]) return;
-      let j=-1;
-      if(a.bankIban) j=accs.findIndex(function(ac,k){ return ownerOf[k]==null && ac.iban && ac.iban===a.bankIban; });
-      if(j<0) j=accs.findIndex(function(ac,k){ return ownerOf[k]==null; });
-      if(j<0) return;
-      ownerOf[j]=i; usedPrimary[i]=true;
+      const matches=accs.map(function(ac,k){return ac&&same(a,ac)?k:-1;}).filter(function(k){return k>=0;});
+      if(matches.length!==1 || ownerOf[matches[0]]!=null){
+        // Una principal sin vínculo requiere elección explícita: no se le asigna por orden,
+        // ni se suma otra vez la misma cuenta como extra mientras la identidad sea ambigua.
+        if(!a.bankIban&&!a.bankUid&&!a.accountOrderKey) accs.forEach(function(ac,k){if(!blocked[k])blocked[k]="unbound";});
+        if(matches.length===1 && ownerOf[matches[0]]!=null){
+          blocked[matches[0]]=true;
+          accounts[ownerOf[matches[0]]]=Object.assign({},accounts[ownerOf[matches[0]]],{balanceStale:true});
+        }
+        accounts[i]=Object.assign({},a,{balanceStale:true}); changed=true;
+        return;
+      }
+      const j=matches[0]; ownerOf[j]=i; usedPrimary[i]=true;
+      if(!usable(accs[j])){ accounts[i]=Object.assign({},a,{balanceStale:true}); changed=true; }
     });
-    let contributed=0;
+    Object.keys(ownerOf).forEach(function(k){if(blocked[k]==="unbound")delete blocked[k];});
+    // Retener solo la identidad no actualizada; también cuando una respuesta vieja omite
+    // una cuenta. Su valor y fecha quedan byte a byte, salvo la marca visible de antigüedad.
+    (s.obAccounts||[]).forEach(function(o){
+      if(String(o.aspsp||"").toLowerCase()!==String(lk.aspsp||"").toLowerCase()) return;
+      const matches=accs.map(function(ac,k){return ac&&same(o,ac)?k:-1;}).filter(function(k){return k>=0;});
+      if(matches.length!==1 || !usable(accs[matches[0]]) || blocked[matches[0]])
+        obAccts.push(Object.assign({},o,{stale:true,staleKind:lk.expired?"expired":"temporary"}));
+    });
     accs.forEach(function(ac,k){
-      const inf=pickBankBalanceInfo(ac.balances); const bal=inf.valor; if(bal==null) return;
-      contributed++;
+      if(!usable(ac) || blocked[k]) return;
+      const inf=pickBankBalanceInfo(ac.balances); const bal=inf.valor;
       if(ownerOf[k]!=null){
         const a=accounts[ownerOf[k]];
         // re-anclaje = despejar `value` para que HOY muestre el saldo real del banco.
@@ -837,21 +849,27 @@ function applyBankBalances(s, links){
         // Sin IBAN, el uid de la cuenta del banco: es lo que llevan sus movimientos (`obAcc`) y lo
         // único que deja contar la parte de una principal a medias (revisión 14/10).
         const uidCambia = !ac.iban && ac.uid!=null && a.bankUid!==String(ac.uid);
-        if(Math.abs((a.value||0)-newBase)>0.005 || (ac.iban && a.bankIban!==ac.iban) || rastroCambia || uidCambia){
+        if(Math.abs((a.value||0)-newBase)>0.005 || (ac.iban && a.bankIban!==ac.iban) || rastroCambia || uidCambia || a.balanceStale || (ac.balanceAt||lk.balanceAt||null)!==(a.balanceAt||null)){
           /* El rastro va también aquí: la Revolut de su padre es una cuenta PRINCIPAL re-anclada,
              no una obAccount, y era justo la que le bailaba. `balSaldo` es el saldo crudo que mandó
              el banco, sin la fórmula de dynBal encima, para poder comparar manzanas con manzanas. */
           accounts[ownerOf[k]]=Object.assign({}, a, { value:newBase, bankIban:ac.iban||a.bankIban,
-            balTipo:inf.tipo||null, balTipos:inf.tipos&&inf.tipos.length?inf.tipos:undefined, balSaldo:bal },
+            balTipo:inf.tipo||null, balTipos:inf.tipos&&inf.tipos.length?inf.tipos:undefined, balSaldo:bal,
+            balanceAt:ac.balanceAt||lk.balanceAt||a.balanceAt||null, balanceStale:false },
             uidCambia?{bankUid:String(ac.uid)}:null);
           changed=true;
         }
       } else {
-        obAccts.push(mkObAcct(lk,ac,bal,inf));
+        const next=mkObAcct(lk,ac,bal,inf), prev=(s.obAccounts||[]).find(function(o){return String(o.aspsp||"").toLowerCase()===String(lk.aspsp||"").toLowerCase()&&same(o,ac);});
+        if(prev){ next.iban=next.iban||prev.iban||null; next.balanceAt=next.balanceAt||prev.balanceAt||null; }
+        obAccts.push(next);
         synced.push({ ent:ent, bal:bal, iban:ac.iban||null });
       }
     });
-    if(!contributed) keepStale();
+
+  });
+  (s.obAccounts||[]).forEach(function(o){
+    if(!links.some(function(l){return String(l&&l.aspsp||"").toLowerCase()===String(o.aspsp||"").toLowerCase();})) obAccts.push(o);
   });
   const obChanged=JSON.stringify(s.obAccounts||[])!==JSON.stringify(obAccts);
   const newState=(changed||obChanged) ? Object.assign({},s,{accounts:accounts, obAccounts:obAccts}) : s;
@@ -2930,6 +2948,7 @@ function bankReadWarnings(links, expectedLinks, includeEmpty){
     else if(reasons.some(function(r){ return r==="provider_error"||r==="invalid_response"||r==="repeated_cursor"; })) key="bank_read_interrupted";
     else if(l.ok===false || failed.length) key="bank_read_interrupted";
     else if(l.truncated || accts.some(function(a){ return a&&(a.truncated||a.transactionError); })) key="bank_read_partial";
+    else if(accts.some(function(a){return a&&a.balanceOk===false;})) key="bank_read_balance";
     else if(l.gapPending) key="bank_read_pending";
     else if(includeEmpty && accts.length && accts.every(function(a){
       return a&&a.ok!==false && ((typeof a.count==="number"?a.count:((a.transactions||[]).length))===0);

@@ -774,7 +774,7 @@ function App(){
          dispositivo cuando sus filas ya estaban en disco (`obAckLoad`, 00-core). `acks` va
          siempre, aunque esté vacío: es lo que le dice al servidor que espere al acuse en vez
          de avanzar por su cuenta. */
-      return Promise.all([cloud.bankSync({recoverGaps:true,acks:obAckLoad()}), pDb]);
+      return Promise.all([cloud.bankSync({recoverGaps:true,acks:obAckLoad(),accountPhases:1}), pDb]);
     }).then(function(par){
       const res=par[0], dbLinks=par[1]||[];
       const links=(res&&res.links)||[];

@@ -28,7 +28,7 @@ console.log("tr-open-banking");
 
 // Estado mínimo: cuenta TR de gasto diario, con el puente nativo encendido y su saldo ya puesto.
 const estadoTR = (extra = {}) => ({
-  accounts: [{ id: "tr1", ent: "trade_republic", role: "diario", spendFrom: true, value: 1000 }],
+  accounts: [{ id: "tr1", ent: "trade_republic", bankIban: "DE00", role: "diario", spendFrom: true, value: 1000 }],
   investments: [{ id: "i1", ent: "trade_republic", name: "VWCE", shares: 10, value: 1000, cost: 900, cur: "EUR" }],
   expenses: [], fixed: [], flows: [], obAccounts: [],
   settings: { brokersOn: ["trade_republic"] },
@@ -80,7 +80,7 @@ t("sin `brokersOn` guardado, tener posiciones de TR ya cuenta como puente encend
 
 t("los OTROS bancos siguen re-anclando igual (el reparto es SOLO de TR)", () => {
   const s = {
-    accounts: [{ id: "s1", ent: "sabadell", role: "fijos", value: 100 }],
+    accounts: [{ id: "s1", ent: "sabadell", bankIban: "ES00", role: "fijos", value: 100 }],
     investments: [], expenses: [], fixed: [], flows: [], obAccounts: [], settings: { brokersOn: ["trade_republic"] },
   };
   const r = ctx.applyBankBalances(s, [{ aspsp: "Sabadell", ok: true, accounts: [

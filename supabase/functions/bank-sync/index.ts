@@ -156,6 +156,7 @@ Deno.serve(withCors(async (req: Request) => {
        acusar nada, así que con él el cursor se sigue escribiendo aquí, como hasta ahora. */
     const acks: Record<string, unknown> | null = recoverGaps && body?.acks && typeof body.acks === "object" && !Array.isArray(body.acks)
       ? body.acks as Record<string, unknown> : null;
+    const phaseClient = body?.accountPhases === 1 && !!acks;
     const hasAspspFilter = Array.isArray(body?.aspsps);
     const wantedAspsps = hasAspspFilter
       ? (body.aspsps as unknown[]).map((x: unknown) => String(x || "").trim().toLowerCase()).filter(Boolean).slice(0, 12)
@@ -285,8 +286,8 @@ Deno.serve(withCors(async (req: Request) => {
         try {
           const q = sameLinkVersion(admin.from("bank_links").update({ last_sync: acked, updated_at: new Date().toISOString() }).eq("id", link.id), link);
           // `lt` no casa con null: un enlace recién conectado necesita su propio filtro.
-          const { error } = await (link.last_sync ? q.lt("last_sync", acked) : q.is("last_sync", null));
-          written = !error;
+          const { data, error } = await (link.last_sync ? q.lt("last_sync", acked) : q.is("last_sync", null)).select("id");
+          written = !error && Array.isArray(data) && data.length > 0;
         } catch (_) { /* corte de red: igual que un error devuelto */ }
         if (written) link.last_sync = acked;
       }
@@ -302,7 +303,7 @@ Deno.serve(withCors(async (req: Request) => {
       };
       // deno-lint-ignore no-explicit-any
       const acctOut: any[] = [];
-      let anyAcctOk = false, anyExpired = false, lastErr = "";
+      let anyAcctOk = false, anyBalanceOk = false, anyExpired = false, lastErr = "";
       let auth401: unknown = null, authSession = "NO_CONSULTADA";
       for (const ac of acctList) {
         const uid = ac?.uid;
@@ -313,44 +314,54 @@ Deno.serve(withCors(async (req: Request) => {
           acctOut.push({ uid, iban: ac.iban || null, ok: false, truncated: true, transactionError: "timeout", readReason: "time_limit", balances: [], count: 0, transactions: [] });
           continue;
         }
-        const balController = new AbortController();
-        const balTimer = setTimeout(() => balController.abort(), accountDeadline - Date.now());
-        try {
-          const bal = await ebApi(jwt, `/accounts/${uid}/balances`, {signal:balController.signal});
-          // Debe cubrir al menos `som` de importObExpenses (mes de Madrid menos 8 días).
-          // En el borde de mes UTC puede pedir un mes adicional, pero nunca uno de menos.
-          const tx = await fetchBankTransactions(jwt, uid, plan.windowStart, counted(uid, false), accountDeadline - Date.now());
-          // deno-lint-ignore no-explicit-any
-          const balances = (bal.balances || []).map((b: any) => ({
-            type: b.balance_type || b.name || "",
-            amount: Number(b?.balance_amount?.amount || 0),
-            currency: b?.balance_amount?.currency || "",
-          }));
-          // deno-lint-ignore no-explicit-any
-          const transactions = (tx.transactions || []).map((t: any) => mapTransaction(t));
-          acctOut.push({ uid, iban: ac.iban || null, name: ac.name || null, currency: ac.currency || null, ok: true, balances,
-            count: transactions.length, transactions, truncated: tx.truncated, transactionError: tx.transactionError, readReason: tx.readReason, failureCode: tx.failureCode });
-          anyAcctOk = true;
-        } catch (err) {
-          const msg = String((err as Error)?.message || err);
-          // CADUCIDAD REAL vs FALLO TRANSITORIO (feedback 2026-07-17: «se me caen cada dos por
-          // tres»). Antes CUALQUIER 403/404 marcaba el enlace 'expired' → reconectar a mano una y
-          // otra vez. Pero un 403 de PSD2 casi siempre es rate-limit/anti-abuso momentáneo y un 404
-          // un hipo del banco, NO que el consentimiento haya muerto. Igual que el 403 anti-bot de
-          // MyInvestor y el 401 momentáneo de TR: NO desconectar por un fallo pasajero.
-          // Solo cuenta como caducado el código inequívoco del proveedor. Buscar palabras como
-          // "unauthorized" dentro de un 429/5xx podía convertir un bloqueo temporal en una
-          // reconexión manual y dejar el enlace muerto para siempre hasta hacer OAuth otra vez.
-          // Y el 401 a secas tampoco vale (12/10): lo decide el código, ver `ebFailure`. El
-          // que no trae código de cierre se guarda para preguntar por la sesión al acabar.
+        // H2: el saldo no puede consumir los 15 s y dejar sin intento al extracto.
+        // 5 s es una reserva conservadora, no un óptimo medido. Las llamadas siguen en serie.
+        const row: any = { uid, iban: ac.iban || null, name: ac.name || null, currency: ac.currency || null,
+          ok: false, balanceOk: false, balances: [], count: 0, transactions: [] };
+        const failed = (err: unknown) => {
           const fail = ebFailure(err);
           if (fail.sessionEnded) anyExpired = true;
           else if (fail.status === 401 && !auth401) auth401 = err;
-          lastErr = msg;
-          acctOut.push({ uid, iban: ac.iban || null, name: ac.name || null, currency: ac.currency || null, ok: false, error: msg, balances: [], count: 0, transactions: [] });
-        } finally {
-          clearTimeout(balTimer);
+          lastErr = obReadFailureCode(err);
+          return fail;
+        };
+        const balController = new AbortController();
+        const balTimer = setTimeout(() => balController.abort(), Math.min(5000, accountDeadline - Date.now()));
+        let balanceFailure: ReturnType<typeof ebFailure> | null = null;
+        try {
+          const bal = await ebApi(jwt, `/accounts/${uid}/balances`, { signal: balController.signal });
+          // Ausente, vacío y mal formado nunca se convierten en un cero bancario válido.
+          if (!Array.isArray(bal?.balances) || !bal.balances.length || bal.balances.some((b: any) =>
+            !["string", "number"].includes(typeof b?.balance_amount?.amount) || String(b.balance_amount.amount).trim() === "" || !Number.isFinite(Number(b.balance_amount.amount)))) throw new Error("transactions_invalid");
+          row.balances = bal.balances.map((b: any) => ({ type: b.balance_type || b.name || "",
+            amount: Number(b.balance_amount.amount), currency: b.balance_amount.currency || "" }));
+          row.balanceOk = true;
+          row.balanceAt = new Date().toISOString();
+          anyBalanceOk = true;
+        } catch (err) {
+          balanceFailure = failed(err);
+          row.balanceError = balController.signal.aborted ? "timeout" : obReadFailureCode(err);
+        } finally { clearTimeout(balTimer); }
+        // Una autorización cerrada/401 no se usa para otra llamada. Los fallos transitorios
+        // del saldo sí dejan consultar movimientos con el tiempo restante de ESTA cuenta.
+        if (balanceFailure && (balanceFailure.sessionEnded || balanceFailure.status === 401)) {
+          row.transactionError = row.balanceError;
+        } else try {
+          const tx = await fetchBankTransactions(jwt, uid, plan.windowStart, counted(uid, false), accountDeadline - Date.now());
+          row.transactions = (tx.transactions || []).map(mapTransaction);
+          row.count = row.transactions.length;
+          row.ok = true;
+          row.truncated = tx.truncated;
+          row.transactionError = tx.transactionError;
+          row.readReason = tx.readReason;
+          row.failureCode = tx.failureCode;
+          anyAcctOk = true;
+        } catch (err) {
+          failed(err);
+          row.transactionError = obReadFailureCode(err);
         }
+        if (!row.ok) row.error = row.transactionError;
+        acctOut.push(row);
       }
       /* 401 SIN CÓDIGO DE CIERRE Y NINGUNA CUENTA LEÍDA (revisión del 13/10). Puede ser un
          fallo de la aplicación o una sesión muerta que el proveedor nombra de otra forma;
@@ -386,7 +397,11 @@ Deno.serve(withCors(async (req: Request) => {
          corte por otra causa (el banco repite el cursor de página) no es desbordar.
          Con cliente de acuse ese «ahora» no se escribe: viaja en `ack`. Si esta respuesta no
          llega, la siguiente pulsación parte del cursor de antes y vuelve a pedirlo todo. */
-      const allRead = acctOut.length > 0 && acctOut.every((a) => a.ok && !a.transactionError);
+      const allBalances = acctOut.length === acctList.length && acctOut.every((a) => a.balanceOk);
+      // El móvil antiguo pierde saldos si solo actualiza la hermana sana. Retiene el banco
+      // entero y repite la ventana; sin capacidad H2 no se acusa una vista conservadora.
+      const legacyHold = !phaseClient && !allBalances;
+      const allRead = !legacyHold && acctOut.length === acctList.length && acctOut.length > 0 && acctOut.every((a) => a.ok && !a.transactionError);
       const overflow = allRead && acctOut.some((a) => a.truncated && ((used[a.uid] || 0) >= OB_DEMAND_MAX_PAGES || a.count >= 2000));
       const wantOld = recoverGaps && plan.gap && !overflow;
       const nowIso = new Date().toISOString();
@@ -412,7 +427,7 @@ Deno.serve(withCors(async (req: Request) => {
          hoy pulsa antes OTRO dispositivo, porque el móvil que lo guarda lo devuelve y el
          enlace, que sigue en null, lo acepta. Con la BD caída dos veces seguidas no hay
          donde apuntar el punto de partida: ese acuse es lo único que queda de él. */
-      if (acks && !link.last_sync && anyAcctOk) {
+      if (acks && !link.last_sync && acctOut.some((a) => a.ok)) {
         for (let i = 0, written = false; i < 2 && !written; i++) {
           try {
             const { error } = await sameLinkVersion(admin.from("bank_links").update({ last_sync: chunkCursor(ymdAddDays(plan.windowStart, -1)) })
@@ -431,24 +446,25 @@ Deno.serve(withCors(async (req: Request) => {
       const primary = acctOut.find((a) => a.ok) || acctOut[0] || { balances: [], transactions: [], count: 0 };
       // deno-lint-ignore no-explicit-any
       const entry: any = {
-        aspsp: link.aspsp_name, iban: link.iban, ok: anyAcctOk, expired: !anyAcctOk && anyExpired,
-        error: anyAcctOk ? undefined : lastErr,
+        aspsp: link.aspsp_name, iban: link.iban, ok: anyAcctOk || anyBalanceOk, expired: !anyAcctOk && anyExpired,
+        error: anyAcctOk || anyBalanceOk ? undefined : lastErr,
         balances: primary.balances, count: primary.count, transactions: primary.transactions,
         /* `syncFrom` es el día más antiguo que esta respuesta puede traer: el cliente nuevo
            acepta desde ahí. Va unos días por debajo del primer día pedido (`demandFloor`).
            `balanceAt` es cuándo se leyó el saldo, que ya no coincide con last_sync mientras
            el tramo va a medias. `ack` es el cursor que el cliente devolverá. */
         syncFrom: demandFloor(plan.windowStart), gapBeyondCap: plan.gapBeyondCap, gapPending: wantOld,
-        balanceAt: anyAcctOk ? nowIso : undefined,
+        accountPhases: phaseClient ? 1 : undefined,
+        balanceAt: allBalances ? nowIso : undefined,
         ack: acks && toNow ? ackToken(nowIso, linkKey) : undefined,
         accounts: acctOut,
       };
       out.push(entry);
       reads.push({ link, linkKey, plan, used, counted, entry, primary, accounts: acctOut, asked: plan.windowStart,
-        auth401: anyExpired ? null : auth401, authSession,
+        auth401: anyExpired ? null : auth401, authSession, legacyHold,
         // El tramo solo se empieza con lo reciente ENTERO en todas las cuentas: gastar
         // llamadas en una mientras otra no avanza no movería el cursor.
-        ready: wantOld && demandReadComplete(acctOut) });
+        ready: !legacyHold && acctOut.length === acctList.length && wantOld && demandReadComplete(acctOut) });
     }
 
     /* TRAMO ANTIGUO (INC-2709-06). Va aparte y al final, en su propio try: un 429, un 400 o
@@ -545,6 +561,12 @@ Deno.serve(withCors(async (req: Request) => {
       await logObDemandResult(admin, user.id, r.link.aspsp_name, r.asked, readStatus, accts.length, readCount, pages, readTruncated, r.plan.gapBeyondCap, !!r.entry.gapPending, reasons, failureCodes);
       // Aquí, con todos los bancos ya leídos: apuntarlo en el bucle de cuentas retrasaba las siguientes.
       if (r.auth401) await logObAuthFailure(admin, user.id, r.link.aspsp_name, r.auth401, r.authSession);
+      if (!phaseClient) {
+        if (r.legacyHold) { r.entry.ok = false; r.entry.error = "balance_unavailable"; delete r.entry.ack; }
+        // El legado usa ok tanto para saldos como para movimientos; un saldo válido sigue
+        // aplicándose cuando falla la primera página, que conserva transactionError.
+        r.accounts.forEach((a: any) => { a.ok = a.balanceOk === true; });
+      }
     }
 
     // Enlaces caducados/rotos: van en la respuesta SIN llamar a Enable Banking (fallaría igual).
