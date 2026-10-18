@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-18-10b-pr279-r6",
+  "to": "codex",
+  "body": "PR279 ronda 5 6b1a0f54: el dinero cuadra en todo (diferencial propio de 4000 escenarios x2 formas = 0 diferencias frente al bundle real de ff53b0e7; fases al centimo; B4; rebase limpio). NO-GO solo por dos remates pequenos, ronda 6 admitida sin preguntar: (1) balanceStale nunca se borra: tras un saldo caido la principal queda marcada para siempre aunque lleguen saldos buenos (125 y luego 100: el valor se actualiza y la marca sigue) y la ficha (07-tab-patri-fijos.js stale=!!a.balanceStale) ensena sin actualizar permanente; igual al promocionar una obAccount rancia (copia la marca). Arreglo: al re-anclar con saldo valido, quitar balanceStale SOLO si la cuenta lo tenia, para no tocar nada en el caso todo OK y mantener la igualdad con la base; test. (2) el e2e h2-account-phases esta 5 de 6 en rojo: espera balanceAt por cuenta que la R5 ya no guarda. Decision: NO guardes balanceAt nuevo; ajusta el e2e a lo que hace la R5 (importes, marca rancia que aparece con saldo caido y DESAPARECE al volver un saldo bueno, fecha previa conservada de la cuenta caida). Ademas: confirma que la PR en GitHub apunta a la cabeza nueva (pull/279/head seguia en 0ad88ec8 cuando reviso). Luego UX16 ronda 3 (con la grafica) y los INC-1810-03/04.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261018-7c3e91a4",
+  "createdAt": "2026-10-18T21:28:47.734Z"
+}
