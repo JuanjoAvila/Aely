@@ -48,9 +48,12 @@ composición. Esta candidata no modifica esas ramas ni acredita su integración.
 - Compras: 32 casos completados, incluidos siete mutantes del grupo de
   identidad; dos anclas de ese grupo se adaptan al índice con signo sin
   cambiar las aserciones. Su fallo anterior queda conservado.
-- Sintaxis, privacidad, seguridad, registro y mapa de tests, `docs-frescura`,
+- Sintaxis, privacidad, seguridad, registro y mapa de tests,
   presupuesto cliente/servidor, mezcla de nube, ingresos, notas y renombrado:
   EXIT0. Las ejecuciones por bloques no equivalen a una suite general verde.
+- `docs-frescura`: EXIT0 antes del commit; EXIT1 tras registrar el producto,
+  porque detecta tres archivos publicables posteriores al ancla de VERSION.
+  Este guardián depende del historial Git, no solo de los bytes del checkout.
 
 Los fallos iniciales del arnés se conservan en la evidencia privada: reloj no
 declarado en la matriz y modo neto sembrado fuera de `settings` en el DOM.
@@ -62,6 +65,7 @@ los cinco guardianes ajustados también se conservan.
 Candidata para revisión en PR borrador contra beta. El control de tamaño
 falla en el HTML minificado (1.329 KB frente a 1.328 KB); gzip y recursos
 bloqueantes pasan. No se elevan topes ni se cambia VERSION o catálogo.
+`docs-frescura` queda bloqueado por el versionado pendiente de integración.
 `beta-sources` termina con EXIT1 tras una sola ejecución: falta vigilar la
 dependencia `obPolarity` en Inicio v4.2 y en el guardián transitivo de cargos;
 el cierre del descriptor de fichas del catálogo141 pasa de 125 a 127 lectores.
