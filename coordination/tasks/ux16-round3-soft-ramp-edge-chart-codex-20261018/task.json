@@ -1,0 +1,35 @@
+{
+  "schema": 1,
+  "id": "ux16-round3-soft-ramp-edge-chart-codex-20261018",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261018-r73-b132dc8db089d0ba",
+  "createdAt": "2026-10-18T21:54:31.723Z",
+  "to": "codex",
+  "kind": "worker",
+  "priority": 2,
+  "baseSHA": "7090802099ac0c7956c0d3597a9936a82c52a95f",
+  "previousTaskId": "ux16-round2-soft-haptics-codex-20261018",
+  "assignedPublicSessionId": "codex-local-20261017-d382f016f7ca68b8",
+  "claudeGrant": "f63320f381d7c469c0a30b11436e9f9b1455fc9f",
+  "scopeCorrection": "c0696cbc72116f01921ca09260f2791dfbd3d214",
+  "supersededScopeMessage": "2ce004279185120efad529d176426fe245a0cefd",
+  "dependsOnReleasedTask": "h2-pr279-round6-stale-recovery-e2e-codex-20261018",
+  "objective": "UX16 round3 after PR279 round5: subtle continuous Mi ciclo ramp, slightly stronger soft edges with bounded pull ticks, and soft tick per changed Inicio chart point; APK58 candidate.",
+  "scope": [
+    "Existing haptics implementation and native haptic plan/plugin",
+    "Inicio chart cursor and existing edge/Mi ciclo gesture hooks only where required",
+    "Focused JVM and web tests, scoped brief and generated public/index.html"
+  ],
+  "requirements": [
+    "No execution, claim or native dispatch before PR279 round6 delivers its own released result and ROOT verifies canonical delivery. Task preparation only.",
+    "Own identity/runtime/cwd/ledger and exact task must be verified; fresh OWNclaim canonical readback and ACK before work. No claim, lease or budget transfer. Every first/internal/readback fetch counts, minimum30s. New budget only after actual exhaustion under the permanent grants, with own notice/readback.",
+    "Preserve foreign WIP, claims, evidence and runner. Directed tests: one worker, zero retries, own fixtures and port. No full suite, CPU6, Gradle, APK, live data, SQL, Edge deployment, main/beta push or merge. Do not weaken VERSION, catalogue, size caps, financial oracle or tests.",
+    "Only changed-scope focused checks needed for the actual change. Never rerun completed unrelated tests. No physical mobile or served beta acceptance claim from synthetic/JVM/web results.",
+    "Same original UX16 holder. New isolated checkout/branch from exact beta70908020; draft PR against beta. Do not alter frozen PR276.",
+    "Mi ciclo: one continuous gesture following actual fill, from very soft to mildly stronger; never multiple strong hits. Ceiling approximately that of the new soft edge.",
+    "Edge: slight amplitude increase from10 to roughly25-35/255, or supported LOW_TICK scale0.2-0.3; one inertial arrival signal. While finger keeps pulling against the edge allow gentle ticks every120-180ms and stop immediately on release.",
+    "Chart correction is binding: chart/cursor in Inicio, no botnav work. One gentle tick per changed series point/day; none while point remains unchanged. Frequency cap roughly30-40ms on fast sweeps. Preserve stopSwipe arbitration; minimal frame cost per AGENTS7bis. Respect system haptics and reduced motion for all paths.",
+    "Fresh causal RED, focused JVM and web GREEN, meaningful mutations, actual EXITs and exact source manifests. No Gradle or APK build. Return the actual private checkout path in the native chat reply, never in public channel."
+  ],
+  "deliverable": "New draft PR against beta and own immutable released result with exact source, JVM/web evidence and limits; Claude final review/integration/served/mobile acceptance remain separate."
+}
