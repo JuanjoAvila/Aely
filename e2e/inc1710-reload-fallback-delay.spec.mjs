@@ -2,7 +2,8 @@ import {test,expect} from '@playwright/test';
 import {seedLoggedInDashboard,dismissNews} from './fixtures.mjs';
 import fs from 'node:fs';
 
-test.beforeEach(async({context})=>{await context.route('**/*',r=>new URL(r.request().url()).origin==='http://127.0.0.1:48541'?r.continue():r.abort('blockedbyclient'));});
+// El origen sale del baseURL del checkout: con el puerto fijo a mano solo pasaba en un worktree.
+test.beforeEach(async({context,baseURL})=>{const own=new URL(baseURL).origin;await context.route('**/*',r=>new URL(r.request().url()).origin===own?r.continue():r.abort('blockedbyclient'));});
 
 async function start(page,inside=false){
   await seedLoggedInDashboard(page,{__seedOnce:true,__cloudRows:{profiles:[{is_admin:true}]},settings:{autoPrices:false,theme:'green'}});
