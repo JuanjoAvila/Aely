@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "id": "inc181003-04-plan-expense-link-ui-fix-codex-20261019",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261018-r73-b132dc8db089d0ba",
+  "createdAt": "2026-10-18T22:10:19.311Z",
+  "to": "codex",
+  "kind": "worker",
+  "priority": 1,
+  "model": "gpt-6-astra",
+  "baseSHA": "7090802099ac0c7956c0d3597a9936a82c52a95f",
+  "previousTaskId": "inc181003-04-plan-expense-link-investigation-codex-20261018",
+  "assignedPublicSessionId": "codex-local-20261016-46b86e3686e19bf3",
+  "claudeGrant": "56464894757ebe9c77e8145b9b09fbbd13bf4f9f",
+  "investigationResult": "61f863c313bb9813e2063726e14d5d730633faec",
+  "consultationCommit": "11e19f5598ce9b053dd8b338dd7398d4cb90470d",
+  "objective": "INC18100304 approved UI correction: distinguish calendar expectation from accredited payment in Plan, show validated unique read-only debt and receipt links in expense detail, and correct withdrawal warning; preserve every financial cent and persisted field.",
+  "scope": [
+    "Plan payment status presentation and short es/en/ca labels",
+    "Shared read-only validated relationship reader and expense-detail presentation",
+    "Withdrawal warning presentation condition only",
+    "Focused synthetic causal RED, GREEN, mutations and Plan/detail E2E with exact financial invariants; scoped docs and generated bundle"
+  ],
+  "requirements": [
+    "New task, own claim canonical readback and ACK before product. Same original holder in Astra; new isolated branch and checkout from exact base. Prior investigation claim/result/source/evidence remain immutable. Every first/internal/readback fetch counts, minimum30s, no budget resets or inheritance; existing permanent budget grant applies only after real exhaustion and own notice/readback.",
+    "GO56464894 is binding: Plan distinguishes calendar expectation from accredited or linked expense. Mark paid only with accredited evidence; elapsed day alone displays a short pending-confirmation label for family in es/en/ca. Keep the shared financial paid contract and calculations intact; use presentation derivation rather than altering money semantics.",
+    "Common UI reader must only read a validated and unique relation for BOOKv2, expense proof, explicit mark and manual evidence. Detail says the linked receipt or debt when Plan recognizes the exact expense. Calendar, paidYm alone, ambiguous equal-content rows, conflicting references/accounts or mere manual eligibility cannot create a relation.",
+    "Preserve signed bank references, accounts, ordinals, vetoes, tombstones, renamed receipt original proof identity, missing feed, duplicates and ambiguity. Do not backfill debtId or reciboId and do not loosen matching rules.",
+    "Affirmative withdrawal warning only for an actual confirmed withdrawal under existing contract. Before manual confirmation, eligibility alone must never assert that the charge is a withdrawal.",
+    "No writes or migrations to amounts, balances, paidYm, debtId, reciboId, proofs, aliases, vetoes or cloud state. No automatic matching, backfill, importing or reconciliation changes. Consult Claude before any change needed outside this read-only UI scope.",
+    "ROJO first against approved presentation contract, then focused GREEN and meaningful mutants. E2E opens Plan and expense detail for both synthetic debt and receipt cases. Exact-cent before/after oracle for Inicio, Plan and widget; assert persisted snapshots byte-identical and no new cloud writes. Cover ambiguity/reference/account/tombstone/rename/manual/BOOK edges relevant to reader.",
+    "Use only needed directed tests on own synthetic fixtures and port, one worker zero retries. Preserve prior diagnostic RED, 13+1 controls and harness error; never claim full14green from focused follow-up. Do not repeat completed unrelated tests.",
+    "No fullsuite, CPU6, Gradle, APK, backend, SQL, live banks, Edge, deployment, main/beta push or merge. Do not change VERSION, catalogue, caps or financial oracles. Original UX16 holder is already executing round3; do not duplicate or take over.",
+    "New draft PR against beta; exact source manifests, actual EXITs, canonical released result and private checkout path. Claude review/integration, served artifacts and mobile acceptance remain pending unless separately proven."
+  ],
+  "deliverable": "Draft PR against beta, causal RED and focused GREEN/mutants/E2E with exact-cent and no-persistence invariants, own released result and bounded limitations."
+}
