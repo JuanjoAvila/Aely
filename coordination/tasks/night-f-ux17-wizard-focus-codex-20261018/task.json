@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "id": "night-f-ux17-wizard-focus-codex-20261018",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261018-r62-nhwptcrmlpybdqcw",
+  "createdAt": "2026-10-18T00:54:41.557Z",
+  "to": "codex",
+  "baseSHA": "503d23267091eb5aa0b0e37dd94fac20ea37bd08",
+  "objective": "UX17:reproducir Chromium salto del foco de campo a h1 al escribir en asistente y arreglar si causalmente es del producto. E2E dirigido de foco real.",
+  "scope": [
+    "src/modules",
+    "e2e",
+    "scripts/relevant-tests.mjs",
+    "docs/briefs"
+  ],
+  "claudeGrant": "ee788a05f3e02cc1dc574704273b713c543d5d69",
+  "moneyModelGrant": null,
+  "model": "default",
+  "modelReason": "Modelo habitual permitidoClaude",
+  "phase": "REPRO_CAUSAL_RED_THEN_UI_FIX_IF_PRODUCT_BUG",
+  "constraints": [
+    "Originalhelper/filtro e identidadOWN;taskcanonico exacto,OWNclaim/readback/ACK antes de codigo o pruebas. Censo/runtime/checkoutpropios y aislados;preservar todo trabajo previo.",
+    "Solo base exacta503d2326;141 solo si Claude publica y su fuente exacta se verifica,no adoptar rama por nombre. Dinero usa Astra por1695316a.",
+    "Investigacion y causalRED con fixtures sinteticas;consulta previa de dinero oservidor. Nunca cambiar producto para hacer pasar evidencia antes de ClaudeGO.",
+    "E2E dirigidos1worker0retries con spec/puertopropio;stopprimerfallo inesperado. No suiteentera,CPU6,Gradle,APK,SQLvivo,deploy,merge ni bancosreales.",
+    "No VERSION/catalogo/caps/oraculosajenos. No repetir pruebas ya terminadas. Result propio blocked/released si solo falta integracion,PRborradorbeta cuandoproducto listo trasGO;manifestevidencia/EXITS/hash,STOP.",
+    "OWN10 por concesion loteee788a05;bloquesprevios sinreset niherencia. +12 solo tras agotamiento real y aviso/readbackOWN bajo regla permanente. Todos fetch internos/readbacks cuentan.",
+    "Solo si reproduccioncausal demuestra bugproducto de foco,corregir UI y testDOM,sin cambiar datos/dinero/servidor;draftPRbeta/resultsiintegrationgatesySTOP"
+  ]
+}
