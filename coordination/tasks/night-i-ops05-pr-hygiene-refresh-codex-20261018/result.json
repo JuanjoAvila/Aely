@@ -1,0 +1,142 @@
+{
+  "status": "done",
+  "summary": "OPS05 read-only refresh complete: 53 open Codex PRs, 232 remote and 300 local Codex branches. Delta only; unchanged target graph and historical evidence reused by hash. No closures, deletions, archives, product or PR changes, tests/builds or new PR.",
+  "tests": [],
+  "baseSHA": "ff53b0e7243fe79f9164bbc1bcf2313fb2e28d13",
+  "inventoryMainSHA": "a9916c3cdb21c93f9d3a47653c0608e630ce50ab",
+  "inventoryBetaSHA": "ff53b0e7243fe79f9164bbc1bcf2313fb2e28d13",
+  "previousResult": "0f5de65ea44eaad8257bab58102ae8d6bdde66ac",
+  "manifestSHA256": "37e6b2b076213882544670ce33d237eb12271d5d46acc2ad4b9973abe5b1a2e2",
+  "deltaSHA256": "746a1767b35410fc27499123113422e997bc7d0018e0f443741611109b02564f",
+  "summarySHA256": "fd6586c7a311e565a17a6be5cb177f1ff9e5c54a5dcf4c838ae39197a15f8eaf",
+  "before": {
+    "openCodexPRs": 49,
+    "remoteCodexBranches": 228,
+    "localCodexBranches": 295
+  },
+  "after": {
+    "allPRs": 253,
+    "openCodexPRs": 53,
+    "remoteCodexBranches": 232,
+    "localCodexBranches": 300,
+    "worktrees": 380,
+    "exactOpenHeadsInMain": 0,
+    "exactOpenHeadsInBeta": 15
+  },
+  "changes": {
+    "PRsAdded": [
+      273,
+      272,
+      271,
+      270
+    ],
+    "PRsChanged": [
+      269,
+      268,
+      267,
+      265
+    ],
+    "PRsRemoved": [],
+    "remoteAdded": 4,
+    "remoteRemoved": 0,
+    "remoteChanged": 5,
+    "localAdded": 5,
+    "localRemoved": 0,
+    "localChanged": 4
+  },
+  "exactOpenHeadsInBeta": [
+    {
+      "PR": 261,
+      "headSHA": "fc2a7bf364ef478b54c76d76bb8f4086792f75ec"
+    },
+    {
+      "PR": 257,
+      "headSHA": "7ce911a2bbd19e1d710cba1284bf0a7ff8a637c7"
+    },
+    {
+      "PR": 256,
+      "headSHA": "8f64624bf587018ac7ff0df3242205751123b0ac"
+    },
+    {
+      "PR": 255,
+      "headSHA": "b8a712141d97f27f58ac5c467193fd93cd39bf18"
+    },
+    {
+      "PR": 252,
+      "headSHA": "3544dd35ffcf4b6cc81342eace87770ff2e83a3b"
+    },
+    {
+      "PR": 251,
+      "headSHA": "00bb2bbb9bb68be157e589195507abdcd32581ca"
+    },
+    {
+      "PR": 249,
+      "headSHA": "536882888eacc70921e462ab98e27620f613a29b"
+    },
+    {
+      "PR": 248,
+      "headSHA": "255eb082d57a0e07a7a7a0bf3baf378f2c50f702"
+    },
+    {
+      "PR": 247,
+      "headSHA": "059218be274e7f711cda4d88572f9942faee1517"
+    },
+    {
+      "PR": 245,
+      "headSHA": "13d154903485d20da63a2f4a82c773fecde23b14"
+    },
+    {
+      "PR": 244,
+      "headSHA": "ea08241c7ef22bc0c5e18bb4f473f9720fb98f32"
+    },
+    {
+      "PR": 243,
+      "headSHA": "2d4fa8de7fb103bc1455690c59dd42f8438eac81"
+    },
+    {
+      "PR": 242,
+      "headSHA": "ab0abf68c5beb739fea20ef76d21e9c5f38848bd"
+    },
+    {
+      "PR": 241,
+      "headSHA": "fdc0524dfed1ed3728375a23af843fe289aca272"
+    },
+    {
+      "PR": 240,
+      "headSHA": "d16db899fa03ef882856aa994be0b75cd3580780"
+    }
+  ],
+  "holdBasePRs": [
+    240,
+    220
+  ],
+  "historicalSourceHeadsUnchanged": true,
+  "documentedPortHeadsUnchanged": true,
+  "targetsUnchanged": true,
+  "previousLedgersAndInventoryPreserved": true,
+  "frozenPR247Unchanged": true,
+  "OWNBudgetBeforeResult": {
+    "originalUsedActual": 10,
+    "originalCeiling": 10,
+    "additionalUsedActual": 4,
+    "additionalCeiling": 12,
+    "minimum30s": true,
+    "noReset": true,
+    "noROOTInheritance": true
+  },
+  "noClosuresOrDeletions": true,
+  "noProductOrPRChanges": true,
+  "productReady": false,
+  "limitations": [
+    "Snapshot only; Claude decides later actions after fresh exact-head and owner/WIP checks.",
+    "Exact ancestry in beta does not imply acceptance in production; documented ports and historical supersession remain distinct evidence.",
+    "Current metadata only; unchanged completed graph and tests were not repeated.",
+    "Every internal and readback channel fetch counted; final budget and immutable continuation ledger recorded in private closure."
+  ],
+  "schema": 1,
+  "taskId": "night-i-ops05-pr-hygiene-refresh-codex-20261018",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-31bde4da8226b098",
+  "createdAt": "2026-10-18T07:38:18.978Z",
+  "released": true
+}
