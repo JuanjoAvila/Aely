@@ -1,0 +1,133 @@
+{
+  "status": "blocked",
+  "summary": "Night D delivered PR271 DRAFTbeta exactheadce373d0ab4bc0980dc82fee6f8b2422c09bcbdb7 on141ff53b0e7243fe79f9164bbc1bcf2313fb2e28d13. GOe35652b8: BOOK preference only for proven live identical OB identity after FIN10. Same local UUID/user choices, no expanded deletes/writes. FIN03 parked and different amounts outside scope. Seven new groups completed in focal blocks,6 semantic mutants killed,DOM2PASS1worker0retry;build/syntax/registry/map/security/DenoCheck EXIT0. Size and docs-frescura EXIT1; beta-sources EXIT1. General CI/integration/served/mobile pending,not ProductREADY. Prior sources/PR243/claims/results/ledgers preserved. ManifestSHA256 b3f3c8a1f4a8aaedeba2a31b6f82a77aefd60cc57a531135c17ac0d624eecdfe; checkpointSHA256 7caae4e35cacc093509c411787581373c456d2891dd187bb6850dc67960dc99b. Source141+delta exact; no repeated closed tests except justified changed source/harness groups; all failures preserved. Own10 exhausted immutable; additional12 activated/readback392171cd, allfetch counted. Ownresult blocked/released and STOP.",
+  "productSHA": "ce373d0ab4bc0980dc82fee6f8b2422c09bcbdb7",
+  "baseSHA": "ff53b0e7243fe79f9164bbc1bcf2313fb2e28d13",
+  "pr": 271,
+  "productReady": false,
+  "tests": [
+    {
+      "name": "RED141",
+      "exitCode": 1,
+      "meaning": "3 groups RED / 2 controls; historical five causal failures remain preserved"
+    },
+    {
+      "name": "GREEN initial",
+      "exitCode": 1,
+      "meaning": "4 groups PASS; one fixture category normalized to Otros, corrected separately"
+    },
+    {
+      "name": "identity controls",
+      "exitCode": 0,
+      "meaning": "PASS; FIN03 and different amounts intentionally retain base behavior"
+    },
+    {
+      "name": "mutation anchor initial",
+      "exitCode": 1,
+      "meaning": "CRLF anchor failure before mutation execution; not a semantic kill"
+    },
+    {
+      "name": "semantic mutations",
+      "exitCode": 0,
+      "meaning": "6 of 6 killed by assertions: identity absent/ref alone on each side, only client/only server"
+    },
+    {
+      "name": "final server tie delta",
+      "exitCode": 0,
+      "meaning": "3 permutations PASS; first BOOK preserved among two BOOK, exact320 cents"
+    },
+    {
+      "name": "DOM",
+      "exitCode": 0,
+      "meaning": "2 PASS,1worker0retry,ownport59318,HTML SHA match,one visible320cent purchase and stable UUID after reload"
+    },
+    {
+      "name": "build",
+      "exitCode": 0,
+      "meaning": "generated HTML; release receipt restored byte-exact to base, no catalogue repin"
+    },
+    {
+      "name": "syntax",
+      "exitCode": 0,
+      "meaning": "7 script blocks syntax checked"
+    },
+    {
+      "name": "test map",
+      "exitCode": 0,
+      "meaning": "PASS"
+    },
+    {
+      "name": "registry",
+      "exitCode": 0,
+      "meaning": "registry-only plan, no general suite"
+    },
+    {
+      "name": "security",
+      "exitCode": 0,
+      "meaning": "28 cloud writes remain guarded"
+    },
+    {
+      "name": "Deno PATH attempt",
+      "exitCode": null,
+      "meaning": "ENOENT before execution; null is not a test EXIT"
+    },
+    {
+      "name": "Deno source check",
+      "exitCode": 0,
+      "meaning": "EXIT0 using existing absolute binary; no network or database"
+    },
+    {
+      "name": "size",
+      "exitCode": 1,
+      "meaning": "EXIT1 minified over1328KiB cap (rounded display1328);gzip369/370 and3/3 blocking files pass"
+    },
+    {
+      "name": "docs-frescura",
+      "exitCode": 1,
+      "meaning": "EXIT1 three product files since version anchor, VERSION unchanged"
+    },
+    {
+      "name": "beta-sources",
+      "exitCode": 1,
+      "meaning": "EXIT1: 105 PASS, one failure: fin05-widget-reentrada has unguarded dependency preferBookedExpenses. New dependency integration gate; catalogue unchanged, no repin."
+    }
+  ],
+  "manifestSHA256": "b3f3c8a1f4a8aaedeba2a31b6f82a77aefd60cc57a531135c17ac0d624eecdfe",
+  "checkpointSHA256": "7caae4e35cacc093509c411787581373c456d2891dd187bb6850dc67960dc99b",
+  "fetchBudget": {
+    "own10Frozen": {
+      "used": 10,
+      "limit": 10,
+      "sha256": "edf9ab307bc5eaa8adcc5e03a1fcf5a1561eb1be484892ad210753552b497a9e",
+      "at": "2026-10-18T01:20:35.819Z"
+    },
+    "own12BeforeResult": {
+      "grant": "ee788a05f3e02cc1dc574704273b713c543d5d69",
+      "budget": 12,
+      "used": 2,
+      "remaining": 10,
+      "priorFrozen": [
+        14,
+        6,
+        7,
+        7,
+        10
+      ],
+      "noInheritance": true
+    }
+  },
+  "limitations": [
+    "No suite/general CI or CPU6",
+    "No APK/physical Android",
+    "No SQL/bank/Edge/deploy/merge",
+    "Catalogue/VERSION/caps/foreign oracles unchanged",
+    "FIN03 remains parked; amount conflicts excluded",
+    "Focal green is not ProductREADY"
+  ],
+  "schema": 1,
+  "taskId": "night-d-book-over-pdng-inventory-codex-20261018",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-46b86e3686e19bf3",
+  "createdAt": "2026-10-18T01:34:50.058Z",
+  "released": true
+}
