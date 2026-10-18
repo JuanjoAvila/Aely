@@ -169,9 +169,9 @@ test("el pull REAL no trae decisiones de la cuenta anterior",()=>{
   const block=/const merged=mergeExpenses\(prev\.expenses,\s*cloudState\.expenses\|\|\[\]\);([\s\S]*?)if\(freshLogin && \(cloudState\.accounts/.exec(html);
   assert.ok(block);
   const source=block[0].slice(0,block[0].lastIndexOf("if(freshLogin"));
-  const pull=vm.runInContext("(function(prev,cloudState,freshLogin,opts,sessionRef,u){"+source+"return baseObj;})",c);
+  const pull=vm.runInContext("(function(prev,cloudState,freshLogin,opts,sessionRef,u,cloudPack){"+source+"return baseObj;})",c);
   const s=c.separarGemeloAutomatico(sync(c,state([aviso()]),[tx()]),"a",1234);
-  const next=pull({...s,_historyOwner:"before"},state(),true,{dropTx:true},{current:{user:{id:"after"}}},"after");
+  const next=pull({...s,_historyOwner:"before"},state(),true,{dropTx:true},{current:{user:{id:"after"}}},"after",{updated_at:"synthetic"});
   assert.equal(next.gemelos.length,0);
 });
 

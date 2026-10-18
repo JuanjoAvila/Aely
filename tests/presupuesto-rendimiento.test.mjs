@@ -304,7 +304,10 @@ const PRESUPUESTO = {
   // Integración 4.26.140 (17/10): cierre suave de la hoja de Deudas y Metas (velo que se apaga con ella), atrás que esconde el teclado antes de cerrar, nómina manual frente a la del banco
   // y el aviso de cuota de frecuencia de los bancos en tres idiomas, sobre la beta 139: 1.344.813 B / 373.561 B gzip con sello .99999 y reserva de 95 B (1313,3 / 364,8 KiB). SUBE por lógica
   // de producto, no se recorta (mandato 11/10). Mínimos: 1314 KiB minificado (quedan 0,7 KiB) y gzip a 366 KiB porque en 365 quedaban solo 195 B, menos que el sello real de Actions.
-  minificado: 1314 * 1024,
+  // Integración 4.26.141 (17/10): cierre suave de las fichas con atrás (runClose), plugin de vibración del lado web (borde e Inicio), Metas a tres vías entre móviles (INC-0410),
+  // FIN-10 y SEC-03, sobre la beta 140: 1.359.117 B / 377.930 B gzip con sello .99999 y reserva de 95 B (1327,2 / 369,1 KiB). SUBE por lógica de producto, no se recorta
+  // (mandato 11/10). Mínimos: 1328 KiB minificado (quedan 755 B) y gzip a 370 KiB (quedan 950 B; en 369 faltaban 74 B).
+  minificado: 1328 * 1024,
   // INC-2709-05: +141 B gzip sobre el tope anterior al añadir el contraste entre gasto y
   // balance y la comprobación del abono contabilizado. Se amplía 1 KiB (0,3 %) medido;
   // mantener la explicación en tres idiomas y no debilitar el criterio financiero.
@@ -334,7 +337,7 @@ const PRESUPUESTO = {
   // Integración 4.26.130: 363.055 B gzip, 6.465 B más que la 129. Mínimo medido: 355 KiB (quedan 465 B).
   // Integración 4.26.131: 365.878 B gzip, 2.823 B más que la 130. Mínimo medido: 358 KiB (quedan 714 B).
   // Integración 4.26.135: 368.967 B gzip, 2.375 B sobre 358 KiB. Mínimo medido: 361 KiB (quedan 697 B).
-  gzip: 366 * 1024,
+  gzip: 370 * 1024,
   bloqueantes: 3,           // medido 2026-07-25: 3 (supabase-js + las dos fuentes precargadas)
 };
 

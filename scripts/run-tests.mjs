@@ -34,6 +34,7 @@ if (plan.build !== false) {
 }
 
 const steps = [
+  ["ux16-haptics", ["node", "--test", "tests/ux16-haptics.test.mjs"]],
   ["inicio-deuda-futura", ["node", "--test", "tests/inicio-deuda-futura.test.mjs"]],
   ["run-deno-tests", ["node", "tests/run-deno-tests.test.mjs"]],
   ["inicio-grafica-reservas", ["node", "tests/inicio-grafica-reservas.test.mjs"]],
@@ -41,6 +42,7 @@ const steps = [
   ["deudas-metas-edicion", ["node", "tests/deudas-metas-edicion.test.mjs"]],
   ["deudas-metas-revision", ["node", "tests/deudas-metas-revision.test.mjs", "--mutations"]],
   ["deudas-plazo-cuota", ["node", "tests/deudas-plazo-cuota.test.mjs"]],
+  ["fin10-absorption-scope", ["node", "--test", "tests/fin10-absorption-scope.test.mjs"]],
   ["fin15-pendiente-contabilizada", ["node", "--test", "--test-concurrency=1", "tests/fin15-pendiente-contabilizada.test.mjs"]],
   ["prod117-edge-compat", ["node", "tests/prod117-edge-compat.test.mjs"]],
   ["backclose-history", ["node", "tests/backclose-history.test.mjs"]],
@@ -118,6 +120,7 @@ const steps = [
   ["manual-income-review", ["node", "tests/manual-income-review.test.mjs"]],
   ["bank-sync-paging", ["node", "tests/bank-sync-paging.test.mjs"]],
   ["bank-rate-contracts", ["node", "tests/bank-rate-contracts.test.mjs"]],
+  ["bank-callback-state", ["node", "tests/bank-callback-state.test.mjs"]],
   ["bank-rate-client", ["node", "tests/bank-rate-client.test.mjs"]],
   ["bank-download-incomplete", ["node", "tests/bank-download-incomplete.test.mjs"]],
   ["bank-sync-progreso", ["node", "tests/bank-sync-progreso.test.mjs"]],
@@ -128,6 +131,10 @@ const steps = [
   ["ob-hueco-recuperado", ["node", "tests/ob-hueco-recuperado.test.mjs"]],
   ["reserva-dinero", ["node", "tests/reserva-dinero.test.mjs"]],
   ["metas-pull-transport", ["node", "tests/metas-pull-transport.test.mjs"]],
+  ["goals-three-way", ["node", "--test", "tests/goals-three-way.test.mjs"]],
+  ["goals-review-remates", ["node", "--test", "tests/goals-review-remates.test.mjs"]],
+  ["goals-review2-remates", ["node", "--test", "tests/goals-review2-remates.test.mjs"]],
+  ["goals-review3-reserve-conflict", ["node", "--test", "tests/goals-review3-reserve-conflict.test.mjs"]],
   ["persist-commit", ["node", "tests/persist-commit.test.mjs"]],
   ["month-budget-stats", ["node", "tests/month-budget-stats.test.mjs"]],
   ["dash-metricas", ["node", "tests/dash-metricas.test.mjs"]],

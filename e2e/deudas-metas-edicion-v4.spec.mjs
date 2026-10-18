@@ -321,3 +321,45 @@ for(const scenario of [{kind:"debt",how:"save"},{kind:"debt",how:"x"},{kind:"goa
  expect(live[live.length-1].alpha,"el velo ya se ha ido cuando se desmonta").toBeLessThanOrEqual(0.03);
  if(kind!=="apuntar"&&how==="save")await expect(page.getByText(texts.es.saved,{exact:true})).toHaveCount(1);
 });
+// Beta 4.26.140.1 (17/10): por atrás, borde o ✕ la hoja «se baja rápido y no suave» en todas las
+// hojas, y en Deudas se leía como parpadeo. Medido en su móvil: se iba en ~120 ms porque, sin dedo,
+// salía con la curva del arrastre (71 % del camino en 66 ms). Este guardián exige una salida pausada
+// —medio camino no antes de 100 ms— y, en Filtros de Gastos, que atrás baje la hoja en vez de
+// desmontarla de golpe (pasaba el onClose pelado a useBackClose).
+for(const scenario of [{kind:"debt",how:"back"},{kind:"debt",how:"x"},{kind:"debt",how:"save"},{kind:"goal",how:"back"},{kind:"apuntar",how:"back"},{kind:"filtros",how:"back"}])test(`cierre sin dedo (${scenario.kind}, ${scenario.how}): sale pausado, no de golpe`,async({page})=>{
+ const {kind,how}=scenario;
+ await open(page,"es",reviewRows,true);if(kind==="goal")await page.getByRole("tab",{name:"Metas",exact:true}).click();
+ if(kind==="apuntar")await page.locator(".botnav-fab").evaluate(b=>b.click());
+ else if(kind==="filtros"){await page.locator('.botnav-tab[data-tour="gastos"]').click();await page.locator("button.v4-chip").filter({hasText:"🎛️"}).first().evaluate(b=>b.click());}
+ else await page.locator(kind==="debt"?'[data-debt-id="debt"] .plan-item-open':'[data-goal-id="goal"] .plan-item-open').evaluate(b=>b.click());
+ await page.waitForFunction(()=>{const el=document.querySelector(".v4-sheet");return !!el&&getComputedStyle(el).transform==="none";},null,{timeout:10000});
+ await page.waitForTimeout(150);
+ await page.evaluate(how=>{const sh=document.querySelector(".v4-sheet"),top0=sh.getBoundingClientRect().top,rec=window.__salida={top0,h:innerHeight,f:[]};
+  const t0=performance.now();(function f(){const s=document.querySelector(".v4-sheet");rec.f.push({t:performance.now()-t0,top:s?s.getBoundingClientRect().top:null});if(performance.now()-t0<1200)requestAnimationFrame(f);})();
+  if(how==="save")document.querySelector(".plan-edit-sheet .btn-primary").click();
+  if(how==="x")document.querySelector(".plan-edit-head button").click();
+  if(how==="back")history.back();
+ },how);
+ await expect(page.locator(".v4-sheet")).toHaveCount(0);await page.waitForTimeout(150);
+ const rec=await page.evaluate(()=>window.__salida),live=rec.f.filter(f=>f.top!=null),travel=rec.h-rec.top0;
+ expect(new Set(live.map(f=>Math.round(f.top))).size,"la hoja baja en varios fotogramas, no desaparece de golpe").toBeGreaterThan(8);
+ const half=live.find(f=>f.top-rec.top0>=travel/2);
+ expect(half,"la hoja llega a media salida antes de desmontarse").toBeTruthy();
+ expect(half.t,"sin dedo, medio camino no antes de 100 ms (antes ~40 ms)").toBeGreaterThanOrEqual(100);
+});
+// Mismo día, medido en su móvil con toques reales: el touchend del toque en ✕/Guardar armaba la
+// vuelta al sitio de un arrastre corto, y a los 280 ms borraba el transform de una hoja que ya se
+// estaba yendo. La hoja de Deudas volvía a subir dos fotogramas antes de desmontarse.
+for(const [kind,how] of [["debt","x"],["debt","save"],["goal","save"]])test(`toque real en ${how} (${kind}): la hoja nunca vuelve a subir mientras se cierra`,async({page})=>{
+ await open(page,"es",reviewRows,true);if(kind==="goal")await page.getByRole("tab",{name:"Metas",exact:true}).click();
+ await page.locator(kind==="debt"?'[data-debt-id="debt"] .plan-item-open':'[data-goal-id="goal"] .plan-item-open').evaluate(b=>b.click());
+ await page.waitForFunction(()=>{const el=document.querySelector(".v4-sheet");return !!el&&getComputedStyle(el).transform==="none";},null,{timeout:10000});
+ await page.waitForTimeout(150);
+ const box=await page.locator(how==="x"?".plan-edit-head button":".plan-edit-sheet .btn-primary").boundingBox();
+ await page.evaluate(()=>{const rec=window.__suben=[],t0=performance.now();(function f(){const s=document.querySelector(".v4-sheet");rec.push(s?s.getBoundingClientRect().top:null);if(performance.now()-t0<1200)requestAnimationFrame(f);})();});
+ await page.touchscreen.tap(box.x+box.width/2,box.y+box.height/2);
+ await expect(page.locator(".v4-sheet")).toHaveCount(0);await page.waitForTimeout(150);
+ const tops=(await page.evaluate(()=>window.__suben)).filter(v=>v!=null);
+ expect(tops.length,"la hoja se vio salir").toBeGreaterThan(5);
+ for(let i=1;i<tops.length;i++)expect(tops[i],"la hoja no vuelve a subir").toBeGreaterThanOrEqual(tops[i-1]-1);
+});

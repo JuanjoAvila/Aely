@@ -1,5 +1,93 @@
 [
   {
+    "v": "4.26.141",
+    "d": "2026-10-17",
+    "t": {
+      "es": "Las fichas se cierran suaves con el gesto de atrás, y vibración al llegar al final",
+      "en": "Sheets close smoothly with the back gesture, and a gentle vibration at the end of a screen",
+      "ca": "Les fitxes es tanquen suaus amb el gest d'enrere, i vibració en arribar al final"
+    },
+    "items": {
+      "es": [
+        "Las fichas se cierran bajando suave también con el gesto de atrás, sin rebote ni parpadeo.",
+        "Vibración suave al llegar al final de una pantalla y mientras se rellena el anillo de Mi ciclo al abrir Inicio. Respeta la vibración táctil del sistema y necesita instalar la app nueva.",
+        "Metas no pierde lo que guardan dos móviles a la vez.",
+        "Los movimientos de dos cuentas del mismo banco ya no se confunden.",
+        "Más protección al conectar con los bancos, sin cambios visibles."
+      ],
+      "en": [
+        "Sheets now close by sliding down smoothly with the back gesture too, with no bounce or flicker.",
+        "A gentle vibration when you reach the end of a screen and while the My cycle ring fills when you open Home. It respects the system touch vibration setting and needs the new version of the app.",
+        "Goals no longer lose what two phones save at the same time.",
+        "Transactions from two accounts at the same bank are no longer mixed up.",
+        "More protection when connecting to banks, with no visible changes."
+      ],
+      "ca": [
+        "Les fitxes es tanquen baixant suau també amb el gest d'enrere, sense rebot ni parpelleig.",
+        "Vibració suau en arribar al final d'una pantalla i mentre s'omple l'anell de El meu cicle en obrir Inici. Respecta la vibració tàctil del sistema i cal instal·lar l'app nova.",
+        "Metes no perd el que desen dos mòbils alhora.",
+        "Els moviments de dos comptes del mateix banc ja no es confonen.",
+        "Més protecció en connectar amb els bancs, sense canvis visibles."
+      ]
+    },
+    "tandas": [
+      {
+        "id": "fichas-cierre-suave-atras",
+        "t": {
+          "es": "Fichas: cierre suave también con atrás",
+          "en": "Sheets: smooth close with back too",
+          "ca": "Fitxes: tancament suau també amb enrere"
+        },
+        "items": {
+          "es": [
+            "1. Abre Plan, pestaña Deudas, toca una deuda y toca «Guardar cambios» sin cambiar nada: la ficha baja suave, sin rebote ni parpadeo.",
+            "2. Abre otra vez la deuda, toca el nombre para que salga el teclado y haz atrás: se esconde el teclado. Haz atrás otra vez: la ficha baja suave, igual que con la ✕.",
+            "3. Haz lo mismo con una meta, con Apuntar (el +) y con la ficha de un gasto en Gastos: todas bajan suave con el gesto de atrás."
+          ],
+          "en": [
+            "1. Open Plan, Debts tab, tap a debt and tap «Save changes» without changing anything: the sheet slides down smoothly, with no bounce or flicker.",
+            "2. Open the debt again, tap the name so the keyboard appears and go back: the keyboard hides. Go back again: the sheet slides down smoothly, just like with the ✕.",
+            "3. Do the same with a goal, with Add (the +) and with an expense sheet in Expenses: all of them slide down smoothly with the back gesture."
+          ],
+          "ca": [
+            "1. Obre Pla, pestanya Deutes, toca un deute i toca «Desa els canvis» sense canviar res: la fitxa baixa suau, sense rebot ni parpelleig.",
+            "2. Obre el deute un altre cop, toca el nom perquè surti el teclat i fes enrere: s'amaga el teclat. Fes enrere un altre cop: la fitxa baixa suau, igual que amb la ✕.",
+            "3. Fes el mateix amb una meta, amb Apuntar (el +) i amb la fitxa d'una despesa a Despeses: totes baixen suaus amb el gest d'enrere."
+          ]
+        }
+      },
+      {
+        "id": "vibracion-borde-y-mi-ciclo",
+        "t": {
+          "es": "Vibración al final de pantalla y en Mi ciclo",
+          "en": "Vibration at the end of a screen and in My cycle",
+          "ca": "Vibració al final de pantalla i a El meu cicle"
+        },
+        "items": {
+          "es": [
+            "0. Instala la app nueva de Aely que te llega (versión 4.26.141).",
+            "1. Abre Inicio: mientras se rellena el anillo de Mi ciclo notas una vibración suave que acompaña el relleno.",
+            "2. En Gastos, desliza hasta arriba del todo y sigue tirando: un toque corto, uno solo por gesto.",
+            "3. Si quitas la vibración táctil en los ajustes de Android, ya no vibra."
+          ],
+          "en": [
+            "0. Install the new Aely app that reaches you (version 4.26.141).",
+            "1. Open Home: while the My cycle ring fills you feel a gentle vibration that goes with the fill.",
+            "2. In Expenses, scroll all the way to the top and keep pulling: one short tap, only one per gesture.",
+            "3. If you turn off touch vibration in Android settings, it no longer vibrates."
+          ],
+          "ca": [
+            "0. Instal·la l'app nova d'Aely que et arriba (versió 4.26.141).",
+            "1. Obre Inici: mentre s'omple l'anell de El meu cicle notes una vibració suau que acompanya el farciment.",
+            "2. A Despeses, llisca fins dalt de tot i continua estirant: un toc curt, només un per gest.",
+            "3. Si treus la vibració tàctil als ajustos d'Android, ja no vibra."
+          ]
+        },
+        "apk": 56
+      }
+    ]
+  },
+  {
     "v": "4.26.140",
     "d": "2026-10-17",
     "t": {
@@ -27,58 +115,7 @@
         "Més protecció en les connexions amb els bancs i amb MyInvestor, sense canvis visibles."
       ]
     },
-    "tandas": [
-      {
-        "id": "deudas-metas-hoja-cierre-suave",
-        "t": {
-          "es": "Deudas y Metas: la hoja se cierra suave",
-          "en": "Debts and Goals: the sheet closes smoothly",
-          "ca": "Deutes i Metes: el full es tanca suau"
-        },
-        "items": {
-          "es": [
-            "1. Abre Plan, pestaña Deudas, toca una deuda y toca «Guardar cambios» sin cambiar nada: la hoja baja suave y el fondo se aclara poco a poco, sin parpadeo.",
-            "2. Ábrela otra vez y ciérrala con la ✕, tocando fuera y con el gesto de atrás: igual de suave las tres veces.",
-            "3. Haz lo mismo en la pestaña Metas con una meta."
-          ],
-          "en": [
-            "1. Open Plan, Debts tab, tap a debt and tap «Save changes» without changing anything: the sheet slides down smoothly and the background lightens gradually, with no flicker.",
-            "2. Open it again and close it with the ✕, by tapping outside and with the back gesture: equally smooth all three times.",
-            "3. Do the same in the Goals tab with a goal."
-          ],
-          "ca": [
-            "1. Obre Pla, pestanya Deutes, toca un deute i toca «Desa els canvis» sense canviar res: el full baixa suau i el fons s'aclareix a poc a poc, sense parpelleig.",
-            "2. Obre'l un altre cop i tanca'l amb la ✕, tocant fora i amb el gest d'enrere: igual de suau les tres vegades.",
-            "3. Fes el mateix a la pestanya Metes amb una meta."
-          ]
-        }
-      },
-      {
-        "id": "teclado-atras-conserva",
-        "t": {
-          "es": "Atrás con el teclado abierto no pierde lo escrito",
-          "en": "Back with the keyboard open does not lose what you typed",
-          "ca": "Enrere amb el teclat obert no perd el que has escrit"
-        },
-        "items": {
-          "es": [
-            "1. Abre Plan, pestaña Deudas, toca una deuda y toca el nombre para que salga el teclado; escribe una letra.",
-            "2. Haz el gesto de atrás: se esconde el teclado y la hoja sigue abierta con lo que escribiste.",
-            "3. Haz atrás otra vez: ahora se cierra la hoja y sigues en Plan (sin salir de la app)."
-          ],
-          "en": [
-            "1. Open Plan, Debts tab, tap a debt and tap the name so the keyboard appears; type a letter.",
-            "2. Do the back gesture: the keyboard hides and the sheet stays open with what you typed.",
-            "3. Go back again: now the sheet closes and you stay in Plan (without leaving the app)."
-          ],
-          "ca": [
-            "1. Obre Pla, pestanya Deutes, toca un deute i toca el nom perquè surti el teclat; escriu una lletra.",
-            "2. Fes el gest d'enrere: s'amaga el teclat i el full continua obert amb el que has escrit.",
-            "3. Fes enrere un altre cop: ara es tanca el full i continues a Pla (sense sortir de l'app)."
-          ]
-        }
-      }
-    ]
+    "tandas": []
   },
   {
     "v": "4.26.139",

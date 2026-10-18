@@ -1165,6 +1165,42 @@
       {
         "file": "src/modules/01-i18n.js",
         "data": "expenseDeletedSets"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncRecords"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncStore"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionIndex"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncSnapshot"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncCopy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncEqual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcLoadRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obAbsorptionIndexes"
       }
     ],
     "unidades": true
@@ -2387,6 +2423,42 @@
       {
         "file": "src/modules/00-core.js",
         "data": "DELETED_MAX"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncRecords"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncStore"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionIndex"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncSnapshot"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncCopy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncEqual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcLoadRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obAbsorptionIndexes"
       }
     ],
     "native": [
@@ -3439,6 +3511,42 @@
       {
         "file": "src/modules/00-core.js",
         "data": "DELETED_MAX"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncRecords"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncStore"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionIndex"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncSnapshot"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncCopy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncEqual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcLoadRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obAbsorptionIndexes"
       }
     ],
     "native": [
@@ -4155,6 +4263,18 @@
       {
         "file": "src/modules/00-core.js",
         "function": "isExpenseUuid"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionIndex"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obAbsorptionIndexes"
       }
     ],
     "native": [
@@ -5260,6 +5380,42 @@
       {
         "file": "src/modules/00-core.js",
         "data": "GASTO_ORIGENES"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncRecords"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncStore"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionIndex"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncSnapshot"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncCopy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncEqual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcLoadRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obAbsorptionIndexes"
       }
     ],
     "native": [
@@ -6312,6 +6468,42 @@
       {
         "file": "src/modules/00-core.js",
         "data": "DELETED_MAX"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncRecords"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncStore"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionIndex"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncSnapshot"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncCopy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncEqual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcLoadRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obAbsorptionIndexes"
       }
     ],
     "native": [
@@ -6708,6 +6900,42 @@
       {
         "file": "src/modules/00-core.js",
         "function": "isExpenseUuid"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncRecords"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncStore"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncSnapshot"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncCopy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncEqual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcLoadRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionIndex"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obAbsorptionIndexes"
       }
     ],
     "auditoria": {
@@ -7729,6 +7957,42 @@
       {
         "file": "src/modules/00-core.js",
         "function": "isExpenseUuid"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncRecords"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncStore"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionIndex"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncSnapshot"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncCopy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncEqual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcLoadRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obAbsorptionIndexes"
       }
     ],
     "unidades": true
@@ -8092,6 +8356,42 @@
       {
         "file": "src/modules/00-core.js",
         "function": "isExpenseUuid"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncRecords"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncStore"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncSnapshot"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncCopy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncEqual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcLoadRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionIndex"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obAbsorptionIndexes"
       }
     ]
   },
@@ -9716,6 +10016,62 @@
       {
         "file": "src/modules/00-core.js",
         "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncActivate"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncPull"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncCopy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncRecords"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncStore"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionIndex"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncReserves"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncEqual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mergeGoalsThreeWay"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncReserveGoalConflict"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncSnapshot"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcLoadRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obAbsorptionIndexes"
       }
     ],
     "unidades": true
@@ -10549,6 +10905,42 @@
       {
         "file": "src/modules/00-core.js",
         "data": "DELETED_MAX"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncRecords"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncStore"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionIndex"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncSnapshot"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncCopy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncEqual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcLoadRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obAbsorptionIndexes"
       }
     ],
     "unidades": true
@@ -11586,6 +11978,42 @@
       {
         "file": "src/modules/00-core.js",
         "data": "DELETED_MAX"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncRecords"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncStore"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionIndex"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncSnapshot"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncCopy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncEqual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcLoadRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obAbsorptionIndexes"
       }
     ],
     "native": [
@@ -11885,6 +12313,18 @@
       {
         "file": "src/modules/00-core.js",
         "function": "esFilaDeBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionIndex"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obAbsorptionIndexes"
       }
     ]
   },
@@ -12816,6 +13256,42 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "obIsPending"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncRecords"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncStore"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionIndex"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncSnapshot"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncCopy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncEqual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcLoadRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obAbsorptionIndexes"
       }
     ],
     "unidades": true
@@ -13389,6 +13865,42 @@
       {
         "file": "src/modules/00-core.js",
         "function": "expenseCloudKeys"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncRecords"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncStore"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionIndex"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncSnapshot"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncCopy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncEqual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcLoadRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obAbsorptionIndexes"
       }
     ],
     "unidades": true
@@ -13890,6 +14402,42 @@
       {
         "file": "src/modules/00-core.js",
         "data": "GASTO_ORIGENES"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncRecords"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncStore"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncSnapshot"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncCopy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncEqual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcLoadRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionIndex"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obAbsorptionIndexes"
       }
     ],
     "unidades": true
@@ -14458,6 +15006,42 @@
       {
         "file": "src/modules/00-core.js",
         "data": "GASTO_ORIGENES"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncRecords"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncStore"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionIndex"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncSnapshot"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncCopy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncEqual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcLoadRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obAbsorptionIndexes"
       }
     ],
     "unidades": true
@@ -15469,6 +16053,42 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "obIsPending"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncRecords"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncStore"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionIndex"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncSnapshot"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncCopy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncEqual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcLoadRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obAbsorptionIndexes"
       }
     ],
     "edge": [
@@ -15930,6 +16550,42 @@
       {
         "file": "src/modules/00-core.js",
         "data": "GASTO_ORIGENES"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncRecords"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncStore"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncSnapshot"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncCopy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncEqual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcLoadRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionIndex"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obAbsorptionIndexes"
       }
     ],
     "unidades": true
@@ -16867,6 +17523,42 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "obIsPending"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncRecords"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncStore"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionIndex"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncSnapshot"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncCopy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncEqual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcLoadRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obAbsorptionIndexes"
       }
     ],
     "unidades": true
@@ -18015,6 +18707,42 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "obIsPending"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncRecords"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncStore"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionIndex"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncSnapshot"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncCopy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncEqual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcLoadRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obAbsorptionIndexes"
       }
     ],
     "unidades": true
@@ -18319,6 +19047,46 @@
       {
         "file": "src/modules/00-core.js",
         "data": "GASTO_ORIGENES"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncClear"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncRecords"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncStore"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcLoadRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncSnapshot"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncCopy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncEqual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionIndex"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obAbsorptionIndexes"
       }
     ],
     "unidades": true
@@ -18567,6 +19335,18 @@
       {
         "file": "src/modules/00-core.js",
         "function": "esFilaDeBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionIndex"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obAbsorptionIndexes"
       }
     ],
     "unidades": true
@@ -19059,6 +19839,42 @@
       {
         "file": "src/modules/00-core.js",
         "data": "DELETED_MAX"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncRecords"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncStore"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncSnapshot"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncCopy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncEqual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcLoadRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionIndex"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obAbsorptionIndexes"
       }
     ],
     "unidades": true
@@ -19473,6 +20289,42 @@
       {
         "file": "src/modules/00-core.js",
         "function": "isExpenseUuid"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncRecords"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncStore"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncSnapshot"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncCopy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncEqual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcLoadRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionIndex"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obAbsorptionIndexes"
       }
     ]
   },
@@ -20238,6 +21090,38 @@
       {
         "file": "src/modules/00-core.js",
         "function": "esFilaDeBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncStore"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncRecords"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncEqual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncSnapshot"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncCopy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionIndex"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obAbsorptionIndexes"
       }
     ],
     "unidades": true
@@ -21292,6 +22176,42 @@
       {
         "file": "src/modules/00-core.js",
         "data": "DELETED_MAX"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncRecords"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncStore"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionIndex"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncSnapshot"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncCopy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncEqual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcLoadRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obAbsorptionIndexes"
       }
     ],
     "native": [
@@ -22178,6 +23098,42 @@
       {
         "file": "src/modules/00-core.js",
         "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncRecords"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncStore"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionIndex"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncSnapshot"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncCopy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncEqual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcLoadRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obAbsorptionIndexes"
       }
     ],
     "unidades": true
@@ -23215,6 +24171,42 @@
       {
         "file": "src/modules/00-core.js",
         "data": "DELETED_MAX"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncRecords"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncStore"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionIndex"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncSnapshot"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncCopy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncEqual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcLoadRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obAbsorptionIndexes"
       }
     ],
     "native": [
@@ -24198,6 +25190,42 @@
       {
         "file": "src/modules/01-i18n.js",
         "data": "expenseDeletedSets"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncRecords"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncStore"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionIndex"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncSnapshot"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncCopy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncEqual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcLoadRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obAbsorptionIndexes"
       }
     ],
     "unidades": true
@@ -25077,6 +26105,42 @@
       {
         "file": "src/modules/00-core.js",
         "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncRecords"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncStore"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionIndex"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncSnapshot"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncCopy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncEqual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcLoadRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obAbsorptionIndexes"
       }
     ],
     "edge": [
@@ -26239,6 +27303,62 @@
       {
         "file": "src/modules/00-core.js",
         "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncActivate"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncPull"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncCopy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncRecords"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncStore"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncReserves"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncEqual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mergeGoalsThreeWay"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncReserveGoalConflict"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncSnapshot"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionIndex"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcLoadRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obAbsorptionIndexes"
       }
     ],
     "edge": [
@@ -27298,6 +28418,38 @@
       {
         "file": "src/modules/02-ui-shared.js",
         "function": "_mcBackCloseNative"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncStore"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncRecords"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncEqual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncSnapshot"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncCopy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionIndex"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obAbsorptionIndexes"
       }
     ],
     "unidades": true
@@ -28718,6 +29870,62 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "data": "obPendingResponses"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncActivate"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncPull"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncCopy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncRecords"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncStore"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncReserves"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncEqual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mergeGoalsThreeWay"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncReserveGoalConflict"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncSnapshot"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionIndex"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcLoadRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obAbsorptionIndexes"
       }
     ],
     "edge": [
@@ -29942,6 +31150,38 @@
       {
         "file": "src/modules/00-core.js",
         "function": "isExpenseUuid"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncStore"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncRecords"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncEqual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncSnapshot"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncCopy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionIndex"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obAbsorptionIndexes"
       }
     ],
     "unidades": true
@@ -30756,6 +31996,38 @@
       {
         "file": "src/modules/00-core.js",
         "data": "DELETED_AT_MAX"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncRecords"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncStore"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncSnapshot"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncCopy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncEqual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionIndex"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obAbsorptionIndexes"
       }
     ],
     "unidades": true
@@ -32011,6 +33283,58 @@
       {
         "file": "src/modules/00-core.js",
         "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncActivate"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncPull"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncCopy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncRecords"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncStore"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncReserves"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncEqual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mergeGoalsThreeWay"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncReserveGoalConflict"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncSnapshot"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionIndex"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obAbsorptionIndexes"
       }
     ],
     "unidades": true
@@ -32864,6 +34188,42 @@
       {
         "file": "src/modules/00-core.js",
         "function": "isExpenseUuid"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncRecords"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncStore"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncSnapshot"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncCopy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncEqual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcLoadRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionIndex"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obAbsorptionIndexes"
       }
     ],
     "unidades": true
@@ -33009,6 +34369,18 @@
       {
         "file": "src/modules/00-core.js",
         "function": "esFilaDeBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionIndex"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obAbsorptionIndexes"
       }
     ],
     "unidades": true
@@ -33265,6 +34637,18 @@
       {
         "file": "src/modules/00-core.js",
         "function": "esFilaDeBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionIndex"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obAbsorptionIndexes"
       }
     ],
     "unidades": true
@@ -34315,6 +35699,62 @@
       {
         "file": "src/modules/00-core.js",
         "function": "bankRateLimited"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncActivate"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncPull"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncCopy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncRecords"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncStore"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionIndex"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncReserves"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncEqual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mergeGoalsThreeWay"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncReserveGoalConflict"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncSnapshot"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcLoadRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obAbsorptionIndexes"
       }
     ],
     "edge": [
@@ -34626,6 +36066,42 @@
       {
         "file": "src/modules/00-core.js",
         "data": "DELETED_MAX"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncRecords"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncStore"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncSnapshot"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncCopy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncEqual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcLoadRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionIndex"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obAbsorptionIndexes"
       }
     ],
     "edge": [
@@ -35153,6 +36629,42 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "reciboNoIdentidad"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncRecords"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncStore"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncSnapshot"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncCopy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncEqual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcLoadRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionIndex"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obAbsorptionIndexes"
       }
     ],
     "unidades": true
@@ -35654,6 +37166,42 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "reciboNoIdentidad"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncRecords"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncStore"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncSnapshot"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncCopy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncEqual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcLoadRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionIndex"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obAbsorptionIndexes"
       }
     ],
     "unidades": true
@@ -35775,6 +37323,18 @@
       {
         "file": "src/modules/01-i18n.js",
         "data": "_pdCache"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionIndex"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obAbsorptionIndexes"
       }
     ],
     "edge": [
@@ -36200,6 +37760,42 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "reciboNoIdentidad"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncRecords"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncStore"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncSnapshot"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncCopy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncEqual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcLoadRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionIndex"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obAbsorptionIndexes"
       }
     ],
     "unidades": true
@@ -36619,6 +38215,42 @@
       {
         "file": "src/modules/08-motor-bank.js",
         "function": "reciboNoIdentidad"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncRecords"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncStore"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncSnapshot"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncCopy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncEqual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcLoadRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionIndex"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obAbsorptionIndexes"
       }
     ],
     "unidades": true
@@ -36649,6 +38281,545 @@
         "file": "src/modules/00-core.js",
         "data": "GEST_MAX"
       }
+    ],
+    "unidades": true
+  },
+  "fichas-cierre-suave-atras": {
+    "web": [
+      {
+        "file": "src/modules/09-tab-debts-goals.js",
+        "function": "usePlanEditSave"
+      },
+      {
+        "file": "src/modules/09-tab-debts-goals.js",
+        "function": "PlanEditSheet"
+      },
+      {
+        "file": "src/modules/09-tab-debts-goals.js",
+        "function": "DebtEditSheet"
+      },
+      {
+        "file": "src/modules/09-tab-debts-goals.js",
+        "function": "GoalEditSheet"
+      },
+      {
+        "file": "src/modules/09-tab-debts-goals.js",
+        "function": "ContributeGoalSheet"
+      },
+      {
+        "file": "src/modules/04-tab-gastos.js",
+        "function": "GastosFilterSheet"
+      },
+      {
+        "file": "src/modules/07-tab-patri-fijos.js",
+        "function": "AssetSheet"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "useSheetSwipe"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "useBackClose"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  // INC-0410 guardado: de aquí al límite está cuándo y qué estado se escribe en disco. Cambiarlo invalida las revisiones que prometen conservar algo al cerrar o recargar.",
+        "to": "  // INC-0410 guardado: límite."
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accDaily"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "entOf"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "eur"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "catName"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "uid"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSkipPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSaveRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcStateKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reconcileGemelosAutomaticos"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcPersistCommit"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "accRole"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "catOf"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncRecords"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncStore"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mergeAccountBalanceHistory"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSandbox"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obPendingAbsorbedState"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "gemeloMismosCampos"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "gemeloDatos"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseBankOf"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "gemeloCompatible"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "gemeloDe"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "pushGemelos"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "expenseDeletedSet"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseIsTombstoned"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "gemeloAvisoKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "gemeloBancoAutomatico"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "keyOfExpense"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isManualExpenseSource"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "gemeloAvisoAutomatico"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "sinComercioReal"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "dateMs"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "gemeloAsignar"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncSnapshot"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncCopy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "goalSyncEqual"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcLoadRaw"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcSandboxFlag"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "esFilaDeBanco"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obPendingGroup"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "obIsPending"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionKey"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "lapidaPon"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "borrarGastoNube"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "madridYmdParts"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "partirEntDeuda"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "keyOfExpenseLegacy"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obOrdinalSufijo"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "_pdMs"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obOrdinalOf"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "obAbsorptionIndex"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "lapidasTope"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "pushDeleted"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "_errCloudMsg"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "NF"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "GOAL_EMOJIS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CATEGORIES"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "INGRESO_CAT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "INVERSION_CAT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "TRASPASO_CAT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "DEUDA_CAT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "ENT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "DISP"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcSkipPersist"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "store"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mem"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "EXP_SUFFIX"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "STATE_KEY_TEST"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "STATE_KEY_REAL"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "gemeloCache"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "DUP_DIAS_MS"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CAT"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcSandboxPinned"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "gemeloDatosCache"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "gemeloDiasCache"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "GEMELOS_MAX"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "expenseDeletedSets"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "cloud"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "data": "_mcMadridYmdFmt"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "data": "_pdCache"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "obAbsorptionIndexes"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "DELETED_AT_MAX"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "DELETED_MAX"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "CONFIG"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcNotaCols"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "USO_OK"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcDivisaCols"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "_mcObNameCol"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "data": "GASTO_ORIGENES"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcPullExpensesPaged"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseSourceForCloud"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "isExpenseUuid"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "withNotaFallback"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "reciboSufijo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseCloudEq"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "_isMissingNotaCol"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "canRecognizeWithdrawal"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "withdrawalRowMatches"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "perfilSinDatosBanco"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcLogEvent"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "mcBetaLog"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "deudaSufijo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRefSufijoCloud"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "ordinalSufijoCloud"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "_isMissingDivisaCol"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "_isMissingObNameCol"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "expenseCloudKeys"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "withdrawalReceiptLink"
+      },
+      {
+        "file": "src/modules/01-i18n.js",
+        "function": "cargoDeRecibo"
+      },
+      {
+        "file": "src/modules/00-core.js",
+        "function": "bankRefDeSource"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedExpenseKey"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "fixedPaymentIdentity"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reciboVetado"
+      },
+      {
+        "file": "src/modules/08-motor-bank.js",
+        "function": "reciboNoIdentidad"
+      }
+    ],
+    "unidades": true
+  },
+  "vibracion-borde-y-mi-ciclo": {
+    "web": [
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "mcHaptic"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "mcBindEdgeHaptics"
+      },
+      {
+        "file": "src/modules/02-ui-shared.js",
+        "function": "mcInicioFillHaptic"
+      },
+      {
+        "file": "src/modules/03-tab-dash.js",
+        "from": "  return React.createElement(\"div\",{className:\"v4-screen\",onAnimationStart:mcInicioFillHaptic},",
+        "to": "    React.createElement(\"div\",{className:\"v4-inicio-head rise\"},"
+      },
+      {
+        "file": "src/modules/11-app-main.js",
+        "from": "  const hapticBlockRef=useRef(null);",
+        "to": "    const el=viewportRef.current; if(!el) return undefined;"
+      }
+    ],
+    "native": [
+      "android/app/src/main/java/com/micartera/app/AelyHapticsPlugin.java",
+      "android/app/src/main/java/com/micartera/app/HapticPlan.java",
+      "android/app/src/main/java/com/micartera/app/MainActivity.java",
+      "android/app/src/main/AndroidManifest.xml"
     ],
     "unidades": true
   }

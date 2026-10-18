@@ -314,3 +314,13 @@ El cálculo opcional del widget está aislado de los avisos de presupuesto: su f
 ### Widget80 / APK52: preasset real, entrega final pendiente
 
 Runtime821 sobre79, gradle52/versionName4.26.80; widgetContract2, cifra/periodo de Inicio en es/en/ca, scope exacto y unknownJournal hasta ACK/lápida. Prebuild26a verificado y asset beta602841368 descargado/cotejado; public/apk.json52 local apunta a URL real. Exige CI/build final del SHA con52 y reemplazo/cotejo binario antes de entregar. APK78 histórica no acredita80. No editar ingest ni instalar. [Plan](briefs/inc-2909-01-apk-beta-plan.md).
+
+## Hápticos UX16 (APK 56 de beta, 4.26.141)
+
+`AelyHapticsPlugin` se registra antes de `super.onCreate` y expone `edge()` y
+`fill({durationMs})`. Usa el WebView existente, sin subclases ni cambios de layout.
+`edge` y el fallback llaman a `performHapticFeedback` sin ignorar ajustes del sistema.
+La composición LOW_TICK requiere API 33+, soporte de primitivas, permiso normal
+VIBRATE y atributos USAGE_TOUCH; no se cambia min/compile/target SDK. La web sin
+plugin o con movimiento reducido es silenciosa. [Contrato y límites](briefs/ux16-haptics.md).
+Integrado en la beta 4.26.141 con `versionCode` 56 / `versionName` 4.26.141 (la tanda `vibracion-borde-y-mi-ciclo` exige esa APK). La APK de beta se compila con la receta de siempre y su asset aún no está publicado: `public/apk.json` sigue en la 55 hasta que exista. Aceptación física en el móvil pendiente.

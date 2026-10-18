@@ -101,20 +101,28 @@ console.log("security");
 // el búfer existente se conserva hasta el pagehide o su temporizador normal.
 {
   const app=read('src/modules/11-app-main.js').replace(/\r\n/g,'\n'),begin=app.indexOf('// Empuja el estado a la nube (debounced)'),end=app.indexOf('// Al volver, los gastos',begin);
-  const timers=new Map(),listeners=new Map(),uploads=[],durable=[];let next=0,blocked=false;
+  const timers=new Map(),listeners=new Map(),uploads=[],durable=[],acks=[];let next=0,blocked=false;
   const state={budget:501.23,settings:{pending:'real-edit'},_savedAt:12345};
-  const ctx=vm.createContext({state,uid:'synthetic-user',cloudUpdatedAtRef:{current:null},sessionRef:{current:null},
+  const cloudUpdatedAtRef={current:'base-stamp'};
+  const ctx=vm.createContext({state,uid:'synthetic-user',cloudUpdatedAtRef,sessionRef:{current:{user:{id:'synthetic-user'}}},
+    useRef:value=>({current:value}),goalSyncMetadataOnly:()=>false,
+    setStateRaw:fn=>fn(state),goalSyncAck:(prev,uid,sent,expected,updated)=>{acks.push({prev,uid,sent,expected,updated});return prev;},
     useEffect:fn=>fn(),setTimeout:fn=>{const id=++next;timers.set(id,fn);return id;},clearTimeout:id=>timers.delete(id),
     mcSandboxTransition:()=>blocked,flushPersist:()=>durable.push(structuredClone(state)),slimForCloud:x=>x,
-    cloud:{pushState:(uid,data)=>{uploads.push({uid,data});return Promise.resolve(null);}},
+    cloud:{pushState:(uid,data,expected)=>{uploads.push({uid,data,expected});return Promise.resolve({updated_at:'next-stamp'});}},
     window:{addEventListener:(n,f)=>listeners.set(n,f),removeEventListener:()=>{}},showToast:()=>{},syncFromCloud:()=>{},t:x=>x});
-  vm.runInContext(app.slice(begin,end),ctx);
+  // Ejecuta también el uploader de beta141; el temporizador no puede saltarse su ACK/CAS.
+  const pushBegin=app.indexOf('  const pushAppState=function('),pushEnd=app.indexOf('  const notifyGoalConflicts=',pushBegin);
+  vm.runInContext(app.slice(pushBegin,pushEnd)+app.slice(begin,end),ctx);
   const armed=timers.size===1;blocked=true;listeners.get('mc-sandbox-transition')();
   if(!armed||timers.size||uploads.length||durable.length)bad('transición cancela debounce sin forzar escrituras locales','timer activo o escritura local inducida');
   else ok('transición cancela debounce sin forzar escrituras locales');
   blocked=false;listeners.get('mc-sandbox-transition')();
   if(timers.size!==1)bad('acuse fallido rearma el push normal','sin timer de recuperación');
   else{const callback=[...timers.values()][0];callback();if(uploads.length!==1||uploads[0].data.settings.pending!=='real-edit')bad('acuse fallido rearma el push normal','payload incorrecto');else ok('acuse fallido rearma el push normal con la edición real');}
+  await Promise.resolve();await Promise.resolve();
+  if(uploads[0]?.expected!=='base-stamp'||cloudUpdatedAtRef.current!=='next-stamp'||acks.length!==1||acks[0].sent!==state||acks[0].expected!=='base-stamp')bad('rearmado conserva uploader y ACK de beta141','se perdió el contrato del envío confirmado');
+  else ok('rearmado conserva uploader y ACK de beta141');
 }
 
 /* ---- 1 bis. `bankSync` es una LECTURA que puede mover el cursor del servidor ----

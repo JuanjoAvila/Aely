@@ -1,3 +1,23 @@
+INC1710 — aviso de recarga a1800ms, alineado con beta141
+
+Task `inc1710-pr265-reload-fallback-delay-codex-20261018`; claim c3b2fc09, ACK 910f4130. Base histórica3f6410f29a9c617443c9c3b1d8751a4afa5ebad1 preservada. Alineación con ff53b0e7243fe79f9164bbc1bcf2313fb2e28d13 mediante merge normal conservando ambas ascendencias, bajo2893f0d3. Candidata para la misma PR265, pendiente de revisión/integración.
+
+El aviso y la marca local `mc_mode_change_reopen_required` se programan después de solicitar `location.reload()` y solo aparecen si este documento sigue vivo y en transición a los1800ms. Una recarga normal no los emite. Pagehide, desmontaje o cancelación de transición limpian el temporizador. Entrar, salir y recargar sin volcar usan el mismo helper; textos y persistencia conservados.
+
+La alineación conserva exactamente, normalizando EOL, `pushAppState`, la selección `cloudUploadState/uploadState` y todo el módulo Deudas/Metas con el closer de PlanEditSheet de141. El efecto mantiene las dependencias `[uploadState,uid]` y el uploader de141, envueltos en la cancelación/rearmado de transición ya revisada en PR265. No vuelve a la llamada directa antigua ni fuerza un flush local. El control dirigido ejecuta efecto y uploader reales: cancela sin escribir, rearma la edición y conserva sello esperado y ACK. Sin cambio de contrato financiero ni de CLOUD_WRITES.
+
+Evidencia dirigida nueva, Chromium sintético,1worker/0retry:
+
+- ROJO causal preservado sobre HTML canónico3f: EXIT1 por marca prematura en recarga normal.
+- Fuente141 más delta: ida y vuelta normal PASS, cero avisos/marcas y cero escrituras SDK entre confirmar y pagehide. Una ejecución sobre141.
+- Recarga cancelada: entrada y salida PASS en contextos independientes, umbral1799/1800ms exacto, una marca nativa y aviso visible,31 escritores bloqueados por dirección y reapertura correcta. EXIT0,dos casos. Se conserva Performance nativa antes de instalar el reloj, que sustituye mark/getEntries por stubs.
+- Fallos de arnés preservados: botón fuera del viewport al congelar antes de acabar la animación; en141, Performance sustituida por el reloj (aviso a1800,contador0). El segundo intento ejecuta solo las direcciones canceladas pendientes. Error sintáctico privado de la sonda conservado y corregido antes de ejecutar; otro error privado al preparar documentación no ejecutó cambios y se sustituyó por edición directa.
+- Build EXIT0; efecto/uploader3 comprobaciones EXIT0; sintaxis EXIT0; registro de pruebas EXIT0. HTML servido141 SHA256 `4c425c5abf0ca2abe4b7464198b148fbb0030ed79b92d62a94e971f8f024ffd2`, estable antes/después. Servidores propios cerrados.
+
+No se repiten suites60/60,9/9,mutantes ni24 activaciones terminadas. La evidencia antigua mantiene su fuente histórica. Evidencia privada en inc1710d141-green-delay, inc1710d141-green-canceled-native-performance e inc1710d141-checks. Catálogos generados por build; VERSION, catálogos fuente y topes no se editan. Pendientes revisión independiente, gates generales de integración/CI, artefacto servido y Android físico. Sin CPU6, Gradle/APK, bancos, SQL vivo, Edge, merge a beta, despliegue o ProductREADY.
+
+Los cortes de abajo son históricos; el aviso inmediato y sus estados de entrega quedan sustituidos por este corte.
+
 INC1710 remates — sucesor privado de 673, pendiente de revisión ROOT
 
 Task `inc1710-pr265-dirty-flush-remates-codex-20261018`; base exacta `673fc18f2498893306c1bfbaca13ddaff5643927`. Claim `ddf4cf37de75927b83f2d1a3133aae772fa4450c`, ACK `3fd69831488c0be96fa5dd58a58a80ae98a608c7`, admisión privada ROOT61 del 18/10. Checkout nuevo `work/inc1710r`; la fuente anterior 673 y su resultado bloqueado/released se conservan. PR265 no se actualiza en esta fase.

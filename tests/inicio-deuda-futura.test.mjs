@@ -127,9 +127,9 @@ test("revision1: nube real proyecta, push/pull y merge conservan startMonth",asy
   assert.deepEqual(pack.data.debts,plain(remote.debts),"el transporte JSON conserva todos los campos de la deuda");
   const app=fs.readFileSync(new URL("../src/modules/11-app-main.js",import.meta.url),"utf8");
   const body=callbackBody(app.slice(app.indexOf("const syncFromCloud=function(")),"function(prev){");
-  const factory=vm.runInContext("(function(sessionRef,cloudState,u,opts,freshLogin,mergeExpenses,fixMovInvasion,fixRevoDupes,fixInvAuto,fixInvSold,reconcileTR,seedFlows,reconcileEarlyIncomeAnchors){return function(prev){"+body+"};})",c);
+  const factory=vm.runInContext("(function(sessionRef,cloudState,cloudPack,u,opts,freshLogin,mergeExpenses,fixMovInvasion,fixRevoDupes,fixInvAuto,fixInvSold,reconcileTR,seedFlows,reconcileEarlyIncomeAnchors){return function(prev){"+body+"};})",c);
   const identity=x=>x;
-  const merge=(local,freshLogin=false)=>factory({current:{user:{id:"synthetic"}}},pack.data,"synthetic",{},freshLogin,(a,b)=>({list:a}),identity,identity,identity,identity,identity,c.seedFlows,identity)(local);
+  const merge=(local,freshLogin=false)=>factory({current:{user:{id:"synthetic"}}},pack.data,pack,"synthetic",{},freshLogin,(a,b)=>({list:a}),identity,identity,identity,identity,identity,c.seedFlows,identity)(local);
   for(const local of [{...fixture([]),_savedAt:10},{...fixture([{...d,name:"Cambio local"}]),_savedAt:30}]){
     const merged=merge(local);
     assert.equal(merged.debts[0].startMonth,2026*12+7);

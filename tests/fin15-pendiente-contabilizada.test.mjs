@@ -91,6 +91,12 @@ function identityContract(server){
  for(const rows of orders([pending,otherBank]))assert.equal(sum(server.filasComoLaApp(rows,[])),640);
  const slot={...pending,source:pending.source+"#n2"};
  for(const rows of orders([slot,booked]))assert.deepEqual(server.filasComoLaApp(rows,["ob-absorbed|caixabank|stable-ref|2"]),[booked]);
+ // FIN10 v2 filtra antes de que FIN15 consuma la identidad banco/referencia.
+ // La misma ranura/ref del día contable siguiente sobrevive a la lápida anterior.
+ const retired={...pending,importe:99,source:pending.source+"#accsynthetic-account-a#n2"};
+ const survivor={...booked,source:booked.source+"#accsynthetic-account-a#n2"};
+ const marker="ob-absorbed2|caixabank|stable-ref|2|synthetic-account-a|2026-10-14";
+ for(const rows of orders([retired,survivor]))assert.deepEqual(server.filasComoLaApp(rows,[marker]),[survivor]);
  // Un borrado por clave vieja tampoco consume la referencia de la superviviente.
  assert.deepEqual(server.filasComoLaApp([pending,booked],[server.claveComoLaApp(pending)]),[booked]);
  const legacy={...pending,source:"ob:caixabank"};
@@ -107,6 +113,42 @@ function identityContract(server){
  }
 }
 test("FIN15 identidad: sin fusionar referencias distintas ni perder legacy o lapidas",()=>identityContract(budget));
+
+test("FIN15 y FIN10 v2: fila retirada no consume referencia y no alcanza otro dia",()=>{
+ const retired={...pending,importe:99,source:pending.source+"#accsynthetic-account-a#n2"};
+ const survivor={...booked,source:booked.source+"#accsynthetic-account-a#n2"};
+ const deleted=["ob-absorbed2|caixabank|stable-ref|2|synthetic-account-a|2026-10-14"];
+ for(const rows of orders([retired,survivor])){
+  const incoming=rows.map(c.expenseFromRow).filter(e=>!c.expenseIsTombstoned(e,c.expenseDeletedSet({deleted})));
+  assert.equal(cents({...state(),expenses:c.mergeExpensesFromCloud([],incoming).list}),320);
+  assert.deepEqual(budget.filasComoLaApp(rows,deleted),[survivor]);
+ }
+});
+
+function accountlessWildcardSurvivor(server){
+ const hidden={...pending,source:pending.source+"#accsynthetic-account-a#n2"};
+ const survivor={...booked,source:booked.source+"#accsynthetic-account-a#n2"};
+ // La fila tiene cuenta conocida: la lápida vacía solo la alcanza por el comodín,
+ // no por igualdad de clave. La BOOK del otro día conserva la misma referencia.
+ const deleted=["ob-absorbed2|caixabank|stable-ref|2||2026-10-14"];
+ assert.deepEqual(server.filasComoLaApp([hidden],deleted),[]);
+ assert.deepEqual(server.filasComoLaApp([survivor],deleted),[survivor]);
+ for(const [order,rows] of orders([hidden,survivor]).entries()){
+  const filtered=server.filasComoLaApp(rows,deleted),serverCents=sum(filtered);
+  console.log(JSON.stringify({accountlessWildcardSurvivor:{order,serverCents,expectedCents:320}}));
+  assert.equal(serverCents,320,"la oculta por comodin no puede consumir la referencia y dejar cero");
+  assert.deepEqual(filtered,[survivor]);
+ }
+}
+test("FIN15 comodin sin cuenta: fila oculta no consume referencia superviviente",()=>{
+ accountlessWildcardSurvivor(budget);
+ const source=read("supabase/functions/_shared/presupuesto.ts");
+ const result=mutationResult(source,"comodin consume referencia antes de retirar fila",s=>s.replace(
+  'if (cuentaAusente.has(base) || (!cuentaDeSource(f.source) && sinCuenta.has(base))) continue;',
+  'if (cuentaAusente.has(base) || (!cuentaDeSource(f.source) && sinCuenta.has(base))) { const hiddenRef = referenciaOb(f); if (hiddenRef) referencias.add(hiddenRef); continue; }'
+ ),accountlessWildcardSurvivor);
+ assert.equal(result.status,"killed");
+});
 
 test("FIN15 clientes antiguos sin #ref: igualdad exacta contra base 9370565",()=>{
  const old=serverModule(execFileSync("git",["show","9370565008aa2c4df9fb0588b2bf4f97e2cdc726:supabase/functions/_shared/presupuesto.ts"],{encoding:"utf8"}));
@@ -127,7 +169,8 @@ test("FIN15 mutaciones semanticas de identidad servidor",()=>{
   ["referencia vuelve a depender del dia",s=>s.replace('JSON.stringify([bank, decodeURIComponent(ref[1])])','JSON.stringify([bank, decodeURIComponent(ref[1]), f.fecha])')],
   ["pierde ambito de banco",s=>s.replace('JSON.stringify([bank, decodeURIComponent(ref[1])])','JSON.stringify([decodeURIComponent(ref[1])])')],
   ["funde referencias distintas por contenido",s=>s.replace('if (anteriores && (!ref || anteriores.has(""))) continue;','if (anteriores) continue;')],
-  ["ignora lapida de absorcion",s=>s.replace('if (absorbed && lap.has(absorbed)) continue;','')],
+  ["ignora lapida de absorcion",s=>s.replace('if (legacy && lap.has(legacy)) continue;','')],
+  ["ignora lapida v2 antes de identidad FIN15",s=>s.replace('if (absorbed && lap.has(absorbed)) continue;','')],
   ["ignora lapida legacy",s=>s.replace('if (lap.has(k)) continue;','')],
   ["rompe fallback sin referencia",s=>s.replace('if (anteriores && (!ref || anteriores.has(""))) continue;','if (false) continue;')],
   ["no decodifica referencia",s=>s.replace('JSON.stringify([bank, decodeURIComponent(ref[1])])','JSON.stringify([bank, ref[1]])')],
