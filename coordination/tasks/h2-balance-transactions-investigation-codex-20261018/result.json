@@ -1,0 +1,133 @@
+{
+  "status": "blocked",
+  "phase": "INVESTIGATION_RED_PROPOSAL_ONLY_NO_PRODUCT",
+  "summary": "H2 investigacion cerrada y propuesta consultada. Base exacta ff53b0e7; informe y manifiesto previos verificados, 27 referencias y 9 fuentes reconstruidas; 9 controles y 3 RED reutilizados sin repetir. Dos RED nuevos causales EXIT1: transactions primera pagina503 descarta saldo valido10000c; cliente con cuenta hermana sana omite saldo previo12500c de fallida, total10000c frente22500c propuestos. Error inicial de dependencia del harness conservado, no cuenta como RED. Servidor comparte try y plazo15s; cliente conserva saldo antiguo solo cuando no contribuye ninguna cuenta. Propuesta conjunta servidor/cliente, estado independiente por cuenta/fase, saldo anterior y fecha stale, tiempo reservado para movimientos, cursor y ACK por completitud de movimientos con guardas existentes. Reserva5s/resto15s es hipotesis pendiente, alternativa txprimero. Compatibilidad y frescura por cuenta pendientes de decision Claude. Sin producto ni PR nuevos, PR275 congelado. Resultado blocked/released por falta de GO producto; STOP.",
+  "baseSHA": "ff53b0e7243fe79f9164bbc1bcf2313fb2e28d13",
+  "productSHA": null,
+  "productReady": false,
+  "frozenPR275SHA": "2b5e14a12673252dc621f0f95dd1e10baafe979d",
+  "newProductDiff": false,
+  "newPR": null,
+  "claimCommit": "4ec9727c0238a505dafb84fbf81c02853503366f",
+  "ACKCommit": "f697a82159b68de6ee456c7f6d0c52ed7a448c34",
+  "grant": "4e1e9f695fb656c5220477841095320ea39dcbd8",
+  "consultationCommit": "673e177d9179d5a6d47271401943253e5ec2fe4d",
+  "consultationExactReadback": true,
+  "report": {
+    "path": "outputs/propuesta-h2-saldo-movimientos.txt",
+    "bytes": 10369,
+    "sha256": "c728e8ba9e2a0b6adac79beed1e73522b98db71270b5ad04b00df418dcda8d5c"
+  },
+  "manifest": {
+    "path": "outputs/manifiesto-h2-saldo-movimientos.json",
+    "bytes": 10187,
+    "sha256": "4c89ff271601412978f0152efbed245cee6bbdd42674e05bd23aceca538771a5"
+  },
+  "priorEvidence": {
+    "reportSHA256": "b29d99e3e9677df79c3c935b76d53f41f501a753ec8bcc196b2892dba06fbb7c",
+    "manifestSHA256": "a953d95123dc15b8cf51d467277e5269dd604c1c0c4a2be54faaabb5c44e89ee",
+    "all27ReferencesVerified": true,
+    "9SourceHashesReconstructedFromBase": true,
+    "controls": 9,
+    "red": 3,
+    "reexecuted": 0,
+    "provenance": {
+      "path": "work/h2/provenance.json",
+      "bytes": 11731,
+      "sha256": "b9dc9a92fb36da143422445ee85ededcf28eddaddb26d18b68f5079bb84108c6"
+    }
+  },
+  "newExecution": {
+    "command": [
+      "node",
+      "probe-v2.mjs"
+    ],
+    "exitCode": 1,
+    "causalRedAssertions": 2,
+    "passed": 0,
+    "expectedRed": true,
+    "record": {
+      "path": "work/h2/red-new-v2.json",
+      "bytes": 676,
+      "sha256": "df7a2ef4f4bacb755d15337e602dd28fa695846bbb021ca428c87b04f41e58a8"
+    },
+    "output": {
+      "path": "work/h2/red-new-v2.stdout",
+      "bytes": 3271,
+      "sha256": "8995a117d4f7946cd6accd9310dd0805c36c5243737258295f47a962936daa33"
+    }
+  },
+  "harnessFailure": {
+    "path": "work/h2/red-new.json",
+    "bytes": 667,
+    "sha256": "b2eee158a25503280db2fd3ef82a6f78d3d71c5628b29a37e4878c65d5b17dd9"
+  },
+  "consultationReadback": {
+    "path": "work/night-h/h2-consult-retry2-canonical-readback.json",
+    "bytes": 2898,
+    "sha256": "9ac32fec67088bbe7c09ca33dadc34c809785473833e479fb24b5eae41c2b5e8"
+  },
+  "unresolvedDecisions": [
+    "Separate product task and joint server/client scope with capability compatibility.",
+    "Choose balance time reservation versus transaction-first within existing caps; 5 seconds is a proposal, not measured optimum.",
+    "Transaction-completeness ACK with account balance freshness and partial warning; preserve authorization and local persistence guards."
+  ],
+  "budgetBeforeResult": {
+    "own10Frozen": 10,
+    "own12Frozen": 12,
+    "own20Used": 11,
+    "own20Remaining": 9,
+    "total": 33,
+    "expectedAfterReadback": 12,
+    "minSeconds": 30,
+    "noResetOrInheritance": true
+  },
+  "limitations": [
+    "Investigation/proposed contract only; no product authority or fix, no GREEN/mutants for a nonexistent fix.",
+    "Prior nine controls and three RED reused, not executed again. Two prior historical RED concern frozen PR275, not new H2 bugs.",
+    "New RED uses actual base handler/pure client with local provider/auth/DB doubles, fixed UTC clock; no live Supabase or bank, DOM/mobile or incident attribution.",
+    "First new probe exited1 before scenarios due to esbuild import resolution; preserved and excluded from causal RED count.",
+    "No build/fullsuite/CPU6/Gradle/APK/SQL/migration/Edge/deploy/merge or VERSION/catalogue/caps/CLOUD_WRITES/auth changes.",
+    "No blanket no-loss guarantee: existing overflow exception and90day limit remain; ACK is local delivery, not cloud expense ACK.",
+    "Separate product task and explicit Claude decision needed for server/client compatibility, time allocation, balance freshness and transaction-only ACK.",
+    "No new PR: private investigation fixtures and proposal only; frozen PR275/foreign checkouts unchanged."
+  ],
+  "consultationPublicationFailures": [
+    "Original and retry1 normal push EXIT1 due to concurrent channel writes; FULL RAW read and preserved, authorized NFF retry2 only."
+  ],
+  "nextAction": "STOP; no implementation, next task, polling or other-chat message.",
+  "tests": [
+    {
+      "name": "prior controls reused not rerun",
+      "count": 9,
+      "exitCode": 0,
+      "executedThisPhase": false
+    },
+    {
+      "name": "prior RED reused not rerun",
+      "count": 3,
+      "exitCode": 1,
+      "executedThisPhase": false
+    },
+    {
+      "name": "H2 new causal assertions probe-v2",
+      "count": 2,
+      "passed": 0,
+      "failed": 2,
+      "exitCode": 1,
+      "expectedRED": true
+    },
+    {
+      "name": "initial harness dependency failure not causal RED",
+      "exitCode": 1,
+      "causalRED": false
+    }
+  ],
+  "localPreparationFailure": "Original result prepare EXIT1: missing required tests array; no push or fetch, no permission/filter denial. Corrected structured schema in new immutable operation using same helper/session/task.",
+  "schema": 1,
+  "taskId": "h2-balance-transactions-investigation-codex-20261018",
+  "actor": "codex",
+  "sessionId": "codex-local-20261016-5fc9afdec60f82b1",
+  "createdAt": "2026-10-18T11:43:56.257Z",
+  "released": true
+}
