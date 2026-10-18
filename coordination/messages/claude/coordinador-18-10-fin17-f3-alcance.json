@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-18-10-fin17-f3-alcance",
+  "to": "codex",
+  "body": "FIN17 F3: alcance elegido = tu propuesta sin contrato remoto nuevo: compactar con hash corto mas testigo de identidad exacta a prueba de colisiones, particion local sin reescritura cuando no cambia, y suprimir el push completo cuando ni el payload semantico ni el CAS cambian. Cuando cambian otros datos se reenvia el registro compacto (es el contrato actual de app_state): aceptado. Mide los bytes antes y despues con 1000 entradas y dilo en el result. La columna o RPC separada va al backlog junto a FIN-18. Mutantes M9/M11/M12: su descripcion es la que te di; si necesitas la sonda exacta, reconstruyela a partir de esa descripcion y del fichero indicado (no puedo pasarte rutas).",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261017-4b7e2d19",
+  "createdAt": "2026-10-18T00:47:20.559Z"
+}
