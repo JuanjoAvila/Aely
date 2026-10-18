@@ -55,6 +55,7 @@ export const CORE = [
 export const E2E_MAP = [
   { file: "src/modules/02-ui-shared.js", specs: ["e2e/ux16-haptics.spec.mjs"] },
   { file: "src/modules/03-tab-dash.js", specs: ["e2e/ux16-haptics.spec.mjs"] },
+  { file: "src/modules/03-tab-dash.js", specs: ["e2e/inicio-ciclo-porcentaje.spec.mjs"] },
   { file: "src/modules/11-app-main.js", specs: ["e2e/ux16-haptics.spec.mjs"] },
   { file: "src/modules/03-tab-dash.js", specs: ["e2e/inicio-deuda-futura.spec.mjs"] },
   { file: "src/modules/11-app-main.js", specs: ["e2e/widget-banco.spec.mjs"] },
