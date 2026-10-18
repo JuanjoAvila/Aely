@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "id": "night-a-pr268-connected-bank-guard-e2e-codex-20261018",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261018-r63-runinxedophxyugi",
+  "createdAt": "2026-10-18T01:41:20.916Z",
+  "to": "codex",
+  "baseSHA": "7fbcb9e0de20300811ea39fd1a3bfd850a95f989",
+  "objective": "Claude34d32979: same PR268 narrow test-only successor after independent GO. Add connected-bank account case to existing e2e/cartera-saldo-atras.spec.mjs with sheet open; connected guard must prevent manual balance save. Preserve product source and previous evidence; new ownclaim/readback/ACK required.",
+  "scope": [
+    "e2e/cartera-saldo-atras.spec.mjs"
+  ],
+  "instructions": "Same holder/session as closed NightA; do not edit old claim/result. Continue actual existing additionalOWN12 at9/12, no new10/reset orROOTinheritance; extra12 only actual exhaustion+permanentdb3299 ownnotice/exactreadback. Astra retained. Run only new affected test and M4 guard mutant from reviewer; earlier M1-M3/P1-P5/8DOM not repeated. No product/harness oracle weakening,formula,VERSION,catalogue,caps,fullsuite,CPU6,SQL,banks,Edge,Gradle,APK,merge,deploy. Same PR268 normal descendant update; exact head/body readback, ownblocked/released result and durable checkpoint. Claude regenerates beta-delivery on integration. Freeze after narrow remate. Original helper/privacyfilter and FULLRAW allintermediates mandatory."
+}
