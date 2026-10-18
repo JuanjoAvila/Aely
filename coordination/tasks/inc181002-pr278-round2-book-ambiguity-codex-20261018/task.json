@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "id": "inc181002-pr278-round2-book-ambiguity-codex-20261018",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261018-r68-1141875c91e6e665",
+  "createdAt": "2026-10-18T11:35:43.156Z",
+  "to": "codex",
+  "kind": "worker",
+  "model": "gpt-6-astra",
+  "priority": 1,
+  "baseSHA": "7796389b695c81d483b9f179800354df062ba4dc",
+  "originalBetaBaseSHA": "ff53b0e7243fe79f9164bbc1bcf2313fb2e28d13",
+  "claudeGrant": "1729f839907b7cdb0136a4b1332e85c87748e416",
+  "previousTaskId": "inc181002-receipt-rename-identity-codex-20261018",
+  "dependency": {
+    "result": "171bbc6e819067b1dfb26f70739a3f6fbc81c797",
+    "status": "blocked",
+    "released": true
+  },
+  "PR": 278,
+  "branch": "codex/inc181002-receipt-rename-20261018",
+  "objective": "PR278 round2 authorized by independent review: preserve BOOK v2 ownership ambiguity after receipt rename and recreation of its previous name. Both competing receipts must remain pending; no payment-proof transfer to the recreated receipt.",
+  "scope": [
+    "src/modules fixedPaymentState transaction branch and fixedPaymentAutoOwner strictly for BOOK v2 competitor detection",
+    "tests own causal Node regression and necessary new negative controls",
+    "docs/briefs and immutable evidence for this exact remate"
+  ],
+  "requirements": [
+    "Same original Recibos/Deudas holder Astra, same branch and PR278, continue from source7796389b. Verify own runtime/cwd/census/helper/filter/session and actual remaining ledger. Fresh task OWN claim/readback/ACK before work. Preserve prior task claim/result/references and frozen PR240/269/277; no inherited claims/leases/budgets.",
+    "Synthetic ROJO first for exact reviewed case: r1 named Tributo municipal paid by BOOK with v2 proof, rename r1 toIBI, create r2 Tributo municipal with same bank and amount. Before fix ambiguity incorrectly makes r1 pending and r2 paid then reconcileFixedPaymentProofs assigns r1 charge to r2. Expected both pending without moving charge identity, exact amounts or account.",
+    "In fixedPaymentState transaction branch AND fixedPaymentAutoOwner, treat another receipt as a rival when it owns a same-month BOOK v2 proof for the same identity, using that proof receiptName as instructed by Claude. Preserve stable receipt id, month, bank/reference/account, exact-cent, PDNG/conflict/veto/tombstone and uniqueness guards. Expense branch already correct, no gratuitous change.",
+    "Targeted actual-code Node regression and justified negative controls only; reuse prior completed144 Node/5DOM/8mutants and Claude157/157 E2E as provenance, do not rerun completed tests. New meaningful targeted mutants for this blocker if needed. Real commands/EXITs, immutable manifest/checkpoint and final exactSHA. Directed own1worker0retry only if genuinely necessary; no fullsuite/CPU6/Gradle/APK/builds.",
+    "No broad migration or reinterpretation of existing broken links. Preserve prior explicit consultation05c0fb49 scope for rename conversion. Nonblocking old-client forward-only v2, early-sync invalid-proof renewal and Gastos tentative label are Claude integration notes; do not expand this remate.",
+    "Continue SAME holder OWN block and actual counters, all first/internal/readbacks counted,min30s, no reset. b0390 successor20 only after actual exhaustion plus normal own notice/readback. No ROOT or H2 budgets used.",
+    "Update SAME draft PR278 against beta; OWN immutable released blocked result while independent review/integration remain pending. Public payload numericPR/SHA only with original helper/filter. No real bank/mobile/served claim. STOP after delivery.",
+    "No server/auth/CLOUD_WRITES/SQL/migrations/livebank/Edge/deploy/main-beta push/merge/VERSION/catalogue/caps/oracle/foreign process or lease changes. H2 remains original H holder investigation-only; no coordination or messages to other chats."
+  ],
+  "deliverable": "Causal BOOK ambiguity RED, minimal authorized remate, focused GREEN and evidence, same draftPR278 exactSHA, OWN immutable released result for Claude review."
+}
