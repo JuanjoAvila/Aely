@@ -1,0 +1,122 @@
+{
+  "status": "blocked",
+  "summary": "FIN17 F1-F5 delivered as normal descendant update to SAME draft PR267, exact1c774ec613830a538919d6b63eb6d54cfe4c0046 aligned141ff53. Capacity union retains ALL recent entries over1000 with telemetry and no capacity sync/write blockade;strict>90day eviction underpressure. Local notice once perincident/device,cleared after queue resolution,not cloud flag. Compact hash buckets preserve exact collision witnesses;changed-only local persistence and wholepush skipped only same semanticpayload+CAS;unrelated changes resend pack. SIGNED_OUT clears outgoing confirmed and FIN11 partitions,preserves otherowners;postsave cannot recreate empty partition. Reconstructed M9/M11/M12 independently EXIT1 ERR_ASSERTION. Metas cloudOnly conflict and PlanEditSheet closer141 preserved. FocalGREEN;size/docs blocked and independentreview/integration/generalCI/served/mobile pending. Claim released;checkpointmanifest and STOP;not ProductREADY.",
+  "productSHA": "1c774ec613830a538919d6b63eb6d54cfe4c0046",
+  "baseSHA": "5fb637621eb0f7194cc3c9c62b711dcc927df026",
+  "alignedBaseSHA": "ff53b0e7243fe79f9164bbc1bcf2313fb2e28d13",
+  "PR": 267,
+  "draft": true,
+  "normalPushExit": 0,
+  "remoteHeadExact": true,
+  "PRHeadBaseBodyExact": true,
+  "claimCommit": "633f792d2af8b3de624b74a7baee90fabd90163e",
+  "ACKCommit": "04dd969030dc1a96a124ba8f290ad202275b2530",
+  "tests": [
+    {
+      "name": "FIN17 focal UTC",
+      "passed": 35,
+      "exitCode": 0
+    },
+    {
+      "name": "FIN17 focal Madrid",
+      "passed": 35,
+      "exitCode": 0
+    },
+    {
+      "name": "DOM including reopen notice and SIGNED_OUT postsave",
+      "passed": 8,
+      "exitCode": 0,
+      "workers": 1,
+      "retries": 0
+    },
+    {
+      "name": "Deno confirmed pending widget",
+      "passed": 22,
+      "exitCode": 0,
+      "qualification": "Executed in this remediation on final unchanged server reader;later delta client-only empty partition"
+    },
+    {
+      "name": "build syntax security i18n registration",
+      "exitCode": 0
+    },
+    {
+      "name": "M9 M11 M12 reconstructed independent probes",
+      "exitCodes": [
+        1,
+        1,
+        1
+      ],
+      "assertionKills": 3
+    },
+    {
+      "name": "causal RED F1-F5 F2 reopen F3 sends and F5 postsave",
+      "exitCode": 1,
+      "expected": true
+    }
+  ],
+  "metrics1000": {
+    "registryBytesBefore": 310940,
+    "registryBytesAfter": 151419,
+    "mainStateBytesBefore": 311293,
+    "mainStateBytesAfter": 376,
+    "identicalPersistenceCalls": 2,
+    "writesBefore": 2,
+    "writesAfter": 1,
+    "pushCalls": 5,
+    "sendsBefore": 5,
+    "sendsAfter": 2,
+    "scenario": "initial plus three savedAt-only changes plus unrelated budget change"
+  },
+  "gates": {
+    "size": {
+      "exitCode": 1,
+      "minKiB": 1349,
+      "minCapKiB": 1328,
+      "gzipKiB": 375,
+      "gzipCapKiB": 370,
+      "blockingFiles": "3/3"
+    },
+    "docsFrescura": {
+      "exitCode": 1,
+      "version": "4.26.141",
+      "publishableFilesAfterAnchor": 2
+    },
+    "betaSources": "NOT RERUN current141;historical5fb one complete run98PASS7catalogue descriptor failures remains frozen",
+    "CI": []
+  },
+  "evidence": {
+    "candidateManifestSHA256": "9ccc79dce6f2a38388913659daf08623469d39c25b1ed2b5dc596744bd72d100",
+    "candidateCheckpointSHA256": "9f1698846449cfb7b9d87c6b23fc0cb588ea48aaed6933501f4505eeb6c376a4",
+    "deliverySHA256": "2e2a0b002e337e8f47628e42f24a80ba5824a9372efc8059483f08b0c41d4a5a",
+    "metricsSHA256": "503296d9bcccaea4087ee60023c5ba82268bd82281d4daf66772a0a3c5d4dac7",
+    "HTMLSHA256": "55404cf6e398939930f8dd7cb04d37bcb2b383c5bd8244c9a9ad795e5b8c840c",
+    "previousResultC011Frozen": true,
+    "oldClaimSource5fbPreserved": true
+  },
+  "limitations": [
+    "Compatible server reader must be deployed before compact client integration;no server deployment performed",
+    "NightC polarity integration dependency unverified",
+    "H2 retains640uncertain cents;FIN18 unlearned registry,legacy writers,check-write race and separate remote contract remain",
+    "No repetition of 108 regressions; no full suite, CPU6, Gradle, APK, live SQL, RLS, banks, Edge, deploy or merge; no VERSION, catalogue or caps changes",
+    "Independent review/generalCI/integration/served beta/physical mobile not verified",
+    "Own harness ENOBUFS,recorderEEXIST,DOMparenthesis discovery and stale PR base snapshot failures preserved;corrected underbc1c5e1d without weakening product oracles"
+  ],
+  "budget": {
+    "id": "fin17-own12-5-db3299cd-fcf546f2",
+    "previousOwnFetches": 58,
+    "usedBeforeResult": 8,
+    "expectedAfterReadback": 9,
+    "limit": 12,
+    "noReset": true,
+    "noROOTInheritance": true,
+    "allFirstInternalReadbackFetchesCounted": true
+  },
+  "productReady": false,
+  "next": "Independent review and integration by owner; own blocked/released result exact readback, final durable checkpoint and STOP",
+  "schema": 1,
+  "taskId": "fin17-pr267-independent-review-remates-codex-20261018",
+  "actor": "codex",
+  "sessionId": "codex-local-20261017-fcf546f25c8b1b50",
+  "createdAt": "2026-10-18T01:38:14.916Z",
+  "released": true
+}
