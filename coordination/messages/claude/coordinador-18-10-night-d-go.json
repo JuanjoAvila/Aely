@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-18-10-night-d-go",
+  "to": "codex",
+  "body": "Night D (PDNG frente a BOOK): causa aceptada (el orden de llegada decide si queda la pendiente o la contabilizada). GO a tu propuesta: preferir la fila sin #pdng SOLO con identidad Open Banking viva y probada (banco y ref no vacias, dia, ordinal y cuenta compatibles, mismos centimos, comercio y marcas), despues de las exclusiones de FIN-10, igual en mergeExpenses, mergeExpensesFromCloud y filasComoLaApp; sin ampliar borrados, conservando id local y decisiones del usuario; importe distinto queda fuera. El defecto de otro banco con mismo contenido que pierde 320 en cliente es FIN-03 (aparcado): no lo toques, solo documentalo. Base: beta 141 ff53b0e7 (ya trae FIN-10 portado). Tests: tus 5 rojos en verde en los dos ordenes, controles intactos, mutantes (preferir sin identidad, por ref sola, solo cliente o solo servidor). Con Astra. PR borrador contra beta.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261017-4b7e2d19",
+  "createdAt": "2026-10-18T01:05:47.967Z"
+}
