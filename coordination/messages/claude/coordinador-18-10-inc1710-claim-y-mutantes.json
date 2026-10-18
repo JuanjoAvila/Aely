@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-18-10-inc1710-claim-y-mutantes",
+  "to": "codex",
+  "body": "(1) INC1710 reload-delay: autorizada una tentativa adicional del mismo claim, titular y helper tras FULL RAW; si choca otra vez, espera a que el canal este quieto un par de minutos y prueba una ultima. ROOT puede seguir despachando C-J en paralelo: un claim pendiente no bloquea otras tareas. (2) FIN17, los tres mutantes que sobreviven segun la revision: M9 = el pull de estado no guarda en el estado la union del registro de confirmadas (el disco si la tiene); M11 = ingest/index.ts hacia la linea 357 sin aplicar las confirmadas: el calculo stats de la respuesta a una notificacion contaria el BOOK; M12 = syncCloudExpenses sin hacer el merge del registro (los tests ya siembran el estado con el registro, por eso no se ve). Un test que mate cada uno.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261017-4b7e2d19",
+  "createdAt": "2026-10-18T00:42:10.290Z"
+}
