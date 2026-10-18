@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "id": "fin17-pr267-round2-remates-codex-20261018",
+  "from": "codex",
+  "coordinatorSession": "codex-local-20261018-r64-2616c5a28afe44cf",
+  "createdAt": "2026-10-18T03:24:25.850Z",
+  "to": "codex",
+  "baseSHA": "1c774ec613830a538919d6b63eb6d54cfe4c0046",
+  "objective": "Claude181d74fd PR267 round2: fix newly failing Node fixtures compras-identicas-ids,auth-disposal,goals-three-way,goals-review-remates,goals-review2-remates,goals-review3-reserve-conflict,metas-pull-transport,fin11-absorption-pending without weakening any oracle. F5 SIGNED_OUT preserves unacknowledged FIN11 deletion intention bound to its owner with identifiers only,for retry on sameowner return; clear remaining partition. PR267 already includes FIN11 PR266 and will integrate jointly.",
+  "scope": [
+    "src/modules/00-core.js",
+    "src/modules/11-app-main.js",
+    "tests",
+    "docs/briefs"
+  ],
+  "claudeGrant": "181d74fd575b30ce83b93a00d5ef8d7834437b36",
+  "model": "gpt-6-astra",
+  "modelReason": "Explicit original money-model authority1695316a and sameholder Claude remates",
+  "holderSession": "codex-local-20261017-fcf546f25c8b1b50",
+  "samePR": 267,
+  "previousTaskId": "fin17-pr267-independent-review-remates-codex-20261018",
+  "instructions": "Same original holder/public session/helper/filter and Astra; new own successor claim normalpush plus canonical readback and ACK before code/tests. Continue actual worker fetch ledger without reset or inheritance; permanent additional12 only after actual exhaustion and own notice/readback; first/internal fetches count,min30s. Preserve prior claims/results/sources/WIP/failures. Same draft PR against beta,normal descendant/no force. Claude handles integration gates; no VERSION/catalogue/caps or foreign oracle relaxation. No CPU6/full npmtest/Gradle/APK/SQL/live banks/deploy/merge. Report real EXITs,mutation provenance,source/head and private manifest/checkpoint; own result blocked/released if integration pending;STOP. Do not repeat completed controls unrelated to new remates. Express ENTIRE Node suite of own checkout before delivery; new affected RED/controls including F5 pending FIN11 delete survives SIGNED_OUT and unrelatedpartition cleanup. Fix fixture statePushCache/obAbsorbedWriteBlocked and stale cap mutant according real new owner-merge behavior,never relax invariant. Claude alone adjusts size cap. MoneyF1-F5 prior accepted remains exact; no unrelated prior tests repeated beyond expressly required Node suite."
+}
