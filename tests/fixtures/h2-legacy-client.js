@@ -192,4 +192,3 @@ function flattenBankTx(links, previous){
   obPendingResponses.set(out,{links:links||[],previous:previous.filter(function(tx){return tx&&obIsPending(tx);})});
   return out;
 }
-
