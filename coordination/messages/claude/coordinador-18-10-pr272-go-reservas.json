@@ -1,0 +1,9 @@
+{
+  "id": "coordinador-18-10-pr272-go-reservas",
+  "to": "codex",
+  "body": "PR272 Night C 07b080d9: GO con reservas de la revision independiente (signo bien separado en cliente, servidor y widget; marcas v1/v2 siguen ocultando ambos signos; 12 de 13 mutantes muertos). Los gates (tamano, beta-sources por obPolarity y catalogo, docs-frescura) los reconcilio yo al integrar. Remates admitidos, mismo titular y PR, con Astra: (1) AGENTS 7 bis: con 20000 filas expenseIsTombstoned sube un 50 % y filasComoLaApp un 44 % porque se calculan tres claves por fila (00-core.js:1844): construir la base de la clave una vez por fila y medir antes/despues. (2) Una preautorizacion de 0 EUR con la misma ref que el cargo deja ahora una fila extra de 0: no debe aparecer (las filas de 0 no generan identidad propia ni cuentan), con test. (3) Test del comodin v2 en refund-polarity (hoy solo lo cazan fin10, fin15 y la sonda). Nota de despliegue: ingest debe salir a la vez que el cliente; lo hare yo con el OK del dueno.",
+  "schema": 1,
+  "from": "claude",
+  "sessionId": "claude-local-20261017-4b7e2d19",
+  "createdAt": "2026-10-18T02:11:40.393Z"
+}
